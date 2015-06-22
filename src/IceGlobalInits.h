@@ -17,8 +17,12 @@
 #ifndef SUBZERO_SRC_ICEGLOBALINITS_H
 #define SUBZERO_SRC_ICEGLOBALINITS_H
 
+#include <memory>
+#include <utility>
+
+#include "llvm/Bitcode/NaCl/NaClBitcodeParser.h" // for NaClBitcodeRecord.
 #include "llvm/IR/CallingConv.h"
-#include "llvm/IR/GlobalValue.h" // for GlobalValue::LinkageTypes
+#include "llvm/IR/GlobalValue.h" // for GlobalValue::LinkageTypes.
 
 #include "IceDefs.h"
 #include "IceTypes.h"
@@ -95,11 +99,14 @@ class FunctionDeclaration : public GlobalDeclaration {
   FunctionDeclaration &operator=(const FunctionDeclaration &) = delete;
 
 public:
-  static FunctionDeclaration *create(const FuncSigType &Signature,
+  static FunctionDeclaration *create(GlobalContext *Context,
+                                     const FuncSigType &Signature,
                                      llvm::CallingConv::ID CallingConv,
                                      llvm::GlobalValue::LinkageTypes Linkage,
-                                     bool IsProto);
-  ~FunctionDeclaration() final {}
+                                     bool IsProto) {
+    return new (Context->allocate<FunctionDeclaration>())
+        FunctionDeclaration(Signature, CallingConv, Linkage, IsProto);
+  }
   const FuncSigType &getSignature() const { return Signature; }
   llvm::CallingConv::ID getCallingConv() const { return CallingConv; }
   // isProto implies that there isn't a (local) definition for the function.
@@ -167,21 +174,11 @@ public:
     DataInitializer &operator=(const DataInitializer &) = delete;
 
   public:
-    template <class IntContainer>
-    DataInitializer(const IntContainer &Values)
-        : Initializer(DataInitializerKind), Contents(Values.size()) {
-      size_t i = 0;
-      for (auto &V : Values) {
-        Contents[i] = static_cast<int8_t>(V);
-        ++i;
-      }
+    template <class... Args>
+    static std::unique_ptr<DataInitializer> create(Args &&... TheArgs) {
+      return makeUnique<DataInitializer>(std::forward<Args>(TheArgs)...);
     }
-    DataInitializer(const char *Str, size_t StrLen)
-        : Initializer(DataInitializerKind), Contents(StrLen) {
-      for (size_t i = 0; i < StrLen; ++i)
-        Contents[i] = Str[i];
-    }
-    ~DataInitializer() override {}
+
     const DataVecType &getContents() const { return Contents; }
     SizeT getNumBytes() const final { return Contents.size(); }
     void dump(GlobalContext *Ctx, Ostream &Stream) const final;
@@ -190,6 +187,20 @@ public:
     }
 
   private:
+    ENABLE_MAKE_UNIQUE;
+
+    DataInitializer(const llvm::NaClBitcodeRecord::RecordVector &Values)
+        : Initializer(DataInitializerKind), Contents(Values.size()) {
+      for (SizeT I = 0; I < Values.size(); ++I)
+        Contents[I] = static_cast<int8_t>(Values[I]);
+    }
+
+    DataInitializer(const char *Str, size_t StrLen)
+        : Initializer(DataInitializerKind), Contents(StrLen) {
+      for (size_t i = 0; i < StrLen; ++i)
+        Contents[i] = Str[i];
+    }
+
     // The byte contents of the data initializer.
     DataVecType Contents;
   };
@@ -200,9 +211,9 @@ public:
     ZeroInitializer &operator=(const ZeroInitializer &) = delete;
 
   public:
-    explicit ZeroInitializer(SizeT Size)
-        : Initializer(ZeroInitializerKind), Size(Size) {}
-    ~ZeroInitializer() override {}
+    static std::unique_ptr<ZeroInitializer> create(SizeT Size) {
+      return makeUnique<ZeroInitializer>(Size);
+    }
     SizeT getNumBytes() const final { return Size; }
     void dump(GlobalContext *Ctx, Ostream &Stream) const final;
     static bool classof(const Initializer *Z) {
@@ -210,6 +221,11 @@ public:
     }
 
   private:
+    ENABLE_MAKE_UNIQUE;
+
+    explicit ZeroInitializer(SizeT Size)
+        : Initializer(ZeroInitializerKind), Size(Size) {}
+
     // The number of bytes to be zero initialized.
     SizeT Size;
   };
@@ -220,10 +236,11 @@ public:
     RelocInitializer &operator=(const RelocInitializer &) = delete;
 
   public:
-    RelocInitializer(const GlobalDeclaration *Declaration, RelocOffsetT Offset)
-        : Initializer(RelocInitializerKind), Declaration(Declaration),
-          Offset(Offset) {}
-    ~RelocInitializer() override {}
+    static std::unique_ptr<RelocInitializer>
+    create(const GlobalDeclaration *Declaration, RelocOffsetT Offset) {
+      return makeUnique<RelocInitializer>(Declaration, Offset);
+    }
+
     RelocOffsetT getOffset() const { return Offset; }
     const GlobalDeclaration *getDeclaration() const { return Declaration; }
     SizeT getNumBytes() const final { return RelocAddrSize; }
@@ -234,34 +251,40 @@ public:
     }
 
   private:
-    // The global declaration used in the relocation.
+    ENABLE_MAKE_UNIQUE;
+
+    RelocInitializer(const GlobalDeclaration *Declaration, RelocOffsetT Offset)
+        : Initializer(RelocInitializerKind), Declaration(Declaration),
+          Offset(Offset) {} // The global declaration used in the relocation.
+
     const GlobalDeclaration *Declaration;
     // The offset to add to the relocation.
     const RelocOffsetT Offset;
   };
 
   /// Models the list of initializers.
-  typedef std::vector<Initializer *> InitializerListType;
+  typedef std::vector<std::unique_ptr<Initializer>> InitializerListType;
 
-  static VariableDeclaration *create();
-  ~VariableDeclaration() final;
+  static VariableDeclaration *create(GlobalContext *Context) {
+    return new (Context->allocate<VariableDeclaration>()) VariableDeclaration();
+  }
 
-  const InitializerListType &getInitializers() const { return Initializers; }
+  const InitializerListType &getInitializers() const { return *Initializers; }
   bool getIsConstant() const { return IsConstant; }
   void setIsConstant(bool NewValue) { IsConstant = NewValue; }
   uint32_t getAlignment() const { return Alignment; }
   void setAlignment(uint32_t NewAlignment) { Alignment = NewAlignment; }
-  bool hasInitializer() const { return !Initializers.empty(); }
+  bool hasInitializer() const { return HasInitializer; }
   bool hasNonzeroInitializer() const {
-    return !(Initializers.size() == 1 &&
-             llvm::isa<ZeroInitializer>(Initializers[0]));
+    return !(Initializers->size() == 1 &&
+             llvm::isa<ZeroInitializer>((*Initializers)[0].get()));
   }
 
   /// Returns the number of bytes for the initializer of the global
   /// address.
   SizeT getNumBytes() const {
     SizeT Count = 0;
-    for (Initializer *Init : Initializers) {
+    for (const std::unique_ptr<Initializer> &Init : *Initializers) {
       Count += Init->getNumBytes();
     }
     return Count;
@@ -269,8 +292,9 @@ public:
 
   /// Adds Initializer to the list of initializers. Takes ownership of
   /// the initializer.
-  void addInitializer(Initializer *Initializer) {
-    Initializers.push_back(Initializer);
+  void addInitializer(std::unique_ptr<Initializer> Initializer) {
+    Initializers->emplace_back(std::move(Initializer));
+    HasInitializer = true;
   }
 
   /// Prints out type for initializer associated with the declaration
@@ -293,9 +317,12 @@ public:
 
   void setSuppressMangling() { ForceSuppressMangling = true; }
 
+  void discardInitializers() { Initializers = nullptr; }
+
 private:
   // list of initializers for the declared variable.
-  InitializerListType Initializers;
+  std::unique_ptr<InitializerListType> Initializers;
+  bool HasInitializer;
   // The alignment of the declared variable.
   uint32_t Alignment;
   // True if a declared (global) constant.
@@ -306,6 +333,7 @@ private:
   VariableDeclaration()
       : GlobalDeclaration(VariableDeclarationKind,
                           llvm::GlobalValue::InternalLinkage),
+        Initializers(new InitializerListType), HasInitializer(false),
         Alignment(0), IsConstant(false), ForceSuppressMangling(false) {}
 };
 

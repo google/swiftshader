@@ -45,7 +45,6 @@ public:
 protected:
   OperandX8632(OperandKindX8632 Kind, Type Ty)
       : Operand(static_cast<OperandKind>(Kind), Ty) {}
-  ~OperandX8632() override {}
 };
 
 // OperandX8632Mem represents the m32 addressing mode, with optional
@@ -93,7 +92,7 @@ public:
 private:
   OperandX8632Mem(Cfg *Func, Type Ty, Variable *Base, Constant *Offset,
                   Variable *Index, uint16_t Shift, SegmentRegisters SegmentReg);
-  ~OperandX8632Mem() override {}
+
   Variable *Base;
   Constant *Offset;
   Variable *Index;
@@ -134,14 +133,13 @@ public:
 
 private:
   VariableSplit(Cfg *Func, Variable *Var, Portion Part)
-      : OperandX8632(kSplit, IceType_i32), Func(Func), Var(Var), Part(Part) {
+      : OperandX8632(kSplit, IceType_i32), Var(Var), Part(Part) {
     assert(Var->getType() == IceType_f64);
     Vars = Func->allocateArrayOf<Variable *>(1);
     Vars[0] = Var;
     NumVars = 1;
   }
-  ~VariableSplit() override { Func->deallocateArrayOf<Variable *>(Vars); }
-  Cfg *Func; // Held only for the destructor.
+
   Variable *Var;
   Portion Part;
 };
@@ -298,7 +296,7 @@ public:
 protected:
   InstX8632(Cfg *Func, InstKindX8632 Kind, SizeT Maxsrcs, Variable *Dest)
       : InstTarget(Func, static_cast<InstKind>(Kind), Maxsrcs, Dest) {}
-  ~InstX8632() override {}
+
   static bool isClassof(const Inst *Inst, InstKindX8632 MyKind) {
     return Inst->getKind() == static_cast<InstKind>(MyKind);
   }
@@ -359,7 +357,6 @@ private:
   InstArithmetic::OpKind Op;
   InstX8632FakeRMW(Cfg *Func, Operand *Data, Operand *Addr,
                    InstArithmetic::OpKind Op, Variable *Beacon);
-  ~InstX8632FakeRMW() override {}
 };
 
 // InstX8632Label represents an intra-block label that is the target
@@ -418,7 +415,7 @@ public:
 
 private:
   InstX8632Label(Cfg *Func, TargetX8632 *Target);
-  ~InstX8632Label() override {}
+
   SizeT Number; // used for unique label generation.
 };
 
@@ -489,7 +486,7 @@ public:
 private:
   InstX8632Br(Cfg *Func, const CfgNode *TargetTrue, const CfgNode *TargetFalse,
               const InstX8632Label *Label, CondX86::BrCond Condition);
-  ~InstX8632Br() override {}
+
   CondX86::BrCond Condition;
   const CfgNode *TargetTrue;
   const CfgNode *TargetFalse;
@@ -559,7 +556,6 @@ public:
 
 private:
   InstX8632Call(Cfg *Func, Variable *Dest, Operand *CallTarget);
-  ~InstX8632Call() override {}
 };
 
 // Emit a one-operand (GPR) instruction.
@@ -610,7 +606,7 @@ private:
       : InstX8632(Func, K, 1, llvm::dyn_cast<Variable>(SrcDest)) {
     addSource(SrcDest);
   }
-  ~InstX8632InplaceopGPR() override {}
+
   static const char *Opcode;
   static const X8632::AssemblerX8632::GPREmitterOneOp Emitter;
 };
@@ -674,7 +670,7 @@ private:
       : InstX8632(Func, K, 1, Dest) {
     addSource(Src);
   }
-  ~InstX8632UnaryopGPR() override {}
+
   static const char *Opcode;
   static const X8632::AssemblerX8632::GPREmitterRegOp Emitter;
 };
@@ -724,7 +720,7 @@ private:
       : InstX8632(Func, K, 1, Dest) {
     addSource(Src);
   }
-  ~InstX8632UnaryopXmm() override {}
+
   static const char *Opcode;
   static const X8632::AssemblerX8632::XmmEmitterRegOp Emitter;
 };
@@ -769,7 +765,7 @@ private:
     addSource(Dest);
     addSource(Source);
   }
-  ~InstX8632BinopGPRShift() override {}
+
   static const char *Opcode;
   static const X8632::AssemblerX8632::GPREmitterShiftOp Emitter;
 };
@@ -813,7 +809,7 @@ private:
     addSource(Dest);
     addSource(Source);
   }
-  ~InstX8632BinopGPR() override {}
+
   static const char *Opcode;
   static const X8632::AssemblerX8632::GPREmitterRegOp Emitter;
 };
@@ -857,7 +853,6 @@ private:
     addSource(DestSrc0);
     addSource(Src1);
   }
-  ~InstX8632BinopRMW() override {}
   static const char *Opcode;
   static const X8632::AssemblerX8632::GPREmitterAddrOp Emitter;
 };
@@ -905,7 +900,7 @@ private:
     addSource(Dest);
     addSource(Source);
   }
-  ~InstX8632BinopXmm() override {}
+
   static const char *Opcode;
   static const X8632::AssemblerX8632::XmmEmitterRegOp Emitter;
 };
@@ -958,7 +953,7 @@ private:
     addSource(Dest);
     addSource(Source);
   }
-  ~InstX8632BinopXmmShift() override {}
+
   static const char *Opcode;
   static const X8632::AssemblerX8632::XmmEmitterShiftOp Emitter;
 };
@@ -1005,7 +1000,7 @@ private:
     addSource(Source1);
     addSource(Source2);
   }
-  ~InstX8632Ternop() override {}
+
   static const char *Opcode;
 };
 
@@ -1052,7 +1047,7 @@ private:
     addSource(Source0);
     addSource(Source1);
   }
-  ~InstX8632ThreeAddressop() override {}
+
   static const char *Opcode;
 };
 
@@ -1090,7 +1085,6 @@ private:
       : InstX8632(Func, K, 1, Dest) {
     addSource(Source);
   }
-  ~InstX8632Movlike() override {}
 
   static const char *Opcode;
 };
@@ -1187,7 +1181,6 @@ protected:
     // with optimizations.
     HasSideEffects = Locked;
   }
-  ~InstX8632Lockable() override {}
 };
 
 // Mul instruction - unsigned multiply.
@@ -1209,7 +1202,6 @@ public:
 
 private:
   InstX8632Mul(Cfg *Func, Variable *Dest, Variable *Source1, Operand *Source2);
-  ~InstX8632Mul() override {}
 };
 
 // Shld instruction - shift across a pair of operands.
@@ -1232,7 +1224,6 @@ public:
 private:
   InstX8632Shld(Cfg *Func, Variable *Dest, Variable *Source1,
                 Variable *Source2);
-  ~InstX8632Shld() override {}
 };
 
 // Shrd instruction - shift across a pair of operands.
@@ -1255,7 +1246,6 @@ public:
 private:
   InstX8632Shrd(Cfg *Func, Variable *Dest, Variable *Source1,
                 Variable *Source2);
-  ~InstX8632Shrd() override {}
 };
 
 // Conditional move instruction.
@@ -1278,7 +1268,6 @@ public:
 private:
   InstX8632Cmov(Cfg *Func, Variable *Dest, Operand *Source,
                 CondX86::BrCond Cond);
-  ~InstX8632Cmov() override {}
 
   CondX86::BrCond Condition;
 };
@@ -1304,7 +1293,6 @@ public:
 private:
   InstX8632Cmpps(Cfg *Func, Variable *Dest, Operand *Source,
                  CondX86::CmppsCond Cond);
-  ~InstX8632Cmpps() override {}
 
   CondX86::CmppsCond Condition;
 };
@@ -1333,7 +1321,6 @@ public:
 private:
   InstX8632Cmpxchg(Cfg *Func, Operand *DestOrAddr, Variable *Eax,
                    Variable *Desired, bool Locked);
-  ~InstX8632Cmpxchg() override {}
 };
 
 // Cmpxchg8b instruction - cmpxchg8b <m64> will compare if <m64>
@@ -1362,7 +1349,6 @@ public:
 private:
   InstX8632Cmpxchg8b(Cfg *Func, OperandX8632Mem *Dest, Variable *Edx,
                      Variable *Eax, Variable *Ecx, Variable *Ebx, bool Locked);
-  ~InstX8632Cmpxchg8b() override {}
 };
 
 // Cvt instruction - wrapper for cvtsX2sY where X and Y are in {s,d,i}
@@ -1390,7 +1376,6 @@ public:
 private:
   CvtVariant Variant;
   InstX8632Cvt(Cfg *Func, Variable *Dest, Operand *Source, CvtVariant Variant);
-  ~InstX8632Cvt() override {}
 };
 
 // cmp - Integer compare instruction.
@@ -1411,7 +1396,6 @@ public:
 
 private:
   InstX8632Icmp(Cfg *Func, Operand *Src1, Operand *Src2);
-  ~InstX8632Icmp() override {}
 };
 
 // ucomiss/ucomisd - floating-point compare instruction.
@@ -1432,7 +1416,6 @@ public:
 
 private:
   InstX8632Ucomiss(Cfg *Func, Operand *Src1, Operand *Src2);
-  ~InstX8632Ucomiss() override {}
 };
 
 // UD2 instruction.
@@ -1452,7 +1435,6 @@ public:
 
 private:
   explicit InstX8632UD2(Cfg *Func);
-  ~InstX8632UD2() override {}
 };
 
 // Test instruction.
@@ -1473,7 +1455,6 @@ public:
 
 private:
   InstX8632Test(Cfg *Func, Operand *Source1, Operand *Source2);
-  ~InstX8632Test() override {}
 };
 
 // Mfence instruction.
@@ -1493,7 +1474,6 @@ public:
 
 private:
   explicit InstX8632Mfence(Cfg *Func);
-  ~InstX8632Mfence() override {}
 };
 
 // This is essentially a "mov" instruction with an OperandX8632Mem
@@ -1516,7 +1496,6 @@ public:
 
 private:
   InstX8632Store(Cfg *Func, Operand *Value, OperandX8632 *Mem);
-  ~InstX8632Store() override {}
 };
 
 // This is essentially a vector "mov" instruction with an OperandX8632Mem
@@ -1541,7 +1520,6 @@ public:
 
 private:
   InstX8632StoreP(Cfg *Func, Variable *Value, OperandX8632Mem *Mem);
-  ~InstX8632StoreP() override {}
 };
 
 class InstX8632StoreQ : public InstX8632 {
@@ -1562,7 +1540,6 @@ public:
 
 private:
   InstX8632StoreQ(Cfg *Func, Variable *Value, OperandX8632Mem *Mem);
-  ~InstX8632StoreQ() override {}
 };
 
 // Nop instructions of varying length
@@ -1585,7 +1562,6 @@ public:
 
 private:
   InstX8632Nop(Cfg *Func, SizeT Length);
-  ~InstX8632Nop() override {}
 
   NopVariant Variant;
 };
@@ -1607,7 +1583,6 @@ public:
 
 private:
   InstX8632Fld(Cfg *Func, Operand *Src);
-  ~InstX8632Fld() override {}
 };
 
 // Fstp - store x87 st(0) into memory and pop st(0).
@@ -1627,7 +1602,6 @@ public:
 
 private:
   InstX8632Fstp(Cfg *Func, Variable *Dest);
-  ~InstX8632Fstp() override {}
 };
 
 class InstX8632Pop : public InstX8632 {
@@ -1646,7 +1620,6 @@ public:
 
 private:
   InstX8632Pop(Cfg *Func, Variable *Dest);
-  ~InstX8632Pop() override {}
 };
 
 class InstX8632Push : public InstX8632 {
@@ -1665,7 +1638,6 @@ public:
 
 private:
   InstX8632Push(Cfg *Func, Variable *Source);
-  ~InstX8632Push() override {}
 };
 
 // Ret instruction.  Currently only supports the "ret" version that
@@ -1688,7 +1660,6 @@ public:
 
 private:
   InstX8632Ret(Cfg *Func, Variable *Source);
-  ~InstX8632Ret() override {}
 };
 
 // Conditional set-byte instruction.
@@ -1710,7 +1681,6 @@ public:
 
 private:
   InstX8632Setcc(Cfg *Func, Variable *Dest, CondX86::BrCond Cond);
-  ~InstX8632Setcc() override {}
 
   const CondX86::BrCond Condition;
 };
@@ -1740,7 +1710,6 @@ public:
 
 private:
   InstX8632Xadd(Cfg *Func, Operand *Dest, Variable *Source, bool Locked);
-  ~InstX8632Xadd() override {}
 };
 
 // Exchange instruction.  Exchanges the first operand (destination
@@ -1766,7 +1735,6 @@ public:
 
 private:
   InstX8632Xchg(Cfg *Func, Operand *Dest, Variable *Source);
-  ~InstX8632Xchg() override {}
 };
 
 // Declare partial template specializations of emit() methods that

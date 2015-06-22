@@ -16,8 +16,11 @@
 #define SUBZERO_SRC_ICEGLOBALCONTEXT_H
 
 #include <array>
+#include <functional>
 #include <mutex>
 #include <thread>
+#include <type_traits>
+#include <vector>
 
 #include "IceDefs.h"
 #include "IceClFlags.h"
@@ -211,8 +214,24 @@ public:
     return getFlags().getDisableIRGeneration();
   }
 
-  // Allocate data of type T using the global allocator.
-  template <typename T> T *allocate() { return getAllocator()->Allocate<T>(); }
+  // Allocate data of type T using the global allocator. We allow entities
+  // allocated from this global allocator to be either trivially or
+  // non-trivially destructible. We optimize the case when T is trivially
+  // destructible by not registering a destructor. Destructors will be invoked
+  // during GlobalContext destruction in the reverse object creation order.
+  template <typename T>
+  typename std::enable_if<std::is_trivially_destructible<T>::value, T>::type *
+  allocate() {
+    return getAllocator()->Allocate<T>();
+  }
+
+  template <typename T>
+  typename std::enable_if<!std::is_trivially_destructible<T>::value, T>::type *
+  allocate() {
+    T *Ret = getAllocator()->Allocate<T>();
+    getDestructors()->emplace_back([Ret]() { Ret->~T(); });
+    return Ret;
+  }
 
   const Intrinsics &getIntrinsicsInfo() const { return IntrinsicsInfo; }
 
@@ -392,8 +411,9 @@ public:
   // until the queue is empty.
   void emitItems();
 
-  // Uses DataLowering to lower Globals. As a side effect, clears the Globals
-  // array.
+  // Uses DataLowering to lower Globals. Side effects:
+  //  - discards the initializer list for the global variable in Globals.
+  //  - clears the Globals array.
   void lowerGlobals(const IceString &SectionSuffix);
 
   // Lowers the profile information.
@@ -417,10 +437,17 @@ public:
 private:
   // Try to ensure mutexes are allocated on separate cache lines.
 
+  // Destructors collaborate with Allocator
   ICE_CACHELINE_BOUNDARY;
   // Managed by getAllocator()
   GlobalLockType AllocLock;
   ArenaAllocator<> Allocator;
+
+  ICE_CACHELINE_BOUNDARY;
+  // Managed by getDestructors()
+  typedef std::vector<std::function<void()>> DestructorArray;
+  GlobalLockType DestructorsLock;
+  DestructorArray Destructors;
 
   ICE_CACHELINE_BOUNDARY;
   // Managed by getConstantPool()
@@ -470,7 +497,7 @@ private:
   // TODO(jpp): move to EmitterContext.
   VariableDeclarationList Globals;
   // TODO(jpp): move to EmitterContext.
-  std::unique_ptr<VariableDeclaration> ProfileBlockInfoVarDecl;
+  VariableDeclaration *ProfileBlockInfoVarDecl;
 
   LockedPtr<ArenaAllocator<>> getAllocator() {
     return LockedPtr<ArenaAllocator<>>(&Allocator, &AllocLock);
@@ -483,6 +510,9 @@ private:
   }
   LockedPtr<TimerList> getTimers() {
     return LockedPtr<TimerList>(&Timers, &TimerLock);
+  }
+  LockedPtr<DestructorArray> getDestructors() {
+    return LockedPtr<DestructorArray>(&Destructors, &DestructorsLock);
   }
 
   void accumulateGlobals(std::unique_ptr<VariableDeclarationList> Globls) {

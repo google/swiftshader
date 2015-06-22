@@ -754,7 +754,7 @@ void LLVM2ICEGlobalsConverter::addGlobalInitializer(
   if (const auto CDA = dyn_cast<ConstantDataArray>(Initializer)) {
     assert(!HasOffset && isa<IntegerType>(CDA->getElementType()) &&
            (cast<IntegerType>(CDA->getElementType())->getBitWidth() == 8));
-    Global.addInitializer(new Ice::VariableDeclaration::DataInitializer(
+    Global.addInitializer(Ice::VariableDeclaration::DataInitializer::create(
         CDA->getRawDataValues().data(), CDA->getNumElements()));
     return;
   }
@@ -763,8 +763,8 @@ void LLVM2ICEGlobalsConverter::addGlobalInitializer(
     if (const auto AT = dyn_cast<ArrayType>(Initializer->getType())) {
       assert(!HasOffset && isa<IntegerType>(AT->getElementType()) &&
              (cast<IntegerType>(AT->getElementType())->getBitWidth() == 8));
-      Global.addInitializer(
-          new Ice::VariableDeclaration::ZeroInitializer(AT->getNumElements()));
+      Global.addInitializer(Ice::VariableDeclaration::ZeroInitializer::create(
+          AT->getNumElements()));
     } else {
       llvm_unreachable("Unhandled constant aggregate zero type");
     }
@@ -786,7 +786,7 @@ void LLVM2ICEGlobalsConverter::addGlobalInitializer(
       const Ice::GlobalDeclaration *Addr =
           getConverter().getGlobalDeclaration(GV);
       Global.addInitializer(
-          new Ice::VariableDeclaration::RelocInitializer(Addr, Offset));
+          Ice::VariableDeclaration::RelocInitializer::create(Addr, Offset));
       return;
     }
     default:
@@ -867,7 +867,7 @@ void Converter::installGlobalDeclarations(Module *Mod) {
           Converter.convertToIceType(FuncType->getParamType(I)));
     }
     FunctionDeclaration *IceFunc = FunctionDeclaration::create(
-        Signature, Func.getCallingConv(), Func.getLinkage(), Func.empty());
+        Ctx, Signature, Func.getCallingConv(), Func.getLinkage(), Func.empty());
     IceFunc->setName(Func.getName());
     GlobalDeclarationMap[&Func] = IceFunc;
   }
@@ -876,7 +876,7 @@ void Converter::installGlobalDeclarations(Module *Mod) {
                                      E = Mod->global_end();
        I != E; ++I) {
     const GlobalVariable *GV = I;
-    VariableDeclaration *Var = VariableDeclaration::create();
+    VariableDeclaration *Var = VariableDeclaration::create(Ctx);
     Var->setName(GV->getName());
     Var->setAlignment(GV->getAlignment());
     Var->setIsConstant(GV->isConstant());

@@ -386,12 +386,12 @@ void ELFObjectWriter::writeDataOfType(SectionType ST,
         Section->setSize(Section->getCurrentSize() + SymbolSize);
     } else {
       assert(ST != BSS);
-      for (VariableDeclaration::Initializer *Init : Var->getInitializers()) {
+      for (const std::unique_ptr<VariableDeclaration::Initializer> &Init :
+           Var->getInitializers()) {
         switch (Init->getKind()) {
         case VariableDeclaration::Initializer::DataInitializerKind: {
-          const auto Data =
-              llvm::cast<VariableDeclaration::DataInitializer>(Init)
-                  ->getContents();
+          const auto Data = llvm::cast<VariableDeclaration::DataInitializer>(
+                                Init.get())->getContents();
           Section->appendData(Str, llvm::StringRef(Data.data(), Data.size()));
           break;
         }
@@ -400,7 +400,7 @@ void ELFObjectWriter::writeDataOfType(SectionType ST,
           break;
         case VariableDeclaration::Initializer::RelocInitializerKind: {
           const auto Reloc =
-              llvm::cast<VariableDeclaration::RelocInitializer>(Init);
+              llvm::cast<VariableDeclaration::RelocInitializer>(Init.get());
           AssemblerFixup NewFixup;
           NewFixup.set_position(Section->getCurrentSize());
           NewFixup.set_kind(RelocationKind);

@@ -293,7 +293,8 @@ public:
     assert(VariableDeclarations);
     assert(VariableDeclarations->empty());
     for (size_t i = 0; i < Count; ++i) {
-      VariableDeclarations->push_back(Ice::VariableDeclaration::create());
+      VariableDeclarations->push_back(
+          Ice::VariableDeclaration::create(getTranslator().getContext()));
     }
   }
 
@@ -904,7 +905,8 @@ public:
   GlobalsParser(unsigned BlockID, BlockParserBaseClass *EnclosingParser)
       : BlockParserBaseClass(BlockID, EnclosingParser),
         Timer(Ice::TimerStack::TT_parseGlobals, getTranslator().getContext()),
-        DummyGlobalVar(Ice::VariableDeclaration::create()),
+        DummyGlobalVar(
+            Ice::VariableDeclaration::create(getTranslator().getContext())),
         CurGlobalVar(DummyGlobalVar) {}
 
   ~GlobalsParser() final {}
@@ -1017,7 +1019,7 @@ void GlobalsParser::ProcessRecord() {
     if (isIRGenerationDisabled())
       return;
     CurGlobalVar->addInitializer(
-        new Ice::VariableDeclaration::ZeroInitializer(Values[0]));
+        Ice::VariableDeclaration::ZeroInitializer::create(Values[0]));
     return;
   }
   case naclbitc::GLOBALVAR_DATA: {
@@ -1027,7 +1029,7 @@ void GlobalsParser::ProcessRecord() {
     if (isIRGenerationDisabled())
       return;
     CurGlobalVar->addInitializer(
-        new Ice::VariableDeclaration::DataInitializer(Values));
+        Ice::VariableDeclaration::DataInitializer::create(Values));
     return;
   }
   case naclbitc::GLOBALVAR_RELOC: {
@@ -1040,8 +1042,9 @@ void GlobalsParser::ProcessRecord() {
     Ice::SizeT Offset = 0;
     if (Values.size() == 2)
       Offset = Values[1];
-    CurGlobalVar->addInitializer(new Ice::VariableDeclaration::RelocInitializer(
-        Context->getGlobalDeclarationByID(Index), Offset));
+    CurGlobalVar->addInitializer(
+        Ice::VariableDeclaration::RelocInitializer::create(
+            Context->getGlobalDeclarationByID(Index), Offset));
     return;
   }
   default:
@@ -2945,7 +2948,8 @@ void ModuleParser::ProcessRecord() {
     }
     bool IsProto = Values[2] == 1;
     Ice::FunctionDeclaration *Func = Ice::FunctionDeclaration::create(
-        Signature, CallingConv, Linkage, IsProto);
+        Context->getTranslator().getContext(), Signature, CallingConv, Linkage,
+        IsProto);
     Context->setNextFunctionID(Func);
     return;
   }

@@ -79,8 +79,6 @@ public:
       dump(nullptr, Str);
   }
 
-  virtual ~Operand() = default;
-
 protected:
   Operand(OperandKind Kind, Type Ty) : Ty(Ty), Kind(Kind) {}
 
@@ -134,7 +132,6 @@ protected:
     Vars = nullptr;
     NumVars = 0;
   }
-  ~Constant() override {}
   // PoolEntryID is an integer that uniquely identifies the constant
   // within its constant pool.  It is used for building the constant
   // pool in the object code and for referencing its entries.
@@ -182,7 +179,6 @@ public:
 private:
   ConstantPrimitive(Type Ty, PrimType Value, uint32_t PoolEntryID)
       : Constant(K, Ty, PoolEntryID), Value(Value) {}
-  ~ConstantPrimitive() override {}
   const PrimType Value;
 };
 
@@ -271,7 +267,6 @@ private:
                       bool SuppressMangling, uint32_t PoolEntryID)
       : Constant(kConstRelocatable, Ty, PoolEntryID), Offset(Offset),
         Name(Name), SuppressMangling(SuppressMangling) {}
-  ~ConstantRelocatable() override {}
   const RelocOffsetT Offset; // fixed offset to add
   const IceString Name;      // optional for debug/dump
   bool SuppressMangling;
@@ -308,7 +303,6 @@ public:
 private:
   ConstantUndef(Type Ty, uint32_t PoolEntryID)
       : Constant(kConstUndef, Ty, PoolEntryID) {}
-  ~ConstantUndef() override {}
 };
 
 // RegWeight is a wrapper for a uint32_t weight value, with a
@@ -514,7 +508,6 @@ protected:
     Vars[0] = this;
     NumVars = 1;
   }
-  ~Variable() override {}
   // Number is unique across all variables, and is used as a
   // (bit)vector index for liveness analysis.
   const SizeT Number;

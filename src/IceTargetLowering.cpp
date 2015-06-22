@@ -512,12 +512,12 @@ void TargetDataLowering::emitGlobal(const VariableDeclaration &Var,
   Str << MangledName << ":\n";
 
   if (HasNonzeroInitializer) {
-    for (VariableDeclaration::Initializer *Init : Var.getInitializers()) {
+    for (const std::unique_ptr<VariableDeclaration::Initializer> &Init :
+         Var.getInitializers()) {
       switch (Init->getKind()) {
       case VariableDeclaration::Initializer::DataInitializerKind: {
-        const auto &Data =
-            llvm::cast<VariableDeclaration::DataInitializer>(Init)
-                ->getContents();
+        const auto &Data = llvm::cast<VariableDeclaration::DataInitializer>(
+                               Init.get())->getContents();
         for (SizeT i = 0; i < Init->getNumBytes(); ++i) {
           Str << "\t.byte\t" << (((unsigned)Data[i]) & 0xff) << "\n";
         }
@@ -528,7 +528,7 @@ void TargetDataLowering::emitGlobal(const VariableDeclaration &Var,
         break;
       case VariableDeclaration::Initializer::RelocInitializerKind: {
         const auto *Reloc =
-            llvm::cast<VariableDeclaration::RelocInitializer>(Init);
+            llvm::cast<VariableDeclaration::RelocInitializer>(Init.get());
         Str << "\t" << getEmit32Directive() << "\t";
         Str << Reloc->getDeclaration()->mangleName(Ctx);
         if (RelocOffsetT Offset = Reloc->getOffset()) {

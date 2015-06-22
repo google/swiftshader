@@ -60,12 +60,6 @@ void dumpCallingConv(Ice::Ostream &, llvm::CallingConv::ID CallingConv) {
 
 namespace Ice {
 
-FunctionDeclaration *FunctionDeclaration::create(
-    const FuncSigType &Signature, llvm::CallingConv::ID CallingConv,
-    llvm::GlobalValue::LinkageTypes Linkage, bool IsProto) {
-  return new FunctionDeclaration(Signature, CallingConv, Linkage, IsProto);
-}
-
 void FunctionDeclaration::dumpType(Ostream &Stream) const {
   if (!ALLOW_DUMP)
     return;
@@ -92,23 +86,15 @@ void FunctionDeclaration::dump(GlobalContext *Ctx, Ostream &Stream) const {
   Stream << ")";
 }
 
-VariableDeclaration *VariableDeclaration::create() {
-  return new VariableDeclaration();
-}
-
-VariableDeclaration::~VariableDeclaration() {
-  llvm::DeleteContainerPointers(Initializers);
-}
-
 void VariableDeclaration::dumpType(Ostream &Stream) const {
   if (!ALLOW_DUMP)
     return;
-  if (Initializers.size() == 1) {
-    Initializers.front()->dumpType(Stream);
+  if (Initializers->size() == 1) {
+    Initializers->front()->dumpType(Stream);
   } else {
     Stream << "<{ ";
     bool IsFirst = true;
-    for (Initializer *Init : Initializers) {
+    for (const std::unique_ptr<Initializer> &Init : *Initializers) {
       if (IsFirst) {
         IsFirst = false;
       } else {
@@ -130,13 +116,13 @@ void VariableDeclaration::dump(GlobalContext *Ctx, Ostream &Stream) const {
   Stream << " " << (IsConstant ? "constant" : "global") << " ";
 
   // Add initializer.
-  if (Initializers.size() == 1) {
-    Initializers.front()->dump(Stream);
+  if (Initializers->size() == 1) {
+    Initializers->front()->dump(Stream);
   } else {
     dumpType(Stream);
     Stream << " <{ ";
     bool IsFirst = true;
-    for (Initializer *Init : Initializers) {
+    for (const std::unique_ptr<Initializer> &Init : *Initializers) {
       if (IsFirst) {
         IsFirst = false;
       } else {

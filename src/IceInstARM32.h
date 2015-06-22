@@ -59,7 +59,6 @@ public:
 protected:
   OperandARM32(OperandKindARM32 Kind, Type Ty)
       : Operand(static_cast<OperandKind>(Kind), Ty) {}
-  ~OperandARM32() override {}
 };
 
 // OperandARM32Mem represents a memory operand in any of the various ARM32
@@ -141,7 +140,7 @@ private:
                   ConstantInteger32 *ImmOffset, AddrMode Mode);
   OperandARM32Mem(Cfg *Func, Type Ty, Variable *Base, Variable *Index,
                   ShiftKind ShiftOp, uint16_t ShiftAmt, AddrMode Mode);
-  ~OperandARM32Mem() override {}
+
   Variable *Base;
   ConstantInteger32 *ImmOffset;
   Variable *Index;
@@ -167,7 +166,6 @@ public:
 
 protected:
   OperandARM32Flex(OperandKindARM32 Kind, Type Ty) : OperandARM32(Kind, Ty) {}
-  ~OperandARM32Flex() override {}
 };
 
 // Rotated immediate variant.
@@ -202,7 +200,6 @@ public:
 
 private:
   OperandARM32FlexImm(Cfg *Func, Type Ty, uint32_t Imm, uint32_t RotateAmt);
-  ~OperandARM32FlexImm() override {}
 
   uint32_t Imm;
   uint32_t RotateAmt;
@@ -238,7 +235,6 @@ public:
 private:
   OperandARM32FlexReg(Cfg *Func, Type Ty, Variable *Reg, ShiftKind ShiftOp,
                       Operand *ShiftAmt);
-  ~OperandARM32FlexReg() override {}
 
   Variable *Reg;
   ShiftKind ShiftOp;
@@ -296,7 +292,7 @@ public:
 protected:
   InstARM32(Cfg *Func, InstKindARM32 Kind, SizeT Maxsrcs, Variable *Dest)
       : InstTarget(Func, static_cast<InstKind>(Kind), Maxsrcs, Dest) {}
-  ~InstARM32() override {}
+
   static bool isClassof(const Inst *Inst, InstKindARM32 MyKind) {
     return Inst->getKind() == static_cast<InstKind>(MyKind);
   }
@@ -377,7 +373,7 @@ private:
       : InstARM32Pred(Func, K, 1, Dest, Predicate) {
     addSource(Src);
   }
-  ~InstARM32UnaryopGPR() override {}
+
   static const char *Opcode;
 };
 
@@ -423,7 +419,7 @@ private:
     addSource(Dest);
     addSource(Src);
   }
-  ~InstARM32TwoAddrGPR() override {}
+
   static const char *Opcode;
 };
 
@@ -465,7 +461,6 @@ private:
       : InstARM32Pred(Func, K, 1, Dest, Predicate) {
     addSource(Source);
   }
-  ~InstARM32Movlike() override {}
 
   static const char *Opcode;
 };
@@ -516,7 +511,7 @@ private:
     addSource(Src1);
     addSource(Src2);
   }
-  ~InstARM32ThreeAddrGPR() override {}
+
   static const char *Opcode;
   bool SetFlags;
 };
@@ -602,7 +597,7 @@ public:
 private:
   InstARM32Br(Cfg *Func, const CfgNode *TargetTrue, const CfgNode *TargetFalse,
               CondARM32::Cond Predicate);
-  ~InstARM32Br() override {}
+
   const CfgNode *TargetTrue;
   const CfgNode *TargetFalse;
 };
@@ -656,7 +651,6 @@ public:
 
 private:
   InstARM32Call(Cfg *Func, Variable *Dest, Operand *CallTarget);
-  ~InstARM32Call() override {}
 };
 
 // Integer compare instruction.
@@ -679,7 +673,6 @@ public:
 private:
   InstARM32Cmp(Cfg *Func, Variable *Src1, Operand *Src2,
                CondARM32::Cond Predicate);
-  ~InstARM32Cmp() override {}
 };
 
 // Load instruction.
@@ -703,7 +696,6 @@ public:
 private:
   InstARM32Ldr(Cfg *Func, Variable *Dest, OperandARM32Mem *Mem,
                CondARM32::Cond Predicate);
-  ~InstARM32Ldr() override {}
 };
 
 // Multiply Accumulate: d := x * y + a
@@ -728,7 +720,6 @@ public:
 private:
   InstARM32Mla(Cfg *Func, Variable *Dest, Variable *Src0, Variable *Src1,
                Variable *Acc, CondARM32::Cond Predicate);
-  ~InstARM32Mla() override {}
 };
 
 // Pop into a list of GPRs. Technically this can be predicated, but we don't
@@ -749,7 +740,7 @@ public:
 
 private:
   InstARM32Pop(Cfg *Func, const VarList &Dests);
-  ~InstARM32Pop() override {}
+
   VarList Dests;
 };
 
@@ -771,7 +762,6 @@ public:
 
 private:
   InstARM32Push(Cfg *Func, const VarList &Srcs);
-  ~InstARM32Push() override {}
 };
 
 // Ret pseudo-instruction.  This is actually a "bx" instruction with
@@ -800,7 +790,6 @@ public:
 
 private:
   InstARM32Ret(Cfg *Func, Variable *LR, Variable *Source);
-  ~InstARM32Ret() override {}
 };
 
 // Store instruction. It's important for liveness that there is no Dest
@@ -825,7 +814,6 @@ public:
 private:
   InstARM32Str(Cfg *Func, Variable *Value, OperandARM32Mem *Mem,
                CondARM32::Cond Predicate);
-  ~InstARM32Str() override {}
 };
 
 // Unsigned Multiply Long: d.lo, d.hi := x * y
@@ -850,7 +838,7 @@ public:
 private:
   InstARM32Umull(Cfg *Func, Variable *DestLo, Variable *DestHi, Variable *Src0,
                  Variable *Src1, CondARM32::Cond Predicate);
-  ~InstARM32Umull() override {}
+
   Variable *DestHi;
 };
 

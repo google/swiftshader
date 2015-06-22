@@ -33,6 +33,8 @@ class ELFSection {
   ELFSection &operator=(const ELFSection &) = delete;
 
 public:
+  virtual ~ELFSection() = default;
+
   // Sentinel value for a section number/index for before the final
   // section index is actually known. The dummy NULL section will be assigned
   // number 0, and it is referenced by the dummy 0-th symbol in the symbol
@@ -81,8 +83,6 @@ public:
   template <bool IsELF64> void writeHeader(ELFStreamer &Str);
 
 protected:
-  ~ELFSection() = default;
-
   // Name of the section in convenient string form (instead of a index
   // into the Section Header String Table, which is not known till later).
   const IceString Name;

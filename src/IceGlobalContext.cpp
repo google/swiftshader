@@ -223,8 +223,7 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit, Ostream *OsError,
            /*MaxSize=*/Flags.getNumTranslationThreads()),
       // EmitQ is allowed unlimited size.
       EmitQ(/*Sequential=*/Flags.isSequential()),
-      DataLowering(TargetDataLowering::createLowering(this)),
-      ProfileBlockInfoVarDecl(VariableDeclaration::create()) {
+      DataLowering(TargetDataLowering::createLowering(this)) {
   assert(OsDump && "OsDump is not defined for GlobalContext");
   assert(OsEmit && "OsEmit is not defined for GlobalContext");
   assert(OsError && "OsError is not defined for GlobalContext");
@@ -256,6 +255,11 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit, Ostream *OsError,
   case FT_Iasm:
     break;
   }
+
+  // ProfileBlockInfoVarDecl is initialized here because it takes this as a
+  // parameter -- we want to
+  // ensure that at least this' member variables are initialized.
+  ProfileBlockInfoVarDecl = VariableDeclaration::create(this);
   ProfileBlockInfoVarDecl->setAlignment(typeWidthInBytes(IceType_i64));
   ProfileBlockInfoVarDecl->setIsConstant(true);
 
@@ -346,7 +350,7 @@ void addBlockInfoPtrs(const VariableDeclarationList &Globals,
     if (Cfg::isProfileGlobal(*Global)) {
       constexpr RelocOffsetT BlockExecutionCounterOffset = 0;
       ProfileBlockInfo->addInitializer(
-          new VariableDeclaration::RelocInitializer(
+          VariableDeclaration::RelocInitializer::create(
               Global, BlockExecutionCounterOffset));
     }
   }
@@ -387,20 +391,28 @@ void GlobalContext::lowerGlobals(const IceString &SectionSuffix) {
   if (Flags.getDisableTranslation())
     return;
 
-  addBlockInfoPtrs(Globals, ProfileBlockInfoVarDecl.get());
+  addBlockInfoPtrs(Globals, ProfileBlockInfoVarDecl);
   DataLowering->lowerGlobals(Globals, SectionSuffix);
+  for (VariableDeclaration *Var : Globals) {
+    Var->discardInitializers();
+  }
   Globals.clear();
 }
 
 void GlobalContext::lowerProfileData() {
+  // ProfileBlockInfoVarDecl is initialized in the constructor, and will only
+  // ever be nullptr after this method completes. This assertion is a convoluted
+  // way of ensuring lowerProfileData is invoked a single time.
+  assert(ProfileBlockInfoVarDecl != nullptr);
   // This adds a 64-bit sentinel entry to the end of our array. For 32-bit
   // architectures this will waste 4 bytes.
   const SizeT Sizeof64BitNullPtr = typeWidthInBytes(IceType_i64);
   ProfileBlockInfoVarDecl->addInitializer(
-      new VariableDeclaration::ZeroInitializer(Sizeof64BitNullPtr));
-  Globals.push_back(ProfileBlockInfoVarDecl.get());
+      VariableDeclaration::ZeroInitializer::create(Sizeof64BitNullPtr));
+  Globals.push_back(ProfileBlockInfoVarDecl);
   constexpr char ProfileDataSection[] = "$sz_profiler$";
   lowerGlobals(ProfileDataSection);
+  ProfileBlockInfoVarDecl = nullptr;
 }
 
 void GlobalContext::emitItems() {
@@ -649,6 +661,12 @@ IceString GlobalContext::mangleName(const IceString &Name) const {
 
 GlobalContext::~GlobalContext() {
   llvm::DeleteContainerPointers(AllThreadContexts);
+  LockedPtr<DestructorArray> Dtors = getDestructors();
+  // Destructors are invoked in the opposite object construction order.
+  for (auto DtorIter = Dtors->crbegin(); DtorIter != Dtors->crend();
+       ++DtorIter) {
+    (*DtorIter)();
+  }
 }
 
 // TODO(stichnot): Consider adding thread-local caches of constant

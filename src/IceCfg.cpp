@@ -77,11 +77,12 @@ namespace {
 constexpr char BlockNameGlobalPrefix[] = ".L$profiler$block_name$";
 constexpr char BlockStatsGlobalPrefix[] = ".L$profiler$block_info$";
 
-VariableDeclaration *nodeNameDeclaration(const IceString &NodeAsmName) {
-  VariableDeclaration *Var = VariableDeclaration::create();
+VariableDeclaration *nodeNameDeclaration(GlobalContext *Ctx,
+                                         const IceString &NodeAsmName) {
+  VariableDeclaration *Var = VariableDeclaration::create(Ctx);
   Var->setName(BlockNameGlobalPrefix + NodeAsmName);
   Var->setIsConstant(true);
-  Var->addInitializer(new VariableDeclaration::DataInitializer(
+  Var->addInitializer(VariableDeclaration::DataInitializer::create(
       NodeAsmName.data(), NodeAsmName.size() + 1));
   const SizeT Int64ByteSize = typeWidthInBytes(IceType_i64);
   Var->setAlignment(Int64ByteSize); // Wasteful, 32-bit could use 4 bytes.
@@ -89,20 +90,20 @@ VariableDeclaration *nodeNameDeclaration(const IceString &NodeAsmName) {
 }
 
 VariableDeclaration *
-blockProfilingInfoDeclaration(const IceString &NodeAsmName,
+blockProfilingInfoDeclaration(GlobalContext *Ctx, const IceString &NodeAsmName,
                               VariableDeclaration *NodeNameDeclaration) {
-  VariableDeclaration *Var = VariableDeclaration::create();
+  VariableDeclaration *Var = VariableDeclaration::create(Ctx);
   Var->setName(BlockStatsGlobalPrefix + NodeAsmName);
   const SizeT Int64ByteSize = typeWidthInBytes(IceType_i64);
-  Var->addInitializer(new VariableDeclaration::ZeroInitializer(Int64ByteSize));
+  Var->addInitializer(
+      VariableDeclaration::ZeroInitializer::create(Int64ByteSize));
 
   const RelocOffsetT NodeNameDeclarationOffset = 0;
-  Var->addInitializer(new VariableDeclaration::RelocInitializer(
+  Var->addInitializer(VariableDeclaration::RelocInitializer::create(
       NodeNameDeclaration, NodeNameDeclarationOffset));
   Var->setAlignment(Int64ByteSize);
   return Var;
 }
-
 } // end of anonymous namespace
 
 void Cfg::profileBlocks() {
@@ -111,9 +112,9 @@ void Cfg::profileBlocks() {
 
   for (CfgNode *Node : Nodes) {
     IceString NodeAsmName = Node->getAsmName();
-    GlobalInits->push_back(nodeNameDeclaration(NodeAsmName));
+    GlobalInits->push_back(nodeNameDeclaration(Ctx, NodeAsmName));
     GlobalInits->push_back(
-        blockProfilingInfoDeclaration(NodeAsmName, GlobalInits->back()));
+        blockProfilingInfoDeclaration(Ctx, NodeAsmName, GlobalInits->back()));
     Node->profileExecutionCount(GlobalInits->back());
   }
 }

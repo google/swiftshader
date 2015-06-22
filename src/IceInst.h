@@ -161,6 +161,9 @@ public:
   void dumpDest(const Cfg *Func) const;
   virtual bool isRedundantAssign() const { return false; }
 
+  // TODO(jpp): Insts should not have non-trivial destructors, but they
+  // currently do. This dtor is marked final as a multi-step refactor that
+  // will eventually fix this problem.
   virtual ~Inst() = default;
 
 protected:
@@ -229,7 +232,6 @@ protected:
   void emitIAS(const Cfg * /*Func*/) const override {
     llvm_unreachable("emitIAS() called on a non-lowered instruction");
   }
-  ~InstHighLevel() override {}
 };
 
 // Alloca instruction.  This captures the size in bytes as getSrc(0),
@@ -254,7 +256,7 @@ public:
 private:
   InstAlloca(Cfg *Func, Operand *ByteCount, uint32_t AlignInBytes,
              Variable *Dest);
-  ~InstAlloca() override {}
+
   const uint32_t AlignInBytes;
 };
 
@@ -289,7 +291,6 @@ public:
 private:
   InstArithmetic(Cfg *Func, OpKind Op, Variable *Dest, Operand *Source1,
                  Operand *Source2);
-  ~InstArithmetic() override {}
 
   const OpKind Op;
 };
@@ -315,7 +316,6 @@ public:
 
 private:
   InstAssign(Cfg *Func, Variable *Dest, Operand *Source);
-  ~InstAssign() override {}
 };
 
 // Branch instruction.  This represents both conditional and
@@ -359,7 +359,6 @@ private:
   InstBr(Cfg *Func, Operand *Source, CfgNode *TargetTrue, CfgNode *TargetFalse);
   // Unconditional branch
   InstBr(Cfg *Func, CfgNode *Target);
-  ~InstBr() override {}
 
   CfgNode *TargetFalse; // Doubles as unconditional branch target
   CfgNode *TargetTrue;  // nullptr if unconditional branch
@@ -399,7 +398,6 @@ protected:
     HasSideEffects = HasSideEff;
     addSource(CallTarget);
   }
-  ~InstCall() override {}
 
 private:
   bool HasTailCall;
@@ -432,7 +430,7 @@ public:
 
 private:
   InstCast(Cfg *Func, OpKind CastKind, Variable *Dest, Operand *Source);
-  ~InstCast() override {}
+
   const OpKind CastKind;
 };
 
@@ -457,7 +455,6 @@ public:
 private:
   InstExtractElement(Cfg *Func, Variable *Dest, Operand *Source1,
                      Operand *Source2);
-  ~InstExtractElement() override {}
 };
 
 // Floating-point comparison instruction.  The source operands are
@@ -487,7 +484,7 @@ public:
 private:
   InstFcmp(Cfg *Func, FCond Condition, Variable *Dest, Operand *Source1,
            Operand *Source2);
-  ~InstFcmp() override {}
+
   const FCond Condition;
 };
 
@@ -518,7 +515,7 @@ public:
 private:
   InstIcmp(Cfg *Func, ICond Condition, Variable *Dest, Operand *Source1,
            Operand *Source2);
-  ~InstIcmp() override {}
+
   const ICond Condition;
 };
 
@@ -543,7 +540,6 @@ public:
 private:
   InstInsertElement(Cfg *Func, Variable *Dest, Operand *Source1,
                     Operand *Source2, Operand *Source3);
-  ~InstInsertElement() override {}
 };
 
 // Call to an intrinsic function.  The call target is captured as getSrc(0),
@@ -572,7 +568,7 @@ private:
       : InstCall(Func, NumArgs, Dest, CallTarget, false, Info.HasSideEffects,
                  Inst::IntrinsicCall),
         Info(Info) {}
-  ~InstIntrinsicCall() override {}
+
   const Intrinsics::IntrinsicInfo Info;
 };
 
@@ -595,7 +591,6 @@ public:
 
 private:
   InstLoad(Cfg *Func, Variable *Dest, Operand *SourceAddr);
-  ~InstLoad() override {}
 };
 
 // Phi instruction.  For incoming edge I, the node is Labels[I] and
@@ -624,7 +619,6 @@ private:
     Func->deallocateArrayOf<CfgNode *>(Labels);
     Inst::destroy(Func);
   }
-  ~InstPhi() override {}
 
   // Labels[] duplicates the InEdges[] information in the enclosing
   // CfgNode, but the Phi instruction is created before InEdges[]
@@ -655,7 +649,6 @@ public:
 
 private:
   InstRet(Cfg *Func, Operand *RetValue);
-  ~InstRet() override {}
 };
 
 // Select instruction.  The condition, true, and false operands are captured.
@@ -679,7 +672,6 @@ public:
 private:
   InstSelect(Cfg *Func, Variable *Dest, Operand *Condition, Operand *Source1,
              Operand *Source2);
-  ~InstSelect() override {}
 };
 
 // Store instruction.  The address operand is captured, along with the
@@ -705,7 +697,6 @@ public:
 
 private:
   InstStore(Cfg *Func, Operand *Data, Operand *Addr);
-  ~InstStore() override {}
 };
 
 // Switch instruction.  The single source operand is captured as
@@ -745,7 +736,6 @@ private:
     Func->deallocateArrayOf<CfgNode *>(Labels);
     Inst::destroy(Func);
   }
-  ~InstSwitch() override {}
 
   CfgNode *LabelDefault;
   SizeT NumCases;   // not including the default case
@@ -772,7 +762,6 @@ public:
 
 private:
   explicit InstUnreachable(Cfg *Func);
-  ~InstUnreachable() override {}
 };
 
 // BundleLock instruction.  There are no operands.  Contains an option
@@ -799,7 +788,6 @@ public:
 private:
   Option BundleOption;
   InstBundleLock(Cfg *Func, Option BundleOption);
-  ~InstBundleLock() override {}
 };
 
 // BundleUnlock instruction.  There are no operands.
@@ -821,7 +809,6 @@ public:
 
 private:
   explicit InstBundleUnlock(Cfg *Func);
-  ~InstBundleUnlock() override {}
 };
 
 // FakeDef instruction.  This creates a fake definition of a variable,
@@ -853,7 +840,6 @@ public:
 
 private:
   InstFakeDef(Cfg *Func, Variable *Dest, Variable *Src);
-  ~InstFakeDef() override {}
 };
 
 // FakeUse instruction.  This creates a fake use of a variable, to
@@ -877,7 +863,6 @@ public:
 
 private:
   InstFakeUse(Cfg *Func, Variable *Src);
-  ~InstFakeUse() override {}
 };
 
 // FakeKill instruction.  This "kills" a set of variables by modeling
@@ -907,7 +892,6 @@ public:
 
 private:
   InstFakeKill(Cfg *Func, const Inst *Linked);
-  ~InstFakeKill() override {}
 
   // This instruction is ignored if Linked->isDeleted() is true.
   const Inst *Linked;
@@ -930,7 +914,6 @@ protected:
       : Inst(Func, Kind, MaxSrcs, Dest) {
     assert(Kind >= Target);
   }
-  ~InstTarget() override {}
 };
 
 bool checkForRedundantAssign(const Variable *Dest, const Operand *Source);

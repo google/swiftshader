@@ -93,6 +93,46 @@ inline bool operator!=(const CfgLocalAllocator<T> &,
   return false;
 }
 
+// makeUnique should be used when memory is expected to be allocated from the
+// heap (as opposed to allocated from some Allocator.) It is intended to be used
+// instead of new.
+//
+// The expected usage is as follows
+//
+// class MyClass {
+// public:
+//   static std::unique_ptr<MyClass> create(<ctor_args>) {
+//     return makeUnique<MyClass>(<ctor_args>);
+//   }
+//
+// private:
+//   ENABLE_MAKE_UNIQUE;
+//
+//   MyClass(<ctor_args>) ...
+// }
+//
+// ENABLE_MAKE_UNIQUE is a trick that is necessary if MyClass' ctor is private.
+// Private ctors are highly encouraged when you're writing a class that you'd
+// like to have allocated with makeUnique as it would prevent users from
+// declaring stack allocated variables.
+namespace Internal {
+struct MakeUniqueEnabler {
+  template <class T, class... Args>
+  static std::unique_ptr<T> create(Args &&... TheArgs) {
+    std::unique_ptr<T> Unique(new T(std::forward<Args>(TheArgs)...));
+    return Unique;
+  }
+};
+} // end of namespace Internal
+
+template <class T, class... Args>
+static std::unique_ptr<T> makeUnique(Args &&... TheArgs) {
+  return ::Ice::Internal::MakeUniqueEnabler::create<T>(
+      std::forward<Args>(TheArgs)...);
+}
+
+#define ENABLE_MAKE_UNIQUE friend struct ::Ice::Internal::MakeUniqueEnabler
+
 typedef std::string IceString;
 typedef llvm::ilist<Inst> InstList;
 // Ideally PhiList would be llvm::ilist<InstPhi>, and similar for
