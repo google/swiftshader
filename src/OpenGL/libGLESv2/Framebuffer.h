@@ -59,6 +59,8 @@ public:
     GLuint getDepthbufferName();
     GLuint getStencilbufferName();
 
+	GLint getColorbufferLayer(GLuint index);
+
     bool hasStencil();
 
 	virtual GLenum completeness();

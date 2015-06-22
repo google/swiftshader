@@ -220,6 +220,12 @@ GLuint Framebuffer::getStencilbufferName()
 	return mStencilbufferPointer.name();
 }
 
+GLint Framebuffer::getColorbufferLayer(GLuint index)
+{
+	Renderbuffer *colorbuffer = mColorbufferPointer[index];
+	return (colorbuffer != nullptr) ? colorbuffer->getLayer() : 0;
+}
+
 bool Framebuffer::hasStencil()
 {
 	if(mStencilbufferType != GL_NONE)

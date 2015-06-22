@@ -332,6 +332,11 @@ GLsizei Renderbuffer::getHeight() const
 	return mInstance->getHeight();
 }
 
+GLint Renderbuffer::getLayer() const
+{
+	return mInstance->getLayer();
+}
+
 GLenum Renderbuffer::getFormat() const
 {
 	return mInstance->getFormat();
