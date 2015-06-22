@@ -369,8 +369,10 @@ void GlobalContext::emitFileHeader() {
   if (getFlags().getOutFileType() == FT_Elf) {
     getObjectWriter()->writeInitialELFHeader();
   } else {
-    if (!ALLOW_DUMP)
-      llvm::report_fatal_error("emitFileHeader for non-ELF");
+    if (!ALLOW_DUMP) {
+      getStrError() << "emitFileHeader for non-ELF";
+      getErrorStatus()->assign(EC_Translation);
+    }
     TargetHeaderLowering::createLowering(this)->lower();
   }
 }

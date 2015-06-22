@@ -7,9 +7,11 @@
 ; TODO(jvoung): Stop skipping unimplemented parts (via --skip-unimplemented)
 ; once enough infrastructure is in. Also, switch to --filetype=obj
 ; when possible.
-; RUN: %if --need=target_ARM32 --command %p2i --filetype=asm --assemble \
+; RUN: %if --need=target_ARM32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble \
 ; RUN:   --disassemble --target arm32 -i %s --args -O2 --skip-unimplemented \
-; RUN:   | %if --need=target_ARM32 --command FileCheck --check-prefix ARM32 %s
+; RUN:   | %if --need=target_ARM32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix ARM32 %s
 
 ; Test 8-bits of all ones rotated right by various amounts (even vs odd).
 ; ARM has a shifter that allows encoding 8-bits rotated right by even amounts.
