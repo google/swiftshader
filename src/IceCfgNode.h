@@ -96,15 +96,16 @@ public:
 private:
   CfgNode(Cfg *Func, SizeT LabelIndex);
   Cfg *const Func;
-  SizeT Number;                       // label index
-  Cfg::IdentifierIndexType NameIndex; // index into Cfg::NodeNames table
-  bool HasReturn;                     // does this block need an epilog?
-  bool NeedsPlacement;
-  InstNumberT InstCountEstimate; // rough instruction count estimate
-  NodeList InEdges;              // in no particular order
-  NodeList OutEdges;             // in no particular order
-  PhiList Phis;                  // unordered set of phi instructions
-  InstList Insts;                // ordered list of non-phi instructions
+  SizeT Number; // label index
+  Cfg::IdentifierIndexType NameIndex =
+      Cfg::IdentifierIndexInvalid; // index into Cfg::NodeNames table
+  bool HasReturn = false;          // does this block need an epilog?
+  bool NeedsPlacement = false;
+  InstNumberT InstCountEstimate = 0; // rough instruction count estimate
+  NodeList InEdges;                  // in no particular order
+  NodeList OutEdges;                 // in no particular order
+  PhiList Phis;                      // unordered set of phi instructions
+  InstList Insts;                    // ordered list of non-phi instructions
 };
 
 } // end of namespace Ice

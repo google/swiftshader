@@ -45,7 +45,7 @@ class CompileServer {
 public:
   explicit CompileServer(Compiler &Comp) : Comp(Comp) {}
 
-  virtual ~CompileServer() {}
+  virtual ~CompileServer() = default;
 
   virtual void run() = 0;
 

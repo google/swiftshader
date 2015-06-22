@@ -30,8 +30,7 @@
 
 namespace Ice {
 
-TargetMIPS32::TargetMIPS32(Cfg *Func)
-    : TargetLowering(Func), UsesFramePointer(false) {
+TargetMIPS32::TargetMIPS32(Cfg *Func) : TargetLowering(Func) {
   // TODO: Don't initialize IntegerRegisters and friends every time.
   // Instead, initialize in some sort of static initializer for the
   // class.

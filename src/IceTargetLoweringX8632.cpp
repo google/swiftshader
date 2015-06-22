@@ -265,8 +265,7 @@ private:
 } // end of anonymous namespace
 
 BoolFoldingEntry::BoolFoldingEntry(Inst *I)
-    : Instr(I), IsComplex(BoolFolding::hasComplexLowering(I)), IsLiveOut(true),
-      NumUses(0) {}
+    : Instr(I), IsComplex(BoolFolding::hasComplexLowering(I)) {}
 
 BoolFolding::BoolFoldingProducerKind
 BoolFolding::getProducerKind(const Inst *Instr) {
@@ -410,10 +409,7 @@ void TargetX8632::initNodeForLowering(CfgNode *Node) {
   FoldingInfo.dump(Func);
 }
 
-TargetX8632::TargetX8632(Cfg *Func)
-    : TargetLowering(Func), InstructionSet(X86InstructionSet::Begin),
-      IsEbpBasedFrame(false), NeedsStackAlignment(false), SpillAreaSizeBytes(0),
-      RandomizationPoolingPaused(false) {
+TargetX8632::TargetX8632(Cfg *Func) : TargetLowering(Func) {
   static_assert((X86InstructionSet::End - X86InstructionSet::Begin) ==
                     (TargetInstructionSet::X86InstructionSet_End -
                      TargetInstructionSet::X86InstructionSet_Begin),

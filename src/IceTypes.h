@@ -130,7 +130,7 @@ public:
 
   // Creates a function signature type with the given return type.
   // Parameter types should be added using calls to appendArgType.
-  FuncSigType() : ReturnType(IceType_void) {}
+  FuncSigType() = default;
   FuncSigType(const FuncSigType &Ty) = default;
 
   void appendArgType(Type ArgType) { ArgList.push_back(ArgType); }
@@ -147,7 +147,7 @@ public:
 
 private:
   // The return type.
-  Type ReturnType;
+  Type ReturnType = IceType_void;
   // The list of parameters.
   ArgListType ArgList;
 };

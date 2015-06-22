@@ -64,8 +64,7 @@ uint32_t getELFFlags(TargetArch Arch) {
 } // end of anonymous namespace
 
 ELFObjectWriter::ELFObjectWriter(GlobalContext &Ctx, ELFStreamer &Out)
-    : Ctx(Ctx), Str(Out), SectionNumbersAssigned(false),
-      ELF64(isELF64(Ctx.getFlags().getTargetArch())) {
+    : Ctx(Ctx), Str(Out), ELF64(isELF64(Ctx.getFlags().getTargetArch())) {
   // Create the special bookkeeping sections now.
   const IceString NullSectionName("");
   NullSection = new (Ctx.allocate<ELFSection>())

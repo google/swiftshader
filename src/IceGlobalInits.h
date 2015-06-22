@@ -54,7 +54,7 @@ public:
   void setLinkage(llvm::GlobalValue::LinkageTypes NewLinkage) {
     Linkage = NewLinkage;
   }
-  virtual ~GlobalDeclaration() {}
+  virtual ~GlobalDeclaration() = default;
 
   /// Prints out type of the global declaration.
   virtual void dumpType(Ostream &Stream) const = 0;
@@ -142,7 +142,7 @@ public:
       RelocInitializerKind
     };
     InitializerKind getKind() const { return Kind; }
-    virtual ~Initializer() {}
+    virtual ~Initializer() = default;
     virtual SizeT getNumBytes() const = 0;
     virtual void dump(GlobalContext *Ctx, Ostream &Stream) const = 0;
     void dump(Ostream &Stream) const {

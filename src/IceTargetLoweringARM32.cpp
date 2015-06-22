@@ -143,10 +143,7 @@ uint32_t applyStackAlignmentTy(uint32_t Value, Type Ty) {
 
 } // end of anonymous namespace
 
-TargetARM32::TargetARM32(Cfg *Func)
-    : TargetLowering(Func), InstructionSet(ARM32InstructionSet::Begin),
-      UsesFramePointer(false), NeedsStackAlignment(false), MaybeLeafFunc(true),
-      SpillAreaSizeBytes(0) {
+TargetARM32::TargetARM32(Cfg *Func) : TargetLowering(Func) {
   static_assert(
       (ARM32InstructionSet::End - ARM32InstructionSet::Begin) ==
           (TargetInstructionSet::ARM32InstructionSet_End -

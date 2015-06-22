@@ -302,11 +302,11 @@ protected:
     Context.insert(InstARM32Uxt::create(Func, Dest, Src0, Pred));
   }
 
-  ARM32InstructionSet InstructionSet;
-  bool UsesFramePointer;
-  bool NeedsStackAlignment;
-  bool MaybeLeafFunc;
-  size_t SpillAreaSizeBytes;
+  ARM32InstructionSet InstructionSet = ARM32InstructionSet::Begin;
+  bool UsesFramePointer = false;
+  bool NeedsStackAlignment = false;
+  bool MaybeLeafFunc = true;
+  size_t SpillAreaSizeBytes = 0;
   llvm::SmallBitVector TypeToRegisterSet[IceType_NUM];
   llvm::SmallBitVector ScratchRegs;
   llvm::SmallBitVector RegsUsed;

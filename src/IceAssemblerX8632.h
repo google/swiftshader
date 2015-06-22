@@ -48,7 +48,7 @@ class Immediate {
   Immediate &operator=(const Immediate &) = delete;
 
 public:
-  explicit Immediate(int32_t value) : value_(value), fixup_(nullptr) {}
+  explicit Immediate(int32_t value) : value_(value) {}
 
   Immediate(RelocOffsetT offset, AssemblerFixup *fixup)
       : value_(offset), fixup_(fixup) {
@@ -73,7 +73,7 @@ public:
 
 private:
   const int32_t value_;
-  AssemblerFixup *fixup_;
+  AssemblerFixup *fixup_ = nullptr;
 };
 
 class Operand {
@@ -243,7 +243,7 @@ public:
   static Address ofConstPool(Assembler *Asm, const Constant *Imm);
 
 private:
-  Address() {} // Needed by Address::Absolute.
+  Address() = default; // Needed by Address::Absolute.
 };
 
 class Label {
@@ -251,7 +251,7 @@ class Label {
   Label &operator=(const Label &) = delete;
 
 public:
-  Label() : position_(0), num_unresolved_(0) {
+  Label() {
 #ifndef NDEBUG
     for (int i = 0; i < kMaxUnresolvedBranches; i++) {
       unresolved_near_positions_[i] = -1;
@@ -259,7 +259,7 @@ public:
 #endif // !NDEBUG
   }
 
-  ~Label() {}
+  ~Label() = default;
 
   void FinalCheck() const {
     // Assert if label is being destroyed with unresolved branches pending.
@@ -323,8 +323,8 @@ private:
 
   static const int kMaxUnresolvedBranches = 20;
 
-  intptr_t position_;
-  intptr_t num_unresolved_;
+  intptr_t position_ = 0;
+  intptr_t num_unresolved_ = 0;
   // TODO(stichnot,jvoung): Can this instead be
   // llvm::SmallVector<intptr_t, kMaxUnresolvedBranches> ?
   intptr_t unresolved_near_positions_[kMaxUnresolvedBranches];

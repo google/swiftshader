@@ -100,7 +100,7 @@ private:
   // A borrowed reference to the current InputStream. The compiler owns
   // the actual reference so the server must be careful not to access
   // after the compiler is done.
-  llvm::QueueStreamer *InputStream;
+  llvm::QueueStreamer *InputStream = nullptr;
   std::unique_ptr<Ostream> LogStream;
   std::unique_ptr<llvm::raw_fd_ostream> EmitStream;
   std::unique_ptr<StringStream> ErrorStream;

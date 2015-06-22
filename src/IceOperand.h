@@ -79,17 +79,16 @@ public:
       dump(nullptr, Str);
   }
 
-  virtual ~Operand() {}
+  virtual ~Operand() = default;
 
 protected:
-  Operand(OperandKind Kind, Type Ty)
-      : Ty(Ty), Kind(Kind), NumVars(0), Vars(nullptr) {}
+  Operand(OperandKind Kind, Type Ty) : Ty(Ty), Kind(Kind) {}
 
   const Type Ty;
   const OperandKind Kind;
   // Vars and NumVars are initialized by the derived class.
-  SizeT NumVars;
-  Variable **Vars;
+  SizeT NumVars = 0;
+  Variable **Vars = nullptr;
 };
 
 template <class StreamType>
@@ -317,7 +316,7 @@ private:
 // method that ensures that W+infinity=infinity.
 class RegWeight {
 public:
-  RegWeight() : Weight(0) {}
+  RegWeight() = default;
   explicit RegWeight(uint32_t Weight) : Weight(Weight) {}
   RegWeight(const RegWeight &) = default;
   RegWeight &operator=(const RegWeight &) = default;
@@ -336,7 +335,7 @@ public:
   bool isZero() const { return Weight == Zero; }
 
 private:
-  uint32_t Weight;
+  uint32_t Weight = 0;
 };
 Ostream &operator<<(Ostream &Str, const RegWeight &W);
 bool operator<(const RegWeight &A, const RegWeight &B);
@@ -351,10 +350,10 @@ bool operator==(const RegWeight &A, const RegWeight &B);
 // inside a loop.
 class LiveRange {
 public:
-  LiveRange() : Weight(0) {}
+  LiveRange() = default;
   // Special constructor for building a kill set.  The advantage is
   // that we can reserve the right amount of space in advance.
-  explicit LiveRange(const std::vector<InstNumberT> &Kills) : Weight(0) {
+  explicit LiveRange(const std::vector<InstNumberT> &Kills) {
     Range.reserve(Kills.size());
     for (InstNumberT I : Kills)
       addSegment(I, I);
@@ -392,7 +391,7 @@ private:
   typedef std::vector<RangeElementType, CfgLocalAllocator<RangeElementType>>
       RangeType;
   RangeType Range;
-  RegWeight Weight;
+  RegWeight Weight = RegWeight(0);
   // TrimmedBegin is an optimization for the overlaps() computation.
   // Since the linear-scan algorithm always calls it as overlaps(Cur)
   // and Cur advances monotonically according to live range start, we
@@ -510,10 +509,7 @@ public:
 
 protected:
   Variable(OperandKind K, Type Ty, SizeT Index)
-      : Operand(K, Ty), Number(Index), NameIndex(Cfg::IdentifierIndexInvalid),
-        IsArgument(false), IsImplicitArgument(false), IgnoreLiveness(false),
-        StackOffset(0), RegNum(NoRegister), RegNumTmp(NoRegister), Weight(1),
-        LoVar(nullptr), HiVar(nullptr) {
+      : Operand(K, Ty), Number(Index) {
     Vars = VarsReal;
     Vars[0] = this;
     NumVars = 1;
@@ -522,22 +518,22 @@ protected:
   // Number is unique across all variables, and is used as a
   // (bit)vector index for liveness analysis.
   const SizeT Number;
-  Cfg::IdentifierIndexType NameIndex;
-  bool IsArgument;
-  bool IsImplicitArgument;
+  Cfg::IdentifierIndexType NameIndex = Cfg::IdentifierIndexInvalid;
+  bool IsArgument = false;
+  bool IsImplicitArgument = false;
   // IgnoreLiveness means that the variable should be ignored when
   // constructing and validating live ranges.  This is usually
   // reserved for the stack pointer.
-  bool IgnoreLiveness;
+  bool IgnoreLiveness = false;
   // StackOffset is the canonical location on stack (only if
   // RegNum==NoRegister || IsArgument).
-  int32_t StackOffset;
+  int32_t StackOffset = 0;
   // RegNum is the allocated register, or NoRegister if it isn't
   // register-allocated.
-  int32_t RegNum;
+  int32_t RegNum = NoRegister;
   // RegNumTmp is the tentative assignment during register allocation.
-  int32_t RegNumTmp;
-  RegWeight Weight; // Register allocation priority
+  int32_t RegNumTmp = NoRegister;
+  RegWeight Weight = RegWeight(1); // Register allocation priority
   LiveRange Live;
   // LoVar and HiVar are needed for lowering from 64 to 32 bits.  When
   // lowering from I64 to I32 on a 32-bit architecture, we split the
@@ -546,8 +542,8 @@ protected:
   // portion.  TODO: It's wasteful to penalize all variables on all
   // targets this way; use a sparser representation.  It's also
   // wasteful for a 64-bit target.
-  Variable *LoVar;
-  Variable *HiVar;
+  Variable *LoVar = nullptr;
+  Variable *HiVar = nullptr;
   // VarsReal (and Operand::Vars) are set up such that Vars[0] ==
   // this.
   Variable *VarsReal[1];
@@ -574,9 +570,7 @@ public:
     MDS_MultiDefMultiBlock
   };
   enum MultiBlockState { MBS_Unknown, MBS_SingleBlock, MBS_MultiBlock };
-  VariableTracking()
-      : MultiDef(MDS_Unknown), MultiBlock(MBS_Unknown), SingleUseNode(nullptr),
-        SingleDefNode(nullptr), FirstOrSingleDefinition(nullptr) {}
+  VariableTracking() = default;
   VariableTracking(const VariableTracking &) = default;
   MultiDefState getMultiDef() const { return MultiDef; }
   MultiBlockState getMultiBlock() const { return MultiBlock; }
@@ -590,14 +584,15 @@ public:
                const CfgNode *Node);
 
 private:
-  MultiDefState MultiDef;
-  MultiBlockState MultiBlock;
-  const CfgNode *SingleUseNode;
-  const CfgNode *SingleDefNode;
+  MultiDefState MultiDef = MDS_Unknown;
+  MultiBlockState MultiBlock = MBS_Unknown;
+  const CfgNode *SingleUseNode = nullptr;
+  const CfgNode *SingleDefNode = nullptr;
   // All definitions of the variable are collected here, in increasing
   // order of instruction number.
-  InstDefList Definitions;             // Only used if Kind==VMK_All
-  const Inst *FirstOrSingleDefinition; // == Definitions[0] if Kind==VMK_All
+  InstDefList Definitions; // Only used if Kind==VMK_All
+  const Inst *FirstOrSingleDefinition =
+      nullptr; // Is a copy of Definitions[0] if Kind==VMK_All
 };
 
 // VariablesMetadata analyzes and summarizes the metadata for the

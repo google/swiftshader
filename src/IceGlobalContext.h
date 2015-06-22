@@ -139,7 +139,7 @@ class GlobalContext {
     ThreadContext &operator=(const ThreadContext &) = delete;
 
   public:
-    ThreadContext() {}
+    ThreadContext() = default;
     CodeStats StatsFunction;
     CodeStats StatsCumulative;
     TimerList Timers;
@@ -466,7 +466,7 @@ private:
   // If !HasEmittedCode, SubZero will accumulate all Globals (which are "true"
   // program global variables) until the first code WorkItem is seen.
   // TODO(jpp): move to EmitterContext.
-  bool HasSeenCode;
+  bool HasSeenCode = false;
   // TODO(jpp): move to EmitterContext.
   VariableDeclarationList Globals;
   // TODO(jpp): move to EmitterContext.
@@ -512,7 +512,7 @@ private:
   // Randomization Cookie
   // Managed by getRandomizationCookie()
   GlobalLockType RandomizationCookieLock;
-  uint32_t RandomizationCookie;
+  uint32_t RandomizationCookie = 0;
 
 public:
   static void TlsInit() { ICE_TLS_INIT_FIELD(TLS); }
@@ -529,13 +529,13 @@ class TimerMarker {
 public:
   TimerMarker(TimerIdT ID, GlobalContext *Ctx,
               TimerStackIdT StackID = GlobalContext::TSK_Default)
-      : ID(ID), Ctx(Ctx), StackID(StackID), Active(false) {
+      : ID(ID), Ctx(Ctx), StackID(StackID) {
     if (ALLOW_DUMP)
       push();
   }
   TimerMarker(TimerIdT ID, const Cfg *Func,
               TimerStackIdT StackID = GlobalContext::TSK_Default)
-      : ID(ID), Ctx(nullptr), StackID(StackID), Active(false) {
+      : ID(ID), Ctx(nullptr), StackID(StackID) {
     // Ctx gets set at the beginning of pushCfg().
     if (ALLOW_DUMP)
       pushCfg(Func);
@@ -552,7 +552,7 @@ private:
   const TimerIdT ID;
   GlobalContext *Ctx;
   const TimerStackIdT StackID;
-  bool Active;
+  bool Active = false;
 };
 
 // Helper class for locking the streams and then automatically

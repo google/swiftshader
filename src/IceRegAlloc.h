@@ -27,8 +27,7 @@ class LinearScan {
   LinearScan &operator=(const LinearScan &) = delete;
 
 public:
-  explicit LinearScan(Cfg *Func)
-      : Func(Func), FindPreference(false), FindOverlap(false) {}
+  explicit LinearScan(Cfg *Func) : Func(Func) {}
   void init(RegAllocKind Kind);
   void scan(const llvm::SmallBitVector &RegMask, bool Randomized);
   void dump(Cfg *Func) const;
@@ -58,8 +57,8 @@ private:
   OrderedRanges UnhandledPrecolored;
   UnorderedRanges Active, Inactive, Handled;
   std::vector<InstNumberT> Kills;
-  bool FindPreference;
-  bool FindOverlap;
+  bool FindPreference = false;
+  bool FindOverlap = false;
   // TODO(stichnot): We're not really using FindOverlap yet, but we
   // may want a flavor of register allocation where FindPreference is
   // useful but we didn't want to initialize VMetadata with VMK_All

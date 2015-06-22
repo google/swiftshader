@@ -44,7 +44,7 @@ public:
   // incrementally or only after the program is completely defined.
   ELFSection(const IceString &Name, Elf64_Word ShType, Elf64_Xword ShFlags,
              Elf64_Xword ShAddralign, Elf64_Xword ShEntsize)
-      : Name(Name), Header(), Number(NoSectionNumber) {
+      : Name(Name), Header() {
     Header.sh_type = ShType;
     Header.sh_flags = ShFlags;
     Header.sh_addralign = ShAddralign;
@@ -81,7 +81,7 @@ public:
   template <bool IsELF64> void writeHeader(ELFStreamer &Str);
 
 protected:
-  ~ELFSection() {}
+  ~ELFSection() = default;
 
   // Name of the section in convenient string form (instead of a index
   // into the Section Header String Table, which is not known till later).
@@ -92,7 +92,7 @@ protected:
   Elf64_Shdr Header;
 
   // The number of the section after laying out sections.
-  SizeT Number;
+  SizeT Number = NoSectionNumber;
 };
 
 // Models text/code sections. Code is written out incrementally and the

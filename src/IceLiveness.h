@@ -34,15 +34,15 @@ class Liveness {
     LivenessNode &operator=(const LivenessNode &) = delete;
 
   public:
-    LivenessNode() : NumLocals(0), NumNonDeadPhis(0) {}
+    LivenessNode() = default;
     LivenessNode(const LivenessNode &) = default;
     // NumLocals is the number of Variables local to this block.
-    SizeT NumLocals;
+    SizeT NumLocals = 0;
     // NumNonDeadPhis tracks the number of Phi instructions that
     // Inst::liveness() identified as tentatively live.  If
     // NumNonDeadPhis changes from the last liveness pass, then liveness
     // has not yet converged.
-    SizeT NumNonDeadPhis;
+    SizeT NumNonDeadPhis = 0;
     // LiveToVarMap maps a liveness bitvector index to a Variable.  This
     // is generally just for printing/dumping.  The index should be less
     // than NumLocals + Liveness::NumGlobals.
@@ -59,8 +59,7 @@ class Liveness {
   };
 
 public:
-  Liveness(Cfg *Func, LivenessMode Mode)
-      : Func(Func), Mode(Mode), NumGlobals(0) {}
+  Liveness(Cfg *Func, LivenessMode Mode) : Func(Func), Mode(Mode) {}
   void init();
   Cfg *getFunc() const { return Func; }
   LivenessMode getMode() const { return Mode; }
@@ -102,7 +101,7 @@ private:
   }
   Cfg *Func;
   LivenessMode Mode;
-  SizeT NumGlobals;
+  SizeT NumGlobals = 0;
   // Size of Nodes is Cfg::Nodes.size().
   std::vector<LivenessNode> Nodes;
   // VarToLiveMap maps a Variable's Variable::Number to its live index

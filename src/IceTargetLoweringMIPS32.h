@@ -115,8 +115,8 @@ protected:
 
   static Type stackSlotType();
 
-  bool UsesFramePointer;
-  bool NeedsStackAlignment;
+  bool UsesFramePointer = false;
+  bool NeedsStackAlignment = false;
   llvm::SmallBitVector TypeToRegisterSet[IceType_NUM];
   llvm::SmallBitVector ScratchRegs;
   llvm::SmallBitVector RegsUsed;

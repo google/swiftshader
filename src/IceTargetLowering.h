@@ -39,8 +39,8 @@ class LoweringContext {
   LoweringContext &operator=(const LoweringContext &) = delete;
 
 public:
-  LoweringContext() : Node(nullptr), LastInserted(nullptr) {}
-  ~LoweringContext() {}
+  LoweringContext() = default;
+  ~LoweringContext() = default;
   void init(CfgNode *Node);
   Inst *getNextInst() const {
     if (Next == End)
@@ -67,8 +67,8 @@ public:
 
 private:
   // Node is the argument to Inst::updateVars().
-  CfgNode *Node;
-  Inst *LastInserted;
+  CfgNode *Node = nullptr;
+  Inst *LastInserted = nullptr;
   // Cur points to the current instruction being considered.  It is
   // guaranteed to point to a non-deleted instruction, or to be End.
   InstList::iterator Cur;
@@ -226,7 +226,7 @@ public:
   virtual void addProlog(CfgNode *Node) = 0;
   virtual void addEpilog(CfgNode *Node) = 0;
 
-  virtual ~TargetLowering() {}
+  virtual ~TargetLowering() = default;
 
 protected:
   explicit TargetLowering(Cfg *Func);
@@ -323,12 +323,12 @@ protected:
 
   Cfg *Func;
   GlobalContext *Ctx;
-  bool HasComputedFrame;
-  bool CallsReturnsTwice;
+  bool HasComputedFrame = false;
+  bool CallsReturnsTwice = false;
   // StackAdjustment keeps track of the current stack offset from its
   // natural location, as arguments are pushed for a function call.
-  int32_t StackAdjustment;
-  SizeT NextLabelNumber;
+  int32_t StackAdjustment = 0;
+  SizeT NextLabelNumber = 0;
   LoweringContext Context;
 
   // Runtime helper function names
@@ -366,7 +366,7 @@ protected:
   const static constexpr char *H_urem_i64 = "__umoddi3";
 
 private:
-  int32_t SnapshotStackAdjustment;
+  int32_t SnapshotStackAdjustment = 0;
 };
 
 // TargetDataLowering is used for "lowering" data including initializers

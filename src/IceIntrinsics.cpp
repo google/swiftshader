@@ -225,7 +225,7 @@ Intrinsics::Intrinsics() {
   }
 }
 
-Intrinsics::~Intrinsics() {}
+Intrinsics::~Intrinsics() = default;
 
 const Intrinsics::FullIntrinsicInfo *Intrinsics::find(const IceString &Name,
                                                       bool &Error) const {

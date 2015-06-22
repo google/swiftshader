@@ -25,9 +25,7 @@ class ClFlagsExtra {
   ClFlagsExtra &operator=(const ClFlagsExtra &) = delete;
 
 public:
-  ClFlagsExtra()
-      : AlwaysExitSuccess(false), BuildOnRead(false), GenerateBuildAtts(false),
-        LLVMVerboseErrors(false), InputFileFormat(llvm::LLVMFormat) {}
+  ClFlagsExtra() = default;
 
   bool getAlwaysExitSuccess() const { return AlwaysExitSuccess; }
   void setAlwaysExitSuccess(bool NewValue) { AlwaysExitSuccess = NewValue; }
@@ -61,17 +59,17 @@ public:
   }
 
 private:
-  bool AlwaysExitSuccess;
-  bool BuildOnRead;
-  bool GenerateBuildAtts;
-  bool LLVMVerboseErrors;
+  bool AlwaysExitSuccess = false;
+  bool BuildOnRead = false;
+  bool GenerateBuildAtts = false;
+  bool LLVMVerboseErrors = false;
 
-  llvm::NaClFileFormat InputFileFormat;
+  llvm::NaClFileFormat InputFileFormat = llvm::LLVMFormat;
 
-  IceString AppName;
-  IceString IRFilename;
-  IceString LogFilename;
-  IceString OutputFilename;
+  IceString AppName = "";
+  IceString IRFilename = "";
+  IceString LogFilename = "";
+  IceString OutputFilename = "";
 };
 
 } // end of namespace Ice

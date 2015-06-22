@@ -118,7 +118,7 @@ void fatalErrorHandler(void *UserData, const std::string &Reason,
 
 } // end of anonymous namespace
 
-BrowserCompileServer::~BrowserCompileServer() {}
+BrowserCompileServer::~BrowserCompileServer() = default;
 
 void BrowserCompileServer::run() {
   gCompileServer = this;

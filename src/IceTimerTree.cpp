@@ -20,8 +20,7 @@
 namespace Ice {
 
 TimerStack::TimerStack(const IceString &Name)
-    : Name(Name), FirstTimestamp(timestamp()), LastTimestamp(FirstTimestamp),
-      StateChangeCount(0), StackTop(0) {
+    : Name(Name), FirstTimestamp(timestamp()), LastTimestamp(FirstTimestamp) {
   if (!ALLOW_DUMP)
     return;
   Nodes.resize(1); // Reserve Nodes[0] for the root node (sentinel).

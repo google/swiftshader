@@ -207,14 +207,14 @@ private:
   GlobalContext *Ctx;
   uint32_t SequenceNumber; // output order for emission
   VerboseMask VMask;
-  IceString FunctionName;
-  Type ReturnType;
-  bool IsInternalLinkage;
-  bool HasError;
-  bool FocusedTiming;
-  IceString ErrorMessage;
-  CfgNode *Entry; // entry basic block
-  NodeList Nodes; // linearized node list; Entry should be first
+  IceString FunctionName = "";
+  Type ReturnType = IceType_void;
+  bool IsInternalLinkage = false;
+  bool HasError = false;
+  bool FocusedTiming = false;
+  IceString ErrorMessage = "";
+  CfgNode *Entry = nullptr; // entry basic block
+  NodeList Nodes;           // linearized node list; Entry should be first
   std::vector<IceString> IdentifierNames;
   InstNumberT NextInstNumber;
   VarList Variables;
@@ -233,7 +233,7 @@ private:
   // CfgNodes maintains this, but before global operations like
   // register allocation, resetCurrentNode() should be called to avoid
   // spurious validation failures.
-  const CfgNode *CurrentNode;
+  const CfgNode *CurrentNode = nullptr;
 
   // Maintain a pointer in TLS to the current Cfg being translated.
   // This is primarily for accessing its allocator statelessly, but

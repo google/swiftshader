@@ -77,9 +77,7 @@ TargetLowering *TargetLowering::createLowering(TargetArch Target, Cfg *Func) {
 }
 
 TargetLowering::TargetLowering(Cfg *Func)
-    : Func(Func), Ctx(Func->getContext()), HasComputedFrame(false),
-      CallsReturnsTwice(false), StackAdjustment(0), NextLabelNumber(0),
-      Context(), SnapshotStackAdjustment(0) {}
+    : Func(Func), Ctx(Func->getContext()), Context() {}
 
 std::unique_ptr<Assembler> TargetLowering::createAssembler(TargetArch Target,
                                                            Cfg *Func) {
@@ -445,7 +443,7 @@ TargetDataLowering::createLowering(GlobalContext *Ctx) {
   llvm::report_fatal_error("Unsupported target data lowering");
 }
 
-TargetDataLowering::~TargetDataLowering() {}
+TargetDataLowering::~TargetDataLowering() = default;
 
 namespace {
 
@@ -566,6 +564,6 @@ TargetHeaderLowering::createLowering(GlobalContext *Ctx) {
   llvm::report_fatal_error("Unsupported target header lowering");
 }
 
-TargetHeaderLowering::~TargetHeaderLowering() {}
+TargetHeaderLowering::~TargetHeaderLowering() = default;
 
 } // end of namespace Ice

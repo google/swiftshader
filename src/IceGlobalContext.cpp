@@ -120,7 +120,7 @@ template <Type Ty, typename KeyType, typename ValueType> class TypePool {
   TypePool &operator=(const TypePool &) = delete;
 
 public:
-  TypePool() : NextPoolID(0) {}
+  TypePool() = default;
   ValueType *getOrAdd(GlobalContext *Ctx, KeyType Key) {
     auto Iter = Pool.find(Key);
     if (Iter != Pool.end())
@@ -152,7 +152,7 @@ private:
   typedef std::unordered_map<KeyType, ValueType *, std::hash<KeyType>,
                              KeyCompare<KeyType>> ContainerType;
   ContainerType Pool;
-  uint32_t NextPoolID;
+  uint32_t NextPoolID = 0;
 };
 
 // UndefPool maps ICE types to the corresponding ConstantUndef values.
@@ -161,7 +161,7 @@ class UndefPool {
   UndefPool &operator=(const UndefPool &) = delete;
 
 public:
-  UndefPool() : NextPoolID(0), Pool(IceType_NUM) {}
+  UndefPool() : Pool(IceType_NUM) {}
 
   ConstantUndef *getOrAdd(GlobalContext *Ctx, Type Ty) {
     if (Pool[Ty] == nullptr)
@@ -170,7 +170,7 @@ public:
   }
 
 private:
-  uint32_t NextPoolID;
+  uint32_t NextPoolID = 0;
   std::vector<ConstantUndef *> Pool;
 };
 
@@ -183,7 +183,7 @@ class ConstantPool {
   ConstantPool &operator=(const ConstantPool &) = delete;
 
 public:
-  ConstantPool() {}
+  ConstantPool() = default;
   TypePool<IceType_f32, float, ConstantFloat> Floats;
   TypePool<IceType_f64, double, ConstantDouble> Doubles;
   TypePool<IceType_i1, int8_t, ConstantInteger32> Integers1;
@@ -224,9 +224,7 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit, Ostream *OsError,
       // EmitQ is allowed unlimited size.
       EmitQ(/*Sequential=*/Flags.isSequential()),
       DataLowering(TargetDataLowering::createLowering(this)),
-      HasSeenCode(false),
-      ProfileBlockInfoVarDecl(VariableDeclaration::create()),
-      RandomizationCookie(0) {
+      ProfileBlockInfoVarDecl(VariableDeclaration::create()) {
   assert(OsDump && "OsDump is not defined for GlobalContext");
   assert(OsEmit && "OsEmit is not defined for GlobalContext");
   assert(OsError && "OsError is not defined for GlobalContext");

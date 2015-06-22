@@ -201,7 +201,7 @@ class ErrorCode : public std::error_code {
   ErrorCode &operator=(const ErrorCode &) = delete;
 
 public:
-  ErrorCode() : HasError(false) {}
+  ErrorCode() = default;
   void assign(ErrorCodes Code) {
     if (!HasError) {
       HasError = true;
@@ -211,7 +211,7 @@ public:
   void assign(int Code) { assign(static_cast<ErrorCodes>(Code)); }
 
 private:
-  bool HasError;
+  bool HasError = false;
 };
 
 // Reverse range adaptors written in terms of llvm::make_range().

@@ -28,7 +28,7 @@ struct AssemblerFixup {
   AssemblerFixup &operator=(const AssemblerFixup &) = delete;
 
 public:
-  AssemblerFixup() : position_(0), kind_(0), value_(nullptr) {}
+  AssemblerFixup() = default;
   AssemblerFixup(const AssemblerFixup &) = default;
   intptr_t position() const { return position_; }
   void set_position(intptr_t Position) { position_ = Position; }
@@ -47,9 +47,9 @@ public:
   void emit(GlobalContext *Ctx, RelocOffsetT BaseOffset) const;
 
 private:
-  intptr_t position_;
-  FixupKind kind_;
-  const Constant *value_;
+  intptr_t position_ = 0;
+  FixupKind kind_ = 0;
+  const Constant *value_ = nullptr;
 };
 
 typedef std::vector<AssemblerFixup> FixupList;

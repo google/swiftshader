@@ -34,16 +34,13 @@ ArenaAllocator<> *getCurrentCfgAllocator() {
 
 Cfg::Cfg(GlobalContext *Ctx, uint32_t SequenceNumber)
     : Ctx(Ctx), SequenceNumber(SequenceNumber),
-      VMask(Ctx->getFlags().getVerbose()), FunctionName(""),
-      ReturnType(IceType_void), IsInternalLinkage(false), HasError(false),
-      FocusedTiming(false), ErrorMessage(""), Entry(nullptr),
-      NextInstNumber(Inst::NumberInitial), Allocator(new ArenaAllocator<>()),
-      Live(nullptr), Target(TargetLowering::createLowering(
-                         Ctx->getFlags().getTargetArch(), this)),
+      VMask(Ctx->getFlags().getVerbose()), NextInstNumber(Inst::NumberInitial),
+      Allocator(new ArenaAllocator<>()), Live(nullptr),
+      Target(TargetLowering::createLowering(Ctx->getFlags().getTargetArch(),
+                                            this)),
       VMetadata(new VariablesMetadata(this)),
       TargetAssembler(TargetLowering::createAssembler(
-          Ctx->getFlags().getTargetArch(), this)),
-      CurrentNode(nullptr) {
+          Ctx->getFlags().getTargetArch(), this)) {
   assert(!Ctx->isIRGenerationDisabled() &&
          "Attempt to build cfg when IR generation disabled");
 }

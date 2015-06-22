@@ -47,10 +47,10 @@ public:
   /// Discriminator for LLVM-style RTTI.
   enum TypeKind { Undefined, Simple, FuncSig };
 
-  ExtendedType() : Kind(Undefined) {}
+  ExtendedType() = default;
   ExtendedType(const ExtendedType &Ty) = default;
 
-  virtual ~ExtendedType() {}
+  virtual ~ExtendedType() = default;
 
   ExtendedType::TypeKind getKind() const { return Kind; }
   void dump(Ice::Ostream &Stream) const;
@@ -75,7 +75,7 @@ protected:
   Ice::FuncSigType Signature;
 
 private:
-  ExtendedType::TypeKind Kind;
+  ExtendedType::TypeKind Kind = Undefined;
 };
 
 Ice::Ostream &operator<<(Ice::Ostream &Stream, const ExtendedType &Ty) {
@@ -165,9 +165,8 @@ public:
   TopLevelParser(Ice::Translator &Translator, NaClBitstreamCursor &Cursor,
                  Ice::ErrorCode &ErrorStatus)
       : NaClBitcodeParser(Cursor), Translator(Translator),
-        ErrorStatus(ErrorStatus), NumErrors(0), NextDefiningFunctionID(0),
-        VariableDeclarations(new Ice::VariableDeclarationList()),
-        BlockParser(nullptr) {}
+        ErrorStatus(ErrorStatus),
+        VariableDeclarations(new Ice::VariableDeclarationList()) {}
 
   ~TopLevelParser() override {}
 
@@ -344,7 +343,7 @@ private:
   // The exit status that should be set to true if an error occurs.
   Ice::ErrorCode &ErrorStatus;
   // The number of errors reported.
-  unsigned NumErrors;
+  unsigned NumErrors = 0;
   // The types associated with each type ID.
   std::vector<ExtendedType> TypeIDValues;
   // The set of functions (prototype and defined).
@@ -355,7 +354,7 @@ private:
   // function definitions are encountered/parsed and
   // NextDefiningFunctionID is incremented to track the next
   // actually-defined function.
-  size_t NextDefiningFunctionID;
+  size_t NextDefiningFunctionID = 0;
   // The set of global variables.
   std::unique_ptr<Ice::VariableDeclarationList> VariableDeclarations;
   // Relocatable constants associated with global declarations.
@@ -364,7 +363,7 @@ private:
   Ice::FuncSigType UndefinedFuncSigType;
   // The block parser currently being applied. Used for error
   // reporting.
-  BlockParserBaseClass *BlockParser;
+  BlockParserBaseClass *BlockParser = nullptr;
 
   bool ParseBlock(unsigned BlockID) override;
 
@@ -726,8 +725,7 @@ class TypesParser : public BlockParserBaseClass {
 public:
   TypesParser(unsigned BlockID, BlockParserBaseClass *EnclosingParser)
       : BlockParserBaseClass(BlockID, EnclosingParser),
-        Timer(Ice::TimerStack::TT_parseTypes, getTranslator().getContext()),
-        NextTypeId(0) {}
+        Timer(Ice::TimerStack::TT_parseTypes, getTranslator().getContext()) {}
 
   ~TypesParser() override {}
 
@@ -735,7 +733,7 @@ private:
   Ice::TimerMarker Timer;
   // The type ID that will be associated with the next type defining
   // record in the types block.
-  unsigned NextTypeId;
+  unsigned NextTypeId = 0;
 
   void ProcessRecord() override;
 
@@ -906,7 +904,6 @@ public:
   GlobalsParser(unsigned BlockID, BlockParserBaseClass *EnclosingParser)
       : BlockParserBaseClass(BlockID, EnclosingParser),
         Timer(Ice::TimerStack::TT_parseGlobals, getTranslator().getContext()),
-        InitializersNeeded(0), NextGlobalID(0),
         DummyGlobalVar(Ice::VariableDeclaration::create()),
         CurGlobalVar(DummyGlobalVar) {}
 
@@ -918,10 +915,10 @@ private:
   Ice::TimerMarker Timer;
   // Keeps track of how many initializers are expected for the global variable
   // declaration being built.
-  unsigned InitializersNeeded;
+  unsigned InitializersNeeded = 0;
 
   // The index of the next global variable declaration.
-  unsigned NextGlobalID;
+  unsigned NextGlobalID = 0;
 
   // Dummy global variable declaration to guarantee CurGlobalVar is
   // always defined (allowing code to not need to check if
@@ -1125,12 +1122,10 @@ public:
   FunctionParser(unsigned BlockID, BlockParserBaseClass *EnclosingParser)
       : BlockParserBaseClass(BlockID, EnclosingParser),
         Timer(Ice::TimerStack::TT_parseFunctions, getTranslator().getContext()),
-        Func(nullptr), CurrentBbIndex(0),
-        FcnId(Context->getNextFunctionBlockValueID()),
+        Func(nullptr), FcnId(Context->getNextFunctionBlockValueID()),
         FuncDecl(Context->getFunctionByID(FcnId)),
         CachedNumGlobalValueIDs(Context->getNumGlobalIDs()),
-        NextLocalInstIndex(Context->getNumGlobalIDs()),
-        InstIsTerminating(false) {}
+        NextLocalInstIndex(Context->getNumGlobalIDs()) {}
 
   bool convertFunction() {
     const Ice::TimerStackIdT StackID = Ice::GlobalContext::TSK_Funcs;
@@ -1233,9 +1228,9 @@ private:
   // The corresponding ICE function defined by the function block.
   std::unique_ptr<Ice::Cfg> Func;
   // The index to the current basic block being built.
-  uint32_t CurrentBbIndex;
+  uint32_t CurrentBbIndex = 0;
   // The basic block being built.
-  Ice::CfgNode *CurrentNode;
+  Ice::CfgNode *CurrentNode = nullptr;
   // The ID for the function.
   unsigned FcnId;
   // The corresponding function declaration.
@@ -1250,7 +1245,7 @@ private:
   uint32_t NextLocalInstIndex;
   // True if the last processed instruction was a terminating
   // instruction.
-  bool InstIsTerminating;
+  bool InstIsTerminating = false;
   // Upper limit of alignment power allowed by LLVM
   static const uint32_t AlignPowerLimit = 29;
 
@@ -2606,7 +2601,7 @@ public:
   ConstantsParser(unsigned BlockID, FunctionParser *FuncParser)
       : BlockParserBaseClass(BlockID, FuncParser),
         Timer(Ice::TimerStack::TT_parseConstants, getTranslator().getContext()),
-        FuncParser(FuncParser), NextConstantType(Ice::IceType_void) {}
+        FuncParser(FuncParser) {}
 
   ~ConstantsParser() override {}
 
@@ -2617,7 +2612,7 @@ private:
   // The parser of the function block this constants block appears in.
   FunctionParser *FuncParser;
   // The type to use for succeeding constants.
-  Ice::Type NextConstantType;
+  Ice::Type NextConstantType = Ice::IceType_void;
 
   void ProcessRecord() override;
 
@@ -2821,8 +2816,7 @@ public:
   ModuleParser(unsigned BlockID, TopLevelParser *Context)
       : BlockParserBaseClass(BlockID, Context),
         Timer(Ice::TimerStack::TT_parseModule,
-              Context->getTranslator().getContext()),
-        GlobalDeclarationNamesAndInitializersInstalled(false) {}
+              Context->getTranslator().getContext()) {}
 
   ~ModuleParser() override {}
 
@@ -2832,7 +2826,7 @@ private:
   Ice::TimerMarker Timer;
   // True if we have already installed names for unnamed global declarations,
   // and have generated global constant initializers.
-  bool GlobalDeclarationNamesAndInitializersInstalled;
+  bool GlobalDeclarationNamesAndInitializersInstalled = false;
 
   // Generates names for unnamed global addresses (i.e. functions and
   // global variables). Then lowers global variable declaration

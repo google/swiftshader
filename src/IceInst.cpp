@@ -70,9 +70,7 @@ const struct InstIcmpAttributes_ {
 } // end of anonymous namespace
 
 Inst::Inst(Cfg *Func, InstKind Kind, SizeT MaxSrcs, Variable *Dest)
-    : Kind(Kind), Number(Func->newInstNumber()), Deleted(false), Dead(false),
-      HasSideEffects(false), IsDestNonKillable(false), Dest(Dest),
-      MaxSrcs(MaxSrcs), NumSrcs(0),
+    : Kind(Kind), Number(Func->newInstNumber()), Dest(Dest), MaxSrcs(MaxSrcs),
       Srcs(Func->allocateArrayOf<Operand *>(MaxSrcs)), LiveRangesEnded(0) {}
 
 // Assign the instruction a new number.

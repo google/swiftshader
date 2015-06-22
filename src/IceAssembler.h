@@ -155,9 +155,7 @@ class Assembler {
   Assembler &operator=(const Assembler &) = delete;
 
 public:
-  Assembler()
-      : Allocator(), FunctionName(""), IsInternal(false), Preliminary(false),
-        Buffer(*this) {}
+  Assembler() : Allocator(), Buffer(*this) {}
   virtual ~Assembler() = default;
 
   // Allocate a chunk of bytes using the per-Assembler allocator.
@@ -217,13 +215,13 @@ private:
   // FunctionName and IsInternal are transferred from the original Cfg
   // object, since the Cfg object may be deleted by the time the
   // assembler buffer is emitted.
-  IceString FunctionName;
-  bool IsInternal;
+  IceString FunctionName = "";
+  bool IsInternal = false;
   // Preliminary indicates whether a preliminary pass is being made
   // for calculating bundle padding (Preliminary=true), versus the
   // final pass where all changes to label bindings, label links, and
   // relocation fixups are fully committed (Preliminary=false).
-  bool Preliminary;
+  bool Preliminary = false;
 
 protected:
   // Buffer's constructor uses the Allocator, so it needs to appear after it.

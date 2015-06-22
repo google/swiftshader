@@ -24,8 +24,7 @@
 namespace Ice {
 
 CfgNode::CfgNode(Cfg *Func, SizeT LabelNumber)
-    : Func(Func), Number(LabelNumber), NameIndex(Cfg::IdentifierIndexInvalid),
-      HasReturn(false), NeedsPlacement(false), InstCountEstimate(0) {}
+    : Func(Func), Number(LabelNumber) {}
 
 // Returns the name the node was created with.  If no name was given,
 // it synthesizes a (hopefully) unique name.
@@ -949,8 +948,7 @@ public:
                    const InstList &Insts)
       : Asm(Asm), Target(Target), End(Insts.end()), BundleLockStart(End),
         BundleSize(1 << Asm->getBundleAlignLog2Bytes()),
-        BundleMaskLo(BundleSize - 1), BundleMaskHi(~BundleMaskLo),
-        SizeSnapshotPre(0), SizeSnapshotPost(0) {}
+        BundleMaskLo(BundleSize - 1), BundleMaskHi(~BundleMaskLo) {}
   // Check whether we're currently within a bundle_lock region.
   bool isInBundleLockRegion() const { return BundleLockStart != End; }
   // Check whether the current bundle_lock region has the align_to_end
@@ -1050,8 +1048,8 @@ private:
   const intptr_t BundleMaskLo;
   // Masking with BundleMaskHi identifies an address's bundle.
   const intptr_t BundleMaskHi;
-  intptr_t SizeSnapshotPre;
-  intptr_t SizeSnapshotPost;
+  intptr_t SizeSnapshotPre = 0;
+  intptr_t SizeSnapshotPost = 0;
 };
 
 } // end of anonymous namespace

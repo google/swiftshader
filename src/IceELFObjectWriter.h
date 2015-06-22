@@ -89,7 +89,7 @@ public:
 private:
   GlobalContext &Ctx;
   ELFStreamer &Str;
-  bool SectionNumbersAssigned;
+  bool SectionNumbersAssigned = false;
   bool ELF64;
 
   // All created sections, separated into different pools.

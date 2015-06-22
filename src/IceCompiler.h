@@ -30,7 +30,7 @@ class Compiler {
   Compiler &operator=(const Compiler &) = delete;
 
 public:
-  Compiler() {}
+  Compiler() = default;
 
   // Run the compiler with the given GlobalContext for compilation
   // state.  Upon error, the Context's error status will be set.

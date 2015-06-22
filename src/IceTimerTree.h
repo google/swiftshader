@@ -44,13 +44,13 @@ class TimerStack {
     TimerTreeNode &operator=(const TimerTreeNode &) = delete;
 
   public:
-    TimerTreeNode() : Parent(0), Interior(0), Time(0), UpdateCount(0) {}
+    TimerTreeNode() = default;
     TimerTreeNode(const TimerTreeNode &) = default;
     std::vector<TTindex> Children; // indexed by TimerIdT
-    TTindex Parent;
-    TimerIdT Interior;
-    double Time;
-    size_t UpdateCount;
+    TTindex Parent = 0;
+    TimerIdT Interior = 0;
+    double Time = 0;
+    size_t UpdateCount = 0;
   };
 
 public:
@@ -81,14 +81,14 @@ private:
   IceString Name;
   double FirstTimestamp;
   double LastTimestamp;
-  uint64_t StateChangeCount;
+  uint64_t StateChangeCount = 0;
   // IDsIndex maps a symbolic timer name to its integer ID.
   std::map<IceString, TimerIdT> IDsIndex;
   std::vector<IceString> IDs;       // indexed by TimerIdT
   std::vector<TimerTreeNode> Nodes; // indexed by TTindex
   std::vector<double> LeafTimes;    // indexed by TimerIdT
   std::vector<size_t> LeafCounts;   // indexed by TimerIdT
-  TTindex StackTop;
+  TTindex StackTop = 0;
 };
 
 } // end of namespace Ice

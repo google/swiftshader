@@ -31,24 +31,23 @@ class BoolFoldingEntry {
   BoolFoldingEntry(const BoolFoldingEntry &) = delete;
 
 public:
-  BoolFoldingEntry()
-      : Instr(nullptr), IsComplex(false), IsLiveOut(true), NumUses(0) {}
+  BoolFoldingEntry() = default;
   explicit BoolFoldingEntry(Inst *I);
   BoolFoldingEntry &operator=(const BoolFoldingEntry &) = default;
   // Instr is the instruction producing the i1-type variable of interest.
-  Inst *Instr;
+  Inst *Instr = nullptr;
   // IsComplex is the cached result of BoolFolding::hasComplexLowering(Instr).
-  bool IsComplex;
+  bool IsComplex = false;
   // IsLiveOut is initialized conservatively to true, and is set to false when
   // we encounter an instruction that ends Var's live range.  We disable the
   // folding optimization when Var is live beyond this basic block.  Note that
   // if liveness analysis is not performed (e.g. in Om1 mode), IsLiveOut will
   // always be true and the folding optimization will never be performed.
-  bool IsLiveOut;
+  bool IsLiveOut = true;
   // NumUses counts the number of times Var is used as a source operand in the
   // basic block.  If IsComplex is true and there is more than one use of Var,
   // then the folding optimization is disabled for Var.
-  uint32_t NumUses;
+  uint32_t NumUses = 0;
 };
 
 class BoolFolding {
@@ -72,7 +71,7 @@ private:
   BoolFolding &operator=(const BoolFolding &) = delete;
 
 public:
-  BoolFolding() {}
+  BoolFolding() = default;
   static BoolFoldingProducerKind getProducerKind(const Inst *Instr);
   static BoolFoldingConsumerKind getConsumerKind(const Inst *Instr);
   static bool hasComplexLowering(const Inst *Instr);
@@ -586,10 +585,10 @@ protected:
   bool optimizeScalarMul(Variable *Dest, Operand *Src0, int32_t Src1);
   void findRMW();
 
-  X86InstructionSet InstructionSet;
-  bool IsEbpBasedFrame;
-  bool NeedsStackAlignment;
-  size_t SpillAreaSizeBytes;
+  X86InstructionSet InstructionSet = X86InstructionSet::Begin;
+  bool IsEbpBasedFrame = false;
+  bool NeedsStackAlignment = false;
+  size_t SpillAreaSizeBytes = 0;
   llvm::SmallBitVector TypeToRegisterSet[IceType_NUM];
   llvm::SmallBitVector ScratchRegs;
   llvm::SmallBitVector RegsUsed;
@@ -602,7 +601,7 @@ protected:
   OperandX8632Mem *
   randomizeOrPoolImmediate(OperandX8632Mem *MemOperand,
                            int32_t RegNum = Variable::NoRegister);
-  bool RandomizationPoolingPaused;
+  bool RandomizationPoolingPaused = false;
 
 private:
   ~TargetX8632() override {}

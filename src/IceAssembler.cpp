@@ -88,7 +88,7 @@ AssemblerBuffer::AssemblerBuffer(Assembler &Asm) : Assemblr(Asm) {
   assert(size() == 0);
 }
 
-AssemblerBuffer::~AssemblerBuffer() {}
+AssemblerBuffer::~AssemblerBuffer() = default;
 
 void AssemblerBuffer::extendCapacity() {
   intptr_t old_size = size();

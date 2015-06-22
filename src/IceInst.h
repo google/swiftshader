@@ -161,7 +161,7 @@ public:
   void dumpDest(const Cfg *Func) const;
   virtual bool isRedundantAssign() const { return false; }
 
-  virtual ~Inst() {}
+  virtual ~Inst() = default;
 
 protected:
   Inst(Cfg *Func, InstKind Kind, SizeT MaxSrcs, Variable *Dest);
@@ -183,23 +183,23 @@ protected:
   // Number is the instruction number for describing live ranges.
   InstNumberT Number;
   // Deleted means irrevocably deleted.
-  bool Deleted;
+  bool Deleted = false;
   // Dead means one of two things depending on context: (1) pending
   // deletion after liveness analysis converges, or (2) marked for
   // deletion during lowering due to a folded bool operation.
-  bool Dead;
+  bool Dead = false;
   // HasSideEffects means the instruction is something like a function
   // call or a volatile load that can't be removed even if its Dest
   // variable is not live.
-  bool HasSideEffects;
+  bool HasSideEffects = false;
   // IsDestNonKillable means that liveness analysis shouldn't consider
   // this instruction to kill the Dest variable.  This is used when
   // lowering produces two assignments to the same variable.
-  bool IsDestNonKillable;
+  bool IsDestNonKillable = false;
 
   Variable *Dest;
   const SizeT MaxSrcs; // only used for assert
-  SizeT NumSrcs;
+  SizeT NumSrcs = 0;
   Operand **Srcs;
 
   // LiveRangesEnded marks which Variables' live ranges end in this

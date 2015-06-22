@@ -55,8 +55,7 @@ class BoundedProducerConsumerQueue {
 
 public:
   BoundedProducerConsumerQueue(bool Sequential, size_t MaxSize = MaxStaticSize)
-      : Back(0), Front(0), MaxSize(std::min(MaxSize, MaxStaticSize)),
-        Sequential(Sequential), IsEnded(false) {}
+      : MaxSize(std::min(MaxSize, MaxStaticSize)), Sequential(Sequential) {}
   void blockingPush(T *Item) {
     {
       std::unique_lock<GlobalLockType> L(Lock);
@@ -112,7 +111,7 @@ private:
   // be pushed.  (More precisely, Back&MaxStaticSize is the index.)
   // It is written by the producers, and read by all via size() and
   // empty().
-  size_t Back;
+  size_t Back = 0;
 
   ICE_CACHELINE_BOUNDARY;
   // Shrunk is notified (by the consumer) when something is removed
@@ -124,7 +123,7 @@ private:
   // i.e. the next to be popped.  (More precisely Front&MaxStaticSize
   // is the index.)  It is written by the consumers, and read by all
   // via size() and empty().
-  size_t Front;
+  size_t Front = 0;
 
   ICE_CACHELINE_BOUNDARY;
 
@@ -133,7 +132,7 @@ private:
   const bool Sequential;
   // IsEnded is read by the consumers, and only written once by the
   // producer.
-  bool IsEnded;
+  bool IsEnded = false;
 
   // The lock must be held when the following methods are called.
   bool empty() const { return Front == Back; }
