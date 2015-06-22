@@ -59,10 +59,7 @@ Renderbuffer *Framebuffer::lookupRenderbuffer(GLenum type, GLuint handle, GLint 
 	{
 		buffer = context->getTexture(handle)->getRenderbuffer(type, level, layer);
 	}
-	else
-	{
-		UNREACHABLE();
-	}
+	else UNREACHABLE(type);
 
 	return buffer;
 }
@@ -295,7 +292,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 			}
 			else
 			{
-				UNREACHABLE();
+				UNREACHABLE(mColorbufferType[i]);
 				return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 			}
 
@@ -338,7 +335,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 		}
 		else
 		{
-			UNREACHABLE();
+			UNREACHABLE(mDepthbufferType);
 			return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 		}
 
@@ -390,7 +387,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 		}
 		else
 		{
-			UNREACHABLE();
+			UNREACHABLE(mStencilbufferType);
 			return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 		}
 
@@ -444,7 +441,7 @@ GLenum Framebuffer::getImplementationColorReadFormat()
 		case sw::FORMAT_A1R5G5B5:      return GL_BGRA_EXT;
 		case sw::FORMAT_R5G6B5:        return 0x80E0;   // GL_BGR_EXT
 		default:
-			UNREACHABLE();
+			UNREACHABLE(colorbuffer->getInternalFormat());
 		}
 	}
 
@@ -468,7 +465,7 @@ GLenum Framebuffer::getImplementationColorReadType()
 		case sw::FORMAT_A1R5G5B5:      return GL_UNSIGNED_SHORT_1_5_5_5_REV_EXT;
 		case sw::FORMAT_R5G6B5:        return GL_UNSIGNED_SHORT_5_6_5;
 		default:
-			UNREACHABLE();
+			UNREACHABLE(colorbuffer->getInternalFormat());
 		}
 	}
 

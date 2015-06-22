@@ -45,7 +45,7 @@ void TDiagnostics::writeInfo(Severity severity,
         prefix = EPrefixWarning;
         break;
       default:
-        UNREACHABLE();
+        UNREACHABLE(severity);
         break;
     }
 

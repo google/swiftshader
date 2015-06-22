@@ -158,7 +158,7 @@ namespace es2
 			fragmentShader = (FragmentShader*)shader;
 			fragmentShader->addRef();
 		}
-		else UNREACHABLE();
+		else UNREACHABLE(shader->getType());
 
 		return true;
 	}
@@ -185,7 +185,7 @@ namespace es2
 			fragmentShader->release();
 			fragmentShader = 0;
 		}
-		else UNREACHABLE();
+		else UNREACHABLE(shader->getType());
 
 		return true;
 	}
@@ -264,7 +264,7 @@ namespace es2
 				logicalTextureUnit = samplersVS[samplerIndex].logicalTextureUnit;
 			}
 			break;
-		default: UNREACHABLE();
+		default: UNREACHABLE(type);
 		}
 
 		if(logicalTextureUnit >= 0 && logicalTextureUnit < MAX_COMBINED_TEXTURE_IMAGE_UNITS)
@@ -288,7 +288,7 @@ namespace es2
 			ASSERT(samplerIndex < sizeof(samplersVS)/sizeof(samplersVS[0]));
 			ASSERT(samplersVS[samplerIndex].active);
 			return samplersVS[samplerIndex].textureType;
-		default: UNREACHABLE();
+		default: UNREACHABLE(type);
 		}
 
 		return TEXTURE_2D;
@@ -373,7 +373,7 @@ namespace es2
 		case GL_UNIFORM_BLOCK_REFERENCED_BY_FRAGMENT_SHADER:
 			*params = static_cast<GLint>(uniformBlock.isReferencedByFragmentShader());
 			break;
-		default: UNREACHABLE();
+		default: UNREACHABLE(pname);
 		}
 	}
 
@@ -873,7 +873,7 @@ namespace es2
 
 		switch (UniformComponentType(targetUniform->type))
 		{
-		  case GL_BOOL:
+		case GL_BOOL:
 			{
 				GLboolean *boolParams = (GLboolean*)targetUniform->data + uniformIndex[location].element * count;
 
@@ -883,11 +883,11 @@ namespace es2
 				}
 			}
 			break;
-		  case GL_FLOAT:
+		case GL_FLOAT:
 			memcpy(params, targetUniform->data + uniformIndex[location].element * count * sizeof(GLfloat),
 				   count * sizeof(GLfloat));
 			break;
-		  case GL_INT:
+		case GL_INT:
 			{
 				GLint *intParams = (GLint*)targetUniform->data + uniformIndex[location].element * count;
 
@@ -897,7 +897,7 @@ namespace es2
 				}
 			}
 			break;
-			case GL_UNSIGNED_INT:
+		case GL_UNSIGNED_INT:
 			{
 				GLuint *uintParams = (GLuint*)targetUniform->data + uniformIndex[location].element * count;
 
@@ -907,8 +907,7 @@ namespace es2
 				}
 			}
 			break;
-
-		  default: UNREACHABLE();
+		default: UNREACHABLE(targetUniform->type);
 		}
 
 		return true;
@@ -932,7 +931,7 @@ namespace es2
 
 		switch (UniformComponentType(targetUniform->type))
 		{
-		  case GL_BOOL:
+		case GL_BOOL:
 			{
 				GLboolean *boolParams = targetUniform->data + uniformIndex[location].element * count;
 
@@ -942,7 +941,7 @@ namespace es2
 				}
 			}
 			break;
-		  case GL_FLOAT:
+		case GL_FLOAT:
 			{
 				GLfloat *floatParams = (GLfloat*)targetUniform->data + uniformIndex[location].element * count;
 
@@ -952,12 +951,12 @@ namespace es2
 				}
 			}
 			break;
-		  case GL_INT:
-		  case GL_UNSIGNED_INT:
+		case GL_INT:
+		case GL_UNSIGNED_INT:
 			memcpy(params, targetUniform->data + uniformIndex[location].element * count * sizeof(GLint),
 				   count * sizeof(GLint));
 			break;
-		  default: UNREACHABLE();
+		default: UNREACHABLE(targetUniform->type);
 		}
 
 		return true;
@@ -1006,7 +1005,7 @@ namespace es2
 			memcpy(params, targetUniform->data + uniformIndex[location].element * count * sizeof(GLuint),
 				   count * sizeof(GLuint));
 			break;
-		default: UNREACHABLE();
+		default: UNREACHABLE(targetUniform->type);
 		}
 
 		return true;
@@ -1044,37 +1043,37 @@ namespace es2
 
 				switch(targetUniform->type)
 				{
-				  case GL_BOOL:       applyUniform1bv(location, size, b);       break;
-				  case GL_BOOL_VEC2:  applyUniform2bv(location, size, b);       break;
-				  case GL_BOOL_VEC3:  applyUniform3bv(location, size, b);       break;
-				  case GL_BOOL_VEC4:  applyUniform4bv(location, size, b);       break;
-				  case GL_FLOAT:      applyUniform1fv(location, size, f);       break;
-				  case GL_FLOAT_VEC2: applyUniform2fv(location, size, f);       break;
-				  case GL_FLOAT_VEC3: applyUniform3fv(location, size, f);       break;
-				  case GL_FLOAT_VEC4: applyUniform4fv(location, size, f);       break;
-				  case GL_FLOAT_MAT2:   applyUniformMatrix2fv(location, size, f);   break;
-				  case GL_FLOAT_MAT2x3: applyUniformMatrix2x3fv(location, size, f); break;
-				  case GL_FLOAT_MAT2x4: applyUniformMatrix2x4fv(location, size, f); break;
-				  case GL_FLOAT_MAT3x2: applyUniformMatrix3x2fv(location, size, f); break;
-				  case GL_FLOAT_MAT3:   applyUniformMatrix3fv(location, size, f);   break;
-				  case GL_FLOAT_MAT3x4: applyUniformMatrix3x4fv(location, size, f); break;
-				  case GL_FLOAT_MAT4x2: applyUniformMatrix4x2fv(location, size, f); break;
-				  case GL_FLOAT_MAT4x3: applyUniformMatrix4x3fv(location, size, f); break;
-				  case GL_FLOAT_MAT4:   applyUniformMatrix4fv(location, size, f);   break;
-				  case GL_SAMPLER_2D:
-				  case GL_SAMPLER_CUBE:
-				  case GL_SAMPLER_EXTERNAL_OES:
-				  case GL_SAMPLER_3D_OES:
-				  case GL_INT:        applyUniform1iv(location, size, i);       break;
-				  case GL_INT_VEC2:   applyUniform2iv(location, size, i);       break;
-				  case GL_INT_VEC3:   applyUniform3iv(location, size, i);       break;
-				  case GL_INT_VEC4:   applyUniform4iv(location, size, i);       break;
-				  case GL_UNSIGNED_INT:      applyUniform1uiv(location, size, ui); break;
-				  case GL_UNSIGNED_INT_VEC2: applyUniform2uiv(location, size, ui); break;
-				  case GL_UNSIGNED_INT_VEC3: applyUniform3uiv(location, size, ui); break;
-				  case GL_UNSIGNED_INT_VEC4: applyUniform4uiv(location, size, ui); break;
-				  default:
-					UNREACHABLE();
+				case GL_BOOL:       applyUniform1bv(location, size, b);       break;
+				case GL_BOOL_VEC2:  applyUniform2bv(location, size, b);       break;
+				case GL_BOOL_VEC3:  applyUniform3bv(location, size, b);       break;
+				case GL_BOOL_VEC4:  applyUniform4bv(location, size, b);       break;
+				case GL_FLOAT:      applyUniform1fv(location, size, f);       break;
+				case GL_FLOAT_VEC2: applyUniform2fv(location, size, f);       break;
+				case GL_FLOAT_VEC3: applyUniform3fv(location, size, f);       break;
+				case GL_FLOAT_VEC4: applyUniform4fv(location, size, f);       break;
+				case GL_FLOAT_MAT2:   applyUniformMatrix2fv(location, size, f);   break;
+				case GL_FLOAT_MAT2x3: applyUniformMatrix2x3fv(location, size, f); break;
+				case GL_FLOAT_MAT2x4: applyUniformMatrix2x4fv(location, size, f); break;
+				case GL_FLOAT_MAT3x2: applyUniformMatrix3x2fv(location, size, f); break;
+				case GL_FLOAT_MAT3:   applyUniformMatrix3fv(location, size, f);   break;
+				case GL_FLOAT_MAT3x4: applyUniformMatrix3x4fv(location, size, f); break;
+				case GL_FLOAT_MAT4x2: applyUniformMatrix4x2fv(location, size, f); break;
+				case GL_FLOAT_MAT4x3: applyUniformMatrix4x3fv(location, size, f); break;
+				case GL_FLOAT_MAT4:   applyUniformMatrix4fv(location, size, f);   break;
+				case GL_SAMPLER_2D:
+				case GL_SAMPLER_CUBE:
+				case GL_SAMPLER_EXTERNAL_OES:
+				case GL_SAMPLER_3D_OES:
+				case GL_INT:        applyUniform1iv(location, size, i);       break;
+				case GL_INT_VEC2:   applyUniform2iv(location, size, i);       break;
+				case GL_INT_VEC3:   applyUniform3iv(location, size, i);       break;
+				case GL_INT_VEC4:   applyUniform4iv(location, size, i);       break;
+				case GL_UNSIGNED_INT:      applyUniform1uiv(location, size, ui); break;
+				case GL_UNSIGNED_INT_VEC2: applyUniform2uiv(location, size, ui); break;
+				case GL_UNSIGNED_INT_VEC3: applyUniform3uiv(location, size, ui); break;
+				case GL_UNSIGNED_INT_VEC4: applyUniform4uiv(location, size, ui); break;
+				default:
+					UNREACHABLE(targetUniform->type);
 				}
 
 				targetUniform->dirty = false;
@@ -1328,7 +1327,7 @@ namespace es2
 
 						switch(type)
 						{
-						default:                      UNREACHABLE();
+						default:                      UNREACHABLE(type);
 						case GL_SAMPLER_2D:           samplersVS[index].textureType = TEXTURE_2D;       break;
 						case GL_SAMPLER_CUBE:         samplersVS[index].textureType = TEXTURE_CUBE;     break;
 						case GL_SAMPLER_3D_OES:       samplersVS[index].textureType = TEXTURE_3D;       break;
@@ -1351,7 +1350,7 @@ namespace es2
 						
 						switch(type)
 						{
-						default:                      UNREACHABLE();
+						default:                      UNREACHABLE(type);
 						case GL_SAMPLER_2D:           samplersPS[index].textureType = TEXTURE_2D;       break;
 						case GL_SAMPLER_CUBE:         samplersPS[index].textureType = TEXTURE_CUBE;     break;
 						case GL_SAMPLER_3D_OES:       samplersPS[index].textureType = TEXTURE_3D;       break;
@@ -1366,7 +1365,7 @@ namespace es2
 						return false;
 					}
 				}
-				else UNREACHABLE();
+				else UNREACHABLE(shader);
 
 				index++;
 			}
@@ -1410,7 +1409,7 @@ namespace es2
 		{
 			uniform->psRegisterIndex = registerIndex;
 		}
-		else UNREACHABLE();
+		else UNREACHABLE(shader);
 
 		if(location == -1)   // Not previously defined
 		{
@@ -1439,7 +1438,7 @@ namespace es2
 				return false;
 			}
 		}
-		else UNREACHABLE();
+		else UNREACHABLE(shader);
 
 		return true;
 	}
@@ -2526,7 +2525,7 @@ namespace es2
 		case GL_UNIFORM_MATRIX_STRIDE: return uniform.blockInfo.matrixStride;
 		case GL_UNIFORM_IS_ROW_MAJOR: return static_cast<GLint>(uniform.blockInfo.isRowMajorMatrix);
 		default:
-			UNREACHABLE();
+			UNREACHABLE(pname);
 			break;
 		}
 		return 0;

@@ -77,12 +77,12 @@ namespace es
 // A macro for code which is not expected to be reached under valid assumptions
 #undef UNREACHABLE
 #if !defined(NDEBUG)
-#define UNREACHABLE() do { \
-    ERR("\t! Unreachable reached: %s(%d)\n", __FUNCTION__, __LINE__); \
+#define UNREACHABLE(value) do { \
+    ERR("\t! Unreachable case reached: %s(%d). Value: %d\n", __FUNCTION__, __LINE__, value); \
     assert(false); \
     } while(0)
 #else
-    #define UNREACHABLE() ERR("\t! Unreachable reached: %s(%d)\n", __FUNCTION__, __LINE__)
+    #define UNREACHABLE(value) ERR("\t! Unreachable reached: %s(%d). Value: %d\n", __FUNCTION__, __LINE__, value)
 #endif
 
 #endif   // __ANDROID__

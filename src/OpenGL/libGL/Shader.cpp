@@ -296,7 +296,7 @@ GLenum Shader::parseType(const std::string &type)
     {
         return GL_FLOAT_MAT4;
     }
-    else UNREACHABLE();
+    else UNREACHABLE(type);
 
     return GL_NONE;
 }
@@ -322,7 +322,7 @@ bool Shader::compareVarying(const glsl::Varying &x, const glsl::Varying &y)
           case GL_FLOAT_VEC3: return true;
           case GL_FLOAT_VEC2: return true;
           case GL_FLOAT:      return true;
-          default: UNREACHABLE();
+          default: UNREACHABLE(y.type);
         }
         break;
       case GL_FLOAT_VEC4:
@@ -335,7 +335,7 @@ bool Shader::compareVarying(const glsl::Varying &x, const glsl::Varying &y)
           case GL_FLOAT_VEC3: return true;
           case GL_FLOAT_VEC2: return true;
           case GL_FLOAT:      return true;
-          default: UNREACHABLE();
+          default: UNREACHABLE(y.type);
         }
         break;
       case GL_FLOAT_MAT3:
@@ -348,7 +348,7 @@ bool Shader::compareVarying(const glsl::Varying &x, const glsl::Varying &y)
           case GL_FLOAT_VEC3: return true;
           case GL_FLOAT_VEC2: return true;
           case GL_FLOAT:      return true;
-          default: UNREACHABLE();
+          default: UNREACHABLE(y.type);
         }
         break;
       case GL_FLOAT_VEC3:
@@ -361,7 +361,7 @@ bool Shader::compareVarying(const glsl::Varying &x, const glsl::Varying &y)
           case GL_FLOAT_VEC3: return true;
           case GL_FLOAT_VEC2: return true;
           case GL_FLOAT:      return true;
-          default: UNREACHABLE();
+          default: UNREACHABLE(y.type);
         }
         break;
       case GL_FLOAT_VEC2:
@@ -374,11 +374,11 @@ bool Shader::compareVarying(const glsl::Varying &x, const glsl::Varying &y)
           case GL_FLOAT_VEC3: return false;
           case GL_FLOAT_VEC2: return true;
           case GL_FLOAT:      return true;
-          default: UNREACHABLE();
+          default: UNREACHABLE(y.type);
         }
         break;
       case GL_FLOAT: return false;
-      default: UNREACHABLE();
+      default: UNREACHABLE(x.type);
     }
 
     return false;

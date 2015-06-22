@@ -189,7 +189,7 @@ GLenum VertexDataManager::prepareVertexData(GLint start, GLsizei count, Translat
 				case GL_UNSIGNED_SHORT: translated[i].type = sw::STREAMTYPE_USHORT; break;
 				case GL_FIXED:          translated[i].type = sw::STREAMTYPE_FIXED;  break;
 				case GL_FLOAT:          translated[i].type = sw::STREAMTYPE_FLOAT;  break;
-				default: UNREACHABLE(); translated[i].type = sw::STREAMTYPE_FLOAT;  break;
+				default: UNREACHABLE(attrib.mType); translated[i].type = sw::STREAMTYPE_FLOAT;  break;
 				}
 
 				translated[i].count = attrib.mSize;

@@ -614,7 +614,7 @@ DisplayMode Display::getDisplayMode() const
             displayMode.height = 0;
             displayMode.format = sw::FORMAT_X8R8G8B8;
         }
-        else UNREACHABLE();
+        else UNREACHABLE(platform);
 	#endif
 
 	return displayMode;

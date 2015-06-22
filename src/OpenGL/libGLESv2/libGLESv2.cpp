@@ -1097,7 +1097,7 @@ void CompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, GLs
 			case GL_TEXTURE_CUBE_MAP_NEGATIVE_Z:
 				texture->setCompressedImage(target, level, internalformat, width, height, imageSize, data);
 				break;
-			default: UNREACHABLE();
+			default: UNREACHABLE(target);
 			}
 		}
 	}
@@ -1198,10 +1198,7 @@ void CompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yo
 				texture->subImageCompressed(target, level, xoffset, yoffset, width, height, format, imageSize, data);
 			}
 		}
-		else
-		{
-			UNREACHABLE();
-		}
+		else UNREACHABLE(target);
 	}
 }
 
@@ -1298,7 +1295,7 @@ void CopyTexImage2D(GLenum target, GLint level, GLenum internalformat, GLint x, 
 
 			texture->copyImage(target, level, internalformat, x, y, width, height, framebuffer);
 		}
-		else UNREACHABLE();
+		else UNREACHABLE(target);
 	}
 }
 
@@ -1361,7 +1358,7 @@ void CopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
 		{
 			texture = context->getTextureCubeMap();
 		}
-		else UNREACHABLE();
+		else UNREACHABLE(target);
 
 		if(!validateSubImageParams(false, width, height, xoffset, yoffset, target, level, GL_NONE, texture))
 		{
@@ -2997,7 +2994,7 @@ void GetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenu
 		{
 			attachmentObjectType = GL_TEXTURE;
 		}
-		else UNREACHABLE();
+		else UNREACHABLE(attachmentType);
 
 		switch(pname)
 		{
@@ -6105,10 +6102,7 @@ void TexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLs
 				texture->subImage(target, level, xoffset, yoffset, width, height, format, type, context->getUnpackInfo(), pixels);
 			}
 		}
-		else
-		{
-			UNREACHABLE();
-		}
+		else UNREACHABLE(target);
 	}
 }
 
@@ -7289,7 +7283,7 @@ void EGLImageTargetTexture2DOES(GLenum target, GLeglImageOES image)
 		{
 		case GL_TEXTURE_2D:           texture = context->getTexture2D();       break;
 		case GL_TEXTURE_EXTERNAL_OES: texture = context->getTextureExternal(); break;
-		default:                      UNREACHABLE();
+		default:                      UNREACHABLE(target);
 		}
 
 		if(!texture)

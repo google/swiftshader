@@ -722,7 +722,7 @@ void CompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, GLs
 
 			texture->setCompressedImage(level, internalformat, width, height, imageSize, data);
 		}
-		else UNREACHABLE();
+		else UNREACHABLE(target);
 	}
 }
 
@@ -793,7 +793,7 @@ void CompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yo
 				texture->subImageCompressed(level, xoffset, yoffset, width, height, format, imageSize, data);
 			}
 		}
-		else UNREACHABLE();
+		else UNREACHABLE(target);
 	}
 }
 
@@ -908,7 +908,7 @@ void CopyTexImage2D(GLenum target, GLint level, GLenum internalformat, GLint x, 
 
 			texture->copyImage(level, internalformat, x, y, width, height, framebuffer);
 		}
-		else UNREACHABLE();
+		else UNREACHABLE(target);
 	}
 }
 
@@ -967,7 +967,7 @@ void CopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
 		{
 			texture = context->getTexture2D();
 		}
-		else UNREACHABLE();
+		else UNREACHABLE(target);
 
 		if(!validateSubImageParams(false, width, height, xoffset, yoffset, target, level, GL_NONE_OES, texture))
 		{
@@ -1998,7 +1998,7 @@ void GetFramebufferAttachmentParameterivOES(GLenum target, GLenum attachment, GL
 		{
 			attachmentObjectType = GL_TEXTURE;
 		}
-		else UNREACHABLE();
+		else UNREACHABLE(attachmentType);
 
 		switch(pname)
 		{
@@ -3284,7 +3284,7 @@ void TexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width,
 
 			texture->setImage(level, width, height, format, type, context->getUnpackAlignment(), pixels);
 		}
-		else UNREACHABLE();
+		else UNREACHABLE(target);
 	}
 }
 
@@ -3518,7 +3518,7 @@ void TexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLs
 				texture->subImage(level, xoffset, yoffset, width, height, format, type, context->getUnpackAlignment(), pixels);
 			}
 		}
-		else UNREACHABLE();
+		else UNREACHABLE(target);
 	}
 }
 
@@ -3591,7 +3591,7 @@ void EGLImageTargetTexture2DOES(GLenum target, GLeglImageOES image)
 		{
 		case GL_TEXTURE_2D:           texture = context->getTexture2D();       break;
 		case GL_TEXTURE_EXTERNAL_OES: texture = context->getTextureExternal(); break;
-		default:                      UNREACHABLE();
+		default:                      UNREACHABLE(target);
 		}
 
 		if(!texture)

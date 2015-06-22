@@ -285,9 +285,9 @@ namespace glsl
 						ASSERT(index < left->getNominalSize());   // FIXME: Report semantic error
 						argument(mov->src[0], left, index);
 					}
-					else UNREACHABLE();
+					else UNREACHABLE(0);
  				}
-				else UNREACHABLE();
+				else UNREACHABLE(0);
 			}
 			break;
 		case EOpIndexIndirect:
@@ -318,7 +318,7 @@ namespace glsl
 				{
 					emit(sw::Shader::OPCODE_EXTRACT, result, left, right);
 				}
-				else UNREACHABLE();
+				else UNREACHABLE(0);
 			}
 			break;
 		case EOpIndexDirectStruct:
@@ -359,10 +359,10 @@ namespace glsl
 							swizzle |= i << (component * 2);
 							component++;
 						}
-						else UNREACHABLE();
+						else UNREACHABLE(0);
 					}
 				}
-				else UNREACHABLE();
+				else UNREACHABLE(0);
 
 				Instruction *mov = emit(sw::Shader::OPCODE_MOV, result, left);
 				mov->src[0].swizzle = swizzle;
@@ -516,7 +516,7 @@ namespace glsl
 				}
 			}
 			break;
-		default: UNREACHABLE();
+		default: UNREACHABLE(node->getOp());
 		}
 
 		return true;
@@ -663,7 +663,7 @@ namespace glsl
 				}
 			}
 			break;
-		default: UNREACHABLE();
+		default: UNREACHABLE(node->getOp());
 		}
 
 		return true;
@@ -720,7 +720,7 @@ namespace glsl
 						functionArray.push_back(Function(functionArray.size(), name, &arguments, node));
 					}
 				}
-				else UNREACHABLE();
+				else UNREACHABLE(emitScope);
 
 				currentScope = FUNCTION;
 			}
@@ -806,7 +806,7 @@ namespace glsl
 							Instruction *tex = emit(sw::Shader::OPCODE_TEX, result, &uvwb, arg[0]);   // FIXME: Implement an efficient TEXLDB instruction
 							tex->bias = true;
 						}
-						else UNREACHABLE();
+						else UNREACHABLE(argumentCount);
 					}
 					else if(name == "texture2DProj")
 					{
@@ -839,7 +839,7 @@ namespace glsl
 								div->src[1].swizzle = 0xFF;
 								div->dst.mask = 0x3;
 							}
-							else UNREACHABLE();
+							else UNREACHABLE(t->getNominalSize());
 
 							Instruction *bias = emit(sw::Shader::OPCODE_MOV, &proj, arg[2]);
 							bias->dst.mask = 0x8;
@@ -847,7 +847,7 @@ namespace glsl
 							Instruction *tex = emit(sw::Shader::OPCODE_TEX, result, &proj, arg[0]);
 							tex->bias = true;
 						}
-						else UNREACHABLE();
+						else UNREACHABLE(argumentCount);
 					}
 					else if(name == "texture2DLod" || name == "textureCubeLod")
 					{
@@ -875,14 +875,14 @@ namespace glsl
 							div->src[1].swizzle = 0xFF;
 							div->dst.mask = 0x3;
 						}
-						else UNREACHABLE();
+						else UNREACHABLE(t->getNominalSize());
 
 						Instruction *lod = emit(sw::Shader::OPCODE_MOV, &proj, arg[2]);
 						lod->dst.mask = 0x8;
 
 						emit(sw::Shader::OPCODE_TEXLDL, result, &proj, arg[0]);
 					}
-					else UNREACHABLE();
+					else UNREACHABLE(0);
 				}
 			}
 			break;
@@ -1096,7 +1096,7 @@ namespace glsl
 				}
 			}
 			break;
-		default: UNREACHABLE();
+		default: UNREACHABLE(node->getOp());
 		}
 
 		return true;
@@ -1325,7 +1325,7 @@ namespace glsl
 				emit(sw::Shader::OPCODE_LEAVE);
 			}
 			break;
-		default: UNREACHABLE();
+		default: UNREACHABLE(node->getFlowOp());
 		}
 
 		return true;
@@ -1455,7 +1455,7 @@ namespace glsl
 			return registers * type.getSecondarySize();
 		}
 		
-		UNREACHABLE();
+		UNREACHABLE(0);
 		return 0;
 	}
 
@@ -1503,7 +1503,7 @@ namespace glsl
 			return registerSize(type, 0);
 		}
 		
-		UNREACHABLE();
+		UNREACHABLE(0);
 		return 0;
 	}
 
@@ -1571,7 +1571,7 @@ namespace glsl
 						{
 							parameter.index += right->getAsConstantUnion()->getIConst(0);
 						}
-						else UNREACHABLE();
+						else UNREACHABLE(binary->getOp());
 					}
 				}
 			}
@@ -1695,7 +1695,7 @@ namespace glsl
 						dst.index += rightIndex * result->totalRegisterCount();
 						return 0xE4;
 					}
-					else UNREACHABLE();
+					else UNREACHABLE(0);
 				}
 				break;
 			case EOpIndexIndirect:
@@ -1758,7 +1758,7 @@ namespace glsl
 							}
 						}
 					}
-					else UNREACHABLE();
+					else UNREACHABLE(0);
 				}
 				break;
 			case EOpIndexDirectStruct:
@@ -1805,7 +1805,7 @@ namespace glsl
 				}
 				break;
 			default:
-				UNREACHABLE();   // Not an l-value operator
+				UNREACHABLE(binary->getOp());   // Not an l-value operator
 				break;
 			}
 		}
@@ -1865,7 +1865,7 @@ namespace glsl
 		case EvqPointCoord:          return sw::Shader::PARAMETER_INPUT;
 		case EvqFragColor:           return sw::Shader::PARAMETER_COLOROUT;
 		case EvqFragData:            return sw::Shader::PARAMETER_COLOROUT;
-		default: UNREACHABLE();
+		default: UNREACHABLE(qualifier);
 		}
 
 		return sw::Shader::PARAMETER_VOID;
@@ -1882,7 +1882,7 @@ namespace glsl
 		{
 		case EvqTemporary:           return temporaryRegister(operand);
 		case EvqGlobal:              return temporaryRegister(operand);
-		case EvqConstExpr:           UNREACHABLE();
+		case EvqConstExpr:           UNREACHABLE(EvqConstExpr);
 		case EvqAttribute:           return attributeRegister(operand);
 		case EvqVaryingIn:           return varyingRegister(operand);
 		case EvqVaryingOut:          return varyingRegister(operand);
@@ -1905,7 +1905,7 @@ namespace glsl
 		case EvqPointCoord:          return varyingRegister(operand);
 		case EvqFragColor:           return 0;
 		case EvqFragData:            return 0;
-		default: UNREACHABLE();
+		default: UNREACHABLE(operand->getQualifier());
 		}
 
 		return 0;
@@ -2111,7 +2111,7 @@ namespace glsl
 					// Semantic indexes for user varyings will be assigned during program link to match the pixel shader
 				}
 			}
-			else UNREACHABLE();
+			else UNREACHABLE(0);
 
 			declareVarying(varying, var);
 		}
@@ -2223,7 +2223,7 @@ namespace glsl
 
 			return samplerRegister(binary->getLeft());   // Index added later
 		}
-		else UNREACHABLE();
+		else UNREACHABLE(0);
 
 		return 0;
 	}
@@ -2411,7 +2411,7 @@ namespace glsl
 				case 2: return GL_FLOAT_VEC2;
 				case 3: return GL_FLOAT_VEC3;
 				case 4: return GL_FLOAT_VEC4;
-				default: UNREACHABLE();
+				default: UNREACHABLE(type.getNominalSize());
 				}
 			}
 			else if(type.isMatrix())
@@ -2424,7 +2424,7 @@ namespace glsl
 					case 2: return GL_FLOAT_MAT2;
 					case 3: return GL_FLOAT_MAT2x3;
 					case 4: return GL_FLOAT_MAT2x4;
-					default: UNREACHABLE();
+					default: UNREACHABLE(type.getSecondarySize());
 					}
 				case 3:
 					switch(type.getSecondarySize())
@@ -2432,7 +2432,7 @@ namespace glsl
 					case 2: return GL_FLOAT_MAT3x2;
 					case 3: return GL_FLOAT_MAT3;
 					case 4: return GL_FLOAT_MAT3x4;
-					default: UNREACHABLE();
+					default: UNREACHABLE(type.getSecondarySize());
 					}
 				case 4:
 					switch(type.getSecondarySize())
@@ -2440,12 +2440,12 @@ namespace glsl
 					case 2: return GL_FLOAT_MAT4x2;
 					case 3: return GL_FLOAT_MAT4x3;
 					case 4: return GL_FLOAT_MAT4;
-					default: UNREACHABLE();
+					default: UNREACHABLE(type.getSecondarySize());
 					}
-				default: UNREACHABLE();
+				default: UNREACHABLE(type.getNominalSize());
 				}
 			}
-			else UNREACHABLE();
+			else UNREACHABLE(0);
 			break;
 		case EbtInt:
 			if(type.isScalar())
@@ -2459,10 +2459,10 @@ namespace glsl
 				case 2: return GL_INT_VEC2;
 				case 3: return GL_INT_VEC3;
 				case 4: return GL_INT_VEC4;
-				default: UNREACHABLE();
+				default: UNREACHABLE(type.getNominalSize());
 				}
 			}
-			else UNREACHABLE();
+			else UNREACHABLE(0);
 			break;
 		case EbtUInt:
 			if(type.isScalar())
@@ -2476,10 +2476,10 @@ namespace glsl
 				case 2: return GL_UNSIGNED_INT_VEC2;
 				case 3: return GL_UNSIGNED_INT_VEC3;
 				case 4: return GL_UNSIGNED_INT_VEC4;
-				default: UNREACHABLE();
+				default: UNREACHABLE(type.getNominalSize());
 				}
 			}
-			else UNREACHABLE();
+			else UNREACHABLE(0);
 			break;
 		case EbtBool:
 			if(type.isScalar())
@@ -2493,10 +2493,10 @@ namespace glsl
 				case 2: return GL_BOOL_VEC2;
 				case 3: return GL_BOOL_VEC3;
 				case 4: return GL_BOOL_VEC4;
-				default: UNREACHABLE();
+				default: UNREACHABLE(type.getNominalSize());
 				}
 			}
-			else UNREACHABLE();
+			else UNREACHABLE(0);
 			break;
 		case EbtSampler2D:
 		case EbtISampler2D:
@@ -2517,7 +2517,7 @@ namespace glsl
 		case EbtUSampler2DArray:
 			return GL_SAMPLER_2D_ARRAY;
 		default:
-			UNREACHABLE();
+			UNREACHABLE(type.getBasicType());
 			break;
 		}
 
@@ -2535,19 +2535,19 @@ namespace glsl
 			case EbpLow:    return GL_LOW_FLOAT;
 			case EbpUndefined:
 				// Should be defined as the default precision by the parser
-			default: UNREACHABLE();
+			default: UNREACHABLE(type.getPrecision());
 			}
 		}
 		else if(type.getBasicType() == EbtInt)
 		{
-			switch (type.getPrecision())
+			switch(type.getPrecision())
 			{
 			case EbpHigh:   return GL_HIGH_INT;
 			case EbpMedium: return GL_MEDIUM_INT;
 			case EbpLow:    return GL_LOW_INT;
 			case EbpUndefined:
 				// Should be defined as the default precision by the parser
-			default: UNREACHABLE();
+			default: UNREACHABLE(type.getPrecision());
 			}
 		}
 
@@ -2743,7 +2743,7 @@ namespace glsl
 		case EOpReturn:
 			loopDiscontinuity = true;
 			break;
-		default: UNREACHABLE();
+		default: UNREACHABLE(node->getFlowOp());
 		}
 
 		return !loopDiscontinuity;

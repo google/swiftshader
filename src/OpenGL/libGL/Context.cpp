@@ -1213,7 +1213,7 @@ Texture2D *Context::getTexture2D(GLenum target)
     {
         return static_cast<Texture2D*>(getSamplerTexture(mState.activeSampler, PROXY_TEXTURE_2D));
     }
-    else UNREACHABLE();
+    else UNREACHABLE(target);
 
     return 0;
 }
@@ -1234,7 +1234,7 @@ Texture *Context::getSamplerTexture(unsigned int sampler, TextureType type)
         case TEXTURE_2D:       return mTexture2DZero;
         case PROXY_TEXTURE_2D: return mProxyTexture2DZero;
         case TEXTURE_CUBE:     return mTextureCubeMapZero;
-        default: UNREACHABLE();
+        default: UNREACHABLE(type);
         }
     }
 
@@ -1276,53 +1276,53 @@ bool Context::getFloatv(GLenum pname, GLfloat *params)
     // because it is stored as a float, despite the fact that the GL ES 2.0 spec names
     // GetIntegerv as its native query function. As it would require conversion in any
     // case, this should make no difference to the calling application.
-    switch (pname)
+    switch(pname)
     {
-      case GL_LINE_WIDTH:               *params = mState.lineWidth;            break;
-      case GL_SAMPLE_COVERAGE_VALUE:    *params = mState.sampleCoverageValue;  break;
-      case GL_DEPTH_CLEAR_VALUE:        *params = mState.depthClearValue;      break;
-      case GL_POLYGON_OFFSET_FACTOR:    *params = mState.polygonOffsetFactor;  break;
-      case GL_POLYGON_OFFSET_UNITS:     *params = mState.polygonOffsetUnits;   break;
-      case GL_ALIASED_LINE_WIDTH_RANGE:
+    case GL_LINE_WIDTH:               *params = mState.lineWidth;            break;
+    case GL_SAMPLE_COVERAGE_VALUE:    *params = mState.sampleCoverageValue;  break;
+    case GL_DEPTH_CLEAR_VALUE:        *params = mState.depthClearValue;      break;
+    case GL_POLYGON_OFFSET_FACTOR:    *params = mState.polygonOffsetFactor;  break;
+    case GL_POLYGON_OFFSET_UNITS:     *params = mState.polygonOffsetUnits;   break;
+    case GL_ALIASED_LINE_WIDTH_RANGE:
         params[0] = ALIASED_LINE_WIDTH_RANGE_MIN;
         params[1] = ALIASED_LINE_WIDTH_RANGE_MAX;
         break;
-      case GL_ALIASED_POINT_SIZE_RANGE:
+    case GL_ALIASED_POINT_SIZE_RANGE:
         params[0] = ALIASED_POINT_SIZE_RANGE_MIN;
         params[1] = ALIASED_POINT_SIZE_RANGE_MAX;
         break;
-      case GL_DEPTH_RANGE:
+    case GL_DEPTH_RANGE:
         params[0] = mState.zNear;
         params[1] = mState.zFar;
         break;
-      case GL_COLOR_CLEAR_VALUE:
+    case GL_COLOR_CLEAR_VALUE:
         params[0] = mState.colorClearValue.red;
         params[1] = mState.colorClearValue.green;
         params[2] = mState.colorClearValue.blue;
         params[3] = mState.colorClearValue.alpha;
         break;
-      case GL_BLEND_COLOR:
+    case GL_BLEND_COLOR:
         params[0] = mState.blendColor.red;
         params[1] = mState.blendColor.green;
         params[2] = mState.blendColor.blue;
         params[3] = mState.blendColor.alpha;
         break;
-	  case GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT:
+	case GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT:
         *params = MAX_TEXTURE_MAX_ANISOTROPY;
 		break;
-	  case GL_MODELVIEW_MATRIX:
+	case GL_MODELVIEW_MATRIX:
 		for(int i = 0; i < 16; i++)
 		{
 			params[i] = modelView.current()[i % 4][i / 4];
 		}
 		break;
-	  case GL_PROJECTION_MATRIX:
+	case GL_PROJECTION_MATRIX:
 		for(int i = 0; i < 16; i++)
 		{
 			params[i] = projection.current()[i % 4][i / 4];
 		}
 		break;
-      default:
+    default:
         return false;
     }
 
@@ -1544,159 +1544,159 @@ bool Context::getQueryParameterInfo(GLenum pname, GLenum *type, unsigned int *nu
     // in the case that one calls glGetIntegerv to retrieve a float-typed state variable, we
     // place DEPTH_CLEAR_VALUE with the floats. This should make no difference to the calling
     // application.
-    switch (pname)
+    switch(pname)
     {
-      case GL_COMPRESSED_TEXTURE_FORMATS:
+    case GL_COMPRESSED_TEXTURE_FORMATS:
 		{
             *type = GL_INT;
 			*numParams = NUM_COMPRESSED_TEXTURE_FORMATS;
         }
 		break;
-      case GL_SHADER_BINARY_FORMATS:
+    case GL_SHADER_BINARY_FORMATS:
         {
             *type = GL_INT;
             *numParams = 0;
         }
         break;
-      case GL_MAX_VERTEX_ATTRIBS:
-      case GL_MAX_VERTEX_UNIFORM_VECTORS:
-      case GL_MAX_VARYING_VECTORS:
-      case GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS:
-      case GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS:
-      case GL_MAX_TEXTURE_IMAGE_UNITS:
-      case GL_MAX_FRAGMENT_UNIFORM_VECTORS:
-      case GL_MAX_RENDERBUFFER_SIZE:
-      case GL_NUM_SHADER_BINARY_FORMATS:
-      case GL_NUM_COMPRESSED_TEXTURE_FORMATS:
-      case GL_ARRAY_BUFFER_BINDING:
-      case GL_FRAMEBUFFER_BINDING:
-      case GL_RENDERBUFFER_BINDING:
-      case GL_CURRENT_PROGRAM:
-      case GL_PACK_ALIGNMENT:
-      case GL_UNPACK_ALIGNMENT:
-      case GL_GENERATE_MIPMAP_HINT:
-      case GL_FRAGMENT_SHADER_DERIVATIVE_HINT:
-      case GL_RED_BITS:
-      case GL_GREEN_BITS:
-      case GL_BLUE_BITS:
-      case GL_ALPHA_BITS:
-      case GL_DEPTH_BITS:
-      case GL_STENCIL_BITS:
-      case GL_ELEMENT_ARRAY_BUFFER_BINDING:
-      case GL_CULL_FACE_MODE:
-      case GL_FRONT_FACE:
-      case GL_ACTIVE_TEXTURE:
-      case GL_STENCIL_FUNC:
-      case GL_STENCIL_VALUE_MASK:
-      case GL_STENCIL_REF:
-      case GL_STENCIL_FAIL:
-      case GL_STENCIL_PASS_DEPTH_FAIL:
-      case GL_STENCIL_PASS_DEPTH_PASS:
-      case GL_STENCIL_BACK_FUNC:
-      case GL_STENCIL_BACK_VALUE_MASK:
-      case GL_STENCIL_BACK_REF:
-      case GL_STENCIL_BACK_FAIL:
-      case GL_STENCIL_BACK_PASS_DEPTH_FAIL:
-      case GL_STENCIL_BACK_PASS_DEPTH_PASS:
-      case GL_DEPTH_FUNC:
-      case GL_BLEND_SRC_RGB:
-      case GL_BLEND_SRC_ALPHA:
-      case GL_BLEND_DST_RGB:
-      case GL_BLEND_DST_ALPHA:
-      case GL_BLEND_EQUATION_RGB:
-      case GL_BLEND_EQUATION_ALPHA:
-      case GL_STENCIL_WRITEMASK:
-      case GL_STENCIL_BACK_WRITEMASK:
-      case GL_STENCIL_CLEAR_VALUE:
-      case GL_SUBPIXEL_BITS:
-      case GL_MAX_TEXTURE_SIZE:
-      case GL_MAX_CUBE_MAP_TEXTURE_SIZE:
-      case GL_SAMPLE_BUFFERS:
-      case GL_SAMPLES:
-      case GL_IMPLEMENTATION_COLOR_READ_TYPE:
-      case GL_IMPLEMENTATION_COLOR_READ_FORMAT:
-      case GL_TEXTURE_BINDING_2D:
-      case GL_TEXTURE_BINDING_CUBE_MAP:
-      case GL_MAX_VERTEX_UNIFORM_COMPONENTS:
-      case GL_MAX_FRAGMENT_UNIFORM_COMPONENTS:
-      case GL_MAX_ARRAY_TEXTURE_LAYERS:
+    case GL_MAX_VERTEX_ATTRIBS:
+    case GL_MAX_VERTEX_UNIFORM_VECTORS:
+    case GL_MAX_VARYING_VECTORS:
+    case GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS:
+    case GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS:
+    case GL_MAX_TEXTURE_IMAGE_UNITS:
+    case GL_MAX_FRAGMENT_UNIFORM_VECTORS:
+    case GL_MAX_RENDERBUFFER_SIZE:
+    case GL_NUM_SHADER_BINARY_FORMATS:
+    case GL_NUM_COMPRESSED_TEXTURE_FORMATS:
+    case GL_ARRAY_BUFFER_BINDING:
+    case GL_FRAMEBUFFER_BINDING:
+    case GL_RENDERBUFFER_BINDING:
+    case GL_CURRENT_PROGRAM:
+    case GL_PACK_ALIGNMENT:
+    case GL_UNPACK_ALIGNMENT:
+    case GL_GENERATE_MIPMAP_HINT:
+    case GL_FRAGMENT_SHADER_DERIVATIVE_HINT:
+    case GL_RED_BITS:
+    case GL_GREEN_BITS:
+    case GL_BLUE_BITS:
+    case GL_ALPHA_BITS:
+    case GL_DEPTH_BITS:
+    case GL_STENCIL_BITS:
+    case GL_ELEMENT_ARRAY_BUFFER_BINDING:
+    case GL_CULL_FACE_MODE:
+    case GL_FRONT_FACE:
+    case GL_ACTIVE_TEXTURE:
+    case GL_STENCIL_FUNC:
+    case GL_STENCIL_VALUE_MASK:
+    case GL_STENCIL_REF:
+    case GL_STENCIL_FAIL:
+    case GL_STENCIL_PASS_DEPTH_FAIL:
+    case GL_STENCIL_PASS_DEPTH_PASS:
+    case GL_STENCIL_BACK_FUNC:
+    case GL_STENCIL_BACK_VALUE_MASK:
+    case GL_STENCIL_BACK_REF:
+    case GL_STENCIL_BACK_FAIL:
+    case GL_STENCIL_BACK_PASS_DEPTH_FAIL:
+    case GL_STENCIL_BACK_PASS_DEPTH_PASS:
+    case GL_DEPTH_FUNC:
+    case GL_BLEND_SRC_RGB:
+    case GL_BLEND_SRC_ALPHA:
+    case GL_BLEND_DST_RGB:
+    case GL_BLEND_DST_ALPHA:
+    case GL_BLEND_EQUATION_RGB:
+    case GL_BLEND_EQUATION_ALPHA:
+    case GL_STENCIL_WRITEMASK:
+    case GL_STENCIL_BACK_WRITEMASK:
+    case GL_STENCIL_CLEAR_VALUE:
+    case GL_SUBPIXEL_BITS:
+    case GL_MAX_TEXTURE_SIZE:
+    case GL_MAX_CUBE_MAP_TEXTURE_SIZE:
+    case GL_SAMPLE_BUFFERS:
+    case GL_SAMPLES:
+    case GL_IMPLEMENTATION_COLOR_READ_TYPE:
+    case GL_IMPLEMENTATION_COLOR_READ_FORMAT:
+    case GL_TEXTURE_BINDING_2D:
+    case GL_TEXTURE_BINDING_CUBE_MAP:
+    case GL_MAX_VERTEX_UNIFORM_COMPONENTS:
+    case GL_MAX_FRAGMENT_UNIFORM_COMPONENTS:
+    case GL_MAX_ARRAY_TEXTURE_LAYERS:
         {
             *type = GL_INT;
             *numParams = 1;
         }
         break;
-      case GL_MAX_SAMPLES:
+    case GL_MAX_SAMPLES:
         {
             *type = GL_INT;
             *numParams = 1;
         }
         break;
-      case GL_MAX_VIEWPORT_DIMS:
+    case GL_MAX_VIEWPORT_DIMS:
         {
             *type = GL_INT;
             *numParams = 2;
         }
         break;
-      case GL_VIEWPORT:
-      case GL_SCISSOR_BOX:
+    case GL_VIEWPORT:
+    case GL_SCISSOR_BOX:
         {
             *type = GL_INT;
             *numParams = 4;
         }
         break;
-      case GL_SHADER_COMPILER:
-      case GL_SAMPLE_COVERAGE_INVERT:
-      case GL_DEPTH_WRITEMASK:
-      case GL_CULL_FACE:                // CULL_FACE through DITHER are natural to IsEnabled,
-      case GL_POLYGON_OFFSET_FILL:      // but can be retrieved through the Get{Type}v queries.
-      case GL_SAMPLE_ALPHA_TO_COVERAGE: // For this purpose, they are treated here as bool-natural
-      case GL_SAMPLE_COVERAGE:
-      case GL_SCISSOR_TEST:
-      case GL_STENCIL_TEST:
-      case GL_DEPTH_TEST:
-      case GL_BLEND:
-      case GL_DITHER:
+    case GL_SHADER_COMPILER:
+    case GL_SAMPLE_COVERAGE_INVERT:
+    case GL_DEPTH_WRITEMASK:
+    case GL_CULL_FACE:                // CULL_FACE through DITHER are natural to IsEnabled,
+    case GL_POLYGON_OFFSET_FILL:      // but can be retrieved through the Get{Type}v queries.
+    case GL_SAMPLE_ALPHA_TO_COVERAGE: // For this purpose, they are treated here as bool-natural
+    case GL_SAMPLE_COVERAGE:
+    case GL_SCISSOR_TEST:
+    case GL_STENCIL_TEST:
+    case GL_DEPTH_TEST:
+    case GL_BLEND:
+    case GL_DITHER:
         {
             *type = GL_BOOL;
             *numParams = 1;
         }
         break;
-      case GL_COLOR_WRITEMASK:
+    case GL_COLOR_WRITEMASK:
         {
             *type = GL_BOOL;
             *numParams = 4;
         }
         break;
-      case GL_POLYGON_OFFSET_FACTOR:
-      case GL_POLYGON_OFFSET_UNITS:
-      case GL_SAMPLE_COVERAGE_VALUE:
-      case GL_DEPTH_CLEAR_VALUE:
-      case GL_LINE_WIDTH:
+    case GL_POLYGON_OFFSET_FACTOR:
+    case GL_POLYGON_OFFSET_UNITS:
+    case GL_SAMPLE_COVERAGE_VALUE:
+    case GL_DEPTH_CLEAR_VALUE:
+    case GL_LINE_WIDTH:
         {
             *type = GL_FLOAT;
             *numParams = 1;
         }
         break;
-      case GL_ALIASED_LINE_WIDTH_RANGE:
-      case GL_ALIASED_POINT_SIZE_RANGE:
-      case GL_DEPTH_RANGE:
+    case GL_ALIASED_LINE_WIDTH_RANGE:
+    case GL_ALIASED_POINT_SIZE_RANGE:
+    case GL_DEPTH_RANGE:
         {
             *type = GL_FLOAT;
             *numParams = 2;
         }
         break;
-      case GL_COLOR_CLEAR_VALUE:
-      case GL_BLEND_COLOR:
+    case GL_COLOR_CLEAR_VALUE:
+    case GL_BLEND_COLOR:
         {
             *type = GL_FLOAT;
             *numParams = 4;
         }
         break;
-	  case GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT:
+	case GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT:
         *type = GL_FLOAT;
         *numParams = 1;
         break;
-      default:
+    default:
         return false;
     }
 
@@ -2145,7 +2145,7 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 	{
 		textureUsed = program ? program->getVertexShader()->usesSampler(index) : false;
 	}
-	else UNREACHABLE();
+	else UNREACHABLE(type);
 
 	sw::Resource *resource = 0;
 
@@ -2344,7 +2344,7 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 					break;
 				default:
 					UNIMPLEMENTED();   // FIXME
-					UNREACHABLE();
+					UNREACHABLE(renderTarget->getInternalFormat());
 				}
 
 				switch(format)
@@ -2358,7 +2358,7 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 						dest[4 * i + j * outputPitch + 2] = (unsigned char)(255 * b + 0.5f);
 						dest[4 * i + j * outputPitch + 3] = (unsigned char)(255 * a + 0.5f);
 						break;
-					default: UNREACHABLE();
+					default: UNREACHABLE(type);
 					}
 					break;
 				case GL_BGRA_EXT:
@@ -2398,7 +2398,7 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 							((unsigned short)(31 * g + 0.5f) << 5) |
 							((unsigned short)(31 * b + 0.5f) << 0);
 						break;
-					default: UNREACHABLE();
+					default: UNREACHABLE(type);
 					}
 					break;
 				case GL_RGB:   // IMPLEMENTATION_COLOR_READ_FORMAT
@@ -2410,10 +2410,10 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 							((unsigned short)(63 * g + 0.5f) << 5) |
 							((unsigned short)(31 * r + 0.5f) << 11);
 						break;
-					default: UNREACHABLE();
+					default: UNREACHABLE(type);
 					}
 					break;
-				default: UNREACHABLE();
+				default: UNREACHABLE(format);
 				}
 			}
         }
@@ -2796,7 +2796,7 @@ bool Context::isTriangleMode(GLenum drawMode)
       case GL_LINE_LOOP:
       case GL_LINE_STRIP:
         return false;
-      default: UNREACHABLE();
+      default: UNREACHABLE(drawMode);
     }
 
     return false;
@@ -3095,7 +3095,7 @@ sw::MatrixStack &Context::currentMatrixStack()
 	case GL_MODELVIEW:  return modelView;                     break;
 	case GL_PROJECTION: return projection;                    break;
 	case GL_TEXTURE:    return texture[mState.activeSampler]; break;
-	default:            UNREACHABLE(); return modelView;      break;
+	default:            UNREACHABLE(matrixMode); return modelView;      break;
 	}
 }
 
@@ -3252,7 +3252,7 @@ void Context::alphaFunc(GLenum func, GLclampf ref)
 	case GL_NOTEQUAL: device->setAlphaCompare(sw::ALPHA_NOTEQUAL);     break;
 	case GL_GEQUAL:   device->setAlphaCompare(sw::ALPHA_GREATEREQUAL); break;
 	case GL_ALWAYS:   device->setAlphaCompare(sw::ALPHA_ALWAYS);       break;
-	default: UNREACHABLE();
+	default: UNREACHABLE(func);
 	}
 
 	device->setAlphaReference(gl::clamp01(ref));
@@ -3578,7 +3578,7 @@ void Context::end()
         UNIMPLEMENTED();
         break;
     default:
-        UNREACHABLE();
+        UNREACHABLE(drawMode);
     }
 
 	restoreAttribs();
@@ -3626,7 +3626,7 @@ void Context::setColorMaterialMode(GLenum mode)
         device->setEmissiveMaterialSource(sw::MATERIAL_MATERIAL);
         break;
     default:
-        UNREACHABLE();
+        UNREACHABLE(mode);
     }
 }
 

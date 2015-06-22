@@ -160,7 +160,7 @@ class VertexAttribute
         case GL_UNSIGNED_SHORT: return mSize * sizeof(GLushort);
         case GL_FIXED:          return mSize * sizeof(GLfixed);
         case GL_FLOAT:          return mSize * sizeof(GLfloat);
-        default: UNREACHABLE(); return mSize * sizeof(GLfloat);
+        default: UNREACHABLE(mType); return mSize * sizeof(GLfloat);
         }
     }
 
@@ -176,7 +176,7 @@ class VertexAttribute
 		case ValueUnion::FloatType:	return mCurrentValue[i].f;
 		case ValueUnion::IntType:	return static_cast<float>(mCurrentValue[i].i);
 		case ValueUnion::UIntType:	return static_cast<float>(mCurrentValue[i].ui);
-		default: UNREACHABLE();		return mCurrentValue[i].f;
+		default: UNREACHABLE(mCurrentValueType); return mCurrentValue[i].f;
 		}
 	}
 
@@ -187,7 +187,7 @@ class VertexAttribute
 		case ValueUnion::FloatType:	return static_cast<GLint>(mCurrentValue[i].f);
 		case ValueUnion::IntType:	return mCurrentValue[i].i;
 		case ValueUnion::UIntType:	return static_cast<GLint>(mCurrentValue[i].ui);
-		default: UNREACHABLE();		return mCurrentValue[i].i;
+		default: UNREACHABLE(mCurrentValueType); return mCurrentValue[i].i;
 		}
 	}
 
@@ -198,7 +198,7 @@ class VertexAttribute
 		case ValueUnion::FloatType:	return static_cast<GLuint>(mCurrentValue[i].f);
 		case ValueUnion::IntType:	return static_cast<GLuint>(mCurrentValue[i].i);
 		case ValueUnion::UIntType:	return mCurrentValue[i].ui;
-		default: UNREACHABLE();		return mCurrentValue[i].ui;
+		default: UNREACHABLE(mCurrentValueType); return mCurrentValue[i].ui;
 		}
 	}
 

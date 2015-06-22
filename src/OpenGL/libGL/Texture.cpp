@@ -263,7 +263,7 @@ bool Texture::isMipmapFiltered() const
     case GL_NEAREST_MIPMAP_LINEAR:
     case GL_LINEAR_MIPMAP_LINEAR:
         return true;
-    default: UNREACHABLE();
+    default: UNREACHABLE(mMinFilter);
     }
 
 	return false;

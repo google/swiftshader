@@ -55,7 +55,7 @@ namespace es1
 		case GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_OES: return 3;
 		case GL_TEXTURE_CUBE_MAP_POSITIVE_Z_OES: return 4;
 		case GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_OES: return 5;
-		default: UNREACHABLE(); return 0;
+		default: UNREACHABLE(cubeFace); return 0;
 		}
 	}
 
@@ -173,7 +173,7 @@ namespace es2sw
 		case GL_GREATER:  return sw::DEPTH_GREATER;
 		case GL_GEQUAL:   return sw::DEPTH_GREATEREQUAL;
 		case GL_NOTEQUAL: return sw::DEPTH_NOTEQUAL;
-		default: UNREACHABLE();
+		default: UNREACHABLE(comparison);
 		}
 
 		return sw::DEPTH_ALWAYS;
@@ -191,7 +191,7 @@ namespace es2sw
 		case GL_GREATER:  return sw::STENCIL_GREATER;
 		case GL_GEQUAL:   return sw::STENCIL_GREATEREQUAL;
 		case GL_NOTEQUAL: return sw::STENCIL_NOTEQUAL;
-		default: UNREACHABLE();
+		default: UNREACHABLE(comparison);
 		}
 
 		return sw::STENCIL_ALWAYS;
@@ -217,7 +217,7 @@ namespace es2sw
 		case GL_DST_ALPHA:                return sw::BLEND_DESTALPHA;
 		case GL_ONE_MINUS_DST_ALPHA:      return sw::BLEND_INVDESTALPHA;
 		case GL_SRC_ALPHA_SATURATE:       return sw::BLEND_SRCALPHASAT;
-		default: UNREACHABLE();
+		default: UNREACHABLE(blend);
 		}
 
 		return sw::BLEND_ZERO;
@@ -232,7 +232,7 @@ namespace es2sw
 		case GL_FUNC_REVERSE_SUBTRACT_OES: return sw::BLENDOP_INVSUB;
 		case GL_MIN_EXT:                   return sw::BLENDOP_MIN;
 		case GL_MAX_EXT:                   return sw::BLENDOP_MAX;
-		default: UNREACHABLE();
+		default: UNREACHABLE(blendOp);
 		}
 
 		return sw::BLENDOP_ADD;
@@ -250,7 +250,7 @@ namespace es2sw
 		case GL_INVERT:        return sw::OPERATION_INVERT;
 		case GL_INCR_WRAP_OES: return sw::OPERATION_INCR;
 		case GL_DECR_WRAP_OES: return sw::OPERATION_DECR;
-		default: UNREACHABLE();
+		default: UNREACHABLE(stencilOp);
 		}
 
 		return sw::OPERATION_KEEP;
@@ -263,7 +263,7 @@ namespace es2sw
 		case GL_REPEAT:              return sw::ADDRESSING_WRAP;
 		case GL_CLAMP_TO_EDGE:       return sw::ADDRESSING_CLAMP;
 		case GL_MIRRORED_REPEAT_OES: return sw::ADDRESSING_MIRROR;
-		default: UNREACHABLE();
+		default: UNREACHABLE(wrap);
 		}
 
 		return sw::ADDRESSING_WRAP;
@@ -279,7 +279,7 @@ namespace es2sw
 			return (frontFace == GL_CCW ? sw::CULL_COUNTERCLOCKWISE : sw::CULL_CLOCKWISE);
 		case GL_FRONT_AND_BACK:
 			return sw::CULL_NONE;   // culling will be handled during draw
-		default: UNREACHABLE();
+		default: UNREACHABLE(cullFace);
 		}
 
 		return sw::CULL_COUNTERCLOCKWISE;
@@ -299,7 +299,7 @@ namespace es2sw
 		{
 		case GL_NEAREST: return sw::FILTER_POINT;
 		case GL_LINEAR:  return sw::FILTER_LINEAR;
-		default: UNREACHABLE();
+		default: UNREACHABLE(magFilter);
 		}
 
 		return sw::FILTER_POINT;
@@ -336,7 +336,7 @@ namespace es2sw
 		default:
 			*minFilter = sw::FILTER_POINT;
 			*mipFilter = sw::MIPMAP_NONE;
-			UNREACHABLE();
+			UNREACHABLE(texFilter);
 		}
 
 		if(maxAnisotropy > 1.0f)
@@ -396,7 +396,7 @@ namespace es2sw
 		case GL_DEPTH_COMPONENT16_OES:
 		case GL_STENCIL_INDEX8_OES:
 		case GL_DEPTH24_STENCIL8_OES: return sw::FORMAT_D24S8;
-		default: UNREACHABLE();       return sw::FORMAT_A8B8G8R8;
+		default: UNREACHABLE(format); return sw::FORMAT_A8B8G8R8;
 		}
 	}
 
@@ -412,7 +412,7 @@ namespace es2sw
 		case GL_SUBTRACT:       return sw::TextureStage::STAGE_SUBTRACT;
 		case GL_DOT3_RGB:       return sw::TextureStage::STAGE_DOT3;
 		case GL_DOT3_RGBA:      return sw::TextureStage::STAGE_DOT3;
-		default: UNREACHABLE(); return sw::TextureStage::STAGE_SELECTARG1;
+		default: UNREACHABLE(operation); return sw::TextureStage::STAGE_SELECTARG1;
 		}
 	}
 
@@ -424,7 +424,7 @@ namespace es2sw
 		case GL_CONSTANT:       return sw::TextureStage::SOURCE_CONSTANT;
 		case GL_PRIMARY_COLOR:  return sw::TextureStage::SOURCE_DIFFUSE;
 		case GL_PREVIOUS:       return sw::TextureStage::SOURCE_CURRENT;
-		default: UNREACHABLE(); return sw::TextureStage::SOURCE_CURRENT;
+		default: UNREACHABLE(argument); return sw::TextureStage::SOURCE_CURRENT;
 		}
 	}
 
@@ -436,7 +436,7 @@ namespace es2sw
 		case GL_ONE_MINUS_SRC_COLOR: return sw::TextureStage::MODIFIER_INVCOLOR;
 		case GL_SRC_ALPHA:           return sw::TextureStage::MODIFIER_ALPHA;
 		case GL_ONE_MINUS_SRC_ALPHA: return sw::TextureStage::MODIFIER_INVALPHA;
-		default: UNREACHABLE();      return sw::TextureStage::MODIFIER_COLOR;
+		default: UNREACHABLE(operand);      return sw::TextureStage::MODIFIER_COLOR;
 		}
 	}
 }
@@ -594,7 +594,7 @@ namespace sw2es
 		case sw::FORMAT_X8R8G8B8: return GL_RGB8_OES;
 		case sw::FORMAT_X8B8G8R8: return GL_RGB8_OES;
 		default:
-			UNREACHABLE();
+			UNREACHABLE(format);
 		}
 
 		return GL_RGBA4_OES;
@@ -611,7 +611,7 @@ namespace sw2es
 		case sw::FORMAT_D24S8:
 			return GL_DEPTH24_STENCIL8_OES;
 		default:
-			UNREACHABLE();
+			UNREACHABLE(format);
 		}
 
 		return GL_DEPTH24_STENCIL8_OES;

@@ -2616,28 +2616,28 @@ TPublicType TParseContext::joinInterpolationQualifiers(const TSourceLoc &interpo
 			mergedQualifier = EvqSmoothIn;
 		else if(interpolationQualifier == EvqFlat)
 			mergedQualifier = EvqFlatIn;
-		else UNREACHABLE();
+		else UNREACHABLE(interpolationQualifier);
 	}
 	else if(storageQualifier == EvqCentroidIn) {
 		if(interpolationQualifier == EvqSmooth)
 			mergedQualifier = EvqCentroidIn;
 		else if(interpolationQualifier == EvqFlat)
 			mergedQualifier = EvqFlatIn;
-		else UNREACHABLE();
+		else UNREACHABLE(interpolationQualifier);
 	}
 	else if(storageQualifier == EvqVertexOut) {
 		if(interpolationQualifier == EvqSmooth)
 			mergedQualifier = EvqSmoothOut;
 		else if(interpolationQualifier == EvqFlat)
 			mergedQualifier = EvqFlatOut;
-		else UNREACHABLE();
+		else UNREACHABLE(interpolationQualifier);
 	}
 	else if(storageQualifier == EvqCentroidOut) {
 		if(interpolationQualifier == EvqSmooth)
 			mergedQualifier = EvqCentroidOut;
 		else if(interpolationQualifier == EvqFlat)
 			mergedQualifier = EvqFlatOut;
-		else UNREACHABLE();
+		else UNREACHABLE(interpolationQualifier);
 	}
 	else {
 		error(interpolationLoc, "interpolation qualifier requires a fragment 'in' or vertex 'out' storage qualifier", getQualifierString(interpolationQualifier));

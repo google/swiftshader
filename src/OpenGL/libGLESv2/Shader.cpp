@@ -310,7 +310,7 @@ GLenum Shader::parseType(const std::string &type)
     {
         return GL_FLOAT_MAT4;
     }
-    else UNREACHABLE();
+    else UNREACHABLE(type);
 
     return GL_NONE;
 }
@@ -325,74 +325,74 @@ bool Shader::compareVarying(const glsl::Varying &x, const glsl::Varying &y)
 
     switch (x.type)
     {
-      case GL_FLOAT_MAT4: return true;
-      case GL_FLOAT_MAT2:
+    case GL_FLOAT_MAT4: return true;
+    case GL_FLOAT_MAT2:
         switch(y.type)
         {
-          case GL_FLOAT_MAT4: return false;
-          case GL_FLOAT_MAT2: return true;
-          case GL_FLOAT_VEC4: return true;
-          case GL_FLOAT_MAT3: return true;
-          case GL_FLOAT_VEC3: return true;
-          case GL_FLOAT_VEC2: return true;
-          case GL_FLOAT:      return true;
-          default: UNREACHABLE();
+        case GL_FLOAT_MAT4: return false;
+        case GL_FLOAT_MAT2: return true;
+        case GL_FLOAT_VEC4: return true;
+        case GL_FLOAT_MAT3: return true;
+        case GL_FLOAT_VEC3: return true;
+        case GL_FLOAT_VEC2: return true;
+        case GL_FLOAT:      return true;
+        default: UNREACHABLE(y.type);
         }
         break;
-      case GL_FLOAT_VEC4:
+    case GL_FLOAT_VEC4:
         switch(y.type)
         {
-          case GL_FLOAT_MAT4: return false;
-          case GL_FLOAT_MAT2: return false;
-          case GL_FLOAT_VEC4: return true;
-          case GL_FLOAT_MAT3: return true;
-          case GL_FLOAT_VEC3: return true;
-          case GL_FLOAT_VEC2: return true;
-          case GL_FLOAT:      return true;
-          default: UNREACHABLE();
+        case GL_FLOAT_MAT4: return false;
+        case GL_FLOAT_MAT2: return false;
+        case GL_FLOAT_VEC4: return true;
+        case GL_FLOAT_MAT3: return true;
+        case GL_FLOAT_VEC3: return true;
+        case GL_FLOAT_VEC2: return true;
+        case GL_FLOAT:      return true;
+        default: UNREACHABLE(y.type);
         }
         break;
-      case GL_FLOAT_MAT3:
+    case GL_FLOAT_MAT3:
         switch(y.type)
         {
-          case GL_FLOAT_MAT4: return false;
-          case GL_FLOAT_MAT2: return false;
-          case GL_FLOAT_VEC4: return false;
-          case GL_FLOAT_MAT3: return true;
-          case GL_FLOAT_VEC3: return true;
-          case GL_FLOAT_VEC2: return true;
-          case GL_FLOAT:      return true;
-          default: UNREACHABLE();
+        case GL_FLOAT_MAT4: return false;
+        case GL_FLOAT_MAT2: return false;
+        case GL_FLOAT_VEC4: return false;
+        case GL_FLOAT_MAT3: return true;
+        case GL_FLOAT_VEC3: return true;
+        case GL_FLOAT_VEC2: return true;
+        case GL_FLOAT:      return true;
+        default: UNREACHABLE(y.type);
         }
         break;
-      case GL_FLOAT_VEC3:
+    case GL_FLOAT_VEC3:
         switch(y.type)
         {
-          case GL_FLOAT_MAT4: return false;
-          case GL_FLOAT_MAT2: return false;
-          case GL_FLOAT_VEC4: return false;
-          case GL_FLOAT_MAT3: return false;
-          case GL_FLOAT_VEC3: return true;
-          case GL_FLOAT_VEC2: return true;
-          case GL_FLOAT:      return true;
-          default: UNREACHABLE();
+        case GL_FLOAT_MAT4: return false;
+        case GL_FLOAT_MAT2: return false;
+        case GL_FLOAT_VEC4: return false;
+        case GL_FLOAT_MAT3: return false;
+        case GL_FLOAT_VEC3: return true;
+        case GL_FLOAT_VEC2: return true;
+        case GL_FLOAT:      return true;
+        default: UNREACHABLE(y.type);
         }
         break;
-      case GL_FLOAT_VEC2:
+    case GL_FLOAT_VEC2:
         switch(y.type)
         {
-          case GL_FLOAT_MAT4: return false;
-          case GL_FLOAT_MAT2: return false;
-          case GL_FLOAT_VEC4: return false;
-          case GL_FLOAT_MAT3: return false;
-          case GL_FLOAT_VEC3: return false;
-          case GL_FLOAT_VEC2: return true;
-          case GL_FLOAT:      return true;
-          default: UNREACHABLE();
+        case GL_FLOAT_MAT4: return false;
+        case GL_FLOAT_MAT2: return false;
+        case GL_FLOAT_VEC4: return false;
+        case GL_FLOAT_MAT3: return false;
+        case GL_FLOAT_VEC3: return false;
+        case GL_FLOAT_VEC2: return true;
+        case GL_FLOAT:      return true;
+        default: UNREACHABLE(y.type);
         }
         break;
-      case GL_FLOAT: return false;
-      default: UNREACHABLE();
+    case GL_FLOAT: return false;
+    default: UNREACHABLE(x.type);
     }
 
     return false;

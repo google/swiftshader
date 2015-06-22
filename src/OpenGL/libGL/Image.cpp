@@ -186,7 +186,7 @@ namespace gl
 			{
 				return sw::FORMAT_A8;
 			}
-			else UNREACHABLE();
+			else UNREACHABLE(format);
 		}
 		else if(type == GL_UNSIGNED_SHORT || type == GL_UNSIGNED_INT)
 		{
@@ -194,7 +194,7 @@ namespace gl
 			{
 				return sw::FORMAT_D32FS8_TEXTURE;
 			}
-			else UNREACHABLE();
+			else UNREACHABLE(format);
 		}
 		else if(type == GL_UNSIGNED_INT_24_8_EXT)
 		{
@@ -202,7 +202,7 @@ namespace gl
 			{
 				return sw::FORMAT_D32FS8_TEXTURE;
 			}
-			else UNREACHABLE();
+			else UNREACHABLE(format);
 		}
 		else if(type == GL_UNSIGNED_SHORT_4_4_4_4)
 		{
@@ -221,7 +221,7 @@ namespace gl
             return sw::FORMAT_A8R8G8B8;
         }
 
-		else UNREACHABLE();
+		else UNREACHABLE(type);
 
 		return sw::FORMAT_A8R8G8B8;
 	}
@@ -257,7 +257,7 @@ namespace gl
 				case GL_BGRA_EXT:
 					loadBGRAImageData(xoffset, yoffset, width, height, inputPitch, input, buffer);
 					break;
-				default: UNREACHABLE();
+				default: UNREACHABLE(format);
 				}
 				break;
 			case GL_UNSIGNED_SHORT_5_6_5:
@@ -266,7 +266,7 @@ namespace gl
 				case GL_RGB:
 					loadRGB565ImageData(xoffset, yoffset, width, height, inputPitch, input, buffer);
 					break;
-				default: UNREACHABLE();
+				default: UNREACHABLE(format);
 				}
 				break;
 			case GL_UNSIGNED_SHORT_4_4_4_4:
@@ -275,7 +275,7 @@ namespace gl
 				case GL_RGBA:
 					loadRGBA4444ImageData(xoffset, yoffset, width, height, inputPitch, input, buffer);
 					break;
-				default: UNREACHABLE();
+				default: UNREACHABLE(format);
 				}
 				break;
 			case GL_UNSIGNED_SHORT_5_5_5_1:
@@ -284,7 +284,7 @@ namespace gl
 				case GL_RGBA:
 					loadRGBA5551ImageData(xoffset, yoffset, width, height, inputPitch, input, buffer);
 					break;
-				default: UNREACHABLE();
+				default: UNREACHABLE(format);
 				}
 				break;
 			case GL_FLOAT:
@@ -306,10 +306,10 @@ namespace gl
 				case GL_RGBA:
 					loadRGBAFloatImageData(xoffset, yoffset, width, height, inputPitch, input, buffer);
 					break;
-				default: UNREACHABLE();
+				default: UNREACHABLE(format);
 				}
 				break;
-			  case GL_HALF_FLOAT:
+			case GL_HALF_FLOAT:
 				switch(format)
 				{
 				// float textures are converted to RGBA, not BGRA
@@ -328,7 +328,7 @@ namespace gl
 				case GL_RGBA:
 					loadRGBAHalfFloatImageData(xoffset, yoffset, width, height, inputPitch, input, buffer);
 					break;
-				default: UNREACHABLE();
+				default: UNREACHABLE(format);
 				}
 				break;
 			case GL_UNSIGNED_SHORT:
@@ -340,7 +340,7 @@ namespace gl
 			case GL_UNSIGNED_INT_24_8_EXT:
 				loadD24S8ImageData(xoffset, yoffset, width, height, inputPitch, input, buffer);
 				break;
-			default: UNREACHABLE();
+			default: UNREACHABLE(type);
 			}
 		}
 

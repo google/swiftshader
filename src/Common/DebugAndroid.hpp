@@ -56,10 +56,10 @@ void AndroidEnterDebugger();
 		AndroidEnterDebugger();						\
 	} while(0)
 
-#define UNREACHABLE() do {								\
-		ALOGE("badness: unreachable reached: %s %s:%d",	\
-			  __FUNCTION__, __FILE__, __LINE__);		\
-		AndroidEnterDebugger();							\
+#define UNREACHABLE(value) do {                                         \
+		ALOGE("badness: unreachable case reached: %s %s:%d. value: %d", \
+			  __FUNCTION__, __FILE__, __LINE__, value);                 \
+		AndroidEnterDebugger();                                         \
 	} while(0)
 
 #ifndef NDEBUG

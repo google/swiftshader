@@ -353,7 +353,7 @@ namespace egl
 			case GL_HALF_FLOAT:     return sw::FORMAT_L16F;
 			case GL_HALF_FLOAT_OES: return sw::FORMAT_L16F;
 			case GL_FLOAT:          return sw::FORMAT_L32F;
-			default: UNREACHABLE();
+			default: UNREACHABLE(type);
 			}
 			break;
 		case GL_LUMINANCE_ALPHA:
@@ -363,7 +363,7 @@ namespace egl
 			case GL_HALF_FLOAT:     return sw::FORMAT_A16L16F;
 			case GL_HALF_FLOAT_OES: return sw::FORMAT_A16L16F;
 			case GL_FLOAT:          return sw::FORMAT_A32L32F;
-			default: UNREACHABLE();
+			default: UNREACHABLE(type);
 			}
 			break;
 		case GL_RGBA:
@@ -375,14 +375,14 @@ namespace egl
 			case GL_HALF_FLOAT:             return sw::FORMAT_A16B16G16R16F;
 			case GL_HALF_FLOAT_OES:         return sw::FORMAT_A16B16G16R16F;
 			case GL_FLOAT:                  return sw::FORMAT_A32B32G32R32F;
-			default: UNREACHABLE();
+			default: UNREACHABLE(type);
 			}
 			break;
 		case GL_BGRA_EXT:
 			switch(type)
 			{
 			case GL_UNSIGNED_BYTE:          return sw::FORMAT_A8R8G8B8;
-			default: UNREACHABLE();
+			default: UNREACHABLE(type);
 			}
 			break;
 		case GL_RGB:
@@ -393,7 +393,7 @@ namespace egl
 			case GL_HALF_FLOAT:             return sw::FORMAT_B16G16R16F;
 			case GL_HALF_FLOAT_OES:         return sw::FORMAT_B16G16R16F;
 			case GL_FLOAT:                  return sw::FORMAT_B32G32R32F;
-			default: UNREACHABLE();
+			default: UNREACHABLE(type);
 			}
 			break;
 		case GL_ALPHA:
@@ -403,11 +403,11 @@ namespace egl
 			case GL_HALF_FLOAT:             return sw::FORMAT_A16F;
 			case GL_HALF_FLOAT_OES:         return sw::FORMAT_A16F;
 			case GL_FLOAT:                  return sw::FORMAT_A32F;
-			default: UNREACHABLE();
+			default: UNREACHABLE(type);
 			}
 			break;
 		default:
-			UNREACHABLE();
+			UNREACHABLE(format);
 		}
 
 		return sw::FORMAT_NULL;
@@ -470,7 +470,7 @@ namespace egl
 			{
 				return sw::FORMAT_A8;
 			}
-			else UNREACHABLE();
+			else UNREACHABLE(format);
 		}
 		else if(type == GL_UNSIGNED_SHORT || type == GL_UNSIGNED_INT)
 		{
@@ -478,7 +478,7 @@ namespace egl
 			{
 				return sw::FORMAT_D32FS8_TEXTURE;
 			}
-			else UNREACHABLE();
+			else UNREACHABLE(format);
 		}
 		else if(type == GL_UNSIGNED_INT_24_8_OES)
 		{
@@ -486,7 +486,7 @@ namespace egl
 			{
 				return sw::FORMAT_D32FS8_TEXTURE;
 			}
-			else UNREACHABLE();
+			else UNREACHABLE(format);
 		}
 		else if(type == GL_UNSIGNED_SHORT_4_4_4_4)
 		{
@@ -500,7 +500,7 @@ namespace egl
 		{
 			return sw::FORMAT_X8R8G8B8;
 		}
-		else UNREACHABLE();
+		else UNREACHABLE(type);
 
 		return sw::FORMAT_A8B8G8R8;
 	}
@@ -519,7 +519,7 @@ namespace egl
 			case GL_RGB:             return sizeof(unsigned char) * 3;
 			case GL_RGBA:            return sizeof(unsigned char) * 4;
 			case GL_BGRA_EXT:        return sizeof(unsigned char) * 4;
-			default: UNREACHABLE();
+			default: UNREACHABLE(format);
 			}
 			break;
 		case GL_UNSIGNED_SHORT_4_4_4_4:
@@ -538,7 +538,7 @@ namespace egl
 			case GL_LUMINANCE_ALPHA: return sizeof(float) * 2;
 			case GL_RGB:             return sizeof(float) * 3;
 			case GL_RGBA:            return sizeof(float) * 4;
-			default: UNREACHABLE();
+			default: UNREACHABLE(format);
 			}
 			break;
 		case GL_HALF_FLOAT:
@@ -550,10 +550,10 @@ namespace egl
 			case GL_LUMINANCE_ALPHA: return sizeof(unsigned short) * 2;
 			case GL_RGB:             return sizeof(unsigned short) * 3;
 			case GL_RGBA:            return sizeof(unsigned short) * 4;
-			default: UNREACHABLE();
+			default: UNREACHABLE(format);
 			}
 			break;
-		default: UNREACHABLE();
+		default: UNREACHABLE(type);
 		}
 
 		return 0;
@@ -673,7 +673,7 @@ namespace egl
 					case GL_BGRA_EXT:
 						LoadImageData<UByte4>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getHeight(), input, buffer);
 						break;
-					default: UNREACHABLE();
+					default: UNREACHABLE(format);
 					}
 					break;
 				case GL_UNSIGNED_SHORT_5_6_5:
@@ -682,7 +682,7 @@ namespace egl
 					case GL_RGB:
 						LoadImageData<RGB565>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getHeight(), input, buffer);
 						break;
-					default: UNREACHABLE();
+					default: UNREACHABLE(format);
 					}
 					break;
 				case GL_UNSIGNED_SHORT_4_4_4_4:
@@ -691,7 +691,7 @@ namespace egl
 					case GL_RGBA:
 						LoadImageData<RGBA4444>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getHeight(), input, buffer);
 						break;
-					default: UNREACHABLE();
+					default: UNREACHABLE(format);
 					}
 					break;
 				case GL_UNSIGNED_SHORT_5_5_5_1:
@@ -700,7 +700,7 @@ namespace egl
 					case GL_RGBA:
 						LoadImageData<RGBA5551>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getHeight(), input, buffer);
 						break;
-					default: UNREACHABLE();
+					default: UNREACHABLE(format);
 					}
 					break;
 				case GL_FLOAT:
@@ -722,7 +722,7 @@ namespace egl
 					case GL_RGBA:
 						LoadImageData<Float4>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getHeight(), input, buffer);
 						break;
-					default: UNREACHABLE();
+					default: UNREACHABLE(format);
 					}
 					break;
 				case GL_HALF_FLOAT:
@@ -744,7 +744,7 @@ namespace egl
 					case GL_RGBA:
 						LoadImageData<HalfFloat4>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getHeight(), input, buffer);
 						break;
-					default: UNREACHABLE();
+					default: UNREACHABLE(format);
 					}
 					break;
 				case GL_UNSIGNED_SHORT:
@@ -756,7 +756,7 @@ namespace egl
 				case GL_UNSIGNED_INT_24_8_OES:
 					loadD24S8ImageData(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, input, buffer);
 					break;
-				default: UNREACHABLE();
+				default: UNREACHABLE(type);
 				}
 			}
 

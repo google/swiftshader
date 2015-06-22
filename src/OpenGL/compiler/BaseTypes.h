@@ -108,7 +108,7 @@ inline const char *getBasicString(TBasicType type)
     case EbtSamplerExternalOES: return "samplerExternalOES";
 	case EbtSampler3D:			return "sampler3D";
     case EbtStruct:             return "structure";
-    default: UNREACHABLE();     return "unknown type";
+    default: UNREACHABLE(type); return "unknown type";
     }
 }
 
@@ -119,7 +119,7 @@ inline const char* getMatrixPackingString(TLayoutMatrixPacking mpq)
 	case EmpUnspecified:    return "mp_unspecified";
 	case EmpRowMajor:       return "row_major";
 	case EmpColumnMajor:    return "column_major";
-	default: UNREACHABLE(); return "unknown matrix packing";
+	default: UNREACHABLE(mpq); return "unknown matrix packing";
 	}
 }
 
@@ -131,7 +131,7 @@ inline const char* getBlockStorageString(TLayoutBlockStorage bsq)
 	case EbsShared:         return "shared";
 	case EbsPacked:         return "packed";
 	case EbsStd140:         return "std140";
-	default: UNREACHABLE(); return "unknown block storage";
+	default: UNREACHABLE(bsq); return "unknown block storage";
 	}
 }
 
@@ -447,7 +447,7 @@ inline const char *getQualifierString(TQualifier qualifier)
     case EvqSmoothIn:       return "SmoothIn";       break;
     case EvqFlatIn:         return "FlatIn";         break;
     case EvqCentroidIn:     return "CentroidIn";     break;
-    default: UNREACHABLE(); return "unknown qualifier";
+    default: UNREACHABLE(qualifier); return "unknown qualifier";
     }
 }
 

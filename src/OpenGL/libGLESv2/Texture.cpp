@@ -494,7 +494,7 @@ bool Texture::isMipmapFiltered() const
     case GL_NEAREST_MIPMAP_LINEAR:
     case GL_LINEAR_MIPMAP_LINEAR:
         return true;
-    default: UNREACHABLE();
+    default: UNREACHABLE(mMinFilter);
     }
 
 	return false;
@@ -1203,7 +1203,7 @@ bool TextureCubeMap::isDepth(GLenum target, GLint level) const
 
 void TextureCubeMap::releaseTexImage()
 {
-    UNREACHABLE();   // Cube maps cannot have an EGL surface bound as an image
+    UNREACHABLE(0);   // Cube maps cannot have an EGL surface bound as an image
 }
 
 void TextureCubeMap::setImage(GLenum target, GLint level, GLsizei width, GLsizei height, GLenum format, GLenum type, const egl::Image::UnpackInfo& unpackInfo, const void *pixels)
@@ -1925,7 +1925,7 @@ egl::Image *createDepthStencil(unsigned int width, unsigned int height, sw::Form
 		lockable = true;
 		break;
 	default:
-		UNREACHABLE();
+		UNREACHABLE(format);
 	}
 
 	egl::Image *surface = new egl::Image(width, height, format, multiSampleDepth, lockable, true);

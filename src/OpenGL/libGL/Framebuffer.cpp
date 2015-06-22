@@ -53,10 +53,7 @@ Renderbuffer *Framebuffer::lookupRenderbuffer(GLenum type, GLuint handle) const
 	{
 		buffer = context->getTexture(handle)->getRenderbuffer(type);
 	}
-	else
-	{
-		UNREACHABLE();
-	}
+	else UNREACHABLE(type);
 
 	return buffer;
 }
@@ -269,7 +266,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 		}
 		else
 		{
-			UNREACHABLE();
+			UNREACHABLE(mColorbufferType);
 			return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 		}
 
@@ -311,7 +308,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 		}
 		else
 		{
-			UNREACHABLE();
+			UNREACHABLE(mDepthbufferType);
 			return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 		}
 
@@ -363,7 +360,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 		}
 		else
 		{
-			UNREACHABLE();
+			UNREACHABLE(mStencilbufferType);
 			return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 		}
 

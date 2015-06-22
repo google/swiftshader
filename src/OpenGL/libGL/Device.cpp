@@ -278,7 +278,7 @@ namespace gl
 			lockable = true;
 			break;
 		default:
-			UNREACHABLE();
+			UNREACHABLE(format);
 		}
 
 		Image *surface = new Image(0, width, height, format, multiSampleDepth, lockable, true);
@@ -331,7 +331,7 @@ namespace gl
 			case DRAW_TRIANGLELIST:  drawType = sw::DRAW_INDEXEDTRIANGLELIST32;  break;
 			case DRAW_TRIANGLESTRIP: drawType = sw::DRAW_INDEXEDTRIANGLESTRIP32; break;
 			case DRAW_TRIANGLEFAN:   drawType = sw::DRAW_INDEXEDTRIANGLEFAN32;	  break;
-			default: UNREACHABLE();
+			default: UNREACHABLE(type);
 			}
 		}
 		else if(indexSize == 2)
@@ -345,7 +345,7 @@ namespace gl
 			case DRAW_TRIANGLELIST:  drawType = sw::DRAW_INDEXEDTRIANGLELIST16;  break;
 			case DRAW_TRIANGLESTRIP: drawType = sw::DRAW_INDEXEDTRIANGLESTRIP16; break;
 			case DRAW_TRIANGLEFAN:   drawType = sw::DRAW_INDEXEDTRIANGLEFAN16;   break;
-			default: UNREACHABLE();
+			default: UNREACHABLE(type);
 			}
 		}
 		else if(indexSize == 1)
@@ -359,10 +359,10 @@ namespace gl
 			case DRAW_TRIANGLELIST:  drawType = sw::DRAW_INDEXEDTRIANGLELIST8;  break;
 			case DRAW_TRIANGLESTRIP: drawType = sw::DRAW_INDEXEDTRIANGLESTRIP8; break;
 			case DRAW_TRIANGLEFAN:   drawType = sw::DRAW_INDEXEDTRIANGLEFAN8;   break;
-			default: UNREACHABLE();
+			default: UNREACHABLE(type);
 			}
 		}
-		else UNREACHABLE();
+		else UNREACHABLE(indexSize);
 
 		draw(drawType, indexOffset, primitiveCount);
 	}
@@ -388,7 +388,7 @@ namespace gl
 		case DRAW_TRIANGLESTRIP: drawType = sw::DRAW_TRIANGLESTRIP; break;
 		case DRAW_TRIANGLEFAN:   drawType = sw::DRAW_TRIANGLEFAN;   break;
         case DRAW_QUADLIST:      drawType = sw::DRAW_QUADLIST;      break;
-		default: UNREACHABLE();
+		default: UNREACHABLE(primitiveType);
 		}
 
 		draw(drawType, 0, primitiveCount);

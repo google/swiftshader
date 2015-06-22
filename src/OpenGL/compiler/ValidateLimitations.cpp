@@ -26,7 +26,7 @@ void MarkLoopForUnroll(const TIntermSymbol* symbol, TLoopStack& stack) {
             return;
         }
     }
-    UNREACHABLE();
+    UNREACHABLE(0);
 }
 
 // Traverses a node to check if it represents a constant index expression.
@@ -88,7 +88,7 @@ public:
                 MarkLoopForUnroll(symbol, mLoopStack);
                 break;
               default:
-                UNREACHABLE();
+                UNREACHABLE(symbol->getBasicType());
             }
         }
     }

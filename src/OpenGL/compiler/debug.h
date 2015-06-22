@@ -53,8 +53,8 @@ void Trace(const char* format, ...);
 } while(0)
 
 #undef UNREACHABLE
-#define UNREACHABLE() do { \
-    Trace("Unreachable reached: %s(%d)\n", __FUNCTION__, __LINE__); \
+#define UNREACHABLE(value) do { \
+    Trace("Unreachable reached: %s(%d). Value: %d\n", __FUNCTION__, __LINE__, value); \
     assert(false); \
 } while(0)
 

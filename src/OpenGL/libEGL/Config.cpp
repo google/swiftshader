@@ -67,7 +67,7 @@ Config::Config(const DisplayMode &displayMode, EGLint minInterval, EGLint maxInt
         mBindToTextureRGB = EGL_TRUE;
         break;
     default:
-        UNREACHABLE();   // Other formats should not be valid
+        UNREACHABLE(renderTargetFormat);   // Other formats should not be valid
     }
 
     mLuminanceSize = 0;
@@ -121,7 +121,7 @@ Config::Config(const DisplayMode &displayMode, EGLint minInterval, EGLint maxInt
 //      mStencilSize = 8;
 //      break;
 	default:
-		UNREACHABLE();
+		UNREACHABLE(depthStencilFormat);
 	}
 
     mLevel = 0;

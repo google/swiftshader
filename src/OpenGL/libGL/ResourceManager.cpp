@@ -103,7 +103,7 @@ GLuint ResourceManager::createShader(GLenum type)
     {
         mShaderMap[handle] = new FragmentShader(this, handle);
     }
-    else UNREACHABLE();
+    else UNREACHABLE(type);
 
     return handle;
 }
@@ -333,7 +333,7 @@ void ResourceManager::checkTextureAllocation(GLuint texture, TextureType type)
         }
         else
         {
-            UNREACHABLE();
+            UNREACHABLE(type);
             return;
         }
 

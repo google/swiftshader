@@ -203,7 +203,7 @@ void ResourceManager::checkTextureAllocation(GLuint texture, TextureType type)
         }
         else
         {
-            UNREACHABLE();
+            UNREACHABLE(type);
             return;
         }
 

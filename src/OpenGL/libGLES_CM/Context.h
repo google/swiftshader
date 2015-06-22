@@ -143,7 +143,7 @@ class VertexAttribute
 
     int typeSize() const
     {
-        switch (mType)
+        switch(mType)
         {
         case GL_BYTE:           return mSize * sizeof(GLbyte);
         case GL_UNSIGNED_BYTE:  return mSize * sizeof(GLubyte);
@@ -151,7 +151,7 @@ class VertexAttribute
         case GL_UNSIGNED_SHORT: return mSize * sizeof(GLushort);
         case GL_FIXED:          return mSize * sizeof(GLfixed);
         case GL_FLOAT:          return mSize * sizeof(GLfloat);
-        default: UNREACHABLE(); return mSize * sizeof(GLfloat);
+        default: UNREACHABLE(mType); return mSize * sizeof(GLfloat);
         }
     }
 

@@ -620,7 +620,7 @@ void Context::setFogMode(GLenum mode)
 		device->setPixelFogMode(sw::FOG_EXP2);
 		break;
 	default:
-		UNREACHABLE();
+		UNREACHABLE(mode);
 	}
 }
 
@@ -967,7 +967,7 @@ Texture *Context::getSamplerTexture(unsigned int sampler, TextureType type)
         {
         case TEXTURE_2D: return mTexture2DZero;
         case TEXTURE_EXTERNAL: return mTextureExternalZero;
-        default: UNREACHABLE();
+        default: UNREACHABLE(type);
         }
     }
 
@@ -1008,47 +1008,47 @@ bool Context::getFloatv(GLenum pname, GLfloat *params)
     // because it is stored as a float, despite the fact that the GL ES 2.0 spec names
     // GetIntegerv as its native query function. As it would require conversion in any
     // case, this should make no difference to the calling application.
-    switch (pname)
+    switch(pname)
     {
-      case GL_LINE_WIDTH:               *params = mState.lineWidth;            break;
-      case GL_SAMPLE_COVERAGE_VALUE:    *params = mState.sampleCoverageValue;  break;
-      case GL_DEPTH_CLEAR_VALUE:        *params = mState.depthClearValue;      break;
-      case GL_POLYGON_OFFSET_FACTOR:    *params = mState.polygonOffsetFactor;  break;
-      case GL_POLYGON_OFFSET_UNITS:     *params = mState.polygonOffsetUnits;   break;
-      case GL_ALIASED_LINE_WIDTH_RANGE:
+    case GL_LINE_WIDTH:               *params = mState.lineWidth;            break;
+    case GL_SAMPLE_COVERAGE_VALUE:    *params = mState.sampleCoverageValue;  break;
+    case GL_DEPTH_CLEAR_VALUE:        *params = mState.depthClearValue;      break;
+    case GL_POLYGON_OFFSET_FACTOR:    *params = mState.polygonOffsetFactor;  break;
+    case GL_POLYGON_OFFSET_UNITS:     *params = mState.polygonOffsetUnits;   break;
+    case GL_ALIASED_LINE_WIDTH_RANGE:
         params[0] = ALIASED_LINE_WIDTH_RANGE_MIN;
         params[1] = ALIASED_LINE_WIDTH_RANGE_MAX;
         break;
-      case GL_ALIASED_POINT_SIZE_RANGE:
+    case GL_ALIASED_POINT_SIZE_RANGE:
         params[0] = ALIASED_POINT_SIZE_RANGE_MIN;
         params[1] = ALIASED_POINT_SIZE_RANGE_MAX;
         break;
-      case GL_DEPTH_RANGE:
+    case GL_DEPTH_RANGE:
         params[0] = mState.zNear;
         params[1] = mState.zFar;
         break;
-      case GL_COLOR_CLEAR_VALUE:
+    case GL_COLOR_CLEAR_VALUE:
         params[0] = mState.colorClearValue.red;
         params[1] = mState.colorClearValue.green;
         params[2] = mState.colorClearValue.blue;
         params[3] = mState.colorClearValue.alpha;
         break;
-	  case GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT:
+	case GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT:
         *params = MAX_TEXTURE_MAX_ANISOTROPY;
 		break;
-	  case GL_MODELVIEW_MATRIX:
+	case GL_MODELVIEW_MATRIX:
 		for(int i = 0; i < 16; i++)
 		{
 			params[i] = modelViewStack.current()[i % 4][i / 4];
 		}
 		break;
-	  case GL_PROJECTION_MATRIX:
+	case GL_PROJECTION_MATRIX:
 		for(int i = 0; i < 16; i++)
 		{
 			params[i] = projectionStack.current()[i % 4][i / 4];
 		}
 		break;
-      default:
+    default:
         return false;
     }
 
@@ -1357,7 +1357,7 @@ int Context::getQueryParameterNum(GLenum pname)
 	case GL_MAX_TEXTURE_UNITS:
         return 1;
 	default:
-		UNREACHABLE();
+		UNREACHABLE(pname);
     }
 
     return -1;
@@ -1712,7 +1712,7 @@ void Context::applyState(GLenum drawMode)
 
 	switch(mState.shadeModel)
 	{
-	default: UNREACHABLE();
+	default: UNREACHABLE(mState.shadeModel);
 	case GL_SMOOTH: device->setShadingMode(sw::SHADING_GOURAUD); break;
 	case GL_FLAT:   device->setShadingMode(sw::SHADING_FLAT);    break;
 	}
@@ -1885,7 +1885,7 @@ void Context::applyTextures()
 						device->setStageOperation(unit, sw::TextureStage::STAGE_SELECTARG1);
 						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_SELECTARG1);
 						break;
-					default: UNREACHABLE();
+					default: UNREACHABLE(texFormat);
 					}
 					break;
 				case GL_MODULATE:
@@ -1909,7 +1909,7 @@ void Context::applyTextures()
 						device->setStageOperation(unit, sw::TextureStage::STAGE_MODULATE);
 						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_MODULATE);
 						break;
-					default: UNREACHABLE();
+					default: UNREACHABLE(texFormat);
 					}
 					break;
 				case GL_DECAL:
@@ -1933,7 +1933,7 @@ void Context::applyTextures()
 						device->setStageOperation(unit, sw::TextureStage::STAGE_BLENDTEXTUREALPHA);   // Alpha * (Arg1 - Arg2) + Arg2
 						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_SELECTARG2);
 						break;
-					default: UNREACHABLE();
+					default: UNREACHABLE(texFormat);
 					}
 					break;
 				case GL_BLEND:
@@ -1957,7 +1957,7 @@ void Context::applyTextures()
 						device->setStageOperation(unit, sw::TextureStage::STAGE_LERP);   // Arg3 * (Arg1 - Arg2) + Arg2
 						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_MODULATE);
 						break;
-					default: UNREACHABLE();
+					default: UNREACHABLE(texFormat);
 					}
 					break;
 				case GL_ADD:
@@ -1981,11 +1981,11 @@ void Context::applyTextures()
 						device->setStageOperation(unit, sw::TextureStage::STAGE_ADD);
 						device->setStageOperationAlpha(unit, sw::TextureStage::STAGE_MODULATE);
 						break;
-					default: UNREACHABLE();
+					default: UNREACHABLE(texFormat);
 					}
 					break;
 				default:
-					UNREACHABLE();
+					UNREACHABLE(mState.textureUnit[unit].environmentMode);
 				}
 			}
 			else   // GL_COMBINE
@@ -2271,7 +2271,7 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 					break;
 				default:
 					UNIMPLEMENTED();   // FIXME
-					UNREACHABLE();
+					UNREACHABLE(renderTarget->getInternalFormat());
 				}
 
 				switch(format)
@@ -2285,7 +2285,7 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 						dest[4 * i + 2] = (unsigned char)(255 * b + 0.5f);
 						dest[4 * i + 3] = (unsigned char)(255 * a + 0.5f);
 						break;
-					default: UNREACHABLE();
+					default: UNREACHABLE(type);
 					}
 					break;
 				case GL_BGRA_EXT:
@@ -2325,7 +2325,7 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 							((unsigned short)(31 * g + 0.5f) << 5) |
 							((unsigned short)(31 * b + 0.5f) << 0);
 						break;
-					default: UNREACHABLE();
+					default: UNREACHABLE(type);
 					}
 					break;
 				case GL_RGB:
@@ -2337,10 +2337,10 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 							((unsigned short)(63 * g + 0.5f) << 5) |
 							((unsigned short)(31 * r + 0.5f) << 11);
 						break;
-					default: UNREACHABLE();
+					default: UNREACHABLE(type);
 					}
 					break;
-				default: UNREACHABLE();
+				default: UNREACHABLE(format);
 				}
 			}
         }
@@ -2736,7 +2736,7 @@ bool Context::isTriangleMode(GLenum drawMode)
       case GL_LINE_LOOP:
       case GL_LINE_STRIP:
         return false;
-      default: UNREACHABLE();
+      default: UNREACHABLE(drawMode);
     }
 
     return false;
@@ -2819,7 +2819,7 @@ EGLenum Context::validateSharedImage(EGLenum target, GLuint name, GLuint texture
             return EGL_BAD_ACCESS;
         }
     }
-    else UNREACHABLE();
+    else UNREACHABLE(target);
 
 	return EGL_SUCCESS;
 }
@@ -2838,7 +2838,7 @@ egl::Image *Context::createSharedImage(EGLenum target, GLuint name, GLuint textu
 
         return renderbuffer->createSharedImage();
     }
-    else UNREACHABLE();
+    else UNREACHABLE(target);
 
 	return 0;
 }
@@ -2870,7 +2870,7 @@ sw::MatrixStack &Context::currentMatrixStack()
 		break;
 	}
 
-	UNREACHABLE();
+	UNREACHABLE(matrixMode);
 	return textureStack0;
 }
 

@@ -135,7 +135,7 @@ void error(GLenum errorCode)
             context->recordInvalidFramebufferOperation();
             TRACE("\t! Error generated: invalid framebuffer operation\n");
             break;
-        default: UNREACHABLE();
+        default: UNREACHABLE(errorCode);
         }
     }
 }

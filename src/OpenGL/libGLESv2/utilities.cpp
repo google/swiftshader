@@ -65,7 +65,7 @@ namespace es2
 		case GL_FLOAT_MAT4:
 			return 16;
 		default:
-			UNREACHABLE();
+			UNREACHABLE(type);
 		}
 
 		return 0;
@@ -109,7 +109,7 @@ namespace es2
 		case GL_UNSIGNED_INT_VEC4:
 			return GL_UNSIGNED_INT;
 		default:
-			UNREACHABLE();
+			UNREACHABLE(type);
 		}
 
 		return GL_NONE;
@@ -168,7 +168,7 @@ namespace es2
 		case GL_FLOAT_MAT3x4:
 			return 4;
 		default:
-			UNREACHABLE();
+			UNREACHABLE(type);
 		}
 
 		return 0;
@@ -210,7 +210,7 @@ namespace es2
 		case GL_FLOAT_MAT4x3:
 			return 4;
 		default:
-			UNREACHABLE();
+			UNREACHABLE(type);
 		}
 
 		return 0;
@@ -288,7 +288,7 @@ namespace es2
 		case GL_TEXTURE_CUBE_MAP_NEGATIVE_Y: return 3;
 		case GL_TEXTURE_CUBE_MAP_POSITIVE_Z: return 4;
 		case GL_TEXTURE_CUBE_MAP_NEGATIVE_Z: return 5;
-		default: UNREACHABLE(); return 0;
+		default: UNREACHABLE(cubeFace); return 0;
 		}
 	}
 
@@ -534,7 +534,7 @@ namespace es2sw
 		case GL_GREATER:  return sw::DEPTH_GREATER;
 		case GL_GEQUAL:   return sw::DEPTH_GREATEREQUAL;
 		case GL_NOTEQUAL: return sw::DEPTH_NOTEQUAL;
-		default: UNREACHABLE();
+		default: UNREACHABLE(comparison);
 		}
 
 		return sw::DEPTH_ALWAYS;
@@ -552,7 +552,7 @@ namespace es2sw
 		case GL_GREATER:  return sw::STENCIL_GREATER;
 		case GL_GEQUAL:   return sw::STENCIL_GREATEREQUAL;
 		case GL_NOTEQUAL: return sw::STENCIL_NOTEQUAL;
-		default: UNREACHABLE();
+		default: UNREACHABLE(comparison);
 		}
 
 		return sw::STENCIL_ALWAYS;
@@ -582,7 +582,7 @@ namespace es2sw
 		case GL_CONSTANT_ALPHA:           return sw::BLEND_CONSTANTALPHA;
 		case GL_ONE_MINUS_CONSTANT_ALPHA: return sw::BLEND_INVCONSTANTALPHA;
 		case GL_SRC_ALPHA_SATURATE:       return sw::BLEND_SRCALPHASAT;
-		default: UNREACHABLE();
+		default: UNREACHABLE(blend);
 		}
 
 		return sw::BLEND_ZERO;
@@ -597,7 +597,7 @@ namespace es2sw
 		case GL_FUNC_REVERSE_SUBTRACT: return sw::BLENDOP_INVSUB;
 		case GL_MIN_EXT:               return sw::BLENDOP_MIN;
 		case GL_MAX_EXT:               return sw::BLENDOP_MAX;
-		default: UNREACHABLE();
+		default: UNREACHABLE(blendOp);
 		}
 
 		return sw::BLENDOP_ADD;
@@ -615,7 +615,7 @@ namespace es2sw
 		case GL_INVERT:    return sw::OPERATION_INVERT;
 		case GL_INCR_WRAP: return sw::OPERATION_INCR;
 		case GL_DECR_WRAP: return sw::OPERATION_DECR;
-		default: UNREACHABLE();
+		default: UNREACHABLE(stencilOp);
 		}
 
 		return sw::OPERATION_KEEP;
@@ -628,7 +628,7 @@ namespace es2sw
 		case GL_REPEAT:            return sw::ADDRESSING_WRAP;
 		case GL_CLAMP_TO_EDGE:     return sw::ADDRESSING_CLAMP;
 		case GL_MIRRORED_REPEAT:   return sw::ADDRESSING_MIRROR;
-		default: UNREACHABLE();
+		default: UNREACHABLE(wrap);
 		}
 
 		return sw::ADDRESSING_WRAP;
@@ -644,7 +644,7 @@ namespace es2sw
 			return (frontFace == GL_CCW ? sw::CULL_COUNTERCLOCKWISE : sw::CULL_CLOCKWISE);
 		case GL_FRONT_AND_BACK:
 			return sw::CULL_NONE;   // culling will be handled during draw
-		default: UNREACHABLE();
+		default: UNREACHABLE(cullFace);
 		}
 
 		return sw::CULL_COUNTERCLOCKWISE;
@@ -664,7 +664,7 @@ namespace es2sw
 		{
 		case GL_NEAREST: return sw::FILTER_POINT;
 		case GL_LINEAR:  return sw::FILTER_LINEAR;
-		default: UNREACHABLE();
+		default: UNREACHABLE(magFilter);
 		}
 
 		return sw::FILTER_POINT;
@@ -701,7 +701,7 @@ namespace es2sw
 		default:
 			*minFilter = sw::FILTER_POINT;
 			*mipFilter = sw::MIPMAP_NONE;
-			UNREACHABLE();
+			UNREACHABLE(texFilter);
 		}
 
 		if(maxAnisotropy > 1.0f)
@@ -761,7 +761,7 @@ namespace es2sw
 		case GL_DEPTH_COMPONENT16:
 		case GL_STENCIL_INDEX8:       
 		case GL_DEPTH24_STENCIL8_OES: return sw::FORMAT_D24S8;
-		default: UNREACHABLE();       return sw::FORMAT_A8B8G8R8;
+		default: UNREACHABLE(format); return sw::FORMAT_A8B8G8R8;
 		}
 	}
 }
@@ -919,7 +919,7 @@ namespace sw2es
 		case sw::FORMAT_X8R8G8B8: return GL_RGB8_OES;
 		case sw::FORMAT_X8B8G8R8: return GL_RGB8_OES;
 		default:
-			UNREACHABLE();
+			UNREACHABLE(format);
 		}
 
 		return GL_RGBA4;
@@ -936,7 +936,7 @@ namespace sw2es
 		case sw::FORMAT_D24S8:
 			return GL_DEPTH24_STENCIL8_OES;
 		default:
-			UNREACHABLE();
+			UNREACHABLE(format);
 		}
 
 		return GL_DEPTH24_STENCIL8_OES;
