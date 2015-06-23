@@ -1785,7 +1785,8 @@ namespace sw
 		{
 			if(instruction[i]->dst.rel.type == PARAMETER_ADDR ||
 			   instruction[i]->dst.rel.type == PARAMETER_LOOP ||
-			   instruction[i]->dst.rel.type == PARAMETER_TEMP)
+			   instruction[i]->dst.rel.type == PARAMETER_TEMP ||
+			   instruction[i]->dst.rel.type == PARAMETER_CONST)
 			{
 				switch(instruction[i]->dst.type)
 				{
@@ -1799,7 +1800,8 @@ namespace sw
 			{
 				if(instruction[i]->src[j].rel.type == PARAMETER_ADDR ||
 				   instruction[i]->src[j].rel.type == PARAMETER_LOOP ||
-				   instruction[i]->src[j].rel.type == PARAMETER_TEMP)
+				   instruction[i]->src[j].rel.type == PARAMETER_TEMP ||
+				   instruction[i]->src[j].rel.type == PARAMETER_CONST)
 				{
 					switch(instruction[i]->src[j].type)
 					{
