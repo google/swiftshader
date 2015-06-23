@@ -216,6 +216,8 @@ namespace es2
 
 		unsigned int getSerial() const;
 
+		void setBinaryRetrievable(bool retrievable) { retrievableBinary = retrievable; }
+
 	private:
 		void unlink();
 		void resetUniformBlockBindings();
@@ -303,6 +305,7 @@ namespace es2
 		bool orphaned;   // Flag to indicate that the program can be deleted when no longer in use
 		char *infoLog;
 		bool validated;
+		bool retrievableBinary;
 
 		unsigned int referenceCount;
 		const unsigned int serial;

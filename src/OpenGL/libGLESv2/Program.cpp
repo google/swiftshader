@@ -118,6 +118,7 @@ namespace es2
 		unlink();
 
 		orphaned = false;
+		retrievableBinary = false;
 		referenceCount = 0;
 	}
 
