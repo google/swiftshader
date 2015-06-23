@@ -4207,6 +4207,8 @@ GLboolean IsEnabled(GLenum cap)
 
 	if(context)
 	{
+		egl::GLint clientVersion = context->getClientVersion();
+
 		switch(cap)
 		{
 		case GL_CULL_FACE:                return context->isCullFaceEnabled();
@@ -4218,6 +4220,18 @@ GLboolean IsEnabled(GLenum cap)
 		case GL_DEPTH_TEST:               return context->isDepthTestEnabled();
 		case GL_BLEND:                    return context->isBlendEnabled();
 		case GL_DITHER:                   return context->isDitherEnabled();
+		case GL_PRIMITIVE_RESTART_FIXED_INDEX:
+			if(clientVersion >= 3)
+			{
+				return context->isPrimitiveRestartFixedIndexEnabled();
+			}
+			else return error(GL_INVALID_ENUM, false);
+		case GL_RASTERIZER_DISCARD:
+			if(clientVersion >= 3)
+			{
+				return context->isRasterizerDiscardEnabled();
+			}
+			else return error(GL_INVALID_ENUM, false);
 		default:
 			return error(GL_INVALID_ENUM, false);
 		}
