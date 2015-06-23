@@ -2231,6 +2231,14 @@ void FramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum renderbuff
 		case GL_STENCIL_ATTACHMENT:
 			framebuffer->setStencilbuffer(GL_RENDERBUFFER, renderbuffer);
 			break;
+		case GL_DEPTH_STENCIL_ATTACHMENT:
+			if(clientVersion >= 3)
+			{
+				framebuffer->setDepthbuffer(GL_RENDERBUFFER, renderbuffer);
+				framebuffer->setStencilbuffer(GL_RENDERBUFFER, renderbuffer);
+				break;
+			}
+			else return error(GL_INVALID_ENUM);
 		default:
 			return error(GL_INVALID_ENUM);
 		}
@@ -2981,6 +2989,18 @@ void GetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenu
 			attachmentType = framebuffer->getStencilbufferType();
 			attachmentHandle = framebuffer->getStencilbufferName();
 			break;
+		case GL_DEPTH_STENCIL_ATTACHMENT:
+			if(clientVersion >= 3)
+			{
+				attachmentType = framebuffer->getDepthbufferType();
+				attachmentHandle = framebuffer->getDepthbufferName();
+				if(attachmentHandle != framebuffer->getStencilbufferName())
+				{
+					// Different attachments to DEPTH and STENCIL, query fails
+					return error(GL_INVALID_OPERATION);
+				}
+			}
+			else return error(GL_INVALID_ENUM);
 		default:
 			return error(GL_INVALID_ENUM);
 		}
