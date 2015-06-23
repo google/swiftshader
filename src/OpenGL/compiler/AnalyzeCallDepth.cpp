@@ -40,21 +40,24 @@ unsigned int AnalyzeCallDepth::FunctionNode::analyzeCallDepth(AnalyzeCallDepth *
 
     for(size_t i = 0; i < callees.size(); i++)
 	{
+		unsigned int calleeDepth = 0;
         switch(callees[i]->visit)
 		{
         case InVisit:
             // Cycle detected (recursion)
             return UINT_MAX;
         case PostVisit:
-			callDepth = std::max(callDepth, 1 + callees[i]->getLastDepth());
+			calleeDepth = callees[i]->getLastDepth();
             break;
         case PreVisit:
-			callDepth = std::max(callDepth, 1 + callees[i]->analyzeCallDepth(analyzeCallDepth));
+			calleeDepth = callees[i]->analyzeCallDepth(analyzeCallDepth);
 			break;
         default:
             UNREACHABLE(callees[i]->visit);
             break;
         }
+		if(calleeDepth != UINT_MAX) ++calleeDepth;
+		callDepth = std::max(callDepth, calleeDepth);
     }
 
     visit = PostVisit;
@@ -156,11 +159,13 @@ unsigned int AnalyzeCallDepth::analyzeCallDepth()
 		return 0;
 	}
 
-    unsigned int depth = 1 + main->analyzeCallDepth(this);
+    unsigned int depth = main->analyzeCallDepth(this);
+	if(depth != UINT_MAX) ++depth;
 
 	for(FunctionSet::iterator globalCall = globalFunctionCalls.begin(); globalCall != globalFunctionCalls.end(); globalCall++)
 	{
-		unsigned int globalDepth = 1 + (*globalCall)->analyzeCallDepth(this);
+		unsigned int globalDepth = (*globalCall)->analyzeCallDepth(this);
+		if(globalDepth != UINT_MAX) ++globalDepth;
 
 		if(globalDepth > depth)
 		{
