@@ -16,6 +16,7 @@
 #ifndef SUBZERO_SRC_ICEINST_H
 #define SUBZERO_SRC_ICEINST_H
 
+#include "IceCfg.h"
 #include "IceDefs.h"
 #include "IceInst.def"
 #include "IceIntrinsics.h"
