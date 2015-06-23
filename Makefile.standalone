@@ -178,6 +178,7 @@ SB_LDFLAGS := $(LINKOPTLEVEL) $(LD_EXTRA)
 SRCS = \
 	IceAssembler.cpp \
 	IceAssemblerX8632.cpp \
+	IceAssemblerX8664.cpp \
 	IceBrowserCompileServer.cpp \
 	IceCfg.cpp \
 	IceCfgNode.cpp \
@@ -201,6 +202,7 @@ SRCS = \
 	IceTargetLoweringARM32.cpp \
 	IceTargetLoweringMIPS32.cpp \
 	IceTargetLoweringX8632.cpp \
+	IceTargetLoweringX8664.cpp \
 	IceThreading.cpp \
 	IceTimerTree.cpp \
 	IceTranslator.cpp \
