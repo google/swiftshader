@@ -3199,33 +3199,8 @@ GL_APICALL void GL_APIENTRY glGetBufferParameteri64v(GLenum target, GLenum pname
 	{
 		es2::Buffer *buffer = nullptr;
 
-		switch(target)
+		if(!context->getBuffer(target, &buffer))
 		{
-		case GL_ARRAY_BUFFER:
-			buffer = context->getArrayBuffer();
-			break;
-		case GL_ELEMENT_ARRAY_BUFFER:
-			buffer = context->getElementArrayBuffer();
-			break;
-		case GL_COPY_READ_BUFFER:
-			buffer = context->getCopyReadBuffer();
-			break;
-		case GL_COPY_WRITE_BUFFER:
-			buffer = context->getCopyWriteBuffer();
-			break;
-		case GL_PIXEL_PACK_BUFFER:
-			buffer = context->getPixelPackBuffer();
-			break;
-		case GL_PIXEL_UNPACK_BUFFER:
-			buffer = context->getPixelUnpackBuffer();
-			break;
-		case GL_TRANSFORM_FEEDBACK_BUFFER:
-			UNIMPLEMENTED();
-			break;
-		case GL_UNIFORM_BUFFER:
-			buffer = context->getGenericUniformBuffer();
-			break;
-		default:
 			return error(GL_INVALID_ENUM);
 		}
 
