@@ -59,12 +59,12 @@ TextDataStreamer *TextDataStreamer::create(const IceString &Filename,
   llvm::raw_string_ostream ErrStrm(*Err);
   if (std::error_code EC = llvm::readNaClRecordTextAndBuildBitcode(
           Filename, Streamer->BitcodeBuffer, &ErrStrm)) {
-    ErrStrm << "Error: " << EC.message() << "\n";
+    ErrStrm << EC.message(); // << "\n";
     ErrStrm.flush();
     delete Streamer;
     return nullptr;
   }
-  ErrStrm.flush();
+  // ErrStrm.flush();
   return Streamer;
 }
 

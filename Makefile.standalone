@@ -340,6 +340,7 @@ check: check-lit check-unit check-xtest
 FORMAT_BLACKLIST =
 # Add one of the following lines for each source file to ignore.
 FORMAT_BLACKLIST += ! -name IceParseInstsTest.cpp
+FORMAT_BLACKLIST += ! -name IceParseTypesTest.cpp
 format:
 	$(CLANG_FORMAT_PATH)/clang-format -style=LLVM -i \
 	`find . -regex '.*\.\(c\|h\|cpp\)' $(FORMAT_BLACKLIST)`

@@ -14,6 +14,7 @@
 
 #include "llvm/ADT/SmallString.h"
 #include "llvm/Bitcode/NaCl/NaClBitcodeDecoders.h"
+#include "llvm/Bitcode/NaCl/NaClBitcodeDefs.h"
 #include "llvm/Bitcode/NaCl/NaClBitcodeHeader.h"
 #include "llvm/Bitcode/NaCl/NaClBitcodeParser.h"
 #include "llvm/Bitcode/NaCl/NaClReaderWriter.h"
@@ -182,14 +183,16 @@ public:
                const std::string &Message) final;
 
   /// Generates error message with respect to the current block parser.
-  bool BlockError(const std::string &Message);
+  bool blockError(const std::string &Message);
 
   /// Returns the number of errors found while parsing the bitcode
   /// file.
   unsigned getNumErrors() const { return NumErrors; }
 
   /// Changes the size of the type list to the given size.
-  void resizeTypeIDValues(unsigned NewSize) { TypeIDValues.resize(NewSize); }
+  void resizeTypeIDValues(size_t NewSize) { TypeIDValues.resize(NewSize); }
+
+  size_t getNumTypeIDValues() const { return TypeIDValues.size(); }
 
   /// Returns true if generation of Subzero IR is disabled.
   bool isIRGenerationDisabled() const {
@@ -198,19 +201,29 @@ public:
 
   /// Returns the undefined type associated with type ID.
   /// Note: Returns extended type ready to be defined.
-  ExtendedType *getTypeByIDForDefining(unsigned ID) {
+  ExtendedType *getTypeByIDForDefining(NaClBcIndexSize_t ID) {
     // Get corresponding element, verifying the value is still undefined
     // (and hence allowed to be defined).
     ExtendedType *Ty = getTypeByIDAsKind(ID, ExtendedType::Undefined);
     if (Ty)
       return Ty;
-    if (ID >= TypeIDValues.size())
+    if (ID >= TypeIDValues.size()) {
+      if (ID >= NaClBcIndexSize_t_Max) {
+        std::string Buffer;
+        raw_string_ostream StrBuf(Buffer);
+        StrBuf << "Can't define more than " << NaClBcIndexSize_t_Max
+               << " types\n";
+        blockError(StrBuf.str());
+        // Recover by using existing type slot.
+        return &TypeIDValues[0];
+      }
       TypeIDValues.resize(ID + 1);
+    }
     return &TypeIDValues[ID];
   }
 
   /// Returns the type associated with the given index.
-  Ice::Type getSimpleTypeByID(unsigned ID) {
+  Ice::Type getSimpleTypeByID(NaClBcIndexSize_t ID) {
     const ExtendedType *Ty = getTypeByIDAsKind(ID, ExtendedType::Simple);
     if (Ty == nullptr)
       // Return error recovery value.
@@ -219,7 +232,7 @@ public:
   }
 
   /// Returns the type signature associated with the given index.
-  const Ice::FuncSigType &getFuncSigTypeByID(unsigned ID) {
+  const Ice::FuncSigType &getFuncSigTypeByID(NaClBcIndexSize_t ID) {
     const ExtendedType *Ty = getTypeByIDAsKind(ID, ExtendedType::FuncSig);
     if (Ty == nullptr)
       // Return error recovery value.
@@ -235,7 +248,7 @@ public:
   /// Returns the value id that should be associated with the the
   /// current function block. Increments internal counters during call
   /// so that it will be in correct position for next function block.
-  size_t getNextFunctionBlockValueID() {
+  NaClBcIndexSize_t getNextFunctionBlockValueID() {
     size_t NumDeclaredFunctions = FunctionDeclarationList.size();
     while (NextDefiningFunctionID < NumDeclaredFunctions &&
            FunctionDeclarationList[NextDefiningFunctionID]->isProto())
@@ -246,14 +259,14 @@ public:
   }
 
   /// Returns the function associated with ID.
-  Ice::FunctionDeclaration *getFunctionByID(unsigned ID) {
+  Ice::FunctionDeclaration *getFunctionByID(NaClBcIndexSize_t ID) {
     if (ID < FunctionDeclarationList.size())
       return FunctionDeclarationList[ID];
     return reportGetFunctionByIDError(ID);
   }
 
   /// Returns the constant associated with the given global value ID.
-  Ice::Constant *getGlobalConstantByID(unsigned ID) {
+  Ice::Constant *getGlobalConstantByID(NaClBcIndexSize_t ID) {
     assert(ID < ValueIDConstants.size());
     return ValueIDConstants[ID];
   }
@@ -276,11 +289,11 @@ public:
   }
 
   /// Returns the number of function declarations in the bitcode file.
-  unsigned getNumFunctionIDs() const { return FunctionDeclarationList.size(); }
+  size_t getNumFunctionIDs() const { return FunctionDeclarationList.size(); }
 
   /// Returns the number of global declarations (i.e. IDs) defined in
   /// the bitcode file.
-  unsigned getNumGlobalIDs() const {
+  size_t getNumGlobalIDs() const {
     if (VariableDeclarations) {
       return FunctionDeclarationList.size() + VariableDeclarations->size();
     } else {
@@ -289,7 +302,7 @@ public:
   }
 
   /// Creates Count global variable declarations.
-  void CreateGlobalVariables(size_t Count) {
+  void createGlobalVariables(NaClBcIndexSize_t Count) {
     assert(VariableDeclarations);
     assert(VariableDeclarations->empty());
     for (size_t i = 0; i < Count; ++i) {
@@ -300,7 +313,7 @@ public:
 
   /// Returns the number of global variable declarations in the
   /// bitcode file.
-  Ice::SizeT getNumGlobalVariables() const {
+  size_t getNumGlobalVariables() const {
     if (VariableDeclarations) {
       return VariableDeclarations->size();
     } else {
@@ -309,7 +322,7 @@ public:
   }
 
   /// Returns the global variable declaration with the given index.
-  Ice::VariableDeclaration *getGlobalVariableByID(unsigned Index) {
+  Ice::VariableDeclaration *getGlobalVariableByID(NaClBcIndexSize_t Index) {
     assert(VariableDeclarations);
     if (Index < VariableDeclarations->size())
       return VariableDeclarations->at(Index);
@@ -318,7 +331,7 @@ public:
 
   /// Returns the global declaration (variable or function) with the
   /// given Index.
-  Ice::GlobalDeclaration *getGlobalDeclarationByID(size_t Index) {
+  Ice::GlobalDeclaration *getGlobalDeclarationByID(NaClBcIndexSize_t Index) {
     size_t NumFunctionIds = FunctionDeclarationList.size();
     if (Index < NumFunctionIds)
       return getFunctionByID(Index);
@@ -372,7 +385,7 @@ private:
   // extended type is of the WantedKind. Generates error message if
   // corresponding extended type of WantedKind can't be found, and
   // returns nullptr.
-  ExtendedType *getTypeByIDAsKind(unsigned ID,
+  ExtendedType *getTypeByIDAsKind(NaClBcIndexSize_t ID,
                                   ExtendedType::TypeKind WantedKind) {
     ExtendedType *Ty = nullptr;
     if (ID < TypeIDValues.size()) {
@@ -393,7 +406,8 @@ private:
   // declarations.
   void installDeclarationName(Ice::GlobalDeclaration *Decl,
                               const Ice::IceString &Prefix,
-                              const char *DeclType, uint32_t &NameIndex) {
+                              const char *DeclType,
+                              NaClBcIndexSize_t &NameIndex) {
     if (Decl->hasName()) {
       Translator.checkIfUnnamedNameSafe(Decl->getName(), DeclType, Prefix);
     } else {
@@ -408,7 +422,7 @@ private:
     const Ice::IceString &GlobalPrefix =
         getTranslator().getFlags().getDefaultGlobalPrefix();
     if (!GlobalPrefix.empty()) {
-      uint32_t NameIndex = 0;
+      NaClBcIndexSize_t NameIndex = 0;
       for (Ice::VariableDeclaration *Var : *VariableDeclarations) {
         installDeclarationName(Var, GlobalPrefix, "global", NameIndex);
       }
@@ -420,7 +434,7 @@ private:
     const Ice::IceString &FunctionPrefix =
         getTranslator().getFlags().getDefaultFunctionPrefix();
     if (!FunctionPrefix.empty()) {
-      uint32_t NameIndex = 0;
+      NaClBcIndexSize_t NameIndex = 0;
       for (Ice::FunctionDeclaration *Func : FunctionDeclarationList) {
         installDeclarationName(Func, FunctionPrefix, "function", NameIndex);
       }
@@ -465,19 +479,20 @@ private:
   }
 
   // Reports that type ID is undefined, or not of the WantedType.
-  void reportBadTypeIDAs(unsigned ID, const ExtendedType *Ty,
+  void reportBadTypeIDAs(NaClBcIndexSize_t ID, const ExtendedType *Ty,
                          ExtendedType::TypeKind WantedType);
 
   // Reports that there is no function declaration for ID. Returns an
   // error recovery value to use.
-  Ice::FunctionDeclaration *reportGetFunctionByIDError(unsigned ID);
+  Ice::FunctionDeclaration *reportGetFunctionByIDError(NaClBcIndexSize_t ID);
 
   // Reports that there is not global variable declaration for
   // ID. Returns an error recovery value to use.
-  Ice::VariableDeclaration *reportGetGlobalVariableByIDError(unsigned Index);
+  Ice::VariableDeclaration *
+  reportGetGlobalVariableByIDError(NaClBcIndexSize_t Index);
 
   // Reports that there is no corresponding ICE type for LLVMTy, and
-  // returns ICE::IceType_void.
+  // returns Ice::IceType_void.
   Ice::Type convertToIceTypeError(Type *LLVMTy);
 };
 
@@ -498,7 +513,8 @@ bool TopLevelParser::ErrorAt(naclbitc::ErrorLevel Level, uint64_t Bit,
   return true;
 }
 
-void TopLevelParser::reportBadTypeIDAs(unsigned ID, const ExtendedType *Ty,
+void TopLevelParser::reportBadTypeIDAs(NaClBcIndexSize_t ID,
+                                       const ExtendedType *Ty,
                                        ExtendedType::TypeKind WantedType) {
   std::string Buffer;
   raw_string_ostream StrBuf(Buffer);
@@ -507,17 +523,17 @@ void TopLevelParser::reportBadTypeIDAs(unsigned ID, const ExtendedType *Ty,
   } else {
     StrBuf << "Type id " << ID << " not " << WantedType << ". Found: " << *Ty;
   }
-  BlockError(StrBuf.str());
+  blockError(StrBuf.str());
 }
 
 Ice::FunctionDeclaration *
-TopLevelParser::reportGetFunctionByIDError(unsigned ID) {
+TopLevelParser::reportGetFunctionByIDError(NaClBcIndexSize_t ID) {
   std::string Buffer;
   raw_string_ostream StrBuf(Buffer);
   StrBuf << "Function index " << ID
          << " not allowed. Out of range. Must be less than "
          << FunctionDeclarationList.size();
-  BlockError(StrBuf.str());
+  blockError(StrBuf.str());
   // TODO(kschimpf) Remove error recovery once implementation complete.
   if (!FunctionDeclarationList.empty())
     return FunctionDeclarationList[0];
@@ -525,13 +541,13 @@ TopLevelParser::reportGetFunctionByIDError(unsigned ID) {
 }
 
 Ice::VariableDeclaration *
-TopLevelParser::reportGetGlobalVariableByIDError(unsigned Index) {
+TopLevelParser::reportGetGlobalVariableByIDError(NaClBcIndexSize_t Index) {
   std::string Buffer;
   raw_string_ostream StrBuf(Buffer);
   StrBuf << "Global index " << Index
          << " not allowed. Out of range. Must be less than "
          << VariableDeclarations->size();
-  BlockError(StrBuf.str());
+  blockError(StrBuf.str());
   // TODO(kschimpf) Remove error recovery once implementation complete.
   if (!VariableDeclarations->empty())
     return VariableDeclarations->at(0);
@@ -602,40 +618,40 @@ protected:
 
   // Checks if the size of the record is Size.  Return true if valid.
   // Otherwise generates an error and returns false.
-  bool isValidRecordSize(unsigned Size, const char *RecordName) {
+  bool isValidRecordSize(size_t Size, const char *RecordName) {
     const NaClBitcodeRecord::RecordVector &Values = Record.GetValues();
     if (Values.size() == Size)
       return true;
-    ReportRecordSizeError(Size, RecordName, nullptr);
+    reportRecordSizeError(Size, RecordName, nullptr);
     return false;
   }
 
   // Checks if the size of the record is at least as large as the
   // LowerLimit. Returns true if valid.  Otherwise generates an error
   // and returns false.
-  bool isValidRecordSizeAtLeast(unsigned LowerLimit, const char *RecordName) {
+  bool isValidRecordSizeAtLeast(size_t LowerLimit, const char *RecordName) {
     const NaClBitcodeRecord::RecordVector &Values = Record.GetValues();
     if (Values.size() >= LowerLimit)
       return true;
-    ReportRecordSizeError(LowerLimit, RecordName, "at least");
+    reportRecordSizeError(LowerLimit, RecordName, "at least");
     return false;
   }
 
   // Checks if the size of the record is no larger than the
   // UpperLimit.  Returns true if valid.  Otherwise generates an error
   // and returns false.
-  bool isValidRecordSizeAtMost(unsigned UpperLimit, const char *RecordName) {
+  bool isValidRecordSizeAtMost(size_t UpperLimit, const char *RecordName) {
     const NaClBitcodeRecord::RecordVector &Values = Record.GetValues();
     if (Values.size() <= UpperLimit)
       return true;
-    ReportRecordSizeError(UpperLimit, RecordName, "no more than");
+    reportRecordSizeError(UpperLimit, RecordName, "no more than");
     return false;
   }
 
   // Checks if the size of the record is at least as large as the
   // LowerLimit, and no larger than the UpperLimit.  Returns true if
   // valid.  Otherwise generates an error and returns false.
-  bool isValidRecordSizeInRange(unsigned LowerLimit, unsigned UpperLimit,
+  bool isValidRecordSizeInRange(size_t LowerLimit, size_t UpperLimit,
                                 const char *RecordName) {
     return isValidRecordSizeAtLeast(LowerLimit, RecordName) ||
            isValidRecordSizeAtMost(UpperLimit, RecordName);
@@ -647,11 +663,11 @@ private:
   /// record that has incorrect size. ContextMessage (if not nullptr)
   /// is appended to "record expects" to describe how ExpectedSize
   /// should be interpreted.
-  void ReportRecordSizeError(unsigned ExpectedSize, const char *RecordName,
+  void reportRecordSizeError(size_t ExpectedSize, const char *RecordName,
                              const char *ContextMessage);
 };
 
-bool TopLevelParser::BlockError(const std::string &Message) {
+bool TopLevelParser::blockError(const std::string &Message) {
   if (BlockParser)
     return BlockParser->Error(Message);
   else
@@ -678,7 +694,7 @@ bool BlockParserBaseClass::ErrorAt(naclbitc::ErrorLevel Level, uint64_t Bit,
   return Context->ErrorAt(Level, Bit, StrBuf.str());
 }
 
-void BlockParserBaseClass::ReportRecordSizeError(unsigned ExpectedSize,
+void BlockParserBaseClass::reportRecordSizeError(size_t ExpectedSize,
                                                  const char *RecordName,
                                                  const char *ContextMessage) {
   std::string Buffer;
@@ -728,13 +744,24 @@ public:
       : BlockParserBaseClass(BlockID, EnclosingParser),
         Timer(Ice::TimerStack::TT_parseTypes, getTranslator().getContext()) {}
 
-  ~TypesParser() override = default;
+  ~TypesParser() override {
+    if (ExpectedNumTypes != Context->getNumTypeIDValues()) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Types block expected " << ExpectedNumTypes
+             << " types but found: " << NextTypeId;
+      Error(StrBuf.str());
+    }
+  }
 
 private:
   Ice::TimerMarker Timer;
   // The type ID that will be associated with the next type defining
   // record in the types block.
-  unsigned NextTypeId = 0;
+  NaClBcIndexSize_t NextTypeId = 0;
+
+  // The expected number of types, based on record TYPE_CODE_NUMENTRY.
+  NaClBcIndexSize_t ExpectedNumTypes = 0;
 
   void ProcessRecord() override;
 
@@ -748,12 +775,30 @@ private:
 void TypesParser::ProcessRecord() {
   const NaClBitcodeRecord::RecordVector &Values = Record.GetValues();
   switch (Record.GetCode()) {
-  case naclbitc::TYPE_CODE_NUMENTRY:
+  case naclbitc::TYPE_CODE_NUMENTRY: {
     // NUMENTRY: [numentries]
     if (!isValidRecordSize(1, "count"))
       return;
-    Context->resizeTypeIDValues(Values[0]);
+    uint64_t Size = Values[0];
+    if (Size > NaClBcIndexSize_t_Max) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Size to big for count record: " << Size;
+      Error(StrBuf.str());
+      ExpectedNumTypes = NaClBcIndexSize_t_Max;
+    }
+    // The code double checks that Expected size and the actual size
+    // at the end of the block. To reduce allocations we preallocate
+    // the space.
+    //
+    // However, if the number is large, we suspect that the number
+    // is (possibly) incorrect. In that case, we preallocate a
+    // smaller space.
+    constexpr uint64_t DefaultLargeResizeValue = 1000000;
+    Context->resizeTypeIDValues(std::min(Size, DefaultLargeResizeValue));
+    ExpectedNumTypes = Size;
     return;
+  }
   case naclbitc::TYPE_CODE_VOID:
     // VOID
     if (!isValidRecordSize(0, "void"))
@@ -870,7 +915,7 @@ void TypesParser::ProcessRecord() {
     Ty->setAsFunctionType();
     FuncSigExtendedType *FuncTy = cast<FuncSigExtendedType>(Ty);
     FuncTy->setReturnType(Context->getSimpleTypeByID(Values[1]));
-    for (unsigned i = 2, e = Values.size(); i != e; ++i) {
+    for (size_t i = 2, e = Values.size(); i != e; ++i) {
       // Check that type void not used as argument type.
       // Note: PNaCl restrictions can't be checked until we
       // know the name, because we have to check for intrinsic signatures.
@@ -917,10 +962,10 @@ private:
   Ice::TimerMarker Timer;
   // Keeps track of how many initializers are expected for the global variable
   // declaration being built.
-  unsigned InitializersNeeded = 0;
+  NaClBcIndexSize_t InitializersNeeded = 0;
 
   // The index of the next global variable declaration.
-  unsigned NextGlobalID = 0;
+  NaClBcIndexSize_t NextGlobalID = 0;
 
   // Dummy global variable declaration to guarantee CurGlobalVar is
   // always defined (allowing code to not need to check if
@@ -976,7 +1021,7 @@ void GlobalsParser::ProcessRecord() {
       Error("Globals count record not first in block.");
       return;
     }
-    Context->CreateGlobalVariables(Values[0]);
+    Context->createGlobalVariables(Values[0]);
     return;
   case naclbitc::GLOBALVAR_VAR: {
     // VAR: [align, isconst]
@@ -1039,9 +1084,16 @@ void GlobalsParser::ProcessRecord() {
     if (isIRGenerationDisabled())
       return;
     unsigned Index = Values[0];
-    Ice::SizeT Offset = 0;
-    if (Values.size() == 2)
+    uint64_t Offset = 0;
+    if (Values.size() == 2) {
       Offset = Values[1];
+      if (Offset > std::numeric_limits<uint32_t>::max()) {
+        std::string Buffer;
+        raw_string_ostream StrBuf(Buffer);
+        StrBuf << "Addend of global reloc record too big: " << Offset;
+        Error(StrBuf.str());
+      }
+    }
     CurGlobalVar->addInitializer(
         Ice::VariableDeclaration::RelocInitializer::create(
             Context->getGlobalDeclarationByID(Index), Offset));
@@ -1071,15 +1123,15 @@ protected:
   typedef SmallString<128> StringType;
 
   // Associates Name with the value defined by the given Index.
-  virtual void setValueName(uint64_t Index, StringType &Name) = 0;
+  virtual void setValueName(NaClBcIndexSize_t Index, StringType &Name) = 0;
 
   // Associates Name with the value defined by the given Index;
-  virtual void setBbName(uint64_t Index, StringType &Name) = 0;
+  virtual void setBbName(NaClBcIndexSize_t Index, StringType &Name) = 0;
 
 private:
   void ProcessRecord() override;
 
-  void ConvertToString(StringType &ConvertedName) {
+  void convertToString(StringType &ConvertedName) {
     const NaClBitcodeRecord::RecordVector &Values = Record.GetValues();
     for (size_t i = 1, e = Values.size(); i != e; ++i) {
       ConvertedName += static_cast<char>(Values[i]);
@@ -1095,7 +1147,7 @@ void ValuesymtabParser::ProcessRecord() {
     // VST_ENTRY: [ValueId, namechar x N]
     if (!isValidRecordSizeAtLeast(2, "value entry"))
       return;
-    ConvertToString(ConvertedName);
+    convertToString(ConvertedName);
     setValueName(Values[0], ConvertedName);
     return;
   }
@@ -1103,7 +1155,7 @@ void ValuesymtabParser::ProcessRecord() {
     // VST_BBENTRY: [BbId, namechar x N]
     if (!isValidRecordSizeAtLeast(2, "basic block entry"))
       return;
-    ConvertToString(ConvertedName);
+    convertToString(ConvertedName);
     setBbName(Values[0], ConvertedName);
     return;
   }
@@ -1158,7 +1210,7 @@ public:
       Func->setFunctionName(FuncDecl->getName());
       Func->setReturnType(Signature.getReturnType());
       Func->setInternal(FuncDecl->getLinkage() == GlobalValue::InternalLinkage);
-      CurrentNode = InstallNextBasicBlock();
+      CurrentNode = installNextBasicBlock();
       Func->setEntryNode(CurrentNode);
       for (Ice::Type ArgType : Signature.getArgList()) {
         Func->addArg(getNextInstVar(ArgType));
@@ -1193,7 +1245,7 @@ public:
 
   Ice::Cfg *getFunc() const { return Func.get(); }
 
-  uint32_t getNumGlobalIDs() const { return CachedNumGlobalValueIDs; }
+  size_t getNumGlobalIDs() const { return CachedNumGlobalValueIDs; }
 
   void setNextLocalInstIndex(Ice::Operand *Op) {
     setOperand(NextLocalInstIndex++, Op);
@@ -1203,11 +1255,11 @@ public:
   void setNextConstantID(Ice::Constant *C) { setNextLocalInstIndex(C); }
 
   // Returns the value referenced by the given value Index.
-  Ice::Operand *getOperand(uint32_t Index) {
+  Ice::Operand *getOperand(NaClBcIndexSize_t Index) {
     if (Index < CachedNumGlobalValueIDs) {
       return Context->getGlobalConstantByID(Index);
     }
-    uint32_t LocalIndex = Index - CachedNumGlobalValueIDs;
+    NaClBcIndexSize_t LocalIndex = Index - CachedNumGlobalValueIDs;
     if (LocalIndex >= LocalOperands.size()) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
@@ -1231,21 +1283,21 @@ private:
   // The corresponding ICE function defined by the function block.
   std::unique_ptr<Ice::Cfg> Func;
   // The index to the current basic block being built.
-  uint32_t CurrentBbIndex = 0;
+  NaClBcIndexSize_t CurrentBbIndex = 0;
   // The basic block being built.
   Ice::CfgNode *CurrentNode = nullptr;
   // The ID for the function.
-  unsigned FcnId;
+  NaClBcIndexSize_t FcnId;
   // The corresponding function declaration.
   Ice::FunctionDeclaration *FuncDecl;
   // Holds the dividing point between local and global absolute value indices.
-  uint32_t CachedNumGlobalValueIDs;
+  size_t CachedNumGlobalValueIDs;
   // Holds operands local to the function block, based on indices
   // defined in the bitcode file.
   std::vector<Ice::Operand *> LocalOperands;
   // Holds the index within LocalOperands corresponding to the next
   // instruction that generates a value.
-  uint32_t NextLocalInstIndex;
+  NaClBcIndexSize_t NextLocalInstIndex;
   // True if the last processed instruction was a terminating
   // instruction.
   bool InstIsTerminating = false;
@@ -1277,13 +1329,13 @@ private:
   void ExitBlock() override;
 
   // Creates and appends a new basic block to the list of basic blocks.
-  Ice::CfgNode *InstallNextBasicBlock() {
+  Ice::CfgNode *installNextBasicBlock() {
     assert(!isIRGenerationDisabled());
     return Func->makeNode();
   }
 
   // Returns the Index-th basic block in the list of basic blocks.
-  Ice::CfgNode *getBasicBlock(uint32_t Index) {
+  Ice::CfgNode *getBasicBlock(NaClBcIndexSize_t Index) {
     assert(!isIRGenerationDisabled());
     const Ice::NodeList &Nodes = Func->getNodes();
     if (Index >= Nodes.size()) {
@@ -1302,7 +1354,7 @@ private:
   // Assumes Index corresponds to a branch instruction. Hence, if
   // the branch references the entry block, it also generates a
   // corresponding error.
-  Ice::CfgNode *getBranchBasicBlock(uint32_t Index) {
+  Ice::CfgNode *getBranchBasicBlock(NaClBcIndexSize_t Index) {
     assert(!isIRGenerationDisabled());
     if (Index == 0) {
       Error("Branch to entry block not allowed");
@@ -1327,7 +1379,7 @@ private:
     assert(!isIRGenerationDisabled());
     assert(NextLocalInstIndex >= CachedNumGlobalValueIDs);
     // Before creating one, see if a forwardtyperef has already defined it.
-    uint32_t LocalIndex = NextLocalInstIndex - CachedNumGlobalValueIDs;
+    NaClBcIndexSize_t LocalIndex = NextLocalInstIndex - CachedNumGlobalValueIDs;
     if (LocalIndex < LocalOperands.size()) {
       Ice::Operand *Op = LocalOperands[LocalIndex];
       if (Op != nullptr) {
@@ -1354,7 +1406,8 @@ private:
 
   // Converts a relative index (wrt to BaseIndex) to an absolute value
   // index.
-  uint32_t convertRelativeToAbsIndex(int32_t Id, int32_t BaseIndex) {
+  NaClBcIndexSize_t convertRelativeToAbsIndex(NaClRelBcIndexSize_t Id,
+                                              NaClRelBcIndexSize_t BaseIndex) {
     if (BaseIndex < Id) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
@@ -1368,10 +1421,10 @@ private:
   }
 
   // Sets element Index (in the local operands list) to Op.
-  void setOperand(uint32_t Index, Ice::Operand *Op) {
+  void setOperand(NaClBcIndexSize_t Index, Ice::Operand *Op) {
     assert(Op || isIRGenerationDisabled());
     // Check if simple push works.
-    uint32_t LocalIndex = Index - CachedNumGlobalValueIDs;
+    NaClBcIndexSize_t LocalIndex = Index - CachedNumGlobalValueIDs;
     if (LocalIndex == LocalOperands.size()) {
       LocalOperands.push_back(Op);
       return;
@@ -1404,16 +1457,17 @@ private:
 
   // Returns the relative operand (wrt to BaseIndex) referenced by
   // the given value Index.
-  Ice::Operand *getRelativeOperand(int32_t Index, int32_t BaseIndex) {
+  Ice::Operand *getRelativeOperand(NaClBcIndexSize_t Index,
+                                   NaClBcIndexSize_t BaseIndex) {
     return getOperand(convertRelativeToAbsIndex(Index, BaseIndex));
   }
 
   // Returns the absolute index of the next value generating instruction.
-  uint32_t getNextInstIndex() const { return NextLocalInstIndex; }
+  NaClBcIndexSize_t getNextInstIndex() const { return NextLocalInstIndex; }
 
   // Generates type error message for binary operator Op
   // operating on Type OpTy.
-  void ReportInvalidBinaryOp(Ice::InstArithmetic::OpKind Op, Ice::Type OpTy);
+  void reportInvalidBinaryOp(Ice::InstArithmetic::OpKind Op, Ice::Type OpTy);
 
   // Validates if integer logical Op, for type OpTy, is valid.
   // Returns true if valid. Otherwise generates error message and
@@ -1421,7 +1475,7 @@ private:
   bool isValidIntegerLogicalOp(Ice::InstArithmetic::OpKind Op, Ice::Type OpTy) {
     if (Ice::isIntegerType(OpTy))
       return true;
-    ReportInvalidBinaryOp(Op, OpTy);
+    reportInvalidBinaryOp(Op, OpTy);
     return false;
   }
 
@@ -1431,7 +1485,7 @@ private:
   bool isValidIntegerArithOp(Ice::InstArithmetic::OpKind Op, Ice::Type OpTy) {
     if (Ice::isIntegerArithmeticType(OpTy))
       return true;
-    ReportInvalidBinaryOp(Op, OpTy);
+    reportInvalidBinaryOp(Op, OpTy);
     return false;
   }
 
@@ -1441,7 +1495,7 @@ private:
   bool isValidFloatingArithOp(Ice::InstArithmetic::OpKind Op, Ice::Type OpTy) {
     if (Ice::isFloatingType(OpTy))
       return true;
-    ReportInvalidBinaryOp(Op, OpTy);
+    reportInvalidBinaryOp(Op, OpTy);
     return false;
   }
 
@@ -1908,7 +1962,7 @@ void FunctionParser::ExitBlock() {
   }
   // Before translating, check for blocks without instructions, and
   // insert unreachable. This shouldn't happen, but be safe.
-  unsigned Index = 0;
+  size_t Index = 0;
   for (Ice::CfgNode *Node : Func->getNodes()) {
     if (Node->getInsts().empty()) {
       std::string Buffer;
@@ -1923,7 +1977,7 @@ void FunctionParser::ExitBlock() {
   Func->computeInOutEdges();
 }
 
-void FunctionParser::ReportInvalidBinaryOp(Ice::InstArithmetic::OpKind Op,
+void FunctionParser::reportInvalidBinaryOp(Ice::InstArithmetic::OpKind Op,
                                            Ice::Type OpTy) {
   std::string Buffer;
   raw_string_ostream StrBuf(Buffer);
@@ -1944,17 +1998,23 @@ void FunctionParser::ProcessRecord() {
       CurrentNode = getBasicBlock(++CurrentBbIndex);
   }
   // The base index for relative indexing.
-  int32_t BaseIndex = getNextInstIndex();
+  NaClBcIndexSize_t BaseIndex = getNextInstIndex();
   switch (Record.GetCode()) {
   case naclbitc::FUNC_CODE_DECLAREBLOCKS: {
     // DECLAREBLOCKS: [n]
     if (!isValidRecordSize(1, "count"))
       return;
-    uint32_t NumBbs = Values[0];
-    if (NumBbs == 0) {
+    uint64_t NumBbsRaw = Values[0];
+    if (NumBbsRaw == 0) {
       Error("Functions must contain at least one basic block.");
       // TODO(kschimpf) Remove error recovery once implementation complete.
-      NumBbs = 1;
+      NumBbsRaw = 1;
+    } else if (NumBbsRaw > NaClBcIndexSize_t_Max) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "To many basic blocks specified: " << NumBbsRaw;
+      Error(StrBuf.str());
+      NumBbsRaw = NaClBcIndexSize_t_Max;
     }
     if (isIRGenerationDisabled())
       return;
@@ -1964,8 +2024,8 @@ void FunctionParser::ProcessRecord() {
     }
     // Install the basic blocks, skipping bb0 which was created in the
     // constructor.
-    for (size_t i = 1; i < NumBbs; ++i)
-      InstallNextBasicBlock();
+    for (size_t i = 1, NumBbs = NumBbsRaw; i < NumBbs; ++i)
+      installNextBasicBlock();
     return;
   }
   case naclbitc::FUNC_CODE_INST_BINOP: {
@@ -2281,7 +2341,15 @@ void FunctionParser::ProcessRecord() {
     }
     Ice::CfgNode *DefaultLabel =
         isIRGenDisabled ? nullptr : getBranchBasicBlock(Values[2]);
-    unsigned NumCases = Values[3];
+    uint64_t NumCasesRaw = Values[3];
+    if (NumCasesRaw > std::numeric_limits<uint32_t>::max()) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Too many cases specified in switch: " << NumCasesRaw;
+      Error(StrBuf.str());
+      NumCasesRaw = std::numeric_limits<uint32_t>::max();
+    }
+    uint32_t NumCases = NumCasesRaw;
 
     // Now recognize each of the cases.
     if (!isValidRecordSize(4 + NumCases * 4, "switch"))
@@ -2291,7 +2359,7 @@ void FunctionParser::ProcessRecord() {
             ? nullptr
             : Ice::InstSwitch::create(Func.get(), NumCases, Cond, DefaultLabel);
     unsigned ValCaseIndex = 4; // index to beginning of case entry.
-    for (unsigned CaseIndex = 0; CaseIndex < NumCases;
+    for (uint32_t CaseIndex = 0; CaseIndex < NumCases;
          ++CaseIndex, ValCaseIndex += 4) {
       if (Values[ValCaseIndex] != 1 || Values[ValCaseIndex + 1] != 1) {
         std::string Buffer;
@@ -2354,7 +2422,7 @@ void FunctionParser::ProcessRecord() {
     Ice::Variable *Dest = getNextInstVar(Ty);
     Ice::InstPhi *Phi =
         Ice::InstPhi::create(Func.get(), Values.size() >> 1, Dest);
-    for (unsigned i = 1; i < Values.size(); i += 2) {
+    for (size_t i = 1; i < Values.size(); i += 2) {
       Ice::Operand *Op =
           getRelativeOperand(NaClDecodeSignRotatedValue(Values[i]), BaseIndex);
       if (Op->getType() != Ty) {
@@ -2742,12 +2810,12 @@ private:
     return reinterpret_cast<FunctionParser *>(GetEnclosingParser());
   }
 
-  void setValueName(uint64_t Index, StringType &Name) override;
-  void setBbName(uint64_t Index, StringType &Name) override;
+  void setValueName(NaClBcIndexSize_t Index, StringType &Name) override;
+  void setBbName(NaClBcIndexSize_t Index, StringType &Name) override;
 
   // Reports that the assignment of Name to the value associated with
   // index is not possible, for the given Context.
-  void reportUnableToAssign(const char *Context, uint64_t Index,
+  void reportUnableToAssign(const char *Context, NaClBcIndexSize_t Index,
                             StringType &Name) {
     std::string Buffer;
     raw_string_ostream StrBuf(Buffer);
@@ -2757,7 +2825,8 @@ private:
   }
 };
 
-void FunctionValuesymtabParser::setValueName(uint64_t Index, StringType &Name) {
+void FunctionValuesymtabParser::setValueName(NaClBcIndexSize_t Index,
+                                             StringType &Name) {
   // Note: We check when Index is too small, so that we can error recover
   // (FP->getOperand will create fatal error).
   if (Index < getFunctionParser()->getNumGlobalIDs()) {
@@ -2778,7 +2847,8 @@ void FunctionValuesymtabParser::setValueName(uint64_t Index, StringType &Name) {
   }
 }
 
-void FunctionValuesymtabParser::setBbName(uint64_t Index, StringType &Name) {
+void FunctionValuesymtabParser::setBbName(NaClBcIndexSize_t Index,
+                                          StringType &Name) {
   if (isIRGenerationDisabled())
     return;
   if (Index >= getFunctionParser()->getFunc()->getNumNodes()) {
@@ -2835,7 +2905,7 @@ private:
   // global variables). Then lowers global variable declaration
   // initializers to the target. May be called multiple times. Only
   // the first call will do the installation.
-  void InstallGlobalNamesAndGlobalVarInitializers() {
+  void installGlobalNamesAndGlobalVarInitializers() {
     if (!GlobalDeclarationNamesAndInitializersInstalled) {
       Context->installGlobalNames();
       Context->createValueIDs();
@@ -2845,7 +2915,7 @@ private:
   }
   bool ParseBlock(unsigned BlockID) override;
 
-  void ExitBlock() override { InstallGlobalNamesAndGlobalVarInitializers(); }
+  void ExitBlock() override { installGlobalNamesAndGlobalVarInitializers(); }
 
   void ProcessRecord() override;
 };
@@ -2865,16 +2935,18 @@ public:
 
 private:
   Ice::TimerMarker Timer;
-  void setValueName(uint64_t Index, StringType &Name) override;
-  void setBbName(uint64_t Index, StringType &Name) override;
+  void setValueName(NaClBcIndexSize_t Index, StringType &Name) override;
+  void setBbName(NaClBcIndexSize_t Index, StringType &Name) override;
 };
 
-void ModuleValuesymtabParser::setValueName(uint64_t Index, StringType &Name) {
+void ModuleValuesymtabParser::setValueName(NaClBcIndexSize_t Index,
+                                           StringType &Name) {
   Context->getGlobalDeclarationByID(Index)
       ->setName(StringRef(Name.data(), Name.size()));
 }
 
-void ModuleValuesymtabParser::setBbName(uint64_t Index, StringType &Name) {
+void ModuleValuesymtabParser::setBbName(NaClBcIndexSize_t Index,
+                                        StringType &Name) {
   std::string Buffer;
   raw_string_ostream StrBuf(Buffer);
   StrBuf << "Can't define basic block name at global level: '" << Name
@@ -2899,7 +2971,7 @@ bool ModuleParser::ParseBlock(unsigned BlockID) {
     return Parser.ParseThisBlock();
   }
   case naclbitc::FUNCTION_BLOCK_ID: {
-    InstallGlobalNamesAndGlobalVarInitializers();
+    installGlobalNamesAndGlobalVarInitializers();
     FunctionParser Parser(BlockID, this);
     return Parser.convertFunction();
   }
@@ -2915,7 +2987,7 @@ void ModuleParser::ProcessRecord() {
     // VERSION: [version#]
     if (!isValidRecordSize(1, "version"))
       return;
-    unsigned Version = Values[0];
+    uint64_t Version = Values[0];
     if (Version != 1) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
