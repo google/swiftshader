@@ -1275,7 +1275,10 @@ namespace glsl
 			}
 			else
 			{
-				condition->traverse(this);
+				if(condition)
+				{
+					condition->traverse(this);
+				}
 
 				emit(sw::Shader::OPCODE_WHILE, 0, condition);
 
@@ -1291,7 +1294,10 @@ namespace glsl
 					expression->traverse(this);
 				}
 
-				condition->traverse(this);
+				if(condition)
+				{
+					condition->traverse(this);
+				}
 
 				emit(sw::Shader::OPCODE_ENDWHILE);
 			}
