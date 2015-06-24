@@ -47,7 +47,7 @@ IceString AssemblerFixup::symbol(const GlobalContext *Ctx) const {
 }
 
 void AssemblerFixup::emit(GlobalContext *Ctx, RelocOffsetT BaseOffset) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Ctx->getStrEmit();
   if (isNullSymbol())

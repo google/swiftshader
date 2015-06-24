@@ -398,7 +398,7 @@ Inst *InstPhi::lower(Cfg *Func) {
   Variable *Dest = getDest();
   assert(Dest);
   Variable *NewSrc = Func->makeVariable(Dest->getType());
-  if (ALLOW_DUMP)
+  if (BuildDefs::dump())
     NewSrc->setName(Func, Dest->getName(Func) + "_phi");
   this->Dest = NewSrc;
   return InstAssign::create(Func, Dest, NewSrc);
@@ -511,7 +511,7 @@ Type InstCall::getReturnType() const {
 // ======================== Dump routines ======================== //
 
 void Inst::dumpDecorated(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   if (!Func->isVerbose(IceV_Deleted) && (isDeleted() || isRedundantAssign()))
@@ -534,7 +534,7 @@ void Inst::dumpDecorated(const Cfg *Func) const {
 }
 
 void Inst::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
@@ -543,7 +543,7 @@ void Inst::dump(const Cfg *Func) const {
 }
 
 void Inst::dumpExtras(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   bool First = true;
@@ -571,7 +571,7 @@ void Inst::dumpExtras(const Cfg *Func) const {
 }
 
 void Inst::dumpSources(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   for (SizeT I = 0; I < getSrcSize(); ++I) {
@@ -582,7 +582,7 @@ void Inst::dumpSources(const Cfg *Func) const {
 }
 
 void Inst::emitSources(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   for (SizeT I = 0; I < getSrcSize(); ++I) {
@@ -593,14 +593,14 @@ void Inst::emitSources(const Cfg *Func) const {
 }
 
 void Inst::dumpDest(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   if (getDest())
     getDest()->dump(Func);
 }
 
 void InstAlloca::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
@@ -611,7 +611,7 @@ void InstAlloca::dump(const Cfg *Func) const {
 }
 
 void InstArithmetic::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
@@ -621,7 +621,7 @@ void InstArithmetic::dump(const Cfg *Func) const {
 }
 
 void InstAssign::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
@@ -630,7 +630,7 @@ void InstAssign::dump(const Cfg *Func) const {
 }
 
 void InstBr::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
@@ -644,7 +644,7 @@ void InstBr::dump(const Cfg *Func) const {
 }
 
 void InstCall::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   if (getDest()) {
@@ -677,7 +677,7 @@ const char *InstCast::getCastName(InstCast::OpKind Kind) {
 }
 
 void InstCast::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
@@ -688,7 +688,7 @@ void InstCast::dump(const Cfg *Func) const {
 }
 
 void InstIcmp::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
@@ -698,7 +698,7 @@ void InstIcmp::dump(const Cfg *Func) const {
 }
 
 void InstExtractElement::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
@@ -711,7 +711,7 @@ void InstExtractElement::dump(const Cfg *Func) const {
 }
 
 void InstInsertElement::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
@@ -727,7 +727,7 @@ void InstInsertElement::dump(const Cfg *Func) const {
 }
 
 void InstFcmp::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
@@ -737,7 +737,7 @@ void InstFcmp::dump(const Cfg *Func) const {
 }
 
 void InstLoad::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
@@ -748,7 +748,7 @@ void InstLoad::dump(const Cfg *Func) const {
 }
 
 void InstStore::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   Type Ty = getData()->getType();
@@ -767,7 +767,7 @@ void InstStore::dump(const Cfg *Func) const {
 }
 
 void InstSwitch::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   Type Ty = getComparison()->getType();
@@ -782,7 +782,7 @@ void InstSwitch::dump(const Cfg *Func) const {
 }
 
 void InstPhi::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
@@ -797,7 +797,7 @@ void InstPhi::dump(const Cfg *Func) const {
 }
 
 void InstRet::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   Type Ty = hasRetValue() ? getRetValue()->getType() : IceType_void;
@@ -809,7 +809,7 @@ void InstRet::dump(const Cfg *Func) const {
 }
 
 void InstSelect::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
@@ -825,14 +825,14 @@ void InstSelect::dump(const Cfg *Func) const {
 }
 
 void InstUnreachable::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "unreachable";
 }
 
 void InstBundleLock::emit(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << "\t.bundle_lock";
@@ -846,7 +846,7 @@ void InstBundleLock::emit(const Cfg *Func) const {
 }
 
 void InstBundleLock::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "bundle_lock";
@@ -860,21 +860,21 @@ void InstBundleLock::dump(const Cfg *Func) const {
 }
 
 void InstBundleUnlock::emit(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << "\t.bundle_unlock";
 }
 
 void InstBundleUnlock::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "bundle_unlock";
 }
 
 void InstFakeDef::emit(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   // Go ahead and "emit" these for now, since they are relatively
   // rare.
@@ -886,7 +886,7 @@ void InstFakeDef::emit(const Cfg *Func) const {
 }
 
 void InstFakeDef::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
@@ -897,7 +897,7 @@ void InstFakeDef::dump(const Cfg *Func) const {
 void InstFakeUse::emit(const Cfg *Func) const { (void)Func; }
 
 void InstFakeUse::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "use.pseudo ";
@@ -907,7 +907,7 @@ void InstFakeUse::dump(const Cfg *Func) const {
 void InstFakeKill::emit(const Cfg *Func) const { (void)Func; }
 
 void InstFakeKill::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   if (Linked->isDeleted())
@@ -916,7 +916,7 @@ void InstFakeKill::dump(const Cfg *Func) const {
 }
 
 void InstTarget::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "[TARGET] ";

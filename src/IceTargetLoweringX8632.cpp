@@ -229,7 +229,7 @@ const char *PoolTypeConverter<uint8_t>::PrintfString = "0x%x";
 
 template <typename T>
 void TargetDataX8632::emitConstantPool(GlobalContext *Ctx) {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Ctx->getStrEmit();
   Type Ty = T::Ty;

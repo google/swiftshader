@@ -21,7 +21,7 @@ namespace Ice {
 
 TimerStack::TimerStack(const IceString &Name)
     : Name(Name), FirstTimestamp(timestamp()), LastTimestamp(FirstTimestamp) {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Nodes.resize(1); // Reserve Nodes[0] for the root node (sentinel).
   IDs.resize(TT__num);
@@ -39,7 +39,7 @@ TimerStack::TimerStack(const IceString &Name)
 // Returns the unique timer ID for the given Name, creating a new ID
 // if needed.
 TimerIdT TimerStack::getTimerID(const IceString &Name) {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return 0;
   if (IDsIndex.find(Name) == IDsIndex.end()) {
     IDsIndex[Name] = IDs.size();
@@ -66,7 +66,7 @@ TimerStack::translateIDsFrom(const TimerStack &Src) {
 // Merges two timer stacks, by combining and summing corresponding
 // entries.  This timer stack is updated from Src.
 void TimerStack::mergeFrom(const TimerStack &Src) {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   TranslationType Mapping = translateIDsFrom(Src);
   TTindex SrcIndex = 0;
@@ -137,7 +137,7 @@ TimerStack::TTindex TimerStack::findPath(const PathType &Path) {
 
 // Pushes a new marker onto the timer stack.
 void TimerStack::push(TimerIdT ID) {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   const bool UpdateCounts = false;
   update(UpdateCounts);
@@ -148,7 +148,7 @@ void TimerStack::push(TimerIdT ID) {
 // Pops the top marker from the timer stack.  Validates via assert()
 // that the expected marker is popped.
 void TimerStack::pop(TimerIdT ID) {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   const bool UpdateCounts = true;
   update(UpdateCounts);
@@ -165,7 +165,7 @@ void TimerStack::pop(TimerIdT ID) {
 // At a state change (e.g. push or pop), updates the flat and
 // cumulative timings for everything on the timer stack.
 void TimerStack::update(bool UpdateCounts) {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   ++StateChangeCount;
   // Whenever the stack is about to change, we grab the time delta
@@ -201,7 +201,7 @@ void TimerStack::update(bool UpdateCounts) {
 }
 
 void TimerStack::reset() {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   StateChangeCount = 0;
   FirstTimestamp = LastTimestamp = timestamp();
@@ -219,7 +219,7 @@ typedef std::multimap<double, IceString> DumpMapType;
 
 // Dump the Map items in reverse order of their time contribution.
 void dumpHelper(Ostream &Str, const DumpMapType &Map, double TotalTime) {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   for (auto &I : reverse_range(Map)) {
     char buf[80];
@@ -235,7 +235,7 @@ void dumpHelper(Ostream &Str, const DumpMapType &Map, double TotalTime) {
 //   MaxVal=5     ==> "[%1lu] "
 //   MaxVal=9876  ==> "[%4lu] "
 void makePrintfFormatString(char *Buf, size_t BufLen, size_t MaxVal) {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   int NumDigits = 0;
   do {
@@ -248,7 +248,7 @@ void makePrintfFormatString(char *Buf, size_t BufLen, size_t MaxVal) {
 } // end of anonymous namespace
 
 void TimerStack::dump(Ostream &Str, bool DumpCumulative) {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   const bool UpdateCounts = true;
   update(UpdateCounts);

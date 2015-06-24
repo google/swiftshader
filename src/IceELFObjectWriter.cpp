@@ -390,8 +390,9 @@ void ELFObjectWriter::writeDataOfType(SectionType ST,
            Var->getInitializers()) {
         switch (Init->getKind()) {
         case VariableDeclaration::Initializer::DataInitializerKind: {
-          const auto Data = llvm::cast<VariableDeclaration::DataInitializer>(
-                                Init.get())->getContents();
+          const auto Data =
+              llvm::cast<VariableDeclaration::DataInitializer>(Init.get())
+                  ->getContents();
           Section->appendData(Str, llvm::StringRef(Data.data(), Data.size()));
           break;
         }

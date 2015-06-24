@@ -411,7 +411,7 @@ InstCall *TargetLowering::makeHelperCall(const IceString &Name, Variable *Dest,
 }
 
 void TargetLowering::emitWithoutPrefix(const ConstantRelocatable *C) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Ctx->getStrEmit();
   if (C->getSuppressMangling())
@@ -427,7 +427,7 @@ void TargetLowering::emitWithoutPrefix(const ConstantRelocatable *C) const {
 }
 
 void TargetLowering::emit(const ConstantRelocatable *C) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Ctx->getStrEmit();
   Str << getConstantPrefix();
@@ -472,7 +472,7 @@ IceString dataSectionSuffix(const IceString &SectionSuffix,
 
 void TargetDataLowering::emitGlobal(const VariableDeclaration &Var,
                                     const IceString &SectionSuffix) {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
 
   // If external and not initialized, this must be a cross test.
@@ -518,8 +518,9 @@ void TargetDataLowering::emitGlobal(const VariableDeclaration &Var,
          Var.getInitializers()) {
       switch (Init->getKind()) {
       case VariableDeclaration::Initializer::DataInitializerKind: {
-        const auto &Data = llvm::cast<VariableDeclaration::DataInitializer>(
-                               Init.get())->getContents();
+        const auto &Data =
+            llvm::cast<VariableDeclaration::DataInitializer>(Init.get())
+                ->getContents();
         for (SizeT i = 0; i < Init->getNumBytes(); ++i) {
           Str << "\t.byte\t" << (((unsigned)Data[i]) & 0xff) << "\n";
         }

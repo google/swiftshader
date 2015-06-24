@@ -252,11 +252,11 @@ class Label {
 
 public:
   Label() {
-#ifndef NDEBUG
-    for (int i = 0; i < kMaxUnresolvedBranches; i++) {
-      unresolved_near_positions_[i] = -1;
+    if (BuildDefs::asserts()) {
+      for (int i = 0; i < kMaxUnresolvedBranches; i++) {
+        unresolved_near_positions_[i] = -1;
+      }
     }
-#endif // !NDEBUG
   }
 
   ~Label() = default;
@@ -321,7 +321,7 @@ private:
     unresolved_near_positions_[num_unresolved_++] = position;
   }
 
-  static const int kMaxUnresolvedBranches = 20;
+  static constexpr int kMaxUnresolvedBranches = 20;
 
   intptr_t position_ = 0;
   intptr_t num_unresolved_ = 0;

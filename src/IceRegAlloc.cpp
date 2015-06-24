@@ -50,7 +50,7 @@ bool overlapsDefs(const Cfg *Func, const Variable *Item, const Variable *Var) {
 
 void dumpDisableOverlap(const Cfg *Func, const Variable *Var,
                         const char *Reason) {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   if (Func->isVerbose(IceV_LinearScan)) {
     VariablesMetadata *VMetadata = Func->getVMetadata();
@@ -68,7 +68,7 @@ void dumpDisableOverlap(const Cfg *Func, const Variable *Var,
 }
 
 void dumpLiveRange(const Variable *Var, const Cfg *Func) {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   const static size_t BufLen = 30;
@@ -265,7 +265,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
   TimerMarker T(TimerStack::TT_linearScan, Func);
   assert(RegMaskFull.any()); // Sanity check
   GlobalContext *Ctx = Func->getContext();
-  const bool Verbose = ALLOW_DUMP && Func->isVerbose(IceV_LinearScan);
+  const bool Verbose = BuildDefs::dump() && Func->isVerbose(IceV_LinearScan);
   if (Verbose)
     Ctx->lockStr();
   Func->resetCurrentNode();
@@ -735,7 +735,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
 // ======================== Dump routines ======================== //
 
 void LinearScan::dump(Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   if (!Func->isVerbose(IceV_LinearScan))
     return;

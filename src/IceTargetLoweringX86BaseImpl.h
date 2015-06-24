@@ -249,7 +249,7 @@ BoolFolding<MachineTraits>::getProducerFor(const Operand *Opnd) const {
 
 template <class MachineTraits>
 void BoolFolding<MachineTraits>::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP || !Func->isVerbose(IceV_Folding))
+  if (!BuildDefs::dump() || !Func->isVerbose(IceV_Folding))
     return;
   OstreamLocker L(Func->getContext());
   Ostream &Str = Func->getContext()->getStrDump();
@@ -842,7 +842,7 @@ template <class Machine> void TargetX86Base<Machine>::lowerArguments() {
     int32_t RegNum = RegX8632::Reg_xmm0 + NumXmmArgs;
     ++NumXmmArgs;
     Variable *RegisterArg = Func->makeVariable(Ty);
-    if (ALLOW_DUMP)
+    if (BuildDefs::dump())
       RegisterArg->setName(Func, "home_reg:" + Arg->getName(Func));
     RegisterArg->setRegNum(RegNum);
     RegisterArg->setIsArg();
@@ -1074,7 +1074,7 @@ template <class Machine> void TargetX86Base<Machine>::addProlog(CfgNode *Node) {
   }
   this->HasComputedFrame = true;
 
-  if (ALLOW_DUMP && Func->isVerbose(IceV_Frame)) {
+  if (BuildDefs::dump() && Func->isVerbose(IceV_Frame)) {
     OstreamLocker L(Func->getContext());
     Ostream &Str = Func->getContext()->getStrDump();
 
@@ -1190,7 +1190,7 @@ template <class Machine> void TargetX86Base<Machine>::split64(Variable *Var) {
   assert(Hi == nullptr);
   Lo = Func->makeVariable(IceType_i32);
   Hi = Func->makeVariable(IceType_i32);
-  if (ALLOW_DUMP) {
+  if (BuildDefs::dump()) {
     Lo->setName(Func, Var->getName(Func) + "__lo");
     Hi->setName(Func, Var->getName(Func) + "__hi");
   }
@@ -3402,10 +3402,11 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
       Func->setError("Unexpected memory ordering for AtomicRMW");
       return;
     }
-    lowerAtomicRMW(Instr->getDest(),
-                   static_cast<uint32_t>(llvm::cast<ConstantInteger32>(
-                                             Instr->getArg(0))->getValue()),
-                   Instr->getArg(1), Instr->getArg(2));
+    lowerAtomicRMW(
+        Instr->getDest(),
+        static_cast<uint32_t>(
+            llvm::cast<ConstantInteger32>(Instr->getArg(0))->getValue()),
+        Instr->getArg(1), Instr->getArg(2));
     return;
   case Intrinsics::AtomicStore: {
     if (!Intrinsics::isMemoryOrderValid(
@@ -4019,7 +4020,7 @@ bool isAdd(const Inst *Inst) {
 void dumpAddressOpt(const Cfg *Func, const Variable *Base,
                     const Variable *Index, uint16_t Shift, int32_t Offset,
                     const Inst *Reason) {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   if (!Func->isVerbose(IceV_AddrOpt))
     return;
@@ -5271,7 +5272,7 @@ void TargetX86Base<Machine>::makeRandomRegisterPermutation(
 
 template <class Machine>
 void TargetX86Base<Machine>::emit(const ConstantInteger32 *C) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Ctx->getStrEmit();
   Str << getConstantPrefix() << C->getValue();
@@ -5284,7 +5285,7 @@ void TargetX86Base<Machine>::emit(const ConstantInteger64 *) const {
 
 template <class Machine>
 void TargetX86Base<Machine>::emit(const ConstantFloat *C) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Ctx->getStrEmit();
   C->emitPoolLabel(Str);
@@ -5292,7 +5293,7 @@ void TargetX86Base<Machine>::emit(const ConstantFloat *C) const {
 
 template <class Machine>
 void TargetX86Base<Machine>::emit(const ConstantDouble *C) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Ctx->getStrEmit();
   C->emitPoolLabel(Str);
@@ -5410,8 +5411,9 @@ TargetX86Base<Machine>::randomizeOrPoolImmediate(OperandX8632Mem *MemOperand,
         // TO:
         //  insert: lea offset+cookie[base], RegTemp
         //  => -cookie[RegTemp, index, shift]
-        uint32_t Value = llvm::dyn_cast<ConstantInteger32>(
-                             MemOperand->getOffset())->getValue();
+        uint32_t Value =
+            llvm::dyn_cast<ConstantInteger32>(MemOperand->getOffset())
+                ->getValue();
         uint32_t Cookie = Ctx->getRandomizationCookie();
         Constant *Mask1 = Ctx->getConstantInt(
             MemOperand->getOffset()->getType(), Cookie + Value);

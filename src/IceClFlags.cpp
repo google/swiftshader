@@ -334,7 +334,7 @@ void ClFlags::getParsedClFlags(ClFlags &OutFlags) {
   Ice::VerboseMask VMask = Ice::IceV_None;
   // Don't generate verbose messages if routines
   // to dump messages are not available.
-  if (ALLOW_DUMP) {
+  if (BuildDefs::dump()) {
     for (unsigned i = 0; i != VerboseList.size(); ++i)
       VMask |= VerboseList[i];
   }

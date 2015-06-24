@@ -35,9 +35,9 @@ namespace Ice {
 
 namespace {
 
-static_assert(
-!(INPUT_IS_TEXTUAL_BITCODE && PNACL_BROWSER_TRANSLATOR),
-  "Can not define INPUT_IS_TEXTUAL_BITCODE when building browswer translator");
+static_assert(!(BuildDefs::textualBitcode() && PNACL_BROWSER_TRANSLATOR),
+              "Can not define INPUT_IS_TEXTUAL_BITCODE when building browswer "
+              "translator");
 
 // Define a SmallVector backed buffer as a data stream, so that it
 // can hold the generated binary version of the textual bitcode in the
@@ -48,6 +48,7 @@ public:
   ~TextDataStreamer() final = default;
   static TextDataStreamer *create(const IceString &Filename, std::string *Err);
   size_t GetBytes(unsigned char *Buf, size_t Len) final;
+
 private:
   llvm::SmallVector<char, 1024> BitcodeBuffer;
   size_t Cursor = 0;
@@ -98,7 +99,7 @@ ErrorCodes getReturnValue(const Ice::ClFlagsExtra &Flags, ErrorCodes Val) {
 } // end of anonymous namespace
 
 void CLCompileServer::run() {
-  if (ALLOW_DUMP) {
+  if (BuildDefs::dump()) {
     llvm::sys::PrintStackTraceOnErrorSignal();
   }
   ClFlags::parseFlags(argc, argv);
@@ -148,10 +149,9 @@ void CLCompileServer::run() {
 
   IceString StrError;
   std::unique_ptr<llvm::DataStreamer> InputStream(
-      INPUT_IS_TEXTUAL_BITCODE
-      ? TextDataStreamer::create(ExtraFlags.getIRFilename(), &StrError)
-      : llvm::getDataFileStreamer(ExtraFlags.getIRFilename(), &StrError)
-                                                  );
+      BuildDefs::textualBitcode()
+          ? TextDataStreamer::create(ExtraFlags.getIRFilename(), &StrError)
+          : llvm::getDataFileStreamer(ExtraFlags.getIRFilename(), &StrError));
   if (!StrError.empty() || !InputStream) {
     llvm::SMDiagnostic Err(ExtraFlags.getIRFilename(),
                            llvm::SourceMgr::DK_Error, StrError);

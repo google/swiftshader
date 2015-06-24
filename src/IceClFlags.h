@@ -55,14 +55,14 @@ public:
   void setDisableInternal(bool NewValue) { DisableInternal = NewValue; }
 
   bool getDisableIRGeneration() const {
-    return ALLOW_DISABLE_IR_GEN && DisableIRGeneration;
+    return BuildDefs::disableIrGen() && DisableIRGeneration;
   }
   void setDisableIRGeneration(bool NewValue) { DisableIRGeneration = NewValue; }
 
   bool getDisableTranslation() const { return DisableTranslation; }
   void setDisableTranslation(bool NewValue) { DisableTranslation = NewValue; }
 
-  bool getDumpStats() const { return ALLOW_DUMP && DumpStats; }
+  bool getDumpStats() const { return BuildDefs::dump() && DumpStats; }
   void setDumpStats(bool NewValue) { DumpStats = NewValue; }
 
   bool getEnableBlockProfile() const { return EnableBlockProfile; }
@@ -74,7 +74,7 @@ public:
   bool getGenerateUnitTestMessages() const {
     // Note: If dump routines have been turned off, the error messages
     // will not be readable. Hence, turn off.
-    return !ALLOW_DUMP || GenerateUnitTestMessages;
+    return !BuildDefs::dump() || GenerateUnitTestMessages;
   }
   void setGenerateUnitTestMessages(bool NewValue) {
     GenerateUnitTestMessages = NewValue;
@@ -97,7 +97,9 @@ public:
     SubzeroTimingEnabled = NewValue;
   }
 
-  bool getTimeEachFunction() const { return ALLOW_DUMP && TimeEachFunction; }
+  bool getTimeEachFunction() const {
+    return BuildDefs::dump() && TimeEachFunction;
+  }
   void setTimeEachFunction(bool NewValue) { TimeEachFunction = NewValue; }
 
   bool getUseSandboxing() const { return UseSandboxing; }
@@ -131,7 +133,7 @@ public:
   }
 
   VerboseMask getVerbose() const {
-    return ALLOW_DUMP ? VMask : (VerboseMask)IceV_None;
+    return BuildDefs::dump() ? VMask : (VerboseMask)IceV_None;
   }
   void setVerbose(VerboseMask NewValue) { VMask = NewValue; }
 

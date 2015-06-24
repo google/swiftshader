@@ -38,7 +38,7 @@ public:
   enum OperandKindX8632 { k__Start = Operand::kTarget, kMem, kSplit };
   using Operand::dump;
   void dump(const Cfg *, Ostream &Str) const override {
-    if (ALLOW_DUMP)
+    if (BuildDefs::dump())
       Str << "<OperandX8632>";
   }
 
@@ -578,7 +578,7 @@ public:
         InstX8632InplaceopGPR(Func, SrcDest);
   }
   void emit(const Cfg *Func) const override {
-    if (!ALLOW_DUMP)
+    if (!BuildDefs::dump())
       return;
     Ostream &Str = Func->getContext()->getStrEmit();
     assert(getSrcSize() == 1);
@@ -592,7 +592,7 @@ public:
     emitIASOpTyGPR(Func, Ty, Var, Emitter);
   }
   void dump(const Cfg *Func) const override {
-    if (!ALLOW_DUMP)
+    if (!BuildDefs::dump())
       return;
     Ostream &Str = Func->getContext()->getStrDump();
     dumpDest(Func);
@@ -631,7 +631,7 @@ public:
         InstX8632UnaryopGPR(Func, Dest, Src);
   }
   void emit(const Cfg *Func) const override {
-    if (!ALLOW_DUMP)
+    if (!BuildDefs::dump())
       return;
     Ostream &Str = Func->getContext()->getStrEmit();
     assert(getSrcSize() == 1);
@@ -656,7 +656,7 @@ public:
     emitIASRegOpTyGPR(Func, Ty, Var, Src, Emitter);
   }
   void dump(const Cfg *Func) const override {
-    if (!ALLOW_DUMP)
+    if (!BuildDefs::dump())
       return;
     Ostream &Str = Func->getContext()->getStrDump();
     dumpDest(Func);
@@ -691,7 +691,7 @@ public:
         InstX8632UnaryopXmm(Func, Dest, Src);
   }
   void emit(const Cfg *Func) const override {
-    if (!ALLOW_DUMP)
+    if (!BuildDefs::dump())
       return;
     Ostream &Str = Func->getContext()->getStrEmit();
     assert(getSrcSize() == 1);
@@ -706,7 +706,7 @@ public:
     emitIASRegOpTyXMM(Func, Ty, getDest(), getSrc(0), Emitter);
   }
   void dump(const Cfg *Func) const override {
-    if (!ALLOW_DUMP)
+    if (!BuildDefs::dump())
       return;
     Ostream &Str = Func->getContext()->getStrDump();
     dumpDest(Func);
@@ -739,7 +739,7 @@ public:
         InstX8632BinopGPRShift(Func, Dest, Source);
   }
   void emit(const Cfg *Func) const override {
-    if (!ALLOW_DUMP)
+    if (!BuildDefs::dump())
       return;
     const bool ShiftHack = true;
     emitTwoAddress(Opcode, this, Func, ShiftHack);
@@ -750,7 +750,7 @@ public:
     emitIASGPRShift(Func, Ty, getDest(), getSrc(1), Emitter);
   }
   void dump(const Cfg *Func) const override {
-    if (!ALLOW_DUMP)
+    if (!BuildDefs::dump())
       return;
     Ostream &Str = Func->getContext()->getStrDump();
     dumpDest(Func);
@@ -783,7 +783,7 @@ public:
         InstX8632BinopGPR(Func, Dest, Source);
   }
   void emit(const Cfg *Func) const override {
-    if (!ALLOW_DUMP)
+    if (!BuildDefs::dump())
       return;
     const bool ShiftHack = false;
     emitTwoAddress(Opcode, this, Func, ShiftHack);
@@ -794,7 +794,7 @@ public:
     emitIASRegOpTyGPR(Func, Ty, getDest(), getSrc(1), Emitter);
   }
   void dump(const Cfg *Func) const override {
-    if (!ALLOW_DUMP)
+    if (!BuildDefs::dump())
       return;
     Ostream &Str = Func->getContext()->getStrDump();
     dumpDest(Func);
@@ -828,7 +828,7 @@ public:
         InstX8632BinopRMW(Func, DestSrc0, Src1);
   }
   void emit(const Cfg *Func) const override {
-    if (!ALLOW_DUMP)
+    if (!BuildDefs::dump())
       return;
     const bool ShiftHack = false;
     emitTwoAddress(Opcode, this, Func, ShiftHack);
@@ -839,7 +839,7 @@ public:
     emitIASAsAddrOpTyGPR(Func, Ty, getSrc(0), getSrc(1), Emitter);
   }
   void dump(const Cfg *Func) const override {
-    if (!ALLOW_DUMP)
+    if (!BuildDefs::dump())
       return;
     Ostream &Str = Func->getContext()->getStrDump();
     Str << Opcode << "." << getSrc(0)->getType() << " ";
@@ -870,7 +870,7 @@ public:
         InstX8632BinopXmm(Func, Dest, Source);
   }
   void emit(const Cfg *Func) const override {
-    if (!ALLOW_DUMP)
+    if (!BuildDefs::dump())
       return;
     validateVectorAddrMode();
     const bool ShiftHack = false;
@@ -885,7 +885,7 @@ public:
     emitIASRegOpTyXMM(Func, Ty, getDest(), getSrc(1), Emitter);
   }
   void dump(const Cfg *Func) const override {
-    if (!ALLOW_DUMP)
+    if (!BuildDefs::dump())
       return;
     Ostream &Str = Func->getContext()->getStrDump();
     dumpDest(Func);
@@ -923,7 +923,7 @@ public:
         InstX8632BinopXmmShift(Func, Dest, Source);
   }
   void emit(const Cfg *Func) const override {
-    if (!ALLOW_DUMP)
+    if (!BuildDefs::dump())
       return;
     validateVectorAddrMode();
     const bool ShiftHack = false;
@@ -938,7 +938,7 @@ public:
     emitIASXmmShift(Func, ElementTy, getDest(), getSrc(1), Emitter);
   }
   void dump(const Cfg *Func) const override {
-    if (!ALLOW_DUMP)
+    if (!BuildDefs::dump())
       return;
     Ostream &Str = Func->getContext()->getStrDump();
     dumpDest(Func);
@@ -971,7 +971,7 @@ public:
         InstX8632Ternop(Func, Dest, Source1, Source2);
   }
   void emit(const Cfg *Func) const override {
-    if (!ALLOW_DUMP)
+    if (!BuildDefs::dump())
       return;
     Ostream &Str = Func->getContext()->getStrEmit();
     assert(getSrcSize() == 3);
@@ -984,7 +984,7 @@ public:
   }
   void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override {
-    if (!ALLOW_DUMP)
+    if (!BuildDefs::dump())
       return;
     Ostream &Str = Func->getContext()->getStrDump();
     dumpDest(Func);
@@ -1018,7 +1018,7 @@ public:
         InstX8632ThreeAddressop(Func, Dest, Source0, Source1);
   }
   void emit(const Cfg *Func) const override {
-    if (!ALLOW_DUMP)
+    if (!BuildDefs::dump())
       return;
     Ostream &Str = Func->getContext()->getStrEmit();
     assert(getSrcSize() == 2);
@@ -1031,7 +1031,7 @@ public:
   }
   void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override {
-    if (!ALLOW_DUMP)
+    if (!BuildDefs::dump())
       return;
     Ostream &Str = Func->getContext()->getStrDump();
     dumpDest(Func);
@@ -1070,7 +1070,7 @@ public:
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override {
-    if (!ALLOW_DUMP)
+    if (!BuildDefs::dump())
       return;
     Ostream &Str = Func->getContext()->getStrDump();
     Str << Opcode << "." << getDest()->getType() << " ";

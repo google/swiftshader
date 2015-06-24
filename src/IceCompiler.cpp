@@ -36,13 +36,14 @@ namespace {
 struct {
   const char *FlagName;
   int FlagValue;
-} ConditionalBuildAttributes[] = {{"dump", ALLOW_DUMP},
-                                  {"disable_ir_gen", ALLOW_DISABLE_IR_GEN},
-                                  {"llvm_cl", ALLOW_LLVM_CL},
-                                  {"llvm_ir", ALLOW_LLVM_IR},
-                                  {"llvm_ir_as_input", ALLOW_LLVM_IR_AS_INPUT},
-                                  {"minimal_build", ALLOW_MINIMAL_BUILD},
-                                  {"browser_mode", PNACL_BROWSER_TRANSLATOR}};
+} ConditionalBuildAttributes[] = {
+    {"dump", BuildDefs::dump()},
+    {"disable_ir_gen", BuildDefs::disableIrGen()},
+    {"llvm_cl", BuildDefs::llvmCl()},
+    {"llvm_ir", BuildDefs::llvmIr()},
+    {"llvm_ir_as_input", BuildDefs::llvmIrAsInput()},
+    {"minimal_build", BuildDefs::minimal()},
+    {"browser_mode", PNACL_BROWSER_TRANSLATOR}};
 
 // Validates values of build attributes. Prints them to Stream if
 // Stream is non-null.
@@ -85,7 +86,7 @@ void Compiler::run(const Ice::ClFlagsExtra &ExtraFlags, GlobalContext &Ctx,
   if (ExtraFlags.getGenerateBuildAtts())
     return Ctx.getErrorStatus()->assign(EC_None);
 
-  if (!ALLOW_DISABLE_IR_GEN && Ctx.getFlags().getDisableIRGeneration()) {
+  if (!BuildDefs::disableIrGen() && Ctx.getFlags().getDisableIRGeneration()) {
     Ctx.getStrDump() << "Error: Build doesn't allow --no-ir-gen when not "
                      << "ALLOW_DISABLE_IR_GEN!\n";
     return Ctx.getErrorStatus()->assign(EC_Args);
@@ -95,7 +96,7 @@ void Compiler::run(const Ice::ClFlagsExtra &ExtraFlags, GlobalContext &Ctx,
   const std::string LLSuffix = ".ll";
   const IceString &IRFilename = ExtraFlags.getIRFilename();
   bool BuildOnRead = ExtraFlags.getBuildOnRead();
-  if (ALLOW_LLVM_IR_AS_INPUT && IRFilename.length() >= LLSuffix.length() &&
+  if (BuildDefs::llvmIrAsInput() && IRFilename.length() >= LLSuffix.length() &&
       IRFilename.compare(IRFilename.length() - LLSuffix.length(),
                          LLSuffix.length(), LLSuffix) == 0)
     BuildOnRead = false;
@@ -112,7 +113,7 @@ void Compiler::run(const Ice::ClFlagsExtra &ExtraFlags, GlobalContext &Ctx,
         new llvm::StreamingMemoryObjectImpl(InputStream.release()));
     PTranslator->translate(IRFilename, std::move(MemObj));
     Translator.reset(PTranslator.release());
-  } else if (ALLOW_LLVM_IR) {
+  } else if (BuildDefs::llvmIr()) {
     if (PNACL_BROWSER_TRANSLATOR) {
       Ctx.getStrDump()
           << "non BuildOnRead is not supported w/ PNACL_BROWSER_TRANSLATOR\n";

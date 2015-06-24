@@ -32,14 +32,14 @@ Address Address::ofConstPool(Assembler *Asm, const Constant *Imm) {
 }
 
 AssemblerX8632::~AssemblerX8632() {
-#ifndef NDEBUG
-  for (const Label *Label : CfgNodeLabels) {
-    Label->FinalCheck();
+  if (BuildDefs::asserts()) {
+    for (const Label *Label : CfgNodeLabels) {
+      Label->FinalCheck();
+    }
+    for (const Label *Label : LocalLabels) {
+      Label->FinalCheck();
+    }
   }
-  for (const Label *Label : LocalLabels) {
-    Label->FinalCheck();
-  }
-#endif
 }
 
 void AssemblerX8632::alignFunction() {

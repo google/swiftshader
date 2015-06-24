@@ -80,14 +80,14 @@ private:
 };
 
 Ice::Ostream &operator<<(Ice::Ostream &Stream, const ExtendedType &Ty) {
-  if (!ALLOW_DUMP)
+  if (!Ice::BuildDefs::dump())
     return Stream;
   Ty.dump(Stream);
   return Stream;
 }
 
 Ice::Ostream &operator<<(Ice::Ostream &Stream, ExtendedType::TypeKind Kind) {
-  if (!ALLOW_DUMP)
+  if (!Ice::BuildDefs::dump())
     return Stream;
   Stream << "ExtendedType::";
   switch (Kind) {
@@ -136,7 +136,7 @@ public:
 };
 
 void ExtendedType::dump(Ice::Ostream &Stream) const {
-  if (!ALLOW_DUMP)
+  if (!Ice::BuildDefs::dump())
     return;
   Stream << Kind;
   switch (Kind) {
@@ -1564,7 +1564,7 @@ private:
 
   void dumpVectorIndexCheckValue(raw_ostream &Stream,
                                  VectorIndexCheckValue Value) const {
-    if (!ALLOW_DUMP)
+    if (!Ice::BuildDefs::dump())
       return;
     switch (Value) {
     case VectorIndexNotVector:
@@ -2838,7 +2838,7 @@ void FunctionValuesymtabParser::setValueName(NaClBcIndexSize_t Index,
     return;
   Ice::Operand *Op = getFunctionParser()->getOperand(Index);
   if (Ice::Variable *V = dyn_cast<Ice::Variable>(Op)) {
-    if (ALLOW_DUMP) {
+    if (Ice::BuildDefs::dump()) {
       std::string Nm(Name.data(), Name.size());
       V->setName(getFunctionParser()->getFunc(), Nm);
     }
@@ -2856,7 +2856,7 @@ void FunctionValuesymtabParser::setBbName(NaClBcIndexSize_t Index,
     return;
   }
   std::string Nm(Name.data(), Name.size());
-  if (ALLOW_DUMP)
+  if (Ice::BuildDefs::dump())
     getFunctionParser()->getFunc()->getNodes()[Index]->setName(Nm);
 }
 

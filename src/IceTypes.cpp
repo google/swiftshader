@@ -260,7 +260,7 @@ const char *typeString(Type Ty) {
 }
 
 void FuncSigType::dump(Ostream &Stream) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Stream << ReturnType << " (";
   bool IsFirst = true;

@@ -1,4 +1,4 @@
-//===- subzero/src/IceDefs.h - Common Subzero declaraions -------*- C++ -*-===//
+//===- subzero/src/IceDefs.h - Common Subzero declarations ------*- C++ -*-===//
 //
 //                        The Subzero Code Generator
 //
@@ -7,9 +7,8 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// This file declares various useful types and classes that have
-// widespread use across Subzero.  Every Subzero source file is
-// expected to include IceDefs.h.
+// This file declares various useful types and classes that have widespread use
+// across Subzero.  Every Subzero source file is expected to include IceDefs.h.
 //
 //===----------------------------------------------------------------------===//
 
@@ -41,6 +40,7 @@
 #include "llvm/Support/ELF.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include "IceBuildDefs.h" // TODO(stichnot): move into individual files
 #include "IceTLS.h"
 
 namespace Ice {

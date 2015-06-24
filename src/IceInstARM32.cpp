@@ -97,7 +97,7 @@ void InstARM32Pred::emitUnaryopGPR(const char *Opcode,
 
 void InstARM32Pred::emitTwoAddr(const char *Opcode, const InstARM32Pred *Inst,
                                 const Cfg *Func) {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(Inst->getSrcSize() == 2);
@@ -111,7 +111,7 @@ void InstARM32Pred::emitTwoAddr(const char *Opcode, const InstARM32Pred *Inst,
 
 void InstARM32Pred::emitThreeAddr(const char *Opcode, const InstARM32Pred *Inst,
                                   const Cfg *Func, bool SetFlags) {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(Inst->getSrcSize() == 2);
@@ -350,7 +350,7 @@ template <> const char *InstARM32Sbc::Opcode = "sbc";
 template <> const char *InstARM32Sub::Opcode = "sub";
 
 void InstARM32::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "[ARM32] ";
@@ -358,7 +358,7 @@ void InstARM32::dump(const Cfg *Func) const {
 }
 
 template <> void InstARM32Mov::emit(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 1);
@@ -396,7 +396,7 @@ template <> void InstARM32Mov::emitIAS(const Cfg *Func) const {
 }
 
 void InstARM32Br::emit(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << "\t"
@@ -419,7 +419,7 @@ void InstARM32Br::emitIAS(const Cfg *Func) const {
 }
 
 void InstARM32Br::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "br ";
@@ -436,7 +436,7 @@ void InstARM32Br::dump(const Cfg *Func) const {
 }
 
 void InstARM32Call::emit(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 1);
@@ -467,7 +467,7 @@ void InstARM32Call::emitIAS(const Cfg *Func) const {
 }
 
 void InstARM32Call::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   if (getDest()) {
@@ -479,7 +479,7 @@ void InstARM32Call::dump(const Cfg *Func) const {
 }
 
 void InstARM32Cmp::emit(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 2);
@@ -497,7 +497,7 @@ void InstARM32Cmp::emitIAS(const Cfg *Func) const {
 }
 
 void InstARM32Cmp::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpOpcodePred(Str, "cmp", getSrc(0)->getType());
@@ -505,7 +505,7 @@ void InstARM32Cmp::dump(const Cfg *Func) const {
 }
 
 void InstARM32Ldr::emit(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 1);
@@ -525,7 +525,7 @@ void InstARM32Ldr::emitIAS(const Cfg *Func) const {
 }
 
 void InstARM32Ldr::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
@@ -536,7 +536,7 @@ void InstARM32Ldr::dump(const Cfg *Func) const {
 }
 
 void InstARM32Mla::emit(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 3);
@@ -559,7 +559,7 @@ void InstARM32Mla::emitIAS(const Cfg *Func) const {
 }
 
 void InstARM32Mla::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
@@ -570,7 +570,7 @@ void InstARM32Mla::dump(const Cfg *Func) const {
 }
 
 template <> void InstARM32Movw::emit(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 1);
@@ -587,7 +587,7 @@ template <> void InstARM32Movw::emit(const Cfg *Func) const {
 }
 
 template <> void InstARM32Movt::emit(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 2);
@@ -605,7 +605,7 @@ template <> void InstARM32Movt::emit(const Cfg *Func) const {
 }
 
 void InstARM32Pop::emit(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   assert(Dests.size() > 0);
   Ostream &Str = Func->getContext()->getStrEmit();
@@ -626,7 +626,7 @@ void InstARM32Pop::emitIAS(const Cfg *Func) const {
 }
 
 void InstARM32Pop::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "pop"
@@ -639,7 +639,7 @@ void InstARM32Pop::dump(const Cfg *Func) const {
 }
 
 void InstARM32AdjustStack::emit(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 2);
@@ -661,7 +661,7 @@ void InstARM32AdjustStack::emitIAS(const Cfg *Func) const {
 }
 
 void InstARM32AdjustStack::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   getDest()->dump(Func);
@@ -672,7 +672,7 @@ void InstARM32AdjustStack::dump(const Cfg *Func) const {
 }
 
 void InstARM32Push::emit(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   assert(getSrcSize() > 0);
   Ostream &Str = Func->getContext()->getStrEmit();
@@ -689,7 +689,7 @@ void InstARM32Push::emitIAS(const Cfg *Func) const {
 }
 
 void InstARM32Push::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "push"
@@ -698,7 +698,7 @@ void InstARM32Push::dump(const Cfg *Func) const {
 }
 
 void InstARM32Ret::emit(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   assert(getSrcSize() > 0);
   Variable *LR = llvm::cast<Variable>(getSrc(0));
@@ -717,7 +717,7 @@ void InstARM32Ret::emitIAS(const Cfg *Func) const {
 }
 
 void InstARM32Ret::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   Type Ty = (getSrcSize() == 1 ? IceType_void : getSrc(0)->getType());
@@ -726,7 +726,7 @@ void InstARM32Ret::dump(const Cfg *Func) const {
 }
 
 void InstARM32Str::emit(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 2);
@@ -745,7 +745,7 @@ void InstARM32Str::emitIAS(const Cfg *Func) const {
 }
 
 void InstARM32Str::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   Type Ty = getSrc(0)->getType();
@@ -757,7 +757,7 @@ void InstARM32Str::dump(const Cfg *Func) const {
 }
 
 void InstARM32Umull::emit(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 2);
@@ -780,7 +780,7 @@ void InstARM32Umull::emitIAS(const Cfg *Func) const {
 }
 
 void InstARM32Umull::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
@@ -791,7 +791,7 @@ void InstARM32Umull::dump(const Cfg *Func) const {
 }
 
 void OperandARM32Mem::emit(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << "[";
@@ -834,7 +834,7 @@ void OperandARM32Mem::emit(const Cfg *Func) const {
 }
 
 void OperandARM32Mem::dump(const Cfg *Func, Ostream &Str) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Str << "[";
   if (Func)
@@ -861,7 +861,7 @@ void OperandARM32Mem::dump(const Cfg *Func, Ostream &Str) const {
 }
 
 void OperandARM32FlexImm::emit(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   uint32_t Imm = getImm();
@@ -870,7 +870,7 @@ void OperandARM32FlexImm::emit(const Cfg *Func) const {
 }
 
 void OperandARM32FlexImm::dump(const Cfg * /* Func */, Ostream &Str) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   uint32_t Imm = getImm();
   uint32_t RotateAmt = getRotateAmt();
@@ -878,7 +878,7 @@ void OperandARM32FlexImm::dump(const Cfg * /* Func */, Ostream &Str) const {
 }
 
 void OperandARM32FlexReg::emit(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   getReg()->emit(Func);
@@ -889,7 +889,7 @@ void OperandARM32FlexReg::emit(const Cfg *Func) const {
 }
 
 void OperandARM32FlexReg::dump(const Cfg *Func, Ostream &Str) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Variable *Reg = getReg();
   if (Func)

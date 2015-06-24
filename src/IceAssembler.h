@@ -63,49 +63,42 @@ public:
   intptr_t size() const { return Cursor - Contents; }
   uintptr_t contents() const { return Contents; }
 
-// To emit an instruction to the assembler buffer, the EnsureCapacity helper
-// must be used to guarantee that the underlying data area is big enough to
-// hold the emitted instruction. Usage:
-//
-//     AssemblerBuffer buffer;
-//     AssemblerBuffer::EnsureCapacity ensured(&buffer);
-//     ... emit bytes for single instruction ...
+  // To emit an instruction to the assembler buffer, the EnsureCapacity helper
+  // must be used to guarantee that the underlying data area is big enough to
+  // hold the emitted instruction. Usage:
+  //
+  //     AssemblerBuffer buffer;
+  //     AssemblerBuffer::EnsureCapacity ensured(&buffer);
+  //     ... emit bytes for single instruction ...
 
-#ifndef NDEBUG
   class EnsureCapacity {
     EnsureCapacity(const EnsureCapacity &) = delete;
     EnsureCapacity &operator=(const EnsureCapacity &) = delete;
 
   public:
-    explicit EnsureCapacity(AssemblerBuffer *Buffer);
+    explicit EnsureCapacity(AssemblerBuffer *Buffer) : Buffer(Buffer) {
+      if (Buffer->cursor() >= Buffer->limit())
+        Buffer->extendCapacity();
+      if (BuildDefs::asserts())
+        validate(Buffer);
+    }
     ~EnsureCapacity();
 
   private:
     AssemblerBuffer *Buffer;
-    intptr_t Gap;
+    intptr_t Gap = 0;
 
+    void validate(AssemblerBuffer *Buffer);
     intptr_t computeGap() { return Buffer->capacity() - Buffer->size(); }
   };
 
   bool HasEnsuredCapacity;
-  bool hasEnsuredCapacity() const { return HasEnsuredCapacity; }
-#else  // NDEBUG
-  class EnsureCapacity {
-    EnsureCapacity(const EnsureCapacity &) = delete;
-    EnsureCapacity &operator=(const EnsureCapacity &) = delete;
-
-  public:
-    explicit EnsureCapacity(AssemblerBuffer *Buffer) {
-      if (Buffer->cursor() >= Buffer->limit())
-        Buffer->extendCapacity();
-    }
-  };
-
-  // When building the C++ tests, assertion code is enabled. To allow
-  // asserting that the user of the assembler buffer has ensured the
-  // capacity needed for emitting, we add a dummy method in non-debug mode.
-  bool hasEnsuredCapacity() const { return true; }
-#endif // NDEBUG
+  bool hasEnsuredCapacity() const {
+    if (BuildDefs::asserts())
+      return HasEnsuredCapacity;
+    // Disable the actual check in non-debug mode.
+    return true;
+  }
 
   // Returns the position in the instruction stream.
   intptr_t getPosition() const { return Cursor - Contents; }
@@ -124,7 +117,7 @@ private:
   // The limit is set to kMinimumGap bytes before the end of the data area.
   // This leaves enough space for the longest possible instruction and allows
   // for a single, fast space check per instruction.
-  static const intptr_t kMinimumGap = 32;
+  static constexpr intptr_t kMinimumGap = 32;
 
   uintptr_t Contents;
   uintptr_t Cursor;

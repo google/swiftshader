@@ -27,7 +27,7 @@ char hexdigit(unsigned X) { return X < 10 ? '0' + X : 'A' + X - 10; }
 
 void dumpLinkage(Ice::Ostream &Stream,
                  llvm::GlobalValue::LinkageTypes Linkage) {
-  if (!ALLOW_DUMP)
+  if (!Ice::BuildDefs::dump())
     return;
   switch (Linkage) {
   case llvm::GlobalValue::ExternalLinkage:
@@ -46,7 +46,7 @@ void dumpLinkage(Ice::Ostream &Stream,
 }
 
 void dumpCallingConv(Ice::Ostream &, llvm::CallingConv::ID CallingConv) {
-  if (!ALLOW_DUMP)
+  if (!Ice::BuildDefs::dump())
     return;
   if (CallingConv == llvm::CallingConv::C)
     return;
@@ -61,13 +61,13 @@ void dumpCallingConv(Ice::Ostream &, llvm::CallingConv::ID CallingConv) {
 namespace Ice {
 
 void FunctionDeclaration::dumpType(Ostream &Stream) const {
-  if (!ALLOW_DUMP)
+  if (!Ice::BuildDefs::dump())
     return;
   Stream << Signature;
 }
 
 void FunctionDeclaration::dump(GlobalContext *Ctx, Ostream &Stream) const {
-  if (!ALLOW_DUMP)
+  if (!Ice::BuildDefs::dump())
     return;
   if (IsProto)
     Stream << "declare ";
@@ -87,7 +87,7 @@ void FunctionDeclaration::dump(GlobalContext *Ctx, Ostream &Stream) const {
 }
 
 void VariableDeclaration::dumpType(Ostream &Stream) const {
-  if (!ALLOW_DUMP)
+  if (!Ice::BuildDefs::dump())
     return;
   if (Initializers->size() == 1) {
     Initializers->front()->dumpType(Stream);
@@ -107,7 +107,7 @@ void VariableDeclaration::dumpType(Ostream &Stream) const {
 }
 
 void VariableDeclaration::dump(GlobalContext *Ctx, Ostream &Stream) const {
-  if (!ALLOW_DUMP)
+  if (!Ice::BuildDefs::dump())
     return;
   Stream << "@"
          << ((Ctx && !getSuppressMangling()) ? Ctx->mangleName(Name) : Name)
@@ -140,14 +140,14 @@ void VariableDeclaration::dump(GlobalContext *Ctx, Ostream &Stream) const {
 }
 
 void VariableDeclaration::Initializer::dumpType(Ostream &Stream) const {
-  if (!ALLOW_DUMP)
+  if (!Ice::BuildDefs::dump())
     return;
   Stream << "[" << getNumBytes() << " x " << Ice::IceType_i8 << "]";
 }
 
 void VariableDeclaration::DataInitializer::dump(GlobalContext *,
                                                 Ostream &Stream) const {
-  if (!ALLOW_DUMP)
+  if (!Ice::BuildDefs::dump())
     return;
   dumpType(Stream);
   Stream << " c\"";
@@ -165,21 +165,21 @@ void VariableDeclaration::DataInitializer::dump(GlobalContext *,
 
 void VariableDeclaration::ZeroInitializer::dump(GlobalContext *,
                                                 Ostream &Stream) const {
-  if (!ALLOW_DUMP)
+  if (!Ice::BuildDefs::dump())
     return;
   dumpType(Stream);
   Stream << " zeroinitializer";
 }
 
 void VariableDeclaration::RelocInitializer::dumpType(Ostream &Stream) const {
-  if (!ALLOW_DUMP)
+  if (!Ice::BuildDefs::dump())
     return;
   Stream << Ice::IceType_i32;
 }
 
 void VariableDeclaration::RelocInitializer::dump(GlobalContext *Ctx,
                                                  Ostream &Stream) const {
-  if (!ALLOW_DUMP)
+  if (!Ice::BuildDefs::dump())
     return;
   if (Offset != 0) {
     dumpType(Stream);

@@ -222,7 +222,7 @@ void CfgNode::deletePhis() {
 // operand list.
 CfgNode *CfgNode::splitIncomingEdge(CfgNode *Pred, SizeT EdgeIndex) {
   CfgNode *NewNode = Func->makeNode();
-  if (ALLOW_DUMP)
+  if (BuildDefs::dump())
     NewNode->setName("split_" + Pred->getName() + "_" + getName() + "_" +
                      std::to_string(EdgeIndex));
   // The new node is added to the end of the node list, and will later
@@ -437,7 +437,7 @@ void CfgNode::advancedPhiLowering() {
           if (Desc[J].NumPred && sameVarOrReg(Dest, OtherSrc)) {
             SizeT VarNum = Func->getNumVariables();
             Variable *Tmp = Func->makeVariable(OtherSrc->getType());
-            if (ALLOW_DUMP)
+            if (BuildDefs::dump())
               Tmp->setName(Func, "__split_" + std::to_string(VarNum));
             Assignments.push_back(InstAssign::create(Func, Tmp, OtherSrc));
             Desc[J].Src = Tmp;
@@ -609,7 +609,7 @@ bool CfgNode::liveness(Liveness *Liveness) {
   // entry.
   bool IsEntry = (Func->getEntryNode() == this);
   if (!(IsEntry || Live == LiveOrig)) {
-    if (ALLOW_DUMP) {
+    if (BuildDefs::dump()) {
       // This is a fatal liveness consistency error.  Print some
       // diagnostics and abort.
       Ostream &Str = Func->getContext()->getStrDump();
@@ -782,7 +782,7 @@ namespace {
 
 void emitRegisterUsage(Ostream &Str, const Cfg *Func, const CfgNode *Node,
                        bool IsLiveIn, std::vector<SizeT> &LiveRegCount) {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Liveness *Liveness = Func->getLiveness();
   const LivenessBV *Live;
@@ -824,7 +824,7 @@ void emitRegisterUsage(Ostream &Str, const Cfg *Func, const CfgNode *Node,
 
 void emitLiveRangesEnded(Ostream &Str, const Cfg *Func, const Inst *Instr,
                          std::vector<SizeT> &LiveRegCount) {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   bool First = true;
   Variable *Dest = Instr->getDest();
@@ -860,7 +860,7 @@ void emitLiveRangesEnded(Ostream &Str, const Cfg *Func, const Inst *Instr,
 }
 
 void updateStats(Cfg *Func, const Inst *I) {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   // Update emitted instruction count, plus fill/spill count for
   // Variable operands without a physical register.
@@ -882,7 +882,7 @@ void updateStats(Cfg *Func, const Inst *I) {
 } // end of anonymous namespace
 
 void CfgNode::emit(Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Func->setCurrentNode(this);
   Ostream &Str = Func->getContext()->getStrEmit();
@@ -1163,7 +1163,7 @@ void CfgNode::emitIAS(Cfg *Func) const {
 }
 
 void CfgNode::dump(Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Func->setCurrentNode(this);
   Ostream &Str = Func->getContext()->getStrDump();

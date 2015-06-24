@@ -75,4 +75,4 @@ private:
 };
 } // end of namespace Ice
 
-#endif  // SUBZERO_SRC_ICETARGETLOWERINGX8664_H
+#endif // SUBZERO_SRC_ICETARGETLOWERINGX8664_H

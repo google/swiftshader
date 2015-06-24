@@ -143,7 +143,7 @@ void Cfg::translate() {
   // FunctionTimer conditionally pushes/pops a TimerMarker if
   // TimeEachFunction is enabled.
   std::unique_ptr<TimerMarker> FunctionTimer;
-  if (ALLOW_DUMP) {
+  if (BuildDefs::dump()) {
     const IceString &TimingFocusOn =
         getContext()->getFlags().getTimingFocusOn();
     const IceString &Name = getFunctionName();
@@ -532,7 +532,7 @@ void Cfg::doBranchOpt() {
 // the target lowering class.
 void Cfg::emitTextHeader(const IceString &MangledName, GlobalContext *Ctx,
                          const Assembler *Asm) {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Ctx->getStrEmit();
   Str << "\t.text\n";
@@ -551,7 +551,7 @@ void Cfg::emitTextHeader(const IceString &MangledName, GlobalContext *Ctx,
 }
 
 void Cfg::emit() {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   TimerMarker T(TimerStack::TT_emit, this);
   if (Ctx->getFlags().getDecorateAsm()) {
@@ -579,7 +579,7 @@ void Cfg::emitIAS() {
 
 // Dumps the IR with an optional introductory message.
 void Cfg::dump(const IceString &Message) {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   if (!isVerbose())
     return;

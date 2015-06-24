@@ -91,13 +91,17 @@ bool LiveRange::overlapsInst(InstNumberT OtherBegin, bool UseTrimmed) const {
       break;
     }
   }
-#if 0
-  // An equivalent but less inefficient implementation:
-  LiveRange Temp;
-  Temp.addSegment(OtherBegin, OtherBegin + 1);
-  bool Validation = overlaps(Temp);
-  assert(Result == Validation);
-#endif
+  // This is an equivalent but less inefficient implementation.  It's
+  // expensive enough that we wouldn't want to run it under any build,
+  // but it could be enabled if e.g. the LiveRange implementation
+  // changes and extra testing is needed.
+  if (BuildDefs::extraValidation()) {
+    LiveRange Temp;
+    Temp.addSegment(OtherBegin, OtherBegin + 1);
+    bool Validation = overlaps(Temp);
+    (void)Validation;
+    assert(Result == Validation);
+  }
   return Result;
 }
 
@@ -129,7 +133,7 @@ IceString Variable::getName(const Cfg *Func) const {
 Variable *Variable::asType(Type Ty) {
   // Note: This returns a Variable, even if the "this" object is a
   // subclass of Variable.
-  if (!ALLOW_DUMP || getType() == Ty)
+  if (!BuildDefs::dump() || getType() == Ty)
     return this;
   Variable *V = new (getCurrentCfgAllocator()->Allocate<Variable>())
       Variable(kVariable, Ty, Number);
@@ -388,12 +392,12 @@ const InstDefList VariablesMetadata::NoDefinitions;
 // ======================== dump routines ======================== //
 
 void Variable::emit(const Cfg *Func) const {
-  if (ALLOW_DUMP)
+  if (BuildDefs::dump())
     Func->getTarget()->emitVariable(this);
 }
 
 void Variable::dump(const Cfg *Func, Ostream &Str) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   if (Func == nullptr) {
     Str << "%" << getName(Func);
@@ -447,7 +451,7 @@ void ConstantRelocatable::emitWithoutPrefix(TargetLowering *Target) const {
 }
 
 void ConstantRelocatable::dump(const Cfg *Func, Ostream &Str) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Str << "@";
   if (Func && !SuppressMangling) {
@@ -462,7 +466,7 @@ void ConstantRelocatable::dump(const Cfg *Func, Ostream &Str) const {
 void ConstantUndef::emit(TargetLowering *Target) const { Target->emit(this); }
 
 void LiveRange::dump(Ostream &Str) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Str << "(weight=" << Weight << ") ";
   bool First = true;
@@ -475,14 +479,14 @@ void LiveRange::dump(Ostream &Str) const {
 }
 
 Ostream &operator<<(Ostream &Str, const LiveRange &L) {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return Str;
   L.dump(Str);
   return Str;
 }
 
 Ostream &operator<<(Ostream &Str, const RegWeight &W) {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return Str;
   if (W.getWeight() == RegWeight::Inf)
     Str << "Inf";

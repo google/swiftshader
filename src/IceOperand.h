@@ -69,13 +69,13 @@ public:
   // situation where Func==nullptr.
   virtual void dump(const Cfg *Func, Ostream &Str) const = 0;
   void dump(const Cfg *Func) const {
-    if (!ALLOW_DUMP)
+    if (!BuildDefs::dump())
       return;
     assert(Func);
     dump(Func, Func->getContext()->getStrDump());
   }
   void dump(Ostream &Str) const {
-    if (ALLOW_DUMP)
+    if (BuildDefs::dump())
       dump(nullptr, Str);
   }
 
@@ -163,7 +163,7 @@ public:
   void emit(TargetLowering *Target) const final;
   using Constant::dump;
   void dump(const Cfg *, Ostream &Str) const override {
-    if (ALLOW_DUMP)
+    if (BuildDefs::dump())
       Str << getValue();
   }
 
@@ -189,7 +189,7 @@ typedef ConstantPrimitive<double, Operand::kConstDouble> ConstantDouble;
 
 template <>
 inline void ConstantInteger32::dump(const Cfg *, Ostream &Str) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   if (getType() == IceType_i1)
     Str << (getValue() ? "true" : "false");
@@ -203,7 +203,7 @@ bool ConstantInteger32::shouldBeRandomizedOrPooled(const GlobalContext *Ctx);
 
 template <>
 inline void ConstantInteger64::dump(const Cfg *, Ostream &Str) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   assert(getType() == IceType_i64);
   Str << static_cast<int64_t>(getValue());
@@ -292,7 +292,7 @@ public:
   void emit(TargetLowering *Target) const final;
   using Constant::dump;
   void dump(const Cfg *, Ostream &Str) const override {
-    if (ALLOW_DUMP)
+    if (BuildDefs::dump())
       Str << "undef";
   }
 

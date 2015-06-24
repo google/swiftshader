@@ -167,7 +167,7 @@ private:
       return nullptr;
     if (VarMap.find(V) == VarMap.end()) {
       VarMap[V] = Func->makeVariable(IceTy);
-      if (ALLOW_DUMP)
+      if (Ice::BuildDefs::dump())
         VarMap[V]->setName(Func.get(), V->getName());
     }
     return VarMap[V];
@@ -180,7 +180,7 @@ private:
   Ice::CfgNode *mapBasicBlockToNode(const BasicBlock *BB) {
     if (NodeMap.find(BB) == NodeMap.end()) {
       NodeMap[BB] = Func->makeNode();
-      if (ALLOW_DUMP)
+      if (Ice::BuildDefs::dump())
         NodeMap[BB]->setName(BB->getName());
     }
     return NodeMap[BB];

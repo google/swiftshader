@@ -45,15 +45,11 @@ AssemblerFixup *AssemblerBuffer::createFixup(FixupKind Kind,
   return F;
 }
 
-#ifndef NDEBUG
-AssemblerBuffer::EnsureCapacity::EnsureCapacity(AssemblerBuffer *buffer) {
-  if (buffer->cursor() >= buffer->limit())
-    buffer->extendCapacity();
+void AssemblerBuffer::EnsureCapacity::validate(AssemblerBuffer *buffer) {
   // In debug mode, we save the assembler buffer along with the gap
   // size before we start emitting to the buffer. This allows us to
   // check that any single generated instruction doesn't overflow the
   // limit implied by the minimum gap size.
-  Buffer = buffer;
   Gap = computeGap();
   // Make sure that extending the capacity leaves a big enough gap
   // for any kind of instruction.
@@ -69,9 +65,9 @@ AssemblerBuffer::EnsureCapacity::~EnsureCapacity() {
   // Make sure the generated instruction doesn't take up more
   // space than the minimum gap.
   intptr_t delta = Gap - computeGap();
+  (void)delta;
   assert(delta <= kMinimumGap);
 }
-#endif // !NDEBUG
 
 AssemblerBuffer::AssemblerBuffer(Assembler &Asm) : Assemblr(Asm) {
   const intptr_t OneKB = 1024;
@@ -79,9 +75,7 @@ AssemblerBuffer::AssemblerBuffer(Assembler &Asm) : Assemblr(Asm) {
   Contents = NewContents(Assemblr, kInitialBufferCapacity);
   Cursor = Contents;
   Limit = computeLimit(Contents, kInitialBufferCapacity);
-#ifndef NDEBUG
   HasEnsuredCapacity = false;
-#endif // !NDEBUG
 
   // Verify internal state.
   assert(capacity() == kInitialBufferCapacity);

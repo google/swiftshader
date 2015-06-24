@@ -198,7 +198,7 @@ public:
 };
 
 void GlobalContext::CodeStats::dump(const IceString &Name, Ostream &Str) {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
 #define X(str, tag)                                                            \
   Str << "|" << Name << "|" str "|" << Stats[CS_##tag] << "\n";
@@ -240,7 +240,7 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit, Ostream *OsError,
   AllThreadContexts.push_back(MyTLS);
   ICE_TLS_SET_FIELD(TLS, MyTLS);
   // Pre-register built-in stack names.
-  if (ALLOW_DUMP) {
+  if (BuildDefs::dump()) {
     // TODO(stichnot): There needs to be a strong relationship between
     // the newTimerStackID() return values and TSK_Default/TSK_Funcs.
     newTimerStackID("Total across all functions");
@@ -369,7 +369,7 @@ void GlobalContext::emitFileHeader() {
   if (getFlags().getOutFileType() == FT_Elf) {
     getObjectWriter()->writeInitialELFHeader();
   } else {
-    if (!ALLOW_DUMP) {
+    if (!BuildDefs::dump()) {
       getStrError() << "emitFileHeader for non-ELF";
       getErrorStatus()->assign(EC_Translation);
     }
@@ -381,8 +381,8 @@ void GlobalContext::lowerConstants() { DataLowering->lowerConstants(); }
 
 void GlobalContext::lowerGlobals(const IceString &SectionSuffix) {
   TimerMarker T(TimerStack::TT_emitGlobalInitializers, this);
-  const bool DumpGlobalVariables =
-      ALLOW_DUMP && Flags.getVerbose() && Flags.getVerboseFocusOn().empty();
+  const bool DumpGlobalVariables = BuildDefs::dump() && Flags.getVerbose() &&
+                                   Flags.getVerboseFocusOn().empty();
   if (DumpGlobalVariables) {
     OstreamLocker L(this);
     Ostream &Stream = getStrDump();
@@ -473,7 +473,7 @@ void GlobalContext::emitItems() {
       }
     } break;
     case EmitterWorkItem::WI_Cfg: {
-      if (!ALLOW_DUMP)
+      if (!BuildDefs::dump())
         llvm::report_fatal_error("WI_Cfg work item created inappropriately");
       lowerGlobalsIfNoCodeHasBeenSeen();
       accumulateGlobals(Item->getGlobalInits());
@@ -596,7 +596,7 @@ IceString GlobalContext::mangleName(const IceString &Name) const {
   //   _Z3barxyz ==> ZN6Prefix3barExyz
   // An unmangled, extern "C" style name, gets a simple prefix:
   //   bar ==> Prefixbar
-  if (!ALLOW_DUMP || getFlags().getTestPrefix().empty())
+  if (!BuildDefs::dump() || getFlags().getTestPrefix().empty())
     return Name;
 
   const IceString &TestPrefix = getFlags().getTestPrefix();
@@ -815,7 +815,7 @@ ConstantList GlobalContext::getConstantExternSyms() {
 }
 
 TimerStackIdT GlobalContext::newTimerStackID(const IceString &Name) {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return 0;
   auto Timers = getTimers();
   TimerStackIdT NewID = Timers->size();
@@ -894,7 +894,7 @@ void GlobalContext::dumpStats(const IceString &Name, bool Final) {
 }
 
 void GlobalContext::dumpTimers(TimerStackIdT StackID, bool DumpCumulative) {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   auto Timers = getTimers();
   assert(Timers->size() > StackID);

@@ -115,7 +115,7 @@ class GlobalContext {
     // timers, in the same order, with the same names, but initially
     // empty of timing data.
     void initInto(TimerList &Dest) const {
-      if (!ALLOW_DUMP)
+      if (!BuildDefs::dump())
         return;
       Dest.clear();
       for (const TimerStack &Stack : *this) {
@@ -123,7 +123,7 @@ class GlobalContext {
       }
     }
     void mergeFrom(TimerList &Src) {
-      if (!ALLOW_DUMP)
+      if (!BuildDefs::dump())
         return;
       assert(size() == Src.size());
       size_type i = 0;
@@ -243,7 +243,7 @@ public:
 
   // Reset stats at the beginning of a function.
   void resetStats() {
-    if (ALLOW_DUMP)
+    if (BuildDefs::dump())
       ICE_TLS_GET_FIELD(TLS)->StatsFunction.reset();
   }
   void dumpStats(const IceString &Name, bool Final = false);
@@ -380,12 +380,12 @@ public:
     }
     EmitterThreads.clear();
 
-    if (ALLOW_DUMP) {
+    if (BuildDefs::dump()) {
       auto Timers = getTimers();
       for (ThreadContext *TLS : AllThreadContexts)
         Timers->mergeFrom(TLS->Timers);
     }
-    if (ALLOW_DUMP) {
+    if (BuildDefs::dump()) {
       // Do a separate loop over AllThreadContexts to avoid holding
       // two locks at once.
       auto Stats = getStatsCumulative();
@@ -560,19 +560,19 @@ public:
   TimerMarker(TimerIdT ID, GlobalContext *Ctx,
               TimerStackIdT StackID = GlobalContext::TSK_Default)
       : ID(ID), Ctx(Ctx), StackID(StackID) {
-    if (ALLOW_DUMP)
+    if (BuildDefs::dump())
       push();
   }
   TimerMarker(TimerIdT ID, const Cfg *Func,
               TimerStackIdT StackID = GlobalContext::TSK_Default)
       : ID(ID), Ctx(nullptr), StackID(StackID) {
     // Ctx gets set at the beginning of pushCfg().
-    if (ALLOW_DUMP)
+    if (BuildDefs::dump())
       pushCfg(Func);
   }
 
   ~TimerMarker() {
-    if (ALLOW_DUMP && Active)
+    if (BuildDefs::dump() && Active)
       Ctx->popTimer(ID, StackID);
   }
 

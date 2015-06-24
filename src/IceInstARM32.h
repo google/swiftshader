@@ -52,7 +52,7 @@ public:
 
   using Operand::dump;
   void dump(const Cfg *, Ostream &Str) const override {
-    if (ALLOW_DUMP)
+    if (BuildDefs::dump())
       Str << "<OperandARM32>";
   }
 
@@ -347,7 +347,7 @@ public:
         InstARM32UnaryopGPR(Func, Dest, Src, Predicate);
   }
   void emit(const Cfg *Func) const override {
-    if (!ALLOW_DUMP)
+    if (!BuildDefs::dump())
       return;
     emitUnaryopGPR(Opcode, this, Func);
   }
@@ -356,7 +356,7 @@ public:
     llvm_unreachable("Not yet implemented");
   }
   void dump(const Cfg *Func) const override {
-    if (!ALLOW_DUMP)
+    if (!BuildDefs::dump())
       return;
     Ostream &Str = Func->getContext()->getStrDump();
     dumpDest(Func);
@@ -392,7 +392,7 @@ public:
         InstARM32TwoAddrGPR(Func, Dest, Src, Predicate);
   }
   void emit(const Cfg *Func) const override {
-    if (!ALLOW_DUMP)
+    if (!BuildDefs::dump())
       return;
     emitTwoAddr(Opcode, this, Func);
   }
@@ -401,7 +401,7 @@ public:
     llvm::report_fatal_error("Not yet implemented");
   }
   void dump(const Cfg *Func) const override {
-    if (!ALLOW_DUMP)
+    if (!BuildDefs::dump())
       return;
     Ostream &Str = Func->getContext()->getStrDump();
     dumpDest(Func);
@@ -444,7 +444,7 @@ public:
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override {
-    if (!ALLOW_DUMP)
+    if (!BuildDefs::dump())
       return;
     Ostream &Str = Func->getContext()->getStrDump();
     dumpOpcodePred(Str, Opcode, getDest()->getType());
@@ -484,7 +484,7 @@ public:
         InstARM32ThreeAddrGPR(Func, Dest, Src1, Src2, Predicate, SetFlags);
   }
   void emit(const Cfg *Func) const override {
-    if (!ALLOW_DUMP)
+    if (!BuildDefs::dump())
       return;
     emitThreeAddr(Opcode, this, Func, SetFlags);
   }
@@ -493,7 +493,7 @@ public:
     llvm::report_fatal_error("Not yet implemented");
   }
   void dump(const Cfg *Func) const override {
-    if (!ALLOW_DUMP)
+    if (!BuildDefs::dump())
       return;
     Ostream &Str = Func->getContext()->getStrDump();
     dumpDest(Func);

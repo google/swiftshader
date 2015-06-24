@@ -452,7 +452,7 @@ void TargetARM32::lowerArguments() {
       Variable *RegisterArg = Func->makeVariable(Ty);
       Variable *RegisterLo = Func->makeVariable(IceType_i32);
       Variable *RegisterHi = Func->makeVariable(IceType_i32);
-      if (ALLOW_DUMP) {
+      if (BuildDefs::dump()) {
         RegisterArg->setName(Func, "home_reg:" + Arg->getName(Func));
         RegisterLo->setName(Func, "home_reg_lo:" + Arg->getName(Func));
         RegisterHi->setName(Func, "home_reg_hi:" + Arg->getName(Func));
@@ -474,7 +474,7 @@ void TargetARM32::lowerArguments() {
       if (!CC.I32InReg(&RegNum))
         continue;
       Variable *RegisterArg = Func->makeVariable(Ty);
-      if (ALLOW_DUMP) {
+      if (BuildDefs::dump()) {
         RegisterArg->setName(Func, "home_reg:" + Arg->getName(Func));
       }
       RegisterArg->setRegNum(RegNum);
@@ -716,7 +716,7 @@ void TargetARM32::addProlog(CfgNode *Node) {
                       UsesFramePointer);
   this->HasComputedFrame = true;
 
-  if (ALLOW_DUMP && Func->isVerbose(IceV_Frame)) {
+  if (BuildDefs::dump() && Func->isVerbose(IceV_Frame)) {
     OstreamLocker L(Func->getContext());
     Ostream &Str = Func->getContext()->getStrDump();
 
@@ -834,7 +834,7 @@ void TargetARM32::split64(Variable *Var) {
   assert(Hi == nullptr);
   Lo = Func->makeVariable(IceType_i32);
   Hi = Func->makeVariable(IceType_i32);
-  if (ALLOW_DUMP) {
+  if (BuildDefs::dump()) {
     Lo->setName(Func, Var->getName(Func) + "__lo");
     Hi->setName(Func, Var->getName(Func) + "__hi");
   }
@@ -2292,7 +2292,7 @@ void TargetARM32::makeRandomRegisterPermutation(
 }
 
 void TargetARM32::emit(const ConstantInteger32 *C) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Ctx->getStrEmit();
   Str << getConstantPrefix() << C->getValue();
