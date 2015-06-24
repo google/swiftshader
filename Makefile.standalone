@@ -89,10 +89,8 @@ endif
 ifdef TEXTUAL_BITCODE
   BASE_CXX_DEFINES += -DINPUT_IS_TEXTUAL_BITCODE=1
   OBJDIR := $(OBJDIR)+Tbc
-  TEXTBC_LIBS = -LLVMNaClBitTestUtils
 else
   BASE_CXX_DEFINES += -DINPUT_IS_TEXTUAL_BITCODE=0
-  TEXTBC_LIBS =
 endif
 
 SB_CXX_DEFINES := $(BASE_CXX_DEFINES) -DPNACL_BROWSER_TRANSLATOR=1
@@ -139,7 +137,7 @@ LLVM_LIBS_LIST := -lLLVMIRReader -lLLVMBitReader -lLLVMNaClBitTestUtils \
 
 ifeq ($(AUTOCONF), 0)
   # LLVM cmake build
-  LLVM_LIBS := $(LLVM_LIBS_LIST) $(TEXTBC_LIBS)
+  LLVM_LIBS := $(LLVM_LIBS_LIST)
   # For the cmake build, the gtest libs end up in the same place as the LLVM
   # libs, so no "-L..." arg is needed.
   GTEST_LIB_PATH ?=
