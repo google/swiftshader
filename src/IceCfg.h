@@ -104,6 +104,8 @@ public:
   // Manage Variables.
   // Create a new Variable with a particular type and an optional
   // name.  The Node argument is the node where the variable is defined.
+  // TODO(jpp): untemplate this with two separate methods: makeVariable and
+  // makeSpillVariable.
   template <typename T = Variable> T *makeVariable(Type Ty) {
     SizeT Index = Variables.size();
     T *Var = T::create(this, Ty, Index);

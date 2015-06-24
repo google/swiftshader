@@ -589,7 +589,7 @@ template <class Machine> void TargetX86Base<Machine>::findRMW() {
               Store->dump(Func);
               Str << "\n";
             }
-            Variable *Beacon = Func->makeVariable(IceType_i32);
+            Variable *Beacon = Func->template makeVariable(IceType_i32);
             Beacon->setWeight(0);
             Store->setRmwBeacon(Beacon);
             InstFakeDef *BeaconDef = InstFakeDef::create(Func, Beacon);
@@ -746,7 +746,7 @@ Variable *TargetX86Base<Machine>::getPhysicalRegister(SizeT RegNum, Type Ty) {
   assert(RegNum < PhysicalRegisters[Ty].size());
   Variable *Reg = PhysicalRegisters[Ty][RegNum];
   if (Reg == nullptr) {
-    Reg = Func->makeVariable(Ty);
+    Reg = Func->template makeVariable(Ty);
     Reg->setRegNum(RegNum);
     PhysicalRegisters[Ty][RegNum] = Reg;
     // Specially mark esp as an "argument" so that it is considered
@@ -841,7 +841,7 @@ template <class Machine> void TargetX86Base<Machine>::lowerArguments() {
     // to the assigned location of Arg.
     int32_t RegNum = RegX8632::Reg_xmm0 + NumXmmArgs;
     ++NumXmmArgs;
-    Variable *RegisterArg = Func->makeVariable(Ty);
+    Variable *RegisterArg = Func->template makeVariable(Ty);
     if (BuildDefs::dump())
       RegisterArg->setName(Func, "home_reg:" + Arg->getName(Func));
     RegisterArg->setRegNum(RegNum);
@@ -1188,8 +1188,8 @@ template <class Machine> void TargetX86Base<Machine>::split64(Variable *Var) {
     return;
   }
   assert(Hi == nullptr);
-  Lo = Func->makeVariable(IceType_i32);
-  Hi = Func->makeVariable(IceType_i32);
+  Lo = Func->template makeVariable(IceType_i32);
+  Hi = Func->template makeVariable(IceType_i32);
   if (BuildDefs::dump()) {
     Lo->setName(Func, Var->getName(Func) + "__lo");
     Hi->setName(Func, Var->getName(Func) + "__hi");
@@ -2725,7 +2725,8 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       Variable *T = nullptr;
       // TODO: Should be able to force a spill setup by calling legalize() with
       // Legal_Mem and not Legal_Reg or Legal_Imm.
-      SpillVariable *SpillVar = Func->makeVariable<SpillVariable>(SrcType);
+      SpillVariable *SpillVar =
+          Func->template makeVariable<SpillVariable>(SrcType);
       SpillVar->setLinkedTo(Dest);
       Variable *Spill = SpillVar;
       Spill->setWeight(RegWeight::Zero);
@@ -2745,7 +2746,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       Operand *SpillLo, *SpillHi;
       if (auto *Src0Var = llvm::dyn_cast<Variable>(Src0RM)) {
         SpillVariable *SpillVar =
-            Func->makeVariable<SpillVariable>(IceType_f64);
+            Func->template makeVariable<SpillVariable>(IceType_f64);
         SpillVar->setLinkedTo(Src0Var);
         Variable *Spill = SpillVar;
         Spill->setWeight(RegWeight::Zero);
@@ -2771,7 +2772,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       Src0 = legalize(Src0);
       assert(Src0->getType() == IceType_i64);
       if (llvm::isa<OperandX8632Mem>(Src0)) {
-        Variable *T = Func->makeVariable(Dest->getType());
+        Variable *T = Func->template makeVariable(Dest->getType());
         _movq(T, Src0);
         _movq(Dest, T);
         break;
@@ -2783,7 +2784,8 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       //   t_hi.i32 = b_hi.i32
       //   hi(s.f64) = t_hi.i32
       //   a.f64 = s.f64
-      SpillVariable *SpillVar = Func->makeVariable<SpillVariable>(IceType_f64);
+      SpillVariable *SpillVar =
+          Func->template makeVariable<SpillVariable>(IceType_f64);
       SpillVar->setLinkedTo(Dest);
       Variable *Spill = SpillVar;
       Spill->setWeight(RegWeight::Zero);
@@ -2806,7 +2808,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
     case IceType_v8i1: {
       assert(Src0->getType() == IceType_i8);
       InstCall *Call = makeHelperCall(H_bitcast_i8_8xi1, Dest, 1);
-      Variable *Src0AsI32 = Func->makeVariable(stackSlotType());
+      Variable *Src0AsI32 = Func->template makeVariable(stackSlotType());
       // Arguments to functions are required to be at least 32 bits wide.
       lowerCast(InstCast::create(Func, InstCast::Zext, Src0AsI32, Src0));
       Call->addArg(Src0AsI32);
@@ -2815,7 +2817,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
     case IceType_v16i1: {
       assert(Src0->getType() == IceType_i16);
       InstCall *Call = makeHelperCall(H_bitcast_i16_16xi1, Dest, 1);
-      Variable *Src0AsI32 = Func->makeVariable(stackSlotType());
+      Variable *Src0AsI32 = Func->template makeVariable(stackSlotType());
       // Arguments to functions are required to be at least 32 bits wide.
       lowerCast(InstCast::create(Func, InstCast::Zext, Src0AsI32, Src0));
       Call->addArg(Src0AsI32);
@@ -2886,7 +2888,7 @@ void TargetX86Base<Machine>::lowerExtractElement(
     //
     // TODO(wala): use legalize(SourceVectNotLegalized, Legal_Mem) when
     // support for legalizing to mem is implemented.
-    Variable *Slot = Func->makeVariable(Ty);
+    Variable *Slot = Func->template makeVariable(Ty);
     Slot->setWeight(RegWeight::Zero);
     _movp(Slot, legalizeToVar(SourceVectNotLegalized));
 
@@ -3049,8 +3051,8 @@ void TargetX86Base<Machine>::lowerIcmp(const InstIcmp *Inst) {
         NewTy = IceType_v16i8;
         break;
       }
-      Variable *NewSrc0 = Func->makeVariable(NewTy);
-      Variable *NewSrc1 = Func->makeVariable(NewTy);
+      Variable *NewSrc0 = Func->template makeVariable(NewTy);
+      Variable *NewSrc1 = Func->template makeVariable(NewTy);
       lowerCast(InstCast::create(Func, InstCast::Sext, NewSrc0, Src0));
       lowerCast(InstCast::create(Func, InstCast::Sext, NewSrc1, Src1));
       Src0 = NewSrc0;
@@ -3190,7 +3192,7 @@ void TargetX86Base<Machine>::lowerInsertElement(const InstInsertElement *Inst) {
   if (ElementTy == IceType_i1) {
     // Expand the element to the appropriate size for it to be inserted
     // in the vector.
-    Variable *Expanded = Func->makeVariable(InVectorElementTy);
+    Variable *Expanded = Func->template makeVariable(InVectorElementTy);
     InstCast *Cast = InstCast::create(Func, InstCast::Zext, Expanded,
                                       ElementToInsertNotLegalized);
     lowerCast(Cast);
@@ -3281,7 +3283,7 @@ void TargetX86Base<Machine>::lowerInsertElement(const InstInsertElement *Inst) {
     //
     // TODO(wala): use legalize(SourceVectNotLegalized, Legal_Mem) when
     // support for legalizing to mem is implemented.
-    Variable *Slot = Func->makeVariable(Ty);
+    Variable *Slot = Func->template makeVariable(Ty);
     Slot->setWeight(RegWeight::Zero);
     _movp(Slot, legalizeToVar(SourceVectNotLegalized));
 
@@ -3572,7 +3574,7 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
     // wide.
     Operand *ValOp = Instr->getArg(1);
     assert(ValOp->getType() == IceType_i8);
-    Variable *ValExt = Func->makeVariable(stackSlotType());
+    Variable *ValExt = Func->template makeVariable(stackSlotType());
     lowerCast(InstCast::create(Func, InstCast::Zext, ValExt, ValOp));
     InstCall *Call = makeHelperCall(H_call_memset, nullptr, 3);
     Call->addArg(Instr->getArg(0));
@@ -4379,7 +4381,7 @@ void TargetX86Base<Machine>::lowerSelect(const InstSelect *Inst) {
     // Sign extend the condition operand if applicable.
     if (SrcTy == IceType_v4f32) {
       // The sext operation takes only integer arguments.
-      Variable *T3 = Func->makeVariable(IceType_v4i32);
+      Variable *T3 = Func->template makeVariable(IceType_v4i32);
       lowerCast(InstCast::create(Func, InstCast::Sext, T3, Condition));
       _movp(T, T3);
     } else if (typeElementType(SrcTy) != IceType_i1) {
@@ -4579,17 +4581,17 @@ void TargetX86Base<Machine>::scalarizeArithmetic(InstArithmetic::OpKind Kind,
     Constant *Index = Ctx->getConstantInt32(I);
 
     // Extract the next two inputs.
-    Variable *Op0 = Func->makeVariable(ElementTy);
+    Variable *Op0 = Func->template makeVariable(ElementTy);
     lowerExtractElement(InstExtractElement::create(Func, Op0, Src0, Index));
-    Variable *Op1 = Func->makeVariable(ElementTy);
+    Variable *Op1 = Func->template makeVariable(ElementTy);
     lowerExtractElement(InstExtractElement::create(Func, Op1, Src1, Index));
 
     // Perform the arithmetic as a scalar operation.
-    Variable *Res = Func->makeVariable(ElementTy);
+    Variable *Res = Func->template makeVariable(ElementTy);
     lowerArithmetic(InstArithmetic::create(Func, Kind, Res, Op0, Op1));
 
     // Insert the result into position.
-    Variable *DestT = Func->makeVariable(Ty);
+    Variable *DestT = Func->template makeVariable(Ty);
     lowerInsertElement(InstInsertElement::create(Func, DestT, T, Res, Index));
     T = DestT;
   }
@@ -4858,7 +4860,7 @@ void TargetX86Base<Machine>::lowerPhiAssignments(
         // TODO(stichnot): Opportunity for register randomization.
         RegNum = RegsForType.find_first();
         Preg = getPhysicalRegister(RegNum, Dest->getType());
-        SpillLoc = Func->makeVariable(Dest->getType());
+        SpillLoc = Func->template makeVariable(Dest->getType());
         // Create a fake def of the physical register to avoid
         // liveness inconsistency problems during late-stage liveness
         // analysis (e.g. asm-verbose mode).
@@ -5188,7 +5190,7 @@ template <class Machine>
 Variable *TargetX86Base<Machine>::makeReg(Type Type, int32_t RegNum) {
   // There aren't any 64-bit integer registers for x86-32.
   assert(Type != IceType_i64);
-  Variable *Reg = Func->makeVariable(Type);
+  Variable *Reg = Func->template makeVariable(Type);
   if (RegNum == Variable::NoRegister)
     Reg->setWeightInfinite();
   else

@@ -85,15 +85,15 @@ template <> struct MachineTraits<TargetX8632> {
   }
 
   // The maximum number of arguments to pass in XMM registers
-  static constexpr uint32_t X86_MAX_XMM_ARGS = 4;
+  static const uint32_t X86_MAX_XMM_ARGS = 4;
   // The number of bits in a byte
-  static constexpr uint32_t X86_CHAR_BIT = 8;
+  static const uint32_t X86_CHAR_BIT = 8;
   // Stack alignment
   static const uint32_t X86_STACK_ALIGNMENT_BYTES;
   // Size of the return address on the stack
-  static constexpr uint32_t X86_RET_IP_SIZE_BYTES = 4;
+  static const uint32_t X86_RET_IP_SIZE_BYTES = 4;
   // The number of different NOP instructions
-  static constexpr uint32_t X86_NUM_NOP_VARIANTS = 5;
+  static const uint32_t X86_NUM_NOP_VARIANTS = 5;
 
   // Value is in bytes. Return Value adjusted to the next highest multiple
   // of the stack alignment.
@@ -111,7 +111,7 @@ const MachineTraits<TargetX8632>::TableFcmpType
 #undef X
 };
 
-constexpr size_t MachineTraits<TargetX8632>::TableFcmpSize =
+const size_t MachineTraits<TargetX8632>::TableFcmpSize =
     llvm::array_lengthof(TableFcmp);
 
 const MachineTraits<TargetX8632>::TableIcmp32Type
@@ -123,7 +123,7 @@ const MachineTraits<TargetX8632>::TableIcmp32Type
 #undef X
 };
 
-constexpr size_t MachineTraits<TargetX8632>::TableIcmp32Size =
+const size_t MachineTraits<TargetX8632>::TableIcmp32Size =
     llvm::array_lengthof(TableIcmp32);
 
 const MachineTraits<TargetX8632>::TableIcmp64Type
@@ -135,7 +135,7 @@ const MachineTraits<TargetX8632>::TableIcmp64Type
 #undef X
 };
 
-constexpr size_t MachineTraits<TargetX8632>::TableIcmp64Size =
+const size_t MachineTraits<TargetX8632>::TableIcmp64Size =
     llvm::array_lengthof(TableIcmp64);
 
 const MachineTraits<TargetX8632>::TableTypeX8632AttributesType
@@ -147,7 +147,7 @@ const MachineTraits<TargetX8632>::TableTypeX8632AttributesType
 #undef X
 };
 
-constexpr size_t MachineTraits<TargetX8632>::TableTypeX8632AttributesSize =
+const size_t MachineTraits<TargetX8632>::TableTypeX8632AttributesSize =
     llvm::array_lengthof(TableTypeX8632Attributes);
 
 const uint32_t MachineTraits<TargetX8632>::X86_STACK_ALIGNMENT_BYTES = 16;

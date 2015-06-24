@@ -16,6 +16,7 @@
 #ifndef SUBZERO_SRC_ICETARGETLOWERINGX86BASE_H
 #define SUBZERO_SRC_ICETARGETLOWERINGX86BASE_H
 
+#include <type_traits>
 #include <unordered_map>
 
 #include "IceDefs.h"
@@ -30,71 +31,74 @@ template <class MachineTraits> class BoolFolding;
 template <class Machine> struct MachineTraits {};
 
 template <class Machine> class TargetX86Base : public Machine {
+  static_assert(std::is_base_of<::Ice::TargetLowering, Machine>::value,
+                "Machine template parameter must be a TargetLowering.");
+
   TargetX86Base() = delete;
   TargetX86Base(const TargetX86Base &) = delete;
   TargetX86Base &operator=(const TargetX86Base &) = delete;
 
 protected:
-  using TargetLowering::H_bitcast_16xi1_i16;
-  using TargetLowering::H_bitcast_8xi1_i8;
-  using TargetLowering::H_bitcast_i16_16xi1;
-  using TargetLowering::H_bitcast_i8_8xi1;
-  using TargetLowering::H_call_ctpop_i32;
-  using TargetLowering::H_call_ctpop_i64;
-  using TargetLowering::H_call_longjmp;
-  using TargetLowering::H_call_memcpy;
-  using TargetLowering::H_call_memmove;
-  using TargetLowering::H_call_memset;
-  using TargetLowering::H_call_read_tp;
-  using TargetLowering::H_call_setjmp;
-  using TargetLowering::H_fptosi_f32_i64;
-  using TargetLowering::H_fptosi_f64_i64;
-  using TargetLowering::H_fptoui_4xi32_f32;
-  using TargetLowering::H_fptoui_f32_i32;
-  using TargetLowering::H_fptoui_f32_i64;
-  using TargetLowering::H_fptoui_f64_i32;
-  using TargetLowering::H_fptoui_f64_i64;
-  using TargetLowering::H_frem_f32;
-  using TargetLowering::H_frem_f64;
-  using TargetLowering::H_sdiv_i64;
-  using TargetLowering::H_sitofp_i64_f32;
-  using TargetLowering::H_sitofp_i64_f64;
-  using TargetLowering::H_srem_i64;
-  using TargetLowering::H_udiv_i64;
-  using TargetLowering::H_uitofp_4xi32_4xf32;
-  using TargetLowering::H_uitofp_i32_f32;
-  using TargetLowering::H_uitofp_i32_f64;
-  using TargetLowering::H_uitofp_i64_f32;
-  using TargetLowering::H_uitofp_i64_f64;
-  using TargetLowering::H_urem_i64;
+  using Machine::H_bitcast_16xi1_i16;
+  using Machine::H_bitcast_8xi1_i8;
+  using Machine::H_bitcast_i16_16xi1;
+  using Machine::H_bitcast_i8_8xi1;
+  using Machine::H_call_ctpop_i32;
+  using Machine::H_call_ctpop_i64;
+  using Machine::H_call_longjmp;
+  using Machine::H_call_memcpy;
+  using Machine::H_call_memmove;
+  using Machine::H_call_memset;
+  using Machine::H_call_read_tp;
+  using Machine::H_call_setjmp;
+  using Machine::H_fptosi_f32_i64;
+  using Machine::H_fptosi_f64_i64;
+  using Machine::H_fptoui_4xi32_f32;
+  using Machine::H_fptoui_f32_i32;
+  using Machine::H_fptoui_f32_i64;
+  using Machine::H_fptoui_f64_i32;
+  using Machine::H_fptoui_f64_i64;
+  using Machine::H_frem_f32;
+  using Machine::H_frem_f64;
+  using Machine::H_sdiv_i64;
+  using Machine::H_sitofp_i64_f32;
+  using Machine::H_sitofp_i64_f64;
+  using Machine::H_srem_i64;
+  using Machine::H_udiv_i64;
+  using Machine::H_uitofp_4xi32_4xf32;
+  using Machine::H_uitofp_i32_f32;
+  using Machine::H_uitofp_i32_f64;
+  using Machine::H_uitofp_i64_f32;
+  using Machine::H_uitofp_i64_f64;
+  using Machine::H_urem_i64;
 
-  using TargetLowering::alignStackSpillAreas;
-  using TargetLowering::assignVarStackSlots;
-  using TargetLowering::inferTwoAddress;
-  using TargetLowering::makeHelperCall;
-  using TargetLowering::getVarStackSlotParams;
+  using Machine::alignStackSpillAreas;
+  using Machine::assignVarStackSlots;
+  using Machine::inferTwoAddress;
+  using Machine::makeHelperCall;
+  using Machine::getVarStackSlotParams;
 
 public:
   using Traits = MachineTraits<Machine>;
   using BoolFolding = ::Ice::X86Internal::BoolFolding<Traits>;
 
-  using TargetLowering::RegSet_All;
-  using TargetLowering::RegSet_CalleeSave;
-  using TargetLowering::RegSet_CallerSave;
-  using TargetLowering::RegSet_FramePointer;
-  using TargetLowering::RegSet_None;
-  using TargetLowering::RegSet_StackPointer;
-  using TargetLowering::Context;
-  using TargetLowering::Ctx;
-  using TargetLowering::Func;
-  using TargetLowering::RegSetMask;
+  using Machine::RegSet_All;
+  using Machine::RegSet_CalleeSave;
+  using Machine::RegSet_CallerSave;
+  using Machine::RegSet_FramePointer;
+  using Machine::RegSet_None;
+  using Machine::RegSet_StackPointer;
+  using Machine::Context;
+  using Machine::Ctx;
+  using Machine::Func;
+  using RegSetMask = typename Machine::RegSetMask;
 
-  using TargetLowering::_bundle_lock;
-  using TargetLowering::_bundle_unlock;
-  using TargetLowering::getContext;
-  using TargetLowering::getStackAdjustment;
-  using TargetLowering::regAlloc;
-  using TargetLowering::resetStackAdjustment;
+  using Machine::_bundle_lock;
+  using Machine::_bundle_unlock;
+  using Machine::getContext;
+  using Machine::getStackAdjustment;
+  using Machine::regAlloc;
+  using Machine::resetStackAdjustment;
 
   static TargetX86Base *create(Cfg *Func) { return new TargetX86Base(Func); }
 
