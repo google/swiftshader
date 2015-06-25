@@ -11,25 +11,24 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <fstream>
-#include <iostream>
-#include <thread>
+#include "IceCompileServer.h"
 
+#include "IceClFlags.h"
+#include "IceClFlagsExtra.h"
+#include "IceELFStreamer.h"
+#include "IceGlobalContext.h"
 // Include code to handle converting textual bitcode records to binary (for
 // INPUT_IS_TEXTUAL_BITCODE).
 #include "llvm/Bitcode/NaCl/NaClBitcodeMungeUtils.h"
-
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/raw_os_ostream.h"
 #include "llvm/Support/Signals.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/StreamingMemoryObject.h"
 
-#include "IceClFlags.h"
-#include "IceClFlagsExtra.h"
-#include "IceCompileServer.h"
-#include "IceELFStreamer.h"
-#include "IceGlobalContext.h"
+#include <fstream>
+#include <iostream>
+#include <thread>
 
 namespace Ice {
 

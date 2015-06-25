@@ -16,6 +16,7 @@
 #ifndef SUBZERO_SRC_ICETYPES_H
 #define SUBZERO_SRC_ICETYPES_H
 
+#include "IceDefs.h"
 #include "IceTypes.def"
 
 namespace Ice {

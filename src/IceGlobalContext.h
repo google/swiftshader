@@ -15,13 +15,6 @@
 #ifndef SUBZERO_SRC_ICEGLOBALCONTEXT_H
 #define SUBZERO_SRC_ICEGLOBALCONTEXT_H
 
-#include <array>
-#include <functional>
-#include <mutex>
-#include <thread>
-#include <type_traits>
-#include <vector>
-
 #include "IceDefs.h"
 #include "IceClFlags.h"
 #include "IceIntrinsics.h"
@@ -30,6 +23,13 @@
 #include "IceTimerTree.h"
 #include "IceTypes.h"
 #include "IceUtils.h"
+
+#include <array>
+#include <functional>
+#include <mutex>
+#include <thread>
+#include <type_traits>
+#include <vector>
 
 namespace Ice {
 

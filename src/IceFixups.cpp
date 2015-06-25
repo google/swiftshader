@@ -13,6 +13,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "IceFixups.h"
+
 #include "IceOperand.h"
 
 namespace Ice {

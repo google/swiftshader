@@ -23,6 +23,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "IceAssembler.h"
+
 #include "IceGlobalContext.h"
 #include "IceOperand.h"
 

@@ -14,9 +14,8 @@
 #ifndef SUBZERO_SRC_ICECLFLAGSEXTRA_H
 #define SUBZERO_SRC_ICECLFLAGSEXTRA_H
 
-#include "llvm/IRReader/IRReader.h"
-
 #include "IceDefs.h"
+#include "llvm/IRReader/IRReader.h"
 
 namespace Ice {
 

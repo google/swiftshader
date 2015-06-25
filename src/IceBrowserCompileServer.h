@@ -14,19 +14,19 @@
 #ifndef SUBZERO_SRC_ICEBROWSERCOMPILESERVER_H
 #define SUBZERO_SRC_ICEBROWSERCOMPILESERVER_H
 
-#include <atomic>
-#include <thread>
-
 #include "IceClFlags.h"
 #include "IceClFlagsExtra.h"
 #include "IceCompileServer.h"
 #include "IceDefs.h"
 #include "IceELFStreamer.h"
 
+#include <atomic>
+#include <thread>
+
 namespace llvm {
 class QueueStreamer;
 class raw_fd_ostream;
-}
+} // end of namespace llvm
 
 namespace Ice {
 

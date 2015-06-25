@@ -11,8 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "IceDefs.h"
 #include "IceTypes.h"
+
+#include "IceDefs.h"
 
 namespace Ice {
 

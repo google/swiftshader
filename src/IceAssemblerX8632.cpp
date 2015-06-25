@@ -19,6 +19,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "IceAssemblerX8632.h"
+
 #include "IceCfg.h"
 #include "IceOperand.h"
 

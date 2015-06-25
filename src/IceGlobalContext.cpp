@@ -12,23 +12,24 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <ctype.h> // isdigit(), isupper()
-#include <locale>  // locale
-#include <unordered_map>
-
-#include "llvm/Support/Timer.h"
+#include "IceGlobalContext.h"
 
 #include "IceCfg.h"
 #include "IceCfgNode.h"
 #include "IceClFlags.h"
 #include "IceDefs.h"
 #include "IceELFObjectWriter.h"
-#include "IceGlobalContext.h"
 #include "IceGlobalInits.h"
 #include "IceOperand.h"
 #include "IceTargetLowering.h"
 #include "IceTimerTree.h"
 #include "IceTypes.h"
+#include "llvm/Support/Timer.h"
+
+#include <ctype.h> // isdigit(), isupper()
+#include <locale>  // locale
+#include <unordered_map>
+
 
 namespace std {
 template <> struct hash<Ice::RelocatableTuple> {

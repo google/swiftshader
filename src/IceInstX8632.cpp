@@ -12,12 +12,13 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "IceInstX8632.h"
+
 #include "IceAssemblerX8632.h"
 #include "IceCfg.h"
 #include "IceCfgNode.h"
 #include "IceConditionCodesX8632.h"
 #include "IceInst.h"
-#include "IceInstX8632.h"
 #include "IceRegistersX8632.h"
 #include "IceTargetLoweringX8632.h"
 #include "IceOperand.h"

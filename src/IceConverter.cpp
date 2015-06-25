@@ -11,20 +11,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <iostream>
-
-#include "llvm/IR/Constant.h"
-#include "llvm/IR/Constants.h"
-#include "llvm/IR/DataLayout.h"
-#include "llvm/IR/Instruction.h"
-#include "llvm/IR/Instructions.h"
-#include "llvm/IR/LLVMContext.h"
-#include "llvm/IR/Module.h"
+#include "IceConverter.h"
 
 #include "IceCfg.h"
 #include "IceCfgNode.h"
 #include "IceClFlags.h"
-#include "IceConverter.h"
 #include "IceDefs.h"
 #include "IceGlobalContext.h"
 #include "IceGlobalInits.h"
@@ -33,6 +24,14 @@
 #include "IceTargetLowering.h"
 #include "IceTypes.h"
 #include "IceTypeConverter.h"
+#include "llvm/IR/Constant.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/DataLayout.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Module.h"
+
 
 // TODO(kschimpf): Remove two namespaces being visible at once.
 using namespace llvm;

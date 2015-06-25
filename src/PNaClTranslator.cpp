@@ -12,15 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "llvm/ADT/SmallString.h"
-#include "llvm/Bitcode/NaCl/NaClBitcodeDecoders.h"
-#include "llvm/Bitcode/NaCl/NaClBitcodeDefs.h"
-#include "llvm/Bitcode/NaCl/NaClBitcodeHeader.h"
-#include "llvm/Bitcode/NaCl/NaClBitcodeParser.h"
-#include "llvm/Bitcode/NaCl/NaClReaderWriter.h"
-#include "llvm/Support/Format.h"
-#include "llvm/Support/MemoryBuffer.h"
-#include "llvm/Support/raw_ostream.h"
+#include "PNaClTranslator.h"
 
 #include "IceAPInt.h"
 #include "IceAPFloat.h"
@@ -31,7 +23,15 @@
 #include "IceGlobalInits.h"
 #include "IceInst.h"
 #include "IceOperand.h"
-#include "PNaClTranslator.h"
+#include "llvm/ADT/SmallString.h"
+#include "llvm/Bitcode/NaCl/NaClBitcodeDecoders.h"
+#include "llvm/Bitcode/NaCl/NaClBitcodeDefs.h"
+#include "llvm/Bitcode/NaCl/NaClBitcodeHeader.h"
+#include "llvm/Bitcode/NaCl/NaClBitcodeParser.h"
+#include "llvm/Bitcode/NaCl/NaClReaderWriter.h"
+#include "llvm/Support/Format.h"
+#include "llvm/Support/MemoryBuffer.h"
+#include "llvm/Support/raw_ostream.h"
 
 namespace {
 using namespace llvm;

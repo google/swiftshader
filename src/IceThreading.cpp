@@ -11,9 +11,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "IceThreading.h"
+
 #include "IceCfg.h"
 #include "IceDefs.h"
-#include "IceThreading.h"
 
 namespace Ice {
 

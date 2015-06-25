@@ -14,10 +14,10 @@
 #ifndef SUBZERO_SRC_ICETHREADING_H
 #define SUBZERO_SRC_ICETHREADING_H
 
+#include "IceDefs.h"
+
 #include <condition_variable>
 #include <mutex>
-
-#include "IceDefs.h"
 
 namespace Ice {
 

@@ -16,12 +16,12 @@
 #ifndef SUBZERO_SRC_ICETARGETLOWERINGX86BASE_H
 #define SUBZERO_SRC_ICETARGETLOWERINGX86BASE_H
 
-#include <type_traits>
-#include <unordered_map>
-
 #include "IceDefs.h"
 #include "IceInst.h"
 #include "IceTargetLowering.h"
+
+#include <type_traits>
+#include <unordered_map>
 
 namespace Ice {
 namespace X86Internal {

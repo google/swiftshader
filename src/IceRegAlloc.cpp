@@ -13,11 +13,12 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "IceRegAlloc.h"
+
 #include "IceCfg.h"
 #include "IceCfgNode.h"
 #include "IceInst.h"
 #include "IceOperand.h"
-#include "IceRegAlloc.h"
 #include "IceTargetLowering.h"
 
 namespace Ice {
@@ -26,7 +27,7 @@ namespace {
 
 // TODO(stichnot): Statically choose the size based on the target
 // being compiled.
-const size_t REGS_SIZE = 32;
+constexpr size_t REGS_SIZE = 32;
 
 // Returns true if Var has any definitions within Item's live range.
 // TODO(stichnot): Consider trimming the Definitions list similar to

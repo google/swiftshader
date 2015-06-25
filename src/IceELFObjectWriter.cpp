@@ -11,16 +11,16 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "llvm/Support/MathExtras.h"
+#include "IceELFObjectWriter.h"
 
 #include "IceAssembler.h"
 #include "IceDefs.h"
-#include "IceELFObjectWriter.h"
 #include "IceELFSection.h"
 #include "IceELFStreamer.h"
 #include "IceGlobalContext.h"
 #include "IceGlobalInits.h"
 #include "IceOperand.h"
+#include "llvm/Support/MathExtras.h"
 
 using namespace llvm::ELF;
 

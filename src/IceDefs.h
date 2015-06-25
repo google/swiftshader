@@ -15,18 +15,9 @@
 #ifndef SUBZERO_SRC_ICEDEFS_H
 #define SUBZERO_SRC_ICEDEFS_H
 
-#include <cassert>
-#include <cstdint>
-#include <cstdio>     // snprintf
-#include <functional> // std::less
-#include <limits>
-#include <list>
-#include <map>
-#include <memory>
-#include <mutex>
-#include <string>
-#include <system_error>
-#include <vector>
+#include "IceBuildDefs.h" // TODO(stichnot): move into individual files
+#include "IceTLS.h"
+
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/BitVector.h"
 #include "llvm/ADT/ilist.h"
@@ -40,8 +31,18 @@
 #include "llvm/Support/ELF.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include "IceBuildDefs.h" // TODO(stichnot): move into individual files
-#include "IceTLS.h"
+#include <cassert>
+#include <cstdint>
+#include <cstdio>     // snprintf
+#include <functional> // std::less
+#include <limits>
+#include <list>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <system_error>
+#include <vector>
 
 namespace Ice {
 

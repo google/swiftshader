@@ -12,11 +12,12 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "IceInstARM32.h"
+
 #include "IceAssemblerARM32.h"
 #include "IceCfg.h"
 #include "IceCfgNode.h"
 #include "IceInst.h"
-#include "IceInstARM32.h"
 #include "IceOperand.h"
 #include "IceRegistersARM32.h"
 #include "IceTargetLoweringARM32.h"

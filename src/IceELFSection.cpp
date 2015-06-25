@@ -11,11 +11,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "llvm/Support/MathExtras.h"
+#include "IceELFSection.h"
 
 #include "IceDefs.h"
-#include "IceELFSection.h"
 #include "IceELFStreamer.h"
+#include "llvm/Support/MathExtras.h"
 
 using namespace llvm::ELF;
 

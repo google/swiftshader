@@ -15,6 +15,8 @@
 #ifndef SUBZERO_SRC_ICETIMERTREE_H
 #define SUBZERO_SRC_ICETIMERTREE_H
 
+// TODO(jpp): Refactor IceDefs.
+#include "IceDefs.h"
 #include "IceTimerTree.def"
 
 namespace Ice {

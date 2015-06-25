@@ -11,14 +11,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <time.h>
-
 #include "IceRNG.h"
+
+#include <time.h>
 
 namespace Ice {
 
 namespace {
-const unsigned MAX = 2147483647;
+constexpr unsigned MAX = 2147483647;
 } // end of anonymous namespace
 
 // TODO(wala,stichnot): Switch to RNG implementation from LLVM or C++11.

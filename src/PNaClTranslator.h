@@ -15,9 +15,9 @@
 #ifndef SUBZERO_SRC_PNACLTRANSLATOR_H
 #define SUBZERO_SRC_PNACLTRANSLATOR_H
 
-#include <string>
-
 #include "IceTranslator.h"
+
+#include <string>
 
 namespace llvm {
 class MemoryBuffer;

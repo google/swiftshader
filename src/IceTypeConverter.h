@@ -15,14 +15,13 @@
 #ifndef SUBZERO_SRC_ICETYPECONVERTER_H
 #define SUBZERO_SRC_ICETYPECONVERTER_H
 
-#include "llvm/IR/DerivedTypes.h"
-
 #include "IceDefs.h"
 #include "IceTypes.h"
+#include "llvm/IR/DerivedTypes.h"
 
 namespace llvm {
 class LLVMContext;
-} // end of llvm namespace.
+} // end of namespace llvm
 
 namespace Ice {
 
@@ -56,6 +55,6 @@ private:
   Type convertToIceTypeOther(llvm::Type *LLVMTy) const;
 };
 
-} // end of Ice namespace.
+} // end of namespace Ice
 
 #endif // SUBZERO_SRC_ICETYPECONVERTER_H

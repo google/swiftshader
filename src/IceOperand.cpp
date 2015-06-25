@@ -12,10 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "IceOperand.h"
+
 #include "IceCfg.h"
 #include "IceCfgNode.h"
 #include "IceInst.h"
-#include "IceOperand.h"
 #include "IceTargetLowering.h" // dumping stack/frame pointer register
 
 namespace Ice {

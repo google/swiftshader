@@ -17,15 +17,15 @@
 #ifndef SUBZERO_SRC_ICEGLOBALINITS_H
 #define SUBZERO_SRC_ICEGLOBALINITS_H
 
-#include <memory>
-#include <utility>
-
+#include "IceDefs.h"
+#include "IceGlobalContext.h"
+#include "IceTypes.h"
 #include "llvm/Bitcode/NaCl/NaClBitcodeParser.h" // for NaClBitcodeRecord.
 #include "llvm/IR/CallingConv.h"
 #include "llvm/IR/GlobalValue.h" // for GlobalValue::LinkageTypes.
 
-#include "IceDefs.h"
-#include "IceTypes.h"
+#include <memory>
+#include <utility>
 
 // TODO(kschimpf): Remove ourselves from using LLVM representation for calling
 // conventions and linkage types.

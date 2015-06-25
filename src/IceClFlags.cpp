@@ -13,10 +13,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "llvm/Support/CommandLine.h"
-
 #include "IceClFlags.h"
+
 #include "IceClFlagsExtra.h"
+#include "llvm/Support/CommandLine.h"
 
 namespace cl = llvm::cl;
 

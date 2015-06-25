@@ -13,6 +13,7 @@
 
 #ifndef SUBZERO_SRC_ICEUTILS_H
 #define SUBZERO_SRC_ICEUTILS_H
+
 #include <climits>
 
 namespace Ice {

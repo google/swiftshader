@@ -13,14 +13,15 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "IceGlobalInits.h"
+
+#include "IceDefs.h"
+#include "IceGlobalContext.h"
+#include "IceTypes.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Value.h"
 
-#include "IceDefs.h"
-#include "IceGlobalContext.h"
-#include "IceGlobalInits.h"
-#include "IceTypes.h"
 
 namespace {
 char hexdigit(unsigned X) { return X < 10 ? '0' + X : 'A' + X - 10; }

@@ -12,10 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "IceIntrinsics.h"
+
 #include "IceCfg.h"
 #include "IceCfgNode.h"
 #include "IceInst.h"
-#include "IceIntrinsics.h"
 #include "IceLiveness.h"
 #include "IceOperand.h"
 

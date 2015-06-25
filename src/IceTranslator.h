@@ -15,9 +15,12 @@
 #ifndef SUBZERO_SRC_ICETRANSLATOR_H
 #define SUBZERO_SRC_ICETRANSLATOR_H
 
+#include "IceDefs.h"
+#include "IceGlobalContext.h"
+
 namespace llvm {
 class Module;
-}
+} // end of namespace llvm
 
 namespace Ice {
 

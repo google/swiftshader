@@ -12,10 +12,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "llvm/Support/Timer.h"
+#include "IceTimerTree.h"
 
 #include "IceDefs.h"
-#include "IceTimerTree.h"
+#include "llvm/Support/Timer.h"
 
 namespace Ice {
 

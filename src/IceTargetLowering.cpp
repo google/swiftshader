@@ -15,6 +15,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "IceTargetLowering.h"
+
 #include "IceAssemblerARM32.h"
 #include "IceAssemblerX8632.h"
 #include "IceAssemblerX8664.h"
@@ -24,7 +26,6 @@
 #include "IceGlobalInits.h"
 #include "IceOperand.h"
 #include "IceRegAlloc.h"
-#include "IceTargetLowering.h"
 #include "IceTargetLoweringARM32.h"
 #include "IceTargetLoweringMIPS32.h"
 #include "IceTargetLoweringX8632.h"

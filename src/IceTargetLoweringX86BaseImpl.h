@@ -16,8 +16,6 @@
 #ifndef SUBZERO_SRC_ICETARGETLOWERINGX86BASEIMPL_H
 #define SUBZERO_SRC_ICETARGETLOWERINGX86BASEIMPL_H
 
-#include "llvm/Support/MathExtras.h"
-
 #include "IceCfg.h"
 #include "IceCfgNode.h"
 #include "IceClFlags.h"
@@ -31,6 +29,7 @@
 #include "IceTargetLoweringX8632.def"
 #include "IceTargetLoweringX8632.h"
 #include "IceUtils.h"
+#include "llvm/Support/MathExtras.h"
 
 namespace Ice {
 namespace X86Internal {

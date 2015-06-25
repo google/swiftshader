@@ -20,6 +20,7 @@
 #ifndef SUBZERO_SRC_ICELIVENESS_H
 #define SUBZERO_SRC_ICELIVENESS_H
 
+#include "IceCfgNode.h"
 #include "IceDefs.h"
 #include "IceTypes.h"
 

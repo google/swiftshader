@@ -12,7 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "llvm/Support/MathExtras.h"
+#include "IceTargetLoweringMIPS32.h"
 
 #include "IceCfg.h"
 #include "IceCfgNode.h"
@@ -25,8 +25,8 @@
 #include "IceOperand.h"
 #include "IceRegistersMIPS32.h"
 #include "IceTargetLoweringMIPS32.def"
-#include "IceTargetLoweringMIPS32.h"
 #include "IceUtils.h"
+#include "llvm/Support/MathExtras.h"
 
 namespace Ice {
 

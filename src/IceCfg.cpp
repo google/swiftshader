@@ -12,8 +12,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "IceAssembler.h"
 #include "IceCfg.h"
+
+#include "IceAssembler.h"
 #include "IceCfgNode.h"
 #include "IceClFlags.h"
 #include "IceDefs.h"

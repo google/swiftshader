@@ -12,12 +12,13 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "IceTranslator.h"
+
 #include "IceCfg.h"
 #include "IceClFlags.h"
 #include "IceDefs.h"
 #include "IceGlobalInits.h"
 #include "IceTargetLowering.h"
-#include "IceTranslator.h"
 
 using namespace Ice;
 

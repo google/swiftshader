@@ -15,15 +15,14 @@
 // unsandboxed LLVM build using the trusted compiler does not have irt.h).
 #if PNACL_BROWSER_TRANSLATOR
 
+#include "IceBrowserCompileServer.h"
+#include "llvm/Support/QueueStreamer.h"
+
 #include <cstring>
 #include <irt.h>
 #include <irt_dev.h>
 #include <pthread.h>
 #include <thread>
-
-#include "llvm/Support/QueueStreamer.h"
-
-#include "IceBrowserCompileServer.h"
 
 namespace Ice {
 

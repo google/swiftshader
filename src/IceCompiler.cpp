@@ -15,6 +15,14 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "IceCompiler.h"
+
+#include "IceCfg.h"
+#include "IceClFlags.h"
+#include "IceClFlagsExtra.h"
+#include "IceConverter.h"
+#include "IceELFObjectWriter.h"
+#include "PNaClTranslator.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
@@ -22,13 +30,6 @@
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/StreamingMemoryObject.h"
 
-#include "IceCfg.h"
-#include "IceClFlags.h"
-#include "IceClFlagsExtra.h"
-#include "IceCompiler.h"
-#include "IceConverter.h"
-#include "IceELFObjectWriter.h"
-#include "PNaClTranslator.h"
 namespace Ice {
 
 namespace {
