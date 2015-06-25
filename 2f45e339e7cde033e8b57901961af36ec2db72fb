@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fe0596c3_ba82edd9",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3894,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-06-25T18:00:05Z",
+      "side": 1,
+      "message": "This seems too strict. I think there\u0027s some part of the spec that says any integer value other than GL_FALSE is interpreted as GL_TRUE.",
+      "range": {
+        "startLine": 3887,
+        "startChar": 0,
+        "endLine": 3894,
+        "endChar": 2
+      },
+      "revId": "2f45e339e7cde033e8b57901961af36ec2db72fb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
