@@ -81,6 +81,7 @@ public:
 
 protected:
   Operand(OperandKind Kind, Type Ty) : Ty(Ty), Kind(Kind) {}
+  virtual ~Operand() = default;
 
   const Type Ty;
   const OperandKind Kind;
