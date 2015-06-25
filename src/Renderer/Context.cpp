@@ -201,7 +201,7 @@ namespace sw
 		}
 
 		// Set vertex streams to null stream
-		for(int i = 0; i < TEXTURE_IMAGE_UNITS; i++)
+		for(int i = 0; i < VERTEX_ATTRIBUTES; i++)
 		{
 			input[i].defaults();
 		}

@@ -116,7 +116,7 @@ namespace sw
 
 	void VertexProcessor::resetInputStreams(bool preTransformed)
 	{
-		for(int i = 0; i < TEXTURE_IMAGE_UNITS; i++)
+		for(int i = 0; i < VERTEX_ATTRIBUTES; i++)
 		{
 			context->input[i].defaults();
 		}
@@ -806,7 +806,7 @@ namespace sw
 		state.superSampling = context->getSuperSampleCount() > 1;
 		state.multiSampling = context->getMultiSampleCount() > 1;
 
-		for(int i = 0; i < TEXTURE_IMAGE_UNITS; i++)
+		for(int i = 0; i < VERTEX_ATTRIBUTES; i++)
 		{
 			state.input[i].type = context->input[i].type;
 			state.input[i].count = context->input[i].count;

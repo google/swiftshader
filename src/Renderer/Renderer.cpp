@@ -322,7 +322,7 @@ namespace sw
 			draw->setupPrimitives = setupPrimitives;
 			draw->setupState = setupState;
 
-			for(int i = 0; i < 16; i++)
+			for(int i = 0; i < VERTEX_ATTRIBUTES; i++)
 			{
 				draw->vertexStream[i] = context->input[i].resource;
 				data->input[i] = context->input[i].buffer;
@@ -926,7 +926,7 @@ namespace sw
 					}
 				}
 
-				for(int i = 0; i < TEXTURE_IMAGE_UNITS; i++)
+				for(int i = 0; i < VERTEX_ATTRIBUTES; i++)
 				{
 					if(draw.vertexStream[i])
 					{

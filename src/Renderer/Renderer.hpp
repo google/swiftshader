@@ -100,8 +100,8 @@ namespace sw
 	{
 		const void *constants;
 
-		const void *input[TEXTURE_IMAGE_UNITS];
-		unsigned int stride[TEXTURE_IMAGE_UNITS];
+		const void *input[VERTEX_ATTRIBUTES];
+		unsigned int stride[VERTEX_ATTRIBUTES];
 		Texture mipmap[TOTAL_IMAGE_UNITS];
 		const void *indices;
 
@@ -200,7 +200,7 @@ namespace sw
 		int (*setupPrimitives)(Renderer *renderer, int batch, int count);
 		SetupProcessor::State setupState;
 
-		Resource *vertexStream[TEXTURE_IMAGE_UNITS];
+		Resource *vertexStream[VERTEX_ATTRIBUTES];
 		Resource *indexBuffer;
 		Surface *renderTarget[4];
 		Surface *depthStencil;

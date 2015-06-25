@@ -126,7 +126,7 @@ namespace sw
 				};
 			};
 
-			Input input[TEXTURE_IMAGE_UNITS];
+			Input input[VERTEX_ATTRIBUTES];
 			Output output[12];
 		};
 

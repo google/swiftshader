@@ -99,7 +99,7 @@ namespace sw
 
 	void VertexRoutine::readInput(Registers &r, UInt &index)
 	{
-		for(int i = 0; i < TEXTURE_IMAGE_UNITS; i++)
+		for(int i = 0; i < VERTEX_ATTRIBUTES; i++)
 		{
 			Pointer<Byte> input = *Pointer<Pointer<Byte> >(r.data + OFFSET(DrawData,input) + sizeof(void*) * i);
 			UInt stride = *Pointer<UInt>(r.data + OFFSET(DrawData,stride) + sizeof(unsigned int) * i);

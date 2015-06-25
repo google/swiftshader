@@ -71,7 +71,7 @@ class VertexArray;
 
 enum
 {
-    MAX_VERTEX_ATTRIBS = 16,
+    MAX_VERTEX_ATTRIBS = VERTEX_ATTRIBUTES,
 	MAX_UNIFORM_VECTORS = 256,   // Device limit
     MAX_VERTEX_UNIFORM_VECTORS = VERTEX_UNIFORM_VECTORS - 3,   // Reserve space for gl_DepthRange
     MAX_VARYING_VECTORS = 10,

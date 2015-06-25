@@ -404,7 +404,7 @@ namespace sw
 		bool colorUsed();
 
 		Resource *texture[TOTAL_IMAGE_UNITS];
-		Stream input[TEXTURE_IMAGE_UNITS];
+		Stream input[VERTEX_ATTRIBUTES];
 		Resource *indexBuffer;
 
 		bool preTransformed;   // FIXME: Private
