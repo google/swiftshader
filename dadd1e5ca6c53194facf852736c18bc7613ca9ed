@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5e65c2c2_e3b3005a",
+        "filename": "src/Renderer/Stream.hpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-06-26T13:54:14Z",
+      "side": 1,
+      "message": "I this still needed after https://swiftshader-review.googlesource.com/3503 ?",
+      "range": {
+        "startLine": 75,
+        "startChar": 30,
+        "endLine": 75,
+        "endChar": 46
+      },
+      "revId": "dadd1e5ca6c53194facf852736c18bc7613ca9ed",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
