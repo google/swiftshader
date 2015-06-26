@@ -444,7 +444,6 @@ template <class Machine> void TargetX86Base<Machine>::translateOm1() {
   Func->dump("After Phi lowering");
 
   Func->doArgLowering();
-
   Func->genCode();
   if (Func->hasError())
     return;

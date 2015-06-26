@@ -32,7 +32,6 @@
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
 
-
 // TODO(kschimpf): Remove two namespaces being visible at once.
 using namespace llvm;
 

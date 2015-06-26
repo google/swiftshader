@@ -279,6 +279,32 @@ cl::opt<uint32_t> RandomizeAndPoolImmediatesThreshold(
     cl::desc("The threshold for immediates randomization and pooling"),
     cl::init(0xffff));
 
+// Command line option for turning on function layout reordering.
+cl::opt<bool> ReorderFunctions(
+    "reorder-functions",
+    cl::desc("Reorder the layout of functions in TEXT section"),
+    cl::init(false));
+
+// Command line option for the shuffling window size for function reordering.
+// The default size is 8.
+cl::opt<uint32_t> ReorderFunctionsWindowSize(
+    "reorder-functions-window-size",
+    cl::desc("The shuffling window size for function reordering. 1 or 0 means "
+             "no effective shuffling."),
+    cl::init(8));
+
+// Command line option for turning on global variable layout reordering.
+cl::opt<bool> ReorderGlobalVariables(
+    "reorder-global-variables",
+    cl::desc("Reorder the layout of global variables in NON TEXT section"),
+    cl::init(false));
+
+// Command line option for turning on layout reordering in constant pools.
+cl::opt<bool> ReorderPooledConstants(
+    "reorder-pooled-constants",
+    cl::desc("Reorder the layout of constants in constant pools"),
+    cl::init(false));
+
 } // end of anonymous namespace
 
 namespace Ice {
@@ -304,6 +330,9 @@ void ClFlags::resetClFlags(ClFlags &OutFlags) {
   OutFlags.PhiEdgeSplit = false;
   OutFlags.RandomNopInsertion = false;
   OutFlags.RandomRegAlloc = false;
+  OutFlags.ReorderFunctions = false;
+  OutFlags.ReorderGlobalVariables = false;
+  OutFlags.ReorderPooledConstants = false;
   OutFlags.SkipUnimplemented = false;
   OutFlags.SubzeroTimingEnabled = false;
   OutFlags.TimeEachFunction = false;
@@ -313,6 +342,9 @@ void ClFlags::resetClFlags(ClFlags &OutFlags) {
   OutFlags.OutFileType = FT_Iasm;
   OutFlags.RandomMaxNopsPerInstruction = 0;
   OutFlags.RandomNopProbabilityAsPercentage = 0;
+  OutFlags.RandomizeAndPoolImmediatesOption = RPI_None;
+  OutFlags.RandomizeAndPoolImmediatesThreshold = 0xffff;
+  OutFlags.ReorderFunctionsWindowSize = 8;
   OutFlags.TArch = TargetArch_NUM;
   OutFlags.VMask = IceV_None;
   // IceString fields.
@@ -372,11 +404,21 @@ void ClFlags::getParsedClFlags(ClFlags &OutFlags) {
   OutFlags.setNopProbabilityAsPercentage(::NopProbabilityAsPercentage);
   OutFlags.setVerbose(VMask);
 
-  // set for immediates randomization or pooling option
+  // Set for immediates randomization or pooling option.
   OutFlags.setRandomizeAndPoolImmediatesOption(
       ::RandomizeAndPoolImmediatesOption);
   OutFlags.setRandomizeAndPoolImmediatesThreshold(
       ::RandomizeAndPoolImmediatesThreshold);
+
+  // Set for function reordering options.
+  OutFlags.setShouldReorderFunctions(::ReorderFunctions);
+  OutFlags.setReorderFunctionsWindowSize(::ReorderFunctionsWindowSize);
+
+  // Set for global variable reordering option.
+  OutFlags.setShouldReorderGlobalVariables(::ReorderGlobalVariables);
+
+  // Set for pooled constant reordering option.
+  OutFlags.setShouldReorderPooledConstants(::ReorderPooledConstants);
 }
 
 void ClFlags::getParsedClFlagsExtra(ClFlagsExtra &OutFlagsExtra) {

@@ -26,10 +26,10 @@
 #include "IceTypes.h"
 #include "llvm/Support/Timer.h"
 
-#include <ctype.h> // isdigit(), isupper()
+#include <algorithm> // max()
+#include <cctype> // isdigit(), isupper()
 #include <locale>  // locale
 #include <unordered_map>
-
 
 namespace std {
 template <> struct hash<Ice::RelocatableTuple> {
@@ -395,6 +395,12 @@ void GlobalContext::lowerGlobals(const IceString &SectionSuffix) {
     return;
 
   addBlockInfoPtrs(Globals, ProfileBlockInfoVarDecl);
+  // If we need to shuffle the layout of global variables, shuffle them now.
+  if (getFlags().shouldReorderGlobalVariables()) {
+    auto *RNGPtr = &RNG;
+    RandomShuffle(Globals.begin(), Globals.end(),
+                  [RNGPtr](int N) { return (uint32_t)RNGPtr->next(N); });
+  }
   DataLowering->lowerGlobals(Globals, SectionSuffix);
   for (VariableDeclaration *Var : Globals) {
     Var->discardInitializers();
@@ -428,68 +434,118 @@ void GlobalContext::emitItems() {
   // after it is processed.
   std::vector<EmitterWorkItem *> Pending;
   uint32_t DesiredSequenceNumber = getFirstSequenceNumber();
-  while (true) {
+  uint32_t ShuffleStartIndex = DesiredSequenceNumber;
+  uint32_t ShuffleEndIndex = DesiredSequenceNumber;
+  bool EmitQueueEmpty = false;
+  const uint32_t ShuffleWindowSize =
+      std::max(1u, getFlags().getReorderFunctionsWindowSize());
+  bool Shuffle = Threaded && getFlags().shouldReorderFunctions();
+  while (!EmitQueueEmpty) {
     resizePending(Pending, DesiredSequenceNumber);
     // See if Pending contains DesiredSequenceNumber.
     EmitterWorkItem *RawItem = Pending[DesiredSequenceNumber];
-    if (RawItem == nullptr)
+    if (RawItem == nullptr) {
+      // We need to fetch an EmitterWorkItem from the queue.
       RawItem = emitQueueBlockingPop();
-    if (RawItem == nullptr)
-      break;
-    uint32_t ItemSeq = RawItem->getSequenceNumber();
-    if (Threaded && ItemSeq != DesiredSequenceNumber) {
-      resizePending(Pending, ItemSeq);
-      Pending[ItemSeq] = RawItem;
-      continue;
-    }
-
-    std::unique_ptr<EmitterWorkItem> Item(RawItem);
-    ++DesiredSequenceNumber;
-    switch (Item->getKind()) {
-    case EmitterWorkItem::WI_Nop:
-      break;
-    case EmitterWorkItem::WI_GlobalInits: {
-      accumulateGlobals(Item->getGlobalInits());
-    } break;
-    case EmitterWorkItem::WI_Asm: {
-      lowerGlobalsIfNoCodeHasBeenSeen();
-      accumulateGlobals(Item->getGlobalInits());
-
-      std::unique_ptr<Assembler> Asm = Item->getAsm();
-      Asm->alignFunction();
-      IceString MangledName = mangleName(Asm->getFunctionName());
-      switch (getFlags().getOutFileType()) {
-      case FT_Elf:
-        getObjectWriter()->writeFunctionCode(MangledName, Asm->getInternal(),
-                                             Asm.get());
-        break;
-      case FT_Iasm: {
-        OstreamLocker L(this);
-        Cfg::emitTextHeader(MangledName, this, Asm.get());
-        Asm->emitIASBytes(this);
-      } break;
-      case FT_Asm:
-        llvm::report_fatal_error("Unexpected FT_Asm");
-        break;
+      if (RawItem == nullptr) {
+        // This is the notifier for an empty queue.
+        EmitQueueEmpty = true;
+      } else {
+        // We get an EmitterWorkItem, we need to add it to Pending.
+        uint32_t ItemSeq = RawItem->getSequenceNumber();
+        if (Threaded && ItemSeq != DesiredSequenceNumber) {
+          // Not the desired one, add it to Pending but do not increase
+          // DesiredSequenceNumber. Continue the loop, do not emit the item.
+          resizePending(Pending, ItemSeq);
+          Pending[ItemSeq] = RawItem;
+          continue;
+        }
+        // ItemSeq == DesiredSequenceNumber, we need to check if we should
+        // emit it or not. If !Threaded, we're OK with ItemSeq !=
+        // DesiredSequenceNumber.
+        Pending[DesiredSequenceNumber] = RawItem;
       }
-    } break;
-    case EmitterWorkItem::WI_Cfg: {
-      if (!BuildDefs::dump())
-        llvm::report_fatal_error("WI_Cfg work item created inappropriately");
-      lowerGlobalsIfNoCodeHasBeenSeen();
-      accumulateGlobals(Item->getGlobalInits());
-
-      assert(getFlags().getOutFileType() == FT_Asm);
-      std::unique_ptr<Cfg> Func = Item->getCfg();
-      // Unfortunately, we have to temporarily install the Cfg in TLS
-      // because Variable::asType() uses the allocator to create the
-      // differently-typed copy.
-      Cfg::setCurrentCfg(Func.get());
-      Func->emit();
-      Cfg::setCurrentCfg(nullptr);
-      dumpStats(Func->getFunctionName());
-    } break;
     }
+    // We have the desired EmitterWorkItem or nullptr as the end notifier.
+    // If the emitter queue is not empty, increase DesiredSequenceNumber and
+    // ShuffleEndIndex.
+    if (!EmitQueueEmpty) {
+      DesiredSequenceNumber++;
+      ShuffleEndIndex++;
+    }
+
+    if (Shuffle) {
+      // Continue fetching EmitterWorkItem if function reordering is turned on,
+      // and emit queue is not empty, and the number of consecutive pending
+      // items is smaller than the window size, and RawItem is not a
+      // WI_GlobalInits kind. Emit WI_GlobalInits kind block first to avoid
+      // holding an arbitrarily large GlobalDeclarationList.
+      if (!EmitQueueEmpty &&
+          ShuffleEndIndex - ShuffleStartIndex < ShuffleWindowSize &&
+          RawItem->getKind() != EmitterWorkItem::WI_GlobalInits)
+        continue;
+
+      // Emit the EmitterWorkItem between Pending[ShuffleStartIndex] to
+      // Pending[ShuffleEndIndex]. If function reordering turned on, shuffle the
+      // pending items from Pending[ShuffleStartIndex] to
+      // Pending[ShuffleEndIndex].
+      RandomShuffle(Pending.begin() + ShuffleStartIndex,
+                    Pending.begin() + ShuffleEndIndex,
+                    [this](uint64_t N) { return (uint32_t)RNG.next(N); });
+    }
+
+    // Emit the item from ShuffleStartIndex to ShuffleEndIndex.
+    for (uint32_t I = ShuffleStartIndex; I < ShuffleEndIndex; I++) {
+      std::unique_ptr<EmitterWorkItem> Item(Pending[I]);
+
+      switch (Item->getKind()) {
+      case EmitterWorkItem::WI_Nop:
+        break;
+      case EmitterWorkItem::WI_GlobalInits: {
+        accumulateGlobals(Item->getGlobalInits());
+      } break;
+      case EmitterWorkItem::WI_Asm: {
+        lowerGlobalsIfNoCodeHasBeenSeen();
+        accumulateGlobals(Item->getGlobalInits());
+
+        std::unique_ptr<Assembler> Asm = Item->getAsm();
+        Asm->alignFunction();
+        IceString MangledName = mangleName(Asm->getFunctionName());
+        switch (getFlags().getOutFileType()) {
+        case FT_Elf:
+          getObjectWriter()->writeFunctionCode(MangledName, Asm->getInternal(),
+                                               Asm.get());
+          break;
+        case FT_Iasm: {
+          OstreamLocker L(this);
+          Cfg::emitTextHeader(MangledName, this, Asm.get());
+          Asm->emitIASBytes(this);
+        } break;
+        case FT_Asm:
+          llvm::report_fatal_error("Unexpected FT_Asm");
+          break;
+        }
+      } break;
+      case EmitterWorkItem::WI_Cfg: {
+        if (!BuildDefs::dump())
+          llvm::report_fatal_error("WI_Cfg work item created inappropriately");
+        lowerGlobalsIfNoCodeHasBeenSeen();
+        accumulateGlobals(Item->getGlobalInits());
+
+        assert(getFlags().getOutFileType() == FT_Asm);
+        std::unique_ptr<Cfg> Func = Item->getCfg();
+        // Unfortunately, we have to temporarily install the Cfg in TLS
+        // because Variable::asType() uses the allocator to create the
+        // differently-typed copy.
+        Cfg::setCurrentCfg(Func.get());
+        Func->emit();
+        Cfg::setCurrentCfg(nullptr);
+        dumpStats(Func->getFunctionName());
+      } break;
+      }
+    }
+    // Update the start index for next shuffling queue
+    ShuffleStartIndex = ShuffleEndIndex;
   }
 
   // In case there are no code to be generated, we invoke the conditional

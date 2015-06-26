@@ -390,7 +390,7 @@ void ELFObjectWriter::writeDataOfType(SectionType ST,
            Var->getInitializers()) {
         switch (Init->getKind()) {
         case VariableDeclaration::Initializer::DataInitializerKind: {
-          const auto Data =
+          const auto &Data =
               llvm::cast<VariableDeclaration::DataInitializer>(Init.get())
                   ->getContents();
           Section->appendData(Str, llvm::StringRef(Data.data(), Data.size()));
@@ -508,6 +508,13 @@ template <typename ConstType> void ELFObjectWriter::writeConstantPool(Type Ty) {
   const SizeT SymbolSize = 0;
   Section->setFileOffset(alignFileOffset(Align));
 
+  // If the -reorder-pooled-constant option is set to true, we should shuffle
+  // the constants before we emit them.
+  auto *CtxPtr = &Ctx;
+  if (Ctx.getFlags().shouldReorderPooledConstants())
+    RandomShuffle(Pool.begin(), Pool.end(), [CtxPtr](uint64_t N) {
+      return (uint32_t)CtxPtr->getRNG().next(N);
+    });
   // Write the data.
   for (Constant *C : Pool) {
     if (!C->getShouldBePooled())

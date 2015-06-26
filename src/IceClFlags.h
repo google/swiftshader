@@ -141,7 +141,6 @@ public:
   setRandomizeAndPoolImmediatesOption(RandomizeAndPoolImmediatesEnum Option) {
     RandomizeAndPoolImmediatesOption = Option;
   }
-
   RandomizeAndPoolImmediatesEnum getRandomizeAndPoolImmediatesOption() const {
     return RandomizeAndPoolImmediatesOption;
   }
@@ -152,6 +151,26 @@ public:
   uint32_t getRandomizeAndPoolImmediatesThreshold() const {
     return RandomizeAndPoolImmediatesThreshold;
   }
+
+  void setShouldReorderFunctions(bool Option) { ReorderFunctions = Option; }
+  bool shouldReorderFunctions() const { return ReorderFunctions; }
+
+  void setReorderFunctionsWindowSize(uint32_t Size) {
+    ReorderFunctionsWindowSize = Size;
+  }
+  uint32_t getReorderFunctionsWindowSize() const {
+    return ReorderFunctionsWindowSize;
+  }
+
+  void setShouldReorderGlobalVariables(bool Option) {
+    ReorderGlobalVariables = Option;
+  }
+  bool shouldReorderGlobalVariables() const { return ReorderGlobalVariables; }
+
+  void setShouldReorderPooledConstants(bool Option) {
+    ReorderPooledConstants = Option;
+  }
+  bool shouldReorderPooledConstants() const { return ReorderPooledConstants; }
 
   // IceString accessors.
 
@@ -209,6 +228,9 @@ private:
   bool PhiEdgeSplit;
   bool RandomNopInsertion;
   bool RandomRegAlloc;
+  bool ReorderFunctions;
+  bool ReorderGlobalVariables;
+  bool ReorderPooledConstants;
   bool SkipUnimplemented;
   bool SubzeroTimingEnabled;
   bool TimeEachFunction;
@@ -216,8 +238,11 @@ private:
 
   OptLevel Opt;
   FileType OutFileType;
+  RandomizeAndPoolImmediatesEnum RandomizeAndPoolImmediatesOption;
+  uint32_t RandomizeAndPoolImmediatesThreshold;
   int RandomMaxNopsPerInstruction;
   int RandomNopProbabilityAsPercentage;
+  uint32_t ReorderFunctionsWindowSize;
   TargetArch TArch;
   TargetInstructionSet TInstrSet;
   VerboseMask VMask;
@@ -228,10 +253,6 @@ private:
   IceString TimingFocusOn;
   IceString TranslateOnly;
   IceString VerboseFocusOn;
-
-  // Immediates Randomization and Pooling options
-  RandomizeAndPoolImmediatesEnum RandomizeAndPoolImmediatesOption;
-  uint32_t RandomizeAndPoolImmediatesThreshold;
 
   size_t NumTranslationThreads; // 0 means completely sequential
   uint64_t RandomSeed;

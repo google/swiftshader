@@ -239,6 +239,14 @@ void TargetDataX8632::emitConstantPool(GlobalContext *Ctx) {
   Str << "\t.section\t.rodata.cst" << Align << ",\"aM\",@progbits," << Align
       << "\n";
   Str << "\t.align\t" << Align << "\n";
+
+  // If reorder-pooled-constants option is set to true, we need to shuffle the
+  // constant pool before emitting it.
+  if (Ctx->getFlags().shouldReorderPooledConstants())
+    RandomShuffle(Pool.begin(), Pool.end(), [Ctx](uint64_t N) {
+      return (uint32_t)Ctx->getRNG().next(N);
+    });
+
   for (Constant *C : Pool) {
     if (!C->getShouldBePooled())
       continue;

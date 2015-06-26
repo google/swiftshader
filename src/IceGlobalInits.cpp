@@ -22,7 +22,6 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Value.h"
 
-
 namespace {
 char hexdigit(unsigned X) { return X < 10 ? '0' + X : 'A' + X - 10; }
 
