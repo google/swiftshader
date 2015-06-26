@@ -1,0 +1,160 @@
+//===- subzero/src/IceInstX8664.def - X-macros for x86-64 insts -*- C++ -*-===//
+//
+//                        The Subzero Code Generator
+//
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.TXT for details.
+//
+//===----------------------------------------------------------------------===//
+//
+// This file defines properties of lowered x86-64 instructions in the
+// form of x-macros.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef SUBZERO_SRC_ICEINSTX8664_DEF
+#define SUBZERO_SRC_ICEINSTX8664_DEF
+
+// NOTE: esp is not considered isInt, to avoid register allocating it.
+#define REGX8664_GPR_TABLE                                                     \
+  /* val, encode, name64, name, name16, name8, scratch, preserved, stackptr,   \
+     frameptr, isInt, isFP */                                                  \
+  X(Reg_rax, =            0, "rax", "eax" ,  "ax" , "al"  , 1, 0, 0, 0, 1, 0)  \
+  X(Reg_rcx, = Reg_rax +  1, "rcx", "ecx" ,  "cx" , "cl"  , 1, 0, 0, 0, 1, 0)  \
+  X(Reg_rdx, = Reg_rax +  2, "rdx", "edx" ,  "dx" , "dl"  , 1, 0, 0, 0, 1, 0)  \
+  X(Reg_rbx, = Reg_rax +  3, "rbx", "ebx" ,  "bx" , "bl"  , 0, 1, 0, 0, 1, 0)  \
+  X(Reg_rsp, = Reg_rax +  4, "rsp", "esp" ,  "sp" , "spl" , 0, 0, 1, 0, 0, 0)  \
+  X(Reg_rbp, = Reg_rax +  5, "rbp", "ebp" ,  "bp" , "bpl" , 0, 0, 0, 1, 1, 0)  \
+  X(Reg_rsi, = Reg_rax +  6, "rsi", "esi" ,  "si" , "sil" , 1, 0, 0, 0, 1, 0)  \
+  X(Reg_rdi, = Reg_rax +  7, "rdi", "edi" ,  "di" , "dil" , 1, 0, 0, 0, 1, 0)  \
+  X(Reg_r8,  = Reg_rax +  8, "r8" , "r8d" ,  "r8w", "r8l" , 1, 0, 0, 0, 1, 0)  \
+  X(Reg_r9,  = Reg_rax +  9, "r9" , "r9d" ,  "r9w", "r9l" , 1, 0, 0, 0, 1, 0)  \
+  X(Reg_r10, = Reg_rax + 10, "r10", "r10d", "r10w", "r10l", 1, 0, 0, 0, 1, 0)  \
+  X(Reg_r11, = Reg_rax + 11, "r11", "r11d", "r11w", "r11l", 1, 0, 0, 0, 1, 0)  \
+  X(Reg_r12, = Reg_rax + 12, "r12", "r12d", "r12w", "r12l", 0, 1, 0, 0, 1, 0)  \
+  X(Reg_r13, = Reg_rax + 13, "r13", "r13d", "r13w", "r12l", 0, 1, 0, 0, 1, 0)  \
+  X(Reg_r14, = Reg_rax + 14, "r14", "r14d", "r14w", "r14l", 0, 1, 0, 0, 1, 0)  \
+  X(Reg_r15, = Reg_rax + 15, "r15", "r15d", "r15w", "r15l", 0, 1, 0, 0, 1, 0)
+
+#define REGX8664_XMM_TABLE                                                     \
+  /* val, encode, name64, name, name16, name8, scratch, preserved, stackptr,   \
+     frameptr, isInt, isFP */                                                  \
+  X(Reg_xmm0,  =             0, "xmm0" , "", "", "", 1, 0, 0, 0, 0, 0, 1)      \
+  X(Reg_xmm1,  = Reg_xmm0 +  1, "xmm1" , "", "", "", 1, 0, 0, 0, 0, 0, 1)      \
+  X(Reg_xmm2,  = Reg_xmm0 +  2, "xmm2" , "", "", "", 1, 0, 0, 0, 0, 0, 1)      \
+  X(Reg_xmm3,  = Reg_xmm0 +  3, "xmm3" , "", "", "", 1, 0, 0, 0, 0, 0, 1)      \
+  X(Reg_xmm4,  = Reg_xmm0 +  4, "xmm4" , "", "", "", 1, 0, 0, 0, 0, 0, 1)      \
+  X(Reg_xmm5,  = Reg_xmm0 +  5, "xmm5" , "", "", "", 1, 0, 0, 0, 0, 0, 1)      \
+  X(Reg_xmm6,  = Reg_xmm0 +  6, "xmm6" , "", "", "", 1, 0, 0, 0, 0, 0, 1)      \
+  X(Reg_xmm7,  = Reg_xmm0 +  7, "xmm7" , "", "", "", 1, 0, 0, 0, 0, 0, 1)      \
+  X(Reg_xmm8,  = Reg_xmm0 +  8, "xmm8" , "", "", "", 1, 0, 0, 0, 0, 0, 1)      \
+  X(Reg_xmm9,  = Reg_xmm0 +  9, "xmm9" , "", "", "", 1, 0, 0, 0, 0, 0, 1)      \
+  X(Reg_xmm10, = Reg_xmm0 + 10, "xmm10", "", "", "", 1, 0, 0, 0, 0, 0, 1)      \
+  X(Reg_xmm11, = Reg_xmm0 + 11, "xmm11", "", "", "", 1, 0, 0, 0, 0, 0, 1)      \
+  X(Reg_xmm12, = Reg_xmm0 + 12, "xmm12", "", "", "", 1, 0, 0, 0, 0, 0, 1)      \
+  X(Reg_xmm13, = Reg_xmm0 + 13, "xmm13", "", "", "", 1, 0, 0, 0, 0, 0, 1)      \
+  X(Reg_xmm14, = Reg_xmm0 + 14, "xmm14", "", "", "", 1, 0, 0, 0, 0, 0, 1)      \
+  X(Reg_xmm15, = Reg_xmm0 + 15, "xmm15", "", "", "", 1, 0, 0, 0, 0, 0, 1)
+//#define X(val, encode, name, name32, name16, name8, scratch, preserved,
+//          stackptr, frameptr, isI8, isInt, isFP)
+
+// We also provide a combined table, so that there is a namespace where
+// all of the registers are considered and have distinct numberings.
+// This is in contrast to the above, where the "encode" is based on how
+// the register numbers will be encoded in binaries and values can overlap.
+// We don't want the register allocator choosing Reg_ah, in particular
+// for lowering insertelement to pinsrb where internally we use an
+// 8-bit operand but externally pinsrb uses a 32-bit register, in
+// which Reg_ah doesn't map to eax.
+#define REGX8664_TABLE                                                         \
+  /* val, encode, name64, name, name16, name8, scratch, preserved,             \
+     stackptr, frameptr, isInt, isFP */                                        \
+  REGX8664_GPR_TABLE                                                           \
+  X(Reg_ah, = Reg_rax + 4, "?ah", "?ah", "?ah", "ah", 0, 0, 0, 0, 0, 0)        \
+  REGX8664_XMM_TABLE
+//#define X(val, encode, name, name32, name16, name8, scratch, preserved,
+//          stackptr, frameptr, isI8, isInt, isFP)
+
+#define REGX8664_TABLE_BOUNDS                                                  \
+  /* val         , init */                                                     \
+  X(Reg_GPR_First, = Reg_rax  )                                                \
+  X(Reg_GPR_Last , = Reg_r15  )                                                \
+  X(Reg_XMM_First, = Reg_xmm0 )                                                \
+  X(Reg_XMM_Last , = Reg_xmm15)
+// define X(val, init)
+
+// We also need the encodings for the Byte registers (other info overlaps
+// what is in the REGX8664_GPR_TABLE). We don't expose the ah, ch, dh,
+// bh registers to keep register selection simple.
+#define REGX8664_BYTEREG_TABLE                                                 \
+  /* val    , encode */                                                        \
+  X(Reg_al  , =           0)                                                   \
+  X(Reg_cl  , = Reg_al +  1)                                                   \
+  X(Reg_dl  , = Reg_al +  2)                                                   \
+  X(Reg_bl  , = Reg_al +  3)                                                   \
+  X(Reg_spl , = Reg_al +  4)                                                   \
+  X(Reg_bpl , = Reg_al +  5)                                                   \
+  X(Reg_sil , = Reg_al +  6)                                                   \
+  X(Reg_dil , = Reg_al +  7)                                                   \
+  X(Reg_r8l , = Reg_al +  8)                                                   \
+  X(Reg_r9l , = Reg_al +  9)                                                   \
+  X(Reg_r10l, = Reg_al + 10)                                                   \
+  X(Reg_r11l, = Reg_al + 11)                                                   \
+  X(Reg_r12l, = Reg_al + 12)                                                   \
+  X(Reg_r13l, = Reg_al + 13)                                                   \
+  X(Reg_r14l, = Reg_al + 14)                                                   \
+  X(Reg_r15l, = Reg_al + 15)
+//#define X(val, encode)
+
+#define ICEINSTX8664BR_TABLE                                                   \
+  /* enum value, encode, opposite, dump, emit */                               \
+  X(Br_o       , =    0, Br_no   , "o" , "jo" )                                \
+  X(Br_no      , =    1, Br_o    , "no", "jno")                                \
+  X(Br_b       , =    2, Br_ae   , "b" , "jb" )                                \
+  X(Br_ae      , =    3, Br_b    , "ae", "jae")                                \
+  X(Br_e       , =    4, Br_ne   , "e" , "je" )                                \
+  X(Br_ne      , =    5, Br_e    , "ne", "jne")                                \
+  X(Br_be      , =    6, Br_a    , "be", "jbe")                                \
+  X(Br_a       , =    7, Br_be   , "a" , "ja" )                                \
+  X(Br_s       , =    8, Br_ns   , "s" , "js" )                                \
+  X(Br_ns      , =    9, Br_s    , "ns", "jns")                                \
+  X(Br_p       , =   10, Br_np   , "p" , "jp" )                                \
+  X(Br_np      , =   11, Br_p    , "np", "jnp")                                \
+  X(Br_l       , =   12, Br_ge   , "l" , "jl" )                                \
+  X(Br_ge      , =   13, Br_l    , "ge", "jge")                                \
+  X(Br_le      , =   14, Br_g    , "le", "jle")                                \
+  X(Br_g       , =   15, Br_le   , "g" , "jg"):
+//#define X(tag, encode, opp, dump, emit)
+
+#define ICEINSTX8664CMPPS_TABLE                                                \
+  /* enum value, emit */                                                       \
+  X(Cmpps_eq   , "eq"   )                                                      \
+  X(Cmpps_lt   , "lt"   )                                                      \
+  X(Cmpps_le   , "le"   )                                                      \
+  X(Cmpps_unord, "unord")                                                      \
+  X(Cmpps_neq  , "neq"  )                                                      \
+  X(Cmpps_nlt  , "nlt"  )                                                      \
+  X(Cmpps_nle  , "nle"  )                                                      \
+  X(Cmpps_ord  , "ord"  )
+//#define X(tag, emit)
+
+#define ICETYPEX8664_TABLE                                                     \
+  /* tag         , element type, cvt , sdss, pack, width, fld */               \
+  X(IceType_void , IceType_void, "?" , ""  , ""  , ""   , "" )                 \
+  X(IceType_i1   , IceType_void, "si", ""  , ""  , "b"  , "" )                 \
+  X(IceType_i8   , IceType_void, "si", ""  , ""  , "b"  , "" )                 \
+  X(IceType_i16  , IceType_void, "si", ""  , ""  , "w"  , "" )                 \
+  X(IceType_i32  , IceType_void, "si", ""  , ""  , "l"  , "" )                 \
+  X(IceType_i64  , IceType_void, "si", ""  , ""  , "q"  , "" )                 \
+  X(IceType_f32  , IceType_void, "ss", "ss", "d" , ""   , "s")                 \
+  X(IceType_f64  , IceType_void, "sd", "sd", "q" , ""   , "l")                 \
+  X(IceType_v4i1 , IceType_i32 , "?" , ""  , "d" , ""   , "" )                 \
+  X(IceType_v8i1 , IceType_i16 , "?" , ""  , "w" , ""   , "" )                 \
+  X(IceType_v16i1, IceType_i8  , "?" , ""  , "b" , ""   , "" )                 \
+  X(IceType_v16i8, IceType_i8  , "?" , ""  , "b" , ""   , "" )                 \
+  X(IceType_v8i16, IceType_i16 , "?" , ""  , "w" , ""   , "" )                 \
+  X(IceType_v4i32, IceType_i32 , "dq", ""  , "d" , ""   , "" )                 \
+  X(IceType_v4f32, IceType_f32 , "ps", ""  , "d" , ""   , "" )
+//#define X(tag, elementty, cvt, sdss, pack, width, fld)
+
+#endif // SUBZERO_SRC_ICEINSTX8664_DEF
