@@ -25,8 +25,8 @@ namespace RegX8664 {
 // An enum of every register. The enum value may not match the encoding
 // used to binary encode register operands in instructions.
 enum AllRegisters {
-#define X(val, encode, name, name32, name16, name8, scratch, preserved,        \
-          stackptr, frameptr, isI8, isInt, isFP)                               \
+#define X(val, encode, name64, name, name16, name8, scratch, preserved,        \
+          stackptr, frameptr, isInt, isFP)                                     \
   val,
   REGX8664_TABLE
 #undef X
@@ -39,8 +39,8 @@ enum AllRegisters {
 // An enum of GPR Registers. The enum value does match the encoding used
 // to binary encode register operands in instructions.
 enum GPRRegister {
-#define X(val, encode, name, name32, name16, name8, scratch, preserved,        \
-          stackptr, frameptr, isI8, isInt, isFP)                               \
+#define X(val, encode, name64, name, name16, name8, scratch, preserved,        \
+          stackptr, frameptr, isInt, isFP)                                     \
   Encoded_##val encode,
   REGX8664_GPR_TABLE
 #undef X
@@ -50,8 +50,8 @@ enum GPRRegister {
 // An enum of XMM Registers. The enum value does match the encoding used
 // to binary encode register operands in instructions.
 enum XmmRegister {
-#define X(val, encode, name, name32, name16, name8, scratch, preserved,        \
-          stackptr, frameptr, isI8, isInt, isFP)                               \
+#define X(val, encode, name64, name, name16, name8, scratch, preserved,        \
+          stackptr, frameptr, isInt, isFP)                                     \
   Encoded_##val encode,
   REGX8664_XMM_TABLE
 #undef X

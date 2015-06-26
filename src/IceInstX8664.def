@@ -39,22 +39,22 @@
 #define REGX8664_XMM_TABLE                                                     \
   /* val, encode, name64, name, name16, name8, scratch, preserved, stackptr,   \
      frameptr, isInt, isFP */                                                  \
-  X(Reg_xmm0,  =             0, "xmm0" , "", "", "", 1, 0, 0, 0, 0, 0, 1)      \
-  X(Reg_xmm1,  = Reg_xmm0 +  1, "xmm1" , "", "", "", 1, 0, 0, 0, 0, 0, 1)      \
-  X(Reg_xmm2,  = Reg_xmm0 +  2, "xmm2" , "", "", "", 1, 0, 0, 0, 0, 0, 1)      \
-  X(Reg_xmm3,  = Reg_xmm0 +  3, "xmm3" , "", "", "", 1, 0, 0, 0, 0, 0, 1)      \
-  X(Reg_xmm4,  = Reg_xmm0 +  4, "xmm4" , "", "", "", 1, 0, 0, 0, 0, 0, 1)      \
-  X(Reg_xmm5,  = Reg_xmm0 +  5, "xmm5" , "", "", "", 1, 0, 0, 0, 0, 0, 1)      \
-  X(Reg_xmm6,  = Reg_xmm0 +  6, "xmm6" , "", "", "", 1, 0, 0, 0, 0, 0, 1)      \
-  X(Reg_xmm7,  = Reg_xmm0 +  7, "xmm7" , "", "", "", 1, 0, 0, 0, 0, 0, 1)      \
-  X(Reg_xmm8,  = Reg_xmm0 +  8, "xmm8" , "", "", "", 1, 0, 0, 0, 0, 0, 1)      \
-  X(Reg_xmm9,  = Reg_xmm0 +  9, "xmm9" , "", "", "", 1, 0, 0, 0, 0, 0, 1)      \
-  X(Reg_xmm10, = Reg_xmm0 + 10, "xmm10", "", "", "", 1, 0, 0, 0, 0, 0, 1)      \
-  X(Reg_xmm11, = Reg_xmm0 + 11, "xmm11", "", "", "", 1, 0, 0, 0, 0, 0, 1)      \
-  X(Reg_xmm12, = Reg_xmm0 + 12, "xmm12", "", "", "", 1, 0, 0, 0, 0, 0, 1)      \
-  X(Reg_xmm13, = Reg_xmm0 + 13, "xmm13", "", "", "", 1, 0, 0, 0, 0, 0, 1)      \
-  X(Reg_xmm14, = Reg_xmm0 + 14, "xmm14", "", "", "", 1, 0, 0, 0, 0, 0, 1)      \
-  X(Reg_xmm15, = Reg_xmm0 + 15, "xmm15", "", "", "", 1, 0, 0, 0, 0, 0, 1)
+  X(Reg_xmm0,  =             0, "xmm0" , "", "", "", 1, 0, 0, 0, 0, 1)         \
+  X(Reg_xmm1,  = Reg_xmm0 +  1, "xmm1" , "", "", "", 1, 0, 0, 0, 0, 1)         \
+  X(Reg_xmm2,  = Reg_xmm0 +  2, "xmm2" , "", "", "", 1, 0, 0, 0, 0, 1)         \
+  X(Reg_xmm3,  = Reg_xmm0 +  3, "xmm3" , "", "", "", 1, 0, 0, 0, 0, 1)         \
+  X(Reg_xmm4,  = Reg_xmm0 +  4, "xmm4" , "", "", "", 1, 0, 0, 0, 0, 1)         \
+  X(Reg_xmm5,  = Reg_xmm0 +  5, "xmm5" , "", "", "", 1, 0, 0, 0, 0, 1)         \
+  X(Reg_xmm6,  = Reg_xmm0 +  6, "xmm6" , "", "", "", 1, 0, 0, 0, 0, 1)         \
+  X(Reg_xmm7,  = Reg_xmm0 +  7, "xmm7" , "", "", "", 1, 0, 0, 0, 0, 1)         \
+  X(Reg_xmm8,  = Reg_xmm0 +  8, "xmm8" , "", "", "", 1, 0, 0, 0, 0, 1)         \
+  X(Reg_xmm9,  = Reg_xmm0 +  9, "xmm9" , "", "", "", 1, 0, 0, 0, 0, 1)         \
+  X(Reg_xmm10, = Reg_xmm0 + 10, "xmm10", "", "", "", 1, 0, 0, 0, 0, 1)         \
+  X(Reg_xmm11, = Reg_xmm0 + 11, "xmm11", "", "", "", 1, 0, 0, 0, 0, 1)         \
+  X(Reg_xmm12, = Reg_xmm0 + 12, "xmm12", "", "", "", 1, 0, 0, 0, 0, 1)         \
+  X(Reg_xmm13, = Reg_xmm0 + 13, "xmm13", "", "", "", 1, 0, 0, 0, 0, 1)         \
+  X(Reg_xmm14, = Reg_xmm0 + 14, "xmm14", "", "", "", 1, 0, 0, 0, 0, 1)         \
+  X(Reg_xmm15, = Reg_xmm0 + 15, "xmm15", "", "", "", 1, 0, 0, 0, 0, 1)
 //#define X(val, encode, name, name32, name16, name8, scratch, preserved,
 //          stackptr, frameptr, isI8, isInt, isFP)
 
@@ -88,22 +88,22 @@
 // bh registers to keep register selection simple.
 #define REGX8664_BYTEREG_TABLE                                                 \
   /* val    , encode */                                                        \
-  X(Reg_al  , =           0)                                                   \
-  X(Reg_cl  , = Reg_al +  1)                                                   \
-  X(Reg_dl  , = Reg_al +  2)                                                   \
-  X(Reg_bl  , = Reg_al +  3)                                                   \
-  X(Reg_spl , = Reg_al +  4)                                                   \
-  X(Reg_bpl , = Reg_al +  5)                                                   \
-  X(Reg_sil , = Reg_al +  6)                                                   \
-  X(Reg_dil , = Reg_al +  7)                                                   \
-  X(Reg_r8l , = Reg_al +  8)                                                   \
-  X(Reg_r9l , = Reg_al +  9)                                                   \
-  X(Reg_r10l, = Reg_al + 10)                                                   \
-  X(Reg_r11l, = Reg_al + 11)                                                   \
-  X(Reg_r12l, = Reg_al + 12)                                                   \
-  X(Reg_r13l, = Reg_al + 13)                                                   \
-  X(Reg_r14l, = Reg_al + 14)                                                   \
-  X(Reg_r15l, = Reg_al + 15)
+  X(Reg_al  , =  0)                                                            \
+  X(Reg_cl  , =  1)                                                            \
+  X(Reg_dl  , =  2)                                                            \
+  X(Reg_bl  , =  3)                                                            \
+  X(Reg_spl , =  4)                                                            \
+  X(Reg_bpl , =  5)                                                            \
+  X(Reg_sil , =  6)                                                            \
+  X(Reg_dil , =  7)                                                            \
+  X(Reg_r8l , =  8)                                                            \
+  X(Reg_r9l , =  9)                                                            \
+  X(Reg_r10l, = 10)                                                            \
+  X(Reg_r11l, = 11)                                                            \
+  X(Reg_r12l, = 12)                                                            \
+  X(Reg_r13l, = 13)                                                            \
+  X(Reg_r14l, = 14)                                                            \
+  X(Reg_r15l, = 15)
 //#define X(val, encode)
 
 #define ICEINSTX8664BR_TABLE                                                   \
@@ -123,7 +123,7 @@
   X(Br_l       , =   12, Br_ge   , "l" , "jl" )                                \
   X(Br_ge      , =   13, Br_l    , "ge", "jge")                                \
   X(Br_le      , =   14, Br_g    , "le", "jle")                                \
-  X(Br_g       , =   15, Br_le   , "g" , "jg"):
+  X(Br_g       , =   15, Br_le   , "g" , "jg")
 //#define X(tag, encode, opp, dump, emit)
 
 #define ICEINSTX8664CMPPS_TABLE                                                \
