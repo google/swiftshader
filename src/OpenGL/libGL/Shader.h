@@ -73,7 +73,6 @@ protected:
 	TranslatorASM *createCompiler(GLenum shaderType);
 	void clear();
 
-    static GLenum parseType(const std::string &type);
     static bool compareVarying(const glsl::Varying &x, const glsl::Varying &y);
 
 	char *mSource;
