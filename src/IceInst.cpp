@@ -270,10 +270,10 @@ InstAssign::InstAssign(Cfg *Func, Variable *Dest, Operand *Source)
 // If TargetTrue==TargetFalse, we turn it into an unconditional
 // branch.  This ensures that, along with the 'switch' instruction
 // semantics, there is at most one edge from one node to another.
-InstBr::InstBr(Cfg *Func, Operand *Source, CfgNode *TargetTrue,
-               CfgNode *TargetFalse)
-    : InstHighLevel(Func, Inst::Br, 1, nullptr), TargetFalse(TargetFalse),
-      TargetTrue(TargetTrue) {
+InstBr::InstBr(Cfg *Func, Operand *Source, CfgNode *TargetTrue_,
+               CfgNode *TargetFalse_)
+    : InstHighLevel(Func, Inst::Br, 1, nullptr), TargetFalse(TargetFalse_),
+      TargetTrue(TargetTrue_) {
   if (TargetTrue == TargetFalse) {
     TargetTrue = nullptr; // turn into unconditional version
   } else {
