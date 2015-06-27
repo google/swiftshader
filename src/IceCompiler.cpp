@@ -23,12 +23,16 @@
 #include "IceConverter.h"
 #include "IceELFObjectWriter.h"
 #include "PNaClTranslator.h"
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IRReader/IRReader.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/StreamingMemoryObject.h"
+#pragma clang diagnostic pop
 
 namespace Ice {
 

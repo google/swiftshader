@@ -23,6 +23,9 @@
 #include "IceGlobalInits.h"
 #include "IceInst.h"
 #include "IceOperand.h"
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
 #include "llvm/ADT/SmallString.h"
 #include "llvm/Bitcode/NaCl/NaClBitcodeDecoders.h"
 #include "llvm/Bitcode/NaCl/NaClBitcodeDefs.h"
@@ -32,6 +35,7 @@
 #include "llvm/Support/Format.h"
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/raw_ostream.h"
+#pragma clang diagnostic pop
 
 namespace {
 using namespace llvm;

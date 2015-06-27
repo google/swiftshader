@@ -9,9 +9,12 @@
 
 #include <string>
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/Bitcode/NaCl/NaClBitcodeParser.h"
 #include "llvm/Bitcode/NaCl/NaClLLVMBitCodes.h"
+#pragma clang diagnostic pop
 
 #include "BitcodeMunge.h"
 #include "unittests/Bitcode/NaClMungeTest.h"

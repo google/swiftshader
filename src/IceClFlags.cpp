@@ -16,7 +16,11 @@
 #include "IceClFlags.h"
 
 #include "IceClFlagsExtra.h"
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
 #include "llvm/Support/CommandLine.h"
+#pragma clang diagnostic pop
 
 namespace cl = llvm::cl;
 

@@ -15,7 +15,10 @@
 #ifndef SUBZERO_UNITTEST_BITCODEMUNGE_H
 #define SUBZERO_UNITTEST_BITCODEMUNGE_H
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
 #include "llvm/Bitcode/NaCl/NaClBitcodeMunge.h"
+#pragma clang diagnostic pop
 
 #include "IceClFlags.h"
 

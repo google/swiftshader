@@ -17,6 +17,9 @@
 #include "IceClFlagsExtra.h"
 #include "IceELFStreamer.h"
 #include "IceGlobalContext.h"
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
 // Include code to handle converting textual bitcode records to binary (for
 // INPUT_IS_TEXTUAL_BITCODE).
 #include "llvm/Bitcode/NaCl/NaClBitcodeMungeUtils.h"
@@ -25,6 +28,7 @@
 #include "llvm/Support/Signals.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/StreamingMemoryObject.h"
+#pragma clang diagnostic pop
 
 #include <fstream>
 #include <iostream>

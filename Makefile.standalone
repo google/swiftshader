@@ -162,7 +162,7 @@ SB_TRANSLATE := $(PNACL_BIN_PATH)/pnacl-translate
 
 BASE_CXXFLAGS := -std=gnu++11 -Wall -Wextra -Werror -fno-rtti \
 	-fno-exceptions $(OPTLEVEL) $(ASSERTIONS) -g -pedantic \
-	-Wno-error=unused-parameter $(CXX_EXTRA)
+	$(CXX_EXTRA)
 
 CXXFLAGS := $(LLVM_CXXFLAGS) $(BASE_CXXFLAGS) $(CXX_DEFINES) $(HOST_FLAGS) \
 	$(STDLIB_FLAGS)

@@ -24,7 +24,11 @@
 #include "IceTargetLowering.h"
 #include "IceTimerTree.h"
 #include "IceTypes.h"
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
 #include "llvm/Support/Timer.h"
+#pragma clang diagnostic pop
 
 #include <algorithm> // max()
 #include <cctype> // isdigit(), isupper()

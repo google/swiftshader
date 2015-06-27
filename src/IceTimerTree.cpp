@@ -15,7 +15,11 @@
 #include "IceTimerTree.h"
 
 #include "IceDefs.h"
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
 #include "llvm/Support/Timer.h"
+#pragma clang diagnostic pop
 
 namespace Ice {
 

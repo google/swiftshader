@@ -15,7 +15,11 @@
 #define SUBZERO_SRC_ICECLFLAGSEXTRA_H
 
 #include "IceDefs.h"
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
 #include "llvm/IRReader/IRReader.h"
+#pragma clang diagnostic pop
 
 namespace Ice {
 
