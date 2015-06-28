@@ -1,5 +1,6 @@
 ; Test conditional branch where targets are the same.
 ; Tests issue: https://code.google.com/p/nativeclient/issues/detail?id=4212
+; REQUIRES: allow_dump
 
 ; RUN: %p2i -i %s --insts | FileCheck %s
 
