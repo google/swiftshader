@@ -322,11 +322,14 @@ namespace glsl
 			}
 			break;
 		case EOpIndexDirectStruct:
+		case EOpIndexDirectInterfaceBlock:
 			if(visit == PostVisit)
 			{
-				ASSERT(leftType.isStruct());
+				ASSERT(leftType.isStruct() || (leftType.isInterfaceBlock()));
 
-				const TFieldList& fields = leftType.getStruct()->fields();
+				const TFieldList& fields = (node->getOp() == EOpIndexDirectStruct) ?
+				                           leftType.getStruct()->fields() :
+				                           leftType.getInterfaceBlock()->fields();
 				int index = right->getAsConstantUnion()->getIConst(0);
 				int fieldOffset = 0;
 
@@ -1436,9 +1439,9 @@ namespace glsl
 			return index * type.getElementSize() + componentCount(type, registers);
 		}
 
-		if(type.isStruct())
+		if(type.isStruct() || type.isInterfaceBlock())
 		{
-			const TFieldList& fields = type.getStruct()->fields();
+			const TFieldList& fields = type.getStruct() ? type.getStruct()->fields() : type.getInterfaceBlock()->fields();
 			int elements = 0;
 
 			for(TFieldList::const_iterator field = fields.begin(); field != fields.end(); field++)
@@ -1484,9 +1487,9 @@ namespace glsl
 			return registerSize(type, registers);
 		}
 
-		if(type.isStruct())
+		if(type.isStruct() || type.isInterfaceBlock())
 		{
-			const TFieldList& fields = type.getStruct()->fields();
+			const TFieldList& fields = type.getStruct() ? type.getStruct()->fields() : type.getInterfaceBlock()->fields();
 			int elements = 0;
 
 			for(TFieldList::const_iterator field = fields.begin(); field != fields.end(); field++)
@@ -1559,12 +1562,12 @@ namespace glsl
 						TIntermTyped *left = binary->getLeft();
 						TIntermTyped *right = binary->getRight();
 
-						if(binary->getOp() == EOpIndexDirect)
+						switch(binary->getOp())
 						{
+						case EOpIndexDirect:
 							parameter.index += right->getAsConstantUnion()->getIConst(0);
-						}
-						else if(binary->getOp() == EOpIndexIndirect)
-						{
+							break;
+						case EOpIndexIndirect:
 							if(left->getArraySize() > 1)
 							{
 								parameter.rel.type = registerType(binary->getRight());
@@ -1572,12 +1575,14 @@ namespace glsl
 								parameter.rel.scale = 1;
 								parameter.rel.deterministic = true;
 							}
-						}
-						else if(binary->getOp() == EOpIndexDirectStruct)
-						{
+							break;
+						case EOpIndexDirectStruct:
+						case EOpIndexDirectInterfaceBlock:
 							parameter.index += right->getAsConstantUnion()->getIConst(0);
+							break;
+						default:
+							UNREACHABLE(binary->getOp());
 						}
-						else UNREACHABLE(binary->getOp());
 					}
 				}
 			}
@@ -1768,8 +1773,11 @@ namespace glsl
 				}
 				break;
 			case EOpIndexDirectStruct:
+			case EOpIndexDirectInterfaceBlock:
 				{
-					const TFieldList& fields = left->getType().getStruct()->fields();
+					const TFieldList& fields = (binary->getOp() == EOpIndexDirectStruct) ?
+				                               left->getType().getStruct()->fields() :
+				                               left->getType().getInterfaceBlock()->fields();
 					int index = right->getAsConstantUnion()->getIConst(0);
 					int fieldOffset = 0;
 
@@ -1975,6 +1983,7 @@ namespace glsl
 			case EOpVectorSwizzle:
 			case EOpIndexDirect:
 			case EOpIndexDirectStruct:
+			case EOpIndexDirectInterfaceBlock:
 				return cost(binary->getLeft(), budget - 0);
 			case EOpAdd:
 			case EOpSub:
@@ -2156,17 +2165,18 @@ namespace glsl
 	{
 		const TType &type = uniform->getType();
 		ASSERT(!IsSampler(type.getBasicType()));
+		TInterfaceBlock *block = type.getAsInterfaceBlock();
 		TIntermSymbol *symbol = uniform->getAsSymbolNode();
-		ASSERT(symbol);
+		ASSERT(symbol || block);
 
-		if(symbol)
+		if(symbol || block)
 		{
 			int index = lookup(uniforms, uniform);
 
 			if(index == -1)
 			{
 				index = allocate(uniforms, uniform);
-				const TString &name = symbol->getSymbol().c_str();
+				const TString &name = symbol ? symbol->getSymbol() : block->name();
 
 				declareUniform(type, name, index);
 			}
@@ -2225,7 +2235,8 @@ namespace glsl
 		}
 		else if(binary)
 		{
-			ASSERT(binary->getOp() == EOpIndexDirect || binary->getOp() == EOpIndexIndirect || binary->getOp() == EOpIndexDirectStruct);
+			ASSERT(binary->getOp() == EOpIndexDirect || binary->getOp() == EOpIndexIndirect ||
+				   binary->getOp() == EOpIndexDirectStruct || binary->getOp() == EOpIndexDirectInterfaceBlock);
 
 			return samplerRegister(binary->getLeft());   // Index added later
 		}
@@ -2266,6 +2277,7 @@ namespace glsl
 		}
 
 		TIntermSymbol *varSymbol = variable->getAsSymbolNode();
+		TInterfaceBlock *varBlock = variable->getType().getAsInterfaceBlock();
 
 		if(varSymbol)
 		{
@@ -2282,6 +2294,29 @@ namespace glsl
 							ASSERT(listSymbol->getSymbol() == varSymbol->getSymbol());
 							ASSERT(listSymbol->getType() == varSymbol->getType());
 							ASSERT(listSymbol->getQualifier() == varSymbol->getQualifier());
+
+							return i;
+						}
+					}
+				}
+			}
+		}
+		else if(varBlock)
+		{
+			for(unsigned int i = 0; i < list.size(); i++)
+			{
+				if(list[i])
+				{
+					TInterfaceBlock *listBlock = list[i]->getType().getAsInterfaceBlock();
+
+					if(listBlock)
+					{
+						if(listBlock->name() == varBlock->name())
+						{
+							ASSERT(listBlock->arraySize() == varBlock->arraySize());
+							ASSERT(listBlock->fields() == varBlock->fields());
+							ASSERT(listBlock->blockStorage() == varBlock->blockStorage());
+							ASSERT(listBlock->matrixPacking() == varBlock->matrixPacking());
 
 							return i;
 						}

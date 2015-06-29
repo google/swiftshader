@@ -361,6 +361,7 @@ public:
 	TInterfaceBlock *getInterfaceBlock() const { return interfaceBlock; }
 	void setInterfaceBlock(TInterfaceBlock *interfaceBlockIn) { interfaceBlock = interfaceBlockIn; }
 	bool isInterfaceBlock() const { return type == EbtInterfaceBlock; }
+	TInterfaceBlock *getAsInterfaceBlock() const { return isInterfaceBlock() ? getInterfaceBlock() : nullptr; }
 
 	bool isVector() const { return primarySize > 1 && !isMatrix(); }
 	bool isScalar() const { return primarySize == 1 && !isMatrix() && !structure; }
