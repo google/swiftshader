@@ -581,11 +581,17 @@ void Context::setLightSpecular(int index, float r, float g, float b, float a)
 
 void Context::setLightPosition(int index, float x, float y, float z, float w)
 {
-	light[index].position = {x, y, z, w};
+	sw::float4 v = {x, y, z, w};
+
+	// Transform from object coordinates to eye coordinates
+	v = modelViewStack.current() * v;
+
+	light[index].position = {v.x, v.y, v.z, v.w};
 }
 
 void Context::setLightDirection(int index, float x, float y, float z)
 {
+	// FIXME: Transform by inverse of 3x3 model-view matrix
 	light[index].direction = {x, y, z};
 }
 
@@ -1800,7 +1806,7 @@ void Context::applyState(GLenum drawMode)
 	device->setEmissiveMaterialSource(sw::MATERIAL_MATERIAL);
 
     device->setProjectionMatrix(projectionStack.current());
-    device->setViewMatrix(modelViewStack.current());
+    device->setModelMatrix(modelViewStack.current());
     device->setTextureMatrix(0, textureStack0.current());
 	device->setTextureMatrix(1, textureStack1.current());
 	device->setTextureTransform(0, textureStack0.isIdentity() ? 0 : 4, false);
