@@ -61,7 +61,7 @@ for config in ${CONFIGS}; do
      libGLESv1_CM_swiftshader_vendor_debug \
      libGLESv1_CM_swiftshader_vendor_release \
      libGLESv2_swiftshader_vendor_debug \
-     libGLESv2_swiftshader_vendor_release
+     libGLESv2_swiftshader_vendor_release 2>&1 | tee vendor_build.out
 
   # We don't need the obj files since they can be generated from the syms
 
