@@ -1418,8 +1418,8 @@ GL_APICALL void GL_APIENTRY glRenderbufferStorageMultisample(GLenum target, GLsi
 	if(context)
 	{
 		if(width > es2::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE ||
-			height > es2::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE ||
-			samples > es2::IMPLEMENTATION_MAX_SAMPLES)
+		   height > es2::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE ||
+		   samples > es2::IMPLEMENTATION_MAX_SAMPLES)
 		{
 			return error(GL_INVALID_VALUE);
 		}
@@ -4060,7 +4060,58 @@ GL_APICALL void GL_APIENTRY glGetInternalformativ(GLenum target, GLenum internal
 	TRACE("(GLenum target = 0x%X, GLenum internalformat = 0x%X, GLenum pname = 0x%X, GLsizei bufSize = %d, GLint *params = %p)",
 	      target, internalformat, pname, bufSize, params);
 
-	UNIMPLEMENTED();
+	if(bufSize < 0)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	if(!IsColorRenderable(internalformat) && !IsDepthRenderable(internalformat) && !IsStencilRenderable(internalformat))
+	{
+		return error(GL_INVALID_ENUM);
+	}
+
+	switch(target)
+	{
+	case GL_RENDERBUFFER:
+		break;
+	default:
+		return error(GL_INVALID_ENUM);
+	}
+
+	sw::Format requestedFormat = es2sw::ConvertRenderbufferFormat(internalformat);
+	std::vector<GLint> supportedMultiSampleDepths;
+	int maxDepth = Context::getSupportedMultiSampleDepth(requestedFormat, INT_MAX);
+	for(int depth = maxDepth; depth > 1;)
+	{
+		supportedMultiSampleDepths.push_back(depth);
+		for(int nextDepth = depth - 1; nextDepth >= 0; --nextDepth)
+		{
+			int supportedDepth = Context::getSupportedMultiSampleDepth(requestedFormat, nextDepth);
+			if(supportedDepth != depth)
+			{
+				depth = supportedDepth;
+				break;
+			}
+		}
+	}
+
+	switch(pname)
+	{
+	case GL_SAMPLES:
+		*params = supportedMultiSampleDepths.size();
+		break;
+	case GL_NUM_SAMPLE_COUNTS:
+		{
+			size_t returnCount = std::min<size_t>(bufSize, supportedMultiSampleDepths.size());
+			for(size_t sampleIndex = 0; sampleIndex < returnCount; ++sampleIndex)
+			{
+				params[sampleIndex] = supportedMultiSampleDepths[sampleIndex];
+			}
+		}
+		break;
+	default:
+		return error(GL_INVALID_ENUM);
+	}
 }
 
 }
