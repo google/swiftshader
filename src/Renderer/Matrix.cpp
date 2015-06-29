@@ -225,6 +225,17 @@ namespace sw
 		return M * r;
 	}
 
+	float4 Matrix::operator*(const float4 &v) const
+	{
+		const Matrix &M = *this;
+		float Mx = M(1, 1) * v.x + M(1, 2) * v.y + M(1, 3) * v.z + M(1, 4) * v.w;
+		float My = M(2, 1) * v.x + M(2, 2) * v.y + M(2, 3) * v.z + M(2, 4) * v.w;
+		float Mz = M(3, 1) * v.x + M(3, 2) * v.y + M(3, 3) * v.z + M(3, 4) * v.w;
+		float Mw = M(4, 1) * v.x + M(4, 2) * v.y + M(4, 3) * v.z + M(4, 4) * v.w;
+
+		return {Mx, My, Mz, Mw};
+	}
+
 	float Matrix::det(const Matrix &M)
 	{
 		float M3344 = M(3, 3) * M(4, 4) - M(4, 3) * M(3, 4);

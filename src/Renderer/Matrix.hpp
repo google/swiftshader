@@ -16,6 +16,7 @@ namespace sw
 {
 	struct Vector;
 	struct Point;
+	struct float4;
 
 	struct Matrix
 	{
@@ -67,6 +68,8 @@ namespace sw
 		friend Matrix operator*(float s, const Matrix &M);
 		friend Matrix operator*(const Matrix &M, const Matrix &N);
 		friend Matrix operator/(const Matrix &M, float s);
+
+		float4 operator*(const float4 &v) const;
 
 		static float det(const Matrix &M);
 		static float det(float m11);
