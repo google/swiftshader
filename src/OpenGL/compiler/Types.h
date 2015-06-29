@@ -295,6 +295,10 @@ public:
 		{
 			return getStructSize();
 		}
+		else if(isInterfaceBlock())
+		{
+			return interfaceBlock->objectSize();
+		}
 		else if(isMatrix())
 		{
 			return primarySize * secondarySize;
@@ -307,11 +311,11 @@ public:
 
 	int elementRegisterCount() const
 	{
-		if(structure)
+		if(structure || isInterfaceBlock())
 		{
 			int registerCount = 0;
 
-			const TFieldList& fields = getStruct()->fields();
+			const TFieldList& fields = isInterfaceBlock() ? interfaceBlock->fields() : structure->fields();
 			for(size_t i = 0; i < fields.size(); i++)
 			{
 				registerCount += fields[i]->type()->totalRegisterCount();
