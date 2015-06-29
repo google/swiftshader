@@ -127,7 +127,7 @@ public:
   VariablesMetadata *getVMetadata() const { return VMetadata.get(); }
   Liveness *getLiveness() const { return Live.get(); }
   template <typename T = Assembler> T *getAssembler() const {
-    return static_cast<T *>(TargetAssembler.get());
+    return llvm::dyn_cast<T>(TargetAssembler.get());
   }
   Assembler *releaseAssembler() { return TargetAssembler.release(); }
   std::unique_ptr<VariableDeclarationList> getGlobalInits() {

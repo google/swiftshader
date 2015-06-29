@@ -144,11 +144,18 @@ private:
 };
 
 class Assembler {
+  Assembler() = delete;
   Assembler(const Assembler &) = delete;
   Assembler &operator=(const Assembler &) = delete;
 
 public:
-  Assembler() : Allocator(), Buffer(*this) {}
+  enum AssemblerKind {
+    Asm_ARM32,
+    Asm_MIPS32,
+    Asm_X8632,
+    Asm_X8664,
+  };
+
   virtual ~Assembler() = default;
 
   // Allocate a chunk of bytes using the per-Assembler allocator.
@@ -203,7 +210,15 @@ public:
   void setPreliminary(bool Value) { Preliminary = Value; }
   bool getPreliminary() const { return Preliminary; }
 
+  AssemblerKind getKind() const { return Kind; }
+
+protected:
+  explicit Assembler(AssemblerKind Kind)
+      : Kind(Kind), Allocator(), Buffer(*this) {}
+
 private:
+  const AssemblerKind Kind;
+
   ArenaAllocator<32 * 1024> Allocator;
   // FunctionName and IsInternal are transferred from the original Cfg
   // object, since the Cfg object may be deleted by the time the

@@ -1,4 +1,4 @@
-//===- subzero/src/assembler_mips.h - Assembler for MIPS --------*- C++ -*-===//
+//===- subzero/src/IceAssemblerMIPS32.h - Assembler for MIPS ----*- C++ -*-===//
 //
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19,8 +19,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef SUBZERO_SRC_ASSEMBLER_MIPS32_H
-#define SUBZERO_SRC_ASSEMBLER_MIPS32_H
+#ifndef SUBZERO_SRC_ICEASSEMBLERMIPS32_H
+#define SUBZERO_SRC_ICEASSEMBLERMIPS32_H
 
 #include "IceAssembler.h"
 #include "IceDefs.h"
@@ -34,7 +34,8 @@ class AssemblerMIPS32 : public Assembler {
   AssemblerMIPS32 &operator=(const AssemblerMIPS32 &) = delete;
 
 public:
-  explicit AssemblerMIPS32(bool use_far_branches = false) : Assembler() {
+  explicit AssemblerMIPS32(bool use_far_branches = false)
+      : Assembler(Asm_MIPS32) {
     // This mode is only needed and implemented for MIPS32 and ARM.
     assert(!use_far_branches);
     (void)use_far_branches;
@@ -67,9 +68,13 @@ public:
     (void)Kind;
     llvm::report_fatal_error("Not yet implemented.");
   }
+
+  static bool classof(const Assembler *Asm) {
+    return Asm->getKind() == Asm_MIPS32;
+  }
 };
 
 } // end of namespace MIPS32
 } // end of namespace Ice
 
-#endif // SUBZERO_SRC_ASSEMBLER_MIPS32_H
+#endif // SUBZERO_SRC_ICEASSEMBLERMIPS32_H

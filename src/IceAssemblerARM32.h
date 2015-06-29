@@ -34,7 +34,8 @@ class AssemblerARM32 : public Assembler {
   AssemblerARM32 &operator=(const AssemblerARM32 &) = delete;
 
 public:
-  explicit AssemblerARM32(bool use_far_branches = false) : Assembler() {
+  explicit AssemblerARM32(bool use_far_branches = false)
+      : Assembler(Asm_ARM32) {
     // This mode is only needed and implemented for MIPS and ARM.
     assert(!use_far_branches);
     (void)use_far_branches;
@@ -67,6 +68,10 @@ public:
   bool fixupIsPCRel(FixupKind Kind) const override {
     (void)Kind;
     llvm_unreachable("Not yet implemented.");
+  }
+
+  static bool classof(const Assembler *Asm) {
+    return Asm->getKind() == Asm_ARM32;
   }
 };
 

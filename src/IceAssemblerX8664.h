@@ -25,7 +25,8 @@ class AssemblerX8664 final : public Assembler {
   AssemblerX8664 &operator=(const AssemblerX8664 &) = delete;
 
 public:
-  explicit AssemblerX8664(bool use_far_branches = false) : Assembler() {
+  explicit AssemblerX8664(bool use_far_branches = false)
+      : Assembler(Asm_X8664) {
     assert(!use_far_branches);
     (void)use_far_branches;
     llvm::report_fatal_error("Not yet implemented");
@@ -40,6 +41,10 @@ public:
   llvm::ArrayRef<uint8_t> getNonExecBundlePadding() const override;
   void bindCfgNodeLabel(SizeT NodeNumber) override;
   bool fixupIsPCRel(FixupKind Kind) const override;
+
+  static bool classof(const Assembler *Asm) {
+    return Asm->getKind() == Asm_X8664;
+  }
 };
 
 } // end of namespace X8664

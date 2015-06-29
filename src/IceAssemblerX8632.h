@@ -337,7 +337,8 @@ class AssemblerX8632 : public Assembler {
   AssemblerX8632 &operator=(const AssemblerX8632 &) = delete;
 
 public:
-  explicit AssemblerX8632(bool use_far_branches = false) : Assembler() {
+  explicit AssemblerX8632(bool use_far_branches = false)
+      : Assembler(Asm_X8632) {
     // This mode is only needed and implemented for MIPS and ARM.
     assert(!use_far_branches);
     (void)use_far_branches;
@@ -375,6 +376,10 @@ public:
   bool fixupIsPCRel(FixupKind Kind) const override {
     // Currently assuming this is the only PC-rel relocation type used.
     return Kind == llvm::ELF::R_386_PC32;
+  }
+
+  static bool classof(const Assembler *Asm) {
+    return Asm->getKind() == Asm_X8632;
   }
 
   // Operations to emit GPR instructions (and dispatch on operand type).
