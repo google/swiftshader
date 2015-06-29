@@ -251,7 +251,7 @@ make_symlink: $(OBJDIR)/pnacl-sz
 	@echo "Build Attributes:"
 	@$(SHOW_BUILD_ATTS)
 
-.PHONY: all make_symlink runtime bloat sb
+.PHONY: all make_symlink runtime bloat sb docs
 
 $(OBJDIR)/pnacl-sz: $(OBJS)
 	$(CXX) $(LDFLAGS) -o $@ $^ $(LLVM_LDFLAGS) \
@@ -356,8 +356,12 @@ bloat: make_symlink
 	bloat/bloat.py --nm-output=/dev/stdin syms > build/pnacl-sz.bloat.json
 	@echo See Subzero size breakdown in bloat/pnacl-sz.bloat.html
 
+docs:
+	doxygen Doxyfile
+	@echo See file://`pwd`/docs/html/index.html
+
 clean:
 	rm -rf pnacl-sz *.o $(OBJDIR) $(SB_OBJDIR) build/pnacl-sz.bloat.json
 
 clean-all: clean
-	rm -rf build/
+	rm -rf build/ docs/
