@@ -4,6 +4,11 @@
 
 ; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 | FileCheck %s
 
+; TODO(jvoung): Update to -02 once the phi assignments is done for ARM
+; RUN: %if --need=target_ARM32 --command %p2i --filetype=asm --assemble \
+; RUN:   --disassemble --target arm32 -i %s --args -Om1 --skip-unimplemented \
+; RUN:   | %if --need=target_ARM32 --command FileCheck --check-prefix ARM32 %s
+
 define i32 @testSwitch(i32 %a) {
 entry:
   switch i32 %a, label %sw.default [
@@ -49,6 +54,11 @@ sw.default:
 ; CHECK-LABEL: testSwitchImm
 ; CHECK-NOT: cmp 0x{{[0-9a-f]*}},
 
+; ARM32-LABEL: testSwitchImm
+; ARM32: cmp {{r[0-9]+}}, #1
+; ARM32-NEXT: beq
+; ARM32-NEXT: b
+
 ; Test for correct 64-bit lowering.
 define internal i32 @testSwitch64(i64 %a) {
 entry:
@@ -93,6 +103,24 @@ return:                                           ; preds = %sw.default, %sw.bb3
 ; CHECK-NEXT: cmp {{.*}},0x12
 ; CHECK-NEXT: je
 
+; ARM32-LABEL: testSwitch64
+; ARM32: cmp {{r[0-9]+}}, #123
+; ARM32-NEXT: cmpeq {{r[0-9]+}}, #0
+; ARM32-NEXT: beq
+; ARM32: cmp {{r[0-9]+}}, #234
+; ARM32-NEXT: cmpeq {{r[0-9]+}}, #0
+; ARM32-NEXT: beq
+; ARM32: movw [[REG:r[0-9]+]], #345
+; ARM32-NEXT: cmp {{r[0-9]+}}, [[REG]]
+; ARM32-NEXT: cmpeq {{r[0-9]+}}, #0
+; ARM32-NEXT: beq
+; ARM32: movw [[REG:r[0-9]+]], #30864
+; ARM32-NEXT: movt [[REG]], #13398
+; ARM32-NEXT: cmp {{r[0-9]+}}, [[REG]]
+; ARM32-NEXT: cmpeq {{r[0-9]+}}, #18
+; ARM32-NEXT: beq
+; ARM32-NEXT: b
+
 ; Similar to testSwitchImm, make sure proper addressing modes are
 ; used.  In reality, this is tested by running the output through the
 ; assembler.
@@ -110,3 +138,10 @@ sw.default:
 ; CHECK-NEXT: jne
 ; CHECK-NEXT: cmp {{.*}},0x0
 ; CHECK-NEXT: je
+
+; ARM32-LABEL: testSwitchImm64
+; ARM32: cmp {{r[0-9]+}}, #1
+; ARM32-NEXT: cmpeq {{r[0-9]+}}, #0
+; ARM32-NEXT: beq [[ADDR:[0-9a-f]+]]
+; ARM32-NEXT: b [[ADDR]]
+

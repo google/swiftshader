@@ -2037,8 +2037,36 @@ void TargetARM32::doAddressOptStore() {
 }
 
 void TargetARM32::lowerSwitch(const InstSwitch *Inst) {
-  (void)Inst;
-  UnimplementedError(Func->getContext()->getFlags());
+  // This implements the most naive possible lowering.
+  // cmp a,val[0]; jeq label[0]; cmp a,val[1]; jeq label[1]; ... jmp default
+  Operand *Src0 = Inst->getComparison();
+  SizeT NumCases = Inst->getNumCases();
+  if (Src0->getType() == IceType_i64) {
+    // TODO(jvoung): handle and test undef for Src0
+    Variable *Src0Lo = legalizeToVar(loOperand(Src0));
+    Variable *Src0Hi = legalizeToVar(hiOperand(Src0));
+    for (SizeT I = 0; I < NumCases; ++I) {
+      Operand *ValueLo = Ctx->getConstantInt32(Inst->getValue(I));
+      Operand *ValueHi = Ctx->getConstantInt32(Inst->getValue(I) >> 32);
+      ValueLo = legalize(ValueLo, Legal_Reg | Legal_Flex);
+      ValueHi = legalize(ValueHi, Legal_Reg | Legal_Flex);
+      _cmp(Src0Lo, ValueLo);
+      _cmp(Src0Hi, ValueHi, CondARM32::EQ);
+      _br(Inst->getLabel(I), CondARM32::EQ);
+    }
+    _br(Inst->getLabelDefault());
+    return;
+  }
+ 
+  // 32 bit integer
+  Variable *Src0Var = legalizeToVar(Src0);
+  for (SizeT I = 0; I < NumCases; ++I) {
+    Operand *Value = Ctx->getConstantInt32(Inst->getValue(I));
+    Value = legalize(Value, Legal_Reg | Legal_Flex);
+    _cmp(Src0Var, Value);
+    _br(Inst->getLabel(I), CondARM32::EQ);
+  }
+  _br(Inst->getLabelDefault());
 }
 
 void TargetARM32::lowerUnreachable(const InstUnreachable * /*Inst*/) {

@@ -183,6 +183,9 @@ protected:
   void _br(CfgNode *Target) {
     Context.insert(InstARM32Br::create(Func, Target));
   }
+  void _br(CfgNode *Target, CondARM32::Cond Condition) {
+    Context.insert(InstARM32Br::create(Func, Target, Condition));
+  }
   void _cmp(Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Cmp::create(Func, Src0, Src1, Pred));
