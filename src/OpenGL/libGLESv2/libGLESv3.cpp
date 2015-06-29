@@ -2798,9 +2798,9 @@ GL_APICALL void GL_APIENTRY glGetActiveUniformBlockiv(GLuint program, GLuint uni
 
 	if(context)
 	{
-		es2::Program *program = context->getCurrentProgram();
+		es2::Program *programObject = context->getProgram(program);
 
-		if(!program)
+		if(!programObject)
 		{
 			return error(GL_INVALID_OPERATION);
 		}
@@ -2808,7 +2808,7 @@ GL_APICALL void GL_APIENTRY glGetActiveUniformBlockiv(GLuint program, GLuint uni
 		switch(pname)
 		{
 		case GL_UNIFORM_BLOCK_BINDING:
-			*params = static_cast<GLint>(program->getUniformBlockBinding(uniformBlockIndex));
+			*params = static_cast<GLint>(programObject->getUniformBlockBinding(uniformBlockIndex));
 			break;
 		case GL_UNIFORM_BLOCK_DATA_SIZE:
 		case GL_UNIFORM_BLOCK_NAME_LENGTH:
@@ -2816,7 +2816,7 @@ GL_APICALL void GL_APIENTRY glGetActiveUniformBlockiv(GLuint program, GLuint uni
 		case GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES:
 		case GL_UNIFORM_BLOCK_REFERENCED_BY_VERTEX_SHADER:
 		case GL_UNIFORM_BLOCK_REFERENCED_BY_FRAGMENT_SHADER:
-			program->getActiveUniformBlockiv(uniformBlockIndex, pname, params);
+			programObject->getActiveUniformBlockiv(uniformBlockIndex, pname, params);
 			break;
 		default:
 			return error(GL_INVALID_ENUM);
