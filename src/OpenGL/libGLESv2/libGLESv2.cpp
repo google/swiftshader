@@ -814,11 +814,6 @@ void BufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const GLvoid
 		return error(GL_INVALID_VALUE);
 	}
 
-	if(data == NULL)
-	{
-		return;
-	}
-
 	es2::Context *context = es2::getContext();
 
 	if(context)

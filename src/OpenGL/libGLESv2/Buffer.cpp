@@ -72,7 +72,7 @@ void Buffer::bufferData(const void *data, GLsizeiptr size, GLenum usage)
 
 void Buffer::bufferSubData(const void *data, GLsizeiptr size, GLintptr offset)
 {
-	if(mContents)
+	if(mContents && data)
 	{
 		char *buffer = (char*)mContents->lock(sw::PUBLIC);
 		memcpy(buffer + offset, data, size);
