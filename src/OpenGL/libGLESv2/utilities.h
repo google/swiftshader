@@ -30,6 +30,7 @@ namespace es2
 	unsigned int UniformComponentCount(GLenum type);
 	GLenum UniformComponentType(GLenum type);
 	size_t UniformTypeSize(GLenum type);
+	bool IsSamplerUniform(GLenum type);
 	int VariableRowCount(GLenum type);
 	int VariableColumnCount(GLenum type);
 

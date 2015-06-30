@@ -2552,23 +2552,37 @@ namespace glsl
 			else UNREACHABLE(0);
 			break;
 		case EbtSampler2D:
-		case EbtISampler2D:
-		case EbtUSampler2D:
 			return GL_SAMPLER_2D;
+		case EbtISampler2D:
+			return GL_INT_SAMPLER_2D;
+		case EbtUSampler2D:
+			return GL_UNSIGNED_INT_SAMPLER_2D;
 		case EbtSamplerCube:
-		case EbtISamplerCube:
-		case EbtUSamplerCube:
 			return GL_SAMPLER_CUBE;
+		case EbtISamplerCube:
+			return GL_INT_SAMPLER_CUBE;
+		case EbtUSamplerCube:
+			return GL_UNSIGNED_INT_SAMPLER_CUBE;
 		case EbtSamplerExternalOES:
 			return GL_SAMPLER_EXTERNAL_OES;
 		case EbtSampler3D:
-		case EbtISampler3D:
-		case EbtUSampler3D:
 			return GL_SAMPLER_3D_OES;
+		case EbtISampler3D:
+			return GL_INT_SAMPLER_3D;
+		case EbtUSampler3D:
+			return GL_UNSIGNED_INT_SAMPLER_3D;
 		case EbtSampler2DArray:
-		case EbtISampler2DArray:
-		case EbtUSampler2DArray:
 			return GL_SAMPLER_2D_ARRAY;
+		case EbtISampler2DArray:
+			return GL_INT_SAMPLER_2D_ARRAY;
+		case EbtUSampler2DArray:
+			return GL_UNSIGNED_INT_SAMPLER_2D_ARRAY;
+		case EbtSampler2DShadow:
+			return GL_SAMPLER_2D_SHADOW;
+		case EbtSamplerCubeShadow:
+			return GL_SAMPLER_CUBE_SHADOW;
+		case EbtSampler2DArrayShadow:
+			return GL_SAMPLER_2D_ARRAY_SHADOW;
 		default:
 			UNREACHABLE(type.getBasicType());
 			break;

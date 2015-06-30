@@ -34,6 +34,18 @@ namespace es2
 		case GL_SAMPLER_CUBE:
         case GL_SAMPLER_EXTERNAL_OES:
 		case GL_SAMPLER_3D_OES:
+		case GL_SAMPLER_2D_ARRAY:
+		case GL_SAMPLER_2D_SHADOW:
+		case GL_SAMPLER_CUBE_SHADOW:
+		case GL_SAMPLER_2D_ARRAY_SHADOW:
+		case GL_INT_SAMPLER_2D:
+		case GL_UNSIGNED_INT_SAMPLER_2D:
+		case GL_INT_SAMPLER_CUBE:
+		case GL_UNSIGNED_INT_SAMPLER_CUBE:
+		case GL_INT_SAMPLER_3D:
+		case GL_UNSIGNED_INT_SAMPLER_3D:
+		case GL_INT_SAMPLER_2D_ARRAY:
+		case GL_UNSIGNED_INT_SAMPLER_2D_ARRAY:
 			return 1;
 		case GL_BOOL_VEC2:
 		case GL_FLOAT_VEC2:
@@ -99,6 +111,18 @@ namespace es2
 		case GL_SAMPLER_CUBE:
 		case GL_SAMPLER_EXTERNAL_OES:
 		case GL_SAMPLER_3D_OES:
+		case GL_SAMPLER_2D_ARRAY:
+		case GL_SAMPLER_2D_SHADOW:
+		case GL_SAMPLER_CUBE_SHADOW:
+		case GL_SAMPLER_2D_ARRAY_SHADOW:
+		case GL_INT_SAMPLER_2D:
+		case GL_UNSIGNED_INT_SAMPLER_2D:
+		case GL_INT_SAMPLER_CUBE:
+		case GL_UNSIGNED_INT_SAMPLER_CUBE:
+		case GL_INT_SAMPLER_3D:
+		case GL_UNSIGNED_INT_SAMPLER_3D:
+		case GL_INT_SAMPLER_2D_ARRAY:
+		case GL_UNSIGNED_INT_SAMPLER_2D_ARRAY:
 		case GL_INT_VEC2:
 		case GL_INT_VEC3:
 		case GL_INT_VEC4:
@@ -128,6 +152,32 @@ namespace es2
 		return UniformTypeSize(UniformComponentType(type)) * UniformComponentCount(type);
 	}
 
+	bool IsSamplerUniform(GLenum type)
+	{
+		switch(type)
+		{
+		case GL_SAMPLER_2D:
+		case GL_SAMPLER_CUBE:
+		case GL_SAMPLER_EXTERNAL_OES:
+		case GL_SAMPLER_3D_OES:
+		case GL_SAMPLER_2D_ARRAY:
+		case GL_SAMPLER_2D_SHADOW:
+		case GL_SAMPLER_CUBE_SHADOW:
+		case GL_SAMPLER_2D_ARRAY_SHADOW:
+		case GL_INT_SAMPLER_2D:
+		case GL_UNSIGNED_INT_SAMPLER_2D:
+		case GL_INT_SAMPLER_CUBE:
+		case GL_UNSIGNED_INT_SAMPLER_CUBE:
+		case GL_INT_SAMPLER_3D:
+		case GL_UNSIGNED_INT_SAMPLER_3D:
+		case GL_INT_SAMPLER_2D_ARRAY:
+		case GL_UNSIGNED_INT_SAMPLER_2D_ARRAY:
+			return true;
+		default:
+			return false;
+		}
+	}
+
 	int VariableRowCount(GLenum type)
 	{
 		switch(type)
@@ -154,6 +204,18 @@ namespace es2
 		case GL_SAMPLER_CUBE:
         case GL_SAMPLER_EXTERNAL_OES:
 		case GL_SAMPLER_3D_OES:
+		case GL_SAMPLER_2D_ARRAY:
+		case GL_SAMPLER_2D_SHADOW:
+		case GL_SAMPLER_CUBE_SHADOW:
+		case GL_SAMPLER_2D_ARRAY_SHADOW:
+		case GL_INT_SAMPLER_2D:
+		case GL_UNSIGNED_INT_SAMPLER_2D:
+		case GL_INT_SAMPLER_CUBE:
+		case GL_UNSIGNED_INT_SAMPLER_CUBE:
+		case GL_INT_SAMPLER_3D:
+		case GL_UNSIGNED_INT_SAMPLER_3D:
+		case GL_INT_SAMPLER_2D_ARRAY:
+		case GL_UNSIGNED_INT_SAMPLER_2D_ARRAY:
 			return 1;
 		case GL_FLOAT_MAT2:
 		case GL_FLOAT_MAT3x2:
