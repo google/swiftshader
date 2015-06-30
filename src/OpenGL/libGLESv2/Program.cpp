@@ -2367,24 +2367,14 @@ namespace es2
 	{
 		int total = 0;
 
-		if(vertexShader)
+		if(vertexShader && (total < maxCount))
 		{
-			if(total < maxCount)
-			{
-				shaders[total] = vertexShader->getName();
-			}
-
-			total++;
+			shaders[total++] = vertexShader->getName();
 		}
 
-		if(fragmentShader)
+		if(fragmentShader && (total < maxCount))
 		{
-			if(total < maxCount)
-			{
-				shaders[total] = fragmentShader->getName();
-			}
-
-			total++;
+			shaders[total++] = fragmentShader->getName();
 		}
 
 		if(count)
