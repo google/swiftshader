@@ -1961,9 +1961,16 @@ private:
 };
 
 void FunctionParser::ExitBlock() {
-  if (isIRGenerationDisabled()) {
-    return;
+  // Check if the last instruction in the function was terminating.
+  if (!InstIsTerminating) {
+    Error("Last instruction in function not terminator");
+    if (isIRGenerationDisabled())
+      return;
+    // Recover by inserting an unreachable instruction.
+    CurrentNode->appendInst(Ice::InstUnreachable::create(Func.get()));
   }
+  if (isIRGenerationDisabled())
+    return;
   // Before translating, check for blocks without instructions, and
   // insert unreachable. This shouldn't happen, but be safe.
   size_t Index = 0;
@@ -2256,6 +2263,7 @@ void FunctionParser::ProcessRecord() {
   }
   case naclbitc::FUNC_CODE_INST_RET: {
     // RET: [opval?]
+    InstIsTerminating = true;
     if (!isValidRecordSizeInRange(0, 1, "return"))
       return;
     if (Values.empty()) {
@@ -2270,10 +2278,10 @@ void FunctionParser::ProcessRecord() {
       }
       CurrentNode->appendInst(Ice::InstRet::create(Func.get(), RetVal));
     }
-    InstIsTerminating = true;
     return;
   }
   case naclbitc::FUNC_CODE_INST_BR: {
+    InstIsTerminating = true;
     if (Values.size() == 1) {
       // BR: [bb#]
       if (isIRGenerationDisabled())
@@ -2306,7 +2314,6 @@ void FunctionParser::ProcessRecord() {
       CurrentNode->appendInst(
           Ice::InstBr::create(Func.get(), Cond, ThenBlock, ElseBlock));
     }
-    InstIsTerminating = true;
     return;
   }
   case naclbitc::FUNC_CODE_INST_SWITCH: {
@@ -2318,6 +2325,7 @@ void FunctionParser::ProcessRecord() {
     // unnecesary data fields (i.e. constants 1).  These were not
     // cleaned up in PNaCl bitcode because the bitcode format was
     // already frozen when the problem was noticed.
+    InstIsTerminating = true;
     if (!isValidRecordSizeAtLeast(4, "switch"))
       return;
 
@@ -2383,17 +2391,16 @@ void FunctionParser::ProcessRecord() {
     if (isIRGenDisabled)
       return;
     CurrentNode->appendInst(Switch);
-    InstIsTerminating = true;
     return;
   }
   case naclbitc::FUNC_CODE_INST_UNREACHABLE: {
     // UNREACHABLE: []
+    InstIsTerminating = true;
     if (!isValidRecordSize(0, "unreachable"))
       return;
     if (isIRGenerationDisabled())
       return;
     CurrentNode->appendInst(Ice::InstUnreachable::create(Func.get()));
-    InstIsTerminating = true;
     return;
   }
   case naclbitc::FUNC_CODE_INST_PHI: {

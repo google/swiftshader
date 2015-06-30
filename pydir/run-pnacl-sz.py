@@ -78,6 +78,10 @@ def main():
     argparser.add_argument('--echo-cmd', required=False,
                            action='store_true',
                            help='Trace command that generates ICE instructions')
+    argparser.add_argument('--tbc', required=False, action='store_true',
+                           help='Input is textual bitcode (not .ll)')
+    argparser.add_argument('--expect-fail', required=False, action='store_true',
+                           help='Negate success of run by using LLVM not')
     argparser.add_argument('--args', '-a', nargs=argparse.REMAINDER,
                            default=[],
                            help='Remaining arguments are passed to pnacl-sz')
@@ -93,13 +97,24 @@ def main():
       raise RuntimeError("Can't specify both '--llvm-source' and " +
                          "'--no-local-syms'")
 
+    if args.llvm_source and args.tbc:
+      raise RuntimeError("Can't specify both '--tbc' and '--llvm-source'")
+
+    if args.llvm and args.tbc:
+      raise RuntimeError("Can't specify both '--tbc' and '--llvm'")
+
     cmd = []
-    if not args.llvm_source:
+    if args.tbc:
+      cmd = [os.path.join(pnacl_bin_path, 'pnacl-bcfuzz'), llfile,
+             '-bitcode-as-text', '-output', '-', '|']
+    elif not args.llvm_source:
       cmd = [os.path.join(pnacl_bin_path, 'llvm-as'), llfile, '-o', '-', '|',
              os.path.join(pnacl_bin_path, 'pnacl-freeze')]
       if not args.no_local_syms:
         cmd += ['--allow-local-symbol-tables']
       cmd += ['|']
+    if args.expect_fail:
+      cmd += [os.path.join(pnacl_bin_path, 'not')]
     cmd += [args.pnacl_sz]
     cmd += ['--target', args.target]
     if args.insts:
