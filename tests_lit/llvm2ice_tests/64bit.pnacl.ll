@@ -1580,6 +1580,17 @@ entry:
 ; OPTM1: cmp
 ; OPTM1: cmovne
 
+; ARM32-LABEL: select64VarVar
+; The initial compare.
+; ARM32: cmp
+; ARM32: cmpeq
+; ARM32: movcc
+; ARM32: movcs
+; The non-folded compare for the select.
+; ARM32: cmp
+; ARM32: movne
+; ARM32: movne
+
 define internal i64 @select64VarConst(i64 %a, i64 %b) {
 entry:
   %cmp = icmp ult i64 %a, %b
@@ -1604,6 +1615,19 @@ entry:
 ; OPTM1: cmp
 ; OPTM1: cmovne
 
+; ARM32-LABEL: select64VarConst
+; ARM32: cmp
+; ARM32: cmpeq
+; ARM32: movcc
+; ARM32: movcs
+; ARM32: cmp
+; ARM32: movw
+; ARM32: movt
+; ARM32: movne
+; ARM32: movw
+; ARM32: movt
+; ARM32: movne
+
 define internal i64 @select64ConstVar(i64 %a, i64 %b) {
 entry:
   %cmp = icmp ult i64 %a, %b
@@ -1627,6 +1651,19 @@ entry:
 ; OPTM1: jb
 ; OPTM1: cmp
 ; OPTM1: cmove
+
+; ARM32-LABEL: select64ConstVar
+; ARM32: cmp
+; ARM32: cmpeq
+; ARM32: movcc
+; ARM32: movcs
+; ARM32: cmp
+; ARM32: movw
+; ARM32: movt
+; ARM32: movne
+; ARM32: movw
+; ARM32: movt
+; ARM32: movne
 
 define internal void @icmpEq64Imm() {
 entry:

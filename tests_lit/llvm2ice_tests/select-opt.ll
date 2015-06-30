@@ -3,8 +3,23 @@
 ; regardless of the optimization level, so there are no special OPTM1
 ; match lines.
 
-; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 | FileCheck %s
-; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 | FileCheck %s
+; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
+; RUN:   --target x8632 -i %s --args -O2 \
+; RUN:   | %if --need=target_X8632 --command FileCheck %s
+; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
+; RUN:   --target x8632 -i %s --args -Om1 \
+; RUN:   | %if --need=target_X8632 --command FileCheck %s
+
+; RUN: %if --need=target_ARM32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble \
+; RUN:   --disassemble --target arm32 -i %s --args -O2 --skip-unimplemented \
+; RUN:   | %if --need=target_ARM32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix ARM32 %s
+; RUN: %if --need=target_ARM32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble \
+; RUN:   --disassemble --target arm32 -i %s --args -Om1 --skip-unimplemented \
+; RUN:   | %if --need=target_ARM32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix ARM32 %s
 
 define void @testSelect(i32 %a, i32 %b) {
 entry:
@@ -32,6 +47,16 @@ declare void @useInt(i32 %x)
 ; CHECK:      cmp
 ; CHECK:      call {{.*}} R_{{.*}} useInt
 ; CHECK:      ret
+; ARM32-LABEL: testSelect
+; ARM32: cmp
+; ARM32: cmp
+; ARM32: bl {{.*}} useInt
+; ARM32: cmp
+; ARM32: cmp
+; ARM32: mov {{.*}}, #20
+; ARM32: movne {{.*}}, #10
+; ARM32: bl {{.*}} useInt
+; ARM32: bx lr
 
 ; Check for valid addressing mode in the cmp instruction when the
 ; operand is an immediate.
@@ -42,6 +67,8 @@ entry:
 }
 ; CHECK-LABEL: testSelectImm32
 ; CHECK-NOT: cmp 0x{{[0-9a-f]+}},
+; ARM32-LABEL: testSelectImm32
+; ARM32-NOT: cmp #{{.*}},
 
 ; Check for valid addressing mode in the cmp instruction when the
 ; operand is an immediate.  There is a different x86-32 lowering
@@ -53,3 +80,5 @@ entry:
 }
 ; CHECK-LABEL: testSelectImm64
 ; CHECK-NOT: cmp 0x{{[0-9a-f]+}},
+; ARM32-LABEL: testSelectImm64
+; ARM32-NOT: cmp #{{.*}},

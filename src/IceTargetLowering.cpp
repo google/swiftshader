@@ -519,8 +519,9 @@ void TargetDataLowering::emitGlobal(const VariableDeclaration &Var,
          Var.getInitializers()) {
       switch (Init->getKind()) {
       case VariableDeclaration::Initializer::DataInitializerKind: {
-        const auto &Data = llvm::cast<VariableDeclaration::DataInitializer>(
-                               Init.get())->getContents();
+        const auto &Data =
+            llvm::cast<VariableDeclaration::DataInitializer>(Init.get())
+                ->getContents();
         for (SizeT i = 0; i < Init->getNumBytes(); ++i) {
           Str << "\t.byte\t" << (((unsigned)Data[i]) & 0xff) << "\n";
         }

@@ -31,8 +31,8 @@
 #pragma clang diagnostic pop
 
 #include <algorithm> // max()
-#include <cctype> // isdigit(), isupper()
-#include <locale>  // locale
+#include <cctype>    // isdigit(), isupper()
+#include <locale>    // locale
 #include <unordered_map>
 
 namespace std {

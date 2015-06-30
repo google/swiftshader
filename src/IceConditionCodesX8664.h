@@ -19,14 +19,14 @@
 
 namespace Ice {
 
-namespace CondX8664  {
+namespace CondX8664 {
 // An enum of condition codes used for branches and cmov. The enum value
 // should match the value used to encode operands in binary instructions.
 enum BrCond {
 #define X(tag, encode, opp, dump, emit) tag encode,
-    ICEINSTX8664BR_TABLE
+  ICEINSTX8664BR_TABLE
 #undef X
-    Br_None
+      Br_None
 };
 
 // An enum of condition codes relevant to the CMPPS instruction. The enum
@@ -34,9 +34,9 @@ enum BrCond {
 // instructions.
 enum CmppsCond {
 #define X(tag, emit) tag,
-    ICEINSTX8664CMPPS_TABLE
+  ICEINSTX8664CMPPS_TABLE
 #undef X
-    Cmpps_Invalid
+      Cmpps_Invalid
 };
 
 } // end of namespace CondX8664

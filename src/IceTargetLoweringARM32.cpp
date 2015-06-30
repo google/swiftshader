@@ -2009,8 +2009,51 @@ void TargetARM32::lowerRet(const InstRet *Inst) {
 }
 
 void TargetARM32::lowerSelect(const InstSelect *Inst) {
-  (void)Inst;
-  UnimplementedError(Func->getContext()->getFlags());
+  Variable *Dest = Inst->getDest();
+  Type DestTy = Dest->getType();
+  Operand *SrcT = Inst->getTrueOperand();
+  Operand *SrcF = Inst->getFalseOperand();
+  Operand *Condition = Inst->getCondition();
+
+  if (isVectorType(DestTy)) {
+    UnimplementedError(Func->getContext()->getFlags());
+    return;
+  }
+  if (isFloatingType(DestTy)) {
+    UnimplementedError(Func->getContext()->getFlags());
+    return;
+  }
+  // TODO(jvoung): handle folding opportunities.
+  // cmp cond, #0; mov t, SrcF; mov_cond t, SrcT; mov dest, t
+  Variable *CmpOpnd0 = legalizeToVar(Condition);
+  Operand *CmpOpnd1 = Ctx->getConstantZero(IceType_i32);
+  _cmp(CmpOpnd0, CmpOpnd1);
+  CondARM32::Cond Cond = CondARM32::NE;
+  if (DestTy == IceType_i64) {
+    // Set the low portion.
+    Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
+    Variable *TLo = nullptr;
+    Operand *SrcFLo = legalize(loOperand(SrcF), Legal_Reg | Legal_Flex);
+    _mov(TLo, SrcFLo);
+    Operand *SrcTLo = legalize(loOperand(SrcT), Legal_Reg | Legal_Flex);
+    _mov_nonkillable(TLo, SrcTLo, Cond);
+    _mov(DestLo, TLo);
+    // Set the high portion.
+    Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+    Variable *THi = nullptr;
+    Operand *SrcFHi = legalize(hiOperand(SrcF), Legal_Reg | Legal_Flex);
+    _mov(THi, SrcFHi);
+    Operand *SrcTHi = legalize(hiOperand(SrcT), Legal_Reg | Legal_Flex);
+    _mov_nonkillable(THi, SrcTHi, Cond);
+    _mov(DestHi, THi);
+    return;
+  }
+  Variable *T = nullptr;
+  SrcF = legalize(SrcF, Legal_Reg | Legal_Flex);
+  _mov(T, SrcF);
+  SrcT = legalize(SrcT, Legal_Reg | Legal_Flex);
+  _mov_nonkillable(T, SrcT, Cond);
+  _mov(Dest, T);
 }
 
 void TargetARM32::lowerStore(const InstStore *Inst) {
@@ -2057,7 +2100,7 @@ void TargetARM32::lowerSwitch(const InstSwitch *Inst) {
     _br(Inst->getLabelDefault());
     return;
   }
- 
+
   // 32 bit integer
   Variable *Src0Var = legalizeToVar(Src0);
   for (SizeT I = 0; I < NumCases; ++I) {
