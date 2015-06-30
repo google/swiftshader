@@ -22,6 +22,7 @@
 #include "IceInst.h"
 #include "IceInstX8632.def"
 #include "IceOperand.h"
+#include "IceTargetLoweringX8632Traits.h"
 
 namespace Ice {
 
@@ -76,7 +77,7 @@ public:
   uint16_t getShift() const { return Shift; }
   SegmentRegisters getSegmentRegister() const { return SegmentReg; }
   void emitSegmentOverride(X8632::AssemblerX8632 *Asm) const;
-  X8632::Address toAsmAddress(Assembler *Asm) const;
+  X8632::Traits::Address toAsmAddress(Assembler *Asm) const;
   void emit(const Cfg *Func) const override;
   using OperandX8632::dump;
   void dump(const Cfg *Func, Ostream &Str) const override;
@@ -122,7 +123,7 @@ public:
   }
   int32_t getOffset() const { return Part == High ? 4 : 0; }
 
-  X8632::Address toAsmAddress(const Cfg *Func) const;
+  X8632::Traits::Address toAsmAddress(const Cfg *Func) const;
   void emit(const Cfg *Func) const override;
   using OperandX8632::dump;
   void dump(const Cfg *Func, Ostream &Str) const override;
@@ -279,7 +280,8 @@ public:
 
   static const char *getWidthString(Type Ty);
   static const char *getFldString(Type Ty);
-  static CondX86::BrCond getOppositeCondition(CondX86::BrCond Cond);
+  static X8632::Traits::Cond::BrCond
+  getOppositeCondition(X8632::Traits::Cond::BrCond Cond);
   void dump(const Cfg *Func) const override;
 
   // Shared emit routines for common forms of instructions.
@@ -428,8 +430,9 @@ class InstX8632Br : public InstX8632 {
 public:
   // Create a conditional branch to a node.
   static InstX8632Br *create(Cfg *Func, CfgNode *TargetTrue,
-                             CfgNode *TargetFalse, CondX86::BrCond Condition) {
-    assert(Condition != CondX86::Br_None);
+                             CfgNode *TargetFalse,
+                             X8632::Traits::Cond::BrCond Condition) {
+    assert(Condition != X8632::Traits::Cond::Br_None);
     const InstX8632Label *NoLabel = nullptr;
     return new (Func->allocate<InstX8632Br>())
         InstX8632Br(Func, TargetTrue, TargetFalse, NoLabel, Condition);
@@ -438,15 +441,15 @@ public:
   static InstX8632Br *create(Cfg *Func, CfgNode *Target) {
     const CfgNode *NoCondTarget = nullptr;
     const InstX8632Label *NoLabel = nullptr;
-    return new (Func->allocate<InstX8632Br>())
-        InstX8632Br(Func, NoCondTarget, Target, NoLabel, CondX86::Br_None);
+    return new (Func->allocate<InstX8632Br>()) InstX8632Br(
+        Func, NoCondTarget, Target, NoLabel, X8632::Traits::Cond::Br_None);
   }
   // Create a non-terminator conditional branch to a node, with a
   // fallthrough to the next instruction in the current node.  This is
   // used for switch lowering.
   static InstX8632Br *create(Cfg *Func, CfgNode *Target,
-                             CondX86::BrCond Condition) {
-    assert(Condition != CondX86::Br_None);
+                             X8632::Traits::Cond::BrCond Condition) {
+    assert(Condition != X8632::Traits::Cond::Br_None);
     const CfgNode *NoUncondTarget = nullptr;
     const InstX8632Label *NoLabel = nullptr;
     return new (Func->allocate<InstX8632Br>())
@@ -455,7 +458,7 @@ public:
   // Create a conditional intra-block branch (or unconditional, if
   // Condition==Br_None) to a label in the current block.
   static InstX8632Br *create(Cfg *Func, InstX8632Label *Label,
-                             CondX86::BrCond Condition) {
+                             X8632::Traits::Cond::BrCond Condition) {
     const CfgNode *NoCondTarget = nullptr;
     const CfgNode *NoUncondTarget = nullptr;
     return new (Func->allocate<InstX8632Br>())
@@ -475,7 +478,7 @@ public:
     return Sum;
   }
   bool isUnconditionalBranch() const override {
-    return !Label && Condition == CondX86::Br_None;
+    return !Label && Condition == X8632::Traits::Cond::Br_None;
   }
   bool repointEdge(CfgNode *OldNode, CfgNode *NewNode) override;
   void emit(const Cfg *Func) const override;
@@ -485,9 +488,10 @@ public:
 
 private:
   InstX8632Br(Cfg *Func, const CfgNode *TargetTrue, const CfgNode *TargetFalse,
-              const InstX8632Label *Label, CondX86::BrCond Condition);
+              const InstX8632Label *Label,
+              X8632::Traits::Cond::BrCond Condition);
 
-  CondX86::BrCond Condition;
+  X8632::Traits::Cond::BrCond Condition;
   const CfgNode *TargetTrue;
   const CfgNode *TargetFalse;
   const InstX8632Label *Label; // Intra-block branch target
@@ -1256,7 +1260,7 @@ class InstX8632Cmov : public InstX8632 {
 
 public:
   static InstX8632Cmov *create(Cfg *Func, Variable *Dest, Operand *Source,
-                               CondX86::BrCond Cond) {
+                               X8632::Traits::Cond::BrCond Cond) {
     return new (Func->allocate<InstX8632Cmov>())
         InstX8632Cmov(Func, Dest, Source, Cond);
   }
@@ -1267,9 +1271,9 @@ public:
 
 private:
   InstX8632Cmov(Cfg *Func, Variable *Dest, Operand *Source,
-                CondX86::BrCond Cond);
+                X8632::Traits::Cond::BrCond Cond);
 
-  CondX86::BrCond Condition;
+  X8632::Traits::Cond::BrCond Condition;
 };
 
 // Cmpps instruction - compare packed singled-precision floating point
@@ -1281,7 +1285,7 @@ class InstX8632Cmpps : public InstX8632 {
 
 public:
   static InstX8632Cmpps *create(Cfg *Func, Variable *Dest, Operand *Source,
-                                CondX86::CmppsCond Condition) {
+                                X8632::Traits::Cond::CmppsCond Condition) {
     return new (Func->allocate<InstX8632Cmpps>())
         InstX8632Cmpps(Func, Dest, Source, Condition);
   }
@@ -1292,9 +1296,9 @@ public:
 
 private:
   InstX8632Cmpps(Cfg *Func, Variable *Dest, Operand *Source,
-                 CondX86::CmppsCond Cond);
+                 X8632::Traits::Cond::CmppsCond Cond);
 
-  CondX86::CmppsCond Condition;
+  X8632::Traits::Cond::CmppsCond Condition;
 };
 
 // Cmpxchg instruction - cmpxchg <dest>, <desired> will compare if <dest>
@@ -1670,7 +1674,7 @@ class InstX8632Setcc : public InstX8632 {
 
 public:
   static InstX8632Setcc *create(Cfg *Func, Variable *Dest,
-                                CondX86::BrCond Cond) {
+                                X8632::Traits::Cond::BrCond Cond) {
     return new (Func->allocate<InstX8632Setcc>())
         InstX8632Setcc(Func, Dest, Cond);
   }
@@ -1680,9 +1684,9 @@ public:
   static bool classof(const Inst *Inst) { return isClassof(Inst, Setcc); }
 
 private:
-  InstX8632Setcc(Cfg *Func, Variable *Dest, CondX86::BrCond Cond);
+  InstX8632Setcc(Cfg *Func, Variable *Dest, X8632::Traits::Cond::BrCond Cond);
 
-  const CondX86::BrCond Condition;
+  const X8632::Traits::Cond::BrCond Condition;
 };
 
 // Exchanging Add instruction.  Exchanges the first operand (destination

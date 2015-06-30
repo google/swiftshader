@@ -107,7 +107,9 @@ public:
   void doLoadOpt();
   bool doBranchOpt(Inst *I, const CfgNode *NextNode) override;
 
-  SizeT getNumRegisters() const override { return RegX8632::Reg_NUM; }
+  SizeT getNumRegisters() const override {
+    return Traits::RegisterSet::Reg_NUM;
+  }
   Variable *getPhysicalRegister(SizeT RegNum, Type Ty = IceType_void) override;
   IceString getRegName(SizeT RegNum, Type Ty) const override;
   llvm::SmallBitVector getRegisterSet(RegSetMask Include,
@@ -117,7 +119,8 @@ public:
   }
   bool hasFramePointer() const override { return IsEbpBasedFrame; }
   SizeT getFrameOrStackReg() const override {
-    return IsEbpBasedFrame ? RegX8632::Reg_ebp : RegX8632::Reg_esp;
+    return IsEbpBasedFrame ? Traits::RegisterSet::Reg_ebp
+                           : Traits::RegisterSet::Reg_esp;
   }
   size_t typeWidthInBytesOnStack(Type Ty) const override {
     // Round up to the next multiple of 4 bytes.  In particular, i1,
@@ -148,7 +151,8 @@ public:
   Operand *hiOperand(Operand *Operand);
   void finishArgumentLowering(Variable *Arg, Variable *FramePtr,
                               size_t BasicFrameOffset, size_t &InArgsSizeBytes);
-  X8632::Address stackVarToAsmOperand(const Variable *Var) const final;
+  typename Traits::Address
+  stackVarToAsmOperand(const Variable *Var) const final;
 
   typename Traits::InstructionSet getInstructionSet() const final {
     return InstructionSet;
@@ -255,6 +259,7 @@ protected:
       llvm::SmallVectorImpl<int32_t> &Permutation,
       const llvm::SmallBitVector &ExcludeRegisters) const override;
 
+  // TODO(jpp): move the helper methods below to the MachineTraits.
   // The following are helpers that insert lowered x86 instructions
   // with minimal syntactic overhead, so that the lowering code can
   // look as close to assembly as practical.
@@ -272,7 +277,7 @@ protected:
   }
   void _adjust_stack(int32_t Amount) {
     Context.insert(InstX8632AdjustStack::create(
-        Func, Amount, getPhysicalRegister(RegX8632::Reg_esp)));
+        Func, Amount, getPhysicalRegister(Traits::RegisterSet::Reg_esp)));
   }
   void _addps(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Addps::create(Func, Dest, Src0));
@@ -289,7 +294,7 @@ protected:
   void _blendvps(Variable *Dest, Operand *Src0, Operand *Src1) {
     Context.insert(InstX8632Blendvps::create(Func, Dest, Src0, Src1));
   }
-  void _br(CondX86::BrCond Condition, CfgNode *TargetTrue,
+  void _br(typename Traits::Cond::BrCond Condition, CfgNode *TargetTrue,
            CfgNode *TargetFalse) {
     Context.insert(
         InstX8632Br::create(Func, TargetTrue, TargetFalse, Condition));
@@ -297,10 +302,10 @@ protected:
   void _br(CfgNode *Target) {
     Context.insert(InstX8632Br::create(Func, Target));
   }
-  void _br(CondX86::BrCond Condition, CfgNode *Target) {
+  void _br(typename Traits::Cond::BrCond Condition, CfgNode *Target) {
     Context.insert(InstX8632Br::create(Func, Target, Condition));
   }
-  void _br(CondX86::BrCond Condition, InstX8632Label *Label) {
+  void _br(typename Traits::Cond::BrCond Condition, InstX8632Label *Label) {
     Context.insert(InstX8632Br::create(Func, Label, Condition));
   }
   void _bsf(Variable *Dest, Operand *Src0) {
@@ -315,13 +320,15 @@ protected:
   void _cbwdq(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Cbwdq::create(Func, Dest, Src0));
   }
-  void _cmov(Variable *Dest, Operand *Src0, CondX86::BrCond Condition) {
+  void _cmov(Variable *Dest, Operand *Src0,
+             typename Traits::Cond::BrCond Condition) {
     Context.insert(InstX8632Cmov::create(Func, Dest, Src0, Condition));
   }
   void _cmp(Operand *Src0, Operand *Src1) {
     Context.insert(InstX8632Icmp::create(Func, Src0, Src1));
   }
-  void _cmpps(Variable *Dest, Operand *Src0, CondX86::CmppsCond Condition) {
+  void _cmpps(Variable *Dest, Operand *Src0,
+              typename Traits::Cond::CmppsCond Condition) {
     Context.insert(InstX8632Cmpps::create(Func, Dest, Src0, Condition));
   }
   void _cmpxchg(Operand *DestOrAddr, Variable *Eax, Variable *Desired,
@@ -503,7 +510,7 @@ protected:
   void _sbb_rmw(OperandX8632Mem *DestSrc0, Operand *Src1) {
     Context.insert(InstX8632SbbRMW::create(Func, DestSrc0, Src1));
   }
-  void _setcc(Variable *Dest, CondX86::BrCond Condition) {
+  void _setcc(Variable *Dest, typename Traits::Cond::BrCond Condition) {
     Context.insert(InstX8632Setcc::create(Func, Dest, Condition));
   }
   void _shl(Variable *Dest, Operand *Src0) {

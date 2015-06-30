@@ -177,7 +177,7 @@ bool BoolFolding<MachineTraits>::hasComplexLowering(const Inst *Instr) {
     return true;
   case PK_Fcmp:
     return MachineTraits::TableFcmp[llvm::cast<InstFcmp>(Instr)->getCondition()]
-               .C2 != CondX86::Br_None;
+               .C2 != MachineTraits::Cond::Br_None;
   }
 }
 
@@ -285,19 +285,19 @@ TargetX86Base<Machine>::TargetX86Base(Cfg *Func)
   // TODO: Don't initialize IntegerRegisters and friends every time.
   // Instead, initialize in some sort of static initializer for the
   // class.
-  llvm::SmallBitVector IntegerRegisters(RegX8632::Reg_NUM);
-  llvm::SmallBitVector IntegerRegistersI8(RegX8632::Reg_NUM);
-  llvm::SmallBitVector FloatRegisters(RegX8632::Reg_NUM);
-  llvm::SmallBitVector VectorRegisters(RegX8632::Reg_NUM);
-  llvm::SmallBitVector InvalidRegisters(RegX8632::Reg_NUM);
-  ScratchRegs.resize(RegX8632::Reg_NUM);
+  llvm::SmallBitVector IntegerRegisters(Traits::RegisterSet::Reg_NUM);
+  llvm::SmallBitVector IntegerRegistersI8(Traits::RegisterSet::Reg_NUM);
+  llvm::SmallBitVector FloatRegisters(Traits::RegisterSet::Reg_NUM);
+  llvm::SmallBitVector VectorRegisters(Traits::RegisterSet::Reg_NUM);
+  llvm::SmallBitVector InvalidRegisters(Traits::RegisterSet::Reg_NUM);
+  ScratchRegs.resize(Traits::RegisterSet::Reg_NUM);
 #define X(val, encode, name, name16, name8, scratch, preserved, stackptr,      \
           frameptr, isI8, isInt, isFP)                                         \
-  IntegerRegisters[RegX8632::val] = isInt;                                     \
-  IntegerRegistersI8[RegX8632::val] = isI8;                                    \
-  FloatRegisters[RegX8632::val] = isFP;                                        \
-  VectorRegisters[RegX8632::val] = isFP;                                       \
-  ScratchRegs[RegX8632::val] = scratch;
+  IntegerRegisters[Traits::RegisterSet::val] = isInt;                          \
+  IntegerRegistersI8[Traits::RegisterSet::val] = isI8;                         \
+  FloatRegisters[Traits::RegisterSet::val] = isFP;                             \
+  VectorRegisters[Traits::RegisterSet::val] = isFP;                            \
+  ScratchRegs[Traits::RegisterSet::val] = scratch;
   REGX8632_TABLE;
 #undef X
   TypeToRegisterSet[IceType_void] = InvalidRegisters;
@@ -740,7 +740,7 @@ Variable *TargetX86Base<Machine>::getPhysicalRegister(SizeT RegNum, Type Ty) {
   if (Ty == IceType_void)
     Ty = IceType_i32;
   if (PhysicalRegisters[Ty].empty())
-    PhysicalRegisters[Ty].resize(RegX8632::Reg_NUM);
+    PhysicalRegisters[Ty].resize(Traits::RegisterSet::Reg_NUM);
   assert(RegNum < PhysicalRegisters[Ty].size());
   Variable *Reg = PhysicalRegisters[Ty][RegNum];
   if (Reg == nullptr) {
@@ -749,7 +749,7 @@ Variable *TargetX86Base<Machine>::getPhysicalRegister(SizeT RegNum, Type Ty) {
     PhysicalRegisters[Ty][RegNum] = Reg;
     // Specially mark esp as an "argument" so that it is considered
     // live upon function entry.
-    if (RegNum == RegX8632::Reg_esp) {
+    if (RegNum == Traits::RegisterSet::Reg_esp) {
       Func->addImplicitArg(Reg);
       Reg->setIgnoreLiveness();
     }
@@ -759,7 +759,7 @@ Variable *TargetX86Base<Machine>::getPhysicalRegister(SizeT RegNum, Type Ty) {
 
 template <class Machine>
 IceString TargetX86Base<Machine>::getRegName(SizeT RegNum, Type Ty) const {
-  assert(RegNum < RegX8632::Reg_NUM);
+  assert(RegNum < Traits::RegisterSet::Reg_NUM);
   static IceString RegNames8[] = {
 #define X(val, encode, name, name16, name8, scratch, preserved, stackptr,      \
           frameptr, isI8, isInt, isFP)                                         \
@@ -805,7 +805,7 @@ void TargetX86Base<Machine>::emitVariable(const Variable *Var) const {
 }
 
 template <class Machine>
-X8632::Address
+typename TargetX86Base<Machine>::Traits::Address
 TargetX86Base<Machine>::stackVarToAsmOperand(const Variable *Var) const {
   if (Var->hasReg())
     llvm_unreachable("Stack Variable has a register assigned");
@@ -815,7 +815,8 @@ TargetX86Base<Machine>::stackVarToAsmOperand(const Variable *Var) const {
   int32_t Offset = Var->getStackOffset();
   if (!hasFramePointer())
     Offset += getStackAdjustment();
-  return X8632::Address(RegX8632::getEncodedGPR(getFrameOrStackReg()), Offset);
+  return typename Traits::Address(
+      Traits::RegisterSet::getEncodedGPR(getFrameOrStackReg()), Offset);
 }
 
 template <class Machine> void TargetX86Base<Machine>::lowerArguments() {
@@ -837,7 +838,7 @@ template <class Machine> void TargetX86Base<Machine>::lowerArguments() {
     // Replace Arg in the argument list with the home register.  Then
     // generate an instruction in the prolog to copy the home register
     // to the assigned location of Arg.
-    int32_t RegNum = RegX8632::Reg_xmm0 + NumXmmArgs;
+    int32_t RegNum = Traits::RegisterSet::Reg_xmm0 + NumXmmArgs;
     ++NumXmmArgs;
     Variable *RegisterArg = Func->template makeVariable(Ty);
     if (BuildDefs::dump())
@@ -997,8 +998,8 @@ template <class Machine> void TargetX86Base<Machine>::addProlog(CfgNode *Node) {
     assert((RegsUsed & getRegisterSet(RegSet_FramePointer, RegSet_None))
                .count() == 0);
     PreservedRegsSizeBytes += 4;
-    Variable *ebp = getPhysicalRegister(RegX8632::Reg_ebp);
-    Variable *esp = getPhysicalRegister(RegX8632::Reg_esp);
+    Variable *ebp = getPhysicalRegister(Traits::RegisterSet::Reg_ebp);
+    Variable *esp = getPhysicalRegister(Traits::RegisterSet::Reg_esp);
     _push(ebp);
     _mov(ebp, esp);
     // Keep ebp live for late-stage liveness analysis
@@ -1033,7 +1034,7 @@ template <class Machine> void TargetX86Base<Machine>::addProlog(CfgNode *Node) {
 
   // Generate "sub esp, SpillAreaSizeBytes"
   if (SpillAreaSizeBytes)
-    _sub(getPhysicalRegister(RegX8632::Reg_esp),
+    _sub(getPhysicalRegister(Traits::RegisterSet::Reg_esp),
          Ctx->getConstantInt32(SpillAreaSizeBytes));
   Ctx->statsUpdateFrameBytes(SpillAreaSizeBytes);
 
@@ -1117,9 +1118,9 @@ template <class Machine> void TargetX86Base<Machine>::addEpilog(CfgNode *Node) {
   Context.init(Node);
   Context.setInsertPoint(InsertPoint);
 
-  Variable *esp = getPhysicalRegister(RegX8632::Reg_esp);
+  Variable *esp = getPhysicalRegister(Traits::RegisterSet::Reg_esp);
   if (IsEbpBasedFrame) {
-    Variable *ebp = getPhysicalRegister(RegX8632::Reg_ebp);
+    Variable *ebp = getPhysicalRegister(Traits::RegisterSet::Reg_ebp);
     // For late-stage liveness analysis (e.g. asm-verbose mode),
     // adding a fake use of esp before the assignment of esp=ebp keeps
     // previous esp adjustments from being dead-code eliminated.
@@ -1137,7 +1138,7 @@ template <class Machine> void TargetX86Base<Machine>::addEpilog(CfgNode *Node) {
       getRegisterSet(RegSet_CalleeSave, RegSet_None);
   for (SizeT i = 0; i < CalleeSaves.size(); ++i) {
     SizeT j = CalleeSaves.size() - i - 1;
-    if (j == RegX8632::Reg_ebp && IsEbpBasedFrame)
+    if (j == Traits::RegisterSet::Reg_ebp && IsEbpBasedFrame)
       continue;
     if (CalleeSaves[j] && RegsUsed[j]) {
       _pop(getPhysicalRegister(j));
@@ -1155,7 +1156,7 @@ template <class Machine> void TargetX86Base<Machine>::addEpilog(CfgNode *Node) {
   // FakeUse <original_ret_operand>
   const SizeT BundleSize =
       1 << Func->template getAssembler<>()->getBundleAlignLog2Bytes();
-  Variable *T_ecx = makeReg(IceType_i32, RegX8632::Reg_ecx);
+  Variable *T_ecx = makeReg(IceType_i32, Traits::RegisterSet::Reg_ecx);
   _pop(T_ecx);
   _bundle_lock();
   _and(T_ecx, Ctx->getConstantInt32(~(BundleSize - 1)));
@@ -1273,26 +1274,26 @@ template <class Machine>
 llvm::SmallBitVector
 TargetX86Base<Machine>::getRegisterSet(RegSetMask Include,
                                        RegSetMask Exclude) const {
-  llvm::SmallBitVector Registers(RegX8632::Reg_NUM);
+  llvm::SmallBitVector Registers(Traits::RegisterSet::Reg_NUM);
 
 #define X(val, encode, name, name16, name8, scratch, preserved, stackptr,      \
           frameptr, isI8, isInt, isFP)                                         \
   if (scratch && (Include & RegSet_CallerSave))                                \
-    Registers[RegX8632::val] = true;                                           \
+    Registers[Traits::RegisterSet::val] = true;                                \
   if (preserved && (Include & RegSet_CalleeSave))                              \
-    Registers[RegX8632::val] = true;                                           \
+    Registers[Traits::RegisterSet::val] = true;                                \
   if (stackptr && (Include & RegSet_StackPointer))                             \
-    Registers[RegX8632::val] = true;                                           \
+    Registers[Traits::RegisterSet::val] = true;                                \
   if (frameptr && (Include & RegSet_FramePointer))                             \
-    Registers[RegX8632::val] = true;                                           \
+    Registers[Traits::RegisterSet::val] = true;                                \
   if (scratch && (Exclude & RegSet_CallerSave))                                \
-    Registers[RegX8632::val] = false;                                          \
+    Registers[Traits::RegisterSet::val] = false;                               \
   if (preserved && (Exclude & RegSet_CalleeSave))                              \
-    Registers[RegX8632::val] = false;                                          \
+    Registers[Traits::RegisterSet::val] = false;                               \
   if (stackptr && (Exclude & RegSet_StackPointer))                             \
-    Registers[RegX8632::val] = false;                                          \
+    Registers[Traits::RegisterSet::val] = false;                               \
   if (frameptr && (Exclude & RegSet_FramePointer))                             \
-    Registers[RegX8632::val] = false;
+    Registers[Traits::RegisterSet::val] = false;
 
   REGX8632_TABLE
 
@@ -1312,7 +1313,7 @@ void TargetX86Base<Machine>::lowerAlloca(const InstAlloca *Inst) {
   NeedsStackAlignment = true;
 
   // TODO(stichnot): minimize the number of adjustments of esp, etc.
-  Variable *esp = getPhysicalRegister(RegX8632::Reg_esp);
+  Variable *esp = getPhysicalRegister(Traits::RegisterSet::Reg_esp);
   Operand *TotalSize = legalize(Inst->getSizeInBytes());
   Variable *Dest = Inst->getDest();
   uint32_t AlignmentParam = Inst->getAlignInBytes();
@@ -1551,8 +1552,8 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       break;
     case InstArithmetic::Mul: {
       Variable *T_1 = nullptr, *T_2 = nullptr, *T_3 = nullptr;
-      Variable *T_4Lo = makeReg(IceType_i32, RegX8632::Reg_eax);
-      Variable *T_4Hi = makeReg(IceType_i32, RegX8632::Reg_edx);
+      Variable *T_4Lo = makeReg(IceType_i32, Traits::RegisterSet::Reg_eax);
+      Variable *T_4Hi = makeReg(IceType_i32, Traits::RegisterSet::Reg_edx);
       // gcc does the following:
       // a=b*c ==>
       //   t1 = b.hi; t1 *=(imul) c.lo
@@ -1569,7 +1570,7 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       _imul(T_1, Src1Lo);
       _mov(T_2, Src1Hi);
       _imul(T_2, Src0Lo);
-      _mov(T_3, Src0Lo, RegX8632::Reg_eax);
+      _mov(T_3, Src0Lo, Traits::RegisterSet::Reg_eax);
       _mul(T_4Lo, T_3, Src1Lo);
       // The mul instruction produces two dest variables, edx:eax.  We
       // create a fake definition of edx to account for this.
@@ -1600,13 +1601,13 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       Constant *BitTest = Ctx->getConstantInt32(0x20);
       Constant *Zero = Ctx->getConstantZero(IceType_i32);
       InstX8632Label *Label = InstX8632Label::create(Func, this);
-      _mov(T_1, Src1Lo, RegX8632::Reg_ecx);
+      _mov(T_1, Src1Lo, Traits::RegisterSet::Reg_ecx);
       _mov(T_2, Src0Lo);
       _mov(T_3, Src0Hi);
       _shld(T_3, T_2, T_1);
       _shl(T_2, T_1);
       _test(T_1, BitTest);
-      _br(CondX86::Br_e, Label);
+      _br(Traits::Cond::Br_e, Label);
       // T_2 and T_3 are being assigned again because of the
       // intra-block control flow, so we need the _mov_nonkillable
       // variant to avoid liveness problems.
@@ -1635,13 +1636,13 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       Constant *BitTest = Ctx->getConstantInt32(0x20);
       Constant *Zero = Ctx->getConstantZero(IceType_i32);
       InstX8632Label *Label = InstX8632Label::create(Func, this);
-      _mov(T_1, Src1Lo, RegX8632::Reg_ecx);
+      _mov(T_1, Src1Lo, Traits::RegisterSet::Reg_ecx);
       _mov(T_2, Src0Lo);
       _mov(T_3, Src0Hi);
       _shrd(T_2, T_3, T_1);
       _shr(T_3, T_1);
       _test(T_1, BitTest);
-      _br(CondX86::Br_e, Label);
+      _br(Traits::Cond::Br_e, Label);
       // T_2 and T_3 are being assigned again because of the
       // intra-block control flow, so we need the _mov_nonkillable
       // variant to avoid liveness problems.
@@ -1670,13 +1671,13 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       Constant *BitTest = Ctx->getConstantInt32(0x20);
       Constant *SignExtend = Ctx->getConstantInt32(0x1f);
       InstX8632Label *Label = InstX8632Label::create(Func, this);
-      _mov(T_1, Src1Lo, RegX8632::Reg_ecx);
+      _mov(T_1, Src1Lo, Traits::RegisterSet::Reg_ecx);
       _mov(T_2, Src0Lo);
       _mov(T_3, Src0Hi);
       _shrd(T_2, T_3, T_1);
       _sar(T_3, T_1);
       _test(T_1, BitTest);
-      _br(CondX86::Br_e, Label);
+      _br(Traits::Cond::Br_e, Label);
       // T_2 and T_3 are being assigned again because of the
       // intra-block control flow, so T_2 needs the _mov_nonkillable
       // variant to avoid liveness problems.  T_3 doesn't need special
@@ -1747,7 +1748,7 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       bool TypesAreValidForPmull =
           Dest->getType() == IceType_v4i32 || Dest->getType() == IceType_v8i16;
       bool InstructionSetIsValidForPmull =
-          Dest->getType() == IceType_v8i16 || InstructionSet >= Machine::SSE4_1;
+          Dest->getType() == IceType_v8i16 || InstructionSet >= Traits::SSE4_1;
       if (TypesAreValidForPmull && InstructionSetIsValidForPmull) {
         Variable *T = makeReg(Dest->getType());
         _movp(T, Src0);
@@ -1874,7 +1875,7 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
     // The 8-bit version of imul only allows the form "imul r/m8"
     // where T must be in eax.
     if (isByteSizedArithType(Dest->getType())) {
-      _mov(T, Src0, RegX8632::Reg_eax);
+      _mov(T, Src0, Traits::RegisterSet::Reg_eax);
       Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
     } else {
       _mov(T, Src0);
@@ -1885,21 +1886,21 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
   case InstArithmetic::Shl:
     _mov(T, Src0);
     if (!llvm::isa<Constant>(Src1))
-      Src1 = legalizeToVar(Src1, RegX8632::Reg_ecx);
+      Src1 = legalizeToVar(Src1, Traits::RegisterSet::Reg_ecx);
     _shl(T, Src1);
     _mov(Dest, T);
     break;
   case InstArithmetic::Lshr:
     _mov(T, Src0);
     if (!llvm::isa<Constant>(Src1))
-      Src1 = legalizeToVar(Src1, RegX8632::Reg_ecx);
+      Src1 = legalizeToVar(Src1, Traits::RegisterSet::Reg_ecx);
     _shr(T, Src1);
     _mov(Dest, T);
     break;
   case InstArithmetic::Ashr:
     _mov(T, Src0);
     if (!llvm::isa<Constant>(Src1))
-      Src1 = legalizeToVar(Src1, RegX8632::Reg_ecx);
+      Src1 = legalizeToVar(Src1, Traits::RegisterSet::Reg_ecx);
     _sar(T, Src1);
     _mov(Dest, T);
     break;
@@ -1910,14 +1911,14 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
     if (isByteSizedArithType(Dest->getType())) {
       Variable *T_ah = nullptr;
       Constant *Zero = Ctx->getConstantZero(IceType_i8);
-      _mov(T, Src0, RegX8632::Reg_eax);
-      _mov(T_ah, Zero, RegX8632::Reg_ah);
+      _mov(T, Src0, Traits::RegisterSet::Reg_eax);
+      _mov(T_ah, Zero, Traits::RegisterSet::Reg_ah);
       _div(T, Src1, T_ah);
       _mov(Dest, T);
     } else {
       Constant *Zero = Ctx->getConstantZero(IceType_i32);
-      _mov(T, Src0, RegX8632::Reg_eax);
-      _mov(T_edx, Zero, RegX8632::Reg_edx);
+      _mov(T, Src0, Traits::RegisterSet::Reg_eax);
+      _mov(T_edx, Zero, Traits::RegisterSet::Reg_edx);
       _div(T, Src1, T_edx);
       _mov(Dest, T);
     }
@@ -1960,13 +1961,13 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
     }
     Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
     if (isByteSizedArithType(Dest->getType())) {
-      _mov(T, Src0, RegX8632::Reg_eax);
+      _mov(T, Src0, Traits::RegisterSet::Reg_eax);
       _cbwdq(T, T);
       _idiv(T, Src1, T);
       _mov(Dest, T);
     } else {
-      T_edx = makeReg(IceType_i32, RegX8632::Reg_edx);
-      _mov(T, Src0, RegX8632::Reg_eax);
+      T_edx = makeReg(IceType_i32, Traits::RegisterSet::Reg_edx);
+      _mov(T, Src0, Traits::RegisterSet::Reg_eax);
       _cbwdq(T_edx, T);
       _idiv(T, Src1, T_edx);
       _mov(Dest, T);
@@ -1977,14 +1978,14 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
     if (isByteSizedArithType(Dest->getType())) {
       Variable *T_ah = nullptr;
       Constant *Zero = Ctx->getConstantZero(IceType_i8);
-      _mov(T, Src0, RegX8632::Reg_eax);
-      _mov(T_ah, Zero, RegX8632::Reg_ah);
+      _mov(T, Src0, Traits::RegisterSet::Reg_eax);
+      _mov(T_ah, Zero, Traits::RegisterSet::Reg_ah);
       _div(T_ah, Src1, T);
       _mov(Dest, T_ah);
     } else {
       Constant *Zero = Ctx->getConstantZero(IceType_i32);
-      _mov(T_edx, Zero, RegX8632::Reg_edx);
-      _mov(T, Src0, RegX8632::Reg_eax);
+      _mov(T_edx, Zero, Traits::RegisterSet::Reg_edx);
+      _mov(T, Src0, Traits::RegisterSet::Reg_eax);
       _div(T_edx, Src1, T);
       _mov(Dest, T_edx);
     }
@@ -2032,15 +2033,15 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
     }
     Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
     if (isByteSizedArithType(Dest->getType())) {
-      Variable *T_ah = makeReg(IceType_i8, RegX8632::Reg_ah);
-      _mov(T, Src0, RegX8632::Reg_eax);
+      Variable *T_ah = makeReg(IceType_i8, Traits::RegisterSet::Reg_ah);
+      _mov(T, Src0, Traits::RegisterSet::Reg_eax);
       _cbwdq(T, T);
       Context.insert(InstFakeDef::create(Func, T_ah));
       _idiv(T_ah, Src1, T);
       _mov(Dest, T_ah);
     } else {
-      T_edx = makeReg(IceType_i32, RegX8632::Reg_edx);
-      _mov(T, Src0, RegX8632::Reg_eax);
+      T_edx = makeReg(IceType_i32, Traits::RegisterSet::Reg_edx);
+      _mov(T, Src0, Traits::RegisterSet::Reg_eax);
       _cbwdq(T_edx, T);
       _idiv(T_edx, Src1, T);
       _mov(Dest, T_edx);
@@ -2156,7 +2157,7 @@ void TargetX86Base<Machine>::lowerBr(const InstBr *Inst) {
   Operand *Src0 = legalize(Cond, Legal_Reg | Legal_Mem);
   Constant *Zero = Ctx->getConstantZero(IceType_i32);
   _cmp(Src0, Zero);
-  _br(CondX86::Br_ne, Inst->getTargetTrue(), Inst->getTargetFalse());
+  _br(Traits::Cond::Br_ne, Inst->getTargetTrue(), Inst->getTargetFalse());
 }
 
 template <class Machine>
@@ -2203,7 +2204,8 @@ void TargetX86Base<Machine>::lowerCall(const InstCall *Instr) {
         ParameterAreaSizeBytes =
             Traits::applyStackAlignment(ParameterAreaSizeBytes);
       }
-      Variable *esp = Func->getTarget()->getPhysicalRegister(RegX8632::Reg_esp);
+      Variable *esp =
+          Func->getTarget()->getPhysicalRegister(Traits::RegisterSet::Reg_esp);
       Constant *Loc = Ctx->getConstantInt32(ParameterAreaSizeBytes);
       StackArgLocations.push_back(OperandX8632Mem::create(Func, Ty, esp, Loc));
       ParameterAreaSizeBytes += typeWidthInBytesOnStack(Arg->getType());
@@ -2241,7 +2243,8 @@ void TargetX86Base<Machine>::lowerCall(const InstCall *Instr) {
   // code, as the memory operand displacements may end up being smaller
   // before any stack adjustment is done.
   for (SizeT i = 0, NumXmmArgs = XmmArgs.size(); i < NumXmmArgs; ++i) {
-    Variable *Reg = legalizeToVar(XmmArgs[i], RegX8632::Reg_xmm0 + i);
+    Variable *Reg =
+        legalizeToVar(XmmArgs[i], Traits::RegisterSet::Reg_xmm0 + i);
     // Generate a FakeUse of register arguments so that they do not get
     // dead code eliminated as a result of the FakeKill of scratch
     // registers after the call.
@@ -2264,11 +2267,11 @@ void TargetX86Base<Machine>::lowerCall(const InstCall *Instr) {
     case IceType_i8:
     case IceType_i16:
     case IceType_i32:
-      ReturnReg = makeReg(Dest->getType(), RegX8632::Reg_eax);
+      ReturnReg = makeReg(Dest->getType(), Traits::RegisterSet::Reg_eax);
       break;
     case IceType_i64:
-      ReturnReg = makeReg(IceType_i32, RegX8632::Reg_eax);
-      ReturnRegHi = makeReg(IceType_i32, RegX8632::Reg_edx);
+      ReturnReg = makeReg(IceType_i32, Traits::RegisterSet::Reg_eax);
+      ReturnRegHi = makeReg(IceType_i32, Traits::RegisterSet::Reg_edx);
       break;
     case IceType_f32:
     case IceType_f64:
@@ -2282,7 +2285,7 @@ void TargetX86Base<Machine>::lowerCall(const InstCall *Instr) {
     case IceType_v8i16:
     case IceType_v4i32:
     case IceType_v4f32:
-      ReturnReg = makeReg(Dest->getType(), RegX8632::Reg_xmm0);
+      ReturnReg = makeReg(Dest->getType(), Traits::RegisterSet::Reg_xmm0);
       break;
     }
   }
@@ -2311,7 +2314,8 @@ void TargetX86Base<Machine>::lowerCall(const InstCall *Instr) {
   // Add the appropriate offset to esp.  The call instruction takes care
   // of resetting the stack offset during emission.
   if (ParameterAreaSizeBytes) {
-    Variable *esp = Func->getTarget()->getPhysicalRegister(RegX8632::Reg_esp);
+    Variable *esp =
+        Func->getTarget()->getPhysicalRegister(Traits::RegisterSet::Reg_esp);
     _add(esp, Ctx->getConstantInt32(ParameterAreaSizeBytes));
   }
 
@@ -2850,7 +2854,7 @@ void TargetX86Base<Machine>::lowerExtractElement(
 
   // TODO(wala): Determine the best lowering sequences for each type.
   bool CanUsePextr = Ty == IceType_v8i16 || Ty == IceType_v8i1 ||
-                     InstructionSet >= Machine::SSE4_1;
+                     InstructionSet >= Traits::SSE4_1;
   if (CanUsePextr && Ty != IceType_v4f32) {
     // Use pextrb, pextrw, or pextrd.
     Constant *Mask = Ctx->getConstantInt32(Index);
@@ -2943,8 +2947,9 @@ void TargetX86Base<Machine>::lowerFcmp(const InstFcmp *Inst) {
 
       switch (Condition) {
       default: {
-        CondX86::CmppsCond Predicate = Traits::TableFcmp[Index].Predicate;
-        assert(Predicate != CondX86::Cmpps_Invalid);
+        typename Traits::Cond::CmppsCond Predicate =
+            Traits::TableFcmp[Index].Predicate;
+        assert(Predicate != Traits::Cond::Cmpps_Invalid);
         T = makeReg(Src0RM->getType());
         _movp(T, Src0RM);
         _cmpps(T, Src1RM, Predicate);
@@ -2954,9 +2959,9 @@ void TargetX86Base<Machine>::lowerFcmp(const InstFcmp *Inst) {
         T = makeReg(Src0RM->getType());
         Variable *T2 = makeReg(Src0RM->getType());
         _movp(T, Src0RM);
-        _cmpps(T, Src1RM, CondX86::Cmpps_neq);
+        _cmpps(T, Src1RM, Traits::Cond::Cmpps_neq);
         _movp(T2, Src0RM);
-        _cmpps(T2, Src1RM, CondX86::Cmpps_ord);
+        _cmpps(T2, Src1RM, Traits::Cond::Cmpps_ord);
         _pand(T, T2);
       } break;
       case InstFcmp::Ueq: {
@@ -2964,9 +2969,9 @@ void TargetX86Base<Machine>::lowerFcmp(const InstFcmp *Inst) {
         T = makeReg(Src0RM->getType());
         Variable *T2 = makeReg(Src0RM->getType());
         _movp(T, Src0RM);
-        _cmpps(T, Src1RM, CondX86::Cmpps_eq);
+        _cmpps(T, Src1RM, Traits::Cond::Cmpps_eq);
         _movp(T2, Src0RM);
-        _cmpps(T2, Src1RM, CondX86::Cmpps_unord);
+        _cmpps(T2, Src1RM, Traits::Cond::Cmpps_unord);
         _por(T, T2);
       } break;
       }
@@ -2995,8 +3000,8 @@ void TargetX86Base<Machine>::lowerFcmp(const InstFcmp *Inst) {
   assert(Index < Traits::TableFcmpSize);
   if (Traits::TableFcmp[Index].SwapScalarOperands)
     std::swap(Src0, Src1);
-  bool HasC1 = (Traits::TableFcmp[Index].C1 != CondX86::Br_None);
-  bool HasC2 = (Traits::TableFcmp[Index].C2 != CondX86::Br_None);
+  bool HasC1 = (Traits::TableFcmp[Index].C1 != Traits::Cond::Br_None);
+  bool HasC2 = (Traits::TableFcmp[Index].C2 != Traits::Cond::Br_None);
   if (HasC1) {
     Src0 = legalize(Src0);
     Operand *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
@@ -3154,9 +3159,9 @@ void TargetX86Base<Machine>::lowerIcmp(const InstIcmp *Inst) {
     InstX8632Label *LabelTrue = InstX8632Label::create(Func, this);
     _mov(Dest, One);
     _cmp(Src0HiRM, Src1HiRI);
-    if (Traits::TableIcmp64[Index].C1 != CondX86::Br_None)
+    if (Traits::TableIcmp64[Index].C1 != Traits::Cond::Br_None)
       _br(Traits::TableIcmp64[Index].C1, LabelTrue);
-    if (Traits::TableIcmp64[Index].C2 != CondX86::Br_None)
+    if (Traits::TableIcmp64[Index].C2 != Traits::Cond::Br_None)
       _br(Traits::TableIcmp64[Index].C2, LabelFalse);
     _cmp(Src0LoRM, Src1LoRI);
     _br(Traits::TableIcmp64[Index].C3, LabelTrue);
@@ -3198,7 +3203,7 @@ void TargetX86Base<Machine>::lowerInsertElement(const InstInsertElement *Inst) {
   }
 
   if (Ty == IceType_v8i16 || Ty == IceType_v8i1 ||
-      InstructionSet >= Machine::SSE4_1) {
+      InstructionSet >= Traits::SSE4_1) {
     // Use insertps, pinsrb, pinsrw, or pinsrd.
     Operand *ElementRM =
         legalize(ElementToInsertNotLegalized, Legal_Reg | Legal_Mem);
@@ -3612,13 +3617,15 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
     return;
   }
   case Intrinsics::Stacksave: {
-    Variable *esp = Func->getTarget()->getPhysicalRegister(RegX8632::Reg_esp);
+    Variable *esp =
+        Func->getTarget()->getPhysicalRegister(Traits::RegisterSet::Reg_esp);
     Variable *Dest = Instr->getDest();
     _mov(Dest, esp);
     return;
   }
   case Intrinsics::Stackrestore: {
-    Variable *esp = Func->getTarget()->getPhysicalRegister(RegX8632::Reg_esp);
+    Variable *esp =
+        Func->getTarget()->getPhysicalRegister(Traits::RegisterSet::Reg_esp);
     _mov_nonkillable(esp, Instr->getArg(0));
     return;
   }
@@ -3639,10 +3646,10 @@ void TargetX86Base<Machine>::lowerAtomicCmpxchg(Variable *DestPrev,
   if (Expected->getType() == IceType_i64) {
     // Reserve the pre-colored registers first, before adding any more
     // infinite-weight variables from formMemoryOperand's legalization.
-    Variable *T_edx = makeReg(IceType_i32, RegX8632::Reg_edx);
-    Variable *T_eax = makeReg(IceType_i32, RegX8632::Reg_eax);
-    Variable *T_ecx = makeReg(IceType_i32, RegX8632::Reg_ecx);
-    Variable *T_ebx = makeReg(IceType_i32, RegX8632::Reg_ebx);
+    Variable *T_edx = makeReg(IceType_i32, Traits::RegisterSet::Reg_edx);
+    Variable *T_eax = makeReg(IceType_i32, Traits::RegisterSet::Reg_eax);
+    Variable *T_ecx = makeReg(IceType_i32, Traits::RegisterSet::Reg_ecx);
+    Variable *T_ebx = makeReg(IceType_i32, Traits::RegisterSet::Reg_ebx);
     _mov(T_eax, loOperand(Expected));
     _mov(T_edx, hiOperand(Expected));
     _mov(T_ebx, loOperand(Desired));
@@ -3656,7 +3663,7 @@ void TargetX86Base<Machine>::lowerAtomicCmpxchg(Variable *DestPrev,
     _mov(DestHi, T_edx);
     return;
   }
-  Variable *T_eax = makeReg(Expected->getType(), RegX8632::Reg_eax);
+  Variable *T_eax = makeReg(Expected->getType(), Traits::RegisterSet::Reg_eax);
   _mov(T_eax, Expected);
   OperandX8632Mem *Addr = formMemoryOperand(Ptr, Expected->getType());
   Variable *DesiredReg = legalizeToVar(Desired);
@@ -3727,7 +3734,8 @@ bool TargetX86Base<Machine>::tryOptimizedCmpxchgCmpBr(Variable *Dest,
           lowerAssign(PhiAssign);
           Context.advanceNext();
         }
-        _br(CondX86::Br_e, NextBr->getTargetTrue(), NextBr->getTargetFalse());
+        _br(Traits::Cond::Br_e, NextBr->getTargetTrue(),
+            NextBr->getTargetFalse());
         // Skip over the old compare and branch, by deleting them.
         NextCmp->setDeleted();
         NextBr->setDeleted();
@@ -3858,13 +3866,13 @@ void TargetX86Base<Machine>::expandAtomicRMWAsCmpxchg(LowerBinOp Op_Lo,
   Val = legalize(Val);
   Type Ty = Val->getType();
   if (Ty == IceType_i64) {
-    Variable *T_edx = makeReg(IceType_i32, RegX8632::Reg_edx);
-    Variable *T_eax = makeReg(IceType_i32, RegX8632::Reg_eax);
+    Variable *T_edx = makeReg(IceType_i32, Traits::RegisterSet::Reg_edx);
+    Variable *T_eax = makeReg(IceType_i32, Traits::RegisterSet::Reg_eax);
     OperandX8632Mem *Addr = formMemoryOperand(Ptr, Ty);
     _mov(T_eax, loOperand(Addr));
     _mov(T_edx, hiOperand(Addr));
-    Variable *T_ecx = makeReg(IceType_i32, RegX8632::Reg_ecx);
-    Variable *T_ebx = makeReg(IceType_i32, RegX8632::Reg_ebx);
+    Variable *T_ecx = makeReg(IceType_i32, Traits::RegisterSet::Reg_ecx);
+    Variable *T_ebx = makeReg(IceType_i32, Traits::RegisterSet::Reg_ebx);
     InstX8632Label *Label = InstX8632Label::create(Func, this);
     const bool IsXchg8b = Op_Lo == nullptr && Op_Hi == nullptr;
     if (!IsXchg8b) {
@@ -3883,7 +3891,7 @@ void TargetX86Base<Machine>::expandAtomicRMWAsCmpxchg(LowerBinOp Op_Lo,
     }
     const bool Locked = true;
     _cmpxchg8b(Addr, T_edx, T_eax, T_ecx, T_ebx, Locked);
-    _br(CondX86::Br_ne, Label);
+    _br(Traits::Cond::Br_ne, Label);
     if (!IsXchg8b) {
       // If Val is a variable, model the extended live range of Val through
       // the end of the loop, since it will be re-used by the loop.
@@ -3908,7 +3916,7 @@ void TargetX86Base<Machine>::expandAtomicRMWAsCmpxchg(LowerBinOp Op_Lo,
     return;
   }
   OperandX8632Mem *Addr = formMemoryOperand(Ptr, Ty);
-  Variable *T_eax = makeReg(Ty, RegX8632::Reg_eax);
+  Variable *T_eax = makeReg(Ty, Traits::RegisterSet::Reg_eax);
   _mov(T_eax, Addr);
   InstX8632Label *Label = InstX8632Label::create(Func, this);
   Context.insert(Label);
@@ -3919,7 +3927,7 @@ void TargetX86Base<Machine>::expandAtomicRMWAsCmpxchg(LowerBinOp Op_Lo,
   (this->*Op_Lo)(T, Val);
   const bool Locked = true;
   _cmpxchg(Addr, T_eax, T, Locked);
-  _br(CondX86::Br_ne, Label);
+  _br(Traits::Cond::Br_ne, Label);
   // If Val is a variable, model the extended live range of Val through
   // the end of the loop, since it will be re-used by the loop.
   if (Variable *ValVar = llvm::dyn_cast<Variable>(Val)) {
@@ -3983,7 +3991,7 @@ void TargetX86Base<Machine>::lowerCountZeros(bool Cttz, Type Ty, Variable *Dest,
     Constant *SixtyThree = Ctx->getConstantInt32(63);
     _mov(T_Dest, SixtyThree);
   }
-  _cmov(T_Dest, T, CondX86::Br_ne);
+  _cmov(T_Dest, T, Traits::Cond::Br_ne);
   if (!Cttz) {
     _xor(T_Dest, ThirtyOne);
   }
@@ -4004,7 +4012,7 @@ void TargetX86Base<Machine>::lowerCountZeros(bool Cttz, Type Ty, Variable *Dest,
     _xor(T_Dest2, ThirtyOne);
   }
   _test(SecondVar, SecondVar);
-  _cmov(T_Dest2, T_Dest, CondX86::Br_e);
+  _cmov(T_Dest2, T_Dest, Traits::Cond::Br_e);
   _mov(DestLo, T_Dest2);
   _mov(DestHi, Ctx->getConstantZero(IceType_i32));
 }
@@ -4306,16 +4314,18 @@ void TargetX86Base<Machine>::lowerRet(const InstRet *Inst) {
   if (Inst->hasRetValue()) {
     Operand *Src0 = legalize(Inst->getRetValue());
     if (Src0->getType() == IceType_i64) {
-      Variable *eax = legalizeToVar(loOperand(Src0), RegX8632::Reg_eax);
-      Variable *edx = legalizeToVar(hiOperand(Src0), RegX8632::Reg_edx);
+      Variable *eax =
+          legalizeToVar(loOperand(Src0), Traits::RegisterSet::Reg_eax);
+      Variable *edx =
+          legalizeToVar(hiOperand(Src0), Traits::RegisterSet::Reg_edx);
       Reg = eax;
       Context.insert(InstFakeUse::create(Func, edx));
     } else if (isScalarFloatingType(Src0->getType())) {
       _fld(Src0);
     } else if (isVectorType(Src0->getType())) {
-      Reg = legalizeToVar(Src0, RegX8632::Reg_xmm0);
+      Reg = legalizeToVar(Src0, Traits::RegisterSet::Reg_xmm0);
     } else {
-      _mov(Reg, Src0, RegX8632::Reg_eax);
+      _mov(Reg, Src0, Traits::RegisterSet::Reg_eax);
     }
   }
   // Add a ret instruction even if sandboxing is enabled, because
@@ -4327,7 +4337,8 @@ void TargetX86Base<Machine>::lowerRet(const InstRet *Inst) {
   // eliminated.  TODO: Are there more places where the fake use
   // should be inserted?  E.g. "void f(int n){while(1) g(n);}" may not
   // have a ret instruction.
-  Variable *esp = Func->getTarget()->getPhysicalRegister(RegX8632::Reg_esp);
+  Variable *esp =
+      Func->getTarget()->getPhysicalRegister(Traits::RegisterSet::Reg_esp);
   Context.insert(InstFakeUse::create(Func, esp));
 }
 
@@ -4344,7 +4355,7 @@ void TargetX86Base<Machine>::lowerSelect(const InstSelect *Inst) {
     Variable *T = makeReg(SrcTy);
     Operand *SrcTRM = legalize(SrcT, Legal_Reg | Legal_Mem);
     Operand *SrcFRM = legalize(SrcF, Legal_Reg | Legal_Mem);
-    if (InstructionSet >= Machine::SSE4_1) {
+    if (InstructionSet >= Traits::SSE4_1) {
       // TODO(wala): If the condition operand is a constant, use blendps
       // or pblendw.
       //
@@ -4352,7 +4363,7 @@ void TargetX86Base<Machine>::lowerSelect(const InstSelect *Inst) {
       if (SrcTy == IceType_v4i1 || SrcTy == IceType_v4i32 ||
           SrcTy == IceType_v4f32) {
         Operand *ConditionRM = legalize(Condition, Legal_Reg | Legal_Mem);
-        Variable *xmm0 = makeReg(IceType_v4i32, RegX8632::Reg_xmm0);
+        Variable *xmm0 = makeReg(IceType_v4i32, Traits::RegisterSet::Reg_xmm0);
         _movp(xmm0, ConditionRM);
         _psll(xmm0, Ctx->getConstantInt8(31));
         _movp(T, SrcFRM);
@@ -4362,7 +4373,7 @@ void TargetX86Base<Machine>::lowerSelect(const InstSelect *Inst) {
         assert(typeNumElements(SrcTy) == 8 || typeNumElements(SrcTy) == 16);
         Type SignExtTy = Condition->getType() == IceType_v8i1 ? IceType_v8i16
                                                               : IceType_v16i8;
-        Variable *xmm0 = makeReg(SignExtTy, RegX8632::Reg_xmm0);
+        Variable *xmm0 = makeReg(SignExtTy, Traits::RegisterSet::Reg_xmm0);
         lowerCast(InstCast::create(Func, InstCast::Sext, xmm0, Condition));
         _movp(T, SrcFRM);
         _pblendvb(T, SrcTRM, xmm0);
@@ -4370,7 +4381,7 @@ void TargetX86Base<Machine>::lowerSelect(const InstSelect *Inst) {
       }
       return;
     }
-    // Lower select without Machine::SSE4.1:
+    // Lower select without Traits::SSE4.1:
     // a=d?b:c ==>
     //   if elementtype(d) != i1:
     //      d=sext(d);
@@ -4397,7 +4408,7 @@ void TargetX86Base<Machine>::lowerSelect(const InstSelect *Inst) {
     return;
   }
 
-  CondX86::BrCond Cond = CondX86::Br_ne;
+  typename Traits::Cond::BrCond Cond = Traits::Cond::Br_ne;
   Operand *CmpOpnd0 = nullptr;
   Operand *CmpOpnd1 = nullptr;
   // Handle folding opportunities.
@@ -4542,9 +4553,9 @@ void TargetX86Base<Machine>::lowerSwitch(const InstSwitch *Inst) {
       Constant *ValueHi = Ctx->getConstantInt32(Inst->getValue(I) >> 32);
       InstX8632Label *Label = InstX8632Label::create(Func, this);
       _cmp(Src0Lo, ValueLo);
-      _br(CondX86::Br_ne, Label);
+      _br(Traits::Cond::Br_ne, Label);
       _cmp(Src0Hi, ValueHi);
-      _br(CondX86::Br_e, Inst->getLabel(I));
+      _br(Traits::Cond::Br_e, Inst->getLabel(I));
       Context.insert(Label);
     }
     _br(Inst->getLabelDefault());
@@ -4559,7 +4570,7 @@ void TargetX86Base<Machine>::lowerSwitch(const InstSwitch *Inst) {
   for (SizeT I = 0; I < NumCases; ++I) {
     Constant *Value = Ctx->getConstantInt32(Inst->getValue(I));
     _cmp(Src0, Value);
-    _br(CondX86::Br_e, Inst->getLabel(I));
+    _br(Traits::Cond::Br_e, Inst->getLabel(I));
   }
 
   _br(Inst->getLabelDefault());
@@ -5208,7 +5219,7 @@ void TargetX86Base<Machine>::makeRandomRegisterPermutation(
     const llvm::SmallBitVector &ExcludeRegisters) const {
   // TODO(stichnot): Declaring Permutation this way loses type/size
   // information.  Fix this in conjunction with the caller-side TODO.
-  assert(Permutation.size() >= RegX8632::Reg_NUM);
+  assert(Permutation.size() >= Traits::RegisterSet::Reg_NUM);
   // Expected upper bound on the number of registers in a single
   // equivalence class.  For x86-32, this would comprise the 8 XMM
   // registers.  This is for performance, not correctness.
@@ -5223,15 +5234,15 @@ void TargetX86Base<Machine>::makeRandomRegisterPermutation(
 // explicitly excluded from shuffling.
 #define X(val, encode, name, name16, name8, scratch, preserved, stackptr,      \
           frameptr, isI8, isInt, isFP)                                         \
-  if (ExcludeRegisters[RegX8632::val]) {                                       \
+  if (ExcludeRegisters[Traits::RegisterSet::val]) {                            \
     /* val stays the same in the resulting permutation. */                     \
-    Permutation[RegX8632::val] = RegX8632::val;                                \
+    Permutation[Traits::RegisterSet::val] = Traits::RegisterSet::val;          \
     ++NumPreserved;                                                            \
   } else {                                                                     \
     const uint32_t Index = (scratch << 0) | (preserved << 1) | (isI8 << 2) |   \
                            (isInt << 3) | (isFP << 4);                         \
     /* val is assigned to an equivalence class based on its properties. */     \
-    EquivalenceClasses[Index].push_back(RegX8632::val);                        \
+    EquivalenceClasses[Index].push_back(Traits::RegisterSet::val);             \
   }
   REGX8632_TABLE
 #undef X
@@ -5249,7 +5260,7 @@ void TargetX86Base<Machine>::makeRandomRegisterPermutation(
     }
   }
 
-  assert(NumShuffled + NumPreserved == RegX8632::Reg_NUM);
+  assert(NumShuffled + NumPreserved == Traits::RegisterSet::Reg_NUM);
 
   if (Func->isVerbose(IceV_Random)) {
     OstreamLocker L(Func->getContext());

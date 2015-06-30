@@ -2,6 +2,9 @@
 //
 //                        The Subzero Code Generator
 //
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.TXT for details.
+//
 //===----------------------------------------------------------------------===//
 //
 // This file implements the TargetLoweringX8632 class, which
@@ -12,100 +15,19 @@
 
 #include "IceTargetLoweringX8632.h"
 
+#include "IceTargetLoweringX8632Traits.h"
 #include "IceTargetLoweringX86Base.h"
 
 namespace Ice {
+
 namespace X86Internal {
-template <> struct MachineTraits<TargetX8632> {
-  using InstructionSet = TargetX8632::X86InstructionSet;
-
-  // The following table summarizes the logic for lowering the fcmp
-  // instruction.  There is one table entry for each of the 16 conditions.
-  //
-  // The first four columns describe the case when the operands are
-  // floating point scalar values.  A comment in lowerFcmp() describes the
-  // lowering template.  In the most general case, there is a compare
-  // followed by two conditional branches, because some fcmp conditions
-  // don't map to a single x86 conditional branch.  However, in many cases
-  // it is possible to swap the operands in the comparison and have a
-  // single conditional branch.  Since it's quite tedious to validate the
-  // table by hand, good execution tests are helpful.
-  //
-  // The last two columns describe the case when the operands are vectors
-  // of floating point values.  For most fcmp conditions, there is a clear
-  // mapping to a single x86 cmpps instruction variant.  Some fcmp
-  // conditions require special code to handle and these are marked in the
-  // table with a Cmpps_Invalid predicate.
-  static const struct TableFcmpType {
-    uint32_t Default;
-    bool SwapScalarOperands;
-    CondX86::BrCond C1, C2;
-    bool SwapVectorOperands;
-    CondX86::CmppsCond Predicate;
-  } TableFcmp[];
-  static const size_t TableFcmpSize;
-
-  // The following table summarizes the logic for lowering the icmp instruction
-  // for i32 and narrower types.  Each icmp condition has a clear mapping to an
-  // x86 conditional branch instruction.
-
-  static const struct TableIcmp32Type {
-    CondX86::BrCond Mapping;
-  } TableIcmp32[];
-  static const size_t TableIcmp32Size;
-
-  // The following table summarizes the logic for lowering the icmp instruction
-  // for the i64 type.  For Eq and Ne, two separate 32-bit comparisons and
-  // conditional branches are needed.  For the other conditions, three separate
-  // conditional branches are needed.
-  static const struct TableIcmp64Type {
-    CondX86::BrCond C1, C2, C3;
-  } TableIcmp64[];
-  static const size_t TableIcmp64Size;
-
-  static CondX86::BrCond getIcmp32Mapping(InstIcmp::ICond Cond) {
-    size_t Index = static_cast<size_t>(Cond);
-    assert(Index < TableIcmp32Size);
-    return TableIcmp32[Index].Mapping;
-  }
-
-  static const struct TableTypeX8632AttributesType {
-    Type InVectorElementType;
-  } TableTypeX8632Attributes[];
-  static const size_t TableTypeX8632AttributesSize;
-
-  // Return the type which the elements of the vector have in the X86
-  // representation of the vector.
-  static Type getInVectorElementType(Type Ty) {
-    assert(isVectorType(Ty));
-    size_t Index = static_cast<size_t>(Ty);
-    (void)Index;
-    assert(Index < TableTypeX8632AttributesSize);
-    return TableTypeX8632Attributes[Ty].InVectorElementType;
-  }
-
-  // The maximum number of arguments to pass in XMM registers
-  static const uint32_t X86_MAX_XMM_ARGS = 4;
-  // The number of bits in a byte
-  static const uint32_t X86_CHAR_BIT = 8;
-  // Stack alignment
-  static const uint32_t X86_STACK_ALIGNMENT_BYTES;
-  // Size of the return address on the stack
-  static const uint32_t X86_RET_IP_SIZE_BYTES = 4;
-  // The number of different NOP instructions
-  static const uint32_t X86_NUM_NOP_VARIANTS = 5;
-
-  // Value is in bytes. Return Value adjusted to the next highest multiple
-  // of the stack alignment.
-  static uint32_t applyStackAlignment(uint32_t Value) {
-    return Utils::applyAlignment(Value, X86_STACK_ALIGNMENT_BYTES);
-  }
-};
-
 const MachineTraits<TargetX8632>::TableFcmpType
     MachineTraits<TargetX8632>::TableFcmp[] = {
 #define X(val, dflt, swapS, C1, C2, swapV, pred)                               \
-  { dflt, swapS, CondX86::C1, CondX86::C2, swapV, CondX86::pred }              \
+  {                                                                            \
+    dflt, swapS, X8632::Traits::Cond::C1, X8632::Traits::Cond::C2, swapV,      \
+        X8632::Traits::Cond::pred                                              \
+  }                                                                            \
   ,
         FCMPX8632_TABLE
 #undef X
@@ -117,7 +39,7 @@ const size_t MachineTraits<TargetX8632>::TableFcmpSize =
 const MachineTraits<TargetX8632>::TableIcmp32Type
     MachineTraits<TargetX8632>::TableIcmp32[] = {
 #define X(val, C_32, C1_64, C2_64, C3_64)                                      \
-  { CondX86::C_32 }                                                            \
+  { X8632::Traits::Cond::C_32 }                                                \
   ,
         ICMPX8632_TABLE
 #undef X
@@ -129,7 +51,10 @@ const size_t MachineTraits<TargetX8632>::TableIcmp32Size =
 const MachineTraits<TargetX8632>::TableIcmp64Type
     MachineTraits<TargetX8632>::TableIcmp64[] = {
 #define X(val, C_32, C1_64, C2_64, C3_64)                                      \
-  { CondX86::C1_64, CondX86::C2_64, CondX86::C3_64 }                           \
+  {                                                                            \
+    X8632::Traits::Cond::C1_64, X8632::Traits::Cond::C2_64,                    \
+        X8632::Traits::Cond::C3_64                                             \
+  }                                                                            \
   ,
         ICMPX8632_TABLE
 #undef X
@@ -151,6 +76,7 @@ const size_t MachineTraits<TargetX8632>::TableTypeX8632AttributesSize =
     llvm::array_lengthof(TableTypeX8632Attributes);
 
 const uint32_t MachineTraits<TargetX8632>::X86_STACK_ALIGNMENT_BYTES = 16;
+
 } // end of namespace X86Internal
 
 TargetX8632 *TargetX8632::create(Cfg *Func) {

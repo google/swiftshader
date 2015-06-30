@@ -21,6 +21,7 @@
 #include "IceInstX8632.h"
 #include "IceRegistersX8632.h"
 #include "IceTargetLowering.h"
+#include "IceTargetLoweringX8632Traits.h"
 
 namespace Ice {
 
@@ -30,16 +31,11 @@ class TargetX8632 : public TargetLowering {
   TargetX8632 &operator=(const TargetX8632 &) = delete;
 
 public:
-  enum X86InstructionSet {
-    Begin,
-    // SSE2 is the PNaCl baseline instruction set.
-    SSE2 = Begin,
-    SSE4_1,
-    End
-  };
+  using X86InstructionSet = X8632::Traits::InstructionSet;
 
   static TargetX8632 *create(Cfg *Func);
-  virtual X8632::Address stackVarToAsmOperand(const Variable *Var) const = 0;
+  virtual X8632::Traits::Address
+  stackVarToAsmOperand(const Variable *Var) const = 0;
   virtual X86InstructionSet getInstructionSet() const = 0;
 
 protected:
