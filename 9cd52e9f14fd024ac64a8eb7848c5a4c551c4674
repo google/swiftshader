@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "53277df4_bf452b1a",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3173,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-06-30T18:55:56Z",
+      "side": 1,
+      "message": "I assume there\u0027s no risk of simultaneous use of the same pixel pack buffer? Else we\u0027d have to lock/unlock it.",
+      "range": {
+        "startLine": 3173,
+        "startChar": 87,
+        "endLine": 3173,
+        "endChar": 91
+      },
+      "revId": "9cd52e9f14fd024ac64a8eb7848c5a4c551c4674",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
