@@ -101,6 +101,7 @@ std::unique_ptr<llvm::raw_fd_ostream> getOutputStream(int FD) {
 
 void fatalErrorHandler(void *UserData, const std::string &Reason,
                        bool GenCrashDialog) {
+  (void)GenCrashDialog;
   BrowserCompileServer *Server =
       reinterpret_cast<BrowserCompileServer *>(UserData);
   Server->setFatalError(Reason);

@@ -24,6 +24,7 @@ int main(int argc, char **argv) {
   // There are no real commandline arguments in the browser case.
   // They are supplied via IPC.
   assert(argc == 1);
+  (void)argc;
   (void)argv;
   Ice::BrowserCompileServer Server(Comp);
   Server.run();
