@@ -210,7 +210,9 @@ namespace es2
 
 		unsigned int getSerial() const;
 
+		bool getBinaryRetrievableHint() const { return retrievableBinary; }
 		void setBinaryRetrievable(bool retrievable) { retrievableBinary = retrievable; }
+		GLint getBinaryLength() const;
 
 	private:
 		void unlink();

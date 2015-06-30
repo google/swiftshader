@@ -2350,6 +2350,12 @@ namespace es2
 		return validated;
 	}
 
+	GLint Program::getBinaryLength() const
+	{
+		UNIMPLEMENTED();
+		return 0;
+	}
+
 	void Program::release()
 	{
 		referenceCount--;

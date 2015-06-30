@@ -3336,7 +3336,15 @@ void GetProgramiv(GLuint program, GLenum pname, GLint* params)
 		case GL_PROGRAM_BINARY_RETRIEVABLE_HINT:
 			if(clientVersion >= 3)
 			{
-				UNIMPLEMENTED();
+				*params = programObject->getBinaryRetrievableHint();
+				return;
+			}
+			else return error(GL_INVALID_ENUM);
+		case GL_PROGRAM_BINARY_LENGTH:
+			if(clientVersion >= 3)
+			{
+				*params = programObject->getBinaryLength();
+				return;
 			}
 			else return error(GL_INVALID_ENUM);
 		default:
