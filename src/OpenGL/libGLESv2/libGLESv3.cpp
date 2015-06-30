@@ -2661,22 +2661,23 @@ GL_APICALL void GL_APIENTRY glCopyBufferSubData(GLenum readTarget, GLenum writeT
 
 	if(context)
 	{
-		es2::Buffer *readBuffer = nullptr;
-		if(!context->getBuffer(readTarget, &readBuffer))
+		es2::Buffer *readBuffer = nullptr, *writeBuffer = nullptr;
+		if(!context->getBuffer(readTarget, &readBuffer) || !context->getBuffer(writeTarget, &writeBuffer))
 		{
 			return error(GL_INVALID_ENUM);
 		}
-		if(static_cast<size_t>(readOffset + size) > readBuffer->size())
+		if(!readBuffer || readBuffer->isMapped() || !writeBuffer || writeBuffer->isMapped())
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+		if((readBuffer == writeBuffer) && // If same buffer, check for overlap
+		   ((readOffset >= writeOffset) && (readOffset < (writeOffset + size)) ||
+		    (writeOffset >= readOffset) && (writeOffset < (readOffset + size))))
 		{
 			return error(GL_INVALID_VALUE);
 		}
-
-		es2::Buffer *writeBuffer = nullptr;
-		if(!context->getBuffer(writeTarget, &writeBuffer))
-		{
-			return error(GL_INVALID_ENUM);
-		}
-		if(static_cast<size_t>(writeOffset + size) > writeBuffer->size())
+		if((static_cast<size_t>(readOffset + size) > readBuffer->size()) ||
+		   (static_cast<size_t>(writeOffset + size) > writeBuffer->size()))
 		{
 			return error(GL_INVALID_VALUE);
 		}
