@@ -353,16 +353,20 @@ protected:
   const static constexpr char *H_fptoui_f64_i64 = "__Sz_fptoui_f64_i64";
   const static constexpr char *H_frem_f32 = "fmodf";
   const static constexpr char *H_frem_f64 = "fmod";
+  const static constexpr char *H_sdiv_i32 = "__divsi3";
   const static constexpr char *H_sdiv_i64 = "__divdi3";
   const static constexpr char *H_sitofp_i64_f32 = "__Sz_sitofp_i64_f32";
   const static constexpr char *H_sitofp_i64_f64 = "__Sz_sitofp_i64_f64";
+  const static constexpr char *H_srem_i32 = "__modsi3";
   const static constexpr char *H_srem_i64 = "__moddi3";
+  const static constexpr char *H_udiv_i32 = "__udivsi3";
   const static constexpr char *H_udiv_i64 = "__udivdi3";
   const static constexpr char *H_uitofp_4xi32_4xf32 = "__Sz_uitofp_4xi32_4xf32";
   const static constexpr char *H_uitofp_i32_f32 = "__Sz_uitofp_i32_f32";
   const static constexpr char *H_uitofp_i32_f64 = "__Sz_uitofp_i32_f64";
   const static constexpr char *H_uitofp_i64_f32 = "__Sz_uitofp_i64_f32";
   const static constexpr char *H_uitofp_i64_f64 = "__Sz_uitofp_i64_f64";
+  const static constexpr char *H_urem_i32 = "__umodsi3";
   const static constexpr char *H_urem_i64 = "__umoddi3";
 
 private:

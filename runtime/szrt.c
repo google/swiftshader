@@ -42,6 +42,10 @@ double __Sz_sitofp_i64_f64(int64_t Value) { return (double)Value; }
 
 // Other helper calls emitted by Subzero but not implemented here:
 // Compiler-rt:
+//   __udivsi3     - udiv i32
+//   __divsi3      - sdiv i32
+//   __umodsi3     - urem i32
+//   __modsi3      - srem i32
 //   __udivdi3     - udiv i64
 //   __divdi3      - sdiv i64
 //   __umoddi3     - urem i64

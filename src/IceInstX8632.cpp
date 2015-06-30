@@ -1939,7 +1939,7 @@ void InstX8632UD2::dump(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
-  Str << "ud2\n";
+  Str << "ud2";
 }
 
 void InstX8632Test::emit(const Cfg *Func) const {
@@ -1998,7 +1998,7 @@ void InstX8632Mfence::dump(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
-  Str << "mfence\n";
+  Str << "mfence";
 }
 
 void InstX8632Store::emit(const Cfg *Func) const {
@@ -2512,7 +2512,6 @@ void InstX8632Fstp::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
   Str << " = fstp." << getDest()->getType() << ", st(0)";
-  Str << "\n";
 }
 
 template <> void InstX8632Pcmpeq::emit(const Cfg *Func) const {

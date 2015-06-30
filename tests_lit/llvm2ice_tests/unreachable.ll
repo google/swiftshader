@@ -1,7 +1,17 @@
 ; This tests the basic structure of the Unreachable instruction.
 
-; RUN: %p2i -i %s --filetype=obj --disassemble -a -O2 | FileCheck %s
-; RUN: %p2i -i %s --filetype=obj --disassemble -a -Om1 | FileCheck %s
+; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
+; RUN:   --target x8632 -i %s --args -O2 \
+; RUN:   | %if --need=target_X8632 --command FileCheck %s
+; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
+; RUN:   --target x8632 -i %s --args -Om1 \
+; RUN:   | %if --need=target_X8632 --command FileCheck %s
+
+; RUN: %if --need=target_ARM32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble \
+; RUN:   --disassemble --target arm32 -i %s --args -O2 --skip-unimplemented \
+; RUN:   | %if --need=target_ARM32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix ARM32 %s
 
 define internal i32 @divide(i32 %num, i32 %den) {
 entry:
@@ -22,3 +32,9 @@ return:                                           ; preds = %entry
 ; CHECK: cdq
 ; CHECK: idiv
 ; CHECK: ret
+
+; ARM32-LABEL: divide
+; ARM32: cmp
+; ARM32: .word 0xe7fedef0
+; ARM32: bl {{.*}} __divsi3
+; ARM32: bx lr

@@ -315,6 +315,11 @@ entry:
 
 ; OPTM1-LABEL: div64BitSigned
 ; OPTM1: call {{.*}} R_{{.*}}    __divdi3
+;
+; ARM32-LABEL: div64BitSigned
+; ARM32: orrs {{r.*}}, {{r.*}}
+; ARM32: bne
+; ARM32: bl {{.*}} __divdi3
 
 define internal i64 @div64BitSignedConst(i64 %a) {
 entry:
@@ -330,6 +335,14 @@ entry:
 ; OPTM1: mov     DWORD PTR [esp+0xc],0xb3a
 ; OPTM1: mov     DWORD PTR [esp+0x8],0x73ce2ff2
 ; OPTM1: call {{.*}} R_{{.*}}    __divdi3
+;
+; ARM32-LABEL: div64BitSignedConst
+; For a constant, we should be able to optimize-out the divide by zero check.
+; ARM32-NOT: orrs
+; ARM32: movw {{.*}} ; 0x2ff2
+; ARM32: movt {{.*}} ; 0x73ce
+; ARM32: movw {{.*}} ; 0xb3a
+; ARM32: bl {{.*}} __divdi3
 
 define internal i64 @div64BitUnsigned(i64 %a, i64 %b) {
 entry:
@@ -341,6 +354,11 @@ entry:
 ;
 ; OPTM1-LABEL: div64BitUnsigned
 ; OPTM1: call {{.*}} R_{{.*}}    __udivdi3
+;
+; ARM32-LABEL: div64BitUnsigned
+; ARM32: orrs {{r.*}}, {{r.*}}
+; ARM32: bne
+; ARM32: bl {{.*}} __udivdi3
 
 define internal i64 @rem64BitSigned(i64 %a, i64 %b) {
 entry:
@@ -352,6 +370,11 @@ entry:
 ;
 ; OPTM1-LABEL: rem64BitSigned
 ; OPTM1: call {{.*}} R_{{.*}}    __moddi3
+;
+; ARM32-LABEL: rem64BitSigned
+; ARM32: orrs {{r.*}}, {{r.*}}
+; ARM32: bne
+; ARM32: bl {{.*}} __moddi3
 
 define internal i64 @rem64BitUnsigned(i64 %a, i64 %b) {
 entry:
@@ -363,6 +386,11 @@ entry:
 ;
 ; OPTM1-LABEL: rem64BitUnsigned
 ; OPTM1: call {{.*}} R_{{.*}}    __umoddi3
+;
+; ARM32-LABEL: rem64BitUnsigned
+; ARM32: orrs {{r.*}}, {{r.*}}
+; ARM32: bne
+; ARM32: bl {{.*}} __umoddi3
 
 define internal i64 @shl64BitSigned(i64 %a, i64 %b) {
 entry:

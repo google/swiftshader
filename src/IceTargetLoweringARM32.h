@@ -22,6 +22,30 @@
 
 namespace Ice {
 
+// Class encapsulating ARM cpu features / instruction set.
+class TargetARM32Features {
+  TargetARM32Features() = delete;
+  TargetARM32Features(const TargetARM32Features &) = delete;
+  TargetARM32Features &operator=(const TargetARM32Features &) = delete;
+
+public:
+  explicit TargetARM32Features(const ClFlags &Flags);
+
+  enum ARM32InstructionSet {
+    Begin,
+    // Neon is the PNaCl baseline instruction set.
+    Neon = Begin,
+    HWDivArm, // HW divide in ARM mode (not just Thumb mode).
+    End
+  };
+
+  bool hasFeature(ARM32InstructionSet I) const { return I <= InstructionSet; }
+
+private:
+  ARM32InstructionSet InstructionSet = ARM32InstructionSet::Begin;
+};
+
+// The target lowering logic for ARM32.
 class TargetARM32 : public TargetLowering {
   TargetARM32() = delete;
   TargetARM32(const TargetARM32 &) = delete;
@@ -75,15 +99,9 @@ public:
   void finishArgumentLowering(Variable *Arg, Variable *FramePtr,
                               size_t BasicFrameOffset, size_t &InArgsSizeBytes);
 
-  enum ARM32InstructionSet {
-    Begin,
-    // Neon is the PNaCl baseline instruction set.
-    Neon = Begin,
-    HWDivArm, // HW divide in ARM mode (not just Thumb mode).
-    End
-  };
-
-  ARM32InstructionSet getInstructionSet() const { return InstructionSet; }
+  bool hasCPUFeature(TargetARM32Features::ARM32InstructionSet I) const {
+    return CPUFeatures.hasFeature(I);
+  }
 
 protected:
   explicit TargetARM32(Cfg *Func);
@@ -141,6 +159,18 @@ protected:
       llvm::SmallVectorImpl<int32_t> &Permutation,
       const llvm::SmallBitVector &ExcludeRegisters) const override;
 
+  // If a divide-by-zero check is needed, inserts a:
+  // test; branch .LSKIP; trap; .LSKIP: <continuation>.
+  // If no check is needed nothing is inserted.
+  void div0Check(Type Ty, Operand *SrcLo, Operand *SrcHi);
+  typedef void (TargetARM32::*ExtInstr)(Variable *, Variable *,
+                                        CondARM32::Cond);
+  typedef void (TargetARM32::*DivInstr)(Variable *, Variable *, Variable *,
+                                        CondARM32::Cond);
+  void lowerIDivRem(Variable *Dest, Variable *T, Variable *Src0R, Operand *Src1,
+                    ExtInstr ExtFunc, DivInstr DivFunc,
+                    const char *DivHelperName, bool IsRemainder);
+
   // The following are helpers that insert lowered ARM32 instructions
   // with minimal syntactic overhead, so that the lowering code can
   // look as close to assembly as practical.
@@ -175,8 +205,8 @@ protected:
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Bic::create(Func, Dest, Src0, Src1, Pred));
   }
-  void _br(CondARM32::Cond Condition, CfgNode *TargetTrue,
-           CfgNode *TargetFalse) {
+  void _br(CfgNode *TargetTrue, CfgNode *TargetFalse,
+           CondARM32::Cond Condition) {
     Context.insert(
         InstARM32Br::create(Func, TargetTrue, TargetFalse, Condition));
   }
@@ -185,6 +215,9 @@ protected:
   }
   void _br(CfgNode *Target, CondARM32::Cond Condition) {
     Context.insert(InstARM32Br::create(Func, Target, Condition));
+  }
+  void _br(InstARM32Label *Label, CondARM32::Cond Condition) {
+    Context.insert(InstARM32Br::create(Func, Label, Condition));
   }
   void _cmp(Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
@@ -209,6 +242,10 @@ protected:
   void _mla(Variable *Dest, Variable *Src0, Variable *Src1, Variable *Acc,
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Mla::create(Func, Dest, Src0, Src1, Acc, Pred));
+  }
+  void _mls(Variable *Dest, Variable *Src0, Variable *Src1, Variable *Acc,
+            CondARM32::Cond Pred = CondARM32::AL) {
+    Context.insert(InstARM32Mls::create(Func, Dest, Src0, Src1, Acc, Pred));
   }
   // If Dest=nullptr is passed in, then a new variable is created,
   // marked as infinite register allocation weight, and returned
@@ -248,6 +285,12 @@ protected:
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Orr::create(Func, Dest, Src0, Src1, Pred));
   }
+  void _orrs(Variable *Dest, Variable *Src0, Operand *Src1,
+             CondARM32::Cond Pred = CondARM32::AL) {
+    const bool SetFlags = true;
+    Context.insert(
+        InstARM32Orr::create(Func, Dest, Src0, Src1, Pred, SetFlags));
+  }
   void _push(const VarList &Sources) {
     Context.insert(InstARM32Push::create(Func, Sources));
   }
@@ -256,6 +299,9 @@ protected:
     // Mark dests as modified.
     for (Variable *Dest : Dests)
       Context.insert(InstFakeDef::create(Func, Dest));
+  }
+  void _ret(Variable *LR, Variable *Src0 = nullptr) {
+    Context.insert(InstARM32Ret::create(Func, LR, Src0));
   }
   void _rsb(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
@@ -270,6 +316,10 @@ protected:
     const bool SetFlags = true;
     Context.insert(
         InstARM32Sbc::create(Func, Dest, Src0, Src1, Pred, SetFlags));
+  }
+  void _sdiv(Variable *Dest, Variable *Src0, Variable *Src1,
+             CondARM32::Cond Pred = CondARM32::AL) {
+    Context.insert(InstARM32Sdiv::create(Func, Dest, Src0, Src1, Pred));
   }
   void _str(Variable *Value, OperandARM32Mem *Addr,
             CondARM32::Cond Pred = CondARM32::AL) {
@@ -289,8 +339,14 @@ protected:
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Sxt::create(Func, Dest, Src0, Pred));
   }
-  void _ret(Variable *LR, Variable *Src0 = nullptr) {
-    Context.insert(InstARM32Ret::create(Func, LR, Src0));
+  void _tst(Variable *Src0, Operand *Src1,
+            CondARM32::Cond Pred = CondARM32::AL) {
+    Context.insert(InstARM32Tst::create(Func, Src0, Src1, Pred));
+  }
+  void _trap() { Context.insert(InstARM32Trap::create(Func)); }
+  void _udiv(Variable *Dest, Variable *Src0, Variable *Src1,
+             CondARM32::Cond Pred = CondARM32::AL) {
+    Context.insert(InstARM32Udiv::create(Func, Dest, Src0, Src1, Pred));
   }
   void _umull(Variable *DestLo, Variable *DestHi, Variable *Src0,
               Variable *Src1, CondARM32::Cond Pred = CondARM32::AL) {
@@ -305,7 +361,7 @@ protected:
     Context.insert(InstARM32Uxt::create(Func, Dest, Src0, Pred));
   }
 
-  ARM32InstructionSet InstructionSet = ARM32InstructionSet::Begin;
+  TargetARM32Features CPUFeatures;
   bool UsesFramePointer = false;
   bool NeedsStackAlignment = false;
   bool MaybeLeafFunc = true;
@@ -386,6 +442,8 @@ protected:
 
 private:
   ~TargetHeaderARM32() = default;
+
+  TargetARM32Features CPUFeatures;
 };
 
 } // end of namespace Ice

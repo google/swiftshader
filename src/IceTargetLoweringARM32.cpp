@@ -141,21 +141,34 @@ uint32_t applyStackAlignmentTy(uint32_t Value, Type Ty) {
   return Utils::applyAlignment(Value, typeAlignInBytes);
 }
 
+// Conservatively check if at compile time we know that the operand is
+// definitely a non-zero integer.
+bool isGuaranteedNonzeroInt(const Operand *Op) {
+  if (auto *Const = llvm::dyn_cast_or_null<ConstantInteger32>(Op)) {
+    return Const->getValue() != 0;
+  }
+  return false;
+}
+
 } // end of anonymous namespace
 
-TargetARM32::TargetARM32(Cfg *Func) : TargetLowering(Func) {
+TargetARM32Features::TargetARM32Features(const ClFlags &Flags) {
   static_assert(
       (ARM32InstructionSet::End - ARM32InstructionSet::Begin) ==
           (TargetInstructionSet::ARM32InstructionSet_End -
            TargetInstructionSet::ARM32InstructionSet_Begin),
       "ARM32InstructionSet range different from TargetInstructionSet");
-  if (Func->getContext()->getFlags().getTargetInstructionSet() !=
+  if (Flags.getTargetInstructionSet() !=
       TargetInstructionSet::BaseInstructionSet) {
     InstructionSet = static_cast<ARM32InstructionSet>(
-        (Func->getContext()->getFlags().getTargetInstructionSet() -
+        (Flags.getTargetInstructionSet() -
          TargetInstructionSet::ARM32InstructionSet_Begin) +
         ARM32InstructionSet::Begin);
   }
+}
+
+TargetARM32::TargetARM32(Cfg *Func)
+    : TargetLowering(Func), CPUFeatures(Func->getContext()->getFlags()) {
   // TODO: Don't initialize IntegerRegisters and friends every time.
   // Instead, initialize in some sort of static initializer for the
   // class.
@@ -1009,6 +1022,75 @@ void TargetARM32::lowerAlloca(const InstAlloca *Inst) {
   _mov(Dest, SP);
 }
 
+void TargetARM32::div0Check(Type Ty, Operand *SrcLo, Operand *SrcHi) {
+  if (isGuaranteedNonzeroInt(SrcLo) || isGuaranteedNonzeroInt(SrcHi))
+    return;
+  Variable *SrcLoReg = legalizeToVar(SrcLo);
+  switch (Ty) {
+  default:
+    llvm_unreachable("Unexpected type");
+  case IceType_i8: {
+    Operand *Mask =
+        legalize(Ctx->getConstantInt32(0xFF), Legal_Reg | Legal_Flex);
+    _tst(SrcLoReg, Mask);
+    break;
+  }
+  case IceType_i16: {
+    Operand *Mask =
+        legalize(Ctx->getConstantInt32(0xFFFF), Legal_Reg | Legal_Flex);
+    _tst(SrcLoReg, Mask);
+    break;
+  }
+  case IceType_i32: {
+    _tst(SrcLoReg, SrcLoReg);
+    break;
+  }
+  case IceType_i64: {
+    Variable *ScratchReg = makeReg(IceType_i32);
+    _orrs(ScratchReg, SrcLoReg, SrcHi);
+    // ScratchReg isn't going to be used, but we need the
+    // side-effect of setting flags from this operation.
+    Context.insert(InstFakeUse::create(Func, ScratchReg));
+  }
+  }
+  InstARM32Label *Label = InstARM32Label::create(Func, this);
+  _br(Label, CondARM32::NE);
+  _trap();
+  Context.insert(Label);
+}
+
+void TargetARM32::lowerIDivRem(Variable *Dest, Variable *T, Variable *Src0R,
+                               Operand *Src1, ExtInstr ExtFunc,
+                               DivInstr DivFunc, const char *DivHelperName,
+                               bool IsRemainder) {
+  div0Check(Dest->getType(), Src1, nullptr);
+  Variable *Src1R = legalizeToVar(Src1);
+  Variable *T0R = Src0R;
+  Variable *T1R = Src1R;
+  if (Dest->getType() != IceType_i32) {
+    T0R = makeReg(IceType_i32);
+    (this->*ExtFunc)(T0R, Src0R, CondARM32::AL);
+    T1R = makeReg(IceType_i32);
+    (this->*ExtFunc)(T1R, Src1R, CondARM32::AL);
+  }
+  if (hasCPUFeature(TargetARM32Features::HWDivArm)) {
+    (this->*DivFunc)(T, T0R, T1R, CondARM32::AL);
+    if (IsRemainder) {
+      Variable *T2 = makeReg(IceType_i32);
+      _mls(T2, T, T1R, T0R);
+      T = T2;
+    }
+    _mov(Dest, T);
+  } else {
+    constexpr SizeT MaxSrcs = 2;
+    InstCall *Call = makeHelperCall(DivHelperName, Dest, MaxSrcs);
+    Call->addArg(T0R);
+    Call->addArg(T1R);
+    lowerCall(Call);
+  }
+  return;
+}
+
 void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
   Variable *Dest = Inst->getDest();
   // TODO(jvoung): Should be able to flip Src0 and Src1 if it is easier
@@ -1182,9 +1264,47 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
     case InstArithmetic::Udiv:
     case InstArithmetic::Sdiv:
     case InstArithmetic::Urem:
-    case InstArithmetic::Srem:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
+    case InstArithmetic::Srem: {
+      // Check for divide by 0 (ARM normally doesn't trap, but we want it
+      // to trap for NaCl). Src1Lo and Src1Hi may have already been legalized
+      // to a register, which will hide a constant source operand.
+      // Instead, check the not-yet-legalized Src1 to optimize-out a divide
+      // by 0 check.
+      if (auto *C64 = llvm::dyn_cast<ConstantInteger64>(Src1)) {
+        if (C64->getValue() == 0) {
+          div0Check(IceType_i64, Src1Lo, Src1Hi);
+        }
+      } else {
+        div0Check(IceType_i64, Src1Lo, Src1Hi);
+      }
+      // Technically, ARM has their own aeabi routines, but we can use the
+      // non-aeabi routine as well.  LLVM uses __aeabi_ldivmod for div,
+      // but uses the more standard __moddi3 for rem.
+      const char *HelperName = "";
+      switch (Inst->getOp()) {
+      case InstArithmetic::Udiv:
+        HelperName = H_udiv_i64;
+        break;
+      case InstArithmetic::Sdiv:
+        HelperName = H_sdiv_i64;
+        break;
+      case InstArithmetic::Urem:
+        HelperName = H_urem_i64;
+        break;
+      case InstArithmetic::Srem:
+        HelperName = H_srem_i64;
+        break;
+      default:
+        llvm_unreachable("Should have only matched div ops.");
+        break;
+      }
+      constexpr SizeT MaxSrcs = 2;
+      InstCall *Call = makeHelperCall(HelperName, Dest, MaxSrcs);
+      Call->addArg(Inst->getSrc(0));
+      Call->addArg(Inst->getSrc(1));
+      lowerCall(Call);
+      return;
+    }
     case InstArithmetic::Fadd:
     case InstArithmetic::Fsub:
     case InstArithmetic::Fmul:
@@ -1197,61 +1317,73 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
     UnimplementedError(Func->getContext()->getFlags());
   } else { // Dest->getType() is non-i64 scalar
     Variable *Src0R = legalizeToVar(Inst->getSrc(0));
-    Src1 = legalize(Inst->getSrc(1), Legal_Reg | Legal_Flex);
+    Operand *Src1RF = legalize(Inst->getSrc(1), Legal_Reg | Legal_Flex);
     Variable *T = makeReg(Dest->getType());
     switch (Inst->getOp()) {
     case InstArithmetic::_num:
       llvm_unreachable("Unknown arithmetic operator");
       break;
     case InstArithmetic::Add: {
-      _add(T, Src0R, Src1);
+      _add(T, Src0R, Src1RF);
       _mov(Dest, T);
     } break;
     case InstArithmetic::And: {
-      _and(T, Src0R, Src1);
+      _and(T, Src0R, Src1RF);
       _mov(Dest, T);
     } break;
     case InstArithmetic::Or: {
-      _orr(T, Src0R, Src1);
+      _orr(T, Src0R, Src1RF);
       _mov(Dest, T);
     } break;
     case InstArithmetic::Xor: {
-      _eor(T, Src0R, Src1);
+      _eor(T, Src0R, Src1RF);
       _mov(Dest, T);
     } break;
     case InstArithmetic::Sub: {
-      _sub(T, Src0R, Src1);
+      _sub(T, Src0R, Src1RF);
       _mov(Dest, T);
     } break;
     case InstArithmetic::Mul: {
-      Variable *Src1R = legalizeToVar(Src1);
+      Variable *Src1R = legalizeToVar(Src1RF);
       _mul(T, Src0R, Src1R);
       _mov(Dest, T);
     } break;
     case InstArithmetic::Shl:
-      _lsl(T, Src0R, Src1);
+      _lsl(T, Src0R, Src1RF);
       _mov(Dest, T);
       break;
     case InstArithmetic::Lshr:
-      _lsr(T, Src0R, Src1);
+      _lsr(T, Src0R, Src1RF);
       _mov(Dest, T);
       break;
     case InstArithmetic::Ashr:
-      _asr(T, Src0R, Src1);
+      _asr(T, Src0R, Src1RF);
       _mov(Dest, T);
       break;
-    case InstArithmetic::Udiv:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
-    case InstArithmetic::Sdiv:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
-    case InstArithmetic::Urem:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
-    case InstArithmetic::Srem:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
+    case InstArithmetic::Udiv: {
+      constexpr bool IsRemainder = false;
+      lowerIDivRem(Dest, T, Src0R, Src1, &TargetARM32::_uxt,
+                   &TargetARM32::_udiv, H_udiv_i32, IsRemainder);
+      return;
+    }
+    case InstArithmetic::Sdiv: {
+      constexpr bool IsRemainder = false;
+      lowerIDivRem(Dest, T, Src0R, Src1, &TargetARM32::_sxt,
+                   &TargetARM32::_sdiv, H_sdiv_i32, IsRemainder);
+      return;
+    }
+    case InstArithmetic::Urem: {
+      constexpr bool IsRemainder = true;
+      lowerIDivRem(Dest, T, Src0R, Src1, &TargetARM32::_uxt,
+                   &TargetARM32::_udiv, H_urem_i32, IsRemainder);
+      return;
+    }
+    case InstArithmetic::Srem: {
+      constexpr bool IsRemainder = true;
+      lowerIDivRem(Dest, T, Src0R, Src1, &TargetARM32::_sxt,
+                   &TargetARM32::_sdiv, H_srem_i32, IsRemainder);
+      return;
+    }
     case InstArithmetic::Fadd:
       UnimplementedError(Func->getContext()->getFlags());
       break;
@@ -1322,7 +1454,7 @@ void TargetARM32::lowerBr(const InstBr *Inst) {
   Variable *Src0R = legalizeToVar(Cond);
   Constant *Zero = Ctx->getConstantZero(IceType_i32);
   _cmp(Src0R, Zero);
-  _br(CondARM32::NE, Inst->getTargetTrue(), Inst->getTargetFalse());
+  _br(Inst->getTargetTrue(), Inst->getTargetFalse(), CondARM32::NE);
 }
 
 void TargetARM32::lowerCall(const InstCall *Instr) {
@@ -2113,7 +2245,7 @@ void TargetARM32::lowerSwitch(const InstSwitch *Inst) {
 }
 
 void TargetARM32::lowerUnreachable(const InstUnreachable * /*Inst*/) {
-  UnimplementedError(Func->getContext()->getFlags());
+  _trap();
 }
 
 // Turn an i64 Phi instruction into a pair of i32 Phi instructions, to
@@ -2417,7 +2549,7 @@ void TargetDataARM32::lowerConstants() {
 }
 
 TargetHeaderARM32::TargetHeaderARM32(GlobalContext *Ctx)
-    : TargetHeaderLowering(Ctx) {}
+    : TargetHeaderLowering(Ctx), CPUFeatures(Ctx->getFlags()) {}
 
 void TargetHeaderARM32::lower() {
   OstreamLocker L(Ctx);
@@ -2431,12 +2563,18 @@ void TargetHeaderARM32::lower() {
   // sub-subsection of the first public subsection of the attributes.
   Str << ".eabi_attribute 67, \"2.09\"      @ Tag_conformance\n";
   // Chromebooks are at least A15, but do A9 for higher compat.
-  Str << ".cpu    cortex-a9\n"
-      << ".eabi_attribute 6, 10   @ Tag_CPU_arch: ARMv7\n"
+  // For some reason, the LLVM ARM asm parser has the .cpu directive override
+  // the mattr specified on the commandline. So to test hwdiv, we need to set
+  // the .cpu directive higher (can't just rely on --mattr=...).
+  if (CPUFeatures.hasFeature(TargetARM32Features::HWDivArm)) {
+    Str << ".cpu    cortex-a15\n";
+  } else {
+    Str << ".cpu    cortex-a9\n";
+  }
+  Str << ".eabi_attribute 6, 10   @ Tag_CPU_arch: ARMv7\n"
       << ".eabi_attribute 7, 65   @ Tag_CPU_arch_profile: App profile\n";
   Str << ".eabi_attribute 8, 1    @ Tag_ARM_ISA_use: Yes\n"
       << ".eabi_attribute 9, 2    @ Tag_THUMB_ISA_use: Thumb-2\n";
-  // TODO(jvoung): check other CPU features like HW div.
   Str << ".fpu    neon\n"
       << ".eabi_attribute 17, 1   @ Tag_ABI_PCS_GOT_use: permit directly\n"
       << ".eabi_attribute 20, 1   @ Tag_ABI_FP_denormal\n"
@@ -2450,6 +2588,9 @@ void TargetHeaderARM32::lower() {
       << ".eabi_attribute 38, 1   @ Tag_ABI_FP_16bit_format\n"
       << ".eabi_attribute 42, 1   @ Tag_MPextension_use\n"
       << ".eabi_attribute 68, 1   @ Tag_Virtualization_use\n";
+  if (CPUFeatures.hasFeature(TargetARM32Features::HWDivArm)) {
+    Str << ".eabi_attribute 44, 2   @ Tag_DIV_use\n";
+  }
   // Technically R9 is used for TLS with Sandboxing, and we reserve it.
   // However, for compatibility with current NaCl LLVM, don't claim that.
   Str << ".eabi_attribute 14, 3   @ Tag_ABI_PCS_R9_use: Not used\n";

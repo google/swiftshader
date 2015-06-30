@@ -262,10 +262,12 @@ public:
     Call,
     Cmp,
     Eor,
+    Label,
     Ldr,
     Lsl,
     Lsr,
     Mla,
+    Mls,
     Mov,
     Movt,
     Movw,
@@ -277,9 +279,13 @@ public:
     Ret,
     Rsb,
     Sbc,
+    Sdiv,
     Str,
     Sub,
     Sxt,
+    Trap,
+    Tst,
+    Udiv,
     Umull,
     Uxt
   };
@@ -322,6 +328,10 @@ public:
                           const Cfg *Func);
   static void emitThreeAddr(const char *Opcode, const InstARM32Pred *Inst,
                             const Cfg *Func, bool SetFlags);
+  static void emitFourAddr(const char *Opcode, const InstARM32Pred *Inst,
+                           const Cfg *Func);
+  static void emitCmpLike(const char *Opcode, const InstARM32Pred *Inst,
+                          const Cfg *Func);
 
 protected:
   CondARM32::Cond Predicate;
@@ -477,11 +487,11 @@ public:
   // Create an ordinary binary-op instruction like add, and sub.
   // Dest and Src1 must be registers.
   static InstARM32ThreeAddrGPR *create(Cfg *Func, Variable *Dest,
-                                       Variable *Src1, Operand *Src2,
+                                       Variable *Src0, Operand *Src1,
                                        CondARM32::Cond Predicate,
                                        bool SetFlags = false) {
     return new (Func->allocate<InstARM32ThreeAddrGPR>())
-        InstARM32ThreeAddrGPR(Func, Dest, Src1, Src2, Predicate, SetFlags);
+        InstARM32ThreeAddrGPR(Func, Dest, Src0, Src1, Predicate, SetFlags);
   }
   void emit(const Cfg *Func) const override {
     if (!BuildDefs::dump())
@@ -505,15 +515,107 @@ public:
   static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
 
 private:
-  InstARM32ThreeAddrGPR(Cfg *Func, Variable *Dest, Variable *Src1,
-                        Operand *Src2, CondARM32::Cond Predicate, bool SetFlags)
+  InstARM32ThreeAddrGPR(Cfg *Func, Variable *Dest, Variable *Src0,
+                        Operand *Src1, CondARM32::Cond Predicate, bool SetFlags)
       : InstARM32Pred(Func, K, 2, Dest, Predicate), SetFlags(SetFlags) {
+    addSource(Src0);
+    addSource(Src1);
+  }
+
+  static const char *Opcode;
+  bool SetFlags;
+};
+
+// Instructions of the form x := a op1 (y op2 z). E.g., multiply accumulate.
+template <InstARM32::InstKindARM32 K>
+class InstARM32FourAddrGPR : public InstARM32Pred {
+  InstARM32FourAddrGPR() = delete;
+  InstARM32FourAddrGPR(const InstARM32FourAddrGPR &) = delete;
+  InstARM32FourAddrGPR &operator=(const InstARM32FourAddrGPR &) = delete;
+
+public:
+  // Every operand must be a register.
+  static InstARM32FourAddrGPR *create(Cfg *Func, Variable *Dest, Variable *Src0,
+                                      Variable *Src1, Variable *Src2,
+                                      CondARM32::Cond Predicate) {
+    return new (Func->allocate<InstARM32FourAddrGPR>())
+        InstARM32FourAddrGPR(Func, Dest, Src0, Src1, Src2, Predicate);
+  }
+  void emit(const Cfg *Func) const override {
+    if (!BuildDefs::dump())
+      return;
+    emitFourAddr(Opcode, this, Func);
+  }
+  void emitIAS(const Cfg *Func) const override {
+    (void)Func;
+    llvm::report_fatal_error("Not yet implemented");
+  }
+  void dump(const Cfg *Func) const override {
+    if (!BuildDefs::dump())
+      return;
+    Ostream &Str = Func->getContext()->getStrDump();
+    dumpDest(Func);
+    Str << " = ";
+    dumpOpcodePred(Str, Opcode, getDest()->getType());
+    Str << " ";
+    dumpSources(Func);
+  }
+  static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
+
+private:
+  InstARM32FourAddrGPR(Cfg *Func, Variable *Dest, Variable *Src0,
+                       Variable *Src1, Variable *Src2,
+                       CondARM32::Cond Predicate)
+      : InstARM32Pred(Func, K, 3, Dest, Predicate) {
+    addSource(Src0);
     addSource(Src1);
     addSource(Src2);
   }
 
   static const char *Opcode;
-  bool SetFlags;
+};
+
+// Instructions of the form x cmpop y (setting flags).
+template <InstARM32::InstKindARM32 K>
+class InstARM32CmpLike : public InstARM32Pred {
+  InstARM32CmpLike() = delete;
+  InstARM32CmpLike(const InstARM32CmpLike &) = delete;
+  InstARM32CmpLike &operator=(const InstARM32CmpLike &) = delete;
+
+public:
+  static InstARM32CmpLike *create(Cfg *Func, Variable *Src0, Operand *Src1,
+                                  CondARM32::Cond Predicate) {
+    return new (Func->allocate<InstARM32CmpLike>())
+        InstARM32CmpLike(Func, Src0, Src1, Predicate);
+  }
+  void emit(const Cfg *Func) const override {
+    if (!BuildDefs::dump())
+      return;
+    emitCmpLike(Opcode, this, Func);
+  }
+  void emitIAS(const Cfg *Func) const override {
+    (void)Func;
+    llvm_unreachable("Not yet implemented");
+  }
+  void dump(const Cfg *Func) const override {
+    if (!BuildDefs::dump())
+      return;
+    Ostream &Str = Func->getContext()->getStrDump();
+    dumpOpcodePred(Str, Opcode, getSrc(0)->getType());
+    Str << " ";
+    dumpSources(Func);
+  }
+  static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
+
+private:
+  InstARM32CmpLike(Cfg *Func, Variable *Src0, Operand *Src1,
+                   CondARM32::Cond Predicate)
+      : InstARM32Pred(Func, K, 2, nullptr, Predicate) {
+    addSource(Src0);
+    addSource(Src1);
+  }
+
+  static const char *Opcode;
 };
 
 typedef InstARM32ThreeAddrGPR<InstARM32::Adc> InstARM32Adc;
@@ -528,7 +630,9 @@ typedef InstARM32ThreeAddrGPR<InstARM32::Mul> InstARM32Mul;
 typedef InstARM32ThreeAddrGPR<InstARM32::Orr> InstARM32Orr;
 typedef InstARM32ThreeAddrGPR<InstARM32::Rsb> InstARM32Rsb;
 typedef InstARM32ThreeAddrGPR<InstARM32::Sbc> InstARM32Sbc;
+typedef InstARM32ThreeAddrGPR<InstARM32::Sdiv> InstARM32Sdiv;
 typedef InstARM32ThreeAddrGPR<InstARM32::Sub> InstARM32Sub;
+typedef InstARM32ThreeAddrGPR<InstARM32::Udiv> InstARM32Udiv;
 // Move instruction (variable <- flex). This is more of a pseudo-inst.
 // If var is a register, then we use "mov". If var is stack, then we use
 // "str" to store to the stack.
@@ -543,6 +647,35 @@ typedef InstARM32UnaryopGPR<InstARM32::Mvn> InstARM32Mvn;
 // but we aren't using that for now, so just model as a Unaryop.
 typedef InstARM32UnaryopGPR<InstARM32::Sxt> InstARM32Sxt;
 typedef InstARM32UnaryopGPR<InstARM32::Uxt> InstARM32Uxt;
+typedef InstARM32FourAddrGPR<InstARM32::Mla> InstARM32Mla;
+typedef InstARM32FourAddrGPR<InstARM32::Mls> InstARM32Mls;
+typedef InstARM32CmpLike<InstARM32::Cmp> InstARM32Cmp;
+typedef InstARM32CmpLike<InstARM32::Tst> InstARM32Tst;
+
+// InstARM32Label represents an intra-block label that is the target
+// of an intra-block branch.  The offset between the label and the
+// branch must be fit in the instruction immediate (considered "near").
+class InstARM32Label : public InstARM32 {
+  InstARM32Label() = delete;
+  InstARM32Label(const InstARM32Label &) = delete;
+  InstARM32Label &operator=(const InstARM32Label &) = delete;
+
+public:
+  static InstARM32Label *create(Cfg *Func, TargetARM32 *Target) {
+    return new (Func->allocate<InstARM32Label>()) InstARM32Label(Func, Target);
+  }
+  uint32_t getEmitInstCount() const override { return 0; }
+  IceString getName(const Cfg *Func) const;
+  SizeT getNumber() const { return Number; }
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
+
+private:
+  InstARM32Label(Cfg *Func, TargetARM32 *Target);
+
+  SizeT Number; // used for unique label generation.
+};
 
 // Direct branch instruction.
 class InstARM32Br : public InstARM32Pred {
@@ -555,14 +688,16 @@ public:
   static InstARM32Br *create(Cfg *Func, CfgNode *TargetTrue,
                              CfgNode *TargetFalse, CondARM32::Cond Predicate) {
     assert(Predicate != CondARM32::AL);
+    constexpr InstARM32Label *NoLabel = nullptr;
     return new (Func->allocate<InstARM32Br>())
-        InstARM32Br(Func, TargetTrue, TargetFalse, Predicate);
+        InstARM32Br(Func, TargetTrue, TargetFalse, NoLabel, Predicate);
   }
   // Create an unconditional branch to a node.
   static InstARM32Br *create(Cfg *Func, CfgNode *Target) {
-    const CfgNode *NoCondTarget = nullptr;
+    constexpr CfgNode *NoCondTarget = nullptr;
+    constexpr InstARM32Label *NoLabel = nullptr;
     return new (Func->allocate<InstARM32Br>())
-        InstARM32Br(Func, NoCondTarget, Target, CondARM32::AL);
+        InstARM32Br(Func, NoCondTarget, Target, NoLabel, CondARM32::AL);
   }
   // Create a non-terminator conditional branch to a node, with a
   // fallthrough to the next instruction in the current node.  This is
@@ -570,15 +705,27 @@ public:
   static InstARM32Br *create(Cfg *Func, CfgNode *Target,
                              CondARM32::Cond Predicate) {
     assert(Predicate != CondARM32::AL);
-    const CfgNode *NoUncondTarget = nullptr;
+    constexpr CfgNode *NoUncondTarget = nullptr;
+    constexpr InstARM32Label *NoLabel = nullptr;
     return new (Func->allocate<InstARM32Br>())
-        InstARM32Br(Func, Target, NoUncondTarget, Predicate);
+        InstARM32Br(Func, Target, NoUncondTarget, NoLabel, Predicate);
+  }
+  // Create a conditional intra-block branch (or unconditional, if
+  // Condition==AL) to a label in the current block.
+  static InstARM32Br *create(Cfg *Func, InstARM32Label *Label,
+                             CondARM32::Cond Predicate) {
+    constexpr CfgNode *NoCondTarget = nullptr;
+    constexpr CfgNode *NoUncondTarget = nullptr;
+    return new (Func->allocate<InstARM32Br>())
+        InstARM32Br(Func, NoCondTarget, NoUncondTarget, Label, Predicate);
   }
   const CfgNode *getTargetTrue() const { return TargetTrue; }
   const CfgNode *getTargetFalse() const { return TargetFalse; }
   bool optimizeBranch(const CfgNode *NextNode);
   uint32_t getEmitInstCount() const override {
     uint32_t Sum = 0;
+    if (Label)
+      ++Sum;
     if (getTargetTrue())
       ++Sum;
     if (getTargetFalse())
@@ -596,10 +743,11 @@ public:
 
 private:
   InstARM32Br(Cfg *Func, const CfgNode *TargetTrue, const CfgNode *TargetFalse,
-              CondARM32::Cond Predicate);
+              const InstARM32Label *Label, CondARM32::Cond Predicate);
 
   const CfgNode *TargetTrue;
   const CfgNode *TargetFalse;
+  const InstARM32Label *Label; // Intra-block branch target
 };
 
 // AdjustStack instruction - subtracts SP by the given amount and
@@ -653,28 +801,6 @@ private:
   InstARM32Call(Cfg *Func, Variable *Dest, Operand *CallTarget);
 };
 
-// Integer compare instruction.
-class InstARM32Cmp : public InstARM32Pred {
-  InstARM32Cmp() = delete;
-  InstARM32Cmp(const InstARM32Cmp &) = delete;
-  InstARM32Cmp &operator=(const InstARM32Cmp &) = delete;
-
-public:
-  static InstARM32Cmp *create(Cfg *Func, Variable *Src1, Operand *Src2,
-                              CondARM32::Cond Predicate) {
-    return new (Func->allocate<InstARM32Cmp>())
-        InstARM32Cmp(Func, Src1, Src2, Predicate);
-  }
-  void emit(const Cfg *Func) const override;
-  void emitIAS(const Cfg *Func) const override;
-  void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return isClassof(Inst, Cmp); }
-
-private:
-  InstARM32Cmp(Cfg *Func, Variable *Src1, Operand *Src2,
-               CondARM32::Cond Predicate);
-};
-
 // Load instruction.
 class InstARM32Ldr : public InstARM32Pred {
   InstARM32Ldr() = delete;
@@ -696,30 +822,6 @@ public:
 private:
   InstARM32Ldr(Cfg *Func, Variable *Dest, OperandARM32Mem *Mem,
                CondARM32::Cond Predicate);
-};
-
-// Multiply Accumulate: d := x * y + a
-class InstARM32Mla : public InstARM32Pred {
-  InstARM32Mla() = delete;
-  InstARM32Mla(const InstARM32Mla &) = delete;
-  InstARM32Mla &operator=(const InstARM32Mla &) = delete;
-
-public:
-  // Everything must be a register.
-  static InstARM32Mla *create(Cfg *Func, Variable *Dest, Variable *Src0,
-                              Variable *Src1, Variable *Acc,
-                              CondARM32::Cond Predicate) {
-    return new (Func->allocate<InstARM32Mla>())
-        InstARM32Mla(Func, Dest, Src0, Src1, Acc, Predicate);
-  }
-  void emit(const Cfg *Func) const override;
-  void emitIAS(const Cfg *Func) const override;
-  void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return isClassof(Inst, Mla); }
-
-private:
-  InstARM32Mla(Cfg *Func, Variable *Dest, Variable *Src0, Variable *Src1,
-               Variable *Acc, CondARM32::Cond Predicate);
 };
 
 // Pop into a list of GPRs. Technically this can be predicated, but we don't
@@ -814,6 +916,24 @@ public:
 private:
   InstARM32Str(Cfg *Func, Variable *Value, OperandARM32Mem *Mem,
                CondARM32::Cond Predicate);
+};
+
+class InstARM32Trap : public InstARM32 {
+  InstARM32Trap() = delete;
+  InstARM32Trap(const InstARM32Trap &) = delete;
+  InstARM32Trap &operator=(const InstARM32Trap &) = delete;
+
+public:
+  static InstARM32Trap *create(Cfg *Func) {
+    return new (Func->allocate<InstARM32Trap>()) InstARM32Trap(Func);
+  }
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Trap); }
+
+private:
+  explicit InstARM32Trap(Cfg *Func);
 };
 
 // Unsigned Multiply Long: d.lo, d.hi := x * y

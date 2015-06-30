@@ -8,10 +8,15 @@
 ; once enough infrastructure is in. Also, switch to --filetype=obj
 ; when possible.
 ; RUN: %if --need=target_ARM32 --need=allow_dump \
-; RUN:   --command %p2i --filetype=asm --assemble \
-; RUN:   --disassemble --target arm32 -i %s --args -O2 --skip-unimplemented \
+; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target arm32 \
+; RUN:   -i %s --args -O2 --skip-unimplemented \
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32 %s
+; RUN: %if --need=target_ARM32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target arm32 \
+; RUN:   -i %s --args -O2 --mattr=hwdiv-arm --skip-unimplemented \
+; RUN:   | %if --need=target_ARM32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix ARM32HWDIV %s
 
 define i32 @Add(i32 %a, i32 %b) {
 entry:
@@ -117,10 +122,32 @@ entry:
 ; CHECK-LABEL: Sdiv
 ; CHECK: cdq
 ; CHECK: idiv e
+;
 ; ARM32-LABEL: Sdiv
-; TODO(jvoung) -- implement divide and check here.
-; The lowering needs to check if the denominator is 0 and trap, since
-; ARM normally doesn't trap on divide by 0.
+; ARM32: tst [[DENOM:r.*]], [[DENOM]]
+; ARM32: bne [[LABEL:[0-9a-f]+]]
+; ARM32: .word 0xe7fedef0
+; ARM32: [[LABEL]]: {{.*}} bl {{.*}} __divsi3
+; ARM32HWDIV-LABEL: Sdiv
+; ARM32HWDIV: tst
+; ARM32HWDIV: bne
+; ARM32HWDIV: sdiv
+
+define i32 @SdivConst(i32 %a) {
+entry:
+  %div = sdiv i32 %a, 219
+  ret i32 %div
+}
+; CHECK-LABEL: SdivConst
+; CHECK: cdq
+; CHECK: idiv e
+;
+; ARM32-LABEL: SdivConst
+; ARM32-NOT: tst
+; ARM32: bl {{.*}} __divsi3
+; ARM32HWDIV-LABEL: SdivConst
+; ARM32HWDIV-NOT: tst
+; ARM32HWDIV: sdiv
 
 define i32 @Srem(i32 %a, i32 %b) {
 entry:
@@ -130,7 +157,16 @@ entry:
 ; CHECK-LABEL: Srem
 ; CHECK: cdq
 ; CHECK: idiv e
+;
 ; ARM32-LABEL: Srem
+; ARM32: tst [[DENOM:r.*]], [[DENOM]]
+; ARM32: bne
+; ARM32: bl {{.*}} __modsi3
+; ARM32HWDIV-LABEL: Srem
+; ARM32HWDIV: tst
+; ARM32HWDIV: bne
+; ARM32HWDIV: sdiv
+; ARM32HWDIV: mls
 
 define i32 @Udiv(i32 %a, i32 %b) {
 entry:
@@ -139,7 +175,15 @@ entry:
 }
 ; CHECK-LABEL: Udiv
 ; CHECK: div e
+;
 ; ARM32-LABEL: Udiv
+; ARM32: tst [[DENOM:r.*]], [[DENOM]]
+; ARM32: bne
+; ARM32: bl {{.*}} __udivsi3
+; ARM32HWDIV-LABEL: Udiv
+; ARM32HWDIV: tst
+; ARM32HWDIV: bne
+; ARM32HWDIV: udiv
 
 define i32 @Urem(i32 %a, i32 %b) {
 entry:
@@ -148,4 +192,13 @@ entry:
 }
 ; CHECK-LABEL: Urem
 ; CHECK: div e
+;
 ; ARM32-LABEL: Urem
+; ARM32: tst [[DENOM:r.*]], [[DENOM]]
+; ARM32: bne
+; ARM32: bl {{.*}} __umodsi3
+; ARM32HWDIV-LABEL: Urem
+; ARM32HWDIV: tst
+; ARM32HWDIV: bne
+; ARM32HWDIV: udiv
+; ARM32HWDIV: mls

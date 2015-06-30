@@ -125,6 +125,34 @@ void InstARM32Pred::emitThreeAddr(const char *Opcode, const InstARM32Pred *Inst,
   Inst->getSrc(1)->emit(Func);
 }
 
+void InstARM32Pred::emitFourAddr(const char *Opcode, const InstARM32Pred *Inst,
+                                 const Cfg *Func) {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(Inst->getSrcSize() == 3);
+  Str << "\t" << Opcode << Inst->getPredicate() << "\t";
+  Inst->getDest()->emit(Func);
+  Str << ", ";
+  Inst->getSrc(0)->emit(Func);
+  Str << ", ";
+  Inst->getSrc(1)->emit(Func);
+  Str << ", ";
+  Inst->getSrc(2)->emit(Func);
+}
+
+void InstARM32Pred::emitCmpLike(const char *Opcode, const InstARM32Pred *Inst,
+                                const Cfg *Func) {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(Inst->getSrcSize() == 2);
+  Str << "\t" << Opcode << Inst->getPredicate() << "\t";
+  Inst->getSrc(0)->emit(Func);
+  Str << ", ";
+  Inst->getSrc(1)->emit(Func);
+}
+
 OperandARM32Mem::OperandARM32Mem(Cfg * /* Func */, Type Ty, Variable *Base,
                                  ConstantInteger32 *ImmOffset, AddrMode Mode)
     : OperandARM32(kMem, Ty), Base(Base), ImmOffset(ImmOffset), Index(nullptr),
@@ -207,14 +235,18 @@ InstARM32AdjustStack::InstARM32AdjustStack(Cfg *Func, Variable *SP,
 }
 
 InstARM32Br::InstARM32Br(Cfg *Func, const CfgNode *TargetTrue,
-                         const CfgNode *TargetFalse, CondARM32::Cond Pred)
+                         const CfgNode *TargetFalse,
+                         const InstARM32Label *Label, CondARM32::Cond Pred)
     : InstARM32Pred(Func, InstARM32::Br, 0, nullptr, Pred),
-      TargetTrue(TargetTrue), TargetFalse(TargetFalse) {}
+      TargetTrue(TargetTrue), TargetFalse(TargetFalse), Label(Label) {}
 
 bool InstARM32Br::optimizeBranch(const CfgNode *NextNode) {
   // If there is no next block, then there can be no fallthrough to
   // optimize.
   if (NextNode == nullptr)
+    return false;
+  // Intra-block conditional branches can't be optimized.
+  if (Label)
     return false;
   // If there is no fallthrough node, such as a non-default case label
   // for a switch instruction, then there is no opportunity to
@@ -264,26 +296,18 @@ InstARM32Call::InstARM32Call(Cfg *Func, Variable *Dest, Operand *CallTarget)
   addSource(CallTarget);
 }
 
-InstARM32Cmp::InstARM32Cmp(Cfg *Func, Variable *Src1, Operand *Src2,
-                           CondARM32::Cond Predicate)
-    : InstARM32Pred(Func, InstARM32::Cmp, 2, nullptr, Predicate) {
-  addSource(Src1);
-  addSource(Src2);
+InstARM32Label::InstARM32Label(Cfg *Func, TargetARM32 *Target)
+    : InstARM32(Func, InstARM32::Label, 0, nullptr),
+      Number(Target->makeNextLabelNumber()) {}
+
+IceString InstARM32Label::getName(const Cfg *Func) const {
+  return ".L" + Func->getFunctionName() + "$local$__" + std::to_string(Number);
 }
 
 InstARM32Ldr::InstARM32Ldr(Cfg *Func, Variable *Dest, OperandARM32Mem *Mem,
                            CondARM32::Cond Predicate)
     : InstARM32Pred(Func, InstARM32::Ldr, 1, Dest, Predicate) {
   addSource(Mem);
-}
-
-InstARM32Mla::InstARM32Mla(Cfg *Func, Variable *Dest, Variable *Src0,
-                           Variable *Src1, Variable *Acc,
-                           CondARM32::Cond Predicate)
-    : InstARM32Pred(Func, InstARM32::Mla, 3, Dest, Predicate) {
-  addSource(Src0);
-  addSource(Src1);
-  addSource(Acc);
 }
 
 InstARM32Pop::InstARM32Pop(Cfg *Func, const VarList &Dests)
@@ -313,6 +337,9 @@ InstARM32Str::InstARM32Str(Cfg *Func, Variable *Value, OperandARM32Mem *Mem,
   addSource(Value);
   addSource(Mem);
 }
+
+InstARM32Trap::InstARM32Trap(Cfg *Func)
+    : InstARM32(Func, InstARM32::Trap, 0, nullptr) {}
 
 InstARM32Umull::InstARM32Umull(Cfg *Func, Variable *DestLo, Variable *DestHi,
                                Variable *Src0, Variable *Src1,
@@ -348,7 +375,15 @@ template <> const char *InstARM32Mul::Opcode = "mul";
 template <> const char *InstARM32Orr::Opcode = "orr";
 template <> const char *InstARM32Rsb::Opcode = "rsb";
 template <> const char *InstARM32Sbc::Opcode = "sbc";
+template <> const char *InstARM32Sdiv::Opcode = "sdiv";
 template <> const char *InstARM32Sub::Opcode = "sub";
+template <> const char *InstARM32Udiv::Opcode = "udiv";
+// Four-addr ops
+template <> const char *InstARM32Mla::Opcode = "mla";
+template <> const char *InstARM32Mls::Opcode = "mls";
+// Cmp-like ops
+template <> const char *InstARM32Cmp::Opcode = "cmp";
+template <> const char *InstARM32Tst::Opcode = "tst";
 
 void InstARM32::dump(const Cfg *Func) const {
   if (!BuildDefs::dump())
@@ -402,14 +437,18 @@ void InstARM32Br::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << "\t"
       << "b" << getPredicate() << "\t";
-  if (isUnconditionalBranch()) {
-    Str << getTargetFalse()->getAsmName();
+  if (Label) {
+    Str << Label->getName(Func);
   } else {
-    Str << getTargetTrue()->getAsmName();
-    if (getTargetFalse()) {
-      Str << "\n\t"
-          << "b"
-          << "\t" << getTargetFalse()->getAsmName();
+    if (isUnconditionalBranch()) {
+      Str << getTargetFalse()->getAsmName();
+    } else {
+      Str << getTargetTrue()->getAsmName();
+      if (getTargetFalse()) {
+        Str << "\n\t"
+            << "b"
+            << "\t" << getTargetFalse()->getAsmName();
+      }
     }
   }
 }
@@ -426,13 +465,18 @@ void InstARM32Br::dump(const Cfg *Func) const {
   Str << "br ";
 
   if (getPredicate() == CondARM32::AL) {
-    Str << "label %" << getTargetFalse()->getName();
+    Str << "label %"
+        << (Label ? Label->getName(Func) : getTargetFalse()->getName());
     return;
   }
 
-  Str << getPredicate() << ", label %" << getTargetTrue()->getName();
-  if (getTargetFalse()) {
-    Str << ", label %" << getTargetFalse()->getName();
+  if (Label) {
+    Str << "label %" << Label->getName(Func);
+  } else {
+    Str << getPredicate() << ", label %" << getTargetTrue()->getName();
+    if (getTargetFalse()) {
+      Str << ", label %" << getTargetFalse()->getName();
+    }
   }
 }
 
@@ -479,30 +523,23 @@ void InstARM32Call::dump(const Cfg *Func) const {
   getCallTarget()->dump(Func);
 }
 
-void InstARM32Cmp::emit(const Cfg *Func) const {
+void InstARM32Label::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
-  assert(getSrcSize() == 2);
-  Str << "\t"
-      << "cmp" << getPredicate() << "\t";
-  getSrc(0)->emit(Func);
-  Str << ", ";
-  getSrc(1)->emit(Func);
+  Str << getName(Func) << ":";
 }
 
-void InstARM32Cmp::emitIAS(const Cfg *Func) const {
-  assert(getSrcSize() == 2);
+void InstARM32Label::emitIAS(const Cfg *Func) const {
   (void)Func;
   llvm_unreachable("Not yet implemented");
 }
 
-void InstARM32Cmp::dump(const Cfg *Func) const {
+void InstARM32Label::dump(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
-  dumpOpcodePred(Str, "cmp", getSrc(0)->getType());
-  dumpSources(Func);
+  Str << getName(Func) << ":";
 }
 
 void InstARM32Ldr::emit(const Cfg *Func) const {
@@ -532,40 +569,6 @@ void InstARM32Ldr::dump(const Cfg *Func) const {
   dumpDest(Func);
   Str << " = ";
   dumpOpcodePred(Str, "ldr", getDest()->getType());
-  Str << " ";
-  dumpSources(Func);
-}
-
-void InstARM32Mla::emit(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-  Ostream &Str = Func->getContext()->getStrEmit();
-  assert(getSrcSize() == 3);
-  assert(getDest()->hasReg());
-  Str << "\t"
-      << "mla" << getPredicate() << "\t";
-  getDest()->emit(Func);
-  Str << ", ";
-  getSrc(0)->emit(Func);
-  Str << ", ";
-  getSrc(1)->emit(Func);
-  Str << ", ";
-  getSrc(2)->emit(Func);
-}
-
-void InstARM32Mla::emitIAS(const Cfg *Func) const {
-  assert(getSrcSize() == 3);
-  (void)Func;
-  llvm_unreachable("Not yet implemented");
-}
-
-void InstARM32Mla::dump(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-  Ostream &Str = Func->getContext()->getStrDump();
-  dumpDest(Func);
-  Str << " = ";
-  dumpOpcodePred(Str, "mla", getDest()->getType());
   Str << " ";
   dumpSources(Func);
 }
@@ -755,6 +758,33 @@ void InstARM32Str::dump(const Cfg *Func) const {
   getSrc(1)->dump(Func);
   Str << ", ";
   getSrc(0)->dump(Func);
+}
+
+void InstARM32Trap::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 0);
+  // There isn't a mnemonic for the special NaCl Trap encoding, so dump
+  // the raw bytes.
+  Str << "\t.long 0x";
+  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  for (uint8_t I : Asm->getNonExecBundlePadding()) {
+    Str.write_hex(I);
+  }
+}
+
+void InstARM32Trap::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 0);
+  (void)Func;
+  llvm_unreachable("Not yet implemented");
+}
+
+void InstARM32Trap::dump(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrDump();
+  Str << "trap";
 }
 
 void InstARM32Umull::emit(const Cfg *Func) const {
