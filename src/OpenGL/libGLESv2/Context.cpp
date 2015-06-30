@@ -3170,7 +3170,7 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 	rect.clip(0, 0, renderTarget->getWidth(), renderTarget->getHeight());
 
     unsigned char *source = (unsigned char*)renderTarget->lock(rect.x0, rect.y0, sw::LOCK_READONLY);
-    unsigned char *dest = (unsigned char*)pixels;
+    unsigned char *dest = getPixelPackBuffer() ? (unsigned char*)getPixelPackBuffer()->data() + (ptrdiff_t)pixels : (unsigned char*)pixels;
     int inputPitch = (int)renderTarget->getPitch();
 
     for(int j = 0; j < rect.y1 - rect.y0; j++)
