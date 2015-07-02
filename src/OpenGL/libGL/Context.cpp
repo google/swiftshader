@@ -1414,7 +1414,7 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
                     }
                     break;
                 case GL_SAMPLES:
-                    *params = samples & ~1;
+                    *params = samples;
                     break;
                 }
             }
@@ -2687,14 +2687,14 @@ GLenum Context::getError()
 
 int Context::getSupportedMultiSampleDepth(sw::Format format, int requested)
 {
-    if(requested <= 1)
+    if(requested <= 0)
     {
-        return 1;
+        return 0;
     }
 	
-	if(requested == 2)
+	if(requested <= 2)
 	{
-		return 2;
+		return requested;
 	}
 	
 	return 4;

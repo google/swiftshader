@@ -358,7 +358,7 @@ Colorbuffer::Colorbuffer(int width, int height, GLenum format, GLsizei samples) 
 	mHeight = height;
 	this->format = format;
 	internalFormat = requestedFormat;
-	mSamples = supportedSamples & ~1;
+	mSamples = supportedSamples;
 }
 
 Colorbuffer::~Colorbuffer()
@@ -418,7 +418,7 @@ DepthStencilbuffer::DepthStencilbuffer(int width, int height, GLsizei samples)
 	mHeight = height;
 	format = GL_DEPTH24_STENCIL8_EXT;
 	internalFormat = sw::FORMAT_D24S8;
-	mSamples = supportedSamples & ~1;
+	mSamples = supportedSamples;
 }
 
 DepthStencilbuffer::~DepthStencilbuffer()
