@@ -2442,7 +2442,7 @@ namespace sw
 
 	void Renderer::setClipPlane(unsigned int index, const float plane[4])
 	{
-		if(index < 6)
+		if(index < MAX_CLIP_PLANES)
 		{
 			userPlane[index] = plane;
 		}

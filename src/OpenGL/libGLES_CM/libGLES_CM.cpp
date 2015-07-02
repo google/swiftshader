@@ -555,7 +555,21 @@ void ClientActiveTexture(GLenum texture)
 
 void ClipPlanef(GLenum plane, const GLfloat *equation)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLenum plane = 0x%X, const GLfloat *equation)", plane);
+
+	int index = plane - GL_CLIP_PLANE0;
+
+	if(index < 0 || index >= MAX_CLIP_PLANES)
+	{
+		return error(GL_INVALID_ENUM);
+	}
+
+	es1::Context *context = es1::getContext();
+
+	if(context)
+	{
+		context->setClipPlane(index, equation);
+	}
 }
 
 void ClipPlanex(GLenum plane, const GLfixed *equation)
@@ -1187,6 +1201,12 @@ void Disable(GLenum cap)
 		case GL_TEXTURE_COORD_ARRAY:      UNIMPLEMENTED(); break;
 		case GL_MULTISAMPLE:              UNIMPLEMENTED(); break;
 		case GL_SAMPLE_ALPHA_TO_ONE:      UNIMPLEMENTED(); break;
+		case GL_CLIP_PLANE0:              context->setClipPlaneEnable(0, false); break;
+		case GL_CLIP_PLANE1:              context->setClipPlaneEnable(1, false); break;
+		case GL_CLIP_PLANE2:              context->setClipPlaneEnable(2, false); break;
+		case GL_CLIP_PLANE3:              context->setClipPlaneEnable(3, false); break;
+		case GL_CLIP_PLANE4:              context->setClipPlaneEnable(4, false); break;
+		case GL_CLIP_PLANE5:              context->setClipPlaneEnable(5, false); break;
 		default:
 			return error(GL_INVALID_ENUM);
 		}
@@ -1303,6 +1323,12 @@ void Enable(GLenum cap)
 		case GL_TEXTURE_COORD_ARRAY:      UNIMPLEMENTED(); break;
 		case GL_MULTISAMPLE:              UNIMPLEMENTED(); break;
 		case GL_SAMPLE_ALPHA_TO_ONE:      UNIMPLEMENTED(); break;
+		case GL_CLIP_PLANE0:              context->setClipPlaneEnable(0, true); break;
+		case GL_CLIP_PLANE1:              context->setClipPlaneEnable(1, true); break;
+		case GL_CLIP_PLANE2:              context->setClipPlaneEnable(2, true); break;
+		case GL_CLIP_PLANE3:              context->setClipPlaneEnable(3, true); break;
+		case GL_CLIP_PLANE4:              context->setClipPlaneEnable(4, true); break;
+		case GL_CLIP_PLANE5:              context->setClipPlaneEnable(5, true); break;
 		default:
 			return error(GL_INVALID_ENUM);
 		}

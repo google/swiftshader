@@ -204,6 +204,8 @@ Context::Context(const egl::Config *config, const Context *shareContext)
 	setVertexAttrib(sw::Normal, 0.0f, 0.0f, 1.0f, 1.0f);
 	setVertexAttrib(sw::PointSize, 1.0f, 1.0f, 1.0f, 1.0f);
 
+	clipFlags = 0;
+
     mHasBeenCurrent = false;
 
     markAllStateDirty();
@@ -1309,6 +1311,7 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
 	case GL_MAX_PROJECTION_STACK_DEPTH: *params = MAX_PROJECTION_STACK_DEPTH; break;
 	case GL_MAX_TEXTURE_STACK_DEPTH:    *params = MAX_TEXTURE_STACK_DEPTH;    break;
 	case GL_MAX_TEXTURE_UNITS:          *params = MAX_TEXTURE_UNITS;          break;
+	case GL_MAX_CLIP_PLANES:            *params = MAX_CLIP_PLANES;            break;
     default:
         return false;
     }
@@ -1409,6 +1412,7 @@ int Context::getQueryParameterNum(GLenum pname)
 	case GL_MAX_PROJECTION_STACK_DEPTH:
 	case GL_MAX_TEXTURE_STACK_DEPTH:
 	case GL_MAX_TEXTURE_UNITS:
+	case GL_MAX_CLIP_PLANES:
         return 1;
 	default:
 		UNREACHABLE(pname);
@@ -2977,6 +2981,18 @@ void Context::frustum(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, 
 void Context::ortho(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat zNear, GLfloat zFar)
 {
 	currentMatrixStack().ortho(left, right, bottom, top, zNear, zFar);
+}
+
+void Context::setClipPlane(int index, const float plane[4])
+{
+	sw::Plane clipPlane = modelViewStack.current() * sw::Plane(plane);
+	device->setClipPlane(index, &clipPlane.A);
+}
+
+void Context::setClipPlaneEnable(int index, bool enable)
+{
+	clipFlags = clipFlags & ~((int)!enable << index) | ((int)enable << index);
+	device->setClipFlags(clipFlags);
 }
 
 void Context::clientActiveTexture(GLenum texture)

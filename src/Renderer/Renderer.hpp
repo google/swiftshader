@@ -398,8 +398,8 @@ namespace sw
 		Primitive *primitiveBatch[16];
 
 		// User-defined clipping planes
-		Plane userPlane[6];
-		Plane clipPlane[6];   // Tranformed to clip space
+		Plane userPlane[MAX_CLIP_PLANES];
+		Plane clipPlane[MAX_CLIP_PLANES];   // Tranformed to clip space
 		bool updateClipPlanes;
 
 		volatile bool exitThreads;

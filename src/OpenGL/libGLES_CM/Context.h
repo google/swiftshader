@@ -478,6 +478,9 @@ public:
 	void frustum(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat zNear, GLfloat zFar);
     void ortho(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat zNear, GLfloat zFar);
 
+	void setClipPlane(int index, const float plane[4]);
+	void setClipPlaneEnable(int index, bool enable);
+
 private:
 	virtual ~Context();
 
@@ -547,6 +550,8 @@ private:
 	bool texture2Denabled[MAX_TEXTURE_UNITS];
 	bool textureExternalEnabled[MAX_TEXTURE_UNITS];
 	GLenum clientTexture;
+
+	int clipFlags;
 
 	Device *device;
     ResourceManager *mResourceManager;
