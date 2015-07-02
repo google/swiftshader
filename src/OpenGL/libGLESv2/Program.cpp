@@ -96,9 +96,8 @@ namespace es2
 	{
 	}
 
-	LinkedVarying::LinkedVarying(const std::string &name, GLenum type, GLsizei size, const std::string &semanticName,
-	                             unsigned int semanticIndex, unsigned int semanticIndexCount)
-	 : name(name), type(type), size(size), semanticName(semanticName), semanticIndex(semanticIndex), semanticIndexCount(semanticIndexCount)
+	LinkedVarying::LinkedVarying(const std::string &name, GLenum type, GLsizei sizet)
+	 : name(name), type(type), size(size)
 	{
 	}
 
@@ -110,6 +109,8 @@ namespace es2
 		vertexShader = 0;
 		pixelBinary = 0;
 		vertexBinary = 0;
+
+		transformFeedbackBufferMode = GL_INTERLEAVED_ATTRIBS;
 
 		infoLog = 0;
 		validated = false;
@@ -1084,11 +1085,11 @@ namespace es2
 
 	bool Program::linkVaryings()
 	{
-		for(glsl::VaryingList::iterator input = fragmentShader->varyings.begin(); input != fragmentShader->varyings.end(); input++)
+		for(glsl::VaryingList::iterator input = fragmentShader->varyings.begin(); input != fragmentShader->varyings.end(); ++input)
 		{
 			bool matched = false;
 
-			for(glsl::VaryingList::iterator output = vertexShader->varyings.begin(); output != vertexShader->varyings.end(); output++)
+			for(glsl::VaryingList::iterator output = vertexShader->varyings.begin(); output != vertexShader->varyings.end(); ++output)
 			{
 				if(output->name == input->name)
 				{
@@ -1115,9 +1116,9 @@ namespace es2
 		glsl::VaryingList &psVaryings = fragmentShader->varyings;
 		glsl::VaryingList &vsVaryings = vertexShader->varyings;
 
-		for(glsl::VaryingList::iterator output = vsVaryings.begin(); output != vsVaryings.end(); output++)
+		for(glsl::VaryingList::iterator output = vsVaryings.begin(); output != vsVaryings.end(); ++output)
 		{
-			for(glsl::VaryingList::iterator input = psVaryings.begin(); input != psVaryings.end(); input++)
+			for(glsl::VaryingList::iterator input = psVaryings.begin(); input != psVaryings.end(); ++input)
 			{
 				if(output->name == input->name)
 				{
@@ -1169,6 +1170,33 @@ namespace es2
 		return true;
 	}
 
+	bool Program::gatherTransformFeedbackLinkedVaryings()
+	{
+		// Varyings have already been validated in linkVaryings()
+		glsl::VaryingList &vsVaryings = vertexShader->varyings;
+
+		for(std::vector<std::string>::iterator trVar = transformFeedbackVaryings.begin(); trVar != transformFeedbackVaryings.end(); ++trVar)
+		{
+			bool found = false;
+			for(glsl::VaryingList::iterator var = vsVaryings.begin(); var != vsVaryings.end(); ++var)
+			{
+				if(var->name == (*trVar))
+				{
+					transformFeedbackLinkedVaryings.push_back(LinkedVarying(var->name, var->type, var->size()));
+					found = true;
+					break;
+				}
+			}
+
+			if(!found)
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	// Links the code of the vertex and pixel shader by matching up their varyings,
 	// compiling them into binaries, determining the attribute mappings, and collecting
 	// a list of uniforms
@@ -1211,6 +1239,11 @@ namespace es2
 			return;
 		}
 
+		if(!gatherTransformFeedbackLinkedVaryings())
+		{
+			return;
+		}
+
 		linked = true;   // Success
 	}
 
@@ -1220,7 +1253,7 @@ namespace es2
 		unsigned int usedLocations = 0;
 
 		// Link attributes that have a binding location
-		for(glsl::ActiveAttributes::iterator attribute = vertexShader->activeAttributes.begin(); attribute != vertexShader->activeAttributes.end(); attribute++)
+		for(glsl::ActiveAttributes::iterator attribute = vertexShader->activeAttributes.begin(); attribute != vertexShader->activeAttributes.end(); ++attribute)
 		{
 			int location = getAttributeBinding(attribute->name);
 
@@ -1249,7 +1282,7 @@ namespace es2
 		}
 
 		// Link attributes that don't have a binding location
-		for(glsl::ActiveAttributes::iterator attribute = vertexShader->activeAttributes.begin(); attribute != vertexShader->activeAttributes.end(); attribute++)
+		for(glsl::ActiveAttributes::iterator attribute = vertexShader->activeAttributes.begin(); attribute != vertexShader->activeAttributes.end(); ++attribute)
 		{
 			int location = getAttributeBinding(attribute->name);
 
@@ -2283,6 +2316,7 @@ namespace es2
 		}
 
 		uniformIndex.clear();
+		transformFeedbackLinkedVaryings.clear();
 
 		delete[] infoLog;
 		infoLog = 0;
