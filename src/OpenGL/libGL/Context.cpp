@@ -2479,7 +2479,13 @@ void Context::drawArrays(GLenum mode, GLint first, GLsizei count)
     if(!mState.currentProgram)
     {
         //return;// error(GL_INVALID_OPERATION);
-        device->setProjectionMatrix(projection.current());
+
+		const sw::Matrix Z(1, 0, 0, 0,
+	                       0, 1, 0, 0,
+	                       0, 0, 0.5, 0.5,
+	                       0, 0, 0, 1);   // Map depth range from [-1, 1] to [0, 1]
+
+        device->setProjectionMatrix(Z * projection.current());
         device->setViewMatrix(modelView.current());
 		device->setTextureMatrix(0, texture[0].current());
 		device->setTextureMatrix(1, texture[1].current());
@@ -3509,7 +3515,12 @@ void Context::end()
         return error(GL_INVALID_OPERATION);
     }
 
-	device->setProjectionMatrix(projection.current());
+	const sw::Matrix Z(1, 0, 0, 0,
+	                   0, 1, 0, 0,
+	                   0, 0, 0.5, 0.5,
+	                   0, 0, 0, 1);   // Map depth range from [-1, 1] to [0, 1]
+
+	device->setProjectionMatrix(Z * projection.current());
     device->setViewMatrix(modelView.current());
     device->setTextureMatrix(0, texture[0].current());
 	device->setTextureMatrix(1, texture[1].current());

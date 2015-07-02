@@ -488,7 +488,7 @@ namespace sw
 			r.o[pos].y = r.o[pos].y + *Pointer<Float4>(r.data + OFFSET(DrawData,halfPixelY)) * r.o[pos].w;
 		}
 
-		if(symmetricNormalizedDepth)
+		if(symmetricNormalizedDepth && !state.fixedFunction)
 		{
 			r.o[pos].z = (r.o[pos].z + r.o[pos].w) * Float4(0.5f);
 		}
