@@ -166,8 +166,8 @@ namespace sw
 		{
 			int j = i == polygon.n - 1 ? 0 : i + 1;
 
-			float di = V[i]->w + (V[i]->x + data.halfPixelX[0] * V[i]->w);
-			float dj = V[j]->w + (V[j]->x + data.halfPixelX[0] * V[j]->w);
+			float di = V[i]->w + V[i]->x;
+			float dj = V[j]->w + V[j]->x;
 
 			if(di >= 0)
 			{
@@ -208,8 +208,8 @@ namespace sw
 		{
 			int j = i == polygon.n - 1 ? 0 : i + 1;
 
-			float di = V[i]->w - (V[i]->x + data.halfPixelX[0] * V[i]->w);
-			float dj = V[j]->w - (V[j]->x + data.halfPixelX[0] * V[j]->w);
+			float di = V[i]->w - V[i]->x;
+			float dj = V[j]->w - V[j]->x;
 
 			if(di >= 0)
 			{
@@ -250,8 +250,8 @@ namespace sw
 		{
 			int j = i == polygon.n - 1 ? 0 : i + 1;
 
-			float di = V[i]->w - (V[i]->y + data.halfPixelY[0] * V[i]->w);
-			float dj = V[j]->w - (V[j]->y + data.halfPixelY[0] * V[j]->w);
+			float di = V[i]->w - V[i]->y;
+			float dj = V[j]->w - V[j]->y;
 
 			if(di >= 0)
 			{
@@ -292,8 +292,8 @@ namespace sw
 		{
 			int j = i == polygon.n - 1 ? 0 : i + 1;
 
-			float di = V[i]->w + (V[i]->y + data.halfPixelY[0] * V[i]->w);
-			float dj = V[j]->w + (V[j]->y + data.halfPixelY[0] * V[j]->w);
+			float di = V[i]->w + V[i]->y;
+			float dj = V[j]->w + V[j]->y;
 
 			if(di >= 0)
 			{

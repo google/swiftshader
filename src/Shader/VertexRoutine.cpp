@@ -134,21 +134,12 @@ namespace sw
 			r.o[pos].y = r.o[pos].y + *Pointer<Float4>(r.data + OFFSET(DrawData,YYYY)) * r.o[pos].w;
 		}
 
-		Float4 clipX = r.o[pos].x;
-		Float4 clipY = r.o[pos].y;
-
-		if(state.multiSampling)   // Clip at pixel edges instead of pixel centers
-		{
-			clipX += *Pointer<Float4>(r.data + OFFSET(DrawData,halfPixelX)) * r.o[pos].w;
-			clipY += *Pointer<Float4>(r.data + OFFSET(DrawData,halfPixelY)) * r.o[pos].w;
-		}
-
-		Int4 maxX = CmpLT(r.o[pos].w, clipX);
-		Int4 maxY = CmpLT(r.o[pos].w, clipY);
+		Int4 maxX = CmpLT(r.o[pos].w, r.o[pos].x);
+		Int4 maxY = CmpLT(r.o[pos].w, r.o[pos].y);
 		Int4 maxZ = CmpLT(r.o[pos].w, r.o[pos].z);
 
-		Int4 minX = CmpNLE(-r.o[pos].w, clipX);
-		Int4 minY = CmpNLE(-r.o[pos].w, clipY);
+		Int4 minX = CmpNLE(-r.o[pos].w, r.o[pos].x);
+		Int4 minY = CmpNLE(-r.o[pos].w, r.o[pos].y);
 		Int4 minZ = CmpNLE(Float4(0.0f), r.o[pos].z);
 
 		Int flags;
@@ -491,10 +482,10 @@ namespace sw
 	{
 		int pos = state.positionRegister;
 
-		if(halfIntegerCoordinates)
+		if(!halfIntegerCoordinates)
 		{
-			r.o[pos].x = r.o[pos].x - *Pointer<Float4>(r.data + OFFSET(DrawData,halfPixelX)) * r.o[pos].w;
-			r.o[pos].y = r.o[pos].y - *Pointer<Float4>(r.data + OFFSET(DrawData,halfPixelY)) * r.o[pos].w;
+			r.o[pos].x = r.o[pos].x + *Pointer<Float4>(r.data + OFFSET(DrawData,halfPixelX)) * r.o[pos].w;
+			r.o[pos].y = r.o[pos].y + *Pointer<Float4>(r.data + OFFSET(DrawData,halfPixelY)) * r.o[pos].w;
 		}
 
 		if(symmetricNormalizedDepth)

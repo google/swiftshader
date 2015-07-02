@@ -540,8 +540,8 @@ namespace sw
 
 				data->Wx16 = replicate(W * 16);
 				data->Hx16 = replicate(H * 16);
-				data->X0x16 = replicate(X0 * 16);
-				data->Y0x16 = replicate(Y0 * 16);
+				data->X0x16 = replicate(X0 * 16 - 8);
+				data->Y0x16 = replicate(Y0 * 16 - 8);
 				data->XXXX = replicate(X[s][q] / W);
 				data->YYYY = replicate(Y[s][q] / H);
 				data->halfPixelX = replicate(0.5f / W);
@@ -1856,14 +1856,11 @@ namespace sw
 
 	unsigned int Renderer::computeClipFlags(const float4 &v, const DrawData &data)
 	{
-		float clX = v.x + data.halfPixelX[0] * v.w;
-		float clY = v.y + data.halfPixelY[0] * v.w;
-
-		return ((clX > v.w)  << 0) |
-			   ((clY > v.w)  << 1) |
+		return ((v.x > v.w)  << 0) |
+			   ((v.y > v.w)  << 1) |
 			   ((v.z > v.w)  << 2) |
-			   ((clX < -v.w) << 3) |
-		       ((clY < -v.w) << 4) |
+			   ((v.x < -v.w) << 3) |
+		       ((v.y < -v.w) << 4) |
 			   ((v.z < 0)    << 5) |
 			   Clipper::CLIP_FINITE;   // FIXME: xyz finite
 	}
