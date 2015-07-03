@@ -766,33 +766,33 @@ static const yytype_int16 yyrhs[] =
 static const yytype_uint16 yyrline[] =
 {
        0,   202,   202,   237,   240,   245,   250,   255,   260,   266,
-     269,   272,   275,   278,   281,   287,   295,   395,   398,   406,
-     410,   417,   421,   428,   434,   443,   451,   457,   464,   474,
-     477,   487,   497,   519,   520,   521,   522,   530,   531,   535,
-     539,   547,   548,   551,   557,   558,   562,   569,   570,   573,
-     576,   579,   585,   586,   589,   595,   596,   603,   604,   611,
-     612,   619,   620,   626,   627,   633,   634,   640,   641,   658,
-     659,   667,   668,   669,   670,   672,   673,   674,   676,   678,
-     680,   682,   687,   690,   701,   709,   717,   744,   750,   757,
-     761,   765,   769,   776,   814,   817,   824,   832,   853,   874,
-     885,   914,   919,   929,   934,   944,   947,   950,   953,   959,
-     966,   969,   973,   977,   982,   987,   994,   998,  1002,  1006,
-    1011,  1016,  1020,  1096,  1106,  1112,  1115,  1121,  1127,  1134,
-    1143,  1152,  1155,  1158,  1165,  1169,  1176,  1180,  1185,  1190,
-    1200,  1210,  1219,  1229,  1236,  1239,  1242,  1248,  1255,  1258,
-    1264,  1267,  1270,  1276,  1279,  1284,  1299,  1303,  1307,  1311,
-    1315,  1319,  1324,  1329,  1334,  1339,  1344,  1349,  1354,  1359,
-    1364,  1369,  1374,  1379,  1385,  1391,  1397,  1403,  1409,  1415,
-    1421,  1427,  1433,  1438,  1443,  1452,  1457,  1462,  1467,  1472,
-    1477,  1482,  1487,  1492,  1497,  1502,  1507,  1512,  1517,  1522,
-    1535,  1535,  1538,  1538,  1544,  1547,  1563,  1566,  1575,  1579,
-    1585,  1592,  1607,  1611,  1615,  1616,  1622,  1623,  1624,  1625,
-    1626,  1627,  1628,  1632,  1633,  1633,  1633,  1643,  1644,  1648,
-    1648,  1649,  1649,  1654,  1657,  1667,  1670,  1676,  1677,  1681,
-    1689,  1693,  1700,  1700,  1707,  1710,  1719,  1724,  1741,  1741,
-    1746,  1746,  1753,  1753,  1761,  1764,  1770,  1773,  1779,  1783,
-    1790,  1793,  1796,  1799,  1802,  1811,  1815,  1822,  1825,  1831,
-    1831
+     269,   272,   275,   278,   281,   287,   295,   306,   309,   317,
+     321,   328,   332,   339,   345,   354,   362,   368,   375,   385,
+     388,   398,   408,   430,   431,   432,   433,   441,   442,   446,
+     450,   458,   459,   462,   468,   469,   473,   480,   481,   484,
+     487,   490,   496,   497,   500,   506,   507,   514,   515,   522,
+     523,   530,   531,   537,   538,   544,   545,   551,   552,   569,
+     570,   578,   579,   580,   581,   583,   584,   585,   587,   589,
+     591,   593,   598,   601,   612,   620,   628,   655,   661,   668,
+     672,   676,   680,   687,   725,   728,   735,   743,   764,   785,
+     796,   825,   830,   840,   845,   855,   858,   861,   864,   870,
+     877,   880,   884,   888,   893,   898,   905,   909,   913,   917,
+     922,   927,   931,  1007,  1017,  1023,  1026,  1032,  1038,  1045,
+    1054,  1063,  1066,  1069,  1076,  1080,  1087,  1091,  1096,  1101,
+    1111,  1121,  1130,  1140,  1147,  1150,  1153,  1159,  1166,  1169,
+    1175,  1178,  1181,  1187,  1190,  1195,  1210,  1214,  1218,  1222,
+    1226,  1230,  1235,  1240,  1245,  1250,  1255,  1260,  1265,  1270,
+    1275,  1280,  1285,  1290,  1296,  1302,  1308,  1314,  1320,  1326,
+    1332,  1338,  1344,  1349,  1354,  1363,  1368,  1373,  1378,  1383,
+    1388,  1393,  1398,  1403,  1408,  1413,  1418,  1423,  1428,  1433,
+    1446,  1446,  1449,  1449,  1455,  1458,  1474,  1477,  1486,  1490,
+    1496,  1503,  1518,  1522,  1526,  1527,  1533,  1534,  1535,  1536,
+    1537,  1538,  1539,  1543,  1544,  1544,  1544,  1554,  1555,  1559,
+    1559,  1560,  1560,  1565,  1568,  1578,  1581,  1587,  1588,  1592,
+    1600,  1604,  1611,  1611,  1618,  1621,  1630,  1635,  1652,  1652,
+    1657,  1657,  1664,  1664,  1672,  1675,  1681,  1684,  1690,  1694,
+    1701,  1704,  1707,  1710,  1713,  1722,  1726,  1733,  1736,  1742,
+    1742
 };
 #endif
 
@@ -2625,101 +2625,12 @@ yyreduce:
   case 16:
 
     {
-        TFunction* fnCall = (yyvsp[(1) - (1)].interm).function;
-        TOperator op = fnCall->getBuiltInOp();
-
-        if (op != EOpNull)
+        bool fatalError = false;
+        (yyval.interm.intermTypedNode) = context->addFunctionCallOrMethod((yyvsp[(1) - (1)].interm).function, (yyvsp[(1) - (1)].interm).intermNode, nullptr, (yylsp[(1) - (1)]), &fatalError);
+        if (fatalError)
         {
-            //
-            // Then this should be a constructor.
-            // Don't go through the symbol table for constructors.
-            // Their parameters will be verified algorithmically.
-            //
-            TType type(EbtVoid, EbpUndefined);  // use this to get the type back
-            if (context->constructorErrorCheck((yylsp[(1) - (1)]), (yyvsp[(1) - (1)].interm).intermNode, *fnCall, op, &type)) {
-                (yyval.interm.intermTypedNode) = 0;
-            } else {
-                //
-                // It's a constructor, of type 'type'.
-                //
-                (yyval.interm.intermTypedNode) = context->addConstructor((yyvsp[(1) - (1)].interm).intermNode, &type, op, fnCall, (yylsp[(1) - (1)]));
-            }
-
-            if ((yyval.interm.intermTypedNode) == 0) {
-                context->recover();
-                (yyval.interm.intermTypedNode) = context->intermediate.setAggregateOperator(0, op, (yylsp[(1) - (1)]));
-            }
-            (yyval.interm.intermTypedNode)->setType(type);
-        } else {
-            //
-            // Not a constructor.  Find it in the symbol table.
-            //
-            const TFunction* fnCandidate;
-            bool builtIn;
-            fnCandidate = context->findFunction((yylsp[(1) - (1)]), fnCall, &builtIn);
-            if (fnCandidate) {
-                //
-                // A declared function.
-                //
-                if (builtIn && !fnCandidate->getExtension().empty() &&
-                    context->extensionErrorCheck((yylsp[(1) - (1)]), fnCandidate->getExtension())) {
-                    context->recover();
-                }
-                op = fnCandidate->getBuiltInOp();
-                if (builtIn && op != EOpNull) {
-                    //
-                    // A function call mapped to a built-in operation.
-                    //
-                    if (fnCandidate->getParamCount() == 1) {
-                        //
-                        // Treat it like a built-in unary operator.
-                        //
-                        (yyval.interm.intermTypedNode) = context->intermediate.addUnaryMath(op, (yyvsp[(1) - (1)].interm).intermNode, 0);
-                        if ((yyval.interm.intermTypedNode) == 0)  {
-                            std::stringstream extraInfoStream;
-                            extraInfoStream << "built in unary operator function.  Type: " << static_cast<TIntermTyped*>((yyvsp[(1) - (1)].interm).intermNode)->getCompleteString();
-                            std::string extraInfo = extraInfoStream.str();
-                            context->error((yyvsp[(1) - (1)].interm).intermNode->getLine(), " wrong operand type", "Internal Error", extraInfo.c_str());
-                            YYERROR;
-                        }
-                    } else {
-                        (yyval.interm.intermTypedNode) = context->intermediate.setAggregateOperator((yyvsp[(1) - (1)].interm).intermAggregate, op, (yylsp[(1) - (1)]));
-                    }
-                } else {
-                    // This is a real function call
-
-                    (yyval.interm.intermTypedNode) = context->intermediate.setAggregateOperator((yyvsp[(1) - (1)].interm).intermAggregate, EOpFunctionCall, (yylsp[(1) - (1)]));
-                    (yyval.interm.intermTypedNode)->setType(fnCandidate->getReturnType());
-
-                    // this is how we know whether the given function is a builtIn function or a user defined function
-                    // if builtIn == false, it's a userDefined -> could be an overloaded builtIn function also
-                    // if builtIn == true, it's definitely a builtIn function with EOpNull
-                    if (!builtIn)
-                        (yyval.interm.intermTypedNode)->getAsAggregate()->setUserDefined();
-                    (yyval.interm.intermTypedNode)->getAsAggregate()->setName(fnCandidate->getMangledName());
-
-                    TQualifier qual;
-                    for (size_t i = 0; i < fnCandidate->getParamCount(); ++i) {
-                        qual = fnCandidate->getParam(i).type->getQualifier();
-                        if (qual == EvqOut || qual == EvqInOut) {
-                            if (context->lValueErrorCheck((yyval.interm.intermTypedNode)->getLine(), "assign", (yyval.interm.intermTypedNode)->getAsAggregate()->getSequence()[i]->getAsTyped())) {
-                                context->error((yyvsp[(1) - (1)].interm).intermNode->getLine(), "Constant value cannot be passed for 'out' or 'inout' parameters.", "Error");
-                                context->recover();
-                            }
-                        }
-                    }
-                }
-                (yyval.interm.intermTypedNode)->setType(fnCandidate->getReturnType());
-            } else {
-                // error message was put out by PaFindFunction()
-                // Put on a dummy node for error recovery
-                ConstantUnion *unionArray = new ConstantUnion[1];
-                unionArray->setFConst(0.0f);
-                (yyval.interm.intermTypedNode) = context->intermediate.addConstantUnion(unionArray, TType(EbtFloat, EbpUndefined, EvqConstExpr), (yylsp[(1) - (1)]));
-                context->recover();
-            }
+            YYERROR;
         }
-        delete fnCall;
     }
     break;
 

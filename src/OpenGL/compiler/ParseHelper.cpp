@@ -3249,6 +3249,160 @@ TIntermBranch *TParseContext::addBranch(TOperator op, TIntermTyped *returnValue,
 	return intermediate.addBranch(op, returnValue, loc);
 }
 
+TIntermTyped *TParseContext::addFunctionCallOrMethod(TFunction *fnCall, TIntermNode *paramNode, TIntermNode *thisNode, const TSourceLoc &loc, bool *fatalError)
+{
+	*fatalError = false;
+	TOperator op = fnCall->getBuiltInOp();
+	TIntermTyped *callNode = nullptr;
+
+	if(thisNode != nullptr)
+	{
+		ConstantUnion *unionArray = new ConstantUnion[1];
+		int arraySize = 0;
+		TIntermTyped *typedThis = thisNode->getAsTyped();
+		if(fnCall->getName() != "length")
+		{
+			error(loc, "invalid method", fnCall->getName().c_str());
+			recover();
+		}
+		else if(paramNode != nullptr)
+		{
+			error(loc, "method takes no parameters", "length");
+			recover();
+		}
+		else if(typedThis == nullptr || !typedThis->isArray())
+		{
+			error(loc, "length can only be called on arrays", "length");
+			recover();
+		}
+		else
+		{
+			arraySize = typedThis->getArraySize();
+			if(typedThis->getAsSymbolNode() == nullptr)
+			{
+				// This code path can be hit with expressions like these:
+				// (a = b).length()
+				// (func()).length()
+				// (int[3](0, 1, 2)).length()
+				// ESSL 3.00 section 5.9 defines expressions so that this is not actually a valid expression.
+				// It allows "An array name with the length method applied" in contrast to GLSL 4.4 spec section 5.9
+				// which allows "An array, vector or matrix expression with the length method applied".
+				error(loc, "length can only be called on array names, not on array expressions", "length");
+				recover();
+			}
+		}
+		unionArray->setIConst(arraySize);
+		callNode = intermediate.addConstantUnion(unionArray, TType(EbtInt, EbpUndefined, EvqConstExpr), loc);
+	}
+	else if(op != EOpNull)
+	{
+		//
+		// Then this should be a constructor.
+		// Don't go through the symbol table for constructors.
+		// Their parameters will be verified algorithmically.
+		//
+		TType type(EbtVoid, EbpUndefined);  // use this to get the type back
+		if(!constructorErrorCheck(loc, paramNode, *fnCall, op, &type))
+		{
+			//
+			// It's a constructor, of type 'type'.
+			//
+			callNode = addConstructor(paramNode, &type, op, fnCall, loc);
+		}
+
+		if(callNode == nullptr)
+		{
+			recover();
+			callNode = intermediate.setAggregateOperator(nullptr, op, loc);
+		}
+		callNode->setType(type);
+	}
+	else
+	{
+		//
+		// Not a constructor.  Find it in the symbol table.
+		//
+		const TFunction *fnCandidate;
+		bool builtIn;
+		fnCandidate = findFunction(loc, fnCall, &builtIn);
+		if(fnCandidate)
+		{
+			//
+			// A declared function.
+			//
+			if(builtIn && !fnCandidate->getExtension().empty() &&
+				extensionErrorCheck(loc, fnCandidate->getExtension()))
+			{
+				recover();
+			}
+			op = fnCandidate->getBuiltInOp();
+			if(builtIn && op != EOpNull)
+			{
+				//
+				// A function call mapped to a built-in operation.
+				//
+				if(fnCandidate->getParamCount() == 1)
+				{
+					//
+					// Treat it like a built-in unary operator.
+					//
+					callNode = createUnaryMath(op, paramNode->getAsTyped(), loc, &fnCandidate->getReturnType());
+					if(callNode == nullptr)
+					{
+						std::stringstream extraInfoStream;
+						extraInfoStream << "built in unary operator function.  Type: "
+							<< static_cast<TIntermTyped*>(paramNode)->getCompleteString();
+						std::string extraInfo = extraInfoStream.str();
+						error(paramNode->getLine(), " wrong operand type", "Internal Error", extraInfo.c_str());
+						*fatalError = true;
+						return nullptr;
+					}
+				}
+				else
+				{
+					TIntermAggregate *aggregate = intermediate.setAggregateOperator(paramNode, op, loc);
+					aggregate->setType(fnCandidate->getReturnType());
+
+					// Some built-in functions have out parameters too.
+					functionCallLValueErrorCheck(fnCandidate, aggregate);
+
+					callNode = aggregate;
+				}
+			}
+			else
+			{
+				// This is a real function call
+
+				TIntermAggregate *aggregate = intermediate.setAggregateOperator(paramNode, EOpFunctionCall, loc);
+				aggregate->setType(fnCandidate->getReturnType());
+
+				// this is how we know whether the given function is a builtIn function or a user defined function
+				// if builtIn == false, it's a userDefined -> could be an overloaded builtIn function also
+				// if builtIn == true, it's definitely a builtIn function with EOpNull
+				if(!builtIn)
+					aggregate->setUserDefined();
+				aggregate->setName(fnCandidate->getMangledName());
+
+				callNode = aggregate;
+
+				functionCallLValueErrorCheck(fnCandidate, aggregate);
+			}
+			callNode->setType(fnCandidate->getReturnType());
+		}
+		else
+		{
+			// error message was put out by findFunction()
+			// Put on a dummy node for error recovery
+			ConstantUnion *unionArray = new ConstantUnion[1];
+			unionArray->setFConst(0.0f);
+			callNode = intermediate.addConstantUnion(unionArray, TType(EbtFloat, EbpUndefined, EvqConstExpr), loc);
+			recover();
+		}
+	}
+	delete fnCall;
+	return callNode;
+}
+
 //
 // Parse an array of strings using yyparse.
 //
