@@ -26,7 +26,7 @@ Buffer::Buffer(GLuint name) : NamedObject(name)
 {
     mContents = 0;
     mSize = 0;
-    mUsage = GL_DYNAMIC_DRAW;
+    mUsage = GL_STATIC_DRAW;
 	mIsMapped = false;
 	mOffset = 0;
 	mLength = 0;
