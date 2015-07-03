@@ -40,6 +40,27 @@ public:
 		mCompareFunc = GL_LEQUAL;
 	}
 
+	void setMinFilter(GLenum minFilter) { mMinFilter = minFilter; }
+	void setMagFilter(GLenum magFilter) { mMagFilter = magFilter; }
+	void setWrapS(GLenum wrapS) { mWrapModeS = wrapS; }
+	void setWrapT(GLenum wrapT) { mWrapModeT = wrapT; }
+	void setWrapR(GLenum wrapR) { mWrapModeR = wrapR; }
+	void setMinLod(GLfloat minLod) { mMinLod = minLod; }
+	void setMaxLod(GLfloat maxLod) { mMaxLod = maxLod; }
+	void setComparisonMode(GLenum comparisonMode) { mCompareMode = comparisonMode; }
+	void setComparisonFunc(GLenum comparisonFunc) { mCompareFunc = comparisonFunc; }
+
+	GLenum getMinFilter() const { return mMinFilter; }
+	GLenum getMagFilter() const { return mMagFilter; }
+	GLenum getWrapS() const { return mWrapModeS; }
+	GLenum getWrapT() const { return mWrapModeT; }
+	GLenum getWrapR() const { return mWrapModeR; }
+	GLfloat getMinLod() const { return mMinLod; }
+	GLfloat getMaxLod() const { return mMaxLod; }
+	GLenum getComparisonMode() const { return mCompareMode; }
+	GLenum getComparisonFunc() const { return mCompareFunc; }
+
+private:
 	GLenum mMinFilter;
 	GLenum mMagFilter;
 

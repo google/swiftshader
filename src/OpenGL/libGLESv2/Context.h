@@ -560,6 +560,7 @@ public:
 	TransformFeedback *getTransformFeedback(GLuint transformFeedback) const;
 	TransformFeedback *getTransformFeedback() const;
 	Sampler *getSampler(GLuint sampler) const;
+	bool isSampler(GLuint sampler) const;
 
 	Buffer *getArrayBuffer() const;
 	Buffer *getElementArrayBuffer() const;
@@ -583,6 +584,10 @@ public:
 	template<typename T> bool getIntegerv(GLenum pname, T *params) const;
 	bool getBooleanv(GLenum pname, GLboolean *params) const;
 	template<typename T> bool getTransformFeedbackiv(GLuint xfb, GLenum pname, T *param) const;
+	void samplerParameteri(GLuint sampler, GLenum pname, GLint param);
+	void samplerParameterf(GLuint sampler, GLenum pname, GLfloat param);
+	GLint getSamplerParameteri(GLuint sampler, GLenum pname);
+	GLfloat getSamplerParameterf(GLuint sampler, GLenum pname);
 
 	bool getQueryParameterInfo(GLenum pname, GLenum *type, unsigned int *numParams) const;
 

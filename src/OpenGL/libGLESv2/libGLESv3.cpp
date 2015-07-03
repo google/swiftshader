@@ -450,6 +450,153 @@ static bool ValidateBufferTarget(GLenum target)
 	return true;
 }
 
+bool ValidateTexParamParameters(GLenum pname, GLint param)
+{
+	switch(pname)
+	{
+	case GL_TEXTURE_WRAP_S:
+	case GL_TEXTURE_WRAP_T:
+	case GL_TEXTURE_WRAP_R:
+		switch(param)
+		{
+		case GL_REPEAT:
+		case GL_CLAMP_TO_EDGE:
+		case GL_MIRRORED_REPEAT:
+			return true;
+		default:
+			return error(GL_INVALID_ENUM, false);
+		}
+
+	case GL_TEXTURE_MIN_FILTER:
+		switch(param)
+		{
+		case GL_NEAREST:
+		case GL_LINEAR:
+		case GL_NEAREST_MIPMAP_NEAREST:
+		case GL_LINEAR_MIPMAP_NEAREST:
+		case GL_NEAREST_MIPMAP_LINEAR:
+		case GL_LINEAR_MIPMAP_LINEAR:
+			return true;
+		default:
+			return error(GL_INVALID_ENUM, false);
+		}
+		break;
+
+	case GL_TEXTURE_MAG_FILTER:
+		switch(param)
+		{
+		case GL_NEAREST:
+		case GL_LINEAR:
+			return true;
+		default:
+			return error(GL_INVALID_ENUM, false);
+		}
+		break;
+
+	case GL_TEXTURE_USAGE_ANGLE:
+		switch(param)
+		{
+		case GL_NONE:
+		case GL_FRAMEBUFFER_ATTACHMENT_ANGLE:
+			return true;
+		default:
+			return error(GL_INVALID_ENUM, false);
+		}
+		break;
+
+	case GL_TEXTURE_MAX_ANISOTROPY_EXT:
+		// we assume the parameter passed to this validation method is truncated, not rounded
+		if(param < 1)
+		{
+			return error(GL_INVALID_VALUE, false);
+		}
+		return true;
+
+	case GL_TEXTURE_MIN_LOD:
+	case GL_TEXTURE_MAX_LOD:
+		// any value is permissible
+		return true;
+
+	case GL_TEXTURE_COMPARE_MODE:
+		// Acceptable mode parameters from GLES 3.0.2 spec, table 3.17
+		switch(param)
+		{
+		case GL_NONE:
+		case GL_COMPARE_REF_TO_TEXTURE:
+			return true;
+		default:
+			return error(GL_INVALID_ENUM, false);
+		}
+		break;
+
+	case GL_TEXTURE_COMPARE_FUNC:
+		// Acceptable function parameters from GLES 3.0.2 spec, table 3.17
+		switch(param)
+		{
+		case GL_LEQUAL:
+		case GL_GEQUAL:
+		case GL_LESS:
+		case GL_GREATER:
+		case GL_EQUAL:
+		case GL_NOTEQUAL:
+		case GL_ALWAYS:
+		case GL_NEVER:
+			return true;
+		default:
+			return error(GL_INVALID_ENUM, false);
+		}
+		break;
+
+	case GL_TEXTURE_SWIZZLE_R:
+	case GL_TEXTURE_SWIZZLE_G:
+	case GL_TEXTURE_SWIZZLE_B:
+	case GL_TEXTURE_SWIZZLE_A:
+		switch(param)
+		{
+		case GL_RED:
+		case GL_GREEN:
+		case GL_BLUE:
+		case GL_ALPHA:
+		case GL_ZERO:
+		case GL_ONE:
+			return true;
+		default:
+			return error(GL_INVALID_ENUM, false);
+		}
+		break;
+
+	case GL_TEXTURE_BASE_LEVEL:
+	case GL_TEXTURE_MAX_LEVEL:
+		if(param < 0)
+		{
+			return error(GL_INVALID_VALUE, false);
+		}
+		return true;
+
+	default:
+		return error(GL_INVALID_ENUM, false);
+	}
+}
+
+static bool ValidateSamplerObjectParameter(GLenum pname)
+{
+	switch(pname)
+	{
+	case GL_TEXTURE_MIN_FILTER:
+	case GL_TEXTURE_MAG_FILTER:
+	case GL_TEXTURE_WRAP_S:
+	case GL_TEXTURE_WRAP_T:
+	case GL_TEXTURE_WRAP_R:
+	case GL_TEXTURE_MIN_LOD:
+	case GL_TEXTURE_MAX_LOD:
+	case GL_TEXTURE_COMPARE_MODE:
+	case GL_TEXTURE_COMPARE_FUNC:
+		return true;
+	default:
+		return false;
+	}
+}
+
 extern "C"
 {
 
@@ -3352,118 +3499,26 @@ GL_APICALL void GL_APIENTRY glSamplerParameteriv(GLuint sampler, GLenum pname, c
 	TRACE("(GLuint sampler = %d, GLenum pname = 0x%X, const GLint *param = %p)",
 	      sampler, pname, param);
 
+	if(!ValidateSamplerObjectParameter(pname))
+	{
+		return error(GL_INVALID_ENUM);
+	}
+
+	if(!ValidateTexParamParameters(pname, *param))
+	{
+		return;
+	}
+
 	es2::Context *context = es2::getContext();
 
 	if(context)
 	{
-		es2::Sampler *samplerObject = (sampler != 0) ? context->getSampler(sampler) : nullptr;
-
-		if(!samplerObject)
+		if(!context->isSampler(sampler))
 		{
-			return error(GL_INVALID_VALUE);
+			return error(GL_INVALID_OPERATION);
 		}
 
-		switch(pname)
-		{
-		case GL_TEXTURE_WRAP_S:
-			switch(*param)
-			{
-			case GL_CLAMP_TO_EDGE:
-			case GL_MIRRORED_REPEAT:
-			case GL_REPEAT:
-				samplerObject->mWrapModeS = *param;
-				break;
-			default:
-				return error(GL_INVALID_ENUM);
-			}
-			break;
-		case GL_TEXTURE_WRAP_T:
-			switch(*param)
-			{
-			case GL_CLAMP_TO_EDGE:
-			case GL_MIRRORED_REPEAT:
-			case GL_REPEAT:
-				samplerObject->mWrapModeT = *param;
-				break;
-			default:
-				return error(GL_INVALID_ENUM);
-			}
-			break;
-		case GL_TEXTURE_WRAP_R:
-			switch(*param)
-			{
-			case GL_CLAMP_TO_EDGE:
-			case GL_MIRRORED_REPEAT:
-			case GL_REPEAT:
-				samplerObject->mWrapModeR = *param;
-				break;
-			default:
-				return error(GL_INVALID_ENUM);
-			}
-			break;
-		case GL_TEXTURE_MIN_FILTER:
-			switch(*param)
-			{
-			case GL_NEAREST:
-			case GL_LINEAR:
-			case GL_NEAREST_MIPMAP_NEAREST:
-			case GL_LINEAR_MIPMAP_NEAREST:
-			case GL_NEAREST_MIPMAP_LINEAR:
-			case GL_LINEAR_MIPMAP_LINEAR:
-				samplerObject->mMinFilter = *param;
-				break;
-			default:
-				return error(GL_INVALID_ENUM);
-			}
-			break;
-		case GL_TEXTURE_MAG_FILTER:
-			switch(*param)
-			{
-			case GL_NEAREST:
-			case GL_LINEAR:
-				samplerObject->mMagFilter = *param;
-				break;
-			default:
-				return error(GL_INVALID_ENUM);
-			}
-			break;
-		case GL_TEXTURE_MIN_LOD:
-			samplerObject->mMinLod = (GLfloat)*param;
-			break;
-		case GL_TEXTURE_MAX_LOD:
-			samplerObject->mMaxLod = (GLfloat)*param;
-			break;
-		case GL_TEXTURE_COMPARE_MODE:
-			switch(*param)
-			{
-			case GL_COMPARE_REF_TO_TEXTURE:
-			case GL_NONE:
-				samplerObject->mCompareMode = *param;
-				break;
-			default:
-				return error(GL_INVALID_ENUM);
-			}
-			break;
-		case GL_TEXTURE_COMPARE_FUNC:
-			switch(*param)
-			{
-			case GL_LEQUAL:
-			case GL_GEQUAL:
-			case GL_LESS:
-			case GL_GREATER:
-			case GL_EQUAL:
-			case GL_NOTEQUAL:
-			case GL_ALWAYS:
-			case GL_NEVER:
-				samplerObject->mCompareFunc = *param;
-				break;
-			default:
-				return error(GL_INVALID_ENUM);
-			}
-			break;
-		default:
-			return error(GL_INVALID_ENUM);
-		}
+		context->samplerParameteri(sampler, pname, *param);
 	}
 }
 
@@ -3480,118 +3535,26 @@ GL_APICALL void GL_APIENTRY glSamplerParameterfv(GLuint sampler, GLenum pname, c
 	TRACE("(GLuint sampler = %d, GLenum pname = 0x%X, const GLfloat *param = %p)",
 	      sampler, pname, param);
 
+	if(!ValidateSamplerObjectParameter(pname))
+	{
+		return error(GL_INVALID_ENUM);
+	}
+
+	if(!ValidateTexParamParameters(pname, *param))
+	{
+		return;
+	}
+
 	es2::Context *context = es2::getContext();
 
 	if(context)
 	{
-		es2::Sampler *samplerObject = (sampler != 0) ? context->getSampler(sampler) : nullptr;
-
-		if(!samplerObject)
+		if(!context->isSampler(sampler))
 		{
-			return error(GL_INVALID_VALUE);
+			return error(GL_INVALID_OPERATION);
 		}
 
-		switch(pname)
-		{
-		case GL_TEXTURE_WRAP_S:
-			switch((GLenum)*param)
-			{
-			case GL_CLAMP_TO_EDGE:
-			case GL_MIRRORED_REPEAT:
-			case GL_REPEAT:
-				samplerObject->mWrapModeS = (GLenum)*param;
-				break;
-			default:
-				return error(GL_INVALID_ENUM);
-			}
-			break;
-		case GL_TEXTURE_WRAP_T:
-			switch((GLenum)*param)
-			{
-			case GL_CLAMP_TO_EDGE:
-			case GL_MIRRORED_REPEAT:
-			case GL_REPEAT:
-				samplerObject->mWrapModeT = (GLenum)*param;
-				break;
-			default:
-				return error(GL_INVALID_ENUM);
-			}
-			break;
-		case GL_TEXTURE_WRAP_R:
-			switch((GLenum)*param)
-			{
-			case GL_CLAMP_TO_EDGE:
-			case GL_MIRRORED_REPEAT:
-			case GL_REPEAT:
-				samplerObject->mWrapModeR = (GLenum)*param;
-				break;
-			default:
-				return error(GL_INVALID_ENUM);
-			}
-			break;
-		case GL_TEXTURE_MIN_FILTER:
-			switch((GLenum)*param)
-			{
-			case GL_NEAREST:
-			case GL_LINEAR:
-			case GL_NEAREST_MIPMAP_NEAREST:
-			case GL_LINEAR_MIPMAP_NEAREST:
-			case GL_NEAREST_MIPMAP_LINEAR:
-			case GL_LINEAR_MIPMAP_LINEAR:
-				samplerObject->mMinFilter = (GLenum)*param;
-				break;
-			default:
-				return error(GL_INVALID_ENUM);
-			}
-			break;
-		case GL_TEXTURE_MAG_FILTER:
-			switch((GLenum)*param)
-			{
-			case GL_NEAREST:
-			case GL_LINEAR:
-				samplerObject->mMagFilter = (GLenum)*param;
-				break;
-			default:
-				return error(GL_INVALID_ENUM);
-			}
-			break;
-		case GL_TEXTURE_MIN_LOD:
-			samplerObject->mMinLod = *param;
-			break;
-		case GL_TEXTURE_MAX_LOD:
-			samplerObject->mMaxLod = *param;
-			break;
-		case GL_TEXTURE_COMPARE_MODE:
-			switch((GLenum)*param)
-			{
-			case GL_COMPARE_REF_TO_TEXTURE:
-			case GL_NONE:
-				samplerObject->mCompareMode = (GLenum)*param;
-				break;
-			default:
-				return error(GL_INVALID_ENUM);
-			}
-			break;
-		case GL_TEXTURE_COMPARE_FUNC:
-			switch((GLenum)*param)
-			{
-			case GL_LEQUAL:
-			case GL_GEQUAL:
-			case GL_LESS:
-			case GL_GREATER:
-			case GL_EQUAL:
-			case GL_NOTEQUAL:
-			case GL_ALWAYS:
-			case GL_NEVER:
-				samplerObject->mCompareFunc = (GLenum)*param;
-				break;
-			default:
-				return error(GL_INVALID_ENUM);
-			}
-			break;
-		default:
-			return error(GL_INVALID_ENUM);
-		}
+		context->samplerParameterf(sampler, pname, *param);
 	}
 }
 
@@ -3600,49 +3563,21 @@ GL_APICALL void GL_APIENTRY glGetSamplerParameteriv(GLuint sampler, GLenum pname
 	TRACE("(GLuint sampler = %d, GLenum pname = 0x%X, GLint *params = %p)",
 	      sampler, pname, params);
 
+	if(!ValidateSamplerObjectParameter(pname))
+	{
+		return error(GL_INVALID_ENUM);
+	}
+
 	es2::Context *context = es2::getContext();
 
 	if(context)
 	{
-		es2::Sampler *samplerObject = (sampler != 0) ? context->getSampler(sampler) : nullptr;
-
-		if(!samplerObject)
+		if(!context->isSampler(sampler))
 		{
 			return error(GL_INVALID_VALUE);
 		}
 
-		switch(pname)
-		{
-		case GL_TEXTURE_WRAP_S:
-			*params = samplerObject->mWrapModeS;
-			break;
-		case GL_TEXTURE_WRAP_T:
-			*params = samplerObject->mWrapModeT;
-			break;
-		case GL_TEXTURE_WRAP_R:
-			*params = samplerObject->mWrapModeR;
-			break;
-		case GL_TEXTURE_MIN_FILTER:
-			*params = samplerObject->mMinFilter;
-			break;
-		case GL_TEXTURE_MAG_FILTER:
-			*params = samplerObject->mMagFilter;
-			break;
-		case GL_TEXTURE_MIN_LOD:
-			*params = (GLint)samplerObject->mMinLod;
-			break;
-		case GL_TEXTURE_MAX_LOD:
-			*params = (GLint)samplerObject->mMaxLod;
-			break;
-		case GL_TEXTURE_COMPARE_MODE:
-			*params = samplerObject->mCompareMode;
-			break;
-		case GL_TEXTURE_COMPARE_FUNC:
-			*params = samplerObject->mCompareFunc;
-			break;
-		default:
-			return error(GL_INVALID_ENUM);
-		}
+		*params = context->getSamplerParameteri(sampler, pname);
 	}
 }
 
@@ -3651,49 +3586,21 @@ GL_APICALL void GL_APIENTRY glGetSamplerParameterfv(GLuint sampler, GLenum pname
 	TRACE("(GLuint sampler = %d, GLenum pname = 0x%X, GLfloat *params = %p)",
 	      sampler, pname, params);
 
+	if(!ValidateSamplerObjectParameter(pname))
+	{
+		return error(GL_INVALID_ENUM);
+	}
+
 	es2::Context *context = es2::getContext();
 
 	if(context)
 	{
-		es2::Sampler *samplerObject = (sampler != 0) ? context->getSampler(sampler) : nullptr;
-
-		if(!samplerObject)
+		if(!context->isSampler(sampler))
 		{
 			return error(GL_INVALID_VALUE);
 		}
 
-		switch(pname)
-		{
-		case GL_TEXTURE_WRAP_S:
-			*params = (GLfloat)samplerObject->mWrapModeS;
-			break;
-		case GL_TEXTURE_WRAP_T:
-			*params = (GLfloat)samplerObject->mWrapModeT;
-			break;
-		case GL_TEXTURE_WRAP_R:
-			*params = (GLfloat)samplerObject->mWrapModeR;
-			break;
-		case GL_TEXTURE_MIN_FILTER:
-			*params = (GLfloat)samplerObject->mMinFilter;
-			break;
-		case GL_TEXTURE_MAG_FILTER:
-			*params = (GLfloat)samplerObject->mMagFilter;
-			break;
-		case GL_TEXTURE_MIN_LOD:
-			*params = samplerObject->mMinLod;
-			break;
-		case GL_TEXTURE_MAX_LOD:
-			*params = samplerObject->mMaxLod;
-			break;
-		case GL_TEXTURE_COMPARE_MODE:
-			*params = (GLfloat)samplerObject->mCompareMode;
-			break;
-		case GL_TEXTURE_COMPARE_FUNC:
-			*params = (GLfloat)samplerObject->mCompareFunc;
-			break;
-		default:
-			return error(GL_INVALID_ENUM);
-		}
+		*params = context->getSamplerParameterf(sampler, pname);
 	}
 }
 
