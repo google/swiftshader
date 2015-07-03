@@ -3887,14 +3887,14 @@ void GetTexParameteriv(GLenum target, GLenum pname, GLint* params)
 		case GL_TEXTURE_MAX_LOD:
 			if(clientVersion >= 3)
 			{
-				*params = (GLint)texture->getMaxLOD();
+				*params = (GLint)roundf(texture->getMaxLOD());
 				break;
 			}
 			else return error(GL_INVALID_ENUM);
 		case GL_TEXTURE_MIN_LOD:
 			if(clientVersion >= 3)
 			{
-				*params = (GLint)texture->getMinLOD();
+				*params = (GLint)roundf(texture->getMinLOD());
 				break;
 			}
 			else return error(GL_INVALID_ENUM);
