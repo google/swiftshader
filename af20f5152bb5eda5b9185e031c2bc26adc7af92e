@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f36151bc_7766d0ce",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 943,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-07-03T18:16:49Z",
+      "side": 1,
+      "message": "I think this should be GL_UNSIGNED_NORMALIZED",
+      "range": {
+        "startLine": 943,
+        "startChar": 11,
+        "endLine": 943,
+        "endChar": 26
+      },
+      "revId": "af20f5152bb5eda5b9185e031c2bc26adc7af92e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f36151bc_9751a4e0",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 944,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-07-03T18:16:49Z",
+      "side": 1,
+      "message": "Add UNREACHABLE(format);",
+      "range": {
+        "startLine": 944,
+        "startChar": 3,
+        "endLine": 944,
+        "endChar": 11
+      },
+      "revId": "af20f5152bb5eda5b9185e031c2bc26adc7af92e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f36151bc_5769cc9d",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 951,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-07-03T18:16:49Z",
+      "side": 1,
+      "message": "The spec says that \"If attachment is DEPTH_STENCIL_ATTACHMENT the query will fail and generate an INVALID_OPERATION error\"",
+      "range": {
+        "startLine": 947,
+        "startChar": 2,
+        "endLine": 951,
+        "endChar": 19
+      },
+      "revId": "af20f5152bb5eda5b9185e031c2bc26adc7af92e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
