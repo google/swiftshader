@@ -79,6 +79,7 @@ namespace sw2es
 	GLuint GetBlueSize(sw::Format colorFormat);
 	GLuint GetDepthSize(sw::Format depthFormat);
 	GLuint GetStencilSize(sw::Format stencilFormat);
+	GLenum GetComponentType(sw::Format format, GLenum attachment);
 
 	GLenum ConvertBackBufferFormat(sw::Format format);
 	GLenum ConvertDepthStencilFormat(sw::Format format);

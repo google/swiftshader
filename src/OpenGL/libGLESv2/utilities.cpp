@@ -907,6 +907,54 @@ namespace sw2es
 		}
 	}
 
+	GLenum GetComponentType(sw::Format format, GLenum attachment)
+	{
+		// Can be one of GL_FLOAT, GL_INT, GL_UNSIGNED_INT, GL_SIGNED_NORMALIZED, or GL_UNSIGNED_NORMALIZED
+		switch(attachment)
+		{
+		case GL_COLOR_ATTACHMENT0:
+		case GL_COLOR_ATTACHMENT1:
+		case GL_COLOR_ATTACHMENT2:
+		case GL_COLOR_ATTACHMENT3:
+		case GL_COLOR_ATTACHMENT4:
+		case GL_COLOR_ATTACHMENT5:
+		case GL_COLOR_ATTACHMENT6:
+		case GL_COLOR_ATTACHMENT7:
+		case GL_COLOR_ATTACHMENT8:
+		case GL_COLOR_ATTACHMENT9:
+		case GL_COLOR_ATTACHMENT10:
+		case GL_COLOR_ATTACHMENT11:
+		case GL_COLOR_ATTACHMENT12:
+		case GL_COLOR_ATTACHMENT13:
+		case GL_COLOR_ATTACHMENT14:
+		case GL_COLOR_ATTACHMENT15:
+			switch(format)
+			{
+			case sw::FORMAT_A16B16G16R16F:
+			case sw::FORMAT_A32B32G32R32F:
+				return GL_FLOAT;
+			case sw::FORMAT_A2R10G10B10:
+			case sw::FORMAT_A8R8G8B8:
+			case sw::FORMAT_A8B8G8R8:
+			case sw::FORMAT_X8R8G8B8:
+			case sw::FORMAT_X8B8G8R8:
+			case sw::FORMAT_A1R5G5B5:
+			case sw::FORMAT_R5G6B5:
+				return GL_UNSIGNED_NORMALIZED;
+			default:
+				UNREACHABLE(format);
+				return 0;
+			}
+		case GL_DEPTH_ATTACHMENT:
+		case GL_STENCIL_ATTACHMENT:
+			// Only color buffers may have integer components.
+			return GL_FLOAT;
+		default:
+			UNREACHABLE(attachment);
+			return 0;
+		}
+	}
+
 	GLenum ConvertBackBufferFormat(sw::Format format)
 	{
 		switch(format)

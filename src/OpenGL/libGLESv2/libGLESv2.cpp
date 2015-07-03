@@ -2922,12 +2922,26 @@ void GetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenu
 			return error(GL_INVALID_ENUM);
 		}
 
+		egl::GLint clientVersion = context->getClientVersion();
+
 		es2::Framebuffer *framebuffer = NULL;
 		if(target == GL_READ_FRAMEBUFFER_ANGLE)
 		{
 			if(context->getReadFramebufferName() == 0)
 			{
-				return error(GL_INVALID_OPERATION);
+				switch(attachment)
+				{
+				case GL_BACK:
+				case GL_DEPTH:
+				case GL_STENCIL:
+					if(clientVersion >= 3)
+					{
+						break;
+					}
+					// fall through
+				default:
+					return error(GL_INVALID_OPERATION);
+				}
 			}
 
 			framebuffer = context->getReadFramebuffer();
@@ -2936,18 +2950,38 @@ void GetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenu
 		{
 			if(context->getDrawFramebufferName() == 0)
 			{
-				return error(GL_INVALID_OPERATION);
+				switch(attachment)
+				{
+				case GL_BACK:
+				case GL_DEPTH:
+				case GL_STENCIL:
+					if(clientVersion >= 3)
+					{
+						break;
+					}
+					// fall through
+				default:
+					return error(GL_INVALID_OPERATION);
+				}
 			}
 
 			framebuffer = context->getDrawFramebuffer();
 		}
 
-		egl::GLint clientVersion = context->getClientVersion();
-
 		GLenum attachmentType;
 		GLuint attachmentHandle;
+		Renderbuffer* renderbuffer = nullptr;
 		switch(attachment)
 		{
+		case GL_BACK:
+			if(clientVersion >= 3)
+			{
+				attachmentType = framebuffer->getColorbufferType(0);
+				attachmentHandle = framebuffer->getColorbufferName(0);
+				renderbuffer = framebuffer->getColorbuffer(0);
+			}
+			else return error(GL_INVALID_ENUM);
+			break;
 		case GL_COLOR_ATTACHMENT1:
 		case GL_COLOR_ATTACHMENT2:
 		case GL_COLOR_ATTACHMENT3:
@@ -2975,14 +3009,29 @@ void GetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenu
 			}
 			attachmentType = framebuffer->getColorbufferType(attachment - GL_COLOR_ATTACHMENT0);
 			attachmentHandle = framebuffer->getColorbufferName(attachment - GL_COLOR_ATTACHMENT0);
+			renderbuffer = framebuffer->getColorbuffer(attachment - GL_COLOR_ATTACHMENT0);
 			break;
+		case GL_DEPTH:
+			if(clientVersion < 3)
+			{
+				return error(GL_INVALID_ENUM);
+			}
+			// fall through
 		case GL_DEPTH_ATTACHMENT:
 			attachmentType = framebuffer->getDepthbufferType();
 			attachmentHandle = framebuffer->getDepthbufferName();
+			renderbuffer = framebuffer->getDepthbuffer();
 			break;
+		case GL_STENCIL:
+			if(clientVersion < 3)
+			{
+				return error(GL_INVALID_ENUM);
+			}
+			// fall through
 		case GL_STENCIL_ATTACHMENT:
 			attachmentType = framebuffer->getStencilbufferType();
 			attachmentHandle = framebuffer->getStencilbufferName();
+			renderbuffer = framebuffer->getStencilbuffer();
 			break;
 		case GL_DEPTH_STENCIL_ATTACHMENT:
 			if(clientVersion >= 3)
@@ -2994,8 +3043,10 @@ void GetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenu
 					// Different attachments to DEPTH and STENCIL, query fails
 					return error(GL_INVALID_OPERATION);
 				}
+				renderbuffer = framebuffer->getDepthbuffer();
 			}
 			else return error(GL_INVALID_ENUM);
+			break;
 		default:
 			return error(GL_INVALID_ENUM);
 		}
@@ -3052,6 +3103,67 @@ void GetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenu
 			{
 				return error(GL_INVALID_ENUM);
 			}
+			break;
+		case GL_FRAMEBUFFER_ATTACHMENT_RED_SIZE:
+			if(clientVersion >= 3)
+			{
+				*params = renderbuffer->getRedSize();
+			}
+			else return error(GL_INVALID_ENUM);
+			break;
+		case GL_FRAMEBUFFER_ATTACHMENT_GREEN_SIZE:
+			if(clientVersion >= 3)
+			{
+				*params = renderbuffer->getGreenSize();
+			}
+			else return error(GL_INVALID_ENUM);
+			break;
+		case GL_FRAMEBUFFER_ATTACHMENT_BLUE_SIZE:
+			if(clientVersion >= 3)
+			{
+				*params = renderbuffer->getBlueSize();
+			}
+			else return error(GL_INVALID_ENUM);
+			break;
+		case GL_FRAMEBUFFER_ATTACHMENT_ALPHA_SIZE:
+			if(clientVersion >= 3)
+			{
+				*params = renderbuffer->getAlphaSize();
+			}
+			else return error(GL_INVALID_ENUM);
+			break;
+		case GL_FRAMEBUFFER_ATTACHMENT_DEPTH_SIZE:
+			if(clientVersion >= 3)
+			{
+				*params = renderbuffer->getDepthSize();
+			}
+			else return error(GL_INVALID_ENUM);
+			break;
+		case GL_FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE:
+			if(clientVersion >= 3)
+			{
+				*params = renderbuffer->getStencilSize();
+			}
+			else return error(GL_INVALID_ENUM);
+			break;
+		case GL_FRAMEBUFFER_ATTACHMENT_COMPONENT_TYPE:
+			if(clientVersion >= 3)
+			{
+				if(attachment == GL_DEPTH_STENCIL_ATTACHMENT)
+				{
+					return error(GL_INVALID_OPERATION);
+				}
+
+				*params = sw2es::GetComponentType(renderbuffer->getInternalFormat(), attachment);
+			}
+			else return error(GL_INVALID_ENUM);
+			break;
+		case GL_FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING:
+			if(clientVersion >= 3)
+			{
+				*params = GL_LINEAR; // FIXME: GL_SRGB will also be possible, when sRGB is added
+			}
+			else return error(GL_INVALID_ENUM);
 			break;
 		default:
 			return error(GL_INVALID_ENUM);
