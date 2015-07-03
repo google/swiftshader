@@ -122,9 +122,9 @@ extern void yyerror(YYLTYPE* lloc, TParseContext* context, const char* reason);
     }  \
 }
 
-#define ES3_ONLY(S, L) {  \
+#define ES3_ONLY(TOKEN, LINE, REASON) {  \
     if (context->getShaderVersion() != 300) {  \
-        context->error(L, " supported in GLSL ES 3.00 only ", S);  \
+        context->error(LINE, REASON " supported in GLSL ES 3.00 only ", TOKEN);  \
         context->recover();  \
     }  \
 }
@@ -361,7 +361,7 @@ function_call_header
 function_identifier
     : type_specifier_no_prec {
         if ($1.array) {
-            ES3_ONLY("[]", @1);
+            ES3_ONLY("[]", @1, "array constructor");
         }
         $$ = context->addConstructorFunc($1);
     }
@@ -431,7 +431,7 @@ unary_operator
     | DASH  { $$.line = @1; $$.op = EOpNegative; }
     | BANG  { $$.line = @1; $$.op = EOpLogicalNot; }
     | TILDE {
-        ES3_ONLY("~", @1);
+        ES3_ONLY("~", @1, "bit-wise operator");
         $$.line = @1; $$.op = EOpBitwiseNot;
     }
     ;
@@ -449,7 +449,7 @@ multiplicative_expression
     }
     | multiplicative_expression PERCENT unary_expression {
         FRAG_VERT_ONLY("%", @2);
-        ES3_ONLY("%", @2);
+        ES3_ONLY("%", @2, "integer modulus operator");
         $$ = context->addBinaryMath(EOpIMod, $1, $3, @2);
     }
     ;
@@ -467,11 +467,11 @@ additive_expression
 shift_expression
     : additive_expression { $$ = $1; }
     | shift_expression LEFT_OP additive_expression {
-        ES3_ONLY("<<", @2);
+        ES3_ONLY("<<", @2, "bit-wise operator");
         $$ = context->addBinaryMath(EOpBitShiftLeft, $1, $3, @2);
     }
     | shift_expression RIGHT_OP additive_expression {
-        ES3_ONLY(">>", @2);
+        ES3_ONLY(">>", @2, "bit-wise operator");
         $$ = context->addBinaryMath(EOpBitShiftRight, $1, $3, @2);
     }
     ;
@@ -505,7 +505,7 @@ equality_expression
 and_expression
     : equality_expression { $$ = $1; }
     | and_expression AMPERSAND equality_expression {
-        ES3_ONLY("&", @2);
+        ES3_ONLY("&", @2, "bit-wise operator");
         $$ = context->addBinaryMath(EOpBitwiseAnd, $1, $3, @2);
     }
     ;
@@ -513,7 +513,7 @@ and_expression
 exclusive_or_expression
     : and_expression { $$ = $1; }
     | exclusive_or_expression CARET and_expression {
-        ES3_ONLY("^", @2);
+        ES3_ONLY("^", @2, "bit-wise operator");
         $$ = context->addBinaryMath(EOpBitwiseXor, $1, $3, @2);
     }
     ;
@@ -521,7 +521,7 @@ exclusive_or_expression
 inclusive_or_expression
     : exclusive_or_expression { $$ = $1; }
     | inclusive_or_expression VERTICAL_BAR exclusive_or_expression {
-        ES3_ONLY("|", @2);
+        ES3_ONLY("|", @2, "bit-wise operator");
         $$ = context->addBinaryMath(EOpBitwiseOr, $1, $3, @2);
     }
     ;
@@ -578,19 +578,19 @@ assignment_operator
     : EQUAL        {                                    $$.line = @1; $$.op = EOpAssign; }
     | MUL_ASSIGN   { FRAG_VERT_ONLY("*=", @1);     $$.line = @1; $$.op = EOpMulAssign; }
     | DIV_ASSIGN   { FRAG_VERT_ONLY("/=", @1);     $$.line = @1; $$.op = EOpDivAssign; }
-    | MOD_ASSIGN   { ES3_ONLY("%=", @1); 
+    | MOD_ASSIGN   { ES3_ONLY("%=", @1, "integer modulus operator");
                      FRAG_VERT_ONLY("%=", @1);     $$.line = @1; $$.op = EOpIModAssign; }
     | ADD_ASSIGN   {                                    $$.line = @1; $$.op = EOpAddAssign; }
     | SUB_ASSIGN   {                                    $$.line = @1; $$.op = EOpSubAssign; }
-    | LEFT_ASSIGN  { ES3_ONLY("<<=", @1);
+    | LEFT_ASSIGN  { ES3_ONLY("<<=", @1, "bit-wise operator");
                      FRAG_VERT_ONLY("<<=", @1);    $$.line = @1; $$.op = EOpBitShiftLeftAssign; }
-    | RIGHT_ASSIGN { ES3_ONLY(">>=", @1);
+    | RIGHT_ASSIGN { ES3_ONLY(">>=", @1, "bit-wise operator");
                      FRAG_VERT_ONLY(">>=", @1);    $$.line = @1; $$.op = EOpBitShiftRightAssign; }
-    | AND_ASSIGN   { ES3_ONLY("&=", @1);
+    | AND_ASSIGN   { ES3_ONLY("&=", @1, "bit-wise operator");
                      FRAG_VERT_ONLY("&=", @1);     $$.line = @1; $$.op = EOpBitwiseAndAssign; }
-    | XOR_ASSIGN   { ES3_ONLY("^=", @1);
+    | XOR_ASSIGN   { ES3_ONLY("^=", @1, "bit-wise operator");
                      FRAG_VERT_ONLY("^=", @1);     $$.line = @1; $$.op = EOpBitwiseXorAssign; }
-    | OR_ASSIGN    { ES3_ONLY("|=", @1);
+    | OR_ASSIGN    { ES3_ONLY("|=", @1, "bit-wise operator");
                      FRAG_VERT_ONLY("|=", @1);     $$.line = @1; $$.op = EOpBitwiseOrAssign; }
     ;
 
@@ -666,15 +666,15 @@ declaration
         $$ = 0;
     }
     | type_qualifier enter_struct struct_declaration_list RIGHT_BRACE SEMICOLON {
-        ES3_ONLY(getQualifierString($1.qualifier), @1);
+        ES3_ONLY(getQualifierString($1.qualifier), @1, "interface blocks");
         $$ = context->addInterfaceBlock($1, @2, *$2.string, $3, NULL, @1, NULL, @1);
     }
     | type_qualifier enter_struct struct_declaration_list RIGHT_BRACE IDENTIFIER SEMICOLON {
-        ES3_ONLY(getQualifierString($1.qualifier), @1);
+        ES3_ONLY(getQualifierString($1.qualifier), @1, "interface blocks");
         $$ = context->addInterfaceBlock($1, @2, *$2.string, $3, $5.string, @5, NULL, @1);
     }
     | type_qualifier enter_struct struct_declaration_list RIGHT_BRACE IDENTIFIER LEFT_BRACKET constant_expression RIGHT_BRACKET SEMICOLON {
-        ES3_ONLY(getQualifierString($1.qualifier), @1);
+        ES3_ONLY(getQualifierString($1.qualifier), @1, "interface blocks");
         $$ = context->addInterfaceBlock($1, @2, *$2.string, $3, $5.string, @5, $7, @6);
     }
     | type_qualifier SEMICOLON {
@@ -886,12 +886,12 @@ init_declarator_list
         $$.intermAggregate = context->parseArrayDeclarator($$.type, $1.intermAggregate, @3, *$3.string, @4, $5);
     }
     | init_declarator_list COMMA IDENTIFIER LEFT_BRACKET RIGHT_BRACKET EQUAL initializer {
-        ES3_ONLY("[]", @3);
+        ES3_ONLY("[]", @3, "implicitly sized array");
         $$ = $1;
         $$.intermAggregate = context->parseArrayInitDeclarator($$.type, $1.intermAggregate, @3, *$3.string, @4, nullptr, @6, $7);
     }
     | init_declarator_list COMMA IDENTIFIER LEFT_BRACKET constant_expression RIGHT_BRACKET EQUAL initializer {
-        ES3_ONLY("=", @7);
+        ES3_ONLY("=", @7, "first-class arrays (array initializer)");
         $$ = $1;
         $$.intermAggregate = context->parseArrayInitDeclarator($$.type, $1.intermAggregate, @3, *$3.string, @4, $5, @7, $8);
     }
@@ -915,12 +915,12 @@ single_declaration
         $$.intermAggregate = context->parseSingleArrayDeclaration($$.type, @2, *$2.string, @3, $4);
     }
     | fully_specified_type IDENTIFIER LEFT_BRACKET RIGHT_BRACKET EQUAL initializer {
-        ES3_ONLY("[]", @3);
+        ES3_ONLY("[]", @3, "implicitly sized array");
         $$.type = $1;
         $$.intermAggregate = context->parseSingleArrayInitDeclaration($$.type, @2, *$2.string, @3, nullptr, @5, $6);
     }
     | fully_specified_type IDENTIFIER LEFT_BRACKET constant_expression RIGHT_BRACKET EQUAL initializer {
-        ES3_ONLY("=", @6);
+        ES3_ONLY("=", @6, "first-class arrays (array initializer)");
         $$.type = $1;
         $$.intermAggregate = context->parseSingleArrayInitDeclaration($$.type, @2, *$2.string, @3, $4, @6, $7);
     }
@@ -1008,7 +1008,7 @@ fully_specified_type
         $$ = $1;
 
         if ($1.array) {
-            ES3_ONLY("[]", @1);
+            ES3_ONLY("[]", @1, "first-class-array");
             if (context->getShaderVersion() != 300) {
                 $1.clearArrayness();
             }
@@ -1089,17 +1089,17 @@ storage_qualifier
 		$$.line = @1;
     }
     | IN_QUAL {
-		ES3_ONLY("in", @1);
+        ES3_ONLY("in", @1, "storage qualifier");
         $$.qualifier = (context->getShaderType() == GL_FRAGMENT_SHADER) ? EvqFragmentIn : EvqVertexIn;
 		$$.line = @1;
     }
     | OUT_QUAL {
-		ES3_ONLY("out", @1);
+        ES3_ONLY("out", @1, "storage qualifier");
         $$.qualifier = (context->getShaderType() == GL_FRAGMENT_SHADER) ? EvqFragmentOut : EvqVertexOut;
 		$$.line = @1;
     }
     | CENTROID IN_QUAL {
-		ES3_ONLY("centroid in", @1);
+        ES3_ONLY("centroid in", @1, "storage qualifier");
         if (context->getShaderType() == GL_VERTEX_SHADER)
         {
             context->error(@1, "invalid storage qualifier", "it is an error to use 'centroid in' in the vertex shader");
@@ -1108,8 +1108,8 @@ storage_qualifier
         $$.qualifier = (context->getShaderType() == GL_FRAGMENT_SHADER) ? EvqCentroidIn : EvqVertexIn;
 		$$.line = @2;
     }
-	| CENTROID OUT_QUAL {
-		ES3_ONLY("centroid out", @1);
+    | CENTROID OUT_QUAL {
+        ES3_ONLY("centroid out", @1, "storage qualifier");
         if (context->getShaderType() == GL_FRAGMENT_SHADER)
         {
             context->error(@1, "invalid storage qualifier", "it is an error to use 'centroid out' in the fragment shader");
@@ -1157,7 +1157,7 @@ precision_qualifier
 
 layout_qualifier
     : LAYOUT LEFT_PAREN layout_qualifier_id_list RIGHT_PAREN {
-        ES3_ONLY("layout", @1);
+        ES3_ONLY("layout", @1, "qualifier");
         $$ = $3;
     }
     ;
@@ -1188,7 +1188,7 @@ type_specifier_no_prec
         $$ = $1;
     }
     | type_specifier_nonarray LEFT_BRACKET RIGHT_BRACKET {
-        ES3_ONLY("[]", @2);
+        ES3_ONLY("[]", @2, "implicitly sized array");
         $$ = $1;
         $$.setArray(true, 0);
     }
