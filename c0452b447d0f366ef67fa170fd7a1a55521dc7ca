@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "f36151bc_57b70cc0",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3511,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-07-03T17:12:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f36151bc_d71ddc69",
+      "range": {
+        "startLine": 3511,
+        "startChar": 2,
+        "endLine": 3511,
+        "endChar": 3
+      },
+      "revId": "c0452b447d0f366ef67fa170fd7a1a55521dc7ca",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f36151bc_f722e0ac",
         "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2015-07-03T15:01:24Z",
       "side": 1,
       "message": "Also client version dependent.",
+      "range": {
+        "startLine": 3514,
+        "startChar": 30,
+        "endLine": 3514,
+        "endChar": 42
+      },
+      "revId": "c0452b447d0f366ef67fa170fd7a1a55521dc7ca",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f36151bc_77b410bb",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3514,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-07-03T17:12:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f36151bc_f722e0ac",
       "range": {
         "startLine": 3514,
         "startChar": 30,
