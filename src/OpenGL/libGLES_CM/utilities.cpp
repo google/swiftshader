@@ -238,6 +238,24 @@ namespace es2sw
 		return sw::STENCIL_ALWAYS;
 	}
 
+	sw::AlphaCompareMode ConvertAlphaComparison(GLenum comparison)
+	{
+		switch(comparison)
+		{
+		case GL_NEVER:    return sw::ALPHA_NEVER;
+		case GL_ALWAYS:   return sw::ALPHA_ALWAYS;
+		case GL_LESS:     return sw::ALPHA_LESS;
+		case GL_LEQUAL:   return sw::ALPHA_LESSEQUAL;
+		case GL_EQUAL:    return sw::ALPHA_EQUAL;
+		case GL_GREATER:  return sw::ALPHA_GREATER;
+		case GL_GEQUAL:   return sw::ALPHA_GREATEREQUAL;
+		case GL_NOTEQUAL: return sw::ALPHA_NOTEQUAL;
+		default: UNREACHABLE(comparison);
+		}
+
+		return sw::ALPHA_ALWAYS;
+	}
+
 	sw::Color<float> ConvertColor(es1::Color color)
 	{
 		return sw::Color<float>(color.red, color.green, color.blue, color.alpha);

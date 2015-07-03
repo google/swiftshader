@@ -307,6 +307,7 @@ copy "$(OutDir)libEGL.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platfor
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\debug.h" />
+    <ClInclude Include="..\common\Image.hpp" />
     <ClInclude Include="..\common\Object.hpp" />
     <ClInclude Include="..\include\EGL\egl.h" />
     <ClInclude Include="..\include\EGL\eglext.h" />
@@ -314,7 +315,6 @@ copy "$(OutDir)libEGL.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Platfor
     <ClInclude Include="Config.h" />
     <ClInclude Include="Context.hpp" />
     <ClInclude Include="Display.h" />
-    <ClInclude Include="Image.hpp" />
     <ClInclude Include="libEGL.hpp" />
     <ClInclude Include="main.h" />
     <ClInclude Include="resource.h" />

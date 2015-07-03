@@ -300,6 +300,10 @@ public:
     void setDepthFunc(GLenum depthFunc);
     void setDepthRange(float zNear, float zFar);
 
+	void setAlphaTest(bool enabled);
+    bool isAlphaTestEnabled() const;
+    void setAlphaFunc(GLenum alphaFunc, GLclampf reference);
+
     void setBlend(bool enabled);
     bool isBlendEnabled() const;
     void setBlendFactors(GLenum sourceRGB, GLenum destRGB, GLenum sourceAlpha, GLenum destAlpha);
@@ -480,6 +484,7 @@ public:
 
 	void setClipPlane(int index, const float plane[4]);
 	void setClipPlaneEnable(int index, bool enable);
+	bool isClipPlaneEnabled(int index) const;
 
 private:
 	virtual ~Context();
@@ -552,6 +557,10 @@ private:
 	GLenum clientTexture;
 
 	int clipFlags;
+
+	bool alphaTest;
+	GLenum alphaTestFunc;
+	float alphaTestRef;
 
 	Device *device;
     ResourceManager *mResourceManager;

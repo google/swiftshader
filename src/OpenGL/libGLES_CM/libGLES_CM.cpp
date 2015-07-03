@@ -97,7 +97,29 @@ void ActiveTexture(GLenum texture)
 
 void AlphaFunc(GLenum func, GLclampf ref)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLenum func = 0x%X, GLclampf ref = %f)", func, ref);
+
+	switch(func)
+	{
+	case GL_NEVER:
+	case GL_ALWAYS:
+	case GL_LESS:
+	case GL_LEQUAL:
+	case GL_EQUAL:
+	case GL_GEQUAL:
+	case GL_GREATER:
+	case GL_NOTEQUAL:
+		break;
+	default:
+		return error(GL_INVALID_ENUM);
+	}
+
+	es1::Context *context = es1::getContext();
+
+	if(context)
+	{
+		context->setAlphaFunc(func, clamp01(ref));
+	}
 }
 
 void AlphaFuncx(GLenum func, GLclampx ref)
@@ -1188,7 +1210,7 @@ void Disable(GLenum cap)
 		case GL_FOG:                      context->setFog(false);					break;
 		case GL_TEXTURE_2D:               context->setTexture2Denabled(false);      break;
 		case GL_TEXTURE_EXTERNAL_OES:     context->setTextureExternalEnabled(false); break;
-		case GL_ALPHA_TEST:               UNIMPLEMENTED(); break;
+		case GL_ALPHA_TEST:               context->setAlphaTest(false);             break;
 		case GL_COLOR_LOGIC_OP:           UNIMPLEMENTED(); break;
 		case GL_POINT_SMOOTH:             UNIMPLEMENTED(); break;
 		case GL_LINE_SMOOTH:              UNIMPLEMENTED(); break;
@@ -1310,7 +1332,7 @@ void Enable(GLenum cap)
 		case GL_FOG:                      context->setFog(true);				   break;
 		case GL_TEXTURE_2D:               context->setTexture2Denabled(true);      break;
 		case GL_TEXTURE_EXTERNAL_OES:     context->setTextureExternalEnabled(true); break;
-		case GL_ALPHA_TEST:               UNIMPLEMENTED(); break;
+		case GL_ALPHA_TEST:               context->setAlphaTest(true);             break;
 		case GL_COLOR_LOGIC_OP:           UNIMPLEMENTED(); break;
 		case GL_POINT_SMOOTH:             UNIMPLEMENTED(); break;
 		case GL_LINE_SMOOTH:              UNIMPLEMENTED(); break;
@@ -2386,6 +2408,13 @@ GLboolean IsEnabled(GLenum cap)
 		case GL_DEPTH_TEST:               return context->isDepthTestEnabled();
 		case GL_BLEND:                    return context->isBlendEnabled();
 		case GL_DITHER:                   return context->isDitherEnabled();
+		case GL_ALPHA_TEST:               return context->isAlphaTestEnabled();
+		case GL_CLIP_PLANE0:              return context->isClipPlaneEnabled(0);
+		case GL_CLIP_PLANE1:              return context->isClipPlaneEnabled(1);
+		case GL_CLIP_PLANE2:              return context->isClipPlaneEnabled(2);
+		case GL_CLIP_PLANE3:              return context->isClipPlaneEnabled(3);
+		case GL_CLIP_PLANE4:              return context->isClipPlaneEnabled(4);
+		case GL_CLIP_PLANE5:              return context->isClipPlaneEnabled(5);
 		default:
 			return error(GL_INVALID_ENUM, GL_FALSE);
 		}

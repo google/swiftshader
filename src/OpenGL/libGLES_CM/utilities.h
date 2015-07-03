@@ -48,6 +48,7 @@ namespace es2sw
 {
 	sw::DepthCompareMode ConvertDepthComparison(GLenum comparison);
 	sw::StencilCompareMode ConvertStencilComparison(GLenum comparison);
+	sw::AlphaCompareMode ConvertAlphaComparison(GLenum comparison);
 	sw::Color<float> ConvertColor(es1::Color color);
 	sw::BlendFactor ConvertBlendFunc(GLenum blend);
 	sw::BlendOperation ConvertBlendOp(GLenum blendOp);

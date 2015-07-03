@@ -98,7 +98,7 @@ namespace sw
 
 	struct DrawData
 	{
-		const void *constants;
+		const Constants *constants;
 
 		const void *input[VERTEX_ATTRIBUTES];
 		unsigned int stride[VERTEX_ATTRIBUTES];

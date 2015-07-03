@@ -206,6 +206,10 @@ Context::Context(const egl::Config *config, const Context *shareContext)
 
 	clipFlags = 0;
 
+	alphaTest = false;
+	alphaTestFunc = GL_ALWAYS;
+	alphaTestRef = 0;
+
     mHasBeenCurrent = false;
 
     markAllStateDirty();
@@ -372,6 +376,22 @@ void Context::setDepthRange(float zNear, float zFar)
 {
     mState.zNear = zNear;
     mState.zFar = zFar;
+}
+
+void Context::setAlphaTest(bool enabled)
+{
+	alphaTest = enabled;
+}
+
+bool Context::isAlphaTestEnabled() const
+{
+	return alphaTest;
+}
+
+void Context::setAlphaFunc(GLenum alphaFunc, GLclampf reference)
+{
+	alphaTestFunc = alphaFunc;
+	alphaTestRef = reference;
 }
 
 void Context::setBlend(bool enabled)
@@ -1822,6 +1842,10 @@ void Context::applyState(GLenum drawMode)
 	device->setTextureTransform(1, textureStack1.isIdentity() ? 0 : 4, false);
 	device->setTexGen(0, sw::TEXGEN_NONE);
 	device->setTexGen(1, sw::TEXGEN_NONE);
+
+	device->setAlphaTestEnable(alphaTest);
+	device->setAlphaCompare(es2sw::ConvertAlphaComparison(alphaTestFunc));
+	device->setAlphaReference(alphaTestRef * 0xFF);
 }
 
 GLenum Context::applyVertexBuffer(GLint base, GLint first, GLsizei count)
@@ -2993,6 +3017,11 @@ void Context::setClipPlaneEnable(int index, bool enable)
 {
 	clipFlags = clipFlags & ~((int)!enable << index) | ((int)enable << index);
 	device->setClipFlags(clipFlags);
+}
+
+bool Context::isClipPlaneEnabled(int index) const
+{
+	return (clipFlags & (1 << index)) != 0;
 }
 
 void Context::clientActiveTexture(GLenum texture)
