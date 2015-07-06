@@ -6,10 +6,11 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file declares the TargetLoweringMIPS32 class, which implements the
-// TargetLowering interface for the MIPS 32-bit architecture.
-//
+///
+/// \file
+/// This file declares the TargetLoweringMIPS32 class, which implements the
+/// TargetLowering interface for the MIPS 32-bit architecture.
+///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICETARGETLOWERINGMIPS32_H

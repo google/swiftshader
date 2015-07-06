@@ -6,10 +6,11 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file implements the PNaCl bitcode file to Ice, to machine code
-// translator.
-//
+///
+/// \file
+/// This file implements the PNaCl bitcode file to Ice, to machine code
+/// translator.
+///
 //===----------------------------------------------------------------------===//
 
 #include "PNaClTranslator.h"

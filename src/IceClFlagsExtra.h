@@ -6,9 +6,10 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file declares command line flags primarily used for non-minimal builds.
-//
+///
+/// \file
+/// This file declares command line flags primarily used for non-minimal builds.
+///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICECLFLAGSEXTRA_H

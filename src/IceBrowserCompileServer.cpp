@@ -6,9 +6,10 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file defines the browser-based compile server.
-//
+///
+/// \file
+/// This file defines the browser-based compile server.
+///
 //===----------------------------------------------------------------------===//
 
 // Can only compile this with the NaCl compiler (needs irt.h, and the

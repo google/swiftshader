@@ -6,10 +6,11 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file declares the PNaCl bitcode file to ICE, to machine code
-// translator.
-//
+///
+/// \file
+/// This file declares the PNaCl bitcode file to ICE, to machine code
+/// translator.
+///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_PNACLTRANSLATOR_H
@@ -34,13 +35,13 @@ class PNaClTranslator : public Translator {
 public:
   explicit PNaClTranslator(GlobalContext *Ctx) : Translator(Ctx) {}
 
-  // Reads the PNaCl bitcode file and translates to ICE, which is then
-  // converted to machine code. Sets ErrorStatus to 1 if any errors
-  // occurred. Takes ownership of the MemoryObject.
+  /// Reads the PNaCl bitcode file and translates to ICE, which is then
+  /// converted to machine code. Sets ErrorStatus to 1 if any errors
+  /// occurred. Takes ownership of the MemoryObject.
   void translate(const std::string &IRFilename,
                  std::unique_ptr<llvm::MemoryObject> &&MemoryObject);
 
-  // Reads MemBuf, assuming it is the PNaCl bitcode contents of IRFilename.
+  /// Reads MemBuf, assuming it is the PNaCl bitcode contents of IRFilename.
   void translateBuffer(const std::string &IRFilename,
                        llvm::MemoryBuffer *MemBuf);
 };

@@ -6,11 +6,12 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file declares the TargetLoweringX86 template class, which
-// implements the TargetLowering base interface for the x86
-// architecture.
-//
+///
+/// \file
+/// This file declares the TargetLoweringX86 template class, which
+/// implements the TargetLowering base interface for the x86
+/// architecture.
+///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICETARGETLOWERINGX86BASE_H
@@ -141,11 +142,11 @@ public:
   void initNodeForLowering(CfgNode *Node) override;
   void addProlog(CfgNode *Node) override;
   void addEpilog(CfgNode *Node) override;
-  // Ensure that a 64-bit Variable has been split into 2 32-bit
-  // Variables, creating them if necessary.  This is needed for all
-  // I64 operations, and it is needed for pushing F64 arguments for
-  // function calls using the 32-bit push instruction (though the
-  // latter could be done by directly writing to the stack).
+  /// Ensure that a 64-bit Variable has been split into 2 32-bit
+  /// Variables, creating them if necessary.  This is needed for all
+  /// I64 operations, and it is needed for pushing F64 arguments for
+  /// function calls using the 32-bit push instruction (though the
+  /// latter could be done by directly writing to the stack).
   void split64(Variable *Var);
   Operand *loOperand(Operand *Operand);
   Operand *hiOperand(Operand *Operand);
@@ -190,10 +191,10 @@ protected:
   void doAddressOptStore() override;
   void randomlyInsertNop(float Probability) override;
 
-  // Naive lowering of cmpxchg.
+  /// Naive lowering of cmpxchg.
   void lowerAtomicCmpxchg(Variable *DestPrev, Operand *Ptr, Operand *Expected,
                           Operand *Desired);
-  // Attempt a more optimized lowering of cmpxchg. Returns true if optimized.
+  /// Attempt a more optimized lowering of cmpxchg. Returns true if optimized.
   bool tryOptimizedCmpxchgCmpBr(Variable *DestPrev, Operand *Ptr,
                                 Operand *Expected, Operand *Desired);
   void lowerAtomicRMW(Variable *Dest, uint32_t Operation, Operand *Ptr,
@@ -210,13 +211,13 @@ protected:
   void scalarizeArithmetic(InstArithmetic::OpKind K, Variable *Dest,
                            Operand *Src0, Operand *Src1);
 
-  // Operand legalization helpers.  To deal with address mode
-  // constraints, the helpers will create a new Operand and emit
-  // instructions that guarantee that the Operand kind is one of those
-  // indicated by the LegalMask (a bitmask of allowed kinds).  If the
-  // input Operand is known to already meet the constraints, it may be
-  // simply returned as the result, without creating any new
-  // instructions or operands.
+  /// Operand legalization helpers.  To deal with address mode
+  /// constraints, the helpers will create a new Operand and emit
+  /// instructions that guarantee that the Operand kind is one of those
+  /// indicated by the LegalMask (a bitmask of allowed kinds).  If the
+  /// input Operand is known to already meet the constraints, it may be
+  /// simply returned as the result, without creating any new
+  /// instructions or operands.
   enum OperandLegalization {
     Legal_None = 0,
     Legal_Reg = 1 << 0, // physical register, not stack location
@@ -228,11 +229,11 @@ protected:
   Operand *legalize(Operand *From, LegalMask Allowed = Legal_All,
                     int32_t RegNum = Variable::NoRegister);
   Variable *legalizeToVar(Operand *From, int32_t RegNum = Variable::NoRegister);
-  // Legalize the first source operand for use in the cmp instruction.
+  /// Legalize the first source operand for use in the cmp instruction.
   Operand *legalizeSrc0ForCmp(Operand *Src0, Operand *Src1);
-  // Turn a pointer operand into a memory operand that can be
-  // used by a real load/store operation. Legalizes the operand as well.
-  // This is a nop if the operand is already a legal memory operand.
+  /// Turn a pointer operand into a memory operand that can be
+  /// used by a real load/store operation. Legalizes the operand as well.
+  /// This is a nop if the operand is already a legal memory operand.
   OperandX8632Mem *formMemoryOperand(Operand *Ptr, Type Ty,
                                      bool DoLegalize = true);
 
@@ -241,7 +242,7 @@ protected:
 
   Variable *copyToReg(Operand *Src, int32_t RegNum = Variable::NoRegister);
 
-  // Returns a vector in a register with the given constant entries.
+  /// Returns a vector in a register with the given constant entries.
   Variable *makeVectorOfZeros(Type Ty, int32_t RegNum = Variable::NoRegister);
   Variable *makeVectorOfOnes(Type Ty, int32_t RegNum = Variable::NoRegister);
   Variable *makeVectorOfMinusOnes(Type Ty,
@@ -251,7 +252,7 @@ protected:
   Variable *makeVectorOfFabsMask(Type Ty,
                                  int32_t RegNum = Variable::NoRegister);
 
-  // Return a memory operand corresponding to a stack allocated Variable.
+  /// Return a memory operand corresponding to a stack allocated Variable.
   OperandX8632Mem *getMemoryOperandForStackSlot(Type Ty, Variable *Slot,
                                                 uint32_t Offset = 0);
 
@@ -260,9 +261,9 @@ protected:
       const llvm::SmallBitVector &ExcludeRegisters) const override;
 
   // TODO(jpp): move the helper methods below to the MachineTraits.
-  // The following are helpers that insert lowered x86 instructions
-  // with minimal syntactic overhead, so that the lowering code can
-  // look as close to assembly as practical.
+  /// The following are helpers that insert lowered x86 instructions
+  /// with minimal syntactic overhead, so that the lowering code can
+  /// look as close to assembly as practical.
   void _adc(Variable *Dest, Operand *Src0) {
     Context.insert(InstX8632Adc::create(Func, Dest, Src0));
   }
@@ -385,9 +386,9 @@ protected:
     Context.insert(InstX8632Lea::create(Func, Dest, Src0));
   }
   void _mfence() { Context.insert(InstX8632Mfence::create(Func)); }
-  // If Dest=nullptr is passed in, then a new variable is created,
-  // marked as infinite register allocation weight, and returned
-  // through the in/out Dest argument.
+  /// If Dest=nullptr is passed in, then a new variable is created,
+  /// marked as infinite register allocation weight, and returned
+  /// through the in/out Dest argument.
   void _mov(Variable *&Dest, Operand *Src0,
             int32_t RegNum = Variable::NoRegister) {
     if (Dest == nullptr)
@@ -601,7 +602,7 @@ protected:
   VarList PhysicalRegisters[IceType_NUM];
   static IceString RegNames[];
 
-  // Randomize a given immediate operand
+  /// Randomize a given immediate operand
   Operand *randomizeOrPoolImmediate(Constant *Immediate,
                                     int32_t RegNum = Variable::NoRegister);
   OperandX8632Mem *

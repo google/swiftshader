@@ -14,9 +14,10 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file implements the Assembler class for x86-32.
-//
+///
+/// \file
+/// This file implements the Assembler class for x86-32.
+///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICEASSEMBLERX8632_H

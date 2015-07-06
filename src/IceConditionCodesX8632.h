@@ -6,9 +6,10 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file declares the condition codes for x86-32.
-//
+///
+/// \file
+/// This file declares the condition codes for x86-32.
+///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICECONDITIONCODESX8632_H
@@ -25,8 +26,8 @@ class CondX86 {
   CondX86 &operator=(const CondX86 &) = delete;
 
 public:
-  // An enum of condition codes used for branches and cmov. The enum value
-  // should match the value used to encode operands in binary instructions.
+  /// An enum of condition codes used for branches and cmov. The enum value
+  /// should match the value used to encode operands in binary instructions.
   enum BrCond {
 #define X(tag, encode, opp, dump, emit) tag encode,
     ICEINSTX8632BR_TABLE
@@ -34,9 +35,9 @@ public:
         Br_None
   };
 
-  // An enum of condition codes relevant to the CMPPS instruction. The enum
-  // value should match the value used to encode operands in binary
-  // instructions.
+  /// An enum of condition codes relevant to the CMPPS instruction. The enum
+  /// value should match the value used to encode operands in binary
+  /// instructions.
   enum CmppsCond {
 #define X(tag, emit) tag,
     ICEINSTX8632CMPPS_TABLE

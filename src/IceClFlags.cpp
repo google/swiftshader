@@ -6,11 +6,12 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file defines commandline flags parsing.
-// This currently relies on llvm::cl to parse.  In the future, the minimal
-// build can have a simpler parser.
-//
+///
+/// \file
+/// This file defines commandline flags parsing.
+/// This currently relies on llvm::cl to parse.  In the future, the minimal
+/// build can have a simpler parser.
+///
 //===----------------------------------------------------------------------===//
 
 #include "IceClFlags.h"

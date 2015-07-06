@@ -6,11 +6,12 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file implements the TargetLoweringX8632 class, which
-// consists almost entirely of the lowering sequence for each
-// high-level instruction.
-//
+///
+/// \file
+/// This file implements the TargetLoweringX8632 class, which
+/// consists almost entirely of the lowering sequence for each
+/// high-level instruction.
+///
 //===----------------------------------------------------------------------===//
 
 #include "IceTargetLoweringX8632.h"

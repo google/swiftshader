@@ -6,10 +6,11 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file defines aspects of the compilation that persist across
-// multiple functions.
-//
+///
+/// \file
+/// This file defines aspects of the compilation that persist across
+/// multiple functions.
+///
 //===----------------------------------------------------------------------===//
 
 #include "IceGlobalContext.h"

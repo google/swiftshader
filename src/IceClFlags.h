@@ -6,9 +6,10 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file declares command line flags controlling translation.
-//
+///
+/// \file
+/// This file declares command line flags controlling translation.
+///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICECLFLAGS_H

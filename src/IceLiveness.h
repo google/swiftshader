@@ -6,15 +6,16 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file declares the Liveness and LivenessNode classes,
-// which are used for liveness analysis.  The node-specific
-// information tracked for each Variable includes whether it is
-// live on entry, whether it is live on exit, the instruction number
-// that starts its live range, and the instruction number that ends
-// its live range.  At the Cfg level, the actual live intervals are
-// recorded.
-//
+///
+/// \file
+/// This file declares the Liveness and LivenessNode classes,
+/// which are used for liveness analysis.  The node-specific
+/// information tracked for each Variable includes whether it is
+/// live on entry, whether it is live on exit, the instruction number
+/// that starts its live range, and the instruction number that ends
+/// its live range.  At the Cfg level, the actual live intervals are
+/// recorded.
+///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICELIVENESS_H
@@ -37,12 +38,12 @@ class Liveness {
   public:
     LivenessNode() = default;
     LivenessNode(const LivenessNode &) = default;
-    // NumLocals is the number of Variables local to this block.
+    /// NumLocals is the number of Variables local to this block.
     SizeT NumLocals = 0;
-    // NumNonDeadPhis tracks the number of Phi instructions that
-    // Inst::liveness() identified as tentatively live.  If
-    // NumNonDeadPhis changes from the last liveness pass, then liveness
-    // has not yet converged.
+    /// NumNonDeadPhis tracks the number of Phi instructions that
+    /// Inst::liveness() identified as tentatively live.  If
+    /// NumNonDeadPhis changes from the last liveness pass, then liveness
+    /// has not yet converged.
     SizeT NumNonDeadPhis = 0;
     // LiveToVarMap maps a liveness bitvector index to a Variable.  This
     // is generally just for printing/dumping.  The index should be less
@@ -95,7 +96,7 @@ public:
   }
 
 private:
-  // Resize Nodes so that Nodes[Index] is valid.
+  /// Resize Nodes so that Nodes[Index] is valid.
   void resize(SizeT Index) {
     if (Index >= Nodes.size())
       Nodes.resize(Index + 1);
@@ -103,13 +104,13 @@ private:
   Cfg *Func;
   LivenessMode Mode;
   SizeT NumGlobals = 0;
-  // Size of Nodes is Cfg::Nodes.size().
+  /// Size of Nodes is Cfg::Nodes.size().
   std::vector<LivenessNode> Nodes;
-  // VarToLiveMap maps a Variable's Variable::Number to its live index
-  // within its basic block.
+  /// VarToLiveMap maps a Variable's Variable::Number to its live index
+  /// within its basic block.
   std::vector<SizeT> VarToLiveMap;
-  // LiveToVarMap is analogous to LivenessNode::LiveToVarMap, but for
-  // non-local variables.
+  /// LiveToVarMap is analogous to LivenessNode::LiveToVarMap, but for
+  /// non-local variables.
   std::vector<Variable *> LiveToVarMap;
 };
 

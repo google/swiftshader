@@ -6,11 +6,12 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file implements the TargetLoweringX86Base class, which
-// consists almost entirely of the lowering sequence for each
-// high-level instruction.
-//
+///
+/// \file
+/// This file implements the TargetLoweringX86Base class, which
+/// consists almost entirely of the lowering sequence for each
+/// high-level instruction.
+///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICETARGETLOWERINGX86BASEIMPL_H
@@ -34,8 +35,8 @@
 namespace Ice {
 namespace X86Internal {
 
-// A helper class to ease the settings of RandomizationPoolingPause
-// to disable constant blinding or pooling for some translation phases.
+/// A helper class to ease the settings of RandomizationPoolingPause
+/// to disable constant blinding or pooling for some translation phases.
 class BoolFlagSaver {
   BoolFlagSaver() = delete;
   BoolFlagSaver(const BoolFlagSaver &) = delete;
@@ -57,15 +58,15 @@ public:
   BoolFoldingEntry() = default;
   explicit BoolFoldingEntry(Inst *I);
   BoolFoldingEntry &operator=(const BoolFoldingEntry &) = default;
-  // Instr is the instruction producing the i1-type variable of interest.
+  /// Instr is the instruction producing the i1-type variable of interest.
   Inst *Instr = nullptr;
-  // IsComplex is the cached result of BoolFolding::hasComplexLowering(Instr).
+  /// IsComplex is the cached result of BoolFolding::hasComplexLowering(Instr).
   bool IsComplex = false;
-  // IsLiveOut is initialized conservatively to true, and is set to false when
-  // we encounter an instruction that ends Var's live range.  We disable the
-  // folding optimization when Var is live beyond this basic block.  Note that
-  // if liveness analysis is not performed (e.g. in Om1 mode), IsLiveOut will
-  // always be true and the folding optimization will never be performed.
+  /// IsLiveOut is initialized conservatively to true, and is set to false when
+  /// we encounter an instruction that ends Var's live range.  We disable the
+  /// folding optimization when Var is live beyond this basic block.  Note that
+  /// if liveness analysis is not performed (e.g. in Om1 mode), IsLiveOut will
+  /// always be true and the folding optimization will never be performed.
   bool IsLiveOut = true;
   // NumUses counts the number of times Var is used as a source operand in the
   // basic block.  If IsComplex is true and there is more than one use of Var,
@@ -83,10 +84,10 @@ public:
     PK_Trunc
   };
 
-  // Currently the actual enum values are not used (other than CK_None), but we
-  // go
-  // ahead and produce them anyway for symmetry with the
-  // BoolFoldingProducerKind.
+  /// Currently the actual enum values are not used (other than CK_None), but we
+  /// go
+  /// ahead and produce them anyway for symmetry with the
+  /// BoolFoldingProducerKind.
   enum BoolFoldingConsumerKind { CK_None, CK_Br, CK_Select, CK_Sext, CK_Zext };
 
 private:
@@ -103,13 +104,13 @@ public:
   void dump(const Cfg *Func) const;
 
 private:
-  // Returns true if Producers contains a valid entry for the given VarNum.
+  /// Returns true if Producers contains a valid entry for the given VarNum.
   bool containsValid(SizeT VarNum) const {
     auto Element = Producers.find(VarNum);
     return Element != Producers.end() && Element->second.Instr != nullptr;
   }
   void setInvalid(SizeT VarNum) { Producers[VarNum].Instr = nullptr; }
-  // Producers maps Variable::Number to a BoolFoldingEntry.
+  /// Producers maps Variable::Number to a BoolFoldingEntry.
   std::unordered_map<SizeT, BoolFoldingEntry<MachineTraits>> Producers;
 };
 
@@ -162,12 +163,12 @@ BoolFolding<MachineTraits>::getConsumerKind(const Inst *Instr) {
   return CK_None;
 }
 
-// Returns true if the producing instruction has a "complex" lowering
-// sequence.  This generally means that its lowering sequence requires
-// more than one conditional branch, namely 64-bit integer compares
-// and some floating-point compares.  When this is true, and there is
-// more than one consumer, we prefer to disable the folding
-// optimization because it minimizes branches.
+/// Returns true if the producing instruction has a "complex" lowering
+/// sequence.  This generally means that its lowering sequence requires
+/// more than one conditional branch, namely 64-bit integer compares
+/// and some floating-point compares.  When this is true, and there is
+/// more than one consumer, we prefer to disable the folding
+/// optimization because it minimizes branches.
 template <class MachineTraits>
 bool BoolFolding<MachineTraits>::hasComplexLowering(const Inst *Instr) {
   switch (getProducerKind(Instr)) {
@@ -610,11 +611,11 @@ uint64_t getConstantMemoryOrder(Operand *Opnd) {
   return Intrinsics::MemoryOrderInvalid;
 }
 
-// Determines whether the dest of a Load instruction can be folded
-// into one of the src operands of a 2-operand instruction.  This is
-// true as long as the load dest matches exactly one of the binary
-// instruction's src operands.  Replaces Src0 or Src1 with LoadSrc if
-// the answer is true.
+/// Determines whether the dest of a Load instruction can be folded
+/// into one of the src operands of a 2-operand instruction.  This is
+/// true as long as the load dest matches exactly one of the binary
+/// instruction's src operands.  Replaces Src0 or Src1 with LoadSrc if
+/// the answer is true.
 bool canFoldLoadIntoBinaryInst(Operand *LoadSrc, Variable *LoadDest,
                                Operand *&Src0, Operand *&Src1) {
   if (Src0 == LoadDest && Src1 != LoadDest) {
@@ -852,15 +853,15 @@ template <class Machine> void TargetX86Base<Machine>::lowerArguments() {
   }
 }
 
-// Helper function for addProlog().
-//
-// This assumes Arg is an argument passed on the stack.  This sets the
-// frame offset for Arg and updates InArgsSizeBytes according to Arg's
-// width.  For an I64 arg that has been split into Lo and Hi components,
-// it calls itself recursively on the components, taking care to handle
-// Lo first because of the little-endian architecture.  Lastly, this
-// function generates an instruction to copy Arg into its assigned
-// register if applicable.
+/// Helper function for addProlog().
+///
+/// This assumes Arg is an argument passed on the stack.  This sets the
+/// frame offset for Arg and updates InArgsSizeBytes according to Arg's
+/// width.  For an I64 arg that has been split into Lo and Hi components,
+/// it calls itself recursively on the components, taking care to handle
+/// Lo first because of the little-endian architecture.  Lastly, this
+/// function generates an instruction to copy Arg into its assigned
+/// register if applicable.
 template <class Machine>
 void TargetX86Base<Machine>::finishArgumentLowering(Variable *Arg,
                                                     Variable *FramePtr,
@@ -1347,12 +1348,12 @@ void TargetX86Base<Machine>::lowerAlloca(const InstAlloca *Inst) {
   _mov(Dest, esp);
 }
 
-// Strength-reduce scalar integer multiplication by a constant (for
-// i32 or narrower) for certain constants.  The lea instruction can be
-// used to multiply by 3, 5, or 9, and the lsh instruction can be used
-// to multiply by powers of 2.  These can be combined such that
-// e.g. multiplying by 100 can be done as 2 lea-based multiplies by 5,
-// combined with left-shifting by 2.
+/// Strength-reduce scalar integer multiplication by a constant (for
+/// i32 or narrower) for certain constants.  The lea instruction can be
+/// used to multiply by 3, 5, or 9, and the lsh instruction can be used
+/// to multiply by powers of 2.  These can be combined such that
+/// e.g. multiplying by 100 can be done as 2 lea-based multiplies by 5,
+/// combined with left-shifting by 2.
 template <class Machine>
 bool TargetX86Base<Machine>::optimizeScalarMul(Variable *Dest, Operand *Src0,
                                                int32_t Src1) {
@@ -2391,7 +2392,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
         _pcmpgt(T, Zeros);
         _movp(Dest, T);
       } else {
-        // width = width(elty) - 1; dest = (src << width) >> width
+        /// width = width(elty) - 1; dest = (src << width) >> width
         SizeT ShiftAmount =
             Traits::X86_CHAR_BIT * typeWidthInBytes(typeElementType(DestTy)) -
             1;
@@ -3939,10 +3940,10 @@ void TargetX86Base<Machine>::expandAtomicRMWAsCmpxchg(LowerBinOp Op_Lo,
   _mov(Dest, T_eax);
 }
 
-// Lowers count {trailing, leading} zeros intrinsic.
-//
-// We could do constant folding here, but that should have
-// been done by the front-end/middle-end optimizations.
+/// Lowers count {trailing, leading} zeros intrinsic.
+///
+/// We could do constant folding here, but that should have
+/// been done by the front-end/middle-end optimizations.
 template <class Machine>
 void TargetX86Base<Machine>::lowerCountZeros(bool Cttz, Type Ty, Variable *Dest,
                                              Operand *FirstVal,
@@ -4608,14 +4609,14 @@ void TargetX86Base<Machine>::scalarizeArithmetic(InstArithmetic::OpKind Kind,
   lowerAssign(InstAssign::create(Func, Dest, T));
 }
 
-// The following pattern occurs often in lowered C and C++ code:
-//
-//   %cmp     = fcmp/icmp pred <n x ty> %src0, %src1
-//   %cmp.ext = sext <n x i1> %cmp to <n x ty>
-//
-// We can eliminate the sext operation by copying the result of pcmpeqd,
-// pcmpgtd, or cmpps (which produce sign extended results) to the result
-// of the sext operation.
+/// The following pattern occurs often in lowered C and C++ code:
+///
+///   %cmp     = fcmp/icmp pred <n x ty> %src0, %src1
+///   %cmp.ext = sext <n x i1> %cmp to <n x ty>
+///
+/// We can eliminate the sext operation by copying the result of pcmpeqd,
+/// pcmpgtd, or cmpps (which produce sign extended results) to the result
+/// of the sext operation.
 template <class Machine>
 void TargetX86Base<Machine>::eliminateNextVectorSextInstruction(
     Variable *SignExtendedResult) {
@@ -4721,10 +4722,10 @@ void TargetX86Base<Machine>::lowerOther(const Inst *Instr) {
   }
 }
 
-// Turn an i64 Phi instruction into a pair of i32 Phi instructions, to
-// preserve integrity of liveness analysis.  Undef values are also
-// turned into zeroes, since loOperand() and hiOperand() don't expect
-// Undef input.
+/// Turn an i64 Phi instruction into a pair of i32 Phi instructions, to
+/// preserve integrity of liveness analysis.  Undef values are also
+/// turned into zeroes, since loOperand() and hiOperand() don't expect
+/// Undef input.
 template <class Machine> void TargetX86Base<Machine>::prelowerPhis() {
   // Pause constant blinding or pooling, blinding or pooling will be done later
   // during phi lowering assignments
@@ -4770,8 +4771,8 @@ bool isMemoryOperand(const Operand *Opnd) {
   return true;
 }
 
-// Lower the pre-ordered list of assignments into mov instructions.
-// Also has to do some ad-hoc register allocation as necessary.
+/// Lower the pre-ordered list of assignments into mov instructions.
+/// Also has to do some ad-hoc register allocation as necessary.
 template <class Machine>
 void TargetX86Base<Machine>::lowerPhiAssignments(
     CfgNode *Node, const AssignList &Assignments) {
@@ -4975,12 +4976,12 @@ Variable *TargetX86Base<Machine>::makeVectorOfHighOrderBits(Type Ty,
   }
 }
 
-// Construct a mask in a register that can be and'ed with a
-// floating-point value to mask off its sign bit.  The value will be
-// <4 x 0x7fffffff> for f32 and v4f32, and <2 x 0x7fffffffffffffff>
-// for f64.  Construct it as vector of ones logically right shifted
-// one bit.  TODO(stichnot): Fix the wala TODO above, to represent
-// vector constants in memory.
+/// Construct a mask in a register that can be and'ed with a
+/// floating-point value to mask off its sign bit.  The value will be
+/// <4 x 0x7fffffff> for f32 and v4f32, and <2 x 0x7fffffffffffffff>
+/// for f64.  Construct it as vector of ones logically right shifted
+/// one bit.  TODO(stichnot): Fix the wala TODO above, to represent
+/// vector constants in memory.
 template <class Machine>
 Variable *TargetX86Base<Machine>::makeVectorOfFabsMask(Type Ty,
                                                        int32_t RegNum) {
@@ -5007,8 +5008,8 @@ TargetX86Base<Machine>::getMemoryOperandForStackSlot(Type Ty, Variable *Slot,
   return OperandX8632Mem::create(Func, Ty, Loc, ConstantOffset);
 }
 
-// Helper for legalize() to emit the right code to lower an operand to a
-// register of the appropriate type.
+/// Helper for legalize() to emit the right code to lower an operand to a
+/// register of the appropriate type.
 template <class Machine>
 Variable *TargetX86Base<Machine>::copyToReg(Operand *Src, int32_t RegNum) {
   Type Ty = Src->getType();
@@ -5135,18 +5136,18 @@ Operand *TargetX86Base<Machine>::legalize(Operand *From, LegalMask Allowed,
   return From;
 }
 
-// Provide a trivial wrapper to legalize() for this common usage.
+/// Provide a trivial wrapper to legalize() for this common usage.
 template <class Machine>
 Variable *TargetX86Base<Machine>::legalizeToVar(Operand *From, int32_t RegNum) {
   return llvm::cast<Variable>(legalize(From, Legal_Reg, RegNum));
 }
 
-// For the cmp instruction, if Src1 is an immediate, or known to be a
-// physical register, we can allow Src0 to be a memory operand.
-// Otherwise, Src0 must be copied into a physical register.
-// (Actually, either Src0 or Src1 can be chosen for the physical
-// register, but unfortunately we have to commit to one or the other
-// before register allocation.)
+/// For the cmp instruction, if Src1 is an immediate, or known to be a
+/// physical register, we can allow Src0 to be a memory operand.
+/// Otherwise, Src0 must be copied into a physical register.
+/// (Actually, either Src0 or Src1 can be chosen for the physical
+/// register, but unfortunately we have to commit to one or the other
+/// before register allocation.)
 template <class Machine>
 Operand *TargetX86Base<Machine>::legalizeSrc0ForCmp(Operand *Src0,
                                                     Operand *Src1) {
@@ -5315,7 +5316,7 @@ void TargetX86Base<Machine>::emit(const ConstantUndef *) const {
   llvm::report_fatal_error("undef value encountered by emitter.");
 }
 
-// Randomize or pool an Immediate.
+/// Randomize or pool an Immediate.
 template <class Machine>
 Operand *TargetX86Base<Machine>::randomizeOrPoolImmediate(Constant *Immediate,
                                                           int32_t RegNum) {

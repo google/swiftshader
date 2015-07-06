@@ -6,9 +6,10 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file defines how ELF sections are represented.
-//
+///
+/// \file
+/// This file defines how ELF sections are represented.
+///
 //===----------------------------------------------------------------------===//
 
 #include "IceELFSection.h"

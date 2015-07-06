@@ -6,9 +6,10 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file defines the writer for ELF relocatable object files.
-//
+///
+/// \file
+/// This file defines the writer for ELF relocatable object files.
+///
 //===----------------------------------------------------------------------===//
 
 #include "IceELFObjectWriter.h"

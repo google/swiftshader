@@ -47,8 +47,8 @@ public:
   uint64_t getRawData() const { return Val; }
 
 private:
-  uint32_t BitWidth; // The number of bits in this APInt.
-  uint64_t Val;      // The (64-bit) equivalent integer value.
+  uint32_t BitWidth; /// The number of bits in this APInt.
+  uint64_t Val;      /// The (64-bit) equivalent integer value.
 
   /// Clear unused high order bits.
   void clearUnusedBits() {

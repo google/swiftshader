@@ -6,10 +6,11 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file implements the Inst class, primarily the various
-// subclass constructors and dump routines.
-//
+///
+/// \file
+/// This file implements the Inst class, primarily the various
+/// subclass constructors and dump routines.
+///
 //===----------------------------------------------------------------------===//
 
 #include "IceInst.h"

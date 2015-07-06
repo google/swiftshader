@@ -6,9 +6,10 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file declares some utility functions.
-//
+///
+/// \file
+/// This file declares some utility functions.
+///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICEUTILS_H
@@ -18,11 +19,11 @@
 
 namespace Ice {
 
-// Similar to bit_cast, but allows copying from types of unrelated
-// sizes. This method was introduced to enable the strict aliasing
-// optimizations of GCC 4.4. Basically, GCC mindlessly relies on
-// obscure details in the C++ standard that make reinterpret_cast
-// virtually useless.
+/// Similar to bit_cast, but allows copying from types of unrelated
+/// sizes. This method was introduced to enable the strict aliasing
+/// optimizations of GCC 4.4. Basically, GCC mindlessly relies on
+/// obscure details in the C++ standard that make reinterpret_cast
+/// virtually useless.
 template <class D, class S> inline D bit_copy(const S &source) {
   D destination;
   // This use of memcpy is safe: source and destination cannot overlap.
@@ -37,7 +38,7 @@ class Utils {
   Utils &operator=(const Utils &) = delete;
 
 public:
-  // Check whether an N-bit two's-complement representation can hold value.
+  /// Check whether an N-bit two's-complement representation can hold value.
   template <typename T> static inline bool IsInt(int N, T value) {
     assert((0 < N) &&
            (static_cast<unsigned int>(N) < (CHAR_BIT * sizeof(value))));
@@ -52,8 +53,8 @@ public:
     return (0 <= value) && (value < limit);
   }
 
-  // Check whether the magnitude of value fits in N bits, i.e., whether an
-  // (N+1)-bit sign-magnitude representation can hold value.
+  /// Check whether the magnitude of value fits in N bits, i.e., whether an
+  /// (N+1)-bit sign-magnitude representation can hold value.
   template <typename T> static inline bool IsAbsoluteUint(int N, T Value) {
     assert((0 < N) &&
            (static_cast<unsigned int>(N) < (CHAR_BIT * sizeof(Value))));
@@ -62,27 +63,27 @@ public:
     return IsUint(N, Value);
   }
 
-  // Return true if the addition X + Y will cause integer overflow for
-  // integers of type T.
+  /// Return true if the addition X + Y will cause integer overflow for
+  /// integers of type T.
   template <typename T> static inline bool WouldOverflowAdd(T X, T Y) {
     return ((X > 0 && Y > 0 && (X > std::numeric_limits<T>::max() - Y)) ||
             (X < 0 && Y < 0 && (X < std::numeric_limits<T>::min() - Y)));
   }
 
-  // Return true if X is already aligned by N, where N is a power of 2.
+  /// Return true if X is already aligned by N, where N is a power of 2.
   template <typename T> static inline bool IsAligned(T X, intptr_t N) {
     assert(llvm::isPowerOf2_64(N));
     return (X & (N - 1)) == 0;
   }
 
-  // Return Value adjusted to the next highest multiple of Alignment.
+  /// Return Value adjusted to the next highest multiple of Alignment.
   static inline uint32_t applyAlignment(uint32_t Value, uint32_t Alignment) {
     assert(llvm::isPowerOf2_32(Alignment));
     return (Value + Alignment - 1) & -Alignment;
   }
 
-  // Return amount which must be added to adjust Pos to the next highest
-  // multiple of Align.
+  /// Return amount which must be added to adjust Pos to the next highest
+  /// multiple of Align.
   static inline uint64_t OffsetToAlignment(uint64_t Pos, uint64_t Align) {
     assert(llvm::isPowerOf2_64(Align));
     uint64_t Mod = Pos & (Align - 1);
@@ -91,15 +92,15 @@ public:
     return Align - Mod;
   }
 
-  // Rotate the value bit pattern to the left by shift bits.
-  // Precondition: 0 <= shift < 32
+  /// Rotate the value bit pattern to the left by shift bits.
+  /// Precondition: 0 <= shift < 32
   static inline uint32_t rotateLeft32(uint32_t value, uint32_t shift) {
     if (shift == 0)
       return value;
     return (value << shift) | (value >> (32 - shift));
   }
 
-  // Rotate the value bit pattern to the right by shift bits.
+  /// Rotate the value bit pattern to the right by shift bits.
   static inline uint32_t rotateRight32(uint32_t value, uint32_t shift) {
     if (shift == 0)
       return value;

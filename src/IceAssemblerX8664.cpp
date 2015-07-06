@@ -6,9 +6,10 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file implements the Assembler class for x86-64.
-//
+///
+/// \file
+/// This file implements the Assembler class for x86-64.
+///
 //===----------------------------------------------------------------------===//
 
 #include "IceAssemblerX8664.h"

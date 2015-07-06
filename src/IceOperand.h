@@ -6,13 +6,14 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file declares the Operand class and its target-independent
-// subclasses.  The main classes are Variable, which represents an
-// LLVM variable that is either register- or stack-allocated, and the
-// Constant hierarchy, which represents integer, floating-point,
-// and/or symbolic constants.
-//
+///
+/// \file
+/// This file declares the Operand class and its target-independent
+/// subclasses.  The main classes are Variable, which represents an
+/// LLVM variable that is either register- or stack-allocated, and the
+/// Constant hierarchy, which represents integer, floating-point,
+/// and/or symbolic constants.
+///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICEOPERAND_H
@@ -55,18 +56,22 @@ public:
   OperandKind getKind() const { return Kind; }
   Type getType() const { return Ty; }
 
-  // Every Operand keeps an array of the Variables referenced in
-  // the operand.  This is so that the liveness operations can get
-  // quick access to the variables of interest, without having to dig
-  // so far into the operand.
+  /// Every Operand keeps an array of the Variables referenced in
+  /// the operand.  This is so that the liveness operations can get
+  /// quick access to the variables of interest, without having to dig
+  /// so far into the operand.
   SizeT getNumVars() const { return NumVars; }
   Variable *getVar(SizeT I) const {
     assert(I < getNumVars());
     return Vars[I];
   }
   virtual void emit(const Cfg *Func) const = 0;
-  // The dump(Func,Str) implementation must be sure to handle the
-  // situation where Func==nullptr.
+
+  /// \name Dumping functions.
+  /// @{
+
+  /// The dump(Func,Str) implementation must be sure to handle the
+  /// situation where Func==nullptr.
   virtual void dump(const Cfg *Func, Ostream &Str) const = 0;
   void dump(const Cfg *Func) const {
     if (!BuildDefs::dump())
@@ -78,6 +83,7 @@ public:
     if (BuildDefs::dump())
       dump(nullptr, Str);
   }
+  /// @}
 
 protected:
   Operand(OperandKind Kind, Type Ty) : Ty(Ty), Kind(Kind) {}
@@ -85,7 +91,7 @@ protected:
 
   const Type Ty;
   const OperandKind Kind;
-  // Vars and NumVars are initialized by the derived class.
+  /// Vars and NumVars are initialized by the derived class.
   SizeT NumVars = 0;
   Variable **Vars = nullptr;
 };
@@ -96,8 +102,8 @@ inline StreamType &operator<<(StreamType &Str, const Operand &Op) {
   return Str;
 }
 
-// Constant is the abstract base class for constants.  All
-// constants are allocated from a global arena and are pooled.
+/// Constant is the abstract base class for constants.  All
+/// constants are allocated from a global arena and are pooled.
 class Constant : public Operand {
   Constant() = delete;
   Constant(const Constant &) = delete;
@@ -115,9 +121,9 @@ public:
     return Kind >= kConst_Base && Kind <= kConst_Num;
   }
 
-  // Judge if this given immediate should be randomized or pooled
-  // By default should return false, only constant integers should
-  // truly go through this method.
+  /// Judge if this given immediate should be randomized or pooled
+  /// By default should return false, only constant integers should
+  /// truly go through this method.
   virtual bool shouldBeRandomizedOrPooled(const GlobalContext *Ctx) {
     (void)Ctx;
     return false;
@@ -133,16 +139,16 @@ protected:
     Vars = nullptr;
     NumVars = 0;
   }
-  // PoolEntryID is an integer that uniquely identifies the constant
-  // within its constant pool.  It is used for building the constant
-  // pool in the object code and for referencing its entries.
+  /// PoolEntryID is an integer that uniquely identifies the constant
+  /// within its constant pool.  It is used for building the constant
+  /// pool in the object code and for referencing its entries.
   const uint32_t PoolEntryID;
-  // Whether we should pool this constant. Usually Float/Double and pooled
-  // Integers should be flagged true.
+  /// Whether we should pool this constant. Usually Float/Double and pooled
+  /// Integers should be flagged true.
   bool shouldBePooled;
 };
 
-// ConstantPrimitive<> wraps a primitive type.
+/// ConstantPrimitive<> wraps a primitive type.
 template <typename T, Operand::OperandKind K>
 class ConstantPrimitive : public Constant {
   ConstantPrimitive() = delete;
@@ -198,7 +204,7 @@ inline void ConstantInteger32::dump(const Cfg *, Ostream &Str) const {
     Str << static_cast<int32_t>(getValue());
 }
 
-// Specialization of the template member function for ConstantInteger32
+/// Specialization of the template member function for ConstantInteger32
 template <>
 bool ConstantInteger32::shouldBeRandomizedOrPooled(const GlobalContext *Ctx);
 
@@ -210,10 +216,10 @@ inline void ConstantInteger64::dump(const Cfg *, Ostream &Str) const {
   Str << static_cast<int64_t>(getValue());
 }
 
-// RelocatableTuple bundles the parameters that are used to
-// construct an ConstantRelocatable.  It is done this way so that
-// ConstantRelocatable can fit into the global constant pool
-// template mechanism.
+/// RelocatableTuple bundles the parameters that are used to
+/// construct an ConstantRelocatable.  It is done this way so that
+/// ConstantRelocatable can fit into the global constant pool
+/// template mechanism.
 class RelocatableTuple {
   RelocatableTuple() = delete;
   RelocatableTuple &operator=(const RelocatableTuple &) = delete;
@@ -231,8 +237,8 @@ public:
 
 bool operator==(const RelocatableTuple &A, const RelocatableTuple &B);
 
-// ConstantRelocatable represents a symbolic constant combined with
-// a fixed offset.
+/// ConstantRelocatable represents a symbolic constant combined with
+/// a fixed offset.
 class ConstantRelocatable : public Constant {
   ConstantRelocatable() = delete;
   ConstantRelocatable(const ConstantRelocatable &) = delete;
@@ -268,14 +274,14 @@ private:
                       bool SuppressMangling, uint32_t PoolEntryID)
       : Constant(kConstRelocatable, Ty, PoolEntryID), Offset(Offset),
         Name(Name), SuppressMangling(SuppressMangling) {}
-  const RelocOffsetT Offset; // fixed offset to add
-  const IceString Name;      // optional for debug/dump
+  const RelocOffsetT Offset; /// fixed offset to add
+  const IceString Name;      /// optional for debug/dump
   bool SuppressMangling;
 };
 
-// ConstantUndef represents an unspecified bit pattern. Although it is
-// legal to lower ConstantUndef to any value, backends should try to
-// make code generation deterministic by lowering ConstantUndefs to 0.
+/// ConstantUndef represents an unspecified bit pattern. Although it is
+/// legal to lower ConstantUndef to any value, backends should try to
+/// make code generation deterministic by lowering ConstantUndefs to 0.
 class ConstantUndef : public Constant {
   ConstantUndef() = delete;
   ConstantUndef(const ConstantUndef &) = delete;
@@ -306,17 +312,17 @@ private:
       : Constant(kConstUndef, Ty, PoolEntryID) {}
 };
 
-// RegWeight is a wrapper for a uint32_t weight value, with a
-// special value that represents infinite weight, and an addWeight()
-// method that ensures that W+infinity=infinity.
+/// RegWeight is a wrapper for a uint32_t weight value, with a
+/// special value that represents infinite weight, and an addWeight()
+/// method that ensures that W+infinity=infinity.
 class RegWeight {
 public:
   RegWeight() = default;
   explicit RegWeight(uint32_t Weight) : Weight(Weight) {}
   RegWeight(const RegWeight &) = default;
   RegWeight &operator=(const RegWeight &) = default;
-  const static uint32_t Inf = ~0; // Force regalloc to give a register
-  const static uint32_t Zero = 0; // Force regalloc NOT to give a register
+  const static uint32_t Inf = ~0; /// Force regalloc to give a register
+  const static uint32_t Zero = 0; /// Force regalloc NOT to give a register
   void addWeight(uint32_t Delta) {
     if (Delta == Inf)
       Weight = Inf;
@@ -337,17 +343,17 @@ bool operator<(const RegWeight &A, const RegWeight &B);
 bool operator<=(const RegWeight &A, const RegWeight &B);
 bool operator==(const RegWeight &A, const RegWeight &B);
 
-// LiveRange is a set of instruction number intervals representing
-// a variable's live range.  Generally there is one interval per basic
-// block where the variable is live, but adjacent intervals get
-// coalesced into a single interval.  LiveRange also includes a
-// weight, in case e.g. we want a live range to have higher weight
-// inside a loop.
+/// LiveRange is a set of instruction number intervals representing
+/// a variable's live range.  Generally there is one interval per basic
+/// block where the variable is live, but adjacent intervals get
+/// coalesced into a single interval.  LiveRange also includes a
+/// weight, in case e.g. we want a live range to have higher weight
+/// inside a loop.
 class LiveRange {
 public:
   LiveRange() = default;
-  // Special constructor for building a kill set.  The advantage is
-  // that we can reserve the right amount of space in advance.
+  /// Special constructor for building a kill set.  The advantage is
+  /// that we can reserve the right amount of space in advance.
   explicit LiveRange(const std::vector<InstNumberT> &Kills) {
     Range.reserve(Kills.size());
     for (InstNumberT I : Kills)
@@ -382,27 +388,27 @@ public:
 
 private:
   typedef std::pair<InstNumberT, InstNumberT> RangeElementType;
-  // RangeType is arena-allocated from the Cfg's allocator.
+  /// RangeType is arena-allocated from the Cfg's allocator.
   typedef std::vector<RangeElementType, CfgLocalAllocator<RangeElementType>>
       RangeType;
   RangeType Range;
   RegWeight Weight = RegWeight(0);
-  // TrimmedBegin is an optimization for the overlaps() computation.
-  // Since the linear-scan algorithm always calls it as overlaps(Cur)
-  // and Cur advances monotonically according to live range start, we
-  // can optimize overlaps() by ignoring all segments that end before
-  // the start of Cur's range.  The linear-scan code enables this by
-  // calling trim() on the ranges of interest as Cur advances.  Note
-  // that linear-scan also has to initialize TrimmedBegin at the
-  // beginning by calling untrim().
+  /// TrimmedBegin is an optimization for the overlaps() computation.
+  /// Since the linear-scan algorithm always calls it as overlaps(Cur)
+  /// and Cur advances monotonically according to live range start, we
+  /// can optimize overlaps() by ignoring all segments that end before
+  /// the start of Cur's range.  The linear-scan code enables this by
+  /// calling trim() on the ranges of interest as Cur advances.  Note
+  /// that linear-scan also has to initialize TrimmedBegin at the
+  /// beginning by calling untrim().
   RangeType::const_iterator TrimmedBegin;
 };
 
 Ostream &operator<<(Ostream &Str, const LiveRange &L);
 
-// Variable represents an operand that is register-allocated or
-// stack-allocated.  If it is register-allocated, it will ultimately
-// have a non-negative RegNum field.
+/// Variable represents an operand that is register-allocated or
+/// stack-allocated.  If it is register-allocated, it will ultimately
+/// have a non-negative RegNum field.
 class Variable : public Operand {
   Variable() = delete;
   Variable(const Variable &) = delete;
@@ -486,11 +492,11 @@ public:
     LoVar = Lo;
     HiVar = Hi;
   }
-  // Creates a temporary copy of the variable with a different type.
-  // Used primarily for syntactic correctness of textual assembly
-  // emission.  Note that only basic information is copied, in
-  // particular not IsArgument, IsImplicitArgument, IgnoreLiveness,
-  // RegNumTmp, Weight, Live, LoVar, HiVar, VarsReal.
+  /// Creates a temporary copy of the variable with a different type.
+  /// Used primarily for syntactic correctness of textual assembly
+  /// emission.  Note that only basic information is copied, in
+  /// particular not IsArgument, IsImplicitArgument, IgnoreLiveness,
+  /// RegNumTmp, Weight, Live, LoVar, HiVar, VarsReal.
   Variable *asType(Type Ty);
 
   void emit(const Cfg *Func) const override;
@@ -509,23 +515,23 @@ protected:
     Vars[0] = this;
     NumVars = 1;
   }
-  // Number is unique across all variables, and is used as a
-  // (bit)vector index for liveness analysis.
+  /// Number is unique across all variables, and is used as a
+  /// (bit)vector index for liveness analysis.
   const SizeT Number;
   Cfg::IdentifierIndexType NameIndex = Cfg::IdentifierIndexInvalid;
   bool IsArgument = false;
   bool IsImplicitArgument = false;
-  // IgnoreLiveness means that the variable should be ignored when
-  // constructing and validating live ranges.  This is usually
-  // reserved for the stack pointer.
+  /// IgnoreLiveness means that the variable should be ignored when
+  /// constructing and validating live ranges.  This is usually
+  /// reserved for the stack pointer.
   bool IgnoreLiveness = false;
-  // StackOffset is the canonical location on stack (only if
-  // RegNum==NoRegister || IsArgument).
+  /// StackOffset is the canonical location on stack (only if
+  /// RegNum==NoRegister || IsArgument).
   int32_t StackOffset = 0;
-  // RegNum is the allocated register, or NoRegister if it isn't
-  // register-allocated.
+  /// RegNum is the allocated register, or NoRegister if it isn't
+  /// register-allocated.
   int32_t RegNum = NoRegister;
-  // RegNumTmp is the tentative assignment during register allocation.
+  /// RegNumTmp is the tentative assignment during register allocation.
   int32_t RegNumTmp = NoRegister;
   RegWeight Weight = RegWeight(1); // Register allocation priority
   LiveRange Live;
@@ -538,20 +544,20 @@ protected:
   // wasteful for a 64-bit target.
   Variable *LoVar = nullptr;
   Variable *HiVar = nullptr;
-  // VarsReal (and Operand::Vars) are set up such that Vars[0] ==
-  // this.
+  /// VarsReal (and Operand::Vars) are set up such that Vars[0] ==
+  /// this.
   Variable *VarsReal[1];
 };
 
 enum MetadataKind {
-  VMK_Uses,       // Track only uses, not defs
-  VMK_SingleDefs, // Track uses+defs, but only record single def
-  VMK_All         // Track uses+defs, including full def list
+  VMK_Uses,       /// Track only uses, not defs
+  VMK_SingleDefs, /// Track uses+defs, but only record single def
+  VMK_All         /// Track uses+defs, including full def list
 };
 typedef std::vector<const Inst *, CfgLocalAllocator<const Inst *>> InstDefList;
 
-// VariableTracking tracks the metadata for a single variable.  It is
-// only meant to be used internally by VariablesMetadata.
+/// VariableTracking tracks the metadata for a single variable.  It is
+/// only meant to be used internally by VariablesMetadata.
 class VariableTracking {
   VariableTracking &operator=(const VariableTracking &) = delete;
 
@@ -582,15 +588,15 @@ private:
   MultiBlockState MultiBlock = MBS_Unknown;
   const CfgNode *SingleUseNode = nullptr;
   const CfgNode *SingleDefNode = nullptr;
-  // All definitions of the variable are collected here, in increasing
-  // order of instruction number.
-  InstDefList Definitions; // Only used if Kind==VMK_All
+  /// All definitions of the variable are collected here, in increasing
+  /// order of instruction number.
+  InstDefList Definitions; /// Only used if Kind==VMK_All
   const Inst *FirstOrSingleDefinition =
-      nullptr; // Is a copy of Definitions[0] if Kind==VMK_All
+      nullptr; /// Is a copy of Definitions[0] if Kind==VMK_All
 };
 
-// VariablesMetadata analyzes and summarizes the metadata for the
-// complete set of Variables.
+/// VariablesMetadata analyzes and summarizes the metadata for the
+/// complete set of Variables.
 class VariablesMetadata {
   VariablesMetadata() = delete;
   VariablesMetadata(const VariablesMetadata &) = delete;
@@ -598,47 +604,47 @@ class VariablesMetadata {
 
 public:
   explicit VariablesMetadata(const Cfg *Func) : Func(Func) {}
-  // Initialize the state by traversing all instructions/variables in
-  // the CFG.
+  /// Initialize the state by traversing all instructions/variables in
+  /// the CFG.
   void init(MetadataKind TrackingKind);
-  // Add a single node.  This is called by init(), and can be called
-  // incrementally from elsewhere, e.g. after edge-splitting.
+  /// Add a single node.  This is called by init(), and can be called
+  /// incrementally from elsewhere, e.g. after edge-splitting.
   void addNode(CfgNode *Node);
-  // Returns whether the given Variable is tracked in this object.  It
-  // should only return false if changes were made to the CFG after
-  // running init(), in which case the state is stale and the results
-  // shouldn't be trusted (but it may be OK e.g. for dumping).
+  /// Returns whether the given Variable is tracked in this object.  It
+  /// should only return false if changes were made to the CFG after
+  /// running init(), in which case the state is stale and the results
+  /// shouldn't be trusted (but it may be OK e.g. for dumping).
   bool isTracked(const Variable *Var) const {
     return Var->getIndex() < Metadata.size();
   }
 
-  // Returns whether the given Variable has multiple definitions.
+  /// Returns whether the given Variable has multiple definitions.
   bool isMultiDef(const Variable *Var) const;
-  // Returns the first definition instruction of the given Variable.
-  // This is only valid for variables whose definitions are all within
-  // the same block, e.g. T after the lowered sequence "T=B; T+=C;
-  // A=T", for which getFirstDefinition(T) would return the "T=B"
-  // instruction.  For variables with definitions span multiple
-  // blocks, nullptr is returned.
+  /// Returns the first definition instruction of the given Variable.
+  /// This is only valid for variables whose definitions are all within
+  /// the same block, e.g. T after the lowered sequence "T=B; T+=C;
+  /// A=T", for which getFirstDefinition(T) would return the "T=B"
+  /// instruction.  For variables with definitions span multiple
+  /// blocks, nullptr is returned.
   const Inst *getFirstDefinition(const Variable *Var) const;
-  // Returns the definition instruction of the given Variable, when
-  // the variable has exactly one definition.  Otherwise, nullptr is
-  // returned.
+  /// Returns the definition instruction of the given Variable, when
+  /// the variable has exactly one definition.  Otherwise, nullptr is
+  /// returned.
   const Inst *getSingleDefinition(const Variable *Var) const;
-  // Returns the list of all definition instructions of the given
-  // Variable.
+  /// Returns the list of all definition instructions of the given
+  /// Variable.
   const InstDefList &getLatterDefinitions(const Variable *Var) const;
 
-  // Returns whether the given Variable is live across multiple
-  // blocks.  Mainly, this is used to partition Variables into
-  // single-block versus multi-block sets for leveraging sparsity in
-  // liveness analysis, and for implementing simple stack slot
-  // coalescing.  As a special case, function arguments are always
-  // considered multi-block because they are live coming into the
-  // entry block.
+  /// Returns whether the given Variable is live across multiple
+  /// blocks.  Mainly, this is used to partition Variables into
+  /// single-block versus multi-block sets for leveraging sparsity in
+  /// liveness analysis, and for implementing simple stack slot
+  /// coalescing.  As a special case, function arguments are always
+  /// considered multi-block because they are live coming into the
+  /// entry block.
   bool isMultiBlock(const Variable *Var) const;
-  // Returns the node that the given Variable is used in, assuming
-  // isMultiBlock() returns false.  Otherwise, nullptr is returned.
+  /// Returns the node that the given Variable is used in, assuming
+  /// isMultiBlock() returns false.  Otherwise, nullptr is returned.
   const CfgNode *getLocalUseNode(const Variable *Var) const;
 
 private:

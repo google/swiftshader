@@ -6,9 +6,10 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file declares generic fixup types.
-//
+///
+/// \file
+/// This file declares generic fixup types.
+///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICEFIXUPS_H
@@ -18,12 +19,12 @@
 
 namespace Ice {
 
-// Each target and container format has a different namespace of relocations.
-// This holds the specific target+container format's relocation number.
+/// Each target and container format has a different namespace of relocations.
+/// This holds the specific target+container format's relocation number.
 typedef uint32_t FixupKind;
 
-// Assembler fixups are positions in generated code/data that hold relocation
-// information that needs to be processed before finalizing the code/data.
+/// Assembler fixups are positions in generated code/data that hold relocation
+/// information that needs to be processed before finalizing the code/data.
 struct AssemblerFixup {
   AssemblerFixup &operator=(const AssemblerFixup &) = delete;
 

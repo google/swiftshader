@@ -6,10 +6,11 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file defines the entry point for translating PNaCl bitcode into
-// native code.
-//
+///
+/// \file
+/// This file defines the entry point for translating PNaCl bitcode into
+/// native code.
+///
 //===----------------------------------------------------------------------===//
 
 #include "IceBrowserCompileServer.h"

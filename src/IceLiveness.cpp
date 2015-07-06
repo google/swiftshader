@@ -6,17 +6,18 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file provides some of the support for the Liveness class.  In
-// particular, it handles the sparsity representation of the mapping
-// between Variables and CfgNodes.  The idea is that since most
-// variables are used only within a single basic block, we can
-// partition the variables into "local" and "global" sets.  Instead of
-// sizing and indexing vectors according to Variable::Number, we
-// create a mapping such that global variables are mapped to low
-// indexes that are common across nodes, and local variables are
-// mapped to a higher index space that is shared across nodes.
-//
+///
+/// \file
+/// This file provides some of the support for the Liveness class.  In
+/// particular, it handles the sparsity representation of the mapping
+/// between Variables and CfgNodes.  The idea is that since most
+/// variables are used only within a single basic block, we can
+/// partition the variables into "local" and "global" sets.  Instead of
+/// sizing and indexing vectors according to Variable::Number, we
+/// create a mapping such that global variables are mapped to low
+/// indexes that are common across nodes, and local variables are
+/// mapped to a higher index space that is shared across nodes.
+///
 //===----------------------------------------------------------------------===//
 
 #include "IceLiveness.h"

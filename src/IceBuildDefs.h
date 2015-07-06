@@ -6,9 +6,10 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file defines constexpr functions to query various #define values.
-//
+///
+/// \file
+/// This file defines constexpr functions to query various #define values.
+///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICEBUILDDEFS_H

@@ -14,9 +14,10 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file implements the Assembler class for ARM32.
-//
+///
+/// \file
+/// This file implements the Assembler class for ARM32.
+///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICEASSEMBLERARM32_H

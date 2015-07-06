@@ -6,9 +6,10 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file declares the LLVM to ICE converter.
-//
+///
+/// \file
+/// This file declares the LLVM to ICE converter.
+///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICECONVERTER_H
@@ -41,8 +42,8 @@ public:
 
   llvm::Module *getModule() const { return Mod; }
 
-  // Returns the global declaration associated with the corresponding
-  // global value V. If no such global address, generates fatal error.
+  /// Returns the global declaration associated with the corresponding
+  /// global value V. If no such global address, generates fatal error.
   GlobalDeclaration *getGlobalDeclaration(const llvm::GlobalValue *V);
 
 private:
@@ -51,22 +52,22 @@ private:
       GlobalDeclarationMapType;
   GlobalDeclarationMapType GlobalDeclarationMap;
 
-  // Walks module and generates names for unnamed globals using prefix
-  // getFlags().DefaultGlobalPrefix, if the prefix is non-empty.
+  /// Walks module and generates names for unnamed globals using prefix
+  /// getFlags().DefaultGlobalPrefix, if the prefix is non-empty.
   void nameUnnamedGlobalVariables(llvm::Module *Mod);
 
-  // Walks module and generates names for unnamed functions using
-  // prefix getFlags().DefaultFunctionPrefix, if the prefix is
-  // non-empty.
+  /// Walks module and generates names for unnamed functions using
+  /// prefix getFlags().DefaultFunctionPrefix, if the prefix is
+  /// non-empty.
   void nameUnnamedFunctions(llvm::Module *Mod);
 
-  // Converts functions to ICE, and then machine code.
+  /// Converts functions to ICE, and then machine code.
   void convertFunctions();
 
-  // Converts globals to ICE, and then machine code.
+  /// Converts globals to ICE, and then machine code.
   void convertGlobals(llvm::Module *Mod);
 
-  // Installs global declarations into GlobalDeclarationMap.
+  /// Installs global declarations into GlobalDeclarationMap.
   void installGlobalDeclarations(llvm::Module *Mod);
 };
 

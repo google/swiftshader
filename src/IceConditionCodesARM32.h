@@ -6,9 +6,10 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file declares the condition codes for ARM32.
-//
+///
+/// \file
+/// This file declares the condition codes for ARM32.
+///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICECONDITIONCODESARM32_H
@@ -25,8 +26,8 @@ class CondARM32 {
   CondARM32 &operator=(const CondARM32 &) = delete;
 
 public:
-  // An enum of codes used for conditional instructions. The enum value
-  // should match the value used to encode operands in binary instructions.
+  /// An enum of codes used for conditional instructions. The enum value
+  /// should match the value used to encode operands in binary instructions.
   enum Cond {
 #define X(tag, encode, opp, emit) tag = encode,
     ICEINSTARM32COND_TABLE

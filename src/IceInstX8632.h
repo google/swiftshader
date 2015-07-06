@@ -6,11 +6,12 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file declares the InstX8632 and OperandX8632 classes and
-// their subclasses.  This represents the machine instructions and
-// operands used for x86-32 code selection.
-//
+///
+/// \file
+/// This file declares the InstX8632 and OperandX8632 classes and
+/// their subclasses.  This represents the machine instructions and
+/// operands used for x86-32 code selection.
+///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICEINSTX8632_H
@@ -28,8 +29,8 @@ namespace Ice {
 
 class TargetX8632;
 
-// OperandX8632 extends the Operand hierarchy.  Its subclasses are
-// OperandX8632Mem and VariableSplit.
+/// OperandX8632 extends the Operand hierarchy.  Its subclasses are
+/// OperandX8632Mem and VariableSplit.
 class OperandX8632 : public Operand {
   OperandX8632() = delete;
   OperandX8632(const OperandX8632 &) = delete;
@@ -48,9 +49,9 @@ protected:
       : Operand(static_cast<OperandKind>(Kind), Ty) {}
 };
 
-// OperandX8632Mem represents the m32 addressing mode, with optional
-// base and index registers, a constant offset, and a fixed shift
-// value for the index register.
+/// OperandX8632Mem represents the m32 addressing mode, with optional
+/// base and index registers, a constant offset, and a fixed shift
+/// value for the index register.
 class OperandX8632Mem : public OperandX8632 {
   OperandX8632Mem() = delete;
   OperandX8632Mem(const OperandX8632Mem &) = delete;
@@ -99,18 +100,18 @@ private:
   Variable *Index;
   uint16_t Shift;
   SegmentRegisters SegmentReg : 16;
-  // A flag to show if this memory operand is a randomized one.
-  // Randomized memory operands are generated in
-  // TargetX8632::randomizeOrPoolImmediate()
+  /// A flag to show if this memory operand is a randomized one.
+  /// Randomized memory operands are generated in
+  /// TargetX8632::randomizeOrPoolImmediate()
   bool Randomized;
 };
 
-// VariableSplit is a way to treat an f64 memory location as a pair
-// of i32 locations (Low and High).  This is needed for some cases
-// of the Bitcast instruction.  Since it's not possible for integer
-// registers to access the XMM registers and vice versa, the
-// lowering forces the f64 to be spilled to the stack and then
-// accesses through the VariableSplit.
+/// VariableSplit is a way to treat an f64 memory location as a pair
+/// of i32 locations (Low and High).  This is needed for some cases
+/// of the Bitcast instruction.  Since it's not possible for integer
+/// registers to access the XMM registers and vice versa, the
+/// lowering forces the f64 to be spilled to the stack and then
+/// accesses through the VariableSplit.
 class VariableSplit : public OperandX8632 {
   VariableSplit() = delete;
   VariableSplit(const VariableSplit &) = delete;
@@ -145,11 +146,11 @@ private:
   Portion Part;
 };
 
-// SpillVariable decorates a Variable by linking it to another
-// Variable.  When stack frame offsets are computed, the SpillVariable
-// is given a distinct stack slot only if its linked Variable has a
-// register.  If the linked Variable has a stack slot, then the
-// Variable and SpillVariable share that slot.
+/// SpillVariable decorates a Variable by linking it to another
+/// Variable.  When stack frame offsets are computed, the SpillVariable
+/// is given a distinct stack slot only if its linked Variable has a
+/// register.  If the linked Variable has a stack slot, then the
+/// Variable and SpillVariable share that slot.
 class SpillVariable : public Variable {
   SpillVariable() = delete;
   SpillVariable(const SpillVariable &) = delete;
@@ -284,9 +285,9 @@ public:
   getOppositeCondition(X8632::Traits::Cond::BrCond Cond);
   void dump(const Cfg *Func) const override;
 
-  // Shared emit routines for common forms of instructions.
-  // See the definition of emitTwoAddress() for a description of
-  // ShiftHack.
+  /// Shared emit routines for common forms of instructions.
+  /// See the definition of emitTwoAddress() for a description of
+  /// ShiftHack.
   static void emitTwoAddress(const char *Opcode, const Inst *Inst,
                              const Cfg *Func, bool ShiftHack = false);
 
@@ -302,16 +303,16 @@ protected:
   static bool isClassof(const Inst *Inst, InstKindX8632 MyKind) {
     return Inst->getKind() == static_cast<InstKind>(MyKind);
   }
-  // Most instructions that operate on vector arguments require vector
-  // memory operands to be fully aligned (16-byte alignment for PNaCl
-  // vector types).  The stack frame layout and call ABI ensure proper
-  // alignment for stack operands, but memory operands (originating
-  // from load/store bitcode instructions) only have element-size
-  // alignment guarantees.  This function validates that none of the
-  // operands is a memory operand of vector type, calling
-  // report_fatal_error() if one is found.  This function should be
-  // called during emission, and maybe also in the ctor (as long as
-  // that fits the lowering style).
+  /// Most instructions that operate on vector arguments require vector
+  /// memory operands to be fully aligned (16-byte alignment for PNaCl
+  /// vector types).  The stack frame layout and call ABI ensure proper
+  /// alignment for stack operands, but memory operands (originating
+  /// from load/store bitcode instructions) only have element-size
+  /// alignment guarantees.  This function validates that none of the
+  /// operands is a memory operand of vector type, calling
+  /// report_fatal_error() if one is found.  This function should be
+  /// called during emission, and maybe also in the ctor (as long as
+  /// that fits the lowering style).
   void validateVectorAddrMode() const {
     if (getDest())
       validateVectorAddrModeOpnd(getDest());
@@ -328,12 +329,12 @@ private:
   }
 };
 
-// InstX8632FakeRMW represents a non-atomic read-modify-write operation on a
-// memory location.  An InstX8632FakeRMW is a "fake" instruction in that it
-// still needs to be lowered to some actual RMW instruction.
-//
-// If A is some memory address, D is some data value to apply, and OP is an
-// arithmetic operator, the instruction operates as: (*A) = (*A) OP D
+/// InstX8632FakeRMW represents a non-atomic read-modify-write operation on a
+/// memory location.  An InstX8632FakeRMW is a "fake" instruction in that it
+/// still needs to be lowered to some actual RMW instruction.
+///
+/// If A is some memory address, D is some data value to apply, and OP is an
+/// arithmetic operator, the instruction operates as: (*A) = (*A) OP D
 class InstX8632FakeRMW : public InstX8632 {
   InstX8632FakeRMW() = delete;
   InstX8632FakeRMW(const InstX8632FakeRMW &) = delete;
@@ -361,44 +362,44 @@ private:
                    InstArithmetic::OpKind Op, Variable *Beacon);
 };
 
-// InstX8632Label represents an intra-block label that is the target
-// of an intra-block branch.  The offset between the label and the
-// branch must be fit into one byte (considered "near").  These are
-// used for lowering i1 calculations, Select instructions, and 64-bit
-// compares on a 32-bit architecture, without basic block splitting.
-// Basic block splitting is not so desirable for several reasons, one
-// of which is the impact on decisions based on whether a variable's
-// live range spans multiple basic blocks.
-//
-// Intra-block control flow must be used with caution.  Consider the
-// sequence for "c = (a >= b ? x : y)".
-//     cmp a, b
-//     br lt, L1
-//     mov c, x
-//     jmp L2
-//   L1:
-//     mov c, y
-//   L2:
-//
-// Labels L1 and L2 are intra-block labels.  Without knowledge of the
-// intra-block control flow, liveness analysis will determine the "mov
-// c, x" instruction to be dead.  One way to prevent this is to insert
-// a "FakeUse(c)" instruction anywhere between the two "mov c, ..."
-// instructions, e.g.:
-//
-//     cmp a, b
-//     br lt, L1
-//     mov c, x
-//     jmp L2
-//     FakeUse(c)
-//   L1:
-//     mov c, y
-//   L2:
-//
-// The down-side is that "mov c, x" can never be dead-code eliminated
-// even if there are no uses of c.  As unlikely as this situation is,
-// it may be prevented by running dead code elimination before
-// lowering.
+/// InstX8632Label represents an intra-block label that is the target
+/// of an intra-block branch.  The offset between the label and the
+/// branch must be fit into one byte (considered "near").  These are
+/// used for lowering i1 calculations, Select instructions, and 64-bit
+/// compares on a 32-bit architecture, without basic block splitting.
+/// Basic block splitting is not so desirable for several reasons, one
+/// of which is the impact on decisions based on whether a variable's
+/// live range spans multiple basic blocks.
+///
+/// Intra-block control flow must be used with caution.  Consider the
+/// sequence for "c = (a >= b ? x : y)".
+///     cmp a, b
+///     br lt, L1
+///     mov c, x
+///     jmp L2
+///   L1:
+///     mov c, y
+///   L2:
+///
+/// Labels L1 and L2 are intra-block labels.  Without knowledge of the
+/// intra-block control flow, liveness analysis will determine the "mov
+/// c, x" instruction to be dead.  One way to prevent this is to insert
+/// a "FakeUse(c)" instruction anywhere between the two "mov c, ..."
+/// instructions, e.g.:
+///
+///     cmp a, b
+///     br lt, L1
+///     mov c, x
+///     jmp L2
+///     FakeUse(c)
+///   L1:
+///     mov c, y
+///   L2:
+///
+/// The down-side is that "mov c, x" can never be dead-code eliminated
+/// even if there are no uses of c.  As unlikely as this situation is,
+/// it may be prevented by running dead code elimination before
+/// lowering.
 class InstX8632Label : public InstX8632 {
   InstX8632Label() = delete;
   InstX8632Label(const InstX8632Label &) = delete;
@@ -418,17 +419,17 @@ public:
 private:
   InstX8632Label(Cfg *Func, TargetX8632 *Target);
 
-  SizeT Number; // used for unique label generation.
+  SizeT Number; /// used for unique label generation.
 };
 
-// Conditional and unconditional branch instruction.
+/// Conditional and unconditional branch instruction.
 class InstX8632Br : public InstX8632 {
   InstX8632Br() = delete;
   InstX8632Br(const InstX8632Br &) = delete;
   InstX8632Br &operator=(const InstX8632Br &) = delete;
 
 public:
-  // Create a conditional branch to a node.
+  /// Create a conditional branch to a node.
   static InstX8632Br *create(Cfg *Func, CfgNode *TargetTrue,
                              CfgNode *TargetFalse,
                              X8632::Traits::Cond::BrCond Condition) {
@@ -437,16 +438,16 @@ public:
     return new (Func->allocate<InstX8632Br>())
         InstX8632Br(Func, TargetTrue, TargetFalse, NoLabel, Condition);
   }
-  // Create an unconditional branch to a node.
+  /// Create an unconditional branch to a node.
   static InstX8632Br *create(Cfg *Func, CfgNode *Target) {
     const CfgNode *NoCondTarget = nullptr;
     const InstX8632Label *NoLabel = nullptr;
     return new (Func->allocate<InstX8632Br>()) InstX8632Br(
         Func, NoCondTarget, Target, NoLabel, X8632::Traits::Cond::Br_None);
   }
-  // Create a non-terminator conditional branch to a node, with a
-  // fallthrough to the next instruction in the current node.  This is
-  // used for switch lowering.
+  /// Create a non-terminator conditional branch to a node, with a
+  /// fallthrough to the next instruction in the current node.  This is
+  /// used for switch lowering.
   static InstX8632Br *create(Cfg *Func, CfgNode *Target,
                              X8632::Traits::Cond::BrCond Condition) {
     assert(Condition != X8632::Traits::Cond::Br_None);
@@ -455,8 +456,8 @@ public:
     return new (Func->allocate<InstX8632Br>())
         InstX8632Br(Func, Target, NoUncondTarget, NoLabel, Condition);
   }
-  // Create a conditional intra-block branch (or unconditional, if
-  // Condition==Br_None) to a label in the current block.
+  /// Create a conditional intra-block branch (or unconditional, if
+  /// Condition==Br_None) to a label in the current block.
   static InstX8632Br *create(Cfg *Func, InstX8632Label *Label,
                              X8632::Traits::Cond::BrCond Condition) {
     const CfgNode *NoCondTarget = nullptr;
@@ -494,12 +495,12 @@ private:
   X8632::Traits::Cond::BrCond Condition;
   const CfgNode *TargetTrue;
   const CfgNode *TargetFalse;
-  const InstX8632Label *Label; // Intra-block branch target
+  const InstX8632Label *Label; /// Intra-block branch target
 };
 
-// Jump to a target outside this function, such as tailcall, nacljump,
-// naclret, unreachable.  This is different from a Branch instruction
-// in that there is no intra-function control flow to represent.
+/// Jump to a target outside this function, such as tailcall, nacljump,
+/// naclret, unreachable.  This is different from a Branch instruction
+/// in that there is no intra-function control flow to represent.
 class InstX8632Jmp : public InstX8632 {
   InstX8632Jmp() = delete;
   InstX8632Jmp(const InstX8632Jmp &) = delete;
@@ -519,8 +520,8 @@ private:
   InstX8632Jmp(Cfg *Func, Operand *Target);
 };
 
-// AdjustStack instruction - subtracts esp by the given amount and
-// updates the stack offset during code emission.
+/// AdjustStack instruction - subtracts esp by the given amount and
+/// updates the stack offset during code emission.
 class InstX8632AdjustStack : public InstX8632 {
   InstX8632AdjustStack() = delete;
   InstX8632AdjustStack(const InstX8632AdjustStack &) = delete;
@@ -541,7 +542,7 @@ private:
   SizeT Amount;
 };
 
-// Call instruction.  Arguments should have already been pushed.
+/// Call instruction.  Arguments should have already been pushed.
 class InstX8632Call : public InstX8632 {
   InstX8632Call() = delete;
   InstX8632Call(const InstX8632Call &) = delete;
@@ -562,14 +563,14 @@ private:
   InstX8632Call(Cfg *Func, Variable *Dest, Operand *CallTarget);
 };
 
-// Emit a one-operand (GPR) instruction.
+/// Emit a one-operand (GPR) instruction.
 void emitIASOpTyGPR(const Cfg *Func, Type Ty, const Operand *Var,
                     const X8632::AssemblerX8632::GPREmitterOneOp &Emitter);
 void emitIASAsAddrOpTyGPR(
     const Cfg *Func, Type Ty, const Operand *Op0, const Operand *Op1,
     const X8632::AssemblerX8632::GPREmitterAddrOp &Emitter);
 
-// Instructions of the form x := op(x).
+/// Instructions of the form x := op(x).
 template <InstX8632::InstKindX8632 K>
 class InstX8632InplaceopGPR : public InstX8632 {
   InstX8632InplaceopGPR() = delete;
@@ -615,14 +616,14 @@ private:
   static const X8632::AssemblerX8632::GPREmitterOneOp Emitter;
 };
 
-// Emit a two-operand (GPR) instruction, where the dest operand is a
-// Variable that's guaranteed to be a register.
+/// Emit a two-operand (GPR) instruction, where the dest operand is a
+/// Variable that's guaranteed to be a register.
 template <bool VarCanBeByte = true, bool SrcCanBeByte = true>
 void emitIASRegOpTyGPR(const Cfg *Func, Type Ty, const Variable *Dst,
                        const Operand *Src,
                        const X8632::AssemblerX8632::GPREmitterRegOp &Emitter);
 
-// Instructions of the form x := op(y).
+/// Instructions of the form x := op(y).
 template <InstX8632::InstKindX8632 K>
 class InstX8632UnaryopGPR : public InstX8632 {
   InstX8632UnaryopGPR() = delete;
@@ -736,7 +737,7 @@ class InstX8632BinopGPRShift : public InstX8632 {
   InstX8632BinopGPRShift &operator=(const InstX8632BinopGPRShift &) = delete;
 
 public:
-  // Create a binary-op GPR shift instruction.
+  /// Create a binary-op GPR shift instruction.
   static InstX8632BinopGPRShift *create(Cfg *Func, Variable *Dest,
                                         Operand *Source) {
     return new (Func->allocate<InstX8632BinopGPRShift>())
@@ -781,7 +782,7 @@ class InstX8632BinopGPR : public InstX8632 {
   InstX8632BinopGPR &operator=(const InstX8632BinopGPR &) = delete;
 
 public:
-  // Create an ordinary binary-op instruction like add or sub.
+  /// Create an ordinary binary-op instruction like add or sub.
   static InstX8632BinopGPR *create(Cfg *Func, Variable *Dest, Operand *Source) {
     return new (Func->allocate<InstX8632BinopGPR>())
         InstX8632BinopGPR(Func, Dest, Source);
@@ -825,7 +826,7 @@ class InstX8632BinopRMW : public InstX8632 {
   InstX8632BinopRMW &operator=(const InstX8632BinopRMW &) = delete;
 
 public:
-  // Create an ordinary binary-op instruction like add or sub.
+  /// Create an ordinary binary-op instruction like add or sub.
   static InstX8632BinopRMW *create(Cfg *Func, OperandX8632Mem *DestSrc0,
                                    Operand *Src1) {
     return new (Func->allocate<InstX8632BinopRMW>())
@@ -868,7 +869,7 @@ class InstX8632BinopXmm : public InstX8632 {
   InstX8632BinopXmm &operator=(const InstX8632BinopXmm &) = delete;
 
 public:
-  // Create an XMM binary-op instruction like addss or addps.
+  /// Create an XMM binary-op instruction like addss or addps.
   static InstX8632BinopXmm *create(Cfg *Func, Variable *Dest, Operand *Source) {
     return new (Func->allocate<InstX8632BinopXmm>())
         InstX8632BinopXmm(Func, Dest, Source);
@@ -920,7 +921,7 @@ class InstX8632BinopXmmShift : public InstX8632 {
   InstX8632BinopXmmShift &operator=(const InstX8632BinopXmmShift &) = delete;
 
 public:
-  // Create an XMM binary-op shift operation.
+  /// Create an XMM binary-op shift operation.
   static InstX8632BinopXmmShift *create(Cfg *Func, Variable *Dest,
                                         Operand *Source) {
     return new (Func->allocate<InstX8632BinopXmmShift>())
@@ -968,7 +969,7 @@ template <InstX8632::InstKindX8632 K> class InstX8632Ternop : public InstX8632 {
   InstX8632Ternop &operator=(const InstX8632Ternop &) = delete;
 
 public:
-  // Create a ternary-op instruction like div or idiv.
+  /// Create a ternary-op instruction like div or idiv.
   static InstX8632Ternop *create(Cfg *Func, Variable *Dest, Operand *Source1,
                                  Operand *Source2) {
     return new (Func->allocate<InstX8632Ternop>())
@@ -1008,7 +1009,7 @@ private:
   static const char *Opcode;
 };
 
-// Instructions of the form x := y op z
+/// Instructions of the form x := y op z
 template <InstX8632::InstKindX8632 K>
 class InstX8632ThreeAddressop : public InstX8632 {
   InstX8632ThreeAddressop() = delete;
@@ -1055,7 +1056,7 @@ private:
   static const char *Opcode;
 };
 
-// Base class for assignment instructions
+/// Base class for assignment instructions
 template <InstX8632::InstKindX8632 K>
 class InstX8632Movlike : public InstX8632 {
   InstX8632Movlike() = delete;
@@ -1098,18 +1099,18 @@ typedef InstX8632InplaceopGPR<InstX8632::Neg> InstX8632Neg;
 typedef InstX8632UnaryopGPR<InstX8632::Bsf> InstX8632Bsf;
 typedef InstX8632UnaryopGPR<InstX8632::Bsr> InstX8632Bsr;
 typedef InstX8632UnaryopGPR<InstX8632::Lea> InstX8632Lea;
-// Cbwdq instruction - wrapper for cbw, cwd, and cdq
+/// Cbwdq instruction - wrapper for cbw, cwd, and cdq
 typedef InstX8632UnaryopGPR<InstX8632::Cbwdq> InstX8632Cbwdq;
 typedef InstX8632UnaryopGPR<InstX8632::Movsx> InstX8632Movsx;
 typedef InstX8632UnaryopGPR<InstX8632::Movzx> InstX8632Movzx;
 typedef InstX8632UnaryopXmm<InstX8632::Movd> InstX8632Movd;
 typedef InstX8632UnaryopXmm<InstX8632::Sqrtss> InstX8632Sqrtss;
-// Move/assignment instruction - wrapper for mov/movss/movsd.
+/// Move/assignment instruction - wrapper for mov/movss/movsd.
 typedef InstX8632Movlike<InstX8632::Mov> InstX8632Mov;
-// Move packed - copy 128 bit values between XMM registers, or mem128
-// and XMM registers.
+/// Move packed - copy 128 bit values between XMM registers, or mem128
+/// and XMM registers.
 typedef InstX8632Movlike<InstX8632::Movp> InstX8632Movp;
-// Movq - copy between XMM registers, or mem64 and XMM registers.
+/// Movq - copy between XMM registers, or mem64 and XMM registers.
 typedef InstX8632Movlike<InstX8632::Movq> InstX8632Movq;
 typedef InstX8632BinopGPR<InstX8632::Add> InstX8632Add;
 typedef InstX8632BinopRMW<InstX8632::AddRMW> InstX8632AddRMW;
@@ -1151,13 +1152,13 @@ typedef InstX8632BinopGPRShift<InstX8632::Sar> InstX8632Sar;
 typedef InstX8632BinopXmmShift<InstX8632::Psra> InstX8632Psra;
 typedef InstX8632BinopXmm<InstX8632::Pcmpeq, true> InstX8632Pcmpeq;
 typedef InstX8632BinopXmm<InstX8632::Pcmpgt, true> InstX8632Pcmpgt;
-// movss is only a binary operation when the source and dest
-// operands are both registers (the high bits of dest are left untouched).
-// In other cases, it behaves like a copy (mov-like) operation (and the
-// high bits of dest are cleared).
-// InstX8632Movss will assert that both its source and dest operands are
-// registers, so the lowering code should use _mov instead of _movss
-// in cases where a copy operation is intended.
+/// movss is only a binary operation when the source and dest
+/// operands are both registers (the high bits of dest are left untouched).
+/// In other cases, it behaves like a copy (mov-like) operation (and the
+/// high bits of dest are cleared).
+/// InstX8632Movss will assert that both its source and dest operands are
+/// registers, so the lowering code should use _mov instead of _movss
+/// in cases where a copy operation is intended.
 typedef InstX8632BinopXmm<InstX8632::MovssRegs, false> InstX8632MovssRegs;
 typedef InstX8632Ternop<InstX8632::Idiv> InstX8632Idiv;
 typedef InstX8632Ternop<InstX8632::Div> InstX8632Div;
@@ -1169,7 +1170,7 @@ typedef InstX8632Ternop<InstX8632::Pblendvb> InstX8632Pblendvb;
 typedef InstX8632ThreeAddressop<InstX8632::Pextr> InstX8632Pextr;
 typedef InstX8632ThreeAddressop<InstX8632::Pshufd> InstX8632Pshufd;
 
-// Base class for a lockable x86-32 instruction (emits a locked prefix).
+/// Base class for a lockable x86-32 instruction (emits a locked prefix).
 class InstX8632Lockable : public InstX8632 {
   InstX8632Lockable() = delete;
   InstX8632Lockable(const InstX8632Lockable &) = delete;
@@ -1187,7 +1188,7 @@ protected:
   }
 };
 
-// Mul instruction - unsigned multiply.
+/// Mul instruction - unsigned multiply.
 class InstX8632Mul : public InstX8632 {
   InstX8632Mul() = delete;
   InstX8632Mul(const InstX8632Mul &) = delete;
@@ -1208,7 +1209,7 @@ private:
   InstX8632Mul(Cfg *Func, Variable *Dest, Variable *Source1, Operand *Source2);
 };
 
-// Shld instruction - shift across a pair of operands.
+/// Shld instruction - shift across a pair of operands.
 class InstX8632Shld : public InstX8632 {
   InstX8632Shld() = delete;
   InstX8632Shld(const InstX8632Shld &) = delete;
@@ -1230,7 +1231,7 @@ private:
                 Variable *Source2);
 };
 
-// Shrd instruction - shift across a pair of operands.
+/// Shrd instruction - shift across a pair of operands.
 class InstX8632Shrd : public InstX8632 {
   InstX8632Shrd() = delete;
   InstX8632Shrd(const InstX8632Shrd &) = delete;
@@ -1252,7 +1253,7 @@ private:
                 Variable *Source2);
 };
 
-// Conditional move instruction.
+/// Conditional move instruction.
 class InstX8632Cmov : public InstX8632 {
   InstX8632Cmov() = delete;
   InstX8632Cmov(const InstX8632Cmov &) = delete;
@@ -1276,8 +1277,8 @@ private:
   X8632::Traits::Cond::BrCond Condition;
 };
 
-// Cmpps instruction - compare packed singled-precision floating point
-// values
+/// Cmpps instruction - compare packed singled-precision floating point
+/// values
 class InstX8632Cmpps : public InstX8632 {
   InstX8632Cmpps() = delete;
   InstX8632Cmpps(const InstX8632Cmpps &) = delete;
@@ -1301,11 +1302,11 @@ private:
   X8632::Traits::Cond::CmppsCond Condition;
 };
 
-// Cmpxchg instruction - cmpxchg <dest>, <desired> will compare if <dest>
-// equals eax. If so, the ZF is set and <desired> is stored in <dest>.
-// If not, ZF is cleared and <dest> is copied to eax (or subregister).
-// <dest> can be a register or memory, while <desired> must be a register.
-// It is the user's responsiblity to mark eax with a FakeDef.
+/// Cmpxchg instruction - cmpxchg <dest>, <desired> will compare if <dest>
+/// equals eax. If so, the ZF is set and <desired> is stored in <dest>.
+/// If not, ZF is cleared and <dest> is copied to eax (or subregister).
+/// <dest> can be a register or memory, while <desired> must be a register.
+/// It is the user's responsiblity to mark eax with a FakeDef.
 class InstX8632Cmpxchg : public InstX8632Lockable {
   InstX8632Cmpxchg() = delete;
   InstX8632Cmpxchg(const InstX8632Cmpxchg &) = delete;
@@ -1327,12 +1328,12 @@ private:
                    Variable *Desired, bool Locked);
 };
 
-// Cmpxchg8b instruction - cmpxchg8b <m64> will compare if <m64>
-// equals edx:eax. If so, the ZF is set and ecx:ebx is stored in <m64>.
-// If not, ZF is cleared and <m64> is copied to edx:eax.
-// The caller is responsible for inserting FakeDefs to mark edx
-// and eax as modified.
-// <m64> must be a memory operand.
+/// Cmpxchg8b instruction - cmpxchg8b <m64> will compare if <m64>
+/// equals edx:eax. If so, the ZF is set and ecx:ebx is stored in <m64>.
+/// If not, ZF is cleared and <m64> is copied to edx:eax.
+/// The caller is responsible for inserting FakeDefs to mark edx
+/// and eax as modified.
+/// <m64> must be a memory operand.
 class InstX8632Cmpxchg8b : public InstX8632Lockable {
   InstX8632Cmpxchg8b() = delete;
   InstX8632Cmpxchg8b(const InstX8632Cmpxchg8b &) = delete;
@@ -1355,10 +1356,10 @@ private:
                      Variable *Eax, Variable *Ecx, Variable *Ebx, bool Locked);
 };
 
-// Cvt instruction - wrapper for cvtsX2sY where X and Y are in {s,d,i}
-// as appropriate.  s=float, d=double, i=int.  X and Y are determined
-// from dest/src types.  Sign and zero extension on the integer
-// operand needs to be done separately.
+/// Cvt instruction - wrapper for cvtsX2sY where X and Y are in {s,d,i}
+/// as appropriate.  s=float, d=double, i=int.  X and Y are determined
+/// from dest/src types.  Sign and zero extension on the integer
+/// operand needs to be done separately.
 class InstX8632Cvt : public InstX8632 {
   InstX8632Cvt() = delete;
   InstX8632Cvt(const InstX8632Cvt &) = delete;
@@ -1382,7 +1383,7 @@ private:
   InstX8632Cvt(Cfg *Func, Variable *Dest, Operand *Source, CvtVariant Variant);
 };
 
-// cmp - Integer compare instruction.
+/// cmp - Integer compare instruction.
 class InstX8632Icmp : public InstX8632 {
   InstX8632Icmp() = delete;
   InstX8632Icmp(const InstX8632Icmp &) = delete;
@@ -1402,7 +1403,7 @@ private:
   InstX8632Icmp(Cfg *Func, Operand *Src1, Operand *Src2);
 };
 
-// ucomiss/ucomisd - floating-point compare instruction.
+/// ucomiss/ucomisd - floating-point compare instruction.
 class InstX8632Ucomiss : public InstX8632 {
   InstX8632Ucomiss() = delete;
   InstX8632Ucomiss(const InstX8632Ucomiss &) = delete;
@@ -1422,7 +1423,7 @@ private:
   InstX8632Ucomiss(Cfg *Func, Operand *Src1, Operand *Src2);
 };
 
-// UD2 instruction.
+/// UD2 instruction.
 class InstX8632UD2 : public InstX8632 {
   InstX8632UD2() = delete;
   InstX8632UD2(const InstX8632UD2 &) = delete;
@@ -1441,7 +1442,7 @@ private:
   explicit InstX8632UD2(Cfg *Func);
 };
 
-// Test instruction.
+/// Test instruction.
 class InstX8632Test : public InstX8632 {
   InstX8632Test() = delete;
   InstX8632Test(const InstX8632Test &) = delete;
@@ -1461,7 +1462,7 @@ private:
   InstX8632Test(Cfg *Func, Operand *Source1, Operand *Source2);
 };
 
-// Mfence instruction.
+/// Mfence instruction.
 class InstX8632Mfence : public InstX8632 {
   InstX8632Mfence() = delete;
   InstX8632Mfence(const InstX8632Mfence &) = delete;
@@ -1480,9 +1481,9 @@ private:
   explicit InstX8632Mfence(Cfg *Func);
 };
 
-// This is essentially a "mov" instruction with an OperandX8632Mem
-// operand instead of Variable as the destination.  It's important
-// for liveness that there is no Dest operand.
+/// This is essentially a "mov" instruction with an OperandX8632Mem
+/// operand instead of Variable as the destination.  It's important
+/// for liveness that there is no Dest operand.
 class InstX8632Store : public InstX8632 {
   InstX8632Store() = delete;
   InstX8632Store(const InstX8632Store &) = delete;
@@ -1502,10 +1503,10 @@ private:
   InstX8632Store(Cfg *Func, Operand *Value, OperandX8632 *Mem);
 };
 
-// This is essentially a vector "mov" instruction with an OperandX8632Mem
-// operand instead of Variable as the destination.  It's important
-// for liveness that there is no Dest operand. The source must be an
-// Xmm register, since Dest is mem.
+/// This is essentially a vector "mov" instruction with an OperandX8632Mem
+/// operand instead of Variable as the destination.  It's important
+/// for liveness that there is no Dest operand. The source must be an
+/// Xmm register, since Dest is mem.
 class InstX8632StoreP : public InstX8632 {
   InstX8632StoreP() = delete;
   InstX8632StoreP(const InstX8632StoreP &) = delete;
@@ -1546,7 +1547,7 @@ private:
   InstX8632StoreQ(Cfg *Func, Variable *Value, OperandX8632Mem *Mem);
 };
 
-// Nop instructions of varying length
+/// Nop instructions of varying length
 class InstX8632Nop : public InstX8632 {
   InstX8632Nop() = delete;
   InstX8632Nop(const InstX8632Nop &) = delete;
@@ -1570,7 +1571,7 @@ private:
   NopVariant Variant;
 };
 
-// Fld - load a value onto the x87 FP stack.
+/// Fld - load a value onto the x87 FP stack.
 class InstX8632Fld : public InstX8632 {
   InstX8632Fld() = delete;
   InstX8632Fld(const InstX8632Fld &) = delete;
@@ -1589,7 +1590,7 @@ private:
   InstX8632Fld(Cfg *Func, Operand *Src);
 };
 
-// Fstp - store x87 st(0) into memory and pop st(0).
+/// Fstp - store x87 st(0) into memory and pop st(0).
 class InstX8632Fstp : public InstX8632 {
   InstX8632Fstp() = delete;
   InstX8632Fstp(const InstX8632Fstp &) = delete;
@@ -1644,10 +1645,10 @@ private:
   InstX8632Push(Cfg *Func, Variable *Source);
 };
 
-// Ret instruction.  Currently only supports the "ret" version that
-// does not pop arguments.  This instruction takes a Source operand
-// (for non-void returning functions) for liveness analysis, though
-// a FakeUse before the ret would do just as well.
+/// Ret instruction.  Currently only supports the "ret" version that
+/// does not pop arguments.  This instruction takes a Source operand
+/// (for non-void returning functions) for liveness analysis, though
+/// a FakeUse before the ret would do just as well.
 class InstX8632Ret : public InstX8632 {
   InstX8632Ret() = delete;
   InstX8632Ret(const InstX8632Ret &) = delete;
@@ -1666,7 +1667,7 @@ private:
   InstX8632Ret(Cfg *Func, Variable *Source);
 };
 
-// Conditional set-byte instruction.
+/// Conditional set-byte instruction.
 class InstX8632Setcc : public InstX8632 {
   InstX8632Setcc() = delete;
   InstX8632Setcc(const InstX8632Cmov &) = delete;
@@ -1689,13 +1690,13 @@ private:
   const X8632::Traits::Cond::BrCond Condition;
 };
 
-// Exchanging Add instruction.  Exchanges the first operand (destination
-// operand) with the second operand (source operand), then loads the sum
-// of the two values into the destination operand. The destination may be
-// a register or memory, while the source must be a register.
-//
-// Both the dest and source are updated. The caller should then insert a
-// FakeDef to reflect the second udpate.
+/// Exchanging Add instruction.  Exchanges the first operand (destination
+/// operand) with the second operand (source operand), then loads the sum
+/// of the two values into the destination operand. The destination may be
+/// a register or memory, while the source must be a register.
+///
+/// Both the dest and source are updated. The caller should then insert a
+/// FakeDef to reflect the second udpate.
 class InstX8632Xadd : public InstX8632Lockable {
   InstX8632Xadd() = delete;
   InstX8632Xadd(const InstX8632Xadd &) = delete;
@@ -1716,12 +1717,12 @@ private:
   InstX8632Xadd(Cfg *Func, Operand *Dest, Variable *Source, bool Locked);
 };
 
-// Exchange instruction.  Exchanges the first operand (destination
-// operand) with the second operand (source operand). At least one of
-// the operands must be a register (and the other can be reg or mem).
-// Both the Dest and Source are updated. If there is a memory operand,
-// then the instruction is automatically "locked" without the need for
-// a lock prefix.
+/// Exchange instruction.  Exchanges the first operand (destination
+/// operand) with the second operand (source operand). At least one of
+/// the operands must be a register (and the other can be reg or mem).
+/// Both the Dest and Source are updated. If there is a memory operand,
+/// then the instruction is automatically "locked" without the need for
+/// a lock prefix.
 class InstX8632Xchg : public InstX8632 {
   InstX8632Xchg() = delete;
   InstX8632Xchg(const InstX8632Xchg &) = delete;
@@ -1741,9 +1742,9 @@ private:
   InstX8632Xchg(Cfg *Func, Operand *Dest, Variable *Source);
 };
 
-// Declare partial template specializations of emit() methods that
-// already have default implementations.  Without this, there is the
-// possibility of ODR violations and link errors.
+/// Declare partial template specializations of emit() methods that
+/// already have default implementations.  Without this, there is the
+/// possibility of ODR violations and link errors.
 template <> void InstX8632Addss::emit(const Cfg *Func) const;
 template <> void InstX8632Blendvps::emit(const Cfg *Func) const;
 template <> void InstX8632Cbwdq::emit(const Cfg *Func) const;

@@ -13,11 +13,12 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file declares the Assembler base class.  Instructions are assembled
-// by architecture-specific assemblers that derive from this base class.
-// This base class manages buffers and fixups for emitting code, etc.
-//
+///
+/// \file
+/// This file declares the Assembler base class.  Instructions are assembled
+/// by architecture-specific assemblers that derive from this base class.
+/// This base class manages buffers and fixups for emitting code, etc.
+///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICEASSEMBLER_H
@@ -28,7 +29,7 @@
 
 namespace Ice {
 
-// Assembler buffers are used to emit binary code. They grow on demand.
+/// Assembler buffers are used to emit binary code. They grow on demand.
 class AssemblerBuffer {
   AssemblerBuffer(const AssemblerBuffer &) = delete;
   AssemblerBuffer &operator=(const AssemblerBuffer &) = delete;
@@ -37,7 +38,7 @@ public:
   AssemblerBuffer(Assembler &);
   ~AssemblerBuffer();
 
-  // Basic support for emitting, loading, and storing.
+  /// Basic support for emitting, loading, and storing.
   template <typename T> void emit(T Value) {
     assert(hasEnsuredCapacity());
     *reinterpret_cast<T *>(Cursor) = Value;
@@ -56,21 +57,20 @@ public:
     *reinterpret_cast<T *>(Contents + Position) = Value;
   }
 
-  // Emit a fixup at the current location.
+  /// Emit a fixup at the current location.
   void emitFixup(AssemblerFixup *Fixup) { Fixup->set_position(size()); }
 
-  // Get the size of the emitted code.
+  /// Get the size of the emitted code.
   intptr_t size() const { return Cursor - Contents; }
   uintptr_t contents() const { return Contents; }
 
-  // To emit an instruction to the assembler buffer, the EnsureCapacity helper
-  // must be used to guarantee that the underlying data area is big enough to
-  // hold the emitted instruction. Usage:
-  //
-  //     AssemblerBuffer buffer;
-  //     AssemblerBuffer::EnsureCapacity ensured(&buffer);
-  //     ... emit bytes for single instruction ...
-
+  /// To emit an instruction to the assembler buffer, the EnsureCapacity helper
+  /// must be used to guarantee that the underlying data area is big enough to
+  /// hold the emitted instruction. Usage:
+  ///
+  ///     AssemblerBuffer buffer;
+  ///     AssemblerBuffer::EnsureCapacity ensured(&buffer);
+  ///     ... emit bytes for single instruction ...
   class EnsureCapacity {
     EnsureCapacity(const EnsureCapacity &) = delete;
     EnsureCapacity &operator=(const EnsureCapacity &) = delete;
@@ -100,10 +100,10 @@ public:
     return true;
   }
 
-  // Returns the position in the instruction stream.
+  /// Returns the position in the instruction stream.
   intptr_t getPosition() const { return Cursor - Contents; }
 
-  // Create and track a fixup in the current function.
+  /// Create and track a fixup in the current function.
   AssemblerFixup *createFixup(FixupKind Kind, const Constant *Value);
 
   const FixupRefList &fixups() const { return Fixups; }
@@ -114,9 +114,9 @@ public:
   }
 
 private:
-  // The limit is set to kMinimumGap bytes before the end of the data area.
-  // This leaves enough space for the longest possible instruction and allows
-  // for a single, fast space check per instruction.
+  /// The limit is set to kMinimumGap bytes before the end of the data area.
+  /// This leaves enough space for the longest possible instruction and allows
+  /// for a single, fast space check per instruction.
   static constexpr intptr_t kMinimumGap = 32;
 
   uintptr_t Contents;
@@ -124,7 +124,7 @@ private:
   uintptr_t Limit;
   // The member variable is named Assemblr to avoid hiding the class Assembler.
   Assembler &Assemblr;
-  // List of pool-allocated fixups relative to the current function.
+  /// List of pool-allocated fixups relative to the current function.
   FixupRefList Fixups;
 
   uintptr_t cursor() const { return Cursor; }
@@ -134,8 +134,8 @@ private:
     return (Limit - Contents) + kMinimumGap;
   }
 
-  // Compute the limit based on the data area and the capacity. See
-  // description of kMinimumGap for the reasoning behind the value.
+  /// Compute the limit based on the data area and the capacity. See
+  /// description of kMinimumGap for the reasoning behind the value.
   static uintptr_t computeLimit(uintptr_t Data, intptr_t Capacity) {
     return Data + Capacity - kMinimumGap;
   }
@@ -158,7 +158,7 @@ public:
 
   virtual ~Assembler() = default;
 
-  // Allocate a chunk of bytes using the per-Assembler allocator.
+  /// Allocate a chunk of bytes using the per-Assembler allocator.
   uintptr_t allocateBytes(size_t bytes) {
     // For now, alignment is not related to NaCl bundle alignment, since
     // the buffer's GetPosition is relative to the base. So NaCl bundle
@@ -170,13 +170,13 @@ public:
     return reinterpret_cast<uintptr_t>(Allocator.Allocate(bytes, Alignment));
   }
 
-  // Allocate data of type T using the per-Assembler allocator.
+  /// Allocate data of type T using the per-Assembler allocator.
   template <typename T> T *allocate() { return Allocator.Allocate<T>(); }
 
-  // Align the tail end of the function to the required target alignment.
+  /// Align the tail end of the function to the required target alignment.
   virtual void alignFunction() = 0;
 
-  // Add nop padding of a particular width to the current bundle.
+  /// Add nop padding of a particular width to the current bundle.
   virtual void padWithNop(intptr_t Padding) = 0;
 
   virtual SizeT getBundleAlignLog2Bytes() const = 0;
@@ -184,8 +184,8 @@ public:
   virtual const char *getNonExecPadDirective() const = 0;
   virtual llvm::ArrayRef<uint8_t> getNonExecBundlePadding() const = 0;
 
-  // Mark the current text location as the start of a CFG node
-  // (represented by NodeNumber).
+  /// Mark the current text location as the start of a CFG node
+  /// (represented by NodeNumber).
   virtual void bindCfgNodeLabel(SizeT NodeNumber) = 0;
 
   virtual bool fixupIsPCRel(FixupKind Kind) const = 0;
@@ -205,7 +205,7 @@ public:
   const IceString &getFunctionName() { return FunctionName; }
   void setFunctionName(const IceString &NewName) { FunctionName = NewName; }
   intptr_t getBufferSize() const { return Buffer.size(); }
-  // Roll back to a (smaller) size.
+  /// Roll back to a (smaller) size.
   void setBufferSize(intptr_t NewSize) { Buffer.setSize(NewSize); }
   void setPreliminary(bool Value) { Preliminary = Value; }
   bool getPreliminary() const { return Preliminary; }
@@ -220,15 +220,15 @@ private:
   const AssemblerKind Kind;
 
   ArenaAllocator<32 * 1024> Allocator;
-  // FunctionName and IsInternal are transferred from the original Cfg
-  // object, since the Cfg object may be deleted by the time the
-  // assembler buffer is emitted.
+  /// FunctionName and IsInternal are transferred from the original Cfg
+  /// object, since the Cfg object may be deleted by the time the
+  /// assembler buffer is emitted.
   IceString FunctionName = "";
   bool IsInternal = false;
-  // Preliminary indicates whether a preliminary pass is being made
-  // for calculating bundle padding (Preliminary=true), versus the
-  // final pass where all changes to label bindings, label links, and
-  // relocation fixups are fully committed (Preliminary=false).
+  /// Preliminary indicates whether a preliminary pass is being made
+  /// for calculating bundle padding (Preliminary=true), versus the
+  /// final pass where all changes to label bindings, label links, and
+  /// relocation fixups are fully committed (Preliminary=false).
   bool Preliminary = false;
 
 protected:

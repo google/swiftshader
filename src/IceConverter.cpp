@@ -6,9 +6,10 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file implements the LLVM to ICE converter.
-//
+///
+/// \file
+/// This file implements the LLVM to ICE converter.
+///
 //===----------------------------------------------------------------------===//
 
 #include "IceConverter.h"

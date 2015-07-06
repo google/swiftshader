@@ -6,10 +6,11 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file implements the Cfg class, including constant pool
-// management.
-//
+///
+/// \file
+/// This file implements the Cfg class, including constant pool
+/// management.
+///
 //===----------------------------------------------------------------------===//
 
 #include "IceCfg.h"

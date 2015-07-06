@@ -6,10 +6,11 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file implements the InstX8632 and OperandX8632 classes,
-// primarily the constructors and the dump()/emit() methods.
-//
+///
+/// \file
+/// This file implements the InstX8632 and OperandX8632 classes,
+/// primarily the constructors and the dump()/emit() methods.
+///
 //===----------------------------------------------------------------------===//
 
 #include "IceInstX8632.h"

@@ -6,10 +6,11 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file defines how to convert LLVM types to ICE types, and ICE types
-// to LLVM types.
-//
+///
+/// \file
+/// This file defines how to convert LLVM types to ICE types, and ICE types
+/// to LLVM types.
+///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICETYPECONVERTER_H
@@ -45,13 +46,13 @@ public:
   }
 
 private:
-  // The mapping from LLVM types to corresopnding Ice types.
+  /// The mapping from LLVM types to corresopnding Ice types.
   std::map<llvm::Type *, Type> LLVM2IceMap;
 
-  // Add LLVM/ICE pair to internal tables.
+  /// Add LLVM/ICE pair to internal tables.
   void addLLVMType(Type Ty, llvm::Type *LLVMTy);
 
-  // Converts types not in LLVM2IceMap.
+  /// Converts types not in LLVM2IceMap.
   Type convertToIceTypeOther(llvm::Type *LLVMTy) const;
 };
 

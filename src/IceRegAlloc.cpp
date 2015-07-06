@@ -6,11 +6,12 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file implements the LinearScan class, which performs the
-// linear-scan register allocation after liveness analysis has been
-// performed.
-//
+///
+/// \file
+/// This file implements the LinearScan class, which performs the
+/// linear-scan register allocation after liveness analysis has been
+/// performed.
+///
 //===----------------------------------------------------------------------===//
 
 #include "IceRegAlloc.h"

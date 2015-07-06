@@ -6,9 +6,10 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file declares the kinds of intrinsics supported by PNaCl.
-//
+///
+/// \file
+/// This file declares the kinds of intrinsics supported by PNaCl.
+///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICEINTRINSICS_H
@@ -31,9 +32,9 @@ public:
   Intrinsics();
   ~Intrinsics();
 
-  // Some intrinsics allow overloading by type. This enum collapses all
-  // overloads into a single ID, but the type can still be recovered by the
-  // type of the intrinsic function call's return value and parameters.
+  /// Some intrinsics allow overloading by type. This enum collapses all
+  /// overloads into a single ID, but the type can still be recovered by the
+  /// type of the intrinsic function call's return value and parameters.
   enum IntrinsicID {
     UnknownIntrinsic = 0,
     // Arbitrary (alphabetical) order.
@@ -92,9 +93,9 @@ public:
     MemoryOrderNum // Invalid, keep last.
   };
 
-  // Verify memory ordering rules for atomic intrinsics.  For
-  // AtomicCmpxchg, Order is the "success" ordering and OrderOther is
-  // the "failure" ordering.  Returns true if valid, false if invalid.
+  /// Verify memory ordering rules for atomic intrinsics.  For
+  /// AtomicCmpxchg, Order is the "success" ordering and OrderOther is
+  /// the "failure" ordering.  Returns true if valid, false if invalid.
   // TODO(stichnot,kschimpf): Perform memory order validation in the
   // bitcode reader/parser, allowing LLVM and Subzero to share.  See
   // https://code.google.com/p/nativeclient/issues/detail?id=4126 .
@@ -105,61 +106,61 @@ public:
 
   enum ReturnsTwice { ReturnsTwice_F = 0, ReturnsTwice_T = 1 };
 
-  // Basic attributes related to each intrinsic, that are relevant to
-  // code generation. Perhaps the attributes representation can be shared
-  // with general function calls, but PNaCl currently strips all
-  // attributes from functions.
+  /// Basic attributes related to each intrinsic, that are relevant to
+  /// code generation. Perhaps the attributes representation can be shared
+  /// with general function calls, but PNaCl currently strips all
+  /// attributes from functions.
   struct IntrinsicInfo {
     enum IntrinsicID ID : 30;
     enum SideEffects HasSideEffects : 1;
     enum ReturnsTwice ReturnsTwice : 1;
   };
 
-  // The types of validation values for FullIntrinsicInfo.validateCall.
+  /// The types of validation values for FullIntrinsicInfo.validateCall.
   enum ValidateCallValue {
-    IsValidCall,      // Valid use of instrinsic call.
-    BadReturnType,    // Return type invalid for intrinsic.
-    WrongNumOfArgs,   // Wrong number of arguments for intrinsic.
-    WrongCallArgType, // Argument of wrong type.
+    IsValidCall,      /// Valid use of instrinsic call.
+    BadReturnType,    /// Return type invalid for intrinsic.
+    WrongNumOfArgs,   /// Wrong number of arguments for intrinsic.
+    WrongCallArgType, /// Argument of wrong type.
   };
 
-  // The complete set of information about an intrinsic.
+  /// The complete set of information about an intrinsic.
   struct FullIntrinsicInfo {
-    struct IntrinsicInfo Info; // Information that CodeGen would care about.
+    struct IntrinsicInfo Info; /// Information that CodeGen would care about.
 
     // Sanity check during parsing.
     Type Signature[kMaxIntrinsicParameters];
     uint8_t NumTypes;
 
-    // Validates that type signature of call matches intrinsic.
-    // If WrongArgumentType is returned, ArgIndex is set to corresponding
-    // argument index.
+    /// Validates that type signature of call matches intrinsic.
+    /// If WrongArgumentType is returned, ArgIndex is set to corresponding
+    /// argument index.
     ValidateCallValue validateCall(const Ice::InstCall *Call,
                                    SizeT &ArgIndex) const;
 
-    // Returns the return type of the intrinsic.
+    /// Returns the return type of the intrinsic.
     Type getReturnType() const {
       assert(NumTypes > 1);
       return Signature[0];
     }
 
-    // Returns number of arguments expected.
+    /// Returns number of arguments expected.
     SizeT getNumArgs() const {
       assert(NumTypes > 1);
       return NumTypes - 1;
     }
 
-    // Returns type of Index-th argument.
+    /// Returns type of Index-th argument.
     Type getArgType(SizeT Index) const;
   };
 
-  // Find the information about a given intrinsic, based on function name.  If
-  // the function name does not have the common "llvm." prefix, nullptr is
-  // returned and Error is set to false.  Otherwise, tries to find a reference
-  // to a FullIntrinsicInfo entry (valid for the lifetime of the map).  If
-  // found, sets Error to false and returns the reference.  If not found, sets
-  // Error to true and returns nullptr (indicating an unknown "llvm.foo"
-  // intrinsic).
+  /// Find the information about a given intrinsic, based on function name.  If
+  /// the function name does not have the common "llvm." prefix, nullptr is
+  /// returned and Error is set to false.  Otherwise, tries to find a reference
+  /// to a FullIntrinsicInfo entry (valid for the lifetime of the map).  If
+  /// found, sets Error to false and returns the reference.  If not found, sets
+  /// Error to true and returns nullptr (indicating an unknown "llvm.foo"
+  /// intrinsic).
   const FullIntrinsicInfo *find(const IceString &Name, bool &Error) const;
 
 private:

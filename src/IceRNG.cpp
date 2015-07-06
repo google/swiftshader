@@ -6,9 +6,10 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file implements the random number generator.
-//
+///
+/// \file
+/// This file implements the random number generator.
+///
 //===----------------------------------------------------------------------===//
 
 #include "IceRNG.h"

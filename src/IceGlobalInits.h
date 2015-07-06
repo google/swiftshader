@@ -6,12 +6,13 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file declares the representation of function declarations,
-// global variable declarations, and the corresponding variable
-// initializers in Subzero. Global variable initializers are
-// represented as a sequence of simple initializers.
-//
+///
+/// \file
+/// This file declares the representation of function declarations,
+/// global variable declarations, and the corresponding variable
+/// initializers in Subzero. Global variable initializers are
+/// represented as a sequence of simple initializers.
+///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICEGLOBALINITS_H
@@ -79,8 +80,8 @@ public:
   /// Returns true if when emitting names, we should suppress mangling.
   virtual bool getSuppressMangling() const = 0;
 
-  // Mangles name for cross tests, unless external and not defined locally
-  // (so that relocations accross pnacl-sz and pnacl-llc will work).
+  /// Mangles name for cross tests, unless external and not defined locally
+  /// (so that relocations accross pnacl-sz and pnacl-llc will work).
   virtual IceString mangleName(GlobalContext *Ctx) const {
     return getSuppressMangling() ? Name : Ctx->mangleName(Name);
   }
@@ -95,8 +96,8 @@ protected:
   llvm::GlobalValue::LinkageTypes Linkage;
 };
 
-// Models a function declaration. This includes the type signature of
-// the function, its calling conventions, and its linkage.
+/// Models a function declaration. This includes the type signature of
+/// the function, its calling conventions, and its linkage.
 class FunctionDeclaration : public GlobalDeclaration {
   FunctionDeclaration() = delete;
   FunctionDeclaration(const FunctionDeclaration &) = delete;
@@ -113,7 +114,7 @@ public:
   }
   const FuncSigType &getSignature() const { return Signature; }
   llvm::CallingConv::ID getCallingConv() const { return CallingConv; }
-  // isProto implies that there isn't a (local) definition for the function.
+  /// isProto implies that there isn't a (local) definition for the function.
   bool isProto() const { return IsProto; }
   static bool classof(const GlobalDeclaration *Addr) {
     return Addr->getKind() == FunctionDeclarationKind;
@@ -169,7 +170,7 @@ public:
     const InitializerKind Kind;
   };
 
-  // Models the data in a data initializer.
+  /// Models the data in a data initializer.
   typedef std::vector<char> DataVecType;
 
   /// Defines a sequence of byte values as a data initializer.
@@ -205,7 +206,7 @@ public:
         Contents[i] = Str[i];
     }
 
-    // The byte contents of the data initializer.
+    /// The byte contents of the data initializer.
     DataVecType Contents;
   };
 
@@ -230,7 +231,7 @@ public:
     explicit ZeroInitializer(SizeT Size)
         : Initializer(ZeroInitializerKind), Size(Size) {}
 
-    // The number of bytes to be zero initialized.
+    /// The number of bytes to be zero initialized.
     SizeT Size;
   };
 
@@ -262,7 +263,7 @@ public:
           Offset(Offset) {} // The global declaration used in the relocation.
 
     const GlobalDeclaration *Declaration;
-    // The offset to add to the relocation.
+    /// The offset to add to the relocation.
     const RelocOffsetT Offset;
   };
 
@@ -324,14 +325,14 @@ public:
   void discardInitializers() { Initializers = nullptr; }
 
 private:
-  // list of initializers for the declared variable.
+  /// List of initializers for the declared variable.
   std::unique_ptr<InitializerListType> Initializers;
   bool HasInitializer;
-  // The alignment of the declared variable.
+  /// The alignment of the declared variable.
   uint32_t Alignment;
-  // True if a declared (global) constant.
+  /// True if a declared (global) constant.
   bool IsConstant;
-  // If set to true, force getSuppressMangling() to return true.
+  /// If set to true, force getSuppressMangling() to return true.
   bool ForceSuppressMangling;
 
   VariableDeclaration()

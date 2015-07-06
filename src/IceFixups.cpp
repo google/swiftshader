@@ -6,10 +6,11 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file implements the AssemblerFixup class, a very basic
-// target-independent representation of a fixup or relocation.
-//
+///
+/// \file
+/// This file implements the AssemblerFixup class, a very basic
+/// target-independent representation of a fixup or relocation.
+///
 //===----------------------------------------------------------------------===//
 
 #include "IceFixups.h"

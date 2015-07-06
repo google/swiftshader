@@ -6,10 +6,11 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file declares the TargetLoweringX8664 class, which implements the
-// TargetLowering interface for the X86 64-bit architecture.
-//
+///
+/// \file
+/// This file declares the TargetLoweringX8664 class, which implements the
+/// TargetLowering interface for the X86 64-bit architecture.
+///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICETARGETLOWERINGX8664_H

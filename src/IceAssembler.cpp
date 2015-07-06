@@ -17,9 +17,10 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file implements the Assembler base class.
-//
+///
+/// \file
+/// This file implements the Assembler base class.
+///
 //===----------------------------------------------------------------------===//
 
 #include "IceAssembler.h"

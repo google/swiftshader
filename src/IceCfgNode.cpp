@@ -6,10 +6,11 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file implements the CfgNode class, including the complexities
-// of instruction insertion and in-edge calculation.
-//
+///
+/// \file
+/// This file implements the CfgNode class, including the complexities
+/// of instruction insertion and in-edge calculation.
+///
 //===----------------------------------------------------------------------===//
 
 #include "IceCfgNode.h"

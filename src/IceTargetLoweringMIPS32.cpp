@@ -6,10 +6,11 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file implements the TargetLoweringMIPS32 class, which consists almost
-// entirely of the lowering sequence for each high-level instruction.
-//
+///
+/// \file
+/// This file implements the TargetLoweringMIPS32 class, which consists almost
+/// entirely of the lowering sequence for each high-level instruction.
+///
 //===----------------------------------------------------------------------===//
 
 #include "IceTargetLoweringMIPS32.h"

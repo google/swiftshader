@@ -6,10 +6,11 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file implements the Intrinsics utilities for matching and
-// then dispatching by name.
-//
+///
+/// \file
+/// This file implements the Intrinsics utilities for matching and
+/// then dispatching by name.
+///
 //===----------------------------------------------------------------------===//
 
 #include "IceIntrinsics.h"

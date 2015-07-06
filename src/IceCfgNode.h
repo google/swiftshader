@@ -6,11 +6,12 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file declares the CfgNode class, which represents a single
-// basic block as its instruction list, in-edge list, and out-edge
-// list.
-//
+///
+/// \file
+/// This file declares the CfgNode class, which represents a single
+/// basic block as its instruction list, in-edge list, and out-edge
+/// list.
+///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICECFGNODE_H
@@ -31,7 +32,7 @@ public:
     return new (Func->allocate<CfgNode>()) CfgNode(Func, LabelIndex);
   }
 
-  // Access the label number and name for this node.
+  /// Access the label number and name for this node.
   SizeT getIndex() const { return Number; }
   void resetIndex(SizeT NewNumber) { Number = NewNumber; }
   IceString getName() const;
@@ -45,34 +46,42 @@ public:
     return ".L" + Func->getFunctionName() + "$" + getName();
   }
 
-  // The HasReturn flag indicates that this node contains a return
-  // instruction and therefore needs an epilog.
+  /// The HasReturn flag indicates that this node contains a return
+  /// instruction and therefore needs an epilog.
   void setHasReturn() { HasReturn = true; }
   bool getHasReturn() const { return HasReturn; }
 
   void setNeedsPlacement(bool Value) { NeedsPlacement = Value; }
   bool needsPlacement() const { return NeedsPlacement; }
 
-  // Access predecessor and successor edge lists.
+  /// \name Access predecessor and successor edge lists.
+  /// @{
   const NodeList &getInEdges() const { return InEdges; }
   const NodeList &getOutEdges() const { return OutEdges; }
+  /// @}
 
-  // Manage the instruction list.
+  /// \name Manage the instruction list.
+  /// @{
   InstList &getInsts() { return Insts; }
   PhiList &getPhis() { return Phis; }
   void appendInst(Inst *Inst);
   void renumberInstructions();
-  // Rough and generally conservative estimate of the number of
-  // instructions in the block.  It is updated when an instruction is
-  // added, but not when deleted.  It is recomputed during
-  // renumberInstructions().
+  /// Rough and generally conservative estimate of the number of
+  /// instructions in the block.  It is updated when an instruction is
+  /// added, but not when deleted.  It is recomputed during
+  /// renumberInstructions().
   InstNumberT getInstCountEstimate() const { return InstCountEstimate; }
+  /// @}
 
-  // Add a predecessor edge to the InEdges list for each of this
-  // node's successors.
+  /// \name Manage predecessors and successors.
+  /// @{
+
+  /// Add a predecessor edge to the InEdges list for each of this
+  /// node's successors.
   void computePredecessors();
   void computeSuccessors();
   CfgNode *splitIncomingEdge(CfgNode *Pred, SizeT InEdgeIndex);
+  /// @}
 
   void placePhiLoads();
   void placePhiStores();
@@ -96,16 +105,16 @@ public:
 private:
   CfgNode(Cfg *Func, SizeT LabelIndex);
   Cfg *const Func;
-  SizeT Number; // label index
+  SizeT Number; /// label index
   Cfg::IdentifierIndexType NameIndex =
-      Cfg::IdentifierIndexInvalid; // index into Cfg::NodeNames table
-  bool HasReturn = false;          // does this block need an epilog?
+      Cfg::IdentifierIndexInvalid; /// index into Cfg::NodeNames table
+  bool HasReturn = false;          /// does this block need an epilog?
   bool NeedsPlacement = false;
-  InstNumberT InstCountEstimate = 0; // rough instruction count estimate
-  NodeList InEdges;                  // in no particular order
-  NodeList OutEdges;                 // in no particular order
-  PhiList Phis;                      // unordered set of phi instructions
-  InstList Insts;                    // ordered list of non-phi instructions
+  InstNumberT InstCountEstimate = 0; /// rough instruction count estimate
+  NodeList InEdges;                  /// in no particular order
+  NodeList OutEdges;                 /// in no particular order
+  PhiList Phis;                      /// unordered set of phi instructions
+  InstList Insts;                    /// ordered list of non-phi instructions
 };
 
 } // end of namespace Ice

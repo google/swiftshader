@@ -6,9 +6,10 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file declares the registers and their encodings for x86-64.
-//
+///
+/// \file
+/// This file declares the registers and their encodings for x86-64.
+///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICEREGISTERSX8664_H
@@ -22,8 +23,8 @@ namespace Ice {
 
 class RegX8664 {
 public:
-  // An enum of every register. The enum value may not match the encoding
-  // used to binary encode register operands in instructions.
+  /// An enum of every register. The enum value may not match the encoding
+  /// used to binary encode register operands in instructions.
   enum AllRegisters {
 #define X(val, encode, name64, name, name16, name8, scratch, preserved,        \
           stackptr, frameptr, isInt, isFP)                                     \
@@ -36,8 +37,8 @@ public:
 #undef X
   };
 
-  // An enum of GPR Registers. The enum value does match the encoding used
-  // to binary encode register operands in instructions.
+  /// An enum of GPR Registers. The enum value does match the encoding used
+  /// to binary encode register operands in instructions.
   enum GPRRegister {
 #define X(val, encode, name64, name, name16, name8, scratch, preserved,        \
           stackptr, frameptr, isInt, isFP)                                     \
@@ -47,8 +48,8 @@ public:
         Encoded_Not_GPR = -1
   };
 
-  // An enum of XMM Registers. The enum value does match the encoding used
-  // to binary encode register operands in instructions.
+  /// An enum of XMM Registers. The enum value does match the encoding used
+  /// to binary encode register operands in instructions.
   enum XmmRegister {
 #define X(val, encode, name64, name, name16, name8, scratch, preserved,        \
           stackptr, frameptr, isInt, isFP)                                     \
@@ -58,8 +59,8 @@ public:
         Encoded_Not_Xmm = -1
   };
 
-  // An enum of Byte Registers. The enum value does match the encoding used
-  // to binary encode register operands in instructions.
+  /// An enum of Byte Registers. The enum value does match the encoding used
+  /// to binary encode register operands in instructions.
   enum ByteRegister {
 #define X(val, encode) Encoded_##val encode,
     REGX8664_BYTEREG_TABLE

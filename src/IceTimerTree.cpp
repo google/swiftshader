@@ -6,10 +6,11 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file defines the TimerTree class, which tracks flat and
-// cumulative execution time collection of call chains.
-//
+///
+/// \file
+/// This file defines the TimerTree class, which tracks flat and
+/// cumulative execution time collection of call chains.
+///
 //===----------------------------------------------------------------------===//
 
 #include "IceTimerTree.h"

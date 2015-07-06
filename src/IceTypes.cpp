@@ -6,9 +6,10 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file defines a few attributes of Subzero primitive types.
-//
+///
+/// \file
+/// This file defines a few attributes of Subzero primitive types.
+///
 //===----------------------------------------------------------------------===//
 
 #include "IceTypes.h"

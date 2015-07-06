@@ -6,9 +6,10 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file declares the registers and their encodings for MIPS32.
-//
+///
+/// \file
+/// This file declares the registers and their encodings for MIPS32.
+///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICEREGISTERSMIPS32_H
@@ -22,8 +23,8 @@ namespace Ice {
 
 namespace RegMIPS32 {
 
-// An enum of every register. The enum value may not match the encoding
-// used to binary encode register operands in instructions.
+/// An enum of every register. The enum value may not match the encoding
+/// used to binary encode register operands in instructions.
 enum AllRegisters {
 #define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
           isFP)                                                                \
@@ -36,8 +37,8 @@ enum AllRegisters {
 #undef X
 };
 
-// An enum of GPR Registers. The enum value does match the encoding used
-// to binary encode register operands in instructions.
+/// An enum of GPR Registers. The enum value does match the encoding used
+/// to binary encode register operands in instructions.
 enum GPRRegister {
 #define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
           isFP)                                                                \

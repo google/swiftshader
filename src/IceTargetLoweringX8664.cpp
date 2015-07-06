@@ -6,9 +6,10 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// Implements the Target Lowering for x86-64.
-//
+///
+/// \file
+/// Implements the Target Lowering for x86-64.
+///
 //===----------------------------------------------------------------------===//
 
 #include "IceDefs.h"

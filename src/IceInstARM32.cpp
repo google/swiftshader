@@ -6,10 +6,11 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file implements the InstARM32 and OperandARM32 classes,
-// primarily the constructors and the dump()/emit() methods.
-//
+///
+/// \file
+/// This file implements the InstARM32 and OperandARM32 classes,
+/// primarily the constructors and the dump()/emit() methods.
+///
 //===----------------------------------------------------------------------===//
 
 #include "IceInstARM32.h"

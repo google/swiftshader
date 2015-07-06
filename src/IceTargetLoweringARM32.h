@@ -6,10 +6,11 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file declares the TargetLoweringARM32 class, which implements the
-// TargetLowering interface for the ARM 32-bit architecture.
-//
+///
+/// \file
+/// This file declares the TargetLoweringARM32 class, which implements the
+/// TargetLowering interface for the ARM 32-bit architecture.
+///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICETARGETLOWERINGARM32_H
@@ -90,9 +91,9 @@ public:
   void addProlog(CfgNode *Node) override;
   void addEpilog(CfgNode *Node) override;
 
-  // Ensure that a 64-bit Variable has been split into 2 32-bit
-  // Variables, creating them if necessary.  This is needed for all
-  // I64 operations.
+  /// Ensure that a 64-bit Variable has been split into 2 32-bit
+  /// Variables, creating them if necessary.  This is needed for all
+  /// I64 operations.
   void split64(Variable *Var);
   Operand *loOperand(Operand *Operand);
   Operand *hiOperand(Operand *Operand);
@@ -135,10 +136,10 @@ protected:
 
   enum OperandLegalization {
     Legal_None = 0,
-    Legal_Reg = 1 << 0,  // physical register, not stack location
-    Legal_Flex = 1 << 1, // A flexible operand2, which can hold rotated
-                         // small immediates, or shifted registers.
-    Legal_Mem = 1 << 2,  // includes [r0, r1 lsl #2] as well as [sp, #12]
+    Legal_Reg = 1 << 0,  /// physical register, not stack location
+    Legal_Flex = 1 << 1, /// A flexible operand2, which can hold rotated
+                         /// small immediates, or shifted registers.
+    Legal_Mem = 1 << 2,  /// includes [r0, r1 lsl #2] as well as [sp, #12]
     Legal_All = ~Legal_None
   };
   typedef uint32_t LegalMask;
@@ -152,7 +153,7 @@ protected:
   Variable *copyToReg(Operand *Src, int32_t RegNum = Variable::NoRegister);
   void alignRegisterPow2(Variable *Reg, uint32_t Align);
 
-  // Returns a vector in a register with the given constant entries.
+  /// Returns a vector in a register with the given constant entries.
   Variable *makeVectorOfZeros(Type Ty, int32_t RegNum = Variable::NoRegister);
 
   void makeRandomRegisterPermutation(
@@ -247,9 +248,9 @@ protected:
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Mls::create(Func, Dest, Src0, Src1, Acc, Pred));
   }
-  // If Dest=nullptr is passed in, then a new variable is created,
-  // marked as infinite register allocation weight, and returned
-  // through the in/out Dest argument.
+  /// If Dest=nullptr is passed in, then a new variable is created,
+  /// marked as infinite register allocation weight, and returned
+  /// through the in/out Dest argument.
   void _mov(Variable *&Dest, Operand *Src0,
             CondARM32::Cond Pred = CondARM32::AL,
             int32_t RegNum = Variable::NoRegister) {
@@ -263,8 +264,8 @@ protected:
     NewInst->setDestNonKillable();
     Context.insert(NewInst);
   }
-  // The Operand can only be a 16-bit immediate or a ConstantRelocatable
-  // (with an upper16 relocation).
+  /// The Operand can only be a 16-bit immediate or a ConstantRelocatable
+  /// (with an upper16 relocation).
   void _movt(Variable *Dest, Operand *Src0,
              CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Movt::create(Func, Dest, Src0, Pred));
@@ -372,16 +373,16 @@ protected:
   VarList PhysicalRegisters[IceType_NUM];
   static IceString RegNames[];
 
-  // Helper class that understands the Calling Convention and register
-  // assignments. The first few integer type parameters can use r0-r3,
-  // regardless of their position relative to the floating-point/vector
-  // arguments in the argument list. Floating-point and vector arguments
-  // can use q0-q3 (aka d0-d7, s0-s15). Technically, arguments that can
-  // start with registers but extend beyond the available registers can be
-  // split between the registers and the stack. However, this is typically
-  // for passing GPR structs by value, and PNaCl transforms expand this out.
-  //
-  // Also, at the point before the call, the stack must be aligned.
+  /// Helper class that understands the Calling Convention and register
+  /// assignments. The first few integer type parameters can use r0-r3,
+  /// regardless of their position relative to the floating-point/vector
+  /// arguments in the argument list. Floating-point and vector arguments
+  /// can use q0-q3 (aka d0-d7, s0-s15). Technically, arguments that can
+  /// start with registers but extend beyond the available registers can be
+  /// split between the registers and the stack. However, this is typically
+  /// for passing GPR structs by value, and PNaCl transforms expand this out.
+  ///
+  /// Also, at the point before the call, the stack must be aligned.
   class CallingConv {
     CallingConv(const CallingConv &) = delete;
     CallingConv &operator=(const CallingConv &) = delete;

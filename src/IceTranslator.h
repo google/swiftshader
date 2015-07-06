@@ -6,10 +6,11 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file declares the general driver class for translating ICE to
-// machine code.
-//
+///
+/// \file
+/// This file declares the general driver class for translating ICE to
+/// machine code.
+///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICETRANSLATOR_H
@@ -29,9 +30,9 @@ class Cfg;
 class VariableDeclaration;
 class GlobalContext;
 
-// Base class for translating ICE to machine code.  Derived classes convert
-// other intermediate representations down to ICE, and then call the appropriate
-// (inherited) methods to convert ICE into machine instructions.
+/// Base class for translating ICE to machine code.  Derived classes convert
+/// other intermediate representations down to ICE, and then call the
+/// appropriate (inherited) methods to convert ICE into machine instructions.
 class Translator {
   Translator() = delete;
   Translator(const Translator &) = delete;
@@ -70,7 +71,7 @@ public:
 protected:
   GlobalContext *Ctx;
   uint32_t NextSequenceNumber;
-  // ErrorCode of the translation.
+  /// ErrorCode of the translation.
   ErrorCode ErrorStatus;
 };
 

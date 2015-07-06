@@ -6,10 +6,11 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file declares aspects of the compilation that persist across
-// multiple functions.
-//
+///
+/// \file
+/// This file declares aspects of the compilation that persist across
+/// multiple functions.
+///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICEGLOBALCONTEXT_H
@@ -38,7 +39,7 @@ class ConstantPool;
 class EmitterWorkItem;
 class FuncSigType;
 
-// LockedPtr is a way to provide automatically locked access to some object.
+/// LockedPtr is a way to provide automatically locked access to some object.
 template <typename T> class LockedPtr {
   LockedPtr() = delete;
   LockedPtr(const LockedPtr &) = delete;
@@ -65,7 +66,7 @@ class GlobalContext {
   GlobalContext(const GlobalContext &) = delete;
   GlobalContext &operator=(const GlobalContext &) = delete;
 
-  // CodeStats collects rudimentary statistics during translation.
+  /// CodeStats collects rudimentary statistics during translation.
   class CodeStats {
     CodeStats(const CodeStats &) = delete;
     CodeStats &operator=(const CodeStats &) = default;
@@ -102,18 +103,18 @@ class GlobalContext {
     std::array<uint32_t, CS_NUM> Stats;
   };
 
-  // TimerList is a vector of TimerStack objects, with extra methods
-  // to initialize and merge these vectors.
+  /// TimerList is a vector of TimerStack objects, with extra methods
+  /// to initialize and merge these vectors.
   class TimerList : public std::vector<TimerStack> {
     TimerList(const TimerList &) = delete;
     TimerList &operator=(const TimerList &) = delete;
 
   public:
     TimerList() = default;
-    // initInto() initializes a target list of timers based on the
-    // current list.  In particular, it creates the same number of
-    // timers, in the same order, with the same names, but initially
-    // empty of timing data.
+    /// initInto() initializes a target list of timers based on the
+    /// current list.  In particular, it creates the same number of
+    /// timers, in the same order, with the same names, but initially
+    /// empty of timing data.
     void initInto(TimerList &Dest) const {
       if (!BuildDefs::dump())
         return;
@@ -135,8 +136,8 @@ class GlobalContext {
     }
   };
 
-  // ThreadContext contains thread-local data.  This data can be
-  // combined/reduced as needed after all threads complete.
+  /// ThreadContext contains thread-local data.  This data can be
+  /// combined/reduced as needed after all threads complete.
   class ThreadContext {
     ThreadContext(const ThreadContext &) = delete;
     ThreadContext &operator=(const ThreadContext &) = delete;
@@ -149,24 +150,24 @@ class GlobalContext {
   };
 
 public:
-  // The dump stream is a log stream while emit is the stream code
-  // is emitted to. The error stream is strictly for logging errors.
+  /// The dump stream is a log stream while emit is the stream code
+  /// is emitted to. The error stream is strictly for logging errors.
   GlobalContext(Ostream *OsDump, Ostream *OsEmit, Ostream *OsError,
                 ELFStreamer *ELFStreamer, const ClFlags &Flags);
   ~GlobalContext();
 
-  //
-  // The dump, error, and emit streams need to be used by only one
-  // thread at a time.  This is done by exclusively reserving the
-  // streams via lockStr() and unlockStr().  The OstreamLocker class
-  // can be used to conveniently manage this.
-  //
-  // The model is that a thread grabs the stream lock, then does an
-  // arbitrary amount of work during which far-away callees may grab
-  // the stream and do something with it, and finally the thread
-  // releases the stream lock.  This allows large chunks of output to
-  // be dumped or emitted without risking interleaving from multiple
-  // threads.
+  ///
+  /// The dump, error, and emit streams need to be used by only one
+  /// thread at a time.  This is done by exclusively reserving the
+  /// streams via lockStr() and unlockStr().  The OstreamLocker class
+  /// can be used to conveniently manage this.
+  ///
+  /// The model is that a thread grabs the stream lock, then does an
+  /// arbitrary amount of work during which far-away callees may grab
+  /// the stream and do something with it, and finally the thread
+  /// releases the stream lock.  This allows large chunks of output to
+  /// be dumped or emitted without risking interleaving from multiple
+  /// threads.
   void lockStr() { StrLock.lock(); }
   void unlockStr() { StrLock.unlock(); }
   Ostream &getStrDump() { return *StrDump; }
@@ -177,10 +178,10 @@ public:
     return LockedPtr<ErrorCode>(&ErrorStatus, &ErrorStatusLock);
   }
 
-  // When emitting assembly, we allow a string to be prepended to
-  // names of translated functions.  This makes it easier to create an
-  // execution test against a reference translator like llc, with both
-  // translators using the same bitcode as input.
+  /// When emitting assembly, we allow a string to be prepended to
+  /// names of translated functions.  This makes it easier to create an
+  /// execution test against a reference translator like llc, with both
+  /// translators using the same bitcode as input.
   IceString mangleName(const IceString &Name) const;
 
   // Manage Constants.
@@ -194,18 +195,18 @@ public:
   Constant *getConstantInt64(int64_t ConstantInt64);
   Constant *getConstantFloat(float Value);
   Constant *getConstantDouble(double Value);
-  // Returns a symbolic constant.
+  /// Returns a symbolic constant.
   Constant *getConstantSym(RelocOffsetT Offset, const IceString &Name,
                            bool SuppressMangling);
   Constant *getConstantExternSym(const IceString &Name);
-  // Returns an undef.
+  /// Returns an undef.
   Constant *getConstantUndef(Type Ty);
-  // Returns a zero value.
+  /// Returns a zero value.
   Constant *getConstantZero(Type Ty);
-  // getConstantPool() returns a copy of the constant pool for
-  // constants of a given type.
+  /// getConstantPool() returns a copy of the constant pool for
+  /// constants of a given type.
   ConstantList getConstantPool(Type Ty);
-  // Returns a copy of the list of external symbols.
+  /// Returns a copy of the list of external symbols.
   ConstantList getConstantExternSyms();
 
   const ClFlags &getFlags() const { return Flags; }
@@ -214,11 +215,11 @@ public:
     return getFlags().getDisableIRGeneration();
   }
 
-  // Allocate data of type T using the global allocator. We allow entities
-  // allocated from this global allocator to be either trivially or
-  // non-trivially destructible. We optimize the case when T is trivially
-  // destructible by not registering a destructor. Destructors will be invoked
-  // during GlobalContext destruction in the reverse object creation order.
+  /// Allocate data of type T using the global allocator. We allow entities
+  /// allocated from this global allocator to be either trivially or
+  /// non-trivially destructible. We optimize the case when T is trivially
+  /// destructible by not registering a destructor. Destructors will be invoked
+  /// during GlobalContext destruction in the reverse object creation order.
   template <typename T>
   typename std::enable_if<std::is_trivially_destructible<T>::value, T>::type *
   allocate() {
@@ -241,7 +242,7 @@ public:
 
   ELFObjectWriter *getObjectWriter() const { return ObjectWriter.get(); }
 
-  // Reset stats at the beginning of a function.
+  /// Reset stats at the beginning of a function.
   void resetStats() {
     if (BuildDefs::dump())
       ICE_TLS_GET_FIELD(TLS)->StatsFunction.reset();
@@ -283,7 +284,7 @@ public:
     Tls->StatsCumulative.update(CodeStats::CS_NumFills);
   }
 
-  // Number of Randomized or Pooled Immediates
+  /// Number of Randomized or Pooled Immediates
   void statsUpdateRPImms() {
     if (!getFlags().getDumpStats())
       return;
@@ -292,44 +293,44 @@ public:
     Tls->StatsCumulative.update(CodeStats::CS_NumRPImms);
   }
 
-  // These are predefined TimerStackIdT values.
+  /// These are predefined TimerStackIdT values.
   enum TimerStackKind { TSK_Default = 0, TSK_Funcs, TSK_Num };
 
-  // newTimerStackID() creates a new TimerStack in the global space.
-  // It does not affect any TimerStack objects in TLS.
+  /// newTimerStackID() creates a new TimerStack in the global space.
+  /// It does not affect any TimerStack objects in TLS.
   TimerStackIdT newTimerStackID(const IceString &Name);
-  // dumpTimers() dumps the global timer data.  As such, one probably
-  // wants to call mergeTimerStacks() as a prerequisite.
+  /// dumpTimers() dumps the global timer data.  As such, one probably
+  /// wants to call mergeTimerStacks() as a prerequisite.
   void dumpTimers(TimerStackIdT StackID = TSK_Default,
                   bool DumpCumulative = true);
-  // The following methods affect only the calling thread's TLS timer
-  // data.
+  /// The following methods affect only the calling thread's TLS timer
+  /// data.
   TimerIdT getTimerID(TimerStackIdT StackID, const IceString &Name);
   void pushTimer(TimerIdT ID, TimerStackIdT StackID);
   void popTimer(TimerIdT ID, TimerStackIdT StackID);
   void resetTimer(TimerStackIdT StackID);
   void setTimerName(TimerStackIdT StackID, const IceString &NewName);
 
-  // This is the first work item sequence number that the parser
-  // produces, and correspondingly the first sequence number that the
-  // emitter thread will wait for.  Start numbering at 1 to leave room
-  // for a sentinel, in case e.g. we wish to inject items with a
-  // special sequence number that may be executed out of order.
+  /// This is the first work item sequence number that the parser
+  /// produces, and correspondingly the first sequence number that the
+  /// emitter thread will wait for.  Start numbering at 1 to leave room
+  /// for a sentinel, in case e.g. we wish to inject items with a
+  /// special sequence number that may be executed out of order.
   static uint32_t getFirstSequenceNumber() { return 1; }
-  // Adds a newly parsed and constructed function to the Cfg work
-  // queue.  Notifies any idle workers that a new function is
-  // available for translating.  May block if the work queue is too
-  // large, in order to control memory footprint.
+  /// Adds a newly parsed and constructed function to the Cfg work
+  /// queue.  Notifies any idle workers that a new function is
+  /// available for translating.  May block if the work queue is too
+  /// large, in order to control memory footprint.
   void optQueueBlockingPush(std::unique_ptr<Cfg> Func);
-  // Takes a Cfg from the work queue for translating.  May block if
-  // the work queue is currently empty.  Returns nullptr if there is
-  // no more work - the queue is empty and either end() has been
-  // called or the Sequential flag was set.
+  /// Takes a Cfg from the work queue for translating.  May block if
+  /// the work queue is currently empty.  Returns nullptr if there is
+  /// no more work - the queue is empty and either end() has been
+  /// called or the Sequential flag was set.
   std::unique_ptr<Cfg> optQueueBlockingPop();
-  // Notifies that no more work will be added to the work queue.
+  /// Notifies that no more work will be added to the work queue.
   void optQueueNotifyEnd() { OptQ.notifyEnd(); }
 
-  // Emit file header for output file.
+  /// Emit file header for output file.
   void emitFileHeader();
 
   void lowerConstants();
@@ -394,44 +395,44 @@ public:
     }
   }
 
-  // Translation thread startup routine.
+  /// Translation thread startup routine.
   void translateFunctionsWrapper(ThreadContext *MyTLS) {
     ICE_TLS_SET_FIELD(TLS, MyTLS);
     translateFunctions();
   }
-  // Translate functions from the Cfg queue until the queue is empty.
+  /// Translate functions from the Cfg queue until the queue is empty.
   void translateFunctions();
 
-  // Emitter thread startup routine.
+  /// Emitter thread startup routine.
   void emitterWrapper(ThreadContext *MyTLS) {
     ICE_TLS_SET_FIELD(TLS, MyTLS);
     emitItems();
   }
-  // Emit functions and global initializers from the emitter queue
-  // until the queue is empty.
+  /// Emit functions and global initializers from the emitter queue
+  /// until the queue is empty.
   void emitItems();
 
-  // Uses DataLowering to lower Globals. Side effects:
-  //  - discards the initializer list for the global variable in Globals.
-  //  - clears the Globals array.
+  /// Uses DataLowering to lower Globals. Side effects:
+  ///  - discards the initializer list for the global variable in Globals.
+  ///  - clears the Globals array.
   void lowerGlobals(const IceString &SectionSuffix);
 
-  // Lowers the profile information.
+  /// Lowers the profile information.
   void lowerProfileData();
 
-  // Utility function to match a symbol name against a match string.
-  // This is used in a few cases where we want to take some action on
-  // a particular function or symbol based on a command-line argument,
-  // such as changing the verbose level for a particular function.  An
-  // empty Match argument means match everything.  Returns true if
-  // there is a match.
+  /// Utility function to match a symbol name against a match string.
+  /// This is used in a few cases where we want to take some action on
+  /// a particular function or symbol based on a command-line argument,
+  /// such as changing the verbose level for a particular function.  An
+  /// empty Match argument means match everything.  Returns true if
+  /// there is a match.
   static bool matchSymbolName(const IceString &SymbolName,
                               const IceString &Match) {
     return Match.empty() || Match == SymbolName;
   }
 
-  // Return the randomization cookie for diversification.
-  // Initialize the cookie if necessary
+  /// Return the randomization cookie for diversification.
+  /// Initialize the cookie if necessary
   uint32_t getRandomizationCookie() const { return RandomizationCookie; }
 
 private:
@@ -470,12 +471,12 @@ private:
   TimerList Timers;
 
   ICE_CACHELINE_BOUNDARY;
-  // StrLock is a global lock on the dump and emit output streams.
+  /// StrLock is a global lock on the dump and emit output streams.
   typedef std::mutex StrLockType;
   StrLockType StrLock;
-  Ostream *StrDump;  // Stream for dumping / diagnostics
-  Ostream *StrEmit;  // Stream for code emission
-  Ostream *StrError; // Stream for logging errors.
+  Ostream *StrDump;  /// Stream for dumping / diagnostics
+  Ostream *StrEmit;  /// Stream for code emission
+  Ostream *StrError; /// Stream for logging errors.
 
   ICE_CACHELINE_BOUNDARY;
 
@@ -490,8 +491,8 @@ private:
   // emitItems(), or in IceCompiler::run before the compilation is over.)
   // TODO(jpp): move to EmitterContext.
   std::unique_ptr<TargetDataLowering> DataLowering;
-  // If !HasEmittedCode, SubZero will accumulate all Globals (which are "true"
-  // program global variables) until the first code WorkItem is seen.
+  /// If !HasEmittedCode, SubZero will accumulate all Globals (which are "true"
+  /// program global variables) until the first code WorkItem is seen.
   // TODO(jpp): move to EmitterContext.
   bool HasSeenCode = false;
   // TODO(jpp): move to EmitterContext.
@@ -548,9 +549,9 @@ public:
   static void TlsInit() { ICE_TLS_INIT_FIELD(TLS); }
 };
 
-// Helper class to push and pop a timer marker.  The constructor
-// pushes a marker, and the destructor pops it.  This is for
-// convenient timing of regions of code.
+/// Helper class to push and pop a timer marker.  The constructor
+/// pushes a marker, and the destructor pops it.  This is for
+/// convenient timing of regions of code.
 class TimerMarker {
   TimerMarker() = delete;
   TimerMarker(const TimerMarker &) = delete;
@@ -585,8 +586,8 @@ private:
   bool Active = false;
 };
 
-// Helper class for locking the streams and then automatically
-// unlocking them.
+/// Helper class for locking the streams and then automatically
+/// unlocking them.
 class OstreamLocker {
 private:
   OstreamLocker() = delete;

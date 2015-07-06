@@ -6,11 +6,12 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file declares a few properties of the primitive types allowed
-// in Subzero.  Every Subzero source file is expected to include
-// IceTypes.h.
-//
+///
+/// \file
+/// This file declares a few properties of the primitive types allowed
+/// in Subzero.  Every Subzero source file is expected to include
+/// IceTypes.h.
+///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICETYPES_H
@@ -41,8 +42,8 @@ inline Ostream &operator<<(Ostream &Stream, TargetArch Arch) {
   return Stream << targetArchString(Arch);
 }
 
-// The list of all target instruction sets. Individual targets will
-// map this to include only what is valid for the target.
+/// The list of all target instruction sets. Individual targets will
+/// map this to include only what is valid for the target.
 enum TargetInstructionSet {
   // Represents baseline that can be assumed for a target (usually "Begin").
   BaseInstructionSet,
@@ -88,28 +89,28 @@ Type getCompareResultType(Type Ty);
 /// Returns the number of bits in a scalar integer type.
 SizeT getScalarIntBitWidth(Type Ty);
 
-// Check if a type is byte sized (slight optimization over typeWidthInBytes).
+/// Check if a type is byte sized (slight optimization over typeWidthInBytes).
 inline bool isByteSizedType(Type Ty) {
   bool result = Ty == IceType_i8 || Ty == IceType_i1;
   assert(result == (1 == typeWidthInBytes(Ty)));
   return result;
 }
 
-// Check if Ty is byte sized and specifically i8. Assert that it's not
-// byte sized due to being an i1.
+/// Check if Ty is byte sized and specifically i8. Assert that it's not
+/// byte sized due to being an i1.
 inline bool isByteSizedArithType(Type Ty) {
   assert(Ty != IceType_i1);
   return Ty == IceType_i8;
 }
 
-// Return true if Ty is i32. This asserts that Ty is either i32 or i64.
+/// Return true if Ty is i32. This asserts that Ty is either i32 or i64.
 inline bool isInt32Asserting32Or64(Type Ty) {
   bool result = Ty == IceType_i32;
   assert(result || Ty == IceType_i64);
   return result;
 }
 
-// Return true if Ty is f32. This asserts that Ty is either f32 or f64.
+/// Return true if Ty is f32. This asserts that Ty is either f32 or f64.
 inline bool isFloat32Asserting32Or64(Type Ty) {
   bool result = Ty == IceType_f32;
   assert(result || Ty == IceType_f64);
@@ -129,8 +130,8 @@ class FuncSigType {
 public:
   typedef std::vector<Type> ArgListType;
 
-  // Creates a function signature type with the given return type.
-  // Parameter types should be added using calls to appendArgType.
+  /// Creates a function signature type with the given return type.
+  /// Parameter types should be added using calls to appendArgType.
   FuncSigType() = default;
   FuncSigType(const FuncSigType &Ty) = default;
 
@@ -147,9 +148,9 @@ public:
   void dump(Ostream &Stream) const;
 
 private:
-  // The return type.
+  /// The return type.
   Type ReturnType = IceType_void;
-  // The list of parameters.
+  /// The list of parameters.
   ArgListType ArgList;
 };
 

@@ -14,9 +14,10 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file implements the Assembler class for MIPS32.
-//
+///
+/// \file
+/// This file implements the Assembler class for MIPS32.
+///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICEASSEMBLERMIPS32_H

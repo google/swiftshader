@@ -6,9 +6,10 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file defines the basic commandline-based compile server.
-//
+///
+/// \file
+/// This file defines the basic commandline-based compile server.
+///
 //===----------------------------------------------------------------------===//
 
 #include "IceCompileServer.h"

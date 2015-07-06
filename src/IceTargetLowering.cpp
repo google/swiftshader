@@ -6,13 +6,14 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file implements the skeleton of the TargetLowering class,
-// specifically invoking the appropriate lowering method for a given
-// instruction kind and driving global register allocation.  It also
-// implements the non-deleted instruction iteration in
-// LoweringContext.
-//
+///
+/// \file
+/// This file implements the skeleton of the TargetLowering class,
+/// specifically invoking the appropriate lowering method for a given
+/// instruction kind and driving global register allocation.  It also
+/// implements the non-deleted instruction iteration in
+/// LoweringContext.
+///
 //===----------------------------------------------------------------------===//
 
 #include "IceTargetLowering.h"

@@ -6,10 +6,11 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file defines the general driver class for translating ICE to
-// machine code.
-//
+///
+/// \file
+/// This file defines the general driver class for translating ICE to
+/// machine code.
+///
 //===----------------------------------------------------------------------===//
 
 #include "IceTranslator.h"

@@ -6,9 +6,10 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-//
-// This file defines threading-related functions.
-//
+///
+/// \file
+/// This file defines threading-related functions.
+///
 //===----------------------------------------------------------------------===//
 
 #include "IceThreading.h"
