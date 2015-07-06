@@ -35,9 +35,30 @@ namespace es2
 		return buffer;
 	}
 
+	Uniform::BlockInfo::BlockInfo(const glsl::Uniform& uniform, int blockIndex, bool rowMajorLayout)
+	{
+		if(blockIndex >= 0)
+		{
+			index = blockIndex;
+			offset = uniform.registerIndex;
+			arrayStride = UniformTypeSize(uniform.type) * uniform.arraySize;
+			isRowMajorMatrix = rowMajorLayout;
+			int rowCount = VariableRowCount(uniform.type);
+			matrixStride = (rowCount > 1) ? (isRowMajorMatrix ? rowCount : VariableColumnCount(uniform.type)) * UniformTypeSize(UniformComponentType(uniform.type)) : 0;
+		}
+		else
+		{
+			index = -1;
+			offset = -1;
+			arrayStride = -1;
+			matrixStride = -1;
+			isRowMajorMatrix = false;
+		}
+	}
+
 	Uniform::Uniform(GLenum type, GLenum precision, const std::string &name, unsigned int arraySize,
-	                 const int blockIndex, const BlockMemberInfo &blockInfo)
-	 : type(type), precision(precision), name(name), arraySize(arraySize), blockIndex(blockIndex), blockInfo(blockInfo)
+	                 const BlockInfo &blockInfo)
+	 : type(type), precision(precision), name(name), arraySize(arraySize), blockInfo(blockInfo)
 	{
 		int bytes = UniformTypeSize(type) * size();
 		data = new unsigned char[bytes];
@@ -68,9 +89,24 @@ namespace es2
 		return size() * VariableRegisterCount(type);
 	}
 
-	UniformBlock::UniformBlock(const std::string &name, unsigned int elementIndex, unsigned int dataSize) :
-		name(name), elementIndex(elementIndex), dataSize(dataSize), psRegisterIndex(GL_INVALID_INDEX), vsRegisterIndex(GL_INVALID_INDEX)
+	UniformBlock::UniformBlock(const std::string &name, unsigned int elementIndex, unsigned int dataSize, std::vector<unsigned int> memberUniformIndexes) :
+		name(name), elementIndex(elementIndex), dataSize(dataSize), memberUniformIndexes(memberUniformIndexes), psRegisterIndex(GL_INVALID_INDEX), vsRegisterIndex(GL_INVALID_INDEX)
 	{
+	}
+
+	void UniformBlock::setRegisterIndex(GLenum shader, unsigned int registerIndex)
+	{
+		switch(shader)
+		{
+		case GL_VERTEX_SHADER:
+			vsRegisterIndex = registerIndex;
+			break;
+		case GL_FRAGMENT_SHADER:
+			psRegisterIndex = registerIndex;
+			break;
+		default:
+			UNREACHABLE(shader);
+		}
 	}
 
 	bool UniformBlock::isArrayElement() const
@@ -348,7 +384,7 @@ namespace es2
 	{
 		ASSERT(uniformBlockIndex < getActiveUniformBlockCount());
 
-		const UniformBlock &uniformBlock = *uniformBlocks[uniformBlockIndex];
+		const UniformBlock &uniformBlock = uniformBlocks[uniformBlockIndex];
 
 		switch(pname)
 		{
@@ -387,7 +423,7 @@ namespace es2
 		unsigned int numUniformBlocks = getActiveUniformBlockCount();
 		for(unsigned int blockIndex = 0; blockIndex < numUniformBlocks; blockIndex++)
 		{
-			const UniformBlock &uniformBlock = *uniformBlocks[blockIndex];
+			const UniformBlock &uniformBlock = uniformBlocks[blockIndex];
 			if(uniformBlock.name == baseName)
 			{
 				const bool arrayElementZero = (subscript == GL_INVALID_INDEX && uniformBlock.elementIndex == 0);
@@ -1087,6 +1123,48 @@ namespace es2
 		}
 	}
 
+	void Program::applyUniformBuffers()
+	{
+		GLint vertexUniformBuffers[IMPLEMENTATION_MAX_UNIFORM_BUFFER_BINDINGS];
+		GLint fragmentUniformBuffers[IMPLEMENTATION_MAX_UNIFORM_BUFFER_BINDINGS];
+
+		for(unsigned int registerIndex = 0; registerIndex < IMPLEMENTATION_MAX_UNIFORM_BUFFER_BINDINGS; ++registerIndex)
+		{
+			vertexUniformBuffers[registerIndex] = -1;
+		}
+
+		for(unsigned int registerIndex = 0; registerIndex < IMPLEMENTATION_MAX_UNIFORM_BUFFER_BINDINGS; ++registerIndex)
+		{
+			fragmentUniformBuffers[registerIndex] = -1;
+		}
+
+		for(unsigned int uniformBlockIndex = 0; uniformBlockIndex < uniformBlocks.size(); uniformBlockIndex++)
+		{
+			UniformBlock &uniformBlock = uniformBlocks[uniformBlockIndex];
+			GLuint blockBinding = uniformBlockBindings[uniformBlockIndex];
+
+			// Unnecessary to apply an unreferenced standard or shared UBO
+			if(!uniformBlock.isReferencedByVertexShader() && !uniformBlock.isReferencedByFragmentShader())
+			{
+				continue;
+			}
+
+			if(uniformBlock.isReferencedByVertexShader())
+			{
+				unsigned int registerIndex = uniformBlock.vsRegisterIndex;
+				ASSERT(vertexUniformBuffers[registerIndex] == -1);
+				vertexUniformBuffers[registerIndex] = blockBinding;
+			}
+
+			if(uniformBlock.isReferencedByFragmentShader())
+			{
+				unsigned int registerIndex = uniformBlock.psRegisterIndex;
+				ASSERT(fragmentUniformBuffers[registerIndex] == -1);
+				fragmentUniformBuffers[registerIndex] = blockBinding;
+			}
+		}
+	}
+
 	bool Program::linkVaryings()
 	{
 		for(glsl::VaryingList::iterator input = fragmentShader->varyings.begin(); input != fragmentShader->varyings.end(); ++input)
@@ -1233,6 +1311,12 @@ namespace es2
 			return;
 		}
 
+		// Link uniform blocks before uniforms to make it easy to assign block indices to fields
+		if(!linkUniformBlocks(vertexShader, fragmentShader))
+		{
+			return;
+		}
+
 		if(!linkUniforms(fragmentShader))
 		{
 			return;
@@ -1345,7 +1429,18 @@ namespace es2
 		{
 			const glsl::Uniform &uniform = activeUniforms[uniformIndex];
 
-			if(!defineUniform(shader->getType(), uniform.type, uniform.precision, uniform.name, uniform.arraySize, uniform.registerIndex))
+			int blockIndex = -1;
+			bool isRowMajorMatrix = false;
+			if(uniform.blockId >= 0)
+			{
+				const glsl::ActiveUniformBlocks &activeUniformBlocks = shader->activeUniformBlocks;
+				ASSERT(static_cast<size_t>(uniform.blockId) < activeUniformBlocks.size());
+				UniformBlockArray::iterator it = std::find(uniformBlocks.begin(), uniformBlocks.end(), UniformBlock(activeUniformBlocks[uniform.blockId].getName(), GL_INVALID_INDEX, 0, std::vector<unsigned int>()));
+				ASSERT(it != uniformBlocks.end());
+				blockIndex = (it - uniformBlocks.begin()) / sizeof(UniformBlockArray::iterator);
+				isRowMajorMatrix = activeUniformBlocks[uniform.blockId].isRowMajorLayout;
+			}
+			if(!defineUniform(shader->getType(), uniform.type, uniform.precision, uniform.name, uniform.arraySize, uniform.registerIndex, Uniform::BlockInfo(uniform, blockIndex, isRowMajorMatrix)))
 			{
 				return false;
 			}
@@ -1354,7 +1449,7 @@ namespace es2
 		return true;
 	}
 
-	bool Program::defineUniform(GLenum shader, GLenum type, GLenum precision, const std::string &name, unsigned int arraySize, int registerIndex)
+	bool Program::defineUniform(GLenum shader, GLenum type, GLenum precision, const std::string &name, unsigned int arraySize, int registerIndex, const Uniform::BlockInfo& blockInfo)
 	{
 		if(IsSamplerUniform(type))
 	    {
@@ -1460,7 +1555,7 @@ namespace es2
 		}
 		else
 		{
-			uniform = new Uniform(type, precision, name, arraySize, -1, Uniform::BlockMemberInfo::getDefaultBlockInfo());
+			uniform = new Uniform(type, precision, name, arraySize, blockInfo);
 		}
 
 		if(!uniform)
@@ -1506,6 +1601,117 @@ namespace es2
 			}
 		}
 		else UNREACHABLE(shader);
+
+		return true;
+	}
+
+	bool Program::areMatchingUniformBlocks(const glsl::UniformBlock &block1, const glsl::UniformBlock &block2, const Shader *shader1, const Shader *shader2)
+	{
+		// validate blocks for the same member types
+		if(block1.fields.size() != block2.fields.size())
+		{
+			return false;
+		}
+		if(block1.arraySize != block2.arraySize)
+		{
+			return false;
+		}
+		if(block1.layout != block2.layout || block1.isRowMajorLayout != block2.isRowMajorLayout)
+		{
+			return false;
+		}
+		const unsigned int numBlockMembers = block1.fields.size();
+		for(unsigned int blockMemberIndex = 0; blockMemberIndex < numBlockMembers; blockMemberIndex++)
+		{
+			const glsl::Uniform& member1 = shader1->activeUniforms[block1.fields[blockMemberIndex]];
+			const glsl::Uniform& member2 = shader2->activeUniforms[block2.fields[blockMemberIndex]];
+			if(member1.name != member2.name ||
+			   member1.arraySize != member2.arraySize ||
+			   member1.precision != member2.precision ||
+			   member1.type != member2.type)
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	bool Program::linkUniformBlocks(const Shader *vertexShader, const Shader *fragmentShader)
+	{
+		const glsl::ActiveUniformBlocks &vertexUniformBlocks = vertexShader->activeUniformBlocks;
+		const glsl::ActiveUniformBlocks &fragmentUniformBlocks = fragmentShader->activeUniformBlocks;
+		// Check that interface blocks defined in the vertex and fragment shaders are identical
+		typedef std::map<std::string, const glsl::UniformBlock*> UniformBlockMap;
+		UniformBlockMap linkedUniformBlocks;
+		for(unsigned int blockIndex = 0; blockIndex < vertexUniformBlocks.size(); blockIndex++)
+		{
+			const glsl::UniformBlock &vertexUniformBlock = vertexUniformBlocks[blockIndex];
+			linkedUniformBlocks[vertexUniformBlock.name] = &vertexUniformBlock;
+		}
+		for(unsigned int blockIndex = 0; blockIndex < fragmentUniformBlocks.size(); blockIndex++)
+		{
+			const glsl::UniformBlock &fragmentUniformBlock = fragmentUniformBlocks[blockIndex];
+			UniformBlockMap::const_iterator entry = linkedUniformBlocks.find(fragmentUniformBlock.name);
+			if(entry != linkedUniformBlocks.end())
+			{
+				const glsl::UniformBlock &vertexUniformBlock = *entry->second;
+				if(!areMatchingUniformBlocks(vertexUniformBlock, fragmentUniformBlock, vertexShader, fragmentShader))
+				{
+					return false;
+				}
+			}
+		}
+		for(unsigned int blockIndex = 0; blockIndex < vertexUniformBlocks.size(); blockIndex++)
+		{
+			const glsl::UniformBlock &uniformBlock = vertexUniformBlocks[blockIndex];
+			if(!defineUniformBlock(vertexShader, uniformBlock))
+			{
+				return false;
+			}
+		}
+		for(unsigned int blockIndex = 0; blockIndex < fragmentUniformBlocks.size(); blockIndex++)
+		{
+			const glsl::UniformBlock &uniformBlock = fragmentUniformBlocks[blockIndex];
+			if(!defineUniformBlock(fragmentShader, uniformBlock))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	bool Program::defineUniformBlock(const Shader *shader, const glsl::UniformBlock &block)
+	{
+		UniformBlockArray::iterator it = std::find(uniformBlocks.begin(), uniformBlocks.end(), UniformBlock(block.getName(), 0, 0, std::vector<unsigned int>()));
+
+		if(it == uniformBlocks.end())
+		{
+			const glsl::ActiveUniforms &activeUniforms = shader->activeUniforms;
+			const std::vector<int>& fields = block.fields;
+			std::vector<unsigned int> memberUniformIndexes;
+			for(size_t i = 0; i < fields.size(); ++i)
+			{
+				memberUniformIndexes.push_back(activeUniforms[fields[i]].registerIndex);
+			}
+
+			if(block.arraySize > 0)
+			{
+				for(unsigned int i = 0; i < block.arraySize; ++i)
+				{
+					uniformBlocks.push_back(UniformBlock(block.getName(), i, block.dataSize, memberUniformIndexes));
+					uniformBlocks[uniformBlocks.size() - 1].setRegisterIndex(shader->getType(), block.registerIndex);
+				}
+			}
+			else
+			{
+				uniformBlocks.push_back(UniformBlock(block.getName(), GL_INVALID_INDEX, block.dataSize, memberUniformIndexes));
+				uniformBlocks[uniformBlocks.size() - 1].setRegisterIndex(shader->getType(), block.registerIndex);
+			}
+		}
+		else
+		{
+			it->setRegisterIndex(shader->getType(), block.registerIndex);
+		}
 
 		return true;
 	}
@@ -2336,6 +2542,7 @@ namespace es2
 			uniforms.pop_back();
 		}
 
+		uniformBlocks.clear();
 		uniformIndex.clear();
 		transformFeedbackLinkedVaryings.clear();
 
@@ -2571,7 +2778,7 @@ namespace es2
 		case GL_UNIFORM_TYPE:         return static_cast<GLint>(uniform.type);
 		case GL_UNIFORM_SIZE:         return static_cast<GLint>(uniform.size());
 		case GL_UNIFORM_NAME_LENGTH:  return static_cast<GLint>(uniform.name.size() + 1 + (uniform.isArray() ? 3 : 0));
-		case GL_UNIFORM_BLOCK_INDEX:  return uniform.blockIndex;
+		case GL_UNIFORM_BLOCK_INDEX:  return uniform.blockInfo.index;
 		case GL_UNIFORM_OFFSET:       return uniform.blockInfo.offset;
 		case GL_UNIFORM_ARRAY_STRIDE: return uniform.blockInfo.arrayStride;
 		case GL_UNIFORM_MATRIX_STRIDE: return uniform.blockInfo.matrixStride;
@@ -2587,7 +2794,7 @@ namespace es2
 	{
 		ASSERT(index < getActiveUniformBlockCount());
 
-		const UniformBlock &uniformBlock = *uniformBlocks[index];
+		const UniformBlock &uniformBlock = uniformBlocks[index];
 
 		if(bufSize > 0)
 		{
@@ -2624,7 +2831,7 @@ namespace es2
 			unsigned int numUniformBlocks = getActiveUniformBlockCount();
 			for(unsigned int uniformBlockIndex = 0; uniformBlockIndex < numUniformBlocks; uniformBlockIndex++)
 			{
-				const UniformBlock &uniformBlock = *uniformBlocks[uniformBlockIndex];
+				const UniformBlock &uniformBlock = uniformBlocks[uniformBlockIndex];
 				if(!uniformBlock.name.empty())
 				{
 					const int length = uniformBlock.name.length() + 1;

@@ -32,7 +32,7 @@ namespace glsl
 {
 	struct Uniform
 	{
-		Uniform(GLenum type, GLenum precision, const std::string &name, int arraySize, int registerIndex);
+		Uniform(GLenum type, GLenum precision, const std::string &name, int arraySize, int registerIndex, int blockId);
 
 		GLenum type;
 		GLenum precision;
@@ -40,9 +40,33 @@ namespace glsl
 		int arraySize;
 	
 		int registerIndex;
+
+		int blockId;
 	};
 
 	typedef std::vector<Uniform> ActiveUniforms;
+
+	struct UniformBlock
+	{
+		UniformBlock(const std::string& name, const std::string& instanceName, unsigned int dataSize, unsigned int arraySize,
+		             TLayoutBlockStorage layout, bool isRowMajorLayout, int registerIndex, int blockId);
+
+		const std::string& getName() const { return (instanceName.length() > 0) ? instanceName : name; }
+
+		std::string name;
+		std::string instanceName;
+		unsigned int dataSize;
+		unsigned int arraySize;
+		TLayoutBlockStorage layout;
+		bool isRowMajorLayout;
+		std::vector<int> fields;
+
+		int registerIndex;
+
+		int blockId;
+	};
+
+	typedef std::vector<UniformBlock> ActiveUniformBlocks;
 
 	struct Attribute
 	{
@@ -99,6 +123,7 @@ namespace glsl
 		VaryingList varyings;
 		ActiveUniforms activeUniforms;
 		ActiveAttributes activeAttributes;
+		ActiveUniformBlocks activeUniformBlocks;
 	};
 
 	struct Function
@@ -180,7 +205,7 @@ namespace glsl
 		int allocate(VariableArray &list, TIntermTyped *variable);
 		void free(VariableArray &list, TIntermTyped *variable);
 
-		void declareUniform(const TType &type, const TString &name, int index);
+		void declareUniform(const TType &type, const TString &name, int offset, int blockId = -1);
 		GLenum glVariableType(const TType &type);
 		GLenum glVariablePrecision(const TType &type);
 

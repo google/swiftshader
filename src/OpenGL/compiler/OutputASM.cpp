@@ -75,13 +75,16 @@ namespace glsl
 		ConstantUnion constants[4];
 	};
 
-	Uniform::Uniform(GLenum type, GLenum precision, const std::string &name, int arraySize, int registerIndex)
+	Uniform::Uniform(GLenum type, GLenum precision, const std::string &name, int arraySize, int registerIndex, int blockId) :
+		type(type), precision(precision), name(name), arraySize(arraySize), registerIndex(registerIndex), blockId(blockId)
 	{
-		this->type = type;
-		this->precision = precision;
-		this->name = name;
-		this->arraySize = arraySize;
-		this->registerIndex = registerIndex;
+	}
+
+	UniformBlock::UniformBlock(const std::string& name, const std::string& instanceName, unsigned int dataSize, unsigned int arraySize,
+	                           TLayoutBlockStorage layout, bool isRowMajorLayout, int registerIndex, int blockId) :
+		name(name), instanceName(instanceName), dataSize(dataSize), arraySize(arraySize), layout(layout),
+		isRowMajorLayout(isRowMajorLayout), registerIndex(registerIndex), blockId(blockId)
+	{
 	}
 
 	Attribute::Attribute()
@@ -2399,55 +2402,73 @@ namespace glsl
 		}
 	}
 
-	void OutputASM::declareUniform(const TType &type, const TString &name, int index)
+	void OutputASM::declareUniform(const TType &type, const TString &name, int offset, int blockId)
 	{
 		const TStructure *structure = type.getStruct();
+		const TInterfaceBlock *block = (type.isInterfaceBlock() || (blockId == -1)) ? type.getInterfaceBlock() : nullptr;
 		ActiveUniforms &activeUniforms = shaderObject->activeUniforms;
 
-		if(!structure)
+		if(block)
 		{
-			activeUniforms.push_back(Uniform(glVariableType(type), glVariablePrecision(type), name.c_str(), type.getArraySize(), index));
+			ActiveUniformBlocks &activeUniformBlocks = shaderObject->activeUniformBlocks;
+			blockId = activeUniformBlocks.size();
+			unsigned int dataSize = block->objectSize() * 4; // FIXME: assuming 4 bytes per element
+			activeUniformBlocks.push_back(UniformBlock(block->name().c_str(), block->hasInstanceName() ? block->instanceName().c_str() : std::string(), dataSize,
+			                                           block->arraySize(), block->blockStorage(), block->matrixPacking() == EmpRowMajor, offset, blockId));
+		}
+
+		if(!structure && !block)
+		{
+			if(blockId >= 0)
+			{
+				shaderObject->activeUniformBlocks[blockId].fields.push_back(activeUniforms.size());
+			}
+			activeUniforms.push_back(Uniform(glVariableType(type), glVariablePrecision(type), name.c_str(), type.getArraySize(), offset, blockId));
 
 			if(isSamplerRegister(type))
 			{
 				for(int i = 0; i < type.totalRegisterCount(); i++)
 				{
-					shader->declareSampler(index + i);
+					shader->declareSampler(offset + i);
 				}
 			}
 		}
 		else
 		{
-			const TFieldList& fields = structure->fields();
+			const TFieldList& fields = structure ? structure->fields() : block->fields();
+			const bool containerHasName = structure || block->hasInstanceName();
+			const TString &containerName = structure ? name : (containerHasName ? block->instanceName() : TString());
 			if(type.isArray())
 			{
-				int elementIndex = index;
+				int elementOffset = offset;
 
 				for(int i = 0; i < type.getArraySize(); i++)
 				{
+					int fieldOffset = (blockId == -1) ? elementOffset : 0;
 					for(size_t j = 0; j < fields.size(); j++)
 					{
 						const TType &fieldType = *(fields[j]->type());
 						const TString &fieldName = fields[j]->name();
 
-						const TString uniformName = name + "[" + str(i) + "]." + fieldName;
-						declareUniform(fieldType, uniformName, elementIndex);
-						elementIndex += fieldType.totalRegisterCount();
+						const TString uniformName = containerHasName ? containerName + "[" + str(i) + "]." + fieldName : fieldName;
+						declareUniform(fieldType, uniformName, fieldOffset, blockId);
+						fieldOffset += fieldType.totalRegisterCount();
 					}
+					elementOffset = fieldOffset;
 				}
 			}
 			else
 			{
-				int fieldIndex = index;
+				int fieldOffset = (blockId == -1) ? offset : 0;
 
 				for(size_t i = 0; i < fields.size(); i++)
 				{
 					const TType &fieldType = *(fields[i]->type());
 					const TString &fieldName = fields[i]->name();
 
-					const TString uniformName = name + "." + fieldName;
-					declareUniform(fieldType, uniformName, fieldIndex);
-					fieldIndex += fieldType.totalRegisterCount();
+					const TString uniformName = containerHasName ? containerName + "." + fieldName : fieldName;
+					declareUniform(fieldType, uniformName, fieldOffset, blockId);
+					fieldOffset += fieldType.totalRegisterCount();
 				}
 			}
 		}

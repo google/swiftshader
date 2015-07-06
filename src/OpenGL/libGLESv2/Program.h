@@ -34,17 +34,11 @@ namespace es2
 	// Helper struct representing a single shader uniform
 	struct Uniform
 	{
-		struct BlockMemberInfo
+		struct BlockInfo
 		{
-			BlockMemberInfo(int offset, int arrayStride, int matrixStride, bool isRowMajorMatrix)
-			: offset(offset), arrayStride(arrayStride), matrixStride(matrixStride), isRowMajorMatrix(isRowMajorMatrix)
-			{}
+			BlockInfo(const glsl::Uniform& uniform, int blockIndex, bool rowMajorLayout);
 
-			static BlockMemberInfo getDefaultBlockInfo()
-			{
-				return BlockMemberInfo(-1, -1, -1, false);
-			}
-
+			int index;
 			int offset;
 			int arrayStride;
 			int matrixStride;
@@ -52,7 +46,7 @@ namespace es2
 		};
 
 		Uniform(GLenum type, GLenum precision, const std::string &name, unsigned int arraySize,
-		        const int blockIndex, const BlockMemberInfo &blockInfo);
+		        const BlockInfo &blockInfo);
 
 		~Uniform();
 
@@ -64,8 +58,7 @@ namespace es2
 		const GLenum precision;
 		const std::string name;
 		const unsigned int arraySize;
-		const int blockIndex;
-		const BlockMemberInfo blockInfo;
+		const BlockInfo blockInfo;
 
 		unsigned char *data;
 		bool dirty;
@@ -78,7 +71,12 @@ namespace es2
 	struct UniformBlock
 	{
 		// use GL_INVALID_INDEX for non-array elements
-		UniformBlock(const std::string &name, unsigned int elementIndex, unsigned int dataSize);
+		UniformBlock(const std::string &name, unsigned int elementIndex, unsigned int dataSize, std::vector<unsigned int> memberUniformIndexes);
+
+		void setRegisterIndex(GLenum shader, unsigned int registerIndex);
+
+		// For std::find on UniformBlockArray
+		inline bool operator==(const UniformBlock& other) const { return name == other.name; }
 
 		bool isArrayElement() const;
 		bool isReferencedByVertexShader() const;
@@ -172,6 +170,7 @@ namespace es2
 
 		void dirtyAllUniforms();
 		void applyUniforms();
+		void applyUniformBuffers();
 
 		void link();
 		bool isLinked() const;
@@ -225,7 +224,10 @@ namespace es2
 		int getAttributeBinding(const glsl::Attribute &attribute);
 
 		bool linkUniforms(const Shader *shader);
-		bool defineUniform(GLenum shader, GLenum type, GLenum precision, const std::string &_name, unsigned int arraySize, int registerIndex);
+		bool linkUniformBlocks(const Shader *vertexShader, const Shader *fragmentShader);
+		bool areMatchingUniformBlocks(const glsl::UniformBlock &block1, const glsl::UniformBlock &block2, const Shader *shader1, const Shader *shader2);
+		bool defineUniform(GLenum shader, GLenum type, GLenum precision, const std::string &_name, unsigned int arraySize, int registerIndex, const Uniform::BlockInfo& blockInfo);
+		bool defineUniformBlock(const Shader *shader, const glsl::UniformBlock &block);
 		bool applyUniform1bv(GLint location, GLsizei count, const GLboolean *v);
 		bool applyUniform2bv(GLint location, GLsizei count, const GLboolean *v);
 		bool applyUniform3bv(GLint location, GLsizei count, const GLboolean *v);
@@ -293,7 +295,7 @@ namespace es2
 		UniformArray uniforms;
 		typedef std::vector<UniformLocation> UniformIndex;
 		UniformIndex uniformIndex;
-		typedef std::vector<UniformBlock*> UniformBlockArray;
+		typedef std::vector<UniformBlock> UniformBlockArray;
 		UniformBlockArray uniformBlocks;
 		typedef std::vector<LinkedVarying> LinkedVaryingArray;
 		LinkedVaryingArray transformFeedbackLinkedVaryings;
