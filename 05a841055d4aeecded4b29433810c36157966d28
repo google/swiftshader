@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f36151bc_7a4dd5bc",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-07-06T21:11:45Z",
+      "side": 1,
+      "message": "This is not entirely true. Any modern compiler worth its salt will avoid creating the temporary object when it\u0027s not used.\n\nSo I think it mostly comes down to style. I personally prefer \"i++\", because it looks more similar to \"i +\u003d 1\" and less similar to \"+i\".\n\nAnyway, I\u0027m not violently opposed to it.",
+      "range": {
+        "startLine": 22,
+        "startChar": 2,
+        "endLine": 24,
+        "endChar": 32
+      },
+      "revId": "05a841055d4aeecded4b29433810c36157966d28",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
