@@ -17,6 +17,11 @@
 ; RUN:   -i %s --args -O2 --mattr=hwdiv-arm --skip-unimplemented \
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32HWDIV %s
+; RUN: %if --need=target_ARM32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target arm32 \
+; RUN:   -i %s --args -Om1 --skip-unimplemented \
+; RUN:   | %if --need=target_ARM32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix ARM32 %s
 
 define i32 @Add(i32 %a, i32 %b) {
 entry:
@@ -107,8 +112,8 @@ entry:
 ; CHECK-NOT: mul {{[0-9]+}}
 ;
 ; ARM32-LABEL: MulImm64
-; ARM32: mov {{.*}}, #99
-; ARM32: mov {{.*}}, #0
+; ARM32: movw {{.*}}, #99
+; ARM32: movw {{.*}}, #0
 ; ARM32: mul r
 ; ARM32: mla r
 ; ARM32: umull r
@@ -125,9 +130,9 @@ entry:
 ;
 ; ARM32-LABEL: Sdiv
 ; ARM32: tst [[DENOM:r.*]], [[DENOM]]
-; ARM32: bne [[LABEL:[0-9a-f]+]]
+; ARM32: bne
 ; ARM32: .word 0xe7fedef0
-; ARM32: [[LABEL]]: {{.*}} bl {{.*}} __divsi3
+; ARM32: {{.*}} bl {{.*}} __divsi3
 ; ARM32HWDIV-LABEL: Sdiv
 ; ARM32HWDIV: tst
 ; ARM32HWDIV: bne

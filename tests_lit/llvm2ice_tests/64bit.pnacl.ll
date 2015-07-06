@@ -18,6 +18,11 @@
 ; RUN:   --disassemble --target arm32 -i %s --args -O2 --skip-unimplemented \
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32 %s
+; RUN: %if --need=target_ARM32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target arm32 \
+; RUN:   -i %s --args -Om1 --skip-unimplemented \
+; RUN:   | %if --need=target_ARM32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix ARM32 %s
 
 @__init_array_start = internal constant [0 x i8] zeroinitializer, align 4
 @__fini_array_start = internal constant [0 x i8] zeroinitializer, align 4
@@ -94,16 +99,16 @@ entry:
 ; ARM32:      sub     sp, {{.*}} #16
 ; ARM32:      str     {{.*}}, [sp, #4]
 ; ARM32:      str     {{.*}}, [sp]
-; ARM32:      mov     r0
-; ARM32:      mov     r1
+; ARM32:      {{mov|ldr}} r0
+; ARM32:      {{mov|ldr}} r1
 ; ARM32:      movw    r2, #123
 ; ARM32:      bl      {{.*}} ignore64BitArgNoInline
 ; ARM32:      add     sp, {{.*}} #16
 ; ARM32:      sub     sp, {{.*}} #16
 ; ARM32:      str     {{.*}}, [sp, #4]
 ; ARM32:      str     {{.*}}, [sp]
-; ARM32:      mov     r0
-; ARM32:      mov     r1
+; ARM32:      {{mov|ldr}} r0
+; ARM32:      {{mov|ldr}} r1
 ; ARM32:      movw    r2, #123
 ; ARM32:      bl      {{.*}} ignore64BitArgNoInline
 ; ARM32:      add     sp, {{.*}} #16
@@ -147,27 +152,28 @@ entry:
 ; ARM32:      movt    [[REG2:r.*]], {{.*}} ; 0x1234
 ; ARM32:      str     [[REG1]], [sp, #4]
 ; ARM32:      str     [[REG2]], [sp]
-; ARM32:      mov     r0, r2
-; ARM32:      mov     r1, r3
+; ARM32:      {{mov|ldr}} r0
+; ARM32:      {{mov|ldr}} r1
 ; ARM32:      movw    r2, #123
 ; ARM32:      bl      {{.*}} ignore64BitArgNoInline
 ; ARM32:      add     sp, {{.*}} #16
 
-define internal i64 @return64BitArg(i64 %a) {
+define internal i64 @return64BitArg(i64 %padding, i64 %a) {
 entry:
   ret i64 %a
 }
 ; CHECK-LABEL: return64BitArg
-; CHECK: mov     {{.*}},DWORD PTR [esp+0x4]
-; CHECK: mov     {{.*}},DWORD PTR [esp+0x8]
+; CHECK: mov     {{.*}},DWORD PTR [esp+0xc]
+; CHECK: mov     {{.*}},DWORD PTR [esp+0x10]
 ;
 ; OPTM1-LABEL: return64BitArg
-; OPTM1: mov     {{.*}},DWORD PTR [esp+0x4]
-; OPTM1: mov     {{.*}},DWORD PTR [esp+0x8]
+; OPTM1: mov     {{.*}},DWORD PTR [esp+0xc]
+; OPTM1: mov     {{.*}},DWORD PTR [esp+0x10]
 
-; Nothing to do for ARM O2 -- arg and return value are in r0,r1.
 ; ARM32-LABEL: return64BitArg
-; ARM32-NEXT: bx lr
+; ARM32: mov {{.*}}, r2
+; ARM32: mov {{.*}}, r3
+; ARM32: bx lr
 
 define internal i64 @return64BitConst() {
 entry:
@@ -1002,13 +1008,11 @@ if.end3:                                          ; preds = %if.then2, %if.end
 ; ARM32: cmpeq
 ; ARM32: moveq
 ; ARM32: movne
-; ARM32: beq
 ; ARM32: bl
 ; ARM32: cmp
 ; ARM32: cmpeq
 ; ARM32: moveq
 ; ARM32: movne
-; ARM32: beq
 ; ARM32: bl
 
 declare void @func()
@@ -1054,13 +1058,11 @@ if.end3:                                          ; preds = %if.end, %if.then2
 ; ARM32: cmpeq
 ; ARM32: movne
 ; ARM32: moveq
-; ARM32: beq
 ; ARM32: bl
 ; ARM32: cmp
 ; ARM32: cmpeq
 ; ARM32: movne
 ; ARM32: moveq
-; ARM32: beq
 ; ARM32: bl
 
 define internal void @icmpGt64(i64 %a, i64 %b, i64 %c, i64 %d) {
@@ -1108,13 +1110,11 @@ if.end3:                                          ; preds = %if.then2, %if.end
 ; ARM32: cmpeq
 ; ARM32: movhi
 ; ARM32: movls
-; ARM32: beq
 ; ARM32: bl
 ; ARM32: cmp
 ; ARM32: sbcs
 ; ARM32: movlt
 ; ARM32: movge
-; ARM32: beq
 ; ARM32: bl
 
 define internal void @icmpGe64(i64 %a, i64 %b, i64 %c, i64 %d) {
@@ -1162,13 +1162,11 @@ if.end3:                                          ; preds = %if.end, %if.then2
 ; ARM32: cmpeq
 ; ARM32: movcs
 ; ARM32: movcc
-; ARM32: beq
 ; ARM32: bl
 ; ARM32: cmp
 ; ARM32: sbcs
 ; ARM32: movge
 ; ARM32: movlt
-; ARM32: beq
 ; ARM32: bl
 
 define internal void @icmpLt64(i64 %a, i64 %b, i64 %c, i64 %d) {
@@ -1216,13 +1214,11 @@ if.end3:                                          ; preds = %if.then2, %if.end
 ; ARM32: cmpeq
 ; ARM32: movcc
 ; ARM32: movcs
-; ARM32: beq
 ; ARM32: bl
 ; ARM32: cmp
 ; ARM32: sbcs
 ; ARM32: movlt
 ; ARM32: movge
-; ARM32: beq
 ; ARM32: bl
 
 define internal void @icmpLe64(i64 %a, i64 %b, i64 %c, i64 %d) {
@@ -1270,13 +1266,11 @@ if.end3:                                          ; preds = %if.end, %if.then2
 ; ARM32: cmpeq
 ; ARM32: movls
 ; ARM32: movhi
-; ARM32: beq
 ; ARM32: bl
 ; ARM32: cmp
 ; ARM32: sbcs
 ; ARM32: movge
 ; ARM32: movlt
-; ARM32: beq
 ; ARM32: bl
 
 define internal i32 @icmpEq64Bool(i64 %a, i64 %b) {

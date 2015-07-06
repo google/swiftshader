@@ -1103,48 +1103,114 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
   Operand *Src0 = Inst->getSrc(0);
   Operand *Src1 = Inst->getSrc(1);
   if (Dest->getType() == IceType_i64) {
+    // These helper-call-involved instructions are lowered in this
+    // separate switch. This is because we would otherwise assume that
+    // we need to legalize Src0 to Src0RLo and Src0Hi. However, those go unused
+    // with helper calls, and such unused/redundant instructions will fail
+    // liveness analysis under -Om1 setting.
+    switch (Inst->getOp()) {
+    default:
+      break;
+    case InstArithmetic::Udiv:
+    case InstArithmetic::Sdiv:
+    case InstArithmetic::Urem:
+    case InstArithmetic::Srem: {
+      // Check for divide by 0 (ARM normally doesn't trap, but we want it
+      // to trap for NaCl). Src1Lo and Src1Hi may have already been legalized
+      // to a register, which will hide a constant source operand.
+      // Instead, check the not-yet-legalized Src1 to optimize-out a divide
+      // by 0 check.
+      if (auto *C64 = llvm::dyn_cast<ConstantInteger64>(Src1)) {
+        if (C64->getValue() == 0) {
+          _trap();
+          return;
+        }
+      } else {
+        Operand *Src1Lo = legalize(loOperand(Src1), Legal_Reg | Legal_Flex);
+        Operand *Src1Hi = legalize(hiOperand(Src1), Legal_Reg | Legal_Flex);
+        div0Check(IceType_i64, Src1Lo, Src1Hi);
+      }
+      // Technically, ARM has their own aeabi routines, but we can use the
+      // non-aeabi routine as well.  LLVM uses __aeabi_ldivmod for div,
+      // but uses the more standard __moddi3 for rem.
+      const char *HelperName = "";
+      switch (Inst->getOp()) {
+      default:
+        llvm_unreachable("Should have only matched div ops.");
+        break;
+      case InstArithmetic::Udiv:
+        HelperName = H_udiv_i64;
+        break;
+      case InstArithmetic::Sdiv:
+        HelperName = H_sdiv_i64;
+        break;
+      case InstArithmetic::Urem:
+        HelperName = H_urem_i64;
+        break;
+      case InstArithmetic::Srem:
+        HelperName = H_srem_i64;
+        break;
+      }
+      constexpr SizeT MaxSrcs = 2;
+      InstCall *Call = makeHelperCall(HelperName, Dest, MaxSrcs);
+      Call->addArg(Src0);
+      Call->addArg(Src1);
+      lowerCall(Call);
+      return;
+    }
+    }
     Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
     Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
     Variable *Src0RLo = legalizeToVar(loOperand(Src0));
     Variable *Src0RHi = legalizeToVar(hiOperand(Src0));
-    Operand *Src1Lo = legalize(loOperand(Src1), Legal_Reg | Legal_Flex);
-    Operand *Src1Hi = legalize(hiOperand(Src1), Legal_Reg | Legal_Flex);
+    Operand *Src1Lo = loOperand(Src1);
+    Operand *Src1Hi = hiOperand(Src1);
     Variable *T_Lo = makeReg(DestLo->getType());
     Variable *T_Hi = makeReg(DestHi->getType());
     switch (Inst->getOp()) {
     case InstArithmetic::_num:
       llvm_unreachable("Unknown arithmetic operator");
-      break;
+      return;
     case InstArithmetic::Add:
+      Src1Lo = legalize(Src1Lo, Legal_Reg | Legal_Flex);
+      Src1Hi = legalize(Src1Hi, Legal_Reg | Legal_Flex);
       _adds(T_Lo, Src0RLo, Src1Lo);
       _mov(DestLo, T_Lo);
       _adc(T_Hi, Src0RHi, Src1Hi);
       _mov(DestHi, T_Hi);
-      break;
+      return;
     case InstArithmetic::And:
+      Src1Lo = legalize(Src1Lo, Legal_Reg | Legal_Flex);
+      Src1Hi = legalize(Src1Hi, Legal_Reg | Legal_Flex);
       _and(T_Lo, Src0RLo, Src1Lo);
       _mov(DestLo, T_Lo);
       _and(T_Hi, Src0RHi, Src1Hi);
       _mov(DestHi, T_Hi);
-      break;
+      return;
     case InstArithmetic::Or:
+      Src1Lo = legalize(Src1Lo, Legal_Reg | Legal_Flex);
+      Src1Hi = legalize(Src1Hi, Legal_Reg | Legal_Flex);
       _orr(T_Lo, Src0RLo, Src1Lo);
       _mov(DestLo, T_Lo);
       _orr(T_Hi, Src0RHi, Src1Hi);
       _mov(DestHi, T_Hi);
-      break;
+      return;
     case InstArithmetic::Xor:
+      Src1Lo = legalize(Src1Lo, Legal_Reg | Legal_Flex);
+      Src1Hi = legalize(Src1Hi, Legal_Reg | Legal_Flex);
       _eor(T_Lo, Src0RLo, Src1Lo);
       _mov(DestLo, T_Lo);
       _eor(T_Hi, Src0RHi, Src1Hi);
       _mov(DestHi, T_Hi);
-      break;
+      return;
     case InstArithmetic::Sub:
+      Src1Lo = legalize(Src1Lo, Legal_Reg | Legal_Flex);
+      Src1Hi = legalize(Src1Hi, Legal_Reg | Legal_Flex);
       _subs(T_Lo, Src0RLo, Src1Lo);
       _mov(DestLo, T_Lo);
       _sbc(T_Hi, Src0RHi, Src1Hi);
       _mov(DestHi, T_Hi);
-      break;
+      return;
     case InstArithmetic::Mul: {
       // GCC 4.8 does:
       // a=b*c ==>
@@ -1176,7 +1242,8 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
       _add(T_Hi, T_Hi1, T_Acc1);
       _mov(DestLo, T_Lo);
       _mov(DestHi, T_Hi);
-    } break;
+      return;
+    }
     case InstArithmetic::Shl: {
       // a=b<<c ==>
       // GCC 4.8 does:
@@ -1214,7 +1281,8 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
       _mov(T_Lo, OperandARM32FlexReg::create(Func, IceType_i32, Src0RLo,
                                              OperandARM32::LSL, Src1RLo));
       _mov(DestLo, T_Lo);
-    } break;
+      return;
+    }
     case InstArithmetic::Lshr:
     // a=b>>c (unsigned) ==>
     // GCC 4.8 does:
@@ -1260,49 +1328,6 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
       _mov(T_Hi, OperandARM32FlexReg::create(Func, IceType_i32, Src0RHi,
                                              RShiftKind, Src1RLo));
       _mov(DestHi, T_Hi);
-    } break;
-    case InstArithmetic::Udiv:
-    case InstArithmetic::Sdiv:
-    case InstArithmetic::Urem:
-    case InstArithmetic::Srem: {
-      // Check for divide by 0 (ARM normally doesn't trap, but we want it
-      // to trap for NaCl). Src1Lo and Src1Hi may have already been legalized
-      // to a register, which will hide a constant source operand.
-      // Instead, check the not-yet-legalized Src1 to optimize-out a divide
-      // by 0 check.
-      if (auto *C64 = llvm::dyn_cast<ConstantInteger64>(Src1)) {
-        if (C64->getValue() == 0) {
-          div0Check(IceType_i64, Src1Lo, Src1Hi);
-        }
-      } else {
-        div0Check(IceType_i64, Src1Lo, Src1Hi);
-      }
-      // Technically, ARM has their own aeabi routines, but we can use the
-      // non-aeabi routine as well.  LLVM uses __aeabi_ldivmod for div,
-      // but uses the more standard __moddi3 for rem.
-      const char *HelperName = "";
-      switch (Inst->getOp()) {
-      case InstArithmetic::Udiv:
-        HelperName = H_udiv_i64;
-        break;
-      case InstArithmetic::Sdiv:
-        HelperName = H_sdiv_i64;
-        break;
-      case InstArithmetic::Urem:
-        HelperName = H_urem_i64;
-        break;
-      case InstArithmetic::Srem:
-        HelperName = H_srem_i64;
-        break;
-      default:
-        llvm_unreachable("Should have only matched div ops.");
-        break;
-      }
-      constexpr SizeT MaxSrcs = 2;
-      InstCall *Call = makeHelperCall(HelperName, Dest, MaxSrcs);
-      Call->addArg(Inst->getSrc(0));
-      Call->addArg(Inst->getSrc(1));
-      lowerCall(Call);
       return;
     }
     case InstArithmetic::Fadd:
@@ -1311,95 +1336,119 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
     case InstArithmetic::Fdiv:
     case InstArithmetic::Frem:
       llvm_unreachable("FP instruction with i64 type");
-      break;
+      return;
+    case InstArithmetic::Udiv:
+    case InstArithmetic::Sdiv:
+    case InstArithmetic::Urem:
+    case InstArithmetic::Srem:
+      llvm_unreachable("Call-helper-involved instruction for i64 type "
+                       "should have already been handled before");
+      return;
     }
+    return;
   } else if (isVectorType(Dest->getType())) {
     UnimplementedError(Func->getContext()->getFlags());
-  } else { // Dest->getType() is non-i64 scalar
-    Variable *Src0R = legalizeToVar(Inst->getSrc(0));
-    Operand *Src1RF = legalize(Inst->getSrc(1), Legal_Reg | Legal_Flex);
-    Variable *T = makeReg(Dest->getType());
-    switch (Inst->getOp()) {
-    case InstArithmetic::_num:
-      llvm_unreachable("Unknown arithmetic operator");
-      break;
-    case InstArithmetic::Add: {
-      _add(T, Src0R, Src1RF);
-      _mov(Dest, T);
-    } break;
-    case InstArithmetic::And: {
-      _and(T, Src0R, Src1RF);
-      _mov(Dest, T);
-    } break;
-    case InstArithmetic::Or: {
-      _orr(T, Src0R, Src1RF);
-      _mov(Dest, T);
-    } break;
-    case InstArithmetic::Xor: {
-      _eor(T, Src0R, Src1RF);
-      _mov(Dest, T);
-    } break;
-    case InstArithmetic::Sub: {
-      _sub(T, Src0R, Src1RF);
-      _mov(Dest, T);
-    } break;
-    case InstArithmetic::Mul: {
-      Variable *Src1R = legalizeToVar(Src1RF);
-      _mul(T, Src0R, Src1R);
-      _mov(Dest, T);
-    } break;
-    case InstArithmetic::Shl:
-      _lsl(T, Src0R, Src1RF);
-      _mov(Dest, T);
-      break;
-    case InstArithmetic::Lshr:
-      _lsr(T, Src0R, Src1RF);
-      _mov(Dest, T);
-      break;
-    case InstArithmetic::Ashr:
-      _asr(T, Src0R, Src1RF);
-      _mov(Dest, T);
-      break;
-    case InstArithmetic::Udiv: {
-      constexpr bool IsRemainder = false;
-      lowerIDivRem(Dest, T, Src0R, Src1, &TargetARM32::_uxt,
-                   &TargetARM32::_udiv, H_udiv_i32, IsRemainder);
-      return;
-    }
-    case InstArithmetic::Sdiv: {
-      constexpr bool IsRemainder = false;
-      lowerIDivRem(Dest, T, Src0R, Src1, &TargetARM32::_sxt,
-                   &TargetARM32::_sdiv, H_sdiv_i32, IsRemainder);
-      return;
-    }
-    case InstArithmetic::Urem: {
-      constexpr bool IsRemainder = true;
-      lowerIDivRem(Dest, T, Src0R, Src1, &TargetARM32::_uxt,
-                   &TargetARM32::_udiv, H_urem_i32, IsRemainder);
-      return;
-    }
-    case InstArithmetic::Srem: {
-      constexpr bool IsRemainder = true;
-      lowerIDivRem(Dest, T, Src0R, Src1, &TargetARM32::_sxt,
-                   &TargetARM32::_sdiv, H_srem_i32, IsRemainder);
-      return;
-    }
-    case InstArithmetic::Fadd:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
-    case InstArithmetic::Fsub:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
-    case InstArithmetic::Fmul:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
-    case InstArithmetic::Fdiv:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
-    case InstArithmetic::Frem:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
-    }
+    return;
+  }
+  // Dest->getType() is a non-i64 scalar.
+  Variable *Src0R = legalizeToVar(Src0);
+  Variable *T = makeReg(Dest->getType());
+  // Handle div/rem separately. They require a non-legalized Src1 to inspect
+  // whether or not Src1 is a non-zero constant. Once legalized it is more
+  // difficult to determine (constant may be moved to a register).
+  switch (Inst->getOp()) {
+  default:
+    break;
+  case InstArithmetic::Udiv: {
+    constexpr bool IsRemainder = false;
+    lowerIDivRem(Dest, T, Src0R, Src1, &TargetARM32::_uxt, &TargetARM32::_udiv,
+                 H_udiv_i32, IsRemainder);
+    return;
+  }
+  case InstArithmetic::Sdiv: {
+    constexpr bool IsRemainder = false;
+    lowerIDivRem(Dest, T, Src0R, Src1, &TargetARM32::_sxt, &TargetARM32::_sdiv,
+                 H_sdiv_i32, IsRemainder);
+    return;
+  }
+  case InstArithmetic::Urem: {
+    constexpr bool IsRemainder = true;
+    lowerIDivRem(Dest, T, Src0R, Src1, &TargetARM32::_uxt, &TargetARM32::_udiv,
+                 H_urem_i32, IsRemainder);
+    return;
+  }
+  case InstArithmetic::Srem: {
+    constexpr bool IsRemainder = true;
+    lowerIDivRem(Dest, T, Src0R, Src1, &TargetARM32::_sxt, &TargetARM32::_sdiv,
+                 H_srem_i32, IsRemainder);
+    return;
+  }
+  }
+
+  Operand *Src1RF = legalize(Src1, Legal_Reg | Legal_Flex);
+  switch (Inst->getOp()) {
+  case InstArithmetic::_num:
+    llvm_unreachable("Unknown arithmetic operator");
+    return;
+  case InstArithmetic::Add:
+    _add(T, Src0R, Src1RF);
+    _mov(Dest, T);
+    return;
+  case InstArithmetic::And:
+    _and(T, Src0R, Src1RF);
+    _mov(Dest, T);
+    return;
+  case InstArithmetic::Or:
+    _orr(T, Src0R, Src1RF);
+    _mov(Dest, T);
+    return;
+  case InstArithmetic::Xor:
+    _eor(T, Src0R, Src1RF);
+    _mov(Dest, T);
+    return;
+  case InstArithmetic::Sub:
+    _sub(T, Src0R, Src1RF);
+    _mov(Dest, T);
+    return;
+  case InstArithmetic::Mul: {
+    Variable *Src1R = legalizeToVar(Src1RF);
+    _mul(T, Src0R, Src1R);
+    _mov(Dest, T);
+    return;
+  }
+  case InstArithmetic::Shl:
+    _lsl(T, Src0R, Src1RF);
+    _mov(Dest, T);
+    return;
+  case InstArithmetic::Lshr:
+    _lsr(T, Src0R, Src1RF);
+    _mov(Dest, T);
+    return;
+  case InstArithmetic::Ashr:
+    _asr(T, Src0R, Src1RF);
+    _mov(Dest, T);
+    return;
+  case InstArithmetic::Udiv:
+  case InstArithmetic::Sdiv:
+  case InstArithmetic::Urem:
+  case InstArithmetic::Srem:
+    llvm_unreachable("Integer div/rem should have been handled earlier.");
+    return;
+  case InstArithmetic::Fadd:
+    UnimplementedError(Func->getContext()->getFlags());
+    return;
+  case InstArithmetic::Fsub:
+    UnimplementedError(Func->getContext()->getFlags());
+    return;
+  case InstArithmetic::Fmul:
+    UnimplementedError(Func->getContext()->getFlags());
+    return;
+  case InstArithmetic::Fdiv:
+    UnimplementedError(Func->getContext()->getFlags());
+    return;
+  case InstArithmetic::Frem:
+    UnimplementedError(Func->getContext()->getFlags());
+    return;
   }
 }
 
