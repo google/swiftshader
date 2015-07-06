@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f36151bc_ba65ad98",
+        "filename": "src/OpenGL/libGLESv2/ResourceManager.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-07-06T14:40:00Z",
+      "side": 1,
+      "message": "The previous code that used to do the allocation is now no longer necessary I assume, and can be replaced with an assert and comment.",
+      "range": {
+        "startLine": 146,
+        "startChar": 1,
+        "endLine": 148,
+        "endChar": 25
+      },
+      "revId": "25737491bfbaa918c9dcd429a37f1831d6d3a1e6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
