@@ -57,8 +57,8 @@ void AndroidEnterDebugger();
 	} while(0)
 
 #define UNREACHABLE(value) do {                                         \
-		ALOGE("badness: unreachable case reached: %s %s:%d. value: %d", \
-			  __FUNCTION__, __FILE__, __LINE__, value);                 \
+		ALOGE("badness: unreachable case reached: %s %s:%d. %s: %d", \
+			  __FUNCTION__, __FILE__, __LINE__, #value, value);			\
 		AndroidEnterDebugger();                                         \
 	} while(0)
 

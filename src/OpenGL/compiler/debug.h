@@ -54,7 +54,7 @@ void Trace(const char* format, ...);
 
 #undef UNREACHABLE
 #define UNREACHABLE(value) do { \
-    Trace("Unreachable reached: %s(%d). Value: %d\n", __FUNCTION__, __LINE__, value); \
+    Trace("Unreachable reached: %s(%d). %s: %d\n", __FUNCTION__, __LINE__, #value, value); \
     assert(false); \
 } while(0)
 
