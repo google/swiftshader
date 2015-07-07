@@ -22,6 +22,30 @@
       "revId": "d5773f9e679be747b25bb9665e228cf49ae9c11a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f80dae2c_fa5dc5f6",
+        "filename": "src/OpenGL/compiler/SymbolTable.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-07-07T15:49:50Z",
+      "side": 1,
+      "message": "I\u0027ll point you to the original review for the TConstParameter class in Angle so that you get the full info on this:\nhttps://chromium-review.googlesource.com/#/c/281046\n(It landed only a week ago, so we\u0027re catching up...)",
+      "parentUuid": "f80dae2c_1a8079d0",
+      "range": {
+        "startLine": 117,
+        "startChar": 0,
+        "endLine": 118,
+        "endChar": 22
+      },
+      "revId": "d5773f9e679be747b25bb9665e228cf49ae9c11a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
