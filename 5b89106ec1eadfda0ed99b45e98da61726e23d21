@@ -425,6 +425,30 @@
     },
     {
       "key": {
+        "uuid": "f80dae2c_3dd8d716",
+        "filename": "src/OpenGL/libEGL/libEGL.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 1078,
+      "author": {
+        "id": 5200
+      },
+      "writtenOn": "2015-07-07T18:20:32Z",
+      "side": 1,
+      "message": "I don\u0027t understand what you\u0027re proposing here.\n\nMTaaS needs to know that it hit unimplemented SS functionality.\n\nAre you proposing that we leave tracing on in the release builds? That\u0027s going to have a non-trivial performance impact and would require us to create our own logging system. Android\u0027s is good only for 1-2 logs per second, which we\u0027re already exceeding by a large margin. It also has only a 512k buffer or so. We\u0027re pretty limited on the amount of data that we can buffer.\n\nIf not, how do you propose that we discover that we hit an unimplemented feature during a test?",
+      "parentUuid": "f80dae2c_9de7e322",
+      "range": {
+        "startLine": 1078,
+        "startChar": 2,
+        "endLine": 1078,
+        "endChar": 25
+      },
+      "revId": "5b89106ec1eadfda0ed99b45e98da61726e23d21",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f80dae2c_7ace555a",
         "filename": "src/OpenGL/libGLES_CM/exports.map",
         "patchSetId": 10
