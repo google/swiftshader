@@ -56,6 +56,7 @@ for config in ${CONFIGS}; do
 
   rm -rf ${OBJECT_DIR}/${TARGET_ARCH}
   make -j ${JOBS} \
+     showcommands \
      libEGL_swiftshader_vendor_debug \
      libEGL_swiftshader_vendor_release \
      libGLESv1_CM_swiftshader_vendor_debug \
