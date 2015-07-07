@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f80dae2c_9d6483c7",
+        "filename": "src/OpenGL/compiler/glslang.y",
+        "patchSetId": 1
+      },
+      "lineNbr": 1085,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-07-07T18:31:29Z",
+      "side": 1,
+      "message": "Should ES3_ONLY() be added above this line, since the method starts with es3?",
+      "range": {
+        "startLine": 1085,
+        "startChar": 17,
+        "endLine": 1085,
+        "endChar": 39
+      },
+      "revId": "105c25865c47744eb4a0067de0fe0b8bd53f3057",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f80dae2c_7d53efe7",
+        "filename": "src/OpenGL/compiler/glslang.y",
+        "patchSetId": 1
+      },
+      "lineNbr": 1090,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-07-07T18:31:29Z",
+      "side": 1,
+      "message": "Same.",
+      "range": {
+        "startLine": 1090,
+        "startChar": 17,
+        "endLine": 1090,
+        "endChar": 39
+      },
+      "revId": "105c25865c47744eb4a0067de0fe0b8bd53f3057",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
