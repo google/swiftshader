@@ -1053,6 +1053,24 @@ bool TParseContext::functionCallLValueErrorCheck(const TFunction *fnCandidate, T
 	return false;
 }
 
+void TParseContext::es3InvariantErrorCheck(const TQualifier qualifier, const TSourceLoc &invariantLocation)
+{
+	switch(qualifier)
+	{
+	case EvqVaryingOut:
+	case EvqSmoothOut:
+	case EvqFlatOut:
+	case EvqCentroidOut:
+	case EvqVertexOut:
+	case EvqFragmentOut:
+		break;
+	default:
+		error(invariantLocation, "Only out variables can be invariant.", "invariant");
+		recover();
+		break;
+	}
+}
+
 bool TParseContext::supportsExtension(const char* extension)
 {
     const TExtensionBehavior& extbehavior = extensionBehavior();

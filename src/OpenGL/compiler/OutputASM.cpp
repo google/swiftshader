@@ -1866,6 +1866,12 @@ namespace glsl
 		case EvqFragmentIn:          return sw::Shader::PARAMETER_INPUT;
 		case EvqInvariantVaryingIn:  return sw::Shader::PARAMETER_INPUT;    // FIXME: Guarantee invariance at the backend
 		case EvqInvariantVaryingOut: return sw::Shader::PARAMETER_OUTPUT;   // FIXME: Guarantee invariance at the backend 
+		case EvqSmooth:              return sw::Shader::PARAMETER_OUTPUT;
+		case EvqFlat:                return sw::Shader::PARAMETER_OUTPUT;
+		case EvqCentroidOut:         return sw::Shader::PARAMETER_OUTPUT;
+		case EvqSmoothIn:            return sw::Shader::PARAMETER_INPUT;
+		case EvqFlatIn:              return sw::Shader::PARAMETER_INPUT;
+		case EvqCentroidIn:          return sw::Shader::PARAMETER_INPUT;
 		case EvqUniform:             return sw::Shader::PARAMETER_CONST;
 		case EvqIn:                  return sw::Shader::PARAMETER_TEMP;
 		case EvqOut:                 return sw::Shader::PARAMETER_TEMP;
@@ -1906,6 +1912,12 @@ namespace glsl
 		case EvqFragmentIn:          return varyingRegister(operand);
 		case EvqInvariantVaryingIn:  return varyingRegister(operand);
 		case EvqInvariantVaryingOut: return varyingRegister(operand);
+		case EvqSmooth:              return varyingRegister(operand);
+		case EvqFlat:                return varyingRegister(operand);
+		case EvqCentroidOut:         return varyingRegister(operand);
+		case EvqSmoothIn:            return varyingRegister(operand);
+		case EvqFlatIn:              return varyingRegister(operand);
+		case EvqCentroidIn:          return varyingRegister(operand);
 		case EvqUniform:             return uniformRegister(operand);
 		case EvqIn:                  return temporaryRegister(operand);
 		case EvqOut:                 return temporaryRegister(operand);
