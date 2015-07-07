@@ -32,6 +32,7 @@ namespace sw
 	struct Task;
 	class Resource;
 	class Renderer;
+	struct Constants;
 
 	extern int batchSize;
 	extern int threadCount;
