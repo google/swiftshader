@@ -2,6 +2,52 @@
   "comments": [
     {
       "key": {
+        "uuid": "f80dae2c_3ad8dd16",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 10
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-07-07T14:31:07Z",
+      "side": 1,
+      "message": "No need to mention this any more.",
+      "range": {
+        "startLine": 7,
+        "startChar": 32,
+        "endLine": 7,
+        "endChar": 65
+      },
+      "revId": "5b89106ec1eadfda0ed99b45e98da61726e23d21",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f80dae2c_1add1907",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 10
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-07-07T14:31:07Z",
+      "side": 1,
+      "message": "Add \"Bug 21662268\"",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 8,
+        "endChar": 0
+      },
+      "revId": "5b89106ec1eadfda0ed99b45e98da61726e23d21",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f80dae2c_5a2a7188",
         "filename": "android_vendor_build.sh",
         "patchSetId": 10
