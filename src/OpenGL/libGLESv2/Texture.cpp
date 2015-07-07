@@ -777,6 +777,11 @@ void Texture2D::copySubImage(GLenum target, GLint level, GLint xoffset, GLint yo
 
 void Texture2D::setImage(egl::Image *sharedImage)
 {
+	if (sharedImage == image[0])
+	{
+		return;
+	}
+
 	sharedImage->addRef();
 
     if(image[0])
