@@ -177,7 +177,7 @@ const char* getOperatorString(TOperator op) {
 //
 // Returns the added node.
 //
-TIntermSymbol* TIntermediate::addSymbol(int id, const TString& name, const TType& type, TSourceLoc line)
+TIntermSymbol* TIntermediate::addSymbol(int id, const TString& name, const TType& type, const TSourceLoc &line)
 {
     TIntermSymbol* node = new TIntermSymbol(id, name, type);
     node->setLine(line);
@@ -190,7 +190,7 @@ TIntermSymbol* TIntermediate::addSymbol(int id, const TString& name, const TType
 //
 // Returns the added node.
 //
-TIntermTyped* TIntermediate::addBinaryMath(TOperator op, TIntermTyped* left, TIntermTyped* right, TSourceLoc line)
+TIntermTyped* TIntermediate::addBinaryMath(TOperator op, TIntermTyped* left, TIntermTyped* right, const TSourceLoc &line)
 {
     switch (op) {
         case EOpEqual:
@@ -247,8 +247,6 @@ TIntermTyped* TIntermediate::addBinaryMath(TOperator op, TIntermTyped* left, TIn
     // one and promote it to the right type.
     //
     TIntermBinary* node = new TIntermBinary(op);
-    if (line == 0)
-        line = right->getLine();
     node->setLine(line);
 
     node->setLeft(left);
@@ -276,7 +274,7 @@ TIntermTyped* TIntermediate::addBinaryMath(TOperator op, TIntermTyped* left, TIn
 //
 // Returns the added node.
 //
-TIntermTyped* TIntermediate::addAssign(TOperator op, TIntermTyped* left, TIntermTyped* right, TSourceLoc line)
+TIntermTyped* TIntermediate::addAssign(TOperator op, TIntermTyped* left, TIntermTyped* right, const TSourceLoc &line)
 {
     if (left->getType().getStruct() || right->getType().getStruct())
     {
@@ -287,8 +285,6 @@ TIntermTyped* TIntermediate::addAssign(TOperator op, TIntermTyped* left, TInterm
     }
 
     TIntermBinary* node = new TIntermBinary(op);
-    if(line == 0)
-        line = left->getLine();
     node->setLine(line);
 
     node->setLeft(left);
@@ -306,11 +302,9 @@ TIntermTyped* TIntermediate::addAssign(TOperator op, TIntermTyped* left, TInterm
 // Returns the added node.
 // The caller should set the type of the returned node.
 //
-TIntermTyped* TIntermediate::addIndex(TOperator op, TIntermTyped* base, TIntermTyped* index, TSourceLoc line)
+TIntermTyped* TIntermediate::addIndex(TOperator op, TIntermTyped* base, TIntermTyped* index, const TSourceLoc &line)
 {
     TIntermBinary* node = new TIntermBinary(op);
-    if (line == 0)
-        line = index->getLine();
     node->setLine(line);
     node->setLeft(base);
     node->setRight(index);
@@ -325,7 +319,7 @@ TIntermTyped* TIntermediate::addIndex(TOperator op, TIntermTyped* base, TIntermT
 //
 // Returns the added node.
 //
-TIntermTyped* TIntermediate::addUnaryMath(TOperator op, TIntermNode* childNode, TSourceLoc line)
+TIntermTyped* TIntermediate::addUnaryMath(TOperator op, TIntermNode* childNode, const TSourceLoc &line)
 {
     TIntermUnary* node;
     TIntermTyped* child = childNode->getAsTyped();
@@ -366,8 +360,6 @@ TIntermTyped* TIntermediate::addUnaryMath(TOperator op, TIntermNode* childNode, 
     // Make a new node for the operator.
     //
     node = new TIntermUnary(op);
-    if (line == 0)
-        line = child->getLine();
     node->setLine(line);
     node->setOperand(child);
 
@@ -394,7 +386,7 @@ TIntermTyped* TIntermediate::addUnaryMath(TOperator op, TIntermNode* childNode, 
 // Returns an aggregate node, which could be the one passed in if
 // it was already an aggregate but no operator was set.
 //
-TIntermAggregate* TIntermediate::setAggregateOperator(TIntermNode* node, TOperator op, TSourceLoc line)
+TIntermAggregate* TIntermediate::setAggregateOperator(TIntermNode* node, TOperator op, const TSourceLoc &line)
 {
     TIntermAggregate* aggNode;
 
@@ -409,8 +401,6 @@ TIntermAggregate* TIntermediate::setAggregateOperator(TIntermNode* node, TOperat
             //
             aggNode = new TIntermAggregate();
             aggNode->getSequence().push_back(node);
-            if (line == 0)
-                line = node->getLine();
         }
     } else
         aggNode = new TIntermAggregate();
@@ -419,8 +409,6 @@ TIntermAggregate* TIntermediate::setAggregateOperator(TIntermNode* node, TOperat
     // Set the operator.
     //
     aggNode->setOp(op);
-    if (line != 0)
-        aggNode->setLine(line);
 
     return aggNode;
 }
@@ -432,7 +420,7 @@ TIntermAggregate* TIntermediate::setAggregateOperator(TIntermNode* node, TOperat
 // Returns the resulting aggregate, unless 0 was passed in for
 // both existing nodes.
 //
-TIntermAggregate* TIntermediate::growAggregate(TIntermNode* left, TIntermNode* right, TSourceLoc line)
+TIntermAggregate* TIntermediate::growAggregate(TIntermNode* left, TIntermNode* right, const TSourceLoc &line)
 {
     if (left == 0 && right == 0)
         return 0;
@@ -449,8 +437,7 @@ TIntermAggregate* TIntermediate::growAggregate(TIntermNode* left, TIntermNode* r
     if (right)
         aggNode->getSequence().push_back(right);
 
-    if (line != 0)
-        aggNode->setLine(line);
+    aggNode->setLine(line);
 
     return aggNode;
 }
@@ -460,7 +447,7 @@ TIntermAggregate* TIntermediate::growAggregate(TIntermNode* left, TIntermNode* r
 //
 // Returns an aggregate, unless 0 was passed in for the existing node.
 //
-TIntermAggregate* TIntermediate::makeAggregate(TIntermNode* node, TSourceLoc line)
+TIntermAggregate* TIntermediate::makeAggregate(TIntermNode* node, const TSourceLoc &line)
 {
     if (node == 0)
         return 0;
@@ -468,10 +455,7 @@ TIntermAggregate* TIntermediate::makeAggregate(TIntermNode* node, TSourceLoc lin
     TIntermAggregate* aggNode = new TIntermAggregate;
     aggNode->getSequence().push_back(node);
 
-    if (line != 0)
-        aggNode->setLine(line);
-    else
-        aggNode->setLine(node->getLine());
+    aggNode->setLine(line);
 
     return aggNode;
 }
@@ -483,7 +467,7 @@ TIntermAggregate* TIntermediate::makeAggregate(TIntermNode* node, TSourceLoc lin
 //
 // Returns the selection node created.
 //
-TIntermNode* TIntermediate::addSelection(TIntermTyped* cond, TIntermNodePair nodePair, TSourceLoc line)
+TIntermNode* TIntermediate::addSelection(TIntermTyped* cond, TIntermNodePair nodePair, const TSourceLoc &line)
 {
     //
     // For compile time constant selections, prune the code and
@@ -504,7 +488,7 @@ TIntermNode* TIntermediate::addSelection(TIntermTyped* cond, TIntermNodePair nod
 }
 
 
-TIntermTyped* TIntermediate::addComma(TIntermTyped* left, TIntermTyped* right, TSourceLoc line)
+TIntermTyped* TIntermediate::addComma(TIntermTyped* left, TIntermTyped* right, const TSourceLoc &line)
 {
     if (left->getType().getQualifier() == EvqConstExpr && right->getType().getQualifier() == EvqConstExpr) {
         return right;
@@ -524,7 +508,7 @@ TIntermTyped* TIntermediate::addComma(TIntermTyped* left, TIntermTyped* right, T
 //
 // Returns the selection node created, or 0 if one could not be.
 //
-TIntermTyped* TIntermediate::addSelection(TIntermTyped* cond, TIntermTyped* trueBlock, TIntermTyped* falseBlock, TSourceLoc line)
+TIntermTyped* TIntermediate::addSelection(TIntermTyped* cond, TIntermTyped* trueBlock, TIntermTyped* falseBlock, const TSourceLoc &line)
 {
     if (trueBlock->getType() != falseBlock->getType())
     {
@@ -574,7 +558,7 @@ TIntermCase *TIntermediate::addCase(TIntermTyped *condition, const TSourceLoc &l
 // Returns the constant union node created.
 //
 
-TIntermConstantUnion* TIntermediate::addConstantUnion(ConstantUnion* unionArrayPointer, const TType& t, TSourceLoc line)
+TIntermConstantUnion* TIntermediate::addConstantUnion(ConstantUnion* unionArrayPointer, const TType& t, const TSourceLoc &line)
 {
     TIntermConstantUnion* node = new TIntermConstantUnion(unionArrayPointer, t);
     node->setLine(line);
@@ -582,7 +566,7 @@ TIntermConstantUnion* TIntermediate::addConstantUnion(ConstantUnion* unionArrayP
     return node;
 }
 
-TIntermTyped* TIntermediate::addSwizzle(TVectorFields& fields, TSourceLoc line)
+TIntermTyped* TIntermediate::addSwizzle(TVectorFields& fields, const TSourceLoc &line)
 {
 
     TIntermAggregate* node = new TIntermAggregate(EOpSequence);
@@ -605,7 +589,7 @@ TIntermTyped* TIntermediate::addSwizzle(TVectorFields& fields, TSourceLoc line)
 //
 // Create loop nodes.
 //
-TIntermNode* TIntermediate::addLoop(TLoopType type, TIntermNode* init, TIntermTyped* cond, TIntermTyped* expr, TIntermNode* body, TSourceLoc line)
+TIntermNode* TIntermediate::addLoop(TLoopType type, TIntermNode* init, TIntermTyped* cond, TIntermTyped* expr, TIntermNode* body, const TSourceLoc &line)
 {
     TIntermNode* node = new TIntermLoop(type, init, cond, expr, body);
     node->setLine(line);
@@ -616,12 +600,12 @@ TIntermNode* TIntermediate::addLoop(TLoopType type, TIntermNode* init, TIntermTy
 //
 // Add branches.
 //
-TIntermBranch* TIntermediate::addBranch(TOperator branchOp, TSourceLoc line)
+TIntermBranch* TIntermediate::addBranch(TOperator branchOp, const TSourceLoc &line)
 {
     return addBranch(branchOp, 0, line);
 }
 
-TIntermBranch* TIntermediate::addBranch(TOperator branchOp, TIntermTyped* expression, TSourceLoc line)
+TIntermBranch* TIntermediate::addBranch(TOperator branchOp, TIntermTyped* expression, const TSourceLoc &line)
 {
     TIntermBranch* node = new TIntermBranch(branchOp, expression);
     node->setLine(line);

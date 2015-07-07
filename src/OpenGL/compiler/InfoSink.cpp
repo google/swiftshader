@@ -31,9 +31,8 @@ void TInfoSinkBase::prefix(TPrefixType message) {
     }
 }
 
-void TInfoSinkBase::location(TSourceLoc loc) {
-    int string = 0, line = 0;
-    DecodeSourceLoc(loc, &string, &line);
+void TInfoSinkBase::location(const TSourceLoc& loc) {
+    int string = loc.first_file, line = loc.first_line;
 
     TPersistStringStream stream;
     if (line)

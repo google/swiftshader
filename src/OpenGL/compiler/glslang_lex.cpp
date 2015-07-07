@@ -1034,7 +1034,10 @@ WHICH GENERATES THE GLSL ES LEXER (glslang_lex.cpp).
 #pragma warning(disable : 4102)
 #endif
 
-#define YY_USER_ACTION yylval->lex.line = yylineno;
+#define YY_USER_ACTION                                 \
+    yylloc->first_file = yylloc->last_file = yycolumn; \
+    yylloc->first_line = yylloc->last_line = yylineno;
+
 #define YY_INPUT(buf, result, max_size) \
     result = string_input(buf, max_size, yyscanner);
 
@@ -3291,7 +3294,8 @@ yy_size_t string_input(char* buf, yy_size_t max_size, yyscan_t yyscanner) {
     yy_size_t len = token.type == pp::Token::LAST ? 0 : token.text.size();
     if (len < max_size)
         memcpy(buf, token.text.c_str(), len);
-    yyset_lineno(EncodeSourceLoc(token.location.file, token.location.line),yyscanner);
+    yyset_column(token.location.file,yyscanner);
+    yyset_lineno(token.location.line,yyscanner);
 
     if (len >= max_size)
         YY_FATAL_ERROR("Input buffer overflow");
@@ -3447,7 +3451,8 @@ int glslang_finalize(TParseContext* context) {
 int glslang_scan(size_t count, const char* const string[], const int length[],
                  TParseContext* context) {
     yyrestart(NULL,context->getScanner());
-    yyset_lineno(EncodeSourceLoc(0, 1),context->getScanner());
+    yyset_column(0,context->getScanner());
+    yyset_lineno(1,context->getScanner());
     context->AfterEOF = false;
 
     // Initialize preprocessor.

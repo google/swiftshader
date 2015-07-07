@@ -53,7 +53,6 @@ WHICH GENERATES THE GLSL ES PARSER (glslang_tab.cpp AND glslang_tab.h).
 
 %union {
     struct {
-        TSourceLoc line;
         union {
             TString *string;
             float f;
@@ -64,7 +63,6 @@ WHICH GENERATES THE GLSL ES PARSER (glslang_tab.cpp AND glslang_tab.h).
         TSymbol* symbol;
     } lex;
     struct {
-        TSourceLoc line;
         TOperator op;
         union {
             TIntermNode* intermNode;
@@ -91,7 +89,21 @@ WHICH GENERATES THE GLSL ES PARSER (glslang_tab.cpp AND glslang_tab.h).
 extern int yylex(YYSTYPE* yylval, YYLTYPE* yylloc, void* yyscanner);
 extern void yyerror(YYLTYPE* lloc, TParseContext* context, const char* reason);
 
-#define YYLLOC_DEFAULT(Current, Rhs, N) do { (Current) = YYRHSLOC(Rhs, N ? 1 : 0); } while (0)
+#define YYLLOC_DEFAULT(Current, Rhs, N)                      \
+  do {                                                       \
+      if (N) {                                         \
+        (Current).first_file = YYRHSLOC(Rhs, 1).first_file;  \
+        (Current).first_line = YYRHSLOC(Rhs, 1).first_line;  \
+        (Current).last_file = YYRHSLOC(Rhs, N).last_file;    \
+        (Current).last_line = YYRHSLOC(Rhs, N).last_line;    \
+      }                                                      \
+      else {                                                 \
+        (Current).first_file = YYRHSLOC(Rhs, 0).last_file;   \
+        (Current).first_line = YYRHSLOC(Rhs, 0).last_line;   \
+        (Current).last_file = YYRHSLOC(Rhs, 0).last_file;    \
+        (Current).last_line = YYRHSLOC(Rhs, 0).last_line;    \
+      }                                                      \
+  } while (0)
 
 #define FRAG_VERT_ONLY(S, L) {  \
     if (context->getShaderType() != GL_FRAGMENT_SHADER &&  \
@@ -300,11 +312,9 @@ function_call_or_method
 function_call_generic
     : function_call_header_with_parameters RIGHT_PAREN {
         $$ = $1;
-        $$.line = @2;
     }
     | function_call_header_no_parameters RIGHT_PAREN {
         $$ = $1;
-        $$.line = @2;
     }
     ;
 
@@ -411,12 +421,12 @@ unary_expression
 // Grammar Note:  No traditional style type casts.
 
 unary_operator
-    : PLUS  { $$.line = @1; $$.op = EOpNull; }
-    | DASH  { $$.line = @1; $$.op = EOpNegative; }
-    | BANG  { $$.line = @1; $$.op = EOpLogicalNot; }
+    : PLUS  { $$.op = EOpNull; }
+    | DASH  { $$.op = EOpNegative; }
+    | BANG  { $$.op = EOpLogicalNot; }
     | TILDE {
         ES3_ONLY("~", @1, "bit-wise operator");
-        $$.line = @1; $$.op = EOpBitwiseNot;
+        $$.op = EOpBitwiseNot;
     }
     ;
 // Grammar Note:  No '*' or '&' unary ops.  Pointers are not supported.
@@ -548,23 +558,28 @@ assignment_expression
     ;
 
 assignment_operator
-    : EQUAL        {                                    $$.line = @1; $$.op = EOpAssign; }
-    | MUL_ASSIGN   { FRAG_VERT_ONLY("*=", @1);     $$.line = @1; $$.op = EOpMulAssign; }
-    | DIV_ASSIGN   { FRAG_VERT_ONLY("/=", @1);     $$.line = @1; $$.op = EOpDivAssign; }
+    : EQUAL        {                           $$.op = EOpAssign; }
+    | MUL_ASSIGN   { FRAG_VERT_ONLY("*=", @1); $$.op = EOpMulAssign; }
+    | DIV_ASSIGN   { FRAG_VERT_ONLY("/=", @1); $$.op = EOpDivAssign; }
     | MOD_ASSIGN   { ES3_ONLY("%=", @1, "integer modulus operator");
-                     FRAG_VERT_ONLY("%=", @1);     $$.line = @1; $$.op = EOpIModAssign; }
-    | ADD_ASSIGN   {                                    $$.line = @1; $$.op = EOpAddAssign; }
-    | SUB_ASSIGN   {                                    $$.line = @1; $$.op = EOpSubAssign; }
+                     FRAG_VERT_ONLY("%=", @1); $$.op = EOpIModAssign; }
+    | ADD_ASSIGN   {                           $$.op = EOpAddAssign; }
+    | SUB_ASSIGN   {                           $$.op = EOpSubAssign; }
     | LEFT_ASSIGN  { ES3_ONLY("<<=", @1, "bit-wise operator");
-                     FRAG_VERT_ONLY("<<=", @1);    $$.line = @1; $$.op = EOpBitShiftLeftAssign; }
+                     FRAG_VERT_ONLY("<<=", @1);
+                     $$.op = EOpBitShiftLeftAssign; }
     | RIGHT_ASSIGN { ES3_ONLY(">>=", @1, "bit-wise operator");
-                     FRAG_VERT_ONLY(">>=", @1);    $$.line = @1; $$.op = EOpBitShiftRightAssign; }
+                     FRAG_VERT_ONLY(">>=", @1);
+                     $$.op = EOpBitShiftRightAssign; }
     | AND_ASSIGN   { ES3_ONLY("&=", @1, "bit-wise operator");
-                     FRAG_VERT_ONLY("&=", @1);     $$.line = @1; $$.op = EOpBitwiseAndAssign; }
+                     FRAG_VERT_ONLY("&=", @1);
+                     $$.op = EOpBitwiseAndAssign; }
     | XOR_ASSIGN   { ES3_ONLY("^=", @1, "bit-wise operator");
-                     FRAG_VERT_ONLY("^=", @1);     $$.line = @1; $$.op = EOpBitwiseXorAssign; }
+                     FRAG_VERT_ONLY("^=", @1);
+                     $$.op = EOpBitwiseXorAssign; }
     | OR_ASSIGN    { ES3_ONLY("|=", @1, "bit-wise operator");
-                     FRAG_VERT_ONLY("|=", @1);     $$.line = @1; $$.op = EOpBitwiseOrAssign; }
+                     FRAG_VERT_ONLY("|=", @1);
+                     $$.op = EOpBitwiseOrAssign; }
     ;
 
 expression
@@ -686,7 +701,6 @@ function_prototype
         // being redeclared.  So, pass back up this declaration, not the one in the symbol table.
         //
         $$.function = $1;
-        $$.line = @2;
 
         // We're at the inner scope level of the function's arguments and body statement.
         // Add the function prototype to the surrounding scope instead.
@@ -763,7 +777,6 @@ parameter_declarator
         if (context->reservedErrorCheck(@2, *$2.string))
             context->recover();
         TParameter param = {$2.string, new TType($1)};
-        $$.line = @2;
         $$.param = param;
     }
     | type_specifier IDENTIFIER LEFT_BRACKET constant_expression RIGHT_BRACKET {
@@ -781,7 +794,6 @@ parameter_declarator
 
         TType* type = new TType($1);
         TParameter param = { $2.string, type };
-        $$.line = @2;
         $$.param = param;
     }
     ;
@@ -990,17 +1002,14 @@ type_qualifier
 storage_qualifier
     : CONST_QUAL {
         $$.qualifier = EvqConstExpr;
-		$$.line = @1;
     }
     | IN_QUAL {
         ES3_ONLY("in", @1, "storage qualifier");
         $$.qualifier = (context->getShaderType() == GL_FRAGMENT_SHADER) ? EvqFragmentIn : EvqVertexIn;
-		$$.line = @1;
     }
     | OUT_QUAL {
         ES3_ONLY("out", @1, "storage qualifier");
         $$.qualifier = (context->getShaderType() == GL_FRAGMENT_SHADER) ? EvqFragmentOut : EvqVertexOut;
-		$$.line = @1;
     }
     | CENTROID IN_QUAL {
         ES3_ONLY("centroid in", @1, "storage qualifier");
@@ -1010,7 +1019,6 @@ storage_qualifier
             context->recover();
         }
         $$.qualifier = (context->getShaderType() == GL_FRAGMENT_SHADER) ? EvqCentroidIn : EvqVertexIn;
-		$$.line = @2;
     }
     | CENTROID OUT_QUAL {
         ES3_ONLY("centroid out", @1, "storage qualifier");
@@ -1020,13 +1028,11 @@ storage_qualifier
             context->recover();
         }
         $$.qualifier = (context->getShaderType() == GL_FRAGMENT_SHADER) ? EvqFragmentOut : EvqCentroidOut;
-		$$.line = @2;
     }
 	| UNIFORM {
         if (context->globalErrorCheck(@1, context->symbolTable.atGlobalLevel(), "uniform"))
             context->recover();
         $$.qualifier = EvqUniform;
-		$$.line = @1;
     }
     ;
 
@@ -1480,10 +1486,10 @@ compound_statement_no_new_scope
 
 statement_list
     : statement {
-        $$ = context->intermediate.makeAggregate($1, 0);
+        $$ = context->intermediate.makeAggregate($1, @$);
     }
     | statement_list statement {
-        $$ = context->intermediate.growAggregate($1, $2, 0);
+        $$ = context->intermediate.growAggregate($1, $2, @$);
     }
     ;
 
@@ -1628,7 +1634,7 @@ translation_unit
         context->setTreeRoot($$);
     }
     | translation_unit external_declaration {
-        $$ = context->intermediate.growAggregate($1, $2, 0);
+        $$ = context->intermediate.growAggregate($1, $2, @$);
         context->setTreeRoot($$);
     }
     ;
@@ -1736,7 +1742,7 @@ function_definition
             context->recover();
         }
         
-        $$ = context->intermediate.growAggregate($1.intermAggregate, $3, 0);
+        $$ = context->intermediate.growAggregate($1.intermAggregate, $3, @$);
         context->intermediate.setAggregateOperator($$, EOpFunction, @1);
         $$->getAsAggregate()->setName($1.function->getMangledName().c_str());
         $$->getAsAggregate()->setType($1.function->getReturnType());

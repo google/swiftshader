@@ -228,7 +228,7 @@ bool TConstTraverser::visitBranch(Visit visit, TIntermBranch* node)
 // Individual functions can be initialized to 0 to skip processing of that
 // type of node.  It's children will still be processed.
 //
-bool TIntermediate::parseConstTree(TSourceLoc line, TIntermNode* root, ConstantUnion* unionArray, TOperator constructorType, TType t, bool singleConstantParam)
+bool TIntermediate::parseConstTree(const TSourceLoc& line, TIntermNode* root, ConstantUnion* unionArray, TOperator constructorType, TType t, bool singleConstantParam)
 {
     if (root == 0)
         return false;

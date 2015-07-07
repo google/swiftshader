@@ -97,7 +97,7 @@ public:
     const char* c_str() const { return sink.c_str(); }
 
     void prefix(TPrefixType message);
-    void location(TSourceLoc loc);
+    void location(const TSourceLoc& loc);
     void message(TPrefixType message, const char* s);
     void message(TPrefixType message, const char* s, TSourceLoc loc);
 

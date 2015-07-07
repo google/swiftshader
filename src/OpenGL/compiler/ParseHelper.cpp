@@ -180,8 +180,7 @@ void TParseContext::error(const TSourceLoc& loc,
                           const char* reason, const char* token,
                           const char* extraInfo)
 {
-    pp::SourceLocation srcLoc;
-    DecodeSourceLoc(loc, &srcLoc.file, &srcLoc.line);
+    pp::SourceLocation srcLoc(loc.first_file, loc.first_line);
     mDiagnostics.writeInfo(pp::Diagnostics::PP_ERROR,
                            srcLoc, reason, token, extraInfo);
 
@@ -190,8 +189,7 @@ void TParseContext::error(const TSourceLoc& loc,
 void TParseContext::warning(const TSourceLoc& loc,
                             const char* reason, const char* token,
                             const char* extraInfo) {
-    pp::SourceLocation srcLoc;
-    DecodeSourceLoc(loc, &srcLoc.file, &srcLoc.line);
+    pp::SourceLocation srcLoc(loc.first_file, loc.first_line);
     mDiagnostics.writeInfo(pp::Diagnostics::PP_WARNING,
                            srcLoc, reason, token, extraInfo);
 }
@@ -1064,15 +1062,13 @@ bool TParseContext::supportsExtension(const char* extension)
 
 void TParseContext::handleExtensionDirective(const TSourceLoc &line, const char* extName, const char* behavior)
 {
-    pp::SourceLocation loc;
-    DecodeSourceLoc(line, &loc.file, &loc.line);
+    pp::SourceLocation loc(line.first_file, line.first_line);
     mDirectiveHandler.handleExtension(loc, extName, behavior);
 }
 
 void TParseContext::handlePragmaDirective(const TSourceLoc &line, const char* name, const char* value)
 {
-    pp::SourceLocation loc;
-    DecodeSourceLoc(line, &loc.file, &loc.line);
+    pp::SourceLocation loc(line.first_file, line.first_line);
     mDirectiveHandler.handlePragma(loc, name, value);
 }
 

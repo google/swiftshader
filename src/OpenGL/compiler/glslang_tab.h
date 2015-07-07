@@ -183,7 +183,6 @@ typedef union YYSTYPE
 
 
     struct {
-        TSourceLoc line;
         union {
             TString *string;
             float f;
@@ -194,7 +193,6 @@ typedef union YYSTYPE
         TSymbol* symbol;
     } lex;
     struct {
-        TSourceLoc line;
         TOperator op;
         union {
             TIntermNode* intermNode;

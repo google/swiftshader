@@ -400,9 +400,10 @@ void InsertBuiltInFunctions(GLenum type, const ShBuiltInResources &resources, TS
     // Depth range in window coordinates
     //
 	TFieldList *fields = NewPoolTFieldList();
-	TField *near = new TField(new TType(EbtFloat, EbpHigh, EvqGlobal, 1), NewPoolTString("near"), 0);
-	TField *far = new TField(new TType(EbtFloat, EbpHigh, EvqGlobal, 1), NewPoolTString("far"), 0);
-	TField *diff = new TField(new TType(EbtFloat, EbpHigh, EvqGlobal, 1), NewPoolTString("diff"), 0);
+	TSourceLoc zeroSourceLoc = { 0, 0, 0, 0 };
+	TField *near = new TField(new TType(EbtFloat, EbpHigh, EvqGlobal, 1), NewPoolTString("near"), zeroSourceLoc);
+	TField *far = new TField(new TType(EbtFloat, EbpHigh, EvqGlobal, 1), NewPoolTString("far"), zeroSourceLoc);
+	TField *diff = new TField(new TType(EbtFloat, EbpHigh, EvqGlobal, 1), NewPoolTString("diff"), zeroSourceLoc);
 	fields->push_back(near);
 	fields->push_back(far);
 	fields->push_back(diff);
