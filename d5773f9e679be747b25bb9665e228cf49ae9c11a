@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f80dae2c_1a8079d0",
+        "filename": "src/OpenGL/compiler/SymbolTable.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-07-07T15:39:08Z",
+      "side": 1,
+      "message": "This is a bit confusing to me and seems convoluted. TConstParameter doesn\u0027t represent a constant parameter, but just disallows changes after construction? I don\u0027t think this is necessary. Other nodes, such as TVariable, while having protected member fields, can still be changed by set calls.\n\nInstead it might be useful to make TSymbolTable::find() return pointers to const TSymbols, and similarly make sure the TFunction interface protects the parameters from change. That doesn\u0027t have to be part of this CL.",
+      "range": {
+        "startLine": 117,
+        "startChar": 0,
+        "endLine": 118,
+        "endChar": 22
+      },
+      "revId": "d5773f9e679be747b25bb9665e228cf49ae9c11a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
