@@ -401,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "f80dae2c_9de7e322",
+        "filename": "src/OpenGL/libEGL/libEGL.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 1078,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-07-07T18:11:18Z",
+      "side": 1,
+      "message": "Ah, yes, that actually means error() should also take this \"reason\" parameter. I added it to my bug: https://b.corp.google.com/issues/20025568#comment6\n\nPlease still remove it. Since it\u0027s really reachable it seems worse than not having the reason (also note that \"attribute\" is logged by the TRACE() when enabled). It\u0027s fine if you really insist to leave this in. I\u0027ll remove it when I fix the issue (soon).",
+      "parentUuid": "b81fb653_c9192181",
+      "range": {
+        "startLine": 1078,
+        "startChar": 2,
+        "endLine": 1078,
+        "endChar": 25
+      },
+      "revId": "5b89106ec1eadfda0ed99b45e98da61726e23d21",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f80dae2c_7ace555a",
         "filename": "src/OpenGL/libGLES_CM/exports.map",
         "patchSetId": 10
