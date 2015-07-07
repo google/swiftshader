@@ -22,6 +22,30 @@
       "revId": "05a841055d4aeecded4b29433810c36157966d28",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f80dae2c_3a069d28",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-07-07T13:54:44Z",
+      "side": 1,
+      "message": "I\u0027m a fan of not relying on the compiler for optimizations, but yeah, hopefully the extra object would be optimized away.",
+      "parentUuid": "f36151bc_7a4dd5bc",
+      "range": {
+        "startLine": 22,
+        "startChar": 2,
+        "endLine": 24,
+        "endChar": 32
+      },
+      "revId": "05a841055d4aeecded4b29433810c36157966d28",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
