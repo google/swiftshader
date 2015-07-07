@@ -781,31 +781,31 @@ static const yytype_uint16 yyrline[] =
        0,   214,   214,   233,   236,   241,   246,   251,   256,   262,
      265,   268,   271,   274,   277,   283,   291,   302,   306,   314,
      317,   323,   327,   334,   340,   349,   357,   363,   370,   380,
-     383,   393,   403,   425,   426,   427,   428,   436,   437,   441,
-     445,   453,   454,   457,   463,   464,   468,   475,   476,   479,
-     482,   485,   491,   492,   495,   501,   502,   509,   510,   517,
-     518,   525,   526,   532,   533,   539,   540,   546,   547,   553,
-     554,   562,   563,   564,   565,   567,   568,   569,   572,   575,
-     578,   581,   587,   590,   601,   609,   617,   644,   650,   657,
-     661,   665,   669,   676,   713,   716,   723,   731,   752,   773,
-     783,   811,   816,   826,   831,   841,   844,   847,   850,   856,
-     863,   866,   870,   874,   879,   884,   891,   895,   899,   903,
-     908,   913,   917,   924,   934,   940,   943,   949,   955,   962,
-     971,   980,   983,   986,   993,   997,  1001,  1006,  1014,  1017,
-    1021,  1025,  1034,  1043,  1051,  1061,  1068,  1071,  1074,  1080,
-    1087,  1090,  1096,  1099,  1102,  1108,  1111,  1116,  1131,  1135,
-    1139,  1143,  1147,  1151,  1156,  1161,  1166,  1171,  1176,  1181,
-    1186,  1191,  1196,  1201,  1206,  1211,  1217,  1223,  1229,  1235,
-    1241,  1247,  1253,  1259,  1265,  1270,  1275,  1284,  1289,  1294,
-    1299,  1304,  1309,  1314,  1319,  1324,  1329,  1334,  1339,  1344,
-    1349,  1354,  1367,  1367,  1370,  1370,  1376,  1379,  1395,  1398,
-    1407,  1411,  1417,  1424,  1439,  1443,  1447,  1448,  1454,  1455,
-    1456,  1457,  1458,  1459,  1460,  1464,  1465,  1465,  1465,  1475,
-    1476,  1480,  1480,  1481,  1481,  1486,  1489,  1499,  1502,  1508,
-    1509,  1513,  1521,  1525,  1532,  1532,  1539,  1542,  1551,  1556,
-    1573,  1573,  1578,  1578,  1585,  1585,  1593,  1596,  1602,  1605,
-    1611,  1615,  1622,  1625,  1628,  1631,  1634,  1643,  1647,  1654,
-    1657,  1663,  1663
+     383,   386,   389,   399,   400,   401,   402,   410,   411,   415,
+     419,   427,   428,   431,   437,   438,   442,   449,   450,   453,
+     456,   459,   465,   466,   469,   475,   476,   483,   484,   491,
+     492,   499,   500,   506,   507,   513,   514,   520,   521,   527,
+     528,   536,   537,   538,   539,   541,   542,   543,   546,   549,
+     552,   555,   561,   564,   575,   583,   591,   618,   624,   631,
+     635,   639,   643,   650,   687,   690,   697,   705,   726,   747,
+     757,   785,   790,   800,   805,   815,   818,   821,   824,   830,
+     837,   840,   844,   848,   853,   858,   865,   869,   873,   877,
+     882,   887,   891,   898,   908,   914,   917,   923,   929,   936,
+     945,   954,   957,   960,   967,   971,   975,   980,   988,   991,
+     995,   999,  1008,  1017,  1025,  1035,  1042,  1045,  1048,  1054,
+    1061,  1064,  1070,  1073,  1076,  1082,  1085,  1090,  1105,  1109,
+    1113,  1117,  1121,  1125,  1130,  1135,  1140,  1145,  1150,  1155,
+    1160,  1165,  1170,  1175,  1180,  1185,  1191,  1197,  1203,  1209,
+    1215,  1221,  1227,  1233,  1239,  1244,  1249,  1258,  1263,  1268,
+    1273,  1278,  1283,  1288,  1293,  1298,  1303,  1308,  1313,  1318,
+    1323,  1328,  1341,  1341,  1344,  1344,  1350,  1353,  1369,  1372,
+    1381,  1385,  1391,  1398,  1413,  1417,  1421,  1422,  1428,  1429,
+    1430,  1431,  1432,  1433,  1434,  1438,  1439,  1439,  1439,  1449,
+    1450,  1454,  1454,  1455,  1455,  1460,  1463,  1473,  1476,  1482,
+    1483,  1487,  1495,  1499,  1506,  1506,  1513,  1516,  1525,  1530,
+    1547,  1547,  1552,  1552,  1559,  1559,  1567,  1570,  1576,  1579,
+    1585,  1589,  1596,  1599,  1602,  1605,  1608,  1617,  1621,  1628,
+    1631,  1637,  1637
 };
 #endif
 
@@ -2752,28 +2752,14 @@ yyreduce:
   case 30:
 
     {
-        if (context->lValueErrorCheck((yylsp[(1) - (2)]), "++", (yyvsp[(2) - (2)].interm.intermTypedNode)))
-            context->recover();
-        (yyval.interm.intermTypedNode) = context->intermediate.addUnaryMath(EOpPreIncrement, (yyvsp[(2) - (2)].interm.intermTypedNode), (yylsp[(1) - (2)]));
-        if ((yyval.interm.intermTypedNode) == 0) {
-            context->unaryOpError((yylsp[(1) - (2)]), "++", (yyvsp[(2) - (2)].interm.intermTypedNode)->getCompleteString());
-            context->recover();
-            (yyval.interm.intermTypedNode) = (yyvsp[(2) - (2)].interm.intermTypedNode);
-        }
+        (yyval.interm.intermTypedNode) = context->addUnaryMathLValue(EOpPreIncrement, (yyvsp[(2) - (2)].interm.intermTypedNode), (yylsp[(1) - (2)]));
     }
     break;
 
   case 31:
 
     {
-        if (context->lValueErrorCheck((yylsp[(1) - (2)]), "--", (yyvsp[(2) - (2)].interm.intermTypedNode)))
-            context->recover();
-        (yyval.interm.intermTypedNode) = context->intermediate.addUnaryMath(EOpPreDecrement, (yyvsp[(2) - (2)].interm.intermTypedNode), (yylsp[(1) - (2)]));
-        if ((yyval.interm.intermTypedNode) == 0) {
-            context->unaryOpError((yylsp[(1) - (2)]), "--", (yyvsp[(2) - (2)].interm.intermTypedNode)->getCompleteString());
-            context->recover();
-            (yyval.interm.intermTypedNode) = (yyvsp[(2) - (2)].interm.intermTypedNode);
-        }
+        (yyval.interm.intermTypedNode) = context->addUnaryMathLValue(EOpPreDecrement, (yyvsp[(2) - (2)].interm.intermTypedNode), (yylsp[(1) - (2)]));
     }
     break;
 
@@ -2781,19 +2767,7 @@ yyreduce:
 
     {
         if ((yyvsp[(1) - (2)].interm).op != EOpNull) {
-            (yyval.interm.intermTypedNode) = context->intermediate.addUnaryMath((yyvsp[(1) - (2)].interm).op, (yyvsp[(2) - (2)].interm.intermTypedNode), (yylsp[(1) - (2)]));
-            if ((yyval.interm.intermTypedNode) == 0) {
-                const char* errorOp = "";
-                switch((yyvsp[(1) - (2)].interm).op) {
-                case EOpNegative:   errorOp = "-"; break;
-                case EOpLogicalNot: errorOp = "!"; break;
-                case EOpBitwiseNot: errorOp = "~"; break;
-                default: break;
-                }
-                context->unaryOpError((yylsp[(1) - (2)]), errorOp, (yyvsp[(2) - (2)].interm.intermTypedNode)->getCompleteString());
-                context->recover();
-                (yyval.interm.intermTypedNode) = (yyvsp[(2) - (2)].interm.intermTypedNode);
-            }
+            (yyval.interm.intermTypedNode) = context->addUnaryMath((yyvsp[(1) - (2)].interm).op, (yyvsp[(2) - (2)].interm.intermTypedNode), (yylsp[(1) - (2)]));
         } else
             (yyval.interm.intermTypedNode) = (yyvsp[(2) - (2)].interm.intermTypedNode);
     }

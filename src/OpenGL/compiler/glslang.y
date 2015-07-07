@@ -381,40 +381,14 @@ unary_expression
         $$ = $1;
     }
     | INC_OP unary_expression {
-        if (context->lValueErrorCheck(@1, "++", $2))
-            context->recover();
-        $$ = context->intermediate.addUnaryMath(EOpPreIncrement, $2, @1);
-        if ($$ == 0) {
-            context->unaryOpError(@1, "++", $2->getCompleteString());
-            context->recover();
-            $$ = $2;
-        }
+        $$ = context->addUnaryMathLValue(EOpPreIncrement, $2, @1);
     }
     | DEC_OP unary_expression {
-        if (context->lValueErrorCheck(@1, "--", $2))
-            context->recover();
-        $$ = context->intermediate.addUnaryMath(EOpPreDecrement, $2, @1);
-        if ($$ == 0) {
-            context->unaryOpError(@1, "--", $2->getCompleteString());
-            context->recover();
-            $$ = $2;
-        }
+        $$ = context->addUnaryMathLValue(EOpPreDecrement, $2, @1);
     }
     | unary_operator unary_expression {
         if ($1.op != EOpNull) {
-            $$ = context->intermediate.addUnaryMath($1.op, $2, @1);
-            if ($$ == 0) {
-                const char* errorOp = "";
-                switch($1.op) {
-                case EOpNegative:   errorOp = "-"; break;
-                case EOpLogicalNot: errorOp = "!"; break;
-                case EOpBitwiseNot: errorOp = "~"; break;
-                default: break;
-                }
-                context->unaryOpError(@1, errorOp, $2->getCompleteString());
-                context->recover();
-                $$ = $2;
-            }
+            $$ = context->addUnaryMath($1.op, $2, @1);
         } else
             $$ = $2;
     }
