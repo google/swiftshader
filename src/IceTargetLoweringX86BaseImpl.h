@@ -23,20 +23,16 @@
 #include "IceDefs.h"
 #include "IceELFObjectWriter.h"
 #include "IceGlobalInits.h"
-#include "IceInstX8632.h"
 #include "IceLiveness.h"
 #include "IceOperand.h"
-#include "IceRegistersX8632.h"
-#include "IceTargetLoweringX8632.def"
-#include "IceTargetLoweringX8632.h"
 #include "IceUtils.h"
 #include "llvm/Support/MathExtras.h"
 
 namespace Ice {
 namespace X86Internal {
 
-/// A helper class to ease the settings of RandomizationPoolingPause
-/// to disable constant blinding or pooling for some translation phases.
+/// A helper class to ease the settings of RandomizationPoolingPause to disable
+/// constant blinding or pooling for some translation phases.
 class BoolFlagSaver {
   BoolFlagSaver() = delete;
   BoolFlagSaver(const BoolFlagSaver &) = delete;
@@ -85,8 +81,7 @@ public:
   };
 
   /// Currently the actual enum values are not used (other than CK_None), but we
-  /// go
-  /// ahead and produce them anyway for symmetry with the
+  /// go ahead and produce them anyway for symmetry with the
   /// BoolFoldingProducerKind.
   enum BoolFoldingConsumerKind { CK_None, CK_Br, CK_Select, CK_Sext, CK_Zext };
 
@@ -163,12 +158,11 @@ BoolFolding<MachineTraits>::getConsumerKind(const Inst *Instr) {
   return CK_None;
 }
 
-/// Returns true if the producing instruction has a "complex" lowering
-/// sequence.  This generally means that its lowering sequence requires
-/// more than one conditional branch, namely 64-bit integer compares
-/// and some floating-point compares.  When this is true, and there is
-/// more than one consumer, we prefer to disable the folding
-/// optimization because it minimizes branches.
+/// Returns true if the producing instruction has a "complex" lowering sequence.
+/// This generally means that its lowering sequence requires more than one
+/// conditional branch, namely 64-bit integer compares and some floating-point
+/// compares.  When this is true, and there is more than one consumer, we prefer
+/// to disable the folding optimization because it minimizes branches.
 template <class MachineTraits>
 bool BoolFolding<MachineTraits>::hasComplexLowering(const Inst *Instr) {
   switch (getProducerKind(Instr)) {
@@ -226,10 +220,10 @@ void BoolFolding<MachineTraits>::init(CfgNode *Node) {
       setInvalid(I.first);
       continue;
     }
-    // Mark as "dead" rather than outright deleting.  This is so that
-    // other peephole style optimizations during or before lowering
-    // have access to this instruction in undeleted form.  See for
-    // example tryOptimizedCmpxchgCmpBr().
+    // Mark as "dead" rather than outright deleting.  This is so that other
+    // peephole style optimizations during or before lowering have access to
+    // this instruction in undeleted form.  See for example
+    // tryOptimizedCmpxchgCmpBr().
     I.second.Instr->setDead();
   }
 }
@@ -283,24 +277,18 @@ TargetX86Base<Machine>::TargetX86Base(Cfg *Func)
          TargetInstructionSet::X86InstructionSet_Begin) +
         Traits::InstructionSet::Begin);
   }
-  // TODO: Don't initialize IntegerRegisters and friends every time.
-  // Instead, initialize in some sort of static initializer for the
-  // class.
+  // TODO: Don't initialize IntegerRegisters and friends every time. Instead,
+  // initialize in some sort of static initializer for the class.
   llvm::SmallBitVector IntegerRegisters(Traits::RegisterSet::Reg_NUM);
   llvm::SmallBitVector IntegerRegistersI8(Traits::RegisterSet::Reg_NUM);
   llvm::SmallBitVector FloatRegisters(Traits::RegisterSet::Reg_NUM);
   llvm::SmallBitVector VectorRegisters(Traits::RegisterSet::Reg_NUM);
   llvm::SmallBitVector InvalidRegisters(Traits::RegisterSet::Reg_NUM);
   ScratchRegs.resize(Traits::RegisterSet::Reg_NUM);
-#define X(val, encode, name, name16, name8, scratch, preserved, stackptr,      \
-          frameptr, isI8, isInt, isFP)                                         \
-  IntegerRegisters[Traits::RegisterSet::val] = isInt;                          \
-  IntegerRegistersI8[Traits::RegisterSet::val] = isI8;                         \
-  FloatRegisters[Traits::RegisterSet::val] = isFP;                             \
-  VectorRegisters[Traits::RegisterSet::val] = isFP;                            \
-  ScratchRegs[Traits::RegisterSet::val] = scratch;
-  REGX8632_TABLE;
-#undef X
+
+  Traits::initRegisterSet(&IntegerRegisters, &IntegerRegistersI8,
+                          &FloatRegisters, &VectorRegisters, &ScratchRegs);
+
   TypeToRegisterSet[IceType_void] = InvalidRegisters;
   TypeToRegisterSet[IceType_i1] = IntegerRegistersI8;
   TypeToRegisterSet[IceType_i8] = IntegerRegistersI8;
@@ -348,19 +336,18 @@ template <class Machine> void TargetX86Base<Machine>::translateO2() {
   // Argument lowering
   Func->doArgLowering();
 
-  // Target lowering.  This requires liveness analysis for some parts
-  // of the lowering decisions, such as compare/branch fusing.  If
-  // non-lightweight liveness analysis is used, the instructions need
-  // to be renumbered first.  TODO: This renumbering should only be
-  // necessary if we're actually calculating live intervals, which we
-  // only do for register allocation.
+  // Target lowering.  This requires liveness analysis for some parts of the
+  // lowering decisions, such as compare/branch fusing.  If non-lightweight
+  // liveness analysis is used, the instructions need to be renumbered first
+  // TODO: This renumbering should only be necessary if we're actually
+  // calculating live intervals, which we only do for register allocation.
   Func->renumberInstructions();
   if (Func->hasError())
     return;
 
-  // TODO: It should be sufficient to use the fastest liveness
-  // calculation, i.e. livenessLightweight().  However, for some
-  // reason that slows down the rest of the translation.  Investigate.
+  // TODO: It should be sufficient to use the fastest liveness calculation, i.e.
+  // livenessLightweight().  However, for some reason that slows down the rest
+  // of the translation.  Investigate.
   Func->liveness(Liveness_Basic);
   if (Func->hasError())
     return;
@@ -376,19 +363,19 @@ template <class Machine> void TargetX86Base<Machine>::translateO2() {
     return;
   Func->dump("After x86 codegen");
 
-  // Register allocation.  This requires instruction renumbering and
-  // full liveness analysis.
+  // Register allocation.  This requires instruction renumbering and full
+  // liveness analysis.
   Func->renumberInstructions();
   if (Func->hasError())
     return;
   Func->liveness(Liveness_Intervals);
   if (Func->hasError())
     return;
-  // Validate the live range computations.  The expensive validation
-  // call is deliberately only made when assertions are enabled.
+  // Validate the live range computations.  The expensive validation call is
+  // deliberately only made when assertions are enabled.
   assert(Func->validateLiveness());
-  // The post-codegen dump is done here, after liveness analysis and
-  // associated cleanup, to make the dump cleaner and more useful.
+  // The post-codegen dump is done here, after liveness analysis and associated
+  // cleanup, to make the dump cleaner and more useful.
   Func->dump("After initial x8632 codegen");
   Func->getVMetadata()->init(VMK_All);
   regAlloc(RAK_Global);
@@ -397,9 +384,9 @@ template <class Machine> void TargetX86Base<Machine>::translateO2() {
   Func->dump("After linear scan regalloc");
 
   if (Ctx->getFlags().getPhiEdgeSplit()) {
-    // We need to pause constant blinding or pooling during advanced
-    // phi lowering, unless the lowering assignment has a physical
-    // register for the dest Variable.
+    // We need to pause constant blinding or pooling during advanced phi
+    // lowering, unless the lowering assignment has a physical register for the
+    // dest Variable.
     {
       BoolFlagSaver B(RandomizationPoolingPaused, true);
       Func->advancedPhiLowering();
@@ -416,11 +403,10 @@ template <class Machine> void TargetX86Base<Machine>::translateO2() {
   Func->contractEmptyNodes();
   Func->reorderNodes();
 
-  // Branch optimization.  This needs to be done just before code
-  // emission.  In particular, no transformations that insert or
-  // reorder CfgNodes should be done after branch optimization.  We go
-  // ahead and do it before nop insertion to reduce the amount of work
-  // needed for searching for opportunities.
+  // Branch optimization.  This needs to be done just before code emission.  In
+  // particular, no transformations that insert or reorder CfgNodes should be
+  // done after branch optimization.  We go ahead and do it before nop insertion
+  // to reduce the amount of work needed for searching for opportunities.
   Func->doBranchOpt();
   Func->dump("After branch optimization");
 
@@ -468,8 +454,7 @@ template <class Machine> void TargetX86Base<Machine>::translateOm1() {
 
 bool canRMW(const InstArithmetic *Arith) {
   Type Ty = Arith->getDest()->getType();
-  // X86 vector instructions write to a register and have no RMW
-  // option.
+  // X86 vector instructions write to a register and have no RMW option.
   if (isVectorType(Ty))
     return false;
   bool isI64 = Ty == IceType_i64;
@@ -496,11 +481,14 @@ bool canRMW(const InstArithmetic *Arith) {
   }
 }
 
+template <class Machine>
 bool isSameMemAddressOperand(const Operand *A, const Operand *B) {
   if (A == B)
     return true;
-  if (auto *MemA = llvm::dyn_cast<OperandX8632Mem>(A)) {
-    if (auto *MemB = llvm::dyn_cast<OperandX8632Mem>(B)) {
+  if (auto *MemA = llvm::dyn_cast<
+          typename TargetX86Base<Machine>::Traits::X86OperandMem>(A)) {
+    if (auto *MemB = llvm::dyn_cast<
+            typename TargetX86Base<Machine>::Traits::X86OperandMem>(B)) {
       return MemA->getBase() == MemB->getBase() &&
              MemA->getOffset() == MemB->getOffset() &&
              MemA->getIndex() == MemB->getIndex() &&
@@ -565,8 +553,8 @@ template <class Machine> void TargetX86Base<Machine>::findRMW() {
             // still trigger, resulting in two loads and one store, which is
             // worse than the original one load and one store.  However, this is
             // probably rare, and caching probably keeps it just as fast.
-            if (!isSameMemAddressOperand(Load->getSourceAddress(),
-                                         Store->getAddr()))
+            if (!isSameMemAddressOperand<Machine>(Load->getSourceAddress(),
+                                                  Store->getAddr()))
               continue;
             Operand *ArithSrcFromLoad = Arith->getSrc(0);
             Operand *ArithSrcOther = Arith->getSrc(1);
@@ -593,7 +581,7 @@ template <class Machine> void TargetX86Base<Machine>::findRMW() {
             Store->setRmwBeacon(Beacon);
             InstFakeDef *BeaconDef = InstFakeDef::create(Func, Beacon);
             Node->getInsts().insert(I3, BeaconDef);
-            InstX8632FakeRMW *RMW = InstX8632FakeRMW::create(
+            auto *RMW = Traits::Insts::FakeRMW::create(
                 Func, ArithSrcOther, Store->getAddr(), Beacon, Arith->getOp());
             Node->getInsts().insert(I3, RMW);
           }
@@ -721,20 +709,11 @@ template <class Machine> void TargetX86Base<Machine>::doLoadOpt() {
 
 template <class Machine>
 bool TargetX86Base<Machine>::doBranchOpt(Inst *I, const CfgNode *NextNode) {
-  if (InstX8632Br *Br = llvm::dyn_cast<InstX8632Br>(I)) {
+  if (auto *Br = llvm::dyn_cast<typename Traits::Insts::Br>(I)) {
     return Br->optimizeBranch(NextNode);
   }
   return false;
 }
-
-template <class Machine>
-IceString TargetX86Base<Machine>::RegNames[] = {
-#define X(val, encode, name, name16, name8, scratch, preserved, stackptr,      \
-          frameptr, isI8, isInt, isFP)                                         \
-  name,
-    REGX8632_TABLE
-#undef X
-};
 
 template <class Machine>
 Variable *TargetX86Base<Machine>::getPhysicalRegister(SizeT RegNum, Type Ty) {
@@ -760,30 +739,7 @@ Variable *TargetX86Base<Machine>::getPhysicalRegister(SizeT RegNum, Type Ty) {
 
 template <class Machine>
 IceString TargetX86Base<Machine>::getRegName(SizeT RegNum, Type Ty) const {
-  assert(RegNum < Traits::RegisterSet::Reg_NUM);
-  static IceString RegNames8[] = {
-#define X(val, encode, name, name16, name8, scratch, preserved, stackptr,      \
-          frameptr, isI8, isInt, isFP)                                         \
-  name8,
-      REGX8632_TABLE
-#undef X
-  };
-  static IceString RegNames16[] = {
-#define X(val, encode, name, name16, name8, scratch, preserved, stackptr,      \
-          frameptr, isI8, isInt, isFP)                                         \
-  name16,
-      REGX8632_TABLE
-#undef X
-  };
-  switch (Ty) {
-  case IceType_i1:
-  case IceType_i8:
-    return RegNames8[RegNum];
-  case IceType_i16:
-    return RegNames16[RegNum];
-  default:
-    return RegNames[RegNum];
-  }
+  return Traits::getRegName(RegNum, Ty);
 }
 
 template <class Machine>
@@ -884,17 +840,16 @@ void TargetX86Base<Machine>::finishArgumentLowering(Variable *Arg,
   InArgsSizeBytes += typeWidthInBytesOnStack(Ty);
   if (Arg->hasReg()) {
     assert(Ty != IceType_i64);
-    OperandX8632Mem *Mem = OperandX8632Mem::create(
+    typename Traits::X86OperandMem *Mem = Traits::X86OperandMem::create(
         Func, Ty, FramePtr, Ctx->getConstantInt32(Arg->getStackOffset()));
     if (isVectorType(Arg->getType())) {
       _movp(Arg, Mem);
     } else {
       _mov(Arg, Mem);
     }
-    // This argument-copying instruction uses an explicit
-    // OperandX8632Mem operand instead of a Variable, so its
-    // fill-from-stack operation has to be tracked separately for
-    // statistics.
+    // This argument-copying instruction uses an explicit Traits::X86OperandMem
+    // operand instead of a Variable, so its fill-from-stack operation has to be
+    // tracked separately for statistics.
     Ctx->statsUpdateFills();
   }
 }
@@ -965,7 +920,8 @@ template <class Machine> void TargetX86Base<Machine>::addProlog(CfgNode *Node) {
   // that stack slot.
   std::function<bool(Variable *)> TargetVarHook =
       [&VariablesLinkedToSpillSlots](Variable *Var) {
-        if (SpillVariable *SpillVar = llvm::dyn_cast<SpillVariable>(Var)) {
+        if (auto *SpillVar =
+                llvm::dyn_cast<typename Traits::SpillVariable>(Var)) {
           assert(Var->getWeight().isZero());
           if (SpillVar->getLinkedTo() && !SpillVar->getLinkedTo()->hasReg()) {
             VariablesLinkedToSpillSlots.push_back(Var);
@@ -1069,7 +1025,8 @@ template <class Machine> void TargetX86Base<Machine>::addProlog(CfgNode *Node) {
   // Assign stack offsets to variables that have been linked to spilled
   // variables.
   for (Variable *Var : VariablesLinkedToSpillSlots) {
-    Variable *Linked = (llvm::cast<SpillVariable>(Var))->getLinkedTo();
+    Variable *Linked =
+        (llvm::cast<typename Traits::SpillVariable>(Var))->getLinkedTo();
     Var->setStackOffset(Linked->getStackOffset());
   }
   this->HasComputedFrame = true;
@@ -1106,7 +1063,7 @@ template <class Machine> void TargetX86Base<Machine>::addEpilog(CfgNode *Node) {
   InstList &Insts = Node->getInsts();
   InstList::reverse_iterator RI, E;
   for (RI = Insts.rbegin(), E = Insts.rend(); RI != E; ++RI) {
-    if (llvm::isa<InstX8632Ret>(*RI))
+    if (llvm::isa<typename Traits::Insts::Ret>(*RI))
       break;
   }
   if (RI == E)
@@ -1216,8 +1173,8 @@ Operand *TargetX86Base<Machine>::loOperand(Operand *Operand) {
         Ctx->getConstantInt32(static_cast<int32_t>(Const->getValue())));
     return legalize(ConstInt);
   }
-  if (OperandX8632Mem *Mem = llvm::dyn_cast<OperandX8632Mem>(Operand)) {
-    OperandX8632Mem *MemOperand = OperandX8632Mem::create(
+  if (auto *Mem = llvm::dyn_cast<typename Traits::X86OperandMem>(Operand)) {
+    auto *MemOperand = Traits::X86OperandMem::create(
         Func, IceType_i32, Mem->getBase(), Mem->getOffset(), Mem->getIndex(),
         Mem->getShift(), Mem->getSegmentRegister());
     // Test if we should randomize or pool the offset, if so randomize it or
@@ -1245,7 +1202,7 @@ Operand *TargetX86Base<Machine>::hiOperand(Operand *Operand) {
     // check if we need to blind/pool the constant
     return legalize(ConstInt);
   }
-  if (OperandX8632Mem *Mem = llvm::dyn_cast<OperandX8632Mem>(Operand)) {
+  if (auto *Mem = llvm::dyn_cast<typename Traits::X86OperandMem>(Operand)) {
     Constant *Offset = Mem->getOffset();
     if (Offset == nullptr) {
       Offset = Ctx->getConstantInt32(4);
@@ -1259,7 +1216,7 @@ Operand *TargetX86Base<Machine>::hiOperand(Operand *Operand) {
           Ctx->getConstantSym(4 + SymOffset->getOffset(), SymOffset->getName(),
                               SymOffset->getSuppressMangling());
     }
-    OperandX8632Mem *MemOperand = OperandX8632Mem::create(
+    auto *MemOperand = Traits::X86OperandMem::create(
         Func, IceType_i32, Mem->getBase(), Offset, Mem->getIndex(),
         Mem->getShift(), Mem->getSegmentRegister());
     // Test if the Offset is an eligible i32 constants for randomization and
@@ -1275,32 +1232,7 @@ template <class Machine>
 llvm::SmallBitVector
 TargetX86Base<Machine>::getRegisterSet(RegSetMask Include,
                                        RegSetMask Exclude) const {
-  llvm::SmallBitVector Registers(Traits::RegisterSet::Reg_NUM);
-
-#define X(val, encode, name, name16, name8, scratch, preserved, stackptr,      \
-          frameptr, isI8, isInt, isFP)                                         \
-  if (scratch && (Include & RegSet_CallerSave))                                \
-    Registers[Traits::RegisterSet::val] = true;                                \
-  if (preserved && (Include & RegSet_CalleeSave))                              \
-    Registers[Traits::RegisterSet::val] = true;                                \
-  if (stackptr && (Include & RegSet_StackPointer))                             \
-    Registers[Traits::RegisterSet::val] = true;                                \
-  if (frameptr && (Include & RegSet_FramePointer))                             \
-    Registers[Traits::RegisterSet::val] = true;                                \
-  if (scratch && (Exclude & RegSet_CallerSave))                                \
-    Registers[Traits::RegisterSet::val] = false;                               \
-  if (preserved && (Exclude & RegSet_CalleeSave))                              \
-    Registers[Traits::RegisterSet::val] = false;                               \
-  if (stackptr && (Exclude & RegSet_StackPointer))                             \
-    Registers[Traits::RegisterSet::val] = false;                               \
-  if (frameptr && (Exclude & RegSet_FramePointer))                             \
-    Registers[Traits::RegisterSet::val] = false;
-
-  REGX8632_TABLE
-
-#undef X
-
-  return Registers;
+  return Traits::getRegisterSet(Include, Exclude);
 }
 
 template <class Machine>
@@ -1423,17 +1355,20 @@ bool TargetX86Base<Machine>::optimizeScalarMul(Variable *Dest, Operand *Src0,
   Constant *Zero = Ctx->getConstantZero(IceType_i32);
   for (uint32_t i = 0; i < Count9; ++i) {
     const uint16_t Shift = 3; // log2(9-1)
-    _lea(T, OperandX8632Mem::create(Func, IceType_void, T, Zero, T, Shift));
+    _lea(T,
+         Traits::X86OperandMem::create(Func, IceType_void, T, Zero, T, Shift));
     _set_dest_nonkillable();
   }
   for (uint32_t i = 0; i < Count5; ++i) {
     const uint16_t Shift = 2; // log2(5-1)
-    _lea(T, OperandX8632Mem::create(Func, IceType_void, T, Zero, T, Shift));
+    _lea(T,
+         Traits::X86OperandMem::create(Func, IceType_void, T, Zero, T, Shift));
     _set_dest_nonkillable();
   }
   for (uint32_t i = 0; i < Count3; ++i) {
     const uint16_t Shift = 1; // log2(3-1)
-    _lea(T, OperandX8632Mem::create(Func, IceType_void, T, Zero, T, Shift));
+    _lea(T,
+         Traits::X86OperandMem::create(Func, IceType_void, T, Zero, T, Shift));
     _set_dest_nonkillable();
   }
   if (Count2) {
@@ -1601,7 +1536,8 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       Variable *T_1 = nullptr, *T_2 = nullptr, *T_3 = nullptr;
       Constant *BitTest = Ctx->getConstantInt32(0x20);
       Constant *Zero = Ctx->getConstantZero(IceType_i32);
-      InstX8632Label *Label = InstX8632Label::create(Func, this);
+      typename Traits::Insts::Label *Label =
+          Traits::Insts::Label::create(Func, this);
       _mov(T_1, Src1Lo, Traits::RegisterSet::Reg_ecx);
       _mov(T_2, Src0Lo);
       _mov(T_3, Src0Hi);
@@ -1636,7 +1572,8 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       Variable *T_1 = nullptr, *T_2 = nullptr, *T_3 = nullptr;
       Constant *BitTest = Ctx->getConstantInt32(0x20);
       Constant *Zero = Ctx->getConstantZero(IceType_i32);
-      InstX8632Label *Label = InstX8632Label::create(Func, this);
+      typename Traits::Insts::Label *Label =
+          Traits::Insts::Label::create(Func, this);
       _mov(T_1, Src1Lo, Traits::RegisterSet::Reg_ecx);
       _mov(T_2, Src0Lo);
       _mov(T_3, Src0Hi);
@@ -1671,7 +1608,8 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       Variable *T_1 = nullptr, *T_2 = nullptr, *T_3 = nullptr;
       Constant *BitTest = Ctx->getConstantInt32(0x20);
       Constant *SignExtend = Ctx->getConstantInt32(0x1f);
-      InstX8632Label *Label = InstX8632Label::create(Func, this);
+      typename Traits::Insts::Label *Label =
+          Traits::Insts::Label::create(Func, this);
       _mov(T_1, Src1Lo, Traits::RegisterSet::Reg_ecx);
       _mov(T_2, Src0Lo);
       _mov(T_3, Src0Hi);
@@ -1709,7 +1647,7 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
   if (isVectorType(Dest->getType())) {
     // TODO: Trap on integer divide and integer modulo by zero.
     // See: https://code.google.com/p/nativeclient/issues/detail?id=3899
-    if (llvm::isa<OperandX8632Mem>(Src1))
+    if (llvm::isa<typename Traits::X86OperandMem>(Src1))
       Src1 = legalizeToVar(Src1);
     switch (Inst->getOp()) {
     case InstArithmetic::_num:
@@ -2208,7 +2146,8 @@ void TargetX86Base<Machine>::lowerCall(const InstCall *Instr) {
       Variable *esp =
           Func->getTarget()->getPhysicalRegister(Traits::RegisterSet::Reg_esp);
       Constant *Loc = Ctx->getConstantInt32(ParameterAreaSizeBytes);
-      StackArgLocations.push_back(OperandX8632Mem::create(Func, Ty, esp, Loc));
+      StackArgLocations.push_back(
+          Traits::X86OperandMem::create(Func, Ty, esp, Loc));
       ParameterAreaSizeBytes += typeWidthInBytesOnStack(Arg->getType());
     }
   }
@@ -2305,7 +2244,7 @@ void TargetX86Base<Machine>::lowerCall(const InstCall *Instr) {
       CallTarget = CallTargetVar;
     }
   }
-  Inst *NewCall = InstX8632Call::create(Func, ReturnReg, CallTarget);
+  Inst *NewCall = Traits::Insts::Call::create(Func, ReturnReg, CallTarget);
   Context.insert(NewCall);
   if (NeedSandboxing)
     _bundle_unlock();
@@ -2532,7 +2471,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
     Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
     // t1 = cvt Src0RM; Dest = t1
     Variable *T = makeReg(Dest->getType());
-    _cvt(T, Src0RM, InstX8632Cvt::Float2float);
+    _cvt(T, Src0RM, Traits::Insts::Cvt::Float2float);
     _mov(Dest, T);
     break;
   }
@@ -2541,10 +2480,10 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       assert(Dest->getType() == IceType_v4i32 &&
              Inst->getSrc(0)->getType() == IceType_v4f32);
       Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
-      if (llvm::isa<OperandX8632Mem>(Src0RM))
+      if (llvm::isa<typename Traits::X86OperandMem>(Src0RM))
         Src0RM = legalizeToVar(Src0RM);
       Variable *T = makeReg(Dest->getType());
-      _cvt(T, Src0RM, InstX8632Cvt::Tps2dq);
+      _cvt(T, Src0RM, Traits::Insts::Cvt::Tps2dq);
       _movp(Dest, T);
     } else if (Dest->getType() == IceType_i64) {
       // Use a helper for converting floating-point values to 64-bit
@@ -2567,7 +2506,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       // t1.i32 = cvt Src0RM; t2.dest_type = t1; Dest = t2.dest_type
       Variable *T_1 = makeReg(IceType_i32);
       Variable *T_2 = makeReg(Dest->getType());
-      _cvt(T_1, Src0RM, InstX8632Cvt::Tss2si);
+      _cvt(T_1, Src0RM, Traits::Insts::Cvt::Tss2si);
       _mov(T_2, T_1); // T_1 and T_2 may have different integer types
       if (Dest->getType() == IceType_i1)
         _and(T_2, Ctx->getConstantInt1(1));
@@ -2606,7 +2545,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       // t1.i32 = cvt Src0RM; t2.dest_type = t1; Dest = t2.dest_type
       Variable *T_1 = makeReg(IceType_i32);
       Variable *T_2 = makeReg(Dest->getType());
-      _cvt(T_1, Src0RM, InstX8632Cvt::Tss2si);
+      _cvt(T_1, Src0RM, Traits::Insts::Cvt::Tss2si);
       _mov(T_2, T_1); // T_1 and T_2 may have different integer types
       if (Dest->getType() == IceType_i1)
         _and(T_2, Ctx->getConstantInt1(1));
@@ -2618,10 +2557,10 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       assert(Dest->getType() == IceType_v4f32 &&
              Inst->getSrc(0)->getType() == IceType_v4i32);
       Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
-      if (llvm::isa<OperandX8632Mem>(Src0RM))
+      if (llvm::isa<typename Traits::X86OperandMem>(Src0RM))
         Src0RM = legalizeToVar(Src0RM);
       Variable *T = makeReg(Dest->getType());
-      _cvt(T, Src0RM, InstX8632Cvt::Dq2ps);
+      _cvt(T, Src0RM, Traits::Insts::Cvt::Dq2ps);
       _movp(Dest, T);
     } else if (Inst->getSrc(0)->getType() == IceType_i64) {
       // Use a helper for x86-32.
@@ -2645,7 +2584,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
         _mov(T_1, Src0RM);
       else
         _movsx(T_1, Src0RM);
-      _cvt(T_2, T_1, InstX8632Cvt::Si2ss);
+      _cvt(T_2, T_1, Traits::Insts::Cvt::Si2ss);
       _mov(Dest, T_2);
     }
     break;
@@ -2686,7 +2625,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
         _mov(T_1, Src0RM);
       else
         _movzx(T_1, Src0RM);
-      _cvt(T_2, T_1, InstX8632Cvt::Si2ss);
+      _cvt(T_2, T_1, Traits::Insts::Cvt::Si2ss);
       _mov(Dest, T_2);
     }
     break;
@@ -2728,8 +2667,8 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       Variable *T = nullptr;
       // TODO: Should be able to force a spill setup by calling legalize() with
       // Legal_Mem and not Legal_Reg or Legal_Imm.
-      SpillVariable *SpillVar =
-          Func->template makeVariable<SpillVariable>(SrcType);
+      typename Traits::SpillVariable *SpillVar =
+          Func->template makeVariable<typename Traits::SpillVariable>(SrcType);
       SpillVar->setLinkedTo(Dest);
       Variable *Spill = SpillVar;
       Spill->setWeight(RegWeight::Zero);
@@ -2748,14 +2687,17 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       //   a_hi.i32 = t_hi.i32
       Operand *SpillLo, *SpillHi;
       if (auto *Src0Var = llvm::dyn_cast<Variable>(Src0RM)) {
-        SpillVariable *SpillVar =
-            Func->template makeVariable<SpillVariable>(IceType_f64);
+        typename Traits::SpillVariable *SpillVar =
+            Func->template makeVariable<typename Traits::SpillVariable>(
+                IceType_f64);
         SpillVar->setLinkedTo(Src0Var);
         Variable *Spill = SpillVar;
         Spill->setWeight(RegWeight::Zero);
         _movq(Spill, Src0RM);
-        SpillLo = VariableSplit::create(Func, Spill, VariableSplit::Low);
-        SpillHi = VariableSplit::create(Func, Spill, VariableSplit::High);
+        SpillLo = Traits::VariableSplit::create(Func, Spill,
+                                                Traits::VariableSplit::Low);
+        SpillHi = Traits::VariableSplit::create(Func, Spill,
+                                                Traits::VariableSplit::High);
       } else {
         SpillLo = loOperand(Src0RM);
         SpillHi = hiOperand(Src0RM);
@@ -2774,7 +2716,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
     case IceType_f64: {
       Src0 = legalize(Src0);
       assert(Src0->getType() == IceType_i64);
-      if (llvm::isa<OperandX8632Mem>(Src0)) {
+      if (llvm::isa<typename Traits::X86OperandMem>(Src0)) {
         Variable *T = Func->template makeVariable(Dest->getType());
         _movq(T, Src0);
         _movq(Dest, T);
@@ -2787,17 +2729,18 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       //   t_hi.i32 = b_hi.i32
       //   hi(s.f64) = t_hi.i32
       //   a.f64 = s.f64
-      SpillVariable *SpillVar =
-          Func->template makeVariable<SpillVariable>(IceType_f64);
+      typename Traits::SpillVariable *SpillVar =
+          Func->template makeVariable<typename Traits::SpillVariable>(
+              IceType_f64);
       SpillVar->setLinkedTo(Dest);
       Variable *Spill = SpillVar;
       Spill->setWeight(RegWeight::Zero);
 
       Variable *T_Lo = nullptr, *T_Hi = nullptr;
-      VariableSplit *SpillLo =
-          VariableSplit::create(Func, Spill, VariableSplit::Low);
-      VariableSplit *SpillHi =
-          VariableSplit::create(Func, Spill, VariableSplit::High);
+      typename Traits::VariableSplit *SpillLo = Traits::VariableSplit::create(
+          Func, Spill, Traits::VariableSplit::Low);
+      typename Traits::VariableSplit *SpillHi = Traits::VariableSplit::create(
+          Func, Spill, Traits::VariableSplit::High);
       _mov(T_Lo, loOperand(Src0));
       // Technically, the Spill is defined after the _store happens, but
       // SpillLo is considered a "use" of Spill so define Spill before it
@@ -2897,7 +2840,7 @@ void TargetX86Base<Machine>::lowerExtractElement(
 
     // Compute the location of the element in memory.
     unsigned Offset = Index * typeWidthInBytes(InVectorElementTy);
-    OperandX8632Mem *Loc =
+    typename Traits::X86OperandMem *Loc =
         getMemoryOperandForStackSlot(InVectorElementTy, Slot, Offset);
     _mov(ExtractedElementR, Loc);
   }
@@ -2943,7 +2886,7 @@ void TargetX86Base<Machine>::lowerFcmp(const InstFcmp *Inst) {
     } else {
       Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
       Operand *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
-      if (llvm::isa<OperandX8632Mem>(Src1RM))
+      if (llvm::isa<typename Traits::X86OperandMem>(Src1RM))
         Src1RM = legalizeToVar(Src1RM);
 
       switch (Condition) {
@@ -3018,7 +2961,8 @@ void TargetX86Base<Machine>::lowerFcmp(const InstFcmp *Inst) {
   Constant *Default = Ctx->getConstantInt32(Traits::TableFcmp[Index].Default);
   _mov(Dest, Default);
   if (HasC1) {
-    InstX8632Label *Label = InstX8632Label::create(Func, this);
+    typename Traits::Insts::Label *Label =
+        Traits::Insts::Label::create(Func, this);
     _br(Traits::TableFcmp[Index].C1, Label);
     if (HasC2) {
       _br(Traits::TableFcmp[Index].C2, Label);
@@ -3091,13 +3035,13 @@ void TargetX86Base<Machine>::lowerIcmp(const InstIcmp *Inst) {
       llvm_unreachable("unexpected condition");
       break;
     case InstIcmp::Eq: {
-      if (llvm::isa<OperandX8632Mem>(Src1RM))
+      if (llvm::isa<typename Traits::X86OperandMem>(Src1RM))
         Src1RM = legalizeToVar(Src1RM);
       _movp(T, Src0RM);
       _pcmpeq(T, Src1RM);
     } break;
     case InstIcmp::Ne: {
-      if (llvm::isa<OperandX8632Mem>(Src1RM))
+      if (llvm::isa<typename Traits::X86OperandMem>(Src1RM))
         Src1RM = legalizeToVar(Src1RM);
       _movp(T, Src0RM);
       _pcmpeq(T, Src1RM);
@@ -3106,7 +3050,7 @@ void TargetX86Base<Machine>::lowerIcmp(const InstIcmp *Inst) {
     } break;
     case InstIcmp::Ugt:
     case InstIcmp::Sgt: {
-      if (llvm::isa<OperandX8632Mem>(Src1RM))
+      if (llvm::isa<typename Traits::X86OperandMem>(Src1RM))
         Src1RM = legalizeToVar(Src1RM);
       _movp(T, Src0RM);
       _pcmpgt(T, Src1RM);
@@ -3114,7 +3058,7 @@ void TargetX86Base<Machine>::lowerIcmp(const InstIcmp *Inst) {
     case InstIcmp::Uge:
     case InstIcmp::Sge: {
       // !(Src1RM > Src0RM)
-      if (llvm::isa<OperandX8632Mem>(Src0RM))
+      if (llvm::isa<typename Traits::X86OperandMem>(Src0RM))
         Src0RM = legalizeToVar(Src0RM);
       _movp(T, Src1RM);
       _pcmpgt(T, Src0RM);
@@ -3123,7 +3067,7 @@ void TargetX86Base<Machine>::lowerIcmp(const InstIcmp *Inst) {
     } break;
     case InstIcmp::Ult:
     case InstIcmp::Slt: {
-      if (llvm::isa<OperandX8632Mem>(Src0RM))
+      if (llvm::isa<typename Traits::X86OperandMem>(Src0RM))
         Src0RM = legalizeToVar(Src0RM);
       _movp(T, Src1RM);
       _pcmpgt(T, Src0RM);
@@ -3131,7 +3075,7 @@ void TargetX86Base<Machine>::lowerIcmp(const InstIcmp *Inst) {
     case InstIcmp::Ule:
     case InstIcmp::Sle: {
       // !(Src0RM > Src1RM)
-      if (llvm::isa<OperandX8632Mem>(Src1RM))
+      if (llvm::isa<typename Traits::X86OperandMem>(Src1RM))
         Src1RM = legalizeToVar(Src1RM);
       _movp(T, Src0RM);
       _pcmpgt(T, Src1RM);
@@ -3156,8 +3100,10 @@ void TargetX86Base<Machine>::lowerIcmp(const InstIcmp *Inst) {
     Operand *Src1HiRI = legalize(hiOperand(Src1), Legal_Reg | Legal_Imm);
     Constant *Zero = Ctx->getConstantZero(IceType_i32);
     Constant *One = Ctx->getConstantInt32(1);
-    InstX8632Label *LabelFalse = InstX8632Label::create(Func, this);
-    InstX8632Label *LabelTrue = InstX8632Label::create(Func, this);
+    typename Traits::Insts::Label *LabelFalse =
+        Traits::Insts::Label::create(Func, this);
+    typename Traits::Insts::Label *LabelTrue =
+        Traits::Insts::Label::create(Func, this);
     _mov(Dest, One);
     _cmp(Src0HiRM, Src1HiRI);
     if (Traits::TableIcmp64[Index].C1 != Traits::Cond::Br_None)
@@ -3293,7 +3239,7 @@ void TargetX86Base<Machine>::lowerInsertElement(const InstInsertElement *Inst) {
 
     // Compute the location of the position to insert in memory.
     unsigned Offset = Index * typeWidthInBytes(InVectorElementTy);
-    OperandX8632Mem *Loc =
+    typename Traits::X86OperandMem *Loc =
         getMemoryOperandForStackSlot(InVectorElementTy, Slot, Offset);
     _store(legalizeToVar(ElementToInsertNotLegalized), Loc);
 
@@ -3383,7 +3329,8 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
       // can't happen anyway, since this is x86-32 and integer arithmetic only
       // happens on 32-bit quantities.
       Variable *T = makeReg(IceType_f64);
-      OperandX8632Mem *Addr = formMemoryOperand(Instr->getArg(0), IceType_f64);
+      typename Traits::X86OperandMem *Addr =
+          formMemoryOperand(Instr->getArg(0), IceType_f64);
       _movq(T, Addr);
       // Then cast the bits back out of the XMM register to the i64 Dest.
       InstCast *Cast = InstCast::create(Func, InstCast::Bitcast, Dest, T);
@@ -3433,7 +3380,8 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
       InstCast *Cast = InstCast::create(Func, InstCast::Bitcast, T, Value);
       lowerCast(Cast);
       // Then store XMM w/ a movq.
-      OperandX8632Mem *Addr = formMemoryOperand(Ptr, IceType_f64);
+      typename Traits::X86OperandMem *Addr =
+          formMemoryOperand(Ptr, IceType_f64);
       _storeq(T, Addr);
       _mfence();
       return;
@@ -3535,7 +3483,7 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
     // The pand instruction operates on an m128 memory operand, so if
     // Src is an f32 or f64, we need to make sure it's in a register.
     if (isVectorType(Ty)) {
-      if (llvm::isa<OperandX8632Mem>(Src))
+      if (llvm::isa<typename Traits::X86OperandMem>(Src))
         Src = legalizeToVar(Src);
     } else {
       Src = legalizeToVar(Src);
@@ -3590,9 +3538,9 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
   case Intrinsics::NaClReadTP: {
     if (Ctx->getFlags().getUseSandboxing()) {
       Constant *Zero = Ctx->getConstantZero(IceType_i32);
-      Operand *Src =
-          OperandX8632Mem::create(Func, IceType_i32, nullptr, Zero, nullptr, 0,
-                                  OperandX8632Mem::SegReg_GS);
+      Operand *Src = Traits::X86OperandMem::create(
+          Func, IceType_i32, nullptr, Zero, nullptr, 0,
+          Traits::X86OperandMem::SegReg_GS);
       Variable *Dest = Instr->getDest();
       Variable *T = nullptr;
       _mov(T, Src);
@@ -3655,7 +3603,8 @@ void TargetX86Base<Machine>::lowerAtomicCmpxchg(Variable *DestPrev,
     _mov(T_edx, hiOperand(Expected));
     _mov(T_ebx, loOperand(Desired));
     _mov(T_ecx, hiOperand(Desired));
-    OperandX8632Mem *Addr = formMemoryOperand(Ptr, Expected->getType());
+    typename Traits::X86OperandMem *Addr =
+        formMemoryOperand(Ptr, Expected->getType());
     const bool Locked = true;
     _cmpxchg8b(Addr, T_edx, T_eax, T_ecx, T_ebx, Locked);
     Variable *DestLo = llvm::cast<Variable>(loOperand(DestPrev));
@@ -3666,7 +3615,8 @@ void TargetX86Base<Machine>::lowerAtomicCmpxchg(Variable *DestPrev,
   }
   Variable *T_eax = makeReg(Expected->getType(), Traits::RegisterSet::Reg_eax);
   _mov(T_eax, Expected);
-  OperandX8632Mem *Addr = formMemoryOperand(Ptr, Expected->getType());
+  typename Traits::X86OperandMem *Addr =
+      formMemoryOperand(Ptr, Expected->getType());
   Variable *DesiredReg = legalizeToVar(Desired);
   const bool Locked = true;
   _cmpxchg(Addr, T_eax, DesiredReg, Locked);
@@ -3768,7 +3718,8 @@ void TargetX86Base<Machine>::lowerAtomicRMW(Variable *Dest, uint32_t Operation,
       Op_Hi = &TargetX86Base<Machine>::_adc;
       break;
     }
-    OperandX8632Mem *Addr = formMemoryOperand(Ptr, Dest->getType());
+    typename Traits::X86OperandMem *Addr =
+        formMemoryOperand(Ptr, Dest->getType());
     const bool Locked = true;
     Variable *T = nullptr;
     _mov(T, Val);
@@ -3783,7 +3734,8 @@ void TargetX86Base<Machine>::lowerAtomicRMW(Variable *Dest, uint32_t Operation,
       Op_Hi = &TargetX86Base<Machine>::_sbb;
       break;
     }
-    OperandX8632Mem *Addr = formMemoryOperand(Ptr, Dest->getType());
+    typename Traits::X86OperandMem *Addr =
+        formMemoryOperand(Ptr, Dest->getType());
     const bool Locked = true;
     Variable *T = nullptr;
     _mov(T, Val);
@@ -3821,7 +3773,8 @@ void TargetX86Base<Machine>::lowerAtomicRMW(Variable *Dest, uint32_t Operation,
       Op_Hi = nullptr;
       break;
     }
-    OperandX8632Mem *Addr = formMemoryOperand(Ptr, Dest->getType());
+    typename Traits::X86OperandMem *Addr =
+        formMemoryOperand(Ptr, Dest->getType());
     Variable *T = nullptr;
     _mov(T, Val);
     _xchg(Addr, T);
@@ -3869,12 +3822,13 @@ void TargetX86Base<Machine>::expandAtomicRMWAsCmpxchg(LowerBinOp Op_Lo,
   if (Ty == IceType_i64) {
     Variable *T_edx = makeReg(IceType_i32, Traits::RegisterSet::Reg_edx);
     Variable *T_eax = makeReg(IceType_i32, Traits::RegisterSet::Reg_eax);
-    OperandX8632Mem *Addr = formMemoryOperand(Ptr, Ty);
+    typename Traits::X86OperandMem *Addr = formMemoryOperand(Ptr, Ty);
     _mov(T_eax, loOperand(Addr));
     _mov(T_edx, hiOperand(Addr));
     Variable *T_ecx = makeReg(IceType_i32, Traits::RegisterSet::Reg_ecx);
     Variable *T_ebx = makeReg(IceType_i32, Traits::RegisterSet::Reg_ebx);
-    InstX8632Label *Label = InstX8632Label::create(Func, this);
+    typename Traits::Insts::Label *Label =
+        Traits::Insts::Label::create(Func, this);
     const bool IsXchg8b = Op_Lo == nullptr && Op_Hi == nullptr;
     if (!IsXchg8b) {
       Context.insert(Label);
@@ -3916,10 +3870,11 @@ void TargetX86Base<Machine>::expandAtomicRMWAsCmpxchg(LowerBinOp Op_Lo,
     _mov(DestHi, T_edx);
     return;
   }
-  OperandX8632Mem *Addr = formMemoryOperand(Ptr, Ty);
+  typename Traits::X86OperandMem *Addr = formMemoryOperand(Ptr, Ty);
   Variable *T_eax = makeReg(Ty, Traits::RegisterSet::Reg_eax);
   _mov(T_eax, Addr);
-  InstX8632Label *Label = InstX8632Label::create(Func, this);
+  typename Traits::Insts::Label *Label =
+      Traits::Insts::Label::create(Func, this);
   Context.insert(Label);
   // We want to pick a different register for T than Eax, so don't use
   // _mov(T == nullptr, T_eax).
@@ -4260,11 +4215,11 @@ void computeAddressOpt(Cfg *Func, const Inst *Instr, Variable *&Base,
 
 template <class Machine>
 void TargetX86Base<Machine>::lowerLoad(const InstLoad *Load) {
-  // A Load instruction can be treated the same as an Assign
-  // instruction, after the source operand is transformed into an
-  // OperandX8632Mem operand.  Note that the address mode
-  // optimization already creates an OperandX8632Mem operand, so it
-  // doesn't need another level of transformation.
+  // A Load instruction can be treated the same as an Assign instruction, after
+  // the source operand is transformed into an Traits::X86OperandMem operand.
+  // Note that the address mode optimization already creates an
+  // Traits::X86OperandMem operand, so it doesn't need another level of
+  // transformation.
   Variable *DestLoad = Load->getDest();
   Type Ty = DestLoad->getType();
   Operand *Src0 = formMemoryOperand(Load->getSourceAddress(), Ty);
@@ -4279,19 +4234,19 @@ template <class Machine> void TargetX86Base<Machine>::doAddressOptLoad() {
   Variable *Index = nullptr;
   uint16_t Shift = 0;
   int32_t Offset = 0; // TODO: make Constant
-  // Vanilla ICE load instructions should not use the segment registers,
-  // and computeAddressOpt only works at the level of Variables and Constants,
-  // not other OperandX8632Mem, so there should be no mention of segment
+  // Vanilla ICE load instructions should not use the segment registers, and
+  // computeAddressOpt only works at the level of Variables and Constants, not
+  // other Traits::X86OperandMem, so there should be no mention of segment
   // registers there either.
-  const OperandX8632Mem::SegmentRegisters SegmentReg =
-      OperandX8632Mem::DefaultSegment;
+  const typename Traits::X86OperandMem::SegmentRegisters SegmentReg =
+      Traits::X86OperandMem::DefaultSegment;
   Variable *Base = llvm::dyn_cast<Variable>(Addr);
   computeAddressOpt(Func, Inst, Base, Index, Shift, Offset);
   if (Base && Addr != Base) {
     Inst->setDeleted();
     Constant *OffsetOp = Ctx->getConstantInt32(Offset);
-    Addr = OperandX8632Mem::create(Func, Dest->getType(), Base, OffsetOp, Index,
-                                   Shift, SegmentReg);
+    Addr = Traits::X86OperandMem::create(Func, Dest->getType(), Base, OffsetOp,
+                                         Index, Shift, SegmentReg);
     Context.insert(InstLoad::create(Func, Dest, Addr));
   }
 }
@@ -4438,7 +4393,8 @@ void TargetX86Base<Machine>::lowerSelect(const InstSelect *Inst) {
     // The cmov instruction doesn't allow 8-bit or FP operands, so
     // we need explicit control flow.
     // d=cmp e,f; a=d?b:c ==> cmp e,f; a=b; jne L1; a=c; L1:
-    InstX8632Label *Label = InstX8632Label::create(Func, this);
+    typename Traits::Insts::Label *Label =
+        Traits::Insts::Label::create(Func, this);
     SrcT = legalize(SrcT, Legal_Reg | Legal_Imm);
     _mov(Dest, SrcT);
     _br(Cond, Label);
@@ -4453,7 +4409,7 @@ void TargetX86Base<Machine>::lowerSelect(const InstSelect *Inst) {
   // mov t, SrcT; cmov_!cond t, SrcF; mov dest, t
   if (llvm::isa<Constant>(SrcT) && !llvm::isa<Constant>(SrcF)) {
     std::swap(SrcT, SrcF);
-    Cond = InstX8632::getOppositeCondition(Cond);
+    Cond = InstX86Base<Machine>::getOppositeCondition(Cond);
   }
   if (DestTy == IceType_i64) {
     // Set the low portion.
@@ -4488,15 +4444,18 @@ template <class Machine>
 void TargetX86Base<Machine>::lowerStore(const InstStore *Inst) {
   Operand *Value = Inst->getData();
   Operand *Addr = Inst->getAddr();
-  OperandX8632Mem *NewAddr = formMemoryOperand(Addr, Value->getType());
+  typename Traits::X86OperandMem *NewAddr =
+      formMemoryOperand(Addr, Value->getType());
   Type Ty = NewAddr->getType();
 
   if (Ty == IceType_i64) {
     Value = legalize(Value);
     Operand *ValueHi = legalize(hiOperand(Value), Legal_Reg | Legal_Imm);
     Operand *ValueLo = legalize(loOperand(Value), Legal_Reg | Legal_Imm);
-    _store(ValueHi, llvm::cast<OperandX8632Mem>(hiOperand(NewAddr)));
-    _store(ValueLo, llvm::cast<OperandX8632Mem>(loOperand(NewAddr)));
+    _store(ValueHi,
+           llvm::cast<typename Traits::X86OperandMem>(hiOperand(NewAddr)));
+    _store(ValueLo,
+           llvm::cast<typename Traits::X86OperandMem>(loOperand(NewAddr)));
   } else if (isVectorType(Ty)) {
     _storep(legalizeToVar(Value), NewAddr);
   } else {
@@ -4513,18 +4472,18 @@ template <class Machine> void TargetX86Base<Machine>::doAddressOptStore() {
   uint16_t Shift = 0;
   int32_t Offset = 0; // TODO: make Constant
   Variable *Base = llvm::dyn_cast<Variable>(Addr);
-  // Vanilla ICE store instructions should not use the segment registers,
-  // and computeAddressOpt only works at the level of Variables and Constants,
-  // not other OperandX8632Mem, so there should be no mention of segment
+  // Vanilla ICE store instructions should not use the segment registers, and
+  // computeAddressOpt only works at the level of Variables and Constants, not
+  // other Traits::X86OperandMem, so there should be no mention of segment
   // registers there either.
-  const OperandX8632Mem::SegmentRegisters SegmentReg =
-      OperandX8632Mem::DefaultSegment;
+  const typename Traits::X86OperandMem::SegmentRegisters SegmentReg =
+      Traits::X86OperandMem::DefaultSegment;
   computeAddressOpt(Func, Inst, Base, Index, Shift, Offset);
   if (Base && Addr != Base) {
     Inst->setDeleted();
     Constant *OffsetOp = Ctx->getConstantInt32(Offset);
-    Addr = OperandX8632Mem::create(Func, Data->getType(), Base, OffsetOp, Index,
-                                   Shift, SegmentReg);
+    Addr = Traits::X86OperandMem::create(Func, Data->getType(), Base, OffsetOp,
+                                         Index, Shift, SegmentReg);
     InstStore *NewStore = InstStore::create(Func, Data, Addr);
     if (Inst->getDest())
       NewStore->setRmwBeacon(Inst->getRmwBeacon());
@@ -4552,7 +4511,8 @@ void TargetX86Base<Machine>::lowerSwitch(const InstSwitch *Inst) {
     for (SizeT I = 0; I < NumCases; ++I) {
       Constant *ValueLo = Ctx->getConstantInt32(Inst->getValue(I));
       Constant *ValueHi = Ctx->getConstantInt32(Inst->getValue(I) >> 32);
-      InstX8632Label *Label = InstX8632Label::create(Func, this);
+      typename Traits::Insts::Label *Label =
+          Traits::Insts::Label::create(Func, this);
       _cmp(Src0Lo, ValueLo);
       _br(Traits::Cond::Br_ne, Label);
       _cmp(Src0Hi, ValueHi);
@@ -4639,7 +4599,8 @@ void TargetX86Base<Machine>::lowerUnreachable(
 }
 
 template <class Machine>
-void TargetX86Base<Machine>::lowerRMW(const InstX8632FakeRMW *RMW) {
+void TargetX86Base<Machine>::lowerRMW(
+    const typename Traits::Insts::FakeRMW *RMW) {
   // If the beacon variable's live range does not end in this
   // instruction, then it must end in the modified Store instruction
   // that follows.  This means that the original Store instruction is
@@ -4651,12 +4612,14 @@ void TargetX86Base<Machine>::lowerRMW(const InstX8632FakeRMW *RMW) {
     return;
   Operand *Src = RMW->getData();
   Type Ty = Src->getType();
-  OperandX8632Mem *Addr = formMemoryOperand(RMW->getAddr(), Ty);
+  typename Traits::X86OperandMem *Addr = formMemoryOperand(RMW->getAddr(), Ty);
   if (Ty == IceType_i64) {
     Operand *SrcLo = legalize(loOperand(Src), Legal_Reg | Legal_Imm);
     Operand *SrcHi = legalize(hiOperand(Src), Legal_Reg | Legal_Imm);
-    OperandX8632Mem *AddrLo = llvm::cast<OperandX8632Mem>(loOperand(Addr));
-    OperandX8632Mem *AddrHi = llvm::cast<OperandX8632Mem>(hiOperand(Addr));
+    typename Traits::X86OperandMem *AddrLo =
+        llvm::cast<typename Traits::X86OperandMem>(loOperand(Addr));
+    typename Traits::X86OperandMem *AddrHi =
+        llvm::cast<typename Traits::X86OperandMem>(hiOperand(Addr));
     switch (RMW->getOp()) {
     default:
       // TODO(stichnot): Implement other arithmetic operators.
@@ -4715,7 +4678,8 @@ void TargetX86Base<Machine>::lowerRMW(const InstX8632FakeRMW *RMW) {
 
 template <class Machine>
 void TargetX86Base<Machine>::lowerOther(const Inst *Instr) {
-  if (const auto *RMW = llvm::dyn_cast<InstX8632FakeRMW>(Instr)) {
+  if (const auto *RMW =
+          llvm::dyn_cast<typename Traits::Insts::FakeRMW>(Instr)) {
     lowerRMW(RMW);
   } else {
     TargetLowering::lowerOther(Instr);
@@ -4991,7 +4955,7 @@ Variable *TargetX86Base<Machine>::makeVectorOfFabsMask(Type Ty,
 }
 
 template <class Machine>
-OperandX8632Mem *
+typename TargetX86Base<Machine>::Traits::X86OperandMem *
 TargetX86Base<Machine>::getMemoryOperandForStackSlot(Type Ty, Variable *Slot,
                                                      uint32_t Offset) {
   // Ensure that Loc is a stack slot.
@@ -5005,7 +4969,7 @@ TargetX86Base<Machine>::getMemoryOperandForStackSlot(Type Ty, Variable *Slot,
   Variable *Loc = makeReg(PointerType);
   _lea(Loc, Slot);
   Constant *ConstantOffset = Ctx->getConstantInt32(Offset);
-  return OperandX8632Mem::create(Func, Ty, Loc, ConstantOffset);
+  return Traits::X86OperandMem::create(Func, Ty, Loc, ConstantOffset);
 }
 
 /// Helper for legalize() to emit the right code to lower an operand to a
@@ -5037,7 +5001,7 @@ Operand *TargetX86Base<Machine>::legalize(Operand *From, LegalMask Allowed,
   // or in ecx.)
   assert(RegNum == Variable::NoRegister || Allowed == Legal_Reg);
 
-  if (auto Mem = llvm::dyn_cast<OperandX8632Mem>(From)) {
+  if (auto Mem = llvm::dyn_cast<typename Traits::X86OperandMem>(From)) {
     // Before doing anything with a Mem operand, we need to ensure
     // that the Base and Index components are in physical registers.
     Variable *Base = Mem->getBase();
@@ -5051,9 +5015,9 @@ Operand *TargetX86Base<Machine>::legalize(Operand *From, LegalMask Allowed,
       RegIndex = legalizeToVar(Index);
     }
     if (Base != RegBase || Index != RegIndex) {
-      Mem =
-          OperandX8632Mem::create(Func, Ty, RegBase, Mem->getOffset(), RegIndex,
-                                  Mem->getShift(), Mem->getSegmentRegister());
+      Mem = Traits::X86OperandMem::create(Func, Ty, RegBase, Mem->getOffset(),
+                                          RegIndex, Mem->getShift(),
+                                          Mem->getSegmentRegister());
     }
 
     // For all Memory Operands, we do randomization/pooling here
@@ -5103,7 +5067,7 @@ Operand *TargetX86Base<Machine>::legalize(Operand *From, LegalMask Allowed,
       llvm::cast<Constant>(From)->emitPoolLabel(StrBuf);
       llvm::cast<Constant>(From)->setShouldBePooled(true);
       Constant *Offset = Ctx->getConstantSym(0, StrBuf.str(), true);
-      From = OperandX8632Mem::create(Func, Ty, Base, Offset);
+      From = Traits::X86OperandMem::create(Func, Ty, Base, Offset);
     }
     bool NeedsReg = false;
     if (!(Allowed & Legal_Imm) && !isScalarFloatingType(Ty))
@@ -5162,13 +5126,13 @@ Operand *TargetX86Base<Machine>::legalizeSrc0ForCmp(Operand *Src0,
 }
 
 template <class Machine>
-OperandX8632Mem *TargetX86Base<Machine>::formMemoryOperand(Operand *Opnd,
-                                                           Type Ty,
-                                                           bool DoLegalize) {
-  OperandX8632Mem *Mem = llvm::dyn_cast<OperandX8632Mem>(Opnd);
-  // It may be the case that address mode optimization already creates
-  // an OperandX8632Mem, so in that case it wouldn't need another level
-  // of transformation.
+typename TargetX86Base<Machine>::Traits::X86OperandMem *
+TargetX86Base<Machine>::formMemoryOperand(Operand *Opnd, Type Ty,
+                                          bool DoLegalize) {
+  auto *Mem = llvm::dyn_cast<typename Traits::X86OperandMem>(Opnd);
+  // It may be the case that address mode optimization already creates an
+  // Traits::X86OperandMem, so in that case it wouldn't need another level of
+  // transformation.
   if (!Mem) {
     Variable *Base = llvm::dyn_cast<Variable>(Opnd);
     Constant *Offset = llvm::dyn_cast<Constant>(Opnd);
@@ -5188,11 +5152,11 @@ OperandX8632Mem *TargetX86Base<Machine>::formMemoryOperand(Operand *Opnd,
       assert(llvm::isa<ConstantInteger32>(Offset) ||
              llvm::isa<ConstantRelocatable>(Offset));
     }
-    Mem = OperandX8632Mem::create(Func, Ty, Base, Offset);
+    Mem = Traits::X86OperandMem::create(Func, Ty, Base, Offset);
   }
   // Do legalization, which contains randomization/pooling
   // or do randomization/pooling.
-  return llvm::cast<OperandX8632Mem>(
+  return llvm::cast<typename Traits::X86OperandMem>(
       DoLegalize ? legalize(Mem) : randomizeOrPoolImmediate(Mem));
 }
 
@@ -5218,68 +5182,8 @@ template <class Machine>
 void TargetX86Base<Machine>::makeRandomRegisterPermutation(
     llvm::SmallVectorImpl<int32_t> &Permutation,
     const llvm::SmallBitVector &ExcludeRegisters) const {
-  // TODO(stichnot): Declaring Permutation this way loses type/size
-  // information.  Fix this in conjunction with the caller-side TODO.
-  assert(Permutation.size() >= Traits::RegisterSet::Reg_NUM);
-  // Expected upper bound on the number of registers in a single
-  // equivalence class.  For x86-32, this would comprise the 8 XMM
-  // registers.  This is for performance, not correctness.
-  static const unsigned MaxEquivalenceClassSize = 8;
-  typedef llvm::SmallVector<int32_t, MaxEquivalenceClassSize> RegisterList;
-  typedef std::map<uint32_t, RegisterList> EquivalenceClassMap;
-  EquivalenceClassMap EquivalenceClasses;
-  SizeT NumShuffled = 0, NumPreserved = 0;
-
-// Build up the equivalence classes of registers by looking at the
-// register properties as well as whether the registers should be
-// explicitly excluded from shuffling.
-#define X(val, encode, name, name16, name8, scratch, preserved, stackptr,      \
-          frameptr, isI8, isInt, isFP)                                         \
-  if (ExcludeRegisters[Traits::RegisterSet::val]) {                            \
-    /* val stays the same in the resulting permutation. */                     \
-    Permutation[Traits::RegisterSet::val] = Traits::RegisterSet::val;          \
-    ++NumPreserved;                                                            \
-  } else {                                                                     \
-    const uint32_t Index = (scratch << 0) | (preserved << 1) | (isI8 << 2) |   \
-                           (isInt << 3) | (isFP << 4);                         \
-    /* val is assigned to an equivalence class based on its properties. */     \
-    EquivalenceClasses[Index].push_back(Traits::RegisterSet::val);             \
-  }
-  REGX8632_TABLE
-#undef X
-
-  RandomNumberGeneratorWrapper RNG(Ctx->getRNG());
-
-  // Shuffle the resulting equivalence classes.
-  for (auto I : EquivalenceClasses) {
-    const RegisterList &List = I.second;
-    RegisterList Shuffled(List);
-    RandomShuffle(Shuffled.begin(), Shuffled.end(), RNG);
-    for (size_t SI = 0, SE = Shuffled.size(); SI < SE; ++SI) {
-      Permutation[List[SI]] = Shuffled[SI];
-      ++NumShuffled;
-    }
-  }
-
-  assert(NumShuffled + NumPreserved == Traits::RegisterSet::Reg_NUM);
-
-  if (Func->isVerbose(IceV_Random)) {
-    OstreamLocker L(Func->getContext());
-    Ostream &Str = Func->getContext()->getStrDump();
-    Str << "Register equivalence classes:\n";
-    for (auto I : EquivalenceClasses) {
-      Str << "{";
-      const RegisterList &List = I.second;
-      bool First = true;
-      for (int32_t Register : List) {
-        if (!First)
-          Str << " ";
-        First = false;
-        Str << getRegName(Register, IceType_i32);
-      }
-      Str << "}\n";
-    }
-  }
+  Traits::makeRandomRegisterPermutation(Ctx, Func, Permutation,
+                                        ExcludeRegisters);
 }
 
 template <class Machine>
@@ -5350,8 +5254,8 @@ Operand *TargetX86Base<Machine>::randomizeOrPoolImmediate(Constant *Immediate,
       uint32_t Cookie = Ctx->getRandomizationCookie();
       _mov(Reg, Ctx->getConstantInt(IceType_i32, Cookie + Value));
       Constant *Offset = Ctx->getConstantInt(IceType_i32, 0 - Cookie);
-      _lea(Reg,
-           OperandX8632Mem::create(Func, IceType_i32, Reg, Offset, nullptr, 0));
+      _lea(Reg, Traits::X86OperandMem::create(Func, IceType_i32, Reg, Offset,
+                                              nullptr, 0));
       // make sure liveness analysis won't kill this variable, otherwise a
       // liveness
       // assertion will be triggered.
@@ -5384,8 +5288,9 @@ Operand *TargetX86Base<Machine>::randomizeOrPoolImmediate(Constant *Immediate,
       const bool SuppressMangling = true;
       Constant *Symbol =
           Ctx->getConstantSym(Offset, Label_stream.str(), SuppressMangling);
-      OperandX8632Mem *MemOperand =
-          OperandX8632Mem::create(Func, Immediate->getType(), nullptr, Symbol);
+      typename Traits::X86OperandMem *MemOperand =
+          Traits::X86OperandMem::create(Func, Immediate->getType(), nullptr,
+                                        Symbol);
       _mov(Reg, MemOperand);
       return Reg;
     }
@@ -5396,9 +5301,9 @@ Operand *TargetX86Base<Machine>::randomizeOrPoolImmediate(Constant *Immediate,
 }
 
 template <class Machine>
-OperandX8632Mem *
-TargetX86Base<Machine>::randomizeOrPoolImmediate(OperandX8632Mem *MemOperand,
-                                                 int32_t RegNum) {
+typename TargetX86Base<Machine>::Traits::X86OperandMem *
+TargetX86Base<Machine>::randomizeOrPoolImmediate(
+    typename Traits::X86OperandMem *MemOperand, int32_t RegNum) {
   assert(MemOperand);
   if (Ctx->getFlags().getRandomizeAndPoolImmediatesOption() == RPI_None ||
       RandomizationPoolingPaused == true) {
@@ -5432,8 +5337,9 @@ TargetX86Base<Machine>::randomizeOrPoolImmediate(OperandX8632Mem *MemOperand,
         Constant *Mask2 =
             Ctx->getConstantInt(MemOperand->getOffset()->getType(), 0 - Cookie);
 
-        OperandX8632Mem *TempMemOperand = OperandX8632Mem::create(
-            Func, MemOperand->getType(), MemOperand->getBase(), Mask1);
+        typename Traits::X86OperandMem *TempMemOperand =
+            Traits::X86OperandMem::create(Func, MemOperand->getType(),
+                                          MemOperand->getBase(), Mask1);
         // If we have already assigned a physical register, we must come from
         // advancedPhiLowering()=>lowerAssign(). In this case we should reuse
         // the assigned register as this assignment is that start of its use-def
@@ -5447,9 +5353,11 @@ TargetX86Base<Machine>::randomizeOrPoolImmediate(OperandX8632Mem *MemOperand,
         if (RegNum != Variable::NoRegister)
           _set_dest_nonkillable();
 
-        OperandX8632Mem *NewMemOperand = OperandX8632Mem::create(
-            Func, MemOperand->getType(), RegTemp, Mask2, MemOperand->getIndex(),
-            MemOperand->getShift(), MemOperand->getSegmentRegister());
+        typename Traits::X86OperandMem *NewMemOperand =
+            Traits::X86OperandMem::create(Func, MemOperand->getType(), RegTemp,
+                                          Mask2, MemOperand->getIndex(),
+                                          MemOperand->getShift(),
+                                          MemOperand->getSegmentRegister());
 
         // Label this memory operand as randomize, so we won't randomize it
         // again in case we call legalize() mutiple times on this memory
@@ -5484,23 +5392,26 @@ TargetX86Base<Machine>::randomizeOrPoolImmediate(OperandX8632Mem *MemOperand,
         bool SuppressMangling = true;
         Constant *Symbol = Ctx->getConstantSym(SymOffset, Label_stream.str(),
                                                SuppressMangling);
-        OperandX8632Mem *SymbolOperand = OperandX8632Mem::create(
-            Func, MemOperand->getOffset()->getType(), nullptr, Symbol);
+        typename Traits::X86OperandMem *SymbolOperand =
+            Traits::X86OperandMem::create(
+                Func, MemOperand->getOffset()->getType(), nullptr, Symbol);
         _mov(RegTemp, SymbolOperand);
         // If we have a base variable here, we should add the lea instruction
         // to add the value of the base variable to RegTemp. If there is no
         // base variable, we won't need this lea instruction.
         if (MemOperand->getBase()) {
-          OperandX8632Mem *CalculateOperand = OperandX8632Mem::create(
-              Func, MemOperand->getType(), MemOperand->getBase(), nullptr,
-              RegTemp, 0, MemOperand->getSegmentRegister());
+          typename Traits::X86OperandMem *CalculateOperand =
+              Traits::X86OperandMem::create(
+                  Func, MemOperand->getType(), MemOperand->getBase(), nullptr,
+                  RegTemp, 0, MemOperand->getSegmentRegister());
           _lea(RegTemp, CalculateOperand);
           _set_dest_nonkillable();
         }
-        OperandX8632Mem *NewMemOperand = OperandX8632Mem::create(
-            Func, MemOperand->getType(), RegTemp, nullptr,
-            MemOperand->getIndex(), MemOperand->getShift(),
-            MemOperand->getSegmentRegister());
+        typename Traits::X86OperandMem *NewMemOperand =
+            Traits::X86OperandMem::create(Func, MemOperand->getType(), RegTemp,
+                                          nullptr, MemOperand->getIndex(),
+                                          MemOperand->getShift(),
+                                          MemOperand->getSegmentRegister());
         return NewMemOperand;
       }
       assert("Unsupported -randomize-pool-immediates option" && false);

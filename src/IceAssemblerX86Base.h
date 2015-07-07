@@ -948,10 +948,6 @@ inline void AssemblerX86Base<Machine>::emitOperandSizeOverride() {
 
 } // end of namespace X86Internal
 
-namespace X8632 {
-using Immediate = ::Ice::X86Internal::Immediate;
-using Label = ::Ice::X86Internal::Label;
-} // end of namespace X8632
 } // end of namespace Ice
 
 #include "IceAssemblerX86BaseImpl.h"

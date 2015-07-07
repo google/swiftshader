@@ -77,6 +77,7 @@ const size_t MachineTraits<TargetX8632>::TableTypeX8632AttributesSize =
     llvm::array_lengthof(TableTypeX8632Attributes);
 
 const uint32_t MachineTraits<TargetX8632>::X86_STACK_ALIGNMENT_BYTES = 16;
+const char *MachineTraits<TargetX8632>::TargetName = "X8632";
 
 } // end of namespace X86Internal
 

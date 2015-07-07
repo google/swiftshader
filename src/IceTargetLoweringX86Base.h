@@ -183,7 +183,7 @@ protected:
   void lowerSwitch(const InstSwitch *Inst) override;
   void lowerUnreachable(const InstUnreachable *Inst) override;
   void lowerOther(const Inst *Instr) override;
-  void lowerRMW(const InstX8632FakeRMW *RMW);
+  void lowerRMW(const typename Traits::Insts::FakeRMW *RMW);
   void prelowerPhis() override;
   void lowerPhiAssignments(CfgNode *Node,
                            const AssignList &Assignments) override;
@@ -234,8 +234,8 @@ protected:
   /// Turn a pointer operand into a memory operand that can be
   /// used by a real load/store operation. Legalizes the operand as well.
   /// This is a nop if the operand is already a legal memory operand.
-  OperandX8632Mem *formMemoryOperand(Operand *Ptr, Type Ty,
-                                     bool DoLegalize = true);
+  typename Traits::X86OperandMem *formMemoryOperand(Operand *Ptr, Type Ty,
+                                                    bool DoLegalize = true);
 
   Variable *makeReg(Type Ty, int32_t RegNum = Variable::NoRegister);
   static Type stackSlotType();
@@ -253,99 +253,99 @@ protected:
                                  int32_t RegNum = Variable::NoRegister);
 
   /// Return a memory operand corresponding to a stack allocated Variable.
-  OperandX8632Mem *getMemoryOperandForStackSlot(Type Ty, Variable *Slot,
-                                                uint32_t Offset = 0);
+  typename Traits::X86OperandMem *
+  getMemoryOperandForStackSlot(Type Ty, Variable *Slot, uint32_t Offset = 0);
 
   void makeRandomRegisterPermutation(
       llvm::SmallVectorImpl<int32_t> &Permutation,
       const llvm::SmallBitVector &ExcludeRegisters) const override;
 
-  // TODO(jpp): move the helper methods below to the MachineTraits.
   /// The following are helpers that insert lowered x86 instructions
   /// with minimal syntactic overhead, so that the lowering code can
   /// look as close to assembly as practical.
   void _adc(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Adc::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Adc::create(Func, Dest, Src0));
   }
-  void _adc_rmw(OperandX8632Mem *DestSrc0, Operand *Src1) {
-    Context.insert(InstX8632AdcRMW::create(Func, DestSrc0, Src1));
+  void _adc_rmw(typename Traits::X86OperandMem *DestSrc0, Operand *Src1) {
+    Context.insert(Traits::Insts::AdcRMW::create(Func, DestSrc0, Src1));
   }
   void _add(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Add::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Add::create(Func, Dest, Src0));
   }
-  void _add_rmw(OperandX8632Mem *DestSrc0, Operand *Src1) {
-    Context.insert(InstX8632AddRMW::create(Func, DestSrc0, Src1));
+  void _add_rmw(typename Traits::X86OperandMem *DestSrc0, Operand *Src1) {
+    Context.insert(Traits::Insts::AddRMW::create(Func, DestSrc0, Src1));
   }
   void _adjust_stack(int32_t Amount) {
-    Context.insert(InstX8632AdjustStack::create(
+    Context.insert(Traits::Insts::AdjustStack::create(
         Func, Amount, getPhysicalRegister(Traits::RegisterSet::Reg_esp)));
   }
   void _addps(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Addps::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Addps::create(Func, Dest, Src0));
   }
   void _addss(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Addss::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Addss::create(Func, Dest, Src0));
   }
   void _and(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632And::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::And::create(Func, Dest, Src0));
   }
-  void _and_rmw(OperandX8632Mem *DestSrc0, Operand *Src1) {
-    Context.insert(InstX8632AndRMW::create(Func, DestSrc0, Src1));
+  void _and_rmw(typename Traits::X86OperandMem *DestSrc0, Operand *Src1) {
+    Context.insert(Traits::Insts::AndRMW::create(Func, DestSrc0, Src1));
   }
   void _blendvps(Variable *Dest, Operand *Src0, Operand *Src1) {
-    Context.insert(InstX8632Blendvps::create(Func, Dest, Src0, Src1));
+    Context.insert(Traits::Insts::Blendvps::create(Func, Dest, Src0, Src1));
   }
   void _br(typename Traits::Cond::BrCond Condition, CfgNode *TargetTrue,
            CfgNode *TargetFalse) {
     Context.insert(
-        InstX8632Br::create(Func, TargetTrue, TargetFalse, Condition));
+        Traits::Insts::Br::create(Func, TargetTrue, TargetFalse, Condition));
   }
   void _br(CfgNode *Target) {
-    Context.insert(InstX8632Br::create(Func, Target));
+    Context.insert(Traits::Insts::Br::create(Func, Target));
   }
   void _br(typename Traits::Cond::BrCond Condition, CfgNode *Target) {
-    Context.insert(InstX8632Br::create(Func, Target, Condition));
+    Context.insert(Traits::Insts::Br::create(Func, Target, Condition));
   }
-  void _br(typename Traits::Cond::BrCond Condition, InstX8632Label *Label) {
-    Context.insert(InstX8632Br::create(Func, Label, Condition));
+  void _br(typename Traits::Cond::BrCond Condition,
+           typename Traits::Insts::Label *Label) {
+    Context.insert(Traits::Insts::Br::create(Func, Label, Condition));
   }
   void _bsf(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Bsf::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Bsf::create(Func, Dest, Src0));
   }
   void _bsr(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Bsr::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Bsr::create(Func, Dest, Src0));
   }
   void _bswap(Variable *SrcDest) {
-    Context.insert(InstX8632Bswap::create(Func, SrcDest));
+    Context.insert(Traits::Insts::Bswap::create(Func, SrcDest));
   }
   void _cbwdq(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Cbwdq::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Cbwdq::create(Func, Dest, Src0));
   }
   void _cmov(Variable *Dest, Operand *Src0,
              typename Traits::Cond::BrCond Condition) {
-    Context.insert(InstX8632Cmov::create(Func, Dest, Src0, Condition));
+    Context.insert(Traits::Insts::Cmov::create(Func, Dest, Src0, Condition));
   }
   void _cmp(Operand *Src0, Operand *Src1) {
-    Context.insert(InstX8632Icmp::create(Func, Src0, Src1));
+    Context.insert(Traits::Insts::Icmp::create(Func, Src0, Src1));
   }
   void _cmpps(Variable *Dest, Operand *Src0,
               typename Traits::Cond::CmppsCond Condition) {
-    Context.insert(InstX8632Cmpps::create(Func, Dest, Src0, Condition));
+    Context.insert(Traits::Insts::Cmpps::create(Func, Dest, Src0, Condition));
   }
   void _cmpxchg(Operand *DestOrAddr, Variable *Eax, Variable *Desired,
                 bool Locked) {
     Context.insert(
-        InstX8632Cmpxchg::create(Func, DestOrAddr, Eax, Desired, Locked));
+        Traits::Insts::Cmpxchg::create(Func, DestOrAddr, Eax, Desired, Locked));
     // Mark eax as possibly modified by cmpxchg.
     Context.insert(
         InstFakeDef::create(Func, Eax, llvm::dyn_cast<Variable>(DestOrAddr)));
     _set_dest_nonkillable();
     Context.insert(InstFakeUse::create(Func, Eax));
   }
-  void _cmpxchg8b(OperandX8632Mem *Addr, Variable *Edx, Variable *Eax,
-                  Variable *Ecx, Variable *Ebx, bool Locked) {
-    Context.insert(
-        InstX8632Cmpxchg8b::create(Func, Addr, Edx, Eax, Ecx, Ebx, Locked));
+  void _cmpxchg8b(typename Traits::X86OperandMem *Addr, Variable *Edx,
+                  Variable *Eax, Variable *Ecx, Variable *Ebx, bool Locked) {
+    Context.insert(Traits::Insts::Cmpxchg8b::create(Func, Addr, Edx, Eax, Ecx,
+                                                    Ebx, Locked));
     // Mark edx, and eax as possibly modified by cmpxchg8b.
     Context.insert(InstFakeDef::create(Func, Edx));
     _set_dest_nonkillable();
@@ -354,38 +354,41 @@ protected:
     _set_dest_nonkillable();
     Context.insert(InstFakeUse::create(Func, Eax));
   }
-  void _cvt(Variable *Dest, Operand *Src0, InstX8632Cvt::CvtVariant Variant) {
-    Context.insert(InstX8632Cvt::create(Func, Dest, Src0, Variant));
+  void _cvt(Variable *Dest, Operand *Src0,
+            typename Traits::Insts::Cvt::CvtVariant Variant) {
+    Context.insert(Traits::Insts::Cvt::create(Func, Dest, Src0, Variant));
   }
   void _div(Variable *Dest, Operand *Src0, Operand *Src1) {
-    Context.insert(InstX8632Div::create(Func, Dest, Src0, Src1));
+    Context.insert(Traits::Insts::Div::create(Func, Dest, Src0, Src1));
   }
   void _divps(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Divps::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Divps::create(Func, Dest, Src0));
   }
   void _divss(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Divss::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Divss::create(Func, Dest, Src0));
   }
-  void _fld(Operand *Src0) { Context.insert(InstX8632Fld::create(Func, Src0)); }
+  void _fld(Operand *Src0) {
+    Context.insert(Traits::Insts::Fld::create(Func, Src0));
+  }
   void _fstp(Variable *Dest) {
-    Context.insert(InstX8632Fstp::create(Func, Dest));
+    Context.insert(Traits::Insts::Fstp::create(Func, Dest));
   }
   void _idiv(Variable *Dest, Operand *Src0, Operand *Src1) {
-    Context.insert(InstX8632Idiv::create(Func, Dest, Src0, Src1));
+    Context.insert(Traits::Insts::Idiv::create(Func, Dest, Src0, Src1));
   }
   void _imul(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Imul::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Imul::create(Func, Dest, Src0));
   }
   void _insertps(Variable *Dest, Operand *Src0, Operand *Src1) {
-    Context.insert(InstX8632Insertps::create(Func, Dest, Src0, Src1));
+    Context.insert(Traits::Insts::Insertps::create(Func, Dest, Src0, Src1));
   }
   void _jmp(Operand *Target) {
-    Context.insert(InstX8632Jmp::create(Func, Target));
+    Context.insert(Traits::Insts::Jmp::create(Func, Target));
   }
   void _lea(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Lea::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Lea::create(Func, Dest, Src0));
   }
-  void _mfence() { Context.insert(InstX8632Mfence::create(Func)); }
+  void _mfence() { Context.insert(Traits::Insts::Mfence::create(Func)); }
   /// If Dest=nullptr is passed in, then a new variable is created,
   /// marked as infinite register allocation weight, and returned
   /// through the in/out Dest argument.
@@ -393,175 +396,175 @@ protected:
             int32_t RegNum = Variable::NoRegister) {
     if (Dest == nullptr)
       Dest = makeReg(Src0->getType(), RegNum);
-    Context.insert(InstX8632Mov::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Mov::create(Func, Dest, Src0));
   }
   void _mov_nonkillable(Variable *Dest, Operand *Src0) {
-    Inst *NewInst = InstX8632Mov::create(Func, Dest, Src0);
+    Inst *NewInst = Traits::Insts::Mov::create(Func, Dest, Src0);
     NewInst->setDestNonKillable();
     Context.insert(NewInst);
   }
   void _movd(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Movd::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Movd::create(Func, Dest, Src0));
   }
   void _movp(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Movp::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Movp::create(Func, Dest, Src0));
   }
   void _movq(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Movq::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Movq::create(Func, Dest, Src0));
   }
   void _movss(Variable *Dest, Variable *Src0) {
-    Context.insert(InstX8632MovssRegs::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::MovssRegs::create(Func, Dest, Src0));
   }
   void _movsx(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Movsx::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Movsx::create(Func, Dest, Src0));
   }
   void _movzx(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Movzx::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Movzx::create(Func, Dest, Src0));
   }
   void _mul(Variable *Dest, Variable *Src0, Operand *Src1) {
-    Context.insert(InstX8632Mul::create(Func, Dest, Src0, Src1));
+    Context.insert(Traits::Insts::Mul::create(Func, Dest, Src0, Src1));
   }
   void _mulps(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Mulps::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Mulps::create(Func, Dest, Src0));
   }
   void _mulss(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Mulss::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Mulss::create(Func, Dest, Src0));
   }
   void _neg(Variable *SrcDest) {
-    Context.insert(InstX8632Neg::create(Func, SrcDest));
+    Context.insert(Traits::Insts::Neg::create(Func, SrcDest));
   }
   void _nop(SizeT Variant) {
-    Context.insert(InstX8632Nop::create(Func, Variant));
+    Context.insert(Traits::Insts::Nop::create(Func, Variant));
   }
   void _or(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Or::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Or::create(Func, Dest, Src0));
   }
-  void _or_rmw(OperandX8632Mem *DestSrc0, Operand *Src1) {
-    Context.insert(InstX8632OrRMW::create(Func, DestSrc0, Src1));
+  void _or_rmw(typename Traits::X86OperandMem *DestSrc0, Operand *Src1) {
+    Context.insert(Traits::Insts::OrRMW::create(Func, DestSrc0, Src1));
   }
   void _padd(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Padd::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Padd::create(Func, Dest, Src0));
   }
   void _pand(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Pand::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Pand::create(Func, Dest, Src0));
   }
   void _pandn(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Pandn::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Pandn::create(Func, Dest, Src0));
   }
   void _pblendvb(Variable *Dest, Operand *Src0, Operand *Src1) {
-    Context.insert(InstX8632Pblendvb::create(Func, Dest, Src0, Src1));
+    Context.insert(Traits::Insts::Pblendvb::create(Func, Dest, Src0, Src1));
   }
   void _pcmpeq(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Pcmpeq::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Pcmpeq::create(Func, Dest, Src0));
   }
   void _pcmpgt(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Pcmpgt::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Pcmpgt::create(Func, Dest, Src0));
   }
   void _pextr(Variable *Dest, Operand *Src0, Operand *Src1) {
-    Context.insert(InstX8632Pextr::create(Func, Dest, Src0, Src1));
+    Context.insert(Traits::Insts::Pextr::create(Func, Dest, Src0, Src1));
   }
   void _pinsr(Variable *Dest, Operand *Src0, Operand *Src1) {
-    Context.insert(InstX8632Pinsr::create(Func, Dest, Src0, Src1));
+    Context.insert(Traits::Insts::Pinsr::create(Func, Dest, Src0, Src1));
   }
   void _pmull(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Pmull::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Pmull::create(Func, Dest, Src0));
   }
   void _pmuludq(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Pmuludq::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Pmuludq::create(Func, Dest, Src0));
   }
   void _pop(Variable *Dest) {
-    Context.insert(InstX8632Pop::create(Func, Dest));
+    Context.insert(Traits::Insts::Pop::create(Func, Dest));
   }
   void _por(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Por::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Por::create(Func, Dest, Src0));
   }
   void _pshufd(Variable *Dest, Operand *Src0, Operand *Src1) {
-    Context.insert(InstX8632Pshufd::create(Func, Dest, Src0, Src1));
+    Context.insert(Traits::Insts::Pshufd::create(Func, Dest, Src0, Src1));
   }
   void _psll(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Psll::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Psll::create(Func, Dest, Src0));
   }
   void _psra(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Psra::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Psra::create(Func, Dest, Src0));
   }
   void _psrl(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Psrl::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Psrl::create(Func, Dest, Src0));
   }
   void _psub(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Psub::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Psub::create(Func, Dest, Src0));
   }
   void _push(Variable *Src0) {
-    Context.insert(InstX8632Push::create(Func, Src0));
+    Context.insert(Traits::Insts::Push::create(Func, Src0));
   }
   void _pxor(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Pxor::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Pxor::create(Func, Dest, Src0));
   }
   void _ret(Variable *Src0 = nullptr) {
-    Context.insert(InstX8632Ret::create(Func, Src0));
+    Context.insert(Traits::Insts::Ret::create(Func, Src0));
   }
   void _rol(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Rol::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Rol::create(Func, Dest, Src0));
   }
   void _sar(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Sar::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Sar::create(Func, Dest, Src0));
   }
   void _sbb(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Sbb::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Sbb::create(Func, Dest, Src0));
   }
-  void _sbb_rmw(OperandX8632Mem *DestSrc0, Operand *Src1) {
-    Context.insert(InstX8632SbbRMW::create(Func, DestSrc0, Src1));
+  void _sbb_rmw(typename Traits::X86OperandMem *DestSrc0, Operand *Src1) {
+    Context.insert(Traits::Insts::SbbRMW::create(Func, DestSrc0, Src1));
   }
   void _setcc(Variable *Dest, typename Traits::Cond::BrCond Condition) {
-    Context.insert(InstX8632Setcc::create(Func, Dest, Condition));
+    Context.insert(Traits::Insts::Setcc::create(Func, Dest, Condition));
   }
   void _shl(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Shl::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Shl::create(Func, Dest, Src0));
   }
   void _shld(Variable *Dest, Variable *Src0, Variable *Src1) {
-    Context.insert(InstX8632Shld::create(Func, Dest, Src0, Src1));
+    Context.insert(Traits::Insts::Shld::create(Func, Dest, Src0, Src1));
   }
   void _shr(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Shr::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Shr::create(Func, Dest, Src0));
   }
   void _shrd(Variable *Dest, Variable *Src0, Variable *Src1) {
-    Context.insert(InstX8632Shrd::create(Func, Dest, Src0, Src1));
+    Context.insert(Traits::Insts::Shrd::create(Func, Dest, Src0, Src1));
   }
   void _shufps(Variable *Dest, Operand *Src0, Operand *Src1) {
-    Context.insert(InstX8632Shufps::create(Func, Dest, Src0, Src1));
+    Context.insert(Traits::Insts::Shufps::create(Func, Dest, Src0, Src1));
   }
   void _sqrtss(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Sqrtss::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Sqrtss::create(Func, Dest, Src0));
   }
-  void _store(Operand *Value, OperandX8632 *Mem) {
-    Context.insert(InstX8632Store::create(Func, Value, Mem));
+  void _store(Operand *Value, typename Traits::X86Operand *Mem) {
+    Context.insert(Traits::Insts::Store::create(Func, Value, Mem));
   }
-  void _storep(Variable *Value, OperandX8632Mem *Mem) {
-    Context.insert(InstX8632StoreP::create(Func, Value, Mem));
+  void _storep(Variable *Value, typename Traits::X86OperandMem *Mem) {
+    Context.insert(Traits::Insts::StoreP::create(Func, Value, Mem));
   }
-  void _storeq(Variable *Value, OperandX8632Mem *Mem) {
-    Context.insert(InstX8632StoreQ::create(Func, Value, Mem));
+  void _storeq(Variable *Value, typename Traits::X86OperandMem *Mem) {
+    Context.insert(Traits::Insts::StoreQ::create(Func, Value, Mem));
   }
   void _sub(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Sub::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Sub::create(Func, Dest, Src0));
   }
-  void _sub_rmw(OperandX8632Mem *DestSrc0, Operand *Src1) {
-    Context.insert(InstX8632SubRMW::create(Func, DestSrc0, Src1));
+  void _sub_rmw(typename Traits::X86OperandMem *DestSrc0, Operand *Src1) {
+    Context.insert(Traits::Insts::SubRMW::create(Func, DestSrc0, Src1));
   }
   void _subps(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Subps::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Subps::create(Func, Dest, Src0));
   }
   void _subss(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Subss::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Subss::create(Func, Dest, Src0));
   }
   void _test(Operand *Src0, Operand *Src1) {
-    Context.insert(InstX8632Test::create(Func, Src0, Src1));
+    Context.insert(Traits::Insts::Test::create(Func, Src0, Src1));
   }
   void _ucomiss(Operand *Src0, Operand *Src1) {
-    Context.insert(InstX8632Ucomiss::create(Func, Src0, Src1));
+    Context.insert(Traits::Insts::Ucomiss::create(Func, Src0, Src1));
   }
-  void _ud2() { Context.insert(InstX8632UD2::create(Func)); }
+  void _ud2() { Context.insert(Traits::Insts::UD2::create(Func)); }
   void _xadd(Operand *Dest, Variable *Src, bool Locked) {
-    Context.insert(InstX8632Xadd::create(Func, Dest, Src, Locked));
+    Context.insert(Traits::Insts::Xadd::create(Func, Dest, Src, Locked));
     // The xadd exchanges Dest and Src (modifying Src).
     // Model that update with a FakeDef followed by a FakeUse.
     Context.insert(
@@ -570,7 +573,7 @@ protected:
     Context.insert(InstFakeUse::create(Func, Src));
   }
   void _xchg(Operand *Dest, Variable *Src) {
-    Context.insert(InstX8632Xchg::create(Func, Dest, Src));
+    Context.insert(Traits::Insts::Xchg::create(Func, Dest, Src));
     // The xchg modifies Dest and Src -- model that update with a
     // FakeDef/FakeUse.
     Context.insert(
@@ -579,10 +582,10 @@ protected:
     Context.insert(InstFakeUse::create(Func, Src));
   }
   void _xor(Variable *Dest, Operand *Src0) {
-    Context.insert(InstX8632Xor::create(Func, Dest, Src0));
+    Context.insert(Traits::Insts::Xor::create(Func, Dest, Src0));
   }
-  void _xor_rmw(OperandX8632Mem *DestSrc0, Operand *Src1) {
-    Context.insert(InstX8632XorRMW::create(Func, DestSrc0, Src1));
+  void _xor_rmw(typename Traits::X86OperandMem *DestSrc0, Operand *Src1) {
+    Context.insert(Traits::Insts::XorRMW::create(Func, DestSrc0, Src1));
   }
   void _set_dest_nonkillable() {
     Context.getLastInserted()->setDestNonKillable();
@@ -600,13 +603,12 @@ protected:
   llvm::SmallBitVector ScratchRegs;
   llvm::SmallBitVector RegsUsed;
   VarList PhysicalRegisters[IceType_NUM];
-  static IceString RegNames[];
 
   /// Randomize a given immediate operand
   Operand *randomizeOrPoolImmediate(Constant *Immediate,
                                     int32_t RegNum = Variable::NoRegister);
-  OperandX8632Mem *
-  randomizeOrPoolImmediate(OperandX8632Mem *MemOperand,
+  typename Traits::X86OperandMem *
+  randomizeOrPoolImmediate(typename Traits::X86OperandMem *MemOperand,
                            int32_t RegNum = Variable::NoRegister);
   bool RandomizationPoolingPaused = false;
 
