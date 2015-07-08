@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "f80dae2c_7111d8dc",
+        "filename": "src/OpenGL/compiler/glslang.y",
+        "patchSetId": 1
+      },
+      "lineNbr": 1085,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-07-08T11:31:37Z",
+      "side": 1,
+      "message": "From Olli: \"An ES3_ONLY check is not strictly needed there, since storage_qualifier rule in glslang.y can\u0027t produce the ES2 varying qualifier (EvqVaryingOut). The only benefit of an ES3_ONLY check there would be making the code easier to understand. I\u0027d maybe rather add an assert in es3InvariantErrorCheck that would check that the version is ES3 if no error is generated, so there would be no runtime cost in release mode.\"",
+      "parentUuid": "f80dae2c_9d6483c7",
+      "range": {
+        "startLine": 1085,
+        "startChar": 17,
+        "endLine": 1085,
+        "endChar": 39
+      },
+      "revId": "105c25865c47744eb4a0067de0fe0b8bd53f3057",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f80dae2c_7d53efe7",
         "filename": "src/OpenGL/compiler/glslang.y",
         "patchSetId": 1
