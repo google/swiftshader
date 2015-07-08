@@ -79,11 +79,11 @@ namespace sw
 	{
 		queries = 0;
 
-		vsDirtyConstF = 256 + 1;
+		vsDirtyConstF = VERTEX_UNIFORM_VECTORS + 1;
 		vsDirtyConstI = 16;
 		vsDirtyConstB = 16;
 
-		psDirtyConstF = 224;
+		psDirtyConstF = FRAGMENT_UNIFORM_VECTORS;
 		psDirtyConstI = 16;
 		psDirtyConstB = 16;
 
@@ -434,7 +434,7 @@ namespace sw
 			{
 				data->ff = ff;
 
-				draw->vsDirtyConstF = 256 + 1;
+				draw->vsDirtyConstF = VERTEX_UNIFORM_VECTORS + 1;
 				draw->vsDirtyConstI = 16;
 				draw->vsDirtyConstB = 16;
 			}
