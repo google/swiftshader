@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "f80dae2c_00a36739",
+        "filename": "src/OpenGL/libGL/Context.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1832,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2015-07-08T20:44:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f80dae2c_4c2f5b17",
+      "range": {
+        "startLine": 1832,
+        "startChar": 1,
+        "endLine": 1832,
+        "endChar": 2
+      },
+      "revId": "4a32a9a2ee504f1554922783e0f41d891a170363",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f80dae2c_acd83793",
         "filename": "src/OpenGL/libGL/Context.h",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2015-07-08T17:35:33Z",
       "side": 1,
       "message": "Let\u0027s call this setColorLogicOpEnable(). Some of the other functions should have also had an \"Enable\" at the end to be more clear, but we can do that later.",
+      "range": {
+        "startLine": 723,
+        "startChar": 6,
+        "endLine": 723,
+        "endChar": 21
+      },
+      "revId": "4a32a9a2ee504f1554922783e0f41d891a170363",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f80dae2c_40483f00",
+        "filename": "src/OpenGL/libGL/Context.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 723,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2015-07-08T20:44:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f80dae2c_acd83793",
       "range": {
         "startLine": 723,
         "startChar": 6,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "f80dae2c_205d4bbe",
+        "filename": "src/OpenGL/libGL/Context.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 724,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2015-07-08T20:44:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f80dae2c_8c07b38d",
+      "range": {
+        "startLine": 724,
+        "startChar": 6,
+        "endLine": 724,
+        "endChar": 20
+      },
+      "revId": "4a32a9a2ee504f1554922783e0f41d891a170363",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f80dae2c_0cfba3ef",
         "filename": "src/OpenGL/libGL/libGL.cpp",
         "patchSetId": 2
@@ -82,6 +154,30 @@
       "writtenOn": "2015-07-08T17:35:33Z",
       "side": 1,
       "message": "nit: spaces. Same for the ones below and in other files.",
+      "range": {
+        "startLine": 1679,
+        "startChar": 25,
+        "endLine": 1679,
+        "endChar": 30
+      },
+      "revId": "4a32a9a2ee504f1554922783e0f41d891a170363",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f80dae2c_e042b3be",
+        "filename": "src/OpenGL/libGL/libGL.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1679,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2015-07-08T20:44:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f80dae2c_0cfba3ef",
       "range": {
         "startLine": 1679,
         "startChar": 25,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "f80dae2c_d6fad537",
+        "filename": "src/Renderer/Context.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 749,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2015-07-08T20:44:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f80dae2c_00e807a1",
+      "range": {
+        "startLine": 744,
+        "startChar": 2,
+        "endLine": 749,
+        "endChar": 15
+      },
+      "revId": "4a32a9a2ee504f1554922783e0f41d891a170363",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f80dae2c_00bfe7aa",
         "filename": "src/Renderer/PixelProcessor.hpp",
         "patchSetId": 2
@@ -128,6 +248,30 @@
       "writtenOn": "2015-07-08T17:35:33Z",
       "side": 1,
       "message": "A disabled logic operation corresponds with LOGICALOP_COPY, so you can avoid needing this bit.",
+      "range": {
+        "startLine": 83,
+        "startChar": 3,
+        "endLine": 83,
+        "endChar": 34
+      },
+      "revId": "4a32a9a2ee504f1554922783e0f41d891a170363",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f80dae2c_b6108104",
+        "filename": "src/Renderer/PixelProcessor.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2015-07-08T20:44:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f80dae2c_00bfe7aa",
       "range": {
         "startLine": 83,
         "startChar": 3,
