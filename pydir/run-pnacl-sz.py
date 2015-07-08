@@ -15,14 +15,18 @@ def TargetAssemblerFlags(target):
   # TODO(stichnot): -triple=i686-nacl should be used for a
   # sandboxing test.  This means there should be an args.sandbox
   # argument that also gets passed through to pnacl-sz.
+  # TODO(reed kotler). Need to find out exactly we need to
+  # add here for Mips32.
   flags = { 'x8632': ['-triple=i686'],
-            'arm32': ['-triple=armv7a', '-mcpu=cortex-a9', '-mattr=+neon'] }
+            'arm32': ['-triple=armv7a', '-mcpu=cortex-a9', '-mattr=+neon'],
+            'mips32': ['-triple=mipsel-none-nacl' ] }
   return flags[target]
 
 
 def TargetDisassemblerFlags(target):
   flags = { 'x8632': ['-Mintel'],
-            'arm32': [] }
+            'arm32': [],
+            'mips32':[] }
   return flags[target]
 
 
@@ -73,7 +77,7 @@ def main():
                            choices=['obj', 'asm', 'iasm'],
                            help='Output file type.  Default %(default)s.')
     argparser.add_argument('--target', default='x8632', dest='target',
-                           choices=['x8632','arm32'],
+                           choices=['x8632','arm32','mips32'],
                            help='Target architecture.  Default %(default)s.')
     argparser.add_argument('--echo-cmd', required=False,
                            action='store_true',

@@ -13,6 +13,11 @@
 ; RUN:   --disassemble --target arm32 -i %s --args -O2 --skip-unimplemented \
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32 %s
+; RUN: %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble \
+; RUN:   --disassemble --target mips32 -i %s --args -O2 --skip-unimplemented \
+; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix MIPS32 %s
 
 define void @foo() {
   ret void
@@ -25,6 +30,10 @@ define void @foo() {
 ; ARM32-NEXT: 4: e7fedef0 udf
 ; ARM32-NEXT: 8: e7fedef0 udf
 ; ARM32-NEXT: c: e7fedef0 udf
+; MIPS32-LABEL: foo
+; MIPS32: 4: {{.*}} jr ra
+; MIPS32-NEXT: 8: {{.*}} nop
+; MIPS32-NEXT: c: e7fedef0
 
 define void @bar() {
   ret void
@@ -33,3 +42,6 @@ define void @bar() {
 ; CHECK-NEXT: 20: {{.*}} ret
 ; ARM32-LABEL: bar
 ; ARM32-NEXT: 10: {{.*}} bx lr
+; MIPS32-LABEL: bar
+; MIPS32: 14: {{.*}} jr ra
+; MIPS32-NEXT: 18: {{.*}} nop

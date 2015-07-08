@@ -76,6 +76,9 @@ public:
     (void)C;
     llvm::report_fatal_error("Not yet implemented");
   }
+  void _ret(Variable *RA, Variable *Src0 = nullptr) {
+    Context.insert(InstMIPS32Ret::create(Func, RA, Src0));
+  }
 
   void lowerArguments() override;
   void addProlog(CfgNode *Node) override;

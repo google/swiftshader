@@ -31,6 +31,17 @@
 
 namespace Ice {
 
+namespace {
+void UnimplementedError(const ClFlags &Flags) {
+  if (!Flags.getSkipUnimplemented()) {
+    // Use llvm_unreachable instead of report_fatal_error, which gives better
+    // stack traces.
+    llvm_unreachable("Not yet implemented");
+    abort();
+  }
+}
+} // end of anonymous namespace
+
 TargetMIPS32::TargetMIPS32(Cfg *Func) : TargetLowering(Func) {
   // TODO: Don't initialize IntegerRegisters and friends every time.
   // Instead, initialize in some sort of static initializer for the
@@ -205,7 +216,8 @@ void TargetMIPS32::translateOm1() {
 bool TargetMIPS32::doBranchOpt(Inst *I, const CfgNode *NextNode) {
   (void)I;
   (void)NextNode;
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
+  return false;
 }
 
 IceString TargetMIPS32::RegNames[] = {
@@ -247,23 +259,25 @@ void TargetMIPS32::emitVariable(const Variable *Var) const {
   Ostream &Str = Ctx->getStrEmit();
   (void)Var;
   (void)Str;
-  llvm::report_fatal_error("emitVariable: Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetMIPS32::lowerArguments() {
-  llvm::report_fatal_error("lowerArguments: Not yet implemented");
+  VarList &Args = Func->getArgs();
+  if (Args.size() > 0)
+    UnimplementedError(Func->getContext()->getFlags());
 }
 
 Type TargetMIPS32::stackSlotType() { return IceType_i32; }
 
 void TargetMIPS32::addProlog(CfgNode *Node) {
   (void)Node;
-  llvm::report_fatal_error("addProlog: Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetMIPS32::addEpilog(CfgNode *Node) {
   (void)Node;
-  llvm::report_fatal_error("addEpilog: Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 llvm::SmallBitVector TargetMIPS32::getRegisterSet(RegSetMask Include,
@@ -305,84 +319,84 @@ void TargetMIPS32::lowerAlloca(const InstAlloca *Inst) {
   // restriction can be relaxed in some cases.
   NeedsStackAlignment = true;
   (void)Inst;
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetMIPS32::lowerArithmetic(const InstArithmetic *Inst) {
   switch (Inst->getOp()) {
   case InstArithmetic::_num:
-    llvm_unreachable("Unknown arithmetic operator");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstArithmetic::Add:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstArithmetic::And:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstArithmetic::Or:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstArithmetic::Xor:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstArithmetic::Sub:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstArithmetic::Mul:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstArithmetic::Shl:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstArithmetic::Lshr:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstArithmetic::Ashr:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstArithmetic::Udiv:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstArithmetic::Sdiv:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstArithmetic::Urem:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstArithmetic::Srem:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstArithmetic::Fadd:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstArithmetic::Fsub:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstArithmetic::Fmul:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstArithmetic::Fdiv:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstArithmetic::Frem:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   }
 }
 
 void TargetMIPS32::lowerAssign(const InstAssign *Inst) {
   (void)Inst;
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetMIPS32::lowerBr(const InstBr *Inst) {
   (void)Inst;
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetMIPS32::lowerCall(const InstCall *Inst) {
   (void)Inst;
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetMIPS32::lowerCast(const InstCast *Inst) {
@@ -392,39 +406,39 @@ void TargetMIPS32::lowerCast(const InstCast *Inst) {
     Func->setError("Cast type not supported");
     return;
   case InstCast::Sext: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   }
   case InstCast::Zext: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   }
   case InstCast::Trunc: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   }
   case InstCast::Fptrunc:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstCast::Fpext: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   }
   case InstCast::Fptosi:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstCast::Fptoui:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstCast::Sitofp:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   case InstCast::Uitofp: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   }
   case InstCast::Bitcast: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     break;
   }
   }
@@ -432,72 +446,72 @@ void TargetMIPS32::lowerCast(const InstCast *Inst) {
 
 void TargetMIPS32::lowerExtractElement(const InstExtractElement *Inst) {
   (void)Inst;
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetMIPS32::lowerFcmp(const InstFcmp *Inst) {
   (void)Inst;
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetMIPS32::lowerIcmp(const InstIcmp *Inst) {
   (void)Inst;
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetMIPS32::lowerInsertElement(const InstInsertElement *Inst) {
   (void)Inst;
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   switch (Intrinsics::IntrinsicID ID = Instr->getIntrinsicInfo().ID) {
   case Intrinsics::AtomicCmpxchg: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     return;
   }
   case Intrinsics::AtomicFence:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     return;
   case Intrinsics::AtomicFenceAll:
     // NOTE: FenceAll should prevent and load/store from being moved
     // across the fence (both atomic and non-atomic). The InstMIPS32Mfence
     // instruction is currently marked coarsely as "HasSideEffects".
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     return;
   case Intrinsics::AtomicIsLockFree: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     return;
   }
   case Intrinsics::AtomicLoad: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     return;
   }
   case Intrinsics::AtomicRMW:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     return;
   case Intrinsics::AtomicStore: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     return;
   }
   case Intrinsics::Bswap: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     return;
   }
   case Intrinsics::Ctpop: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     return;
   }
   case Intrinsics::Ctlz: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     return;
   }
   case Intrinsics::Cttz: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     return;
   }
   case Intrinsics::Fabs: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     return;
   }
   case Intrinsics::Longjmp: {
@@ -542,7 +556,7 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   }
   case Intrinsics::NaClReadTP: {
     if (Ctx->getFlags().getUseSandboxing()) {
-      llvm::report_fatal_error("Not yet implemented");
+      UnimplementedError(Func->getContext()->getFlags());
     } else {
       InstCall *Call = makeHelperCall(H_call_read_tp, Instr->getDest(), 0);
       lowerCall(Call);
@@ -556,19 +570,19 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     return;
   }
   case Intrinsics::Sqrt: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     return;
   }
   case Intrinsics::Stacksave: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     return;
   }
   case Intrinsics::Stackrestore: {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     return;
   }
   case Intrinsics::Trap:
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
     return;
   case Intrinsics::UnknownIntrinsic:
     Func->setError("Should not be lowering UnknownIntrinsic");
@@ -579,17 +593,17 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
 
 void TargetMIPS32::lowerLoad(const InstLoad *Inst) {
   (void)Inst;
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetMIPS32::doAddressOptLoad() {
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetMIPS32::randomlyInsertNop(float Probability) {
   RandomNumberGeneratorWrapper RNG(Ctx->getRNG());
   if (RNG.getTrueWithProbability(Probability)) {
-    llvm::report_fatal_error("Not yet implemented");
+    UnimplementedError(Func->getContext()->getFlags());
   }
 }
 
@@ -598,31 +612,33 @@ void TargetMIPS32::lowerPhi(const InstPhi * /*Inst*/) {
 }
 
 void TargetMIPS32::lowerRet(const InstRet *Inst) {
-  (void)Inst;
-  llvm::report_fatal_error("Not yet implemented");
+  Variable *Reg = nullptr;
+  if (Inst->hasRetValue())
+    UnimplementedError(Func->getContext()->getFlags());
+  _ret(getPhysicalRegister(RegMIPS32::Reg_RA), Reg);
 }
 
 void TargetMIPS32::lowerSelect(const InstSelect *Inst) {
   (void)Inst;
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetMIPS32::lowerStore(const InstStore *Inst) {
   (void)Inst;
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetMIPS32::doAddressOptStore() {
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetMIPS32::lowerSwitch(const InstSwitch *Inst) {
   (void)Inst;
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetMIPS32::lowerUnreachable(const InstUnreachable * /*Inst*/) {
-  llvm_unreachable("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 // Turn an i64 Phi instruction into a pair of i32 Phi instructions, to
@@ -630,7 +646,7 @@ void TargetMIPS32::lowerUnreachable(const InstUnreachable * /*Inst*/) {
 // turned into zeroes, since loOperand() and hiOperand() don't expect
 // Undef input.
 void TargetMIPS32::prelowerPhis() {
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 // Lower the pre-ordered list of assignments into mov instructions.
@@ -639,7 +655,7 @@ void TargetMIPS32::lowerPhiAssignments(CfgNode *Node,
                                        const AssignList &Assignments) {
   (void)Node;
   (void)Assignments;
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetMIPS32::postLower() {
@@ -647,7 +663,7 @@ void TargetMIPS32::postLower() {
     return;
   // Find two-address non-SSA instructions where Dest==Src0, and set
   // the DestNonKillable flag to keep liveness analysis consistent.
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetMIPS32::makeRandomRegisterPermutation(
@@ -655,7 +671,7 @@ void TargetMIPS32::makeRandomRegisterPermutation(
     const llvm::SmallBitVector &ExcludeRegisters) const {
   (void)Permutation;
   (void)ExcludeRegisters;
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 /* TODO(jvoung): avoid duplicate symbols with multiple targets.
@@ -694,7 +710,7 @@ void TargetDataMIPS32::lowerGlobals(const VariableDeclarationList &Vars,
 void TargetDataMIPS32::lowerConstants() {
   if (Ctx->getFlags().getDisableTranslation())
     return;
-  llvm::report_fatal_error("Not yet implemented");
+  UnimplementedError(Ctx->getFlags());
 }
 
 TargetHeaderMIPS32::TargetHeaderMIPS32(GlobalContext *Ctx)

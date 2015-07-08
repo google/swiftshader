@@ -15,7 +15,7 @@
 #define SUBZERO_SRC_ICEINSTMIPS32_DEF
 
 // NOTE: PC and SP are not considered isInt, to avoid register allocating.
-// TODO (reed kotler). This needs to be scrubbed and is a placeholder to get
+// TODO(reed kotler). This needs to be scrubbed and is a placeholder to get
 // the Mips skeleton in.
 //
 #define REGMIPS32_GPR_TABLE                                                    \
