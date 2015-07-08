@@ -201,23 +201,7 @@ extern void yyerror(YYLTYPE* lloc, TParseContext* context, const char* reason);
 variable_identifier
     : IDENTIFIER {
         // The symbol table search was done in the lexical phase
-        const TSymbol* symbol = $1.symbol;
-        const TVariable* variable;
-        if (symbol == 0) {
-            context->error(@1, "undeclared identifier", $1.string->c_str());
-            context->recover();
-            TType type(EbtFloat, EbpUndefined);
-            TVariable* fakeVariable = new TVariable($1.string, type);
-            context->symbolTable.declare(*fakeVariable);
-            variable = fakeVariable;
-        } else {
-            // This identifier can only be a variable type symbol
-            if (! symbol->isVariable()) {
-                context->error(@1, "variable expected", $1.string->c_str());
-                context->recover();
-            }
-            variable = static_cast<const TVariable*>(symbol);
-        }
+        const TVariable *variable = context->getNamedVariable(@1, $1.string, $1.symbol);
 
         // don't delete $1.string, it's used by error recovery, and the pool
         // pop will reclaim the memory
@@ -922,75 +906,6 @@ single_declaration
         $$.intermAggregate = context->parseInvariantDeclaration(@1, @2, $2.string, $2.symbol);
     }
     ;
-
-//
-// Place holder for the pack/unpack languages.
-//
-//    | buffer_specifier {
-//        $$.intermAggregate = 0;
-//    }
-    ;
-
-// Grammar Note:  No 'enum', or 'typedef'.
-
-//
-// Place holder for the pack/unpack languages.
-//
-//%type <interm> buffer_declaration
-//%type <interm.type> buffer_specifier input_or_output buffer_declaration_list
-//buffer_specifier
-//    : input_or_output LEFT_BRACE buffer_declaration_list RIGHT_BRACE {
-//    }
-//    ;
-//
-//input_or_output
-//    : INPUT {
-//        if (context->globalErrorCheck(@1, context->symbolTable.atGlobalLevel(), "input"))
-//            context->recover();
-//        UNPACK_ONLY("input", @1);
-//        $$.qualifier = EvqInput;
-//    }
-//    | OUTPUT {
-//        if (context->globalErrorCheck(@1, context->symbolTable.atGlobalLevel(), "output"))
-//            context->recover();
-//        PACK_ONLY("output", @1);
-//        $$.qualifier = EvqOutput;
-//    }
-//    ;
-
-//
-// Place holder for the pack/unpack languages.
-//
-//buffer_declaration_list
-//    : buffer_declaration {
-//    }
-//    | buffer_declaration_list buffer_declaration {
-//    }
-//    ;
-
-//
-// Input/output semantics:
-//   float must be 16 or 32 bits
-//   float alignment restrictions?
-//   check for only one input and only one output
-//   sum of bitfields has to be multiple of 32
-//
-
-//
-// Place holder for the pack/unpack languages.
-//
-//buffer_declaration
-//    : type_specifier IDENTIFIER COLON constant_expression SEMICOLON {
-//        if (context->reservedErrorCheck(@2, *$2.string, context))
-//            context->recover();
-//        $$.variable = new TVariable($2.string, $1);
-//        if (! context->symbolTable.declare(*$$.variable)) {
-//            context->error(@2, "redefinition", $$.variable->getName().c_str());
-//            context->recover();
-//            // don't have to delete $$.variable, the pool pop will take care of it
-//        }
-//    }
-//    ;
 
 fully_specified_type
     : type_specifier {
