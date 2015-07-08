@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f80dae2c_a025dbba",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2431,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-07-08T17:35:33Z",
+      "side": 0,
+      "message": "buffer doesn\u0027t have to be a parameter, I think.",
+      "range": {
+        "startLine": 2431,
+        "startChar": 2,
+        "endLine": 2431,
+        "endChar": 23
+      },
+      "revId": "0b65c5e3903233839197fd689895ba57b7f61a5b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
