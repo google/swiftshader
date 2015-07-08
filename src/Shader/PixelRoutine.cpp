@@ -2200,6 +2200,7 @@ namespace sw
 				if(state.multiSampleMask & (1 << q))
 				{
 					alphaBlend(r, 0, buffer, color, x);
+					logicOperation(r, 0, buffer, color, x);
 					writeColor(r, 0, buffer, x, color, sMask[q], zMask[q], cMask[q]);
 				}
 			}
@@ -2271,6 +2272,7 @@ namespace sw
 					if(state.multiSampleMask & (1 << q))
 					{
 						alphaBlend(r, index, buffer, color, x);
+						logicOperation(r, index, buffer, color, x);
 						writeColor(r, index, buffer, x, color, sMask[q], zMask[q], cMask[q]);
 					}
 				}
@@ -2427,26 +2429,18 @@ namespace sw
 		}
 	}
 
-	void PixelRoutine::alphaBlend(Registers &r, int index, Pointer<Byte> &cBuffer, Vector4s &current, Int &x)
+	void PixelRoutine::readPixel(Registers &r, int index, Pointer<Byte> &cBuffer, Vector4s &current, Int &x, Vector4s &pixel)
 	{
-		if(!state.alphaBlendActive)
-		{
-			return;
-		}
-		 
-		Pointer<Byte> buffer;
-
-		Vector4s pixel;
 		Short4 c01;
 		Short4 c23;
+		Pointer<Byte> buffer;
 
-		// Read pixel
 		switch(state.targetFormat[index])
 		{
 		case FORMAT_R5G6B5:
 			buffer = cBuffer + 2 * x;
 			c01 = As<Short4>(Insert(As<Int2>(c01), *Pointer<Int>(buffer), 0));
-			buffer += *Pointer<Int>(r.data + OFFSET(DrawData,colorPitchB[index]));
+			buffer += *Pointer<Int>(r.data + OFFSET(DrawData, colorPitchB[index]));
 			c01 = As<Short4>(Insert(As<Int2>(c01), *Pointer<Int>(buffer), 1));
 
 			pixel.x = c01 & Short4(0xF800u);
@@ -2457,7 +2451,7 @@ namespace sw
 		case FORMAT_A8R8G8B8:
 			buffer = cBuffer + 4 * x;
 			c01 = *Pointer<Short4>(buffer);
-			buffer += *Pointer<Int>(r.data + OFFSET(DrawData,colorPitchB[index]));
+			buffer += *Pointer<Int>(r.data + OFFSET(DrawData, colorPitchB[index]));
 			c23 = *Pointer<Short4>(buffer);
 			pixel.z = c01;
 			pixel.y = c01;
@@ -2476,7 +2470,7 @@ namespace sw
 		case FORMAT_A8B8G8R8:
 			buffer = cBuffer + 4 * x;
 			c01 = *Pointer<Short4>(buffer);
-			buffer += *Pointer<Int>(r.data + OFFSET(DrawData,colorPitchB[index]));
+			buffer += *Pointer<Int>(r.data + OFFSET(DrawData, colorPitchB[index]));
 			c23 = *Pointer<Short4>(buffer);
 			pixel.z = c01;
 			pixel.y = c01;
@@ -2495,7 +2489,7 @@ namespace sw
 		case FORMAT_A8:
 			buffer = cBuffer + 1 * x;
 			pixel.w = Insert(pixel.w, *Pointer<Short>(buffer), 0);
-			buffer += *Pointer<Int>(r.data + OFFSET(DrawData,colorPitchB[index]));
+			buffer += *Pointer<Int>(r.data + OFFSET(DrawData, colorPitchB[index]));
 			pixel.w = Insert(pixel.w, *Pointer<Short>(buffer), 1);
 			pixel.w = UnpackLow(As<Byte8>(pixel.w), As<Byte8>(pixel.w));
 			pixel.x = Short4(0x0000);
@@ -2505,7 +2499,7 @@ namespace sw
 		case FORMAT_X8R8G8B8:
 			buffer = cBuffer + 4 * x;
 			c01 = *Pointer<Short4>(buffer);
-			buffer += *Pointer<Int>(r.data + OFFSET(DrawData,colorPitchB[index]));
+			buffer += *Pointer<Int>(r.data + OFFSET(DrawData, colorPitchB[index]));
 			c23 = *Pointer<Short4>(buffer);
 			pixel.z = c01;
 			pixel.y = c01;
@@ -2523,7 +2517,7 @@ namespace sw
 		case FORMAT_X8B8G8R8:
 			buffer = cBuffer + 4 * x;
 			c01 = *Pointer<Short4>(buffer);
-			buffer += *Pointer<Int>(r.data + OFFSET(DrawData,colorPitchB[index]));
+			buffer += *Pointer<Int>(r.data + OFFSET(DrawData, colorPitchB[index]));
 			c23 = *Pointer<Short4>(buffer);
 			pixel.z = c01;
 			pixel.y = c01;
@@ -2541,32 +2535,32 @@ namespace sw
 			break;
 		case FORMAT_A8G8R8B8Q:
 			UNIMPLEMENTED();
-		//	pixel.z = UnpackLow(As<Byte8>(pixel.z), *Pointer<Byte8>(cBuffer + 8 * x + 0));
-		//	pixel.x = UnpackHigh(As<Byte8>(pixel.x), *Pointer<Byte8>(cBuffer + 8 * x + 0));
-		//	pixel.y = UnpackLow(As<Byte8>(pixel.y), *Pointer<Byte8>(cBuffer + 8 * x + 8));
-		//	pixel.w = UnpackHigh(As<Byte8>(pixel.w), *Pointer<Byte8>(cBuffer + 8 * x + 8));
+			//	pixel.z = UnpackLow(As<Byte8>(pixel.z), *Pointer<Byte8>(cBuffer + 8 * x + 0));
+			//	pixel.x = UnpackHigh(As<Byte8>(pixel.x), *Pointer<Byte8>(cBuffer + 8 * x + 0));
+			//	pixel.y = UnpackLow(As<Byte8>(pixel.y), *Pointer<Byte8>(cBuffer + 8 * x + 8));
+			//	pixel.w = UnpackHigh(As<Byte8>(pixel.w), *Pointer<Byte8>(cBuffer + 8 * x + 8));
 			break;
 		case FORMAT_X8G8R8B8Q:
 			UNIMPLEMENTED();
-		//	pixel.z = UnpackLow(As<Byte8>(pixel.z), *Pointer<Byte8>(cBuffer + 8 * x + 0));
-		//	pixel.x = UnpackHigh(As<Byte8>(pixel.x), *Pointer<Byte8>(cBuffer + 8 * x + 0));
-		//	pixel.y = UnpackLow(As<Byte8>(pixel.y), *Pointer<Byte8>(cBuffer + 8 * x + 8));
-		//	pixel.w = Short4(0xFFFFu);
+			//	pixel.z = UnpackLow(As<Byte8>(pixel.z), *Pointer<Byte8>(cBuffer + 8 * x + 0));
+			//	pixel.x = UnpackHigh(As<Byte8>(pixel.x), *Pointer<Byte8>(cBuffer + 8 * x + 0));
+			//	pixel.y = UnpackLow(As<Byte8>(pixel.y), *Pointer<Byte8>(cBuffer + 8 * x + 8));
+			//	pixel.w = Short4(0xFFFFu);
 			break;
 		case FORMAT_A16B16G16R16:
-			buffer  = cBuffer;
+			buffer = cBuffer;
 			pixel.x = *Pointer<Short4>(buffer + 8 * x);
 			pixel.y = *Pointer<Short4>(buffer + 8 * x + 8);
-			buffer += *Pointer<Int>(r.data + OFFSET(DrawData,colorPitchB[index]));
+			buffer += *Pointer<Int>(r.data + OFFSET(DrawData, colorPitchB[index]));
 			pixel.z = *Pointer<Short4>(buffer + 8 * x);
 			pixel.w = *Pointer<Short4>(buffer + 8 * x + 8);
 			transpose4x4(pixel.x, pixel.y, pixel.z, pixel.w);
 			break;
 		case FORMAT_G16R16:
 			buffer = cBuffer;
-			pixel.x = *Pointer<Short4>(buffer  + 4 * x);
-			buffer += *Pointer<Int>(r.data + OFFSET(DrawData,colorPitchB[index]));
-			pixel.y = *Pointer<Short4>(buffer  + 4 * x);
+			pixel.x = *Pointer<Short4>(buffer + 4 * x);
+			buffer += *Pointer<Int>(r.data + OFFSET(DrawData, colorPitchB[index]));
+			pixel.y = *Pointer<Short4>(buffer + 4 * x);
 			pixel.z = pixel.x;
 			pixel.x = As<Short4>(UnpackLow(pixel.x, pixel.y));
 			pixel.z = As<Short4>(UnpackHigh(pixel.z, pixel.y));
@@ -2584,6 +2578,20 @@ namespace sw
 		{
 			sRGBtoLinear16_12_16(r, pixel);
 		}
+	}
+
+	void PixelRoutine::alphaBlend(Registers &r, int index, Pointer<Byte> &cBuffer, Vector4s &current, Int &x)
+	{
+		if(!state.alphaBlendActive)
+		{
+			return;
+		}
+
+		Vector4s pixel;
+		Short4 c01;
+		Short4 c23;
+
+		readPixel(r, index, cBuffer, current, x, pixel);
 
 		// Final Color = ObjectColor * SourceBlendFactor + PixelColor * DestinationBlendFactor
 		Vector4s sourceFactor;
@@ -2688,6 +2696,103 @@ namespace sw
 			break;
 		case BLENDOP_NULL:
 			current.w = Short4(0x0000, 0x0000, 0x0000, 0x0000);
+			break;
+		default:
+			ASSERT(false);
+		}
+	}
+
+	void PixelRoutine::logicOperation(Registers &r, int index, Pointer<Byte> &cBuffer, Vector4s &current, Int &x)
+	{
+		if(state.logicalOperation == LogicalOperation::LOGICALOP_COPY)
+		{
+			return;
+		}
+
+		Vector4s pixel;
+
+		// Read pixel
+		readPixel(r, index, cBuffer, current, x, pixel);
+
+		switch(state.logicalOperation)
+		{
+		case LOGICALOP_CLEAR:
+			current.x = 0;
+			current.y = 0;
+			current.z = 0;
+			break;
+		case LOGICALOP_SET:
+			current.x = 0xFFFF;
+			current.y = 0xFFFF;
+			current.z = 0xFFFF;
+			break;
+		case LOGICALOP_COPY:
+			ASSERT(false);   // Optimized out
+			break;
+		case LOGICALOP_COPY_INVERTED:
+			current.x = ~current.x;
+			current.y = ~current.y;
+			current.z = ~current.z;
+			break;
+		case LOGICALOP_NOOP:
+			current.x = pixel.x;
+			current.y = pixel.y;
+			current.z = pixel.z;
+			break;
+		case LOGICALOP_INVERT:
+			current.x = ~pixel.x;
+			current.y = ~pixel.y;
+			current.z = ~pixel.z;
+			break;
+		case LOGICALOP_AND:
+			current.x = pixel.x & current.x;
+			current.y = pixel.y & current.y;
+			current.z = pixel.z & current.z;
+			break;
+		case LOGICALOP_NAND:
+			current.x = ~(pixel.x & current.x);
+			current.y = ~(pixel.y & current.y);
+			current.z = ~(pixel.z & current.z);
+			break;
+		case LOGICALOP_OR:
+			current.x = pixel.x | current.x;
+			current.y = pixel.y | current.y;
+			current.z = pixel.z | current.z;
+			break;
+		case LOGICALOP_NOR:
+			current.x = ~(pixel.x | current.x);
+			current.y = ~(pixel.y | current.y);
+			current.z = ~(pixel.z | current.z);
+			break;
+		case LOGICALOP_XOR:
+			current.x = pixel.x ^ current.x;
+			current.y = pixel.y ^ current.y;
+			current.z = pixel.z ^ current.z;
+			break;
+		case LOGICALOP_EQUIV:
+			current.x = ~(pixel.x ^ current.x);
+			current.y = ~(pixel.y ^ current.y);
+			current.z = ~(pixel.z ^ current.z);
+			break;
+		case LOGICALOP_AND_REVERSE:
+			current.x = ~pixel.x & current.x;
+			current.y = ~pixel.y & current.y;
+			current.z = ~pixel.z & current.z;
+			break;
+		case LOGICALOP_AND_INVERTED:
+			current.x = pixel.x & ~current.x;
+			current.y = pixel.y & ~current.y;
+			current.z = pixel.z & ~current.z;
+			break;
+		case LOGICALOP_OR_REVERSE:
+			current.x = ~pixel.x | current.x;
+			current.y = ~pixel.y | current.y;
+			current.z = ~pixel.z | current.z;
+			break;
+		case LOGICALOP_OR_INVERTED:
+			current.x = pixel.x | ~current.x;
+			current.y = pixel.y | ~current.y;
+			current.z = pixel.z | ~current.z;
 			break;
 		default:
 			ASSERT(false);
@@ -3292,7 +3397,6 @@ namespace sw
 		Short4 c01;
 		Short4 c23;
 
-		// Read pixel
 		switch(state.targetFormat[index])
 		{
 		case FORMAT_R32F:

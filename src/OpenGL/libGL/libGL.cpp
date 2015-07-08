@@ -1614,6 +1614,8 @@ void APIENTRY glDisable(GLenum cap)
 		case GL_LIGHT7:                   context->setLight(7, false);              break;
 		case GL_COLOR_MATERIAL:           context->setColorMaterial(false);         break;
 		case GL_RESCALE_NORMAL:           context->setNormalizeNormals(false);      break;
+		case GL_COLOR_LOGIC_OP:           context->setColorLogicOpEnable(false);    break;
+		case GL_INDEX_LOGIC_OP:           UNIMPLEMENTED();
 		default:
 			return error(GL_INVALID_ENUM);
 		}
@@ -1761,6 +1763,8 @@ void APIENTRY glEnable(GLenum cap)
 		case GL_LIGHT6:                   context->setLight(6, true);              break;
 		case GL_LIGHT7:                   context->setLight(7, true);              break;
 		case GL_RESCALE_NORMAL:           context->setNormalizeNormals(true);      break;
+		case GL_COLOR_LOGIC_OP:           context->setColorLogicOpEnable(true);    break;
+		case GL_INDEX_LOGIC_OP:           UNIMPLEMENTED();
 		default:
 			return error(GL_INVALID_ENUM);
 		}
@@ -3520,6 +3524,8 @@ GLboolean APIENTRY glIsEnabled(GLenum cap)
 		case GL_DEPTH_TEST:               return context->isDepthTestEnabled();
 		case GL_BLEND:                    return context->isBlendEnabled();
 		case GL_DITHER:                   return context->isDitherEnabled();
+		case GL_COLOR_LOGIC_OP:           return context->isColorLogicOpEnabled();
+		case GL_INDEX_LOGIC_OP:           UNIMPLEMENTED();
 		default:
 			return error(GL_INVALID_ENUM, false);
 		}
@@ -6623,7 +6629,42 @@ void APIENTRY glLoadName(GLuint name)
 
 void APIENTRY glLogicOp(GLenum opcode)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLenum opcode = 0x%X)", opcode);
+
+	switch(opcode)
+	{
+	case GL_CLEAR:
+	case GL_SET:
+	case GL_COPY:
+	case GL_COPY_INVERTED:
+	case GL_NOOP:
+	case GL_INVERT:
+	case GL_AND:
+	case GL_NAND:
+	case GL_OR:
+	case GL_NOR:
+	case GL_XOR:
+	case GL_EQUIV:
+	case GL_AND_REVERSE:
+	case GL_AND_INVERTED:
+	case GL_OR_REVERSE:
+	case GL_OR_INVERTED:
+		break;
+	default:
+		return error(GL_INVALID_ENUM);
+	}
+
+	gl::Context *context = gl::getContext();
+
+	if(context)
+	{
+		if(context->getListIndex() != 0)
+		{
+			UNIMPLEMENTED();
+		}
+
+		context->setLogicalOperation(opcode);
+	}
 }
 
 void APIENTRY glMap1d(GLenum target, GLdouble u1, GLdouble u2, GLint stride, GLint order, const GLdouble *points)

@@ -205,6 +205,28 @@ namespace sw
 		BLENDOP_LAST = BLENDOP_NULL
 	};
 
+	enum LogicalOperation : unsigned int
+	{
+		LOGICALOP_CLEAR,
+		LOGICALOP_SET,
+		LOGICALOP_COPY,
+		LOGICALOP_COPY_INVERTED,
+		LOGICALOP_NOOP,
+		LOGICALOP_INVERT,
+		LOGICALOP_AND,
+		LOGICALOP_NAND,
+		LOGICALOP_OR,
+		LOGICALOP_NOR,
+		LOGICALOP_XOR,
+		LOGICALOP_EQUIV,
+		LOGICALOP_AND_REVERSE,
+		LOGICALOP_AND_INVERTED,
+		LOGICALOP_OR_REVERSE,
+		LOGICALOP_OR_INVERTED,
+
+		LOGICALOP_LAST = LOGICALOP_OR_INVERTED
+	};
+
 	enum MaterialSource : unsigned int
 	{
 		MATERIAL_MATERIAL,
@@ -297,6 +319,9 @@ namespace sw
 		bool setColorWriteMask(int index, int colorWriteMask);
 		bool setWriteSRGB(bool sRGB);
 
+		bool setColorLogicOpEnabled(bool colorLogicOpEnabled);
+		bool setLogicalOperation(LogicalOperation logicalOperation);
+
 		// Active fixed-function pixel pipeline states
 		bool fogActive();
 		bool pointSizeActive();
@@ -334,6 +359,9 @@ namespace sw
 		BlendFactor sourceBlendFactorAlpha();
 		BlendFactor destBlendFactorAlpha();
 		BlendOperation blendOperationAlpha();
+
+		LogicalOperation colorLogicOp();
+		LogicalOperation indexLogicOp();
 
 		bool indexedVertexBlendActive();
 		int vertexBlendMatrixCountActive();
@@ -483,6 +511,9 @@ namespace sw
 		bool writeSRGB;
 		unsigned int sampleMask;
 		unsigned int multiSampleMask;
+
+		bool colorLogicOpEnabled;
+		LogicalOperation logicalOperation;
 	};
 }
 

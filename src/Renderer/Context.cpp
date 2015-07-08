@@ -302,6 +302,9 @@ namespace sw
 
 		writeSRGB = false;
 		sampleMask = 0xFFFFFFFF;
+
+		colorLogicOpEnabled = false;
+		logicalOperation = LogicalOperation::LOGICALOP_COPY;
 	}
 
 	const float &Context::exp2Bias()
@@ -443,6 +446,20 @@ namespace sw
 	{
 		bool modified = (Context::writeSRGB != sRGB);
 		Context::writeSRGB = sRGB;
+		return modified;
+	}
+
+	bool Context::setColorLogicOpEnabled(bool enabled)
+	{
+		bool modified = (Context::colorLogicOpEnabled != enabled);
+		Context::colorLogicOpEnabled = enabled;
+		return modified;
+	}
+
+	bool Context::setLogicalOperation(LogicalOperation logicalOperation)
+	{
+		bool modified = (Context::logicalOperation != logicalOperation);
+		Context::logicalOperation = logicalOperation;
 		return modified;
 	}
 
@@ -729,6 +746,11 @@ namespace sw
 		bool alphaBlend = separateAlphaBlendEnable ? !(blendOperationAlpha() == BLENDOP_SOURCE && sourceBlendFactorAlpha() == BLEND_ONE) : colorBlend;
 
 		return colorBlend || alphaBlend;
+	}
+
+	LogicalOperation Context::colorLogicOp()
+	{
+		return colorLogicOpEnabled ? logicalOperation : LogicalOperation::LOGICALOP_COPY;
 	}
 
 	BlendFactor Context::sourceBlendFactor()

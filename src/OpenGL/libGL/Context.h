@@ -452,6 +452,8 @@ struct State
     bool sampleCoverageInvert;
     bool scissorTest;
     bool dither;
+	bool colorLogicOp;
+	GLenum logicalOperation;
 
     GLfloat lineWidth;
 
@@ -717,6 +719,10 @@ public:
     void setColorMaterial(bool enable);
     void setColorMaterialMode(GLenum mode);
 
+	void setColorLogicOpEnable(bool colorLogicOpEnabled);
+	bool isColorLogicOpEnabled();
+	void setLogicalOperation(GLenum logicalOperation);
+
 	Device *getDevice();
 
 private:
@@ -779,6 +785,7 @@ private:
     bool mSampleStateDirty;
     bool mFrontFaceDirty;
     bool mDitherStateDirty;
+	bool mColorLogicOperatorDirty;
 
 	Device *device;
     ResourceManager *mResourceManager;

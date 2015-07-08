@@ -179,7 +179,9 @@ namespace sw
 		void rasterOperation(Vector4f oC[4], Registers &r, Float4 &fog, Pointer<Byte> cBuffer[4], Int &x, Int sMask[4], Int zMask[4], Int cMask[4]);
 		void blendFactor(Registers &r, const Vector4s &blendFactor, const Vector4s &current, const Vector4s &pixel, BlendFactor blendFactorActive);
 		void blendFactorAlpha(Registers &r, const Vector4s &blendFactor, const Vector4s &current, const Vector4s &pixel, BlendFactor blendFactorAlphaActive);
+		void readPixel(Registers &r, int index, Pointer<Byte> &cBuffer, Vector4s &current, Int &x, Vector4s &pixel);
 		void alphaBlend(Registers &r, int index, Pointer<Byte> &cBuffer, Vector4s &current, Int &x);
+		void logicOperation(Registers &r, int index, Pointer<Byte> &cBuffer, Vector4s &current, Int &x);
 		void writeColor(Registers &r, int index, Pointer<Byte> &cBuffer, Int &i, Vector4s &current, Int &sMask, Int &zMask, Int &cMask);
 		void blendFactor(Registers &r, const Vector4f &blendFactor, const Vector4f &oC, const Vector4f &pixel, BlendFactor blendFactorActive);
 		void blendFactorAlpha(Registers &r, const Vector4f &blendFactor, const Vector4f &oC, const Vector4f &pixel, BlendFactor blendFactorAlphaActive);

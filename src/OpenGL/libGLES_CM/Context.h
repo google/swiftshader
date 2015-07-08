@@ -236,6 +236,8 @@ struct State
     bool scissorTest;
     bool dither;
 	GLenum shadeModel;
+	bool colorLogicOp;
+	GLenum logicalOperation;
 
     GLfloat lineWidth;
 

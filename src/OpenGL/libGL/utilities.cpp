@@ -509,6 +509,32 @@ namespace es2sw
 		return sw::BLENDOP_ADD;
 	}
 
+	sw::LogicalOperation ConvertLogicalOperation(GLenum logicalOperation)
+	{
+		switch(logicalOperation)
+		{
+		case GL_CLEAR:              return sw::LOGICALOP_CLEAR;
+		case GL_SET:                return sw::LOGICALOP_SET;
+		case GL_COPY:               return sw::LOGICALOP_COPY;
+		case GL_COPY_INVERTED:      return sw::LOGICALOP_COPY_INVERTED;
+		case GL_NOOP:               return sw::LOGICALOP_NOOP;
+		case GL_INVERT:             return sw::LOGICALOP_INVERT;
+		case GL_AND:                return sw::LOGICALOP_AND;
+		case GL_NAND:               return sw::LOGICALOP_NAND;
+		case GL_OR:                 return sw::LOGICALOP_OR;
+		case GL_NOR:                return sw::LOGICALOP_NOR;
+		case GL_XOR:                return sw::LOGICALOP_XOR;
+		case GL_EQUIV:              return sw::LOGICALOP_EQUIV;
+		case GL_AND_REVERSE:        return sw::LOGICALOP_AND_REVERSE;
+		case GL_AND_INVERTED:       return sw::LOGICALOP_AND_INVERTED;
+		case GL_OR_REVERSE:         return sw::LOGICALOP_OR_REVERSE;
+		case GL_OR_INVERTED:        return sw::LOGICALOP_OR_INVERTED;
+		default: UNREACHABLE(logicalOperation);
+		}
+
+		return sw::LOGICALOP_COPY;
+	}
+
 	sw::StencilOperation ConvertStencilOp(GLenum stencilOp)
 	{
 		switch(stencilOp)

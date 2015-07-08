@@ -52,6 +52,7 @@ namespace es2sw
 	sw::Color<float> ConvertColor(es1::Color color);
 	sw::BlendFactor ConvertBlendFunc(GLenum blend);
 	sw::BlendOperation ConvertBlendOp(GLenum blendOp);
+	sw::LogicalOperation ConvertLogicalOperation(GLenum logicalOperation);
 	sw::StencilOperation ConvertStencilOp(GLenum stencilOp);
 	sw::AddressingMode ConvertTextureWrap(GLenum wrap);
 	sw::CullMode ConvertCullMode(GLenum cullFace, GLenum frontFace);
