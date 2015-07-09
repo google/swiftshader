@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "586ddaeb_ba29713e",
+        "filename": "src/OpenGL/libGLESv2/Context.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 309,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2015-07-09T20:10:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "586ddaeb_bac89145",
+      "range": {
+        "startLine": 309,
+        "startChar": 4,
+        "endLine": 309,
+        "endChar": 27
+      },
+      "revId": "565c3f96ef2d61040476471f0a9440da6ddb0827",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "586ddaeb_da5d45f7",
         "filename": "src/Renderer/Context.cpp",
         "patchSetId": 3
@@ -59,6 +83,30 @@
       "writtenOn": "2015-07-09T15:10:10Z",
       "side": 1,
       "message": "Initialize the new variables here.",
+      "range": {
+        "startLine": 305,
+        "startChar": 1,
+        "endLine": 305,
+        "endChar": 2
+      },
+      "revId": "565c3f96ef2d61040476471f0a9440da6ddb0827",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "586ddaeb_1a6add66",
+        "filename": "src/Renderer/Context.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2015-07-09T20:10:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "586ddaeb_da5d45f7",
       "range": {
         "startLine": 305,
         "startChar": 1,
@@ -94,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "586ddaeb_ddc77f88",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2706,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2015-07-09T20:10:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "586ddaeb_9a67cdcb",
+      "range": {
+        "startLine": 2706,
+        "startChar": 109,
+        "endLine": 2706,
+        "endChar": 145
+      },
+      "revId": "565c3f96ef2d61040476471f0a9440da6ddb0827",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "586ddaeb_bae171bf",
         "filename": "src/Shader/PixelRoutine.cpp",
         "patchSetId": 3
@@ -105,6 +177,30 @@
       "writtenOn": "2015-07-09T15:10:10Z",
       "side": 1,
       "message": "remove!",
+      "range": {
+        "startLine": 2708,
+        "startChar": 5,
+        "endLine": 2708,
+        "endChar": 6
+      },
+      "revId": "565c3f96ef2d61040476471f0a9440da6ddb0827",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "586ddaeb_3a624137",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2708,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2015-07-09T20:10:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "586ddaeb_bae171bf",
       "range": {
         "startLine": 2708,
         "startChar": 5,
@@ -140,6 +236,30 @@
     },
     {
       "key": {
+        "uuid": "586ddaeb_3dc31b80",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2715,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2015-07-09T20:10:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "586ddaeb_3af6c189",
+      "range": {
+        "startLine": 2714,
+        "startChar": 0,
+        "endLine": 2715,
+        "endChar": 13
+      },
+      "revId": "565c3f96ef2d61040476471f0a9440da6ddb0827",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "586ddaeb_3aa7a198",
         "filename": "src/Shader/PixelRoutine.cpp",
         "patchSetId": 3
@@ -151,6 +271,30 @@
       "writtenOn": "2015-07-09T15:10:10Z",
       "side": 1,
       "message": "Let\u0027s add \"ASSERT(false);   // Optimized out\" before this line.",
+      "range": {
+        "startLine": 2733,
+        "startChar": 3,
+        "endLine": 2733,
+        "endChar": 9
+      },
+      "revId": "565c3f96ef2d61040476471f0a9440da6ddb0827",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "586ddaeb_7a68b916",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2733,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2015-07-09T20:10:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "586ddaeb_3aa7a198",
       "range": {
         "startLine": 2733,
         "startChar": 3,
