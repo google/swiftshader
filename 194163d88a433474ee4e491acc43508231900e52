@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "586ddaeb_1d7bb771",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 2594,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-07-09T17:32:56Z",
+      "side": 1,
+      "message": "nit: not a useful comment",
+      "range": {
+        "startLine": 2594,
+        "startChar": 2,
+        "endLine": 2594,
+        "endChar": 15
+      },
+      "revId": "194163d88a433474ee4e491acc43508231900e52",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "586ddaeb_dd945f15",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 2715,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-07-09T17:32:56Z",
+      "side": 1,
+      "message": "nit: not a useful comment",
+      "range": {
+        "startLine": 2715,
+        "startChar": 2,
+        "endLine": 2715,
+        "endChar": 15
+      },
+      "revId": "194163d88a433474ee4e491acc43508231900e52",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
