@@ -1,21 +1,34 @@
 ; This tests the NaCl intrinsics not related to atomic operations.
 
-; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 -sandbox \
-; RUN:   | FileCheck %s
-; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 -sandbox \
-; RUN:   | FileCheck %s
+; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
+; RUN:   --target x8632 -i %s --args -O2 -sandbox \
+; RUN:   | %if --need=target_X8632 --command FileCheck %s
+; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
+; RUN:   --target x8632 -i %s --args -Om1 -sandbox \
+; RUN:   | %if --need=target_X8632 --command FileCheck %s
 
 ; Do another run w/ O2 and a different check-prefix (otherwise O2 and Om1
 ; share the same "CHECK" prefix). This separate run helps check that
 ; some code is optimized out.
-; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 -sandbox \
-; RUN:   | FileCheck --check-prefix=CHECKO2REM %s
+; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
+; RUN:   --target x8632 -i %s --args -O2 -sandbox \
+; RUN:   | %if --need=target_X8632 \
+; RUN:   --command FileCheck --check-prefix=CHECKO2REM %s
 
 ; Do O2 runs without -sandbox to make sure llvm.nacl.read.tp gets
 ; lowered to __nacl_read_tp instead of gs:0x0.
 ; We also know that because it's O2, it'll have the O2REM optimizations.
-; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 \
-; RUN:   | FileCheck --check-prefix=CHECKO2UNSANDBOXEDREM %s
+; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
+; RUN:   --target x8632 -i %s --args -O2 \
+; RUN:   | %if --need=target_X8632 \
+; RUN:   --command FileCheck --check-prefix=CHECKO2UNSANDBOXEDREM %s
+
+; RUN: %if --need=target_ARM32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target arm32 \
+; RUN:   -i %s --args -O2 --skip-unimplemented \
+; RUN:   | %if --need=target_ARM32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix ARM32 %s
+
 
 declare i8* @llvm.nacl.read.tp()
 declare void @llvm.memcpy.p0i8.p0i8.i32(i8*, i8*, i32, i32, i1)
@@ -106,6 +119,8 @@ entry:
 ; CHECK: call {{.*}} R_{{.*}} memcpy
 ; CHECKO2REM-LABEL: test_memcpy
 ; CHECKO2UNSANDBOXEDREM-LABEL: test_memcpy
+; ARM32-LABEL: test_memcpy
+; ARM32: bl {{.*}} memcpy
 
 ; TODO(jvoung) -- if we want to be clever, we can do this and the memmove,
 ; memset without a function call.
@@ -114,11 +129,13 @@ entry:
   %dst = inttoptr i32 %iptr_dst to i8*
   %src = inttoptr i32 %iptr_src to i8*
   call void @llvm.memcpy.p0i8.p0i8.i32(i8* %dst, i8* %src,
-                                       i32 8, i32 1, i1 false)
+                                       i32 32, i32 1, i1 false)
   ret void
 }
 ; CHECK-LABEL: test_memcpy_const_len_align
 ; CHECK: call {{.*}} R_{{.*}} memcpy
+; ARM32-LABEL: test_memcpy_const_len_align
+; ARM32: bl {{.*}} memcpy
 
 define void @test_memmove(i32 %iptr_dst, i32 %iptr_src, i32 %len) {
 entry:
@@ -130,17 +147,21 @@ entry:
 }
 ; CHECK-LABEL: test_memmove
 ; CHECK: call {{.*}} R_{{.*}} memmove
+; ARM32-LABEL: test_memmove
+; ARM32: bl {{.*}} memmove
 
 define void @test_memmove_const_len_align(i32 %iptr_dst, i32 %iptr_src) {
 entry:
   %dst = inttoptr i32 %iptr_dst to i8*
   %src = inttoptr i32 %iptr_src to i8*
   call void @llvm.memmove.p0i8.p0i8.i32(i8* %dst, i8* %src,
-                                        i32 8, i32 1, i1 false)
+                                        i32 32, i32 1, i1 false)
   ret void
 }
 ; CHECK-LABEL: test_memmove_const_len_align
 ; CHECK: call {{.*}} R_{{.*}} memmove
+; ARM32-LABEL: test_memmove_const_len_align
+; ARM32: bl {{.*}} memmove
 
 define void @test_memset(i32 %iptr_dst, i32 %wide_val, i32 %len) {
 entry:
@@ -153,18 +174,24 @@ entry:
 ; CHECK-LABEL: test_memset
 ; CHECK: movzx
 ; CHECK: call {{.*}} R_{{.*}} memset
+; ARM32-LABEL: test_memset
+; ARM32: uxtb
+; ARM32: bl {{.*}} memset
 
 define void @test_memset_const_len_align(i32 %iptr_dst, i32 %wide_val) {
 entry:
   %val = trunc i32 %wide_val to i8
   %dst = inttoptr i32 %iptr_dst to i8*
   call void @llvm.memset.p0i8.i32(i8* %dst, i8 %val,
-                                  i32 8, i32 1, i1 false)
+                                  i32 32, i32 1, i1 false)
   ret void
 }
 ; CHECK-LABEL: test_memset_const_len_align
 ; CHECK: movzx
 ; CHECK: call {{.*}} R_{{.*}} memset
+; ARM32-LABEL: test_memset_const_len_align
+; ARM32: uxtb
+; ARM32: bl {{.*}} memset
 
 define void @test_memset_const_val(i32 %iptr_dst, i32 %len) {
 entry:
@@ -176,7 +203,9 @@ entry:
 ; Make sure the argument is legalized (can't movzx reg, 0).
 ; CHECK: movzx {{.*}},{{[^0]}}
 ; CHECK: call {{.*}} R_{{.*}} memset
-
+; ARM32-LABEL: test_memset_const_val
+; ARM32: uxtb
+; ARM32: bl {{.*}} memset
 
 define i32 @test_setjmplongjmp(i32 %iptr_env) {
 entry:
@@ -198,6 +227,9 @@ NonZero:
 ; CHECKO2REM-LABEL: test_setjmplongjmp
 ; CHECKO2REM: call {{.*}} R_{{.*}} setjmp
 ; CHECKO2REM: call {{.*}} R_{{.*}} longjmp
+; ARM32-LABEL: test_setjmplongjmp
+; ARM32: bl {{.*}} setjmp
+; ARM32: bl {{.*}} longjmp
 
 define i32 @test_setjmp_unused(i32 %iptr_env, i32 %i_other) {
 entry:
@@ -344,6 +376,8 @@ NonZero:
 }
 ; CHECK-LABEL: test_trap
 ; CHECK: ud2
+; ARM32-LABEL: test_trap
+; ARM32: .word 0xe7fedef0
 
 define i32 @test_bswap_16(i32 %x) {
 entry:
@@ -356,6 +390,9 @@ entry:
 ; Make sure this is the right operand size so that the most significant bit
 ; to least significant bit rotation happens at the right boundary.
 ; CHECK: rol {{[abcd]x|si|di|bp|word ptr}},0x8
+; ARM32-LABEL: test_bswap_16
+; ARM32: rev
+; ARM32: lsr {{.*}} #16
 
 define i32 @test_bswap_32(i32 %x) {
 entry:
@@ -364,6 +401,8 @@ entry:
 }
 ; CHECK-LABEL: test_bswap_32
 ; CHECK: bswap e{{.*}}
+; ARM32-LABEL: test_bswap_32
+; ARM32: rev
 
 define i64 @test_bswap_64(i64 %x) {
 entry:
@@ -373,6 +412,9 @@ entry:
 ; CHECK-LABEL: test_bswap_64
 ; CHECK: bswap e{{.*}}
 ; CHECK: bswap e{{.*}}
+; ARM32-LABEL: test_bswap_64
+; ARM32: rev
+; ARM32: rev
 
 define i32 @test_ctlz_32(i32 %x) {
 entry:
@@ -387,6 +429,8 @@ entry:
 ; CHECK: mov [[REG_RES:e.*]],0x3f
 ; CHECK: cmovne [[REG_RES]],[[REG_TMP]]
 ; CHECK: xor [[REG_RES]],0x1f
+; ARM32-LABEL: test_ctlz_32
+; ARM32: clz
 
 define i32 @test_ctlz_32_const() {
 entry:
@@ -398,6 +442,8 @@ entry:
 ; or memory.
 ; CHECK-LABEL: test_ctlz_32_const
 ; CHECK: bsr e{{.*}},{{.*}}e{{.*}}
+; ARM32-LABEL: test_ctlz_32_const
+; ARM32: clz
 
 define i32 @test_ctlz_32_ignored(i32 %x) {
 entry:
@@ -424,6 +470,12 @@ entry:
 ; CHECK: test [[REG_UPPER:.*]],[[REG_UPPER]]
 ; CHECK: cmove [[REG_RES2]],[[REG_RES1]]
 ; CHECK: mov {{.*}},0x0
+; ARM32-LABEL: test_ctlz_64
+; ARM32: clz
+; ARM32: cmp {{.*}}, #0
+; ARM32: add {{.*}}, #32
+; ARM32: clzne
+; ARM32: mov {{.*}}, #0
 
 define i32 @test_ctlz_64_const(i64 %x) {
 entry:
@@ -434,7 +486,9 @@ entry:
 ; CHECK-LABEL: test_ctlz_64_const
 ; CHECK: bsr e{{.*}},{{.*}}e{{.*}}
 ; CHECK: bsr e{{.*}},{{.*}}e{{.*}}
-
+; ARM32-LABEL: test_ctlz_64
+; ARM32: clz
+; ARM32: clzne
 
 define i32 @test_ctlz_64_ignored(i64 %x) {
 entry:
@@ -453,6 +507,9 @@ entry:
 ; CHECK: bsf [[REG_IF_NOTZERO:e.*]],{{.*}}
 ; CHECK: mov [[REG_IF_ZERO:e.*]],0x20
 ; CHECK: cmovne [[REG_IF_ZERO]],[[REG_IF_NOTZERO]]
+; ARM32-LABEL: test_cttz_32
+; ARM32: rbit
+; ARM32: clz
 
 define i64 @test_cttz_64(i64 %x) {
 entry:
@@ -468,6 +525,14 @@ entry:
 ; CHECK: test [[REG_LOWER]],[[REG_LOWER]]
 ; CHECK: cmove [[REG_RES2]],[[REG_RES1]]
 ; CHECK: mov {{.*}},0x0
+; ARM32-LABEL: test_cttz_64
+; ARM32: rbit
+; ARM32: rbit
+; ARM32: clz
+; ARM32: cmp {{.*}}, #0
+; ARM32: add {{.*}}, #32
+; ARM32: clzne
+; ARM32: mov {{.*}}, #0
 
 define i32 @test_popcount_32(i32 %x) {
 entry:
@@ -476,6 +541,8 @@ entry:
 }
 ; CHECK-LABEL: test_popcount_32
 ; CHECK: call {{.*}} R_{{.*}} __popcountsi2
+; ARM32-LABEL: test_popcount_32
+; ARM32: bl {{.*}} __popcountsi2
 
 define i64 @test_popcount_64(i64 %x) {
 entry:
@@ -487,7 +554,9 @@ entry:
 ; __popcountdi2 only returns a 32-bit result, so clear the upper bits of
 ; the return value just in case.
 ; CHECK: mov {{.*}},0x0
-
+; ARM32-LABEL: test_popcount_64
+; ARM32: bl {{.*}} __popcountdi2
+; ARM32: mov {{.*}}, #0
 
 define i32 @test_popcount_64_ret_i32(i64 %x) {
 entry:
@@ -509,6 +578,9 @@ entry:
 ; CHECK-LABEL: test_stacksave_noalloca
 ; CHECK: mov {{.*}},esp
 ; CHECK: mov esp,{{.*}}
+; ARM32-LABEL: test_stacksave_noalloca
+; ARM32: mov {{.*}}, sp
+; ARM32: mov sp, {{.*}}
 
 declare i32 @foo(i32 %x)
 
@@ -544,3 +616,8 @@ entry:
 ; CHECK: mov {{.*}},esp
 ; CHECK: mov {{.*}},esp
 ; CHECK: mov esp,{{.*}}
+; ARM32-LABEL: test_stacksave_multiple
+; ARM32: mov {{.*}}, sp
+; ARM32: mov {{.*}}, sp
+; ARM32: mov {{.*}}, sp
+; ARM32: mov sp, {{.*}}

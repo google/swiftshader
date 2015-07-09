@@ -262,6 +262,7 @@ public:
     Br,
     Call,
     Cmp,
+    Clz,
     Eor,
     Label,
     Ldr,
@@ -277,7 +278,9 @@ public:
     Orr,
     Pop,
     Push,
+    Rbit,
     Ret,
+    Rev,
     Rsb,
     Sbc,
     Sdiv,
@@ -324,7 +327,7 @@ public:
 
   /// Shared emit routines for common forms of instructions.
   static void emitUnaryopGPR(const char *Opcode, const InstARM32Pred *Inst,
-                             const Cfg *Func);
+                             const Cfg *Func, bool NeedsWidthSuffix);
   static void emitTwoAddr(const char *Opcode, const InstARM32Pred *Inst,
                           const Cfg *Func);
   static void emitThreeAddr(const char *Opcode, const InstARM32Pred *Inst,
@@ -345,7 +348,7 @@ inline StreamType &operator<<(StreamType &Stream, CondARM32::Cond Predicate) {
 }
 
 /// Instructions of the form x := op(y).
-template <InstARM32::InstKindARM32 K>
+template <InstARM32::InstKindARM32 K, bool NeedsWidthSuffix>
 class InstARM32UnaryopGPR : public InstARM32Pred {
   InstARM32UnaryopGPR() = delete;
   InstARM32UnaryopGPR(const InstARM32UnaryopGPR &) = delete;
@@ -360,7 +363,7 @@ public:
   void emit(const Cfg *Func) const override {
     if (!BuildDefs::dump())
       return;
-    emitUnaryopGPR(Opcode, this, Func);
+    emitUnaryopGPR(Opcode, this, Func, NeedsWidthSuffix);
   }
   void emitIAS(const Cfg *Func) const override {
     (void)Func;
@@ -641,13 +644,16 @@ typedef InstARM32Movlike<InstARM32::Mov> InstARM32Mov;
 /// MovT leaves the bottom bits alone so dest is also a source.
 /// This helps indicate that a previous MovW setting dest is not dead code.
 typedef InstARM32TwoAddrGPR<InstARM32::Movt> InstARM32Movt;
-typedef InstARM32UnaryopGPR<InstARM32::Movw> InstARM32Movw;
-typedef InstARM32UnaryopGPR<InstARM32::Mvn> InstARM32Mvn;
+typedef InstARM32UnaryopGPR<InstARM32::Movw, false> InstARM32Movw;
+typedef InstARM32UnaryopGPR<InstARM32::Clz, false> InstARM32Clz;
+typedef InstARM32UnaryopGPR<InstARM32::Mvn, false> InstARM32Mvn;
+typedef InstARM32UnaryopGPR<InstARM32::Rbit, false> InstARM32Rbit;
+typedef InstARM32UnaryopGPR<InstARM32::Rev, false> InstARM32Rev;
 // Technically, the uxt{b,h} and sxt{b,h} instructions have a rotation
 // operand as well (rotate source by 8, 16, 24 bits prior to extending),
 // but we aren't using that for now, so just model as a Unaryop.
-typedef InstARM32UnaryopGPR<InstARM32::Sxt> InstARM32Sxt;
-typedef InstARM32UnaryopGPR<InstARM32::Uxt> InstARM32Uxt;
+typedef InstARM32UnaryopGPR<InstARM32::Sxt, true> InstARM32Sxt;
+typedef InstARM32UnaryopGPR<InstARM32::Uxt, true> InstARM32Uxt;
 typedef InstARM32FourAddrGPR<InstARM32::Mla> InstARM32Mla;
 typedef InstARM32FourAddrGPR<InstARM32::Mls> InstARM32Mls;
 typedef InstARM32CmpLike<InstARM32::Cmp> InstARM32Cmp;

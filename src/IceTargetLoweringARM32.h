@@ -172,6 +172,8 @@ protected:
                     ExtInstr ExtFunc, DivInstr DivFunc,
                     const char *DivHelperName, bool IsRemainder);
 
+  void lowerCLZ(Variable *Dest, Variable *ValLo, Variable *ValHi);
+
   // The following are helpers that insert lowered ARM32 instructions
   // with minimal syntactic overhead, so that the lowering code can
   // look as close to assembly as practical.
@@ -223,6 +225,10 @@ protected:
   void _cmp(Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Cmp::create(Func, Src0, Src1, Pred));
+  }
+  void _clz(Variable *Dest, Variable *Src0,
+            CondARM32::Cond Pred = CondARM32::AL) {
+    Context.insert(InstARM32Clz::create(Func, Dest, Src0, Pred));
   }
   void _eor(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
@@ -300,6 +306,14 @@ protected:
     // Mark dests as modified.
     for (Variable *Dest : Dests)
       Context.insert(InstFakeDef::create(Func, Dest));
+  }
+  void _rbit(Variable *Dest, Variable *Src0,
+             CondARM32::Cond Pred = CondARM32::AL) {
+    Context.insert(InstARM32Rbit::create(Func, Dest, Src0, Pred));
+  }
+  void _rev(Variable *Dest, Variable *Src0,
+            CondARM32::Cond Pred = CondARM32::AL) {
+    Context.insert(InstARM32Rev::create(Func, Dest, Src0, Pred));
   }
   void _ret(Variable *LR, Variable *Src0 = nullptr) {
     Context.insert(InstARM32Ret::create(Func, LR, Src0));

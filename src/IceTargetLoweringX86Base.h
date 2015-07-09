@@ -96,6 +96,7 @@ public:
 
   using Machine::_bundle_lock;
   using Machine::_bundle_unlock;
+  using Machine::_set_dest_nonkillable;
   using Machine::getContext;
   using Machine::getStackAdjustment;
   using Machine::regAlloc;
@@ -586,9 +587,6 @@ protected:
   }
   void _xor_rmw(typename Traits::X86OperandMem *DestSrc0, Operand *Src1) {
     Context.insert(Traits::Insts::XorRMW::create(Func, DestSrc0, Src1));
-  }
-  void _set_dest_nonkillable() {
-    Context.getLastInserted()->setDestNonKillable();
   }
 
   bool optimizeScalarMul(Variable *Dest, Operand *Src0, int32_t Src1);

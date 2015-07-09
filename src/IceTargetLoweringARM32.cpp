@@ -1575,7 +1575,7 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
 
   // Copy arguments that are passed on the stack to the appropriate
   // stack locations.
-  Variable *SP = Func->getTarget()->getPhysicalRegister(RegARM32::Reg_sp);
+  Variable *SP = getPhysicalRegister(RegARM32::Reg_sp);
   for (auto &StackArg : StackArgs) {
     ConstantInteger32 *Loc =
         llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(StackArg.second));
@@ -1662,7 +1662,7 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
   if (ParameterAreaSizeBytes) {
     Operand *AddAmount = legalize(Ctx->getConstantInt32(ParameterAreaSizeBytes),
                                   Legal_Reg | Legal_Flex);
-    Variable *SP = Func->getTarget()->getPhysicalRegister(RegARM32::Reg_sp);
+    Variable *SP = getPhysicalRegister(RegARM32::Reg_sp);
     _add(SP, SP, AddAmount);
   }
 
@@ -2032,19 +2032,91 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     return;
   }
   case Intrinsics::Bswap: {
-    UnimplementedError(Func->getContext()->getFlags());
+    Variable *Dest = Instr->getDest();
+    Operand *Val = Instr->getArg(0);
+    Type Ty = Val->getType();
+    if (Ty == IceType_i64) {
+      Variable *Val_Lo = legalizeToVar(loOperand(Val));
+      Variable *Val_Hi = legalizeToVar(hiOperand(Val));
+      Variable *T_Lo = makeReg(IceType_i32);
+      Variable *T_Hi = makeReg(IceType_i32);
+      Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
+      Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+      _rev(T_Lo, Val_Lo);
+      _rev(T_Hi, Val_Hi);
+      _mov(DestLo, T_Hi);
+      _mov(DestHi, T_Lo);
+    } else {
+      assert(Ty == IceType_i32 || Ty == IceType_i16);
+      Variable *ValR = legalizeToVar(Val);
+      Variable *T = makeReg(Ty);
+      _rev(T, ValR);
+      if (Val->getType() == IceType_i16) {
+        Operand *Sixteen =
+            legalize(Ctx->getConstantInt32(16), Legal_Reg | Legal_Flex);
+        _lsr(T, T, Sixteen);
+      }
+      _mov(Dest, T);
+    }
     return;
   }
   case Intrinsics::Ctpop: {
-    UnimplementedError(Func->getContext()->getFlags());
+    Variable *Dest = Instr->getDest();
+    Operand *Val = Instr->getArg(0);
+    InstCall *Call = makeHelperCall(isInt32Asserting32Or64(Val->getType())
+                                        ? H_call_ctpop_i32
+                                        : H_call_ctpop_i64,
+                                    Dest, 1);
+    Call->addArg(Val);
+    lowerCall(Call);
+    // The popcount helpers always return 32-bit values, while the intrinsic's
+    // signature matches some 64-bit platform's native instructions and
+    // expect to fill a 64-bit reg. Thus, clear the upper bits of the dest
+    // just in case the user doesn't do that in the IR or doesn't toss the bits
+    // via truncate.
+    if (Val->getType() == IceType_i64) {
+      Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+      Constant *Zero = Ctx->getConstantZero(IceType_i32);
+      _mov(DestHi, Zero);
+    }
     return;
   }
   case Intrinsics::Ctlz: {
-    UnimplementedError(Func->getContext()->getFlags());
+    // The "is zero undef" parameter is ignored and we always return
+    // a well-defined value.
+    Operand *Val = Instr->getArg(0);
+    Variable *ValLoR;
+    Variable *ValHiR = nullptr;
+    if (Val->getType() == IceType_i64) {
+      ValLoR = legalizeToVar(loOperand(Val));
+      ValHiR = legalizeToVar(hiOperand(Val));
+    } else {
+      ValLoR = legalizeToVar(Val);
+    }
+    lowerCLZ(Instr->getDest(), ValLoR, ValHiR);
     return;
   }
   case Intrinsics::Cttz: {
-    UnimplementedError(Func->getContext()->getFlags());
+    // Essentially like Clz, but reverse the bits first.
+    Operand *Val = Instr->getArg(0);
+    Variable *ValLoR;
+    Variable *ValHiR = nullptr;
+    if (Val->getType() == IceType_i64) {
+      ValLoR = legalizeToVar(loOperand(Val));
+      ValHiR = legalizeToVar(hiOperand(Val));
+      Variable *TLo = makeReg(IceType_i32);
+      Variable *THi = makeReg(IceType_i32);
+      _rbit(TLo, ValLoR);
+      _rbit(THi, ValHiR);
+      ValLoR = THi;
+      ValHiR = TLo;
+    } else {
+      ValLoR = legalizeToVar(Val);
+      Variable *T = makeReg(IceType_i32);
+      _rbit(T, ValLoR);
+      ValLoR = T;
+    }
+    lowerCLZ(Instr->getDest(), ValLoR, ValHiR);
     return;
   }
   case Intrinsics::Fabs: {
@@ -2077,13 +2149,15 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     return;
   }
   case Intrinsics::Memset: {
-    // The value operand needs to be extended to a stack slot size
-    // because the PNaCl ABI requires arguments to be at least 32 bits
-    // wide.
+    // The value operand needs to be extended to a stack slot size because the
+    // PNaCl ABI requires arguments to be at least 32 bits wide.
     Operand *ValOp = Instr->getArg(1);
     assert(ValOp->getType() == IceType_i8);
     Variable *ValExt = Func->makeVariable(stackSlotType());
     lowerCast(InstCast::create(Func, InstCast::Zext, ValExt, ValOp));
+    // Technically, ARM has their own __aeabi_memset, but we can use plain
+    // memset too. The value and size argument need to be flipped if we ever
+    // decide to use __aeabi_memset.
     InstCall *Call = makeHelperCall(H_call_memset, nullptr, 3);
     Call->addArg(Instr->getArg(0));
     Call->addArg(ValExt);
@@ -2111,20 +2185,52 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     return;
   }
   case Intrinsics::Stacksave: {
-    UnimplementedError(Func->getContext()->getFlags());
+    Variable *SP = getPhysicalRegister(RegARM32::Reg_sp);
+    Variable *Dest = Instr->getDest();
+    _mov(Dest, SP);
     return;
   }
   case Intrinsics::Stackrestore: {
-    UnimplementedError(Func->getContext()->getFlags());
+    Variable *SP = getPhysicalRegister(RegARM32::Reg_sp);
+    Operand *Val = legalize(Instr->getArg(0), Legal_Reg | Legal_Flex);
+    _mov_nonkillable(SP, Val);
     return;
   }
   case Intrinsics::Trap:
-    UnimplementedError(Func->getContext()->getFlags());
+    _trap();
     return;
   case Intrinsics::UnknownIntrinsic:
     Func->setError("Should not be lowering UnknownIntrinsic");
     return;
   }
+  return;
+}
+
+void TargetARM32::lowerCLZ(Variable *Dest, Variable *ValLoR, Variable *ValHiR) {
+  Type Ty = Dest->getType();
+  assert(Ty == IceType_i32 || Ty == IceType_i64);
+  Variable *T = makeReg(IceType_i32);
+  _clz(T, ValLoR);
+  if (Ty == IceType_i64) {
+    Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
+    Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+    Operand *Zero =
+        legalize(Ctx->getConstantZero(IceType_i32), Legal_Reg | Legal_Flex);
+    Operand *ThirtyTwo =
+        legalize(Ctx->getConstantInt32(32), Legal_Reg | Legal_Flex);
+    _cmp(ValHiR, Zero);
+    Variable *T2 = makeReg(IceType_i32);
+    _add(T2, T, ThirtyTwo);
+    _clz(T2, ValHiR, CondARM32::NE);
+    // T2 is actually a source as well when the predicate is not AL
+    // (since it may leave T2 alone). We use set_dest_nonkillable to
+    // prolong the liveness of T2 as if it was used as a source.
+    _set_dest_nonkillable();
+    _mov(DestLo, T2);
+    _mov(DestHi, Ctx->getConstantZero(IceType_i32));
+    return;
+  }
+  _mov(Dest, T);
   return;
 }
 
@@ -2186,7 +2292,7 @@ void TargetARM32::lowerRet(const InstRet *Inst) {
   // eliminated.  TODO: Are there more places where the fake use
   // should be inserted?  E.g. "void f(int n){while(1) g(n);}" may not
   // have a ret instruction.
-  Variable *SP = Func->getTarget()->getPhysicalRegister(RegARM32::Reg_sp);
+  Variable *SP = getPhysicalRegister(RegARM32::Reg_sp);
   Context.insert(InstFakeUse::create(Func, SP));
 }
 

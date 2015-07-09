@@ -321,6 +321,9 @@ protected:
     Context.insert(InstBundleLock::create(Func, BundleOption));
   }
   void _bundle_unlock() { Context.insert(InstBundleUnlock::create(Func)); }
+  void _set_dest_nonkillable() {
+    Context.getLastInserted()->setDestNonKillable();
+  }
 
   Cfg *Func;
   GlobalContext *Ctx;

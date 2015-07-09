@@ -80,18 +80,15 @@ CondARM32::Cond InstARM32::getOppositeCondition(CondARM32::Cond Cond) {
 }
 
 void InstARM32Pred::emitUnaryopGPR(const char *Opcode,
-                                   const InstARM32Pred *Inst, const Cfg *Func) {
+                                   const InstARM32Pred *Inst, const Cfg *Func,
+                                   bool NeedsWidthSuffix) {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(Inst->getSrcSize() == 1);
   Type SrcTy = Inst->getSrc(0)->getType();
-  Type DestTy = Inst->getDest()->getType();
   Str << "\t" << Opcode;
-  // Sxt and Uxt need source type width letter to define the operation.
-  // The other unary operations have the same source and dest type and
-  // as a result need only one letter.
-  if (SrcTy != DestTy)
+  if (NeedsWidthSuffix)
     Str << getWidthString(SrcTy);
-  Str << "\t";
+  Str << Inst->getPredicate() << "\t";
   Inst->getDest()->emit(Func);
   Str << ", ";
   Inst->getSrc(0)->emit(Func);
@@ -358,7 +355,10 @@ InstARM32Umull::InstARM32Umull(Cfg *Func, Variable *DestLo, Variable *DestHi,
 template <> const char *InstARM32Movt::Opcode = "movt";
 // Unary ops
 template <> const char *InstARM32Movw::Opcode = "movw";
+template <> const char *InstARM32Clz::Opcode = "clz";
 template <> const char *InstARM32Mvn::Opcode = "mvn";
+template <> const char *InstARM32Rbit::Opcode = "rbit";
+template <> const char *InstARM32Rev::Opcode = "rev";
 template <> const char *InstARM32Sxt::Opcode = "sxt"; // still requires b/h
 template <> const char *InstARM32Uxt::Opcode = "uxt"; // still requires b/h
 // Mov-like ops

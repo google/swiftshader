@@ -3521,9 +3521,8 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
     return;
   }
   case Intrinsics::Memset: {
-    // The value operand needs to be extended to a stack slot size
-    // because the PNaCl ABI requires arguments to be at least 32 bits
-    // wide.
+    // The value operand needs to be extended to a stack slot size because the
+    // PNaCl ABI requires arguments to be at least 32 bits wide.
     Operand *ValOp = Instr->getArg(1);
     assert(ValOp->getType() == IceType_i8);
     Variable *ValExt = Func->template makeVariable(stackSlotType());
@@ -5257,8 +5256,7 @@ Operand *TargetX86Base<Machine>::randomizeOrPoolImmediate(Constant *Immediate,
       _lea(Reg, Traits::X86OperandMem::create(Func, IceType_i32, Reg, Offset,
                                               nullptr, 0));
       // make sure liveness analysis won't kill this variable, otherwise a
-      // liveness
-      // assertion will be triggered.
+      // liveness assertion will be triggered.
       _set_dest_nonkillable();
       if (Immediate->getType() != IceType_i32) {
         Variable *TruncReg = makeReg(Immediate->getType(), RegNum);
