@@ -24,6 +24,10 @@
 
 namespace Ice {
 
+const char *InstMIPS32::getWidthString(Type Ty) {
+  (void)Ty;
+  return "TBD";
+}
 
 InstMIPS32Ret::InstMIPS32Ret(Cfg *Func, Variable *RA, Variable *Source)
     : InstMIPS32(Func, InstMIPS32::Ret, Source ? 2 : 1, nullptr) {
@@ -32,8 +36,18 @@ InstMIPS32Ret::InstMIPS32Ret(Cfg *Func, Variable *RA, Variable *Source)
     addSource(Source);
 }
 
+// ======================== Dump routines ======================== //
+
+void InstMIPS32::dump(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrDump();
+  Str << "[MIPS32] ";
+  Inst::dump(Func);
+}
+
 void InstMIPS32Ret::emit(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   assert(getSrcSize() > 0);
   Variable *RA = llvm::cast<Variable>(getSrc(0));
@@ -52,7 +66,7 @@ void InstMIPS32Ret::emitIAS(const Cfg *Func) const {
 }
 
 void InstMIPS32Ret::dump(const Cfg *Func) const {
-  if (!ALLOW_DUMP)
+  if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   Type Ty = (getSrcSize() == 1 ? IceType_void : getSrc(0)->getType());

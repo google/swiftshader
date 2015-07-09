@@ -42,7 +42,6 @@ public:
 protected:
   InstMIPS32(Cfg *Func, InstKindMIPS32 Kind, SizeT Maxsrcs, Variable *Dest)
       : InstTarget(Func, static_cast<InstKind>(Kind), Maxsrcs, Dest) {}
-  ~InstMIPS32() override {}
   static bool isClassof(const Inst *Inst, InstKindMIPS32 MyKind) {
     return Inst->getKind() == static_cast<InstKind>(MyKind);
   }
@@ -74,7 +73,6 @@ public:
 
 private:
   InstMIPS32Ret(Cfg *Func, Variable *RA, Variable *Source);
-  ~InstMIPS32Ret() override {}
 };
 
 } // end of namespace Ice
