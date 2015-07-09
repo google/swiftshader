@@ -2,6 +2,52 @@
   "comments": [
     {
       "key": {
+        "uuid": "586ddaeb_5d536fe7",
+        "filename": "src/OpenGL/libGL/libGL.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 1617,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-07-09T17:38:48Z",
+      "side": 1,
+      "message": "nit: please align break",
+      "range": {
+        "startLine": 1617,
+        "startChar": 74,
+        "endLine": 1617,
+        "endChar": 84
+      },
+      "revId": "194163d88a433474ee4e491acc43508231900e52",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "586ddaeb_3d523be1",
+        "filename": "src/OpenGL/libGL/libGL.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 1766,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-07-09T17:38:48Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 1766,
+        "startChar": 73,
+        "endLine": 1766,
+        "endChar": 83
+      },
+      "revId": "194163d88a433474ee4e491acc43508231900e52",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "586ddaeb_1d7bb771",
         "filename": "src/Shader/PixelRoutine.cpp",
         "patchSetId": 4
