@@ -31,9 +31,8 @@ define void @foo() {
 ; ARM32-NEXT: 8: e7fedef0 udf
 ; ARM32-NEXT: c: e7fedef0 udf
 ; MIPS32-LABEL: foo
-; MIPS32: 4: {{.*}} jr ra
-; MIPS32-NEXT: 8: {{.*}} nop
-; MIPS32-NEXT: c: e7fedef0
+; MIPS32: 0: {{.*}} jr ra
+; MIPS32-NEXT: 4: {{.*}} nop
 
 define void @bar() {
   ret void
@@ -43,5 +42,5 @@ define void @bar() {
 ; ARM32-LABEL: bar
 ; ARM32-NEXT: 10: {{.*}} bx lr
 ; MIPS32-LABEL: bar
-; MIPS32: 14: {{.*}} jr ra
-; MIPS32-NEXT: 18: {{.*}} nop
+; MIPS32: 10: {{.*}} jr ra
+; MIPS32-NEXT: 14: {{.*}} nop

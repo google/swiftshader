@@ -19,7 +19,7 @@ def TargetAssemblerFlags(target):
   # add here for Mips32.
   flags = { 'x8632': ['-triple=i686'],
             'arm32': ['-triple=armv7a', '-mcpu=cortex-a9', '-mattr=+neon'],
-            'mips32': ['-triple=mipsel-none-nacl' ] }
+            'mips32': ['-triple=mipsel' ] }
   return flags[target]
 
 
