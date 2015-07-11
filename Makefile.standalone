@@ -218,6 +218,7 @@ SB_OBJS=$(patsubst %.cpp, $(SB_OBJDIR)/%.o, $(SRCS))
 
 UNITTEST_SRCS = \
 	BitcodeMunge.cpp \
+        IceAssemblerX8632Test.cpp \
 	IceELFSectionTest.cpp \
 	IceParseInstsTest.cpp
 

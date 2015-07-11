@@ -332,10 +332,10 @@ public:
   void setcc(typename Traits::Cond::BrCond condition,
              const typename Traits::Address &address);
 
+  // All mov() overloads are tested.
   void mov(Type Ty, typename Traits::GPRRegister dst, const Immediate &src);
   void mov(Type Ty, typename Traits::GPRRegister dst,
            typename Traits::GPRRegister src);
-
   void mov(Type Ty, typename Traits::GPRRegister dst,
            const typename Traits::Address &src);
   void mov(Type Ty, const typename Traits::Address &dst,
@@ -824,6 +824,9 @@ public:
   void hlt();
   void ud2();
 
+  // j(Label) is fully tested.
+  // j(ConstantRelocatable) is not tested as the test can not easily create such
+  // an argument.
   void j(typename Traits::Cond::BrCond condition, Label *label,
          bool near = kFarJump);
   void j(typename Traits::Cond::BrCond condition,
