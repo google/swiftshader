@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "78753eb8_62cec85a",
+        "filename": "src/OpenGL/libGL/ResourceManager.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-07-13T18:43:46Z",
+      "side": 1,
+      "message": "If I recall correctly, the spec expects the lowest available handle to be used. The \"NameSpace\" class does that in an efficient way (see line above). I don\u0027t recall why I commented it out. There might be a small difference between OpenGL ES and desktop OpenGL in how they allocate these handles.",
+      "range": {
+        "startLine": 74,
+        "startChar": 4,
+        "endLine": 75,
+        "endChar": 35
+      },
+      "revId": "dda4ed8878f79398ccaf21d546ad6b97ac6264e5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
