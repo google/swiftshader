@@ -2250,16 +2250,6 @@ void FramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GL
 		return error(GL_INVALID_ENUM);
 	}
 
-	switch(attachment)
-	{
-	case GL_COLOR_ATTACHMENT0:
-	case GL_DEPTH_ATTACHMENT:
-	case GL_STENCIL_ATTACHMENT:
-		break;
-	default:
-		return error(GL_INVALID_ENUM);
-	}
-
 	es2::Context *context = es2::getContext();
 
 	if(context)
@@ -2367,6 +2357,8 @@ void FramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GL
 			break;
 		case GL_DEPTH_ATTACHMENT:   framebuffer->setDepthbuffer(textarget, texture, level);   break;
 		case GL_STENCIL_ATTACHMENT: framebuffer->setStencilbuffer(textarget, texture, level); break;
+		default:
+			return error(GL_INVALID_ENUM);
 		}
 	}
 }
@@ -7311,16 +7303,6 @@ void FramebufferTexture3DOES(GLenum target, GLenum attachment, GLenum textarget,
 		return error(GL_INVALID_ENUM);
 	}
 
-	switch(attachment)
-	{
-	case GL_COLOR_ATTACHMENT0:
-	case GL_DEPTH_ATTACHMENT:
-	case GL_STENCIL_ATTACHMENT:
-		break;
-	default:
-		return error(GL_INVALID_ENUM);
-	}
-
 	es2::Context *context = es2::getContext();
 
 	if(context)
@@ -7412,6 +7394,8 @@ void FramebufferTexture3DOES(GLenum target, GLenum attachment, GLenum textarget,
 			break;
 		case GL_DEPTH_ATTACHMENT:   framebuffer->setDepthbuffer(textarget, texture);   break;
 		case GL_STENCIL_ATTACHMENT: framebuffer->setStencilbuffer(textarget, texture); break;
+		default:
+			return error(GL_INVALID_ENUM);
 		}
 	}
 }
