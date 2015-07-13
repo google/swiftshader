@@ -166,7 +166,7 @@ def main():
         else:
             objs.append(arg)
 
-    # Add szrt_sb_x8632.o or szrt_native_x8632.o.
+    # Add szrt_sb_${target}.o or szrt_native_${target}.o.
     objs.append((
             '{root}/toolchain_build/src/subzero/build/runtime/' +
             'szrt_{sb}_' + args.target + '.o'
@@ -176,12 +176,14 @@ def main():
     compiler = '{bin}/{prefix}{cc}'.format(
         bin=bindir, prefix='pnacl-' if args.sandbox else '',
         cc='clang' if pure_c else 'clang++')
-    sb_native_args = (['-O0', '--pnacl-allow-native', '-arch', 'x8632',
+    sb_native_args = (['-O0', '--pnacl-allow-native',
+                       '-arch', target_info.target,
                        '-Wn,-defsym=__Sz_AbsoluteZero=0']
                       if args.sandbox else
                       ['-g', '-target=' + triple,
                        '-lm', '-lpthread',
-                       '-Wl,--defsym=__Sz_AbsoluteZero=0'])
+                       '-Wl,--defsym=__Sz_AbsoluteZero=0'] +
+                      target_info.cross_headers)
     shellcmd([compiler, args.driver] + objs +
              ['-o', os.path.join(args.dir, args.output)] + sb_native_args)
 

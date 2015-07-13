@@ -329,7 +329,9 @@ check-xtest: $(OBJDIR)/pnacl-sz make_symlink runtime
 	  -i x8632,native,sse2 -i x8632,native,sse4.1,test_vector_ops \
 	  -i x8632,sandbox,sse4.1,Om1 \
 	  -i arm32,native,neon,Om1,simple_loop \
-	  -i arm32,native,neon,Om1,test_stacksave
+	  -i arm32,native,neon,Om1,mem_intrin \
+	  -i arm32,native,neon,Om1,test_stacksave \
+	  -i arm32,native,neon,Om1,test_strengthreduce
 	PNACL_BIN_PATH=$(PNACL_BIN_PATH) \
 	$(LLVM_SRC_PATH)/utils/lit/lit.py -sv crosstest/Output
 endif
