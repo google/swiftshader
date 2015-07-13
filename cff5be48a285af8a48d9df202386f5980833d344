@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "78753eb8_47795e6d",
+        "filename": "src/Renderer/Renderer.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-07-13T14:22:27Z",
+      "side": 1,
+      "message": "Is this really used? primitiveUnit corresponds to a buffer of temporary storage for processed primitives (i.e. three processed vertices, the gradient information, and the outline). Depth clear does not require any temporary storage.",
+      "range": {
+        "startLine": 263,
+        "startChar": 3,
+        "endLine": 263,
+        "endChar": 29
+      },
+      "revId": "cff5be48a285af8a48d9df202386f5980833d344",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "78753eb8_075b6602",
+        "filename": "src/Renderer/Renderer.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 448,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-07-13T14:22:27Z",
+      "side": 1,
+      "message": "Having separate queues for clear operations seems to allow for them to be executed in a different order than they\u0027ve been issued in relation to draw calls. I noticed that in the scheduler you process clear operations before taking new draw calls, so this could lead to draw calls that originally had their result cleared, to be executed after the clear.\n\nInstead you could use the same queues here for both draw calls and clear calls to remain in order.",
+      "range": {
+        "startLine": 447,
+        "startChar": 0,
+        "endLine": 448,
+        "endChar": 34
+      },
+      "revId": "cff5be48a285af8a48d9df202386f5980833d344",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
