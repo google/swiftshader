@@ -13,16 +13,50 @@
 #define sw_QuadRasterizer_hpp
 
 #include "Rasterizer.hpp"
-#include "PixelRoutine.hpp"
+#include "ShaderCore.hpp"
+#include "PixelShader.hpp"
+
+#include "Types.hpp"
 
 namespace sw
 {
-	class QuadRasterizer : public PixelRoutine
+	class QuadRasterizer : public Rasterizer
 	{
-	public:
-		QuadRasterizer(const PixelProcessor::State &state, const PixelShader *pixelShader);
+	protected:
+		QuadRasterizer(const PixelProcessor::State &state, const PixelShader *shader);
 
 		virtual ~QuadRasterizer();
+
+		struct Registers
+		{
+			Registers();
+
+			Pointer<Byte> constants;
+
+			Pointer<Byte> primitive;
+			Int cluster;
+			Pointer<Byte> data;
+
+			Float4 Dz[4];
+			Float4 Dw;
+			Float4 Dv[10][4];
+			Float4 Df;
+
+			UInt occlusion;
+
+#if PERF_PROFILE
+			Long cycles[PERF_TIMERS];
+#endif
+		};
+
+		virtual void quad(Registers &r, Pointer<Byte> cBuffer[4], Pointer<Byte> &zBuffer, Pointer<Byte> &sBuffer, Int cMask[4], Int &x, Int &y) = 0;
+		virtual Registers* createRegisters(const PixelShader *shader) = 0;
+
+		bool interpolateZ() const;
+		bool interpolateW() const;
+		Float4 interpolate(Float4 &x, Float4 &D, Float4 &rhw, Pointer<Byte> planeEquation, bool flat, bool perspective);
+
+		const PixelShader *const shader;
 
 	private:
 		void generate();

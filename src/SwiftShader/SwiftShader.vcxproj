@@ -321,6 +321,8 @@
     <ClCompile Include="..\Main\FrameBufferWin.cpp" />
     <ClCompile Include="..\Main\Register.cpp" />
     <ClCompile Include="..\Shader\Constants.cpp" />
+    <ClCompile Include="..\Shader\PixelPipeline.cpp" />
+    <ClCompile Include="..\Shader\PixelProgram.cpp" />
     <ClCompile Include="..\Shader\PixelRoutine.cpp" />
     <ClCompile Include="..\Shader\PixelShader.cpp" />
     <ClCompile Include="..\Shader\SamplerCore.cpp" />
@@ -390,6 +392,8 @@
     <ClInclude Include="..\Main\FrameBufferWin.hpp" />
     <ClInclude Include="..\Main\Register.hpp" />
     <ClInclude Include="..\Renderer\RoutineCache.hpp" />
+    <ClInclude Include="..\Shader\PixelPipeline.hpp" />
+    <ClInclude Include="..\Shader\PixelProgram.hpp" />
     <ClInclude Include="MemoryManager.hpp" />
     <ClInclude Include="..\Shader\Constants.hpp" />
     <ClInclude Include="..\Shader\PixelRoutine.hpp" />

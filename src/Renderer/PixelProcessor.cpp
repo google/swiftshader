@@ -11,7 +11,8 @@
 
 #include "PixelProcessor.hpp"
 
-#include "QuadRasterizer.hpp"
+#include "PixelPipeline.hpp"
+#include "PixelProgram.hpp"
 #include "PixelShader.hpp"
 #include "MetaMacro.hpp"
 #include "Surface.hpp"
@@ -1057,7 +1058,16 @@ namespace sw
 
 		if(!routine)
 		{
-			Rasterizer *generator = new QuadRasterizer(state, context->pixelShader);
+			const bool integerPipeline = (context->pixelShaderVersion() <= 0x0104);
+			Rasterizer *generator = nullptr;
+			if(integerPipeline)
+			{
+				generator = new PixelPipeline(state, context->pixelShader);
+			}
+			else
+			{
+				generator = new PixelProgram(state, context->pixelShader);
+			}
 			generator->generate();
 			routine = generator->getRoutine();
 			delete generator;

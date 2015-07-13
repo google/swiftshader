@@ -55,6 +55,8 @@ LOCAL_SRC_FILES += \
 
 LOCAL_SRC_FILES += \
 	Shader/Constants.cpp \
+	Shader/PixelPipeline.cpp \
+	Shader/PixelProgram.cpp \
 	Shader/PixelRoutine.cpp \
 	Shader/PixelShader.cpp \
 	Shader/SamplerCore.cpp \

@@ -21,10 +21,23 @@ namespace sw
 {
 	extern bool veryEarlyDepthTest;
 	extern bool complementaryDepthBuffer;
+	extern bool fullPixelPositionRegister;
 
 	extern int clusterCount;
 
-	QuadRasterizer::QuadRasterizer(const PixelProcessor::State &state, const PixelShader *pixelShader) : PixelRoutine(state, pixelShader)
+	QuadRasterizer::Registers::Registers()
+	{
+		occlusion = 0;
+
+#if PERF_PROFILE
+		for(int i = 0; i < PERF_TIMERS; i++)
+		{
+			cycles[i] = 0;
+		}
+#endif
+	}
+
+	QuadRasterizer::QuadRasterizer(const PixelProcessor::State &state, const PixelShader *pixelShader) : Rasterizer(state), shader(pixelShader)
 	{
 	}
 
@@ -45,7 +58,7 @@ namespace sw
 			Int cluster(function.arg(2));
 			Pointer<Byte> data(function.arg(3));
 
-			Registers r(shader);
+			Registers& r = *createRegisters(shader);
 			r.constants = *Pointer<Pointer<Byte> >(data + OFFSET(DrawData,constants));
 			r.cluster = cluster;
 			r.data = data;
@@ -89,6 +102,8 @@ namespace sw
 			#endif
 
 			Return();
+
+			delete &r;
 		}
 
 		routine = function(L"PixelRoutine_%0.8X", state.shaderID);
@@ -316,5 +331,32 @@ namespace sw
 			y += 2 * clusterCount;
 		}
 		Until(y >= yMax)
+	}
+
+	Float4 QuadRasterizer::interpolate(Float4 &x, Float4 &D, Float4 &rhw, Pointer<Byte> planeEquation, bool flat, bool perspective)
+	{
+		Float4 interpolant = D;
+
+		if(!flat)
+		{
+			interpolant += x * *Pointer<Float4>(planeEquation + OFFSET(PlaneEquation, A), 16);
+
+			if(perspective)
+			{
+				interpolant *= rhw;
+			}
+		}
+
+		return interpolant;
+	}
+
+	bool QuadRasterizer::interpolateZ() const
+	{
+		return state.depthTestActive || state.pixelFogActive() || (shader && shader->vPosDeclared && fullPixelPositionRegister);
+	}
+
+	bool QuadRasterizer::interpolateW() const
+	{
+		return state.perspective || (shader && shader->vPosDeclared && fullPixelPositionRegister);
 	}
 }

@@ -233,6 +233,10 @@
 		<Unit filename="../../Renderer/VertexProcessor.hpp" />
 		<Unit filename="../../Shader/Constants.cpp" />
 		<Unit filename="../../Shader/Constants.hpp" />
+		<Unit filename="../../Shader/PixelPipeline.cpp" />
+		<Unit filename="../../Shader/PixelPipeline.hpp" />
+		<Unit filename="../../Shader/PixelProgram.cpp" />
+		<Unit filename="../../Shader/PixelProgram.hpp" />
 		<Unit filename="../../Shader/PixelRoutine.cpp" />
 		<Unit filename="../../Shader/PixelRoutine.hpp" />
 		<Unit filename="../../Shader/PixelShader.cpp" />
