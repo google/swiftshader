@@ -1,5 +1,3 @@
-// HelloTriangle.cpp : Defines the entry point for the console application.
-//
 #include "opencl.h"
 #include <stdio.h>
 #include <tchar.h>
