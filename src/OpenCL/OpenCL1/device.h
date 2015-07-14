@@ -4,11 +4,13 @@
 #ifndef __CPU_DEVICE_H__
 #define __CPU_DEVICE_H__
 
+#define MAX_THREAD_AMOUNT 16
+
 #include <list>
 
 #include "opencl.h"
 #include "device_interface.h"
-#include "pthread.h"
+#include "Resource.hpp"
 
 namespace Devices
 {
@@ -43,18 +45,16 @@ public:
 	void pushEvent(Event *event);
 	Event *getEvent(bool &stop);
 
-	unsigned int numCPUs() const;   /*!< \brief Number of logical CPU cores on the system */
 	float cpuMhz() const;           /*!< \brief Speed of the CPU in Mhz */
 
 private:
-	unsigned int p_cores, p_num_events;
+	unsigned int p_num_events;
 	float p_cpu_mhz;
-	pthread_t *p_workers;
-
+	sw::Thread *p_workers[MAX_THREAD_AMOUNT];
+	sw::Resource *eventListResource;
+	sw::Event *p_events_cond;
 	std::list<Event *> p_events;
-	pthread_cond_t p_events_cond;
-	pthread_mutex_t p_events_mutex;
-	bool p_stop, p_initialized;
+	bool p_stop;
 };
 
 //class GPUDevice : public DeviceInterface
