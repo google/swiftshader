@@ -178,6 +178,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\CPUID.hpp" />
+    <ClInclude Include="..\..\Common\Memory.hpp" />
     <ClInclude Include="..\..\Common\Resource.hpp" />
     <ClInclude Include="..\..\Common\Thread.hpp" />
     <ClInclude Include="buffer.h" />
@@ -205,6 +206,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Common\CPUID.cpp" />
+    <ClCompile Include="..\..\Common\Memory.cpp" />
     <ClCompile Include="..\..\Common\Resource.cpp" />
     <ClCompile Include="..\..\Common\Thread.cpp" />
     <ClCompile Include="buffer.cpp" />

@@ -7,9 +7,9 @@
 
 #include <cstring>
 #include <cstdlib>
-#include <ctime>
 #include <iostream>
 #include <Windows.h>
+#include <winsock.h>
 
 using namespace Devices;
 
@@ -550,7 +550,7 @@ getFILETIMEoffset()
 }
 
 int
-clock_gettime(int X, struct timeval *tv)
+clock_gettime(int X, timeval *tv)
 {
 	LARGE_INTEGER           t;
 	FILETIME            f;
@@ -584,6 +584,7 @@ clock_gettime(int X, struct timeval *tv)
 	t.QuadPart -= offset.QuadPart;
 	microseconds = (double)t.QuadPart / frequencyToMicroseconds;
 	t.QuadPart = microseconds;
+	
 	tv->tv_sec = t.QuadPart / 1000000;
 	tv->tv_usec = t.QuadPart % 1000000;
 	return (0);
