@@ -6,13 +6,13 @@
 #include "program.h"
 #include "worker.h"
 #include "builtins.h"
-
 #include "propertylist.h"
 #include "commandqueue.h"
 #include "events.h"
 #include "memobject.h"
-#include "kernel.h"
-#include "program.h"
+
+#include "Thread.hpp"
+#include "CPUID.hpp"
 
 #include <cstring>
 #include <cstdlib>
@@ -24,84 +24,48 @@
 using namespace Devices;
 
 CPUDevice::CPUDevice()
-	: DeviceInterface(), p_cores(0), p_num_events(0), p_workers(0), p_stop(false),
-	p_initialized(false)
+	: DeviceInterface(), p_num_events(0), p_stop(false)
 {
 
 }
 
 void CPUDevice::init()
 {
-	if(p_initialized)
-		return;
-
 	// Initialize the locking machinery
-	pthread_cond_init(&p_events_cond, 0);
-	pthread_mutex_init(&p_events_mutex, 0);
-
-	//TODO
-	// Get info about the system
-	/*p_cores = sysconf(_SC_NPROCESSORS_ONLN);
-	p_cpu_mhz = 0.0f;
-
-	std::filebuf fb;
-	fb.open("/proc/cpuinfo", std::ios::in);
-	std::istream is(&fb);
-
-	while(!is.eof())
-	{
-		std::string key, value;
-
-		std::getline(is, key, ':');
-		is.ignore(1);
-		std::getline(is, value);
-
-		if(key.compare(0, 7, "cpu MHz") == 0)
-		{
-			std::istringstream ss(value);
-			ss >> p_cpu_mhz;
-			break;
-		}
-	}*/
-
+	p_event = new sw::Event();
+	
 	//TODO CHANGE pcore value to real
-	p_cores = 1;
 	p_cpu_mhz = 3200;
-	// Create worker threads
-	p_workers = (pthread_t *)std::malloc(numCPUs() * sizeof(pthread_t));
 
-	for(unsigned int i = 0; i<numCPUs(); ++i)
+	// Create worker threads
+	for(unsigned int i = 0; i < sw::CPUID::coreCount(); ++i)
 	{
-		pthread_create(&p_workers[i], 0, &worker, this);
+		p_workers[i] = new sw::Thread(worker, NULL);
 	}
 
-	p_initialized = true;
+	eventListResource = new sw::Resource(0);
 }
 
 CPUDevice::~CPUDevice()
 {
-	if(!p_initialized)
-		return;
-
-	// Terminate the workers and wait for them
-	pthread_mutex_lock(&p_events_mutex);
-
 	p_stop = true;
 
-	pthread_cond_broadcast(&p_events_cond);
-	pthread_mutex_unlock(&p_events_mutex);
-
-	//TODO
-	for(unsigned int i = 0; i<numCPUs(); ++i)
+	for(int thread = 0; thread < sw::CPUID::coreCount(); thread++)
 	{
-		pthread_join(p_workers[i], 0);
+		if(p_workers[thread])
+		{
+			p_workers[thread]->join();
+
+			delete p_workers[thread];
+			p_workers[thread] = 0;
+		}
 	}
 
-	// Free allocated memory
-	std::free((void *)p_workers);
-	pthread_mutex_destroy(&p_events_mutex);
-	p_events_cond = NULL;
-	//pthread_cond_destroy(&p_events_cond);
+	delete p_event;
+
+	eventListResource->lock(sw::DESTRUCT);
+	eventListResource->unlock();
+	eventListResource->destruct();
 }
 
 DeviceBuffer *CPUDevice::createDeviceBuffer(MemObject *buffer, cl_int *rs)
@@ -203,28 +167,24 @@ void CPUDevice::freeEventDeviceData(Event *event)
 
 void CPUDevice::pushEvent(Event *event)
 {
-	// Add an event in the list
-	pthread_mutex_lock(&p_events_mutex);
+	eventListResource->lock(sw::PRIVATE);
 
 	p_events.push_back(event);
-	p_num_events++;                 // Way faster than STL list::size() !
+	p_num_events++;
 
-	pthread_cond_broadcast(&p_events_cond);
-	pthread_mutex_unlock(&p_events_mutex);
+	eventListResource->unlock();
 }
 
 Event *CPUDevice::getEvent(bool &stop)
 {
+	eventListResource->lock(sw::PRIVATE);
+
 	// Return the first event in the list, if any. Remove it if it is a
 	// single-shot event.
-	pthread_mutex_lock(&p_events_mutex);
-
-	while(p_num_events == 0 && !p_stop)
-		pthread_cond_wait(&p_events_cond, &p_events_mutex);
 
 	if(p_stop)
 	{
-		pthread_mutex_unlock(&p_events_mutex);
+		eventListResource->unlock();
 		stop = true;
 		return 0;
 	}
@@ -247,14 +207,9 @@ Event *CPUDevice::getEvent(bool &stop)
 		p_events.pop_front();
 	}
 
-	pthread_mutex_unlock(&p_events_mutex);
+	eventListResource->unlock();
 
 	return event;
-}
-
-unsigned int CPUDevice::numCPUs() const
-{
-	return p_cores;
 }
 
 float CPUDevice::cpuMhz() const
@@ -309,7 +264,7 @@ cl_int CPUDevice::info(cl_device_info param_name,
 		break;
 
 	case CL_DEVICE_MAX_COMPUTE_UNITS:
-		SIMPLE_ASSIGN(cl_uint, numCPUs());
+		SIMPLE_ASSIGN(cl_uint, sw::CPUID::coreCount());
 		break;
 
 	case CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS:

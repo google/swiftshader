@@ -95,6 +95,7 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeaderFile />
       <BrowseInformation>true</BrowseInformation>
+      <AdditionalIncludeDirectories>../../Common</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -118,7 +119,7 @@
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
       <BrowseInformation>true</BrowseInformation>
-      <AdditionalIncludeDirectories>C:\Users\mgregoire\Documents\Visual Studio 2013\Projects\SwiftCL\pthread\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -137,6 +138,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;OPENCL1_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>../../Common</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -161,7 +163,7 @@
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <AdditionalIncludeDirectories>C:\Users\mgregoire\Documents\Visual Studio 2013\Projects\SwiftCL\pthread\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -175,6 +177,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Common\CPUID.hpp" />
+    <ClInclude Include="..\..\Common\Resource.hpp" />
+    <ClInclude Include="..\..\Common\Thread.hpp" />
     <ClInclude Include="buffer.h" />
     <ClInclude Include="builtins.h" />
     <ClInclude Include="cl.h" />
@@ -199,6 +204,9 @@
     <ClInclude Include="worker.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Common\CPUID.cpp" />
+    <ClCompile Include="..\..\Common\Resource.cpp" />
+    <ClCompile Include="..\..\Common\Thread.cpp" />
     <ClCompile Include="buffer.cpp" />
     <ClCompile Include="builtins.cpp" />
     <ClCompile Include="commandqueue.cpp" />
