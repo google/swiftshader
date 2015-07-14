@@ -175,9 +175,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="buffer.h" />
     <ClInclude Include="builtins.h" />
     <ClInclude Include="cl.h" />
