@@ -17,7 +17,7 @@
 
 using namespace Devices;
 
-void worker(void *data)
+void *worker(void *data)
 {
 	CPUDevice *device = (CPUDevice *)data;
 	bool stop = false;
@@ -242,4 +242,6 @@ void worker(void *data)
 
 	/*if(mapped_data)
 		munmap(mapped_data, mapped_size);*/
+
+	return 0;
 }

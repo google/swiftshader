@@ -2,12 +2,11 @@
 #define __CPU_KERNEL_H__
 
 #include "device_interface.h"
-#include "CPUID.hpp"
-#include "Resource.hpp"
 
 //#include <llvm/ExecutionEngine/GenericValue.h>
 #include <vector>
 #include <string>
+#include "pthread.h"
 
 #include <stdint.h>
 
@@ -104,7 +103,7 @@ namespace Devices
 		CPUDevice *p_device;
 		Kernel *p_kernel;
 		llvm::Function *p_function, *p_call_function;
-		sw::Resource *p_call_function_mutex;
+		pthread_mutex_t p_call_function_mutex;
 	};
 
 	class CPUKernelEvent;
@@ -287,7 +286,7 @@ namespace Devices
 		size_t p_current_work_group[MAX_WORK_DIMS],
 			p_max_work_groups[MAX_WORK_DIMS];
 		size_t p_current_wg, p_finished_wg, p_num_wg;
-		sw::Resource *p_mutex;
+		pthread_mutex_t p_mutex;
 		void *p_kernel_args;
 	};
 

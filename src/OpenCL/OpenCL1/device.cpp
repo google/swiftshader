@@ -6,13 +6,13 @@
 #include "program.h"
 #include "worker.h"
 #include "builtins.h"
+
 #include "propertylist.h"
 #include "commandqueue.h"
 #include "events.h"
 #include "memobject.h"
-
-#include "Thread.hpp"
-#include "CPUID.hpp"
+#include "kernel.h"
+#include "program.h"
 
 #include <cstring>
 #include <cstdlib>
@@ -24,48 +24,84 @@
 using namespace Devices;
 
 CPUDevice::CPUDevice()
-	: DeviceInterface(), p_num_events(0), p_stop(false)
+	: DeviceInterface(), p_cores(0), p_num_events(0), p_workers(0), p_stop(false),
+	p_initialized(false)
 {
 
 }
 
 void CPUDevice::init()
 {
-	// Initialize the locking machinery
-	p_event = new sw::Event();
-	
-	//TODO CHANGE pcore value to real
-	p_cpu_mhz = 3200;
+	if(p_initialized)
+		return;
 
-	// Create worker threads
-	for(unsigned int i = 0; i < sw::CPUID::coreCount(); ++i)
+	// Initialize the locking machinery
+	pthread_cond_init(&p_events_cond, 0);
+	pthread_mutex_init(&p_events_mutex, 0);
+
+	//TODO
+	// Get info about the system
+	/*p_cores = sysconf(_SC_NPROCESSORS_ONLN);
+	p_cpu_mhz = 0.0f;
+
+	std::filebuf fb;
+	fb.open("/proc/cpuinfo", std::ios::in);
+	std::istream is(&fb);
+
+	while(!is.eof())
 	{
-		p_workers[i] = new sw::Thread(worker, NULL);
+		std::string key, value;
+
+		std::getline(is, key, ':');
+		is.ignore(1);
+		std::getline(is, value);
+
+		if(key.compare(0, 7, "cpu MHz") == 0)
+		{
+			std::istringstream ss(value);
+			ss >> p_cpu_mhz;
+			break;
+		}
+	}*/
+
+	//TODO CHANGE pcore value to real
+	p_cores = 1;
+	p_cpu_mhz = 3200;
+	// Create worker threads
+	p_workers = (pthread_t *)std::malloc(numCPUs() * sizeof(pthread_t));
+
+	for(unsigned int i = 0; i<numCPUs(); ++i)
+	{
+		pthread_create(&p_workers[i], 0, &worker, this);
 	}
 
-	eventListResource = new sw::Resource(0);
+	p_initialized = true;
 }
 
 CPUDevice::~CPUDevice()
 {
+	if(!p_initialized)
+		return;
+
+	// Terminate the workers and wait for them
+	pthread_mutex_lock(&p_events_mutex);
+
 	p_stop = true;
 
-	for(int thread = 0; thread < sw::CPUID::coreCount(); thread++)
-	{
-		if(p_workers[thread])
-		{
-			p_workers[thread]->join();
+	pthread_cond_broadcast(&p_events_cond);
+	pthread_mutex_unlock(&p_events_mutex);
 
-			delete p_workers[thread];
-			p_workers[thread] = 0;
-		}
+	//TODO
+	for(unsigned int i = 0; i<numCPUs(); ++i)
+	{
+		pthread_join(p_workers[i], 0);
 	}
 
-	delete p_event;
-
-	eventListResource->lock(sw::DESTRUCT);
-	eventListResource->unlock();
-	eventListResource->destruct();
+	// Free allocated memory
+	std::free((void *)p_workers);
+	pthread_mutex_destroy(&p_events_mutex);
+	p_events_cond = NULL;
+	//pthread_cond_destroy(&p_events_cond);
 }
 
 DeviceBuffer *CPUDevice::createDeviceBuffer(MemObject *buffer, cl_int *rs)
@@ -167,24 +203,28 @@ void CPUDevice::freeEventDeviceData(Event *event)
 
 void CPUDevice::pushEvent(Event *event)
 {
-	eventListResource->lock(sw::PRIVATE);
+	// Add an event in the list
+	pthread_mutex_lock(&p_events_mutex);
 
 	p_events.push_back(event);
-	p_num_events++;
+	p_num_events++;                 // Way faster than STL list::size() !
 
-	eventListResource->unlock();
+	pthread_cond_broadcast(&p_events_cond);
+	pthread_mutex_unlock(&p_events_mutex);
 }
 
 Event *CPUDevice::getEvent(bool &stop)
 {
-	eventListResource->lock(sw::PRIVATE);
-
 	// Return the first event in the list, if any. Remove it if it is a
 	// single-shot event.
+	pthread_mutex_lock(&p_events_mutex);
+
+	while(p_num_events == 0 && !p_stop)
+		pthread_cond_wait(&p_events_cond, &p_events_mutex);
 
 	if(p_stop)
 	{
-		eventListResource->unlock();
+		pthread_mutex_unlock(&p_events_mutex);
 		stop = true;
 		return 0;
 	}
@@ -207,9 +247,14 @@ Event *CPUDevice::getEvent(bool &stop)
 		p_events.pop_front();
 	}
 
-	eventListResource->unlock();
+	pthread_mutex_unlock(&p_events_mutex);
 
 	return event;
+}
+
+unsigned int CPUDevice::numCPUs() const
+{
+	return p_cores;
 }
 
 float CPUDevice::cpuMhz() const
@@ -264,7 +309,7 @@ cl_int CPUDevice::info(cl_device_info param_name,
 		break;
 
 	case CL_DEVICE_MAX_COMPUTE_UNITS:
-		SIMPLE_ASSIGN(cl_uint, sw::CPUID::coreCount());
+		SIMPLE_ASSIGN(cl_uint, numCPUs());
 		break;
 
 	case CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS:

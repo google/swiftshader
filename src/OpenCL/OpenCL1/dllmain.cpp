@@ -1,16 +1,19 @@
 // dllmain.cpp : Defines the entry point for the DLL application.
-#include "dllmain.h"
-
 #include "windows.h"
 #include "opencl.h"
-#include "Thread.hpp"
 #include "debug.h"
-
 #include <windows.h>
 #include <intrin.h>
 #include <WinUser.h>
+#include "dllmain.h"
 
-static sw::Thread::LocalStorageKey currentTLS = TLS_OUT_OF_INDEXES;
+#if defined(_WIN32)
+typedef DWORD LocalStorageKey;
+#else
+typedef pthread_key_t LocalStorageKey;
+#endif
+
+static LocalStorageKey currentTLS = TLS_OUT_OF_INDEXES;
 
 #if defined(_WIN32)
 #define IDD_DIALOG1                     101

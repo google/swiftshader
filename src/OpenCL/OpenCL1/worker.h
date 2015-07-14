@@ -10,6 +10,6 @@
 * system. As explained by \ref events , this function waits until there
 * are \c Coal::Event objects to process and handle them.
 */
-void worker(void *data);
+void *worker(void *data);
 
 #endif

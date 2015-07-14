@@ -5,7 +5,7 @@
 
 #include "object.h"
 #include "opencl.h"
-#include "Resource.hpp"
+#include "pthread.h"
 
 #include <map>
 #include <list>
@@ -148,8 +148,8 @@ namespace Devices
 		cl_command_queue_properties p_properties;
 
 		std::list<Event *> p_events;
-		sw::Resource *p_event_list_mutex;
-		sw::Event *p_event_list_cond;
+		pthread_mutex_t p_event_list_mutex;
+		pthread_cond_t p_event_list_cond;
 		bool p_flushed;
 	};
 
@@ -359,8 +359,8 @@ namespace Devices
 		cl_uint p_num_events_in_wait_list;
 		const Event **p_event_wait_list;
 
-		sw::Event *p_state_change_cond;
-		sw::Resource *p_state_mutex;
+		pthread_cond_t p_state_change_cond;
+		pthread_mutex_t p_state_mutex;
 
 		Status p_status;
 		void *p_device_data;
