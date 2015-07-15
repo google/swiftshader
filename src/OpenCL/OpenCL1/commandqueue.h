@@ -7,6 +7,7 @@
 #include "opencl.h"
 #include "Resource.hpp"
 
+#include <mutex>
 #include <map>
 #include <list>
 
@@ -148,7 +149,7 @@ namespace Devices
 		cl_command_queue_properties p_properties;
 
 		std::list<Event *> p_events;
-		sw::Resource *p_event_list_mutex;
+		std::mutex p_event_list_mutex;
 		sw::Event *p_event_list_cond;
 		bool p_flushed;
 	};
@@ -360,7 +361,7 @@ namespace Devices
 		const Event **p_event_wait_list;
 
 		sw::Event *p_state_change_cond;
-		sw::Resource *p_state_mutex;
+		std::mutex p_state_mutex;
 
 		Status p_status;
 		void *p_device_data;

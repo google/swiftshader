@@ -25,7 +25,6 @@ CommandQueue::CommandQueue(Context *ctx,
 	p_properties(properties), p_flushed(true)
 {
 	// Initialize the locking machinery
-	p_event_list_mutex = new sw::Resource(0);
 	p_event_list_cond = new sw::Event();
 
 	// Check that the device belongs to the context
@@ -40,11 +39,6 @@ CommandQueue::CommandQueue(Context *ctx,
 
 CommandQueue::~CommandQueue()
 {
-	// Free the mutex
-	p_event_list_mutex->lock(sw::DESTRUCT);
-	p_event_list_mutex->unlock();
-	p_event_list_mutex->destruct();
-	
 	p_event_list_cond->signal();
 	delete p_event_list_cond;
 }
@@ -143,12 +137,12 @@ cl_int CommandQueue::checkProperties() const
 void CommandQueue::flush()
 {
 	// Wait for the command queue to be in state "flushed".
-	p_event_list_mutex->lock(sw::PRIVATE);
+	p_event_list_mutex.lock();
 
 	while(!p_flushed)
 		p_event_list_cond->wait();
 
-	p_event_list_mutex->unlock();
+	p_event_list_mutex.unlock();
 }
 
 void CommandQueue::finish()
@@ -159,12 +153,12 @@ void CommandQueue::finish()
 
 	// All the queued events must have completed. When they are, they get
 	// deleted from the command queue, so simply wait for it to become empty.
-	p_event_list_mutex->lock(sw::PRIVATE);
+	p_event_list_mutex.lock();
 
 	while(p_events.size() != 0)
 		p_event_list_cond->wait();
 
-	p_event_list_mutex->unlock();
+	p_event_list_mutex.unlock();
 }
 
 cl_int CommandQueue::queueEvent(Event *event)
@@ -177,12 +171,12 @@ cl_int CommandQueue::queueEvent(Event *event)
 		return rs;
 
 	// Append the event at the end of the list
-	p_event_list_mutex->lock(sw::PRIVATE);
+	p_event_list_mutex.lock();
 
 	p_events.push_back(event);
 	p_flushed = false;
 
-	p_event_list_mutex->unlock();
+	p_event_list_mutex.unlock();
 
 	// Timing info if needed
 	if(p_properties & CL_QUEUE_PROFILING_ENABLE)
@@ -196,7 +190,7 @@ cl_int CommandQueue::queueEvent(Event *event)
 
 void CommandQueue::cleanEvents()
 {
-	p_event_list_mutex->lock(sw::PRIVATE);
+	p_event_list_mutex.lock();
 
 	std::list<Event *>::iterator it = p_events.begin(), oldit;
 
@@ -224,7 +218,7 @@ void CommandQueue::cleanEvents()
 	if(p_events.size() == 0)
 		p_event_list_cond->signal();
 
-	p_event_list_mutex->unlock();
+	p_event_list_mutex.unlock();
 
 	// Check now if we have to be deleted
 	if(references() == 0)
@@ -233,7 +227,7 @@ void CommandQueue::cleanEvents()
 
 void CommandQueue::pushEventsOnDevice()
 {
-	p_event_list_mutex->lock(sw::PRIVATE);
+	p_event_list_mutex.lock();
 	// Explore the events in p_events and push on the device all of them that
 	// are :
 	//
@@ -332,7 +326,7 @@ void CommandQueue::pushEventsOnDevice()
 			// Set the event as completed. This will call pushEventsOnDevice,
 			// again, so release the lock to avoid a deadlock. We also return
 			// because the recursive call will continue our work.
-			p_event_list_mutex->unlock();
+			p_event_list_mutex.unlock();
 			event->setStatus(Event::Complete);
 			return;
 		}
@@ -341,14 +335,14 @@ void CommandQueue::pushEventsOnDevice()
 	if(p_flushed)
 		p_event_list_cond->signal();
 
-	p_event_list_mutex->unlock();
+	p_event_list_mutex.unlock();
 }
 
 Event **CommandQueue::events(unsigned int &count)
 {
 	Event **result;
 
-	p_event_list_mutex->lock(sw::PRIVATE);
+	p_event_list_mutex.lock();
 
 	count = p_events.size();
 	result = (Event **)std::malloc(count * sizeof(Event *));
@@ -369,7 +363,7 @@ Event **CommandQueue::events(unsigned int &count)
 	// Now result contains an immutable list of events. Even if the events
 	// become completed in another thread while result is used, the events
 	// are retained and so guaranteed to remain valid.
-	p_event_list_mutex->unlock();
+	p_event_list_mutex.unlock();
 
 	return result;
 }
@@ -389,7 +383,6 @@ Event::Event(CommandQueue *parent,
 {
 	// Initialize the locking machinery
 	p_state_change_cond = new sw::Event();
-	p_state_mutex = new sw::Resource(0);
 
 	std::memset(&p_timing, 0, sizeof(p_timing));
 
@@ -465,11 +458,6 @@ Event::~Event()
 	if(p_event_wait_list)
 		std::free((void *)p_event_wait_list);
 
-	// Free the mutex
-	p_state_mutex->lock(sw::DESTRUCT);
-	p_state_mutex->unlock();
-	p_state_mutex->destruct();
-
 	p_state_change_cond->signal();
 	delete p_state_change_cond;
 }
@@ -495,7 +483,7 @@ bool Event::isDummy() const
 void Event::setStatus(Status status)
 {
 	// TODO: If status < 0, terminate all the events depending on us.
-	p_state_mutex->lock(sw::PRIVATE);
+	p_state_mutex.lock();
 	p_status = status;
 
 	p_state_change_cond->signal();
@@ -513,7 +501,7 @@ void Event::setStatus(Status status)
 		data.callback((cl_event)this, p_status, data.user_data);
 	}
 
-	p_state_mutex->unlock();
+	p_state_mutex.unlock();
 
 	// If the event is completed, inform our parent so it can push other events
 	// to the device.
@@ -602,12 +590,12 @@ void Event::updateTiming(Timing timing)
 	if(timing >= Max)
 		return;
 
-	p_state_mutex->lock(sw::PRIVATE);
+	p_state_mutex.lock();
 
 	// Don't update more than one time (NDRangeKernel for example)
 	if(p_timing[timing])
 	{
-		p_state_mutex->unlock();
+		p_state_mutex.unlock();
 		return;
 	}
 
@@ -629,7 +617,7 @@ void Event::updateTiming(Timing timing)
 
 	p_timing[timing] = rs;
 
-	p_state_mutex->unlock();
+	p_state_mutex.unlock();
 }
 
 Event::Status Event::status() const
@@ -637,25 +625,25 @@ Event::Status Event::status() const
 	// HACK : We need const qualifier but we also need to lock a mutex
 	Event *me = (Event *)(void *)this;
 
-	me->p_state_mutex->lock(sw::PRIVATE);
+	me->p_state_mutex.lock();
 
 	Status ret = p_status;
 
-	me->p_state_mutex->unlock();
+	me->p_state_mutex.unlock();
 
 	return ret;
 }
 
 void Event::waitForStatus(Status status)
 {
-	p_state_mutex->lock(sw::PRIVATE);
+	p_state_mutex.lock();
 
 	while(p_status != status && p_status > 0)
 	{
 		p_state_change_cond->signal();
 	}
 
-	p_state_mutex->unlock();
+	p_state_mutex.unlock();
 }
 
 void *Event::deviceData()
@@ -678,13 +666,13 @@ void Event::setCallback(cl_int command_exec_callback_type,
 	data.callback = callback;
 	data.user_data = user_data;
 
-	p_state_mutex->lock(sw::PRIVATE);
+	p_state_mutex.lock();
 
 	p_callbacks.insert(std::pair<Status, CallbackData>(
 		(Status)command_exec_callback_type,
 		data));
 
-	p_state_mutex->unlock();
+	p_state_mutex.unlock();
 }
 
 cl_int Event::info(cl_event_info param_name,
@@ -772,9 +760,8 @@ cl_int Event::profilingInfo(cl_profiling_info param_name,
 	if((queue_props & CL_QUEUE_PROFILING_ENABLE) == 0)
 		return CL_PROFILING_INFO_NOT_AVAILABLE;
 
-	//TODO: fix this
-	/*if(status() != Event::Complete)
-		return CL_PROFILING_INFO_NOT_AVAILABLE;*/
+	if(status() != Event::Complete)
+		return CL_PROFILING_INFO_NOT_AVAILABLE;
 
 	void *value = 0;
 	size_t value_length = 0;
