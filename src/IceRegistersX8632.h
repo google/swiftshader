@@ -42,7 +42,7 @@ public:
   enum GPRRegister {
 #define X(val, encode, name, name16, name8, scratch, preserved, stackptr,      \
           frameptr, isI8, isInt, isFP)                                         \
-  Encoded_##val encode,
+  Encoded_##val = encode,
     REGX8632_GPR_TABLE
 #undef X
         Encoded_Not_GPR = -1
@@ -53,7 +53,7 @@ public:
   enum XmmRegister {
 #define X(val, encode, name, name16, name8, scratch, preserved, stackptr,      \
           frameptr, isI8, isInt, isFP)                                         \
-  Encoded_##val encode,
+  Encoded_##val = encode,
     REGX8632_XMM_TABLE
 #undef X
         Encoded_Not_Xmm = -1
