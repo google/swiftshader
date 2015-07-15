@@ -24,7 +24,7 @@
 using namespace Devices;
 
 CPUDevice::CPUDevice()
-	: DeviceInterface(), p_num_events(0), p_stop(false)
+	: DeviceInterface(), p_num_events(0), p_stop(false), initialized(false)
 {
 
 }
@@ -33,7 +33,6 @@ void CPUDevice::init()
 {
 	// Initialize the locking machinery
 	p_events_cond = new sw::Event();
-	eventListResource = new sw::Resource(0);
 
 	//TODO CHANGE pcore value to real
 	p_cpu_mhz = 3200;
@@ -43,11 +42,20 @@ void CPUDevice::init()
 	{
 		p_workers[i] = new sw::Thread(worker, this);
 	}
+
+	initialized = true;
 }
 
 CPUDevice::~CPUDevice()
 {
+	if(!initialized)
+		return;
+
+	p_events_cond->signal();
+
 	p_stop = true;
+
+	delete p_events_cond;
 
 	for(int thread = 0; thread < sw::CPUID::coreCount(); thread++)
 	{
@@ -58,14 +66,7 @@ CPUDevice::~CPUDevice()
 			delete p_workers[thread];
 			p_workers[thread] = 0;
 		}
-	}
-
-	p_events_cond->signal();
-	delete p_events_cond;
-
-	eventListResource->lock(sw::DESTRUCT);
-	eventListResource->unlock();
-	eventListResource->destruct();
+	}	
 }
 
 DeviceBuffer *CPUDevice::createDeviceBuffer(MemObject *buffer, cl_int *rs)
@@ -167,27 +168,27 @@ void CPUDevice::freeEventDeviceData(Event *event)
 
 void CPUDevice::pushEvent(Event *event)
 {
-	eventListResource->lock(sw::PRIVATE);
+	eventListResource.lock();
 
 	p_events.push_back(event);
 	p_num_events++;
 	p_events_cond->signal();
 
-	eventListResource->unlock();
+	eventListResource.unlock();
 }
 
 Event *CPUDevice::getEvent(bool &stop)
 {
-	eventListResource->lock(sw::PRIVATE);
-
 	// Return the first event in the list, if any. Remove it if it is a
 	// single-shot event.
 	while(p_num_events == 0 && !p_stop)
 		p_events_cond->wait();
 
+	eventListResource.lock();
+
 	if(p_stop)
 	{
-		eventListResource->unlock();
+		eventListResource.unlock();
 		stop = true;
 		return 0;
 	}
@@ -210,7 +211,7 @@ Event *CPUDevice::getEvent(bool &stop)
 		p_events.pop_front();
 	}
 
-	eventListResource->unlock();
+	eventListResource.unlock();
 
 	return event;
 }

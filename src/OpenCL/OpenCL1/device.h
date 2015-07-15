@@ -7,6 +7,7 @@
 #define MAX_THREAD_AMOUNT 16
 
 #include <list>
+#include <mutex>
 
 #include "opencl.h"
 #include "device_interface.h"
@@ -51,10 +52,10 @@ private:
 	unsigned int p_num_events;
 	float p_cpu_mhz;
 	sw::Thread *p_workers[MAX_THREAD_AMOUNT];
-	sw::Resource *eventListResource;
+	std::mutex eventListResource;
 	sw::Event *p_events_cond;
 	std::list<Event *> p_events;
-	bool p_stop;
+	bool p_stop, initialized;
 };
 
 //class GPUDevice : public DeviceInterface
