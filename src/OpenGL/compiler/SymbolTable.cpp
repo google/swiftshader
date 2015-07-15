@@ -26,8 +26,9 @@
 int TSymbolTableLevel::uniqueId = 0;
 
 TType::TType(const TPublicType &p) :
-    type(p.type), precision(p.precision), primarySize(p.primarySize), secondarySize(p.secondarySize), qualifier(p.qualifier), array(p.array), arraySize(p.arraySize),
-    maxArraySize(0), arrayInformationType(0), structure(0), deepestStructNesting(0), mangled(0)
+    type(p.type), precision(p.precision), qualifier(p.qualifier), invariant(false), layoutQualifier(TLayoutQualifier::create()),
+    primarySize(p.primarySize), secondarySize(p.secondarySize), array(p.array), arraySize(p.arraySize), maxArraySize(0),
+    arrayInformationType(0), interfaceBlock(0), structure(0), deepestStructNesting(0), mangled(0)
 {
     if (p.userDef)
     {

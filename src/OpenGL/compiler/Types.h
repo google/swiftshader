@@ -345,6 +345,11 @@ public:
 		}
 	}
 
+	int registerSize() const
+	{
+		return isMatrix() ? secondarySize : primarySize;
+	}
+
 	bool isMatrix() const { return secondarySize > 1; }
 	void setSecondarySize(int s1) { secondarySize = s1; }
 	int getSecondarySize() const { return secondarySize; }

@@ -278,6 +278,19 @@ namespace es2
 		return 0;
 	}
 
+	int VariableRegisterCount(GLenum type)
+	{
+		// Number of registers used is the number of columns for matrices or 1 for scalars and vectors
+		return (VariableRowCount(type) > 1) ? VariableColumnCount(type) : 1;
+	}
+
+	int VariableRegisterSize(GLenum type)
+	{
+		// Number of components per register is the number of rows for matrices or columns for scalars and vectors
+		int nbRows = VariableRowCount(type);
+		return (nbRows > 1) ? nbRows : VariableColumnCount(type);
+	}
+
 	int AllocateFirstFreeBits(unsigned int *bits, unsigned int allocationSize, unsigned int bitsSize)
 	{
 		ASSERT(allocationSize <= bitsSize);

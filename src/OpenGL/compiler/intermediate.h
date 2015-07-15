@@ -321,6 +321,7 @@ public:
 
 	int totalRegisterCount() const { return type.totalRegisterCount(); }
 	int elementRegisterCount() const { return type.elementRegisterCount(); }
+	int registerSize() const { return type.registerSize(); }
 	int getArraySize() const { return type.getArraySize(); }
 
 protected:
