@@ -8,6 +8,7 @@
 //#include <llvm/ExecutionEngine/GenericValue.h>
 #include <vector>
 #include <string>
+#include <mutex>
 
 #include <stdint.h>
 
@@ -287,7 +288,7 @@ namespace Devices
 		size_t p_current_work_group[MAX_WORK_DIMS],
 			p_max_work_groups[MAX_WORK_DIMS];
 		size_t p_current_wg, p_finished_wg, p_num_wg;
-		sw::Resource *p_mutex;
+		std::mutex p_mutex;
 		void *p_kernel_args;
 	};
 

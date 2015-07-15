@@ -150,7 +150,7 @@ size_t CPUKernel::typeOffset(size_t &offset, size_t type_len)
 
 llvm::Function *CPUKernel::callFunction()
 {
-	p_call_function_mutex->lock(sw::PRIVATE);
+	p_call_function_mutex->lock(sw::PUBLIC);
 
 	// If we can reuse the same function between work groups, do it
 	if(p_call_function)
@@ -276,9 +276,6 @@ CPUKernelEvent::CPUKernelEvent(CPUDevice *device, KernelEvent *event)
 	: p_device(device), p_event(event), p_current_wg(0), p_finished_wg(0),
 	p_kernel_args(0)
 {
-	// Mutex
-	p_mutex = new sw::Resource(0);
-
 	// Set current work group to (0, 0, ..., 0)
 	std::memset(p_current_work_group, 0, event->work_dim() * sizeof(size_t));
 
@@ -296,9 +293,6 @@ CPUKernelEvent::CPUKernelEvent(CPUDevice *device, KernelEvent *event)
 
 CPUKernelEvent::~CPUKernelEvent()
 {
-	p_mutex->lock(sw::DESTRUCT);
-	p_mutex->unlock();
-	p_mutex->destruct();
 
 	if(p_kernel_args)
 		std::free(p_kernel_args);
@@ -307,7 +301,7 @@ CPUKernelEvent::~CPUKernelEvent()
 bool CPUKernelEvent::reserve()
 {
 	// Lock, this will be unlocked in takeInstance()
-	p_mutex->lock(sw::PRIVATE);
+	p_mutex.lock();
 
 	// Last work group if current == max - 1
 	return (p_current_wg == p_num_wg - 1);
@@ -317,22 +311,22 @@ bool CPUKernelEvent::finished()
 {
 	bool rs;
 	
-	p_mutex->lock(sw::PRIVATE);
+	p_mutex.lock();
 
 	rs = (p_finished_wg == p_num_wg);
 
-	p_mutex->unlock();
+	p_mutex.unlock();
 
 	return rs;
 }
 
 void CPUKernelEvent::workGroupFinished()
 {
-	p_mutex->lock(sw::PRIVATE);
+	p_mutex.lock();
 
 	p_finished_wg++;
 
-	p_mutex->unlock();
+	p_mutex.unlock();
 }
 
 CPUKernelWorkGroup *CPUKernelEvent::takeInstance()
@@ -347,7 +341,7 @@ CPUKernelWorkGroup *CPUKernelEvent::takeInstance()
 	p_current_wg += 1;
 
 	// Release event
-	p_mutex->unlock();
+	p_mutex.unlock();
 
 	return wg;
 }
