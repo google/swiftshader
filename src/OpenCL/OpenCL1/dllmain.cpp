@@ -104,11 +104,6 @@ namespace cl
 
 		current->context = context;
 		current->platform = platformId;
-
-		/*if(context)
-		{
-			context->makeCurrent(surface);
-		}*/
 	}
 
 	Devices::Context *getContext()
