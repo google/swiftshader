@@ -25,6 +25,15 @@ entry:
 ; CHECK: ret
 }
 
+define i32 @trunc_undef_i64() {
+entry:
+  %ret = trunc i64 undef to i32
+  ret i32 %ret
+; CHECK-LABEL: trunc_undef_i64
+; CHECK: mov eax,0x0
+; CHECK: ret
+}
+
 define float @undef_float() {
 entry:
   ret float undef

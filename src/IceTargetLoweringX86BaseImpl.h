@@ -1164,13 +1164,14 @@ Operand *TargetX86Base<Machine>::loOperand(Operand *Operand) {
          Operand->getType() == IceType_f64);
   if (Operand->getType() != IceType_i64 && Operand->getType() != IceType_f64)
     return Operand;
-  if (Variable *Var = llvm::dyn_cast<Variable>(Operand)) {
+  if (auto *Var = llvm::dyn_cast<Variable>(Operand)) {
     split64(Var);
     return Var->getLo();
   }
-  if (ConstantInteger64 *Const = llvm::dyn_cast<ConstantInteger64>(Operand)) {
-    ConstantInteger32 *ConstInt = llvm::dyn_cast<ConstantInteger32>(
+  if (auto *Const = llvm::dyn_cast<ConstantInteger64>(Operand)) {
+    auto *ConstInt = llvm::dyn_cast<ConstantInteger32>(
         Ctx->getConstantInt32(static_cast<int32_t>(Const->getValue())));
+    // Check if we need to blind/pool the constant.
     return legalize(ConstInt);
   }
   if (auto *Mem = llvm::dyn_cast<typename Traits::X86OperandMem>(Operand)) {
@@ -1192,25 +1193,23 @@ Operand *TargetX86Base<Machine>::hiOperand(Operand *Operand) {
          Operand->getType() == IceType_f64);
   if (Operand->getType() != IceType_i64 && Operand->getType() != IceType_f64)
     return Operand;
-  if (Variable *Var = llvm::dyn_cast<Variable>(Operand)) {
+  if (auto *Var = llvm::dyn_cast<Variable>(Operand)) {
     split64(Var);
     return Var->getHi();
   }
-  if (ConstantInteger64 *Const = llvm::dyn_cast<ConstantInteger64>(Operand)) {
-    ConstantInteger32 *ConstInt = llvm::dyn_cast<ConstantInteger32>(
+  if (auto *Const = llvm::dyn_cast<ConstantInteger64>(Operand)) {
+    auto *ConstInt = llvm::dyn_cast<ConstantInteger32>(
         Ctx->getConstantInt32(static_cast<int32_t>(Const->getValue() >> 32)));
-    // check if we need to blind/pool the constant
+    // Check if we need to blind/pool the constant.
     return legalize(ConstInt);
   }
   if (auto *Mem = llvm::dyn_cast<typename Traits::X86OperandMem>(Operand)) {
     Constant *Offset = Mem->getOffset();
     if (Offset == nullptr) {
       Offset = Ctx->getConstantInt32(4);
-    } else if (ConstantInteger32 *IntOffset =
-                   llvm::dyn_cast<ConstantInteger32>(Offset)) {
+    } else if (auto *IntOffset = llvm::dyn_cast<ConstantInteger32>(Offset)) {
       Offset = Ctx->getConstantInt32(4 + IntOffset->getValue());
-    } else if (ConstantRelocatable *SymOffset =
-                   llvm::dyn_cast<ConstantRelocatable>(Offset)) {
+    } else if (auto *SymOffset = llvm::dyn_cast<ConstantRelocatable>(Offset)) {
       assert(!Utils::WouldOverflowAdd(SymOffset->getOffset(), 4));
       Offset =
           Ctx->getConstantSym(4 + SymOffset->getOffset(), SymOffset->getName(),
@@ -2453,7 +2452,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       _pand(T, OneMask);
       _movp(Dest, T);
     } else {
-      Operand *Src0 = Inst->getSrc(0);
+      Operand *Src0 = legalizeUndef(Inst->getSrc(0));
       if (Src0->getType() == IceType_i64)
         Src0 = loOperand(Src0);
       Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
@@ -3261,9 +3260,9 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
       return;
     }
     Variable *DestPrev = Instr->getDest();
-    Operand *PtrToMem = Instr->getArg(0);
-    Operand *Expected = Instr->getArg(1);
-    Operand *Desired = Instr->getArg(2);
+    Operand *PtrToMem = legalize(Instr->getArg(0));
+    Operand *Expected = legalize(Instr->getArg(1));
+    Operand *Desired = legalize(Instr->getArg(2));
     if (tryOptimizedCmpxchgCmpBr(DestPrev, PtrToMem, Expected, Desired))
       return;
     lowerAtomicCmpxchg(DestPrev, PtrToMem, Expected, Desired);
@@ -3397,6 +3396,7 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
     // In 32-bit mode, bswap only works on 32-bit arguments, and the
     // argument must be a register. Use rotate left for 16-bit bswap.
     if (Val->getType() == IceType_i64) {
+      Val = legalizeUndef(Val);
       Variable *T_Lo = legalizeToVar(loOperand(Val));
       Variable *T_Hi = legalizeToVar(hiOperand(Val));
       Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
@@ -3411,9 +3411,9 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
       _mov(Dest, T);
     } else {
       assert(Val->getType() == IceType_i16);
-      Val = legalize(Val);
       Constant *Eight = Ctx->getConstantInt16(8);
       Variable *T = nullptr;
+      Val = legalize(Val);
       _mov(T, Val);
       _rol(T, Eight);
       _mov(Dest, T);
@@ -4411,6 +4411,8 @@ void TargetX86Base<Machine>::lowerSelect(const InstSelect *Inst) {
     Cond = InstX86Base<Machine>::getOppositeCondition(Cond);
   }
   if (DestTy == IceType_i64) {
+    SrcT = legalizeUndef(SrcT);
+    SrcF = legalizeUndef(SrcF);
     // Set the low portion.
     Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
     Variable *TLo = nullptr;
@@ -4448,7 +4450,7 @@ void TargetX86Base<Machine>::lowerStore(const InstStore *Inst) {
   Type Ty = NewAddr->getType();
 
   if (Ty == IceType_i64) {
-    Value = legalize(Value);
+    Value = legalizeUndef(Value);
     Operand *ValueHi = legalize(hiOperand(Value), Legal_Reg | Legal_Imm);
     Operand *ValueLo = legalize(loOperand(Value), Legal_Reg | Legal_Imm);
     _store(ValueHi,
@@ -4497,7 +4499,7 @@ void TargetX86Base<Machine>::lowerSwitch(const InstSwitch *Inst) {
   Operand *Src0 = Inst->getComparison();
   SizeT NumCases = Inst->getNumCases();
   if (Src0->getType() == IceType_i64) {
-    Src0 = legalize(Src0); // get Base/Index into physical registers
+    Src0 = legalizeUndef(Src0);
     Operand *Src0Lo = loOperand(Src0);
     Operand *Src0Hi = hiOperand(Src0);
     if (NumCases >= 2) {
@@ -4613,6 +4615,7 @@ void TargetX86Base<Machine>::lowerRMW(
   Type Ty = Src->getType();
   typename Traits::X86OperandMem *Addr = formMemoryOperand(RMW->getAddr(), Ty);
   if (Ty == IceType_i64) {
+    Src = legalizeUndef(Src);
     Operand *SrcLo = legalize(loOperand(Src), Legal_Reg | Legal_Imm);
     Operand *SrcHi = legalize(hiOperand(Src), Legal_Reg | Legal_Imm);
     typename Traits::X86OperandMem *AddrLo =
@@ -4708,8 +4711,7 @@ template <class Machine> void TargetX86Base<Machine>::prelowerPhis() {
       for (SizeT I = 0; I < Phi->getSrcSize(); ++I) {
         Operand *Src = Phi->getSrc(I);
         CfgNode *Label = Phi->getLabel(I);
-        if (llvm::isa<ConstantUndef>(Src))
-          Src = Ctx->getConstantZero(Dest->getType());
+        Src = legalizeUndef(Src);
         PhiLo->addArgument(loOperand(Src), Label);
         PhiHi->addArgument(hiOperand(Src), Label);
       }
@@ -4791,22 +4793,18 @@ void TargetX86Base<Machine>::lowerPhiAssignments(
     auto Assign = llvm::dyn_cast<InstAssign>(&I);
     Variable *Dest = Assign->getDest();
 
-    // If the source operand is ConstantUndef, do not legalize it.
-    // In function test_split_undef_int_vec, the advanced phi
-    // lowering process will find an assignment of undefined
-    // vector. This vector, as the Src here, will crash if it
-    // go through legalize(). legalize() will create new variable
-    // with makeVectorOfZeros(), but this new variable will be
-    // assigned a stack slot. This will fail the assertion in
-    // IceInstX8632.cpp:789, as XmmEmitterRegOp() complain:
-    // Var->hasReg() fails. Note this failure is irrelevant to
-    // randomization or pooling of constants.
-    // So, we do not call legalize() to add pool label for the
-    // src operands of phi assignment instructions.
-    // Instead, we manually add pool label for constant float and
-    // constant double values here.
-    // Note going through legalize() does not affect the testing
-    // results of SPEC2K and xtests.
+    // If the source operand is ConstantUndef, do not legalize it.  In function
+    // test_split_undef_int_vec, the advanced phi lowering process will find an
+    // assignment of undefined vector. This vector, as the Src here, will crash
+    // if it go through legalize(). legalize() will create a new variable with
+    // makeVectorOfZeros(), but this new variable will be assigned a stack
+    // slot. This will fail with pxor(Var, Var) because it is an illegal
+    // instruction form. Note this failure is irrelevant to randomization or
+    // pooling of constants.  So, we do not call legalize() to add pool label
+    // for the src operands of phi assignment instructions.  Instead, we
+    // manually add pool label for constant float and constant double values
+    // here.  Note going through legalize() does not affect the testing results
+    // of SPEC2K and xtests.
     Operand *Src = Assign->getSrc(0);
     if (!llvm::isa<ConstantUndef>(Assign->getSrc(0))) {
       Src = legalize(Src);
@@ -5029,21 +5027,10 @@ Operand *TargetX86Base<Machine>::legalize(Operand *From, LegalMask Allowed,
   }
   if (auto *Const = llvm::dyn_cast<Constant>(From)) {
     if (llvm::isa<ConstantUndef>(Const)) {
-      // Lower undefs to zero.  Another option is to lower undefs to an
-      // uninitialized register; however, using an uninitialized register
-      // results in less predictable code.
-      //
-      // If in the future the implementation is changed to lower undef
-      // values to uninitialized registers, a FakeDef will be needed:
-      //     Context.insert(InstFakeDef::create(Func, Reg));
-      // This is in order to ensure that the live range of Reg is not
-      // overestimated.  If the constant being lowered is a 64 bit value,
-      // then the result should be split and the lo and hi components will
-      // need to go in uninitialized registers.
+      From = legalizeUndef(Const, RegNum);
       if (isVectorType(Ty))
-        return makeVectorOfZeros(Ty, RegNum);
-      Const = Ctx->getConstantZero(Ty);
-      From = Const;
+        return From;
+      Const = llvm::cast<Constant>(From);
     }
     // There should be no constants of vector type (other than undef).
     assert(!isVectorType(Ty));
@@ -5105,6 +5092,29 @@ Variable *TargetX86Base<Machine>::legalizeToVar(Operand *From, int32_t RegNum) {
   return llvm::cast<Variable>(legalize(From, Legal_Reg, RegNum));
 }
 
+/// Legalize undef values to concrete values.
+template <class Machine>
+Operand *TargetX86Base<Machine>::legalizeUndef(Operand *From, int32_t RegNum) {
+  Type Ty = From->getType();
+  if (llvm::isa<ConstantUndef>(From)) {
+    // Lower undefs to zero.  Another option is to lower undefs to an
+    // uninitialized register; however, using an uninitialized register
+    // results in less predictable code.
+    //
+    // If in the future the implementation is changed to lower undef
+    // values to uninitialized registers, a FakeDef will be needed:
+    //     Context.insert(InstFakeDef::create(Func, Reg));
+    // This is in order to ensure that the live range of Reg is not
+    // overestimated.  If the constant being lowered is a 64 bit value,
+    // then the result should be split and the lo and hi components will
+    // need to go in uninitialized registers.
+    if (isVectorType(Ty))
+      return makeVectorOfZeros(Ty, RegNum);
+    return Ctx->getConstantZero(Ty);
+  }
+  return From;
+}
+
 /// For the cmp instruction, if Src1 is an immediate, or known to be a
 /// physical register, we can allow Src0 to be a memory operand.
 /// Otherwise, Src0 must be copied into a physical register.
@@ -5117,7 +5127,7 @@ Operand *TargetX86Base<Machine>::legalizeSrc0ForCmp(Operand *Src0,
   bool IsSrc1ImmOrReg = false;
   if (llvm::isa<Constant>(Src1)) {
     IsSrc1ImmOrReg = true;
-  } else if (Variable *Var = llvm::dyn_cast<Variable>(Src1)) {
+  } else if (auto *Var = llvm::dyn_cast<Variable>(Src1)) {
     if (Var->hasReg())
       IsSrc1ImmOrReg = true;
   }
@@ -5141,7 +5151,7 @@ TargetX86Base<Machine>::formMemoryOperand(Operand *Opnd, Type Ty,
       // the constant offset, we will work on the whole memory
       // operand later as one entity later, this save one instruction.
       // By turning blinding and pooling off, we guarantee
-      // legalize(Offset) will return a constant*.
+      // legalize(Offset) will return a Constant*.
       {
         BoolFlagSaver B(RandomizationPoolingPaused, true);
 
@@ -5357,8 +5367,8 @@ TargetX86Base<Machine>::randomizeOrPoolImmediate(
                                           MemOperand->getShift(),
                                           MemOperand->getSegmentRegister());
 
-        // Label this memory operand as randomize, so we won't randomize it
-        // again in case we call legalize() mutiple times on this memory
+        // Label this memory operand as randomized, so we won't randomize it
+        // again in case we call legalize() multiple times on this memory
         // operand.
         NewMemOperand->setRandomized(true);
         return NewMemOperand;

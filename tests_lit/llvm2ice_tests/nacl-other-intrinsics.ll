@@ -416,6 +416,18 @@ entry:
 ; ARM32: rev
 ; ARM32: rev
 
+define i64 @test_bswap_64_undef() {
+entry:
+  %r = call i64 @llvm.bswap.i64(i64 undef)
+  ret i64 %r
+}
+; CHECK-LABEL: test_bswap_64_undef
+; CHECK: bswap e{{.*}}
+; CHECK: bswap e{{.*}}
+; ARM32-LABEL: test_bswap_64
+; ARM32: rev
+; ARM32: rev
+
 define i32 @test_ctlz_32(i32 %x) {
 entry:
   %r = call i32 @llvm.ctlz.i32(i32 %x, i1 false)

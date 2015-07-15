@@ -109,6 +109,17 @@ entry:
 ; CHECK: cmovl
 ; CHECK: cmovl
 
+define i64 @fold_cmp_select_64_undef(i64 %arg1) {
+entry:
+  %arg1_trunc = trunc i64 %arg1 to i32
+  %cmp1 = icmp slt i32 undef, %arg1_trunc
+  %result = select i1 %cmp1, i64 %arg1, i64 undef
+  ret i64 %result
+}
+; CHECK-LABEL: fold_cmp_select_64_undef
+; CHECK: cmp
+; CHECK: cmovl
+; CHECK: cmovl
 
 ; Cmp/select folding with intervening instructions.
 define i32 @fold_cmp_select_intervening_insts(i32 %arg1, i32 %arg2) {

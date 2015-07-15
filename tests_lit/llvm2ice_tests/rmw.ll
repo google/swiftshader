@@ -130,3 +130,15 @@ entry:
 }
 ; CHECK-LABEL: no_rmw_sub_i32_var
 ; CHECK: sub e{{ax|bx|cx|dx|bp|di|si}},DWORD PTR [e{{ax|bx|cx|dx|bp|di|si}}]
+
+define internal void @rmw_add_i64_undef(i32 %addr_arg) {
+entry:
+  %addr = inttoptr i32 %addr_arg to i64*
+  %val = load i64, i64* %addr, align 1
+  %rmw = add i64 %val, undef
+  store i64 %rmw, i64* %addr, align 1
+  ret void
+}
+; CHECK-LABEL: rmw_add_i64_undef
+; CHECK: add DWORD PTR [e{{ax|bx|cx|dx|bp|di|si}}],0x0
+; CHECK: adc DWORD PTR [e{{ax|bx|cx|dx|bp|di|si}}+0x4],0x0

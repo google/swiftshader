@@ -147,3 +147,18 @@ sw.default:
 ; ARM32-NEXT: beq [[ADDR:[0-9a-f]+]]
 ; ARM32-NEXT: b [[ADDR]]
 
+define i32 @testSwitchUndef64() {
+entry:
+  switch i64 undef, label %sw.default [
+    i64 1, label %sw.default
+  ]
+
+sw.default:
+  ret i32 20
+}
+; CHECK-LABEL: testSwitchUndef64
+; CHECK: mov {{.*}},0x0
+; CHECK: mov {{.*}},0x0
+; ARM32-LABEL: testSwitchUndef64
+; ARM32: movw {{.*}}, #0
+; ARM32: movw {{.*}}, #0

@@ -771,6 +771,16 @@ entry:
 ; need to be reshuffled via movs. The next test stores the result
 ; somewhere, so in that case they do need to be mov'ed.
 
+define i64 @test_atomic_cmpxchg_64_undef(i32 %iptr, i64 %desired) {
+entry:
+  %ptr = inttoptr i32 %iptr to i64*
+  %old = call i64 @llvm.nacl.atomic.cmpxchg.i64(i64* %ptr, i64 undef,
+                                               i64 %desired, i32 6, i32 6)
+  ret i64 %old
+}
+; CHECK-LABEL: test_atomic_cmpxchg_64_undef
+; CHECK: lock cmpxchg8b QWORD PTR [e{{.[^x]}}+0x0]
+
 ; Test a case where %old really does need to be copied out of edx:eax.
 define void @test_atomic_cmpxchg_64_store(i32 %ret_iptr, i32 %iptr, i64 %expected, i64 %desired) {
 entry:
