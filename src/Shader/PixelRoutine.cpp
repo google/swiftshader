@@ -5095,9 +5095,9 @@ namespace sw
 	{
 		// abs(dFdx(src)) + abs(dFdy(src));
 		dst.x = Abs(src.x.yyww - src.x.xxzz) + Abs(src.x.zwzw - src.x.xyxy);
-		dst.y = Abs(src.y.yyww - src.x.xxzz) + Abs(src.y.zwzw - src.y.xyxy);
-		dst.z = Abs(src.z.yyww - src.x.xxzz) + Abs(src.z.zwzw - src.z.xyxy);
-		dst.w = Abs(src.w.yyww - src.x.xxzz) + Abs(src.w.zwzw - src.w.xyxy);
+		dst.y = Abs(src.y.yyww - src.y.xxzz) + Abs(src.y.zwzw - src.y.xyxy);
+		dst.z = Abs(src.z.yyww - src.z.xxzz) + Abs(src.z.zwzw - src.z.xyxy);
+		dst.w = Abs(src.w.yyww - src.w.xxzz) + Abs(src.w.zwzw - src.w.xyxy);
 	}
 
 	void PixelRoutine::BREAK(Registers &r)
