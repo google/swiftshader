@@ -1259,7 +1259,7 @@ namespace es2
 		// Link attributes that have a binding location
 		for(glsl::ActiveAttributes::iterator attribute = vertexShader->activeAttributes.begin(); attribute != vertexShader->activeAttributes.end(); ++attribute)
 		{
-			int location = getAttributeBinding(attribute->name);
+			int location = getAttributeBinding(*attribute);
 
 			if(location != -1)   // Set by glBindAttribLocation
 			{
@@ -1288,7 +1288,7 @@ namespace es2
 		// Link attributes that don't have a binding location
 		for(glsl::ActiveAttributes::iterator attribute = vertexShader->activeAttributes.begin(); attribute != vertexShader->activeAttributes.end(); ++attribute)
 		{
-			int location = getAttributeBinding(attribute->name);
+			int location = getAttributeBinding(*attribute);
 
 			if(location == -1)   // Not set by glBindAttribLocation
 			{
@@ -1319,11 +1319,16 @@ namespace es2
 		return true;
 	}
 
-	int Program::getAttributeBinding(const std::string &name)
+	int Program::getAttributeBinding(const glsl::Attribute &attribute)
 	{
+		if(attribute.location != -1)
+		{
+			return attribute.location;
+		}
+
 		for(int location = 0; location < MAX_VERTEX_ATTRIBS; location++)
 		{
-			if(attributeBinding[location].find(name) != attributeBinding[location].end())
+			if(attributeBinding[location].find(attribute.name.c_str()) != attributeBinding[location].end())
 			{
 				return location;
 			}

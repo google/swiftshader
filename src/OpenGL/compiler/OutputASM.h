@@ -47,11 +47,12 @@ namespace glsl
 	struct Attribute
 	{
 		Attribute();
-		Attribute(GLenum type, const std::string &name, int arraySize, int registerIndex);
+		Attribute(GLenum type, const std::string &name, int arraySize, int location, int registerIndex);
 
 		GLenum type;
 		std::string name;
 		int arraySize;
+		int location;
 	
 		int registerIndex;
 	};

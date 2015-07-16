@@ -91,11 +91,12 @@ namespace glsl
 		registerIndex = 0;
 	}
 
-	Attribute::Attribute(GLenum type, const std::string &name, int arraySize, int registerIndex)
+	Attribute::Attribute(GLenum type, const std::string &name, int arraySize, int location, int registerIndex)
 	{
 		this->type = type;
 		this->name = name;
 		this->arraySize = arraySize;
+		this->location = location;
 		this->registerIndex = registerIndex;
 	}
 
@@ -2232,7 +2233,7 @@ namespace glsl
 				ActiveAttributes &activeAttributes = shaderObject->activeAttributes;
 
 				const char *name = symbol->getSymbol().c_str();
-				activeAttributes.push_back(Attribute(glVariableType(type), name, 0, index));
+				activeAttributes.push_back(Attribute(glVariableType(type), name, type.getArraySize(), type.getLayoutQualifier().location, index));
 			}
 		}
 

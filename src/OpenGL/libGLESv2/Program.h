@@ -222,7 +222,7 @@ namespace es2
 		bool gatherTransformFeedbackLinkedVaryings();
 
 		bool linkAttributes();
-		int getAttributeBinding(const std::string &name);
+		int getAttributeBinding(const glsl::Attribute &attribute);
 
 		bool linkUniforms(const Shader *shader);
 		bool defineUniform(GLenum shader, GLenum type, GLenum precision, const std::string &_name, unsigned int arraySize, int registerIndex);
