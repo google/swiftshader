@@ -652,6 +652,7 @@ namespace glsl
 		case EOpFwidth:           if(visit == PostVisit) emit(sw::Shader::OPCODE_FWIDTH, result, arg); break;
 		case EOpAny:              if(visit == PostVisit) emit(sw::Shader::OPCODE_ANY, result, arg); break;
 		case EOpAll:              if(visit == PostVisit) emit(sw::Shader::OPCODE_ALL, result, arg); break;
+		case EOpFtransform:       if(visit == PostVisit) emit(sw::Shader::OPCODE_NOP, result, arg);	break;
 		case EOpTranspose:
 			if(visit == PostVisit)
 			{
@@ -1078,6 +1079,7 @@ namespace glsl
 		case EOpFaceForward: if(visit == PostVisit) emit(sw::Shader::OPCODE_FORWARD(dim(arg[0])), result, arg[0], arg[1], arg[2]); break;
 		case EOpReflect:     if(visit == PostVisit) emit(sw::Shader::OPCODE_REFLECT(dim(arg[0])), result, arg[0], arg[1]); break;
 		case EOpRefract:     if(visit == PostVisit) emit(sw::Shader::OPCODE_REFRACT(dim(arg[0])), result, arg[0], arg[1], arg[2]); break;
+		case EOpFtransform:	 break;
 		case EOpMul:
 			if(visit == PostVisit)
 			{

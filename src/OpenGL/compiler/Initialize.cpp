@@ -123,6 +123,7 @@ void InsertBuiltInFunctions(GLenum type, const ShBuiltInResources &resources, TS
     symbolTable.insertBuiltIn(COMMON_BUILTINS, EOpFaceForward, genType, "faceforward", genType, genType, genType);
     symbolTable.insertBuiltIn(COMMON_BUILTINS, EOpReflect, genType, "reflect", genType, genType);
     symbolTable.insertBuiltIn(COMMON_BUILTINS, EOpRefract, genType, "refract", genType, genType, float1);
+	symbolTable.insertBuiltIn(COMMON_BUILTINS, EOpFtransform, float4, "ftransform", 0);
 
 	TType *mat2 = new TType(EbtFloat, 2, 2);
 	TType *mat2x3 = new TType(EbtFloat, 2, 3);
