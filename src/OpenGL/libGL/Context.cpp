@@ -1353,6 +1353,7 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
     // Context::getFloatv.
     switch (pname)
     {
+    case GL_MAX_TEXTURE_UNITS:                *params = MAX_TEXTURE_IMAGE_UNITS;          break;
     case GL_MAX_VERTEX_ATTRIBS:               *params = MAX_VERTEX_ATTRIBS;               break;
     case GL_MAX_VERTEX_UNIFORM_VECTORS:       *params = MAX_VERTEX_UNIFORM_VECTORS;       break;
     case GL_MAX_VERTEX_UNIFORM_COMPONENTS:    *params = MAX_VERTEX_UNIFORM_VECTORS * 4;   break;   // FIXME: Verify
