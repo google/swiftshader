@@ -309,6 +309,7 @@ class Query;
 
 enum
 {
+	MAX_TEXTURE_COORDS = 8,
     MAX_VERTEX_ATTRIBS = 9,
 	MAX_UNIFORM_VECTORS = 256,   // Device limit
     MAX_VERTEX_UNIFORM_VECTORS = 256 - 3,   // Reserve space for gl_DepthRange

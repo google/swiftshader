@@ -311,19 +311,27 @@ bool TParseContext::lValueErrorCheck(int line, const char* op, TIntermTyped* nod
 
     const char* message = 0;
     switch (node->getQualifier()) {
-    case EvqConstExpr:      message = "can't modify a const";        break;
-    case EvqConstReadOnly:  message = "can't modify a const";        break;
-    case EvqAttribute:      message = "can't modify an attribute";   break;
-    case EvqUniform:        message = "can't modify a uniform";      break;
+    case EvqConstExpr:      message = "can't modify a const";             break;
+    case EvqConstReadOnly:  message = "can't modify a const";             break;
+    case EvqAttribute:      message = "can't modify an attribute";        break;
+    case EvqUniform:        message = "can't modify a uniform";           break;
     case EvqSmoothIn:
     case EvqFlatIn:
     case EvqCentroidIn:
-    case EvqVaryingIn:      message = "can't modify a varying";      break;
-    case EvqInput:          message = "can't modify an input";       break;
-    case EvqFragCoord:      message = "can't modify gl_FragCoord";   break;
-    case EvqFrontFacing:    message = "can't modify gl_FrontFacing"; break;
-    case EvqPointCoord:     message = "can't modify gl_PointCoord";  break;
-    case EvqInstanceID:     message = "can't modify gl_InstanceID";  break;
+    case EvqVaryingIn:      message = "can't modify a varying";           break;
+    case EvqMultiTexCoord0: message = "can't modify gl_MultiTexCoord0";   break;
+    case EvqMultiTexCoord1: message = "can't modify gl_MultiTexCoord1";   break;
+    case EvqMultiTexCoord2: message = "can't modify gl_MultiTexCoord2";   break;
+    case EvqMultiTexCoord3: message = "can't modify gl_MultiTexCoord3";   break;
+    case EvqMultiTexCoord4: message = "can't modify gl_MultiTexCoord4";   break;
+    case EvqMultiTexCoord5: message = "can't modify gl_MultiTexCoord5";   break;
+    case EvqMultiTexCoord6: message = "can't modify gl_MultiTexCoord6";   break;
+    case EvqMultiTexCoord7: message = "can't modify gl_MultiTexCoord7";   break;
+    case EvqInput:          message = "can't modify an input";            break;
+    case EvqFragCoord:      message = "can't modify gl_FragCoord";        break;
+    case EvqFrontFacing:    message = "can't modify gl_FrontFacing";      break;
+    case EvqPointCoord:     message = "can't modify gl_PointCoord";       break;
+    case EvqInstanceID:     message = "can't modify gl_InstanceID";       break;
     default:
 
         //
