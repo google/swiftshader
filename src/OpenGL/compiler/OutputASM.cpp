@@ -1869,6 +1869,15 @@ namespace glsl
 		case EvqPosition:            return sw::Shader::PARAMETER_OUTPUT;
 		case EvqPointSize:           return sw::Shader::PARAMETER_OUTPUT;
 		case EvqInstanceID:          return sw::Shader::PARAMETER_MISCTYPE;
+		case EvqMultiTexCoord0:      return sw::Shader::PARAMETER_INPUT;
+		case EvqMultiTexCoord1:      return sw::Shader::PARAMETER_INPUT;
+		case EvqMultiTexCoord2:      return sw::Shader::PARAMETER_INPUT;
+		case EvqMultiTexCoord3:      return sw::Shader::PARAMETER_INPUT;
+		case EvqMultiTexCoord4:      return sw::Shader::PARAMETER_INPUT;
+		case EvqMultiTexCoord5:      return sw::Shader::PARAMETER_INPUT;
+		case EvqMultiTexCoord6:      return sw::Shader::PARAMETER_INPUT;
+		case EvqMultiTexCoord7:      return sw::Shader::PARAMETER_INPUT;
+		case EvqTexCoords:           return sw::Shader::PARAMETER_TEXTURE;
 		case EvqFragCoord:           return sw::Shader::PARAMETER_MISCTYPE;
 		case EvqFrontFacing:         return sw::Shader::PARAMETER_MISCTYPE;
 		case EvqPointCoord:          return sw::Shader::PARAMETER_INPUT;
@@ -1905,6 +1914,15 @@ namespace glsl
 		case EvqPosition:            return varyingRegister(operand);
 		case EvqPointSize:           return varyingRegister(operand);
 		case EvqInstanceID:          vertexShader->instanceIdDeclared = true; return 0;
+		case EvqMultiTexCoord0:      return 0; //UNIMPLEMENTED
+		case EvqMultiTexCoord1:      return 0; //UNIMPLEMENTED
+		case EvqMultiTexCoord2:      return 0; //UNIMPLEMENTED
+		case EvqMultiTexCoord3:      return 0; //UNIMPLEMENTED
+		case EvqMultiTexCoord4:      return 0; //UNIMPLEMENTED
+		case EvqMultiTexCoord5:      return 0; //UNIMPLEMENTED
+		case EvqMultiTexCoord6:      return 0; //UNIMPLEMENTED
+		case EvqMultiTexCoord7:      return 0; //UNIMPLEMENTED
+		case EvqTexCoords:           return 0; //UNIMPLEMENTED
 		case EvqFragCoord:           pixelShader->vPosDeclared = true;  return 0;
 		case EvqFrontFacing:         pixelShader->vFaceDeclared = true; return 1;
 		case EvqPointCoord:          return varyingRegister(operand);
