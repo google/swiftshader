@@ -109,7 +109,7 @@ bool TCompiler::compile(const char* const shaderStrings[],
 
     TIntermediate intermediate(infoSink);
     TParseContext parseContext(symbolTable, extensionBehavior, intermediate,
-                               shaderType, compileOptions, true,
+                               shaderType, compileOptions, false,
                                sourcePath, infoSink);
     SetGlobalParseContext(&parseContext);
 
