@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3837466d_166f8aa8",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2973,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-07-16T20:17:16Z",
+      "side": 1,
+      "message": "The other ones are always set in the switch below, but attachmentLayer is only set by color attachments, so I think it\u0027s the only one that requires initialization.",
+      "parentUuid": "3837466d_76105657",
+      "range": {
+        "startLine": 2971,
+        "startChar": 2,
+        "endLine": 2973,
+        "endChar": 27
+      },
+      "revId": "4a06ea1d0bfc8183349ef41a0ed2eea989ebaf88",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3837466d_5617524c",
         "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2015-07-16T19:50:39Z",
       "side": 1,
       "message": "Anything other than GL_COLOR_ATTACHMENTi simply returns 0? Or should an error be generated like for GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL?",
+      "range": {
+        "startLine": 3112,
+        "startChar": 14,
+        "endLine": 3112,
+        "endChar": 29
+      },
+      "revId": "4a06ea1d0bfc8183349ef41a0ed2eea989ebaf88",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3837466d_161b0a2f",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 3112,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-07-16T20:17:16Z",
+      "side": 1,
+      "message": "It is odd, but I found no mention of an error being generated because of this. There are mentions of there being a default value of 0, though (see OpenGL ES 3.0.4 spec, Table 6.14: Framebuffer).",
+      "parentUuid": "3837466d_5617524c",
       "range": {
         "startLine": 3112,
         "startChar": 14,
