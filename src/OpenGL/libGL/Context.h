@@ -22,6 +22,7 @@
 #include "Renderer/Sampler.hpp"
 #include "Renderer/Vertex.hpp"
 #include "common/MatrixStack.hpp"
+#include "Texture.h"
 
 #define _GDI32_
 #include <windows.h>
@@ -612,6 +613,7 @@ public:
     void deleteQuery(GLuint query);
 
     void bindArrayBuffer(GLuint buffer);
+    void bindTexture1D(GLuint texture);
     void bindElementArrayBuffer(GLuint buffer);
     void bindTexture2D(GLuint texture);
     void bindTextureCubeMap(GLuint texture);
@@ -641,6 +643,7 @@ public:
     Buffer *getArrayBuffer();
     Buffer *getElementArrayBuffer();
     Program *getCurrentProgram();
+    Texture1D *getTexture1D();
     Texture2D *getTexture2D(GLenum target);
     TextureCubeMap *getTextureCubeMap();
     Texture *getSamplerTexture(unsigned int sampler, TextureType type);
@@ -694,6 +697,8 @@ public:
 	void setShadeModel(GLenum mode);
     void setLight(int index, bool enable);
 	void setNormalizeNormals(bool enable);
+    void set1DTextureEnable(bool enable);
+    bool get1DTextureEnable();
 
 	GLuint genLists(GLsizei range);
 	void newList(GLuint list, GLenum mode);
@@ -740,6 +745,7 @@ private:
 
     State mState;
 
+    BindingPointer<Texture1D> mTexture1DZero;
     BindingPointer<Texture2D> mTexture2DZero;
     BindingPointer<Texture2D> mProxyTexture2DZero;
     BindingPointer<TextureCubeMap> mTextureCubeMapZero;

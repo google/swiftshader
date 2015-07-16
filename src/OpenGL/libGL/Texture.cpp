@@ -168,11 +168,11 @@ GLfloat Texture::getMaxAnisotropy() const
     return mMaxAnisotropy;
 }
 
-void Texture::setImage(GLenum format, GLenum type, GLint unpackAlignment, const void *pixels, Image *image)
+void Texture::setImage(GLenum format, GLenum type, GLint unpackAlignment, const void *pixels, Image *image, int xOffset)
 {
     if(pixels && image)
     {
-		image->loadImageData(0, 0, 0, image->getWidth(), image->getHeight(), 1, format, type, unpackAlignment, pixels);
+		image->loadImageData(xOffset, 0, 0, image->getWidth(), image->getHeight(), 1, format, type, unpackAlignment, pixels);
     }
 }
 
@@ -184,7 +184,7 @@ void Texture::setCompressedImage(GLsizei imageSize, const void *pixels, Image *i
     }
 }
 
-void Texture::subImage(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *pixels, Image *image)
+void Texture::subImage(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *pixels, Image *image, bool is2DTexture)
 {
 	if(!image)
 	{
@@ -201,7 +201,7 @@ void Texture::subImage(GLint xoffset, GLint yoffset, GLsizei width, GLsizei heig
         return error(GL_INVALID_OPERATION);
     }
 
-    if(format != image->getFormat())
+	if(format != image->getFormat() && is2DTexture)
     {
         return error(GL_INVALID_OPERATION);
     }
@@ -367,7 +367,7 @@ int Texture2D::getLevelCount() const
 	return levels;
 }
 
-void Texture2D::setImage(GLint level, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *pixels)
+void Texture2D::setImage(GLint level, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *pixels, int xOffset)
 {
 	if(image[level])
 	{
@@ -381,7 +381,7 @@ void Texture2D::setImage(GLint level, GLsizei width, GLsizei height, GLenum form
 		return error(GL_OUT_OF_MEMORY);
 	}
 
-    Texture::setImage(format, type, unpackAlignment, pixels, image[level]);
+	Texture::setImage(format, type, unpackAlignment, pixels, image[level], xOffset);
 }
 
 void Texture2D::setCompressedImage(GLint level, GLenum format, GLsizei width, GLsizei height, GLsizei imageSize, const void *pixels)
@@ -1036,6 +1036,59 @@ Image *TextureCubeMap::getRenderTarget(GLenum target, unsigned int level)
 	}
 
 	return image[face][level];
+}
+
+Texture1D::Texture1D(GLuint name) : Texture2D(name)
+{
+}
+
+Texture1D::~Texture1D()
+{
+}
+
+GLenum Texture1D::getTarget() const
+{
+	return GL_TEXTURE_1D;
+}
+
+GLenum Texture1D::getFormat(GLenum target, GLint level) const
+{
+	ASSERT(target == GL_TEXTURE_1D);
+	return image[level] ? image[level]->getFormat() : 0;
+}
+
+GLenum Texture1D::getType(GLenum target, GLint level) const
+{
+	ASSERT(target == GL_TEXTURE_1D);
+	return image[level] ? image[level]->getType() : 0;
+}
+
+GLsizei Texture1D::getWidth(GLenum target, GLint level) const
+{
+	ASSERT(target == GL_TEXTURE_1D || target == GL_PROXY_TEXTURE_1D);
+	return image[level] ? image[level]->getWidth() : 0;
+}
+
+GLsizei Texture1D::getHeight(GLenum target, GLint level) const
+{
+	ASSERT(target == GL_TEXTURE_1D || target == GL_PROXY_TEXTURE_1D);
+	return image[level] ? image[level]->getHeight() : 0;
+}
+
+sw::Format Texture1D::getInternalFormat(GLenum target, GLint level) const
+{
+	ASSERT(target == GL_TEXTURE_1D || target == GL_PROXY_TEXTURE_1D);
+	return image[level] ? image[level]->getInternalFormat() : sw::FORMAT_NULL;
+}
+
+void Texture1D::subImage(GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *pixels)
+{
+	Texture::subImage(xoffset, yoffset, width, height, format, type, unpackAlignment, pixels, image[level], false);
+}
+
+bool Texture1D::isCompressed(GLenum target, GLint level) const
+{
+	return IsCompressed(getFormat(target, level));
 }
 
 }

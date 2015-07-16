@@ -137,6 +137,7 @@ Context::Context(const Context *shareContext)
     mTexture2DZero = new Texture2D(0);
     mProxyTexture2DZero = new Texture2D(0);
     mTextureCubeMapZero = new TextureCubeMap(0);
+	mTexture1DZero = new Texture1D(0);
 
     mState.activeSampler = 0;
     bindArrayBuffer(0);
@@ -253,6 +254,7 @@ Context::~Context()
     mTexture2DZero = NULL;
 	mProxyTexture2DZero = NULL;
     mTextureCubeMapZero = NULL;
+	mTexture1DZero = NULL;
 
     delete mVertexDataManager;
     delete mIndexDataManager;
@@ -992,6 +994,13 @@ void Context::bindTextureCubeMap(GLuint texture)
     mState.samplerTexture[TEXTURE_CUBE][mState.activeSampler] = getTexture(texture);
 }
 
+void Context::bindTexture1D(GLuint texture)
+{
+    mResourceManager->checkTextureAllocation(texture, TEXTURE_1D);
+
+    mState.samplerTexture[TEXTURE_1D][mState.activeSampler] = getTexture(texture);
+}
+
 void Context::bindReadFramebuffer(GLuint framebuffer)
 {
     if(!getFramebuffer(framebuffer))
@@ -1223,6 +1232,11 @@ TextureCubeMap *Context::getTextureCubeMap()
     return static_cast<TextureCubeMap*>(getSamplerTexture(mState.activeSampler, TEXTURE_CUBE));
 }
 
+Texture1D *Context::getTexture1D()
+{
+    return static_cast<Texture1D*>(getSamplerTexture(mState.activeSampler, TEXTURE_1D));
+}
+
 Texture *Context::getSamplerTexture(unsigned int sampler, TextureType type)
 {
     GLuint texid = mState.samplerTexture[type][sampler].name();
@@ -1234,6 +1248,7 @@ Texture *Context::getSamplerTexture(unsigned int sampler, TextureType type)
         case TEXTURE_2D:       return mTexture2DZero;
         case PROXY_TEXTURE_2D: return mProxyTexture2DZero;
         case TEXTURE_CUBE:     return mTextureCubeMapZero;
+		case TEXTURE_1D:	   return mTexture1DZero;
         default: UNREACHABLE();
         }
     }
@@ -1615,6 +1630,7 @@ bool Context::getQueryParameterInfo(GLenum pname, GLenum *type, unsigned int *nu
       case GL_SAMPLES:
       case GL_IMPLEMENTATION_COLOR_READ_TYPE:
       case GL_IMPLEMENTATION_COLOR_READ_FORMAT:
+	  case GL_TEXTURE_BINDING_1D:
       case GL_TEXTURE_BINDING_2D:
       case GL_TEXTURE_BINDING_CUBE_MAP:
       case GL_MAX_VERTEX_UNIFORM_COMPONENTS:
@@ -3291,6 +3307,16 @@ void Context::setLight(int index, bool enable)
 void Context::setNormalizeNormals(bool enable)
 {
 	device->setNormalizeNormals(enable);
+}
+
+void Context::set1DTextureEnable(bool enable)
+{
+	device->set1DTextureEnable(enable);
+}
+
+bool Context::get1DTextureEnable()
+{
+	return device->get1DTextureEnable();
 }
 
 GLuint Context::genLists(GLsizei range)

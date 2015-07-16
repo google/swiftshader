@@ -309,7 +309,7 @@ namespace gl
 
 	bool IsTextureTarget(GLenum target)
 	{
-		return target == GL_TEXTURE_2D || IsCubemapTextureTarget(target);
+		return target == GL_TEXTURE_1D || target == GL_TEXTURE_2D || IsCubemapTextureTarget(target);
 	}
 
 	// Verify that format/type are one of the combinations from table 3.4.

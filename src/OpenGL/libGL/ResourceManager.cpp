@@ -323,7 +323,11 @@ void ResourceManager::checkTextureAllocation(GLuint texture, TextureType type)
     {
         Texture *textureObject;
 
-        if(type == TEXTURE_2D)
+		if(type == TEXTURE_1D)
+		{
+			textureObject = new Texture1D(texture);
+		}
+        else if(type == TEXTURE_2D)
         {
             textureObject = new Texture2D(texture);
         }

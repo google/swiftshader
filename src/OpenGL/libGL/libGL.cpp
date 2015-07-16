@@ -55,7 +55,7 @@ static bool validateSubImageParams(bool compressed, GLsizei width, GLsizei heigh
 		return error(GL_INVALID_OPERATION, false);
 	}
 
-	if(format != GL_NONE && format != texture->getFormat(target, level))
+	if(format != GL_NONE && format != texture->getFormat(target, level) && target != GL_TEXTURE_1D)
 	{
 		return error(GL_INVALID_OPERATION, false);
 	}
@@ -349,6 +349,9 @@ void APIENTRY glBindTexture(GLenum target, GLuint texture)
 
 		switch(target)
 		{
+		case GL_TEXTURE_1D:
+			context->bindTexture1D(texture);
+			return;
 		case GL_TEXTURE_2D:
 			context->bindTexture2D(texture);
 			return;
@@ -1652,6 +1655,7 @@ void APIENTRY glDisable(GLenum cap)
 
 		switch(cap)
 		{
+		case GL_TEXTURE_1D:               context->set1DTextureEnable(false);       break;
 		case GL_CULL_FACE:                context->setCullFace(false);              break;
 		case GL_POLYGON_OFFSET_FILL:      context->setPolygonOffsetFill(false);     break;
 		case GL_SAMPLE_ALPHA_TO_COVERAGE: context->setSampleAlphaToCoverage(false); break;
@@ -1799,6 +1803,7 @@ void APIENTRY glEnable(GLenum cap)
 
 		switch(cap)
 		{
+		case GL_TEXTURE_1D:               context->set1DTextureEnable(true);       break;
 		case GL_CULL_FACE:                context->setCullFace(true);              break;
 		case GL_POLYGON_OFFSET_FILL:      context->setPolygonOffsetFill(true);     break;
 		case GL_SAMPLE_ALPHA_TO_COVERAGE: context->setSampleAlphaToCoverage(true); break;
@@ -4395,6 +4400,7 @@ void APIENTRY glTexImage2D(GLenum target, GLint level, GLint internalformat, GLs
 
 	switch(target)
 	{
+	case GL_TEXTURE_1D:
 	case GL_TEXTURE_2D:
 		if(width > (gl::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level) ||
 		   height > (gl::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level))
@@ -4463,7 +4469,18 @@ void APIENTRY glTexImage2D(GLenum target, GLint level, GLint internalformat, GLs
 			UNIMPLEMENTED();
 		}
 
-		if(target == GL_TEXTURE_2D || target == GL_PROXY_TEXTURE_2D)
+		if(target == GL_TEXTURE_1D)
+		{
+			gl::Texture1D *texture = context->getTexture1D();
+
+			if(!texture)
+			{
+				return error(GL_INVALID_OPERATION);
+			}
+
+			texture->setImage(level, width, height, format, type, context->getUnpackAlignment(), pixels);
+		}
+		else if(target == GL_TEXTURE_2D || target == GL_PROXY_TEXTURE_2D)
 		{
 			gl::Texture2D *texture = context->getTexture2D(target);
 
@@ -4589,6 +4606,9 @@ void APIENTRY glTexParameteri(GLenum target, GLenum pname, GLint param)
 
 		switch(target)
 		{
+		case GL_TEXTURE_1D:
+			texture = context->getTexture1D();
+			break;
 		case GL_TEXTURE_2D:
 			texture = context->getTexture2D(target);
 			break;
@@ -4695,7 +4715,16 @@ void APIENTRY glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint y
 			return error(GL_INVALID_VALUE);
 		}
 
-		if(target == GL_TEXTURE_2D)
+		if(target == GL_TEXTURE_1D)
+		{
+			gl::Texture1D *texture = context->getTexture1D();
+
+			if(validateSubImageParams(false, width, height, xoffset, yoffset, target, level, format, texture))
+			{
+				texture->subImage(level, xoffset, yoffset, width, height, format, type, context->getUnpackAlignment(), pixels);
+			}
+		}
+		else if(target == GL_TEXTURE_2D)
 		{
 			gl::Texture2D *texture = context->getTexture2D(target);
 
@@ -7539,12 +7568,20 @@ void APIENTRY glTexGeniv(GLenum coord, GLenum pname, const GLint *params)
 
 void APIENTRY glTexImage1D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLint border, GLenum format, GLenum type, const GLvoid *pixels)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLenum target = 0x%X, GLint level = %d, GLint internalformat = %d, GLsizei width = %d, "
+		"GLint border = %d, GLenum format = 0x%X, GLenum type = 0x%X, const GLvoid* pixels =  %p)",
+		target, level, internalformat, width, border, format, type, pixels);
+
+	glTexImage2D(target, level, internalformat, width, 1, border, format, type, pixels);
 }
 
 void APIENTRY glTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const GLvoid *pixels)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLenum target = 0x%X, GLint level = %d, GLint xoffset = %d, GLsizei width = %d, "
+		"GLenum format =  0x%X, GLenum type = 0x%X, const GLvoid* pixels =  %p)",
+		target, level, xoffset, width, format, type, pixels);
+
+	glTexSubImage2D(target, level, xoffset, 0, width, 1, format, type, pixels);
 }
 
 void APIENTRY glTranslated(GLdouble x, GLdouble y, GLdouble z)

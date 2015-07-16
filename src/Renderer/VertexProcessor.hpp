@@ -296,6 +296,7 @@ namespace sw
 		bool updateBaseMatrix;
 		bool updateProjectionMatrix;
 		bool updateLighting;
+		bool oneDTextureEnable;
 	};
 }
 
