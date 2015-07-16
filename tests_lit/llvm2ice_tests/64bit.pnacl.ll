@@ -158,6 +158,28 @@ entry:
 ; ARM32:      bl      {{.*}} ignore64BitArgNoInline
 ; ARM32:      add     sp, {{.*}} #16
 
+define internal i32 @pass64BitUndefArg() {
+entry:
+  %call = call i32 @ignore64BitArgNoInline(i64 0, i32 123, i64 undef)
+  ret i32 %call
+}
+; CHECK-LABEL: pass64BitUndefArg
+; CHECK: sub esp
+; CHECK: mov DWORD PTR{{.*}},0x7b
+; CHECK: mov DWORD PTR{{.*}},0x0
+; CHECK: call {{.*}} R_{{.*}} ignore64BitArgNoInline
+; OPTM1-LABEL: pass64BitUndefArg
+; OPTM1: sub esp
+; OPTM1: mov DWORD PTR{{.*}},0x7b
+; OPTM1: mov DWORD PTR{{.*}},0x0
+; OPTM1: call {{.*}} R_{{.*}} ignore64BitArgNoInline
+; ARM32-LABEL: pass64BitUndefArg
+; ARM32: sub sp
+; ARM32: movw {{.*}}, #0
+; ARM32: str
+; ARM32: movw {{.*}}, #123
+; ARM32: bl {{.*}} ignore64BitArgNoInline
+
 define internal i64 @return64BitArg(i64 %padding, i64 %a) {
 entry:
   ret i64 %a
@@ -1744,3 +1766,49 @@ if.end3:                                          ; preds = %if.then2, %if.end
 ; OPTM1-NOT: cmp 0x{{[0-9a-f]+}},
 ; ARM32-LABEL: icmpLt64Imm
 ; ARM32-NOT: cmp #{{[0-9a-f]+}},
+
+define internal i64 @phi64Imm(i32 %x, i64 %y, i64 %z) {
+entry:
+  %cond = icmp eq i32 %x, 88
+  br i1 %cond, label %branch1, label %branch2
+branch1:
+  %tmp = add i64 %y, %z
+  br label %branch2
+
+branch2:
+  %merge = phi i64 [ %tmp, %branch1 ], [ 20014547621496, %entry ]
+  ret i64 %merge
+}
+; CHECK-LABEL: phi64Imm
+; CHECK: mov {{.*}},0x5678
+; CHECK: mov {{.*}},0x1234
+; OPTM1-LABEL: phi64Imm
+; OPTM1: mov {{.*}},0x5678
+; OPTM1: mov {{.*}},0x1234
+; ARM32-LABEL: phi64Imm
+; ARM32: movw {{.*}}, #22136 ; 0x5678
+; ARM32: movw {{.*}}, #4660  ; 0x1234
+
+define internal i64 @phi64Undef(i32 %x, i64 %y, i64 %z) {
+entry:
+  %cond = icmp eq i32 %x, 88
+  br i1 %cond, label %branch1, label %branch2
+branch1:
+  %tmp = add i64 %y, %z
+  br label %branch2
+
+branch2:
+  %merge = phi i64 [ %tmp, %branch1 ], [ undef, %entry ]
+  ret i64 %merge
+}
+
+; CHECK-LABEL: phi64Undef
+; CHECK: mov {{.*}},0x0
+; CHECK: mov {{.*}},0x0
+; OPTM1-LABEL: phi64Undef
+; OPTM1: mov {{.*}},0x0
+; OPTM1: mov {{.*}},0x0
+; ARM32-LABEL: phi64Undef
+; ARM32: mov {{.*}} #0
+; ARM32: mov {{.*}} #0
+

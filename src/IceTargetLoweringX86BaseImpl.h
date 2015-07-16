@@ -25,6 +25,7 @@
 #include "IceGlobalInits.h"
 #include "IceLiveness.h"
 #include "IceOperand.h"
+#include "IcePhiLoweringImpl.h"
 #include "IceUtils.h"
 #include "llvm/Support/MathExtras.h"
 
@@ -4696,30 +4697,8 @@ template <class Machine> void TargetX86Base<Machine>::prelowerPhis() {
   // Pause constant blinding or pooling, blinding or pooling will be done later
   // during phi lowering assignments
   BoolFlagSaver B(RandomizationPoolingPaused, true);
-
-  CfgNode *Node = Context.getNode();
-  for (Inst &I : Node->getPhis()) {
-    auto Phi = llvm::dyn_cast<InstPhi>(&I);
-    if (Phi->isDeleted())
-      continue;
-    Variable *Dest = Phi->getDest();
-    if (Dest->getType() == IceType_i64) {
-      Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
-      Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
-      InstPhi *PhiLo = InstPhi::create(Func, Phi->getSrcSize(), DestLo);
-      InstPhi *PhiHi = InstPhi::create(Func, Phi->getSrcSize(), DestHi);
-      for (SizeT I = 0; I < Phi->getSrcSize(); ++I) {
-        Operand *Src = Phi->getSrc(I);
-        CfgNode *Label = Phi->getLabel(I);
-        Src = legalizeUndef(Src);
-        PhiLo->addArgument(loOperand(Src), Label);
-        PhiHi->addArgument(hiOperand(Src), Label);
-      }
-      Node->getPhis().push_back(PhiLo);
-      Node->getPhis().push_back(PhiHi);
-      Phi->setDeleted();
-    }
-  }
+  PhiLowering::prelowerPhis32Bit<TargetX86Base<Machine>>(
+      this, Context.getNode(), Func);
 }
 
 bool isMemoryOperand(const Operand *Opnd) {

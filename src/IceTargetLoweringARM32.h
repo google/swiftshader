@@ -103,6 +103,7 @@ public:
   bool hasCPUFeature(TargetARM32Features::ARM32InstructionSet I) const {
     return CPUFeatures.hasFeature(I);
   }
+  Operand *legalizeUndef(Operand *From, int32_t RegNum = Variable::NoRegister);
 
 protected:
   explicit TargetARM32(Cfg *Func);
@@ -146,7 +147,6 @@ protected:
   Operand *legalize(Operand *From, LegalMask Allowed = Legal_All,
                     int32_t RegNum = Variable::NoRegister);
   Variable *legalizeToVar(Operand *From, int32_t RegNum = Variable::NoRegister);
-  Operand *legalizeUndef(Operand *From, int32_t RegNum = Variable::NoRegister);
   OperandARM32Mem *formMemoryOperand(Operand *Ptr, Type Ty);
 
   Variable *makeReg(Type Ty, int32_t RegNum = Variable::NoRegister);

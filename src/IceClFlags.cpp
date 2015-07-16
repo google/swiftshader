@@ -390,7 +390,15 @@ void ClFlags::getParsedClFlags(ClFlags &OutFlags) {
   OutFlags.setFunctionSections(::FunctionSections);
   OutFlags.setNumTranslationThreads(::NumThreads);
   OutFlags.setOptLevel(::OLevel);
-  OutFlags.setPhiEdgeSplit(::EnablePhiEdgeSplit);
+  if (::TargetArch == Target_ARM32) {
+    // TODO(jvoung): We need lowerPhiAssignments to handle spilling
+    // more than one register, since some ARM lowerAssign sequences
+    // may require more than one register. For now, disable PhiEdgeSplit
+    // to avoid requiring lowerPhiAssignments.
+    OutFlags.setPhiEdgeSplit(false);
+  } else {
+    OutFlags.setPhiEdgeSplit(::EnablePhiEdgeSplit);
+  }
   OutFlags.setRandomSeed(::RandomSeed);
   OutFlags.setShouldDoNopInsertion(::ShouldDoNopInsertion);
   OutFlags.setShouldRandomizeRegAlloc(::RandomizeRegisterAllocation);

@@ -24,6 +24,7 @@
 #include "IceInstARM32.h"
 #include "IceLiveness.h"
 #include "IceOperand.h"
+#include "IcePhiLoweringImpl.h"
 #include "IceRegistersARM32.h"
 #include "IceTargetLoweringARM32.def"
 #include "IceUtils.h"
@@ -2410,12 +2411,8 @@ void TargetARM32::lowerUnreachable(const InstUnreachable * /*Inst*/) {
   _trap();
 }
 
-// Turn an i64 Phi instruction into a pair of i32 Phi instructions, to
-// preserve integrity of liveness analysis.  Undef values are also
-// turned into zeroes, since loOperand() and hiOperand() don't expect
-// Undef input.
 void TargetARM32::prelowerPhis() {
-  UnimplementedError(Func->getContext()->getFlags());
+  PhiLowering::prelowerPhis32Bit<TargetARM32>(this, Context.getNode(), Func);
 }
 
 // Lower the pre-ordered list of assignments into mov instructions.
