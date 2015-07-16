@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3837466d_75c2902b",
+        "filename": "src/OpenGL/compiler/OutputASM.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-07-16T13:32:27Z",
+      "side": 1,
+      "message": "This seems orthogonal to the matrix fixes. Could you split it off? I\u0027d like to keep fixes, refactorings, and new functionality separate.",
+      "range": {
+        "startLine": 55,
+        "startChar": 2,
+        "endLine": 55,
+        "endChar": 15
+      },
+      "revId": "ed860c47afb8e978bd2d00729290f3b8da0013f4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3837466d_f5f6a08a",
+        "filename": "src/OpenGL/libGLESv2/Program.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1258,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-07-16T13:32:27Z",
+      "side": 1,
+      "message": "nit: Add parenthesis around this.",
+      "range": {
+        "startLine": 1258,
+        "startChar": 18,
+        "endLine": 1258,
+        "endChar": 43
+      },
+      "revId": "ed860c47afb8e978bd2d00729290f3b8da0013f4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3837466d_f5cd405c",
+        "filename": "src/OpenGL/libGLESv2/utilities.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-07-16T13:32:27Z",
+      "side": 1,
+      "message": "Do we still need VariableRowCount and VariableColumnCount when we have VariableRegisterCount and VariableRegisterSize? I know the latter two call the former two, but maybe they can be merged. Using the \"column\" count for a vector\u0027s component count is confusing, so one set of clear functions would be ideal.",
+      "range": {
+        "startLine": 33,
+        "startChar": 1,
+        "endLine": 36,
+        "endChar": 39
+      },
+      "revId": "ed860c47afb8e978bd2d00729290f3b8da0013f4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
