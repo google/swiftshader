@@ -322,12 +322,8 @@ void ResourceManager::checkTextureAllocation(GLuint texture, TextureType type)
     if(!getTexture(texture) && texture != 0)
     {
         Texture *textureObject;
-		
-		if(type == TEXTURE_1D)
-		{
-			textureObject = new Texture1D(texture);
-		}
-        else if(type == TEXTURE_2D)
+
+        if(type == TEXTURE_2D)
         {
             textureObject = new Texture2D(texture);
         }
@@ -335,7 +331,7 @@ void ResourceManager::checkTextureAllocation(GLuint texture, TextureType type)
         {
             textureObject = new TextureCubeMap(texture);
         }
-		else
+        else
         {
             UNREACHABLE();
             return;

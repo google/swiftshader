@@ -368,6 +368,5 @@ EXPORTS
 	wglUseFontBitmapsW	@366
 	wglUseFontOutlinesA	@367
 	wglUseFontOutlinesW	@368
-	wglCreateContextAttribsARB @369
 
 	Register

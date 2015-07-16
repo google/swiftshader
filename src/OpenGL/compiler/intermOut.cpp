@@ -298,7 +298,6 @@ bool TOutputTraverser::visitAggregate(Visit visit, TIntermAggregate* node)
         case EOpFaceForward:   out << "face-forward";            break;
         case EOpReflect:       out << "reflect";                 break;
         case EOpRefract:       out << "refract";                 break;
-		case EOpFtransform:		out << "ftransform";			break;
         case EOpMul:           out << "component-wise multiply"; break;
         case EOpOuterProduct:  out << "outer product";           break;
 

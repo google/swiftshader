@@ -196,9 +196,6 @@ namespace sw
 		virtual void setLightEnable(unsigned int light, bool lightEnable);
 		virtual void setSpecularEnable(bool specularEnable);
 
-		void setRectangleTextureEnable(bool enable);
-		bool getRectangleTextureEnable();
-
 		virtual void setGlobalAmbient(const Color<float> &globalAmbient);
 		virtual void setLightPosition(unsigned int light, const Point &lightPosition);
 		virtual void setLightViewPosition(unsigned int light, const Point &lightPosition);
@@ -299,8 +296,6 @@ namespace sw
 		bool updateBaseMatrix;
 		bool updateProjectionMatrix;
 		bool updateLighting;
-		bool rectangleTextureEnable;
-		bool oneDTextureEnable;
 	};
 }
 

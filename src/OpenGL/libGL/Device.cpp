@@ -157,9 +157,6 @@ namespace gl
         setSpecularMaterialSource(sw::MATERIAL_MATERIAL);
         setAmbientMaterialSource(sw::MATERIAL_COLOR1);
         setEmissiveMaterialSource(sw::MATERIAL_MATERIAL);
-
-		rectangleTextureEnable = false;
-		oneDTextureEnable = false;
 	}
 
 	Device::~Device()
@@ -442,26 +439,6 @@ namespace gl
 	void Device::setScissorEnable(bool enable)
 	{
 		scissorEnable = enable;
-	}
-
-	void Device::setRectangleTextureEnable(bool enable)
-	{
-		rectangleTextureEnable = enable;
-	}
-
-	bool Device::getRectangleTextureEnable()
-	{
-		return rectangleTextureEnable;
-	}
-
-	void Device::set1DTextureEnable(bool enable)
-	{
-		oneDTextureEnable = enable;
-	}
-
-	bool Device::get1DTextureEnable()
-	{
-		return oneDTextureEnable;
 	}
 
 	void Device::setRenderTarget(Image *renderTarget)

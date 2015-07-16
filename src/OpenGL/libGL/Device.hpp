@@ -59,10 +59,6 @@ namespace gl
 		virtual void setPixelShader(sw::PixelShader *shader);
 		virtual void setPixelShaderConstantF(unsigned int startRegister, const float *constantData, unsigned int count);
 		virtual void setScissorEnable(bool enable);
-		virtual void setRectangleTextureEnable(bool enable);
-		virtual bool getRectangleTextureEnable();
-		virtual void set1DTextureEnable(bool enable);
-		virtual bool get1DTextureEnable();
 		virtual void setRenderTarget(Image *renderTarget);
 		virtual void setScissorRect(const sw::Rect &rect);
 		virtual void setVertexShader(sw::VertexShader *shader);
