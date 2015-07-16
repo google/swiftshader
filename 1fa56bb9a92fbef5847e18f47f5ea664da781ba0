@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3837466d_1b0c93ad",
+        "filename": "src/OpenGL/libGLESv2/Program.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1258,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-07-16T19:22:11Z",
+      "side": 1,
+      "message": "nit: add parenthesis\n\nAlternatively, perhaps roll this into getAttributeBinding() by making it take all of \"attribute\" as parameter?",
+      "range": {
+        "startLine": 1258,
+        "startChar": 18,
+        "endLine": 1258,
+        "endChar": 43
+      },
+      "revId": "1fa56bb9a92fbef5847e18f47f5ea664da781ba0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3837466d_1bad73f6",
+        "filename": "src/OpenGL/libGLESv2/Program.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1287,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-07-16T19:22:11Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 1287,
+        "startChar": 18,
+        "endLine": 1287,
+        "endChar": 43
+      },
+      "revId": "1fa56bb9a92fbef5847e18f47f5ea664da781ba0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
