@@ -99,6 +99,43 @@ namespace D3D9
 	}
 }
 
+static INT_PTR CALLBACK DebuggerWaitDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	RECT rect;
+
+    switch(uMsg)
+    {
+    case WM_INITDIALOG:
+		GetWindowRect(GetDesktopWindow(), &rect);
+		SetWindowPos(hwnd, HWND_TOP, rect.right / 2, rect.bottom / 2, 0, 0, SWP_NOSIZE);
+		SetTimer(hwnd, 1, 100, NULL);
+		return TRUE;
+    case WM_COMMAND:
+        if(LOWORD(wParam) == IDCANCEL)
+		{
+			EndDialog(hwnd, 0);
+		}
+        break;
+    case WM_TIMER:
+		if(IsDebuggerPresent())
+		{
+			EndDialog(hwnd, 0);
+		}
+    }
+
+    return FALSE;
+}
+
+static void WaitForDebugger(HINSTANCE instance)
+{
+    if(!IsDebuggerPresent())
+    {
+        HRSRC dialog = FindResource(instance, MAKEINTRESOURCE(IDD_DIALOG1), RT_DIALOG);
+		DLGTEMPLATE *dialogTemplate = (DLGTEMPLATE*)LoadResource(instance, dialog);
+		DialogBoxIndirect(instance, dialogTemplate, NULL, DebuggerWaitDialogProc);
+    }
+}
+
 using namespace D3D9;
 
 extern "C"
@@ -111,7 +148,7 @@ extern "C"
 			if(dllInstance == 0)
 			{
 				FILE *file = fopen("debug.txt", "w");   // Clear debug log
-				fclose(file);
+				if(file) fclose(file);
 			}
 		#endif
 
@@ -124,6 +161,9 @@ extern "C"
 		case DLL_PROCESS_DETACH:
 			break;
 		case DLL_PROCESS_ATTACH:
+			#ifndef NDEBUG
+				WaitForDebugger(instance);
+			#endif
 			DisableThreadLibraryCalls(instance);
 			break;
 		case DLL_THREAD_ATTACH:

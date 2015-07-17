@@ -1,6 +1,8 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
 // Used by D3D9.rc
+#define IDD_DIALOG1                     101
+#define IDC_STATIC                      -1
 
 // Next default values for new objects
 // 
