@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "18ea8220_43649818",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2973,
+      "author": {
+        "id": 5190
+      },
+      "writtenOn": "2015-07-17T19:38:00Z",
+      "side": 1,
+      "message": "\u003e attachmentLayer is only set by color attachments\n\nWhere are you getting that restriction?",
+      "parentUuid": "3837466d_166f8aa8",
+      "range": {
+        "startLine": 2971,
+        "startChar": 2,
+        "endLine": 2973,
+        "endChar": 27
+      },
+      "revId": "4a06ea1d0bfc8183349ef41a0ed2eea989ebaf88",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3837466d_5617524c",
         "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
         "patchSetId": 2
@@ -84,6 +108,30 @@
       "side": 1,
       "message": "It is odd, but I found no mention of an error being generated because of this. There are mentions of there being a default value of 0, though (see OpenGL ES 3.0.4 spec, Table 6.14: Framebuffer).",
       "parentUuid": "3837466d_5617524c",
+      "range": {
+        "startLine": 3112,
+        "startChar": 14,
+        "endLine": 3112,
+        "endChar": 29
+      },
+      "revId": "4a06ea1d0bfc8183349ef41a0ed2eea989ebaf88",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "38e3c64b_e1ecc642",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 3112,
+      "author": {
+        "id": 5190
+      },
+      "writtenOn": "2015-07-17T19:38:00Z",
+      "side": 1,
+      "message": "Why isn\u0027t there support for retrieving the layer from depth or stencil attachments? While it\u0027s not possible to create a 3D texture with a depth format, 2D texture arrays with depth format are totally fair game. Additionally, format requirements are not enforced at attachment time, so it\u0027s possible to have a depth attachment with a color format-- that just causes the framebuffer attachment (and by extension the framebuffer) to be incomplete. But you can still query the parameters of incomplete framebuffer attachments. So it\u0027s possible for there to be a layer of an RGBA 3D texture attached to the stencil attachment point, and for the application to query the layer.",
+      "parentUuid": "3837466d_161b0a2f",
       "range": {
         "startLine": 3112,
         "startChar": 14,
