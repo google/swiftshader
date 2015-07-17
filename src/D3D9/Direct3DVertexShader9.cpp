@@ -18,10 +18,23 @@ namespace D3D9
 {
 	Direct3DVertexShader9::Direct3DVertexShader9(Direct3DDevice9 *device, const unsigned long *shaderToken) : device(device), vertexShader(shaderToken)
 	{
+		tokenCount = 0;
+
+		while(shaderToken[tokenCount] != 0x0000FFFF)
+		{
+			tokenCount += sw::Shader::size(shaderToken[tokenCount], (unsigned short)(shaderToken[0] & 0xFFFF)) + 1;
+		}
+
+		tokenCount += 1;
+
+		this->shaderToken = new unsigned long[tokenCount];
+		memcpy(this->shaderToken, shaderToken, tokenCount * sizeof(unsigned long));
 	}
 
 	Direct3DVertexShader9::~Direct3DVertexShader9()
 	{
+		delete[] shaderToken;
+		shaderToken = 0;
 	}
 
 	long Direct3DVertexShader9::QueryInterface(const IID &iid, void **object)
@@ -86,7 +99,12 @@ namespace D3D9
 			return INVALIDCALL();
 		}
 
-		UNIMPLEMENTED();
+		if(data)
+		{
+			memcpy(data, shaderToken, tokenCount * 4);
+		}
+
+		*size = tokenCount * 4;
 
 		return D3D_OK;
 	}

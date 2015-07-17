@@ -45,6 +45,9 @@ namespace D3D9
 		// Creation parameters
 		Direct3DDevice9 *const device;
 
+		unsigned long *shaderToken;
+		int tokenCount;
+
 		sw::PixelShader pixelShader;
 	};
 }
