@@ -72,6 +72,15 @@ namespace sw
 		false   // leadingVertexFirst
 	};
 
+	static const Conventions Direct3D =
+	{
+		false,   // halfIntegerCoordinates
+		false,   // symmetricNormalizedDepth
+		false,   // booleanFaceRegister
+		false,   // fullPixelPositionRegister
+		true     // leadingVertexFirst
+	};
+
 	struct Query
 	{
 		Query()

@@ -147,7 +147,7 @@ namespace D3D9
 
 		HWND window = destWindowOverride ? destWindowOverride : presentParameters.hDeviceWindow;
 		void *source = backBuffer[0]->lockInternal(0, 0, 0, sw::LOCK_READONLY, sw::PUBLIC);   // FIXME: External
-		bool HDR = backBuffer[0]->getInternalFormat() == sw::FORMAT_A16B16G16R16;
+		sw::Format format = backBuffer[0]->getInternalFormat();
 
 		POINT point;
 		GetCursorPos(&point);
@@ -157,30 +157,30 @@ namespace D3D9
 
 		if(!sourceRect && !destRect)   // FIXME: More cases?
 		{
-			frameBuffer->flip(window, source, HDR);
+			frameBuffer->flip(window, source, format);
 		}
 		else   // FIXME: Check for SWAPEFFECT_COPY
 		{
-			sw::Rect sRect = {0};
-			sw::Rect dRect = {0};
+			sw::Rect sRect(0, 0, 0, 0);
+			sw::Rect dRect(0, 0, 0, 0);
 
 			if(sourceRect)
 			{
-				sRect.left = sourceRect->left;
-				sRect.top = sourceRect->top;
-				sRect.right = sourceRect->right;
-				sRect.bottom = sourceRect->bottom;
+				sRect.x0 = sourceRect->left;
+				sRect.y0 = sourceRect->top;
+				sRect.x1 = sourceRect->right;
+				sRect.y1 = sourceRect->bottom;
 			}
 
 			if(destRect)
 			{
-				dRect.left = destRect->left;
-				dRect.top = destRect->top;
-				dRect.right = destRect->right;
-				dRect.bottom = destRect->bottom;
+				dRect.x0 = destRect->left;
+				dRect.y0 = destRect->top;
+				dRect.x1 = destRect->right;
+				dRect.y1 = destRect->bottom;
 			}
 
-			frameBuffer->blit(window, source, sourceRect ? &sRect : 0, destRect ? &dRect : 0, HDR);
+			frameBuffer->blit(window, source, sourceRect ? &sRect : 0, destRect ? &dRect : 0, format);
 		}
 
 		backBuffer[0]->unlockInternal();   // FIXME: External
@@ -343,20 +343,9 @@ namespace D3D9
 			presentParameters->BackBufferHeight = rectangle.bottom - rectangle.top;
 		}
 
+		frameBuffer = createFrameBufferWin(windowHandle, presentParameters->BackBufferWidth, presentParameters->BackBufferHeight, presentParameters->Windowed == FALSE, true);
+
 		lockable = presentParameters->Flags & D3DPRESENTFLAG_LOCKABLE_BACKBUFFER;
-
-		sw::Configurator ini("SwiftShader.ini");
-		int api = ini.getInteger("Testing", "FrameBufferAPI", 1);
-
-		if(api == 0)
-		{
-			frameBuffer = new sw::FrameBufferDD(windowHandle, presentParameters->BackBufferWidth, presentParameters->BackBufferHeight, presentParameters->Windowed == FALSE);
-		}
-		else if(api == 1)
-		{
-			frameBuffer = new sw::FrameBufferGDI(windowHandle, presentParameters->BackBufferWidth, presentParameters->BackBufferHeight, presentParameters->Windowed == FALSE);
-		}
-		else ASSERT(false);
 
 		backBuffer[0] = 0;
 		backBuffer[1] = 0;

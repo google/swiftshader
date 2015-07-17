@@ -190,13 +190,13 @@ namespace D3D9
 			source->lockInternal(0, 0, 0, sw::LOCK_READONLY, sw::PUBLIC);
 			dest->lockInternal(0, 0, 0, sw::LOCK_DISCARD, sw::PUBLIC);
 
-			int sWidth = source->getInternalWidth();
-			int sHeight = source->getInternalHeight();
-			int sDepth = source->getInternalDepth();
+			int sWidth = source->getWidth();
+			int sHeight = source->getHeight();
+			int sDepth = source->getDepth();
 
-			int dWidth = dest->getInternalWidth();
-			int dHeight = dest->getInternalHeight();
-			int dDepth = dest->getInternalDepth();
+			int dWidth = dest->getWidth();
+			int dHeight = dest->getHeight();
+			int dDepth = dest->getDepth();
 
 			D3DTEXTUREFILTERTYPE filter = GetAutoGenFilterType();
 

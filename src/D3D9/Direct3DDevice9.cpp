@@ -58,7 +58,7 @@ namespace D3D9
 		d3d9->AddRef();
 
 		context = new sw::Context();
-		renderer = new sw::Renderer(context);
+		renderer = new sw::Renderer(context, sw::Direct3D, false);
 
 		swapChain = 0;
 		depthStencil = 0;
@@ -1033,18 +1033,18 @@ namespace D3D9
 
 		unsigned int indexOffset = startIndex * (indexData->is32Bit() ? 4 : 2);   // FIXME: Doesn't take stream frequencies into account
 
-		sw::Context::DrawType drawType;
+		sw::DrawType drawType;
 
 		if(indexData->is32Bit())
 		{
 			switch(type)
 			{
-			case D3DPT_POINTLIST:		drawType = sw::Context::DRAW_INDEXEDPOINTLIST32;		break;
-			case D3DPT_LINELIST:		drawType = sw::Context::DRAW_INDEXEDLINELIST32;			break;
-			case D3DPT_LINESTRIP:		drawType = sw::Context::DRAW_INDEXEDLINESTRIP32;		break;
-			case D3DPT_TRIANGLELIST:	drawType = sw::Context::DRAW_INDEXEDTRIANGLELIST32;		break;
-			case D3DPT_TRIANGLESTRIP:	drawType = sw::Context::DRAW_INDEXEDTRIANGLESTRIP32;	break;
-			case D3DPT_TRIANGLEFAN:		drawType = sw::Context::DRAW_INDEXEDTRIANGLEFAN32;		break;
+			case D3DPT_POINTLIST:     drawType = sw::DRAW_INDEXEDPOINTLIST32;     break;
+			case D3DPT_LINELIST:      drawType = sw::DRAW_INDEXEDLINELIST32;      break;
+			case D3DPT_LINESTRIP:     drawType = sw::DRAW_INDEXEDLINESTRIP32;     break;
+			case D3DPT_TRIANGLELIST:  drawType = sw::DRAW_INDEXEDTRIANGLELIST32;  break;
+			case D3DPT_TRIANGLESTRIP: drawType = sw::DRAW_INDEXEDTRIANGLESTRIP32; break;
+			case D3DPT_TRIANGLEFAN:   drawType = sw::DRAW_INDEXEDTRIANGLEFAN32;   break;
 			default:
 				ASSERT(false);
 			}
@@ -1053,12 +1053,12 @@ namespace D3D9
 		{
 			switch(type)
 			{
-			case D3DPT_POINTLIST:		drawType = sw::Context::DRAW_INDEXEDPOINTLIST16;		break;
-			case D3DPT_LINELIST:		drawType = sw::Context::DRAW_INDEXEDLINELIST16;			break;
-			case D3DPT_LINESTRIP:		drawType = sw::Context::DRAW_INDEXEDLINESTRIP16;		break;
-			case D3DPT_TRIANGLELIST:	drawType = sw::Context::DRAW_INDEXEDTRIANGLELIST16;		break;
-			case D3DPT_TRIANGLESTRIP:	drawType = sw::Context::DRAW_INDEXEDTRIANGLESTRIP16;	break;
-			case D3DPT_TRIANGLEFAN:		drawType = sw::Context::DRAW_INDEXEDTRIANGLEFAN16;		break;
+			case D3DPT_POINTLIST:     drawType = sw::DRAW_INDEXEDPOINTLIST16;     break;
+			case D3DPT_LINELIST:      drawType = sw::DRAW_INDEXEDLINELIST16;      break;
+			case D3DPT_LINESTRIP:     drawType = sw::DRAW_INDEXEDLINESTRIP16;     break;
+			case D3DPT_TRIANGLELIST:  drawType = sw::DRAW_INDEXEDTRIANGLELIST16;  break;
+			case D3DPT_TRIANGLESTRIP: drawType = sw::DRAW_INDEXEDTRIANGLESTRIP16; break;
+			case D3DPT_TRIANGLEFAN:   drawType = sw::DRAW_INDEXEDTRIANGLEFAN16;   break;
 			default:
 				ASSERT(false);
 			}
@@ -1134,18 +1134,18 @@ namespace D3D9
 			return D3D_OK;
 		}
 
-		sw::Context::DrawType drawType;
+		sw::DrawType drawType;
 
 		if(indexDataFormat == D3DFMT_INDEX32)
 		{
 			switch(type)
 			{
-			case D3DPT_POINTLIST:		drawType = sw::Context::DRAW_INDEXEDPOINTLIST32;		break;
-			case D3DPT_LINELIST:		drawType = sw::Context::DRAW_INDEXEDLINELIST32;			break;
-			case D3DPT_LINESTRIP:		drawType = sw::Context::DRAW_INDEXEDLINESTRIP32;		break;
-			case D3DPT_TRIANGLELIST:	drawType = sw::Context::DRAW_INDEXEDTRIANGLELIST32;		break;
-			case D3DPT_TRIANGLESTRIP:	drawType = sw::Context::DRAW_INDEXEDTRIANGLESTRIP32;	break;
-			case D3DPT_TRIANGLEFAN:		drawType = sw::Context::DRAW_INDEXEDTRIANGLEFAN32;		break;
+			case D3DPT_POINTLIST:     drawType = sw::DRAW_INDEXEDPOINTLIST32;     break;
+			case D3DPT_LINELIST:      drawType = sw::DRAW_INDEXEDLINELIST32;      break;
+			case D3DPT_LINESTRIP:     drawType = sw::DRAW_INDEXEDLINESTRIP32;     break;
+			case D3DPT_TRIANGLELIST:  drawType = sw::DRAW_INDEXEDTRIANGLELIST32;  break;
+			case D3DPT_TRIANGLESTRIP: drawType = sw::DRAW_INDEXEDTRIANGLESTRIP32; break;
+			case D3DPT_TRIANGLEFAN:   drawType = sw::DRAW_INDEXEDTRIANGLEFAN32;   break;
 			default:
 				ASSERT(false);
 			}
@@ -1154,12 +1154,12 @@ namespace D3D9
 		{
 			switch(type)
 			{
-			case D3DPT_POINTLIST:		drawType = sw::Context::DRAW_INDEXEDPOINTLIST16;		break;
-			case D3DPT_LINELIST:		drawType = sw::Context::DRAW_INDEXEDLINELIST16;			break;
-			case D3DPT_LINESTRIP:		drawType = sw::Context::DRAW_INDEXEDLINESTRIP16;		break;
-			case D3DPT_TRIANGLELIST:	drawType = sw::Context::DRAW_INDEXEDTRIANGLELIST16;		break;
-			case D3DPT_TRIANGLESTRIP:	drawType = sw::Context::DRAW_INDEXEDTRIANGLESTRIP16;	break;
-			case D3DPT_TRIANGLEFAN:		drawType = sw::Context::DRAW_INDEXEDTRIANGLEFAN16;		break;
+			case D3DPT_POINTLIST:     drawType = sw::DRAW_INDEXEDPOINTLIST16;     break;
+			case D3DPT_LINELIST:      drawType = sw::DRAW_INDEXEDLINELIST16;      break;
+			case D3DPT_LINESTRIP:     drawType = sw::DRAW_INDEXEDLINESTRIP16;     break;
+			case D3DPT_TRIANGLELIST:  drawType = sw::DRAW_INDEXEDTRIANGLELIST16;  break;
+			case D3DPT_TRIANGLESTRIP: drawType = sw::DRAW_INDEXEDTRIANGLESTRIP16; break;
+			case D3DPT_TRIANGLEFAN:   drawType = sw::DRAW_INDEXEDTRIANGLEFAN16;   break;
 			default:
 				ASSERT(false);
 			}
@@ -1185,16 +1185,16 @@ namespace D3D9
 			return D3D_OK;
 		}
 
-		sw::Context::DrawType drawType;
+		sw::DrawType drawType;
 
 		switch(primitiveType)
 		{
-		case D3DPT_POINTLIST:		drawType = sw::Context::DRAW_POINTLIST;		break;
-		case D3DPT_LINELIST:		drawType = sw::Context::DRAW_LINELIST;		break;
-		case D3DPT_LINESTRIP:		drawType = sw::Context::DRAW_LINESTRIP;		break;
-		case D3DPT_TRIANGLELIST:	drawType = sw::Context::DRAW_TRIANGLELIST;	break;
-		case D3DPT_TRIANGLESTRIP:	drawType = sw::Context::DRAW_TRIANGLESTRIP;	break;
-		case D3DPT_TRIANGLEFAN:		drawType = sw::Context::DRAW_TRIANGLEFAN;	break;
+		case D3DPT_POINTLIST:     drawType = sw::DRAW_POINTLIST;     break;
+		case D3DPT_LINELIST:      drawType = sw::DRAW_LINELIST;      break;
+		case D3DPT_LINESTRIP:     drawType = sw::DRAW_LINESTRIP;     break;
+		case D3DPT_TRIANGLELIST:  drawType = sw::DRAW_TRIANGLELIST;  break;
+		case D3DPT_TRIANGLESTRIP: drawType = sw::DRAW_TRIANGLESTRIP; break;
+		case D3DPT_TRIANGLEFAN:   drawType = sw::DRAW_TRIANGLEFAN;   break;
 		default:
 			ASSERT(false);
 		}
@@ -1249,16 +1249,16 @@ namespace D3D9
 			return D3D_OK;
 		}
 
-		sw::Context::DrawType drawType;
+		sw::DrawType drawType;
 
 		switch(primitiveType)
 		{
-		case D3DPT_POINTLIST:		drawType = sw::Context::DRAW_POINTLIST;		break;
-		case D3DPT_LINELIST:		drawType = sw::Context::DRAW_LINELIST;		break;
-		case D3DPT_LINESTRIP:		drawType = sw::Context::DRAW_LINESTRIP;		break;
-		case D3DPT_TRIANGLELIST:	drawType = sw::Context::DRAW_TRIANGLELIST;	break;
-		case D3DPT_TRIANGLESTRIP:	drawType = sw::Context::DRAW_TRIANGLESTRIP;	break;
-		case D3DPT_TRIANGLEFAN:		drawType = sw::Context::DRAW_TRIANGLEFAN;	break;
+		case D3DPT_POINTLIST:     drawType = sw::DRAW_POINTLIST;     break;
+		case D3DPT_LINELIST:      drawType = sw::DRAW_LINELIST;      break;
+		case D3DPT_LINESTRIP:     drawType = sw::DRAW_LINESTRIP;     break;
+		case D3DPT_TRIANGLELIST:  drawType = sw::DRAW_TRIANGLELIST;  break;
+		case D3DPT_TRIANGLESTRIP: drawType = sw::DRAW_TRIANGLESTRIP; break;
+		case D3DPT_TRIANGLEFAN:   drawType = sw::DRAW_TRIANGLEFAN;   break;
 		default:
 			ASSERT(false);
 		}
@@ -1858,9 +1858,9 @@ namespace D3D9
 			sw::BlitState update;
 			update.width = sourceDescription.Width;
 			update.height = sourceDescription.Height;
-			update.depth = 32;
+			update.sourceFormat = sw::FORMAT_A8R8G8B8;
+			update.destFormat = sw::FORMAT_A8R8G8B8;
 			update.stride = dest->getExternalPitchB();
-			update.HDR = false;
 			update.cursorHeight = 0;
 			update.cursorWidth = 0;
 		
@@ -2676,8 +2676,8 @@ namespace D3D9
 
 		sw::Surface *cursorSurface = static_cast<Direct3DSurface9*>(cursorBitmap);
 
-		int width = cursorSurface->getExternalWidth();
-		int height = cursorSurface->getExternalHeight();
+		int width = cursorSurface->getWidth();
+		int height = cursorSurface->getHeight();
 		void *bitmap = cursorSurface->lockExternal(0, 0, 0, sw::LOCK_READONLY, sw::PUBLIC);
 
 		delete cursor;
@@ -3079,13 +3079,13 @@ namespace D3D9
 				switch(value)
 				{
 				case D3DFILL_POINT:
-					renderer->setFillMode(sw::Context::FILL_VERTEX);
+					renderer->setFillMode(sw::FILL_VERTEX);
 					break;
 				case D3DFILL_WIREFRAME:
-					renderer->setFillMode(sw::Context::FILL_WIREFRAME);
+					renderer->setFillMode(sw::FILL_WIREFRAME);
 					break;
 				case D3DFILL_SOLID:
-					renderer->setFillMode(sw::Context::FILL_SOLID);
+					renderer->setFillMode(sw::FILL_SOLID);
 					break;
 				default:
 					ASSERT(false);
@@ -3095,10 +3095,10 @@ namespace D3D9
 				switch(value)
 				{
 				case D3DSHADE_FLAT:
-					renderer->setShadingMode(sw::Context::SHADING_FLAT);
+					renderer->setShadingMode(sw::SHADING_FLAT);
 					break;
 				case D3DSHADE_GOURAUD:
-					renderer->setShadingMode(sw::Context::SHADING_GOURAUD);
+					renderer->setShadingMode(sw::SHADING_GOURAUD);
 					break;
 				case D3DSHADE_PHONG:
 					break;
@@ -3119,51 +3119,51 @@ namespace D3D9
 				switch(value)
 				{
 				case D3DBLEND_ZERO:
-					renderer->setSourceBlendFactor(sw::Context::BLEND_ZERO);
+					renderer->setSourceBlendFactor(sw::BLEND_ZERO);
 					break;
 				case D3DBLEND_ONE:
-					renderer->setSourceBlendFactor(sw::Context::BLEND_ONE);
+					renderer->setSourceBlendFactor(sw::BLEND_ONE);
 					break;
 				case D3DBLEND_SRCCOLOR:
-					renderer->setSourceBlendFactor(sw::Context::BLEND_SOURCE);
+					renderer->setSourceBlendFactor(sw::BLEND_SOURCE);
 					break;
 				case D3DBLEND_INVSRCCOLOR:
-					renderer->setSourceBlendFactor(sw::Context::BLEND_INVSOURCE);
+					renderer->setSourceBlendFactor(sw::BLEND_INVSOURCE);
 					break;
 				case D3DBLEND_SRCALPHA:
-					renderer->setSourceBlendFactor(sw::Context::BLEND_SOURCEALPHA);
+					renderer->setSourceBlendFactor(sw::BLEND_SOURCEALPHA);
 					break;
 				case D3DBLEND_INVSRCALPHA:
-					renderer->setSourceBlendFactor(sw::Context::BLEND_INVSOURCEALPHA);
+					renderer->setSourceBlendFactor(sw::BLEND_INVSOURCEALPHA);
 					break;
 				case D3DBLEND_DESTALPHA:
-					renderer->setSourceBlendFactor(sw::Context::BLEND_DESTALPHA);
+					renderer->setSourceBlendFactor(sw::BLEND_DESTALPHA);
 					break;
 				case D3DBLEND_INVDESTALPHA:
-					renderer->setSourceBlendFactor(sw::Context::BLEND_INVDESTALPHA);
+					renderer->setSourceBlendFactor(sw::BLEND_INVDESTALPHA);
 					break;
 				case D3DBLEND_DESTCOLOR:
-					renderer->setSourceBlendFactor(sw::Context::BLEND_DEST);
+					renderer->setSourceBlendFactor(sw::BLEND_DEST);
 					break;
 				case D3DBLEND_INVDESTCOLOR:
-					renderer->setSourceBlendFactor(sw::Context::BLEND_INVDEST);
+					renderer->setSourceBlendFactor(sw::BLEND_INVDEST);
 					break;
 				case D3DBLEND_SRCALPHASAT:
-					renderer->setSourceBlendFactor(sw::Context::BLEND_SRCALPHASAT);
+					renderer->setSourceBlendFactor(sw::BLEND_SRCALPHASAT);
 					break;
 				case D3DBLEND_BOTHSRCALPHA:
-					renderer->setSourceBlendFactor(sw::Context::BLEND_SOURCEALPHA);
-					renderer->setDestBlendFactor(sw::Context::BLEND_INVSOURCEALPHA);
+					renderer->setSourceBlendFactor(sw::BLEND_SOURCEALPHA);
+					renderer->setDestBlendFactor(sw::BLEND_INVSOURCEALPHA);
 					break;
 				case D3DBLEND_BOTHINVSRCALPHA:
-					renderer->setSourceBlendFactor(sw::Context::BLEND_INVSOURCEALPHA);
-					renderer->setDestBlendFactor(sw::Context::BLEND_SOURCEALPHA);
+					renderer->setSourceBlendFactor(sw::BLEND_INVSOURCEALPHA);
+					renderer->setDestBlendFactor(sw::BLEND_SOURCEALPHA);
 					break;
 				case D3DBLEND_BLENDFACTOR:
-					renderer->setSourceBlendFactor(sw::Context::BLEND_CONSTANT);
+					renderer->setSourceBlendFactor(sw::BLEND_CONSTANT);
 					break;
 				case D3DBLEND_INVBLENDFACTOR:
-					renderer->setSourceBlendFactor(sw::Context::BLEND_INVCONSTANT);
+					renderer->setSourceBlendFactor(sw::BLEND_INVCONSTANT);
 					break;
 				default:
 					ASSERT(false);
@@ -3173,51 +3173,51 @@ namespace D3D9
 				switch(value)
 				{
 				case D3DBLEND_ZERO:
-					renderer->setDestBlendFactor(sw::Context::BLEND_ZERO);
+					renderer->setDestBlendFactor(sw::BLEND_ZERO);
 					break;
 				case D3DBLEND_ONE:
-					renderer->setDestBlendFactor(sw::Context::BLEND_ONE);
+					renderer->setDestBlendFactor(sw::BLEND_ONE);
 					break;
 				case D3DBLEND_SRCCOLOR:
-					renderer->setDestBlendFactor(sw::Context::BLEND_SOURCE);
+					renderer->setDestBlendFactor(sw::BLEND_SOURCE);
 					break;
 				case D3DBLEND_INVSRCCOLOR:
-					renderer->setDestBlendFactor(sw::Context::BLEND_INVSOURCE);
+					renderer->setDestBlendFactor(sw::BLEND_INVSOURCE);
 					break;
 				case D3DBLEND_SRCALPHA:
-					renderer->setDestBlendFactor(sw::Context::BLEND_SOURCEALPHA);
+					renderer->setDestBlendFactor(sw::BLEND_SOURCEALPHA);
 					break;
 				case D3DBLEND_INVSRCALPHA:
-					renderer->setDestBlendFactor(sw::Context::BLEND_INVSOURCEALPHA);
+					renderer->setDestBlendFactor(sw::BLEND_INVSOURCEALPHA);
 					break;
 				case D3DBLEND_DESTALPHA:
-					renderer->setDestBlendFactor(sw::Context::BLEND_DESTALPHA);
+					renderer->setDestBlendFactor(sw::BLEND_DESTALPHA);
 					break;
 				case D3DBLEND_INVDESTALPHA:
-					renderer->setDestBlendFactor(sw::Context::BLEND_INVDESTALPHA);
+					renderer->setDestBlendFactor(sw::BLEND_INVDESTALPHA);
 					break;
 				case D3DBLEND_DESTCOLOR:
-					renderer->setDestBlendFactor(sw::Context::BLEND_DEST);
+					renderer->setDestBlendFactor(sw::BLEND_DEST);
 					break;
 				case D3DBLEND_INVDESTCOLOR:
-					renderer->setDestBlendFactor(sw::Context::BLEND_INVDEST);
+					renderer->setDestBlendFactor(sw::BLEND_INVDEST);
 					break;
 				case D3DBLEND_SRCALPHASAT:
-					renderer->setDestBlendFactor(sw::Context::BLEND_SRCALPHASAT);
+					renderer->setDestBlendFactor(sw::BLEND_SRCALPHASAT);
 					break;
 				case D3DBLEND_BOTHSRCALPHA:
-					renderer->setSourceBlendFactor(sw::Context::BLEND_SOURCEALPHA);
-					renderer->setDestBlendFactor(sw::Context::BLEND_INVSOURCEALPHA);
+					renderer->setSourceBlendFactor(sw::BLEND_SOURCEALPHA);
+					renderer->setDestBlendFactor(sw::BLEND_INVSOURCEALPHA);
 					break;
 				case D3DBLEND_BOTHINVSRCALPHA:
-					renderer->setSourceBlendFactor(sw::Context::BLEND_INVSOURCEALPHA);
-					renderer->setDestBlendFactor(sw::Context::BLEND_SOURCEALPHA);
+					renderer->setSourceBlendFactor(sw::BLEND_INVSOURCEALPHA);
+					renderer->setDestBlendFactor(sw::BLEND_SOURCEALPHA);
 					break;
 				case D3DBLEND_BLENDFACTOR:
-					renderer->setDestBlendFactor(sw::Context::BLEND_CONSTANT);
+					renderer->setDestBlendFactor(sw::BLEND_CONSTANT);
 					break;
 				case D3DBLEND_INVBLENDFACTOR:
-					renderer->setDestBlendFactor(sw::Context::BLEND_INVCONSTANT);
+					renderer->setDestBlendFactor(sw::BLEND_INVCONSTANT);
 					break;
 				default:
 					ASSERT(false);
@@ -3227,13 +3227,13 @@ namespace D3D9
 				switch(value)
 				{
 				case D3DCULL_NONE:
-					renderer->setCullMode(sw::Context::CULL_NONE);
+					renderer->setCullMode(sw::CULL_NONE);
 					break;
 				case D3DCULL_CCW:
-					renderer->setCullMode(sw::Context::CULL_COUNTERCLOCKWISE);
+					renderer->setCullMode(sw::CULL_COUNTERCLOCKWISE);
 					break;
 				case D3DCULL_CW:
-					renderer->setCullMode(sw::Context::CULL_CLOCKWISE);
+					renderer->setCullMode(sw::CULL_CLOCKWISE);
 					break;
 				default:
 					ASSERT(false);
@@ -3243,28 +3243,28 @@ namespace D3D9
 				switch(value)
 				{
 				case D3DCMP_NEVER:
-					renderer->setDepthCompare(sw::Context::DEPTH_NEVER);
+					renderer->setDepthCompare(sw::DEPTH_NEVER);
 					break;
 				case D3DCMP_LESS:
-					renderer->setDepthCompare(sw::Context::DEPTH_LESS);
+					renderer->setDepthCompare(sw::DEPTH_LESS);
 					break;
 				case D3DCMP_EQUAL:
-					renderer->setDepthCompare(sw::Context::DEPTH_EQUAL);
+					renderer->setDepthCompare(sw::DEPTH_EQUAL);
 					break;
 				case D3DCMP_LESSEQUAL:
-					renderer->setDepthCompare(sw::Context::DEPTH_LESSEQUAL);
+					renderer->setDepthCompare(sw::DEPTH_LESSEQUAL);
 					break;
 				case D3DCMP_GREATER:
-					renderer->setDepthCompare(sw::Context::DEPTH_GREATER);
+					renderer->setDepthCompare(sw::DEPTH_GREATER);
 					break;
 				case D3DCMP_NOTEQUAL:
-					renderer->setDepthCompare(sw::Context::DEPTH_NOTEQUAL);
+					renderer->setDepthCompare(sw::DEPTH_NOTEQUAL);
 					break;
 				case D3DCMP_GREATEREQUAL:
-					renderer->setDepthCompare(sw::Context::DEPTH_GREATEREQUAL);
+					renderer->setDepthCompare(sw::DEPTH_GREATEREQUAL);
 					break;
 				case D3DCMP_ALWAYS:
-					renderer->setDepthCompare(sw::Context::DEPTH_ALWAYS);
+					renderer->setDepthCompare(sw::DEPTH_ALWAYS);
 					break;
 				default:
 					ASSERT(false);
@@ -3277,28 +3277,28 @@ namespace D3D9
 				switch(value)
 				{
 				case D3DCMP_NEVER:
-					renderer->setAlphaCompare(sw::Context::ALPHA_NEVER);
+					renderer->setAlphaCompare(sw::ALPHA_NEVER);
 					break;
 				case D3DCMP_LESS:
-					renderer->setAlphaCompare(sw::Context::ALPHA_LESS);
+					renderer->setAlphaCompare(sw::ALPHA_LESS);
 					break;
 				case D3DCMP_EQUAL:
-					renderer->setAlphaCompare(sw::Context::ALPHA_EQUAL);
+					renderer->setAlphaCompare(sw::ALPHA_EQUAL);
 					break;
 				case D3DCMP_LESSEQUAL:
-					renderer->setAlphaCompare(sw::Context::ALPHA_LESSEQUAL);
+					renderer->setAlphaCompare(sw::ALPHA_LESSEQUAL);
 					break;
 				case D3DCMP_GREATER:
-					renderer->setAlphaCompare(sw::Context::ALPHA_GREATER);
+					renderer->setAlphaCompare(sw::ALPHA_GREATER);
 					break;
 				case D3DCMP_NOTEQUAL:
-					renderer->setAlphaCompare(sw::Context::ALPHA_NOTEQUAL);
+					renderer->setAlphaCompare(sw::ALPHA_NOTEQUAL);
 					break;
 				case D3DCMP_GREATEREQUAL:
-					renderer->setAlphaCompare(sw::Context::ALPHA_GREATEREQUAL);
+					renderer->setAlphaCompare(sw::ALPHA_GREATEREQUAL);
 					break;
 				case D3DCMP_ALWAYS:
-					renderer->setAlphaCompare(sw::Context::ALPHA_ALWAYS);
+					renderer->setAlphaCompare(sw::ALPHA_ALWAYS);
 					break;
 				default:
 					ASSERT(false);
@@ -3320,16 +3320,16 @@ namespace D3D9
 				switch(value)
 				{
 				case D3DFOG_NONE:
-					renderer->setPixelFogMode(sw::Context::FOG_NONE);
+					renderer->setPixelFogMode(sw::FOG_NONE);
 					break;
 				case D3DFOG_LINEAR:
-					renderer->setPixelFogMode(sw::Context::FOG_LINEAR);
+					renderer->setPixelFogMode(sw::FOG_LINEAR);
 					break;
 				case D3DFOG_EXP:
-					renderer->setPixelFogMode(sw::Context::FOG_EXP);
+					renderer->setPixelFogMode(sw::FOG_EXP);
 					break;
 				case D3DFOG_EXP2:
-					renderer->setPixelFogMode(sw::Context::FOG_EXP2);
+					renderer->setPixelFogMode(sw::FOG_EXP2);
 					break;
 				default:
 					ASSERT(false);
@@ -3357,28 +3357,28 @@ namespace D3D9
 				switch(value)
 				{
 				case D3DSTENCILOP_KEEP:
-					renderer->setStencilFailOperation(sw::Context::OPERATION_KEEP);
+					renderer->setStencilFailOperation(sw::OPERATION_KEEP);
 					break;
 				case D3DSTENCILOP_ZERO:
-					renderer->setStencilFailOperation(sw::Context::OPERATION_ZERO);
+					renderer->setStencilFailOperation(sw::OPERATION_ZERO);
 					break;
 				case D3DSTENCILOP_REPLACE:
-					renderer->setStencilFailOperation(sw::Context::OPERATION_REPLACE);
+					renderer->setStencilFailOperation(sw::OPERATION_REPLACE);
 					break;
 				case D3DSTENCILOP_INCRSAT:
-					renderer->setStencilFailOperation(sw::Context::OPERATION_INCRSAT);
+					renderer->setStencilFailOperation(sw::OPERATION_INCRSAT);
 					break;
 				case D3DSTENCILOP_DECRSAT:
-					renderer->setStencilFailOperation(sw::Context::OPERATION_DECRSAT);
+					renderer->setStencilFailOperation(sw::OPERATION_DECRSAT);
 					break;
 				case D3DSTENCILOP_INVERT:
-					renderer->setStencilFailOperation(sw::Context::OPERATION_INVERT);
+					renderer->setStencilFailOperation(sw::OPERATION_INVERT);
 					break;
 				case D3DSTENCILOP_INCR:
-					renderer->setStencilFailOperation(sw::Context::OPERATION_INCR);
+					renderer->setStencilFailOperation(sw::OPERATION_INCR);
 					break;
 				case D3DSTENCILOP_DECR:
-					renderer->setStencilFailOperation(sw::Context::OPERATION_DECR);
+					renderer->setStencilFailOperation(sw::OPERATION_DECR);
 					break;
 				default:
 					ASSERT(false);
@@ -3388,28 +3388,28 @@ namespace D3D9
 				switch(value)
 				{
 				case D3DSTENCILOP_KEEP:
-					renderer->setStencilZFailOperation(sw::Context::OPERATION_KEEP);
+					renderer->setStencilZFailOperation(sw::OPERATION_KEEP);
 					break;
 				case D3DSTENCILOP_ZERO:
-					renderer->setStencilZFailOperation(sw::Context::OPERATION_ZERO);
+					renderer->setStencilZFailOperation(sw::OPERATION_ZERO);
 					break;
 				case D3DSTENCILOP_REPLACE:
-					renderer->setStencilZFailOperation(sw::Context::OPERATION_REPLACE);
+					renderer->setStencilZFailOperation(sw::OPERATION_REPLACE);
 					break;
 				case D3DSTENCILOP_INCRSAT:
-					renderer->setStencilZFailOperation(sw::Context::OPERATION_INCRSAT);
+					renderer->setStencilZFailOperation(sw::OPERATION_INCRSAT);
 					break;
 				case D3DSTENCILOP_DECRSAT:
-					renderer->setStencilZFailOperation(sw::Context::OPERATION_DECRSAT);
+					renderer->setStencilZFailOperation(sw::OPERATION_DECRSAT);
 					break;
 				case D3DSTENCILOP_INVERT:
-					renderer->setStencilZFailOperation(sw::Context::OPERATION_INVERT);
+					renderer->setStencilZFailOperation(sw::OPERATION_INVERT);
 					break;
 				case D3DSTENCILOP_INCR:
-					renderer->setStencilZFailOperation(sw::Context::OPERATION_INCR);
+					renderer->setStencilZFailOperation(sw::OPERATION_INCR);
 					break;
 				case D3DSTENCILOP_DECR:
-					renderer->setStencilZFailOperation(sw::Context::OPERATION_DECR);
+					renderer->setStencilZFailOperation(sw::OPERATION_DECR);
 					break;
 				default:
 					ASSERT(false);
@@ -3419,28 +3419,28 @@ namespace D3D9
 				switch(value)
 				{
 				case D3DSTENCILOP_KEEP:
-					renderer->setStencilPassOperation(sw::Context::OPERATION_KEEP);
+					renderer->setStencilPassOperation(sw::OPERATION_KEEP);
 					break;
 				case D3DSTENCILOP_ZERO:
-					renderer->setStencilPassOperation(sw::Context::OPERATION_ZERO);
+					renderer->setStencilPassOperation(sw::OPERATION_ZERO);
 					break;
 				case D3DSTENCILOP_REPLACE:
-					renderer->setStencilPassOperation(sw::Context::OPERATION_REPLACE);
+					renderer->setStencilPassOperation(sw::OPERATION_REPLACE);
 					break;
 				case D3DSTENCILOP_INCRSAT:
-					renderer->setStencilPassOperation(sw::Context::OPERATION_INCRSAT);
+					renderer->setStencilPassOperation(sw::OPERATION_INCRSAT);
 					break;
 				case D3DSTENCILOP_DECRSAT:
-					renderer->setStencilPassOperation(sw::Context::OPERATION_DECRSAT);
+					renderer->setStencilPassOperation(sw::OPERATION_DECRSAT);
 					break;
 				case D3DSTENCILOP_INVERT:
-					renderer->setStencilPassOperation(sw::Context::OPERATION_INVERT);
+					renderer->setStencilPassOperation(sw::OPERATION_INVERT);
 					break;
 				case D3DSTENCILOP_INCR:
-					renderer->setStencilPassOperation(sw::Context::OPERATION_INCR);
+					renderer->setStencilPassOperation(sw::OPERATION_INCR);
 					break;
 				case D3DSTENCILOP_DECR:
-					renderer->setStencilPassOperation(sw::Context::OPERATION_DECR);
+					renderer->setStencilPassOperation(sw::OPERATION_DECR);
 					break;
 				default:
 					ASSERT(false);
@@ -3450,28 +3450,28 @@ namespace D3D9
 				switch(value)
 				{
 				case D3DCMP_NEVER:
-					renderer->setStencilCompare(sw::Context::STENCIL_NEVER);
+					renderer->setStencilCompare(sw::STENCIL_NEVER);
 					break;
 				case D3DCMP_LESS:
-					renderer->setStencilCompare(sw::Context::STENCIL_LESS);
+					renderer->setStencilCompare(sw::STENCIL_LESS);
 					break;
 				case D3DCMP_EQUAL:
-					renderer->setStencilCompare(sw::Context::STENCIL_EQUAL);
+					renderer->setStencilCompare(sw::STENCIL_EQUAL);
 					break;
 				case D3DCMP_LESSEQUAL:
-					renderer->setStencilCompare(sw::Context::STENCIL_LESSEQUAL);
+					renderer->setStencilCompare(sw::STENCIL_LESSEQUAL);
 					break;
 				case D3DCMP_GREATER:
-					renderer->setStencilCompare(sw::Context::STENCIL_GREATER);
+					renderer->setStencilCompare(sw::STENCIL_GREATER);
 					break;
 				case D3DCMP_NOTEQUAL:
-					renderer->setStencilCompare(sw::Context::STENCIL_NOTEQUAL);
+					renderer->setStencilCompare(sw::STENCIL_NOTEQUAL);
 					break;
 				case D3DCMP_GREATEREQUAL:
-					renderer->setStencilCompare(sw::Context::STENCIL_GREATEREQUAL);
+					renderer->setStencilCompare(sw::STENCIL_GREATEREQUAL);
 					break;
 				case D3DCMP_ALWAYS:
-					renderer->setStencilCompare(sw::Context::STENCIL_ALWAYS);
+					renderer->setStencilCompare(sw::STENCIL_ALWAYS);
 					break;
 				default:
 					ASSERT(false);
@@ -3529,16 +3529,16 @@ namespace D3D9
 				switch(value)
 				{
 				case D3DFOG_NONE:
-					renderer->setVertexFogMode(sw::Context::FOG_NONE);
+					renderer->setVertexFogMode(sw::FOG_NONE);
 					break;
 				case D3DFOG_LINEAR:
-					renderer->setVertexFogMode(sw::Context::FOG_LINEAR);
+					renderer->setVertexFogMode(sw::FOG_LINEAR);
 					break;
 				case D3DFOG_EXP:
-					renderer->setVertexFogMode(sw::Context::FOG_EXP);
+					renderer->setVertexFogMode(sw::FOG_EXP);
 					break;
 				case D3DFOG_EXP2:
-					renderer->setVertexFogMode(sw::Context::FOG_EXP2);
+					renderer->setVertexFogMode(sw::FOG_EXP2);
 					break;
 				default:
 					ASSERT(false);
@@ -3557,13 +3557,13 @@ namespace D3D9
 				switch(value)
 				{
 				case D3DMCS_MATERIAL:
-					renderer->setDiffuseMaterialSource(sw::Context::MATERIAL);
+					renderer->setDiffuseMaterialSource(sw::MATERIAL_MATERIAL);
 					break;
 				case D3DMCS_COLOR1:
-					renderer->setDiffuseMaterialSource(sw::Context::COLOR1);
+					renderer->setDiffuseMaterialSource(sw::MATERIAL_COLOR1);
 					break;
 				case D3DMCS_COLOR2:
-					renderer->setDiffuseMaterialSource(sw::Context::COLOR2);
+					renderer->setDiffuseMaterialSource(sw::MATERIAL_COLOR2);
 					break;
 				default:
 					ASSERT(false);
@@ -3573,13 +3573,13 @@ namespace D3D9
 				switch(value)
 				{
 				case D3DMCS_MATERIAL:
-					renderer->setSpecularMaterialSource(sw::Context::MATERIAL);
+					renderer->setSpecularMaterialSource(sw::MATERIAL_MATERIAL);
 					break;
 				case D3DMCS_COLOR1:
-					renderer->setSpecularMaterialSource(sw::Context::COLOR1);
+					renderer->setSpecularMaterialSource(sw::MATERIAL_COLOR1);
 					break;
 				case D3DMCS_COLOR2:
-					renderer->setSpecularMaterialSource(sw::Context::COLOR2);
+					renderer->setSpecularMaterialSource(sw::MATERIAL_COLOR2);
 					break;
 				default:
 					ASSERT(false);
@@ -3589,13 +3589,13 @@ namespace D3D9
 				switch(value)
 				{
 				case D3DMCS_MATERIAL:
-					renderer->setAmbientMaterialSource(sw::Context::MATERIAL);
+					renderer->setAmbientMaterialSource(sw::MATERIAL_MATERIAL);
 					break;
 				case D3DMCS_COLOR1:
-					renderer->setAmbientMaterialSource(sw::Context::COLOR1);
+					renderer->setAmbientMaterialSource(sw::MATERIAL_COLOR1);
 					break;
 				case D3DMCS_COLOR2:
-					renderer->setAmbientMaterialSource(sw::Context::COLOR2);
+					renderer->setAmbientMaterialSource(sw::MATERIAL_COLOR2);
 					break;
 				default:
 					ASSERT(false);
@@ -3605,13 +3605,13 @@ namespace D3D9
 				switch(value)
 				{
 				case D3DMCS_MATERIAL:
-					renderer->setEmissiveMaterialSource(sw::Context::MATERIAL);
+					renderer->setEmissiveMaterialSource(sw::MATERIAL_MATERIAL);
 					break;
 				case D3DMCS_COLOR1:
-					renderer->setEmissiveMaterialSource(sw::Context::COLOR1);
+					renderer->setEmissiveMaterialSource(sw::MATERIAL_COLOR1);
 					break;
 				case D3DMCS_COLOR2:
-					renderer->setEmissiveMaterialSource(sw::Context::COLOR2);
+					renderer->setEmissiveMaterialSource(sw::MATERIAL_COLOR2);
 					break;
 				default:
 					ASSERT(false);
@@ -3652,12 +3652,12 @@ namespace D3D9
 				}
 				else if(value == D3DFMT_A2M1)   // ATI hack to enable transparency anti-aliasing
 				{
-					renderer->setTransparencyAntialiasing(sw::Context::TRANSPARENCY_ALPHA_TO_COVERAGE);
+					renderer->setTransparencyAntialiasing(sw::TRANSPARENCY_ALPHA_TO_COVERAGE);
 					renderer->setAlphaTestEnable(true);
 				}
 				else if(value == D3DFMT_A2M0)   // ATI hack to disable transparency anti-aliasing
 				{
-					renderer->setTransparencyAntialiasing(sw::Context::TRANSPARENCY_NONE);
+					renderer->setTransparencyAntialiasing(sw::TRANSPARENCY_NONE);
 					renderer->setAlphaTestEnable(false);
 				}
 				else
@@ -3711,19 +3711,19 @@ namespace D3D9
 				switch(value)
 				{
 				case D3DBLENDOP_ADD:
-					renderer->setBlendOperation(sw::Context::BLENDOP_ADD);
+					renderer->setBlendOperation(sw::BLENDOP_ADD);
 					break;
 				case D3DBLENDOP_SUBTRACT:
-					renderer->setBlendOperation(sw::Context::BLENDOP_SUB);
+					renderer->setBlendOperation(sw::BLENDOP_SUB);
 					break;
 				case D3DBLENDOP_REVSUBTRACT:
-					renderer->setBlendOperation(sw::Context::BLENDOP_INVSUB);
+					renderer->setBlendOperation(sw::BLENDOP_INVSUB);
 					break;
 				case D3DBLENDOP_MIN:
-					renderer->setBlendOperation(sw::Context::BLENDOP_MIN);
+					renderer->setBlendOperation(sw::BLENDOP_MIN);
 					break;
 				case D3DBLENDOP_MAX:
-					renderer->setBlendOperation(sw::Context::BLENDOP_MAX);
+					renderer->setBlendOperation(sw::BLENDOP_MAX);
 					break;
 				default:
 					ASSERT(false);
@@ -3756,11 +3756,11 @@ namespace D3D9
 			case D3DRS_ADAPTIVETESS_Y:
 				if(value == D3DFMT_ATOC)   // NVIDIA hack to enable transparency anti-aliasing
 				{
-					renderer->setTransparencyAntialiasing(sw::Context::TRANSPARENCY_ALPHA_TO_COVERAGE);
+					renderer->setTransparencyAntialiasing(sw::TRANSPARENCY_ALPHA_TO_COVERAGE);
 				}
 				else if(value == D3DFMT_UNKNOWN)   // NVIDIA hack to disable transparency anti-aliasing
 				{
-					renderer->setTransparencyAntialiasing(sw::Context::TRANSPARENCY_NONE);
+					renderer->setTransparencyAntialiasing(sw::TRANSPARENCY_NONE);
 				}
 				else
 				{
@@ -3783,28 +3783,28 @@ namespace D3D9
 				switch(value)
 				{
 				case D3DSTENCILOP_KEEP:
-					renderer->setStencilFailOperationCCW(sw::Context::OPERATION_KEEP);
+					renderer->setStencilFailOperationCCW(sw::OPERATION_KEEP);
 					break;
 				case D3DSTENCILOP_ZERO:
-					renderer->setStencilFailOperationCCW(sw::Context::OPERATION_ZERO);
+					renderer->setStencilFailOperationCCW(sw::OPERATION_ZERO);
 					break;
 				case D3DSTENCILOP_REPLACE:
-					renderer->setStencilFailOperationCCW(sw::Context::OPERATION_REPLACE);
+					renderer->setStencilFailOperationCCW(sw::OPERATION_REPLACE);
 					break;
 				case D3DSTENCILOP_INCRSAT:
-					renderer->setStencilFailOperationCCW(sw::Context::OPERATION_INCRSAT);
+					renderer->setStencilFailOperationCCW(sw::OPERATION_INCRSAT);
 					break;
 				case D3DSTENCILOP_DECRSAT:
-					renderer->setStencilFailOperationCCW(sw::Context::OPERATION_DECRSAT);
+					renderer->setStencilFailOperationCCW(sw::OPERATION_DECRSAT);
 					break;
 				case D3DSTENCILOP_INVERT:
-					renderer->setStencilFailOperationCCW(sw::Context::OPERATION_INVERT);
+					renderer->setStencilFailOperationCCW(sw::OPERATION_INVERT);
 					break;
 				case D3DSTENCILOP_INCR:
-					renderer->setStencilFailOperationCCW(sw::Context::OPERATION_INCR);
+					renderer->setStencilFailOperationCCW(sw::OPERATION_INCR);
 					break;
 				case D3DSTENCILOP_DECR:
-					renderer->setStencilFailOperationCCW(sw::Context::OPERATION_DECR);
+					renderer->setStencilFailOperationCCW(sw::OPERATION_DECR);
 					break;
 				default:
 					ASSERT(false);
@@ -3814,28 +3814,28 @@ namespace D3D9
 				switch(value)
 				{
 				case D3DSTENCILOP_KEEP:
-					renderer->setStencilZFailOperationCCW(sw::Context::OPERATION_KEEP);
+					renderer->setStencilZFailOperationCCW(sw::OPERATION_KEEP);
 					break;
 				case D3DSTENCILOP_ZERO:
-					renderer->setStencilZFailOperationCCW(sw::Context::OPERATION_ZERO);
+					renderer->setStencilZFailOperationCCW(sw::OPERATION_ZERO);
 					break;
 				case D3DSTENCILOP_REPLACE:
-					renderer->setStencilZFailOperationCCW(sw::Context::OPERATION_REPLACE);
+					renderer->setStencilZFailOperationCCW(sw::OPERATION_REPLACE);
 					break;
 				case D3DSTENCILOP_INCRSAT:
-					renderer->setStencilZFailOperationCCW(sw::Context::OPERATION_INCRSAT);
+					renderer->setStencilZFailOperationCCW(sw::OPERATION_INCRSAT);
 					break;
 				case D3DSTENCILOP_DECRSAT:
-					renderer->setStencilZFailOperationCCW(sw::Context::OPERATION_DECRSAT);
+					renderer->setStencilZFailOperationCCW(sw::OPERATION_DECRSAT);
 					break;
 				case D3DSTENCILOP_INVERT:
-					renderer->setStencilZFailOperationCCW(sw::Context::OPERATION_INVERT);
+					renderer->setStencilZFailOperationCCW(sw::OPERATION_INVERT);
 					break;
 				case D3DSTENCILOP_INCR:
-					renderer->setStencilZFailOperationCCW(sw::Context::OPERATION_INCR);
+					renderer->setStencilZFailOperationCCW(sw::OPERATION_INCR);
 					break;
 				case D3DSTENCILOP_DECR:
-					renderer->setStencilZFailOperationCCW(sw::Context::OPERATION_DECR);
+					renderer->setStencilZFailOperationCCW(sw::OPERATION_DECR);
 					break;
 				default:
 					ASSERT(false);
@@ -3845,28 +3845,28 @@ namespace D3D9
 				switch(value)
 				{
 				case D3DSTENCILOP_KEEP:
-					renderer->setStencilPassOperationCCW(sw::Context::OPERATION_KEEP);
+					renderer->setStencilPassOperationCCW(sw::OPERATION_KEEP);
 					break;
 				case D3DSTENCILOP_ZERO:
-					renderer->setStencilPassOperationCCW(sw::Context::OPERATION_ZERO);
+					renderer->setStencilPassOperationCCW(sw::OPERATION_ZERO);
 					break;
 				case D3DSTENCILOP_REPLACE:
-					renderer->setStencilPassOperationCCW(sw::Context::OPERATION_REPLACE);
+					renderer->setStencilPassOperationCCW(sw::OPERATION_REPLACE);
 					break;
 				case D3DSTENCILOP_INCRSAT:
-					renderer->setStencilPassOperationCCW(sw::Context::OPERATION_INCRSAT);
+					renderer->setStencilPassOperationCCW(sw::OPERATION_INCRSAT);
 					break;
 				case D3DSTENCILOP_DECRSAT:
-					renderer->setStencilPassOperationCCW(sw::Context::OPERATION_DECRSAT);
+					renderer->setStencilPassOperationCCW(sw::OPERATION_DECRSAT);
 					break;
 				case D3DSTENCILOP_INVERT:
-					renderer->setStencilPassOperationCCW(sw::Context::OPERATION_INVERT);
+					renderer->setStencilPassOperationCCW(sw::OPERATION_INVERT);
 					break;
 				case D3DSTENCILOP_INCR:
-					renderer->setStencilPassOperationCCW(sw::Context::OPERATION_INCR);
+					renderer->setStencilPassOperationCCW(sw::OPERATION_INCR);
 					break;
 				case D3DSTENCILOP_DECR:
-					renderer->setStencilPassOperationCCW(sw::Context::OPERATION_DECR);
+					renderer->setStencilPassOperationCCW(sw::OPERATION_DECR);
 					break;
 				default:
 					ASSERT(false);
@@ -3876,28 +3876,28 @@ namespace D3D9
 				switch(value)
 				{
 				case D3DCMP_NEVER:
-					renderer->setStencilCompareCCW(sw::Context::STENCIL_NEVER);
+					renderer->setStencilCompareCCW(sw::STENCIL_NEVER);
 					break;
 				case D3DCMP_LESS:
-					renderer->setStencilCompareCCW(sw::Context::STENCIL_LESS);
+					renderer->setStencilCompareCCW(sw::STENCIL_LESS);
 					break;
 				case D3DCMP_EQUAL:
-					renderer->setStencilCompareCCW(sw::Context::STENCIL_EQUAL);
+					renderer->setStencilCompareCCW(sw::STENCIL_EQUAL);
 					break;
 				case D3DCMP_LESSEQUAL:
-					renderer->setStencilCompareCCW(sw::Context::STENCIL_LESSEQUAL);
+					renderer->setStencilCompareCCW(sw::STENCIL_LESSEQUAL);
 					break;
 				case D3DCMP_GREATER:
-					renderer->setStencilCompareCCW(sw::Context::STENCIL_GREATER);
+					renderer->setStencilCompareCCW(sw::STENCIL_GREATER);
 					break;
 				case D3DCMP_NOTEQUAL:
-					renderer->setStencilCompareCCW(sw::Context::STENCIL_NOTEQUAL);
+					renderer->setStencilCompareCCW(sw::STENCIL_NOTEQUAL);
 					break;
 				case D3DCMP_GREATEREQUAL:
-					renderer->setStencilCompareCCW(sw::Context::STENCIL_GREATEREQUAL);
+					renderer->setStencilCompareCCW(sw::STENCIL_GREATEREQUAL);
 					break;
 				case D3DCMP_ALWAYS:
-					renderer->setStencilCompareCCW(sw::Context::STENCIL_ALWAYS);
+					renderer->setStencilCompareCCW(sw::STENCIL_ALWAYS);
 					break;
 				default:
 					ASSERT(false);
@@ -3952,51 +3952,51 @@ namespace D3D9
 				switch(value)
 				{
 				case D3DBLEND_ZERO:
-					renderer->setSourceBlendFactorAlpha(sw::Context::BLEND_ZERO);
+					renderer->setSourceBlendFactorAlpha(sw::BLEND_ZERO);
 					break;
 				case D3DBLEND_ONE:
-					renderer->setSourceBlendFactorAlpha(sw::Context::BLEND_ONE);
+					renderer->setSourceBlendFactorAlpha(sw::BLEND_ONE);
 					break;
 				case D3DBLEND_SRCCOLOR:
-					renderer->setSourceBlendFactorAlpha(sw::Context::BLEND_SOURCE);
+					renderer->setSourceBlendFactorAlpha(sw::BLEND_SOURCE);
 					break;
 				case D3DBLEND_INVSRCCOLOR:
-					renderer->setSourceBlendFactorAlpha(sw::Context::BLEND_INVSOURCE);
+					renderer->setSourceBlendFactorAlpha(sw::BLEND_INVSOURCE);
 					break;
 				case D3DBLEND_SRCALPHA:
-					renderer->setSourceBlendFactorAlpha(sw::Context::BLEND_SOURCEALPHA);
+					renderer->setSourceBlendFactorAlpha(sw::BLEND_SOURCEALPHA);
 					break;
 				case D3DBLEND_INVSRCALPHA:
-					renderer->setSourceBlendFactorAlpha(sw::Context::BLEND_INVSOURCEALPHA);
+					renderer->setSourceBlendFactorAlpha(sw::BLEND_INVSOURCEALPHA);
 					break;
 				case D3DBLEND_DESTALPHA:
-					renderer->setSourceBlendFactorAlpha(sw::Context::BLEND_DESTALPHA);
+					renderer->setSourceBlendFactorAlpha(sw::BLEND_DESTALPHA);
 					break;
 				case D3DBLEND_INVDESTALPHA:
-					renderer->setSourceBlendFactorAlpha(sw::Context::BLEND_INVDESTALPHA);
+					renderer->setSourceBlendFactorAlpha(sw::BLEND_INVDESTALPHA);
 					break;
 				case D3DBLEND_DESTCOLOR:
-					renderer->setSourceBlendFactorAlpha(sw::Context::BLEND_DEST);
+					renderer->setSourceBlendFactorAlpha(sw::BLEND_DEST);
 					break;
 				case D3DBLEND_INVDESTCOLOR:
-					renderer->setSourceBlendFactorAlpha(sw::Context::BLEND_INVDEST);
+					renderer->setSourceBlendFactorAlpha(sw::BLEND_INVDEST);
 					break;
 				case D3DBLEND_SRCALPHASAT:
-					renderer->setSourceBlendFactorAlpha(sw::Context::BLEND_SRCALPHASAT);
+					renderer->setSourceBlendFactorAlpha(sw::BLEND_SRCALPHASAT);
 					break;
 				case D3DBLEND_BOTHSRCALPHA:
-					renderer->setSourceBlendFactorAlpha(sw::Context::BLEND_SOURCEALPHA);
-					renderer->setDestBlendFactorAlpha(sw::Context::BLEND_INVSOURCEALPHA);
+					renderer->setSourceBlendFactorAlpha(sw::BLEND_SOURCEALPHA);
+					renderer->setDestBlendFactorAlpha(sw::BLEND_INVSOURCEALPHA);
 					break;
 				case D3DBLEND_BOTHINVSRCALPHA:
-					renderer->setSourceBlendFactorAlpha(sw::Context::BLEND_INVSOURCEALPHA);
-					renderer->setDestBlendFactorAlpha(sw::Context::BLEND_SOURCEALPHA);
+					renderer->setSourceBlendFactorAlpha(sw::BLEND_INVSOURCEALPHA);
+					renderer->setDestBlendFactorAlpha(sw::BLEND_SOURCEALPHA);
 					break;
 				case D3DBLEND_BLENDFACTOR:
-					renderer->setSourceBlendFactorAlpha(sw::Context::BLEND_CONSTANT);
+					renderer->setSourceBlendFactorAlpha(sw::BLEND_CONSTANT);
 					break;
 				case D3DBLEND_INVBLENDFACTOR:
-					renderer->setSourceBlendFactorAlpha(sw::Context::BLEND_INVCONSTANT);
+					renderer->setSourceBlendFactorAlpha(sw::BLEND_INVCONSTANT);
 					break;
 				default:
 					ASSERT(false);
@@ -4006,51 +4006,51 @@ namespace D3D9
 				switch(value)
 				{
 				case D3DBLEND_ZERO:
-					renderer->setDestBlendFactorAlpha(sw::Context::BLEND_ZERO);
+					renderer->setDestBlendFactorAlpha(sw::BLEND_ZERO);
 					break;
 				case D3DBLEND_ONE:
-					renderer->setDestBlendFactorAlpha(sw::Context::BLEND_ONE);
+					renderer->setDestBlendFactorAlpha(sw::BLEND_ONE);
 					break;
 				case D3DBLEND_SRCCOLOR:
-					renderer->setDestBlendFactorAlpha(sw::Context::BLEND_SOURCE);
+					renderer->setDestBlendFactorAlpha(sw::BLEND_SOURCE);
 					break;
 				case D3DBLEND_INVSRCCOLOR:
-					renderer->setDestBlendFactorAlpha(sw::Context::BLEND_INVSOURCE);
+					renderer->setDestBlendFactorAlpha(sw::BLEND_INVSOURCE);
 					break;
 				case D3DBLEND_SRCALPHA:
-					renderer->setDestBlendFactorAlpha(sw::Context::BLEND_SOURCEALPHA);
+					renderer->setDestBlendFactorAlpha(sw::BLEND_SOURCEALPHA);
 					break;
 				case D3DBLEND_INVSRCALPHA:
-					renderer->setDestBlendFactorAlpha(sw::Context::BLEND_INVSOURCEALPHA);
+					renderer->setDestBlendFactorAlpha(sw::BLEND_INVSOURCEALPHA);
 					break;
 				case D3DBLEND_DESTALPHA:
-					renderer->setDestBlendFactorAlpha(sw::Context::BLEND_DESTALPHA);
+					renderer->setDestBlendFactorAlpha(sw::BLEND_DESTALPHA);
 					break;
 				case D3DBLEND_INVDESTALPHA:
-					renderer->setDestBlendFactorAlpha(sw::Context::BLEND_INVDESTALPHA);
+					renderer->setDestBlendFactorAlpha(sw::BLEND_INVDESTALPHA);
 					break;
 				case D3DBLEND_DESTCOLOR:
-					renderer->setDestBlendFactorAlpha(sw::Context::BLEND_DEST);
+					renderer->setDestBlendFactorAlpha(sw::BLEND_DEST);
 					break;
 				case D3DBLEND_INVDESTCOLOR:
-					renderer->setDestBlendFactorAlpha(sw::Context::BLEND_INVDEST);
+					renderer->setDestBlendFactorAlpha(sw::BLEND_INVDEST);
 					break;
 				case D3DBLEND_SRCALPHASAT:
-					renderer->setDestBlendFactorAlpha(sw::Context::BLEND_SRCALPHASAT);
+					renderer->setDestBlendFactorAlpha(sw::BLEND_SRCALPHASAT);
 					break;
 				case D3DBLEND_BOTHSRCALPHA:
-					renderer->setSourceBlendFactorAlpha(sw::Context::BLEND_SOURCEALPHA);
-					renderer->setDestBlendFactorAlpha(sw::Context::BLEND_INVSOURCEALPHA);
+					renderer->setSourceBlendFactorAlpha(sw::BLEND_SOURCEALPHA);
+					renderer->setDestBlendFactorAlpha(sw::BLEND_INVSOURCEALPHA);
 					break;
 				case D3DBLEND_BOTHINVSRCALPHA:
-					renderer->setSourceBlendFactorAlpha(sw::Context::BLEND_INVSOURCEALPHA);
-					renderer->setDestBlendFactorAlpha(sw::Context::BLEND_SOURCEALPHA);
+					renderer->setSourceBlendFactorAlpha(sw::BLEND_INVSOURCEALPHA);
+					renderer->setDestBlendFactorAlpha(sw::BLEND_SOURCEALPHA);
 					break;
 				case D3DBLEND_BLENDFACTOR:
-					renderer->setDestBlendFactorAlpha(sw::Context::BLEND_CONSTANT);
+					renderer->setDestBlendFactorAlpha(sw::BLEND_CONSTANT);
 					break;
 				case D3DBLEND_INVBLENDFACTOR:
-					renderer->setDestBlendFactorAlpha(sw::Context::BLEND_INVCONSTANT);
+					renderer->setDestBlendFactorAlpha(sw::BLEND_INVCONSTANT);
 					break;
 				default:
 					ASSERT(false);
@@ -4060,19 +4060,19 @@ namespace D3D9
 				switch(value)
 				{
 				case D3DBLENDOP_ADD:
-					renderer->setBlendOperationAlpha(sw::Context::BLENDOP_ADD);
+					renderer->setBlendOperationAlpha(sw::BLENDOP_ADD);
 					break;
 				case D3DBLENDOP_SUBTRACT:
-					renderer->setBlendOperationAlpha(sw::Context::BLENDOP_SUB);
+					renderer->setBlendOperationAlpha(sw::BLENDOP_SUB);
 					break;
 				case D3DBLENDOP_REVSUBTRACT:
-					renderer->setBlendOperationAlpha(sw::Context::BLENDOP_INVSUB);
+					renderer->setBlendOperationAlpha(sw::BLENDOP_INVSUB);
 					break;
 				case D3DBLENDOP_MIN:
-					renderer->setBlendOperationAlpha(sw::Context::BLENDOP_MIN);
+					renderer->setBlendOperationAlpha(sw::BLENDOP_MIN);
 					break;
 				case D3DBLENDOP_MAX:
-					renderer->setBlendOperationAlpha(sw::Context::BLENDOP_MAX);
+					renderer->setBlendOperationAlpha(sw::BLENDOP_MAX);
 					break;
 				default:
 					ASSERT(false);
@@ -4918,23 +4918,23 @@ namespace D3D9
 				switch(value & 0xFFFF0000)
 				{
 				case D3DTSS_TCI_PASSTHRU:
-					renderer->setTexGen(stage, sw::Context::TEXGEN_PASSTHRU);
+					renderer->setTexGen(stage, sw::TEXGEN_PASSTHRU);
 					break;
 				case D3DTSS_TCI_CAMERASPACENORMAL:
 					renderer->setTexCoordIndex(stage, stage);
-					renderer->setTexGen(stage, sw::Context::TEXGEN_NORMAL);
+					renderer->setTexGen(stage, sw::TEXGEN_NORMAL);
 					break;
 				case D3DTSS_TCI_CAMERASPACEPOSITION:
 					renderer->setTexCoordIndex(stage, stage);
-					renderer->setTexGen(stage, sw::Context::TEXGEN_POSITION);
+					renderer->setTexGen(stage, sw::TEXGEN_POSITION);
 					break;
 				case D3DTSS_TCI_CAMERASPACEREFLECTIONVECTOR:
 					renderer->setTexCoordIndex(stage, stage);
-					renderer->setTexGen(stage, sw::Context::TEXGEN_REFLECTION);
+					renderer->setTexGen(stage, sw::TEXGEN_REFLECTION);
 					break;
 				case D3DTSS_TCI_SPHEREMAP:
 					renderer->setTexCoordIndex(stage, stage);
-					renderer->setTexGen(stage, sw::Context::TEXGEN_SPHEREMAP);
+					renderer->setTexGen(stage, sw::TEXGEN_SPHEREMAP);
 					break;
 				default:
 					ASSERT(false);
@@ -5760,7 +5760,7 @@ namespace D3D9
 
 			Direct3DVertexBuffer9 *streamBuffer = dataStream[stream];
 			sw::Resource *resource = streamBuffer->getResource();
-			const void *buffer = ((char*)resource->getBuffer() + streamOffset[stream]) + offset;
+			const void *buffer = ((char*)resource->data() + streamOffset[stream]) + offset;
 			
 			int stride = streamStride[stream];
 
@@ -5837,20 +5837,20 @@ namespace D3D9
 			{
 				switch(usage)
 				{
-				case D3DDECLUSAGE_POSITION:     renderer->setInputPositionStream(attribute);                                       break;
-				case D3DDECLUSAGE_BLENDWEIGHT:  renderer->setInputBlendWeightStream(attribute);                                    break;
-				case D3DDECLUSAGE_BLENDINDICES: renderer->setInputBlendIndicesStream(attribute.define(sw::STREAMTYPE_INDICES, 1)); break;
-				case D3DDECLUSAGE_NORMAL:       renderer->setInputNormalStream(attribute.define(sw::STREAMTYPE_FLOAT, 3));         break;
-				case D3DDECLUSAGE_PSIZE:        renderer->setInputPSizeStream(attribute.define(sw::STREAMTYPE_FLOAT, 1));          break;
-				case D3DDECLUSAGE_TEXCOORD:     renderer->setInputTexCoordStream(attribute, index);                                break;
-				case D3DDECLUSAGE_TANGENT:      /* Ignored */                                                                      break;
-				case D3DDECLUSAGE_BINORMAL:     /* Ignored */                                                                      break;
-				case D3DDECLUSAGE_TESSFACTOR:   UNIMPLEMENTED();                                                                   break;
-				case D3DDECLUSAGE_POSITIONT:    renderer->setInputPositiontStream(attribute.define(sw::STREAMTYPE_FLOAT, 4));      break;
-				case D3DDECLUSAGE_COLOR:        renderer->setInputColorStream(attribute.define(sw::STREAMTYPE_COLOR, 4), index);   break;
-				case D3DDECLUSAGE_FOG:          /* Ignored */                                                                      break;
-				case D3DDECLUSAGE_DEPTH:        /* Ignored */                                                                      break;
-				case D3DDECLUSAGE_SAMPLE:       UNIMPLEMENTED();                                                                   break;
+				case D3DDECLUSAGE_POSITION:     renderer->setInputStream(sw::Position, attribute);                                       break;
+				case D3DDECLUSAGE_BLENDWEIGHT:  renderer->setInputStream(sw::BlendWeight, attribute);                                    break;
+				case D3DDECLUSAGE_BLENDINDICES: renderer->setInputStream(sw::BlendIndices, attribute.define(sw::STREAMTYPE_INDICES, 1)); break;
+				case D3DDECLUSAGE_NORMAL:       renderer->setInputStream(sw::Normal, attribute.define(sw::STREAMTYPE_FLOAT, 3));         break;
+				case D3DDECLUSAGE_PSIZE:        renderer->setInputStream(sw::PointSize, attribute.define(sw::STREAMTYPE_FLOAT, 1));      break;
+				case D3DDECLUSAGE_TEXCOORD:     renderer->setInputStream(sw::TexCoord0 + index, attribute);                              break;
+				case D3DDECLUSAGE_TANGENT:      /* Ignored */                                                                            break;
+				case D3DDECLUSAGE_BINORMAL:     /* Ignored */                                                                            break;
+				case D3DDECLUSAGE_TESSFACTOR:   UNIMPLEMENTED();                                                                         break;
+				case D3DDECLUSAGE_POSITIONT:    renderer->setInputStream(sw::PositionT, attribute.define(sw::STREAMTYPE_FLOAT, 4));      break;
+				case D3DDECLUSAGE_COLOR:        renderer->setInputStream(sw::Color0 + index, attribute.define(sw::STREAMTYPE_COLOR, 4)); break;
+				case D3DDECLUSAGE_FOG:          /* Ignored */                                                                            break;
+				case D3DDECLUSAGE_DEPTH:        /* Ignored */                                                                            break;
+				case D3DDECLUSAGE_SAMPLE:       UNIMPLEMENTED();                                                                         break;
 				default:
 					ASSERT(false);
 				}
@@ -6016,69 +6016,39 @@ namespace D3D9
 
 		if(scissorEnable)
 		{
-			RECT scissor = scissorRect;
-
-			long viewportLeft = viewport.X;
-			long viewportRight = viewport.X + viewport.Width;
-			long viewportTop = viewport.Y;
-			long viewportBottom = viewport.Y + viewport.Height;
-
-			// Intersection of scissor rectangle and viewport
-			if(viewportLeft > scissor.left) scissor.left = viewportLeft;
-			if(viewportTop > scissor.top) scissor.top = viewportTop;
-			if(viewportRight < scissor.right) scissor.right = viewportRight;
-			if(viewportBottom < scissor.bottom) scissor.bottom = viewportBottom;
-
-			if(scissor.left == scissor.right ||
-			   scissor.top == scissor.bottom)
+			if(scissorRect.left >= scissorRect.right || scissorRect.top >= scissorRect.bottom)
 			{
 				return false;
 			}
 
-			// Dimensions of scissor rectangle relative to viewport
-			float relativeLeft = (float)(scissor.left - viewportLeft) / viewport.Width;
-			float relativeRight = (float)(scissor.right - viewportLeft) / viewport.Width;
-			float relativeTop = (float)(scissor.top - viewportTop) / viewport.Height;
-			float relativeBottom = (float)(scissor.bottom - viewportTop) / viewport.Height;
-
-			// Transformation of clip space coordinates
-			float sX = 1.0f / (relativeRight - relativeLeft);   // Scale
-			float tX = sX * ((0.5f - relativeLeft) - (relativeRight - 0.5f));   // Translate
-			float sY = 1.0f / (relativeBottom - relativeTop);   // Scale
-			float tY = sY * ((0.5f - relativeTop) - (relativeBottom - 0.5f));   // Translate
-
-			// Set the new viewport
-			sw::Viewport view;
-
-			view.setLeft((float)scissor.left);
-			view.setTop((float)scissor.top);
-			view.setWidth((float)(scissor.right - scissor.left));
-			view.setHeight((float)(scissor.bottom - scissor.top));
-
-			view.setNear(viewport.MinZ);
-			view.setFar(viewport.MaxZ);
-
-			renderer->setViewport(view);
-			renderer->setPostTransformEnable(true);
-			renderer->setPosScale(sX, sY);
-			renderer->setPosOffset(tX, -tY);
+			sw::Rect scissor;
+			scissor.x0 = scissorRect.left;
+			scissor.x1 = scissorRect.right;
+			scissor.y0 = scissorRect.top;
+			scissor.y1 = scissorRect.bottom;
+			
+			renderer->setScissor(scissor);
 		}
 		else
 		{
-			// Set viewport
-			sw::Viewport view;
-
-			view.setLeft((float)viewport.X);
-			view.setTop((float)viewport.Y);
-			view.setWidth((float)viewport.Width);
-			view.setHeight((float)viewport.Height);
-
-			view.setNear(viewport.MinZ);
-			view.setFar(viewport.MaxZ);
-
-			renderer->setViewport(view);
-			renderer->setPostTransformEnable(false);
+			sw::Rect scissor;
+			scissor.x0 = viewport.X;
+			scissor.x1 = viewport.X + viewport.Width;
+			scissor.y0 = viewport.Y;
+			scissor.y1 = viewport.Y + viewport.Height;
+			
+			renderer->setScissor(scissor);
 		}
+
+		sw::Viewport view;
+		view.x0 = (float)viewport.X;
+		view.y0 = (float)viewport.Y + viewport.Height;
+		view.width = (float)viewport.Width;
+		view.height = -(float)viewport.Height;
+		view.minZ = viewport.MinZ;
+		view.maxZ = viewport.MaxZ;
+
+		renderer->setViewport(view);
 
 		return true;
 	}
@@ -6260,45 +6230,31 @@ namespace D3D9
 		source->GetDesc(&sourceDescription);
 		dest->GetDesc(&destDescription);
 
-		int sWidth = source->getExternalWidth();
-		int sHeight = source->getExternalHeight();
-		int dWidth = dest->getExternalWidth();
-		int dHeight = dest->getExternalHeight();
+		int sWidth = source->getWidth();
+		int sHeight = source->getHeight();
+		int dWidth = dest->getWidth();
+		int dHeight = dest->getHeight();
 
-		sw::Rect sRect = {0};
-		sw::Rect dRect = {0};
+		sw::Rect sRect(0, 0, sWidth, sHeight);
+		sw::Rect dRect(0, 0, dWidth, dHeight);
 
 		if(sourceRect)
 		{
-			sRect.left = sourceRect->left;
-			sRect.top = sourceRect->top;
-			sRect.right = sourceRect->right;
-			sRect.bottom = sourceRect->bottom;
-		}
-		else
-		{
-			sRect.top = 0;
-			sRect.left = 0;
-			sRect.bottom = sHeight;
-			sRect.right = sWidth;
+			sRect.x0 = sourceRect->left;
+			sRect.y0 = sourceRect->top;
+			sRect.x1 = sourceRect->right;
+			sRect.y1 = sourceRect->bottom;
 		}
 
 		if(destRect)
 		{
-			dRect.left = destRect->left;
-			dRect.top = destRect->top;
-			dRect.right = destRect->right;
-			dRect.bottom = destRect->bottom;
-		}
-		else
-		{
-			dRect.top = 0;
-			dRect.left = 0;
-			dRect.bottom = dHeight;
-			dRect.right = dWidth;
+			dRect.x0 = destRect->left;
+			dRect.y0 = destRect->top;
+			dRect.x1 = destRect->right;
+			dRect.y1 = destRect->bottom;
 		}
 
-		bool scaling = (sRect.right - sRect.left != dRect.right - dRect.left) || (sRect.bottom - sRect.top != dRect.bottom - dRect.top);
+		bool scaling = (sRect.x1 - sRect.x0 != dRect.x1 - dRect.x0) || (sRect.y1 - sRect.y0 != dRect.y1 - dRect.y0);
 		bool equalFormats = source->getInternalFormat() == dest->getInternalFormat();
 		bool depthStencil = (sourceDescription.Usage & D3DUSAGE_DEPTHSTENCIL) == D3DUSAGE_DEPTHSTENCIL;
 		bool alpha0xFF = false;
@@ -6317,8 +6273,8 @@ namespace D3D9
 				byte *sourceBuffer = (byte*)source->lockInternal(0, 0, 0, sw::LOCK_READONLY, sw::PUBLIC);
 				byte *destBuffer = (byte*)dest->lockInternal(0, 0, 0, sw::LOCK_DISCARD, sw::PUBLIC);
 
-				unsigned int width = source->getInternalWidth();
-				unsigned int height = source->getInternalHeight();
+				unsigned int width = source->getWidth();
+				unsigned int height = source->getHeight();
 				unsigned int pitch = source->getInternalPitchB();
 
 				for(unsigned int y = 0; y < height; y++)
@@ -6338,8 +6294,8 @@ namespace D3D9
 				byte *sourceBuffer = (byte*)source->lockStencil(0, sw::PUBLIC);
 				byte *destBuffer = (byte*)dest->lockStencil(0, sw::PUBLIC);
 
-				unsigned int width = source->getInternalWidth();
-				unsigned int height = source->getInternalHeight();
+				unsigned int width = source->getWidth();
+				unsigned int height = source->getHeight();
 				unsigned int pitch = source->getStencilPitchB();
 
 				for(unsigned int y = 0; y < height; y++)
@@ -6356,13 +6312,13 @@ namespace D3D9
 		}
 		else if(!scaling && equalFormats)
 		{
-			unsigned char *sourceBytes = (unsigned char*)source->lockInternal(sRect.left, sRect.top, 0, sw::LOCK_READONLY, sw::PUBLIC);
-			unsigned char *destBytes = (unsigned char*)dest->lockInternal(dRect.left, dRect.top, 0, sw::LOCK_READWRITE, sw::PUBLIC);
+			unsigned char *sourceBytes = (unsigned char*)source->lockInternal(sRect.x0, sRect.y0, 0, sw::LOCK_READONLY, sw::PUBLIC);
+			unsigned char *destBytes = (unsigned char*)dest->lockInternal(dRect.x0, dRect.y0, 0, sw::LOCK_READWRITE, sw::PUBLIC);
 			unsigned int sourcePitch = source->getInternalPitchB();
 			unsigned int destPitch = dest->getInternalPitchB();
 
-			unsigned int width = dRect.right - dRect.left;
-			unsigned int height = dRect.bottom - dRect.top;
+			unsigned int width = dRect.x1 - dRect.x0;
+			unsigned int height = dRect.y1 - dRect.y0;
 			unsigned int bytes = width * sw::Surface::bytes(source->getInternalFormat());
 
 			for(unsigned int y = 0; y < height; y++)

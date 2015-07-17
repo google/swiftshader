@@ -22,9 +22,9 @@
 
 DEFINE_GUID(IID_SwiftShaderPrivateV1, 0x761954E6, 0xC357, 0x426d, 0xA6, 0x90, 0x00, 0x50, 0x56, 0xC0, 0x00, 0x08);
 
-extern SWFILTER maximumFilterQuality;
-extern SWFILTER maximumMipmapQuality;
-extern SWPERSPECTIVE perspectiveQuality;
+//extern SWFILTER maximumFilterQuality;
+//extern SWFILTER maximumMipmapQuality;
+//extern SWPERSPECTIVE perspectiveQuality;
 extern bool disableServer;
 
 namespace D3D9
@@ -85,13 +85,13 @@ namespace D3D9
 		switch(setting)
 		{
 		case SWS_MAXIMUMFILTERQUALITY:
-			maximumFilterQuality = (SWFILTER)value;
+		//	maximumFilterQuality = (SWFILTER)value;
 			break;
 		case SWS_MAXIMUMMIPMAPQUALITY:
-			maximumMipmapQuality = (SWFILTER)value;
+		//	maximumMipmapQuality = (SWFILTER)value;
 			break;
 		case SWS_PERSPECTIVEQUALITY:
-			perspectiveQuality = (SWPERSPECTIVE)value;
+		//	perspectiveQuality = (SWPERSPECTIVE)value;
 			break;
 		case SWS_DISABLESERVER:
 			disableServer = (value != FALSE);

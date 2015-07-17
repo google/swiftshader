@@ -382,8 +382,8 @@ namespace D3D9
 		case D3DFMT_D24S8:			return sw::FORMAT_D24S8;
 		case D3DFMT_D24FS8:			return sw::FORMAT_D24FS8;
 		case D3DFMT_D32F_LOCKABLE:	return sw::FORMAT_D32F_LOCKABLE;
-		case D3DFMT_DF24:			return sw::FORMAT_DF24;
-		case D3DFMT_DF16:			return sw::FORMAT_DF16;
+		case D3DFMT_DF24:			return sw::FORMAT_DF24S8;
+		case D3DFMT_DF16:			return sw::FORMAT_DF16S8;
 		case D3DFMT_INTZ:			return sw::FORMAT_INTZ;
 		default:
 			ASSERT(false);

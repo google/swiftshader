@@ -86,7 +86,7 @@ namespace D3D9
 			return INVALIDCALL();
 		}
 
-		vertexShader.getFunction(data, size);
+		UNIMPLEMENTED();
 
 		return D3D_OK;
 	}

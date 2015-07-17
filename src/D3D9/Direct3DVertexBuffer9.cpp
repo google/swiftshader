@@ -199,11 +199,11 @@ namespace D3D9
 			vertexBuffer->destruct();
 			vertexBuffer = new sw::Resource(length + 192 + 1024);   // NOTE: Applications can 'overshoot' while writing vertices
 			
-			buffer = (void*)vertexBuffer->getBuffer();
+			buffer = (void*)vertexBuffer->data();
 		}
 		else if(flags & D3DLOCK_NOOVERWRITE/* && usage & D3DUSAGE_DYNAMIC*/)
 		{
-			buffer = (void*)vertexBuffer->getBuffer();
+			buffer = (void*)vertexBuffer->data();
 		}
 		else
 		{

@@ -180,11 +180,11 @@ namespace D3D9
 			indexBuffer->destruct();
 			indexBuffer = new sw::Resource(length + 16);
 
-			buffer = (void*)indexBuffer->getBuffer();
+			buffer = (void*)indexBuffer->data();
 		}
 		else if(flags & D3DLOCK_NOOVERWRITE/* && usage & D3DUSAGE_DYNAMIC*/)
 		{
-			buffer = (void*)indexBuffer->getBuffer();
+			buffer = (void*)indexBuffer->data();
 		}
 		else
 		{

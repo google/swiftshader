@@ -86,7 +86,7 @@ namespace D3D9
 			return INVALIDCALL();
 		}
 
-		pixelShader.getFunction(data, size);
+		UNIMPLEMENTED();
 
 		return D3D_OK;
 	}

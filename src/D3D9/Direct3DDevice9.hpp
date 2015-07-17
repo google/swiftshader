@@ -256,13 +256,13 @@ namespace D3D9
 
 		bool lightsDirty;
 		bool pixelShaderDirty;
-		int pixelShaderConstantsBDirty;
-		int pixelShaderConstantsFDirty;
-		int pixelShaderConstantsIDirty;
+		unsigned int pixelShaderConstantsBDirty;
+		unsigned int pixelShaderConstantsFDirty;
+		unsigned int pixelShaderConstantsIDirty;
 		bool vertexShaderDirty;
-		int vertexShaderConstantsBDirty;
-		int vertexShaderConstantsFDirty;
-		int vertexShaderConstantsIDirty;
+		unsigned int vertexShaderConstantsBDirty;
+		unsigned int vertexShaderConstantsFDirty;
+		unsigned int vertexShaderConstantsIDirty;
 
 		float pixelShaderConstantF[224][4];
 		int pixelShaderConstantI[16][4];

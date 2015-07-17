@@ -16,7 +16,7 @@
 
 #include "Direct3DSurface9.hpp"
 
-#include "FrameBuffer.hpp"
+#include "FrameBufferWin.hpp"
 
 #include <d3d9.h>
 
@@ -63,7 +63,7 @@ namespace D3D9
 
 		bool lockable;
 
-		sw::FrameBuffer *frameBuffer;
+		sw::FrameBufferWin *frameBuffer;
 
 	public:   // FIXME
 		Direct3DSurface9 *backBuffer[3];
