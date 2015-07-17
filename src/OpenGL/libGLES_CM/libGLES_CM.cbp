@@ -146,7 +146,6 @@
 		<Unit filename="../../Common/Configurator.hpp" />
 		<Unit filename="../../Common/Debug.cpp" />
 		<Unit filename="../../Common/Debug.hpp" />
-		<Unit filename="../../Common/ExceptionHandling.hpp" />
 		<Unit filename="../../Common/Half.cpp" />
 		<Unit filename="../../Common/Half.hpp" />
 		<Unit filename="../../Common/Math.cpp" />

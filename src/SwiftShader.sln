@@ -251,6 +251,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OGLSimpleCube", "..\tests\O
 		{3EF851E7-4AAB-4C7C-9A79-3122CEA1EB67} = {3EF851E7-4AAB-4C7C-9A79-3122CEA1EB67}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "D3D9", "D3D9\D3D9.vcxproj", "{F18D5ABF-CA3A-4B74-BDB2-4A1957C86F18}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -693,6 +695,18 @@ Global
 		{27E15292-4A8D-4BA0-8D9B-5D1ECFF85747}.Release|Win32.Build.0 = Release|Win32
 		{27E15292-4A8D-4BA0-8D9B-5D1ECFF85747}.Release|x64.ActiveCfg = Release|x64
 		{27E15292-4A8D-4BA0-8D9B-5D1ECFF85747}.Release|x64.Build.0 = Release|x64
+		{F18D5ABF-CA3A-4B74-BDB2-4A1957C86F18}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F18D5ABF-CA3A-4B74-BDB2-4A1957C86F18}.Debug|Win32.Build.0 = Debug|Win32
+		{F18D5ABF-CA3A-4B74-BDB2-4A1957C86F18}.Debug|x64.ActiveCfg = Debug|x64
+		{F18D5ABF-CA3A-4B74-BDB2-4A1957C86F18}.Debug|x64.Build.0 = Debug|x64
+		{F18D5ABF-CA3A-4B74-BDB2-4A1957C86F18}.Profile|Win32.ActiveCfg = Profile|Win32
+		{F18D5ABF-CA3A-4B74-BDB2-4A1957C86F18}.Profile|Win32.Build.0 = Profile|Win32
+		{F18D5ABF-CA3A-4B74-BDB2-4A1957C86F18}.Profile|x64.ActiveCfg = Profile|x64
+		{F18D5ABF-CA3A-4B74-BDB2-4A1957C86F18}.Profile|x64.Build.0 = Profile|x64
+		{F18D5ABF-CA3A-4B74-BDB2-4A1957C86F18}.Release|Win32.ActiveCfg = Release|Win32
+		{F18D5ABF-CA3A-4B74-BDB2-4A1957C86F18}.Release|Win32.Build.0 = Release|Win32
+		{F18D5ABF-CA3A-4B74-BDB2-4A1957C86F18}.Release|x64.ActiveCfg = Release|x64
+		{F18D5ABF-CA3A-4B74-BDB2-4A1957C86F18}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -35,31 +35,37 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>NotSet</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>NotSet</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>NotSet</CharacterSet>
     <WholeProgramOptimization>false</WholeProgramOptimization>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>NotSet</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Profile|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>NotSet</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>NotSet</CharacterSet>
     <WholeProgramOptimization>false</WholeProgramOptimization>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -140,7 +146,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <ForcedIncludeFiles>ExceptionHandling.hpp;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <ForcedIncludeFiles>%(ForcedIncludeFiles)</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <AdditionalDependencies>dxguid.lib;WS2_32.lib;comctl32.lib;user32.lib;gdi32.lib;Psapi.lib;Psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -174,7 +180,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <ForcedIncludeFiles>ExceptionHandling.hpp;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <ForcedIncludeFiles>%(ForcedIncludeFiles)</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <AdditionalDependencies>dxguid.lib;WS2_32.lib;comctl32.lib;user32.lib;gdi32.lib;Psapi.lib;Psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -209,7 +215,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>
       </DebugInformationFormat>
-      <ForcedIncludeFiles>ExceptionHandling.hpp;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <ForcedIncludeFiles>%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <StringPooling>true</StringPooling>
       <FloatingPointExceptions>false</FloatingPointExceptions>
@@ -249,7 +255,7 @@
       <BrowseInformation>true</BrowseInformation>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <ForcedIncludeFiles>ExceptionHandling.hpp;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <ForcedIncludeFiles>%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <StringPooling>true</StringPooling>
       <FloatingPointExceptions>false</FloatingPointExceptions>
@@ -294,7 +300,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>
       </DebugInformationFormat>
-      <ForcedIncludeFiles>ExceptionHandling.hpp;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <ForcedIncludeFiles>%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <StringPooling>true</StringPooling>
       <FloatingPointExceptions>false</FloatingPointExceptions>
@@ -338,7 +344,7 @@
       <BrowseInformation>true</BrowseInformation>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <ForcedIncludeFiles>ExceptionHandling.hpp;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <ForcedIncludeFiles>%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <StringPooling>true</StringPooling>
       <FloatingPointExceptions>false</FloatingPointExceptions>
@@ -418,39 +424,6 @@
     <None Include="d3d9.def" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\LLVM\win32\Analysis\Analysis.vcxproj">
-      <Project>{0622e827-8464-489d-8b1c-b0b496f35c08}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\LLVM\win32\CodeGen\CodeGen.vcxproj">
-      <Project>{08ceb1bb-c2a4-4587-b9a9-aedb8fb44897}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\LLVM\win32\ExecutionEngine\ExecutionEngine.vcxproj">
-      <Project>{76295ae8-a083-460e-9f80-6f2b8923264a}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\LLVM\win32\MC\MC.vcxproj">
-      <Project>{12d00cfa-e393-4857-a436-c7324849de51}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\LLVM\win32\Support\Support.vcxproj">
-      <Project>{28aa9146-3482-4f41-9cc6-407b1d258508}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\LLVM\win32\System\System.vcxproj">
-      <Project>{0f8407f3-fa23-4cf1-83a9-dcbe0b361489}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\LLVM\win32\Target\Target.vcxproj">
-      <Project>{059fbab8-c76d-48a0-aa75-3c57bd3eafe4}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\LLVM\win32\Transforms\Transforms.vcxproj">
-      <Project>{c59374c1-9fc0-4147-b836-327dfdc52d99}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\LLVM\win32\VMCore\VMCore.vcxproj">
-      <Project>{45cd78d7-c5d9-47fe-ad12-f3251eedaffb}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\LLVM\win32\x86\x86.vcxproj">
-      <Project>{144eebf6-8c9b-4473-b715-2c821666af6c}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\Reactor\Reactor.vcxproj">
-      <Project>{28fd076d-10b5-4bd8-a4cf-f44c7002a803}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\SwiftShader\SwiftShader.vcxproj">
       <Project>{7b02cb19-4cdf-4f79-bc9b-7f3f6164a003}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
