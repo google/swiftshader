@@ -146,7 +146,8 @@ private:
   void assignRelLinkNum(SizeT SymTabNumber, RelSectionList &RelSections);
 
   /// Helper function for writeDataSection. Writes a data section of type
-  /// SectionType, given the global variables Vars belonging to that SectionType.
+  /// SectionType, given the global variables Vars belonging to that
+  /// SectionType.
   void writeDataOfType(SectionType SectionType,
                        const VariableDeclarationList &Vars,
                        FixupKind RelocationKind,

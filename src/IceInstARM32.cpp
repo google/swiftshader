@@ -277,15 +277,17 @@ bool InstARM32Br::optimizeBranch(const CfgNode *NextNode) {
   return false;
 }
 
-bool InstARM32Br::repointEdge(CfgNode *OldNode, CfgNode *NewNode) {
+bool InstARM32Br::repointEdges(CfgNode *OldNode, CfgNode *NewNode) {
+  bool Found = false;
   if (TargetFalse == OldNode) {
     TargetFalse = NewNode;
-    return true;
-  } else if (TargetTrue == OldNode) {
-    TargetTrue = NewNode;
-    return true;
+    Found = true;
   }
-  return false;
+  if (TargetTrue == OldNode) {
+    TargetTrue = NewNode;
+    Found = true;
+  }
+  return Found;
 }
 
 InstARM32Call::InstARM32Call(Cfg *Func, Variable *Dest, Operand *CallTarget)

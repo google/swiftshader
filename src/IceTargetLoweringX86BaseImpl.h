@@ -29,6 +29,8 @@
 #include "IceUtils.h"
 #include "llvm/Support/MathExtras.h"
 
+#include <stack>
+
 namespace Ice {
 namespace X86Internal {
 
@@ -4494,49 +4496,260 @@ template <class Machine> void TargetX86Base<Machine>::doAddressOptStore() {
 }
 
 template <class Machine>
-void TargetX86Base<Machine>::lowerSwitch(const InstSwitch *Inst) {
-  // This implements the most naive possible lowering.
-  // cmp a,val[0]; jeq label[0]; cmp a,val[1]; jeq label[1]; ... jmp default
-  Operand *Src0 = Inst->getComparison();
-  SizeT NumCases = Inst->getNumCases();
-  if (Src0->getType() == IceType_i64) {
-    Src0 = legalizeUndef(Src0);
-    Operand *Src0Lo = loOperand(Src0);
-    Operand *Src0Hi = hiOperand(Src0);
-    if (NumCases >= 2) {
-      Src0Lo = legalizeToVar(Src0Lo);
-      Src0Hi = legalizeToVar(Src0Hi);
+Operand *TargetX86Base<Machine>::lowerCmpRange(Operand *Comparison,
+                                               uint64_t Min, uint64_t Max) {
+  // TODO(ascull): 64-bit should not reach here but only because it is not
+  // implemented yet. This should be able to handle the 64-bit case.
+  assert(Comparison->getType() != IceType_i64);
+  // Subtracting 0 is a nop so don't do it
+  if (Min != 0) {
+    // Avoid clobbering the comparison by copying it
+    Variable *T = nullptr;
+    _mov(T, Comparison);
+    _sub(T, Ctx->getConstantInt32(Min));
+    Comparison = T;
+  }
+
+  _cmp(Comparison, Ctx->getConstantInt32(Max - Min));
+
+  return Comparison;
+}
+
+template <class Machine>
+void TargetX86Base<Machine>::lowerCaseCluster(const CaseCluster &Case,
+                                              Operand *Comparison, bool DoneCmp,
+                                              CfgNode *DefaultLabel) {
+  switch (Case.getKind()) {
+  case CaseCluster::JumpTable: {
+    typename Traits::Insts::Label *SkipJumpTable;
+
+    Operand *RangeIndex =
+        lowerCmpRange(Comparison, Case.getLow(), Case.getHigh());
+    if (DefaultLabel != nullptr) {
+      _br(Traits::Cond::Br_a, DefaultLabel);
     } else {
-      Src0Lo = legalize(Src0Lo, Legal_Reg | Legal_Mem);
-      Src0Hi = legalize(Src0Hi, Legal_Reg | Legal_Mem);
+      // Skip over jump table logic if comparison not in range and no default
+      SkipJumpTable = Traits::Insts::Label::create(Func, this);
+      _br(Traits::Cond::Br_a, SkipJumpTable);
     }
+
+    InstJumpTable *JumpTable = Case.getJumpTable();
+    Context.insert(JumpTable);
+
+    // Make sure the index is a register of the same width as the base
+    Variable *Index;
+    if (RangeIndex->getType() != getPointerType()) {
+      Index = makeReg(getPointerType());
+      _movzx(Index, RangeIndex);
+    } else {
+      Index = legalizeToVar(RangeIndex);
+    }
+
+    constexpr RelocOffsetT RelocOffset = 0;
+    constexpr bool SuppressMangling = true;
+    Constant *Base = Ctx->getConstantSym(RelocOffset, JumpTable->getName(Func),
+                                         SuppressMangling);
+    Constant *Offset = nullptr;
+    uint16_t Shift = typeWidthInBytesLog2(getPointerType());
+    // TODO(ascull): remove need for legalize by allowing null base in memop
+    auto *MemTarget = Traits::X86OperandMem::create(
+        Func, getPointerType(), legalizeToVar(Base), Offset, Index, Shift);
+    Variable *Target = nullptr;
+    _mov(Target, MemTarget);
+    _jmp(Target);
+    // TODO(ascull): sandboxing for indirect jump
+
+    if (DefaultLabel == nullptr)
+      Context.insert(SkipJumpTable);
+    return;
+  }
+  case CaseCluster::Range: {
+    if (Case.getHigh() == Case.getLow()) {
+      // Single item
+      Constant *Value = Ctx->getConstantInt32(Case.getLow());
+      if (!DoneCmp)
+        _cmp(Comparison, Value);
+      _br(Traits::Cond::Br_e, Case.getLabel());
+      if (DefaultLabel != nullptr)
+        _br(DefaultLabel);
+    } else {
+      // Range
+      lowerCmpRange(Comparison, Case.getLow(), Case.getHigh());
+      _br(Traits::Cond::Br_be, Case.getLabel());
+      if (DefaultLabel != nullptr)
+        _br(DefaultLabel);
+    }
+    return;
+  }
+  }
+}
+
+template <class Machine>
+void TargetX86Base<Machine>::lowerSwitch(const InstSwitch *Inst) {
+  // Do it the old fashioned way unless asked for the advanced method
+  if (!Ctx->getFlags().getUseAdvancedSwitchLowering()) {
+    // This implements the most naive possible lowering.
+    // cmp a,val[0]; jeq label[0]; cmp a,val[1]; jeq label[1]; ... jmp default
+    Operand *Src0 = Inst->getComparison();
+    SizeT NumCases = Inst->getNumCases();
+    if (Src0->getType() == IceType_i64) {
+      Src0 = legalize(Src0); // get Base/Index into physical registers
+      Operand *Src0Lo = loOperand(Src0);
+      Operand *Src0Hi = hiOperand(Src0);
+      if (NumCases >= 2) {
+        Src0Lo = legalizeToVar(Src0Lo);
+        Src0Hi = legalizeToVar(Src0Hi);
+      } else {
+        Src0Lo = legalize(Src0Lo, Legal_Reg | Legal_Mem);
+        Src0Hi = legalize(Src0Hi, Legal_Reg | Legal_Mem);
+      }
+      for (SizeT I = 0; I < NumCases; ++I) {
+        Constant *ValueLo = Ctx->getConstantInt32(Inst->getValue(I));
+        Constant *ValueHi = Ctx->getConstantInt32(Inst->getValue(I) >> 32);
+        typename Traits::Insts::Label *Label =
+            Traits::Insts::Label::create(Func, this);
+        _cmp(Src0Lo, ValueLo);
+        _br(Traits::Cond::Br_ne, Label);
+        _cmp(Src0Hi, ValueHi);
+        _br(Traits::Cond::Br_e, Inst->getLabel(I));
+        Context.insert(Label);
+      }
+      _br(Inst->getLabelDefault());
+      return;
+    }
+    // OK, we'll be slightly less naive by forcing Src into a physical
+    // register if there are 2 or more uses.
+    if (NumCases >= 2)
+      Src0 = legalizeToVar(Src0);
+    else
+      Src0 = legalize(Src0, Legal_Reg | Legal_Mem);
     for (SizeT I = 0; I < NumCases; ++I) {
-      Constant *ValueLo = Ctx->getConstantInt32(Inst->getValue(I));
-      Constant *ValueHi = Ctx->getConstantInt32(Inst->getValue(I) >> 32);
-      typename Traits::Insts::Label *Label =
-          Traits::Insts::Label::create(Func, this);
-      _cmp(Src0Lo, ValueLo);
-      _br(Traits::Cond::Br_ne, Label);
-      _cmp(Src0Hi, ValueHi);
+      Constant *Value = Ctx->getConstantInt32(Inst->getValue(I));
+      _cmp(Src0, Value);
       _br(Traits::Cond::Br_e, Inst->getLabel(I));
-      Context.insert(Label);
     }
+
     _br(Inst->getLabelDefault());
     return;
   }
-  // OK, we'll be slightly less naive by forcing Src into a physical
-  // register if there are 2 or more uses.
-  if (NumCases >= 2)
-    Src0 = legalizeToVar(Src0);
-  else
-    Src0 = legalize(Src0, Legal_Reg | Legal_Mem);
-  for (SizeT I = 0; I < NumCases; ++I) {
-    Constant *Value = Ctx->getConstantInt32(Inst->getValue(I));
-    _cmp(Src0, Value);
-    _br(Traits::Cond::Br_e, Inst->getLabel(I));
+
+  // Group cases together and navigate through them with a binary search
+  CaseClusterArray CaseClusters = CaseCluster::clusterizeSwitch(Func, Inst);
+  Operand *Src0 = Inst->getComparison();
+  CfgNode *DefaultLabel = Inst->getLabelDefault();
+
+  assert(CaseClusters.size() != 0); // Should always be at least one
+
+  if (Src0->getType() == IceType_i64) {
+    Src0 = legalize(Src0); // get Base/Index into physical registers
+    Operand *Src0Lo = loOperand(Src0);
+    Operand *Src0Hi = hiOperand(Src0);
+    if (CaseClusters.back().getHigh() > UINT32_MAX) {
+      // TODO(ascull): handle 64-bit case properly (currently naive version)
+      // This might be handled by a higher level lowering of switches.
+      SizeT NumCases = Inst->getNumCases();
+      if (NumCases >= 2) {
+        Src0Lo = legalizeToVar(Src0Lo);
+        Src0Hi = legalizeToVar(Src0Hi);
+      } else {
+        Src0Lo = legalize(Src0Lo, Legal_Reg | Legal_Mem);
+        Src0Hi = legalize(Src0Hi, Legal_Reg | Legal_Mem);
+      }
+      for (SizeT I = 0; I < NumCases; ++I) {
+        Constant *ValueLo = Ctx->getConstantInt32(Inst->getValue(I));
+        Constant *ValueHi = Ctx->getConstantInt32(Inst->getValue(I) >> 32);
+        typename Traits::Insts::Label *Label =
+            Traits::Insts::Label::create(Func, this);
+        _cmp(Src0Lo, ValueLo);
+        _br(Traits::Cond::Br_ne, Label);
+        _cmp(Src0Hi, ValueHi);
+        _br(Traits::Cond::Br_e, Inst->getLabel(I));
+        Context.insert(Label);
+      }
+      _br(Inst->getLabelDefault());
+      return;
+    } else {
+      // All the values are 32-bit so just check the operand is too and then
+      // fall through to the 32-bit implementation. This is a common case.
+      Src0Hi = legalize(Src0Hi, Legal_Reg | Legal_Mem);
+      Constant *Zero = Ctx->getConstantInt32(0);
+      _cmp(Src0Hi, Zero);
+      _br(Traits::Cond::Br_ne, DefaultLabel);
+      Src0 = Src0Lo;
+    }
   }
 
-  _br(Inst->getLabelDefault());
+  // 32-bit lowering
+
+  if (CaseClusters.size() == 1) {
+    // Jump straight to default if needed. Currently a common case as jump
+    // tables occur on their own.
+    constexpr bool DoneCmp = false;
+    lowerCaseCluster(CaseClusters.front(), Src0, DoneCmp, DefaultLabel);
+    return;
+  }
+
+  // Going to be using multiple times so get it in a register early
+  Variable *Comparison = legalizeToVar(Src0);
+
+  // A span is over the clusters
+  struct SearchSpan {
+    SearchSpan(SizeT Begin, SizeT Size, typename Traits::Insts::Label *Label)
+        : Begin(Begin), Size(Size), Label(Label) {}
+
+    SizeT Begin;
+    SizeT Size;
+    typename Traits::Insts::Label *Label;
+  };
+  std::stack<SearchSpan, std::deque<SearchSpan, CfgLocalAllocator<SearchSpan>>>
+      SearchSpanStack;
+  SearchSpanStack.emplace(0, CaseClusters.size(), nullptr);
+  bool DoneCmp = false;
+
+  while (!SearchSpanStack.empty()) {
+    SearchSpan Span = SearchSpanStack.top();
+    SearchSpanStack.pop();
+
+    if (Span.Label != nullptr)
+      Context.insert(Span.Label);
+
+    switch (Span.Size) {
+    case 0:
+      llvm::report_fatal_error("Invalid SearchSpan size");
+      break;
+
+    case 1:
+      lowerCaseCluster(CaseClusters[Span.Begin], Comparison, DoneCmp,
+                       SearchSpanStack.empty() ? nullptr : DefaultLabel);
+      DoneCmp = false;
+      break;
+
+    case 2:
+      lowerCaseCluster(CaseClusters[Span.Begin], Comparison, DoneCmp);
+      DoneCmp = false;
+      lowerCaseCluster(CaseClusters[Span.Begin + 1], Comparison, DoneCmp,
+                       SearchSpanStack.empty() ? nullptr : DefaultLabel);
+      break;
+
+    default:
+      // Pick the middle item and branch b or ae
+      SizeT PivotIndex = Span.Begin + (Span.Size / 2);
+      const CaseCluster &Pivot = CaseClusters[PivotIndex];
+      Constant *Value = Ctx->getConstantInt32(Pivot.getLow());
+      // TODO(ascull): what if this jump is too big?
+      typename Traits::Insts::Label *Label =
+          Traits::Insts::Label::create(Func, this);
+      _cmp(Comparison, Value);
+      _br(Traits::Cond::Br_b, Label);
+      // Lower the left and (pivot+right) sides, falling through to the right
+      SearchSpanStack.emplace(Span.Begin, Span.Size / 2, Label);
+      SearchSpanStack.emplace(PivotIndex, Span.Size - (Span.Size / 2), nullptr);
+      DoneCmp = true;
+      break;
+    }
+  }
+
+  _br(DefaultLabel);
 }
 
 template <class Machine>

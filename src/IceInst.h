@@ -67,6 +67,7 @@ public:
     FakeDef,      // not part of LLVM/PNaCl bitcode
     FakeUse,      // not part of LLVM/PNaCl bitcode
     FakeKill,     // not part of LLVM/PNaCl bitcode
+    JumpTable,    // not part of LLVM/PNaCl bitcode
     Target        // target-specific low-level ICE
                   // Anything >= Target is an InstTarget subclass.
                   // Note that the value-spaces are shared across targets.
@@ -108,6 +109,7 @@ public:
 
   /// Returns a list of out-edges corresponding to a terminator
   /// instruction, which is the last instruction of the block.
+  /// The list must not contain duplicates.
   virtual NodeList getTerminatorEdges() const {
     // All valid terminator instructions override this method.  For
     // the default implementation, we assert in case some CfgNode
@@ -119,9 +121,8 @@ public:
   virtual bool isUnconditionalBranch() const { return false; }
   /// If the instruction is a branch-type instruction with OldNode as a
   /// target, repoint it to NewNode and return true, otherwise return
-  /// false.  Only repoint one instance, even if the instruction has
-  /// multiple instances of OldNode as a target.
-  virtual bool repointEdge(CfgNode *OldNode, CfgNode *NewNode) {
+  /// false. Repoint all instances of OldNode as a target.
+  virtual bool repointEdges(CfgNode *OldNode, CfgNode *NewNode) {
     (void)OldNode;
     (void)NewNode;
     return false;
@@ -352,7 +353,7 @@ public:
   }
   NodeList getTerminatorEdges() const override;
   bool isUnconditionalBranch() const override { return isUnconditional(); }
-  bool repointEdge(CfgNode *OldNode, CfgNode *NewNode) override;
+  bool repointEdges(CfgNode *OldNode, CfgNode *NewNode) override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return Inst->getKind() == Br; }
 
@@ -727,7 +728,7 @@ public:
   }
   void addBranch(SizeT CaseIndex, uint64_t Value, CfgNode *Label);
   NodeList getTerminatorEdges() const override;
-  bool repointEdge(CfgNode *OldNode, CfgNode *NewNode) override;
+  bool repointEdges(CfgNode *OldNode, CfgNode *NewNode) override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return Inst->getKind() == Switch; }
 
@@ -897,6 +898,43 @@ private:
 
   /// This instruction is ignored if Linked->isDeleted() is true.
   const Inst *Linked;
+};
+
+/// JumpTable instruction. This represents a jump table that will be
+/// stored in the .rodata section. This is used to track and repoint
+/// the target CfgNodes which may change, for example due to
+/// splitting for phi lowering.
+class InstJumpTable : public InstHighLevel {
+  InstJumpTable() = delete;
+  InstJumpTable(const InstJumpTable &) = delete;
+  InstJumpTable &operator=(const InstJumpTable &) = delete;
+
+public:
+  static InstJumpTable *create(Cfg *Func, SizeT NumTargets, CfgNode *Default) {
+    return new (Func->allocate<InstJumpTable>())
+        InstJumpTable(Func, NumTargets, Default);
+  }
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void addTarget(SizeT TargetIndex, CfgNode *Target) {
+    assert(TargetIndex < NumTargets);
+    Targets[TargetIndex] = Target;
+  }
+  bool repointEdges(CfgNode *OldNode, CfgNode *NewNode) override;
+  IceString getName(const Cfg *Func) const;
+  void dump(const Cfg *Func) const override;
+  static bool classof(const Inst *Inst) { return Inst->getKind() == JumpTable; }
+
+private:
+  InstJumpTable(Cfg *Func, SizeT NumTargets, CfgNode *Default);
+  void destroy(Cfg *Func) override {
+    Func->deallocateArrayOf<CfgNode *>(Targets);
+    Inst::destroy(Func);
+  }
+
+  const SizeT LabelNumber;
+  const SizeT NumTargets;
+  CfgNode **Targets;
 };
 
 /// The Target instruction is the base class for all target-specific

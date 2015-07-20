@@ -68,8 +68,8 @@ public:
         Encoded_Not_ByteReg = -1
   };
 
-  /// An enum of X87 Stack Registers. The enum value does match the encoding used
-  /// to binary encode register operands in instructions.
+  /// An enum of X87 Stack Registers. The enum value does match the encoding
+  /// used to binary encode register operands in instructions.
   enum X87STRegister {
 #define X(val, encode, name) Encoded_##val encode,
     X87ST_REGX8632_TABLE

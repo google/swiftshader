@@ -213,15 +213,9 @@ void CfgNode::deletePhis() {
 // parameter is only used to make the new node's name unique when
 // there are multiple edges between the same pair of nodes.)  The new
 // node's instruction list is initialized to the empty list, with no
-// terminator instruction.  If there are multiple edges from Pred to
-// this node, only one edge is split, and the particular choice of
-// edge is undefined.  This could happen with a switch instruction, or
-// a conditional branch that weirdly has both branches to the same
-// place.  TODO(stichnot,kschimpf): Figure out whether this is legal
-// in the LLVM IR or the PNaCl bitcode, and if so, we need to
-// establish a strong relationship among the ordering of Pred's
-// out-edge list, this node's in-edge list, and the Phi instruction's
-// operand list.
+// terminator instruction. There must not be multiple edges from Pred
+// to this node so all Inst::getTerminatorEdges implementations must
+// not contain duplicates.
 CfgNode *CfgNode::splitIncomingEdge(CfgNode *Pred, SizeT EdgeIndex) {
   CfgNode *NewNode = Func->makeNode();
   if (BuildDefs::dump())
@@ -232,32 +226,31 @@ CfgNode *CfgNode::splitIncomingEdge(CfgNode *Pred, SizeT EdgeIndex) {
   NewNode->setNeedsPlacement(true);
   // Repoint Pred's out-edge.
   bool Found = false;
-  for (auto I = Pred->OutEdges.begin(), E = Pred->OutEdges.end();
-       !Found && I != E; ++I) {
-    if (*I == this) {
-      *I = NewNode;
+  for (CfgNode *&I : Pred->OutEdges) {
+    if (I == this) {
+      I = NewNode;
       NewNode->InEdges.push_back(Pred);
       Found = true;
+      break;
     }
   }
   assert(Found);
   // Repoint this node's in-edge.
   Found = false;
-  for (auto I = InEdges.begin(), E = InEdges.end(); !Found && I != E; ++I) {
-    if (*I == Pred) {
-      *I = NewNode;
+  for (CfgNode *&I : InEdges) {
+    if (I == Pred) {
+      I = NewNode;
       NewNode->OutEdges.push_back(this);
       Found = true;
+      break;
     }
   }
   assert(Found);
-  // Repoint a suitable branch instruction's target and return.
+  // Repoint all suitable branch instructions' target and return.
   Found = false;
-  for (Inst &I : reverse_range(Pred->getInsts())) {
-    if (!I.isDeleted() && I.repointEdge(this, NewNode))
-      return NewNode;
-  }
-  // This should be unreachable, so the assert will fail.
+  for (Inst &I : Pred->getInsts())
+    if (!I.isDeleted() && I.repointEdges(this, NewNode))
+      Found = true;
   assert(Found);
   return NewNode;
 }
@@ -752,7 +745,7 @@ void CfgNode::contractIfEmpty() {
       }
       for (Inst &I : Pred->getInsts()) {
         if (!I.isDeleted())
-          I.repointEdge(this, OutEdges.front());
+          I.repointEdges(this, OutEdges.front());
       }
     }
   }

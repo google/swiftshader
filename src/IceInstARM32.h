@@ -742,7 +742,7 @@ public:
   bool isUnconditionalBranch() const override {
     return getPredicate() == CondARM32::AL;
   }
-  bool repointEdge(CfgNode *OldNode, CfgNode *NewNode) override;
+  bool repointEdges(CfgNode *OldNode, CfgNode *NewNode) override;
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;

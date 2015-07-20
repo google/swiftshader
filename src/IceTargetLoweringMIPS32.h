@@ -53,6 +53,10 @@ public:
     // i8, and i16 are rounded up to 4 bytes.
     return (typeWidthInBytes(Ty) + 3) & ~3;
   }
+
+  // TODO(ascull): what is the best size of MIPS?
+  SizeT getMinJumpTableSize() const override { return 3; }
+
   void emitVariable(const Variable *Var) const override;
 
   const char *getConstantPrefix() const final { return ""; }

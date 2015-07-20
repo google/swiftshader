@@ -23,7 +23,7 @@
 namespace Ice {
 
 enum Type {
-#define X(tag, size, align, elts, elty, str) tag,
+#define X(tag, sizeLog2, align, elts, elty, str) tag,
   ICETYPE_TABLE
 #undef X
       IceType_NUM
@@ -60,6 +60,7 @@ enum TargetInstructionSet {
 enum OptLevel { Opt_m1, Opt_0, Opt_1, Opt_2 };
 
 size_t typeWidthInBytes(Type Ty);
+int8_t typeWidthInBytesLog2(Type Ty);
 size_t typeAlignInBytes(Type Ty);
 size_t typeNumElements(Type Ty);
 Type typeElementType(Type Ty);

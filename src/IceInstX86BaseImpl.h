@@ -152,15 +152,17 @@ bool InstX86Br<Machine>::optimizeBranch(const CfgNode *NextNode) {
 }
 
 template <class Machine>
-bool InstX86Br<Machine>::repointEdge(CfgNode *OldNode, CfgNode *NewNode) {
+bool InstX86Br<Machine>::repointEdges(CfgNode *OldNode, CfgNode *NewNode) {
+  bool Found = false;
   if (TargetFalse == OldNode) {
     TargetFalse = NewNode;
-    return true;
-  } else if (TargetTrue == OldNode) {
-    TargetTrue = NewNode;
-    return true;
+    Found = true;
   }
-  return false;
+  if (TargetTrue == OldNode) {
+    TargetTrue = NewNode;
+    Found = true;
+  }
+  return Found;
 }
 
 template <class Machine>

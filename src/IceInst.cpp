@@ -19,6 +19,7 @@
 #include "IceCfgNode.h"
 #include "IceLiveness.h"
 #include "IceOperand.h"
+#include "IceTargetLowering.h"
 
 namespace Ice {
 
@@ -295,15 +296,17 @@ NodeList InstBr::getTerminatorEdges() const {
   return OutEdges;
 }
 
-bool InstBr::repointEdge(CfgNode *OldNode, CfgNode *NewNode) {
+bool InstBr::repointEdges(CfgNode *OldNode, CfgNode *NewNode) {
+  bool Found = false;
   if (TargetFalse == OldNode) {
     TargetFalse = NewNode;
-    return true;
-  } else if (TargetTrue == OldNode) {
-    TargetTrue = NewNode;
-    return true;
+    Found = true;
   }
-  return false;
+  if (TargetTrue == OldNode) {
+    TargetTrue = NewNode;
+    Found = true;
+  }
+  return Found;
 }
 
 InstCast::InstCast(Cfg *Func, OpKind CastKind, Variable *Dest, Operand *Source)
@@ -461,21 +464,28 @@ NodeList InstSwitch::getTerminatorEdges() const {
   for (SizeT I = 0; I < NumCases; ++I) {
     OutEdges.push_back(Labels[I]);
   }
+  std::sort(OutEdges.begin(), OutEdges.end(),
+            [](const CfgNode *x, const CfgNode *y) {
+              return x->getIndex() < y->getIndex();
+            });
+  auto Last = std::unique(OutEdges.begin(), OutEdges.end());
+  OutEdges.erase(Last, OutEdges.end());
   return OutEdges;
 }
 
-bool InstSwitch::repointEdge(CfgNode *OldNode, CfgNode *NewNode) {
+bool InstSwitch::repointEdges(CfgNode *OldNode, CfgNode *NewNode) {
+  bool Found = false;
   if (LabelDefault == OldNode) {
     LabelDefault = NewNode;
-    return true;
+    Found = true;
   }
   for (SizeT I = 0; I < NumCases; ++I) {
     if (Labels[I] == OldNode) {
       Labels[I] = NewNode;
-      return true;
+      Found = true;
     }
   }
-  return false;
+  return Found;
 }
 
 InstUnreachable::InstUnreachable(Cfg *Func)
@@ -503,6 +513,31 @@ InstFakeUse::InstFakeUse(Cfg *Func, Variable *Src)
 
 InstFakeKill::InstFakeKill(Cfg *Func, const Inst *Linked)
     : InstHighLevel(Func, Inst::FakeKill, 0, nullptr), Linked(Linked) {}
+
+InstJumpTable::InstJumpTable(Cfg *Func, SizeT NumTargets, CfgNode *Default)
+    : InstHighLevel(Func, Inst::JumpTable, 1, nullptr),
+      LabelNumber(Func->getTarget()->makeNextLabelNumber()),
+      NumTargets(NumTargets) {
+  Targets = Func->allocateArrayOf<CfgNode *>(NumTargets);
+  for (SizeT I = 0; I < NumTargets; ++I)
+    Targets[I] = Default;
+}
+
+bool InstJumpTable::repointEdges(CfgNode *OldNode, CfgNode *NewNode) {
+  bool Found = false;
+  for (SizeT I = 0; I < NumTargets; ++I) {
+    if (Targets[I] == OldNode) {
+      Targets[I] = NewNode;
+      Found = true;
+    }
+  }
+  return Found;
+}
+
+IceString InstJumpTable::getName(const Cfg *Func) const {
+  return ".L" + Func->getFunctionName() + "$jumptable$__" +
+         std::to_string(LabelNumber);
+}
 
 Type InstCall::getReturnType() const {
   if (Dest == nullptr)
@@ -915,6 +950,39 @@ void InstFakeKill::dump(const Cfg *Func) const {
   if (Linked->isDeleted())
     Str << "// ";
   Str << "kill.pseudo scratch_regs";
+}
+
+void InstJumpTable::emit(const Cfg *Func) const {
+  // TODO(ascull): should this be a target specific lowering (with access built
+  // in?) and just have InstJumpTable as a high level, similar to br? or should
+  // this follow the same path as emitIAS i.e. put it in global context and
+  // produce this code later?
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  // TODO(ascull): softcode pointer size of 4
+  // TODO(ascull): is .long portable?
+  Str << "\n\t.section\t.rodata." << Func->getFunctionName()
+      << "$jumptable,\"a\",@progbits\n"
+      << "\t.align 4\n" << getName(Func) << ":";
+  for (SizeT I = 0; I < NumTargets; ++I)
+    Str << "\n\t.long\t" << Targets[I]->getAsmName();
+  Str << "\n\n\t.text";
+}
+
+void InstJumpTable::emitIAS(const Cfg *Func) const {
+  // TODO(ascull): put jump table in the global context for emission later
+  (void)Func;
+}
+
+void InstJumpTable::dump(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrDump();
+  Str << "jump table [";
+  for (SizeT I = 0; I < NumTargets; ++I)
+    Str << "\n    " << Targets[I]->getName();
+  Str << "\n  ]";
 }
 
 void InstTarget::dump(const Cfg *Func) const {

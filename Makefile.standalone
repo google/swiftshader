@@ -196,6 +196,7 @@ SRCS = \
 	IceOperand.cpp \
 	IceRegAlloc.cpp \
 	IceRNG.cpp \
+	IceSwitchLowering.cpp \
 	IceTargetLowering.cpp \
 	IceTargetLoweringARM32.cpp \
 	IceTargetLoweringMIPS32.cpp \

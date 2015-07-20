@@ -19,6 +19,7 @@
 
 #include "IceDefs.h"
 #include "IceInst.h"
+#include "IceSwitchLowering.h"
 #include "IceTargetLowering.h"
 
 #include <type_traits>
@@ -130,6 +131,8 @@ public:
     return (typeWidthInBytes(Ty) + 3) & ~3;
   }
 
+  SizeT getMinJumpTableSize() const override { return 4; }
+
   void emitVariable(const Variable *Var) const override;
 
   const char *getConstantPrefix() const final { return "$"; }
@@ -203,6 +206,19 @@ protected:
                       Operand *Val);
   void lowerCountZeros(bool Cttz, Type Ty, Variable *Dest, Operand *FirstVal,
                        Operand *SecondVal);
+
+  /// Check the comparison is in [Min,Max]. The flags register will be modified
+  /// with:
+  ///   - below equal, if in range
+  ///   - above, set if not in range
+  /// The index into the range is returned.
+  Operand *lowerCmpRange(Operand *Comparison, uint64_t Min, uint64_t Max);
+  /// Lowering of a cluster of switch cases. If the case is not matched control
+  /// will pass to the default label provided. If the default label is nullptr
+  /// then control will fall through to the next instruction. DoneCmp should be
+  /// true if the flags contain the result of a comparison with the Comparison.
+  void lowerCaseCluster(const CaseCluster &Case, Operand *Src0, bool DoneCmp,
+                        CfgNode *DefaultLabel = nullptr);
 
   typedef void (TargetX86Base::*LowerBinOp)(Variable *, Operand *);
   void expandAtomicRMWAsCmpxchg(LowerBinOp op_lo, LowerBinOp op_hi,

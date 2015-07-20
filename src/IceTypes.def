@@ -30,24 +30,24 @@
   //#define X(tag, str, is_elf64, e_machine, e_flags)
 
 #define ICETYPE_TABLE                                                    \
-  /* enum value,  size, align, # elts, element type, printable string */ \
-  /*   (size and alignment in bytes) */                                  \
-  X(IceType_void,   0,  0,     1,      IceType_void, "void")             \
-  X(IceType_i1,     1,  1,     1,      IceType_i1,   "i1")               \
-  X(IceType_i8,     1,  1,     1,      IceType_i8,   "i8")               \
-  X(IceType_i16,    2,  1,     1,      IceType_i16,  "i16")              \
-  X(IceType_i32,    4,  1,     1,      IceType_i32,  "i32")              \
-  X(IceType_i64,    8,  1,     1,      IceType_i64,  "i64")              \
-  X(IceType_f32,    4,  4,     1,      IceType_f32,  "float")            \
-  X(IceType_f64,    8,  8,     1,      IceType_f64,  "double")           \
-  X(IceType_v4i1,  16,  1,     4,      IceType_i1,   "<4 x i1>")         \
-  X(IceType_v8i1,  16,  1,     8,      IceType_i1,   "<8 x i1>")         \
-  X(IceType_v16i1, 16,  1,    16,      IceType_i1,   "<16 x i1>")        \
-  X(IceType_v16i8, 16,  1,    16,      IceType_i8,   "<16 x i8>")        \
-  X(IceType_v8i16, 16,  2,     8,      IceType_i16,  "<8 x i16>")        \
-  X(IceType_v4i32, 16,  4,     4,      IceType_i32,  "<4 x i32>")        \
-  X(IceType_v4f32, 16,  4,     4,      IceType_f32,  "<4 x float>")      \
-//#define X(tag, size, align, elts, elty, str)
+  /* enum value, log_2(size), align, # elts, element type, printable */  \
+  /*     string (size and alignment in bytes) */                         \
+  X(IceType_void,  -1,  0,     1,      IceType_void, "void")             \
+  X(IceType_i1,     0,  1,     1,      IceType_i1,   "i1")               \
+  X(IceType_i8,     0,  1,     1,      IceType_i8,   "i8")               \
+  X(IceType_i16,    1,  1,     1,      IceType_i16,  "i16")              \
+  X(IceType_i32,    2,  1,     1,      IceType_i32,  "i32")              \
+  X(IceType_i64,    3,  1,     1,      IceType_i64,  "i64")              \
+  X(IceType_f32,    2,  4,     1,      IceType_f32,  "float")            \
+  X(IceType_f64,    3,  8,     1,      IceType_f64,  "double")           \
+  X(IceType_v4i1,   4,  1,     4,      IceType_i1,   "<4 x i1>")         \
+  X(IceType_v8i1,   4,  1,     8,      IceType_i1,   "<8 x i1>")         \
+  X(IceType_v16i1,  4,  1,    16,      IceType_i1,   "<16 x i1>")        \
+  X(IceType_v16i8,  4,  1,    16,      IceType_i8,   "<16 x i8>")        \
+  X(IceType_v8i16,  4,  2,     8,      IceType_i16,  "<8 x i16>")        \
+  X(IceType_v4i32,  4,  4,     4,      IceType_i32,  "<4 x i32>")        \
+  X(IceType_v4f32,  4,  4,     4,      IceType_f32,  "<4 x float>")      \
+//#define X(tag, sizeLog2, align, elts, elty, str)
 
 // Dictionary:
 //   V - Is vector type.

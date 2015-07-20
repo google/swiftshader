@@ -208,6 +208,10 @@ public:
     StackAdjustment = SnapshotStackAdjustment;
   }
 
+  /// Get the minimum number of clusters required for a jump table to be
+  /// considered.
+  virtual SizeT getMinJumpTableSize() const = 0;
+
   virtual void emitVariable(const Variable *Var) const = 0;
 
   void emitWithoutPrefix(const ConstantRelocatable *CR) const;

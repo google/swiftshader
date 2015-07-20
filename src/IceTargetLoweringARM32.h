@@ -78,6 +78,9 @@ public:
     return (typeWidthInBytes(Ty) + 3) & ~3;
   }
 
+  // TODO(ascull): what size is best for ARM?
+  SizeT getMinJumpTableSize() const override { return 3; }
+
   void emitVariable(const Variable *Var) const override;
 
   const char *getConstantPrefix() const final { return "#"; }

@@ -30,7 +30,7 @@ const char *TargetArchName[] = {
 
 // Define a temporary set of enum values based on ICETYPE_TABLE
 enum {
-#define X(tag, size, align, elts, elty, str) _table_tag_##tag,
+#define X(tag, sizeLog2, align, elts, elty, str) _table_tag_##tag,
   ICETYPE_TABLE
 #undef X
       _enum_table_tag_Names
@@ -44,7 +44,7 @@ enum {
       _enum_props_table_tag_Names
 };
 // Assert that tags in ICETYPE_TABLE are also in ICETYPE_PROPS_TABLE.
-#define X(tag, size, align, elts, elty, str)                                   \
+#define X(tag, sizeLog2, align, elts, elty, str)                               \
   static_assert(                                                               \
       (unsigned)_table_tag_##tag == (unsigned)_props_table_tag_##tag,          \
       "Inconsistency between ICETYPE_PROPS_TABLE and ICETYPE_TABLE");
@@ -63,7 +63,7 @@ ICETYPE_PROPS_TABLE
 
 // Define constants for each element size in ICETYPE_TABLE.
 enum {
-#define X(tag, size, align, elts, elty, str) _table_elts_##tag = elts,
+#define X(tag, sizeLog2, align, elts, elty, str) _table_elts_##tag = elts,
   ICETYPE_TABLE
 #undef X
       _enum_table_elts_Elements = 0
@@ -83,7 +83,7 @@ ICETYPE_PROPS_TABLE
 #undef X
 
 struct TypeAttributeFields {
-  size_t TypeWidthInBytes;
+  int8_t TypeWidthInBytesLog2;
   size_t TypeAlignInBytes;
   size_t TypeNumElements;
   Type TypeElementType;
@@ -91,8 +91,8 @@ struct TypeAttributeFields {
 };
 
 const struct TypeAttributeFields TypeAttributes[] = {
-#define X(tag, size, align, elts, elty, str)                                   \
-  { size, align, elts, elty, str }                                             \
+#define X(tag, sizeLog2, align, elts, elty, str)                               \
+  { sizeLog2, align, elts, elty, str }                                         \
   ,
     ICETYPE_TABLE
 #undef X
@@ -133,10 +133,15 @@ const char *targetArchString(const TargetArch Arch) {
 }
 
 size_t typeWidthInBytes(Type Ty) {
+  int8_t Shift = typeWidthInBytesLog2(Ty);
+  return (Shift < 0) ? 0 : 1 << Shift;
+}
+
+int8_t typeWidthInBytesLog2(Type Ty) {
   size_t Index = static_cast<size_t>(Ty);
   if (Index < IceType_NUM)
-    return TypeAttributes[Index].TypeWidthInBytes;
-  llvm_unreachable("Invalid type for typeWidthInBytes()");
+    return TypeAttributes[Index].TypeWidthInBytesLog2;
+  llvm_unreachable("Invalid type for typeWidthInBytesLog2()");
   return 0;
 }
 
