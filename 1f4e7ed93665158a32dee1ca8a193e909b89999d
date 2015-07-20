@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d81c6a21_7ce2119d",
+        "filename": "src/Renderer/QuadRasterizer.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-07-20T14:41:49Z",
+      "side": 1,
+      "message": "This is a bit icky. Anyway, I have a totally different suggestion above.",
+      "range": {
+        "startLine": 106,
+        "startChar": 3,
+        "endLine": 106,
+        "endChar": 13
+      },
+      "revId": "1f4e7ed93665158a32dee1ca8a193e909b89999d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d81c6a21_bcc30901",
+        "filename": "src/Shader/PixelPipeline.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-07-20T14:41:49Z",
+      "side": 1,
+      "message": "Could just be named \"shader\" now.",
+      "range": {
+        "startLine": 60,
+        "startChar": 21,
+        "endLine": 60,
+        "endChar": 23
+      },
+      "revId": "1f4e7ed93665158a32dee1ca8a193e909b89999d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d81c6a21_9cc8cd1c",
+        "filename": "src/Shader/PixelPipeline.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-07-20T14:41:49Z",
+      "side": 1,
+      "message": "What does this stand for?",
+      "range": {
+        "startLine": 66,
+        "startChar": 3,
+        "endLine": 66,
+        "endChar": 7
+      },
+      "revId": "1f4e7ed93665158a32dee1ca8a193e909b89999d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d81c6a21_dcd245c8",
+        "filename": "src/Shader/PixelPipeline.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-07-20T14:41:49Z",
+      "side": 1,
+      "message": "While we\u0027re at it, let\u0027s replace these alignment tabs with spaces.",
+      "range": {
+        "startLine": 112,
+        "startChar": 30,
+        "endLine": 112,
+        "endChar": 32
+      },
+      "revId": "1f4e7ed93665158a32dee1ca8a193e909b89999d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d81c6a21_3cd899e5",
+        "filename": "src/Shader/PixelPipeline.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 396,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-07-20T14:41:49Z",
+      "side": 1,
+      "message": "spaces",
+      "range": {
+        "startLine": 396,
+        "startChar": 2,
+        "endLine": 396,
+        "endChar": 3
+      },
+      "revId": "1f4e7ed93665158a32dee1ca8a193e909b89999d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d81c6a21_bceca98c",
+        "filename": "src/SwiftShader/SwiftShader.vcxproj",
+        "patchSetId": 4
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-07-20T14:41:49Z",
+      "side": 1,
+      "message": "Will need these in the .cbp and .mk files as well.",
+      "range": {
+        "startLine": 324,
+        "startChar": 0,
+        "endLine": 325,
+        "endChar": 54
+      },
+      "revId": "1f4e7ed93665158a32dee1ca8a193e909b89999d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
