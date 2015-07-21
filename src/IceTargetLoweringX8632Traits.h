@@ -37,6 +37,7 @@ namespace X86Internal {
 
 template <class Machine> struct Insts;
 template <class Machine> struct MachineTraits;
+template <class Machine> class TargetX86Base;
 
 template <> struct MachineTraits<TargetX8632> {
   //----------------------------------------------------------------------------
@@ -518,7 +519,7 @@ template <> struct MachineTraits<TargetX8632> {
   //----------------------------------------------------------------------------
   using Insts = ::Ice::X86Internal::Insts<TargetX8632>;
 
-  using TargetLowering = TargetX8632;
+  using TargetLowering = ::Ice::X86Internal::TargetX86Base<TargetX8632>;
   using Assembler = X8632::AssemblerX8632;
 
   /// X86Operand extends the Operand hierarchy.  Its subclasses are

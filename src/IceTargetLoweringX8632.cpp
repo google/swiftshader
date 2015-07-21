@@ -81,10 +81,6 @@ const char *MachineTraits<TargetX8632>::TargetName = "X8632";
 
 } // end of namespace X86Internal
 
-TargetX8632 *TargetX8632::create(Cfg *Func) {
-  return X86Internal::TargetX86Base<TargetX8632>::create(Func);
-}
-
 TargetDataX8632::TargetDataX8632(GlobalContext *Ctx)
     : TargetDataLowering(Ctx) {}
 

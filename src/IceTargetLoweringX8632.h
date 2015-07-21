@@ -23,10 +23,12 @@
 #include "IceRegistersX8632.h"
 #include "IceTargetLowering.h"
 #include "IceTargetLoweringX8632Traits.h"
+#include "IceTargetLoweringX86Base.h"
 
 namespace Ice {
 
-class TargetX8632 : public TargetLowering {
+class TargetX8632 final
+    : public ::Ice::X86Internal::TargetX86Base<TargetX8632> {
   TargetX8632() = delete;
   TargetX8632(const TargetX8632 &) = delete;
   TargetX8632 &operator=(const TargetX8632 &) = delete;
@@ -34,13 +36,20 @@ class TargetX8632 : public TargetLowering {
 public:
   using X86InstructionSet = X8632::Traits::InstructionSet;
 
-  static TargetX8632 *create(Cfg *Func);
-  virtual X8632::Traits::Address
-  stackVarToAsmOperand(const Variable *Var) const = 0;
-  virtual X86InstructionSet getInstructionSet() const = 0;
+  static TargetX8632 *create(Cfg *Func) { return new TargetX8632(Func); }
 
 protected:
-  explicit TargetX8632(Cfg *Func) : TargetLowering(Func) {}
+  Operand *createNaClReadTPSrcOperand() {
+    Constant *Zero = Ctx->getConstantZero(IceType_i32);
+    return Traits::X86OperandMem::create(Func, IceType_i32, nullptr, Zero,
+                                         nullptr, 0,
+                                         Traits::X86OperandMem::SegReg_GS);
+  }
+
+private:
+  friend class ::Ice::X86Internal::TargetX86Base<TargetX8632>;
+
+  explicit TargetX8632(Cfg *Func) : TargetX86Base(Func) {}
 };
 
 class TargetDataX8632 final : public TargetDataLowering {

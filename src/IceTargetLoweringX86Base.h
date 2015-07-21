@@ -24,6 +24,7 @@
 
 #include <type_traits>
 #include <unordered_map>
+#include <utility>
 
 namespace Ice {
 namespace X86Internal {
@@ -32,76 +33,30 @@ template <class MachineTraits> class BoolFolding;
 
 template <class Machine> struct MachineTraits {};
 
-template <class Machine> class TargetX86Base : public Machine {
-  static_assert(std::is_base_of<::Ice::TargetLowering, Machine>::value,
-                "Machine template parameter must be a TargetLowering.");
-
+/// TargetX86Base is a template for all X86 Targets, and it relies on the CRT
+/// pattern for generating code, delegating to actual backends target-specific
+/// lowerings (e.g., call, ret, and intrinsics.) Backends are expected to
+/// implement the following methods (which should be accessible from
+/// TargetX86Base):
+///
+/// Operand *createNaClReadTPSrcOperand()
+///
+/// Note: Ideally, we should be able to
+///
+///   static_assert(std::is_base_of<TargetX86Base<Machine>, Machine>::value);
+///
+/// but that does not work: the compiler does not know that Machine inherits
+/// from TargetX86Base at this point in translation.
+template <class Machine> class TargetX86Base : public TargetLowering {
   TargetX86Base() = delete;
   TargetX86Base(const TargetX86Base &) = delete;
   TargetX86Base &operator=(const TargetX86Base &) = delete;
-
-protected:
-  using Machine::H_bitcast_16xi1_i16;
-  using Machine::H_bitcast_8xi1_i8;
-  using Machine::H_bitcast_i16_16xi1;
-  using Machine::H_bitcast_i8_8xi1;
-  using Machine::H_call_ctpop_i32;
-  using Machine::H_call_ctpop_i64;
-  using Machine::H_call_longjmp;
-  using Machine::H_call_memcpy;
-  using Machine::H_call_memmove;
-  using Machine::H_call_memset;
-  using Machine::H_call_read_tp;
-  using Machine::H_call_setjmp;
-  using Machine::H_fptosi_f32_i64;
-  using Machine::H_fptosi_f64_i64;
-  using Machine::H_fptoui_4xi32_f32;
-  using Machine::H_fptoui_f32_i32;
-  using Machine::H_fptoui_f32_i64;
-  using Machine::H_fptoui_f64_i32;
-  using Machine::H_fptoui_f64_i64;
-  using Machine::H_frem_f32;
-  using Machine::H_frem_f64;
-  using Machine::H_sdiv_i64;
-  using Machine::H_sitofp_i64_f32;
-  using Machine::H_sitofp_i64_f64;
-  using Machine::H_srem_i64;
-  using Machine::H_udiv_i64;
-  using Machine::H_uitofp_4xi32_4xf32;
-  using Machine::H_uitofp_i32_f32;
-  using Machine::H_uitofp_i32_f64;
-  using Machine::H_uitofp_i64_f32;
-  using Machine::H_uitofp_i64_f64;
-  using Machine::H_urem_i64;
-
-  using Machine::alignStackSpillAreas;
-  using Machine::assignVarStackSlots;
-  using Machine::inferTwoAddress;
-  using Machine::makeHelperCall;
-  using Machine::getVarStackSlotParams;
 
 public:
   using Traits = MachineTraits<Machine>;
   using BoolFolding = ::Ice::X86Internal::BoolFolding<Traits>;
 
-  using Machine::RegSet_All;
-  using Machine::RegSet_CalleeSave;
-  using Machine::RegSet_CallerSave;
-  using Machine::RegSet_FramePointer;
-  using Machine::RegSet_None;
-  using Machine::RegSet_StackPointer;
-  using Machine::Context;
-  using Machine::Ctx;
-  using Machine::Func;
-  using RegSetMask = typename Machine::RegSetMask;
-
-  using Machine::_bundle_lock;
-  using Machine::_bundle_unlock;
-  using Machine::_set_dest_nonkillable;
-  using Machine::getContext;
-  using Machine::getStackAdjustment;
-  using Machine::regAlloc;
-  using Machine::resetStackAdjustment;
+  ~TargetX86Base() override = default;
 
   static TargetX86Base *create(Cfg *Func) { return new TargetX86Base(Func); }
 
@@ -156,10 +111,9 @@ public:
   Operand *hiOperand(Operand *Operand);
   void finishArgumentLowering(Variable *Arg, Variable *FramePtr,
                               size_t BasicFrameOffset, size_t &InArgsSizeBytes);
-  typename Traits::Address
-  stackVarToAsmOperand(const Variable *Var) const final;
+  typename Traits::Address stackVarToAsmOperand(const Variable *Var) const;
 
-  typename Traits::InstructionSet getInstructionSet() const final {
+  typename Traits::InstructionSet getInstructionSet() const {
     return InstructionSet;
   }
   Operand *legalizeUndef(Operand *From, int32_t RegNum = Variable::NoRegister);
@@ -628,7 +582,28 @@ protected:
   bool RandomizationPoolingPaused = false;
 
 private:
-  ~TargetX86Base() override {}
+  /// dispatchToConcrete is the template voodoo that allows TargetX86Base to
+  /// invoke methods in Machine (which inherits from TargetX86Base) without
+  /// having to rely on virtual method calls. There are two overloads, one for
+  /// non-void types, and one for void types. We need this becase, for non-void
+  /// types, we need to return the method result, where as for void, we don't.
+  /// While it is true that the code compiles without the void "version", there
+  /// used to be a time when compilers would reject such code.
+  ///
+  /// This machinery is far from perfect. Note that, in particular, the
+  /// arguments provided to dispatchToConcrete() need to match the arguments for
+  /// Method **exactly** (i.e., no argument promotion is performed.)
+  template <typename Ret, typename... Args>
+  typename std::enable_if<!std::is_void<Ret>::value, Ret>::type
+  dispatchToConcrete(Ret (Machine::*Method)(Args...), Args &&... args) {
+    return (static_cast<Machine *>(this)->*Method)(std::forward<Args>(args)...);
+  }
+
+  template <typename... Args>
+  void dispatchToConcrete(void (Machine::*Method)(Args...), Args &&... args) {
+    (static_cast<Machine *>(this)->*Method)(std::forward<Args>(args)...);
+  }
+
   BoolFolding FoldingInfo;
 };
 } // end of namespace X86Internal
