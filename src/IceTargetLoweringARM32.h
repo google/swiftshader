@@ -149,7 +149,7 @@ protected:
   typedef uint32_t LegalMask;
   Operand *legalize(Operand *From, LegalMask Allowed = Legal_All,
                     int32_t RegNum = Variable::NoRegister);
-  Variable *legalizeToVar(Operand *From, int32_t RegNum = Variable::NoRegister);
+  Variable *legalizeToReg(Operand *From, int32_t RegNum = Variable::NoRegister);
   OperandARM32Mem *formMemoryOperand(Operand *Ptr, Type Ty);
 
   Variable *makeReg(Type Ty, int32_t RegNum = Variable::NoRegister);

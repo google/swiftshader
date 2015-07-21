@@ -246,7 +246,7 @@ protected:
   typedef uint32_t LegalMask;
   Operand *legalize(Operand *From, LegalMask Allowed = Legal_All,
                     int32_t RegNum = Variable::NoRegister);
-  Variable *legalizeToVar(Operand *From, int32_t RegNum = Variable::NoRegister);
+  Variable *legalizeToReg(Operand *From, int32_t RegNum = Variable::NoRegister);
   /// Legalize the first source operand for use in the cmp instruction.
   Operand *legalizeSrc0ForCmp(Operand *Src0, Operand *Src1);
   /// Turn a pointer operand into a memory operand that can be

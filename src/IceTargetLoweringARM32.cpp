@@ -1027,7 +1027,7 @@ void TargetARM32::lowerAlloca(const InstAlloca *Inst) {
 void TargetARM32::div0Check(Type Ty, Operand *SrcLo, Operand *SrcHi) {
   if (isGuaranteedNonzeroInt(SrcLo) || isGuaranteedNonzeroInt(SrcHi))
     return;
-  Variable *SrcLoReg = legalizeToVar(SrcLo);
+  Variable *SrcLoReg = legalizeToReg(SrcLo);
   switch (Ty) {
   default:
     llvm_unreachable("Unexpected type");
@@ -1066,7 +1066,7 @@ void TargetARM32::lowerIDivRem(Variable *Dest, Variable *T, Variable *Src0R,
                                DivInstr DivFunc, const char *DivHelperName,
                                bool IsRemainder) {
   div0Check(Dest->getType(), Src1, nullptr);
-  Variable *Src1R = legalizeToVar(Src1);
+  Variable *Src1R = legalizeToReg(Src1);
   Variable *T0R = Src0R;
   Variable *T1R = Src1R;
   if (Dest->getType() != IceType_i32) {
@@ -1163,8 +1163,8 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
     }
     Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
     Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
-    Variable *Src0RLo = legalizeToVar(loOperand(Src0));
-    Variable *Src0RHi = legalizeToVar(hiOperand(Src0));
+    Variable *Src0RLo = legalizeToReg(loOperand(Src0));
+    Variable *Src0RHi = legalizeToReg(hiOperand(Src0));
     Operand *Src1Lo = loOperand(Src1);
     Operand *Src1Hi = hiOperand(Src1);
     Variable *T_Lo = makeReg(DestLo->getType());
@@ -1236,8 +1236,8 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
       Variable *T_Acc = makeReg(IceType_i32);
       Variable *T_Acc1 = makeReg(IceType_i32);
       Variable *T_Hi1 = makeReg(IceType_i32);
-      Variable *Src1RLo = legalizeToVar(Src1Lo);
-      Variable *Src1RHi = legalizeToVar(Src1Hi);
+      Variable *Src1RLo = legalizeToReg(Src1Lo);
+      Variable *Src1RHi = legalizeToReg(Src1Hi);
       _mul(T_Acc, Src0RLo, Src1RHi);
       _mla(T_Acc1, Src1RLo, Src0RHi, T_Acc);
       _umull(T_Lo, T_Hi1, Src0RLo, Src1RLo);
@@ -1264,7 +1264,7 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
       // and saturate to the range 0-32, so the negative value will
       // saturate to 32.
       Variable *T_Hi = makeReg(IceType_i32);
-      Variable *Src1RLo = legalizeToVar(Src1Lo);
+      Variable *Src1RLo = legalizeToReg(Src1Lo);
       Constant *ThirtyTwo = Ctx->getConstantInt32(32);
       Variable *T_C1 = makeReg(IceType_i32);
       Variable *T_C2 = makeReg(IceType_i32);
@@ -1303,7 +1303,7 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
       // right shifts should also be arithmetic.
       bool IsAshr = Inst->getOp() == InstArithmetic::Ashr;
       Variable *T_Lo = makeReg(IceType_i32);
-      Variable *Src1RLo = legalizeToVar(Src1Lo);
+      Variable *Src1RLo = legalizeToReg(Src1Lo);
       Constant *ThirtyTwo = Ctx->getConstantInt32(32);
       Variable *T_C1 = makeReg(IceType_i32);
       Variable *T_C2 = makeReg(IceType_i32);
@@ -1353,7 +1353,7 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
     return;
   }
   // Dest->getType() is a non-i64 scalar.
-  Variable *Src0R = legalizeToVar(Src0);
+  Variable *Src0R = legalizeToReg(Src0);
   Variable *T = makeReg(Dest->getType());
   // Handle div/rem separately. They require a non-legalized Src1 to inspect
   // whether or not Src1 is a non-zero constant. Once legalized it is more
@@ -1413,7 +1413,7 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
     _mov(Dest, T);
     return;
   case InstArithmetic::Mul: {
-    Variable *Src1R = legalizeToVar(Src1RF);
+    Variable *Src1R = legalizeToReg(Src1RF);
     _mul(T, Src0R, Src1R);
     _mov(Dest, T);
     return;
@@ -1502,7 +1502,7 @@ void TargetARM32::lowerBr(const InstBr *Inst) {
   Operand *Cond = Inst->getCondition();
   // TODO(jvoung): Handle folding opportunities.
 
-  Variable *Src0R = legalizeToVar(Cond);
+  Variable *Src0R = legalizeToReg(Cond);
   Constant *Zero = Ctx->getConstantZero(IceType_i32);
   _cmp(Src0R, Zero);
   _br(Inst->getTargetTrue(), Inst->getTargetFalse(), CondARM32::NE);
@@ -1596,7 +1596,7 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
 
   // Copy arguments to be passed in registers to the appropriate registers.
   for (auto &GPRArg : GPRArgs) {
-    Variable *Reg = legalizeToVar(GPRArg.first, GPRArg.second);
+    Variable *Reg = legalizeToReg(GPRArg.first, GPRArg.second);
     // Generate a FakeUse of register arguments so that they do not get
     // dead code eliminated as a result of the FakeKill of scratch
     // registers after the call.
@@ -1722,11 +1722,11 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
         Operand *Src0RF = legalize(Src0, Legal_Reg | Legal_Flex);
         _mov(T_Lo, Src0RF);
       } else if (Src0->getType() == IceType_i1) {
-        Variable *Src0R = legalizeToVar(Src0);
+        Variable *Src0R = legalizeToReg(Src0);
         _lsl(T_Lo, Src0R, ShiftAmt);
         _asr(T_Lo, T_Lo, ShiftAmt);
       } else {
-        Variable *Src0R = legalizeToVar(Src0);
+        Variable *Src0R = legalizeToReg(Src0);
         _sxt(T_Lo, Src0R);
       }
       _mov(DestLo, T_Lo);
@@ -1744,7 +1744,7 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
       // lsl t1, src_reg, 31
       // asr t1, t1, 31
       // dst = t1
-      Variable *Src0R = legalizeToVar(Src0);
+      Variable *Src0R = legalizeToReg(Src0);
       Constant *ShiftAmt = Ctx->getConstantInt32(31);
       Variable *T = makeReg(Dest->getType());
       _lsl(T, Src0R, ShiftAmt);
@@ -1752,7 +1752,7 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
       _mov(Dest, T);
     } else {
       // t1 = sxt src; dst = t1
-      Variable *Src0R = legalizeToVar(Src0);
+      Variable *Src0R = legalizeToReg(Src0);
       Variable *T = makeReg(Dest->getType());
       _sxt(T, Src0R);
       _mov(Dest, T);
@@ -1774,7 +1774,7 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
         Operand *Src0RF = legalize(Src0, Legal_Reg | Legal_Flex);
         _mov(T_Lo, Src0RF);
       } else {
-        Variable *Src0R = legalizeToVar(Src0);
+        Variable *Src0R = legalizeToReg(Src0);
         _uxt(T_Lo, Src0R);
       }
       if (Src0->getType() == IceType_i1) {
@@ -1798,7 +1798,7 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
       _mov(Dest, T);
     } else {
       // t1 = uxt src; dst = t1
-      Variable *Src0R = legalizeToVar(Src0);
+      Variable *Src0R = legalizeToReg(Src0);
       Variable *T = makeReg(Dest->getType());
       _uxt(T, Src0R);
       _mov(Dest, T);
@@ -1912,13 +1912,13 @@ void TargetARM32::lowerIcmp(const InstIcmp *Inst) {
     Variable *Src0Lo, *Src0Hi;
     Operand *Src1LoRF, *Src1HiRF;
     if (TableIcmp64[Index].Swapped) {
-      Src0Lo = legalizeToVar(loOperand(Src1));
-      Src0Hi = legalizeToVar(hiOperand(Src1));
+      Src0Lo = legalizeToReg(loOperand(Src1));
+      Src0Hi = legalizeToReg(hiOperand(Src1));
       Src1LoRF = legalize(loOperand(Src0), Legal_Reg | Legal_Flex);
       Src1HiRF = legalize(hiOperand(Src0), Legal_Reg | Legal_Flex);
     } else {
-      Src0Lo = legalizeToVar(loOperand(Src0));
-      Src0Hi = legalizeToVar(hiOperand(Src0));
+      Src0Lo = legalizeToReg(loOperand(Src0));
+      Src0Hi = legalizeToReg(hiOperand(Src0));
       Src1LoRF = legalize(loOperand(Src1), Legal_Reg | Legal_Flex);
       Src1HiRF = legalize(hiOperand(Src1), Legal_Reg | Legal_Flex);
     }
@@ -1977,13 +1977,13 @@ void TargetARM32::lowerIcmp(const InstIcmp *Inst) {
   if (ShiftAmt) {
     ShiftConst = Ctx->getConstantInt32(ShiftAmt);
     Src0R = makeReg(IceType_i32);
-    _lsl(Src0R, legalizeToVar(Src0), ShiftConst);
+    _lsl(Src0R, legalizeToReg(Src0), ShiftConst);
   } else {
-    Src0R = legalizeToVar(Src0);
+    Src0R = legalizeToReg(Src0);
   }
   _mov(T, Zero);
   if (ShiftAmt) {
-    Variable *Src1R = legalizeToVar(Src1);
+    Variable *Src1R = legalizeToReg(Src1);
     OperandARM32FlexReg *Src1RShifted = OperandARM32FlexReg::create(
         Func, IceType_i32, Src1R, OperandARM32::LSL, ShiftConst);
     _cmp(Src0R, Src1RShifted);
@@ -2037,8 +2037,8 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     Type Ty = Val->getType();
     if (Ty == IceType_i64) {
       Val = legalizeUndef(Val);
-      Variable *Val_Lo = legalizeToVar(loOperand(Val));
-      Variable *Val_Hi = legalizeToVar(hiOperand(Val));
+      Variable *Val_Lo = legalizeToReg(loOperand(Val));
+      Variable *Val_Hi = legalizeToReg(hiOperand(Val));
       Variable *T_Lo = makeReg(IceType_i32);
       Variable *T_Hi = makeReg(IceType_i32);
       Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
@@ -2049,7 +2049,7 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
       _mov(DestHi, T_Lo);
     } else {
       assert(Ty == IceType_i32 || Ty == IceType_i16);
-      Variable *ValR = legalizeToVar(Val);
+      Variable *ValR = legalizeToReg(Val);
       Variable *T = makeReg(Ty);
       _rev(T, ValR);
       if (Val->getType() == IceType_i16) {
@@ -2090,10 +2090,10 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     Variable *ValHiR = nullptr;
     if (Val->getType() == IceType_i64) {
       Val = legalizeUndef(Val);
-      ValLoR = legalizeToVar(loOperand(Val));
-      ValHiR = legalizeToVar(hiOperand(Val));
+      ValLoR = legalizeToReg(loOperand(Val));
+      ValHiR = legalizeToReg(hiOperand(Val));
     } else {
-      ValLoR = legalizeToVar(Val);
+      ValLoR = legalizeToReg(Val);
     }
     lowerCLZ(Instr->getDest(), ValLoR, ValHiR);
     return;
@@ -2105,8 +2105,8 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     Variable *ValHiR = nullptr;
     if (Val->getType() == IceType_i64) {
       Val = legalizeUndef(Val);
-      ValLoR = legalizeToVar(loOperand(Val));
-      ValHiR = legalizeToVar(hiOperand(Val));
+      ValLoR = legalizeToReg(loOperand(Val));
+      ValHiR = legalizeToReg(hiOperand(Val));
       Variable *TLo = makeReg(IceType_i32);
       Variable *THi = makeReg(IceType_i32);
       _rbit(TLo, ValLoR);
@@ -2114,7 +2114,7 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
       ValLoR = THi;
       ValHiR = TLo;
     } else {
-      ValLoR = legalizeToVar(Val);
+      ValLoR = legalizeToReg(Val);
       Variable *T = makeReg(IceType_i32);
       _rbit(T, ValLoR);
       ValLoR = T;
@@ -2272,8 +2272,8 @@ void TargetARM32::lowerRet(const InstRet *Inst) {
     Operand *Src0 = Inst->getRetValue();
     if (Src0->getType() == IceType_i64) {
       Src0 = legalizeUndef(Src0);
-      Variable *R0 = legalizeToVar(loOperand(Src0), RegARM32::Reg_r0);
-      Variable *R1 = legalizeToVar(hiOperand(Src0), RegARM32::Reg_r1);
+      Variable *R0 = legalizeToReg(loOperand(Src0), RegARM32::Reg_r0);
+      Variable *R1 = legalizeToReg(hiOperand(Src0), RegARM32::Reg_r1);
       Reg = R0;
       Context.insert(InstFakeUse::create(Func, R1));
     } else if (isScalarFloatingType(Src0->getType())) {
@@ -2317,7 +2317,7 @@ void TargetARM32::lowerSelect(const InstSelect *Inst) {
   }
   // TODO(jvoung): handle folding opportunities.
   // cmp cond, #0; mov t, SrcF; mov_cond t, SrcT; mov dest, t
-  Variable *CmpOpnd0 = legalizeToVar(Condition);
+  Variable *CmpOpnd0 = legalizeToReg(Condition);
   Operand *CmpOpnd1 = Ctx->getConstantZero(IceType_i32);
   _cmp(CmpOpnd0, CmpOpnd1);
   CondARM32::Cond Cond = CondARM32::NE;
@@ -2358,14 +2358,14 @@ void TargetARM32::lowerStore(const InstStore *Inst) {
 
   if (Ty == IceType_i64) {
     Value = legalizeUndef(Value);
-    Variable *ValueHi = legalizeToVar(hiOperand(Value));
-    Variable *ValueLo = legalizeToVar(loOperand(Value));
+    Variable *ValueHi = legalizeToReg(hiOperand(Value));
+    Variable *ValueLo = legalizeToReg(loOperand(Value));
     _str(ValueHi, llvm::cast<OperandARM32Mem>(hiOperand(NewAddr)));
     _str(ValueLo, llvm::cast<OperandARM32Mem>(loOperand(NewAddr)));
   } else if (isVectorType(Ty)) {
     UnimplementedError(Func->getContext()->getFlags());
   } else {
-    Variable *ValueR = legalizeToVar(Value);
+    Variable *ValueR = legalizeToReg(Value);
     _str(ValueR, NewAddr);
   }
 }
@@ -2381,8 +2381,8 @@ void TargetARM32::lowerSwitch(const InstSwitch *Inst) {
   SizeT NumCases = Inst->getNumCases();
   if (Src0->getType() == IceType_i64) {
     Src0 = legalizeUndef(Src0);
-    Variable *Src0Lo = legalizeToVar(loOperand(Src0));
-    Variable *Src0Hi = legalizeToVar(hiOperand(Src0));
+    Variable *Src0Lo = legalizeToReg(loOperand(Src0));
+    Variable *Src0Hi = legalizeToReg(hiOperand(Src0));
     for (SizeT I = 0; I < NumCases; ++I) {
       Operand *ValueLo = Ctx->getConstantInt32(Inst->getValue(I));
       Operand *ValueHi = Ctx->getConstantInt32(Inst->getValue(I) >> 32);
@@ -2397,7 +2397,7 @@ void TargetARM32::lowerSwitch(const InstSwitch *Inst) {
   }
 
   // 32 bit integer
-  Variable *Src0Var = legalizeToVar(Src0);
+  Variable *Src0Var = legalizeToReg(Src0);
   for (SizeT I = 0; I < NumCases; ++I) {
     Operand *Value = Ctx->getConstantInt32(Inst->getValue(I));
     Value = legalize(Value, Legal_Reg | Legal_Flex);
@@ -2465,10 +2465,10 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
     Variable *RegBase = nullptr;
     Variable *RegIndex = nullptr;
     if (Base) {
-      RegBase = legalizeToVar(Base);
+      RegBase = legalizeToReg(Base);
     }
     if (Index) {
-      RegIndex = legalizeToVar(Index);
+      RegIndex = legalizeToReg(Index);
     }
     // Create a new operand if there was a change.
     if (Base != RegBase || Index != RegIndex) {
@@ -2583,7 +2583,7 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
 }
 
 /// Provide a trivial wrapper to legalize() for this common usage.
-Variable *TargetARM32::legalizeToVar(Operand *From, int32_t RegNum) {
+Variable *TargetARM32::legalizeToReg(Operand *From, int32_t RegNum) {
   return llvm::cast<Variable>(legalize(From, Legal_Reg, RegNum));
 }
 
@@ -2620,7 +2620,7 @@ OperandARM32Mem *TargetARM32::formMemoryOperand(Operand *Operand, Type Ty) {
   // If we didn't do address mode optimization, then we only
   // have a base/offset to work with. ARM always requires a base
   // register, so just use that to hold the operand.
-  Variable *Base = legalizeToVar(Operand);
+  Variable *Base = legalizeToReg(Operand);
   return OperandARM32Mem::create(
       Func, Ty, Base,
       llvm::cast<ConstantInteger32>(Ctx->getConstantZero(IceType_i32)));

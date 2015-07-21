@@ -1650,7 +1650,7 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
     // TODO: Trap on integer divide and integer modulo by zero.
     // See: https://code.google.com/p/nativeclient/issues/detail?id=3899
     if (llvm::isa<typename Traits::X86OperandMem>(Src1))
-      Src1 = legalizeToVar(Src1);
+      Src1 = legalizeToReg(Src1);
     switch (Inst->getOp()) {
     case InstArithmetic::_num:
       llvm_unreachable("Unknown arithmetic operator");
@@ -1827,21 +1827,21 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
   case InstArithmetic::Shl:
     _mov(T, Src0);
     if (!llvm::isa<Constant>(Src1))
-      Src1 = legalizeToVar(Src1, Traits::RegisterSet::Reg_ecx);
+      Src1 = legalizeToReg(Src1, Traits::RegisterSet::Reg_ecx);
     _shl(T, Src1);
     _mov(Dest, T);
     break;
   case InstArithmetic::Lshr:
     _mov(T, Src0);
     if (!llvm::isa<Constant>(Src1))
-      Src1 = legalizeToVar(Src1, Traits::RegisterSet::Reg_ecx);
+      Src1 = legalizeToReg(Src1, Traits::RegisterSet::Reg_ecx);
     _shr(T, Src1);
     _mov(Dest, T);
     break;
   case InstArithmetic::Ashr:
     _mov(T, Src0);
     if (!llvm::isa<Constant>(Src1))
-      Src1 = legalizeToVar(Src1, Traits::RegisterSet::Reg_ecx);
+      Src1 = legalizeToReg(Src1, Traits::RegisterSet::Reg_ecx);
     _sar(T, Src1);
     _mov(Dest, T);
     break;
@@ -2186,7 +2186,7 @@ void TargetX86Base<Machine>::lowerCall(const InstCall *Instr) {
   // before any stack adjustment is done.
   for (SizeT i = 0, NumXmmArgs = XmmArgs.size(); i < NumXmmArgs; ++i) {
     Variable *Reg =
-        legalizeToVar(XmmArgs[i], Traits::RegisterSet::Reg_xmm0 + i);
+        legalizeToReg(XmmArgs[i], Traits::RegisterSet::Reg_xmm0 + i);
     // Generate a FakeUse of register arguments so that they do not get
     // dead code eliminated as a result of the FakeKill of scratch
     // registers after the call.
@@ -2483,7 +2483,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
              Inst->getSrc(0)->getType() == IceType_v4f32);
       Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
       if (llvm::isa<typename Traits::X86OperandMem>(Src0RM))
-        Src0RM = legalizeToVar(Src0RM);
+        Src0RM = legalizeToReg(Src0RM);
       Variable *T = makeReg(Dest->getType());
       _cvt(T, Src0RM, Traits::Insts::Cvt::Tps2dq);
       _movp(Dest, T);
@@ -2560,7 +2560,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
              Inst->getSrc(0)->getType() == IceType_v4i32);
       Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
       if (llvm::isa<typename Traits::X86OperandMem>(Src0RM))
-        Src0RM = legalizeToVar(Src0RM);
+        Src0RM = legalizeToReg(Src0RM);
       Variable *T = makeReg(Dest->getType());
       _cvt(T, Src0RM, Traits::Insts::Cvt::Dq2ps);
       _movp(Dest, T);
@@ -2775,7 +2775,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
     case IceType_v16i8:
     case IceType_v4i32:
     case IceType_v4f32: {
-      _movp(Dest, legalizeToVar(Src0));
+      _movp(Dest, legalizeToReg(Src0));
     } break;
     }
     break;
@@ -2804,7 +2804,7 @@ void TargetX86Base<Machine>::lowerExtractElement(
   if (CanUsePextr && Ty != IceType_v4f32) {
     // Use pextrb, pextrw, or pextrd.
     Constant *Mask = Ctx->getConstantInt32(Index);
-    Variable *SourceVectR = legalizeToVar(SourceVectNotLegalized);
+    Variable *SourceVectR = legalizeToReg(SourceVectNotLegalized);
     _pextr(ExtractedElementR, SourceVectR, Mask);
   } else if (Ty == IceType_v4i32 || Ty == IceType_v4f32 || Ty == IceType_v4i1) {
     // Use pshufd and movd/movss.
@@ -2816,7 +2816,7 @@ void TargetX86Base<Machine>::lowerExtractElement(
       T = makeReg(Ty);
       _pshufd(T, legalize(SourceVectNotLegalized, Legal_Reg | Legal_Mem), Mask);
     } else {
-      T = legalizeToVar(SourceVectNotLegalized);
+      T = legalizeToReg(SourceVectNotLegalized);
     }
 
     if (InVectorElementTy == IceType_i32) {
@@ -2838,7 +2838,7 @@ void TargetX86Base<Machine>::lowerExtractElement(
     // support for legalizing to mem is implemented.
     Variable *Slot = Func->template makeVariable(Ty);
     Slot->setWeight(RegWeight::Zero);
-    _movp(Slot, legalizeToVar(SourceVectNotLegalized));
+    _movp(Slot, legalizeToReg(SourceVectNotLegalized));
 
     // Compute the location of the element in memory.
     unsigned Offset = Index * typeWidthInBytes(InVectorElementTy);
@@ -2889,7 +2889,7 @@ void TargetX86Base<Machine>::lowerFcmp(const InstFcmp *Inst) {
       Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
       Operand *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
       if (llvm::isa<typename Traits::X86OperandMem>(Src1RM))
-        Src1RM = legalizeToVar(Src1RM);
+        Src1RM = legalizeToReg(Src1RM);
 
       switch (Condition) {
       default: {
@@ -3038,13 +3038,13 @@ void TargetX86Base<Machine>::lowerIcmp(const InstIcmp *Inst) {
       break;
     case InstIcmp::Eq: {
       if (llvm::isa<typename Traits::X86OperandMem>(Src1RM))
-        Src1RM = legalizeToVar(Src1RM);
+        Src1RM = legalizeToReg(Src1RM);
       _movp(T, Src0RM);
       _pcmpeq(T, Src1RM);
     } break;
     case InstIcmp::Ne: {
       if (llvm::isa<typename Traits::X86OperandMem>(Src1RM))
-        Src1RM = legalizeToVar(Src1RM);
+        Src1RM = legalizeToReg(Src1RM);
       _movp(T, Src0RM);
       _pcmpeq(T, Src1RM);
       Variable *MinusOne = makeVectorOfMinusOnes(Ty);
@@ -3053,7 +3053,7 @@ void TargetX86Base<Machine>::lowerIcmp(const InstIcmp *Inst) {
     case InstIcmp::Ugt:
     case InstIcmp::Sgt: {
       if (llvm::isa<typename Traits::X86OperandMem>(Src1RM))
-        Src1RM = legalizeToVar(Src1RM);
+        Src1RM = legalizeToReg(Src1RM);
       _movp(T, Src0RM);
       _pcmpgt(T, Src1RM);
     } break;
@@ -3061,7 +3061,7 @@ void TargetX86Base<Machine>::lowerIcmp(const InstIcmp *Inst) {
     case InstIcmp::Sge: {
       // !(Src1RM > Src0RM)
       if (llvm::isa<typename Traits::X86OperandMem>(Src0RM))
-        Src0RM = legalizeToVar(Src0RM);
+        Src0RM = legalizeToReg(Src0RM);
       _movp(T, Src1RM);
       _pcmpgt(T, Src0RM);
       Variable *MinusOne = makeVectorOfMinusOnes(Ty);
@@ -3070,7 +3070,7 @@ void TargetX86Base<Machine>::lowerIcmp(const InstIcmp *Inst) {
     case InstIcmp::Ult:
     case InstIcmp::Slt: {
       if (llvm::isa<typename Traits::X86OperandMem>(Src0RM))
-        Src0RM = legalizeToVar(Src0RM);
+        Src0RM = legalizeToReg(Src0RM);
       _movp(T, Src1RM);
       _pcmpgt(T, Src0RM);
     } break;
@@ -3078,7 +3078,7 @@ void TargetX86Base<Machine>::lowerIcmp(const InstIcmp *Inst) {
     case InstIcmp::Sle: {
       // !(Src0RM > Src1RM)
       if (llvm::isa<typename Traits::X86OperandMem>(Src1RM))
-        Src1RM = legalizeToVar(Src1RM);
+        Src1RM = legalizeToReg(Src1RM);
       _movp(T, Src0RM);
       _pcmpgt(T, Src1RM);
       Variable *MinusOne = makeVectorOfMinusOnes(Ty);
@@ -3173,7 +3173,7 @@ void TargetX86Base<Machine>::lowerInsertElement(const InstInsertElement *Inst) {
 
     if (InVectorElementTy == IceType_f32) {
       // ElementR will be in an XMM register since it is floating point.
-      ElementR = legalizeToVar(ElementToInsertNotLegalized);
+      ElementR = legalizeToReg(ElementToInsertNotLegalized);
     } else {
       // Copy an integer to an XMM register.
       Operand *T = legalize(ElementToInsertNotLegalized, Legal_Reg | Legal_Mem);
@@ -3237,13 +3237,13 @@ void TargetX86Base<Machine>::lowerInsertElement(const InstInsertElement *Inst) {
     // support for legalizing to mem is implemented.
     Variable *Slot = Func->template makeVariable(Ty);
     Slot->setWeight(RegWeight::Zero);
-    _movp(Slot, legalizeToVar(SourceVectNotLegalized));
+    _movp(Slot, legalizeToReg(SourceVectNotLegalized));
 
     // Compute the location of the position to insert in memory.
     unsigned Offset = Index * typeWidthInBytes(InVectorElementTy);
     typename Traits::X86OperandMem *Loc =
         getMemoryOperandForStackSlot(InVectorElementTy, Slot, Offset);
-    _store(legalizeToVar(ElementToInsertNotLegalized), Loc);
+    _store(legalizeToReg(ElementToInsertNotLegalized), Loc);
 
     Variable *T = makeReg(Ty);
     _movp(T, Slot);
@@ -3400,8 +3400,8 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
     // argument must be a register. Use rotate left for 16-bit bswap.
     if (Val->getType() == IceType_i64) {
       Val = legalizeUndef(Val);
-      Variable *T_Lo = legalizeToVar(loOperand(Val));
-      Variable *T_Hi = legalizeToVar(hiOperand(Val));
+      Variable *T_Lo = legalizeToReg(loOperand(Val));
+      Variable *T_Hi = legalizeToReg(hiOperand(Val));
       Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
       Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
       _bswap(T_Lo);
@@ -3409,7 +3409,7 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
       _mov(DestLo, T_Hi);
       _mov(DestHi, T_Lo);
     } else if (Val->getType() == IceType_i32) {
-      Variable *T = legalizeToVar(Val);
+      Variable *T = legalizeToReg(Val);
       _bswap(T);
       _mov(Dest, T);
     } else {
@@ -3487,9 +3487,9 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
     // Src is an f32 or f64, we need to make sure it's in a register.
     if (isVectorType(Ty)) {
       if (llvm::isa<typename Traits::X86OperandMem>(Src))
-        Src = legalizeToVar(Src);
+        Src = legalizeToReg(Src);
     } else {
-      Src = legalizeToVar(Src);
+      Src = legalizeToReg(Src);
     }
     _pand(T, Src);
     if (isVectorType(Ty))
@@ -3619,7 +3619,7 @@ void TargetX86Base<Machine>::lowerAtomicCmpxchg(Variable *DestPrev,
   _mov(T_eax, Expected);
   typename Traits::X86OperandMem *Addr =
       formMemoryOperand(Ptr, Expected->getType());
-  Variable *DesiredReg = legalizeToVar(Desired);
+  Variable *DesiredReg = legalizeToReg(Desired);
   const bool Locked = true;
   _cmpxchg(Addr, T_eax, DesiredReg, Locked);
   _mov(DestPrev, T_eax);
@@ -3961,7 +3961,7 @@ void TargetX86Base<Machine>::lowerCountZeros(bool Cttz, Type Ty, Variable *Dest,
   Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
   Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
   // Will be using "test" on this, so we need a registerized variable.
-  Variable *SecondVar = legalizeToVar(SecondVal);
+  Variable *SecondVar = legalizeToReg(SecondVal);
   Variable *T_Dest2 = makeReg(IceType_i32);
   if (Cttz) {
     _bsf(T_Dest2, SecondVar);
@@ -4273,15 +4273,15 @@ void TargetX86Base<Machine>::lowerRet(const InstRet *Inst) {
     Operand *Src0 = legalize(Inst->getRetValue());
     if (Src0->getType() == IceType_i64) {
       Variable *eax =
-          legalizeToVar(loOperand(Src0), Traits::RegisterSet::Reg_eax);
+          legalizeToReg(loOperand(Src0), Traits::RegisterSet::Reg_eax);
       Variable *edx =
-          legalizeToVar(hiOperand(Src0), Traits::RegisterSet::Reg_edx);
+          legalizeToReg(hiOperand(Src0), Traits::RegisterSet::Reg_edx);
       Reg = eax;
       Context.insert(InstFakeUse::create(Func, edx));
     } else if (isScalarFloatingType(Src0->getType())) {
       _fld(Src0);
     } else if (isVectorType(Src0->getType())) {
-      Reg = legalizeToVar(Src0, Traits::RegisterSet::Reg_xmm0);
+      Reg = legalizeToReg(Src0, Traits::RegisterSet::Reg_xmm0);
     } else {
       _mov(Reg, Src0, Traits::RegisterSet::Reg_eax);
     }
@@ -4461,7 +4461,7 @@ void TargetX86Base<Machine>::lowerStore(const InstStore *Inst) {
     _store(ValueLo,
            llvm::cast<typename Traits::X86OperandMem>(loOperand(NewAddr)));
   } else if (isVectorType(Ty)) {
-    _storep(legalizeToVar(Value), NewAddr);
+    _storep(legalizeToReg(Value), NewAddr);
   } else {
     Value = legalize(Value, Legal_Reg | Legal_Imm);
     _store(Value, NewAddr);
@@ -4542,7 +4542,7 @@ void TargetX86Base<Machine>::lowerCaseCluster(const CaseCluster &Case,
       Index = makeReg(getPointerType());
       _movzx(Index, RangeIndex);
     } else {
-      Index = legalizeToVar(RangeIndex);
+      Index = legalizeToReg(RangeIndex);
     }
 
     constexpr RelocOffsetT RelocOffset = 0;
@@ -4553,7 +4553,7 @@ void TargetX86Base<Machine>::lowerCaseCluster(const CaseCluster &Case,
     uint16_t Shift = typeWidthInBytesLog2(getPointerType());
     // TODO(ascull): remove need for legalize by allowing null base in memop
     auto *MemTarget = Traits::X86OperandMem::create(
-        Func, getPointerType(), legalizeToVar(Base), Offset, Index, Shift);
+        Func, getPointerType(), legalizeToReg(Base), Offset, Index, Shift);
     Variable *Target = nullptr;
     _mov(Target, MemTarget);
     _jmp(Target);
@@ -4597,8 +4597,8 @@ void TargetX86Base<Machine>::lowerSwitch(const InstSwitch *Inst) {
       Operand *Src0Lo = loOperand(Src0);
       Operand *Src0Hi = hiOperand(Src0);
       if (NumCases >= 2) {
-        Src0Lo = legalizeToVar(Src0Lo);
-        Src0Hi = legalizeToVar(Src0Hi);
+        Src0Lo = legalizeToReg(Src0Lo);
+        Src0Hi = legalizeToReg(Src0Hi);
       } else {
         Src0Lo = legalize(Src0Lo, Legal_Reg | Legal_Mem);
         Src0Hi = legalize(Src0Hi, Legal_Reg | Legal_Mem);
@@ -4620,7 +4620,7 @@ void TargetX86Base<Machine>::lowerSwitch(const InstSwitch *Inst) {
     // OK, we'll be slightly less naive by forcing Src into a physical
     // register if there are 2 or more uses.
     if (NumCases >= 2)
-      Src0 = legalizeToVar(Src0);
+      Src0 = legalizeToReg(Src0);
     else
       Src0 = legalize(Src0, Legal_Reg | Legal_Mem);
     for (SizeT I = 0; I < NumCases; ++I) {
@@ -4649,8 +4649,8 @@ void TargetX86Base<Machine>::lowerSwitch(const InstSwitch *Inst) {
       // This might be handled by a higher level lowering of switches.
       SizeT NumCases = Inst->getNumCases();
       if (NumCases >= 2) {
-        Src0Lo = legalizeToVar(Src0Lo);
-        Src0Hi = legalizeToVar(Src0Hi);
+        Src0Lo = legalizeToReg(Src0Lo);
+        Src0Hi = legalizeToReg(Src0Hi);
       } else {
         Src0Lo = legalize(Src0Lo, Legal_Reg | Legal_Mem);
         Src0Hi = legalize(Src0Hi, Legal_Reg | Legal_Mem);
@@ -4690,7 +4690,7 @@ void TargetX86Base<Machine>::lowerSwitch(const InstSwitch *Inst) {
   }
 
   // Going to be using multiple times so get it in a register early
-  Variable *Comparison = legalizeToVar(Src0);
+  Variable *Comparison = legalizeToReg(Src0);
 
   // A span is over the clusters
   struct SearchSpan {
@@ -4800,7 +4800,7 @@ void TargetX86Base<Machine>::eliminateNextVectorSextInstruction(
     if (NextCast->getCastKind() == InstCast::Sext &&
         NextCast->getSrc(0) == SignExtendedResult) {
       NextCast->setDeleted();
-      _movp(NextCast->getDest(), legalizeToVar(SignExtendedResult));
+      _movp(NextCast->getDest(), legalizeToReg(SignExtendedResult));
       // Skip over the instruction.
       Context.advanceNext();
     }
@@ -5198,10 +5198,10 @@ Operand *TargetX86Base<Machine>::legalize(Operand *From, LegalMask Allowed,
     Variable *RegBase = nullptr;
     Variable *RegIndex = nullptr;
     if (Base) {
-      RegBase = legalizeToVar(Base);
+      RegBase = legalizeToReg(Base);
     }
     if (Index) {
-      RegIndex = legalizeToVar(Index);
+      RegIndex = legalizeToReg(Index);
     }
     if (Base != RegBase || Index != RegIndex) {
       Mem = Traits::X86OperandMem::create(Func, Ty, RegBase, Mem->getOffset(),
@@ -5280,7 +5280,7 @@ Operand *TargetX86Base<Machine>::legalize(Operand *From, LegalMask Allowed,
 
 /// Provide a trivial wrapper to legalize() for this common usage.
 template <class Machine>
-Variable *TargetX86Base<Machine>::legalizeToVar(Operand *From, int32_t RegNum) {
+Variable *TargetX86Base<Machine>::legalizeToReg(Operand *From, int32_t RegNum) {
   return llvm::cast<Variable>(legalize(From, Legal_Reg, RegNum));
 }
 
