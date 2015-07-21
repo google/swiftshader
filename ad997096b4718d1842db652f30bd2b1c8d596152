@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d83d4aa0_223336b1",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cbp",
+        "patchSetId": 6
+      },
+      "lineNbr": 238,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-07-21T17:05:03Z",
+      "side": 1,
+      "message": "Also needed in libGLES_CM",
+      "range": {
+        "startLine": 235,
+        "startChar": 0,
+        "endLine": 238,
+        "endChar": 51
+      },
+      "revId": "ad997096b4718d1842db652f30bd2b1c8d596152",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
