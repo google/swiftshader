@@ -2032,32 +2032,32 @@ namespace sw
 
 					if(source->flipbit)
 					{
-						for(int y = 0; y < 2; y++)
+						for(int j = 0; j < 2 && (y + j) < internal.height; j++)
 						{
-							color[0] = subblockColors0[source->getIndex(0, y)];
-							color[1] = subblockColors0[source->getIndex(1, y)];
-							color[2] = subblockColors0[source->getIndex(2, y)];
-							color[3] = subblockColors0[source->getIndex(3, y)];
+							if((x + 0) < internal.width) color[0] = subblockColors0[source->getIndex(0, j)];
+							if((x + 1) < internal.width) color[1] = subblockColors0[source->getIndex(1, j)];
+							if((x + 2) < internal.width) color[2] = subblockColors0[source->getIndex(2, j)];
+							if((x + 3) < internal.width) color[3] = subblockColors0[source->getIndex(3, j)];
 							color += internal.width;
 						}
 
-						for(int y = 2; y < 4; y++)
+						for(int j = 2; j < 4 && (y + j) < internal.height; j++)
 						{
-							color[0] = subblockColors1[source->getIndex(0, y)];
-							color[1] = subblockColors1[source->getIndex(1, y)];
-							color[2] = subblockColors1[source->getIndex(2, y)];
-							color[3] = subblockColors1[source->getIndex(3, y)];
+							if((x + 0) < internal.width) color[0] = subblockColors1[source->getIndex(0, j)];
+							if((x + 1) < internal.width) color[1] = subblockColors1[source->getIndex(1, j)];
+							if((x + 2) < internal.width) color[2] = subblockColors1[source->getIndex(2, j)];
+							if((x + 3) < internal.width) color[3] = subblockColors1[source->getIndex(3, j)];
 							color += internal.width;
 						}
 					}
 					else
 					{
-						for(int y = 0; y < 4; y++)
+						for(int j = 0; j < 4 && (y + j) < internal.height; j++)
 						{
-							color[0] = subblockColors0[source->getIndex(0, y)];
-							color[1] = subblockColors0[source->getIndex(1, y)];
-							color[2] = subblockColors1[source->getIndex(2, y)];
-							color[3] = subblockColors1[source->getIndex(3, y)];
+							if((x + 0) < internal.width) color[0] = subblockColors0[source->getIndex(0, j)];
+							if((x + 1) < internal.width) color[1] = subblockColors0[source->getIndex(1, j)];
+							if((x + 2) < internal.width) color[2] = subblockColors1[source->getIndex(2, j)];
+							if((x + 3) < internal.width) color[3] = subblockColors1[source->getIndex(3, j)];
 							color += internal.width;
 						}
 					}
@@ -2072,7 +2072,7 @@ namespace sw
 
 	unsigned int Surface::size(int width, int height, int depth, Format format)
 	{
-		// Dimensions rounded up to multiples of 4, used for DXTC formats
+		// Dimensions rounded up to multiples of 4, used for compressed formats
 		int width4 = (width + 3) & ~3;
 		int height4 = (height + 3) & ~3;
 
