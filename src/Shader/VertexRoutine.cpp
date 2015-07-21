@@ -476,7 +476,7 @@ namespace sw
 			r.o[pos].w = rhw;
 		}
 
-		if(!halfIntegerCoordinates)
+		if(!halfIntegerCoordinates && !state.preTransformed)
 		{
 			r.o[pos].x = r.o[pos].x + *Pointer<Float4>(r.data + OFFSET(DrawData,halfPixelX)) * r.o[pos].w;
 			r.o[pos].y = r.o[pos].y + *Pointer<Float4>(r.data + OFFSET(DrawData,halfPixelY)) * r.o[pos].w;
