@@ -132,6 +132,10 @@ void Assembler::emitIASBytes(GlobalContext *Ctx) const {
       Str << "\n";
     }
     Str << "\t.long ";
+    // For PCRel fixups, we write the pc-offset from a symbol into the Buffer
+    // (e.g., -4), but we don't represent that in the fixup's offset.
+    // Otherwise the fixup holds the true offset, and so does the Buffer.
+    // Just load the offset from the buffer.
     NextFixup->emit(Ctx, Buffer.load<RelocOffsetT>(NextFixupLoc));
     if (fixupIsPCRel(NextFixup->kind()))
       Str << " - .";

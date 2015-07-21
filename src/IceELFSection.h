@@ -362,6 +362,8 @@ void ELFRelocationSection::writeData(const GlobalContext &Ctx, ELFStreamer &Str,
       llvm::report_fatal_error("Missing symbol mentioned in reloc");
 
     if (IsELF64) {
+      llvm_unreachable(
+          "Not tested -- check that Fixup.offset() is correct even for pc-rel");
       Elf64_Rela Rela;
       Rela.r_offset = Fixup.position();
       Rela.setSymbolAndType(Symbol->getNumber(), Fixup.kind());

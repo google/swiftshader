@@ -48,7 +48,8 @@ IceString AssemblerFixup::symbol(const GlobalContext *Ctx) const {
   return Str.str();
 }
 
-void AssemblerFixup::emit(GlobalContext *Ctx, RelocOffsetT BaseOffset) const {
+void AssemblerFixup::emit(GlobalContext *Ctx,
+                          RelocOffsetT OverrideOffset) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Ctx->getStrEmit();
@@ -56,7 +57,7 @@ void AssemblerFixup::emit(GlobalContext *Ctx, RelocOffsetT BaseOffset) const {
     Str << "__Sz_AbsoluteZero";
   else
     Str << symbol(Ctx);
-  RelocOffsetT Offset = offset() + BaseOffset;
+  RelocOffsetT Offset = OverrideOffset;
   if (Offset)
     Str << " + " << Offset;
 }
