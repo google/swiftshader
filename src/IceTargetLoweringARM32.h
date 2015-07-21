@@ -389,7 +389,6 @@ protected:
   llvm::SmallBitVector ScratchRegs;
   llvm::SmallBitVector RegsUsed;
   VarList PhysicalRegisters[IceType_NUM];
-  static IceString RegNames[];
 
   /// Helper class that understands the Calling Convention and register
   /// assignments. The first few integer type parameters can use r0-r3,

@@ -348,17 +348,17 @@ bool TargetARM32::doBranchOpt(Inst *I, const CfgNode *NextNode) {
   return false;
 }
 
-IceString TargetARM32::RegNames[] = {
-#define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
-          isFP)                                                                \
-  name,
-    REGARM32_TABLE
-#undef X
-};
-
 IceString TargetARM32::getRegName(SizeT RegNum, Type Ty) const {
   assert(RegNum < RegARM32::Reg_NUM);
   (void)Ty;
+  static const char *RegNames[] = {
+#define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
+          isFP)                                                                \
+  name,
+      REGARM32_TABLE
+#undef X
+  };
+
   return RegNames[RegNum];
 }
 

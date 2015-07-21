@@ -129,7 +129,6 @@ protected:
   llvm::SmallBitVector ScratchRegs;
   llvm::SmallBitVector RegsUsed;
   VarList PhysicalRegisters[IceType_NUM];
-  static IceString RegNames[];
 
 private:
   ~TargetMIPS32() override = default;

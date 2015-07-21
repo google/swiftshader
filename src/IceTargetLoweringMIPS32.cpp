@@ -220,17 +220,16 @@ bool TargetMIPS32::doBranchOpt(Inst *I, const CfgNode *NextNode) {
   return false;
 }
 
-IceString TargetMIPS32::RegNames[] = {
-#define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
-          isFP)                                                                \
-  name,
-    REGMIPS32_TABLE
-#undef X
-};
-
 IceString TargetMIPS32::getRegName(SizeT RegNum, Type Ty) const {
   assert(RegNum < RegMIPS32::Reg_NUM);
   (void)Ty;
+  static const char *RegNames[] = {
+#define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
+          isFP)                                                                \
+  name,
+      REGMIPS32_TABLE
+#undef X
+  };
   return RegNames[RegNum];
 }
 
