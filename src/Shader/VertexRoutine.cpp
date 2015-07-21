@@ -112,28 +112,6 @@ namespace sw
 	{
 		int pos = state.positionRegister;
 
-		// Backtransform
-		if(state.preTransformed)
-		{
-			Float4 rhw = Float4(1.0f) / r.o[pos].w;
-
-			Float4 W = *Pointer<Float4>(r.data + OFFSET(DrawData,Wx16)) * Float4(1.0f / 16.0f);
-			Float4 H = *Pointer<Float4>(r.data + OFFSET(DrawData,Hx16)) * Float4(1.0f / 16.0f);
-			Float4 L = *Pointer<Float4>(r.data + OFFSET(DrawData,X0x16)) * Float4(1.0f / 16.0f);
-			Float4 T = *Pointer<Float4>(r.data + OFFSET(DrawData,Y0x16)) * Float4(1.0f / 16.0f);
-
-			r.o[pos].x = (r.o[pos].x - L) / W * rhw;
-			r.o[pos].y = (r.o[pos].y - T) / H * rhw;
-			r.o[pos].z = r.o[pos].z * rhw;
-			r.o[pos].w = rhw;
-		}
-
-		if(state.superSampling)
-		{
-			r.o[pos].x = r.o[pos].x + *Pointer<Float4>(r.data + OFFSET(DrawData,XXXX)) * r.o[pos].w;
-			r.o[pos].y = r.o[pos].y + *Pointer<Float4>(r.data + OFFSET(DrawData,YYYY)) * r.o[pos].w;
-		}
-
 		Int4 maxX = CmpLT(r.o[pos].w, r.o[pos].x);
 		Int4 maxY = CmpLT(r.o[pos].w, r.o[pos].y);
 		Int4 maxZ = CmpLT(r.o[pos].w, r.o[pos].z);
@@ -482,10 +460,32 @@ namespace sw
 	{
 		int pos = state.positionRegister;
 
+		// Backtransform
+		if(state.preTransformed)
+		{
+			Float4 rhw = Float4(1.0f) / r.o[pos].w;
+
+			Float4 W = *Pointer<Float4>(r.data + OFFSET(DrawData,Wx16)) * Float4(1.0f / 16.0f);
+			Float4 H = *Pointer<Float4>(r.data + OFFSET(DrawData,Hx16)) * Float4(1.0f / 16.0f);
+			Float4 L = *Pointer<Float4>(r.data + OFFSET(DrawData,X0x16)) * Float4(1.0f / 16.0f);
+			Float4 T = *Pointer<Float4>(r.data + OFFSET(DrawData,Y0x16)) * Float4(1.0f / 16.0f);
+
+			r.o[pos].x = (r.o[pos].x - L) / W * rhw;
+			r.o[pos].y = (r.o[pos].y - T) / H * rhw;
+			r.o[pos].z = r.o[pos].z * rhw;
+			r.o[pos].w = rhw;
+		}
+
 		if(!halfIntegerCoordinates)
 		{
 			r.o[pos].x = r.o[pos].x + *Pointer<Float4>(r.data + OFFSET(DrawData,halfPixelX)) * r.o[pos].w;
 			r.o[pos].y = r.o[pos].y + *Pointer<Float4>(r.data + OFFSET(DrawData,halfPixelY)) * r.o[pos].w;
+		}
+
+		if(state.superSampling)
+		{
+			r.o[pos].x = r.o[pos].x + *Pointer<Float4>(r.data + OFFSET(DrawData,XXXX)) * r.o[pos].w;
+			r.o[pos].y = r.o[pos].y + *Pointer<Float4>(r.data + OFFSET(DrawData,YYYY)) * r.o[pos].w;
 		}
 
 		if(symmetricNormalizedDepth && !state.fixedFunction)
