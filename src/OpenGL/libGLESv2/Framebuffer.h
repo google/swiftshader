@@ -60,6 +60,8 @@ public:
     GLuint getStencilbufferName();
 
 	GLint getColorbufferLayer(GLuint index);
+	GLint getDepthbufferLayer();
+	GLint getStencilbufferLayer();
 
     bool hasStencil();
 

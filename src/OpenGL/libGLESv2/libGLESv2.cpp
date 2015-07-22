@@ -2962,7 +2962,7 @@ void GetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenu
 
 		GLenum attachmentType;
 		GLuint attachmentHandle;
-		GLint attachmentLayer = 0;
+		GLint attachmentLayer;
 		Renderbuffer* renderbuffer = nullptr;
 		switch(attachment)
 		{
@@ -2971,6 +2971,7 @@ void GetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenu
 			{
 				attachmentType = framebuffer->getColorbufferType(0);
 				attachmentHandle = framebuffer->getColorbufferName(0);
+				attachmentLayer = framebuffer->getColorbufferLayer(0);
 				renderbuffer = framebuffer->getColorbuffer(0);
 			}
 			else return error(GL_INVALID_ENUM);
@@ -3014,6 +3015,7 @@ void GetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenu
 		case GL_DEPTH_ATTACHMENT:
 			attachmentType = framebuffer->getDepthbufferType();
 			attachmentHandle = framebuffer->getDepthbufferName();
+			attachmentLayer = framebuffer->getDepthbufferLayer();
 			renderbuffer = framebuffer->getDepthbuffer();
 			break;
 		case GL_STENCIL:
@@ -3025,6 +3027,7 @@ void GetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenu
 		case GL_STENCIL_ATTACHMENT:
 			attachmentType = framebuffer->getStencilbufferType();
 			attachmentHandle = framebuffer->getStencilbufferName();
+			attachmentLayer = framebuffer->getStencilbufferLayer();
 			renderbuffer = framebuffer->getStencilbuffer();
 			break;
 		case GL_DEPTH_STENCIL_ATTACHMENT:
@@ -3032,6 +3035,7 @@ void GetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenu
 			{
 				attachmentType = framebuffer->getDepthbufferType();
 				attachmentHandle = framebuffer->getDepthbufferName();
+				attachmentLayer = framebuffer->getDepthbufferLayer();
 				if(attachmentHandle != framebuffer->getStencilbufferName())
 				{
 					// Different attachments to DEPTH and STENCIL, query fails
