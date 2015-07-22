@@ -825,7 +825,7 @@ namespace glsl
 						}
 						else UNREACHABLE(argumentCount);
 					}
-					else if(name == "texture2DProj")
+					else if(name == "texture2DProj" || name == "textureProj")
 					{
 						TIntermTyped *t = arg[1]->getAsTyped();
 
@@ -866,7 +866,7 @@ namespace glsl
 						}
 						else UNREACHABLE(argumentCount);
 					}
-					else if(name == "texture2DLod" || name == "textureCubeLod")
+					else if(name == "texture2DLod" || name == "textureCubeLod" || name == "textureLod")
 					{
 						Temporary uvwb(this);
 						emit(sw::Shader::OPCODE_MOV, &uvwb, arg[1]);
@@ -875,7 +875,7 @@ namespace glsl
 
 						emit(sw::Shader::OPCODE_TEXLDL, result, &uvwb, arg[0]);
 					}
-					else if(name == "texture2DProjLod")
+					else if(name == "texture2DProjLod" || name == "textureProjLod")
 					{
 						TIntermTyped *t = arg[1]->getAsTyped();
 						Temporary proj(this);
