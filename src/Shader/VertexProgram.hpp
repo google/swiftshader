@@ -79,6 +79,7 @@ namespace sw
 		void LEAVE(Registers &r);
 		void TEXLDL(Registers &r, Vector4f &dst, Vector4f &src, const Src&);
 		void TEX(Registers &r, Vector4f &dst, Vector4f &src, const Src&);
+		void TEXSIZE(Registers &r, Vector4f &dst, Float4 &lod, const Src&);
 
 		void sampleTexture(Registers &r, Vector4f &c, const Src &s, Float4 &u, Float4 &v, Float4 &w, Float4 &q);
 

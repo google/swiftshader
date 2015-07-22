@@ -109,6 +109,7 @@ namespace sw
 		void TEXLD(Registers &r, Vector4f &dst, Vector4f &src0, const Src &src1, bool project, bool bias);
 		void TEXLDD(Registers &r, Vector4f &dst, Vector4f &src0, const Src &src1, Vector4f &src2, Vector4f &src3, bool project, bool bias);
 		void TEXLDL(Registers &r, Vector4f &dst, Vector4f &src0, const Src &src1, bool project, bool bias);
+		void TEXSIZE(Registers &r, Vector4f &dst, Float4 &lod, const Src &src1);
 		void TEXKILL(Int cMask[4], Vector4f &src, unsigned char mask);
 		void DISCARD(Registers &r, Int cMask[4], const Shader::Instruction *instruction);
 		void DFDX(Vector4f &dst, Vector4f &src);

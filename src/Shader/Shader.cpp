@@ -866,6 +866,7 @@ namespace sw
 		case OPCODE_CMP:			return "cmp";
 		case OPCODE_TEXLDL:			return "texldl";
 		case OPCODE_BREAKP:			return "breakp";
+		case OPCODE_TEXSIZE:        return "texsize";
 		case OPCODE_PHASE:			return "phase";
 		case OPCODE_COMMENT:		return "comment";
 		case OPCODE_END:			return "end";

@@ -1136,6 +1136,10 @@ namespace glsl
 
 						emit(sw::Shader::OPCODE_TEXLDL, result, &proj, arg[0]);
 					}
+					else if(name == "textureSize")
+					{
+						emit(sw::Shader::OPCODE_TEXSIZE, result, arg[1], arg[0]);
+					}
 					else UNREACHABLE(0);
 				}
 			}
