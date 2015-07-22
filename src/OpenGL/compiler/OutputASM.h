@@ -32,7 +32,7 @@ namespace glsl
 {
 	struct Uniform
 	{
-		Uniform(GLenum type, GLenum precision, const std::string &name, int arraySize, int registerIndex, int blockId);
+		Uniform(GLenum type, GLenum precision, const std::string &name, int arraySize, int registerIndex, int offset, int blockId);
 
 		GLenum type;
 		GLenum precision;
@@ -40,6 +40,7 @@ namespace glsl
 		int arraySize;
 	
 		int registerIndex;
+		int offset;
 
 		int blockId;
 	};
@@ -205,7 +206,7 @@ namespace glsl
 		int allocate(VariableArray &list, TIntermTyped *variable);
 		void free(VariableArray &list, TIntermTyped *variable);
 
-		void declareUniform(const TType &type, const TString &name, int offset, int blockId = -1);
+		void declareUniform(const TType &type, const TString &name, int registerIndex, int offset = 0, int blockId = -1);
 		GLenum glVariableType(const TType &type);
 		GLenum glVariablePrecision(const TType &type);
 

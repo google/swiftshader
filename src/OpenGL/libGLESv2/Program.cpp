@@ -15,6 +15,7 @@
 #include "Program.h"
 
 #include "main.h"
+#include "Buffer.h"
 #include "Shader.h"
 #include "utilities.h"
 #include "common/debug.h"
@@ -37,14 +38,28 @@ namespace es2
 
 	Uniform::BlockInfo::BlockInfo(const glsl::Uniform& uniform, int blockIndex, bool rowMajorLayout)
 	{
+		static unsigned int registerSizeStd140 = 4; // std140 packing requires dword alignment
+
 		if(blockIndex >= 0)
 		{
 			index = blockIndex;
-			offset = uniform.registerIndex;
-			arrayStride = UniformTypeSize(uniform.type) * uniform.arraySize;
+			offset = uniform.offset * registerSizeStd140;
 			isRowMajorMatrix = rowMajorLayout;
+			int componentSize = UniformTypeSize(UniformComponentType(uniform.type));
 			int rowCount = VariableRowCount(uniform.type);
-			matrixStride = (rowCount > 1) ? (isRowMajorMatrix ? rowCount : VariableColumnCount(uniform.type)) * UniformTypeSize(UniformComponentType(uniform.type)) : 0;
+			if(rowCount > 1)
+			{
+				int colCount = VariableColumnCount(uniform.type);
+				int matrixComponentCount = (isRowMajorMatrix ? colCount : rowCount);
+				matrixStride = (rowCount > 1) ? matrixComponentCount * componentSize : 0;
+				arrayStride = (uniform.arraySize > 0) ? matrixStride * (isRowMajorMatrix ? rowCount : colCount) : 0;
+			}
+			else
+			{
+				matrixStride = 0;
+				int componentCount = UniformComponentCount(uniform.type);
+				arrayStride = (uniform.arraySize > 0) ? componentSize * componentCount : 0;
+			}
 		}
 		else
 		{
@@ -1691,7 +1706,7 @@ namespace es2
 			std::vector<unsigned int> memberUniformIndexes;
 			for(size_t i = 0; i < fields.size(); ++i)
 			{
-				memberUniformIndexes.push_back(activeUniforms[fields[i]].registerIndex);
+				memberUniformIndexes.push_back(fields[i]);
 			}
 
 			if(block.arraySize > 0)

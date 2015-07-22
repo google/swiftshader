@@ -75,8 +75,8 @@ namespace glsl
 		ConstantUnion constants[4];
 	};
 
-	Uniform::Uniform(GLenum type, GLenum precision, const std::string &name, int arraySize, int registerIndex, int blockId) :
-		type(type), precision(precision), name(name), arraySize(arraySize), registerIndex(registerIndex), blockId(blockId)
+	Uniform::Uniform(GLenum type, GLenum precision, const std::string &name, int arraySize, int registerIndex, int offset, int blockId) :
+		type(type), precision(precision), name(name), arraySize(arraySize), registerIndex(registerIndex), offset(offset), blockId(blockId)
 	{
 	}
 
@@ -2402,7 +2402,7 @@ namespace glsl
 		}
 	}
 
-	void OutputASM::declareUniform(const TType &type, const TString &name, int offset, int blockId)
+	void OutputASM::declareUniform(const TType &type, const TString &name, int registerIndex, int offset, int blockId)
 	{
 		const TStructure *structure = type.getStruct();
 		const TInterfaceBlock *block = (type.isInterfaceBlock() || (blockId == -1)) ? type.getInterfaceBlock() : nullptr;
@@ -2414,7 +2414,7 @@ namespace glsl
 			blockId = activeUniformBlocks.size();
 			unsigned int dataSize = block->objectSize() * 4; // FIXME: assuming 4 bytes per element
 			activeUniformBlocks.push_back(UniformBlock(block->name().c_str(), block->hasInstanceName() ? block->instanceName().c_str() : std::string(), dataSize,
-			                                           block->arraySize(), block->blockStorage(), block->matrixPacking() == EmpRowMajor, offset, blockId));
+			                                           block->arraySize(), block->blockStorage(), block->matrixPacking() == EmpRowMajor, registerIndex, blockId));
 		}
 
 		if(!structure && !block)
@@ -2423,13 +2423,13 @@ namespace glsl
 			{
 				shaderObject->activeUniformBlocks[blockId].fields.push_back(activeUniforms.size());
 			}
-			activeUniforms.push_back(Uniform(glVariableType(type), glVariablePrecision(type), name.c_str(), type.getArraySize(), offset, blockId));
+			activeUniforms.push_back(Uniform(glVariableType(type), glVariablePrecision(type), name.c_str(), type.getArraySize(), registerIndex, offset, blockId));
 
 			if(isSamplerRegister(type))
 			{
 				for(int i = 0; i < type.totalRegisterCount(); i++)
 				{
-					shader->declareSampler(offset + i);
+					shader->declareSampler(registerIndex + i);
 				}
 			}
 		}
@@ -2438,28 +2438,30 @@ namespace glsl
 			const TFieldList& fields = structure ? structure->fields() : block->fields();
 			const bool containerHasName = structure || block->hasInstanceName();
 			const TString &containerName = structure ? name : (containerHasName ? block->instanceName() : TString());
-			if(type.isArray())
+			if(type.isArray() && (structure || type.isInterfaceBlock()))
 			{
-				int elementOffset = offset;
+				int fieldRegisterIndex = (blockId == -1) ? registerIndex : 0;
+				int fieldOffset = 0;
 
 				for(int i = 0; i < type.getArraySize(); i++)
 				{
-					int fieldOffset = (blockId == -1) ? elementOffset : 0;
 					for(size_t j = 0; j < fields.size(); j++)
 					{
 						const TType &fieldType = *(fields[j]->type());
 						const TString &fieldName = fields[j]->name();
 
 						const TString uniformName = containerHasName ? containerName + "[" + str(i) + "]." + fieldName : fieldName;
-						declareUniform(fieldType, uniformName, fieldOffset, blockId);
-						fieldOffset += fieldType.totalRegisterCount();
+						declareUniform(fieldType, uniformName, fieldRegisterIndex, fieldOffset, blockId);
+						int registerCount = fieldType.totalRegisterCount();
+						fieldRegisterIndex += registerCount;
+						fieldOffset += registerCount * fieldType.registerSize();
 					}
-					elementOffset = fieldOffset;
 				}
 			}
 			else
 			{
-				int fieldOffset = (blockId == -1) ? offset : 0;
+				int fieldRegisterIndex = (blockId == -1) ? registerIndex : 0;
+				int fieldOffset = 0;
 
 				for(size_t i = 0; i < fields.size(); i++)
 				{
@@ -2467,8 +2469,10 @@ namespace glsl
 					const TString &fieldName = fields[i]->name();
 
 					const TString uniformName = containerHasName ? containerName + "." + fieldName : fieldName;
-					declareUniform(fieldType, uniformName, fieldOffset, blockId);
-					fieldOffset += fieldType.totalRegisterCount();
+					declareUniform(fieldType, uniformName, fieldRegisterIndex, fieldOffset, blockId);
+					int registerCount = fieldType.totalRegisterCount();
+					fieldRegisterIndex += registerCount;
+					fieldOffset += registerCount * fieldType.registerSize();
 				}
 			}
 		}
