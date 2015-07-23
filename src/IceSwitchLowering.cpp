@@ -75,9 +75,13 @@ CaseClusterArray CaseCluster::clusterizeSwitch(Cfg *Func,
   // Replace everything with a jump table
   InstJumpTable *JumpTable =
       InstJumpTable::create(Func, TotalRange, Inst->getLabelDefault());
-  for (const CaseCluster &Case : CaseClusters)
-    for (uint64_t I = Case.Low; I <= Case.High; ++I)
+  for (const CaseCluster &Case : CaseClusters) {
+    // Case.High could be UINT64_MAX which makes the loop awkward. Unwrap the
+    // last iteration to avoid wrap around problems.
+    for (uint64_t I = Case.Low; I < Case.High; ++I)
       JumpTable->addTarget(I - MinValue, Case.Label);
+    JumpTable->addTarget(Case.High - MinValue, Case.Label);
+  }
 
   CaseClusters.clear();
   CaseClusters.emplace_back(MinValue, MaxValue, JumpTable);

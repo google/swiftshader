@@ -188,3 +188,33 @@ return:
 ; CHECK-NEXT: jne
 ; CHECK-NEXT: cmp {{.*}},0x12
 ; CHECK-NEXT: je
+
+; Test for correct 64-bit jump table with UINT64_MAX as one of the values.
+define internal i32 @testJumpTable64(i64 %a) {
+entry:
+  switch i64 %a, label %sw.default [
+    i64 -6, label %return
+    i64 -4, label %sw.bb1
+    i64 -3, label %sw.bb2
+    i64 -1, label %sw.bb3
+  ]
+
+sw.bb1:
+  br label %return
+
+sw.bb2:
+  br label %return
+
+sw.bb3:
+  br label %return
+
+sw.default:
+  br label %return
+
+return:
+  %retval.0 = phi i32 [ 5, %sw.default ], [ 4, %sw.bb3 ], [ 3, %sw.bb2 ], [ 2, %sw.bb1 ], [ 1, %entry ]
+  ret i32 %retval.0
+}
+
+; TODO(ascull): this should generate a jump table. For now, just make sure it
+; doesn't crash the compiler.
