@@ -259,6 +259,8 @@ void Cfg::advancedPhiLowering() {
 // placed, while maintaining the same relative ordering among already
 // placed nodes.
 void Cfg::reorderNodes() {
+  // TODO(ascull): it would be nice if the switch tests were always followed
+  // by the default case to allow for fall through.
   typedef std::list<CfgNode *> PlacedList;
   PlacedList Placed;      // Nodes with relative placement locked down
   PlacedList Unreachable; // Unreachable nodes
@@ -271,6 +273,14 @@ void Cfg::reorderNodes() {
     // --PlaceIndex and assert() statements before moving to the next
     // node.
     do {
+      if (Node != getEntryNode() && Node->getInEdges().empty()) {
+        // The node has essentially been deleted since it is not a
+        // successor of any other node.
+        Unreachable.push_back(Node);
+        PlaceIndex[Node->getIndex()] = Unreachable.end();
+        Node->setNeedsPlacement(false);
+        continue;
+      }
       if (!Node->needsPlacement()) {
         // Add to the end of the Placed list.
         Placed.push_back(Node);
@@ -278,13 +288,6 @@ void Cfg::reorderNodes() {
         continue;
       }
       Node->setNeedsPlacement(false);
-      if (Node != getEntryNode() && Node->getInEdges().empty()) {
-        // The node has essentially been deleted since it is not a
-        // successor of any other node.
-        Unreachable.push_back(Node);
-        PlaceIndex[Node->getIndex()] = Unreachable.end();
-        continue;
-      }
       // Assume for now that the unplaced node is from edge-splitting
       // and therefore has 1 in-edge and 1 out-edge (actually, possibly
       // more than 1 in-edge if the predecessor node was contracted).
@@ -521,8 +524,7 @@ void Cfg::contractEmptyNodes() {
 void Cfg::doBranchOpt() {
   TimerMarker T(TimerStack::TT_doBranchOpt, this);
   for (auto I = Nodes.begin(), E = Nodes.end(); I != E; ++I) {
-    auto NextNode = I;
-    ++NextNode;
+    auto NextNode = I + 1;
     (*I)->doBranchOpt(NextNode == E ? nullptr : *NextNode);
   }
 }

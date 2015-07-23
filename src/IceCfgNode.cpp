@@ -730,41 +730,46 @@ void CfgNode::contractIfEmpty() {
   }
   Branch->setDeleted();
   assert(OutEdges.size() == 1);
+  CfgNode *Successor = OutEdges.front();
   // Repoint all this node's in-edges to this node's successor, unless
   // this node's successor is actually itself (in which case the
   // statement "OutEdges.front()->InEdges.push_back(Pred)" could
   // invalidate the iterator over this->InEdges).
-  if (OutEdges.front() != this) {
+  if (Successor != this) {
     for (CfgNode *Pred : InEdges) {
-      for (auto I = Pred->OutEdges.begin(), E = Pred->OutEdges.end(); I != E;
-           ++I) {
-        if (*I == this) {
-          *I = OutEdges.front();
-          OutEdges.front()->InEdges.push_back(Pred);
+      for (CfgNode *&I : Pred->OutEdges) {
+        if (I == this) {
+          I = Successor;
+          Successor->InEdges.push_back(Pred);
         }
       }
       for (Inst &I : Pred->getInsts()) {
         if (!I.isDeleted())
-          I.repointEdges(this, OutEdges.front());
+          I.repointEdges(this, Successor);
       }
     }
+
+    // Remove the in-edge to the successor to allow node reordering to make
+    // better decisions. For example it's more helpful to place a node after
+    // a reachable predecessor than an unreachable one (like the one we just
+    // contracted).
+    Successor->InEdges.erase(
+        std::find(Successor->InEdges.begin(), Successor->InEdges.end(), this));
   }
   InEdges.clear();
-  // Don't bother removing the single out-edge, which would also
-  // require finding the corresponding in-edge in the successor and
-  // removing it.
 }
 
 void CfgNode::doBranchOpt(const CfgNode *NextNode) {
   TargetLowering *Target = Func->getTarget();
-  // Check every instruction for a branch optimization opportunity.
-  // It may be more efficient to iterate in reverse and stop after the
-  // first opportunity, unless there is some target lowering where we
-  // have the possibility of multiple such optimizations per block
-  // (currently not the case for x86 lowering).
-  for (Inst &I : Insts) {
+  // Find the first opportunity for branch optimization (which will be the last
+  // instruction in the block) and stop. This is sufficient unless there is some
+  // target lowering where we have the possibility of multiple optimizations per
+  // block. Take care with switch lowering as there are multiple unconditional
+  // branches and only the last can be deleted.
+  for (Inst &I : reverse_range(Insts)) {
     if (!I.isDeleted()) {
       Target->doBranchOpt(&I, NextNode);
+      return;
     }
   }
 }

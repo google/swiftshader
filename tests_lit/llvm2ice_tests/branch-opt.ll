@@ -169,3 +169,37 @@ target:
 ; ARM32OM1: bx lr
 ; ARM32OM1: bl
 ; ARM32OM1: bx lr
+
+; Unconditional branches to the block after a contracted block should be
+; removed.
+define void @testUncondToBlockAfterContract() {
+entry:
+  call void @dummy()
+  br label %target
+contract:
+  br label %target
+target:
+  call void @dummy()
+  ret void
+}
+
+; O2-LABEL: testUncondToBlockAfterContract
+; O2: call
+; There will be nops for bundle align to end (for NaCl), but there should
+; not be a branch.
+; O2-NOT: j
+; O2: call
+
+; OM1-LABEL: testUncondToBlockAfterContract
+; OM1: call
+; OM1-NEXT: jmp
+; OM1: call
+
+; ARM32O2-LABEL: testUncondToBlockAfterContract
+; ARM32O2: bl {{.*}} dummy
+; ARM32O2-NEXT: bl {{.*}} dummy
+
+; ARM32OM1-LABEL: testUncondToBlockAfterContract
+; ARM32OM1: bl {{.*}} dummy
+; ARM32OM1-NEXT: b
+; ARM32OM1-NEXT: bl {{.*}} dummy

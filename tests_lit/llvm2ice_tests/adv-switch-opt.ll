@@ -143,7 +143,6 @@ return:
 ; CHECK-NEXT: je
 ; CHECK-NEXT: cmp {{.*}},0xea
 ; CHECK-NEXT: je
-; CHECK-NEXT: jmp
 
 ; Test for correct 64-bit lowering.
 ; TODO(ascull): this should generate better code like the 32-bit version
