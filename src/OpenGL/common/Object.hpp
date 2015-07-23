@@ -18,6 +18,8 @@
 
 #include "common/debug.h"
 
+#include <set>
+
 typedef unsigned int GLuint;
 
 namespace gl
@@ -34,6 +36,11 @@ public:
 
 private:
     volatile int referenceCount;
+
+#ifndef NDEBUG
+public:
+	static std::set<Object*> instances;   // For leak checking
+#endif
 };
 
 class NamedObject : public Object
