@@ -4698,8 +4698,8 @@ void TargetX86Base<Machine>::lowerSwitch(const InstSwitch *Inst) {
     SizeT Size;
     typename Traits::Insts::Label *Label;
   };
-  std::stack<SearchSpan, std::deque<SearchSpan, CfgLocalAllocator<SearchSpan>>>
-      SearchSpanStack;
+  // The stack will only grow to the height of the tree so 12 should be plenty
+  std::stack<SearchSpan, llvm::SmallVector<SearchSpan, 12>> SearchSpanStack;
   SearchSpanStack.emplace(0, CaseClusters.size(), nullptr);
   bool DoneCmp = false;
 
