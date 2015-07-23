@@ -86,13 +86,6 @@ else
     -DALLOW_MINIMAL_BUILD=0
 endif
 
-ifdef TEXTUAL_BITCODE
-  BASE_CXX_DEFINES += -DINPUT_IS_TEXTUAL_BITCODE=1
-  OBJDIR := $(OBJDIR)+Tbc
-else
-  BASE_CXX_DEFINES += -DINPUT_IS_TEXTUAL_BITCODE=0
-endif
-
 SB_CXX_DEFINES := $(BASE_CXX_DEFINES) -DPNACL_BROWSER_TRANSLATOR=1
 CXX_DEFINES := $(BASE_CXX_DEFINES) -DPNACL_BROWSER_TRANSLATOR=0
 
@@ -238,11 +231,7 @@ endif
 
 # SHOW_BUILD_ATTS is an executable that is run to show what build
 # attributes were used to build pnacl-sz.
-ifdef TEXTUAL_BITCODE
-  SHOW_BUILD_ATTS = echo "Can't show build attributes when TEXTUAL_BITCODE=1"
-else
-  SHOW_BUILD_ATTS = $(OBJDIR)/pnacl-sz --build-atts
-endif
+SHOW_BUILD_ATTS = $(OBJDIR)/pnacl-sz --build-atts
 
 # Creates symbolic link so that testing is easier. Also runs
 # pnacl-sz to verify that the defines flags have valid values,

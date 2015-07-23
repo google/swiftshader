@@ -21,8 +21,6 @@
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-parameter"
-// Include code to handle converting textual bitcode records to binary (for
-// INPUT_IS_TEXTUAL_BITCODE).
 #include "llvm/Bitcode/NaCl/NaClBitcodeMungeUtils.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/raw_os_ostream.h"
@@ -38,10 +36,6 @@
 namespace Ice {
 
 namespace {
-
-static_assert(!(BuildDefs::textualBitcode() && PNACL_BROWSER_TRANSLATOR),
-              "Can not define INPUT_IS_TEXTUAL_BITCODE when building browswer "
-              "translator");
 
 // Define a SmallVector backed buffer as a data stream, so that it
 // can hold the generated binary version of the textual bitcode in the
@@ -64,12 +58,12 @@ TextDataStreamer *TextDataStreamer::create(const IceString &Filename,
   llvm::raw_string_ostream ErrStrm(*Err);
   if (std::error_code EC = llvm::readNaClRecordTextAndBuildBitcode(
           Filename, Streamer->BitcodeBuffer, &ErrStrm)) {
-    ErrStrm << EC.message(); // << "\n";
+    ErrStrm << EC.message();
     ErrStrm.flush();
     delete Streamer;
     return nullptr;
   }
-  // ErrStrm.flush();
+  ErrStrm.flush();
   return Streamer;
 }
 
@@ -151,9 +145,13 @@ void CLCompileServer::run() {
   } break;
   }
 
+  if (BuildDefs::minimal() && ExtraFlags.getBitcodeAsText())
+    llvm::report_fatal_error("Can't specify 'bitcode-as-text' flag in "
+                             "minimal build");
+
   IceString StrError;
   std::unique_ptr<llvm::DataStreamer> InputStream(
-      BuildDefs::textualBitcode()
+      (!BuildDefs::minimal() && ExtraFlags.getBitcodeAsText())
           ? TextDataStreamer::create(ExtraFlags.getIRFilename(), &StrError)
           : llvm::getDataFileStreamer(ExtraFlags.getIRFilename(), &StrError));
   if (!StrError.empty() || !InputStream) {

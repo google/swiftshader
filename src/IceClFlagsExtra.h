@@ -43,6 +43,9 @@ public:
   bool getLLVMVerboseErrors() const { return LLVMVerboseErrors; }
   void setLLVMVerboseErrors(bool NewValue) { LLVMVerboseErrors = NewValue; }
 
+  bool getBitcodeAsText() const { return BitcodeAsText; }
+  void setBitcodeAsText(bool NewValue) { BitcodeAsText = NewValue; }
+
   llvm::NaClFileFormat getInputFileFormat() const { return InputFileFormat; }
   void setInputFileFormat(llvm::NaClFileFormat NewValue) {
     InputFileFormat = NewValue;
@@ -64,6 +67,7 @@ public:
 
 private:
   bool AlwaysExitSuccess = false;
+  bool BitcodeAsText = false;
   bool BuildOnRead = false;
   bool GenerateBuildAtts = false;
   bool LLVMVerboseErrors = false;

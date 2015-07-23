@@ -25,7 +25,6 @@ constexpr bool llvmCl() { return ALLOW_LLVM_CL; }
 constexpr bool llvmIr() { return ALLOW_LLVM_IR; }
 constexpr bool llvmIrAsInput() { return ALLOW_LLVM_IR_AS_INPUT; }
 constexpr bool minimal() { return ALLOW_MINIMAL_BUILD; }
-constexpr bool textualBitcode() { return INPUT_IS_TEXTUAL_BITCODE; }
 
 // NDEBUG can be undefined, or defined to something arbitrary.
 constexpr bool asserts() {

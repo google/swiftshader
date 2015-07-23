@@ -314,6 +314,12 @@ cl::opt<bool> ReorderPooledConstants(
     cl::desc("Reorder the layout of constants in constant pools"),
     cl::init(false));
 
+// Command line option for accepting textual bitcode.
+cl::opt<bool> BitcodeAsText(
+    "bitcode-as-text",
+    cl::desc(
+        "Accept textual form of PNaCl bitcode records (i.e. not .ll assembly)"),
+    cl::init(false));
 } // end of anonymous namespace
 
 namespace Ice {
@@ -442,6 +448,7 @@ void ClFlags::getParsedClFlags(ClFlags &OutFlags) {
 
 void ClFlags::getParsedClFlagsExtra(ClFlagsExtra &OutFlagsExtra) {
   OutFlagsExtra.setAlwaysExitSuccess(AlwaysExitSuccess);
+  OutFlagsExtra.setBitcodeAsText(BitcodeAsText);
   OutFlagsExtra.setBuildOnRead(BuildOnRead);
   OutFlagsExtra.setGenerateBuildAtts(GenerateBuildAtts);
   OutFlagsExtra.setLLVMVerboseErrors(LLVMVerboseErrors);
