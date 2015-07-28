@@ -1,4 +1,12 @@
-//===- subzero/src/IceAssemblerX8664.h - Assembler for x86-64 -*- C++ -*---===//
+//===- subzero/src/IceAssemblerX8664.h - Assembler for x86-64 ---*- C++ -*-===//
+//
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+//
+// Modified by the Subzero authors.
+//
+//===----------------------------------------------------------------------===//
 //
 //                        The Subzero Code Generator
 //
@@ -16,32 +24,31 @@
 #define SUBZERO_SRC_ICEASSEMBLERX8664_H
 
 #include "IceAssembler.h"
+#include "IceAssemblerX86Base.h"
 #include "IceDefs.h"
+#include "IceOperand.h"
+#include "IceTargetLoweringX8664Traits.h"
+#include "IceTypes.h"
+#include "IceUtils.h"
 
 namespace Ice {
+
+class TargetX8664;
+
 namespace X8664 {
 
-class AssemblerX8664 final : public Assembler {
+using Immediate = ::Ice::X86Internal::Immediate;
+using Label = ::Ice::X86Internal::Label;
+
+class AssemblerX8664 : public X86Internal::AssemblerX86Base<TargetX8664> {
   AssemblerX8664(const AssemblerX8664 &) = delete;
   AssemblerX8664 &operator=(const AssemblerX8664 &) = delete;
 
 public:
   explicit AssemblerX8664(bool use_far_branches = false)
-      : Assembler(Asm_X8664) {
-    assert(!use_far_branches);
-    (void)use_far_branches;
-    llvm::report_fatal_error("Not yet implemented");
-  }
-
+      : X86Internal::AssemblerX86Base<TargetX8664>(Asm_X8664,
+                                                   use_far_branches) {}
   ~AssemblerX8664() override = default;
-
-  void alignFunction() override;
-  void padWithNop(intptr_t Padding) override;
-  SizeT getBundleAlignLog2Bytes() const override;
-  const char *getNonExecPadDirective() const override;
-  llvm::ArrayRef<uint8_t> getNonExecBundlePadding() const override;
-  void bindCfgNodeLabel(SizeT NodeNumber) override;
-  bool fixupIsPCRel(FixupKind Kind) const override;
 
   static bool classof(const Assembler *Asm) {
     return Asm->getKind() == Asm_X8664;

@@ -168,7 +168,6 @@ SB_LDFLAGS := $(LINKOPTLEVEL) $(LD_EXTRA)
 
 SRCS = \
 	IceAssembler.cpp \
-	IceAssemblerX8664.cpp \
 	IceBrowserCompileServer.cpp \
 	IceCfg.cpp \
 	IceCfgNode.cpp \
@@ -212,9 +211,24 @@ SB_OBJS=$(patsubst %.cpp, $(SB_OBJDIR)/%.o, $(SRCS))
 
 UNITTEST_SRCS = \
 	BitcodeMunge.cpp \
-        IceAssemblerX8632Test.cpp \
 	IceELFSectionTest.cpp \
-	IceParseInstsTest.cpp
+	IceParseInstsTest.cpp \
+        AssemblerX8632/LowLevel.cpp \
+        AssemblerX8632/DataMov.cpp \
+        AssemblerX8632/Locked.cpp \
+        AssemblerX8632/GPRArith.cpp \
+        AssemblerX8632/XmmArith.cpp \
+        AssemblerX8632/ControlFlow.cpp \
+        AssemblerX8632/Other.cpp \
+        AssemblerX8632/X87.cpp \
+        AssemblerX8664/LowLevel.cpp \
+        AssemblerX8664/DataMov.cpp \
+        AssemblerX8664/Locked.cpp \
+        AssemblerX8664/GPRArith.cpp \
+        AssemblerX8664/XmmArith.cpp \
+        AssemblerX8664/ControlFlow.cpp \
+        AssemblerX8664/Other.cpp
+
 
 UNITTEST_OBJS = $(patsubst %.cpp, $(OBJDIR)/unittest/%.o, $(UNITTEST_SRCS))
 UNITTEST_LIB_OBJS = $(filter-out $(OBJDIR)/main.o,$(OBJS))
@@ -271,6 +285,7 @@ $(UNITTEST_OBJS): $(OBJDIR)/unittest/%.o: unittest/%.cpp \
 		unittest/*.h src/*.h src/*.def
 	$(CXX) -c $(CXXFLAGS) \
 		-Isrc/ \
+                -Iunittest/ \
 		-I$(LLVM_SRC_PATH)/utils/unittest/googletest/include \
 		-I$(LLVM_SRC_PATH) \
 		-DGTEST_HAS_RTTI=0 -DGTEST_USE_OWN_TR1_TUPLE \
@@ -279,7 +294,7 @@ $(UNITTEST_OBJS): $(OBJDIR)/unittest/%.o: unittest/%.cpp \
 $(OBJS): | $(OBJDIR)
 $(SB_OBJS): | $(SB_OBJDIR)
 
-$(UNITTEST_OBJS): | $(OBJDIR)/unittest
+$(UNITTEST_OBJS): | $(OBJDIR)/unittest $(OBJDIR)/unittest/AssemblerX8632 $(OBJDIR)/unittest/AssemblerX8664
 
 $(OBJDIR):
 	@mkdir -p $@
@@ -287,6 +302,11 @@ $(SB_OBJDIR):
 	@mkdir -p $@
 
 $(OBJDIR)/unittest: $(OBJDIR)
+	@mkdir -p $@
+
+$(OBJDIR)/unittest/AssemblerX8632: $(OBJDIR)/unittest
+	@mkdir -p $@
+$(OBJDIR)/unittest/AssemblerX8664: $(OBJDIR)/unittest
 	@mkdir -p $@
 
 RT_SRC := runtime/szrt.c runtime/szrt_ll.ll runtime/szrt_profiler.c

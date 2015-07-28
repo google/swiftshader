@@ -314,7 +314,7 @@ public:
    */
   void call(typename Traits::GPRRegister reg);
   void call(const typename Traits::Address &address);
-  void call(const ConstantRelocatable *label);
+  void call(const ConstantRelocatable *label); // not testable.
   void call(const Immediate &abs_address);
 
   static const intptr_t kCallExternalLabelSize = 5;
@@ -324,7 +324,11 @@ public:
   void popl(typename Traits::GPRRegister reg);
   void popl(const typename Traits::Address &address);
 
+  template <typename T = Traits,
+            typename = typename std::enable_if<T::HasPusha>::type>
   void pushal();
+  template <typename T = Traits,
+            typename = typename std::enable_if<T::HasPopa>::type>
   void popal();
 
   void setcc(typename Traits::Cond::BrCond condition,
@@ -332,7 +336,6 @@ public:
   void setcc(typename Traits::Cond::BrCond condition,
              const typename Traits::Address &address);
 
-  // All mov() overloads are tested.
   void mov(Type Ty, typename Traits::GPRRegister dst, const Immediate &src);
   void mov(Type Ty, typename Traits::GPRRegister dst,
            typename Traits::GPRRegister src);
@@ -341,6 +344,8 @@ public:
   void mov(Type Ty, const typename Traits::Address &dst,
            typename Traits::GPRRegister src);
   void mov(Type Ty, const typename Traits::Address &dst, const Immediate &imm);
+
+  void movFromAh(const typename Traits::GPRRegister dst);
 
   void movzx(Type Ty, typename Traits::GPRRegister dst,
              typename Traits::GPRRegister src);
@@ -503,6 +508,7 @@ public:
   void sqrtps(typename Traits::XmmRegister dst);
   void rsqrtps(typename Traits::XmmRegister dst);
   void reciprocalps(typename Traits::XmmRegister dst);
+
   void movhlps(typename Traits::XmmRegister dst,
                typename Traits::XmmRegister src);
   void movlhps(typename Traits::XmmRegister dst,
@@ -518,16 +524,12 @@ public:
 
   void set1ps(typename Traits::XmmRegister dst,
               typename Traits::GPRRegister tmp, const Immediate &imm);
-  void shufps(typename Traits::XmmRegister dst,
-              typename Traits::XmmRegister src, const Immediate &mask);
 
   void minpd(typename Traits::XmmRegister dst,
              typename Traits::XmmRegister src);
   void maxpd(typename Traits::XmmRegister dst,
              typename Traits::XmmRegister src);
   void sqrtpd(typename Traits::XmmRegister dst);
-  void shufpd(typename Traits::XmmRegister dst,
-              typename Traits::XmmRegister src, const Immediate &mask);
 
   void pshufd(Type Ty, typename Traits::XmmRegister dst,
               typename Traits::XmmRegister src, const Immediate &mask);
@@ -606,8 +608,6 @@ public:
 
   void pextr(Type Ty, typename Traits::GPRRegister dst,
              typename Traits::XmmRegister src, const Immediate &imm);
-  void pextr(Type Ty, typename Traits::GPRRegister dst,
-             const typename Traits::Address &src, const Immediate &imm);
 
   void pmovsxdq(typename Traits::XmmRegister dst,
                 typename Traits::XmmRegister src);
@@ -630,19 +630,49 @@ public:
   void roundsd(typename Traits::XmmRegister dst,
                typename Traits::XmmRegister src, RoundingMode mode);
 
-  void fld(Type Ty, const typename Traits::Address &src);
-  void fstp(Type Ty, const typename Traits::Address &dst);
-  void fstp(typename Traits::X87STRegister st);
+  //----------------------------------------------------------------------------
+  //
+  // Begin: X87 instructions. Only available when Traits::UsesX87.
+  //
+  //----------------------------------------------------------------------------
+  template <typename T = Traits,
+            typename = typename std::enable_if<T::UsesX87>::type>
+  void fld(Type Ty, const typename T::Address &src);
+  template <typename T = Traits,
+            typename = typename std::enable_if<T::UsesX87>::type>
+  void fstp(Type Ty, const typename T::Address &dst);
+  template <typename T = Traits,
+            typename = typename std::enable_if<T::UsesX87>::type>
+  void fstp(typename T::X87STRegister st);
 
-  void fnstcw(const typename Traits::Address &dst);
-  void fldcw(const typename Traits::Address &src);
+  template <typename T = Traits,
+            typename = typename std::enable_if<T::UsesX87>::type>
+  void fnstcw(const typename T::Address &dst);
+  template <typename T = Traits,
+            typename = typename std::enable_if<T::UsesX87>::type>
+  void fldcw(const typename T::Address &src);
 
-  void fistpl(const typename Traits::Address &dst);
-  void fistps(const typename Traits::Address &dst);
-  void fildl(const typename Traits::Address &src);
-  void filds(const typename Traits::Address &src);
+  template <typename T = Traits,
+            typename = typename std::enable_if<T::UsesX87>::type>
+  void fistpl(const typename T::Address &dst);
+  template <typename T = Traits,
+            typename = typename std::enable_if<T::UsesX87>::type>
+  void fistps(const typename T::Address &dst);
+  template <typename T = Traits,
+            typename = typename std::enable_if<T::UsesX87>::type>
+  void fildl(const typename T::Address &src);
+  template <typename T = Traits,
+            typename = typename std::enable_if<T::UsesX87>::type>
+  void filds(const typename T::Address &src);
 
+  template <typename T = Traits,
+            typename = typename std::enable_if<T::UsesX87>::type>
   void fincstp();
+  //----------------------------------------------------------------------------
+  //
+  // End: X87 instructions.
+  //
+  //----------------------------------------------------------------------------
 
   void cmp(Type Ty, typename Traits::GPRRegister reg0,
            typename Traits::GPRRegister reg1);
@@ -754,9 +784,13 @@ public:
   void mul(Type Ty, typename Traits::GPRRegister reg);
   void mul(Type Ty, const typename Traits::Address &address);
 
+  template <class T = Traits,
+            typename = typename std::enable_if<!T::Is64Bit>::type>
   void incl(typename Traits::GPRRegister reg);
   void incl(const typename Traits::Address &address);
 
+  template <class T = Traits,
+            typename = typename std::enable_if<!T::Is64Bit>::type>
   void decl(typename Traits::GPRRegister reg);
   void decl(const typename Traits::Address &address);
 
@@ -825,16 +859,14 @@ public:
   void ud2();
 
   // j(Label) is fully tested.
-  // j(ConstantRelocatable) is not tested as the test can not easily create such
-  // an argument.
   void j(typename Traits::Cond::BrCond condition, Label *label,
          bool near = kFarJump);
   void j(typename Traits::Cond::BrCond condition,
-         const ConstantRelocatable *label);
+         const ConstantRelocatable *label); // not testable.
 
   void jmp(typename Traits::GPRRegister reg);
   void jmp(Label *label, bool near = kFarJump);
-  void jmp(const ConstantRelocatable *label);
+  void jmp(const ConstantRelocatable *label); // not testable.
 
   void mfence();
 
@@ -855,12 +887,20 @@ public:
 
   intptr_t CodeSize() const { return Buffer.size(); }
 
-private:
+protected:
   inline void emitUint8(uint8_t value);
+
+private:
+  static constexpr Type RexTypeIrrelevant = IceType_i32;
+  static constexpr Type IceType_ForceRexW = IceType_i64;
+  static constexpr typename Traits::GPRRegister RexRegIrrelevant =
+      Traits::GPRRegister::Encoded_Reg_eax;
+
   inline void emitInt16(int16_t value);
   inline void emitInt32(int32_t value);
   inline void emitRegisterOperand(int rm, int reg);
-  inline void emitXmmRegisterOperand(int rm, typename Traits::XmmRegister reg);
+  template <typename RegType, typename RmType>
+  inline void emitXmmRegisterOperand(RegType reg, RmType rm);
   inline void emitFixup(AssemblerFixup *fixup);
   inline void emitOperandSizeOverride();
 
@@ -910,6 +950,100 @@ private:
   template <uint32_t Tag>
   void arith_int(Type Ty, const typename Traits::Address &address,
                  const Immediate &imm);
+
+  // gprEncoding returns Reg encoding for operand emission. For x86-64 we mask
+  // out the 4th bit as it is encoded in the REX.[RXB] bits. No other bits are
+  // touched because we don't want to mask errors.
+  template <typename RegType, typename T = Traits>
+  typename std::enable_if<T::Is64Bit, typename T::GPRRegister>::type
+  gprEncoding(const RegType Reg) {
+    return static_cast<typename Traits::GPRRegister>(static_cast<uint8_t>(Reg) &
+                                                     ~0x08);
+  }
+
+  template <typename RegType, typename T = Traits>
+  typename std::enable_if<!T::Is64Bit, typename T::GPRRegister>::type
+  gprEncoding(const RegType Reg) {
+    return static_cast<typename T::GPRRegister>(Reg);
+  }
+
+  template <typename RegType>
+  bool is8BitRegisterRequiringRex(const Type Ty, const RegType Reg) {
+    static constexpr bool IsGPR =
+        std::is_same<typename std::decay<RegType>::type,
+                     typename Traits::ByteRegister>::value ||
+        std::is_same<typename std::decay<RegType>::type,
+                     typename Traits::GPRRegister>::value;
+
+    return IsGPR && (Reg & 0x04) != 0 && (Reg & 0x08) == 0 &&
+           isByteSizedArithType(Ty);
+  };
+
+  // assembleAndEmitRex is used for determining which (if any) rex prefix should
+  // be emitted for the current instruction. It allows different types for Reg
+  // and Rm because they could be of different types (e.g., in mov[sz]x
+  // instrutions.) If Addr is not nullptr, then Rm is ignored, and Rex.B is
+  // determined by Addr instead. TyRm is still used to determine Addr's size.
+  template <typename RegType, typename RmType, typename T = Traits>
+  typename std::enable_if<T::Is64Bit, void>::type
+  assembleAndEmitRex(const Type TyReg, const RegType Reg, const Type TyRm,
+                     const RmType Rm,
+                     const typename T::Address *Addr = nullptr) {
+    const uint8_t W = (TyReg == IceType_i64 || TyRm == IceType_i64)
+                          ? T::Operand::RexW
+                          : T::Operand::RexNone;
+    const uint8_t R = (Reg & 0x08) ? T::Operand::RexR : T::Operand::RexNone;
+    const uint8_t X = (Addr != nullptr) ? Addr->rexX() : T::Operand::RexNone;
+    const uint8_t B =
+        (Addr != nullptr) ? Addr->rexB() : (Rm & 0x08) ? T::Operand::RexB
+                                                       : T::Operand::RexNone;
+    const uint8_t Prefix = W | R | X | B;
+    if (Prefix != T::Operand::RexNone) {
+      emitUint8(Prefix);
+    } else if (is8BitRegisterRequiringRex(TyReg, Reg) ||
+               (Addr == nullptr && is8BitRegisterRequiringRex(TyRm, Rm))) {
+      emitUint8(T::Operand::RexBase);
+    }
+  }
+
+  template <typename RegType, typename RmType, typename T = Traits>
+  typename std::enable_if<!T::Is64Bit, void>::type
+  assembleAndEmitRex(const Type, const RegType, const Type, const RmType,
+                     const typename T::Address * = nullptr) {}
+
+  // emitRexRB is used for emitting a Rex prefix instructions with two explicit
+  // register operands in its mod-rm byte.
+  template <typename RegType, typename RmType>
+  void emitRexRB(const Type Ty, const RegType Reg, const RmType Rm) {
+    assembleAndEmitRex(Ty, Reg, Ty, Rm);
+  }
+
+  template <typename RegType, typename RmType>
+  void emitRexRB(const Type TyReg, const RegType Reg, const Type TyRm,
+                 const RmType Rm) {
+    assembleAndEmitRex(TyReg, Reg, TyRm, Rm);
+  }
+
+  // emitRexB is used for emitting a Rex prefix if one is needed on encoding the
+  // Reg field in an x86 instruction. It is invoked by the template when Reg is
+  // the single register operand in the instruction (e.g., push Reg.)
+  template <typename RmType> void emitRexB(const Type Ty, const RmType Rm) {
+    emitRexRB(Ty, RexRegIrrelevant, Ty, Rm);
+  }
+
+  // emitRex is used for emitting a Rex prefix for an address and a GPR. The
+  // address may contain zero, one, or two registers.
+  template <typename RegType>
+  void emitRex(const Type Ty, const typename Traits::Address &Addr,
+               const RegType Reg) {
+    assembleAndEmitRex(Ty, Reg, Ty, RexRegIrrelevant, &Addr);
+  }
+
+  template <typename RegType>
+  void emitRex(const Type AddrTy, const typename Traits::Address &Addr,
+               const Type TyReg, const RegType Reg) {
+    assembleAndEmitRex(TyReg, Reg, AddrTy, RexRegIrrelevant, &Addr);
+  }
 };
 
 template <class Machine>
@@ -928,15 +1062,17 @@ inline void AssemblerX86Base<Machine>::emitInt32(int32_t value) {
 }
 
 template <class Machine>
-inline void AssemblerX86Base<Machine>::emitRegisterOperand(int rm, int reg) {
+inline void AssemblerX86Base<Machine>::emitRegisterOperand(int reg, int rm) {
+  assert(reg >= 0 && reg < 8);
   assert(rm >= 0 && rm < 8);
-  Buffer.emit<uint8_t>(0xC0 + (rm << 3) + reg);
+  Buffer.emit<uint8_t>(0xC0 + (reg << 3) + rm);
 }
 
 template <class Machine>
-inline void AssemblerX86Base<Machine>::emitXmmRegisterOperand(
-    int rm, typename Traits::XmmRegister reg) {
-  emitRegisterOperand(rm, static_cast<typename Traits::GPRRegister>(reg));
+template <typename RegType, typename RmType>
+inline void AssemblerX86Base<Machine>::emitXmmRegisterOperand(RegType reg,
+                                                              RmType rm) {
+  emitRegisterOperand(gprEncoding(reg), gprEncoding(rm));
 }
 
 template <class Machine>

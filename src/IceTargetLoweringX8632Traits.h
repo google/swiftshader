@@ -48,6 +48,13 @@ template <> struct MachineTraits<TargetX8632> {
   //      \/_/\/_/\/_____/\/_/  \/_/
   //
   //----------------------------------------------------------------------------
+  static constexpr bool Is64Bit = false;
+  static constexpr bool HasPopa = true;
+  static constexpr bool HasPusha = true;
+  static constexpr bool UsesX87 = true;
+  static constexpr ::Ice::RegX8632::GPRRegister Last8BitGPR =
+      ::Ice::RegX8632::GPRRegister::Encoded_Reg_ebx;
+
   enum ScaleFactor { TIMES_1 = 0, TIMES_2 = 1, TIMES_4 = 2, TIMES_8 = 3 };
 
   using GPRRegister = ::Ice::RegX8632::GPRRegister;

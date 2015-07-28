@@ -21,6 +21,7 @@
 namespace Ice {
 
 class CondX8664 {
+public:
   /// An enum of condition codes used for branches and cmov. The enum value
   /// should match the value used to encode operands in binary instructions.
   enum BrCond {

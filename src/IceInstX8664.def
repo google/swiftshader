@@ -15,46 +15,51 @@
 #ifndef SUBZERO_SRC_ICEINSTX8664_DEF
 #define SUBZERO_SRC_ICEINSTX8664_DEF
 
+// NOTE: we use the 32bit register names for two reasons:
+//       (1) it makes it easier to implement the x86 assembler template.
+//       (2) when generating code, subzero defaults to using 32 bit registers,
+//       so using the 32 bit register name would hopefully make this design
+//       more explicit.
 // NOTE: esp is not considered isInt, to avoid register allocating it.
 #define REGX8664_GPR_TABLE                                                     \
   /* val, encode, name64, name, name16, name8, scratch, preserved, stackptr,   \
      frameptr, isInt, isFP */                                                  \
-  X(Reg_rax, =            0, "rax", "eax" ,  "ax" , "al"  , 1, 0, 0, 0, 1, 0)  \
-  X(Reg_rcx, = Reg_rax +  1, "rcx", "ecx" ,  "cx" , "cl"  , 1, 0, 0, 0, 1, 0)  \
-  X(Reg_rdx, = Reg_rax +  2, "rdx", "edx" ,  "dx" , "dl"  , 1, 0, 0, 0, 1, 0)  \
-  X(Reg_rbx, = Reg_rax +  3, "rbx", "ebx" ,  "bx" , "bl"  , 0, 1, 0, 0, 1, 0)  \
-  X(Reg_rsp, = Reg_rax +  4, "rsp", "esp" ,  "sp" , "spl" , 0, 0, 1, 0, 0, 0)  \
-  X(Reg_rbp, = Reg_rax +  5, "rbp", "ebp" ,  "bp" , "bpl" , 0, 0, 0, 1, 1, 0)  \
-  X(Reg_rsi, = Reg_rax +  6, "rsi", "esi" ,  "si" , "sil" , 1, 0, 0, 0, 1, 0)  \
-  X(Reg_rdi, = Reg_rax +  7, "rdi", "edi" ,  "di" , "dil" , 1, 0, 0, 0, 1, 0)  \
-  X(Reg_r8,  = Reg_rax +  8, "r8" , "r8d" ,  "r8w", "r8l" , 1, 0, 0, 0, 1, 0)  \
-  X(Reg_r9,  = Reg_rax +  9, "r9" , "r9d" ,  "r9w", "r9l" , 1, 0, 0, 0, 1, 0)  \
-  X(Reg_r10, = Reg_rax + 10, "r10", "r10d", "r10w", "r10l", 1, 0, 0, 0, 1, 0)  \
-  X(Reg_r11, = Reg_rax + 11, "r11", "r11d", "r11w", "r11l", 1, 0, 0, 0, 1, 0)  \
-  X(Reg_r12, = Reg_rax + 12, "r12", "r12d", "r12w", "r12l", 0, 1, 0, 0, 1, 0)  \
-  X(Reg_r13, = Reg_rax + 13, "r13", "r13d", "r13w", "r12l", 0, 1, 0, 0, 1, 0)  \
-  X(Reg_r14, = Reg_rax + 14, "r14", "r14d", "r14w", "r14l", 0, 1, 0, 0, 1, 0)  \
-  X(Reg_r15, = Reg_rax + 15, "r15", "r15d", "r15w", "r15l", 0, 1, 0, 0, 1, 0)
+  X(Reg_eax,  =  0, "rax", "eax" ,  "ax" , "al"  , 1, 0, 0, 0, 1, 0)           \
+  X(Reg_ecx,  =  1, "rcx", "ecx" ,  "cx" , "cl"  , 1, 0, 0, 0, 1, 0)           \
+  X(Reg_edx,  =  2, "rdx", "edx" ,  "dx" , "dl"  , 1, 0, 0, 0, 1, 0)           \
+  X(Reg_ebx,  =  3, "rbx", "ebx" ,  "bx" , "bl"  , 0, 1, 0, 0, 1, 0)           \
+  X(Reg_esp,  =  4, "rsp", "esp" ,  "sp" , "spl" , 0, 0, 1, 0, 0, 0)           \
+  X(Reg_ebp,  =  5, "rbp", "ebp" ,  "bp" , "bpl" , 0, 0, 0, 1, 1, 0)           \
+  X(Reg_esi,  =  6, "rsi", "esi" ,  "si" , "sil" , 1, 0, 0, 0, 1, 0)           \
+  X(Reg_edi,  =  7, "rdi", "edi" ,  "di" , "dil" , 1, 0, 0, 0, 1, 0)           \
+  X(Reg_r8d,  =  8, "r8" , "r8d" ,  "r8w", "r8l" , 1, 0, 0, 0, 1, 0)           \
+  X(Reg_r9d,  =  9, "r9" , "r9d" ,  "r9w", "r9l" , 1, 0, 0, 0, 1, 0)           \
+  X(Reg_r10d, = 10, "r10", "r10d", "r10w", "r10l", 1, 0, 0, 0, 1, 0)           \
+  X(Reg_r11d, = 11, "r11", "r11d", "r11w", "r11l", 1, 0, 0, 0, 1, 0)           \
+  X(Reg_r12d, = 12, "r12", "r12d", "r12w", "r12l", 0, 1, 0, 0, 1, 0)           \
+  X(Reg_r13d, = 13, "r13", "r13d", "r13w", "r12l", 0, 1, 0, 0, 1, 0)           \
+  X(Reg_r14d, = 14, "r14", "r14d", "r14w", "r14l", 0, 1, 0, 0, 1, 0)           \
+  X(Reg_r15d, = 15, "r15", "r15d", "r15w", "r15l", 0, 1, 0, 0, 1, 0)
 
 #define REGX8664_XMM_TABLE                                                     \
   /* val, encode, name64, name, name16, name8, scratch, preserved, stackptr,   \
      frameptr, isInt, isFP */                                                  \
-  X(Reg_xmm0,  =             0, "xmm0" , "", "", "", 1, 0, 0, 0, 0, 1)         \
-  X(Reg_xmm1,  = Reg_xmm0 +  1, "xmm1" , "", "", "", 1, 0, 0, 0, 0, 1)         \
-  X(Reg_xmm2,  = Reg_xmm0 +  2, "xmm2" , "", "", "", 1, 0, 0, 0, 0, 1)         \
-  X(Reg_xmm3,  = Reg_xmm0 +  3, "xmm3" , "", "", "", 1, 0, 0, 0, 0, 1)         \
-  X(Reg_xmm4,  = Reg_xmm0 +  4, "xmm4" , "", "", "", 1, 0, 0, 0, 0, 1)         \
-  X(Reg_xmm5,  = Reg_xmm0 +  5, "xmm5" , "", "", "", 1, 0, 0, 0, 0, 1)         \
-  X(Reg_xmm6,  = Reg_xmm0 +  6, "xmm6" , "", "", "", 1, 0, 0, 0, 0, 1)         \
-  X(Reg_xmm7,  = Reg_xmm0 +  7, "xmm7" , "", "", "", 1, 0, 0, 0, 0, 1)         \
-  X(Reg_xmm8,  = Reg_xmm0 +  8, "xmm8" , "", "", "", 1, 0, 0, 0, 0, 1)         \
-  X(Reg_xmm9,  = Reg_xmm0 +  9, "xmm9" , "", "", "", 1, 0, 0, 0, 0, 1)         \
-  X(Reg_xmm10, = Reg_xmm0 + 10, "xmm10", "", "", "", 1, 0, 0, 0, 0, 1)         \
-  X(Reg_xmm11, = Reg_xmm0 + 11, "xmm11", "", "", "", 1, 0, 0, 0, 0, 1)         \
-  X(Reg_xmm12, = Reg_xmm0 + 12, "xmm12", "", "", "", 1, 0, 0, 0, 0, 1)         \
-  X(Reg_xmm13, = Reg_xmm0 + 13, "xmm13", "", "", "", 1, 0, 0, 0, 0, 1)         \
-  X(Reg_xmm14, = Reg_xmm0 + 14, "xmm14", "", "", "", 1, 0, 0, 0, 0, 1)         \
-  X(Reg_xmm15, = Reg_xmm0 + 15, "xmm15", "", "", "", 1, 0, 0, 0, 0, 1)
+  X(Reg_xmm0,  =  0, "xmm0" , "", "", "", 1, 0, 0, 0, 0, 1)                    \
+  X(Reg_xmm1,  =  1, "xmm1" , "", "", "", 1, 0, 0, 0, 0, 1)                    \
+  X(Reg_xmm2,  =  2, "xmm2" , "", "", "", 1, 0, 0, 0, 0, 1)                    \
+  X(Reg_xmm3,  =  3, "xmm3" , "", "", "", 1, 0, 0, 0, 0, 1)                    \
+  X(Reg_xmm4,  =  4, "xmm4" , "", "", "", 1, 0, 0, 0, 0, 1)                    \
+  X(Reg_xmm5,  =  5, "xmm5" , "", "", "", 1, 0, 0, 0, 0, 1)                    \
+  X(Reg_xmm6,  =  6, "xmm6" , "", "", "", 1, 0, 0, 0, 0, 1)                    \
+  X(Reg_xmm7,  =  7, "xmm7" , "", "", "", 1, 0, 0, 0, 0, 1)                    \
+  X(Reg_xmm8,  =  8, "xmm8" , "", "", "", 1, 0, 0, 0, 0, 1)                    \
+  X(Reg_xmm9,  =  9, "xmm9" , "", "", "", 1, 0, 0, 0, 0, 1)                    \
+  X(Reg_xmm10, = 10, "xmm10", "", "", "", 1, 0, 0, 0, 0, 1)                    \
+  X(Reg_xmm11, = 11, "xmm11", "", "", "", 1, 0, 0, 0, 0, 1)                    \
+  X(Reg_xmm12, = 12, "xmm12", "", "", "", 1, 0, 0, 0, 0, 1)                    \
+  X(Reg_xmm13, = 13, "xmm13", "", "", "", 1, 0, 0, 0, 0, 1)                    \
+  X(Reg_xmm14, = 14, "xmm14", "", "", "", 1, 0, 0, 0, 0, 1)                    \
+  X(Reg_xmm15, = 15, "xmm15", "", "", "", 1, 0, 0, 0, 0, 1)
 //#define X(val, encode, name, name32, name16, name8, scratch, preserved,
 //          stackptr, frameptr, isI8, isInt, isFP)
 
@@ -77,8 +82,8 @@
 
 #define REGX8664_TABLE_BOUNDS                                                  \
   /* val         , init */                                                     \
-  X(Reg_GPR_First, = Reg_rax  )                                                \
-  X(Reg_GPR_Last , = Reg_r15  )                                                \
+  X(Reg_GPR_First, = Reg_eax  )                                                \
+  X(Reg_GPR_Last , = Reg_r15d )                                                \
   X(Reg_XMM_First, = Reg_xmm0 )                                                \
   X(Reg_XMM_Last , = Reg_xmm15)
 // define X(val, init)

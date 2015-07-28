@@ -79,10 +79,6 @@ public:
   }
 
   static inline ByteRegister getEncodedByteReg(int32_t RegNum) {
-    // In x86-64, AH is not encodable when the REX prefix is used; the same
-    // encoding is used for spl. Therefore, ah needs special handling.
-    if (RegNum == Reg_ah)
-      return Encoded_Reg_spl;
     return ByteRegister(RegNum - Reg_GPR_First);
   }
 

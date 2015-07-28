@@ -96,13 +96,15 @@ void AssemblerX86Base<Machine>::BindLocalLabel(SizeT Number) {
 template <class Machine>
 void AssemblerX86Base<Machine>::call(typename Traits::GPRRegister reg) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRexB(RexTypeIrrelevant, reg);
   emitUint8(0xFF);
-  emitRegisterOperand(2, reg);
+  emitRegisterOperand(2, gprEncoding(reg));
 }
 
 template <class Machine>
 void AssemblerX86Base<Machine>::call(const typename Traits::Address &address) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRex(RexTypeIrrelevant, address, RexRegIrrelevant);
   emitUint8(0xFF);
   emitOperand(2, address);
 }
@@ -132,28 +134,37 @@ void AssemblerX86Base<Machine>::call(const Immediate &abs_address) {
 template <class Machine>
 void AssemblerX86Base<Machine>::pushl(typename Traits::GPRRegister reg) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitUint8(0x50 + reg);
+  emitRexB(RexTypeIrrelevant, reg);
+  emitUint8(0x50 + gprEncoding(reg));
 }
 
 template <class Machine>
 void AssemblerX86Base<Machine>::popl(typename Traits::GPRRegister reg) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitUint8(0x58 + reg);
+  // Any type that would not force a REX prefix to be emitted can be provided
+  // here.
+  emitRexB(RexTypeIrrelevant, reg);
+  emitUint8(0x58 + gprEncoding(reg));
 }
 
 template <class Machine>
 void AssemblerX86Base<Machine>::popl(const typename Traits::Address &address) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRex(RexTypeIrrelevant, address, RexRegIrrelevant);
   emitUint8(0x8F);
   emitOperand(0, address);
 }
 
-template <class Machine> void AssemblerX86Base<Machine>::pushal() {
+template <class Machine>
+template <typename, typename>
+void AssemblerX86Base<Machine>::pushal() {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x60);
 }
 
-template <class Machine> void AssemblerX86Base<Machine>::popal() {
+template <class Machine>
+template <typename, typename>
+void AssemblerX86Base<Machine>::popal() {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x61);
 }
@@ -162,15 +173,17 @@ template <class Machine>
 void AssemblerX86Base<Machine>::setcc(typename Traits::Cond::BrCond condition,
                                       typename Traits::ByteRegister dst) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRexB(IceType_i8, dst);
   emitUint8(0x0F);
   emitUint8(0x90 + condition);
-  emitUint8(0xC0 + dst);
+  emitUint8(0xC0 + gprEncoding(dst));
 }
 
 template <class Machine>
 void AssemblerX86Base<Machine>::setcc(typename Traits::Cond::BrCond condition,
                                       const typename Traits::Address &address) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRex(RexTypeIrrelevant, address, RexRegIrrelevant);
   emitUint8(0x0F);
   emitUint8(0x90 + condition);
   emitOperand(0, address);
@@ -179,16 +192,18 @@ void AssemblerX86Base<Machine>::setcc(typename Traits::Cond::BrCond condition,
 template <class Machine>
 void AssemblerX86Base<Machine>::mov(Type Ty, typename Traits::GPRRegister dst,
                                     const Immediate &imm) {
+  assert(Ty != IceType_i64 && "i64 not supported yet.");
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  if (isByteSizedType(Ty)) {
-    emitUint8(0xB0 + dst);
-    emitUint8(imm.value() & 0xFF);
-    return;
-  }
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
-  emitUint8(0xB8 + dst);
-  emitImmediate(Ty, imm);
+  emitRexB(Ty, dst);
+  if (isByteSizedType(Ty)) {
+    emitUint8(0xB0 + gprEncoding(dst));
+    emitUint8(imm.value() & 0xFF);
+  } else {
+    emitUint8(0xB8 + gprEncoding(dst));
+    emitImmediate(Ty, imm);
+  }
 }
 
 template <class Machine>
@@ -197,12 +212,13 @@ void AssemblerX86Base<Machine>::mov(Type Ty, typename Traits::GPRRegister dst,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRexRB(Ty, src, dst);
   if (isByteSizedType(Ty)) {
     emitUint8(0x88);
   } else {
     emitUint8(0x89);
   }
-  emitRegisterOperand(src, dst);
+  emitRegisterOperand(gprEncoding(src), gprEncoding(dst));
 }
 
 template <class Machine>
@@ -211,12 +227,13 @@ void AssemblerX86Base<Machine>::mov(Type Ty, typename Traits::GPRRegister dst,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRex(Ty, src, dst);
   if (isByteSizedType(Ty)) {
     emitUint8(0x8A);
   } else {
     emitUint8(0x8B);
   }
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -226,21 +243,24 @@ void AssemblerX86Base<Machine>::mov(Type Ty,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRex(Ty, dst, src);
   if (isByteSizedType(Ty)) {
     emitUint8(0x88);
   } else {
     emitUint8(0x89);
   }
-  emitOperand(src, dst);
+  emitOperand(gprEncoding(src), dst);
 }
 
 template <class Machine>
 void AssemblerX86Base<Machine>::mov(Type Ty,
                                     const typename Traits::Address &dst,
                                     const Immediate &imm) {
+  assert(Ty != IceType_i64 && "i64 not supported yet.");
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRex(Ty, dst, RexRegIrrelevant);
   if (isByteSizedType(Ty)) {
     emitUint8(0xC6);
     emitOperand(0, dst);
@@ -259,9 +279,10 @@ void AssemblerX86Base<Machine>::movzx(Type SrcTy,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   bool ByteSized = isByteSizedType(SrcTy);
   assert(ByteSized || SrcTy == IceType_i16);
+  emitRexRB(RexTypeIrrelevant, dst, SrcTy, src);
   emitUint8(0x0F);
   emitUint8(ByteSized ? 0xB6 : 0xB7);
-  emitRegisterOperand(dst, src);
+  emitRegisterOperand(gprEncoding(dst), gprEncoding(src));
 }
 
 template <class Machine>
@@ -271,9 +292,10 @@ void AssemblerX86Base<Machine>::movzx(Type SrcTy,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   bool ByteSized = isByteSizedType(SrcTy);
   assert(ByteSized || SrcTy == IceType_i16);
+  emitRex(SrcTy, src, RexTypeIrrelevant, dst);
   emitUint8(0x0F);
   emitUint8(ByteSized ? 0xB6 : 0xB7);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -282,10 +304,15 @@ void AssemblerX86Base<Machine>::movsx(Type SrcTy,
                                       typename Traits::GPRRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   bool ByteSized = isByteSizedType(SrcTy);
-  assert(ByteSized || SrcTy == IceType_i16);
-  emitUint8(0x0F);
-  emitUint8(ByteSized ? 0xBE : 0xBF);
-  emitRegisterOperand(dst, src);
+  emitRexRB(IceType_ForceRexW, dst, SrcTy, src);
+  if (ByteSized || SrcTy == IceType_i16) {
+    emitUint8(0x0F);
+    emitUint8(ByteSized ? 0xBE : 0xBF);
+  } else {
+    assert(Traits::Is64Bit && SrcTy == IceType_i32);
+    emitUint8(0x63);
+  }
+  emitRegisterOperand(gprEncoding(dst), gprEncoding(src));
 }
 
 template <class Machine>
@@ -294,10 +321,15 @@ void AssemblerX86Base<Machine>::movsx(Type SrcTy,
                                       const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   bool ByteSized = isByteSizedType(SrcTy);
-  assert(ByteSized || SrcTy == IceType_i16);
-  emitUint8(0x0F);
-  emitUint8(ByteSized ? 0xBE : 0xBF);
-  emitOperand(dst, src);
+  emitRex(SrcTy, src, IceType_ForceRexW, dst);
+  if (ByteSized || SrcTy == IceType_i16) {
+    emitUint8(0x0F);
+    emitUint8(ByteSized ? 0xBE : 0xBF);
+  } else {
+    assert(Traits::Is64Bit && SrcTy == IceType_i32);
+    emitUint8(0x63);
+  }
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -307,8 +339,9 @@ void AssemblerX86Base<Machine>::lea(Type Ty, typename Traits::GPRRegister dst,
   assert(Ty == IceType_i16 || Ty == IceType_i32);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRex(Ty, src, dst);
   emitUint8(0x8D);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -321,9 +354,10 @@ void AssemblerX86Base<Machine>::cmov(Type Ty,
     emitOperandSizeOverride();
   else
     assert(Ty == IceType_i32);
+  emitRexRB(Ty, dst, src);
   emitUint8(0x0F);
   emitUint8(0x40 + cond);
-  emitRegisterOperand(dst, src);
+  emitRegisterOperand(gprEncoding(dst), gprEncoding(src));
 }
 
 template <class Machine>
@@ -336,9 +370,10 @@ void AssemblerX86Base<Machine>::cmov(Type Ty,
     emitOperandSizeOverride();
   else
     assert(Ty == IceType_i32);
+  emitRex(Ty, src, dst);
   emitUint8(0x0F);
   emitUint8(0x40 + cond);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine> void AssemblerX86Base<Machine>::rep_movsb() {
@@ -352,9 +387,10 @@ void AssemblerX86Base<Machine>::movss(Type Ty, typename Traits::XmmRegister dst,
                                       const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x10);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -363,9 +399,10 @@ void AssemblerX86Base<Machine>::movss(Type Ty,
                                       typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
+  emitRex(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x11);
-  emitOperand(src, dst);
+  emitOperand(gprEncoding(src), dst);
 }
 
 template <class Machine>
@@ -373,6 +410,7 @@ void AssemblerX86Base<Machine>::movss(Type Ty, typename Traits::XmmRegister dst,
                                       typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
+  emitRexRB(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x11);
   emitXmmRegisterOperand(src, dst);
@@ -383,9 +421,10 @@ void AssemblerX86Base<Machine>::movd(typename Traits::XmmRegister dst,
                                      typename Traits::GPRRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x6E);
-  emitRegisterOperand(dst, src);
+  emitRegisterOperand(gprEncoding(dst), gprEncoding(src));
 }
 
 template <class Machine>
@@ -393,9 +432,10 @@ void AssemblerX86Base<Machine>::movd(typename Traits::XmmRegister dst,
                                      const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x6E);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -403,9 +443,10 @@ void AssemblerX86Base<Machine>::movd(typename Traits::GPRRegister dst,
                                      typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x7E);
-  emitRegisterOperand(src, dst);
+  emitRegisterOperand(gprEncoding(src), gprEncoding(dst));
 }
 
 template <class Machine>
@@ -413,9 +454,10 @@ void AssemblerX86Base<Machine>::movd(const typename Traits::Address &dst,
                                      typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRex(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x7E);
-  emitOperand(src, dst);
+  emitOperand(gprEncoding(src), dst);
 }
 
 template <class Machine>
@@ -423,9 +465,10 @@ void AssemblerX86Base<Machine>::movq(typename Traits::XmmRegister dst,
                                      typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0xF3);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x7E);
-  emitRegisterOperand(dst, src);
+  emitXmmRegisterOperand(dst, src);
 }
 
 template <class Machine>
@@ -433,9 +476,10 @@ void AssemblerX86Base<Machine>::movq(const typename Traits::Address &dst,
                                      typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRex(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0xD6);
-  emitOperand(src, dst);
+  emitOperand(gprEncoding(src), dst);
 }
 
 template <class Machine>
@@ -443,9 +487,10 @@ void AssemblerX86Base<Machine>::movq(typename Traits::XmmRegister dst,
                                      const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0xF3);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x7E);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -453,6 +498,7 @@ void AssemblerX86Base<Machine>::addss(Type Ty, typename Traits::XmmRegister dst,
                                       typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x58);
   emitXmmRegisterOperand(dst, src);
@@ -463,9 +509,10 @@ void AssemblerX86Base<Machine>::addss(Type Ty, typename Traits::XmmRegister dst,
                                       const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x58);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -473,6 +520,7 @@ void AssemblerX86Base<Machine>::subss(Type Ty, typename Traits::XmmRegister dst,
                                       typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x5C);
   emitXmmRegisterOperand(dst, src);
@@ -483,9 +531,10 @@ void AssemblerX86Base<Machine>::subss(Type Ty, typename Traits::XmmRegister dst,
                                       const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x5C);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -493,6 +542,7 @@ void AssemblerX86Base<Machine>::mulss(Type Ty, typename Traits::XmmRegister dst,
                                       typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x59);
   emitXmmRegisterOperand(dst, src);
@@ -503,9 +553,10 @@ void AssemblerX86Base<Machine>::mulss(Type Ty, typename Traits::XmmRegister dst,
                                       const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x59);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -513,6 +564,7 @@ void AssemblerX86Base<Machine>::divss(Type Ty, typename Traits::XmmRegister dst,
                                       typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x5E);
   emitXmmRegisterOperand(dst, src);
@@ -523,29 +575,31 @@ void AssemblerX86Base<Machine>::divss(Type Ty, typename Traits::XmmRegister dst,
                                       const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x5E);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
-void AssemblerX86Base<Machine>::fld(Type Ty,
-                                    const typename Traits::Address &src) {
+template <typename T, typename>
+void AssemblerX86Base<Machine>::fld(Type Ty, const typename T::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(Ty) ? 0xD9 : 0xDD);
   emitOperand(0, src);
 }
 
 template <class Machine>
-void AssemblerX86Base<Machine>::fstp(Type Ty,
-                                     const typename Traits::Address &dst) {
+template <typename T, typename>
+void AssemblerX86Base<Machine>::fstp(Type Ty, const typename T::Address &dst) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(Ty) ? 0xD9 : 0xDD);
   emitOperand(3, dst);
 }
 
 template <class Machine>
-void AssemblerX86Base<Machine>::fstp(typename Traits::X87STRegister st) {
+template <typename T, typename>
+void AssemblerX86Base<Machine>::fstp(typename T::X87STRegister st) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0xDD);
   emitUint8(0xD8 + st);
@@ -555,6 +609,7 @@ template <class Machine>
 void AssemblerX86Base<Machine>::movaps(typename Traits::XmmRegister dst,
                                        typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x28);
   emitXmmRegisterOperand(dst, src);
@@ -564,27 +619,30 @@ template <class Machine>
 void AssemblerX86Base<Machine>::movups(typename Traits::XmmRegister dst,
                                        typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x10);
-  emitRegisterOperand(dst, src);
+  emitXmmRegisterOperand(dst, src);
 }
 
 template <class Machine>
 void AssemblerX86Base<Machine>::movups(typename Traits::XmmRegister dst,
                                        const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x10);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
 void AssemblerX86Base<Machine>::movups(const typename Traits::Address &dst,
                                        typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRex(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x11);
-  emitOperand(src, dst);
+  emitOperand(gprEncoding(src), dst);
 }
 
 template <class Machine>
@@ -592,6 +650,7 @@ void AssemblerX86Base<Machine>::padd(Type Ty, typename Traits::XmmRegister dst,
                                      typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   if (isByteSizedArithType(Ty)) {
     emitUint8(0xFC);
@@ -608,6 +667,7 @@ void AssemblerX86Base<Machine>::padd(Type Ty, typename Traits::XmmRegister dst,
                                      const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   if (isByteSizedArithType(Ty)) {
     emitUint8(0xFC);
@@ -616,7 +676,7 @@ void AssemblerX86Base<Machine>::padd(Type Ty, typename Traits::XmmRegister dst,
   } else {
     emitUint8(0xFE);
   }
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -625,6 +685,7 @@ void AssemblerX86Base<Machine>::pand(Type /* Ty */,
                                      typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0xDB);
   emitXmmRegisterOperand(dst, src);
@@ -636,9 +697,10 @@ void AssemblerX86Base<Machine>::pand(Type /* Ty */,
                                      const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0xDB);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -647,6 +709,7 @@ void AssemblerX86Base<Machine>::pandn(Type /* Ty */,
                                       typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0xDF);
   emitXmmRegisterOperand(dst, src);
@@ -658,9 +721,10 @@ void AssemblerX86Base<Machine>::pandn(Type /* Ty */,
                                       const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0xDF);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -668,6 +732,7 @@ void AssemblerX86Base<Machine>::pmull(Type Ty, typename Traits::XmmRegister dst,
                                       typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   if (Ty == IceType_i16) {
     emitUint8(0xD5);
@@ -684,6 +749,7 @@ void AssemblerX86Base<Machine>::pmull(Type Ty, typename Traits::XmmRegister dst,
                                       const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   if (Ty == IceType_i16) {
     emitUint8(0xD5);
@@ -692,7 +758,7 @@ void AssemblerX86Base<Machine>::pmull(Type Ty, typename Traits::XmmRegister dst,
     emitUint8(0x38);
     emitUint8(0x40);
   }
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -701,6 +767,7 @@ void AssemblerX86Base<Machine>::pmuludq(Type /* Ty */,
                                         typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0xF4);
   emitXmmRegisterOperand(dst, src);
@@ -712,9 +779,10 @@ void AssemblerX86Base<Machine>::pmuludq(Type /* Ty */,
                                         const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0xF4);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -723,6 +791,7 @@ void AssemblerX86Base<Machine>::por(Type /* Ty */,
                                     typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0xEB);
   emitXmmRegisterOperand(dst, src);
@@ -734,9 +803,10 @@ void AssemblerX86Base<Machine>::por(Type /* Ty */,
                                     const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0xEB);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -744,6 +814,7 @@ void AssemblerX86Base<Machine>::psub(Type Ty, typename Traits::XmmRegister dst,
                                      typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   if (isByteSizedArithType(Ty)) {
     emitUint8(0xF8);
@@ -760,6 +831,7 @@ void AssemblerX86Base<Machine>::psub(Type Ty, typename Traits::XmmRegister dst,
                                      const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   if (isByteSizedArithType(Ty)) {
     emitUint8(0xF8);
@@ -768,7 +840,7 @@ void AssemblerX86Base<Machine>::psub(Type Ty, typename Traits::XmmRegister dst,
   } else {
     emitUint8(0xFA);
   }
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -777,6 +849,7 @@ void AssemblerX86Base<Machine>::pxor(Type /* Ty */,
                                      typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0xEF);
   emitXmmRegisterOperand(dst, src);
@@ -788,9 +861,10 @@ void AssemblerX86Base<Machine>::pxor(Type /* Ty */,
                                      const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0xEF);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -798,6 +872,7 @@ void AssemblerX86Base<Machine>::psll(Type Ty, typename Traits::XmmRegister dst,
                                      typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   if (Ty == IceType_i16) {
     emitUint8(0xF1);
@@ -813,6 +888,7 @@ void AssemblerX86Base<Machine>::psll(Type Ty, typename Traits::XmmRegister dst,
                                      const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   if (Ty == IceType_i16) {
     emitUint8(0xF1);
@@ -820,7 +896,7 @@ void AssemblerX86Base<Machine>::psll(Type Ty, typename Traits::XmmRegister dst,
     assert(Ty == IceType_i32);
     emitUint8(0xF2);
   }
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -829,6 +905,7 @@ void AssemblerX86Base<Machine>::psll(Type Ty, typename Traits::XmmRegister dst,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   assert(imm.is_int8());
   emitUint8(0x66);
+  emitRexB(RexTypeIrrelevant, dst);
   emitUint8(0x0F);
   if (Ty == IceType_i16) {
     emitUint8(0x71);
@@ -836,7 +913,7 @@ void AssemblerX86Base<Machine>::psll(Type Ty, typename Traits::XmmRegister dst,
     assert(Ty == IceType_i32);
     emitUint8(0x72);
   }
-  emitRegisterOperand(6, dst);
+  emitRegisterOperand(6, gprEncoding(dst));
   emitUint8(imm.value() & 0xFF);
 }
 
@@ -845,6 +922,7 @@ void AssemblerX86Base<Machine>::psra(Type Ty, typename Traits::XmmRegister dst,
                                      typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   if (Ty == IceType_i16) {
     emitUint8(0xE1);
@@ -860,6 +938,7 @@ void AssemblerX86Base<Machine>::psra(Type Ty, typename Traits::XmmRegister dst,
                                      const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   if (Ty == IceType_i16) {
     emitUint8(0xE1);
@@ -867,7 +946,7 @@ void AssemblerX86Base<Machine>::psra(Type Ty, typename Traits::XmmRegister dst,
     assert(Ty == IceType_i32);
     emitUint8(0xE2);
   }
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -876,6 +955,7 @@ void AssemblerX86Base<Machine>::psra(Type Ty, typename Traits::XmmRegister dst,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   assert(imm.is_int8());
   emitUint8(0x66);
+  emitRexB(RexTypeIrrelevant, dst);
   emitUint8(0x0F);
   if (Ty == IceType_i16) {
     emitUint8(0x71);
@@ -883,7 +963,7 @@ void AssemblerX86Base<Machine>::psra(Type Ty, typename Traits::XmmRegister dst,
     assert(Ty == IceType_i32);
     emitUint8(0x72);
   }
-  emitRegisterOperand(4, dst);
+  emitRegisterOperand(4, gprEncoding(dst));
   emitUint8(imm.value() & 0xFF);
 }
 
@@ -892,6 +972,7 @@ void AssemblerX86Base<Machine>::psrl(Type Ty, typename Traits::XmmRegister dst,
                                      typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   if (Ty == IceType_i16) {
     emitUint8(0xD1);
@@ -909,6 +990,7 @@ void AssemblerX86Base<Machine>::psrl(Type Ty, typename Traits::XmmRegister dst,
                                      const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   if (Ty == IceType_i16) {
     emitUint8(0xD1);
@@ -918,7 +1000,7 @@ void AssemblerX86Base<Machine>::psrl(Type Ty, typename Traits::XmmRegister dst,
     assert(Ty == IceType_i32 || Ty == IceType_f32 || Ty == IceType_v4f32);
     emitUint8(0xD2);
   }
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -927,6 +1009,7 @@ void AssemblerX86Base<Machine>::psrl(Type Ty, typename Traits::XmmRegister dst,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   assert(imm.is_int8());
   emitUint8(0x66);
+  emitRexB(RexTypeIrrelevant, dst);
   emitUint8(0x0F);
   if (Ty == IceType_i16) {
     emitUint8(0x71);
@@ -936,7 +1019,7 @@ void AssemblerX86Base<Machine>::psrl(Type Ty, typename Traits::XmmRegister dst,
     assert(Ty == IceType_i32 || Ty == IceType_f32 || Ty == IceType_v4f32);
     emitUint8(0x72);
   }
-  emitRegisterOperand(2, dst);
+  emitRegisterOperand(2, gprEncoding(dst));
   emitUint8(imm.value() & 0xFF);
 }
 
@@ -949,6 +1032,7 @@ void AssemblerX86Base<Machine>::addps(Type /* Ty */,
                                       typename Traits::XmmRegister dst,
                                       typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x58);
   emitXmmRegisterOperand(dst, src);
@@ -959,9 +1043,10 @@ void AssemblerX86Base<Machine>::addps(Type /* Ty */,
                                       typename Traits::XmmRegister dst,
                                       const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x58);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -969,6 +1054,7 @@ void AssemblerX86Base<Machine>::subps(Type /* Ty */,
                                       typename Traits::XmmRegister dst,
                                       typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x5C);
   emitXmmRegisterOperand(dst, src);
@@ -979,9 +1065,10 @@ void AssemblerX86Base<Machine>::subps(Type /* Ty */,
                                       typename Traits::XmmRegister dst,
                                       const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x5C);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -989,6 +1076,7 @@ void AssemblerX86Base<Machine>::divps(Type /* Ty */,
                                       typename Traits::XmmRegister dst,
                                       typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x5E);
   emitXmmRegisterOperand(dst, src);
@@ -999,9 +1087,10 @@ void AssemblerX86Base<Machine>::divps(Type /* Ty */,
                                       typename Traits::XmmRegister dst,
                                       const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x5E);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -1009,6 +1098,7 @@ void AssemblerX86Base<Machine>::mulps(Type /* Ty */,
                                       typename Traits::XmmRegister dst,
                                       typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x59);
   emitXmmRegisterOperand(dst, src);
@@ -1019,15 +1109,17 @@ void AssemblerX86Base<Machine>::mulps(Type /* Ty */,
                                       typename Traits::XmmRegister dst,
                                       const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x59);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
 void AssemblerX86Base<Machine>::minps(typename Traits::XmmRegister dst,
                                       typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x5D);
   emitXmmRegisterOperand(dst, src);
@@ -1037,6 +1129,7 @@ template <class Machine>
 void AssemblerX86Base<Machine>::maxps(typename Traits::XmmRegister dst,
                                       typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x5F);
   emitXmmRegisterOperand(dst, src);
@@ -1046,6 +1139,7 @@ template <class Machine>
 void AssemblerX86Base<Machine>::andps(typename Traits::XmmRegister dst,
                                       typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x54);
   emitXmmRegisterOperand(dst, src);
@@ -1055,15 +1149,17 @@ template <class Machine>
 void AssemblerX86Base<Machine>::andps(typename Traits::XmmRegister dst,
                                       const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x54);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
 void AssemblerX86Base<Machine>::orps(typename Traits::XmmRegister dst,
                                      typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x56);
   emitXmmRegisterOperand(dst, src);
@@ -1075,6 +1171,7 @@ void AssemblerX86Base<Machine>::blendvps(Type /* Ty */,
                                          typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x38);
   emitUint8(0x14);
@@ -1087,10 +1184,11 @@ void AssemblerX86Base<Machine>::blendvps(Type /* Ty */,
                                          const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x38);
   emitUint8(0x14);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -1099,6 +1197,7 @@ void AssemblerX86Base<Machine>::pblendvb(Type /* Ty */,
                                          typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x38);
   emitUint8(0x10);
@@ -1111,10 +1210,11 @@ void AssemblerX86Base<Machine>::pblendvb(Type /* Ty */,
                                          const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x38);
   emitUint8(0x10);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -1122,6 +1222,7 @@ void AssemblerX86Base<Machine>::cmpps(
     typename Traits::XmmRegister dst, typename Traits::XmmRegister src,
     typename Traits::Cond::CmppsCond CmpCondition) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0xC2);
   emitXmmRegisterOperand(dst, src);
@@ -1133,15 +1234,17 @@ void AssemblerX86Base<Machine>::cmpps(
     typename Traits::XmmRegister dst, const typename Traits::Address &src,
     typename Traits::Cond::CmppsCond CmpCondition) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0xC2);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
   emitUint8(CmpCondition);
 }
 
 template <class Machine>
 void AssemblerX86Base<Machine>::sqrtps(typename Traits::XmmRegister dst) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRexRB(RexTypeIrrelevant, dst, dst);
   emitUint8(0x0F);
   emitUint8(0x51);
   emitXmmRegisterOperand(dst, dst);
@@ -1150,6 +1253,7 @@ void AssemblerX86Base<Machine>::sqrtps(typename Traits::XmmRegister dst) {
 template <class Machine>
 void AssemblerX86Base<Machine>::rsqrtps(typename Traits::XmmRegister dst) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRexRB(RexTypeIrrelevant, dst, dst);
   emitUint8(0x0F);
   emitUint8(0x52);
   emitXmmRegisterOperand(dst, dst);
@@ -1158,6 +1262,7 @@ void AssemblerX86Base<Machine>::rsqrtps(typename Traits::XmmRegister dst) {
 template <class Machine>
 void AssemblerX86Base<Machine>::reciprocalps(typename Traits::XmmRegister dst) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRexRB(RexTypeIrrelevant, dst, dst);
   emitUint8(0x0F);
   emitUint8(0x53);
   emitXmmRegisterOperand(dst, dst);
@@ -1167,6 +1272,7 @@ template <class Machine>
 void AssemblerX86Base<Machine>::movhlps(typename Traits::XmmRegister dst,
                                         typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x12);
   emitXmmRegisterOperand(dst, src);
@@ -1176,6 +1282,7 @@ template <class Machine>
 void AssemblerX86Base<Machine>::movlhps(typename Traits::XmmRegister dst,
                                         typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x16);
   emitXmmRegisterOperand(dst, src);
@@ -1185,6 +1292,7 @@ template <class Machine>
 void AssemblerX86Base<Machine>::unpcklps(typename Traits::XmmRegister dst,
                                          typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x14);
   emitXmmRegisterOperand(dst, src);
@@ -1194,6 +1302,7 @@ template <class Machine>
 void AssemblerX86Base<Machine>::unpckhps(typename Traits::XmmRegister dst,
                                          typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x15);
   emitXmmRegisterOperand(dst, src);
@@ -1204,6 +1313,7 @@ void AssemblerX86Base<Machine>::unpcklpd(typename Traits::XmmRegister dst,
                                          typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x14);
   emitXmmRegisterOperand(dst, src);
@@ -1214,6 +1324,7 @@ void AssemblerX86Base<Machine>::unpckhpd(typename Traits::XmmRegister dst,
                                          typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x15);
   emitXmmRegisterOperand(dst, src);
@@ -1228,19 +1339,7 @@ void AssemblerX86Base<Machine>::set1ps(typename Traits::XmmRegister dst,
   // Move value from tmp1 into dst.
   movd(dst, tmp1);
   // Broadcast low lane into other three lanes.
-  shufps(dst, dst, Immediate(0x0));
-}
-
-template <class Machine>
-void AssemblerX86Base<Machine>::shufps(typename Traits::XmmRegister dst,
-                                       typename Traits::XmmRegister src,
-                                       const Immediate &imm) {
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitUint8(0x0F);
-  emitUint8(0xC6);
-  emitXmmRegisterOperand(dst, src);
-  assert(imm.is_uint8());
-  emitUint8(imm.value());
+  shufps(RexTypeIrrelevant, dst, dst, Immediate(0x0));
 }
 
 template <class Machine>
@@ -1250,6 +1349,7 @@ void AssemblerX86Base<Machine>::pshufd(Type /* Ty */,
                                        const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x70);
   emitXmmRegisterOperand(dst, src);
@@ -1264,9 +1364,10 @@ void AssemblerX86Base<Machine>::pshufd(Type /* Ty */,
                                        const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x70);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
   assert(imm.is_uint8());
   emitUint8(imm.value());
 }
@@ -1277,6 +1378,7 @@ void AssemblerX86Base<Machine>::shufps(Type /* Ty */,
                                        typename Traits::XmmRegister src,
                                        const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0xC6);
   emitXmmRegisterOperand(dst, src);
@@ -1290,9 +1392,10 @@ void AssemblerX86Base<Machine>::shufps(Type /* Ty */,
                                        const typename Traits::Address &src,
                                        const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0xC6);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
   assert(imm.is_uint8());
   emitUint8(imm.value());
 }
@@ -1302,6 +1405,7 @@ void AssemblerX86Base<Machine>::minpd(typename Traits::XmmRegister dst,
                                       typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x5D);
   emitXmmRegisterOperand(dst, src);
@@ -1312,6 +1416,7 @@ void AssemblerX86Base<Machine>::maxpd(typename Traits::XmmRegister dst,
                                       typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x5F);
   emitXmmRegisterOperand(dst, src);
@@ -1321,22 +1426,10 @@ template <class Machine>
 void AssemblerX86Base<Machine>::sqrtpd(typename Traits::XmmRegister dst) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, dst);
   emitUint8(0x0F);
   emitUint8(0x51);
   emitXmmRegisterOperand(dst, dst);
-}
-
-template <class Machine>
-void AssemblerX86Base<Machine>::shufpd(typename Traits::XmmRegister dst,
-                                       typename Traits::XmmRegister src,
-                                       const Immediate &imm) {
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitUint8(0x66);
-  emitUint8(0x0F);
-  emitUint8(0xC6);
-  emitXmmRegisterOperand(dst, src);
-  assert(imm.is_uint8());
-  emitUint8(imm.value());
 }
 
 template <class Machine>
@@ -1344,6 +1437,7 @@ void AssemblerX86Base<Machine>::cvtdq2ps(Type /* Ignore */,
                                          typename Traits::XmmRegister dst,
                                          typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x5B);
   emitXmmRegisterOperand(dst, src);
@@ -1354,9 +1448,10 @@ void AssemblerX86Base<Machine>::cvtdq2ps(Type /* Ignore */,
                                          typename Traits::XmmRegister dst,
                                          const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x5B);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -1365,6 +1460,7 @@ void AssemblerX86Base<Machine>::cvttps2dq(Type /* Ignore */,
                                           typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0xF3);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x5B);
   emitXmmRegisterOperand(dst, src);
@@ -1376,9 +1472,10 @@ void AssemblerX86Base<Machine>::cvttps2dq(Type /* Ignore */,
                                           const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0xF3);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x5B);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -1387,9 +1484,10 @@ void AssemblerX86Base<Machine>::cvtsi2ss(Type DestTy,
                                          typename Traits::GPRRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(DestTy) ? 0xF3 : 0xF2);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x2A);
-  emitRegisterOperand(dst, src);
+  emitXmmRegisterOperand(dst, src);
 }
 
 template <class Machine>
@@ -1398,9 +1496,10 @@ void AssemblerX86Base<Machine>::cvtsi2ss(Type DestTy,
                                          const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(DestTy) ? 0xF3 : 0xF2);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x2A);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -1410,6 +1509,7 @@ void AssemblerX86Base<Machine>::cvtfloat2float(
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   // ss2sd or sd2ss
   emitUint8(isFloat32Asserting32Or64(SrcTy) ? 0xF3 : 0xF2);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x5A);
   emitXmmRegisterOperand(dst, src);
@@ -1421,9 +1521,10 @@ void AssemblerX86Base<Machine>::cvtfloat2float(
     const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(SrcTy) ? 0xF3 : 0xF2);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x5A);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -1432,6 +1533,7 @@ void AssemblerX86Base<Machine>::cvttss2si(Type SrcTy,
                                           typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(SrcTy) ? 0xF3 : 0xF2);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x2C);
   emitXmmRegisterOperand(dst, src);
@@ -1443,9 +1545,10 @@ void AssemblerX86Base<Machine>::cvttss2si(Type SrcTy,
                                           const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(SrcTy) ? 0xF3 : 0xF2);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x2C);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -1454,6 +1557,7 @@ void AssemblerX86Base<Machine>::ucomiss(Type Ty, typename Traits::XmmRegister a,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_f64)
     emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, a, b);
   emitUint8(0x0F);
   emitUint8(0x2E);
   emitXmmRegisterOperand(a, b);
@@ -1465,9 +1569,10 @@ void AssemblerX86Base<Machine>::ucomiss(Type Ty, typename Traits::XmmRegister a,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_f64)
     emitUint8(0x66);
+  emitRex(RexTypeIrrelevant, b, a);
   emitUint8(0x0F);
   emitUint8(0x2E);
-  emitOperand(a, b);
+  emitOperand(gprEncoding(a), b);
 }
 
 template <class Machine>
@@ -1475,6 +1580,7 @@ void AssemblerX86Base<Machine>::movmskpd(typename Traits::GPRRegister dst,
                                          typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x50);
   emitXmmRegisterOperand(dst, src);
@@ -1484,6 +1590,7 @@ template <class Machine>
 void AssemblerX86Base<Machine>::movmskps(typename Traits::GPRRegister dst,
                                          typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x50);
   emitXmmRegisterOperand(dst, src);
@@ -1495,9 +1602,10 @@ void AssemblerX86Base<Machine>::sqrtss(Type Ty,
                                        const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x51);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -1506,6 +1614,7 @@ void AssemblerX86Base<Machine>::sqrtss(Type Ty,
                                        typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x51);
   emitXmmRegisterOperand(dst, src);
@@ -1516,9 +1625,10 @@ void AssemblerX86Base<Machine>::xorpd(typename Traits::XmmRegister dst,
                                       const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x57);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -1526,6 +1636,7 @@ void AssemblerX86Base<Machine>::xorpd(typename Traits::XmmRegister dst,
                                       typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x57);
   emitXmmRegisterOperand(dst, src);
@@ -1536,6 +1647,7 @@ void AssemblerX86Base<Machine>::orpd(typename Traits::XmmRegister dst,
                                      typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x56);
   emitXmmRegisterOperand(dst, src);
@@ -1545,15 +1657,17 @@ template <class Machine>
 void AssemblerX86Base<Machine>::xorps(typename Traits::XmmRegister dst,
                                       const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x57);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
 void AssemblerX86Base<Machine>::xorps(typename Traits::XmmRegister dst,
                                       typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x57);
   emitXmmRegisterOperand(dst, src);
@@ -1564,9 +1678,10 @@ void AssemblerX86Base<Machine>::andpd(typename Traits::XmmRegister dst,
                                       const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x54);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -1574,6 +1689,7 @@ void AssemblerX86Base<Machine>::andpd(typename Traits::XmmRegister dst,
                                       typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x54);
   emitXmmRegisterOperand(dst, src);
@@ -1589,6 +1705,7 @@ void AssemblerX86Base<Machine>::insertps(Type Ty,
   assert(isVectorFloatingType(Ty));
   (void)Ty;
   emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x3A);
   emitUint8(0x21);
@@ -1606,10 +1723,11 @@ void AssemblerX86Base<Machine>::insertps(Type Ty,
   assert(isVectorFloatingType(Ty));
   (void)Ty;
   emitUint8(0x66);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x3A);
   emitUint8(0x21);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
   emitUint8(imm.value());
 }
 
@@ -1619,20 +1737,17 @@ void AssemblerX86Base<Machine>::pinsr(Type Ty, typename Traits::XmmRegister dst,
                                       const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   assert(imm.is_uint8());
+  emitUint8(0x66);
+  emitRexRB(Ty, dst, src);
+  emitUint8(0x0F);
   if (Ty == IceType_i16) {
-    emitUint8(0x66);
-    emitUint8(0x0F);
     emitUint8(0xC4);
-    emitXmmRegisterOperand(dst, typename Traits::XmmRegister(src));
-    emitUint8(imm.value());
   } else {
-    emitUint8(0x66);
-    emitUint8(0x0F);
     emitUint8(0x3A);
     emitUint8(isByteSizedType(Ty) ? 0x20 : 0x22);
-    emitXmmRegisterOperand(dst, typename Traits::XmmRegister(src));
-    emitUint8(imm.value());
   }
+  emitXmmRegisterOperand(dst, src);
+  emitUint8(imm.value());
 }
 
 template <class Machine>
@@ -1641,20 +1756,17 @@ void AssemblerX86Base<Machine>::pinsr(Type Ty, typename Traits::XmmRegister dst,
                                       const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   assert(imm.is_uint8());
+  emitUint8(0x66);
+  emitRex(RexTypeIrrelevant, src, dst);
+  emitUint8(0x0F);
   if (Ty == IceType_i16) {
-    emitUint8(0x66);
-    emitUint8(0x0F);
     emitUint8(0xC4);
-    emitOperand(dst, src);
-    emitUint8(imm.value());
   } else {
-    emitUint8(0x66);
-    emitUint8(0x0F);
     emitUint8(0x3A);
     emitUint8(isByteSizedType(Ty) ? 0x20 : 0x22);
-    emitOperand(dst, src);
-    emitUint8(imm.value());
   }
+  emitOperand(gprEncoding(dst), src);
+  emitUint8(imm.value());
 }
 
 template <class Machine>
@@ -1665,18 +1777,20 @@ void AssemblerX86Base<Machine>::pextr(Type Ty, typename Traits::GPRRegister dst,
   assert(imm.is_uint8());
   if (Ty == IceType_i16) {
     emitUint8(0x66);
+    emitRexRB(Ty, dst, src);
     emitUint8(0x0F);
     emitUint8(0xC5);
-    emitXmmRegisterOperand(typename Traits::XmmRegister(dst), src);
+    emitXmmRegisterOperand(dst, src);
     emitUint8(imm.value());
   } else {
     emitUint8(0x66);
+    emitRexRB(Ty, src, dst);
     emitUint8(0x0F);
     emitUint8(0x3A);
     emitUint8(isByteSizedType(Ty) ? 0x14 : 0x16);
     // SSE 4.1 versions are "MRI" because dst can be mem, while
     // pextrw (SSE2) is RMI because dst must be reg.
-    emitXmmRegisterOperand(src, typename Traits::XmmRegister(dst));
+    emitXmmRegisterOperand(src, dst);
     emitUint8(imm.value());
   }
 }
@@ -1686,6 +1800,7 @@ void AssemblerX86Base<Machine>::pmovsxdq(typename Traits::XmmRegister dst,
                                          typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x38);
   emitUint8(0x25);
@@ -1698,6 +1813,7 @@ void AssemblerX86Base<Machine>::pcmpeq(Type Ty,
                                        typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   if (isByteSizedArithType(Ty)) {
     emitUint8(0x74);
@@ -1715,6 +1831,7 @@ void AssemblerX86Base<Machine>::pcmpeq(Type Ty,
                                        const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   if (isByteSizedArithType(Ty)) {
     emitUint8(0x74);
@@ -1723,7 +1840,7 @@ void AssemblerX86Base<Machine>::pcmpeq(Type Ty,
   } else {
     emitUint8(0x76);
   }
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -1732,6 +1849,7 @@ void AssemblerX86Base<Machine>::pcmpgt(Type Ty,
                                        typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   if (isByteSizedArithType(Ty)) {
     emitUint8(0x64);
@@ -1749,6 +1867,7 @@ void AssemblerX86Base<Machine>::pcmpgt(Type Ty,
                                        const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   if (isByteSizedArithType(Ty)) {
     emitUint8(0x64);
@@ -1757,7 +1876,7 @@ void AssemblerX86Base<Machine>::pcmpgt(Type Ty,
   } else {
     emitUint8(0x66);
   }
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -1766,6 +1885,7 @@ void AssemblerX86Base<Machine>::roundsd(typename Traits::XmmRegister dst,
                                         RoundingMode mode) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x3A);
   emitUint8(0x0B);
@@ -1775,48 +1895,56 @@ void AssemblerX86Base<Machine>::roundsd(typename Traits::XmmRegister dst,
 }
 
 template <class Machine>
-void AssemblerX86Base<Machine>::fnstcw(const typename Traits::Address &dst) {
+template <typename T, typename>
+void AssemblerX86Base<Machine>::fnstcw(const typename T::Address &dst) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0xD9);
   emitOperand(7, dst);
 }
 
 template <class Machine>
-void AssemblerX86Base<Machine>::fldcw(const typename Traits::Address &src) {
+template <typename T, typename>
+void AssemblerX86Base<Machine>::fldcw(const typename T::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0xD9);
   emitOperand(5, src);
 }
 
 template <class Machine>
-void AssemblerX86Base<Machine>::fistpl(const typename Traits::Address &dst) {
+template <typename T, typename>
+void AssemblerX86Base<Machine>::fistpl(const typename T::Address &dst) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0xDF);
   emitOperand(7, dst);
 }
 
 template <class Machine>
-void AssemblerX86Base<Machine>::fistps(const typename Traits::Address &dst) {
+template <typename T, typename>
+void AssemblerX86Base<Machine>::fistps(const typename T::Address &dst) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0xDB);
   emitOperand(3, dst);
 }
 
 template <class Machine>
-void AssemblerX86Base<Machine>::fildl(const typename Traits::Address &src) {
+template <typename T, typename>
+void AssemblerX86Base<Machine>::fildl(const typename T::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0xDF);
   emitOperand(5, src);
 }
 
 template <class Machine>
-void AssemblerX86Base<Machine>::filds(const typename Traits::Address &src) {
+template <typename T, typename>
+void AssemblerX86Base<Machine>::filds(const typename T::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0xDB);
   emitOperand(0, src);
 }
 
-template <class Machine> void AssemblerX86Base<Machine>::fincstp() {
+template <class Machine>
+template <typename, typename>
+void AssemblerX86Base<Machine>::fincstp() {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0xD9);
   emitUint8(0xF7);
@@ -1829,13 +1957,14 @@ void AssemblerX86Base<Machine>::arith_int(Type Ty,
                                           const Immediate &imm) {
   static_assert(Tag < 8, "Tag must be between 0..7");
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  if (isByteSizedType(Ty)) {
-    emitComplexI8(Tag, typename Traits::Operand(reg), imm);
-    return;
-  }
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
-  emitComplex(Ty, Tag, typename Traits::Operand(reg), imm);
+  emitRexB(Ty, reg);
+  if (isByteSizedType(Ty)) {
+    emitComplexI8(Tag, typename Traits::Operand(reg), imm);
+  } else {
+    emitComplex(Ty, Tag, typename Traits::Operand(reg), imm);
+  }
 }
 
 template <class Machine>
@@ -1847,11 +1976,12 @@ void AssemblerX86Base<Machine>::arith_int(Type Ty,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRexRB(Ty, reg0, reg1);
   if (isByteSizedType(Ty))
     emitUint8(Tag * 8 + 2);
   else
     emitUint8(Tag * 8 + 3);
-  emitRegisterOperand(reg0, reg1);
+  emitRegisterOperand(gprEncoding(reg0), gprEncoding(reg1));
 }
 
 template <class Machine>
@@ -1863,11 +1993,12 @@ void AssemblerX86Base<Machine>::arith_int(
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRex(Ty, address, reg);
   if (isByteSizedType(Ty))
     emitUint8(Tag * 8 + 2);
   else
     emitUint8(Tag * 8 + 3);
-  emitOperand(reg, address);
+  emitOperand(gprEncoding(reg), address);
 }
 
 template <class Machine>
@@ -1879,11 +2010,12 @@ void AssemblerX86Base<Machine>::arith_int(
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRex(Ty, address, reg);
   if (isByteSizedType(Ty))
     emitUint8(Tag * 8 + 0);
   else
     emitUint8(Tag * 8 + 1);
-  emitOperand(reg, address);
+  emitOperand(gprEncoding(reg), address);
 }
 
 template <class Machine>
@@ -1892,13 +2024,14 @@ void AssemblerX86Base<Machine>::arith_int(
     Type Ty, const typename Traits::Address &address, const Immediate &imm) {
   static_assert(Tag < 8, "Tag must be between 0..7");
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  if (isByteSizedType(Ty)) {
-    emitComplexI8(Tag, address, imm);
-    return;
-  }
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
-  emitComplex(Ty, Tag, address, imm);
+  emitRex(Ty, address, RexRegIrrelevant);
+  if (isByteSizedType(Ty)) {
+    emitComplexI8(Tag, address, imm);
+  } else {
+    emitComplex(Ty, Tag, address, imm);
+  }
 }
 
 template <class Machine>
@@ -1939,11 +2072,12 @@ void AssemblerX86Base<Machine>::test(Type Ty, typename Traits::GPRRegister reg1,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRexRB(Ty, reg1, reg2);
   if (isByteSizedType(Ty))
     emitUint8(0x84);
   else
     emitUint8(0x85);
-  emitRegisterOperand(reg1, reg2);
+  emitRegisterOperand(gprEncoding(reg1), gprEncoding(reg2));
 }
 
 template <class Machine>
@@ -1953,11 +2087,12 @@ void AssemblerX86Base<Machine>::test(Type Ty,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRex(Ty, addr, reg);
   if (isByteSizedType(Ty))
     emitUint8(0x84);
   else
     emitUint8(0x85);
-  emitOperand(reg, addr);
+  emitOperand(gprEncoding(reg), addr);
 }
 
 template <class Machine>
@@ -1969,13 +2104,14 @@ void AssemblerX86Base<Machine>::test(Type Ty, typename Traits::GPRRegister reg,
   // This is legal even if the register had high bits set since
   // this only sets flags registers based on the "AND" of the two operands,
   // and the immediate had zeros at those high bits.
-  if (immediate.is_uint8() && reg < 4) {
+  if (immediate.is_uint8() && reg <= Traits::Last8BitGPR) {
     // Use zero-extended 8-bit immediate.
+    emitRexB(Ty, reg);
     if (reg == Traits::Encoded_Reg_Accumulator) {
       emitUint8(0xA8);
     } else {
       emitUint8(0xF6);
-      emitUint8(0xC0 + reg);
+      emitUint8(0xC0 + gprEncoding(reg));
     }
     emitUint8(immediate.value() & 0xFF);
   } else if (reg == Traits::Encoded_Reg_Accumulator) {
@@ -1987,8 +2123,9 @@ void AssemblerX86Base<Machine>::test(Type Ty, typename Traits::GPRRegister reg,
   } else {
     if (Ty == IceType_i16)
       emitOperandSizeOverride();
+    emitRexB(Ty, reg);
     emitUint8(0xF7);
-    emitRegisterOperand(0, reg);
+    emitRegisterOperand(0, gprEncoding(reg));
     emitImmediate(Ty, immediate);
   }
 }
@@ -2002,12 +2139,14 @@ void AssemblerX86Base<Machine>::test(Type Ty,
   // encoding short.
   if (immediate.is_uint8()) {
     // Use zero-extended 8-bit immediate.
+    emitRex(Ty, addr, RexRegIrrelevant);
     emitUint8(0xF6);
     emitOperand(0, addr);
     emitUint8(immediate.value() & 0xFF);
   } else {
     if (Ty == IceType_i16)
       emitOperandSizeOverride();
+    emitRex(Ty, addr, RexRegIrrelevant);
     emitUint8(0xF7);
     emitOperand(0, addr);
     emitImmediate(Ty, immediate);
@@ -2260,11 +2399,12 @@ void AssemblerX86Base<Machine>::div(Type Ty, typename Traits::GPRRegister reg) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRexB(Ty, reg);
   if (isByteSizedArithType(Ty))
     emitUint8(0xF6);
   else
     emitUint8(0xF7);
-  emitRegisterOperand(6, reg);
+  emitRegisterOperand(6, gprEncoding(reg));
 }
 
 template <class Machine>
@@ -2273,6 +2413,7 @@ void AssemblerX86Base<Machine>::div(Type Ty,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRex(Ty, addr, RexRegIrrelevant);
   if (isByteSizedArithType(Ty))
     emitUint8(0xF6);
   else
@@ -2286,11 +2427,12 @@ void AssemblerX86Base<Machine>::idiv(Type Ty,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRexB(Ty, reg);
   if (isByteSizedArithType(Ty))
     emitUint8(0xF6);
   else
     emitUint8(0xF7);
-  emitRegisterOperand(7, reg);
+  emitRegisterOperand(7, gprEncoding(reg));
 }
 
 template <class Machine>
@@ -2299,6 +2441,7 @@ void AssemblerX86Base<Machine>::idiv(Type Ty,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRex(Ty, addr, RexRegIrrelevant);
   if (isByteSizedArithType(Ty))
     emitUint8(0xF6);
   else
@@ -2313,9 +2456,10 @@ void AssemblerX86Base<Machine>::imul(Type Ty, typename Traits::GPRRegister dst,
   assert(Ty == IceType_i16 || Ty == IceType_i32);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRexRB(Ty, dst, src);
   emitUint8(0x0F);
   emitUint8(0xAF);
-  emitRegisterOperand(dst, src);
+  emitRegisterOperand(gprEncoding(dst), gprEncoding(src));
 }
 
 template <class Machine>
@@ -2325,9 +2469,10 @@ void AssemblerX86Base<Machine>::imul(Type Ty, typename Traits::GPRRegister reg,
   assert(Ty == IceType_i16 || Ty == IceType_i32);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRex(Ty, address, reg);
   emitUint8(0x0F);
   emitUint8(0xAF);
-  emitOperand(reg, address);
+  emitOperand(gprEncoding(reg), address);
 }
 
 template <class Machine>
@@ -2337,13 +2482,14 @@ void AssemblerX86Base<Machine>::imul(Type Ty, typename Traits::GPRRegister reg,
   assert(Ty == IceType_i16 || Ty == IceType_i32);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRexRB(Ty, reg, reg);
   if (imm.is_int8()) {
     emitUint8(0x6B);
-    emitRegisterOperand(reg, reg);
+    emitRegisterOperand(gprEncoding(reg), gprEncoding(reg));
     emitUint8(imm.value() & 0xFF);
   } else {
     emitUint8(0x69);
-    emitRegisterOperand(reg, reg);
+    emitRegisterOperand(gprEncoding(reg), gprEncoding(reg));
     emitImmediate(Ty, imm);
   }
 }
@@ -2354,11 +2500,12 @@ void AssemblerX86Base<Machine>::imul(Type Ty,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRexB(Ty, reg);
   if (isByteSizedArithType(Ty))
     emitUint8(0xF6);
   else
     emitUint8(0xF7);
-  emitRegisterOperand(5, reg);
+  emitRegisterOperand(5, gprEncoding(reg));
 }
 
 template <class Machine>
@@ -2367,6 +2514,7 @@ void AssemblerX86Base<Machine>::imul(Type Ty,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRex(Ty, address, RexRegIrrelevant);
   if (isByteSizedArithType(Ty))
     emitUint8(0xF6);
   else
@@ -2379,11 +2527,12 @@ void AssemblerX86Base<Machine>::mul(Type Ty, typename Traits::GPRRegister reg) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRexB(Ty, reg);
   if (isByteSizedArithType(Ty))
     emitUint8(0xF6);
   else
     emitUint8(0xF7);
-  emitRegisterOperand(4, reg);
+  emitRegisterOperand(4, gprEncoding(reg));
 }
 
 template <class Machine>
@@ -2392,6 +2541,7 @@ void AssemblerX86Base<Machine>::mul(Type Ty,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRex(Ty, address, RexRegIrrelevant);
   if (isByteSizedArithType(Ty))
     emitUint8(0xF6);
   else
@@ -2400,6 +2550,7 @@ void AssemblerX86Base<Machine>::mul(Type Ty,
 }
 
 template <class Machine>
+template <typename, typename>
 void AssemblerX86Base<Machine>::incl(typename Traits::GPRRegister reg) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x40 + reg);
@@ -2408,11 +2559,13 @@ void AssemblerX86Base<Machine>::incl(typename Traits::GPRRegister reg) {
 template <class Machine>
 void AssemblerX86Base<Machine>::incl(const typename Traits::Address &address) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRex(IceType_i32, address, RexRegIrrelevant);
   emitUint8(0xFF);
   emitOperand(0, address);
 }
 
 template <class Machine>
+template <typename, typename>
 void AssemblerX86Base<Machine>::decl(typename Traits::GPRRegister reg) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x48 + reg);
@@ -2421,6 +2574,7 @@ void AssemblerX86Base<Machine>::decl(typename Traits::GPRRegister reg) {
 template <class Machine>
 void AssemblerX86Base<Machine>::decl(const typename Traits::Address &address) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRex(IceType_i32, address, RexRegIrrelevant);
   emitUint8(0xFF);
   emitOperand(1, address);
 }
@@ -2512,9 +2666,10 @@ void AssemblerX86Base<Machine>::shld(Type Ty, typename Traits::GPRRegister dst,
   assert(Ty == IceType_i16 || Ty == IceType_i32);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRexRB(Ty, src, dst);
   emitUint8(0x0F);
   emitUint8(0xA5);
-  emitRegisterOperand(src, dst);
+  emitRegisterOperand(gprEncoding(src), gprEncoding(dst));
 }
 
 template <class Machine>
@@ -2526,9 +2681,10 @@ void AssemblerX86Base<Machine>::shld(Type Ty, typename Traits::GPRRegister dst,
   assert(imm.is_int8());
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRexRB(Ty, src, dst);
   emitUint8(0x0F);
   emitUint8(0xA4);
-  emitRegisterOperand(src, dst);
+  emitRegisterOperand(gprEncoding(src), gprEncoding(dst));
   emitUint8(imm.value() & 0xFF);
 }
 
@@ -2540,9 +2696,10 @@ void AssemblerX86Base<Machine>::shld(Type Ty,
   assert(Ty == IceType_i16 || Ty == IceType_i32);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRex(Ty, operand, src);
   emitUint8(0x0F);
   emitUint8(0xA5);
-  emitOperand(src, operand);
+  emitOperand(gprEncoding(src), operand);
 }
 
 template <class Machine>
@@ -2552,9 +2709,10 @@ void AssemblerX86Base<Machine>::shrd(Type Ty, typename Traits::GPRRegister dst,
   assert(Ty == IceType_i16 || Ty == IceType_i32);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRexRB(Ty, src, dst);
   emitUint8(0x0F);
   emitUint8(0xAD);
-  emitRegisterOperand(src, dst);
+  emitRegisterOperand(gprEncoding(src), gprEncoding(dst));
 }
 
 template <class Machine>
@@ -2566,9 +2724,10 @@ void AssemblerX86Base<Machine>::shrd(Type Ty, typename Traits::GPRRegister dst,
   assert(imm.is_int8());
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRexRB(Ty, src, dst);
   emitUint8(0x0F);
   emitUint8(0xAC);
-  emitRegisterOperand(src, dst);
+  emitRegisterOperand(gprEncoding(src), gprEncoding(dst));
   emitUint8(imm.value() & 0xFF);
 }
 
@@ -2580,9 +2739,10 @@ void AssemblerX86Base<Machine>::shrd(Type Ty,
   assert(Ty == IceType_i16 || Ty == IceType_i32);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRex(Ty, dst, src);
   emitUint8(0x0F);
   emitUint8(0xAD);
-  emitOperand(src, dst);
+  emitOperand(gprEncoding(src), dst);
 }
 
 template <class Machine>
@@ -2590,11 +2750,12 @@ void AssemblerX86Base<Machine>::neg(Type Ty, typename Traits::GPRRegister reg) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRexB(Ty, reg);
   if (isByteSizedArithType(Ty))
     emitUint8(0xF6);
   else
     emitUint8(0xF7);
-  emitRegisterOperand(3, reg);
+  emitRegisterOperand(3, gprEncoding(reg));
 }
 
 template <class Machine>
@@ -2603,6 +2764,7 @@ void AssemblerX86Base<Machine>::neg(Type Ty,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRex(Ty, addr, RexRegIrrelevant);
   if (isByteSizedArithType(Ty))
     emitUint8(0xF6);
   else
@@ -2613,8 +2775,9 @@ void AssemblerX86Base<Machine>::neg(Type Ty,
 template <class Machine>
 void AssemblerX86Base<Machine>::notl(typename Traits::GPRRegister reg) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRexB(IceType_i32, reg);
   emitUint8(0xF7);
-  emitUint8(0xD0 | reg);
+  emitUint8(0xD0 | gprEncoding(reg));
 }
 
 template <class Machine>
@@ -2623,8 +2786,9 @@ void AssemblerX86Base<Machine>::bswap(Type Ty,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   assert(Ty == IceType_i32);
   (void)Ty;
+  emitRexB(Ty, reg);
   emitUint8(0x0F);
-  emitUint8(0xC8 | reg);
+  emitUint8(0xC8 | gprEncoding(reg));
 }
 
 template <class Machine>
@@ -2634,9 +2798,10 @@ void AssemblerX86Base<Machine>::bsf(Type Ty, typename Traits::GPRRegister dst,
   assert(Ty == IceType_i16 || Ty == IceType_i32);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRexRB(Ty, dst, src);
   emitUint8(0x0F);
   emitUint8(0xBC);
-  emitRegisterOperand(dst, src);
+  emitRegisterOperand(gprEncoding(dst), gprEncoding(src));
 }
 
 template <class Machine>
@@ -2646,9 +2811,10 @@ void AssemblerX86Base<Machine>::bsf(Type Ty, typename Traits::GPRRegister dst,
   assert(Ty == IceType_i16 || Ty == IceType_i32);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRex(Ty, src, dst);
   emitUint8(0x0F);
   emitUint8(0xBC);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -2658,9 +2824,10 @@ void AssemblerX86Base<Machine>::bsr(Type Ty, typename Traits::GPRRegister dst,
   assert(Ty == IceType_i16 || Ty == IceType_i32);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRexRB(Ty, dst, src);
   emitUint8(0x0F);
   emitUint8(0xBD);
-  emitRegisterOperand(dst, src);
+  emitRegisterOperand(gprEncoding(dst), gprEncoding(src));
 }
 
 template <class Machine>
@@ -2670,18 +2837,20 @@ void AssemblerX86Base<Machine>::bsr(Type Ty, typename Traits::GPRRegister dst,
   assert(Ty == IceType_i16 || Ty == IceType_i32);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRex(Ty, src, dst);
   emitUint8(0x0F);
   emitUint8(0xBD);
-  emitOperand(dst, src);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
 void AssemblerX86Base<Machine>::bt(typename Traits::GPRRegister base,
                                    typename Traits::GPRRegister offset) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRexRB(IceType_i32, offset, base);
   emitUint8(0x0F);
   emitUint8(0xA3);
-  emitRegisterOperand(offset, base);
+  emitRegisterOperand(gprEncoding(offset), gprEncoding(base));
 }
 
 template <class Machine> void AssemblerX86Base<Machine>::ret() {
@@ -2823,8 +2992,9 @@ void AssemblerX86Base<Machine>::j(typename Traits::Cond::BrCond condition,
 template <class Machine>
 void AssemblerX86Base<Machine>::jmp(typename Traits::GPRRegister reg) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRexB(RexTypeIrrelevant, reg);
   emitUint8(0xFF);
-  emitRegisterOperand(4, reg);
+  emitRegisterOperand(4, gprEncoding(reg));
 }
 
 template <class Machine>
@@ -2881,12 +3051,13 @@ void AssemblerX86Base<Machine>::cmpxchg(Type Ty,
     emitOperandSizeOverride();
   if (Locked)
     emitUint8(0xF0);
+  emitRex(Ty, address, reg);
   emitUint8(0x0F);
   if (isByteSizedArithType(Ty))
     emitUint8(0xB0);
   else
     emitUint8(0xB1);
-  emitOperand(reg, address);
+  emitOperand(gprEncoding(reg), address);
 }
 
 template <class Machine>
@@ -2895,6 +3066,7 @@ void AssemblerX86Base<Machine>::cmpxchg8b(
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Locked)
     emitUint8(0xF0);
+  emitRex(IceType_i32, address, RexRegIrrelevant);
   emitUint8(0x0F);
   emitUint8(0xC7);
   emitOperand(1, address);
@@ -2910,12 +3082,13 @@ void AssemblerX86Base<Machine>::xadd(Type Ty,
     emitOperandSizeOverride();
   if (Locked)
     emitUint8(0xF0);
+  emitRex(Ty, addr, reg);
   emitUint8(0x0F);
   if (isByteSizedArithType(Ty))
     emitUint8(0xC0);
   else
     emitUint8(0xC1);
-  emitOperand(reg, addr);
+  emitOperand(gprEncoding(reg), addr);
 }
 
 template <class Machine>
@@ -2925,11 +3098,12 @@ void AssemblerX86Base<Machine>::xchg(Type Ty,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRex(Ty, addr, reg);
   if (isByteSizedArithType(Ty))
     emitUint8(0x86);
   else
     emitUint8(0x87);
-  emitOperand(reg, addr);
+  emitOperand(gprEncoding(reg), addr);
 }
 
 template <class Machine>
@@ -3082,6 +3256,7 @@ void AssemblerX86Base<Machine>::emitGenericShift(
   assert(imm.is_int8());
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRexB(Ty, reg);
   if (imm.value() == 1) {
     emitUint8(isByteSizedArithType(Ty) ? 0xD0 : 0xD1);
     emitOperand(rm, typename Traits::Operand(reg));
@@ -3101,6 +3276,7 @@ void AssemblerX86Base<Machine>::emitGenericShift(
   (void)shifter;
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
+  emitRexB(Ty, operand.rm());
   emitUint8(isByteSizedArithType(Ty) ? 0xD2 : 0xD3);
   emitOperand(rm, operand);
 }
