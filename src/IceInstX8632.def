@@ -44,16 +44,10 @@
 // all of the registers are considered and have distinct numberings.
 // This is in contrast to the above, where the "encode" is based on how
 // the register numbers will be encoded in binaries and values can overlap.
-// Note that the isI8 attributed of Reg_ah is not set.  In general we
-// don't want the register allocator choosing Reg_ah, in particular
-// for lowering insertelement to pinsrb where internally we use an
-// 8-bit operand but externally pinsrb uses a 32-bit register, in
-// which Reg_ah doesn't map to eax.
 #define REGX8632_TABLE                                                  \
   /* val, encode, name, name16, name8, scratch, preserved, stackptr,    \
      frameptr, isI8, isInt, isFP */                                     \
   REGX8632_GPR_TABLE                                                    \
-  X(Reg_ah, 4, "???", "" , "ah", 0, 0, 0, 0, 0, 0, 0)                   \
   REGX8632_XMM_TABLE
 //#define X(val, encode, name, name16, name8, scratch, preserved, stackptr,
 //          frameptr, isI8, isInt, isFP)
@@ -73,8 +67,7 @@
   X(Reg_al, = 0) \
   X(Reg_cl, = 1) \
   X(Reg_dl, = 2) \
-  X(Reg_bl, = 3) \
-  X(Reg_ah, = 4)
+  X(Reg_bl, = 3)
 //#define X(val, encode)
 
 // X86 segment registers.

@@ -67,15 +67,10 @@
 // all of the registers are considered and have distinct numberings.
 // This is in contrast to the above, where the "encode" is based on how
 // the register numbers will be encoded in binaries and values can overlap.
-// We don't want the register allocator choosing Reg_ah, in particular
-// for lowering insertelement to pinsrb where internally we use an
-// 8-bit operand but externally pinsrb uses a 32-bit register, in
-// which Reg_ah doesn't map to eax.
 #define REGX8664_TABLE                                                         \
   /* val, encode, name64, name, name16, name8, scratch, preserved,             \
      stackptr, frameptr, isInt, isFP */                                        \
   REGX8664_GPR_TABLE                                                           \
-  X(Reg_ah, = Reg_rax + 4, "?ah", "?ah", "?ah", "ah", 0, 0, 0, 0, 0, 0)        \
   REGX8664_XMM_TABLE
 //#define X(val, encode, name, name32, name16, name8, scratch, preserved,
 //          stackptr, frameptr, isI8, isInt, isFP)

@@ -1850,12 +1850,21 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
     // immediates as the operand.
     Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
     if (isByteSizedArithType(Dest->getType())) {
-      Variable *T_ah = nullptr;
-      Constant *Zero = Ctx->getConstantZero(IceType_i8);
+      // For 8-bit unsigned division we need to zero-extend al into ah. A mov
+      // $0, %ah (or xor %ah, %ah) would work just fine, except that the x86-64
+      // assembler refuses to encode %ah (encoding %spl with a REX prefix
+      // instead.) Accessing %ah in 64-bit is "tricky" as you can't encode %ah
+      // with any other 8-bit register except for %a[lh], %b[lh], %c[lh], and
+      // d[%lh], which means the X86 target lowering (and the register
+      // allocator) would have to be aware of this restriction. For now, we
+      // simply zero %eax completely, and move the dividend into %al.
+      Variable *T_eax = makeReg(IceType_i32, Traits::RegisterSet::Reg_eax);
+      Context.insert(InstFakeDef::create(Func, T_eax));
+      _xor(T_eax, T_eax);
       _mov(T, Src0, Traits::RegisterSet::Reg_eax);
-      _mov(T_ah, Zero, Traits::RegisterSet::Reg_ah);
-      _div(T, Src1, T_ah);
+      _div(T, Src1, T);
       _mov(Dest, T);
+      Context.insert(InstFakeUse::create(Func, T_eax));
     } else {
       Constant *Zero = Ctx->getConstantZero(IceType_i32);
       _mov(T, Src0, Traits::RegisterSet::Reg_eax);
@@ -1917,12 +1926,21 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
   case InstArithmetic::Urem:
     Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
     if (isByteSizedArithType(Dest->getType())) {
-      Variable *T_ah = nullptr;
-      Constant *Zero = Ctx->getConstantZero(IceType_i8);
+      Variable *T_eax = makeReg(IceType_i32, Traits::RegisterSet::Reg_eax);
+      Context.insert(InstFakeDef::create(Func, T_eax));
+      _xor(T_eax, T_eax);
       _mov(T, Src0, Traits::RegisterSet::Reg_eax);
-      _mov(T_ah, Zero, Traits::RegisterSet::Reg_ah);
-      _div(T_ah, Src1, T);
-      _mov(Dest, T_ah);
+      Variable *T_al = makeReg(IceType_i8, Traits::RegisterSet::Reg_eax);
+      _div(T_al, Src1, T);
+      // shr $8, %eax shifts ah (i.e., the 8 bit remainder) into al. We don't
+      // mov %ah, %al because it would make x86-64 codegen more complicated. If
+      // this ever becomes a problem we can introduce a pseudo rem instruction
+      // that returns the remainder in %al directly (and uses a mov for copying
+      // %ah to %al.)
+      static constexpr uint8_t AlSizeInBits = 8;
+      _shr(T_eax, Ctx->getConstantInt8(AlSizeInBits));
+      _mov(Dest, T_al);
+      Context.insert(InstFakeUse::create(Func, T_eax));
     } else {
       Constant *Zero = Ctx->getConstantZero(IceType_i32);
       _mov(T_edx, Zero, Traits::RegisterSet::Reg_edx);
@@ -1974,12 +1992,21 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
     }
     Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
     if (isByteSizedArithType(Dest->getType())) {
-      Variable *T_ah = makeReg(IceType_i8, Traits::RegisterSet::Reg_ah);
       _mov(T, Src0, Traits::RegisterSet::Reg_eax);
+      // T is %al.
       _cbwdq(T, T);
-      Context.insert(InstFakeDef::create(Func, T_ah));
-      _idiv(T_ah, Src1, T);
-      _mov(Dest, T_ah);
+      _idiv(T, Src1, T);
+      Variable *T_eax = makeReg(IceType_i32, Traits::RegisterSet::Reg_eax);
+      Context.insert(InstFakeDef::create(Func, T_eax));
+      // shr $8, %eax shifts ah (i.e., the 8 bit remainder) into al. We don't
+      // mov %ah, %al because it would make x86-64 codegen more complicated. If
+      // this ever becomes a problem we can introduce a pseudo rem instruction
+      // that returns the remainder in %al directly (and uses a mov for copying
+      // %ah to %al.)
+      static constexpr uint8_t AlSizeInBits = 8;
+      _shr(T_eax, Ctx->getConstantInt8(AlSizeInBits));
+      _mov(Dest, T);
+      Context.insert(InstFakeUse::create(Func, T_eax));
     } else {
       T_edx = makeReg(IceType_i32, Traits::RegisterSet::Reg_edx);
       _mov(T, Src0, Traits::RegisterSet::Reg_eax);

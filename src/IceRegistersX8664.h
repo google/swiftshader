@@ -69,16 +69,20 @@ public:
   };
 
   static inline GPRRegister getEncodedGPR(int32_t RegNum) {
-    assert(Reg_GPR_First <= RegNum && RegNum <= Reg_GPR_Last);
+    assert(Reg_GPR_First <= RegNum);
+    assert(RegNum <= Reg_GPR_Last);
     return GPRRegister(RegNum - Reg_GPR_First);
   }
 
   static inline XmmRegister getEncodedXmm(int32_t RegNum) {
-    assert(Reg_XMM_First <= RegNum && RegNum <= Reg_XMM_Last);
+    assert(Reg_XMM_First <= RegNum);
+    assert(RegNum <= Reg_XMM_Last);
     return XmmRegister(RegNum - Reg_XMM_First);
   }
 
   static inline ByteRegister getEncodedByteReg(int32_t RegNum) {
+    assert(Reg_GPR_First <= RegNum);
+    assert(RegNum <= Reg_GPR_Last);
     return ByteRegister(RegNum - Reg_GPR_First);
   }
 

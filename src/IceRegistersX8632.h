@@ -78,19 +78,20 @@ public:
   };
 
   static inline GPRRegister getEncodedGPR(int32_t RegNum) {
-    assert(Reg_GPR_First <= RegNum && RegNum <= Reg_GPR_Last);
+    assert(Reg_GPR_First <= RegNum);
+    assert(RegNum <= Reg_GPR_Last);
     return GPRRegister(RegNum - Reg_GPR_First);
   }
 
   static inline XmmRegister getEncodedXmm(int32_t RegNum) {
-    assert(Reg_XMM_First <= RegNum && RegNum <= Reg_XMM_Last);
+    assert(Reg_XMM_First <= RegNum);
+    assert(RegNum <= Reg_XMM_Last);
     return XmmRegister(RegNum - Reg_XMM_First);
   }
 
   static inline ByteRegister getEncodedByteReg(int32_t RegNum) {
-    assert(RegNum == Reg_ah || (Reg_GPR_First <= RegNum && RegNum <= Reg_ebx));
-    if (RegNum == Reg_ah)
-      return Encoded_Reg_ah;
+    assert(Reg_GPR_First <= RegNum);
+    assert(RegNum <= Reg_ebx);
     return ByteRegister(RegNum - Reg_GPR_First);
   }
 
@@ -102,7 +103,8 @@ public:
   }
 
   static inline X87STRegister getEncodedSTReg(int32_t RegNum) {
-    assert(Encoded_X87ST_First <= RegNum && RegNum <= Encoded_X87ST_Last);
+    assert(Encoded_X87ST_First <= RegNum);
+    assert(RegNum <= Encoded_X87ST_Last);
     return X87STRegister(RegNum);
   }
 };
