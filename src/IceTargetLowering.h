@@ -177,6 +177,7 @@ public:
   void updateStackAdjustment(int32_t Offset) { StackAdjustment += Offset; }
   void resetStackAdjustment() { StackAdjustment = 0; }
   SizeT makeNextLabelNumber() { return NextLabelNumber++; }
+  SizeT makeNextJumpTableNumber() { return NextJumpTableNumber++; }
   LoweringContext &getContext() { return Context; }
 
   enum RegSet {
@@ -212,6 +213,8 @@ public:
   /// Get the minimum number of clusters required for a jump table to be
   /// considered.
   virtual SizeT getMinJumpTableSize() const = 0;
+  virtual void emitJumpTable(const Cfg *Func,
+                             const InstJumpTable *JumpTable) const = 0;
 
   virtual void emitVariable(const Variable *Var) const = 0;
 
@@ -338,6 +341,7 @@ protected:
   /// natural location, as arguments are pushed for a function call.
   int32_t StackAdjustment = 0;
   SizeT NextLabelNumber = 0;
+  SizeT NextJumpTableNumber = 0;
   LoweringContext Context;
 
   // Runtime helper function names
@@ -397,6 +401,7 @@ public:
   virtual void lowerGlobals(const VariableDeclarationList &Vars,
                             const IceString &SectionSuffix) = 0;
   virtual void lowerConstants() = 0;
+  virtual void lowerJumpTables() = 0;
 
 protected:
   void emitGlobal(const VariableDeclaration &Var,

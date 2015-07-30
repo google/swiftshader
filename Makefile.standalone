@@ -102,6 +102,12 @@ ifdef TSAN
   LD_EXTRA += -fsanitize=thread
 endif
 
+ifdef ASAN
+  OBJDIR := $(OBJDIR)+ASan
+  CXX_EXTRA += -fsanitize=address
+  LD_EXTRA += -fsanitize=address
+endif
+
 SB_OBJDIR := $(OBJDIR)+Sandboxed
 
 $(info -----------------------------------------------)

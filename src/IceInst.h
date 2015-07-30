@@ -914,16 +914,23 @@ public:
     return new (Func->allocate<InstJumpTable>())
         InstJumpTable(Func, NumTargets, Default);
   }
-  void emit(const Cfg *Func) const override;
-  void emitIAS(const Cfg *Func) const override;
   void addTarget(SizeT TargetIndex, CfgNode *Target) {
     assert(TargetIndex < NumTargets);
     Targets[TargetIndex] = Target;
   }
   bool repointEdges(CfgNode *OldNode, CfgNode *NewNode) override;
-  IceString getName(const Cfg *Func) const;
+  SizeT getId() const { return Id; }
+  SizeT getNumTargets() const { return NumTargets; }
+  CfgNode *getTarget(SizeT I) const {
+    assert(I < NumTargets);
+    return Targets[I];
+  }
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return Inst->getKind() == JumpTable; }
+
+  static IceString makeName(const IceString &FuncName, SizeT Id) {
+    return ".L" + FuncName + "$jumptable$__" + std::to_string(Id);
+  }
 
 private:
   InstJumpTable(Cfg *Func, SizeT NumTargets, CfgNode *Default);
@@ -932,7 +939,7 @@ private:
     Inst::destroy(Func);
   }
 
-  const SizeT LabelNumber;
+  const SizeT Id;
   const SizeT NumTargets;
   CfgNode **Targets;
 };

@@ -20,6 +20,7 @@
 #include "IceClFlags.h"
 #include "IceIntrinsics.h"
 #include "IceRNG.h"
+#include "IceSwitchLowering.h"
 #include "IceThreading.h"
 #include "IceTimerTree.h"
 #include "IceTypes.h"
@@ -55,6 +56,7 @@ public:
   }
   ~LockedPtr() { Lock->unlock(); }
   T *operator->() const { return Value; }
+  T &operator*() const { return *Value; }
 
 private:
   T *Value;
@@ -209,6 +211,13 @@ public:
   /// Returns a copy of the list of external symbols.
   ConstantList getConstantExternSyms();
 
+  /// Return a locked pointer to the registered jump tables.
+  LockedPtr<JumpTableDataList> getJumpTables() {
+    return LockedPtr<JumpTableDataList>(&JumpTables, &JumpTablesLock);
+  }
+  /// Create a new jump table entry and return a reference to it.
+  JumpTableData &addJumpTable(IceString FuncName, SizeT Id, SizeT NumTargets);
+
   const ClFlags &getFlags() const { return Flags; }
 
   bool isIRGenerationDisabled() const {
@@ -335,6 +344,8 @@ public:
 
   void lowerConstants();
 
+  void lowerJumpTables();
+
   void emitQueueBlockingPush(EmitterWorkItem *Item);
   EmitterWorkItem *emitQueueBlockingPop();
   void emitQueueNotifyEnd() { EmitQ.notifyEnd(); }
@@ -454,6 +465,11 @@ private:
   // Managed by getConstantPool()
   GlobalLockType ConstPoolLock;
   std::unique_ptr<ConstantPool> ConstPool;
+
+  ICE_CACHELINE_BOUNDARY;
+  // Managed by getJumpTables()
+  GlobalLockType JumpTablesLock;
+  JumpTableDataList JumpTables;
 
   ICE_CACHELINE_BOUNDARY;
   // Managed by getErrorStatus()

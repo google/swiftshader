@@ -20,6 +20,7 @@
 #include "IceELFStreamer.h"
 #include "IceGlobalContext.h"
 #include "IceGlobalInits.h"
+#include "IceInst.h"
 #include "IceOperand.h"
 #include "llvm/Support/MathExtras.h"
 
@@ -551,6 +552,44 @@ void ELFObjectWriter::writeAllRelocationSections() {
   writeRelocationSections(RelTextSections);
   writeRelocationSections(RelDataSections);
   writeRelocationSections(RelRODataSections);
+}
+
+void ELFObjectWriter::writeJumpTable(const JumpTableData &JT,
+                                     FixupKind RelocationKind) {
+  ELFDataSection *Section;
+  ELFRelocationSection *RelSection;
+  const Elf64_Xword PointerSize = typeWidthInBytes(getPointerType());
+  const Elf64_Xword ShAddralign = PointerSize;
+  const Elf64_Xword ShEntsize = PointerSize;
+  const IceString SectionName =
+      MangleSectionName(".rodata", JT.getFunctionName() + "$jumptable");
+  Section = createSection<ELFDataSection>(SectionName, SHT_PROGBITS, SHF_ALLOC,
+                                          ShAddralign, ShEntsize);
+  Section->setFileOffset(alignFileOffset(ShAddralign));
+  RODataSections.push_back(Section);
+  RelSection = createRelocationSection(Section);
+  RelRODataSections.push_back(RelSection);
+
+  const uint8_t SymbolType = STT_OBJECT;
+  Section->padToAlignment(Str, PointerSize);
+  bool IsExternal = Ctx.getFlags().getDisableInternal();
+  const uint8_t SymbolBinding = IsExternal ? STB_GLOBAL : STB_LOCAL;
+  IceString JumpTableName =
+      InstJumpTable::makeName(JT.getFunctionName(), JT.getId());
+  SymTab->createDefinedSym(JumpTableName, SymbolType, SymbolBinding, Section,
+                           Section->getCurrentSize(), PointerSize);
+  StrTab->add(JumpTableName);
+
+  for (intptr_t TargetOffset : JT.getTargetOffsets()) {
+    AssemblerFixup NewFixup;
+    NewFixup.set_position(Section->getCurrentSize());
+    NewFixup.set_kind(RelocationKind);
+    constexpr bool SuppressMangling = true;
+    NewFixup.set_value(Ctx.getConstantSym(TargetOffset, JT.getFunctionName(),
+                                          SuppressMangling));
+    RelSection->addRelocation(NewFixup);
+    Section->appendRelocationOffset(Str, RelSection->isRela(), TargetOffset);
+  }
 }
 
 void ELFObjectWriter::setUndefinedSyms(const ConstantList &UndefSyms) {

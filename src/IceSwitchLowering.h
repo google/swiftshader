@@ -14,8 +14,7 @@
 #ifndef SUBZERO_SRC_ICESWITCHLOWERING_H
 #define SUBZERO_SRC_ICESWITCHLOWERING_H
 
-#include "IceCfgNode.h"
-#include "IceInst.h"
+#include "IceDefs.h"
 
 namespace Ice {
 
@@ -38,8 +37,8 @@ public:
   CaseCluster &operator=(const CaseCluster &) = default;
 
   /// Create a cluster of a single case represented by a unitary range.
-  CaseCluster(uint64_t Value, CfgNode *Label)
-      : Kind(Range), Low(Value), High(Value), Label(Label) {}
+  CaseCluster(uint64_t Value, CfgNode *Target)
+      : Kind(Range), Low(Value), High(Value), Target(Target) {}
   /// Create a case consisting of a jump table.
   CaseCluster(uint64_t Low, uint64_t High, InstJumpTable *JT)
       : Kind(JumpTable), Low(Low), High(High), JT(JT) {}
@@ -47,14 +46,17 @@ public:
   CaseClusterKind getKind() const { return Kind; }
   uint64_t getLow() const { return Low; }
   uint64_t getHigh() const { return High; }
-  CfgNode *getLabel() const {
+  CfgNode *getTarget() const {
     assert(Kind == Range);
-    return Label;
+    return Target;
   }
   InstJumpTable *getJumpTable() const {
     assert(Kind == JumpTable);
     return JT;
   }
+
+  bool isUnitRange() const { return Low == High; }
+  bool isPairRange() const { return Low == High - 1; }
 
   /// Discover cases which can be clustered together and return the clusters
   /// ordered by case value.
@@ -65,13 +67,43 @@ private:
   uint64_t Low;
   uint64_t High;
   union {
-    CfgNode *Label;    /// Target for a range.
+    CfgNode *Target;   /// Target for a range.
     InstJumpTable *JT; /// Jump table targets.
   };
 
   /// Try and append a cluster returning whether or not it was successful.
   bool tryAppend(const CaseCluster &New);
 };
+
+/// Store the jump table data so that it can be emitted later in the correct
+/// ELF section once the offsets from the start of the function are known.
+class JumpTableData {
+  JumpTableData() = delete;
+  JumpTableData(const JumpTableData &) = delete;
+  JumpTableData &operator=(const JumpTableData &) = delete;
+
+public:
+  JumpTableData(IceString FuncName, SizeT Id, SizeT NumTargets)
+      : FuncName(FuncName), Id(Id) {
+    TargetOffsets.reserve(NumTargets);
+  }
+  JumpTableData(JumpTableData &&) = default;
+
+  void pushTarget(intptr_t Offset) { TargetOffsets.emplace_back(Offset); }
+
+  const IceString &getFunctionName() const { return FuncName; }
+  SizeT getId() const { return Id; }
+  const std::vector<intptr_t> &getTargetOffsets() const {
+    return TargetOffsets;
+  }
+
+private:
+  const IceString FuncName;
+  const SizeT Id;
+  std::vector<intptr_t> TargetOffsets;
+};
+
+using JumpTableDataList = std::vector<JumpTableData>;
 
 } // end of namespace Ice
 

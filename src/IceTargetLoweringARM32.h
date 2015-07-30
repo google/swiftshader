@@ -80,6 +80,8 @@ public:
 
   // TODO(ascull): what size is best for ARM?
   SizeT getMinJumpTableSize() const override { return 3; }
+  void emitJumpTable(const Cfg *Func,
+                     const InstJumpTable *JumpTable) const override;
 
   void emitVariable(const Variable *Var) const override;
 
@@ -432,6 +434,7 @@ public:
   void lowerGlobals(const VariableDeclarationList &Vars,
                     const IceString &SectionSuffix) override;
   void lowerConstants() override;
+  void lowerJumpTables() override;
 
 protected:
   explicit TargetDataARM32(GlobalContext *Ctx);

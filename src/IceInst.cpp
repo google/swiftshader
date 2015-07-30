@@ -516,8 +516,7 @@ InstFakeKill::InstFakeKill(Cfg *Func, const Inst *Linked)
 
 InstJumpTable::InstJumpTable(Cfg *Func, SizeT NumTargets, CfgNode *Default)
     : InstHighLevel(Func, Inst::JumpTable, 1, nullptr),
-      LabelNumber(Func->getTarget()->makeNextLabelNumber()),
-      NumTargets(NumTargets) {
+      Id(Func->getTarget()->makeNextJumpTableNumber()), NumTargets(NumTargets) {
   Targets = Func->allocateArrayOf<CfgNode *>(NumTargets);
   for (SizeT I = 0; I < NumTargets; ++I)
     Targets[I] = Default;
@@ -532,11 +531,6 @@ bool InstJumpTable::repointEdges(CfgNode *OldNode, CfgNode *NewNode) {
     }
   }
   return Found;
-}
-
-IceString InstJumpTable::getName(const Cfg *Func) const {
-  return ".L" + Func->getFunctionName() + "$jumptable$__" +
-         std::to_string(LabelNumber);
 }
 
 Type InstCall::getReturnType() const {
@@ -950,29 +944,6 @@ void InstFakeKill::dump(const Cfg *Func) const {
   if (Linked->isDeleted())
     Str << "// ";
   Str << "kill.pseudo scratch_regs";
-}
-
-void InstJumpTable::emit(const Cfg *Func) const {
-  // TODO(ascull): should this be a target specific lowering (with access built
-  // in?) and just have InstJumpTable as a high level, similar to br? or should
-  // this follow the same path as emitIAS i.e. put it in global context and
-  // produce this code later?
-  if (!BuildDefs::dump())
-    return;
-  Ostream &Str = Func->getContext()->getStrEmit();
-  // TODO(ascull): softcode pointer size of 4
-  // TODO(ascull): is .long portable?
-  Str << "\n\t.section\t.rodata." << Func->getFunctionName()
-      << "$jumptable,\"a\",@progbits\n"
-      << "\t.align 4\n" << getName(Func) << ":";
-  for (SizeT I = 0; I < NumTargets; ++I)
-    Str << "\n\t.long\t" << Targets[I]->getAsmName();
-  Str << "\n\n\t.text";
-}
-
-void InstJumpTable::emitIAS(const Cfg *Func) const {
-  // TODO(ascull): put jump table in the global context for emission later
-  (void)Func;
 }
 
 void InstJumpTable::dump(const Cfg *Func) const {

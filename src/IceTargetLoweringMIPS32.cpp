@@ -254,6 +254,12 @@ Variable *TargetMIPS32::getPhysicalRegister(SizeT RegNum, Type Ty) {
   return Reg;
 }
 
+void TargetMIPS32::emitJumpTable(const Cfg *Func,
+                                 const InstJumpTable *JumpTable) const {
+  (void)JumpTable;
+  UnimplementedError(Func->getContext()->getFlags());
+}
+
 void TargetMIPS32::emitVariable(const Variable *Var) const {
   Ostream &Str = Ctx->getStrEmit();
   (void)Var;
@@ -698,6 +704,12 @@ void TargetDataMIPS32::lowerGlobals(const VariableDeclarationList &Vars,
 }
 
 void TargetDataMIPS32::lowerConstants() {
+  if (Ctx->getFlags().getDisableTranslation())
+    return;
+  UnimplementedError(Ctx->getFlags());
+}
+
+void TargetDataMIPS32::lowerJumpTables() {
   if (Ctx->getFlags().getDisableTranslation())
     return;
   UnimplementedError(Ctx->getFlags());

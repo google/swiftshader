@@ -14,6 +14,7 @@
 //===----------------------------------------------------------------------===//
 #include "IceSwitchLowering.h"
 
+#include "IceCfgNode.h"
 #include "IceTargetLowering.h"
 
 #include <algorithm>
@@ -79,9 +80,11 @@ CaseClusterArray CaseCluster::clusterizeSwitch(Cfg *Func,
     // Case.High could be UINT64_MAX which makes the loop awkward. Unwrap the
     // last iteration to avoid wrap around problems.
     for (uint64_t I = Case.Low; I < Case.High; ++I)
-      JumpTable->addTarget(I - MinValue, Case.Label);
-    JumpTable->addTarget(Case.High - MinValue, Case.Label);
+      JumpTable->addTarget(I - MinValue, Case.Target);
+    JumpTable->addTarget(Case.High - MinValue, Case.Target);
+    Case.Target->setNeedsAlignment();
   }
+  Func->addJumpTable(JumpTable);
 
   CaseClusters.clear();
   CaseClusters.emplace_back(MinValue, MaxValue, JumpTable);
@@ -91,7 +94,7 @@ CaseClusterArray CaseCluster::clusterizeSwitch(Cfg *Func,
 
 bool CaseCluster::tryAppend(const CaseCluster &New) {
   // Can only append ranges with the same target and are adjacent
-  bool CanAppend = this->Label == New.Label && this->High + 1 == New.Low;
+  bool CanAppend = this->Target == New.Target && this->High + 1 == New.Low;
   if (CanAppend)
     this->High = New.High;
   return CanAppend;

@@ -568,6 +568,12 @@ void Cfg::doBranchOpt() {
   }
 }
 
+void Cfg::markNodesForSandboxing() {
+  for (const InstJumpTable *JT : JumpTables)
+    for (SizeT I = 0; I < JT->getNumTargets(); ++I)
+      JT->getTarget(I)->setNeedsAlignment();
+}
+
 // ======================== Dump routines ======================== //
 
 // emitTextHeader() is not target-specific (apart from what is
@@ -585,12 +591,46 @@ void Cfg::emitTextHeader(const IceString &MangledName, GlobalContext *Ctx,
     Str << "\t.globl\t" << MangledName << "\n";
     Str << "\t.type\t" << MangledName << ",%function\n";
   }
-  Str << "\t" << Asm->getNonExecPadDirective() << " "
+  Str << "\t" << Asm->getAlignDirective() << " "
       << Asm->getBundleAlignLog2Bytes() << ",0x";
   for (uint8_t I : Asm->getNonExecBundlePadding())
     Str.write_hex(I);
   Str << "\n";
   Str << MangledName << ":\n";
+}
+
+void Cfg::deleteJumpTableInsts() {
+  for (InstJumpTable *JumpTable : JumpTables)
+    JumpTable->setDeleted();
+}
+
+void Cfg::emitJumpTables() {
+  switch (Ctx->getFlags().getOutFileType()) {
+  case FT_Elf:
+  case FT_Iasm: {
+    // The emission needs to be delayed until the after the text section so save
+    // the offsets in the global context.
+    IceString MangledName = Ctx->mangleName(getFunctionName());
+    for (const InstJumpTable *JumpTable : JumpTables) {
+      SizeT NumTargets = JumpTable->getNumTargets();
+      JumpTableData &JT =
+          Ctx->addJumpTable(MangledName, JumpTable->getId(), NumTargets);
+      for (SizeT I = 0; I < NumTargets; ++I) {
+        SizeT Index = JumpTable->getTarget(I)->getIndex();
+        JT.pushTarget(
+            getAssembler()->getOrCreateCfgNodeLabel(Index)->getPosition());
+      }
+    }
+  } break;
+  case FT_Asm: {
+    // Emit the assembly directly so we don't need to hang on to all the names
+    for (const InstJumpTable *JumpTable : JumpTables)
+      getTarget()->emitJumpTable(this, JumpTable);
+  } break;
+  default:
+    llvm::report_fatal_error("Invalid out file type.");
+    break;
+  }
 }
 
 void Cfg::emit() {
@@ -605,10 +645,20 @@ void Cfg::emit() {
   }
   OstreamLocker L(Ctx);
   Ostream &Str = Ctx->getStrEmit();
-  IceString MangledName = getContext()->mangleName(getFunctionName());
-  emitTextHeader(MangledName, Ctx, getAssembler<>());
-  for (CfgNode *Node : Nodes)
+  IceString MangledName = Ctx->mangleName(getFunctionName());
+  const Assembler *Asm = getAssembler<>();
+  const bool NeedSandboxing = Ctx->getFlags().getUseSandboxing();
+
+  emitTextHeader(MangledName, Ctx, Asm);
+  deleteJumpTableInsts();
+  for (CfgNode *Node : Nodes) {
+    if (NeedSandboxing && Node->needsAlignment()) {
+      Str << "\t" << Asm->getAlignDirective() << " "
+          << Asm->getBundleAlignLog2Bytes() << "\n";
+    }
     Node->emit(this);
+  }
+  emitJumpTables();
   Str << "\n";
 }
 
@@ -616,8 +666,14 @@ void Cfg::emitIAS() {
   TimerMarker T(TimerStack::TT_emit, this);
   // The emitIAS() routines emit into the internal assembler buffer,
   // so there's no need to lock the streams.
-  for (CfgNode *Node : Nodes)
+  deleteJumpTableInsts();
+  const bool NeedSandboxing = Ctx->getFlags().getUseSandboxing();
+  for (CfgNode *Node : Nodes) {
+    if (NeedSandboxing && Node->needsAlignment())
+      getAssembler()->alignCfgNode();
     Node->emitIAS(this);
+  }
+  emitJumpTables();
 }
 
 // Dumps the IR with an optional introductory message.

@@ -33,6 +33,9 @@ class TargetX8632 final
   TargetX8632(const TargetX8632 &) = delete;
   TargetX8632 &operator=(const TargetX8632 &) = delete;
 
+  void emitJumpTable(const Cfg *Func,
+                     const InstJumpTable *JumpTable) const override;
+
 public:
   using X86InstructionSet = X8632::Traits::InstructionSet;
 
@@ -65,6 +68,7 @@ public:
   void lowerGlobals(const VariableDeclarationList &Vars,
                     const IceString &SectionSuffix) override;
   void lowerConstants() override;
+  void lowerJumpTables() override;
 
 protected:
   explicit TargetDataX8632(GlobalContext *Ctx);

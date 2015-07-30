@@ -2,7 +2,7 @@
 ; same label which also results in phi instructions with multiple
 ; entries for the same incoming edge.
 
-; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 | FileCheck %s
+; For x86 see adv-switch-opt.ll
 
 ; TODO(jvoung): Update to -02 once the phi assignments is done for ARM
 ; RUN: %if --need=target_ARM32 --need=allow_dump \
@@ -53,9 +53,6 @@ entry:
 sw.default:
   ret i32 20
 }
-; CHECK-LABEL: testSwitchImm
-; CHECK-NOT: cmp 0x{{[0-9a-f]*}},
-
 ; ARM32-LABEL: testSwitchImm
 ; ARM32: cmp {{r[0-9]+}}, #1
 ; ARM32-NEXT: beq
@@ -87,24 +84,6 @@ return:                                           ; preds = %sw.default, %sw.bb3
   %retval.0 = phi i32 [ 5, %sw.default ], [ 4, %sw.bb3 ], [ 3, %sw.bb2 ], [ 2, %sw.bb1 ], [ 1, %entry ]
   ret i32 %retval.0
 }
-; CHECK-LABEL: testSwitch64
-; CHECK: cmp {{.*}},0x7b
-; CHECK-NEXT: jne
-; CHECK-NEXT: cmp {{.*}},0x0
-; CHECK-NEXT: je
-; CHECK: cmp {{.*}},0xea
-; CHECK-NEXT: jne
-; CHECK-NEXT: cmp {{.*}},0x0
-; CHECK-NEXT: je
-; CHECK: cmp {{.*}},0x159
-; CHECK-NEXT: jne
-; CHECK-NEXT: cmp {{.*}},0x0
-; CHECK-NEXT: je
-; CHECK: cmp {{.*}},0x34567890
-; CHECK-NEXT: jne
-; CHECK-NEXT: cmp {{.*}},0x12
-; CHECK-NEXT: je
-
 ; ARM32-LABEL: testSwitch64
 ; ARM32: cmp {{r[0-9]+}}, #123
 ; ARM32-NEXT: cmpeq {{r[0-9]+}}, #0
@@ -135,12 +114,6 @@ entry:
 sw.default:
   ret i32 20
 }
-; CHECK-LABEL: testSwitchImm64
-; CHECK: cmp {{.*}},0x1
-; CHECK-NEXT: jne
-; CHECK-NEXT: cmp {{.*}},0x0
-; CHECK-NEXT: je
-
 ; ARM32-LABEL: testSwitchImm64
 ; ARM32: cmp {{r[0-9]+}}, #1
 ; ARM32-NEXT: cmpeq {{r[0-9]+}}, #0
@@ -156,9 +129,6 @@ entry:
 sw.default:
   ret i32 20
 }
-; CHECK-LABEL: testSwitchUndef64
-; CHECK: mov {{.*}},0x0
-; CHECK: mov {{.*}},0x0
 ; ARM32-LABEL: testSwitchUndef64
 ; ARM32: movw {{.*}}, #0
 ; ARM32: movw {{.*}}, #0

@@ -176,10 +176,6 @@ cl::opt<std::string>
     TranslateOnly("translate-only",
                   cl::desc("Translate only the given function"), cl::init(""));
 
-cl::opt<bool>
-    UseAdvancedSwitchLowering("adv-switch",
-                              cl::desc("Use advanced switch lowering"));
-
 cl::opt<bool> UseSandboxing("sandbox", cl::desc("Use sandboxing"));
 
 cl::opt<std::string> VerboseFocusOn(
@@ -351,7 +347,6 @@ void ClFlags::resetClFlags(ClFlags &OutFlags) {
   OutFlags.SkipUnimplemented = false;
   OutFlags.SubzeroTimingEnabled = false;
   OutFlags.TimeEachFunction = false;
-  OutFlags.UseAdvancedSwitchLowering = false;
   OutFlags.UseSandboxing = false;
   // Enum and integer fields.
   OutFlags.Opt = Opt_m1;
@@ -413,7 +408,6 @@ void ClFlags::getParsedClFlags(ClFlags &OutFlags) {
   OutFlags.setTimeEachFunction(::TimeEachFunction);
   OutFlags.setTimingFocusOn(::TimingFocusOn);
   OutFlags.setTranslateOnly(::TranslateOnly);
-  OutFlags.setUseAdvancedSwitchLowering(::UseAdvancedSwitchLowering);
   OutFlags.setUseSandboxing(::UseSandboxing);
   OutFlags.setVerboseFocusOn(::VerboseFocusOn);
   OutFlags.setOutFileType(::OutFileType);

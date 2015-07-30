@@ -17,6 +17,13 @@
 
 namespace Ice {
 
+void TargetX8664::emitJumpTable(const Cfg *Func,
+                                const InstJumpTable *JumpTable) const {
+  (void)Func;
+  (void)JumpTable;
+  llvm::report_fatal_error("Not yet implemented");
+}
+
 TargetX8664 *TargetX8664::create(Cfg *) {
   llvm::report_fatal_error("Not yet implemented");
 }
@@ -26,6 +33,10 @@ void TargetDataX8664::lowerGlobals(const VariableDeclarationList &,
 }
 
 void TargetDataX8664::lowerConstants() {
+  llvm::report_fatal_error("Not yet implemented");
+}
+
+void TargetDataX8664::lowerJumpTables() {
   llvm::report_fatal_error("Not yet implemented");
 }
 

@@ -140,6 +140,13 @@ public:
   const VarList &getImplicitArgs() const { return ImplicitArgs; }
   /// @}
 
+  /// \name Manage the jump tables.
+  /// @{
+  void addJumpTable(InstJumpTable *JumpTable) {
+    JumpTables.emplace_back(JumpTable);
+  }
+  /// @}
+
   /// \name Miscellaneous accessors.
   /// @{
   TargetLowering *getTarget() const { return Target.get(); }
@@ -183,6 +190,7 @@ public:
   bool validateLiveness() const;
   void contractEmptyNodes();
   void doBranchOpt();
+  void markNodesForSandboxing();
 
   /// \name  Manage the CurrentNode field.
   /// CurrentNode is used for validating the Variable::DefNode field during
@@ -229,6 +237,12 @@ private:
   /// code needs to be defined.
   void profileBlocks();
 
+  /// Delete registered jump table placeholder instructions. This should only be
+  /// called once all repointing has taken place.
+  void deleteJumpTableInsts();
+  /// Iterate through the registered jump tables and emit them.
+  void emitJumpTables();
+
   GlobalContext *Ctx;
   uint32_t SequenceNumber; /// output order for emission
   VerboseMask VMask;
@@ -252,6 +266,7 @@ private:
   std::unique_ptr<Assembler> TargetAssembler;
   /// Globals required by this CFG. Mostly used for the profiler's globals.
   std::unique_ptr<VariableDeclarationList> GlobalInits;
+  std::vector<InstJumpTable *> JumpTables;
 
   /// CurrentNode is maintained during dumping/emitting just for
   /// validating Variable::DefNode.  Normally, a traversal over

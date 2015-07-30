@@ -105,10 +105,10 @@ template <class Machine>
 InstX86Br<Machine>::InstX86Br(
     Cfg *Func, const CfgNode *TargetTrue, const CfgNode *TargetFalse,
     const InstX86Label<Machine> *Label,
-    typename InstX86Base<Machine>::Traits::Cond::BrCond Condition)
+    typename InstX86Base<Machine>::Traits::Cond::BrCond Condition, Mode Kind)
     : InstX86Base<Machine>(Func, InstX86Base<Machine>::Br, 0, nullptr),
       Condition(Condition), TargetTrue(TargetTrue), TargetFalse(TargetFalse),
-      Label(Label) {}
+      Label(Label), Kind(Kind) {}
 
 template <class Machine>
 bool InstX86Br<Machine>::optimizeBranch(const CfgNode *NextNode) {
@@ -404,7 +404,7 @@ template <class Machine>
 void InstX86Label<Machine>::emitIAS(const Cfg *Func) const {
   typename InstX86Base<Machine>::Traits::Assembler *Asm =
       Func->getAssembler<typename InstX86Base<Machine>::Traits::Assembler>();
-  Asm->BindLocalLabel(Number);
+  Asm->bindLocalLabel(Number);
 }
 
 template <class Machine>
@@ -446,31 +446,26 @@ void InstX86Br<Machine>::emitIAS(const Cfg *Func) const {
   typename InstX86Base<Machine>::Traits::Assembler *Asm =
       Func->getAssembler<typename InstX86Base<Machine>::Traits::Assembler>();
   if (Label) {
-    class Label *L = Asm->GetOrCreateLocalLabel(Label->getNumber());
-    // In all these cases, local Labels should only be used for Near.
-    const bool Near = true;
+    class Label *L = Asm->getOrCreateLocalLabel(Label->getNumber());
     if (Condition == InstX86Base<Machine>::Traits::Cond::Br_None) {
-      Asm->jmp(L, Near);
+      Asm->jmp(L, isNear());
     } else {
-      Asm->j(Condition, L, Near);
+      Asm->j(Condition, L, isNear());
     }
   } else {
-    // Pessimistically assume it's far. This only affects Labels that
-    // are not Bound.
-    const bool Near = false;
     if (Condition == InstX86Base<Machine>::Traits::Cond::Br_None) {
       class Label *L =
-          Asm->GetOrCreateCfgNodeLabel(getTargetFalse()->getIndex());
+          Asm->getOrCreateCfgNodeLabel(getTargetFalse()->getIndex());
       assert(!getTargetTrue());
-      Asm->jmp(L, Near);
+      Asm->jmp(L, isNear());
     } else {
       class Label *L =
-          Asm->GetOrCreateCfgNodeLabel(getTargetTrue()->getIndex());
-      Asm->j(Condition, L, Near);
+          Asm->getOrCreateCfgNodeLabel(getTargetTrue()->getIndex());
+      Asm->j(Condition, L, isNear());
       if (getTargetFalse()) {
         class Label *L2 =
-            Asm->GetOrCreateCfgNodeLabel(getTargetFalse()->getIndex());
-        Asm->jmp(L2, Near);
+            Asm->getOrCreateCfgNodeLabel(getTargetFalse()->getIndex());
+        Asm->jmp(L2, isNear());
       }
     }
   }
@@ -498,6 +493,8 @@ template <class Machine> void InstX86Br<Machine>::dump(const Cfg *Func) const {
       Str << ", label %" << getTargetFalse()->getName();
     }
   }
+
+  Str << " // (" << (isNear() ? "near" : "far") << " jump)";
 }
 
 template <class Machine> void InstX86Jmp<Machine>::emit(const Cfg *Func) const {

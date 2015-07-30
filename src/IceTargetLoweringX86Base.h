@@ -158,6 +158,8 @@ protected:
                       Operand *Val);
   void lowerCountZeros(bool Cttz, Type Ty, Variable *Dest, Operand *FirstVal,
                        Operand *SecondVal);
+  /// Lower an indirect jump adding sandboxing when needed.
+  void lowerIndirectJump(Variable *Target);
 
   /// Check the comparison is in [Min,Max]. The flags register will be modified
   /// with:
@@ -266,18 +268,21 @@ protected:
   }
   void _br(typename Traits::Cond::BrCond Condition, CfgNode *TargetTrue,
            CfgNode *TargetFalse) {
-    Context.insert(
-        Traits::Insts::Br::create(Func, TargetTrue, TargetFalse, Condition));
+    Context.insert(Traits::Insts::Br::create(
+        Func, TargetTrue, TargetFalse, Condition, Traits::Insts::Br::Far));
   }
   void _br(CfgNode *Target) {
-    Context.insert(Traits::Insts::Br::create(Func, Target));
+    Context.insert(
+        Traits::Insts::Br::create(Func, Target, Traits::Insts::Br::Far));
   }
   void _br(typename Traits::Cond::BrCond Condition, CfgNode *Target) {
-    Context.insert(Traits::Insts::Br::create(Func, Target, Condition));
+    Context.insert(Traits::Insts::Br::create(Func, Target, Condition,
+                                             Traits::Insts::Br::Far));
   }
   void _br(typename Traits::Cond::BrCond Condition,
-           typename Traits::Insts::Label *Label) {
-    Context.insert(Traits::Insts::Br::create(Func, Label, Condition));
+           typename Traits::Insts::Label *Label,
+           typename Traits::Insts::Br::Mode Kind = Traits::Insts::Br::Near) {
+    Context.insert(Traits::Insts::Br::create(Func, Label, Condition, Kind));
   }
   void _bsf(Variable *Dest, Operand *Src0) {
     Context.insert(Traits::Insts::Bsf::create(Func, Dest, Src0));

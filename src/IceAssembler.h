@@ -26,8 +26,67 @@
 
 #include "IceDefs.h"
 #include "IceFixups.h"
+#include "IceUtils.h"
 
 namespace Ice {
+
+/// A Label can be in one of three states:
+///  - Unused.
+///  - Linked, unplaced and tracking the position of branches to the label.
+///  - Bound, placed and tracking its position.
+class Label {
+  Label(const Label &) = delete;
+  Label &operator=(const Label &) = delete;
+
+public:
+  Label() = default;
+  ~Label() = default;
+
+  virtual void finalCheck() const {
+    // Assert if label is being destroyed with unresolved branches pending.
+    assert(!isLinked());
+  }
+
+  /// Returns the position for bound labels (branches that come after this are
+  /// considered backward branches). Cannot be used for unused or linked labels.
+  intptr_t getPosition() const {
+    assert(isBound());
+    return -Position - kWordSize;
+  }
+
+  /// Returns the position of an earlier branch instruction that was linked to
+  /// this label (branches that use this are considered forward branches).  The
+  /// linked instructions form a linked list, of sorts, using the instruction's
+  /// displacement field for the location of the next instruction that is also
+  /// linked to this label.
+  intptr_t getLinkPosition() const {
+    assert(isLinked());
+    return Position - kWordSize;
+  }
+
+  bool isBound() const { return Position < 0; }
+  bool isLinked() const { return Position > 0; }
+  virtual bool isUnused() const { return Position == 0; }
+
+protected:
+  void bindTo(intptr_t position) {
+    assert(!isBound());
+    Position = -position - kWordSize;
+    assert(isBound());
+  }
+
+  void linkTo(intptr_t position) {
+    assert(!isBound());
+    Position = position + kWordSize;
+    assert(isLinked());
+  }
+
+  intptr_t Position = 0;
+
+private:
+  // TODO(jvoung): why are labels offset by this?
+  static constexpr uint32_t kWordSize = sizeof(uint32_t);
+};
 
 /// Assembler buffers are used to emit binary code. They grow on demand.
 class AssemblerBuffer {
@@ -175,15 +234,22 @@ public:
 
   /// Align the tail end of the function to the required target alignment.
   virtual void alignFunction() = 0;
+  /// Align the tail end of the basic block to the required target alignment.
+  void alignCfgNode() {
+    const SizeT Align = 1 << getBundleAlignLog2Bytes();
+    padWithNop(Utils::OffsetToAlignment(Buffer.getPosition(), Align));
+  }
 
   /// Add nop padding of a particular width to the current bundle.
   virtual void padWithNop(intptr_t Padding) = 0;
 
   virtual SizeT getBundleAlignLog2Bytes() const = 0;
 
-  virtual const char *getNonExecPadDirective() const = 0;
+  virtual const char *getAlignDirective() const = 0;
   virtual llvm::ArrayRef<uint8_t> getNonExecBundlePadding() const = 0;
 
+  /// Get the label for a CfgNode.
+  virtual Label *getOrCreateCfgNodeLabel(SizeT NodeNumber) = 0;
   /// Mark the current text location as the start of a CFG node
   /// (represented by NodeNumber).
   virtual void bindCfgNodeLabel(SizeT NodeNumber) = 0;

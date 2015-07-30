@@ -294,47 +294,53 @@ template <class Machine> class InstX86Br final : public InstX86Base<Machine> {
   InstX86Br &operator=(const InstX86Br &) = delete;
 
 public:
+  enum Mode { Near, Far };
+
   /// Create a conditional branch to a node.
   static InstX86Br *
   create(Cfg *Func, CfgNode *TargetTrue, CfgNode *TargetFalse,
-         typename InstX86Base<Machine>::Traits::Cond::BrCond Condition) {
+         typename InstX86Base<Machine>::Traits::Cond::BrCond Condition,
+         Mode Kind) {
     assert(Condition != InstX86Base<Machine>::Traits::Cond::Br_None);
     const InstX86Label<Machine> *NoLabel = nullptr;
     return new (Func->allocate<InstX86Br>())
-        InstX86Br(Func, TargetTrue, TargetFalse, NoLabel, Condition);
+        InstX86Br(Func, TargetTrue, TargetFalse, NoLabel, Condition, Kind);
   }
   /// Create an unconditional branch to a node.
-  static InstX86Br *create(Cfg *Func, CfgNode *Target) {
+  static InstX86Br *create(Cfg *Func, CfgNode *Target, Mode Kind) {
     const CfgNode *NoCondTarget = nullptr;
     const InstX86Label<Machine> *NoLabel = nullptr;
     return new (Func->allocate<InstX86Br>())
         InstX86Br(Func, NoCondTarget, Target, NoLabel,
-                  InstX86Base<Machine>::Traits::Cond::Br_None);
+                  InstX86Base<Machine>::Traits::Cond::Br_None, Kind);
   }
   /// Create a non-terminator conditional branch to a node, with a
   /// fallthrough to the next instruction in the current node.  This is
   /// used for switch lowering.
   static InstX86Br *
   create(Cfg *Func, CfgNode *Target,
-         typename InstX86Base<Machine>::Traits::Cond::BrCond Condition) {
+         typename InstX86Base<Machine>::Traits::Cond::BrCond Condition,
+         Mode Kind) {
     assert(Condition != InstX86Base<Machine>::Traits::Cond::Br_None);
     const CfgNode *NoUncondTarget = nullptr;
     const InstX86Label<Machine> *NoLabel = nullptr;
     return new (Func->allocate<InstX86Br>())
-        InstX86Br(Func, Target, NoUncondTarget, NoLabel, Condition);
+        InstX86Br(Func, Target, NoUncondTarget, NoLabel, Condition, Kind);
   }
   /// Create a conditional intra-block branch (or unconditional, if
   /// Condition==Br_None) to a label in the current block.
   static InstX86Br *
   create(Cfg *Func, InstX86Label<Machine> *Label,
-         typename InstX86Base<Machine>::Traits::Cond::BrCond Condition) {
+         typename InstX86Base<Machine>::Traits::Cond::BrCond Condition,
+         Mode Kind) {
     const CfgNode *NoCondTarget = nullptr;
     const CfgNode *NoUncondTarget = nullptr;
     return new (Func->allocate<InstX86Br>())
-        InstX86Br(Func, NoCondTarget, NoUncondTarget, Label, Condition);
+        InstX86Br(Func, NoCondTarget, NoUncondTarget, Label, Condition, Kind);
   }
   const CfgNode *getTargetTrue() const { return TargetTrue; }
   const CfgNode *getTargetFalse() const { return TargetFalse; }
+  bool isNear() const { return Kind == Near; }
   bool optimizeBranch(const CfgNode *NextNode);
   uint32_t getEmitInstCount() const override {
     uint32_t Sum = 0;
@@ -360,12 +366,14 @@ public:
 private:
   InstX86Br(Cfg *Func, const CfgNode *TargetTrue, const CfgNode *TargetFalse,
             const InstX86Label<Machine> *Label,
-            typename InstX86Base<Machine>::Traits::Cond::BrCond Condition);
+            typename InstX86Base<Machine>::Traits::Cond::BrCond Condition,
+            Mode Kind);
 
   typename InstX86Base<Machine>::Traits::Cond::BrCond Condition;
   const CfgNode *TargetTrue;
   const CfgNode *TargetFalse;
   const InstX86Label<Machine> *Label; // Intra-block branch target
+  const Mode Kind;
 };
 
 /// Jump to a target outside this function, such as tailcall, nacljump,

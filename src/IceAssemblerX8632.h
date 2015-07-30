@@ -38,7 +38,6 @@ class TargetX8632;
 namespace X8632 {
 
 using Immediate = ::Ice::X86Internal::Immediate;
-using Label = ::Ice::X86Internal::Label;
 
 class AssemblerX8632 : public X86Internal::AssemblerX86Base<TargetX8632> {
   AssemblerX8632(const AssemblerX8632 &) = delete;

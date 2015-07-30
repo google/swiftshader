@@ -408,9 +408,12 @@ template <class Machine> void TargetX86Base<Machine>::translateO2() {
   Func->dump("After branch optimization");
 
   // Nop insertion
-  if (Ctx->getFlags().shouldDoNopInsertion()) {
+  if (Ctx->getFlags().shouldDoNopInsertion())
     Func->doNopInsertion();
-  }
+
+  // Mark nodes that require sandbox alignment
+  if (Ctx->getFlags().getUseSandboxing())
+    Func->markNodesForSandboxing();
 }
 
 template <class Machine> void TargetX86Base<Machine>::translateOm1() {
@@ -447,6 +450,10 @@ template <class Machine> void TargetX86Base<Machine>::translateOm1() {
   if (Ctx->getFlags().shouldDoNopInsertion()) {
     Func->doNopInsertion();
   }
+
+  // Mark nodes that require sandbox alignment
+  if (Ctx->getFlags().getUseSandboxing())
+    Func->markNodesForSandboxing();
 }
 
 inline bool canRMW(const InstArithmetic *Arith) {
@@ -1109,14 +1116,9 @@ template <class Machine> void TargetX86Base<Machine>::addEpilog(CfgNode *Node) {
   // jmp *t
   // bundle_unlock
   // FakeUse <original_ret_operand>
-  const SizeT BundleSize = 1
-                           << Func->getAssembler<>()->getBundleAlignLog2Bytes();
   Variable *T_ecx = makeReg(IceType_i32, Traits::RegisterSet::Reg_ecx);
   _pop(T_ecx);
-  _bundle_lock();
-  _and(T_ecx, Ctx->getConstantInt32(~(BundleSize - 1)));
-  _jmp(T_ecx);
-  _bundle_unlock();
+  lowerIndirectJump(T_ecx);
   if (RI->getSrcSize()) {
     Variable *RetValue = llvm::cast<Variable>(RI->getSrc(0));
     Context.insert(InstFakeUse::create(Func, RetValue));
@@ -3980,6 +3982,20 @@ void TargetX86Base<Machine>::lowerCountZeros(bool Cttz, Type Ty, Variable *Dest,
   _mov(DestHi, Ctx->getConstantZero(IceType_i32));
 }
 
+template <class Machine>
+void TargetX86Base<Machine>::lowerIndirectJump(Variable *Target) {
+  const bool NeedSandboxing = Ctx->getFlags().getUseSandboxing();
+  if (NeedSandboxing) {
+    _bundle_lock();
+    const SizeT BundleSize =
+        1 << Func->getAssembler<>()->getBundleAlignLog2Bytes();
+    _and(Target, Ctx->getConstantInt32(~(BundleSize - 1)));
+  }
+  _jmp(Target);
+  if (NeedSandboxing)
+    _bundle_unlock();
+}
+
 inline bool isAdd(const Inst *Inst) {
   if (const InstArithmetic *Arith =
           llvm::dyn_cast_or_null<const InstArithmetic>(Inst)) {
@@ -4525,19 +4541,19 @@ Operand *TargetX86Base<Machine>::lowerCmpRange(Operand *Comparison,
 template <class Machine>
 void TargetX86Base<Machine>::lowerCaseCluster(const CaseCluster &Case,
                                               Operand *Comparison, bool DoneCmp,
-                                              CfgNode *DefaultLabel) {
+                                              CfgNode *DefaultTarget) {
   switch (Case.getKind()) {
   case CaseCluster::JumpTable: {
     typename Traits::Insts::Label *SkipJumpTable;
 
     Operand *RangeIndex =
         lowerCmpRange(Comparison, Case.getLow(), Case.getHigh());
-    if (DefaultLabel != nullptr) {
-      _br(Traits::Cond::Br_a, DefaultLabel);
-    } else {
+    if (DefaultTarget == nullptr) {
       // Skip over jump table logic if comparison not in range and no default
       SkipJumpTable = Traits::Insts::Label::create(Func, this);
       _br(Traits::Cond::Br_a, SkipJumpTable);
+    } else {
+      _br(Traits::Cond::Br_a, DefaultTarget);
     }
 
     InstJumpTable *JumpTable = Case.getJumpTable();
@@ -4554,38 +4570,44 @@ void TargetX86Base<Machine>::lowerCaseCluster(const CaseCluster &Case,
 
     constexpr RelocOffsetT RelocOffset = 0;
     constexpr bool SuppressMangling = true;
-    Constant *Base = Ctx->getConstantSym(RelocOffset, JumpTable->getName(Func),
-                                         SuppressMangling);
+    IceString MangledName = Ctx->mangleName(Func->getFunctionName());
+    Constant *Base = Ctx->getConstantSym(
+        RelocOffset, InstJumpTable::makeName(MangledName, JumpTable->getId()),
+        SuppressMangling);
     Constant *Offset = nullptr;
     uint16_t Shift = typeWidthInBytesLog2(getPointerType());
     // TODO(ascull): remove need for legalize by allowing null base in memop
-    auto *MemTarget = Traits::X86OperandMem::create(
+    auto *TargetInMemory = Traits::X86OperandMem::create(
         Func, getPointerType(), legalizeToReg(Base), Offset, Index, Shift);
     Variable *Target = nullptr;
-    _mov(Target, MemTarget);
-    _jmp(Target);
-    // TODO(ascull): sandboxing for indirect jump
+    _mov(Target, TargetInMemory);
+    lowerIndirectJump(Target);
 
-    if (DefaultLabel == nullptr)
+    if (DefaultTarget == nullptr)
       Context.insert(SkipJumpTable);
     return;
   }
   case CaseCluster::Range: {
-    if (Case.getHigh() == Case.getLow()) {
+    if (Case.isUnitRange()) {
       // Single item
-      Constant *Value = Ctx->getConstantInt32(Case.getLow());
-      if (!DoneCmp)
+      if (!DoneCmp) {
+        Constant *Value = Ctx->getConstantInt32(Case.getLow());
         _cmp(Comparison, Value);
-      _br(Traits::Cond::Br_e, Case.getLabel());
-      if (DefaultLabel != nullptr)
-        _br(DefaultLabel);
+      }
+      _br(Traits::Cond::Br_e, Case.getTarget());
+    } else if (DoneCmp && Case.isPairRange()) {
+      // Range of two items with first item aleady compared against
+      _br(Traits::Cond::Br_e, Case.getTarget());
+      Constant *Value = Ctx->getConstantInt32(Case.getHigh());
+      _cmp(Comparison, Value);
+      _br(Traits::Cond::Br_e, Case.getTarget());
     } else {
       // Range
       lowerCmpRange(Comparison, Case.getLow(), Case.getHigh());
-      _br(Traits::Cond::Br_be, Case.getLabel());
-      if (DefaultLabel != nullptr)
-        _br(DefaultLabel);
+      _br(Traits::Cond::Br_be, Case.getTarget());
     }
+    if (DefaultTarget != nullptr)
+      _br(DefaultTarget);
     return;
   }
   }
@@ -4593,57 +4615,10 @@ void TargetX86Base<Machine>::lowerCaseCluster(const CaseCluster &Case,
 
 template <class Machine>
 void TargetX86Base<Machine>::lowerSwitch(const InstSwitch *Inst) {
-  // Do it the old fashioned way unless asked for the advanced method
-  if (!Ctx->getFlags().getUseAdvancedSwitchLowering()) {
-    // This implements the most naive possible lowering.
-    // cmp a,val[0]; jeq label[0]; cmp a,val[1]; jeq label[1]; ... jmp default
-    Operand *Src0 = Inst->getComparison();
-    SizeT NumCases = Inst->getNumCases();
-    if (Src0->getType() == IceType_i64) {
-      Src0 = legalize(Src0); // get Base/Index into physical registers
-      Operand *Src0Lo = loOperand(Src0);
-      Operand *Src0Hi = hiOperand(Src0);
-      if (NumCases >= 2) {
-        Src0Lo = legalizeToReg(Src0Lo);
-        Src0Hi = legalizeToReg(Src0Hi);
-      } else {
-        Src0Lo = legalize(Src0Lo, Legal_Reg | Legal_Mem);
-        Src0Hi = legalize(Src0Hi, Legal_Reg | Legal_Mem);
-      }
-      for (SizeT I = 0; I < NumCases; ++I) {
-        Constant *ValueLo = Ctx->getConstantInt32(Inst->getValue(I));
-        Constant *ValueHi = Ctx->getConstantInt32(Inst->getValue(I) >> 32);
-        typename Traits::Insts::Label *Label =
-            Traits::Insts::Label::create(Func, this);
-        _cmp(Src0Lo, ValueLo);
-        _br(Traits::Cond::Br_ne, Label);
-        _cmp(Src0Hi, ValueHi);
-        _br(Traits::Cond::Br_e, Inst->getLabel(I));
-        Context.insert(Label);
-      }
-      _br(Inst->getLabelDefault());
-      return;
-    }
-    // OK, we'll be slightly less naive by forcing Src into a physical
-    // register if there are 2 or more uses.
-    if (NumCases >= 2)
-      Src0 = legalizeToReg(Src0);
-    else
-      Src0 = legalize(Src0, Legal_Reg | Legal_Mem);
-    for (SizeT I = 0; I < NumCases; ++I) {
-      Constant *Value = Ctx->getConstantInt32(Inst->getValue(I));
-      _cmp(Src0, Value);
-      _br(Traits::Cond::Br_e, Inst->getLabel(I));
-    }
-
-    _br(Inst->getLabelDefault());
-    return;
-  }
-
   // Group cases together and navigate through them with a binary search
   CaseClusterArray CaseClusters = CaseCluster::clusterizeSwitch(Func, Inst);
   Operand *Src0 = Inst->getComparison();
-  CfgNode *DefaultLabel = Inst->getLabelDefault();
+  CfgNode *DefaultTarget = Inst->getLabelDefault();
 
   assert(CaseClusters.size() != 0); // Should always be at least one
 
@@ -4681,7 +4656,7 @@ void TargetX86Base<Machine>::lowerSwitch(const InstSwitch *Inst) {
       Src0Hi = legalize(Src0Hi, Legal_Reg | Legal_Mem);
       Constant *Zero = Ctx->getConstantInt32(0);
       _cmp(Src0Hi, Zero);
-      _br(Traits::Cond::Br_ne, DefaultLabel);
+      _br(Traits::Cond::Br_ne, DefaultTarget);
       Src0 = Src0Lo;
     }
   }
@@ -4692,7 +4667,7 @@ void TargetX86Base<Machine>::lowerSwitch(const InstSwitch *Inst) {
     // Jump straight to default if needed. Currently a common case as jump
     // tables occur on their own.
     constexpr bool DoneCmp = false;
-    lowerCaseCluster(CaseClusters.front(), Src0, DoneCmp, DefaultLabel);
+    lowerCaseCluster(CaseClusters.front(), Src0, DoneCmp, DefaultTarget);
     return;
   }
 
@@ -4727,27 +4702,44 @@ void TargetX86Base<Machine>::lowerSwitch(const InstSwitch *Inst) {
 
     case 1:
       lowerCaseCluster(CaseClusters[Span.Begin], Comparison, DoneCmp,
-                       SearchSpanStack.empty() ? nullptr : DefaultLabel);
+                       SearchSpanStack.empty() ? nullptr : DefaultTarget);
       DoneCmp = false;
       break;
 
-    case 2:
-      lowerCaseCluster(CaseClusters[Span.Begin], Comparison, DoneCmp);
+    case 2: {
+      const CaseCluster *CaseA = &CaseClusters[Span.Begin];
+      const CaseCluster *CaseB = &CaseClusters[Span.Begin + 1];
+
+      // Placing a range last may allow register clobbering during the range
+      // test. That means there is no need to clone the register. If it is a
+      // unit range the comparison may have already been done in the binary
+      // search (DoneCmp) and so it should be placed first. If this is a range
+      // of two items and the comparison with the low value has already been
+      // done, comparing with the other element is cheaper than a range test.
+      // If the low end of the range is zero then there is no subtraction and
+      // nothing to be gained.
+      if (!CaseA->isUnitRange() &&
+          !(CaseA->getLow() == 0 || (DoneCmp && CaseA->isPairRange()))) {
+        std::swap(CaseA, CaseB);
+        DoneCmp = false;
+      }
+
+      lowerCaseCluster(*CaseA, Comparison, DoneCmp);
       DoneCmp = false;
-      lowerCaseCluster(CaseClusters[Span.Begin + 1], Comparison, DoneCmp,
-                       SearchSpanStack.empty() ? nullptr : DefaultLabel);
-      break;
+      lowerCaseCluster(*CaseB, Comparison, DoneCmp,
+                       SearchSpanStack.empty() ? nullptr : DefaultTarget);
+    } break;
 
     default:
       // Pick the middle item and branch b or ae
       SizeT PivotIndex = Span.Begin + (Span.Size / 2);
       const CaseCluster &Pivot = CaseClusters[PivotIndex];
       Constant *Value = Ctx->getConstantInt32(Pivot.getLow());
-      // TODO(ascull): what if this jump is too big?
       typename Traits::Insts::Label *Label =
           Traits::Insts::Label::create(Func, this);
       _cmp(Comparison, Value);
-      _br(Traits::Cond::Br_b, Label);
+      // TODO(ascull): does it alway have to be far?
+      _br(Traits::Cond::Br_b, Label, Traits::Insts::Br::Far);
       // Lower the left and (pivot+right) sides, falling through to the right
       SearchSpanStack.emplace(Span.Begin, Span.Size / 2, Label);
       SearchSpanStack.emplace(PivotIndex, Span.Size - (Span.Size / 2), nullptr);
@@ -4756,7 +4748,7 @@ void TargetX86Base<Machine>::lowerSwitch(const InstSwitch *Inst) {
     }
   }
 
-  _br(DefaultLabel);
+  _br(DefaultTarget);
 }
 
 template <class Machine>

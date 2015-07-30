@@ -154,6 +154,7 @@ void Compiler::run(const Ice::ClFlagsExtra &ExtraFlags, GlobalContext &Ctx,
     Ctx.lowerGlobals("last");
     Ctx.lowerProfileData();
     Ctx.lowerConstants();
+    Ctx.lowerJumpTables();
 
     if (Ctx.getFlags().getOutFileType() == FT_Elf) {
       TimerMarker T1(Ice::TimerStack::TT_emit, &Ctx);

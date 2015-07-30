@@ -151,6 +151,23 @@ const char *PoolTypeConverter<uint8_t>::AsmTag = ".byte";
 const char *PoolTypeConverter<uint8_t>::PrintfString = "0x%x";
 } // end of anonymous namespace
 
+void TargetX8632::emitJumpTable(const Cfg *Func,
+                                const InstJumpTable *JumpTable) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Ctx->getStrEmit();
+  IceString MangledName = Ctx->mangleName(Func->getFunctionName());
+  Str << "\t.section\t.rodata." << MangledName
+      << "$jumptable,\"a\",@progbits\n";
+  Str << "\t.align\t" << typeWidthInBytes(getPointerType()) << "\n";
+  Str << InstJumpTable::makeName(MangledName, JumpTable->getId()) << ":";
+
+  // On X8632 pointers are 32-bit hence the use of .long
+  for (SizeT I = 0; I < JumpTable->getNumTargets(); ++I)
+    Str << "\n\t.long\t" << JumpTable->getTarget(I)->getAsmName();
+  Str << "\n";
+}
+
 template <typename T>
 void TargetDataX8632::emitConstantPool(GlobalContext *Ctx) {
   if (!BuildDefs::dump())
@@ -218,6 +235,35 @@ void TargetDataX8632::lowerConstants() {
 
     emitConstantPool<PoolTypeConverter<float>>(Ctx);
     emitConstantPool<PoolTypeConverter<double>>(Ctx);
+  } break;
+  }
+}
+
+void TargetDataX8632::lowerJumpTables() {
+  switch (Ctx->getFlags().getOutFileType()) {
+  case FT_Elf: {
+    ELFObjectWriter *Writer = Ctx->getObjectWriter();
+    for (const JumpTableData &JumpTable : *Ctx->getJumpTables())
+      Writer->writeJumpTable(JumpTable, llvm::ELF::R_386_32);
+  } break;
+  case FT_Asm:
+    // Already emitted from Cfg
+    break;
+  case FT_Iasm: {
+    if (!BuildDefs::dump())
+      return;
+    Ostream &Str = Ctx->getStrEmit();
+    for (const JumpTableData &JT : *Ctx->getJumpTables()) {
+      Str << "\t.section\t.rodata." << JT.getFunctionName()
+          << "$jumptable,\"a\",@progbits\n";
+      Str << "\t.align\t" << typeWidthInBytes(getPointerType()) << "\n";
+      Str << InstJumpTable::makeName(JT.getFunctionName(), JT.getId()) << ":";
+
+      // On X8632 pointers are 32-bit hence the use of .long
+      for (intptr_t TargetOffset : JT.getTargetOffsets())
+        Str << "\n\t.long\t" << JT.getFunctionName() << "+" << TargetOffset;
+      Str << "\n";
+    }
   } break;
   }
 }

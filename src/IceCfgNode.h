@@ -54,6 +54,9 @@ public:
   void setNeedsPlacement(bool Value) { NeedsPlacement = Value; }
   bool needsPlacement() const { return NeedsPlacement; }
 
+  void setNeedsAlignment() { NeedsAlignment = true; }
+  bool needsAlignment() const { return NeedsAlignment; }
+
   /// \name Access predecessor and successor edge lists.
   /// @{
   const NodeList &getInEdges() const { return InEdges; }
@@ -110,6 +113,7 @@ private:
       Cfg::IdentifierIndexInvalid; /// index into Cfg::NodeNames table
   bool HasReturn = false;          /// does this block need an epilog?
   bool NeedsPlacement = false;
+  bool NeedsAlignment = false;       /// is sandboxing required?
   InstNumberT InstCountEstimate = 0; /// rough instruction count estimate
   NodeList InEdges;                  /// in no particular order
   NodeList OutEdges;                 /// in no particular order

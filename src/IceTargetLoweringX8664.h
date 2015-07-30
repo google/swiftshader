@@ -27,6 +27,9 @@ class TargetX8664 : public TargetLowering {
   TargetX8664(const TargetX8664 &) = delete;
   TargetX8664 &operator=(const TargetX8664 &) = delete;
 
+  void emitJumpTable(const Cfg *Func,
+                     const InstJumpTable *JumpTable) const override;
+
 public:
   static TargetX8664 *create(Cfg *Func);
 
@@ -50,6 +53,7 @@ public:
                     const IceString &SectionSuffix) override;
 
   void lowerConstants() override;
+  void lowerJumpTables() override;
 
 private:
   ENABLE_MAKE_UNIQUE;

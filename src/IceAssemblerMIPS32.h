@@ -49,7 +49,7 @@ public:
 
   SizeT getBundleAlignLog2Bytes() const override { return 4; }
 
-  const char *getNonExecPadDirective() const override { return ".p2alignl"; }
+  const char *getAlignDirective() const override { return ".p2alignl"; }
 
   llvm::ArrayRef<uint8_t> getNonExecBundlePadding() const override {
     // TODO(reed kotler) . Find out what this should be.
@@ -60,6 +60,11 @@ public:
   void padWithNop(intptr_t Padding) override {
     (void)Padding;
     llvm::report_fatal_error("Not yet implemented.");
+  }
+
+  Label *getOrCreateCfgNodeLabel(SizeT NodeNumber) override {
+    (void)NodeNumber;
+    llvm_unreachable("Not yet implemented.");
   }
 
   void bindCfgNodeLabel(SizeT NodeNumber) override {

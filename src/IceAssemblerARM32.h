@@ -47,7 +47,7 @@ public:
 
   SizeT getBundleAlignLog2Bytes() const override { return 4; }
 
-  const char *getNonExecPadDirective() const override { return ".p2alignl"; }
+  const char *getAlignDirective() const override { return ".p2alignl"; }
 
   llvm::ArrayRef<uint8_t> getNonExecBundlePadding() const override {
     // Use a particular UDF encoding -- TRAPNaCl in LLVM: 0xE7FEDEF0
@@ -58,6 +58,11 @@ public:
 
   void padWithNop(intptr_t Padding) override {
     (void)Padding;
+    llvm_unreachable("Not yet implemented.");
+  }
+
+  Label *getOrCreateCfgNodeLabel(SizeT NodeNumber) override {
+    (void)NodeNumber;
     llvm_unreachable("Not yet implemented.");
   }
 

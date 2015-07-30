@@ -383,6 +383,12 @@ Variable *TargetARM32::getPhysicalRegister(SizeT RegNum, Type Ty) {
   return Reg;
 }
 
+void TargetARM32::emitJumpTable(const Cfg *Func,
+                                const InstJumpTable *JumpTable) const {
+  (void)JumpTable;
+  UnimplementedError(Func->getContext()->getFlags());
+}
+
 void TargetARM32::emitVariable(const Variable *Var) const {
   Ostream &Str = Ctx->getStrEmit();
   if (Var->hasReg()) {
@@ -2704,6 +2710,12 @@ void TargetDataARM32::lowerGlobals(const VariableDeclarationList &Vars,
 }
 
 void TargetDataARM32::lowerConstants() {
+  if (Ctx->getFlags().getDisableTranslation())
+    return;
+  UnimplementedError(Ctx->getFlags());
+}
+
+void TargetDataARM32::lowerJumpTables() {
   if (Ctx->getFlags().getDisableTranslation())
     return;
   UnimplementedError(Ctx->getFlags());

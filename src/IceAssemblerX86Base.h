@@ -71,88 +71,41 @@ private:
   AssemblerFixup *fixup_ = nullptr;
 };
 
-class Label {
+/// X86 allows near and far jumps.
+class Label final : public Ice::Label {
   Label(const Label &) = delete;
   Label &operator=(const Label &) = delete;
 
 public:
-  Label() {
-    if (BuildDefs::asserts()) {
-      for (int i = 0; i < kMaxUnresolvedBranches; i++) {
-        unresolved_near_positions_[i] = -1;
-      }
-    }
-  }
-
+  Label() = default;
   ~Label() = default;
 
-  void FinalCheck() const {
-    // Assert if label is being destroyed with unresolved branches pending.
-    assert(!IsLinked());
-    assert(!HasNear());
+  void finalCheck() const override {
+    Ice::Label::finalCheck();
+    assert(!hasNear());
   }
 
-  // TODO(jvoung): why are labels offset by this?
-  static const uint32_t kWordSize = sizeof(uint32_t);
-
-  // Returns the position for bound labels (branches that come after this
-  // are considered backward branches). Cannot be used for unused or linked
-  // labels.
-  intptr_t Position() const {
-    assert(IsBound());
-    return -position_ - kWordSize;
+  /// Returns the position of an earlier branch instruction which assumes that
+  /// this label is "near", and bumps iterator to the next near position.
+  intptr_t getNearPosition() {
+    assert(hasNear());
+    intptr_t Pos = UnresolvedNearPositions.back();
+    UnresolvedNearPositions.pop_back();
+    return Pos;
   }
 
-  // Returns the position of an earlier branch instruction that was linked
-  // to this label (branches that use this are considered forward branches).
-  // The linked instructions form a linked list, of sorts, using the
-  // instruction's displacement field for the location of the next
-  // instruction that is also linked to this label.
-  intptr_t LinkPosition() const {
-    assert(IsLinked());
-    return position_ - kWordSize;
+  bool hasNear() const { return !UnresolvedNearPositions.empty(); }
+  bool isUnused() const override {
+    return Ice::Label::isUnused() && !hasNear();
   }
-
-  // Returns the position of an earlier branch instruction which
-  // assumes that this label is "near", and bumps iterator to the
-  // next near position.
-  intptr_t NearPosition() {
-    assert(HasNear());
-    return unresolved_near_positions_[--num_unresolved_];
-  }
-
-  bool IsBound() const { return position_ < 0; }
-  bool IsLinked() const { return position_ > 0; }
-  bool IsUnused() const { return (position_ == 0) && (num_unresolved_ == 0); }
-  bool HasNear() const { return num_unresolved_ != 0; }
 
 private:
-  void BindTo(intptr_t position) {
-    assert(!IsBound());
-    assert(!HasNear());
-    position_ = -position - kWordSize;
-    assert(IsBound());
+  void nearLinkTo(intptr_t position) {
+    assert(!isBound());
+    UnresolvedNearPositions.push_back(position);
   }
 
-  void LinkTo(intptr_t position) {
-    assert(!IsBound());
-    position_ = position + kWordSize;
-    assert(IsLinked());
-  }
-
-  void NearLinkTo(intptr_t position) {
-    assert(!IsBound());
-    assert(num_unresolved_ < kMaxUnresolvedBranches);
-    unresolved_near_positions_[num_unresolved_++] = position;
-  }
-
-  static constexpr int kMaxUnresolvedBranches = 20;
-
-  intptr_t position_ = 0;
-  intptr_t num_unresolved_ = 0;
-  // TODO(stichnot,jvoung): Can this instead be
-  // llvm::SmallVector<intptr_t, kMaxUnresolvedBranches> ?
-  intptr_t unresolved_near_positions_[kMaxUnresolvedBranches];
+  llvm::SmallVector<intptr_t, 20> UnresolvedNearPositions;
 
   template <class> friend class AssemblerX86Base;
 };
@@ -181,7 +134,7 @@ public:
 
   SizeT getBundleAlignLog2Bytes() const override { return 5; }
 
-  const char *getNonExecPadDirective() const override { return ".p2align"; }
+  const char *getAlignDirective() const override { return ".p2align"; }
 
   llvm::ArrayRef<uint8_t> getNonExecBundlePadding() const override {
     static const uint8_t Padding[] = {0xF4};
@@ -197,10 +150,10 @@ public:
       nop(Padding);
   }
 
-  Label *GetOrCreateCfgNodeLabel(SizeT NodeNumber);
+  Label *getOrCreateCfgNodeLabel(SizeT NodeNumber) override;
   void bindCfgNodeLabel(SizeT NodeNumber) override;
-  Label *GetOrCreateLocalLabel(SizeT Number);
-  void BindLocalLabel(SizeT Number);
+  Label *getOrCreateLocalLabel(SizeT Number);
+  void bindLocalLabel(SizeT Number);
 
   bool fixupIsPCRel(FixupKind Kind) const override {
     // Currently assuming this is the only PC-rel relocation type used.
@@ -926,7 +879,7 @@ private:
   // A vector of pool-allocated x86 labels for Local labels.
   LabelVector LocalLabels;
 
-  Label *GetOrCreateLabel(SizeT Number, LabelVector &Labels);
+  Label *getOrCreateLabel(SizeT Number, LabelVector &Labels);
 
   // The arith_int() methods factor out the commonality between the encodings of
   // add(), Or(), adc(), sbb(), And(), sub(), Xor(), and cmp().  The Tag

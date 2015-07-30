@@ -31,18 +31,18 @@ template <class Machine>
 AssemblerX86Base<Machine>::~AssemblerX86Base<Machine>() {
   if (BuildDefs::asserts()) {
     for (const Label *Label : CfgNodeLabels) {
-      Label->FinalCheck();
+      Label->finalCheck();
     }
     for (const Label *Label : LocalLabels) {
-      Label->FinalCheck();
+      Label->finalCheck();
     }
   }
 }
 
 template <class Machine> void AssemblerX86Base<Machine>::alignFunction() {
-  SizeT Align = 1 << getBundleAlignLog2Bytes();
+  const SizeT Align = 1 << getBundleAlignLog2Bytes();
   SizeT BytesNeeded = Utils::OffsetToAlignment(Buffer.getPosition(), Align);
-  const SizeT HltSize = 1;
+  constexpr SizeT HltSize = 1;
   while (BytesNeeded > 0) {
     hlt();
     BytesNeeded -= HltSize;
@@ -50,7 +50,7 @@ template <class Machine> void AssemblerX86Base<Machine>::alignFunction() {
 }
 
 template <class Machine>
-Label *AssemblerX86Base<Machine>::GetOrCreateLabel(SizeT Number,
+Label *AssemblerX86Base<Machine>::getOrCreateLabel(SizeT Number,
                                                    LabelVector &Labels) {
   Label *L = nullptr;
   if (Number == Labels.size()) {
@@ -70,25 +70,25 @@ Label *AssemblerX86Base<Machine>::GetOrCreateLabel(SizeT Number,
 }
 
 template <class Machine>
-Label *AssemblerX86Base<Machine>::GetOrCreateCfgNodeLabel(SizeT NodeNumber) {
-  return GetOrCreateLabel(NodeNumber, CfgNodeLabels);
+Label *AssemblerX86Base<Machine>::getOrCreateCfgNodeLabel(SizeT NodeNumber) {
+  return getOrCreateLabel(NodeNumber, CfgNodeLabels);
 }
 
 template <class Machine>
-Label *AssemblerX86Base<Machine>::GetOrCreateLocalLabel(SizeT Number) {
-  return GetOrCreateLabel(Number, LocalLabels);
+Label *AssemblerX86Base<Machine>::getOrCreateLocalLabel(SizeT Number) {
+  return getOrCreateLabel(Number, LocalLabels);
 }
 
 template <class Machine>
 void AssemblerX86Base<Machine>::bindCfgNodeLabel(SizeT NodeNumber) {
   assert(!getPreliminary());
-  Label *L = GetOrCreateCfgNodeLabel(NodeNumber);
+  Label *L = getOrCreateCfgNodeLabel(NodeNumber);
   this->bind(L);
 }
 
 template <class Machine>
-void AssemblerX86Base<Machine>::BindLocalLabel(SizeT Number) {
-  Label *L = GetOrCreateLocalLabel(Number);
+void AssemblerX86Base<Machine>::bindLocalLabel(SizeT Number) {
+  Label *L = getOrCreateLocalLabel(Number);
   if (!getPreliminary())
     this->bind(L);
 }
@@ -2949,10 +2949,10 @@ template <class Machine>
 void AssemblerX86Base<Machine>::j(typename Traits::Cond::BrCond condition,
                                   Label *label, bool near) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  if (label->IsBound()) {
+  if (label->isBound()) {
     static const int kShortSize = 2;
     static const int kLongSize = 6;
-    intptr_t offset = label->Position() - Buffer.size();
+    intptr_t offset = label->getPosition() - Buffer.size();
     assert(offset <= 0);
     if (Utils::IsInt(8, offset - kShortSize)) {
       // TODO(stichnot): Here and in jmp(), we may need to be more
@@ -3000,10 +3000,10 @@ void AssemblerX86Base<Machine>::jmp(typename Traits::GPRRegister reg) {
 template <class Machine>
 void AssemblerX86Base<Machine>::jmp(Label *label, bool near) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  if (label->IsBound()) {
+  if (label->isBound()) {
     static const int kShortSize = 2;
     static const int kLongSize = 5;
-    intptr_t offset = label->Position() - Buffer.size();
+    intptr_t offset = label->getPosition() - Buffer.size();
     assert(offset <= 0);
     if (Utils::IsInt(8, offset - kShortSize)) {
       emitUint8(0xEB);
@@ -3133,20 +3133,20 @@ void AssemblerX86Base<Machine>::align(intptr_t alignment, intptr_t offset) {
 
 template <class Machine> void AssemblerX86Base<Machine>::bind(Label *label) {
   intptr_t bound = Buffer.size();
-  assert(!label->IsBound()); // Labels can only be bound once.
-  while (label->IsLinked()) {
-    intptr_t position = label->LinkPosition();
+  assert(!label->isBound()); // Labels can only be bound once.
+  while (label->isLinked()) {
+    intptr_t position = label->getLinkPosition();
     intptr_t next = Buffer.load<int32_t>(position);
     Buffer.store<int32_t>(position, bound - (position + 4));
-    label->position_ = next;
+    label->Position = next;
   }
-  while (label->HasNear()) {
-    intptr_t position = label->NearPosition();
+  while (label->hasNear()) {
+    intptr_t position = label->getNearPosition();
     intptr_t offset = bound - (position + 1);
     assert(Utils::IsInt(8, offset));
     Buffer.store<int8_t>(position, offset);
   }
-  label->BindTo(bound);
+  label->bindTo(bound);
 }
 
 template <class Machine>
@@ -3222,8 +3222,8 @@ void AssemblerX86Base<Machine>::emitComplex(
 template <class Machine>
 void AssemblerX86Base<Machine>::emitLabel(Label *label,
                                           intptr_t instruction_size) {
-  if (label->IsBound()) {
-    intptr_t offset = label->Position() - Buffer.size();
+  if (label->isBound()) {
+    intptr_t offset = label->getPosition() - Buffer.size();
     assert(offset <= 0);
     emitInt32(offset - instruction_size);
   } else {
@@ -3233,20 +3233,20 @@ void AssemblerX86Base<Machine>::emitLabel(Label *label,
 
 template <class Machine>
 void AssemblerX86Base<Machine>::emitLabelLink(Label *Label) {
-  assert(!Label->IsBound());
+  assert(!Label->isBound());
   intptr_t Position = Buffer.size();
-  emitInt32(Label->position_);
+  emitInt32(Label->Position);
   if (!getPreliminary())
-    Label->LinkTo(Position);
+    Label->linkTo(Position);
 }
 
 template <class Machine>
 void AssemblerX86Base<Machine>::emitNearLabelLink(Label *label) {
-  assert(!label->IsBound());
+  assert(!label->isBound());
   intptr_t position = Buffer.size();
   emitUint8(0);
   if (!getPreliminary())
-    label->NearLinkTo(position);
+    label->nearLinkTo(position);
 }
 
 template <class Machine>

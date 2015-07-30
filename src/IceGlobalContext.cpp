@@ -385,6 +385,8 @@ void GlobalContext::emitFileHeader() {
 
 void GlobalContext::lowerConstants() { DataLowering->lowerConstants(); }
 
+void GlobalContext::lowerJumpTables() { DataLowering->lowerJumpTables(); }
+
 void GlobalContext::lowerGlobals(const IceString &SectionSuffix) {
   TimerMarker T(TimerStack::TT_emitGlobalInitializers, this);
   const bool DumpGlobalVariables = BuildDefs::dump() && Flags.getVerbose() &&
@@ -874,6 +876,13 @@ ConstantList GlobalContext::getConstantPool(Type Ty) {
 
 ConstantList GlobalContext::getConstantExternSyms() {
   return getConstPool()->ExternRelocatables.getConstantPool();
+}
+
+JumpTableData &GlobalContext::addJumpTable(IceString FuncName, SizeT Id,
+                                           SizeT NumTargets) {
+  auto JumpTables = getJumpTables();
+  JumpTables->emplace_back(FuncName, Id, NumTargets);
+  return JumpTables->back();
 }
 
 TimerStackIdT GlobalContext::newTimerStackID(const IceString &Name) {

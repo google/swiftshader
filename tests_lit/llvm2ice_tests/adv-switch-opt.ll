@@ -1,8 +1,7 @@
 ; This tests the advanced lowering of switch statements. The advanced lowering
 ; uses jump tables, range tests and binary search.
 
-; RUN: %if --need=allow_dump --command %p2i -i %s --filetype=asm --assemble \
-; RUN: --disassemble --args --adv-switch -O2 | FileCheck %s
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 | FileCheck %s
 
 ; Dense but non-continuous ranges should be converted into a jump table.
 define internal i32 @testJumpTable(i32 %a) {
@@ -33,7 +32,7 @@ sw.epilog:
 ; CHECK: sub [[IND:[^,]+]],0x5b
 ; CHECK-NEXT: cmp [[IND]],0x8
 ; CHECK-NEXT: ja
-; CHECK-NEXT: mov [[BASE:[^,]+]],0x0 {{[0-9a-f]+}}: R_386_32 .rodata.testJumpTable$jumptable
+; CHECK-NEXT: mov [[BASE:[^,]+]],0x0 {{[0-9a-f]+}}: R_386_32 .{{.*}}testJumpTable$jumptable
 ; CHECK-NEXT: mov {{.*}},DWORD PTR {{\[}}[[BASE]]+[[IND]]*4]
 ; CHECK-NEXT: jmp
 

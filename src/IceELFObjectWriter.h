@@ -76,6 +76,9 @@ public:
   /// fills the symbol table with labels for each constant pool entry.
   template <typename ConstType> void writeConstantPool(Type Ty);
 
+  /// Write a jump table and register fixups for the target addresses.
+  void writeJumpTable(const JumpTableData &JT, FixupKind RelocationKind);
+
   /// Populate the symbol table with a list of external/undefined symbols.
   void setUndefinedSyms(const ConstantList &UndefSyms);
 

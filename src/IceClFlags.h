@@ -103,13 +103,6 @@ public:
   }
   void setTimeEachFunction(bool NewValue) { TimeEachFunction = NewValue; }
 
-  bool getUseAdvancedSwitchLowering() const {
-    return UseAdvancedSwitchLowering;
-  }
-  void setUseAdvancedSwitchLowering(bool NewValue) {
-    UseAdvancedSwitchLowering = NewValue;
-  }
-
   bool getUseSandboxing() const { return UseSandboxing; }
   void setUseSandboxing(bool NewValue) { UseSandboxing = NewValue; }
 
@@ -242,7 +235,6 @@ private:
   bool SkipUnimplemented;
   bool SubzeroTimingEnabled;
   bool TimeEachFunction;
-  bool UseAdvancedSwitchLowering;
   bool UseSandboxing;
 
   OptLevel Opt;
