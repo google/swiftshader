@@ -377,6 +377,9 @@ public:
   InstNumberT getStart() const {
     return Range.empty() ? -1 : Range.begin()->first;
   }
+  InstNumberT getEnd() const {
+    return Range.empty() ? -1 : Range.rbegin()->second;
+  }
 
   void untrim() { TrimmedBegin = Range.begin(); }
   void trim(InstNumberT Lower);
@@ -577,17 +580,16 @@ public:
   const Inst *getFirstDefinition() const;
   const Inst *getSingleDefinition() const;
   const InstDefList &getLatterDefinitions() const { return Definitions; }
-  const CfgNode *getNode() const { return SingleUseNode; }
-  void markUse(MetadataKind TrackingKind, const Inst *Instr,
-               const CfgNode *Node, bool IsFromDef, bool IsImplicit);
-  void markDef(MetadataKind TrackingKind, const Inst *Instr,
-               const CfgNode *Node);
+  CfgNode *getNode() const { return SingleUseNode; }
+  void markUse(MetadataKind TrackingKind, const Inst *Instr, CfgNode *Node,
+               bool IsImplicit);
+  void markDef(MetadataKind TrackingKind, const Inst *Instr, CfgNode *Node);
 
 private:
   MultiDefState MultiDef = MDS_Unknown;
   MultiBlockState MultiBlock = MBS_Unknown;
-  const CfgNode *SingleUseNode = nullptr;
-  const CfgNode *SingleDefNode = nullptr;
+  CfgNode *SingleUseNode = nullptr;
+  CfgNode *SingleDefNode = nullptr;
   /// All definitions of the variable are collected here, in increasing
   /// order of instruction number.
   InstDefList Definitions; /// Only used if Kind==VMK_All
@@ -645,7 +647,7 @@ public:
   bool isMultiBlock(const Variable *Var) const;
   /// Returns the node that the given Variable is used in, assuming
   /// isMultiBlock() returns false.  Otherwise, nullptr is returned.
-  const CfgNode *getLocalUseNode(const Variable *Var) const;
+  CfgNode *getLocalUseNode(const Variable *Var) const;
 
 private:
   const Cfg *Func;

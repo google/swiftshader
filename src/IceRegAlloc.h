@@ -39,6 +39,9 @@ private:
 
   void initForGlobal();
   void initForInfOnly();
+  /// Free up a register for infinite-weight Cur by spilling and reloading some
+  /// register that isn't used during Cur's live range.
+  void addSpillFill(Variable *Cur, llvm::SmallBitVector RegMask);
   /// Move an item from the From set to the To set.  From[Index] is
   /// pushed onto the end of To[], then the item is efficiently removed
   /// from From[] by effectively swapping it with the last item in
@@ -58,12 +61,9 @@ private:
   OrderedRanges UnhandledPrecolored;
   UnorderedRanges Active, Inactive, Handled;
   std::vector<InstNumberT> Kills;
+  RegAllocKind Kind = RAK_Unknown;
   bool FindPreference = false;
   bool FindOverlap = false;
-  // TODO(stichnot): We're not really using FindOverlap yet, but we
-  // may want a flavor of register allocation where FindPreference is
-  // useful but we didn't want to initialize VMetadata with VMK_All
-  // and therefore we can't safely allow overlap.
 };
 
 } // end of namespace Ice

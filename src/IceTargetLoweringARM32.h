@@ -132,8 +132,6 @@ protected:
   void lowerSwitch(const InstSwitch *Inst) override;
   void lowerUnreachable(const InstUnreachable *Inst) override;
   void prelowerPhis() override;
-  void lowerPhiAssignments(CfgNode *Node,
-                           const AssignList &Assignments) override;
   void doAddressOptLoad() override;
   void doAddressOptStore() override;
   void randomlyInsertNop(float Probability) override;

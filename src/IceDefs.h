@@ -197,7 +197,9 @@ enum LivenessMode {
 };
 
 enum RegAllocKind {
+  RAK_Unknown,
   RAK_Global, /// full, global register allocation
+  RAK_Phi,    /// infinite-weight Variables with active spilling/filling
   RAK_InfOnly /// allocation only for infinite-weight Variables
 };
 

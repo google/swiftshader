@@ -37,7 +37,7 @@ constexpr size_t REGS_SIZE = 32;
 // is with respect Cur.start.  Initial tests show no measurable
 // performance difference, so we'll keep the code simple for now.
 bool overlapsDefs(const Cfg *Func, const Variable *Item, const Variable *Var) {
-  const bool UseTrimmed = true;
+  constexpr bool UseTrimmed = true;
   VariablesMetadata *VMetadata = Func->getVMetadata();
   if (const Inst *FirstDef = VMetadata->getFirstDefinition(Var))
     if (Item->getLiveRange().overlapsInst(FirstDef->getNumber(), UseTrimmed))
@@ -73,9 +73,8 @@ void dumpLiveRange(const Variable *Var, const Cfg *Func) {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
-  const static size_t BufLen = 30;
-  char buf[BufLen];
-  snprintf(buf, BufLen, "%2d", Var->getRegNumTmp());
+  char buf[30];
+  snprintf(buf, llvm::array_lengthof(buf), "%2d", Var->getRegNumTmp());
   Str << "R=" << buf << "  V=";
   Var->dump(Func);
   Str << "  Range=" << Var->getLiveRange();
@@ -88,7 +87,12 @@ void dumpLiveRange(const Variable *Var, const Cfg *Func) {
 void LinearScan::initForGlobal() {
   TimerMarker T(TimerStack::TT_initUnhandled, Func);
   FindPreference = true;
-  FindOverlap = true;
+  // For full register allocation, normally we want to enable FindOverlap
+  // (meaning we look for opportunities for two overlapping live ranges to
+  // safely share the same register).  However, we disable it for phi-lowering
+  // register allocation since no overlap opportunities should be available and
+  // it's more expensive to look for opportunities.
+  FindOverlap = (Kind != RAK_Phi);
   const VarList &Vars = Func->getVariables();
   Unhandled.reserve(Vars.size());
   UnhandledPrecolored.reserve(Vars.size());
@@ -103,6 +107,10 @@ void LinearScan::initForGlobal() {
     // it was never referenced.
     if (Var->getLiveRange().isEmpty())
       continue;
+    // Post phi lowering register allocation is only concerned with variables
+    // that are infinite-weight or pre-colored.
+    if (Kind == RAK_Phi && !Var->getWeight().isInf() && !Var->hasReg())
+      continue;
     Var->untrimLiveRange();
     Unhandled.push_back(Var);
     if (Var->hasReg()) {
@@ -114,6 +122,11 @@ void LinearScan::initForGlobal() {
 
   // Build the (ordered) list of FakeKill instruction numbers.
   Kills.clear();
+  // Phi lowering should not be creating new call instructions, so there should
+  // be no infinite-weight not-yet-colored live ranges that span a call
+  // instruction, hence no need to construct the Kills list.
+  if (Kind == RAK_Phi)
+    return;
   for (CfgNode *Node : Func->getNodes()) {
     for (Inst &I : Node->getInsts()) {
       if (auto Kill = llvm::dyn_cast<InstFakeKill>(&I)) {
@@ -196,7 +209,7 @@ void LinearScan::initForInfOnly() {
       assert(LREnd[i] != Inst::NumberSentinel);
       Unhandled.push_back(Var);
       Var->resetLiveRange();
-      const uint32_t WeightDelta = 1;
+      constexpr uint32_t WeightDelta = 1;
       Var->addLiveRange(LRBegin[i], LREnd[i], WeightDelta);
       Var->untrimLiveRange();
       if (Var->hasReg()) {
@@ -217,6 +230,7 @@ void LinearScan::initForInfOnly() {
 }
 
 void LinearScan::init(RegAllocKind Kind) {
+  this->Kind = Kind;
   Unhandled.clear();
   UnhandledPrecolored.clear();
   Handled.clear();
@@ -224,7 +238,11 @@ void LinearScan::init(RegAllocKind Kind) {
   Active.clear();
 
   switch (Kind) {
+  case RAK_Unknown:
+    llvm::report_fatal_error("Invalid RAK_Unknown");
+    break;
   case RAK_Global:
+  case RAK_Phi:
     initForGlobal();
     break;
   case RAK_InfOnly:
@@ -249,6 +267,76 @@ void LinearScan::init(RegAllocKind Kind) {
   Handled.reserve(Unhandled.size());
   Inactive.reserve(Unhandled.size());
   Active.reserve(Unhandled.size());
+}
+
+// This is called when Cur must be allocated a register but no registers are
+// available across Cur's live range.  To handle this, we find a register that
+// is not explicitly used during Cur's live range, spill that register to a
+// stack location right before Cur's live range begins, and fill (reload) the
+// register from the stack location right after Cur's live range ends.
+void LinearScan::addSpillFill(Variable *Cur, llvm::SmallBitVector RegMask) {
+  // Identify the actual instructions that begin and end Cur's live range.
+  // Iterate through Cur's node's instruction list until we find the actual
+  // instructions with instruction numbers corresponding to Cur's recorded live
+  // range endpoints.  This sounds inefficient but shouldn't be a problem in
+  // practice because:
+  // (1) This function is almost never called in practice.
+  // (2) Since this register over-subscription problem happens only for
+  //     phi-lowered instructions, the number of instructions in the node is
+  //     proportional to the number of phi instructions in the original node,
+  //     which is never very large in practice.
+  // (3) We still have to iterate through all instructions of Cur's live range
+  //     to find all explicitly used registers (though the live range is usually
+  //     only 2-3 instructions), so the main cost that could be avoided would be
+  //     finding the instruction that begin's Cur's live range.
+  assert(!Cur->getLiveRange().isEmpty());
+  InstNumberT Start = Cur->getLiveRange().getStart();
+  InstNumberT End = Cur->getLiveRange().getEnd();
+  CfgNode *Node = Func->getVMetadata()->getLocalUseNode(Cur);
+  assert(Node);
+  InstList &Insts = Node->getInsts();
+  InstList::iterator SpillPoint = Insts.end();
+  InstList::iterator FillPoint = Insts.end();
+  // Stop searching after we have found both the SpillPoint and the FillPoint.
+  for (auto I = Insts.begin(), E = Insts.end();
+       I != E && (SpillPoint == E || FillPoint == E); ++I) {
+    if (I->getNumber() == Start)
+      SpillPoint = I;
+    if (I->getNumber() == End)
+      FillPoint = I;
+    if (SpillPoint != E) {
+      // Remove from RegMask any physical registers referenced during Cur's live
+      // range.  Start looking after SpillPoint gets set, i.e. once Cur's live
+      // range begins.
+      for (SizeT i = 0; i < I->getSrcSize(); ++i) {
+        Operand *Src = I->getSrc(i);
+        SizeT NumVars = Src->getNumVars();
+        for (SizeT j = 0; j < NumVars; ++j) {
+          const Variable *Var = Src->getVar(j);
+          if (Var->hasRegTmp())
+            RegMask[Var->getRegNumTmp()] = false;
+        }
+      }
+    }
+  }
+  assert(SpillPoint != Insts.end());
+  assert(FillPoint != Insts.end());
+  ++FillPoint;
+  // TODO(stichnot): Randomize instead of find_first().
+  int32_t RegNum = RegMask.find_first();
+  assert(RegNum != -1);
+  Cur->setRegNumTmp(RegNum);
+  TargetLowering *Target = Func->getTarget();
+  Variable *Preg = Target->getPhysicalRegister(RegNum, Cur->getType());
+  // TODO(stichnot): Add SpillLoc to VariablesMetadata tracking so that SpillLoc
+  // is correctly identified as !isMultiBlock(), reducing stack frame size.
+  Variable *SpillLoc = Func->makeVariable(Cur->getType());
+  // Add "reg=FakeDef;spill=reg" before SpillPoint
+  Target->lowerInst(Node, SpillPoint, InstFakeDef::create(Func, Preg));
+  Target->lowerInst(Node, SpillPoint, InstAssign::create(Func, SpillLoc, Preg));
+  // add "reg=spill;FakeUse(reg)" before FillPoint
+  Target->lowerInst(Node, FillPoint, InstAssign::create(Func, Preg, SpillLoc));
+  Target->lowerInst(Node, FillPoint, InstFakeUse::create(Func, Preg));
 }
 
 // Implements the linear-scan algorithm.  Based on "Linear Scan
@@ -312,10 +400,10 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
         RegMaskFull & Func->getTarget()->getRegisterSetForType(Cur->getType());
     KillsRange.trim(Cur->getLiveRange().getStart());
 
-    // Check for precolored ranges.  If Cur is precolored, it
+    // Check for pre-colored ranges.  If Cur is pre-colored, it
     // definitely gets that register.  Previously processed live
     // ranges would have avoided that register due to it being
-    // precolored.  Future processed live ranges won't evict that
+    // pre-colored.  Future processed live ranges won't evict that
     // register because the live range has infinite weight.
     if (Cur->hasReg()) {
       int32_t RegNum = Cur->getRegNum();
@@ -501,7 +589,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
     llvm::SmallVector<RegWeight, REGS_SIZE> Weights(RegMask.size());
 
     // Remove registers from the Free[] list where an Unhandled
-    // precolored range overlaps with the current range, and set those
+    // pre-colored range overlaps with the current range, and set those
     // registers to infinite weight so that they aren't candidates for
     // eviction.  Cur->rangeEndsBefore(Item) is an early exit check
     // that turns a guaranteed O(N^2) algorithm into expected linear
@@ -518,7 +606,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
         Free[ItemReg] = false;
         PrecoloredUnhandledMask[ItemReg] = true;
         // Disable AllowOverlap if the preferred register is one of
-        // these precolored unhandled overlapping ranges.
+        // these pre-colored unhandled overlapping ranges.
         if (AllowOverlap && ItemReg == PreferReg) {
           AllowOverlap = false;
           dumpDisableOverlap(Func, Item, "PrecoloredUnhandled");
@@ -528,7 +616,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
 
     // Remove scratch registers from the Free[] list, and mark their
     // Weights[] as infinite, if KillsRange overlaps Cur's live range.
-    const bool UseTrimmed = true;
+    constexpr bool UseTrimmed = true;
     if (Cur->getLiveRange().overlaps(KillsRange, UseTrimmed)) {
       Free.reset(KillsMask);
       for (int i = KillsMask.find_first(); i != -1;
@@ -615,8 +703,11 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
         // Handled state.
         Handled.push_back(Cur);
         if (Cur->getLiveRange().getWeight().isInf()) {
-          Func->setError("Unable to find a physical register for an "
-                         "infinite-weight live range");
+          if (Kind == RAK_Phi)
+            addSpillFill(Cur, RegMask);
+          else
+            Func->setError("Unable to find a physical register for an "
+                           "infinite-weight live range");
         }
       } else {
         // Evict all live ranges in Active that register number

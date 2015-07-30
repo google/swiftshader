@@ -146,8 +146,7 @@ Variable *Variable::asType(Type Ty) {
 }
 
 void VariableTracking::markUse(MetadataKind TrackingKind, const Inst *Instr,
-                               const CfgNode *Node, bool IsFromDef,
-                               bool IsImplicit) {
+                               CfgNode *Node, bool IsImplicit) {
   (void)TrackingKind;
   if (MultiBlock == MBS_MultiBlock)
     return;
@@ -165,7 +164,7 @@ void VariableTracking::markUse(MetadataKind TrackingKind, const Inst *Instr,
   // is because there can be additional control flow before branching
   // back to this node, and the variable is live throughout those
   // nodes.
-  if (!IsFromDef && Instr && llvm::isa<InstPhi>(Instr))
+  if (Instr && llvm::isa<InstPhi>(Instr))
     MakeMulti = true;
 
   if (!MakeMulti) {
@@ -190,7 +189,7 @@ void VariableTracking::markUse(MetadataKind TrackingKind, const Inst *Instr,
 }
 
 void VariableTracking::markDef(MetadataKind TrackingKind, const Inst *Instr,
-                               const CfgNode *Node) {
+                               CfgNode *Node) {
   // TODO(stichnot): If the definition occurs in the last instruction
   // of the block, consider not marking this as a separate use.  But
   // be careful not to omit all uses of the variable if markDef() and
@@ -205,9 +204,8 @@ void VariableTracking::markDef(MetadataKind TrackingKind, const Inst *Instr,
            Instr->getNumber() >= LastInstruction->getNumber());
   }
 #endif
-  const bool IsFromDef = true;
-  const bool IsImplicit = false;
-  markUse(TrackingKind, Instr, Node, IsFromDef, IsImplicit);
+  constexpr bool IsImplicit = false;
+  markUse(TrackingKind, Instr, Node, IsImplicit);
   if (TrackingKind == VMK_Uses)
     return;
   if (FirstOrSingleDefinition == nullptr)
@@ -276,12 +274,10 @@ void VariablesMetadata::init(MetadataKind TrackingKind) {
 
   // Mark implicit args as being used in the entry node.
   for (Variable *Var : Func->getImplicitArgs()) {
-    const Inst *NoInst = nullptr;
-    const CfgNode *EntryNode = Func->getEntryNode();
-    const bool IsFromDef = false;
-    const bool IsImplicit = true;
-    Metadata[Var->getIndex()].markUse(Kind, NoInst, EntryNode, IsFromDef,
-                                      IsImplicit);
+    constexpr Inst *NoInst = nullptr;
+    CfgNode *EntryNode = Func->getEntryNode();
+    constexpr bool IsImplicit = true;
+    Metadata[Var->getIndex()].markUse(Kind, NoInst, EntryNode, IsImplicit);
   }
 
   for (CfgNode *Node : Func->getNodes())
@@ -304,9 +300,8 @@ void VariablesMetadata::addNode(CfgNode *Node) {
       if (const Variable *Var = llvm::dyn_cast<Variable>(I.getSrc(SrcNum))) {
         SizeT VarNum = Var->getIndex();
         assert(VarNum < Metadata.size());
-        const bool IsFromDef = false;
-        const bool IsImplicit = false;
-        Metadata[VarNum].markUse(Kind, &I, Node, IsFromDef, IsImplicit);
+        constexpr bool IsImplicit = false;
+        Metadata[VarNum].markUse(Kind, &I, Node, IsImplicit);
       }
     }
   }
@@ -328,9 +323,8 @@ void VariablesMetadata::addNode(CfgNode *Node) {
         const Variable *Var = Src->getVar(J);
         SizeT VarNum = Var->getIndex();
         assert(VarNum < Metadata.size());
-        const bool IsFromDef = false;
-        const bool IsImplicit = false;
-        Metadata[VarNum].markUse(Kind, &I, Node, IsFromDef, IsImplicit);
+        constexpr bool IsImplicit = false;
+        Metadata[VarNum].markUse(Kind, &I, Node, IsImplicit);
       }
     }
   }
@@ -382,7 +376,7 @@ VariablesMetadata::getLatterDefinitions(const Variable *Var) const {
   return Metadata[VarNum].getLatterDefinitions();
 }
 
-const CfgNode *VariablesMetadata::getLocalUseNode(const Variable *Var) const {
+CfgNode *VariablesMetadata::getLocalUseNode(const Variable *Var) const {
   if (!isTracked(Var))
     return nullptr; // conservative answer
   SizeT VarNum = Var->getIndex();

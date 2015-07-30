@@ -36,6 +36,7 @@
   X(liveness)                  \
   X(livenessLightweight)       \
   X(llvmConvert)               \
+  X(lowerPhiAssignments)       \
   X(parse)                     \
   X(parseConstants)            \
   X(parseFunctions)            \

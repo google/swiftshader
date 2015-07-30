@@ -63,6 +63,8 @@ class Liveness {
 public:
   Liveness(Cfg *Func, LivenessMode Mode) : Func(Func), Mode(Mode) {}
   void init();
+  void initPhiEdgeSplits(NodeList::const_iterator FirstNode,
+                         VarList::const_iterator FirstVar);
   Cfg *getFunc() const { return Func; }
   LivenessMode getMode() const { return Mode; }
   Variable *getVariable(SizeT LiveIndex, const CfgNode *Node) const;
@@ -96,6 +98,8 @@ public:
   }
 
 private:
+  void initInternal(NodeList::const_iterator FirstNode,
+                    VarList::const_iterator FirstVar, bool IsFullInit);
   /// Resize Nodes so that Nodes[Index] is valid.
   void resize(SizeT Index) {
     if (Index >= Nodes.size())

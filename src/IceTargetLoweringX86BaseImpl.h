@@ -387,13 +387,7 @@ template <class Machine> void TargetX86Base<Machine>::translateO2() {
   Func->dump("After linear scan regalloc");
 
   if (Ctx->getFlags().getPhiEdgeSplit()) {
-    // We need to pause constant blinding or pooling during advanced phi
-    // lowering, unless the lowering assignment has a physical register for the
-    // dest Variable.
-    {
-      BoolFlagSaver B(RandomizationPoolingPaused, true);
-      Func->advancedPhiLowering();
-    }
+    Func->advancedPhiLowering();
     Func->dump("After advanced Phi lowering");
   }
 
@@ -2064,32 +2058,21 @@ void TargetX86Base<Machine>::lowerAssign(const InstAssign *Inst) {
     _mov(T_Hi, Src0Hi);
     _mov(DestHi, T_Hi);
   } else {
-    Operand *RI;
+    Operand *Src0Legal;
     if (Dest->hasReg()) {
-      // If Dest already has a physical register, then legalize the
-      // Src operand into a Variable with the same register
-      // assignment.  This is mostly a workaround for advanced phi
-      // lowering's ad-hoc register allocation which assumes no
-      // register allocation is needed when at least one of the
-      // operands is non-memory.
-
-      // If we have a physical register for the dest variable, we can
-      // enable our constant blinding or pooling again. Note this is
-      // only for advancedPhiLowering(), the flag flip should leave
-      // no other side effect.
-      {
-        BoolFlagSaver B(RandomizationPoolingPaused, false);
-        RI = legalize(Src0, Legal_Reg, Dest->getRegNum());
-      }
+      // If Dest already has a physical register, then only basic legalization
+      // is needed, as the source operand can be a register, immediate, or
+      // memory.
+      Src0Legal = legalize(Src0);
     } else {
       // If Dest could be a stack operand, then RI must be a physical
       // register or a scalar integer immediate.
-      RI = legalize(Src0, Legal_Reg | Legal_Imm);
+      Src0Legal = legalize(Src0, Legal_Reg | Legal_Imm);
     }
     if (isVectorType(Dest->getType()))
-      _movp(Dest, RI);
+      _movp(Dest, Src0Legal);
     else
-      _mov(Dest, RI);
+      _mov(Dest, Src0Legal);
   }
 }
 
@@ -4936,164 +4919,6 @@ template <class Machine> void TargetX86Base<Machine>::prelowerPhis() {
   BoolFlagSaver B(RandomizationPoolingPaused, true);
   PhiLowering::prelowerPhis32Bit<TargetX86Base<Machine>>(
       this, Context.getNode(), Func);
-}
-
-inline bool isMemoryOperand(const Operand *Opnd) {
-  if (const auto Var = llvm::dyn_cast<Variable>(Opnd))
-    return !Var->hasReg();
-  // We treat vector undef values the same as a memory operand,
-  // because they do in fact need a register to materialize the vector
-  // of zeroes into.
-  if (llvm::isa<ConstantUndef>(Opnd))
-    return isScalarFloatingType(Opnd->getType()) ||
-           isVectorType(Opnd->getType());
-  if (llvm::isa<Constant>(Opnd))
-    return isScalarFloatingType(Opnd->getType());
-  return true;
-}
-
-/// Lower the pre-ordered list of assignments into mov instructions.
-/// Also has to do some ad-hoc register allocation as necessary.
-template <class Machine>
-void TargetX86Base<Machine>::lowerPhiAssignments(
-    CfgNode *Node, const AssignList &Assignments) {
-  // Check that this is a properly initialized shell of a node.
-  assert(Node->getOutEdges().size() == 1);
-  assert(Node->getInsts().empty());
-  assert(Node->getPhis().empty());
-  CfgNode *Succ = Node->getOutEdges().front();
-  getContext().init(Node);
-  // Register set setup similar to regAlloc().
-  RegSetMask RegInclude = RegSet_All;
-  RegSetMask RegExclude = RegSet_StackPointer;
-  if (hasFramePointer())
-    RegExclude |= RegSet_FramePointer;
-  llvm::SmallBitVector Available = getRegisterSet(RegInclude, RegExclude);
-  bool NeedsRegs = false;
-  // Initialize the set of available registers to the set of what is
-  // available (not live) at the beginning of the successor block,
-  // minus all registers used as Dest operands in the Assignments.  To
-  // do this, we start off assuming all registers are available, then
-  // iterate through the Assignments and remove Dest registers.
-  // During this iteration, we also determine whether we will actually
-  // need any extra registers for memory-to-memory copies.  If so, we
-  // do the actual work of removing the live-in registers from the
-  // set.  TODO(stichnot): This work is being repeated for every split
-  // edge to the successor, so consider updating LiveIn just once
-  // after all the edges are split.
-  for (const Inst &I : Assignments) {
-    Variable *Dest = I.getDest();
-    if (Dest->hasReg()) {
-      Available[Dest->getRegNum()] = false;
-    } else if (isMemoryOperand(I.getSrc(0))) {
-      NeedsRegs = true; // Src and Dest are both in memory
-    }
-  }
-  if (NeedsRegs) {
-    LivenessBV &LiveIn = Func->getLiveness()->getLiveIn(Succ);
-    for (int i = LiveIn.find_first(); i != -1; i = LiveIn.find_next(i)) {
-      Variable *Var = Func->getLiveness()->getVariable(i, Succ);
-      if (Var->hasReg())
-        Available[Var->getRegNum()] = false;
-    }
-  }
-  // Iterate backwards through the Assignments.  After lowering each
-  // assignment, add Dest to the set of available registers, and
-  // remove Src from the set of available registers.  Iteration is
-  // done backwards to enable incremental updates of the available
-  // register set, and the lowered instruction numbers may be out of
-  // order, but that can be worked around by renumbering the block
-  // afterwards if necessary.
-  for (const Inst &I : reverse_range(Assignments)) {
-    Context.rewind();
-    auto Assign = llvm::dyn_cast<InstAssign>(&I);
-    Variable *Dest = Assign->getDest();
-
-    // If the source operand is ConstantUndef, do not legalize it.  In function
-    // test_split_undef_int_vec, the advanced phi lowering process will find an
-    // assignment of undefined vector. This vector, as the Src here, will crash
-    // if it go through legalize(). legalize() will create a new variable with
-    // makeVectorOfZeros(), but this new variable will be assigned a stack
-    // slot. This will fail with pxor(Var, Var) because it is an illegal
-    // instruction form. Note this failure is irrelevant to randomization or
-    // pooling of constants.  So, we do not call legalize() to add pool label
-    // for the src operands of phi assignment instructions.  Instead, we
-    // manually add pool label for constant float and constant double values
-    // here.  Note going through legalize() does not affect the testing results
-    // of SPEC2K and xtests.
-    Operand *Src = Assign->getSrc(0);
-    if (!llvm::isa<ConstantUndef>(Assign->getSrc(0))) {
-      Src = legalize(Src);
-    }
-
-    Variable *SrcVar = llvm::dyn_cast<Variable>(Src);
-    // Use normal assignment lowering, except lower mem=mem specially
-    // so we can register-allocate at the same time.
-    if (!isMemoryOperand(Dest) || !isMemoryOperand(Src)) {
-      lowerAssign(Assign);
-    } else {
-      assert(Dest->getType() == Src->getType());
-      const llvm::SmallBitVector &RegsForType =
-          getRegisterSetForType(Dest->getType());
-      llvm::SmallBitVector AvailRegsForType = RegsForType & Available;
-      Variable *SpillLoc = nullptr;
-      Variable *Preg = nullptr;
-      // TODO(stichnot): Opportunity for register randomization.
-      int32_t RegNum = AvailRegsForType.find_first();
-      bool IsVector = isVectorType(Dest->getType());
-      bool NeedSpill = (RegNum == -1);
-      if (NeedSpill) {
-        // Pick some register to spill and update RegNum.
-        // TODO(stichnot): Opportunity for register randomization.
-        RegNum = RegsForType.find_first();
-        Preg = getPhysicalRegister(RegNum, Dest->getType());
-        SpillLoc = Func->makeVariable(Dest->getType());
-        // Create a fake def of the physical register to avoid
-        // liveness inconsistency problems during late-stage liveness
-        // analysis (e.g. asm-verbose mode).
-        Context.insert(InstFakeDef::create(Func, Preg));
-        if (IsVector)
-          _movp(SpillLoc, Preg);
-        else
-          _mov(SpillLoc, Preg);
-      }
-      assert(RegNum >= 0);
-      if (llvm::isa<ConstantUndef>(Src))
-        // Materialize an actual constant instead of undef.  RegNum is
-        // passed in for vector types because undef vectors are
-        // lowered to vector register of zeroes.
-        Src =
-            legalize(Src, Legal_All, IsVector ? RegNum : Variable::NoRegister);
-      Variable *Tmp = makeReg(Dest->getType(), RegNum);
-      if (IsVector) {
-        _movp(Tmp, Src);
-        _movp(Dest, Tmp);
-      } else {
-        _mov(Tmp, Src);
-        _mov(Dest, Tmp);
-      }
-      if (NeedSpill) {
-        // Restore the spilled register.
-        if (IsVector)
-          _movp(Preg, SpillLoc);
-        else
-          _mov(Preg, SpillLoc);
-        // Create a fake use of the physical register to keep it live
-        // for late-stage liveness analysis (e.g. asm-verbose mode).
-        Context.insert(InstFakeUse::create(Func, Preg));
-      }
-    }
-    // Update register availability before moving to the previous
-    // instruction on the Assignments list.
-    if (Dest->hasReg())
-      Available[Dest->getRegNum()] = true;
-    if (SrcVar && SrcVar->hasReg())
-      Available[SrcVar->getRegNum()] = false;
-  }
-
-  // Add the terminator branch instruction to the end.
-  Context.setInsertPoint(Context.getEnd());
-  _br(Succ);
 }
 
 // There is no support for loading or emitting vector constants, so the

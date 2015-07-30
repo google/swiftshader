@@ -1470,26 +1470,22 @@ void TargetARM32::lowerAssign(const InstAssign *Inst) {
     _mov(T_Hi, Src0Hi);
     _mov(DestHi, T_Hi);
   } else {
-    Operand *SrcR;
+    Operand *NewSrc;
     if (Dest->hasReg()) {
-      // If Dest already has a physical register, then legalize the
-      // Src operand into a Variable with the same register
-      // assignment.  This is mostly a workaround for advanced phi
-      // lowering's ad-hoc register allocation which assumes no
-      // register allocation is needed when at least one of the
-      // operands is non-memory.
-      // TODO(jvoung): check this for ARM.
-      SrcR = legalize(Src0, Legal_Reg, Dest->getRegNum());
+      // If Dest already has a physical register, then legalize the Src operand
+      // into a Variable with the same register assignment.  This especially
+      // helps allow the use of Flex operands.
+      NewSrc = legalize(Src0, Legal_Reg | Legal_Flex, Dest->getRegNum());
     } else {
       // Dest could be a stack operand. Since we could potentially need
       // to do a Store (and store can only have Register operands),
       // legalize this to a register.
-      SrcR = legalize(Src0, Legal_Reg);
+      NewSrc = legalize(Src0, Legal_Reg);
     }
     if (isVectorType(Dest->getType())) {
       UnimplementedError(Func->getContext()->getFlags());
     } else {
-      _mov(Dest, SrcR);
+      _mov(Dest, NewSrc);
     }
   }
 }
@@ -2413,15 +2409,6 @@ void TargetARM32::lowerUnreachable(const InstUnreachable * /*Inst*/) {
 
 void TargetARM32::prelowerPhis() {
   PhiLowering::prelowerPhis32Bit<TargetARM32>(this, Context.getNode(), Func);
-}
-
-// Lower the pre-ordered list of assignments into mov instructions.
-// Also has to do some ad-hoc register allocation as necessary.
-void TargetARM32::lowerPhiAssignments(CfgNode *Node,
-                                      const AssignList &Assignments) {
-  (void)Node;
-  (void)Assignments;
-  UnimplementedError(Func->getContext()->getFlags());
 }
 
 Variable *TargetARM32::makeVectorOfZeros(Type Ty, int32_t RegNum) {

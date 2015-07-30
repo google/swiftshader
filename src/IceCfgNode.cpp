@@ -270,33 +270,44 @@ bool sameVarOrReg(const Variable *Var, const Operand *Opnd) {
 
 } // end of anonymous namespace
 
-// This the "advanced" version of Phi lowering for a basic block, in
-// contrast to the simple version that lowers through assignments
-// involving temporaries.
+// This the "advanced" version of Phi lowering for a basic block, in contrast to
+// the simple version that lowers through assignments involving temporaries.
 //
-// All Phi instructions in a basic block are conceptually executed in
-// parallel.  However, if we lower Phis early and commit to a
-// sequential ordering, we may end up creating unnecessary
-// interferences which lead to worse register allocation.  Delaying
-// Phi scheduling until after register allocation can help unless
-// there are no free registers for shuffling registers or stack slots
-// and spilling becomes necessary.
+// All Phi instructions in a basic block are conceptually executed in parallel.
+// However, if we lower Phis early and commit to a sequential ordering, we may
+// end up creating unnecessary interferences which lead to worse register
+// allocation.  Delaying Phi scheduling until after register allocation can help
+// unless there are no free registers for shuffling registers or stack slots and
+// spilling becomes necessary.
 //
-// The advanced Phi lowering starts by finding a topological sort of
-// the Phi instructions, where "A=B" comes before "B=C" due to the
-// anti-dependence on B.  If a topological sort is not possible due to
-// a cycle, the cycle is broken by introducing a non-parallel
-// temporary.  For example, a cycle arising from a permutation like
-// "A=B;B=C;C=A" can become "T=A;A=B;B=C;C=T".  All else being equal,
-// prefer to schedule assignments with register-allocated Src operands
-// earlier, in case that register becomes free afterwards, and prefer
-// to schedule assignments with register-allocated Dest variables
-// later, to keep that register free for longer.
+// The advanced Phi lowering starts by finding a topological sort of the Phi
+// instructions, where "A=B" comes before "B=C" due to the anti-dependence on B.
+// Preexisting register assignments are considered in the topological sort.  If
+// a topological sort is not possible due to a cycle, the cycle is broken by
+// introducing a non-parallel temporary.  For example, a cycle arising from a
+// permutation like "A=B;B=C;C=A" can become "T=A;A=B;B=C;C=T".  All else being
+// equal, prefer to schedule assignments with register-allocated Src operands
+// earlier, in case that register becomes free afterwards, and prefer to
+// schedule assignments with register-allocated Dest variables later, to keep
+// that register free for longer.
 //
-// Once the ordering is determined, the Cfg edge is split and the
-// assignment list is lowered by the target lowering layer.  The
-// specific placement of the new node within the Cfg node list is
-// deferred until later, including after empty node contraction.
+// Once the ordering is determined, the Cfg edge is split and the assignment
+// list is lowered by the target lowering layer.  Since the assignment lowering
+// may create new infinite-weight temporaries, a follow-on register allocation
+// pass will be needed.  To prepare for this, liveness (including live range
+// calculation) of the split nodes needs to be calculated, and liveness of the
+// original node need to be updated to "undo" the effects of the phi
+// assignments.
+
+// The specific placement of the new node within the Cfg node list is deferred
+// until later, including after empty node contraction.
+//
+// After phi assignments are lowered across all blocks, another register
+// allocation pass is run, focusing only on pre-colored and infinite-weight
+// variables, similar to Om1 register allocation (except without the need to
+// specially compute these variables' live ranges, since they have already been
+// precisely calculated).  The register allocator in this mode needs the ability
+// to forcibly spill and reload registers in case none are naturally available.
 void CfgNode::advancedPhiLowering() {
   if (getPhis().empty())
     return;
@@ -314,11 +325,18 @@ void CfgNode::advancedPhiLowering() {
 
   size_t NumPhis = 0;
   for (Inst &I : Phis) {
-    auto Inst = llvm::dyn_cast<InstPhi>(&I);
+    auto *Inst = llvm::dyn_cast<InstPhi>(&I);
     if (!Inst->isDeleted()) {
+      Variable *Dest = Inst->getDest();
       Desc[NumPhis].Phi = Inst;
-      Desc[NumPhis].Dest = Inst->getDest();
+      Desc[NumPhis].Dest = Dest;
       ++NumPhis;
+      // Undo the effect of the phi instruction on this node's live-in set by
+      // marking the phi dest variable as live on entry.
+      SizeT VarNum = Func->getLiveness()->getLiveIndex(Dest->getIndex());
+      assert(!Func->getLiveness()->getLiveIn(this)[VarNum]);
+      Func->getLiveness()->getLiveIn(this)[VarNum] = true;
+      Inst->setDeleted();
     }
   }
   if (NumPhis == 0)
@@ -327,7 +345,6 @@ void CfgNode::advancedPhiLowering() {
   SizeT InEdgeIndex = 0;
   for (CfgNode *Pred : InEdges) {
     CfgNode *Split = splitIncomingEdge(Pred, InEdgeIndex++);
-    AssignList Assignments;
     SizeT Remaining = NumPhis;
 
     // First pass computes Src and initializes NumPred.
@@ -348,7 +365,7 @@ void CfgNode::advancedPhiLowering() {
           // be redundant, and if Dest/Src are on the stack, the
           // target lowering may naively decide to lower it using a
           // temporary register.
-          Assignments.push_back(InstAssign::create(Func, Dest, Src));
+          Split->appendInst(InstAssign::create(Func, Dest, Src));
       }
     }
     // Second pass computes NumPred by comparing every pair of Phi
@@ -374,12 +391,12 @@ void CfgNode::advancedPhiLowering() {
     // Another pass to compute initial Weight values.
 
     // Always pick NumPred=0 over NumPred>0.
-    const int32_t WeightNoPreds = 4;
+    constexpr int32_t WeightNoPreds = 4;
     // Prefer Src as a register because the register might free up.
-    const int32_t WeightSrcIsReg = 2;
+    constexpr int32_t WeightSrcIsReg = 2;
     // Prefer Dest not as a register because the register stays free
     // longer.
-    const int32_t WeightDestNotReg = 1;
+    constexpr int32_t WeightDestNotReg = 1;
 
     for (size_t I = 0; I < NumPhis; ++I) {
       if (Desc[I].Processed)
@@ -434,7 +451,7 @@ void CfgNode::advancedPhiLowering() {
             Variable *Tmp = Func->makeVariable(OtherSrc->getType());
             if (BuildDefs::dump())
               Tmp->setName(Func, "__split_" + std::to_string(VarNum));
-            Assignments.push_back(InstAssign::create(Func, Tmp, OtherSrc));
+            Split->appendInst(InstAssign::create(Func, Tmp, OtherSrc));
             Desc[J].Src = Tmp;
             Found = true;
           }
@@ -443,7 +460,7 @@ void CfgNode::advancedPhiLowering() {
       }
       // Now that a cycle (if any) has been broken, create the actual
       // assignment.
-      Assignments.push_back(InstAssign::create(Func, Dest, Src));
+      Split->appendInst(InstAssign::create(Func, Dest, Src));
       // Update NumPred for all Phi assignments using this Phi's Src
       // as their Dest variable.  Also update Weight if NumPred
       // dropped from 1 to 0.
@@ -459,18 +476,11 @@ void CfgNode::advancedPhiLowering() {
       }
       Desc[BestIndex].Processed = true;
     }
+    Split->appendInst(InstBr::create(Func, this));
 
-    Func->getTarget()->lowerPhiAssignments(Split, Assignments);
-
-    // Renumber the instructions to be monotonically increasing so
-    // that addNode() doesn't assert when multi-definitions are added
-    // out of order.
-    Split->renumberInstructions();
+    Split->genCode();
     Func->getVMetadata()->addNode(Split);
   }
-
-  for (Inst &I : Phis)
-    I.setDeleted();
 }
 
 // Does address mode optimization.  Pass each instruction to the
@@ -896,7 +906,7 @@ void CfgNode::emit(Cfg *Func) const {
   // inference allows it to be greater than 1 for short periods.
   std::vector<SizeT> LiveRegCount(Func->getTarget()->getNumRegisters());
   if (DecorateAsm) {
-    const bool IsLiveIn = true;
+    constexpr bool IsLiveIn = true;
     emitRegisterUsage(Str, Func, this, IsLiveIn, LiveRegCount);
   }
 
@@ -931,7 +941,7 @@ void CfgNode::emit(Cfg *Func) const {
     updateStats(Func, &I);
   }
   if (DecorateAsm) {
-    const bool IsLiveIn = false;
+    constexpr bool IsLiveIn = false;
     emitRegisterUsage(Str, Func, this, IsLiveIn, LiveRegCount);
   }
 }

@@ -63,6 +63,8 @@ public:
   Inst *getLastInserted() const;
   void advanceCur() { Cur = Next; }
   void advanceNext() { advanceForward(Next); }
+  void setCur(InstList::iterator C) { Cur = C; }
+  void setNext(InstList::iterator N) { Next = N; }
   void rewind();
   void setInsertPoint(const InstList::iterator &Position) { Next = Position; }
 
@@ -136,16 +138,15 @@ public:
   void doNopInsertion();
   /// Lowers a single non-Phi instruction.
   void lower();
+  /// Inserts and lowers a single high-level instruction at a specific insertion
+  /// point.
+  void lowerInst(CfgNode *Node, InstList::iterator Next, InstHighLevel *Instr);
   /// Does preliminary lowering of the set of Phi instructions in the
   /// current node.  The main intention is to do what's needed to keep
   /// the unlowered Phi instructions consistent with the lowered
   /// non-Phi instructions, e.g. to lower 64-bit operands on a 32-bit
   /// target.
   virtual void prelowerPhis() {}
-  /// Lowers a list of "parallel" assignment instructions representing
-  /// a topological sort of the Phi instructions.
-  virtual void lowerPhiAssignments(CfgNode *Node,
-                                   const AssignList &Assignments) = 0;
   /// Tries to do branch optimization on a single instruction.  Returns
   /// true if some optimization was done.
   virtual bool doBranchOpt(Inst * /*I*/, const CfgNode * /*NextNode*/) {

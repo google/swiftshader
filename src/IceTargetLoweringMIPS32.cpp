@@ -648,15 +648,6 @@ void TargetMIPS32::prelowerPhis() {
   UnimplementedError(Func->getContext()->getFlags());
 }
 
-// Lower the pre-ordered list of assignments into mov instructions.
-// Also has to do some ad-hoc register allocation as necessary.
-void TargetMIPS32::lowerPhiAssignments(CfgNode *Node,
-                                       const AssignList &Assignments) {
-  (void)Node;
-  (void)Assignments;
-  UnimplementedError(Func->getContext()->getFlags());
-}
-
 void TargetMIPS32::postLower() {
   if (Ctx->getFlags().getOptLevel() == Opt_m1)
     return;

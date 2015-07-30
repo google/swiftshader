@@ -144,8 +144,6 @@ protected:
   void lowerOther(const Inst *Instr) override;
   void lowerRMW(const typename Traits::Insts::FakeRMW *RMW);
   void prelowerPhis() override;
-  void lowerPhiAssignments(CfgNode *Node,
-                           const AssignList &Assignments) override;
   void doAddressOptLoad() override;
   void doAddressOptStore() override;
   void randomlyInsertNop(float Probability) override;

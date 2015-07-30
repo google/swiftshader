@@ -30,7 +30,13 @@
 
 namespace Ice {
 
-void Liveness::init() {
+// Initializes the basic liveness-related data structures for full liveness
+// analysis (IsFullInit=true), or for incremental update after phi lowering
+// (IsFullInit=false).  In the latter case, FirstNode points to the first node
+// added since starting phi lowering, and FirstVar points to the first Variable
+// added since starting phi lowering.
+void Liveness::initInternal(NodeList::const_iterator FirstNode,
+                            VarList::const_iterator FirstVar, bool IsFullInit) {
   // Initialize most of the container sizes.
   SizeT NumVars = Func->getVariables().size();
   SizeT NumNodes = Func->getNumNodes();
@@ -38,32 +44,38 @@ void Liveness::init() {
   Nodes.resize(NumNodes);
   VarToLiveMap.resize(NumVars);
 
-  // Count the number of globals, and the number of locals for each
-  // block.
-  for (SizeT i = 0; i < NumVars; ++i) {
-    Variable *Var = Func->getVariables()[i];
+  // Count the number of globals, and the number of locals for each block.
+  SizeT TmpNumGlobals = 0;
+  for (auto I = FirstVar, E = Func->getVariables().end(); I != E; ++I) {
+    Variable *Var = *I;
     if (VMetadata->isMultiBlock(Var)) {
-      ++NumGlobals;
+      ++TmpNumGlobals;
     } else {
       SizeT Index = VMetadata->getLocalUseNode(Var)->getIndex();
       ++Nodes[Index].NumLocals;
     }
   }
+  if (IsFullInit)
+    NumGlobals = TmpNumGlobals;
+  else
+    assert(TmpNumGlobals == 0);
 
-  // Resize each LivenessNode::LiveToVarMap, and the global
-  // LiveToVarMap.  Reset the counts to 0.
-  for (SizeT i = 0; i < NumNodes; ++i) {
-    Nodes[i].LiveToVarMap.assign(Nodes[i].NumLocals, nullptr);
-    Nodes[i].NumLocals = 0;
-    Nodes[i].NumNonDeadPhis = 0;
+  // Resize each LivenessNode::LiveToVarMap, and the global LiveToVarMap.  Reset
+  // the counts to 0.
+  for (auto I = FirstNode, E = Func->getNodes().end(); I != E; ++I) {
+    LivenessNode &N = Nodes[(*I)->getIndex()];
+    N.LiveToVarMap.assign(N.NumLocals, nullptr);
+    N.NumLocals = 0;
+    N.NumNonDeadPhis = 0;
   }
-  LiveToVarMap.assign(NumGlobals, nullptr);
+  if (IsFullInit)
+    LiveToVarMap.assign(NumGlobals, nullptr);
 
   // Sort each variable into the appropriate LiveToVarMap.  Also set
   // VarToLiveMap.
-  SizeT TmpNumGlobals = 0;
-  for (SizeT i = 0; i < NumVars; ++i) {
-    Variable *Var = Func->getVariables()[i];
+  TmpNumGlobals = 0;
+  for (auto I = FirstVar, E = Func->getVariables().end(); I != E; ++I) {
+    Variable *Var = *I;
     SizeT VarIndex = Var->getIndex();
     SizeT LiveIndex;
     if (VMetadata->isMultiBlock(Var)) {
@@ -77,17 +89,30 @@ void Liveness::init() {
     }
     VarToLiveMap[VarIndex] = LiveIndex;
   }
-  assert(NumGlobals == TmpNumGlobals);
+  assert(TmpNumGlobals == (IsFullInit ? NumGlobals : 0));
 
   // Process each node.
-  for (const CfgNode *LNode : Func->getNodes()) {
-    LivenessNode &Node = Nodes[LNode->getIndex()];
+  for (auto I = FirstNode, E = Func->getNodes().end(); I != E; ++I) {
+    LivenessNode &Node = Nodes[(*I)->getIndex()];
     // NumLocals, LiveToVarMap already initialized
     Node.LiveIn.resize(NumGlobals);
     Node.LiveOut.resize(NumGlobals);
     // LiveBegin and LiveEnd are reinitialized before each pass over
     // the block.
   }
+}
+
+void Liveness::init() {
+  constexpr bool IsFullInit = true;
+  NodeList::const_iterator FirstNode = Func->getNodes().begin();
+  VarList::const_iterator FirstVar = Func->getVariables().begin();
+  initInternal(FirstNode, FirstVar, IsFullInit);
+}
+
+void Liveness::initPhiEdgeSplits(NodeList::const_iterator FirstNode,
+                                 VarList::const_iterator FirstVar) {
+  constexpr bool IsFullInit = false;
+  initInternal(FirstNode, FirstVar, IsFullInit);
 }
 
 Variable *Liveness::getVariable(SizeT LiveIndex, const CfgNode *Node) const {

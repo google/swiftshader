@@ -248,11 +248,50 @@ void Cfg::deletePhis() {
 
 void Cfg::advancedPhiLowering() {
   TimerMarker T(TimerStack::TT_advancedPhiLowering, this);
+  // Clear all previously computed live ranges (but not live-in/live-out bit
+  // vectors or last-use markers), because the follow-on register allocation is
+  // only concerned with live ranges across the newly created blocks.
+  for (Variable *Var : Variables) {
+    Var->getLiveRange().reset();
+  }
   // This splits edges and appends new nodes to the end of the node
   // list.  This can invalidate iterators, so don't use an iterator.
   SizeT NumNodes = getNumNodes();
+  SizeT NumVars = getNumVariables();
   for (SizeT I = 0; I < NumNodes; ++I)
     Nodes[I]->advancedPhiLowering();
+
+  TimerMarker TT(TimerStack::TT_lowerPhiAssignments, this);
+  if (true) {
+    // The following code does an in-place update of liveness and live ranges as
+    // a result of adding the new phi edge split nodes.
+    getLiveness()->initPhiEdgeSplits(Nodes.begin() + NumNodes,
+                                     Variables.begin() + NumVars);
+    TimerMarker TTT(TimerStack::TT_liveness, this);
+    // Iterate over the newly added nodes to add their liveness info.
+    for (auto I = Nodes.begin() + NumNodes, E = Nodes.end(); I != E; ++I) {
+      InstNumberT FirstInstNum = getNextInstNumber();
+      (*I)->renumberInstructions();
+      InstNumberT LastInstNum = getNextInstNumber() - 1;
+      // TODO(stichnot): May be able to speed up liveness and live range
+      // calculation by having it consider only pre-colored or infinite-weight
+      // variables.  Could also simplify LinearScan::initForInfOnly() that way.
+      (*I)->liveness(getLiveness());
+      (*I)->livenessAddIntervals(getLiveness(), FirstInstNum, LastInstNum);
+    }
+  } else {
+    // The following code does a brute-force recalculation of live ranges as a
+    // result of adding the new phi edge split nodes.  The liveness calculation
+    // is particularly expensive because the new nodes are not yet in a proper
+    // topological order and so convergence is slower.
+    //
+    // This code is kept here for reference and can be temporarily enabled in
+    // case the incremental code is under suspicion.
+    renumberInstructions();
+    liveness(Liveness_Intervals);
+    getVMetadata()->init(VMK_All);
+  }
+  Target->regAlloc(RAK_Phi);
 }
 
 // Find a reasonable placement for nodes that have not yet been

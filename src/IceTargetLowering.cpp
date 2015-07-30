@@ -211,6 +211,20 @@ void TargetLowering::lower() {
   Context.advanceNext();
 }
 
+void TargetLowering::lowerInst(CfgNode *Node, InstList::iterator Next,
+                               InstHighLevel *Instr) {
+  // TODO(stichnot): Consider modifying the design/implementation to avoid
+  // multiple init() calls when using lowerInst() to lower several instructions
+  // in the same node.
+  Context.init(Node);
+  Context.setNext(Next);
+  Context.insert(Instr);
+  --Next;
+  assert(&*Next == Instr);
+  Context.setCur(Next);
+  lower();
+}
+
 void TargetLowering::lowerOther(const Inst *Instr) {
   (void)Instr;
   Func->setError("Can't lower unsupported instruction type");
