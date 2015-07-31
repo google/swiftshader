@@ -132,6 +132,14 @@ public:
   void setTargetInstructionSet(TargetInstructionSet NewValue) {
     TInstrSet = NewValue;
   }
+  uint32_t getTestStackExtra() const {
+    return BuildDefs::minimal() ? 0 : TestStackExtra;
+  }
+  void setTestStackExtra(uint32_t NewValue) {
+    if (BuildDefs::minimal())
+      return;
+    TestStackExtra = NewValue;
+  }
 
   VerboseMask getVerbose() const {
     return BuildDefs::dump() ? VMask : (VerboseMask)IceV_None;
@@ -251,6 +259,7 @@ private:
   int RandomNopProbabilityAsPercentage;
   uint32_t ReorderFunctionsWindowSize;
   TargetArch TArch;
+  uint32_t TestStackExtra;
   TargetInstructionSet TInstrSet;
   VerboseMask VMask;
 

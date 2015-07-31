@@ -359,6 +359,9 @@ void TargetLowering::getVarStackSlotParams(
       *SpillAreaSizeBytes += Increment;
     }
   }
+  // For testing legalization of large stack offsets on targets with limited
+  // offset bits in instruction encodings, add some padding.
+  *SpillAreaSizeBytes += Ctx->getFlags().getTestStackExtra();
 }
 
 void TargetLowering::alignStackSpillAreas(uint32_t SpillAreaStartOffset,
@@ -390,10 +393,21 @@ void TargetLowering::assignVarStackSlots(VarList &SortedSpilledVariables,
                                          size_t GlobalsAndSubsequentPaddingSize,
                                          bool UsesFramePointer) {
   const VariablesMetadata *VMetadata = Func->getVMetadata();
+  // For testing legalization of large stack offsets on targets with limited
+  // offset bits in instruction encodings, add some padding. This assumes that
+  // SpillAreaSizeBytes has accounted for the extra test padding.
+  // When UseFramePointer is true, the offset depends on the padding,
+  // not just the SpillAreaSizeBytes. On the other hand, when UseFramePointer
+  // is false, the offsets depend on the gap between SpillAreaSizeBytes
+  // and SpillAreaPaddingBytes, so we don't increment that.
+  size_t TestPadding = Ctx->getFlags().getTestStackExtra();
+  if (UsesFramePointer)
+    SpillAreaPaddingBytes += TestPadding;
   size_t GlobalsSpaceUsed = SpillAreaPaddingBytes;
   size_t NextStackOffset = SpillAreaPaddingBytes;
   std::vector<size_t> LocalsSize(Func->getNumNodes());
   const bool SimpleCoalescing = !callsReturnsTwice();
+
   for (Variable *Var : SortedSpilledVariables) {
     size_t Increment = typeWidthInBytesOnStack(Var->getType());
     if (SimpleCoalescing && VMetadata->isTracked(Var)) {

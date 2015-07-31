@@ -242,6 +242,35 @@ private:
   Operand *ShiftAmt;
 };
 
+/// StackVariable represents a Var that isn't assigned a register (stack-only).
+/// It is assigned a stack slot, but the slot's offset may be too large to
+/// represent in the native addressing mode, and so it has a separate
+/// base register from SP/FP, where the offset from that base register is
+/// then in range.
+class StackVariable final : public Variable {
+  StackVariable() = delete;
+  StackVariable(const StackVariable &) = delete;
+  StackVariable &operator=(const StackVariable &) = delete;
+
+public:
+  static StackVariable *create(Cfg *Func, Type Ty, SizeT Index) {
+    return new (Func->allocate<StackVariable>()) StackVariable(Ty, Index);
+  }
+  const static OperandKind StackVariableKind =
+      static_cast<OperandKind>(kVariable_Target);
+  static bool classof(const Operand *Operand) {
+    return Operand->getKind() == StackVariableKind;
+  }
+  void setBaseRegNum(int32_t RegNum) { BaseRegNum = RegNum; }
+  int32_t getBaseRegNum() const override { return BaseRegNum; }
+  // Inherit dump() and emit() from Variable.
+
+private:
+  StackVariable(Type Ty, SizeT Index)
+      : Variable(StackVariableKind, Ty, Index) {}
+  int32_t BaseRegNum = Variable::NoRegister;
+};
+
 /// Base class for ARM instructions. While most ARM instructions can be
 /// conditionally executed, a few of them are not predicable (halt,
 /// memory barriers, etc.).
@@ -778,6 +807,7 @@ public:
   void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Adjuststack); }
+  SizeT getAmount() const { return Amount; }
 
 private:
   InstARM32AdjustStack(Cfg *Func, Variable *SP, SizeT Amount,

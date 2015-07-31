@@ -261,6 +261,8 @@ void TargetMIPS32::emitJumpTable(const Cfg *Func,
 }
 
 void TargetMIPS32::emitVariable(const Variable *Var) const {
+  if (!BuildDefs::dump())
+    return;
   Ostream &Str = Ctx->getStrEmit();
   (void)Var;
   (void)Str;

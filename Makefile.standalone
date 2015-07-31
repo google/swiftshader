@@ -349,6 +349,7 @@ check-xtest: $(OBJDIR)/pnacl-sz make_symlink runtime
 	  -i x8632,sandbox,sse4.1,Om1 \
 	  -i arm32,native,neon,simple_loop \
 	  -i arm32,native,neon,mem_intrin \
+	  -i arm32,native,neon,test_bitmanip \
 	  -i arm32,native,neon,test_stacksave \
 	  -i arm32,native,neon,test_strengthreduce
 	PNACL_BIN_PATH=$(PNACL_BIN_PATH) \

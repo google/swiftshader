@@ -751,6 +751,8 @@ IceString TargetX86Base<Machine>::getRegName(SizeT RegNum, Type Ty) const {
 
 template <class Machine>
 void TargetX86Base<Machine>::emitVariable(const Variable *Var) const {
+  if (!BuildDefs::dump())
+    return;
   Ostream &Str = Ctx->getStrEmit();
   if (Var->hasReg()) {
     Str << "%" << getRegName(Var->getRegNum(), Var->getType());
@@ -760,12 +762,16 @@ void TargetX86Base<Machine>::emitVariable(const Variable *Var) const {
     llvm_unreachable("Infinite-weight Variable has no register assigned");
   }
   int32_t Offset = Var->getStackOffset();
-  if (!hasFramePointer())
-    Offset += getStackAdjustment();
+  int32_t BaseRegNum = Var->getBaseRegNum();
+  if (BaseRegNum == Variable::NoRegister) {
+    BaseRegNum = getFrameOrStackReg();
+    if (!hasFramePointer())
+      Offset += getStackAdjustment();
+  }
   if (Offset)
     Str << Offset;
   const Type FrameSPTy = IceType_i32;
-  Str << "(%" << getRegName(getFrameOrStackReg(), FrameSPTy) << ")";
+  Str << "(%" << getRegName(BaseRegNum, FrameSPTy) << ")";
 }
 
 template <class Machine>
@@ -777,10 +783,14 @@ TargetX86Base<Machine>::stackVarToAsmOperand(const Variable *Var) const {
     llvm_unreachable("Infinite-weight Variable has no register assigned");
   }
   int32_t Offset = Var->getStackOffset();
-  if (!hasFramePointer())
-    Offset += getStackAdjustment();
+  int32_t BaseRegNum = Var->getBaseRegNum();
+  if (Var->getBaseRegNum() == Variable::NoRegister) {
+    BaseRegNum = getFrameOrStackReg();
+    if (!hasFramePointer())
+      Offset += getStackAdjustment();
+  }
   return typename Traits::Address(
-      Traits::RegisterSet::getEncodedGPR(getFrameOrStackReg()), Offset);
+      Traits::RegisterSet::getEncodedGPR(BaseRegNum), Offset);
 }
 
 template <class Machine> void TargetX86Base<Machine>::lowerArguments() {

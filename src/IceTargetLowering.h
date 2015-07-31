@@ -93,6 +93,24 @@ private:
   void advanceForward(InstList::iterator &I) const;
 };
 
+/// A helper class to advance the LoweringContext at each loop iteration.
+class PostIncrLoweringContext {
+  PostIncrLoweringContext() = delete;
+  PostIncrLoweringContext(const PostIncrLoweringContext &) = delete;
+  PostIncrLoweringContext &operator=(const PostIncrLoweringContext &) = delete;
+
+public:
+  explicit PostIncrLoweringContext(LoweringContext &Context)
+      : Context(Context) {}
+  ~PostIncrLoweringContext() {
+    Context.advanceCur();
+    Context.advanceNext();
+  }
+
+private:
+  LoweringContext &Context;
+};
+
 class TargetLowering {
   TargetLowering() = delete;
   TargetLowering(const TargetLowering &) = delete;

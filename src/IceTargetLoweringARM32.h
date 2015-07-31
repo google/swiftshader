@@ -72,6 +72,8 @@ public:
   SizeT getFrameOrStackReg() const override {
     return UsesFramePointer ? RegARM32::Reg_fp : RegARM32::Reg_sp;
   }
+  SizeT getReservedTmpReg() const { return RegARM32::Reg_ip; }
+
   size_t typeWidthInBytesOnStack(Type Ty) const override {
     // Round up to the next multiple of 4 bytes.  In particular, i1,
     // i8, and i16 are rounded up to 4 bytes.
@@ -379,6 +381,16 @@ protected:
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Uxt::create(Func, Dest, Src0, Pred));
   }
+
+  /// Run a pass through stack variables and ensure that the offsets are legal.
+  /// If the offset is not legal, use a new base register that accounts for
+  /// the offset, such that the addressing mode offset bits are now legal.
+  void legalizeStackSlots();
+  /// Returns true if the given Offset can be represented in a stack ldr/str.
+  bool isLegalVariableStackOffset(int32_t Offset) const;
+  /// Assuming Var needs its offset legalized, define a new base register
+  /// centered on the given Var's offset and use it.
+  StackVariable *legalizeVariableSlot(Variable *Var, Variable *OrigBaseReg);
 
   TargetARM32Features CPUFeatures;
   bool UsesFramePointer = false;

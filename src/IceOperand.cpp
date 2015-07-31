@@ -409,9 +409,11 @@ void Variable::dump(const Cfg *Func, Ostream &Str) const {
   } else if (Func->getTarget()->hasComputedFrame()) {
     if (Func->isVerbose(IceV_RegOrigins))
       Str << ":";
+    int32_t BaseRegisterNumber = getBaseRegNum();
+    if (BaseRegisterNumber == NoRegister)
+      BaseRegisterNumber = Func->getTarget()->getFrameOrStackReg();
     Str << "["
-        << Func->getTarget()->getRegName(
-               Func->getTarget()->getFrameOrStackReg(), IceType_i32);
+        << Func->getTarget()->getRegName(BaseRegisterNumber, IceType_i32);
     int32_t Offset = getStackOffset();
     if (Offset) {
       if (Offset > 0)

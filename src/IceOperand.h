@@ -506,6 +506,9 @@ public:
   using Operand::dump;
   void dump(const Cfg *Func, Ostream &Str) const override;
 
+  /// Return reg num of base register, if different from stack/frame register.
+  virtual int32_t getBaseRegNum() const { return NoRegister; }
+
   static bool classof(const Operand *Operand) {
     OperandKind Kind = Operand->getKind();
     return Kind >= kVariable && Kind <= kVariable_Num;

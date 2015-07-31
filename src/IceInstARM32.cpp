@@ -407,7 +407,9 @@ template <> void InstARM32Mov::emit(const Cfg *Func) const {
     Operand *Src0 = getSrc(0);
     if (const auto *Src0V = llvm::dyn_cast<Variable>(Src0)) {
       if (!Src0V->hasReg()) {
-        Opcode = IceString("ldr"); // Always use the whole stack slot.
+        // Always use the whole stack slot. A 32-bit load has a larger range
+        // of offsets than 16-bit, etc.
+        Opcode = IceString("ldr");
       }
     } else {
       if (llvm::isa<OperandARM32Mem>(Src0))

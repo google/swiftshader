@@ -285,6 +285,11 @@ void TargetARM32::translateO2() {
     return;
   Func->dump("After stack frame mapping");
 
+  legalizeStackSlots();
+  if (Func->hasError())
+    return;
+  Func->dump("After legalizeStackSlots");
+
   Func->contractEmptyNodes();
   Func->reorderNodes();
 
@@ -334,6 +339,11 @@ void TargetARM32::translateOm1() {
   if (Func->hasError())
     return;
   Func->dump("After stack frame mapping");
+
+  legalizeStackSlots();
+  if (Func->hasError())
+    return;
+  Func->dump("After legalizeStackSlots");
 
   // Nop insertion
   if (Ctx->getFlags().shouldDoNopInsertion()) {
@@ -390,6 +400,8 @@ void TargetARM32::emitJumpTable(const Cfg *Func,
 }
 
 void TargetARM32::emitVariable(const Variable *Var) const {
+  if (!BuildDefs::dump())
+    return;
   Ostream &Str = Ctx->getStrEmit();
   if (Var->hasReg()) {
     Str << getRegName(Var->getRegNum(), Var->getType());
@@ -400,16 +412,17 @@ void TargetARM32::emitVariable(const Variable *Var) const {
         "Infinite-weight Variable has no register assigned");
   }
   int32_t Offset = Var->getStackOffset();
-  if (!hasFramePointer())
-    Offset += getStackAdjustment();
-  // TODO(jvoung): Handle out of range. Perhaps we need a scratch register
-  // to materialize a larger offset.
-  constexpr bool SignExt = false;
-  if (!OperandARM32Mem::canHoldOffset(Var->getType(), SignExt, Offset)) {
+  int32_t BaseRegNum = Var->getBaseRegNum();
+  if (BaseRegNum == Variable::NoRegister) {
+    BaseRegNum = getFrameOrStackReg();
+    if (!hasFramePointer())
+      Offset += getStackAdjustment();
+  }
+  if (!isLegalVariableStackOffset(Offset)) {
     llvm::report_fatal_error("Illegal stack offset");
   }
-  const Type FrameSPTy = IceType_i32;
-  Str << "[" << getRegName(getFrameOrStackReg(), FrameSPTy);
+  const Type FrameSPTy = stackSlotType();
+  Str << "[" << getRegName(BaseRegNum, FrameSPTy);
   if (Offset != 0) {
     Str << ", " << getConstantPrefix() << Offset;
   }
@@ -562,7 +575,7 @@ void TargetARM32::addProlog(CfgNode *Node) {
   // | 1. preserved registers |
   // +------------------------+
   // | 2. padding             |
-  // +------------------------+
+  // +------------------------+ <--- FramePointer (if used)
   // | 3. global spill area   |
   // +------------------------+
   // | 4. padding             |
@@ -572,7 +585,7 @@ void TargetARM32::addProlog(CfgNode *Node) {
   // | 6. padding             |
   // +------------------------+
   // | 7. allocas             |
-  // +------------------------+
+  // +------------------------+ <--- StackPointer
   //
   // The following variables record the size in bytes of the given areas:
   //  * PreservedRegsSizeBytes: area 1
@@ -687,10 +700,9 @@ void TargetARM32::addProlog(CfgNode *Node) {
 
   // Generate "sub sp, SpillAreaSizeBytes"
   if (SpillAreaSizeBytes) {
-    // Use the IP inter-procedural scratch register if needed to legalize
-    // the immediate.
+    // Use the scratch register if needed to legalize the immediate.
     Operand *SubAmount = legalize(Ctx->getConstantInt32(SpillAreaSizeBytes),
-                                  Legal_Reg | Legal_Flex, RegARM32::Reg_ip);
+                                  Legal_Reg | Legal_Flex, getReservedTmpReg());
     Variable *SP = getPhysicalRegister(RegARM32::Reg_sp);
     _sub(SP, SP, SubAmount);
   }
@@ -791,10 +803,10 @@ void TargetARM32::addEpilog(CfgNode *Node) {
   } else {
     // add SP, SpillAreaSizeBytes
     if (SpillAreaSizeBytes) {
-      // Use the IP inter-procedural scratch register if needed to legalize
-      // the immediate. It shouldn't be live at this point.
-      Operand *AddAmount = legalize(Ctx->getConstantInt32(SpillAreaSizeBytes),
-                                    Legal_Reg | Legal_Flex, RegARM32::Reg_ip);
+      // Use the scratch register if needed to legalize the immediate.
+      Operand *AddAmount =
+          legalize(Ctx->getConstantInt32(SpillAreaSizeBytes),
+                   Legal_Reg | Legal_Flex, getReservedTmpReg());
       _add(SP, SP, AddAmount);
     }
   }
@@ -842,6 +854,156 @@ void TargetARM32::addEpilog(CfgNode *Node) {
   _ret(LR, RetValue);
   _bundle_unlock();
   RI->setDeleted();
+}
+
+bool TargetARM32::isLegalVariableStackOffset(int32_t Offset) const {
+  constexpr bool SignExt = false;
+  return OperandARM32Mem::canHoldOffset(stackSlotType(), SignExt, Offset);
+}
+
+StackVariable *TargetARM32::legalizeVariableSlot(Variable *Var,
+                                                 Variable *OrigBaseReg) {
+  int32_t Offset = Var->getStackOffset();
+  // Legalize will likely need a movw/movt combination, but if the top
+  // bits are all 0 from negating the offset and subtracting, we could
+  // use that instead.
+  bool ShouldSub = (-Offset & 0xFFFF0000) == 0;
+  if (ShouldSub)
+    Offset = -Offset;
+  Operand *OffsetVal = legalize(Ctx->getConstantInt32(Offset),
+                                Legal_Reg | Legal_Flex, getReservedTmpReg());
+  Variable *ScratchReg = makeReg(IceType_i32, getReservedTmpReg());
+  if (ShouldSub)
+    _sub(ScratchReg, OrigBaseReg, OffsetVal);
+  else
+    _add(ScratchReg, OrigBaseReg, OffsetVal);
+  StackVariable *NewVar = Func->makeVariable<StackVariable>(stackSlotType());
+  NewVar->setWeight(RegWeight::Zero);
+  NewVar->setBaseRegNum(ScratchReg->getRegNum());
+  constexpr int32_t NewOffset = 0;
+  NewVar->setStackOffset(NewOffset);
+  return NewVar;
+}
+
+void TargetARM32::legalizeStackSlots() {
+  // If a stack variable's frame offset doesn't fit, convert from:
+  //   ldr X, OFF[SP]
+  // to:
+  //   movw/movt TMP, OFF_PART
+  //   add TMP, TMP, SP
+  //   ldr X, OFF_MORE[TMP]
+  //
+  // This is safe because we have reserved TMP, and add for ARM does not
+  // clobber the flags register.
+  Func->dump("Before legalizeStackSlots");
+  assert(hasComputedFrame());
+  // Early exit, if SpillAreaSizeBytes is really small.
+  if (isLegalVariableStackOffset(SpillAreaSizeBytes))
+    return;
+  Variable *OrigBaseReg = getPhysicalRegister(getFrameOrStackReg());
+  int32_t StackAdjust = 0;
+  // Do a fairly naive greedy clustering for now.  Pick the first stack slot
+  // that's out of bounds and make a new base reg using the architecture's temp
+  // register. If that works for the next slot, then great. Otherwise, create
+  // a new base register, clobbering the previous base register.  Never share a
+  // base reg across different basic blocks.  This isn't ideal if local and
+  // multi-block variables are far apart and their references are interspersed.
+  // It may help to be more coordinated about assign stack slot numbers
+  // and may help to assign smaller offsets to higher-weight variables
+  // so that they don't depend on this legalization.
+  for (CfgNode *Node : Func->getNodes()) {
+    Context.init(Node);
+    StackVariable *NewBaseReg = nullptr;
+    int32_t NewBaseOffset = 0;
+    while (!Context.atEnd()) {
+      PostIncrLoweringContext PostIncrement(Context);
+      Inst *CurInstr = Context.getCur();
+      Variable *Dest = CurInstr->getDest();
+      // Check if the previous NewBaseReg is clobbered, and reset if needed.
+      if ((Dest && NewBaseReg && Dest->hasReg() &&
+           Dest->getRegNum() == NewBaseReg->getBaseRegNum()) ||
+          llvm::isa<InstFakeKill>(CurInstr)) {
+        NewBaseReg = nullptr;
+        NewBaseOffset = 0;
+      }
+      // The stack adjustment only matters if we are using SP instead of FP.
+      if (!hasFramePointer()) {
+        if (auto *AdjInst = llvm::dyn_cast<InstARM32AdjustStack>(CurInstr)) {
+          StackAdjust += AdjInst->getAmount();
+          NewBaseOffset += AdjInst->getAmount();
+          continue;
+        }
+        if (llvm::isa<InstARM32Call>(CurInstr)) {
+          NewBaseOffset -= StackAdjust;
+          StackAdjust = 0;
+          continue;
+        }
+      }
+      // For now, only Mov instructions can have stack variables.  We need to
+      // know the type of instruction because we currently create a fresh one
+      // to replace Dest/Source, rather than mutate in place.
+      auto *MovInst = llvm::dyn_cast<InstARM32Mov>(CurInstr);
+      if (!MovInst) {
+        continue;
+      }
+      if (!Dest->hasReg()) {
+        int32_t Offset = Dest->getStackOffset();
+        Offset += StackAdjust;
+        if (!isLegalVariableStackOffset(Offset)) {
+          if (NewBaseReg) {
+            int32_t OffsetDiff = Offset - NewBaseOffset;
+            if (isLegalVariableStackOffset(OffsetDiff)) {
+              StackVariable *NewDest =
+                  Func->makeVariable<StackVariable>(stackSlotType());
+              NewDest->setWeight(RegWeight::Zero);
+              NewDest->setBaseRegNum(NewBaseReg->getBaseRegNum());
+              NewDest->setStackOffset(OffsetDiff);
+              Variable *NewDestVar = NewDest;
+              _mov(NewDestVar, MovInst->getSrc(0));
+              MovInst->setDeleted();
+              continue;
+            }
+          }
+          StackVariable *LegalDest = legalizeVariableSlot(Dest, OrigBaseReg);
+          assert(LegalDest != Dest);
+          Variable *LegalDestVar = LegalDest;
+          _mov(LegalDestVar, MovInst->getSrc(0));
+          MovInst->setDeleted();
+          NewBaseReg = LegalDest;
+          NewBaseOffset = Offset;
+          continue;
+        }
+      }
+      assert(MovInst->getSrcSize() == 1);
+      Variable *Var = llvm::dyn_cast<Variable>(MovInst->getSrc(0));
+      if (Var && !Var->hasReg()) {
+        int32_t Offset = Var->getStackOffset();
+        Offset += StackAdjust;
+        if (!isLegalVariableStackOffset(Offset)) {
+          if (NewBaseReg) {
+            int32_t OffsetDiff = Offset - NewBaseOffset;
+            if (isLegalVariableStackOffset(OffsetDiff)) {
+              StackVariable *NewVar =
+                  Func->makeVariable<StackVariable>(stackSlotType());
+              NewVar->setWeight(RegWeight::Zero);
+              NewVar->setBaseRegNum(NewBaseReg->getBaseRegNum());
+              NewVar->setStackOffset(OffsetDiff);
+              _mov(Dest, NewVar);
+              MovInst->setDeleted();
+              continue;
+            }
+          }
+          StackVariable *LegalVar = legalizeVariableSlot(Var, OrigBaseReg);
+          assert(LegalVar != Var);
+          _mov(Dest, LegalVar);
+          MovInst->setDeleted();
+          NewBaseReg = LegalVar;
+          NewBaseOffset = Offset;
+          continue;
+        }
+      }
+    }
+  }
 }
 
 void TargetARM32::split64(Variable *Var) {
@@ -2080,7 +2242,9 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     if (Val->getType() == IceType_i64) {
       Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
       Constant *Zero = Ctx->getConstantZero(IceType_i32);
-      _mov(DestHi, Zero);
+      Variable *T = nullptr;
+      _mov(T, Zero);
+      _mov(DestHi, T);
     }
     return;
   }
@@ -2232,7 +2396,9 @@ void TargetARM32::lowerCLZ(Variable *Dest, Variable *ValLoR, Variable *ValHiR) {
     // prolong the liveness of T2 as if it was used as a source.
     _set_dest_nonkillable();
     _mov(DestLo, T2);
-    _mov(DestHi, Ctx->getConstantZero(IceType_i32));
+    Variable *T3 = nullptr;
+    _mov(T3, Zero);
+    _mov(DestHi, T3);
     return;
   }
   _mov(Dest, T);

@@ -145,6 +145,13 @@ cl::opt<Ice::TargetArch> TargetArch(
         clEnumValN(Ice::Target_MIPS32, "mips", "mips32"),
         clEnumValN(Ice::Target_MIPS32, "mips32", "mips32 (same as mips)"),
         clEnumValEnd));
+
+cl::opt<uint32_t> TestStackExtra(
+    "test-stack-extra",
+    cl::desc(
+        "Extra amount of stack to add to the frame in bytes (for testing)."),
+    cl::init(0));
+
 cl::opt<Ice::TargetInstructionSet> TargetInstructionSet(
     "mattr", cl::desc("Target architecture attributes"),
     cl::init(Ice::BaseInstructionSet),
@@ -364,6 +371,7 @@ void ClFlags::resetClFlags(ClFlags &OutFlags) {
   OutFlags.RandomizeAndPoolImmediatesThreshold = 0xffff;
   OutFlags.ReorderFunctionsWindowSize = 8;
   OutFlags.TArch = TargetArch_NUM;
+  OutFlags.TestStackExtra = 0;
   OutFlags.VMask = IceV_None;
   // IceString fields.
   OutFlags.DefaultFunctionPrefix = "";
@@ -421,6 +429,7 @@ void ClFlags::getParsedClFlags(ClFlags &OutFlags) {
   OutFlags.setTargetArch(::TargetArch);
   OutFlags.setTargetInstructionSet(::TargetInstructionSet);
   OutFlags.setTestPrefix(::TestPrefix);
+  OutFlags.setTestStackExtra(::TestStackExtra);
   OutFlags.setTimeEachFunction(::TimeEachFunction);
   OutFlags.setTimingFocusOn(::TimingFocusOn);
   OutFlags.setTranslateOnly(::TranslateOnly);
