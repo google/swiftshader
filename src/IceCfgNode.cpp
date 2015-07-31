@@ -500,18 +500,22 @@ void CfgNode::doNopInsertion() {
   TargetLowering *Target = Func->getTarget();
   LoweringContext &Context = Target->getContext();
   Context.init(this);
+  Context.setInsertPoint(Context.getCur());
+  // Do not insert nop in bundle locked instructions.
+  bool PauseNopInsertion = false;
   while (!Context.atEnd()) {
-    Target->doNopInsertion();
+    if (llvm::isa<InstBundleLock>(Context.getCur())) {
+      PauseNopInsertion = true;
+    } else if (llvm::isa<InstBundleUnlock>(Context.getCur())) {
+      PauseNopInsertion = false;
+    }
+    if (!PauseNopInsertion)
+      Target->doNopInsertion();
     // Ensure Cur=Next, so that the nops are inserted before the current
     // instruction rather than after.
-    Context.advanceNext();
     Context.advanceCur();
+    Context.advanceNext();
   }
-  // Insert before all instructions.
-  Context.setInsertPoint(getInsts().begin());
-  Context.advanceNext();
-  Context.advanceCur();
-  Target->doNopInsertion();
 }
 
 // Drives the target lowering.  Passes the current instruction and the

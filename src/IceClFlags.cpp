@@ -284,6 +284,12 @@ cl::opt<uint32_t> RandomizeAndPoolImmediatesThreshold(
     cl::desc("The threshold for immediates randomization and pooling"),
     cl::init(0xffff));
 
+// Command line option for turning on basic block shuffling.
+cl::opt<bool> ReorderBasicBlocks(
+    "reorder-basic-blocks",
+    cl::desc("Shuffle the layout of basic blocks in each functions"),
+    cl::init(false));
+
 // Command line option for turning on function layout reordering.
 cl::opt<bool> ReorderFunctions(
     "reorder-functions",
@@ -341,6 +347,7 @@ void ClFlags::resetClFlags(ClFlags &OutFlags) {
   OutFlags.PhiEdgeSplit = false;
   OutFlags.RandomNopInsertion = false;
   OutFlags.RandomRegAlloc = false;
+  OutFlags.ReorderBasicBlocks = false;
   OutFlags.ReorderFunctions = false;
   OutFlags.ReorderGlobalVariables = false;
   OutFlags.ReorderPooledConstants = false;
@@ -398,8 +405,17 @@ void ClFlags::getParsedClFlags(ClFlags &OutFlags) {
   OutFlags.setOptLevel(::OLevel);
   OutFlags.setPhiEdgeSplit(::EnablePhiEdgeSplit);
   OutFlags.setRandomSeed(::RandomSeed);
+  OutFlags.setRandomizeAndPoolImmediatesOption(
+      ::RandomizeAndPoolImmediatesOption);
+  OutFlags.setRandomizeAndPoolImmediatesThreshold(
+      ::RandomizeAndPoolImmediatesThreshold);
+  OutFlags.setReorderFunctionsWindowSize(::ReorderFunctionsWindowSize);
+  OutFlags.setShouldReorderBasicBlocks(::ReorderBasicBlocks);
   OutFlags.setShouldDoNopInsertion(::ShouldDoNopInsertion);
   OutFlags.setShouldRandomizeRegAlloc(::RandomizeRegisterAllocation);
+  OutFlags.setShouldReorderFunctions(::ReorderFunctions);
+  OutFlags.setShouldReorderGlobalVariables(::ReorderGlobalVariables);
+  OutFlags.setShouldReorderPooledConstants(::ReorderPooledConstants);
   OutFlags.setSkipUnimplemented(::SkipUnimplemented);
   OutFlags.setSubzeroTimingEnabled(::SubzeroTimingEnabled);
   OutFlags.setTargetArch(::TargetArch);
@@ -414,22 +430,6 @@ void ClFlags::getParsedClFlags(ClFlags &OutFlags) {
   OutFlags.setMaxNopsPerInstruction(::MaxNopsPerInstruction);
   OutFlags.setNopProbabilityAsPercentage(::NopProbabilityAsPercentage);
   OutFlags.setVerbose(VMask);
-
-  // Set for immediates randomization or pooling option.
-  OutFlags.setRandomizeAndPoolImmediatesOption(
-      ::RandomizeAndPoolImmediatesOption);
-  OutFlags.setRandomizeAndPoolImmediatesThreshold(
-      ::RandomizeAndPoolImmediatesThreshold);
-
-  // Set for function reordering options.
-  OutFlags.setShouldReorderFunctions(::ReorderFunctions);
-  OutFlags.setReorderFunctionsWindowSize(::ReorderFunctionsWindowSize);
-
-  // Set for global variable reordering option.
-  OutFlags.setShouldReorderGlobalVariables(::ReorderGlobalVariables);
-
-  // Set for pooled constant reordering option.
-  OutFlags.setShouldReorderPooledConstants(::ReorderPooledConstants);
 }
 
 void ClFlags::getParsedClFlagsExtra(ClFlagsExtra &OutFlagsExtra) {

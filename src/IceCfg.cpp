@@ -371,6 +371,51 @@ void Cfg::reorderNodes() {
   assert(Nodes.size() == OldSize);
 }
 
+namespace {
+void getRandomPostOrder(CfgNode *Node, llvm::BitVector &ToVisit,
+                        Ice::NodeList &PostOrder,
+                        Ice::RandomNumberGenerator *RNG) {
+  assert(ToVisit[Node->getIndex()]);
+  ToVisit[Node->getIndex()] = false;
+  NodeList Outs = Node->getOutEdges();
+  Ice::RandomShuffle(Outs.begin(), Outs.end(),
+                     [RNG](int N) { return RNG->next(N); });
+  for (CfgNode *Next : Outs) {
+    if (ToVisit[Next->getIndex()])
+      getRandomPostOrder(Next, ToVisit, PostOrder, RNG);
+  }
+  PostOrder.push_back(Node);
+}
+} // end of anonymous namespace
+
+void Cfg::shuffleNodes() {
+  if (!Ctx->getFlags().shouldReorderBasicBlocks())
+    return;
+
+  NodeList ReversedReachable;
+  NodeList Unreachable;
+  llvm::BitVector ToVisit(Nodes.size(), true);
+  // Traverse from entry node.
+  getRandomPostOrder(getEntryNode(), ToVisit, ReversedReachable,
+                     &Ctx->getRNG());
+  // Collect the unreachable nodes.
+  for (CfgNode *Node : Nodes)
+    if (ToVisit[Node->getIndex()])
+      Unreachable.push_back(Node);
+  // Copy the layout list to the Nodes.
+  SizeT OldSize = Nodes.size();
+  (void)OldSize;
+  Nodes.clear();
+  for (CfgNode *Node : reverse_range(ReversedReachable))
+    Nodes.emplace_back(Node);
+  for (CfgNode *Node : Unreachable) {
+    Nodes.emplace_back(Node);
+  }
+  assert(Nodes.size() == OldSize);
+
+  dump("After basic block shuffling");
+}
+
 void Cfg::doArgLowering() {
   TimerMarker T(TimerStack::TT_doArgLowering, this);
   getTarget()->lowerArguments();
@@ -383,6 +428,8 @@ void Cfg::doAddressOpt() {
 }
 
 void Cfg::doNopInsertion() {
+  if (!Ctx->getFlags().shouldDoNopInsertion())
+    return;
   TimerMarker T(TimerStack::TT_doNopInsertion, this);
   for (CfgNode *Node : Nodes)
     Node->doNopInsertion();

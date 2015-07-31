@@ -400,6 +400,9 @@ template <class Machine> void TargetX86Base<Machine>::translateO2() {
   Func->contractEmptyNodes();
   Func->reorderNodes();
 
+  // Shuffle basic block order if -reorder-basic-blocks is enabled.
+  Func->shuffleNodes();
+
   // Branch optimization.  This needs to be done just before code emission.  In
   // particular, no transformations that insert or reorder CfgNodes should be
   // done after branch optimization.  We go ahead and do it before nop insertion
@@ -407,9 +410,8 @@ template <class Machine> void TargetX86Base<Machine>::translateO2() {
   Func->doBranchOpt();
   Func->dump("After branch optimization");
 
-  // Nop insertion
-  if (Ctx->getFlags().shouldDoNopInsertion())
-    Func->doNopInsertion();
+  // Nop insertion if -nop-insertion is enabled.
+  Func->doNopInsertion();
 
   // Mark nodes that require sandbox alignment
   if (Ctx->getFlags().getUseSandboxing())
@@ -446,10 +448,11 @@ template <class Machine> void TargetX86Base<Machine>::translateOm1() {
     return;
   Func->dump("After stack frame mapping");
 
-  // Nop insertion
-  if (Ctx->getFlags().shouldDoNopInsertion()) {
-    Func->doNopInsertion();
-  }
+  // Shuffle basic block order if -reorder-basic-blocks is enabled.
+  Func->shuffleNodes();
+
+  // Nop insertion if -nop-insertion is enabled.
+  Func->doNopInsertion();
 
   // Mark nodes that require sandbox alignment
   if (Ctx->getFlags().getUseSandboxing())

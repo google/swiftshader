@@ -180,6 +180,7 @@ public:
   void deletePhis();
   void advancedPhiLowering();
   void reorderNodes();
+  void shuffleNodes();
   void doAddressOpt();
   void doArgLowering();
   void doNopInsertion();

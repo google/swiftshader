@@ -153,6 +153,11 @@ public:
     return RandomizeAndPoolImmediatesThreshold;
   }
 
+  bool shouldReorderBasicBlocks() const { return ReorderBasicBlocks; }
+  void setShouldReorderBasicBlocks(bool NewValue) {
+    ReorderBasicBlocks = NewValue;
+  }
+
   void setShouldReorderFunctions(bool Option) { ReorderFunctions = Option; }
   bool shouldReorderFunctions() const { return ReorderFunctions; }
 
@@ -229,6 +234,7 @@ private:
   bool PhiEdgeSplit;
   bool RandomNopInsertion;
   bool RandomRegAlloc;
+  bool ReorderBasicBlocks;
   bool ReorderFunctions;
   bool ReorderGlobalVariables;
   bool ReorderPooledConstants;
