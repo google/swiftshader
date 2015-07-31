@@ -159,9 +159,12 @@ CXX := CCACHE_CPP2=yes $(CCACHE) $(CLANG_PATH)/clang++
 SB_CXX := CCACHE_CPP2=yes $(CCACHE) $(PNACL_BIN_PATH)/pnacl-clang++
 SB_TRANSLATE := $(PNACL_BIN_PATH)/pnacl-translate
 
+# Extra warnings that LLVM's build system adds in addition to -Wall.
+LLVM_EXTRA_WARNINGS := -Wcovered-switch-default
+
 BASE_CXXFLAGS := -std=gnu++11 -Wall -Wextra -Werror -fno-rtti \
 	-fno-exceptions $(OPTLEVEL) $(ASSERTIONS) -g -pedantic \
-	$(CXX_EXTRA)
+	$(LLVM_EXTRA_WARNINGS) $(CXX_EXTRA)
 
 CXXFLAGS := $(LLVM_CXXFLAGS) $(BASE_CXXFLAGS) $(CXX_DEFINES) $(HOST_FLAGS) \
 	$(STDLIB_FLAGS)

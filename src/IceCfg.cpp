@@ -627,9 +627,6 @@ void Cfg::emitJumpTables() {
     for (const InstJumpTable *JumpTable : JumpTables)
       getTarget()->emitJumpTable(this, JumpTable);
   } break;
-  default:
-    llvm::report_fatal_error("Invalid out file type.");
-    break;
   }
 }
 
