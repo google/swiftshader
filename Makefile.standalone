@@ -221,8 +221,12 @@ SB_OBJS=$(patsubst %.cpp, $(SB_OBJDIR)/%.o, $(SRCS))
 UNITTEST_SRCS = \
 	BitcodeMunge.cpp \
 	IceELFSectionTest.cpp \
-	IceParseInstsTest.cpp \
-        AssemblerX8632/LowLevel.cpp \
+	IceParseInstsTest.cpp
+
+# The X86 assembler tests take too long to compile. Given how infrequently the
+# assembler will change, we disable them.
+ifdef CHECK_X86_ASM
+  UNITTEST_SRCS += AssemblerX8632/LowLevel.cpp \
         AssemblerX8632/DataMov.cpp \
         AssemblerX8632/Locked.cpp \
         AssemblerX8632/GPRArith.cpp \
@@ -237,7 +241,7 @@ UNITTEST_SRCS = \
         AssemblerX8664/XmmArith.cpp \
         AssemblerX8664/ControlFlow.cpp \
         AssemblerX8664/Other.cpp
-
+endif
 
 UNITTEST_OBJS = $(patsubst %.cpp, $(OBJDIR)/unittest/%.o, $(UNITTEST_SRCS))
 UNITTEST_LIB_OBJS = $(filter-out $(OBJDIR)/main.o,$(OBJS))

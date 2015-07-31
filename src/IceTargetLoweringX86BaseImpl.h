@@ -1939,8 +1939,7 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       Context.insert(InstFakeDef::create(Func, T_eax));
       _xor(T_eax, T_eax);
       _mov(T, Src0, Traits::RegisterSet::Reg_eax);
-      Variable *T_al = makeReg(IceType_i8, Traits::RegisterSet::Reg_eax);
-      _div(T_al, Src1, T);
+      _div(T, Src1, T);
       // shr $8, %eax shifts ah (i.e., the 8 bit remainder) into al. We don't
       // mov %ah, %al because it would make x86-64 codegen more complicated. If
       // this ever becomes a problem we can introduce a pseudo rem instruction
@@ -1948,7 +1947,7 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       // %ah to %al.)
       static constexpr uint8_t AlSizeInBits = 8;
       _shr(T_eax, Ctx->getConstantInt8(AlSizeInBits));
-      _mov(Dest, T_al);
+      _mov(Dest, T);
       Context.insert(InstFakeUse::create(Func, T_eax));
     } else {
       Constant *Zero = Ctx->getConstantZero(IceType_i32);
