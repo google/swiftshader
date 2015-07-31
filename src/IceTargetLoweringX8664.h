@@ -16,13 +16,18 @@
 #ifndef SUBZERO_SRC_ICETARGETLOWERINGX8664_H
 #define SUBZERO_SRC_ICETARGETLOWERINGX8664_H
 
+#include "IceAssemblerX8664.h"
 #include "IceCfg.h"
 #include "IceGlobalContext.h"
+#include "IceInstX8664.h"
 #include "IceTargetLowering.h"
+#include "IceTargetLoweringX8664Traits.h"
+#include "IceTargetLoweringX86Base.h"
 
 namespace Ice {
 
-class TargetX8664 : public TargetLowering {
+class TargetX8664 final
+    : public ::Ice::X86Internal::TargetX86Base<TargetX8664> {
   TargetX8664() = delete;
   TargetX8664(const TargetX8664 &) = delete;
   TargetX8664 &operator=(const TargetX8664 &) = delete;
@@ -31,10 +36,20 @@ class TargetX8664 : public TargetLowering {
                      const InstJumpTable *JumpTable) const override;
 
 public:
-  static TargetX8664 *create(Cfg *Func);
+  static TargetX8664 *create(Cfg *Func) { return new TargetX8664(Func); }
 
 private:
-  explicit TargetX8664(Cfg *Func) : TargetLowering(Func) {}
+  friend class ::Ice::X86Internal::TargetX86Base<TargetX8664>;
+
+  explicit TargetX8664(Cfg *Func)
+      : ::Ice::X86Internal::TargetX86Base<TargetX8664>(Func) {}
+
+  Operand *createNaClReadTPSrcOperand() {
+    Variable *TDB = makeReg(IceType_i32);
+    InstCall *Call = makeHelperCall(H_call_read_tp, TDB, 0);
+    lowerCall(Call);
+    return TDB;
+  }
 };
 
 class TargetDataX8664 : public TargetDataLowering {
@@ -59,6 +74,7 @@ private:
   ENABLE_MAKE_UNIQUE;
 
   explicit TargetDataX8664(GlobalContext *Ctx) : TargetDataLowering(Ctx) {}
+  template <typename T> static void emitConstantPool(GlobalContext *Ctx);
 };
 
 class TargetHeaderX8664 : public TargetHeaderLowering {

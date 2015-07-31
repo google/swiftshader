@@ -41,16 +41,15 @@ public:
 
   static TargetX8632 *create(Cfg *Func) { return new TargetX8632(Func); }
 
-protected:
+private:
+  friend class ::Ice::X86Internal::TargetX86Base<TargetX8632>;
+
   Operand *createNaClReadTPSrcOperand() {
     Constant *Zero = Ctx->getConstantZero(IceType_i32);
     return Traits::X86OperandMem::create(Func, IceType_i32, nullptr, Zero,
                                          nullptr, 0,
                                          Traits::X86OperandMem::SegReg_GS);
   }
-
-private:
-  friend class ::Ice::X86Internal::TargetX86Base<TargetX8632>;
 
   explicit TargetX8632(Cfg *Func) : TargetX86Base(Func) {}
 };
@@ -61,8 +60,10 @@ class TargetDataX8632 final : public TargetDataLowering {
   TargetDataX8632 &operator=(const TargetDataX8632 &) = delete;
 
 public:
+  ~TargetDataX8632() override = default;
+
   static std::unique_ptr<TargetDataLowering> create(GlobalContext *Ctx) {
-    return std::unique_ptr<TargetDataLowering>(new TargetDataX8632(Ctx));
+    return makeUnique<TargetDataX8632>(Ctx);
   }
 
   void lowerGlobals(const VariableDeclarationList &Vars,
@@ -70,11 +71,10 @@ public:
   void lowerConstants() override;
   void lowerJumpTables() override;
 
-protected:
-  explicit TargetDataX8632(GlobalContext *Ctx);
-
 private:
-  ~TargetDataX8632() override = default;
+  ENABLE_MAKE_UNIQUE;
+
+  explicit TargetDataX8632(GlobalContext *Ctx);
   template <typename T> static void emitConstantPool(GlobalContext *Ctx);
 };
 

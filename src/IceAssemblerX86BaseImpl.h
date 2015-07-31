@@ -304,7 +304,7 @@ void AssemblerX86Base<Machine>::movsx(Type SrcTy,
                                       typename Traits::GPRRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   bool ByteSized = isByteSizedType(SrcTy);
-  emitRexRB(IceType_ForceRexW, dst, SrcTy, src);
+  emitRexRB(RexTypeForceRexW, dst, SrcTy, src);
   if (ByteSized || SrcTy == IceType_i16) {
     emitUint8(0x0F);
     emitUint8(ByteSized ? 0xBE : 0xBF);
@@ -321,7 +321,7 @@ void AssemblerX86Base<Machine>::movsx(Type SrcTy,
                                       const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   bool ByteSized = isByteSizedType(SrcTy);
-  emitRex(SrcTy, src, IceType_ForceRexW, dst);
+  emitRex(SrcTy, src, RexTypeForceRexW, dst);
   if (ByteSized || SrcTy == IceType_i16) {
     emitUint8(0x0F);
     emitUint8(ByteSized ? 0xBE : 0xBF);

@@ -2788,8 +2788,10 @@ template <class Machine> struct Insts {
   using StoreP = InstX86StoreP<Machine>;
   using StoreQ = InstX86StoreQ<Machine>;
   using Nop = InstX86Nop<Machine>;
-  using Fld = InstX86Fld<Machine>;
-  using Fstp = InstX86Fstp<Machine>;
+  template <typename T = typename InstX86Base<Machine>::Traits>
+  using Fld = typename std::enable_if<T::UsesX87, InstX86Fld<Machine>>::type;
+  template <typename T = typename InstX86Base<Machine>::Traits>
+  using Fstp = typename std::enable_if<T::UsesX87, InstX86Fstp<Machine>>::type;
   using Pop = InstX86Pop<Machine>;
   using Push = InstX86Push<Machine>;
   using Ret = InstX86Ret<Machine>;

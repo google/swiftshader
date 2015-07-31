@@ -192,6 +192,7 @@ SRCS = \
 	IceInstARM32.cpp \
 	IceInstMIPS32.cpp \
 	IceInstX8632.cpp \
+	IceInstX8664.cpp \
 	IceIntrinsics.cpp \
 	IceLiveness.cpp \
 	IceOperand.cpp \

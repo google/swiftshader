@@ -342,11 +342,25 @@ protected:
   void _divss(Variable *Dest, Operand *Src0) {
     Context.insert(Traits::Insts::Divss::create(Func, Dest, Src0));
   }
-  void _fld(Operand *Src0) {
-    Context.insert(Traits::Insts::Fld::create(Func, Src0));
+  template <typename T = Traits>
+  typename std::enable_if<T::UsesX87, void>::type _fld(Operand *Src0) {
+    Context.insert(Traits::Insts::template Fld<>::create(Func, Src0));
   }
-  void _fstp(Variable *Dest) {
-    Context.insert(Traits::Insts::Fstp::create(Func, Dest));
+  // TODO(jpp): when implementing the X8664 calling convention, make sure x8664
+  // does not invoke this method, and remove it.
+  template <typename T = Traits>
+  typename std::enable_if<!T::UsesX87, void>::type _fld(Operand *) {
+    llvm::report_fatal_error("fld is not available in x86-64");
+  }
+  template <typename T = Traits>
+  typename std::enable_if<T::UsesX87, void>::type _fstp(Variable *Dest) {
+    Context.insert(Traits::Insts::template Fstp<>::create(Func, Dest));
+  }
+  // TODO(jpp): when implementing the X8664 calling convention, make sure x8664
+  // does not invoke this method, and remove it.
+  template <typename T = Traits>
+  typename std::enable_if<!T::UsesX87, void>::type _fstp(Variable *) {
+    llvm::report_fatal_error("fstp is not available in x86-64");
   }
   void _idiv(Variable *Dest, Operand *Src0, Operand *Src1) {
     Context.insert(Traits::Insts::Idiv::create(Func, Dest, Src0, Src1));

@@ -845,7 +845,7 @@ protected:
 
 private:
   static constexpr Type RexTypeIrrelevant = IceType_i32;
-  static constexpr Type IceType_ForceRexW = IceType_i64;
+  static constexpr Type RexTypeForceRexW = IceType_i64;
   static constexpr typename Traits::GPRRegister RexRegIrrelevant =
       Traits::GPRRegister::Encoded_Reg_eax;
 

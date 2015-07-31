@@ -31,6 +31,7 @@ protected:
   using ByteRegister = AssemblerX8632::Traits::ByteRegister;
   using Cond = AssemblerX8632::Traits::Cond;
   using GPRRegister = AssemblerX8632::Traits::GPRRegister;
+  using Label = ::Ice::X86Internal::Label;
   using Traits = AssemblerX8632::Traits;
   using XmmRegister = AssemblerX8632::Traits::XmmRegister;
   using X87STRegister = AssemblerX8632::Traits::X87STRegister;
