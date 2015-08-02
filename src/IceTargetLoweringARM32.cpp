@@ -1994,6 +1994,8 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
   }
   case InstCast::Fptosi:
     UnimplementedError(Func->getContext()->getFlags());
+    // Add a fake def to keep liveness consistent in the meantime.
+    Context.insert(InstFakeDef::create(Func, Dest));
     break;
   case InstCast::Fptoui:
     UnimplementedError(Func->getContext()->getFlags());

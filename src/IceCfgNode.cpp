@@ -614,10 +614,7 @@ bool CfgNode::liveness(Liveness *Liveness) {
   // validation is not.)
   LivenessBV LiveOrig = Live;
   Live.resize(Liveness->getNumGlobalVars());
-  // Non-global arguments in the entry node are allowed to be live on
-  // entry.
-  bool IsEntry = (Func->getEntryNode() == this);
-  if (!(IsEntry || Live == LiveOrig)) {
+  if (Live != LiveOrig) {
     if (BuildDefs::dump()) {
       // This is a fatal liveness consistency error.  Print some
       // diagnostics and abort.

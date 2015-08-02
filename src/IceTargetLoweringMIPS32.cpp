@@ -246,7 +246,7 @@ Variable *TargetMIPS32::getPhysicalRegister(SizeT RegNum, Type Ty) {
     PhysicalRegisters[Ty][RegNum] = Reg;
     // Specially mark SP as an "argument" so that it is considered
     // live upon function entry.
-    if (RegNum == RegMIPS32::Reg_SP) {
+    if (RegNum == RegMIPS32::Reg_SP || RegNum == RegMIPS32::Reg_RA) {
       Func->addImplicitArg(Reg);
       Reg->setIgnoreLiveness();
     }
