@@ -182,6 +182,7 @@ typedef VertexAttribute VertexAttributeArray[MAX_VERTEX_ATTRIBS];
 
 struct TextureUnit
 {
+	Color color;
 	GLenum environmentMode;
 	GLenum combineRGB;
 	GLenum combineAlpha;
@@ -362,8 +363,21 @@ public:
 	unsigned int getActiveTexture() const;
 
 	void setTextureEnvMode(GLenum texEnvMode);
+	void setTextureEnvColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
 	void setCombineRGB(GLenum combineRGB);
 	void setCombineAlpha(GLenum combineAlpha);
+	void setOperand0RGB(GLenum operand);
+	void setOperand1RGB(GLenum operand);
+	void setOperand2RGB(GLenum operand);
+	void setOperand0Alpha(GLenum operand);
+	void setOperand1Alpha(GLenum operand);
+	void setOperand2Alpha(GLenum operand);
+	void setSrc0RGB(GLenum src);
+	void setSrc1RGB(GLenum src);
+	void setSrc2RGB(GLenum src);
+	void setSrc0Alpha(GLenum src);
+	void setSrc1Alpha(GLenum src);
+	void setSrc2Alpha(GLenum src);
 
     void setLineWidth(GLfloat width);
 

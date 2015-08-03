@@ -3193,11 +3193,265 @@ void TexEnvf(GLenum target, GLenum pname, GLfloat param)
 
 void TexEnvfv(GLenum target, GLenum pname, const GLfloat *params)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLenum target = 0x%X, GLenum pname = 0x%X, const GLfloat *params)", target, pname);
+
+	es1::Context *context = es1::getContext();
+
+	if(context)
+	{
+		GLint iParam = (GLint)roundf(params[0]);
+
+		switch(target)
+		{
+		case GL_POINT_SPRITE_OES:
+			UNIMPLEMENTED();
+			break;
+		case GL_TEXTURE_ENV:
+			switch(pname)
+			{
+			case GL_TEXTURE_ENV_MODE:
+				switch(iParam)
+				{
+				case GL_REPLACE:
+				case GL_MODULATE:
+				case GL_DECAL:
+				case GL_BLEND:
+				case GL_ADD:
+				case GL_COMBINE:
+					break;
+				default:
+					error(GL_INVALID_ENUM);
+				}
+
+				context->setTextureEnvMode(iParam);
+				break;
+			case GL_TEXTURE_ENV_COLOR:
+				context->setTextureEnvColor(clamp01(params[0]), clamp01(params[1]), clamp01(params[2]), clamp01(params[3]));
+				break;
+			case GL_COMBINE_RGB:
+				switch(iParam)
+				{
+				case GL_REPLACE:
+				case GL_MODULATE:
+				case GL_ADD:
+				case GL_ADD_SIGNED:
+				case GL_INTERPOLATE:
+				case GL_SUBTRACT:
+				case GL_DOT3_RGB:
+				case GL_DOT3_RGBA:
+					break;
+				default:
+					error(GL_INVALID_ENUM);
+				}
+
+				context->setCombineRGB(iParam);
+				break;
+			case GL_COMBINE_ALPHA:
+				switch(iParam)
+				{
+				case GL_REPLACE:
+				case GL_MODULATE:
+				case GL_ADD:
+				case GL_ADD_SIGNED:
+				case GL_INTERPOLATE:
+				case GL_SUBTRACT:
+					break;
+				default:
+					error(GL_INVALID_ENUM);
+				}
+
+				context->setCombineAlpha(iParam);
+				break;
+			case GL_RGB_SCALE:
+				if(iParam != 1 && iParam != 2 && iParam != 4)
+				{
+					return error(GL_INVALID_VALUE);
+				}
+				if(iParam != 1) UNIMPLEMENTED();
+				break;
+			case GL_ALPHA_SCALE:
+				if(iParam != 1 && iParam != 2 && iParam != 4)
+				{
+					return error(GL_INVALID_VALUE);
+				}
+				if(iParam != 1) UNIMPLEMENTED();
+				break;
+			case GL_OPERAND0_RGB:
+				switch(iParam)
+				{
+				case GL_SRC_COLOR:
+				case GL_ONE_MINUS_SRC_COLOR:
+				case GL_SRC_ALPHA:
+				case GL_ONE_MINUS_SRC_ALPHA:
+					break;
+				default:
+					error(GL_INVALID_ENUM);
+				}
+
+				context->setOperand0RGB(iParam);
+				break;
+			case GL_OPERAND1_RGB:
+				switch(iParam)
+				{
+				case GL_SRC_COLOR:
+				case GL_ONE_MINUS_SRC_COLOR:
+				case GL_SRC_ALPHA:
+				case GL_ONE_MINUS_SRC_ALPHA:
+					break;
+				default:
+					error(GL_INVALID_ENUM);
+				}
+
+				context->setOperand1RGB(iParam);
+				break;
+			case GL_OPERAND2_RGB:
+				switch(iParam)
+				{
+				case GL_SRC_COLOR:
+				case GL_ONE_MINUS_SRC_COLOR:
+				case GL_SRC_ALPHA:
+				case GL_ONE_MINUS_SRC_ALPHA:
+					break;
+				default:
+					error(GL_INVALID_ENUM);
+				}
+
+				context->setOperand2RGB(iParam);
+				break;
+			case GL_OPERAND0_ALPHA:
+				switch(iParam)
+				{
+				case GL_SRC_ALPHA:
+				case GL_ONE_MINUS_SRC_ALPHA:
+					break;
+				default:
+					error(GL_INVALID_ENUM);
+				}
+
+				context->setOperand0Alpha(iParam);
+				break;
+			case GL_OPERAND1_ALPHA:
+				switch(iParam)
+				{
+				case GL_SRC_ALPHA:
+				case GL_ONE_MINUS_SRC_ALPHA:
+					break;
+				default:
+					error(GL_INVALID_ENUM);
+				}
+
+				context->setOperand1Alpha(iParam);
+				break;
+			case GL_OPERAND2_ALPHA:
+				switch(iParam)
+				{
+				case GL_SRC_ALPHA:
+				case GL_ONE_MINUS_SRC_ALPHA:
+					break;
+				default:
+					error(GL_INVALID_ENUM);
+				}
+
+				context->setOperand2Alpha(iParam);
+				break;
+			case GL_SRC0_RGB:
+				switch(iParam)
+				{
+				case GL_TEXTURE:
+				case GL_CONSTANT:
+				case GL_PRIMARY_COLOR:
+				case GL_PREVIOUS:
+					break;
+				default:
+					error(GL_INVALID_ENUM);
+				}
+
+				context->setSrc0RGB(iParam);
+				break;
+			case GL_SRC1_RGB:
+				switch(iParam)
+				{
+				case GL_TEXTURE:
+				case GL_CONSTANT:
+				case GL_PRIMARY_COLOR:
+				case GL_PREVIOUS:
+					break;
+				default:
+					error(GL_INVALID_ENUM);
+				}
+
+				context->setSrc1RGB(iParam);
+				break;
+			case GL_SRC2_RGB:
+				switch(iParam)
+				{
+				case GL_TEXTURE:
+				case GL_CONSTANT:
+				case GL_PRIMARY_COLOR:
+				case GL_PREVIOUS:
+					break;
+				default:
+					error(GL_INVALID_ENUM);
+				}
+
+				context->setSrc2RGB(iParam);
+				break;
+			case GL_SRC0_ALPHA:
+				switch(iParam)
+				{
+				case GL_TEXTURE:
+				case GL_CONSTANT:
+				case GL_PRIMARY_COLOR:
+				case GL_PREVIOUS:
+					break;
+				default:
+					error(GL_INVALID_ENUM);
+				}
+
+				context->setSrc0Alpha(iParam);
+				break;
+			case GL_SRC1_ALPHA:
+				switch(iParam)
+				{
+				case GL_TEXTURE:
+				case GL_CONSTANT:
+				case GL_PRIMARY_COLOR:
+				case GL_PREVIOUS:
+					break;
+				default:
+					error(GL_INVALID_ENUM);
+				}
+
+				context->setSrc1Alpha(iParam);
+				break;
+			case GL_SRC2_ALPHA:
+				switch(iParam)
+				{
+				case GL_TEXTURE:
+				case GL_CONSTANT:
+				case GL_PRIMARY_COLOR:
+				case GL_PREVIOUS:
+					break;
+				default:
+					error(GL_INVALID_ENUM);
+				}
+
+				context->setSrc2Alpha(iParam);
+				break;
+			default:
+				return error(GL_INVALID_ENUM);
+			}
+			break;
+		default:
+			return error(GL_INVALID_ENUM);
+		}
+	}
 }
 
 void TexEnvi(GLenum target, GLenum pname, GLint param)
 {
+	TRACE("(GLenum target = 0x%X, GLenum pname = 0x%X, GLint param = %d)", target, pname, param);
+
 	es1::Context *context = es1::getContext();
 
 	if(context)
@@ -3227,7 +3481,7 @@ void TexEnvi(GLenum target, GLenum pname, GLint param)
 				context->setTextureEnvMode((GLenum)param);
 				break;
 			case GL_TEXTURE_ENV_COLOR:
-				UNIMPLEMENTED();
+				return error(GL_INVALID_ENUM);   // Needs four values, should call glTexEnviv() instead
 				break;
 			case GL_COMBINE_RGB:
 				switch((GLenum)param)
@@ -3264,28 +3518,180 @@ void TexEnvi(GLenum target, GLenum pname, GLint param)
 				context->setCombineAlpha((GLenum)param);
 				break;
 			case GL_RGB_SCALE:
-				UNIMPLEMENTED();
+				if(param != 1 && param != 2 && param != 4)
+				{
+					return error(GL_INVALID_VALUE);
+				}
+				if(param != 1) UNIMPLEMENTED();
 				break;
 			case GL_ALPHA_SCALE:
-				UNIMPLEMENTED();
+				if(param != 1 && param != 2 && param != 4)
+				{
+					return error(GL_INVALID_VALUE);
+				}
+				if(param != 1) UNIMPLEMENTED();
 				break;
 			case GL_OPERAND0_RGB:
-				UNIMPLEMENTED();
+				switch((GLenum)param)
+				{
+				case GL_SRC_COLOR:
+				case GL_ONE_MINUS_SRC_COLOR:
+				case GL_SRC_ALPHA:
+				case GL_ONE_MINUS_SRC_ALPHA:
+					break;
+				default:
+					error(GL_INVALID_ENUM);
+				}
+
+				context->setOperand0RGB((GLenum)param);
 				break;
 			case GL_OPERAND1_RGB:
-				UNIMPLEMENTED();
+				switch((GLenum)param)
+				{
+				case GL_SRC_COLOR:
+				case GL_ONE_MINUS_SRC_COLOR:
+				case GL_SRC_ALPHA:
+				case GL_ONE_MINUS_SRC_ALPHA:
+					break;
+				default:
+					error(GL_INVALID_ENUM);
+				}
+
+				context->setOperand1RGB((GLenum)param);
 				break;
 			case GL_OPERAND2_RGB:
-				UNIMPLEMENTED();
+				switch((GLenum)param)
+				{
+				case GL_SRC_COLOR:
+				case GL_ONE_MINUS_SRC_COLOR:
+				case GL_SRC_ALPHA:
+				case GL_ONE_MINUS_SRC_ALPHA:
+					break;
+				default:
+					error(GL_INVALID_ENUM);
+				}
+
+				context->setOperand2RGB((GLenum)param);
 				break;
 			case GL_OPERAND0_ALPHA:
-				UNIMPLEMENTED();
+				switch((GLenum)param)
+				{
+				case GL_SRC_ALPHA:
+				case GL_ONE_MINUS_SRC_ALPHA:
+					break;
+				default:
+					error(GL_INVALID_ENUM);
+				}
+
+				context->setOperand0Alpha((GLenum)param);
 				break;
 			case GL_OPERAND1_ALPHA:
-				UNIMPLEMENTED();
+				switch((GLenum)param)
+				{
+				case GL_SRC_ALPHA:
+				case GL_ONE_MINUS_SRC_ALPHA:
+					break;
+				default:
+					error(GL_INVALID_ENUM);
+				}
+
+				context->setOperand1Alpha((GLenum)param);
 				break;
 			case GL_OPERAND2_ALPHA:
-				UNIMPLEMENTED();
+				switch((GLenum)param)
+				{
+				case GL_SRC_ALPHA:
+				case GL_ONE_MINUS_SRC_ALPHA:
+					break;
+				default:
+					error(GL_INVALID_ENUM);
+				}
+
+				context->setOperand2Alpha((GLenum)param);
+				break;
+			case GL_SRC0_RGB:
+				switch((GLenum)param)
+				{
+				case GL_TEXTURE:
+				case GL_CONSTANT:
+				case GL_PRIMARY_COLOR:
+				case GL_PREVIOUS:
+					break;
+				default:
+					error(GL_INVALID_ENUM);
+				}
+
+				context->setSrc0RGB((GLenum)param);
+				break;
+			case GL_SRC1_RGB:
+				switch((GLenum)param)
+				{
+				case GL_TEXTURE:
+				case GL_CONSTANT:
+				case GL_PRIMARY_COLOR:
+				case GL_PREVIOUS:
+					break;
+				default:
+					error(GL_INVALID_ENUM);
+				}
+
+				context->setSrc1RGB((GLenum)param);
+				break;
+			case GL_SRC2_RGB:
+				switch((GLenum)param)
+				{
+				case GL_TEXTURE:
+				case GL_CONSTANT:
+				case GL_PRIMARY_COLOR:
+				case GL_PREVIOUS:
+					break;
+				default:
+					error(GL_INVALID_ENUM);
+				}
+
+				context->setSrc2RGB((GLenum)param);
+				break;
+			case GL_SRC0_ALPHA:
+				switch((GLenum)param)
+				{
+				case GL_TEXTURE:
+				case GL_CONSTANT:
+				case GL_PRIMARY_COLOR:
+				case GL_PREVIOUS:
+					break;
+				default:
+					error(GL_INVALID_ENUM);
+				}
+
+				context->setSrc0Alpha((GLenum)param);
+				break;
+			case GL_SRC1_ALPHA:
+				switch((GLenum)param)
+				{
+				case GL_TEXTURE:
+				case GL_CONSTANT:
+				case GL_PRIMARY_COLOR:
+				case GL_PREVIOUS:
+					break;
+				default:
+					error(GL_INVALID_ENUM);
+				}
+
+				context->setSrc1Alpha((GLenum)param);
+				break;
+			case GL_SRC2_ALPHA:
+				switch((GLenum)param)
+				{
+				case GL_TEXTURE:
+				case GL_CONSTANT:
+				case GL_PRIMARY_COLOR:
+				case GL_PREVIOUS:
+					break;
+				default:
+					error(GL_INVALID_ENUM);
+				}
+
+				context->setSrc2Alpha((GLenum)param);
 				break;
 			default:
 				return error(GL_INVALID_ENUM);
@@ -3779,7 +4185,7 @@ void DrawTexiOES(GLint x, GLint y, GLint z, GLint width, GLint height)
 
 	if(context)
 	{
-		context->drawTexture(x, y, z, width, height);
+		context->drawTexture((GLfloat)x, (GLfloat)y, (GLfloat)z, (GLfloat)width, (GLfloat)height);
 	}
 }
 

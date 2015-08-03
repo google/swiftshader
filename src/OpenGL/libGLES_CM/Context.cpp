@@ -111,6 +111,7 @@ Context::Context(const egl::Config *config, const Context *shareContext)
 
 	for(int i = 0; i < MAX_TEXTURE_UNITS; i++)
 	{
+		mState.textureUnit[i].color = {0, 0, 0, 0};
 		mState.textureUnit[i].environmentMode = GL_MODULATE;
 		mState.textureUnit[i].combineRGB = GL_MODULATE;
 		mState.textureUnit[i].combineAlpha = GL_MODULATE;
@@ -1938,6 +1939,8 @@ void Context::applyTextures()
 
 			applyTexture(unit, texture);
 
+			device->setConstantColor(unit, sw::Color<float>(mState.textureUnit[unit].color.red, mState.textureUnit[unit].color.green, mState.textureUnit[unit].color.blue, mState.textureUnit[unit].color.alpha));
+
 			if(mState.textureUnit[unit].environmentMode != GL_COMBINE)
 			{
 				device->setFirstArgument(unit, sw::TextureStage::SOURCE_TEXTURE);    // Cs
@@ -2110,6 +2113,11 @@ void Context::setTextureEnvMode(GLenum texEnvMode)
 	mState.textureUnit[mState.activeSampler].environmentMode = texEnvMode;
 }
 
+void Context::setTextureEnvColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha)
+{
+	mState.textureUnit[mState.activeSampler].color = {red, green, blue, alpha};
+}
+
 void Context::setCombineRGB(GLenum combineRGB)
 {
 	mState.textureUnit[mState.activeSampler].combineRGB = combineRGB;
@@ -2118,6 +2126,66 @@ void Context::setCombineRGB(GLenum combineRGB)
 void Context::setCombineAlpha(GLenum combineAlpha)
 {
 	mState.textureUnit[mState.activeSampler].combineAlpha = combineAlpha;
+}
+
+void Context::setOperand0RGB(GLenum operand)
+{
+	mState.textureUnit[mState.activeSampler].operand0RGB = operand;
+}
+
+void Context::setOperand1RGB(GLenum operand)
+{
+	mState.textureUnit[mState.activeSampler].operand1RGB = operand;
+}
+
+void Context::setOperand2RGB(GLenum operand)
+{
+	mState.textureUnit[mState.activeSampler].operand2RGB = operand;
+}
+
+void Context::setOperand0Alpha(GLenum operand)
+{
+	mState.textureUnit[mState.activeSampler].operand0Alpha = operand;
+}
+
+void Context::setOperand1Alpha(GLenum operand)
+{
+	mState.textureUnit[mState.activeSampler].operand1Alpha = operand;
+}
+
+void Context::setOperand2Alpha(GLenum operand)
+{
+	mState.textureUnit[mState.activeSampler].operand2Alpha = operand;
+}
+
+void Context::setSrc0RGB(GLenum src)
+{
+	mState.textureUnit[mState.activeSampler].src0RGB = src;
+}
+
+void Context::setSrc1RGB(GLenum src)
+{
+	mState.textureUnit[mState.activeSampler].src1RGB = src;
+}
+
+void Context::setSrc2RGB(GLenum src)
+{
+	mState.textureUnit[mState.activeSampler].src2RGB = src;
+}
+
+void Context::setSrc0Alpha(GLenum src)
+{
+	mState.textureUnit[mState.activeSampler].src0Alpha = src;
+}
+
+void Context::setSrc1Alpha(GLenum src)
+{
+	mState.textureUnit[mState.activeSampler].src1Alpha = src;
+}
+
+void Context::setSrc2Alpha(GLenum src)
+{
+	mState.textureUnit[mState.activeSampler].src2Alpha = src;
 }
 
 void Context::applyTexture(int index, Texture *baseTexture)
