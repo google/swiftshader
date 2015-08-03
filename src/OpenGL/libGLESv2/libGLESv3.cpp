@@ -2891,6 +2891,11 @@ GL_APICALL void GL_APIENTRY glGetActiveUniformsiv(GLuint program, GLsizei unifor
 		return error(GL_INVALID_ENUM);
 	}
 
+	if(uniformCount < 0)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
 	es2::Context *context = es2::getContext();
 
 	if(context)
@@ -2981,6 +2986,11 @@ GL_APICALL void GL_APIENTRY glGetActiveUniformBlockName(GLuint program, GLuint u
 {
 	TRACE("(GLuint program = %d, GLuint uniformBlockIndex = %d, GLsizei bufSize = %d, GLsizei *length = %p, GLchar *uniformBlockName = %p)",
 	      program, uniformBlockIndex, bufSize, length, uniformBlockName);
+
+	if(bufSize < 0)
+	{
+		return error(GL_INVALID_VALUE);
+	}
 
 	es2::Context *context = es2::getContext();
 
@@ -3286,6 +3296,11 @@ GL_APICALL void GL_APIENTRY glGetSynciv(GLsync sync, GLenum pname, GLsizei bufSi
 {
 	TRACE("(GLsync sync = %p, GLenum pname = 0x%X, GLsizei bufSize = %d, GLsizei *length = %p, GLint *values = %p)",
 	      sync, pname, bufSize, length, values);
+
+	if(bufSize < 0)
+	{
+		return error(GL_INVALID_VALUE);
+	}
 
 	UNIMPLEMENTED();
 }
@@ -3762,6 +3777,11 @@ GL_APICALL void GL_APIENTRY glGetProgramBinary(GLuint program, GLsizei bufSize, 
 	TRACE("(GLuint program = %d, GLsizei bufSize = %d, GLsizei *length = %p, GLenum *binaryFormat = %p, void *binary = %p)",
 	      program, bufSize, length, binaryFormat, binary);
 
+	if(bufSize < 0)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
 	UNIMPLEMENTED();
 }
 
@@ -3769,6 +3789,11 @@ GL_APICALL void GL_APIENTRY glProgramBinary(GLuint program, GLenum binaryFormat,
 {
 	TRACE("(GLuint program = %d, GLenum binaryFormat = 0x%X, const void *binary = %p, GLsizei length = %d)",
 	      program, binaryFormat, binaryFormat, length);
+
+	if(length < 0)
+	{
+		return error(GL_INVALID_VALUE);
+	}
 
 	UNIMPLEMENTED();
 }
@@ -3805,6 +3830,11 @@ GL_APICALL void GL_APIENTRY glInvalidateFramebuffer(GLenum target, GLsizei numAt
 	TRACE("(GLenum target = 0x%X, GLsizei numAttachments = %d, const GLenum *attachments = %p)",
 	      target, numAttachments, attachments);
 
+	if(numAttachments < 0)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
 	UNIMPLEMENTED();
 }
 
@@ -3812,6 +3842,11 @@ GL_APICALL void GL_APIENTRY glInvalidateSubFramebuffer(GLenum target, GLsizei nu
 {
 	TRACE("(GLenum target = 0x%X, GLsizei numAttachments = %d, const GLenum *attachments = %p, GLint x = %d, GLint y = %d, GLsizei width = %d, GLsizei height = %d)",
 	      target, numAttachments, attachments, x, y, width, height);
+
+	if(numAttachments < 0 || width < 0 || height < 0)
+	{
+		return error(GL_INVALID_VALUE);
+	}
 
 	UNIMPLEMENTED();
 }
