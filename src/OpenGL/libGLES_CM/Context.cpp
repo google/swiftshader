@@ -162,6 +162,8 @@ Context::Context(const egl::Config *config, const Context *shareContext)
     mInvalidOperation = false;
     mOutOfMemory = false;
     mInvalidFramebufferOperation = false;
+	mMatrixStackOverflow = false;
+	mMatrixStackUnderflow = false;
 
 	lighting = false;
 
@@ -2649,6 +2651,16 @@ void Context::recordInvalidFramebufferOperation()
     mInvalidFramebufferOperation = true;
 }
 
+void Context::recordMatrixStackOverflow()
+{
+    mMatrixStackOverflow = true;
+}
+
+void Context::recordMatrixStackUnderflow()
+{
+    mMatrixStackUnderflow = true;
+}
+
 // Get one of the recorded errors and clear its flag, if any.
 // [OpenGL ES 2.0.24] section 2.5 page 13.
 GLenum Context::getError()
@@ -2684,6 +2696,20 @@ GLenum Context::getError()
     if(mInvalidFramebufferOperation)
     {
         mInvalidFramebufferOperation = false;
+
+        return GL_INVALID_FRAMEBUFFER_OPERATION_OES;
+    }
+
+	if(mMatrixStackOverflow)
+    {
+        mMatrixStackOverflow = false;
+
+        return GL_INVALID_FRAMEBUFFER_OPERATION_OES;
+    }
+
+	if(mMatrixStackUnderflow)
+    {
+        mMatrixStackUnderflow = false;
 
         return GL_INVALID_FRAMEBUFFER_OPERATION_OES;
     }

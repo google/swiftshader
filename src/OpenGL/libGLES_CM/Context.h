@@ -461,6 +461,8 @@ public:
     void recordInvalidOperation();
     void recordOutOfMemory();
     void recordInvalidFramebufferOperation();
+	void recordMatrixStackOverflow();
+	void recordMatrixStackUnderflow();
 
     GLenum getError();
 
@@ -533,6 +535,8 @@ private:
     bool mInvalidOperation;
     bool mOutOfMemory;
     bool mInvalidFramebufferOperation;
+	bool mMatrixStackOverflow;
+	bool mMatrixStackUnderflow;
 
     bool mHasBeenCurrent;
 

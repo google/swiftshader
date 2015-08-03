@@ -135,6 +135,14 @@ void error(GLenum errorCode)
             context->recordInvalidFramebufferOperation();
             TRACE("\t! Error generated: invalid framebuffer operation\n");
             break;
+		case GL_STACK_OVERFLOW:
+			context->recordMatrixStackOverflow();
+            TRACE("\t! Error generated: matrix stack overflow\n");
+            break;
+		case GL_STACK_UNDERFLOW:
+			context->recordMatrixStackUnderflow();
+            TRACE("\t! Error generated: matrix stack underflow\n");
+            break;
         default: UNREACHABLE(errorCode);
         }
     }
