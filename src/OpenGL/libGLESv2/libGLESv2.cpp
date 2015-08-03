@@ -1713,17 +1713,17 @@ void Disable(GLenum cap)
 	{
 		switch(cap)
 		{
-		case GL_CULL_FACE:                context->setCullFace(false);              break;
-		case GL_POLYGON_OFFSET_FILL:      context->setPolygonOffsetFill(false);     break;
-		case GL_SAMPLE_ALPHA_TO_COVERAGE: context->setSampleAlphaToCoverage(false); break;
-		case GL_SAMPLE_COVERAGE:          context->setSampleCoverage(false);        break;
-		case GL_SCISSOR_TEST:             context->setScissorTest(false);           break;
-		case GL_STENCIL_TEST:             context->setStencilTest(false);           break;
-		case GL_DEPTH_TEST:               context->setDepthTest(false);             break;
-		case GL_BLEND:                    context->setBlend(false);                 break;
-		case GL_DITHER:                   context->setDither(false);                break;
-		case GL_PRIMITIVE_RESTART_FIXED_INDEX: context->setPrimitiveRestartFixedIndex(false); break;
-		case GL_RASTERIZER_DISCARD:       context->setRasterizerDiscard(false); break;
+		case GL_CULL_FACE:                     context->setCullFaceEnabled(false);                   break;
+		case GL_POLYGON_OFFSET_FILL:           context->setPolygonOffsetFillEnabled(false);          break;
+		case GL_SAMPLE_ALPHA_TO_COVERAGE:      context->setSampleAlphaToCoverageEnabled(false);      break;
+		case GL_SAMPLE_COVERAGE:               context->setSampleCoverageEnabled(false);             break;
+		case GL_SCISSOR_TEST:                  context->setScissorTestEnabled(false);                break;
+		case GL_STENCIL_TEST:                  context->setStencilTestEnabled(false);                break;
+		case GL_DEPTH_TEST:                    context->setDepthTestEnabled(false);                  break;
+		case GL_BLEND:                         context->setBlendEnabled(false);                      break;
+		case GL_DITHER:                        context->setDitherEnabled(false);                     break;
+		case GL_PRIMITIVE_RESTART_FIXED_INDEX: context->setPrimitiveRestartFixedIndexEnabled(false); break;
+		case GL_RASTERIZER_DISCARD:            context->setRasterizerDiscardEnabled(false);          break;
 		default:
 			return error(GL_INVALID_ENUM);
 		}
@@ -1743,7 +1743,7 @@ void DisableVertexAttribArray(GLuint index)
 
 	if(context)
 	{
-		context->setEnableVertexAttribArray(index, false);
+		context->setVertexAttribArrayEnabled(index, false);
 	}
 }
 
@@ -2058,17 +2058,17 @@ void Enable(GLenum cap)
 	{
 		switch(cap)
 		{
-		case GL_CULL_FACE:                context->setCullFace(true);              break;
-		case GL_POLYGON_OFFSET_FILL:      context->setPolygonOffsetFill(true);     break;
-		case GL_SAMPLE_ALPHA_TO_COVERAGE: context->setSampleAlphaToCoverage(true); break;
-		case GL_SAMPLE_COVERAGE:          context->setSampleCoverage(true);        break;
-		case GL_SCISSOR_TEST:             context->setScissorTest(true);           break;
-		case GL_STENCIL_TEST:             context->setStencilTest(true);           break;
-		case GL_DEPTH_TEST:               context->setDepthTest(true);             break;
-		case GL_BLEND:                    context->setBlend(true);                 break;
-		case GL_DITHER:                   context->setDither(true);                break;
-		case GL_PRIMITIVE_RESTART_FIXED_INDEX: context->setPrimitiveRestartFixedIndex(true); break;
-		case GL_RASTERIZER_DISCARD:       context->setRasterizerDiscard(true); break;
+		case GL_CULL_FACE:                     context->setCullFaceEnabled(true);                   break;
+		case GL_POLYGON_OFFSET_FILL:           context->setPolygonOffsetFillEnabled(true);          break;
+		case GL_SAMPLE_ALPHA_TO_COVERAGE:      context->setSampleAlphaToCoverageEnabled(true);      break;
+		case GL_SAMPLE_COVERAGE:               context->setSampleCoverageEnabled(true);             break;
+		case GL_SCISSOR_TEST:                  context->setScissorTestEnabled(true);                break;
+		case GL_STENCIL_TEST:                  context->setStencilTestEnabled(true);                break;
+		case GL_DEPTH_TEST:                    context->setDepthTestEnabled(true);                  break;
+		case GL_BLEND:                         context->setBlendEnabled(true);                      break;
+		case GL_DITHER:                        context->setDitherEnabled(true);                     break;
+		case GL_PRIMITIVE_RESTART_FIXED_INDEX: context->setPrimitiveRestartFixedIndexEnabled(true); break;
+		case GL_RASTERIZER_DISCARD:            context->setRasterizerDiscardEnabled(true);          break;
 		default:
 			return error(GL_INVALID_ENUM);
 		}
@@ -2088,7 +2088,7 @@ void EnableVertexAttribArray(GLuint index)
 
 	if(context)
 	{
-		context->setEnableVertexAttribArray(index, true);
+		context->setVertexAttribArrayEnabled(index, true);
 	}
 }
 

@@ -56,12 +56,12 @@ Context::Context(const Context *shareContext)
     mState.depthClearValue = 1.0f;
     mState.stencilClearValue = 0;
 
-    mState.cullFace = false;
+    mState.cullFaceEnabled = false;
     mState.cullMode = GL_BACK;
     mState.frontFace = GL_CCW;
-    mState.depthTest = false;
+    mState.depthTestEnabled = false;
     mState.depthFunc = GL_LESS;
-    mState.blend = false;
+    mState.blendEnabled = false;
     mState.sourceBlendRGB = GL_ONE;
     mState.sourceBlendAlpha = GL_ONE;
     mState.destBlendRGB = GL_ZERO;
@@ -72,7 +72,7 @@ Context::Context(const Context *shareContext)
     mState.blendColor.green = 0;
     mState.blendColor.blue = 0;
     mState.blendColor.alpha = 0;
-    mState.stencilTest = false;
+    mState.stencilTestEnabled = false;
     mState.stencilFunc = GL_ALWAYS;
     mState.stencilRef = 0;
     mState.stencilMask = -1;
@@ -87,18 +87,18 @@ Context::Context(const Context *shareContext)
     mState.stencilBackFail = GL_KEEP;
     mState.stencilBackPassDepthFail = GL_KEEP;
     mState.stencilBackPassDepthPass = GL_KEEP;
-    mState.polygonOffsetFill = false;
+    mState.polygonOffsetFillEnabled = false;
     mState.polygonOffsetFactor = 0.0f;
     mState.polygonOffsetUnits = 0.0f;
-    mState.sampleAlphaToCoverage = false;
-    mState.sampleCoverage = false;
+    mState.sampleAlphaToCoverageEnabled = false;
+    mState.sampleCoverageEnabled = false;
     mState.sampleCoverageValue = 1.0f;
     mState.sampleCoverageInvert = false;
-    mState.scissorTest = false;
-    mState.dither = true;
+    mState.scissorTestEnabled = false;
+    mState.ditherEnabled = true;
     mState.generateMipmapHint = GL_DONT_CARE;
     mState.fragmentShaderDerivativeHint = GL_DONT_CARE;
-	mState.colorLogicOp = false;
+	mState.colorLogicOpEnabled = false;
 	mState.logicalOperation = GL_COPY;
 
     mState.lineWidth = 1.0f;
@@ -339,14 +339,14 @@ void Context::setClearStencil(int stencil)
     mState.stencilClearValue = stencil;
 }
 
-void Context::setCullFace(bool enabled)
+void Context::setCullFaceEnabled(bool enabled)
 {
-    mState.cullFace = enabled;
+    mState.cullFaceEnabled = enabled;
 }
 
 bool Context::isCullFaceEnabled() const
 {
-    return mState.cullFace;
+    return mState.cullFaceEnabled;
 }
 
 void Context::setCullMode(GLenum mode)
@@ -363,18 +363,18 @@ void Context::setFrontFace(GLenum front)
     }
 }
 
-void Context::setDepthTest(bool enabled)
+void Context::setDepthTestEnabled(bool enabled)
 {
-    if(mState.depthTest != enabled)
+    if(mState.depthTestEnabled != enabled)
     {
-        mState.depthTest = enabled;
+        mState.depthTestEnabled = enabled;
         mDepthStateDirty = true;
     }
 }
 
 bool Context::isDepthTestEnabled() const
 {
-    return mState.depthTest;
+    return mState.depthTestEnabled;
 }
 
 void Context::setDepthFunc(GLenum depthFunc)
@@ -392,18 +392,18 @@ void Context::setDepthRange(float zNear, float zFar)
     mState.zFar = zFar;
 }
 
-void Context::setBlend(bool enabled)
+void Context::setBlendEnabled(bool enabled)
 {
-    if(mState.blend != enabled)
+    if(mState.blendEnabled != enabled)
     {
-        mState.blend = enabled;
+        mState.blendEnabled = enabled;
         mBlendStateDirty = true;
     }
 }
 
 bool Context::isBlendEnabled() const
 {
-    return mState.blend;
+    return mState.blendEnabled;
 }
 
 void Context::setBlendFactors(GLenum sourceRGB, GLenum destRGB, GLenum sourceAlpha, GLenum destAlpha)
@@ -447,25 +447,25 @@ void Context::setBlendEquation(GLenum rgbEquation, GLenum alphaEquation)
     }
 }
 
-void Context::setStencilTest(bool enabled)
+void Context::setStencilTestEnabled(bool enabled)
 {
-    if(mState.stencilTest != enabled)
+    if(mState.stencilTestEnabled != enabled)
     {
-        mState.stencilTest = enabled;
+        mState.stencilTestEnabled = enabled;
         mStencilStateDirty = true;
     }
 }
 
 bool Context::isStencilTestEnabled() const
 {
-    return mState.stencilTest;
+    return mState.stencilTestEnabled;
 }
 
 void Context::setStencilParams(GLenum stencilFunc, GLint stencilRef, GLuint stencilMask)
 {
     if(mState.stencilFunc != stencilFunc ||
-        mState.stencilRef != stencilRef ||
-        mState.stencilMask != stencilMask)
+       mState.stencilRef != stencilRef ||
+       mState.stencilMask != stencilMask)
     {
         mState.stencilFunc = stencilFunc;
         mState.stencilRef = (stencilRef > 0) ? stencilRef : 0;
@@ -477,8 +477,8 @@ void Context::setStencilParams(GLenum stencilFunc, GLint stencilRef, GLuint sten
 void Context::setStencilBackParams(GLenum stencilBackFunc, GLint stencilBackRef, GLuint stencilBackMask)
 {
     if(mState.stencilBackFunc != stencilBackFunc ||
-        mState.stencilBackRef != stencilBackRef ||
-        mState.stencilBackMask != stencilBackMask)
+       mState.stencilBackRef != stencilBackRef ||
+       mState.stencilBackMask != stencilBackMask)
     {
         mState.stencilBackFunc = stencilBackFunc;
         mState.stencilBackRef = (stencilBackRef > 0) ? stencilBackRef : 0;
@@ -508,8 +508,8 @@ void Context::setStencilBackWritemask(GLuint stencilBackWritemask)
 void Context::setStencilOperations(GLenum stencilFail, GLenum stencilPassDepthFail, GLenum stencilPassDepthPass)
 {
     if(mState.stencilFail != stencilFail ||
-        mState.stencilPassDepthFail != stencilPassDepthFail ||
-        mState.stencilPassDepthPass != stencilPassDepthPass)
+       mState.stencilPassDepthFail != stencilPassDepthFail ||
+       mState.stencilPassDepthPass != stencilPassDepthPass)
     {
         mState.stencilFail = stencilFail;
         mState.stencilPassDepthFail = stencilPassDepthFail;
@@ -521,8 +521,8 @@ void Context::setStencilOperations(GLenum stencilFail, GLenum stencilPassDepthFa
 void Context::setStencilBackOperations(GLenum stencilBackFail, GLenum stencilBackPassDepthFail, GLenum stencilBackPassDepthPass)
 {
     if(mState.stencilBackFail != stencilBackFail ||
-        mState.stencilBackPassDepthFail != stencilBackPassDepthFail ||
-        mState.stencilBackPassDepthPass != stencilBackPassDepthPass)
+       mState.stencilBackPassDepthFail != stencilBackPassDepthFail ||
+       mState.stencilBackPassDepthPass != stencilBackPassDepthPass)
     {
         mState.stencilBackFail = stencilBackFail;
         mState.stencilBackPassDepthFail = stencilBackPassDepthFail;
@@ -531,24 +531,24 @@ void Context::setStencilBackOperations(GLenum stencilBackFail, GLenum stencilBac
     }
 }
 
-void Context::setPolygonOffsetFill(bool enabled)
+void Context::setPolygonOffsetFillEnabled(bool enabled)
 {
-    if(mState.polygonOffsetFill != enabled)
+    if(mState.polygonOffsetFillEnabled != enabled)
     {
-        mState.polygonOffsetFill = enabled;
+        mState.polygonOffsetFillEnabled = enabled;
         mPolygonOffsetStateDirty = true;
     }
 }
 
 bool Context::isPolygonOffsetFillEnabled() const
 {
-    return mState.polygonOffsetFill;
+    return mState.polygonOffsetFillEnabled;
 }
 
 void Context::setPolygonOffsetParams(GLfloat factor, GLfloat units)
 {
     if(mState.polygonOffsetFactor != factor ||
-        mState.polygonOffsetUnits != units)
+       mState.polygonOffsetUnits != units)
     {
         mState.polygonOffsetFactor = factor;
         mState.polygonOffsetUnits = units;
@@ -556,32 +556,32 @@ void Context::setPolygonOffsetParams(GLfloat factor, GLfloat units)
     }
 }
 
-void Context::setSampleAlphaToCoverage(bool enabled)
+void Context::setSampleAlphaToCoverageEnabled(bool enabled)
 {
-    if(mState.sampleAlphaToCoverage != enabled)
+    if(mState.sampleAlphaToCoverageEnabled != enabled)
     {
-        mState.sampleAlphaToCoverage = enabled;
+        mState.sampleAlphaToCoverageEnabled = enabled;
         mSampleStateDirty = true;
     }
 }
 
 bool Context::isSampleAlphaToCoverageEnabled() const
 {
-    return mState.sampleAlphaToCoverage;
+    return mState.sampleAlphaToCoverageEnabled;
 }
 
-void Context::setSampleCoverage(bool enabled)
+void Context::setSampleCoverageEnabled(bool enabled)
 {
-    if(mState.sampleCoverage != enabled)
+    if(mState.sampleCoverageEnabled != enabled)
     {
-        mState.sampleCoverage = enabled;
+        mState.sampleCoverageEnabled = enabled;
         mSampleStateDirty = true;
     }
 }
 
 bool Context::isSampleCoverageEnabled() const
 {
-    return mState.sampleCoverage;
+    return mState.sampleCoverageEnabled;
 }
 
 void Context::setSampleCoverageParams(GLclampf value, bool invert)
@@ -595,28 +595,28 @@ void Context::setSampleCoverageParams(GLclampf value, bool invert)
     }
 }
 
-void Context::setScissorTest(bool enabled)
+void Context::setScissorTestEnabled(bool enabled)
 {
-    mState.scissorTest = enabled;
+    mState.scissorTestEnabled = enabled;
 }
 
 bool Context::isScissorTestEnabled() const
 {
-    return mState.scissorTest;
+    return mState.scissorTestEnabled;
 }
 
-void Context::setDither(bool enabled)
+void Context::setDitherEnabled(bool enabled)
 {
-    if(mState.dither != enabled)
+    if(mState.ditherEnabled != enabled)
     {
-        mState.dither = enabled;
+        mState.ditherEnabled = enabled;
         mDitherStateDirty = true;
     }
 }
 
 bool Context::isDitherEnabled() const
 {
-    return mState.dither;
+    return mState.ditherEnabled;
 }
 
 void Context::setLineWidth(GLfloat width)
@@ -725,7 +725,7 @@ GLuint Context::getActiveQuery(GLenum target) const
 	return 0;
 }
 
-void Context::setEnableVertexAttribArray(unsigned int attribNum, bool enabled)
+void Context::setVertexAttribArrayEnabled(unsigned int attribNum, bool enabled)
 {
     mState.vertexAttribute[attribNum].mArrayEnabled = enabled;
 }
@@ -1247,25 +1247,25 @@ bool Context::getBooleanv(GLenum pname, GLboolean *params)
 {
     switch (pname)
     {
-      case GL_SHADER_COMPILER:          *params = GL_TRUE;                          break;
-      case GL_SAMPLE_COVERAGE_INVERT:   *params = mState.sampleCoverageInvert;      break;
-      case GL_DEPTH_WRITEMASK:          *params = mState.depthMask;                 break;
-      case GL_COLOR_WRITEMASK:
+	case GL_SHADER_COMPILER:          *params = GL_TRUE;                             break;
+	case GL_SAMPLE_COVERAGE_INVERT:   *params = mState.sampleCoverageInvert;         break;
+	case GL_DEPTH_WRITEMASK:          *params = mState.depthMask;                    break;
+    case GL_COLOR_WRITEMASK:
         params[0] = mState.colorMaskRed;
         params[1] = mState.colorMaskGreen;
         params[2] = mState.colorMaskBlue;
         params[3] = mState.colorMaskAlpha;
         break;
-      case GL_CULL_FACE:                *params = mState.cullFace;                  break;
-      case GL_POLYGON_OFFSET_FILL:      *params = mState.polygonOffsetFill;         break;
-      case GL_SAMPLE_ALPHA_TO_COVERAGE: *params = mState.sampleAlphaToCoverage;     break;
-      case GL_SAMPLE_COVERAGE:          *params = mState.sampleCoverage;            break;
-      case GL_SCISSOR_TEST:             *params = mState.scissorTest;               break;
-      case GL_STENCIL_TEST:             *params = mState.stencilTest;               break;
-      case GL_DEPTH_TEST:               *params = mState.depthTest;                 break;
-      case GL_BLEND:                    *params = mState.blend;                     break;
-      case GL_DITHER:                   *params = mState.dither;                    break;
-      default:
+    case GL_CULL_FACE:                *params = mState.cullFaceEnabled;              break;
+    case GL_POLYGON_OFFSET_FILL:      *params = mState.polygonOffsetFillEnabled;     break;
+    case GL_SAMPLE_ALPHA_TO_COVERAGE: *params = mState.sampleAlphaToCoverageEnabled; break;
+    case GL_SAMPLE_COVERAGE:          *params = mState.sampleCoverageEnabled;        break;
+    case GL_SCISSOR_TEST:             *params = mState.scissorTestEnabled;           break;
+    case GL_STENCIL_TEST:             *params = mState.stencilTestEnabled;           break;
+    case GL_DEPTH_TEST:               *params = mState.depthTestEnabled;             break;
+    case GL_BLEND:                    *params = mState.blendEnabled;                 break;
+    case GL_DITHER:                   *params = mState.ditherEnabled;                break;
+    default:
         return false;
     }
 
@@ -1737,7 +1737,7 @@ bool Context::applyRenderTarget()
 
     device->setViewport(viewport);
 
-    if(mState.scissorTest)
+    if(mState.scissorTestEnabled)
     {
 		sw::Rect scissor = {mState.scissorX, mState.scissorY, mState.scissorX + mState.scissorWidth, mState.scissorY + mState.scissorHeight};
 		scissor.clip(0, 0, width, height);
@@ -1768,7 +1768,7 @@ void Context::applyState(GLenum drawMode)
 {
     Framebuffer *framebuffer = getDrawFramebuffer();
 
-    if(mState.cullFace)
+    if(mState.cullFaceEnabled)
     {
         device->setCullMode(es2sw::ConvertCullMode(mState.cullMode, mState.frontFace));
     }
@@ -1779,7 +1779,7 @@ void Context::applyState(GLenum drawMode)
 
     if(mDepthStateDirty)
     {
-        if(mState.depthTest)
+        if(mState.depthTestEnabled)
         {
 			device->setDepthBufferEnable(true);
 			device->setDepthCompare(es2sw::ConvertDepthComparison(mState.depthFunc));
@@ -1794,7 +1794,7 @@ void Context::applyState(GLenum drawMode)
 
     if(mBlendStateDirty)
     {
-        if(mState.blend)
+        if(mState.blendEnabled)
         {
 			device->setAlphaBlendEnable(true);
 			device->setSeparateAlphaBlendEnable(true);
@@ -1819,7 +1819,7 @@ void Context::applyState(GLenum drawMode)
 
 	if(mColorLogicOperatorDirty)
 	{
-		if(mState.colorLogicOp)
+		if(mState.colorLogicOpEnabled)
 		{
 			device->setColorLogicOpEnabled(true);
 			device->setLogicalOperation(es2sw::ConvertLogicalOperation(mState.logicalOperation));
@@ -1834,7 +1834,7 @@ void Context::applyState(GLenum drawMode)
 
     if(mStencilStateDirty || mFrontFaceDirty)
     {
-        if(mState.stencilTest && framebuffer->hasStencil())
+        if(mState.stencilTestEnabled && framebuffer->hasStencil())
         {
 			device->setStencilEnable(true);
 			device->setTwoSidedStencil(true);
@@ -1915,7 +1915,7 @@ void Context::applyState(GLenum drawMode)
 
     if(mPolygonOffsetStateDirty)
     {
-        if(mState.polygonOffsetFill)
+        if(mState.polygonOffsetFillEnabled)
         {
             Renderbuffer *depthbuffer = framebuffer->getDepthbuffer();
             if(depthbuffer)
@@ -1936,7 +1936,7 @@ void Context::applyState(GLenum drawMode)
 
     if(mSampleStateDirty)
     {
-        if(mState.sampleAlphaToCoverage)
+        if(mState.sampleAlphaToCoverageEnabled)
         {
             device->setTransparencyAntialiasing(sw::TRANSPARENCY_ALPHA_TO_COVERAGE);
         }
@@ -1945,7 +1945,7 @@ void Context::applyState(GLenum drawMode)
 			device->setTransparencyAntialiasing(sw::TRANSPARENCY_NONE);
 		}
 
-        if(mState.sampleCoverage)
+        if(mState.sampleCoverageEnabled)
         {
             unsigned int mask = 0;
             if(mState.sampleCoverageValue != 0)
@@ -2803,7 +2803,7 @@ void Context::detachRenderbuffer(GLuint renderbuffer)
 
 bool Context::cullSkipsDraw(GLenum drawMode)
 {
-    return mState.cullFace && mState.cullMode == GL_FRONT_AND_BACK && isTriangleMode(drawMode);
+    return mState.cullFaceEnabled && mState.cullMode == GL_FRONT_AND_BACK && isTriangleMode(drawMode);
 }
 
 bool Context::isTriangleMode(GLenum drawMode)
@@ -2894,7 +2894,7 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
     sw::Rect sourceScissoredRect = sourceRect;
     sw::Rect destScissoredRect = destRect;
 
-    if(mState.scissorTest)   // Only write to parts of the destination framebuffer which pass the scissor test
+    if(mState.scissorTestEnabled)   // Only write to parts of the destination framebuffer which pass the scissor test
     {
         if(destRect.x0 < mState.scissorX)
         {
@@ -3228,7 +3228,7 @@ void Context::ortho(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top
 	currentMatrixStack().ortho(left, right, bottom, top, zNear, zFar);
 }
 
-void Context::setLighting(bool enable)
+void Context::setLightingEnabled(bool enable)
 {
     if(drawing)
     {
@@ -3238,7 +3238,7 @@ void Context::setLighting(bool enable)
     device->setLightingEnable(enable);
 }
 
-void Context::setFog(bool enable)
+void Context::setFogEnabled(bool enable)
 {
     if(drawing)
     {
@@ -3248,7 +3248,7 @@ void Context::setFog(bool enable)
     device->setFogEnable(enable);
 }
 
-void Context::setAlphaTest(bool enable)
+void Context::setAlphaTestEnabled(bool enable)
 {
     if(drawing)
     {
@@ -3281,7 +3281,7 @@ void Context::alphaFunc(GLenum func, GLclampf ref)
 	device->setAlphaReference(gl::clamp01(ref));
 }
 
-void Context::setTexture2D(bool enable)
+void Context::setTexture2DEnabled(bool enable)
 {
     if(drawing)
     {
@@ -3306,12 +3306,12 @@ void Context::setShadeModel(GLenum mode)
 	}
 }
 
-void Context::setLight(int index, bool enable)
+void Context::setLightEnabled(int index, bool enable)
 {
     device->setLightEnable(index, enable);
 }
 
-void Context::setNormalizeNormals(bool enable)
+void Context::setNormalizeNormalsEnabled(bool enable)
 {
 	device->setNormalizeNormals(enable);
 }
@@ -3425,7 +3425,7 @@ void APIENTRY glVertexAttribArray(GLuint index, GLint size, GLenum type, GLboole
     if(context)
     {
         context->setVertexAttribState(index, context->getArrayBuffer(), size, type, (normalized == GL_TRUE), stride, ptr);
-		context->setEnableVertexAttribArray(index, ptr != 0);
+		context->setVertexAttribArrayEnabled(index, ptr != 0);
     }
 }
 
@@ -3614,18 +3614,18 @@ void Context::end()
     drawing = false;
 }
 
-void Context::setColorLogicOpEnable(bool colorLogicOpEnabled)
+void Context::setColorLogicOpEnabled(bool colorLogicOpEnabled)
 {
-	if(mState.colorLogicOp != colorLogicOpEnabled)
+	if(mState.colorLogicOpEnabled != colorLogicOpEnabled)
 	{
-		mState.colorLogicOp = colorLogicOpEnabled;
+		mState.colorLogicOpEnabled = colorLogicOpEnabled;
 		mColorLogicOperatorDirty = true;
 	}
 }
 
 bool Context::isColorLogicOpEnabled()
 {
-	return mState.colorLogicOp;
+	return mState.colorLogicOpEnabled;
 }
 
 void Context::setLogicalOperation(GLenum logicalOperation)
@@ -3633,7 +3633,7 @@ void Context::setLogicalOperation(GLenum logicalOperation)
 	mState.logicalOperation = logicalOperation;
 }
 
-void Context::setColorMaterial(bool enable)
+void Context::setColorMaterialEnabled(bool enable)
 {
     device->setColorVertexEnable(enable);
 }

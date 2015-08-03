@@ -1189,28 +1189,28 @@ void Disable(GLenum cap)
 	{
 		switch(cap)
 		{
-		case GL_CULL_FACE:                context->setCullFace(false);              break;
-		case GL_POLYGON_OFFSET_FILL:      context->setPolygonOffsetFill(false);     break;
-		case GL_SAMPLE_ALPHA_TO_COVERAGE: context->setSampleAlphaToCoverage(false); break;
-		case GL_SAMPLE_COVERAGE:          context->setSampleCoverage(false);        break;
-		case GL_SCISSOR_TEST:             context->setScissorTest(false);           break;
-		case GL_STENCIL_TEST:             context->setStencilTest(false);           break;
-		case GL_DEPTH_TEST:               context->setDepthTest(false);             break;
-		case GL_BLEND:                    context->setBlend(false);                 break;
-		case GL_DITHER:                   context->setDither(false);                break;
-		case GL_LIGHTING:                 context->setLighting(false);              break;
-		case GL_LIGHT0:                   context->setLight(0, false);              break;
-		case GL_LIGHT1:                   context->setLight(1, false);              break;
-		case GL_LIGHT2:                   context->setLight(2, false);              break;
-		case GL_LIGHT3:                   context->setLight(3, false);              break;
-		case GL_LIGHT4:                   context->setLight(4, false);              break;
-		case GL_LIGHT5:                   context->setLight(5, false);              break;
-		case GL_LIGHT6:                   context->setLight(6, false);              break;
-		case GL_LIGHT7:                   context->setLight(7, false);              break;
-		case GL_FOG:                      context->setFog(false);					break;
-		case GL_TEXTURE_2D:               context->setTexture2Denabled(false);      break;
-		case GL_TEXTURE_EXTERNAL_OES:     context->setTextureExternalEnabled(false); break;
-		case GL_ALPHA_TEST:               context->setAlphaTest(false);             break;
+		case GL_CULL_FACE:                context->setCullFaceEnabled(false);              break;
+		case GL_POLYGON_OFFSET_FILL:      context->setPolygonOffsetFillEnabled(false);     break;
+		case GL_SAMPLE_ALPHA_TO_COVERAGE: context->setSampleAlphaToCoverageEnabled(false); break;
+		case GL_SAMPLE_COVERAGE:          context->setSampleCoverageEnabled(false);        break;
+		case GL_SCISSOR_TEST:             context->setScissorTestEnabled(false);           break;
+		case GL_STENCIL_TEST:             context->setStencilTestEnabled(false);           break;
+		case GL_DEPTH_TEST:               context->setDepthTestEnabled(false);             break;
+		case GL_BLEND:                    context->setBlendEnabled(false);                 break;
+		case GL_DITHER:                   context->setDitherEnabled(false);                break;
+		case GL_LIGHTING:                 context->setLightingEnabled(false);              break;
+		case GL_LIGHT0:                   context->setLightEnabled(0, false);              break;
+		case GL_LIGHT1:                   context->setLightEnabled(1, false);              break;
+		case GL_LIGHT2:                   context->setLightEnabled(2, false);              break;
+		case GL_LIGHT3:                   context->setLightEnabled(3, false);              break;
+		case GL_LIGHT4:                   context->setLightEnabled(4, false);              break;
+		case GL_LIGHT5:                   context->setLightEnabled(5, false);              break;
+		case GL_LIGHT6:                   context->setLightEnabled(6, false);              break;
+		case GL_LIGHT7:                   context->setLightEnabled(7, false);              break;
+		case GL_FOG:                      context->setFogEnabled(false);                   break;
+		case GL_TEXTURE_2D:               context->setTexture2Denabled(false);             break;
+		case GL_TEXTURE_EXTERNAL_OES:     context->setTextureExternalEnabled(false);       break;
+		case GL_ALPHA_TEST:               context->setAlphaTestEnabled(false);             break;
 		case GL_COLOR_LOGIC_OP:           UNIMPLEMENTED(); break;
 		case GL_POINT_SMOOTH:             UNIMPLEMENTED(); break;
 		case GL_LINE_SMOOTH:              UNIMPLEMENTED(); break;
@@ -1223,12 +1223,12 @@ void Disable(GLenum cap)
 		case GL_TEXTURE_COORD_ARRAY:      UNIMPLEMENTED(); break;
 		case GL_MULTISAMPLE:              UNIMPLEMENTED(); break;
 		case GL_SAMPLE_ALPHA_TO_ONE:      UNIMPLEMENTED(); break;
-		case GL_CLIP_PLANE0:              context->setClipPlaneEnable(0, false); break;
-		case GL_CLIP_PLANE1:              context->setClipPlaneEnable(1, false); break;
-		case GL_CLIP_PLANE2:              context->setClipPlaneEnable(2, false); break;
-		case GL_CLIP_PLANE3:              context->setClipPlaneEnable(3, false); break;
-		case GL_CLIP_PLANE4:              context->setClipPlaneEnable(4, false); break;
-		case GL_CLIP_PLANE5:              context->setClipPlaneEnable(5, false); break;
+		case GL_CLIP_PLANE0:              context->setClipPlaneEnabled(0, false); break;
+		case GL_CLIP_PLANE1:              context->setClipPlaneEnabled(1, false); break;
+		case GL_CLIP_PLANE2:              context->setClipPlaneEnabled(2, false); break;
+		case GL_CLIP_PLANE3:              context->setClipPlaneEnabled(3, false); break;
+		case GL_CLIP_PLANE4:              context->setClipPlaneEnabled(4, false); break;
+		case GL_CLIP_PLANE5:              context->setClipPlaneEnabled(5, false); break;
 		default:
 			return error(GL_INVALID_ENUM);
 		}
@@ -1247,10 +1247,10 @@ void DisableClientState(GLenum array)
 
 		switch (array)
 		{
-		case GL_VERTEX_ARRAY:        context->setEnableVertexAttribArray(sw::Position, false);                            break;
-		case GL_COLOR_ARRAY:         context->setEnableVertexAttribArray(sw::Color0, false);                              break;
-		case GL_TEXTURE_COORD_ARRAY: context->setEnableVertexAttribArray(sw::TexCoord0 + (texture - GL_TEXTURE0), false); break;
-		case GL_NORMAL_ARRAY:        context->setEnableVertexAttribArray(sw::Normal, false);                              break;
+		case GL_VERTEX_ARRAY:        context->setVertexAttribArrayEnabled(sw::Position, false);                            break;
+		case GL_COLOR_ARRAY:         context->setVertexAttribArrayEnabled(sw::Color0, false);                              break;
+		case GL_TEXTURE_COORD_ARRAY: context->setVertexAttribArrayEnabled(sw::TexCoord0 + (texture - GL_TEXTURE0), false); break;
+		case GL_NORMAL_ARRAY:        context->setVertexAttribArrayEnabled(sw::Normal, false);                              break;
 		default:                     UNIMPLEMENTED();
 		}
 	}
@@ -1311,28 +1311,28 @@ void Enable(GLenum cap)
 	{
 		switch(cap)
 		{
-		case GL_CULL_FACE:                context->setCullFace(true);              break;
-		case GL_POLYGON_OFFSET_FILL:      context->setPolygonOffsetFill(true);     break;
-		case GL_SAMPLE_ALPHA_TO_COVERAGE: context->setSampleAlphaToCoverage(true); break;
-		case GL_SAMPLE_COVERAGE:          context->setSampleCoverage(true);        break;
-		case GL_SCISSOR_TEST:             context->setScissorTest(true);           break;
-		case GL_STENCIL_TEST:             context->setStencilTest(true);           break;
-		case GL_DEPTH_TEST:               context->setDepthTest(true);             break;
-		case GL_BLEND:                    context->setBlend(true);                 break;
-		case GL_DITHER:                   context->setDither(true);                break;
-		case GL_LIGHTING:                 context->setLighting(true);              break;
-		case GL_LIGHT0:                   context->setLight(0, true);              break;
-		case GL_LIGHT1:                   context->setLight(1, true);              break;
-		case GL_LIGHT2:                   context->setLight(2, true);              break;
-		case GL_LIGHT3:                   context->setLight(3, true);              break;
-		case GL_LIGHT4:                   context->setLight(4, true);              break;
-		case GL_LIGHT5:                   context->setLight(5, true);              break;
-		case GL_LIGHT6:                   context->setLight(6, true);              break;
-		case GL_LIGHT7:                   context->setLight(7, true);              break;
-		case GL_FOG:                      context->setFog(true);				   break;
-		case GL_TEXTURE_2D:               context->setTexture2Denabled(true);      break;
-		case GL_TEXTURE_EXTERNAL_OES:     context->setTextureExternalEnabled(true); break;
-		case GL_ALPHA_TEST:               context->setAlphaTest(true);             break;
+		case GL_CULL_FACE:                context->setCullFaceEnabled(true);              break;
+		case GL_POLYGON_OFFSET_FILL:      context->setPolygonOffsetFillEnabled(true);     break;
+		case GL_SAMPLE_ALPHA_TO_COVERAGE: context->setSampleAlphaToCoverageEnabled(true); break;
+		case GL_SAMPLE_COVERAGE:          context->setSampleCoverageEnabled(true);        break;
+		case GL_SCISSOR_TEST:             context->setScissorTestEnabled(true);           break;
+		case GL_STENCIL_TEST:             context->setStencilTestEnabled(true);           break;
+		case GL_DEPTH_TEST:               context->setDepthTestEnabled(true);             break;
+		case GL_BLEND:                    context->setBlendEnabled(true);                 break;
+		case GL_DITHER:                   context->setDitherEnabled(true);                break;
+		case GL_LIGHTING:                 context->setLightingEnabled(true);              break;
+		case GL_LIGHT0:                   context->setLightEnabled(0, true);              break;
+		case GL_LIGHT1:                   context->setLightEnabled(1, true);              break;
+		case GL_LIGHT2:                   context->setLightEnabled(2, true);              break;
+		case GL_LIGHT3:                   context->setLightEnabled(3, true);              break;
+		case GL_LIGHT4:                   context->setLightEnabled(4, true);              break;
+		case GL_LIGHT5:                   context->setLightEnabled(5, true);              break;
+		case GL_LIGHT6:                   context->setLightEnabled(6, true);              break;
+		case GL_LIGHT7:                   context->setLightEnabled(7, true);              break;
+		case GL_FOG:                      context->setFogEnabled(true);				      break;
+		case GL_TEXTURE_2D:               context->setTexture2Denabled(true);             break;
+		case GL_TEXTURE_EXTERNAL_OES:     context->setTextureExternalEnabled(true);       break;
+		case GL_ALPHA_TEST:               context->setAlphaTestEnabled(true);             break;
 		case GL_COLOR_LOGIC_OP:           UNIMPLEMENTED(); break;
 		case GL_POINT_SMOOTH:             UNIMPLEMENTED(); break;
 		case GL_LINE_SMOOTH:              UNIMPLEMENTED(); break;
@@ -1345,12 +1345,12 @@ void Enable(GLenum cap)
 		case GL_TEXTURE_COORD_ARRAY:      UNIMPLEMENTED(); break;
 		case GL_MULTISAMPLE:              UNIMPLEMENTED(); break;
 		case GL_SAMPLE_ALPHA_TO_ONE:      UNIMPLEMENTED(); break;
-		case GL_CLIP_PLANE0:              context->setClipPlaneEnable(0, true); break;
-		case GL_CLIP_PLANE1:              context->setClipPlaneEnable(1, true); break;
-		case GL_CLIP_PLANE2:              context->setClipPlaneEnable(2, true); break;
-		case GL_CLIP_PLANE3:              context->setClipPlaneEnable(3, true); break;
-		case GL_CLIP_PLANE4:              context->setClipPlaneEnable(4, true); break;
-		case GL_CLIP_PLANE5:              context->setClipPlaneEnable(5, true); break;
+		case GL_CLIP_PLANE0:              context->setClipPlaneEnabled(0, true); break;
+		case GL_CLIP_PLANE1:              context->setClipPlaneEnabled(1, true); break;
+		case GL_CLIP_PLANE2:              context->setClipPlaneEnabled(2, true); break;
+		case GL_CLIP_PLANE3:              context->setClipPlaneEnabled(3, true); break;
+		case GL_CLIP_PLANE4:              context->setClipPlaneEnabled(4, true); break;
+		case GL_CLIP_PLANE5:              context->setClipPlaneEnabled(5, true); break;
 		default:
 			return error(GL_INVALID_ENUM);
 		}
@@ -1369,10 +1369,10 @@ void EnableClientState(GLenum array)
 
 		switch(array)
 		{
-		case GL_VERTEX_ARRAY:        context->setEnableVertexAttribArray(sw::Position, true);                            break;
-		case GL_COLOR_ARRAY:         context->setEnableVertexAttribArray(sw::Color0, true);                              break;
-		case GL_TEXTURE_COORD_ARRAY: context->setEnableVertexAttribArray(sw::TexCoord0 + (texture - GL_TEXTURE0), true); break;
-		case GL_NORMAL_ARRAY:        context->setEnableVertexAttribArray(sw::Normal, true);                              break;
+		case GL_VERTEX_ARRAY:        context->setVertexAttribArrayEnabled(sw::Position, true);                            break;
+		case GL_COLOR_ARRAY:         context->setVertexAttribArrayEnabled(sw::Color0, true);                              break;
+		case GL_TEXTURE_COORD_ARRAY: context->setVertexAttribArrayEnabled(sw::TexCoord0 + (texture - GL_TEXTURE0), true); break;
+		case GL_NORMAL_ARRAY:        context->setVertexAttribArrayEnabled(sw::Normal, true);                              break;
 		default:                     UNIMPLEMENTED();
 		}
 	}

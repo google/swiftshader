@@ -140,7 +140,7 @@ struct Color
 // Helper structure describing a single vertex attribute
 class VertexAttribute
 {
-  public:
+public:
     VertexAttribute() : mType(GL_FLOAT), mSize(0), mNormalized(false), mStride(0), mDivisor(0), mPointer(NULL), mArrayEnabled(false)
     {
         mCurrentValue[0].f = 0.0f;
@@ -245,6 +245,7 @@ class VertexAttribute
     gl::BindingPointer<Buffer> mBoundBuffer;   // Captured when glVertexAttribPointer is called.
 
     bool mArrayEnabled;   // From glEnable/DisableVertexAttribArray
+
 private:
 	union ValueUnion
 	{
@@ -254,6 +255,7 @@ private:
 		GLint i;
 		GLuint ui;
 	};
+
 	ValueUnion mCurrentValue[4];   // From glVertexAttrib
 	ValueUnion::Type mCurrentValueType;
 };
@@ -267,12 +269,12 @@ struct State
     GLclampf depthClearValue;
     int stencilClearValue;
 
-    bool cullFace;
+    bool cullFaceEnabled;
     GLenum cullMode;
     GLenum frontFace;
-    bool depthTest;
+    bool depthTestEnabled;
     GLenum depthFunc;
-    bool blend;
+    bool blendEnabled;
     GLenum sourceBlendRGB;
     GLenum destBlendRGB;
     GLenum sourceBlendAlpha;
@@ -280,7 +282,7 @@ struct State
     GLenum blendEquationRGB;
     GLenum blendEquationAlpha;
     Color blendColor;
-    bool stencilTest;
+    bool stencilTestEnabled;
     GLenum stencilFunc;
     GLint stencilRef;
     GLuint stencilMask;
@@ -295,18 +297,18 @@ struct State
     GLenum stencilBackPassDepthFail;
     GLenum stencilBackPassDepthPass;
     GLuint stencilBackWritemask;
-    bool polygonOffsetFill;
+    bool polygonOffsetFillEnabled;
     GLfloat polygonOffsetFactor;
     GLfloat polygonOffsetUnits;
-    bool sampleAlphaToCoverage;
-    bool sampleCoverage;
+    bool sampleAlphaToCoverageEnabled;
+    bool sampleCoverageEnabled;
     GLclampf sampleCoverageValue;
     bool sampleCoverageInvert;
-    bool scissorTest;
-    bool dither;
-    bool primitiveRestartFixedIndex;
-    bool rasterizerDiscard;
-    bool colorLogicOp;
+    bool scissorTestEnabled;
+    bool ditherEnabled;
+    bool primitiveRestartFixedIndexEnabled;
+    bool rasterizerDiscardEnabled;
+    bool colorLogicOpEnabled;
     GLenum logicalOperation;
 
     GLfloat lineWidth;
@@ -377,23 +379,23 @@ public:
     void setClearDepth(float depth);
     void setClearStencil(int stencil);
 
-    void setCullFace(bool enabled);
+    void setCullFaceEnabled(bool enabled);
     bool isCullFaceEnabled() const;
     void setCullMode(GLenum mode);
     void setFrontFace(GLenum front);
 
-    void setDepthTest(bool enabled);
+    void setDepthTestEnabled(bool enabled);
     bool isDepthTestEnabled() const;
     void setDepthFunc(GLenum depthFunc);
     void setDepthRange(float zNear, float zFar);
     
-    void setBlend(bool enabled);
+    void setBlendEnabled(bool enabled);
     bool isBlendEnabled() const;
     void setBlendFactors(GLenum sourceRGB, GLenum destRGB, GLenum sourceAlpha, GLenum destAlpha);
     void setBlendColor(float red, float green, float blue, float alpha);
     void setBlendEquation(GLenum rgbEquation, GLenum alphaEquation);
 
-    void setStencilTest(bool enabled);
+    void setStencilTestEnabled(bool enabled);
     bool isStencilTestEnabled() const;
     void setStencilParams(GLenum stencilFunc, GLint stencilRef, GLuint stencilMask);
     void setStencilBackParams(GLenum stencilBackFunc, GLint stencilBackRef, GLuint stencilBackMask);
@@ -402,23 +404,23 @@ public:
     void setStencilOperations(GLenum stencilFail, GLenum stencilPassDepthFail, GLenum stencilPassDepthPass);
     void setStencilBackOperations(GLenum stencilBackFail, GLenum stencilBackPassDepthFail, GLenum stencilBackPassDepthPass);
 
-    void setPolygonOffsetFill(bool enabled);
+    void setPolygonOffsetFillEnabled(bool enabled);
     bool isPolygonOffsetFillEnabled() const;
     void setPolygonOffsetParams(GLfloat factor, GLfloat units);
 
-    void setSampleAlphaToCoverage(bool enabled);
+    void setSampleAlphaToCoverageEnabled(bool enabled);
     bool isSampleAlphaToCoverageEnabled() const;
-    void setSampleCoverage(bool enabled);
+    void setSampleCoverageEnabled(bool enabled);
     bool isSampleCoverageEnabled() const;
     void setSampleCoverageParams(GLclampf value, bool invert);
 
-    void setDither(bool enabled);
+    void setDitherEnabled(bool enabled);
     bool isDitherEnabled() const;
 
-    void setPrimitiveRestartFixedIndex(bool enabled);
+    void setPrimitiveRestartFixedIndexEnabled(bool enabled);
     bool isPrimitiveRestartFixedIndexEnabled() const;
 
-    void setRasterizerDiscard(bool enabled);
+    void setRasterizerDiscardEnabled(bool enabled);
     bool isRasterizerDiscardEnabled() const;
 
     void setLineWidth(GLfloat width);
@@ -428,7 +430,7 @@ public:
 
     void setViewportParams(GLint x, GLint y, GLsizei width, GLsizei height);
 
-	void setScissorTest(bool enabled);
+	void setScissorTestEnabled(bool enabled);
     bool isScissorTestEnabled() const;
     void setScissorParams(GLint x, GLint y, GLsizei width, GLsizei height);
 
@@ -451,7 +453,7 @@ public:
     GLuint getArrayBufferName() const;
 	GLuint getElementArrayBufferName() const;
 
-    void setEnableVertexAttribArray(unsigned int attribNum, bool enabled);
+    void setVertexAttribArrayEnabled(unsigned int attribNum, bool enabled);
     void setVertexAttribDivisor(unsigned int attribNum, GLuint divisor);
     const VertexAttribute &getVertexAttribState(unsigned int attribNum) const;
     void setVertexAttribState(unsigned int attribNum, Buffer *boundBuffer, GLint size, GLenum type,

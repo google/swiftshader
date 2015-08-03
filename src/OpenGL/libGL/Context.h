@@ -415,12 +415,12 @@ struct State
     GLclampf depthClearValue;
     int stencilClearValue;
 
-    bool cullFace;
+    bool cullFaceEnabled;
     GLenum cullMode;
     GLenum frontFace;
-    bool depthTest;
+    bool depthTestEnabled;
     GLenum depthFunc;
-    bool blend;
+    bool blendEnabled;
     GLenum sourceBlendRGB;
     GLenum destBlendRGB;
     GLenum sourceBlendAlpha;
@@ -428,7 +428,7 @@ struct State
     GLenum blendEquationRGB;
     GLenum blendEquationAlpha;
     Color blendColor;
-    bool stencilTest;
+    bool stencilTestEnabled;
     GLenum stencilFunc;
     GLint stencilRef;
     GLuint stencilMask;
@@ -443,16 +443,16 @@ struct State
     GLenum stencilBackPassDepthFail;
     GLenum stencilBackPassDepthPass;
     GLuint stencilBackWritemask;
-    bool polygonOffsetFill;
+    bool polygonOffsetFillEnabled;
     GLfloat polygonOffsetFactor;
     GLfloat polygonOffsetUnits;
-    bool sampleAlphaToCoverage;
-    bool sampleCoverage;
+    bool sampleAlphaToCoverageEnabled;
+    bool sampleCoverageEnabled;
     GLclampf sampleCoverageValue;
     bool sampleCoverageInvert;
-    bool scissorTest;
-    bool dither;
-	bool colorLogicOp;
+    bool scissorTestEnabled;
+    bool ditherEnabled;
+	bool colorLogicOpEnabled;
 	GLenum logicalOperation;
 
     GLfloat lineWidth;
@@ -510,23 +510,23 @@ public:
     void setClearDepth(float depth);
     void setClearStencil(int stencil);
 
-    void setCullFace(bool enabled);
+    void setCullFaceEnabled(bool enabled);
     bool isCullFaceEnabled() const;
     void setCullMode(GLenum mode);
     void setFrontFace(GLenum front);
 
-    void setDepthTest(bool enabled);
+    void setDepthTestEnabled(bool enabled);
     bool isDepthTestEnabled() const;
     void setDepthFunc(GLenum depthFunc);
     void setDepthRange(float zNear, float zFar);
     
-    void setBlend(bool enabled);
+    void setBlendEnabled(bool enabled);
     bool isBlendEnabled() const;
     void setBlendFactors(GLenum sourceRGB, GLenum destRGB, GLenum sourceAlpha, GLenum destAlpha);
     void setBlendColor(float red, float green, float blue, float alpha);
     void setBlendEquation(GLenum rgbEquation, GLenum alphaEquation);
 
-    void setStencilTest(bool enabled);
+    void setStencilTestEnabled(bool enabled);
     bool isStencilTestEnabled() const;
     void setStencilParams(GLenum stencilFunc, GLint stencilRef, GLuint stencilMask);
     void setStencilBackParams(GLenum stencilBackFunc, GLint stencilBackRef, GLuint stencilBackMask);
@@ -535,17 +535,17 @@ public:
     void setStencilOperations(GLenum stencilFail, GLenum stencilPassDepthFail, GLenum stencilPassDepthPass);
     void setStencilBackOperations(GLenum stencilBackFail, GLenum stencilBackPassDepthFail, GLenum stencilBackPassDepthPass);
 
-    void setPolygonOffsetFill(bool enabled);
+    void setPolygonOffsetFillEnabled(bool enabled);
     bool isPolygonOffsetFillEnabled() const;
     void setPolygonOffsetParams(GLfloat factor, GLfloat units);
 
-    void setSampleAlphaToCoverage(bool enabled);
+    void setSampleAlphaToCoverageEnabled(bool enabled);
     bool isSampleAlphaToCoverageEnabled() const;
-    void setSampleCoverage(bool enabled);
+    void setSampleCoverageEnabled(bool enabled);
     bool isSampleCoverageEnabled() const;
     void setSampleCoverageParams(GLclampf value, bool invert);
 
-    void setDither(bool enabled);
+    void setDitherEnabled(bool enabled);
     bool isDitherEnabled() const;
 
     void setLineWidth(GLfloat width);
@@ -555,7 +555,7 @@ public:
 
     void setViewportParams(GLint x, GLint y, GLsizei width, GLsizei height);
 
-	void setScissorTest(bool enabled);
+	void setScissorTestEnabled(bool enabled);
     bool isScissorTestEnabled() const;
     void setScissorParams(GLint x, GLint y, GLsizei width, GLsizei height);
 
@@ -572,7 +572,7 @@ public:
 
     GLuint getArrayBufferName() const;
 
-    void setEnableVertexAttribArray(unsigned int attribNum, bool enabled);
+    void setVertexAttribArrayEnabled(unsigned int attribNum, bool enabled);
     const VertexAttribute &getVertexAttribState(unsigned int attribNum);
     void setVertexAttribState(unsigned int attribNum, Buffer *boundBuffer, GLint size, GLenum type,
                               bool normalized, GLsizei stride, const void *pointer);
@@ -687,14 +687,14 @@ public:
 	void frustum(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar);
     void ortho(double left, double right, double bottom, double top, double zNear, double zFar);   // FIXME: GLdouble
 
-    void setLighting(bool enabled);
-    void setFog(bool enabled);
-	void setAlphaTest(bool enabled);
+    void setLightingEnabled(bool enabled);
+    void setFogEnabled(bool enabled);
+	void setAlphaTestEnabled(bool enabled);
 	void alphaFunc(GLenum func, GLclampf ref);
-    void setTexture2D(bool enabled);
+    void setTexture2DEnabled(bool enabled);
 	void setShadeModel(GLenum mode);
-    void setLight(int index, bool enable);
-	void setNormalizeNormals(bool enable);
+    void setLightEnabled(int index, bool enable);
+	void setNormalizeNormalsEnabled(bool enable);
 
 	GLuint genLists(GLsizei range);
 	void newList(GLuint list, GLenum mode);
@@ -716,10 +716,10 @@ public:
     void position(GLfloat x, GLfloat y, GLfloat z, GLfloat w);
     void end();
 
-    void setColorMaterial(bool enable);
+    void setColorMaterialEnabled(bool enable);
     void setColorMaterialMode(GLenum mode);
 
-	void setColorLogicOpEnable(bool colorLogicOpEnabled);
+	void setColorLogicOpEnabled(bool colorLogicOpEnabled);
 	bool isColorLogicOpEnabled();
 	void setLogicalOperation(GLenum logicalOperation);
 

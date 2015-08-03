@@ -54,19 +54,19 @@ Context::Context(const egl::Config *config, const Context *shareContext)
     mState.depthClearValue = 1.0f;
     mState.stencilClearValue = 0;
 
-    mState.cullFace = false;
+    mState.cullFaceEnabled = false;
     mState.cullMode = GL_BACK;
     mState.frontFace = GL_CCW;
-    mState.depthTest = false;
+    mState.depthTestEnabled = false;
     mState.depthFunc = GL_LESS;
-    mState.blend = false;
+    mState.blendEnabled = false;
     mState.sourceBlendRGB = GL_ONE;
     mState.sourceBlendAlpha = GL_ONE;
     mState.destBlendRGB = GL_ZERO;
     mState.destBlendAlpha = GL_ZERO;
     mState.blendEquationRGB = GL_FUNC_ADD_OES;
     mState.blendEquationAlpha = GL_FUNC_ADD_OES;
-    mState.stencilTest = false;
+    mState.stencilTestEnabled = false;
     mState.stencilFunc = GL_ALWAYS;
     mState.stencilRef = 0;
     mState.stencilMask = -1;
@@ -74,19 +74,19 @@ Context::Context(const egl::Config *config, const Context *shareContext)
     mState.stencilFail = GL_KEEP;
     mState.stencilPassDepthFail = GL_KEEP;
     mState.stencilPassDepthPass = GL_KEEP;
-    mState.polygonOffsetFill = false;
+    mState.polygonOffsetFillEnabled = false;
     mState.polygonOffsetFactor = 0.0f;
     mState.polygonOffsetUnits = 0.0f;
-    mState.sampleAlphaToCoverage = false;
-    mState.sampleCoverage = false;
+    mState.sampleAlphaToCoverageEnabled = false;
+    mState.sampleCoverageEnabled = false;
     mState.sampleCoverageValue = 1.0f;
     mState.sampleCoverageInvert = false;
-    mState.scissorTest = false;
-    mState.dither = true;
+    mState.scissorTestEnabled = false;
+    mState.ditherEnabled = true;
 	mState.shadeModel = GL_SMOOTH;
     mState.generateMipmapHint = GL_DONT_CARE;
 	mState.perspectiveCorrectionHint = GL_DONT_CARE;
-	mState.colorLogicOp = false;
+	mState.colorLogicOpEnabled = false;
 	mState.logicalOperation = GL_COPY;
 
     mState.lineWidth = 1.0f;
@@ -166,11 +166,11 @@ Context::Context(const egl::Config *config, const Context *shareContext)
 	mMatrixStackOverflow = false;
 	mMatrixStackUnderflow = false;
 
-	lighting = false;
+	lightingEnabled = false;
 
 	for(int i = 0; i < MAX_LIGHTS; i++)
 	{
-		light[i].enable = false;
+		light[i].enabled = false;
 		light[i].ambient = {0.0f, 0.0f, 0.0f, 1.0f};
 		light[i].diffuse = {0.0f, 0.0f, 0.0f, 1.0f};
 		light[i].specular = {0.0f, 0.0f, 0.0f, 1.0f};
@@ -211,7 +211,7 @@ Context::Context(const egl::Config *config, const Context *shareContext)
 
 	clipFlags = 0;
 
-	alphaTest = false;
+	alphaTestEnabled = false;
 	alphaTestFunc = GL_ALWAYS;
 	alphaTestRef = 0;
 
@@ -330,14 +330,14 @@ void Context::setClearStencil(int stencil)
     mState.stencilClearValue = stencil;
 }
 
-void Context::setCullFace(bool enabled)
+void Context::setCullFaceEnabled(bool enabled)
 {
-    mState.cullFace = enabled;
+    mState.cullFaceEnabled = enabled;
 }
 
 bool Context::isCullFaceEnabled() const
 {
-    return mState.cullFace;
+    return mState.cullFaceEnabled;
 }
 
 void Context::setCullMode(GLenum mode)
@@ -354,18 +354,18 @@ void Context::setFrontFace(GLenum front)
     }
 }
 
-void Context::setDepthTest(bool enabled)
+void Context::setDepthTestEnabled(bool enabled)
 {
-    if(mState.depthTest != enabled)
+    if(mState.depthTestEnabled != enabled)
     {
-        mState.depthTest = enabled;
+        mState.depthTestEnabled = enabled;
         mDepthStateDirty = true;
     }
 }
 
 bool Context::isDepthTestEnabled() const
 {
-    return mState.depthTest;
+    return mState.depthTestEnabled;
 }
 
 void Context::setDepthFunc(GLenum depthFunc)
@@ -383,14 +383,14 @@ void Context::setDepthRange(float zNear, float zFar)
     mState.zFar = zFar;
 }
 
-void Context::setAlphaTest(bool enabled)
+void Context::setAlphaTestEnabled(bool enabled)
 {
-	alphaTest = enabled;
+	alphaTestEnabled = enabled;
 }
 
 bool Context::isAlphaTestEnabled() const
 {
-	return alphaTest;
+	return alphaTestEnabled;
 }
 
 void Context::setAlphaFunc(GLenum alphaFunc, GLclampf reference)
@@ -399,18 +399,18 @@ void Context::setAlphaFunc(GLenum alphaFunc, GLclampf reference)
 	alphaTestRef = reference;
 }
 
-void Context::setBlend(bool enabled)
+void Context::setBlendEnabled(bool enabled)
 {
-    if(mState.blend != enabled)
+    if(mState.blendEnabled != enabled)
     {
-        mState.blend = enabled;
+        mState.blendEnabled = enabled;
         mBlendStateDirty = true;
     }
 }
 
 bool Context::isBlendEnabled() const
 {
-    return mState.blend;
+    return mState.blendEnabled;
 }
 
 void Context::setBlendFactors(GLenum sourceRGB, GLenum destRGB, GLenum sourceAlpha, GLenum destAlpha)
@@ -439,18 +439,18 @@ void Context::setBlendEquation(GLenum rgbEquation, GLenum alphaEquation)
     }
 }
 
-void Context::setStencilTest(bool enabled)
+void Context::setStencilTestEnabled(bool enabled)
 {
-    if(mState.stencilTest != enabled)
+    if(mState.stencilTestEnabled != enabled)
     {
-        mState.stencilTest = enabled;
+        mState.stencilTestEnabled = enabled;
         mStencilStateDirty = true;
     }
 }
 
 bool Context::isStencilTestEnabled() const
 {
-    return mState.stencilTest;
+    return mState.stencilTestEnabled;
 }
 
 void Context::setStencilParams(GLenum stencilFunc, GLint stencilRef, GLuint stencilMask)
@@ -488,18 +488,18 @@ void Context::setStencilOperations(GLenum stencilFail, GLenum stencilPassDepthFa
     }
 }
 
-void Context::setPolygonOffsetFill(bool enabled)
+void Context::setPolygonOffsetFillEnabled(bool enabled)
 {
-    if(mState.polygonOffsetFill != enabled)
+    if(mState.polygonOffsetFillEnabled != enabled)
     {
-        mState.polygonOffsetFill = enabled;
+        mState.polygonOffsetFillEnabled = enabled;
         mPolygonOffsetStateDirty = true;
     }
 }
 
 bool Context::isPolygonOffsetFillEnabled() const
 {
-    return mState.polygonOffsetFill;
+    return mState.polygonOffsetFillEnabled;
 }
 
 void Context::setPolygonOffsetParams(GLfloat factor, GLfloat units)
@@ -513,32 +513,32 @@ void Context::setPolygonOffsetParams(GLfloat factor, GLfloat units)
     }
 }
 
-void Context::setSampleAlphaToCoverage(bool enabled)
+void Context::setSampleAlphaToCoverageEnabled(bool enabled)
 {
-    if(mState.sampleAlphaToCoverage != enabled)
+    if(mState.sampleAlphaToCoverageEnabled != enabled)
     {
-        mState.sampleAlphaToCoverage = enabled;
+        mState.sampleAlphaToCoverageEnabled = enabled;
         mSampleStateDirty = true;
     }
 }
 
 bool Context::isSampleAlphaToCoverageEnabled() const
 {
-    return mState.sampleAlphaToCoverage;
+    return mState.sampleAlphaToCoverageEnabled;
 }
 
-void Context::setSampleCoverage(bool enabled)
+void Context::setSampleCoverageEnabled(bool enabled)
 {
-    if(mState.sampleCoverage != enabled)
+    if(mState.sampleCoverageEnabled != enabled)
     {
-        mState.sampleCoverage = enabled;
+        mState.sampleCoverageEnabled = enabled;
         mSampleStateDirty = true;
     }
 }
 
 bool Context::isSampleCoverageEnabled() const
 {
-    return mState.sampleCoverage;
+    return mState.sampleCoverageEnabled;
 }
 
 void Context::setSampleCoverageParams(GLclampf value, bool invert)
@@ -552,14 +552,14 @@ void Context::setSampleCoverageParams(GLclampf value, bool invert)
     }
 }
 
-void Context::setScissorTest(bool enabled)
+void Context::setScissorTestEnabled(bool enabled)
 {
-    mState.scissorTest = enabled;
+    mState.scissorTestEnabled = enabled;
 }
 
 bool Context::isScissorTestEnabled() const
 {
-    return mState.scissorTest;
+    return mState.scissorTestEnabled;
 }
 
 void Context::setShadeModel(GLenum mode)
@@ -567,28 +567,28 @@ void Context::setShadeModel(GLenum mode)
     mState.shadeModel = mode;
 }
 
-void Context::setDither(bool enabled)
+void Context::setDitherEnabled(bool enabled)
 {
-    if(mState.dither != enabled)
+    if(mState.ditherEnabled != enabled)
     {
-        mState.dither = enabled;
+        mState.ditherEnabled = enabled;
         mDitherStateDirty = true;
     }
 }
 
 bool Context::isDitherEnabled() const
 {
-    return mState.dither;
+    return mState.ditherEnabled;
 }
 
-void Context::setLighting(bool enable)
+void Context::setLightingEnabled(bool enable)
 {
-    lighting = enable;
+    lightingEnabled = enable;
 }
 
-void Context::setLight(int index, bool enable)
+void Context::setLightEnabled(int index, bool enable)
 {
-    light[index].enable = enable;
+    light[index].enabled = enable;
 }
 
 void Context::setLightAmbient(int index, float r, float g, float b, float a)
@@ -682,7 +682,7 @@ void Context::setMaterialShininess(float shininess)
 	materialShininess = shininess;
 }
 
-void Context::setFog(bool enable)
+void Context::setFogEnabled(bool enable)
 {
 	device->setFogEnable(enable);
 }
@@ -809,7 +809,7 @@ GLuint Context::getArrayBufferName() const
     return mState.arrayBuffer.name();
 }
 
-void Context::setEnableVertexAttribArray(unsigned int attribNum, bool enabled)
+void Context::setVertexAttribArrayEnabled(unsigned int attribNum, bool enabled)
 {
     mState.vertexAttribute[attribNum].mArrayEnabled = enabled;
 }
@@ -1057,26 +1057,26 @@ Texture *Context::getSamplerTexture(unsigned int sampler, TextureType type)
 
 bool Context::getBooleanv(GLenum pname, GLboolean *params)
 {
-    switch (pname)
+    switch(pname)
     {
-      case GL_SAMPLE_COVERAGE_INVERT:   *params = mState.sampleCoverageInvert;      break;
-      case GL_DEPTH_WRITEMASK:          *params = mState.depthMask;                 break;
-      case GL_COLOR_WRITEMASK:
+    case GL_SAMPLE_COVERAGE_INVERT:   *params = mState.sampleCoverageInvert;         break;
+    case GL_DEPTH_WRITEMASK:          *params = mState.depthMask;                    break;
+    case GL_COLOR_WRITEMASK:
         params[0] = mState.colorMaskRed;
         params[1] = mState.colorMaskGreen;
         params[2] = mState.colorMaskBlue;
         params[3] = mState.colorMaskAlpha;
         break;
-      case GL_CULL_FACE:                *params = mState.cullFace;                  break;
-      case GL_POLYGON_OFFSET_FILL:      *params = mState.polygonOffsetFill;         break;
-      case GL_SAMPLE_ALPHA_TO_COVERAGE: *params = mState.sampleAlphaToCoverage;     break;
-      case GL_SAMPLE_COVERAGE:          *params = mState.sampleCoverage;            break;
-      case GL_SCISSOR_TEST:             *params = mState.scissorTest;               break;
-      case GL_STENCIL_TEST:             *params = mState.stencilTest;               break;
-      case GL_DEPTH_TEST:               *params = mState.depthTest;                 break;
-      case GL_BLEND:                    *params = mState.blend;                     break;
-      case GL_DITHER:                   *params = mState.dither;                    break;
-      default:
+    case GL_CULL_FACE:                *params = mState.cullFaceEnabled;              break;
+    case GL_POLYGON_OFFSET_FILL:      *params = mState.polygonOffsetFillEnabled;     break;
+    case GL_SAMPLE_ALPHA_TO_COVERAGE: *params = mState.sampleAlphaToCoverageEnabled; break;
+    case GL_SAMPLE_COVERAGE:          *params = mState.sampleCoverageEnabled;        break;
+    case GL_SCISSOR_TEST:             *params = mState.scissorTestEnabled;           break;
+    case GL_STENCIL_TEST:             *params = mState.stencilTestEnabled;           break;
+    case GL_DEPTH_TEST:               *params = mState.depthTestEnabled;             break;
+    case GL_BLEND:                    *params = mState.blendEnabled;                 break;
+    case GL_DITHER:                   *params = mState.ditherEnabled;                break;
+    default:
         return false;
     }
 
@@ -1601,7 +1601,7 @@ bool Context::applyRenderTarget()
 
     device->setViewport(viewport);
 
-    if(mState.scissorTest)
+    if(mState.scissorTestEnabled)
     {
 		sw::Rect scissor = {mState.scissorX, mState.scissorY, mState.scissorX + mState.scissorWidth, mState.scissorY + mState.scissorHeight};
 		scissor.clip(0, 0, width, height);
@@ -1622,7 +1622,7 @@ void Context::applyState(GLenum drawMode)
 {
     Framebuffer *framebuffer = getFramebuffer();
 
-    if(mState.cullFace)
+    if(mState.cullFaceEnabled)
     {
         device->setCullMode(es2sw::ConvertCullMode(mState.cullMode, mState.frontFace));
     }
@@ -1633,7 +1633,7 @@ void Context::applyState(GLenum drawMode)
 
     if(mDepthStateDirty)
     {
-        if(mState.depthTest)
+        if(mState.depthTestEnabled)
         {
 			device->setDepthBufferEnable(true);
 			device->setDepthCompare(es2sw::ConvertDepthComparison(mState.depthFunc));
@@ -1648,7 +1648,7 @@ void Context::applyState(GLenum drawMode)
 
     if(mBlendStateDirty)
     {
-        if(mState.blend)
+        if(mState.blendEnabled)
         {
 			device->setAlphaBlendEnable(true);
 			device->setSeparateAlphaBlendEnable(true);
@@ -1671,7 +1671,7 @@ void Context::applyState(GLenum drawMode)
 
     if(mStencilStateDirty || mFrontFaceDirty)
     {
-        if(mState.stencilTest && framebuffer->hasStencil())
+        if(mState.stencilTestEnabled && framebuffer->hasStencil())
         {
 			device->setStencilEnable(true);
 			device->setTwoSidedStencil(true);
@@ -1719,7 +1719,7 @@ void Context::applyState(GLenum drawMode)
 
     if(mPolygonOffsetStateDirty)
     {
-        if(mState.polygonOffsetFill)
+        if(mState.polygonOffsetFillEnabled)
         {
             Renderbuffer *depthbuffer = framebuffer->getDepthbuffer();
             if(depthbuffer)
@@ -1740,7 +1740,7 @@ void Context::applyState(GLenum drawMode)
 
     if(mSampleStateDirty)
     {
-        if(mState.sampleAlphaToCoverage)
+        if(mState.sampleAlphaToCoverageEnabled)
         {
             device->setTransparencyAntialiasing(sw::TRANSPARENCY_ALPHA_TO_COVERAGE);
         }
@@ -1749,7 +1749,7 @@ void Context::applyState(GLenum drawMode)
 			device->setTransparencyAntialiasing(sw::TRANSPARENCY_NONE);
 		}
 
-        if(mState.sampleCoverage)
+        if(mState.sampleCoverageEnabled)
         {
             unsigned int mask = 0;
             if(mState.sampleCoverageValue != 0)
@@ -1800,12 +1800,12 @@ void Context::applyState(GLenum drawMode)
 	case GL_FLAT:   device->setShadingMode(sw::SHADING_FLAT);    break;
 	}
 
-	device->setLightingEnable(lighting);
+	device->setLightingEnable(lightingEnabled);
 	device->setGlobalAmbient(sw::Color<float>(globalAmbient.red, globalAmbient.green, globalAmbient.blue, globalAmbient.alpha));
 
 	for(int i = 0; i < MAX_LIGHTS; i++)
 	{
-		device->setLightEnable(i, light[i].enable);
+		device->setLightEnable(i, light[i].enabled);
 		device->setLightAmbient(i, sw::Color<float>(light[i].ambient.red, light[i].ambient.green, light[i].ambient.blue, light[i].ambient.alpha));
 		device->setLightDiffuse(i, sw::Color<float>(light[i].diffuse.red, light[i].diffuse.green, light[i].diffuse.blue, light[i].diffuse.alpha));
 		device->setLightSpecular(i, sw::Color<float>(light[i].specular.red, light[i].specular.green, light[i].specular.blue, light[i].specular.alpha));
@@ -1848,7 +1848,7 @@ void Context::applyState(GLenum drawMode)
 	device->setTexGen(0, sw::TEXGEN_NONE);
 	device->setTexGen(1, sw::TEXGEN_NONE);
 
-	device->setAlphaTestEnable(alphaTest);
+	device->setAlphaTestEnable(alphaTestEnabled);
 	device->setAlphaCompare(es2sw::ConvertAlphaComparison(alphaTestFunc));
 	device->setAlphaReference(alphaTestRef * 0xFF);
 }
@@ -2893,7 +2893,7 @@ void Context::detachRenderbuffer(GLuint renderbuffer)
 
 bool Context::cullSkipsDraw(GLenum drawMode)
 {
-    return mState.cullFace && mState.cullMode == GL_FRONT_AND_BACK && isTriangleMode(drawMode);
+    return mState.cullFaceEnabled && mState.cullMode == GL_FRONT_AND_BACK && isTriangleMode(drawMode);
 }
 
 bool Context::isTriangleMode(GLenum drawMode)
@@ -3109,7 +3109,7 @@ void Context::setClipPlane(int index, const float plane[4])
 	device->setClipPlane(index, &clipPlane.A);
 }
 
-void Context::setClipPlaneEnable(int index, bool enable)
+void Context::setClipPlaneEnabled(int index, bool enable)
 {
 	clipFlags = clipFlags & ~((int)!enable << index) | ((int)enable << index);
 	device->setClipFlags(clipFlags);
