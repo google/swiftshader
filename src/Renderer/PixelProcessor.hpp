@@ -165,7 +165,7 @@ namespace sw
 			word4 color4[3];
 			float4 colorF[3];
 			float4 densityE;
-			float4 densityE2;
+			float4 density2E;
 		};
 
 		struct Factor

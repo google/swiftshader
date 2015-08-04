@@ -666,10 +666,9 @@ namespace sw
 			zw = exponential2(zw, true);
 			break;
 		case FOG_EXP2:
-			zw *= *Pointer<Float4>(r.data + OFFSET(DrawData,fog.densityE2));
 			zw *= zw;
+			zw *= *Pointer<Float4>(r.data + OFFSET(DrawData,fog.density2E));
 			zw = exponential2(zw, true);
-			zw = Rcp_pp(zw);
 			break;
 		default:
 			ASSERT(false);

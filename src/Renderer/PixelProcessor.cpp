@@ -781,7 +781,7 @@ namespace sw
 	void PixelProcessor::setFogDensity(float fogDensity)
 	{
 		fog.densityE = replicate(-fogDensity * 1.442695f);   // 1/e^x = 2^(-x*1.44)
-		fog.densityE2 = replicate(fogDensity * 1.201122f);   // 1/e^(x^2) = 2^(-(x*1.20)^2)
+		fog.density2E = replicate(-fogDensity * fogDensity * 1.442695f);
 	}
 
 	void PixelProcessor::setPixelFogMode(FogMode fogMode)
