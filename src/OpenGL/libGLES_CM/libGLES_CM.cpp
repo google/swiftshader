@@ -596,7 +596,15 @@ void ClipPlanef(GLenum plane, const GLfloat *equation)
 
 void ClipPlanex(GLenum plane, const GLfixed *equation)
 {
-	UNIMPLEMENTED();
+	GLfloat equationf[4] =
+	{
+		(float)equation[0] / 0x10000,
+		(float)equation[1] / 0x10000,
+		(float)equation[2] / 0x10000,
+		(float)equation[3] / 0x10000,
+	};
+	
+	ClipPlanef(plane, equationf);
 }
 
 void Color4f(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
@@ -1642,7 +1650,45 @@ void Fogfv(GLenum pname, const GLfloat *params)
 
 void Fogx(GLenum pname, GLfixed param)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLenum pname = 0x%X, GLfixed param = %d)", pname, param);
+
+	es1::Context *context = es1::getContext();
+
+	if(context)
+	{
+		switch(pname)
+		{
+		case GL_FOG_MODE:
+			switch((GLenum)param)
+			{
+			case GL_LINEAR:
+			case GL_EXP:
+			case GL_EXP2:
+				context->setFogMode((GLenum)param);
+				break;
+			default:
+				return error(GL_INVALID_ENUM);
+			}
+			break;
+		case GL_FOG_DENSITY:
+			if(param < 0)
+			{
+				return error(GL_INVALID_VALUE);
+			}
+			context->setFogDensity((float)param / 0x10000);
+			break;
+		case GL_FOG_START:
+			context->setFogStart((float)param / 0x10000);
+			break;
+		case GL_FOG_END:
+			context->setFogEnd((float)param / 0x10000);
+			break;
+		case GL_FOG_COLOR:
+			return error(GL_INVALID_ENUM);   // Need four values, should call glFogxv() instead
+		default:
+			return error(GL_INVALID_ENUM);
+		}
+	}
 }
 
 void Fogxv(GLenum pname, const GLfixed *params)
@@ -2588,12 +2634,45 @@ void LightModelfv(GLenum pname, const GLfloat *params)
 
 void LightModelx(GLenum pname, GLfixed param)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLenum pname = 0x%X, GLfixed param = %d)", pname, param);
+
+	es1::Context *context = es1::getContext();
+
+	if(context)
+	{
+		switch(pname)
+		{
+		case GL_LIGHT_MODEL_TWO_SIDE:
+			context->setLightModelTwoSide(param != 0);
+			break;
+		case GL_LIGHT_MODEL_AMBIENT:
+			return error(GL_INVALID_ENUM);   // Need four values, should call glLightModelxv() instead
+		default:
+			return error(GL_INVALID_ENUM);
+		}
+	}
 }
 
 void LightModelxv(GLenum pname, const GLfixed *params)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLenum pname = 0x%X, const GLfixed *params)", pname);
+
+	es1::Context *context = es1::getContext();
+
+	if(context)
+	{
+		switch(pname)
+		{
+		case GL_LIGHT_MODEL_AMBIENT:
+			context->setGlobalAmbient((float)params[0] / 0x10000, (float)params[1] / 0x10000, (float)params[2] / 0x10000, (float)params[3] / 0x10000);
+			break;
+		case GL_LIGHT_MODEL_TWO_SIDE:
+			context->setLightModelTwoSide(params[0] != 0);
+			break;
+		default:
+			return error(GL_INVALID_ENUM);
+		}
+	}
 }
 
 void Lightf(GLenum light, GLenum pname, GLfloat param)
@@ -3117,12 +3196,81 @@ void PointParameterfv(GLenum pname, const GLfloat *params)
 
 void PointParameterx(GLenum pname, GLfixed param)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLenum pname = 0x%X, GLfixed param = %d)", pname, param);
+
+	es1::Context *context = es1::getContext();
+
+	if(context)
+	{
+		switch(pname)
+		{
+		case GL_POINT_SIZE_MIN:
+			if(param < 0)
+			{
+				return error(GL_INVALID_VALUE);
+			}
+			context->setPointSizeMin((float)param / 0x10000);
+			break;
+		case GL_POINT_SIZE_MAX:
+			if(param < 0)
+			{
+				return error(GL_INVALID_VALUE);
+			}
+			context->setPointSizeMax((float)param / 0x10000);
+			break;
+		case GL_POINT_FADE_THRESHOLD_SIZE:
+			if(param < 0)
+			{
+				return error(GL_INVALID_VALUE);
+			}
+			context->setPointFadeThresholdSize((float)param / 0x10000);
+			break;
+		case GL_POINT_DISTANCE_ATTENUATION:
+			return error(GL_INVALID_ENUM);   // Needs three parameters, should call glPointParameterxv() instead
+		default:
+			return error(GL_INVALID_ENUM);
+		}
+	}
 }
 
 void PointParameterxv(GLenum pname, const GLfixed *params)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLenum pname = 0x%X, const GLfixed *params)", pname);
+
+	es1::Context *context = es1::getContext();
+
+	if(context)
+	{
+		switch(pname)
+		{
+		case GL_POINT_SIZE_MIN:
+			if(params[0] < 0)
+			{
+				return error(GL_INVALID_VALUE);
+			}
+			context->setPointSizeMin((float)params[0] / 0x10000);
+			break;
+		case GL_POINT_SIZE_MAX:
+			if(params[0] < 0)
+			{
+				return error(GL_INVALID_VALUE);
+			}
+			context->setPointSizeMax((float)params[0] / 0x10000);
+			break;
+		case GL_POINT_DISTANCE_ATTENUATION:
+			context->setPointDistanceAttenuation((float)params[0] / 0x10000, (float)params[1] / 0x10000, (float)params[2] / 0x10000);
+			break;
+		case GL_POINT_FADE_THRESHOLD_SIZE:
+			if(params[0] < 0)
+			{
+				return error(GL_INVALID_VALUE);
+			}
+			context->setPointFadeThresholdSize((float)params[0] / 0x10000);
+			break;
+		default:
+			return error(GL_INVALID_ENUM);
+		}
+	}
 }
 
 void PointSize(GLfloat size)
