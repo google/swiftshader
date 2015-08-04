@@ -207,3 +207,35 @@ entry:
 ; ARM32HWDIV: bne
 ; ARM32HWDIV: udiv
 ; ARM32HWDIV: mls
+
+; The following tests check that shift instructions don't try to use a
+; ConstantRelocatable as an immediate operand.
+
+@G = internal global [4 x i8] zeroinitializer, align 4
+
+define i32 @ShlReloc(i32 %a) {
+entry:
+  %opnd = ptrtoint [4 x i8]* @G to i32
+  %result = shl i32 %a, %opnd
+  ret i32 %result
+}
+; CHECK-LABEL: ShlReloc
+; CHECK: shl {{.*}},cl
+
+define i32 @LshrReloc(i32 %a) {
+entry:
+  %opnd = ptrtoint [4 x i8]* @G to i32
+  %result = lshr i32 %a, %opnd
+  ret i32 %result
+}
+; CHECK-LABEL: LshrReloc
+; CHECK: shr {{.*}},cl
+
+define i32 @AshrReloc(i32 %a) {
+entry:
+  %opnd = ptrtoint [4 x i8]* @G to i32
+  %result = ashr i32 %a, %opnd
+  ret i32 %result
+}
+; CHECK-LABEL: AshrReloc
+; CHECK: sar {{.*}},cl

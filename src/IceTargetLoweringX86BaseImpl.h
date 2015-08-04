@@ -1835,21 +1835,21 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
     break;
   case InstArithmetic::Shl:
     _mov(T, Src0);
-    if (!llvm::isa<Constant>(Src1))
+    if (!llvm::isa<ConstantInteger32>(Src1))
       Src1 = legalizeToReg(Src1, Traits::RegisterSet::Reg_ecx);
     _shl(T, Src1);
     _mov(Dest, T);
     break;
   case InstArithmetic::Lshr:
     _mov(T, Src0);
-    if (!llvm::isa<Constant>(Src1))
+    if (!llvm::isa<ConstantInteger32>(Src1))
       Src1 = legalizeToReg(Src1, Traits::RegisterSet::Reg_ecx);
     _shr(T, Src1);
     _mov(Dest, T);
     break;
   case InstArithmetic::Ashr:
     _mov(T, Src0);
-    if (!llvm::isa<Constant>(Src1))
+    if (!llvm::isa<ConstantInteger32>(Src1))
       Src1 = legalizeToReg(Src1, Traits::RegisterSet::Reg_ecx);
     _sar(T, Src1);
     _mov(Dest, T);
