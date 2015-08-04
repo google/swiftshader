@@ -2134,6 +2134,7 @@ void InstX86StoreP<Machine>::emit(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 2);
+  assert(isVectorType(this->getSrc(1)->getType()));
   Str << "\tmovups\t";
   this->getSrc(0)->emit(Func);
   Str << ", ";
@@ -2175,7 +2176,8 @@ void InstX86StoreQ<Machine>::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 2);
   assert(this->getSrc(1)->getType() == IceType_i64 ||
-         this->getSrc(1)->getType() == IceType_f64);
+         this->getSrc(1)->getType() == IceType_f64 ||
+         isVectorType(this->getSrc(1)->getType()));
   Str << "\tmovq\t";
   this->getSrc(0)->emit(Func);
   Str << ", ";

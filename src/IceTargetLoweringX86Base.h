@@ -158,6 +158,9 @@ protected:
                       Operand *Val);
   void lowerCountZeros(bool Cttz, Type Ty, Variable *Dest, Operand *FirstVal,
                        Operand *SecondVal);
+  /// Replace a function call with inline instructions.
+  void lowerMemset(Operand *Dest, Operand *Val, Operand *Count);
+
   /// Lower an indirect jump adding sandboxing when needed.
   void lowerIndirectJump(Variable *Target);
 
@@ -214,7 +217,8 @@ protected:
 
   Variable *copyToReg(Operand *Src, int32_t RegNum = Variable::NoRegister);
 
-  /// Returns a vector in a register with the given constant entries.
+  /// \name Returns a vector in a register with the given constant entries.
+  /// @{
   Variable *makeVectorOfZeros(Type Ty, int32_t RegNum = Variable::NoRegister);
   Variable *makeVectorOfOnes(Type Ty, int32_t RegNum = Variable::NoRegister);
   Variable *makeVectorOfMinusOnes(Type Ty,
@@ -223,6 +227,7 @@ protected:
                                       int32_t RegNum = Variable::NoRegister);
   Variable *makeVectorOfFabsMask(Type Ty,
                                  int32_t RegNum = Variable::NoRegister);
+  /// @}
 
   /// Return a memory operand corresponding to a stack allocated Variable.
   typename Traits::X86OperandMem *

@@ -3546,17 +3546,7 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
     return;
   }
   case Intrinsics::Memset: {
-    // The value operand needs to be extended to a stack slot size because the
-    // PNaCl ABI requires arguments to be at least 32 bits wide.
-    Operand *ValOp = Instr->getArg(1);
-    assert(ValOp->getType() == IceType_i8);
-    Variable *ValExt = Func->makeVariable(stackSlotType());
-    lowerCast(InstCast::create(Func, InstCast::Zext, ValExt, ValOp));
-    InstCall *Call = makeHelperCall(H_call_memset, nullptr, 3);
-    Call->addArg(Instr->getArg(0));
-    Call->addArg(ValExt);
-    Call->addArg(Instr->getArg(2));
-    lowerCall(Call);
+    lowerMemset(Instr->getArg(0), Instr->getArg(1), Instr->getArg(2));
     return;
   }
   case Intrinsics::NaClReadTP: {
@@ -3992,6 +3982,149 @@ void TargetX86Base<Machine>::lowerCountZeros(bool Cttz, Type Ty, Variable *Dest,
   _cmov(T_Dest2, T_Dest, Traits::Cond::Br_e);
   _mov(DestLo, T_Dest2);
   _mov(DestHi, Ctx->getConstantZero(IceType_i32));
+}
+
+template <class Machine>
+void TargetX86Base<Machine>::lowerMemset(Operand *Dest, Operand *Val,
+                                         Operand *Count) {
+  constexpr uint32_t UNROLL_LIMIT = 16;
+  assert(Val->getType() == IceType_i8);
+
+  // Check if the operands are constants
+  const auto *CountConst = llvm::dyn_cast<const ConstantInteger32>(Count);
+  const auto *ValConst = llvm::dyn_cast<const ConstantInteger32>(Val);
+  const bool IsCountConst = CountConst != nullptr;
+  const bool IsValConst = ValConst != nullptr;
+  const uint32_t CountValue = IsCountConst ? CountConst->getValue() : 0;
+  const uint32_t ValValue = IsValConst ? ValConst->getValue() : 0;
+
+  // Unlikely, but nothing to do if it does happen
+  if (IsCountConst && CountValue == 0)
+    return;
+
+  // TODO(ascull): if the count is constant but val is not it would be possible
+  // to inline by spreading the value across 4 bytes and accessing subregs e.g.
+  // eax, ax and al.
+  if (IsCountConst && IsValConst) {
+    Variable *Base = legalizeToReg(Dest);
+
+    // 3 is the awkward size as it is too small for the vector or 32-bit
+    // operations and will not work with lowerLeftOvers as there is no valid
+    // overlap.
+    if (CountValue == 3) {
+      Constant *Offset = nullptr;
+      auto *Mem =
+          Traits::X86OperandMem::create(Func, IceType_i16, Base, Offset);
+      _store(Ctx->getConstantInt16((ValValue << 8) | ValValue), Mem);
+
+      Offset = Ctx->getConstantInt8(2);
+      Mem = Traits::X86OperandMem::create(Func, IceType_i8, Base, Offset);
+      _store(Ctx->getConstantInt8(ValValue), Mem);
+      return;
+    }
+
+    // Lowers the assignment to the remaining bytes. Assumes the original size
+    // was large enough to allow for overlaps.
+    auto lowerLeftOvers = [this, Base, CountValue](
+        uint32_t SpreadValue, uint32_t Size, Variable *VecReg) {
+      auto lowerStoreSpreadValue =
+          [this, Base, CountValue, SpreadValue](Type Ty) {
+            Constant *Offset =
+                Ctx->getConstantInt32(CountValue - typeWidthInBytes(Ty));
+            auto *Mem = Traits::X86OperandMem::create(Func, Ty, Base, Offset);
+            _store(Ctx->getConstantInt(Ty, SpreadValue), Mem);
+          };
+
+      if (Size > 8) {
+        assert(VecReg != nullptr);
+        Constant *Offset = Ctx->getConstantInt32(CountValue - 16);
+        auto *Mem = Traits::X86OperandMem::create(Func, VecReg->getType(), Base,
+                                                  Offset);
+        _storep(VecReg, Mem);
+      } else if (Size > 4) {
+        assert(VecReg != nullptr);
+        Constant *Offset = Ctx->getConstantInt32(CountValue - 8);
+        auto *Mem =
+            Traits::X86OperandMem::create(Func, IceType_i64, Base, Offset);
+        _storeq(VecReg, Mem);
+      } else if (Size > 2) {
+        lowerStoreSpreadValue(IceType_i32);
+      } else if (Size > 1) {
+        lowerStoreSpreadValue(IceType_i16);
+      } else if (Size == 1) {
+        lowerStoreSpreadValue(IceType_i8);
+      }
+    };
+
+    // When the value is zero it can be loaded into a register cheaply using
+    // the xor trick.
+    constexpr uint32_t BytesPerStorep = 16;
+    if (ValValue == 0 && CountValue >= 8 &&
+        CountValue <= BytesPerStorep * UNROLL_LIMIT) {
+      Variable *Zero = makeVectorOfZeros(IceType_v16i8);
+
+      // Too small to use large vector operations so use small ones instead
+      if (CountValue < 16) {
+        Constant *Offset = nullptr;
+        auto *Mem =
+            Traits::X86OperandMem::create(Func, IceType_i64, Base, Offset);
+        _storeq(Zero, Mem);
+        lowerLeftOvers(0, CountValue - 8, Zero);
+        return;
+      }
+
+      assert(CountValue >= 16);
+      // Use large vector operations
+      for (uint32_t N = CountValue & 0xFFFFFFF0; N != 0;) {
+        N -= 16;
+        Constant *Offset = Ctx->getConstantInt32(N);
+        auto *Mem =
+            Traits::X86OperandMem::create(Func, Zero->getType(), Base, Offset);
+        _storep(Zero, Mem);
+      }
+      uint32_t LeftOver = CountValue & 0xF;
+      lowerLeftOvers(0, LeftOver, Zero);
+      return;
+    }
+
+    // TODO(ascull): load val into reg and select subregs e.g. eax, ax, al?
+    constexpr uint32_t BytesPerStore = 4;
+    if (CountValue <= BytesPerStore * UNROLL_LIMIT) {
+      // TODO(ascull); 64-bit can do better with 64-bit mov
+      uint32_t SpreadValue =
+          (ValValue << 24) | (ValValue << 16) | (ValValue << 8) | ValValue;
+      if (CountValue >= 4) {
+        Constant *ValueConst = Ctx->getConstantInt32(SpreadValue);
+        for (uint32_t N = CountValue & 0xFFFFFFFC; N != 0;) {
+          N -= 4;
+          Constant *Offset = Ctx->getConstantInt32(N);
+          auto *Mem =
+              Traits::X86OperandMem::create(Func, IceType_i32, Base, Offset);
+          _store(ValueConst, Mem);
+        }
+      }
+      uint32_t LeftOver = CountValue & 0x3;
+      lowerLeftOvers(SpreadValue, LeftOver, nullptr);
+      return;
+    }
+  }
+
+  // Fall back on calling the memset function. The value operand needs to be
+  // extended to a stack slot size because the PNaCl ABI requires arguments to
+  // be at least 32 bits wide.
+  Operand *ValExt;
+  if (IsValConst) {
+    ValExt = Ctx->getConstantInt(stackSlotType(), ValValue);
+  } else {
+    Variable *ValExtVar = Func->makeVariable(stackSlotType());
+    lowerCast(InstCast::create(Func, InstCast::Zext, ValExtVar, Val));
+    ValExt = ValExtVar;
+  }
+  InstCall *Call = makeHelperCall(H_call_memset, nullptr, 3);
+  Call->addArg(Dest);
+  Call->addArg(ValExt);
+  Call->addArg(Count);
+  lowerCall(Call);
 }
 
 template <class Machine>

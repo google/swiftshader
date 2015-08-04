@@ -29,11 +29,7 @@
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32 %s
 
-
 declare i8* @llvm.nacl.read.tp()
-declare void @llvm.memcpy.p0i8.p0i8.i32(i8*, i8*, i32, i32, i1)
-declare void @llvm.memmove.p0i8.p0i8.i32(i8*, i8*, i32, i32, i1)
-declare void @llvm.memset.p0i8.i32(i8*, i8, i32, i32, i1)
 declare void @llvm.nacl.longjmp(i8*, i32)
 declare i32 @llvm.nacl.setjmp(i8*)
 declare float @llvm.sqrt.f32(float)
@@ -106,106 +102,6 @@ entry:
 ; CHECKO2REM-NOT: mov e{{.*}}, DWORD PTR gs:0x0
 ; CHECKO2UNSANDBOXEDREM-LABEL: test_nacl_read_tp_dead
 ; CHECKO2UNSANDBOXEDREM-NOT: call {{.*}} R_{{.*}} __nacl_read_tp
-
-define void @test_memcpy(i32 %iptr_dst, i32 %iptr_src, i32 %len) {
-entry:
-  %dst = inttoptr i32 %iptr_dst to i8*
-  %src = inttoptr i32 %iptr_src to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %dst, i8* %src,
-                                       i32 %len, i32 1, i1 false)
-  ret void
-}
-; CHECK-LABEL: test_memcpy
-; CHECK: call {{.*}} R_{{.*}} memcpy
-; CHECKO2REM-LABEL: test_memcpy
-; CHECKO2UNSANDBOXEDREM-LABEL: test_memcpy
-; ARM32-LABEL: test_memcpy
-; ARM32: bl {{.*}} memcpy
-
-; TODO(jvoung) -- if we want to be clever, we can do this and the memmove,
-; memset without a function call.
-define void @test_memcpy_const_len_align(i32 %iptr_dst, i32 %iptr_src) {
-entry:
-  %dst = inttoptr i32 %iptr_dst to i8*
-  %src = inttoptr i32 %iptr_src to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %dst, i8* %src,
-                                       i32 32, i32 1, i1 false)
-  ret void
-}
-; CHECK-LABEL: test_memcpy_const_len_align
-; CHECK: call {{.*}} R_{{.*}} memcpy
-; ARM32-LABEL: test_memcpy_const_len_align
-; ARM32: bl {{.*}} memcpy
-
-define void @test_memmove(i32 %iptr_dst, i32 %iptr_src, i32 %len) {
-entry:
-  %dst = inttoptr i32 %iptr_dst to i8*
-  %src = inttoptr i32 %iptr_src to i8*
-  call void @llvm.memmove.p0i8.p0i8.i32(i8* %dst, i8* %src,
-                                        i32 %len, i32 1, i1 false)
-  ret void
-}
-; CHECK-LABEL: test_memmove
-; CHECK: call {{.*}} R_{{.*}} memmove
-; ARM32-LABEL: test_memmove
-; ARM32: bl {{.*}} memmove
-
-define void @test_memmove_const_len_align(i32 %iptr_dst, i32 %iptr_src) {
-entry:
-  %dst = inttoptr i32 %iptr_dst to i8*
-  %src = inttoptr i32 %iptr_src to i8*
-  call void @llvm.memmove.p0i8.p0i8.i32(i8* %dst, i8* %src,
-                                        i32 32, i32 1, i1 false)
-  ret void
-}
-; CHECK-LABEL: test_memmove_const_len_align
-; CHECK: call {{.*}} R_{{.*}} memmove
-; ARM32-LABEL: test_memmove_const_len_align
-; ARM32: bl {{.*}} memmove
-
-define void @test_memset(i32 %iptr_dst, i32 %wide_val, i32 %len) {
-entry:
-  %val = trunc i32 %wide_val to i8
-  %dst = inttoptr i32 %iptr_dst to i8*
-  call void @llvm.memset.p0i8.i32(i8* %dst, i8 %val,
-                                  i32 %len, i32 1, i1 false)
-  ret void
-}
-; CHECK-LABEL: test_memset
-; CHECK: movzx
-; CHECK: call {{.*}} R_{{.*}} memset
-; ARM32-LABEL: test_memset
-; ARM32: uxtb
-; ARM32: bl {{.*}} memset
-
-define void @test_memset_const_len_align(i32 %iptr_dst, i32 %wide_val) {
-entry:
-  %val = trunc i32 %wide_val to i8
-  %dst = inttoptr i32 %iptr_dst to i8*
-  call void @llvm.memset.p0i8.i32(i8* %dst, i8 %val,
-                                  i32 32, i32 1, i1 false)
-  ret void
-}
-; CHECK-LABEL: test_memset_const_len_align
-; CHECK: movzx
-; CHECK: call {{.*}} R_{{.*}} memset
-; ARM32-LABEL: test_memset_const_len_align
-; ARM32: uxtb
-; ARM32: bl {{.*}} memset
-
-define void @test_memset_const_val(i32 %iptr_dst, i32 %len) {
-entry:
-  %dst = inttoptr i32 %iptr_dst to i8*
-  call void @llvm.memset.p0i8.i32(i8* %dst, i8 0, i32 %len, i32 1, i1 false)
-  ret void
-}
-; CHECK-LABEL: test_memset_const_val
-; Make sure the argument is legalized (can't movzx reg, 0).
-; CHECK: movzx {{.*}},{{[^0]}}
-; CHECK: call {{.*}} R_{{.*}} memset
-; ARM32-LABEL: test_memset_const_val
-; ARM32: uxtb
-; ARM32: bl {{.*}} memset
 
 define i32 @test_setjmplongjmp(i32 %iptr_env) {
 entry:
