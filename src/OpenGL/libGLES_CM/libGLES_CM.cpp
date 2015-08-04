@@ -613,7 +613,7 @@ void Color4f(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 
 void Color4ub(GLubyte red, GLubyte green, GLubyte blue, GLubyte alpha)
 {
-	UNIMPLEMENTED();
+	Color4f((float)red / 0xFF, (float)green / 0xFF, (float)blue / 0xFF, (float)alpha / 0xFF);
 }
 
 void Color4x(GLfixed red, GLfixed green, GLfixed blue, GLfixed alpha)
@@ -2934,7 +2934,23 @@ void MultMatrixx(const GLfixed *m)
 
 void MultiTexCoord4f(GLenum target, GLfloat s, GLfloat t, GLfloat r, GLfloat q)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLenum target = 0x%X, GLfloat s = %f, GLfloat t = %f, GLfloat r = %f, GLfloat q = %f)", target, s, t, r, q);
+
+	switch(target)
+	{
+	case GL_TEXTURE0:
+	case GL_TEXTURE1:
+		break;
+	default:
+		return error(GL_INVALID_ENUM);
+	}
+
+	es1::Context *context = es1::getContext();
+
+	if(context)
+	{
+		context->setVertexAttrib(sw::TexCoord0 + (target - GL_TEXTURE0), s, t, r, q);
+	}
 }
 
 void MultiTexCoord4x(GLenum target, GLfixed s, GLfixed t, GLfixed r, GLfixed q)
@@ -2944,7 +2960,14 @@ void MultiTexCoord4x(GLenum target, GLfixed s, GLfixed t, GLfixed r, GLfixed q)
 
 void Normal3f(GLfloat nx, GLfloat ny, GLfloat nz)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLfloat nx, GLfloat ny, GLfloat nz)", nx, ny, nz);
+
+	es1::Context *context = es1::getContext();
+
+	if(context)
+	{
+		context->setVertexAttrib(sw::Normal, nx, ny, nz, 0);
+	}
 }
 
 void Normal3x(GLfixed nx, GLfixed ny, GLfixed nz)
@@ -3121,7 +3144,18 @@ void PointSize(GLfloat size)
 
 void PointSizePointerOES(GLenum type, GLsizei stride, const GLvoid *pointer)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLenum type = 0x%X, GLsizei stride = %d, const GLvoid *pointer = %p)", type, stride, pointer);
+
+	switch(type)
+	{
+	case GL_FIXED:
+	case GL_FLOAT:
+		break;
+	default:
+		return error(GL_INVALID_ENUM);
+	}
+
+	VertexAttribPointer(sw::PointSize, 1, type, true, stride, pointer);
 }
 
 void PointSizex(GLfixed size)
