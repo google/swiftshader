@@ -45,12 +45,13 @@ namespace sw
 	extern bool symmetricNormalizedDepth;   // [-1, 1] instead of [0, 1]
 	extern bool booleanFaceRegister;
 	extern bool fullPixelPositionRegister;
+	extern bool leadingVertexFirst;         // Flat shading uses first vertex, else last
+	extern bool secondaryColor;             // Specular lighting is applied after texturing
 
 	extern bool forceWindowed;
 	extern bool complementaryDepthBuffer;
 	extern bool postBlendSRGB;
 	extern bool exactColorRounding;
-	extern bool leadingVertexFirst;
 	extern TransparencyAntialiasing transparencyAntialiasing;
 	extern bool forceClearRegisters;
 
@@ -107,6 +108,7 @@ namespace sw
 		sw::booleanFaceRegister = conventions.booleanFaceRegister;
 		sw::fullPixelPositionRegister = conventions.fullPixelPositionRegister;
 		sw::leadingVertexFirst = conventions.leadingVertexFirst;
+		sw::secondaryColor = conventions.secondaryColor;
 		sw::exactColorRounding = exactColorRounding;
 
 		setRenderTarget(0, 0);

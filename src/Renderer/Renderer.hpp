@@ -61,15 +61,17 @@ namespace sw
 		bool booleanFaceRegister;
 		bool fullPixelPositionRegister;
 		bool leadingVertexFirst;
+		bool secondaryColor;
 	};
 
 	static const Conventions OpenGL =
 	{
-		true,   // halfIntegerCoordinates
-		true,   // symmetricNormalizedDepth
-		true,   // booleanFaceRegister
-		true,   // fullPixelPositionRegister
-		false   // leadingVertexFirst
+		true,    // halfIntegerCoordinates
+		true,    // symmetricNormalizedDepth
+		true,    // booleanFaceRegister
+		true,    // fullPixelPositionRegister
+		false,   // leadingVertexFirst
+		false    // secondaryColor
 	};
 
 	static const Conventions Direct3D =
@@ -78,7 +80,8 @@ namespace sw
 		false,   // symmetricNormalizedDepth
 		false,   // booleanFaceRegister
 		false,   // fullPixelPositionRegister
-		true     // leadingVertexFirst
+		true,    // leadingVertexFirst
+		true,    // secondardyColor
 	};
 
 	struct Query

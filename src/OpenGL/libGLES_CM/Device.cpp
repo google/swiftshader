@@ -47,7 +47,8 @@ namespace es1
 		setAlphaCompare(ALPHA_ALWAYS);
 		setAlphaBlendEnable(false);
 		setFogEnable(false);
-		setSpecularEnable(false);
+		setSpecularEnable(true);
+		setLocalViewer(false);
 		setFogColor(0);
 		setPixelFogMode(FOG_NONE);
 		setFogStart(0.0f);

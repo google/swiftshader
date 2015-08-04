@@ -24,6 +24,8 @@
 
 namespace sw
 {
+	extern bool secondaryColor;
+
 	VertexPipeline::VertexPipeline(const VertexProcessor::State &state) : VertexRoutine(state, 0)
 	{
 	}
@@ -379,9 +381,18 @@ namespace sw
 					spec.y = Max(spec.y, Float4(0.0f));
 					spec.z = Max(spec.z, Float4(0.0f));
 
-					r.o[D1].x = r.o[D1].x + spec.x;
-					r.o[D1].y = r.o[D1].y + spec.y;
-					r.o[D1].z = r.o[D1].z + spec.z;
+					if(secondaryColor)
+					{
+						r.o[D1].x = r.o[D1].x + spec.x;
+						r.o[D1].y = r.o[D1].y + spec.y;
+						r.o[D1].z = r.o[D1].z + spec.z;
+					}
+					else
+					{
+						r.o[D0].x = r.o[D0].x + spec.x;
+						r.o[D0].y = r.o[D0].y + spec.y;
+						r.o[D0].z = r.o[D0].z + spec.z;
+					}
 				}
 			}
 
