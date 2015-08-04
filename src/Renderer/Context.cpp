@@ -304,7 +304,7 @@ namespace sw
 		sampleMask = 0xFFFFFFFF;
 
 		colorLogicOpEnabled = false;
-		logicalOperation = LogicalOperation::LOGICALOP_COPY;
+		logicalOperation = LOGICALOP_COPY;
 	}
 
 	const float &Context::exp2Bias()
@@ -750,7 +750,7 @@ namespace sw
 
 	LogicalOperation Context::colorLogicOp()
 	{
-		return colorLogicOpEnabled ? logicalOperation : LogicalOperation::LOGICALOP_COPY;
+		return colorLogicOpEnabled ? logicalOperation : LOGICALOP_COPY;
 	}
 
 	BlendFactor Context::sourceBlendFactor()

@@ -87,8 +87,6 @@ namespace es1
 		setDestBlendFactorAlpha(BLEND_ZERO);
 		setBlendOperationAlpha(BLENDOP_ADD);
 		setPointSpriteEnable(true);
-		setColorLogicOpEnabled(false);
-		setLogicalOperation(LOGICALOP_COPY);
 
 		for(int i = 0; i < 16; i++)
 		{

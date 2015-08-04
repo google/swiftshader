@@ -319,6 +319,7 @@ void Context::markAllStateDirty()
     mSampleStateDirty = true;
     mDitherStateDirty = true;
     mFrontFaceDirty = true;
+	mColorLogicOperatorDirty = true;
 }
 
 void Context::setClearColor(float red, float green, float blue, float alpha)
@@ -3630,7 +3631,11 @@ bool Context::isColorLogicOpEnabled()
 
 void Context::setLogicalOperation(GLenum logicalOperation)
 {
-	mState.logicalOperation = logicalOperation;
+	if(mState.logicalOperation != logicalOperation)
+	{
+		mState.logicalOperation = logicalOperation;
+		mColorLogicOperatorDirty = true;
+	}
 }
 
 void Context::setColorMaterialEnabled(bool enable)

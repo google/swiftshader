@@ -86,6 +86,10 @@ const float ALIASED_LINE_WIDTH_RANGE_MIN = 1.0f;
 const float ALIASED_LINE_WIDTH_RANGE_MAX = 1.0f;
 const float ALIASED_POINT_SIZE_RANGE_MIN = 0.125f;
 const float ALIASED_POINT_SIZE_RANGE_MAX = 8192.0f;
+const float SMOOTH_LINE_WIDTH_RANGE_MIN = 1.0f;
+const float SMOOTH_LINE_WIDTH_RANGE_MAX = 1.0f;
+const float SMOOTH_POINT_SIZE_RANGE_MIN = 0.125f;
+const float SMOOTH_POINT_SIZE_RANGE_MAX = 8192.0f;
 const float MAX_TEXTURE_MAX_ANISOTROPY = 16.0f;
 
 struct Color
@@ -127,12 +131,14 @@ struct Light
 	Point position;
 	Vector direction;
 	Attenuation attenuation;
+	float spotExponent;
+	float spotCutoffAngle;
 };
 
 // Helper structure describing a single vertex attribute
 class VertexAttribute
 {
-  public:
+public:
     VertexAttribute() : mType(GL_FLOAT), mSize(0), mNormalized(false), mStride(0), mPointer(NULL), mArrayEnabled(false)
     {
         mCurrentValue[0] = 0.0f;
@@ -237,13 +243,12 @@ struct State
     bool scissorTestEnabled;
     bool ditherEnabled;
 	GLenum shadeModel;
-	bool colorLogicOpEnabled;
-	GLenum logicalOperation;
 
     GLfloat lineWidth;
 
     GLenum generateMipmapHint;
 	GLenum perspectiveCorrectionHint;
+	GLenum fogHint;
 
     GLint viewportX;
     GLint viewportY;
@@ -332,7 +337,9 @@ public:
     void setDitherEnabled(bool enabled);
     bool isDitherEnabled() const;
 	void setLightingEnabled(bool enabled);
+	bool isLightingEnabled() const;
 	void setLightEnabled(int index, bool enable);
+	bool isLightEnabled(int index) const;
 	void setLightAmbient(int index, float r, float g, float b, float a);
 	void setLightDiffuse(int index, float r, float g, float b, float a);
 	void setLightSpecular(int index, float r, float g, float b, float a);
@@ -341,6 +348,8 @@ public:
 	void setLightAttenuationConstant(int index, float constant);
 	void setLightAttenuationLinear(int index, float linear);
 	void setLightAttenuationQuadratic(int index, float quadratic);
+	void setSpotLightExponent(int index, float exponent);
+	void setSpotLightCutoff(int index, float cutoff);
 	
 	void setGlobalAmbient(float red, float green, float blue, float alpha);
 	void setMaterialAmbient(float red, float green, float blue, float alpha);
@@ -348,8 +357,10 @@ public:
 	void setMaterialSpecular(float red, float green, float blue, float alpha);
 	void setMaterialEmission(float red, float green, float blue, float alpha);
 	void setMaterialShininess(float shininess);
+	void setLightModelTwoSide(bool enable);
 
 	void setFogEnabled(bool enabled);
+	bool isFogEnabled() const;
 	void setFogMode(GLenum mode);
 	void setFogDensity(float fogDensity);
 	void setFogStart(float fogStart);
@@ -357,7 +368,9 @@ public:
 	void setFogColor(float r, float g, float b, float a);
 
     void setTexture2Denabled(bool enabled);
+	bool isTexture2Denabled() const;
 	void setTextureExternalEnabled(bool enabled);
+	bool isTextureExternalEnabled() const;
     void clientActiveTexture(GLenum texture);
 	GLenum getClientActiveTexture() const;
 	unsigned int getActiveTexture() const;
@@ -383,6 +396,7 @@ public:
 
     void setGenerateMipmapHint(GLenum hint);
 	void setPerspectiveCorrectionHint(GLenum hint);
+	void setFogHint(GLenum hint);
 
     void setViewportParams(GLint x, GLint y, GLsizei width, GLsizei height);
 
@@ -414,7 +428,7 @@ public:
     void setPackAlignment(GLint alignment);
     GLint getPackAlignment() const;
 
-    // These create  and destroy methods are merely pass-throughs to
+    // These create and destroy methods are merely pass-throughs to
     // ResourceManager, which owns these object types
     GLuint createBuffer();
     GLuint createTexture();
@@ -461,6 +475,7 @@ public:
 	bool isQueryParameterInt(GLenum pname);
 	bool isQueryParameterFloat(GLenum pname);
 	bool isQueryParameterBool(GLenum pname);
+	bool isQueryParameterPointer(GLenum pname);
 
     void readPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei *bufSize, void* pixels);
     void clear(GLbitfield mask);
@@ -504,6 +519,53 @@ public:
 	void setClipPlaneEnabled(int index, bool enable);
 	bool isClipPlaneEnabled(int index) const;
 
+	void setColorLogicOpEnabled(bool enable);
+	bool isColorLogicOpEnabled() const;
+	void setLogicalOperation(GLenum logicOp);
+
+	void setPointSmoothEnabled(bool enable);
+	bool isPointSmoothEnabled() const;
+
+	void setLineSmoothEnabled(bool enable);
+	bool isLineSmoothEnabled() const;
+
+	void setColorMaterialEnabled(bool enable);
+	bool isColorMaterialEnabled() const;
+
+	void setNormalizeEnabled(bool enable);
+	bool isNormalizeEnabled() const;
+
+	void setRescaleNormalEnabled(bool enable);
+	bool isRescaleNormalEnabled() const;
+
+	void setVertexArrayEnabled(bool enable);
+	bool isVertexArrayEnabled() const;
+
+	void setNormalArrayEnabled(bool enable);
+	bool isNormalArrayEnabled() const;
+
+	void setColorArrayEnabled(bool enable);
+	bool isColorArrayEnabled() const;
+
+	void setPointSizeArrayEnabled(bool enable);
+	bool isPointSizeArrayEnabled() const;
+
+	void setTextureCoordArrayEnabled(bool enable);
+	bool isTextureCoordArrayEnabled() const;
+
+	void setMultisampleEnabled(bool enable);
+	bool isMultisampleEnabled() const;
+
+	void setSampleAlphaToOneEnabled(bool enable);
+	bool isSampleAlphaToOneEnabled() const;
+
+	void setPointSpriteEnabled(bool enable);
+	bool isPointSpriteEnabled() const;
+	void setPointSizeMin(float min);
+	void setPointSizeMax(float max);
+	void setPointDistanceAttenuation(float a, float b, float c);
+	void setPointFadeThresholdSize(float threshold);
+
 private:
 	virtual ~Context();
 
@@ -542,6 +604,7 @@ private:
 	Color materialSpecular;
 	Color materialEmission;
 	GLfloat materialShininess;
+	bool lightModelTwoSide;
 
     // Recorded errors
     bool mInvalidEnum;
@@ -581,6 +644,30 @@ private:
 	bool alphaTestEnabled;
 	GLenum alphaTestFunc;
 	float alphaTestRef;
+
+	bool fogEnabled;
+	GLenum fogMode;
+	float fogDensity;
+	float fogStart;
+	float fogEnd;
+	Color fogColor;
+
+	bool lineSmoothEnabled;
+	bool colorMaterialEnabled;
+	bool normalizeEnabled;
+	bool rescaleNormalEnabled;
+	bool multisampleEnabled;
+	bool sampleAlphaToOneEnabled;
+
+	bool pointSpriteEnabled;
+	bool pointSmoothEnabled;
+	float pointSizeMin;
+	float pointSizeMax;
+	Attenuation pointDistanceAttenuation;
+	float pointFadeThresholdSize;
+
+	bool colorLogicOpEnabled;
+	GLenum logicalOperation;
 
 	Device *device;
     ResourceManager *mResourceManager;
