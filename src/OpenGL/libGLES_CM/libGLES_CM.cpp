@@ -1650,6 +1650,11 @@ void Frustumf(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat 
 {
 	TRACE("(GLfloat left = %f, GLfloat right = %f, GLfloat bottom = %f, GLfloat top = %f, GLfloat zNear = %f, GLfloat zFar = %f)", left, right, bottom, top, zNear, zFar);
 
+	if(zNear <= 0.0f || zFar <= 0.0f || left == right || bottom == top || zNear == zFar)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
 	es1::Context *context = es1::getContext();
 
 	if(context)
@@ -2777,6 +2782,11 @@ void NormalPointer(GLenum type, GLsizei stride, const GLvoid *pointer)
 void Orthof(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat zNear, GLfloat zFar)
 {
 	TRACE("(GLfloat left = %f, GLfloat right = %f, GLfloat bottom = %f, GLfloat top = %f, GLfloat zNear = %f, GLfloat zFar = %f)", left, right, bottom, top, zNear, zFar);
+
+	if(left == right || bottom == top || zNear == zFar)
+	{
+		return error(GL_INVALID_VALUE);
+	}
 
 	es1::Context *context = es1::getContext();
 
