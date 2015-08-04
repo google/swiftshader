@@ -680,6 +680,11 @@ void ColorPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer
 {
 	TRACE("(GLint size = %d, GLenum type = 0x%X, GLsizei stride = %d, const GLvoid *pointer = %p)", size, type, stride, pointer);
 
+	if(size != 4)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
 	VertexAttribPointer(sw::Color0, size, type, true, stride, pointer);
 }
 
@@ -2857,6 +2862,11 @@ void PointSize(GLfloat size)
 {
 	TRACE("(GLfloat size = %f)", size);
 
+	if(size <= 0)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
 	es1::Context *context = es1::getContext();
 
 	if(context)
@@ -3184,6 +3194,11 @@ void StencilOp(GLenum fail, GLenum zfail, GLenum zpass)
 void TexCoordPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
 {
 	TRACE("(GLint size = %d, GLenum type = 0x%X, GLsizei stride = %d, const GLvoid *pointer = %p)", size, type, stride, pointer);
+
+	if(size < 2 || size > 4)
+	{
+		return error(GL_INVALID_VALUE);
+	}
 
 	es1::Context *context = es1::getContext();
 
@@ -4107,6 +4122,11 @@ void Translatex(GLfixed x, GLfixed y, GLfixed z)
 void VertexPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
 {
 	TRACE("(GLint size = %d, GLenum type = 0x%X, GLsizei stride = %d, const GLvoid *pointer = %p)", size, type, stride, pointer);
+
+	if(size < 2 || size > 4)
+	{
+		return error(GL_INVALID_VALUE);
+	}
 
 	VertexAttribPointer(sw::Position, size, type, false, stride, pointer);
 }
