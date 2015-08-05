@@ -243,8 +243,8 @@ void TargetDataX8632::lowerJumpTables() {
   switch (Ctx->getFlags().getOutFileType()) {
   case FT_Elf: {
     ELFObjectWriter *Writer = Ctx->getObjectWriter();
-    for (const JumpTableData &JumpTable : *Ctx->getJumpTables())
-      Writer->writeJumpTable(JumpTable, llvm::ELF::R_386_32);
+    for (const JumpTableData &JT : Ctx->getJumpTables())
+      Writer->writeJumpTable(JT, llvm::ELF::R_386_32);
   } break;
   case FT_Asm:
     // Already emitted from Cfg
@@ -253,7 +253,7 @@ void TargetDataX8632::lowerJumpTables() {
     if (!BuildDefs::dump())
       return;
     Ostream &Str = Ctx->getStrEmit();
-    for (const JumpTableData &JT : *Ctx->getJumpTables()) {
+    for (const JumpTableData &JT : Ctx->getJumpTables()) {
       Str << "\t.section\t.rodata." << JT.getFunctionName()
           << "$jumptable,\"a\",@progbits\n";
       Str << "\t.align\t" << typeWidthInBytes(getPointerType()) << "\n";

@@ -79,7 +79,6 @@ private:
 /// ELF section once the offsets from the start of the function are known.
 class JumpTableData {
   JumpTableData() = delete;
-  JumpTableData(const JumpTableData &) = delete;
   JumpTableData &operator=(const JumpTableData &) = delete;
 
 public:
@@ -87,7 +86,9 @@ public:
       : FuncName(FuncName), Id(Id) {
     TargetOffsets.reserve(NumTargets);
   }
+  JumpTableData(const JumpTableData &) = default;
   JumpTableData(JumpTableData &&) = default;
+  JumpTableData &operator=(JumpTableData &&) = default;
 
   void pushTarget(intptr_t Offset) { TargetOffsets.emplace_back(Offset); }
 
@@ -98,8 +99,8 @@ public:
   }
 
 private:
-  const IceString FuncName;
-  const SizeT Id;
+  IceString FuncName;
+  SizeT Id;
   std::vector<intptr_t> TargetOffsets;
 };
 

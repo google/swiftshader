@@ -878,11 +878,32 @@ ConstantList GlobalContext::getConstantExternSyms() {
   return getConstPool()->ExternRelocatables.getConstantPool();
 }
 
+JumpTableDataList GlobalContext::getJumpTables() {
+  JumpTableDataList JumpTables(*getJumpTableList());
+  if (getFlags().shouldReorderPooledConstants()) {
+  // If reorder-pooled-constants option is set to true, we need to shuffle the
+  // constant pool before emitting it.
+    RandomShuffle(JumpTables.begin(), JumpTables.end(), [this](uint64_t N) {
+      return (uint32_t)getRNG().next(N);
+    });
+  } else {
+    // Make order deterministic by sorting into functions and then ID of the
+    // jump table within that function.
+    std::sort(JumpTables.begin(), JumpTables.end(), [](const JumpTableData &A,
+                                                       const JumpTableData &B) {
+      if (A.getFunctionName() != B.getFunctionName())
+        return A.getFunctionName() < B.getFunctionName();
+      return A.getId() < B.getId();
+    });
+  }
+  return JumpTables;
+}
+
 JumpTableData &GlobalContext::addJumpTable(IceString FuncName, SizeT Id,
                                            SizeT NumTargets) {
-  auto JumpTables = getJumpTables();
-  JumpTables->emplace_back(FuncName, Id, NumTargets);
-  return JumpTables->back();
+  auto JumpTableList = getJumpTableList();
+  JumpTableList->emplace_back(FuncName, Id, NumTargets);
+  return JumpTableList->back();
 }
 
 TimerStackIdT GlobalContext::newTimerStackID(const IceString &Name) {

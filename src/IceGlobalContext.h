@@ -212,9 +212,7 @@ public:
   ConstantList getConstantExternSyms();
 
   /// Return a locked pointer to the registered jump tables.
-  LockedPtr<JumpTableDataList> getJumpTables() {
-    return LockedPtr<JumpTableDataList>(&JumpTables, &JumpTablesLock);
-  }
+  JumpTableDataList getJumpTables();
   /// Create a new jump table entry and return a reference to it.
   JumpTableData &addJumpTable(IceString FuncName, SizeT Id, SizeT NumTargets);
 
@@ -467,9 +465,9 @@ private:
   std::unique_ptr<ConstantPool> ConstPool;
 
   ICE_CACHELINE_BOUNDARY;
-  // Managed by getJumpTables()
+  // Managed by getJumpTableList()
   GlobalLockType JumpTablesLock;
-  JumpTableDataList JumpTables;
+  JumpTableDataList JumpTableList;
 
   ICE_CACHELINE_BOUNDARY;
   // Managed by getErrorStatus()
@@ -521,6 +519,9 @@ private:
   }
   LockedPtr<ConstantPool> getConstPool() {
     return LockedPtr<ConstantPool>(ConstPool.get(), &ConstPoolLock);
+  }
+  LockedPtr<JumpTableDataList> getJumpTableList() {
+    return LockedPtr<JumpTableDataList>(&JumpTableList, &JumpTablesLock);
   }
   LockedPtr<CodeStats> getStatsCumulative() {
     return LockedPtr<CodeStats>(&StatsCumulative, &StatsLock);
