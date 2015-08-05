@@ -82,9 +82,9 @@ namespace es2
 		bool isReferencedByVertexShader() const;
 		bool isReferencedByFragmentShader() const;
 
-		const std::string name;
-		const unsigned int elementIndex;
-		const unsigned int dataSize;
+		std::string name;
+		unsigned int elementIndex;
+		unsigned int dataSize;
 
 		std::vector<unsigned int> memberUniformIndexes;
 
