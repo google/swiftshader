@@ -664,8 +664,7 @@ void Cfg::emitJumpTables() {
           Ctx->addJumpTable(MangledName, JumpTable->getId(), NumTargets);
       for (SizeT I = 0; I < NumTargets; ++I) {
         SizeT Index = JumpTable->getTarget(I)->getIndex();
-        JT.pushTarget(
-            getAssembler()->getOrCreateCfgNodeLabel(Index)->getPosition());
+        JT.pushTarget(getAssembler()->getCfgNodeLabel(Index)->getPosition());
       }
     }
   } break;

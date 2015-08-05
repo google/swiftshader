@@ -61,7 +61,7 @@ public:
     llvm_unreachable("Not yet implemented.");
   }
 
-  Label *getOrCreateCfgNodeLabel(SizeT NodeNumber) override {
+  Ice::Label *getCfgNodeLabel(SizeT NodeNumber) override {
     (void)NodeNumber;
     llvm_unreachable("Not yet implemented.");
   }

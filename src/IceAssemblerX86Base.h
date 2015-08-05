@@ -150,8 +150,9 @@ public:
       nop(Padding);
   }
 
-  Label *getOrCreateCfgNodeLabel(SizeT NodeNumber) override;
+  Ice::Label *getCfgNodeLabel(SizeT NodeNumber) override;
   void bindCfgNodeLabel(SizeT NodeNumber) override;
+  Label *getOrCreateCfgNodeLabel(SizeT Number);
   Label *getOrCreateLocalLabel(SizeT Number);
   void bindLocalLabel(SizeT Number);
 

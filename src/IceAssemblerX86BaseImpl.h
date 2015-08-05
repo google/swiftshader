@@ -70,6 +70,12 @@ Label *AssemblerX86Base<Machine>::getOrCreateLabel(SizeT Number,
 }
 
 template <class Machine>
+Ice::Label *AssemblerX86Base<Machine>::getCfgNodeLabel(SizeT NodeNumber) {
+  assert(NodeNumber < CfgNodeLabels.size());
+  return CfgNodeLabels[NodeNumber];
+}
+
+template <class Machine>
 Label *AssemblerX86Base<Machine>::getOrCreateCfgNodeLabel(SizeT NodeNumber) {
   return getOrCreateLabel(NodeNumber, CfgNodeLabels);
 }

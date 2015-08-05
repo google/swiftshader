@@ -249,7 +249,7 @@ public:
   virtual llvm::ArrayRef<uint8_t> getNonExecBundlePadding() const = 0;
 
   /// Get the label for a CfgNode.
-  virtual Label *getOrCreateCfgNodeLabel(SizeT NodeNumber) = 0;
+  virtual Label *getCfgNodeLabel(SizeT NodeNumber) = 0;
   /// Mark the current text location as the start of a CFG node
   /// (represented by NodeNumber).
   virtual void bindCfgNodeLabel(SizeT NodeNumber) = 0;
