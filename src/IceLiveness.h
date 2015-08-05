@@ -96,6 +96,7 @@ public:
     resize(Index);
     return &Nodes[Index].LiveEnd;
   }
+  bool getRangeMask(SizeT Index) const { return RangeMask[Index]; }
 
 private:
   void initInternal(NodeList::const_iterator FirstNode,
@@ -116,6 +117,9 @@ private:
   /// LiveToVarMap is analogous to LivenessNode::LiveToVarMap, but for
   /// non-local variables.
   std::vector<Variable *> LiveToVarMap;
+  /// RangeMask[Variable::Number] indicates whether we want to track that
+  /// Variable's live range.
+  llvm::BitVector RangeMask;
 };
 
 } // end of namespace Ice

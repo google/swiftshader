@@ -183,7 +183,7 @@ bool Inst::liveness(InstNumberT InstNumber, LivenessBV &Live,
     if (Live[VarNum]) {
       if (!isDestNonKillable()) {
         Live[VarNum] = false;
-        if (LiveBegin) {
+        if (LiveBegin && Liveness->getRangeMask(Dest->getIndex())) {
           LiveBegin->push_back(std::make_pair(VarNum, InstNumber));
         }
       }
@@ -223,7 +223,7 @@ bool Inst::liveness(InstNumberT InstNumber, LivenessBV &Live,
           // when LiveEnd[VarNum]==0 (sentinel value).  Note that it's
           // OK to set LiveBegin multiple times because of the
           // backwards traversal.
-          if (LiveEnd) {
+          if (LiveEnd && Liveness->getRangeMask(Var->getIndex())) {
             // Ideally, we would verify that VarNum wasn't already
             // added in this block, but this can't be done very
             // efficiently with LiveEnd as a vector.  Instead,

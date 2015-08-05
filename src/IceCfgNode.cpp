@@ -580,6 +580,8 @@ bool CfgNode::liveness(Liveness *Liveness) {
     Live |= Liveness->getLiveIn(Succ);
     // Mark corresponding argument of phis in successor as live.
     for (Inst &I : Succ->Phis) {
+      if (I.isDeleted())
+        continue;
       auto Phi = llvm::dyn_cast<InstPhi>(&I);
       Phi->livenessPhiOperand(Live, this, Liveness);
     }
@@ -698,6 +700,9 @@ void CfgNode::livenessAddIntervals(Liveness *Liveness, InstNumberT FirstInstNum,
     InstNumberT LE = i == i2 ? IEB->second : LastInstNum + 1;
 
     Variable *Var = Liveness->getVariable(i, this);
+    // TODO(stichnot): Push getIgnoreLiveness() into the initialization of
+    // Liveness::RangeMask so that LiveBegin and LiveEnd never even reference
+    // such variables.
     if (!Var->getIgnoreLiveness()) {
       if (LB > LE) {
         Var->addLiveRange(FirstInstNum, LE, 1);
@@ -720,7 +725,8 @@ void CfgNode::livenessAddIntervals(Liveness *Liveness, InstNumberT FirstInstNum,
   for (int i = LiveInAndOut.find_first(); i != -1;
        i = LiveInAndOut.find_next(i)) {
     Variable *Var = Liveness->getVariable(i, this);
-    Var->addLiveRange(FirstInstNum, LastInstNum + 1, 1);
+    if (Liveness->getRangeMask(Var->getIndex()))
+      Var->addLiveRange(FirstInstNum, LastInstNum + 1, 1);
   }
 }
 

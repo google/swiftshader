@@ -100,6 +100,17 @@ void Liveness::initInternal(NodeList::const_iterator FirstNode,
     // LiveBegin and LiveEnd are reinitialized before each pass over
     // the block.
   }
+
+  // Initialize the bitmask of which variables to track.
+  RangeMask.resize(NumVars);
+  RangeMask.set(0, NumVars);
+  if (!IsFullInit) {
+    // Reset initial variables that are not pre-colored or infinite-weight.
+    for (auto I = Func->getVariables().begin(); I != FirstVar; ++I) {
+      Variable *Var = *I;
+      RangeMask[Var->getIndex()] = (Var->hasReg() || Var->getWeight().isInf());
+    }
+  }
 }
 
 void Liveness::init() {

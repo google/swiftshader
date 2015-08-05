@@ -273,9 +273,6 @@ void Cfg::advancedPhiLowering() {
       InstNumberT FirstInstNum = getNextInstNumber();
       (*I)->renumberInstructions();
       InstNumberT LastInstNum = getNextInstNumber() - 1;
-      // TODO(stichnot): May be able to speed up liveness and live range
-      // calculation by having it consider only pre-colored or infinite-weight
-      // variables.  Could also simplify LinearScan::initForInfOnly() that way.
       (*I)->liveness(getLiveness());
       (*I)->livenessAddIntervals(getLiveness(), FirstInstNum, LastInstNum);
     }

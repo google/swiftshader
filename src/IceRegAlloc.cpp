@@ -107,10 +107,6 @@ void LinearScan::initForGlobal() {
     // it was never referenced.
     if (Var->getLiveRange().isEmpty())
       continue;
-    // Post phi lowering register allocation is only concerned with variables
-    // that are infinite-weight or pre-colored.
-    if (Kind == RAK_Phi && !Var->getWeight().isInf() && !Var->hasReg())
-      continue;
     Var->untrimLiveRange();
     Unhandled.push_back(Var);
     if (Var->hasReg()) {
