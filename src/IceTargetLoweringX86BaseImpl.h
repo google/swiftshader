@@ -3804,6 +3804,10 @@ void TargetX86Base<Machine>::lowerMemset(Operand *Dest, Operand *Val,
   // eax, ax and al.
   if (IsCountConst && IsValConst) {
     Variable *Base = legalizeToReg(Dest);
+    // Add a FakeUse in case Base is ultimately not used, e.g. it falls back to
+    // calling memset().  Otherwise Om1 register allocation fails because this
+    // infinite-weight variable has a definition but no uses.
+    Context.insert(InstFakeUse::create(Func, Base));
 
     // 3 is the awkward size as it is too small for the vector or 32-bit
     // operations and will not work with lowerLeftOvers as there is no valid

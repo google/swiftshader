@@ -101,6 +101,19 @@ entry:
 ; ARM32: uxtb
 ; ARM32: bl {{.*}} memset
 
+define void @test_memset_long_const_len_zero_val_align(i32 %iptr_dst) {
+entry:
+  %dst = inttoptr i32 %iptr_dst to i8*
+  call void @llvm.memset.p0i8.i32(i8* %dst, i8 0,
+                                  i32 4876, i32 1, i1 false)
+  ret void
+}
+; CHECK-LABEL: test_memset_long_const_len_zero_val_align
+; CHECK: call {{.*}} R_{{.*}} memset
+; ARM32-LABEL: test_memset_long_const_len_zero_val_align
+; ARM32: uxtb
+; ARM32: bl {{.*}} memset
+
 define void @test_memset_const_val(i32 %iptr_dst, i32 %len) {
 entry:
   %dst = inttoptr i32 %iptr_dst to i8*
