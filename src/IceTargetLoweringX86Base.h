@@ -83,6 +83,7 @@ public:
   size_t typeWidthInBytesOnStack(Type Ty) const override {
     // Round up to the next multiple of 4 bytes.  In particular, i1,
     // i8, and i16 are rounded up to 4 bytes.
+    // TODO(jpp): this needs to round to multiples of 8 bytes in x86-64.
     return (typeWidthInBytes(Ty) + 3) & ~3;
   }
 
@@ -127,7 +128,6 @@ protected:
   void lowerArithmetic(const InstArithmetic *Inst) override;
   void lowerAssign(const InstAssign *Inst) override;
   void lowerBr(const InstBr *Inst) override;
-  void lowerCall(const InstCall *Inst) override;
   void lowerCast(const InstCast *Inst) override;
   void lowerExtractElement(const InstExtractElement *Inst) override;
   void lowerFcmp(const InstFcmp *Inst) override;

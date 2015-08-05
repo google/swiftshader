@@ -20,9 +20,6 @@
 ///
 /// ::Ice::X8632::Traits::Insts::Mov::create
 ///
-/// In the future, this file might be used to declare X8632 specific
-/// instructions (e.g., FLD, and FSTP.)
-///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICEINSTX8632_H

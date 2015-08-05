@@ -38,6 +38,9 @@ class TargetX8664 final
 public:
   static TargetX8664 *create(Cfg *Func) { return new TargetX8664(Func); }
 
+protected:
+  void lowerCall(const InstCall *Instr) override;
+
 private:
   friend class ::Ice::X86Internal::TargetX86Base<TargetX8664>;
 

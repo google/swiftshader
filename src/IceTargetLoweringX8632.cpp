@@ -21,6 +21,14 @@
 
 namespace Ice {
 
+//------------------------------------------------------------------------------
+//      ______   ______     ______     __     ______   ______
+//     /\__  _\ /\  == \   /\  __ \   /\ \   /\__  _\ /\  ___\
+//     \/_/\ \/ \ \  __<   \ \  __ \  \ \ \  \/_/\ \/ \ \___  \
+//        \ \_\  \ \_\ \_\  \ \_\ \_\  \ \_\    \ \_\  \/\_____\
+//         \/_/   \/_/ /_/   \/_/\/_/   \/_/     \/_/   \/_____/
+//
+//------------------------------------------------------------------------------
 namespace X86Internal {
 const MachineTraits<TargetX8632>::TableFcmpType
     MachineTraits<TargetX8632>::TableFcmp[] = {
@@ -398,5 +406,215 @@ ICETYPE_TABLE
 #undef X
 } // end of namespace dummy3
 } // end of anonymous namespace
+
+//------------------------------------------------------------------------------
+//     __      ______  __     __  ______  ______  __  __   __  ______
+//    /\ \    /\  __ \/\ \  _ \ \/\  ___\/\  == \/\ \/\ "-.\ \/\  ___\
+//    \ \ \___\ \ \/\ \ \ \/ ".\ \ \  __\\ \  __<\ \ \ \ \-.  \ \ \__ \
+//     \ \_____\ \_____\ \__/".~\_\ \_____\ \_\ \_\ \_\ \_\\"\_\ \_____\
+//      \/_____/\/_____/\/_/   \/_/\/_____/\/_/ /_/\/_/\/_/ \/_/\/_____/
+//
+//------------------------------------------------------------------------------
+void TargetX8632::lowerCall(const InstCall *Instr) {
+  // x86-32 calling convention:
+  //
+  // * At the point before the call, the stack must be aligned to 16
+  // bytes.
+  //
+  // * The first four arguments of vector type, regardless of their
+  // position relative to the other arguments in the argument list, are
+  // placed in registers xmm0 - xmm3.
+  //
+  // * Other arguments are pushed onto the stack in right-to-left order,
+  // such that the left-most argument ends up on the top of the stack at
+  // the lowest memory address.
+  //
+  // * Stack arguments of vector type are aligned to start at the next
+  // highest multiple of 16 bytes.  Other stack arguments are aligned to
+  // 4 bytes.
+  //
+  // This intends to match the section "IA-32 Function Calling
+  // Convention" of the document "OS X ABI Function Call Guide" by
+  // Apple.
+  NeedsStackAlignment = true;
+
+  typedef std::vector<Operand *> OperandList;
+  OperandList XmmArgs;
+  OperandList StackArgs, StackArgLocations;
+  uint32_t ParameterAreaSizeBytes = 0;
+
+  // Classify each argument operand according to the location where the
+  // argument is passed.
+  for (SizeT i = 0, NumArgs = Instr->getNumArgs(); i < NumArgs; ++i) {
+    Operand *Arg = Instr->getArg(i);
+    Type Ty = Arg->getType();
+    // The PNaCl ABI requires the width of arguments to be at least 32 bits.
+    assert(typeWidthInBytes(Ty) >= 4);
+    if (isVectorType(Ty) && XmmArgs.size() < Traits::X86_MAX_XMM_ARGS) {
+      XmmArgs.push_back(Arg);
+    } else {
+      StackArgs.push_back(Arg);
+      if (isVectorType(Arg->getType())) {
+        ParameterAreaSizeBytes =
+            Traits::applyStackAlignment(ParameterAreaSizeBytes);
+      }
+      Variable *esp =
+          Func->getTarget()->getPhysicalRegister(Traits::RegisterSet::Reg_esp);
+      Constant *Loc = Ctx->getConstantInt32(ParameterAreaSizeBytes);
+      StackArgLocations.push_back(
+          Traits::X86OperandMem::create(Func, Ty, esp, Loc));
+      ParameterAreaSizeBytes += typeWidthInBytesOnStack(Arg->getType());
+    }
+  }
+
+  // Adjust the parameter area so that the stack is aligned.  It is
+  // assumed that the stack is already aligned at the start of the
+  // calling sequence.
+  ParameterAreaSizeBytes = Traits::applyStackAlignment(ParameterAreaSizeBytes);
+
+  // Subtract the appropriate amount for the argument area.  This also
+  // takes care of setting the stack adjustment during emission.
+  //
+  // TODO: If for some reason the call instruction gets dead-code
+  // eliminated after lowering, we would need to ensure that the
+  // pre-call and the post-call esp adjustment get eliminated as well.
+  if (ParameterAreaSizeBytes) {
+    _adjust_stack(ParameterAreaSizeBytes);
+  }
+
+  // Copy arguments that are passed on the stack to the appropriate
+  // stack locations.
+  for (SizeT i = 0, e = StackArgs.size(); i < e; ++i) {
+    lowerStore(InstStore::create(Func, StackArgs[i], StackArgLocations[i]));
+  }
+
+  // Copy arguments to be passed in registers to the appropriate
+  // registers.
+  // TODO: Investigate the impact of lowering arguments passed in
+  // registers after lowering stack arguments as opposed to the other
+  // way around.  Lowering register arguments after stack arguments may
+  // reduce register pressure.  On the other hand, lowering register
+  // arguments first (before stack arguments) may result in more compact
+  // code, as the memory operand displacements may end up being smaller
+  // before any stack adjustment is done.
+  for (SizeT i = 0, NumXmmArgs = XmmArgs.size(); i < NumXmmArgs; ++i) {
+    Variable *Reg =
+        legalizeToReg(XmmArgs[i], Traits::RegisterSet::Reg_xmm0 + i);
+    // Generate a FakeUse of register arguments so that they do not get
+    // dead code eliminated as a result of the FakeKill of scratch
+    // registers after the call.
+    Context.insert(InstFakeUse::create(Func, Reg));
+  }
+  // Generate the call instruction.  Assign its result to a temporary
+  // with high register allocation weight.
+  Variable *Dest = Instr->getDest();
+  // ReturnReg doubles as ReturnRegLo as necessary.
+  Variable *ReturnReg = nullptr;
+  Variable *ReturnRegHi = nullptr;
+  if (Dest) {
+    switch (Dest->getType()) {
+    case IceType_NUM:
+      llvm_unreachable("Invalid Call dest type");
+      break;
+    case IceType_void:
+      break;
+    case IceType_i1:
+    case IceType_i8:
+    case IceType_i16:
+    case IceType_i32:
+      ReturnReg = makeReg(Dest->getType(), Traits::RegisterSet::Reg_eax);
+      break;
+    case IceType_i64:
+      ReturnReg = makeReg(IceType_i32, Traits::RegisterSet::Reg_eax);
+      ReturnRegHi = makeReg(IceType_i32, Traits::RegisterSet::Reg_edx);
+      break;
+    case IceType_f32:
+    case IceType_f64:
+      // Leave ReturnReg==ReturnRegHi==nullptr, and capture the result with
+      // the fstp instruction.
+      break;
+    case IceType_v4i1:
+    case IceType_v8i1:
+    case IceType_v16i1:
+    case IceType_v16i8:
+    case IceType_v8i16:
+    case IceType_v4i32:
+    case IceType_v4f32:
+      ReturnReg = makeReg(Dest->getType(), Traits::RegisterSet::Reg_xmm0);
+      break;
+    }
+  }
+  Operand *CallTarget = legalize(Instr->getCallTarget());
+  const bool NeedSandboxing = Ctx->getFlags().getUseSandboxing();
+  if (NeedSandboxing) {
+    if (llvm::isa<Constant>(CallTarget)) {
+      _bundle_lock(InstBundleLock::Opt_AlignToEnd);
+    } else {
+      Variable *CallTargetVar = nullptr;
+      _mov(CallTargetVar, CallTarget);
+      _bundle_lock(InstBundleLock::Opt_AlignToEnd);
+      const SizeT BundleSize =
+          1 << Func->getAssembler<>()->getBundleAlignLog2Bytes();
+      _and(CallTargetVar, Ctx->getConstantInt32(~(BundleSize - 1)));
+      CallTarget = CallTargetVar;
+    }
+  }
+  Inst *NewCall = Traits::Insts::Call::create(Func, ReturnReg, CallTarget);
+  Context.insert(NewCall);
+  if (NeedSandboxing)
+    _bundle_unlock();
+  if (ReturnRegHi)
+    Context.insert(InstFakeDef::create(Func, ReturnRegHi));
+
+  // Add the appropriate offset to esp.  The call instruction takes care
+  // of resetting the stack offset during emission.
+  if (ParameterAreaSizeBytes) {
+    Variable *esp =
+        Func->getTarget()->getPhysicalRegister(Traits::RegisterSet::Reg_esp);
+    _add(esp, Ctx->getConstantInt32(ParameterAreaSizeBytes));
+  }
+
+  // Insert a register-kill pseudo instruction.
+  Context.insert(InstFakeKill::create(Func, NewCall));
+
+  // Generate a FakeUse to keep the call live if necessary.
+  if (Instr->hasSideEffects() && ReturnReg) {
+    Inst *FakeUse = InstFakeUse::create(Func, ReturnReg);
+    Context.insert(FakeUse);
+  }
+
+  if (!Dest)
+    return;
+
+  // Assign the result of the call to Dest.
+  if (ReturnReg) {
+    if (ReturnRegHi) {
+      assert(Dest->getType() == IceType_i64);
+      split64(Dest);
+      Variable *DestLo = Dest->getLo();
+      Variable *DestHi = Dest->getHi();
+      _mov(DestLo, ReturnReg);
+      _mov(DestHi, ReturnRegHi);
+    } else {
+      assert(Dest->getType() == IceType_i32 || Dest->getType() == IceType_i16 ||
+             Dest->getType() == IceType_i8 || Dest->getType() == IceType_i1 ||
+             isVectorType(Dest->getType()));
+      if (isVectorType(Dest->getType())) {
+        _movp(Dest, ReturnReg);
+      } else {
+        _mov(Dest, ReturnReg);
+      }
+    }
+  } else if (isScalarFloatingType(Dest->getType())) {
+    // Special treatment for an FP function which returns its result in
+    // st(0).
+    // If Dest ends up being a physical xmm register, the fstp emit code
+    // will route st(0) through a temporary stack slot.
+    _fstp(Dest);
+    // Create a fake use of Dest in case it actually isn't used,
+    // because st(0) still needs to be popped.
+    Context.insert(InstFakeUse::create(Func, Dest));
+  }
+}
 
 } // end of namespace Ice
