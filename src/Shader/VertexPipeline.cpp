@@ -224,8 +224,6 @@ namespace sw
 		}
 		else
 		{
-			Vector4f diffuseSum;
-
 			r.o[D0].x = Float4(0.0f);
 			r.o[D0].y = Float4(0.0f);
 			r.o[D0].z = Float4(0.0f);
@@ -236,10 +234,12 @@ namespace sw
 			r.o[D1].z = Float4(0.0f);
 			r.o[D1].w = Float4(0.0f);
 
-			diffuseSum.x = Float4(0.0f);
-			diffuseSum.y = Float4(0.0f);
-			diffuseSum.z = Float4(0.0f);
-			diffuseSum.w = Float4(0.0f);
+			Vector4f ambient;
+			Float4 globalAmbient = *Pointer<Float4>(r.data + OFFSET(DrawData,ff.globalAmbient));   // FIXME: Unpack
+
+			ambient.x = globalAmbient.x;
+			ambient.y = globalAmbient.y;
+			ambient.z = globalAmbient.z;
 
 			for(int i = 0; i < 8; i++)
 			{
@@ -281,9 +281,9 @@ namespace sw
 				{
 					Float4 lightAmbient = *Pointer<Float4>(r.data + OFFSET(DrawData,ff.lightAmbient[i]));   // FIXME: Unpack
 
-					r.o[D0].x = r.o[D0].x + lightAmbient.x * att;
-					r.o[D0].y = r.o[D0].y + lightAmbient.y * att;
-					r.o[D0].z = r.o[D0].z + lightAmbient.z * att;
+					ambient.x = ambient.x + lightAmbient.x * att;
+					ambient.y = ambient.y + lightAmbient.y * att;
+					ambient.z = ambient.z + lightAmbient.z * att;
 				}
 
 				// Diffuse
@@ -316,9 +316,9 @@ namespace sw
 
 					Float4 lightDiffuse = *Pointer<Float4>(r.data + OFFSET(DrawData,ff.lightDiffuse[i]));
 
-					diffuseSum.x += diff.x * dot * lightDiffuse.x;   // FIXME: Clamp first?
-					diffuseSum.y += diff.y * dot * lightDiffuse.y;   // FIXME: Clamp first?
-					diffuseSum.z += diff.z * dot * lightDiffuse.z;   // FIXME: Clamp first?
+					r.o[D0].x = r.o[D0].x + diff.x * dot * lightDiffuse.x;   // FIXME: Clamp first?
+					r.o[D0].y = r.o[D0].y + diff.y * dot * lightDiffuse.y;   // FIXME: Clamp first?
+					r.o[D0].z = r.o[D0].z + diff.z * dot * lightDiffuse.z;   // FIXME: Clamp first?
 				}
 
 				// Specular
@@ -385,41 +385,35 @@ namespace sw
 				}
 			}
 
-			Float4 globalAmbient = *Pointer<Float4>(r.data + OFFSET(DrawData,ff.globalAmbient));   // FIXME: Unpack
-
-			r.o[D0].x = r.o[D0].x + globalAmbient.x;
-			r.o[D0].y = r.o[D0].y + globalAmbient.y;
-			r.o[D0].z = r.o[D0].z + globalAmbient.z;
-
 			if(state.vertexAmbientMaterialSourceActive == MATERIAL_MATERIAL)
 			{
 				Float4 materialAmbient = *Pointer<Float4>(r.data + OFFSET(DrawData,ff.materialAmbient));   // FIXME: Unpack
 
-				r.o[D0].x = r.o[D0].x * materialAmbient.x;
-				r.o[D0].y = r.o[D0].y * materialAmbient.y;
-				r.o[D0].z = r.o[D0].z * materialAmbient.z;
+				ambient.x = ambient.x * materialAmbient.x;
+				ambient.y = ambient.y * materialAmbient.y;
+				ambient.z = ambient.z * materialAmbient.z;
 			}
 			else if(state.vertexAmbientMaterialSourceActive == MATERIAL_COLOR1)
 			{
 				Vector4f materialDiffuse = r.v[Color0];
 
-				r.o[D0].x = r.o[D0].x * materialDiffuse.x;
-				r.o[D0].y = r.o[D0].y * materialDiffuse.y;
-				r.o[D0].z = r.o[D0].z * materialDiffuse.z;
+				ambient.x = ambient.x * materialDiffuse.x;
+				ambient.y = ambient.y * materialDiffuse.y;
+				ambient.z = ambient.z * materialDiffuse.z;
 			}
 			else if(state.vertexAmbientMaterialSourceActive == MATERIAL_COLOR2)
 			{
 				Vector4f materialSpecular = r.v[Color1];
 
-				r.o[D0].x = r.o[D0].x * materialSpecular.x;
-				r.o[D0].y = r.o[D0].y * materialSpecular.y;
-				r.o[D0].z = r.o[D0].z * materialSpecular.z;
+				ambient.x = ambient.x * materialSpecular.x;
+				ambient.y = ambient.y * materialSpecular.y;
+				ambient.z = ambient.z * materialSpecular.z;
 			}
 			else ASSERT(false);
 
-			r.o[D0].x = r.o[D0].x + diffuseSum.x;
-			r.o[D0].y = r.o[D0].y + diffuseSum.y;
-			r.o[D0].z = r.o[D0].z + diffuseSum.z;
+			r.o[D0].x = r.o[D0].x + ambient.x;
+			r.o[D0].y = r.o[D0].y + ambient.y;
+			r.o[D0].z = r.o[D0].z + ambient.z;
 
 			// Emissive
 			if(state.vertexEmissiveMaterialSourceActive == MATERIAL_MATERIAL)
