@@ -43,6 +43,10 @@ public:
 
 protected:
   void lowerCall(const InstCall *Instr) override;
+  void lowerArguments() override;
+  void lowerRet(const InstRet *Inst) override;
+  void addProlog(CfgNode *Node) override;
+  void addEpilog(CfgNode *Node) override;
 
 private:
   friend class ::Ice::X86Internal::TargetX86Base<TargetX8632>;

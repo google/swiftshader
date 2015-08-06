@@ -89,6 +89,563 @@ const char *MachineTraits<TargetX8632>::TargetName = "X8632";
 
 } // end of namespace X86Internal
 
+//------------------------------------------------------------------------------
+//     __      ______  __     __  ______  ______  __  __   __  ______
+//    /\ \    /\  __ \/\ \  _ \ \/\  ___\/\  == \/\ \/\ "-.\ \/\  ___\
+//    \ \ \___\ \ \/\ \ \ \/ ".\ \ \  __\\ \  __<\ \ \ \ \-.  \ \ \__ \
+//     \ \_____\ \_____\ \__/".~\_\ \_____\ \_\ \_\ \_\ \_\\"\_\ \_____\
+//      \/_____/\/_____/\/_/   \/_/\/_____/\/_/ /_/\/_/\/_/ \/_/\/_____/
+//
+//------------------------------------------------------------------------------
+void TargetX8632::lowerCall(const InstCall *Instr) {
+  // x86-32 calling convention:
+  //
+  // * At the point before the call, the stack must be aligned to 16
+  // bytes.
+  //
+  // * The first four arguments of vector type, regardless of their
+  // position relative to the other arguments in the argument list, are
+  // placed in registers xmm0 - xmm3.
+  //
+  // * Other arguments are pushed onto the stack in right-to-left order,
+  // such that the left-most argument ends up on the top of the stack at
+  // the lowest memory address.
+  //
+  // * Stack arguments of vector type are aligned to start at the next
+  // highest multiple of 16 bytes.  Other stack arguments are aligned to
+  // 4 bytes.
+  //
+  // This intends to match the section "IA-32 Function Calling
+  // Convention" of the document "OS X ABI Function Call Guide" by
+  // Apple.
+  NeedsStackAlignment = true;
+
+  typedef std::vector<Operand *> OperandList;
+  OperandList XmmArgs;
+  OperandList StackArgs, StackArgLocations;
+  uint32_t ParameterAreaSizeBytes = 0;
+
+  // Classify each argument operand according to the location where the
+  // argument is passed.
+  for (SizeT i = 0, NumArgs = Instr->getNumArgs(); i < NumArgs; ++i) {
+    Operand *Arg = Instr->getArg(i);
+    Type Ty = Arg->getType();
+    // The PNaCl ABI requires the width of arguments to be at least 32 bits.
+    assert(typeWidthInBytes(Ty) >= 4);
+    if (isVectorType(Ty) && XmmArgs.size() < Traits::X86_MAX_XMM_ARGS) {
+      XmmArgs.push_back(Arg);
+    } else {
+      StackArgs.push_back(Arg);
+      if (isVectorType(Arg->getType())) {
+        ParameterAreaSizeBytes =
+            Traits::applyStackAlignment(ParameterAreaSizeBytes);
+      }
+      Variable *esp =
+          Func->getTarget()->getPhysicalRegister(Traits::RegisterSet::Reg_esp);
+      Constant *Loc = Ctx->getConstantInt32(ParameterAreaSizeBytes);
+      StackArgLocations.push_back(
+          Traits::X86OperandMem::create(Func, Ty, esp, Loc));
+      ParameterAreaSizeBytes += typeWidthInBytesOnStack(Arg->getType());
+    }
+  }
+
+  // Adjust the parameter area so that the stack is aligned.  It is
+  // assumed that the stack is already aligned at the start of the
+  // calling sequence.
+  ParameterAreaSizeBytes = Traits::applyStackAlignment(ParameterAreaSizeBytes);
+
+  // Subtract the appropriate amount for the argument area.  This also
+  // takes care of setting the stack adjustment during emission.
+  //
+  // TODO: If for some reason the call instruction gets dead-code
+  // eliminated after lowering, we would need to ensure that the
+  // pre-call and the post-call esp adjustment get eliminated as well.
+  if (ParameterAreaSizeBytes) {
+    _adjust_stack(ParameterAreaSizeBytes);
+  }
+
+  // Copy arguments that are passed on the stack to the appropriate
+  // stack locations.
+  for (SizeT i = 0, e = StackArgs.size(); i < e; ++i) {
+    lowerStore(InstStore::create(Func, StackArgs[i], StackArgLocations[i]));
+  }
+
+  // Copy arguments to be passed in registers to the appropriate
+  // registers.
+  // TODO: Investigate the impact of lowering arguments passed in
+  // registers after lowering stack arguments as opposed to the other
+  // way around.  Lowering register arguments after stack arguments may
+  // reduce register pressure.  On the other hand, lowering register
+  // arguments first (before stack arguments) may result in more compact
+  // code, as the memory operand displacements may end up being smaller
+  // before any stack adjustment is done.
+  for (SizeT i = 0, NumXmmArgs = XmmArgs.size(); i < NumXmmArgs; ++i) {
+    Variable *Reg =
+        legalizeToReg(XmmArgs[i], Traits::RegisterSet::Reg_xmm0 + i);
+    // Generate a FakeUse of register arguments so that they do not get
+    // dead code eliminated as a result of the FakeKill of scratch
+    // registers after the call.
+    Context.insert(InstFakeUse::create(Func, Reg));
+  }
+  // Generate the call instruction.  Assign its result to a temporary
+  // with high register allocation weight.
+  Variable *Dest = Instr->getDest();
+  // ReturnReg doubles as ReturnRegLo as necessary.
+  Variable *ReturnReg = nullptr;
+  Variable *ReturnRegHi = nullptr;
+  if (Dest) {
+    switch (Dest->getType()) {
+    case IceType_NUM:
+    case IceType_void:
+      llvm::report_fatal_error("Invalid Call dest type");
+      break;
+    case IceType_i1:
+    case IceType_i8:
+    case IceType_i16:
+    case IceType_i32:
+      ReturnReg = makeReg(Dest->getType(), Traits::RegisterSet::Reg_eax);
+      break;
+    case IceType_i64:
+      ReturnReg = makeReg(IceType_i32, Traits::RegisterSet::Reg_eax);
+      ReturnRegHi = makeReg(IceType_i32, Traits::RegisterSet::Reg_edx);
+      break;
+    case IceType_f32:
+    case IceType_f64:
+      // Leave ReturnReg==ReturnRegHi==nullptr, and capture the result with
+      // the fstp instruction.
+      break;
+    case IceType_v4i1:
+    case IceType_v8i1:
+    case IceType_v16i1:
+    case IceType_v16i8:
+    case IceType_v8i16:
+    case IceType_v4i32:
+    case IceType_v4f32:
+      ReturnReg = makeReg(Dest->getType(), Traits::RegisterSet::Reg_xmm0);
+      break;
+    }
+  }
+  Operand *CallTarget = legalize(Instr->getCallTarget());
+  const bool NeedSandboxing = Ctx->getFlags().getUseSandboxing();
+  if (NeedSandboxing) {
+    if (llvm::isa<Constant>(CallTarget)) {
+      _bundle_lock(InstBundleLock::Opt_AlignToEnd);
+    } else {
+      Variable *CallTargetVar = nullptr;
+      _mov(CallTargetVar, CallTarget);
+      _bundle_lock(InstBundleLock::Opt_AlignToEnd);
+      const SizeT BundleSize =
+          1 << Func->getAssembler<>()->getBundleAlignLog2Bytes();
+      _and(CallTargetVar, Ctx->getConstantInt32(~(BundleSize - 1)));
+      CallTarget = CallTargetVar;
+    }
+  }
+  Inst *NewCall = Traits::Insts::Call::create(Func, ReturnReg, CallTarget);
+  Context.insert(NewCall);
+  if (NeedSandboxing)
+    _bundle_unlock();
+  if (ReturnRegHi)
+    Context.insert(InstFakeDef::create(Func, ReturnRegHi));
+
+  // Add the appropriate offset to esp.  The call instruction takes care
+  // of resetting the stack offset during emission.
+  if (ParameterAreaSizeBytes) {
+    Variable *esp =
+        Func->getTarget()->getPhysicalRegister(Traits::RegisterSet::Reg_esp);
+    _add(esp, Ctx->getConstantInt32(ParameterAreaSizeBytes));
+  }
+
+  // Insert a register-kill pseudo instruction.
+  Context.insert(InstFakeKill::create(Func, NewCall));
+
+  // Generate a FakeUse to keep the call live if necessary.
+  if (Instr->hasSideEffects() && ReturnReg) {
+    Inst *FakeUse = InstFakeUse::create(Func, ReturnReg);
+    Context.insert(FakeUse);
+  }
+
+  if (!Dest)
+    return;
+
+  // Assign the result of the call to Dest.
+  if (ReturnReg) {
+    if (ReturnRegHi) {
+      assert(Dest->getType() == IceType_i64);
+      split64(Dest);
+      Variable *DestLo = Dest->getLo();
+      Variable *DestHi = Dest->getHi();
+      _mov(DestLo, ReturnReg);
+      _mov(DestHi, ReturnRegHi);
+    } else {
+      assert(Dest->getType() == IceType_i32 || Dest->getType() == IceType_i16 ||
+             Dest->getType() == IceType_i8 || Dest->getType() == IceType_i1 ||
+             isVectorType(Dest->getType()));
+      if (isVectorType(Dest->getType())) {
+        _movp(Dest, ReturnReg);
+      } else {
+        _mov(Dest, ReturnReg);
+      }
+    }
+  } else if (isScalarFloatingType(Dest->getType())) {
+    // Special treatment for an FP function which returns its result in
+    // st(0).
+    // If Dest ends up being a physical xmm register, the fstp emit code
+    // will route st(0) through a temporary stack slot.
+    _fstp(Dest);
+    // Create a fake use of Dest in case it actually isn't used,
+    // because st(0) still needs to be popped.
+    Context.insert(InstFakeUse::create(Func, Dest));
+  }
+}
+
+void TargetX8632::lowerArguments() {
+  VarList &Args = Func->getArgs();
+  // The first four arguments of vector type, regardless of their
+  // position relative to the other arguments in the argument list, are
+  // passed in registers xmm0 - xmm3.
+  unsigned NumXmmArgs = 0;
+
+  Context.init(Func->getEntryNode());
+  Context.setInsertPoint(Context.getCur());
+
+  for (SizeT I = 0, E = Args.size();
+       I < E && NumXmmArgs < Traits::X86_MAX_XMM_ARGS; ++I) {
+    Variable *Arg = Args[I];
+    Type Ty = Arg->getType();
+    if (!isVectorType(Ty))
+      continue;
+    // Replace Arg in the argument list with the home register.  Then
+    // generate an instruction in the prolog to copy the home register
+    // to the assigned location of Arg.
+    int32_t RegNum = Traits::RegisterSet::Reg_xmm0 + NumXmmArgs;
+    ++NumXmmArgs;
+    Variable *RegisterArg = Func->makeVariable(Ty);
+    if (BuildDefs::dump())
+      RegisterArg->setName(Func, "home_reg:" + Arg->getName(Func));
+    RegisterArg->setRegNum(RegNum);
+    RegisterArg->setIsArg();
+    Arg->setIsArg(false);
+
+    Args[I] = RegisterArg;
+    Context.insert(InstAssign::create(Func, Arg, RegisterArg));
+  }
+}
+
+void TargetX8632::lowerRet(const InstRet *Inst) {
+  Variable *Reg = nullptr;
+  if (Inst->hasRetValue()) {
+    Operand *Src0 = legalize(Inst->getRetValue());
+    // TODO(jpp): this is not needed.
+    if (Src0->getType() == IceType_i64) {
+      Variable *eax =
+          legalizeToReg(loOperand(Src0), Traits::RegisterSet::Reg_eax);
+      Variable *edx =
+          legalizeToReg(hiOperand(Src0), Traits::RegisterSet::Reg_edx);
+      Reg = eax;
+      Context.insert(InstFakeUse::create(Func, edx));
+    } else if (isScalarFloatingType(Src0->getType())) {
+      _fld(Src0);
+    } else if (isVectorType(Src0->getType())) {
+      Reg = legalizeToReg(Src0, Traits::RegisterSet::Reg_xmm0);
+    } else {
+      _mov(Reg, Src0, Traits::RegisterSet::Reg_eax);
+    }
+  }
+  // Add a ret instruction even if sandboxing is enabled, because
+  // addEpilog explicitly looks for a ret instruction as a marker for
+  // where to insert the frame removal instructions.
+  _ret(Reg);
+  // Add a fake use of esp to make sure esp stays alive for the entire
+  // function.  Otherwise post-call esp adjustments get dead-code
+  // eliminated.  TODO: Are there more places where the fake use
+  // should be inserted?  E.g. "void f(int n){while(1) g(n);}" may not
+  // have a ret instruction.
+  Variable *esp =
+      Func->getTarget()->getPhysicalRegister(Traits::RegisterSet::Reg_esp);
+  Context.insert(InstFakeUse::create(Func, esp));
+}
+
+void TargetX8632::addProlog(CfgNode *Node) {
+  // Stack frame layout:
+  //
+  // +------------------------+
+  // | 1. return address      |
+  // +------------------------+
+  // | 2. preserved registers |
+  // +------------------------+
+  // | 3. padding             |
+  // +------------------------+
+  // | 4. global spill area   |
+  // +------------------------+
+  // | 5. padding             |
+  // +------------------------+
+  // | 6. local spill area    |
+  // +------------------------+
+  // | 7. padding             |
+  // +------------------------+
+  // | 8. allocas             |
+  // +------------------------+
+  //
+  // The following variables record the size in bytes of the given areas:
+  //  * X86_RET_IP_SIZE_BYTES:  area 1
+  //  * PreservedRegsSizeBytes: area 2
+  //  * SpillAreaPaddingBytes:  area 3
+  //  * GlobalsSize:            area 4
+  //  * GlobalsAndSubsequentPaddingSize: areas 4 - 5
+  //  * LocalsSpillAreaSize:    area 6
+  //  * SpillAreaSizeBytes:     areas 3 - 7
+
+  // Determine stack frame offsets for each Variable without a
+  // register assignment.  This can be done as one variable per stack
+  // slot.  Or, do coalescing by running the register allocator again
+  // with an infinite set of registers (as a side effect, this gives
+  // variables a second chance at physical register assignment).
+  //
+  // A middle ground approach is to leverage sparsity and allocate one
+  // block of space on the frame for globals (variables with
+  // multi-block lifetime), and one block to share for locals
+  // (single-block lifetime).
+
+  Context.init(Node);
+  Context.setInsertPoint(Context.getCur());
+
+  llvm::SmallBitVector CalleeSaves =
+      getRegisterSet(RegSet_CalleeSave, RegSet_None);
+  RegsUsed = llvm::SmallBitVector(CalleeSaves.size());
+  VarList SortedSpilledVariables, VariablesLinkedToSpillSlots;
+  size_t GlobalsSize = 0;
+  // If there is a separate locals area, this represents that area.
+  // Otherwise it counts any variable not counted by GlobalsSize.
+  SpillAreaSizeBytes = 0;
+  // If there is a separate locals area, this specifies the alignment
+  // for it.
+  uint32_t LocalsSlotsAlignmentBytes = 0;
+  // The entire spill locations area gets aligned to largest natural
+  // alignment of the variables that have a spill slot.
+  uint32_t SpillAreaAlignmentBytes = 0;
+  // A spill slot linked to a variable with a stack slot should reuse
+  // that stack slot.
+  std::function<bool(Variable *)> TargetVarHook =
+      [&VariablesLinkedToSpillSlots](Variable *Var) {
+        if (auto *SpillVar =
+                llvm::dyn_cast<typename Traits::SpillVariable>(Var)) {
+          assert(Var->getWeight().isZero());
+          if (SpillVar->getLinkedTo() && !SpillVar->getLinkedTo()->hasReg()) {
+            VariablesLinkedToSpillSlots.push_back(Var);
+            return true;
+          }
+        }
+        return false;
+      };
+
+  // Compute the list of spilled variables and bounds for GlobalsSize, etc.
+  getVarStackSlotParams(SortedSpilledVariables, RegsUsed, &GlobalsSize,
+                        &SpillAreaSizeBytes, &SpillAreaAlignmentBytes,
+                        &LocalsSlotsAlignmentBytes, TargetVarHook);
+  uint32_t LocalsSpillAreaSize = SpillAreaSizeBytes;
+  SpillAreaSizeBytes += GlobalsSize;
+
+  // Add push instructions for preserved registers.
+  uint32_t NumCallee = 0;
+  size_t PreservedRegsSizeBytes = 0;
+  for (SizeT i = 0; i < CalleeSaves.size(); ++i) {
+    if (CalleeSaves[i] && RegsUsed[i]) {
+      ++NumCallee;
+      PreservedRegsSizeBytes += typeWidthInBytes(IceType_i32);
+      _push(getPhysicalRegister(i));
+    }
+  }
+  Ctx->statsUpdateRegistersSaved(NumCallee);
+
+  // Generate "push ebp; mov ebp, esp"
+  if (IsEbpBasedFrame) {
+    assert((RegsUsed & getRegisterSet(RegSet_FramePointer, RegSet_None))
+               .count() == 0);
+    PreservedRegsSizeBytes += typeWidthInBytes(IceType_i32);
+    Variable *ebp = getPhysicalRegister(Traits::RegisterSet::Reg_ebp);
+    Variable *esp = getPhysicalRegister(Traits::RegisterSet::Reg_esp);
+    _push(ebp);
+    _mov(ebp, esp);
+    // Keep ebp live for late-stage liveness analysis
+    // (e.g. asm-verbose mode).
+    Context.insert(InstFakeUse::create(Func, ebp));
+  }
+
+  // Align the variables area. SpillAreaPaddingBytes is the size of
+  // the region after the preserved registers and before the spill areas.
+  // LocalsSlotsPaddingBytes is the amount of padding between the globals
+  // and locals area if they are separate.
+  assert(SpillAreaAlignmentBytes <= Traits::X86_STACK_ALIGNMENT_BYTES);
+  assert(LocalsSlotsAlignmentBytes <= SpillAreaAlignmentBytes);
+  uint32_t SpillAreaPaddingBytes = 0;
+  uint32_t LocalsSlotsPaddingBytes = 0;
+  alignStackSpillAreas(Traits::X86_RET_IP_SIZE_BYTES + PreservedRegsSizeBytes,
+                       SpillAreaAlignmentBytes, GlobalsSize,
+                       LocalsSlotsAlignmentBytes, &SpillAreaPaddingBytes,
+                       &LocalsSlotsPaddingBytes);
+  SpillAreaSizeBytes += SpillAreaPaddingBytes + LocalsSlotsPaddingBytes;
+  uint32_t GlobalsAndSubsequentPaddingSize =
+      GlobalsSize + LocalsSlotsPaddingBytes;
+
+  // Align esp if necessary.
+  if (NeedsStackAlignment) {
+    uint32_t StackOffset =
+        Traits::X86_RET_IP_SIZE_BYTES + PreservedRegsSizeBytes;
+    uint32_t StackSize =
+        Traits::applyStackAlignment(StackOffset + SpillAreaSizeBytes);
+    SpillAreaSizeBytes = StackSize - StackOffset;
+  }
+
+  // Generate "sub esp, SpillAreaSizeBytes"
+  if (SpillAreaSizeBytes)
+    _sub(getPhysicalRegister(Traits::RegisterSet::Reg_esp),
+         Ctx->getConstantInt32(SpillAreaSizeBytes));
+  Ctx->statsUpdateFrameBytes(SpillAreaSizeBytes);
+
+  resetStackAdjustment();
+
+  // Fill in stack offsets for stack args, and copy args into registers
+  // for those that were register-allocated.  Args are pushed right to
+  // left, so Arg[0] is closest to the stack/frame pointer.
+  Variable *FramePtr = getPhysicalRegister(getFrameOrStackReg());
+  size_t BasicFrameOffset =
+      PreservedRegsSizeBytes + Traits::X86_RET_IP_SIZE_BYTES;
+  if (!IsEbpBasedFrame)
+    BasicFrameOffset += SpillAreaSizeBytes;
+
+  const VarList &Args = Func->getArgs();
+  size_t InArgsSizeBytes = 0;
+  unsigned NumXmmArgs = 0;
+  for (Variable *Arg : Args) {
+    // Skip arguments passed in registers.
+    if (isVectorType(Arg->getType()) && NumXmmArgs < Traits::X86_MAX_XMM_ARGS) {
+      ++NumXmmArgs;
+      continue;
+    }
+    finishArgumentLowering(Arg, FramePtr, BasicFrameOffset, InArgsSizeBytes);
+  }
+
+  // Fill in stack offsets for locals.
+  assignVarStackSlots(SortedSpilledVariables, SpillAreaPaddingBytes,
+                      SpillAreaSizeBytes, GlobalsAndSubsequentPaddingSize,
+                      IsEbpBasedFrame);
+  // Assign stack offsets to variables that have been linked to spilled
+  // variables.
+  for (Variable *Var : VariablesLinkedToSpillSlots) {
+    Variable *Linked =
+        (llvm::cast<typename Traits::SpillVariable>(Var))->getLinkedTo();
+    Var->setStackOffset(Linked->getStackOffset());
+  }
+  this->HasComputedFrame = true;
+
+  if (BuildDefs::dump() && Func->isVerbose(IceV_Frame)) {
+    OstreamLocker L(Func->getContext());
+    Ostream &Str = Func->getContext()->getStrDump();
+
+    Str << "Stack layout:\n";
+    uint32_t EspAdjustmentPaddingSize =
+        SpillAreaSizeBytes - LocalsSpillAreaSize -
+        GlobalsAndSubsequentPaddingSize - SpillAreaPaddingBytes;
+    Str << " in-args = " << InArgsSizeBytes << " bytes\n"
+        << " return address = " << Traits::X86_RET_IP_SIZE_BYTES << " bytes\n"
+        << " preserved registers = " << PreservedRegsSizeBytes << " bytes\n"
+        << " spill area padding = " << SpillAreaPaddingBytes << " bytes\n"
+        << " globals spill area = " << GlobalsSize << " bytes\n"
+        << " globals-locals spill areas intermediate padding = "
+        << GlobalsAndSubsequentPaddingSize - GlobalsSize << " bytes\n"
+        << " locals spill area = " << LocalsSpillAreaSize << " bytes\n"
+        << " esp alignment padding = " << EspAdjustmentPaddingSize
+        << " bytes\n";
+
+    Str << "Stack details:\n"
+        << " esp adjustment = " << SpillAreaSizeBytes << " bytes\n"
+        << " spill area alignment = " << SpillAreaAlignmentBytes << " bytes\n"
+        << " locals spill area alignment = " << LocalsSlotsAlignmentBytes
+        << " bytes\n"
+        << " is ebp based = " << IsEbpBasedFrame << "\n";
+  }
+}
+
+void TargetX8632::addEpilog(CfgNode *Node) {
+  InstList &Insts = Node->getInsts();
+  InstList::reverse_iterator RI, E;
+  for (RI = Insts.rbegin(), E = Insts.rend(); RI != E; ++RI) {
+    if (llvm::isa<typename Traits::Insts::Ret>(*RI))
+      break;
+  }
+  if (RI == E)
+    return;
+
+  // Convert the reverse_iterator position into its corresponding
+  // (forward) iterator position.
+  InstList::iterator InsertPoint = RI.base();
+  --InsertPoint;
+  Context.init(Node);
+  Context.setInsertPoint(InsertPoint);
+
+  Variable *esp = getPhysicalRegister(Traits::RegisterSet::Reg_esp);
+  if (IsEbpBasedFrame) {
+    Variable *ebp = getPhysicalRegister(Traits::RegisterSet::Reg_ebp);
+    // For late-stage liveness analysis (e.g. asm-verbose mode),
+    // adding a fake use of esp before the assignment of esp=ebp keeps
+    // previous esp adjustments from being dead-code eliminated.
+    Context.insert(InstFakeUse::create(Func, esp));
+    _mov(esp, ebp);
+    _pop(ebp);
+  } else {
+    // add esp, SpillAreaSizeBytes
+    if (SpillAreaSizeBytes)
+      _add(esp, Ctx->getConstantInt32(SpillAreaSizeBytes));
+  }
+
+  // Add pop instructions for preserved registers.
+  llvm::SmallBitVector CalleeSaves =
+      getRegisterSet(RegSet_CalleeSave, RegSet_None);
+  for (SizeT i = 0; i < CalleeSaves.size(); ++i) {
+    SizeT j = CalleeSaves.size() - i - 1;
+    if (j == Traits::RegisterSet::Reg_ebp && IsEbpBasedFrame)
+      continue;
+    if (CalleeSaves[j] && RegsUsed[j]) {
+      _pop(getPhysicalRegister(j));
+    }
+  }
+
+  if (!Ctx->getFlags().getUseSandboxing())
+    return;
+  // Change the original ret instruction into a sandboxed return sequence.
+  // t:ecx = pop
+  // bundle_lock
+  // and t, ~31
+  // jmp *t
+  // bundle_unlock
+  // FakeUse <original_ret_operand>
+  Variable *T_ecx = makeReg(IceType_i32, Traits::RegisterSet::Reg_ecx);
+  _pop(T_ecx);
+  lowerIndirectJump(T_ecx);
+  if (RI->getSrcSize()) {
+    Variable *RetValue = llvm::cast<Variable>(RI->getSrc(0));
+    Context.insert(InstFakeUse::create(Func, RetValue));
+  }
+  RI->setDeleted();
+}
+
+void TargetX8632::emitJumpTable(const Cfg *Func,
+                                const InstJumpTable *JumpTable) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Ctx->getStrEmit();
+  IceString MangledName = Ctx->mangleName(Func->getFunctionName());
+  Str << "\t.section\t.rodata." << MangledName
+      << "$jumptable,\"a\",@progbits\n";
+  Str << "\t.align\t" << typeWidthInBytes(getPointerType()) << "\n";
+  Str << InstJumpTable::makeName(MangledName, JumpTable->getId()) << ":";
+
+  // On X8632 pointers are 32-bit hence the use of .long
+  for (SizeT I = 0; I < JumpTable->getNumTargets(); ++I)
+    Str << "\n\t.long\t" << JumpTable->getTarget(I)->getAsmName();
+  Str << "\n";
+}
+
 TargetDataX8632::TargetDataX8632(GlobalContext *Ctx)
     : TargetDataLowering(Ctx) {}
 
@@ -158,23 +715,6 @@ const char *PoolTypeConverter<uint8_t>::TypeName = "i8";
 const char *PoolTypeConverter<uint8_t>::AsmTag = ".byte";
 const char *PoolTypeConverter<uint8_t>::PrintfString = "0x%x";
 } // end of anonymous namespace
-
-void TargetX8632::emitJumpTable(const Cfg *Func,
-                                const InstJumpTable *JumpTable) const {
-  if (!BuildDefs::dump())
-    return;
-  Ostream &Str = Ctx->getStrEmit();
-  IceString MangledName = Ctx->mangleName(Func->getFunctionName());
-  Str << "\t.section\t.rodata." << MangledName
-      << "$jumptable,\"a\",@progbits\n";
-  Str << "\t.align\t" << typeWidthInBytes(getPointerType()) << "\n";
-  Str << InstJumpTable::makeName(MangledName, JumpTable->getId()) << ":";
-
-  // On X8632 pointers are 32-bit hence the use of .long
-  for (SizeT I = 0; I < JumpTable->getNumTargets(); ++I)
-    Str << "\n\t.long\t" << JumpTable->getTarget(I)->getAsmName();
-  Str << "\n";
-}
 
 template <typename T>
 void TargetDataX8632::emitConstantPool(GlobalContext *Ctx) {
@@ -406,215 +946,5 @@ ICETYPE_TABLE
 #undef X
 } // end of namespace dummy3
 } // end of anonymous namespace
-
-//------------------------------------------------------------------------------
-//     __      ______  __     __  ______  ______  __  __   __  ______
-//    /\ \    /\  __ \/\ \  _ \ \/\  ___\/\  == \/\ \/\ "-.\ \/\  ___\
-//    \ \ \___\ \ \/\ \ \ \/ ".\ \ \  __\\ \  __<\ \ \ \ \-.  \ \ \__ \
-//     \ \_____\ \_____\ \__/".~\_\ \_____\ \_\ \_\ \_\ \_\\"\_\ \_____\
-//      \/_____/\/_____/\/_/   \/_/\/_____/\/_/ /_/\/_/\/_/ \/_/\/_____/
-//
-//------------------------------------------------------------------------------
-void TargetX8632::lowerCall(const InstCall *Instr) {
-  // x86-32 calling convention:
-  //
-  // * At the point before the call, the stack must be aligned to 16
-  // bytes.
-  //
-  // * The first four arguments of vector type, regardless of their
-  // position relative to the other arguments in the argument list, are
-  // placed in registers xmm0 - xmm3.
-  //
-  // * Other arguments are pushed onto the stack in right-to-left order,
-  // such that the left-most argument ends up on the top of the stack at
-  // the lowest memory address.
-  //
-  // * Stack arguments of vector type are aligned to start at the next
-  // highest multiple of 16 bytes.  Other stack arguments are aligned to
-  // 4 bytes.
-  //
-  // This intends to match the section "IA-32 Function Calling
-  // Convention" of the document "OS X ABI Function Call Guide" by
-  // Apple.
-  NeedsStackAlignment = true;
-
-  typedef std::vector<Operand *> OperandList;
-  OperandList XmmArgs;
-  OperandList StackArgs, StackArgLocations;
-  uint32_t ParameterAreaSizeBytes = 0;
-
-  // Classify each argument operand according to the location where the
-  // argument is passed.
-  for (SizeT i = 0, NumArgs = Instr->getNumArgs(); i < NumArgs; ++i) {
-    Operand *Arg = Instr->getArg(i);
-    Type Ty = Arg->getType();
-    // The PNaCl ABI requires the width of arguments to be at least 32 bits.
-    assert(typeWidthInBytes(Ty) >= 4);
-    if (isVectorType(Ty) && XmmArgs.size() < Traits::X86_MAX_XMM_ARGS) {
-      XmmArgs.push_back(Arg);
-    } else {
-      StackArgs.push_back(Arg);
-      if (isVectorType(Arg->getType())) {
-        ParameterAreaSizeBytes =
-            Traits::applyStackAlignment(ParameterAreaSizeBytes);
-      }
-      Variable *esp =
-          Func->getTarget()->getPhysicalRegister(Traits::RegisterSet::Reg_esp);
-      Constant *Loc = Ctx->getConstantInt32(ParameterAreaSizeBytes);
-      StackArgLocations.push_back(
-          Traits::X86OperandMem::create(Func, Ty, esp, Loc));
-      ParameterAreaSizeBytes += typeWidthInBytesOnStack(Arg->getType());
-    }
-  }
-
-  // Adjust the parameter area so that the stack is aligned.  It is
-  // assumed that the stack is already aligned at the start of the
-  // calling sequence.
-  ParameterAreaSizeBytes = Traits::applyStackAlignment(ParameterAreaSizeBytes);
-
-  // Subtract the appropriate amount for the argument area.  This also
-  // takes care of setting the stack adjustment during emission.
-  //
-  // TODO: If for some reason the call instruction gets dead-code
-  // eliminated after lowering, we would need to ensure that the
-  // pre-call and the post-call esp adjustment get eliminated as well.
-  if (ParameterAreaSizeBytes) {
-    _adjust_stack(ParameterAreaSizeBytes);
-  }
-
-  // Copy arguments that are passed on the stack to the appropriate
-  // stack locations.
-  for (SizeT i = 0, e = StackArgs.size(); i < e; ++i) {
-    lowerStore(InstStore::create(Func, StackArgs[i], StackArgLocations[i]));
-  }
-
-  // Copy arguments to be passed in registers to the appropriate
-  // registers.
-  // TODO: Investigate the impact of lowering arguments passed in
-  // registers after lowering stack arguments as opposed to the other
-  // way around.  Lowering register arguments after stack arguments may
-  // reduce register pressure.  On the other hand, lowering register
-  // arguments first (before stack arguments) may result in more compact
-  // code, as the memory operand displacements may end up being smaller
-  // before any stack adjustment is done.
-  for (SizeT i = 0, NumXmmArgs = XmmArgs.size(); i < NumXmmArgs; ++i) {
-    Variable *Reg =
-        legalizeToReg(XmmArgs[i], Traits::RegisterSet::Reg_xmm0 + i);
-    // Generate a FakeUse of register arguments so that they do not get
-    // dead code eliminated as a result of the FakeKill of scratch
-    // registers after the call.
-    Context.insert(InstFakeUse::create(Func, Reg));
-  }
-  // Generate the call instruction.  Assign its result to a temporary
-  // with high register allocation weight.
-  Variable *Dest = Instr->getDest();
-  // ReturnReg doubles as ReturnRegLo as necessary.
-  Variable *ReturnReg = nullptr;
-  Variable *ReturnRegHi = nullptr;
-  if (Dest) {
-    switch (Dest->getType()) {
-    case IceType_NUM:
-      llvm_unreachable("Invalid Call dest type");
-      break;
-    case IceType_void:
-      break;
-    case IceType_i1:
-    case IceType_i8:
-    case IceType_i16:
-    case IceType_i32:
-      ReturnReg = makeReg(Dest->getType(), Traits::RegisterSet::Reg_eax);
-      break;
-    case IceType_i64:
-      ReturnReg = makeReg(IceType_i32, Traits::RegisterSet::Reg_eax);
-      ReturnRegHi = makeReg(IceType_i32, Traits::RegisterSet::Reg_edx);
-      break;
-    case IceType_f32:
-    case IceType_f64:
-      // Leave ReturnReg==ReturnRegHi==nullptr, and capture the result with
-      // the fstp instruction.
-      break;
-    case IceType_v4i1:
-    case IceType_v8i1:
-    case IceType_v16i1:
-    case IceType_v16i8:
-    case IceType_v8i16:
-    case IceType_v4i32:
-    case IceType_v4f32:
-      ReturnReg = makeReg(Dest->getType(), Traits::RegisterSet::Reg_xmm0);
-      break;
-    }
-  }
-  Operand *CallTarget = legalize(Instr->getCallTarget());
-  const bool NeedSandboxing = Ctx->getFlags().getUseSandboxing();
-  if (NeedSandboxing) {
-    if (llvm::isa<Constant>(CallTarget)) {
-      _bundle_lock(InstBundleLock::Opt_AlignToEnd);
-    } else {
-      Variable *CallTargetVar = nullptr;
-      _mov(CallTargetVar, CallTarget);
-      _bundle_lock(InstBundleLock::Opt_AlignToEnd);
-      const SizeT BundleSize =
-          1 << Func->getAssembler<>()->getBundleAlignLog2Bytes();
-      _and(CallTargetVar, Ctx->getConstantInt32(~(BundleSize - 1)));
-      CallTarget = CallTargetVar;
-    }
-  }
-  Inst *NewCall = Traits::Insts::Call::create(Func, ReturnReg, CallTarget);
-  Context.insert(NewCall);
-  if (NeedSandboxing)
-    _bundle_unlock();
-  if (ReturnRegHi)
-    Context.insert(InstFakeDef::create(Func, ReturnRegHi));
-
-  // Add the appropriate offset to esp.  The call instruction takes care
-  // of resetting the stack offset during emission.
-  if (ParameterAreaSizeBytes) {
-    Variable *esp =
-        Func->getTarget()->getPhysicalRegister(Traits::RegisterSet::Reg_esp);
-    _add(esp, Ctx->getConstantInt32(ParameterAreaSizeBytes));
-  }
-
-  // Insert a register-kill pseudo instruction.
-  Context.insert(InstFakeKill::create(Func, NewCall));
-
-  // Generate a FakeUse to keep the call live if necessary.
-  if (Instr->hasSideEffects() && ReturnReg) {
-    Inst *FakeUse = InstFakeUse::create(Func, ReturnReg);
-    Context.insert(FakeUse);
-  }
-
-  if (!Dest)
-    return;
-
-  // Assign the result of the call to Dest.
-  if (ReturnReg) {
-    if (ReturnRegHi) {
-      assert(Dest->getType() == IceType_i64);
-      split64(Dest);
-      Variable *DestLo = Dest->getLo();
-      Variable *DestHi = Dest->getHi();
-      _mov(DestLo, ReturnReg);
-      _mov(DestHi, ReturnRegHi);
-    } else {
-      assert(Dest->getType() == IceType_i32 || Dest->getType() == IceType_i16 ||
-             Dest->getType() == IceType_i8 || Dest->getType() == IceType_i1 ||
-             isVectorType(Dest->getType()));
-      if (isVectorType(Dest->getType())) {
-        _movp(Dest, ReturnReg);
-      } else {
-        _mov(Dest, ReturnReg);
-      }
-    }
-  } else if (isScalarFloatingType(Dest->getType())) {
-    // Special treatment for an FP function which returns its result in
-    // st(0).
-    // If Dest ends up being a physical xmm register, the fstp emit code
-    // will route st(0) through a temporary stack slot.
-    _fstp(Dest);
-    // Create a fake use of Dest in case it actually isn't used,
-    // because st(0) still needs to be popped.
-    Context.insert(InstFakeUse::create(Func, Dest));
-  }
-}
 
 } // end of namespace Ice

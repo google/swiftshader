@@ -98,10 +98,7 @@ public:
   void emit(const ConstantFloat *C) const final;
   void emit(const ConstantDouble *C) const final;
 
-  void lowerArguments() override;
   void initNodeForLowering(CfgNode *Node) override;
-  void addProlog(CfgNode *Node) override;
-  void addEpilog(CfgNode *Node) override;
   /// Ensure that a 64-bit Variable has been split into 2 32-bit
   /// Variables, creating them if necessary.  This is needed for all
   /// I64 operations, and it is needed for pushing F64 arguments for
@@ -136,7 +133,6 @@ protected:
   void lowerInsertElement(const InstInsertElement *Inst) override;
   void lowerLoad(const InstLoad *Inst) override;
   void lowerPhi(const InstPhi *Inst) override;
-  void lowerRet(const InstRet *Inst) override;
   void lowerSelect(const InstSelect *Inst) override;
   void lowerStore(const InstStore *Inst) override;
   void lowerSwitch(const InstSwitch *Inst) override;
