@@ -286,7 +286,8 @@ def ProcessPexe(args, pexe, exe):
             ).format(objcopy=objcopy, partial=obj_partial),
             echo=args.verbose)
         shellcmd((
-            '{objcopy} --globalize-symbol={start} {partial}'
+            '{objcopy} --globalize-symbol={start} ' +
+            '--globalize-symbol=__Sz_block_profile_info {partial}'
             ).format(objcopy=objcopy, partial=obj_partial,
                      start='_start' if args.sandbox else '_user_start'),
                  echo=args.verbose)
