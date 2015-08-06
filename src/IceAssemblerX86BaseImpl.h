@@ -3112,6 +3112,43 @@ void AssemblerX86Base<Machine>::xchg(Type Ty,
   emitOperand(gprEncoding(reg), addr);
 }
 
+template <class Machine> void AssemblerX86Base<Machine>::iaca_start() {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitUint8(0x0F);
+  emitUint8(0x0B);
+
+  // mov $111, ebx
+  constexpr typename Traits::GPRRegister dst =
+      Traits::GPRRegister::Encoded_Reg_ebx;
+  constexpr Type Ty = IceType_i32;
+  emitRexB(Ty, dst);
+  emitUint8(0xB8 + gprEncoding(dst));
+  emitImmediate(Ty, Immediate(111));
+
+  emitUint8(0x64);
+  emitUint8(0x67);
+  emitUint8(0x90);
+}
+
+template <class Machine> void AssemblerX86Base<Machine>::iaca_end() {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+
+  // mov $222, ebx
+  constexpr typename Traits::GPRRegister dst =
+      Traits::GPRRegister::Encoded_Reg_ebx;
+  constexpr Type Ty = IceType_i32;
+  emitRexB(Ty, dst);
+  emitUint8(0xB8 + gprEncoding(dst));
+  emitImmediate(Ty, Immediate(222));
+
+  emitUint8(0x64);
+  emitUint8(0x67);
+  emitUint8(0x90);
+
+  emitUint8(0x0F);
+  emitUint8(0x0B);
+}
+
 template <class Machine>
 void AssemblerX86Base<Machine>::emitSegmentOverride(uint8_t prefix) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);

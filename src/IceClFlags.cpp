@@ -34,6 +34,12 @@ cl::opt<bool> AllowErrorRecovery(
     cl::desc("Allow error recovery when reading PNaCl bitcode."),
     cl::init(false));
 
+cl::opt<bool> AllowIacaMarks(
+    "allow-iaca-marks",
+    cl::desc("Allow IACA (Intel Architecture Code Analyzer) marks to be "
+             "inserted. These binaries are not executable."),
+    cl::init(false));
+
 // This is currently needed by crosstest.py.
 cl::opt<bool> AllowUninitializedGlobals(
     "allow-uninitialized-globals",
@@ -341,6 +347,7 @@ void ClFlags::parseFlags(int argc, char **argv) {
 void ClFlags::resetClFlags(ClFlags &OutFlags) {
   // bool fields
   OutFlags.AllowErrorRecovery = false;
+  OutFlags.AllowIacaMarks = false;
   OutFlags.AllowUninitializedGlobals = false;
   OutFlags.DataSections = false;
   OutFlags.DecorateAsm = false;
@@ -398,6 +405,7 @@ void ClFlags::getParsedClFlags(ClFlags &OutFlags) {
   }
 
   OutFlags.setAllowErrorRecovery(::AllowErrorRecovery);
+  OutFlags.setAllowIacaMarks(::AllowIacaMarks);
   OutFlags.setAllowUninitializedGlobals(::AllowUninitializedGlobals);
   OutFlags.setDataSections(::DataSections);
   OutFlags.setDecorateAsm(::DecorateAsm);

@@ -367,6 +367,18 @@ InstX86Xchg<Machine>::InstX86Xchg(Cfg *Func, Operand *Dest, Variable *Source)
   this->addSource(Source);
 }
 
+template <class Machine>
+InstX86IacaStart<Machine>::InstX86IacaStart(Cfg *Func)
+    : InstX86Base<Machine>(Func, InstX86Base<Machine>::IacaStart, 0, nullptr) {
+  assert(Func->getContext()->getFlags().getAllowIacaMarks());
+}
+
+template <class Machine>
+InstX86IacaEnd<Machine>::InstX86IacaEnd(Cfg *Func)
+    : InstX86Base<Machine>(Func, InstX86Base<Machine>::IacaEnd, 0, nullptr) {
+  assert(Func->getContext()->getFlags().getAllowIacaMarks());
+}
+
 // ======================== Dump routines ======================== //
 
 template <class Machine>
@@ -3154,6 +3166,58 @@ void InstX86Xchg<Machine>::dump(const Cfg *Func) const {
   Type Ty = this->getSrc(0)->getType();
   Str << "xchg." << Ty << " ";
   this->dumpSources(Func);
+}
+
+template <class Machine>
+void InstX86IacaStart<Machine>::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  Str << "\t# IACA_START\n"
+      << "\t.byte 0x0F, 0x0B\n"
+      << "\tmovl\t$111, %ebx\n"
+      << "\t.byte 0x64, 0x67, 0x90";
+}
+
+template <class Machine>
+void InstX86IacaStart<Machine>::emitIAS(const Cfg *Func) const {
+  typename InstX86Base<Machine>::Traits::Assembler *Asm =
+      Func->getAssembler<typename InstX86Base<Machine>::Traits::Assembler>();
+  Asm->iaca_start();
+}
+
+template <class Machine>
+void InstX86IacaStart<Machine>::dump(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrDump();
+  Str << "IACA_START";
+}
+
+template <class Machine>
+void InstX86IacaEnd<Machine>::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  Str << "\t# IACA_END\n"
+      << "\tmovl\t$222, %ebx\n"
+      << "\t.byte 0x64, 0x67, 0x90\n"
+      << "\t.byte 0x0F, 0x0B";
+}
+
+template <class Machine>
+void InstX86IacaEnd<Machine>::emitIAS(const Cfg *Func) const {
+  typename InstX86Base<Machine>::Traits::Assembler *Asm =
+      Func->getAssembler<typename InstX86Base<Machine>::Traits::Assembler>();
+  Asm->iaca_end();
+}
+
+template <class Machine>
+void InstX86IacaEnd<Machine>::dump(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrDump();
+  Str << "IACA_END";
 }
 
 } // end of namespace X86Internal

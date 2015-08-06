@@ -39,6 +39,9 @@ public:
   bool getAllowErrorRecovery() const { return AllowErrorRecovery; }
   void setAllowErrorRecovery(bool NewValue) { AllowErrorRecovery = NewValue; }
 
+  bool getAllowIacaMarks() const { return AllowIacaMarks; }
+  void setAllowIacaMarks(bool NewValue) { AllowIacaMarks = NewValue; }
+
   bool getAllowUninitializedGlobals() const {
     return AllowUninitializedGlobals;
   }
@@ -229,6 +232,7 @@ public:
 
 private:
   bool AllowErrorRecovery;
+  bool AllowIacaMarks;
   bool AllowUninitializedGlobals;
   bool DataSections;
   bool DecorateAsm;

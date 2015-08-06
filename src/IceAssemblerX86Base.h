@@ -833,6 +833,12 @@ public:
   void xchg(Type Ty, const typename Traits::Address &address,
             typename Traits::GPRRegister reg);
 
+  /// \name Intel Architecture Code Analyzer markers.
+  /// @{
+  void iaca_start();
+  void iaca_end();
+  /// @}
+
   void emitSegmentOverride(uint8_t prefix);
 
   intptr_t preferredLoopAlignment() { return 16; }

@@ -132,7 +132,12 @@ public:
     Xadd,
     Xchg,
     Xor,
-    XorRMW
+    XorRMW,
+
+    /// Intel Architecture Code Analyzer markers. These are not executable so
+    /// must only be used for analysis.
+    IacaStart,
+    IacaEnd
   };
 
   static const char *getWidthString(Type Ty);
@@ -2694,6 +2699,53 @@ private:
   InstX86Xchg(Cfg *Func, Operand *Dest, Variable *Source);
 };
 
+/// Start marker for the Intel Architecture Code Analyzer. This is not an
+/// executable instruction and must only be used for analysis.
+template <class Machine>
+class InstX86IacaStart final : public InstX86Base<Machine> {
+  InstX86IacaStart() = delete;
+  InstX86IacaStart(const InstX86IacaStart &) = delete;
+  InstX86IacaStart &operator=(const InstX86IacaStart &) = delete;
+
+public:
+  static InstX86IacaStart *create(Cfg *Func) {
+    return new (Func->allocate<InstX86IacaStart>()) InstX86IacaStart(Func);
+  }
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
+  static bool classof(const Inst *Inst) {
+    return InstX86Base<Machine>::isClassof(Inst,
+                                           InstX86Base<Machine>::IacaStart);
+  }
+
+private:
+  InstX86IacaStart(Cfg *Func);
+};
+
+/// End marker for the Intel Architecture Code Analyzer. This is not an
+/// executable instruction and must only be used for analysis.
+template <class Machine>
+class InstX86IacaEnd final : public InstX86Base<Machine> {
+  InstX86IacaEnd() = delete;
+  InstX86IacaEnd(const InstX86IacaEnd &) = delete;
+  InstX86IacaEnd &operator=(const InstX86IacaEnd &) = delete;
+
+public:
+  static InstX86IacaEnd *create(Cfg *Func) {
+    return new (Func->allocate<InstX86IacaEnd>()) InstX86IacaEnd(Func);
+  }
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
+  static bool classof(const Inst *Inst) {
+    return InstX86Base<Machine>::isClassof(Inst, InstX86Base<Machine>::IacaEnd);
+  }
+
+private:
+  InstX86IacaEnd(Cfg *Func);
+};
+
 /// struct Insts is a template that can be used to instantiate all the X86
 /// instructions for a target with a simple
 ///
@@ -2798,6 +2850,9 @@ template <class Machine> struct Insts {
   using Setcc = InstX86Setcc<Machine>;
   using Xadd = InstX86Xadd<Machine>;
   using Xchg = InstX86Xchg<Machine>;
+
+  using IacaStart = InstX86IacaStart<Machine>;
+  using IacaEnd = InstX86IacaEnd<Machine>;
 };
 
 /// X86 Instructions have static data (particularly, opcodes and instruction
