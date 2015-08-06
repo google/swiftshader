@@ -90,6 +90,8 @@ public:
   CfgNode *makeNode();
   SizeT getNumNodes() const { return Nodes.size(); }
   const NodeList &getNodes() const { return Nodes; }
+  /// Swap nodes of Cfg with given list of nodes.
+  void swapNodes(NodeList &NewNodes);
   /// @}
 
   typedef int32_t IdentifierIndexType;

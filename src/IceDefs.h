@@ -43,6 +43,7 @@
 #include <mutex>
 #include <string>
 #include <system_error>
+#include <unordered_map>
 #include <vector>
 
 namespace Ice {

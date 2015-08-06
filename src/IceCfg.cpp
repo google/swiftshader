@@ -61,6 +61,12 @@ CfgNode *Cfg::makeNode() {
   return Node;
 }
 
+void Cfg::swapNodes(NodeList &NewNodes) {
+  Nodes.swap(NewNodes);
+  for (SizeT I = 0, NumNodes = getNumNodes(); I < NumNodes; ++I)
+    Nodes[I]->resetIndex(I);
+}
+
 void Cfg::addArg(Variable *Arg) {
   Arg->setIsArg();
   Args.push_back(Arg);
@@ -358,14 +364,14 @@ void Cfg::reorderNodes() {
   }
 
   // Reorder Nodes according to the built-up lists.
-  SizeT OldSize = Nodes.size();
-  (void)OldSize;
-  Nodes.clear();
+  NodeList Reordered;
+  Reordered.reserve(Placed.size() + Unreachable.size());
   for (CfgNode *Node : Placed)
-    Nodes.push_back(Node);
+    Reordered.push_back(Node);
   for (CfgNode *Node : Unreachable)
-    Nodes.push_back(Node);
-  assert(Nodes.size() == OldSize);
+    Reordered.push_back(Node);
+  assert(getNumNodes() == Reordered.size());
+  swapNodes(Reordered);
 }
 
 namespace {
@@ -400,15 +406,14 @@ void Cfg::shuffleNodes() {
     if (ToVisit[Node->getIndex()])
       Unreachable.push_back(Node);
   // Copy the layout list to the Nodes.
-  SizeT OldSize = Nodes.size();
-  (void)OldSize;
-  Nodes.clear();
+  NodeList Shuffled;
+  Shuffled.reserve(ReversedReachable.size() + Unreachable.size());
   for (CfgNode *Node : reverse_range(ReversedReachable))
-    Nodes.emplace_back(Node);
-  for (CfgNode *Node : Unreachable) {
-    Nodes.emplace_back(Node);
-  }
-  assert(Nodes.size() == OldSize);
+    Shuffled.push_back(Node);
+  for (CfgNode *Node : Unreachable)
+    Shuffled.push_back(Node);
+  assert(Nodes.size() == Shuffled.size());
+  swapNodes(Shuffled);
 
   dump("After basic block shuffling");
 }

@@ -23,7 +23,6 @@
 #include "IceTargetLowering.h"
 
 #include <type_traits>
-#include <unordered_map>
 #include <utility>
 
 namespace Ice {

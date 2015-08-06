@@ -1215,7 +1215,8 @@ public:
       Func->setFunctionName(FuncDecl->getName());
       Func->setReturnType(Signature.getReturnType());
       Func->setInternal(FuncDecl->getLinkage() == GlobalValue::InternalLinkage);
-      CurrentNode = installNextBasicBlock();
+      constexpr NaClBcIndexSize_t EntryBlock = 0;
+      CurrentNode = getBasicBlock(EntryBlock);
       Func->setEntryNode(CurrentNode);
       for (Ice::Type ArgType : Signature.getArgList()) {
         Func->addArg(getNextInstVar(ArgType));
@@ -1283,14 +1284,30 @@ public:
     return Op;
   }
 
+  // Returns the Index-th basic block in the list of basic blocks.
+  Ice::CfgNode *getBasicBlock(NaClBcIndexSize_t Index) {
+    assert(!isIRGenerationDisabled());
+    Ice::CfgNode *&Node = BbMap[Index];
+    if (Node == nullptr)
+      Node = Func->makeNode();
+    return Node;
+  }
+
 private:
+  typedef std::unordered_map<NaClBcIndexSize_t, Ice::CfgNode *> CfgNodeMap;
+
   Ice::TimerMarker Timer;
   // The corresponding ICE function defined by the function block.
   std::unique_ptr<Ice::Cfg> Func;
+  // The specified number of basic blocks in the bitcode file.
+  NaClBcIndexSize_t SpecifiedNumBbs = 0;
   // The index to the current basic block being built.
   NaClBcIndexSize_t CurrentBbIndex = 0;
   // The basic block being built.
   Ice::CfgNode *CurrentNode = nullptr;
+  // Map from basic block id (as defined in the bitcode file) to
+  // the corresponding basic block that implements it.
+  CfgNodeMap BbMap;
   // The ID for the function.
   NaClBcIndexSize_t FcnId;
   // The corresponding function declaration.
@@ -1333,27 +1350,7 @@ private:
 
   void ExitBlock() override;
 
-  // Creates and appends a new basic block to the list of basic blocks.
-  Ice::CfgNode *installNextBasicBlock() {
-    assert(!isIRGenerationDisabled());
-    return Func->makeNode();
-  }
-
-  // Returns the Index-th basic block in the list of basic blocks.
-  Ice::CfgNode *getBasicBlock(NaClBcIndexSize_t Index) {
-    assert(!isIRGenerationDisabled());
-    const Ice::NodeList &Nodes = Func->getNodes();
-    if (Index >= Nodes.size()) {
-      std::string Buffer;
-      raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Reference to basic block " << Index
-             << " not found. Must be less than " << Nodes.size();
-      Error(StrBuf.str());
-      // TODO(kschimpf) Remove error recovery once implementation complete.
-      Index = 0;
-    }
-    return Nodes[Index];
-  }
+  bool verifyAndRenameBasicBlocks();
 
   // Returns the Index-th basic block in the list of basic blocks.
   // Assumes Index corresponds to a branch instruction. Hence, if
@@ -1961,6 +1958,44 @@ private:
   }
 };
 
+bool FunctionParser::verifyAndRenameBasicBlocks() {
+  const size_t NumFoundBbs = BbMap.size();
+  // Verify number of basic blocks found match amount specified in function.
+  if (NumFoundBbs != SpecifiedNumBbs) {
+    std::string Buffer;
+    raw_string_ostream StrBuf(Buffer);
+    StrBuf << "Function specified " << SpecifiedNumBbs
+           << "basic blocks. Found: " << NumFoundBbs;
+    Error(StrBuf.str());
+    return false;
+  }
+  // Verify size limit allowed for basic blocks.
+  if (NumFoundBbs > NaClBcIndexSize_t_Max) {
+    std::string Buffer;
+    raw_string_ostream StrBuf(Buffer);
+    StrBuf << "Functions can't define more than " << NaClBcIndexSize_t_Max
+           << "basic blocks. Found: " << NumFoundBbs;
+    Error(StrBuf.str());
+    return false;
+  }
+  // Sort list of Bbs, verifying that no basic blocks are missing.
+  Ice::NodeList SortedBbs;
+  for (size_t i = 0; i < NumFoundBbs; ++i) {
+    CfgNodeMap::iterator pos = BbMap.find(i);
+    if (pos == BbMap.end()) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Can't find definition for basic block " << i << ".";
+      Error(StrBuf.str());
+      return false;
+    }
+    SortedBbs.push_back(pos->second);
+  }
+  // Install sorted basic blocks.
+  Func->swapNodes(SortedBbs);
+  return true;
+}
+
 void FunctionParser::ExitBlock() {
   // Check if the last instruction in the function was terminating.
   if (!InstIsTerminating) {
@@ -1971,6 +2006,8 @@ void FunctionParser::ExitBlock() {
     CurrentNode->appendInst(Ice::InstUnreachable::create(Func.get()));
   }
   if (isIRGenerationDisabled())
+    return;
+  if (!verifyAndRenameBasicBlocks())
     return;
   // Before translating, check for blocks without instructions, and
   // insert unreachable. This shouldn't happen, but be safe.
@@ -2030,14 +2067,11 @@ void FunctionParser::ProcessRecord() {
     }
     if (isIRGenerationDisabled())
       return;
-    if (Func->getNodes().size() != 1) {
+    if (SpecifiedNumBbs != 0) {
       Error("Duplicate function block count record");
       return;
     }
-    // Install the basic blocks, skipping bb0 which was created in the
-    // constructor.
-    for (size_t i = 1, NumBbs = NumBbsRaw; i < NumBbs; ++i)
-      installNextBasicBlock();
+    SpecifiedNumBbs = NumBbsRaw;
     return;
   }
   case naclbitc::FUNC_CODE_INST_BINOP: {
@@ -2861,15 +2895,13 @@ void FunctionValuesymtabParser::setValueName(NaClBcIndexSize_t Index,
 
 void FunctionValuesymtabParser::setBbName(NaClBcIndexSize_t Index,
                                           StringType &Name) {
+  if (!Ice::BuildDefs::dump())
+    return;
   if (isIRGenerationDisabled())
     return;
-  if (Index >= getFunctionParser()->getFunc()->getNumNodes()) {
-    reportUnableToAssign("block", Index, Name);
-    return;
-  }
+  Ice::CfgNode *Bb = getFunctionParser()->getBasicBlock(Index);
   std::string Nm(Name.data(), Name.size());
-  if (Ice::BuildDefs::dump())
-    getFunctionParser()->getFunc()->getNodes()[Index]->setName(Nm);
+  Bb->setName(Nm);
 }
 
 bool FunctionParser::ParseBlock(unsigned BlockID) {
