@@ -306,24 +306,11 @@ public:
     }
   }
 
-  /// Creates Count global variable declarations.
-  void createGlobalVariables(NaClBcIndexSize_t Count) {
+  /// Adds the given global declaration to the end of the list of global
+  /// declarations.
+  void addGlobalDeclaration(Ice::VariableDeclaration *Decl) {
     assert(VariableDeclarations);
-    assert(VariableDeclarations->empty());
-    for (size_t i = 0; i < Count; ++i) {
-      VariableDeclarations->push_back(
-          Ice::VariableDeclaration::create(getTranslator().getContext()));
-    }
-  }
-
-  /// Returns the number of global variable declarations in the
-  /// bitcode file.
-  size_t getNumGlobalVariables() const {
-    if (VariableDeclarations) {
-      return VariableDeclarations->size();
-    } else {
-      return ValueIDConstants.size() - FunctionDeclarationList.size();
-    }
+    VariableDeclarations->push_back(Decl);
   }
 
   /// Returns the global variable declaration with the given index.
@@ -955,6 +942,7 @@ public:
   GlobalsParser(unsigned BlockID, BlockParserBaseClass *EnclosingParser)
       : BlockParserBaseClass(BlockID, EnclosingParser),
         Timer(Ice::TimerStack::TT_parseGlobals, getTranslator().getContext()),
+        NumFunctionIDs(Context->getNumFunctionIDs()),
         DummyGlobalVar(
             Ice::VariableDeclaration::create(getTranslator().getContext())),
         CurGlobalVar(DummyGlobalVar) {}
@@ -964,7 +952,21 @@ public:
   const char *getBlockName() const override { return "globals"; }
 
 private:
+  typedef std::unordered_map<NaClBcIndexSize_t, Ice::VariableDeclaration *>
+      GlobalVarsMapType;
+
   Ice::TimerMarker Timer;
+
+  // Holds global variables generated/referenced in the global variables block.
+  GlobalVarsMapType GlobalVarsMap;
+
+  // Holds the number of defined function IDs.
+  NaClBcIndexSize_t NumFunctionIDs;
+
+  // Holds the specified number of global variables by the count record in
+  // the global variables block.
+  NaClBcIndexSize_t SpecifiedNumberVars = 0;
+
   // Keeps track of how many initializers are expected for the global variable
   // declaration being built.
   NaClBcIndexSize_t InitializersNeeded = 0;
@@ -980,16 +982,43 @@ private:
   // Holds the current global variable declaration being built.
   Ice::VariableDeclaration *CurGlobalVar;
 
-  void ExitBlock() override {
-    verifyNoMissingInitializers();
-    unsigned NumIDs = Context->getNumGlobalVariables();
-    if (NextGlobalID < NumIDs) {
+  // Returns the global variable associated with the given Index.
+  Ice::VariableDeclaration *getGlobalVarByID(NaClBcIndexSize_t Index) {
+    Ice::VariableDeclaration *&Decl = GlobalVarsMap[Index];
+    if (Decl == nullptr)
+      Decl = Ice::VariableDeclaration::create(getTranslator().getContext());
+    return Decl;
+  }
+
+  // Returns the global declaration associated with the given index.
+  Ice::GlobalDeclaration *getGlobalDeclByID(NaClBcIndexSize_t Index) {
+    if (Index < NumFunctionIDs)
+      return Context->getFunctionByID(Index);
+    return getGlobalVarByID(Index - NumFunctionIDs);
+  }
+
+  // If global variables parsed correctly, install them into the top-level
+  // context.
+  void installGlobalVariables() {
+    // Verify specified number of globals matches number found.
+    size_t NumGlobals = GlobalVarsMap.size();
+    if (SpecifiedNumberVars != NumGlobals ||
+        SpecifiedNumberVars != NextGlobalID) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
-      StrBuf << getBlockName() << " block expects " << NumIDs
-             << " global variable declarations. Found: " << NextGlobalID;
+      StrBuf << getBlockName() << " block expects " << SpecifiedNumberVars
+             << " global variables. Found: " << GlobalVarsMap.size();
       Error(StrBuf.str());
+      return;
     }
+    // Install global variables into top-level context.
+    for (size_t I = 0; I < NumGlobals; ++I)
+      Context->addGlobalDeclaration(GlobalVarsMap[I]);
+  }
+
+  void ExitBlock() override {
+    verifyNoMissingInitializers();
+    installGlobalVariables();
     BlockParserBaseClass::ExitBlock();
   }
 
@@ -1022,20 +1051,23 @@ void GlobalsParser::ProcessRecord() {
     // COUNT: [n]
     if (!isValidRecordSize(1, "count"))
       return;
-    if (NextGlobalID != Context->getNumGlobalVariables()) {
+    if (SpecifiedNumberVars || NextGlobalID) {
       Error("Globals count record not first in block.");
       return;
     }
-    Context->createGlobalVariables(Values[0]);
+    SpecifiedNumberVars = Values[0];
     return;
   case naclbitc::GLOBALVAR_VAR: {
     // VAR: [align, isconst]
     if (!isValidRecordSize(2, "variable"))
       return;
     verifyNoMissingInitializers();
+    // Always build the global variable, even if IR generation is turned off.
+    // This is needed because we need a placeholder in the top-level context
+    // when no IR is generated.
+    CurGlobalVar = getGlobalVarByID(NextGlobalID);
     if (!isIRGenerationDisabled()) {
       InitializersNeeded = 1;
-      CurGlobalVar = Context->getGlobalVariableByID(NextGlobalID);
       CurGlobalVar->setAlignment((1 << Values[0]) >> 1);
       CurGlobalVar->setIsConstant(Values[1] != 0);
     }
@@ -1088,7 +1120,15 @@ void GlobalsParser::ProcessRecord() {
       return;
     if (isIRGenerationDisabled())
       return;
-    unsigned Index = Values[0];
+    NaClBcIndexSize_t Index = Values[0];
+    NaClBcIndexSize_t IndexLimit = SpecifiedNumberVars + NumFunctionIDs;
+    if (Index >= IndexLimit) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Relocation index " << Index << " to big. Expect index < "
+             << IndexLimit;
+      Error(StrBuf.str());
+    }
     uint64_t Offset = 0;
     if (Values.size() == 2) {
       Offset = Values[1];
@@ -1101,7 +1141,7 @@ void GlobalsParser::ProcessRecord() {
     }
     CurGlobalVar->addInitializer(
         Ice::VariableDeclaration::RelocInitializer::create(
-            Context->getGlobalDeclarationByID(Index), Offset));
+            getGlobalDeclByID(Index), Offset));
     return;
   }
   default:
