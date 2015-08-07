@@ -153,7 +153,9 @@ protected:
                       Operand *Val);
   void lowerCountZeros(bool Cttz, Type Ty, Variable *Dest, Operand *FirstVal,
                        Operand *SecondVal);
-  /// Replace a function call with inline instructions.
+  /// Replace a call to memcpy with inline instructions.
+  void lowerMemcpy(Operand *Dest, Operand *Src, Operand *Count);
+  /// Replace a call to memset with inline instructions.
   void lowerMemset(Operand *Dest, Operand *Val, Operand *Count);
 
   /// Lower an indirect jump adding sandboxing when needed.

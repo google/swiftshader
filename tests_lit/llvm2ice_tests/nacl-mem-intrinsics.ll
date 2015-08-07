@@ -30,21 +30,123 @@ entry:
 ; ARM32-LABEL: test_memcpy
 ; ARM32: bl {{.*}} memcpy
 
-; TODO(jvoung) -- if we want to be clever, we can do this and the memmove,
-; memset without a function call.
-define void @test_memcpy_const_len_align(i32 %iptr_dst, i32 %iptr_src) {
+define void @test_memcpy_long_const_len(i32 %iptr_dst, i32 %iptr_src) {
 entry:
   %dst = inttoptr i32 %iptr_dst to i8*
   %src = inttoptr i32 %iptr_src to i8*
   call void @llvm.memcpy.p0i8.p0i8.i32(i8* %dst, i8* %src,
-                                       i32 32, i32 1, i1 false)
+                                       i32 4876, i32 1, i1 false)
   ret void
 }
-; CHECK-LABEL: test_memcpy_const_len_align
+; CHECK-LABEL: test_memcpy_long_const_len
 ; CHECK: call {{.*}} R_{{.*}} memcpy
-; ARM32-LABEL: test_memcpy_const_len_align
+; ARM32-LABEL: test_memcpy_long_const_len
 ; ARM32: bl {{.*}} memcpy
 
+define void @test_memcpy_very_small_const_len(i32 %iptr_dst, i32 %iptr_src) {
+entry:
+  %dst = inttoptr i32 %iptr_dst to i8*
+  %src = inttoptr i32 %iptr_src to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %dst, i8* %src,
+                                       i32 2, i32 1, i1 false)
+  ret void
+}
+; CHECK-LABEL: test_memcpy_very_small_const_len
+; CHECK: mov [[REG:[^,]*]],WORD PTR [{{.*}}]
+; CHECK-NEXT: mov WORD PTR [{{.*}}],[[REG]]
+; CHECK-NOT: mov
+; ARM32-LABEL: test_memcpy_very_small_const_len
+; ARM32: bl {{.*}} memcpy
+
+define void @test_memcpy_const_len_3(i32 %iptr_dst, i32 %iptr_src) {
+entry:
+  %dst = inttoptr i32 %iptr_dst to i8*
+  %src = inttoptr i32 %iptr_src to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %dst, i8* %src,
+                                       i32 3, i32 1, i1 false)
+  ret void
+}
+; CHECK-LABEL: test_memcpy_const_len_3
+; CHECK: mov [[REG:[^,]*]],WORD PTR [{{.*}}]
+; CHECK-NEXT: mov WORD PTR [{{.*}}],[[REG]]
+; CHECK-NEXT: mov [[REG:[^,]*]],BYTE PTR [{{.*}}+0x2]
+; CHECK-NEXT: mov BYTE PTR [{{.*}}+0x2],[[REG]]
+; CHECK-NOT: mov
+; ARM32-LABEL: test_memcpy_const_len_3
+; ARM32: bl {{.*}} memcpy
+
+define void @test_memcpy_mid_const_len(i32 %iptr_dst, i32 %iptr_src) {
+entry:
+  %dst = inttoptr i32 %iptr_dst to i8*
+  %src = inttoptr i32 %iptr_src to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %dst, i8* %src,
+                                       i32 9, i32 1, i1 false)
+  ret void
+}
+; CHECK-LABEL: test_memcpy_mid_const_len
+; CHECK: movq [[REG:xmm[0-9]+]],QWORD PTR [{{.*}}]
+; CHECK-NEXT: movq QWORD PTR [{{.*}}],[[REG]]
+; CHECK-NEXT: mov [[REG:[^,]*]],BYTE PTR [{{.*}}+0x8]
+; CHECK-NEXT: mov BYTE PTR [{{.*}}+0x8],[[REG]]
+; CHECK-NOT: mov
+; ARM32-LABEL: test_memcpy_mid_const_len
+; ARM32: bl {{.*}} memcpy
+
+define void @test_memcpy_mid_const_len_overlap(i32 %iptr_dst, i32 %iptr_src) {
+entry:
+  %dst = inttoptr i32 %iptr_dst to i8*
+  %src = inttoptr i32 %iptr_src to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %dst, i8* %src,
+                                       i32 15, i32 1, i1 false)
+  ret void
+}
+; CHECK-LABEL: test_memcpy_mid_const_len_overlap
+; CHECK: movq [[REG:xmm[0-9]+]],QWORD PTR [{{.*}}]
+; CHECK-NEXT: movq QWORD PTR [{{.*}}],[[REG]]
+; CHECK-NEXT: movq [[REG:xmm[0-9]+]],QWORD PTR [{{.*}}+0x7]
+; CHECK-NEXT: movq QWORD PTR [{{.*}}+0x7],[[REG]]
+; CHECK-NOT: mov
+; ARM32-LABEL: test_memcpy_mid_const_len_overlap
+; ARM32: bl {{.*}} memcpy
+
+define void @test_memcpy_large_const_len_overlap(i32 %iptr_dst, i32 %iptr_src) {
+entry:
+  %dst = inttoptr i32 %iptr_dst to i8*
+  %src = inttoptr i32 %iptr_src to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %dst, i8* %src,
+                                       i32 30, i32 1, i1 false)
+  ret void
+}
+; CHECK-LABEL: test_memcpy_large_const_len_overlap
+; CHECK: movups [[REG:xmm[0-9]+]],XMMWORD PTR [{{.*}}]
+; CHECK-NEXT: movups XMMWORD PTR [{{.*}}],[[REG]]
+; CHECK-NEXT: movups [[REG:xmm[0-9]+]],XMMWORD PTR [{{.*}}+0xe]
+; CHECK-NEXT: movups XMMWORD PTR [{{.*}}+0xe],[[REG]]
+; CHECK-NOT: mov
+; ARM32-LABEL: test_memcpy_large_const_len_overlap
+; ARM32: bl {{.*}} memcpy
+
+define void @test_memcpy_large_const_len(i32 %iptr_dst, i32 %iptr_src) {
+entry:
+  %dst = inttoptr i32 %iptr_dst to i8*
+  %src = inttoptr i32 %iptr_src to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %dst, i8* %src,
+                                       i32 33, i32 1, i1 false)
+  ret void
+}
+; CHECK-LABEL: test_memcpy_large_const_len
+; CHECK: movups [[REG:xmm[0-9]+]],XMMWORD PTR [{{.*}}+0x10]
+; CHECK-NEXT: movups XMMWORD PTR [{{.*}}+0x10],[[REG]]
+; CHECK-NEXT: movups [[REG:xmm[0-9]+]],XMMWORD PTR [{{.*}}]
+; CHECK-NEXT: movups XMMWORD PTR [{{.*}}],[[REG]]
+; CHECK-NEXT: mov [[REG:[^,]*]],BYTE PTR [{{.*}}+0x20]
+; CHECK-NEXT: mov BYTE PTR [{{.*}}+0x20],[[REG]]
+; CHECK-NOT: mov
+; ARM32-LABEL: test_memcpy_large_const_len
+; ARM32: bl {{.*}} memcpy
+
+; TODO(jvoung) -- if we want to be clever, we can do memset without a function
+; call similar to memcpy.
 define void @test_memmove(i32 %iptr_dst, i32 %iptr_src, i32 %len) {
 entry:
   %dst = inttoptr i32 %iptr_dst to i8*
