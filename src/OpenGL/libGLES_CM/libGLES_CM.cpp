@@ -2860,7 +2860,15 @@ void LoadMatrixf(const GLfloat *m)
 
 void LoadMatrixx(const GLfixed *m)
 {
-	UNIMPLEMENTED();
+	GLfloat matrix[16] =
+	{
+		(float)m[0] / 0x10000,  (float)m[1] / 0x10000,  (float)m[2] / 0x10000,  (float)m[3] / 0x10000,
+		(float)m[4] / 0x10000,  (float)m[5] / 0x10000,  (float)m[6] / 0x10000,  (float)m[7] / 0x10000,
+		(float)m[8] / 0x10000,  (float)m[9] / 0x10000,  (float)m[10] / 0x10000, (float)m[11] / 0x10000,
+		(float)m[12] / 0x10000, (float)m[13] / 0x10000, (float)m[14] / 0x10000, (float)m[15] / 0x10000
+	};
+
+	LoadMatrixf(matrix);
 }
 
 void LogicOp(GLenum opcode)
@@ -3008,7 +3016,15 @@ void MultMatrixf(const GLfloat *m)
 
 void MultMatrixx(const GLfixed *m)
 {
-	UNIMPLEMENTED();
+	GLfloat matrix[16] =
+	{
+		(float)m[0] / 0x10000,  (float)m[1] / 0x10000,  (float)m[2] / 0x10000,  (float)m[3] / 0x10000,
+		(float)m[4] / 0x10000,  (float)m[5] / 0x10000,  (float)m[6] / 0x10000,  (float)m[7] / 0x10000,
+		(float)m[8] / 0x10000,  (float)m[9] / 0x10000,  (float)m[10] / 0x10000, (float)m[11] / 0x10000,
+		(float)m[12] / 0x10000, (float)m[13] / 0x10000, (float)m[14] / 0x10000, (float)m[15] / 0x10000
+	};
+
+	MultMatrixf(matrix);
 }
 
 void MultiTexCoord4f(GLenum target, GLfloat s, GLfloat t, GLfloat r, GLfloat q)
