@@ -463,6 +463,7 @@ public:
   void setLiveRange(const LiveRange &Range) { Live = Range; }
   void resetLiveRange() { Live.reset(); }
   void addLiveRange(InstNumberT Start, InstNumberT End, uint32_t WeightDelta) {
+    assert(!getIgnoreLiveness());
     assert(WeightDelta != RegWeight::Inf);
     Live.addSegment(Start, End);
     if (Weight.isInf())

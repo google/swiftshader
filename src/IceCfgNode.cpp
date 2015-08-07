@@ -667,15 +667,13 @@ void CfgNode::livenessAddIntervals(Liveness *Liveness, InstNumberT FirstInstNum,
   std::sort(MapBegin.begin(), MapBegin.end());
   std::sort(MapEnd.begin(), MapEnd.end());
   // Verify there are no duplicates.
-  struct ComparePair {
-    bool operator()(const LiveBeginEndMapEntry &A,
-                    const LiveBeginEndMapEntry &B) {
-      return A.first == B.first;
-    }
-  };
-  assert(std::adjacent_find(MapBegin.begin(), MapBegin.end(), ComparePair()) ==
+  auto ComparePair =
+      [](const LiveBeginEndMapEntry &A, const LiveBeginEndMapEntry &B) {
+        return A.first == B.first;
+      };
+  assert(std::adjacent_find(MapBegin.begin(), MapBegin.end(), ComparePair) ==
          MapBegin.end());
-  assert(std::adjacent_find(MapEnd.begin(), MapEnd.end(), ComparePair()) ==
+  assert(std::adjacent_find(MapEnd.begin(), MapEnd.end(), ComparePair) ==
          MapEnd.end());
 
   LivenessBV LiveInAndOut = LiveIn;
@@ -700,21 +698,16 @@ void CfgNode::livenessAddIntervals(Liveness *Liveness, InstNumberT FirstInstNum,
     InstNumberT LE = i == i2 ? IEB->second : LastInstNum + 1;
 
     Variable *Var = Liveness->getVariable(i, this);
-    // TODO(stichnot): Push getIgnoreLiveness() into the initialization of
-    // Liveness::RangeMask so that LiveBegin and LiveEnd never even reference
-    // such variables.
-    if (!Var->getIgnoreLiveness()) {
-      if (LB > LE) {
-        Var->addLiveRange(FirstInstNum, LE, 1);
-        Var->addLiveRange(LB, LastInstNum + 1, 1);
-        // Assert that Var is a global variable by checking that its
-        // liveness index is less than the number of globals.  This
-        // ensures that the LiveInAndOut[] access is valid.
-        assert(i < Liveness->getNumGlobalVars());
-        LiveInAndOut[i] = false;
-      } else {
-        Var->addLiveRange(LB, LE, 1);
-      }
+    if (LB > LE) {
+      Var->addLiveRange(FirstInstNum, LE, 1);
+      Var->addLiveRange(LB, LastInstNum + 1, 1);
+      // Assert that Var is a global variable by checking that its
+      // liveness index is less than the number of globals.  This
+      // ensures that the LiveInAndOut[] access is valid.
+      assert(i < Liveness->getNumGlobalVars());
+      LiveInAndOut[i] = false;
+    } else {
+      Var->addLiveRange(LB, LE, 1);
     }
     if (i == i1)
       ++IBB;

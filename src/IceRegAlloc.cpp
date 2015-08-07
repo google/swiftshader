@@ -178,7 +178,8 @@ void LinearScan::initForInfOnly() {
       if (Inst.isDeleted())
         continue;
       if (const Variable *Var = Inst.getDest()) {
-        if (Var->hasReg() || Var->getWeight().isInf()) {
+        if (!Var->getIgnoreLiveness() &&
+            (Var->hasReg() || Var->getWeight().isInf())) {
           if (LRBegin[Var->getIndex()] == Inst::NumberSentinel) {
             LRBegin[Var->getIndex()] = Inst.getNumber();
             ++NumVars;
@@ -190,6 +191,8 @@ void LinearScan::initForInfOnly() {
         SizeT NumVars = Src->getNumVars();
         for (SizeT J = 0; J < NumVars; ++J) {
           const Variable *Var = Src->getVar(J);
+          if (Var->getIgnoreLiveness())
+            continue;
           if (Var->hasReg() || Var->getWeight().isInf())
             LREnd[Var->getIndex()] = Inst.getNumber();
         }

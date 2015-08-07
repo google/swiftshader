@@ -71,8 +71,12 @@ void Liveness::initInternal(NodeList::const_iterator FirstNode,
   if (IsFullInit)
     LiveToVarMap.assign(NumGlobals, nullptr);
 
-  // Sort each variable into the appropriate LiveToVarMap.  Also set
-  // VarToLiveMap.
+  // Initialize the bitmask of which variables to track.
+  RangeMask.resize(NumVars);
+  RangeMask.set(0, NumVars); // Track all variables by default.
+
+  // Sort each variable into the appropriate LiveToVarMap.  Set VarToLiveMap.
+  // Set RangeMask correctly for each variable.
   TmpNumGlobals = 0;
   for (auto I = FirstVar, E = Func->getVariables().end(); I != E; ++I) {
     Variable *Var = *I;
@@ -88,8 +92,19 @@ void Liveness::initInternal(NodeList::const_iterator FirstNode,
       LiveIndex += NumGlobals;
     }
     VarToLiveMap[VarIndex] = LiveIndex;
+    if (Var->getIgnoreLiveness())
+      RangeMask[VarIndex] = false;
   }
   assert(TmpNumGlobals == (IsFullInit ? NumGlobals : 0));
+
+  // Fix up RangeMask for variables before FirstVar.
+  for (auto I = Func->getVariables().begin(); I != FirstVar; ++I) {
+    Variable *Var = *I;
+    SizeT VarIndex = Var->getIndex();
+    if (Var->getIgnoreLiveness() ||
+        (!IsFullInit && !Var->hasReg() && !Var->getWeight().isInf()))
+      RangeMask[VarIndex] = false;
+  }
 
   // Process each node.
   for (auto I = FirstNode, E = Func->getNodes().end(); I != E; ++I) {
@@ -99,17 +114,6 @@ void Liveness::initInternal(NodeList::const_iterator FirstNode,
     Node.LiveOut.resize(NumGlobals);
     // LiveBegin and LiveEnd are reinitialized before each pass over
     // the block.
-  }
-
-  // Initialize the bitmask of which variables to track.
-  RangeMask.resize(NumVars);
-  RangeMask.set(0, NumVars);
-  if (!IsFullInit) {
-    // Reset initial variables that are not pre-colored or infinite-weight.
-    for (auto I = Func->getVariables().begin(); I != FirstVar; ++I) {
-      Variable *Var = *I;
-      RangeMask[Var->getIndex()] = (Var->hasReg() || Var->getWeight().isInf());
-    }
   }
 }
 
