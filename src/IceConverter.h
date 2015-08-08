@@ -34,7 +34,7 @@ public:
   Converter(llvm::Module *Mod, GlobalContext *Ctx)
       : Translator(Ctx), Mod(Mod) {}
 
-  ~Converter() = default;
+  ~Converter() override = default;
 
   /// Converts the LLVM Module to ICE. Sets exit status to false if successful,
   /// true otherwise.

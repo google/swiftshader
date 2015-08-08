@@ -34,6 +34,7 @@ class PNaClTranslator : public Translator {
 
 public:
   explicit PNaClTranslator(GlobalContext *Ctx) : Translator(Ctx) {}
+  ~PNaClTranslator() override = default;
 
   /// Reads the PNaCl bitcode file and translates to ICE, which is then
   /// converted to machine code. Sets ErrorStatus to 1 if any errors

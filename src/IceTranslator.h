@@ -41,7 +41,7 @@ class Translator {
 public:
   explicit Translator(GlobalContext *Ctx);
 
-  ~Translator();
+  virtual ~Translator() = default;
   const ErrorCode &getErrorStatus() const { return ErrorStatus; }
 
   GlobalContext *getContext() const { return Ctx; }

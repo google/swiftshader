@@ -27,8 +27,6 @@ Translator::Translator(GlobalContext *Ctx)
     : Ctx(Ctx), NextSequenceNumber(GlobalContext::getFirstSequenceNumber()),
       ErrorStatus() {}
 
-Translator::~Translator() = default;
-
 IceString Translator::createUnnamedName(const IceString &Prefix, SizeT Index) {
   if (Index == 0)
     return Prefix;

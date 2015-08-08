@@ -655,7 +655,7 @@ class LLVM2ICEGlobalsConverter : public LLVM2ICEConverter {
   LLVM2ICEGlobalsConverter() = delete;
   LLVM2ICEGlobalsConverter(const LLVM2ICEGlobalsConverter &) = delete;
   LLVM2ICEGlobalsConverter &
-  operator-(const LLVM2ICEGlobalsConverter &) = delete;
+  operator=(const LLVM2ICEGlobalsConverter &) = delete;
 
 public:
   explicit LLVM2ICEGlobalsConverter(Ice::Converter &Converter)
