@@ -190,7 +190,7 @@ protected:
   }
   void _adds(Variable *Dest, Variable *Src0, Operand *Src1,
              CondARM32::Cond Pred = CondARM32::AL) {
-    const bool SetFlags = true;
+    constexpr bool SetFlags = true;
     Context.insert(
         InstARM32Add::create(Func, Dest, Src0, Src1, Pred, SetFlags));
   }
@@ -300,7 +300,7 @@ protected:
   }
   void _orrs(Variable *Dest, Variable *Src0, Operand *Src1,
              CondARM32::Cond Pred = CondARM32::AL) {
-    const bool SetFlags = true;
+    constexpr bool SetFlags = true;
     Context.insert(
         InstARM32Orr::create(Func, Dest, Src0, Src1, Pred, SetFlags));
   }
@@ -334,7 +334,7 @@ protected:
   }
   void _sbcs(Variable *Dest, Variable *Src0, Operand *Src1,
              CondARM32::Cond Pred = CondARM32::AL) {
-    const bool SetFlags = true;
+    constexpr bool SetFlags = true;
     Context.insert(
         InstARM32Sbc::create(Func, Dest, Src0, Src1, Pred, SetFlags));
   }
@@ -352,7 +352,7 @@ protected:
   }
   void _subs(Variable *Dest, Variable *Src0, Operand *Src1,
              CondARM32::Cond Pred = CondARM32::AL) {
-    const bool SetFlags = true;
+    constexpr bool SetFlags = true;
     Context.insert(
         InstARM32Sub::create(Func, Dest, Src0, Src1, Pred, SetFlags));
   }
@@ -380,6 +380,41 @@ protected:
   void _uxt(Variable *Dest, Variable *Src0,
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Uxt::create(Func, Dest, Src0, Pred));
+  }
+  void _vadd(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert(InstARM32Vadd::create(Func, Dest, Src0, Src1));
+  }
+  void _vdiv(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert(InstARM32Vdiv::create(Func, Dest, Src0, Src1));
+  }
+  void _vldr(Variable *Dest, OperandARM32Mem *Src,
+             CondARM32::Cond Pred = CondARM32::AL) {
+    Context.insert(InstARM32Vldr::create(Func, Dest, Src, Pred));
+  }
+  // There are a whole bunch of vmov variants, to transfer within
+  // S/D/Q registers, between core integer registers and S/D,
+  // and from small immediates into S/D.
+  // For integer -> S/D/Q there is a variant which takes two integer
+  // register to fill a D, or to fill two consecutive S registers.
+  // Vmov can also be used to insert-element. E.g.,
+  //    "vmov.8 d0[1], r0"
+  // but insert-element is a "two-address" operation where only part of the
+  // register is modified. This cannot model that.
+  //
+  // This represents the simple single source, single dest variants only.
+  void _vmov(Variable *Dest, Operand *Src0) {
+    constexpr CondARM32::Cond Pred = CondARM32::AL;
+    Context.insert(InstARM32Vmov::create(Func, Dest, Src0, Pred));
+  }
+  void _vmul(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert(InstARM32Vmul::create(Func, Dest, Src0, Src1));
+  }
+  void _vsqrt(Variable *Dest, Variable *Src,
+              CondARM32::Cond Pred = CondARM32::AL) {
+    Context.insert(InstARM32Vsqrt::create(Func, Dest, Src, Pred));
+  }
+  void _vsub(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert(InstARM32Vsub::create(Func, Dest, Src0, Src1));
   }
 
   /// Run a pass through stack variables and ensure that the offsets are legal.
@@ -417,16 +452,20 @@ protected:
     CallingConv &operator=(const CallingConv &) = delete;
 
   public:
-    CallingConv() : NumGPRRegsUsed(0) {}
+    CallingConv() {}
     ~CallingConv() = default;
 
     bool I64InRegs(std::pair<int32_t, int32_t> *Regs);
     bool I32InReg(int32_t *Reg);
+    bool FPInReg(Type Ty, int32_t *Reg);
 
     static constexpr uint32_t ARM32_MAX_GPR_ARG = 4;
+    // Units of S registers still available to S/D/Q arguments.
+    static constexpr uint32_t ARM32_MAX_FP_REG_UNITS = 16;
 
   private:
-    uint32_t NumGPRRegsUsed;
+    uint32_t NumGPRRegsUsed = 0;
+    uint32_t NumFPRegUnits = 0;
   };
 
 private:

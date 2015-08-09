@@ -174,16 +174,19 @@ TargetARM32::TargetARM32(Cfg *Func)
   // TODO: Don't initialize IntegerRegisters and friends every time.
   // Instead, initialize in some sort of static initializer for the
   // class.
+  // Limit this size (or do all bitsets need to be the same width)???
   llvm::SmallBitVector IntegerRegisters(RegARM32::Reg_NUM);
-  llvm::SmallBitVector FloatRegisters(RegARM32::Reg_NUM);
+  llvm::SmallBitVector Float32Registers(RegARM32::Reg_NUM);
+  llvm::SmallBitVector Float64Registers(RegARM32::Reg_NUM);
   llvm::SmallBitVector VectorRegisters(RegARM32::Reg_NUM);
   llvm::SmallBitVector InvalidRegisters(RegARM32::Reg_NUM);
   ScratchRegs.resize(RegARM32::Reg_NUM);
 #define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
-          isFP)                                                                \
+          isFP32, isFP64, isVec128)                                            \
   IntegerRegisters[RegARM32::val] = isInt;                                     \
-  FloatRegisters[RegARM32::val] = isFP;                                        \
-  VectorRegisters[RegARM32::val] = isFP;                                       \
+  Float32Registers[RegARM32::val] = isFP32;                                    \
+  Float64Registers[RegARM32::val] = isFP64;                                    \
+  VectorRegisters[RegARM32::val] = isVec128;                                   \
   ScratchRegs[RegARM32::val] = scratch;
   REGARM32_TABLE;
 #undef X
@@ -193,8 +196,8 @@ TargetARM32::TargetARM32(Cfg *Func)
   TypeToRegisterSet[IceType_i16] = IntegerRegisters;
   TypeToRegisterSet[IceType_i32] = IntegerRegisters;
   TypeToRegisterSet[IceType_i64] = IntegerRegisters;
-  TypeToRegisterSet[IceType_f32] = FloatRegisters;
-  TypeToRegisterSet[IceType_f64] = FloatRegisters;
+  TypeToRegisterSet[IceType_f32] = Float32Registers;
+  TypeToRegisterSet[IceType_f64] = Float64Registers;
   TypeToRegisterSet[IceType_v4i1] = VectorRegisters;
   TypeToRegisterSet[IceType_v8i1] = VectorRegisters;
   TypeToRegisterSet[IceType_v16i1] = VectorRegisters;
@@ -363,7 +366,7 @@ IceString TargetARM32::getRegName(SizeT RegNum, Type Ty) const {
   (void)Ty;
   static const char *RegNames[] = {
 #define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
-          isFP)                                                                \
+          isFP32, isFP64, isVec128)                                            \
   name,
       REGARM32_TABLE
 #undef X
@@ -435,9 +438,7 @@ bool TargetARM32::CallingConv::I64InRegs(std::pair<int32_t, int32_t> *Regs) {
   int32_t RegLo, RegHi;
   // Always start i64 registers at an even register, so this may end
   // up padding away a register.
-  if (NumGPRRegsUsed % 2 != 0) {
-    ++NumGPRRegsUsed;
-  }
+  NumGPRRegsUsed = Utils::applyAlignment(NumGPRRegsUsed, 2);
   RegLo = RegARM32::Reg_r0 + NumGPRRegsUsed;
   ++NumGPRRegsUsed;
   RegHi = RegARM32::Reg_r0 + NumGPRRegsUsed;
@@ -459,6 +460,33 @@ bool TargetARM32::CallingConv::I32InReg(int32_t *Reg) {
   return true;
 }
 
+bool TargetARM32::CallingConv::FPInReg(Type Ty, int32_t *Reg) {
+  if (NumFPRegUnits >= ARM32_MAX_FP_REG_UNITS)
+    return false;
+  if (isVectorType(Ty)) {
+    NumFPRegUnits = Utils::applyAlignment(NumFPRegUnits, 4);
+    *Reg = RegARM32::Reg_q0 + (NumFPRegUnits / 4);
+    NumFPRegUnits += 4;
+    // If this bumps us past the boundary, don't allocate to a register
+    // and leave any previously speculatively consumed registers as consumed.
+    if (NumFPRegUnits > ARM32_MAX_FP_REG_UNITS)
+      return false;
+  } else if (Ty == IceType_f64) {
+    NumFPRegUnits = Utils::applyAlignment(NumFPRegUnits, 2);
+    *Reg = RegARM32::Reg_d0 + (NumFPRegUnits / 2);
+    NumFPRegUnits += 2;
+    // If this bumps us past the boundary, don't allocate to a register
+    // and leave any previously speculatively consumed registers as consumed.
+    if (NumFPRegUnits > ARM32_MAX_FP_REG_UNITS)
+      return false;
+  } else {
+    assert(Ty == IceType_f32);
+    *Reg = RegARM32::Reg_s0 + NumFPRegUnits;
+    ++NumFPRegUnits;
+  }
+  return true;
+}
+
 void TargetARM32::lowerArguments() {
   VarList &Args = Func->getArgs();
   TargetARM32::CallingConv CC;
@@ -472,14 +500,7 @@ void TargetARM32::lowerArguments() {
   for (SizeT I = 0, E = Args.size(); I < E; ++I) {
     Variable *Arg = Args[I];
     Type Ty = Arg->getType();
-    // TODO(jvoung): handle float/vector types.
-    if (isVectorType(Ty)) {
-      UnimplementedError(Func->getContext()->getFlags());
-      continue;
-    } else if (isFloatingType(Ty)) {
-      UnimplementedError(Func->getContext()->getFlags());
-      continue;
-    } else if (Ty == IceType_i64) {
+    if (Ty == IceType_i64) {
       std::pair<int32_t, int32_t> RegPair;
       if (!CC.I64InRegs(&RegPair))
         continue;
@@ -503,10 +524,15 @@ void TargetARM32::lowerArguments() {
       Context.insert(InstAssign::create(Func, Arg, RegisterArg));
       continue;
     } else {
-      assert(Ty == IceType_i32);
       int32_t RegNum;
-      if (!CC.I32InReg(&RegNum))
-        continue;
+      if (isVectorType(Ty) || isFloatingType(Ty)) {
+        if (!CC.FPInReg(Ty, &RegNum))
+          continue;
+      } else {
+        assert(Ty == IceType_i32);
+        if (!CC.I32InReg(&RegNum))
+          continue;
+      }
       Variable *RegisterArg = Func->makeVariable(Ty);
       if (BuildDefs::dump()) {
         RegisterArg->setName(Func, "home_reg:" + Arg->getName(Func));
@@ -517,6 +543,7 @@ void TargetARM32::lowerArguments() {
 
       Args[I] = RegisterArg;
       Context.insert(InstAssign::create(Func, Arg, RegisterArg));
+      continue;
     }
   }
 }
@@ -554,7 +581,10 @@ void TargetARM32::finishArgumentLowering(Variable *Arg, Variable *FramePtr,
         Func, Ty, FramePtr, llvm::cast<ConstantInteger32>(
                                 Ctx->getConstantInt32(Arg->getStackOffset())));
     if (isVectorType(Arg->getType())) {
+      // Use vld1.$elem or something?
       UnimplementedError(Func->getContext()->getFlags());
+    } else if (isFloatingType(Arg->getType())) {
+      _vldr(Arg, Mem);
     } else {
       _ldr(Arg, Mem);
     }
@@ -725,12 +755,9 @@ void TargetARM32::addProlog(CfgNode *Node) {
     Type Ty = Arg->getType();
     bool InRegs = false;
     // Skip arguments passed in registers.
-    if (isVectorType(Ty)) {
-      UnimplementedError(Func->getContext()->getFlags());
-      continue;
-    } else if (isFloatingType(Ty)) {
-      UnimplementedError(Func->getContext()->getFlags());
-      continue;
+    if (isVectorType(Ty) || isFloatingType(Ty)) {
+      int32_t DummyReg;
+      InRegs = CC.FPInReg(Ty, &DummyReg);
     } else if (Ty == IceType_i64) {
       std::pair<int32_t, int32_t> DummyRegs;
       InRegs = CC.I64InRegs(&DummyRegs);
@@ -858,6 +885,8 @@ void TargetARM32::addEpilog(CfgNode *Node) {
 
 bool TargetARM32::isLegalVariableStackOffset(int32_t Offset) const {
   constexpr bool SignExt = false;
+  // TODO(jvoung): vldr of FP stack slots has a different limit from the
+  // plain stackSlotType().
   return OperandARM32Mem::canHoldOffset(stackSlotType(), SignExt, Offset);
 }
 
@@ -1121,7 +1150,7 @@ llvm::SmallBitVector TargetARM32::getRegisterSet(RegSetMask Include,
   llvm::SmallBitVector Registers(RegARM32::Reg_NUM);
 
 #define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
-          isFP)                                                                \
+          isFP32, isFP64, isVec128)                                            \
   if (scratch && (Include & RegSet_CallerSave))                                \
     Registers[RegARM32::val] = true;                                           \
   if (preserved && (Include & RegSet_CalleeSave))                              \
@@ -1518,6 +1547,8 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
     return;
   } else if (isVectorType(Dest->getType())) {
     UnimplementedError(Func->getContext()->getFlags());
+    // Add a fake def to keep liveness consistent in the meantime.
+    Context.insert(InstFakeDef::create(Func, Dest));
     return;
   }
   // Dest->getType() is a non-i64 scalar.
@@ -1551,6 +1582,47 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
     constexpr bool IsRemainder = true;
     lowerIDivRem(Dest, T, Src0R, Src1, &TargetARM32::_sxt, &TargetARM32::_sdiv,
                  H_srem_i32, IsRemainder);
+    return;
+  }
+  case InstArithmetic::Frem: {
+    const SizeT MaxSrcs = 2;
+    Type Ty = Dest->getType();
+    InstCall *Call = makeHelperCall(
+        isFloat32Asserting32Or64(Ty) ? H_frem_f32 : H_frem_f64, Dest, MaxSrcs);
+    Call->addArg(Src0R);
+    Call->addArg(Src1);
+    lowerCall(Call);
+    return;
+  }
+  }
+
+  // Handle floating point arithmetic separately: they require Src1 to be
+  // legalized to a register.
+  switch (Inst->getOp()) {
+  default:
+    break;
+  case InstArithmetic::Fadd: {
+    Variable *Src1R = legalizeToReg(Src1);
+    _vadd(T, Src0R, Src1R);
+    _vmov(Dest, T);
+    return;
+  }
+  case InstArithmetic::Fsub: {
+    Variable *Src1R = legalizeToReg(Src1);
+    _vsub(T, Src0R, Src1R);
+    _vmov(Dest, T);
+    return;
+  }
+  case InstArithmetic::Fmul: {
+    Variable *Src1R = legalizeToReg(Src1);
+    _vmul(T, Src0R, Src1R);
+    _vmov(Dest, T);
+    return;
+  }
+  case InstArithmetic::Fdiv: {
+    Variable *Src1R = legalizeToReg(Src1);
+    _vdiv(T, Src0R, Src1R);
+    _vmov(Dest, T);
     return;
   }
   }
@@ -1605,19 +1677,11 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
     llvm_unreachable("Integer div/rem should have been handled earlier.");
     return;
   case InstArithmetic::Fadd:
-    UnimplementedError(Func->getContext()->getFlags());
-    return;
   case InstArithmetic::Fsub:
-    UnimplementedError(Func->getContext()->getFlags());
-    return;
   case InstArithmetic::Fmul:
-    UnimplementedError(Func->getContext()->getFlags());
-    return;
   case InstArithmetic::Fdiv:
-    UnimplementedError(Func->getContext()->getFlags());
-    return;
   case InstArithmetic::Frem:
-    UnimplementedError(Func->getContext()->getFlags());
+    llvm_unreachable("Floating point arith should have been handled earlier.");
     return;
   }
 }
@@ -1652,6 +1716,9 @@ void TargetARM32::lowerAssign(const InstAssign *Inst) {
     }
     if (isVectorType(Dest->getType())) {
       UnimplementedError(Func->getContext()->getFlags());
+    } else if (isFloatingType(Dest->getType())) {
+      Variable *SrcR = legalizeToReg(NewSrc);
+      _vmov(Dest, SrcR);
     } else {
       _mov(Dest, NewSrc);
     }
@@ -1681,6 +1748,8 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
   // Pair of Arg Operand -> GPR number assignments.
   llvm::SmallVector<std::pair<Operand *, int32_t>,
                     TargetARM32::CallingConv::ARM32_MAX_GPR_ARG> GPRArgs;
+  llvm::SmallVector<std::pair<Operand *, int32_t>,
+                    TargetARM32::CallingConv::ARM32_MAX_FP_REG_UNITS> FPArgs;
   // Pair of Arg Operand -> stack offset.
   llvm::SmallVector<std::pair<Operand *, int32_t>, 8> StackArgs;
   int32_t ParameterAreaSizeBytes = 0;
@@ -1691,11 +1760,7 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
     Operand *Arg = legalizeUndef(Instr->getArg(i));
     Type Ty = Arg->getType();
     bool InRegs = false;
-    if (isVectorType(Ty)) {
-      UnimplementedError(Func->getContext()->getFlags());
-    } else if (isFloatingType(Ty)) {
-      UnimplementedError(Func->getContext()->getFlags());
-    } else if (Ty == IceType_i64) {
+    if (Ty == IceType_i64) {
       std::pair<int32_t, int32_t> Regs;
       if (CC.I64InRegs(&Regs)) {
         InRegs = true;
@@ -1703,6 +1768,12 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
         Operand *Hi = hiOperand(Arg);
         GPRArgs.push_back(std::make_pair(Lo, Regs.first));
         GPRArgs.push_back(std::make_pair(Hi, Regs.second));
+      }
+    } else if (isVectorType(Ty) || isFloatingType(Ty)) {
+      int32_t Reg;
+      if (CC.FPInReg(Ty, &Reg)) {
+        InRegs = true;
+        FPArgs.push_back(std::make_pair(Arg, Reg));
       }
     } else {
       assert(Ty == IceType_i32);
@@ -1766,6 +1837,10 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
     // registers after the call.
     Context.insert(InstFakeUse::create(Func, Reg));
   }
+  for (auto &FPArg : FPArgs) {
+    Variable *Reg = legalizeToReg(FPArg.first, FPArg.second);
+    Context.insert(InstFakeUse::create(Func, Reg));
+  }
 
   // Generate the call instruction.  Assign its result to a temporary
   // with high register allocation weight.
@@ -1791,9 +1866,10 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
       ReturnRegHi = makeReg(IceType_i32, RegARM32::Reg_r1);
       break;
     case IceType_f32:
+      ReturnReg = makeReg(Dest->getType(), RegARM32::Reg_s0);
+      break;
     case IceType_f64:
-      // Use S and D regs.
-      UnimplementedError(Func->getContext()->getFlags());
+      ReturnReg = makeReg(Dest->getType(), RegARM32::Reg_d0);
       break;
     case IceType_v4i1:
     case IceType_v8i1:
@@ -1802,8 +1878,7 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
     case IceType_v8i16:
     case IceType_v4i32:
     case IceType_v4f32:
-      // Use Q regs.
-      UnimplementedError(Func->getContext()->getFlags());
+      ReturnReg = makeReg(Dest->getType(), RegARM32::Reg_q0);
       break;
     }
   }
@@ -1853,12 +1928,11 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
       _mov(DestLo, ReturnReg);
       _mov(DestHi, ReturnRegHi);
     } else {
-      assert(Dest->getType() == IceType_i32 || Dest->getType() == IceType_i16 ||
-             Dest->getType() == IceType_i8 || Dest->getType() == IceType_i1 ||
-             isVectorType(Dest->getType()));
       if (isFloatingType(Dest->getType()) || isVectorType(Dest->getType())) {
-        UnimplementedError(Func->getContext()->getFlags());
+        _vmov(Dest, ReturnReg);
       } else {
+        assert(isIntegerType(Dest->getType()) &&
+               typeWidthInBytes(Dest->getType()) <= 4);
         _mov(Dest, ReturnReg);
       }
     }
@@ -2291,6 +2365,8 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     return;
   }
   case Intrinsics::Fabs: {
+    // Add a fake def to keep liveness consistent in the meantime.
+    Context.insert(InstFakeDef::create(Func, Instr->getDest()));
     UnimplementedError(Func->getContext()->getFlags());
     return;
   }
@@ -2352,7 +2428,11 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     return;
   }
   case Intrinsics::Sqrt: {
-    UnimplementedError(Func->getContext()->getFlags());
+    Variable *Src = legalizeToReg(Instr->getArg(0));
+    Variable *Dest = Instr->getDest();
+    Variable *T = makeReg(Dest->getType());
+    _vsqrt(T, Src);
+    _vmov(Dest, T);
     return;
   }
   case Intrinsics::Stacksave: {
@@ -2440,16 +2520,22 @@ void TargetARM32::lowerRet(const InstRet *Inst) {
   Variable *Reg = nullptr;
   if (Inst->hasRetValue()) {
     Operand *Src0 = Inst->getRetValue();
-    if (Src0->getType() == IceType_i64) {
+    Type Ty = Src0->getType();
+    if (Ty == IceType_i64) {
       Src0 = legalizeUndef(Src0);
       Variable *R0 = legalizeToReg(loOperand(Src0), RegARM32::Reg_r0);
       Variable *R1 = legalizeToReg(hiOperand(Src0), RegARM32::Reg_r1);
       Reg = R0;
       Context.insert(InstFakeUse::create(Func, R1));
-    } else if (isScalarFloatingType(Src0->getType())) {
-      UnimplementedError(Func->getContext()->getFlags());
+    } else if (Ty == IceType_f32) {
+      Variable *S0 = legalizeToReg(Src0, RegARM32::Reg_s0);
+      Reg = S0;
+    } else if (Ty == IceType_f64) {
+      Variable *D0 = legalizeToReg(Src0, RegARM32::Reg_d0);
+      Reg = D0;
     } else if (isVectorType(Src0->getType())) {
-      UnimplementedError(Func->getContext()->getFlags());
+      Variable *Q0 = legalizeToReg(Src0, RegARM32::Reg_q0);
+      Reg = Q0;
     } else {
       Operand *Src0F = legalize(Src0, Legal_Reg | Legal_Flex);
       _mov(Reg, Src0F, CondARM32::AL, RegARM32::Reg_r0);
@@ -2596,8 +2682,8 @@ Variable *TargetARM32::makeVectorOfZeros(Type Ty, int32_t RegNum) {
 Variable *TargetARM32::copyToReg(Operand *Src, int32_t RegNum) {
   Type Ty = Src->getType();
   Variable *Reg = makeReg(Ty, RegNum);
-  if (isVectorType(Ty)) {
-    UnimplementedError(Func->getContext()->getFlags());
+  if (isVectorType(Ty) || isFloatingType(Ty)) {
+    _vmov(Reg, Src);
   } else {
     // Mov's Src operand can really only be the flexible second operand type
     // or a register. Users should guarantee that.
@@ -2646,7 +2732,13 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
     }
     if (!(Allowed & Legal_Mem)) {
       Variable *Reg = makeReg(Ty, RegNum);
-      _ldr(Reg, Mem);
+      if (isVectorType(Ty)) {
+        UnimplementedError(Func->getContext()->getFlags());
+      } else if (isFloatingType(Ty)) {
+        _vldr(Reg, Mem);
+      } else {
+        _ldr(Reg, Mem);
+      }
       From = Reg;
     } else {
       From = Mem;
@@ -2716,11 +2808,25 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
       _movt(Reg, C);
       return Reg;
     } else {
+      assert(isScalarFloatingType(Ty));
       // Load floats/doubles from literal pool.
-      UnimplementedError(Func->getContext()->getFlags());
-      From = copyToReg(From, RegNum);
+      // TODO(jvoung): Allow certain immediates to be encoded directly in
+      // an operand. See Table A7-18 of the ARM manual:
+      // "Floating-point modified immediate constants".
+      // Or, for 32-bit floating point numbers, just encode the raw bits
+      // into a movw/movt pair to GPR, and vmov to an SREG, instead of using
+      // a movw/movt pair to get the const-pool address then loading to SREG.
+      std::string Buffer;
+      llvm::raw_string_ostream StrBuf(Buffer);
+      llvm::cast<Constant>(From)->emitPoolLabel(StrBuf);
+      llvm::cast<Constant>(From)->setShouldBePooled(true);
+      Constant *Offset = Ctx->getConstantSym(0, StrBuf.str(), true);
+      Variable *BaseReg = makeReg(getPointerType());
+      _movw(BaseReg, Offset);
+      _movt(BaseReg, Offset);
+      From = formMemoryOperand(BaseReg, Ty);
+      return copyToReg(From, RegNum);
     }
-    return From;
   }
 
   if (auto Var = llvm::dyn_cast<Variable>(From)) {

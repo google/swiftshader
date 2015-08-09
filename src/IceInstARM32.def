@@ -27,99 +27,249 @@
 // It is technically preserved, but save/restore is handled separately,
 // based on whether or not the function MaybeLeafFunc.
 #define REGARM32_GPR_TABLE                                                     \
-  /* val, encode, name, scratch, preserved, stackptr, frameptr, isInt, isFP */ \
-  X(Reg_r0,  = 0,            "r0",  1, 0, 0, 0, 1, 0)                   \
-  X(Reg_r1,  = Reg_r0 + 1,   "r1",  1, 0, 0, 0, 1, 0)                   \
-  X(Reg_r2,  = Reg_r0 + 2,   "r2",  1, 0, 0, 0, 1, 0)                   \
-  X(Reg_r3,  = Reg_r0 + 3,   "r3",  1, 0, 0, 0, 1, 0)                   \
-  X(Reg_r4,  = Reg_r0 + 4,   "r4",  0, 1, 0, 0, 1, 0)                   \
-  X(Reg_r5,  = Reg_r0 + 5,   "r5",  0, 1, 0, 0, 1, 0)                   \
-  X(Reg_r6,  = Reg_r0 + 6,   "r6",  0, 1, 0, 0, 1, 0)                   \
-  X(Reg_r7,  = Reg_r0 + 7,   "r7",  0, 1, 0, 0, 1, 0)                   \
-  X(Reg_r8,  = Reg_r0 + 8,   "r8",  0, 1, 0, 0, 1, 0)                   \
-  X(Reg_r9,  = Reg_r0 + 9,   "r9",  0, 1, 0, 0, 0, 0)                   \
-  X(Reg_r10, = Reg_r0 + 10,  "r10", 0, 1, 0, 0, 1, 0)                   \
-  X(Reg_fp,  = Reg_r0 + 11,  "fp",  0, 1, 0, 1, 1, 0)                   \
-  X(Reg_ip,  = Reg_r0 + 12,  "ip",  1, 0, 0, 0, 0, 0)                   \
-  X(Reg_sp,  = Reg_r0 + 13,  "sp",  0, 0, 1, 0, 0, 0)                   \
-  X(Reg_lr,  = Reg_r0 + 14,  "lr",  0, 0, 0, 0, 0, 0)                   \
-  X(Reg_pc,  = Reg_r0 + 15,  "pc",  0, 0, 0, 0, 0, 0)                   \
+  /* val, encode, name, scratch, preserved, stackptr, frameptr,                \
+     isInt, isFP32, isFP64, isVec128 */                                        \
+  X(Reg_r0,  0, "r0",   1, 0, 0, 0, 1, 0, 0, 0)                                \
+  X(Reg_r1,  1, "r1",   1, 0, 0, 0, 1, 0, 0, 0)                                \
+  X(Reg_r2,  2, "r2",   1, 0, 0, 0, 1, 0, 0, 0)                                \
+  X(Reg_r3,  3, "r3",   1, 0, 0, 0, 1, 0, 0, 0)                                \
+  X(Reg_r4,  4, "r4",   0, 1, 0, 0, 1, 0, 0, 0)                                \
+  X(Reg_r5,  5, "r5",   0, 1, 0, 0, 1, 0, 0, 0)                                \
+  X(Reg_r6,  6, "r6",   0, 1, 0, 0, 1, 0, 0, 0)                                \
+  X(Reg_r7,  7, "r7",   0, 1, 0, 0, 1, 0, 0, 0)                                \
+  X(Reg_r8,  8, "r8",   0, 1, 0, 0, 1, 0, 0, 0)                                \
+  X(Reg_r9,  9, "r9",   0, 1, 0, 0, 0, 0, 0, 0)                                \
+  X(Reg_r10, 10, "r10", 0, 1, 0, 0, 1, 0, 0, 0)                                \
+  X(Reg_fp,  11, "fp",  0, 1, 0, 1, 1, 0, 0, 0)                                \
+  X(Reg_ip,  12, "ip",  1, 0, 0, 0, 0, 0, 0, 0)                                \
+  X(Reg_sp,  13, "sp",  0, 0, 1, 0, 0, 0, 0, 0)                                \
+  X(Reg_lr,  14, "lr",  0, 0, 0, 0, 0, 0, 0, 0)                                \
+  X(Reg_pc,  15, "pc",  0, 0, 0, 0, 0, 0, 0, 0)
 //#define X(val, encode, name, scratch, preserved, stackptr, frameptr,
-//          isInt, isFP)
+//          isInt, isFP32, isFP64, isVec128)
 
-// TODO(jvoung): List FP registers and know S0 == D0 == Q0, etc.
-// Be able to grab even registers, and the corresponding odd register
-// for each even register.
+// TODO(jvoung): Be able to grab even registers, and the corresponding odd
+// register for each even register. Want "register units" to encapsulate
+// the aliasing/overlap.
+//
+// S registers 0-15 are scratch, but 16-31 are preserved.
+// Regenerate this with the following python script:
+//
+// def print_sregs():
+//   for i in xrange(0, 32):
+//     is_scratch = 1 if i < 16 else 0
+//     is_preserved = 1 if i >= 16 else 0
+//     print ('X(Reg_s{regnum:<2}, {regnum:<2}, "s{regnum}", ' +
+//            '{scratch}, {preserved}, 0, 0, 0, 1, 0, 0)    \\').format(
+//            regnum=i, scratch=is_scratch, preserved=is_preserved)
+//
+// print_sregs()
+//
+#define REGARM32_FP32_TABLE                                                    \
+  /* val, encode, name, scratch, preserved, stackptr, frameptr,                \
+     isInt, isFP32, isFP64, isVec128 */                                        \
+  X(Reg_s0,  0,  "s0",  1, 0, 0, 0, 0, 1, 0, 0)                                \
+  X(Reg_s1,  1,  "s1",  1, 0, 0, 0, 0, 1, 0, 0)                                \
+  X(Reg_s2,  2,  "s2",  1, 0, 0, 0, 0, 1, 0, 0)                                \
+  X(Reg_s3,  3,  "s3",  1, 0, 0, 0, 0, 1, 0, 0)                                \
+  X(Reg_s4,  4,  "s4",  1, 0, 0, 0, 0, 1, 0, 0)                                \
+  X(Reg_s5,  5,  "s5",  1, 0, 0, 0, 0, 1, 0, 0)                                \
+  X(Reg_s6,  6,  "s6",  1, 0, 0, 0, 0, 1, 0, 0)                                \
+  X(Reg_s7,  7,  "s7",  1, 0, 0, 0, 0, 1, 0, 0)                                \
+  X(Reg_s8,  8,  "s8",  1, 0, 0, 0, 0, 1, 0, 0)                                \
+  X(Reg_s9,  9,  "s9",  1, 0, 0, 0, 0, 1, 0, 0)                                \
+  X(Reg_s10, 10, "s10", 1, 0, 0, 0, 0, 1, 0, 0)                                \
+  X(Reg_s11, 11, "s11", 1, 0, 0, 0, 0, 1, 0, 0)                                \
+  X(Reg_s12, 12, "s12", 1, 0, 0, 0, 0, 1, 0, 0)                                \
+  X(Reg_s13, 13, "s13", 1, 0, 0, 0, 0, 1, 0, 0)                                \
+  X(Reg_s14, 14, "s14", 1, 0, 0, 0, 0, 1, 0, 0)                                \
+  X(Reg_s15, 15, "s15", 1, 0, 0, 0, 0, 1, 0, 0)                                \
+  X(Reg_s16, 16, "s16", 0, 1, 0, 0, 0, 1, 0, 0)                                \
+  X(Reg_s17, 17, "s17", 0, 1, 0, 0, 0, 1, 0, 0)                                \
+  X(Reg_s18, 18, "s18", 0, 1, 0, 0, 0, 1, 0, 0)                                \
+  X(Reg_s19, 19, "s19", 0, 1, 0, 0, 0, 1, 0, 0)                                \
+  X(Reg_s20, 20, "s20", 0, 1, 0, 0, 0, 1, 0, 0)                                \
+  X(Reg_s21, 21, "s21", 0, 1, 0, 0, 0, 1, 0, 0)                                \
+  X(Reg_s22, 22, "s22", 0, 1, 0, 0, 0, 1, 0, 0)                                \
+  X(Reg_s23, 23, "s23", 0, 1, 0, 0, 0, 1, 0, 0)                                \
+  X(Reg_s24, 24, "s24", 0, 1, 0, 0, 0, 1, 0, 0)                                \
+  X(Reg_s25, 25, "s25", 0, 1, 0, 0, 0, 1, 0, 0)                                \
+  X(Reg_s26, 26, "s26", 0, 1, 0, 0, 0, 1, 0, 0)                                \
+  X(Reg_s27, 27, "s27", 0, 1, 0, 0, 0, 1, 0, 0)                                \
+  X(Reg_s28, 28, "s28", 0, 1, 0, 0, 0, 1, 0, 0)                                \
+  X(Reg_s29, 29, "s29", 0, 1, 0, 0, 0, 1, 0, 0)                                \
+  X(Reg_s30, 30, "s30", 0, 1, 0, 0, 0, 1, 0, 0)                                \
+  X(Reg_s31, 31, "s31", 0, 1, 0, 0, 0, 1, 0, 0)
+//#define X(val, encode, name, scratch, preserved, stackptr, frameptr,
+//          isInt, isFP32, isFP64, isVec128)
+
+// D registers 0-7 are scratch, 8-15 are preserved, and 16-31
+// are also scratch (if supported by the D32 feature vs D16).
+//
+// Regenerate this with the following python script:
+// def print_dregs():
+//   for i in xrange(0, 32):
+//     is_scratch = 1 if (i < 8 or i >= 16) else 0
+//     is_preserved = 1 if (8 <= i and i < 16) else 0
+//     print ('X(Reg_d{regnum:<2}, {regnum:<2}, "d{regnum}", ' +
+//            '{scratch}, {preserved}, 0, 0, 0, 0, 1, 0)    \\').format(
+//            regnum=i, scratch=is_scratch, preserved=is_preserved)
+//
+// print_dregs()
+//
+#define REGARM32_FP64_TABLE                                                    \
+  /* val, encode, name, scratch, preserved, stackptr, frameptr,                \
+     isInt, isFP32, isFP64, isVec128 */                                        \
+  X(Reg_d0,  0,  "d0",  1, 0, 0, 0, 0, 0, 1, 0)                                \
+  X(Reg_d1,  1,  "d1",  1, 0, 0, 0, 0, 0, 1, 0)                                \
+  X(Reg_d2,  2,  "d2",  1, 0, 0, 0, 0, 0, 1, 0)                                \
+  X(Reg_d3,  3,  "d3",  1, 0, 0, 0, 0, 0, 1, 0)                                \
+  X(Reg_d4,  4,  "d4",  1, 0, 0, 0, 0, 0, 1, 0)                                \
+  X(Reg_d5,  5,  "d5",  1, 0, 0, 0, 0, 0, 1, 0)                                \
+  X(Reg_d6,  6,  "d6",  1, 0, 0, 0, 0, 0, 1, 0)                                \
+  X(Reg_d7,  7,  "d7",  1, 0, 0, 0, 0, 0, 1, 0)                                \
+  X(Reg_d8,  8,  "d8",  0, 1, 0, 0, 0, 0, 1, 0)                                \
+  X(Reg_d9,  9,  "d9",  0, 1, 0, 0, 0, 0, 1, 0)                                \
+  X(Reg_d10, 10, "d10", 0, 1, 0, 0, 0, 0, 1, 0)                                \
+  X(Reg_d11, 11, "d11", 0, 1, 0, 0, 0, 0, 1, 0)                                \
+  X(Reg_d12, 12, "d12", 0, 1, 0, 0, 0, 0, 1, 0)                                \
+  X(Reg_d13, 13, "d13", 0, 1, 0, 0, 0, 0, 1, 0)                                \
+  X(Reg_d14, 14, "d14", 0, 1, 0, 0, 0, 0, 1, 0)                                \
+  X(Reg_d15, 15, "d15", 0, 1, 0, 0, 0, 0, 1, 0)                                \
+  X(Reg_d16, 16, "d16", 1, 0, 0, 0, 0, 0, 1, 0)                                \
+  X(Reg_d17, 17, "d17", 1, 0, 0, 0, 0, 0, 1, 0)                                \
+  X(Reg_d18, 18, "d18", 1, 0, 0, 0, 0, 0, 1, 0)                                \
+  X(Reg_d19, 19, "d19", 1, 0, 0, 0, 0, 0, 1, 0)                                \
+  X(Reg_d20, 20, "d20", 1, 0, 0, 0, 0, 0, 1, 0)                                \
+  X(Reg_d21, 21, "d21", 1, 0, 0, 0, 0, 0, 1, 0)                                \
+  X(Reg_d22, 22, "d22", 1, 0, 0, 0, 0, 0, 1, 0)                                \
+  X(Reg_d23, 23, "d23", 1, 0, 0, 0, 0, 0, 1, 0)                                \
+  X(Reg_d24, 24, "d24", 1, 0, 0, 0, 0, 0, 1, 0)                                \
+  X(Reg_d25, 25, "d25", 1, 0, 0, 0, 0, 0, 1, 0)                                \
+  X(Reg_d26, 26, "d26", 1, 0, 0, 0, 0, 0, 1, 0)                                \
+  X(Reg_d27, 27, "d27", 1, 0, 0, 0, 0, 0, 1, 0)                                \
+  X(Reg_d28, 28, "d28", 1, 0, 0, 0, 0, 0, 1, 0)                                \
+  X(Reg_d29, 29, "d29", 1, 0, 0, 0, 0, 0, 1, 0)                                \
+  X(Reg_d30, 30, "d30", 1, 0, 0, 0, 0, 0, 1, 0)                                \
+  X(Reg_d31, 31, "d31", 1, 0, 0, 0, 0, 0, 1, 0)
+//#define X(val, encode, name, scratch, preserved, stackptr, frameptr,
+//          isInt, isFP32, isFP64, isVec128)
+
+// Q registers 0-3 are scratch, 4-7 are preserved, and 8-15
+// are also scratch (if supported by the D32 feature).
+//
+// Regenerate this with the following python script:
+// def print_qregs():
+//   for i in xrange(0, 16):
+//     is_scratch = 1 if (i < 4 or i >= 8) else 0
+//     is_preserved = 1 if (4 <= i and i < 8) else 0
+//     print ('X(Reg_q{regnum:<2}, {regnum:<2}, "q{regnum}", ' +
+//            '{scratch}, {preserved}, 0, 0, 0, 0, 0, 1)    \\').format(
+//            regnum=i, scratch=is_scratch, preserved=is_preserved)
+//
+// print_qregs()
+//
+#define REGARM32_VEC128_TABLE                                                  \
+  /* val, encode, name, scratch, preserved, stackptr, frameptr,                \
+     isInt, isFP32, isFP64, isVec128 */                                        \
+  X(Reg_q0,  0,  "q0",  1, 0, 0, 0, 0, 0, 0, 1)                                \
+  X(Reg_q1,  1,  "q1",  1, 0, 0, 0, 0, 0, 0, 1)                                \
+  X(Reg_q2,  2,  "q2",  1, 0, 0, 0, 0, 0, 0, 1)                                \
+  X(Reg_q3,  3,  "q3",  1, 0, 0, 0, 0, 0, 0, 1)                                \
+  X(Reg_q4,  4,  "q4",  0, 1, 0, 0, 0, 0, 0, 1)                                \
+  X(Reg_q5,  5,  "q5",  0, 1, 0, 0, 0, 0, 0, 1)                                \
+  X(Reg_q6,  6,  "q6",  0, 1, 0, 0, 0, 0, 0, 1)                                \
+  X(Reg_q7,  7,  "q7",  0, 1, 0, 0, 0, 0, 0, 1)                                \
+  X(Reg_q8,  8,  "q8",  1, 0, 0, 0, 0, 0, 0, 1)                                \
+  X(Reg_q9,  9,  "q9",  1, 0, 0, 0, 0, 0, 0, 1)                                \
+  X(Reg_q10, 10, "q10", 1, 0, 0, 0, 0, 0, 0, 1)                                \
+  X(Reg_q11, 11, "q11", 1, 0, 0, 0, 0, 0, 0, 1)                                \
+  X(Reg_q12, 12, "q12", 1, 0, 0, 0, 0, 0, 0, 1)                                \
+  X(Reg_q13, 13, "q13", 1, 0, 0, 0, 0, 0, 0, 1)                                \
+  X(Reg_q14, 14, "q14", 1, 0, 0, 0, 0, 0, 0, 1)                                \
+  X(Reg_q15, 15, "q15", 1, 0, 0, 0, 0, 0, 0, 1)
+//#define X(val, encode, name, scratch, preserved, stackptr, frameptr,
+//          isInt, isFP32, isFP64, isVec128)
 
 // We also provide a combined table, so that there is a namespace where
 // all of the registers are considered and have distinct numberings.
 // This is in contrast to the above, where the "encode" is based on how
 // the register numbers will be encoded in binaries and values can overlap.
-#define REGARM32_TABLE                                                  \
-  /* val, encode, name, scratch, preserved, stackptr, frameptr, isInt, isFP */ \
-  REGARM32_GPR_TABLE
+#define REGARM32_TABLE                                                         \
+  /* val, encode, name, scratch, preserved, stackptr, frameptr, isInt,         \
+     isFP32, isFP64, isVec128 */                                               \
+  REGARM32_GPR_TABLE                                                           \
+  REGARM32_FP32_TABLE                                                          \
+  REGARM32_FP64_TABLE                                                          \
+  REGARM32_VEC128_TABLE
 //#define X(val, encode, name, scratch, preserved, stackptr, frameptr,
-//          isInt, isFP)
+//          isInt, isFP32, isFP64, isVec128)
 
-#define REGARM32_TABLE_BOUNDS                                           \
-  /* val, init */                                                       \
-  X(Reg_GPR_First, = Reg_r0)                                            \
-  X(Reg_GPR_Last,  = Reg_pc)
-//define X(val, init)
+#define REGARM32_TABLE_BOUNDS                                                  \
+  /* val, init */                                                              \
+  X(Reg_GPR_First, = Reg_r0)                                                   \
+  X(Reg_GPR_Last, = Reg_pc)                                                    \
+  X(Reg_SREG_First, = Reg_s0)                                                  \
+  X(Reg_SREG_Last, = Reg_s31)                                                  \
+  X(Reg_DREG_First, = Reg_d0)                                                  \
+  X(Reg_DREG_Last, = Reg_d31)                                                  \
+  X(Reg_QREG_First, = Reg_q0)                                                  \
+  X(Reg_QREG_Last, = Reg_q15)
+// define X(val, init)
 
-// TODO(jvoung): add condition code tables, etc.
-
-// Load/Store instruction width suffixes.
-#define ICETYPEARM32_TABLE                                              \
-  /* tag,          element type, width, addr off bits sext, zext */     \
-  X(IceType_void,  IceType_void, "",  0, 0)                             \
-  X(IceType_i1,    IceType_void, "b", 8, 12)                            \
-  X(IceType_i8,    IceType_void, "b", 8, 12)                            \
-  X(IceType_i16,   IceType_void, "h", 8, 8)                             \
-  X(IceType_i32,   IceType_void, "", 12, 12)                            \
-  X(IceType_i64,   IceType_void, "d", 8, 8)                             \
-  X(IceType_f32,   IceType_void, "", 10, 10)                            \
-  X(IceType_f64,   IceType_void, "", 10, 10)                            \
-  X(IceType_v4i1,  IceType_i32 , "",  0,  0)                            \
-  X(IceType_v8i1,  IceType_i16 , "",  0,  0)                            \
-  X(IceType_v16i1, IceType_i8  , "",  0,  0)                            \
-  X(IceType_v16i8, IceType_i8  , "",  0,  0)                            \
-  X(IceType_v8i16, IceType_i16 , "",  0,  0)                            \
-  X(IceType_v4i32, IceType_i32 , "",  0,  0)                            \
-  X(IceType_v4f32, IceType_f32 , "",  0,  0)                            \
-//#define X(tag, elementty, width, sbits, ubits)
+// Load/Store instruction width suffixes and FP/Vector element size suffixes
+// the # of offset bits allowed as part of an addressing mode (for sign or
+// zero extending load/stores).
+#define ICETYPEARM32_TABLE                                                     \
+  /* tag,          element type, int_width, vec_width, addr bits sext, zext */ \
+  X(IceType_void, IceType_void, "", "", 0, 0)                                  \
+  X(IceType_i1, IceType_void, "b", "", 8, 12)                                  \
+  X(IceType_i8, IceType_void, "b", "", 8, 12)                                  \
+  X(IceType_i16, IceType_void, "h", "", 8, 8)                                  \
+  X(IceType_i32, IceType_void, "", "", 12, 12)                                 \
+  X(IceType_i64, IceType_void, "d", "", 8, 8)                                  \
+  X(IceType_f32, IceType_void, "", ".f32", 10, 10)                             \
+  X(IceType_f64, IceType_void, "", ".f64", 10, 10)                             \
+  X(IceType_v4i1, IceType_i32, "", ".i32", 0, 0)                               \
+  X(IceType_v8i1, IceType_i16, "", ".i16", 0, 0)                               \
+  X(IceType_v16i1, IceType_i8, "", ".i8", 0, 0)                                \
+  X(IceType_v16i8, IceType_i8, "", ".i8", 0, 0)                                \
+  X(IceType_v8i16, IceType_i16, "", ".i16", 0, 0)                              \
+  X(IceType_v4i32, IceType_i32, "", ".i32", 0, 0)                              \
+  X(IceType_v4f32, IceType_f32, "", ".f32", 0, 0)
+//#define X(tag, elementty, int_width, vec_width, sbits, ubits)
 
 // Shifter types for Data-processing operands as defined in section A5.1.2.
-#define ICEINSTARM32SHIFT_TABLE                                         \
-  /* enum value, emit */                                                \
-  X(LSL, "lsl")                                                         \
-  X(LSR, "lsr")                                                         \
-  X(ASR, "asr")                                                         \
-  X(ROR, "ror")                                                         \
-  X(RRX, "rrx")                                                         \
+#define ICEINSTARM32SHIFT_TABLE                                                \
+  /* enum value, emit */                                                       \
+  X(LSL, "lsl")                                                                \
+  X(LSR, "lsr")                                                                \
+  X(ASR, "asr")                                                                \
+  X(ROR, "ror")                                                                \
+  X(RRX, "rrx")
 //#define X(tag, emit)
 
 // Attributes for the condition code 4-bit encoding (that is independent
 // of the APSR's NZCV fields). For example, EQ is 0, but corresponds to
 // Z = 1, and NE is 1, but corresponds to Z = 0.
-#define ICEINSTARM32COND_TABLE                                          \
-  /* enum value, encoding, opposite, emit */                            \
-  X(EQ, 0, NE, "eq") /* equal */                                        \
-  X(NE, 1, EQ, "ne") /* not equal */                                    \
-  X(CS, 2, CC, "cs") /* carry set/unsigned (AKA hs: higher or same) */  \
-  X(CC, 3, CS, "cc") /* carry clear/unsigned (AKA lo: lower) */         \
-  X(MI, 4, PL, "mi") /* minus/negative */                               \
-  X(PL, 5, MI, "pl") /* plus/positive or zero */                        \
-  X(VS, 6, VC, "vs") /* overflow (float unordered) */                   \
-  X(VC, 7, VS, "vc") /* no overflow (float not unordered) */            \
-  X(HI, 8, LS, "hi") /* unsigned higher */                              \
-  X(LS, 9, HI, "ls") /* unsigned lower or same */                       \
-  X(GE, 10, LT, "ge") /* signed greater than or equal */                \
-  X(LT, 11, GE, "lt") /* signed less than */                            \
-  X(GT, 12, LE, "gt") /* signed greater than */                         \
-  X(LE, 13, GT, "le") /* signed less than or equal */                   \
-  X(AL, 14, kNone, "") /* always (unconditional) */                     \
-  X(kNone, 15, kNone, "??") /* special condition / none */              \
+#define ICEINSTARM32COND_TABLE                                                 \
+  /* enum value, encoding, opposite, emit */                                   \
+  X(EQ, 0, NE, "eq")   /* equal */                                             \
+  X(NE, 1, EQ, "ne")   /* not equal */                                         \
+  X(CS, 2, CC, "cs")   /* carry set/unsigned (AKA hs: higher or same) */       \
+  X(CC, 3, CS, "cc")   /* carry clear/unsigned (AKA lo: lower) */              \
+  X(MI, 4, PL, "mi")   /* minus/negative */                                    \
+  X(PL, 5, MI, "pl")   /* plus/positive or zero */                             \
+  X(VS, 6, VC, "vs")   /* overflow (float unordered) */                        \
+  X(VC, 7, VS, "vc")   /* no overflow (float not unordered) */                 \
+  X(HI, 8, LS, "hi")   /* unsigned higher */                                   \
+  X(LS, 9, HI, "ls")   /* unsigned lower or same */                            \
+  X(GE, 10, LT, "ge")  /* signed greater than or equal */                      \
+  X(LT, 11, GE, "lt")  /* signed less than */                                  \
+  X(GT, 12, LE, "gt")  /* signed greater than */                               \
+  X(LE, 13, GT, "le")  /* signed less than or equal */                         \
+  X(AL, 14, kNone, "") /* always (unconditional) */                            \
+  X(kNone, 15, kNone, "??") /* special condition / none */
 //#define(tag, encode, opp, emit)
 
 #endif // SUBZERO_SRC_ICEINSTARM32_DEF

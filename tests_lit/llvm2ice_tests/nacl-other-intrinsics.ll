@@ -150,6 +150,11 @@ entry:
 ; CHECK: sqrtss xmm{{.*}}
 ; CHECK: sqrtss xmm{{.*}}
 ; CHECK: sqrtss xmm{{.*}},DWORD PTR
+; ARM32-LABEL: test_sqrt_float
+; ARM32: vsqrt.f32
+; ARM32: vsqrt.f32
+; ARM32: vsqrt.f32
+; ARM32: vadd.f32
 
 define float @test_sqrt_float_mergeable_load(float %x, i32 %iptr) {
 entry:
@@ -164,6 +169,9 @@ entry:
 ; current folding only handles load + arithmetic op. The sqrt inst
 ; is considered an intrinsic call and not an arithmetic op.
 ; CHECK: sqrtss xmm{{.*}}
+; ARM32-LABEL: test_sqrt_float_mergeable_load
+; ARM32: vldr s{{.*}}
+; ARM32: vsqrt.f32
 
 define double @test_sqrt_double(double %x, i32 %iptr) {
 entry:
@@ -177,6 +185,11 @@ entry:
 ; CHECK: sqrtsd xmm{{.*}}
 ; CHECK: sqrtsd xmm{{.*}}
 ; CHECK: sqrtsd xmm{{.*}},QWORD PTR
+; ARM32-LABEL: test_sqrt_double
+; ARM32: vsqrt.f64
+; ARM32: vsqrt.f64
+; ARM32: vsqrt.f64
+; ARM32: vadd.f64
 
 define double @test_sqrt_double_mergeable_load(double %x, i32 %iptr) {
 entry:
@@ -188,6 +201,9 @@ entry:
 }
 ; CHECK-LABEL: test_sqrt_double_mergeable_load
 ; CHECK: sqrtsd xmm{{.*}}
+; ARM32-LABEL: test_sqrt_double_mergeable_load
+; ARM32: vldr d{{.*}}
+; ARM32: vsqrt.f64
 
 define float @test_sqrt_ignored(float %x, double %y) {
 entry:

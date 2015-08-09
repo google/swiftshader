@@ -28,12 +28,13 @@ namespace Ice {
 namespace {
 
 const struct TypeARM32Attributes_ {
-  const char *WidthString; // b, h, <blank>, or d
+  const char *WidthString;    // b, h, <blank>, or d
+  const char *VecWidthString; // i8, i16, i32, f32, f64
   int8_t SExtAddrOffsetBits;
   int8_t ZExtAddrOffsetBits;
 } TypeARM32Attributes[] = {
-#define X(tag, elementty, width, sbits, ubits)                                 \
-  { width, sbits, ubits }                                                      \
+#define X(tag, elementty, int_width, vec_width, sbits, ubits)                  \
+  { int_width, vec_width, sbits, ubits }                                       \
   ,
     ICETYPEARM32_TABLE
 #undef X
@@ -66,6 +67,10 @@ const char *InstARM32::getWidthString(Type Ty) {
   return TypeARM32Attributes[Ty].WidthString;
 }
 
+const char *InstARM32::getVecWidthString(Type Ty) {
+  return TypeARM32Attributes[Ty].VecWidthString;
+}
+
 const char *InstARM32Pred::predString(CondARM32::Cond Pred) {
   return InstARM32CondAttributes[Pred].EmitString;
 }
@@ -94,6 +99,18 @@ void InstARM32Pred::emitUnaryopGPR(const char *Opcode,
   Inst->getSrc(0)->emit(Func);
 }
 
+void InstARM32Pred::emitUnaryopFP(const char *Opcode, const InstARM32Pred *Inst,
+                                  const Cfg *Func) {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(Inst->getSrcSize() == 1);
+  Type SrcTy = Inst->getSrc(0)->getType();
+  Str << "\t" << Opcode << Inst->getPredicate() << getVecWidthString(SrcTy)
+      << "\t";
+  Inst->getDest()->emit(Func);
+  Str << ", ";
+  Inst->getSrc(0)->emit(Func);
+}
+
 void InstARM32Pred::emitTwoAddr(const char *Opcode, const InstARM32Pred *Inst,
                                 const Cfg *Func) {
   if (!BuildDefs::dump())
@@ -115,6 +132,21 @@ void InstARM32Pred::emitThreeAddr(const char *Opcode, const InstARM32Pred *Inst,
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(Inst->getSrcSize() == 2);
   Str << "\t" << Opcode << (SetFlags ? "s" : "") << Inst->getPredicate()
+      << "\t";
+  Inst->getDest()->emit(Func);
+  Str << ", ";
+  Inst->getSrc(0)->emit(Func);
+  Str << ", ";
+  Inst->getSrc(1)->emit(Func);
+}
+
+void InstARM32::emitThreeAddrFP(const char *Opcode, const InstARM32 *Inst,
+                                const Cfg *Func) {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(Inst->getSrcSize() == 2);
+  Str << "\t" << Opcode << getVecWidthString(Inst->getDest()->getType())
       << "\t";
   Inst->getDest()->emit(Func);
   Str << ", ";
@@ -304,12 +336,6 @@ IceString InstARM32Label::getName(const Cfg *Func) const {
   return ".L" + Func->getFunctionName() + "$local$__" + std::to_string(Number);
 }
 
-InstARM32Ldr::InstARM32Ldr(Cfg *Func, Variable *Dest, OperandARM32Mem *Mem,
-                           CondARM32::Cond Predicate)
-    : InstARM32Pred(Func, InstARM32::Ldr, 1, Dest, Predicate) {
-  addSource(Mem);
-}
-
 InstARM32Pop::InstARM32Pop(Cfg *Func, const VarList &Dests)
     : InstARM32(Func, InstARM32::Pop, 0, nullptr), Dests(Dests) {
   // Track modifications to Dests separately via FakeDefs.
@@ -363,8 +389,14 @@ template <> const char *InstARM32Rbit::Opcode = "rbit";
 template <> const char *InstARM32Rev::Opcode = "rev";
 template <> const char *InstARM32Sxt::Opcode = "sxt"; // still requires b/h
 template <> const char *InstARM32Uxt::Opcode = "uxt"; // still requires b/h
+// FP
+template <> const char *InstARM32Vsqrt::Opcode = "vsqrt";
 // Mov-like ops
+template <> const char *InstARM32Ldr::Opcode = "ldr";
 template <> const char *InstARM32Mov::Opcode = "mov";
+// FP
+template <> const char *InstARM32Vldr::Opcode = "vldr";
+template <> const char *InstARM32Vmov::Opcode = "vmov";
 // Three-addr ops
 template <> const char *InstARM32Adc::Opcode = "adc";
 template <> const char *InstARM32Add::Opcode = "add";
@@ -381,6 +413,11 @@ template <> const char *InstARM32Sbc::Opcode = "sbc";
 template <> const char *InstARM32Sdiv::Opcode = "sdiv";
 template <> const char *InstARM32Sub::Opcode = "sub";
 template <> const char *InstARM32Udiv::Opcode = "udiv";
+// FP
+template <> const char *InstARM32Vadd::Opcode = "vadd";
+template <> const char *InstARM32Vdiv::Opcode = "vdiv";
+template <> const char *InstARM32Vmul::Opcode = "vmul";
+template <> const char *InstARM32Vsub::Opcode = "vsub";
 // Four-addr ops
 template <> const char *InstARM32Mla::Opcode = "mla";
 template <> const char *InstARM32Mls::Opcode = "mls";
@@ -403,19 +440,19 @@ template <> void InstARM32Mov::emit(const Cfg *Func) const {
   assert(getSrcSize() == 1);
   Variable *Dest = getDest();
   if (Dest->hasReg()) {
-    IceString Opcode = "mov";
+    IceString ActualOpcode = Opcode;
     Operand *Src0 = getSrc(0);
     if (const auto *Src0V = llvm::dyn_cast<Variable>(Src0)) {
       if (!Src0V->hasReg()) {
         // Always use the whole stack slot. A 32-bit load has a larger range
         // of offsets than 16-bit, etc.
-        Opcode = IceString("ldr");
+        ActualOpcode = IceString("ldr");
       }
     } else {
       if (llvm::isa<OperandARM32Mem>(Src0))
-        Opcode = IceString("ldr") + getWidthString(Dest->getType());
+        ActualOpcode = IceString("ldr") + getWidthString(Dest->getType());
     }
-    Str << "\t" << Opcode << getPredicate() << "\t";
+    Str << "\t" << ActualOpcode << getPredicate() << "\t";
     getDest()->emit(Func);
     Str << ", ";
     getSrc(0)->emit(Func);
@@ -431,6 +468,64 @@ template <> void InstARM32Mov::emit(const Cfg *Func) const {
 }
 
 template <> void InstARM32Mov::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 1);
+  (void)Func;
+  llvm_unreachable("Not yet implemented");
+}
+
+template <> void InstARM32Vldr::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 1);
+  assert(getDest()->hasReg());
+  Str << "\t"<< Opcode << getPredicate() << "\t";
+  getDest()->emit(Func);
+  Str << ", ";
+  getSrc(0)->emit(Func);
+}
+
+template <> void InstARM32Vldr::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 1);
+  (void)Func;
+  llvm_unreachable("Not yet implemented");
+}
+
+template <> void InstARM32Vmov::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  assert(CondARM32::AL == getPredicate());
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 1);
+  Variable *Dest = getDest();
+  if (Dest->hasReg()) {
+    IceString ActualOpcode = Opcode;
+    Operand *Src0 = getSrc(0);
+    if (const auto *Src0V = llvm::dyn_cast<Variable>(Src0)) {
+      if (!Src0V->hasReg()) {
+        ActualOpcode = IceString("vldr");
+      }
+    } else {
+      if (llvm::isa<OperandARM32Mem>(Src0))
+        ActualOpcode = IceString("vldr");
+    }
+    Str << "\t" << ActualOpcode << "\t";
+    getDest()->emit(Func);
+    Str << ", ";
+    getSrc(0)->emit(Func);
+  } else {
+    Variable *Src0 = llvm::cast<Variable>(getSrc(0));
+    assert(Src0->hasReg());
+    Str << "\t"
+           "vstr"
+           "\t";
+    Src0->emit(Func);
+    Str << ", ";
+    Dest->emit(Func);
+  }
+}
+
+template <> void InstARM32Vmov::emitIAS(const Cfg *Func) const {
   assert(getSrcSize() == 1);
   (void)Func;
   llvm_unreachable("Not yet implemented");
@@ -547,35 +642,23 @@ void InstARM32Label::dump(const Cfg *Func) const {
   Str << getName(Func) << ":";
 }
 
-void InstARM32Ldr::emit(const Cfg *Func) const {
+template <> void InstARM32Ldr::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 1);
   assert(getDest()->hasReg());
   Type Ty = getSrc(0)->getType();
-  Str << "\t"
-      << "ldr" << getWidthString(Ty) << getPredicate() << "\t";
+  Str << "\t"<< Opcode << getWidthString(Ty) << getPredicate() << "\t";
   getDest()->emit(Func);
   Str << ", ";
   getSrc(0)->emit(Func);
 }
 
-void InstARM32Ldr::emitIAS(const Cfg *Func) const {
+template <> void InstARM32Ldr::emitIAS(const Cfg *Func) const {
   assert(getSrcSize() == 1);
   (void)Func;
   llvm_unreachable("Not yet implemented");
-}
-
-void InstARM32Ldr::dump(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-  Ostream &Str = Func->getContext()->getStrDump();
-  dumpDest(Func);
-  Str << " = ";
-  dumpOpcodePred(Str, "ldr", getDest()->getType());
-  Str << " ";
-  dumpSources(Func);
 }
 
 template <> void InstARM32Movw::emit(const Cfg *Func) const {

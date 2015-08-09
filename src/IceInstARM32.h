@@ -320,11 +320,23 @@ public:
     Tst,
     Udiv,
     Umull,
-    Uxt
+    Uxt,
+    Vadd,
+    Vdiv,
+    Vldr,
+    Vmov,
+    Vmul,
+    Vsqrt,
+    Vsub
   };
 
   static const char *getWidthString(Type Ty);
+  static const char *getVecWidthString(Type Ty);
   static CondARM32::Cond getOppositeCondition(CondARM32::Cond Cond);
+
+  /// Shared emit routines for common forms of instructions.
+  static void emitThreeAddrFP(const char *Opcode, const InstARM32 *Inst,
+                              const Cfg *Func);
 
   void dump(const Cfg *Func) const override;
 
@@ -357,6 +369,8 @@ public:
   /// Shared emit routines for common forms of instructions.
   static void emitUnaryopGPR(const char *Opcode, const InstARM32Pred *Inst,
                              const Cfg *Func, bool NeedsWidthSuffix);
+  static void emitUnaryopFP(const char *Opcode, const InstARM32Pred *Inst,
+                            const Cfg *Func);
   static void emitTwoAddr(const char *Opcode, const InstARM32Pred *Inst,
                           const Cfg *Func);
   static void emitThreeAddr(const char *Opcode, const InstARM32Pred *Inst,
@@ -413,6 +427,50 @@ public:
 private:
   InstARM32UnaryopGPR(Cfg *Func, Variable *Dest, Operand *Src,
                       CondARM32::Cond Predicate)
+      : InstARM32Pred(Func, K, 1, Dest, Predicate) {
+    addSource(Src);
+  }
+
+  static const char *Opcode;
+};
+
+/// Instructions of the form x := op(y), for vector/FP.
+template <InstARM32::InstKindARM32 K>
+class InstARM32UnaryopFP : public InstARM32Pred {
+  InstARM32UnaryopFP() = delete;
+  InstARM32UnaryopFP(const InstARM32UnaryopFP &) = delete;
+  InstARM32UnaryopFP &operator=(const InstARM32UnaryopFP &) = delete;
+
+public:
+  static InstARM32UnaryopFP *create(Cfg *Func, Variable *Dest, Variable *Src,
+                                    CondARM32::Cond Predicate) {
+    return new (Func->allocate<InstARM32UnaryopFP>())
+        InstARM32UnaryopFP(Func, Dest, Src, Predicate);
+  }
+  void emit(const Cfg *Func) const override {
+    if (!BuildDefs::dump())
+      return;
+    emitUnaryopFP(Opcode, this, Func);
+  }
+  void emitIAS(const Cfg *Func) const override {
+    (void)Func;
+    llvm::report_fatal_error("Not yet implemented");
+  }
+  void dump(const Cfg *Func) const override {
+    if (!BuildDefs::dump())
+      return;
+    Ostream &Str = Func->getContext()->getStrDump();
+    dumpDest(Func);
+    Str << " = ";
+    dumpOpcodePred(Str, Opcode, getDest()->getType());
+    Str << " ";
+    dumpSources(Func);
+  }
+  static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
+
+private:
+  InstARM32UnaryopFP(Cfg *Func, Variable *Dest, Operand *Src,
+                     CondARM32::Cond Predicate)
       : InstARM32Pred(Func, K, 1, Dest, Predicate) {
     addSource(Src);
   }
@@ -559,7 +617,56 @@ private:
   bool SetFlags;
 };
 
-// Instructions of the form x := a op1 (y op2 z). E.g., multiply accumulate.
+/// Instructions of the form x := y op z, for vector/FP.  We leave these as
+/// unconditional: "ARM deprecates the conditional execution of any instruction
+/// encoding provided by the Advanced SIMD Extension that is not also provided
+/// by the Floating-point (VFP) extension".  They do not set flags.
+template <InstARM32::InstKindARM32 K>
+class InstARM32ThreeAddrFP : public InstARM32 {
+  InstARM32ThreeAddrFP() = delete;
+  InstARM32ThreeAddrFP(const InstARM32ThreeAddrFP &) = delete;
+  InstARM32ThreeAddrFP &operator=(const InstARM32ThreeAddrFP &) = delete;
+
+public:
+  /// Create a vector/FP binary-op instruction like vadd, and vsub.
+  /// Everything must be a register.
+  static InstARM32ThreeAddrFP *create(Cfg *Func, Variable *Dest, Variable *Src0,
+                                      Variable *Src1) {
+    return new (Func->allocate<InstARM32ThreeAddrFP>())
+        InstARM32ThreeAddrFP(Func, Dest, Src0, Src1);
+  }
+  void emit(const Cfg *Func) const override {
+    if (!BuildDefs::dump())
+      return;
+    emitThreeAddrFP(Opcode, this, Func);
+  }
+  void emitIAS(const Cfg *Func) const override {
+    (void)Func;
+    llvm::report_fatal_error("Not yet implemented");
+  }
+  void dump(const Cfg *Func) const override {
+    if (!BuildDefs::dump())
+      return;
+    Ostream &Str = Func->getContext()->getStrDump();
+    dumpDest(Func);
+    Str << " = ";
+    Str << Opcode << "." << getDest()->getType() << " ";
+    dumpSources(Func);
+  }
+  static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
+
+private:
+  InstARM32ThreeAddrFP(Cfg *Func, Variable *Dest, Variable *Src0,
+                       Variable *Src1)
+      : InstARM32(Func, K, 2, Dest) {
+    addSource(Src0);
+    addSource(Src1);
+  }
+
+  static const char *Opcode;
+};
+
+/// Instructions of the form x := a op1 (y op2 z). E.g., multiply accumulate.
 template <InstARM32::InstKindARM32 K>
 class InstARM32FourAddrGPR : public InstARM32Pred {
   InstARM32FourAddrGPR() = delete;
@@ -608,7 +715,7 @@ private:
   static const char *Opcode;
 };
 
-// Instructions of the form x cmpop y (setting flags).
+/// Instructions of the form x cmpop y (setting flags).
 template <InstARM32::InstKindARM32 K>
 class InstARM32CmpLike : public InstARM32Pred {
   InstARM32CmpLike() = delete;
@@ -666,10 +773,19 @@ typedef InstARM32ThreeAddrGPR<InstARM32::Sbc> InstARM32Sbc;
 typedef InstARM32ThreeAddrGPR<InstARM32::Sdiv> InstARM32Sdiv;
 typedef InstARM32ThreeAddrGPR<InstARM32::Sub> InstARM32Sub;
 typedef InstARM32ThreeAddrGPR<InstARM32::Udiv> InstARM32Udiv;
+typedef InstARM32ThreeAddrFP<InstARM32::Vadd> InstARM32Vadd;
+typedef InstARM32ThreeAddrFP<InstARM32::Vdiv> InstARM32Vdiv;
+typedef InstARM32ThreeAddrFP<InstARM32::Vmul> InstARM32Vmul;
+typedef InstARM32ThreeAddrFP<InstARM32::Vsub> InstARM32Vsub;
+typedef InstARM32Movlike<InstARM32::Ldr> InstARM32Ldr;
 /// Move instruction (variable <- flex). This is more of a pseudo-inst.
 /// If var is a register, then we use "mov". If var is stack, then we use
 /// "str" to store to the stack.
 typedef InstARM32Movlike<InstARM32::Mov> InstARM32Mov;
+/// Represents various vector mov instruction forms (simple single source,
+/// single dest forms only, not the 2 GPR <-> 1 D reg forms, etc.).
+typedef InstARM32Movlike<InstARM32::Vmov> InstARM32Vmov;
+typedef InstARM32Movlike<InstARM32::Vldr> InstARM32Vldr;
 /// MovT leaves the bottom bits alone so dest is also a source.
 /// This helps indicate that a previous MovW setting dest is not dead code.
 typedef InstARM32TwoAddrGPR<InstARM32::Movt> InstARM32Movt;
@@ -683,6 +799,7 @@ typedef InstARM32UnaryopGPR<InstARM32::Rev, false> InstARM32Rev;
 // but we aren't using that for now, so just model as a Unaryop.
 typedef InstARM32UnaryopGPR<InstARM32::Sxt, true> InstARM32Sxt;
 typedef InstARM32UnaryopGPR<InstARM32::Uxt, true> InstARM32Uxt;
+typedef InstARM32UnaryopFP<InstARM32::Vsqrt> InstARM32Vsqrt;
 typedef InstARM32FourAddrGPR<InstARM32::Mla> InstARM32Mla;
 typedef InstARM32FourAddrGPR<InstARM32::Mls> InstARM32Mls;
 typedef InstARM32CmpLike<InstARM32::Cmp> InstARM32Cmp;
@@ -838,29 +955,6 @@ private:
   InstARM32Call(Cfg *Func, Variable *Dest, Operand *CallTarget);
 };
 
-/// Load instruction.
-class InstARM32Ldr : public InstARM32Pred {
-  InstARM32Ldr() = delete;
-  InstARM32Ldr(const InstARM32Ldr &) = delete;
-  InstARM32Ldr &operator=(const InstARM32Ldr &) = delete;
-
-public:
-  /// Dest must be a register.
-  static InstARM32Ldr *create(Cfg *Func, Variable *Dest, OperandARM32Mem *Mem,
-                              CondARM32::Cond Predicate) {
-    return new (Func->allocate<InstARM32Ldr>())
-        InstARM32Ldr(Func, Dest, Mem, Predicate);
-  }
-  void emit(const Cfg *Func) const override;
-  void emitIAS(const Cfg *Func) const override;
-  void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return isClassof(Inst, Ldr); }
-
-private:
-  InstARM32Ldr(Cfg *Func, Variable *Dest, OperandARM32Mem *Mem,
-               CondARM32::Cond Predicate);
-};
-
 /// Pop into a list of GPRs. Technically this can be predicated, but we don't
 /// need that functionality.
 class InstARM32Pop : public InstARM32 {
@@ -1003,8 +1097,12 @@ private:
 // already have default implementations.  Without this, there is the
 // possibility of ODR violations and link errors.
 
+template <> void InstARM32Ldr::emit(const Cfg *Func) const;
+template <> void InstARM32Mov::emit(const Cfg *Func) const;
 template <> void InstARM32Movw::emit(const Cfg *Func) const;
 template <> void InstARM32Movt::emit(const Cfg *Func) const;
+template <> void InstARM32Vldr::emit(const Cfg *Func) const;
+template <> void InstARM32Vmov::emit(const Cfg *Func) const;
 
 } // end of namespace Ice
 
