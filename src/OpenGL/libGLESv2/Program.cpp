@@ -399,7 +399,7 @@ namespace es2
 	{
 		ASSERT(uniformBlockIndex < getActiveUniformBlockCount());
 
-		const UniformBlock &uniformBlock = uniformBlocks[uniformBlockIndex];
+		const UniformBlock &uniformBlock = *uniformBlocks[uniformBlockIndex];
 
 		switch(pname)
 		{
@@ -438,7 +438,7 @@ namespace es2
 		unsigned int numUniformBlocks = getActiveUniformBlockCount();
 		for(unsigned int blockIndex = 0; blockIndex < numUniformBlocks; blockIndex++)
 		{
-			const UniformBlock &uniformBlock = uniformBlocks[blockIndex];
+			const UniformBlock &uniformBlock = *uniformBlocks[blockIndex];
 			if(uniformBlock.name == baseName)
 			{
 				const bool arrayElementZero = (subscript == GL_INVALID_INDEX && uniformBlock.elementIndex == 0);
@@ -1155,7 +1155,7 @@ namespace es2
 
 		for(unsigned int uniformBlockIndex = 0; uniformBlockIndex < uniformBlocks.size(); uniformBlockIndex++)
 		{
-			UniformBlock &uniformBlock = uniformBlocks[uniformBlockIndex];
+			UniformBlock &uniformBlock = *uniformBlocks[uniformBlockIndex];
 			GLuint blockBinding = uniformBlockBindings[uniformBlockIndex];
 
 			// Unnecessary to apply an unreferenced standard or shared UBO
@@ -1450,9 +1450,8 @@ namespace es2
 			{
 				const glsl::ActiveUniformBlocks &activeUniformBlocks = shader->activeUniformBlocks;
 				ASSERT(static_cast<size_t>(uniform.blockId) < activeUniformBlocks.size());
-				UniformBlockArray::iterator it = std::find(uniformBlocks.begin(), uniformBlocks.end(), UniformBlock(activeUniformBlocks[uniform.blockId].getName(), GL_INVALID_INDEX, 0, std::vector<unsigned int>()));
-				ASSERT(it != uniformBlocks.end());
-				blockIndex = (it - uniformBlocks.begin()) / sizeof(UniformBlockArray::iterator);
+				blockIndex = getUniformBlockIndex(activeUniformBlocks[uniform.blockId].getName());
+				ASSERT(blockIndex != GL_INVALID_INDEX);
 				isRowMajorMatrix = activeUniformBlocks[uniform.blockId].isRowMajorLayout;
 			}
 			if(!defineUniform(shader->getType(), uniform.type, uniform.precision, uniform.name, uniform.arraySize, uniform.registerIndex, Uniform::BlockInfo(uniform, blockIndex, isRowMajorMatrix)))
@@ -1697,9 +1696,9 @@ namespace es2
 
 	bool Program::defineUniformBlock(const Shader *shader, const glsl::UniformBlock &block)
 	{
-		UniformBlockArray::iterator it = std::find(uniformBlocks.begin(), uniformBlocks.end(), UniformBlock(block.getName(), 0, 0, std::vector<unsigned int>()));
+		GLuint blockIndex = getUniformBlockIndex(block.getName());
 
-		if(it == uniformBlocks.end())
+		if(blockIndex == GL_INVALID_INDEX)
 		{
 			const glsl::ActiveUniforms &activeUniforms = shader->activeUniforms;
 			const std::vector<int>& fields = block.fields;
@@ -1713,19 +1712,19 @@ namespace es2
 			{
 				for(unsigned int i = 0; i < block.arraySize; ++i)
 				{
-					uniformBlocks.push_back(UniformBlock(block.getName(), i, block.dataSize, memberUniformIndexes));
-					uniformBlocks[uniformBlocks.size() - 1].setRegisterIndex(shader->getType(), block.registerIndex);
+					uniformBlocks.push_back(new UniformBlock(block.getName(), i, block.dataSize, memberUniformIndexes));
+					uniformBlocks[uniformBlocks.size() - 1]->setRegisterIndex(shader->getType(), block.registerIndex);
 				}
 			}
 			else
 			{
-				uniformBlocks.push_back(UniformBlock(block.getName(), GL_INVALID_INDEX, block.dataSize, memberUniformIndexes));
-				uniformBlocks[uniformBlocks.size() - 1].setRegisterIndex(shader->getType(), block.registerIndex);
+				uniformBlocks.push_back(new UniformBlock(block.getName(), GL_INVALID_INDEX, block.dataSize, memberUniformIndexes));
+				uniformBlocks[uniformBlocks.size() - 1]->setRegisterIndex(shader->getType(), block.registerIndex);
 			}
 		}
 		else
 		{
-			it->setRegisterIndex(shader->getType(), block.registerIndex);
+			uniformBlocks[blockIndex]->setRegisterIndex(shader->getType(), block.registerIndex);
 		}
 
 		return true;
@@ -2557,7 +2556,12 @@ namespace es2
 			uniforms.pop_back();
 		}
 
-		uniformBlocks.clear();
+		while(!uniformBlocks.empty())
+		{
+			delete uniformBlocks.back();
+			uniformBlocks.pop_back();
+		}
+
 		uniformIndex.clear();
 		transformFeedbackLinkedVaryings.clear();
 
@@ -2809,7 +2813,7 @@ namespace es2
 	{
 		ASSERT(index < getActiveUniformBlockCount());
 
-		const UniformBlock &uniformBlock = uniformBlocks[index];
+		const UniformBlock &uniformBlock = *uniformBlocks[index];
 
 		if(bufSize > 0)
 		{
@@ -2846,7 +2850,7 @@ namespace es2
 			unsigned int numUniformBlocks = getActiveUniformBlockCount();
 			for(unsigned int uniformBlockIndex = 0; uniformBlockIndex < numUniformBlocks; uniformBlockIndex++)
 			{
-				const UniformBlock &uniformBlock = uniformBlocks[uniformBlockIndex];
+				const UniformBlock &uniformBlock = *uniformBlocks[uniformBlockIndex];
 				if(!uniformBlock.name.empty())
 				{
 					const int length = uniformBlock.name.length() + 1;

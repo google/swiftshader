@@ -75,16 +75,13 @@ namespace es2
 
 		void setRegisterIndex(GLenum shader, unsigned int registerIndex);
 
-		// For std::find on UniformBlockArray
-		inline bool operator==(const UniformBlock& other) const { return name == other.name; }
-
 		bool isArrayElement() const;
 		bool isReferencedByVertexShader() const;
 		bool isReferencedByFragmentShader() const;
 
-		std::string name;
-		unsigned int elementIndex;
-		unsigned int dataSize;
+		const std::string name;
+		const unsigned int elementIndex;
+		const unsigned int dataSize;
 
 		std::vector<unsigned int> memberUniformIndexes;
 
@@ -295,7 +292,7 @@ namespace es2
 		UniformArray uniforms;
 		typedef std::vector<UniformLocation> UniformIndex;
 		UniformIndex uniformIndex;
-		typedef std::vector<UniformBlock> UniformBlockArray;
+		typedef std::vector<UniformBlock*> UniformBlockArray;
 		UniformBlockArray uniformBlocks;
 		typedef std::vector<LinkedVarying> LinkedVaryingArray;
 		LinkedVaryingArray transformFeedbackLinkedVaryings;
