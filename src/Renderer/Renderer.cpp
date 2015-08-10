@@ -610,14 +610,24 @@ namespace sw
 			nextDraw++;
 			schedulerMutex.unlock();
 
-			if(!threadsAwake)
+			if(threadCount > 1)
 			{
-				suspend[0]->wait();
+				if(!threadsAwake)
+				{
+					suspend[0]->wait();
 
+					threadsAwake = 1;
+					task[0].type = Task::RESUME;
+
+					resume[0]->signal();
+				}
+			}
+			else   // Use main thread for draw execution
+			{
 				threadsAwake = 1;
 				task[0].type = Task::RESUME;
 
-				resume[0]->signal();
+				taskLoop(0);
 			}
 		}
 	}
