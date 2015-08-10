@@ -10,6 +10,7 @@
 ; RUN:       -verbose=inst -build-on-read \
 ; RUN:       -allow-pnacl-reader-error-recovery \
 ; RUN:       -allow-local-symbol-tables \
+; RUN:       -filetype=obj -o /dev/null \
 ; RUN:   | %if --need=allow_dump --command FileCheck %s
 
 ; RUN: %if --need=no_dump --command llvm-as < %s \
@@ -19,6 +20,7 @@
 ; RUN:       -verbose=inst -build-on-read \
 ; RUN:       -allow-pnacl-reader-error-recovery \
 ; RUN:       -allow-local-symbol-tables \
+; RUN:       -filetype=obj -o /dev/null \
 ; RUN:   | %if --need=no_dump --command FileCheck %s --check-prefix=MIN
 
 declare i32 @llvm.fake.i32(i32)

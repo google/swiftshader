@@ -671,6 +671,7 @@ void CfgNode::livenessAddIntervals(Liveness *Liveness, InstNumberT FirstInstNum,
       [](const LiveBeginEndMapEntry &A, const LiveBeginEndMapEntry &B) {
         return A.first == B.first;
       };
+  (void)ComparePair;
   assert(std::adjacent_find(MapBegin.begin(), MapBegin.end(), ComparePair) ==
          MapBegin.end());
   assert(std::adjacent_find(MapEnd.begin(), MapEnd.end(), ComparePair) ==

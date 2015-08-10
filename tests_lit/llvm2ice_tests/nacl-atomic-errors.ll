@@ -1,5 +1,6 @@
 ; Test that some errors trigger when the usage of NaCl atomic
 ; intrinsics does not match the required ABI.
+; REQUIRES: allow_dump
 
 ; RUN: %p2i -i %s --args --verbose none --exit-success -threads=0 2>&1 \
 ; RUN:   | FileCheck %s

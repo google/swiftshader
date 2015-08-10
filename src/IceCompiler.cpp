@@ -93,8 +93,19 @@ void Compiler::run(const Ice::ClFlagsExtra &ExtraFlags, GlobalContext &Ctx,
     return Ctx.getErrorStatus()->assign(EC_None);
 
   if (!BuildDefs::disableIrGen() && Ctx.getFlags().getDisableIRGeneration()) {
-    Ctx.getStrDump() << "Error: Build doesn't allow --no-ir-gen when not "
-                     << "ALLOW_DISABLE_IR_GEN!\n";
+    Ctx.getStrError() << "Error: Build doesn't allow --no-ir-gen when not "
+                      << "ALLOW_DISABLE_IR_GEN!\n";
+    return Ctx.getErrorStatus()->assign(EC_Args);
+  }
+
+  // The Minimal build (specifically, when dump()/emit() are not implemented)
+  // allows only --filetype=obj.  Check here to avoid cryptic error messages
+  // downstream.
+  if (!BuildDefs::dump() && Ctx.getFlags().getOutFileType() != FT_Elf) {
+    // TODO(stichnot): Access the actual command-line argument via
+    // llvm::Option.ArgStr and .ValueStr .
+    Ctx.getStrError()
+        << "Error: only --filetype=obj is supported in this build.\n";
     return Ctx.getErrorStatus()->assign(EC_Args);
   }
 
@@ -121,7 +132,7 @@ void Compiler::run(const Ice::ClFlagsExtra &ExtraFlags, GlobalContext &Ctx,
     Translator.reset(PTranslator.release());
   } else if (BuildDefs::llvmIr()) {
     if (PNACL_BROWSER_TRANSLATOR) {
-      Ctx.getStrDump()
+      Ctx.getStrError()
           << "non BuildOnRead is not supported w/ PNACL_BROWSER_TRANSLATOR\n";
       return Ctx.getErrorStatus()->assign(EC_Args);
     }
@@ -142,8 +153,8 @@ void Compiler::run(const Ice::ClFlagsExtra &ExtraFlags, GlobalContext &Ctx,
     Converter->convertToIce();
     Translator.reset(Converter.release());
   } else {
-    Ctx.getStrDump() << "Error: Build doesn't allow LLVM IR, "
-                     << "--build-on-read=0 not allowed\n";
+    Ctx.getStrError() << "Error: Build doesn't allow LLVM IR, "
+                      << "--build-on-read=0 not allowed\n";
     return Ctx.getErrorStatus()->assign(EC_Args);
   }
 

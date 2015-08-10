@@ -249,19 +249,17 @@ void LinearScan::init(RegAllocKind Kind) {
     break;
   }
 
-  struct CompareRanges {
-    bool operator()(const Variable *L, const Variable *R) {
+  auto CompareRanges = [](const Variable *L, const Variable *R) {
       InstNumberT Lstart = L->getLiveRange().getStart();
       InstNumberT Rstart = R->getLiveRange().getStart();
       if (Lstart == Rstart)
         return L->getIndex() < R->getIndex();
       return Lstart < Rstart;
-    }
   };
   // Do a reverse sort so that erasing elements (from the end) is fast.
-  std::sort(Unhandled.rbegin(), Unhandled.rend(), CompareRanges());
+  std::sort(Unhandled.rbegin(), Unhandled.rend(), CompareRanges);
   std::sort(UnhandledPrecolored.rbegin(), UnhandledPrecolored.rend(),
-            CompareRanges());
+            CompareRanges);
 
   Handled.reserve(Unhandled.size());
   Inactive.reserve(Unhandled.size());

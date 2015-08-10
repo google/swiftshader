@@ -4,12 +4,14 @@
 ; RUN:   | %if --need=allow_dump --command pnacl-freeze \
 ; RUN:   | %if --need=allow_dump --command not %pnacl_sz -notranslate \
 ; RUN:     -build-on-read -allow-pnacl-reader-error-recovery \
+; RUN:     -filetype=obj -o /dev/null \
 ; RUN:   | %if --need=allow_dump --command FileCheck %s
 
 ; RUN: %if --need=no_dump --command llvm-as < %s \
 ; RUN:   | %if --need=no_dump --command pnacl-freeze \
 ; RUN:   | %if --need=no_dump --command not %pnacl_sz -notranslate \
 ; RUN:     -build-on-read -allow-pnacl-reader-error-recovery \
+; RUN:     -filetype=obj -o /dev/null \
 ; RUN:   | %if --need=no_dump --command FileCheck %s --check-prefix=MIN
 
 define void @ExtractV4xi1(<4 x i1> %v, i32 %i) {

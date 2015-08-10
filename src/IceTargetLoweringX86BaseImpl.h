@@ -3622,7 +3622,7 @@ void TargetX86Base<Machine>::lowerMemset(Operand *Dest, Operand *Val,
     Variable *VecReg = nullptr;
 
     auto lowerSet = [this, &Base, SpreadValue, &VecReg](Type Ty,
-                                                       uint32_t OffsetAmt) {
+                                                        uint32_t OffsetAmt) {
       assert(Base != nullptr);
       Constant *Offset = OffsetAmt ? Ctx->getConstantInt32(OffsetAmt) : nullptr;
 

@@ -1,6 +1,6 @@
 ; Trivial smoke test of basic block reordering. Different random seeds should
 ; generate different basic block layout.
-; REQUIRES allow_dump
+; REQUIRES: allow_dump
 
 ; RUN: %p2i -i %s --filetype=asm --args -O2 -sz-seed=1 \
 ; RUN: -reorder-basic-blocks -threads=0 \

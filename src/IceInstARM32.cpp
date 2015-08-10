@@ -479,7 +479,7 @@ template <> void InstARM32Vldr::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 1);
   assert(getDest()->hasReg());
-  Str << "\t"<< Opcode << getPredicate() << "\t";
+  Str << "\t" << Opcode << getPredicate() << "\t";
   getDest()->emit(Func);
   Str << ", ";
   getSrc(0)->emit(Func);
@@ -649,7 +649,7 @@ template <> void InstARM32Ldr::emit(const Cfg *Func) const {
   assert(getSrcSize() == 1);
   assert(getDest()->hasReg());
   Type Ty = getSrc(0)->getType();
-  Str << "\t"<< Opcode << getWidthString(Ty) << getPredicate() << "\t";
+  Str << "\t" << Opcode << getWidthString(Ty) << getPredicate() << "\t";
   getDest()->emit(Func);
   Str << ", ";
   getSrc(0)->emit(Func);
