@@ -726,7 +726,7 @@ namespace sw
 		config.perspectiveCorrection = ini.getBoolean("Quality", "PerspectiveCorrection", true);
 		config.transcendentalPrecision = ini.getInteger("Quality", "TranscendentalPrecision", 2);
 		config.transparencyAntialiasing = ini.getInteger("Quality", "TransparencyAntialiasing", 0);
-		config.threadCount = ini.getInteger("Processor", "ThreadCount", 0);
+		config.threadCount = ini.getInteger("Processor", "ThreadCount", DEFAULT_THREAD_COUNT);
 		config.enableSSE = ini.getBoolean("Processor", "EnableSSE", true);
 		config.enableSSE2 = ini.getBoolean("Processor", "EnableSSE2", true);
 		config.enableSSE3 = ini.getBoolean("Processor", "EnableSSE3", true);

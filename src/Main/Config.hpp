@@ -16,10 +16,18 @@
 
 #define PERF_HUD 0       // Display time spent on vertex, setup and pixel processing for each thread
 #define PERF_PROFILE 0   // Profile various pipeline stages and display the timing in SwiftConfig
+
 #if defined(_WIN32)
 #define S3TC_SUPPORT 1
 #else
 #define S3TC_SUPPORT 0
+#endif
+
+// Worker thread count when not set by SwiftConfig
+// 0 = process affinity count (recommended)
+// 1 = rendering on main thread (no worker threads), useful for debugging
+#ifndef DEFAULT_THREAD_COUNT
+#define DEFAULT_THREAD_COUNT 0
 #endif
 
 enum
