@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e7d42f30_7fcfe3d5",
+        "filename": "src/Main/SwiftConfig.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 772,
+      "author": {
+        "id": 5200
+      },
+      "writtenOn": "2015-08-10T21:26:16Z",
+      "side": 0,
+      "message": "Perhaps we need to make the path to this configurable? Relying on the cwd is likely to be problematic on Android.",
+      "revId": "1bacd374628b7ea1a7085f5a1f7eb1974c110a44",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
