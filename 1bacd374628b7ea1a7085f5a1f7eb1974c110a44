@@ -16,6 +16,24 @@
       "revId": "1bacd374628b7ea1a7085f5a1f7eb1974c110a44",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e7d42f30_bf5fbb6c",
+        "filename": "src/Main/SwiftConfig.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 772,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-08-10T21:40:25Z",
+      "side": 0,
+      "message": "The file is highly optional. It\u0027s mainly just where the settings are stored when using the SwiftConfig configuration page. The default values should work for release builds.\n\nThat said, I\u0027d like to use SwiftConfig on Android eventually, so yes this path should be made configurable or we should use something else for storing these settings on Android.",
+      "parentUuid": "e7d42f30_7fcfe3d5",
+      "revId": "1bacd374628b7ea1a7085f5a1f7eb1974c110a44",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
