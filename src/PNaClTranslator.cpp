@@ -1306,12 +1306,6 @@ public:
       return Context->getGlobalConstantByID(Index);
     }
     NaClBcIndexSize_t LocalIndex = Index - CachedNumGlobalValueIDs;
-    if (LocalIndex >= LocalOperands.size()) {
-      std::string Buffer;
-      raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Value index " << Index << " not defined!";
-      Fatal(StrBuf.str());
-    }
     Ice::Operand *Op = LocalOperands[LocalIndex];
     if (Op == nullptr) {
       if (isIRGenerationDisabled())
@@ -1334,6 +1328,7 @@ public:
   }
 
 private:
+  typedef std::unordered_map<NaClBcIndexSize_t, Ice::Operand *> OperandMap;
   typedef std::unordered_map<NaClBcIndexSize_t, Ice::CfgNode *> CfgNodeMap;
 
   Ice::TimerMarker Timer;
@@ -1356,7 +1351,7 @@ private:
   size_t CachedNumGlobalValueIDs;
   // Holds operands local to the function block, based on indices
   // defined in the bitcode file.
-  std::vector<Ice::Operand *> LocalOperands;
+  OperandMap LocalOperands;
   // Holds the index within LocalOperands corresponding to the next
   // instruction that generates a value.
   NaClBcIndexSize_t NextLocalInstIndex;
@@ -1391,6 +1386,8 @@ private:
   void ExitBlock() override;
 
   bool verifyAndRenameBasicBlocks();
+
+  bool verifyAllForwardRefsDefined();
 
   // Returns the Index-th basic block in the list of basic blocks.
   // Assumes Index corresponds to a branch instruction. Hence, if
@@ -1467,34 +1464,26 @@ private:
     assert(Op || isIRGenerationDisabled());
     // Check if simple push works.
     NaClBcIndexSize_t LocalIndex = Index - CachedNumGlobalValueIDs;
-    if (LocalIndex == LocalOperands.size()) {
-      LocalOperands.push_back(Op);
-      return;
-    }
-
-    // Must be forward reference, expand vector to accommodate.
-    if (LocalIndex >= LocalOperands.size())
-      LocalOperands.resize(LocalIndex + 1);
 
     // If element not defined, set it.
-    Ice::Operand *OldOp = LocalOperands[LocalIndex];
-    if (OldOp == nullptr) {
-      LocalOperands[LocalIndex] = Op;
+    Ice::Operand *&IndexedOp = LocalOperands[LocalIndex];
+    if (IndexedOp == nullptr) {
+      IndexedOp = Op;
       return;
     }
 
-    // See if forward reference matches.
-    if (OldOp == Op)
+    // See if forward reference matchers.
+    if (IndexedOp == Op)
       return;
 
     // Error has occurred.
     std::string Buffer;
     raw_string_ostream StrBuf(Buffer);
     StrBuf << "Multiple definitions for index " << Index << ": " << *Op
-           << " and " << *OldOp;
+           << " and " << *IndexedOp;
     Error(StrBuf.str());
     // TODO(kschimpf) Remove error recovery once implementation complete.
-    LocalOperands[LocalIndex] = Op;
+    IndexedOp = Op;
   }
 
   // Returns the relative operand (wrt to BaseIndex) referenced by
@@ -1998,6 +1987,26 @@ private:
   }
 };
 
+bool FunctionParser::verifyAllForwardRefsDefined() {
+  NaClBcIndexSize_t NumInstructions =
+      NextLocalInstIndex - CachedNumGlobalValueIDs;
+  if (NumInstructions == LocalOperands.size())
+    return true;
+  // Find undefined forward references and report.
+  std::vector<NaClBcIndexSize_t> UndefinedFwdRefs;
+  for (const OperandMap::value_type &Elmt : LocalOperands)
+    if (Elmt.first >= NextLocalInstIndex)
+      UndefinedFwdRefs.push_back(Elmt.first);
+  std::sort(UndefinedFwdRefs.begin(), UndefinedFwdRefs.end());
+  for (const NaClBcIndexSize_t Index : UndefinedFwdRefs) {
+    std::string Buffer;
+    raw_string_ostream StrBuf(Buffer);
+    StrBuf << "Instruction forward reference not defined: " << Index;
+    Error(StrBuf.str());
+  }
+  return false;
+}
+
 bool FunctionParser::verifyAndRenameBasicBlocks() {
   const size_t NumFoundBbs = BbMap.size();
   // Verify number of basic blocks found match amount specified in function.
@@ -2046,6 +2055,8 @@ void FunctionParser::ExitBlock() {
     CurrentNode->appendInst(Ice::InstUnreachable::create(Func.get()));
   }
   if (isIRGenerationDisabled())
+    return;
+  if (!verifyAllForwardRefsDefined())
     return;
   if (!verifyAndRenameBasicBlocks())
     return;
