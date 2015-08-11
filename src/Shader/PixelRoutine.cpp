@@ -29,17 +29,16 @@ namespace sw
 
 	PixelRoutine::Registers::Registers(const PixelShader *shader) :
 		QuadRasterizer::Registers(),
-		rf(shader && shader->dynamicallyIndexedTemporaries),
-		vf(shader && shader->dynamicallyIndexedInput)
+		v(shader && shader->dynamicallyIndexedInput)
 	{
 		if(!shader || shader->getVersion() < 0x0200 || forceClearRegisters)
 		{
 			for(int i = 0; i < 10; i++)
 			{
-				vf[i].x = Float4(0.0f);
-				vf[i].y = Float4(0.0f);
-				vf[i].z = Float4(0.0f);
-				vf[i].w = Float4(0.0f);
+				v[i].x = Float4(0.0f);
+				v[i].y = Float4(0.0f);
+				v[i].z = Float4(0.0f);
+				v[i].w = Float4(0.0f);
 			}
 		}
 	}
@@ -169,11 +168,11 @@ namespace sw
 					{
 						if(!state.interpolant[interpolant].centroid)
 						{
-							r.vf[interpolant][component] = interpolate(xxxx, r.Dv[interpolant][component], rhw, r.primitive + OFFSET(Primitive, V[interpolant][component]), (state.interpolant[interpolant].flat & (1 << component)) != 0, state.perspective);
+							r.v[interpolant][component] = interpolate(xxxx, r.Dv[interpolant][component], rhw, r.primitive + OFFSET(Primitive, V[interpolant][component]), (state.interpolant[interpolant].flat & (1 << component)) != 0, state.perspective);
 						}
 						else
 						{
-							r.vf[interpolant][component] = interpolateCentroid(XXXX, YYYY, rhwCentroid, r.primitive + OFFSET(Primitive, V[interpolant][component]), (state.interpolant[interpolant].flat & (1 << component)) != 0, state.perspective);
+							r.v[interpolant][component] = interpolateCentroid(XXXX, YYYY, rhwCentroid, r.primitive + OFFSET(Primitive, V[interpolant][component]), (state.interpolant[interpolant].flat & (1 << component)) != 0, state.perspective);
 						}
 					}
 				}
@@ -185,19 +184,19 @@ namespace sw
 				case 0:
 					break;
 				case 1:
-					rcp = reciprocal(r.vf[interpolant].y);
-					r.vf[interpolant].x = r.vf[interpolant].x * rcp;
+					rcp = reciprocal(r.v[interpolant].y);
+					r.v[interpolant].x = r.v[interpolant].x * rcp;
 					break;
 				case 2:
-					rcp = reciprocal(r.vf[interpolant].z);
-					r.vf[interpolant].x = r.vf[interpolant].x * rcp;
-					r.vf[interpolant].y = r.vf[interpolant].y * rcp;
+					rcp = reciprocal(r.v[interpolant].z);
+					r.v[interpolant].x = r.v[interpolant].x * rcp;
+					r.v[interpolant].y = r.v[interpolant].y * rcp;
 					break;
 				case 3:
-					rcp = reciprocal(r.vf[interpolant].w);
-					r.vf[interpolant].x = r.vf[interpolant].x * rcp;
-					r.vf[interpolant].y = r.vf[interpolant].y * rcp;
-					r.vf[interpolant].z = r.vf[interpolant].z * rcp;
+					rcp = reciprocal(r.v[interpolant].w);
+					r.v[interpolant].x = r.v[interpolant].x * rcp;
+					r.v[interpolant].y = r.v[interpolant].y * rcp;
+					r.v[interpolant].z = r.v[interpolant].z * rcp;
 					break;
 				}
 			}
@@ -602,7 +601,7 @@ namespace sw
 		cMask[3] &= aMask3;
 	}
 
-	void PixelRoutine::fogBlend(Registers &r, Vector4f &c0, Float4 &fog, Float4 &z, Float4 &rhw)
+	void PixelRoutine::fogBlend(Registers &r, Vector4f &c0, Float4 &fog)
 	{
 		if(!state.fogActive)
 		{
@@ -611,7 +610,7 @@ namespace sw
 
 		if(state.pixelFogMode != FOG_NONE)
 		{
-			pixelFog(r, fog, z, rhw);
+			pixelFog(r, fog);
 
 			fog = Min(fog, Float4(1.0f));
 			fog = Max(fog, Float4(0.0f));
@@ -630,7 +629,7 @@ namespace sw
 		c0.z += *Pointer<Float4>(r.data + OFFSET(DrawData,fog.colorF[2]));
 	}
 
-	void PixelRoutine::pixelFog(Registers &r, Float4 &visibility, Float4 &z, Float4 &rhw)
+	void PixelRoutine::pixelFog(Registers &r, Float4 &visibility)
 	{
 		Float4 &zw = visibility;
 
@@ -638,17 +637,17 @@ namespace sw
 		{
 			if(state.wBasedFog)
 			{
-				zw = rhw;
+				zw = r.rhw;
 			}
 			else
 			{
 				if(complementaryDepthBuffer)
 				{
-					zw = Float4(1.0f) - z;
+					zw = Float4(1.0f) - r.z[0];
 				}
 				else
 				{
-					zw = z;
+					zw = r.z[0];
 				}
 			}
 		}

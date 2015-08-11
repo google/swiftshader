@@ -59,7 +59,7 @@ namespace sw
 
 		void fixedFunction(Registers& r);
 		void blendTexture(Registers &r, Vector4s &temp, Vector4s &texture, int stage);
-		void fogBlend(Registers &r, Vector4s &current, Float4 &fog, Float4 &z, Float4 &rhw);
+		void fogBlend(Registers &r, Vector4s &current, Float4 &fog);
 		void specularPixel(Vector4s &current, Vector4s &specular);
 
 		void sampleTexture(Registers &r, Vector4s &c, int coordinates, int sampler, bool project = false);

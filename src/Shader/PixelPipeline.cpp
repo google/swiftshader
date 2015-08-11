@@ -21,15 +21,15 @@ namespace sw
 	{
 		Registers& r = *static_cast<Registers*>(&rBase);
 
-		if(state.color[0].component & 0x1) r.diffuse.x = convertFixed12(r.vf[0].x); else r.diffuse.x = Short4(0x1000);
-		if(state.color[0].component & 0x2) r.diffuse.y = convertFixed12(r.vf[0].y); else r.diffuse.y = Short4(0x1000);
-		if(state.color[0].component & 0x4) r.diffuse.z = convertFixed12(r.vf[0].z); else r.diffuse.z = Short4(0x1000);
-		if(state.color[0].component & 0x8) r.diffuse.w = convertFixed12(r.vf[0].w); else r.diffuse.w = Short4(0x1000);
+		if(state.color[0].component & 0x1) r.diffuse.x = convertFixed12(r.v[0].x); else r.diffuse.x = Short4(0x1000);
+		if(state.color[0].component & 0x2) r.diffuse.y = convertFixed12(r.v[0].y); else r.diffuse.y = Short4(0x1000);
+		if(state.color[0].component & 0x4) r.diffuse.z = convertFixed12(r.v[0].z); else r.diffuse.z = Short4(0x1000);
+		if(state.color[0].component & 0x8) r.diffuse.w = convertFixed12(r.v[0].w); else r.diffuse.w = Short4(0x1000);
 
-		if(state.color[1].component & 0x1) r.specular.x = convertFixed12(r.vf[1].x); else r.specular.x = Short4(0x0000, 0x0000, 0x0000, 0x0000);
-		if(state.color[1].component & 0x2) r.specular.y = convertFixed12(r.vf[1].y); else r.specular.y = Short4(0x0000, 0x0000, 0x0000, 0x0000);
-		if(state.color[1].component & 0x4) r.specular.z = convertFixed12(r.vf[1].z); else r.specular.z = Short4(0x0000, 0x0000, 0x0000, 0x0000);
-		if(state.color[1].component & 0x8) r.specular.w = convertFixed12(r.vf[1].w); else r.specular.w = Short4(0x0000, 0x0000, 0x0000, 0x0000);
+		if(state.color[1].component & 0x1) r.specular.x = convertFixed12(r.v[1].x); else r.specular.x = Short4(0x0000, 0x0000, 0x0000, 0x0000);
+		if(state.color[1].component & 0x2) r.specular.y = convertFixed12(r.v[1].y); else r.specular.y = Short4(0x0000, 0x0000, 0x0000, 0x0000);
+		if(state.color[1].component & 0x4) r.specular.z = convertFixed12(r.v[1].z); else r.specular.z = Short4(0x0000, 0x0000, 0x0000, 0x0000);
+		if(state.color[1].component & 0x8) r.specular.w = convertFixed12(r.v[1].w); else r.specular.w = Short4(0x0000, 0x0000, 0x0000, 0x0000);
 	}
 
 	void PixelPipeline::fixedFunction(Registers& r)
@@ -102,10 +102,10 @@ namespace sw
 			if(src1.type != Shader::PARAMETER_VOID) s1 = fetchRegisterS(r, src1);
 			if(src2.type != Shader::PARAMETER_VOID) s2 = fetchRegisterS(r, src2);
 
-			Float4 u = version < 0x0104 ? r.vf[2 + dst.index].x : r.vf[2 + src0.index].x;
-			Float4 v = version < 0x0104 ? r.vf[2 + dst.index].y : r.vf[2 + src0.index].y;
-			Float4 s = version < 0x0104 ? r.vf[2 + dst.index].z : r.vf[2 + src0.index].z;
-			Float4 t = version < 0x0104 ? r.vf[2 + dst.index].w : r.vf[2 + src0.index].w;
+			Float4 u = version < 0x0104 ? r.v[2 + dst.index].x : r.v[2 + src0.index].x;
+			Float4 v = version < 0x0104 ? r.v[2 + dst.index].y : r.v[2 + src0.index].y;
+			Float4 s = version < 0x0104 ? r.v[2 + dst.index].z : r.v[2 + src0.index].z;
+			Float4 t = version < 0x0104 ? r.v[2 + dst.index].w : r.v[2 + src0.index].w;
 
 			switch(opcode)
 			{
@@ -342,7 +342,7 @@ namespace sw
 				r.current.z &= Short4(0xF800u);
 			}
 
-			fogBlend(r, r.current, fog, r.z[0], r.rhw);
+			fogBlend(r, r.current, fog);
 
 			for(unsigned int q = 0; q < state.multiSample; q++)
 			{
@@ -361,7 +361,7 @@ namespace sw
 		case FORMAT_G32R32F:
 		case FORMAT_A32B32G32R32F:
 			convertSigned12(oC, r.current);
-			PixelRoutine::fogBlend(r, oC, fog, r.z[0], r.rhw);
+			PixelRoutine::fogBlend(r, oC, fog);
 
 			for(unsigned int q = 0; q < state.multiSample; q++)
 			{
@@ -1174,7 +1174,7 @@ namespace sw
 		}
 	}
 
-	void PixelPipeline::fogBlend(Registers &r, Vector4s &current, Float4 &f, Float4 &z, Float4 &rhw)
+	void PixelPipeline::fogBlend(Registers &r, Vector4s &current, Float4 &f)
 	{
 		if(!state.fogActive)
 		{
@@ -1183,7 +1183,7 @@ namespace sw
 
 		if(state.pixelFogMode != FOG_NONE)
 		{
-			pixelFog(r, f, z, rhw);
+			pixelFog(r, f);
 		}
 
 		UShort4 fog = convertFixed16(f, true);
@@ -1213,10 +1213,10 @@ namespace sw
 
 	void PixelPipeline::sampleTexture(Registers &r, Vector4s &c, int coordinates, int stage, bool project)
 	{
-		Float4 u = r.vf[2 + coordinates].x;
-		Float4 v = r.vf[2 + coordinates].y;
-		Float4 w = r.vf[2 + coordinates].z;
-		Float4 q = r.vf[2 + coordinates].w;
+		Float4 u = r.v[2 + coordinates].x;
+		Float4 v = r.v[2 + coordinates].y;
+		Float4 w = r.v[2 + coordinates].z;
+		Float4 q = r.v[2 + coordinates].w;
 
 		if(perturbate)
 		{
@@ -1887,9 +1887,9 @@ namespace sw
 
 		Float4 E[3];   // Eye vector
 
-		E[0] = r.vf[2 + stage - 2].w;
-		E[1] = r.vf[2 + stage - 1].w;
-		E[2] = r.vf[2 + stage - 0].w;
+		E[0] = r.v[2 + stage - 2].w;
+		E[1] = r.v[2 + stage - 1].w;
+		E[2] = r.v[2 + stage - 0].w;
 
 		// Reflection
 		Float4 u__;

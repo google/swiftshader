@@ -38,7 +38,10 @@ namespace sw
 	private:
 		struct Registers : public PixelRoutine::Registers
 		{
-			Registers(const PixelShader *shader) : PixelRoutine::Registers(shader), loopDepth(-1)
+			Registers(const PixelShader *shader) :
+				PixelRoutine::Registers(shader),
+				r(shader && shader->dynamicallyIndexedTemporaries),
+				loopDepth(-1)
 			{
 				enableStack[0] = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
 
@@ -52,6 +55,12 @@ namespace sw
 					enableContinue = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
 				}
 			}
+
+			// Temporary registers
+			RegisterArray<4096> r;
+
+			// Color outputs
+			Vector4f oC[4];
 
 			// Shader variables
 			Vector4f vPos;

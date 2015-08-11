@@ -121,14 +121,14 @@ namespace sw
 			{
 				if(dst.type == Shader::PARAMETER_TEXTURE)
 				{
-					d.x = r.vf[2 + dst.index].x;
-					d.y = r.vf[2 + dst.index].y;
-					d.z = r.vf[2 + dst.index].z;
-					d.w = r.vf[2 + dst.index].w;
+					d.x = r.v[2 + dst.index].x;
+					d.y = r.v[2 + dst.index].y;
+					d.z = r.v[2 + dst.index].z;
+					d.w = r.v[2 + dst.index].w;
 				}
 				else
 				{
-					d = r.rf[dst.index];
+					d = r.r[dst.index];
 				}
 			}
 
@@ -342,19 +342,19 @@ namespace sw
 					case Shader::PARAMETER_TEMP:
 						if(dst.rel.type == Shader::PARAMETER_VOID)
 						{
-							if(dst.x) pDst.x = r.rf[dst.index].x;
-							if(dst.y) pDst.y = r.rf[dst.index].y;
-							if(dst.z) pDst.z = r.rf[dst.index].z;
-							if(dst.w) pDst.w = r.rf[dst.index].w;
+							if(dst.x) pDst.x = r.r[dst.index].x;
+							if(dst.y) pDst.y = r.r[dst.index].y;
+							if(dst.z) pDst.z = r.r[dst.index].z;
+							if(dst.w) pDst.w = r.r[dst.index].w;
 						}
 						else
 						{
 							Int a = relativeAddress(r, dst);
 
-							if(dst.x) pDst.x = r.rf[dst.index + a].x;
-							if(dst.y) pDst.y = r.rf[dst.index + a].y;
-							if(dst.z) pDst.z = r.rf[dst.index + a].z;
-							if(dst.w) pDst.w = r.rf[dst.index + a].w;
+							if(dst.x) pDst.x = r.r[dst.index + a].x;
+							if(dst.y) pDst.y = r.r[dst.index + a].y;
+							if(dst.z) pDst.z = r.r[dst.index + a].z;
+							if(dst.w) pDst.w = r.r[dst.index + a].w;
 						}
 						break;
 					case Shader::PARAMETER_COLOROUT:
@@ -425,19 +425,19 @@ namespace sw
 				case Shader::PARAMETER_TEMP:
 					if(dst.rel.type == Shader::PARAMETER_VOID)
 					{
-						if(dst.x) r.rf[dst.index].x = d.x;
-						if(dst.y) r.rf[dst.index].y = d.y;
-						if(dst.z) r.rf[dst.index].z = d.z;
-						if(dst.w) r.rf[dst.index].w = d.w;
+						if(dst.x) r.r[dst.index].x = d.x;
+						if(dst.y) r.r[dst.index].y = d.y;
+						if(dst.z) r.r[dst.index].z = d.z;
+						if(dst.w) r.r[dst.index].w = d.w;
 					}
 					else
 					{
 						Int a = relativeAddress(r, dst);
 
-						if(dst.x) r.rf[dst.index + a].x = d.x;
-						if(dst.y) r.rf[dst.index + a].y = d.y;
-						if(dst.z) r.rf[dst.index + a].z = d.z;
-						if(dst.w) r.rf[dst.index + a].w = d.w;
+						if(dst.x) r.r[dst.index + a].x = d.x;
+						if(dst.y) r.r[dst.index + a].y = d.y;
+						if(dst.z) r.r[dst.index + a].z = d.z;
+						if(dst.w) r.r[dst.index + a].w = d.w;
 					}
 					break;
 				case Shader::PARAMETER_COLOROUT:
@@ -539,7 +539,7 @@ namespace sw
 
 			if(index == 0)
 			{
-				fogBlend(r, r.oC[index], fog, r.z[0], r.rhw);
+				fogBlend(r, r.oC[index], fog);
 			}
 
 			switch(state.targetFormat[index])
@@ -714,32 +714,32 @@ namespace sw
 		case Shader::PARAMETER_TEMP:
 			if(src.rel.type == Shader::PARAMETER_VOID)
 			{
-				reg = r.rf[i];
+				reg = r.r[i];
 			}
 			else
 			{
 				Int a = relativeAddress(r, src);
 
-				reg = r.rf[i + a];
+				reg = r.r[i + a];
 			}
 			break;
 		case Shader::PARAMETER_INPUT:
 			{
 				if(src.rel.type == Shader::PARAMETER_VOID)   // Not relative
 				{
-					reg = r.vf[i];
+					reg = r.v[i];
 				}
 				else if(src.rel.type == Shader::PARAMETER_LOOP)
 				{
 					Int aL = r.aL[r.loopDepth];
 
-					reg = r.vf[i + aL];
+					reg = r.v[i + aL];
 				}
 				else
 				{
 					Int a = relativeAddress(r, src);
 
-					reg = r.vf[i + a];
+					reg = r.v[i + a];
 				}
 			}
 			break;
@@ -747,7 +747,7 @@ namespace sw
 			reg = readConstant(r, src, offset);
 			break;
 		case Shader::PARAMETER_TEXTURE:
-			reg = r.vf[2 + i];
+			reg = r.v[2 + i];
 			break;
 		case Shader::PARAMETER_MISCTYPE:
 			if(src.index == 0) reg = r.vPos;
@@ -760,7 +760,7 @@ namespace sw
 			}
 			else if(src.rel.type == Shader::PARAMETER_TEMP)
 			{
-				reg.x = As<Float4>(Int4(i) + As<Int4>(r.rf[src.rel.index].x));
+				reg.x = As<Float4>(Int4(i) + As<Int4>(r.r[src.rel.index].x));
 			}
 			return reg;
 		case Shader::PARAMETER_PREDICATE:   return reg; // Dummy
@@ -898,11 +898,11 @@ namespace sw
 
 		if(var.rel.type == Shader::PARAMETER_TEMP)
 		{
-			return As<Int>(Extract(r.rf[var.rel.index].x, 0)) * var.rel.scale;
+			return As<Int>(Extract(r.r[var.rel.index].x, 0)) * var.rel.scale;
 		}
 		else if(var.rel.type == Shader::PARAMETER_INPUT)
 		{
-			return As<Int>(Extract(r.vf[var.rel.index].x, 0)) * var.rel.scale;
+			return As<Int>(Extract(r.v[var.rel.index].x, 0)) * var.rel.scale;
 		}
 		else if(var.rel.type == Shader::PARAMETER_OUTPUT)
 		{
