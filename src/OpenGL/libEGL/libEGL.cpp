@@ -240,7 +240,10 @@ EGLBoolean ChooseConfig(EGLDisplay dpy, const EGLint *attrib_list, EGLConfig *co
 		attrib_list = attribList;
 	}
 
-	display->getConfigs(configs, attrib_list, config_size, num_config);
+	if(!display->getConfigs(configs, attrib_list, config_size, num_config))
+	{
+		return error(EGL_BAD_ATTRIBUTE, EGL_FALSE);
+	}
 
 	return success(EGL_TRUE);
 }
