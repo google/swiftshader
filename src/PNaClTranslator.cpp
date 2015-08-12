@@ -526,7 +526,6 @@ TopLevelParser::reportGetFunctionByIDError(NaClBcIndexSize_t ID) {
          << " not allowed. Out of range. Must be less than "
          << FunctionDeclarationList.size();
   blockError(StrBuf.str());
-  // TODO(kschimpf) Remove error recovery once implementation complete.
   if (!FunctionDeclarationList.empty())
     return FunctionDeclarationList[0];
   Fatal();
@@ -540,7 +539,6 @@ TopLevelParser::reportGetGlobalVariableByIDError(NaClBcIndexSize_t Index) {
          << " not allowed. Out of range. Must be less than "
          << VariableDeclarations->size();
   blockError(StrBuf.str());
-  // TODO(kschimpf) Remove error recovery once implementation complete.
   if (!VariableDeclarations->empty())
     return VariableDeclarations->at(0);
   Fatal();
@@ -711,7 +709,6 @@ bool BlockParserBaseClass::ParseBlock(unsigned BlockID) {
   raw_string_ostream StrBuf(Buffer);
   StrBuf << "Don't know how to parse block id: " << BlockID;
   Error(StrBuf.str());
-  // TODO(kschimpf) Remove error recovery once implementation complete.
   SkipBlock();
   return false;
 }
@@ -917,7 +914,6 @@ void TypesParser::ProcessRecord() {
         raw_string_ostream StrBuf(Buffer);
         StrBuf << "Type for parameter " << (i - 1)
                << " not valid. Found: " << ArgTy;
-        // TODO(kschimpf) Remove error recovery once implementation complete.
         ArgTy = Ice::IceType_i32;
       }
       FuncTy->appendArgType(ArgTy);
@@ -1397,7 +1393,6 @@ private:
     assert(!isIRGenerationDisabled());
     if (Index == 0) {
       Error("Branch to entry block not allowed");
-      // TODO(kschimpf) Remove error recovery once implementation complete.
     }
     return getBasicBlock(Index);
   }
@@ -1433,7 +1428,6 @@ private:
         StrBuf << "Illegal forward referenced instruction ("
                << NextLocalInstIndex << "): " << *Op;
         Error(StrBuf.str());
-        // TODO(kschimpf) Remove error recovery once implementation complete.
         ++NextLocalInstIndex;
         return createInstVar(Ty);
       }
@@ -1453,7 +1447,6 @@ private:
       StrBuf << "Invalid relative value id: " << Id
              << " (must be <= " << BaseIndex << ")";
       Error(StrBuf.str());
-      // TODO(kschimpf) Remove error recovery once implementation complete.
       return 0;
     }
     return BaseIndex - Id;
@@ -1482,7 +1475,6 @@ private:
     StrBuf << "Multiple definitions for index " << Index << ": " << *Op
            << " and " << *IndexedOp;
     Error(StrBuf.str());
-    // TODO(kschimpf) Remove error recovery once implementation complete.
     IndexedOp = Op;
   }
 
@@ -1644,7 +1636,6 @@ private:
       raw_string_ostream StrBuf(Buffer);
       StrBuf << "Binary opcode " << Opcode << "not understood for type " << Ty;
       Error(StrBuf.str());
-      // TODO(kschimpf) Remove error recovery once implementation complete.
       Op = Ice::InstArithmetic::Add;
       return false;
     }
@@ -1813,7 +1804,6 @@ private:
       raw_string_ostream StrBuf(Buffer);
       StrBuf << "Cast opcode " << Opcode << " not understood.\n";
       Error(StrBuf.str());
-      // TODO(kschimpf) Remove error recovery once implementation complete.
       CastKind = Ice::InstCast::Bitcast;
       return false;
     }
@@ -1976,7 +1966,6 @@ private:
   // if the return type is void. In such cases, a placeholder value
   // for the badly formed instruction is not needed. Hence, if Ty is
   // void, an error instruction is not appended.
-  // TODO(kschimpf) Remove error recovery once implementation complete.
   void appendErrorInstruction(Ice::Type Ty) {
     // Note: we don't worry about downstream translation errors because
     // the function will not be translated if any errors occur.
@@ -2069,7 +2058,6 @@ void FunctionParser::ExitBlock() {
       raw_string_ostream StrBuf(Buffer);
       StrBuf << "Basic block " << Index << " contains no instructions";
       Error(StrBuf.str());
-      // TODO(kschimpf) Remove error recovery once implementation complete.
       Node->appendInst(Ice::InstUnreachable::create(Func.get()));
     }
     ++Index;
@@ -2107,7 +2095,6 @@ void FunctionParser::ProcessRecord() {
     uint64_t NumBbsRaw = Values[0];
     if (NumBbsRaw == 0) {
       Error("Functions must contain at least one basic block.");
-      // TODO(kschimpf) Remove error recovery once implementation complete.
       NumBbsRaw = 1;
     } else if (NumBbsRaw > NaClBcIndexSize_t_Max) {
       std::string Buffer;
@@ -2715,7 +2702,6 @@ void FunctionParser::ProcessRecord() {
                << IntrinsicInfo->getReturnType()
                << ". Found: " << Inst->getReturnType();
         Error(StrBuf.str());
-        // TODO(kschimpf) Remove error recovery once implementation complete.
         break;
       }
       case Ice::Intrinsics::WrongNumOfArgs: {
@@ -2724,7 +2710,6 @@ void FunctionParser::ProcessRecord() {
         StrBuf << "Intrinsic call expects " << IntrinsicInfo->getNumArgs()
                << ". Found: " << Inst->getNumArgs();
         Error(StrBuf.str());
-        // TODO(kschimpf) Remove error recovery once implementation complete.
         break;
       }
       case Ice::Intrinsics::WrongCallArgType: {
@@ -2734,7 +2719,6 @@ void FunctionParser::ProcessRecord() {
                << IntrinsicInfo->getArgType(ArgIndex)
                << ". Found: " << Inst->getArg(ArgIndex)->getType();
         Error(StrBuf.str());
-        // TODO(kschimpf) Remove error recovery once implementation complete.
         break;
       }
       }
@@ -2928,7 +2912,6 @@ void FunctionValuesymtabParser::setValueName(NaClBcIndexSize_t Index,
   // (FP->getOperand will create fatal error).
   if (Index < getFunctionParser()->getNumGlobalIDs()) {
     reportUnableToAssign("instruction", Index, Name);
-    // TODO(kschimpf) Remove error recovery once implementation complete.
     return;
   }
   if (isIRGenerationDisabled())
