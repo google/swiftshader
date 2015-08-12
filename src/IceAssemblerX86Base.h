@@ -243,9 +243,9 @@ public:
 
   // Cross Xmm/GPR cast instructions.
   template <typename DReg_t, typename SReg_t> struct CastEmitterRegOp {
-    typedef void (AssemblerX86Base::*TypedEmitRegs)(Type, DReg_t, SReg_t);
+    typedef void (AssemblerX86Base::*TypedEmitRegs)(Type, DReg_t, Type, SReg_t);
     typedef void (AssemblerX86Base::*TypedEmitAddr)(
-        Type, DReg_t, const typename Traits::Address &);
+        Type, DReg_t, Type, const typename Traits::Address &);
 
     TypedEmitRegs RegReg;
     TypedEmitAddr RegAddr;
@@ -299,7 +299,14 @@ public:
            typename Traits::GPRRegister src);
   void mov(Type Ty, const typename Traits::Address &dst, const Immediate &imm);
 
-  void movFromAh(const typename Traits::GPRRegister dst);
+  template <typename T = Traits>
+  typename std::enable_if<T::Is64Bit, void>::type
+  movabs(const typename Traits::GPRRegister Dst, uint64_t Imm64);
+  template <typename T = Traits>
+  typename std::enable_if<!T::Is64Bit, void>::type
+  movabs(const typename Traits::GPRRegister, uint64_t) {
+    llvm::report_fatal_error("movabs is only supported in 64-bit x86 targets.");
+  }
 
   void movzx(Type Ty, typename Traits::GPRRegister dst,
              typename Traits::GPRRegister src);
@@ -328,11 +335,13 @@ public:
   void movss(Type Ty, typename Traits::XmmRegister dst,
              typename Traits::XmmRegister src);
 
-  void movd(typename Traits::XmmRegister dst, typename Traits::GPRRegister src);
-  void movd(typename Traits::XmmRegister dst,
+  void movd(Type SrcTy, typename Traits::XmmRegister dst,
+            typename Traits::GPRRegister src);
+  void movd(Type SrcTy, typename Traits::XmmRegister dst,
             const typename Traits::Address &src);
-  void movd(typename Traits::GPRRegister dst, typename Traits::XmmRegister src);
-  void movd(const typename Traits::Address &dst,
+  void movd(Type DestTy, typename Traits::GPRRegister dst,
+            typename Traits::XmmRegister src);
+  void movd(Type DestTy, const typename Traits::Address &dst,
             typename Traits::XmmRegister src);
 
   void movq(typename Traits::XmmRegister dst, typename Traits::XmmRegister src);
@@ -504,9 +513,9 @@ public:
   void cvttps2dq(Type, typename Traits::XmmRegister dst,
                  const typename Traits::Address &src);
 
-  void cvtsi2ss(Type DestTy, typename Traits::XmmRegister dst,
+  void cvtsi2ss(Type DestTy, typename Traits::XmmRegister dst, Type SrcTy,
                 typename Traits::GPRRegister src);
-  void cvtsi2ss(Type DestTy, typename Traits::XmmRegister dst,
+  void cvtsi2ss(Type DestTy, typename Traits::XmmRegister dst, Type SrcTy,
                 const typename Traits::Address &src);
 
   void cvtfloat2float(Type SrcTy, typename Traits::XmmRegister dst,
@@ -514,9 +523,9 @@ public:
   void cvtfloat2float(Type SrcTy, typename Traits::XmmRegister dst,
                       const typename Traits::Address &src);
 
-  void cvttss2si(Type SrcTy, typename Traits::GPRRegister dst,
+  void cvttss2si(Type DestTy, typename Traits::GPRRegister dst, Type SrcTy,
                  typename Traits::XmmRegister src);
-  void cvttss2si(Type SrcTy, typename Traits::GPRRegister dst,
+  void cvttss2si(Type DestTy, typename Traits::GPRRegister dst, Type SrcTy,
                  const typename Traits::Address &src);
 
   void ucomiss(Type Ty, typename Traits::XmmRegister a,
@@ -719,6 +728,12 @@ public:
   void cbw();
   void cwd();
   void cdq();
+  template <typename T = Traits>
+  typename std::enable_if<T::Is64Bit, void>::type cqo();
+  template <typename T = Traits>
+  typename std::enable_if<!T::Is64Bit, void>::type cqo() {
+    llvm::report_fatal_error("CQO is only available in 64-bit x86 backends.");
+  }
 
   void div(Type Ty, typename Traits::GPRRegister reg);
   void div(Type Ty, const typename Traits::Address &address);
@@ -936,7 +951,7 @@ private:
                      typename Traits::GPRRegister>::value;
 
     return IsGPR && (Reg & 0x04) != 0 && (Reg & 0x08) == 0 &&
-           isByteSizedArithType(Ty);
+           isByteSizedType(Ty);
   };
 
   // assembleAndEmitRex is used for determining which (if any) rex prefix should

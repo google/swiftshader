@@ -77,6 +77,7 @@ template <class MachineTraits> class BoolFolding {
 public:
   enum BoolFoldingProducerKind {
     PK_None,
+    // TODO(jpp): PK_Icmp32 is no longer meaningful. Rename to PK_IcmpNative.
     PK_Icmp32,
     PK_Icmp64,
     PK_Fcmp,
@@ -120,7 +121,7 @@ template <class MachineTraits>
 typename BoolFolding<MachineTraits>::BoolFoldingProducerKind
 BoolFolding<MachineTraits>::getProducerKind(const Inst *Instr) {
   if (llvm::isa<InstIcmp>(Instr)) {
-    if (Instr->getSrc(0)->getType() != IceType_i64)
+    if (MachineTraits::Is64Bit || Instr->getSrc(0)->getType() != IceType_i64)
       return PK_Icmp32;
     return PK_None; // TODO(stichnot): actually PK_Icmp64;
   }
@@ -643,10 +644,10 @@ template <class Machine> void TargetX86Base<Machine>::doLoadOpt() {
       } else if (auto *Intrin = llvm::dyn_cast<InstIntrinsicCall>(CurInst)) {
         // An AtomicLoad intrinsic qualifies as long as it has a valid
         // memory ordering, and can be implemented in a single
-        // instruction (i.e., not i64).
+        // instruction (i.e., not i64 on x86-32).
         Intrinsics::IntrinsicID ID = Intrin->getIntrinsicInfo().ID;
         if (ID == Intrinsics::AtomicLoad &&
-            Intrin->getDest()->getType() != IceType_i64 &&
+            (Traits::Is64Bit || Intrin->getDest()->getType() != IceType_i64) &&
             Intrinsics::isMemoryOrderValid(
                 ID, getConstantMemoryOrder(Intrin->getArg(1)))) {
           LoadDest = Intrin->getDest();
@@ -724,6 +725,10 @@ bool TargetX86Base<Machine>::doBranchOpt(Inst *I, const CfgNode *NextNode) {
 
 template <class Machine>
 Variable *TargetX86Base<Machine>::getPhysicalRegister(SizeT RegNum, Type Ty) {
+  // Special case: never allow partial reads/writes to/from %rBP and %rSP.
+  if (RegNum == Traits::RegisterSet::Reg_esp ||
+      RegNum == Traits::RegisterSet::Reg_ebp)
+    Ty = Traits::WordType;
   if (Ty == IceType_void)
     Ty = IceType_i32;
   if (PhysicalRegisters[Ty].empty())
@@ -770,7 +775,7 @@ void TargetX86Base<Machine>::emitVariable(const Variable *Var) const {
   }
   if (Offset)
     Str << Offset;
-  const Type FrameSPTy = IceType_i32;
+  const Type FrameSPTy = Traits::WordType;
   Str << "(%" << getRegName(BaseRegNum, FrameSPTy) << ")";
 }
 
@@ -810,8 +815,7 @@ void TargetX86Base<Machine>::finishArgumentLowering(Variable *Arg,
   Variable *Lo = Arg->getLo();
   Variable *Hi = Arg->getHi();
   Type Ty = Arg->getType();
-  if (Lo && Hi && Ty == IceType_i64) {
-    // TODO(jpp): This special case is not needed for x86-64.
+  if (!Traits::Is64Bit && Lo && Hi && Ty == IceType_i64) {
     assert(Lo->getType() != IceType_i64); // don't want infinite recursion
     assert(Hi->getType() != IceType_i64); // don't want infinite recursion
     finishArgumentLowering(Lo, FramePtr, BasicFrameOffset, InArgsSizeBytes);
@@ -824,7 +828,7 @@ void TargetX86Base<Machine>::finishArgumentLowering(Variable *Arg,
   Arg->setStackOffset(BasicFrameOffset + InArgsSizeBytes);
   InArgsSizeBytes += typeWidthInBytesOnStack(Ty);
   if (Arg->hasReg()) {
-    assert(Ty != IceType_i64);
+    assert(Ty != IceType_i64 || Traits::Is64Bit);
     typename Traits::X86OperandMem *Mem = Traits::X86OperandMem::create(
         Func, Ty, FramePtr, Ctx->getConstantInt32(Arg->getStackOffset()));
     if (isVectorType(Arg->getType())) {
@@ -840,11 +844,13 @@ void TargetX86Base<Machine>::finishArgumentLowering(Variable *Arg,
 }
 
 template <class Machine> Type TargetX86Base<Machine>::stackSlotType() {
-  // TODO(jpp): this is wrong for x86-64.
-  return IceType_i32;
+  return Traits::WordType;
 }
 
-template <class Machine> void TargetX86Base<Machine>::split64(Variable *Var) {
+template <class Machine>
+template <typename T>
+typename std::enable_if<!T::Is64Bit, void>::type
+TargetX86Base<Machine>::split64(Variable *Var) {
   switch (Var->getType()) {
   default:
     return;
@@ -876,7 +882,9 @@ template <class Machine> void TargetX86Base<Machine>::split64(Variable *Var) {
 }
 
 template <class Machine>
-Operand *TargetX86Base<Machine>::loOperand(Operand *Operand) {
+template <typename T>
+typename std::enable_if<!T::Is64Bit, Operand>::type *
+TargetX86Base<Machine>::loOperand(Operand *Operand) {
   assert(Operand->getType() == IceType_i64 ||
          Operand->getType() == IceType_f64);
   if (Operand->getType() != IceType_i64 && Operand->getType() != IceType_f64)
@@ -905,7 +913,9 @@ Operand *TargetX86Base<Machine>::loOperand(Operand *Operand) {
 }
 
 template <class Machine>
-Operand *TargetX86Base<Machine>::hiOperand(Operand *Operand) {
+template <typename T>
+typename std::enable_if<!T::Is64Bit, Operand>::type *
+TargetX86Base<Machine>::hiOperand(Operand *Operand) {
   assert(Operand->getType() == IceType_i64 ||
          Operand->getType() == IceType_f64);
   if (Operand->getType() != IceType_i64 && Operand->getType() != IceType_f64)
@@ -1107,8 +1117,8 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
     if (llvm::isa<Constant>(Src0) && !llvm::isa<Constant>(Src1))
       std::swap(Src0, Src1);
   }
-  if (Dest->getType() == IceType_i64) {
-    // These helper-call-involved instructions are lowered in this
+  if (!Traits::Is64Bit && Dest->getType() == IceType_i64) {
+    // These x86-32 helper-call-involved instructions are lowered in this
     // separate switch. This is because loOperand() and hiOperand()
     // may insert redundant instructions for constant blinding and
     // pooling. Such redundant instructions will fail liveness analysis
@@ -1656,7 +1666,8 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       Context.insert(InstFakeUse::create(Func, T_eax));
     } else {
       Constant *Zero = Ctx->getConstantZero(IceType_i32);
-      _mov(T_edx, Zero, Traits::RegisterSet::Reg_edx);
+      T_edx = makeReg(Dest->getType(), Traits::RegisterSet::Reg_edx);
+      _mov(T_edx, Zero);
       _mov(T, Src0, Traits::RegisterSet::Reg_eax);
       _div(T_edx, Src1, T);
       _mov(Dest, T_edx);
@@ -1721,7 +1732,7 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       _mov(Dest, T);
       Context.insert(InstFakeUse::create(Func, T_eax));
     } else {
-      T_edx = makeReg(IceType_i32, Traits::RegisterSet::Reg_edx);
+      T_edx = makeReg(Dest->getType(), Traits::RegisterSet::Reg_edx);
       _mov(T, Src0, Traits::RegisterSet::Reg_eax);
       _cbwdq(T_edx, T);
       _idiv(T_edx, Src1, T);
@@ -1765,7 +1776,7 @@ void TargetX86Base<Machine>::lowerAssign(const InstAssign *Inst) {
   Variable *Dest = Inst->getDest();
   Operand *Src0 = Inst->getSrc(0);
   assert(Dest->getType() == Src0->getType());
-  if (Dest->getType() == IceType_i64) {
+  if (!Traits::Is64Bit && Dest->getType() == IceType_i64) {
     Src0 = legalize(Src0);
     Operand *Src0Lo = loOperand(Src0);
     Operand *Src0Hi = hiOperand(Src0);
@@ -1870,7 +1881,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
         _psra(T, ShiftConstant);
         _movp(Dest, T);
       }
-    } else if (Dest->getType() == IceType_i64) {
+    } else if (!Traits::Is64Bit && Dest->getType() == IceType_i64) {
       // t1=movsx src; t2=t1; t2=sar t2, 31; dst.lo=t1; dst.hi=t2
       Constant *Shift = Ctx->getConstantInt32(31);
       Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
@@ -1930,7 +1941,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       _movp(T, Src0RM);
       _pand(T, OneMask);
       _movp(Dest, T);
-    } else if (Dest->getType() == IceType_i64) {
+    } else if (!Traits::Is64Bit && Dest->getType() == IceType_i64) {
       // t1=movzx src; dst.lo=t1; dst.hi=0
       Constant *Zero = Ctx->getConstantZero(IceType_i32);
       Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
@@ -1951,13 +1962,16 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       // t = Src0RM; t &= 1; Dest = t
       Constant *One = Ctx->getConstantInt32(1);
       Type DestTy = Dest->getType();
-      Variable *T;
+      Variable *T = nullptr;
       if (DestTy == IceType_i8) {
-        T = makeReg(DestTy);
         _mov(T, Src0RM);
       } else {
+        assert(DestTy != IceType_i1);
+        assert(Traits::Is64Bit || DestTy != IceType_i64);
         // Use 32-bit for both 16-bit and 32-bit, since 32-bit ops are shorter.
-        T = makeReg(IceType_i32);
+        // In x86-64 we need to widen T to 64-bits to ensure that T -- if
+        // written to the stack (i.e., in -Om1) will be fully zero-extended.
+        T = makeReg(DestTy == IceType_i64 ? IceType_i64 : IceType_i32);
         _movzx(T, Src0RM);
       }
       _and(T, One);
@@ -1982,7 +1996,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       _movp(Dest, T);
     } else {
       Operand *Src0 = legalizeUndef(Inst->getSrc(0));
-      if (Src0->getType() == IceType_i64)
+      if (!Traits::Is64Bit && Src0->getType() == IceType_i64)
         Src0 = loOperand(Src0);
       Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
       // t1 = trunc Src0RM; Dest = t1
@@ -2013,7 +2027,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       Variable *T = makeReg(Dest->getType());
       _cvt(T, Src0RM, Traits::Insts::Cvt::Tps2dq);
       _movp(Dest, T);
-    } else if (Dest->getType() == IceType_i64) {
+    } else if (!Traits::Is64Bit && Dest->getType() == IceType_i64) {
       // Use a helper for converting floating-point values to 64-bit
       // integers.  SSE2 appears to have no way to convert from xmm
       // registers to something like the edx:eax register pair, and
@@ -2032,7 +2046,15 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
     } else {
       Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
       // t1.i32 = cvt Src0RM; t2.dest_type = t1; Dest = t2.dest_type
-      Variable *T_1 = makeReg(IceType_i32);
+      Variable *T_1 = nullptr;
+      if (Traits::Is64Bit && Dest->getType() == IceType_i64) {
+        T_1 = makeReg(IceType_i64);
+      } else {
+        assert(Dest->getType() != IceType_i64);
+        T_1 = makeReg(IceType_i32);
+      }
+      // cvt() requires its integer argument to be a GPR.
+      T_1->setWeightInfinite();
       Variable *T_2 = makeReg(Dest->getType());
       _cvt(T_1, Src0RM, Traits::Insts::Cvt::Tss2si);
       _mov(T_2, T_1); // T_1 and T_2 may have different integer types
@@ -2050,14 +2072,18 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       Call->addArg(Inst->getSrc(0));
       lowerCall(Call);
     } else if (Dest->getType() == IceType_i64 ||
-               Dest->getType() == IceType_i32) {
+               (!Traits::Is64Bit && Dest->getType() == IceType_i32)) {
       // Use a helper for both x86-32 and x86-64.
-      split64(Dest);
+      if (!Traits::Is64Bit)
+        split64(Dest);
       const SizeT MaxSrcs = 1;
       Type DestType = Dest->getType();
       Type SrcType = Inst->getSrc(0)->getType();
       IceString TargetString;
-      if (isInt32Asserting32Or64(DestType)) {
+      if (Traits::Is64Bit) {
+        TargetString = isFloat32Asserting32Or64(SrcType) ? H_fptoui_f32_i64
+                                                         : H_fptoui_f64_i64;
+      } else if (isInt32Asserting32Or64(DestType)) {
         TargetString = isFloat32Asserting32Or64(SrcType) ? H_fptoui_f32_i32
                                                          : H_fptoui_f64_i32;
       } else {
@@ -2071,7 +2097,15 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
     } else {
       Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
       // t1.i32 = cvt Src0RM; t2.dest_type = t1; Dest = t2.dest_type
-      Variable *T_1 = makeReg(IceType_i32);
+      assert(Dest->getType() != IceType_i64);
+      Variable *T_1 = nullptr;
+      if (Traits::Is64Bit && Dest->getType() == IceType_i32) {
+        T_1 = makeReg(IceType_i64);
+      } else {
+        assert(Dest->getType() != IceType_i32);
+        T_1 = makeReg(IceType_i32);
+      }
+      T_1->setWeightInfinite();
       Variable *T_2 = makeReg(Dest->getType());
       _cvt(T_1, Src0RM, Traits::Insts::Cvt::Tss2si);
       _mov(T_2, T_1); // T_1 and T_2 may have different integer types
@@ -2090,7 +2124,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       Variable *T = makeReg(Dest->getType());
       _cvt(T, Src0RM, Traits::Insts::Cvt::Dq2ps);
       _movp(Dest, T);
-    } else if (Inst->getSrc(0)->getType() == IceType_i64) {
+    } else if (!Traits::Is64Bit && Inst->getSrc(0)->getType() == IceType_i64) {
       // Use a helper for x86-32.
       const SizeT MaxSrcs = 1;
       Type DestType = Dest->getType();
@@ -2106,9 +2140,16 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
       // Sign-extend the operand.
       // t1.i32 = movsx Src0RM; t2 = Cvt t1.i32; Dest = t2
-      Variable *T_1 = makeReg(IceType_i32);
+      Variable *T_1 = nullptr;
+      if (Traits::Is64Bit && Src0RM->getType() == IceType_i64) {
+        T_1 = makeReg(IceType_i64);
+      } else {
+        assert(Src0RM->getType() != IceType_i64);
+        T_1 = makeReg(IceType_i32);
+      }
+      T_1->setWeightInfinite();
       Variable *T_2 = makeReg(Dest->getType());
-      if (Src0RM->getType() == IceType_i32)
+      if (Src0RM->getType() == T_1->getType())
         _mov(T_1, Src0RM);
       else
         _movsx(T_1, Src0RM);
@@ -2126,7 +2167,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       Call->addArg(Src0);
       lowerCall(Call);
     } else if (Src0->getType() == IceType_i64 ||
-               Src0->getType() == IceType_i32) {
+               (!Traits::Is64Bit && Src0->getType() == IceType_i32)) {
       // Use a helper for x86-32 and x86-64.  Also use a helper for
       // i32 on x86-32.
       const SizeT MaxSrcs = 1;
@@ -2147,9 +2188,17 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
       // Zero-extend the operand.
       // t1.i32 = movzx Src0RM; t2 = Cvt t1.i32; Dest = t2
-      Variable *T_1 = makeReg(IceType_i32);
+      Variable *T_1 = nullptr;
+      if (Traits::Is64Bit && Src0RM->getType() == IceType_i32) {
+        T_1 = makeReg(IceType_i64);
+      } else {
+        assert(Src0RM->getType() != IceType_i64);
+        assert(Traits::Is64Bit || Src0RM->getType() != IceType_i32);
+        T_1 = makeReg(IceType_i32);
+      }
+      T_1->setWeightInfinite();
       Variable *T_2 = makeReg(Dest->getType());
-      if (Src0RM->getType() == IceType_i32)
+      if (Src0RM->getType() == T_1->getType())
         _mov(T_1, Src0RM);
       else
         _movzx(T_1, Src0RM);
@@ -2205,77 +2254,96 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       _mov(Dest, Spill);
     } break;
     case IceType_i64: {
-      Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
-      assert(Src0RM->getType() == IceType_f64);
-      // a.i64 = bitcast b.f64 ==>
-      //   s.f64 = spill b.f64
-      //   t_lo.i32 = lo(s.f64)
-      //   a_lo.i32 = t_lo.i32
-      //   t_hi.i32 = hi(s.f64)
-      //   a_hi.i32 = t_hi.i32
-      Operand *SpillLo, *SpillHi;
-      if (auto *Src0Var = llvm::dyn_cast<Variable>(Src0RM)) {
-        typename Traits::SpillVariable *SpillVar =
-            Func->makeVariable<typename Traits::SpillVariable>(IceType_f64);
-        SpillVar->setLinkedTo(Src0Var);
-        Variable *Spill = SpillVar;
-        Spill->setWeight(RegWeight::Zero);
-        _movq(Spill, Src0RM);
-        SpillLo = Traits::VariableSplit::create(Func, Spill,
-                                                Traits::VariableSplit::Low);
-        SpillHi = Traits::VariableSplit::create(Func, Spill,
-                                                Traits::VariableSplit::High);
+      assert(Src0->getType() == IceType_f64);
+      if (Traits::Is64Bit) {
+        // Movd requires its fp argument (in this case, the bitcast source) to
+        // be an xmm register.
+        Variable *Src0R = legalizeToReg(Src0);
+        Variable *T = makeReg(IceType_i64);
+        _movd(T, Src0R);
+        _mov(Dest, T);
       } else {
-        SpillLo = loOperand(Src0RM);
-        SpillHi = hiOperand(Src0RM);
+        Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
+        // a.i64 = bitcast b.f64 ==>
+        //   s.f64 = spill b.f64
+        //   t_lo.i32 = lo(s.f64)
+        //   a_lo.i32 = t_lo.i32
+        //   t_hi.i32 = hi(s.f64)
+        //   a_hi.i32 = t_hi.i32
+        Operand *SpillLo, *SpillHi;
+        if (auto *Src0Var = llvm::dyn_cast<Variable>(Src0RM)) {
+          typename Traits::SpillVariable *SpillVar =
+              Func->makeVariable<typename Traits::SpillVariable>(IceType_f64);
+          SpillVar->setLinkedTo(Src0Var);
+          Variable *Spill = SpillVar;
+          Spill->setWeight(RegWeight::Zero);
+          _movq(Spill, Src0RM);
+          SpillLo = Traits::VariableSplit::create(Func, Spill,
+                                                  Traits::VariableSplit::Low);
+          SpillHi = Traits::VariableSplit::create(Func, Spill,
+                                                  Traits::VariableSplit::High);
+        } else {
+          SpillLo = loOperand(Src0RM);
+          SpillHi = hiOperand(Src0RM);
+        }
+
+        Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
+        Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+        Variable *T_Lo = makeReg(IceType_i32);
+        Variable *T_Hi = makeReg(IceType_i32);
+
+        _mov(T_Lo, SpillLo);
+        _mov(DestLo, T_Lo);
+        _mov(T_Hi, SpillHi);
+        _mov(DestHi, T_Hi);
       }
-
-      Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
-      Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
-      Variable *T_Lo = makeReg(IceType_i32);
-      Variable *T_Hi = makeReg(IceType_i32);
-
-      _mov(T_Lo, SpillLo);
-      _mov(DestLo, T_Lo);
-      _mov(T_Hi, SpillHi);
-      _mov(DestHi, T_Hi);
     } break;
     case IceType_f64: {
-      Src0 = legalize(Src0);
       assert(Src0->getType() == IceType_i64);
-      if (llvm::isa<typename Traits::X86OperandMem>(Src0)) {
-        Variable *T = Func->makeVariable(Dest->getType());
-        _movq(T, Src0);
-        _movq(Dest, T);
-        break;
-      }
-      // a.f64 = bitcast b.i64 ==>
-      //   t_lo.i32 = b_lo.i32
-      //   FakeDef(s.f64)
-      //   lo(s.f64) = t_lo.i32
-      //   t_hi.i32 = b_hi.i32
-      //   hi(s.f64) = t_hi.i32
-      //   a.f64 = s.f64
-      typename Traits::SpillVariable *SpillVar =
-          Func->makeVariable<typename Traits::SpillVariable>(IceType_f64);
-      SpillVar->setLinkedTo(Dest);
-      Variable *Spill = SpillVar;
-      Spill->setWeight(RegWeight::Zero);
+      if (Traits::Is64Bit) {
+        Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
+        Variable *T = makeReg(IceType_f64);
+        // Movd requires its fp argument (in this case, the bitcast destination)
+        // to be an xmm register.
+        T->setWeightInfinite();
+        _movd(T, Src0RM);
+        _mov(Dest, T);
+      } else {
+        Src0 = legalize(Src0);
+        if (llvm::isa<typename Traits::X86OperandMem>(Src0)) {
+          Variable *T = Func->makeVariable(Dest->getType());
+          _movq(T, Src0);
+          _movq(Dest, T);
+          break;
+        }
+        // a.f64 = bitcast b.i64 ==>
+        //   t_lo.i32 = b_lo.i32
+        //   FakeDef(s.f64)
+        //   lo(s.f64) = t_lo.i32
+        //   t_hi.i32 = b_hi.i32
+        //   hi(s.f64) = t_hi.i32
+        //   a.f64 = s.f64
+        typename Traits::SpillVariable *SpillVar =
+            Func->makeVariable<typename Traits::SpillVariable>(IceType_f64);
+        SpillVar->setLinkedTo(Dest);
+        Variable *Spill = SpillVar;
+        Spill->setWeight(RegWeight::Zero);
 
-      Variable *T_Lo = nullptr, *T_Hi = nullptr;
-      typename Traits::VariableSplit *SpillLo = Traits::VariableSplit::create(
-          Func, Spill, Traits::VariableSplit::Low);
-      typename Traits::VariableSplit *SpillHi = Traits::VariableSplit::create(
-          Func, Spill, Traits::VariableSplit::High);
-      _mov(T_Lo, loOperand(Src0));
-      // Technically, the Spill is defined after the _store happens, but
-      // SpillLo is considered a "use" of Spill so define Spill before it
-      // is used.
-      Context.insert(InstFakeDef::create(Func, Spill));
-      _store(T_Lo, SpillLo);
-      _mov(T_Hi, hiOperand(Src0));
-      _store(T_Hi, SpillHi);
-      _movq(Dest, Spill);
+        Variable *T_Lo = nullptr, *T_Hi = nullptr;
+        typename Traits::VariableSplit *SpillLo = Traits::VariableSplit::create(
+            Func, Spill, Traits::VariableSplit::Low);
+        typename Traits::VariableSplit *SpillHi = Traits::VariableSplit::create(
+            Func, Spill, Traits::VariableSplit::High);
+        _mov(T_Lo, loOperand(Src0));
+        // Technically, the Spill is defined after the _store happens, but
+        // SpillLo is considered a "use" of Spill so define Spill before it
+        // is used.
+        Context.insert(InstFakeDef::create(Func, Spill));
+        _store(T_Lo, SpillLo);
+        _mov(T_Hi, hiOperand(Src0));
+        _store(T_Hi, SpillHi);
+        _movq(Dest, Spill);
+      }
     } break;
     case IceType_v8i1: {
       assert(Src0->getType() == IceType_i8);
@@ -2615,32 +2683,8 @@ void TargetX86Base<Machine>::lowerIcmp(const InstIcmp *Inst) {
     return;
   }
 
-  // a=icmp cond, b, c ==> cmp b,c; a=1; br cond,L1; FakeUse(a); a=0; L1:
-  if (Src0->getType() == IceType_i64) {
-    InstIcmp::ICond Condition = Inst->getCondition();
-    size_t Index = static_cast<size_t>(Condition);
-    assert(Index < Traits::TableIcmp64Size);
-    Operand *Src0LoRM = legalize(loOperand(Src0), Legal_Reg | Legal_Mem);
-    Operand *Src0HiRM = legalize(hiOperand(Src0), Legal_Reg | Legal_Mem);
-    Operand *Src1LoRI = legalize(loOperand(Src1), Legal_Reg | Legal_Imm);
-    Operand *Src1HiRI = legalize(hiOperand(Src1), Legal_Reg | Legal_Imm);
-    Constant *Zero = Ctx->getConstantZero(IceType_i32);
-    Constant *One = Ctx->getConstantInt32(1);
-    typename Traits::Insts::Label *LabelFalse =
-        Traits::Insts::Label::create(Func, this);
-    typename Traits::Insts::Label *LabelTrue =
-        Traits::Insts::Label::create(Func, this);
-    _mov(Dest, One);
-    _cmp(Src0HiRM, Src1HiRI);
-    if (Traits::TableIcmp64[Index].C1 != Traits::Cond::Br_None)
-      _br(Traits::TableIcmp64[Index].C1, LabelTrue);
-    if (Traits::TableIcmp64[Index].C2 != Traits::Cond::Br_None)
-      _br(Traits::TableIcmp64[Index].C2, LabelFalse);
-    _cmp(Src0LoRM, Src1LoRI);
-    _br(Traits::TableIcmp64[Index].C3, LabelTrue);
-    Context.insert(LabelFalse);
-    _mov_nonkillable(Dest, Zero);
-    Context.insert(LabelTrue);
+  if (!Traits::Is64Bit && Src0->getType() == IceType_i64) {
+    lowerIcmp64(Inst);
     return;
   }
 
@@ -2648,6 +2692,40 @@ void TargetX86Base<Machine>::lowerIcmp(const InstIcmp *Inst) {
   Operand *Src0RM = legalizeSrc0ForCmp(Src0, Src1);
   _cmp(Src0RM, Src1);
   _setcc(Dest, Traits::getIcmp32Mapping(Inst->getCondition()));
+}
+
+template <typename Machine>
+template <typename T>
+typename std::enable_if<!T::Is64Bit, void>::type
+TargetX86Base<Machine>::lowerIcmp64(const InstIcmp *Inst) {
+  // a=icmp cond, b, c ==> cmp b,c; a=1; br cond,L1; FakeUse(a); a=0; L1:
+  Operand *Src0 = legalize(Inst->getSrc(0));
+  Operand *Src1 = legalize(Inst->getSrc(1));
+  Variable *Dest = Inst->getDest();
+  InstIcmp::ICond Condition = Inst->getCondition();
+  size_t Index = static_cast<size_t>(Condition);
+  assert(Index < Traits::TableIcmp64Size);
+  Operand *Src0LoRM = legalize(loOperand(Src0), Legal_Reg | Legal_Mem);
+  Operand *Src0HiRM = legalize(hiOperand(Src0), Legal_Reg | Legal_Mem);
+  Operand *Src1LoRI = legalize(loOperand(Src1), Legal_Reg | Legal_Imm);
+  Operand *Src1HiRI = legalize(hiOperand(Src1), Legal_Reg | Legal_Imm);
+  Constant *Zero = Ctx->getConstantZero(IceType_i32);
+  Constant *One = Ctx->getConstantInt32(1);
+  typename Traits::Insts::Label *LabelFalse =
+      Traits::Insts::Label::create(Func, this);
+  typename Traits::Insts::Label *LabelTrue =
+      Traits::Insts::Label::create(Func, this);
+  _mov(Dest, One);
+  _cmp(Src0HiRM, Src1HiRI);
+  if (Traits::TableIcmp64[Index].C1 != Traits::Cond::Br_None)
+    _br(Traits::TableIcmp64[Index].C1, LabelTrue);
+  if (Traits::TableIcmp64[Index].C2 != Traits::Cond::Br_None)
+    _br(Traits::TableIcmp64[Index].C2, LabelFalse);
+  _cmp(Src0LoRM, Src1LoRI);
+  _br(Traits::TableIcmp64[Index].C3, LabelTrue);
+  Context.insert(LabelFalse);
+  _mov_nonkillable(Dest, Zero);
+  Context.insert(LabelTrue);
 }
 
 template <class Machine>
@@ -2848,7 +2926,7 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
       return;
     }
     Variable *Dest = Instr->getDest();
-    if (Dest->getType() == IceType_i64) {
+    if (!Traits::Is64Bit && Dest->getType() == IceType_i64) {
       // Follow what GCC does and use a movq instead of what lowerLoad()
       // normally does (split the load into two).
       // Thus, this skips load/arithmetic op folding. Load/arithmetic folding
@@ -2898,7 +2976,7 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
     // Add a fence after the store to make it visible.
     Operand *Value = Instr->getArg(0);
     Operand *Ptr = Instr->getArg(1);
-    if (Value->getType() == IceType_i64) {
+    if (!Traits::Is64Bit && Value->getType() == IceType_i64) {
       // Use a movq instead of what lowerStore() normally does
       // (split the store into two), following what GCC does.
       // Cast the bits from int -> to an xmm register first.
@@ -2922,7 +3000,7 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
     Operand *Val = Instr->getArg(0);
     // In 32-bit mode, bswap only works on 32-bit arguments, and the
     // argument must be a register. Use rotate left for 16-bit bswap.
-    if (Val->getType() == IceType_i64) {
+    if (!Traits::Is64Bit && Val->getType() == IceType_i64) {
       Val = legalizeUndef(Val);
       Variable *T_Lo = legalizeToReg(loOperand(Val));
       Variable *T_Hi = legalizeToReg(hiOperand(Val));
@@ -2932,7 +3010,8 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
       _bswap(T_Hi);
       _mov(DestLo, T_Hi);
       _mov(DestHi, T_Lo);
-    } else if (Val->getType() == IceType_i32) {
+    } else if ((Traits::Is64Bit && Val->getType() == IceType_i64) ||
+               Val->getType() == IceType_i32) {
       Variable *T = legalizeToReg(Val);
       _bswap(T);
       _mov(Dest, T);
@@ -2949,11 +3028,28 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
   }
   case Intrinsics::Ctpop: {
     Variable *Dest = Instr->getDest();
+    Variable *T = nullptr;
     Operand *Val = Instr->getArg(0);
-    InstCall *Call = makeHelperCall(isInt32Asserting32Or64(Val->getType())
-                                        ? H_call_ctpop_i32
-                                        : H_call_ctpop_i64,
-                                    Dest, 1);
+    Type ValTy = Val->getType();
+    assert(ValTy == IceType_i32 || ValTy == IceType_i64);
+
+    if (!Traits::Is64Bit) {
+      T = Dest;
+    } else {
+      T = makeReg(IceType_i64);
+      if (ValTy == IceType_i32) {
+        // in x86-64, __popcountsi2 is not defined, so we cheat a bit by
+        // converting it to a 64-bit value, and using ctpop_i64. _movzx should
+        // ensure we will not have any bits set on Val's upper 32 bits.
+        Variable *V = makeReg(IceType_i64);
+        _movzx(V, Val);
+        Val = V;
+      }
+      ValTy = IceType_i64;
+    }
+
+    InstCall *Call = makeHelperCall(
+        ValTy == IceType_i32 ? H_call_ctpop_i32 : H_call_ctpop_i64, T, 1);
     Call->addArg(Val);
     lowerCall(Call);
     // The popcount helpers always return 32-bit values, while the intrinsic's
@@ -2961,10 +3057,33 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
     // (in 64-bit mode). Thus, clear the upper bits of the dest just in case
     // the user doesn't do that in the IR. If the user does that in the IR,
     // then this zero'ing instruction is dead and gets optimized out.
-    if (Val->getType() == IceType_i64) {
-      Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
-      Constant *Zero = Ctx->getConstantZero(IceType_i32);
-      _mov(DestHi, Zero);
+    if (!Traits::Is64Bit) {
+      assert(T == Dest);
+      if (Val->getType() == IceType_i64) {
+        Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+        Constant *Zero = Ctx->getConstantZero(IceType_i32);
+        _mov(DestHi, Zero);
+      }
+    } else {
+      assert(Val->getType() == IceType_i64);
+      // T is 64 bit. It needs to be copied to dest. We need to:
+      //
+      // T_1.32 = trunc T.64 to i32
+      // T_2.64 = zext T_1.32 to i64
+      // Dest.<<right_size>> = T_2.<<right_size>>
+      //
+      // which ensures the upper 32 bits will always be cleared. Just doing a
+      //
+      // mov Dest.32 = trunc T.32 to i32
+      //
+      // is dangerous because there's a chance the compiler will optimize this
+      // copy out. To use _movzx we need two new registers (one 32-, and
+      // another 64-bit wide.)
+      Variable *T_1 = makeReg(IceType_i32);
+      _mov(T_1, T);
+      Variable *T_2 = makeReg(IceType_i64);
+      _movzx(T_2, T_1);
+      _mov(Dest, T_2);
     }
     return;
   }
@@ -2974,7 +3093,7 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
     Operand *Val = legalize(Instr->getArg(0));
     Operand *FirstVal;
     Operand *SecondVal = nullptr;
-    if (Val->getType() == IceType_i64) {
+    if (!Traits::Is64Bit && Val->getType() == IceType_i64) {
       FirstVal = loOperand(Val);
       SecondVal = hiOperand(Val);
     } else {
@@ -2991,7 +3110,7 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
     Operand *Val = legalize(Instr->getArg(0));
     Operand *FirstVal;
     Operand *SecondVal = nullptr;
-    if (Val->getType() == IceType_i64) {
+    if (!Traits::Is64Bit && Val->getType() == IceType_i64) {
       FirstVal = hiOperand(Val);
       SecondVal = loOperand(Val);
     } else {
@@ -3099,7 +3218,7 @@ template <class Machine>
 void TargetX86Base<Machine>::lowerAtomicCmpxchg(Variable *DestPrev,
                                                 Operand *Ptr, Operand *Expected,
                                                 Operand *Desired) {
-  if (Expected->getType() == IceType_i64) {
+  if (!Traits::Is64Bit && Expected->getType() == IceType_i64) {
     // Reserve the pre-colored registers first, before adding any more
     // infinite-weight variables from formMemoryOperand's legalization.
     Variable *T_edx = makeReg(IceType_i32, Traits::RegisterSet::Reg_edx);
@@ -3217,7 +3336,7 @@ void TargetX86Base<Machine>::lowerAtomicRMW(Variable *Dest, uint32_t Operation,
     Func->setError("Unknown AtomicRMW operation");
     return;
   case Intrinsics::AtomicAdd: {
-    if (Dest->getType() == IceType_i64) {
+    if (!Traits::Is64Bit && Dest->getType() == IceType_i64) {
       // All the fall-through paths must set this to true, but use this
       // for asserting.
       NeedsCmpxchg = true;
@@ -3235,7 +3354,7 @@ void TargetX86Base<Machine>::lowerAtomicRMW(Variable *Dest, uint32_t Operation,
     return;
   }
   case Intrinsics::AtomicSub: {
-    if (Dest->getType() == IceType_i64) {
+    if (!Traits::Is64Bit && Dest->getType() == IceType_i64) {
       NeedsCmpxchg = true;
       Op_Lo = &TargetX86Base<Machine>::_sub;
       Op_Hi = &TargetX86Base<Machine>::_sbb;
@@ -3272,7 +3391,7 @@ void TargetX86Base<Machine>::lowerAtomicRMW(Variable *Dest, uint32_t Operation,
     Op_Hi = &TargetX86Base<Machine>::_xor;
     break;
   case Intrinsics::AtomicExchange:
-    if (Dest->getType() == IceType_i64) {
+    if (!Traits::Is64Bit && Dest->getType() == IceType_i64) {
       NeedsCmpxchg = true;
       // NeedsCmpxchg, but no real Op_Lo/Op_Hi need to be done. The values
       // just need to be moved to the ecx and ebx registers.
@@ -3326,7 +3445,7 @@ void TargetX86Base<Machine>::expandAtomicRMWAsCmpxchg(LowerBinOp Op_Lo,
   // If Op_{Lo,Hi} are nullptr, then just copy the value.
   Val = legalize(Val);
   Type Ty = Val->getType();
-  if (Ty == IceType_i64) {
+  if (!Traits::Is64Bit && Ty == IceType_i64) {
     Variable *T_edx = makeReg(IceType_i32, Traits::RegisterSet::Reg_edx);
     Variable *T_eax = makeReg(IceType_i32, Traits::RegisterSet::Reg_eax);
     typename Traits::X86OperandMem *Addr = formMemoryOperand(Ptr, Ty);
@@ -3458,7 +3577,7 @@ void TargetX86Base<Machine>::lowerCountZeros(bool Cttz, Type Ty, Variable *Dest,
   if (!Cttz) {
     _xor(T_Dest, ThirtyOne);
   }
-  if (Ty == IceType_i32) {
+  if (Traits::Is64Bit || Ty == IceType_i32) {
     _mov(Dest, T_Dest);
     return;
   }
@@ -4138,7 +4257,7 @@ void TargetX86Base<Machine>::lowerSelect(const InstSelect *Inst) {
     std::swap(SrcT, SrcF);
     Cond = InstX86Base<Machine>::getOppositeCondition(Cond);
   }
-  if (DestTy == IceType_i64) {
+  if (!Traits::Is64Bit && DestTy == IceType_i64) {
     SrcT = legalizeUndef(SrcT);
     SrcF = legalizeUndef(SrcF);
     // Set the low portion.
@@ -4160,7 +4279,8 @@ void TargetX86Base<Machine>::lowerSelect(const InstSelect *Inst) {
     return;
   }
 
-  assert(DestTy == IceType_i16 || DestTy == IceType_i32);
+  assert(DestTy == IceType_i16 || DestTy == IceType_i32 ||
+         (Traits::Is64Bit && DestTy == IceType_i64));
   Variable *T = nullptr;
   SrcF = legalize(SrcF);
   _mov(T, SrcF);
@@ -4177,7 +4297,7 @@ void TargetX86Base<Machine>::lowerStore(const InstStore *Inst) {
       formMemoryOperand(Addr, Value->getType());
   Type Ty = NewAddr->getType();
 
-  if (Ty == IceType_i64) {
+  if (!Traits::Is64Bit && Ty == IceType_i64) {
     Value = legalizeUndef(Value);
     Operand *ValueHi = legalize(hiOperand(Value), Legal_Reg | Legal_Imm);
     Operand *ValueLo = legalize(loOperand(Value), Legal_Reg | Legal_Imm);
@@ -4225,7 +4345,7 @@ Operand *TargetX86Base<Machine>::lowerCmpRange(Operand *Comparison,
                                                uint64_t Min, uint64_t Max) {
   // TODO(ascull): 64-bit should not reach here but only because it is not
   // implemented yet. This should be able to handle the 64-bit case.
-  assert(Comparison->getType() != IceType_i64);
+  assert(Traits::Is64Bit || Comparison->getType() != IceType_i64);
   // Subtracting 0 is a nop so don't do it
   if (Min != 0) {
     // Avoid clobbering the comparison by copying it
@@ -4324,7 +4444,7 @@ void TargetX86Base<Machine>::lowerSwitch(const InstSwitch *Inst) {
 
   assert(CaseClusters.size() != 0); // Should always be at least one
 
-  if (Src0->getType() == IceType_i64) {
+  if (!Traits::Is64Bit && Src0->getType() == IceType_i64) {
     Src0 = legalize(Src0); // get Base/Index into physical registers
     Operand *Src0Lo = loOperand(Src0);
     Operand *Src0Hi = hiOperand(Src0);
@@ -4529,7 +4649,7 @@ void TargetX86Base<Machine>::lowerRMW(
   Operand *Src = RMW->getData();
   Type Ty = Src->getType();
   typename Traits::X86OperandMem *Addr = formMemoryOperand(RMW->getAddr(), Ty);
-  if (Ty == IceType_i64) {
+  if (!Traits::Is64Bit && Ty == IceType_i64) {
     Src = legalizeUndef(Src);
     Operand *SrcLo = legalize(loOperand(Src), Legal_Reg | Legal_Imm);
     Operand *SrcHi = legalize(hiOperand(Src), Legal_Reg | Legal_Imm);
@@ -4563,7 +4683,8 @@ void TargetX86Base<Machine>::lowerRMW(
       return;
     }
   } else {
-    // i8, i16, i32
+    // x86-32: i8, i16, i32
+    // x86-64: i8, i16, i32, i64
     switch (RMW->getOp()) {
     default:
       // TODO(stichnot): Implement other arithmetic operators.
@@ -4608,8 +4729,14 @@ void TargetX86Base<Machine>::lowerOther(const Inst *Instr) {
 /// turned into zeroes, since loOperand() and hiOperand() don't expect
 /// Undef input.
 template <class Machine> void TargetX86Base<Machine>::prelowerPhis() {
-  // Pause constant blinding or pooling, blinding or pooling will be done later
-  // during phi lowering assignments
+  if (Traits::Is64Bit) {
+    // On x86-64 we don't need to prelower phis -- the architecture can handle
+    // 64-bit integer natively.
+    return;
+  }
+
+  // Pause constant blinding or pooling, blinding or pooling will be done
+  // later during phi lowering assignments
   BoolFlagSaver B(RandomizationPoolingPaused, true);
   PhiLowering::prelowerPhis32Bit<TargetX86Base<Machine>>(
       this, Context.getNode(), Func);
@@ -4770,6 +4897,16 @@ Operand *TargetX86Base<Machine>::legalize(Operand *From, LegalMask Allowed,
     // There should be no constants of vector type (other than undef).
     assert(!isVectorType(Ty));
 
+    // If the operand is a 64 bit constant integer we need to legalize it to a
+    // register in x86-64.
+    if (Traits::Is64Bit) {
+      if (llvm::isa<ConstantInteger64>(Const)) {
+        Variable *V = copyToReg(Const, RegNum);
+        V->setWeightInfinite();
+        return V;
+      }
+    }
+
     // If the operand is an 32 bit constant integer, we should check
     // whether we need to randomize it or pool it.
     if (ConstantInteger32 *C = llvm::dyn_cast<ConstantInteger32>(Const)) {
@@ -4907,7 +5044,7 @@ TargetX86Base<Machine>::formMemoryOperand(Operand *Opnd, Type Ty,
 template <class Machine>
 Variable *TargetX86Base<Machine>::makeReg(Type Type, int32_t RegNum) {
   // There aren't any 64-bit integer registers for x86-32.
-  assert(Type != IceType_i64);
+  assert(Traits::Is64Bit || Type != IceType_i64);
   Variable *Reg = Func->makeVariable(Type);
   if (RegNum == Variable::NoRegister)
     Reg->setWeightInfinite();
@@ -4939,8 +5076,15 @@ void TargetX86Base<Machine>::emit(const ConstantInteger32 *C) const {
 }
 
 template <class Machine>
-void TargetX86Base<Machine>::emit(const ConstantInteger64 *) const {
-  llvm::report_fatal_error("Not expecting to emit 64-bit integers");
+void TargetX86Base<Machine>::emit(const ConstantInteger64 *C) const {
+  if (!Traits::Is64Bit) {
+    llvm::report_fatal_error("Not expecting to emit 64-bit integers");
+  } else {
+    if (!BuildDefs::dump())
+      return;
+    Ostream &Str = Ctx->getStrEmit();
+    Str << getConstantPrefix() << C->getValue();
+  }
 }
 
 template <class Machine>
@@ -5085,8 +5229,8 @@ TargetX86Base<Machine>::randomizeOrPoolImmediate(
                                           MemOperand->getBase(), Mask1);
         // If we have already assigned a physical register, we must come from
         // advancedPhiLowering()=>lowerAssign(). In this case we should reuse
-        // the assigned register as this assignment is that start of its use-def
-        // chain. So we add RegNum argument here.
+        // the assigned register as this assignment is that start of its
+        // use-def chain. So we add RegNum argument here.
         Variable *RegTemp = makeReg(MemOperand->getOffset()->getType(), RegNum);
         _lea(RegTemp, TempMemOperand);
         // As source operand doesn't use the dstreg, we don't need to add

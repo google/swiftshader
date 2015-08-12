@@ -1100,6 +1100,8 @@ class InstX86Movsx
     : public InstX86BaseUnaryopGPR<Machine, InstX86Base<Machine>::Movsx> {
 public:
   static InstX86Movsx *create(Cfg *Func, Variable *Dest, Operand *Src) {
+    assert(typeWidthInBytes(Dest->getType()) >
+           typeWidthInBytes(Src->getType()));
     return new (Func->allocate<InstX86Movsx>()) InstX86Movsx(Func, Dest, Src);
   }
 
@@ -1116,6 +1118,8 @@ class InstX86Movzx
     : public InstX86BaseUnaryopGPR<Machine, InstX86Base<Machine>::Movzx> {
 public:
   static InstX86Movzx *create(Cfg *Func, Variable *Dest, Operand *Src) {
+    assert(typeWidthInBytes(Dest->getType()) >
+           typeWidthInBytes(Src->getType()));
     return new (Func->allocate<InstX86Movzx>()) InstX86Movzx(Func, Dest, Src);
   }
 

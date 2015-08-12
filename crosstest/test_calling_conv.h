@@ -14,6 +14,7 @@
 
 #include "test_calling_conv.def"
 #include "vectors.h"
+#include "xdefs.h"
 
 typedef void (*CalleePtrTy)();
 extern CalleePtrTy Callee;
@@ -31,6 +32,6 @@ typedef void(callee_vvvvv_Ty)(v4si32, v4si32, v4si32, v4si32, v4si32);
 callee_vvvvv_Ty callee_vvvvv;
 
 void caller_vlvlivfvdviv();
-typedef void(callee_vlvlivfvdviv_Ty)(v4f32, int64_t, v4f32, int64_t, int, v4f32,
+typedef void(callee_vlvlivfvdviv_Ty)(v4f32, int64, v4f32, int64, int, v4f32,
                                      float, v4f32, double, v4f32, int, v4f32);
 callee_vlvlivfvdviv_Ty callee_vlvlivfvdviv;

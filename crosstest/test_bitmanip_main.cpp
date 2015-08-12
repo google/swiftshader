@@ -23,11 +23,13 @@
 // Subzero_ namespace, corresponding to the llc and Subzero translated
 // object files, respectively.
 #include "test_bitmanip.h"
+#include "xdefs.h"
+
 namespace Subzero_ {
 #include "test_bitmanip.h"
 }
 
-volatile uint64_t Values[] = {
+volatile uint64 Values[] = {
     0, 1, 0x7e, 0x7f, 0x80, 0x81, 0xfe, 0xff, 0x7ffe, 0x7fff, 0x8000, 0x8001,
     0xfffe, 0xffff, 0xc0de, 0xabcd, 0xdcba, 0x007fffff /*Max subnormal + */,
     0x00800000 /*Min+ */, 0x7f7fffff /*Max+ */, 0x7f800000 /*+Inf*/,
@@ -71,9 +73,9 @@ void testBitManip(size_t &TotalTests, size_t &Passes, size_t &Failures) {
       } else {
         ++Failures;
         std::cout << "test_" << Funcs[f].Name << (CHAR_BIT * sizeof(Type))
-                  << "(" << static_cast<uint64_t>(Value)
-                  << "): sz=" << static_cast<uint64_t>(ResultSz)
-                  << " llc=" << static_cast<uint64_t>(ResultLlc) << "\n";
+                  << "(" << static_cast<uint64>(Value)
+                  << "): sz=" << static_cast<uint64>(ResultSz)
+                  << " llc=" << static_cast<uint64>(ResultLlc) << "\n";
       }
     }
   }
@@ -101,24 +103,28 @@ void testByteSwap(size_t &TotalTests, size_t &Passes, size_t &Failures) {
       } else {
         ++Failures;
         std::cout << "test_" << Funcs[f].Name << (CHAR_BIT * sizeof(Type))
-                  << "(" << static_cast<uint64_t>(Value)
-                  << "): sz=" << static_cast<uint64_t>(ResultSz)
-                  << " llc=" << static_cast<uint64_t>(ResultLlc) << "\n";
+                  << "(" << static_cast<uint64>(Value)
+                  << "): sz=" << static_cast<uint64>(ResultSz)
+                  << " llc=" << static_cast<uint64>(ResultLlc) << "\n";
       }
     }
   }
 }
 
-int main(int argc, char **argv) {
+#ifdef X8664_STACK_HACK
+extern "C" int wrapped_main(int argc, char *argv[]) {
+#else  // !defined(X8664_STACK_HACK)
+int main(int argc, char *argv[]) {
+#endif // X8664_STACK_HACK
   size_t TotalTests = 0;
   size_t Passes = 0;
   size_t Failures = 0;
 
   testBitManip<uint32_t>(TotalTests, Passes, Failures);
-  testBitManip<uint64_t>(TotalTests, Passes, Failures);
+  testBitManip<uint64>(TotalTests, Passes, Failures);
   testByteSwap<uint16_t>(TotalTests, Passes, Failures);
   testByteSwap<uint32_t>(TotalTests, Passes, Failures);
-  testByteSwap<uint64_t>(TotalTests, Passes, Failures);
+  testByteSwap<uint64>(TotalTests, Passes, Failures);
 
   std::cout << "TotalTests=" << TotalTests << " Passes=" << Passes
             << " Failures=" << Failures << "\n";

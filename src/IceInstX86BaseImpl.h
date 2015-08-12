@@ -729,7 +729,8 @@ void emitIASRegOpTyGPR(
   } else if (const auto Imm = llvm::dyn_cast<ConstantInteger32>(Src)) {
     (Asm->*(Emitter.GPRImm))(Ty, VarReg, Immediate(Imm->getValue()));
   } else if (const auto Reloc = llvm::dyn_cast<ConstantRelocatable>(Src)) {
-    AssemblerFixup *Fixup = Asm->createFixup(llvm::ELF::R_386_32, Reloc);
+    AssemblerFixup *Fixup =
+        Asm->createFixup(InstX86Base<Machine>::Traits::RelFixup, Reloc);
     (Asm->*(Emitter.GPRImm))(Ty, VarReg, Immediate(Reloc->getOffset(), Fixup));
   } else if (const auto Split = llvm::dyn_cast<
                  typename InstX86Base<Machine>::Traits::VariableSplit>(Src)) {
@@ -758,7 +759,8 @@ void emitIASAddrOpTyGPR(
   } else if (const auto Imm = llvm::dyn_cast<ConstantInteger32>(Src)) {
     (Asm->*(Emitter.AddrImm))(Ty, Addr, Immediate(Imm->getValue()));
   } else if (const auto Reloc = llvm::dyn_cast<ConstantRelocatable>(Src)) {
-    AssemblerFixup *Fixup = Asm->createFixup(llvm::ELF::R_386_32, Reloc);
+    AssemblerFixup *Fixup =
+        Asm->createFixup(InstX86Base<Machine>::Traits::RelFixup, Reloc);
     (Asm->*(Emitter.AddrImm))(Ty, Addr, Immediate(Reloc->getOffset(), Fixup));
   } else {
     llvm_unreachable("Unexpected operand type");
@@ -929,8 +931,8 @@ void emitIASRegOpTyXMM(
 
 template <class Machine, typename DReg_t, typename SReg_t,
           DReg_t (*destEnc)(int32_t), SReg_t (*srcEnc)(int32_t)>
-void emitIASCastRegOp(const Cfg *Func, Type DispatchTy, const Variable *Dest,
-                      const Operand *Src,
+void emitIASCastRegOp(const Cfg *Func, Type DestTy, const Variable *Dest,
+                      Type SrcTy, const Operand *Src,
                       const typename InstX86Base<Machine>::Traits::Assembler::
                           template CastEmitterRegOp<DReg_t, SReg_t> &Emitter) {
   typename InstX86Base<Machine>::Traits::Assembler *Asm =
@@ -940,18 +942,18 @@ void emitIASCastRegOp(const Cfg *Func, Type DispatchTy, const Variable *Dest,
   if (const auto SrcVar = llvm::dyn_cast<Variable>(Src)) {
     if (SrcVar->hasReg()) {
       SReg_t SrcReg = srcEnc(SrcVar->getRegNum());
-      (Asm->*(Emitter.RegReg))(DispatchTy, DestReg, SrcReg);
+      (Asm->*(Emitter.RegReg))(DestTy, DestReg, SrcTy, SrcReg);
     } else {
       typename InstX86Base<Machine>::Traits::Address SrcStackAddr =
           static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
               Func->getTarget())
               ->stackVarToAsmOperand(SrcVar);
-      (Asm->*(Emitter.RegAddr))(DispatchTy, DestReg, SrcStackAddr);
+      (Asm->*(Emitter.RegAddr))(DestTy, DestReg, SrcTy, SrcStackAddr);
     }
   } else if (const auto Mem = llvm::dyn_cast<
                  typename InstX86Base<Machine>::Traits::X86OperandMem>(Src)) {
     Mem->emitSegmentOverride(Asm);
-    (Asm->*(Emitter.RegAddr))(DispatchTy, DestReg, Mem->toAsmAddress(Asm));
+    (Asm->*(Emitter.RegAddr))(DestTy, DestReg, SrcTy, Mem->toAsmAddress(Asm));
   } else {
     llvm_unreachable("Unexpected operand type");
   }
@@ -1387,17 +1389,26 @@ void InstX86Cbwdq<Machine>::emit(const Cfg *Func) const {
   case IceType_i8:
     assert(this->getDest()->getRegNum() ==
            InstX86Base<Machine>::Traits::RegisterSet::Reg_eax);
-    Str << "\tcbtw";
+    Str << "\t"
+        << "cbtw";
     break;
   case IceType_i16:
     assert(this->getDest()->getRegNum() ==
            InstX86Base<Machine>::Traits::RegisterSet::Reg_edx);
-    Str << "\tcwtd";
+    Str << "\t"
+        << "cwtd";
     break;
   case IceType_i32:
     assert(this->getDest()->getRegNum() ==
            InstX86Base<Machine>::Traits::RegisterSet::Reg_edx);
-    Str << "\tcltd";
+    Str << "\t"
+        << "cltd";
+    break;
+  case IceType_i64:
+    assert(this->getDest()->getRegNum() ==
+           InstX86Base<Machine>::Traits::RegisterSet::Reg_edx);
+    Str << "\t"
+        << "cdto";
     break;
   }
 }
@@ -1429,6 +1440,11 @@ void InstX86Cbwdq<Machine>::emitIAS(const Cfg *Func) const {
     assert(this->getDest()->getRegNum() ==
            InstX86Base<Machine>::Traits::RegisterSet::Reg_edx);
     Asm->cdq();
+    break;
+  case IceType_i64:
+    assert(this->getDest()->getRegNum() ==
+           InstX86Base<Machine>::Traits::RegisterSet::Reg_edx);
+    Asm->cqo();
     break;
   }
 }
@@ -1592,7 +1608,8 @@ void InstX86Cmov<Machine>::emitIAS(const Cfg *Func) const {
   assert(this->getSrcSize() == 2);
   Operand *Src = this->getSrc(1);
   Type SrcTy = Src->getType();
-  assert(SrcTy == IceType_i16 || SrcTy == IceType_i32);
+  assert(SrcTy == IceType_i16 || SrcTy == IceType_i32 ||
+         (InstX86Base<Machine>::Traits::Is64Bit));
   typename InstX86Base<Machine>::Traits::Assembler *Asm =
       Func->getAssembler<typename InstX86Base<Machine>::Traits::Assembler>();
   if (const auto *SrcVar = llvm::dyn_cast<Variable>(Src)) {
@@ -1814,7 +1831,11 @@ void InstX86Cvt<Machine>::emitIAS(const Cfg *Func) const {
   switch (Variant) {
   case Si2ss: {
     assert(isScalarIntegerType(SrcTy));
-    assert(typeWidthInBytes(SrcTy) <= 4);
+    if (!InstX86Base<Machine>::Traits::Is64Bit) {
+      assert(typeWidthInBytes(SrcTy) <= 4);
+    } else {
+      assert(SrcTy == IceType_i32 || SrcTy == IceType_i64);
+    }
     assert(isScalarFloatingType(DestTy));
     static const typename InstX86Base<Machine>::Traits::Assembler::
         template CastEmitterRegOp<
@@ -1828,13 +1849,17 @@ void InstX86Cvt<Machine>::emitIAS(const Cfg *Func) const {
         typename InstX86Base<Machine>::Traits::RegisterSet::GPRRegister,
         InstX86Base<Machine>::Traits::RegisterSet::getEncodedXmm,
         InstX86Base<Machine>::Traits::RegisterSet::getEncodedGPR>(
-        Func, DestTy, Dest, Src, Emitter);
+        Func, DestTy, Dest, SrcTy, Src, Emitter);
     return;
   }
   case Tss2si: {
     assert(isScalarFloatingType(SrcTy));
     assert(isScalarIntegerType(DestTy));
-    assert(typeWidthInBytes(DestTy) <= 4);
+    if (!InstX86Base<Machine>::Traits::Is64Bit) {
+      assert(typeWidthInBytes(DestTy) <= 4);
+    } else {
+      assert(DestTy == IceType_i32 || DestTy == IceType_i64);
+    }
     static const typename InstX86Base<Machine>::Traits::Assembler::
         template CastEmitterRegOp<
             typename InstX86Base<Machine>::Traits::RegisterSet::GPRRegister,
@@ -1847,7 +1872,7 @@ void InstX86Cvt<Machine>::emitIAS(const Cfg *Func) const {
         typename InstX86Base<Machine>::Traits::RegisterSet::XmmRegister,
         InstX86Base<Machine>::Traits::RegisterSet::getEncodedGPR,
         InstX86Base<Machine>::Traits::RegisterSet::getEncodedXmm>(
-        Func, SrcTy, Dest, Src, Emitter);
+        Func, DestTy, Dest, SrcTy, Src, Emitter);
     return;
   }
   case Float2float: {
@@ -2244,6 +2269,10 @@ template <class Machine> void InstX86Lea<Machine>::emit(const Cfg *Func) const {
   this->getDest()->emit(Func);
 }
 
+inline bool isIntegerConstant(const Operand *Op) {
+  return llvm::isa<ConstantInteger32>(Op) || llvm::isa<ConstantInteger64>(Op);
+}
+
 template <class Machine> void InstX86Mov<Machine>::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
@@ -2252,11 +2281,16 @@ template <class Machine> void InstX86Mov<Machine>::emit(const Cfg *Func) const {
   Operand *Src = this->getSrc(0);
   Type SrcTy = Src->getType();
   Type DestTy = this->getDest()->getType();
-  Str << "\tmov"
-      << (!isScalarFloatingType(DestTy)
-              ? this->getWidthString(SrcTy)
-              : InstX86Base<Machine>::Traits::TypeAttributes[DestTy].SdSsString)
-      << "\t";
+  if (InstX86Base<Machine>::Traits::Is64Bit && DestTy == IceType_i64 &&
+      isIntegerConstant(Src)) {
+    Str << "\tmovabs\t";
+  } else {
+    Str << "\tmov"
+        << (!isScalarFloatingType(DestTy)
+                ? this->getWidthString(SrcTy)
+                : InstX86Base<Machine>::Traits::TypeAttributes[DestTy]
+                      .SdSsString) << "\t";
+  }
   // For an integer truncation operation, src is wider than dest.
   // Ideally, we use a mov instruction whose data width matches the
   // narrower dest.  This is a problem if e.g. src is a register like
@@ -2320,6 +2354,20 @@ void InstX86Mov<Machine>::emitIAS(const Cfg *Func) const {
       assert(isScalarIntegerType(DestTy));
       // Widen DestTy for truncation (see above note). We should only do this
       // when both Src and Dest are integer types.
+      if (InstX86Base<Machine>::Traits::Is64Bit && DestTy == IceType_i64 &&
+          isIntegerConstant(Src)) {
+        uint64_t Value = -1;
+        if (const auto *C64 = llvm::dyn_cast<ConstantInteger64>(Src)) {
+          Value = C64->getValue();
+        } else {
+          Value = llvm::cast<ConstantInteger32>(Src)->getValue();
+        }
+        Func->getAssembler<typename InstX86Base<Machine>::Traits::Assembler>()
+            ->movabs(InstX86Base<Machine>::Traits::RegisterSet::getEncodedGPR(
+                         Dest->getRegNum()),
+                     Value);
+        return;
+      }
       if (isScalarIntegerType(SrcTy)) {
         DestTy = SrcTy;
       }
@@ -2363,14 +2411,19 @@ void InstX86Movd<Machine>::emitIAS(const Cfg *Func) const {
   const auto SrcVar = llvm::cast<Variable>(this->getSrc(0));
   // For insert/extract element (one of Src/Dest is an Xmm vector and
   // the other is an int type).
-  if (SrcVar->getType() == IceType_i32) {
-    assert(isVectorType(Dest->getType()));
+  if (SrcVar->getType() == IceType_i32 ||
+      (InstX86Base<Machine>::Traits::Is64Bit &&
+       SrcVar->getType() == IceType_i64)) {
+    assert(isVectorType(Dest->getType()) ||
+           (isScalarFloatingType(Dest->getType()) &&
+            typeWidthInBytes(SrcVar->getType()) ==
+                typeWidthInBytes(Dest->getType())));
     assert(Dest->hasReg());
     typename InstX86Base<Machine>::Traits::RegisterSet::XmmRegister DestReg =
         InstX86Base<Machine>::Traits::RegisterSet::getEncodedXmm(
             Dest->getRegNum());
     if (SrcVar->hasReg()) {
-      Asm->movd(DestReg,
+      Asm->movd(SrcVar->getType(), DestReg,
                 InstX86Base<Machine>::Traits::RegisterSet::getEncodedGPR(
                     SrcVar->getRegNum()));
     } else {
@@ -2378,17 +2431,23 @@ void InstX86Movd<Machine>::emitIAS(const Cfg *Func) const {
           static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
               Func->getTarget())
               ->stackVarToAsmOperand(SrcVar));
-      Asm->movd(DestReg, StackAddr);
+      Asm->movd(SrcVar->getType(), DestReg, StackAddr);
     }
   } else {
-    assert(isVectorType(SrcVar->getType()));
+    assert(isVectorType(SrcVar->getType()) ||
+           (isScalarFloatingType(SrcVar->getType()) &&
+            typeWidthInBytes(SrcVar->getType()) ==
+                typeWidthInBytes(Dest->getType())));
     assert(SrcVar->hasReg());
-    assert(Dest->getType() == IceType_i32);
+    assert(Dest->getType() == IceType_i32 ||
+           (InstX86Base<Machine>::Traits::Is64Bit &&
+            Dest->getType() == IceType_i64));
     typename InstX86Base<Machine>::Traits::RegisterSet::XmmRegister SrcReg =
         InstX86Base<Machine>::Traits::RegisterSet::getEncodedXmm(
             SrcVar->getRegNum());
     if (Dest->hasReg()) {
-      Asm->movd(InstX86Base<Machine>::Traits::RegisterSet::getEncodedGPR(
+      Asm->movd(Dest->getType(),
+                InstX86Base<Machine>::Traits::RegisterSet::getEncodedGPR(
                     Dest->getRegNum()),
                 SrcReg);
     } else {
@@ -2396,7 +2455,7 @@ void InstX86Movd<Machine>::emitIAS(const Cfg *Func) const {
           static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
               Func->getTarget())
               ->stackVarToAsmOperand(Dest));
-      Asm->movd(StackAddr, SrcReg);
+      Asm->movd(Dest->getType(), StackAddr, SrcReg);
     }
   }
 }

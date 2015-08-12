@@ -22,6 +22,7 @@
 
 #include "test_arith.def"
 #include "vectors.h"
+#include "xdefs.h"
 
 // Include test_cast.h twice - once normally, and once within the
 // Subzero_ namespace, corresponding to the llc and Subzero translated
@@ -82,8 +83,8 @@ void testValue(FromType Val, size_t &TotalTests, size_t &Passes,
   COMPARE(cast, FromType, int16_t, Val, FromTypeString);
   COMPARE(cast, FromType, uint32_t, Val, FromTypeString);
   COMPARE(cast, FromType, int32_t, Val, FromTypeString);
-  COMPARE(cast, FromType, uint64_t, Val, FromTypeString);
-  COMPARE(cast, FromType, int64_t, Val, FromTypeString);
+  COMPARE(cast, FromType, uint64, Val, FromTypeString);
+  COMPARE(cast, FromType, int64, Val, FromTypeString);
   COMPARE(cast, FromType, float, Val, FromTypeString);
   COMPARE(cast, FromType, double, Val, FromTypeString);
 }
@@ -110,7 +111,11 @@ void testVector(size_t &TotalTests, size_t &Passes, size_t &Failures,
   }
 }
 
-int main(int argc, char **argv) {
+#ifdef X8664_STACK_HACK
+extern "C" int wrapped_main(int argc, char *argv[]) {
+#else  // !defined(X8664_STACK_HACK)
+int main(int argc, char *argv[]) {
+#endif // X8664_STACK_HACK
   size_t TotalTests = 0;
   size_t Passes = 0;
   size_t Failures = 0;
@@ -147,7 +152,7 @@ int main(int argc, char **argv) {
                                 0x80000000, 0x80000001, 0xfffffffe, 0xffffffff};
   static const size_t NumValsSi32 = sizeof(ValsSi32) / sizeof(*ValsSi32);
 
-  volatile uint64_t ValsUi64[] = {
+  volatile uint64 ValsUi64[] = {
       0, 1, 0x7e, 0x7f, 0x80, 0x81, 0xfe, 0xff, 0x7ffe, 0x7fff, 0x8000, 0x8001,
       0xfffe, 0xffff, 0x7ffffffe, 0x7fffffff, 0x80000000, 0x80000001,
       0xfffffffe, 0xffffffff, 0x100000000ull, 0x100000001ull,
@@ -155,7 +160,7 @@ int main(int argc, char **argv) {
       0x8000000000000001ull, 0xfffffffffffffffeull, 0xffffffffffffffffull};
   static const size_t NumValsUi64 = sizeof(ValsUi64) / sizeof(*ValsUi64);
 
-  volatile int64_t ValsSi64[] = {
+  volatile int64 ValsSi64[] = {
       0, 1, 0x7e, 0x7f, 0x80, 0x81, 0xfe, 0xff, 0x7ffe, 0x7fff, 0x8000, 0x8001,
       0xfffe, 0xffff, 0x7ffffffe, 0x7fffffff, 0x80000000, 0x80000001,
       0xfffffffe, 0xffffffff, 0x100000000ll, 0x100000001ll,
@@ -203,13 +208,13 @@ int main(int argc, char **argv) {
     testValue<int32_t>(Val, TotalTests, Passes, Failures, "int32_t");
   }
   for (size_t i = 0; i < NumValsUi64; ++i) {
-    uint64_t Val = ValsUi64[i];
-    testValue<uint64_t>(Val, TotalTests, Passes, Failures, "uint64_t");
-    COMPARE(castBits, uint64_t, double, Val, "uint64_t");
+    uint64 Val = ValsUi64[i];
+    testValue<uint64>(Val, TotalTests, Passes, Failures, "uint64");
+    COMPARE(castBits, uint64, double, Val, "uint64");
   }
   for (size_t i = 0; i < NumValsSi64; ++i) {
-    int64_t Val = ValsSi64[i];
-    testValue<int64_t>(Val, TotalTests, Passes, Failures, "int64_t");
+    int64 Val = ValsSi64[i];
+    testValue<int64>(Val, TotalTests, Passes, Failures, "int64");
   }
   for (size_t i = 0; i < NumValsF32; ++i) {
     for (unsigned j = 0; j < 2; ++j) {
@@ -226,7 +231,7 @@ int main(int argc, char **argv) {
       if (j > 0)
         Val = -Val;
       testValue<double>(Val, TotalTests, Passes, Failures, "double");
-      COMPARE(castBits, double, uint64_t, Val, "double");
+      COMPARE(castBits, double, uint64, Val, "double");
     }
   }
   testVector<v4ui32, v4f32>(TotalTests, Passes, Failures, "v4ui32", "v4f32");

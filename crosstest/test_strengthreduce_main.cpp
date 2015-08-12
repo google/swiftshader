@@ -25,7 +25,11 @@ namespace Subzero_ {
 #include "test_strengthreduce.h"
 }
 
-int main(int argc, char **argv) {
+#ifdef X8664_STACK_HACK
+extern "C" int wrapped_main(int argc, char *argv[]) {
+#else  // !defined(X8664_STACK_HACK)
+int main(int argc, char *argv[]) {
+#endif // X8664_STACK_HACK
   size_t TotalTests = 0;
   size_t Passes = 0;
   size_t Failures = 0;

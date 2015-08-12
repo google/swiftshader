@@ -1072,7 +1072,7 @@ TEST_F(AssemblerX8632Test, Cvt) {
     __ movups(XmmRegister::Encoded_Reg_##Dst, dwordAddress(T0));               \
     __ mov(IceType_i32, GPRRegister::Encoded_Reg_##GPR,                        \
            Immediate(Inst##Size##SrcValue));                                   \
-    __ cvt##Inst(IceType_f##Size, XmmRegister::Encoded_Reg_##Dst,              \
+    __ cvt##Inst(IceType_f##Size, XmmRegister::Encoded_Reg_##Dst, IceType_i32, \
                  GPRRegister::Encoded_Reg_##GPR);                              \
                                                                                \
     AssembledTest test = assemble();                                           \
@@ -1092,7 +1092,7 @@ TEST_F(AssemblerX8632Test, Cvt) {
     __ mov(IceType_i32, GPRRegister::Encoded_Reg_##GPR,                        \
            Immediate(Inst##Size##DstValue));                                   \
     __ movups(XmmRegister::Encoded_Reg_##Src, dwordAddress(T0));               \
-    __ cvt##Inst(IceType_f##Size, GPRRegister::Encoded_Reg_##GPR,              \
+    __ cvt##Inst(IceType_i32, GPRRegister::Encoded_Reg_##GPR, IceType_f##Size, \
                  XmmRegister::Encoded_Reg_##Src);                              \
                                                                                \
     AssembledTest test = assemble();                                           \
@@ -1132,7 +1132,7 @@ TEST_F(AssemblerX8632Test, Cvt) {
     const uint32_t T1 = allocateDword();                                       \
                                                                                \
     __ movups(XmmRegister::Encoded_Reg_##Dst, dwordAddress(T0));               \
-    __ cvt##Inst(IceType_f##Size, XmmRegister::Encoded_Reg_##Dst,              \
+    __ cvt##Inst(IceType_f##Size, XmmRegister::Encoded_Reg_##Dst, IceType_i32, \
                  dwordAddress(T1));                                            \
                                                                                \
     AssembledTest test = assemble();                                           \
@@ -1152,7 +1152,7 @@ TEST_F(AssemblerX8632Test, Cvt) {
                                                                                \
     __ mov(IceType_i32, GPRRegister::Encoded_Reg_##GPR,                        \
            Immediate(Inst##Size##DstValue));                                   \
-    __ cvt##Inst(IceType_f##Size, GPRRegister::Encoded_Reg_##GPR,              \
+    __ cvt##Inst(IceType_i32, GPRRegister::Encoded_Reg_##GPR, IceType_f##Size, \
                  dwordAddress(T0));                                            \
                                                                                \
     AssembledTest test = assemble();                                           \

@@ -206,7 +206,7 @@ MachineTraits<TargetX8632>::X86OperandMem::toAsmAddress(
     } else if (const auto CR =
                    llvm::dyn_cast<ConstantRelocatable>(getOffset())) {
       Disp = CR->getOffset();
-      Fixup = Asm->createFixup(llvm::ELF::R_386_32, CR);
+      Fixup = Asm->createFixup(RelFixup, CR);
     } else {
       llvm_unreachable("Unexpected offset type");
     }

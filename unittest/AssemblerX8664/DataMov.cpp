@@ -263,6 +263,32 @@ TEST_F(AssemblerX8664Test, MovRegMem) {
 #undef TestRegAddr
 }
 
+TEST_F(AssemblerX8664Test, Movabs) {
+#define TestImplValue(Dst, Value)                                              \
+  do {                                                                         \
+    static constexpr char TestString[] = "(" #Dst ", " #Value ")";             \
+    uint64_t V = (Value);                                                      \
+    __ movabs(Encoded_GPR_##Dst##q(), V);                                      \
+                                                                               \
+    AssembledTest test = assemble();                                           \
+                                                                               \
+    test.run();                                                                \
+                                                                               \
+    ASSERT_EQ(V, test.DST()) << TestString;                                    \
+  } while (0)
+
+#define TestImpl(Dst)                                                          \
+  do {                                                                         \
+    for (uint64_t V = {0, 1, 0xFFFFFFull, 0x80000000ull,                       \
+                       0xFFFFFFFFFFFFFFFFull}) {                               \
+      TestImpl(Dst, V);                                                        \
+    }                                                                          \
+  } while (0)
+
+#undef TestImpl
+#undef TestImplValue
+}
+
 TEST_F(AssemblerX8664Test, Movzx) {
   static constexpr uint32_t Mask8 = 0x000000FF;
   static constexpr uint32_t Mask16 = 0x0000FFFF;
@@ -677,7 +703,7 @@ TEST_F(AssemblerX8664Test, MovssXmmXmm) {
 }
 
 TEST_F(AssemblerX8664Test, MovdToXmm) {
-#define TestMovdXmmReg(Src, Dst, Value)                                        \
+#define TestMovdXmmReg32(Src, Dst, Value)                                      \
   do {                                                                         \
     assert(((Value)&0xFFFFFFFF) == (Value));                                   \
     static constexpr char TestString[] = "(" #Src ", " #Dst ")";               \
@@ -686,7 +712,7 @@ TEST_F(AssemblerX8664Test, MovdToXmm) {
                                                                                \
     __ mov(IceType_i32, Encoded_GPR_##Src(), Immediate(Value));                \
     __ movss(IceType_f64, Encoded_Xmm_##Dst(), dwordAddress(T0));              \
-    __ movd(Encoded_Xmm_##Dst(), Encoded_GPR_##Src());                         \
+    __ movd(IceType_i32, Encoded_Xmm_##Dst(), Encoded_GPR_##Src());            \
                                                                                \
     AssembledTest test = assemble();                                           \
                                                                                \
@@ -698,7 +724,35 @@ TEST_F(AssemblerX8664Test, MovdToXmm) {
     reset();                                                                   \
   } while (0)
 
-#define TestMovdXmmAddr(Dst, Value)                                            \
+#define TestMovdXmmReg64(Src, Dst, Value)                                      \
+  do {                                                                         \
+    assert(((Value)&0xFFFFFFFF) == (Value));                                   \
+    static constexpr char TestString[] = "(" #Src ", " #Dst ")";               \
+    const uint32_t T0 = allocateQword();                                       \
+    const uint64_t V0 = 0xFFFFFFFF00000000ull;                                 \
+    const uint64_t Expected = (static_cast<uint64_t>(Value) << 32) | (Value);  \
+                                                                               \
+    __ movabs(Encoded_GPR_##Src(), Expected);                                  \
+    __ movss(IceType_f64, Encoded_Xmm_##Dst(), dwordAddress(T0));              \
+    __ movd(IceType_i64, Encoded_Xmm_##Dst(), Encoded_GPR_##Src());            \
+                                                                               \
+    AssembledTest test = assemble();                                           \
+                                                                               \
+    test.setQwordTo(T0, V0);                                                   \
+    test.run();                                                                \
+                                                                               \
+    ASSERT_EQ(Expected, test.Dst<uint64_t>()) << TestString << " value is "    \
+                                              << Value;                        \
+    reset();                                                                   \
+  } while (0)
+
+#define TestMovdXmmReg(Src, Dst, Value)                                        \
+  do {                                                                         \
+    TestMovdXmmReg32(Src, Dst, Value);                                         \
+    TestMovdXmmReg64(Src, Dst, Value);                                         \
+  } while (0)
+
+#define TestMovdXmmAddr32(Dst, Value)                                          \
   do {                                                                         \
     assert(((Value)&0xFFFFFFFF) == (Value));                                   \
     static constexpr char TestString[] = "(" #Dst ", Addr)";                   \
@@ -708,7 +762,7 @@ TEST_F(AssemblerX8664Test, MovdToXmm) {
     const uint64_t V1 = 0xFFFFFFFF00000000ull;                                 \
                                                                                \
     __ movss(IceType_f64, Encoded_Xmm_##Dst(), dwordAddress(T1));              \
-    __ movd(Encoded_Xmm_##Dst(), dwordAddress(T0));                            \
+    __ movd(IceType_i32, Encoded_Xmm_##Dst(), dwordAddress(T0));               \
                                                                                \
     AssembledTest test = assemble();                                           \
                                                                                \
@@ -719,6 +773,35 @@ TEST_F(AssemblerX8664Test, MovdToXmm) {
     ASSERT_EQ(Value, test.Dst<uint64_t>()) << TestString << " value is "       \
                                            << Value;                           \
     reset();                                                                   \
+  } while (0)
+
+#define TestMovdXmmAddr64(Dst, Value)                                          \
+  do {                                                                         \
+    assert(((Value)&0xFFFFFFFF) == (Value));                                   \
+    static constexpr char TestString[] = "(" #Dst ", Addr)";                   \
+    const uint32_t T0 = allocateQword();                                       \
+    const uint32_t V0 = (static_cast<uint64_t>(Value) << 32) | (Value);        \
+    const uint32_t T1 = allocateQword();                                       \
+    const uint64_t V1 = 0xFFFFFFFF00000000ull;                                 \
+                                                                               \
+    __ movss(IceType_f64, Encoded_Xmm_##Dst(), dwordAddress(T1));              \
+    __ movd(IceType_i64, Encoded_Xmm_##Dst(), dwordAddress(T0));               \
+                                                                               \
+    AssembledTest test = assemble();                                           \
+                                                                               \
+    test.setDwordTo(T0, V0);                                                   \
+    test.setQwordTo(T1, V1);                                                   \
+    test.run();                                                                \
+                                                                               \
+    ASSERT_EQ(Value, test.Dst<uint64_t>()) << TestString << " value is "       \
+                                           << Value;                           \
+    reset();                                                                   \
+  } while (0)
+
+#define TestMovdXmmAddr(Dst, Value)                                            \
+  do {                                                                         \
+    TestMovdXmmAddr32(Dst, Value);                                             \
+    TestMovdXmmAddr64(Dst, Value);                                             \
   } while (0)
 
 #define TestMovd(Dst)                                                          \
@@ -759,13 +842,17 @@ TEST_F(AssemblerX8664Test, MovdToXmm) {
   TestMovd(xmm14);
   TestMovd(xmm15);
 
-#undef TestMovdXmmAddr
-#undef TestMovdXmmReg
 #undef TestMovd
+#undef TestMovdXmmAddr
+#undef TestMovdXmmAddr64
+#undef TestMovdXmmAddr32
+#undef TestMovdXmmReg
+#undef TestMovdXmmReg64
+#undef TestMovdXmmReg32
 }
 
 TEST_F(AssemblerX8664Test, MovdFromXmm) {
-#define TestMovdRegXmm(Src, Dst, Value)                                        \
+#define TestMovdRegXmm32(Src, Dst, Value)                                      \
   do {                                                                         \
     assert(((Value)&0xFFFFFFFF) == (Value));                                   \
     static constexpr char TestString[] = "(" #Src ", " #Dst ")";               \
@@ -773,7 +860,7 @@ TEST_F(AssemblerX8664Test, MovdFromXmm) {
     const uint32_t V0 = Value;                                                 \
                                                                                \
     __ movss(IceType_f64, Encoded_Xmm_##Src(), dwordAddress(T0));              \
-    __ movd(Encoded_GPR_##Dst(), Encoded_Xmm_##Src());                         \
+    __ movd(IceType_i32, Encoded_GPR_##Dst(), Encoded_Xmm_##Src());            \
                                                                                \
     AssembledTest test = assemble();                                           \
                                                                                \
@@ -785,7 +872,33 @@ TEST_F(AssemblerX8664Test, MovdFromXmm) {
     reset();                                                                   \
   } while (0)
 
-#define TestMovdAddrXmm(Src, Value)                                            \
+#define TestMovdRegXmm64(Src, Dst, Value)                                      \
+  do {                                                                         \
+    assert(((Value)&0xFFFFFFFF) == (Value));                                   \
+    static constexpr char TestString[] = "(" #Src ", " #Dst ")";               \
+    const uint32_t T0 = allocateDword();                                       \
+    const uint64_t V0 = (static_cast<uint64_t>(Value) << 32) | (Value);        \
+                                                                               \
+    __ movss(IceType_f64, Encoded_Xmm_##Src(), dwordAddress(T0));              \
+    __ movd(IceType_i64, Encoded_GPR_##Dst(), Encoded_Xmm_##Src());            \
+                                                                               \
+    AssembledTest test = assemble();                                           \
+                                                                               \
+    test.setQwordTo(T0, V0);                                                   \
+    test.run();                                                                \
+                                                                               \
+    ASSERT_EQ(V0, test.contentsOfQword(T0)) << TestString << " value is "      \
+                                            << Value;                          \
+    reset();                                                                   \
+  } while (0)
+
+#define TestMovdRegXmm(Src, Dst, Value)                                        \
+  do {                                                                         \
+    TestMovdRegXmm32(Src, Dst, Value);                                         \
+    TestMovdRegXmm64(Src, Dst, Value);                                         \
+  } while (0)
+
+#define TestMovdAddrXmm32(Src, Value)                                          \
   do {                                                                         \
     assert(((Value)&0xFFFFFFFF) == (Value));                                   \
     static constexpr char TestString[] = "(" #Src ", Addr)";                   \
@@ -795,7 +908,7 @@ TEST_F(AssemblerX8664Test, MovdFromXmm) {
     const uint32_t V1 = ~(Value);                                              \
                                                                                \
     __ movss(IceType_f64, Encoded_Xmm_##Src(), dwordAddress(T0));              \
-    __ movd(dwordAddress(T1), Encoded_Xmm_##Src());                            \
+    __ movd(IceType_i32, dwordAddress(T1), Encoded_Xmm_##Src());               \
                                                                                \
     AssembledTest test = assemble();                                           \
                                                                                \
@@ -806,6 +919,35 @@ TEST_F(AssemblerX8664Test, MovdFromXmm) {
     ASSERT_EQ(Value, test.contentsOfDword(T1)) << TestString << " value is "   \
                                                << Value;                       \
     reset();                                                                   \
+  } while (0)
+
+#define TestMovdAddrXmm64(Src, Value)                                          \
+  do {                                                                         \
+    assert(((Value)&0xFFFFFFFF) == (Value));                                   \
+    static constexpr char TestString[] = "(" #Src ", Addr)";                   \
+    const uint32_t T0 = allocateQword();                                       \
+    const uint64_t V0 = (static_cast<uint64_t>(Value) << 32) | Value;          \
+    const uint32_t T1 = allocateQword();                                       \
+    const uint64_t V1 = ~V0;                                                   \
+                                                                               \
+    __ movss(IceType_f64, Encoded_Xmm_##Src(), dwordAddress(T0));              \
+    __ movd(IceType_i64, dwordAddress(T1), Encoded_Xmm_##Src());               \
+                                                                               \
+    AssembledTest test = assemble();                                           \
+                                                                               \
+    test.setQwordTo(T0, V0);                                                   \
+    test.setQwordTo(T1, V1);                                                   \
+    test.run();                                                                \
+                                                                               \
+    ASSERT_EQ(V0, test.contentsOfQword(T1)) << TestString << " value is "      \
+                                            << Value;                          \
+    reset();                                                                   \
+  } while (0)
+
+#define TestMovdAddrXmm(Src, Value)                                            \
+  do {                                                                         \
+    TestMovdAddrXmm32(Src, Value);                                             \
+    TestMovdAddrXmm64(Src, Value);                                             \
   } while (0)
 
 #define TestMovd(Src)                                                          \
@@ -846,9 +988,13 @@ TEST_F(AssemblerX8664Test, MovdFromXmm) {
   TestMovd(xmm14);
   TestMovd(xmm15);
 
-#undef TestMovdAddrXmm
-#undef TestMovdRegXmm
 #undef TestMovd
+#undef TestMovdAddrXmm
+#undef TestMovdAddrXmm64
+#undef TestMovdAddrXmm32
+#undef TestMovdRegXmm
+#undef TestMovdRegXmm64
+#undef TestMovdRegXmm32
 }
 
 TEST_F(AssemblerX8664Test, MovqXmmAddr) {

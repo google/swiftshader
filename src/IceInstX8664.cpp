@@ -179,8 +179,8 @@ MachineTraits<TargetX8664>::X86OperandMem::toAsmAddress(
       Disp = static_cast<int32_t>(CI->getValue());
     } else if (const auto CR =
                    llvm::dyn_cast<ConstantRelocatable>(getOffset())) {
-      Disp = CR->getOffset();
-      Fixup = Asm->createFixup(llvm::ELF::R_386_32, CR);
+      Disp = CR->getOffset() - 4;
+      Fixup = Asm->createFixup(PcRelFixup, CR);
     } else {
       llvm_unreachable("Unexpected offset type");
     }

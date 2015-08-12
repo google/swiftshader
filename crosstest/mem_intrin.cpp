@@ -8,6 +8,7 @@
 #include <cstring>
 
 #include "mem_intrin.h"
+#include "xdefs.h"
 
 typedef int elem_t;
 
@@ -15,9 +16,9 @@ typedef int elem_t;
  * Reset buf to the sequence of bytes: n, n+1, n+2 ... length - 1
  */
 static void __attribute__((noinline))
-reset_buf(uint8_t *buf, uint8_t init, size_t length) {
-  size_t i;
-  size_t v = init;
+reset_buf(uint8_t *buf, uint8_t init, SizeT length) {
+  SizeT i;
+  SizeT v = init;
   for (i = 0; i < length; ++i)
     buf[i] = v++;
 }
@@ -27,8 +28,8 @@ reset_buf(uint8_t *buf, uint8_t init, size_t length) {
  * smaller buffers, whose total won't approach 2**16).
  */
 static int __attribute__((noinline))
-fletcher_checksum(uint8_t *buf, size_t length) {
-  size_t i;
+fletcher_checksum(uint8_t *buf, SizeT length) {
+  SizeT i;
   int sum = 0;
   int sum_of_sums = 0;
   const int kModulus = 255;
@@ -63,20 +64,20 @@ int memset_test_fixed_len(uint8_t init) {
   return fletcher_checksum((uint8_t *)buf, BYTE_LENGTH);
 }
 
-int memcpy_test(uint8_t *buf, uint8_t *buf2, uint8_t init, size_t length) {
+int memcpy_test(uint8_t *buf, uint8_t *buf2, uint8_t init, SizeT length) {
   reset_buf(buf, init, length);
   memcpy((void *)buf2, (void *)buf, length);
   return fletcher_checksum(buf2, length);
 }
 
-int memmove_test(uint8_t *buf, uint8_t *buf2, uint8_t init, size_t length) {
+int memmove_test(uint8_t *buf, uint8_t *buf2, uint8_t init, SizeT length) {
   int sum1;
   int sum2;
   const int overlap_bytes = 4 * sizeof(elem_t);
   if (length <= overlap_bytes)
     return 0;
   uint8_t *overlap_buf = buf + overlap_bytes;
-  size_t reduced_length = length - overlap_bytes;
+  SizeT reduced_length = length - overlap_bytes;
   reset_buf(buf, init, length);
 
   /* Test w/ overlap. */
@@ -88,7 +89,7 @@ int memmove_test(uint8_t *buf, uint8_t *buf2, uint8_t init, size_t length) {
   return sum1 + sum2;
 }
 
-int memset_test(uint8_t *buf, uint8_t *buf2, uint8_t init, size_t length) {
+int memset_test(uint8_t *buf, uint8_t *buf2, uint8_t init, SizeT length) {
   memset((void *)buf, init, length);
   memset((void *)buf2, init + 4, length);
   return fletcher_checksum(buf, length) + fletcher_checksum(buf2, length);

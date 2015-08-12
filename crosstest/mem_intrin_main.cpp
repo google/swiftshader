@@ -5,6 +5,8 @@
 #include <cstdio>
 
 #include "mem_intrin.h"
+#include "xdefs.h"
+
 namespace Subzero_ {
 #include "mem_intrin.h"
 }
@@ -12,7 +14,7 @@ namespace Subzero_ {
 #define XSTR(s) STR(s)
 #define STR(s) #s
 
-void testFixedLen(size_t &TotalTests, size_t &Passes, size_t &Failures) {
+void testFixedLen(SizeT &TotalTests, SizeT &Passes, SizeT &Failures) {
 #define do_test_fixed(test_func)                                               \
   for (uint8_t init_val = 0; init_val < 100; ++init_val) {                     \
     ++TotalTests;                                                              \
@@ -33,11 +35,11 @@ void testFixedLen(size_t &TotalTests, size_t &Passes, size_t &Failures) {
 #undef do_test_fixed
 }
 
-void testVariableLen(size_t &TotalTests, size_t &Passes, size_t &Failures) {
+void testVariableLen(SizeT &TotalTests, SizeT &Passes, SizeT &Failures) {
   uint8_t buf[256];
   uint8_t buf2[256];
 #define do_test_variable(test_func)                                            \
-  for (size_t len = 4; len < 128; ++len) {                                     \
+  for (SizeT len = 4; len < 128; ++len) {                                      \
     for (uint8_t init_val = 0; init_val < 100; ++init_val) {                   \
       ++TotalTests;                                                            \
       int llc_result = test_func(buf, buf2, init_val, len);                    \
@@ -58,7 +60,11 @@ void testVariableLen(size_t &TotalTests, size_t &Passes, size_t &Failures) {
 #undef do_test_variable
 }
 
-int main(int argc, char **argv) {
+#ifdef X8664_STACK_HACK
+extern "C" int wrapped_main(int argc, char *argv[]) {
+#else  // !defined(X8664_STACK_HACK)
+int main(int argc, char *argv[]) {
+#endif // X8664_STACK_HACK
   unsigned TotalTests = 0;
   unsigned Passes = 0;
   unsigned Failures = 0;

@@ -21,6 +21,7 @@
 #include "IceInst.h"
 #include "IceSwitchLowering.h"
 #include "IceTargetLowering.h"
+#include "IceUtils.h"
 
 #include <type_traits>
 #include <utility>
@@ -80,10 +81,9 @@ public:
                            : Traits::RegisterSet::Reg_esp;
   }
   size_t typeWidthInBytesOnStack(Type Ty) const override {
-    // Round up to the next multiple of 4 bytes.  In particular, i1,
-    // i8, and i16 are rounded up to 4 bytes.
-    // TODO(jpp): this needs to round to multiples of 8 bytes in x86-64.
-    return (typeWidthInBytes(Ty) + 3) & ~3;
+    // Round up to the next multiple of WordType bytes.
+    const uint32_t WordSizeInBytes = typeWidthInBytes(Traits::WordType);
+    return Utils::applyAlignment(typeWidthInBytes(Ty), WordSizeInBytes);
   }
 
   SizeT getMinJumpTableSize() const override { return 4; }
@@ -98,14 +98,40 @@ public:
   void emit(const ConstantDouble *C) const final;
 
   void initNodeForLowering(CfgNode *Node) override;
-  /// Ensure that a 64-bit Variable has been split into 2 32-bit
+  /// x86-32: Ensure that a 64-bit Variable has been split into 2 32-bit
   /// Variables, creating them if necessary.  This is needed for all
   /// I64 operations, and it is needed for pushing F64 arguments for
   /// function calls using the 32-bit push instruction (though the
   /// latter could be done by directly writing to the stack).
-  void split64(Variable *Var);
-  Operand *loOperand(Operand *Operand);
-  Operand *hiOperand(Operand *Operand);
+  ///
+  /// x86-64: Complains loudly if invoked because the cpu can handle
+  /// 64-bit types natively.
+  template <typename T = Traits>
+  typename std::enable_if<!T::Is64Bit, void>::type split64(Variable *Var);
+  template <typename T = Traits>
+  typename std::enable_if<T::Is64Bit, void>::type split64(Variable *) {
+    llvm::report_fatal_error(
+        "Hey, yo! This is x86-64. Watcha doin'? (split64)");
+  }
+
+  template <typename T = Traits>
+  typename std::enable_if<!T::Is64Bit, Operand>::type *
+  loOperand(Operand *Operand);
+  template <typename T = Traits>
+  typename std::enable_if<T::Is64Bit, Operand>::type *loOperand(Operand *) {
+    llvm::report_fatal_error(
+        "Hey, yo! This is x86-64. Watcha doin'? (loOperand)");
+  }
+
+  template <typename T = Traits>
+  typename std::enable_if<!T::Is64Bit, Operand>::type *
+  hiOperand(Operand *Operand);
+  template <typename T = Traits>
+  typename std::enable_if<T::Is64Bit, Operand>::type *hiOperand(Operand *) {
+    llvm::report_fatal_error(
+        "Hey, yo! This is x86-64. Watcha doin'? (hiOperand)");
+  }
+
   void finishArgumentLowering(Variable *Arg, Variable *FramePtr,
                               size_t BasicFrameOffset, size_t &InArgsSizeBytes);
   typename Traits::Address stackVarToAsmOperand(const Variable *Var) const;
@@ -128,6 +154,19 @@ protected:
   void lowerExtractElement(const InstExtractElement *Inst) override;
   void lowerFcmp(const InstFcmp *Inst) override;
   void lowerIcmp(const InstIcmp *Inst) override;
+  /// Complains loudly if invoked because the cpu can handle 64-bit types
+  /// natively.
+  template <typename T = Traits>
+  typename std::enable_if<T::Is64Bit, void>::type
+  lowerIcmp64(const InstIcmp *) {
+    llvm::report_fatal_error(
+        "Hey, yo! This is x86-64. Watcha doin'? (lowerIcmp64)");
+  }
+  /// x86lowerIcmp64 handles 64-bit icmp lowering.
+  template <typename T = Traits>
+  typename std::enable_if<!T::Is64Bit, void>::type
+  lowerIcmp64(const InstIcmp *Inst);
+
   void lowerIntrinsicCall(const InstIntrinsicCall *Inst) override;
   void lowerInsertElement(const InstInsertElement *Inst) override;
   void lowerLoad(const InstLoad *Inst) override;

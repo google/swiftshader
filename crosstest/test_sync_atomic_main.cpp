@@ -28,11 +28,12 @@
 // Subzero_ namespace, corresponding to the llc and Subzero translated
 // object files, respectively.
 #include "test_sync_atomic.h"
+#include "xdefs.h"
 namespace Subzero_ {
 #include "test_sync_atomic.h"
 }
 
-volatile uint64_t Values[] = {
+volatile uint64 Values[] = {
     0, 1, 0x7e, 0x7f, 0x80, 0x81, 0xfe, 0xff, 0x7ffe, 0x7fff, 0x8000, 0x8001,
     0xfffe, 0xffff, 0x007fffff /*Max subnormal + */, 0x00800000 /*Min+ */,
     0x7f7fffff /*Max+ */, 0x7f800000 /*+Inf*/, 0xff800000 /*-Inf*/,
@@ -51,7 +52,7 @@ struct {
   volatile uint8_t l8;
   volatile uint16_t l16;
   volatile uint32_t l32;
-  volatile uint64_t l64;
+  volatile uint64 l64;
 } AtomicLocs;
 
 template <typename Type>
@@ -91,12 +92,12 @@ void testAtomicRMW(volatile Type *AtomicLoc, size_t &TotalTests, size_t &Passes,
           } else {
             ++Failures;
             std::cout << "test_" << Funcs[f].Name << (CHAR_BIT * sizeof(Type))
-                      << "(" << static_cast<uint64_t>(Value1) << ", "
-                      << static_cast<uint64_t>(Value2)
-                      << "): sz1=" << static_cast<uint64_t>(ResultSz1)
-                      << " llc1=" << static_cast<uint64_t>(ResultLlc1)
-                      << " sz2=" << static_cast<uint64_t>(ResultSz2)
-                      << " llc2=" << static_cast<uint64_t>(ResultLlc2) << "\n";
+                      << "(" << static_cast<uint64>(Value1) << ", "
+                      << static_cast<uint64>(Value2)
+                      << "): sz1=" << static_cast<uint64>(ResultSz1)
+                      << " llc1=" << static_cast<uint64>(ResultLlc1)
+                      << " sz2=" << static_cast<uint64>(ResultSz2)
+                      << " llc2=" << static_cast<uint64>(ResultLlc2) << "\n";
           }
         }
       }
@@ -137,12 +138,12 @@ void testValCompareAndSwap(volatile Type *AtomicLoc, size_t &TotalTests,
           } else {
             ++Failures;
             std::cout << "test_" << Funcs[f].Name << (CHAR_BIT * sizeof(Type))
-                      << "(" << static_cast<uint64_t>(Value1) << ", "
-                      << static_cast<uint64_t>(Value2)
-                      << "): sz1=" << static_cast<uint64_t>(ResultSz1)
-                      << " llc1=" << static_cast<uint64_t>(ResultLlc1)
-                      << " sz2=" << static_cast<uint64_t>(ResultSz2)
-                      << " llc2=" << static_cast<uint64_t>(ResultLlc2) << "\n";
+                      << "(" << static_cast<uint64>(Value1) << ", "
+                      << static_cast<uint64>(Value2)
+                      << "): sz1=" << static_cast<uint64>(ResultSz1)
+                      << " llc1=" << static_cast<uint64>(ResultLlc1)
+                      << " sz2=" << static_cast<uint64>(ResultSz2)
+                      << " llc2=" << static_cast<uint64>(ResultLlc2) << "\n";
           }
         }
       }
@@ -166,6 +167,22 @@ template <typename Type> void *threadWrapper(void *Data) {
   return NULL;
 }
 
+#ifndef X8664_STACK_HACK
+void AllocStackForThread(uint32, pthread_attr_t *) {}
+#else  // defined(X8664_STACK_HACK)
+void AllocStackForThread(uint32 m, pthread_attr_t *attr) {
+  static const uint32_t ThreadStackBase = 0x60000000;
+  static const uint32_t ThreadStackSize = 4 << 20; // 4MB.
+  if (pthread_attr_setstack(
+          attr, xAllocStack(ThreadStackBase - 2 * m * ThreadStackSize,
+                            ThreadStackSize),
+          ThreadStackSize) != 0) {
+    std::cout << "pthread_attr_setstack: " << strerror(errno) << "\n";
+    abort();
+  }
+}
+#endif // X8664_STACK_HACK
+
 template <typename Type>
 void testAtomicRMWThreads(volatile Type *AtomicLoc, size_t &TotalTests,
                           size_t &Passes, size_t &Failures) {
@@ -184,7 +201,7 @@ void testAtomicRMWThreads(volatile Type *AtomicLoc, size_t &TotalTests,
   const static size_t NumFuncs = sizeof(Funcs) / sizeof(*Funcs);
 
   // Just test a few values, otherwise it takes a *really* long time.
-  volatile uint64_t ValuesSubset[] = {1, 0x7e, 0x000fffffffffffffffll};
+  volatile uint64 ValuesSubset[] = {1, 0x7e, 0x000fffffffffffffffll};
   const size_t NumValuesSubset = sizeof(ValuesSubset) / sizeof(*ValuesSubset);
 
   for (size_t f = 0; f < NumFuncs; ++f) {
@@ -200,12 +217,18 @@ void testAtomicRMWThreads(volatile Type *AtomicLoc, size_t &TotalTests,
         ++TotalTests;
         const size_t NumThreads = 4;
         pthread_t t[NumThreads];
+        pthread_attr_t attr[NumThreads];
 
         // Try N threads w/ just Llc.
         *AtomicLoc = Value1;
         for (size_t m = 0; m < NumThreads; ++m) {
-          pthread_create(&t[m], NULL, &threadWrapper<Type>,
-                         reinterpret_cast<void *>(&TDataLlc));
+          pthread_attr_init(&attr[m]);
+          AllocStackForThread(m, &attr[m]);
+          if (pthread_create(&t[m], &attr[m], &threadWrapper<Type>,
+                             reinterpret_cast<void *>(&TDataLlc)) != 0) {
+            std::cout << "pthread_create failed w/ " << strerror(errno) << "\n";
+            abort();
+          }
         }
         for (size_t m = 0; m < NumThreads; ++m) {
           pthread_join(t[m], NULL);
@@ -215,7 +238,9 @@ void testAtomicRMWThreads(volatile Type *AtomicLoc, size_t &TotalTests,
         // Try N threads w/ both Sz and Llc.
         *AtomicLoc = Value1;
         for (size_t m = 0; m < NumThreads; ++m) {
-          if (pthread_create(&t[m], NULL, &threadWrapper<Type>,
+          pthread_attr_init(&attr[m]);
+          AllocStackForThread(m, &attr[m]);
+          if (pthread_create(&t[m], &attr[m], &threadWrapper<Type>,
                              m % 2 == 0
                                  ? reinterpret_cast<void *>(&TDataLlc)
                                  : reinterpret_cast<void *>(&TDataSz)) != 0) {
@@ -238,18 +263,21 @@ void testAtomicRMWThreads(volatile Type *AtomicLoc, size_t &TotalTests,
         } else {
           ++Failures;
           std::cout << "test_with_threads_" << Funcs[f].Name
-                    << (8 * sizeof(Type)) << "("
-                    << static_cast<uint64_t>(Value1) << ", "
-                    << static_cast<uint64_t>(Value2)
-                    << "): llc=" << static_cast<uint64_t>(ResultLlc)
-                    << " mixed=" << static_cast<uint64_t>(ResultMixed) << "\n";
+                    << (8 * sizeof(Type)) << "(" << static_cast<uint64>(Value1)
+                    << ", " << static_cast<uint64>(Value2)
+                    << "): llc=" << static_cast<uint64>(ResultLlc)
+                    << " mixed=" << static_cast<uint64>(ResultMixed) << "\n";
         }
       }
     }
   }
 }
 
-int main(int argc, char **argv) {
+#ifdef X8664_STACK_HACK
+extern "C" int wrapped_main(int argc, char *argv[]) {
+#else  // !defined(X8664_STACK_HACK)
+int main(int argc, char *argv[]) {
+#endif // X8664_STACK_HACK
   size_t TotalTests = 0;
   size_t Passes = 0;
   size_t Failures = 0;
@@ -257,18 +285,17 @@ int main(int argc, char **argv) {
   testAtomicRMW<uint8_t>(&AtomicLocs.l8, TotalTests, Passes, Failures);
   testAtomicRMW<uint16_t>(&AtomicLocs.l16, TotalTests, Passes, Failures);
   testAtomicRMW<uint32_t>(&AtomicLocs.l32, TotalTests, Passes, Failures);
-  testAtomicRMW<uint64_t>(&AtomicLocs.l64, TotalTests, Passes, Failures);
+  testAtomicRMW<uint64>(&AtomicLocs.l64, TotalTests, Passes, Failures);
   testValCompareAndSwap<uint8_t>(&AtomicLocs.l8, TotalTests, Passes, Failures);
   testValCompareAndSwap<uint16_t>(&AtomicLocs.l16, TotalTests, Passes,
                                   Failures);
   testValCompareAndSwap<uint32_t>(&AtomicLocs.l32, TotalTests, Passes,
                                   Failures);
-  testValCompareAndSwap<uint64_t>(&AtomicLocs.l64, TotalTests, Passes,
-                                  Failures);
+  testValCompareAndSwap<uint64>(&AtomicLocs.l64, TotalTests, Passes, Failures);
   testAtomicRMWThreads<uint8_t>(&AtomicLocs.l8, TotalTests, Passes, Failures);
   testAtomicRMWThreads<uint16_t>(&AtomicLocs.l16, TotalTests, Passes, Failures);
   testAtomicRMWThreads<uint32_t>(&AtomicLocs.l32, TotalTests, Passes, Failures);
-  testAtomicRMWThreads<uint64_t>(&AtomicLocs.l64, TotalTests, Passes, Failures);
+  testAtomicRMWThreads<uint64>(&AtomicLocs.l64, TotalTests, Passes, Failures);
 
   std::cout << "TotalTests=" << TotalTests << " Passes=" << Passes
             << " Failures=" << Failures << "\n";

@@ -28,6 +28,8 @@
 // Subzero_ namespace, corresponding to the llc and Subzero translated
 // object files, respectively.
 #include "test_arith.h"
+#include "xdefs.h"
+
 namespace Subzero_ {
 #include "test_arith.h"
 }
@@ -363,7 +365,11 @@ void testsVecFp(size_t &TotalTests, size_t &Passes, size_t &Failures) {
   }
 }
 
-int main(int argc, char **argv) {
+#ifdef X8664_STACK_HACK
+extern "C" int wrapped_main(int argc, char *argv[]) {
+#else  // !defined(X8664_STACK_HACK)
+int main(int argc, char *argv[]) {
+#endif // X8664_STACK_HACK
   size_t TotalTests = 0;
   size_t Passes = 0;
   size_t Failures = 0;
@@ -372,7 +378,7 @@ int main(int argc, char **argv) {
   testsInt<uint8_t, myint8_t>(TotalTests, Passes, Failures);
   testsInt<uint16_t, int16_t>(TotalTests, Passes, Failures);
   testsInt<uint32_t, int32_t>(TotalTests, Passes, Failures);
-  testsInt<uint64_t, int64_t>(TotalTests, Passes, Failures);
+  testsInt<uint64, int64>(TotalTests, Passes, Failures);
   testsVecInt<v4ui32, v4si32>(TotalTests, Passes, Failures);
   testsVecInt<v8ui16, v8si16>(TotalTests, Passes, Failures);
   testsVecInt<v16ui8, v16si8>(TotalTests, Passes, Failures);

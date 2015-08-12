@@ -538,7 +538,8 @@ TEST_F(AssemblerX8632Test, MovdToXmm) {
                                                                                \
     __ mov(IceType_i32, GPRRegister::Encoded_Reg_##Src, Immediate(Value));     \
     __ movss(IceType_f64, XmmRegister::Encoded_Reg_##Dst, dwordAddress(T0));   \
-    __ movd(XmmRegister::Encoded_Reg_##Dst, GPRRegister::Encoded_Reg_##Src);   \
+    __ movd(IceType_i32, XmmRegister::Encoded_Reg_##Dst,                       \
+            GPRRegister::Encoded_Reg_##Src);                                   \
                                                                                \
     AssembledTest test = assemble();                                           \
                                                                                \
@@ -560,7 +561,7 @@ TEST_F(AssemblerX8632Test, MovdToXmm) {
     const uint64_t V1 = 0xFFFFFFFF00000000ull;                                 \
                                                                                \
     __ movss(IceType_f64, XmmRegister::Encoded_Reg_##Dst, dwordAddress(T1));   \
-    __ movd(XmmRegister::Encoded_Reg_##Dst, dwordAddress(T0));                 \
+    __ movd(IceType_i32, XmmRegister::Encoded_Reg_##Dst, dwordAddress(T0));    \
                                                                                \
     AssembledTest test = assemble();                                           \
                                                                                \
@@ -609,7 +610,8 @@ TEST_F(AssemblerX8632Test, MovdFromXmm) {
     const uint32_t V0 = Value;                                                 \
                                                                                \
     __ movss(IceType_f64, XmmRegister::Encoded_Reg_##Src, dwordAddress(T0));   \
-    __ movd(GPRRegister::Encoded_Reg_##Dst, XmmRegister::Encoded_Reg_##Src);   \
+    __ movd(IceType_i32, GPRRegister::Encoded_Reg_##Dst,                       \
+            XmmRegister::Encoded_Reg_##Src);                                   \
                                                                                \
     AssembledTest test = assemble();                                           \
                                                                                \
@@ -631,7 +633,7 @@ TEST_F(AssemblerX8632Test, MovdFromXmm) {
     const uint32_t V1 = ~(Value);                                              \
                                                                                \
     __ movss(IceType_f64, XmmRegister::Encoded_Reg_##Src, dwordAddress(T0));   \
-    __ movd(dwordAddress(T1), XmmRegister::Encoded_Reg_##Src);                 \
+    __ movd(IceType_i32, dwordAddress(T1), XmmRegister::Encoded_Reg_##Src);    \
                                                                                \
     AssembledTest test = assemble();                                           \
                                                                                \

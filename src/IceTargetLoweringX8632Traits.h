@@ -68,6 +68,7 @@ template <> struct MachineTraits<TargetX8632> {
   static const GPRRegister Encoded_Reg_Accumulator = RegX8632::Encoded_Reg_eax;
   static const GPRRegister Encoded_Reg_Counter = RegX8632::Encoded_Reg_ecx;
   static const FixupKind PcRelFixup = llvm::ELF::R_386_PC32;
+  static const FixupKind RelFixup = llvm::ELF::R_386_32;
 
   class Operand {
   public:
@@ -272,6 +273,7 @@ template <> struct MachineTraits<TargetX8632> {
   };
 
   static const char *TargetName;
+  static constexpr Type WordType = IceType_i32;
 
   static IceString getRegName(SizeT RegNum, Type Ty) {
     assert(RegNum < RegisterSet::Reg_NUM);

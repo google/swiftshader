@@ -55,15 +55,17 @@ def main():
   root = FindBaseNaCl()
 
   # The rest of the attribute sets.
-  targets = [ 'x8632', 'arm32' ]
+  targets = [ 'x8632', 'x8664', 'arm32' ]
   sandboxing = [ 'native', 'sandbox' ]
   opt_levels = [ 'Om1', 'O2' ]
   arch_attrs = { 'x8632': [ 'sse2', 'sse4.1' ],
+                 'x8664': [ 'sse2', 'sse4.1' ],
                  'arm32': [ 'neon', 'hwdiv-arm' ] }
   flat_attrs = []
   for v in arch_attrs.values():
     flat_attrs += v
   arch_flags = { 'x8632': [],
+                 'x8664': [],
                  # ARM doesn't have an integrated assembler yet.
                  'arm32': ['--filetype=asm'] }
   # all_keys is only used in the help text.

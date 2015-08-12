@@ -1104,15 +1104,16 @@ TEST_F(AssemblerX8664Test, Cvt) {
     reset();                                                                   \
   } while (0)
 
-#define TestImplSXmmReg(Dst, GPR, Inst, Size)                                  \
+#define TestImplSXmmReg(Dst, GPR, Inst, Size, IntType)                         \
   do {                                                                         \
     static constexpr char TestString[] =                                       \
-        "(" #Dst ", " #GPR ", cvt" #Inst ", f" #Size ")";                      \
+        "(" #Dst ", " #GPR ", cvt" #Inst ", " #IntType ", f" #Size ")";        \
     const uint32_t T0 = allocateDqword();                                      \
                                                                                \
     __ movups(Encoded_Xmm_##Dst(), dwordAddress(T0));                          \
     __ mov(IceType_i32, Encoded_GPR_##GPR(), Immediate(Inst##Size##SrcValue)); \
-    __ cvt##Inst(IceType_f##Size, Encoded_Xmm_##Dst(), Encoded_GPR_##GPR());   \
+    __ cvt##Inst(IceType_f##Size, Encoded_Xmm_##Dst(), IntType,                \
+                 Encoded_GPR_##GPR());                                         \
                                                                                \
     AssembledTest test = assemble();                                           \
     test.setDqwordTo(T0, Inst##Size##DstValue);                                \
@@ -1122,21 +1123,23 @@ TEST_F(AssemblerX8664Test, Cvt) {
     reset();                                                                   \
   } while (0)
 
-#define TestImplSRegXmm(GPR, Src, Inst, Size)                                  \
+#define TestImplSRegXmm(GPR, Src, Inst, IntSize, Size)                         \
   do {                                                                         \
     static constexpr char TestString[] =                                       \
-        "(" #GPR ", " #Src ", cvt" #Inst ", f" #Size ")";                      \
+        "(" #GPR ", " #Src ", cvt" #Inst ", " #IntSize ", f" #Size ")";        \
     const uint32_t T0 = allocateDqword();                                      \
                                                                                \
     __ mov(IceType_i32, Encoded_GPR_##GPR(), Immediate(Inst##Size##DstValue)); \
     __ movups(Encoded_Xmm_##Src(), dwordAddress(T0));                          \
-    __ cvt##Inst(IceType_f##Size, Encoded_GPR_##GPR(), Encoded_Xmm_##Src());   \
+    __ cvt##Inst(IceType_i##IntSize, Encoded_GPR_##GPR(), IceType_f##Size,     \
+                 Encoded_Xmm_##Src());                                         \
                                                                                \
     AssembledTest test = assemble();                                           \
     test.setDqwordTo(T0, Inst##Size##SrcValue);                                \
     test.run();                                                                \
                                                                                \
-    ASSERT_EQ(static_cast<uint32_t>(Inst##Size##Expected), test.GPR())         \
+    ASSERT_EQ(static_cast<uint##IntSize##_t>(Inst##Size##Expected),            \
+              test.GPR())                                                      \
         << TestString;                                                         \
     reset();                                                                   \
   } while (0)
@@ -1160,15 +1163,16 @@ TEST_F(AssemblerX8664Test, Cvt) {
     reset();                                                                   \
   } while (0)
 
-#define TestImplSXmmAddr(Dst, Inst, Size)                                      \
+#define TestImplSXmmAddr(Dst, Inst, Size, IntType)                             \
   do {                                                                         \
     static constexpr char TestString[] =                                       \
-        "(" #Dst ", Addr, cvt" #Inst ", f" #Size ")";                          \
+        "(" #Dst ", Addr, cvt" #Inst ", f" #Size ", " #IntType ")";            \
     const uint32_t T0 = allocateDqword();                                      \
     const uint32_t T1 = allocateDword();                                       \
                                                                                \
     __ movups(Encoded_Xmm_##Dst(), dwordAddress(T0));                          \
-    __ cvt##Inst(IceType_f##Size, Encoded_Xmm_##Dst(), dwordAddress(T1));      \
+    __ cvt##Inst(IceType_f##Size, Encoded_Xmm_##Dst(), IntType,                \
+                 dwordAddress(T1));                                            \
                                                                                \
     AssembledTest test = assemble();                                           \
     test.setDqwordTo(T0, Inst##Size##DstValue);                                \
@@ -1179,20 +1183,22 @@ TEST_F(AssemblerX8664Test, Cvt) {
     reset();                                                                   \
   } while (0)
 
-#define TestImplSRegAddr(GPR, Inst, Size)                                      \
+#define TestImplSRegAddr(GPR, Inst, IntSize, Size)                             \
   do {                                                                         \
     static constexpr char TestString[] =                                       \
-        "(" #GPR ", Addr, cvt" #Inst ", f" #Size ")";                          \
+        "(" #GPR ", Addr, cvt" #Inst ", f" #Size ", " #IntSize ")";            \
     const uint32_t T0 = allocateDqword();                                      \
                                                                                \
     __ mov(IceType_i32, Encoded_GPR_##GPR(), Immediate(Inst##Size##DstValue)); \
-    __ cvt##Inst(IceType_f##Size, Encoded_GPR_##GPR(), dwordAddress(T0));      \
+    __ cvt##Inst(IceType_i##IntSize, Encoded_GPR_##GPR(), IceType_f##Size,     \
+                 dwordAddress(T0));                                            \
                                                                                \
     AssembledTest test = assemble();                                           \
     test.setDqwordTo(T0, Inst##Size##SrcValue);                                \
     test.run();                                                                \
                                                                                \
-    ASSERT_EQ(static_cast<uint32_t>(Inst##Size##Expected), test.GPR())         \
+    ASSERT_EQ(static_cast<uint##IntSize##_t>(Inst##Size##Expected),            \
+              test.GPR())                                                      \
         << TestString;                                                         \
     reset();                                                                   \
   } while (0)
@@ -1203,10 +1209,14 @@ TEST_F(AssemblerX8664Test, Cvt) {
     TestImplPXmmAddr(Src, dq2ps, Size);                                        \
     TestImplPXmmXmm(Dst, Src, tps2dq, Size);                                   \
     TestImplPXmmAddr(Src, tps2dq, Size);                                       \
-    TestImplSXmmReg(Dst, GPR, si2ss, Size);                                    \
-    TestImplSXmmAddr(Dst, si2ss, Size);                                        \
-    TestImplSRegXmm(GPR, Src, tss2si, Size);                                   \
-    TestImplSRegAddr(GPR, tss2si, Size);                                       \
+    TestImplSXmmReg(Dst, GPR, si2ss, Size, IceType_i32);                       \
+    TestImplSXmmReg(Dst, GPR, si2ss, Size, IceType_i64);                       \
+    TestImplSXmmAddr(Dst, si2ss, Size, IceType_i32);                           \
+    TestImplSXmmAddr(Dst, si2ss, Size, IceType_i64);                           \
+    TestImplSRegXmm(GPR, Src, tss2si, 32, Size);                               \
+    TestImplSRegXmm(GPR, Src, tss2si, 64, Size);                               \
+    TestImplSRegAddr(GPR, tss2si, 32, Size);                                   \
+    TestImplSRegAddr(GPR, tss2si, 64, Size);                                   \
     TestImplPXmmXmm(Dst, Src, float2float, Size);                              \
     TestImplPXmmAddr(Src, float2float, Size);                                  \
   } while (0)

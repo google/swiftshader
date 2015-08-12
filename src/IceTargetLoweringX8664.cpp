@@ -123,7 +123,7 @@ getRegisterForGprArgNum(uint32_t ArgNum) {
 }
 
 // constexprMax returns a (constexpr) max(S0, S1), and it is used for defining
-// OperandList in lowerCall. std::max() was supposed to work, but it doesn't.
+// OperandList in lowerCall. std::max() is supposed to work, but it doesn't.
 constexpr SizeT constexprMax(SizeT S0, SizeT S1) { return S0 < S1 ? S1 : S0; }
 
 } // end of anonymous namespace
@@ -239,7 +239,6 @@ void TargetX8664::lowerCall(const InstCall *Instr) {
   Variable *Dest = Instr->getDest();
   // ReturnReg doubles as ReturnRegLo as necessary.
   Variable *ReturnReg = nullptr;
-  Variable *ReturnRegHi = nullptr;
   if (Dest) {
     switch (Dest->getType()) {
     case IceType_NUM:
@@ -250,12 +249,8 @@ void TargetX8664::lowerCall(const InstCall *Instr) {
     case IceType_i8:
     case IceType_i16:
     case IceType_i32:
-      ReturnReg = makeReg(Dest->getType(), Traits::RegisterSet::Reg_eax);
-      break;
     case IceType_i64:
-      // TODO(jpp): return i64 in a GPR.
-      ReturnReg = makeReg(IceType_i32, Traits::RegisterSet::Reg_eax);
-      ReturnRegHi = makeReg(IceType_i32, Traits::RegisterSet::Reg_edx);
+      ReturnReg = makeReg(Dest->getType(), Traits::RegisterSet::Reg_eax);
       break;
     case IceType_f32:
     case IceType_f64:
@@ -271,27 +266,16 @@ void TargetX8664::lowerCall(const InstCall *Instr) {
     }
   }
 
-  Operand *CallTarget = legalize(Instr->getCallTarget());
+  Operand *CallTarget = legalize(Instr->getCallTarget(), Legal_Reg | Legal_Imm);
   const bool NeedSandboxing = Ctx->getFlags().getUseSandboxing();
   if (NeedSandboxing) {
-    if (llvm::isa<Constant>(CallTarget)) {
-      _bundle_lock(InstBundleLock::Opt_AlignToEnd);
-    } else {
-      Variable *CallTargetVar = nullptr;
-      _mov(CallTargetVar, CallTarget);
-      _bundle_lock(InstBundleLock::Opt_AlignToEnd);
-      const SizeT BundleSize =
-          1 << Func->getAssembler<>()->getBundleAlignLog2Bytes();
-      _and(CallTargetVar, Ctx->getConstantInt32(~(BundleSize - 1)));
-      CallTarget = CallTargetVar;
-    }
+    llvm_unreachable("X86-64 Sandboxing codegen not implemented.");
   }
   Inst *NewCall = Traits::Insts::Call::create(Func, ReturnReg, CallTarget);
   Context.insert(NewCall);
-  if (NeedSandboxing)
-    _bundle_unlock();
-  if (ReturnRegHi)
-    Context.insert(InstFakeDef::create(Func, ReturnRegHi));
+  if (NeedSandboxing) {
+    llvm_unreachable("X86-64 Sandboxing codegen not implemented.");
+  }
 
   // Add the appropriate offset to esp.  The call instruction takes care
   // of resetting the stack offset during emission.
@@ -315,25 +299,11 @@ void TargetX8664::lowerCall(const InstCall *Instr) {
 
   assert(ReturnReg && "x86-64 always returns value on registers.");
 
-  // Assign the result of the call to Dest.
-  if (ReturnRegHi) {
-    assert(Dest->getType() == IceType_i64);
-    split64(Dest);
-    Variable *DestLo = Dest->getLo();
-    Variable *DestHi = Dest->getHi();
-    _mov(DestLo, ReturnReg);
-    _mov(DestHi, ReturnRegHi);
-    return;
-  }
-
-  assert(Dest->getType() == IceType_f32 || Dest->getType() == IceType_f64 ||
-         Dest->getType() == IceType_i32 || Dest->getType() == IceType_i16 ||
-         Dest->getType() == IceType_i8 || Dest->getType() == IceType_i1 ||
-         isVectorType(Dest->getType()));
-
-  if (isScalarFloatingType(Dest->getType()) || isVectorType(Dest->getType())) {
+  if (isVectorType(Dest->getType())) {
     _movp(Dest, ReturnReg);
   } else {
+    assert(isScalarFloatingType(Dest->getType()) ||
+           isScalarIntegerType(Dest->getType()));
     _mov(Dest, ReturnReg);
   }
 }
@@ -356,36 +326,36 @@ void TargetX8664::lowerArguments() {
        ++i) {
     Variable *Arg = Args[i];
     Type Ty = Arg->getType();
-    if ((isVectorType(Ty) || isScalarFloatingType(Ty)) &&
-        NumXmmArgs < Traits::X86_MAX_XMM_ARGS) {
-      // Replace Arg in the argument list with the home register.  Then
-      // generate an instruction in the prolog to copy the home register
-      // to the assigned location of Arg.
-      int32_t RegNum = getRegisterForXmmArgNum(NumXmmArgs);
+    Variable *RegisterArg = nullptr;
+    int32_t RegNum = Variable::NoRegister;
+    if ((isVectorType(Ty) || isScalarFloatingType(Ty))) {
+      if (NumXmmArgs >= Traits::X86_MAX_XMM_ARGS) {
+        continue;
+      }
+      RegNum = getRegisterForXmmArgNum(NumXmmArgs);
       ++NumXmmArgs;
-      Variable *RegisterArg = Func->makeVariable(Ty);
-      if (BuildDefs::dump())
-        RegisterArg->setName(Func, "home_reg:" + Arg->getName(Func));
-      RegisterArg->setRegNum(RegNum);
-      RegisterArg->setIsArg();
-      Arg->setIsArg(false);
-
-      Args[i] = RegisterArg;
-      Context.insert(InstAssign::create(Func, Arg, RegisterArg));
-    } else if (isScalarIntegerType(Ty) &&
-               NumGprArgs < Traits::X86_MAX_GPR_ARGS) {
-      int32_t RegNum = getRegisterForGprArgNum(NumGprArgs);
+      RegisterArg = Func->makeVariable(Ty);
+    } else if (isScalarIntegerType(Ty)) {
+      if (NumGprArgs >= Traits::X86_MAX_GPR_ARGS) {
+        continue;
+      }
+      RegNum = getRegisterForGprArgNum(NumGprArgs);
       ++NumGprArgs;
-      Variable *RegisterArg = Func->makeVariable(Ty);
-      if (BuildDefs::dump())
-        RegisterArg->setName(Func, "home_reg:" + Arg->getName(Func));
-      RegisterArg->setRegNum(RegNum);
-      RegisterArg->setIsArg();
-      Arg->setIsArg(false);
-
-      Args[i] = RegisterArg;
-      Context.insert(InstAssign::create(Func, Arg, RegisterArg));
+      RegisterArg = Func->makeVariable(Ty);
     }
+    assert(RegNum != Variable::NoRegister);
+    assert(RegisterArg != nullptr);
+    // Replace Arg in the argument list with the home register.  Then
+    // generate an instruction in the prolog to copy the home register
+    // to the assigned location of Arg.
+    if (BuildDefs::dump())
+      RegisterArg->setName(Func, "home_reg:" + Arg->getName(Func));
+    RegisterArg->setRegNum(RegNum);
+    RegisterArg->setIsArg();
+    Arg->setIsArg(false);
+
+    Args[i] = RegisterArg;
+    Context.insert(InstAssign::create(Func, Arg, RegisterArg));
   }
 }
 
@@ -393,19 +363,11 @@ void TargetX8664::lowerRet(const InstRet *Inst) {
   Variable *Reg = nullptr;
   if (Inst->hasRetValue()) {
     Operand *Src0 = legalize(Inst->getRetValue());
-    // TODO(jpp): this is not needed.
-    if (Src0->getType() == IceType_i64) {
-      Variable *eax =
-          legalizeToReg(loOperand(Src0), Traits::RegisterSet::Reg_eax);
-      Variable *edx =
-          legalizeToReg(hiOperand(Src0), Traits::RegisterSet::Reg_edx);
-      Reg = eax;
-      Context.insert(InstFakeUse::create(Func, edx));
-    } else if (isScalarFloatingType(Src0->getType())) {
-      _fld(Src0);
-    } else if (isVectorType(Src0->getType())) {
+    if (isVectorType(Src0->getType()) ||
+        isScalarFloatingType(Src0->getType())) {
       Reg = legalizeToReg(Src0, Traits::RegisterSet::Reg_xmm0);
     } else {
+      assert(isScalarIntegerType(Src0->getType()));
       _mov(Reg, Src0, Traits::RegisterSet::Reg_eax);
     }
   }
@@ -577,19 +539,17 @@ void TargetX8664::addProlog(CfgNode *Node) {
   unsigned NumGPRArgs = 0;
   for (Variable *Arg : Args) {
     // Skip arguments passed in registers.
-    if (isVectorType(Arg->getType()) && NumXmmArgs < Traits::X86_MAX_XMM_ARGS) {
-      ++NumXmmArgs;
-      continue;
-    }
-    if (isScalarFloatingType(Arg->getType()) &&
-        NumXmmArgs < Traits::X86_MAX_XMM_ARGS) {
-      ++NumXmmArgs;
-      continue;
-    }
-    if (isScalarIntegerType(Arg->getType()) &&
-        NumGPRArgs < Traits::X86_MAX_GPR_ARGS) {
-      ++NumGPRArgs;
-      continue;
+    if (isVectorType(Arg->getType()) || isScalarFloatingType(Arg->getType())) {
+      if (NumXmmArgs < Traits::X86_MAX_XMM_ARGS) {
+        ++NumXmmArgs;
+        continue;
+      }
+    } else {
+      assert(isScalarIntegerType(Arg->getType()));
+      if (NumGPRArgs < Traits::X86_MAX_GPR_ARGS) {
+        ++NumGPRArgs;
+        continue;
+      }
     }
     finishArgumentLowering(Arg, FramePtr, BasicFrameOffset, InArgsSizeBytes);
   }
@@ -679,23 +639,9 @@ void TargetX8664::addEpilog(CfgNode *Node) {
     }
   }
 
-  if (!Ctx->getFlags().getUseSandboxing())
-    return;
-  // Change the original ret instruction into a sandboxed return sequence.
-  // t:ecx = pop
-  // bundle_lock
-  // and t, ~31
-  // jmp *t
-  // bundle_unlock
-  // FakeUse <original_ret_operand>
-  Variable *T_ecx = makeReg(IceType_i32, Traits::RegisterSet::Reg_ecx);
-  _pop(T_ecx);
-  lowerIndirectJump(T_ecx);
-  if (RI->getSrcSize()) {
-    Variable *RetValue = llvm::cast<Variable>(RI->getSrc(0));
-    Context.insert(InstFakeUse::create(Func, RetValue));
+  if (Ctx->getFlags().getUseSandboxing()) {
+    llvm_unreachable("X86-64 Sandboxing codegen not implemented.");
   }
-  RI->setDeleted();
 }
 
 void TargetX8664::emitJumpTable(const Cfg *Func,
@@ -858,8 +804,7 @@ void TargetDataX8664::lowerJumpTables() {
   case FT_Elf: {
     ELFObjectWriter *Writer = Ctx->getObjectWriter();
     for (const JumpTableData &JumpTable : Ctx->getJumpTables())
-      // TODO(jpp): not 386.
-      Writer->writeJumpTable(JumpTable, llvm::ELF::R_386_32);
+      Writer->writeJumpTable(JumpTable, TargetX8664::Traits::RelFixup);
   } break;
   case FT_Asm:
     // Already emitted from Cfg
@@ -888,8 +833,8 @@ void TargetDataX8664::lowerGlobals(const VariableDeclarationList &Vars,
   switch (Ctx->getFlags().getOutFileType()) {
   case FT_Elf: {
     ELFObjectWriter *Writer = Ctx->getObjectWriter();
-    // TODO(jpp): not 386.
-    Writer->writeDataSection(Vars, llvm::ELF::R_386_32, SectionSuffix);
+    Writer->writeDataSection(Vars, TargetX8664::Traits::RelFixup,
+                             SectionSuffix);
   } break;
   case FT_Asm:
   case FT_Iasm: {

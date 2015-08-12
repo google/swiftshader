@@ -792,7 +792,7 @@ void TargetDataX8632::lowerJumpTables() {
   case FT_Elf: {
     ELFObjectWriter *Writer = Ctx->getObjectWriter();
     for (const JumpTableData &JT : Ctx->getJumpTables())
-      Writer->writeJumpTable(JT, llvm::ELF::R_386_32);
+      Writer->writeJumpTable(JT, TargetX8632::Traits::RelFixup);
   } break;
   case FT_Asm:
     // Already emitted from Cfg
@@ -821,7 +821,8 @@ void TargetDataX8632::lowerGlobals(const VariableDeclarationList &Vars,
   switch (Ctx->getFlags().getOutFileType()) {
   case FT_Elf: {
     ELFObjectWriter *Writer = Ctx->getObjectWriter();
-    Writer->writeDataSection(Vars, llvm::ELF::R_386_32, SectionSuffix);
+    Writer->writeDataSection(Vars, TargetX8632::Traits::RelFixup,
+                             SectionSuffix);
   } break;
   case FT_Asm:
   case FT_Iasm: {

@@ -1,3 +1,4 @@
+#include <inttypes.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -53,7 +54,7 @@ void __Sz_profile_summary() {
   printf("%s", SubzeroLogo);
   for (const struct BlockProfileInfo **curr = &__Sz_block_profile_info;
        *curr != NULL; ++curr) {
-    printf("%lld\t%s\n", (*curr)->Counter, (*curr)->BlockName);
+    printf("%" PRIu64 "\t%s\n", (*curr)->Counter, (*curr)->BlockName);
   }
   fflush(stdout);
 }

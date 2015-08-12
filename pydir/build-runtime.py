@@ -124,6 +124,8 @@ def main():
 
         MakeRuntimesForTarget(targets.X8632Target, ll_files,
                               srcdir, tempdir, rtdir, args.verbose)
+        MakeRuntimesForTarget(targets.X8664Target, ll_files,
+                              srcdir, tempdir, rtdir, args.verbose)
         MakeRuntimesForTarget(targets.ARM32Target, ll_files,
                               srcdir, tempdir, rtdir, args.verbose)
 

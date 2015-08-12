@@ -17,6 +17,7 @@
 #include <cstring>
 
 #include "test_calling_conv.h"
+#include "xdefs.h"
 
 #define CALL_AS_TYPE(Ty, Func) (reinterpret_cast<Ty *>(Func))
 
@@ -37,9 +38,9 @@ void caller_vvvvv(void) {
 
 void caller_vlvlivfvdviv(void) {
   v4f32 arg1 = {0, 1, 2, 3};
-  int64_t arg2 = 4;
+  int64 arg2 = 4;
   v4f32 arg3 = {6, 7, 8, 9};
-  int64_t arg4 = 10;
+  int64 arg4 = 10;
   int arg5 = 11;
   v4f32 arg6 = {12, 13, 14, 15};
   float arg7 = 16;
@@ -75,8 +76,8 @@ callee_vvvvv(v4si32 arg1, v4si32 arg2, v4si32 arg3, v4si32 arg4, v4si32 arg5) {
 }
 
 void __attribute__((noinline))
-callee_vlvlivfvdviv(v4f32 arg1, int64_t arg2, v4f32 arg3, int64_t arg4,
-                    int arg5, v4f32 arg6, float arg7, v4f32 arg8, double arg9,
+callee_vlvlivfvdviv(v4f32 arg1, int64 arg2, v4f32 arg3, int64 arg4, int arg5,
+                    v4f32 arg6, float arg7, v4f32 arg8, double arg9,
                     v4f32 arg10, int arg11, v4f32 arg12) {
   switch (ArgNum) {
     HANDLE_ARG(1);

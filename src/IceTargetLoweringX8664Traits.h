@@ -66,7 +66,8 @@ template <> struct MachineTraits<TargetX8664> {
   using RegisterSet = ::Ice::RegX8664;
   static const GPRRegister Encoded_Reg_Accumulator = RegX8664::Encoded_Reg_eax;
   static const GPRRegister Encoded_Reg_Counter = RegX8664::Encoded_Reg_ecx;
-  static const FixupKind PcRelFixup = llvm::ELF::R_386_PC32; // TODO(jpp): ???
+  static const FixupKind PcRelFixup = llvm::ELF::R_X86_64_PC32;
+  static const FixupKind RelFixup = llvm::ELF::R_X86_64_32S;
 
   class Operand {
   public:
@@ -270,8 +271,8 @@ template <> struct MachineTraits<TargetX8664> {
 
     static Address ofConstPool(Assembler *Asm, const Constant *Imm) {
       // TODO(jpp): ???
-      AssemblerFixup *Fixup = Asm->createFixup(llvm::ELF::R_386_32, Imm);
-      const RelocOffsetT Offset = 0;
+      AssemblerFixup *Fixup = Asm->createFixup(RelFixup, Imm);
+      const RelocOffsetT Offset = 4;
       return Address(ABSOLUTE, Offset, Fixup);
     }
   };
@@ -293,6 +294,7 @@ template <> struct MachineTraits<TargetX8664> {
   };
 
   static const char *TargetName;
+  static constexpr Type WordType = IceType_i64;
 
   static IceString getRegName(SizeT RegNum, Type Ty) {
     assert(RegNum < RegisterSet::Reg_NUM);
@@ -331,7 +333,7 @@ template <> struct MachineTraits<TargetX8664> {
 #define X(val, encode, name64, name32, name16, name8, scratch, preserved,      \
           stackptr, frameptr, isInt, isFP)                                     \
   (*IntegerRegisters)[RegisterSet::val] = isInt;                               \
-  (*IntegerRegistersI8)[RegisterSet::val] = 1;                                 \
+  (*IntegerRegistersI8)[RegisterSet::val] = isInt;                             \
   (*FloatRegisters)[RegisterSet::val] = isFP;                                  \
   (*VectorRegisters)[RegisterSet::val] = isFP;                                 \
   (*ScratchRegs)[RegisterSet::val] = scratch;
@@ -450,7 +452,7 @@ template <> struct MachineTraits<TargetX8664> {
   /// address.
   static const uint32_t X86_STACK_ALIGNMENT_BYTES;
   /// Size of the return address on the stack
-  static const uint32_t X86_RET_IP_SIZE_BYTES = 4;
+  static const uint32_t X86_RET_IP_SIZE_BYTES = 8;
   /// The number of different NOP instructions
   static const uint32_t X86_NUM_NOP_VARIANTS = 5;
 

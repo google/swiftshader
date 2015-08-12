@@ -16,6 +16,7 @@
 
 #include <stdint.h>
 #include "test_cast.h"
+#include "xdefs.h"
 
 template <typename FromType, typename ToType>
 ToType __attribute__((noinline)) cast(FromType a) {
@@ -38,8 +39,8 @@ template <typename ToType> class Caster {
   static ToType f(uint16_t a) { return cast<uint16_t, ToType>(a); }
   static ToType f(int32_t a) { return cast<int32_t, ToType>(a); }
   static ToType f(uint32_t a) { return cast<uint32_t, ToType>(a); }
-  static ToType f(int64_t a) { return cast<int64_t, ToType>(a); }
-  static ToType f(uint64_t a) { return cast<uint64_t, ToType>(a); }
+  static ToType f(int64 a) { return cast<int64, ToType>(a); }
+  static ToType f(uint64 a) { return cast<uint64, ToType>(a); }
   static ToType f(float a) { return cast<float, ToType>(a); }
   static ToType f(double a) { return cast<double, ToType>(a); }
 };
@@ -56,8 +57,8 @@ template class Caster<int16_t>;
 template class Caster<uint16_t>;
 template class Caster<int32_t>;
 template class Caster<uint32_t>;
-template class Caster<int64_t>;
-template class Caster<uint64_t>;
+template class Caster<int64>;
+template class Caster<uint64>;
 template class Caster<float>;
 template class Caster<double>;
 
@@ -67,8 +68,8 @@ template class Caster<double>;
 double makeBitCasters() {
   double Result = 0;
   Result += castBits<uint32_t, float>(0);
-  Result += castBits<uint64_t, double>(0);
+  Result += castBits<uint64, double>(0);
   Result += castBits<float, uint32_t>(0);
-  Result += castBits<double, uint64_t>(0);
+  Result += castBits<double, uint64>(0);
   return Result;
 }

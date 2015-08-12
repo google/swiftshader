@@ -325,6 +325,7 @@ $(OBJDIR)/unittest/AssemblerX8664: $(OBJDIR)/unittest
 
 RT_SRC := runtime/szrt.c runtime/szrt_ll.ll runtime/szrt_profiler.c
 RT_OBJ := build/runtime/szrt_native_x8632.o build/runtime/szrt_sb_x8632.o \
+	build/runtime/szrt_native_x8664.o build/runtime/szrt_sb_x8664.o \
 	build/runtime/szrt_native_arm32.o build/runtime/szrt_sb_arm32.o
 
 runtime: $(RT_OBJ)
@@ -348,10 +349,13 @@ else
 check-xtest: $(OBJDIR)/pnacl-sz make_symlink runtime
        # Do all native/sse2 tests, but only test_vector_ops for native/sse4.1.
        # For (slow) sandboxed tests, limit to Om1/sse4.1.
+       # TODO(jpp): implement x8664 sandbox, then enable xtests.
 	./pydir/crosstest_generator.py -v --lit \
 	  --toolchain-root $(TOOLCHAIN_ROOT) \
 	  -i x8632,native,sse2 -i x8632,native,sse4.1,test_vector_ops \
 	  -i x8632,sandbox,sse4.1,Om1 \
+	  -i x8664,native,sse2 -i x8664,native,sse4.1,test_vector_ops \
+	  -e x8664,native,sse2,test_global \
 	  -i arm32,native,neon,simple_loop \
 	  -i arm32,native,neon,mem_intrin \
 	  -i arm32,native,neon,test_bitmanip \

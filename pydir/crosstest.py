@@ -177,6 +177,18 @@ def main():
             'szrt_{sb}_' + args.target + '.o'
             ).format(root=nacl_root, sb='sb' if args.sandbox else 'native'))
     pure_c = os.path.splitext(args.driver)[1] == '.c'
+
+    # TargetX8664 is ilp32, but clang does not currently support such
+    # configuration. In order to run the crosstests we play nasty, dangerous
+    # tricks with the stack pointer.
+    needs_stack_hack = (args.target == 'x8664')
+    stack_hack_params = []
+    if needs_stack_hack:
+      shellcmd('{bin}/clang -g -o stack_hack.x8664.{key}.o -c '
+               'stack_hack.x8664.c'.format(bin=bindir, key=key))
+      stack_hack_params.append('-DX8664_STACK_HACK')
+      stack_hack_params.append('stack_hack.x8664.{key}.o'.format(key=key))
+    
     # Set compiler to clang, clang++, pnacl-clang, or pnacl-clang++.
     compiler = '{bin}/{prefix}{cc}'.format(
         bin=bindir, prefix='pnacl-' if args.sandbox else '',
@@ -189,7 +201,7 @@ def main():
                        '-lm', '-lpthread',
                        '-Wl,--defsym=__Sz_AbsoluteZero=0'] +
                       target_info.cross_headers)
-    shellcmd([compiler, args.driver] + objs +
+    shellcmd([compiler] + stack_hack_params + [args.driver] + objs +
              ['-o', os.path.join(args.dir, args.output)] + sb_native_args)
 
 if __name__ == '__main__':

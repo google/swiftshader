@@ -207,6 +207,8 @@ void AssemblerX86Base<Machine>::mov(Type Ty, typename Traits::GPRRegister dst,
     emitUint8(0xB0 + gprEncoding(dst));
     emitUint8(imm.value() & 0xFF);
   } else {
+    // TODO(jpp): When removing the assertion above ensure that in x86-64 we
+    // emit a 64-bit immediate.
     emitUint8(0xB8 + gprEncoding(dst));
     emitImmediate(Ty, imm);
   }
@@ -279,9 +281,34 @@ void AssemblerX86Base<Machine>::mov(Type Ty,
 }
 
 template <class Machine>
+template <typename T>
+typename std::enable_if<T::Is64Bit, void>::type
+AssemblerX86Base<Machine>::movabs(const typename Traits::GPRRegister Dst,
+                                  uint64_t Imm64) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  const bool NeedsRexW = (Imm64 & ~0xFFFFFFFFull) != 0;
+  const Type RexType = NeedsRexW ? RexTypeForceRexW : RexTypeIrrelevant;
+  emitRexB(RexType, Dst);
+  emitUint8(0xB8 | gprEncoding(Dst));
+  // When emitting Imm64, we don't have to mask out the upper 32 bits for
+  // emitInt32 will/should only emit a 32-bit constant. In reality, we are
+  // paranoid, so we go ahead an mask the upper bits out anyway.
+  emitInt32(Imm64 & 0xFFFFFFFF);
+  if (NeedsRexW)
+    emitInt32((Imm64 >> 32) & 0xFFFFFFFF);
+}
+
+template <class Machine>
 void AssemblerX86Base<Machine>::movzx(Type SrcTy,
                                       typename Traits::GPRRegister dst,
                                       typename Traits::GPRRegister src) {
+  if (Traits::Is64Bit && SrcTy == IceType_i32) {
+    // 32-bit mov clears the upper 32 bits, hence zero-extending the 32-bit
+    // operand to 64-bit.
+    mov(IceType_i32, dst, src);
+    return;
+  }
+
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   bool ByteSized = isByteSizedType(SrcTy);
   assert(ByteSized || SrcTy == IceType_i16);
@@ -295,6 +322,13 @@ template <class Machine>
 void AssemblerX86Base<Machine>::movzx(Type SrcTy,
                                       typename Traits::GPRRegister dst,
                                       const typename Traits::Address &src) {
+  if (Traits::Is64Bit && SrcTy == IceType_i32) {
+    // 32-bit mov clears the upper 32 bits, hence zero-extending the 32-bit
+    // operand to 64-bit.
+    mov(IceType_i32, dst, src);
+    return;
+  }
+
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   bool ByteSized = isByteSizedType(SrcTy);
   assert(ByteSized || SrcTy == IceType_i16);
@@ -359,7 +393,7 @@ void AssemblerX86Base<Machine>::cmov(Type Ty,
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
   else
-    assert(Ty == IceType_i32);
+    assert(Ty == IceType_i32 || (Traits::Is64Bit && Ty == IceType_i64));
   emitRexRB(Ty, dst, src);
   emitUint8(0x0F);
   emitUint8(0x40 + cond);
@@ -375,7 +409,7 @@ void AssemblerX86Base<Machine>::cmov(Type Ty,
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
   else
-    assert(Ty == IceType_i32);
+    assert(Ty == IceType_i32 || (Traits::Is64Bit && Ty == IceType_i64));
   emitRex(Ty, src, dst);
   emitUint8(0x0F);
   emitUint8(0x40 + cond);
@@ -423,44 +457,48 @@ void AssemblerX86Base<Machine>::movss(Type Ty, typename Traits::XmmRegister dst,
 }
 
 template <class Machine>
-void AssemblerX86Base<Machine>::movd(typename Traits::XmmRegister dst,
+void AssemblerX86Base<Machine>::movd(Type SrcTy,
+                                     typename Traits::XmmRegister dst,
                                      typename Traits::GPRRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitRexRB(RexTypeIrrelevant, dst, src);
+  emitRexRB(SrcTy, dst, src);
   emitUint8(0x0F);
   emitUint8(0x6E);
   emitRegisterOperand(gprEncoding(dst), gprEncoding(src));
 }
 
 template <class Machine>
-void AssemblerX86Base<Machine>::movd(typename Traits::XmmRegister dst,
+void AssemblerX86Base<Machine>::movd(Type SrcTy,
+                                     typename Traits::XmmRegister dst,
                                      const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitRex(RexTypeIrrelevant, src, dst);
+  emitRex(SrcTy, src, dst);
   emitUint8(0x0F);
   emitUint8(0x6E);
   emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
-void AssemblerX86Base<Machine>::movd(typename Traits::GPRRegister dst,
+void AssemblerX86Base<Machine>::movd(Type DestTy,
+                                     typename Traits::GPRRegister dst,
                                      typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitRexRB(RexTypeIrrelevant, src, dst);
+  emitRexRB(DestTy, src, dst);
   emitUint8(0x0F);
   emitUint8(0x7E);
   emitRegisterOperand(gprEncoding(src), gprEncoding(dst));
 }
 
 template <class Machine>
-void AssemblerX86Base<Machine>::movd(const typename Traits::Address &dst,
+void AssemblerX86Base<Machine>::movd(Type DestTy,
+                                     const typename Traits::Address &dst,
                                      typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
-  emitRex(RexTypeIrrelevant, dst, src);
+  emitRex(DestTy, dst, src);
   emitUint8(0x0F);
   emitUint8(0x7E);
   emitOperand(gprEncoding(src), dst);
@@ -1343,7 +1381,7 @@ void AssemblerX86Base<Machine>::set1ps(typename Traits::XmmRegister dst,
   // Load 32-bit immediate value into tmp1.
   mov(IceType_i32, tmp1, imm);
   // Move value from tmp1 into dst.
-  movd(dst, tmp1);
+  movd(IceType_i32, dst, tmp1);
   // Broadcast low lane into other three lanes.
   shufps(RexTypeIrrelevant, dst, dst, Immediate(0x0));
 }
@@ -1487,10 +1525,11 @@ void AssemblerX86Base<Machine>::cvttps2dq(Type /* Ignore */,
 template <class Machine>
 void AssemblerX86Base<Machine>::cvtsi2ss(Type DestTy,
                                          typename Traits::XmmRegister dst,
+                                         Type SrcTy,
                                          typename Traits::GPRRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(DestTy) ? 0xF3 : 0xF2);
-  emitRexRB(RexTypeIrrelevant, dst, src);
+  emitRexRB(SrcTy, dst, src);
   emitUint8(0x0F);
   emitUint8(0x2A);
   emitXmmRegisterOperand(dst, src);
@@ -1499,10 +1538,11 @@ void AssemblerX86Base<Machine>::cvtsi2ss(Type DestTy,
 template <class Machine>
 void AssemblerX86Base<Machine>::cvtsi2ss(Type DestTy,
                                          typename Traits::XmmRegister dst,
+                                         Type SrcTy,
                                          const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(DestTy) ? 0xF3 : 0xF2);
-  emitRex(RexTypeIrrelevant, src, dst);
+  emitRex(SrcTy, src, dst);
   emitUint8(0x0F);
   emitUint8(0x2A);
   emitOperand(gprEncoding(dst), src);
@@ -1534,24 +1574,26 @@ void AssemblerX86Base<Machine>::cvtfloat2float(
 }
 
 template <class Machine>
-void AssemblerX86Base<Machine>::cvttss2si(Type SrcTy,
+void AssemblerX86Base<Machine>::cvttss2si(Type DestTy,
                                           typename Traits::GPRRegister dst,
+                                          Type SrcTy,
                                           typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(SrcTy) ? 0xF3 : 0xF2);
-  emitRexRB(RexTypeIrrelevant, dst, src);
+  emitRexRB(DestTy, dst, src);
   emitUint8(0x0F);
   emitUint8(0x2C);
   emitXmmRegisterOperand(dst, src);
 }
 
 template <class Machine>
-void AssemblerX86Base<Machine>::cvttss2si(Type SrcTy,
+void AssemblerX86Base<Machine>::cvttss2si(Type DestTy,
                                           typename Traits::GPRRegister dst,
+                                          Type SrcTy,
                                           const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(isFloat32Asserting32Or64(SrcTy) ? 0xF3 : 0xF2);
-  emitRex(RexTypeIrrelevant, src, dst);
+  emitRex(DestTy, src, dst);
   emitUint8(0x0F);
   emitUint8(0x2C);
   emitOperand(gprEncoding(dst), src);
@@ -2401,6 +2443,15 @@ template <class Machine> void AssemblerX86Base<Machine>::cdq() {
 }
 
 template <class Machine>
+template <typename T>
+typename std::enable_if<T::Is64Bit, void>::type
+AssemblerX86Base<Machine>::cqo() {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitRexB(RexTypeForceRexW, RexRegIrrelevant);
+  emitUint8(0x99);
+}
+
+template <class Machine>
 void AssemblerX86Base<Machine>::div(Type Ty, typename Traits::GPRRegister reg) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
@@ -2459,7 +2510,8 @@ template <class Machine>
 void AssemblerX86Base<Machine>::imul(Type Ty, typename Traits::GPRRegister dst,
                                      typename Traits::GPRRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  assert(Ty == IceType_i16 || Ty == IceType_i32);
+  assert(Ty == IceType_i16 || Ty == IceType_i32 ||
+         (Traits::Is64Bit && Ty == IceType_i64));
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
   emitRexRB(Ty, dst, src);
@@ -2472,7 +2524,8 @@ template <class Machine>
 void AssemblerX86Base<Machine>::imul(Type Ty, typename Traits::GPRRegister reg,
                                      const typename Traits::Address &address) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  assert(Ty == IceType_i16 || Ty == IceType_i32);
+  assert(Ty == IceType_i16 || Ty == IceType_i32 ||
+         (Traits::Is64Bit && Ty == IceType_i64));
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
   emitRex(Ty, address, reg);
@@ -2790,8 +2843,7 @@ template <class Machine>
 void AssemblerX86Base<Machine>::bswap(Type Ty,
                                       typename Traits::GPRRegister reg) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  assert(Ty == IceType_i32);
-  (void)Ty;
+  assert(Ty == IceType_i32 || (Traits::Is64Bit && Ty == IceType_i64));
   emitRexB(Ty, reg);
   emitUint8(0x0F);
   emitUint8(0xC8 | gprEncoding(reg));
