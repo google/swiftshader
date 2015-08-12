@@ -35,7 +35,7 @@ struct DisplayMode
 
 class Config
 {
-  public:
+public:
     Config(const DisplayMode &displayMode, EGLint minSwapInterval, EGLint maxSwapInterval, sw::Format renderTargetFormat, sw::Format depthStencilFormat, EGLint multiSample);
 
     EGLConfig getHandle() const;
@@ -79,6 +79,9 @@ class Config
     EGLint mTransparentRedValue;     // Transparent red value
     EGLint mTransparentGreenValue;   // Transparent green value
     EGLint mTransparentBlueValue;    // Transparent blue value
+
+	EGLBoolean mRecordableAndroid;          // EGL_ANDROID_recordable
+	EGLBoolean mFramebufferTargetAndroid;   // EGL_ANDROID_framebuffer_target
 };
 
 struct CompareConfig

@@ -150,6 +150,9 @@ Config::Config(const DisplayMode &displayMode, EGLint minInterval, EGLint maxInt
     mTransparentRedValue = 0;
     mTransparentGreenValue = 0;
     mTransparentBlueValue = 0;
+
+	mRecordableAndroid = EGL_TRUE;
+	mFramebufferTargetAndroid = EGL_TRUE;
 }
 
 EGLConfig Config::getHandle() const
@@ -352,8 +355,8 @@ bool ConfigSet::getConfigs(EGLConfig *configs, const EGLint *attribList, EGLint 
 				case EGL_MAX_PBUFFER_WIDTH:          match = config->mMaxPBufferWidth >= attribute[1];                 break;
 				case EGL_MAX_PBUFFER_HEIGHT:         match = config->mMaxPBufferHeight >= attribute[1];                break;
 				case EGL_MAX_PBUFFER_PIXELS:         match = config->mMaxPBufferPixels >= attribute[1];                break;
-				case EGL_RECORDABLE_ANDROID:         match = true; /* UNIMPLEMENTED(); EGL_ANDROID_recordable */       break;
-				case EGL_FRAMEBUFFER_TARGET_ANDROID: match = true; /* UNIMPLEMENTED(); EGL_ANDROID_framebuffer_target */ break;
+				case EGL_RECORDABLE_ANDROID:         match = config->mRecordableAndroid == attribute[1];               break;
+				case EGL_FRAMEBUFFER_TARGET_ANDROID: match = config->mFramebufferTargetAndroid == attribute[1];        break;
 				default:
 					*numConfig = 0;
 					return false;
