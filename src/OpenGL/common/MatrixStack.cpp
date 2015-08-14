@@ -24,6 +24,11 @@ namespace sw
 		stack[top] = 1;
 	}
 
+	void MatrixStack::load(const Matrix &M)
+	{
+		stack[top] = M;
+	}
+
 	void MatrixStack::load(const float *M)
 	{
 		stack[top] = Matrix(M[0], M[4], M[8],  M[12],

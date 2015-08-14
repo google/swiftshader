@@ -1,5 +1,5 @@
-#ifndef OpenGL32_MatrixStack_hpp
-#define OpenGL32_MatrixStack_hpp
+#ifndef sw_MatrixStack_hpp
+#define sw_MatrixStack_hpp
 
 #include "Renderer/Matrix.hpp"
 
@@ -13,6 +13,7 @@ namespace sw
 		~MatrixStack();
 
 		void identity();
+		void load(const Matrix &M);
 		void load(const float *M);
 		void load(const double *M);
 
@@ -41,4 +42,4 @@ namespace sw
 	};
 }
 
-#endif   // OpenGL32_MatrixStack_hpp
+#endif   // sw_MatrixStack_hpp

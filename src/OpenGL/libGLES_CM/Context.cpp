@@ -2810,21 +2810,34 @@ void Context::drawTexture(GLfloat x, GLfloat y, GLfloat z, GLfloat width, GLfloa
 
 	VertexAttribute oldPositionAttribute = mState.vertexAttribute[sw::Position];
 	VertexAttribute oldTexCoord0Attribute = mState.vertexAttribute[sw::TexCoord0];
+	gl::BindingPointer<Buffer> oldArrayBuffer = mState.arrayBuffer;
+	mState.arrayBuffer = nullptr;
 
 	glVertexPointer(3, GL_FLOAT, 3 * sizeof(float), vertices);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glTexCoordPointer(2, GL_FLOAT, 2 * sizeof(float), texCoords);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-	textureStack0.push();
-	textureStack0.identity();   // Disable texture coordinate transformation
+	sw::Matrix P = projectionStack.current();
+	sw::Matrix M = modelViewStack.current();
+	sw::Matrix T = textureStack0.current();
+
+	projectionStack.identity();
+	modelViewStack.identity();
+	textureStack0.identity();
 
 	drawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 	// Restore state
 	mState.vertexAttribute[sw::Position] = oldPositionAttribute;
 	mState.vertexAttribute[sw::TexCoord0] = oldTexCoord0Attribute;
-	textureStack0.pop();
+	mState.arrayBuffer = oldArrayBuffer;
+	oldArrayBuffer = nullptr;
+	oldPositionAttribute.mBoundBuffer = nullptr;
+	oldTexCoord0Attribute.mBoundBuffer = nullptr;
+	textureStack0.load(T);
+	modelViewStack.load(M);
+	projectionStack.load(P);
 }
 
 void Context::finish()
