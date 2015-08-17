@@ -27,6 +27,7 @@
 
 #include <string.h>
 #include <algorithm>
+#include <cstring>
 #include <vector>
 
 using namespace std;

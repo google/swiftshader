@@ -113,7 +113,7 @@ void markExecutable(void *memory, size_t bytes)
 		unsigned long oldProtection;
 		VirtualProtect(memory, bytes, PAGE_EXECUTE_READ, &oldProtection);
 	#else
-		mprotect(memory, bytes, PROT_READ | PROT_WRITE | PROT_EXEC);
+		mprotect(memory, bytes, PROT_READ | PROT_EXEC);
 	#endif
 }
 
