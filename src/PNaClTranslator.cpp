@@ -1314,11 +1314,12 @@ public:
   }
 
 private:
-  typedef std::unordered_map<NaClBcIndexSize_t, Ice::Operand *> OperandMap;
-
   Ice::TimerMarker Timer;
   // The number of words in the bitstream defining the function block.
   uint64_t NumBytesDefiningFunction = 0;
+  // Maximum number of records that can appear in the function block, based on
+  // the number of bytes defining the function block.
+  uint64_t MaxRecordsInBlock = 0;
   // The corresponding ICE function defined by the function block.
   std::unique_ptr<Ice::Cfg> Func;
   // The index to the current basic block being built.
@@ -1335,7 +1336,7 @@ private:
   size_t CachedNumGlobalValueIDs;
   // Holds operands local to the function block, based on indices
   // defined in the bitcode file.
-  OperandMap LocalOperands;
+  std::vector<Ice::Operand *> LocalOperands;
   // Holds the index within LocalOperands corresponding to the next
   // instruction that generates a value.
   NaClBcIndexSize_t NextLocalInstIndex;
@@ -1370,11 +1371,11 @@ private:
   void EnterBlock(unsigned NumWords) final {
     // Note: Bitstream defines words as 32-bit values.
     NumBytesDefiningFunction = NumWords * sizeof(uint32_t);
+    // We know that all records are minimally defined by a two-bit abreviation.
+    MaxRecordsInBlock = NumBytesDefiningFunction * (CHAR_BIT >> 1);
   }
 
   void ExitBlock() override;
-
-  bool verifyAllForwardRefsDefined();
 
   // Creates and appends a new basic block to the list of basic blocks.
   Ice::CfgNode *installNextBasicBlock() {
@@ -1469,25 +1470,44 @@ private:
     assert(Op || isIRGenerationDisabled());
     // Check if simple push works.
     NaClBcIndexSize_t LocalIndex = Index - CachedNumGlobalValueIDs;
-
-    // If element not defined, set it.
-    Ice::Operand *&IndexedOp = LocalOperands[LocalIndex];
-    if (IndexedOp == nullptr) {
-      IndexedOp = Op;
+    if (LocalIndex == LocalOperands.size()) {
+      LocalOperands.push_back(Op);
       return;
     }
 
-    // See if forward reference matchers.
-    if (IndexedOp == Op)
+    // Must be forward reference, expand vector to accommodate.
+    if (LocalIndex >= LocalOperands.size()) {
+      if (LocalIndex > MaxRecordsInBlock) {
+        std::string Buffer;
+        raw_string_ostream StrBuf(Buffer);
+        StrBuf << "Forward reference @" << Index << " too big. Have "
+               << CachedNumGlobalValueIDs << " globals and function contains "
+               << NumBytesDefiningFunction << " bytes";
+        Fatal(StrBuf.str());
+        // Recover by using index one beyond the maximal allowed.
+        LocalIndex = MaxRecordsInBlock;
+      }
+      LocalOperands.resize(LocalIndex + 1);
+    }
+
+    // If element not defined, set it.
+    Ice::Operand *OldOp = LocalOperands[LocalIndex];
+    if (OldOp == nullptr) {
+      LocalOperands[LocalIndex] = Op;
+      return;
+    }
+
+    // See if forward reference matches.
+    if (OldOp == Op)
       return;
 
     // Error has occurred.
     std::string Buffer;
     raw_string_ostream StrBuf(Buffer);
     StrBuf << "Multiple definitions for index " << Index << ": " << *Op
-           << " and " << *IndexedOp;
+           << " and " << *OldOp;
     Error(StrBuf.str());
-    IndexedOp = Op;
+    LocalOperands[LocalIndex] = Op;
   }
 
   // Returns the relative operand (wrt to BaseIndex) referenced by
@@ -1988,26 +2008,6 @@ private:
   }
 };
 
-bool FunctionParser::verifyAllForwardRefsDefined() {
-  NaClBcIndexSize_t NumInstructions =
-      NextLocalInstIndex - CachedNumGlobalValueIDs;
-  if (NumInstructions == LocalOperands.size())
-    return true;
-  // Find undefined forward references and report.
-  std::vector<NaClBcIndexSize_t> UndefinedFwdRefs;
-  for (const OperandMap::value_type &Elmt : LocalOperands)
-    if (Elmt.first >= NextLocalInstIndex)
-      UndefinedFwdRefs.push_back(Elmt.first);
-  std::sort(UndefinedFwdRefs.begin(), UndefinedFwdRefs.end());
-  for (const NaClBcIndexSize_t Index : UndefinedFwdRefs) {
-    std::string Buffer;
-    raw_string_ostream StrBuf(Buffer);
-    StrBuf << "Instruction forward reference not defined: " << Index;
-    Error(StrBuf.str());
-  }
-  return false;
-}
-
 void FunctionParser::ExitBlock() {
   // Check if the last instruction in the function was terminating.
   if (!InstIsTerminating) {
@@ -2026,8 +2026,6 @@ void FunctionParser::ExitBlock() {
     Error(StrBuf.str());
   }
   if (isIRGenerationDisabled())
-    return;
-  if (!verifyAllForwardRefsDefined())
     return;
   // Before translating, check for blocks without instructions, and
   // insert unreachable. This shouldn't happen, but be safe.
@@ -2078,21 +2076,17 @@ void FunctionParser::ProcessRecord() {
       return;
     }
 
-    uint64_t NumBbs = Values[0];
-
     // Check for bad large sizes, since they can make ridiculous memory
-    // requests and hang the user for large amounts of time.  Note: We know
-    // that each basic block must have a terminator instruction, and each
-    // instruction is minimally defined by a two-bit abreviation.
-    uint64_t MaxBbs = NumBytesDefiningFunction * (CHAR_BIT >> 1);
-    if (NumBbs > MaxBbs) {
+    // requests and hang the user for large amounts of time.
+    uint64_t NumBbs = Values[0];
+    if (NumBbs > MaxRecordsInBlock) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
       StrBuf << "Function defines " << NumBbs
              << " basic blocks, which is too big for a function containing "
              << NumBytesDefiningFunction << " bytes";
       Error(StrBuf.str());
-      NumBbs = MaxBbs;
+      NumBbs = MaxRecordsInBlock;
     }
 
     if (NumBbs == 0) {
