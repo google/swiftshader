@@ -5264,15 +5264,15 @@ namespace sw
 		return RValue<Int4>(Nucleus::createMul(lhs.value, rhs.value));
 	}
 
-//	RValue<Int4> operator/(RValue<Int4> lhs, RValue<Int4> rhs)
-//	{
-//		return RValue<Int4>(Nucleus::createSDiv(lhs.value, rhs.value));
-//	}
+	RValue<Int4> operator/(RValue<Int4> lhs, RValue<Int4> rhs)
+	{
+		return RValue<Int4>(Nucleus::createSDiv(lhs.value, rhs.value));
+	}
 
-//	RValue<Int4> operator%(RValue<Int4> lhs, RValue<Int4> rhs)
-//	{
-//		return RValue<Int4>(Nucleus::createSRem(lhs.value, rhs.value));
-//	}
+	RValue<Int4> operator%(RValue<Int4> lhs, RValue<Int4> rhs)
+	{
+		return RValue<Int4>(Nucleus::createSRem(lhs.value, rhs.value));
+	}
 
 	RValue<Int4> operator&(RValue<Int4> lhs, RValue<Int4> rhs)
 	{
@@ -5291,16 +5291,22 @@ namespace sw
 
 	RValue<Int4> operator<<(RValue<Int4> lhs, unsigned char rhs)
 	{
-	//	return RValue<Int4>(Nucleus::createShl(lhs.value, rhs.value));
-
 		return x86::pslld(lhs, rhs);
 	}
 
 	RValue<Int4> operator>>(RValue<Int4> lhs, unsigned char rhs)
 	{
-	//	return RValue<Int4>(Nucleus::createAShr(lhs.value, rhs.value));
-
 		return x86::psrad(lhs, rhs);
+	}
+
+	RValue<Int4> operator<<(RValue<Int4> lhs, RValue<Int4> rhs)
+	{
+		return RValue<Int4>(Nucleus::createShl(lhs.value, rhs.value));
+	}
+
+	RValue<Int4> operator>>(RValue<Int4> lhs, RValue<Int4> rhs)
+	{
+		return RValue<Int4>(Nucleus::createAShr(lhs.value, rhs.value));
 	}
 
 	RValue<Int4> operator+=(const Int4 &lhs, RValue<Int4> rhs)
@@ -5603,15 +5609,15 @@ namespace sw
 		return RValue<UInt4>(Nucleus::createMul(lhs.value, rhs.value));
 	}
 
-//	RValue<UInt4> operator/(RValue<UInt4> lhs, RValue<UInt4> rhs)
-//	{
-//		return RValue<UInt4>(Nucleus::createUDiv(lhs.value, rhs.value));
-//	}
+	RValue<UInt4> operator/(RValue<UInt4> lhs, RValue<UInt4> rhs)
+	{
+		return RValue<UInt4>(Nucleus::createUDiv(lhs.value, rhs.value));
+	}
 
-//	RValue<UInt4> operator%(RValue<UInt4> lhs, RValue<UInt4> rhs)
-//	{
-//		return RValue<UInt4>(Nucleus::createURem(lhs.value, rhs.value));
-//	}
+	RValue<UInt4> operator%(RValue<UInt4> lhs, RValue<UInt4> rhs)
+	{
+		return RValue<UInt4>(Nucleus::createURem(lhs.value, rhs.value));
+	}
 
 	RValue<UInt4> operator&(RValue<UInt4> lhs, RValue<UInt4> rhs)
 	{
@@ -5630,16 +5636,22 @@ namespace sw
 
 	RValue<UInt4> operator<<(RValue<UInt4> lhs, unsigned char rhs)
 	{
-	//	return RValue<UInt4>(Nucleus::createShl(lhs.value, rhs.value));
-
 		return As<UInt4>(x86::pslld(As<Int4>(lhs), rhs));
 	}
 
 	RValue<UInt4> operator>>(RValue<UInt4> lhs, unsigned char rhs)
 	{
-	//	return RValue<UInt4>(Nucleus::createLShr(lhs.value, rhs.value));
-
 		return x86::psrld(lhs, rhs);
+	}
+
+	RValue<UInt4> operator<<(RValue<UInt4> lhs, RValue<UInt4> rhs)
+	{
+		return RValue<UInt4>(Nucleus::createShl(lhs.value, rhs.value));
+	}
+
+	RValue<UInt4> operator>>(RValue<UInt4> lhs, RValue<UInt4> rhs)
+	{
+		return RValue<UInt4>(Nucleus::createLShr(lhs.value, rhs.value));
 	}
 
 	RValue<UInt4> operator+=(const UInt4 &lhs, RValue<UInt4> rhs)
