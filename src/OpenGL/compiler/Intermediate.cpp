@@ -192,6 +192,7 @@ TIntermSymbol* TIntermediate::addSymbol(int id, const TString& name, const TType
 //
 TIntermTyped* TIntermediate::addBinaryMath(TOperator op, TIntermTyped* left, TIntermTyped* right, const TSourceLoc &line)
 {
+    bool isBitShift = false;
     switch (op) {
         case EOpEqual:
         case EOpNotEqual:
@@ -234,10 +235,22 @@ TIntermTyped* TIntermediate::addBinaryMath(TOperator op, TIntermTyped* left, TIn
                 return 0;
             }
             break;
+		case EOpBitShiftLeft:
+		case EOpBitShiftRight:
+		case EOpBitShiftLeftAssign:
+		case EOpBitShiftRightAssign:
+			// Unsigned can be bit-shifted by signed and vice versa, but we need to
+			// check that the basic type is an integer type.
+			isBitShift = true;
+			if(!IsInteger(left->getBasicType()) || !IsInteger(right->getBasicType()))
+			{
+				return 0;
+			}
+			break;
         default: break;
     }
 
-    if (left->getBasicType() != right->getBasicType())
+    if(!isBitShift && left->getBasicType() != right->getBasicType())
     {
         return 0;
     }
@@ -768,7 +781,12 @@ bool TIntermBinary::promote(TInfoSink& infoSink)
 
     // GLSL ES 2.0 does not support implicit type casting.
     // So the basic type should always match.
-    if (left->getBasicType() != right->getBasicType())
+	// GLSL ES 3.0 supports integer shift operands of different signedness.
+	if(op != EOpBitShiftLeft &&
+	   op != EOpBitShiftRight &&
+	   op != EOpBitShiftLeftAssign &&
+	   op != EOpBitShiftRightAssign &&
+	   left->getBasicType() != right->getBasicType())
     {
         return false;
     }
