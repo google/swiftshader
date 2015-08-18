@@ -180,8 +180,13 @@ namespace sw
 			OPCODE_POW,
 			OPCODE_F2B,   // Float to bool
 			OPCODE_B2F,   // Bool to float
+			OPCODE_F2I,   // Float to int
+			OPCODE_I2F,   // Int to float
+			OPCODE_F2U,   // Float to uint
+			OPCODE_U2F,   // Uint to float
 			OPCODE_ALL,
 			OPCODE_ANY,
+			OPCODE_NEG,
 			OPCODE_NOT,
 			OPCODE_OR,
 			OPCODE_XOR,
@@ -213,6 +218,7 @@ namespace sw
 			OPCODE_REFRACT3,
 			OPCODE_REFRACT4,
 			OPCODE_ICMP,
+			OPCODE_UCMP,
 			OPCODE_SELECT,
 			OPCODE_EXTRACT,
 			OPCODE_INSERT,
@@ -221,6 +227,25 @@ namespace sw
 			OPCODE_LEAVE,   // Return before the end of the function
 			OPCODE_CONTINUE,
 			OPCODE_TEST,   // Marks the end of the code that can be skipped by 'continue'
+
+			// Integer opcodes
+			OPCODE_INEG,
+			OPCODE_IADD,
+			OPCODE_ISUB,
+			OPCODE_IMUL,
+			OPCODE_IDIV,
+			OPCODE_IMOD,
+			OPCODE_SHL,
+			OPCODE_ISHR,
+			OPCODE_IMIN,
+			OPCODE_IMAX,
+
+			// Unsigned integer opcodes
+			OPCODE_UDIV,
+			OPCODE_UMOD,
+			OPCODE_USHR,
+			OPCODE_UMIN,
+			OPCODE_UMAX,
 		};
 
 		static Opcode OPCODE_DP(int);
