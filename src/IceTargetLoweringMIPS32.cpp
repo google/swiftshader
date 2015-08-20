@@ -607,9 +607,10 @@ void TargetMIPS32::doAddressOptLoad() {
   UnimplementedError(Func->getContext()->getFlags());
 }
 
-void TargetMIPS32::randomlyInsertNop(float Probability) {
-  RandomNumberGeneratorWrapper RNG(Ctx->getRNG());
-  if (RNG.getTrueWithProbability(Probability)) {
+void TargetMIPS32::randomlyInsertNop(float Probability,
+                                     RandomNumberGenerator &RNG) {
+  RandomNumberGeneratorWrapper RNGW(RNG);
+  if (RNGW.getTrueWithProbability(Probability)) {
     UnimplementedError(Func->getContext()->getFlags());
   }
 }
@@ -666,9 +667,10 @@ void TargetMIPS32::postLower() {
 
 void TargetMIPS32::makeRandomRegisterPermutation(
     llvm::SmallVectorImpl<int32_t> &Permutation,
-    const llvm::SmallBitVector &ExcludeRegisters) const {
+    const llvm::SmallBitVector &ExcludeRegisters, uint64_t Salt) const {
   (void)Permutation;
   (void)ExcludeRegisters;
+  (void)Salt;
   UnimplementedError(Func->getContext()->getFlags());
 }
 

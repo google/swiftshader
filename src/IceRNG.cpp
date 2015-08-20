@@ -31,6 +31,16 @@ constexpr unsigned MAX = 2147483647;
 RandomNumberGenerator::RandomNumberGenerator(uint64_t Seed, llvm::StringRef)
     : State(Seed) {}
 
+RandomNumberGenerator::RandomNumberGenerator(
+    uint64_t Seed, RandomizationPassesEnum RandomizationPassID, uint64_t Salt) {
+  constexpr unsigned NumBitsGlobalSeed = CHAR_BIT * sizeof(State);
+  constexpr unsigned NumBitsPassID = 4;
+  constexpr unsigned NumBitsSalt = 12;
+  static_assert(RPE_num < (1 << NumBitsPassID), "NumBitsPassID too small");
+  State = Seed ^ ((uint64_t)RandomizationPassID
+                  << (NumBitsGlobalSeed - NumBitsPassID)) ^
+          (Salt << (NumBitsGlobalSeed - NumBitsPassID - NumBitsSalt));
+}
 uint64_t RandomNumberGenerator::next(uint64_t Max) {
   // Lewis, Goodman, and Miller (1969)
   State = (16807 * State) % MAX;

@@ -222,8 +222,7 @@ void GlobalContext::CodeStats::dump(const IceString &Name, Ostream &Str) {
 GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit, Ostream *OsError,
                              ELFStreamer *ELFStr, const ClFlags &Flags)
     : ConstPool(new ConstantPool()), ErrorStatus(), StrDump(OsDump),
-      StrEmit(OsEmit), StrError(OsError), Flags(Flags),
-      RNG(Flags.getRandomSeed()), ObjectWriter(),
+      StrEmit(OsEmit), StrError(OsError), Flags(Flags), ObjectWriter(),
       OptQ(/*Sequential=*/Flags.isSequential(),
            /*MaxSize=*/Flags.getNumTranslationThreads()),
       // EmitQ is allowed unlimited size.
@@ -273,14 +272,6 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit, Ostream *OsError,
   ProfileBlockInfoVarDecl->setName("__Sz_block_profile_info");
   ProfileBlockInfoVarDecl->setSuppressMangling();
   ProfileBlockInfoVarDecl->setLinkage(llvm::GlobalValue::ExternalLinkage);
-
-  // Initialize the randomization cookie for constant blinding only if constant
-  // blinding or pooling is turned on.
-  // TODO(stichnot): Using RNG for constant blinding will affect the random
-  // number to be used in nop-insertion and randomize-regalloc.
-  if (Flags.getRandomizeAndPoolImmediatesOption() != RPI_None)
-    RandomizationCookie =
-        (uint32_t)RNG.next((uint64_t)std::numeric_limits<uint32_t>::max + 1);
 }
 
 void GlobalContext::translateFunctions() {
@@ -403,9 +394,11 @@ void GlobalContext::lowerGlobals(const IceString &SectionSuffix) {
   addBlockInfoPtrs(Globals, ProfileBlockInfoVarDecl);
   // If we need to shuffle the layout of global variables, shuffle them now.
   if (getFlags().shouldReorderGlobalVariables()) {
-    auto *RNGPtr = &RNG;
+    // Create a random number generator for global variable reordering.
+    RandomNumberGenerator RNG(getFlags().getRandomSeed(),
+                              RPE_GlobalVariableReordering);
     RandomShuffle(Globals.begin(), Globals.end(),
-                  [RNGPtr](int N) { return (uint32_t)RNGPtr->next(N); });
+                  [&RNG](int N) { return (uint32_t)RNG.next(N); });
   }
   DataLowering->lowerGlobals(Globals, SectionSuffix);
   for (VariableDeclaration *Var : Globals) {
@@ -446,6 +439,9 @@ void GlobalContext::emitItems() {
   const uint32_t ShuffleWindowSize =
       std::max(1u, getFlags().getReorderFunctionsWindowSize());
   bool Shuffle = Threaded && getFlags().shouldReorderFunctions();
+  // Create a random number generator for function reordering.
+  RandomNumberGenerator RNG(getFlags().getRandomSeed(), RPE_FunctionReordering);
+
   while (!EmitQueueEmpty) {
     resizePending(Pending, DesiredSequenceNumber);
     // See if Pending contains DesiredSequenceNumber.
@@ -497,7 +493,7 @@ void GlobalContext::emitItems() {
       // Pending[ShuffleEndIndex].
       RandomShuffle(Pending.begin() + ShuffleStartIndex,
                     Pending.begin() + ShuffleEndIndex,
-                    [this](uint64_t N) { return (uint32_t)RNG.next(N); });
+                    [&RNG](uint64_t N) { return (uint32_t)RNG.next(N); });
     }
 
     // Emit the item from ShuffleStartIndex to ShuffleEndIndex.
@@ -879,20 +875,25 @@ ConstantList GlobalContext::getConstantExternSyms() {
 
 JumpTableDataList GlobalContext::getJumpTables() {
   JumpTableDataList JumpTables(*getJumpTableList());
+  // Make order deterministic by sorting into functions and then ID of the
+  // jump table within that function.
+  std::sort(JumpTables.begin(), JumpTables.end(),
+            [](const JumpTableData &A, const JumpTableData &B) {
+              if (A.getFunctionName() != B.getFunctionName())
+                return A.getFunctionName() < B.getFunctionName();
+              return A.getId() < B.getId();
+            });
+
   if (getFlags().shouldReorderPooledConstants()) {
-    // If reorder-pooled-constants option is set to true, we need to shuffle the
-    // constant pool before emitting it.
+    // If reorder-pooled-constants option is set to true, we also shuffle the
+    // jump tables before emitting them.
+
+    // Create a random number generator for jump tables reordering, considering
+    // jump tables as pooled constants.
+    RandomNumberGenerator RNG(getFlags().getRandomSeed(),
+                              RPE_PooledConstantReordering);
     RandomShuffle(JumpTables.begin(), JumpTables.end(),
-                  [this](uint64_t N) { return (uint32_t)getRNG().next(N); });
-  } else {
-    // Make order deterministic by sorting into functions and then ID of the
-    // jump table within that function.
-    std::sort(JumpTables.begin(), JumpTables.end(),
-              [](const JumpTableData &A, const JumpTableData &B) {
-                if (A.getFunctionName() != B.getFunctionName())
-                  return A.getFunctionName() < B.getFunctionName();
-                return A.getId() < B.getId();
-              });
+                  [&RNG](uint64_t N) { return (uint32_t)RNG.next(N); });
   }
   return JumpTables;
 }

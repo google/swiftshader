@@ -91,7 +91,7 @@ public:
   void deletePhis();
   void advancedPhiLowering();
   void doAddressOpt();
-  void doNopInsertion();
+  void doNopInsertion(RandomNumberGenerator &RNG);
   void genCode();
   void livenessLightweight();
   bool liveness(Liveness *Liveness);

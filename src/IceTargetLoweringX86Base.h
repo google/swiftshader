@@ -180,7 +180,8 @@ protected:
   void prelowerPhis() override;
   void doAddressOptLoad() override;
   void doAddressOptStore() override;
-  void randomlyInsertNop(float Probability) override;
+  void randomlyInsertNop(float Probability,
+                         RandomNumberGenerator &RNG) override;
 
   /// Naive lowering of cmpxchg.
   void lowerAtomicCmpxchg(Variable *DestPrev, Operand *Ptr, Operand *Expected,
@@ -290,9 +291,10 @@ protected:
   typename Traits::X86OperandMem *
   getMemoryOperandForStackSlot(Type Ty, Variable *Slot, uint32_t Offset = 0);
 
-  void makeRandomRegisterPermutation(
-      llvm::SmallVectorImpl<int32_t> &Permutation,
-      const llvm::SmallBitVector &ExcludeRegisters) const override;
+  void
+  makeRandomRegisterPermutation(llvm::SmallVectorImpl<int32_t> &Permutation,
+                                const llvm::SmallBitVector &ExcludeRegisters,
+                                uint64_t Salt) const override;
 
   /// The following are helpers that insert lowered x86 instructions
   /// with minimal syntactic overhead, so that the lowering code can

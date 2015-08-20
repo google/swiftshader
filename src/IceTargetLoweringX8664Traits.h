@@ -375,7 +375,8 @@ template <> struct MachineTraits<TargetX8664> {
   static void
   makeRandomRegisterPermutation(GlobalContext *Ctx, Cfg *Func,
                                 llvm::SmallVectorImpl<int32_t> &Permutation,
-                                const llvm::SmallBitVector &ExcludeRegisters) {
+                                const llvm::SmallBitVector &ExcludeRegisters,
+                                uint64_t Salt) {
     // TODO(stichnot): Declaring Permutation this way loses type/size
     // information.  Fix this in conjunction with the caller-side TODO.
     assert(Permutation.size() >= RegisterSet::Reg_NUM);
@@ -406,13 +407,16 @@ template <> struct MachineTraits<TargetX8664> {
     REGX8664_TABLE
 #undef X
 
-    RandomNumberGeneratorWrapper RNG(Ctx->getRNG());
+    // Create a random number generator for regalloc randomization.
+    RandomNumberGenerator RNG(Ctx->getFlags().getRandomSeed(),
+                              RPE_RegAllocRandomization, Salt);
+    RandomNumberGeneratorWrapper RNGW(RNG);
 
     // Shuffle the resulting equivalence classes.
     for (auto I : EquivalenceClasses) {
       const RegisterList &List = I.second;
       RegisterList Shuffled(List);
-      RandomShuffle(Shuffled.begin(), Shuffled.end(), RNG);
+      RandomShuffle(Shuffled.begin(), Shuffled.end(), RNGW);
       for (size_t SI = 0, SE = Shuffled.size(); SI < SE; ++SI) {
         Permutation[List[SI]] = Shuffled[SI];
         ++NumShuffled;

@@ -138,7 +138,8 @@ protected:
   void prelowerPhis() override;
   void doAddressOptLoad() override;
   void doAddressOptStore() override;
-  void randomlyInsertNop(float Probability) override;
+  void randomlyInsertNop(float Probability,
+                         RandomNumberGenerator &RNG) override;
 
   enum OperandLegalization {
     Legal_None = 0,
@@ -162,9 +163,10 @@ protected:
   /// Returns a vector in a register with the given constant entries.
   Variable *makeVectorOfZeros(Type Ty, int32_t RegNum = Variable::NoRegister);
 
-  void makeRandomRegisterPermutation(
-      llvm::SmallVectorImpl<int32_t> &Permutation,
-      const llvm::SmallBitVector &ExcludeRegisters) const override;
+  void
+  makeRandomRegisterPermutation(llvm::SmallVectorImpl<int32_t> &Permutation,
+                                const llvm::SmallBitVector &ExcludeRegisters,
+                                uint64_t Salt) const override;
 
   // If a divide-by-zero check is needed, inserts a:
   // test; branch .LSKIP; trap; .LSKIP: <continuation>.

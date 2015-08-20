@@ -17,6 +17,8 @@
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/Compiler.h"
+#include "IceDefs.h"
+
 #include <cstdint>
 
 namespace Ice {
@@ -28,6 +30,22 @@ class RandomNumberGenerator {
 
 public:
   explicit RandomNumberGenerator(uint64_t Seed, llvm::StringRef Salt = "");
+  /// Create a random number generator with: global seed, randomization pass ID
+  /// and a salt uint64_t integer.
+  /// @param Seed should be a global seed.
+  /// @param RandomizationPassID should be one of RandomizationPassesEnum.
+  /// @param Salt should be an additional integer input for generating unique
+  /// RNG.
+  /// The global seed is 64 bits; since it is likely to originate from the
+  /// system time, the lower bits are more "valuable" than the upper bits. As
+  /// such, we merge the randomization pass ID and the salt into the global seed
+  /// by xor'ing them into high bit ranges. We expect the pass ID to fit within
+  /// 4 bits, so it gets shifted by 60 to merge into the upper 4 bits. We expect
+  /// the salt (usually the function sequence number) to fit within 12 bits, so
+  /// it gets shifted by 48 before merging.
+  explicit RandomNumberGenerator(uint64_t Seed,
+                                 RandomizationPassesEnum RandomizationPassID,
+                                 uint64_t Salt = 0);
   uint64_t next(uint64_t Max);
 
 private:

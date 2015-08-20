@@ -153,7 +153,7 @@ public:
   /// Tries to do address mode optimization on a single instruction.
   void doAddressOpt();
   /// Randomly insert NOPs.
-  void doNopInsertion();
+  void doNopInsertion(RandomNumberGenerator &RNG);
   /// Lowers a single non-Phi instruction.
   void lower();
   /// Inserts and lowers a single high-level instruction at a specific insertion
@@ -213,9 +213,10 @@ public:
   virtual const llvm::SmallBitVector &getRegisterSetForType(Type Ty) const = 0;
   void regAlloc(RegAllocKind Kind);
 
-  virtual void makeRandomRegisterPermutation(
-      llvm::SmallVectorImpl<int32_t> &Permutation,
-      const llvm::SmallBitVector &ExcludeRegisters) const = 0;
+  virtual void
+  makeRandomRegisterPermutation(llvm::SmallVectorImpl<int32_t> &Permutation,
+                                const llvm::SmallBitVector &ExcludeRegisters,
+                                uint64_t Salt) const = 0;
 
   /// Save/restore any mutable state for the situation where code
   /// emission needs multiple passes, such as sandboxing or relaxation.
@@ -279,7 +280,8 @@ protected:
 
   virtual void doAddressOptLoad() {}
   virtual void doAddressOptStore() {}
-  virtual void randomlyInsertNop(float Probability) = 0;
+  virtual void randomlyInsertNop(float Probability,
+                                 RandomNumberGenerator &RNG) = 0;
   /// This gives the target an opportunity to post-process the lowered
   /// expansion before returning.
   virtual void postLower() {}

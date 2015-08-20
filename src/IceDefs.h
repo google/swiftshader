@@ -279,6 +279,18 @@ llvm::iterator_range<typename T::reverse_iterator> reverse_range(T &Container) {
 /// Options for pooling and randomization of immediates.
 enum RandomizeAndPoolImmediatesEnum { RPI_None, RPI_Randomize, RPI_Pool };
 
+/// Salts for Random number generator for different randomization passes.
+enum RandomizationPassesEnum {
+  RPE_BasicBlockReordering,
+  RPE_ConstantBlinding,
+  RPE_FunctionReordering,
+  RPE_GlobalVariableReordering,
+  RPE_NopInsertion,
+  RPE_PooledConstantReordering,
+  RPE_RegAllocRandomization,
+  RPE_num
+};
+
 } // end of namespace Ice
 
 #endif // SUBZERO_SRC_ICEDEFS_H

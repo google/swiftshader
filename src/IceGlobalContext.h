@@ -243,10 +243,6 @@ public:
 
   const Intrinsics &getIntrinsicsInfo() const { return IntrinsicsInfo; }
 
-  // TODO(wala,stichnot): Make the RNG play nicely with multithreaded
-  // translation.
-  RandomNumberGenerator &getRNG() { return RNG; }
-
   ELFObjectWriter *getObjectWriter() const { return ObjectWriter.get(); }
 
   /// Reset stats at the beginning of a function.
@@ -440,10 +436,6 @@ public:
     return Match.empty() || Match == SymbolName;
   }
 
-  /// Return the randomization cookie for diversification.
-  /// Initialize the cookie if necessary
-  uint32_t getRandomizationCookie() const { return RandomizationCookie; }
-
 private:
   // Try to ensure mutexes are allocated on separate cache lines.
 
@@ -496,7 +488,6 @@ private:
 
   Intrinsics IntrinsicsInfo;
   const ClFlags &Flags;
-  RandomNumberGenerator RNG; // TODO(stichnot): Move into Cfg.
   // TODO(jpp): move to EmitterContext.
   std::unique_ptr<ELFObjectWriter> ObjectWriter;
   BoundedProducerConsumerQueue<Cfg> OptQ;
@@ -556,11 +547,6 @@ private:
   // Private helpers for mangleName()
   typedef llvm::SmallVector<char, 32> ManglerVector;
   void incrementSubstitutions(ManglerVector &OldName) const;
-
-  // Randomization Cookie
-  // Managed by getRandomizationCookie()
-  GlobalLockType RandomizationCookieLock;
-  uint32_t RandomizationCookie = 0;
 
 public:
   static void TlsInit() { ICE_TLS_INIT_FIELD(TLS); }

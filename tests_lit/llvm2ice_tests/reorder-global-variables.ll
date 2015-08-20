@@ -54,16 +54,11 @@
 
 @ArrayUninitConstInt = internal constant [20 x i8] zeroinitializer, align 4
 
-;@__init_array_start = internal constant [0 x i8] zeroinitializer, align 4
-;@__fini_array_start = internal constant [0 x i8] zeroinitializer, align 4
-;@__tls_template_start = internal constant [0 x i8] zeroinitializer, align 8
-;@__tls_template_alignment = internal constant [4 x i8] c"\01\00\00\00", align 4
-
 ; Make sure the shuffled order is correct.
 
-; CHECK-LABEL: ArrayInitPartial
-; CHECK-LABEL: PrimitiveInit
 ; CHECK-LABEL: ArrayInit
+; CHECK-LABEL: PrimitiveInit
+; CHECK-LABEL: ArrayInitPartial
 ; CHECK-LABEL: PrimitiveUninit
 ; CHECK-LABEL: ArrayUninit
 ; CHECK-LABEL: PrimitiveInitStatic

@@ -29,8 +29,8 @@ BB4:
 ; SEED1: .Lbasic_block_reordering$entry:
 ; SEED1: .Lbasic_block_reordering$BB1:
 ; SEED1: .Lbasic_block_reordering$BB2:
-; SEED1: .Lbasic_block_reordering$BB3:
 ; SEED1: .Lbasic_block_reordering$BB4:
+; SEED1: .Lbasic_block_reordering$BB3:
 
 ; SEED2-LABEL: basic_block_reordering:
 ; SEED2: .Lbasic_block_reordering$entry:

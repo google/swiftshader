@@ -2505,9 +2505,10 @@ void TargetARM32::doAddressOptLoad() {
   UnimplementedError(Func->getContext()->getFlags());
 }
 
-void TargetARM32::randomlyInsertNop(float Probability) {
-  RandomNumberGeneratorWrapper RNG(Ctx->getRNG());
-  if (RNG.getTrueWithProbability(Probability)) {
+void TargetARM32::randomlyInsertNop(float Probability,
+                                    RandomNumberGenerator &RNG) {
+  RandomNumberGeneratorWrapper RNGW(RNG);
+  if (RNGW.getTrueWithProbability(Probability)) {
     UnimplementedError(Func->getContext()->getFlags());
   }
 }
@@ -2929,9 +2930,10 @@ void TargetARM32::postLower() {
 
 void TargetARM32::makeRandomRegisterPermutation(
     llvm::SmallVectorImpl<int32_t> &Permutation,
-    const llvm::SmallBitVector &ExcludeRegisters) const {
+    const llvm::SmallBitVector &ExcludeRegisters, uint64_t Salt) const {
   (void)Permutation;
   (void)ExcludeRegisters;
+  (void)Salt;
   UnimplementedError(Func->getContext()->getFlags());
 }
 

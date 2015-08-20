@@ -496,7 +496,7 @@ void CfgNode::doAddressOpt() {
   }
 }
 
-void CfgNode::doNopInsertion() {
+void CfgNode::doNopInsertion(RandomNumberGenerator &RNG) {
   TargetLowering *Target = Func->getTarget();
   LoweringContext &Context = Target->getContext();
   Context.init(this);
@@ -510,7 +510,7 @@ void CfgNode::doNopInsertion() {
       PauseNopInsertion = false;
     }
     if (!PauseNopInsertion)
-      Target->doNopInsertion();
+      Target->doNopInsertion(RNG);
     // Ensure Cur=Next, so that the nops are inserted before the current
     // instruction rather than after.
     Context.advanceCur();

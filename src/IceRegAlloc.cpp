@@ -250,11 +250,11 @@ void LinearScan::init(RegAllocKind Kind) {
   }
 
   auto CompareRanges = [](const Variable *L, const Variable *R) {
-      InstNumberT Lstart = L->getLiveRange().getStart();
-      InstNumberT Rstart = R->getLiveRange().getStart();
-      if (Lstart == Rstart)
-        return L->getIndex() < R->getIndex();
-      return Lstart < Rstart;
+    InstNumberT Lstart = L->getLiveRange().getStart();
+    InstNumberT Rstart = R->getLiveRange().getStart();
+    if (Lstart == Rstart)
+      return L->getIndex() < R->getIndex();
+    return Lstart < Rstart;
   };
   // Do a reverse sort so that erasing elements (from the end) is fast.
   std::sort(Unhandled.rbegin(), Unhandled.rend(), CompareRanges);
@@ -776,8 +776,15 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
 
   llvm::SmallVector<int32_t, REGS_SIZE> Permutation(NumRegisters);
   if (Randomized) {
+    // Create a random number generator for regalloc randomization. Merge
+    // function's sequence and Kind value as the Salt. Because regAlloc()
+    // is called twice under O2, the second time with RAK_Phi, we check
+    // Kind == RAK_Phi to determine the lowest-order bit to make sure the
+    // Salt is different.
+    uint64_t Salt =
+        (Func->getSequenceNumber() << 1) ^ (Kind == RAK_Phi ? 0u : 1u);
     Func->getTarget()->makeRandomRegisterPermutation(
-        Permutation, PreDefinedRegisters | ~RegMaskFull);
+        Permutation, PreDefinedRegisters | ~RegMaskFull, Salt);
   }
 
   // Finish up by assigning RegNumTmp->RegNum (or a random permutation

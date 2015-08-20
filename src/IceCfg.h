@@ -164,6 +164,7 @@ public:
   bool hasComputedFrame() const;
   bool getFocusedTiming() const { return FocusedTiming; }
   void setFocusedTiming() { FocusedTiming = true; }
+  uint32_t getConstantBlindingCookie() const { return ConstantBlindingCookie; }
   /// @}
 
   /// Returns true if Var is a global variable that is used by the profiling
@@ -247,7 +248,8 @@ private:
   void emitJumpTables();
 
   GlobalContext *Ctx;
-  uint32_t SequenceNumber; /// output order for emission
+  uint32_t SequenceNumber;             /// output order for emission
+  uint32_t ConstantBlindingCookie = 0; /// cookie for constant blinding
   VerboseMask VMask;
   IceString FunctionName = "";
   Type ReturnType = IceType_void;

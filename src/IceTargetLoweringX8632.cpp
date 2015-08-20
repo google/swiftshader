@@ -731,10 +731,16 @@ void TargetDataX8632::emitConstantPool(GlobalContext *Ctx) {
 
   // If reorder-pooled-constants option is set to true, we need to shuffle the
   // constant pool before emitting it.
-  if (Ctx->getFlags().shouldReorderPooledConstants())
-    RandomShuffle(Pool.begin(), Pool.end(), [Ctx](uint64_t N) {
-      return (uint32_t)Ctx->getRNG().next(N);
-    });
+  if (Ctx->getFlags().shouldReorderPooledConstants() && !Pool.empty()) {
+    // Use the constant's kind value as the salt for creating random number
+    // generator.
+    Operand::OperandKind K = (*Pool.begin())->getKind();
+
+    RandomNumberGenerator RNG(Ctx->getFlags().getRandomSeed(),
+                              RPE_PooledConstantReordering, K);
+    RandomShuffle(Pool.begin(), Pool.end(),
+                  [&RNG](uint64_t N) { return (uint32_t)RNG.next(N); });
+  }
 
   for (Constant *C : Pool) {
     if (!C->getShouldBePooled())

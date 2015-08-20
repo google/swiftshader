@@ -116,10 +116,12 @@ protected:
   void prelowerPhis() override;
   void doAddressOptLoad() override;
   void doAddressOptStore() override;
-  void randomlyInsertNop(float Probability) override;
-  void makeRandomRegisterPermutation(
-      llvm::SmallVectorImpl<int32_t> &Permutation,
-      const llvm::SmallBitVector &ExcludeRegisters) const override;
+  void randomlyInsertNop(float Probability,
+                         RandomNumberGenerator &RNG) override;
+  void
+  makeRandomRegisterPermutation(llvm::SmallVectorImpl<int32_t> &Permutation,
+                                const llvm::SmallBitVector &ExcludeRegisters,
+                                uint64_t Salt) const override;
 
   static Type stackSlotType();
 

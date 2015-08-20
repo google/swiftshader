@@ -103,7 +103,7 @@ void TargetLowering::doAddressOpt() {
   Context.advanceNext();
 }
 
-void TargetLowering::doNopInsertion() {
+void TargetLowering::doNopInsertion(RandomNumberGenerator &RNG) {
   Inst *I = Context.getCur();
   bool ShouldSkip = llvm::isa<InstFakeUse>(I) || llvm::isa<InstFakeDef>(I) ||
                     llvm::isa<InstFakeKill>(I) || I->isRedundantAssign() ||
@@ -111,7 +111,7 @@ void TargetLowering::doNopInsertion() {
   if (!ShouldSkip) {
     int Probability = Ctx->getFlags().getNopProbabilityAsPercentage();
     for (int I = 0; I < Ctx->getFlags().getMaxNopsPerInstruction(); ++I) {
-      randomlyInsertNop(Probability / 100.0);
+      randomlyInsertNop(Probability / 100.0, RNG);
     }
   }
 }

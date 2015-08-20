@@ -512,11 +512,15 @@ template <typename ConstType> void ELFObjectWriter::writeConstantPool(Type Ty) {
 
   // If the -reorder-pooled-constant option is set to true, we should shuffle
   // the constants before we emit them.
-  auto *CtxPtr = &Ctx;
-  if (Ctx.getFlags().shouldReorderPooledConstants())
-    RandomShuffle(Pool.begin(), Pool.end(), [CtxPtr](uint64_t N) {
-      return (uint32_t)CtxPtr->getRNG().next(N);
-    });
+  if (Ctx.getFlags().shouldReorderPooledConstants() && !Pool.empty()) {
+    // Use the constant's kind value as the salt for creating random number
+    // generator.
+    Operand::OperandKind K = (*Pool.begin())->getKind();
+    RandomNumberGenerator RNG(Ctx.getFlags().getRandomSeed(),
+                              RPE_PooledConstantReordering, K);
+    RandomShuffle(Pool.begin(), Pool.end(),
+                  [&RNG](uint64_t N) { return (uint32_t)RNG.next(N); });
+  }
   // Write the data.
   for (Constant *C : Pool) {
     if (!C->getShouldBePooled())

@@ -43,6 +43,16 @@ Cfg::Cfg(GlobalContext *Ctx, uint32_t SequenceNumber)
       VMetadata(new VariablesMetadata(this)),
       TargetAssembler(TargetLowering::createAssembler(
           Ctx->getFlags().getTargetArch(), this)) {
+  assert(!Ctx->isIRGenerationDisabled() &&
+         "Attempt to build cfg when IR generation disabled");
+  if (Ctx->getFlags().getRandomizeAndPoolImmediatesOption() == RPI_Randomize) {
+    // If -randomize-pool-immediates=randomize, create a random number generator
+    // to generate a cookie for constant blinding.
+    RandomNumberGenerator RNG(Ctx->getFlags().getRandomSeed(),
+                              RPE_ConstantBlinding, SequenceNumber);
+    ConstantBlindingCookie =
+        (uint32_t)RNG.next((uint64_t)std::numeric_limits<uint32_t>::max + 1);
+  }
 }
 
 Cfg::~Cfg() { assert(ICE_TLS_GET_FIELD(CurrentCfg) == nullptr); }
@@ -396,9 +406,11 @@ void Cfg::shuffleNodes() {
   NodeList ReversedReachable;
   NodeList Unreachable;
   llvm::BitVector ToVisit(Nodes.size(), true);
+  // Create Random number generator for function reordering
+  RandomNumberGenerator RNG(Ctx->getFlags().getRandomSeed(),
+                            RPE_BasicBlockReordering, SequenceNumber);
   // Traverse from entry node.
-  getRandomPostOrder(getEntryNode(), ToVisit, ReversedReachable,
-                     &Ctx->getRNG());
+  getRandomPostOrder(getEntryNode(), ToVisit, ReversedReachable, &RNG);
   // Collect the unreachable nodes.
   for (CfgNode *Node : Nodes)
     if (ToVisit[Node->getIndex()])
@@ -431,8 +443,10 @@ void Cfg::doNopInsertion() {
   if (!Ctx->getFlags().shouldDoNopInsertion())
     return;
   TimerMarker T(TimerStack::TT_doNopInsertion, this);
+  RandomNumberGenerator RNG(Ctx->getFlags().getRandomSeed(), RPE_NopInsertion,
+                            SequenceNumber);
   for (CfgNode *Node : Nodes)
-    Node->doNopInsertion();
+    Node->doNopInsertion(RNG);
 }
 
 void Cfg::genCode() {

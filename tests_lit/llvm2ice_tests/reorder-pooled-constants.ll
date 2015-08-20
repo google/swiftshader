@@ -3,11 +3,11 @@
 
 ; RUN: %p2i --assemble --disassemble --filetype=obj --dis-flags=-s \
 ; RUN:   --target x8632 -i %s --args -sz-seed=1 -O2 -reorder-pooled-constants \
-; RUN:   | FileCheck %s --check-prefix=X86O2
+; RUN:   | FileCheck %s --check-prefix=X86
 
 ; RUN: %p2i --assemble --disassemble --filetype=obj --dis-flags=-s \
 ; RUN:   --target x8632 -i %s --args -sz-seed=1 -Om1 -reorder-pooled-constants \
-; RUN:   | FileCheck %s --check-prefix=X86OM1
+; RUN:   | FileCheck %s --check-prefix=X86
 
 @__init_array_start = internal constant [0 x i8] zeroinitializer, align 4
 @__fini_array_start = internal constant [0 x i8] zeroinitializer, align 4
@@ -533,38 +533,17 @@ return:                                           ; preds = %entry, %sw.bb65, %s
 }
 
 ; Make sure the constants in pools are shuffled.
-; TODO(qining, stichnot): Unify the checkers for Om1 and O2 optimization levels.
-; Om1 and O2 result into different sizes of i32 constant pools.
-; Because the shuffling routine of constant pools is applied to integer
-; constant pools first, the random number used for shuffling float and double
-; constant pools will be different for Om1 and O2, so is the order of the pooled
-; float and double constants. The source of this difference may includes: stack
-; frame size, strength reduction, etc.
 
 ; Check for float pool
-; X86O2-LABEL: .rodata.cst4
-; X86O2: 00000040 0000c0ff 00000041 00000000
-; X86O2: 0000003f 0000803f 00008040 0000c07f
-; X86O2: 0000803e
+; X86-LABEL: .rodata.cst4
+; X86: 00000041 0000c0ff 0000803f 00008040
+; X86: 0000c07f 00000000 0000003f 0000803e
+; X86: 00000040
 
 ; Check for double pool
-; X86O2-LABEL: .rodata.cst8
-; X86O2: 55555555 5555d53f 00000000 0000f8ff
-; X86O2: 00000000 0000f87f 00000000 0000e03f
-; X86O2: 00000000 0000d03f 00000000 00000000
+; X86-LABEL: .rodata.cst8
+; X86: 00000000 0000f8ff 00000000 0000f87f
+; X86: 00000000 0000e03f 00000000 00000000
+; X86: 55555555 5555d53f 00000000 0000d03f
 
-; X86O2-LABEL: .text
-
-; Check for float pool
-; X86OM1-LABEL: .rodata.cst4
-; X86OM1: 0000803f 0000003f 00000040 0000c0ff
-; X86OM1: 00000000 00008040 0000c07f 0000803e
-; X86OM1: 00000041
-
-; Check for double pool
-; X86OM1-LABEL: .rodata.cst8
-; X86OM1: 00000000 0000e03f 00000000 0000f87f
-; X86OM1: 00000000 0000f8ff 00000000 0000d03f
-; X86OM1: 00000000 00000000 55555555 5555d53f
-
-; X86OM1-LABEL: .text
+; X86-LABEL: .text

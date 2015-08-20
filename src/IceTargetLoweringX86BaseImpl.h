@@ -4161,10 +4161,11 @@ template <class Machine> void TargetX86Base<Machine>::doAddressOptLoad() {
 }
 
 template <class Machine>
-void TargetX86Base<Machine>::randomlyInsertNop(float Probability) {
-  RandomNumberGeneratorWrapper RNG(Ctx->getRNG());
-  if (RNG.getTrueWithProbability(Probability)) {
-    _nop(RNG(Traits::X86_NUM_NOP_VARIANTS));
+void TargetX86Base<Machine>::randomlyInsertNop(float Probability,
+                                               RandomNumberGenerator &RNG) {
+  RandomNumberGeneratorWrapper RNGW(RNG);
+  if (RNGW.getTrueWithProbability(Probability)) {
+    _nop(RNGW(Traits::X86_NUM_NOP_VARIANTS));
   }
 }
 
@@ -5119,9 +5120,9 @@ template <class Machine> void TargetX86Base<Machine>::postLower() {
 template <class Machine>
 void TargetX86Base<Machine>::makeRandomRegisterPermutation(
     llvm::SmallVectorImpl<int32_t> &Permutation,
-    const llvm::SmallBitVector &ExcludeRegisters) const {
+    const llvm::SmallBitVector &ExcludeRegisters, uint64_t Salt) const {
   Traits::makeRandomRegisterPermutation(Ctx, Func, Permutation,
-                                        ExcludeRegisters);
+                                        ExcludeRegisters, Salt);
 }
 
 template <class Machine>
@@ -5196,7 +5197,7 @@ Operand *TargetX86Base<Machine>::randomizeOrPoolImmediate(Constant *Immediate,
       Variable *Reg = makeReg(IceType_i32, RegNum);
       ConstantInteger32 *Integer = llvm::cast<ConstantInteger32>(Immediate);
       uint32_t Value = Integer->getValue();
-      uint32_t Cookie = Ctx->getRandomizationCookie();
+      uint32_t Cookie = Func->getConstantBlindingCookie();
       _mov(Reg, Ctx->getConstantInt(IceType_i32, Cookie + Value));
       Constant *Offset = Ctx->getConstantInt(IceType_i32, 0 - Cookie);
       _lea(Reg, Traits::X86OperandMem::create(Func, IceType_i32, Reg, Offset,
@@ -5275,7 +5276,7 @@ TargetX86Base<Machine>::randomizeOrPoolImmediate(
         uint32_t Value =
             llvm::dyn_cast<ConstantInteger32>(MemOperand->getOffset())
                 ->getValue();
-        uint32_t Cookie = Ctx->getRandomizationCookie();
+        uint32_t Cookie = Func->getConstantBlindingCookie();
         Constant *Mask1 = Ctx->getConstantInt(
             MemOperand->getOffset()->getType(), Cookie + Value);
         Constant *Mask2 =
