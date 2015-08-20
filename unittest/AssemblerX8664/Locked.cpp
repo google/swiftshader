@@ -85,6 +85,54 @@ TEST_F(AssemblerX8664Test, Xchg) {
 #undef TestImpl
 #undef TestImplSize
 #undef TestImplAddrReg
+
+#define TestImplRegReg(Reg0, Value0, Reg1, Value1, Size)                       \
+  do {                                                                         \
+    static constexpr char TestString[] =                                       \
+        "(" #Reg0 "," #Value0 ", " #Reg1 ", " #Value1 ", " #Size ")";          \
+    const uint32_t V0 = (Value0)&Mask##Size;                                   \
+    const uint32_t V1 = (Value1)&Mask##Size;                                   \
+                                                                               \
+    __ mov(IceType_i##Size, Encoded_GPR_##Reg0(), Immediate(Value0));          \
+    __ mov(IceType_i##Size, Encoded_GPR_##Reg1(), Immediate(Value1));          \
+    __ xchg(IceType_i##Size, Encoded_GPR_##Reg0(), Encoded_GPR_##Reg1());      \
+    __ And(IceType_i32, Encoded_GPR_##Reg0(), Immediate(Mask##Size));          \
+    __ And(IceType_i32, Encoded_GPR_##Reg1(), Immediate(Mask##Size));          \
+                                                                               \
+    AssembledTest test = assemble();                                           \
+    test.run();                                                                \
+                                                                               \
+    ASSERT_EQ(V0, test.Reg1()) << TestString;                                  \
+    ASSERT_EQ(V1, test.Reg0()) << TestString;                                  \
+    reset();                                                                   \
+  } while (0)
+
+#define TestImplSize(Reg0, Reg1, Size)                                         \
+  do {                                                                         \
+    TestImplRegReg(Reg0, 0xa2b34567, Reg1, 0x0507ddee, Size);                  \
+  } while (0)
+
+#define TestImpl(Reg0, Reg1)                                                   \
+  do {                                                                         \
+    TestImplSize(Reg0, Reg1, 8);                                               \
+    TestImplSize(Reg0, Reg1, 16);                                              \
+    TestImplSize(Reg0, Reg1, 32);                                              \
+  } while (0)
+
+  // r1 == rax so has a short encoding
+  TestImpl(r6, r1);
+  TestImpl(r1, r8);
+
+  TestImpl(r2, r10);
+  TestImpl(r3, r11);
+  TestImpl(r4, r12);
+  TestImpl(r5, r13);
+  TestImpl(r6, r14);
+  TestImpl(r7, r15);
+
+#undef TestImpl
+#undef TestImplSize
+#undef TestImplRegReg
 }
 
 TEST_F(AssemblerX8664Test, Xadd) {

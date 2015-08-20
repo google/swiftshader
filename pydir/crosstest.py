@@ -93,6 +93,8 @@ def main():
     argparser.add_argument('--filetype', default='obj', dest='filetype',
                            choices=['obj', 'asm', 'iasm'],
                            help='Output file type.  Default %(default)s.')
+    argparser.add_argument('--sz', dest='sz_args', action='append', default=[],
+                           help='Extra arguments to pass to pnacl-sz.')
     args = argparser.parse_args()
 
     nacl_root = FindBaseNaCl()
@@ -133,6 +135,7 @@ def main():
         obj_sz = os.path.join(args.dir, base_sz + '.sz.o')
         obj_llc = os.path.join(args.dir, base_sz + '.llc.o')
         shellcmd(['{path}/pnacl-sz'.format(path=os.path.dirname(mypath)),
+                  ] + args.sz_args + [
                   '-O' + args.optlevel,
                   '-mattr=' + args.attr,
                   '--target=' + args.target,

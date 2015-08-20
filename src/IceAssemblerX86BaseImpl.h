@@ -3150,6 +3150,29 @@ void AssemblerX86Base<Machine>::xadd(Type Ty,
 }
 
 template <class Machine>
+void AssemblerX86Base<Machine>::xchg(Type Ty, typename Traits::GPRRegister reg0,
+                                     typename Traits::GPRRegister reg1) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  if (Ty == IceType_i16)
+    emitOperandSizeOverride();
+  // Use short form if either register is EAX.
+  if (reg0 == Traits::Encoded_Reg_Accumulator) {
+    emitRexB(Ty, reg1);
+    emitUint8(0x90 + gprEncoding(reg1));
+  } else if (reg1 == Traits::Encoded_Reg_Accumulator) {
+    emitRexB(Ty, reg0);
+    emitUint8(0x90 + gprEncoding(reg0));
+  } else {
+    emitRexRB(Ty, reg0, reg1);
+    if (isByteSizedArithType(Ty))
+      emitUint8(0x86);
+    else
+      emitUint8(0x87);
+    emitRegisterOperand(gprEncoding(reg0), gprEncoding(reg1));
+  }
+}
+
+template <class Machine>
 void AssemblerX86Base<Machine>::xchg(Type Ty,
                                      const typename Traits::Address &addr,
                                      typename Traits::GPRRegister reg) {

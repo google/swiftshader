@@ -227,6 +227,9 @@ UNITTEST_SRCS = \
 # The X86 assembler tests take too long to compile. Given how infrequently the
 # assembler will change, we disable them.
 ifdef CHECK_X86_ASM
+ifndef DEBUG
+$(error Run check-unit with DEBUG=1 lest your machine perish)
+endif
   UNITTEST_SRCS += AssemblerX8632/LowLevel.cpp \
         AssemblerX8632/DataMov.cpp \
         AssemblerX8632/Locked.cpp \
@@ -350,11 +353,14 @@ check-xtest: $(OBJDIR)/pnacl-sz make_symlink runtime
        # Do all native/sse2 tests, but only test_vector_ops for native/sse4.1.
        # For (slow) sandboxed tests, limit to Om1/sse4.1.
        # TODO(jpp): implement x8664 sandbox, then enable xtests.
+			 # TODO(jpp): reenable the x86-64 tests.
 	./pydir/crosstest_generator.py -v --lit \
 	  --toolchain-root $(TOOLCHAIN_ROOT) \
-	  -i x8632,native,sse2 -i x8632,native,sse4.1,test_vector_ops \
+	  -i x8632,native,sse2 \
+	  -i x8632,native,sse4.1,test_vector_ops \
 	  -i x8632,sandbox,sse4.1,Om1 \
-	  -i x8664,native,sse2 -i x8664,native,sse4.1,test_vector_ops \
+	  -e x8664,native,sse2 \
+	  -e x8664,native,sse4.1,test_vector_ops \
 	  -e x8664,native,sse2,test_global \
 	  -i arm32,native,neon,simple_loop \
 	  -i arm32,native,neon,mem_intrin \

@@ -82,6 +82,57 @@ TEST_F(AssemblerX8632Test, Xchg) {
 #undef TestImpl
 #undef TestImplSize
 #undef TestImplAddrReg
+
+#define TestImplRegReg(Reg0, Value0, Reg1, Value1, Size)                       \
+  do {                                                                         \
+    static constexpr char TestString[] =                                       \
+        "(" #Reg0 "," #Value0 ", " #Reg1 ", " #Value1 ", " #Size ")";          \
+    const uint32_t V0 = (Value0)&Mask##Size;                                   \
+    const uint32_t V1 = (Value1)&Mask##Size;                                   \
+                                                                               \
+    __ mov(IceType_i##Size, GPRRegister::Encoded_Reg_##Reg0,                   \
+           Immediate(Value0));                                                 \
+    __ mov(IceType_i##Size, GPRRegister::Encoded_Reg_##Reg1,                   \
+           Immediate(Value1));                                                 \
+    __ xchg(IceType_i##Size, GPRRegister::Encoded_Reg_##Reg0,                  \
+            GPRRegister::Encoded_Reg_##Reg1);                                  \
+    __ And(IceType_i32, GPRRegister::Encoded_Reg_##Reg0,                       \
+           Immediate(Mask##Size));                                             \
+    __ And(IceType_i32, GPRRegister::Encoded_Reg_##Reg1,                       \
+           Immediate(Mask##Size));                                             \
+                                                                               \
+    AssembledTest test = assemble();                                           \
+    test.run();                                                                \
+                                                                               \
+    ASSERT_EQ(V0, test.Reg1()) << TestString;                                  \
+    ASSERT_EQ(V1, test.Reg0()) << TestString;                                  \
+    reset();                                                                   \
+  } while (0)
+
+#define TestImplSize(Reg0, Reg1, Size)                                         \
+  do {                                                                         \
+    TestImplRegReg(Reg0, 0xa2b34567, Reg1, 0x0507ddee, Size);                  \
+  } while (0)
+
+#define TestImpl(Reg0, Reg1)                                                   \
+  do {                                                                         \
+    if (GPRRegister::Encoded_Reg_##Reg0 < 4 &&                                 \
+        GPRRegister::Encoded_Reg_##Reg1 < 4) {                                 \
+      TestImplSize(Reg0, Reg1, 8);                                             \
+    }                                                                          \
+    TestImplSize(Reg0, Reg1, 16);                                              \
+    TestImplSize(Reg0, Reg1, 32);                                              \
+  } while (0)
+
+  TestImpl(eax, ebx);
+  TestImpl(edx, eax);
+  TestImpl(ecx, edx);
+  TestImpl(esi, eax);
+  TestImpl(edx, edi);
+
+#undef TestImpl
+#undef TestImplSize
+#undef TestImplRegReg
 }
 
 TEST_F(AssemblerX8632Test, Xadd) {

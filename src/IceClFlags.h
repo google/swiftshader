@@ -72,6 +72,9 @@ public:
   bool getEnableBlockProfile() const { return EnableBlockProfile; }
   void setEnableBlockProfile(bool NewValue) { EnableBlockProfile = NewValue; }
 
+  bool getForceMemIntrinOpt() const { return ForceMemIntrinOpt; }
+  void setForceMemIntrinOpt(bool NewValue) { ForceMemIntrinOpt = NewValue; }
+
   bool getFunctionSections() const { return FunctionSections; }
   void setFunctionSections(bool NewValue) { FunctionSections = NewValue; }
 
@@ -241,6 +244,7 @@ private:
   bool DisableTranslation;
   bool DumpStats;
   bool EnableBlockProfile;
+  bool ForceMemIntrinOpt;
   bool FunctionSections;
   bool GenerateUnitTestMessages;
   bool PhiEdgeSplit;

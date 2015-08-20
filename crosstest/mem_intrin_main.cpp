@@ -14,27 +14,6 @@ namespace Subzero_ {
 #define XSTR(s) STR(s)
 #define STR(s) #s
 
-void testFixedLen(SizeT &TotalTests, SizeT &Passes, SizeT &Failures) {
-#define do_test_fixed(test_func)                                               \
-  for (uint8_t init_val = 0; init_val < 100; ++init_val) {                     \
-    ++TotalTests;                                                              \
-    int llc_result = test_func(init_val);                                      \
-    int sz_result = Subzero_::test_func(init_val);                             \
-    if (llc_result == sz_result) {                                             \
-      ++Passes;                                                                \
-    } else {                                                                   \
-      ++Failures;                                                              \
-      printf("Failure (%s): init_val=%d, llc=%d, sz=%d\n", STR(test_func),     \
-             init_val, llc_result, sz_result);                                 \
-    }                                                                          \
-  }
-
-  do_test_fixed(memcpy_test_fixed_len);
-  do_test_fixed(memmove_test_fixed_len);
-  do_test_fixed(memset_test_fixed_len)
-#undef do_test_fixed
-}
-
 void testVariableLen(SizeT &TotalTests, SizeT &Passes, SizeT &Failures) {
   uint8_t buf[256];
   uint8_t buf2[256];
@@ -58,6 +37,30 @@ void testVariableLen(SizeT &TotalTests, SizeT &Passes, SizeT &Failures) {
   do_test_variable(memmove_test);
   do_test_variable(memset_test)
 #undef do_test_variable
+}
+
+void testFixedLen(SizeT &TotalTests, SizeT &Passes, SizeT &Failures) {
+#define do_test_fixed(test_func, NBYTES)                                       \
+  for (uint8_t init_val = 0; init_val < 100; ++init_val) {                     \
+    ++TotalTests;                                                              \
+    int llc_result = test_func##_##NBYTES(init_val);                           \
+    int sz_result = Subzero_::test_func##_##NBYTES(init_val);                  \
+    if (llc_result == sz_result) {                                             \
+      ++Passes;                                                                \
+    } else {                                                                   \
+      ++Failures;                                                              \
+      printf("Failure (%s): init_val=%d, len=%d, llc=%d, sz=%d\n",             \
+             STR(test_func), init_val, NBYTES, llc_result, sz_result);         \
+    }                                                                          \
+  }
+
+#define X(NBYTES)                                                              \
+  do_test_fixed(memcpy_test_fixed_len, NBYTES);                                \
+  do_test_fixed(memmove_test_fixed_len, NBYTES);                               \
+  do_test_fixed(memset_test_fixed_len, NBYTES);
+  MEMINTRIN_SIZE_TABLE
+#undef X
+#undef do_test_fixed
 }
 
 #ifdef X8664_STACK_HACK

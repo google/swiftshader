@@ -192,9 +192,17 @@ protected:
                       Operand *Val);
   void lowerCountZeros(bool Cttz, Type Ty, Variable *Dest, Operand *FirstVal,
                        Operand *SecondVal);
-  /// Replace a call to memcpy with inline instructions.
+  /// Load from memory for a given type.
+  void typedLoad(Type Ty, Variable *Dest, Variable *Base, Constant *Offset);
+  /// Store to memory for a given type.
+  void typedStore(Type Ty, Variable *Value, Variable *Base, Constant *Offset);
+  /// Copy memory of given type from Src to Dest using OffsetAmt on both.
+  void copyMemory(Type Ty, Variable *Dest, Variable *Src, int32_t OffsetAmt);
+  /// Replace some calls to memcpy with inline instructions.
   void lowerMemcpy(Operand *Dest, Operand *Src, Operand *Count);
-  /// Replace a call to memset with inline instructions.
+  /// Replace some calls to memmove with inline instructions.
+  void lowerMemmove(Operand *Dest, Operand *Src, Operand *Count);
+  /// Replace some calls to memset with inline instructions.
   void lowerMemset(Operand *Dest, Operand *Val, Operand *Count);
 
   /// Lower an indirect jump adding sandboxing when needed.
@@ -250,6 +258,19 @@ protected:
 
   Variable *makeReg(Type Ty, int32_t RegNum = Variable::NoRegister);
   static Type stackSlotType();
+
+  static constexpr uint32_t NoSizeLimit = 0;
+  static const Type TypeForSize[];
+  /// Returns the largest type which is equal to or larger than Size bytes. The
+  /// type is suitable for copying memory i.e. a load and store will be a
+  /// single instruction (for example x86 will get f64 not i64).
+  static Type largestTypeInSize(uint32_t Size, uint32_t MaxSize = NoSizeLimit);
+  /// Returns the smallest type which is equal to or larger than Size bytes. If
+  /// one doesn't exist then the largest type smaller than Size bytes is
+  /// returned. The type is suitable for memory copies as described at
+  /// largestTypeInSize.
+  static Type firstTypeThatFitsSize(uint32_t Size,
+                                    uint32_t MaxSize = NoSizeLimit);
 
   Variable *copyToReg(Operand *Src, int32_t RegNum = Variable::NoRegister);
 

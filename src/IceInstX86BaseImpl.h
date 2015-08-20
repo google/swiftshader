@@ -3202,19 +3202,29 @@ void InstX86Xchg<Machine>::emitIAS(const Cfg *Func) const {
   typename InstX86Base<Machine>::Traits::Assembler *Asm =
       Func->getAssembler<typename InstX86Base<Machine>::Traits::Assembler>();
   Type Ty = this->getSrc(0)->getType();
-  const auto Mem =
+  const auto *VarReg1 = llvm::cast<Variable>(this->getSrc(1));
+  assert(VarReg1->hasReg());
+  const typename InstX86Base<Machine>::Traits::RegisterSet::GPRRegister Reg1 =
+      InstX86Base<Machine>::Traits::RegisterSet::getEncodedGPR(
+          VarReg1->getRegNum());
+
+  if (const auto *VarReg0 = llvm::dyn_cast<Variable>(this->getSrc(0))) {
+    assert(VarReg0->hasReg());
+    const typename InstX86Base<Machine>::Traits::RegisterSet::GPRRegister Reg0 =
+        InstX86Base<Machine>::Traits::RegisterSet::getEncodedGPR(
+            VarReg0->getRegNum());
+    Asm->xchg(Ty, Reg0, Reg1);
+    return;
+  }
+
+  const auto *Mem =
       llvm::cast<typename InstX86Base<Machine>::Traits::X86OperandMem>(
           this->getSrc(0));
   assert(Mem->getSegmentRegister() ==
          InstX86Base<Machine>::Traits::X86OperandMem::DefaultSegment);
   const typename InstX86Base<Machine>::Traits::Address Addr =
       Mem->toAsmAddress(Asm);
-  const auto VarReg = llvm::cast<Variable>(this->getSrc(1));
-  assert(VarReg->hasReg());
-  const typename InstX86Base<Machine>::Traits::RegisterSet::GPRRegister Reg =
-      InstX86Base<Machine>::Traits::RegisterSet::getEncodedGPR(
-          VarReg->getRegNum());
-  Asm->xchg(Ty, Addr, Reg);
+  Asm->xchg(Ty, Addr, Reg1);
 }
 
 template <class Machine>

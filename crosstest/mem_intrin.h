@@ -6,10 +6,15 @@
  */
 #include "xdefs.h"
 
+#include "mem_intrin.def"
+
 int memcpy_test(uint8_t *buf, uint8_t *buf2, uint8_t init, SizeT length);
 int memmove_test(uint8_t *buf, uint8_t *buf2, uint8_t init, SizeT length);
 int memset_test(uint8_t *buf, uint8_t *buf2, uint8_t init, SizeT length);
 
-int memcpy_test_fixed_len(uint8_t init);
-int memmove_test_fixed_len(uint8_t init);
-int memset_test_fixed_len(uint8_t init);
+#define X(NBYTES)                                                              \
+  int memcpy_test_fixed_len_##NBYTES(uint8_t init);                            \
+  int memmove_test_fixed_len_##NBYTES(uint8_t init);                           \
+  int memset_test_fixed_len_##NBYTES(uint8_t init);
+MEMINTRIN_SIZE_TABLE
+#undef X

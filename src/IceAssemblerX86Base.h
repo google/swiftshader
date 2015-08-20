@@ -845,6 +845,8 @@ public:
   void cmpxchg8b(const typename Traits::Address &address, bool Locked);
   void xadd(Type Ty, const typename Traits::Address &address,
             typename Traits::GPRRegister reg, bool Locked);
+  void xchg(Type Ty, typename Traits::GPRRegister reg0,
+            typename Traits::GPRRegister reg1);
   void xchg(Type Ty, const typename Traits::Address &address,
             typename Traits::GPRRegister reg);
 

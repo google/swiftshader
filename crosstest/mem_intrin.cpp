@@ -40,30 +40,6 @@ fletcher_checksum(uint8_t *buf, SizeT length) {
   return (sum_of_sums << 8) | sum;
 }
 
-#define NWORDS 32
-#define BYTE_LENGTH (NWORDS * sizeof(elem_t))
-
-int memcpy_test_fixed_len(uint8_t init) {
-  elem_t buf[NWORDS];
-  elem_t buf2[NWORDS];
-  reset_buf((uint8_t *)buf, init, BYTE_LENGTH);
-  memcpy((void *)buf2, (void *)buf, BYTE_LENGTH);
-  return fletcher_checksum((uint8_t *)buf2, BYTE_LENGTH);
-}
-
-int memmove_test_fixed_len(uint8_t init) {
-  elem_t buf[NWORDS];
-  reset_buf((uint8_t *)buf, init, BYTE_LENGTH);
-  memmove((void *)(buf + 4), (void *)buf, BYTE_LENGTH - (4 * sizeof(elem_t)));
-  return fletcher_checksum((uint8_t *)buf + 4, BYTE_LENGTH - 4);
-}
-
-int memset_test_fixed_len(uint8_t init) {
-  elem_t buf[NWORDS];
-  memset((void *)buf, init, BYTE_LENGTH);
-  return fletcher_checksum((uint8_t *)buf, BYTE_LENGTH);
-}
-
 int memcpy_test(uint8_t *buf, uint8_t *buf2, uint8_t init, SizeT length) {
   reset_buf(buf, init, length);
   memcpy((void *)buf2, (void *)buf, length);
@@ -94,3 +70,33 @@ int memset_test(uint8_t *buf, uint8_t *buf2, uint8_t init, SizeT length) {
   memset((void *)buf2, init + 4, length);
   return fletcher_checksum(buf, length) + fletcher_checksum(buf2, length);
 }
+
+#define X(NBYTES)                                                              \
+  int memcpy_test_fixed_len_##NBYTES(uint8_t init) {                           \
+    uint8_t buf[NBYTES];                                                       \
+    uint8_t buf2[NBYTES];                                                      \
+    reset_buf(buf, init, NBYTES);                                              \
+    memcpy((void *)buf2, (void *)buf, NBYTES);                                 \
+    return fletcher_checksum(buf2, NBYTES);                                    \
+  }                                                                            \
+                                                                               \
+  int memmove_test_fixed_len_##NBYTES(uint8_t init) {                          \
+    uint8_t buf[NBYTES + 16];                                                  \
+    uint8_t buf2[NBYTES + 16];                                                 \
+    reset_buf(buf, init, NBYTES + 16);                                         \
+    reset_buf(buf2, init, NBYTES + 16);                                        \
+    /* Move up */                                                              \
+    memmove((void *)(buf + 16), (void *)buf, NBYTES);                          \
+    /* Move down */                                                            \
+    memmove((void *)buf2, (void *)(buf2 + 16), NBYTES);                        \
+    return fletcher_checksum(buf, NBYTES + 16) +                               \
+           fletcher_checksum(buf2, NBYTES + 16);                               \
+  }                                                                            \
+                                                                               \
+  int memset_test_fixed_len_##NBYTES(uint8_t init) {                           \
+    uint8_t buf[NBYTES];                                                       \
+    memset((void *)buf, init, NBYTES);                                         \
+    return fletcher_checksum(buf, NBYTES);                                     \
+  }
+MEMINTRIN_SIZE_TABLE
+#undef X

@@ -83,6 +83,10 @@ cl::opt<bool> EnableBlockProfile(
     cl::init(false));
 
 cl::opt<bool>
+    ForceMemIntrinOpt("fmem-intrin-opt",
+                      cl::desc("Force optimization of memory intrinsics."));
+
+cl::opt<bool>
     FunctionSections("ffunction-sections",
                      cl::desc("Emit functions into separate sections"));
 
@@ -356,6 +360,7 @@ void ClFlags::resetClFlags(ClFlags &OutFlags) {
   OutFlags.DisableTranslation = false;
   OutFlags.DumpStats = false;
   OutFlags.EnableBlockProfile = false;
+  OutFlags.ForceMemIntrinOpt = false;
   OutFlags.FunctionSections = false;
   OutFlags.GenerateUnitTestMessages = false;
   OutFlags.PhiEdgeSplit = false;
@@ -416,6 +421,7 @@ void ClFlags::getParsedClFlags(ClFlags &OutFlags) {
   OutFlags.setDisableTranslation(::DisableTranslation);
   OutFlags.setDumpStats(::DumpStats);
   OutFlags.setEnableBlockProfile(::EnableBlockProfile);
+  OutFlags.setForceMemIntrinOpt(::ForceMemIntrinOpt);
   OutFlags.setFunctionSections(::FunctionSections);
   OutFlags.setNumTranslationThreads(::NumThreads);
   OutFlags.setOptLevel(::OLevel);

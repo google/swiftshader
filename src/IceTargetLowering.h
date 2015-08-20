@@ -351,6 +351,8 @@ protected:
     Context.getLastInserted()->setDestNonKillable();
   }
 
+  bool shouldOptimizeMemIntrins();
+
   Cfg *Func;
   GlobalContext *Ctx;
   bool HasComputedFrame = false;

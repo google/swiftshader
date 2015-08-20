@@ -440,6 +440,11 @@ InstCall *TargetLowering::makeHelperCall(const IceString &Name, Variable *Dest,
   return Call;
 }
 
+bool TargetLowering::shouldOptimizeMemIntrins() {
+  return Ctx->getFlags().getOptLevel() >= Opt_1 ||
+         Ctx->getFlags().getForceMemIntrinOpt();
+}
+
 void TargetLowering::emitWithoutPrefix(const ConstantRelocatable *C) const {
   if (!BuildDefs::dump())
     return;

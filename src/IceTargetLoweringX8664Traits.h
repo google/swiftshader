@@ -456,6 +456,13 @@ template <> struct MachineTraits<TargetX8664> {
   /// The number of different NOP instructions
   static const uint32_t X86_NUM_NOP_VARIANTS = 5;
 
+  /// \name Limits for unrolling memory intrinsics.
+  /// @{
+  static constexpr uint32_t MEMCPY_UNROLL_LIMIT = 8;
+  static constexpr uint32_t MEMMOVE_UNROLL_LIMIT = 8;
+  static constexpr uint32_t MEMSET_UNROLL_LIMIT = 16;
+  /// @}
+
   /// Value is in bytes. Return Value adjusted to the next highest multiple
   /// of the stack alignment.
   static uint32_t applyStackAlignment(uint32_t Value) {

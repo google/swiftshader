@@ -3153,11 +3153,7 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
     return;
   }
   case Intrinsics::Memmove: {
-    InstCall *Call = makeHelperCall(H_call_memmove, nullptr, 3);
-    Call->addArg(Instr->getArg(0));
-    Call->addArg(Instr->getArg(1));
-    Call->addArg(Instr->getArg(2));
-    lowerCall(Call);
+    lowerMemmove(Instr->getArg(0), Instr->getArg(1), Instr->getArg(2));
     return;
   }
   case Intrinsics::Memset: {
@@ -3600,22 +3596,55 @@ void TargetX86Base<Machine>::lowerCountZeros(bool Cttz, Type Ty, Variable *Dest,
 }
 
 template <class Machine>
+void TargetX86Base<Machine>::typedLoad(Type Ty, Variable *Dest, Variable *Base,
+                                       Constant *Offset) {
+  auto *Mem = Traits::X86OperandMem::create(Func, Ty, Base, Offset);
+
+  if (isVectorType(Ty))
+    _movp(Dest, Mem);
+  else if (Ty == IceType_f64)
+    _movq(Dest, Mem);
+  else
+    _mov(Dest, Mem);
+}
+
+template <class Machine>
+void TargetX86Base<Machine>::typedStore(Type Ty, Variable *Value,
+                                        Variable *Base, Constant *Offset) {
+  auto *Mem = Traits::X86OperandMem::create(Func, Ty, Base, Offset);
+
+  if (isVectorType(Ty))
+    _storep(Value, Mem);
+  else if (Ty == IceType_f64)
+    _storeq(Value, Mem);
+  else
+    _store(Value, Mem);
+}
+
+template <class Machine>
+void TargetX86Base<Machine>::copyMemory(Type Ty, Variable *Dest, Variable *Src,
+                                        int32_t OffsetAmt) {
+  Constant *Offset = OffsetAmt ? Ctx->getConstantInt32(OffsetAmt) : nullptr;
+  // TODO(ascull): this or add nullptr test to _movp, _movq
+  Variable *Data = makeReg(Ty);
+
+  typedLoad(Ty, Data, Src, Offset);
+  typedStore(Ty, Data, Dest, Offset);
+}
+
+template <class Machine>
 void TargetX86Base<Machine>::lowerMemcpy(Operand *Dest, Operand *Src,
                                          Operand *Count) {
   // There is a load and store for each chunk in the unroll
-  constexpr uint32_t UNROLL_LIMIT = 8;
   constexpr uint32_t BytesPerStorep = 16;
-  constexpr uint32_t BytesPerStoreq = 8;
-  constexpr uint32_t BytesPerStorei32 = 4;
-  constexpr uint32_t BytesPerStorei16 = 2;
-  constexpr uint32_t BytesPerStorei8 = 1;
 
   // Check if the operands are constants
   const auto *CountConst = llvm::dyn_cast<const ConstantInteger32>(Count);
   const bool IsCountConst = CountConst != nullptr;
   const uint32_t CountValue = IsCountConst ? CountConst->getValue() : 0;
 
-  if (IsCountConst && CountValue <= BytesPerStorep * UNROLL_LIMIT) {
+  if (shouldOptimizeMemIntrins() && IsCountConst &&
+      CountValue <= BytesPerStorep * Traits::MEMCPY_UNROLL_LIMIT) {
     // Unlikely, but nothing to do if it does happen
     if (CountValue == 0)
       return;
@@ -3623,80 +3652,29 @@ void TargetX86Base<Machine>::lowerMemcpy(Operand *Dest, Operand *Src,
     Variable *SrcBase = legalizeToReg(Src);
     Variable *DestBase = legalizeToReg(Dest);
 
-    auto lowerCopy = [this, DestBase, SrcBase](Type Ty, uint32_t OffsetAmt) {
-      Constant *Offset = OffsetAmt ? Ctx->getConstantInt32(OffsetAmt) : nullptr;
-      // TODO(ascull): this or add nullptr test to _movp, _movq
-      Variable *Data = makeReg(Ty);
+    // Find the largest type that can be used and use it as much as possible in
+    // reverse order. Then handle any remainder with overlapping copies. Since
+    // the remainder will be at the end, there will be reduced pressure on the
+    // memory unit as the accesses to the same memory are far apart.
+    Type Ty = largestTypeInSize(CountValue);
+    uint32_t TyWidth = typeWidthInBytes(Ty);
 
-      // TODO(ascull): is 64-bit better with vector or scalar movq?
-      auto *SrcMem = Traits::X86OperandMem::create(Func, Ty, SrcBase, Offset);
-      if (isVectorType(Ty))
-        _movp(Data, SrcMem);
-      else if (Ty == IceType_f64)
-        _movq(Data, SrcMem);
-      else
-        _mov(Data, SrcMem);
-
-      auto *DestMem = Traits::X86OperandMem::create(Func, Ty, DestBase, Offset);
-      if (isVectorType(Ty))
-        _storep(Data, DestMem);
-      else if (Ty == IceType_f64)
-        _storeq(Data, DestMem);
-      else
-        _store(Data, DestMem);
-    };
-
-    // Lowers the assignment to the remaining bytes. Assumes the original size
-    // was large enough to allow for overlaps.
-    auto lowerLeftOvers = [this, lowerCopy, CountValue](uint32_t Size) {
-      if (Size > BytesPerStoreq) {
-        lowerCopy(IceType_v16i8, CountValue - BytesPerStorep);
-      } else if (Size > BytesPerStorei32) {
-        lowerCopy(IceType_f64, CountValue - BytesPerStoreq);
-      } else if (Size > BytesPerStorei16) {
-        lowerCopy(IceType_i32, CountValue - BytesPerStorei32);
-      } else if (Size > BytesPerStorei8) {
-        lowerCopy(IceType_i16, CountValue - BytesPerStorei16);
-      } else if (Size == BytesPerStorei8) {
-        lowerCopy(IceType_i8, CountValue - BytesPerStorei8);
-      }
-    };
-
-    if (CountValue >= BytesPerStorep) {
-      // Use large vector operations
-      for (uint32_t N = CountValue & 0xFFFFFFF0; N != 0;) {
-        N -= BytesPerStorep;
-        lowerCopy(IceType_v16i8, N);
-      }
-      lowerLeftOvers(CountValue & 0xF);
-      return;
+    uint32_t RemainingBytes = CountValue;
+    int32_t Offset = (CountValue & ~(TyWidth - 1)) - TyWidth;
+    while (RemainingBytes >= TyWidth) {
+      copyMemory(Ty, DestBase, SrcBase, Offset);
+      RemainingBytes -= TyWidth;
+      Offset -= TyWidth;
     }
 
-    // Too small to use large vector operations so use small ones instead
-    if (CountValue >= BytesPerStoreq) {
-      lowerCopy(IceType_f64, 0);
-      lowerLeftOvers(CountValue - BytesPerStoreq);
+    if (RemainingBytes == 0)
       return;
-    }
 
-    // Too small for vector operations so use scalar ones
-    if (CountValue >= BytesPerStorei32) {
-      lowerCopy(IceType_i32, 0);
-      lowerLeftOvers(CountValue - BytesPerStorei32);
-      return;
-    }
-
-    // 3 is the awkward size as it is too small for the vector or 32-bit
-    // operations and will not work with lowerLeftOvers as there is no valid
-    // overlap.
-    if (CountValue == 3) {
-      lowerCopy(IceType_i16, 0);
-      lowerCopy(IceType_i8, 2);
-      return;
-    }
-
-    // 1 or 2 can be done in a single scalar copy
-    lowerLeftOvers(CountValue);
+    // Lower the remaining bytes. Adjust to larger types in order to make use
+    // of overlaps in the copies.
+    Type LeftOverTy = firstTypeThatFitsSize(RemainingBytes);
+    Offset = CountValue - typeWidthInBytes(LeftOverTy);
+    copyMemory(LeftOverTy, DestBase, SrcBase, Offset);
     return;
   }
 
@@ -3709,14 +3687,83 @@ void TargetX86Base<Machine>::lowerMemcpy(Operand *Dest, Operand *Src,
 }
 
 template <class Machine>
+void TargetX86Base<Machine>::lowerMemmove(Operand *Dest, Operand *Src,
+                                          Operand *Count) {
+  // There is a load and store for each chunk in the unroll
+  constexpr uint32_t BytesPerStorep = 16;
+
+  // Check if the operands are constants
+  const auto *CountConst = llvm::dyn_cast<const ConstantInteger32>(Count);
+  const bool IsCountConst = CountConst != nullptr;
+  const uint32_t CountValue = IsCountConst ? CountConst->getValue() : 0;
+
+  if (shouldOptimizeMemIntrins() && IsCountConst &&
+      CountValue <= BytesPerStorep * Traits::MEMMOVE_UNROLL_LIMIT) {
+    // Unlikely, but nothing to do if it does happen
+    if (CountValue == 0)
+      return;
+
+    Variable *SrcBase = legalizeToReg(Src);
+    Variable *DestBase = legalizeToReg(Dest);
+
+    std::tuple<Type, Constant *, Variable *>
+        Moves[Traits::MEMMOVE_UNROLL_LIMIT];
+    Constant *Offset;
+    Variable *Reg;
+
+    // Copy the data into registers as the source and destination could overlap
+    // so make sure not to clobber the memory. This also means overlapping moves
+    // can be used as we are taking a safe snapshot of the memory.
+    Type Ty = largestTypeInSize(CountValue);
+    uint32_t TyWidth = typeWidthInBytes(Ty);
+
+    uint32_t RemainingBytes = CountValue;
+    int32_t OffsetAmt = (CountValue & ~(TyWidth - 1)) - TyWidth;
+    size_t N = 0;
+    while (RemainingBytes >= TyWidth) {
+      assert(N <= Traits::MEMMOVE_UNROLL_LIMIT);
+      Offset = Ctx->getConstantInt32(OffsetAmt);
+      Reg = makeReg(Ty);
+      typedLoad(Ty, Reg, SrcBase, Offset);
+      RemainingBytes -= TyWidth;
+      OffsetAmt -= TyWidth;
+      Moves[N++] = std::make_tuple(Ty, Offset, Reg);
+    }
+
+    if (RemainingBytes != 0) {
+      // Lower the remaining bytes. Adjust to larger types in order to make use
+      // of overlaps in the copies.
+      assert(N <= Traits::MEMMOVE_UNROLL_LIMIT);
+      Ty = firstTypeThatFitsSize(RemainingBytes);
+      Offset = Ctx->getConstantInt32(CountValue - typeWidthInBytes(Ty));
+      Reg = makeReg(Ty);
+      typedLoad(Ty, Reg, SrcBase, Offset);
+      Moves[N++] = std::make_tuple(Ty, Offset, Reg);
+    }
+
+    // Copy the data out into the destination memory
+    for (size_t i = 0; i < N; ++i) {
+      std::tie(Ty, Offset, Reg) = Moves[i];
+      typedStore(Ty, Reg, DestBase, Offset);
+    }
+
+    return;
+  }
+
+  // Fall back on a function call
+  InstCall *Call = makeHelperCall(H_call_memmove, nullptr, 3);
+  Call->addArg(Dest);
+  Call->addArg(Src);
+  Call->addArg(Count);
+  lowerCall(Call);
+}
+
+template <class Machine>
 void TargetX86Base<Machine>::lowerMemset(Operand *Dest, Operand *Val,
                                          Operand *Count) {
-  constexpr uint32_t UNROLL_LIMIT = 16;
   constexpr uint32_t BytesPerStorep = 16;
   constexpr uint32_t BytesPerStoreq = 8;
   constexpr uint32_t BytesPerStorei32 = 4;
-  constexpr uint32_t BytesPerStorei16 = 2;
-  constexpr uint32_t BytesPerStorei8 = 1;
   assert(Val->getType() == IceType_i8);
 
   // Check if the operands are constants
@@ -3734,11 +3781,11 @@ void TargetX86Base<Machine>::lowerMemset(Operand *Dest, Operand *Val,
   // TODO(ascull): if the count is constant but val is not it would be possible
   // to inline by spreading the value across 4 bytes and accessing subregs e.g.
   // eax, ax and al.
-  if (IsCountConst && IsValConst) {
+  if (shouldOptimizeMemIntrins() && IsCountConst && IsValConst) {
     Variable *Base = nullptr;
+    Variable *VecReg = nullptr;
     const uint32_t SpreadValue =
         (ValValue << 24) | (ValValue << 16) | (ValValue << 8) | ValValue;
-    Variable *VecReg = nullptr;
 
     auto lowerSet = [this, &Base, SpreadValue, &VecReg](Type Ty,
                                                         uint32_t OffsetAmt) {
@@ -3750,7 +3797,7 @@ void TargetX86Base<Machine>::lowerMemset(Operand *Dest, Operand *Val,
       if (isVectorType(Ty)) {
         assert(VecReg != nullptr);
         _storep(VecReg, Mem);
-      } else if (Ty == IceType_i64) {
+      } else if (Ty == IceType_f64) {
         assert(VecReg != nullptr);
         _storeq(VecReg, Mem);
       } else {
@@ -3758,63 +3805,45 @@ void TargetX86Base<Machine>::lowerMemset(Operand *Dest, Operand *Val,
       }
     };
 
-    // Lowers the assignment to the remaining bytes. Assumes the original size
-    // was large enough to allow for overlaps.
-    auto lowerLeftOvers = [this, lowerSet, CountValue](uint32_t Size) {
-      if (Size > BytesPerStoreq) {
-        lowerSet(IceType_v16i8, CountValue - BytesPerStorep);
-      } else if (Size > BytesPerStorei32) {
-        lowerSet(IceType_i64, CountValue - BytesPerStoreq);
-      } else if (Size > BytesPerStorei16) {
-        lowerSet(IceType_i32, CountValue - BytesPerStorei32);
-      } else if (Size > BytesPerStorei8) {
-        lowerSet(IceType_i16, CountValue - BytesPerStorei16);
-      } else if (Size == BytesPerStorei8) {
-        lowerSet(IceType_i8, CountValue - BytesPerStorei8);
-      }
-    };
-
-    // When the value is zero it can be loaded into a vector register cheaply
-    // using the xor trick.
+    // Find the largest type that can be used and use it as much as possible in
+    // reverse order. Then handle any remainder with overlapping copies. Since
+    // the remainder will be at the end, there will be reduces pressure on the
+    // memory unit as the access to the same memory are far apart.
+    Type Ty;
     if (ValValue == 0 && CountValue >= BytesPerStoreq &&
-        CountValue <= BytesPerStorep * UNROLL_LIMIT) {
+        CountValue <= BytesPerStorep * Traits::MEMCPY_UNROLL_LIMIT) {
+      // When the value is zero it can be loaded into a vector register cheaply
+      // using the xor trick.
       Base = legalizeToReg(Dest);
       VecReg = makeVectorOfZeros(IceType_v16i8);
-
-      // Too small to use large vector operations so use small ones instead
-      if (CountValue < BytesPerStorep) {
-        lowerSet(IceType_i64, 0);
-        lowerLeftOvers(CountValue - BytesPerStoreq);
-        return;
-      }
-
-      // Use large vector operations
-      for (uint32_t N = CountValue & 0xFFFFFFF0; N != 0;) {
-        N -= 16;
-        lowerSet(IceType_v16i8, N);
-      }
-      lowerLeftOvers(CountValue & 0xF);
-      return;
+      Ty = largestTypeInSize(CountValue);
+    } else if (CountValue <= BytesPerStorei32 * Traits::MEMCPY_UNROLL_LIMIT) {
+      // When the value is non-zero or the count is small we can't use vector
+      // instructions so are limited to 32-bit stores.
+      Base = legalizeToReg(Dest);
+      constexpr uint32_t MaxSize = 4;
+      Ty = largestTypeInSize(CountValue, MaxSize);
     }
 
-    // TODO(ascull): load val into reg and select subregs e.g. eax, ax, al?
-    if (CountValue <= BytesPerStorei32 * UNROLL_LIMIT) {
-      Base = legalizeToReg(Dest);
-      // 3 is the awkward size as it is too small for the vector or 32-bit
-      // operations and will not work with lowerLeftOvers as there is no valid
-      // overlap.
-      if (CountValue == 3) {
-        lowerSet(IceType_i16, 0);
-        lowerSet(IceType_i8, 2);
-        return;
+    if (Base) {
+      uint32_t TyWidth = typeWidthInBytes(Ty);
+
+      uint32_t RemainingBytes = CountValue;
+      uint32_t Offset = (CountValue & ~(TyWidth - 1)) - TyWidth;
+      while (RemainingBytes >= TyWidth) {
+        lowerSet(Ty, Offset);
+        RemainingBytes -= TyWidth;
+        Offset -= TyWidth;
       }
 
-      // TODO(ascull); 64-bit can do better with 64-bit mov
-      for (uint32_t N = CountValue & 0xFFFFFFFC; N != 0;) {
-        N -= 4;
-        lowerSet(IceType_i32, N);
-      }
-      lowerLeftOvers(CountValue & 0x3);
+      if (RemainingBytes == 0)
+        return;
+
+      // Lower the remaining bytes. Adjust to larger types in order to make use
+      // of overlaps in the copies.
+      Type LeftOverTy = firstTypeThatFitsSize(RemainingBytes);
+      Offset = CountValue - typeWidthInBytes(LeftOverTy);
+      lowerSet(LeftOverTy, Offset);
       return;
     }
   }
@@ -5051,6 +5080,34 @@ Variable *TargetX86Base<Machine>::makeReg(Type Type, int32_t RegNum) {
   else
     Reg->setRegNum(RegNum);
   return Reg;
+}
+
+template <class Machine>
+const Type TargetX86Base<Machine>::TypeForSize[] = {
+    IceType_i8, IceType_i16, IceType_i32,
+    (Traits::Is64Bit ? IceType_i64 : IceType_f64), IceType_v16i8};
+template <class Machine>
+Type TargetX86Base<Machine>::largestTypeInSize(uint32_t Size,
+                                               uint32_t MaxSize) {
+  assert(Size != 0);
+  uint32_t TyIndex = llvm::findLastSet(Size, llvm::ZB_Undefined);
+  uint32_t MaxIndex = MaxSize == NoSizeLimit
+                          ? llvm::array_lengthof(TypeForSize) - 1
+                          : llvm::findLastSet(MaxSize, llvm::ZB_Undefined);
+  return TypeForSize[std::min(TyIndex, MaxIndex)];
+}
+
+template <class Machine>
+Type TargetX86Base<Machine>::firstTypeThatFitsSize(uint32_t Size,
+                                                   uint32_t MaxSize) {
+  assert(Size != 0);
+  uint32_t TyIndex = llvm::findLastSet(Size, llvm::ZB_Undefined);
+  if (!llvm::isPowerOf2_32(Size))
+    ++TyIndex;
+  uint32_t MaxIndex = MaxSize == NoSizeLimit
+                          ? llvm::array_lengthof(TypeForSize) - 1
+                          : llvm::findLastSet(MaxSize, llvm::ZB_Undefined);
+  return TypeForSize[std::min(TyIndex, MaxIndex)];
 }
 
 template <class Machine> void TargetX86Base<Machine>::postLower() {
