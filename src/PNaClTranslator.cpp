@@ -166,8 +166,6 @@ class TopLevelParser : public NaClBitcodeParser {
   TopLevelParser &operator=(const TopLevelParser &) = delete;
 
 public:
-  typedef std::vector<Ice::FunctionDeclaration *> FunctionDeclarationListType;
-
   TopLevelParser(Ice::Translator &Translator, NaClBitstreamCursor &Cursor,
                  Ice::ErrorCode &ErrorStatus)
       : NaClBitcodeParser(Cursor), Translator(Translator),
@@ -247,16 +245,16 @@ public:
 
   /// Sets the next function ID to the given LLVM function.
   void setNextFunctionID(Ice::FunctionDeclaration *Fcn) {
-    FunctionDeclarationList.push_back(Fcn);
+    FunctionDeclarations.push_back(Fcn);
   }
 
   /// Returns the value id that should be associated with the the
   /// current function block. Increments internal counters during call
   /// so that it will be in correct position for next function block.
   NaClBcIndexSize_t getNextFunctionBlockValueID() {
-    size_t NumDeclaredFunctions = FunctionDeclarationList.size();
+    size_t NumDeclaredFunctions = FunctionDeclarations.size();
     while (NextDefiningFunctionID < NumDeclaredFunctions &&
-           FunctionDeclarationList[NextDefiningFunctionID]->isProto())
+           FunctionDeclarations[NextDefiningFunctionID]->isProto())
       ++NextDefiningFunctionID;
     if (NextDefiningFunctionID >= NumDeclaredFunctions)
       Fatal("More function blocks than defined function addresses");
@@ -265,8 +263,8 @@ public:
 
   /// Returns the function associated with ID.
   Ice::FunctionDeclaration *getFunctionByID(NaClBcIndexSize_t ID) {
-    if (ID < FunctionDeclarationList.size())
-      return FunctionDeclarationList[ID];
+    if (ID < FunctionDeclarations.size())
+      return FunctionDeclarations[ID];
     return reportGetFunctionByIDError(ID);
   }
 
@@ -288,19 +286,19 @@ public:
   void createValueIDs() {
     assert(VariableDeclarations);
     ValueIDConstants.reserve(VariableDeclarations->size() +
-                             FunctionDeclarationList.size());
+                             FunctionDeclarations.size());
     createValueIDsForFunctions();
     createValueIDsForGlobalVars();
   }
 
   /// Returns the number of function declarations in the bitcode file.
-  size_t getNumFunctionIDs() const { return FunctionDeclarationList.size(); }
+  size_t getNumFunctionIDs() const { return FunctionDeclarations.size(); }
 
   /// Returns the number of global declarations (i.e. IDs) defined in
   /// the bitcode file.
   size_t getNumGlobalIDs() const {
     if (VariableDeclarations) {
-      return FunctionDeclarationList.size() + VariableDeclarations->size();
+      return FunctionDeclarations.size() + VariableDeclarations->size();
     } else {
       return ValueIDConstants.size();
     }
@@ -324,7 +322,7 @@ public:
   /// Returns the global declaration (variable or function) with the
   /// given Index.
   Ice::GlobalDeclaration *getGlobalDeclarationByID(NaClBcIndexSize_t Index) {
-    size_t NumFunctionIds = FunctionDeclarationList.size();
+    size_t NumFunctionIds = FunctionDeclarations.size();
     if (Index < NumFunctionIds)
       return getFunctionByID(Index);
     else
@@ -353,18 +351,17 @@ private:
   // The types associated with each type ID.
   std::vector<ExtendedType> TypeIDValues;
   // The set of functions (prototype and defined).
-  FunctionDeclarationListType FunctionDeclarationList;
-  // The ID of the next possible defined function ID in
-  // FunctionDeclarationList.  FunctionDeclarationList is filled
-  // first. It's the set of functions (either defined or isproto). Then
-  // function definitions are encountered/parsed and
-  // NextDefiningFunctionID is incremented to track the next
-  // actually-defined function.
+  Ice::FunctionDeclarationList FunctionDeclarations;
+  // The ID of the next possible defined function ID in FunctionDeclarations.
+  // FunctionDeclarations is filled first. It's the set of functions (either
+  // defined or isproto). Then function definitions are encountered/parsed and
+  // NextDefiningFunctionID is incremented to track the next actually-defined
+  // function.
   size_t NextDefiningFunctionID = 0;
   // The set of global variables.
   std::unique_ptr<Ice::VariableDeclarationList> VariableDeclarations;
   // Relocatable constants associated with global declarations.
-  std::vector<Ice::Constant *> ValueIDConstants;
+  Ice::ConstantList ValueIDConstants;
   // Error recovery value to use when getFuncSigTypeByID fails.
   Ice::FuncSigType UndefinedFuncSigType;
   // The block parser currently being applied. Used for error
@@ -427,7 +424,7 @@ private:
         getTranslator().getFlags().getDefaultFunctionPrefix();
     if (!FunctionPrefix.empty()) {
       NaClBcIndexSize_t NameIndex = 0;
-      for (Ice::FunctionDeclaration *Func : FunctionDeclarationList) {
+      for (Ice::FunctionDeclaration *Func : FunctionDeclarations) {
         installDeclarationName(Func, FunctionPrefix, "function", NameIndex);
       }
     }
@@ -448,7 +445,7 @@ private:
 
   // Converts function declarations into constant value IDs.
   void createValueIDsForFunctions() {
-    for (const Ice::FunctionDeclaration *Func : FunctionDeclarationList) {
+    for (const Ice::FunctionDeclaration *Func : FunctionDeclarations) {
       Ice::Constant *C = nullptr;
       if (!isIRGenerationDisabled()) {
         C = getConstantSym(Func->getName(), Func->getSuppressMangling(),
@@ -524,10 +521,10 @@ TopLevelParser::reportGetFunctionByIDError(NaClBcIndexSize_t ID) {
   raw_string_ostream StrBuf(Buffer);
   StrBuf << "Function index " << ID
          << " not allowed. Out of range. Must be less than "
-         << FunctionDeclarationList.size();
+         << FunctionDeclarations.size();
   blockError(StrBuf.str());
-  if (!FunctionDeclarationList.empty())
-    return FunctionDeclarationList[0];
+  if (!FunctionDeclarations.empty())
+    return FunctionDeclarations[0];
   Fatal();
 }
 
@@ -1233,9 +1230,10 @@ public:
       getTranslator().getContext()->pushTimer(TimerID, StackID);
     }
 
-    if (!isIRGenerationDisabled())
-      Func = Ice::Cfg::create(getTranslator().getContext(),
-                              getTranslator().getNextSequenceNumber());
+    // Note: The Cfg is created, even when IR generation is disabled. This
+    // is done to install a CfgLocalAllocator for various internal containers.
+    Func = Ice::Cfg::create(getTranslator().getContext(),
+                            getTranslator().getNextSequenceNumber());
     Ice::Cfg::setCurrentCfg(Func.get());
 
     // TODO(kschimpf) Clean up API to add a function signature to
@@ -1336,7 +1334,7 @@ private:
   size_t CachedNumGlobalValueIDs;
   // Holds operands local to the function block, based on indices
   // defined in the bitcode file.
-  std::vector<Ice::Operand *> LocalOperands;
+  Ice::OperandList LocalOperands;
   // Holds the index within LocalOperands corresponding to the next
   // instruction that generates a value.
   NaClBcIndexSize_t NextLocalInstIndex;

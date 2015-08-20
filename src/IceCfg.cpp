@@ -43,8 +43,6 @@ Cfg::Cfg(GlobalContext *Ctx, uint32_t SequenceNumber)
       VMetadata(new VariablesMetadata(this)),
       TargetAssembler(TargetLowering::createAssembler(
           Ctx->getFlags().getTargetArch(), this)) {
-  assert(!Ctx->isIRGenerationDisabled() &&
-         "Attempt to build cfg when IR generation disabled");
 }
 
 Cfg::~Cfg() { assert(ICE_TLS_GET_FIELD(CurrentCfg) == nullptr); }

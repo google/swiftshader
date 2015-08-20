@@ -144,11 +144,15 @@ typedef llvm::ilist<Inst> InstList;
 // AssignList, but this runs into issues with SFINAE.
 typedef InstList PhiList;
 typedef InstList AssignList;
-// VarList and NodeList are arena-allocated from the Cfg's allocator.
+
+// Containers that are arena-allocated from the Cfg's allocator.
+typedef std::vector<Operand *, CfgLocalAllocator<Operand *>> OperandList;
 typedef std::vector<Variable *, CfgLocalAllocator<Variable *>> VarList;
 typedef std::vector<CfgNode *, CfgLocalAllocator<CfgNode *>> NodeList;
-typedef std::vector<Constant *> ConstantList;
 
+// Contains that use the default (global) allocator.
+typedef std::vector<Constant *> ConstantList;
+typedef std::vector<FunctionDeclaration *> FunctionDeclarationList;
 typedef std::vector<VariableDeclaration *> VariableDeclarationList;
 
 /// SizeT is for holding small-ish limits like number of source
