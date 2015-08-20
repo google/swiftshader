@@ -2192,11 +2192,11 @@ namespace es2
 
 	bool Program::applyUniform1iv(GLint location, GLsizei count, const GLint *v)
 	{
-		float vector[MAX_UNIFORM_VECTORS][4];
+		GLint vector[MAX_UNIFORM_VECTORS][4];
 
 		for(int i = 0; i < count; i++)
 		{
-			vector[i][0] = (float)v[i];
+			vector[i][0] = v[i];
 			vector[i][1] = 0;
 			vector[i][2] = 0;
 			vector[i][3] = 0;
@@ -2251,12 +2251,12 @@ namespace es2
 
 	bool Program::applyUniform2iv(GLint location, GLsizei count, const GLint *v)
 	{
-		float vector[MAX_UNIFORM_VECTORS][4];
+		GLint vector[MAX_UNIFORM_VECTORS][4];
 
 		for(int i = 0; i < count; i++)
 		{
-			vector[i][0] = (float)v[0];
-			vector[i][1] = (float)v[1];
+			vector[i][0] = v[0];
+			vector[i][1] = v[1];
 			vector[i][2] = 0;
 			vector[i][3] = 0;
 
@@ -2280,13 +2280,13 @@ namespace es2
 
 	bool Program::applyUniform3iv(GLint location, GLsizei count, const GLint *v)
 	{
-		float vector[MAX_UNIFORM_VECTORS][4];
+		GLint vector[MAX_UNIFORM_VECTORS][4];
 
 		for(int i = 0; i < count; i++)
 		{
-			vector[i][0] = (float)v[0];
-			vector[i][1] = (float)v[1];
-			vector[i][2] = (float)v[2];
+			vector[i][0] = v[0];
+			vector[i][1] = v[1];
+			vector[i][2] = v[2];
 			vector[i][3] = 0;
 
 			v += 3;
@@ -2309,14 +2309,14 @@ namespace es2
 
 	bool Program::applyUniform4iv(GLint location, GLsizei count, const GLint *v)
 	{
-		float vector[MAX_UNIFORM_VECTORS][4];
+		GLint vector[MAX_UNIFORM_VECTORS][4];
 
 		for(int i = 0; i < count; i++)
 		{
-			vector[i][0] = (float)v[0];
-			vector[i][1] = (float)v[1];
-			vector[i][2] = (float)v[2];
-			vector[i][3] = (float)v[3];
+			vector[i][0] = v[0];
+			vector[i][1] = v[1];
+			vector[i][2] = v[2];
+			vector[i][3] = v[3];
 
 			v += 4;
 		}
@@ -2338,11 +2338,11 @@ namespace es2
 
 	bool Program::applyUniform1uiv(GLint location, GLsizei count, const GLuint *v)
 	{
-		float vector[MAX_UNIFORM_VECTORS][4];
+		GLuint vector[MAX_UNIFORM_VECTORS][4];
 
 		for(int i = 0; i < count; i++)
 		{
-			vector[i][0] = (float)v[i];
+			vector[i][0] = v[i];
 			vector[i][1] = 0;
 			vector[i][2] = 0;
 			vector[i][3] = 0;
@@ -2397,12 +2397,12 @@ namespace es2
 
 	bool Program::applyUniform2uiv(GLint location, GLsizei count, const GLuint *v)
 	{
-		float vector[MAX_UNIFORM_VECTORS][4];
+		GLuint vector[MAX_UNIFORM_VECTORS][4];
 
 		for(int i = 0; i < count; i++)
 		{
-			vector[i][0] = (float)v[0];
-			vector[i][1] = (float)v[1];
+			vector[i][0] = v[0];
+			vector[i][1] = v[1];
 			vector[i][2] = 0;
 			vector[i][3] = 0;
 
@@ -2426,13 +2426,13 @@ namespace es2
 
 	bool Program::applyUniform3uiv(GLint location, GLsizei count, const GLuint *v)
 	{
-		float vector[MAX_UNIFORM_VECTORS][4];
+		GLuint vector[MAX_UNIFORM_VECTORS][4];
 
 		for(int i = 0; i < count; i++)
 		{
-			vector[i][0] = (float)v[0];
-			vector[i][1] = (float)v[1];
-			vector[i][2] = (float)v[2];
+			vector[i][0] = v[0];
+			vector[i][1] = v[1];
+			vector[i][2] = v[2];
 			vector[i][3] = 0;
 
 			v += 3;
@@ -2455,14 +2455,14 @@ namespace es2
 
 	bool Program::applyUniform4uiv(GLint location, GLsizei count, const GLuint *v)
 	{
-		float vector[MAX_UNIFORM_VECTORS][4];
+		GLuint vector[MAX_UNIFORM_VECTORS][4];
 
 		for(int i = 0; i < count; i++)
 		{
-			vector[i][0] = (float)v[0];
-			vector[i][1] = (float)v[1];
-			vector[i][2] = (float)v[2];
-			vector[i][3] = (float)v[3];
+			vector[i][0] = v[0];
+			vector[i][1] = v[1];
+			vector[i][2] = v[2];
+			vector[i][3] = v[3];
 
 			v += 4;
 		}

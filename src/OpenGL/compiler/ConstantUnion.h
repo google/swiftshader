@@ -93,15 +93,16 @@ public:
     float getFConst() const { return fConst; }
     bool getBConst() const { return bConst; }
 
-	float getAsFloat()
+	float getAsFloat() const
 	{
 		const int FFFFFFFFh = 0xFFFFFFFF;
 
 		switch(type)
 		{
-        case EbtInt:   return (float)iConst;
+        case EbtInt:   return reinterpret_cast<const float&>(iConst);
+		case EbtUInt:  return reinterpret_cast<const float&>(uConst);
         case EbtFloat: return fConst;
-		case EbtBool:  return (bConst == true) ? (float&)FFFFFFFFh : 0;
+		case EbtBool:  return (bConst == true) ? reinterpret_cast<const float&>(FFFFFFFFh) : 0;
         default:       return 0;
         }
 	}

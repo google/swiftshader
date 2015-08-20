@@ -2994,9 +2994,9 @@ void APIENTRY glGetShaderPrecisionFormat(GLenum shadertype, GLenum precisiontype
 	case GL_LOW_INT:
 	case GL_MEDIUM_INT:
 	case GL_HIGH_INT:
-		// Single-precision floating-point numbers can accurately represent integers up to +/-16777216
-		range[0] = 24;
-		range[1] = 24;
+		// Full integer precision is supported
+		range[0] = 31;
+		range[1] = 30;
 		*precision = 0;
 		break;
 	default:

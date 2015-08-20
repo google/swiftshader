@@ -188,7 +188,7 @@ namespace sw
 			case Shader::OPCODE_IMIN:       imin(d, s0, s1);                break;
 			case Shader::OPCODE_UMIN:       umin(d, s0, s1);                break;
 			case Shader::OPCODE_MOV:		mov(d, s0, integer);			break;
-			case Shader::OPCODE_MOVA:		mov(d, s0);						break;
+			case Shader::OPCODE_MOVA:       mov(d, s0, true);               break;
 			case Shader::OPCODE_NEG:        neg(d, s0);                     break;
 			case Shader::OPCODE_INEG:       ineg(d, s0);                    break;
 			case Shader::OPCODE_F2B:		f2b(d, s0);						break;
@@ -680,7 +680,7 @@ namespace sw
 			}
 			else if(src.rel.type == Shader::PARAMETER_TEMP)
 			{
-				reg.x = As<Float4>(Int4(i) + RoundInt(r.r[src.rel.index].x));
+				reg.x = As<Float4>(Int4(i) + As<Int4>(r.r[src.rel.index].x));
 			}
 			return reg;
 		case Shader::PARAMETER_OUTPUT:
@@ -694,7 +694,7 @@ namespace sw
 			}
 			break;
 		case Shader::PARAMETER_MISCTYPE:
-			reg.x = Float(r.instanceID);
+			reg.x = As<Float>(Int(r.instanceID));
 			return reg;
 		default:
 			ASSERT(false);
@@ -821,7 +821,7 @@ namespace sw
 				default: ASSERT(false);
 				}
 
-				Int4 index = Int4(i) + RoundInt(a) * Int4(src.rel.scale);
+				Int4 index = Int4(i) + As<Int4>(a) * Int4(src.rel.scale);
 
 				index = Min(As<UInt4>(index), UInt4(256));   // Clamp to constant register range, c[256] = {0, 0, 0, 0}
 				
@@ -848,21 +848,21 @@ namespace sw
 
 		if(var.rel.type == Shader::PARAMETER_TEMP)
 		{
-			return RoundInt(Extract(r.r[var.rel.index].x, 0)) * var.rel.scale;
+			return As<Int>(Extract(r.r[var.rel.index].x, 0)) * var.rel.scale;
 		}
 		else if(var.rel.type == Shader::PARAMETER_INPUT)
 		{
-			return RoundInt(Extract(r.v[var.rel.index].x, 0)) * var.rel.scale;
+			return As<Int>(Extract(r.v[var.rel.index].x, 0)) * var.rel.scale;
 		}
 		else if(var.rel.type == Shader::PARAMETER_OUTPUT)
 		{
-			return RoundInt(Extract(r.o[var.rel.index].x, 0)) * var.rel.scale;
+			return As<Int>(Extract(r.o[var.rel.index].x, 0)) * var.rel.scale;
 		}
 		else if(var.rel.type == Shader::PARAMETER_CONST)
 		{
-			RValue<Float4> c = *Pointer<Float4>(r.data + OFFSET(DrawData,vs.c[var.rel.index]));
+			RValue<Int4> c = *Pointer<Int4>(r.data + OFFSET(DrawData, vs.c[var.rel.index]));
 
-			return RoundInt(Extract(c, 0)) * var.rel.scale;
+			return Extract(c, 0) * var.rel.scale;
 		}
 		else ASSERT(false);
 

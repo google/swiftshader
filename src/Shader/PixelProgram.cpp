@@ -760,7 +760,7 @@ namespace sw
 			}
 			else if(src.rel.type == Shader::PARAMETER_TEMP)
 			{
-				reg.x = As<Float4>(Int4(i) + RoundInt(r.rf[src.rel.index].x));
+				reg.x = As<Float4>(Int4(i) + As<Int4>(r.rf[src.rel.index].x));
 			}
 			return reg;
 		case Shader::PARAMETER_PREDICATE:   return reg; // Dummy
@@ -898,21 +898,21 @@ namespace sw
 
 		if(var.rel.type == Shader::PARAMETER_TEMP)
 		{
-			return RoundInt(Extract(r.rf[var.rel.index].x, 0)) * var.rel.scale;
+			return As<Int>(Extract(r.rf[var.rel.index].x, 0)) * var.rel.scale;
 		}
 		else if(var.rel.type == Shader::PARAMETER_INPUT)
 		{
-			return RoundInt(Extract(r.vf[var.rel.index].x, 0)) * var.rel.scale;
+			return As<Int>(Extract(r.vf[var.rel.index].x, 0)) * var.rel.scale;
 		}
 		else if(var.rel.type == Shader::PARAMETER_OUTPUT)
 		{
-			return RoundInt(Extract(r.oC[var.rel.index].x, 0)) * var.rel.scale;
+			return As<Int>(Extract(r.oC[var.rel.index].x, 0)) * var.rel.scale;
 		}
 		else if(var.rel.type == Shader::PARAMETER_CONST)
 		{
-			RValue<Float4> c = *Pointer<Float4>(r.data + OFFSET(DrawData, ps.c[var.rel.index]));
+			RValue<Int4> c = *Pointer<Int4>(r.data + OFFSET(DrawData, ps.c[var.rel.index]));
 
-			return RoundInt(Extract(c, 0)) * var.rel.scale;
+			return Extract(c, 0) * var.rel.scale;
 		}
 		else ASSERT(false);
 

@@ -583,11 +583,14 @@ namespace sw
 		}
 	}
 
-	void ShaderCore::mov(Vector4f &dst, const Vector4f &src, bool floorToInteger)
+	void ShaderCore::mov(Vector4f &dst, const Vector4f &src, bool integerDestination)
 	{
-		if(floorToInteger)
+		if(integerDestination)
 		{
-			dst.x = Floor(src.x);
+			dst.x = As<Float4>(RoundInt(src.x));
+			dst.y = As<Float4>(RoundInt(src.y));
+			dst.z = As<Float4>(RoundInt(src.z));
+			dst.w = As<Float4>(RoundInt(src.w));
 		}
 		else
 		{

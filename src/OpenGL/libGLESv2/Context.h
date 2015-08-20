@@ -169,7 +169,12 @@ public:
         return mStride ? mStride : typeSize();
     }
 
-	inline float getCurrentValue(int i) const
+	inline float getCurrentValueBitsAsFloat(int i) const
+	{
+		return mCurrentValue[i].f;
+	}
+
+	inline float getCurrentValueF(int i) const
 	{
 		switch(mCurrentValueType)
 		{

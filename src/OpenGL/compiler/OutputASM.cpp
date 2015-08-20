@@ -166,6 +166,94 @@ namespace glsl
 		free(temporaries, temporary);
 	}
 
+	sw::Shader::Opcode OutputASM::getOpcode(sw::Shader::Opcode op, TIntermTyped *in) const
+	{
+		TBasicType baseType = in->getType().getBasicType();
+
+		switch(op)
+		{
+		case sw::Shader::OPCODE_NEG:
+			switch(baseType)
+			{
+			case EbtInt:
+			case EbtUInt:
+				return sw::Shader::OPCODE_INEG;
+			case EbtFloat:
+			default:
+				return op;
+			}
+		case sw::Shader::OPCODE_ADD:
+			switch(baseType)
+			{
+			case EbtInt:
+			case EbtUInt:
+				return sw::Shader::OPCODE_IADD;
+			case EbtFloat:
+			default:
+				return op;
+			}
+		case sw::Shader::OPCODE_SUB:
+			switch(baseType)
+			{
+			case EbtInt:
+			case EbtUInt:
+				return sw::Shader::OPCODE_ISUB;
+			case EbtFloat:
+			default:
+				return op;
+			}
+		case sw::Shader::OPCODE_MUL:
+			switch(baseType)
+			{
+			case EbtInt:
+			case EbtUInt:
+				return sw::Shader::OPCODE_IMUL;
+			case EbtFloat:
+			default:
+				return op;
+			}
+		case sw::Shader::OPCODE_DIV:
+			switch(baseType)
+			{
+			case EbtInt:
+				return sw::Shader::OPCODE_IDIV;
+			case EbtUInt:
+				return sw::Shader::OPCODE_UDIV;
+			case EbtFloat:
+			default:
+				return op;
+			}
+		case sw::Shader::OPCODE_IMOD:
+			return baseType == EbtUInt ? sw::Shader::OPCODE_UMOD : op;
+		case sw::Shader::OPCODE_ISHR:
+			return baseType == EbtUInt ? sw::Shader::OPCODE_USHR : op;
+		case sw::Shader::OPCODE_MIN:
+			switch(baseType)
+			{
+			case EbtInt:
+				return sw::Shader::OPCODE_IMIN;
+			case EbtUInt:
+				return sw::Shader::OPCODE_UMIN;
+			case EbtFloat:
+			default:
+				return op;
+			}
+		case sw::Shader::OPCODE_MAX:
+			switch(baseType)
+			{
+			case EbtInt:
+				return sw::Shader::OPCODE_IMAX;
+			case EbtUInt:
+				return sw::Shader::OPCODE_UMAX;
+			case EbtFloat:
+			default:
+				return op;
+			}
+		default:
+			return op;
+		}
+	}
+
 	void OutputASM::visitSymbol(TIntermSymbol *symbol)
 	{
 		// Vertex varyings don't have to be actively used to successfully link
@@ -375,23 +463,37 @@ namespace glsl
 				mov->src[0].swizzle = swizzle;
 			}
 			break;
-		case EOpAddAssign: if(visit == PostVisit) emitAssign(sw::Shader::OPCODE_ADD, result, left, left, right); break;
-		case EOpAdd:       if(visit == PostVisit) emitBinary(sw::Shader::OPCODE_ADD, result, left, right);       break;
-		case EOpSubAssign: if(visit == PostVisit) emitAssign(sw::Shader::OPCODE_SUB, result, left, left, right); break;
-		case EOpSub:       if(visit == PostVisit) emitBinary(sw::Shader::OPCODE_SUB, result, left, right);       break;
-		case EOpMulAssign: if(visit == PostVisit) emitAssign(sw::Shader::OPCODE_MUL, result, left, left, right); break;
-		case EOpMul:       if(visit == PostVisit) emitBinary(sw::Shader::OPCODE_MUL, result, left, right);       break;
-		case EOpDivAssign: if(visit == PostVisit) emitAssign(sw::Shader::OPCODE_DIV, result, left, left, right); break;
-		case EOpDiv:       if(visit == PostVisit) emitBinary(sw::Shader::OPCODE_DIV, result, left, right);       break;
+		case EOpAddAssign: if(visit == PostVisit) emitAssign(getOpcode(sw::Shader::OPCODE_ADD, result), result, left, left, right); break;
+		case EOpAdd:       if(visit == PostVisit) emitBinary(getOpcode(sw::Shader::OPCODE_ADD, result), result, left, right);       break;
+		case EOpSubAssign: if(visit == PostVisit) emitAssign(getOpcode(sw::Shader::OPCODE_SUB, result), result, left, left, right); break;
+		case EOpSub:       if(visit == PostVisit) emitBinary(getOpcode(sw::Shader::OPCODE_SUB, result), result, left, right);       break;
+		case EOpMulAssign: if(visit == PostVisit) emitAssign(getOpcode(sw::Shader::OPCODE_MUL, result), result, left, left, right); break;
+		case EOpMul:       if(visit == PostVisit) emitBinary(getOpcode(sw::Shader::OPCODE_MUL, result), result, left, right);       break;
+		case EOpDivAssign: if(visit == PostVisit) emitAssign(getOpcode(sw::Shader::OPCODE_DIV, result), result, left, left, right); break;
+		case EOpDiv:       if(visit == PostVisit) emitBinary(getOpcode(sw::Shader::OPCODE_DIV, result), result, left, right);       break;
+		case EOpIModAssign:          if(visit == PostVisit) emitAssign(getOpcode(sw::Shader::OPCODE_IMOD, result), result, left, left, right); break;
+		case EOpIMod:                if(visit == PostVisit) emitBinary(getOpcode(sw::Shader::OPCODE_IMOD, result), result, left, right);       break;
+		case EOpBitShiftLeftAssign:  if(visit == PostVisit) emitAssign(sw::Shader::OPCODE_SHL, result, left, left, right); break;
+		case EOpBitShiftLeft:        if(visit == PostVisit) emitBinary(sw::Shader::OPCODE_SHL, result, left, right);       break;
+		case EOpBitShiftRightAssign: if(visit == PostVisit) emitAssign(getOpcode(sw::Shader::OPCODE_ISHR, result), result, left, left, right); break;
+		case EOpBitShiftRight:       if(visit == PostVisit) emitBinary(getOpcode(sw::Shader::OPCODE_ISHR, result), result, left, right);       break;
+		case EOpBitwiseAndAssign:    if(visit == PostVisit) emitAssign(sw::Shader::OPCODE_AND, result, left, left, right); break;
+		case EOpBitwiseAnd:          if(visit == PostVisit) emitBinary(sw::Shader::OPCODE_AND, result, left, right);       break;
+		case EOpBitwiseXorAssign:    if(visit == PostVisit) emitAssign(sw::Shader::OPCODE_XOR, result, left, left, right); break;
+		case EOpBitwiseXor:          if(visit == PostVisit) emitBinary(sw::Shader::OPCODE_XOR, result, left, right);       break;
+		case EOpBitwiseOrAssign:     if(visit == PostVisit) emitAssign(sw::Shader::OPCODE_OR, result, left, left, right);  break;
+		case EOpBitwiseOr:           if(visit == PostVisit) emitBinary(sw::Shader::OPCODE_OR, result, left, right);        break;
 		case EOpEqual:
 			if(visit == PostVisit)
 			{
-				emitCmp(sw::Shader::CONTROL_EQ, result, left, right);
+				emitBinary(sw::Shader::OPCODE_EQ, result, left, right);
 
 				for(int index = 1; index < left->totalRegisterCount(); index++)
 				{
 					Temporary equal(this);
-					emitCmp(sw::Shader::CONTROL_EQ, &equal, left, right, index);
+					Instruction *eq = emit(sw::Shader::OPCODE_EQ, &equal, left, right);
+					argument(eq->src[0], left, index);
+					argument(eq->src[1], right, index);
 					emit(sw::Shader::OPCODE_AND, result, result, &equal);
 				}
 			}
@@ -399,12 +501,14 @@ namespace glsl
 		case EOpNotEqual:
 			if(visit == PostVisit)
 			{
-				emitCmp(sw::Shader::CONTROL_NE, result, left, right);
+				emitBinary(sw::Shader::OPCODE_NE, result, left, right);
 
 				for(int index = 1; index < left->totalRegisterCount(); index++)
 				{
 					Temporary notEqual(this);
-					emitCmp(sw::Shader::CONTROL_NE, &notEqual, left, right, index);
+					Instruction *eq = emit(sw::Shader::OPCODE_NE, &notEqual, left, right);
+					argument(eq->src[0], left, index);
+					argument(eq->src[1], right, index);
 					emit(sw::Shader::OPCODE_OR, result, result, &notEqual);
 				}
 			}
@@ -413,8 +517,8 @@ namespace glsl
 		case EOpGreaterThan:             if(visit == PostVisit) emitCmp(sw::Shader::CONTROL_GT, result, left, right); break;
 		case EOpLessThanEqual:           if(visit == PostVisit) emitCmp(sw::Shader::CONTROL_LE, result, left, right); break;
 		case EOpGreaterThanEqual:        if(visit == PostVisit) emitCmp(sw::Shader::CONTROL_GE, result, left, right); break;
-		case EOpVectorTimesScalarAssign: if(visit == PostVisit) emitAssign(sw::Shader::OPCODE_MUL, result, left, left, right); break;
-		case EOpVectorTimesScalar:       if(visit == PostVisit) emit(sw::Shader::OPCODE_MUL, result, left, right); break;
+		case EOpVectorTimesScalarAssign: if(visit == PostVisit) emitAssign(getOpcode(sw::Shader::OPCODE_MUL, left), result, left, left, right); break;
+		case EOpVectorTimesScalar:       if(visit == PostVisit) emit(getOpcode(sw::Shader::OPCODE_MUL, left), result, left, right); break;
 		case EOpMatrixTimesScalar:
 			if(visit == PostVisit)
 			{
@@ -536,24 +640,40 @@ namespace glsl
 			return false;
 		}
 
-		Constant one(1.0f, 1.0f, 1.0f, 1.0f);
-		Constant rad(1.74532925e-2f, 1.74532925e-2f, 1.74532925e-2f, 1.74532925e-2f);
-		Constant deg(5.72957795e+1f, 5.72957795e+1f, 5.72957795e+1f, 5.72957795e+1f);
-
 		TIntermTyped *result = node;
 		TIntermTyped *arg = node->getOperand();
+		TBasicType basicType = arg->getType().getBasicType();
+
+		union
+		{
+			float f;
+			int i;
+		} one_value;
+
+		if(basicType == EbtInt || basicType == EbtUInt)
+		{
+			one_value.i = 1;
+		}
+		else
+		{
+			one_value.f = 1.0f;
+		}
+
+		Constant one(one_value.f, one_value.f, one_value.f, one_value.f);
+		Constant rad(1.74532925e-2f, 1.74532925e-2f, 1.74532925e-2f, 1.74532925e-2f);
+		Constant deg(5.72957795e+1f, 5.72957795e+1f, 5.72957795e+1f, 5.72957795e+1f);
 
 		switch(node->getOp())
 		{
 		case EOpNegative:
 			if(visit == PostVisit)
 			{
+				sw::Shader::Opcode negOpcode = getOpcode(sw::Shader::OPCODE_NEG, arg);
 				for(int index = 0; index < arg->totalRegisterCount(); index++)
 				{
-					Instruction *neg = emit(sw::Shader::OPCODE_MOV, result, arg);
+					Instruction *neg = emit(negOpcode, result, arg);
 					neg->dst.index += index;
 					argument(neg->src[0], arg, index);
-					neg->src[0].modifier = sw::Shader::MODIFIER_NEGATE;
 				}
 			}
 			break;
@@ -564,9 +684,10 @@ namespace glsl
 			{
 				copy(result, arg);
 
+				sw::Shader::Opcode addOpcode = getOpcode(sw::Shader::OPCODE_ADD, arg);
 				for(int index = 0; index < arg->totalRegisterCount(); index++)
 				{
-					Instruction *add = emit(sw::Shader::OPCODE_ADD, arg, arg, &one);
+					Instruction *add = emit(addOpcode, arg, arg, &one);
 					add->dst.index += index;
 					argument(add->src[0], arg, index);
 				}
@@ -579,9 +700,10 @@ namespace glsl
 			{
 				copy(result, arg);
 
+				sw::Shader::Opcode subOpcode = getOpcode(sw::Shader::OPCODE_SUB, arg);
 				for(int index = 0; index < arg->totalRegisterCount(); index++)
 				{
-					Instruction *sub = emit(sw::Shader::OPCODE_SUB, arg, arg, &one);
+					Instruction *sub = emit(subOpcode, arg, arg, &one);
 					sub->dst.index += index;
 					argument(sub->src[0], arg, index);
 				}
@@ -592,9 +714,10 @@ namespace glsl
 		case EOpPreIncrement:
 			if(visit == PostVisit)
 			{
+				sw::Shader::Opcode addOpcode = getOpcode(sw::Shader::OPCODE_ADD, arg);
 				for(int index = 0; index < arg->totalRegisterCount(); index++)
 				{
-					Instruction *add = emit(sw::Shader::OPCODE_ADD, result, arg, &one);
+					Instruction *add = emit(addOpcode, result, arg, &one);
 					add->dst.index += index;
 					argument(add->src[0], arg, index);
 				}
@@ -605,9 +728,10 @@ namespace glsl
 		case EOpPreDecrement:
 			if(visit == PostVisit)
 			{
+				sw::Shader::Opcode subOpcode = getOpcode(sw::Shader::OPCODE_SUB, arg);
 				for(int index = 0; index < arg->totalRegisterCount(); index++)
 				{
-					Instruction *sub = emit(sw::Shader::OPCODE_SUB, result, arg, &one);
+					Instruction *sub = emit(subOpcode, result, arg, &one);
 					sub->dst.index += index;
 					argument(sub->src[0], arg, index);
 				}
@@ -1064,13 +1188,13 @@ namespace glsl
 		case EOpMod:              if(visit == PostVisit) emit(sw::Shader::OPCODE_MOD, result, arg[0], arg[1]); break;
 		case EOpPow:              if(visit == PostVisit) emit(sw::Shader::OPCODE_POW, result, arg[0], arg[1]); break;
 		case EOpAtan:             if(visit == PostVisit) emit(sw::Shader::OPCODE_ATAN2, result, arg[0], arg[1]); break;
-		case EOpMin:              if(visit == PostVisit) emit(sw::Shader::OPCODE_MIN, result, arg[0], arg[1]); break;
-		case EOpMax:              if(visit == PostVisit) emit(sw::Shader::OPCODE_MAX, result, arg[0], arg[1]); break;
+		case EOpMin:              if(visit == PostVisit) emit(getOpcode(sw::Shader::OPCODE_MIN, result), result, arg[0], arg[1]); break;
+		case EOpMax:              if(visit == PostVisit) emit(getOpcode(sw::Shader::OPCODE_MAX, result), result, arg[0], arg[1]); break;
 		case EOpClamp:
 			if(visit == PostVisit)
 			{
-				emit(sw::Shader::OPCODE_MAX, result, arg[0], arg[1]);
-				emit(sw::Shader::OPCODE_MIN, result, result, arg[2]);
+				emit(getOpcode(sw::Shader::OPCODE_MAX, result), result, arg[0], arg[1]);
+				emit(getOpcode(sw::Shader::OPCODE_MIN, result), result, result, arg[2]);
 			}
 			break;
 		case EOpMix:         if(visit == PostVisit) emit(sw::Shader::OPCODE_LRP, result, arg[2], arg[1], arg[0]); break;
@@ -1391,18 +1515,44 @@ namespace glsl
 
 	Instruction *OutputASM::emitCast(TIntermTyped *dst, TIntermTyped *src)
 	{
-		// Integers are implemented as float
-		if((dst->getBasicType() == EbtFloat || dst->getBasicType() == EbtInt) && src->getBasicType() == EbtBool)
+		switch(src->getBasicType())
 		{
-			return emit(sw::Shader::OPCODE_B2F, dst, src);
-		}
-		if(dst->getBasicType() == EbtBool && (src->getBasicType() == EbtFloat || src->getBasicType() == EbtInt))
-		{
-			return emit(sw::Shader::OPCODE_F2B, dst, src);
-		}
-		if(dst->getBasicType() == EbtInt && src->getBasicType() == EbtFloat)
-		{
-			return emit(sw::Shader::OPCODE_TRUNC, dst, src);
+		case EbtBool:
+			switch(dst->getBasicType())
+			{
+			case EbtInt:   return emit(sw::Shader::OPCODE_B2I, dst, src);
+			case EbtUInt:  return emit(sw::Shader::OPCODE_B2U, dst, src);
+			case EbtFloat: return emit(sw::Shader::OPCODE_B2F, dst, src);
+			default:       break;
+			}
+			break;
+		case EbtInt:
+			switch(dst->getBasicType())
+			{
+			case EbtBool:  return emit(sw::Shader::OPCODE_I2B, dst, src);
+			case EbtFloat: return emit(sw::Shader::OPCODE_I2F, dst, src);
+			default:       break;
+			}
+			break;
+		case EbtUInt:
+			switch(dst->getBasicType())
+			{
+			case EbtBool:  return emit(sw::Shader::OPCODE_U2B, dst, src);
+			case EbtFloat: return emit(sw::Shader::OPCODE_U2F, dst, src);
+			default:       break;
+			}
+			break;
+		case EbtFloat:
+			switch(dst->getBasicType())
+			{
+			case EbtBool: return emit(sw::Shader::OPCODE_F2B, dst, src);
+			case EbtInt:  return emit(sw::Shader::OPCODE_F2I, dst, src);
+			case EbtUInt: return emit(sw::Shader::OPCODE_F2U, dst, src);
+			default:      break;
+			}
+			break;
+		default:
+			break;
 		}
 
 		return emit(sw::Shader::OPCODE_MOV, dst, src);
@@ -1424,8 +1574,20 @@ namespace glsl
 
 	void OutputASM::emitCmp(sw::Shader::Control cmpOp, TIntermTyped *dst, TIntermNode *left, TIntermNode *right, int index)
 	{
-		bool boolean = (left->getAsTyped()->getBasicType() == EbtBool);
-		sw::Shader::Opcode opcode = boolean ? sw::Shader::OPCODE_ICMP : sw::Shader::OPCODE_CMP;
+		sw::Shader::Opcode opcode;
+		switch(left->getAsTyped()->getBasicType())
+		{
+		case EbtBool:
+		case EbtInt:
+			opcode = sw::Shader::OPCODE_ICMP;
+			break;
+		case EbtUInt:
+			opcode = sw::Shader::OPCODE_UCMP;
+			break;
+		default:
+			opcode = sw::Shader::OPCODE_CMP;
+			break;
+		}
 
 		Instruction *cmp = emit(opcode, dst, left, right);
 		cmp->control = cmpOp;
@@ -1745,19 +1907,19 @@ namespace glsl
 							if(scale == 1)
 							{
 								Constant oldScale((int)dst.rel.scale);
-								Instruction *mad = emit(sw::Shader::OPCODE_MAD, &address, &address, &oldScale, right);
+								Instruction *mad = emit(sw::Shader::OPCODE_IMAD, &address, &address, &oldScale, right);
 								mad->src[0].index = dst.rel.index;
 								mad->src[0].type = dst.rel.type;
 							}
 							else
 							{
 								Constant oldScale((int)dst.rel.scale);
-								Instruction *mul = emit(sw::Shader::OPCODE_MUL, &address, &address, &oldScale);
+								Instruction *mul = emit(sw::Shader::OPCODE_IMUL, &address, &address, &oldScale);
 								mul->src[0].index = dst.rel.index;
 								mul->src[0].type = dst.rel.type;
 
 								Constant newScale(scale);
-								emit(sw::Shader::OPCODE_MAD, &address, right, &newScale, &address);
+								emit(sw::Shader::OPCODE_IMAD, &address, right, &newScale, &address);
 							}
 
 							dst.rel.type = sw::Shader::PARAMETER_TEMP;
@@ -1768,12 +1930,12 @@ namespace glsl
 						{
 							if(scale == 1)
 							{
-								emit(sw::Shader::OPCODE_ADD, &address, &address, right);
+								emit(sw::Shader::OPCODE_IADD, &address, &address, right);
 							}
 							else
 							{
 								Constant newScale(scale);
-								emit(sw::Shader::OPCODE_MAD, &address, right, &newScale, &address);
+								emit(sw::Shader::OPCODE_IMAD, &address, right, &newScale, &address);
 							}
 						}
 					}
@@ -2210,7 +2372,6 @@ namespace glsl
 	int OutputASM::attributeRegister(TIntermTyped *attribute)
 	{
 		ASSERT(!attribute->isArray());
-		ASSERT(attribute->getBasicType() == EbtFloat);
 
 		int index = lookup(attributes, attribute);
 
