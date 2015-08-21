@@ -2415,6 +2415,8 @@ void FunctionParser::ProcessRecord() {
     }
     Ice::CfgNode *DefaultLabel =
         isIRGenDisabled ? nullptr : getBranchBasicBlock(Values[2]);
+    if (DefaultLabel == nullptr)
+      return;
     uint64_t NumCasesRaw = Values[3];
     if (NumCasesRaw > std::numeric_limits<uint32_t>::max()) {
       std::string Buffer;
@@ -2428,10 +2430,10 @@ void FunctionParser::ProcessRecord() {
     // Now recognize each of the cases.
     if (!isValidRecordSize(4 + NumCases * 4, "switch"))
       return;
-    Ice::InstSwitch *Switch =
-        isIRGenDisabled
-            ? nullptr
-            : Ice::InstSwitch::create(Func.get(), NumCases, Cond, DefaultLabel);
+    std::unique_ptr<Ice::InstSwitch> Switch(
+        isIRGenDisabled ? nullptr
+                        : Ice::InstSwitch::create(Func.get(), NumCases, Cond,
+                                                  DefaultLabel));
     unsigned ValCaseIndex = 4; // index to beginning of case entry.
     for (uint32_t CaseIndex = 0; CaseIndex < NumCases;
          ++CaseIndex, ValCaseIndex += 4) {
@@ -2448,11 +2450,13 @@ void FunctionParser::ProcessRecord() {
       if (isIRGenDisabled)
         continue;
       Ice::CfgNode *Label = getBranchBasicBlock(Values[ValCaseIndex + 3]);
+      if (Label == nullptr)
+        return;
       Switch->addBranch(CaseIndex, Value.getSExtValue(), Label);
     }
     if (isIRGenDisabled)
       return;
-    CurrentNode->appendInst(Switch);
+    CurrentNode->appendInst(Switch.release());
     return;
   }
   case naclbitc::FUNC_CODE_INST_UNREACHABLE: {
