@@ -145,7 +145,7 @@ entry:
   ret float %addr.load
 
 ; BLINDINGO2-LABEL: func2
-; BLINDINGO2: lea [[REG:e[a-z]*]],{{[[]}}{{e[a-z]*}}+0x32c814{{[]]}}
+; BLINDINGO2: lea [[REG:e[a-z]*]],{{[[]}}{{e[a-z]*}}+0x69ed4ee7{{[]]}}
 }
 
 define float @func3(i32 %arg, float %input) {
@@ -229,8 +229,8 @@ entry:
   ret i32 %res
 
 ; BLINDINGO2-LABEL: func6
-; BLINDINGO2: mov [[REG:e[a-z]*]],0xb178f
-; BLINDINGO2-NEXT: lea [[REG]],{{[[]}}[[REG]]-0x80a4f{{[]]}}
+; BLINDINGO2: mov [[REG:e[a-z]*]],0x77254ee7
+; BLINDINGO2-NEXT: lea [[REG]],{{[[]}}[[REG]]-0x772241a7{{[]]}}
 }
 
 ; Check for function reordering

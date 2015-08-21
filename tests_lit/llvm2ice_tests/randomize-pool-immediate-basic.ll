@@ -25,12 +25,12 @@ entry:
   ret i32 %res
 
 ; BLINDINGO2-LABEL: add_arg_plus_200000
-; BLINDINGO2: mov [[REG:e[a-z]*]],0x2c8df4
-; BLINDINGO2-NEXT: lea [[REG]],{{[[]}}[[REG]]-0x2980b4{{[]]}}
+; BLINDINGO2: mov [[REG:e[a-z]*]],0x669f4eea
+; BLINDINGO2-NEXT: lea [[REG]],{{[[]}}[[REG]]-0x669c41aa{{[]]}}
 
 ; BLINDINGOM1-LABEL: add_arg_plus_200000
-; BLINDINGOM1: mov [[REG:e[a-z]*]],0x2c8df4
-; BLINDINGOM1-NEXT: lea [[REG]],{{[[]}}[[REG]]-0x2980b4{{[]]}}
+; BLINDINGOM1: mov [[REG:e[a-z]*]],0x669f4eea
+; BLINDINGOM1-NEXT: lea [[REG]],{{[[]}}[[REG]]-0x669c41aa{{[]]}}
 
 ; POOLING-LABEL: add_arg_plus_200000
 ; POOLING: mov e{{[a-z]*}},DWORD PTR ds:0x0 {{[0-9a-f]*}}: R_386_32 .L$i32${{[0-9]*}}
@@ -44,10 +44,10 @@ entry:
   %addr.load = load float, float* %addr.ptr, align 4
   ret float %addr.load
 ; BLINDINGO2-LABEL: load_arg_plus_200000
-; BLINDINGO2: lea [[REG:e[a-z]*]],{{[[]}}{{e[a-z]*}}+0x32c814{{[]]}}
+; BLINDINGO2: lea [[REG:e[a-z]*]],{{[[]}}{{e[a-z]*}}+0x69ed4ee7{{[]]}}
 
 ; BLINDINGOM1-LABEL: load_arg_plus_200000
-; BLINDINGOM1: lea [[REG:e[a-z]*]],{{[[]}}{{e[a-z]*}}-0x2fbad4{{[]]}}
+; BLINDINGOM1: lea [[REG:e[a-z]*]],{{[[]}}{{e[a-z]*}}-0x69ea41a7{{[]]}}
 
 ; POOLING-LABEL: load_arg_plus_200000
 ; POOLING: mov e{{[a-z]*}},DWORD PTR ds:0x0 {{[0-9a-f]*}}: R_386_32 .L$i32${{[0-9]*}}
@@ -61,13 +61,13 @@ entry:
 
 ; BLINDINGO2-LABEL: add_arg_plus_64bits
 ; BLINDINGO2: sar [[RHI:e[a-z]*]],0x1f
-; BLINDINGO2: mov [[RLO:e[a-z]*]],0xf4a0f8f8
-; BLINDINGO2-NEXT: lea [[RLO]],{{[[]}}[[RLO]]-0x35f4f8{{[]]}}
+; BLINDINGO2: mov [[RLO:e[a-z]*]],0x61a345a8
+; BLINDINGO2-NEXT: lea [[RLO]],{{[[]}}[[RLO]]-0x6d3841a8{{[]]}}
 
 ; BLINDINGOM1-LABEL: add_arg_plus_64bits
 ; BLINDINGOM1: sar [[RHI:e[a-z]*]],0x1f
-; BLINDINGOM1: mov [[RLO:e[a-z]*]],0xf4a0f8f8
-; BLINDINGOM1-NEXT: lea [[RLO]],{{[[]}}[[RLO]]-0x35f4f8{{[]]}}
+; BLINDINGOM1: mov [[RLO:e[a-z]*]],0x61a345a8
+; BLINDINGOM1-NEXT: lea [[RLO]],{{[[]}}[[RLO]]-0x6d3841a8{{[]]}}
 
 ; POOLING-LABEL: add_arg_plus_64bits
 ; POOLING: mov e{{[a-z]*}},DWORD PTR ds:0x0 {{[0-9a-f]*}}: R_386_32 .L$i32${{[0-9]*}}
@@ -82,12 +82,12 @@ entry:
   ret i64 %arg.load
 
 ; BLINDINGO2-LABEL: load_arg_plus_64bits
-; BLINDINGO2: lea e{{[a-z]*}},{{[[]}}e{{[a-z]*}}+0x3d8eac{{[]]}}
-; BLINDINGO2: mov e{{[a-z]*}},DWORD PTR {{[[]}}e{{[a-z]*}}-0x3c2f1c{{[]]}}
+; BLINDINGO2: lea e{{[a-z]*}},{{[[]}}e{{[a-z]*}}+0x7087a139{{[]]}}
+; BLINDINGO2: mov e{{[a-z]*}},DWORD PTR {{[[]}}e{{[a-z]*}}-0x708641a9{{[]]}}
 
 ; BLINDINGOM1-LABEL: load_arg_plus_64bits
-; BLINDINGOM1: mov e{{[a-z]*}},0x3d8eac
-; BLINDINGOM1-NEXT: lea e{{[a-z]*}},{{[[]}}e{{[a-z]*}}-0x3c2f1c{{[]]}}
+; BLINDINGOM1: mov e{{[a-z]*}},0x7087a139
+; BLINDINGOM1-NEXT: lea e{{[a-z]*}},{{[[]}}e{{[a-z]*}}-0x708641a9{{[]]}}
 
 ; POOLING-LABEL: load_arg_plus_64bits
 ; POOLING: mov e{{[a-z]x}},DWORD PTR ds:0x0 {{[0-9a-f]*}}: R_386_32 .L$i32${{[0-9]*}}
@@ -101,12 +101,12 @@ entry:
   ret i32 %ret
 
 ; BLINDINGO2-LABEL: add_const_8bits
-; BLINDINGO2: mov e{{[a-z]*}},0x1d0aa
-; BLINDINGO2-NEXT: e{{[a-z]*}},{{[[]}}e{{[a-z]*}}-0x1d02f{{[]]}}
+; BLINDINGO2: mov e{{[a-z]*}},0x73d44225
+; BLINDINGO2-NEXT: e{{[a-z]*}},{{[[]}}e{{[a-z]*}}-0x73d441aa{{[]]}}
 
 ; BLINDINGOM1-LABEL: add_const_8bits
-; BLINDINGOM1: mov e{{[a-z]*}},0x1d0aa
-; BLINDINGOM1-NEXT: e{{[a-z]*}},{{[[]}}e{{[a-z]*}}-0x1d02f{{[]]}}
+; BLINDINGOM1: mov e{{[a-z]*}},0x73d44225
+; BLINDINGOM1-NEXT: e{{[a-z]*}},{{[[]}}e{{[a-z]*}}-0x73d441aa{{[]]}}
 
 ; POOLING-LABEL: add_const_8bits
 ; POOLING: mov {{[a-z]l}},BYTE PTR ds:0x0 {{[0-9a-f]*}}: R_386_32 .L$i8${{[0-9]*}}
@@ -120,12 +120,12 @@ entry:
   ret i32 %ret
 
 ; BLINDINGO2-LABEL: add_const_16bits
-; BLINDINGO2: mov e{{[a-z]*}},0x88a4d
-; BLINDINGO2-NEXT: e{{[a-z]*}},{{[[]}}e{{[a-z]*}}-0x80a4f{{[]]}}
+; BLINDINGO2: mov e{{[a-z]*}},0x7722c1a5
+; BLINDINGO2-NEXT: e{{[a-z]*}},{{[[]}}e{{[a-z]*}}-0x772241a7{{[]]}}
 
 ; BLINDINGOM1-LABEL: add_const_16bits
-; BLINDINGOM1: mov e{{[a-z]*}},0x88a4d
-; BLINDINGOM1-NEXT: e{{[a-z]*}},{{[[]}}e{{[a-z]*}}-0x80a4f{{[]]}}
+; BLINDINGOM1: mov e{{[a-z]*}},0x7722c1a5
+; BLINDINGOM1-NEXT: e{{[a-z]*}},{{[[]}}e{{[a-z]*}}-0x772241a7{{[]]}}
 
 ; POOLING-LABEL: add_const_16bits
 ; POOLING: mov {{[a-z]x}},WORD PTR ds:0x0 {{[0-9a-f]*}}: R_386_32 .L$i16${{[0-9]*}}

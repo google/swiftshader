@@ -43,15 +43,13 @@ Cfg::Cfg(GlobalContext *Ctx, uint32_t SequenceNumber)
       VMetadata(new VariablesMetadata(this)),
       TargetAssembler(TargetLowering::createAssembler(
           Ctx->getFlags().getTargetArch(), this)) {
-  assert(!Ctx->isIRGenerationDisabled() &&
-         "Attempt to build cfg when IR generation disabled");
   if (Ctx->getFlags().getRandomizeAndPoolImmediatesOption() == RPI_Randomize) {
     // If -randomize-pool-immediates=randomize, create a random number generator
     // to generate a cookie for constant blinding.
     RandomNumberGenerator RNG(Ctx->getFlags().getRandomSeed(),
-                              RPE_ConstantBlinding, SequenceNumber);
+                              RPE_ConstantBlinding, this->SequenceNumber);
     ConstantBlindingCookie =
-        (uint32_t)RNG.next((uint64_t)std::numeric_limits<uint32_t>::max + 1);
+        (uint32_t)RNG.next((uint64_t)std::numeric_limits<uint32_t>::max() + 1);
   }
 }
 
