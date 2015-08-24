@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "a4ab15ef_4c233f33",
+        "filename": "src/Reactor/Nucleus.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 5294,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-08-24T15:24:54Z",
+      "side": 0,
+      "message": "Shouldn\u0027t these functions be deleted entirely and replaced by the new ones then? These weren\u0027t removed, but moved to the functions below.",
+      "parentUuid": "a4ab15ef_cc9d6fec",
+      "range": {
+        "startLine": 5294,
+        "startChar": 1,
+        "endLine": 5294,
+        "endChar": 66
+      },
+      "revId": "a0355b74be48bae62aa31d353d2fe24210e68a2a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a4ab15ef_0c9017d1",
         "filename": "src/Reactor/Nucleus.cpp",
         "patchSetId": 1
