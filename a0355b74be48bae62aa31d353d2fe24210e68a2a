@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a4ab15ef_cc9d6fec",
+        "filename": "src/Reactor/Nucleus.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 5294,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-08-24T14:38:39Z",
+      "side": 0,
+      "message": "I\u0027d like to keep this. This old version of LLVM didn\u0027t produce efficient code so I explicitly used the x86 intrinsic, but I expect a recent version to be able to handle it well. So it\u0027s actually the intrinsic that should eventually be removed.",
+      "range": {
+        "startLine": 5294,
+        "startChar": 1,
+        "endLine": 5294,
+        "endChar": 66
+      },
+      "revId": "a0355b74be48bae62aa31d353d2fe24210e68a2a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a4ab15ef_0c9017d1",
+        "filename": "src/Reactor/Nucleus.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 5301,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-08-24T14:38:39Z",
+      "side": 0,
+      "message": "same",
+      "range": {
+        "startLine": 5301,
+        "startChar": 1,
+        "endLine": 5301,
+        "endChar": 67
+      },
+      "revId": "a0355b74be48bae62aa31d353d2fe24210e68a2a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
