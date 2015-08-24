@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a4ab15ef_ac9e23e8",
+        "filename": "src/OpenGL/compiler/Intermediate.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-08-24T14:34:38Z",
+      "side": 1,
+      "message": "Is this also true for some/all of the other operators here?",
+      "range": {
+        "startLine": 242,
+        "startChar": 6,
+        "endLine": 242,
+        "endChar": 58
+      },
+      "revId": "b2427547dbbb7e84433672fe28c4629c65fbfdbf",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a4ab15ef_6cb43b69",
+        "filename": "src/OpenGL/compiler/Intermediate.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 247,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-08-24T14:34:38Z",
+      "side": 1,
+      "message": "Returns a pointer. It\u0027s probably best to replace all the return 0 with nullptr.",
+      "range": {
+        "startLine": 247,
+        "startChar": 11,
+        "endLine": 247,
+        "endChar": 16
+      },
+      "revId": "b2427547dbbb7e84433672fe28c4629c65fbfdbf",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
