@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a4ab15ef_0f75a93d",
+        "filename": "src/OpenGL/libGLESv2/Texture.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1159,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-08-25T14:55:38Z",
+      "side": 1,
+      "message": "This was intentional. Cube map faces must be square. It\u0027s probably worth adding a comment to make clear this isn\u0027t a typo.",
+      "range": {
+        "startLine": 1159,
+        "startChar": 30,
+        "endLine": 1159,
+        "endChar": 38
+      },
+      "revId": "5340e0a7d2fd9cf4459c4c868f5d656c8d6947a3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
