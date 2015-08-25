@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "a4ab15ef_af9e15e8",
+        "filename": "src/OpenGL/compiler/Intermediate.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-08-25T16:51:41Z",
+      "side": 1,
+      "message": "Ah, indeed, shift is an exception to the general rule.",
+      "parentUuid": "a4ab15ef_8c352764",
+      "range": {
+        "startLine": 242,
+        "startChar": 6,
+        "endLine": 242,
+        "endChar": 58
+      },
+      "revId": "b2427547dbbb7e84433672fe28c4629c65fbfdbf",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a4ab15ef_6cb43b69",
         "filename": "src/OpenGL/compiler/Intermediate.cpp",
         "patchSetId": 1
