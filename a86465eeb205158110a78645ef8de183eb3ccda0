@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a4ab15ef_6fb42d69",
+        "filename": "src/OpenGL/libGLESv2/Program.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2195,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-08-25T18:34:42Z",
+      "side": 1,
+      "message": "You could make this GLint, and not require the reinterpret_cast below.",
+      "range": {
+        "startLine": 2195,
+        "startChar": 2,
+        "endLine": 2195,
+        "endChar": 7
+      },
+      "revId": "a86465eeb205158110a78645ef8de183eb3ccda0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a4ab15ef_0fa76941",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3587,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-08-25T18:34:42Z",
+      "side": 1,
+      "message": "The spec says that \"a 32-bit two’s-complement integer format would return range[0] \u003d 31, range[1] \u003d 30\"",
+      "range": {
+        "startLine": 3587,
+        "startChar": 13,
+        "endLine": 3587,
+        "endChar": 15
+      },
+      "revId": "a86465eeb205158110a78645ef8de183eb3ccda0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a4ab15ef_8fdeb987",
+        "filename": "src/Shader/ShaderCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 606,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-08-25T18:34:42Z",
+      "side": 1,
+      "message": "I see you\u0027ve opted for keeping floating-point registers and reinterpret casting them for integer operations within the operation implementaions. It\u0027s not as bad as I feared it could be. The number of integer operations is quite manageable.\n\nI still think there\u0027s potential for making this more type safe by using different fetch functions and separate switch statements, but at least this looks like a very reasonable intermediate solution which can be landed and later incrementally improved on.",
+      "range": {
+        "startLine": 606,
+        "startChar": 10,
+        "endLine": 606,
+        "endChar": 38
+      },
+      "revId": "a86465eeb205158110a78645ef8de183eb3ccda0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a4ab15ef_cf2f2110",
+        "filename": "src/Shader/VertexProgram.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 830,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-08-25T18:34:42Z",
+      "side": 1,
+      "message": "I suspect that Direct3D needs this to work as before with either the a0 register or a float constant converted to int. But I have to check its spec and the conformance tests in detail.",
+      "range": {
+        "startLine": 830,
+        "startChar": 27,
+        "endLine": 830,
+        "endChar": 38
+      },
+      "revId": "a86465eeb205158110a78645ef8de183eb3ccda0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
