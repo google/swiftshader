@@ -22,6 +22,30 @@
       "revId": "5340e0a7d2fd9cf4459c4c868f5d656c8d6947a3",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a4ab15ef_8f5199b4",
+        "filename": "src/OpenGL/libGLESv2/Texture.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1159,
+      "author": {
+        "id": 5345
+      },
+      "writtenOn": "2015-08-25T15:04:36Z",
+      "side": 1,
+      "message": "That was my understanding. I figured since the combination with line 1151 transitively boils down to the same thing (at that point we know the first face is a square, so checking if the following faces are of equal dimensions also checks if they\u0027re square) it would read less like a typo like this. I can change it back if you\u0027d prefer :)",
+      "parentUuid": "a4ab15ef_0f75a93d",
+      "range": {
+        "startLine": 1159,
+        "startChar": 30,
+        "endLine": 1159,
+        "endChar": 38
+      },
+      "revId": "5340e0a7d2fd9cf4459c4c868f5d656c8d6947a3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
