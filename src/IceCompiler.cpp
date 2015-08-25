@@ -28,6 +28,7 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-parameter"
 #include "llvm/ADT/STLExtras.h"
+#include "llvm/Bitcode/NaCl/NaClReaderWriter.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IRReader/IRReader.h"
@@ -139,11 +140,13 @@ void Compiler::run(const Ice::ClFlagsExtra &ExtraFlags, GlobalContext &Ctx,
     // Parse the input LLVM IR file into a module.
     llvm::SMDiagnostic Err;
     TimerMarker T1(Ice::TimerStack::TT_parse, &Ctx);
-    llvm::raw_ostream *Verbose =
-        ExtraFlags.getLLVMVerboseErrors() ? &llvm::errs() : nullptr;
+    llvm::DiagnosticHandlerFunction DiagnosticHandler =
+        ExtraFlags.getLLVMVerboseErrors()
+            ? redirectNaClDiagnosticToStream(llvm::errs())
+            : nullptr;
     std::unique_ptr<llvm::Module> Mod =
         NaClParseIRFile(IRFilename, ExtraFlags.getInputFileFormat(), Err,
-                        Verbose, llvm::getGlobalContext());
+                        llvm::getGlobalContext(), DiagnosticHandler);
     if (!Mod) {
       Err.print(ExtraFlags.getAppName().c_str(), llvm::errs());
       return Ctx.getErrorStatus()->assign(EC_Bitcode);
