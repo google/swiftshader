@@ -212,7 +212,7 @@ namespace es1
 	{
 		if(width == 0 || height == 0 || height > OUTLINE_RESOLUTION)
 		{
-			ERR("Invalid parameters");
+			ERR("Invalid parameters: %dx%d", width, height);
 			return 0;
 		}
 		
@@ -256,7 +256,7 @@ namespace es1
 	{
 		if(height > OUTLINE_RESOLUTION)
 		{
-			ERR("Invalid parameters");
+			ERR("Invalid parameters: %dx%d", width, height);
 			return 0;
 		}
 

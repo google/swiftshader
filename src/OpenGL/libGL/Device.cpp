@@ -254,7 +254,7 @@ namespace gl
 	{
 		if(width == 0 || height == 0 || height > OUTLINE_RESOLUTION)
 		{
-			ERR("Invalid parameters");
+			ERR("Invalid parameters: %dx%d", width, height);
 			return 0;
 		}
 		
@@ -298,7 +298,7 @@ namespace gl
 	{
 		if(height > OUTLINE_RESOLUTION)
 		{
-			ERR("Invalid parameters");
+			ERR("Invalid parameters: %dx%d", width, height);
 			return 0;
 		}
 

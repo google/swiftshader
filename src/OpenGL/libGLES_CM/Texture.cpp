@@ -796,7 +796,7 @@ egl::Image *createDepthStencil(unsigned int width, unsigned int height, sw::Form
 {
 	if(width == 0 || height == 0 || height > OUTLINE_RESOLUTION)
 	{
-		ERR("Invalid parameters");
+		ERR("Invalid parameters: %dx%d", width, height);
 		return 0;
 	}
 
