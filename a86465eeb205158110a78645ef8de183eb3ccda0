@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "a4ab15ef_2fc06594",
+        "filename": "src/OpenGL/libGLESv2/Program.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2195,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-08-25T20:03:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a4ab15ef_6fb42d69",
+      "range": {
+        "startLine": 2195,
+        "startChar": 2,
+        "endLine": 2195,
+        "endChar": 7
+      },
+      "revId": "a86465eeb205158110a78645ef8de183eb3ccda0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a4ab15ef_0fa76941",
         "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2015-08-25T18:34:42Z",
       "side": 1,
       "message": "The spec says that \"a 32-bit two’s-complement integer format would return range[0] \u003d 31, range[1] \u003d 30\"",
+      "range": {
+        "startLine": 3587,
+        "startChar": 13,
+        "endLine": 3587,
+        "endChar": 15
+      },
+      "revId": "a86465eeb205158110a78645ef8de183eb3ccda0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a4ab15ef_0fbda91c",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3587,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-08-25T20:03:45Z",
+      "side": 1,
+      "message": "Done. Also modified libGL with the same changes.",
+      "parentUuid": "a4ab15ef_0fa76941",
       "range": {
         "startLine": 3587,
         "startChar": 13,
