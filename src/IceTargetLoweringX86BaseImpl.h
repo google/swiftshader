@@ -585,7 +585,7 @@ template <class Machine> void TargetX86Base<Machine>::findRMW() {
               Str << "\n";
             }
             Variable *Beacon = Func->makeVariable(IceType_i32);
-            Beacon->setWeight(0);
+            Beacon->setMustNotHaveReg();
             Store->setRmwBeacon(Beacon);
             InstFakeDef *BeaconDef = InstFakeDef::create(Func, Beacon);
             Node->getInsts().insert(I3, BeaconDef);
@@ -763,7 +763,7 @@ void TargetX86Base<Machine>::emitVariable(const Variable *Var) const {
     Str << "%" << getRegName(Var->getRegNum(), Var->getType());
     return;
   }
-  if (Var->getWeight().isInf()) {
+  if (Var->mustHaveReg()) {
     llvm_unreachable("Infinite-weight Variable has no register assigned");
   }
   int32_t Offset = Var->getStackOffset();
@@ -784,7 +784,7 @@ typename TargetX86Base<Machine>::Traits::Address
 TargetX86Base<Machine>::stackVarToAsmOperand(const Variable *Var) const {
   if (Var->hasReg())
     llvm_unreachable("Stack Variable has a register assigned");
-  if (Var->getWeight().isInf()) {
+  if (Var->mustHaveReg()) {
     llvm_unreachable("Infinite-weight Variable has no register assigned");
   }
   int32_t Offset = Var->getStackOffset();
@@ -2054,7 +2054,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
         T_1 = makeReg(IceType_i32);
       }
       // cvt() requires its integer argument to be a GPR.
-      T_1->setWeightInfinite();
+      T_1->setMustHaveReg();
       Variable *T_2 = makeReg(Dest->getType());
       _cvt(T_1, Src0RM, Traits::Insts::Cvt::Tss2si);
       _mov(T_2, T_1); // T_1 and T_2 may have different integer types
@@ -2105,7 +2105,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
         assert(Dest->getType() != IceType_i32);
         T_1 = makeReg(IceType_i32);
       }
-      T_1->setWeightInfinite();
+      T_1->setMustHaveReg();
       Variable *T_2 = makeReg(Dest->getType());
       _cvt(T_1, Src0RM, Traits::Insts::Cvt::Tss2si);
       _mov(T_2, T_1); // T_1 and T_2 may have different integer types
@@ -2147,7 +2147,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
         assert(Src0RM->getType() != IceType_i64);
         T_1 = makeReg(IceType_i32);
       }
-      T_1->setWeightInfinite();
+      T_1->setMustHaveReg();
       Variable *T_2 = makeReg(Dest->getType());
       if (Src0RM->getType() == T_1->getType())
         _mov(T_1, Src0RM);
@@ -2196,7 +2196,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
         assert(Traits::Is64Bit || Src0RM->getType() != IceType_i32);
         T_1 = makeReg(IceType_i32);
       }
-      T_1->setWeightInfinite();
+      T_1->setMustHaveReg();
       Variable *T_2 = makeReg(Dest->getType());
       if (Src0RM->getType() == T_1->getType())
         _mov(T_1, Src0RM);
@@ -2248,7 +2248,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
           Func->makeVariable<typename Traits::SpillVariable>(SrcType);
       SpillVar->setLinkedTo(Dest);
       Variable *Spill = SpillVar;
-      Spill->setWeight(RegWeight::Zero);
+      Spill->setMustNotHaveReg();
       _mov(T, Src0RM);
       _mov(Spill, T);
       _mov(Dest, Spill);
@@ -2276,7 +2276,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
               Func->makeVariable<typename Traits::SpillVariable>(IceType_f64);
           SpillVar->setLinkedTo(Src0Var);
           Variable *Spill = SpillVar;
-          Spill->setWeight(RegWeight::Zero);
+          Spill->setMustNotHaveReg();
           _movq(Spill, Src0RM);
           SpillLo = Traits::VariableSplit::create(Func, Spill,
                                                   Traits::VariableSplit::Low);
@@ -2305,7 +2305,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
         Variable *T = makeReg(IceType_f64);
         // Movd requires its fp argument (in this case, the bitcast destination)
         // to be an xmm register.
-        T->setWeightInfinite();
+        T->setMustHaveReg();
         _movd(T, Src0RM);
         _mov(Dest, T);
       } else {
@@ -2327,7 +2327,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
             Func->makeVariable<typename Traits::SpillVariable>(IceType_f64);
         SpillVar->setLinkedTo(Dest);
         Variable *Spill = SpillVar;
-        Spill->setWeight(RegWeight::Zero);
+        Spill->setMustNotHaveReg();
 
         Variable *T_Lo = nullptr, *T_Hi = nullptr;
         typename Traits::VariableSplit *SpillLo = Traits::VariableSplit::create(
@@ -2429,7 +2429,7 @@ void TargetX86Base<Machine>::lowerExtractElement(
     // TODO(wala): use legalize(SourceVectNotLegalized, Legal_Mem) when
     // support for legalizing to mem is implemented.
     Variable *Slot = Func->makeVariable(Ty);
-    Slot->setWeight(RegWeight::Zero);
+    Slot->setMustNotHaveReg();
     _movp(Slot, legalizeToReg(SourceVectNotLegalized));
 
     // Compute the location of the element in memory.
@@ -2838,7 +2838,7 @@ void TargetX86Base<Machine>::lowerInsertElement(const InstInsertElement *Inst) {
     // TODO(wala): use legalize(SourceVectNotLegalized, Legal_Mem) when
     // support for legalizing to mem is implemented.
     Variable *Slot = Func->makeVariable(Ty);
-    Slot->setWeight(RegWeight::Zero);
+    Slot->setMustNotHaveReg();
     _movp(Slot, legalizeToReg(SourceVectNotLegalized));
 
     // Compute the location of the position to insert in memory.
@@ -4848,7 +4848,7 @@ typename TargetX86Base<Machine>::Traits::X86OperandMem *
 TargetX86Base<Machine>::getMemoryOperandForStackSlot(Type Ty, Variable *Slot,
                                                      uint32_t Offset) {
   // Ensure that Loc is a stack slot.
-  assert(Slot->getWeight().isZero());
+  assert(Slot->mustNotHaveReg());
   assert(Slot->getRegNum() == Variable::NoRegister);
   // Compute the location of Loc in memory.
   // TODO(wala,stichnot): lea should not be required.  The address of
@@ -4932,7 +4932,7 @@ Operand *TargetX86Base<Machine>::legalize(Operand *From, LegalMask Allowed,
     if (Traits::Is64Bit) {
       if (llvm::isa<ConstantInteger64>(Const)) {
         Variable *V = copyToReg(Const, RegNum);
-        V->setWeightInfinite();
+        V->setMustHaveReg();
         return V;
       }
     }
@@ -4973,7 +4973,7 @@ Operand *TargetX86Base<Machine>::legalize(Operand *From, LegalMask Allowed,
     // Check if the variable is guaranteed a physical register.  This
     // can happen either when the variable is pre-colored or when it is
     // assigned infinite weight.
-    bool MustHaveRegister = (Var->hasReg() || Var->getWeight().isInf());
+    bool MustHaveRegister = (Var->hasReg() || Var->mustHaveReg());
     // We need a new physical register for the operand if:
     //   Mem is not allowed and Var isn't guaranteed a physical
     //   register, or
@@ -5077,7 +5077,7 @@ Variable *TargetX86Base<Machine>::makeReg(Type Type, int32_t RegNum) {
   assert(Traits::Is64Bit || Type != IceType_i64);
   Variable *Reg = Func->makeVariable(Type);
   if (RegNum == Variable::NoRegister)
-    Reg->setWeightInfinite();
+    Reg->setMustHaveReg();
   else
     Reg->setRegNum(RegNum);
   return Reg;

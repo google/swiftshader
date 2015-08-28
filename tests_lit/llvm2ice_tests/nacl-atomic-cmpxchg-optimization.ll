@@ -128,6 +128,5 @@ done:
 }
 ; O2-LABEL: test_atomic_cmpxchg_no_opt2
 ; O2: lock cmpxchg DWORD PTR [e{{[^a].}}],e{{[^a]}}
-; O2: mov {{.*}}
 ; O2: cmp
 ; O2: sete

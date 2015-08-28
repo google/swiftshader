@@ -102,7 +102,7 @@ void Liveness::initInternal(NodeList::const_iterator FirstNode,
     Variable *Var = *I;
     SizeT VarIndex = Var->getIndex();
     if (Var->getIgnoreLiveness() ||
-        (!IsFullInit && !Var->hasReg() && !Var->getWeight().isInf()))
+        (!IsFullInit && !Var->hasReg() && !Var->mustHaveReg()))
       RangeMask[VarIndex] = false;
   }
 

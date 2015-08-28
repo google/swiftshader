@@ -765,7 +765,7 @@ void Cfg::dump(const IceString &Message) {
         Str << getVMetadata()->isMultiBlock(Var);
       else
         Str << "?";
-      Str << " weight=" << Var->getWeight() << " ";
+      Str << " weight=" << Var->getWeight(this) << " ";
       Var->dump(this);
       Str << " LIVE=" << Var->getLiveRange() << "\n";
     }

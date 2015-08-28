@@ -169,13 +169,13 @@ next2:
   br i1 %cmp, label %next, label %next2
 }
 ; CHECK-LABEL: test_local_forward_then_back
-; CHECK:      14: {{.*}} mov DWORD PTR
-; CHECK-NEXT: 16: {{.*}} mfence
-; CHECK-NEXT: 19: {{.*}} mov DWORD PTR {{.*}},0x1
-; CHECK-NEXT: 20: {{.*}} cmp
-; CHECK-NEXT: 23: {{.*}} jb 33
-; CHECK:      37: {{.*}} jne 14
-; CHECK:      39: {{.*}} jmp 19
+; CHECK:      {{.*}} mov DWORD PTR
+; CHECK-NEXT: {{.*}} mfence
+; CHECK-NEXT: 16: {{.*}} mov {{.*}},0x1
+; CHECK-NEXT: {{.*}} cmp
+; CHECK-NEXT: {{.*}} jb
+; CHECK:      {{.*}} jne
+; CHECK:      {{.*}} jmp 16
 
 
 ; Test that backward local branches also work and are small.

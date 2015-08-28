@@ -429,7 +429,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
       [&VariablesLinkedToSpillSlots](Variable *Var) {
         if (auto *SpillVar =
                 llvm::dyn_cast<typename Traits::SpillVariable>(Var)) {
-          assert(Var->getWeight().isZero());
+          assert(Var->mustNotHaveReg());
           if (SpillVar->getLinkedTo() && !SpillVar->getLinkedTo()->hasReg()) {
             VariablesLinkedToSpillSlots.push_back(Var);
             return true;

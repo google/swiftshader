@@ -410,7 +410,7 @@ void TargetARM32::emitVariable(const Variable *Var) const {
     Str << getRegName(Var->getRegNum(), Var->getType());
     return;
   }
-  if (Var->getWeight().isInf()) {
+  if (Var->mustHaveReg()) {
     llvm::report_fatal_error(
         "Infinite-weight Variable has no register assigned");
   }
@@ -907,7 +907,7 @@ StackVariable *TargetARM32::legalizeVariableSlot(Variable *Var,
   else
     _add(ScratchReg, OrigBaseReg, OffsetVal);
   StackVariable *NewVar = Func->makeVariable<StackVariable>(stackSlotType());
-  NewVar->setWeight(RegWeight::Zero);
+  NewVar->setMustNotHaveReg();
   NewVar->setBaseRegNum(ScratchReg->getRegNum());
   constexpr int32_t NewOffset = 0;
   NewVar->setStackOffset(NewOffset);
@@ -984,7 +984,7 @@ void TargetARM32::legalizeStackSlots() {
             if (isLegalVariableStackOffset(OffsetDiff)) {
               StackVariable *NewDest =
                   Func->makeVariable<StackVariable>(stackSlotType());
-              NewDest->setWeight(RegWeight::Zero);
+              NewDest->setMustNotHaveReg();
               NewDest->setBaseRegNum(NewBaseReg->getBaseRegNum());
               NewDest->setStackOffset(OffsetDiff);
               Variable *NewDestVar = NewDest;
@@ -1014,7 +1014,7 @@ void TargetARM32::legalizeStackSlots() {
             if (isLegalVariableStackOffset(OffsetDiff)) {
               StackVariable *NewVar =
                   Func->makeVariable<StackVariable>(stackSlotType());
-              NewVar->setWeight(RegWeight::Zero);
+              NewVar->setMustNotHaveReg();
               NewVar->setBaseRegNum(NewBaseReg->getBaseRegNum());
               NewVar->setStackOffset(OffsetDiff);
               _mov(Dest, NewVar);
@@ -2834,7 +2834,7 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
     // Check if the variable is guaranteed a physical register.  This
     // can happen either when the variable is pre-colored or when it is
     // assigned infinite weight.
-    bool MustHaveRegister = (Var->hasReg() || Var->getWeight().isInf());
+    bool MustHaveRegister = (Var->hasReg() || Var->mustHaveReg());
     // We need a new physical register for the operand if:
     //   Mem is not allowed and Var isn't guaranteed a physical
     //   register, or
@@ -2899,7 +2899,7 @@ Variable *TargetARM32::makeReg(Type Type, int32_t RegNum) {
   assert(Type != IceType_i64);
   Variable *Reg = Func->makeVariable(Type);
   if (RegNum == Variable::NoRegister)
-    Reg->setWeightInfinite();
+    Reg->setMustHaveReg();
   else
     Reg->setRegNum(RegNum);
   return Reg;

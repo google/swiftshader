@@ -700,15 +700,15 @@ void CfgNode::livenessAddIntervals(Liveness *Liveness, InstNumberT FirstInstNum,
 
     Variable *Var = Liveness->getVariable(i, this);
     if (LB > LE) {
-      Var->addLiveRange(FirstInstNum, LE, 1);
-      Var->addLiveRange(LB, LastInstNum + 1, 1);
+      Var->addLiveRange(FirstInstNum, LE);
+      Var->addLiveRange(LB, LastInstNum + 1);
       // Assert that Var is a global variable by checking that its
       // liveness index is less than the number of globals.  This
       // ensures that the LiveInAndOut[] access is valid.
       assert(i < Liveness->getNumGlobalVars());
       LiveInAndOut[i] = false;
     } else {
-      Var->addLiveRange(LB, LE, 1);
+      Var->addLiveRange(LB, LE);
     }
     if (i == i1)
       ++IBB;
@@ -720,7 +720,7 @@ void CfgNode::livenessAddIntervals(Liveness *Liveness, InstNumberT FirstInstNum,
        i = LiveInAndOut.find_next(i)) {
     Variable *Var = Liveness->getVariable(i, this);
     if (Liveness->getRangeMask(Var->getIndex()))
-      Var->addLiveRange(FirstInstNum, LastInstNum + 1, 1);
+      Var->addLiveRange(FirstInstNum, LastInstNum + 1);
   }
 }
 

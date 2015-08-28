@@ -145,9 +145,21 @@ Variable *Variable::asType(Type Ty) {
   return V;
 }
 
+RegWeight Variable::getWeight(const Cfg *Func) const {
+  VariablesMetadata *VMetadata = Func->getVMetadata();
+  return RegWeight(mustHaveReg()
+                       ? RegWeight::Inf
+                       : mustNotHaveReg() ? RegWeight::Zero
+                                          : VMetadata->getUseWeight(this));
+}
+
 void VariableTracking::markUse(MetadataKind TrackingKind, const Inst *Instr,
                                CfgNode *Node, bool IsImplicit) {
   (void)TrackingKind;
+
+  // TODO(ascull): get the loop nest depth from CfgNode
+  UseWeight += 1;
+
   if (MultiBlock == MBS_MultiBlock)
     return;
   // TODO(stichnot): If the use occurs as a source operand in the
@@ -383,6 +395,13 @@ CfgNode *VariablesMetadata::getLocalUseNode(const Variable *Var) const {
   return Metadata[VarNum].getNode();
 }
 
+uint32_t VariablesMetadata::getUseWeight(const Variable *Var) const {
+  if (!isTracked(Var))
+    return 1; // conservative answer
+  SizeT VarNum = Var->getIndex();
+  return Metadata[VarNum].getUseWeight();
+}
+
 const InstDefList VariablesMetadata::NoDefinitions;
 
 // ======================== dump routines ======================== //
@@ -466,7 +485,6 @@ void ConstantUndef::emit(TargetLowering *Target) const { Target->emit(this); }
 void LiveRange::dump(Ostream &Str) const {
   if (!BuildDefs::dump())
     return;
-  Str << "(weight=" << Weight << ") ";
   bool First = true;
   for (const RangeElementType &I : Range) {
     if (!First)

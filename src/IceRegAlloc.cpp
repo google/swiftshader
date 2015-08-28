@@ -99,7 +99,7 @@ void LinearScan::initForGlobal() {
   for (Variable *Var : Vars) {
     // Explicitly don't consider zero-weight variables, which are meant to be
     // spill slots.
-    if (Var->getWeight().isZero())
+    if (Var->mustNotHaveReg())
       continue;
     // Don't bother if the variable has a null live range, which means it was
     // never referenced.
@@ -109,7 +109,7 @@ void LinearScan::initForGlobal() {
     Unhandled.push_back(Var);
     if (Var->hasReg()) {
       Var->setRegNumTmp(Var->getRegNum());
-      Var->setLiveRangeInfiniteWeight();
+      Var->setMustHaveReg();
       UnhandledPrecolored.push_back(Var);
     }
   }
@@ -173,7 +173,7 @@ void LinearScan::initForInfOnly() {
         continue;
       if (const Variable *Var = Inst.getDest()) {
         if (!Var->getIgnoreLiveness() &&
-            (Var->hasReg() || Var->getWeight().isInf())) {
+            (Var->hasReg() || Var->mustHaveReg())) {
           if (LRBegin[Var->getIndex()] == Inst::NumberSentinel) {
             LRBegin[Var->getIndex()] = Inst.getNumber();
             ++NumVars;
@@ -187,7 +187,7 @@ void LinearScan::initForInfOnly() {
           const Variable *Var = Src->getVar(J);
           if (Var->getIgnoreLiveness())
             continue;
-          if (Var->hasReg() || Var->getWeight().isInf())
+          if (Var->hasReg() || Var->mustHaveReg())
             LREnd[Var->getIndex()] = Inst.getNumber();
         }
       }
@@ -202,12 +202,11 @@ void LinearScan::initForInfOnly() {
       assert(LREnd[i] != Inst::NumberSentinel);
       Unhandled.push_back(Var);
       Var->resetLiveRange();
-      constexpr uint32_t WeightDelta = 1;
-      Var->addLiveRange(LRBegin[i], LREnd[i], WeightDelta);
+      Var->addLiveRange(LRBegin[i], LREnd[i]);
       Var->untrimLiveRange();
       if (Var->hasReg()) {
         Var->setRegNumTmp(Var->getRegNum());
-        Var->setLiveRangeInfiniteWeight();
+        Var->setMustHaveReg();
         UnhandledPrecolored.push_back(Var);
       }
       --NumVars;
@@ -519,14 +518,14 @@ void LinearScan::handleNoFreeRegisters(IterationState &Iter) {
     assert(Item->rangeOverlaps(Iter.Cur));
     int32_t RegNum = Item->getRegNumTmp();
     assert(Item->hasRegTmp());
-    Iter.Weights[RegNum].addWeight(Item->getLiveRange().getWeight());
+    Iter.Weights[RegNum].addWeight(Item->getWeight(Func));
   }
   // Same as above, but check Inactive ranges instead of Active.
   for (const Variable *Item : Inactive) {
     int32_t RegNum = Item->getRegNumTmp();
     assert(Item->hasRegTmp());
     if (Item->rangeOverlaps(Iter.Cur))
-      Iter.Weights[RegNum].addWeight(Item->getLiveRange().getWeight());
+      Iter.Weights[RegNum].addWeight(Item->getWeight(Func));
   }
 
   // All the weights are now calculated. Find the register with smallest
@@ -539,11 +538,11 @@ void LinearScan::handleNoFreeRegisters(IterationState &Iter) {
       MinWeightIndex = i;
   }
 
-  if (Iter.Cur->getLiveRange().getWeight() <= Iter.Weights[MinWeightIndex]) {
+  if (Iter.Cur->getWeight(Func) <= Iter.Weights[MinWeightIndex]) {
     // Cur doesn't have priority over any other live ranges, so don't allocate
     // any register to it, and move it to the Handled state.
     Handled.push_back(Iter.Cur);
-    if (Iter.Cur->getLiveRange().getWeight().isInf()) {
+    if (Iter.Cur->mustHaveReg()) {
       if (Kind == RAK_Phi)
         addSpillFill(Iter);
       else

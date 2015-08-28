@@ -332,8 +332,6 @@ public:
   void addWeight(const RegWeight &Other) { addWeight(Other.Weight); }
   void setWeight(uint32_t Val) { Weight = Val; }
   uint32_t getWeight() const { return Weight; }
-  bool isInf() const { return Weight == Inf; }
-  bool isZero() const { return Weight == Zero; }
 
 private:
   uint32_t Weight = 0;
@@ -346,9 +344,7 @@ bool operator==(const RegWeight &A, const RegWeight &B);
 /// LiveRange is a set of instruction number intervals representing
 /// a variable's live range.  Generally there is one interval per basic
 /// block where the variable is live, but adjacent intervals get
-/// coalesced into a single interval.  LiveRange also includes a
-/// weight, in case e.g. we want a live range to have higher weight
-/// inside a loop.
+/// coalesced into a single interval.
 class LiveRange {
 public:
   LiveRange() = default;
@@ -364,7 +360,6 @@ public:
 
   void reset() {
     Range.clear();
-    Weight.setWeight(0);
     untrim();
   }
   void addSegment(InstNumberT Start, InstNumberT End);
@@ -384,9 +379,6 @@ public:
   void untrim() { TrimmedBegin = Range.begin(); }
   void trim(InstNumberT Lower);
 
-  RegWeight getWeight() const { return Weight; }
-  void setWeight(const RegWeight &NewWeight) { Weight = NewWeight; }
-  void addWeight(uint32_t Delta) { Weight.addWeight(Delta); }
   void dump(Ostream &Str) const;
 
 private:
@@ -395,7 +387,6 @@ private:
   typedef std::vector<RangeElementType, CfgLocalAllocator<RangeElementType>>
       RangeType;
   RangeType Range;
-  RegWeight Weight = RegWeight(0);
   /// TrimmedBegin is an optimization for the overlaps() computation.
   /// Since the linear-scan algorithm always calls it as overlaps(Cur)
   /// and Cur advances monotonically according to live range start, we
@@ -416,6 +407,12 @@ class Variable : public Operand {
   Variable() = delete;
   Variable(const Variable &) = delete;
   Variable &operator=(const Variable &) = delete;
+
+  enum RegRequirement {
+    RR_MayHaveRegister,
+    RR_MustHaveRegister,
+    RR_MustNotHaveRegister,
+  };
 
 public:
   static Variable *create(Cfg *Func, Type Ty, SizeT Index) {
@@ -454,25 +451,22 @@ public:
   int32_t getRegNumTmp() const { return RegNumTmp; }
   void setRegNumTmp(int32_t NewRegNum) { RegNumTmp = NewRegNum; }
 
-  RegWeight getWeight() const { return Weight; }
-  void setWeight(uint32_t NewWeight) { Weight = RegWeight(NewWeight); }
-  void setWeightInfinite() { setWeight(RegWeight::Inf); }
+  RegWeight getWeight(const Cfg *Func) const;
+
+  void setMustHaveReg() { RegRequirement = RR_MustHaveRegister; }
+  bool mustHaveReg() const { return RegRequirement == RR_MustHaveRegister; }
+  void setMustNotHaveReg() { RegRequirement = RR_MustNotHaveRegister; }
+  bool mustNotHaveReg() const {
+    return RegRequirement == RR_MustNotHaveRegister;
+  }
 
   LiveRange &getLiveRange() { return Live; }
   const LiveRange &getLiveRange() const { return Live; }
   void setLiveRange(const LiveRange &Range) { Live = Range; }
   void resetLiveRange() { Live.reset(); }
-  void addLiveRange(InstNumberT Start, InstNumberT End, uint32_t WeightDelta) {
+  void addLiveRange(InstNumberT Start, InstNumberT End) {
     assert(!getIgnoreLiveness());
-    assert(WeightDelta != RegWeight::Inf);
     Live.addSegment(Start, End);
-    if (Weight.isInf())
-      Live.setWeight(RegWeight(RegWeight::Inf));
-    else
-      Live.addWeight(WeightDelta * Weight.getWeight());
-  }
-  void setLiveRangeInfiniteWeight() {
-    Live.setWeight(RegWeight(RegWeight::Inf));
   }
   void trimLiveRange(InstNumberT Start) { Live.trim(Start); }
   void untrimLiveRange() { Live.untrim(); }
@@ -500,7 +494,7 @@ public:
   /// Used primarily for syntactic correctness of textual assembly
   /// emission.  Note that only basic information is copied, in
   /// particular not IsArgument, IsImplicitArgument, IgnoreLiveness,
-  /// RegNumTmp, Weight, Live, LoVar, HiVar, VarsReal.
+  /// RegNumTmp, Live, LoVar, HiVar, VarsReal.
   Variable *asType(Type Ty);
 
   void emit(const Cfg *Func) const override;
@@ -540,7 +534,7 @@ protected:
   int32_t RegNum = NoRegister;
   /// RegNumTmp is the tentative assignment during register allocation.
   int32_t RegNumTmp = NoRegister;
-  RegWeight Weight = RegWeight(1); // Register allocation priority
+  RegRequirement RegRequirement = RR_MayHaveRegister;
   LiveRange Live;
   // LoVar and HiVar are needed for lowering from 64 to 32 bits.  When
   // lowering from I64 to I32 on a 32-bit architecture, we split the
@@ -585,6 +579,7 @@ public:
   const Inst *getSingleDefinition() const;
   const InstDefList &getLatterDefinitions() const { return Definitions; }
   CfgNode *getNode() const { return SingleUseNode; }
+  uint32_t getUseWeight() const { return UseWeight; }
   void markUse(MetadataKind TrackingKind, const Inst *Instr, CfgNode *Node,
                bool IsImplicit);
   void markDef(MetadataKind TrackingKind, const Inst *Instr, CfgNode *Node);
@@ -599,10 +594,11 @@ private:
   InstDefList Definitions; /// Only used if Kind==VMK_All
   const Inst *FirstOrSingleDefinition =
       nullptr; /// Is a copy of Definitions[0] if Kind==VMK_All
+  uint32_t UseWeight = 0;
 };
 
-/// VariablesMetadata analyzes and summarizes the metadata for the
-/// complete set of Variables.
+/// VariablesMetadata analyzes and summarizes the metadata for the complete set
+/// of Variables.
 class VariablesMetadata {
   VariablesMetadata() = delete;
   VariablesMetadata(const VariablesMetadata &) = delete;
@@ -616,29 +612,27 @@ public:
   /// Add a single node.  This is called by init(), and can be called
   /// incrementally from elsewhere, e.g. after edge-splitting.
   void addNode(CfgNode *Node);
-  /// Returns whether the given Variable is tracked in this object.  It
-  /// should only return false if changes were made to the CFG after
-  /// running init(), in which case the state is stale and the results
-  /// shouldn't be trusted (but it may be OK e.g. for dumping).
+  /// Returns whether the given Variable is tracked in this object.  It should
+  /// only return false if changes were made to the CFG after running init(), in
+  /// which case the state is stale and the results shouldn't be trusted (but it
+  /// may be OK e.g. for dumping).
   bool isTracked(const Variable *Var) const {
     return Var->getIndex() < Metadata.size();
   }
 
   /// Returns whether the given Variable has multiple definitions.
   bool isMultiDef(const Variable *Var) const;
-  /// Returns the first definition instruction of the given Variable.
-  /// This is only valid for variables whose definitions are all within
-  /// the same block, e.g. T after the lowered sequence "T=B; T+=C;
-  /// A=T", for which getFirstDefinition(T) would return the "T=B"
-  /// instruction.  For variables with definitions span multiple
-  /// blocks, nullptr is returned.
+  /// Returns the first definition instruction of the given Variable.  This is
+  /// only valid for variables whose definitions are all within the same block,
+  /// e.g. T after the lowered sequence "T=B; T+=C; A=T", for which
+  /// getFirstDefinition(T) would return the "T=B" instruction.  For variables
+  /// with definitions span multiple blocks, nullptr is returned.
   const Inst *getFirstDefinition(const Variable *Var) const;
   /// Returns the definition instruction of the given Variable, when
   /// the variable has exactly one definition.  Otherwise, nullptr is
   /// returned.
   const Inst *getSingleDefinition(const Variable *Var) const;
-  /// Returns the list of all definition instructions of the given
-  /// Variable.
+  /// Returns the list of all definition instructions of the given Variable.
   const InstDefList &getLatterDefinitions(const Variable *Var) const;
 
   /// Returns whether the given Variable is live across multiple
@@ -652,6 +646,10 @@ public:
   /// Returns the node that the given Variable is used in, assuming
   /// isMultiBlock() returns false.  Otherwise, nullptr is returned.
   CfgNode *getLocalUseNode(const Variable *Var) const;
+
+  /// Returns the total use weight computed as the sum of uses multiplied by a
+  /// loop nest depth factor for each use.
+  uint32_t getUseWeight(const Variable *Var) const;
 
 private:
   const Cfg *Func;

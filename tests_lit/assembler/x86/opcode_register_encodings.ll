@@ -33,14 +33,14 @@ entry:
   %res = select <8 x i1> %cond, <8 x i16> %res_acc1_3, <8 x i16> %res_acc2_4
   ret <8 x i16> %res
 ; CHECK-LABEL: test_mul_v8i16_more_regs
-; CHECK-DAG: 66 0f d5 c2 pmullw xmm0,xmm2
-; CHECK-DAG: 66 0f d5 c3 pmullw xmm0,xmm3
-; CHECK-DAG: 66 0f d5 c4 pmullw xmm0,xmm4
-; CHECK-DAG: 66 0f d5 c5 pmullw xmm0,xmm5
-; CHECK-DAG: 66 0f d5 c6 pmullw xmm0,xmm6
-; CHECK-DAG: 66 0f d5 c7 pmullw xmm0,xmm7
-; CHECK-DAG: 66 0f d5 44 24 70 pmullw xmm0,XMMWORD PTR [esp
-; CHECK-DAG: 66 0f d5 8c 24 80 00 00 00 pmullw xmm1,XMMWORD PTR [esp
+; CHECK-DAG: pmullw xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
+; CHECK-DAG: pmullw xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
+; CHECK-DAG: pmullw xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
+; CHECK-DAG: pmullw xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
+; CHECK-DAG: pmullw xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
+; CHECK-DAG: pmullw xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
+; CHECK-DAG: pmullw xmm0,XMMWORD PTR [esp
+; CHECK-DAG: pmullw xmm1,XMMWORD PTR [esp
 }
 
 define <4 x i32> @test_mul_v4i32(<4 x i32> %arg0, <4 x i32> %arg1) {
@@ -70,14 +70,14 @@ entry:
   %res = select <4 x i1> %cond, <4 x i32> %res_acc1_3, <4 x i32> %res_acc2_4
   ret <4 x i32> %res
 ; CHECK-LABEL: test_mul_v4i32_more_regs
-; CHECK-DAG: 66 0f 38 40 c2 pmulld xmm0,xmm2
-; CHECK-DAG: 66 0f 38 40 c3 pmulld xmm0,xmm3
-; CHECK-DAG: 66 0f 38 40 c4 pmulld xmm0,xmm4
-; CHECK-DAG: 66 0f 38 40 c5 pmulld xmm0,xmm5
-; CHECK-DAG: 66 0f 38 40 c6 pmulld xmm0,xmm6
-; CHECK-DAG: 66 0f 38 40 c7 pmulld xmm0,xmm7
-; CHECK-DAG: 66 0f 38 40 44 24 70 pmulld xmm0,XMMWORD PTR [esp
-; CHECK-DAG: 66 0f 38 40 8c 24 80 00 00 00 pmulld xmm1,XMMWORD PTR [esp
+; CHECK-DAG: pmulld xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
+; CHECK-DAG: pmulld xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
+; CHECK-DAG: pmulld xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
+; CHECK-DAG: pmulld xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
+; CHECK-DAG: pmulld xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
+; CHECK-DAG: pmulld xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
+; CHECK-DAG: pmulld xmm0,XMMWORD PTR [esp
+; CHECK-DAG: pmulld xmm1,XMMWORD PTR [esp
 }
 
 ; Test movq, which is used by atomic stores.
@@ -192,7 +192,7 @@ entry:
 ; CHECK-LABEL: test_pinsrb
 ; CHECK-DAG: 66 0f 3a 20 c{{.*}} 01 pinsrb xmm0,e{{.*}}
 ; CHECK-DAG: 66 0f 3a 20 c{{.*}} 07 pinsrb xmm0,e{{.*}}
-; CHECK-DAG: 66 0f 3a 20 {{.*}} 0f pinsrb xmm0,BYTE PTR {{.*}}
+; CHECK-DAG: 66 0f 3a 20 c{{.*}} 0f pinsrb xmm0,e{{.*}}
 
 define <8 x i16> @test_pinsrw(<8 x i16> %vec, i32 %elt1_w, i32 %elt2_w, i32 %elt3_w, i32 %elt4_w) {
 entry:
