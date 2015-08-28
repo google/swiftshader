@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "64659dc3_1d6857e7",
+        "filename": "src/Shader/Shader.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-08-28T15:35:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "64659dc3_1aaa1d09",
+      "range": {
+        "startLine": 238,
+        "startChar": 3,
+        "endLine": 239,
+        "endChar": 14
+      },
+      "revId": "a301ef0b3971b2d593893f5a3dd698a5a1d45436",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "64659dc3_3aa7e141",
         "filename": "src/Shader/Shader.hpp",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "64659dc3_3d651b10",
+        "filename": "src/Shader/Shader.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 247,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-08-28T15:35:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "64659dc3_3aa7e141",
+      "range": {
+        "startLine": 244,
+        "startChar": 0,
+        "endLine": 247,
+        "endChar": 15
+      },
+      "revId": "a301ef0b3971b2d593893f5a3dd698a5a1d45436",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "64659dc3_5ab49568",
         "filename": "src/Shader/Shader.hpp",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2015-08-27T19:04:59Z",
       "side": 1,
       "message": "No need for an unsigned left shift. RSU can be named USHR.",
+      "range": {
+        "startLine": 250,
+        "startChar": 0,
+        "endLine": 251,
+        "endChar": 14
+      },
+      "revId": "a301ef0b3971b2d593893f5a3dd698a5a1d45436",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "64659dc3_5d72cfd6",
+        "filename": "src/Shader/Shader.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-08-28T15:35:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "64659dc3_5ab49568",
       "range": {
         "startLine": 250,
         "startChar": 0,
