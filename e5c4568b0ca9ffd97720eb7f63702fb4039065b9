@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "64659dc3_fd83a3e0",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-08-28T20:37:32Z",
+      "side": 1,
+      "message": "Enable",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 4
+      },
+      "revId": "e5c4568b0ca9ffd97720eb7f63702fb4039065b9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "64659dc3_fd7c835c",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-08-28T20:37:32Z",
+      "side": 1,
+      "message": "I\u0027m not a huge fan of this generic name. Also, this function contains a switch statement right after already having been through a switch statement to call this.\n\nWe could just have separate functions called addOpcode(type) etc. or similar.\n\nAnyway, I\u0027m fine landing this first and then making the change.",
+      "range": {
+        "startLine": 169,
+        "startChar": 31,
+        "endLine": 169,
+        "endChar": 40
+      },
+      "revId": "e5c4568b0ca9ffd97720eb7f63702fb4039065b9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
