@@ -146,12 +146,26 @@ namespace sw
 			case Shader::OPCODE_DCL:                                                       break;
 			case Shader::OPCODE_NOP:                                                       break;
 			case Shader::OPCODE_MOV:        mov(d, s0);                                    break;
+			case Shader::OPCODE_NEG:        neg(d, s0);                                    break;
+			case Shader::OPCODE_INEG:       ineg(d, s0);                                   break;
 			case Shader::OPCODE_F2B:        f2b(d, s0);                                    break;
 			case Shader::OPCODE_B2F:        b2f(d, s0);                                    break;
+			case Shader::OPCODE_F2I:        f2i(d, s0);                                    break;
+			case Shader::OPCODE_I2F:        i2f(d, s0);                                    break;
+			case Shader::OPCODE_F2U:        f2u(d, s0);                                    break;
+			case Shader::OPCODE_U2F:        u2f(d, s0);                                    break;
+			case Shader::OPCODE_I2B:        i2b(d, s0);                                    break;
+			case Shader::OPCODE_B2I:        b2i(d, s0);                                    break;
+			case Shader::OPCODE_U2B:        u2b(d, s0);                                    break;
+			case Shader::OPCODE_B2U:        b2u(d, s0);                                    break;
 			case Shader::OPCODE_ADD:        add(d, s0, s1);                                break;
+			case Shader::OPCODE_IADD:       iadd(d, s0, s1);                               break;
 			case Shader::OPCODE_SUB:        sub(d, s0, s1);                                break;
+			case Shader::OPCODE_ISUB:       isub(d, s0, s1);                               break;
 			case Shader::OPCODE_MUL:        mul(d, s0, s1);                                break;
+			case Shader::OPCODE_IMUL:       imul(d, s0, s1);                               break;
 			case Shader::OPCODE_MAD:        mad(d, s0, s1, s2);                            break;
+			case Shader::OPCODE_IMAD:       imad(d, s0, s1, s2);                           break;
 			case Shader::OPCODE_DP1:        dp1(d, s0, s1);                                break;
 			case Shader::OPCODE_DP2:        dp2(d, s0, s1);                                break;
 			case Shader::OPCODE_DP2ADD:     dp2add(d, s0, s1, s2);                         break;
@@ -159,6 +173,7 @@ namespace sw
 			case Shader::OPCODE_DP4:        dp4(d, s0, s1);                                break;
 			case Shader::OPCODE_CMP0:       cmp0(d, s0, s1, s2);                           break;
 			case Shader::OPCODE_ICMP:       icmp(d, s0, s1, control);                      break;
+			case Shader::OPCODE_UCMP:       ucmp(d, s0, s1, control);                      break;
 			case Shader::OPCODE_SELECT:     select(d, s0, s1, s2);                         break;
 			case Shader::OPCODE_EXTRACT:    extract(d.x, s0, s1.x);                        break;
 			case Shader::OPCODE_INSERT:     insert(d, s0, s1.x, s2.x);                     break;
@@ -176,7 +191,14 @@ namespace sw
 			case Shader::OPCODE_LOG:        log(d, s0, pp);                                break;
 			case Shader::OPCODE_RCPX:       rcpx(d, s0, pp);                               break;
 			case Shader::OPCODE_DIV:        div(d, s0, s1);                                break;
+			case Shader::OPCODE_IDIV:       idiv(d, s0, s1);                               break;
+			case Shader::OPCODE_UDIV:       udiv(d, s0, s1);                               break;
 			case Shader::OPCODE_MOD:        mod(d, s0, s1);                                break;
+			case Shader::OPCODE_IMOD:       imod(d, s0, s1);                               break;
+			case Shader::OPCODE_UMOD:       umod(d, s0, s1);                               break;
+			case Shader::OPCODE_SHL:        shl(d, s0, s1);                                break;
+			case Shader::OPCODE_ISHR:       ishr(d, s0, s1);                               break;
+			case Shader::OPCODE_USHR:       ushr(d, s0, s1);                               break;
 			case Shader::OPCODE_RSQX:       rsqx(d, s0, pp);                               break;
 			case Shader::OPCODE_SQRT:       sqrt(d, s0, pp);                               break;
 			case Shader::OPCODE_RSQ:        rsq(d, s0, pp);                                break;
@@ -188,10 +210,18 @@ namespace sw
 			case Shader::OPCODE_DIST3:      dist3(d.x, s0, s1, pp);                        break;
 			case Shader::OPCODE_DIST4:      dist4(d.x, s0, s1, pp);                        break;
 			case Shader::OPCODE_MIN:        min(d, s0, s1);                                break;
+			case Shader::OPCODE_IMIN:       imin(d, s0, s1);                               break;
+			case Shader::OPCODE_UMIN:       umin(d, s0, s1);                               break;
 			case Shader::OPCODE_MAX:        max(d, s0, s1);                                break;
+			case Shader::OPCODE_IMAX:       imax(d, s0, s1);                               break;
+			case Shader::OPCODE_UMAX:       umax(d, s0, s1);                               break;
 			case Shader::OPCODE_LRP:        lrp(d, s0, s1, s2);                            break;
 			case Shader::OPCODE_STEP:       step(d, s0, s1);                               break;
 			case Shader::OPCODE_SMOOTH:     smooth(d, s0, s1, s2);                         break;
+			case Shader::OPCODE_FLOATBITSTOINT:
+			case Shader::OPCODE_FLOATBITSTOUINT:
+			case Shader::OPCODE_INTBITSTOFLOAT:
+			case Shader::OPCODE_UINTBITSTOFLOAT: d = s0;                                   break;
 			case Shader::OPCODE_POWX:       powx(d, s0, s1, pp);                           break;
 			case Shader::OPCODE_POW:        pow(d, s0, s1, pp);                            break;
 			case Shader::OPCODE_SGN:        sgn(d, s0);                                    break;
@@ -266,6 +296,8 @@ namespace sw
 			case Shader::OPCODE_OR:         or(d, s0, s1);                                 break;
 			case Shader::OPCODE_XOR:        xor(d, s0, s1);                                break;
 			case Shader::OPCODE_AND:        and(d, s0, s1);                                break;
+			case Shader::OPCODE_EQ:         equal(d, s0, s1);                              break;
+			case Shader::OPCODE_NE:         notEqual(d, s0, s1);                           break;
 			case Shader::OPCODE_END:                                                       break;
 			default:
 				ASSERT(false);

@@ -739,6 +739,7 @@ namespace sw
 		case OPCODE_SUB:			return "sub";
 		case OPCODE_ISUB:			return "isub";
 		case OPCODE_MAD:			return "mad";
+		case OPCODE_IMAD:			return "imad";
 		case OPCODE_MUL:			return "mul";
 		case OPCODE_IMUL:			return "imul";
 		case OPCODE_RCPX:			return "rcpx";
@@ -913,6 +914,10 @@ namespace sw
 		case OPCODE_I2F:            return "i2f";
 		case OPCODE_F2U:            return "f2u";
 		case OPCODE_U2F:            return "u2f";
+		case OPCODE_B2I:            return "b2i";
+		case OPCODE_I2B:            return "i2b";
+		case OPCODE_B2U:            return "b2u";
+		case OPCODE_U2B:            return "u2b";
 		case OPCODE_ALL:            return "all";
 		case OPCODE_ANY:            return "any";
 		case OPCODE_NEG:            return "neg";
@@ -923,6 +928,8 @@ namespace sw
 		case OPCODE_OR:             return "or";
 		case OPCODE_XOR:            return "xor";
 		case OPCODE_AND:            return "and";
+		case OPCODE_EQ:             return "eq";
+		case OPCODE_NE:             return "neq";
 		case OPCODE_FORWARD1:       return "forward1";
 		case OPCODE_FORWARD2:       return "forward2";
 		case OPCODE_FORWARD3:       return "forward3";

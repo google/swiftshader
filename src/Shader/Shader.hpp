@@ -184,6 +184,10 @@ namespace sw
 			OPCODE_I2F,   // Int to float
 			OPCODE_F2U,   // Float to uint
 			OPCODE_U2F,   // Uint to float
+			OPCODE_I2B,   // Int to bool
+			OPCODE_B2I,   // Bool to int
+			OPCODE_U2B,   // Uint to bool
+			OPCODE_B2U,   // Bool to uint
 			OPCODE_ALL,
 			OPCODE_ANY,
 			OPCODE_NEG,
@@ -191,6 +195,8 @@ namespace sw
 			OPCODE_OR,
 			OPCODE_XOR,
 			OPCODE_AND,
+			OPCODE_EQ,
+			OPCODE_NE,
 			OPCODE_STEP,
 			OPCODE_SMOOTH,
 			OPCODE_ISNAN,
@@ -234,6 +240,7 @@ namespace sw
 			OPCODE_ISUB,
 			OPCODE_IMUL,
 			OPCODE_IDIV,
+			OPCODE_IMAD,
 			OPCODE_IMOD,
 			OPCODE_SHL,
 			OPCODE_ISHR,
