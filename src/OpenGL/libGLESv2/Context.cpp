@@ -3083,12 +3083,12 @@ void Context::applyTextures(sw::SamplerType samplerType)
             }
             else
             {
-                applyTexture(samplerType, samplerIndex, 0);
+                applyTexture(samplerType, samplerIndex, nullptr);
             }
         }
         else
         {
-            applyTexture(samplerType, samplerIndex, NULL);
+            applyTexture(samplerType, samplerIndex, nullptr);
         }
     }
 }

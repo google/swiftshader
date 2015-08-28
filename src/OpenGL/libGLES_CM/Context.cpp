@@ -2238,7 +2238,7 @@ void Context::applyTextures()
         }
         else
         {
-            applyTexture(unit, 0);
+            applyTexture(unit, nullptr);
 
 			device->setFirstArgument(unit, sw::TextureStage::SOURCE_CURRENT);
 			device->setFirstModifier(unit, sw::TextureStage::MODIFIER_COLOR);

@@ -77,14 +77,14 @@ static bool validateSubImageParams(bool compressed, GLsizei width, GLsizei heigh
 	if(compressed)
 	{
 		if((width % 4 != 0 && width != texture->getWidth(target, 0)) ||
-			(height % 4 != 0 && height != texture->getHeight(target, 0)))
+		   (height % 4 != 0 && height != texture->getHeight(target, 0)))
 		{
 			return error(GL_INVALID_OPERATION, false);
 		}
 	}
 
 	if(xoffset + width > texture->getWidth(target, level) ||
-		yoffset + height > texture->getHeight(target, level))
+	   yoffset + height > texture->getHeight(target, level))
 	{
 		return error(GL_INVALID_VALUE, false);
 	}

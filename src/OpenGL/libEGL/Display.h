@@ -39,7 +39,7 @@ namespace egl
 		bool getConfigAttrib(EGLConfig config, EGLint attribute, EGLint *value);
 
 		EGLSurface createWindowSurface(EGLNativeWindowType window, EGLConfig config, const EGLint *attribList);
-		EGLSurface createOffscreenSurface(EGLConfig config, const EGLint *attribList);
+		EGLSurface createPBufferSurface(EGLConfig config, const EGLint *attribList);
 		EGLContext createContext(EGLConfig configHandle, const Context *shareContext, EGLint clientVersion);
 
 		void destroySurface(Surface *surface);
@@ -52,8 +52,8 @@ namespace egl
 		bool isValidWindow(EGLNativeWindowType window);
 		bool hasExistingWindowSurface(EGLNativeWindowType window);
 
-		EGLint getMinSwapInterval();
-		EGLint getMaxSwapInterval();
+		EGLint getMinSwapInterval() const;
+		EGLint getMaxSwapInterval() const;
 
 		EGLNativeDisplayType getNativeDisplay() const;
 		const char *getExtensionString() const;

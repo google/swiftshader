@@ -305,7 +305,7 @@ EGLSurface Display::createWindowSurface(EGLNativeWindowType window, EGLConfig co
         return error(EGL_BAD_ALLOC, EGL_NO_SURFACE);
     }
 
-    Surface *surface = new Surface(this, configuration, window);
+    Surface *surface = new WindowSurface(this, configuration, window);
 
     if(!surface->initialize())
     {
@@ -319,61 +319,63 @@ EGLSurface Display::createWindowSurface(EGLNativeWindowType window, EGLConfig co
     return success(surface);
 }
 
-EGLSurface Display::createOffscreenSurface(EGLConfig config, const EGLint *attribList)
+EGLSurface Display::createPBufferSurface(EGLConfig config, const EGLint *attribList)
 {
     EGLint width = 0, height = 0;
     EGLenum textureFormat = EGL_NO_TEXTURE;
     EGLenum textureTarget = EGL_NO_TEXTURE;
+	EGLBoolean largestPBuffer = EGL_FALSE;
     const Config *configuration = mConfigSet.get(config);
 
     if(attribList)
     {
         while(*attribList != EGL_NONE)
         {
-            switch (attribList[0])
+            switch(attribList[0])
             {
-              case EGL_WIDTH:
+            case EGL_WIDTH:
                 width = attribList[1];
                 break;
-              case EGL_HEIGHT:
+            case EGL_HEIGHT:
                 height = attribList[1];
                 break;
-              case EGL_LARGEST_PBUFFER:
-                if(attribList[1] != EGL_FALSE)
-                  UNIMPLEMENTED(); // FIXME
+            case EGL_LARGEST_PBUFFER:
+                largestPBuffer = attribList[1];
                 break;
-              case EGL_TEXTURE_FORMAT:
-                switch (attribList[1])
+            case EGL_TEXTURE_FORMAT:
+                switch(attribList[1])
                 {
-                  case EGL_NO_TEXTURE:
-                  case EGL_TEXTURE_RGB:
-                  case EGL_TEXTURE_RGBA:
+                case EGL_NO_TEXTURE:
+                case EGL_TEXTURE_RGB:
+                case EGL_TEXTURE_RGBA:
                     textureFormat = attribList[1];
                     break;
-                  default:
+                default:
                     return error(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
                 }
                 break;
-              case EGL_TEXTURE_TARGET:
-                switch (attribList[1])
+            case EGL_TEXTURE_TARGET:
+                switch(attribList[1])
                 {
-                  case EGL_NO_TEXTURE:
-                  case EGL_TEXTURE_2D:
+                case EGL_NO_TEXTURE:
+                case EGL_TEXTURE_2D:
                     textureTarget = attribList[1];
                     break;
-                  default:
+                default:
                     return error(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
                 }
                 break;
-              case EGL_MIPMAP_TEXTURE:
+            case EGL_MIPMAP_TEXTURE:
                 if(attribList[1] != EGL_FALSE)
-                  return error(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
+				{
+					return error(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
+				}
                 break;
-              case EGL_VG_COLORSPACE:
+            case EGL_VG_COLORSPACE:
                 return error(EGL_BAD_MATCH, EGL_NO_SURFACE);
-              case EGL_VG_ALPHA_FORMAT:
+            case EGL_VG_ALPHA_FORMAT:
                 return error(EGL_BAD_MATCH, EGL_NO_SURFACE);
-              default:
+            default:
                 return error(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
             }
 
@@ -408,7 +410,7 @@ EGLSurface Display::createOffscreenSurface(EGLConfig config, const EGLint *attri
         return error(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
     }
 
-    Surface *surface = new Surface(this, configuration, width, height, textureFormat, textureTarget);
+    Surface *surface = new PBufferSurface(this, configuration, width, height, textureFormat, textureTarget, largestPBuffer);
 
     if(!surface->initialize())
     {
@@ -543,21 +545,24 @@ bool Display::hasExistingWindowSurface(EGLNativeWindowType window)
 {
     for(SurfaceSet::iterator surface = mSurfaceSet.begin(); surface != mSurfaceSet.end(); surface++)
     {
-        if((*surface)->getWindowHandle() == window)
-        {
-            return true;
-        }
+		if((*surface)->isWindowSurface())
+		{
+			if((*surface)->getWindowHandle() == window)
+			{
+				return true;
+			}
+		}
     }
 
     return false;
 }
 
-EGLint Display::getMinSwapInterval()
+EGLint Display::getMinSwapInterval() const
 {
     return mMinSwapInterval;
 }
 
-EGLint Display::getMaxSwapInterval()
+EGLint Display::getMaxSwapInterval() const
 {
     return mMaxSwapInterval;
 }

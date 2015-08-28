@@ -98,18 +98,9 @@ GLenum IndexDataManager::prepareIndexData(GLenum type, GLuint start, GLuint end,
     }
 
     intptr_t offset = reinterpret_cast<intptr_t>(indices);
-    bool alignedOffset = false;
 
     if(buffer != NULL)
     {
-        switch(type)
-        {
-          case GL_UNSIGNED_BYTE:  alignedOffset = (offset % sizeof(GLubyte) == 0);  break;
-          case GL_UNSIGNED_SHORT: alignedOffset = (offset % sizeof(GLushort) == 0); break;
-          case GL_UNSIGNED_INT:   alignedOffset = (offset % sizeof(GLuint) == 0);   break;
-          default: UNREACHABLE(type); alignedOffset = false;
-        }
-
         if(typeSize(type) * count + offset > static_cast<std::size_t>(buffer->size()))
         {
             return GL_INVALID_OPERATION;

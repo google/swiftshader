@@ -73,7 +73,7 @@ static bool validateSubImageParams(bool compressed, GLsizei width, GLsizei heigh
 	}
 
 	if(xoffset + width > texture->getWidth(target, level) ||
-		yoffset + height > texture->getHeight(target, level))
+	   yoffset + height > texture->getHeight(target, level))
 	{
 		return error(GL_INVALID_VALUE, false);
 	}
@@ -101,8 +101,8 @@ static bool validateSubImageParams(bool compressed, GLsizei width, GLsizei heigh
 	if(compressed)
 	{
 		if((width % 4 != 0 && width != texture->getWidth(target, 0)) ||
-			(height % 4 != 0 && height != texture->getHeight(target, 0)) ||
-			(depth % 4 != 0 && depth != texture->getDepth(target, 0)))
+		   (height % 4 != 0 && height != texture->getHeight(target, 0)) ||
+		   (depth % 4 != 0 && depth != texture->getDepth(target, 0)))
 		{
 			return error(GL_INVALID_OPERATION, false);
 		}
@@ -124,10 +124,10 @@ static bool validateColorBufferFormat(GLenum textureFormat, GLenum colorbufferFo
 	{
 	case GL_ALPHA:
 		if(colorbufferFormat != GL_ALPHA &&
-			colorbufferFormat != GL_RGBA &&
-			colorbufferFormat != GL_RGBA4 &&
-			colorbufferFormat != GL_RGB5_A1 &&
-			colorbufferFormat != GL_RGBA8)
+		   colorbufferFormat != GL_RGBA &&
+		   colorbufferFormat != GL_RGBA4 &&
+		   colorbufferFormat != GL_RGB5_A1 &&
+		   colorbufferFormat != GL_RGBA8)
 		{
 			return error(GL_INVALID_OPERATION, false);
 		}
@@ -135,12 +135,12 @@ static bool validateColorBufferFormat(GLenum textureFormat, GLenum colorbufferFo
 	case GL_LUMINANCE:
 	case GL_RGB:
 		if(colorbufferFormat != GL_RGB &&
-			colorbufferFormat != GL_RGB565 &&
-			colorbufferFormat != GL_RGB8 &&
-			colorbufferFormat != GL_RGBA &&
-			colorbufferFormat != GL_RGBA4 &&
-			colorbufferFormat != GL_RGB5_A1 &&
-			colorbufferFormat != GL_RGBA8)
+		   colorbufferFormat != GL_RGB565 &&
+		   colorbufferFormat != GL_RGB8 &&
+		   colorbufferFormat != GL_RGBA &&
+		   colorbufferFormat != GL_RGBA4 &&
+		   colorbufferFormat != GL_RGB5_A1 &&
+		   colorbufferFormat != GL_RGBA8)
 		{
 			return error(GL_INVALID_OPERATION, false);
 		}
@@ -148,9 +148,9 @@ static bool validateColorBufferFormat(GLenum textureFormat, GLenum colorbufferFo
 	case GL_LUMINANCE_ALPHA:
 	case GL_RGBA:
 		if(colorbufferFormat != GL_RGBA &&
-			colorbufferFormat != GL_RGBA4 &&
-			colorbufferFormat != GL_RGB5_A1 &&
-			colorbufferFormat != GL_RGBA8)
+		   colorbufferFormat != GL_RGBA4 &&
+		   colorbufferFormat != GL_RGB5_A1 &&
+		   colorbufferFormat != GL_RGBA8)
 		{
 			return error(GL_INVALID_OPERATION, false);
 		}

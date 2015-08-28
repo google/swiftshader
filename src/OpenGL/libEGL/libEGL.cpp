@@ -302,7 +302,7 @@ EGLSurface CreatePbufferSurface(EGLDisplay dpy, EGLConfig config, const EGLint *
 		return EGL_NO_SURFACE;
 	}
 
-	return display->createOffscreenSurface(config, attrib_list);
+	return display->createPBufferSurface(config, attrib_list);
 }
 
 EGLSurface CreatePixmapSurface(EGLDisplay dpy, EGLConfig config, EGLNativePixmapType pixmap, const EGLint *attrib_list)
@@ -380,7 +380,10 @@ EGLBoolean QuerySurface(EGLDisplay dpy, EGLSurface surface, EGLint attribute, EG
 		UNIMPLEMENTED();   // FIXME
 		break;
 	case EGL_LARGEST_PBUFFER:
-		UNIMPLEMENTED();   // FIXME
+		if(eglSurface->isPBufferSurface())   // For a window or pixmap surface, the contents of *value are not modified.
+		{
+			*value = eglSurface->getLargestPBuffer();	
+		}
 		break;
 	case EGL_MIPMAP_TEXTURE:
 		UNIMPLEMENTED();   // FIXME
@@ -530,7 +533,7 @@ EGLBoolean BindTexImage(EGLDisplay dpy, EGLSurface surface, EGLint buffer)
 		return error(EGL_BAD_PARAMETER, EGL_FALSE);
 	}
 
-	if(surface == EGL_NO_SURFACE || eglSurface->getWindowHandle())
+	if(surface == EGL_NO_SURFACE || eglSurface->isWindowSurface())
 	{
 		return error(EGL_BAD_SURFACE, EGL_FALSE);
 	}
@@ -572,7 +575,7 @@ EGLBoolean ReleaseTexImage(EGLDisplay dpy, EGLSurface surface, EGLint buffer)
 		return error(EGL_BAD_PARAMETER, EGL_FALSE);
 	}
 
-	if(surface == EGL_NO_SURFACE || eglSurface->getWindowHandle())
+	if(surface == EGL_NO_SURFACE || eglSurface->isWindowSurface())
 	{
 		return error(EGL_BAD_SURFACE, EGL_FALSE);
 	}
