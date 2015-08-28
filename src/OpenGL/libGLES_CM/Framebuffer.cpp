@@ -455,12 +455,4 @@ DefaultFramebuffer::DefaultFramebuffer(Colorbuffer *colorbuffer, DepthStencilbuf
 	mStencilbufferType = (depthStencilRenderbuffer->getStencilSize() != 0) ? GL_RENDERBUFFER_OES : GL_NONE_OES;
 }
 
-GLenum DefaultFramebuffer::completeness()
-{
-	// The default framebuffer should always be complete
-	ASSERT(Framebuffer::completeness() == GL_FRAMEBUFFER_COMPLETE_OES);
-
-	return GL_FRAMEBUFFER_COMPLETE_OES;
-}
-
 }

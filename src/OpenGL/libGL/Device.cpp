@@ -252,7 +252,7 @@ namespace gl
 
 	Image *Device::createDepthStencilSurface(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard)
 	{
-		if(width == 0 || height == 0 || height > OUTLINE_RESOLUTION)
+		if(height > OUTLINE_RESOLUTION)
 		{
 			ERR("Invalid parameters: %dx%d", width, height);
 			return 0;

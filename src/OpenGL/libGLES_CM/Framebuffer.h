@@ -83,8 +83,6 @@ class DefaultFramebuffer : public Framebuffer
 {
 public:
     DefaultFramebuffer(Colorbuffer *colorbuffer, DepthStencilbuffer *depthStencil);
-
-    virtual GLenum completeness();
 };
 
 }
