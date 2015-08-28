@@ -1968,7 +1968,7 @@ namespace sw
 			{
 				for(int x = 0; x < external.width; x += 4)
 				{
-					bgrx8 *color = reinterpret_cast<bgrx8*>(&dest[x + y * internal.width]);
+					bgrx8 *color = reinterpret_cast<bgrx8*>(&dest[x + y * internal.pitchP]);
 
 					int r1, g1, b1;
 					int r2, g2, b2;
@@ -2038,7 +2038,7 @@ namespace sw
 							if((x + 1) < internal.width) color[1] = subblockColors0[source->getIndex(1, j)];
 							if((x + 2) < internal.width) color[2] = subblockColors0[source->getIndex(2, j)];
 							if((x + 3) < internal.width) color[3] = subblockColors0[source->getIndex(3, j)];
-							color += internal.width;
+							color += internal.pitchP;
 						}
 
 						for(int j = 2; j < 4 && (y + j) < internal.height; j++)
@@ -2047,7 +2047,7 @@ namespace sw
 							if((x + 1) < internal.width) color[1] = subblockColors1[source->getIndex(1, j)];
 							if((x + 2) < internal.width) color[2] = subblockColors1[source->getIndex(2, j)];
 							if((x + 3) < internal.width) color[3] = subblockColors1[source->getIndex(3, j)];
-							color += internal.width;
+							color += internal.pitchP;
 						}
 					}
 					else
@@ -2058,7 +2058,7 @@ namespace sw
 							if((x + 1) < internal.width) color[1] = subblockColors0[source->getIndex(1, j)];
 							if((x + 2) < internal.width) color[2] = subblockColors1[source->getIndex(2, j)];
 							if((x + 3) < internal.width) color[3] = subblockColors1[source->getIndex(3, j)];
-							color += internal.width;
+							color += internal.pitchP;
 						}
 					}
 
