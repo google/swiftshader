@@ -14,6 +14,8 @@
 #include "Renderer/Renderer.hpp"
 #include "Common/Debug.hpp"
 
+#include <limits.h>
+
 namespace sw
 {
 	extern TranscendentalPrecision logPrecision;
