@@ -22,6 +22,7 @@
 #include "IceELFObjectWriter.h"
 #include "IceGlobalInits.h"
 #include "IceInst.h"
+#include "IceInstVarIter.h"
 #include "IceLiveness.h"
 #include "IceOperand.h"
 #include "IceTargetLowering.h"
@@ -585,19 +586,14 @@ bool Cfg::validateLiveness() const {
           }
         }
       }
-      for (SizeT I = 0; I < Inst.getSrcSize(); ++I) {
-        Operand *Src = Inst.getSrc(I);
-        SizeT NumVars = Src->getNumVars();
-        for (SizeT J = 0; J < NumVars; ++J) {
-          const Variable *Var = Src->getVar(J);
-          const bool IsDest = false;
-          if (!Var->getIgnoreLiveness() &&
-              !Var->getLiveRange().containsValue(InstNumber, IsDest)) {
-            Valid = false;
-            Str << "Liveness error: inst " << Inst.getNumber() << " var ";
-            Var->dump(this);
-            Str << " live range " << Var->getLiveRange() << "\n";
-          }
+      FOREACH_VAR_IN_INST(Var, Inst) {
+        static constexpr bool IsDest = false;
+        if (!Var->getIgnoreLiveness() &&
+            !Var->getLiveRange().containsValue(InstNumber, IsDest)) {
+          Valid = false;
+          Str << "Liveness error: inst " << Inst.getNumber() << " var ";
+          Var->dump(this);
+          Str << " live range " << Var->getLiveRange() << "\n";
         }
       }
     }

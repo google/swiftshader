@@ -17,6 +17,7 @@
 
 #include "IceCfg.h"
 #include "IceCfgNode.h"
+#include "IceInstVarIter.h"
 #include "IceLiveness.h"
 #include "IceOperand.h"
 #include "IceTargetLowering.h"
@@ -95,19 +96,14 @@ bool Inst::isLastUse(const Operand *TestSrc) const {
     return false; // early-exit optimization
   if (const Variable *TestVar = llvm::dyn_cast<const Variable>(TestSrc)) {
     LREndedBits Mask = LiveRangesEnded;
-    for (SizeT I = 0; I < getSrcSize(); ++I) {
-      Operand *Src = getSrc(I);
-      SizeT NumVars = Src->getNumVars();
-      for (SizeT J = 0; J < NumVars; ++J) {
-        const Variable *Var = Src->getVar(J);
-        if (Var == TestVar) {
-          // We've found where the variable is used in the instruction.
-          return Mask & 1;
-        }
-        Mask >>= 1;
-        if (Mask == 0)
-          return false; // another early-exit optimization
+    FOREACH_VAR_IN_INST(Var, *this) {
+      if (Var == TestVar) {
+        // We've found where the variable is used in the instruction.
+        return Mask & 1;
       }
+      Mask >>= 1;
+      if (Mask == 0)
+        return false; // another early-exit optimization
     }
   }
   return false;
@@ -155,20 +151,14 @@ void Inst::livenessLightweight(Cfg *Func, LivenessBV &Live) {
   assert(!isDeleted());
   resetLastUses();
   VariablesMetadata *VMetadata = Func->getVMetadata();
-  SizeT VarIndex = 0;
-  for (SizeT I = 0; I < getSrcSize(); ++I) {
-    Operand *Src = getSrc(I);
-    SizeT NumVars = Src->getNumVars();
-    for (SizeT J = 0; J < NumVars; ++J, ++VarIndex) {
-      const Variable *Var = Src->getVar(J);
-      if (VMetadata->isMultiBlock(Var))
-        continue;
-      SizeT Index = Var->getIndex();
-      if (Live[Index])
-        continue;
-      Live[Index] = true;
-      setLastUse(VarIndex);
-    }
+  FOREACH_VAR_IN_INST(Var, *this) {
+    if (VMetadata->isMultiBlock(Var))
+      continue;
+    SizeT Index = Var->getIndex();
+    if (Live[Index])
+      continue;
+    Live[Index] = true;
+    setLastUse(IndexOfVarInInst(Var));
   }
 }
 
@@ -198,39 +188,29 @@ bool Inst::liveness(InstNumberT InstNumber, LivenessBV &Live,
   // we still need to update LiveRangesEnded.
   bool IsPhi = llvm::isa<InstPhi>(this);
   resetLastUses();
-  SizeT VarIndex = 0;
-  for (SizeT I = 0; I < getSrcSize(); ++I) {
-    Operand *Src = getSrc(I);
-    SizeT NumVars = Src->getNumVars();
-    for (SizeT J = 0; J < NumVars; ++J, ++VarIndex) {
-      const Variable *Var = Src->getVar(J);
-      SizeT VarNum = Liveness->getLiveIndex(Var->getIndex());
-      if (!Live[VarNum]) {
-        setLastUse(VarIndex);
-        if (!IsPhi) {
-          Live[VarNum] = true;
-          // For a variable in SSA form, its live range can end at
-          // most once in a basic block.  However, after lowering to
-          // two-address instructions, we end up with sequences like
-          // "t=b;t+=c;a=t" where t's live range begins and ends
-          // twice.  ICE only allows a variable to have a single
-          // liveness interval in a basic block (except for blocks
-          // where a variable is live-in and live-out but there is a
-          // gap in the middle).  Therefore, this lowered sequence
-          // needs to represent a single conservative live range for
-          // t.  Since the instructions are being traversed backwards,
-          // we make sure LiveEnd is only set once by setting it only
-          // when LiveEnd[VarNum]==0 (sentinel value).  Note that it's
-          // OK to set LiveBegin multiple times because of the
-          // backwards traversal.
-          if (LiveEnd && Liveness->getRangeMask(Var->getIndex())) {
-            // Ideally, we would verify that VarNum wasn't already
-            // added in this block, but this can't be done very
-            // efficiently with LiveEnd as a vector.  Instead,
-            // livenessPostprocess() verifies this after the vector
-            // has been sorted.
-            LiveEnd->push_back(std::make_pair(VarNum, InstNumber));
-          }
+  FOREACH_VAR_IN_INST(Var, *this) {
+    SizeT VarNum = Liveness->getLiveIndex(Var->getIndex());
+    if (!Live[VarNum]) {
+      setLastUse(IndexOfVarInInst(Var));
+      if (!IsPhi) {
+        Live[VarNum] = true;
+        // For a variable in SSA form, its live range can end at most once in a
+        // basic block.  However, after lowering to two-address instructions, we
+        // end up with sequences like "t=b;t+=c;a=t" where t's live range begins
+        // and ends twice.  ICE only allows a variable to have a single liveness
+        // interval in a basic block (except for blocks where a variable is
+        // live-in and live-out but there is a gap in the middle).  Therefore,
+        // this lowered sequence needs to represent a single conservative live
+        // range for t.  Since the instructions are being traversed backwards,
+        // we make sure LiveEnd is only set once by setting it only when
+        // LiveEnd[VarNum]==0 (sentinel value).  Note that it's OK to set
+        // LiveBegin multiple times because of the backwards traversal.
+        if (LiveEnd && Liveness->getRangeMask(Var->getIndex())) {
+          // Ideally, we would verify that VarNum wasn't already added in this
+          // block, but this can't be done very efficiently with LiveEnd as a
+          // vector.  Instead, livenessPostprocess() verifies this after the
+          // vector has been sorted.
+          LiveEnd->push_back(std::make_pair(VarNum, InstNumber));
         }
       }
     }
@@ -581,19 +561,14 @@ void Inst::dumpExtras(const Cfg *Func) const {
   // Print "LIVEEND={a,b,c}" for all source operands whose live ranges
   // are known to end at this instruction.
   if (Func->isVerbose(IceV_Liveness)) {
-    for (SizeT I = 0; I < getSrcSize(); ++I) {
-      Operand *Src = getSrc(I);
-      SizeT NumVars = Src->getNumVars();
-      for (SizeT J = 0; J < NumVars; ++J) {
-        const Variable *Var = Src->getVar(J);
-        if (isLastUse(Var)) {
-          if (First)
-            Str << " // LIVEEND={";
-          else
-            Str << ",";
-          Var->dump(Func);
-          First = false;
-        }
+    FOREACH_VAR_IN_INST(Var, *this) {
+      if (isLastUse(Var)) {
+        if (First)
+          Str << " // LIVEEND={";
+        else
+          Str << ",";
+        Var->dump(Func);
+        First = false;
       }
     }
     if (!First)

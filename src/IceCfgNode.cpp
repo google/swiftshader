@@ -19,6 +19,7 @@
 #include "IceCfg.h"
 #include "IceGlobalInits.h"
 #include "IceInst.h"
+#include "IceInstVarIter.h"
 #include "IceLiveness.h"
 #include "IceOperand.h"
 #include "IceTargetLowering.h"
@@ -846,26 +847,21 @@ void emitLiveRangesEnded(Ostream &Str, const Cfg *Func, const Inst *Instr,
   // instruction started the dest variable's live range.
   if (!Instr->isDestNonKillable() && Dest && Dest->hasReg())
     ++LiveRegCount[Dest->getRegNum()];
-  for (SizeT I = 0; I < Instr->getSrcSize(); ++I) {
-    Operand *Src = Instr->getSrc(I);
-    SizeT NumVars = Src->getNumVars();
-    for (SizeT J = 0; J < NumVars; ++J) {
-      const Variable *Var = Src->getVar(J);
-      bool ShouldReport = Instr->isLastUse(Var);
-      if (ShouldReport && Var->hasReg()) {
-        // Don't report end of live range until the live count reaches 0.
-        SizeT NewCount = --LiveRegCount[Var->getRegNum()];
-        if (NewCount)
-          ShouldReport = false;
-      }
-      if (ShouldReport) {
-        if (First)
-          Str << " \t# END=";
-        else
-          Str << ",";
-        Var->emit(Func);
-        First = false;
-      }
+  FOREACH_VAR_IN_INST(Var, *Instr) {
+    bool ShouldReport = Instr->isLastUse(Var);
+    if (ShouldReport && Var->hasReg()) {
+      // Don't report end of live range until the live count reaches 0.
+      SizeT NewCount = --LiveRegCount[Var->getRegNum()];
+      if (NewCount)
+        ShouldReport = false;
+    }
+    if (ShouldReport) {
+      if (First)
+        Str << " \t# END=";
+      else
+        Str << ",";
+      Var->emit(Func);
+      First = false;
     }
   }
 }

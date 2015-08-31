@@ -25,6 +25,7 @@
 #include "IceCfg.h" // setError()
 #include "IceCfgNode.h"
 #include "IceGlobalInits.h"
+#include "IceInstVarIter.h"
 #include "IceOperand.h"
 #include "IceRegAlloc.h"
 #include "IceTargetLoweringARM32.h"
@@ -289,13 +290,8 @@ void TargetLowering::getVarStackSlotParams(
         continue;
       if (const Variable *Var = Inst.getDest())
         IsVarReferenced[Var->getIndex()] = true;
-      for (SizeT I = 0; I < Inst.getSrcSize(); ++I) {
-        Operand *Src = Inst.getSrc(I);
-        SizeT NumVars = Src->getNumVars();
-        for (SizeT J = 0; J < NumVars; ++J) {
-          const Variable *Var = Src->getVar(J);
-          IsVarReferenced[Var->getIndex()] = true;
-        }
+      FOREACH_VAR_IN_INST(Var, Inst) {
+        IsVarReferenced[Var->getIndex()] = true;
       }
     }
   }

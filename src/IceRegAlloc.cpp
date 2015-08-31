@@ -18,6 +18,7 @@
 #include "IceCfg.h"
 #include "IceCfgNode.h"
 #include "IceInst.h"
+#include "IceInstVarIter.h"
 #include "IceOperand.h"
 #include "IceTargetLowering.h"
 
@@ -180,16 +181,11 @@ void LinearScan::initForInfOnly() {
           }
         }
       }
-      for (SizeT I = 0; I < Inst.getSrcSize(); ++I) {
-        Operand *Src = Inst.getSrc(I);
-        SizeT NumVars = Src->getNumVars();
-        for (SizeT J = 0; J < NumVars; ++J) {
-          const Variable *Var = Src->getVar(J);
-          if (Var->getIgnoreLiveness())
-            continue;
-          if (Var->hasReg() || Var->mustHaveReg())
-            LREnd[Var->getIndex()] = Inst.getNumber();
-        }
+      FOREACH_VAR_IN_INST(Var, Inst) {
+        if (Var->getIgnoreLiveness())
+          continue;
+        if (Var->hasReg() || Var->mustHaveReg())
+          LREnd[Var->getIndex()] = Inst.getNumber();
       }
     }
   }
@@ -298,14 +294,9 @@ void LinearScan::addSpillFill(IterationState &Iter) {
       // Remove from RegMask any physical registers referenced during Cur's live
       // range.  Start looking after SpillPoint gets set, i.e. once Cur's live
       // range begins.
-      for (SizeT i = 0; i < I->getSrcSize(); ++i) {
-        Operand *Src = I->getSrc(i);
-        SizeT NumVars = Src->getNumVars();
-        for (SizeT j = 0; j < NumVars; ++j) {
-          const Variable *Var = Src->getVar(j);
-          if (Var->hasRegTmp())
-            Iter.RegMask[Var->getRegNumTmp()] = false;
-        }
+      FOREACH_VAR_IN_INST(Var, *I) {
+        if (Var->hasRegTmp())
+          Iter.RegMask[Var->getRegNumTmp()] = false;
       }
     }
   }

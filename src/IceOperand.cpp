@@ -18,6 +18,7 @@
 #include "IceCfg.h"
 #include "IceCfgNode.h"
 #include "IceInst.h"
+#include "IceInstVarIter.h"
 #include "IceTargetLowering.h" // dumping stack/frame pointer register
 
 namespace Ice {
@@ -328,16 +329,11 @@ void VariablesMetadata::addNode(CfgNode *Node) {
       assert(DestNum < Metadata.size());
       Metadata[DestNum].markDef(Kind, &I, Node);
     }
-    for (SizeT SrcNum = 0; SrcNum < I.getSrcSize(); ++SrcNum) {
-      Operand *Src = I.getSrc(SrcNum);
-      SizeT NumVars = Src->getNumVars();
-      for (SizeT J = 0; J < NumVars; ++J) {
-        const Variable *Var = Src->getVar(J);
-        SizeT VarNum = Var->getIndex();
-        assert(VarNum < Metadata.size());
-        constexpr bool IsImplicit = false;
-        Metadata[VarNum].markUse(Kind, &I, Node, IsImplicit);
-      }
+    FOREACH_VAR_IN_INST(Var, I) {
+      SizeT VarNum = Var->getIndex();
+      assert(VarNum < Metadata.size());
+      constexpr bool IsImplicit = false;
+      Metadata[VarNum].markUse(Kind, &I, Node, IsImplicit);
     }
   }
 }

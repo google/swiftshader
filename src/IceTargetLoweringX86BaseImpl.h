@@ -23,6 +23,7 @@
 #include "IceDefs.h"
 #include "IceELFObjectWriter.h"
 #include "IceGlobalInits.h"
+#include "IceInstVarIter.h"
 #include "IceLiveness.h"
 #include "IceOperand.h"
 #include "IcePhiLoweringImpl.h"
@@ -193,24 +194,21 @@ void BoolFolding<MachineTraits>::init(CfgNode *Node) {
       Producers[Var->getIndex()] = BoolFoldingEntry<MachineTraits>(&Instr);
     }
     // Check each src variable against the map.
-    for (SizeT I = 0; I < Instr.getSrcSize(); ++I) {
-      Operand *Src = Instr.getSrc(I);
-      SizeT NumVars = Src->getNumVars();
-      for (SizeT J = 0; J < NumVars; ++J) {
-        const Variable *Var = Src->getVar(J);
-        SizeT VarNum = Var->getIndex();
-        if (containsValid(VarNum)) {
-          if (I != 0 // All valid consumers use Var as the first source operand
-              || getConsumerKind(&Instr) == CK_None // must be white-listed
-              || (Producers[VarNum].IsComplex && // complex can't be multi-use
-                  Producers[VarNum].NumUses > 0)) {
-            setInvalid(VarNum);
-            continue;
-          }
-          ++Producers[VarNum].NumUses;
-          if (Instr.isLastUse(Var)) {
-            Producers[VarNum].IsLiveOut = false;
-          }
+    FOREACH_VAR_IN_INST(Var, Instr) {
+      SizeT VarNum = Var->getIndex();
+      if (containsValid(VarNum)) {
+        if (IndexOfVarOperandInInst(Var) !=
+                0 // All valid consumers use Var as the first source operand
+            ||
+            getConsumerKind(&Instr) == CK_None // must be white-listed
+            || (Producers[VarNum].IsComplex && // complex can't be multi-use
+                Producers[VarNum].NumUses > 0)) {
+          setInvalid(VarNum);
+          continue;
+        }
+        ++Producers[VarNum].NumUses;
+        if (Instr.isLastUse(Var)) {
+          Producers[VarNum].IsLiveOut = false;
         }
       }
     }
