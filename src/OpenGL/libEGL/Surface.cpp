@@ -83,11 +83,11 @@ bool Surface::initialize()
     {
 		if(libGLES_CM)
 		{
-			depthStencil = libGLES_CM->createDepthStencil(width, height, config->mDepthStencilFormat, 1, false);
+			depthStencil = libGLES_CM->createDepthStencil(width, height, config->mDepthStencilFormat, config->mSamples, false);
 		}
 		else if(libGLESv2)
 		{
-			depthStencil = libGLESv2->createDepthStencil(width, height, config->mDepthStencilFormat, 1, false);
+			depthStencil = libGLESv2->createDepthStencil(width, height, config->mDepthStencilFormat, config->mSamples, false);
 		}
 
 		if(!depthStencil)

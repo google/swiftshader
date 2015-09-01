@@ -75,21 +75,21 @@ protected:
 	bool reset(int backbufferWidth, int backbufferHeight);
    
 	const Config *const config;    // EGL config surface was created with
-	EGLint height;                      // Height of surface
-	EGLint width;                       // Width of surface
-//  EGLint horizontalResolution;        // Horizontal dot pitch
-//  EGLint verticalResolution;          // Vertical dot pitch
-	EGLBoolean largestPBuffer;          // If true, create largest pbuffer possible
-//  EGLBoolean mipmapTexture;           // True if texture has mipmaps
-//  EGLint mipmapLevel;                 // Mipmap level to render to
-//  EGLenum multisampleResolve;         // Multisample resolve behavior
-	EGLint pixelAspectRatio;            // Display aspect ratio
-	EGLenum renderBuffer;               // Render buffer
-	EGLenum swapBehavior;               // Buffer swap behavior
-	EGLenum textureFormat;              // Format of texture: RGB, RGBA, or no texture
-	EGLenum textureTarget;              // Type of texture: 2D or no texture
-//  EGLenum vgAlphaFormat;              // Alpha format for OpenVG
-//  EGLenum vgColorSpace;               // Color space for OpenVG
+	EGLint height;                 // Height of surface
+	EGLint width;                  // Width of surface
+//  EGLint horizontalResolution;   // Horizontal dot pitch
+//  EGLint verticalResolution;     // Vertical dot pitch
+	EGLBoolean largestPBuffer;     // If true, create largest pbuffer possible
+//  EGLBoolean mipmapTexture;      // True if texture has mipmaps
+//  EGLint mipmapLevel;            // Mipmap level to render to
+//  EGLenum multisampleResolve;    // Multisample resolve behavior
+	EGLint pixelAspectRatio;       // Display aspect ratio
+	EGLenum renderBuffer;          // Render buffer
+	EGLenum swapBehavior;          // Buffer swap behavior
+	EGLenum textureFormat;         // Format of texture: RGB, RGBA, or no texture
+	EGLenum textureTarget;         // Type of texture: 2D or no texture
+//  EGLenum vgAlphaFormat;         // Alpha format for OpenVG
+//  EGLenum vgColorSpace;          // Color space for OpenVG
 	EGLint swapInterval;
 };
 

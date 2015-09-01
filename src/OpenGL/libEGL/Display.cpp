@@ -134,6 +134,13 @@ bool Display::initialize()
     mMinSwapInterval = 0;
     mMaxSwapInterval = 4;
 
+	const int samples[] =
+	{
+		0,
+		2,
+		4
+	};
+
     const sw::Format renderTargetFormats[] =
     {
         sw::FORMAT_A1R5G5B5,
@@ -161,19 +168,20 @@ bool Display::initialize()
 	DisplayMode currentDisplayMode = getDisplayMode();
     ConfigSet configSet;
 
-    for(int formatIndex = 0; formatIndex < sizeof(renderTargetFormats) / sizeof(sw::Format); formatIndex++)
+	for(int samplesIndex = 0; samplesIndex < sizeof(samples) / sizeof(int); samplesIndex++)
     {
-        sw::Format renderTargetFormat = renderTargetFormats[formatIndex];
+		for(int formatIndex = 0; formatIndex < sizeof(renderTargetFormats) / sizeof(sw::Format); formatIndex++)
+		{
+			sw::Format renderTargetFormat = renderTargetFormats[formatIndex];
 
-        for(int depthStencilIndex = 0; depthStencilIndex < sizeof(depthStencilFormats) / sizeof(sw::Format); depthStencilIndex++)
-        {
-            sw::Format depthStencilFormat = depthStencilFormats[depthStencilIndex];
+			for(int depthStencilIndex = 0; depthStencilIndex < sizeof(depthStencilFormats) / sizeof(sw::Format); depthStencilIndex++)
+			{
+				sw::Format depthStencilFormat = depthStencilFormats[depthStencilIndex];
 
-            // FIXME: enumerate multi-sampling
-
-            configSet.add(currentDisplayMode, mMinSwapInterval, mMaxSwapInterval, renderTargetFormat, depthStencilFormat, 0);
-        }
-    }
+				configSet.add(currentDisplayMode, mMinSwapInterval, mMaxSwapInterval, renderTargetFormat, depthStencilFormat, samples[samplesIndex]);
+			}
+		}
+	}
 
     // Give the sorted configs a unique ID and store them internally
     EGLint index = 1;
@@ -277,22 +285,22 @@ EGLSurface Display::createWindowSurface(EGLNativeWindowType window, EGLConfig co
         {
             switch (attribList[0])
             {
-              case EGL_RENDER_BUFFER:
+            case EGL_RENDER_BUFFER:
                 switch (attribList[1])
                 {
-                  case EGL_BACK_BUFFER:
+                case EGL_BACK_BUFFER:
                     break;
-                  case EGL_SINGLE_BUFFER:
+                case EGL_SINGLE_BUFFER:
                     return error(EGL_BAD_MATCH, EGL_NO_SURFACE);   // Rendering directly to front buffer not supported
-                  default:
+                default:
                     return error(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
                 }
                 break;
-              case EGL_VG_COLORSPACE:
+            case EGL_VG_COLORSPACE:
                 return error(EGL_BAD_MATCH, EGL_NO_SURFACE);
-              case EGL_VG_ALPHA_FORMAT:
+            case EGL_VG_ALPHA_FORMAT:
                 return error(EGL_BAD_MATCH, EGL_NO_SURFACE);
-              default:
+            default:
                 return error(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
             }
 

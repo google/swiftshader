@@ -143,7 +143,7 @@ Config::Config(const DisplayMode &displayMode, EGLint minInterval, EGLint maxInt
         | EGL_OPENGL_ES3_BIT
 #endif
         ;
-    mSampleBuffers = multiSample ? 1 : 0;
+    mSampleBuffers = (multiSample > 0) ? 1 : 0;
     mSamples = multiSample;
     mSurfaceType = EGL_PBUFFER_BIT | EGL_WINDOW_BIT | EGL_SWAP_BEHAVIOR_PRESERVED_BIT;
     mTransparentType = EGL_NONE;
