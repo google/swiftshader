@@ -63,6 +63,7 @@ namespace sw
 		bool has16bitTextureFormat() const;
 		bool has8bitTextureComponents() const;
 		bool has16bitTextureComponents() const;
+		bool hasYuvFormat() const;
 		bool isRGBComponent(int component) const;
 
 		Pointer<Byte> &constants;

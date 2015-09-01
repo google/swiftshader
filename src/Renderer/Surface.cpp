@@ -1148,6 +1148,9 @@ namespace sw
 		case FORMAT_DF16S8:				return 2;
 		case FORMAT_INTZ:				return 4;
 		case FORMAT_S8:					return 1;
+		case FORMAT_YV12_BT601:         return 1;   // Y plane only
+		case FORMAT_YV12_BT709:         return 1;   // Y plane only
+		case FORMAT_YV12_JFIF:          return 1;   // Y plane only
 		default:
 			ASSERT(false);
 		}
@@ -1159,7 +1162,7 @@ namespace sw
 	{
 		if(target || isDepth(format) || isStencil(format))
 		{
-			width = ((width + 1) & ~1);
+			width = align(width, 2);
 		}
 
 		switch(format)
@@ -1178,6 +1181,10 @@ namespace sw
 			return 2 * ((width + 3) / 4);    // 64 bit per 4x4 block, computed per row
 		case FORMAT_ATI2:
 			return 4 * ((width + 3) / 4);    // 128 bit per 4x4 block, computed per row
+		case FORMAT_YV12_BT601:
+		case FORMAT_YV12_BT709:
+		case FORMAT_YV12_JFIF:
+			return align(width, 16);
 		default:
 			return bytes(format) * width;
 		}
@@ -2073,8 +2080,8 @@ namespace sw
 	unsigned int Surface::size(int width, int height, int depth, Format format)
 	{
 		// Dimensions rounded up to multiples of 4, used for compressed formats
-		int width4 = (width + 3) & ~3;
-		int height4 = (height + 3) & ~3;
+		int width4 = align(width, 4);
+		int height4 = align(height, 4);
 
 		switch(format)
 		{
@@ -2090,6 +2097,17 @@ namespace sw
 		#endif
 		case FORMAT_ATI2:
 			return width4 * height4 * depth;
+		case FORMAT_YV12_BT601:
+		case FORMAT_YV12_BT709:
+		case FORMAT_YV12_JFIF:
+			{
+				unsigned int YStride = align(width, 16);
+				unsigned int YSize = YStride * height;
+				unsigned int CStride = align(YStride / 2, 16);
+ 				unsigned int CSize = CStride * height / 2;
+
+				return YSize + 2 * CSize;
+			}
 		default:
 			return bytes(format) * width * height * depth;
 		}
@@ -2181,6 +2199,9 @@ namespace sw
 		case FORMAT_L8:
 		case FORMAT_L16:
 		case FORMAT_A8L8:
+		case FORMAT_YV12_BT601:
+		case FORMAT_YV12_BT709:
+		case FORMAT_YV12_JFIF:
 			return false;
 		case FORMAT_R32F:
 		case FORMAT_G32R32F:
@@ -2224,6 +2245,9 @@ namespace sw
 		case FORMAT_L8:
 		case FORMAT_L16:
 		case FORMAT_A8L8:
+		case FORMAT_YV12_BT601:
+		case FORMAT_YV12_BT709:
+		case FORMAT_YV12_JFIF:
 			return true;
 		case FORMAT_V8U8:
 		case FORMAT_X8L8V8U8:
@@ -2369,6 +2393,9 @@ namespace sw
 		case FORMAT_L8:				return 1;
 		case FORMAT_L16:			return 1;
 		case FORMAT_A8L8:			return 2;
+		case FORMAT_YV12_BT601:     return 3;
+		case FORMAT_YV12_BT709:     return 3;
+		case FORMAT_YV12_JFIF:      return 3;
 		default:
 			ASSERT(false);
 		}
@@ -3338,6 +3365,9 @@ namespace sw
 		case FORMAT_INTZ:           return FORMAT_D32FS8_TEXTURE;
 		case FORMAT_DF24S8:         return FORMAT_D32FS8_SHADOW;
 		case FORMAT_DF16S8:         return FORMAT_D32FS8_SHADOW;
+		case FORMAT_YV12_BT601:     return FORMAT_YV12_BT601;
+		case FORMAT_YV12_BT709:     return FORMAT_YV12_BT709;
+		case FORMAT_YV12_JFIF:      return FORMAT_YV12_JFIF;
 		default:
 			ASSERT(false);
 		}

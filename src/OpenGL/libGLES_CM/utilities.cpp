@@ -177,6 +177,9 @@ namespace es1
 		case GL_RGB:
 		case GL_RGB565_OES:   // GL_OES_framebuffer_object
 		case GL_RGB8_OES:     // GL_OES_rgb8_rgba8
+		case SW_YV12_BT601:
+		case SW_YV12_BT709:
+		case SW_YV12_JFIF:
 			return true;
 		default:
 			return false;

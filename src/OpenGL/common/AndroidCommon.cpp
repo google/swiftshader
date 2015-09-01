@@ -3,7 +3,10 @@
 #include "GL/glext.h"
 #include "EGL/egl.h"
 
-#define GL_RGB565_OES                     0x8D62
+#define GL_RGB565     0x8D62
+#define SW_YV12_BT601 0x32315659   // YCrCb 4:2:0 Planar, 16-byte aligned, BT.601 color space, studio swing
+#define SW_YV12_BT709 0x48315659   // YCrCb 4:2:0 Planar, 16-byte aligned, BT.709 color space, studio swing
+#define SW_YV12_JFIF  0x4A315659   // YCrCb 4:2:0 Planar, 16-byte aligned, BT.601 color space, full swing
 
 #include "AndroidCommon.hpp"
 
@@ -25,16 +28,17 @@ GLenum getColorFormatFromAndroid(int format)
         case HAL_PIXEL_FORMAT_RGB_565:
 #if LATER
             if (GrallocModule::getInstance()->supportsConversion()) {
-                return GL_RGB565_OES;
+                return GL_RGB565;
             } else {
 				ALOGE("%s badness converting gralloc not supported for RGB_565",
 					  __FUNCTION__);
-                return GL_RGB565_OES;
+                return GL_RGB565;
             }
 #else
-            return GL_RGB565_OES;
+            return GL_RGB565;
 #endif
         case HAL_PIXEL_FORMAT_YV12:
+			return SW_YV12_BT601;
         case HAL_PIXEL_FORMAT_BLOB:
         case HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED:
         default:
@@ -66,56 +70,11 @@ GLenum getPixelFormatFromAndroid(int format)
             return GL_UNSIGNED_SHORT_5_6_5;
 #endif
         case HAL_PIXEL_FORMAT_YV12:
+			return GL_UNSIGNED_BYTE;
         case HAL_PIXEL_FORMAT_BLOB:
         case HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED:
         default:
 			ALOGE("%s badness unsupported format=%x", __FUNCTION__, format);
     }
     return GL_UNSIGNED_BYTE;
-}
-
-// Used in V1 & V2 Context.cpp
-GLenum isSupportedAndroidBuffer(GLuint name)
-{
-    ANativeWindowBuffer *nativeBuffer = reinterpret_cast<ANativeWindowBuffer*>(name);
-
-    if (!name)
-    {
-		ALOGE("badness %s called with name==NULL %s:%d", __FUNCTION__, __FILE__, __LINE__);
-        return EGL_BAD_PARAMETER;
-    }
-    if (nativeBuffer->common.magic != ANDROID_NATIVE_BUFFER_MAGIC)
-    {
-		ALOGE("badness %s failed: bad magic=%x, expected=%x",
-			  __FUNCTION__, nativeBuffer->common.magic, ANDROID_NATIVE_BUFFER_MAGIC);
-        return EGL_BAD_PARAMETER;
-    }
-
-    if (nativeBuffer->common.version != sizeof(ANativeWindowBuffer))
-    {
-		ALOGE("badness %s failed: bad size=%d, expected=%d",
-			  __FUNCTION__, nativeBuffer->common.version, sizeof(ANativeWindowBuffer));
-        return EGL_BAD_PARAMETER;
-    }
-
-    switch(nativeBuffer->format)
-    {
-        case HAL_PIXEL_FORMAT_RGBA_8888:
-        case HAL_PIXEL_FORMAT_RGBX_8888:
-            return EGL_SUCCESS;
-        case HAL_PIXEL_FORMAT_RGB_565:
-#if LATER
-            if (GrallocModule::getInstance()->supportsConversion()) {
-                return EGL_SUCCESS;
-            } else {
-				ALOGE("badness %s failed: conversion not supported", __FUNCTION__ );
-                return EGL_BAD_PARAMETER;
-            }
-#else
-            return EGL_SUCCESS;
-#endif
-        default:
-			ALOGE("badness %s failed: bad format=%x", __FUNCTION__, nativeBuffer->format);
-            return EGL_BAD_PARAMETER;
-    }
 }

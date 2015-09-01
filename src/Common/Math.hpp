@@ -281,6 +281,12 @@ namespace sw
 	}
 
 	uint64_t FNV_1a(const unsigned char *data, int size);   // Fowler-Noll-Vo hash function
+
+	// Round up to the next multiple of alignment
+	inline unsigned int align(unsigned int value, unsigned int alignment)
+	{
+		return ((value + alignment - 1) / alignment) * alignment;
+	}
 }
 
 #endif   // sw_Math_hpp

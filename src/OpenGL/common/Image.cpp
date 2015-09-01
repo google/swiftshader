@@ -470,6 +470,18 @@ namespace egl
 			{
 				return sw::FORMAT_A8;
 			}
+			else if(format == SW_YV12_BT601)
+			{
+				return sw::FORMAT_YV12_BT601;
+			}
+			else if(format == SW_YV12_BT709)
+			{
+				return sw::FORMAT_YV12_BT709;
+			}
+			else if(format == SW_YV12_JFIF)
+			{
+				return sw::FORMAT_YV12_JFIF;
+			}
 			else UNREACHABLE(format);
 		}
 		else if(type == GL_UNSIGNED_SHORT || type == GL_UNSIGNED_INT)
@@ -506,7 +518,7 @@ namespace egl
 	}
 
 	// Returns the size, in bytes, of a single texel in an Image
-	int ComputePixelSize(GLenum format, GLenum type)
+	static int ComputePixelSize(GLenum format, GLenum type)
 	{
 		switch(type)
 		{

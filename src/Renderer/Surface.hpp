@@ -125,6 +125,10 @@ namespace sw
 		// Quad layout framebuffer
 		FORMAT_X8G8R8B8Q,
 		FORMAT_A8G8R8B8Q,
+		// YUV formats
+		FORMAT_YV12_BT601,
+		FORMAT_YV12_BT709,
+		FORMAT_YV12_JFIF,    // Full-swing BT.601
 
 		FORMAT_LAST = FORMAT_A8G8R8B8Q
 	};
@@ -207,7 +211,6 @@ namespace sw
 		void *lockStencil(int front, Accessor client);
 		void unlockStencil();
 		inline int getStencilPitchB() const;
-		inline int getStencilPitchP() const;
 		inline int getStencilSliceB() const;
 
 		inline int getMultiSampleCount() const;
@@ -499,11 +502,6 @@ namespace sw
 	int Surface::getStencilPitchB() const
 	{
 		return stencil.pitchB;
-	}
-
-	int Surface::getStencilPitchP() const
-	{
-		return stencil.pitchP;
 	}
 
 	int Surface::getStencilSliceB() const

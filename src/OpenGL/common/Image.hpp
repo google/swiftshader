@@ -22,6 +22,11 @@
 #define LOGLOCK(...)
 #endif
 
+// Implementation-defined formats
+#define SW_YV12_BT601 0x32315659   // YCrCb 4:2:0 Planar, 16-byte aligned, BT.601 color space, studio swing
+#define SW_YV12_BT709 0x48315659   // YCrCb 4:2:0 Planar, 16-byte aligned, BT.709 color space, studio swing
+#define SW_YV12_JFIF  0x4A315659   // YCrCb 4:2:0 Planar, 16-byte aligned, BT.601 color space, full swing
+
 namespace egl
 {
 // Types common between gl.h and gl2.h
@@ -31,7 +36,6 @@ typedef int GLint;
 typedef int GLsizei;
 
 sw::Format SelectInternalFormat(GLenum format, GLenum type);
-int ComputePixelSize(GLenum format, GLenum type);
 GLsizei ComputePitch(GLsizei width, GLenum format, GLenum type, GLint alignment);
 GLsizei ComputeCompressedPitch(GLsizei width, GLenum format);
 GLsizei ComputeCompressedSize(GLsizei width, GLsizei height, GLenum format);

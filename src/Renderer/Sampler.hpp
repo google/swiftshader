@@ -19,7 +19,7 @@ namespace sw
 {
 	struct Mipmap
 	{
-		void *buffer[6];
+		const void *buffer[6];
 
 		union
 		{
