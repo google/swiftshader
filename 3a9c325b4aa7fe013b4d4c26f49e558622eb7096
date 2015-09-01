@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "04306211_c245c27f",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 1526,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-09-01T20:18:18Z",
+      "side": 1,
+      "message": "This name is confusing. Either it should be a new UShort4 constructor or is could be called something like floatToUShort4().",
+      "range": {
+        "startLine": 1526,
+        "startChar": 16,
+        "endLine": 1526,
+        "endChar": 24
+      },
+      "revId": "3a9c325b4aa7fe013b4d4c26f49e558622eb7096",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
