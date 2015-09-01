@@ -61,6 +61,7 @@ namespace sw
 		bool hasUnsignedTextureComponent(int component) const;
 		int textureComponentCount() const;
 		bool has16bitTextureFormat() const;
+		bool has8bitTextureComponents() const;
 		bool has16bitTextureComponents() const;
 		bool isRGBComponent(int component) const;
 

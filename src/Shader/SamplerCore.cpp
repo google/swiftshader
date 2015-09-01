@@ -1549,7 +1549,7 @@ namespace sw
 				ASSERT(false);
 			}
 		}
-		else if(!has16bitTextureComponents())   // 8-bit components
+		else if(has8bitTextureComponents())
 		{
 			switch(textureComponentCount())
 			{
@@ -1659,7 +1659,7 @@ namespace sw
 				ASSERT(false);
 			}
 		}
-		else   // 16-bit components
+		else if(has16bitTextureComponents())
 		{
 			switch(textureComponentCount())
 			{
@@ -1918,6 +1918,45 @@ namespace sw
 		case FORMAT_R8:
 		case FORMAT_L8:
 		case FORMAT_A8L8:
+		case FORMAT_D32F_LOCKABLE:
+		case FORMAT_D32FS8_TEXTURE:
+		case FORMAT_D32FS8_SHADOW:
+		case FORMAT_L16:
+		case FORMAT_G16R16:
+		case FORMAT_A16B16G16R16:
+		case FORMAT_V16U16:
+		case FORMAT_A16W16V16U16:
+		case FORMAT_Q16W16V16U16:
+			return false;
+		default:
+			ASSERT(false);
+		}
+		
+		return false;
+	}
+
+	bool SamplerCore::has8bitTextureComponents() const
+	{
+		switch(state.textureFormat)
+		{
+		case FORMAT_R5G6B5:
+			return false;
+		case FORMAT_G8R8:
+		case FORMAT_X8R8G8B8:
+		case FORMAT_X8B8G8R8:
+		case FORMAT_A8R8G8B8:
+		case FORMAT_A8B8G8R8:
+		case FORMAT_V8U8:
+		case FORMAT_Q8W8V8U8:
+		case FORMAT_X8L8V8U8:
+		case FORMAT_A8:
+		case FORMAT_R8:
+		case FORMAT_L8:
+		case FORMAT_A8L8:
+			return true;
+		case FORMAT_R32F:
+		case FORMAT_G32R32F:
+		case FORMAT_A32B32G32R32F:
 		case FORMAT_D32F_LOCKABLE:
 		case FORMAT_D32FS8_TEXTURE:
 		case FORMAT_D32FS8_SHADOW:
