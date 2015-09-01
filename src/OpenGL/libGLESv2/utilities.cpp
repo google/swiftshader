@@ -316,23 +316,64 @@ namespace es2
 		return static_cast<GLint>((static_cast<GLfloat>(0xFFFFFFFF) * value - 1.0f) * 0.5f);
 	}
 
-	bool IsCompressed(GLenum format)
+	bool IsCompressed(GLenum format, egl::GLint clientVersion)
 	{
-		return format == GL_COMPRESSED_RGB_S3TC_DXT1_EXT ||
-		       format == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT ||
-               format == GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE ||
-               format == GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE ||
-               format == GL_ETC1_RGB8_OES ||
-               format == GL_COMPRESSED_R11_EAC ||
-               format == GL_COMPRESSED_SIGNED_R11_EAC ||
-               format == GL_COMPRESSED_RG11_EAC ||
-               format == GL_COMPRESSED_SIGNED_RG11_EAC ||
-               format == GL_COMPRESSED_RGB8_ETC2 ||
-               format == GL_COMPRESSED_SRGB8_ETC2 ||
-               format == GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2 ||
-               format == GL_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2 ||
-               format == GL_COMPRESSED_RGBA8_ETC2_EAC ||
-               format == GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC;
+		return ValidateCompressedFormat(format, clientVersion, true) == GL_NONE;
+	}
+
+	GLenum ValidateCompressedFormat(GLenum format, egl::GLint clientVersion, bool expectCompressedFormats)
+	{
+		switch(format)
+		{
+		case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
+		case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
+		case GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE:
+		case GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE:
+			return S3TC_SUPPORT ? (expectCompressedFormats ? GL_NONE : GL_INVALID_OPERATION) : GL_INVALID_ENUM;
+		case GL_ETC1_RGB8_OES:
+			return expectCompressedFormats ? GL_NONE : GL_INVALID_OPERATION;
+		case GL_COMPRESSED_R11_EAC:
+		case GL_COMPRESSED_SIGNED_R11_EAC:
+		case GL_COMPRESSED_RG11_EAC:
+		case GL_COMPRESSED_SIGNED_RG11_EAC:
+		case GL_COMPRESSED_RGB8_ETC2:
+		case GL_COMPRESSED_SRGB8_ETC2:
+		case GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2:
+		case GL_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2:
+		case GL_COMPRESSED_RGBA8_ETC2_EAC:
+		case GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC:
+		case GL_COMPRESSED_RGBA_ASTC_4x4_KHR:
+		case GL_COMPRESSED_RGBA_ASTC_5x4_KHR:
+		case GL_COMPRESSED_RGBA_ASTC_5x5_KHR:
+		case GL_COMPRESSED_RGBA_ASTC_6x5_KHR:
+		case GL_COMPRESSED_RGBA_ASTC_6x6_KHR:
+		case GL_COMPRESSED_RGBA_ASTC_8x5_KHR:
+		case GL_COMPRESSED_RGBA_ASTC_8x6_KHR:
+		case GL_COMPRESSED_RGBA_ASTC_8x8_KHR:
+		case GL_COMPRESSED_RGBA_ASTC_10x5_KHR:
+		case GL_COMPRESSED_RGBA_ASTC_10x6_KHR:
+		case GL_COMPRESSED_RGBA_ASTC_10x8_KHR:
+		case GL_COMPRESSED_RGBA_ASTC_10x10_KHR:
+		case GL_COMPRESSED_RGBA_ASTC_12x10_KHR:
+		case GL_COMPRESSED_RGBA_ASTC_12x12_KHR:
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_4x4_KHR:
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x4_KHR:
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x5_KHR:
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x5_KHR:
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x6_KHR:
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x5_KHR:
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x6_KHR:
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x8_KHR:
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x5_KHR:
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x6_KHR:
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x8_KHR:
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x10_KHR:
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x10_KHR:
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR:
+			return (clientVersion >= 3) ? (expectCompressedFormats ? GL_NONE : GL_INVALID_OPERATION) : GL_INVALID_ENUM;
+		default:
+			return expectCompressedFormats ? GL_INVALID_ENUM : GL_NONE; // Not compressed format
+		}
 	}
 
 	bool IsDepthTexture(GLenum format)

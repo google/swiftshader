@@ -293,7 +293,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 			{
 				GLenum format = colorbuffer->getFormat();
 
-				if(IsCompressed(format) ||
+				if(IsCompressed(format, egl::getClientVersion()) ||
 					format == GL_ALPHA ||
 					format == GL_LUMINANCE ||
 					format == GL_LUMINANCE_ALPHA)

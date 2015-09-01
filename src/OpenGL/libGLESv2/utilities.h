@@ -40,7 +40,8 @@ namespace es2
 
 	GLint floatToInt(GLfloat value);
 
-	bool IsCompressed(GLenum format);
+	bool IsCompressed(GLenum format, egl::GLint clientVersion);
+	GLenum ValidateCompressedFormat(GLenum format, egl::GLint clientVersion, bool expectCompressedFormats);
 	bool IsDepthTexture(GLenum format);
 	bool IsStencilTexture(GLenum format);
 	bool IsCubemapTextureTarget(GLenum target);

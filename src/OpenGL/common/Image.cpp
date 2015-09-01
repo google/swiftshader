@@ -24,6 +24,11 @@
 
 namespace
 {
+	int getNumBlocks(int w, int h, int blockSizeX, int blockSizeY)
+	{
+		return ((w + blockSizeX - 1) / blockSizeX) * ((h + blockSizeY - 1) / blockSizeY);
+	}
+
 	enum DataType
 	{
 		Alpha,
@@ -415,27 +420,99 @@ namespace egl
 
 	sw::Format SelectInternalFormat(GLenum format, GLenum type)
 	{
-		if(format == GL_ETC1_RGB8_OES)
+		switch(format)
 		{
+		case GL_ETC1_RGB8_OES:
 			return sw::FORMAT_ETC1;
-		}
-		else
+		case GL_COMPRESSED_R11_EAC:
+			return sw::FORMAT_R11_EAC;
+		case GL_COMPRESSED_SIGNED_R11_EAC:
+			return sw::FORMAT_SIGNED_R11_EAC;
+		case GL_COMPRESSED_RG11_EAC:
+			return sw::FORMAT_RG11_EAC;
+		case GL_COMPRESSED_SIGNED_RG11_EAC:
+			return sw::FORMAT_SIGNED_RG11_EAC;
+		case GL_COMPRESSED_RGB8_ETC2:
+			return sw::FORMAT_RGB8_ETC2;
+		case GL_COMPRESSED_SRGB8_ETC2:
+			return sw::FORMAT_SRGB8_ETC2;
+		case GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2:
+			return sw::FORMAT_RGB8_PUNCHTHROUGH_ALPHA1_ETC2;
+		case GL_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2:
+			return sw::FORMAT_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2;
+		case GL_COMPRESSED_RGBA8_ETC2_EAC:
+			return sw::FORMAT_RGBA8_ETC2_EAC;
+		case GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC:
+			return sw::FORMAT_SRGB8_ALPHA8_ETC2_EAC;
+		case GL_COMPRESSED_RGBA_ASTC_4x4_KHR:
+			return sw::FORMAT_RGBA_ASTC_4x4_KHR;
+		case GL_COMPRESSED_RGBA_ASTC_5x4_KHR:
+			return sw::FORMAT_RGBA_ASTC_5x4_KHR;
+		case GL_COMPRESSED_RGBA_ASTC_5x5_KHR:
+			return sw::FORMAT_RGBA_ASTC_5x5_KHR;
+		case GL_COMPRESSED_RGBA_ASTC_6x5_KHR:
+			return sw::FORMAT_RGBA_ASTC_6x5_KHR;
+		case GL_COMPRESSED_RGBA_ASTC_6x6_KHR:
+			return sw::FORMAT_RGBA_ASTC_6x6_KHR;
+		case GL_COMPRESSED_RGBA_ASTC_8x5_KHR:
+			return sw::FORMAT_RGBA_ASTC_8x5_KHR;
+		case GL_COMPRESSED_RGBA_ASTC_8x6_KHR:
+			return sw::FORMAT_RGBA_ASTC_8x6_KHR;
+		case GL_COMPRESSED_RGBA_ASTC_8x8_KHR:
+			return sw::FORMAT_RGBA_ASTC_8x8_KHR;
+		case GL_COMPRESSED_RGBA_ASTC_10x5_KHR:
+			return sw::FORMAT_RGBA_ASTC_10x5_KHR;
+		case GL_COMPRESSED_RGBA_ASTC_10x6_KHR:
+			return sw::FORMAT_RGBA_ASTC_10x6_KHR;
+		case GL_COMPRESSED_RGBA_ASTC_10x8_KHR:
+			return sw::FORMAT_RGBA_ASTC_10x8_KHR;
+		case GL_COMPRESSED_RGBA_ASTC_10x10_KHR:
+			return sw::FORMAT_RGBA_ASTC_10x10_KHR;
+		case GL_COMPRESSED_RGBA_ASTC_12x10_KHR:
+			return sw::FORMAT_RGBA_ASTC_12x10_KHR;
+		case GL_COMPRESSED_RGBA_ASTC_12x12_KHR:
+			return sw::FORMAT_RGBA_ASTC_12x12_KHR;
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_4x4_KHR:
+			return sw::FORMAT_SRGB8_ALPHA8_ASTC_4x4_KHR;
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x4_KHR:
+			return sw::FORMAT_SRGB8_ALPHA8_ASTC_5x4_KHR;
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x5_KHR:
+			return sw::FORMAT_SRGB8_ALPHA8_ASTC_5x5_KHR;
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x5_KHR:
+			return sw::FORMAT_SRGB8_ALPHA8_ASTC_6x5_KHR;
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x6_KHR:
+			return sw::FORMAT_SRGB8_ALPHA8_ASTC_6x6_KHR;
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x5_KHR:
+			return sw::FORMAT_SRGB8_ALPHA8_ASTC_8x5_KHR;
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x6_KHR:
+			return sw::FORMAT_SRGB8_ALPHA8_ASTC_8x6_KHR;
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x8_KHR:
+			return sw::FORMAT_SRGB8_ALPHA8_ASTC_8x8_KHR;
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x5_KHR:
+			return sw::FORMAT_SRGB8_ALPHA8_ASTC_10x5_KHR;
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x6_KHR:
+			return sw::FORMAT_SRGB8_ALPHA8_ASTC_10x6_KHR;
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x8_KHR:
+			return sw::FORMAT_SRGB8_ALPHA8_ASTC_10x8_KHR;
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x10_KHR:
+			return sw::FORMAT_SRGB8_ALPHA8_ASTC_10x10_KHR;
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x10_KHR:
+			return sw::FORMAT_SRGB8_ALPHA8_ASTC_12x10_KHR;
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR:
+			return sw::FORMAT_SRGB8_ALPHA8_ASTC_12x12_KHR;
 		#if S3TC_SUPPORT
-		if(format == GL_COMPRESSED_RGB_S3TC_DXT1_EXT ||
-		   format == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT)
-		{
-			return sw::FORMAT_DXT1;
-		}
-		else if(format == GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE)
-		{
-			return sw::FORMAT_DXT3;
-		}
-		else if(format == GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE)
-		{
-			return sw::FORMAT_DXT5;
-		}
-		else
+		case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
+		case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
+				return sw::FORMAT_DXT1;
+		case GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE:
+				return sw::FORMAT_DXT3;
+		case GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE:
+				return sw::FORMAT_DXT5;
 		#endif
+		default:
+			break;
+		}
+
 		if(type == GL_FLOAT)
 		{
 			return sw::FORMAT_A32B32G32R32F;
@@ -598,14 +675,55 @@ namespace egl
 		case GL_COMPRESSED_SRGB8_ETC2:
 		case GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2:
 		case GL_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2:
-			return 8 * (GLsizei)ceil((float)width / 4.0f) * (GLsizei)ceil((float)height / 4.0f);
+			return 8 * getNumBlocks(width, height, 4, 4);
 		case GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE:
 		case GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE:
 		case GL_COMPRESSED_RG11_EAC:
 		case GL_COMPRESSED_SIGNED_RG11_EAC:
 		case GL_COMPRESSED_RGBA8_ETC2_EAC:
 		case GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC:
-			return 16 * (GLsizei)ceil((float)width / 4.0f) * (GLsizei)ceil((float)height / 4.0f);
+		case GL_COMPRESSED_RGBA_ASTC_4x4_KHR:
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_4x4_KHR:
+			return 16 * getNumBlocks(width, height, 4, 4);
+		case GL_COMPRESSED_RGBA_ASTC_5x4_KHR:
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x4_KHR:
+			return 16 * getNumBlocks(width, height, 5, 4);
+		case GL_COMPRESSED_RGBA_ASTC_5x5_KHR:
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x5_KHR:
+			return 16 * getNumBlocks(width, height, 5, 5);
+		case GL_COMPRESSED_RGBA_ASTC_6x5_KHR:
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x5_KHR:
+			return 16 * getNumBlocks(width, height, 6, 5);
+		case GL_COMPRESSED_RGBA_ASTC_6x6_KHR:
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x6_KHR:
+			return 16 * getNumBlocks(width, height, 6, 6);
+		case GL_COMPRESSED_RGBA_ASTC_8x5_KHR:
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x5_KHR:
+			return 16 * getNumBlocks(width, height, 8, 5);
+		case GL_COMPRESSED_RGBA_ASTC_8x6_KHR:
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x6_KHR:
+			return 16 * getNumBlocks(width, height, 8, 6);
+		case GL_COMPRESSED_RGBA_ASTC_8x8_KHR:
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x8_KHR:
+			return 16 * getNumBlocks(width, height, 8, 8);
+		case GL_COMPRESSED_RGBA_ASTC_10x5_KHR:
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x5_KHR:
+			return 16 * getNumBlocks(width, height, 10, 5);
+		case GL_COMPRESSED_RGBA_ASTC_10x6_KHR:
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x6_KHR:
+			return 16 * getNumBlocks(width, height, 10, 6);
+		case GL_COMPRESSED_RGBA_ASTC_10x8_KHR:
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x8_KHR:
+			return 16 * getNumBlocks(width, height, 10, 8);
+		case GL_COMPRESSED_RGBA_ASTC_10x10_KHR:
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x10_KHR:
+			return 16 * getNumBlocks(width, height, 10, 10);
+		case GL_COMPRESSED_RGBA_ASTC_12x10_KHR:
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x10_KHR:
+			return 16 * getNumBlocks(width, height, 12, 10);
+		case GL_COMPRESSED_RGBA_ASTC_12x12_KHR:
+		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR:
+			return 16 * getNumBlocks(width, height, 12, 12);
 		default:
 			return 0;
 		}

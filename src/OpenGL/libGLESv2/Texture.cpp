@@ -428,7 +428,7 @@ void Texture::subImage(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei widt
         return error(GL_INVALID_VALUE);
     }
 
-    if(IsCompressed(image->getFormat()))
+    if(IsCompressed(image->getFormat(), egl::getClientVersion()))
     {
         return error(GL_INVALID_OPERATION);
     }
@@ -860,7 +860,7 @@ bool Texture2D::isMipmapComplete() const
 
 bool Texture2D::isCompressed(GLenum target, GLint level) const
 {
-    return IsCompressed(getFormat(target, level));
+    return IsCompressed(getFormat(target, level), egl::getClientVersion());
 }
 
 bool Texture2D::isDepth(GLenum target, GLint level) const
@@ -1198,7 +1198,7 @@ bool TextureCubeMap::isMipmapCubeComplete() const
 
 bool TextureCubeMap::isCompressed(GLenum target, GLint level) const
 {
-    return IsCompressed(getFormat(target, level));
+    return IsCompressed(getFormat(target, level), egl::getClientVersion());
 }
 
 bool TextureCubeMap::isDepth(GLenum target, GLint level) const
@@ -1766,7 +1766,7 @@ bool Texture3D::isMipmapComplete() const
 
 bool Texture3D::isCompressed(GLenum target, GLint level) const
 {
-	return IsCompressed(getFormat(target, level));
+	return IsCompressed(getFormat(target, level), egl::getClientVersion());
 }
 
 bool Texture3D::isDepth(GLenum target, GLint level) const
