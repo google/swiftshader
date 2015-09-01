@@ -22,6 +22,30 @@
       "revId": "3a9c325b4aa7fe013b4d4c26f49e558622eb7096",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "44a17a5d_2200cac6",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 1526,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-09-01T21:41:10Z",
+      "side": 1,
+      "message": "I\u0027ve split out the constants a bit more to do the rounding explicitly and avoid this confusion without needing a long function name.",
+      "parentUuid": "04306211_c245c27f",
+      "range": {
+        "startLine": 1526,
+        "startChar": 16,
+        "endLine": 1526,
+        "endChar": 24
+      },
+      "revId": "3a9c325b4aa7fe013b4d4c26f49e558622eb7096",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
