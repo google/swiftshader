@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "04306211_c2adc2d4",
+        "filename": "src/OpenGL/common/Image.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 670,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-09-02T20:39:32Z",
+      "side": 1,
+      "message": "Done. Added a getNumBlocks() function.",
+      "parentUuid": "04306211_42c9b2e5",
+      "range": {
+        "startLine": 670,
+        "startChar": 15,
+        "endLine": 670,
+        "endChar": 49
+      },
+      "revId": "8c86fc73342a4d9c42fa2372aeb572851d97cee0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "04306211_22ce2eef",
         "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "04306211_a2aa3eb8",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-09-02T20:39:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "04306211_22ce2eef",
+      "range": {
+        "startLine": 161,
+        "startChar": 0,
+        "endLine": 213,
+        "endChar": 41
+      },
+      "revId": "8c86fc73342a4d9c42fa2372aeb572851d97cee0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "04306211_c2bca243",
         "filename": "src/Renderer/Surface.cpp",
         "patchSetId": 2
@@ -59,6 +107,30 @@
       "writtenOn": "2015-09-02T15:47:19Z",
       "side": 1,
       "message": "I recently added an align() function to Math.hpp that does the same thing.",
+      "range": {
+        "startLine": 39,
+        "startChar": 1,
+        "endLine": 42,
+        "endChar": 2
+      },
+      "revId": "8c86fc73342a4d9c42fa2372aeb572851d97cee0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "04306211_02a84abf",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-09-02T20:39:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "04306211_c2bca243",
       "range": {
         "startLine": 39,
         "startChar": 1,
