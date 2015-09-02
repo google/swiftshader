@@ -7021,9 +7021,9 @@ void TexImage3DOES(GLenum target, GLint level, GLenum internalformat, GLsizei wi
 void TexSubImage3DOES(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels)
 {
 	TRACE("(GLenum target = 0x%X, GLint level = %d, GLint xoffset = %d, GLint yoffset = %d, "
-		"GLint zoffset = %d, GLsizei width = %d, GLsizei height = %d, GLsizei depth = %d, "
-		"GLenum format = 0x%X, GLenum type = 0x%x, const GLvoid* pixels = %p)",
-		target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);
+	      "GLint zoffset = %d, GLsizei width = %d, GLsizei height = %d, GLsizei depth = %d, "
+	      "GLenum format = 0x%X, GLenum type = 0x%x, const GLvoid* pixels = %p)",
+	      target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);
 
 	switch(target)
 	{
@@ -7064,8 +7064,8 @@ void TexSubImage3DOES(GLenum target, GLint level, GLint xoffset, GLint yoffset, 
 void CopyTexSubImage3DOES(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height)
 {
 	TRACE("(GLenum target = 0x%X, GLint level = %d, GLint xoffset = %d, GLint yoffset = %d, "
-		"GLint zoffset = %d, GLint x = %d, GLint y = %d, GLsizei width = %d, GLsizei height = %d)",
-		target, level, xoffset, yoffset, zoffset, x, y, width, height);
+	      "GLint zoffset = %d, GLint x = %d, GLint y = %d, GLsizei width = %d, GLsizei height = %d)",
+	      target, level, xoffset, yoffset, zoffset, x, y, width, height);
 
 	switch(target)
 	{
@@ -7112,8 +7112,8 @@ void CopyTexSubImage3DOES(GLenum target, GLint level, GLint xoffset, GLint yoffs
 void CompressedTexImage3DOES(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const void *data)
 {
 	TRACE("(GLenum target = 0x%X, GLint level = %d, GLenum internalformat = 0x%X, GLsizei width = %d, "
-		"GLsizei height = %d, GLsizei depth = %d, GLint border = %d, GLsizei imageSize = %d, const GLvoid* data = %p)",
-		target, level, internalformat, width, height, depth, border, imageSize, data);
+	      "GLsizei height = %d, GLsizei depth = %d, GLint border = %d, GLsizei imageSize = %d, const GLvoid* data = %p)",
+	      target, level, internalformat, width, height, depth, border, imageSize, data);
 
 	switch(target)
 	{
@@ -7175,9 +7175,9 @@ void CompressedTexImage3DOES(GLenum target, GLint level, GLenum internalformat, 
 void CompressedTexSubImage3DOES(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *data)
 {
 	TRACE("(GLenum target = 0x%X, GLint level = %d, GLint xoffset = %d, GLint yoffset = %d, "
-		"GLint zoffset = %d, GLsizei width = %d, GLsizei height = %d, GLsizei depth = %d, "
-		"GLenum format = 0x%X, GLsizei imageSize = %d, const void *data = %p)",
-		target, level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, data);
+	      "GLint zoffset = %d, GLsizei width = %d, GLsizei height = %d, GLsizei depth = %d, "
+	      "GLenum format = 0x%X, GLsizei imageSize = %d, const void *data = %p)",
+	      target, level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, data);
 
 	switch(target)
 	{
@@ -7221,7 +7221,7 @@ void CompressedTexSubImage3DOES(GLenum target, GLint level, GLint xoffset, GLint
 void FramebufferTexture3DOES(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint zoffset)
 {
 	TRACE("(GLenum target = 0x%X, GLenum attachment = 0x%X, GLenum textarget = 0x%X, "
-		"GLuint texture = %d, GLint level = %d, GLint zoffset = %d)", target, attachment, textarget, texture, level, zoffset);
+	      "GLuint texture = %d, GLint level = %d, GLint zoffset = %d)", target, attachment, textarget, texture, level, zoffset);
 
 	if(target != GL_FRAMEBUFFER && target != GL_DRAW_FRAMEBUFFER_ANGLE && target != GL_READ_FRAMEBUFFER_ANGLE)
 	{

@@ -3987,10 +3987,10 @@ GL_APICALL void GL_APIENTRY glGetInternalformativ(GLenum target, GLenum internal
 
 	switch(pname)
 	{
-	case GL_SAMPLES:
+	case GL_NUM_SAMPLE_COUNTS:
 		*params = supportedMultiSampleDepths.size();
 		break;
-	case GL_NUM_SAMPLE_COUNTS:
+	case GL_SAMPLES:
 		{
 			size_t returnCount = std::min<size_t>(bufSize, supportedMultiSampleDepths.size());
 			for(size_t sampleIndex = 0; sampleIndex < returnCount; ++sampleIndex)
