@@ -22,6 +22,30 @@
       "revId": "ad02295dbadd43531e25e33de2ac1b86dc8fff64",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "841a92b2_06ba3aa8",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 4025,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-09-03T14:20:18Z",
+      "side": 1,
+      "message": "Indeed it would be nice to keep it centralized. I removedthe \"simplification\" in the new CL.",
+      "parentUuid": "44a17a5d_7083f8ce",
+      "range": {
+        "startLine": 4025,
+        "startChar": 23,
+        "endLine": 4025,
+        "endChar": 33
+      },
+      "revId": "ad02295dbadd43531e25e33de2ac1b86dc8fff64",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
