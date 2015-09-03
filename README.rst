@@ -1,6 +1,12 @@
 Subzero - Fast code generator for PNaCl bitcode
 ===============================================
 
+Design
+------
+
+See the accompanying DESIGN.rst file for a more detailed technical overview of
+Subzero.
+
 Building
 --------
 
@@ -26,11 +32,14 @@ build configurations from the command line::
     make -f Makefile.standalone NOASSERT=1
     make -f Makefile.standalone DEBUG=1 NOASSERT=1
     make -f Makefile.standalone MINIMAL=1
+    make -f Makefile.standalone ASAN=1
+    make -f Makefile.standalone TSAN=1
 
 ``DEBUG=1`` builds without optimizations and is good when running the translator
 inside a debugger.  ``NOASSERT=1`` disables assertions and is the preferred
 configuration for performance testing the translator.  ``MINIMAL=1`` attempts to
 minimize the size of the translator by compiling out everything unnecessary.
+``ASAN=1`` enables AddressSanitizer, and ``TSAN=1`` enables ThreadSanitizer.
 
 The result of the ``make`` command is the target ``pnacl-sz`` in the current
 directory.
@@ -73,7 +82,7 @@ following:
     ``-verbose=<list>`` -- Set verbosity flags.  This argument allows a
     comma-separated list of values.  The default is ``none``, and the value
     ``inst,pred`` will roughly match the .ll bitcode file.  Of particular use
-    are ``all`` and ``none``.
+    are ``all``, ``most``, and ``none``.
 
     ``-o <FILE>`` -- Set the assembly output file name.  Default is stdout.
 
@@ -99,9 +108,15 @@ The Subzero-translated symbols are specially mangled to avoid multiple
 definition errors from the linker.  Both translated versions are linked together
 with a driver program that calls each version of each unit test with a variety
 of interesting inputs and compares the results for equality.  The cross tests
-are currently invoked by running the ``runtests.sh`` script.
+are currently invoked by running::
 
-A convenient way to run both the lit tests and the cross tests is::
+    make -f Makefile.standalone check-xtest
+
+Similar, there is a suite of unit tests::
+
+    make -f Makefile.standalone check-unit
+
+A convenient way to run the lit, cross, and unit tests is::
 
     make -f Makefile.standalone check
 
@@ -114,7 +129,7 @@ Assembling ``pnacl-sz`` output as needed
 input to ``llvm-mc``, using ``-filetype=asm`` or ``-filetype=iasm``.  An object
 file can then be produced using the command::
 
-    llvm-mc -arch=x86 -filetype=obj -o=MyObj.o
+    llvm-mc -triple=i686 -filetype=obj -o=MyObj.o
 
 Building a translated binary
 ----------------------------
@@ -143,9 +158,12 @@ original function and global variable names.)
 Status
 ------
 
-Subzero currently translates only for the x86-32 architecture.  Native Client
-sandboxing is not yet implemented.  Two optimization levels, ``-Om1`` and
-``-O2``, are implemented.
+Subzero currently fully supports the x86-32 architecture, for both native and
+Native Client sandboxing modes.  The x86-64 architecture is also supported in
+native mode only, and only for the x32 flavor due to the fact that pointers and
+32-bit integers are indistinguishable in PNaCl bitcode.  Sandboxing support for
+x86-64 is in progress.  ARM and MIPS support is in progress.  Two optimization
+levels, ``-Om1`` and ``-O2``, are implemented.
 
 The ``-Om1`` configuration is designed to be the simplest and fastest possible,
 with a minimal set of passes and transformations.
@@ -153,7 +171,7 @@ with a minimal set of passes and transformations.
 * Simple Phi lowering before target lowering, by generating temporaries and
   adding assignments to the end of predecessor blocks.
 
-* Simple register allocation limited to pre-colored and infinite-weight
+* Simple register allocation limited to pre-colored or infinite-weight
   Variables.
 
 The ``-O2`` configuration is designed to use all optimizations available and
