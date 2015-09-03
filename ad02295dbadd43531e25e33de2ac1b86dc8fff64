@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "44a17a5d_7083f8ce",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 4025,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-09-03T00:47:34Z",
+      "side": 1,
+      "message": "Well, this does mean that getSupportedMultiSampleDepth() and glGetInternalformativ() can get out of sync, though. It\u0027s not a big deal, but I would\u0027ve liked it if the new solution still had a centralized call to fetch allowed multisampled values.",
+      "range": {
+        "startLine": 4025,
+        "startChar": 23,
+        "endLine": 4025,
+        "endChar": 33
+      },
+      "revId": "ad02295dbadd43531e25e33de2ac1b86dc8fff64",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
