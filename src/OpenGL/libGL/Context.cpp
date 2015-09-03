@@ -2685,19 +2685,21 @@ GLenum Context::getError()
     return GL_NO_ERROR;
 }
 
-int Context::getSupportedMultiSampleDepth(sw::Format format, int requested)
+int Context::getSupportedMultisampleCount(int requested)
 {
-    if(requested <= 0)
-    {
-        return 0;
-    }
-	
-	if(requested <= 2)
+	int supported = 0;
+
+	for(int i = NUM_MULTISAMPLE_COUNTS - 1; i >= 0; i--)
 	{
-		return requested;
+		if(supported >= requested)
+		{
+			return supported;
+		}
+
+		supported = multisampleCount[i];
 	}
-	
-	return 4;
+
+	return supported;
 }
 
 void Context::detachBuffer(GLuint buffer)

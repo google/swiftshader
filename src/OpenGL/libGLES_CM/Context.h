@@ -82,6 +82,10 @@ const GLenum compressedTextureFormats[] =
 
 const GLint NUM_COMPRESSED_TEXTURE_FORMATS = sizeof(compressedTextureFormats) / sizeof(compressedTextureFormats[0]);
 
+const GLint multisampleCount[] = {4, 2, 1};
+const GLint NUM_MULTISAMPLE_COUNTS = sizeof(multisampleCount) / sizeof(multisampleCount[0]);
+const GLint IMPLEMENTATION_MAX_SAMPLES = multisampleCount[0];
+
 const float ALIASED_LINE_WIDTH_RANGE_MIN = 1.0f;
 const float ALIASED_LINE_WIDTH_RANGE_MAX = 1.0f;
 const float ALIASED_POINT_SIZE_RANGE_MIN = 0.125f;
@@ -495,7 +499,7 @@ public:
 
     GLenum getError();
 
-    static int getSupportedMultiSampleDepth(sw::Format format, int requested);
+    static int getSupportedMultisampleCount(int requested);
 
 	virtual void bindTexImage(egl::Surface *surface);
 	virtual EGLenum validateSharedImage(EGLenum target, GLuint name, GLuint textureLevel);

@@ -336,12 +336,12 @@ Colorbuffer::Colorbuffer(Image *renderTarget) : mRenderTarget(renderTarget)
 	}
 }
 
-Colorbuffer::Colorbuffer(int width, int height, GLenum format, GLsizei samples) : mRenderTarget(NULL)
+Colorbuffer::Colorbuffer(int width, int height, GLenum format, GLsizei samples) : mRenderTarget(nullptr)
 {
 	Device *device = getDevice();
 
 	sw::Format requestedFormat = es2sw::ConvertRenderbufferFormat(format);
-	int supportedSamples = Context::getSupportedMultiSampleDepth(requestedFormat, samples);
+	int supportedSamples = Context::getSupportedMultisampleCount(samples);
 
 	if(width > 0 && height > 0)
 	{
@@ -395,13 +395,11 @@ DepthStencilbuffer::DepthStencilbuffer(Image *depthStencil) : mDepthStencil(dept
 	}
 }
 
-DepthStencilbuffer::DepthStencilbuffer(int width, int height, GLsizei samples)
+DepthStencilbuffer::DepthStencilbuffer(int width, int height, GLsizei samples) : mDepthStencil(nullptr)
 {
 	Device *device = getDevice();
 
-	mDepthStencil = NULL;
-	
-	int supportedSamples = Context::getSupportedMultiSampleDepth(sw::FORMAT_D24S8, samples);
+	int supportedSamples = Context::getSupportedMultisampleCount(samples);
 
 	if(width > 0 && height > 0)
 	{
