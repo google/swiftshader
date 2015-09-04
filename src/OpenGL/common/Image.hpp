@@ -12,9 +12,6 @@
 #include <system/window.h>
 #include "../../Common/GrallocAndroid.hpp"
 #include "../common/AndroidCommon.hpp"
-#endif
-
-#ifdef __ANDROID__
 #include "../../Common/DebugAndroid.hpp"
 #define LOGLOCK(fmt, ...) // ALOGI(fmt " tid=%d", ##__VA_ARGS__, gettid())
 #else
@@ -215,7 +212,7 @@ private:
 				ALOGI("badness: %s called with unsupported parms: image=%p x=%d y=%d z=%d", __FUNCTION__, this, x, y, z);
 			}
 			LOGLOCK("image=%p op=%s.ani lock=%d", this, __FUNCTION__, lock);
-			// Lock the ANativeWindowBuffer and use it's address.
+			// Lock the ANativeWindowBuffer and use its address.
 			data = lockNativeBuffer(
 				GRALLOC_USAGE_SW_READ_OFTEN | GRALLOC_USAGE_SW_WRITE_OFTEN);
 			if (lock == sw::LOCK_UNLOCKED)

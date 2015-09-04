@@ -6,22 +6,20 @@
 class GrallocModule
 {
 public:
-    static GrallocModule* getInstance();
-    bool supportsConversion() const { return m_supportsConversion; }
-    int lock(
-        buffer_handle_t handle, int usage,
-        int left, int top, int width, int height, void**vaddr) {
+    static GrallocModule *getInstance();
+    int lock(buffer_handle_t handle, int usage, int left, int top, int width, int height, void **vaddr)
+	{
         return m_module->lock(m_module, handle, usage, left, top, width, height, vaddr);
     }
 
-    int unlock(buffer_handle_t handle) {
+    int unlock(buffer_handle_t handle)
+    {
         return m_module->unlock(m_module, handle);
     }
 
 private:
     GrallocModule();
-    bool m_supportsConversion;
-    const gralloc_module_t* m_module;
+    const gralloc_module_t *m_module;
 };
 
 #endif  // GRALLOC_ANDROID

@@ -26,17 +26,7 @@ GLenum getColorFormatFromAndroid(int format)
         case HAL_PIXEL_FORMAT_BGRA_8888:
             return GL_BGRA_EXT;
         case HAL_PIXEL_FORMAT_RGB_565:
-#if LATER
-            if (GrallocModule::getInstance()->supportsConversion()) {
-                return GL_RGB565;
-            } else {
-				ALOGE("%s badness converting gralloc not supported for RGB_565",
-					  __FUNCTION__);
-                return GL_RGB565;
-            }
-#else
             return GL_RGB565;
-#endif
         case HAL_PIXEL_FORMAT_YV12:
 			return SW_YV12_BT601;
         case HAL_PIXEL_FORMAT_BLOB:
@@ -58,17 +48,7 @@ GLenum getPixelFormatFromAndroid(int format)
         case HAL_PIXEL_FORMAT_BGRA_8888:
             return GL_UNSIGNED_BYTE;
         case HAL_PIXEL_FORMAT_RGB_565:
-#if LATER
-            if (GrallocModule::getInstance()->supportsConversion()) {
-                return GL_UNSIGNED_SHORT_5_6_5;
-            } else {
-				ALOGE("%s badness converting gralloc not supported for RGB_565",
-					  __FUNCTION__);
-                return GL_UNSIGNED_SHORT_5_6_5;
-            }
-#else
             return GL_UNSIGNED_SHORT_5_6_5;
-#endif
         case HAL_PIXEL_FORMAT_YV12:
 			return GL_UNSIGNED_BYTE;
         case HAL_PIXEL_FORMAT_BLOB:
