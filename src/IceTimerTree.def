@@ -20,6 +20,7 @@
   X(O2)                        \
   X(Om1)                       \
   X(advancedPhiLowering)       \
+  X(computeLoopNestDepth)      \
   X(convertToIce)              \
   X(deletePhis)                \
   X(doAddressOpt)              \

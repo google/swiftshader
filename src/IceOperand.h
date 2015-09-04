@@ -321,13 +321,15 @@ public:
   explicit RegWeight(uint32_t Weight) : Weight(Weight) {}
   RegWeight(const RegWeight &) = default;
   RegWeight &operator=(const RegWeight &) = default;
-  const static uint32_t Inf = ~0; /// Force regalloc to give a register
-  const static uint32_t Zero = 0; /// Force regalloc NOT to give a register
+  const static uint32_t Inf = ~0;      /// Force regalloc to give a register
+  const static uint32_t Zero = 0;      /// Force regalloc NOT to give a register
+  const static uint32_t Max = Inf - 1; /// Max natural weight.
   void addWeight(uint32_t Delta) {
     if (Delta == Inf)
       Weight = Inf;
     else if (Weight != Inf)
-      Weight += Delta;
+      if (Utils::add_overflow(Weight, Delta, &Weight) || Weight == Inf)
+        Weight = Max;
   }
   void addWeight(const RegWeight &Other) { addWeight(Other.Weight); }
   void setWeight(uint32_t Val) { Weight = Val; }
@@ -579,7 +581,7 @@ public:
   const Inst *getSingleDefinition() const;
   const InstDefList &getLatterDefinitions() const { return Definitions; }
   CfgNode *getNode() const { return SingleUseNode; }
-  uint32_t getUseWeight() const { return UseWeight; }
+  RegWeight getUseWeight() const { return UseWeight; }
   void markUse(MetadataKind TrackingKind, const Inst *Instr, CfgNode *Node,
                bool IsImplicit);
   void markDef(MetadataKind TrackingKind, const Inst *Instr, CfgNode *Node);
@@ -594,7 +596,7 @@ private:
   InstDefList Definitions; /// Only used if Kind==VMK_All
   const Inst *FirstOrSingleDefinition =
       nullptr; /// Is a copy of Definitions[0] if Kind==VMK_All
-  uint32_t UseWeight = 0;
+  RegWeight UseWeight;
 };
 
 /// VariablesMetadata analyzes and summarizes the metadata for the complete set
@@ -649,7 +651,7 @@ public:
 
   /// Returns the total use weight computed as the sum of uses multiplied by a
   /// loop nest depth factor for each use.
-  uint32_t getUseWeight(const Variable *Var) const;
+  RegWeight getUseWeight(const Variable *Var) const;
 
 private:
   const Cfg *Func;

@@ -148,18 +148,26 @@ Variable *Variable::asType(Type Ty) {
 
 RegWeight Variable::getWeight(const Cfg *Func) const {
   VariablesMetadata *VMetadata = Func->getVMetadata();
-  return RegWeight(mustHaveReg()
-                       ? RegWeight::Inf
-                       : mustNotHaveReg() ? RegWeight::Zero
-                                          : VMetadata->getUseWeight(this));
+  return mustHaveReg() ? RegWeight(RegWeight::Inf)
+                       : mustNotHaveReg() ? RegWeight(RegWeight::Zero)
+                                          : VMetadata->getUseWeight(this);
 }
 
 void VariableTracking::markUse(MetadataKind TrackingKind, const Inst *Instr,
                                CfgNode *Node, bool IsImplicit) {
   (void)TrackingKind;
 
-  // TODO(ascull): get the loop nest depth from CfgNode
-  UseWeight += 1;
+  // Increment the use weight depending on the loop nest depth. The weight is
+  // exponential in the nest depth as inner loops are expected to be executed
+  // an exponentially greater number of times.
+  constexpr uint32_t LogLoopTripCountEstimate = 2; // 2^2 = 4
+  constexpr SizeT MaxShift = sizeof(uint32_t) * CHAR_BIT - 1;
+  constexpr SizeT MaxLoopNestDepth = MaxShift / LogLoopTripCountEstimate;
+  const uint32_t LoopNestDepth =
+      std::min(Node->getLoopNestDepth(), MaxLoopNestDepth);
+  const uint32_t ThisUseWeight = uint32_t(1)
+                                 << LoopNestDepth * LogLoopTripCountEstimate;
+  UseWeight.addWeight(ThisUseWeight);
 
   if (MultiBlock == MBS_MultiBlock)
     return;
@@ -391,9 +399,9 @@ CfgNode *VariablesMetadata::getLocalUseNode(const Variable *Var) const {
   return Metadata[VarNum].getNode();
 }
 
-uint32_t VariablesMetadata::getUseWeight(const Variable *Var) const {
+RegWeight VariablesMetadata::getUseWeight(const Variable *Var) const {
   if (!isTracked(Var))
-    return 1; // conservative answer
+    return RegWeight(1); // conservative answer
   SizeT VarNum = Var->getIndex();
   return Metadata[VarNum].getUseWeight();
 }

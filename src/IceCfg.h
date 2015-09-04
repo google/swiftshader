@@ -86,7 +86,9 @@ public:
   /// @{
   void setEntryNode(CfgNode *EntryNode) { Entry = EntryNode; }
   CfgNode *getEntryNode() const { return Entry; }
-  /// Create a node and append it to the end of the linearized list.
+  /// Create a node and append it to the end of the linearized list. The loop
+  /// nest depth of the new node may not be valid if it is created after
+  /// computeLoopNestDepth.
   CfgNode *makeNode();
   SizeT getNumNodes() const { return Nodes.size(); }
   const NodeList &getNodes() const { return Nodes; }
@@ -189,6 +191,7 @@ public:
   void doNopInsertion();
   void genCode();
   void genFrame();
+  void computeLoopNestDepth();
   void livenessLightweight();
   void liveness(LivenessMode Mode);
   bool validateLiveness() const;

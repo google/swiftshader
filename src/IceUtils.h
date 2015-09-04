@@ -70,6 +70,18 @@ public:
             (X < 0 && Y < 0 && (X < std::numeric_limits<T>::min() - Y)));
   }
 
+  /// Adds x to y and stores the result in sum. Returns true if the addition
+  /// overflowed.
+  static inline bool add_overflow(uint32_t x, uint32_t y, uint32_t *sum) {
+    static_assert(std::is_same<uint32_t, unsigned>::value, "Must match type");
+#if __has_builtin(__builtin_uadd_overflow)
+    return __builtin_uadd_overflow(x, y, sum);
+#else
+    *sum = x + y;
+    return WouldOverflowAdd(x, y);
+#endif
+  }
+
   /// Return true if X is already aligned by N, where N is a power of 2.
   template <typename T> static inline bool IsAligned(T X, intptr_t N) {
     assert(llvm::isPowerOf2_64(N));

@@ -195,6 +195,7 @@ SRCS = \
 	IceInstX8664.cpp \
 	IceIntrinsics.cpp \
 	IceLiveness.cpp \
+	IceLoopAnalyzer.cpp \
 	IceOperand.cpp \
 	IceRegAlloc.cpp \
 	IceRNG.cpp \

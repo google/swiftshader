@@ -219,6 +219,11 @@ void CfgNode::deletePhis() {
 // not contain duplicates.
 CfgNode *CfgNode::splitIncomingEdge(CfgNode *Pred, SizeT EdgeIndex) {
   CfgNode *NewNode = Func->makeNode();
+  // Depth is the minimum as it works if both are the same, but if one is
+  // outside the loop and the other is inside, the new node should be placed
+  // outside and not be executed multiple times within the loop.
+  NewNode->setLoopNestDepth(
+      std::min(getLoopNestDepth(), Pred->getLoopNestDepth()));
   if (BuildDefs::dump())
     NewNode->setName("split_" + Pred->getName() + "_" + getName() + "_" +
                      std::to_string(EdgeIndex));
@@ -1175,9 +1180,11 @@ void CfgNode::dump(Cfg *Func) const {
   Func->setCurrentNode(this);
   Ostream &Str = Func->getContext()->getStrDump();
   Liveness *Liveness = Func->getLiveness();
-  if (Func->isVerbose(IceV_Instructions)) {
+  if (Func->isVerbose(IceV_Instructions) || Func->isVerbose(IceV_Loop))
     Str << getName() << ":\n";
-  }
+  // Dump the loop nest depth
+  if (Func->isVerbose(IceV_Loop))
+    Str << "    // LoopNestDepth = " << getLoopNestDepth() << "\n";
   // Dump list of predecessor nodes.
   if (Func->isVerbose(IceV_Preds) && !InEdges.empty()) {
     Str << "    // preds = ";

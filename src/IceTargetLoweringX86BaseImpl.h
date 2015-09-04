@@ -325,6 +325,13 @@ template <class Machine> void TargetX86Base<Machine>::translateO2() {
     Func->dump("After Phi lowering");
   }
 
+  // Run this early so it can be used to focus optimizations on potentially hot
+  // code.
+  // TODO(stichnot,ascull): currently only used for regalloc not expensive high
+  // level optimizations which could be focused on potentially hot code.
+  Func->computeLoopNestDepth();
+  Func->dump("After loop nest depth analysis");
+
   // Address mode optimization.
   Func->getVMetadata()->init(VMK_SingleDefs);
   Func->doAddressOpt();
@@ -365,8 +372,9 @@ template <class Machine> void TargetX86Base<Machine>::translateO2() {
     return;
   Func->dump("After x86 codegen");
 
-  // Register allocation.  This requires instruction renumbering and full
-  // liveness analysis.
+  // Register allocation. This requires instruction renumbering and full
+  // liveness analysis. Loops must be identified before liveness so variable
+  // use weights are correct.
   Func->renumberInstructions();
   if (Func->hasError())
     return;

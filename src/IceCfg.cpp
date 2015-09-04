@@ -24,6 +24,7 @@
 #include "IceInst.h"
 #include "IceInstVarIter.h"
 #include "IceLiveness.h"
+#include "IceLoopAnalyzer.h"
 #include "IceOperand.h"
 #include "IceTargetLowering.h"
 
@@ -463,10 +464,16 @@ void Cfg::genFrame() {
       getTarget()->addEpilog(Node);
 }
 
-// This is a lightweight version of live-range-end calculation.  Marks
-// the last use of only those variables whose definition and uses are
-// completely with a single block.  It is a quick single pass and
-// doesn't need to iterate until convergence.
+void Cfg::computeLoopNestDepth() {
+  TimerMarker T(TimerStack::TT_computeLoopNestDepth, this);
+  LoopAnalyzer LA(this);
+  LA.computeLoopNestDepth();
+}
+
+// This is a lightweight version of live-range-end calculation.  Marks the last
+// use of only those variables whose definition and uses are completely with a
+// single block.  It is a quick single pass and doesn't need to iterate until
+// convergence.
 void Cfg::livenessLightweight() {
   TimerMarker T(TimerStack::TT_livenessLightweight, this);
   getVMetadata()->init(VMK_Uses);
@@ -602,12 +609,11 @@ bool Cfg::validateLiveness() const {
 }
 
 void Cfg::contractEmptyNodes() {
-  // If we're decorating the asm output with register liveness info,
-  // this information may become corrupted or incorrect after
-  // contracting nodes that contain only redundant assignments.  As
-  // such, we disable this pass when DecorateAsm is specified.  This
-  // may make the resulting code look more branchy, but it should have
-  // no effect on the register assignments.
+  // If we're decorating the asm output with register liveness info, this
+  // information may become corrupted or incorrect after contracting nodes that
+  // contain only redundant assignments. As such, we disable this pass when
+  // DecorateAsm is specified. This may make the resulting code look more
+  // branchy, but it should have no effect on the register assignments.
   if (Ctx->getFlags().getDecorateAsm())
     return;
   for (CfgNode *Node : Nodes) {

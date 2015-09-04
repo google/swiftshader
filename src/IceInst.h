@@ -693,7 +693,7 @@ public:
   }
   Operand *getAddr() const { return getSrc(1); }
   Operand *getData() const { return getSrc(0); }
-  Variable *getRmwBeacon() const { return llvm::dyn_cast<Variable>(getSrc(2)); }
+  Variable *getRmwBeacon() const;
   void setRmwBeacon(Variable *Beacon);
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return Inst->getKind() == Store; }

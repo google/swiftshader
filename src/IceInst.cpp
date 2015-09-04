@@ -412,6 +412,10 @@ InstStore::InstStore(Cfg *Func, Operand *Data, Operand *Addr)
   addSource(Data);
 }
 
+Variable *InstStore::getRmwBeacon() const {
+  return llvm::dyn_cast<Variable>(getSrc(2));
+}
+
 void InstStore::setRmwBeacon(Variable *Beacon) {
   Dest = llvm::dyn_cast<Variable>(getData());
   Srcs[2] = Beacon;

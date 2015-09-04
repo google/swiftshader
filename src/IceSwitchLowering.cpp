@@ -1,4 +1,4 @@
-//===- subzero/src/IceSwitchLowering.cpp - Switch lowering -----------------==//
+//===- subzero/src/IceSwitchLowering.cpp - Switch lowering ----------------===//
 //
 //                        The Subzero Code Generator
 //

@@ -46,6 +46,10 @@ public:
     return ".L" + Func->getFunctionName() + "$" + getName();
   }
 
+  void incrementLoopNestDepth() { ++LoopNestDepth; }
+  void setLoopNestDepth(SizeT NewDepth) { LoopNestDepth = NewDepth; }
+  SizeT getLoopNestDepth() const { return LoopNestDepth; }
+
   /// The HasReturn flag indicates that this node contains a return
   /// instruction and therefore needs an epilog.
   void setHasReturn() { HasReturn = true; }
@@ -111,6 +115,7 @@ private:
   SizeT Number; /// label index
   Cfg::IdentifierIndexType NameIndex =
       Cfg::IdentifierIndexInvalid; /// index into Cfg::NodeNames table
+  SizeT LoopNestDepth = 0;         /// the loop nest depth of this node
   bool HasReturn = false;          /// does this block need an epilog?
   bool NeedsPlacement = false;
   bool NeedsAlignment = false;       /// is sandboxing required?
