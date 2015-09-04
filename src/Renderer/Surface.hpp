@@ -388,7 +388,6 @@ namespace sw
 		};
 
 		static void decodeR8G8B8(Buffer &destination, const Buffer &source);
-		static void decodeR5G6B5(Buffer &destination, const Buffer &source);
 		static void decodeX1R5G5B5(Buffer &destination, const Buffer &source);
 		static void decodeA1R5G5B5(Buffer &destination, const Buffer &source);
 		static void decodeX4R4G4B4(Buffer &destination, const Buffer &source);

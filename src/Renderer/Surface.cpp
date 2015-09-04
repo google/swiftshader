@@ -1416,7 +1416,6 @@ namespace sw
 			switch(source.format)
 			{
 			case FORMAT_R8G8B8:		decodeR8G8B8(destination, source);		break;   // FIXME: Check destination format
-			case FORMAT_R5G6B5:		decodeR5G6B5(destination, source);		break;   // FIXME: Check destination format
 			case FORMAT_X1R5G5B5:	decodeX1R5G5B5(destination, source);	break;   // FIXME: Check destination format
 			case FORMAT_A1R5G5B5:	decodeA1R5G5B5(destination, source);	break;   // FIXME: Check destination format
 			case FORMAT_X4R4G4B4:	decodeX4R4G4B4(destination, source);	break;   // FIXME: Check destination format
@@ -1540,44 +1539,6 @@ namespace sw
 					unsigned int r = sourceElement[2];
 
 					*(unsigned int*)destinationElement = 0xFF000000 | (r << 16) | (g << 8) | (b << 0);
-
-					sourceElement += source.bytes;
-					destinationElement += destination.bytes;
-				}
-
-				sourceRow += source.pitchB;
-				destinationRow += destination.pitchB;
-			}
-
-			sourceSlice += source.sliceB;
-			destinationSlice += destination.sliceB;
-		}
-	}
-
-	void Surface::decodeR5G6B5(Buffer &destination, const Buffer &source)
-	{
-		unsigned char *sourceSlice = (unsigned char*)source.buffer;
-		unsigned char *destinationSlice = (unsigned char*)destination.buffer;
-
-		for(int z = 0; z < destination.depth && z < source.depth; z++)
-		{
-			unsigned char *sourceRow = sourceSlice;
-			unsigned char *destinationRow = destinationSlice;
-
-			for(int y = 0; y < destination.height && y < source.height; y++)
-			{
-				unsigned char *sourceElement = sourceRow;
-				unsigned char *destinationElement = destinationRow;
-
-				for(int x = 0; x < destination.width && x < source.width; x++)
-				{
-					unsigned int rgb = *(unsigned short*)sourceElement;
-						
-					unsigned int r = (((rgb & 0xF800) * 67385 + 0x800000) >> 8) & 0x00FF0000;
-					unsigned int g = (((rgb & 0x07E0) * 8289  + 0x8000) >> 8) & 0x0000FF00;
-					unsigned int b = (((rgb & 0x001F) * 2106  + 0x80) >> 8);
-
-					*(unsigned int*)destinationElement = 0xFF000000 | r | g | b;
 
 					sourceElement += source.bytes;
 					destinationElement += destination.bytes;
@@ -2460,6 +2421,7 @@ namespace sw
 	{
 		switch(format)
 		{
+		case FORMAT_R5G6B5:
 		case FORMAT_X8R8G8B8:
 		case FORMAT_X8B8G8R8:
 		case FORMAT_A8R8G8B8:
@@ -2507,6 +2469,7 @@ namespace sw
 		switch(format)
 		{
 		case FORMAT_NULL:
+		case FORMAT_R5G6B5:
 		case FORMAT_X8R8G8B8:
 		case FORMAT_X8B8G8R8:
 		case FORMAT_A8R8G8B8:
@@ -2686,30 +2649,31 @@ namespace sw
 	{
 		switch(format)
 		{
-		case FORMAT_X8R8G8B8:		return 3;
-		case FORMAT_X8B8G8R8:		return 3;
-		case FORMAT_A8R8G8B8:		return 4;
-		case FORMAT_A8B8G8R8:		return 4;
-		case FORMAT_G8R8:			return 2;
-		case FORMAT_G16R16:			return 2;
-		case FORMAT_A16B16G16R16:	return 4;
-		case FORMAT_V8U8:			return 2;
-		case FORMAT_Q8W8V8U8:		return 4;
-		case FORMAT_X8L8V8U8:		return 3;
-		case FORMAT_V16U16:			return 2;
-		case FORMAT_A16W16V16U16:	return 4;
-		case FORMAT_Q16W16V16U16:	return 4;
-		case FORMAT_R32F:			return 1;
-		case FORMAT_G32R32F:		return 2;
-		case FORMAT_A32B32G32R32F:	return 4;
-		case FORMAT_D32F_LOCKABLE:	return 1;
-		case FORMAT_D32FS8_TEXTURE:	return 1;
-		case FORMAT_D32FS8_SHADOW:	return 1;
-		case FORMAT_A8:				return 1;
-		case FORMAT_R8:				return 1;
-		case FORMAT_L8:				return 1;
-		case FORMAT_L16:			return 1;
-		case FORMAT_A8L8:			return 2;
+		case FORMAT_R5G6B5:         return 3;
+		case FORMAT_X8R8G8B8:       return 3;
+		case FORMAT_X8B8G8R8:       return 3;
+		case FORMAT_A8R8G8B8:       return 4;
+		case FORMAT_A8B8G8R8:       return 4;
+		case FORMAT_G8R8:           return 2;
+		case FORMAT_G16R16:         return 2;
+		case FORMAT_A16B16G16R16:   return 4;
+		case FORMAT_V8U8:           return 2;
+		case FORMAT_Q8W8V8U8:       return 4;
+		case FORMAT_X8L8V8U8:       return 3;
+		case FORMAT_V16U16:         return 2;
+		case FORMAT_A16W16V16U16:   return 4;
+		case FORMAT_Q16W16V16U16:   return 4;
+		case FORMAT_R32F:           return 1;
+		case FORMAT_G32R32F:        return 2;
+		case FORMAT_A32B32G32R32F:  return 4;
+		case FORMAT_D32F_LOCKABLE:  return 1;
+		case FORMAT_D32FS8_TEXTURE: return 1;
+		case FORMAT_D32FS8_SHADOW:  return 1;
+		case FORMAT_A8:             return 1;
+		case FORMAT_R8:             return 1;
+		case FORMAT_L8:             return 1;
+		case FORMAT_L16:            return 1;
+		case FORMAT_A8L8:           return 2;
 		case FORMAT_YV12_BT601:     return 3;
 		case FORMAT_YV12_BT709:     return 3;
 		case FORMAT_YV12_JFIF:      return 3;
@@ -3593,8 +3557,9 @@ namespace sw
 		case FORMAT_R4G4B4A4:
 		case FORMAT_A8B8G8R8:
 			return FORMAT_A8B8G8R8;
-		case FORMAT_R3G3B2:
 		case FORMAT_R5G6B5:
+			return FORMAT_R5G6B5;
+		case FORMAT_R3G3B2:
 		case FORMAT_R8G8B8:
 		case FORMAT_X4R4G4B4:
 		case FORMAT_X1R5G5B5:

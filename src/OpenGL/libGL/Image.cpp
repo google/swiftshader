@@ -214,7 +214,7 @@ namespace gl
 		}
 		else if(type == GL_UNSIGNED_SHORT_5_6_5)
 		{
-			return sw::FORMAT_X8R8G8B8;
+			return sw::FORMAT_R5G6B5;
 		}
         else if(type == GL_UNSIGNED_INT_8_8_8_8_REV)
         {
@@ -504,16 +504,9 @@ namespace gl
 		for(int y = 0; y < height; y++)
 		{
 			const unsigned short *source = reinterpret_cast<const unsigned short*>(static_cast<const unsigned char*>(input) + y * inputPitch);
-			unsigned char *dest = static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 4;
+			unsigned char *dest = static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 2;
 			
-			for(int x = 0; x < width; x++)
-			{
-				unsigned short rgba = source[x];
-				dest[4 * x + 0] = ((rgba & 0x001F) << 3) | ((rgba & 0x001F) >> 2);
-				dest[4 * x + 1] = ((rgba & 0x07E0) >> 3) | ((rgba & 0x07E0) >> 9);
-				dest[4 * x + 2] = ((rgba & 0xF800) >> 8) | ((rgba & 0xF800) >> 13);
-				dest[4 * x + 3] = 0xFF;
-			}
+			memcpy(dest, source, width * 2);
 		}
 	}
 
