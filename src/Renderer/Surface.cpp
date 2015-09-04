@@ -5520,6 +5520,407 @@ namespace sw
 				else ASSERT(false);
 			}
 		}
+		else if(internal.format == FORMAT_R5G6B5)
+		{
+			if(CPUID::supportsSSE2() && (width % 8) == 0)
+			{
+				if(internal.depth == 2)
+				{
+					for(int y = 0; y < height; y++)
+					{
+						for(int x = 0; x < width; x += 8)
+						{
+							__m128i c0 = _mm_load_si128((__m128i*)(source0 + 2 * x));
+							__m128i c1 = _mm_load_si128((__m128i*)(source1 + 2 * x));
+						
+							static const ushort8 r_b = {0xF81F, 0xF81F, 0xF81F, 0xF81F, 0xF81F, 0xF81F, 0xF81F, 0xF81F};
+							static const ushort8 _g_ = {0x07E0, 0x07E0, 0x07E0, 0x07E0, 0x07E0, 0x07E0, 0x07E0, 0x07E0};
+							__m128i c0_r_b = _mm_and_si128(c0, reinterpret_cast<const __m128i&>(r_b));
+							__m128i c0__g_ = _mm_and_si128(c0, reinterpret_cast<const __m128i&>(_g_));
+							__m128i c1_r_b = _mm_and_si128(c1, reinterpret_cast<const __m128i&>(r_b));
+							__m128i c1__g_ = _mm_and_si128(c1, reinterpret_cast<const __m128i&>(_g_));
+
+							c0 = _mm_avg_epu8(c0_r_b, c1_r_b);
+							c0 = _mm_and_si128(c0, reinterpret_cast<const __m128i&>(r_b));
+							c1 = _mm_avg_epu16(c0__g_, c1__g_);
+							c1 = _mm_and_si128(c1, reinterpret_cast<const __m128i&>(_g_));
+							c0 = _mm_or_si128(c0, c1);
+
+							_mm_store_si128((__m128i*)(source0 + 2 * x), c0);
+						}
+
+						source0 += pitch;
+						source1 += pitch;
+					}
+				}
+				else if(internal.depth == 4)
+				{
+					for(int y = 0; y < height; y++)
+					{
+						for(int x = 0; x < width; x += 8)
+						{
+							__m128i c0 = _mm_load_si128((__m128i*)(source0 + 2 * x));
+							__m128i c1 = _mm_load_si128((__m128i*)(source1 + 2 * x));
+							__m128i c2 = _mm_load_si128((__m128i*)(source2 + 2 * x));
+							__m128i c3 = _mm_load_si128((__m128i*)(source3 + 2 * x));
+							
+							static const ushort8 r_b = {0xF81F, 0xF81F, 0xF81F, 0xF81F, 0xF81F, 0xF81F, 0xF81F, 0xF81F};
+							static const ushort8 _g_ = {0x07E0, 0x07E0, 0x07E0, 0x07E0, 0x07E0, 0x07E0, 0x07E0, 0x07E0};
+							__m128i c0_r_b = _mm_and_si128(c0, reinterpret_cast<const __m128i&>(r_b));
+							__m128i c0__g_ = _mm_and_si128(c0, reinterpret_cast<const __m128i&>(_g_));
+							__m128i c1_r_b = _mm_and_si128(c1, reinterpret_cast<const __m128i&>(r_b));
+							__m128i c1__g_ = _mm_and_si128(c1, reinterpret_cast<const __m128i&>(_g_));
+							__m128i c2_r_b = _mm_and_si128(c2, reinterpret_cast<const __m128i&>(r_b));
+							__m128i c2__g_ = _mm_and_si128(c2, reinterpret_cast<const __m128i&>(_g_));
+							__m128i c3_r_b = _mm_and_si128(c3, reinterpret_cast<const __m128i&>(r_b));
+							__m128i c3__g_ = _mm_and_si128(c3, reinterpret_cast<const __m128i&>(_g_));
+
+							c0 = _mm_avg_epu8(c0_r_b, c1_r_b);
+							c2 = _mm_avg_epu8(c2_r_b, c3_r_b);
+							c0 = _mm_avg_epu8(c0, c2);
+							c0 = _mm_and_si128(c0, reinterpret_cast<const __m128i&>(r_b));
+							c1 = _mm_avg_epu16(c0__g_, c1__g_);
+							c3 = _mm_avg_epu16(c2__g_, c3__g_);
+							c1 = _mm_avg_epu16(c1, c3);
+							c1 = _mm_and_si128(c1, reinterpret_cast<const __m128i&>(_g_));
+							c0 = _mm_or_si128(c0, c1);
+
+							_mm_store_si128((__m128i*)(source0 + 2 * x), c0);
+						}
+
+						source0 += pitch;
+						source1 += pitch;
+						source2 += pitch;
+						source3 += pitch;
+					}
+				}
+				else if(internal.depth == 8)
+				{
+					for(int y = 0; y < height; y++)
+					{
+						for(int x = 0; x < width; x += 8)
+						{
+							__m128i c0 = _mm_load_si128((__m128i*)(source0 + 2 * x));
+							__m128i c1 = _mm_load_si128((__m128i*)(source1 + 2 * x));
+							__m128i c2 = _mm_load_si128((__m128i*)(source2 + 2 * x));
+							__m128i c3 = _mm_load_si128((__m128i*)(source3 + 2 * x));
+							__m128i c4 = _mm_load_si128((__m128i*)(source4 + 2 * x));
+							__m128i c5 = _mm_load_si128((__m128i*)(source5 + 2 * x));
+							__m128i c6 = _mm_load_si128((__m128i*)(source6 + 2 * x));
+							__m128i c7 = _mm_load_si128((__m128i*)(source7 + 2 * x));
+							
+							static const ushort8 r_b = {0xF81F, 0xF81F, 0xF81F, 0xF81F, 0xF81F, 0xF81F, 0xF81F, 0xF81F};
+							static const ushort8 _g_ = {0x07E0, 0x07E0, 0x07E0, 0x07E0, 0x07E0, 0x07E0, 0x07E0, 0x07E0};
+							__m128i c0_r_b = _mm_and_si128(c0, reinterpret_cast<const __m128i&>(r_b));
+							__m128i c0__g_ = _mm_and_si128(c0, reinterpret_cast<const __m128i&>(_g_));
+							__m128i c1_r_b = _mm_and_si128(c1, reinterpret_cast<const __m128i&>(r_b));
+							__m128i c1__g_ = _mm_and_si128(c1, reinterpret_cast<const __m128i&>(_g_));
+							__m128i c2_r_b = _mm_and_si128(c2, reinterpret_cast<const __m128i&>(r_b));
+							__m128i c2__g_ = _mm_and_si128(c2, reinterpret_cast<const __m128i&>(_g_));
+							__m128i c3_r_b = _mm_and_si128(c3, reinterpret_cast<const __m128i&>(r_b));
+							__m128i c3__g_ = _mm_and_si128(c3, reinterpret_cast<const __m128i&>(_g_));
+							__m128i c4_r_b = _mm_and_si128(c4, reinterpret_cast<const __m128i&>(r_b));
+							__m128i c4__g_ = _mm_and_si128(c4, reinterpret_cast<const __m128i&>(_g_));
+							__m128i c5_r_b = _mm_and_si128(c5, reinterpret_cast<const __m128i&>(r_b));
+							__m128i c5__g_ = _mm_and_si128(c5, reinterpret_cast<const __m128i&>(_g_));
+							__m128i c6_r_b = _mm_and_si128(c6, reinterpret_cast<const __m128i&>(r_b));
+							__m128i c6__g_ = _mm_and_si128(c6, reinterpret_cast<const __m128i&>(_g_));
+							__m128i c7_r_b = _mm_and_si128(c7, reinterpret_cast<const __m128i&>(r_b));
+							__m128i c7__g_ = _mm_and_si128(c7, reinterpret_cast<const __m128i&>(_g_));
+
+							c0 = _mm_avg_epu8(c0_r_b, c1_r_b);
+							c2 = _mm_avg_epu8(c2_r_b, c3_r_b);
+							c4 = _mm_avg_epu8(c4_r_b, c5_r_b);
+							c6 = _mm_avg_epu8(c6_r_b, c7_r_b);
+							c0 = _mm_avg_epu8(c0, c2);
+							c4 = _mm_avg_epu8(c4, c6);
+							c0 = _mm_avg_epu8(c0, c4);
+							c0 = _mm_and_si128(c0, reinterpret_cast<const __m128i&>(r_b));
+							c1 = _mm_avg_epu16(c0__g_, c1__g_);
+							c3 = _mm_avg_epu16(c2__g_, c3__g_);
+							c5 = _mm_avg_epu16(c4__g_, c5__g_);
+							c7 = _mm_avg_epu16(c6__g_, c7__g_);
+							c1 = _mm_avg_epu16(c1, c3);
+							c5 = _mm_avg_epu16(c5, c7);
+							c1 = _mm_avg_epu16(c1, c5);
+							c1 = _mm_and_si128(c1, reinterpret_cast<const __m128i&>(_g_));
+							c0 = _mm_or_si128(c0, c1);
+
+							_mm_store_si128((__m128i*)(source0 + 2 * x), c0);
+						}
+
+						source0 += pitch;
+						source1 += pitch;
+						source2 += pitch;
+						source3 += pitch;
+						source4 += pitch;
+						source5 += pitch;
+						source6 += pitch;
+						source7 += pitch;
+					}
+				}
+				else if(internal.depth == 16)
+				{
+					for(int y = 0; y < height; y++)
+					{
+						for(int x = 0; x < width; x += 8)
+						{
+							__m128i c0 = _mm_load_si128((__m128i*)(source0 + 2 * x));
+							__m128i c1 = _mm_load_si128((__m128i*)(source1 + 2 * x));
+							__m128i c2 = _mm_load_si128((__m128i*)(source2 + 2 * x));
+							__m128i c3 = _mm_load_si128((__m128i*)(source3 + 2 * x));
+							__m128i c4 = _mm_load_si128((__m128i*)(source4 + 2 * x));
+							__m128i c5 = _mm_load_si128((__m128i*)(source5 + 2 * x));
+							__m128i c6 = _mm_load_si128((__m128i*)(source6 + 2 * x));
+							__m128i c7 = _mm_load_si128((__m128i*)(source7 + 2 * x));
+							__m128i c8 = _mm_load_si128((__m128i*)(source8 + 2 * x));
+							__m128i c9 = _mm_load_si128((__m128i*)(source9 + 2 * x));
+							__m128i cA = _mm_load_si128((__m128i*)(sourceA + 2 * x));
+							__m128i cB = _mm_load_si128((__m128i*)(sourceB + 2 * x));
+							__m128i cC = _mm_load_si128((__m128i*)(sourceC + 2 * x));
+							__m128i cD = _mm_load_si128((__m128i*)(sourceD + 2 * x));
+							__m128i cE = _mm_load_si128((__m128i*)(sourceE + 2 * x));
+							__m128i cF = _mm_load_si128((__m128i*)(sourceF + 2 * x));
+
+							static const ushort8 r_b = {0xF81F, 0xF81F, 0xF81F, 0xF81F, 0xF81F, 0xF81F, 0xF81F, 0xF81F};
+							static const ushort8 _g_ = {0x07E0, 0x07E0, 0x07E0, 0x07E0, 0x07E0, 0x07E0, 0x07E0, 0x07E0};
+							__m128i c0_r_b = _mm_and_si128(c0, reinterpret_cast<const __m128i&>(r_b));
+							__m128i c0__g_ = _mm_and_si128(c0, reinterpret_cast<const __m128i&>(_g_));
+							__m128i c1_r_b = _mm_and_si128(c1, reinterpret_cast<const __m128i&>(r_b));
+							__m128i c1__g_ = _mm_and_si128(c1, reinterpret_cast<const __m128i&>(_g_));
+							__m128i c2_r_b = _mm_and_si128(c2, reinterpret_cast<const __m128i&>(r_b));
+							__m128i c2__g_ = _mm_and_si128(c2, reinterpret_cast<const __m128i&>(_g_));
+							__m128i c3_r_b = _mm_and_si128(c3, reinterpret_cast<const __m128i&>(r_b));
+							__m128i c3__g_ = _mm_and_si128(c3, reinterpret_cast<const __m128i&>(_g_));
+							__m128i c4_r_b = _mm_and_si128(c4, reinterpret_cast<const __m128i&>(r_b));
+							__m128i c4__g_ = _mm_and_si128(c4, reinterpret_cast<const __m128i&>(_g_));
+							__m128i c5_r_b = _mm_and_si128(c5, reinterpret_cast<const __m128i&>(r_b));
+							__m128i c5__g_ = _mm_and_si128(c5, reinterpret_cast<const __m128i&>(_g_));
+							__m128i c6_r_b = _mm_and_si128(c6, reinterpret_cast<const __m128i&>(r_b));
+							__m128i c6__g_ = _mm_and_si128(c6, reinterpret_cast<const __m128i&>(_g_));
+							__m128i c7_r_b = _mm_and_si128(c7, reinterpret_cast<const __m128i&>(r_b));
+							__m128i c7__g_ = _mm_and_si128(c7, reinterpret_cast<const __m128i&>(_g_));
+							__m128i c8_r_b = _mm_and_si128(c8, reinterpret_cast<const __m128i&>(r_b));
+							__m128i c8__g_ = _mm_and_si128(c8, reinterpret_cast<const __m128i&>(_g_));
+							__m128i c9_r_b = _mm_and_si128(c9, reinterpret_cast<const __m128i&>(r_b));
+							__m128i c9__g_ = _mm_and_si128(c9, reinterpret_cast<const __m128i&>(_g_));
+							__m128i cA_r_b = _mm_and_si128(cA, reinterpret_cast<const __m128i&>(r_b));
+							__m128i cA__g_ = _mm_and_si128(cA, reinterpret_cast<const __m128i&>(_g_));
+							__m128i cB_r_b = _mm_and_si128(cB, reinterpret_cast<const __m128i&>(r_b));
+							__m128i cB__g_ = _mm_and_si128(cB, reinterpret_cast<const __m128i&>(_g_));
+							__m128i cC_r_b = _mm_and_si128(cC, reinterpret_cast<const __m128i&>(r_b));
+							__m128i cC__g_ = _mm_and_si128(cC, reinterpret_cast<const __m128i&>(_g_));
+							__m128i cD_r_b = _mm_and_si128(cD, reinterpret_cast<const __m128i&>(r_b));
+							__m128i cD__g_ = _mm_and_si128(cD, reinterpret_cast<const __m128i&>(_g_));
+							__m128i cE_r_b = _mm_and_si128(cE, reinterpret_cast<const __m128i&>(r_b));
+							__m128i cE__g_ = _mm_and_si128(cE, reinterpret_cast<const __m128i&>(_g_));
+							__m128i cF_r_b = _mm_and_si128(cF, reinterpret_cast<const __m128i&>(r_b));
+							__m128i cF__g_ = _mm_and_si128(cF, reinterpret_cast<const __m128i&>(_g_));
+
+							c0 = _mm_avg_epu8(c0_r_b, c1_r_b);
+							c2 = _mm_avg_epu8(c2_r_b, c3_r_b);
+							c4 = _mm_avg_epu8(c4_r_b, c5_r_b);
+							c6 = _mm_avg_epu8(c6_r_b, c7_r_b);
+							c8 = _mm_avg_epu8(c8_r_b, c9_r_b);
+							cA = _mm_avg_epu8(cA_r_b, cB_r_b);
+							cC = _mm_avg_epu8(cC_r_b, cD_r_b);
+							cE = _mm_avg_epu8(cE_r_b, cF_r_b);
+							c0 = _mm_avg_epu8(c0, c2);
+							c4 = _mm_avg_epu8(c4, c6);
+							c8 = _mm_avg_epu8(c8, cA);
+							cC = _mm_avg_epu8(cC, cE);
+							c0 = _mm_avg_epu8(c0, c4);
+							c8 = _mm_avg_epu8(c8, cC);
+							c0 = _mm_avg_epu8(c0, c8);
+							c0 = _mm_and_si128(c0, reinterpret_cast<const __m128i&>(r_b));
+							c1 = _mm_avg_epu16(c0__g_, c1__g_);
+							c3 = _mm_avg_epu16(c2__g_, c3__g_);
+							c5 = _mm_avg_epu16(c4__g_, c5__g_);
+							c7 = _mm_avg_epu16(c6__g_, c7__g_);
+							c9 = _mm_avg_epu16(c8__g_, c9__g_);
+							cB = _mm_avg_epu16(cA__g_, cB__g_);
+							cD = _mm_avg_epu16(cC__g_, cD__g_);
+							cF = _mm_avg_epu16(cE__g_, cF__g_);
+							c1 = _mm_avg_epu8(c1, c3);
+							c5 = _mm_avg_epu8(c5, c7);
+							c9 = _mm_avg_epu8(c9, cB);
+							cD = _mm_avg_epu8(cD, cF);
+							c1 = _mm_avg_epu8(c1, c5);
+							c9 = _mm_avg_epu8(c9, cD);
+							c1 = _mm_avg_epu8(c1, c9);
+							c1 = _mm_and_si128(c1, reinterpret_cast<const __m128i&>(_g_));
+							c0 = _mm_or_si128(c0, c1);
+
+							_mm_store_si128((__m128i*)(source0 + 2 * x), c0);
+						}
+
+						source0 += pitch;
+						source1 += pitch;
+						source2 += pitch;
+						source3 += pitch;
+						source4 += pitch;
+						source5 += pitch;
+						source6 += pitch;
+						source7 += pitch;
+						source8 += pitch;
+						source9 += pitch;
+						sourceA += pitch;
+						sourceB += pitch;
+						sourceC += pitch;
+						sourceD += pitch;
+						sourceE += pitch;
+						sourceF += pitch;
+					}
+				}
+				else ASSERT(false);
+			}
+			else
+			{
+				#define AVERAGE(x, y) (((x) & (y)) + ((((x) ^ (y)) >> 1) & 0x7BEF) + (((x) ^ (y)) & 0x0821))
+
+				if(internal.depth == 2)
+				{
+					for(int y = 0; y < height; y++)
+					{
+						for(int x = 0; x < width; x++)
+						{
+							unsigned short c0 = *(unsigned short*)(source0 + 2 * x);
+							unsigned short c1 = *(unsigned short*)(source1 + 2 * x);
+
+							c0 = AVERAGE(c0, c1);
+
+							*(unsigned short*)(source0 + 2 * x) = c0;
+						}
+
+						source0 += pitch;
+						source1 += pitch;
+					}
+				}
+				else if(internal.depth == 4)
+				{
+					for(int y = 0; y < height; y++)
+					{
+						for(int x = 0; x < width; x++)
+						{
+							unsigned short c0 = *(unsigned short*)(source0 + 2 * x);
+							unsigned short c1 = *(unsigned short*)(source1 + 2 * x);
+							unsigned short c2 = *(unsigned short*)(source2 + 2 * x);
+							unsigned short c3 = *(unsigned short*)(source3 + 2 * x);
+
+							c0 = AVERAGE(c0, c1);
+							c2 = AVERAGE(c2, c3);
+							c0 = AVERAGE(c0, c2);
+
+							*(unsigned short*)(source0 + 2 * x) = c0;
+						}
+
+						source0 += pitch;
+						source1 += pitch;
+						source2 += pitch;
+						source3 += pitch;
+					}
+				}
+				else if(internal.depth == 8)
+				{
+					for(int y = 0; y < height; y++)
+					{
+						for(int x = 0; x < width; x++)
+						{
+							unsigned short c0 = *(unsigned short*)(source0 + 2 * x);
+							unsigned short c1 = *(unsigned short*)(source1 + 2 * x);
+							unsigned short c2 = *(unsigned short*)(source2 + 2 * x);
+							unsigned short c3 = *(unsigned short*)(source3 + 2 * x);
+							unsigned short c4 = *(unsigned short*)(source4 + 2 * x);
+							unsigned short c5 = *(unsigned short*)(source5 + 2 * x);
+							unsigned short c6 = *(unsigned short*)(source6 + 2 * x);
+							unsigned short c7 = *(unsigned short*)(source7 + 2 * x);
+
+							c0 = AVERAGE(c0, c1);
+							c2 = AVERAGE(c2, c3);
+							c4 = AVERAGE(c4, c5);
+							c6 = AVERAGE(c6, c7);
+							c0 = AVERAGE(c0, c2);
+							c4 = AVERAGE(c4, c6);
+							c0 = AVERAGE(c0, c4);
+
+							*(unsigned short*)(source0 + 2 * x) = c0;
+						}
+
+						source0 += pitch;
+						source1 += pitch;
+						source2 += pitch;
+						source3 += pitch;
+						source4 += pitch;
+						source5 += pitch;
+						source6 += pitch;
+						source7 += pitch;
+					}
+				}
+				else if(internal.depth == 16)
+				{
+					for(int y = 0; y < height; y++)
+					{
+						for(int x = 0; x < width; x++)
+						{
+							unsigned short c0 = *(unsigned short*)(source0 + 2 * x);
+							unsigned short c1 = *(unsigned short*)(source1 + 2 * x);
+							unsigned short c2 = *(unsigned short*)(source2 + 2 * x);
+							unsigned short c3 = *(unsigned short*)(source3 + 2 * x);
+							unsigned short c4 = *(unsigned short*)(source4 + 2 * x);
+							unsigned short c5 = *(unsigned short*)(source5 + 2 * x);
+							unsigned short c6 = *(unsigned short*)(source6 + 2 * x);
+							unsigned short c7 = *(unsigned short*)(source7 + 2 * x);
+							unsigned short c8 = *(unsigned short*)(source8 + 2 * x);
+							unsigned short c9 = *(unsigned short*)(source9 + 2 * x);
+							unsigned short cA = *(unsigned short*)(sourceA + 2 * x);
+							unsigned short cB = *(unsigned short*)(sourceB + 2 * x);
+							unsigned short cC = *(unsigned short*)(sourceC + 2 * x);
+							unsigned short cD = *(unsigned short*)(sourceD + 2 * x);
+							unsigned short cE = *(unsigned short*)(sourceE + 2 * x);
+							unsigned short cF = *(unsigned short*)(sourceF + 2 * x);
+
+							c0 = AVERAGE(c0, c1);
+							c2 = AVERAGE(c2, c3);
+							c4 = AVERAGE(c4, c5);
+							c6 = AVERAGE(c6, c7);
+							c8 = AVERAGE(c8, c9);
+							cA = AVERAGE(cA, cB);
+							cC = AVERAGE(cC, cD);
+							cE = AVERAGE(cE, cF);
+							c0 = AVERAGE(c0, c2);
+							c4 = AVERAGE(c4, c6);
+							c8 = AVERAGE(c8, cA);
+							cC = AVERAGE(cC, cE);
+							c0 = AVERAGE(c0, c4);
+							c8 = AVERAGE(c8, cC);
+							c0 = AVERAGE(c0, c8);
+
+							*(unsigned short*)(source0 + 2 * x) = c0;
+						}
+
+						source0 += pitch;
+						source1 += pitch;
+						source2 += pitch;
+						source3 += pitch;
+						source4 += pitch;
+						source5 += pitch;
+						source6 += pitch;
+						source7 += pitch;
+						source8 += pitch;
+						source9 += pitch;
+						sourceA += pitch;
+						sourceB += pitch;
+						sourceC += pitch;
+						sourceD += pitch;
+						sourceE += pitch;
+						sourceF += pitch;
+					}
+				}
+				else ASSERT(false);
+
+				#undef AVERAGE
+			}
+		}
 		else
 		{
 		//	UNIMPLEMENTED();
