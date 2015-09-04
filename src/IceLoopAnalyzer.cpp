@@ -34,7 +34,7 @@ void LoopAnalyzer::LoopNode::incrementLoopNestDepth() {
   BB->incrementLoopNestDepth();
 }
 
-LoopAnalyzer::LoopAnalyzer(Cfg *Func) : Func(Func) {
+LoopAnalyzer::LoopAnalyzer(Cfg *Fn) : Func(Fn) {
   const NodeList &Nodes = Func->getNodes();
 
   // Allocate memory ahead of time. This is why a vector is used instead of a
