@@ -211,6 +211,8 @@ public:
   virtual llvm::SmallBitVector getRegisterSet(RegSetMask Include,
                                               RegSetMask Exclude) const = 0;
   virtual const llvm::SmallBitVector &getRegisterSetForType(Type Ty) const = 0;
+  virtual const llvm::SmallBitVector &getAliasesForRegister(SizeT) const = 0;
+
   void regAlloc(RegAllocKind Kind);
 
   virtual void

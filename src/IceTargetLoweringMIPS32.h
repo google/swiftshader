@@ -44,6 +44,9 @@ public:
   const llvm::SmallBitVector &getRegisterSetForType(Type Ty) const override {
     return TypeToRegisterSet[Ty];
   }
+  const llvm::SmallBitVector &getAliasesForRegister(SizeT Reg) const override {
+    return RegisterAliases[Reg];
+  }
   bool hasFramePointer() const override { return UsesFramePointer; }
   SizeT getFrameOrStackReg() const override {
     return UsesFramePointer ? RegMIPS32::Reg_FP : RegMIPS32::Reg_SP;
@@ -128,6 +131,7 @@ protected:
   bool UsesFramePointer = false;
   bool NeedsStackAlignment = false;
   llvm::SmallBitVector TypeToRegisterSet[IceType_NUM];
+  llvm::SmallBitVector RegisterAliases[RegMIPS32::Reg_NUM];
   llvm::SmallBitVector ScratchRegs;
   llvm::SmallBitVector RegsUsed;
   VarList PhysicalRegisters[IceType_NUM];

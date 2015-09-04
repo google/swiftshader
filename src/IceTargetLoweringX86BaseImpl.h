@@ -281,31 +281,7 @@ TargetX86Base<Machine>::TargetX86Base(Cfg *Func)
   }
   // TODO: Don't initialize IntegerRegisters and friends every time. Instead,
   // initialize in some sort of static initializer for the class.
-  llvm::SmallBitVector IntegerRegisters(Traits::RegisterSet::Reg_NUM);
-  llvm::SmallBitVector IntegerRegistersI8(Traits::RegisterSet::Reg_NUM);
-  llvm::SmallBitVector FloatRegisters(Traits::RegisterSet::Reg_NUM);
-  llvm::SmallBitVector VectorRegisters(Traits::RegisterSet::Reg_NUM);
-  llvm::SmallBitVector InvalidRegisters(Traits::RegisterSet::Reg_NUM);
-  ScratchRegs.resize(Traits::RegisterSet::Reg_NUM);
-
-  Traits::initRegisterSet(&IntegerRegisters, &IntegerRegistersI8,
-                          &FloatRegisters, &VectorRegisters, &ScratchRegs);
-
-  TypeToRegisterSet[IceType_void] = InvalidRegisters;
-  TypeToRegisterSet[IceType_i1] = IntegerRegistersI8;
-  TypeToRegisterSet[IceType_i8] = IntegerRegistersI8;
-  TypeToRegisterSet[IceType_i16] = IntegerRegisters;
-  TypeToRegisterSet[IceType_i32] = IntegerRegisters;
-  TypeToRegisterSet[IceType_i64] = IntegerRegisters;
-  TypeToRegisterSet[IceType_f32] = FloatRegisters;
-  TypeToRegisterSet[IceType_f64] = FloatRegisters;
-  TypeToRegisterSet[IceType_v4i1] = VectorRegisters;
-  TypeToRegisterSet[IceType_v8i1] = VectorRegisters;
-  TypeToRegisterSet[IceType_v16i1] = VectorRegisters;
-  TypeToRegisterSet[IceType_v16i8] = VectorRegisters;
-  TypeToRegisterSet[IceType_v8i16] = VectorRegisters;
-  TypeToRegisterSet[IceType_v4i32] = VectorRegisters;
-  TypeToRegisterSet[IceType_v4f32] = VectorRegisters;
+  Traits::initRegisterSet(&TypeToRegisterSet, &RegisterAliases, &ScratchRegs);
 }
 
 template <class Machine> void TargetX86Base<Machine>::translateO2() {

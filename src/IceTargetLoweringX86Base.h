@@ -23,6 +23,7 @@
 #include "IceTargetLowering.h"
 #include "IceUtils.h"
 
+#include <array>
 #include <type_traits>
 #include <utility>
 
@@ -75,6 +76,12 @@ public:
   const llvm::SmallBitVector &getRegisterSetForType(Type Ty) const override {
     return TypeToRegisterSet[Ty];
   }
+
+  const llvm::SmallBitVector &getAliasesForRegister(SizeT Reg) const override {
+    assert(Reg < Traits::RegisterSet::Reg_NUM);
+    return RegisterAliases[Reg];
+  }
+
   bool hasFramePointer() const override { return IsEbpBasedFrame; }
   SizeT getFrameOrStackReg() const override {
     return IsEbpBasedFrame ? Traits::RegisterSet::Reg_ebp
@@ -680,10 +687,12 @@ protected:
   bool IsEbpBasedFrame = false;
   bool NeedsStackAlignment = false;
   size_t SpillAreaSizeBytes = 0;
-  llvm::SmallBitVector TypeToRegisterSet[IceType_NUM];
+  std::array<llvm::SmallBitVector, IceType_NUM> TypeToRegisterSet;
+  std::array<llvm::SmallBitVector, Traits::RegisterSet::Reg_NUM>
+      RegisterAliases;
   llvm::SmallBitVector ScratchRegs;
   llvm::SmallBitVector RegsUsed;
-  VarList PhysicalRegisters[IceType_NUM];
+  std::array<VarList, IceType_NUM> PhysicalRegisters;
 
   /// Randomize a given immediate operand
   Operand *randomizeOrPoolImmediate(Constant *Immediate,

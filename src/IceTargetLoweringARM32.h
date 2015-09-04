@@ -68,6 +68,9 @@ public:
   const llvm::SmallBitVector &getRegisterSetForType(Type Ty) const override {
     return TypeToRegisterSet[Ty];
   }
+  const llvm::SmallBitVector &getAliasesForRegister(SizeT Reg) const override {
+    return RegisterAliases[Reg];
+  }
   bool hasFramePointer() const override { return UsesFramePointer; }
   SizeT getFrameOrStackReg() const override {
     return UsesFramePointer ? RegARM32::Reg_fp : RegARM32::Reg_sp;
@@ -434,7 +437,9 @@ protected:
   bool NeedsStackAlignment = false;
   bool MaybeLeafFunc = true;
   size_t SpillAreaSizeBytes = 0;
+  // TODO(jpp): std::array instead of array.
   llvm::SmallBitVector TypeToRegisterSet[IceType_NUM];
+  llvm::SmallBitVector RegisterAliases[RegARM32::Reg_NUM];
   llvm::SmallBitVector ScratchRegs;
   llvm::SmallBitVector RegsUsed;
   VarList PhysicalRegisters[IceType_NUM];

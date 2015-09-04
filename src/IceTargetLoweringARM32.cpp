@@ -187,6 +187,8 @@ TargetARM32::TargetARM32(Cfg *Func)
   Float32Registers[RegARM32::val] = isFP32;                                    \
   Float64Registers[RegARM32::val] = isFP64;                                    \
   VectorRegisters[RegARM32::val] = isVec128;                                   \
+  RegisterAliases[RegARM32::val].resize(RegARM32::Reg_NUM);                    \
+  RegisterAliases[RegARM32::val].set(RegARM32::val);                           \
   ScratchRegs[RegARM32::val] = scratch;
   REGARM32_TABLE;
 #undef X

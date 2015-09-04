@@ -96,6 +96,7 @@ private:
 
   Cfg *const Func;
   GlobalContext *const Ctx;
+  TargetLowering *const Target;
 
   OrderedRanges Unhandled;
   /// UnhandledPrecolored is a subset of Unhandled, specially collected for
@@ -108,6 +109,9 @@ private:
   /// currently assigned to. It can be greater than 1 as a result of
   /// AllowOverlap inference.
   llvm::SmallVector<int32_t, REGS_SIZE> RegUses;
+  // TODO(jpp): for some architectures a SmallBitVector might not be big enough.
+  // Evaluate what the performance impact on those architectures is.
+  llvm::SmallVector<const llvm::SmallBitVector *, REGS_SIZE> RegAliases;
   bool FindPreference = false;
   bool FindOverlap = false;
 

@@ -56,6 +56,8 @@ TargetMIPS32::TargetMIPS32(Cfg *Func) : TargetLowering(Func) {
   IntegerRegisters[RegMIPS32::val] = isInt;                                    \
   FloatRegisters[RegMIPS32::val] = isFP;                                       \
   VectorRegisters[RegMIPS32::val] = isFP;                                      \
+  RegisterAliases[RegMIPS32::val].resize(RegMIPS32::Reg_NUM);                  \
+  RegisterAliases[RegMIPS32::val].set(RegMIPS32::val);                         \
   ScratchRegs[RegMIPS32::val] = scratch;
   REGMIPS32_TABLE;
 #undef X

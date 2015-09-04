@@ -25,6 +25,8 @@
 #include "IceTargetLowering.h"
 #include "IceTargetLoweringX8664.def"
 
+#include <array>
+
 namespace Ice {
 
 class TargetX8664;
@@ -325,20 +327,44 @@ template <> struct MachineTraits<TargetX8664> {
     }
   }
 
-  static void initRegisterSet(llvm::SmallBitVector *IntegerRegisters,
-                              llvm::SmallBitVector *IntegerRegistersI8,
-                              llvm::SmallBitVector *FloatRegisters,
-                              llvm::SmallBitVector *VectorRegisters,
-                              llvm::SmallBitVector *ScratchRegs) {
+  static void initRegisterSet(
+      std::array<llvm::SmallBitVector, IceType_NUM> *TypeToRegisterSet,
+      std::array<llvm::SmallBitVector, RegisterSet::Reg_NUM> *RegisterAliases,
+      llvm::SmallBitVector *ScratchRegs) {
+    llvm::SmallBitVector IntegerRegisters(RegisterSet::Reg_NUM);
+    llvm::SmallBitVector IntegerRegistersI8(RegisterSet::Reg_NUM);
+    llvm::SmallBitVector FloatRegisters(RegisterSet::Reg_NUM);
+    llvm::SmallBitVector VectorRegisters(RegisterSet::Reg_NUM);
+    llvm::SmallBitVector InvalidRegisters(RegisterSet::Reg_NUM);
+    ScratchRegs->resize(RegisterSet::Reg_NUM);
+
 #define X(val, encode, name64, name32, name16, name8, scratch, preserved,      \
           stackptr, frameptr, isInt, isFP)                                     \
-  (*IntegerRegisters)[RegisterSet::val] = isInt;                               \
-  (*IntegerRegistersI8)[RegisterSet::val] = isInt;                             \
-  (*FloatRegisters)[RegisterSet::val] = isFP;                                  \
-  (*VectorRegisters)[RegisterSet::val] = isFP;                                 \
+  (IntegerRegisters)[RegisterSet::val] = isInt;                                \
+  (IntegerRegistersI8)[RegisterSet::val] = isInt;                              \
+  (FloatRegisters)[RegisterSet::val] = isFP;                                   \
+  (VectorRegisters)[RegisterSet::val] = isFP;                                  \
+  (*RegisterAliases)[RegisterSet::val].resize(RegisterSet::Reg_NUM);           \
+  (*RegisterAliases)[RegisterSet::val].set(RegisterSet::val);                  \
   (*ScratchRegs)[RegisterSet::val] = scratch;
     REGX8664_TABLE;
 #undef X
+
+    (*TypeToRegisterSet)[IceType_void] = InvalidRegisters;
+    (*TypeToRegisterSet)[IceType_i1] = IntegerRegistersI8;
+    (*TypeToRegisterSet)[IceType_i8] = IntegerRegistersI8;
+    (*TypeToRegisterSet)[IceType_i16] = IntegerRegisters;
+    (*TypeToRegisterSet)[IceType_i32] = IntegerRegisters;
+    (*TypeToRegisterSet)[IceType_i64] = IntegerRegisters;
+    (*TypeToRegisterSet)[IceType_f32] = FloatRegisters;
+    (*TypeToRegisterSet)[IceType_f64] = FloatRegisters;
+    (*TypeToRegisterSet)[IceType_v4i1] = VectorRegisters;
+    (*TypeToRegisterSet)[IceType_v8i1] = VectorRegisters;
+    (*TypeToRegisterSet)[IceType_v16i1] = VectorRegisters;
+    (*TypeToRegisterSet)[IceType_v16i8] = VectorRegisters;
+    (*TypeToRegisterSet)[IceType_v8i16] = VectorRegisters;
+    (*TypeToRegisterSet)[IceType_v4i32] = VectorRegisters;
+    (*TypeToRegisterSet)[IceType_v4f32] = VectorRegisters;
   }
 
   static llvm::SmallBitVector
