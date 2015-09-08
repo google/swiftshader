@@ -954,7 +954,7 @@ private:
 
     return IsGPR && (Reg & 0x04) != 0 && (Reg & 0x08) == 0 &&
            isByteSizedType(Ty);
-  };
+  }
 
   // assembleAndEmitRex is used for determining which (if any) rex prefix should
   // be emitted for the current instruction. It allows different types for Reg
@@ -970,10 +970,13 @@ private:
                           ? T::Operand::RexW
                           : T::Operand::RexNone;
     const uint8_t R = (Reg & 0x08) ? T::Operand::RexR : T::Operand::RexNone;
-    const uint8_t X = (Addr != nullptr) ? Addr->rexX() : T::Operand::RexNone;
+    const uint8_t X = (Addr != nullptr)
+                          ? (typename T::Operand::RexBits)Addr->rexX()
+                          : T::Operand::RexNone;
     const uint8_t B =
-        (Addr != nullptr) ? Addr->rexB() : (Rm & 0x08) ? T::Operand::RexB
-                                                       : T::Operand::RexNone;
+        (Addr != nullptr)
+            ? (typename T::Operand::RexBits)Addr->rexB()
+            : (Rm & 0x08) ? T::Operand::RexB : T::Operand::RexNone;
     const uint8_t Prefix = W | R | X | B;
     if (Prefix != T::Operand::RexNone) {
       emitUint8(Prefix);

@@ -474,7 +474,7 @@ void TargetMIPS32::lowerInsertElement(const InstInsertElement *Inst) {
 }
 
 void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
-  switch (Intrinsics::IntrinsicID ID = Instr->getIntrinsicInfo().ID) {
+  switch (Instr->getIntrinsicInfo().ID) {
   case Intrinsics::AtomicCmpxchg: {
     UnimplementedError(Func->getContext()->getFlags());
     return;

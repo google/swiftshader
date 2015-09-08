@@ -241,6 +241,7 @@ CfgNode *CfgNode::splitIncomingEdge(CfgNode *Pred, SizeT EdgeIndex) {
     }
   }
   assert(Found);
+  (void)Found;
   // Repoint this node's in-edge.
   Found = false;
   for (CfgNode *&I : InEdges) {
@@ -252,12 +253,14 @@ CfgNode *CfgNode::splitIncomingEdge(CfgNode *Pred, SizeT EdgeIndex) {
     }
   }
   assert(Found);
+  (void)Found;
   // Repoint all suitable branch instructions' target and return.
   Found = false;
   for (Inst &I : Pred->getInsts())
     if (!I.isDeleted() && I.repointEdges(this, NewNode))
       Found = true;
   assert(Found);
+  (void)Found;
   return NewNode;
 }
 
