@@ -182,13 +182,19 @@ TargetARM32::TargetARM32(Cfg *Func)
   llvm::SmallBitVector InvalidRegisters(RegARM32::Reg_NUM);
   ScratchRegs.resize(RegARM32::Reg_NUM);
 #define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
-          isFP32, isFP64, isVec128)                                            \
+          isFP32, isFP64, isVec128, alias_init)                                \
   IntegerRegisters[RegARM32::val] = isInt;                                     \
   Float32Registers[RegARM32::val] = isFP32;                                    \
   Float64Registers[RegARM32::val] = isFP64;                                    \
   VectorRegisters[RegARM32::val] = isVec128;                                   \
   RegisterAliases[RegARM32::val].resize(RegARM32::Reg_NUM);                    \
-  RegisterAliases[RegARM32::val].set(RegARM32::val);                           \
+  for (SizeT RegAlias : alias_init) {                                          \
+    assert(!RegisterAliases[RegARM32::val][RegAlias] &&                        \
+           "Duplicate alias for " #val);                                       \
+    RegisterAliases[RegARM32::val].set(RegAlias);                              \
+  }                                                                            \
+  RegisterAliases[RegARM32::val].resize(RegARM32::Reg_NUM);                    \
+  assert(RegisterAliases[RegARM32::val][RegARM32::val]);                       \
   ScratchRegs[RegARM32::val] = scratch;
   REGARM32_TABLE;
 #undef X
@@ -368,7 +374,7 @@ IceString TargetARM32::getRegName(SizeT RegNum, Type Ty) const {
   (void)Ty;
   static const char *RegNames[] = {
 #define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
-          isFP32, isFP64, isVec128)                                            \
+          isFP32, isFP64, isVec128, alias_init)                                \
   name,
       REGARM32_TABLE
 #undef X
@@ -467,21 +473,30 @@ bool TargetARM32::CallingConv::FPInReg(Type Ty, int32_t *Reg) {
     return false;
   if (isVectorType(Ty)) {
     NumFPRegUnits = Utils::applyAlignment(NumFPRegUnits, 4);
-    *Reg = RegARM32::Reg_q0 + (NumFPRegUnits / 4);
+    // Q registers are declared in reverse order, so
+    // RegARM32::Reg_q0 > RegARM32::Reg_q1. Therefore, we need to subtract
+    // NumFPRegUnits from Reg_q0. Same thing goes for D registers.
+    static_assert(RegARM32::Reg_q0 > RegARM32::Reg_q1,
+                  "ARM32 Q registers are possibly declared incorrectly.");
+    *Reg = RegARM32::Reg_q0 - (NumFPRegUnits / 4);
     NumFPRegUnits += 4;
     // If this bumps us past the boundary, don't allocate to a register
     // and leave any previously speculatively consumed registers as consumed.
     if (NumFPRegUnits > ARM32_MAX_FP_REG_UNITS)
       return false;
   } else if (Ty == IceType_f64) {
+    static_assert(RegARM32::Reg_d0 > RegARM32::Reg_d1,
+                  "ARM32 D registers are possibly declared incorrectly.");
     NumFPRegUnits = Utils::applyAlignment(NumFPRegUnits, 2);
-    *Reg = RegARM32::Reg_d0 + (NumFPRegUnits / 2);
+    *Reg = RegARM32::Reg_d0 - (NumFPRegUnits / 2);
     NumFPRegUnits += 2;
     // If this bumps us past the boundary, don't allocate to a register
     // and leave any previously speculatively consumed registers as consumed.
     if (NumFPRegUnits > ARM32_MAX_FP_REG_UNITS)
       return false;
   } else {
+    static_assert(RegARM32::Reg_s0 < RegARM32::Reg_s1,
+                  "ARM32 S registers are possibly declared incorrectly.");
     assert(Ty == IceType_f32);
     *Reg = RegARM32::Reg_s0 + NumFPRegUnits;
     ++NumFPRegUnits;
@@ -1152,7 +1167,7 @@ llvm::SmallBitVector TargetARM32::getRegisterSet(RegSetMask Include,
   llvm::SmallBitVector Registers(RegARM32::Reg_NUM);
 
 #define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
-          isFP32, isFP64, isVec128)                                            \
+          isFP32, isFP64, isVec128, alias_init)                                \
   if (scratch && (Include & RegSet_CallerSave))                                \
     Registers[RegARM32::val] = true;                                           \
   if (preserved && (Include & RegSet_CalleeSave))                              \
