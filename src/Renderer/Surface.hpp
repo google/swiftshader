@@ -401,7 +401,6 @@ namespace sw
 		#endif
 		static void decodeATI1(Buffer &internal, const Buffer &external);
 		static void decodeATI2(Buffer &internal, const Buffer &external);
-		static void decodeETC1(Buffer &internal, const Buffer &external);
 		static void decodeEAC(Buffer &internal, const Buffer &external, int nbChannels, bool isSigned);
 		static void decodeETC2(Buffer &internal, const Buffer &external, int nbAlphaBits, bool isSRGB);
 		static void decodeASTC(Buffer &internal, const Buffer &external, int xSize, int ySize, int zSize, bool isSRGB);

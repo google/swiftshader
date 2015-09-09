@@ -198,6 +198,8 @@
 		<Unit filename="../../Renderer/Color.hpp" />
 		<Unit filename="../../Renderer/Context.cpp" />
 		<Unit filename="../../Renderer/Context.hpp" />
+		<Unit filename="../../Renderer/ETC_Decoder.cpp" />
+		<Unit filename="../../Renderer/ETC_Decoder.hpp" />
 		<Unit filename="../../Renderer/LRUCache.hpp" />
 		<Unit filename="../../Renderer/Matrix.cpp" />
 		<Unit filename="../../Renderer/Matrix.hpp" />

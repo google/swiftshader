@@ -45,6 +45,7 @@ COMMON_SRC_FILES += \
 	Renderer/Clipper.cpp \
 	Renderer/Color.cpp \
 	Renderer/Context.cpp \
+	Renderer/ETC_Decoder.cpp \
 	Renderer/Matrix.cpp \
 	Renderer/PixelProcessor.cpp \
 	Renderer/Plane.cpp \

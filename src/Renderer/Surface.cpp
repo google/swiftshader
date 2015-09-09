@@ -13,6 +13,7 @@
 
 #include "Color.hpp"
 #include "Context.hpp"
+#include "ETC_Decoder.hpp"
 #include "Renderer.hpp"
 #include "Common/Half.hpp"
 #include "Common/Memory.hpp"
@@ -1428,11 +1429,11 @@ namespace sw
 			#endif
 			case FORMAT_ATI1:		decodeATI1(destination, source);		break;   // FIXME: Check destination format
 			case FORMAT_ATI2:		decodeATI2(destination, source);		break;   // FIXME: Check destination format
-			case FORMAT_ETC1:		decodeETC1(destination, source);		break;   // FIXME: Check destination format
 			case FORMAT_R11_EAC:         decodeEAC(destination, source, 1, false); break; // FIXME: Check destination format
 			case FORMAT_SIGNED_R11_EAC:  decodeEAC(destination, source, 1, true);  break; // FIXME: Check destination format
 			case FORMAT_RG11_EAC:        decodeEAC(destination, source, 2, false); break; // FIXME: Check destination format
 			case FORMAT_SIGNED_RG11_EAC: decodeEAC(destination, source, 2, true);  break; // FIXME: Check destination format
+			case FORMAT_ETC1:
 			case FORMAT_RGB8_ETC2:                      decodeETC2(destination, source, 0, false); break; // FIXME: Check destination format
 			case FORMAT_SRGB8_ETC2:                     decodeETC2(destination, source, 0, true);  break; // FIXME: Check destination format
 			case FORMAT_RGB8_PUNCHTHROUGH_ALPHA1_ETC2:  decodeETC2(destination, source, 1, false); break; // FIXME: Check destination format
@@ -2061,205 +2062,71 @@ namespace sw
 		}
 	}
 
-	struct bgrx8
+	void Surface::decodeETC2(Buffer &internal, const Buffer &external, int nbAlphaBits, bool isSRGB)
 	{
-		byte b;
-		byte g;
-		byte r;
-		byte x;
+		ETC_Decoder::Decode((const byte*)external.buffer, (byte*)internal.buffer, external.width, external.height, internal.width, internal.height, internal.pitchB, internal.bytes,
+		                    (nbAlphaBits == 8) ? ETC_Decoder::ETC_RGBA : ((nbAlphaBits == 1) ? ETC_Decoder::ETC_RGB_PUNCHTHROUGH_ALPHA : ETC_Decoder::ETC_RGB));
 
-		inline bgrx8()
+		if(isSRGB)
 		{
-		}
-
-		inline void set(int red, int green, int blue)
-		{
-			r = static_cast<byte>(clamp(red, 0, 255));
-			g = static_cast<byte>(clamp(green, 0, 255));
-			b = static_cast<byte>(clamp(blue, 0, 255));
-			x = 255;
-		}
-	};
-
-	struct ETC1
-	{
-		struct
-		{
-			union
+			static byte sRGBtoLinearTable[256];
+			static bool sRGBtoLinearTableDirty = true;
+			if(sRGBtoLinearTableDirty)
 			{
-				struct   // Individual colors
+				for(int i = 0; i < 256; i++)
 				{
-					byte R2 : 4;
-					byte R1 : 4;
-					byte G2 : 4;
-					byte G1 : 4;
-					byte B2 : 4;
-					byte B1 : 4;
-				};
-
-				struct   // Differential colors
-				{
-					sbyte dR : 3;
-					byte R : 5;
-					sbyte dG : 3;
-					byte G : 5;
-					sbyte dB : 3;
-					byte B : 5;
-				};
-			};
-
-			bool flipbit : 1;
-			bool diffbit : 1;
-			byte cw2 : 3;
-			byte cw1 : 3;
-
-			byte pixelIndexMSB[2];
-			byte pixelIndexLSB[2];
-		};
-
-		inline int getIndex(int x, int y) const
-		{
-			int bitIndex = x * 4 + y;
-			int bitOffset = bitIndex & 7;
-			int lsb = (pixelIndexLSB[1 - (bitIndex >> 3)] >> bitOffset) & 1;
-			int msb = (pixelIndexMSB[1 - (bitIndex >> 3)] >> bitOffset) & 1;
-
-			return (msb << 1) | lsb;
-		}
-	};
-
-	inline int extend_4to8bits(int x)
-	{
-		return (x << 4) | x;
-	}
-
-	inline int extend_5to8bits(int x)
-	{
-		return (x << 3) | (x >> 2);
-	}
-
-	void Surface::decodeETC1(Buffer &internal, const Buffer &external)
-	{
-		unsigned int *destSlice = (unsigned int*)internal.buffer;
-		const ETC1 *source = (const ETC1*)external.buffer;
-
-		for(int z = 0; z < external.depth; z++)
-		{
-			unsigned int *dest = destSlice;
-
-			for(int y = 0; y < external.height; y += 4)
-			{
-				for(int x = 0; x < external.width; x += 4)
-				{
-					bgrx8 *color = reinterpret_cast<bgrx8*>(&dest[x + y * internal.pitchP]);
-
-					int r1, g1, b1;
-					int r2, g2, b2;
-
-					if(source->diffbit)
-					{
-						b1 = extend_5to8bits(source->B);
-						g1 = extend_5to8bits(source->G);
-						r1 = extend_5to8bits(source->R);
-
-						r2 = extend_5to8bits(source->R + source->dR);
-						g2 = extend_5to8bits(source->G + source->dG);
-						b2 = extend_5to8bits(source->B + source->dB);
-					}
-					else
-					{
-						r1 = extend_4to8bits(source->R1);
-						g1 = extend_4to8bits(source->G1);
-						b1 = extend_4to8bits(source->B1);
-
-						r2 = extend_4to8bits(source->R2);
-						g2 = extend_4to8bits(source->G2);
-						b2 = extend_4to8bits(source->B2);
-					}
-
-					bgrx8 subblockColors0[4];
-					bgrx8 subblockColors1[4];
-
-					// Table 3.17.2 sorted according to table 3.17.3
-					static const int intensityModifier[8][4] =
-					{
-						{2, 8, -2, -8},
-						{5, 17, -5, -17},
-						{9, 29, -9, -29},
-						{13, 42, -13, -42},
-						{18, 60, -18, -60},
-						{24, 80, -24, -80},
-						{33, 106, -33, -106},
-						{47, 183, -47, -183}
-					};
-
-					const int i10 = intensityModifier[source->cw1][0];
-					const int i11 = intensityModifier[source->cw1][1];
-					const int i12 = intensityModifier[source->cw1][2];
-					const int i13 = intensityModifier[source->cw1][3];
-
-					subblockColors0[0].set(r1 + i10, g1 + i10, b1 + i10);
-					subblockColors0[1].set(r1 + i11, g1 + i11, b1 + i11);
-					subblockColors0[2].set(r1 + i12, g1 + i12, b1 + i12);
-					subblockColors0[3].set(r1 + i13, g1 + i13, b1 + i13);
-
-					const int i20 = intensityModifier[source->cw2][0];
-					const int i21 = intensityModifier[source->cw2][1];
-					const int i22 = intensityModifier[source->cw2][2];
-					const int i23 = intensityModifier[source->cw2][3];
-
-					subblockColors1[0].set(r2 + i20, g2 + i20, b2 + i20);
-					subblockColors1[1].set(r2 + i21, g2 + i21, b2 + i21);
-					subblockColors1[2].set(r2 + i22, g2 + i22, b2 + i22);
-					subblockColors1[3].set(r2 + i23, g2 + i23, b2 + i23);
-
-					if(source->flipbit)
-					{
-						for(int j = 0; j < 2 && (y + j) < internal.height; j++)
-						{
-							if((x + 0) < internal.width) color[0] = subblockColors0[source->getIndex(0, j)];
-							if((x + 1) < internal.width) color[1] = subblockColors0[source->getIndex(1, j)];
-							if((x + 2) < internal.width) color[2] = subblockColors0[source->getIndex(2, j)];
-							if((x + 3) < internal.width) color[3] = subblockColors0[source->getIndex(3, j)];
-							color += internal.pitchP;
-						}
-
-						for(int j = 2; j < 4 && (y + j) < internal.height; j++)
-						{
-							if((x + 0) < internal.width) color[0] = subblockColors1[source->getIndex(0, j)];
-							if((x + 1) < internal.width) color[1] = subblockColors1[source->getIndex(1, j)];
-							if((x + 2) < internal.width) color[2] = subblockColors1[source->getIndex(2, j)];
-							if((x + 3) < internal.width) color[3] = subblockColors1[source->getIndex(3, j)];
-							color += internal.pitchP;
-						}
-					}
-					else
-					{
-						for(int j = 0; j < 4 && (y + j) < internal.height; j++)
-						{
-							if((x + 0) < internal.width) color[0] = subblockColors0[source->getIndex(0, j)];
-							if((x + 1) < internal.width) color[1] = subblockColors0[source->getIndex(1, j)];
-							if((x + 2) < internal.width) color[2] = subblockColors1[source->getIndex(2, j)];
-							if((x + 3) < internal.width) color[3] = subblockColors1[source->getIndex(3, j)];
-							color += internal.pitchP;
-						}
-					}
-
-					source++;
+					sRGBtoLinearTable[i] = static_cast<byte>(sRGBtoLinear(static_cast<float>(i) / 255.0f) * 255.0f + 0.5f);
 				}
+				sRGBtoLinearTableDirty = false;
 			}
 
-			(byte*&)destSlice += internal.sliceB;
+			// Perform sRGB conversion in place after decoding
+			byte* src = (byte*)internal.buffer;
+			for(int y = 0; y < internal.height; y++)
+			{
+				byte* srcRow = src + y * internal.pitchB;
+				for(int x = 0; x <  internal.width; x++)
+				{
+					byte* srcPix = srcRow + x * internal.bytes;
+					for(int i = 0; i < 3; i++)
+					{
+						srcPix[i] = sRGBtoLinearTable[srcPix[i]];
+					}
+				}
+			}
 		}
 	}
 
 	void Surface::decodeEAC(Buffer &internal, const Buffer &external, int nbChannels, bool isSigned)
 	{
-		ASSERT((nbChannels == 1) || (nbChannels == 2));
-	}
+		ASSERT(nbChannels == 1 || nbChannels == 2);
 
-	void Surface::decodeETC2(Buffer &internal, const Buffer &external, int nbAlphaBits, bool isSRGB)
-	{
+		ETC_Decoder::Decode((const byte*)external.buffer, (byte*)internal.buffer, external.width, external.height, internal.width, internal.height, internal.pitchB, internal.bytes,
+		                    (nbChannels == 1) ? (isSigned ? ETC_Decoder::ETC_R_SIGNED : ETC_Decoder::ETC_R_UNSIGNED) : (isSigned ? ETC_Decoder::ETC_RG_SIGNED : ETC_Decoder::ETC_RG_UNSIGNED));
+
+		// FIXME: We convert signed data to float, until signed integer internal formats are supported
+		//        This code can be removed if signed ETC2 images are decoded to internal 8 bit signed R/RG formats
+		if(isSigned)
+		{
+			sbyte* src = (sbyte*)internal.buffer;
+
+			for(int y = 0; y < internal.height; y++)
+			{
+				sbyte* srcRow = src + y * internal.pitchB;
+				for(int x = internal.width - 1; x >= 0; x--)
+				{
+					int dx = x & 0xFFFFFFFC;
+					int mx = x - dx;
+					sbyte* srcPix = srcRow + dx * internal.bytes + mx * nbChannels;
+					float* dstPix = (float*)(srcRow + x * internal.bytes);
+					for(int c = nbChannels - 1; c >= 0; c--)
+					{
+						static const float normalization = 1.0f / 127.875f;
+						dstPix[c] = clamp(static_cast<float>(srcPix[c]) * normalization, -1.0f, 1.0f);
+					}
+				}
+			}
+		}
 	}
 
 	void Surface::decodeASTC(Buffer &internal, const Buffer &external, int xBlockSize, int yBlockSize, int zBlockSize, bool isSRGB)
@@ -3618,12 +3485,14 @@ namespace sw
 			return FORMAT_A32B32G32R32F; // FIXME: 16FP is probably sufficient, but it's currently unsupported
 		case FORMAT_ATI1:
 		case FORMAT_R11_EAC:
-		case FORMAT_SIGNED_R11_EAC:
 			return FORMAT_R8;
+		case FORMAT_SIGNED_R11_EAC:
+			return FORMAT_R32F; // FIXME: Signed 8bit format would be sufficient
 		case FORMAT_ATI2:
 		case FORMAT_RG11_EAC:
-		case FORMAT_SIGNED_RG11_EAC:
 			return FORMAT_G8R8;
+		case FORMAT_SIGNED_RG11_EAC:
+			return FORMAT_G32R32F; // FIXME: Signed 8bit format would be sufficient
 		case FORMAT_ETC1:
 		case FORMAT_RGB8_ETC2:
 		case FORMAT_SRGB8_ETC2:

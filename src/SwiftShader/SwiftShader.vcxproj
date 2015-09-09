@@ -320,6 +320,7 @@
     <ClCompile Include="..\Main\crc.cpp" />
     <ClCompile Include="..\Main\FrameBufferWin.cpp" />
     <ClCompile Include="..\Main\Register.cpp" />
+    <ClCompile Include="..\Renderer\ETC_Decoder.cpp" />
     <ClCompile Include="..\Shader\Constants.cpp" />
     <ClCompile Include="..\Shader\PixelPipeline.cpp" />
     <ClCompile Include="..\Shader\PixelProgram.cpp" />
@@ -391,6 +392,7 @@
     <ClInclude Include="..\Common\Version.h" />
     <ClInclude Include="..\Main\FrameBufferWin.hpp" />
     <ClInclude Include="..\Main\Register.hpp" />
+    <ClInclude Include="..\Renderer\ETC_Decoder.hpp" />
     <ClInclude Include="..\Renderer\RoutineCache.hpp" />
     <ClInclude Include="..\Shader\PixelPipeline.hpp" />
     <ClInclude Include="..\Shader\PixelProgram.hpp" />
