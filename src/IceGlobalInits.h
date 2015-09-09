@@ -24,6 +24,7 @@
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-parameter"
+#pragma clang diagnostic ignored "-Wredundant-move"
 #include "llvm/Bitcode/NaCl/NaClBitcodeParser.h" // for NaClBitcodeRecord.
 #include "llvm/IR/CallingConv.h"
 #include "llvm/IR/GlobalValue.h" // for GlobalValue::LinkageTypes.

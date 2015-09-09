@@ -18,7 +18,11 @@
 
 #include "IceDefs.h"
 #include "IceTypes.h"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
+#pragma clang diagnostic ignored "-Wredundant-move"
 #include "llvm/IR/DerivedTypes.h"
+#pragma clang diagnostic pop
 
 namespace llvm {
 class LLVMContext;

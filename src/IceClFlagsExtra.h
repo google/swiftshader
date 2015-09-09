@@ -19,6 +19,7 @@
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-parameter"
+#pragma clang diagnostic ignored "-Wredundant-move"
 #include "llvm/IRReader/IRReader.h"
 #pragma clang diagnostic pop
 

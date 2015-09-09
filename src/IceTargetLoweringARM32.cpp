@@ -56,7 +56,6 @@ const struct TableIcmp32_ {
     ICMPARM32_TABLE
 #undef X
 };
-const size_t TableIcmp32Size = llvm::array_lengthof(TableIcmp32);
 
 // The following table summarizes the logic for lowering the icmp instruction
 // for the i64 type. Two conditional moves are needed for setting to 1 or 0.
@@ -73,11 +72,10 @@ const struct TableIcmp64_ {
     ICMPARM32_TABLE
 #undef X
 };
-const size_t TableIcmp64Size = llvm::array_lengthof(TableIcmp64);
 
 CondARM32::Cond getIcmp32Mapping(InstIcmp::ICond Cond) {
   size_t Index = static_cast<size_t>(Cond);
-  assert(Index < TableIcmp32Size);
+  assert(Index < llvm::array_lengthof(TableIcmp32));
   return TableIcmp32[Index].Mapping;
 }
 
@@ -2165,7 +2163,7 @@ void TargetARM32::lowerIcmp(const InstIcmp *Inst) {
   if (Src0->getType() == IceType_i64) {
     InstIcmp::ICond Conditon = Inst->getCondition();
     size_t Index = static_cast<size_t>(Conditon);
-    assert(Index < TableIcmp64Size);
+    assert(Index < llvm::array_lengthof(TableIcmp64));
     Variable *Src0Lo, *Src0Hi;
     Operand *Src1LoRF, *Src1HiRF;
     if (TableIcmp64[Index].Swapped) {
