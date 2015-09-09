@@ -24,18 +24,16 @@
 #include "IceTypes.h"
 
 // TODO: The Cfg structure, and instructions in particular, need to be
-// validated for things like valid operand types, valid branch
-// targets, proper ordering of Phi and non-Phi instructions, etc.
-// Most of the validity checking will be done in the bitcode reader.
-// We need a list of everything that should be validated, and tests
-// for each.
+// validated for things like valid operand types, valid branch targets, proper
+// ordering of Phi and non-Phi instructions, etc. Most of the validity
+// checking will be done in the bitcode reader. We need a list of everything
+// that should be validated, and tests for each.
 
 namespace Ice {
 
-/// Base instruction class for ICE.  Inst has two subclasses:
-/// InstHighLevel and InstTarget.  High-level ICE instructions inherit
-/// from InstHighLevel, and low-level (target-specific) ICE
-/// instructions inherit from InstTarget.
+/// Base instruction class for ICE. Inst has two subclasses: InstHighLevel and
+/// InstTarget. High-level ICE instructions inherit from InstHighLevel, and
+/// low-level (target-specific) ICE instructions inherit from InstTarget.
 class Inst : public llvm::ilist_node<Inst> {
   Inst() = delete;
   Inst(const Inst &) = delete;
@@ -68,13 +66,14 @@ public:
     FakeUse,      // not part of LLVM/PNaCl bitcode
     FakeKill,     // not part of LLVM/PNaCl bitcode
     JumpTable,    // not part of LLVM/PNaCl bitcode
-    Target        // target-specific low-level ICE
-                  // Anything >= Target is an InstTarget subclass.
-                  // Note that the value-spaces are shared across targets.
-                  // To avoid confusion over the definition of shared values,
-                  // an object specific to one target should never be passed
-                  // to a different target.
+    // Anything >= Target is an InstTarget subclass. Note that the value-spaces
+    // are shared across targets. To avoid confusion over the definition of
+    // shared values, an object specific to one target should never be passed
+    // to a different target.
+    Target,
+    Target_Max = std::numeric_limits<uint8_t>::max(),
   };
+  static_assert(Target <= Target_Max, "Must not be above max.");
   InstKind getKind() const { return Kind; }
 
   InstNumberT getNumber() const { return Number; }
@@ -107,13 +106,13 @@ public:
   bool isLastUse(const Operand *Src) const;
   void spliceLivenessInfo(Inst *OrigInst, Inst *SpliceAssn);
 
-  /// Returns a list of out-edges corresponding to a terminator
-  /// instruction, which is the last instruction of the block.
-  /// The list must not contain duplicates.
+  /// Returns a list of out-edges corresponding to a terminator instruction,
+  /// which is the last instruction of the block. The list must not contain
+  /// duplicates.
   virtual NodeList getTerminatorEdges() const {
-    // All valid terminator instructions override this method.  For
-    // the default implementation, we assert in case some CfgNode
-    // is constructed without a terminator instruction at the end.
+    // All valid terminator instructions override this method. For the default
+    // implementation, we assert in case some CfgNode is constructed without a
+    // terminator instruction at the end.
     llvm_unreachable(
         "getTerminatorEdges() called on a non-terminator instruction");
     return NodeList();
@@ -131,19 +130,18 @@ public:
   virtual bool isSimpleAssign() const { return false; }
 
   void livenessLightweight(Cfg *Func, LivenessBV &Live);
-  /// Calculates liveness for this instruction.  Returns true if this
-  /// instruction is (tentatively) still live and should be retained,
-  /// and false if this instruction is (tentatively) dead and should be
-  /// deleted.  The decision is tentative until the liveness dataflow
-  /// algorithm has converged, and then a separate pass permanently
-  /// deletes dead instructions.
+  // Calculates liveness for this instruction.  Returns true if this
+  /// instruction is (tentatively) still live and should be retained, and false
+  /// if this instruction is (tentatively) dead and should be deleted. The
+  /// decision is tentative until the liveness dataflow algorithm has converged,
+  /// and then a separate pass permanently deletes dead instructions.
   bool liveness(InstNumberT InstNumber, LivenessBV &Live, Liveness *Liveness,
                 LiveBeginEndMap *LiveBegin, LiveBeginEndMap *LiveEnd);
 
-  /// Get the number of native instructions that this instruction
-  /// ultimately emits.  By default, high-level instructions don't
-  /// result in any native instructions, and a target-specific
-  /// instruction results in a single native instruction.
+  /// Get the number of native instructions that this instruction ultimately
+  /// emits. By default, high-level instructions don't result in any native
+  /// instructions, and a target-specific instruction results in a single native
+  /// instruction.
   virtual uint32_t getEmitInstCount() const { return 0; }
   // TODO(stichnot): Change Inst back to abstract once the g++ build
   // issue is fixed.  llvm::ilist<Ice::Inst> doesn't work under g++
@@ -960,6 +958,7 @@ protected:
   InstTarget(Cfg *Func, InstKind Kind, SizeT MaxSrcs, Variable *Dest)
       : Inst(Func, Kind, MaxSrcs, Dest) {
     assert(Kind >= Target);
+    assert(Kind <= Target_Max);
   }
 };
 

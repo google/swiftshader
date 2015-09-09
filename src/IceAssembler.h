@@ -97,24 +97,31 @@ public:
   AssemblerBuffer(Assembler &);
   ~AssemblerBuffer();
 
-  /// Basic support for emitting, loading, and storing.
+  /// \name Basic support for emitting, loading, and storing.
+  /// @{
+  // These use memcpy instead of assignment to avoid undefined behaviour of
+  // assigning to unaligned addresses. Since the size of the copy is known the
+  // compiler can inline the memcpy with simple moves.
   template <typename T> void emit(T Value) {
     assert(hasEnsuredCapacity());
-    *reinterpret_cast<T *>(Cursor) = Value;
+    memcpy(reinterpret_cast<void *>(Cursor), &Value, sizeof(T));
     Cursor += sizeof(T);
   }
 
   template <typename T> T load(intptr_t Position) const {
     assert(Position >= 0 &&
            Position <= (size() - static_cast<intptr_t>(sizeof(T))));
-    return *reinterpret_cast<T *>(Contents + Position);
+    T Value;
+    memcpy(&Value, reinterpret_cast<void *>(Contents + Position), sizeof(T));
+    return Value;
   }
 
   template <typename T> void store(intptr_t Position, T Value) {
     assert(Position >= 0 &&
            Position <= (size() - static_cast<intptr_t>(sizeof(T))));
-    *reinterpret_cast<T *>(Contents + Position) = Value;
+    memcpy(reinterpret_cast<void *>(Contents + Position), &Value, sizeof(T));
   }
+  /// @{
 
   /// Emit a fixup at the current location.
   void emitFixup(AssemblerFixup *Fixup) { Fixup->set_position(size()); }

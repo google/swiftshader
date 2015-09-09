@@ -8,11 +8,10 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares the Operand class and its target-independent
-/// subclasses.  The main classes are Variable, which represents an
-/// LLVM variable that is either register- or stack-allocated, and the
-/// Constant hierarchy, which represents integer, floating-point,
-/// and/or symbolic constants.
+/// This file declares the Operand class and its target-independent subclasses.
+/// The main classes are Variable, which represents an LLVM variable that is
+/// either register- or stack-allocated, and the Constant hierarchy, which
+/// represents integer, floating-point, and/or symbolic constants.
 ///
 //===----------------------------------------------------------------------===//
 
@@ -32,7 +31,7 @@ class Operand {
   Operand &operator=(const Operand &) = delete;
 
 public:
-  static const size_t MaxTargetKinds = 10;
+  static constexpr size_t MaxTargetKinds = 10;
   enum OperandKind {
     kConst_Base,
     kConstInteger32,
@@ -42,24 +41,25 @@ public:
     kConstRelocatable,
     kConstUndef,
     kConst_Target, // leave space for target-specific constant kinds
-    kConst_Num = kConst_Target + MaxTargetKinds,
+    kConst_Max = kConst_Target + MaxTargetKinds,
     kVariable,
     kVariable_Target, // leave space for target-specific variable kinds
-    kVariable_Num = kVariable_Target + MaxTargetKinds,
+    kVariable_Max = kVariable_Target + MaxTargetKinds,
     // Target-specific operand classes use kTarget as the starting
     // point for their Kind enum space. Note that the value-spaces are shared
     // across targets. To avoid confusion over the definition of shared
     // values, an object specific to one target should never be passed
     // to a different target.
-    kTarget
+    kTarget,
+    kTarget_Max = std::numeric_limits<uint8_t>::max(),
   };
+  static_assert(kTarget <= kTarget_Max, "Must not be above max.");
   OperandKind getKind() const { return Kind; }
   Type getType() const { return Ty; }
 
-  /// Every Operand keeps an array of the Variables referenced in
-  /// the operand.  This is so that the liveness operations can get
-  /// quick access to the variables of interest, without having to dig
-  /// so far into the operand.
+  /// Every Operand keeps an array of the Variables referenced in the operand.
+  /// This is so that the liveness operations can get quick access to the
+  /// variables of interest, without having to dig so far into the operand.
   SizeT getNumVars() const { return NumVars; }
   Variable *getVar(SizeT I) const {
     assert(I < getNumVars());
@@ -86,7 +86,10 @@ public:
   /// @}
 
 protected:
-  Operand(OperandKind Kind, Type Ty) : Ty(Ty), Kind(Kind) {}
+  Operand(OperandKind Kind, Type Ty) : Ty(Ty), Kind(Kind) {
+    // It is undefined behavior to have a larger value in the enum
+    assert(Kind <= kTarget_Max);
+  }
   virtual ~Operand() = default;
 
   const Type Ty;
@@ -118,7 +121,7 @@ public:
 
   static bool classof(const Operand *Operand) {
     OperandKind Kind = Operand->getKind();
-    return Kind >= kConst_Base && Kind <= kConst_Num;
+    return Kind >= kConst_Base && Kind <= kConst_Max;
   }
 
   /// Judge if this given immediate should be randomized or pooled
@@ -508,7 +511,7 @@ public:
 
   static bool classof(const Operand *Operand) {
     OperandKind Kind = Operand->getKind();
-    return Kind >= kVariable && Kind <= kVariable_Num;
+    return Kind >= kVariable && Kind <= kVariable_Max;
   }
 
 protected:

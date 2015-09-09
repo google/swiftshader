@@ -14,7 +14,7 @@
 
 #include "IceRNG.h"
 
-#include <time.h>
+#include <ctime>
 
 namespace Ice {
 

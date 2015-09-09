@@ -745,7 +745,7 @@ LLVM2ICEGlobalsConverter::convertGlobalsToIce(Module *Mod) {
       addGlobalInitializer(*VarDecl, Initializer);
     }
   }
-  return std::move(VariableDeclarations);
+  return VariableDeclarations;
 }
 
 void LLVM2ICEGlobalsConverter::addGlobalInitializer(
