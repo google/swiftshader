@@ -5910,7 +5910,7 @@ void TexParameterf(GLenum target, GLenum pname, GLfloat param)
 			}
 			break;
 		case GL_TEXTURE_BASE_LEVEL:
-			if(clientVersion < 3 || !texture->setBaseLevel((GLint)param))
+			if(clientVersion < 3 || !texture->setBaseLevel((GLint)(roundf(param))))
 			{
 				return error(GL_INVALID_VALUE);
 			}
@@ -5934,7 +5934,7 @@ void TexParameterf(GLenum target, GLenum pname, GLfloat param)
 			}
 			break;
 		case GL_TEXTURE_MAX_LEVEL:
-			if(clientVersion < 3 || !texture->setMaxLevel((GLint)param))
+			if(clientVersion < 3 || !texture->setMaxLevel((GLint)(roundf(param))))
 			{
 				return error(GL_INVALID_VALUE);
 			}
