@@ -681,7 +681,7 @@ namespace es2
 	
 		count = std::min(size - (int)uniformIndex[location].element, count);
 
-		if(targetUniform->type == GL_INT || IsSamplerUniform(targetUniform->type))
+		if(targetUniform->type == GL_INT || targetUniform->type == GL_UNSIGNED_INT || IsSamplerUniform(targetUniform->type))
 		{
 			memcpy(targetUniform->data + uniformIndex[location].element * sizeof(GLint),
 				   v, sizeof(GLint) * count);
@@ -800,7 +800,7 @@ namespace es2
 	
 		count = std::min(size - (int)uniformIndex[location].element, count);
 
-		if(targetUniform->type == GL_INT || IsSamplerUniform(targetUniform->type))
+		if(targetUniform->type == GL_INT || targetUniform->type == GL_UNSIGNED_INT || IsSamplerUniform(targetUniform->type))
 		{
 			memcpy(targetUniform->data + uniformIndex[location].element * sizeof(GLuint),
 				   v, sizeof(GLuint)* count);
