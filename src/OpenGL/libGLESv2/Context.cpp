@@ -2479,7 +2479,8 @@ bool Context::getQueryParameterInfo(GLenum pname, GLenum *type, unsigned int *nu
     case GL_NUM_SHADER_BINARY_FORMATS:
     case GL_NUM_COMPRESSED_TEXTURE_FORMATS:
     case GL_ARRAY_BUFFER_BINDING:
-    case GL_FRAMEBUFFER_BINDING:
+    case GL_FRAMEBUFFER_BINDING: // Same as GL_DRAW_FRAMEBUFFER_BINDING_ANGLE
+    case GL_READ_FRAMEBUFFER_BINDING_ANGLE:
     case GL_RENDERBUFFER_BINDING:
     case GL_CURRENT_PROGRAM:
     case GL_PACK_ALIGNMENT:
@@ -2634,6 +2635,8 @@ bool Context::getQueryParameterInfo(GLenum pname, GLenum *type, unsigned int *nu
     case GL_DITHER:
     case GL_PRIMITIVE_RESTART_FIXED_INDEX:
     case GL_RASTERIZER_DISCARD:
+    case GL_TRANSFORM_FEEDBACK_ACTIVE:
+    case GL_TRANSFORM_FEEDBACK_PAUSED:
         {
             *type = GL_BOOL;
             *numParams = 1;
@@ -3870,6 +3873,11 @@ void Context::detachBuffer(GLuint buffer)
     {
         mState.arrayBuffer = NULL;
     }
+
+	for(auto tfIt = mTransformFeedbackMap.begin(); tfIt != mTransformFeedbackMap.end(); tfIt++)
+	{
+		tfIt->second->detachBuffer(buffer);
+	}
 
 	for(auto vaoIt = mVertexArrayMap.begin(); vaoIt != mVertexArrayMap.end(); vaoIt++)
 	{

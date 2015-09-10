@@ -28,6 +28,7 @@ class TransformFeedback : public gl::NamedObject
 public:
 	// FIXME: Change this when implementing transform feedback
 	TransformFeedback(GLuint name);
+	~TransformFeedback();
 
 	Buffer* getGenericBuffer() const;
 	Buffer* getBuffer(GLuint index) const;
@@ -38,6 +39,7 @@ public:
 	void setGenericBuffer(Buffer* buffer);
 	void setBuffer(GLuint index, Buffer* buffer);
 	void setBuffer(GLuint index, Buffer* buffer, GLintptr offset, GLsizeiptr size);
+	void detachBuffer(GLuint buffer);
 	void begin(GLenum primitiveMode);
 	void end();
 	void setPaused(bool paused);

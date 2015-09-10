@@ -23,6 +23,15 @@ TransformFeedback::TransformFeedback(GLuint name) : NamedObject(name), mActive(f
 	mGenericBuffer = NULL;
 }
 
+TransformFeedback::~TransformFeedback()
+{
+	mGenericBuffer = NULL;
+	for(int i = 0; i < MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS; ++i)
+	{
+		mBuffer[i] = NULL;
+	}
+}
+
 Buffer* TransformFeedback::getGenericBuffer() const
 {
 	return mGenericBuffer;
@@ -56,6 +65,7 @@ void TransformFeedback::begin(GLenum primitiveMode)
 void TransformFeedback::end()
 {
 	mActive = false;
+	mPaused = false;
 }
 
 void TransformFeedback::setPaused(bool paused)
@@ -79,6 +89,22 @@ void TransformFeedback::setBuffer(GLuint index, Buffer* buffer, GLintptr offset,
 	if(buffer)
 	{
 		buffer->mapRange(offset, size, buffer->access());
+	}
+}
+
+void TransformFeedback::detachBuffer(GLuint buffer)
+{
+	if(mGenericBuffer.name() == buffer)
+	{
+		mGenericBuffer = NULL;
+	}
+
+	for(int i = 0; i < MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS; ++i)
+	{
+		if(mBuffer[i].name() == buffer)
+		{
+			mBuffer[i] = NULL;
+		}
 	}
 }
 
