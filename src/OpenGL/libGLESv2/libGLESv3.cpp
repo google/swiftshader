@@ -3436,14 +3436,9 @@ GL_APICALL void GL_APIENTRY glBindSampler(GLuint unit, GLuint sampler)
 
 	if(context)
 	{
-		if(sampler != 0)
+		if(sampler != 0 && !context->isSampler(sampler))
 		{
-			es2::Sampler *samplerObject = context->getSampler(sampler);
-
-			if(!samplerObject)
-			{
-				return error(GL_INVALID_OPERATION);
-			}
+			return error(GL_INVALID_OPERATION);
 		}
 
 		context->bindSampler(unit, sampler);
