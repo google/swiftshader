@@ -34,14 +34,17 @@ namespace Ice {
 
 namespace {
 
-void UnimplementedError(const ClFlags &Flags) {
-  if (!Flags.getSkipUnimplemented()) {
-    // Use llvm_unreachable instead of report_fatal_error, which gives better
-    // stack traces.
-    llvm_unreachable("Not yet implemented");
-    abort();
-  }
-}
+// UnimplementedError is defined as a macro so that we can get actual line
+// numbers.
+#define UnimplementedError(Flags)                                              \
+  do {                                                                         \
+    if (!static_cast<const ClFlags &>(Flags).getSkipUnimplemented()) {         \
+      /* Use llvm_unreachable instead of report_fatal_error, which gives       \
+         better stack traces. */                                               \
+      llvm_unreachable("Not yet implemented");                                 \
+      abort();                                                                 \
+    }                                                                          \
+  } while (0)
 
 // The following table summarizes the logic for lowering the icmp instruction
 // for i32 and narrower types.  Each icmp condition has a clear mapping to an
@@ -2075,25 +2078,97 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
     break;
   }
   case InstCast::Fptrunc:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
   case InstCast::Fpext: {
-    UnimplementedError(Func->getContext()->getFlags());
+    // fptrunc: dest.f32 = fptrunc src0.fp64
+    // fpext: dest.f64 = fptrunc src0.fp32
+    const bool IsTrunc = CastKind == InstCast::Fptrunc;
+    if (isVectorType(Dest->getType())) {
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    }
+    assert(Dest->getType() == (IsTrunc ? IceType_f32 : IceType_f64));
+    assert(Src0->getType() == (IsTrunc ? IceType_f64 : IceType_f32));
+    Variable *Src0R = legalizeToReg(Src0);
+    Variable *T = makeReg(Dest->getType());
+    _vcvt(T, Src0R, IsTrunc ? InstARM32Vcvt::D2s : InstARM32Vcvt::S2d);
+    _mov(Dest, T);
     break;
   }
   case InstCast::Fptosi:
-    UnimplementedError(Func->getContext()->getFlags());
-    // Add a fake def to keep liveness consistent in the meantime.
-    Context.insert(InstFakeDef::create(Func, Dest));
+  case InstCast::Fptoui: {
+    // fptosi:
+    //     t1.fp = vcvt src0.fp
+    //     t2.i32 = vmov t1.fp
+    //     dest.int = conv t2.i32     @ Truncates the result if needed.
+    // fptoui:
+    //     t1.fp = vcvt src0.fp
+    //     t2.u32 = vmov t1.fp
+    //     dest.uint = conv t2.u32    @ Truncates the result if needed.
+    if (isVectorType(Dest->getType())) {
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    } else if (Dest->getType() == IceType_i64) {
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    }
+    const bool DestIsSigned = CastKind == InstCast::Fptosi;
+    Variable *Src0R = legalizeToReg(Src0);
+    Variable *T_fp = makeReg(IceType_f32);
+    if (isFloat32Asserting32Or64(Src0->getType())) {
+      _vcvt(T_fp, Src0R,
+            DestIsSigned ? InstARM32Vcvt::S2si : InstARM32Vcvt::S2ui);
+    } else {
+      _vcvt(T_fp, Src0R,
+            DestIsSigned ? InstARM32Vcvt::D2si : InstARM32Vcvt::D2ui);
+    }
+    Variable *T = makeReg(IceType_i32);
+    _vmov(T, T_fp);
+    if (Dest->getType() != IceType_i32) {
+      Variable *T_1 = makeReg(Dest->getType());
+      lowerCast(InstCast::create(Func, InstCast::Trunc, T_1, T));
+      T = T_1;
+    }
+    _mov(Dest, T);
     break;
-  case InstCast::Fptoui:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
+  }
   case InstCast::Sitofp:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
   case InstCast::Uitofp: {
-    UnimplementedError(Func->getContext()->getFlags());
+    // sitofp:
+    //     t1.i32 = sext src.int    @ sign-extends src0 if needed.
+    //     t2.fp32 = vmov t1.i32
+    //     t3.fp = vcvt.{fp}.s32    @ fp is either f32 or f64
+    // uitofp:
+    //     t1.i32 = zext src.int    @ zero-extends src0 if needed.
+    //     t2.fp32 = vmov t1.i32
+    //     t3.fp = vcvt.{fp}.s32    @ fp is either f32 or f64
+    if (isVectorType(Dest->getType())) {
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    } else if (Src0->getType() == IceType_i64) {
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    }
+    const bool SourceIsSigned = CastKind == InstCast::Sitofp;
+    if (Src0->getType() != IceType_i32) {
+      Variable *Src0R_32 = makeReg(IceType_i32);
+      lowerCast(InstCast::create(Func, SourceIsSigned ? InstCast::Sext
+                                                      : InstCast::Zext,
+                                 Src0R_32, Src0));
+      Src0 = Src0R_32;
+    }
+    Variable *Src0R = legalizeToReg(Src0);
+    Variable *Src0R_f32 = makeReg(IceType_f32);
+    _vmov(Src0R_f32, Src0R);
+    Src0R = Src0R_f32;
+    Variable *T = makeReg(Dest->getType());
+    if (isFloat32Asserting32Or64(Dest->getType())) {
+      _vcvt(T, Src0R,
+            SourceIsSigned ? InstARM32Vcvt::Si2s : InstARM32Vcvt::Ui2s);
+    } else {
+      _vcvt(T, Src0R,
+            SourceIsSigned ? InstARM32Vcvt::Si2d : InstARM32Vcvt::Ui2d);
+    }
+    _mov(Dest, T);
     break;
   }
   case InstCast::Bitcast: {

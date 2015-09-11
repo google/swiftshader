@@ -377,6 +377,13 @@ InstARM32Umull::InstARM32Umull(Cfg *Func, Variable *DestLo, Variable *DestHi,
   addSource(Src1);
 }
 
+InstARM32Vcvt::InstARM32Vcvt(Cfg *Func, Variable *Dest, Variable *Src,
+                             VcvtVariant Variant, CondARM32::Cond Predicate)
+    : InstARM32Pred(Func, InstARM32::Vcvt, 1, Dest, Predicate),
+      Variant(Variant) {
+  addSource(Src);
+}
+
 // ======================== Dump routines ======================== //
 
 // Two-addr ops
@@ -906,6 +913,63 @@ void InstARM32Umull::dump(const Cfg *Func) const {
   Str << " = ";
   dumpOpcodePred(Str, "umull", getDest()->getType());
   Str << " ";
+  dumpSources(Func);
+}
+
+namespace {
+const char *vcvtVariantSuffix(const InstARM32Vcvt::VcvtVariant Variant) {
+  switch (Variant) {
+  case InstARM32Vcvt::S2si:
+    return ".s32.f32";
+  case InstARM32Vcvt::S2ui:
+    return ".u32.f32";
+  case InstARM32Vcvt::Si2s:
+    return ".f32.s32";
+  case InstARM32Vcvt::Ui2s:
+    return ".f32.u32";
+  case InstARM32Vcvt::D2si:
+    return ".s32.f64";
+  case InstARM32Vcvt::D2ui:
+    return ".u32.f64";
+  case InstARM32Vcvt::Si2d:
+    return ".f64.s32";
+  case InstARM32Vcvt::Ui2d:
+    return ".f64.u32";
+  case InstARM32Vcvt::S2d:
+    return ".f64.f32";
+  case InstARM32Vcvt::D2s:
+    return ".f32.f64";
+  }
+  llvm::report_fatal_error("Invalid VcvtVariant enum.");
+}
+} // end of anonymous namespace
+
+void InstARM32Vcvt::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 1);
+  assert(getDest()->hasReg());
+  Str << "\t"
+      << "vcvt" << getPredicate() << vcvtVariantSuffix(Variant) << "\t";
+  getDest()->emit(Func);
+  Str << ", ";
+  getSrc(0)->emit(Func);
+}
+
+void InstARM32Vcvt::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 1);
+  (void)Func;
+  llvm_unreachable("Not yet implemented");
+}
+
+void InstARM32Vcvt::dump(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrDump();
+  dumpDest(Func);
+  Str << " = "
+      << "vcvt" << getPredicate() << vcvtVariantSuffix(Variant) << " ";
   dumpSources(Func);
 }
 

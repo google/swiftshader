@@ -322,6 +322,7 @@ public:
     Umull,
     Uxt,
     Vadd,
+    Vcvt,
     Vdiv,
     Vldr,
     Vmov,
@@ -1091,6 +1092,31 @@ private:
                  Variable *Src1, CondARM32::Cond Predicate);
 
   Variable *DestHi;
+};
+
+/// Handles fp2int, int2fp, and fp2fp conversions.
+class InstARM32Vcvt final : public InstARM32Pred {
+  InstARM32Vcvt() = delete;
+  InstARM32Vcvt(const InstARM32Vcvt &) = delete;
+  InstARM32Vcvt &operator=(const InstARM32Vcvt &) = delete;
+
+public:
+  enum VcvtVariant { S2si, S2ui, Si2s, Ui2s, D2si, D2ui, Si2d, Ui2d, S2d, D2s };
+  static InstARM32Vcvt *create(Cfg *Func, Variable *Dest, Variable *Src,
+                               VcvtVariant Variant, CondARM32::Cond Predicate) {
+    return new (Func->allocate<InstARM32Vcvt>())
+        InstARM32Vcvt(Func, Dest, Src, Variant, Predicate);
+  }
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Vcvt); }
+
+private:
+  InstARM32Vcvt(Cfg *Func, Variable *Dest, Variable *Src, VcvtVariant Variant,
+                CondARM32::Cond Predicate);
+
+  const VcvtVariant Variant;
 };
 
 // Declare partial template specializations of emit() methods that
