@@ -533,11 +533,12 @@ namespace glsl
 		case EOpVectorTimesMatrix:
 			if(visit == PostVisit)
 			{
-				int size = leftType.getNominalSize();
+				sw::Shader::Opcode dpOpcode = sw::Shader::OPCODE_DP(leftType.getNominalSize());
 
+				int size = rightType.getNominalSize();
 				for(int i = 0; i < size; i++)
 				{
-					Instruction *dot = emit(sw::Shader::OPCODE_DP(size), result, left, right);
+					Instruction *dot = emit(dpOpcode, result, left, right);
 					dot->dst.mask = 1 << i;
 					argument(dot->src[1], right, i);
 				}
@@ -549,7 +550,8 @@ namespace glsl
 				Instruction *mul = emit(sw::Shader::OPCODE_MUL, result, left, right);
 				mul->src[1].swizzle = 0x00;
 
-				for(int i = 1; i < leftType.getNominalSize(); i++)
+				int size = rightType.getNominalSize();
+				for(int i = 1; i < size; i++)
 				{
 					Instruction *mad = emit(sw::Shader::OPCODE_MAD, result, left, right, result);
 					argument(mad->src[0], left, i);
@@ -562,7 +564,8 @@ namespace glsl
 			{
 				int dim = leftType.getNominalSize();
 
-				for(int i = 0; i < dim; i++)
+				int size = rightType.getNominalSize();
+				for(int i = 0; i < size; i++)
 				{
 					Instruction *mul = emit(sw::Shader::OPCODE_MUL, result, left, right);
 					mul->dst.index += i;
@@ -1209,9 +1212,12 @@ namespace glsl
 		case EOpMul:
 			if(visit == PostVisit)
 			{
-				ASSERT(dim2(arg[0]) == dim2(arg[1]));
+				TIntermTyped *arg0 = arg[0]->getAsTyped();
+				TIntermTyped *arg1 = arg[1]->getAsTyped();
+				ASSERT((arg0->getNominalSize() == arg1->getNominalSize()) && (arg0->getSecondarySize() == arg1->getSecondarySize()));
 
-				for(int i = 0; i < dim2(arg[0]); i++)
+				int size = arg0->getNominalSize();
+				for(int i = 0; i < size; i++)
 				{
 					Instruction *mul = emit(sw::Shader::OPCODE_MUL, result, arg[0], arg[1]);
 					mul->dst.index += i;
