@@ -19,6 +19,7 @@
 
 #include <limits>
 #include <stdio.h>
+#include <stdlib.h>
 
 namespace es2
 {
