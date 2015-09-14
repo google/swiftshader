@@ -7,8 +7,14 @@
 ; RUN: %p2i --filetype=obj --disassemble -i %s --args -Om1 | FileCheck %s
 
 ; RUN: %if --need=allow_dump --need=target_ARM32 --command %p2i --filetype=asm \
+; RUN:   --target arm32 -i %s --args -O2 --skip-unimplemented \
+; RUN:   | %if --need=allow_dump --need=target_ARM32 --command FileCheck %s \
+; RUN:   --check-prefix=ARM32
+
+; RUN: %if --need=allow_dump --need=target_ARM32 --command %p2i --filetype=asm \
 ; RUN:   --target arm32 -i %s --args -Om1 --skip-unimplemented \
-; RUN:   | %if --need=target_ARM32 --command FileCheck %s --check-prefix=ARM32
+; RUN:   | %if --need=allow_dump --need=target_ARM32 --command FileCheck %s \
+; RUN:   --check-prefix=ARM32
 
 define internal float @fptrunc(double %a) {
 entry:
@@ -554,8 +560,7 @@ entry:
 ; CHECK-LABEL: int32BitcastToFloat
 ; CHECK: mov
 ; ARM32-LABEL: int32BitcastToFloat
-; TODO(jpp): implement this test.
-
+; ARM32: vmov s{{[0-9]+}}, r{{[0-9]+}}
 define internal float @int32BitcastToFloatConst() {
 entry:
   %conv = bitcast i32 8675309 to float
@@ -564,7 +569,9 @@ entry:
 ; CHECK-LABEL: int32BitcastToFloatConst
 ; CHECK: mov
 ; ARM32-LABEL: int32BitcastToFloatConst
-; TODO(jpp): implement this test.
+; ARM32-DAG: movw [[REG:r[0-9]+]], #24557
+; ARM32-DAG: movt [[REG]], #132
+; ARM32: vmov s{{[0-9]+}}, [[REG]]
 
 define internal double @int64BitcastToDouble(i64 %a) {
 entry:
@@ -574,7 +581,7 @@ entry:
 ; CHECK-LABEL: int64BitcastToDouble
 ; CHECK: mov
 ; ARM32-LABEL: int64BitcastToDouble
-; TODO(jpp): implement this test.
+; ARM32: vmov d{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}
 
 define internal double @int64BitcastToDoubleConst() {
 entry:
@@ -584,5 +591,7 @@ entry:
 ; CHECK-LABEL: int64BitcastToDoubleConst
 ; CHECK: mov
 ; ARM32-LABEL: int64BitcastToDoubleConst
-; TODO(jpp): implement this test.
-
+; ARM32-DAG: movw [[REG0:r[0-9]+]], #57336
+; ARM32-DAG: movt [[REG0]], #137
+; ARM32-DAG: movw [[REG1:r[0-9]+]], #0
+; ARM32-DAG: vmov d{{[0-9]+}}, [[REG0]], [[REG1]]

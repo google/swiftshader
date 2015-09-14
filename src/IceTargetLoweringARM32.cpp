@@ -2108,6 +2108,9 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
       UnimplementedError(Func->getContext()->getFlags());
       break;
     } else if (Dest->getType() == IceType_i64) {
+      split64(Dest);
+      Context.insert(InstFakeDef::create(Func, Dest->getLo()));
+      Context.insert(InstFakeDef::create(Func, Dest->getHi()));
       UnimplementedError(Func->getContext()->getFlags());
       break;
     }
@@ -2144,7 +2147,10 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
     if (isVectorType(Dest->getType())) {
       UnimplementedError(Func->getContext()->getFlags());
       break;
-    } else if (Src0->getType() == IceType_i64) {
+    }
+    if (Src0->getType() == IceType_i64) {
+      // avoid cryptic liveness errors
+      Context.insert(InstFakeDef::create(Func, Dest));
       UnimplementedError(Func->getContext()->getFlags());
       break;
     }
@@ -2178,7 +2184,77 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
       lowerAssign(Assign);
       return;
     }
-    UnimplementedError(Func->getContext()->getFlags());
+    Type DestType = Dest->getType();
+    switch (DestType) {
+    case IceType_NUM:
+    case IceType_void:
+      llvm::report_fatal_error("Unexpected bitcast.");
+    case IceType_i1:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case IceType_v4i1:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case IceType_i8:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case IceType_i16:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case IceType_i32:
+    case IceType_f32: {
+      Variable *Src0R = legalizeToReg(Src0);
+      Variable *T = makeReg(DestType);
+      _vmov(T, Src0R);
+      lowerAssign(InstAssign::create(Func, Dest, T));
+      break;
+    }
+    case IceType_i64: {
+      // t0, t1 <- src0
+      // dest[31..0]  = t0
+      // dest[63..32] = t1
+      assert(Src0->getType() == IceType_f64);
+      Variable *T0 = makeReg(IceType_i32);
+      Variable *T1 = makeReg(IceType_i32);
+      Variable *Src0R = legalizeToReg(Src0);
+      split64(Dest);
+      _vmov(InstARM32Vmov::RegisterPair(T0, T1), Src0R);
+      lowerAssign(InstAssign::create(Func, Dest->getLo(), T0));
+      lowerAssign(InstAssign::create(Func, Dest->getHi(), T1));
+      break;
+    }
+    case IceType_f64: {
+      // T0 <- lo(src)
+      // T1 <- hi(src)
+      // vmov T2, T0, T1
+      // Dest <- T2
+      assert(Src0->getType() == IceType_i64);
+      Variable *SrcLo = legalizeToReg(loOperand(Src0));
+      Variable *SrcHi = legalizeToReg(hiOperand(Src0));
+      Variable *T = makeReg(IceType_f64);
+      _vmov(T, InstARM32Vmov::RegisterPair(SrcLo, SrcHi));
+      lowerAssign(InstAssign::create(Func, Dest, T));
+      break;
+    }
+    case IceType_v8i1:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case IceType_v16i1:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case IceType_v8i16:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case IceType_v16i8:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case IceType_v4i32:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case IceType_v4f32:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    }
     break;
   }
   }

@@ -415,6 +415,19 @@ protected:
     constexpr CondARM32::Cond Pred = CondARM32::AL;
     Context.insert(InstARM32Vmov::create(Func, Dest, Src0, Pred));
   }
+  // This represents the single source, multi dest variant.
+  void _vmov(InstARM32Vmov::RegisterPair Dests, Variable *Src0) {
+    constexpr CondARM32::Cond Pred = CondARM32::AL;
+    Context.insert(InstARM32Vmov::create(Func, Dests, Src0, Pred));
+    // The Vmov instruction created above does not define Dests._1. Therefore
+    // we add a Dest._1 = FakeDef pseudo instruction.
+    Context.insert(InstFakeDef::create(Func, Dests._1));
+  }
+  // This represents the multi source, single dest variant.
+  void _vmov(Variable *Dest, InstARM32Vmov::RegisterPair Srcs) {
+    constexpr CondARM32::Cond Pred = CondARM32::AL;
+    Context.insert(InstARM32Vmov::create(Func, Dest, Srcs, Pred));
+  }
   void _vmul(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert(InstARM32Vmul::create(Func, Dest, Src0, Src1));
   }

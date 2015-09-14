@@ -785,7 +785,6 @@ using InstARM32Ldr = InstARM32Movlike<InstARM32::Ldr>;
 using InstARM32Mov = InstARM32Movlike<InstARM32::Mov>;
 /// Represents various vector mov instruction forms (simple single source,
 /// single dest forms only, not the 2 GPR <-> 1 D reg forms, etc.).
-using InstARM32Vmov = InstARM32Movlike<InstARM32::Vmov>;
 using InstARM32Vldr = InstARM32Movlike<InstARM32::Vldr>;
 /// MovT leaves the bottom bits alone so dest is also a source.
 /// This helps indicate that a previous MovW setting dest is not dead code.
@@ -1119,6 +1118,93 @@ private:
   const VcvtVariant Variant;
 };
 
+/// Handles (some of) vmov's various formats.
+class InstARM32Vmov final : public InstARM32Pred {
+  InstARM32Vmov() = delete;
+  InstARM32Vmov(const InstARM32Vmov &) = delete;
+  InstARM32Vmov &operator=(const InstARM32Vmov &) = delete;
+
+public:
+  /// RegisterPair is used to group registers in
+  ///
+  /// vmov D, (R, R)
+  ///
+  /// and
+  ///
+  /// vmov (R, R), D
+  struct RegisterPair {
+    explicit RegisterPair(Variable *V0, Variable *V1) : _0(V0), _1(V1) {
+      assert(V0->getType() == IceType_i32);
+      assert(V1->getType() == IceType_i32);
+    }
+    Variable *_0;
+    Variable *_1;
+  };
+
+  static InstARM32Vmov *create(Cfg *Func, Variable *Dest, Operand *Src,
+                               CondARM32::Cond Predicate) {
+    return new (Func->allocate<InstARM32Vmov>())
+        InstARM32Vmov(Func, Dest, Src, Predicate);
+  }
+  static InstARM32Vmov *create(Cfg *Func, const RegisterPair &Dests,
+                               Variable *Src, CondARM32::Cond Predicate) {
+    return new (Func->allocate<InstARM32Vmov>())
+        InstARM32Vmov(Func, Dests, Src, Predicate);
+  }
+  static InstARM32Vmov *create(Cfg *Func, Variable *Dest,
+                               const RegisterPair &Srcs,
+                               CondARM32::Cond Predicate) {
+    return new (Func->allocate<InstARM32Vmov>())
+        InstARM32Vmov(Func, Dest, Srcs, Predicate);
+  }
+  bool isRedundantAssign() const override {
+    return Dest1 == nullptr && getSrcSize() == 1 &&
+           checkForRedundantAssign(getDest(), getSrc(0));
+  }
+  bool isSimpleAssign() const override { return true; }
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Vmov); }
+
+private:
+  InstARM32Vmov(Cfg *Func, Variable *Dest, Operand *Src,
+                CondARM32::Cond Predicate)
+      : InstARM32Pred(Func, InstARM32::Vmov, 1, Dest, Predicate) {
+    addSource(Src);
+  }
+
+  InstARM32Vmov(Cfg *Func, const RegisterPair &Dests, Variable *Src,
+                CondARM32::Cond Predicate)
+      : InstARM32Pred(Func, InstARM32::Vmov, 1, Dests._0, Predicate),
+        Dest1(Dests._1) {
+    addSource(Src);
+  }
+
+  InstARM32Vmov(Cfg *Func, Variable *Dest, const RegisterPair &Srcs,
+                CondARM32::Cond Predicate)
+      : InstARM32Pred(Func, InstARM32::Vmov, 2, Dest, Predicate) {
+    addSource(Srcs._0);
+    addSource(Srcs._1);
+  }
+
+  bool isMultiDest() const {
+    assert(getDest() != nullptr);
+    return Dest1 != nullptr;
+  }
+
+  bool isMultiSource() const {
+    assert(getSrcSize() >= 1);
+    return getSrcSize() > 1;
+  }
+
+  void emitMultiDestSingleSource(const Cfg *Func) const;
+  void emitSingleDestMultiSource(const Cfg *Func) const;
+  void emitSingleDestSingleSource(const Cfg *Func) const;
+
+  Variable *Dest1 = nullptr;
+};
+
 // Declare partial template specializations of emit() methods that
 // already have default implementations.  Without this, there is the
 // possibility of ODR violations and link errors.
@@ -1128,7 +1214,6 @@ template <> void InstARM32Mov::emit(const Cfg *Func) const;
 template <> void InstARM32Movw::emit(const Cfg *Func) const;
 template <> void InstARM32Movt::emit(const Cfg *Func) const;
 template <> void InstARM32Vldr::emit(const Cfg *Func) const;
-template <> void InstARM32Vmov::emit(const Cfg *Func) const;
 
 } // end of namespace Ice
 

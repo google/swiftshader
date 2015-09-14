@@ -403,7 +403,6 @@ template <> const char *InstARM32Ldr::Opcode = "ldr";
 template <> const char *InstARM32Mov::Opcode = "mov";
 // FP
 template <> const char *InstARM32Vldr::Opcode = "vldr";
-template <> const char *InstARM32Vmov::Opcode = "vmov";
 // Three-addr ops
 template <> const char *InstARM32Adc::Opcode = "adc";
 template <> const char *InstARM32Add::Opcode = "add";
@@ -498,15 +497,56 @@ template <> void InstARM32Vldr::emitIAS(const Cfg *Func) const {
   llvm_unreachable("Not yet implemented");
 }
 
-template <> void InstARM32Vmov::emit(const Cfg *Func) const {
+void InstARM32Vmov::emitMultiDestSingleSource(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
-  assert(CondARM32::AL == getPredicate());
   Ostream &Str = Func->getContext()->getStrEmit();
-  assert(getSrcSize() == 1);
+  Variable *Dest0 = getDest();
+  Operand *Src0 = getSrc(0);
+
+  assert(Dest0->hasReg());
+  assert(Dest1->hasReg());
+  assert(!llvm::isa<OperandARM32Mem>(Src0));
+
+  Str << "\t"
+      << "vmov"
+      << "\t";
+  Dest0->emit(Func);
+  Str << ", ";
+  Dest1->emit(Func);
+  Str << ", ";
+  Src0->emit(Func);
+}
+
+void InstARM32Vmov::emitSingleDestMultiSource(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  Variable *Dest0 = getDest();
+  Operand *Src0 = getSrc(0);
+  Operand *Src1 = getSrc(1);
+
+  assert(Dest0->hasReg());
+  assert(!llvm::isa<OperandARM32Mem>(Src0));
+  assert(!llvm::isa<OperandARM32Mem>(Src1));
+
+  Str << "\t"
+      << "vmov"
+      << "\t";
+  Dest0->emit(Func);
+  Str << ", ";
+  Src0->emit(Func);
+  Str << ", ";
+  Src1->emit(Func);
+}
+
+void InstARM32Vmov::emitSingleDestSingleSource(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
   Variable *Dest = getDest();
   if (Dest->hasReg()) {
-    IceString ActualOpcode = Opcode;
+    IceString ActualOpcode = "vmov";
     Operand *Src0 = getSrc(0);
     if (const auto *Src0V = llvm::dyn_cast<Variable>(Src0)) {
       if (!Src0V->hasReg()) {
@@ -532,10 +572,39 @@ template <> void InstARM32Vmov::emit(const Cfg *Func) const {
   }
 }
 
-template <> void InstARM32Vmov::emitIAS(const Cfg *Func) const {
+void InstARM32Vmov::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  assert(CondARM32::AL == getPredicate());
+  assert(isMultiDest() + isMultiSource() <= 1 && "Invalid vmov type.");
+  if (isMultiDest()) {
+    emitMultiDestSingleSource(Func);
+    return;
+  }
+
+  if (isMultiSource()) {
+    emitSingleDestMultiSource(Func);
+    return;
+  }
+
+  emitSingleDestSingleSource(Func);
+}
+
+void InstARM32Vmov::emitIAS(const Cfg *Func) const {
   assert(getSrcSize() == 1);
   (void)Func;
   llvm_unreachable("Not yet implemented");
+}
+
+void InstARM32Vmov::dump(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrDump();
+  dumpOpcodePred(Str, "vmov", getDest()->getType());
+  Str << " ";
+  dumpDest(Func);
+  Str << ", ";
+  dumpSources(Func);
 }
 
 void InstARM32Br::emit(const Cfg *Func) const {
