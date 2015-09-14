@@ -152,7 +152,7 @@ protected:
     Legal_Mem = 1 << 2,  /// includes [r0, r1 lsl #2] as well as [sp, #12]
     Legal_All = ~Legal_None
   };
-  typedef uint32_t LegalMask;
+  using LegalMask = uint32_t;
   Operand *legalize(Operand *From, LegalMask Allowed = Legal_All,
                     int32_t RegNum = Variable::NoRegister);
   Variable *legalizeToReg(Operand *From, int32_t RegNum = Variable::NoRegister);
@@ -175,10 +175,10 @@ protected:
   // test; branch .LSKIP; trap; .LSKIP: <continuation>.
   // If no check is needed nothing is inserted.
   void div0Check(Type Ty, Operand *SrcLo, Operand *SrcHi);
-  typedef void (TargetARM32::*ExtInstr)(Variable *, Variable *,
-                                        CondARM32::Cond);
-  typedef void (TargetARM32::*DivInstr)(Variable *, Variable *, Variable *,
-                                        CondARM32::Cond);
+  using ExtInstr = void (TargetARM32::*)(Variable *, Variable *,
+                                         CondARM32::Cond);
+  using DivInstr = void (TargetARM32::*)(Variable *, Variable *, Variable *,
+                                         CondARM32::Cond);
   void lowerIDivRem(Variable *Dest, Variable *T, Variable *Src0R, Operand *Src1,
                     ExtInstr ExtFunc, DivInstr DivFunc,
                     const char *DivHelperName, bool IsRemainder);

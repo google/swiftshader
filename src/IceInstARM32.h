@@ -759,52 +759,52 @@ private:
   static const char *Opcode;
 };
 
-typedef InstARM32ThreeAddrGPR<InstARM32::Adc> InstARM32Adc;
-typedef InstARM32ThreeAddrGPR<InstARM32::Add> InstARM32Add;
-typedef InstARM32ThreeAddrGPR<InstARM32::And> InstARM32And;
-typedef InstARM32ThreeAddrGPR<InstARM32::Asr> InstARM32Asr;
-typedef InstARM32ThreeAddrGPR<InstARM32::Bic> InstARM32Bic;
-typedef InstARM32ThreeAddrGPR<InstARM32::Eor> InstARM32Eor;
-typedef InstARM32ThreeAddrGPR<InstARM32::Lsl> InstARM32Lsl;
-typedef InstARM32ThreeAddrGPR<InstARM32::Lsr> InstARM32Lsr;
-typedef InstARM32ThreeAddrGPR<InstARM32::Mul> InstARM32Mul;
-typedef InstARM32ThreeAddrGPR<InstARM32::Orr> InstARM32Orr;
-typedef InstARM32ThreeAddrGPR<InstARM32::Rsb> InstARM32Rsb;
-typedef InstARM32ThreeAddrGPR<InstARM32::Sbc> InstARM32Sbc;
-typedef InstARM32ThreeAddrGPR<InstARM32::Sdiv> InstARM32Sdiv;
-typedef InstARM32ThreeAddrGPR<InstARM32::Sub> InstARM32Sub;
-typedef InstARM32ThreeAddrGPR<InstARM32::Udiv> InstARM32Udiv;
-typedef InstARM32ThreeAddrFP<InstARM32::Vadd> InstARM32Vadd;
-typedef InstARM32ThreeAddrFP<InstARM32::Vdiv> InstARM32Vdiv;
-typedef InstARM32ThreeAddrFP<InstARM32::Vmul> InstARM32Vmul;
-typedef InstARM32ThreeAddrFP<InstARM32::Vsub> InstARM32Vsub;
-typedef InstARM32Movlike<InstARM32::Ldr> InstARM32Ldr;
+using InstARM32Adc = InstARM32ThreeAddrGPR<InstARM32::Adc>;
+using InstARM32Add = InstARM32ThreeAddrGPR<InstARM32::Add>;
+using InstARM32And = InstARM32ThreeAddrGPR<InstARM32::And>;
+using InstARM32Asr = InstARM32ThreeAddrGPR<InstARM32::Asr>;
+using InstARM32Bic = InstARM32ThreeAddrGPR<InstARM32::Bic>;
+using InstARM32Eor = InstARM32ThreeAddrGPR<InstARM32::Eor>;
+using InstARM32Lsl = InstARM32ThreeAddrGPR<InstARM32::Lsl>;
+using InstARM32Lsr = InstARM32ThreeAddrGPR<InstARM32::Lsr>;
+using InstARM32Mul = InstARM32ThreeAddrGPR<InstARM32::Mul>;
+using InstARM32Orr = InstARM32ThreeAddrGPR<InstARM32::Orr>;
+using InstARM32Rsb = InstARM32ThreeAddrGPR<InstARM32::Rsb>;
+using InstARM32Sbc = InstARM32ThreeAddrGPR<InstARM32::Sbc>;
+using InstARM32Sdiv = InstARM32ThreeAddrGPR<InstARM32::Sdiv>;
+using InstARM32Sub = InstARM32ThreeAddrGPR<InstARM32::Sub>;
+using InstARM32Udiv = InstARM32ThreeAddrGPR<InstARM32::Udiv>;
+using InstARM32Vadd = InstARM32ThreeAddrFP<InstARM32::Vadd>;
+using InstARM32Vdiv = InstARM32ThreeAddrFP<InstARM32::Vdiv>;
+using InstARM32Vmul = InstARM32ThreeAddrFP<InstARM32::Vmul>;
+using InstARM32Vsub = InstARM32ThreeAddrFP<InstARM32::Vsub>;
+using InstARM32Ldr = InstARM32Movlike<InstARM32::Ldr>;
 /// Move instruction (variable <- flex). This is more of a pseudo-inst.
 /// If var is a register, then we use "mov". If var is stack, then we use
 /// "str" to store to the stack.
-typedef InstARM32Movlike<InstARM32::Mov> InstARM32Mov;
+using InstARM32Mov = InstARM32Movlike<InstARM32::Mov>;
 /// Represents various vector mov instruction forms (simple single source,
 /// single dest forms only, not the 2 GPR <-> 1 D reg forms, etc.).
-typedef InstARM32Movlike<InstARM32::Vmov> InstARM32Vmov;
-typedef InstARM32Movlike<InstARM32::Vldr> InstARM32Vldr;
+using InstARM32Vmov = InstARM32Movlike<InstARM32::Vmov>;
+using InstARM32Vldr = InstARM32Movlike<InstARM32::Vldr>;
 /// MovT leaves the bottom bits alone so dest is also a source.
 /// This helps indicate that a previous MovW setting dest is not dead code.
-typedef InstARM32TwoAddrGPR<InstARM32::Movt> InstARM32Movt;
-typedef InstARM32UnaryopGPR<InstARM32::Movw, false> InstARM32Movw;
-typedef InstARM32UnaryopGPR<InstARM32::Clz, false> InstARM32Clz;
-typedef InstARM32UnaryopGPR<InstARM32::Mvn, false> InstARM32Mvn;
-typedef InstARM32UnaryopGPR<InstARM32::Rbit, false> InstARM32Rbit;
-typedef InstARM32UnaryopGPR<InstARM32::Rev, false> InstARM32Rev;
+using InstARM32Movt = InstARM32TwoAddrGPR<InstARM32::Movt>;
+using InstARM32Movw = InstARM32UnaryopGPR<InstARM32::Movw, false>;
+using InstARM32Clz = InstARM32UnaryopGPR<InstARM32::Clz, false>;
+using InstARM32Mvn = InstARM32UnaryopGPR<InstARM32::Mvn, false>;
+using InstARM32Rbit = InstARM32UnaryopGPR<InstARM32::Rbit, false>;
+using InstARM32Rev = InstARM32UnaryopGPR<InstARM32::Rev, false>;
 // Technically, the uxt{b,h} and sxt{b,h} instructions have a rotation
 // operand as well (rotate source by 8, 16, 24 bits prior to extending),
 // but we aren't using that for now, so just model as a Unaryop.
-typedef InstARM32UnaryopGPR<InstARM32::Sxt, true> InstARM32Sxt;
-typedef InstARM32UnaryopGPR<InstARM32::Uxt, true> InstARM32Uxt;
-typedef InstARM32UnaryopFP<InstARM32::Vsqrt> InstARM32Vsqrt;
-typedef InstARM32FourAddrGPR<InstARM32::Mla> InstARM32Mla;
-typedef InstARM32FourAddrGPR<InstARM32::Mls> InstARM32Mls;
-typedef InstARM32CmpLike<InstARM32::Cmp> InstARM32Cmp;
-typedef InstARM32CmpLike<InstARM32::Tst> InstARM32Tst;
+using InstARM32Sxt = InstARM32UnaryopGPR<InstARM32::Sxt, true>;
+using InstARM32Uxt = InstARM32UnaryopGPR<InstARM32::Uxt, true>;
+using InstARM32Vsqrt = InstARM32UnaryopFP<InstARM32::Vsqrt>;
+using InstARM32Mla = InstARM32FourAddrGPR<InstARM32::Mla>;
+using InstARM32Mls = InstARM32FourAddrGPR<InstARM32::Mls>;
+using InstARM32Cmp = InstARM32CmpLike<InstARM32::Cmp>;
+using InstARM32Tst = InstARM32CmpLike<InstARM32::Tst>;
 
 // InstARM32Label represents an intra-block label that is the target
 // of an intra-block branch.  The offset between the label and the

@@ -945,8 +945,8 @@ public:
   const char *getBlockName() const override { return "globals"; }
 
 private:
-  typedef std::unordered_map<NaClBcIndexSize_t, Ice::VariableDeclaration *>
-      GlobalVarsMapType;
+  using GlobalVarsMapType =
+      std::unordered_map<NaClBcIndexSize_t, Ice::VariableDeclaration *>;
 
   Ice::TimerMarker Timer;
 
@@ -1158,7 +1158,7 @@ public:
   const char *getBlockName() const override { return "valuesymtab"; }
 
 protected:
-  typedef SmallString<128> StringType;
+  using StringType = SmallString<128>;
 
   // Associates Name with the value defined by the given Index.
   virtual void setValueName(NaClBcIndexSize_t Index, StringType &Name) = 0;

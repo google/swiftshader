@@ -21,7 +21,7 @@ namespace Ice {
 
 /// Each target and container format has a different namespace of relocations.
 /// This holds the specific target+container format's relocation number.
-typedef uint32_t FixupKind;
+using FixupKind = uint32_t;
 
 /// Assembler fixups are positions in generated code/data that hold relocation
 /// information that needs to be processed before finalizing the code/data.
@@ -53,8 +53,8 @@ private:
   const Constant *value_ = nullptr;
 };
 
-typedef std::vector<AssemblerFixup> FixupList;
-typedef std::vector<AssemblerFixup *> FixupRefList;
+using FixupList = std::vector<AssemblerFixup>;
+using FixupRefList = std::vector<AssemblerFixup *>;
 
 } // end of namespace Ice
 

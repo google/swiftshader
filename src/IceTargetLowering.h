@@ -206,7 +206,7 @@ public:
     RegSet_FramePointer = 1 << 3,
     RegSet_All = ~RegSet_None
   };
-  typedef uint32_t RegSetMask;
+  using RegSetMask = uint32_t;
 
   virtual llvm::SmallBitVector getRegisterSet(RegSetMask Include,
                                               RegSetMask Exclude) const = 0;

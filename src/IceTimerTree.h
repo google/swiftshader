@@ -28,14 +28,14 @@ class TimerStack {
 
   /// Timer tree index type.  A variable of this type is used to access
   /// an interior, not-necessarily-leaf node of the tree.
-  typedef std::vector<class TimerTreeNode>::size_type TTindex;
+  using TTindex = std::vector<class TimerTreeNode>::size_type;
   /// Representation of a path of leaf values leading to a particular
   /// node.  The representation happens to be in "reverse" order,
   /// i.e. from leaf/interior to root, for implementation efficiency.
-  typedef llvm::SmallVector<TTindex, 8> PathType;
+  using PathType = llvm::SmallVector<TTindex, 8>;
   /// Representation of a mapping of leaf node indexes from one timer
   /// stack to another.
-  typedef std::vector<TimerIdT> TranslationType;
+  using TranslationType = std::vector<TimerIdT>;
 
   /// TimerTreeNode represents an interior or leaf node in the call tree.
   /// It contains a list of children, a pointer to its parent, and the

@@ -447,7 +447,7 @@ private:
 
   ICE_CACHELINE_BOUNDARY;
   // Managed by getDestructors()
-  typedef std::vector<std::function<void()>> DestructorArray;
+  using DestructorArray = std::vector<std::function<void()>>;
   GlobalLockType DestructorsLock;
   DestructorArray Destructors;
 
@@ -478,7 +478,7 @@ private:
 
   ICE_CACHELINE_BOUNDARY;
   /// StrLock is a global lock on the dump and emit output streams.
-  typedef std::mutex StrLockType;
+  using StrLockType = std::mutex;
   StrLockType StrLock;
   Ostream *StrDump;  /// Stream for dumping / diagnostics
   Ostream *StrEmit;  /// Stream for code emission
@@ -545,7 +545,7 @@ private:
   ICE_TLS_DECLARE_FIELD(ThreadContext *, TLS);
 
   // Private helpers for mangleName()
-  typedef llvm::SmallVector<char, 32> ManglerVector;
+  using ManglerVector = llvm::SmallVector<char, 32>;
   void incrementSubstitutions(ManglerVector &OldName) const;
 
 public:

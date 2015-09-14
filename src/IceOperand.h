@@ -159,7 +159,7 @@ class ConstantPrimitive : public Constant {
   ConstantPrimitive &operator=(const ConstantPrimitive &) = delete;
 
 public:
-  typedef T PrimType;
+  using PrimType = T;
 
   static ConstantPrimitive *create(GlobalContext *Ctx, Type Ty, PrimType Value,
                                    uint32_t PoolEntryID) {
@@ -192,10 +192,10 @@ private:
   const PrimType Value;
 };
 
-typedef ConstantPrimitive<int32_t, Operand::kConstInteger32> ConstantInteger32;
-typedef ConstantPrimitive<int64_t, Operand::kConstInteger64> ConstantInteger64;
-typedef ConstantPrimitive<float, Operand::kConstFloat> ConstantFloat;
-typedef ConstantPrimitive<double, Operand::kConstDouble> ConstantDouble;
+using ConstantInteger32 = ConstantPrimitive<int32_t, Operand::kConstInteger32>;
+using ConstantInteger64 = ConstantPrimitive<int64_t, Operand::kConstInteger64>;
+using ConstantFloat = ConstantPrimitive<float, Operand::kConstFloat>;
+using ConstantDouble = ConstantPrimitive<double, Operand::kConstDouble>;
 
 template <>
 inline void ConstantInteger32::dump(const Cfg *, Ostream &Str) const {
@@ -387,10 +387,10 @@ public:
   void dump(Ostream &Str) const;
 
 private:
-  typedef std::pair<InstNumberT, InstNumberT> RangeElementType;
+  using RangeElementType = std::pair<InstNumberT, InstNumberT>;
   /// RangeType is arena-allocated from the Cfg's allocator.
-  typedef std::vector<RangeElementType, CfgLocalAllocator<RangeElementType>>
-      RangeType;
+  using RangeType =
+      std::vector<RangeElementType, CfgLocalAllocator<RangeElementType>>;
   RangeType Range;
   /// TrimmedBegin is an optimization for the overlaps() computation.
   /// Since the linear-scan algorithm always calls it as overlaps(Cur)
@@ -560,7 +560,7 @@ enum MetadataKind {
   VMK_SingleDefs, /// Track uses+defs, but only record single def
   VMK_All         /// Track uses+defs, including full def list
 };
-typedef std::vector<const Inst *, CfgLocalAllocator<const Inst *>> InstDefList;
+using InstDefList = std::vector<const Inst *, CfgLocalAllocator<const Inst *>>;
 
 /// VariableTracking tracks the metadata for a single variable.  It is
 /// only meant to be used internally by VariablesMetadata.

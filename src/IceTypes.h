@@ -129,7 +129,7 @@ class FuncSigType {
   FuncSigType &operator=(const FuncSigType &Ty) = delete;
 
 public:
-  typedef std::vector<Type> ArgListType;
+  using ArgListType = std::vector<Type>;
 
   /// Creates a function signature type with the given return type.
   /// Parameter types should be added using calls to appendArgType.

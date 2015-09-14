@@ -396,8 +396,8 @@ template <> struct MachineTraits<TargetX8632> {
     // class.  For x86-32, this would comprise the 8 XMM registers.  This is for
     // performance, not correctness.
     static const unsigned MaxEquivalenceClassSize = 8;
-    typedef llvm::SmallVector<int32_t, MaxEquivalenceClassSize> RegisterList;
-    typedef std::map<uint32_t, RegisterList> EquivalenceClassMap;
+    using RegisterList = llvm::SmallVector<int32_t, MaxEquivalenceClassSize>;
+    using EquivalenceClassMap = std::map<uint32_t, RegisterList>;
     EquivalenceClassMap EquivalenceClasses;
     SizeT NumShuffled = 0, NumPreserved = 0;
 

@@ -165,7 +165,7 @@ public:
 
 private:
   // TODO(jvoung): May want to switch to something like LLVM's StringMap.
-  typedef std::map<IceString, FullIntrinsicInfo> IntrinsicMap;
+  using IntrinsicMap = std::map<IceString, FullIntrinsicInfo>;
   IntrinsicMap Map;
 };
 

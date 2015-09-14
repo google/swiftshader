@@ -200,8 +200,8 @@ public:
 private:
   // Map from symbol name to its symbol information.
   // This assumes symbols are unique across all sections.
-  typedef IceString SymtabKey;
-  typedef std::map<SymtabKey, ELFSym> SymMap;
+  using SymtabKey = IceString;
+  using SymMap = std::map<SymtabKey, ELFSym>;
 
   template <bool IsELF64>
   void writeSymbolMap(ELFStreamer &Str, const SymMap &Map);
@@ -299,13 +299,13 @@ private:
     bool operator()(const IceString &StrA, const IceString &StrB) const;
   };
 
-  typedef std::map<IceString, size_t, SuffixComparator> StringToIndexType;
+  using StringToIndexType = std::map<IceString, size_t, SuffixComparator>;
 
   /// Track strings to their index.  Index will be UnknownIndex if not
   /// yet laid out.
   StringToIndexType StringToIndexMap;
 
-  typedef std::vector<uint8_t> RawDataType;
+  using RawDataType = std::vector<uint8_t>;
   RawDataType StringData;
 };
 

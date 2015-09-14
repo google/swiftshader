@@ -48,8 +48,8 @@ public:
 
 private:
   llvm::Module *Mod;
-  typedef std::map<const llvm::GlobalValue *, GlobalDeclaration *>
-      GlobalDeclarationMapType;
+  using GlobalDeclarationMapType =
+      std::map<const llvm::GlobalValue *, GlobalDeclaration *>;
   GlobalDeclarationMapType GlobalDeclarationMap;
 
   /// Walks module and generates names for unnamed globals using prefix

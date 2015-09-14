@@ -215,7 +215,7 @@ protected:
   /// mapped to one bit position of the LiveRangesEnded bit vector.
   /// Only the first CHAR_BIT * sizeof(LREndedBits) variables are
   /// tracked this way.
-  typedef uint32_t LREndedBits; // only first 32 src operands tracked, sorry
+  using LREndedBits = uint32_t; // only first 32 src operands tracked, sorry
   LREndedBits LiveRangesEnded;
 };
 

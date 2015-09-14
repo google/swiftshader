@@ -96,7 +96,7 @@ public:
   void swapNodes(NodeList &NewNodes);
   /// @}
 
-  typedef int32_t IdentifierIndexType;
+  using IdentifierIndexType = int32_t;
   /// Adds a name to the list and returns its index, suitable for the
   /// argument to getIdentifierName().  No checking for duplicates is
   /// done.  This is generally used for node names and variable names

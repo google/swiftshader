@@ -229,7 +229,7 @@ protected:
   void lowerCaseCluster(const CaseCluster &Case, Operand *Src0, bool DoneCmp,
                         CfgNode *DefaultLabel = nullptr);
 
-  typedef void (TargetX86Base::*LowerBinOp)(Variable *, Operand *);
+  using LowerBinOp = void (TargetX86Base::*)(Variable *, Operand *);
   void expandAtomicRMWAsCmpxchg(LowerBinOp op_lo, LowerBinOp op_hi,
                                 Variable *Dest, Operand *Ptr, Operand *Val);
 
@@ -252,7 +252,7 @@ protected:
     Legal_Mem = 1 << 2, // includes [eax+4*ecx] as well as [esp+12]
     Legal_All = ~Legal_None
   };
-  typedef uint32_t LegalMask;
+  using LegalMask = uint32_t;
   Operand *legalize(Operand *From, LegalMask Allowed = Legal_All,
                     int32_t RegNum = Variable::NoRegister);
   Variable *legalizeToReg(Operand *From, int32_t RegNum = Variable::NoRegister);

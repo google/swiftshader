@@ -80,7 +80,7 @@ struct KeyCompareLess<ValueType,
                       typename std::enable_if<std::is_floating_point<
                           typename ValueType::PrimType>::value>::type> {
   bool operator()(const Constant *Const1, const Constant *Const2) const {
-    typedef uint64_t CompareType;
+    using CompareType = uint64_t;
     static_assert(sizeof(typename ValueType::PrimType) <= sizeof(CompareType),
                   "Expected floating-point type of width 64-bit or less");
     typename ValueType::PrimType V1 = llvm::cast<ValueType>(Const1)->getValue();
@@ -139,23 +139,23 @@ public:
     Constants.reserve(Pool.size());
     for (auto &I : Pool)
       Constants.push_back(I.second);
-    // The sort (and its KeyCompareLess machinery) is not strictly
-    // necessary, but is desirable for producing output that is
-    // deterministic across unordered_map::iterator implementations.
+    // The sort (and its KeyCompareLess machinery) is not strictly necessary,
+    // but is desirable for producing output that is deterministic across
+    // unordered_map::iterator implementations.
     std::sort(Constants.begin(), Constants.end(), KeyCompareLess<ValueType>());
     return Constants;
   }
 
 private:
-  // Use the default hash function, and a custom key comparison
-  // function.  The key comparison function for floating point
-  // variables can't use the default == based implementation because
-  // of special C++ semantics regarding +0.0, -0.0, and NaN
-  // comparison.  However, it's OK to use the default hash for
-  // floating point values because KeyCompare is the final source of
-  // truth - in the worst case a "false" collision must be resolved.
-  typedef std::unordered_map<KeyType, ValueType *, std::hash<KeyType>,
-                             KeyCompare<KeyType>> ContainerType;
+  // Use the default hash function, and a custom key comparison function. The
+  // key comparison function for floating point variables can't use the default
+  // == based implementation because of special C++ semantics regarding +0.0,
+  // -0.0, and NaN comparison. However, it's OK to use the default hash for
+  // floating point values because KeyCompare is the final source of truth - in
+  // the worst case a "false" collision must be resolved.
+  using ContainerType =
+      std::unordered_map<KeyType, ValueType *, std::hash<KeyType>,
+                         KeyCompare<KeyType>>;
   ContainerType Pool;
   uint32_t NextPoolID = 0;
 };

@@ -97,10 +97,10 @@ private:
   bool ELF64;
 
   // All created sections, separated into different pools.
-  typedef std::vector<ELFSection *> SectionList;
-  typedef std::vector<ELFTextSection *> TextSectionList;
-  typedef std::vector<ELFDataSection *> DataSectionList;
-  typedef std::vector<ELFRelocationSection *> RelSectionList;
+  using SectionList = std::vector<ELFSection *>;
+  using TextSectionList = std::vector<ELFTextSection *>;
+  using DataSectionList = std::vector<ELFDataSection *>;
+  using RelSectionList = std::vector<ELFRelocationSection *>;
   TextSectionList TextSections;
   RelSectionList RelTextSections;
   DataSectionList DataSections;

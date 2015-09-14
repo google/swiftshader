@@ -2496,7 +2496,7 @@ template <class Machine> class InstX86Nop final : public InstX86Base<Machine> {
 
 public:
   // TODO: Replace with enum.
-  typedef unsigned NopVariant;
+  using NopVariant = unsigned;
 
   static InstX86Nop *create(Cfg *Func, NopVariant Variant) {
     return new (Func->allocate<InstX86Nop>()) InstX86Nop(Func, Variant);

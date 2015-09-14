@@ -172,7 +172,7 @@ public:
   };
 
   /// Models the data in a data initializer.
-  typedef std::vector<char> DataVecType;
+  using DataVecType = std::vector<char>;
 
   /// Defines a sequence of byte values as a data initializer.
   class DataInitializer : public Initializer {
@@ -269,7 +269,7 @@ public:
   };
 
   /// Models the list of initializers.
-  typedef std::vector<std::unique_ptr<Initializer>> InitializerListType;
+  using InitializerListType = std::vector<std::unique_ptr<Initializer>>;
 
   static VariableDeclaration *create(GlobalContext *Context) {
     return new (Context->allocate<VariableDeclaration>()) VariableDeclaration();

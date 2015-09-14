@@ -311,7 +311,7 @@ void Cfg::advancedPhiLowering() {
 void Cfg::reorderNodes() {
   // TODO(ascull): it would be nice if the switch tests were always followed
   // by the default case to allow for fall through.
-  typedef std::list<CfgNode *> PlacedList;
+  using PlacedList = std::list<CfgNode *>;
   PlacedList Placed;      // Nodes with relative placement locked down
   PlacedList Unreachable; // Unreachable nodes
   PlacedList::iterator NoPlace = Placed.end();

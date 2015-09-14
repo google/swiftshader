@@ -39,8 +39,8 @@ public:
   static constexpr size_t REGS_SIZE = 32;
 
 private:
-  typedef std::vector<Variable *> OrderedRanges;
-  typedef std::vector<Variable *> UnorderedRanges;
+  using OrderedRanges = std::vector<Variable *>;
+  using UnorderedRanges = std::vector<Variable *>;
 
   class IterationState {
     IterationState(const IterationState &) = delete;

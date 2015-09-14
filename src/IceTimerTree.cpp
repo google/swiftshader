@@ -220,7 +220,7 @@ void TimerStack::reset() {
 
 namespace {
 
-typedef std::multimap<double, IceString> DumpMapType;
+using DumpMapType = std::multimap<double, IceString>;
 
 // Dump the Map items in reverse order of their time contribution.
 void dumpHelper(Ostream &Str, const DumpMapType &Map, double TotalTime) {

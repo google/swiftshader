@@ -163,20 +163,20 @@ public:
   }
 
   // Operations to emit GPR instructions (and dispatch on operand type).
-  typedef void (AssemblerX86Base::*TypedEmitGPR)(Type,
-                                                 typename Traits::GPRRegister);
-  typedef void (AssemblerX86Base::*TypedEmitAddr)(
-      Type, const typename Traits::Address &);
+  using TypedEmitGPR = void (AssemblerX86Base::*)(Type,
+                                                  typename Traits::GPRRegister);
+  using TypedEmitAddr =
+      void (AssemblerX86Base::*)(Type, const typename Traits::Address &);
   struct GPREmitterOneOp {
     TypedEmitGPR Reg;
     TypedEmitAddr Addr;
   };
 
-  typedef void (AssemblerX86Base::*TypedEmitGPRGPR)(
+  using TypedEmitGPRGPR = void (AssemblerX86Base::*)(
       Type, typename Traits::GPRRegister, typename Traits::GPRRegister);
-  typedef void (AssemblerX86Base::*TypedEmitGPRAddr)(
+  using TypedEmitGPRAddr = void (AssemblerX86Base::*)(
       Type, typename Traits::GPRRegister, const typename Traits::Address &);
-  typedef void (AssemblerX86Base::*TypedEmitGPRImm)(
+  using TypedEmitGPRImm = void (AssemblerX86Base::*)(
       Type, typename Traits::GPRRegister, const Immediate &);
   struct GPREmitterRegOp {
     TypedEmitGPRGPR GPRGPR;
@@ -191,7 +191,7 @@ public:
     TypedEmitGPRImm GPRImm;
   };
 
-  typedef void (AssemblerX86Base::*TypedEmitGPRGPRImm)(
+  using TypedEmitGPRGPRImm = void (AssemblerX86Base::*)(
       Type, typename Traits::GPRRegister, typename Traits::GPRRegister,
       const Immediate &);
   struct GPREmitterShiftD {
@@ -201,9 +201,9 @@ public:
     TypedEmitGPRGPRImm GPRGPRImm;
   };
 
-  typedef void (AssemblerX86Base::*TypedEmitAddrGPR)(
+  using TypedEmitAddrGPR = void (AssemblerX86Base::*)(
       Type, const typename Traits::Address &, typename Traits::GPRRegister);
-  typedef void (AssemblerX86Base::*TypedEmitAddrImm)(
+  using TypedEmitAddrImm = void (AssemblerX86Base::*)(
       Type, const typename Traits::Address &, const Immediate &);
   struct GPREmitterAddrOp {
     TypedEmitAddrGPR AddrGPR;
@@ -211,20 +211,20 @@ public:
   };
 
   // Operations to emit XMM instructions (and dispatch on operand type).
-  typedef void (AssemblerX86Base::*TypedEmitXmmXmm)(
+  using TypedEmitXmmXmm = void (AssemblerX86Base::*)(
       Type, typename Traits::XmmRegister, typename Traits::XmmRegister);
-  typedef void (AssemblerX86Base::*TypedEmitXmmAddr)(
+  using TypedEmitXmmAddr = void (AssemblerX86Base::*)(
       Type, typename Traits::XmmRegister, const typename Traits::Address &);
   struct XmmEmitterRegOp {
     TypedEmitXmmXmm XmmXmm;
     TypedEmitXmmAddr XmmAddr;
   };
 
-  typedef void (AssemblerX86Base::*EmitXmmXmm)(typename Traits::XmmRegister,
-                                               typename Traits::XmmRegister);
-  typedef void (AssemblerX86Base::*EmitXmmAddr)(
+  using EmitXmmXmm = void (AssemblerX86Base::*)(typename Traits::XmmRegister,
+                                                typename Traits::XmmRegister);
+  using EmitXmmAddr = void (AssemblerX86Base::*)(
       typename Traits::XmmRegister, const typename Traits::Address &);
-  typedef void (AssemblerX86Base::*EmitAddrXmm)(
+  using EmitAddrXmm = void (AssemblerX86Base::*)(
       const typename Traits::Address &, typename Traits::XmmRegister);
   struct XmmEmitterMovOps {
     EmitXmmXmm XmmXmm;
@@ -232,7 +232,7 @@ public:
     EmitAddrXmm AddrXmm;
   };
 
-  typedef void (AssemblerX86Base::*TypedEmitXmmImm)(
+  using TypedEmitXmmImm = void (AssemblerX86Base::*)(
       Type, typename Traits::XmmRegister, const Immediate &);
 
   struct XmmEmitterShiftOp {
@@ -243,8 +243,9 @@ public:
 
   // Cross Xmm/GPR cast instructions.
   template <typename DReg_t, typename SReg_t> struct CastEmitterRegOp {
-    typedef void (AssemblerX86Base::*TypedEmitRegs)(Type, DReg_t, Type, SReg_t);
-    typedef void (AssemblerX86Base::*TypedEmitAddr)(
+    using TypedEmitRegs = void (AssemblerX86Base::*)(Type, DReg_t, Type,
+                                                     SReg_t);
+    using TypedEmitAddr = void (AssemblerX86Base::*)(
         Type, DReg_t, Type, const typename Traits::Address &);
 
     TypedEmitRegs RegReg;
@@ -254,9 +255,9 @@ public:
   // Three operand (potentially) cross Xmm/GPR instructions.
   // The last operand must be an immediate.
   template <typename DReg_t, typename SReg_t> struct ThreeOpImmEmitter {
-    typedef void (AssemblerX86Base::*TypedEmitRegRegImm)(Type, DReg_t, SReg_t,
-                                                         const Immediate &);
-    typedef void (AssemblerX86Base::*TypedEmitRegAddrImm)(
+    using TypedEmitRegRegImm = void (AssemblerX86Base::*)(Type, DReg_t, SReg_t,
+                                                          const Immediate &);
+    using TypedEmitRegAddrImm = void (AssemblerX86Base::*)(
         Type, DReg_t, const typename Traits::Address &, const Immediate &);
 
     TypedEmitRegRegImm RegRegImm;
@@ -897,7 +898,7 @@ private:
                         const typename Traits::Operand &operand,
                         typename Traits::GPRRegister shifter);
 
-  typedef std::vector<Label *> LabelVector;
+  using LabelVector = std::vector<Label *>;
   // A vector of pool-allocated x86 labels for CFG nodes.
   LabelVector CfgNodeLabels;
   // A vector of pool-allocated x86 labels for Local labels.

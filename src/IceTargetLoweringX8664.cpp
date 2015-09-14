@@ -665,8 +665,8 @@ namespace {
 template <typename T> struct PoolTypeConverter {};
 
 template <> struct PoolTypeConverter<float> {
-  typedef uint32_t PrimitiveIntType;
-  typedef ConstantFloat IceType;
+  using PrimitiveIntType = uint32_t;
+  using IceType = ConstantFloat;
   static const Type Ty = IceType_f32;
   static const char *TypeName;
   static const char *AsmTag;
@@ -677,8 +677,8 @@ const char *PoolTypeConverter<float>::AsmTag = ".long";
 const char *PoolTypeConverter<float>::PrintfString = "0x%x";
 
 template <> struct PoolTypeConverter<double> {
-  typedef uint64_t PrimitiveIntType;
-  typedef ConstantDouble IceType;
+  using PrimitiveIntType = uint64_t;
+  using IceType = ConstantDouble;
   static const Type Ty = IceType_f64;
   static const char *TypeName;
   static const char *AsmTag;
@@ -690,8 +690,8 @@ const char *PoolTypeConverter<double>::PrintfString = "0x%llx";
 
 // Add converter for int type constant pooling
 template <> struct PoolTypeConverter<uint32_t> {
-  typedef uint32_t PrimitiveIntType;
-  typedef ConstantInteger32 IceType;
+  using PrimitiveIntType = uint32_t;
+  using IceType = ConstantInteger32;
   static const Type Ty = IceType_i32;
   static const char *TypeName;
   static const char *AsmTag;
@@ -703,8 +703,8 @@ const char *PoolTypeConverter<uint32_t>::PrintfString = "0x%x";
 
 // Add converter for int type constant pooling
 template <> struct PoolTypeConverter<uint16_t> {
-  typedef uint32_t PrimitiveIntType;
-  typedef ConstantInteger32 IceType;
+  using PrimitiveIntType = uint32_t;
+  using IceType = ConstantInteger32;
   static const Type Ty = IceType_i16;
   static const char *TypeName;
   static const char *AsmTag;
@@ -716,8 +716,8 @@ const char *PoolTypeConverter<uint16_t>::PrintfString = "0x%x";
 
 // Add converter for int type constant pooling
 template <> struct PoolTypeConverter<uint8_t> {
-  typedef uint32_t PrimitiveIntType;
-  typedef ConstantInteger32 IceType;
+  using PrimitiveIntType = uint32_t;
+  using IceType = ConstantInteger32;
   static const Type Ty = IceType_i8;
   static const char *TypeName;
   static const char *AsmTag;

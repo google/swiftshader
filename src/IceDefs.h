@@ -138,42 +138,42 @@ static std::unique_ptr<T> makeUnique(Args &&... TheArgs) {
 
 #define ENABLE_MAKE_UNIQUE friend struct ::Ice::Internal::MakeUniqueEnabler
 
-typedef std::string IceString;
-typedef llvm::ilist<Inst> InstList;
+using IceString = std::string;
+using InstList = llvm::ilist<Inst>;
 // Ideally PhiList would be llvm::ilist<InstPhi>, and similar for
 // AssignList, but this runs into issues with SFINAE.
-typedef InstList PhiList;
-typedef InstList AssignList;
+using PhiList = InstList;
+using AssignList = InstList;
 
 // Containers that are arena-allocated from the Cfg's allocator.
-typedef std::vector<Operand *, CfgLocalAllocator<Operand *>> OperandList;
-typedef std::vector<Variable *, CfgLocalAllocator<Variable *>> VarList;
-typedef std::vector<CfgNode *, CfgLocalAllocator<CfgNode *>> NodeList;
+using OperandList = std::vector<Operand *, CfgLocalAllocator<Operand *>>;
+using VarList = std::vector<Variable *, CfgLocalAllocator<Variable *>>;
+using NodeList = std::vector<CfgNode *, CfgLocalAllocator<CfgNode *>>;
 
 // Contains that use the default (global) allocator.
-typedef std::vector<Constant *> ConstantList;
-typedef std::vector<FunctionDeclaration *> FunctionDeclarationList;
-typedef std::vector<VariableDeclaration *> VariableDeclarationList;
+using ConstantList = std::vector<Constant *>;
+using FunctionDeclarationList = std::vector<FunctionDeclaration *>;
+using VariableDeclarationList = std::vector<VariableDeclaration *>;
 
 /// SizeT is for holding small-ish limits like number of source
 /// operands in an instruction.  It is used instead of size_t (which
 /// may be 64-bits wide) when we want to save space.
-typedef uint32_t SizeT;
+using SizeT = uint32_t;
 
 /// InstNumberT is for holding an instruction number.  Instruction
 /// numbers are used for representing Variable live ranges.
-typedef int32_t InstNumberT;
+using InstNumberT = int32_t;
 
 /// A LiveBeginEndMapEntry maps a Variable::Number value to an
 /// Inst::Number value, giving the instruction number that begins or
 /// ends a variable's live range.
-typedef std::pair<SizeT, InstNumberT> LiveBeginEndMapEntry;
-typedef std::vector<LiveBeginEndMapEntry,
-                    CfgLocalAllocator<LiveBeginEndMapEntry>> LiveBeginEndMap;
-typedef llvm::BitVector LivenessBV;
+using LiveBeginEndMapEntry = std::pair<SizeT, InstNumberT>;
+using LiveBeginEndMap =
+    std::vector<LiveBeginEndMapEntry, CfgLocalAllocator<LiveBeginEndMapEntry>>;
+using LivenessBV = llvm::BitVector;
 
-typedef uint32_t TimerStackIdT;
-typedef uint32_t TimerIdT;
+using TimerStackIdT = uint32_t;
+using TimerIdT = uint32_t;
 
 /// Use alignas(MaxCacheLineSize) to isolate variables/fields that
 /// might be contended while multithreading.  Assumes the maximum cache
@@ -187,7 +187,7 @@ enum { MaxCacheLineSize = 64 };
   __attribute__((aligned(MaxCacheLineSize + 0))) int : 0
 
 /// PNaCl is ILP32, so theoretically we should only need 32-bit offsets.
-typedef int32_t RelocOffsetT;
+using RelocOffsetT = int32_t;
 enum { RelocAddrSize = 4 };
 
 enum LivenessMode {
@@ -229,7 +229,7 @@ enum VerboseItem {
   IceV_All = ~IceV_None,
   IceV_Most = IceV_All & ~IceV_LinearScan
 };
-typedef uint32_t VerboseMask;
+using VerboseMask = uint32_t;
 
 enum FileType {
   FT_Elf, /// ELF .o file
@@ -237,10 +237,10 @@ enum FileType {
   FT_Iasm /// "Integrated assembler" .byte-style .s file
 };
 
-typedef llvm::raw_ostream Ostream;
-typedef llvm::raw_fd_ostream Fdstream;
+using Ostream = llvm::raw_ostream;
+using Fdstream = llvm::raw_fd_ostream;
 
-typedef std::mutex GlobalLockType;
+using GlobalLockType = std::mutex;
 
 enum ErrorCodes { EC_None = 0, EC_Args, EC_Bitcode, EC_Translation };
 

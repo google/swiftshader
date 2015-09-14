@@ -67,7 +67,7 @@
 #include <pthread.h>
 
 #define ICE_TLS_DECLARE_FIELD(Type, FieldName)                                 \
-  typedef Type FieldName##__type;                                              \
+  using FieldName##__type = Type;                                              \
   static pthread_key_t FieldName##__key;                                       \
   static int FieldName##__initStatus
 #define ICE_TLS_DEFINE_FIELD(Type, ClassName, FieldName)                       \
