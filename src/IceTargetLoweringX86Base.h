@@ -187,6 +187,7 @@ protected:
   void prelowerPhis() override;
   void doAddressOptLoad() override;
   void doAddressOptStore() override;
+  void doMockBoundsCheck(Operand *Opnd) override;
   void randomlyInsertNop(float Probability,
                          RandomNumberGenerator &RNG) override;
 

@@ -4066,14 +4066,16 @@ inline void computeAddressOpt(Cfg *Func, const Inst *Instr, Variable *&Base,
   if (Func->getVMetadata()->isMultiBlock(Base) /* || Base->getUseCount() > 1*/)
     return;
 
+  const bool MockBounds = Func->getContext()->getFlags().getMockBoundsCheck();
   const VariablesMetadata *VMetadata = Func->getVMetadata();
   bool Continue = true;
   while (Continue) {
     const Inst *Reason = nullptr;
     if (matchTransitiveAssign(VMetadata, Base, Reason) ||
         matchTransitiveAssign(VMetadata, Index, Reason) ||
-        matchCombinedBaseIndex(VMetadata, Base, Index, Shift, Reason) ||
-        matchShiftedIndex(VMetadata, Index, Shift, Reason) ||
+        (!MockBounds &&
+         matchCombinedBaseIndex(VMetadata, Base, Index, Shift, Reason)) ||
+        (!MockBounds && matchShiftedIndex(VMetadata, Index, Shift, Reason)) ||
         matchOffsetBase(VMetadata, Base, Offset, Reason)) {
       dumpAddressOpt(Func, Base, Index, Shift, Offset, Reason);
     } else {
@@ -4104,6 +4106,65 @@ inline void computeAddressOpt(Cfg *Func, const Inst *Instr, Variable *&Base,
   }
 }
 
+/// Add a mock bounds check on the memory address before using it as a load or
+/// store operand.  The basic idea is that given a memory operand [reg], we
+/// would first add bounds-check code something like:
+///
+///   cmp reg, <lb>
+///   jl out_of_line_error
+///   cmp reg, <ub>
+///   jg out_of_line_error
+///
+/// In reality, the specific code will depend on how <lb> and <ub> are
+/// represented, e.g. an immediate, a global, or a function argument.
+///
+/// As such, we need to enforce that the memory operand does not have the form
+/// [reg1+reg2], because then there is no simple cmp instruction that would
+/// suffice.  However, we consider [reg+offset] to be OK because the offset is
+/// usually small, and so <ub> could have a safety buffer built in and then we
+/// could instead branch to a custom out_of_line_error that does the precise
+/// check and jumps back if it turns out OK.
+///
+/// For the purpose of mocking the bounds check, we'll do something like this:
+///
+///   cmp reg, 0
+///   je label
+///   cmp reg, 1
+///   je label
+///   label:
+///
+/// Also note that we don't need to add a bounds check to a dereference of a
+/// simple global variable address.
+template <class Machine>
+void TargetX86Base<Machine>::doMockBoundsCheck(Operand *Opnd) {
+  if (!Ctx->getFlags().getMockBoundsCheck())
+    return;
+  if (auto *Mem = llvm::dyn_cast<typename Traits::X86OperandMem>(Opnd)) {
+    if (Mem->getIndex()) {
+      llvm::report_fatal_error("doMockBoundsCheck: Opnd contains index reg");
+    }
+    Opnd = Mem->getBase();
+  }
+  // At this point Opnd could be nullptr, or Variable, or Constant, or perhaps
+  // something else.  We only care if it is Variable.
+  auto *Var = llvm::dyn_cast_or_null<Variable>(Opnd);
+  if (Var == nullptr)
+    return;
+  // We use lowerStore() to copy out-args onto the stack.  This creates a memory
+  // operand with the stack pointer as the base register.  Don't do bounds
+  // checks on that.
+  if (Var->getRegNum() == Traits::RegisterSet::Reg_esp)
+    return;
+
+  typename Traits::Insts::Label *Label =
+      Traits::Insts::Label::create(Func, this);
+  _cmp(Opnd, Ctx->getConstantZero(IceType_i32));
+  _br(Traits::Cond::Br_e, Label);
+  _cmp(Opnd, Ctx->getConstantInt32(1));
+  _br(Traits::Cond::Br_e, Label);
+  Context.insert(Label);
+}
+
 template <class Machine>
 void TargetX86Base<Machine>::lowerLoad(const InstLoad *Load) {
   // A Load instruction can be treated the same as an Assign instruction, after
@@ -4114,6 +4175,7 @@ void TargetX86Base<Machine>::lowerLoad(const InstLoad *Load) {
   Variable *DestLoad = Load->getDest();
   Type Ty = DestLoad->getType();
   Operand *Src0 = formMemoryOperand(Load->getSourceAddress(), Ty);
+  doMockBoundsCheck(Src0);
   InstAssign *Assign = InstAssign::create(Func, DestLoad, Src0);
   lowerAssign(Assign);
 }
@@ -4307,6 +4369,7 @@ void TargetX86Base<Machine>::lowerStore(const InstStore *Inst) {
   Operand *Addr = Inst->getAddr();
   typename Traits::X86OperandMem *NewAddr =
       formMemoryOperand(Addr, Value->getType());
+  doMockBoundsCheck(NewAddr);
   Type Ty = NewAddr->getType();
 
   if (!Traits::Is64Bit && Ty == IceType_i64) {
@@ -4661,6 +4724,7 @@ void TargetX86Base<Machine>::lowerRMW(
   Operand *Src = RMW->getData();
   Type Ty = Src->getType();
   typename Traits::X86OperandMem *Addr = formMemoryOperand(RMW->getAddr(), Ty);
+  doMockBoundsCheck(Addr);
   if (!Traits::Is64Bit && Ty == IceType_i64) {
     Src = legalizeUndef(Src);
     Operand *SrcLo = legalize(loOperand(Src), Legal_Reg | Legal_Imm);

@@ -282,6 +282,7 @@ protected:
 
   virtual void doAddressOptLoad() {}
   virtual void doAddressOptStore() {}
+  virtual void doMockBoundsCheck(Operand *) {}
   virtual void randomlyInsertNop(float Probability,
                                  RandomNumberGenerator &RNG) = 0;
   /// This gives the target an opportunity to post-process the lowered

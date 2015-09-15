@@ -96,6 +96,9 @@ cl::opt<bool>
     FunctionSections("ffunction-sections",
                      cl::desc("Emit functions into separate sections"));
 
+cl::opt<bool> MockBoundsCheck("mock-bounds-check",
+                              cl::desc("Mock bounds checking on loads/stores"));
+
 // Number of translation threads (in addition to the parser thread and
 // the emitter thread).  The special case of 0 means purely
 // sequential, i.e. parser, translator, and emitter all within the
@@ -370,6 +373,7 @@ void ClFlags::resetClFlags(ClFlags &OutFlags) {
   OutFlags.ForceMemIntrinOpt = false;
   OutFlags.FunctionSections = false;
   OutFlags.GenerateUnitTestMessages = false;
+  OutFlags.MockBoundsCheck = false;
   OutFlags.PhiEdgeSplit = false;
   OutFlags.RandomNopInsertion = false;
   OutFlags.RandomRegAlloc = false;
@@ -432,6 +436,7 @@ void ClFlags::getParsedClFlags(ClFlags &OutFlags) {
   OutFlags.setFunctionSections(::FunctionSections);
   OutFlags.setNumTranslationThreads(::NumThreads);
   OutFlags.setOptLevel(::OLevel);
+  OutFlags.setMockBoundsCheck(::MockBoundsCheck);
   OutFlags.setPhiEdgeSplit(::EnablePhiEdgeSplit);
   OutFlags.setRandomSeed(::RandomSeed);
   OutFlags.setRandomizeAndPoolImmediatesOption(

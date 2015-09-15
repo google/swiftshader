@@ -87,6 +87,9 @@ public:
     GenerateUnitTestMessages = NewValue;
   }
 
+  bool getMockBoundsCheck() const { return MockBoundsCheck; }
+  void setMockBoundsCheck(bool NewValue) { MockBoundsCheck = NewValue; }
+
   bool getPhiEdgeSplit() const { return PhiEdgeSplit; }
   void setPhiEdgeSplit(bool NewValue) { PhiEdgeSplit = NewValue; }
 
@@ -247,6 +250,7 @@ private:
   bool ForceMemIntrinOpt;
   bool FunctionSections;
   bool GenerateUnitTestMessages;
+  bool MockBoundsCheck;
   bool PhiEdgeSplit;
   bool RandomNopInsertion;
   bool RandomRegAlloc;
