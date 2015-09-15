@@ -748,8 +748,12 @@ void CfgNode::contractIfEmpty() {
     else if (!I.isRedundantAssign())
       return;
   }
-  Branch->setDeleted();
   assert(OutEdges.size() == 1);
+  // Don't try to delete a self-loop.
+  if (OutEdges[0] == this)
+    return;
+
+  Branch->setDeleted();
   CfgNode *Successor = OutEdges.front();
   // Repoint all this node's in-edges to this node's successor, unless
   // this node's successor is actually itself (in which case the
