@@ -92,7 +92,8 @@ public:
   CfgNode *makeNode();
   SizeT getNumNodes() const { return Nodes.size(); }
   const NodeList &getNodes() const { return Nodes; }
-  /// Swap nodes of Cfg with given list of nodes.
+  /// Swap nodes of Cfg with given list of nodes.  The number of nodes must
+  /// remain unchanged.
   void swapNodes(NodeList &NewNodes);
   /// @}
 

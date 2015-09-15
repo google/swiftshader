@@ -76,6 +76,12 @@ cl::opt<bool>
     DumpStats("szstats",
               cl::desc("Print statistics after translating each function"));
 
+// TODO(stichnot): The implementation of block profiling introduces some
+// oddities to be aware of.  First, empty basic blocks that don't normally
+// appear in the asm output, may be profiled anyway, so one might see profile
+// counts for blocks not in the original asm output.  Second, edge-split nodes
+// for advanced phi lowering are added too late, at which point it is not
+// practical to add profiling.
 cl::opt<bool> EnableBlockProfile(
     "enable-block-profile",
     cl::desc("If true, instrument basic blocks, and output profiling "

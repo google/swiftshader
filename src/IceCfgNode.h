@@ -112,7 +112,8 @@ public:
 private:
   CfgNode(Cfg *Func, SizeT LabelIndex);
   Cfg *const Func;
-  SizeT Number; /// label index
+  SizeT Number;            /// invariant: Func->Nodes[Number]==this
+  const SizeT LabelNumber; /// persistent number for label generation
   Cfg::IdentifierIndexType NameIndex =
       Cfg::IdentifierIndexInvalid; /// index into Cfg::NodeNames table
   SizeT LoopNestDepth = 0;         /// the loop nest depth of this node

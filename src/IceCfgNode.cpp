@@ -27,14 +27,14 @@
 namespace Ice {
 
 CfgNode::CfgNode(Cfg *Func, SizeT LabelNumber)
-    : Func(Func), Number(LabelNumber) {}
+    : Func(Func), Number(LabelNumber), LabelNumber(LabelNumber) {}
 
 // Returns the name the node was created with.  If no name was given,
 // it synthesizes a (hopefully) unique name.
 IceString CfgNode::getName() const {
   if (NameIndex >= 0)
     return Func->getIdentifierName(NameIndex);
-  return "__" + std::to_string(getIndex());
+  return "__" + std::to_string(LabelNumber);
 }
 
 // Adds an instruction to either the Phi list or the regular

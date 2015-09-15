@@ -70,6 +70,7 @@ CfgNode *Cfg::makeNode() {
 }
 
 void Cfg::swapNodes(NodeList &NewNodes) {
+  assert(Nodes.size() == NewNodes.size());
   Nodes.swap(NewNodes);
   for (SizeT I = 0, NumNodes = getNumNodes(); I < NumNodes; ++I)
     Nodes[I]->resetIndex(I);
