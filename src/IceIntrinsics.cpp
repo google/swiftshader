@@ -315,17 +315,17 @@ bool Intrinsics::isMemoryOrderValid(IntrinsicID ID, uint64_t Order,
 }
 
 Intrinsics::ValidateCallValue
-Intrinsics::FullIntrinsicInfo::validateCall(const Ice::InstCall *Call,
+Intrinsics::FullIntrinsicInfo::validateCall(const InstCall *Call,
                                             SizeT &ArgIndex) const {
   assert(NumTypes >= 1);
   Variable *Result = Call->getDest();
   if (Result == nullptr) {
-    if (Signature[0] != Ice::IceType_void)
+    if (getReturnType() != IceType_void)
       return Intrinsics::BadReturnType;
-  } else if (Signature[0] != Result->getType()) {
+  } else if (getReturnType() != Result->getType()) {
     return Intrinsics::BadReturnType;
   }
-  if (Call->getNumArgs() + 1 != NumTypes) {
+  if (Call->getNumArgs() != getNumArgs()) {
     return Intrinsics::WrongNumOfArgs;
   }
   for (size_t i = 1; i < NumTypes; ++i) {

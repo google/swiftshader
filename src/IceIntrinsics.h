@@ -140,13 +140,13 @@ public:
 
     /// Returns the return type of the intrinsic.
     Type getReturnType() const {
-      assert(NumTypes > 1);
+      assert(NumTypes > 0);
       return Signature[0];
     }
 
     /// Returns number of arguments expected.
     SizeT getNumArgs() const {
-      assert(NumTypes > 1);
+      assert(NumTypes > 0);
       return NumTypes - 1;
     }
 
