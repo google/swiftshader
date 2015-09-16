@@ -605,7 +605,9 @@ void ELFObjectWriter::setUndefinedSyms(const ConstantList &UndefSyms) {
         Ctx.getIntrinsicsInfo().find(Name, BadIntrinsic);
     if (Info)
       continue;
-    assert(!BadIntrinsic);
+    // Ignore BadIntrinsic, which is set if the name begins with "llvm." but
+    // doesn't match a known intrinsic.  If we want this to turn into an error,
+    // we should catch it early on.
     assert(Sym->getOffset() == 0);
     assert(Sym->getSuppressMangling());
     SymTab->noteUndefinedSym(Name, NullSection);
