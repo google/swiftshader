@@ -9,12 +9,11 @@
 ///
 /// \file
 /// This file declares the TargetLowering, LoweringContext, and
-/// TargetDataLowering classes.  TargetLowering is an abstract class
-/// used to drive the translation/lowering process.  LoweringContext
-/// maintains a context for lowering each instruction, offering
-/// conveniences such as iterating over non-deleted instructions.
-/// TargetDataLowering is an abstract class used to drive the
-/// lowering/emission of global initializers, external global
+/// TargetDataLowering classes. TargetLowering is an abstract class used to
+/// drive the translation/lowering process. LoweringContext maintains a context
+/// for lowering each instruction, offering conveniences such as iterating over
+/// non-deleted instructions. TargetDataLowering is an abstract class used to
+/// drive the lowering/emission of global initializers, external global
 /// declarations, and internal constant pools.
 ///
 //===----------------------------------------------------------------------===//
@@ -29,12 +28,11 @@
 
 namespace Ice {
 
-/// LoweringContext makes it easy to iterate through non-deleted
-/// instructions in a node, and insert new (lowered) instructions at
-/// the current point.  Along with the instruction list container and
-/// associated iterators, it holds the current node, which is needed
-/// when inserting new instructions in order to track whether variables
-/// are used as single-block or multi-block.
+/// LoweringContext makes it easy to iterate through non-deleted instructions in
+/// a node, and insert new (lowered) instructions at the current point. Along
+/// with the instruction list container and associated iterators, it holds the
+/// current node, which is needed when inserting new instructions in order to
+/// track whether variables are used as single-block or multi-block.
 class LoweringContext {
   LoweringContext(const LoweringContext &) = delete;
   LoweringContext &operator=(const LoweringContext &) = delete;
@@ -72,17 +70,16 @@ private:
   /// Node is the argument to Inst::updateVars().
   CfgNode *Node = nullptr;
   Inst *LastInserted = nullptr;
-  /// Cur points to the current instruction being considered.  It is
-  /// guaranteed to point to a non-deleted instruction, or to be End.
+  /// Cur points to the current instruction being considered. It is guaranteed
+  /// to point to a non-deleted instruction, or to be End.
   InstList::iterator Cur;
-  /// Next doubles as a pointer to the next valid instruction (if any),
-  /// and the new-instruction insertion point.  It is also updated for
-  /// the caller in case the lowering consumes more than one high-level
-  /// instruction.  It is guaranteed to point to a non-deleted
-  /// instruction after Cur, or to be End.  TODO: Consider separating
-  /// the notion of "next valid instruction" and "new instruction
-  /// insertion point", to avoid confusion when previously-deleted
-  /// instructions come between the two points.
+  /// Next doubles as a pointer to the next valid instruction (if any), and the
+  /// new-instruction insertion point. It is also updated for the caller in case
+  /// the lowering consumes more than one high-level instruction. It is
+  /// guaranteed to point to a non-deleted instruction after Cur, or to be End.
+  // TODO: Consider separating the notion of "next valid instruction" and "new
+  // instruction insertion point", to avoid confusion when previously-deleted
+  // instructions come between the two points.
   InstList::iterator Next;
   /// Begin is a copy of Insts.begin(), used if iterators are moved backward.
   InstList::iterator Begin;
@@ -159,24 +156,22 @@ public:
   /// Inserts and lowers a single high-level instruction at a specific insertion
   /// point.
   void lowerInst(CfgNode *Node, InstList::iterator Next, InstHighLevel *Instr);
-  /// Does preliminary lowering of the set of Phi instructions in the
-  /// current node.  The main intention is to do what's needed to keep
-  /// the unlowered Phi instructions consistent with the lowered
-  /// non-Phi instructions, e.g. to lower 64-bit operands on a 32-bit
-  /// target.
+  /// Does preliminary lowering of the set of Phi instructions in the current
+  /// node. The main intention is to do what's needed to keep the unlowered Phi
+  /// instructions consistent with the lowered non-Phi instructions, e.g. to
+  /// lower 64-bit operands on a 32-bit target.
   virtual void prelowerPhis() {}
-  /// Tries to do branch optimization on a single instruction.  Returns
-  /// true if some optimization was done.
+  /// Tries to do branch optimization on a single instruction. Returns true if
+  /// some optimization was done.
   virtual bool doBranchOpt(Inst * /*I*/, const CfgNode * /*NextNode*/) {
     return false;
   }
 
   virtual SizeT getNumRegisters() const = 0;
-  /// Returns a variable pre-colored to the specified physical
-  /// register.  This is generally used to get very direct access to
-  /// the register such as in the prolog or epilog or for marking
-  /// scratch registers as killed by a call.  If a Type is not
-  /// provided, a target-specific default type is used.
+  /// Returns a variable pre-colored to the specified physical register. This is
+  /// generally used to get very direct access to the register such as in the
+  /// prolog or epilog or for marking scratch registers as killed by a call. If
+  /// a Type is not provided, a target-specific default type is used.
   virtual Variable *getPhysicalRegister(SizeT RegNum,
                                         Type Ty = IceType_void) = 0;
   /// Returns a printable name for the register.
@@ -187,8 +182,8 @@ public:
   virtual size_t typeWidthInBytesOnStack(Type Ty) const = 0;
 
   bool hasComputedFrame() const { return HasComputedFrame; }
-  /// Returns true if this function calls a function that has the
-  /// "returns twice" attribute.
+  /// Returns true if this function calls a function that has the "returns
+  /// twice" attribute.
   bool callsReturnsTwice() const { return CallsReturnsTwice; }
   void setCallsReturnsTwice(bool RetTwice) { CallsReturnsTwice = RetTwice; }
   int32_t getStackAdjustment() const { return StackAdjustment; }
@@ -220,10 +215,10 @@ public:
                                 const llvm::SmallBitVector &ExcludeRegisters,
                                 uint64_t Salt) const = 0;
 
-  /// Save/restore any mutable state for the situation where code
-  /// emission needs multiple passes, such as sandboxing or relaxation.
-  /// Subclasses may provide their own implementation, but should be
-  /// sure to also call the parent class's methods.
+  /// Save/restore any mutable state for the situation where code emission needs
+  /// multiple passes, such as sandboxing or relaxation. Subclasses may provide
+  /// their own implementation, but should be sure to also call the parent
+  /// class's methods.
   virtual void snapshotEmitState() {
     SnapshotStackAdjustment = StackAdjustment;
   }
@@ -285,30 +280,30 @@ protected:
   virtual void doMockBoundsCheck(Operand *) {}
   virtual void randomlyInsertNop(float Probability,
                                  RandomNumberGenerator &RNG) = 0;
-  /// This gives the target an opportunity to post-process the lowered
-  /// expansion before returning.
+  /// This gives the target an opportunity to post-process the lowered expansion
+  /// before returning.
   virtual void postLower() {}
 
-  /// Find two-address non-SSA instructions and set the DestNonKillable flag
-  /// to keep liveness analysis consistent.
+  /// Find two-address non-SSA instructions and set the DestNonKillable flag to
+  /// keep liveness analysis consistent.
   void inferTwoAddress();
 
-  /// Make a pass over the Cfg to determine which variables need stack slots
-  /// and place them in a sorted list (SortedSpilledVariables). Among those,
-  /// vars, classify the spill variables as local to the basic block vs
-  /// global (multi-block) in order to compute the parameters GlobalsSize
-  /// and SpillAreaSizeBytes (represents locals or general vars if the
-  /// coalescing of locals is disallowed) along with alignments required
-  /// for variables in each area. We rely on accurate VMetadata in order to
-  /// classify a variable as global vs local (otherwise the variable is
-  /// conservatively global). The in-args should be initialized to 0.
+  /// Make a pass over the Cfg to determine which variables need stack slots and
+  /// place them in a sorted list (SortedSpilledVariables). Among those, vars,
+  /// classify the spill variables as local to the basic block vs global
+  /// (multi-block) in order to compute the parameters GlobalsSize and
+  /// SpillAreaSizeBytes (represents locals or general vars if the coalescing of
+  /// locals is disallowed) along with alignments required for variables in each
+  /// area. We rely on accurate VMetadata in order to classify a variable as
+  /// global vs local (otherwise the variable is conservatively global). The
+  /// in-args should be initialized to 0.
   ///
-  /// This is only a pre-pass and the actual stack slot assignment is
-  /// handled separately.
+  /// This is only a pre-pass and the actual stack slot assignment is handled
+  /// separately.
   ///
-  /// There may be target-specific Variable types, which will be handled
-  /// by TargetVarHook. If the TargetVarHook returns true, then the variable
-  /// is skipped and not considered with the rest of the spilled variables.
+  /// There may be target-specific Variable types, which will be handled by
+  /// TargetVarHook. If the TargetVarHook returns true, then the variable is
+  /// skipped and not considered with the rest of the spilled variables.
   void getVarStackSlotParams(VarList &SortedSpilledVariables,
                              llvm::SmallBitVector &RegsUsed,
                              size_t *GlobalsSize, size_t *SpillAreaSizeBytes,
@@ -316,9 +311,9 @@ protected:
                              uint32_t *LocalsSlotsAlignmentBytes,
                              std::function<bool(Variable *)> TargetVarHook);
 
-  /// Calculate the amount of padding needed to align the local and global
-  /// areas to the required alignment.  This assumes the globals/locals layout
-  /// used by getVarStackSlotParams and assignVarStackSlots.
+  /// Calculate the amount of padding needed to align the local and global areas
+  /// to the required alignment. This assumes the globals/locals layout used by
+  /// getVarStackSlotParams and assignVarStackSlots.
   void alignStackSpillAreas(uint32_t SpillAreaStartOffset,
                             uint32_t SpillAreaAlignmentBytes,
                             size_t GlobalsSize,
@@ -326,21 +321,19 @@ protected:
                             uint32_t *SpillAreaPaddingBytes,
                             uint32_t *LocalsSlotsPaddingBytes);
 
-  /// Make a pass through the SortedSpilledVariables and actually assign
-  /// stack slots. SpillAreaPaddingBytes takes into account stack alignment
-  /// padding. The SpillArea starts after that amount of padding.
-  /// This matches the scheme in getVarStackSlotParams, where there may
-  /// be a separate multi-block global var spill area and a local var
-  /// spill area.
+  /// Make a pass through the SortedSpilledVariables and actually assign stack
+  /// slots. SpillAreaPaddingBytes takes into account stack alignment padding.
+  /// The SpillArea starts after that amount of padding. This matches the scheme
+  /// in getVarStackSlotParams, where there may be a separate multi-block global
+  /// var spill area and a local var spill area.
   void assignVarStackSlots(VarList &SortedSpilledVariables,
                            size_t SpillAreaPaddingBytes,
                            size_t SpillAreaSizeBytes,
                            size_t GlobalsAndSubsequentPaddingSize,
                            bool UsesFramePointer);
 
-  /// Sort the variables in Source based on required alignment.
-  /// The variables with the largest alignment need are placed in the front
-  /// of the Dest list.
+  /// Sort the variables in Source based on required alignment. The variables
+  /// with the largest alignment need are placed in the front of the Dest list.
   void sortVarsByAlignment(VarList &Dest, const VarList &Source) const;
 
   /// Make a call to an external helper function.
@@ -362,8 +355,8 @@ protected:
   GlobalContext *Ctx;
   bool HasComputedFrame = false;
   bool CallsReturnsTwice = false;
-  /// StackAdjustment keeps track of the current stack offset from its
-  /// natural location, as arguments are pushed for a function call.
+  /// StackAdjustment keeps track of the current stack offset from its natural
+  /// location, as arguments are pushed for a function call.
   int32_t StackAdjustment = 0;
   SizeT NextLabelNumber = 0;
   SizeT NextJumpTableNumber = 0;
@@ -411,9 +404,9 @@ private:
   int32_t SnapshotStackAdjustment = 0;
 };
 
-/// TargetDataLowering is used for "lowering" data including initializers
-/// for global variables, and the internal constant pools.  It is separated
-/// out from TargetLowering because it does not require a Cfg.
+/// TargetDataLowering is used for "lowering" data including initializers for
+/// global variables, and the internal constant pools. It is separated out from
+/// TargetLowering because it does not require a Cfg.
 class TargetDataLowering {
   TargetDataLowering() = delete;
   TargetDataLowering(const TargetDataLowering &) = delete;
@@ -432,8 +425,8 @@ protected:
   void emitGlobal(const VariableDeclaration &Var,
                   const IceString &SectionSuffix);
 
-  /// For now, we assume .long is the right directive for emitting 4 byte
-  /// emit global relocations. However, LLVM MIPS usually uses .4byte instead.
+  /// For now, we assume .long is the right directive for emitting 4 byte emit
+  /// global relocations. However, LLVM MIPS usually uses .4byte instead.
   /// Perhaps there is some difference when the location is unaligned.
   static const char *getEmit32Directive() { return ".long"; }
 
@@ -441,9 +434,9 @@ protected:
   GlobalContext *Ctx;
 };
 
-/// TargetHeaderLowering is used to "lower" the header of an output file.
-/// It writes out the target-specific header attributes. E.g., for ARM
-/// this writes out the build attributes (float ABI, etc.).
+/// TargetHeaderLowering is used to "lower" the header of an output file. It
+/// writes out the target-specific header attributes. E.g., for ARM this writes
+/// out the build attributes (float ABI, etc.).
 class TargetHeaderLowering {
   TargetHeaderLowering() = delete;
   TargetHeaderLowering(const TargetHeaderLowering &) = delete;

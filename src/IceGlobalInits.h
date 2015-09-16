@@ -8,10 +8,10 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares the representation of function declarations,
-/// global variable declarations, and the corresponding variable
-/// initializers in Subzero. Global variable initializers are
-/// represented as a sequence of simple initializers.
+/// This file declares the representation of function declarations, global
+/// variable declarations, and the corresponding variable initializers in
+/// Subzero. Global variable initializers are represented as a sequence of
+/// simple initializers.
 ///
 //===----------------------------------------------------------------------===//
 
@@ -81,8 +81,8 @@ public:
   /// Returns true if when emitting names, we should suppress mangling.
   virtual bool getSuppressMangling() const = 0;
 
-  /// Mangles name for cross tests, unless external and not defined locally
-  /// (so that relocations accross pnacl-sz and pnacl-llc will work).
+  /// Mangles name for cross tests, unless external and not defined locally (so
+  /// that relocations across pnacl-sz and pnacl-llc will work).
   virtual IceString mangleName(GlobalContext *Ctx) const {
     return getSuppressMangling() ? Name : Ctx->mangleName(Name);
   }
@@ -97,8 +97,8 @@ protected:
   llvm::GlobalValue::LinkageTypes Linkage;
 };
 
-/// Models a function declaration. This includes the type signature of
-/// the function, its calling conventions, and its linkage.
+/// Models a function declaration. This includes the type signature of the
+/// function, its calling conventions, and its linkage.
 class FunctionDeclaration : public GlobalDeclaration {
   FunctionDeclaration() = delete;
   FunctionDeclaration(const FunctionDeclaration &) = delete;
@@ -286,8 +286,7 @@ public:
              llvm::isa<ZeroInitializer>((*Initializers)[0].get()));
   }
 
-  /// Returns the number of bytes for the initializer of the global
-  /// address.
+  /// Returns the number of bytes for the initializer of the global address.
   SizeT getNumBytes() const {
     SizeT Count = 0;
     for (const std::unique_ptr<Initializer> &Init : *Initializers) {
@@ -296,19 +295,18 @@ public:
     return Count;
   }
 
-  /// Adds Initializer to the list of initializers. Takes ownership of
-  /// the initializer.
+  /// Adds Initializer to the list of initializers. Takes ownership of the
+  /// initializer.
   void addInitializer(std::unique_ptr<Initializer> Initializer) {
     Initializers->emplace_back(std::move(Initializer));
     HasInitializer = true;
   }
 
-  /// Prints out type for initializer associated with the declaration
-  /// to Stream.
+  /// Prints out type for initializer associated with the declaration to Stream.
   void dumpType(Ostream &Stream) const final;
 
-  /// Prints out the definition of the global variable declaration
-  /// (including initialization).
+  /// Prints out the definition of the global variable declaration (including
+  /// initialization).
   void dump(GlobalContext *Ctx, Ostream &Stream) const final;
 
   static bool classof(const GlobalDeclaration *Addr) {

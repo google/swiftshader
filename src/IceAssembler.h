@@ -15,9 +15,9 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares the Assembler base class.  Instructions are assembled
-/// by architecture-specific assemblers that derive from this base class.
-/// This base class manages buffers and fixups for emitting code, etc.
+/// This file declares the Assembler base class. Instructions are assembled by
+/// architecture-specific assemblers that derive from this base class. This base
+/// class manages buffers and fixups for emitting code, etc.
 ///
 //===----------------------------------------------------------------------===//
 
@@ -55,7 +55,7 @@ public:
   }
 
   /// Returns the position of an earlier branch instruction that was linked to
-  /// this label (branches that use this are considered forward branches).  The
+  /// this label (branches that use this are considered forward branches). The
   /// linked instructions form a linked list, of sorts, using the instruction's
   /// displacement field for the location of the next instruction that is also
   /// linked to this label.
@@ -200,8 +200,8 @@ private:
     return (Limit - Contents) + kMinimumGap;
   }
 
-  /// Compute the limit based on the data area and the capacity. See
-  /// description of kMinimumGap for the reasoning behind the value.
+  /// Compute the limit based on the data area and the capacity. See description
+  /// of kMinimumGap for the reasoning behind the value.
   static uintptr_t computeLimit(uintptr_t Data, intptr_t Capacity) {
     return Data + Capacity - kMinimumGap;
   }
@@ -226,12 +226,12 @@ public:
 
   /// Allocate a chunk of bytes using the per-Assembler allocator.
   uintptr_t allocateBytes(size_t bytes) {
-    // For now, alignment is not related to NaCl bundle alignment, since
-    // the buffer's GetPosition is relative to the base. So NaCl bundle
-    // alignment checks can be relative to that base. Later, the buffer
-    // will be copied out to a ".text" section (or an in memory-buffer
-    // that can be mprotect'ed with executable permission), and that
-    // second buffer should be aligned for NaCl.
+    // For now, alignment is not related to NaCl bundle alignment, since the
+    // buffer's GetPosition is relative to the base. So NaCl bundle alignment
+    // checks can be relative to that base. Later, the buffer will be copied
+    // out to a ".text" section (or an in memory-buffer that can be mprotect'ed
+    // with executable permission), and that second buffer should be aligned
+    // for NaCl.
     const size_t Alignment = 16;
     return reinterpret_cast<uintptr_t>(Allocator.Allocate(bytes, Alignment));
   }
@@ -257,8 +257,8 @@ public:
 
   /// Get the label for a CfgNode.
   virtual Label *getCfgNodeLabel(SizeT NodeNumber) = 0;
-  /// Mark the current text location as the start of a CFG node
-  /// (represented by NodeNumber).
+  /// Mark the current text location as the start of a CFG node (represented by
+  /// NodeNumber).
   virtual void bindCfgNodeLabel(SizeT NodeNumber) = 0;
 
   virtual bool fixupIsPCRel(FixupKind Kind) const = 0;
@@ -293,15 +293,15 @@ private:
   const AssemblerKind Kind;
 
   ArenaAllocator<32 * 1024> Allocator;
-  /// FunctionName and IsInternal are transferred from the original Cfg
-  /// object, since the Cfg object may be deleted by the time the
-  /// assembler buffer is emitted.
+  /// FunctionName and IsInternal are transferred from the original Cfg object,
+  /// since the Cfg object may be deleted by the time the assembler buffer is
+  /// emitted.
   IceString FunctionName = "";
   bool IsInternal = false;
-  /// Preliminary indicates whether a preliminary pass is being made
-  /// for calculating bundle padding (Preliminary=true), versus the
-  /// final pass where all changes to label bindings, label links, and
-  /// relocation fixups are fully committed (Preliminary=false).
+  /// Preliminary indicates whether a preliminary pass is being made for
+  /// calculating bundle padding (Preliminary=true), versus the final pass where
+  /// all changes to label bindings, label links, and relocation fixups are
+  /// fully committed (Preliminary=false).
   bool Preliminary = false;
 
 protected:

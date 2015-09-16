@@ -1068,9 +1068,8 @@ void AssemblerX86Base<Machine>::psrl(Type Ty, typename Traits::XmmRegister dst,
 }
 
 // {add,sub,mul,div}ps are given a Ty parameter for consistency with
-// {add,sub,mul,div}ss. In the future, when the PNaCl ABI allows
-// addpd, etc., we can use the Ty parameter to decide on adding
-// a 0x66 prefix.
+// {add,sub,mul,div}ss. In the future, when the PNaCl ABI allows addpd, etc.,
+// we can use the Ty parameter to decide on adding a 0x66 prefix.
 template <class Machine>
 void AssemblerX86Base<Machine>::addps(Type /* Ty */,
                                       typename Traits::XmmRegister dst,
@@ -1836,8 +1835,8 @@ void AssemblerX86Base<Machine>::pextr(Type Ty, typename Traits::GPRRegister dst,
     emitUint8(0x0F);
     emitUint8(0x3A);
     emitUint8(isByteSizedType(Ty) ? 0x14 : 0x16);
-    // SSE 4.1 versions are "MRI" because dst can be mem, while
-    // pextrw (SSE2) is RMI because dst must be reg.
+    // SSE 4.1 versions are "MRI" because dst can be mem, while pextrw (SSE2)
+    // is RMI because dst must be reg.
     emitXmmRegisterOperand(src, dst);
     emitUint8(imm.value());
   }
@@ -2147,11 +2146,11 @@ template <class Machine>
 void AssemblerX86Base<Machine>::test(Type Ty, typename Traits::GPRRegister reg,
                                      const Immediate &immediate) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  // For registers that have a byte variant (EAX, EBX, ECX, and EDX)
-  // we only test the byte register to keep the encoding short.
-  // This is legal even if the register had high bits set since
-  // this only sets flags registers based on the "AND" of the two operands,
-  // and the immediate had zeros at those high bits.
+  // For registers that have a byte variant (EAX, EBX, ECX, and EDX) we only
+  // test the byte register to keep the encoding short. This is legal even if
+  // the register had high bits set since this only sets flags registers based
+  // on the "AND" of the two operands, and the immediate had zeros at those
+  // high bits.
   if (immediate.is_uint8() && reg <= Traits::Last8BitGPR) {
     // Use zero-extended 8-bit immediate.
     emitRexB(Ty, reg);
@@ -2183,8 +2182,8 @@ void AssemblerX86Base<Machine>::test(Type Ty,
                                      const typename Traits::Address &addr,
                                      const Immediate &immediate) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  // If the immediate is short, we only test the byte addr to keep the
-  // encoding short.
+  // If the immediate is short, we only test the byte addr to keep the encoding
+  // short.
   if (immediate.is_uint8()) {
     // Use zero-extended 8-bit immediate.
     emitRex(Ty, addr, RexRegIrrelevant);
@@ -3016,10 +3015,10 @@ void AssemblerX86Base<Machine>::j(typename Traits::Cond::BrCond condition,
       // TODO(stichnot): Here and in jmp(), we may need to be more
       // conservative about the backward branch distance if the branch
       // instruction is within a bundle_lock sequence, because the
-      // distance may increase when padding is added.  This isn't an
-      // issue for branches outside a bundle_lock, because if padding
-      // is added, the retry may change it to a long backward branch
-      // without affecting any of the bookkeeping.
+      // distance may increase when padding is added. This isn't an issue for
+      // branches outside a bundle_lock, because if padding is added, the retry
+      // may change it to a long backward branch without affecting any of the
+      // bookkeeping.
       emitUint8(0x70 + condition);
       emitUint8((offset - kShortSize) & 0xFF);
     } else {

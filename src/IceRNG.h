@@ -52,9 +52,9 @@ private:
   uint64_t State;
 };
 
-/// This class adds additional random number generator utilities. The
-/// reason for the wrapper class is that we want to keep the
-/// RandomNumberGenerator interface identical to LLVM's.
+/// This class adds additional random number generator utilities. The reason for
+/// the wrapper class is that we want to keep the RandomNumberGenerator
+/// interface identical to LLVM's.
 class RandomNumberGeneratorWrapper {
   RandomNumberGeneratorWrapper() = delete;
   RandomNumberGeneratorWrapper(const RandomNumberGeneratorWrapper &) = delete;
@@ -71,9 +71,9 @@ private:
   RandomNumberGenerator &RNG;
 };
 
-/// RandomShuffle is an implementation of std::random_shuffle() that
-/// doesn't change across stdlib implementations.  Adapted from a
-/// sample implementation at cppreference.com.
+/// RandomShuffle is an implementation of std::random_shuffle() that doesn't
+/// change across stdlib implementations. Adapted from a sample implementation
+/// at cppreference.com.
 template <class RandomIt, class RandomFunc>
 void RandomShuffle(RandomIt First, RandomIt Last, RandomFunc &&RNG) {
   for (auto i = Last - First - 1; i > 0; --i)

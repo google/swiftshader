@@ -8,8 +8,8 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares aspects of the compilation that persist across
-/// multiple functions.
+/// This file declares aspects of the compilation that persist across multiple
+/// functions.
 ///
 //===----------------------------------------------------------------------===//
 
@@ -186,9 +186,10 @@ public:
   /// translators using the same bitcode as input.
   IceString mangleName(const IceString &Name) const;
 
-  // Manage Constants.
-  // getConstant*() functions are not const because they might add
-  // something to the constant pool.
+  /// \name Manage Constants.
+  /// @{
+  // getConstant*() functions are not const because they might add something to
+  // the constant pool.
   Constant *getConstantInt(Type Ty, int64_t Value);
   Constant *getConstantInt1(int8_t ConstantInt1);
   Constant *getConstantInt8(int8_t ConstantInt8);
@@ -205,11 +206,12 @@ public:
   Constant *getConstantUndef(Type Ty);
   /// Returns a zero value.
   Constant *getConstantZero(Type Ty);
-  /// getConstantPool() returns a copy of the constant pool for
-  /// constants of a given type.
+  /// getConstantPool() returns a copy of the constant pool for constants of a
+  /// given type.
   ConstantList getConstantPool(Type Ty);
   /// Returns a copy of the list of external symbols.
   ConstantList getConstantExternSyms();
+  /// @}
 
   /// Return a locked pointer to the registered jump tables.
   JumpTableDataList getJumpTables();
@@ -299,36 +301,35 @@ public:
   /// These are predefined TimerStackIdT values.
   enum TimerStackKind { TSK_Default = 0, TSK_Funcs, TSK_Num };
 
-  /// newTimerStackID() creates a new TimerStack in the global space.
-  /// It does not affect any TimerStack objects in TLS.
+  /// newTimerStackID() creates a new TimerStack in the global space. It does
+  /// not affect any TimerStack objects in TLS.
   TimerStackIdT newTimerStackID(const IceString &Name);
-  /// dumpTimers() dumps the global timer data.  As such, one probably
-  /// wants to call mergeTimerStacks() as a prerequisite.
+  /// dumpTimers() dumps the global timer data. As such, one probably wants to
+  /// call mergeTimerStacks() as a prerequisite.
   void dumpTimers(TimerStackIdT StackID = TSK_Default,
                   bool DumpCumulative = true);
-  /// The following methods affect only the calling thread's TLS timer
-  /// data.
+  /// The following methods affect only the calling thread's TLS timer data.
   TimerIdT getTimerID(TimerStackIdT StackID, const IceString &Name);
   void pushTimer(TimerIdT ID, TimerStackIdT StackID);
   void popTimer(TimerIdT ID, TimerStackIdT StackID);
   void resetTimer(TimerStackIdT StackID);
   void setTimerName(TimerStackIdT StackID, const IceString &NewName);
 
-  /// This is the first work item sequence number that the parser
-  /// produces, and correspondingly the first sequence number that the
-  /// emitter thread will wait for.  Start numbering at 1 to leave room
-  /// for a sentinel, in case e.g. we wish to inject items with a
-  /// special sequence number that may be executed out of order.
+  /// This is the first work item sequence number that the parser produces, and
+  /// correspondingly the first sequence number that the emitter thread will
+  /// wait for. Start numbering at 1 to leave room for a sentinel, in case e.g.
+  /// we wish to inject items with a special sequence number that may be
+  /// executed out of order.
   static uint32_t getFirstSequenceNumber() { return 1; }
-  /// Adds a newly parsed and constructed function to the Cfg work
-  /// queue.  Notifies any idle workers that a new function is
-  /// available for translating.  May block if the work queue is too
-  /// large, in order to control memory footprint.
+  /// Adds a newly parsed and constructed function to the Cfg work queue.
+  /// Notifies any idle workers that a new function is available for
+  /// translating. May block if the work queue is too large, in order to control
+  /// memory footprint.
   void optQueueBlockingPush(std::unique_ptr<Cfg> Func);
-  /// Takes a Cfg from the work queue for translating.  May block if
-  /// the work queue is currently empty.  Returns nullptr if there is
-  /// no more work - the queue is empty and either end() has been
-  /// called or the Sequential flag was set.
+  /// Takes a Cfg from the work queue for translating. May block if the work
+  /// queue is currently empty. Returns nullptr if there is no more work - the
+  /// queue is empty and either end() has been called or the Sequential flag was
+  /// set.
   std::unique_ptr<Cfg> optQueueBlockingPop();
   /// Notifies that no more work will be added to the work queue.
   void optQueueNotifyEnd() { OptQ.notifyEnd(); }
@@ -378,8 +379,8 @@ public:
     }
     TranslationThreads.clear();
 
-    // Only notify the emit queue to end after all the translation
-    // threads have ended.
+    // Only notify the emit queue to end after all the translation threads have
+    // ended.
     emitQueueNotifyEnd();
     for (std::thread &Worker : EmitterThreads) {
       Worker.join();
@@ -392,8 +393,8 @@ public:
         Timers->mergeFrom(TLS->Timers);
     }
     if (BuildDefs::dump()) {
-      // Do a separate loop over AllThreadContexts to avoid holding
-      // two locks at once.
+      // Do a separate loop over AllThreadContexts to avoid holding two locks
+      // at once.
       auto Stats = getStatsCumulative();
       for (ThreadContext *TLS : AllThreadContexts)
         Stats->add(TLS->StatsCumulative);
@@ -413,8 +414,8 @@ public:
     ICE_TLS_SET_FIELD(TLS, MyTLS);
     emitItems();
   }
-  /// Emit functions and global initializers from the emitter queue
-  /// until the queue is empty.
+  /// Emit functions and global initializers from the emitter queue until the
+  /// queue is empty.
   void emitItems();
 
   /// Uses DataLowering to lower Globals. Side effects:
@@ -425,12 +426,11 @@ public:
   /// Lowers the profile information.
   void lowerProfileData();
 
-  /// Utility function to match a symbol name against a match string.
-  /// This is used in a few cases where we want to take some action on
-  /// a particular function or symbol based on a command-line argument,
-  /// such as changing the verbose level for a particular function.  An
-  /// empty Match argument means match everything.  Returns true if
-  /// there is a match.
+  /// Utility function to match a symbol name against a match string. This is
+  /// used in a few cases where we want to take some action on a particular
+  /// function or symbol based on a command-line argument, such as changing the
+  /// verbose level for a particular function. An empty Match argument means
+  /// match everything. Returns true if there is a match.
   static bool matchSymbolName(const IceString &SymbolName,
                               const IceString &Match) {
     return Match.empty() || Match == SymbolName;
@@ -552,9 +552,9 @@ public:
   static void TlsInit() { ICE_TLS_INIT_FIELD(TLS); }
 };
 
-/// Helper class to push and pop a timer marker.  The constructor
-/// pushes a marker, and the destructor pops it.  This is for
-/// convenient timing of regions of code.
+/// Helper class to push and pop a timer marker. The constructor pushes a
+/// marker, and the destructor pops it. This is for convenient timing of regions
+/// of code.
 class TimerMarker {
   TimerMarker() = delete;
   TimerMarker(const TimerMarker &) = delete;
@@ -589,8 +589,7 @@ private:
   bool Active = false;
 };
 
-/// Helper class for locking the streams and then automatically
-/// unlocking them.
+/// Helper class for locking the streams and then automatically unlocking them.
 class OstreamLocker {
 private:
   OstreamLocker() = delete;

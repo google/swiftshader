@@ -7,8 +7,8 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// This file lists predefined timing tags.  New tags can be added to
-// avoid a runtime string lookup.
+// This file lists predefined timing tags. New tags can be added to avoid a
+// runtime string lookup.
 //
 //===----------------------------------------------------------------------===//
 

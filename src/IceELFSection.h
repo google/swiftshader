@@ -36,15 +36,15 @@ class ELFSection {
 public:
   virtual ~ELFSection() = default;
 
-  /// Sentinel value for a section number/index for before the final
-  /// section index is actually known. The dummy NULL section will be assigned
-  /// number 0, and it is referenced by the dummy 0-th symbol in the symbol
-  /// table, so use max() instead of 0.
+  /// Sentinel value for a section number/index for before the final section
+  /// index is actually known. The dummy NULL section will be assigned number 0,
+  /// and it is referenced by the dummy 0-th symbol in the symbol table, so use
+  /// max() instead of 0.
   enum { NoSectionNumber = std::numeric_limits<SizeT>::max() };
 
-  /// Constructs an ELF section, filling in fields that will be known
-  /// once the *type* of section is decided.  Other fields may be updated
-  /// incrementally or only after the program is completely defined.
+  /// Constructs an ELF section, filling in fields that will be known once the
+  /// *type* of section is decided. Other fields may be updated incrementally or
+  /// only after the program is completely defined.
   ELFSection(const IceString &Name, Elf64_Word ShType, Elf64_Xword ShFlags,
              Elf64_Xword ShAddralign, Elf64_Xword ShEntsize)
       : Name(Name), Header() {
@@ -84,8 +84,8 @@ public:
   template <bool IsELF64> void writeHeader(ELFStreamer &Str);
 
 protected:
-  /// Name of the section in convenient string form (instead of a index
-  /// into the Section Header String Table, which is not known till later).
+  /// Name of the section in convenient string form (instead of a index into the
+  /// Section Header String Table, which is not known till later).
   const IceString Name;
 
   // The fields of the header. May only be partially initialized, but should
@@ -96,8 +96,8 @@ protected:
   SizeT Number = NoSectionNumber;
 };
 
-/// Models text/code sections. Code is written out incrementally and the
-/// size of the section is then updated incrementally.
+/// Models text/code sections. Code is written out incrementally and the size of
+/// the section is then updated incrementally.
 class ELFTextSection : public ELFSection {
   ELFTextSection() = delete;
   ELFTextSection(const ELFTextSection &) = delete;
@@ -109,9 +109,9 @@ public:
   void appendData(ELFStreamer &Str, const llvm::StringRef MoreData);
 };
 
-/// Models data/rodata sections. Data is written out incrementally and the
-/// size of the section is then updated incrementally.
-/// Some rodata sections may have fixed entsize and duplicates may be mergeable.
+/// Models data/rodata sections. Data is written out incrementally and the size
+/// of the section is then updated incrementally. Some rodata sections may have
+/// fixed entsize and duplicates may be mergeable.
 class ELFDataSection : public ELFSection {
   ELFDataSection() = delete;
   ELFDataSection(const ELFDataSection &) = delete;
@@ -128,8 +128,8 @@ public:
                               RelocOffsetT RelocOffset);
 
   /// Pad the next section offset for writing data elements to the requested
-  /// alignment. If the section is NOBITS then do not actually write out
-  /// the padding and only update the section size.
+  /// alignment. If the section is NOBITS then do not actually write out the
+  /// padding and only update the section size.
   void padToAlignment(ELFStreamer &Str, Elf64_Xword Align);
 };
 
@@ -141,8 +141,8 @@ struct ELFSym {
   ELFSection *Section;
   SizeT Number;
 
-  /// Sentinel value for symbols that haven't been assigned a number yet.
-  /// The dummy 0-th symbol will be assigned number 0, so don't use that.
+  /// Sentinel value for symbols that haven't been assigned a number yet. The
+  /// dummy 0-th symbol will be assigned number 0, so don't use that.
   enum { UnknownNumber = std::numeric_limits<SizeT>::max() };
 
   void setNumber(SizeT N) {
@@ -170,16 +170,15 @@ public:
       : ELFSection(Name, ShType, ShFlags, ShAddralign, ShEntsize),
         NullSymbol(nullptr) {}
 
-  /// Create initial entry for a symbol when it is defined.
-  /// Each entry should only be defined once.
-  /// We might want to allow Name to be a dummy name initially, then
-  /// get updated to the real thing, since Data initializers are read
-  /// before the bitcode's symbol table is read.
+  /// Create initial entry for a symbol when it is defined. Each entry should
+  /// only be defined once. We might want to allow Name to be a dummy name
+  /// initially, then get updated to the real thing, since Data initializers are
+  /// read before the bitcode's symbol table is read.
   void createDefinedSym(const IceString &Name, uint8_t Type, uint8_t Binding,
                         ELFSection *Section, RelocOffsetT Offset, SizeT Size);
 
-  /// Note that a symbol table entry needs to be created for the given
-  /// symbol because it is undefined.
+  /// Note that a symbol table entry needs to be created for the given symbol
+  /// because it is undefined.
   void noteUndefinedSym(const IceString &Name, ELFSection *NullSection);
 
   const ELFSym *findSymbol(const IceString &Name) const;
@@ -198,8 +197,8 @@ public:
   void writeData(ELFStreamer &Str, bool IsELF64);
 
 private:
-  // Map from symbol name to its symbol information.
-  // This assumes symbols are unique across all sections.
+  // Map from symbol name to its symbol information. This assumes symbols are
+  // unique across all sections.
   using SymtabKey = IceString;
   using SymMap = std::map<SymtabKey, ELFSym>;
 
@@ -207,8 +206,8 @@ private:
   void writeSymbolMap(ELFStreamer &Str, const SymMap &Map);
 
   const ELFSym *NullSymbol;
-  // Keep Local and Global symbols separate, since the sh_info needs to
-  // know the index of the last LOCAL.
+  // Keep Local and Global symbols separate, since the sh_info needs to know
+  // the index of the last LOCAL.
   SymMap LocalSymbols;
   SymMap GlobalSymbols;
 };
@@ -231,8 +230,8 @@ public:
     RelatedSection = Section;
   }
 
-  /// Track additional relocations which start out relative to offset 0,
-  /// but should be adjusted to be relative to BaseOff.
+  /// Track additional relocations which start out relative to offset 0, but
+  /// should be adjusted to be relative to BaseOff.
   void addRelocations(RelocOffsetT BaseOff, const FixupRefList &FixupRefs);
 
   /// Track a single additional relocation.
@@ -251,12 +250,11 @@ private:
   FixupList Fixups;
 };
 
-/// Models a string table.  The user will build the string table by
-/// adding strings incrementally.  At some point, all strings should be
-/// known and doLayout() should be called. After that, no other
-/// strings may be added.  However, the final offsets of the strings
-/// can be discovered and used to fill out section headers and symbol
-/// table entries.
+/// Models a string table. The user will build the string table by adding
+/// strings incrementally. At some point, all strings should be known and
+/// doLayout() should be called. After that, no other strings may be added.
+/// However, the final offsets of the strings can be discovered and used to fill
+/// out section headers and symbol table entries.
 class ELFStringTableSection : public ELFSection {
   ELFStringTableSection() = delete;
   ELFStringTableSection(const ELFStringTableSection &) = delete;
@@ -271,12 +269,12 @@ public:
   /// Finalizes the layout of the string table and fills in the section Data.
   void doLayout();
 
-  /// The first byte of the string table should be \0, so it is an
-  /// invalid index.  Indices start out as unknown until layout is complete.
+  /// The first byte of the string table should be \0, so it is an invalid
+  /// index. Indices start out as unknown until layout is complete.
   enum { UnknownIndex = 0 };
 
-  /// Grabs the final index of a string after layout. Returns UnknownIndex
-  /// if the string's index is not found.
+  /// Grabs the final index of a string after layout. Returns UnknownIndex if
+  /// the string's index is not found.
   size_t getIndex(const IceString &Str) const;
 
   llvm::StringRef getSectionData() const {
@@ -290,19 +288,19 @@ public:
 private:
   bool isLaidOut() const { return !StringData.empty(); }
 
-  /// Strings can share a string table entry if they share the same
-  /// suffix.  E.g., "pop" and "lollipop" can both use the characters
-  /// in "lollipop", but "pops" cannot, and "unpop" cannot either.
-  /// Though, "pop", "lollipop", and "unpop" share "pop" as the suffix,
-  /// "pop" can only share the characters with one of them.
+  /// Strings can share a string table entry if they share the same suffix.
+  /// E.g., "pop" and "lollipop" can both use the characters in "lollipop", but
+  /// "pops" cannot, and "unpop" cannot either. Though, "pop", "lollipop", and
+  /// "unpop" share "pop" as the suffix, "pop" can only share the characters
+  /// with one of them.
   struct SuffixComparator {
     bool operator()(const IceString &StrA, const IceString &StrB) const;
   };
 
   using StringToIndexType = std::map<IceString, size_t, SuffixComparator>;
 
-  /// Track strings to their index.  Index will be UnknownIndex if not
-  /// yet laid out.
+  /// Track strings to their index. Index will be UnknownIndex if not yet laid
+  /// out.
   StringToIndexType StringToIndexMap;
 
   using RawDataType = std::vector<uint8_t>;

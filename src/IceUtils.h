@@ -19,11 +19,10 @@
 
 namespace Ice {
 
-/// Similar to bit_cast, but allows copying from types of unrelated
-/// sizes. This method was introduced to enable the strict aliasing
-/// optimizations of GCC 4.4. Basically, GCC mindlessly relies on
-/// obscure details in the C++ standard that make reinterpret_cast
-/// virtually useless.
+/// Similar to bit_cast, but allows copying from types of unrelated sizes. This
+/// method was introduced to enable the strict aliasing optimizations of GCC
+/// 4.4. Basically, GCC mindlessly relies on obscure details in the C++ standard
+/// that make reinterpret_cast virtually useless.
 template <class D, class S> inline D bit_copy(const S &source) {
   D destination;
   // This use of memcpy is safe: source and destination cannot overlap.
@@ -63,8 +62,8 @@ public:
     return IsUint(N, Value);
   }
 
-  /// Return true if the addition X + Y will cause integer overflow for
-  /// integers of type T.
+  /// Return true if the addition X + Y will cause integer overflow for integers
+  /// of type T.
   template <typename T> static inline bool WouldOverflowAdd(T X, T Y) {
     return ((X > 0 && Y > 0 && (X > std::numeric_limits<T>::max() - Y)) ||
             (X < 0 && Y < 0 && (X < std::numeric_limits<T>::min() - Y)));

@@ -52,8 +52,8 @@ public:
     return UsesFramePointer ? RegMIPS32::Reg_FP : RegMIPS32::Reg_SP;
   }
   size_t typeWidthInBytesOnStack(Type Ty) const override {
-    // Round up to the next multiple of 4 bytes.  In particular, i1,
-    // i8, and i16 are rounded up to 4 bytes.
+    // Round up to the next multiple of 4 bytes. In particular, i1, i8, and i16
+    // are rounded up to 4 bytes.
     return (typeWidthInBytes(Ty) + 3) & ~3;
   }
 

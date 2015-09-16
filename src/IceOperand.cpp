@@ -48,10 +48,9 @@ void LiveRange::addSegment(InstNumberT Start, InstNumberT End) {
   Range.push_back(RangeElementType(Start, End));
 }
 
-// Returns true if this live range ends before Other's live range
-// starts.  This means that the highest instruction number in this
-// live range is less than or equal to the lowest instruction number
-// of the Other live range.
+// Returns true if this live range ends before Other's live range starts. This
+// means that the highest instruction number in this live range is less than or
+// equal to the lowest instruction number of the Other live range.
 bool LiveRange::endsBefore(const LiveRange &Other) const {
   // Neither range should be empty, but let's be graceful.
   if (Range.empty() || Other.Range.empty())
@@ -94,10 +93,10 @@ bool LiveRange::overlapsInst(InstNumberT OtherBegin, bool UseTrimmed) const {
       break;
     }
   }
-  // This is an equivalent but less inefficient implementation.  It's
-  // expensive enough that we wouldn't want to run it under any build,
-  // but it could be enabled if e.g. the LiveRange implementation
-  // changes and extra testing is needed.
+  // This is an equivalent but less inefficient implementation. It's expensive
+  // enough that we wouldn't want to run it under any build, but it could be
+  // enabled if e.g. the LiveRange implementation changes and extra testing is
+  // needed.
   if (BuildDefs::extraValidation()) {
     LiveRange Temp;
     Temp.addSegment(OtherBegin, OtherBegin + 1);
@@ -108,11 +107,10 @@ bool LiveRange::overlapsInst(InstNumberT OtherBegin, bool UseTrimmed) const {
   return Result;
 }
 
-// Returns true if the live range contains the given instruction
-// number.  This is only used for validating the live range
-// calculation.  The IsDest argument indicates whether the Variable
-// being tested is used in the Dest position (as opposed to a Src
-// position).
+// Returns true if the live range contains the given instruction number. This
+// is only used for validating the live range calculation. The IsDest argument
+// indicates whether the Variable being tested is used in the Dest position (as
+// opposed to a Src position).
 bool LiveRange::containsValue(InstNumberT Value, bool IsDest) const {
   for (const RangeElementType &I : Range) {
     if (I.first <= Value &&
@@ -134,8 +132,8 @@ IceString Variable::getName(const Cfg *Func) const {
 }
 
 Variable *Variable::asType(Type Ty) {
-  // Note: This returns a Variable, even if the "this" object is a
-  // subclass of Variable.
+  // Note: This returns a Variable, even if the "this" object is a subclass of
+  // Variable.
   if (!BuildDefs::dump() || getType() == Ty)
     return this;
   Variable *V = new (getCurrentCfgAllocator()->Allocate<Variable>())
@@ -171,20 +169,19 @@ void VariableTracking::markUse(MetadataKind TrackingKind, const Inst *Instr,
 
   if (MultiBlock == MBS_MultiBlock)
     return;
-  // TODO(stichnot): If the use occurs as a source operand in the
-  // first instruction of the block, and its definition is in this
-  // block's only predecessor, we might consider not marking this as a
-  // separate use.  This may also apply if it's the first instruction
-  // of the block that actually uses a Variable.
+  // TODO(stichnot): If the use occurs as a source operand in the first
+  // instruction of the block, and its definition is in this block's only
+  // predecessor, we might consider not marking this as a separate use. This
+  // may also apply if it's the first instruction of the block that actually
+  // uses a Variable.
   assert(Node);
   bool MakeMulti = false;
   if (IsImplicit)
     MakeMulti = true;
-  // A phi source variable conservatively needs to be marked as
-  // multi-block, even if its definition is in the same block.  This
-  // is because there can be additional control flow before branching
-  // back to this node, and the variable is live throughout those
-  // nodes.
+  // A phi source variable conservatively needs to be marked as multi-block,
+  // even if its definition is in the same block. This is because there can be
+  // additional control flow before branching back to this node, and the
+  // variable is live throughout those nodes.
   if (Instr && llvm::isa<InstPhi>(Instr))
     MakeMulti = true;
 
@@ -211,10 +208,10 @@ void VariableTracking::markUse(MetadataKind TrackingKind, const Inst *Instr,
 
 void VariableTracking::markDef(MetadataKind TrackingKind, const Inst *Instr,
                                CfgNode *Node) {
-  // TODO(stichnot): If the definition occurs in the last instruction
-  // of the block, consider not marking this as a separate use.  But
-  // be careful not to omit all uses of the variable if markDef() and
-  // markUse() both use this optimization.
+  // TODO(stichnot): If the definition occurs in the last instruction of the
+  // block, consider not marking this as a separate use. But be careful not to
+  // omit all uses of the variable if markDef() and markUse() both use this
+  // optimization.
   assert(Node);
 // Verify that instructions are added in increasing order.
 #ifndef NDEBUG
@@ -517,8 +514,7 @@ Ostream &operator<<(Ostream &Str, const RegWeight &W) {
 
 // =========== Immediate Randomization and Pooling routines ==============
 // Specialization of the template member function for ConstantInteger32
-// TODO(stichnot): try to move this specialization into a target-specific
-// file.
+// TODO(stichnot): try to move this specialization into a target-specific file.
 template <>
 bool ConstantInteger32::shouldBeRandomizedOrPooled(const GlobalContext *Ctx) {
   uint32_t Threshold = Ctx->getFlags().getRandomizeAndPoolImmediatesThreshold();

@@ -55,8 +55,8 @@ CaseClusterArray CaseCluster::clusterizeSwitch(Cfg *Func,
 
   // Test for a single jump table. This can be done in constant time whereas
   // finding the best set of jump table would be quadratic, too slow(?). If
-  // jump tables were included in the search tree we'd first have to traverse to
-  // them. Ideally we would have an unbalanced tree which is biased towards
+  // jump tables were included in the search tree we'd first have to traverse
+  // to them. Ideally we would have an unbalanced tree which is biased towards
   // frequently executed code but we can't do this well without profiling data.
   // So, this single jump table is a good starting point where you can get to
   // the jump table quickly without figuring out how to unbalance the tree.

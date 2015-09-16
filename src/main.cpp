@@ -8,8 +8,8 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file defines the entry point for translating PNaCl bitcode into
-/// native code.
+/// This file defines the entry point for translating PNaCl bitcode into native
+/// code.
 ///
 //===----------------------------------------------------------------------===//
 
@@ -22,8 +22,8 @@ int main(int argc, char **argv) {
   Ice::Compiler Comp;
 // Can only compile the BrowserCompileServer w/ the NaCl compiler.
 #if PNACL_BROWSER_TRANSLATOR
-  // There are no real commandline arguments in the browser case.
-  // They are supplied via IPC.
+  // There are no real commandline arguments in the browser case. They are
+  // supplied via IPC.
   assert(argc == 1);
   (void)argc;
   (void)argv;

@@ -60,10 +60,10 @@ private:
 
   void initForGlobal();
   void initForInfOnly();
-  /// Move an item from the From set to the To set.  From[Index] is pushed onto
+  /// Move an item from the From set to the To set. From[Index] is pushed onto
   /// the end of To[], then the item is efficiently removed from From[] by
   /// effectively swapping it with the last item in From[] and then popping it
-  /// from the back.  As such, the caller is best off iterating over From[] in
+  /// from the back. As such, the caller is best off iterating over From[] in
   /// reverse order to avoid the need for special handling of the iterator.
   void moveItem(UnorderedRanges &From, SizeT Index, UnorderedRanges &To) {
     To.push_back(From[Index]);
@@ -109,8 +109,8 @@ private:
   /// currently assigned to. It can be greater than 1 as a result of
   /// AllowOverlap inference.
   llvm::SmallVector<int32_t, REGS_SIZE> RegUses;
-  // TODO(jpp): for some architectures a SmallBitVector might not be big enough.
-  // Evaluate what the performance impact on those architectures is.
+  // TODO(jpp): for some architectures a SmallBitVector might not be big
+  // enough. Evaluate what the performance impact on those architectures is.
   llvm::SmallVector<const llvm::SmallBitVector *, REGS_SIZE> RegAliases;
   bool FindPreference = false;
   bool FindOverlap = false;

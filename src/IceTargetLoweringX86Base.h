@@ -8,9 +8,8 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares the TargetLoweringX86 template class, which
-/// implements the TargetLowering base interface for the x86
-/// architecture.
+/// This file declares the TargetLoweringX86 template class, which implements
+/// the TargetLowering base interface for the x86 architecture.
 ///
 //===----------------------------------------------------------------------===//
 
@@ -44,7 +43,7 @@ template <class Machine> struct MachineTraits {};
 ///
 /// Note: Ideally, we should be able to
 ///
-///   static_assert(std::is_base_of<TargetX86Base<Machine>, Machine>::value);
+///  static_assert(std::is_base_of<TargetX86Base<Machine>, Machine>::value);
 ///
 /// but that does not work: the compiler does not know that Machine inherits
 /// from TargetX86Base at this point in translation.
@@ -106,13 +105,13 @@ public:
 
   void initNodeForLowering(CfgNode *Node) override;
   /// x86-32: Ensure that a 64-bit Variable has been split into 2 32-bit
-  /// Variables, creating them if necessary.  This is needed for all
-  /// I64 operations, and it is needed for pushing F64 arguments for
-  /// function calls using the 32-bit push instruction (though the
-  /// latter could be done by directly writing to the stack).
+  /// Variables, creating them if necessary. This is needed for all I64
+  /// operations, and it is needed for pushing F64 arguments for function calls
+  /// using the 32-bit push instruction (though the latter could be done by
+  /// directly writing to the stack).
   ///
-  /// x86-64: Complains loudly if invoked because the cpu can handle
-  /// 64-bit types natively.
+  /// x86-64: Complains loudly if invoked because the cpu can handle 64-bit
+  /// types natively.
   template <typename T = Traits>
   typename std::enable_if<!T::Is64Bit, void>::type split64(Variable *Var);
   template <typename T = Traits>
@@ -239,13 +238,12 @@ protected:
   void scalarizeArithmetic(InstArithmetic::OpKind K, Variable *Dest,
                            Operand *Src0, Operand *Src1);
 
-  /// Operand legalization helpers.  To deal with address mode
-  /// constraints, the helpers will create a new Operand and emit
-  /// instructions that guarantee that the Operand kind is one of those
-  /// indicated by the LegalMask (a bitmask of allowed kinds).  If the
-  /// input Operand is known to already meet the constraints, it may be
-  /// simply returned as the result, without creating any new
-  /// instructions or operands.
+  /// Operand legalization helpers. To deal with address mode constraints, the
+  /// helpers will create a new Operand and emit instructions that guarantee
+  /// that the Operand kind is one of those indicated by the LegalMask (a
+  /// bitmask of allowed kinds). If the input Operand is known to already meet
+  /// the constraints, it may be simply returned as the result, without creating
+  /// any new instructions or operands.
   enum OperandLegalization {
     Legal_None = 0,
     Legal_Reg = 1 << 0, // physical register, not stack location
@@ -259,9 +257,9 @@ protected:
   Variable *legalizeToReg(Operand *From, int32_t RegNum = Variable::NoRegister);
   /// Legalize the first source operand for use in the cmp instruction.
   Operand *legalizeSrc0ForCmp(Operand *Src0, Operand *Src1);
-  /// Turn a pointer operand into a memory operand that can be
-  /// used by a real load/store operation. Legalizes the operand as well.
-  /// This is a nop if the operand is already a legal memory operand.
+  /// Turn a pointer operand into a memory operand that can be used by a real
+  /// load/store operation. Legalizes the operand as well. This is a nop if the
+  /// operand is already a legal memory operand.
   typename Traits::X86OperandMem *formMemoryOperand(Operand *Ptr, Type Ty,
                                                     bool DoLegalize = true);
 
@@ -271,8 +269,8 @@ protected:
   static constexpr uint32_t NoSizeLimit = 0;
   static const Type TypeForSize[];
   /// Returns the largest type which is equal to or larger than Size bytes. The
-  /// type is suitable for copying memory i.e. a load and store will be a
-  /// single instruction (for example x86 will get f64 not i64).
+  /// type is suitable for copying memory i.e. a load and store will be a single
+  /// instruction (for example x86 will get f64 not i64).
   static Type largestTypeInSize(uint32_t Size, uint32_t MaxSize = NoSizeLimit);
   /// Returns the smallest type which is equal to or larger than Size bytes. If
   /// one doesn't exist then the largest type smaller than Size bytes is
@@ -304,9 +302,9 @@ protected:
                                 const llvm::SmallBitVector &ExcludeRegisters,
                                 uint64_t Salt) const override;
 
-  /// The following are helpers that insert lowered x86 instructions
-  /// with minimal syntactic overhead, so that the lowering code can
-  /// look as close to assembly as practical.
+  /// The following are helpers that insert lowered x86 instructions with
+  /// minimal syntactic overhead, so that the lowering code can look as close to
+  /// assembly as practical.
   void _adc(Variable *Dest, Operand *Src0) {
     Context.insert(Traits::Insts::Adc::create(Func, Dest, Src0));
   }
@@ -450,9 +448,9 @@ protected:
     Context.insert(Traits::Insts::Lea::create(Func, Dest, Src0));
   }
   void _mfence() { Context.insert(Traits::Insts::Mfence::create(Func)); }
-  /// If Dest=nullptr is passed in, then a new variable is created,
-  /// marked as infinite register allocation weight, and returned
-  /// through the in/out Dest argument.
+  /// If Dest=nullptr is passed in, then a new variable is created, marked as
+  /// infinite register allocation weight, and returned through the in/out Dest
+  /// argument.
   void _mov(Variable *&Dest, Operand *Src0,
             int32_t RegNum = Variable::NoRegister) {
     if (Dest == nullptr)
@@ -626,8 +624,8 @@ protected:
   void _ud2() { Context.insert(Traits::Insts::UD2::create(Func)); }
   void _xadd(Operand *Dest, Variable *Src, bool Locked) {
     Context.insert(Traits::Insts::Xadd::create(Func, Dest, Src, Locked));
-    // The xadd exchanges Dest and Src (modifying Src).
-    // Model that update with a FakeDef followed by a FakeUse.
+    // The xadd exchanges Dest and Src (modifying Src). Model that update with
+    // a FakeDef followed by a FakeUse.
     Context.insert(
         InstFakeDef::create(Func, Src, llvm::dyn_cast<Variable>(Dest)));
     _set_dest_nonkillable();

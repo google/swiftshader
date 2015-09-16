@@ -78,8 +78,8 @@ public:
   SizeT getReservedTmpReg() const { return RegARM32::Reg_ip; }
 
   size_t typeWidthInBytesOnStack(Type Ty) const override {
-    // Round up to the next multiple of 4 bytes.  In particular, i1,
-    // i8, and i16 are rounded up to 4 bytes.
+    // Round up to the next multiple of 4 bytes. In particular, i1, i8, and i16
+    // are rounded up to 4 bytes.
     return (typeWidthInBytes(Ty) + 3) & ~3;
   }
 
@@ -101,9 +101,8 @@ public:
   void addProlog(CfgNode *Node) override;
   void addEpilog(CfgNode *Node) override;
 
-  /// Ensure that a 64-bit Variable has been split into 2 32-bit
-  /// Variables, creating them if necessary.  This is needed for all
-  /// I64 operations.
+  /// Ensure that a 64-bit Variable has been split into 2 32-bit Variables,
+  /// creating them if necessary. This is needed for all I64 operations.
   void split64(Variable *Var);
   Operand *loOperand(Operand *Operand);
   Operand *hiOperand(Operand *Operand);
@@ -147,8 +146,8 @@ protected:
   enum OperandLegalization {
     Legal_None = 0,
     Legal_Reg = 1 << 0,  /// physical register, not stack location
-    Legal_Flex = 1 << 1, /// A flexible operand2, which can hold rotated
-                         /// small immediates, or shifted registers.
+    Legal_Flex = 1 << 1, /// A flexible operand2, which can hold rotated small
+                         /// immediates, or shifted registers.
     Legal_Mem = 1 << 2,  /// includes [r0, r1 lsl #2] as well as [sp, #12]
     Legal_All = ~Legal_None
   };
@@ -171,9 +170,8 @@ protected:
                                 const llvm::SmallBitVector &ExcludeRegisters,
                                 uint64_t Salt) const override;
 
-  // If a divide-by-zero check is needed, inserts a:
-  // test; branch .LSKIP; trap; .LSKIP: <continuation>.
-  // If no check is needed nothing is inserted.
+  // If a divide-by-zero check is needed, inserts a: test; branch .LSKIP; trap;
+  // .LSKIP: <continuation>. If no check is needed nothing is inserted.
   void div0Check(Type Ty, Operand *SrcLo, Operand *SrcHi);
   using ExtInstr = void (TargetARM32::*)(Variable *, Variable *,
                                          CondARM32::Cond);
@@ -185,9 +183,9 @@ protected:
 
   void lowerCLZ(Variable *Dest, Variable *ValLo, Variable *ValHi);
 
-  // The following are helpers that insert lowered ARM32 instructions
-  // with minimal syntactic overhead, so that the lowering code can
-  // look as close to assembly as practical.
+  // The following are helpers that insert lowered ARM32 instructions with
+  // minimal syntactic overhead, so that the lowering code can look as close to
+  // assembly as practical.
 
   void _add(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
@@ -265,9 +263,9 @@ protected:
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Mls::create(Func, Dest, Src0, Src1, Acc, Pred));
   }
-  /// If Dest=nullptr is passed in, then a new variable is created,
-  /// marked as infinite register allocation weight, and returned
-  /// through the in/out Dest argument.
+  /// If Dest=nullptr is passed in, then a new variable is created, marked as
+  /// infinite register allocation weight, and returned through the in/out Dest
+  /// argument.
   void _mov(Variable *&Dest, Operand *Src0,
             CondARM32::Cond Pred = CondARM32::AL,
             int32_t RegNum = Variable::NoRegister) {
@@ -281,8 +279,8 @@ protected:
     NewInst->setDestNonKillable();
     Context.insert(NewInst);
   }
-  /// The Operand can only be a 16-bit immediate or a ConstantRelocatable
-  /// (with an upper16 relocation).
+  /// The Operand can only be a 16-bit immediate or a ConstantRelocatable (with
+  /// an upper16 relocation).
   void _movt(Variable *Dest, Operand *Src0,
              CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Movt::create(Func, Dest, Src0, Pred));
@@ -378,8 +376,8 @@ protected:
               Variable *Src1, CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(
         InstARM32Umull::create(Func, DestLo, DestHi, Src0, Src1, Pred));
-    // Model the modification to the second dest as a fake def.
-    // Note that the def is not predicated.
+    // Model the modification to the second dest as a fake def. Note that the
+    // def is not predicated.
     Context.insert(InstFakeDef::create(Func, DestHi, DestLo));
   }
   void _uxt(Variable *Dest, Variable *Src0,
@@ -400,11 +398,10 @@ protected:
              CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Vldr::create(Func, Dest, Src, Pred));
   }
-  // There are a whole bunch of vmov variants, to transfer within
-  // S/D/Q registers, between core integer registers and S/D,
-  // and from small immediates into S/D.
-  // For integer -> S/D/Q there is a variant which takes two integer
-  // register to fill a D, or to fill two consecutive S registers.
+  // There are a whole bunch of vmov variants, to transfer within S/D/Q
+  // registers, between core integer registers and S/D, and from small
+  // immediates into S/D. For integer -> S/D/Q there is a variant which takes
+  // two integer register to fill a D, or to fill two consecutive S registers.
   // Vmov can also be used to insert-element. E.g.,
   //    "vmov.8 d0[1], r0"
   // but insert-element is a "two-address" operation where only part of the
@@ -440,8 +437,8 @@ protected:
   }
 
   /// Run a pass through stack variables and ensure that the offsets are legal.
-  /// If the offset is not legal, use a new base register that accounts for
-  /// the offset, such that the addressing mode offset bits are now legal.
+  /// If the offset is not legal, use a new base register that accounts for the
+  /// offset, such that the addressing mode offset bits are now legal.
   void legalizeStackSlots();
   /// Returns true if the given Offset can be represented in a stack ldr/str.
   bool isLegalVariableStackOffset(int32_t Offset) const;
@@ -464,11 +461,11 @@ protected:
   /// Helper class that understands the Calling Convention and register
   /// assignments. The first few integer type parameters can use r0-r3,
   /// regardless of their position relative to the floating-point/vector
-  /// arguments in the argument list. Floating-point and vector arguments
-  /// can use q0-q3 (aka d0-d7, s0-s15). Technically, arguments that can
-  /// start with registers but extend beyond the available registers can be
-  /// split between the registers and the stack. However, this is typically
-  /// for passing GPR structs by value, and PNaCl transforms expand this out.
+  /// arguments in the argument list. Floating-point and vector arguments can
+  /// use q0-q3 (aka d0-d7, s0-s15). Technically, arguments that can start with
+  /// registers but extend beyond the available registers can be split between
+  /// the registers and the stack. However, this is typically for passing GPR
+  /// structs by value, and PNaCl transforms expand this out.
   ///
   /// Also, at the point before the call, the stack must be aligned.
   class CallingConv {

@@ -40,8 +40,8 @@ IceString AssemblerFixup::symbol(const GlobalContext *Ctx) const {
     else
       Str << Ctx->mangleName(CR->getName());
   } else {
-    // NOTE: currently only float/doubles are put into constant pools.
-    // In the future we may put integers as well.
+    // NOTE: currently only float/doubles are put into constant pools. In the
+    // future we may put integers as well.
     assert(llvm::isa<ConstantFloat>(C) || llvm::isa<ConstantDouble>(C));
     C->emitPoolLabel(Str);
   }

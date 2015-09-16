@@ -24,11 +24,11 @@
 namespace Ice {
 namespace PhiLowering {
 
-// Turn an i64 Phi instruction into a pair of i32 Phi instructions, to
-// preserve integrity of liveness analysis.  This is needed for 32-bit
-// targets.  This assumes the 32-bit target has loOperand, hiOperand,
-// and legalizeUndef methods.  Undef values are also legalized, since
-// loOperand() and hiOperand() don't expect Undef input.
+/// Turn an i64 Phi instruction into a pair of i32 Phi instructions, to preserve
+/// integrity of liveness analysis. This is needed for 32-bit targets. This
+/// assumes the 32-bit target has loOperand, hiOperand, and legalizeUndef
+/// methods. Undef values are also legalized, since loOperand() and hiOperand()
+/// don't expect Undef input.
 template <class TargetT>
 void prelowerPhis32Bit(TargetT *Target, CfgNode *Node, Cfg *Func) {
   for (Inst &I : Node->getPhis()) {

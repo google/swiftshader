@@ -48,13 +48,13 @@ AssemblerFixup *AssemblerBuffer::createFixup(FixupKind Kind,
 }
 
 void AssemblerBuffer::EnsureCapacity::validate(AssemblerBuffer *buffer) {
-  // In debug mode, we save the assembler buffer along with the gap
-  // size before we start emitting to the buffer. This allows us to
-  // check that any single generated instruction doesn't overflow the
-  // limit implied by the minimum gap size.
+  // In debug mode, we save the assembler buffer along with the gap size before
+  // we start emitting to the buffer. This allows us to check that any single
+  // generated instruction doesn't overflow the limit implied by the minimum
+  // gap size.
   Gap = computeGap();
-  // Make sure that extending the capacity leaves a big enough gap
-  // for any kind of instruction.
+  // Make sure that extending the capacity leaves a big enough gap for any kind
+  // of instruction.
   assert(Gap >= kMinimumGap);
   // Mark the buffer as having ensured the capacity.
   assert(!buffer->hasEnsuredCapacity()); // Cannot nest.
@@ -64,8 +64,8 @@ void AssemblerBuffer::EnsureCapacity::validate(AssemblerBuffer *buffer) {
 AssemblerBuffer::EnsureCapacity::~EnsureCapacity() {
   // Unmark the buffer, so we cannot emit after this.
   Buffer->HasEnsuredCapacity = false;
-  // Make sure the generated instruction doesn't take up more
-  // space than the minimum gap.
+  // Make sure the generated instruction doesn't take up more space than the
+  // minimum gap.
   intptr_t delta = Gap - computeGap();
   (void)delta;
   assert(delta <= kMinimumGap);
@@ -133,9 +133,9 @@ void Assembler::emitIASBytes(GlobalContext *Ctx) const {
     }
     Str << "\t.long ";
     // For PCRel fixups, we write the pc-offset from a symbol into the Buffer
-    // (e.g., -4), but we don't represent that in the fixup's offset.
-    // Otherwise the fixup holds the true offset, and so does the Buffer.
-    // Just load the offset from the buffer.
+    // (e.g., -4), but we don't represent that in the fixup's offset. Otherwise
+    // the fixup holds the true offset, and so does the Buffer. Just load the
+    // offset from the buffer.
     NextFixup->emit(Ctx, Buffer.load<RelocOffsetT>(NextFixupLoc));
     if (fixupIsPCRel(NextFixup->kind()))
       Str << " - .";

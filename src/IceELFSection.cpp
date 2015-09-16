@@ -82,8 +82,8 @@ size_t ELFRelocationSection::getSectionDataSize() const {
 // Symbol tables.
 
 void ELFSymbolTableSection::createNullSymbol(ELFSection *NullSection) {
-  // The first entry in the symbol table should be a NULL entry,
-  // so make sure the map is still empty.
+  // The first entry in the symbol table should be a NULL entry, so make sure
+  // the map is still empty.
   assert(LocalSymbols.empty());
   const IceString NullSymName("");
   createDefinedSym(NullSymName, STT_NOTYPE, STB_LOCAL, NullSection, 0, 0);
@@ -208,8 +208,8 @@ void ELFStringTableSection::doLayout() {
     assert(StringIndex.second == UnknownIndex);
     llvm::StringRef Cur = llvm::StringRef(StringIndex.first);
     if (Prev.endswith(Cur)) {
-      // Prev is already in the StringData, and Cur is shorter than Prev
-      // based on the sort.
+      // Prev is already in the StringData, and Cur is shorter than Prev based
+      // on the sort.
       StringIndex.second = StringData.size() - Cur.size() - 1;
       continue;
     }

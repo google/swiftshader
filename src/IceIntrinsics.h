@@ -62,11 +62,10 @@ public:
     Trap
   };
 
-  /// Operations that can be represented by the AtomicRMW
-  /// intrinsic.
+  /// Operations that can be represented by the AtomicRMW intrinsic.
   ///
-  /// Do not reorder these values: their order offers forward
-  /// compatibility of bitcode targeted to PNaCl.
+  /// Do not reorder these values: their order offers forward compatibility of
+  /// bitcode targeted to PNaCl.
   enum AtomicRMWOperation {
     AtomicInvalid = 0, // Invalid, keep first.
     AtomicAdd,
@@ -80,8 +79,8 @@ public:
 
   /// Memory orderings supported by PNaCl IR.
   ///
-  /// Do not reorder these values: their order offers forward
-  /// compatibility of bitcode targeted to PNaCl.
+  /// Do not reorder these values: their order offers forward compatibility of
+  /// bitcode targeted to PNaCl.
   enum MemoryOrder {
     MemoryOrderInvalid = 0, // Invalid, keep first.
     MemoryOrderRelaxed,
@@ -93,11 +92,11 @@ public:
     MemoryOrderNum // Invalid, keep last.
   };
 
-  /// Verify memory ordering rules for atomic intrinsics.  For
-  /// AtomicCmpxchg, Order is the "success" ordering and OrderOther is
-  /// the "failure" ordering.  Returns true if valid, false if invalid.
-  // TODO(stichnot,kschimpf): Perform memory order validation in the
-  // bitcode reader/parser, allowing LLVM and Subzero to share.  See
+  /// Verify memory ordering rules for atomic intrinsics. For AtomicCmpxchg,
+  /// Order is the "success" ordering and OrderOther is the "failure" ordering.
+  /// Returns true if valid, false if invalid.
+  // TODO(stichnot,kschimpf): Perform memory order validation in the bitcode
+  // reader/parser, allowing LLVM and Subzero to share. See
   // https://code.google.com/p/nativeclient/issues/detail?id=4126 .
   static bool isMemoryOrderValid(IntrinsicID ID, uint64_t Order,
                                  uint64_t OrderOther = MemoryOrderInvalid);
@@ -106,10 +105,10 @@ public:
 
   enum ReturnsTwice { ReturnsTwice_F = 0, ReturnsTwice_T = 1 };
 
-  /// Basic attributes related to each intrinsic, that are relevant to
-  /// code generation. Perhaps the attributes representation can be shared
-  /// with general function calls, but PNaCl currently strips all
-  /// attributes from functions.
+  /// Basic attributes related to each intrinsic, that are relevant to code
+  /// generation. Perhaps the attributes representation can be shared with
+  /// general function calls, but PNaCl currently strips all attributes from
+  /// functions.
   struct IntrinsicInfo {
     enum IntrinsicID ID : 30;
     enum SideEffects HasSideEffects : 1;
@@ -132,9 +131,9 @@ public:
     Type Signature[kMaxIntrinsicParameters];
     uint8_t NumTypes;
 
-    /// Validates that type signature of call matches intrinsic.
-    /// If WrongArgumentType is returned, ArgIndex is set to corresponding
-    /// argument index.
+    /// Validates that type signature of call matches intrinsic. If
+    /// WrongArgumentType is returned, ArgIndex is set to corresponding argument
+    /// index.
     ValidateCallValue validateCall(const Ice::InstCall *Call,
                                    SizeT &ArgIndex) const;
 
@@ -154,11 +153,11 @@ public:
     Type getArgType(SizeT Index) const;
   };
 
-  /// Find the information about a given intrinsic, based on function name.  If
+  /// Find the information about a given intrinsic, based on function name. If
   /// the function name does not have the common "llvm." prefix, nullptr is
-  /// returned and Error is set to false.  Otherwise, tries to find a reference
-  /// to a FullIntrinsicInfo entry (valid for the lifetime of the map).  If
-  /// found, sets Error to false and returns the reference.  If not found, sets
+  /// returned and Error is set to false. Otherwise, tries to find a reference
+  /// to a FullIntrinsicInfo entry (valid for the lifetime of the map). If
+  /// found, sets Error to false and returns the reference. If not found, sets
   /// Error to true and returns nullptr (indicating an unknown "llvm.foo"
   /// intrinsic).
   const FullIntrinsicInfo *find(const IceString &Name, bool &Error) const;

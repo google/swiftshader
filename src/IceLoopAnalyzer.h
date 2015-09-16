@@ -35,6 +35,10 @@ public:
   ///
   /// This only computes the loop nest depth within the function and does not
   /// take into account whether the function was called from within a loop.
+  // TODO(ascull): this currently uses a extension of Tarjan's algorithm with
+  // is bounded linear. ncbray suggests another algorithm which is linear in
+  // practice but not bounded linear. I think it also finds dominators.
+  // http://lenx.100871.net/papers/loop-SAS.pdf
   void computeLoopNestDepth();
 
 private:
@@ -88,11 +92,11 @@ private:
   using LoopNodePtrList =
       std::vector<LoopNode *, CfgLocalAllocator<LoopNode *>>;
 
-  /// Process the node as part as part of Tarjan's algorithm and return either
-  /// a node to recurse into or nullptr when the node has been fully processed.
+  /// Process the node as part as part of Tarjan's algorithm and return either a
+  /// node to recurse into or nullptr when the node has been fully processed.
   LoopNode *processNode(LoopNode &Node);
 
-  /// The fuction to analyze for loops.
+  /// The function to analyze for loops.
   Cfg *const Func;
   /// A list of decorated nodes in the same order as Func->getNodes() which
   /// means the node's index will also be valid in this list.

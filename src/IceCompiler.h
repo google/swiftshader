@@ -33,8 +33,8 @@ class Compiler {
 public:
   Compiler() = default;
 
-  /// Run the compiler with the given GlobalContext for compilation
-  /// state.  Upon error, the Context's error status will be set.
+  /// Run the compiler with the given GlobalContext for compilation state. Upon
+  /// error, the Context's error status will be set.
   void run(const ClFlagsExtra &ExtraFlags, GlobalContext &Ctx,
            std::unique_ptr<llvm::DataStreamer> &&InputStream);
 };

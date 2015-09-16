@@ -8,8 +8,8 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file defines the TimerTree class, which tracks flat and
-/// cumulative execution time collection of call chains.
+/// This file defines the TimerTree class, which tracks flat and cumulative
+/// execution time collection of call chains.
 ///
 //===----------------------------------------------------------------------===//
 
@@ -41,8 +41,7 @@ TimerStack::TimerStack(const IceString &Name)
 #undef STR
 }
 
-// Returns the unique timer ID for the given Name, creating a new ID
-// if needed.
+// Returns the unique timer ID for the given Name, creating a new ID if needed.
 TimerIdT TimerStack::getTimerID(const IceString &Name) {
   if (!BuildDefs::dump())
     return 0;
@@ -55,9 +54,9 @@ TimerIdT TimerStack::getTimerID(const IceString &Name) {
   return IDsIndex[Name];
 }
 
-// Creates a mapping from TimerIdT (leaf) values in the Src timer
-// stack into TimerIdT values in this timer stack.  Creates new
-// entries in this timer stack as needed.
+// Creates a mapping from TimerIdT (leaf) values in the Src timer stack into
+// TimerIdT values in this timer stack. Creates new entries in this timer stack
+// as needed.
 TimerStack::TranslationType
 TimerStack::translateIDsFrom(const TimerStack &Src) {
   size_t Size = Src.IDs.size();
@@ -68,8 +67,8 @@ TimerStack::translateIDsFrom(const TimerStack &Src) {
   return Mapping;
 }
 
-// Merges two timer stacks, by combining and summing corresponding
-// entries.  This timer stack is updated from Src.
+// Merges two timer stacks, by combining and summing corresponding entries.
+// This timer stack is updated from Src.
 void TimerStack::mergeFrom(const TimerStack &Src) {
   if (!BuildDefs::dump())
     return;
@@ -78,11 +77,11 @@ void TimerStack::mergeFrom(const TimerStack &Src) {
   for (const TimerTreeNode &SrcNode : Src.Nodes) {
     // The first node is reserved as a sentinel, so avoid it.
     if (SrcIndex > 0) {
-      // Find the full path to the Src node, translated to path
-      // components corresponding to this timer stack.
+      // Find the full path to the Src node, translated to path components
+      // corresponding to this timer stack.
       PathType MyPath = Src.getPath(SrcIndex, Mapping);
-      // Find a node in this timer stack corresponding to the given
-      // path, creating new interior nodes as necessary.
+      // Find a node in this timer stack corresponding to the given path,
+      // creating new interior nodes as necessary.
       TTindex MyIndex = findPath(MyPath);
       Nodes[MyIndex].Time += SrcNode.Time;
       Nodes[MyIndex].UpdateCount += SrcNode.UpdateCount;
@@ -96,10 +95,9 @@ void TimerStack::mergeFrom(const TimerStack &Src) {
   StateChangeCount += Src.StateChangeCount;
 }
 
-// Constructs a path consisting of the sequence of leaf values leading
-// to a given node, with the Mapping translation applied to the leaf
-// values.  The path ends up being in "reverse" order, i.e. from leaf
-// to root.
+// Constructs a path consisting of the sequence of leaf values leading to a
+// given node, with the Mapping translation applied to the leaf values. The
+// path ends up being in "reverse" order, i.e. from leaf to root.
 TimerStack::PathType TimerStack::getPath(TTindex Index,
                                          const TranslationType &Mapping) const {
   PathType Path;
@@ -111,8 +109,8 @@ TimerStack::PathType TimerStack::getPath(TTindex Index,
   return Path;
 }
 
-// Given a parent node and a leaf ID, returns the index of the
-// parent's child ID, creating a new node for the child as necessary.
+// Given a parent node and a leaf ID, returns the index of the parent's child
+// ID, creating a new node for the child as necessary.
 TimerStack::TTindex TimerStack::getChildIndex(TimerStack::TTindex Parent,
                                               TimerIdT ID) {
   if (Nodes[Parent].Children.size() <= ID)
@@ -127,12 +125,12 @@ TimerStack::TTindex TimerStack::getChildIndex(TimerStack::TTindex Parent,
   return Nodes[Parent].Children[ID];
 }
 
-// Finds a node in the timer stack corresponding to the given path,
-// creating new interior nodes as necessary.
+// Finds a node in the timer stack corresponding to the given path, creating
+// new interior nodes as necessary.
 TimerStack::TTindex TimerStack::findPath(const PathType &Path) {
   TTindex CurIndex = 0;
-  // The path is in reverse order (leaf to root), so it needs to be
-  // followed in reverse.
+  // The path is in reverse order (leaf to root), so it needs to be followed in
+  // reverse.
   for (TTindex Index : reverse_range(Path)) {
     CurIndex = getChildIndex(CurIndex, Index);
   }
@@ -150,8 +148,8 @@ void TimerStack::push(TimerIdT ID) {
   assert(StackTop);
 }
 
-// Pops the top marker from the timer stack.  Validates via assert()
-// that the expected marker is popped.
+// Pops the top marker from the timer stack. Validates via assert() that the
+// expected marker is popped.
 void TimerStack::pop(TimerIdT ID) {
   if (!BuildDefs::dump())
     return;
@@ -167,15 +165,15 @@ void TimerStack::pop(TimerIdT ID) {
   StackTop = Nodes[StackTop].Parent;
 }
 
-// At a state change (e.g. push or pop), updates the flat and
-// cumulative timings for everything on the timer stack.
+// At a state change (e.g. push or pop), updates the flat and cumulative
+// timings for everything on the timer stack.
 void TimerStack::update(bool UpdateCounts) {
   if (!BuildDefs::dump())
     return;
   ++StateChangeCount;
-  // Whenever the stack is about to change, we grab the time delta
-  // since the last change and add it to all active cumulative
-  // elements and to the flat element for the top of the stack.
+  // Whenever the stack is about to change, we grab the time delta since the
+  // last change and add it to all active cumulative elements and to the flat
+  // element for the top of the stack.
   double Current = timestamp();
   double Delta = Current - LastTimestamp;
   if (StackTop) {
@@ -198,10 +196,10 @@ void TimerStack::update(bool UpdateCounts) {
     assert(Next < Prefix);
     Prefix = Next;
   }
-  // Capture the next timestamp *after* the updates are finished.
-  // This minimizes how much the timer can perturb the reported
-  // timing.  The numbers may not sum to 100%, and the missing amount
-  // is indicative of the overhead of timing.
+  // Capture the next timestamp *after* the updates are finished. This
+  // minimizes how much the timer can perturb the reported timing. The numbers
+  // may not sum to 100%, and the missing amount is indicative of the overhead
+  // of timing.
   LastTimestamp = timestamp();
 }
 
@@ -234,8 +232,8 @@ void dumpHelper(Ostream &Str, const DumpMapType &Map, double TotalTime) {
   }
 }
 
-// Write a printf() format string into Buf[], in the format "[%5lu] ",
-// where "5" is actually the number of digits in MaxVal.  E.g.,
+// Write a printf() format string into Buf[], in the format "[%5lu] ", where
+// "5" is actually the number of digits in MaxVal. E.g.,
 //   MaxVal=0     ==> "[%1lu] "
 //   MaxVal=5     ==> "[%1lu] "
 //   MaxVal=9876  ==> "[%4lu] "

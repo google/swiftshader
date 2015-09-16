@@ -8,8 +8,8 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file implements the InstARM32 and OperandARM32 classes,
-/// primarily the constructors and the dump()/emit() methods.
+/// This file implements the InstARM32 and OperandARM32 classes, primarily the
+/// constructors and the dump()/emit() methods.
 ///
 //===----------------------------------------------------------------------===//
 
@@ -271,16 +271,14 @@ InstARM32Br::InstARM32Br(Cfg *Func, const CfgNode *TargetTrue,
       TargetTrue(TargetTrue), TargetFalse(TargetFalse), Label(Label) {}
 
 bool InstARM32Br::optimizeBranch(const CfgNode *NextNode) {
-  // If there is no next block, then there can be no fallthrough to
-  // optimize.
+  // If there is no next block, then there can be no fallthrough to optimize.
   if (NextNode == nullptr)
     return false;
   // Intra-block conditional branches can't be optimized.
   if (Label)
     return false;
-  // If there is no fallthrough node, such as a non-default case label
-  // for a switch instruction, then there is no opportunity to
-  // optimize.
+  // If there is no fallthrough node, such as a non-default case label for a
+  // switch instruction, then there is no opportunity to optimize.
   if (getTargetFalse() == nullptr)
     return false;
 
@@ -290,15 +288,15 @@ bool InstARM32Br::optimizeBranch(const CfgNode *NextNode) {
     setDeleted();
     return true;
   }
-  // If the fallthrough is to the next node, set fallthrough to nullptr
-  // to indicate.
+  // If the fallthrough is to the next node, set fallthrough to nullptr to
+  // indicate.
   if (getTargetFalse() == NextNode) {
     TargetFalse = nullptr;
     return true;
   }
-  // If TargetTrue is the next node, and TargetFalse is not nullptr
-  // (which was already tested above), then invert the branch
-  // condition, swap the targets, and set new fallthrough to nullptr.
+  // If TargetTrue is the next node, and TargetFalse is not nullptr (which was
+  // already tested above), then invert the branch condition, swap the targets,
+  // and set new fallthrough to nullptr.
   if (getTargetTrue() == NextNode) {
     assert(Predicate != CondARM32::AL);
     setPredicate(getOppositeCondition(getPredicate()));
@@ -338,10 +336,10 @@ IceString InstARM32Label::getName(const Cfg *Func) const {
 
 InstARM32Pop::InstARM32Pop(Cfg *Func, const VarList &Dests)
     : InstARM32(Func, InstARM32::Pop, 0, nullptr), Dests(Dests) {
-  // Track modifications to Dests separately via FakeDefs.
-  // Also, a pop instruction affects the stack pointer and so it should not
-  // be allowed to be automatically dead-code eliminated. This is automatic
-  // since we leave the Dest as nullptr.
+  // Track modifications to Dests separately via FakeDefs. Also, a pop
+  // instruction affects the stack pointer and so it should not be allowed to
+  // be automatically dead-code eliminated. This is automatic since we leave
+  // the Dest as nullptr.
 }
 
 InstARM32Push::InstARM32Push(Cfg *Func, const VarList &Srcs)
@@ -450,8 +448,8 @@ template <> void InstARM32Mov::emit(const Cfg *Func) const {
     Operand *Src0 = getSrc(0);
     if (const auto *Src0V = llvm::dyn_cast<Variable>(Src0)) {
       if (!Src0V->hasReg()) {
-        // Always use the whole stack slot. A 32-bit load has a larger range
-        // of offsets than 16-bit, etc.
+        // Always use the whole stack slot. A 32-bit load has a larger range of
+        // offsets than 16-bit, etc.
         ActualOpcode = IceString("ldr");
       }
     } else {
@@ -662,13 +660,13 @@ void InstARM32Call::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 1);
   if (llvm::isa<ConstantInteger32>(getCallTarget())) {
-    // This shouldn't happen (typically have to copy the full 32-bits
-    // to a register and do an indirect jump).
+    // This shouldn't happen (typically have to copy the full 32-bits to a
+    // register and do an indirect jump).
     llvm::report_fatal_error("ARM32Call to ConstantInteger32");
   } else if (const auto CallTarget =
                  llvm::dyn_cast<ConstantRelocatable>(getCallTarget())) {
-    // Calls only have 24-bits, but the linker should insert veneers to
-    // extend the range if needed.
+    // Calls only have 24-bits, but the linker should insert veneers to extend
+    // the range if needed.
     Str << "\t"
         << "bl"
         << "\t";

@@ -106,14 +106,13 @@ void fatalErrorHandler(void *UserData, const std::string &Reason,
   BrowserCompileServer *Server =
       reinterpret_cast<BrowserCompileServer *>(UserData);
   Server->setFatalError(Reason);
-  // Only kill the current thread instead of the whole process.
-  // We need the server thread to remain alive in order to respond with the
-  // error message.
+  // Only kill the current thread instead of the whole process. We need the
+  // server thread to remain alive in order to respond with the error message.
   // We could also try to pthread_kill all other worker threads, but
-  // pthread_kill / raising signals is not supported by NaCl.
-  // We'll have to assume that the worker/emitter threads will be well behaved
-  // after a fatal error in other threads, and either get stuck waiting
-  // on input from a previous stage, or also call report_fatal_error.
+  // pthread_kill / raising signals is not supported by NaCl. We'll have to
+  // assume that the worker/emitter threads will be well behaved after a fatal
+  // error in other threads, and either get stuck waiting on input from a
+  // previous stage, or also call report_fatal_error.
   pthread_exit(0);
 }
 
@@ -143,8 +142,8 @@ void BrowserCompileServer::getParsedFlags(uint32_t NumThreads, int argc,
 }
 
 bool BrowserCompileServer::pushInputBytes(const void *Data, size_t NumBytes) {
-  // If there was an earlier error, do not attempt to push bytes to
-  // the QueueStreamer. Otherwise the thread could become blocked.
+  // If there was an earlier error, do not attempt to push bytes to the
+  // QueueStreamer. Otherwise the thread could become blocked.
   if (HadError.load())
     return true;
   return InputStream->PutBytes(
@@ -163,8 +162,8 @@ void BrowserCompileServer::setFatalError(const IceString &Reason) {
 ErrorCode &BrowserCompileServer::getErrorCode() {
   if (HadError.load()) {
     // HadError means report_fatal_error is called. Make sure that the
-    // LastError is not EC_None. We don't know the type of error so
-    // just pick some error category.
+    // LastError is not EC_None. We don't know the type of error so just pick
+    // some error category.
     LastError.assign(EC_Translation);
   }
   return LastError;

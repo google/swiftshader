@@ -8,8 +8,8 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file implements the Inst class, primarily the various
-/// subclass constructors and dump routines.
+/// This file implements the Inst class, primarily the various subclass
+/// constructors and dump routines.
 ///
 //===----------------------------------------------------------------------===//
 
@@ -82,15 +82,15 @@ void Inst::renumber(Cfg *Func) {
   Number = isDeleted() ? NumberDeleted : Func->newInstNumber();
 }
 
-// Delete the instruction if its tentative Dead flag is still set
-// after liveness analysis.
+// Delete the instruction if its tentative Dead flag is still set after
+// liveness analysis.
 void Inst::deleteIfDead() {
   if (Dead)
     setDeleted();
 }
 
-// If Src is a Variable, it returns true if this instruction ends
-// Src's live range.  Otherwise, returns false.
+// If Src is a Variable, it returns true if this instruction ends Src's live
+// range. Otherwise, returns false.
 bool Inst::isLastUse(const Operand *TestSrc) const {
   if (LiveRangesEnded == 0)
     return false; // early-exit optimization
@@ -116,17 +116,16 @@ bool Inst::isLastUse(const Operand *TestSrc) const {
 // with SpliceAssn spliced in:
 //   d = [x,y]
 //
-// Reconstruct the LiveRangesEnded bitmask in this instruction by
-// combining the LiveRangesEnded values of OrigInst and SpliceAssn.
-// If operands d and [x,y] contain a different number of variables,
-// then the bitmask position for e may be different in OrigInst and
-// the current instruction, requiring extra shifts and masks in the
-// computation.  In the example above, OrigInst has variable e in bit
-// position 3, whereas the current instruction has e in bit position 4
+// Reconstruct the LiveRangesEnded bitmask in this instruction by combining the
+// LiveRangesEnded values of OrigInst and SpliceAssn. If operands d and [x,y]
+// contain a different number of variables, then the bitmask position for e may
+// be different in OrigInst and the current instruction, requiring extra shifts
+// and masks in the computation. In the example above, OrigInst has variable e
+// in bit position 3, whereas the current instruction has e in bit position 4
 // because [x,y] consumes 2 bitmask slots while d only consumed 1.
 //
-// Additionally, set HasSideEffects if either OrigInst or SpliceAssn
-// have HasSideEffects set.
+// Additionally, set HasSideEffects if either OrigInst or SpliceAssn have
+// HasSideEffects set.
 void Inst::spliceLivenessInfo(Inst *OrigInst, Inst *SpliceAssn) {
   HasSideEffects |= OrigInst->HasSideEffects;
   HasSideEffects |= SpliceAssn->HasSideEffects;
@@ -184,8 +183,8 @@ bool Inst::liveness(InstNumberT InstNumber, LivenessBV &Live,
   }
   if (Dead)
     return false;
-  // Phi arguments only get added to Live in the predecessor node, but
-  // we still need to update LiveRangesEnded.
+  // Phi arguments only get added to Live in the predecessor node, but we still
+  // need to update LiveRangesEnded.
   bool IsPhi = llvm::isa<InstPhi>(this);
   resetLastUses();
   FOREACH_VAR_IN_INST(Var, *this) {
@@ -195,20 +194,21 @@ bool Inst::liveness(InstNumberT InstNumber, LivenessBV &Live,
       if (!IsPhi) {
         Live[VarNum] = true;
         // For a variable in SSA form, its live range can end at most once in a
-        // basic block.  However, after lowering to two-address instructions, we
-        // end up with sequences like "t=b;t+=c;a=t" where t's live range begins
-        // and ends twice.  ICE only allows a variable to have a single liveness
-        // interval in a basic block (except for blocks where a variable is
-        // live-in and live-out but there is a gap in the middle).  Therefore,
-        // this lowered sequence needs to represent a single conservative live
-        // range for t.  Since the instructions are being traversed backwards,
-        // we make sure LiveEnd is only set once by setting it only when
-        // LiveEnd[VarNum]==0 (sentinel value).  Note that it's OK to set
-        // LiveBegin multiple times because of the backwards traversal.
+        // basic block. However, after lowering to two-address instructions, we
+        // end up with sequences like "t=b;t+=c;a=t" where t's live range
+        // begins and ends twice. ICE only allows a variable to have a single
+        // liveness interval in a basic block (except for blocks where a
+        // variable is live-in and live-out but there is a gap in the middle).
+        // Therefore, this lowered sequence needs to represent a single
+        // conservative live range for t. Since the instructions are being
+        // traversed backwards, we make sure LiveEnd is only set once by
+        // setting it only when LiveEnd[VarNum]==0 (sentinel value). Note that
+        // it's OK to set LiveBegin multiple times because of the backwards
+        // traversal.
         if (LiveEnd && Liveness->getRangeMask(Var->getIndex())) {
           // Ideally, we would verify that VarNum wasn't already added in this
           // block, but this can't be done very efficiently with LiveEnd as a
-          // vector.  Instead, livenessPostprocess() verifies this after the
+          // vector. Instead, livenessPostprocess() verifies this after the
           // vector has been sorted.
           LiveEnd->push_back(std::make_pair(VarNum, InstNumber));
         }
@@ -249,9 +249,9 @@ InstAssign::InstAssign(Cfg *Func, Variable *Dest, Operand *Source)
   addSource(Source);
 }
 
-// If TargetTrue==TargetFalse, we turn it into an unconditional
-// branch.  This ensures that, along with the 'switch' instruction
-// semantics, there is at most one edge from one node to another.
+// If TargetTrue==TargetFalse, we turn it into an unconditional branch. This
+// ensures that, along with the 'switch' instruction semantics, there is at
+// most one edge from one node to another.
 InstBr::InstBr(Cfg *Func, Operand *Source, CfgNode *TargetTrue_,
                CfgNode *TargetFalse_)
     : InstHighLevel(Func, Inst::Br, 1, nullptr), TargetFalse(TargetFalse_),
@@ -334,18 +334,18 @@ InstPhi::InstPhi(Cfg *Func, SizeT MaxSrcs, Variable *Dest)
   Labels = Func->allocateArrayOf<CfgNode *>(MaxSrcs);
 }
 
-// TODO: A Switch instruction (and maybe others) can add duplicate
-// edges.  We may want to de-dup Phis and validate consistency (i.e.,
-// the source operands are the same for duplicate edges), though it
-// seems the current lowering code is OK with this situation.
+// TODO: A Switch instruction (and maybe others) can add duplicate edges. We
+// may want to de-dup Phis and validate consistency (i.e., the source operands
+// are the same for duplicate edges), though it seems the current lowering code
+// is OK with this situation.
 void InstPhi::addArgument(Operand *Source, CfgNode *Label) {
   Labels[getSrcSize()] = Label;
   addSource(Source);
 }
 
-// Find the source operand corresponding to the incoming edge for the
-// given node.  TODO: This uses a linear-time search, which could be
-// improved if it becomes a problem.
+// Find the source operand corresponding to the incoming edge for the given
+// node. TODO: This uses a linear-time search, which could be improved if it
+// becomes a problem.
 Operand *InstPhi::getOperandForTarget(CfgNode *Target) const {
   for (SizeT I = 0; I < getSrcSize(); ++I) {
     if (Labels[I] == Target)
@@ -355,9 +355,9 @@ Operand *InstPhi::getOperandForTarget(CfgNode *Target) const {
   return nullptr;
 }
 
-// Updates liveness for a particular operand based on the given
-// predecessor edge.  Doesn't mark the operand as live if the Phi
-// instruction is dead or deleted.
+// Updates liveness for a particular operand based on the given predecessor
+// edge. Doesn't mark the operand as live if the Phi instruction is dead or
+// deleted.
 void InstPhi::livenessPhiOperand(LivenessBV &Live, CfgNode *Target,
                                  Liveness *Liveness) {
   if (isDeleted() || Dead)
@@ -377,8 +377,8 @@ void InstPhi::livenessPhiOperand(LivenessBV &Live, CfgNode *Target,
   llvm_unreachable("Phi operand not found for specified target node");
 }
 
-// Change "a=phi(...)" to "a_phi=phi(...)" and return a new
-// instruction "a=a_phi".
+// Change "a=phi(...)" to "a_phi=phi(...)" and return a new instruction
+// "a=a_phi".
 Inst *InstPhi::lower(Cfg *Func) {
   Variable *Dest = getDest();
   assert(Dest);
@@ -562,8 +562,8 @@ void Inst::dumpExtras(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   bool First = true;
-  // Print "LIVEEND={a,b,c}" for all source operands whose live ranges
-  // are known to end at this instruction.
+  // Print "LIVEEND={a,b,c}" for all source operands whose live ranges are
+  // known to end at this instruction.
   if (Func->isVerbose(IceV_Liveness)) {
     FOREACH_VAR_IN_INST(Var, *this) {
       if (isLastUse(Var)) {
@@ -886,8 +886,7 @@ void InstBundleUnlock::dump(const Cfg *Func) const {
 void InstFakeDef::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
-  // Go ahead and "emit" these for now, since they are relatively
-  // rare.
+  // Go ahead and "emit" these for now, since they are relatively rare.
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << "\t# ";
   getDest()->emit(Func);
@@ -948,9 +947,8 @@ bool checkForRedundantAssign(const Variable *Dest, const Operand *Source) {
   if (!SrcVar)
     return false;
   if (Dest->hasReg() && Dest->getRegNum() == SrcVar->getRegNum()) {
-    // TODO: On x86-64, instructions like "mov eax, eax" are used to
-    // clear the upper 32 bits of rax.  We need to recognize and
-    // preserve these.
+    // TODO: On x86-64, instructions like "mov eax, eax" are used to clear the
+    // upper 32 bits of rax. We need to recognize and preserve these.
     return true;
   }
   if (!Dest->hasReg() && !SrcVar->hasReg() &&

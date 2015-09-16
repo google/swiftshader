@@ -8,8 +8,8 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file defines aspects of the compilation that persist across
-/// multiple functions.
+/// This file defines aspects of the compilation that persist across multiple
+/// functions.
 ///
 //===----------------------------------------------------------------------===//
 
@@ -48,9 +48,9 @@ namespace Ice {
 
 namespace {
 
-// Define the key comparison function for the constant pool's
-// unordered_map, but only for key types of interest: integer types,
-// floating point types, and the special RelocatableTuple.
+// Define the key comparison function for the constant pool's unordered_map,
+// but only for key types of interest: integer types, floating point types, and
+// the special RelocatableTuple.
 template <typename KeyType, class Enable = void> struct KeyCompare {};
 
 template <typename KeyType>
@@ -70,9 +70,9 @@ struct KeyCompare<KeyType, typename std::enable_if<
   }
 };
 
-// Define a key comparison function for sorting the constant pool's
-// values after they are dumped to a vector.  This covers integer
-// types, floating point types, and ConstantRelocatable values.
+// Define a key comparison function for sorting the constant pool's values
+// after they are dumped to a vector. This covers integer types, floating point
+// types, and ConstantRelocatable values.
 template <typename ValueType, class Enable = void> struct KeyCompareLess {};
 
 template <typename ValueType>
@@ -601,8 +601,8 @@ void GlobalContext::incrementSubstitutions(ManglerVector &OldName) const {
         assert(OldName[OldPos - 1] == 'S');
         assert(OldName[OldPos + Length] == '_');
         if (AllZs) {
-          // Replace N 'Z' characters with a '0' (if N=0) or '1' (if
-          // N>0) followed by N '0' characters.
+          // Replace N 'Z' characters with a '0' (if N=0) or '1' (if N>0)
+          // followed by N '0' characters.
           NewName[NewPos++] = (Length ? '1' : '0');
           for (size_t i = 0; i < Length; ++i) {
             NewName[NewPos++] = '0';
@@ -642,16 +642,15 @@ void GlobalContext::incrementSubstitutions(ManglerVector &OldName) const {
   OldName = NewName;
 }
 
-// In this context, name mangling means to rewrite a symbol using a
-// given prefix.  For a C++ symbol, nest the original symbol inside
-// the "prefix" namespace.  For other symbols, just prepend the
-// prefix.
+// In this context, name mangling means to rewrite a symbol using a given
+// prefix. For a C++ symbol, nest the original symbol inside the "prefix"
+// namespace. For other symbols, just prepend the prefix.
 IceString GlobalContext::mangleName(const IceString &Name) const {
-  // An already-nested name like foo::bar() gets pushed down one
-  // level, making it equivalent to Prefix::foo::bar().
+  // An already-nested name like foo::bar() gets pushed down one level, making
+  // it equivalent to Prefix::foo::bar().
   //   _ZN3foo3barExyz ==> _ZN6Prefix3foo3barExyz
-  // A non-nested but mangled name like bar() gets nested, making it
-  // equivalent to Prefix::bar().
+  // A non-nested but mangled name like bar() gets nested, making it equivalent
+  // to Prefix::bar().
   //   _Z3barxyz ==> ZN6Prefix3barExyz
   // An unmangled, extern "C" style name, gets a simple prefix:
   //   bar ==> Prefixbar
@@ -671,28 +670,27 @@ IceString GlobalContext::mangleName(const IceString &Name) const {
     //   (splice in "6Prefix")          ^^^^^^^
     snprintf(NewName.data(), BufLen, "_ZN%u%s%s", PrefixLength,
              TestPrefix.c_str(), NameBase.data());
-    // We ignore the snprintf return value (here and below).  If we
-    // somehow miscalculated the output buffer length, the output will
-    // be truncated, but it will be truncated consistently for all
-    // mangleName() calls on the same input string.
+    // We ignore the snprintf return value (here and below). If we somehow
+    // miscalculated the output buffer length, the output will be truncated,
+    // but it will be truncated consistently for all mangleName() calls on the
+    // same input string.
     incrementSubstitutions(NewName);
     return NewName.data();
   }
 
-  // Artificially limit BaseLength to 9 digits (less than 1 billion)
-  // because sscanf behavior is undefined on integer overflow.  If
-  // there are more than 9 digits (which we test by looking at the
-  // beginning of NameBase), then we consider this a failure to parse
-  // a namespace mangling, and fall back to the simple prefixing.
+  // Artificially limit BaseLength to 9 digits (less than 1 billion) because
+  // sscanf behavior is undefined on integer overflow. If there are more than 9
+  // digits (which we test by looking at the beginning of NameBase), then we
+  // consider this a failure to parse a namespace mangling, and fall back to
+  // the simple prefixing.
   ItemsParsed = sscanf(Name.c_str(), "_Z%9u%s", &BaseLength, NameBase.data());
   if (ItemsParsed == 2 && BaseLength <= strlen(NameBase.data()) &&
       !isdigit(NameBase[0])) {
     // Transform _Z3barxyz ==> _ZN6Prefix3barExyz
     //                           ^^^^^^^^    ^
-    // (splice in "N6Prefix", and insert "E" after "3bar")
-    // But an "I" after the identifier indicates a template argument
-    // list terminated with "E"; insert the new "E" before/after the
-    // old "E".  E.g.:
+    // (splice in "N6Prefix", and insert "E" after "3bar") But an "I" after the
+    // identifier indicates a template argument list terminated with "E";
+    // insert the new "E" before/after the old "E".  E.g.:
     // Transform _Z3barIabcExyz ==> _ZN6Prefix3barIabcEExyz
     //                                ^^^^^^^^         ^
     // (splice in "N6Prefix", and insert "E" after "3barIabcE")
@@ -730,8 +728,8 @@ GlobalContext::~GlobalContext() {
   }
 }
 
-// TODO(stichnot): Consider adding thread-local caches of constant
-// pool entries to reduce contention.
+// TODO(stichnot): Consider adding thread-local caches of constant pool entries
+// to reduce contention.
 
 // All locking is done by the getConstantInt[0-9]+() target function.
 Constant *GlobalContext::getConstantInt(Type Ty, int64_t Value) {
@@ -875,8 +873,8 @@ ConstantList GlobalContext::getConstantExternSyms() {
 
 JumpTableDataList GlobalContext::getJumpTables() {
   JumpTableDataList JumpTables(*getJumpTableList());
-  // Make order deterministic by sorting into functions and then ID of the
-  // jump table within that function.
+  // Make order deterministic by sorting into functions and then ID of the jump
+  // table within that function.
   std::sort(JumpTables.begin(), JumpTables.end(),
             [](const JumpTableData &A, const JumpTableData &B) {
               if (A.getFunctionName() != B.getFunctionName())
@@ -946,11 +944,10 @@ void GlobalContext::setTimerName(TimerStackIdT StackID,
   Timers->at(StackID).setName(NewName);
 }
 
-// Note: optQueueBlockingPush and optQueueBlockingPop use unique_ptr
-// at the interface to take and transfer ownership, but they
-// internally store the raw Cfg pointer in the work queue.  This
-// allows e.g. future queue optimizations such as the use of atomics
-// to modify queue elements.
+// Note: optQueueBlockingPush and optQueueBlockingPop use unique_ptr at the
+// interface to take and transfer ownership, but they internally store the raw
+// Cfg pointer in the work queue. This allows e.g. future queue optimizations
+// such as the use of atomics to modify queue elements.
 void GlobalContext::optQueueBlockingPush(std::unique_ptr<Cfg> Func) {
   assert(Func);
   OptQ.blockingPush(Func.release());

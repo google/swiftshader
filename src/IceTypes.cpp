@@ -58,8 +58,7 @@ ICETYPE_TABLE
 ICETYPE_PROPS_TABLE
 #undef X
 
-// Show vector definitions match in ICETYPE_TABLE and
-// ICETYPE_PROPS_TABLE.
+// Show vector definitions match in ICETYPE_TABLE and ICETYPE_PROPS_TABLE.
 
 // Define constants for each element size in ICETYPE_TABLE.
 enum {

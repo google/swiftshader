@@ -390,10 +390,10 @@ template <> struct MachineTraits<TargetX8632> {
                                 const llvm::SmallBitVector &ExcludeRegisters,
                                 uint64_t Salt) {
     // TODO(stichnot): Declaring Permutation this way loses type/size
-    // information.  Fix this in conjunction with the caller-side TODO.
+    // information. Fix this in conjunction with the caller-side TODO.
     assert(Permutation.size() >= RegisterSet::Reg_NUM);
     // Expected upper bound on the number of registers in a single equivalence
-    // class.  For x86-32, this would comprise the 8 XMM registers.  This is for
+    // class. For x86-32, this would comprise the 8 XMM registers. This is for
     // performance, not correctness.
     static const unsigned MaxEquivalenceClassSize = 8;
     using RegisterList = llvm::SmallVector<int32_t, MaxEquivalenceClassSize>;
@@ -477,8 +477,8 @@ template <> struct MachineTraits<TargetX8632> {
   static constexpr uint32_t MEMSET_UNROLL_LIMIT = 16;
   /// @}
 
-  /// Value is in bytes. Return Value adjusted to the next highest multiple
-  /// of the stack alignment.
+  /// Value is in bytes. Return Value adjusted to the next highest multiple of
+  /// the stack alignment.
   static uint32_t applyStackAlignment(uint32_t Value) {
     return Utils::applyAlignment(Value, X86_STACK_ALIGNMENT_BYTES);
   }
@@ -500,17 +500,17 @@ template <> struct MachineTraits<TargetX8632> {
   /// instruction. There is one table entry for each of the 16 conditions.
   ///
   /// The first four columns describe the case when the operands are floating
-  /// point scalar values.  A comment in lowerFcmp() describes the lowering
-  /// template.  In the most general case, there is a compare followed by two
+  /// point scalar values. A comment in lowerFcmp() describes the lowering
+  /// template. In the most general case, there is a compare followed by two
   /// conditional branches, because some fcmp conditions don't map to a single
-  /// x86 conditional branch.  However, in many cases it is possible to swap the
-  /// operands in the comparison and have a single conditional branch.  Since
+  /// x86 conditional branch. However, in many cases it is possible to swap the
+  /// operands in the comparison and have a single conditional branch. Since
   /// it's quite tedious to validate the table by hand, good execution tests are
   /// helpful.
   ///
   /// The last two columns describe the case when the operands are vectors of
-  /// floating point values.  For most fcmp conditions, there is a clear mapping
-  /// to a single x86 cmpps instruction variant.  Some fcmp conditions require
+  /// floating point values. For most fcmp conditions, there is a clear mapping
+  /// to a single x86 cmpps instruction variant. Some fcmp conditions require
   /// special code to handle and these are marked in the table with a
   /// Cmpps_Invalid predicate.
   /// {@
@@ -525,7 +525,7 @@ template <> struct MachineTraits<TargetX8632> {
   /// @}
 
   /// The following table summarizes the logic for lowering the icmp instruction
-  /// for i32 and narrower types.  Each icmp condition has a clear mapping to an
+  /// for i32 and narrower types. Each icmp condition has a clear mapping to an
   /// x86 conditional branch instruction.
   /// {@
   static const struct TableIcmp32Type { Cond::BrCond Mapping; } TableIcmp32[];
@@ -533,8 +533,8 @@ template <> struct MachineTraits<TargetX8632> {
   /// @}
 
   /// The following table summarizes the logic for lowering the icmp instruction
-  /// for the i64 type.  For Eq and Ne, two separate 32-bit comparisons and
-  /// conditional branches are needed.  For the other conditions, three separate
+  /// for the i64 type. For Eq and Ne, two separate 32-bit comparisons and
+  /// conditional branches are needed. For the other conditions, three separate
   /// conditional branches are needed.
   /// {@
   static const struct TableIcmp64Type {
@@ -567,8 +567,8 @@ template <> struct MachineTraits<TargetX8632> {
   using TargetLowering = ::Ice::X86Internal::TargetX86Base<TargetX8632>;
   using Assembler = X8632::AssemblerX8632;
 
-  /// X86Operand extends the Operand hierarchy.  Its subclasses are
-  /// X86OperandMem and VariableSplit.
+  /// X86Operand extends the Operand hierarchy. Its subclasses are X86OperandMem
+  /// and VariableSplit.
   class X86Operand : public ::Ice::Operand {
     X86Operand() = delete;
     X86Operand(const X86Operand &) = delete;
@@ -644,8 +644,8 @@ template <> struct MachineTraits<TargetX8632> {
   };
 
   /// VariableSplit is a way to treat an f64 memory location as a pair of i32
-  /// locations (Low and High).  This is needed for some cases of the Bitcast
-  /// instruction.  Since it's not possible for integer registers to access the
+  /// locations (Low and High). This is needed for some cases of the Bitcast
+  /// instruction. Since it's not possible for integer registers to access the
   /// XMM registers and vice versa, the lowering forces the f64 to be spilled to
   /// the stack and then accesses through the VariableSplit.
   // TODO(jpp): remove references to VariableSplit from IceInstX86Base as 64bit
@@ -685,11 +685,11 @@ template <> struct MachineTraits<TargetX8632> {
     Portion Part;
   };
 
-  /// SpillVariable decorates a Variable by linking it to another Variable.
-  /// When stack frame offsets are computed, the SpillVariable is given a
-  /// distinct stack slot only if its linked Variable has a register.  If the
-  /// linked Variable has a stack slot, then the Variable and SpillVariable
-  /// share that slot.
+  /// SpillVariable decorates a Variable by linking it to another Variable. When
+  /// stack frame offsets are computed, the SpillVariable is given a distinct
+  /// stack slot only if its linked Variable has a register. If the linked
+  /// Variable has a stack slot, then the Variable and SpillVariable share that
+  /// slot.
   class SpillVariable : public Variable {
     SpillVariable() = delete;
     SpillVariable(const SpillVariable &) = delete;

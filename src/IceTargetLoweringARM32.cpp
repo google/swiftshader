@@ -47,7 +47,7 @@ namespace {
   } while (0)
 
 // The following table summarizes the logic for lowering the icmp instruction
-// for i32 and narrower types.  Each icmp condition has a clear mapping to an
+// for i32 and narrower types. Each icmp condition has a clear mapping to an
 // ARM32 conditional move instruction.
 
 const struct TableIcmp32_ {
@@ -62,8 +62,8 @@ const struct TableIcmp32_ {
 
 // The following table summarizes the logic for lowering the icmp instruction
 // for the i64 type. Two conditional moves are needed for setting to 1 or 0.
-// The operands may need to be swapped, and there is a slight difference
-// for signed vs unsigned (comparing hi vs lo first, and using cmp vs sbc).
+// The operands may need to be swapped, and there is a slight difference for
+// signed vs unsigned (comparing hi vs lo first, and using cmp vs sbc).
 const struct TableIcmp64_ {
   bool IsSigned;
   bool Swapped;
@@ -82,18 +82,16 @@ CondARM32::Cond getIcmp32Mapping(InstIcmp::ICond Cond) {
   return TableIcmp32[Index].Mapping;
 }
 
-// In some cases, there are x-macros tables for both high-level and
-// low-level instructions/operands that use the same enum key value.
-// The tables are kept separate to maintain a proper separation
-// between abstraction layers.  There is a risk that the tables could
-// get out of sync if enum values are reordered or if entries are
-// added or deleted.  The following dummy namespaces use
+// In some cases, there are x-macros tables for both high-level and low-level
+// instructions/operands that use the same enum key value. The tables are kept
+// separate to maintain a proper separation between abstraction layers. There
+// is a risk that the tables could get out of sync if enum values are reordered
+// or if entries are added or deleted. The following dummy namespaces use
 // static_asserts to ensure everything is kept in sync.
 
 // Validate the enum values in ICMPARM32_TABLE.
 namespace dummy1 {
-// Define a temporary set of enum values based on low-level table
-// entries.
+// Define a temporary set of enum values based on low-level table entries.
 enum _tmp_enum {
 #define X(val, signed, swapped64, C_32, C1_64, C2_64) _tmp_##val,
   ICMPARM32_TABLE
@@ -104,8 +102,8 @@ enum _tmp_enum {
 #define X(tag, str) static const int _table1_##tag = InstIcmp::tag;
 ICEINSTICMP_TABLE
 #undef X
-// Define a set of constants based on low-level table entries, and
-// ensure the table entry keys are consistent.
+// Define a set of constants based on low-level table entries, and ensure the
+// table entry keys are consistent.
 #define X(val, signed, swapped64, C_32, C1_64, C2_64)                          \
   static const int _table2_##val = _tmp_##val;                                 \
   static_assert(                                                               \
@@ -113,8 +111,8 @@ ICEINSTICMP_TABLE
       "Inconsistency between ICMPARM32_TABLE and ICEINSTICMP_TABLE");
 ICMPARM32_TABLE
 #undef X
-// Repeat the static asserts with respect to the high-level table
-// entries in case the high-level table has extra entries.
+// Repeat the static asserts with respect to the high-level table entries in
+// case the high-level table has extra entries.
 #define X(tag, str)                                                            \
   static_assert(                                                               \
       _table1_##tag == _table2_##tag,                                          \
@@ -126,17 +124,17 @@ ICEINSTICMP_TABLE
 // Stack alignment
 const uint32_t ARM32_STACK_ALIGNMENT_BYTES = 16;
 
-// Value is in bytes. Return Value adjusted to the next highest multiple
-// of the stack alignment.
+// Value is in bytes. Return Value adjusted to the next highest multiple of the
+// stack alignment.
 uint32_t applyStackAlignment(uint32_t Value) {
   return Utils::applyAlignment(Value, ARM32_STACK_ALIGNMENT_BYTES);
 }
 
-// Value is in bytes. Return Value adjusted to the next highest multiple
-// of the stack alignment required for the given type.
+// Value is in bytes. Return Value adjusted to the next highest multiple of the
+// stack alignment required for the given type.
 uint32_t applyStackAlignmentTy(uint32_t Value, Type Ty) {
-  // Use natural alignment, except that normally (non-NaCl) ARM only
-  // aligns vectors to 8 bytes.
+  // Use natural alignment, except that normally (non-NaCl) ARM only aligns
+  // vectors to 8 bytes.
   // TODO(jvoung): Check this ...
   size_t typeAlignInBytes = typeWidthInBytes(Ty);
   if (isVectorType(Ty))
@@ -172,9 +170,8 @@ TargetARM32Features::TargetARM32Features(const ClFlags &Flags) {
 
 TargetARM32::TargetARM32(Cfg *Func)
     : TargetLowering(Func), CPUFeatures(Func->getContext()->getFlags()) {
-  // TODO: Don't initialize IntegerRegisters and friends every time.
-  // Instead, initialize in some sort of static initializer for the
-  // class.
+  // TODO: Don't initialize IntegerRegisters and friends every time. Instead,
+  // initialize in some sort of static initializer for the class.
   // Limit this size (or do all bitsets need to be the same width)???
   llvm::SmallBitVector IntegerRegisters(RegARM32::Reg_NUM);
   llvm::SmallBitVector Float32Registers(RegARM32::Reg_NUM);
@@ -243,19 +240,18 @@ void TargetARM32::translateO2() {
   // Argument lowering
   Func->doArgLowering();
 
-  // Target lowering.  This requires liveness analysis for some parts
-  // of the lowering decisions, such as compare/branch fusing.  If
-  // non-lightweight liveness analysis is used, the instructions need
-  // to be renumbered first.  TODO: This renumbering should only be
-  // necessary if we're actually calculating live intervals, which we
-  // only do for register allocation.
+  // Target lowering. This requires liveness analysis for some parts of the
+  // lowering decisions, such as compare/branch fusing. If non-lightweight
+  // liveness analysis is used, the instructions need to be renumbered first.
+  // TODO: This renumbering should only be necessary if we're actually
+  // calculating live intervals, which we only do for register allocation.
   Func->renumberInstructions();
   if (Func->hasError())
     return;
 
-  // TODO: It should be sufficient to use the fastest liveness
-  // calculation, i.e. livenessLightweight().  However, for some
-  // reason that slows down the rest of the translation.  Investigate.
+  // TODO: It should be sufficient to use the fastest liveness calculation,
+  // i.e. livenessLightweight(). However, for some reason that slows down the
+  // rest of the translation. Investigate.
   Func->liveness(Liveness_Basic);
   if (Func->hasError())
     return;
@@ -266,19 +262,19 @@ void TargetARM32::translateO2() {
     return;
   Func->dump("After ARM32 codegen");
 
-  // Register allocation.  This requires instruction renumbering and
-  // full liveness analysis.
+  // Register allocation. This requires instruction renumbering and full
+  // liveness analysis.
   Func->renumberInstructions();
   if (Func->hasError())
     return;
   Func->liveness(Liveness_Intervals);
   if (Func->hasError())
     return;
-  // Validate the live range computations.  The expensive validation
-  // call is deliberately only made when assertions are enabled.
+  // Validate the live range computations. The expensive validation call is
+  // deliberately only made when assertions are enabled.
   assert(Func->validateLiveness());
-  // The post-codegen dump is done here, after liveness analysis and
-  // associated cleanup, to make the dump cleaner and more useful.
+  // The post-codegen dump is done here, after liveness analysis and associated
+  // cleanup, to make the dump cleaner and more useful.
   Func->dump("After initial ARM32 codegen");
   Func->getVMetadata()->init(VMK_All);
   regAlloc(RAK_Global);
@@ -305,11 +301,10 @@ void TargetARM32::translateO2() {
   Func->contractEmptyNodes();
   Func->reorderNodes();
 
-  // Branch optimization.  This needs to be done just before code
-  // emission.  In particular, no transformations that insert or
-  // reorder CfgNodes should be done after branch optimization.  We go
-  // ahead and do it before nop insertion to reduce the amount of work
-  // needed for searching for opportunities.
+  // Branch optimization. This needs to be done just before code emission. In
+  // particular, no transformations that insert or reorder CfgNodes should be
+  // done after branch optimization. We go ahead and do it before nop insertion
+  // to reduce the amount of work needed for searching for opportunities.
   Func->doBranchOpt();
   Func->dump("After branch optimization");
 
@@ -395,8 +390,8 @@ Variable *TargetARM32::getPhysicalRegister(SizeT RegNum, Type Ty) {
     Reg = Func->makeVariable(Ty);
     Reg->setRegNum(RegNum);
     PhysicalRegisters[Ty][RegNum] = Reg;
-    // Specially mark SP and LR as an "argument" so that it is considered
-    // live upon function entry.
+    // Specially mark SP and LR as an "argument" so that it is considered live
+    // upon function entry.
     if (RegNum == RegARM32::Reg_sp || RegNum == RegARM32::Reg_lr) {
       Func->addImplicitArg(Reg);
       Reg->setIgnoreLiveness();
@@ -445,15 +440,15 @@ bool TargetARM32::CallingConv::I64InRegs(std::pair<int32_t, int32_t> *Regs) {
   if (NumGPRRegsUsed >= ARM32_MAX_GPR_ARG)
     return false;
   int32_t RegLo, RegHi;
-  // Always start i64 registers at an even register, so this may end
-  // up padding away a register.
+  // Always start i64 registers at an even register, so this may end up padding
+  // away a register.
   NumGPRRegsUsed = Utils::applyAlignment(NumGPRRegsUsed, 2);
   RegLo = RegARM32::Reg_r0 + NumGPRRegsUsed;
   ++NumGPRRegsUsed;
   RegHi = RegARM32::Reg_r0 + NumGPRRegsUsed;
   ++NumGPRRegsUsed;
-  // If this bumps us past the boundary, don't allocate to a register
-  // and leave any previously speculatively consumed registers as consumed.
+  // If this bumps us past the boundary, don't allocate to a register and leave
+  // any previously speculatively consumed registers as consumed.
   if (NumGPRRegsUsed > ARM32_MAX_GPR_ARG)
     return false;
   Regs->first = RegLo;
@@ -474,15 +469,15 @@ bool TargetARM32::CallingConv::FPInReg(Type Ty, int32_t *Reg) {
     return false;
   if (isVectorType(Ty)) {
     NumFPRegUnits = Utils::applyAlignment(NumFPRegUnits, 4);
-    // Q registers are declared in reverse order, so
-    // RegARM32::Reg_q0 > RegARM32::Reg_q1. Therefore, we need to subtract
-    // NumFPRegUnits from Reg_q0. Same thing goes for D registers.
+    // Q registers are declared in reverse order, so RegARM32::Reg_q0 >
+    // RegARM32::Reg_q1. Therefore, we need to subtract NumFPRegUnits from
+    // Reg_q0. Same thing goes for D registers.
     static_assert(RegARM32::Reg_q0 > RegARM32::Reg_q1,
                   "ARM32 Q registers are possibly declared incorrectly.");
     *Reg = RegARM32::Reg_q0 - (NumFPRegUnits / 4);
     NumFPRegUnits += 4;
-    // If this bumps us past the boundary, don't allocate to a register
-    // and leave any previously speculatively consumed registers as consumed.
+    // If this bumps us past the boundary, don't allocate to a register and
+    // leave any previously speculatively consumed registers as consumed.
     if (NumFPRegUnits > ARM32_MAX_FP_REG_UNITS)
       return false;
   } else if (Ty == IceType_f64) {
@@ -491,8 +486,8 @@ bool TargetARM32::CallingConv::FPInReg(Type Ty, int32_t *Reg) {
     NumFPRegUnits = Utils::applyAlignment(NumFPRegUnits, 2);
     *Reg = RegARM32::Reg_d0 - (NumFPRegUnits / 2);
     NumFPRegUnits += 2;
-    // If this bumps us past the boundary, don't allocate to a register
-    // and leave any previously speculatively consumed registers as consumed.
+    // If this bumps us past the boundary, don't allocate to a register and
+    // leave any previously speculatively consumed registers as consumed.
     if (NumFPRegUnits > ARM32_MAX_FP_REG_UNITS)
       return false;
   } else {
@@ -509,9 +504,9 @@ void TargetARM32::lowerArguments() {
   VarList &Args = Func->getArgs();
   TargetARM32::CallingConv CC;
 
-  // For each register argument, replace Arg in the argument list with the
-  // home register.  Then generate an instruction in the prolog to copy the
-  // home register to the assigned location of Arg.
+  // For each register argument, replace Arg in the argument list with the home
+  // register. Then generate an instruction in the prolog to copy the home
+  // register to the assigned location of Arg.
   Context.init(Func->getEntryNode());
   Context.setInsertPoint(Context.getCur());
 
@@ -568,13 +563,12 @@ void TargetARM32::lowerArguments() {
 
 // Helper function for addProlog().
 //
-// This assumes Arg is an argument passed on the stack.  This sets the
-// frame offset for Arg and updates InArgsSizeBytes according to Arg's
-// width.  For an I64 arg that has been split into Lo and Hi components,
-// it calls itself recursively on the components, taking care to handle
-// Lo first because of the little-endian architecture.  Lastly, this
-// function generates an instruction to copy Arg into its assigned
-// register if applicable.
+// This assumes Arg is an argument passed on the stack. This sets the frame
+// offset for Arg and updates InArgsSizeBytes according to Arg's width. For an
+// I64 arg that has been split into Lo and Hi components, it calls itself
+// recursively on the components, taking care to handle Lo first because of the
+// little-endian architecture. Lastly, this function generates an instruction
+// to copy Arg into its assigned register if applicable.
 void TargetARM32::finishArgumentLowering(Variable *Arg, Variable *FramePtr,
                                          size_t BasicFrameOffset,
                                          size_t &InArgsSizeBytes) {
@@ -591,8 +585,8 @@ void TargetARM32::finishArgumentLowering(Variable *Arg, Variable *FramePtr,
   InArgsSizeBytes = applyStackAlignmentTy(InArgsSizeBytes, Ty);
   Arg->setStackOffset(BasicFrameOffset + InArgsSizeBytes);
   InArgsSizeBytes += typeWidthInBytesOnStack(Ty);
-  // If the argument variable has been assigned a register, we need to load
-  // the value from the stack slot.
+  // If the argument variable has been assigned a register, we need to load the
+  // value from the stack slot.
   if (Arg->hasReg()) {
     assert(Ty != IceType_i64);
     OperandARM32Mem *Mem = OperandARM32Mem::create(
@@ -606,10 +600,9 @@ void TargetARM32::finishArgumentLowering(Variable *Arg, Variable *FramePtr,
     } else {
       _ldr(Arg, Mem);
     }
-    // This argument-copying instruction uses an explicit
-    // OperandARM32Mem operand instead of a Variable, so its
-    // fill-from-stack operation has to be tracked separately for
-    // statistics.
+    // This argument-copying instruction uses an explicit OperandARM32Mem
+    // operand instead of a Variable, so its fill-from-stack operation has to
+    // be tracked separately for statistics.
     Ctx->statsUpdateFills();
   }
 }
@@ -642,16 +635,15 @@ void TargetARM32::addProlog(CfgNode *Node) {
   //  * GlobalsAndSubsequentPaddingSize: areas 3 - 4
   //  * LocalsSpillAreaSize:    area 5
   //  * SpillAreaSizeBytes:     areas 2 - 6
-  // Determine stack frame offsets for each Variable without a
-  // register assignment.  This can be done as one variable per stack
-  // slot.  Or, do coalescing by running the register allocator again
-  // with an infinite set of registers (as a side effect, this gives
-  // variables a second chance at physical register assignment).
+  // Determine stack frame offsets for each Variable without a register
+  // assignment.  This can be done as one variable per stack slot.  Or, do
+  // coalescing by running the register allocator again with an infinite set of
+  // registers (as a side effect, this gives variables a second chance at
+  // physical register assignment).
   //
-  // A middle ground approach is to leverage sparsity and allocate one
-  // block of space on the frame for globals (variables with
-  // multi-block lifetime), and one block to share for locals
-  // (single-block lifetime).
+  // A middle ground approach is to leverage sparsity and allocate one block of
+  // space on the frame for globals (variables with multi-block lifetime), and
+  // one block to share for locals (single-block lifetime).
 
   Context.init(Node);
   Context.setInsertPoint(Context.getCur());
@@ -661,14 +653,13 @@ void TargetARM32::addProlog(CfgNode *Node) {
   RegsUsed = llvm::SmallBitVector(CalleeSaves.size());
   VarList SortedSpilledVariables;
   size_t GlobalsSize = 0;
-  // If there is a separate locals area, this represents that area.
-  // Otherwise it counts any variable not counted by GlobalsSize.
+  // If there is a separate locals area, this represents that area. Otherwise
+  // it counts any variable not counted by GlobalsSize.
   SpillAreaSizeBytes = 0;
-  // If there is a separate locals area, this specifies the alignment
-  // for it.
+  // If there is a separate locals area, this specifies the alignment for it.
   uint32_t LocalsSlotsAlignmentBytes = 0;
-  // The entire spill locations area gets aligned to largest natural
-  // alignment of the variables that have a spill slot.
+  // The entire spill locations area gets aligned to largest natural alignment
+  // of the variables that have a spill slot.
   uint32_t SpillAreaAlignmentBytes = 0;
   // For now, we don't have target-specific variables that need special
   // treatment (no stack-slot-linked SpillVariable type).
@@ -682,12 +673,11 @@ void TargetARM32::addProlog(CfgNode *Node) {
   uint32_t LocalsSpillAreaSize = SpillAreaSizeBytes;
   SpillAreaSizeBytes += GlobalsSize;
 
-  // Add push instructions for preserved registers.
-  // On ARM, "push" can push a whole list of GPRs via a bitmask (0-15).
-  // Unlike x86, ARM also has callee-saved float/vector registers.
-  // The "vpush" instruction can handle a whole list of float/vector
-  // registers, but it only handles contiguous sequences of registers
-  // by specifying the start and the length.
+  // Add push instructions for preserved registers. On ARM, "push" can push a
+  // whole list of GPRs via a bitmask (0-15). Unlike x86, ARM also has
+  // callee-saved float/vector registers. The "vpush" instruction can handle a
+  // whole list of float/vector registers, but it only handles contiguous
+  // sequences of registers by specifying the start and the length.
   VarList GPRsToPreserve;
   GPRsToPreserve.reserve(CalleeSaves.size());
   uint32_t NumCallee = 0;
@@ -704,8 +694,8 @@ void TargetARM32::addProlog(CfgNode *Node) {
   }
   for (SizeT i = 0; i < CalleeSaves.size(); ++i) {
     if (CalleeSaves[i] && RegsUsed[i]) {
-      // TODO(jvoung): do separate vpush for each floating point
-      // register segment and += 4, or 8 depending on type.
+      // TODO(jvoung): do separate vpush for each floating point register
+      // segment and += 4, or 8 depending on type.
       ++NumCallee;
       PreservedRegsSizeBytes += 4;
       GPRsToPreserve.push_back(getPhysicalRegister(i));
@@ -724,10 +714,10 @@ void TargetARM32::addProlog(CfgNode *Node) {
     Context.insert(InstFakeUse::create(Func, FP));
   }
 
-  // Align the variables area. SpillAreaPaddingBytes is the size of
-  // the region after the preserved registers and before the spill areas.
-  // LocalsSlotsPaddingBytes is the amount of padding between the globals
-  // and locals area if they are separate.
+  // Align the variables area. SpillAreaPaddingBytes is the size of the region
+  // after the preserved registers and before the spill areas.
+  // LocalsSlotsPaddingBytes is the amount of padding between the globals and
+  // locals area if they are separate.
   assert(SpillAreaAlignmentBytes <= ARM32_STACK_ALIGNMENT_BYTES);
   assert(LocalsSlotsAlignmentBytes <= SpillAreaAlignmentBytes);
   uint32_t SpillAreaPaddingBytes = 0;
@@ -758,9 +748,9 @@ void TargetARM32::addProlog(CfgNode *Node) {
 
   resetStackAdjustment();
 
-  // Fill in stack offsets for stack args, and copy args into registers
-  // for those that were register-allocated.  Args are pushed right to
-  // left, so Arg[0] is closest to the stack/frame pointer.
+  // Fill in stack offsets for stack args, and copy args into registers for
+  // those that were register-allocated. Args are pushed right to left, so
+  // Arg[0] is closest to the stack/frame pointer.
   Variable *FramePtr = getPhysicalRegister(getFrameOrStackReg());
   size_t BasicFrameOffset = PreservedRegsSizeBytes;
   if (!UsesFramePointer)
@@ -830,8 +820,8 @@ void TargetARM32::addEpilog(CfgNode *Node) {
   if (RI == E)
     return;
 
-  // Convert the reverse_iterator position into its corresponding
-  // (forward) iterator position.
+  // Convert the reverse_iterator position into its corresponding (forward)
+  // iterator position.
   InstList::iterator InsertPoint = RI.base();
   --InsertPoint;
   Context.init(Node);
@@ -840,9 +830,9 @@ void TargetARM32::addEpilog(CfgNode *Node) {
   Variable *SP = getPhysicalRegister(RegARM32::Reg_sp);
   if (UsesFramePointer) {
     Variable *FP = getPhysicalRegister(RegARM32::Reg_fp);
-    // For late-stage liveness analysis (e.g. asm-verbose mode),
-    // adding a fake use of SP before the assignment of SP=FP keeps
-    // previous SP adjustments from being dead-code eliminated.
+    // For late-stage liveness analysis (e.g. asm-verbose mode), adding a fake
+    // use of SP before the assignment of SP=FP keeps previous SP adjustments
+    // from being dead-code eliminated.
     Context.insert(InstFakeUse::create(Func, SP));
     _mov(SP, FP);
   } else {
@@ -868,8 +858,8 @@ void TargetARM32::addEpilog(CfgNode *Node) {
   if (!MaybeLeafFunc) {
     CalleeSaves[RegARM32::Reg_lr] = true;
   }
-  // Pop registers in ascending order just like push
-  // (instead of in reverse order).
+  // Pop registers in ascending order just like push (instead of in reverse
+  // order).
   for (SizeT i = 0; i < CalleeSaves.size(); ++i) {
     if (CalleeSaves[i] && RegsUsed[i]) {
       GPRsToRestore.push_back(getPhysicalRegister(i));
@@ -903,17 +893,16 @@ void TargetARM32::addEpilog(CfgNode *Node) {
 
 bool TargetARM32::isLegalVariableStackOffset(int32_t Offset) const {
   constexpr bool SignExt = false;
-  // TODO(jvoung): vldr of FP stack slots has a different limit from the
-  // plain stackSlotType().
+  // TODO(jvoung): vldr of FP stack slots has a different limit from the plain
+  // stackSlotType().
   return OperandARM32Mem::canHoldOffset(stackSlotType(), SignExt, Offset);
 }
 
 StackVariable *TargetARM32::legalizeVariableSlot(Variable *Var,
                                                  Variable *OrigBaseReg) {
   int32_t Offset = Var->getStackOffset();
-  // Legalize will likely need a movw/movt combination, but if the top
-  // bits are all 0 from negating the offset and subtracting, we could
-  // use that instead.
+  // Legalize will likely need a movw/movt combination, but if the top bits are
+  // all 0 from negating the offset and subtracting, we could use that instead.
   bool ShouldSub = (-Offset & 0xFFFF0000) == 0;
   if (ShouldSub)
     Offset = -Offset;
@@ -949,15 +938,15 @@ void TargetARM32::legalizeStackSlots() {
     return;
   Variable *OrigBaseReg = getPhysicalRegister(getFrameOrStackReg());
   int32_t StackAdjust = 0;
-  // Do a fairly naive greedy clustering for now.  Pick the first stack slot
+  // Do a fairly naive greedy clustering for now. Pick the first stack slot
   // that's out of bounds and make a new base reg using the architecture's temp
-  // register. If that works for the next slot, then great. Otherwise, create
-  // a new base register, clobbering the previous base register.  Never share a
-  // base reg across different basic blocks.  This isn't ideal if local and
+  // register. If that works for the next slot, then great. Otherwise, create a
+  // new base register, clobbering the previous base register. Never share a
+  // base reg across different basic blocks. This isn't ideal if local and
   // multi-block variables are far apart and their references are interspersed.
-  // It may help to be more coordinated about assign stack slot numbers
-  // and may help to assign smaller offsets to higher-weight variables
-  // so that they don't depend on this legalization.
+  // It may help to be more coordinated about assign stack slot numbers and may
+  // help to assign smaller offsets to higher-weight variables so that they
+  // don't depend on this legalization.
   for (CfgNode *Node : Func->getNodes()) {
     Context.init(Node);
     StackVariable *NewBaseReg = nullptr;
@@ -986,7 +975,7 @@ void TargetARM32::legalizeStackSlots() {
           continue;
         }
       }
-      // For now, only Mov instructions can have stack variables.  We need to
+      // For now, only Mov instructions can have stack variables. We need to
       // know the type of instruction because we currently create a fresh one
       // to replace Dest/Source, rather than mutate in place.
       auto *MovInst = llvm::dyn_cast<InstARM32Mov>(CurInstr);
@@ -1117,15 +1106,15 @@ Operand *TargetARM32::hiOperand(Operand *Operand) {
         static_cast<uint32_t>(Const->getValue() >> 32));
   }
   if (auto *Mem = llvm::dyn_cast<OperandARM32Mem>(Operand)) {
-    // Conservatively disallow memory operands with side-effects
-    // in case of duplication.
+    // Conservatively disallow memory operands with side-effects in case of
+    // duplication.
     assert(Mem->getAddrMode() == OperandARM32Mem::Offset ||
            Mem->getAddrMode() == OperandARM32Mem::NegOffset);
     const Type SplitType = IceType_i32;
     if (Mem->isRegReg()) {
       // We have to make a temp variable T, and add 4 to either Base or Index.
-      // The Index may be shifted, so adding 4 can mean something else.
-      // Thus, prefer T := Base + 4, and use T as the new Base.
+      // The Index may be shifted, so adding 4 can mean something else. Thus,
+      // prefer T := Base + 4, and use T as the new Base.
       Variable *Base = Mem->getBase();
       Constant *Four = Ctx->getConstantInt32(4);
       Variable *NewBase = Func->makeVariable(Base->getType());
@@ -1144,8 +1133,8 @@ Operand *TargetARM32::hiOperand(Operand *Operand) {
         // We have to make a temp variable and add 4 to either Base or Offset.
         // If we add 4 to Offset, this will convert a non-RegReg addressing
         // mode into a RegReg addressing mode. Since NaCl sandboxing disallows
-        // RegReg addressing modes, prefer adding to base and replacing instead.
-        // Thus we leave the old offset alone.
+        // RegReg addressing modes, prefer adding to base and replacing
+        // instead. Thus we leave the old offset alone.
         Constant *Four = Ctx->getConstantInt32(4);
         Variable *NewBase = Func->makeVariable(Base->getType());
         lowerArithmetic(InstArithmetic::create(Func, InstArithmetic::Add,
@@ -1195,11 +1184,11 @@ llvm::SmallBitVector TargetARM32::getRegisterSet(RegSetMask Include,
 
 void TargetARM32::lowerAlloca(const InstAlloca *Inst) {
   UsesFramePointer = true;
-  // Conservatively require the stack to be aligned.  Some stack
-  // adjustment operations implemented below assume that the stack is
-  // aligned before the alloca.  All the alloca code ensures that the
-  // stack alignment is preserved after the alloca.  The stack alignment
-  // restriction can be relaxed in some cases.
+  // Conservatively require the stack to be aligned. Some stack adjustment
+  // operations implemented below assume that the stack is aligned before the
+  // alloca. All the alloca code ensures that the stack alignment is preserved
+  // after the alloca. The stack alignment restriction can be relaxed in some
+  // cases.
   NeedsStackAlignment = true;
 
   // TODO(stichnot): minimize the number of adjustments of SP, etc.
@@ -1226,8 +1215,8 @@ void TargetARM32::lowerAlloca(const InstAlloca *Inst) {
     Operand *SubAmount = legalize(Ctx->getConstantInt32(Value));
     _sub(SP, SP, SubAmount);
   } else {
-    // Non-constant sizes need to be adjusted to the next highest
-    // multiple of the required alignment at runtime.
+    // Non-constant sizes need to be adjusted to the next highest multiple of
+    // the required alignment at runtime.
     TotalSize = legalize(TotalSize, Legal_Reg | Legal_Flex);
     Variable *T = makeReg(IceType_i32);
     _mov(T, TotalSize);
@@ -1265,8 +1254,8 @@ void TargetARM32::div0Check(Type Ty, Operand *SrcLo, Operand *SrcHi) {
   case IceType_i64: {
     Variable *ScratchReg = makeReg(IceType_i32);
     _orrs(ScratchReg, SrcLoReg, SrcHi);
-    // ScratchReg isn't going to be used, but we need the
-    // side-effect of setting flags from this operation.
+    // ScratchReg isn't going to be used, but we need the side-effect of
+    // setting flags from this operation.
     Context.insert(InstFakeUse::create(Func, ScratchReg));
   }
   }
@@ -1310,21 +1299,21 @@ void TargetARM32::lowerIDivRem(Variable *Dest, Variable *T, Variable *Src0R,
 
 void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
   Variable *Dest = Inst->getDest();
-  // TODO(jvoung): Should be able to flip Src0 and Src1 if it is easier
-  // to legalize Src0 to flex or Src1 to flex and there is a reversible
-  // instruction. E.g., reverse subtract with immediate, register vs
-  // register, immediate.
-  // Or it may be the case that the operands aren't swapped, but the
-  // bits can be flipped and a different operation applied.
-  // E.g., use BIC (bit clear) instead of AND for some masks.
+  // TODO(jvoung): Should be able to flip Src0 and Src1 if it is easier to
+  // legalize Src0 to flex or Src1 to flex and there is a reversible
+  // instruction. E.g., reverse subtract with immediate, register vs register,
+  // immediate.
+  // Or it may be the case that the operands aren't swapped, but the bits can
+  // be flipped and a different operation applied. E.g., use BIC (bit clear)
+  // instead of AND for some masks.
   Operand *Src0 = legalizeUndef(Inst->getSrc(0));
   Operand *Src1 = legalizeUndef(Inst->getSrc(1));
   if (Dest->getType() == IceType_i64) {
-    // These helper-call-involved instructions are lowered in this
-    // separate switch. This is because we would otherwise assume that
-    // we need to legalize Src0 to Src0RLo and Src0Hi. However, those go unused
-    // with helper calls, and such unused/redundant instructions will fail
-    // liveness analysis under -Om1 setting.
+    // These helper-call-involved instructions are lowered in this separate
+    // switch. This is because we would otherwise assume that we need to
+    // legalize Src0 to Src0RLo and Src0Hi. However, those go unused with
+    // helper calls, and such unused/redundant instructions will fail liveness
+    // analysis under -Om1 setting.
     switch (Inst->getOp()) {
     default:
       break;
@@ -1332,11 +1321,10 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
     case InstArithmetic::Sdiv:
     case InstArithmetic::Urem:
     case InstArithmetic::Srem: {
-      // Check for divide by 0 (ARM normally doesn't trap, but we want it
-      // to trap for NaCl). Src1Lo and Src1Hi may have already been legalized
-      // to a register, which will hide a constant source operand.
-      // Instead, check the not-yet-legalized Src1 to optimize-out a divide
-      // by 0 check.
+      // Check for divide by 0 (ARM normally doesn't trap, but we want it to
+      // trap for NaCl). Src1Lo and Src1Hi may have already been legalized to a
+      // register, which will hide a constant source operand. Instead, check
+      // the not-yet-legalized Src1 to optimize-out a divide by 0 check.
       if (auto *C64 = llvm::dyn_cast<ConstantInteger64>(Src1)) {
         if (C64->getValue() == 0) {
           _trap();
@@ -1348,8 +1336,8 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
         div0Check(IceType_i64, Src1Lo, Src1Hi);
       }
       // Technically, ARM has their own aeabi routines, but we can use the
-      // non-aeabi routine as well.  LLVM uses __aeabi_ldivmod for div,
-      // but uses the more standard __moddi3 for rem.
+      // non-aeabi routine as well. LLVM uses __aeabi_ldivmod for div, but uses
+      // the more standard __moddi3 for rem.
       const char *HelperName = "";
       switch (Inst->getOp()) {
       default:
@@ -1472,12 +1460,11 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
       // lsl t_lo, b.lo, c.lo
       // a.lo = t_lo
       // a.hi = t_hi
-      // Can be strength-reduced for constant-shifts, but we don't do
-      // that for now.
-      // Given the sub/rsb T_C, C.lo, #32, one of the T_C will be negative.
-      // On ARM, shifts only take the lower 8 bits of the shift register,
-      // and saturate to the range 0-32, so the negative value will
-      // saturate to 32.
+      // Can be strength-reduced for constant-shifts, but we don't do that for
+      // now.
+      // Given the sub/rsb T_C, C.lo, #32, one of the T_C will be negative. On
+      // ARM, shifts only take the lower 8 bits of the shift register, and
+      // saturate to the range 0-32, so the negative value will saturate to 32.
       Variable *T_Hi = makeReg(IceType_i32);
       Variable *Src1RLo = legalizeToReg(Src1Lo);
       Constant *ThirtyTwo = Ctx->getConstantInt32(32);
@@ -1493,8 +1480,8 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
       _mov(DestHi, T_Hi);
       Variable *T_Lo = makeReg(IceType_i32);
       // _mov seems to sometimes have better register preferencing than lsl.
-      // Otherwise mov w/ lsl shifted register is a pseudo-instruction
-      // that maps to lsl.
+      // Otherwise mov w/ lsl shifted register is a pseudo-instruction that
+      // maps to lsl.
       _mov(T_Lo, OperandARM32FlexReg::create(Func, IceType_i32, Src0RLo,
                                              OperandARM32::LSL, Src1RLo));
       _mov(DestLo, T_Lo);
@@ -1513,9 +1500,9 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
     // a.hi = t_hi
     case InstArithmetic::Ashr: {
       // a=b>>c (signed) ==> ...
-      // Ashr is similar, but the sub t_c2, c.lo, #32 should set flags,
-      // and the next orr should be conditioned on PLUS. The last two
-      // right shifts should also be arithmetic.
+      // Ashr is similar, but the sub t_c2, c.lo, #32 should set flags, and the
+      // next orr should be conditioned on PLUS. The last two right shifts
+      // should also be arithmetic.
       bool IsAshr = Inst->getOp() == InstArithmetic::Ashr;
       Variable *T_Lo = makeReg(IceType_i32);
       Variable *Src1RLo = legalizeToReg(Src1Lo);
@@ -1723,13 +1710,13 @@ void TargetARM32::lowerAssign(const InstAssign *Inst) {
     Operand *NewSrc;
     if (Dest->hasReg()) {
       // If Dest already has a physical register, then legalize the Src operand
-      // into a Variable with the same register assignment.  This especially
+      // into a Variable with the same register assignment. This especially
       // helps allow the use of Flex operands.
       NewSrc = legalize(Src0, Legal_Reg | Legal_Flex, Dest->getRegNum());
     } else {
-      // Dest could be a stack operand. Since we could potentially need
-      // to do a Store (and store can only have Register operands),
-      // legalize this to a register.
+      // Dest could be a stack operand. Since we could potentially need to do a
+      // Store (and store can only have Register operands), legalize this to a
+      // register.
       NewSrc = legalize(Src0, Legal_Reg);
     }
     if (isVectorType(Dest->getType())) {
@@ -1810,25 +1797,24 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
     }
   }
 
-  // Adjust the parameter area so that the stack is aligned.  It is
-  // assumed that the stack is already aligned at the start of the
-  // calling sequence.
+  // Adjust the parameter area so that the stack is aligned. It is assumed that
+  // the stack is already aligned at the start of the calling sequence.
   ParameterAreaSizeBytes = applyStackAlignment(ParameterAreaSizeBytes);
 
-  // Subtract the appropriate amount for the argument area.  This also
-  // takes care of setting the stack adjustment during emission.
+  // Subtract the appropriate amount for the argument area. This also takes
+  // care of setting the stack adjustment during emission.
   //
-  // TODO: If for some reason the call instruction gets dead-code
-  // eliminated after lowering, we would need to ensure that the
-  // pre-call and the post-call esp adjustment get eliminated as well.
+  // TODO: If for some reason the call instruction gets dead-code eliminated
+  // after lowering, we would need to ensure that the pre-call and the
+  // post-call esp adjustment get eliminated as well.
   if (ParameterAreaSizeBytes) {
     Operand *SubAmount = legalize(Ctx->getConstantInt32(ParameterAreaSizeBytes),
                                   Legal_Reg | Legal_Flex);
     _adjust_stack(ParameterAreaSizeBytes, SubAmount);
   }
 
-  // Copy arguments that are passed on the stack to the appropriate
-  // stack locations.
+  // Copy arguments that are passed on the stack to the appropriate stack
+  // locations.
   Variable *SP = getPhysicalRegister(RegARM32::Reg_sp);
   for (auto &StackArg : StackArgs) {
     ConstantInteger32 *Loc =
@@ -1850,9 +1836,9 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
   // Copy arguments to be passed in registers to the appropriate registers.
   for (auto &GPRArg : GPRArgs) {
     Variable *Reg = legalizeToReg(GPRArg.first, GPRArg.second);
-    // Generate a FakeUse of register arguments so that they do not get
-    // dead code eliminated as a result of the FakeKill of scratch
-    // registers after the call.
+    // Generate a FakeUse of register arguments so that they do not get dead
+    // code eliminated as a result of the FakeKill of scratch registers after
+    // the call.
     Context.insert(InstFakeUse::create(Func, Reg));
   }
   for (auto &FPArg : FPArgs) {
@@ -1860,8 +1846,8 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
     Context.insert(InstFakeUse::create(Func, Reg));
   }
 
-  // Generate the call instruction.  Assign its result to a temporary
-  // with high register allocation weight.
+  // Generate the call instruction. Assign its result to a temporary with high
+  // register allocation weight.
   Variable *Dest = Instr->getDest();
   // ReturnReg doubles as ReturnRegLo as necessary.
   Variable *ReturnReg = nullptr;
@@ -1901,12 +1887,12 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
     }
   }
   Operand *CallTarget = Instr->getCallTarget();
-  // TODO(jvoung): Handle sandboxing.
-  // const bool NeedSandboxing = Ctx->getFlags().getUseSandboxing();
+  // TODO(jvoung): Handle sandboxing. const bool NeedSandboxing =
+  // Ctx->getFlags().getUseSandboxing();
 
-  // Allow ConstantRelocatable to be left alone as a direct call,
-  // but force other constants like ConstantInteger32 to be in
-  // a register and make it an indirect call.
+  // Allow ConstantRelocatable to be left alone as a direct call, but force
+  // other constants like ConstantInteger32 to be in a register and make it an
+  // indirect call.
   if (!llvm::isa<ConstantRelocatable>(CallTarget)) {
     CallTarget = legalize(CallTarget, Legal_Reg);
   }
@@ -1915,8 +1901,8 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
   if (ReturnRegHi)
     Context.insert(InstFakeDef::create(Func, ReturnRegHi));
 
-  // Add the appropriate offset to SP.  The call instruction takes care
-  // of resetting the stack offset during emission.
+  // Add the appropriate offset to SP. The call instruction takes care of
+  // resetting the stack offset during emission.
   if (ParameterAreaSizeBytes) {
     Operand *AddAmount = legalize(Ctx->getConstantInt32(ParameterAreaSizeBytes),
                                   Legal_Reg | Legal_Flex);
@@ -2024,8 +2010,8 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
       Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
       Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
       Variable *T_Lo = makeReg(DestLo->getType());
-      // i32 and i1 can just take up the whole register.
-      // i32 doesn't need uxt, while i1 will have an and mask later anyway.
+      // i32 and i1 can just take up the whole register. i32 doesn't need uxt,
+      // while i1 will have an and mask later anyway.
       if (Src0->getType() == IceType_i32 || Src0->getType() == IceType_i1) {
         Operand *Src0RF = legalize(Src0, Legal_Reg | Legal_Flex);
         _mov(T_Lo, Src0RF);
@@ -2046,9 +2032,9 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
       Operand *Src0RF = legalize(Src0, Legal_Reg | Legal_Flex);
       Constant *One = Ctx->getConstantInt32(1);
       Variable *T = makeReg(Dest->getType());
-      // Just use _mov instead of _uxt since all registers are 32-bit.
-      // _uxt requires the source to be a register so could have required
-      // a _mov from legalize anyway.
+      // Just use _mov instead of _uxt since all registers are 32-bit. _uxt
+      // requires the source to be a register so could have required a _mov
+      // from legalize anyway.
       _mov(T, Src0RF);
       _and(T, T, One);
       _mov(Dest, T);
@@ -2288,8 +2274,8 @@ void TargetARM32::lowerIcmp(const InstIcmp *Inst) {
   //   mov.<C2> t, #0              mov.<C2> t, #0
   //   mov      a, t               mov      a, t
   // where the "cmp.eq b.lo, c.lo" is used for unsigned and "sbcs t1, hi, hi"
-  // is used for signed compares. In some cases, b and c need to be swapped
-  // as well.
+  // is used for signed compares. In some cases, b and c need to be swapped as
+  // well.
   //
   // LLVM does:
   // for EQ and NE:
@@ -2299,13 +2285,13 @@ void TargetARM32::lowerIcmp(const InstIcmp *Inst) {
   //   mov.<C> t, #1
   //   mov  a, t
   //
-  // that's nice in that it's just as short but has fewer dependencies
-  // for better ILP at the cost of more registers.
+  // that's nice in that it's just as short but has fewer dependencies for
+  // better ILP at the cost of more registers.
   //
-  // Otherwise for signed/unsigned <, <=, etc. LLVM uses a sequence with
-  // two unconditional mov #0, two cmps, two conditional mov #1,
-  // and one conditonal reg mov. That has few dependencies for good ILP,
-  // but is a longer sequence.
+  // Otherwise for signed/unsigned <, <=, etc. LLVM uses a sequence with two
+  // unconditional mov #0, two cmps, two conditional mov #1, and one
+  // conditional reg mov. That has few dependencies for good ILP, but is a
+  // longer sequence.
   //
   // So, we are going with the GCC version since it's usually better (except
   // perhaps for eq/ne). We could revisit special-casing eq/ne later.
@@ -2333,8 +2319,8 @@ void TargetARM32::lowerIcmp(const InstIcmp *Inst) {
       Variable *ScratchReg = makeReg(IceType_i32);
       _cmp(Src0Lo, Src1LoRF);
       _sbcs(ScratchReg, Src0Hi, Src1HiRF);
-      // ScratchReg isn't going to be used, but we need the
-      // side-effect of setting flags from this operation.
+      // ScratchReg isn't going to be used, but we need the side-effect of
+      // setting flags from this operation.
       Context.insert(InstFakeUse::create(Func, ScratchReg));
     } else {
       _cmp(Src0Hi, Src1HiRF);
@@ -2354,8 +2340,8 @@ void TargetARM32::lowerIcmp(const InstIcmp *Inst) {
   //   mov.C1   t, #0
   //   mov.C2   t, #1
   //   mov      a, t
-  // where the unsigned/sign extension is not needed for 32-bit.
-  // They also have special cases for EQ and NE. E.g., for NE:
+  // where the unsigned/sign extension is not needed for 32-bit. They also have
+  // special cases for EQ and NE. E.g., for NE:
   //   <extend to tb, tc>
   //   subs     t, tb, tc
   //   movne    t, #1
@@ -2368,13 +2354,13 @@ void TargetARM32::lowerIcmp(const InstIcmp *Inst) {
   //   mov.<C> t, #1
   //   mov     a, t
   //
-  // the left shift is by 0, 16, or 24, which allows the comparison to focus
-  // on the digits that actually matter (for 16-bit or 8-bit signed/unsigned).
-  // For the unsigned case, for some reason it does similar to GCC and does
-  // a uxtb first. It's not clear to me why that special-casing is needed.
+  // the left shift is by 0, 16, or 24, which allows the comparison to focus on
+  // the digits that actually matter (for 16-bit or 8-bit signed/unsigned). For
+  // the unsigned case, for some reason it does similar to GCC and does a uxtb
+  // first. It's not clear to me why that special-casing is needed.
   //
-  // We'll go with the LLVM way for now, since it's shorter and has just as
-  // few dependencies.
+  // We'll go with the LLVM way for now, since it's shorter and has just as few
+  // dependencies.
   int32_t ShiftAmt = 32 - getScalarIntBitWidth(Src0->getType());
   assert(ShiftAmt >= 0);
   Constant *ShiftConst = nullptr;
@@ -2417,9 +2403,9 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     UnimplementedError(Func->getContext()->getFlags());
     return;
   case Intrinsics::AtomicFenceAll:
-    // NOTE: FenceAll should prevent and load/store from being moved
-    // across the fence (both atomic and non-atomic). The InstARM32Mfence
-    // instruction is currently marked coarsely as "HasSideEffects".
+    // NOTE: FenceAll should prevent and load/store from being moved across the
+    // fence (both atomic and non-atomic). The InstARM32Mfence instruction is
+    // currently marked coarsely as "HasSideEffects".
     UnimplementedError(Func->getContext()->getFlags());
     return;
   case Intrinsics::AtomicIsLockFree: {
@@ -2477,10 +2463,10 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     Call->addArg(Val);
     lowerCall(Call);
     // The popcount helpers always return 32-bit values, while the intrinsic's
-    // signature matches some 64-bit platform's native instructions and
-    // expect to fill a 64-bit reg. Thus, clear the upper bits of the dest
-    // just in case the user doesn't do that in the IR or doesn't toss the bits
-    // via truncate.
+    // signature matches some 64-bit platform's native instructions and expect
+    // to fill a 64-bit reg. Thus, clear the upper bits of the dest just in
+    // case the user doesn't do that in the IR or doesn't toss the bits via
+    // truncate.
     if (Val->getType() == IceType_i64) {
       Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
       Constant *Zero = Ctx->getConstantZero(IceType_i32);
@@ -2491,8 +2477,8 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     return;
   }
   case Intrinsics::Ctlz: {
-    // The "is zero undef" parameter is ignored and we always return
-    // a well-defined value.
+    // The "is zero undef" parameter is ignored and we always return a
+    // well-defined value.
     Operand *Val = Instr->getArg(0);
     Variable *ValLoR;
     Variable *ValHiR = nullptr;
@@ -2639,9 +2625,9 @@ void TargetARM32::lowerCLZ(Variable *Dest, Variable *ValLoR, Variable *ValHiR) {
     Variable *T2 = makeReg(IceType_i32);
     _add(T2, T, ThirtyTwo);
     _clz(T2, ValHiR, CondARM32::NE);
-    // T2 is actually a source as well when the predicate is not AL
-    // (since it may leave T2 alone). We use set_dest_nonkillable to
-    // prolong the liveness of T2 as if it was used as a source.
+    // T2 is actually a source as well when the predicate is not AL (since it
+    // may leave T2 alone). We use set_dest_nonkillable to prolong the liveness
+    // of T2 as if it was used as a source.
     _set_dest_nonkillable();
     _mov(DestLo, T2);
     Variable *T3 = nullptr;
@@ -2654,15 +2640,14 @@ void TargetARM32::lowerCLZ(Variable *Dest, Variable *ValLoR, Variable *ValHiR) {
 }
 
 void TargetARM32::lowerLoad(const InstLoad *Load) {
-  // A Load instruction can be treated the same as an Assign
-  // instruction, after the source operand is transformed into an
-  // OperandARM32Mem operand.
+  // A Load instruction can be treated the same as an Assign instruction, after
+  // the source operand is transformed into an OperandARM32Mem operand.
   Type Ty = Load->getDest()->getType();
   Operand *Src0 = formMemoryOperand(Load->getSourceAddress(), Ty);
   Variable *DestLoad = Load->getDest();
 
-  // TODO(jvoung): handled folding opportunities. Sign and zero extension
-  // can be folded into a load.
+  // TODO(jvoung): handled folding opportunities. Sign and zero extension can
+  // be folded into a load.
   InstAssign *Assign = InstAssign::create(Func, DestLoad, Src0);
   lowerAssign(Assign);
 }
@@ -2708,17 +2693,15 @@ void TargetARM32::lowerRet(const InstRet *Inst) {
       _mov(Reg, Src0F, CondARM32::AL, RegARM32::Reg_r0);
     }
   }
-  // Add a ret instruction even if sandboxing is enabled, because
-  // addEpilog explicitly looks for a ret instruction as a marker for
-  // where to insert the frame removal instructions.
-  // addEpilog is responsible for restoring the "lr" register as needed
-  // prior to this ret instruction.
+  // Add a ret instruction even if sandboxing is enabled, because addEpilog
+  // explicitly looks for a ret instruction as a marker for where to insert the
+  // frame removal instructions. addEpilog is responsible for restoring the
+  // "lr" register as needed prior to this ret instruction.
   _ret(getPhysicalRegister(RegARM32::Reg_lr), Reg);
-  // Add a fake use of sp to make sure sp stays alive for the entire
-  // function.  Otherwise post-call sp adjustments get dead-code
-  // eliminated.  TODO: Are there more places where the fake use
-  // should be inserted?  E.g. "void f(int n){while(1) g(n);}" may not
-  // have a ret instruction.
+  // Add a fake use of sp to make sure sp stays alive for the entire function.
+  // Otherwise post-call sp adjustments get dead-code eliminated.
+  // TODO: Are there more places where the fake use should be inserted? E.g.
+  // "void f(int n){while(1) g(n);}" may not have a ret instruction.
   Variable *SP = getPhysicalRegister(RegARM32::Reg_sp);
   Context.insert(InstFakeUse::create(Func, SP));
 }
@@ -2852,8 +2835,8 @@ Variable *TargetARM32::copyToReg(Operand *Src, int32_t RegNum) {
   if (isVectorType(Ty) || isFloatingType(Ty)) {
     _vmov(Reg, Src);
   } else {
-    // Mov's Src operand can really only be the flexible second operand type
-    // or a register. Users should guarantee that.
+    // Mov's Src operand can really only be the flexible second operand type or
+    // a register. Users should guarantee that.
     _mov(Reg, Src);
   }
   return Reg;
@@ -2862,18 +2845,17 @@ Variable *TargetARM32::copyToReg(Operand *Src, int32_t RegNum) {
 Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
                                int32_t RegNum) {
   Type Ty = From->getType();
-  // Assert that a physical register is allowed.  To date, all calls
-  // to legalize() allow a physical register. Legal_Flex converts
-  // registers to the right type OperandARM32FlexReg as needed.
+  // Assert that a physical register is allowed. To date, all calls to
+  // legalize() allow a physical register. Legal_Flex converts registers to the
+  // right type OperandARM32FlexReg as needed.
   assert(Allowed & Legal_Reg);
-  // Go through the various types of operands:
-  // OperandARM32Mem, OperandARM32Flex, Constant, and Variable.
-  // Given the above assertion, if type of operand is not legal
-  // (e.g., OperandARM32Mem and !Legal_Mem), we can always copy
-  // to a register.
+  // Go through the various types of operands: OperandARM32Mem,
+  // OperandARM32Flex, Constant, and Variable. Given the above assertion, if
+  // type of operand is not legal (e.g., OperandARM32Mem and !Legal_Mem), we
+  // can always copy to a register.
   if (auto Mem = llvm::dyn_cast<OperandARM32Mem>(From)) {
-    // Before doing anything with a Mem operand, we need to ensure
-    // that the Base and Index components are in physical registers.
+    // Before doing anything with a Mem operand, we need to ensure that the
+    // Base and Index components are in physical registers.
     Variable *Base = Mem->getBase();
     Variable *Index = Mem->getIndex();
     Variable *RegBase = nullptr;
@@ -2918,8 +2900,8 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
       if (auto FlexReg = llvm::dyn_cast<OperandARM32FlexReg>(Flex)) {
         if (FlexReg->getShiftOp() == OperandARM32::kNoShift) {
           From = FlexReg->getReg();
-          // Fall through and let From be checked as a Variable below,
-          // where it may or may not need a register.
+          // Fall through and let From be checked as a Variable below, where it
+          // may or may not need a register.
         } else {
           return copyToReg(Flex, RegNum);
         }
@@ -2944,10 +2926,10 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
       uint32_t RotateAmt;
       uint32_t Immed_8;
       uint32_t Value = static_cast<uint32_t>(C32->getValue());
-      // Check if the immediate will fit in a Flexible second operand,
-      // if a Flexible second operand is allowed. We need to know the exact
-      // value, so that rules out relocatable constants.
-      // Also try the inverse and use MVN if possible.
+      // Check if the immediate will fit in a Flexible second operand, if a
+      // Flexible second operand is allowed. We need to know the exact value,
+      // so that rules out relocatable constants. Also try the inverse and use
+      // MVN if possible.
       if (CanBeFlex &&
           OperandARM32FlexImm::canHoldImm(Value, &RotateAmt, &Immed_8)) {
         return OperandARM32FlexImm::create(Func, Ty, Immed_8, RotateAmt);
@@ -2977,12 +2959,12 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
     } else {
       assert(isScalarFloatingType(Ty));
       // Load floats/doubles from literal pool.
-      // TODO(jvoung): Allow certain immediates to be encoded directly in
-      // an operand. See Table A7-18 of the ARM manual:
-      // "Floating-point modified immediate constants".
-      // Or, for 32-bit floating point numbers, just encode the raw bits
-      // into a movw/movt pair to GPR, and vmov to an SREG, instead of using
-      // a movw/movt pair to get the const-pool address then loading to SREG.
+      // TODO(jvoung): Allow certain immediates to be encoded directly in an
+      // operand. See Table A7-18 of the ARM manual: "Floating-point modified
+      // immediate constants". Or, for 32-bit floating point numbers, just
+      // encode the raw bits into a movw/movt pair to GPR, and vmov to an SREG,
+      // instead of using a movw/movt pair to get the const-pool address then
+      // loading to SREG.
       std::string Buffer;
       llvm::raw_string_ostream StrBuf(Buffer);
       llvm::cast<Constant>(From)->emitPoolLabel(StrBuf);
@@ -2997,9 +2979,9 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
   }
 
   if (auto Var = llvm::dyn_cast<Variable>(From)) {
-    // Check if the variable is guaranteed a physical register.  This
-    // can happen either when the variable is pre-colored or when it is
-    // assigned infinite weight.
+    // Check if the variable is guaranteed a physical register. This can happen
+    // either when the variable is pre-colored or when it is assigned infinite
+    // weight.
     bool MustHaveRegister = (Var->hasReg() || Var->mustHaveReg());
     // We need a new physical register for the operand if:
     //   Mem is not allowed and Var isn't guaranteed a physical
@@ -3025,17 +3007,16 @@ Variable *TargetARM32::legalizeToReg(Operand *From, int32_t RegNum) {
 Operand *TargetARM32::legalizeUndef(Operand *From, int32_t RegNum) {
   Type Ty = From->getType();
   if (llvm::isa<ConstantUndef>(From)) {
-    // Lower undefs to zero.  Another option is to lower undefs to an
-    // uninitialized register; however, using an uninitialized register
-    // results in less predictable code.
+    // Lower undefs to zero. Another option is to lower undefs to an
+    // uninitialized register; however, using an uninitialized register results
+    // in less predictable code.
     //
-    // If in the future the implementation is changed to lower undef
-    // values to uninitialized registers, a FakeDef will be needed:
-    //     Context.insert(InstFakeDef::create(Func, Reg));
-    // This is in order to ensure that the live range of Reg is not
-    // overestimated.  If the constant being lowered is a 64 bit value,
-    // then the result should be split and the lo and hi components will
-    // need to go in uninitialized registers.
+    // If in the future the implementation is changed to lower undef values to
+    // uninitialized registers, a FakeDef will be needed:
+    // Context.insert(InstFakeDef::create(Func, Reg)); This is in order to
+    // ensure that the live range of Reg is not overestimated. If the constant
+    // being lowered is a 64 bit value, then the result should be split and the
+    // lo and hi components will need to go in uninitialized registers.
     if (isVectorType(Ty))
       return makeVectorOfZeros(Ty, RegNum);
     return Ctx->getConstantZero(Ty);
@@ -3045,15 +3026,15 @@ Operand *TargetARM32::legalizeUndef(Operand *From, int32_t RegNum) {
 
 OperandARM32Mem *TargetARM32::formMemoryOperand(Operand *Operand, Type Ty) {
   OperandARM32Mem *Mem = llvm::dyn_cast<OperandARM32Mem>(Operand);
-  // It may be the case that address mode optimization already creates
-  // an OperandARM32Mem, so in that case it wouldn't need another level
-  // of transformation.
+  // It may be the case that address mode optimization already creates an
+  // OperandARM32Mem, so in that case it wouldn't need another level of
+  // transformation.
   if (Mem) {
     return llvm::cast<OperandARM32Mem>(legalize(Mem));
   }
-  // If we didn't do address mode optimization, then we only
-  // have a base/offset to work with. ARM always requires a base
-  // register, so just use that to hold the operand.
+  // If we didn't do address mode optimization, then we only have a base/offset
+  // to work with. ARM always requires a base register, so just use that to
+  // hold the operand.
   Variable *Base = legalizeToReg(Operand);
   return OperandARM32Mem::create(
       Func, Ty, Base,
@@ -3076,9 +3057,9 @@ void TargetARM32::alignRegisterPow2(Variable *Reg, uint32_t Align) {
   uint32_t RotateAmt;
   uint32_t Immed_8;
   Operand *Mask;
-  // Use AND or BIC to mask off the bits, depending on which immediate fits
-  // (if it fits at all). Assume Align is usually small, in which case BIC
-  // works better. Thus, this rounds down to the alignment.
+  // Use AND or BIC to mask off the bits, depending on which immediate fits (if
+  // it fits at all). Assume Align is usually small, in which case BIC works
+  // better. Thus, this rounds down to the alignment.
   if (OperandARM32FlexImm::canHoldImm(Align - 1, &RotateAmt, &Immed_8)) {
     Mask = legalize(Ctx->getConstantInt32(Align - 1), Legal_Reg | Legal_Flex);
     _bic(Reg, Reg, Mask);
@@ -3170,17 +3151,18 @@ void TargetHeaderARM32::lower() {
   OstreamLocker L(Ctx);
   Ostream &Str = Ctx->getStrEmit();
   Str << ".syntax unified\n";
-  // Emit build attributes in format: .eabi_attribute TAG, VALUE.
-  // See Sec. 2 of "Addenda to, and Errata in the ABI for the ARM architecture"
-  // http://infocenter.arm.com/help/topic/com.arm.doc.ihi0045d/IHI0045D_ABI_addenda.pdf
+  // Emit build attributes in format: .eabi_attribute TAG, VALUE. See Sec. 2 of
+  // "Addenda to, and Errata in the ABI for the ARM architecture"
+  // http://infocenter.arm.com
+  //                  /help/topic/com.arm.doc.ihi0045d/IHI0045D_ABI_addenda.pdf
   //
-  // Tag_conformance should be be emitted first in a file-scope
-  // sub-subsection of the first public subsection of the attributes.
+  // Tag_conformance should be be emitted first in a file-scope sub-subsection
+  // of the first public subsection of the attributes.
   Str << ".eabi_attribute 67, \"2.09\"      @ Tag_conformance\n";
-  // Chromebooks are at least A15, but do A9 for higher compat.
-  // For some reason, the LLVM ARM asm parser has the .cpu directive override
-  // the mattr specified on the commandline. So to test hwdiv, we need to set
-  // the .cpu directive higher (can't just rely on --mattr=...).
+  // Chromebooks are at least A15, but do A9 for higher compat. For some
+  // reason, the LLVM ARM asm parser has the .cpu directive override the mattr
+  // specified on the commandline. So to test hwdiv, we need to set the .cpu
+  // directive higher (can't just rely on --mattr=...).
   if (CPUFeatures.hasFeature(TargetARM32Features::HWDivArm)) {
     Str << ".cpu    cortex-a15\n";
   } else {

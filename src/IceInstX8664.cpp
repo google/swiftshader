@@ -92,9 +92,8 @@ void MachineTraits<TargetX8664>::X86OperandMem::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
-  // Emit as Offset(Base,Index,1<<Shift).
-  // Offset is emitted without the leading '$'.
-  // Omit the (Base,Index,1<<Shift) part if Base==nullptr.
+  // Emit as Offset(Base,Index,1<<Shift). Offset is emitted without the leading
+  // '$'. Omit the (Base,Index,1<<Shift) part if Base==nullptr.
   if (!Offset) {
     // No offset, emit nothing.
   } else if (const auto CI = llvm::dyn_cast<ConstantInteger32>(Offset)) {

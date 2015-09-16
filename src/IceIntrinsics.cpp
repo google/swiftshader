@@ -8,8 +8,8 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file implements the Intrinsics utilities for matching and
-/// then dispatching by name.
+/// This file implements the Intrinsics utilities for matching and then
+/// dispatching by name.
 ///
 //===----------------------------------------------------------------------===//
 
@@ -33,8 +33,8 @@ namespace {
 #define INTRIN(ID, SE, RT)                                                     \
   { Intrinsics::ID, Intrinsics::SE, Intrinsics::RT }
 
-// Build list of intrinsics with their attributes and expected prototypes.
-// List is sorted alphabetically.
+// Build list of intrinsics with their attributes and expected prototypes. List
+// is sorted alphabetically.
 const struct IceIntrinsicsEntry_ {
   Intrinsics::FullIntrinsicInfo Info;
   const char *IntrinsicName;
@@ -279,8 +279,8 @@ bool Intrinsics::isMemoryOrderValid(IntrinsicID ID, uint64_t Order,
   case AtomicRMW:
     return true;
   case AtomicCmpxchg:
-    // Reject orderings that are disallowed by C++11 as invalid
-    // combinations for cmpxchg.
+    // Reject orderings that are disallowed by C++11 as invalid combinations
+    // for cmpxchg.
     switch (OrderOther) {
     case MemoryOrderRelaxed:
     case MemoryOrderConsume:

@@ -8,9 +8,8 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file implements the TargetLoweringX86Base class, which
-/// consists almost entirely of the lowering sequence for each
-/// high-level instruction.
+/// This file implements the TargetLoweringX86Base class, which consists almost
+/// entirely of the lowering sequence for each high-level instruction.
 ///
 //===----------------------------------------------------------------------===//
 
@@ -63,13 +62,13 @@ public:
   /// IsComplex is the cached result of BoolFolding::hasComplexLowering(Instr).
   bool IsComplex = false;
   /// IsLiveOut is initialized conservatively to true, and is set to false when
-  /// we encounter an instruction that ends Var's live range.  We disable the
-  /// folding optimization when Var is live beyond this basic block.  Note that
+  /// we encounter an instruction that ends Var's live range. We disable the
+  /// folding optimization when Var is live beyond this basic block. Note that
   /// if liveness analysis is not performed (e.g. in Om1 mode), IsLiveOut will
   /// always be true and the folding optimization will never be performed.
   bool IsLiveOut = true;
   // NumUses counts the number of times Var is used as a source operand in the
-  // basic block.  If IsComplex is true and there is more than one use of Var,
+  // basic block. If IsComplex is true and there is more than one use of Var,
   // then the folding optimization is disabled for Var.
   uint32_t NumUses = 0;
 };
@@ -166,7 +165,7 @@ BoolFolding<MachineTraits>::getConsumerKind(const Inst *Instr) {
 /// Returns true if the producing instruction has a "complex" lowering sequence.
 /// This generally means that its lowering sequence requires more than one
 /// conditional branch, namely 64-bit integer compares and some floating-point
-/// compares.  When this is true, and there is more than one consumer, we prefer
+/// compares. When this is true, and there is more than one consumer, we prefer
 /// to disable the folding optimization because it minimizes branches.
 template <class MachineTraits>
 bool BoolFolding<MachineTraits>::hasComplexLowering(const Inst *Instr) {
@@ -222,9 +221,9 @@ void BoolFolding<MachineTraits>::init(CfgNode *Node) {
       setInvalid(I.first);
       continue;
     }
-    // Mark as "dead" rather than outright deleting.  This is so that other
+    // Mark as "dead" rather than outright deleting. This is so that other
     // peephole style optimizations during or before lowering have access to
-    // this instruction in undeleted form.  See for example
+    // this instruction in undeleted form. See for example
     // tryOptimizedCmpxchgCmpBr().
     I.second.Instr->setDead();
   }
@@ -303,8 +302,9 @@ template <class Machine> void TargetX86Base<Machine>::translateO2() {
 
   // Run this early so it can be used to focus optimizations on potentially hot
   // code.
-  // TODO(stichnot,ascull): currently only used for regalloc not expensive high
-  // level optimizations which could be focused on potentially hot code.
+  // TODO(stichnot,ascull): currently only used for regalloc not
+  // expensive high level optimizations which could be focused on potentially
+  // hot code.
   Func->computeLoopNestDepth();
   Func->dump("After loop nest depth analysis");
 
@@ -312,7 +312,7 @@ template <class Machine> void TargetX86Base<Machine>::translateO2() {
   Func->getVMetadata()->init(VMK_SingleDefs);
   Func->doAddressOpt();
 
-  // Find read-modify-write opportunities.  Do this after address mode
+  // Find read-modify-write opportunities. Do this after address mode
   // optimization so that doAddressOpt() doesn't need to be applied to RMW
   // instructions as well.
   findRMW();
@@ -321,8 +321,8 @@ template <class Machine> void TargetX86Base<Machine>::translateO2() {
   // Argument lowering
   Func->doArgLowering();
 
-  // Target lowering.  This requires liveness analysis for some parts of the
-  // lowering decisions, such as compare/branch fusing.  If non-lightweight
+  // Target lowering. This requires liveness analysis for some parts of the
+  // lowering decisions, such as compare/branch fusing. If non-lightweight
   // liveness analysis is used, the instructions need to be renumbered first
   // TODO: This renumbering should only be necessary if we're actually
   // calculating live intervals, which we only do for register allocation.
@@ -330,9 +330,9 @@ template <class Machine> void TargetX86Base<Machine>::translateO2() {
   if (Func->hasError())
     return;
 
-  // TODO: It should be sufficient to use the fastest liveness calculation, i.e.
-  // livenessLightweight().  However, for some reason that slows down the rest
-  // of the translation.  Investigate.
+  // TODO: It should be sufficient to use the fastest liveness calculation,
+  // i.e. livenessLightweight(). However, for some reason that slows down the
+  // rest of the translation. Investigate.
   Func->liveness(Liveness_Basic);
   if (Func->hasError())
     return;
@@ -357,7 +357,7 @@ template <class Machine> void TargetX86Base<Machine>::translateO2() {
   Func->liveness(Liveness_Intervals);
   if (Func->hasError())
     return;
-  // Validate the live range computations.  The expensive validation call is
+  // Validate the live range computations. The expensive validation call is
   // deliberately only made when assertions are enabled.
   assert(Func->validateLiveness());
   // The post-codegen dump is done here, after liveness analysis and associated
@@ -386,9 +386,9 @@ template <class Machine> void TargetX86Base<Machine>::translateO2() {
   // Shuffle basic block order if -reorder-basic-blocks is enabled.
   Func->shuffleNodes();
 
-  // Branch optimization.  This needs to be done just before code emission.  In
+  // Branch optimization.  This needs to be done just before code emission. In
   // particular, no transformations that insert or reorder CfgNodes should be
-  // done after branch optimization.  We go ahead and do it before nop insertion
+  // done after branch optimization. We go ahead and do it before nop insertion
   // to reduce the amount of work needed for searching for opportunities.
   Func->doBranchOpt();
   Func->dump("After branch optimization");
@@ -495,10 +495,10 @@ template <class Machine> void TargetX86Base<Machine>::findRMW() {
   Ostream &Str = Func->getContext()->getStrDump();
   for (CfgNode *Node : Func->getNodes()) {
     // Walk through the instructions, considering each sequence of 3
-    // instructions, and look for the particular RMW pattern.  Note that this
-    // search can be "broken" (false negatives) if there are intervening deleted
-    // instructions, or intervening instructions that could be safely moved out
-    // of the way to reveal an RMW pattern.
+    // instructions, and look for the particular RMW pattern. Note that this
+    // search can be "broken" (false negatives) if there are intervening
+    // deleted instructions, or intervening instructions that could be safely
+    // moved out of the way to reveal an RMW pattern.
     auto E = Node->getInsts().end();
     auto I1 = E, I2 = E, I3 = Node->getInsts().begin();
     for (; I3 != E; I1 = I2, I2 = I3, ++I3) {
@@ -528,21 +528,21 @@ template <class Machine> void TargetX86Base<Machine>::findRMW() {
             // problems later.
             //
             // With this transformation, the Store instruction acquires a Dest
-            // variable and is now subject to dead code elimination if there are
-            // no more uses of "b".  Variable "x" is a beacon for determining
-            // whether the Store instruction gets dead-code eliminated.  If the
-            // Store instruction is eliminated, then it must be the case that
-            // the RMW instruction ends x's live range, and therefore the RMW
-            // instruction will be retained and later lowered.  On the other
-            // hand, if the RMW instruction does not end x's live range, then
-            // the Store instruction must still be present, and therefore the
-            // RMW instruction is ignored during lowering because it is
-            // redundant with the Store instruction.
+            // variable and is now subject to dead code elimination if there
+            // are no more uses of "b".  Variable "x" is a beacon for
+            // determining whether the Store instruction gets dead-code
+            // eliminated.  If the Store instruction is eliminated, then it
+            // must be the case that the RMW instruction ends x's live range,
+            // and therefore the RMW instruction will be retained and later
+            // lowered.  On the other hand, if the RMW instruction does not end
+            // x's live range, then the Store instruction must still be
+            // present, and therefore the RMW instruction is ignored during
+            // lowering because it is redundant with the Store instruction.
             //
             // Note that if "a" has further uses, the RMW transformation may
             // still trigger, resulting in two loads and one store, which is
-            // worse than the original one load and one store.  However, this is
-            // probably rare, and caching probably keeps it just as fast.
+            // worse than the original one load and one store.  However, this
+            // is probably rare, and caching probably keeps it just as fast.
             if (!isSameMemAddressOperand<Machine>(Load->getSourceAddress(),
                                                   Store->getAddr()))
               continue;
@@ -589,11 +589,10 @@ inline uint64_t getConstantMemoryOrder(Operand *Opnd) {
   return Intrinsics::MemoryOrderInvalid;
 }
 
-/// Determines whether the dest of a Load instruction can be folded
-/// into one of the src operands of a 2-operand instruction.  This is
-/// true as long as the load dest matches exactly one of the binary
-/// instruction's src operands.  Replaces Src0 or Src1 with LoadSrc if
-/// the answer is true.
+/// Determines whether the dest of a Load instruction can be folded into one of
+/// the src operands of a 2-operand instruction. This is true as long as the
+/// load dest matches exactly one of the binary instruction's src operands.
+/// Replaces Src0 or Src1 with LoadSrc if the answer is true.
 inline bool canFoldLoadIntoBinaryInst(Operand *LoadSrc, Variable *LoadDest,
                                       Operand *&Src0, Operand *&Src1) {
   if (Src0 == LoadDest && Src1 != LoadDest) {
@@ -615,8 +614,8 @@ template <class Machine> void TargetX86Base<Machine>::doLoadOpt() {
       Operand *LoadSrc = nullptr;
       Inst *CurInst = Context.getCur();
       Inst *Next = Context.getNextInst();
-      // Determine whether the current instruction is a Load
-      // instruction or equivalent.
+      // Determine whether the current instruction is a Load instruction or
+      // equivalent.
       if (auto *Load = llvm::dyn_cast<InstLoad>(CurInst)) {
         // An InstLoad always qualifies.
         LoadDest = Load->getDest();
@@ -624,9 +623,9 @@ template <class Machine> void TargetX86Base<Machine>::doLoadOpt() {
         LoadSrc = formMemoryOperand(Load->getSourceAddress(),
                                     LoadDest->getType(), DoLegalize);
       } else if (auto *Intrin = llvm::dyn_cast<InstIntrinsicCall>(CurInst)) {
-        // An AtomicLoad intrinsic qualifies as long as it has a valid
-        // memory ordering, and can be implemented in a single
-        // instruction (i.e., not i64 on x86-32).
+        // An AtomicLoad intrinsic qualifies as long as it has a valid memory
+        // ordering, and can be implemented in a single instruction (i.e., not
+        // i64 on x86-32).
         Intrinsics::IntrinsicID ID = Intrin->getIntrinsicInfo().ID;
         if (ID == Intrinsics::AtomicLoad &&
             (Traits::Is64Bit || Intrin->getDest()->getType() != IceType_i64) &&
@@ -638,9 +637,9 @@ template <class Machine> void TargetX86Base<Machine>::doLoadOpt() {
                                       DoLegalize);
         }
       }
-      // A Load instruction can be folded into the following
-      // instruction only if the following instruction ends the Load's
-      // Dest variable's live range.
+      // A Load instruction can be folded into the following instruction only
+      // if the following instruction ends the Load's Dest variable's live
+      // range.
       if (LoadDest && Next && Next->isLastUse(LoadDest)) {
         assert(LoadSrc);
         Inst *NewInst = nullptr;
@@ -673,8 +672,7 @@ template <class Machine> void TargetX86Base<Machine>::doLoadOpt() {
                                          Select->getCondition(), Src0, Src1);
           }
         } else if (auto *Cast = llvm::dyn_cast<InstCast>(Next)) {
-          // The load dest can always be folded into a Cast
-          // instruction.
+          // The load dest can always be folded into a Cast instruction.
           Variable *Src0 = llvm::dyn_cast<Variable>(Cast->getSrc(0));
           if (Src0 == LoadDest) {
             NewInst = InstCast::create(Func, Cast->getCastKind(),
@@ -685,8 +683,8 @@ template <class Machine> void TargetX86Base<Machine>::doLoadOpt() {
           CurInst->setDeleted();
           Next->setDeleted();
           Context.insert(NewInst);
-          // Update NewInst->LiveRangesEnded so that target lowering
-          // may benefit.  Also update NewInst->HasSideEffects.
+          // Update NewInst->LiveRangesEnded so that target lowering may
+          // benefit. Also update NewInst->HasSideEffects.
           NewInst->spliceLivenessInfo(Next, CurInst);
         }
       }
@@ -721,8 +719,8 @@ Variable *TargetX86Base<Machine>::getPhysicalRegister(SizeT RegNum, Type Ty) {
     Reg = Func->makeVariable(Ty);
     Reg->setRegNum(RegNum);
     PhysicalRegisters[Ty][RegNum] = Reg;
-    // Specially mark esp as an "argument" so that it is considered
-    // live upon function entry.
+    // Specially mark esp as an "argument" so that it is considered live upon
+    // function entry.
     if (RegNum == Traits::RegisterSet::Reg_esp) {
       Func->addImplicitArg(Reg);
       Reg->setIgnoreLiveness();
@@ -782,13 +780,12 @@ TargetX86Base<Machine>::stackVarToAsmOperand(const Variable *Var) const {
 
 /// Helper function for addProlog().
 ///
-/// This assumes Arg is an argument passed on the stack.  This sets the
-/// frame offset for Arg and updates InArgsSizeBytes according to Arg's
-/// width.  For an I64 arg that has been split into Lo and Hi components,
-/// it calls itself recursively on the components, taking care to handle
-/// Lo first because of the little-endian architecture.  Lastly, this
-/// function generates an instruction to copy Arg into its assigned
-/// register if applicable.
+/// This assumes Arg is an argument passed on the stack. This sets the frame
+/// offset for Arg and updates InArgsSizeBytes according to Arg's width. For an
+/// I64 arg that has been split into Lo and Hi components, it calls itself
+/// recursively on the components, taking care to handle Lo first because of the
+/// little-endian architecture. Lastly, this function generates an instruction
+/// to copy Arg into its assigned register if applicable.
 template <class Machine>
 void TargetX86Base<Machine>::finishArgumentLowering(Variable *Arg,
                                                     Variable *FramePtr,
@@ -819,8 +816,8 @@ void TargetX86Base<Machine>::finishArgumentLowering(Variable *Arg,
       _mov(Arg, Mem);
     }
     // This argument-copying instruction uses an explicit Traits::X86OperandMem
-    // operand instead of a Variable, so its fill-from-stack operation has to be
-    // tracked separately for statistics.
+    // operand instead of a Variable, so its fill-from-stack operation has to
+    // be tracked separately for statistics.
     Ctx->statsUpdateFills();
   }
 }
@@ -837,9 +834,8 @@ TargetX86Base<Machine>::split64(Variable *Var) {
   default:
     return;
   case IceType_i64:
-  // TODO: Only consider F64 if we need to push each half when
-  // passing as an argument to a function call.  Note that each half
-  // is still typed as I32.
+  // TODO: Only consider F64 if we need to push each half when passing as an
+  // argument to a function call. Note that each half is still typed as I32.
   case IceType_f64:
     break;
   }
@@ -946,11 +942,11 @@ TargetX86Base<Machine>::getRegisterSet(RegSetMask Include,
 template <class Machine>
 void TargetX86Base<Machine>::lowerAlloca(const InstAlloca *Inst) {
   IsEbpBasedFrame = true;
-  // Conservatively require the stack to be aligned.  Some stack
-  // adjustment operations implemented below assume that the stack is
-  // aligned before the alloca.  All the alloca code ensures that the
-  // stack alignment is preserved after the alloca.  The stack alignment
-  // restriction can be relaxed in some cases.
+  // Conservatively require the stack to be aligned. Some stack adjustment
+  // operations implemented below assume that the stack is aligned before the
+  // alloca. All the alloca code ensures that the stack alignment is preserved
+  // after the alloca. The stack alignment restriction can be relaxed in some
+  // cases.
   NeedsStackAlignment = true;
 
   // TODO(stichnot): minimize the number of adjustments of esp, etc.
@@ -977,8 +973,8 @@ void TargetX86Base<Machine>::lowerAlloca(const InstAlloca *Inst) {
     Value = Utils::applyAlignment(Value, Alignment);
     _sub(esp, Ctx->getConstantInt32(Value));
   } else {
-    // Non-constant sizes need to be adjusted to the next highest
-    // multiple of the required alignment at runtime.
+    // Non-constant sizes need to be adjusted to the next highest multiple of
+    // the required alignment at runtime.
     Variable *T = makeReg(IceType_i32);
     _mov(T, TotalSize);
     _add(T, Ctx->getConstantInt32(Alignment - 1));
@@ -988,17 +984,16 @@ void TargetX86Base<Machine>::lowerAlloca(const InstAlloca *Inst) {
   _mov(Dest, esp);
 }
 
-/// Strength-reduce scalar integer multiplication by a constant (for
-/// i32 or narrower) for certain constants.  The lea instruction can be
-/// used to multiply by 3, 5, or 9, and the lsh instruction can be used
-/// to multiply by powers of 2.  These can be combined such that
-/// e.g. multiplying by 100 can be done as 2 lea-based multiplies by 5,
-/// combined with left-shifting by 2.
+/// Strength-reduce scalar integer multiplication by a constant (for i32 or
+/// narrower) for certain constants. The lea instruction can be used to multiply
+/// by 3, 5, or 9, and the lsh instruction can be used to multiply by powers of
+/// 2. These can be combined such that e.g. multiplying by 100 can be done as 2
+/// lea-based multiplies by 5, combined with left-shifting by 2.
 template <class Machine>
 bool TargetX86Base<Machine>::optimizeScalarMul(Variable *Dest, Operand *Src0,
                                                int32_t Src1) {
-  // Disable this optimization for Om1 and O0, just to keep things
-  // simple there.
+  // Disable this optimization for Om1 and O0, just to keep things simple
+  // there.
   if (Ctx->getFlags().getOptLevel() < Opt_1)
     return false;
   Type Ty = Dest->getType();
@@ -1054,8 +1049,8 @@ bool TargetX86Base<Machine>::optimizeScalarMul(Variable *Dest, Operand *Src0,
   // Lea optimization only works for i16 and i32 types, not i8.
   if (Ty != IceType_i16 && Ty != IceType_i32 && (Count3 || Count5 || Count9))
     return false;
-  // Limit the number of lea/shl operations for a single multiply, to
-  // a somewhat arbitrary choice of 3.
+  // Limit the number of lea/shl operations for a single multiply, to a
+  // somewhat arbitrary choice of 3.
   const uint32_t MaxOpsForOptimizedMul = 3;
   if (CountOps > MaxOpsForOptimizedMul)
     return false;
@@ -1101,11 +1096,11 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
   }
   if (!Traits::Is64Bit && Dest->getType() == IceType_i64) {
     // These x86-32 helper-call-involved instructions are lowered in this
-    // separate switch. This is because loOperand() and hiOperand()
-    // may insert redundant instructions for constant blinding and
-    // pooling. Such redundant instructions will fail liveness analysis
-    // under -Om1 setting. And, actually these arguments do not need
-    // to be processed with loOperand() and hiOperand() to be used.
+    // separate switch. This is because loOperand() and hiOperand() may insert
+    // redundant instructions for constant blinding and pooling. Such redundant
+    // instructions will fail liveness analysis under -Om1 setting. And,
+    // actually these arguments do not need to be processed with loOperand()
+    // and hiOperand() to be used.
     switch (Inst->getOp()) {
     case InstArithmetic::Udiv: {
       const SizeT MaxSrcs = 2;
@@ -1216,8 +1211,8 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       _imul(T_2, Src0Lo);
       _mov(T_3, Src0Lo, Traits::RegisterSet::Reg_eax);
       _mul(T_4Lo, T_3, Src1Lo);
-      // The mul instruction produces two dest variables, edx:eax.  We
-      // create a fake definition of edx to account for this.
+      // The mul instruction produces two dest variables, edx:eax. We create a
+      // fake definition of edx to account for this.
       Context.insert(InstFakeDef::create(Func, T_4Hi, T_4Lo));
       _mov(DestLo, T_4Lo);
       _add(T_4Hi, T_1);
@@ -1253,9 +1248,9 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       _shl(T_2, T_1);
       _test(T_1, BitTest);
       _br(Traits::Cond::Br_e, Label);
-      // T_2 and T_3 are being assigned again because of the
-      // intra-block control flow, so we need the _mov_nonkillable
-      // variant to avoid liveness problems.
+      // T_2 and T_3 are being assigned again because of the intra-block
+      // control flow, so we need the _mov_nonkillable variant to avoid
+      // liveness problems.
       _mov_nonkillable(T_3, T_2);
       _mov_nonkillable(T_2, Zero);
       Context.insert(Label);
@@ -1289,9 +1284,9 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       _shr(T_3, T_1);
       _test(T_1, BitTest);
       _br(Traits::Cond::Br_e, Label);
-      // T_2 and T_3 are being assigned again because of the
-      // intra-block control flow, so we need the _mov_nonkillable
-      // variant to avoid liveness problems.
+      // T_2 and T_3 are being assigned again because of the intra-block
+      // control flow, so we need the _mov_nonkillable variant to avoid
+      // liveness problems.
       _mov_nonkillable(T_2, T_3);
       _mov_nonkillable(T_3, Zero);
       Context.insert(Label);
@@ -1325,10 +1320,10 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       _sar(T_3, T_1);
       _test(T_1, BitTest);
       _br(Traits::Cond::Br_e, Label);
-      // T_2 and T_3 are being assigned again because of the
-      // intra-block control flow, so T_2 needs the _mov_nonkillable
-      // variant to avoid liveness problems.  T_3 doesn't need special
-      // treatment because it is reassigned via _sar instead of _mov.
+      // T_2 and T_3 are being assigned again because of the intra-block
+      // control flow, so T_2 needs the _mov_nonkillable variant to avoid
+      // liveness problems. T_3 doesn't need special treatment because it is
+      // reassigned via _sar instead of _mov.
       _mov_nonkillable(T_2, T_3);
       _sar(T_3, SignExtend);
       Context.insert(Label);
@@ -1353,8 +1348,8 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
     return;
   }
   if (isVectorType(Dest->getType())) {
-    // TODO: Trap on integer divide and integer modulo by zero.
-    // See: https://code.google.com/p/nativeclient/issues/detail?id=3899
+    // TODO: Trap on integer divide and integer modulo by zero. See:
+    // https://code.google.com/p/nativeclient/issues/detail?id=3899
     if (llvm::isa<typename Traits::X86OperandMem>(Src1))
       Src1 = legalizeToReg(Src1);
     switch (Inst->getOp()) {
@@ -1519,8 +1514,8 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       if (optimizeScalarMul(Dest, Src0, C->getValue()))
         return;
     }
-    // The 8-bit version of imul only allows the form "imul r/m8"
-    // where T must be in eax.
+    // The 8-bit version of imul only allows the form "imul r/m8" where T must
+    // be in eax.
     if (isByteSizedArithType(Dest->getType())) {
       _mov(T, Src0, Traits::RegisterSet::Reg_eax);
       Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
@@ -1580,11 +1575,11 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
     }
     break;
   case InstArithmetic::Sdiv:
-    // TODO(stichnot): Enable this after doing better performance
-    // and cross testing.
+    // TODO(stichnot): Enable this after doing better performance and cross
+    // testing.
     if (false && Ctx->getFlags().getOptLevel() >= Opt_1) {
-      // Optimize division by constant power of 2, but not for Om1
-      // or O0, just to keep things simple there.
+      // Optimize division by constant power of 2, but not for Om1 or O0, just
+      // to keep things simple there.
       if (auto *C = llvm::dyn_cast<ConstantInteger32>(Src1)) {
         int32_t Divisor = C->getValue();
         uint32_t UDivisor = static_cast<uint32_t>(Divisor);
@@ -1600,8 +1595,8 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
           //   dest=t
           uint32_t TypeWidth = Traits::X86_CHAR_BIT * typeWidthInBytes(Ty);
           _mov(T, Src0);
-          // If for some reason we are dividing by 1, just treat it
-          // like an assignment.
+          // If for some reason we are dividing by 1, just treat it like an
+          // assignment.
           if (LogDiv > 0) {
             // The initial sar is unnecessary when dividing by 2.
             if (LogDiv > 1)
@@ -1656,11 +1651,11 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
     }
     break;
   case InstArithmetic::Srem:
-    // TODO(stichnot): Enable this after doing better performance
-    // and cross testing.
+    // TODO(stichnot): Enable this after doing better performance and cross
+    // testing.
     if (false && Ctx->getFlags().getOptLevel() >= Opt_1) {
-      // Optimize mod by constant power of 2, but not for Om1 or O0,
-      // just to keep things simple there.
+      // Optimize mod by constant power of 2, but not for Om1 or O0, just to
+      // keep things simple there.
       if (auto *C = llvm::dyn_cast<ConstantInteger32>(Src1)) {
         int32_t Divisor = C->getValue();
         uint32_t UDivisor = static_cast<uint32_t>(Divisor);
@@ -1777,8 +1772,8 @@ void TargetX86Base<Machine>::lowerAssign(const InstAssign *Inst) {
       // memory.
       Src0Legal = legalize(Src0);
     } else {
-      // If Dest could be a stack operand, then RI must be a physical
-      // register or a scalar integer immediate.
+      // If Dest could be a stack operand, then RI must be a physical register
+      // or a scalar integer immediate.
       Src0Legal = legalize(Src0, Legal_Reg | Legal_Imm);
     }
     if (isVectorType(Dest->getType()))
@@ -1803,8 +1798,8 @@ void TargetX86Base<Machine>::lowerBr(const InstBr *Inst) {
     default:
       break;
     case BoolFolding::PK_Icmp32: {
-      // TODO(stichnot): Refactor similarities between this block and
-      // the corresponding code in lowerIcmp().
+      // TODO(stichnot): Refactor similarities between this block and the
+      // corresponding code in lowerIcmp().
       auto *Cmp = llvm::dyn_cast<InstIcmp>(Producer);
       Operand *Src0 = Producer->getSrc(0);
       Operand *Src1 = legalize(Producer->getSrc(1));
@@ -1835,10 +1830,10 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
   case InstCast::Sext: {
     // Src0RM is the source operand legalized to physical register or memory,
     // but not immediate, since the relevant x86 native instructions don't
-    // allow an immediate operand.  If the operand is an immediate, we could
-    // consider computing the strength-reduced result at translation time,
-    // but we're unlikely to see something like that in the bitcode that
-    // the optimizer wouldn't have already taken care of.
+    // allow an immediate operand. If the operand is an immediate, we could
+    // consider computing the strength-reduced result at translation time, but
+    // we're unlikely to see something like that in the bitcode that the
+    // optimizer wouldn't have already taken care of.
     Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
     if (isVectorType(Dest->getType())) {
       Type DestTy = Dest->getType();
@@ -1898,8 +1893,8 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
           typeWidthInBytes(Src0RM->getType())) {
         _mov(T, Src0RM);
       } else {
-        // Widen the source using movsx or movzx.  (It doesn't matter
-        // which one, since the following shl/sar overwrite the bits.)
+        // Widen the source using movsx or movzx. (It doesn't matter which one,
+        // since the following shl/sar overwrite the bits.)
         _movzx(T, Src0RM);
       }
       _shl(T, ShiftAmount);
@@ -2010,12 +2005,11 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       _cvt(T, Src0RM, Traits::Insts::Cvt::Tps2dq);
       _movp(Dest, T);
     } else if (!Traits::Is64Bit && Dest->getType() == IceType_i64) {
-      // Use a helper for converting floating-point values to 64-bit
-      // integers.  SSE2 appears to have no way to convert from xmm
-      // registers to something like the edx:eax register pair, and
-      // gcc and clang both want to use x87 instructions complete with
-      // temporary manipulation of the status word.  This helper is
-      // not needed for x86-64.
+      // Use a helper for converting floating-point values to 64-bit integers.
+      // SSE2 appears to have no way to convert from xmm registers to something
+      // like the edx:eax register pair, and gcc and clang both want to use x87
+      // instructions complete with temporary manipulation of the status word.
+      // This helper is not needed for x86-64.
       split64(Dest);
       const SizeT MaxSrcs = 1;
       Type SrcType = Inst->getSrc(0)->getType();
@@ -2150,8 +2144,8 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       lowerCall(Call);
     } else if (Src0->getType() == IceType_i64 ||
                (!Traits::Is64Bit && Src0->getType() == IceType_i32)) {
-      // Use a helper for x86-32 and x86-64.  Also use a helper for
-      // i32 on x86-32.
+      // Use a helper for x86-32 and x86-64. Also use a helper for i32 on
+      // x86-32.
       const SizeT MaxSrcs = 1;
       Type DestType = Dest->getType();
       IceString TargetString;
@@ -2285,8 +2279,8 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       if (Traits::Is64Bit) {
         Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
         Variable *T = makeReg(IceType_f64);
-        // Movd requires its fp argument (in this case, the bitcast destination)
-        // to be an xmm register.
+        // Movd requires its fp argument (in this case, the bitcast
+        // destination) to be an xmm register.
         T->setMustHaveReg();
         _movd(T, Src0RM);
         _mov(Dest, T);
@@ -2318,8 +2312,8 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
             Func, Spill, Traits::VariableSplit::High);
         _mov(T_Lo, loOperand(Src0));
         // Technically, the Spill is defined after the _store happens, but
-        // SpillLo is considered a "use" of Spill so define Spill before it
-        // is used.
+        // SpillLo is considered a "use" of Spill so define Spill before it is
+        // used.
         Context.insert(InstFakeDef::create(Func, Spill));
         _store(T_Lo, SpillLo);
         _mov(T_Hi, hiOperand(Src0));
@@ -2384,8 +2378,8 @@ void TargetX86Base<Machine>::lowerExtractElement(
     // Use pshufd and movd/movss.
     Variable *T = nullptr;
     if (Index) {
-      // The shuffle only needs to occur if the element to be extracted
-      // is not at the lowest index.
+      // The shuffle only needs to occur if the element to be extracted is not
+      // at the lowest index.
       Constant *Mask = Ctx->getConstantInt32(Index);
       T = makeReg(Ty);
       _pshufd(T, legalize(SourceVectNotLegalized, Legal_Reg | Legal_Mem), Mask);
@@ -2396,11 +2390,11 @@ void TargetX86Base<Machine>::lowerExtractElement(
     if (InVectorElementTy == IceType_i32) {
       _movd(ExtractedElementR, T);
     } else { // Ty == IceType_f32
-      // TODO(wala): _movss is only used here because _mov does not
-      // allow a vector source and a scalar destination.  _mov should be
-      // able to be used here.
-      // _movss is a binary instruction, so the FakeDef is needed to
-      // keep the live range analysis consistent.
+      // TODO(wala): _movss is only used here because _mov does not allow a
+      // vector source and a scalar destination.  _mov should be able to be
+      // used here.
+      // _movss is a binary instruction, so the FakeDef is needed to keep the
+      // live range analysis consistent.
       Context.insert(InstFakeDef::create(Func, ExtractedElementR));
       _movss(ExtractedElementR, T);
     }
@@ -2408,8 +2402,8 @@ void TargetX86Base<Machine>::lowerExtractElement(
     assert(Ty == IceType_v16i8 || Ty == IceType_v16i1);
     // Spill the value to a stack slot and do the extraction in memory.
     //
-    // TODO(wala): use legalize(SourceVectNotLegalized, Legal_Mem) when
-    // support for legalizing to mem is implemented.
+    // TODO(wala): use legalize(SourceVectNotLegalized, Legal_Mem) when support
+    // for legalizing to mem is implemented.
     Variable *Slot = Func->makeVariable(Ty);
     Slot->setMustNotHaveReg();
     _movp(Slot, legalizeToReg(SourceVectNotLegalized));
@@ -2589,9 +2583,9 @@ void TargetX86Base<Machine>::lowerIcmp(const InstIcmp *Inst) {
     Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
     Operand *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
 
-    // SSE2 only has signed comparison operations.  Transform unsigned
-    // inputs in a manner that allows for the use of signed comparison
-    // operations by flipping the high order bits.
+    // SSE2 only has signed comparison operations. Transform unsigned inputs in
+    // a manner that allows for the use of signed comparison operations by
+    // flipping the high order bits.
     if (Condition == InstIcmp::Ugt || Condition == InstIcmp::Uge ||
         Condition == InstIcmp::Ult || Condition == InstIcmp::Ule) {
       Variable *T0 = makeReg(Ty);
@@ -2726,8 +2720,8 @@ void TargetX86Base<Machine>::lowerInsertElement(const InstInsertElement *Inst) {
   Type InVectorElementTy = Traits::getInVectorElementType(Ty);
 
   if (ElementTy == IceType_i1) {
-    // Expand the element to the appropriate size for it to be inserted
-    // in the vector.
+    // Expand the element to the appropriate size for it to be inserted in the
+    // vector.
     Variable *Expanded = Func->makeVariable(InVectorElementTy);
     InstCast *Cast = InstCast::create(Func, InstCast::Zext, Expanded,
                                       ElementToInsertNotLegalized);
@@ -2773,14 +2767,13 @@ void TargetX86Base<Machine>::lowerInsertElement(const InstInsertElement *Inst) {
       return;
     }
 
-    // shufps treats the source and desination operands as vectors of
-    // four doublewords.  The destination's two high doublewords are
-    // selected from the source operand and the two low doublewords are
-    // selected from the (original value of) the destination operand.
-    // An insertelement operation can be effected with a sequence of two
-    // shufps operations with appropriate masks.  In all cases below,
-    // Element[0] is being inserted into SourceVectOperand.  Indices are
-    // ordered from left to right.
+    // shufps treats the source and destination operands as vectors of four
+    // doublewords. The destination's two high doublewords are selected from
+    // the source operand and the two low doublewords are selected from the
+    // (original value of) the destination operand. An insertelement operation
+    // can be effected with a sequence of two shufps operations with
+    // appropriate masks. In all cases below, Element[0] is being inserted into
+    // SourceVectOperand. Indices are ordered from left to right.
     //
     // insertelement into index 1 (result is stored in ElementR):
     //   ElementR := ElementR[0, 0] SourceVectRM[0, 0]
@@ -2814,11 +2807,10 @@ void TargetX86Base<Machine>::lowerInsertElement(const InstInsertElement *Inst) {
     }
   } else {
     assert(Ty == IceType_v16i8 || Ty == IceType_v16i1);
-    // Spill the value to a stack slot and perform the insertion in
-    // memory.
+    // Spill the value to a stack slot and perform the insertion in memory.
     //
-    // TODO(wala): use legalize(SourceVectNotLegalized, Legal_Mem) when
-    // support for legalizing to mem is implemented.
+    // TODO(wala): use legalize(SourceVectNotLegalized, Legal_Mem) when support
+    // for legalizing to mem is implemented.
     Variable *Slot = Func->makeVariable(Ty);
     Slot->setMustNotHaveReg();
     _movp(Slot, legalizeToReg(SourceVectNotLegalized));
@@ -2864,25 +2856,25 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
     _mfence();
     return;
   case Intrinsics::AtomicFenceAll:
-    // NOTE: FenceAll should prevent and load/store from being moved
-    // across the fence (both atomic and non-atomic). The InstX8632Mfence
-    // instruction is currently marked coarsely as "HasSideEffects".
+    // NOTE: FenceAll should prevent and load/store from being moved across the
+    // fence (both atomic and non-atomic). The InstX8632Mfence instruction is
+    // currently marked coarsely as "HasSideEffects".
     _mfence();
     return;
   case Intrinsics::AtomicIsLockFree: {
     // X86 is always lock free for 8/16/32/64 bit accesses.
-    // TODO(jvoung): Since the result is constant when given a constant
-    // byte size, this opens up DCE opportunities.
+    // TODO(jvoung): Since the result is constant when given a constant byte
+    // size, this opens up DCE opportunities.
     Operand *ByteSize = Instr->getArg(0);
     Variable *Dest = Instr->getDest();
     if (ConstantInteger32 *CI = llvm::dyn_cast<ConstantInteger32>(ByteSize)) {
       Constant *Result;
       switch (CI->getValue()) {
       default:
-        // Some x86-64 processors support the cmpxchg16b intruction, which
-        // can make 16-byte operations lock free (when used with the LOCK
-        // prefix). However, that's not supported in 32-bit mode, so just
-        // return 0 even for large sizes.
+        // Some x86-64 processors support the cmpxchg16b instruction, which can
+        // make 16-byte operations lock free (when used with the LOCK prefix).
+        // However, that's not supported in 32-bit mode, so just return 0 even
+        // for large sizes.
         Result = Ctx->getConstantZero(IceType_i32);
         break;
       case 1:
@@ -2900,8 +2892,8 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
     return;
   }
   case Intrinsics::AtomicLoad: {
-    // We require the memory address to be naturally aligned.
-    // Given that is the case, then normal loads are atomic.
+    // We require the memory address to be naturally aligned. Given that is the
+    // case, then normal loads are atomic.
     if (!Intrinsics::isMemoryOrderValid(
             ID, getConstantMemoryOrder(Instr->getArg(1)))) {
       Func->setError("Unexpected memory ordering for AtomicLoad");
@@ -2910,10 +2902,10 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
     Variable *Dest = Instr->getDest();
     if (!Traits::Is64Bit && Dest->getType() == IceType_i64) {
       // Follow what GCC does and use a movq instead of what lowerLoad()
-      // normally does (split the load into two).
-      // Thus, this skips load/arithmetic op folding. Load/arithmetic folding
-      // can't happen anyway, since this is x86-32 and integer arithmetic only
-      // happens on 32-bit quantities.
+      // normally does (split the load into two). Thus, this skips
+      // load/arithmetic op folding. Load/arithmetic folding can't happen
+      // anyway, since this is x86-32 and integer arithmetic only happens on
+      // 32-bit quantities.
       Variable *T = makeReg(IceType_f64);
       typename Traits::X86OperandMem *Addr =
           formMemoryOperand(Instr->getArg(0), IceType_f64);
@@ -2929,8 +2921,8 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
     InstLoad *Load = InstLoad::create(Func, Dest, Instr->getArg(0));
     lowerLoad(Load);
     // Make sure the atomic load isn't elided when unused, by adding a FakeUse.
-    // Since lowerLoad may fuse the load w/ an arithmetic instruction,
-    // insert the FakeUse on the last-inserted instruction's dest.
+    // Since lowerLoad may fuse the load w/ an arithmetic instruction, insert
+    // the FakeUse on the last-inserted instruction's dest.
     Context.insert(
         InstFakeUse::create(Func, Context.getLastInserted()->getDest()));
     return;
@@ -2953,15 +2945,15 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
       Func->setError("Unexpected memory ordering for AtomicStore");
       return;
     }
-    // We require the memory address to be naturally aligned.
-    // Given that is the case, then normal stores are atomic.
-    // Add a fence after the store to make it visible.
+    // We require the memory address to be naturally aligned. Given that is the
+    // case, then normal stores are atomic. Add a fence after the store to make
+    // it visible.
     Operand *Value = Instr->getArg(0);
     Operand *Ptr = Instr->getArg(1);
     if (!Traits::Is64Bit && Value->getType() == IceType_i64) {
-      // Use a movq instead of what lowerStore() normally does
-      // (split the store into two), following what GCC does.
-      // Cast the bits from int -> to an xmm register first.
+      // Use a movq instead of what lowerStore() normally does (split the store
+      // into two), following what GCC does. Cast the bits from int -> to an
+      // xmm register first.
       Variable *T = makeReg(IceType_f64);
       InstCast *Cast = InstCast::create(Func, InstCast::Bitcast, T, Value);
       lowerCast(Cast);
@@ -2980,8 +2972,8 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
   case Intrinsics::Bswap: {
     Variable *Dest = Instr->getDest();
     Operand *Val = Instr->getArg(0);
-    // In 32-bit mode, bswap only works on 32-bit arguments, and the
-    // argument must be a register. Use rotate left for 16-bit bswap.
+    // In 32-bit mode, bswap only works on 32-bit arguments, and the argument
+    // must be a register. Use rotate left for 16-bit bswap.
     if (!Traits::Is64Bit && Val->getType() == IceType_i64) {
       Val = legalizeUndef(Val);
       Variable *T_Lo = legalizeToReg(loOperand(Val));
@@ -3070,8 +3062,8 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
     return;
   }
   case Intrinsics::Ctlz: {
-    // The "is zero undef" parameter is ignored and we always return
-    // a well-defined value.
+    // The "is zero undef" parameter is ignored and we always return a
+    // well-defined value.
     Operand *Val = legalize(Instr->getArg(0));
     Operand *FirstVal;
     Operand *SecondVal = nullptr;
@@ -3087,8 +3079,8 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
     return;
   }
   case Intrinsics::Cttz: {
-    // The "is zero undef" parameter is ignored and we always return
-    // a well-defined value.
+    // The "is zero undef" parameter is ignored and we always return a
+    // well-defined value.
     Operand *Val = legalize(Instr->getArg(0));
     Operand *FirstVal;
     Operand *SecondVal = nullptr;
@@ -3108,8 +3100,8 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
     Type Ty = Src->getType();
     Variable *Dest = Instr->getDest();
     Variable *T = makeVectorOfFabsMask(Ty);
-    // The pand instruction operates on an m128 memory operand, so if
-    // Src is an f32 or f64, we need to make sure it's in a register.
+    // The pand instruction operates on an m128 memory operand, so if Src is an
+    // f32 or f64, we need to make sure it's in a register.
     if (isVectorType(Ty)) {
       if (llvm::isa<typename Traits::X86OperandMem>(Src))
         Src = legalizeToReg(Src);
@@ -3694,8 +3686,8 @@ void TargetX86Base<Machine>::lowerMemmove(Operand *Dest, Operand *Src,
     Variable *Reg;
 
     // Copy the data into registers as the source and destination could overlap
-    // so make sure not to clobber the memory. This also means overlapping moves
-    // can be used as we are taking a safe snapshot of the memory.
+    // so make sure not to clobber the memory. This also means overlapping
+    // moves can be used as we are taking a safe snapshot of the memory.
     Type Ty = largestTypeInSize(CountValue);
     uint32_t TyWidth = typeWidthInBytes(Ty);
 
@@ -3896,8 +3888,7 @@ inline void dumpAddressOpt(const Cfg *Func, const Variable *Base,
 
 inline bool matchTransitiveAssign(const VariablesMetadata *VMetadata,
                                   Variable *&Var, const Inst *&Reason) {
-  // Var originates from Var=SrcVar ==>
-  //   set Var:=SrcVar
+  // Var originates from Var=SrcVar ==> set Var:=SrcVar
   if (Var == nullptr)
     return false;
   if (const Inst *VarAssign = VMetadata->getSingleDefinition(Var)) {
@@ -4059,10 +4050,10 @@ inline void computeAddressOpt(Cfg *Func, const Inst *Instr, Variable *&Base,
   (void)Offset; // TODO: pattern-match for non-zero offsets.
   if (Base == nullptr)
     return;
-  // If the Base has more than one use or is live across multiple
-  // blocks, then don't go further.  Alternatively (?), never consider
-  // a transformation that would change a variable that is currently
-  // *not* live across basic block boundaries into one that *is*.
+  // If the Base has more than one use or is live across multiple blocks, then
+  // don't go further. Alternatively (?), never consider a transformation that
+  // would change a variable that is currently *not* live across basic block
+  // boundaries into one that *is*.
   if (Func->getVMetadata()->isMultiBlock(Base) /* || Base->getUseCount() > 1*/)
     return;
 
@@ -4232,8 +4223,8 @@ void TargetX86Base<Machine>::lowerSelect(const InstSelect *Inst) {
     Operand *SrcTRM = legalize(SrcT, Legal_Reg | Legal_Mem);
     Operand *SrcFRM = legalize(SrcF, Legal_Reg | Legal_Mem);
     if (InstructionSet >= Traits::SSE4_1) {
-      // TODO(wala): If the condition operand is a constant, use blendps
-      // or pblendw.
+      // TODO(wala): If the condition operand is a constant, use blendps or
+      // pblendw.
       //
       // Use blendvps or pblendvb to implement select.
       if (SrcTy == IceType_v4i1 || SrcTy == IceType_v4i32 ||
@@ -4310,8 +4301,8 @@ void TargetX86Base<Machine>::lowerSelect(const InstSelect *Inst) {
 
   _cmp(CmpOpnd0, CmpOpnd1);
   if (typeWidthInBytes(DestTy) == 1 || isFloatingType(DestTy)) {
-    // The cmov instruction doesn't allow 8-bit or FP operands, so
-    // we need explicit control flow.
+    // The cmov instruction doesn't allow 8-bit or FP operands, so we need
+    // explicit control flow.
     // d=cmp e,f; a=d?b:c ==> cmp e,f; a=b; jne L1; a=c; L1:
     typename Traits::Insts::Label *Label =
         Traits::Insts::Label::create(Func, this);
@@ -4324,8 +4315,8 @@ void TargetX86Base<Machine>::lowerSelect(const InstSelect *Inst) {
     return;
   }
   // mov t, SrcF; cmov_cond t, SrcT; mov dest, t
-  // But if SrcT is immediate, we might be able to do better, as
-  // the cmov instruction doesn't allow an immediate operand:
+  // But if SrcT is immediate, we might be able to do better, as the cmov
+  // instruction doesn't allow an immediate operand:
   // mov t, SrcT; cmov_!cond t, SrcF; mov dest, t
   if (llvm::isa<Constant>(SrcT) && !llvm::isa<Constant>(SrcF)) {
     std::swap(SrcT, SrcF);
@@ -4686,8 +4677,8 @@ void TargetX86Base<Machine>::scalarizeArithmetic(InstArithmetic::OpKind Kind,
 ///   %cmp.ext = sext <n x i1> %cmp to <n x ty>
 ///
 /// We can eliminate the sext operation by copying the result of pcmpeqd,
-/// pcmpgtd, or cmpps (which produce sign extended results) to the result
-/// of the sext operation.
+/// pcmpgtd, or cmpps (which produce sign extended results) to the result of the
+/// sext operation.
 template <class Machine>
 void TargetX86Base<Machine>::eliminateNextVectorSextInstruction(
     Variable *SignExtendedResult) {
@@ -4712,13 +4703,12 @@ void TargetX86Base<Machine>::lowerUnreachable(
 template <class Machine>
 void TargetX86Base<Machine>::lowerRMW(
     const typename Traits::Insts::FakeRMW *RMW) {
-  // If the beacon variable's live range does not end in this
-  // instruction, then it must end in the modified Store instruction
-  // that follows.  This means that the original Store instruction is
-  // still there, either because the value being stored is used beyond
-  // the Store instruction, or because dead code elimination did not
-  // happen.  In either case, we cancel RMW lowering (and the caller
-  // deletes the RMW instruction).
+  // If the beacon variable's live range does not end in this instruction, then
+  // it must end in the modified Store instruction that follows. This means
+  // that the original Store instruction is still there, either because the
+  // value being stored is used beyond the Store instruction, or because dead
+  // code elimination did not happen. In either case, we cancel RMW lowering
+  // (and the caller deletes the RMW instruction).
   if (!RMW->isLastUse(RMW->getBeacon()))
     return;
   Operand *Src = RMW->getData();
@@ -4800,10 +4790,9 @@ void TargetX86Base<Machine>::lowerOther(const Inst *Instr) {
   }
 }
 
-/// Turn an i64 Phi instruction into a pair of i32 Phi instructions, to
-/// preserve integrity of liveness analysis.  Undef values are also
-/// turned into zeroes, since loOperand() and hiOperand() don't expect
-/// Undef input.
+/// Turn an i64 Phi instruction into a pair of i32 Phi instructions, to preserve
+/// integrity of liveness analysis. Undef values are also turned into zeroes,
+/// since loOperand() and hiOperand() don't expect Undef input.
 template <class Machine> void TargetX86Base<Machine>::prelowerPhis() {
   if (Traits::Is64Bit) {
     // On x86-64 we don't need to prelower phis -- the architecture can handle
@@ -4811,25 +4800,25 @@ template <class Machine> void TargetX86Base<Machine>::prelowerPhis() {
     return;
   }
 
-  // Pause constant blinding or pooling, blinding or pooling will be done
-  // later during phi lowering assignments
+  // Pause constant blinding or pooling, blinding or pooling will be done later
+  // during phi lowering assignments
   BoolFlagSaver B(RandomizationPoolingPaused, true);
   PhiLowering::prelowerPhis32Bit<TargetX86Base<Machine>>(
       this, Context.getNode(), Func);
 }
 
-// There is no support for loading or emitting vector constants, so the
-// vector values returned from makeVectorOfZeros, makeVectorOfOnes,
-// etc. are initialized with register operations.
+// There is no support for loading or emitting vector constants, so the vector
+// values returned from makeVectorOfZeros, makeVectorOfOnes, etc. are
+// initialized with register operations.
 //
-// TODO(wala): Add limited support for vector constants so that
-// complex initialization in registers is unnecessary.
+// TODO(wala): Add limited support for vector constants so that complex
+// initialization in registers is unnecessary.
 
 template <class Machine>
 Variable *TargetX86Base<Machine>::makeVectorOfZeros(Type Ty, int32_t RegNum) {
   Variable *Reg = makeReg(Ty, RegNum);
-  // Insert a FakeDef, since otherwise the live range of Reg might
-  // be overestimated.
+  // Insert a FakeDef, since otherwise the live range of Reg might be
+  // overestimated.
   Context.insert(InstFakeDef::create(Func, Reg));
   _pxor(Reg, Reg);
   return Reg;
@@ -4875,12 +4864,12 @@ Variable *TargetX86Base<Machine>::makeVectorOfHighOrderBits(Type Ty,
   }
 }
 
-/// Construct a mask in a register that can be and'ed with a
-/// floating-point value to mask off its sign bit.  The value will be
-/// <4 x 0x7fffffff> for f32 and v4f32, and <2 x 0x7fffffffffffffff>
-/// for f64.  Construct it as vector of ones logically right shifted
-/// one bit.  TODO(stichnot): Fix the wala TODO above, to represent
-/// vector constants in memory.
+/// Construct a mask in a register that can be and'ed with a floating-point
+/// value to mask off its sign bit. The value will be <4 x 0x7fffffff> for f32
+/// and v4f32, and <2 x 0x7fffffffffffffff> for f64. Construct it as vector of
+/// ones logically right shifted one bit.
+// TODO(stichnot): Fix the wala
+// TODO: above, to represent vector constants in memory.
 template <class Machine>
 Variable *TargetX86Base<Machine>::makeVectorOfFabsMask(Type Ty,
                                                        int32_t RegNum) {
@@ -4897,9 +4886,9 @@ TargetX86Base<Machine>::getMemoryOperandForStackSlot(Type Ty, Variable *Slot,
   assert(Slot->mustNotHaveReg());
   assert(Slot->getRegNum() == Variable::NoRegister);
   // Compute the location of Loc in memory.
-  // TODO(wala,stichnot): lea should not be required.  The address of
-  // the stack slot is known at compile time (although not until after
-  // addProlog()).
+  // TODO(wala,stichnot): lea should not
+  // be required. The address of the stack slot is known at compile time
+  // (although not until after addProlog()).
   const Type PointerType = IceType_i32;
   Variable *Loc = makeReg(PointerType);
   _lea(Loc, Slot);
@@ -4925,20 +4914,19 @@ template <class Machine>
 Operand *TargetX86Base<Machine>::legalize(Operand *From, LegalMask Allowed,
                                           int32_t RegNum) {
   Type Ty = From->getType();
-  // Assert that a physical register is allowed.  To date, all calls
-  // to legalize() allow a physical register.  If a physical register
-  // needs to be explicitly disallowed, then new code will need to be
-  // written to force a spill.
+  // Assert that a physical register is allowed. To date, all calls to
+  // legalize() allow a physical register. If a physical register needs to be
+  // explicitly disallowed, then new code will need to be written to force a
+  // spill.
   assert(Allowed & Legal_Reg);
-  // If we're asking for a specific physical register, make sure we're
-  // not allowing any other operand kinds.  (This could be future
-  // work, e.g. allow the shl shift amount to be either an immediate
-  // or in ecx.)
+  // If we're asking for a specific physical register, make sure we're not
+  // allowing any other operand kinds. (This could be future work, e.g. allow
+  // the shl shift amount to be either an immediate or in ecx.)
   assert(RegNum == Variable::NoRegister || Allowed == Legal_Reg);
 
   if (auto Mem = llvm::dyn_cast<typename Traits::X86OperandMem>(From)) {
-    // Before doing anything with a Mem operand, we need to ensure
-    // that the Base and Index components are in physical registers.
+    // Before doing anything with a Mem operand, we need to ensure that the
+    // Base and Index components are in physical registers.
     Variable *Base = Mem->getBase();
     Variable *Index = Mem->getIndex();
     Variable *RegBase = nullptr;
@@ -4983,8 +4971,8 @@ Operand *TargetX86Base<Machine>::legalize(Operand *From, LegalMask Allowed,
       }
     }
 
-    // If the operand is an 32 bit constant integer, we should check
-    // whether we need to randomize it or pool it.
+    // If the operand is an 32 bit constant integer, we should check whether we
+    // need to randomize it or pool it.
     if (ConstantInteger32 *C = llvm::dyn_cast<ConstantInteger32>(Const)) {
       Operand *NewConst = randomizeOrPoolImmediate(C, RegNum);
       if (NewConst != Const) {
@@ -4992,8 +4980,8 @@ Operand *TargetX86Base<Machine>::legalize(Operand *From, LegalMask Allowed,
       }
     }
 
-    // Convert a scalar floating point constant into an explicit
-    // memory operand.
+    // Convert a scalar floating point constant into an explicit memory
+    // operand.
     if (isScalarFloatingType(Ty)) {
       Variable *Base = nullptr;
       std::string Buffer;
@@ -5016,9 +5004,9 @@ Operand *TargetX86Base<Machine>::legalize(Operand *From, LegalMask Allowed,
     return From;
   }
   if (auto Var = llvm::dyn_cast<Variable>(From)) {
-    // Check if the variable is guaranteed a physical register.  This
-    // can happen either when the variable is pre-colored or when it is
-    // assigned infinite weight.
+    // Check if the variable is guaranteed a physical register. This can happen
+    // either when the variable is pre-colored or when it is assigned infinite
+    // weight.
     bool MustHaveRegister = (Var->hasReg() || Var->mustHaveReg());
     // We need a new physical register for the operand if:
     //   Mem is not allowed and Var isn't guaranteed a physical
@@ -5046,16 +5034,16 @@ Operand *TargetX86Base<Machine>::legalizeUndef(Operand *From, int32_t RegNum) {
   Type Ty = From->getType();
   if (llvm::isa<ConstantUndef>(From)) {
     // Lower undefs to zero.  Another option is to lower undefs to an
-    // uninitialized register; however, using an uninitialized register
-    // results in less predictable code.
+    // uninitialized register; however, using an uninitialized register results
+    // in less predictable code.
     //
-    // If in the future the implementation is changed to lower undef
-    // values to uninitialized registers, a FakeDef will be needed:
+    // If in the future the implementation is changed to lower undef values to
+    // uninitialized registers, a FakeDef will be needed:
     //     Context.insert(InstFakeDef::create(Func, Reg));
     // This is in order to ensure that the live range of Reg is not
-    // overestimated.  If the constant being lowered is a 64 bit value,
-    // then the result should be split and the lo and hi components will
-    // need to go in uninitialized registers.
+    // overestimated.  If the constant being lowered is a 64 bit value, then
+    // the result should be split and the lo and hi components will need to go
+    // in uninitialized registers.
     if (isVectorType(Ty))
       return makeVectorOfZeros(Ty, RegNum);
     return Ctx->getConstantZero(Ty);
@@ -5063,12 +5051,11 @@ Operand *TargetX86Base<Machine>::legalizeUndef(Operand *From, int32_t RegNum) {
   return From;
 }
 
-/// For the cmp instruction, if Src1 is an immediate, or known to be a
-/// physical register, we can allow Src0 to be a memory operand.
-/// Otherwise, Src0 must be copied into a physical register.
-/// (Actually, either Src0 or Src1 can be chosen for the physical
-/// register, but unfortunately we have to commit to one or the other
-/// before register allocation.)
+/// For the cmp instruction, if Src1 is an immediate, or known to be a physical
+/// register, we can allow Src0 to be a memory operand. Otherwise, Src0 must be
+/// copied into a physical register. (Actually, either Src0 or Src1 can be
+/// chosen for the physical register, but unfortunately we have to commit to one
+/// or the other before register allocation.)
 template <class Machine>
 Operand *TargetX86Base<Machine>::legalizeSrc0ForCmp(Operand *Src0,
                                                     Operand *Src1) {
@@ -5095,11 +5082,10 @@ TargetX86Base<Machine>::formMemoryOperand(Operand *Opnd, Type Ty,
     Constant *Offset = llvm::dyn_cast<Constant>(Opnd);
     assert(Base || Offset);
     if (Offset) {
-      // During memory operand building, we do not blind or pool
-      // the constant offset, we will work on the whole memory
-      // operand later as one entity later, this save one instruction.
-      // By turning blinding and pooling off, we guarantee
-      // legalize(Offset) will return a Constant*.
+      // During memory operand building, we do not blind or pool the constant
+      // offset, we will work on the whole memory operand later as one entity
+      // later, this save one instruction. By turning blinding and pooling off,
+      // we guarantee legalize(Offset) will return a Constant*.
       {
         BoolFlagSaver B(RandomizationPoolingPaused, true);
 
@@ -5111,8 +5097,8 @@ TargetX86Base<Machine>::formMemoryOperand(Operand *Opnd, Type Ty,
     }
     Mem = Traits::X86OperandMem::create(Func, Ty, Base, Offset);
   }
-  // Do legalization, which contains randomization/pooling
-  // or do randomization/pooling.
+  // Do legalization, which contains randomization/pooling or do
+  // randomization/pooling.
   return llvm::cast<typename Traits::X86OperandMem>(
       DoLegalize ? legalize(Mem) : randomizeOrPoolImmediate(Mem));
 }
@@ -5235,11 +5221,10 @@ Operand *TargetX86Base<Machine>::randomizeOrPoolImmediate(Constant *Immediate,
       //  insert: lea -cookie[Reg], Reg
       //  => Reg
       // If we have already assigned a phy register, we must come from
-      // andvancedPhiLowering()=>lowerAssign(). In this case we should reuse
-      // the assigned register as this assignment is that start of its use-def
-      // chain. So we add RegNum argument here.
-      // Note we use 'lea' instruction instead of 'xor' to avoid affecting
-      // the flags.
+      // advancedPhiLowering()=>lowerAssign(). In this case we should reuse the
+      // assigned register as this assignment is that start of its use-def
+      // chain. So we add RegNum argument here. Note we use 'lea' instruction
+      // instead of 'xor' to avoid affecting the flags.
       Variable *Reg = makeReg(IceType_i32, RegNum);
       ConstantInteger32 *Integer = llvm::cast<ConstantInteger32>(Immediate);
       uint32_t Value = Integer->getValue();
@@ -5268,8 +5253,8 @@ Operand *TargetX86Base<Machine>::randomizeOrPoolImmediate(Constant *Immediate,
       assert(Ctx->getFlags().getRandomizeAndPoolImmediatesOption() == RPI_Pool);
       Immediate->setShouldBePooled(true);
       // if we have already assigned a phy register, we must come from
-      // andvancedPhiLowering()=>lowerAssign(). In this case we should reuse
-      // the assigned register as this assignment is that start of its use-def
+      // advancedPhiLowering()=>lowerAssign(). In this case we should reuse the
+      // assigned register as this assignment is that start of its use-def
       // chain. So we add RegNum argument here.
       Variable *Reg = makeReg(Immediate->getType(), RegNum);
       IceString Label;
@@ -5302,8 +5287,8 @@ TargetX86Base<Machine>::randomizeOrPoolImmediate(
     return MemOperand;
   }
 
-  // If this memory operand is already a randommized one, we do
-  // not randomize it again.
+  // If this memory operand is already a randomized one, we do not randomize it
+  // again.
   if (MemOperand->getRandomized())
     return MemOperand;
 
@@ -5338,9 +5323,8 @@ TargetX86Base<Machine>::randomizeOrPoolImmediate(
         Variable *RegTemp = makeReg(MemOperand->getOffset()->getType(), RegNum);
         _lea(RegTemp, TempMemOperand);
         // As source operand doesn't use the dstreg, we don't need to add
-        // _set_dest_nonkillable().
-        // But if we use the same Dest Reg, that is, with RegNum
-        // assigned, we should add this _set_dest_nonkillable()
+        // _set_dest_nonkillable(). But if we use the same Dest Reg, that is,
+        // with RegNum assigned, we should add this _set_dest_nonkillable()
         if (RegNum != Variable::NoRegister)
           _set_dest_nonkillable();
 
@@ -5366,12 +5350,11 @@ TargetX86Base<Machine>::randomizeOrPoolImmediate(
         //  =>[RegTemp, index, shift]
         assert(Ctx->getFlags().getRandomizeAndPoolImmediatesOption() ==
                RPI_Pool);
-        // Memory operand should never exist as source operands in phi
-        // lowering assignments, so there is no need to reuse any registers
-        // here. For phi lowering, we should not ask for new physical
-        // registers in general.
-        // However, if we do meet Memory Operand during phi lowering, we
-        // should not blind or pool the immediates for now.
+        // Memory operand should never exist as source operands in phi lowering
+        // assignments, so there is no need to reuse any registers here. For
+        // phi lowering, we should not ask for new physical registers in
+        // general. However, if we do meet Memory Operand during phi lowering,
+        // we should not blind or pool the immediates for now.
         if (RegNum != Variable::NoRegister)
           return MemOperand;
         Variable *RegTemp = makeReg(IceType_i32);

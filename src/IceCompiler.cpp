@@ -52,8 +52,8 @@ struct {
     {"minimal_build", BuildDefs::minimal()},
     {"browser_mode", PNACL_BROWSER_TRANSLATOR}};
 
-// Validates values of build attributes. Prints them to Stream if
-// Stream is non-null.
+// Validates values of build attributes. Prints them to Stream if Stream is
+// non-null.
 void validateAndGenerateBuildAttributes(Ostream *Stream) {
   // List the supported targets.
   if (Stream) {
@@ -100,7 +100,7 @@ void Compiler::run(const Ice::ClFlagsExtra &ExtraFlags, GlobalContext &Ctx,
   }
 
   // The Minimal build (specifically, when dump()/emit() are not implemented)
-  // allows only --filetype=obj.  Check here to avoid cryptic error messages
+  // allows only --filetype=obj. Check here to avoid cryptic error messages
   // downstream.
   if (!BuildDefs::dump() && Ctx.getFlags().getOutFileType() != FT_Elf) {
     // TODO(stichnot): Access the actual command-line argument via

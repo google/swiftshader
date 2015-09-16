@@ -9,9 +9,8 @@
 ///
 /// \file
 /// This file defines macros for working around the lack of support for
-/// thread_local in MacOS 10.6.  It assumes std::thread is written in
-/// terms of pthread.  Define ICE_THREAD_LOCAL_HACK to enable the
-/// pthread workarounds.
+/// thread_local in MacOS 10.6. It assumes std::thread is written in terms of
+/// pthread. Define ICE_THREAD_LOCAL_HACK to enable the pthread workarounds.
 ///
 //===----------------------------------------------------------------------===//
 
@@ -26,25 +25,25 @@
 
 // Defines 4 macros for unifying thread_local and pthread:
 //
-// ICE_TLS_DECLARE_FIELD(Type, FieldName): Declare a static
-// thread_local field inside the current class definition.  "Type"
-// needs to be a pointer type, such as int* or class Foo*.
+// ICE_TLS_DECLARE_FIELD(Type, FieldName): Declare a static thread_local field
+// inside the current class definition. "Type" needs to be a pointer type, such
+// as int* or class Foo*.
 //
 // ICE_TLS_DEFINE_FIELD(Type, ClassName, FieldName): Define a static
-// thread_local field outside of its class definition.  The field will
+// thread_local field outside of its class definition. The field will
 // ultimately be initialized to nullptr.
 //
-// ICE_TLS_INIT_FIELD(FieldName): Ensure the thread_local field is
-// properly initialized.  This is intended to be called from within a
-// static method of the field's class after main() starts (to ensure
-// that the pthread library is fully initialized) but before any uses
-// of ICE_TLS_GET_FIELD or ICE_TLS_SET_FIELD.
+// ICE_TLS_INIT_FIELD(FieldName): Ensure the thread_local field is properly
+// initialized. This is intended to be called from within a static method of
+// the field's class after main() starts (to ensure that the pthread library is
+// fully initialized) but before any uses of ICE_TLS_GET_FIELD or
+// ICE_TLS_SET_FIELD.
 //
 // ICE_TLS_GET_FIELD(Type, FieldName): Read the value of the static
-// thread_local field.  Must be done within the context of its class.
+// thread_local field. Must be done within the context of its class.
 //
 // ICE_TLS_SET_FIELD(FieldName, Value): Write a value into the static
-// thread_local field.  Must be done within the context of its class.
+// thread_local field. Must be done within the context of its class.
 
 // TODO(stichnot): Limit this define to only the platforms that
 // absolutely require it.  And ideally, eventually remove this hack
@@ -52,17 +51,16 @@
 #define ICE_THREAD_LOCAL_HACK
 #ifdef ICE_THREAD_LOCAL_HACK
 
-// For a static thread_local field F of a class C, instead of
-// declaring and defining C::F, we create two static fields:
+// For a static thread_local field F of a class C, instead of declaring and
+// defining C::F, we create two static fields:
 //   static pthread_key_t F__key;
 //   static int F__initStatus;
 //
 // The F__initStatus field is used to hold the result of the
-// pthread_key_create() call, where a zero value indicates success,
-// and a nonzero value indicates failure or that ICE_TLS_INIT_FIELD()
-// was never called.
-// The F__key field is used as the argument to
-// pthread_getspecific() and pthread_setspecific().
+// pthread_key_create() call, where a zero value indicates success, and a
+// nonzero value indicates failure or that ICE_TLS_INIT_FIELD() was never
+// called. The F__key field is used as the argument to pthread_getspecific()
+// and pthread_setspecific().
 
 #include <pthread.h>
 

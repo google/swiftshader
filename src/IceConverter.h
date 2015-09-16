@@ -42,8 +42,8 @@ public:
 
   llvm::Module *getModule() const { return Mod; }
 
-  /// Returns the global declaration associated with the corresponding
-  /// global value V. If no such global address, generates fatal error.
+  /// Returns the global declaration associated with the corresponding global
+  /// value V. If no such global address, generates fatal error.
   GlobalDeclaration *getGlobalDeclaration(const llvm::GlobalValue *V);
 
 private:
@@ -56,9 +56,8 @@ private:
   /// getFlags().DefaultGlobalPrefix, if the prefix is non-empty.
   void nameUnnamedGlobalVariables(llvm::Module *Mod);
 
-  /// Walks module and generates names for unnamed functions using
-  /// prefix getFlags().DefaultFunctionPrefix, if the prefix is
-  /// non-empty.
+  /// Walks module and generates names for unnamed functions using prefix
+  /// getFlags().DefaultFunctionPrefix, if the prefix is non-empty.
   void nameUnnamedFunctions(llvm::Module *Mod);
 
   /// Converts functions to ICE, and then machine code.

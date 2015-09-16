@@ -106,9 +106,8 @@ void MachineTraits<TargetX8632>::X86OperandMem::emit(const Cfg *Func) const {
     assert(SegmentReg >= 0 && SegmentReg < SegReg_NUM);
     Str << "%" << X8632::Traits::InstSegmentRegNames[SegmentReg] << ":";
   }
-  // Emit as Offset(Base,Index,1<<Shift).
-  // Offset is emitted without the leading '$'.
-  // Omit the (Base,Index,1<<Shift) part if Base==nullptr.
+  // Emit as Offset(Base,Index,1<<Shift). Offset is emitted without the leading
+  // '$'. Omit the (Base,Index,1<<Shift) part if Base==nullptr.
   if (!Offset) {
     // No offset, emit nothing.
   } else if (const auto CI = llvm::dyn_cast<ConstantInteger32>(Offset)) {

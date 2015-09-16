@@ -8,15 +8,14 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file provides some of the support for the Liveness class.  In
-/// particular, it handles the sparsity representation of the mapping
-/// between Variables and CfgNodes.  The idea is that since most
-/// variables are used only within a single basic block, we can
-/// partition the variables into "local" and "global" sets.  Instead of
-/// sizing and indexing vectors according to Variable::Number, we
-/// create a mapping such that global variables are mapped to low
-/// indexes that are common across nodes, and local variables are
-/// mapped to a higher index space that is shared across nodes.
+/// This file provides some of the support for the Liveness class. In
+/// particular, it handles the sparsity representation of the mapping between
+/// Variables and CfgNodes. The idea is that since most variables are used only
+/// within a single basic block, we can partition the variables into "local" and
+/// "global" sets. Instead of sizing and indexing vectors according to
+/// Variable::Number, we create a mapping such that global variables are mapped
+/// to low indexes that are common across nodes, and local variables are mapped
+/// to a higher index space that is shared across nodes.
 ///
 //===----------------------------------------------------------------------===//
 
@@ -32,7 +31,7 @@ namespace Ice {
 
 // Initializes the basic liveness-related data structures for full liveness
 // analysis (IsFullInit=true), or for incremental update after phi lowering
-// (IsFullInit=false).  In the latter case, FirstNode points to the first node
+// (IsFullInit=false). In the latter case, FirstNode points to the first node
 // added since starting phi lowering, and FirstVar points to the first Variable
 // added since starting phi lowering.
 void Liveness::initInternal(NodeList::const_iterator FirstNode,
@@ -60,7 +59,7 @@ void Liveness::initInternal(NodeList::const_iterator FirstNode,
   else
     assert(TmpNumGlobals == 0);
 
-  // Resize each LivenessNode::LiveToVarMap, and the global LiveToVarMap.  Reset
+  // Resize each LivenessNode::LiveToVarMap, and the global LiveToVarMap. Reset
   // the counts to 0.
   for (auto I = FirstNode, E = Func->getNodes().end(); I != E; ++I) {
     LivenessNode &N = Nodes[(*I)->getIndex()];
@@ -75,7 +74,7 @@ void Liveness::initInternal(NodeList::const_iterator FirstNode,
   RangeMask.resize(NumVars);
   RangeMask.set(0, NumVars); // Track all variables by default.
 
-  // Sort each variable into the appropriate LiveToVarMap.  Set VarToLiveMap.
+  // Sort each variable into the appropriate LiveToVarMap. Set VarToLiveMap.
   // Set RangeMask correctly for each variable.
   TmpNumGlobals = 0;
   for (auto I = FirstVar, E = Func->getVariables().end(); I != E; ++I) {
@@ -112,8 +111,7 @@ void Liveness::initInternal(NodeList::const_iterator FirstNode,
     // NumLocals, LiveToVarMap already initialized
     Node.LiveIn.resize(NumGlobals);
     Node.LiveOut.resize(NumGlobals);
-    // LiveBegin and LiveEnd are reinitialized before each pass over
-    // the block.
+    // LiveBegin and LiveEnd are reinitialized before each pass over the block.
   }
 }
 

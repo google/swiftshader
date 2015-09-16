@@ -52,9 +52,9 @@ template <typename T> static std::string LLVMObjectAsString(const T *O) {
 
 // Base class for converting LLVM to ICE.
 // TODO(stichnot): Redesign Converter, LLVM2ICEConverter,
-// LLVM2ICEFunctionConverter, and LLVM2ICEGlobalsConverter with
-// respect to Translator.  In particular, the unique_ptr ownership
-// rules in LLVM2ICEFunctionConverter.
+// LLVM2ICEFunctionConverter, and LLVM2ICEGlobalsConverter with respect to
+// Translator.  In particular, the unique_ptr ownership rules in
+// LLVM2ICEFunctionConverter.
 class LLVM2ICEConverter {
   LLVM2ICEConverter() = delete;
   LLVM2ICEConverter(const LLVM2ICEConverter &) = delete;
@@ -73,11 +73,11 @@ protected:
   const Ice::TypeConverter TypeConverter;
 };
 
-// Converter from LLVM functions to ICE. The entry point is the
-// convertFunction method.
+// Converter from LLVM functions to ICE. The entry point is the convertFunction
+// method.
 //
-// Note: this currently assumes that the given IR was verified to be
-// valid PNaCl bitcode. Otherwise, the behavior is undefined.
+// Note: this currently assumes that the given IR was verified to be valid
+// PNaCl bitcode. Otherwise, the behavior is undefined.
 class LLVM2ICEFunctionConverter : LLVM2ICEConverter {
   LLVM2ICEFunctionConverter() = delete;
   LLVM2ICEFunctionConverter(const LLVM2ICEFunctionConverter &) = delete;
@@ -107,10 +107,9 @@ public:
       Func->addArg(mapValueToIceVar(ArgI));
     }
 
-    // Make an initial pass through the block list just to resolve the
-    // blocks in the original linearized order.  Otherwise the ICE
-    // linearized order will be affected by branch targets in
-    // terminator instructions.
+    // Make an initial pass through the block list just to resolve the blocks
+    // in the original linearized order. Otherwise the ICE linearized order
+    // will be affected by branch targets in terminator instructions.
     for (const BasicBlock &BBI : *F)
       mapBasicBlockToNode(&BBI);
     for (const BasicBlock &BBI : *F)
@@ -122,9 +121,8 @@ public:
     Converter.translateFcn(std::move(Func));
   }
 
-  // convertConstant() does not use Func or require it to be a valid
-  // Ice::Cfg pointer.  As such, it's suitable for e.g. constructing
-  // global initializers.
+  // convertConstant() does not use Func or require it to be a valid Ice::Cfg
+  // pointer. As such, it's suitable for e.g. constructing global initializers.
   Ice::Constant *convertConstant(const Constant *Const) {
     if (const auto GV = dyn_cast<GlobalValue>(Const)) {
       Ice::GlobalDeclaration *Decl = getConverter().getGlobalDeclaration(GV);
@@ -197,9 +195,8 @@ private:
     return IceTy;
   }
 
-  // Given an LLVM instruction and an operand number, produce the
-  // Ice::Operand this refers to. If there's no such operand, return
-  // nullptr.
+  // Given an LLVM instruction and an operand number, produce the Ice::Operand
+  // this refers to. If there's no such operand, return nullptr.
   Ice::Operand *convertOperand(const Instruction *Inst, unsigned OpNum) {
     if (OpNum >= Inst->getNumOperands()) {
       return nullptr;
@@ -551,8 +548,8 @@ private:
     Ice::Variable *Dest = mapValueToIceVar(Inst);
     Ice::Operand *CallTarget = convertValue(Inst->getCalledValue());
     unsigned NumArgs = Inst->getNumArgOperands();
-    // Note: Subzero doesn't (yet) do anything special with the Tail
-    // flag in the bitcode, i.e. CallInst::isTailCall().
+    // Note: Subzero doesn't (yet) do anything special with the Tail flag in
+    // the bitcode, i.e. CallInst::isTailCall().
     Ice::InstCall *NewInst = nullptr;
     const Ice::Intrinsics::FullIntrinsicInfo *Info = nullptr;
 
@@ -649,8 +646,8 @@ private:
 // Converter from LLVM global variables to ICE. The entry point is the
 // convertGlobalsToIce method.
 //
-// Note: this currently assumes that the given IR was verified to be
-// valid PNaCl bitcode. Othewise, the behavior is undefined.
+// Note: this currently assumes that the given IR was verified to be valid
+// PNaCl bitcode. Otherwise, the behavior is undefined.
 class LLVM2ICEGlobalsConverter : public LLVM2ICEConverter {
   LLVM2ICEGlobalsConverter() = delete;
   LLVM2ICEGlobalsConverter(const LLVM2ICEGlobalsConverter &) = delete;
@@ -661,15 +658,14 @@ public:
   explicit LLVM2ICEGlobalsConverter(Ice::Converter &Converter)
       : LLVM2ICEConverter(Converter) {}
 
-  /// Converts global variables, and their initializers into ICE
-  /// global variable declarations, for module Mod. Returns the set of
-  /// converted declarations.
+  /// Converts global variables, and their initializers into ICE global variable
+  /// declarations, for module Mod. Returns the set of converted declarations.
   std::unique_ptr<Ice::VariableDeclarationList>
   convertGlobalsToIce(Module *Mod);
 
 private:
-  // Adds the Initializer to the list of initializers for the Global
-  // variable declaraation.
+  // Adds the Initializer to the list of initializers for the Global variable
+  // declaration.
   void addGlobalInitializer(Ice::VariableDeclaration &Global,
                             const Constant *Initializer) {
     const bool HasOffset = false;
@@ -678,15 +674,14 @@ private:
   }
 
   // Adds Initializer to the list of initializers for Global variable
-  // declaration.  HasOffset is true only if Initializer is a
-  // relocation initializer and Offset should be added to the
-  // relocation.
+  // declaration. HasOffset is true only if Initializer is a relocation
+  // initializer and Offset should be added to the relocation.
   void addGlobalInitializer(Ice::VariableDeclaration &Global,
                             const Constant *Initializer, bool HasOffset,
                             Ice::RelocOffsetT Offset);
 
-  // Converts the given constant C to the corresponding integer
-  // literal it contains.
+  // Converts the given constant C to the corresponding integer literal it
+  // contains.
   Ice::RelocOffsetT getIntegerLiteralConstant(const Value *C) {
     const auto CI = dyn_cast<ConstantInt>(C);
     if (CI && CI->getType()->isIntegerTy(32))

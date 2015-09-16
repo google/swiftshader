@@ -8,9 +8,8 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares the CfgNode class, which represents a single
-/// basic block as its instruction list, in-edge list, and out-edge
-/// list.
+/// This file declares the CfgNode class, which represents a single basic block
+/// as its instruction list, in-edge list, and out-edge list.
 ///
 //===----------------------------------------------------------------------===//
 
@@ -50,8 +49,8 @@ public:
   void setLoopNestDepth(SizeT NewDepth) { LoopNestDepth = NewDepth; }
   SizeT getLoopNestDepth() const { return LoopNestDepth; }
 
-  /// The HasReturn flag indicates that this node contains a return
-  /// instruction and therefore needs an epilog.
+  /// The HasReturn flag indicates that this node contains a return instruction
+  /// and therefore needs an epilog.
   void setHasReturn() { HasReturn = true; }
   bool getHasReturn() const { return HasReturn; }
 
@@ -73,18 +72,17 @@ public:
   PhiList &getPhis() { return Phis; }
   void appendInst(Inst *Inst);
   void renumberInstructions();
-  /// Rough and generally conservative estimate of the number of
-  /// instructions in the block.  It is updated when an instruction is
-  /// added, but not when deleted.  It is recomputed during
-  /// renumberInstructions().
+  /// Rough and generally conservative estimate of the number of instructions in
+  /// the block. It is updated when an instruction is added, but not when
+  /// deleted. It is recomputed during renumberInstructions().
   InstNumberT getInstCountEstimate() const { return InstCountEstimate; }
   /// @}
 
   /// \name Manage predecessors and successors.
   /// @{
 
-  /// Add a predecessor edge to the InEdges list for each of this
-  /// node's successors.
+  /// Add a predecessor edge to the InEdges list for each of this node's
+  /// successors.
   void computePredecessors();
   void computeSuccessors();
   CfgNode *splitIncomingEdge(CfgNode *Pred, SizeT InEdgeIndex);

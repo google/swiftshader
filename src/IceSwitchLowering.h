@@ -75,8 +75,8 @@ private:
   bool tryAppend(const CaseCluster &New);
 };
 
-/// Store the jump table data so that it can be emitted later in the correct
-/// ELF section once the offsets from the start of the function are known.
+/// Store the jump table data so that it can be emitted later in the correct ELF
+/// section once the offsets from the start of the function are known.
 class JumpTableData {
   JumpTableData() = delete;
   JumpTableData &operator=(const JumpTableData &) = delete;

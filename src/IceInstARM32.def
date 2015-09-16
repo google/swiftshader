@@ -17,20 +17,20 @@
 // NOTE: PC and SP are not considered isInt, to avoid register allocating.
 //
 // For the NaCl sandbox we also need to r9 for TLS, so just reserve always.
-// TODO(jvoung): Allow r9 to be isInt when sandboxing is turned off
-// (native mode).
+// TODO(jvoung): Allow r9 to be isInt when sandboxing is turned off (native
+// mode).
 //
 // IP is not considered isInt to reserve it as a scratch register. A scratch
 // register is useful for expanding instructions post-register allocation.
 //
-// LR is not considered isInt to avoid being allocated as a register.
-// It is technically preserved, but save/restore is handled separately,
-// based on whether or not the function MaybeLeafFunc.
+// LR is not considered isInt to avoid being allocated as a register. It is
+// technically preserved, but save/restore is handled separately, based on
+// whether or not the function MaybeLeafFunc.
 
 // ALIASESn is a family of macros that we use to define register aliasing in
 // ARM32. n indicates how many aliases are being provided to the macro. It
-// assumes the parameters are register names declared in a namespace/class named
-// RegARM32.
+// assumes the parameters are register names declared in a namespace/class
+// named RegARM32.
 #define ALIASES1(r0)                                                           \
     {RegARM32::r0}
 #define ALIASES2(r0, r1)                                                       \
@@ -152,12 +152,12 @@
 //#define X(val, encode, name, scratch, preserved, stackptr, frameptr,
 //          isInt, isFP32,isFP64, isVec128, aliases_init)
 
-// D registers 0-7 are scratch, 8-15 are preserved, and 16-31
-// are also scratch (if supported by the D32 feature vs D16).
-// D registers are defined in reverse order so that, during register allocation,
-// Subzero will prefer higher D registers. In processors supporting the D32
-// feature this will effectively cause double allocation to bias towards
-// allocating "high" D registers, which do not alias any S registers.
+// D registers 0-7 are scratch, 8-15 are preserved, and 16-31 are also scratch
+// (if supported by the D32 feature vs D16). D registers are defined in reverse
+// order so that, during register allocation, Subzero will prefer higher D
+// registers. In processors supporting the D32 feature this will effectively
+// cause double allocation to bias towards allocating "high" D registers, which
+// do not alias any S registers.
 //
 // Regenerate this with the following python script:
 // def print_dregs():
@@ -251,9 +251,9 @@
 //#define X(val, encode, name, scratch, preserved, stackptr, frameptr,
 //          isInt, isFP32, isFP64, isVec128, aliases_init)
 
-// Q registers 0-3 are scratch, 4-7 are preserved, and 8-15
-// are also scratch (if supported by the D32 feature).
-// Q registers are defined in reverse order for the same reason as D registers.
+// Q registers 0-3 are scratch, 4-7 are preserved, and 8-15 are also scratch
+// (if supported by the D32 feature). Q registers are defined in reverse order
+// for the same reason as D registers.
 //
 // Regenerate this with the following python script:
 // def print_qregs():
@@ -320,10 +320,10 @@
 //          isInt, isFP32, isFP64, isVec128, alias_init)
 #undef ALIASES
 
-// We also provide a combined table, so that there is a namespace where
-// all of the registers are considered and have distinct numberings.
-// This is in contrast to the above, where the "encode" is based on how
-// the register numbers will be encoded in binaries and values can overlap.
+// We also provide a combined table, so that there is a namespace where all of
+// the registers are considered and have distinct numberings. This is in
+// contrast to the above, where the "encode" is based on how the register
+// numbers will be encoded in binaries and values can overlap.
 #define REGARM32_TABLE                                                         \
   /* val, encode, name, scratch, preserved, stackptr, frameptr, isInt,         \
      isFP32, isFP64, isVec128, alias_init */                                   \
@@ -347,8 +347,8 @@
 // define X(val, init)
 
 // Load/Store instruction width suffixes and FP/Vector element size suffixes
-// the # of offset bits allowed as part of an addressing mode (for sign or
-// zero extending load/stores).
+// the # of offset bits allowed as part of an addressing mode (for sign or zero
+// extending load/stores).
 #define ICETYPEARM32_TABLE                                                     \
   /* tag,          element type, int_width, vec_width, addr bits sext, zext */ \
   X(IceType_void,  IceType_void, "" , ""    , 0 , 0)                           \
@@ -378,9 +378,9 @@
   X(RRX, "rrx")
 //#define X(tag, emit)
 
-// Attributes for the condition code 4-bit encoding (that is independent
-// of the APSR's NZCV fields). For example, EQ is 0, but corresponds to
-// Z = 1, and NE is 1, but corresponds to Z = 0.
+// Attributes for the condition code 4-bit encoding (that is independent of the
+// APSR's NZCV fields). For example, EQ is 0, but corresponds to Z = 1, and NE
+// is 1, but corresponds to Z = 0.
 #define ICEINSTARM32COND_TABLE                                                 \
   /* enum value, encoding, opposite, emit */                                   \
   X(EQ, 0 , NE, "eq")   /* equal */                                            \

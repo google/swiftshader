@@ -8,9 +8,8 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file implements the notion of function declarations, global
-/// variable declarations, and the corresponding variable initializers
-/// in Subzero.
+/// This file implements the notion of function declarations, global variable
+/// declarations, and the corresponding variable initializers in Subzero.
 ///
 //===----------------------------------------------------------------------===//
 
@@ -152,9 +151,8 @@ void VariableDeclaration::DataInitializer::dump(GlobalContext *,
     return;
   dumpType(Stream);
   Stream << " c\"";
-  // Code taken from PrintEscapedString() in AsmWriter.cpp.  Keep
-  // the strings in the same format as the .ll file for practical
-  // diffing.
+  // Code taken from PrintEscapedString() in AsmWriter.cpp. Keep the strings in
+  // the same format as the .ll file for practical diffing.
   for (uint8_t C : Contents) {
     if (isprint(C) && C != '\\' && C != '"')
       Stream << C;

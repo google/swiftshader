@@ -8,8 +8,8 @@
 //===----------------------------------------------------------------------===//
 //
 /// \file
-/// This file implements the InstMips32 and OperandMips32 classes,
-/// primarily the constructors and the dump()/emit() methods.
+/// This file implements the InstMips32 and OperandMips32 classes, primarily the
+/// constructors and the dump()/emit() methods.
 ///
 //===----------------------------------------------------------------------===//
 

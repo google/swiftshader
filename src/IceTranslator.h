@@ -8,8 +8,8 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares the general driver class for translating ICE to
-/// machine code.
+/// This file declares the general driver class for translating ICE to machine
+/// code.
 ///
 //===----------------------------------------------------------------------===//
 
@@ -30,7 +30,7 @@ class Cfg;
 class VariableDeclaration;
 class GlobalContext;
 
-/// Base class for translating ICE to machine code.  Derived classes convert
+/// Base class for translating ICE to machine code. Derived classes convert
 /// other intermediate representations down to ICE, and then call the
 /// appropriate (inherited) methods to convert ICE into machine instructions.
 class Translator {
@@ -48,21 +48,21 @@ public:
 
   const ClFlags &getFlags() const { return Ctx->getFlags(); }
 
-  /// Translates the constructed ICE function Fcn to machine code.
-  /// Takes ownership of Func.
+  /// Translates the constructed ICE function Fcn to machine code. Takes
+  /// ownership of Func.
   void translateFcn(std::unique_ptr<Cfg> Func);
 
-  /// Lowers the given list of global addresses to target. Generates
-  /// list of corresponding variable declarations.
+  /// Lowers the given list of global addresses to target. Generates list of
+  /// corresponding variable declarations.
   void
   lowerGlobals(std::unique_ptr<VariableDeclarationList> VariableDeclarations);
 
   /// Creates a name using the given prefix and corresponding index.
   std::string createUnnamedName(const IceString &Prefix, SizeT Index);
 
-  /// Reports if there is a (potential) conflict between Name, and using
-  /// Prefix to name unnamed names. Errors are put on Ostream.
-  /// Returns true if there isn't a potential conflict.
+  /// Reports if there is a (potential) conflict between Name, and using Prefix
+  /// to name unnamed names. Errors are put on Ostream. Returns true if there
+  /// isn't a potential conflict.
   bool checkIfUnnamedNameSafe(const IceString &Name, const char *Kind,
                               const IceString &Prefix);
 

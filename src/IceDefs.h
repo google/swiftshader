@@ -9,7 +9,7 @@
 ///
 /// \file
 /// This file declares various useful types and classes that have widespread use
-/// across Subzero.  Every Subzero source file is expected to include IceDefs.h.
+/// across Subzero. Every Subzero source file is expected to include IceDefs.h.
 ///
 //===----------------------------------------------------------------------===//
 
@@ -99,8 +99,8 @@ inline bool operator!=(const CfgLocalAllocator<T> &,
 }
 
 // makeUnique should be used when memory is expected to be allocated from the
-// heap (as opposed to allocated from some Allocator.) It is intended to be used
-// instead of new.
+// heap (as opposed to allocated from some Allocator.) It is intended to be
+// used instead of new.
 //
 // The expected usage is as follows
 //
@@ -140,8 +140,8 @@ static std::unique_ptr<T> makeUnique(Args &&... TheArgs) {
 
 using IceString = std::string;
 using InstList = llvm::ilist<Inst>;
-// Ideally PhiList would be llvm::ilist<InstPhi>, and similar for
-// AssignList, but this runs into issues with SFINAE.
+// Ideally PhiList would be llvm::ilist<InstPhi>, and similar for AssignList,
+// but this runs into issues with SFINAE.
 using PhiList = InstList;
 using AssignList = InstList;
 
@@ -155,18 +155,18 @@ using ConstantList = std::vector<Constant *>;
 using FunctionDeclarationList = std::vector<FunctionDeclaration *>;
 using VariableDeclarationList = std::vector<VariableDeclaration *>;
 
-/// SizeT is for holding small-ish limits like number of source
-/// operands in an instruction.  It is used instead of size_t (which
-/// may be 64-bits wide) when we want to save space.
+/// SizeT is for holding small-ish limits like number of source operands in an
+/// instruction. It is used instead of size_t (which may be 64-bits wide) when
+/// we want to save space.
 using SizeT = uint32_t;
 
-/// InstNumberT is for holding an instruction number.  Instruction
-/// numbers are used for representing Variable live ranges.
+/// InstNumberT is for holding an instruction number. Instruction numbers are
+/// used for representing Variable live ranges.
 using InstNumberT = int32_t;
 
-/// A LiveBeginEndMapEntry maps a Variable::Number value to an
-/// Inst::Number value, giving the instruction number that begins or
-/// ends a variable's live range.
+/// A LiveBeginEndMapEntry maps a Variable::Number value to an Inst::Number
+/// value, giving the instruction number that begins or ends a variable's live
+/// range.
 using LiveBeginEndMapEntry = std::pair<SizeT, InstNumberT>;
 using LiveBeginEndMap =
     std::vector<LiveBeginEndMapEntry, CfgLocalAllocator<LiveBeginEndMapEntry>>;
@@ -175,9 +175,8 @@ using LivenessBV = llvm::BitVector;
 using TimerStackIdT = uint32_t;
 using TimerIdT = uint32_t;
 
-/// Use alignas(MaxCacheLineSize) to isolate variables/fields that
-/// might be contended while multithreading.  Assumes the maximum cache
-/// line size is 64.
+/// Use alignas(MaxCacheLineSize) to isolate variables/fields that might be
+/// contended while multithreading. Assumes the maximum cache line size is 64.
 enum { MaxCacheLineSize = 64 };
 // Use ICE_CACHELINE_BOUNDARY to force the next field in a declaration
 // list to be aligned to the next cache line.
@@ -191,15 +190,15 @@ using RelocOffsetT = int32_t;
 enum { RelocAddrSize = 4 };
 
 enum LivenessMode {
-  /// Basic version of live-range-end calculation.  Marks the last uses
-  /// of variables based on dataflow analysis.  Records the set of
-  /// live-in and live-out variables for each block.  Identifies and
-  /// deletes dead instructions (primarily stores).
+  /// Basic version of live-range-end calculation. Marks the last uses of
+  /// variables based on dataflow analysis. Records the set of live-in and
+  /// live-out variables for each block. Identifies and deletes dead
+  /// instructions (primarily stores).
   Liveness_Basic,
 
-  /// In addition to Liveness_Basic, also calculate the complete
-  /// live range for each variable in a form suitable for interference
-  /// calculation and register allocation.
+  /// In addition to Liveness_Basic, also calculate the complete live range for
+  /// each variable in a form suitable for interference calculation and register
+  /// allocation.
   Liveness_Intervals
 };
 
@@ -244,10 +243,10 @@ using GlobalLockType = std::mutex;
 
 enum ErrorCodes { EC_None = 0, EC_Args, EC_Bitcode, EC_Translation };
 
-/// Wrapper around std::error_code for allowing multiple errors to be
-/// folded into one.  The current implementation keeps track of the
-/// first error, which is likely to be the most useful one, and this
-/// could be extended to e.g. collect a vector of errors.
+/// Wrapper around std::error_code for allowing multiple errors to be folded
+/// into one. The current implementation keeps track of the first error, which
+/// is likely to be the most useful one, and this could be extended to e.g.
+/// collect a vector of errors.
 class ErrorCode : public std::error_code {
   ErrorCode(const ErrorCode &) = delete;
   ErrorCode &operator=(const ErrorCode &) = delete;

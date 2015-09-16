@@ -8,9 +8,9 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares the InstMIPS32 and OperandMIPS32 classes and
-/// their subclasses.  This represents the machine instructions and
-/// operands used for MIPS32 code selection.
+/// This file declares the InstMIPS32 and OperandMIPS32 classes and their
+/// subclasses. This represents the machine instructions and operands used for
+/// MIPS32 code selection.
 ///
 //===----------------------------------------------------------------------===//
 
@@ -47,13 +47,13 @@ protected:
   }
 };
 
-/// Ret pseudo-instruction.  This is actually a "jr" instruction with
-/// an "ra" register operand, but epilogue lowering will search for a Ret
-/// instead of a generic "jr". This instruction also takes a Source
-/// operand (for non-void returning functions) for liveness analysis, though
-/// a FakeUse before the ret would do just as well.
-/// TODO(reed kotler): This needs was take from the ARM port and needs to be
-/// scrubbed in the future.
+/// Ret pseudo-instruction. This is actually a "jr" instruction with an "ra"
+/// register operand, but epilogue lowering will search for a Ret instead of a
+/// generic "jr". This instruction also takes a Source operand (for non-void
+/// returning functions) for liveness analysis, though a FakeUse before the ret
+/// would do just as well.
+// TODO(reed kotler): This needs was take from the ARM port and needs to be
+// scrubbed in the future.
 class InstMIPS32Ret : public InstMIPS32 {
 
   InstMIPS32Ret() = delete;

@@ -146,9 +146,8 @@ public:
   getOppositeCondition(typename Traits::Cond::BrCond Cond);
   void dump(const Cfg *Func) const override;
 
-  // Shared emit routines for common forms of instructions.
-  // See the definition of emitTwoAddress() for a description of
-  // ShiftHack.
+  // Shared emit routines for common forms of instructions. See the definition
+  // of emitTwoAddress() for a description of ShiftHack.
   static void emitTwoAddress(const char *Opcode, const Inst *Inst,
                              const Cfg *Func, bool ShiftHack = false);
 
@@ -165,16 +164,15 @@ protected:
   static bool isClassof(const Inst *Inst, InstKindX86 MyKind) {
     return Inst->getKind() == static_cast<InstKind>(MyKind);
   }
-  // Most instructions that operate on vector arguments require vector
-  // memory operands to be fully aligned (16-byte alignment for PNaCl
-  // vector types).  The stack frame layout and call ABI ensure proper
-  // alignment for stack operands, but memory operands (originating
-  // from load/store bitcode instructions) only have element-size
-  // alignment guarantees.  This function validates that none of the
-  // operands is a memory operand of vector type, calling
-  // report_fatal_error() if one is found.  This function should be
-  // called during emission, and maybe also in the ctor (as long as
-  // that fits the lowering style).
+  // Most instructions that operate on vector arguments require vector memory
+  // operands to be fully aligned (16-byte alignment for PNaCl vector types).
+  // The stack frame layout and call ABI ensure proper alignment for stack
+  // operands, but memory operands (originating from load/store bitcode
+  // instructions) only have element-size alignment guarantees. This function
+  // validates that none of the operands is a memory operand of vector type,
+  // calling report_fatal_error() if one is found. This function should be
+  // called during emission, and maybe also in the ctor (as long as that fits
+  // the lowering style).
   void validateVectorAddrMode() const {
     if (this->getDest())
       this->validateVectorAddrModeOpnd(this->getDest());
@@ -193,8 +191,8 @@ private:
 };
 
 /// InstX86FakeRMW represents a non-atomic read-modify-write operation on a
-/// memory location.  An InstX86FakeRMW is a "fake" instruction in that it
-/// still needs to be lowered to some actual RMW instruction.
+/// memory location. An InstX86FakeRMW is a "fake" instruction in that it still
+/// needs to be lowered to some actual RMW instruction.
 ///
 /// If A is some memory address, D is some data value to apply, and OP is an
 /// arithmetic operator, the instruction operates as: (*A) = (*A) OP D
@@ -228,17 +226,16 @@ private:
                  InstArithmetic::OpKind Op, Variable *Beacon);
 };
 
-/// InstX86Label represents an intra-block label that is the target
-/// of an intra-block branch.  The offset between the label and the
-/// branch must be fit into one byte (considered "near").  These are
-/// used for lowering i1 calculations, Select instructions, and 64-bit
-/// compares on a 32-bit architecture, without basic block splitting.
-/// Basic block splitting is not so desirable for several reasons, one
-/// of which is the impact on decisions based on whether a variable's
-/// live range spans multiple basic blocks.
+/// InstX86Label represents an intra-block label that is the target of an
+/// intra-block branch. The offset between the label and the branch must be fit
+/// into one byte (considered "near"). These are used for lowering i1
+/// calculations, Select instructions, and 64-bit compares on a 32-bit
+/// architecture, without basic block splitting. Basic block splitting is not so
+/// desirable for several reasons, one of which is the impact on decisions based
+/// on whether a variable's live range spans multiple basic blocks.
 ///
-/// Intra-block control flow must be used with caution.  Consider the
-/// sequence for "c = (a >= b ? x : y)".
+/// Intra-block control flow must be used with caution. Consider the sequence
+/// for "c = (a >= b ? x : y)".
 ///     cmp a, b
 ///     br lt, L1
 ///     mov c, x
@@ -247,11 +244,10 @@ private:
 ///     mov c, y
 ///   L2:
 ///
-/// Labels L1 and L2 are intra-block labels.  Without knowledge of the
-/// intra-block control flow, liveness analysis will determine the "mov
-/// c, x" instruction to be dead.  One way to prevent this is to insert
-/// a "FakeUse(c)" instruction anywhere between the two "mov c, ..."
-/// instructions, e.g.:
+/// Labels L1 and L2 are intra-block labels. Without knowledge of the
+/// intra-block control flow, liveness analysis will determine the "mov c, x"
+/// instruction to be dead. One way to prevent this is to insert a "FakeUse(c)"
+/// instruction anywhere between the two "mov c, ..." instructions, e.g.:
 ///
 ///     cmp a, b
 ///     br lt, L1
@@ -262,10 +258,9 @@ private:
 ///     mov c, y
 ///   L2:
 ///
-/// The down-side is that "mov c, x" can never be dead-code eliminated
-/// even if there are no uses of c.  As unlikely as this situation is,
-/// it may be prevented by running dead code elimination before
-/// lowering.
+/// The down-side is that "mov c, x" can never be dead-code eliminated even if
+/// there are no uses of c. As unlikely as this situation is, it may be
+/// prevented by running dead code elimination before lowering.
 template <class Machine>
 class InstX86Label final : public InstX86Base<Machine> {
   InstX86Label() = delete;
@@ -319,9 +314,9 @@ public:
         InstX86Br(Func, NoCondTarget, Target, NoLabel,
                   InstX86Base<Machine>::Traits::Cond::Br_None, Kind);
   }
-  /// Create a non-terminator conditional branch to a node, with a
-  /// fallthrough to the next instruction in the current node.  This is
-  /// used for switch lowering.
+  /// Create a non-terminator conditional branch to a node, with a fallthrough
+  /// to the next instruction in the current node. This is used for switch
+  /// lowering.
   static InstX86Br *
   create(Cfg *Func, CfgNode *Target,
          typename InstX86Base<Machine>::Traits::Cond::BrCond Condition,
@@ -381,9 +376,9 @@ private:
   const Mode Kind;
 };
 
-/// Jump to a target outside this function, such as tailcall, nacljump,
-/// naclret, unreachable.  This is different from a Branch instruction
-/// in that there is no intra-function control flow to represent.
+/// Jump to a target outside this function, such as tailcall, nacljump, naclret,
+/// unreachable. This is different from a Branch instruction in that there is no
+/// intra-function control flow to represent.
 template <class Machine> class InstX86Jmp final : public InstX86Base<Machine> {
   InstX86Jmp() = delete;
   InstX86Jmp(const InstX86Jmp &) = delete;
@@ -405,8 +400,8 @@ private:
   InstX86Jmp(Cfg *Func, Operand *Target);
 };
 
-/// AdjustStack instruction - subtracts esp by the given amount and
-/// updates the stack offset during code emission.
+/// AdjustStack instruction - subtracts esp by the given amount and updates the
+/// stack offset during code emission.
 template <class Machine>
 class InstX86AdjustStack final : public InstX86Base<Machine> {
   InstX86AdjustStack() = delete;
@@ -431,7 +426,7 @@ private:
   SizeT Amount;
 };
 
-/// Call instruction.  Arguments should have already been pushed.
+/// Call instruction. Arguments should have already been pushed.
 template <class Machine> class InstX86Call final : public InstX86Base<Machine> {
   InstX86Call() = delete;
   InstX86Call(const InstX86Call &) = delete;
@@ -514,8 +509,8 @@ private:
       Emitter;
 };
 
-/// Emit a two-operand (GPR) instruction, where the dest operand is a
-/// Variable that's guaranteed to be a register.
+/// Emit a two-operand (GPR) instruction, where the dest operand is a Variable
+/// that's guaranteed to be a register.
 template <class Machine, bool VarCanBeByte = true, bool SrcCanBeByte = true>
 void emitIASRegOpTyGPR(
     const Cfg *Func, Type Ty, const Variable *Dst, const Operand *Src,
@@ -540,9 +535,9 @@ public:
     Type SrcTy = this->getSrc(0)->getType();
     Type DestTy = this->getDest()->getType();
     Str << "\t" << Opcode << this->getWidthString(SrcTy);
-    // Movsx and movzx need both the source and dest type width letter
-    // to define the operation.  The other unary operations have the
-    // same source and dest type and as a result need only one letter.
+    // Movsx and movzx need both the source and dest type width letter to
+    // define the operation. The other unary operations have the same source
+    // and dest type and as a result need only one letter.
     if (SrcTy != DestTy)
       Str << this->getWidthString(DestTy);
     Str << "\t";
@@ -1181,8 +1176,8 @@ private:
                                                                Source) {}
 };
 
-/// Move packed - copy 128 bit values between XMM registers, or mem128
-/// and XMM registers.
+/// Move packed - copy 128 bit values between XMM registers, or mem128 and XMM
+/// registers.
 template <class Machine>
 class InstX86Movp
     : public InstX86BaseMovlike<Machine, InstX86Base<Machine>::Movp> {
@@ -1865,13 +1860,12 @@ private:
             Func, Dest, Source) {}
 };
 
-/// movss is only a binary operation when the source and dest
-/// operands are both registers (the high bits of dest are left untouched).
-/// In other cases, it behaves like a copy (mov-like) operation (and the
-/// high bits of dest are cleared).
-/// InstX86Movss will assert that both its source and dest operands are
-/// registers, so the lowering code should use _mov instead of _movss
-/// in cases where a copy operation is intended.
+/// movss is only a binary operation when the source and dest operands are both
+/// registers (the high bits of dest are left untouched). In other cases, it
+/// behaves like a copy (mov-like) operation (and the high bits of dest are
+/// cleared). InstX86Movss will assert that both its source and dest operands
+/// are registers, so the lowering code should use _mov instead of _movss in
+/// cases where a copy operation is intended.
 template <class Machine>
 class InstX86MovssRegs
     : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::MovssRegs,
@@ -2072,8 +2066,8 @@ protected:
                       typename InstX86Base<Machine>::InstKindX86 Kind,
                       SizeT Maxsrcs, Variable *Dest, bool Locked)
       : InstX86Base<Machine>(Func, Kind, Maxsrcs, Dest), Locked(Locked) {
-    // Assume that such instructions are used for Atomics and be careful
-    // with optimizations.
+    // Assume that such instructions are used for Atomics and be careful with
+    // optimizations.
     this->HasSideEffects = Locked;
   }
 };
@@ -2174,8 +2168,7 @@ private:
   typename InstX86Base<Machine>::Traits::Cond::BrCond Condition;
 };
 
-/// Cmpps instruction - compare packed singled-precision floating point
-/// values
+/// Cmpps instruction - compare packed singled-precision floating point values
 template <class Machine>
 class InstX86Cmpps final : public InstX86Base<Machine> {
   InstX86Cmpps() = delete;
@@ -2204,10 +2197,10 @@ private:
 };
 
 /// Cmpxchg instruction - cmpxchg <dest>, <desired> will compare if <dest>
-/// equals eax. If so, the ZF is set and <desired> is stored in <dest>.
-/// If not, ZF is cleared and <dest> is copied to eax (or subregister).
-/// <dest> can be a register or memory, while <desired> must be a register.
-/// It is the user's responsiblity to mark eax with a FakeDef.
+/// equals eax. If so, the ZF is set and <desired> is stored in <dest>. If not,
+/// ZF is cleared and <dest> is copied to eax (or subregister). <dest> can be a
+/// register or memory, while <desired> must be a register. It is the user's
+/// responsibility to mark eax with a FakeDef.
 template <class Machine>
 class InstX86Cmpxchg final : public InstX86BaseLockable<Machine> {
   InstX86Cmpxchg() = delete;
@@ -2232,12 +2225,11 @@ private:
                  Variable *Desired, bool Locked);
 };
 
-/// Cmpxchg8b instruction - cmpxchg8b <m64> will compare if <m64>
-/// equals edx:eax. If so, the ZF is set and ecx:ebx is stored in <m64>.
-/// If not, ZF is cleared and <m64> is copied to edx:eax.
-/// The caller is responsible for inserting FakeDefs to mark edx
-/// and eax as modified.
-/// <m64> must be a memory operand.
+/// Cmpxchg8b instruction - cmpxchg8b <m64> will compare if <m64> equals
+/// edx:eax. If so, the ZF is set and ecx:ebx is stored in <m64>. If not, ZF is
+/// cleared and <m64> is copied to edx:eax. The caller is responsible for
+/// inserting FakeDefs to mark edx and eax as modified. <m64> must be a memory
+/// operand.
 template <class Machine>
 class InstX86Cmpxchg8b final : public InstX86BaseLockable<Machine> {
   InstX86Cmpxchg8b() = delete;
@@ -2267,10 +2259,10 @@ private:
                    bool Locked);
 };
 
-/// Cvt instruction - wrapper for cvtsX2sY where X and Y are in {s,d,i}
-/// as appropriate.  s=float, d=double, i=int.  X and Y are determined
-/// from dest/src types.  Sign and zero extension on the integer
-/// operand needs to be done separately.
+/// Cvt instruction - wrapper for cvtsX2sY where X and Y are in {s,d,i} as
+/// appropriate.  s=float, d=double, i=int. X and Y are determined from dest/src
+/// types. Sign and zero extension on the integer operand needs to be done
+/// separately.
 template <class Machine> class InstX86Cvt final : public InstX86Base<Machine> {
   InstX86Cvt() = delete;
   InstX86Cvt(const InstX86Cvt &) = delete;
@@ -2406,9 +2398,8 @@ private:
 };
 
 /// This is essentially a "mov" instruction with an
-/// InstX86Base<Machine>::Traits::X86OperandMem
-/// operand instead of Variable as the destination.  It's important
-/// for liveness that there is no Dest operand.
+/// InstX86Base<Machine>::Traits::X86OperandMem operand instead of Variable as
+/// the destination. It's important for liveness that there is no Dest operand.
 template <class Machine>
 class InstX86Store final : public InstX86Base<Machine> {
   InstX86Store() = delete;
@@ -2434,10 +2425,9 @@ private:
 };
 
 /// This is essentially a vector "mov" instruction with an typename
-/// InstX86Base<Machine>::Traits::X86OperandMem
-/// operand instead of Variable as the destination.  It's important
-/// for liveness that there is no Dest operand. The source must be an
-/// Xmm register, since Dest is mem.
+/// InstX86Base<Machine>::Traits::X86OperandMem operand instead of Variable as
+/// the destination. It's important for liveness that there is no Dest operand.
+/// The source must be an Xmm register, since Dest is mem.
 template <class Machine>
 class InstX86StoreP final : public InstX86Base<Machine> {
   InstX86StoreP() = delete;
@@ -2596,10 +2586,10 @@ private:
   InstX86Push(Cfg *Func, Variable *Source);
 };
 
-/// Ret instruction.  Currently only supports the "ret" version that
-/// does not pop arguments.  This instruction takes a Source operand
-/// (for non-void returning functions) for liveness analysis, though
-/// a FakeUse before the ret would do just as well.
+/// Ret instruction. Currently only supports the "ret" version that does not pop
+/// arguments. This instruction takes a Source operand (for non-void returning
+/// functions) for liveness analysis, though a FakeUse before the ret would do
+/// just as well.
 template <class Machine> class InstX86Ret final : public InstX86Base<Machine> {
   InstX86Ret() = delete;
   InstX86Ret(const InstX86Ret &) = delete;
@@ -2647,10 +2637,10 @@ private:
   const typename InstX86Base<Machine>::Traits::Cond::BrCond Condition;
 };
 
-/// Exchanging Add instruction.  Exchanges the first operand (destination
-/// operand) with the second operand (source operand), then loads the sum
-/// of the two values into the destination operand. The destination may be
-/// a register or memory, while the source must be a register.
+/// Exchanging Add instruction. Exchanges the first operand (destination
+/// operand) with the second operand (source operand), then loads the sum of the
+/// two values into the destination operand. The destination may be a register
+/// or memory, while the source must be a register.
 ///
 /// Both the dest and source are updated. The caller should then insert a
 /// FakeDef to reflect the second udpate.
@@ -2677,12 +2667,11 @@ private:
   InstX86Xadd(Cfg *Func, Operand *Dest, Variable *Source, bool Locked);
 };
 
-/// Exchange instruction.  Exchanges the first operand (destination
-/// operand) with the second operand (source operand). At least one of
-/// the operands must be a register (and the other can be reg or mem).
-/// Both the Dest and Source are updated. If there is a memory operand,
-/// then the instruction is automatically "locked" without the need for
-/// a lock prefix.
+/// Exchange instruction. Exchanges the first operand (destination operand) with
+/// the second operand (source operand). At least one of the operands must be a
+/// register (and the other can be reg or mem). Both the Dest and Source are
+/// updated. If there is a memory operand, then the instruction is automatically
+/// "locked" without the need for a lock prefix.
 template <class Machine> class InstX86Xchg final : public InstX86Base<Machine> {
   InstX86Xchg() = delete;
   InstX86Xchg(const InstX86Xchg &) = delete;

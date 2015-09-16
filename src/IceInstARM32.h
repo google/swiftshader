@@ -8,9 +8,9 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares the InstARM32 and OperandARM32 classes and
-/// their subclasses.  This represents the machine instructions and
-/// operands used for ARM32 code selection.
+/// This file declares the InstARM32 and OperandARM32 classes and their
+/// subclasses. This represents the machine instructions and operands used for
+/// ARM32 code selection.
 ///
 //===----------------------------------------------------------------------===//
 
@@ -27,7 +27,7 @@ namespace Ice {
 
 class TargetARM32;
 
-/// OperandARM32 extends the Operand hierarchy.  Its subclasses are
+/// OperandARM32 extends the Operand hierarchy. Its subclasses are
 /// OperandARM32Mem and OperandARM32Flex.
 class OperandARM32 : public Operand {
   OperandARM32() = delete;
@@ -87,17 +87,17 @@ public:
   /// NOTE: The Variable-typed operands have to be registers.
   ///
   /// (1) Reg + Imm. The Immediate actually has a limited number of bits
-  /// for encoding, so check canHoldOffset first. It cannot handle
-  /// general Constant operands like ConstantRelocatable, since a relocatable
-  /// can potentially take up too many bits.
+  /// for encoding, so check canHoldOffset first. It cannot handle general
+  /// Constant operands like ConstantRelocatable, since a relocatable can
+  /// potentially take up too many bits.
   static OperandARM32Mem *create(Cfg *Func, Type Ty, Variable *Base,
                                  ConstantInteger32 *ImmOffset,
                                  AddrMode Mode = Offset) {
     return new (Func->allocate<OperandARM32Mem>())
         OperandARM32Mem(Func, Ty, Base, ImmOffset, Mode);
   }
-  /// (2) Reg +/- Reg with an optional shift of some kind and amount.
-  /// Note that this mode is disallowed in the NaCl sandbox.
+  /// (2) Reg +/- Reg with an optional shift of some kind and amount. Note that
+  /// this mode is disallowed in the NaCl sandbox.
   static OperandARM32Mem *create(Cfg *Func, Type Ty, Variable *Base,
                                  Variable *Index, ShiftKind ShiftOp = kNoShift,
                                  uint16_t ShiftAmt = 0,
@@ -130,10 +130,10 @@ public:
     return Operand->getKind() == static_cast<OperandKind>(kMem);
   }
 
-  /// Return true if a load/store instruction for an element of type Ty
-  /// can encode the Offset directly in the immediate field of the 32-bit
-  /// ARM instruction. For some types, if the load is Sign extending, then
-  /// the range is reduced.
+  /// Return true if a load/store instruction for an element of type Ty can
+  /// encode the Offset directly in the immediate field of the 32-bit ARM
+  /// instruction. For some types, if the load is Sign extending, then the range
+  /// is reduced.
   static bool canHoldOffset(Type Ty, bool SignExt, int32_t Offset);
 
 private:
@@ -150,10 +150,9 @@ private:
   AddrMode Mode;
 };
 
-/// OperandARM32Flex represent the "flexible second operand" for
-/// data-processing instructions. It can be a rotatable 8-bit constant, or
-/// a register with an optional shift operand. The shift amount can even be
-/// a third register.
+/// OperandARM32Flex represent the "flexible second operand" for data-processing
+/// instructions. It can be a rotatable 8-bit constant, or a register with an
+/// optional shift operand. The shift amount can even be a third register.
 class OperandARM32Flex : public OperandARM32 {
   OperandARM32Flex() = delete;
   OperandARM32Flex(const OperandARM32Flex &) = delete;
@@ -191,8 +190,8 @@ public:
     return Operand->getKind() == static_cast<OperandKind>(kFlexImm);
   }
 
-  /// Return true if the Immediate can fit in the ARM flexible operand.
-  /// Fills in the out-params RotateAmt and Immed_8 if Immediate fits.
+  /// Return true if the Immediate can fit in the ARM flexible operand. Fills in
+  /// the out-params RotateAmt and Immed_8 if Immediate fits.
   static bool canHoldImm(uint32_t Immediate, uint32_t *RotateAmt,
                          uint32_t *Immed_8);
 
@@ -244,9 +243,9 @@ private:
 
 /// StackVariable represents a Var that isn't assigned a register (stack-only).
 /// It is assigned a stack slot, but the slot's offset may be too large to
-/// represent in the native addressing mode, and so it has a separate
-/// base register from SP/FP, where the offset from that base register is
-/// then in range.
+/// represent in the native addressing mode, and so it has a separate base
+/// register from SP/FP, where the offset from that base register is then in
+/// range.
 class StackVariable final : public Variable {
   StackVariable() = delete;
   StackVariable(const StackVariable &) = delete;
@@ -272,8 +271,8 @@ private:
 };
 
 /// Base class for ARM instructions. While most ARM instructions can be
-/// conditionally executed, a few of them are not predicable (halt,
-/// memory barriers, etc.).
+/// conditionally executed, a few of them are not predicable (halt, memory
+/// barriers, etc.).
 class InstARM32 : public InstTarget {
   InstARM32() = delete;
   InstARM32(const InstARM32 &) = delete;
@@ -525,8 +524,8 @@ private:
   static const char *Opcode;
 };
 
-/// Base class for assignment instructions.
-/// These can be tested for redundancy (and elided if redundant).
+/// Base class for assignment instructions. These can be tested for redundancy
+/// (and elided if redundant).
 template <InstARM32::InstKindARM32 K>
 class InstARM32Movlike : public InstARM32Pred {
   InstARM32Movlike() = delete;
@@ -576,8 +575,8 @@ class InstARM32ThreeAddrGPR : public InstARM32Pred {
   InstARM32ThreeAddrGPR &operator=(const InstARM32ThreeAddrGPR &) = delete;
 
 public:
-  /// Create an ordinary binary-op instruction like add, and sub.
-  /// Dest and Src1 must be registers.
+  /// Create an ordinary binary-op instruction like add, and sub. Dest and Src1
+  /// must be registers.
   static InstARM32ThreeAddrGPR *create(Cfg *Func, Variable *Dest,
                                        Variable *Src0, Operand *Src1,
                                        CondARM32::Cond Predicate,
@@ -618,10 +617,10 @@ private:
   bool SetFlags;
 };
 
-/// Instructions of the form x := y op z, for vector/FP.  We leave these as
+/// Instructions of the form x := y op z, for vector/FP. We leave these as
 /// unconditional: "ARM deprecates the conditional execution of any instruction
 /// encoding provided by the Advanced SIMD Extension that is not also provided
-/// by the Floating-point (VFP) extension".  They do not set flags.
+/// by the Floating-point (VFP) extension". They do not set flags.
 template <InstARM32::InstKindARM32 K>
 class InstARM32ThreeAddrFP : public InstARM32 {
   InstARM32ThreeAddrFP() = delete;
@@ -629,8 +628,8 @@ class InstARM32ThreeAddrFP : public InstARM32 {
   InstARM32ThreeAddrFP &operator=(const InstARM32ThreeAddrFP &) = delete;
 
 public:
-  /// Create a vector/FP binary-op instruction like vadd, and vsub.
-  /// Everything must be a register.
+  /// Create a vector/FP binary-op instruction like vadd, and vsub. Everything
+  /// must be a register.
   static InstARM32ThreeAddrFP *create(Cfg *Func, Variable *Dest, Variable *Src0,
                                       Variable *Src1) {
     return new (Func->allocate<InstARM32ThreeAddrFP>())
@@ -779,24 +778,24 @@ using InstARM32Vdiv = InstARM32ThreeAddrFP<InstARM32::Vdiv>;
 using InstARM32Vmul = InstARM32ThreeAddrFP<InstARM32::Vmul>;
 using InstARM32Vsub = InstARM32ThreeAddrFP<InstARM32::Vsub>;
 using InstARM32Ldr = InstARM32Movlike<InstARM32::Ldr>;
-/// Move instruction (variable <- flex). This is more of a pseudo-inst.
-/// If var is a register, then we use "mov". If var is stack, then we use
-/// "str" to store to the stack.
+/// Move instruction (variable <- flex). This is more of a pseudo-inst. If var
+/// is a register, then we use "mov". If var is stack, then we use "str" to
+/// store to the stack.
 using InstARM32Mov = InstARM32Movlike<InstARM32::Mov>;
 /// Represents various vector mov instruction forms (simple single source,
 /// single dest forms only, not the 2 GPR <-> 1 D reg forms, etc.).
 using InstARM32Vldr = InstARM32Movlike<InstARM32::Vldr>;
-/// MovT leaves the bottom bits alone so dest is also a source.
-/// This helps indicate that a previous MovW setting dest is not dead code.
+/// MovT leaves the bottom bits alone so dest is also a source. This helps
+/// indicate that a previous MovW setting dest is not dead code.
 using InstARM32Movt = InstARM32TwoAddrGPR<InstARM32::Movt>;
 using InstARM32Movw = InstARM32UnaryopGPR<InstARM32::Movw, false>;
 using InstARM32Clz = InstARM32UnaryopGPR<InstARM32::Clz, false>;
 using InstARM32Mvn = InstARM32UnaryopGPR<InstARM32::Mvn, false>;
 using InstARM32Rbit = InstARM32UnaryopGPR<InstARM32::Rbit, false>;
 using InstARM32Rev = InstARM32UnaryopGPR<InstARM32::Rev, false>;
-// Technically, the uxt{b,h} and sxt{b,h} instructions have a rotation
-// operand as well (rotate source by 8, 16, 24 bits prior to extending),
-// but we aren't using that for now, so just model as a Unaryop.
+// Technically, the uxt{b,h} and sxt{b,h} instructions have a rotation operand
+// as well (rotate source by 8, 16, 24 bits prior to extending), but we aren't
+// using that for now, so just model as a Unaryop.
 using InstARM32Sxt = InstARM32UnaryopGPR<InstARM32::Sxt, true>;
 using InstARM32Uxt = InstARM32UnaryopGPR<InstARM32::Uxt, true>;
 using InstARM32Vsqrt = InstARM32UnaryopFP<InstARM32::Vsqrt>;
@@ -805,9 +804,9 @@ using InstARM32Mls = InstARM32FourAddrGPR<InstARM32::Mls>;
 using InstARM32Cmp = InstARM32CmpLike<InstARM32::Cmp>;
 using InstARM32Tst = InstARM32CmpLike<InstARM32::Tst>;
 
-// InstARM32Label represents an intra-block label that is the target
-// of an intra-block branch.  The offset between the label and the
-// branch must be fit in the instruction immediate (considered "near").
+// InstARM32Label represents an intra-block label that is the target of an
+// intra-block branch. The offset between the label and the branch must be fit
+// in the instruction immediate (considered "near").
 class InstARM32Label : public InstARM32 {
   InstARM32Label() = delete;
   InstARM32Label(const InstARM32Label &) = delete;
@@ -852,9 +851,9 @@ public:
     return new (Func->allocate<InstARM32Br>())
         InstARM32Br(Func, NoCondTarget, Target, NoLabel, CondARM32::AL);
   }
-  /// Create a non-terminator conditional branch to a node, with a
-  /// fallthrough to the next instruction in the current node.  This is
-  /// used for switch lowering.
+  /// Create a non-terminator conditional branch to a node, with a fallthrough
+  /// to the next instruction in the current node. This is used for switch
+  /// lowering.
   static InstARM32Br *create(Cfg *Func, CfgNode *Target,
                              CondARM32::Cond Predicate) {
     assert(Predicate != CondARM32::AL);
@@ -903,18 +902,18 @@ private:
   const InstARM32Label *Label; // Intra-block branch target
 };
 
-/// AdjustStack instruction - subtracts SP by the given amount and
-/// updates the stack offset during code emission.
+/// AdjustStack instruction - subtracts SP by the given amount and updates the
+/// stack offset during code emission.
 class InstARM32AdjustStack : public InstARM32 {
   InstARM32AdjustStack() = delete;
   InstARM32AdjustStack(const InstARM32AdjustStack &) = delete;
   InstARM32AdjustStack &operator=(const InstARM32AdjustStack &) = delete;
 
 public:
-  /// Note: We need both Amount and SrcAmount. If Amount is too large then
-  /// it needs to be copied to a register (so SrcAmount could be a register).
-  /// However, we also need the numeric Amount for bookkeeping, and it's
-  /// hard to pull that from the generic SrcAmount operand.
+  /// Note: We need both Amount and SrcAmount. If Amount is too large then it
+  /// needs to be copied to a register (so SrcAmount could be a register).
+  /// However, we also need the numeric Amount for bookkeeping, and it's hard to
+  /// pull that from the generic SrcAmount operand.
   static InstARM32AdjustStack *create(Cfg *Func, Variable *SP, SizeT Amount,
                                       Operand *SrcAmount) {
     return new (Func->allocate<InstARM32AdjustStack>())
@@ -932,7 +931,7 @@ private:
   const SizeT Amount;
 };
 
-/// Call instruction (bl/blx).  Arguments should have already been pushed.
+/// Call instruction (bl/blx). Arguments should have already been pushed.
 /// Technically bl and the register form of blx can be predicated, but we'll
 /// leave that out until needed.
 class InstARM32Call : public InstARM32 {
@@ -977,8 +976,8 @@ private:
   VarList Dests;
 };
 
-/// Push a list of GPRs. Technically this can be predicated, but we don't
-/// need that functionality.
+/// Push a list of GPRs. Technically this can be predicated, but we don't need
+/// that functionality.
 class InstARM32Push : public InstARM32 {
   InstARM32Push() = delete;
   InstARM32Push(const InstARM32Push &) = delete;
@@ -997,11 +996,11 @@ private:
   InstARM32Push(Cfg *Func, const VarList &Srcs);
 };
 
-/// Ret pseudo-instruction.  This is actually a "bx" instruction with
-/// an "lr" register operand, but epilogue lowering will search for a Ret
-/// instead of a generic "bx". This instruction also takes a Source
-/// operand (for non-void returning functions) for liveness analysis, though
-/// a FakeUse before the ret would do just as well.
+/// Ret pseudo-instruction. This is actually a "bx" instruction with an "lr"
+/// register operand, but epilogue lowering will search for a Ret instead of a
+/// generic "bx". This instruction also takes a Source operand (for non-void
+/// returning functions) for liveness analysis, though a FakeUse before the ret
+/// would do just as well.
 ///
 /// NOTE: Even though "bx" can be predicated, for now leave out the predication
 /// since it's not yet known to be useful for Ret. That may complicate finding
@@ -1025,8 +1024,8 @@ private:
   InstARM32Ret(Cfg *Func, Variable *LR, Variable *Source);
 };
 
-/// Store instruction. It's important for liveness that there is no Dest
-/// operand (OperandARM32Mem instead of Dest Variable).
+/// Store instruction. It's important for liveness that there is no Dest operand
+/// (OperandARM32Mem instead of Dest Variable).
 class InstARM32Str : public InstARM32Pred {
   InstARM32Str() = delete;
   InstARM32Str(const InstARM32Str &) = delete;
@@ -1205,9 +1204,9 @@ private:
   Variable *Dest1 = nullptr;
 };
 
-// Declare partial template specializations of emit() methods that
-// already have default implementations.  Without this, there is the
-// possibility of ODR violations and link errors.
+// Declare partial template specializations of emit() methods that already have
+// default implementations. Without this, there is the possibility of ODR
+// violations and link errors.
 
 template <> void InstARM32Ldr::emit(const Cfg *Func) const;
 template <> void InstARM32Mov::emit(const Cfg *Func) const;

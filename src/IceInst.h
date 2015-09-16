@@ -25,9 +25,9 @@
 
 // TODO: The Cfg structure, and instructions in particular, need to be
 // validated for things like valid operand types, valid branch targets, proper
-// ordering of Phi and non-Phi instructions, etc. Most of the validity
-// checking will be done in the bitcode reader. We need a list of everything
-// that should be validated, and tests for each.
+// ordering of Phi and non-Phi instructions, etc. Most of the validity checking
+// will be done in the bitcode reader. We need a list of everything that should
+// be validated, and tests for each.
 
 namespace Ice {
 
@@ -118,9 +118,9 @@ public:
     return NodeList();
   }
   virtual bool isUnconditionalBranch() const { return false; }
-  /// If the instruction is a branch-type instruction with OldNode as a
-  /// target, repoint it to NewNode and return true, otherwise return
-  /// false. Repoint all instances of OldNode as a target.
+  /// If the instruction is a branch-type instruction with OldNode as a target,
+  /// repoint it to NewNode and return true, otherwise return false. Repoint all
+  /// instances of OldNode as a target.
   virtual bool repointEdges(CfgNode *OldNode, CfgNode *NewNode) {
     (void)OldNode;
     (void)NewNode;
@@ -130,11 +130,11 @@ public:
   virtual bool isSimpleAssign() const { return false; }
 
   void livenessLightweight(Cfg *Func, LivenessBV &Live);
-  // Calculates liveness for this instruction.  Returns true if this
-  /// instruction is (tentatively) still live and should be retained, and false
-  /// if this instruction is (tentatively) dead and should be deleted. The
-  /// decision is tentative until the liveness dataflow algorithm has converged,
-  /// and then a separate pass permanently deletes dead instructions.
+  /// Calculates liveness for this instruction. Returns true if this instruction
+  /// is (tentatively) still live and should be retained, and false if this
+  /// instruction is (tentatively) dead and should be deleted. The decision is
+  /// tentative until the liveness dataflow algorithm has converged, and then a
+  /// separate pass permanently deletes dead instructions.
   bool liveness(InstNumberT InstNumber, LivenessBV &Live, Liveness *Liveness,
                 LiveBeginEndMap *LiveBegin, LiveBeginEndMap *LiveEnd);
 
@@ -143,13 +143,12 @@ public:
   /// instructions, and a target-specific instruction results in a single native
   /// instruction.
   virtual uint32_t getEmitInstCount() const { return 0; }
-  // TODO(stichnot): Change Inst back to abstract once the g++ build
-  // issue is fixed.  llvm::ilist<Ice::Inst> doesn't work under g++
-  // because the resize(size_t, Ice::Inst) method is incorrectly
-  // declared and thus doesn't allow the abstract class Ice::Inst.
-  // The method should be declared resize(size_t, const Ice::Inst &).
-  // virtual void emit(const Cfg *Func) const = 0;
-  // virtual void emitIAS(const Cfg *Func) const = 0;
+  // TODO(stichnot): Change Inst back to abstract once the g++ build issue is
+  // fixed. llvm::ilist<Ice::Inst> doesn't work under g++ because the
+  // resize(size_t, Ice::Inst) method is incorrectly declared and thus doesn't
+  // allow the abstract class Ice::Inst. The method should be declared
+  // resize(size_t, const Ice::Inst &). virtual void emit(const Cfg *Func)
+  // const = 0; virtual void emitIAS(const Cfg *Func) const = 0;
   virtual void emit(const Cfg *) const {
     llvm_unreachable("emit on abstract class");
   }
@@ -179,8 +178,8 @@ protected:
       LiveRangesEnded |= (((LREndedBits)1u) << VarIndex);
   }
   void resetLastUses() { LiveRangesEnded = 0; }
-  /// The destroy() method lets the instruction cleanly release any
-  /// memory that was allocated via the Cfg's allocator.
+  /// The destroy() method lets the instruction cleanly release any memory that
+  /// was allocated via the Cfg's allocator.
   virtual void destroy(Cfg *Func) { Func->deallocateArrayOf<Operand *>(Srcs); }
 
   const InstKind Kind;
@@ -188,17 +187,17 @@ protected:
   InstNumberT Number;
   /// Deleted means irrevocably deleted.
   bool Deleted = false;
-  /// Dead means one of two things depending on context: (1) pending
-  /// deletion after liveness analysis converges, or (2) marked for
-  /// deletion during lowering due to a folded bool operation.
+  /// Dead means one of two things depending on context: (1) pending deletion
+  /// after liveness analysis converges, or (2) marked for deletion during
+  /// lowering due to a folded bool operation.
   bool Dead = false;
-  /// HasSideEffects means the instruction is something like a function
-  /// call or a volatile load that can't be removed even if its Dest
-  /// variable is not live.
+  /// HasSideEffects means the instruction is something like a function call or
+  /// a volatile load that can't be removed even if its Dest variable is not
+  /// live.
   bool HasSideEffects = false;
-  /// IsDestNonKillable means that liveness analysis shouldn't consider
-  /// this instruction to kill the Dest variable.  This is used when
-  /// lowering produces two assignments to the same variable.
+  /// IsDestNonKillable means that liveness analysis shouldn't consider this
+  /// instruction to kill the Dest variable. This is used when lowering produces
+  /// two assignments to the same variable.
   bool IsDestNonKillable = false;
 
   Variable *Dest;
@@ -207,13 +206,12 @@ protected:
   Operand **Srcs;
 
   /// LiveRangesEnded marks which Variables' live ranges end in this
-  /// instruction.  An instruction can have an arbitrary number of
-  /// source operands (e.g. a call instruction), and each source
-  /// operand can contain 0 or 1 Variable (and target-specific operands
-  /// could contain more than 1 Variable).  All the variables in an
-  /// instruction are conceptually flattened and each variable is
-  /// mapped to one bit position of the LiveRangesEnded bit vector.
-  /// Only the first CHAR_BIT * sizeof(LREndedBits) variables are
+  /// instruction. An instruction can have an arbitrary number of source
+  /// operands (e.g. a call instruction), and each source operand can contain 0
+  /// or 1 Variable (and target-specific operands could contain more than 1
+  /// Variable). All the variables in an instruction are conceptually flattened
+  /// and each variable is mapped to one bit position of the LiveRangesEnded bit
+  /// vector. Only the first CHAR_BIT * sizeof(LREndedBits) variables are
   /// tracked this way.
   using LREndedBits = uint32_t; // only first 32 src operands tracked, sorry
   LREndedBits LiveRangesEnded;
@@ -235,9 +233,9 @@ protected:
   }
 };
 
-/// Alloca instruction.  This captures the size in bytes as getSrc(0),
-/// and the required alignment in bytes.  The alignment must be either
-/// 0 (no alignment required) or a power of 2.
+/// Alloca instruction. This captures the size in bytes as getSrc(0), and the
+/// required alignment in bytes. The alignment must be either 0 (no alignment
+/// required) or a power of 2.
 class InstAlloca : public InstHighLevel {
   InstAlloca() = delete;
   InstAlloca(const InstAlloca &) = delete;
@@ -261,8 +259,8 @@ private:
   const uint32_t AlignInBytes;
 };
 
-/// Binary arithmetic instruction.  The source operands are captured in
-/// getSrc(0) and getSrc(1).
+/// Binary arithmetic instruction. The source operands are captured in getSrc(0)
+/// and getSrc(1).
 class InstArithmetic : public InstHighLevel {
   InstArithmetic() = delete;
   InstArithmetic(const InstArithmetic &) = delete;
@@ -296,12 +294,11 @@ private:
   const OpKind Op;
 };
 
-/// Assignment instruction.  The source operand is captured in
-/// getSrc(0).  This is not part of the LLVM bitcode, but is a useful
-/// abstraction for some of the lowering.  E.g., if Phi instruction
-/// lowering happens before target lowering, or for representing an
-/// Inttoptr instruction, or as an intermediate step for lowering a
-/// Load instruction.
+/// Assignment instruction. The source operand is captured in getSrc(0). This is
+/// not part of the LLVM bitcode, but is a useful abstraction for some of the
+/// lowering. E.g., if Phi instruction lowering happens before target lowering,
+/// or for representing an Inttoptr instruction, or as an intermediate step for
+/// lowering a Load instruction.
 class InstAssign : public InstHighLevel {
   InstAssign() = delete;
   InstAssign(const InstAssign &) = delete;
@@ -319,16 +316,16 @@ private:
   InstAssign(Cfg *Func, Variable *Dest, Operand *Source);
 };
 
-/// Branch instruction.  This represents both conditional and
-/// unconditional branches.
+/// Branch instruction. This represents both conditional and unconditional
+/// branches.
 class InstBr : public InstHighLevel {
   InstBr() = delete;
   InstBr(const InstBr &) = delete;
   InstBr &operator=(const InstBr &) = delete;
 
 public:
-  /// Create a conditional branch.  If TargetTrue==TargetFalse, it is
-  /// optimized to an unconditional branch.
+  /// Create a conditional branch. If TargetTrue==TargetFalse, it is optimized
+  /// to an unconditional branch.
   static InstBr *create(Cfg *Func, Operand *Source, CfgNode *TargetTrue,
                         CfgNode *TargetFalse) {
     return new (Func->allocate<InstBr>())
@@ -365,8 +362,8 @@ private:
   CfgNode *TargetTrue;  /// nullptr if unconditional branch
 };
 
-/// Call instruction.  The call target is captured as getSrc(0), and
-/// arg I is captured as getSrc(I+1).
+/// Call instruction. The call target is captured as getSrc(0), and arg I is
+/// captured as getSrc(I+1).
 class InstCall : public InstHighLevel {
   InstCall() = delete;
   InstCall(const InstCall &) = delete;
@@ -376,8 +373,8 @@ public:
   static InstCall *create(Cfg *Func, SizeT NumArgs, Variable *Dest,
                           Operand *CallTarget, bool HasTailCall) {
     /// Set HasSideEffects to true so that the call instruction can't be
-    /// dead-code eliminated. IntrinsicCalls can override this if the
-    /// particular intrinsic is deletable and has no side-effects.
+    /// dead-code eliminated. IntrinsicCalls can override this if the particular
+    /// intrinsic is deletable and has no side-effects.
     const bool HasSideEffects = true;
     const InstKind Kind = Inst::Call;
     return new (Func->allocate<InstCall>()) InstCall(
@@ -458,8 +455,8 @@ private:
                      Operand *Source2);
 };
 
-/// Floating-point comparison instruction.  The source operands are
-/// captured in getSrc(0) and getSrc(1).
+/// Floating-point comparison instruction. The source operands are captured in
+/// getSrc(0) and getSrc(1).
 class InstFcmp : public InstHighLevel {
   InstFcmp() = delete;
   InstFcmp(const InstFcmp &) = delete;
@@ -489,8 +486,8 @@ private:
   const FCond Condition;
 };
 
-/// Integer comparison instruction.  The source operands are captured
-/// in getSrc(0) and getSrc(1).
+/// Integer comparison instruction. The source operands are captured in
+/// getSrc(0) and getSrc(1).
 class InstIcmp : public InstHighLevel {
   InstIcmp() = delete;
   InstIcmp(const InstIcmp &) = delete;
@@ -543,8 +540,8 @@ private:
                     Operand *Source2, Operand *Source3);
 };
 
-/// Call to an intrinsic function.  The call target is captured as getSrc(0),
-/// and arg I is captured as getSrc(I+1).
+/// Call to an intrinsic function. The call target is captured as getSrc(0), and
+/// arg I is captured as getSrc(I+1).
 class InstIntrinsicCall : public InstCall {
   InstIntrinsicCall() = delete;
   InstIntrinsicCall(const InstIntrinsicCall &) = delete;
@@ -573,7 +570,7 @@ private:
   const Intrinsics::IntrinsicInfo Info;
 };
 
-/// Load instruction.  The source address is captured in getSrc(0).
+/// Load instruction. The source address is captured in getSrc(0).
 class InstLoad : public InstHighLevel {
   InstLoad() = delete;
   InstLoad(const InstLoad &) = delete;
@@ -594,8 +591,8 @@ private:
   InstLoad(Cfg *Func, Variable *Dest, Operand *SourceAddr);
 };
 
-/// Phi instruction.  For incoming edge I, the node is Labels[I] and
-/// the Phi source operand is getSrc(I).
+/// Phi instruction. For incoming edge I, the node is Labels[I] and the Phi
+/// source operand is getSrc(I).
 class InstPhi : public InstHighLevel {
   InstPhi() = delete;
   InstPhi(const InstPhi &) = delete;
@@ -621,15 +618,15 @@ private:
     Inst::destroy(Func);
   }
 
-  /// Labels[] duplicates the InEdges[] information in the enclosing
-  /// CfgNode, but the Phi instruction is created before InEdges[]
-  /// is available, so it's more complicated to share the list.
+  /// Labels[] duplicates the InEdges[] information in the enclosing CfgNode,
+  /// but the Phi instruction is created before InEdges[] is available, so it's
+  /// more complicated to share the list.
   CfgNode **Labels;
 };
 
-/// Ret instruction.  The return value is captured in getSrc(0), but if
-/// there is no return value (void-type function), then
-/// getSrcSize()==0 and hasRetValue()==false.
+/// Ret instruction. The return value is captured in getSrc(0), but if there is
+/// no return value (void-type function), then getSrcSize()==0 and
+/// hasRetValue()==false.
 class InstRet : public InstHighLevel {
   InstRet() = delete;
   InstRet(const InstRet &) = delete;
@@ -675,8 +672,8 @@ private:
              Operand *Source2);
 };
 
-/// Store instruction.  The address operand is captured, along with the
-/// data operand to be stored into the address.
+/// Store instruction. The address operand is captured, along with the data
+/// operand to be stored into the address.
 class InstStore : public InstHighLevel {
   InstStore() = delete;
   InstStore(const InstStore &) = delete;
@@ -700,8 +697,7 @@ private:
   InstStore(Cfg *Func, Operand *Data, Operand *Addr);
 };
 
-/// Switch instruction.  The single source operand is captured as
-/// getSrc(0).
+/// Switch instruction. The single source operand is captured as getSrc(0).
 class InstSwitch : public InstHighLevel {
   InstSwitch() = delete;
   InstSwitch(const InstSwitch &) = delete;
@@ -744,8 +740,7 @@ private:
   CfgNode **Labels; /// size is NumCases
 };
 
-/// Unreachable instruction.  This is a terminator instruction with no
-/// operands.
+/// Unreachable instruction. This is a terminator instruction with no operands.
 class InstUnreachable : public InstHighLevel {
   InstUnreachable() = delete;
   InstUnreachable(const InstUnreachable &) = delete;
@@ -765,7 +760,7 @@ private:
   explicit InstUnreachable(Cfg *Func);
 };
 
-/// BundleLock instruction.  There are no operands.  Contains an option
+/// BundleLock instruction.  There are no operands. Contains an option
 /// indicating whether align_to_end is specified.
 class InstBundleLock : public InstHighLevel {
   InstBundleLock() = delete;
@@ -791,7 +786,7 @@ private:
   InstBundleLock(Cfg *Func, Option BundleOption);
 };
 
-/// BundleUnlock instruction.  There are no operands.
+/// BundleUnlock instruction. There are no operands.
 class InstBundleUnlock : public InstHighLevel {
   InstBundleUnlock() = delete;
   InstBundleUnlock(const InstBundleUnlock &) = delete;
@@ -812,18 +807,17 @@ private:
   explicit InstBundleUnlock(Cfg *Func);
 };
 
-/// FakeDef instruction.  This creates a fake definition of a variable,
-/// which is how we represent the case when an instruction produces
-/// multiple results.  This doesn't happen with high-level ICE
-/// instructions, but might with lowered instructions.  For example,
-/// this would be a way to represent condition flags being modified by
-/// an instruction.
+/// FakeDef instruction. This creates a fake definition of a variable, which is
+/// how we represent the case when an instruction produces multiple results.
+/// This doesn't happen with high-level ICE instructions, but might with lowered
+/// instructions. For example, this would be a way to represent condition flags
+/// being modified by an instruction.
 ///
-/// It's generally useful to set the optional source operand to be the
-/// dest variable of the instruction that actually produces the FakeDef
-/// dest.  Otherwise, the original instruction could be dead-code
-/// eliminated if its dest operand is unused, and therefore the FakeDef
-/// dest wouldn't be properly initialized.
+/// It's generally useful to set the optional source operand to be the dest
+/// variable of the instruction that actually produces the FakeDef dest.
+/// Otherwise, the original instruction could be dead-code eliminated if its
+/// dest operand is unused, and therefore the FakeDef dest wouldn't be properly
+/// initialized.
 class InstFakeDef : public InstHighLevel {
   InstFakeDef() = delete;
   InstFakeDef(const InstFakeDef &) = delete;
@@ -843,11 +837,10 @@ private:
   InstFakeDef(Cfg *Func, Variable *Dest, Variable *Src);
 };
 
-/// FakeUse instruction.  This creates a fake use of a variable, to
-/// keep the instruction that produces that variable from being
-/// dead-code eliminated.  This is useful in a variety of lowering
-/// situations.  The FakeUse instruction has no dest, so it can itself
-/// never be dead-code eliminated.
+/// FakeUse instruction. This creates a fake use of a variable, to keep the
+/// instruction that produces that variable from being dead-code eliminated.
+/// This is useful in a variety of lowering situations. The FakeUse instruction
+/// has no dest, so it can itself never be dead-code eliminated.
 class InstFakeUse : public InstHighLevel {
   InstFakeUse() = delete;
   InstFakeUse(const InstFakeUse &) = delete;
@@ -866,16 +859,15 @@ private:
   InstFakeUse(Cfg *Func, Variable *Src);
 };
 
-/// FakeKill instruction.  This "kills" a set of variables by modeling
-/// a trivial live range at this instruction for each (implicit)
-/// variable.  The primary use is to indicate that scratch registers
-/// are killed after a call, so that the register allocator won't
-/// assign a scratch register to a variable whose live range spans a
-/// call.
+/// FakeKill instruction. This "kills" a set of variables by modeling a trivial
+/// live range at this instruction for each (implicit) variable. The primary use
+/// is to indicate that scratch registers are killed after a call, so that the
+/// register allocator won't assign a scratch register to a variable whose live
+/// range spans a call.
 ///
-/// The FakeKill instruction also holds a pointer to the instruction
-/// that kills the set of variables, so that if that linked instruction
-/// gets dead-code eliminated, the FakeKill instruction will as well.
+/// The FakeKill instruction also holds a pointer to the instruction that kills
+/// the set of variables, so that if that linked instruction gets dead-code
+/// eliminated, the FakeKill instruction will as well.
 class InstFakeKill : public InstHighLevel {
   InstFakeKill() = delete;
   InstFakeKill(const InstFakeKill &) = delete;
@@ -898,10 +890,9 @@ private:
   const Inst *Linked;
 };
 
-/// JumpTable instruction. This represents a jump table that will be
-/// stored in the .rodata section. This is used to track and repoint
-/// the target CfgNodes which may change, for example due to
-/// splitting for phi lowering.
+/// JumpTable instruction. This represents a jump table that will be stored in
+/// the .rodata section. This is used to track and repoint the target CfgNodes
+/// which may change, for example due to splitting for phi lowering.
 class InstJumpTable : public InstHighLevel {
   InstJumpTable() = delete;
   InstJumpTable(const InstJumpTable &) = delete;
@@ -968,8 +959,8 @@ bool checkForRedundantAssign(const Variable *Dest, const Operand *Source);
 
 namespace llvm {
 
-/// Override the default ilist traits so that Inst's private ctor and
-/// deleted dtor aren't invoked.
+/// Override the default ilist traits so that Inst's private ctor and deleted
+/// dtor aren't invoked.
 template <>
 struct ilist_traits<Ice::Inst> : public ilist_default_traits<Ice::Inst> {
   Ice::Inst *createSentinel() const {

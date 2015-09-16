@@ -31,12 +31,11 @@ class raw_fd_ostream;
 
 namespace Ice {
 
-/// The browser variant of the compile server.
-/// Compared to the commandline version, this version gets compile
-/// requests over IPC. Each compile request will have a slimmed down
-/// version of argc, argv while other flags are set to defaults that
-/// make sense in the browser case. The output file is specified via
-/// a posix FD, and input bytes are pushed to the server.
+/// The browser variant of the compile server. Compared to the commandline
+/// version, this version gets compile requests over IPC. Each compile request
+/// will have a slimmed down version of argc, argv while other flags are set to
+/// defaults that make sense in the browser case. The output file is specified
+/// via a posix FD, and input bytes are pushed to the server.
 class BrowserCompileServer : public CompileServer {
   BrowserCompileServer() = delete;
   BrowserCompileServer(const BrowserCompileServer &) = delete;
@@ -56,12 +55,12 @@ public:
   /// Parse and set up the flags for compile jobs.
   void getParsedFlags(uint32_t NumThreads, int argc, char **argv);
 
-  /// Creates the streams + context and starts the compile thread,
-  /// handing off the streams + context.
+  /// Creates the streams + context and starts the compile thread, handing off
+  /// the streams + context.
   void startCompileThread(int OutFD);
 
-  /// Call to push more bytes to the current input stream.
-  /// Returns false on success and true on error.
+  /// Call to push more bytes to the current input stream. Returns false on
+  /// success and true on error.
   bool pushInputBytes(const void *Data, size_t NumBytes);
 
   /// Notify the input stream of EOF.
@@ -72,9 +71,8 @@ public:
     CompileThread.join();
     if (Ctx->getErrorStatus()->value())
       LastError.assign(Ctx->getErrorStatus()->value());
-    // Reset some state. The InputStream is deleted by the compiler
-    // so only reset this to nullptr. Free and flush the rest
-    // of the streams.
+    // Reset some state. The InputStream is deleted by the compiler so only
+    // reset this to nullptr. Free and flush the rest of the streams.
     InputStream = nullptr;
     EmitStream.reset(nullptr);
     ELFStream.reset(nullptr);
@@ -95,12 +93,12 @@ private:
     std::string Buffer;
     llvm::raw_string_ostream StrBuf;
   };
-  /// This currently only handles a single compile request, hence one copy
-  /// of the state.
+  /// This currently only handles a single compile request, hence one copy of
+  /// the state.
   std::unique_ptr<GlobalContext> Ctx;
-  /// A borrowed reference to the current InputStream. The compiler owns
-  /// the actual reference so the server must be careful not to access
-  /// after the compiler is done.
+  /// A borrowed reference to the current InputStream. The compiler owns the
+  /// actual reference so the server must be careful not to access after the
+  /// compiler is done.
   llvm::QueueStreamer *InputStream = nullptr;
   std::unique_ptr<Ostream> LogStream;
   std::unique_ptr<llvm::raw_fd_ostream> EmitStream;

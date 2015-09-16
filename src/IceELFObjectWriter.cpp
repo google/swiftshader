@@ -105,10 +105,9 @@ T *ELFObjectWriter::createSection(const IceString &Name, Elf64_Word ShType,
 
 ELFRelocationSection *
 ELFObjectWriter::createRelocationSection(const ELFSection *RelatedSection) {
-  // Choice of RELA vs REL is actually separate from elf64 vs elf32,
-  // but in practice we've only had .rela for elf64 (x86-64).
-  // In the future, the two properties may need to be decoupled
-  // and the ShEntSize can vary more.
+  // Choice of RELA vs REL is actually separate from elf64 vs elf32, but in
+  // practice we've only had .rela for elf64 (x86-64). In the future, the two
+  // properties may need to be decoupled and the ShEntSize can vary more.
   const Elf64_Word ShType = ELF64 ? SHT_RELA : SHT_REL;
   IceString RelPrefix = ELF64 ? ".rela" : ".rel";
   IceString RelSectionName = RelPrefix + RelatedSection->getName();
@@ -158,8 +157,8 @@ void ELFObjectWriter::assignRelLinkNum(SizeT SymTabNumber,
 }
 
 void ELFObjectWriter::assignSectionNumbersInfo(SectionList &AllSections) {
-  // Go through each section, assigning them section numbers and
-  // and fill in the size for sections that aren't incrementally updated.
+  // Go through each section, assigning them section numbers and and fill in
+  // the size for sections that aren't incrementally updated.
   assert(!SectionNumbersAssigned);
   SizeT CurSectionNumber = 0;
   NullSection->setNumber(CurSectionNumber++);
@@ -233,8 +232,8 @@ void ELFObjectWriter::writeFunctionCode(const IceString &FuncName,
     RelSection = RelTextSections[0];
   }
   RelocOffsetT OffsetInSection = Section->getCurrentSize();
-  // Function symbols are set to 0 size in the symbol table,
-  // in contrast to data symbols which have a proper size.
+  // Function symbols are set to 0 size in the symbol table, in contrast to
+  // data symbols which have a proper size.
   SizeT SymbolSize = 0;
   Section->appendData(Str, Asm->getBufferView());
   uint8_t SymbolType;
@@ -268,9 +267,8 @@ classifyGlobalSection(const VariableDeclaration *Var) {
   return ELFObjectWriter::BSS;
 }
 
-// Partition the Vars list by SectionType into VarsBySection.
-// If TranslateOnly is non-empty, then only the TranslateOnly variable
-// is kept for emission.
+// Partition the Vars list by SectionType into VarsBySection. If TranslateOnly
+// is non-empty, then only the TranslateOnly variable is kept for emission.
 void partitionGlobalsBySection(const VariableDeclarationList &Vars,
                                VariableDeclarationList VarsBySection[],
                                const IceString &TranslateOnly) {
@@ -440,8 +438,8 @@ template <bool IsELF64>
 void ELFObjectWriter::writeELFHeaderInternal(Elf64_Off SectionHeaderOffset,
                                              SizeT SectHeaderStrIndex,
                                              SizeT NumSections) {
-  // Write the e_ident: magic number, class, etc.
-  // The e_ident is byte order and ELF class independent.
+  // Write the e_ident: magic number, class, etc. The e_ident is byte order and
+  // ELF class independent.
   Str.writeBytes(llvm::StringRef(ElfMagic, strlen(ElfMagic)));
   Str.write8(IsELF64 ? ELFCLASS64 : ELFCLASS32);
   Str.write8(ELFDATA2LSB);
@@ -451,21 +449,21 @@ void ELFObjectWriter::writeELFHeaderInternal(Elf64_Off SectionHeaderOffset,
   Str.write8(ELF_ABIVersion);
   Str.writeZeroPadding(EI_NIDENT - EI_PAD);
 
-  // TODO(jvoung): Handle and test > 64K sections.  See the generic ABI doc:
-  // https://refspecs.linuxbase.org/elf/gabi4+/ch4.eheader.html
-  // e_shnum should be 0 and then actual number of sections is
-  // stored in the sh_size member of the 0th section.
+  // TODO(jvoung): Handle and test > 64K sections. See the generic ABI doc:
+  // https://refspecs.linuxbase.org/elf/gabi4+/ch4.eheader.html e_shnum should
+  // be 0 and then actual number of sections is stored in the sh_size member of
+  // the 0th section.
   assert(NumSections < SHN_LORESERVE);
   assert(SectHeaderStrIndex < SHN_LORESERVE);
 
   const TargetArch Arch = Ctx.getFlags().getTargetArch();
-  // Write the rest of the file header, which does depend on byte order
-  // and ELF class.
+  // Write the rest of the file header, which does depend on byte order and ELF
+  // class.
   Str.writeLE16(ET_REL);                                        // e_type
   Str.writeLE16(getELFMachine(Ctx.getFlags().getTargetArch())); // e_machine
   Str.writeELFWord<IsELF64>(1);                                 // e_version
-  // Since this is for a relocatable object, there is no entry point,
-  // and no program headers.
+  // Since this is for a relocatable object, there is no entry point, and no
+  // program headers.
   Str.writeAddrOrOffset<IsELF64>(0);                                // e_entry
   Str.writeAddrOrOffset<IsELF64>(0);                                // e_phoff
   Str.writeAddrOrOffset<IsELF64>(SectionHeaderOffset);              // e_shoff
@@ -505,8 +503,8 @@ template <typename ConstType> void ELFObjectWriter::writeConstantPool(Type Ty) {
       SecStrBuf.str(), SHT_PROGBITS, ShFlags, Align, WriteAmt);
   RODataSections.push_back(Section);
   SizeT OffsetInSection = 0;
-  // The symbol table entry doesn't need to know the defined symbol's
-  // size since this is in a section with a fixed Entry Size.
+  // The symbol table entry doesn't need to know the defined symbol's size
+  // since this is in a section with a fixed Entry Size.
   const SizeT SymbolSize = 0;
   Section->setFileOffset(alignFileOffset(Align));
 
@@ -541,11 +539,11 @@ template <typename ConstType> void ELFObjectWriter::writeConstantPool(Type Ty) {
   Section->setSize(OffsetInSection);
 }
 
-// Instantiate known needed versions of the template, since we are
-// defining the function in the .cpp file instead of the .h file.
-// We may need to instantiate constant pools for integers as well
-// if we do constant-pooling of large integers to remove them
-// from the instruction stream (fewer bytes controlled by an attacker).
+// Instantiate known needed versions of the template, since we are defining the
+// function in the .cpp file instead of the .h file. We may need to instantiate
+// constant pools for integers as well if we do constant-pooling of large
+// integers to remove them from the instruction stream (fewer bytes controlled
+// by an attacker).
 template void ELFObjectWriter::writeConstantPool<ConstantFloat>(Type Ty);
 
 template void ELFObjectWriter::writeConstantPool<ConstantDouble>(Type Ty);

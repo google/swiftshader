@@ -11,8 +11,8 @@
 /// \brief This file implements a class to represent Subzero float and double
 /// values.
 ///
-/// Note: This is a simplified version of
-/// llvm/include/llvm/ADT/APFloat.h for use with Subzero.
+/// Note: This is a simplified version of llvm/include/llvm/ADT/APFloat.h for
+/// use with Subzero.
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICEAPFLOAT_H

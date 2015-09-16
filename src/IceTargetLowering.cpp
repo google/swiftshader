@@ -8,11 +8,10 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file implements the skeleton of the TargetLowering class,
-/// specifically invoking the appropriate lowering method for a given
-/// instruction kind and driving global register allocation.  It also
-/// implements the non-deleted instruction iteration in
-/// LoweringContext.
+/// This file implements the skeleton of the TargetLowering class, specifically
+/// invoking the appropriate lowering method for a given instruction kind and
+/// driving global register allocation. It also implements the non-deleted
+/// instruction iteration in LoweringContext.
 ///
 //===----------------------------------------------------------------------===//
 
@@ -117,29 +116,27 @@ void TargetLowering::doNopInsertion(RandomNumberGenerator &RNG) {
   }
 }
 
-// Lowers a single instruction according to the information in
-// Context, by checking the Context.Cur instruction kind and calling
-// the appropriate lowering method.  The lowering method should insert
-// target instructions at the Cur.Next insertion point, and should not
-// delete the Context.Cur instruction or advance Context.Cur.
+// Lowers a single instruction according to the information in Context, by
+// checking the Context.Cur instruction kind and calling the appropriate
+// lowering method. The lowering method should insert target instructions at
+// the Cur.Next insertion point, and should not delete the Context.Cur
+// instruction or advance Context.Cur.
 //
-// The lowering method may look ahead in the instruction stream as
-// desired, and lower additional instructions in conjunction with the
-// current one, for example fusing a compare and branch.  If it does,
-// it should advance Context.Cur to point to the next non-deleted
-// instruction to process, and it should delete any additional
-// instructions it consumes.
+// The lowering method may look ahead in the instruction stream as desired, and
+// lower additional instructions in conjunction with the current one, for
+// example fusing a compare and branch. If it does, it should advance
+// Context.Cur to point to the next non-deleted instruction to process, and it
+// should delete any additional instructions it consumes.
 void TargetLowering::lower() {
   assert(!Context.atEnd());
   Inst *Inst = Context.getCur();
   Inst->deleteIfDead();
   if (!Inst->isDeleted() && !llvm::isa<InstFakeDef>(Inst) &&
       !llvm::isa<InstFakeUse>(Inst)) {
-    // Mark the current instruction as deleted before lowering,
-    // otherwise the Dest variable will likely get marked as non-SSA.
-    // See Variable::setDefinition().  However, just pass-through
-    // FakeDef and FakeUse instructions that might have been inserted
-    // prior to lowering.
+    // Mark the current instruction as deleted before lowering, otherwise the
+    // Dest variable will likely get marked as non-SSA. See
+    // Variable::setDefinition(). However, just pass-through FakeDef and
+    // FakeUse instructions that might have been inserted prior to lowering.
     Inst->setDeleted();
     switch (Inst->getKind()) {
     case Inst::Alloca:
@@ -231,10 +228,10 @@ void TargetLowering::lowerOther(const Inst *Instr) {
   Func->setError("Can't lower unsupported instruction type");
 }
 
-// Drives register allocation, allowing all physical registers (except
-// perhaps for the frame pointer) to be allocated.  This set of
-// registers could potentially be parameterized if we want to restrict
-// registers e.g. for performance testing.
+// Drives register allocation, allowing all physical registers (except perhaps
+// for the frame pointer) to be allocated. This set of registers could
+// potentially be parameterized if we want to restrict registers e.g. for
+// performance testing.
 void TargetLowering::regAlloc(RegAllocKind Kind) {
   TimerMarker T(TimerStack::TT_regAlloc, Func);
   LinearScan LinearScan(Func);
@@ -250,15 +247,14 @@ void TargetLowering::regAlloc(RegAllocKind Kind) {
 }
 
 void TargetLowering::inferTwoAddress() {
-  // Find two-address non-SSA instructions where Dest==Src0, and set
-  // the DestNonKillable flag to keep liveness analysis consistent.
+  // Find two-address non-SSA instructions where Dest==Src0, and set the
+  // DestNonKillable flag to keep liveness analysis consistent.
   for (auto Inst = Context.getCur(), E = Context.getNext(); Inst != E; ++Inst) {
     if (Inst->isDeleted())
       continue;
     if (Variable *Dest = Inst->getDest()) {
-      // TODO(stichnot): We may need to consider all source
-      // operands, not just the first one, if using 3-address
-      // instructions.
+      // TODO(stichnot): We may need to consider all source operands, not just
+      // the first one, if using 3-address instructions.
       if (Inst->getSrcSize() > 0 && Inst->getSrc(0) == Dest)
         Inst->setDestNonKillable();
     }
@@ -268,8 +264,8 @@ void TargetLowering::inferTwoAddress() {
 void TargetLowering::sortVarsByAlignment(VarList &Dest,
                                          const VarList &Source) const {
   Dest = Source;
-  // Instead of std::sort, we could do a bucket sort with log2(alignment)
-  // as the buckets, if performance is an issue.
+  // Instead of std::sort, we could do a bucket sort with log2(alignment) as
+  // the buckets, if performance is an issue.
   std::sort(Dest.begin(), Dest.end(),
             [this](const Variable *V1, const Variable *V2) {
               return typeWidthInBytesOnStack(V1->getType()) >
@@ -296,17 +292,17 @@ void TargetLowering::getVarStackSlotParams(
     }
   }
 
-  // If SimpleCoalescing is false, each variable without a register
-  // gets its own unique stack slot, which leads to large stack
-  // frames.  If SimpleCoalescing is true, then each "global" variable
-  // without a register gets its own slot, but "local" variable slots
-  // are reused across basic blocks.  E.g., if A and B are local to
-  // block 1 and C is local to block 2, then C may share a slot with A or B.
+  // If SimpleCoalescing is false, each variable without a register gets its
+  // own unique stack slot, which leads to large stack frames. If
+  // SimpleCoalescing is true, then each "global" variable without a register
+  // gets its own slot, but "local" variable slots are reused across basic
+  // blocks. E.g., if A and B are local to block 1 and C is local to block 2,
+  // then C may share a slot with A or B.
   //
   // We cannot coalesce stack slots if this function calls a "returns twice"
-  // function. In that case, basic blocks may be revisited, and variables
-  // local to those basic blocks are actually live until after the
-  // called function returns a second time.
+  // function. In that case, basic blocks may be revisited, and variables local
+  // to those basic blocks are actually live until after the called function
+  // returns a second time.
   const bool SimpleCoalescing = !callsReturnsTwice();
 
   std::vector<size_t> LocalsSize(Func->getNumNodes());
@@ -317,15 +313,15 @@ void TargetLowering::getVarStackSlotParams(
       RegsUsed[Var->getRegNum()] = true;
       continue;
     }
-    // An argument either does not need a stack slot (if passed in a
-    // register) or already has one (if passed on the stack).
+    // An argument either does not need a stack slot (if passed in a register)
+    // or already has one (if passed on the stack).
     if (Var->getIsArg())
       continue;
     // An unreferenced variable doesn't need a stack slot.
     if (!IsVarReferenced[Var->getIndex()])
       continue;
-    // Check a target-specific variable (it may end up sharing stack slots)
-    // and not need accounting here.
+    // Check a target-specific variable (it may end up sharing stack slots) and
+    // not need accounting here.
     if (TargetVarHook(Var))
       continue;
     SpilledVariables.push_back(Var);
@@ -336,8 +332,8 @@ void TargetLowering::getVarStackSlotParams(
 
   for (Variable *Var : SortedSpilledVariables) {
     size_t Increment = typeWidthInBytesOnStack(Var->getType());
-    // We have sorted by alignment, so the first variable we encounter that
-    // is located in each area determines the max alignment for the area.
+    // We have sorted by alignment, so the first variable we encounter that is
+    // located in each area determines the max alignment for the area.
     if (!*SpillAreaAlignmentBytes)
       *SpillAreaAlignmentBytes = Increment;
     if (SimpleCoalescing && VMetadata->isTracked(Var)) {
@@ -373,8 +369,8 @@ void TargetLowering::alignStackSpillAreas(uint32_t SpillAreaStartOffset,
     *SpillAreaPaddingBytes = SpillAreaStart - PaddingStart;
   }
 
-  // If there are separate globals and locals areas, make sure the
-  // locals area is aligned by padding the end of the globals area.
+  // If there are separate globals and locals areas, make sure the locals area
+  // is aligned by padding the end of the globals area.
   if (LocalsSlotsAlignmentBytes) {
     uint32_t GlobalsAndSubsequentPaddingSize = GlobalsSize;
     GlobalsAndSubsequentPaddingSize =
@@ -391,11 +387,11 @@ void TargetLowering::assignVarStackSlots(VarList &SortedSpilledVariables,
   const VariablesMetadata *VMetadata = Func->getVMetadata();
   // For testing legalization of large stack offsets on targets with limited
   // offset bits in instruction encodings, add some padding. This assumes that
-  // SpillAreaSizeBytes has accounted for the extra test padding.
-  // When UseFramePointer is true, the offset depends on the padding,
-  // not just the SpillAreaSizeBytes. On the other hand, when UseFramePointer
-  // is false, the offsets depend on the gap between SpillAreaSizeBytes
-  // and SpillAreaPaddingBytes, so we don't increment that.
+  // SpillAreaSizeBytes has accounted for the extra test padding. When
+  // UseFramePointer is true, the offset depends on the padding, not just the
+  // SpillAreaSizeBytes. On the other hand, when UseFramePointer is false, the
+  // offsets depend on the gap between SpillAreaSizeBytes and
+  // SpillAreaPaddingBytes, so we don't increment that.
   size_t TestPadding = Ctx->getFlags().getTestStackExtra();
   if (UsesFramePointer)
     SpillAreaPaddingBytes += TestPadding;
@@ -506,8 +502,8 @@ void TargetDataLowering::emitGlobal(const VariableDeclaration &Var,
   if (!BuildDefs::dump())
     return;
 
-  // If external and not initialized, this must be a cross test.
-  // Don't generate a declaration for such cases.
+  // If external and not initialized, this must be a cross test. Don't generate
+  // a declaration for such cases.
   const bool IsExternal =
       Var.isExternal() || Ctx->getFlags().getDisableInternal();
   if (IsExternal && !Var.hasInitializer())
@@ -577,10 +573,10 @@ void TargetDataLowering::emitGlobal(const VariableDeclaration &Var,
       }
     }
   } else {
-    // NOTE: for non-constant zero initializers, this is BSS (no bits),
-    // so an ELF writer would not write to the file, and only track
-    // virtual offsets, but the .s writer still needs this .zero and
-    // cannot simply use the .size to advance offsets.
+    // NOTE: for non-constant zero initializers, this is BSS (no bits), so an
+    // ELF writer would not write to the file, and only track virtual offsets,
+    // but the .s writer still needs this .zero and cannot simply use the .size
+    // to advance offsets.
     Str << "\t.zero\t" << Size << "\n";
   }
 

@@ -20,8 +20,8 @@
 
 namespace Ice {
 
-/// Low level writer that can that can handle ELFCLASS32/64.
-/// Little endian only for now.
+/// Low level writer that can that can handle ELFCLASS32/64. Little endian only
+/// for now.
 class ELFStreamer {
   ELFStreamer() = delete;
   ELFStreamer(const ELFStreamer &) = delete;

@@ -8,9 +8,8 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file implements the TargetLoweringX8632 class, which
-/// consists almost entirely of the lowering sequence for each
-/// high-level instruction.
+/// This file implements the TargetLoweringX8632 class, which consists almost
+/// entirely of the lowering sequence for each high-level instruction.
 ///
 //===----------------------------------------------------------------------===//
 
@@ -100,24 +99,21 @@ const char *MachineTraits<TargetX8632>::TargetName = "X8632";
 void TargetX8632::lowerCall(const InstCall *Instr) {
   // x86-32 calling convention:
   //
-  // * At the point before the call, the stack must be aligned to 16
-  // bytes.
+  // * At the point before the call, the stack must be aligned to 16 bytes.
   //
-  // * The first four arguments of vector type, regardless of their
-  // position relative to the other arguments in the argument list, are
-  // placed in registers xmm0 - xmm3.
+  // * The first four arguments of vector type, regardless of their position
+  // relative to the other arguments in the argument list, are placed in
+  // registers xmm0 - xmm3.
   //
-  // * Other arguments are pushed onto the stack in right-to-left order,
-  // such that the left-most argument ends up on the top of the stack at
-  // the lowest memory address.
+  // * Other arguments are pushed onto the stack in right-to-left order, such
+  // that the left-most argument ends up on the top of the stack at the lowest
+  // memory address.
   //
-  // * Stack arguments of vector type are aligned to start at the next
-  // highest multiple of 16 bytes.  Other stack arguments are aligned to
-  // 4 bytes.
+  // * Stack arguments of vector type are aligned to start at the next highest
+  // multiple of 16 bytes. Other stack arguments are aligned to 4 bytes.
   //
-  // This intends to match the section "IA-32 Function Calling
-  // Convention" of the document "OS X ABI Function Call Guide" by
-  // Apple.
+  // This intends to match the section "IA-32 Function Calling Convention" of
+  // the document "OS X ABI Function Call Guide" by Apple.
   NeedsStackAlignment = true;
 
   using OperandList = std::vector<Operand *>;
@@ -149,46 +145,44 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
     }
   }
 
-  // Adjust the parameter area so that the stack is aligned.  It is
-  // assumed that the stack is already aligned at the start of the
-  // calling sequence.
+  // Adjust the parameter area so that the stack is aligned. It is assumed that
+  // the stack is already aligned at the start of the calling sequence.
   ParameterAreaSizeBytes = Traits::applyStackAlignment(ParameterAreaSizeBytes);
 
-  // Subtract the appropriate amount for the argument area.  This also
-  // takes care of setting the stack adjustment during emission.
+  // Subtract the appropriate amount for the argument area. This also takes
+  // care of setting the stack adjustment during emission.
   //
-  // TODO: If for some reason the call instruction gets dead-code
-  // eliminated after lowering, we would need to ensure that the
-  // pre-call and the post-call esp adjustment get eliminated as well.
+  // TODO: If for some reason the call instruction gets dead-code eliminated
+  // after lowering, we would need to ensure that the pre-call and the
+  // post-call esp adjustment get eliminated as well.
   if (ParameterAreaSizeBytes) {
     _adjust_stack(ParameterAreaSizeBytes);
   }
 
-  // Copy arguments that are passed on the stack to the appropriate
-  // stack locations.
+  // Copy arguments that are passed on the stack to the appropriate stack
+  // locations.
   for (SizeT i = 0, e = StackArgs.size(); i < e; ++i) {
     lowerStore(InstStore::create(Func, StackArgs[i], StackArgLocations[i]));
   }
 
-  // Copy arguments to be passed in registers to the appropriate
-  // registers.
-  // TODO: Investigate the impact of lowering arguments passed in
-  // registers after lowering stack arguments as opposed to the other
-  // way around.  Lowering register arguments after stack arguments may
-  // reduce register pressure.  On the other hand, lowering register
-  // arguments first (before stack arguments) may result in more compact
-  // code, as the memory operand displacements may end up being smaller
-  // before any stack adjustment is done.
+  // Copy arguments to be passed in registers to the appropriate registers.
+  // TODO: Investigate the impact of lowering arguments passed in registers
+  // after lowering stack arguments as opposed to the other way around.
+  // Lowering register arguments after stack arguments may reduce register
+  // pressure. On the other hand, lowering register arguments first (before
+  // stack arguments) may result in more compact code, as the memory operand
+  // displacements may end up being smaller before any stack adjustment is
+  // done.
   for (SizeT i = 0, NumXmmArgs = XmmArgs.size(); i < NumXmmArgs; ++i) {
     Variable *Reg =
         legalizeToReg(XmmArgs[i], Traits::RegisterSet::Reg_xmm0 + i);
-    // Generate a FakeUse of register arguments so that they do not get
-    // dead code eliminated as a result of the FakeKill of scratch
-    // registers after the call.
+    // Generate a FakeUse of register arguments so that they do not get dead
+    // code eliminated as a result of the FakeKill of scratch registers after
+    // the call.
     Context.insert(InstFakeUse::create(Func, Reg));
   }
-  // Generate the call instruction.  Assign its result to a temporary
-  // with high register allocation weight.
+  // Generate the call instruction. Assign its result to a temporary with high
+  // register allocation weight.
   Variable *Dest = Instr->getDest();
   // ReturnReg doubles as ReturnRegLo as necessary.
   Variable *ReturnReg = nullptr;
@@ -211,8 +205,8 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
       break;
     case IceType_f32:
     case IceType_f64:
-      // Leave ReturnReg==ReturnRegHi==nullptr, and capture the result with
-      // the fstp instruction.
+      // Leave ReturnReg==ReturnRegHi==nullptr, and capture the result with the
+      // fstp instruction.
       break;
     case IceType_v4i1:
     case IceType_v8i1:
@@ -247,8 +241,8 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
   if (ReturnRegHi)
     Context.insert(InstFakeDef::create(Func, ReturnRegHi));
 
-  // Add the appropriate offset to esp.  The call instruction takes care
-  // of resetting the stack offset during emission.
+  // Add the appropriate offset to esp. The call instruction takes care of
+  // resetting the stack offset during emission.
   if (ParameterAreaSizeBytes) {
     Variable *esp =
         Func->getTarget()->getPhysicalRegister(Traits::RegisterSet::Reg_esp);
@@ -287,22 +281,21 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
       }
     }
   } else if (isScalarFloatingType(Dest->getType())) {
-    // Special treatment for an FP function which returns its result in
-    // st(0).
-    // If Dest ends up being a physical xmm register, the fstp emit code
-    // will route st(0) through a temporary stack slot.
+    // Special treatment for an FP function which returns its result in st(0).
+    // If Dest ends up being a physical xmm register, the fstp emit code will
+    // route st(0) through a temporary stack slot.
     _fstp(Dest);
-    // Create a fake use of Dest in case it actually isn't used,
-    // because st(0) still needs to be popped.
+    // Create a fake use of Dest in case it actually isn't used, because st(0)
+    // still needs to be popped.
     Context.insert(InstFakeUse::create(Func, Dest));
   }
 }
 
 void TargetX8632::lowerArguments() {
   VarList &Args = Func->getArgs();
-  // The first four arguments of vector type, regardless of their
-  // position relative to the other arguments in the argument list, are
-  // passed in registers xmm0 - xmm3.
+  // The first four arguments of vector type, regardless of their position
+  // relative to the other arguments in the argument list, are passed in
+  // registers xmm0 - xmm3.
   unsigned NumXmmArgs = 0;
 
   Context.init(Func->getEntryNode());
@@ -314,9 +307,9 @@ void TargetX8632::lowerArguments() {
     Type Ty = Arg->getType();
     if (!isVectorType(Ty))
       continue;
-    // Replace Arg in the argument list with the home register.  Then
-    // generate an instruction in the prolog to copy the home register
-    // to the assigned location of Arg.
+    // Replace Arg in the argument list with the home register. Then generate
+    // an instruction in the prolog to copy the home register to the assigned
+    // location of Arg.
     int32_t RegNum = Traits::RegisterSet::Reg_xmm0 + NumXmmArgs;
     ++NumXmmArgs;
     Variable *RegisterArg = Func->makeVariable(Ty);
@@ -351,15 +344,14 @@ void TargetX8632::lowerRet(const InstRet *Inst) {
       _mov(Reg, Src0, Traits::RegisterSet::Reg_eax);
     }
   }
-  // Add a ret instruction even if sandboxing is enabled, because
-  // addEpilog explicitly looks for a ret instruction as a marker for
-  // where to insert the frame removal instructions.
+  // Add a ret instruction even if sandboxing is enabled, because addEpilog
+  // explicitly looks for a ret instruction as a marker for where to insert the
+  // frame removal instructions.
   _ret(Reg);
   // Add a fake use of esp to make sure esp stays alive for the entire
-  // function.  Otherwise post-call esp adjustments get dead-code
-  // eliminated.  TODO: Are there more places where the fake use
-  // should be inserted?  E.g. "void f(int n){while(1) g(n);}" may not
-  // have a ret instruction.
+  // function. Otherwise post-call esp adjustments get dead-code eliminated.
+  // TODO: Are there more places where the fake use should be inserted? E.g.
+  // "void f(int n){while(1) g(n);}" may not have a ret instruction.
   Variable *esp =
       Func->getTarget()->getPhysicalRegister(Traits::RegisterSet::Reg_esp);
   Context.insert(InstFakeUse::create(Func, esp));
@@ -395,16 +387,15 @@ void TargetX8632::addProlog(CfgNode *Node) {
   //  * LocalsSpillAreaSize:    area 6
   //  * SpillAreaSizeBytes:     areas 3 - 7
 
-  // Determine stack frame offsets for each Variable without a
-  // register assignment.  This can be done as one variable per stack
-  // slot.  Or, do coalescing by running the register allocator again
-  // with an infinite set of registers (as a side effect, this gives
-  // variables a second chance at physical register assignment).
+  // Determine stack frame offsets for each Variable without a register
+  // assignment. This can be done as one variable per stack slot. Or, do
+  // coalescing by running the register allocator again with an infinite set of
+  // registers (as a side effect, this gives variables a second chance at
+  // physical register assignment).
   //
-  // A middle ground approach is to leverage sparsity and allocate one
-  // block of space on the frame for globals (variables with
-  // multi-block lifetime), and one block to share for locals
-  // (single-block lifetime).
+  // A middle ground approach is to leverage sparsity and allocate one block of
+  // space on the frame for globals (variables with multi-block lifetime), and
+  // one block to share for locals (single-block lifetime).
 
   Context.init(Node);
   Context.setInsertPoint(Context.getCur());
@@ -414,17 +405,16 @@ void TargetX8632::addProlog(CfgNode *Node) {
   RegsUsed = llvm::SmallBitVector(CalleeSaves.size());
   VarList SortedSpilledVariables, VariablesLinkedToSpillSlots;
   size_t GlobalsSize = 0;
-  // If there is a separate locals area, this represents that area.
-  // Otherwise it counts any variable not counted by GlobalsSize.
+  // If there is a separate locals area, this represents that area. Otherwise
+  // it counts any variable not counted by GlobalsSize.
   SpillAreaSizeBytes = 0;
-  // If there is a separate locals area, this specifies the alignment
-  // for it.
+  // If there is a separate locals area, this specifies the alignment for it.
   uint32_t LocalsSlotsAlignmentBytes = 0;
-  // The entire spill locations area gets aligned to largest natural
-  // alignment of the variables that have a spill slot.
+  // The entire spill locations area gets aligned to largest natural alignment
+  // of the variables that have a spill slot.
   uint32_t SpillAreaAlignmentBytes = 0;
-  // A spill slot linked to a variable with a stack slot should reuse
-  // that stack slot.
+  // A spill slot linked to a variable with a stack slot should reuse that
+  // stack slot.
   std::function<bool(Variable *)> TargetVarHook =
       [&VariablesLinkedToSpillSlots](Variable *Var) {
         if (auto *SpillVar =
@@ -466,15 +456,14 @@ void TargetX8632::addProlog(CfgNode *Node) {
     Variable *esp = getPhysicalRegister(Traits::RegisterSet::Reg_esp);
     _push(ebp);
     _mov(ebp, esp);
-    // Keep ebp live for late-stage liveness analysis
-    // (e.g. asm-verbose mode).
+    // Keep ebp live for late-stage liveness analysis (e.g. asm-verbose mode).
     Context.insert(InstFakeUse::create(Func, ebp));
   }
 
-  // Align the variables area. SpillAreaPaddingBytes is the size of
-  // the region after the preserved registers and before the spill areas.
-  // LocalsSlotsPaddingBytes is the amount of padding between the globals
-  // and locals area if they are separate.
+  // Align the variables area. SpillAreaPaddingBytes is the size of the region
+  // after the preserved registers and before the spill areas.
+  // LocalsSlotsPaddingBytes is the amount of padding between the globals and
+  // locals area if they are separate.
   assert(SpillAreaAlignmentBytes <= Traits::X86_STACK_ALIGNMENT_BYTES);
   assert(LocalsSlotsAlignmentBytes <= SpillAreaAlignmentBytes);
   uint32_t SpillAreaPaddingBytes = 0;
@@ -504,9 +493,9 @@ void TargetX8632::addProlog(CfgNode *Node) {
 
   resetStackAdjustment();
 
-  // Fill in stack offsets for stack args, and copy args into registers
-  // for those that were register-allocated.  Args are pushed right to
-  // left, so Arg[0] is closest to the stack/frame pointer.
+  // Fill in stack offsets for stack args, and copy args into registers for
+  // those that were register-allocated. Args are pushed right to left, so
+  // Arg[0] is closest to the stack/frame pointer.
   Variable *FramePtr = getPhysicalRegister(getFrameOrStackReg());
   size_t BasicFrameOffset =
       PreservedRegsSizeBytes + Traits::X86_RET_IP_SIZE_BYTES;
@@ -576,8 +565,8 @@ void TargetX8632::addEpilog(CfgNode *Node) {
   if (RI == E)
     return;
 
-  // Convert the reverse_iterator position into its corresponding
-  // (forward) iterator position.
+  // Convert the reverse_iterator position into its corresponding (forward)
+  // iterator position.
   InstList::iterator InsertPoint = RI.base();
   --InsertPoint;
   Context.init(Node);
@@ -586,9 +575,9 @@ void TargetX8632::addEpilog(CfgNode *Node) {
   Variable *esp = getPhysicalRegister(Traits::RegisterSet::Reg_esp);
   if (IsEbpBasedFrame) {
     Variable *ebp = getPhysicalRegister(Traits::RegisterSet::Reg_ebp);
-    // For late-stage liveness analysis (e.g. asm-verbose mode),
-    // adding a fake use of esp before the assignment of esp=ebp keeps
-    // previous esp adjustments from being dead-code eliminated.
+    // For late-stage liveness analysis (e.g. asm-verbose mode), adding a fake
+    // use of esp before the assignment of esp=ebp keeps previous esp
+    // adjustments from being dead-code eliminated.
     Context.insert(InstFakeUse::create(Func, esp));
     _mov(esp, ebp);
     _pop(ebp);
@@ -747,8 +736,8 @@ void TargetDataX8632::emitConstantPool(GlobalContext *Ctx) {
       continue;
     typename T::IceType *Const = llvm::cast<typename T::IceType>(C);
     typename T::IceType::PrimType Value = Const->getValue();
-    // Use memcpy() to copy bits from Value into RawValue in a way
-    // that avoids breaking strict-aliasing rules.
+    // Use memcpy() to copy bits from Value into RawValue in a way that avoids
+    // breaking strict-aliasing rules.
     typename T::PrimitiveIntType RawValue;
     memcpy(&RawValue, &Value, sizeof(Value));
     char buf[30];
@@ -766,8 +755,8 @@ void TargetDataX8632::emitConstantPool(GlobalContext *Ctx) {
 void TargetDataX8632::lowerConstants() {
   if (Ctx->getFlags().getDisableTranslation())
     return;
-  // No need to emit constants from the int pool since (for x86) they
-  // are embedded as immediates in the instructions, just emit float/double.
+  // No need to emit constants from the int pool since (for x86) they are
+  // embedded as immediates in the instructions, just emit float/double.
   switch (Ctx->getFlags().getOutFileType()) {
   case FT_Elf: {
     ELFObjectWriter *Writer = Ctx->getObjectWriter();
@@ -846,19 +835,17 @@ void TargetDataX8632::lowerGlobals(const VariableDeclarationList &Vars,
 TargetHeaderX8632::TargetHeaderX8632(GlobalContext *Ctx)
     : TargetHeaderLowering(Ctx) {}
 
-// In some cases, there are x-macros tables for both high-level and
-// low-level instructions/operands that use the same enum key value.
-// The tables are kept separate to maintain a proper separation
-// between abstraction layers.  There is a risk that the tables could
-// get out of sync if enum values are reordered or if entries are
-// added or deleted.  The following dummy namespaces use
+// In some cases, there are x-macros tables for both high-level and low-level
+// instructions/operands that use the same enum key value. The tables are kept
+// separate to maintain a proper separation between abstraction layers. There
+// is a risk that the tables could get out of sync if enum values are reordered
+// or if entries are added or deleted. The following dummy namespaces use
 // static_asserts to ensure everything is kept in sync.
 
 namespace {
 // Validate the enum values in FCMPX8632_TABLE.
 namespace dummy1 {
-// Define a temporary set of enum values based on low-level table
-// entries.
+// Define a temporary set of enum values based on low-level table entries.
 enum _tmp_enum {
 #define X(val, dflt, swapS, C1, C2, swapV, pred) _tmp_##val,
   FCMPX8632_TABLE
@@ -869,8 +856,8 @@ enum _tmp_enum {
 #define X(tag, str) static const int _table1_##tag = InstFcmp::tag;
 ICEINSTFCMP_TABLE
 #undef X
-// Define a set of constants based on low-level table entries, and
-// ensure the table entry keys are consistent.
+// Define a set of constants based on low-level table entries, and ensure the
+// table entry keys are consistent.
 #define X(val, dflt, swapS, C1, C2, swapV, pred)                               \
   static const int _table2_##val = _tmp_##val;                                 \
   static_assert(                                                               \
@@ -878,8 +865,8 @@ ICEINSTFCMP_TABLE
       "Inconsistency between FCMPX8632_TABLE and ICEINSTFCMP_TABLE");
 FCMPX8632_TABLE
 #undef X
-// Repeat the static asserts with respect to the high-level table
-// entries in case the high-level table has extra entries.
+// Repeat the static asserts with respect to the high-level table entries in
+// case the high-level table has extra entries.
 #define X(tag, str)                                                            \
   static_assert(                                                               \
       _table1_##tag == _table2_##tag,                                          \
@@ -890,8 +877,7 @@ ICEINSTFCMP_TABLE
 
 // Validate the enum values in ICMPX8632_TABLE.
 namespace dummy2 {
-// Define a temporary set of enum values based on low-level table
-// entries.
+// Define a temporary set of enum values based on low-level table entries.
 enum _tmp_enum {
 #define X(val, C_32, C1_64, C2_64, C3_64) _tmp_##val,
   ICMPX8632_TABLE
@@ -902,8 +888,8 @@ enum _tmp_enum {
 #define X(tag, str) static const int _table1_##tag = InstIcmp::tag;
 ICEINSTICMP_TABLE
 #undef X
-// Define a set of constants based on low-level table entries, and
-// ensure the table entry keys are consistent.
+// Define a set of constants based on low-level table entries, and ensure the
+// table entry keys are consistent.
 #define X(val, C_32, C1_64, C2_64, C3_64)                                      \
   static const int _table2_##val = _tmp_##val;                                 \
   static_assert(                                                               \
@@ -911,8 +897,8 @@ ICEINSTICMP_TABLE
       "Inconsistency between ICMPX8632_TABLE and ICEINSTICMP_TABLE");
 ICMPX8632_TABLE
 #undef X
-// Repeat the static asserts with respect to the high-level table
-// entries in case the high-level table has extra entries.
+// Repeat the static asserts with respect to the high-level table entries in
+// case the high-level table has extra entries.
 #define X(tag, str)                                                            \
   static_assert(                                                               \
       _table1_##tag == _table2_##tag,                                          \
@@ -923,8 +909,7 @@ ICEINSTICMP_TABLE
 
 // Validate the enum values in ICETYPEX8632_TABLE.
 namespace dummy3 {
-// Define a temporary set of enum values based on low-level table
-// entries.
+// Define a temporary set of enum values based on low-level table entries.
 enum _tmp_enum {
 #define X(tag, elementty, cvt, sdss, pack, width, fld) _tmp_##tag,
   ICETYPEX8632_TABLE
@@ -936,16 +921,16 @@ enum _tmp_enum {
   static const int _table1_##tag = tag;
 ICETYPE_TABLE
 #undef X
-// Define a set of constants based on low-level table entries, and
-// ensure the table entry keys are consistent.
+// Define a set of constants based on low-level table entries, and ensure the
+// table entry keys are consistent.
 #define X(tag, elementty, cvt, sdss, pack, width, fld)                         \
   static const int _table2_##tag = _tmp_##tag;                                 \
   static_assert(_table1_##tag == _table2_##tag,                                \
                 "Inconsistency between ICETYPEX8632_TABLE and ICETYPE_TABLE");
 ICETYPEX8632_TABLE
 #undef X
-// Repeat the static asserts with respect to the high-level table
-// entries in case the high-level table has extra entries.
+// Repeat the static asserts with respect to the high-level table entries in
+// case the high-level table has extra entries.
 #define X(tag, sizeLog2, align, elts, elty, str)                               \
   static_assert(_table1_##tag == _table2_##tag,                                \
                 "Inconsistency between ICETYPEX8632_TABLE and ICETYPE_TABLE");

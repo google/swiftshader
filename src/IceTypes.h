@@ -8,9 +8,8 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares a few properties of the primitive types allowed
-/// in Subzero.  Every Subzero source file is expected to include
-/// IceTypes.h.
+/// This file declares a few properties of the primitive types allowed in
+/// Subzero. Every Subzero source file is expected to include IceTypes.h.
 ///
 //===----------------------------------------------------------------------===//
 
@@ -42,8 +41,8 @@ inline Ostream &operator<<(Ostream &Stream, TargetArch Arch) {
   return Stream << targetArchString(Arch);
 }
 
-/// The list of all target instruction sets. Individual targets will
-/// map this to include only what is valid for the target.
+/// The list of all target instruction sets. Individual targets will map this to
+/// include only what is valid for the target.
 enum TargetInstructionSet {
   // Represents baseline that can be assumed for a target (usually "Begin").
   BaseInstructionSet,
@@ -97,8 +96,8 @@ inline bool isByteSizedType(Type Ty) {
   return result;
 }
 
-/// Check if Ty is byte sized and specifically i8. Assert that it's not
-/// byte sized due to being an i1.
+/// Check if Ty is byte sized and specifically i8. Assert that it's not byte
+/// sized due to being an i1.
 inline bool isByteSizedArithType(Type Ty) {
   assert(Ty != IceType_i1);
   return Ty == IceType_i8;
@@ -131,8 +130,8 @@ class FuncSigType {
 public:
   using ArgListType = std::vector<Type>;
 
-  /// Creates a function signature type with the given return type.
-  /// Parameter types should be added using calls to appendArgType.
+  /// Creates a function signature type with the given return type. Parameter
+  /// types should be added using calls to appendArgType.
   FuncSigType() = default;
   FuncSigType(const FuncSigType &Ty) = default;
 

@@ -79,8 +79,8 @@ public:
   void setFunctionSections(bool NewValue) { FunctionSections = NewValue; }
 
   bool getGenerateUnitTestMessages() const {
-    // Note: If dump routines have been turned off, the error messages
-    // will not be readable. Hence, turn off.
+    // Note: If dump routines have been turned off, the error messages will not
+    // be readable. Hence, turn off.
     return !BuildDefs::dump() || GenerateUnitTestMessages;
   }
   void setGenerateUnitTestMessages(bool NewValue) {

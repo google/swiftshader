@@ -195,8 +195,8 @@ public:
       Type, typename Traits::GPRRegister, typename Traits::GPRRegister,
       const Immediate &);
   struct GPREmitterShiftD {
-    // Technically AddrGPR and AddrGPRImm are also allowed, but in practice
-    // we always normalize Dest to a Register first.
+    // Technically AddrGPR and AddrGPRImm are also allowed, but in practice we
+    // always normalize Dest to a Register first.
     TypedEmitGPRGPR GPRGPR;
     TypedEmitGPRGPRImm GPRGPRImm;
   };
@@ -252,8 +252,8 @@ public:
     TypedEmitAddr RegAddr;
   };
 
-  // Three operand (potentially) cross Xmm/GPR instructions.
-  // The last operand must be an immediate.
+  // Three operand (potentially) cross Xmm/GPR instructions. The last operand
+  // must be an immediate.
   template <typename DReg_t, typename SReg_t> struct ThreeOpImmEmitter {
     using TypedEmitRegRegImm = void (AssemblerX86Base::*)(Type, DReg_t, SReg_t,
                                                           const Immediate &);
@@ -906,8 +906,8 @@ private:
 
   Label *getOrCreateLabel(SizeT Number, LabelVector &Labels);
 
-  // The arith_int() methods factor out the commonality between the encodings of
-  // add(), Or(), adc(), sbb(), And(), sub(), Xor(), and cmp().  The Tag
+  // The arith_int() methods factor out the commonality between the encodings
+  // of add(), Or(), adc(), sbb(), And(), sub(), Xor(), and cmp(). The Tag
   // parameter is statically asserted to be less than 8.
   template <uint32_t Tag>
   void arith_int(Type Ty, typename Traits::GPRRegister reg,
@@ -957,10 +957,10 @@ private:
            isByteSizedType(Ty);
   }
 
-  // assembleAndEmitRex is used for determining which (if any) rex prefix should
-  // be emitted for the current instruction. It allows different types for Reg
-  // and Rm because they could be of different types (e.g., in mov[sz]x
-  // instrutions.) If Addr is not nullptr, then Rm is ignored, and Rex.B is
+  // assembleAndEmitRex is used for determining which (if any) rex prefix
+  // should be emitted for the current instruction. It allows different types
+  // for Reg and Rm because they could be of different types (e.g., in mov[sz]x
+  // instructions.) If Addr is not nullptr, then Rm is ignored, and Rex.B is
   // determined by Addr instead. TyRm is still used to determine Addr's size.
   template <typename RegType, typename RmType, typename T = Traits>
   typename std::enable_if<T::Is64Bit, void>::type
@@ -1005,9 +1005,9 @@ private:
     assembleAndEmitRex(TyReg, Reg, TyRm, Rm);
   }
 
-  // emitRexB is used for emitting a Rex prefix if one is needed on encoding the
-  // Reg field in an x86 instruction. It is invoked by the template when Reg is
-  // the single register operand in the instruction (e.g., push Reg.)
+  // emitRexB is used for emitting a Rex prefix if one is needed on encoding
+  // the Reg field in an x86 instruction. It is invoked by the template when
+  // Reg is the single register operand in the instruction (e.g., push Reg.)
   template <typename RmType> void emitRexB(const Type Ty, const RmType Rm) {
     emitRexRB(Ty, RexRegIrrelevant, Ty, Rm);
   }

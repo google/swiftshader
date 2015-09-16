@@ -112,16 +112,14 @@ InstX86Br<Machine>::InstX86Br(
 
 template <class Machine>
 bool InstX86Br<Machine>::optimizeBranch(const CfgNode *NextNode) {
-  // If there is no next block, then there can be no fallthrough to
-  // optimize.
+  // If there is no next block, then there can be no fallthrough to optimize.
   if (NextNode == nullptr)
     return false;
   // Intra-block conditional branches can't be optimized.
   if (Label)
     return false;
-  // If there is no fallthrough node, such as a non-default case label
-  // for a switch instruction, then there is no opportunity to
-  // optimize.
+  // If there is no fallthrough node, such as a non-default case label for a
+  // switch instruction, then there is no opportunity to optimize.
   if (getTargetFalse() == nullptr)
     return false;
 
@@ -132,15 +130,15 @@ bool InstX86Br<Machine>::optimizeBranch(const CfgNode *NextNode) {
     this->setDeleted();
     return true;
   }
-  // If the fallthrough is to the next node, set fallthrough to nullptr
-  // to indicate.
+  // If the fallthrough is to the next node, set fallthrough to nullptr to
+  // indicate.
   if (getTargetFalse() == NextNode) {
     TargetFalse = nullptr;
     return true;
   }
-  // If TargetTrue is the next node, and TargetFalse is not nullptr
-  // (which was already tested above), then invert the branch
-  // condition, swap the targets, and set new fallthrough to nullptr.
+  // If TargetTrue is the next node, and TargetFalse is not nullptr (which was
+  // already tested above), then invert the branch condition, swap the targets,
+  // and set new fallthrough to nullptr.
   if (getTargetTrue() == NextNode) {
     assert(Condition != InstX86Base<Machine>::Traits::Cond::Br_None);
     Condition = this->getOppositeCondition(Condition);
@@ -185,8 +183,8 @@ InstX86Cmov<Machine>::InstX86Cmov(
     typename InstX86Base<Machine>::Traits::Cond::BrCond Condition)
     : InstX86Base<Machine>(Func, InstX86Base<Machine>::Cmov, 2, Dest),
       Condition(Condition) {
-  // The final result is either the original Dest, or Source, so mark
-  // both as sources.
+  // The final result is either the original Dest, or Source, so mark both as
+  // sources.
   this->addSource(Dest);
   this->addSource(Source);
 }
@@ -320,12 +318,11 @@ InstX86Fstp<Machine>::InstX86Fstp(Cfg *Func, Variable *Dest)
 template <class Machine>
 InstX86Pop<Machine>::InstX86Pop(Cfg *Func, Variable *Dest)
     : InstX86Base<Machine>(Func, InstX86Base<Machine>::Pop, 0, Dest) {
-  // A pop instruction affects the stack pointer and so it should not
-  // be allowed to be automatically dead-code eliminated.  (The
-  // corresponding push instruction doesn't need this treatment
-  // because it has no dest variable and therefore won't be dead-code
-  // eliminated.)  This is needed for late-stage liveness analysis
-  // (e.g. asm-verbose mode).
+  // A pop instruction affects the stack pointer and so it should not be
+  // allowed to be automatically dead-code eliminated. (The corresponding push
+  // instruction doesn't need this treatment because it has no dest variable
+  // and therefore won't be dead-code eliminated.) This is needed for
+  // late-stage liveness analysis (e.g. asm-verbose mode).
   this->HasSideEffects = true;
 }
 
@@ -529,11 +526,10 @@ void InstX86Jmp<Machine>::emitIAS(const Cfg *Func) const {
       Asm->jmp(InstX86Base<Machine>::Traits::RegisterSet::getEncodedGPR(
           Var->getRegNum()));
     } else {
-      // The jmp instruction with a memory operand should be possible
-      // to encode, but it isn't a valid sandboxed instruction, and
-      // there shouldn't be a register allocation issue to jump
-      // through a scratch register, so we don't really need to bother
-      // implementing it.
+      // The jmp instruction with a memory operand should be possible to
+      // encode, but it isn't a valid sandboxed instruction, and there
+      // shouldn't be a register allocation issue to jump through a scratch
+      // register, so we don't really need to bother implementing it.
       llvm::report_fatal_error("Assembler can't jmp to memory operand");
     }
   } else if (const auto Mem = llvm::dyn_cast<
@@ -548,11 +544,10 @@ void InstX86Jmp<Machine>::emitIAS(const Cfg *Func) const {
     Asm->jmp(CR);
   } else if (const auto Imm = llvm::dyn_cast<ConstantInteger32>(Target)) {
     // NaCl trampoline calls refer to an address within the sandbox directly.
-    // This is usually only needed for non-IRT builds and otherwise not
-    // very portable or stable. Usually this is only done for "calls"
-    // and not jumps.
-    // TODO(jvoung): Support this when there is a lowering that
-    // actually triggers this case.
+    // This is usually only needed for non-IRT builds and otherwise not very
+    // portable or stable. Usually this is only done for "calls" and not jumps.
+    // TODO(jvoung): Support this when there is a lowering that actually
+    // triggers this case.
     (void)Imm;
     llvm::report_fatal_error("Unexpected jmp to absolute address");
   } else {
@@ -633,10 +628,9 @@ void InstX86Call<Machine>::dump(const Cfg *Func) const {
   getCallTarget()->dump(Func);
 }
 
-// The ShiftHack parameter is used to emit "cl" instead of "ecx" for
-// shift instructions, in order to be syntactically valid.  The
-// this->Opcode parameter needs to be char* and not IceString because of
-// template issues.
+// The ShiftHack parameter is used to emit "cl" instead of "ecx" for shift
+// instructions, in order to be syntactically valid. The this->Opcode parameter
+// needs to be char* and not IceString because of template issues.
 template <class Machine>
 void InstX86Base<Machine>::emitTwoAddress(const char *Opcode, const Inst *Inst,
                                           const Cfg *Func, bool ShiftHack) {
@@ -802,15 +796,14 @@ void InstX86Base<Machine>::emitIASGPRShift(
         &Emitter) {
   typename InstX86Base<Machine>::Traits::Assembler *Asm =
       Func->getAssembler<typename InstX86Base<Machine>::Traits::Assembler>();
-  // Technically, the Dest Var can be mem as well, but we only use Reg.
-  // We can extend this to check Dest if we decide to use that form.
+  // Technically, the Dest Var can be mem as well, but we only use Reg. We can
+  // extend this to check Dest if we decide to use that form.
   assert(Var->hasReg());
   // We cheat a little and use GPRRegister even for byte operations.
   typename InstX86Base<Machine>::Traits::RegisterSet::GPRRegister VarReg =
       InstX86Base<Machine>::Traits::RegisterSet::getEncodedByteRegOrGPR(
           Ty, Var->getRegNum());
-  // Src must be reg == ECX or an Imm8.
-  // This is asserted by the assembler.
+  // Src must be reg == ECX or an Imm8. This is asserted by the assembler.
   if (const auto SrcVar = llvm::dyn_cast<Variable>(Src)) {
     assert(SrcVar->hasReg());
     typename InstX86Base<Machine>::Traits::RegisterSet::GPRRegister SrcReg =
@@ -1337,8 +1330,8 @@ void InstX86Imul<Machine>::emitIAS(const Cfg *Func) const {
         &InstX86Base<Machine>::Traits::Assembler::imul};
     emitIASOpTyGPR<Machine>(Func, Ty, this->getSrc(1), Emitter);
   } else {
-    // We only use imul as a two-address instruction even though
-    // there is a 3 operand version when one of the operands is a constant.
+    // We only use imul as a two-address instruction even though there is a 3
+    // operand version when one of the operands is a constant.
     assert(Var == this->getSrc(0));
     static const typename InstX86Base<
         Machine>::Traits::Assembler::GPREmitterRegOp Emitter = {
@@ -1678,8 +1671,8 @@ void InstX86Cmpps<Machine>::emitIAS(const Cfg *Func) const {
       Func->getAssembler<typename InstX86Base<Machine>::Traits::Assembler>();
   assert(this->getSrcSize() == 2);
   assert(Condition < InstX86Base<Machine>::Traits::Cond::Cmpps_Invalid);
-  // Assuming there isn't any load folding for cmpps, and vector constants
-  // are not allowed in PNaCl.
+  // Assuming there isn't any load folding for cmpps, and vector constants are
+  // not allowed in PNaCl.
   assert(llvm::isa<Variable>(this->getSrc(1)));
   const auto SrcVar = llvm::cast<Variable>(this->getSrc(1));
   if (SrcVar->hasReg()) {
@@ -1988,8 +1981,8 @@ void InstX86Ucomiss<Machine>::emit(const Cfg *Func) const {
 template <class Machine>
 void InstX86Ucomiss<Machine>::emitIAS(const Cfg *Func) const {
   assert(this->getSrcSize() == 2);
-  // Currently src0 is always a variable by convention, to avoid having
-  // two memory operands.
+  // Currently src0 is always a variable by convention, to avoid having two
+  // memory operands.
   assert(llvm::isa<Variable>(this->getSrc(0)));
   const auto Src0Var = llvm::cast<Variable>(this->getSrc(0));
   Type Ty = Src0Var->getType();
@@ -2291,16 +2284,16 @@ template <class Machine> void InstX86Mov<Machine>::emit(const Cfg *Func) const {
                 : InstX86Base<Machine>::Traits::TypeAttributes[DestTy]
                       .SdSsString) << "\t";
   }
-  // For an integer truncation operation, src is wider than dest.
-  // Ideally, we use a mov instruction whose data width matches the
-  // narrower dest.  This is a problem if e.g. src is a register like
-  // esi or si where there is no 8-bit version of the register.  To be
-  // safe, we instead widen the dest to match src.  This works even
-  // for stack-allocated dest variables because typeWidthOnStack()
-  // pads to a 4-byte boundary even if only a lower portion is used.
-  // TODO: This assert disallows usages such as copying a floating point
-  // value between a vector and a scalar (which movss is used for).
-  // Clean this up.
+  // For an integer truncation operation, src is wider than dest. Ideally, we
+  // use a mov instruction whose data width matches the narrower dest. This is
+  // a problem if e.g. src is a register like esi or si where there is no 8-bit
+  // version of the register. To be safe, we instead widen the dest to match
+  // src. This works even for stack-allocated dest variables because
+  // typeWidthOnStack() pads to a 4-byte boundary even if only a lower portion
+  // is used.
+  // TODO: This assert disallows usages such as copying a floating
+  // point value between a vector and a scalar (which movss is used for). Clean
+  // this up.
   assert(Func->getTarget()->typeWidthInBytesOnStack(DestTy) ==
          Func->getTarget()->typeWidthInBytesOnStack(SrcTy));
   Src->emit(Func);
@@ -2316,12 +2309,11 @@ void InstX86Mov<Machine>::emitIAS(const Cfg *Func) const {
   Type DestTy = Dest->getType();
   Type SrcTy = Src->getType();
   // Mov can be used for GPRs or XMM registers. Also, the type does not
-  // necessarily match (Mov can be used for bitcasts). However, when
-  // the type does not match, one of the operands must be a register.
-  // Thus, the strategy is to find out if Src or Dest are a register,
-  // then use that register's type to decide on which emitter set to use.
-  // The emitter set will include reg-reg movs, but that case should
-  // be unused when the types don't match.
+  // necessarily match (Mov can be used for bitcasts). However, when the type
+  // does not match, one of the operands must be a register. Thus, the strategy
+  // is to find out if Src or Dest are a register, then use that register's
+  // type to decide on which emitter set to use. The emitter set will include
+  // reg-reg movs, but that case should be unused when the types don't match.
   static const typename InstX86Base<Machine>::Traits::Assembler::XmmEmitterRegOp
       XmmRegEmitter = {&InstX86Base<Machine>::Traits::Assembler::movss,
                        &InstX86Base<Machine>::Traits::Assembler::movss};
@@ -2333,16 +2325,16 @@ void InstX86Mov<Machine>::emitIAS(const Cfg *Func) const {
       Machine>::Traits::Assembler::GPREmitterAddrOp GPRAddrEmitter = {
       &InstX86Base<Machine>::Traits::Assembler::mov,
       &InstX86Base<Machine>::Traits::Assembler::mov};
-  // For an integer truncation operation, src is wider than dest.
-  // Ideally, we use a mov instruction whose data width matches the
-  // narrower dest.  This is a problem if e.g. src is a register like
-  // esi or si where there is no 8-bit version of the register.  To be
-  // safe, we instead widen the dest to match src.  This works even
-  // for stack-allocated dest variables because typeWidthOnStack()
-  // pads to a 4-byte boundary even if only a lower portion is used.
-  // TODO: This assert disallows usages such as copying a floating point
-  // value between a vector and a scalar (which movss is used for).
-  // Clean this up.
+  // For an integer truncation operation, src is wider than dest. Ideally, we
+  // use a mov instruction whose data width matches the narrower dest. This is
+  // a problem if e.g. src is a register like esi or si where there is no 8-bit
+  // version of the register. To be safe, we instead widen the dest to match
+  // src. This works even for stack-allocated dest variables because
+  // typeWidthOnStack() pads to a 4-byte boundary even if only a lower portion
+  // is used.
+  // TODO: This assert disallows usages such as copying a floating
+  // point value between a vector and a scalar (which movss is used for). Clean
+  // this up.
   assert(
       Func->getTarget()->typeWidthInBytesOnStack(this->getDest()->getType()) ==
       Func->getTarget()->typeWidthInBytesOnStack(Src->getType()));
@@ -2375,8 +2367,8 @@ void InstX86Mov<Machine>::emitIAS(const Cfg *Func) const {
       return;
     }
   } else {
-    // Dest must be Stack and Src *could* be a register. Use Src's type
-    // to decide on the emitters.
+    // Dest must be Stack and Src *could* be a register. Use Src's type to
+    // decide on the emitters.
     typename InstX86Base<Machine>::Traits::Address StackAddr(
         static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
             Func->getTarget())
@@ -2409,8 +2401,8 @@ void InstX86Movd<Machine>::emitIAS(const Cfg *Func) const {
   assert(this->getSrcSize() == 1);
   const Variable *Dest = this->getDest();
   const auto SrcVar = llvm::cast<Variable>(this->getSrc(0));
-  // For insert/extract element (one of Src/Dest is an Xmm vector and
-  // the other is an int type).
+  // For insert/extract element (one of Src/Dest is an Xmm vector and the other
+  // is an int type).
   if (SrcVar->getType() == IceType_i32 ||
       (InstX86Base<Machine>::Traits::Is64Bit &&
        SrcVar->getType() == IceType_i64)) {
@@ -2464,10 +2456,9 @@ template <class Machine>
 void InstX86Movp<Machine>::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
-  // TODO(wala,stichnot): movups works with all vector operands, but
-  // there exist other instructions (movaps, movdqa, movdqu) that may
-  // perform better, depending on the data type and alignment of the
-  // operands.
+  // TODO(wala,stichnot): movups works with all vector operands, but there
+  // exist other instructions (movaps, movdqa, movdqu) that may perform better,
+  // depending on the data type and alignment of the operands.
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 1);
   Str << "\tmovups\t";
@@ -2521,8 +2512,8 @@ void InstX86Movq<Machine>::emitIAS(const Cfg *Func) const {
 
 template <class Machine>
 void InstX86MovssRegs<Machine>::emitIAS(const Cfg *Func) const {
-  // This is Binop variant is only intended to be used for reg-reg moves
-  // where part of the Dest register is untouched.
+  // This is Binop variant is only intended to be used for reg-reg moves where
+  // part of the Dest register is untouched.
   assert(this->getSrcSize() == 2);
   const Variable *Dest = this->getDest();
   assert(Dest == this->getSrc(0));
@@ -2542,9 +2533,9 @@ void InstX86Movsx<Machine>::emitIAS(const Cfg *Func) const {
   assert(this->getSrcSize() == 1);
   const Variable *Dest = this->getDest();
   const Operand *Src = this->getSrc(0);
-  // Dest must be a > 8-bit register, but Src can be 8-bit. In practice
-  // we just use the full register for Dest to avoid having an
-  // OperandSizeOverride prefix. It also allows us to only dispatch on SrcTy.
+  // Dest must be a > 8-bit register, but Src can be 8-bit. In practice we just
+  // use the full register for Dest to avoid having an OperandSizeOverride
+  // prefix. It also allows us to only dispatch on SrcTy.
   Type SrcTy = Src->getType();
   assert(typeWidthInBytes(Dest->getType()) > 1);
   assert(typeWidthInBytes(Dest->getType()) > typeWidthInBytes(SrcTy));
@@ -2596,8 +2587,8 @@ template <class Machine> void InstX86Fld<Machine>::emit(const Cfg *Func) const {
   SizeT Width = typeWidthInBytes(Ty);
   const auto Var = llvm::dyn_cast<Variable>(this->getSrc(0));
   if (Var && Var->hasReg()) {
-    // This is a physical xmm register, so we need to spill it to a
-    // temporary stack slot.
+    // This is a physical xmm register, so we need to spill it to a temporary
+    // stack slot.
     Str << "\tsubl\t$" << Width << ", %esp"
         << "\n";
     Str << "\tmov"
@@ -2622,8 +2613,8 @@ void InstX86Fld<Machine>::emitIAS(const Cfg *Func) const {
   Type Ty = Src->getType();
   if (const auto Var = llvm::dyn_cast<Variable>(Src)) {
     if (Var->hasReg()) {
-      // This is a physical xmm register, so we need to spill it to a
-      // temporary stack slot.
+      // This is a physical xmm register, so we need to spill it to a temporary
+      // stack slot.
       Immediate Width(typeWidthInBytes(Ty));
       Asm->sub(IceType_i32,
                InstX86Base<Machine>::Traits::RegisterSet::Encoded_Reg_esp,
@@ -2672,9 +2663,8 @@ void InstX86Fstp<Machine>::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 0);
   // TODO(jvoung,stichnot): Utilize this by setting Dest to nullptr to
-  // "partially" delete the fstp if the Dest is unused.
-  // Even if Dest is unused, the fstp should be kept for the SideEffects
-  // of popping the stack.
+  // "partially" delete the fstp if the Dest is unused. Even if Dest is unused,
+  // the fstp should be kept for the SideEffects of popping the stack.
   if (!this->getDest()) {
     Str << "\tfstp\tst(0)";
     return;
@@ -2686,10 +2676,9 @@ void InstX86Fstp<Machine>::emit(const Cfg *Func) const {
     this->getDest()->emit(Func);
     return;
   }
-  // Dest is a physical (xmm) register, so st(0) needs to go through
-  // memory.  Hack this by creating a temporary stack slot, spilling
-  // st(0) there, loading it into the xmm register, and deallocating
-  // the stack slot.
+  // Dest is a physical (xmm) register, so st(0) needs to go through memory.
+  // Hack this by creating a temporary stack slot, spilling st(0) there,
+  // loading it into the xmm register, and deallocating the stack slot.
   Str << "\tsubl\t$" << Width << ", %esp\n";
   Str << "\tfstp" << this->getFldString(Ty) << "\t"
       << "(%esp)\n";
@@ -2708,9 +2697,8 @@ void InstX86Fstp<Machine>::emitIAS(const Cfg *Func) const {
   assert(this->getSrcSize() == 0);
   const Variable *Dest = this->getDest();
   // TODO(jvoung,stichnot): Utilize this by setting Dest to nullptr to
-  // "partially" delete the fstp if the Dest is unused.
-  // Even if Dest is unused, the fstp should be kept for the SideEffects
-  // of popping the stack.
+  // "partially" delete the fstp if the Dest is unused. Even if Dest is unused,
+  // the fstp should be kept for the SideEffects of popping the stack.
   if (!Dest) {
     Asm->fstp(InstX86Base<Machine>::Traits::RegisterSet::getEncodedSTReg(0));
     return;
@@ -2723,10 +2711,9 @@ void InstX86Fstp<Machine>::emitIAS(const Cfg *Func) const {
             ->stackVarToAsmOperand(Dest));
     Asm->fstp(Ty, StackAddr);
   } else {
-    // Dest is a physical (xmm) register, so st(0) needs to go through
-    // memory.  Hack this by creating a temporary stack slot, spilling
-    // st(0) there, loading it into the xmm register, and deallocating
-    // the stack slot.
+    // Dest is a physical (xmm) register, so st(0) needs to go through memory.
+    // Hack this by creating a temporary stack slot, spilling st(0) there,
+    // loading it into the xmm register, and deallocating the stack slot.
     Immediate Width(typeWidthInBytes(Ty));
     Asm->sub(IceType_i32,
              InstX86Base<Machine>::Traits::RegisterSet::Encoded_Reg_esp, Width);
@@ -2796,9 +2783,9 @@ void InstX86Pextr<Machine>::emit(const Cfg *Func) const {
   this->getSrc(0)->emit(Func);
   Str << ", ";
   Variable *Dest = this->getDest();
-  // pextrw must take a register dest. There is an SSE4.1 version that takes
-  // a memory dest, but we aren't using it. For uniformity, just restrict
-  // them all to have a register dest for now.
+  // pextrw must take a register dest. There is an SSE4.1 version that takes a
+  // memory dest, but we aren't using it. For uniformity, just restrict them
+  // all to have a register dest for now.
   assert(Dest->hasReg());
   Dest->asType(IceType_i32)->emit(Func);
 }
@@ -2813,9 +2800,9 @@ void InstX86Pextr<Machine>::emitIAS(const Cfg *Func) const {
          static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
              Func->getTarget())
                  ->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1);
-  // pextrw must take a register dest. There is an SSE4.1 version that takes
-  // a memory dest, but we aren't using it. For uniformity, just restrict
-  // them all to have a register dest for now.
+  // pextrw must take a register dest. There is an SSE4.1 version that takes a
+  // memory dest, but we aren't using it. For uniformity, just restrict them
+  // all to have a register dest for now.
   assert(Dest->hasReg());
   // pextrw's Src(0) must be a register (both SSE4.1 and SSE2).
   assert(llvm::cast<Variable>(this->getSrc(0))->hasReg());
@@ -2876,10 +2863,9 @@ void InstX86Pinsr<Machine>::emitIAS(const Cfg *Func) const {
          static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
              Func->getTarget())
                  ->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1);
-  // If src1 is a register, it should always be r32 (this should fall out
-  // from the encodings for ByteRegs overlapping the encodings for r32),
-  // but we have to trust the regalloc to not choose "ah", where it
-  // doesn't overlap.
+  // If src1 is a register, it should always be r32 (this should fall out from
+  // the encodings for ByteRegs overlapping the encodings for r32), but we have
+  // to trust the regalloc to not choose "ah", where it doesn't overlap.
   static const typename InstX86Base<Machine>::Traits::Assembler::
       template ThreeOpImmEmitter<
           typename InstX86Base<Machine>::Traits::RegisterSet::XmmRegister,

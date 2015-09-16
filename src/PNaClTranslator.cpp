@@ -41,11 +41,10 @@
 namespace {
 using namespace llvm;
 
-// Models elements in the list of types defined in the types block.
-// These elements can be undefined, a (simple) type, or a function type
-// signature. Note that an extended type is undefined on construction.
-// Use methods setAsSimpleType and setAsFuncSigType to define
-// the extended type.
+// Models elements in the list of types defined in the types block. These
+// elements can be undefined, a (simple) type, or a function type signature.
+// Note that an extended type is undefined on construction. Use methods
+// setAsSimpleType and setAsFuncSigType to define the extended type.
 class ExtendedType {
   ExtendedType &operator=(const ExtendedType &Ty) = delete;
 
@@ -61,8 +60,7 @@ public:
   ExtendedType::TypeKind getKind() const { return Kind; }
   void dump(Ice::Ostream &Stream) const;
 
-  /// Changes the extended type to a simple type with the given
-  /// value.
+  /// Changes the extended type to a simple type with the given / value.
   void setAsSimpleType(Ice::Type Ty) {
     assert(Kind == Undefined);
     Kind = Simple;
@@ -76,8 +74,8 @@ public:
   }
 
 protected:
-  // Note: For simple types, the return type of the signature will
-  // be used to hold the simple type.
+  // Note: For simple types, the return type of the signature will be used to
+  // hold the simple type.
   Ice::FuncSigType Signature;
 
 private:
@@ -180,16 +178,15 @@ public:
     BlockParser = NewBlockParser;
   }
 
-  /// Generates error with given Message, occurring at BitPosition
-  /// within the bitcode file. Always returns true.
+  /// Generates error with given Message, occurring at BitPosition within the
+  /// bitcode file. Always returns true.
   bool ErrorAt(naclbitc::ErrorLevel Level, uint64_t BitPosition,
                const std::string &Message) final;
 
   /// Generates error message with respect to the current block parser.
   bool blockError(const std::string &Message);
 
-  /// Returns the number of errors found while parsing the bitcode
-  /// file.
+  /// Returns the number of errors found while parsing the bitcode file.
   unsigned getNumErrors() const { return NumErrors; }
 
   /// Changes the size of the type list to the given size.
@@ -202,11 +199,11 @@ public:
     return Translator.getFlags().getDisableIRGeneration();
   }
 
-  /// Returns the undefined type associated with type ID.
-  /// Note: Returns extended type ready to be defined.
+  /// Returns the undefined type associated with type ID. Note: Returns extended
+  /// type ready to be defined.
   ExtendedType *getTypeByIDForDefining(NaClBcIndexSize_t ID) {
-    // Get corresponding element, verifying the value is still undefined
-    // (and hence allowed to be defined).
+    // Get corresponding element, verifying the value is still undefined (and
+    // hence allowed to be defined).
     ExtendedType *Ty = getTypeByIDAsKind(ID, ExtendedType::Undefined);
     if (Ty)
       return Ty;
@@ -248,9 +245,9 @@ public:
     FunctionDeclarations.push_back(Fcn);
   }
 
-  /// Returns the value id that should be associated with the the
-  /// current function block. Increments internal counters during call
-  /// so that it will be in correct position for next function block.
+  /// Returns the value id that should be associated with the the current
+  /// function block. Increments internal counters during call so that it will
+  /// be in correct position for next function block.
   NaClBcIndexSize_t getNextFunctionBlockValueID() {
     size_t NumDeclaredFunctions = FunctionDeclarations.size();
     while (NextDefiningFunctionID < NumDeclaredFunctions &&
@@ -274,9 +271,9 @@ public:
     return ValueIDConstants[ID];
   }
 
-  /// Install names for all global values without names. Called after
-  /// the global value symbol table is processed, but before any
-  /// function blocks are processed.
+  /// Install names for all global values without names. Called after the global
+  /// value symbol table is processed, but before any function blocks are
+  /// processed.
   void installGlobalNames() {
     assert(VariableDeclarations);
     installGlobalVarNames();
@@ -294,8 +291,8 @@ public:
   /// Returns the number of function declarations in the bitcode file.
   size_t getNumFunctionIDs() const { return FunctionDeclarations.size(); }
 
-  /// Returns the number of global declarations (i.e. IDs) defined in
-  /// the bitcode file.
+  /// Returns the number of global declarations (i.e. IDs) defined in the
+  /// bitcode file.
   size_t getNumGlobalIDs() const {
     if (VariableDeclarations) {
       return FunctionDeclarations.size() + VariableDeclarations->size();
@@ -319,8 +316,8 @@ public:
     return reportGetGlobalVariableByIDError(Index);
   }
 
-  /// Returns the global declaration (variable or function) with the
-  /// given Index.
+  /// Returns the global declaration (variable or function) with the given
+  /// Index.
   Ice::GlobalDeclaration *getGlobalDeclarationByID(NaClBcIndexSize_t Index) {
     size_t NumFunctionIds = FunctionDeclarations.size();
     if (Index < NumFunctionIds)
@@ -329,13 +326,12 @@ public:
       return getGlobalVariableByID(Index - NumFunctionIds);
   }
 
-  /// Returns the list of parsed global variable
-  /// declarations. Releases ownership of the current list of global
-  /// variables. Note: only returns non-null pointer on first
-  /// call. All successive calls return a null pointer.
+  /// Returns the list of parsed global variable declarations. Releases
+  /// ownership of the current list of global variables. Note: only returns
+  /// non-null pointer on first call. All successive calls return a null
+  /// pointer.
   std::unique_ptr<Ice::VariableDeclarationList> getGlobalVariables() {
-    // Before returning, check that ValidIDConstants has already been
-    // built.
+    // Before returning, check that ValidIDConstants has already been built.
     assert(!VariableDeclarations ||
            VariableDeclarations->size() <= ValueIDConstants.size());
     return std::move(VariableDeclarations);
@@ -364,16 +360,14 @@ private:
   Ice::ConstantList ValueIDConstants;
   // Error recovery value to use when getFuncSigTypeByID fails.
   Ice::FuncSigType UndefinedFuncSigType;
-  // The block parser currently being applied. Used for error
-  // reporting.
+  // The block parser currently being applied. Used for error reporting.
   BlockParserBaseClass *BlockParser = nullptr;
 
   bool ParseBlock(unsigned BlockID) override;
 
-  // Gets extended type associated with the given index, assuming the
-  // extended type is of the WantedKind. Generates error message if
-  // corresponding extended type of WantedKind can't be found, and
-  // returns nullptr.
+  // Gets extended type associated with the given index, assuming the extended
+  // type is of the WantedKind. Generates error message if corresponding
+  // extended type of WantedKind can't be found, and returns nullptr.
   ExtendedType *getTypeByIDAsKind(NaClBcIndexSize_t ID,
                                   ExtendedType::TypeKind WantedKind) {
     ExtendedType *Ty = nullptr;
@@ -387,12 +381,11 @@ private:
     return nullptr;
   }
 
-  // Gives Decl a name if it doesn't already have one. Prefix and
-  // NameIndex are used to generate the name. NameIndex is
-  // automatically incremented if a new name is created.  DeclType is
-  // literal text describing the type of name being created. Also
-  // generates warning if created names may conflict with named
-  // declarations.
+  // Gives Decl a name if it doesn't already have one. Prefix and NameIndex are
+  // used to generate the name. NameIndex is automatically incremented if a new
+  // name is created. DeclType is literal text describing the type of name
+  // being created. Also generates warning if created names may conflict with
+  // named declarations.
   void installDeclarationName(Ice::GlobalDeclaration *Decl,
                               const Ice::IceString &Prefix,
                               const char *DeclType,
@@ -431,7 +424,7 @@ private:
   }
 
   // Builds a constant symbol named Name, suppressing name mangling if
-  // SuppressMangling.  IsExternal is true iff the symbol is external.
+  // SuppressMangling. IsExternal is true iff the symbol is external.
   Ice::Constant *getConstantSym(const Ice::IceString &Name,
                                 bool SuppressMangling, bool IsExternal) const {
     if (IsExternal) {
@@ -471,17 +464,17 @@ private:
   void reportBadTypeIDAs(NaClBcIndexSize_t ID, const ExtendedType *Ty,
                          ExtendedType::TypeKind WantedType);
 
-  // Reports that there is no function declaration for ID. Returns an
-  // error recovery value to use.
+  // Reports that there is no function declaration for ID. Returns an error
+  // recovery value to use.
   Ice::FunctionDeclaration *reportGetFunctionByIDError(NaClBcIndexSize_t ID);
 
-  // Reports that there is not global variable declaration for
-  // ID. Returns an error recovery value to use.
+  // Reports that there is not global variable declaration for ID. Returns an
+  // error recovery value to use.
   Ice::VariableDeclaration *
   reportGetGlobalVariableByIDError(NaClBcIndexSize_t Index);
 
-  // Reports that there is no corresponding ICE type for LLVMTy, and
-  // returns Ice::IceType_void.
+  // Reports that there is no corresponding ICE type for LLVMTy, and returns
+  // Ice::IceType_void.
   Ice::Type convertToIceTypeError(Type *LLVMTy);
 };
 
@@ -549,10 +542,9 @@ Ice::Type TopLevelParser::convertToIceTypeError(Type *LLVMTy) {
   return Ice::IceType_void;
 }
 
-// Base class for parsing blocks within the bitcode file.  Note:
-// Because this is the base class of block parsers, we generate error
-// messages if ParseBlock or ParseRecord is not overridden in derived
-// classes.
+// Base class for parsing blocks within the bitcode file. Note: Because this is
+// the base class of block parsers, we generate error messages if ParseBlock or
+// ParseRecord is not overridden in derived classes.
 class BlockParserBaseClass : public NaClBitcodeParser {
   BlockParserBaseClass() = delete;
   BlockParserBaseClass(const BlockParserBaseClass &) = delete;
@@ -595,16 +587,15 @@ protected:
     return getTranslator().getFlags().getDisableIRGeneration();
   }
 
-  // Default implementation. Reports that block is unknown and skips
-  // its contents.
+  // Default implementation. Reports that block is unknown and skips its
+  // contents.
   bool ParseBlock(unsigned BlockID) override;
 
-  // Default implementation. Reports that the record is not
-  // understood.
+  // Default implementation. Reports that the record is not understood.
   void ProcessRecord() override;
 
-  // Checks if the size of the record is Size.  Return true if valid.
-  // Otherwise generates an error and returns false.
+  // Checks if the size of the record is Size. Return true if valid. Otherwise
+  // generates an error and returns false.
   bool isValidRecordSize(size_t Size, const char *RecordName) {
     const NaClBitcodeRecord::RecordVector &Values = Record.GetValues();
     if (Values.size() == Size)
@@ -613,9 +604,8 @@ protected:
     return false;
   }
 
-  // Checks if the size of the record is at least as large as the
-  // LowerLimit. Returns true if valid.  Otherwise generates an error
-  // and returns false.
+  // Checks if the size of the record is at least as large as the LowerLimit.
+  // Returns true if valid. Otherwise generates an error and returns false.
   bool isValidRecordSizeAtLeast(size_t LowerLimit, const char *RecordName) {
     const NaClBitcodeRecord::RecordVector &Values = Record.GetValues();
     if (Values.size() >= LowerLimit)
@@ -625,8 +615,8 @@ protected:
   }
 
   // Checks if the size of the record is no larger than the
-  // UpperLimit.  Returns true if valid.  Otherwise generates an error
-  // and returns false.
+  // UpperLimit.  Returns true if valid. Otherwise generates an error and
+  // returns false.
   bool isValidRecordSizeAtMost(size_t UpperLimit, const char *RecordName) {
     const NaClBitcodeRecord::RecordVector &Values = Record.GetValues();
     if (Values.size() <= UpperLimit)
@@ -635,9 +625,9 @@ protected:
     return false;
   }
 
-  // Checks if the size of the record is at least as large as the
-  // LowerLimit, and no larger than the UpperLimit.  Returns true if
-  // valid.  Otherwise generates an error and returns false.
+  // Checks if the size of the record is at least as large as the LowerLimit,
+  // and no larger than the UpperLimit. Returns true if valid. Otherwise
+  // generates an error and returns false.
   bool isValidRecordSizeInRange(size_t LowerLimit, size_t UpperLimit,
                                 const char *RecordName) {
     return isValidRecordSizeAtLeast(LowerLimit, RecordName) ||
@@ -645,11 +635,10 @@ protected:
   }
 
 private:
-  /// Generates a record size error. ExpectedSize is the number
-  /// of elements expected. RecordName is the name of the kind of
-  /// record that has incorrect size. ContextMessage (if not nullptr)
-  /// is appended to "record expects" to describe how ExpectedSize
-  /// should be interpreted.
+  /// Generates a record size error. ExpectedSize is the number of elements
+  /// expected. RecordName is the name of the kind of record that has incorrect
+  /// size. ContextMessage (if not nullptr) is appended to "record expects" to
+  /// describe how ExpectedSize should be interpreted.
   void reportRecordSizeError(size_t ExpectedSize, const char *RecordName,
                              const char *ContextMessage);
 };
@@ -666,9 +655,9 @@ bool BlockParserBaseClass::ErrorAt(naclbitc::ErrorLevel Level, uint64_t Bit,
                                    const std::string &Message) {
   std::string Buffer;
   raw_string_ostream StrBuf(Buffer);
-  // Note: If dump routines have been turned off, the error messages
-  // will not be readable. Hence, replace with simple error. We also
-  // use the simple form for unit tests.
+  // Note: If dump routines have been turned off, the error messages will not
+  // be readable. Hence, replace with simple error. We also use the simple form
+  // for unit tests.
   if (getFlags().getGenerateUnitTestMessages()) {
     StrBuf << "Invalid " << getBlockName() << " record: <" << Record.GetCode();
     for (const uint64_t Val : Record.GetValues()) {
@@ -700,8 +689,8 @@ void BlockParserBaseClass::reportRecordSizeError(size_t ExpectedSize,
 }
 
 bool BlockParserBaseClass::ParseBlock(unsigned BlockID) {
-  // If called, derived class doesn't know how to handle block.
-  // Report error and skip.
+  // If called, derived class doesn't know how to handle block. Report error
+  // and skip.
   std::string Buffer;
   raw_string_ostream StrBuf(Buffer);
   StrBuf << "Don't know how to parse block id: " << BlockID;
@@ -742,8 +731,8 @@ public:
 
 private:
   Ice::TimerMarker Timer;
-  // The type ID that will be associated with the next type defining
-  // record in the types block.
+  // The type ID that will be associated with the next type defining record in
+  // the types block.
   NaClBcIndexSize_t NextTypeId = 0;
 
   // The expected number of types, based on record TYPE_CODE_NUMENTRY.
@@ -773,13 +762,11 @@ void TypesParser::ProcessRecord() {
       Error(StrBuf.str());
       ExpectedNumTypes = NaClBcIndexSize_t_Max;
     }
-    // The code double checks that Expected size and the actual size
-    // at the end of the block. To reduce allocations we preallocate
-    // the space.
+    // The code double checks that Expected size and the actual size at the end
+    // of the block. To reduce allocations we preallocate the space.
     //
-    // However, if the number is large, we suspect that the number
-    // is (possibly) incorrect. In that case, we preallocate a
-    // smaller space.
+    // However, if the number is large, we suspect that the number is
+    // (possibly) incorrect. In that case, we preallocate a smaller space.
     constexpr uint64_t DefaultLargeResizeValue = 1000000;
     Context->resizeTypeIDValues(std::min(Size, DefaultLargeResizeValue));
     ExpectedNumTypes = Size;
@@ -902,9 +889,9 @@ void TypesParser::ProcessRecord() {
     FuncSigExtendedType *FuncTy = cast<FuncSigExtendedType>(Ty);
     FuncTy->setReturnType(Context->getSimpleTypeByID(Values[1]));
     for (size_t i = 2, e = Values.size(); i != e; ++i) {
-      // Check that type void not used as argument type.
-      // Note: PNaCl restrictions can't be checked until we
-      // know the name, because we have to check for intrinsic signatures.
+      // Check that type void not used as argument type. Note: PNaCl
+      // restrictions can't be checked until we know the name, because we have
+      // to check for intrinsic signatures.
       Ice::Type ArgTy = Context->getSimpleTypeByID(Values[i]);
       if (ArgTy == Ice::IceType_void) {
         std::string Buffer;
@@ -956,8 +943,8 @@ private:
   // Holds the number of defined function IDs.
   NaClBcIndexSize_t NumFunctionIDs;
 
-  // Holds the specified number of global variables by the count record in
-  // the global variables block.
+  // Holds the specified number of global variables by the count record in the
+  // global variables block.
   NaClBcIndexSize_t SpecifiedNumberVars = 0;
 
   // Keeps track of how many initializers are expected for the global variable
@@ -967,9 +954,8 @@ private:
   // The index of the next global variable declaration.
   NaClBcIndexSize_t NextGlobalID = 0;
 
-  // Dummy global variable declaration to guarantee CurGlobalVar is
-  // always defined (allowing code to not need to check if
-  // CurGlobalVar is nullptr).
+  // Dummy global variable declaration to guarantee CurGlobalVar is always
+  // defined (allowing code to not need to check if CurGlobalVar is nullptr).
   Ice::VariableDeclaration *DummyGlobalVar;
 
   // Holds the current global variable declaration being built.
@@ -1230,14 +1216,13 @@ public:
       getTranslator().getContext()->pushTimer(TimerID, StackID);
     }
 
-    // Note: The Cfg is created, even when IR generation is disabled. This
-    // is done to install a CfgLocalAllocator for various internal containers.
+    // Note: The Cfg is created, even when IR generation is disabled. This is
+    // done to install a CfgLocalAllocator for various internal containers.
     Func = Ice::Cfg::create(getTranslator().getContext(),
                             getTranslator().getNextSequenceNumber());
     Ice::Cfg::setCurrentCfg(Func.get());
 
-    // TODO(kschimpf) Clean up API to add a function signature to
-    // a CFG.
+    // TODO(kschimpf) Clean up API to add a function signature to a CFG.
     const Ice::FuncSigType &Signature = FuncDecl->getSignature();
     if (isIRGenerationDisabled()) {
       CurrentNode = nullptr;
@@ -1257,17 +1242,17 @@ public:
     }
     bool ParserResult = ParseThisBlock();
 
-    // Temporarily end per-function timing, which will be resumed by
-    // the translator function.  This is because translation may be
-    // done asynchronously in a separate thread.
+    // Temporarily end per-function timing, which will be resumed by the
+    // translator function. This is because translation may be done
+    // asynchronously in a separate thread.
     if (TimeThisFunction)
       getTranslator().getContext()->popTimer(TimerID, StackID);
 
     Ice::Cfg::setCurrentCfg(nullptr);
-    // Note: Once any errors have been found, we turn off all
-    // translation of all remaining functions. This allows successive
-    // parsing errors to be reported, without adding extra checks to
-    // the translator for such parsing errors.
+    // Note: Once any errors have been found, we turn off all translation of
+    // all remaining functions. This allows successive parsing errors to be
+    // reported, without adding extra checks to the translator for such parsing
+    // errors.
     if (Context->getNumErrors() == 0 && Func) {
       getTranslator().translateFcn(std::move(Func));
       // The translator now has ownership of Func.
@@ -1332,21 +1317,20 @@ private:
   Ice::FunctionDeclaration *FuncDecl;
   // Holds the dividing point between local and global absolute value indices.
   size_t CachedNumGlobalValueIDs;
-  // Holds operands local to the function block, based on indices
-  // defined in the bitcode file.
+  // Holds operands local to the function block, based on indices defined in
+  // the bitcode file.
   Ice::OperandList LocalOperands;
-  // Holds the index within LocalOperands corresponding to the next
-  // instruction that generates a value.
+  // Holds the index within LocalOperands corresponding to the next instruction
+  // that generates a value.
   NaClBcIndexSize_t NextLocalInstIndex;
-  // True if the last processed instruction was a terminating
-  // instruction.
+  // True if the last processed instruction was a terminating instruction.
   bool InstIsTerminating = false;
   // Upper limit of alignment power allowed by LLVM
   static const uint32_t AlignPowerLimit = 29;
 
-  // Extracts the corresponding Alignment to use, given the AlignPower
-  // (i.e. 2**(AlignPower-1), or 0 if AlignPower == 0). InstName is the
-  // name of the instruction the alignment appears in.
+  // Extracts the corresponding Alignment to use, given the AlignPower (i.e.
+  // 2**(AlignPower-1), or 0 if AlignPower == 0). InstName is the name of the
+  // instruction the alignment appears in.
   void extractAlignment(const char *InstName, uint32_t AlignPower,
                         uint32_t &Alignment) {
     if (AlignPower <= AlignPowerLimit + 1) {
@@ -1396,10 +1380,9 @@ private:
     return Func->getNodes()[Index];
   }
 
-  // Returns the Index-th basic block in the list of basic blocks.
-  // Assumes Index corresponds to a branch instruction. Hence, if
-  // the branch references the entry block, it also generates a
-  // corresponding error.
+  // Returns the Index-th basic block in the list of basic blocks. Assumes
+  // Index corresponds to a branch instruction. Hence, if the branch references
+  // the entry block, it also generates a corresponding error.
   Ice::CfgNode *getBranchBasicBlock(NaClBcIndexSize_t Index) {
     assert(!isIRGenerationDisabled());
     if (Index == 0) {
@@ -1448,8 +1431,7 @@ private:
     return Var;
   }
 
-  // Converts a relative index (wrt to BaseIndex) to an absolute value
-  // index.
+  // Converts a relative index (wrt to BaseIndex) to an absolute value index.
   NaClBcIndexSize_t convertRelativeToAbsIndex(NaClRelBcIndexSize_t Id,
                                               NaClRelBcIndexSize_t BaseIndex) {
     if (BaseIndex < Id) {
@@ -1508,8 +1490,8 @@ private:
     LocalOperands[LocalIndex] = Op;
   }
 
-  // Returns the relative operand (wrt to BaseIndex) referenced by
-  // the given value Index.
+  // Returns the relative operand (wrt to BaseIndex) referenced by the given
+  // value Index.
   Ice::Operand *getRelativeOperand(NaClBcIndexSize_t Index,
                                    NaClBcIndexSize_t BaseIndex) {
     return getOperand(convertRelativeToAbsIndex(Index, BaseIndex));
@@ -1518,13 +1500,12 @@ private:
   // Returns the absolute index of the next value generating instruction.
   NaClBcIndexSize_t getNextInstIndex() const { return NextLocalInstIndex; }
 
-  // Generates type error message for binary operator Op
-  // operating on Type OpTy.
+  // Generates type error message for binary operator Op operating on Type
+  // OpTy.
   void reportInvalidBinaryOp(Ice::InstArithmetic::OpKind Op, Ice::Type OpTy);
 
-  // Validates if integer logical Op, for type OpTy, is valid.
-  // Returns true if valid. Otherwise generates error message and
-  // returns false.
+  // Validates if integer logical Op, for type OpTy, is valid. Returns true if
+  // valid. Otherwise generates error message and returns false.
   bool isValidIntegerLogicalOp(Ice::InstArithmetic::OpKind Op, Ice::Type OpTy) {
     if (Ice::isIntegerType(OpTy))
       return true;
@@ -1532,9 +1513,9 @@ private:
     return false;
   }
 
-  // Validates if integer (or vector of integers) arithmetic Op, for type
-  // OpTy, is valid.  Returns true if valid. Otherwise generates
-  // error message and returns false.
+  // Validates if integer (or vector of integers) arithmetic Op, for type OpTy,
+  // is valid. Returns true if valid. Otherwise generates error message and
+  // returns false.
   bool isValidIntegerArithOp(Ice::InstArithmetic::OpKind Op, Ice::Type OpTy) {
     if (Ice::isIntegerArithmeticType(OpTy))
       return true;
@@ -1542,9 +1523,8 @@ private:
     return false;
   }
 
-  // Checks if floating arithmetic Op, for type OpTy, is valid.
-  // Returns true if valid. Otherwise generates an error message and
-  // returns false;
+  // Checks if floating arithmetic Op, for type OpTy, is valid. Returns true if
+  // valid. Otherwise generates an error message and returns false;
   bool isValidFloatingArithOp(Ice::InstArithmetic::OpKind Op, Ice::Type OpTy) {
     if (Ice::isFloatingType(OpTy))
       return true;
@@ -1552,9 +1532,9 @@ private:
     return false;
   }
 
-  // Checks if the type of operand Op is the valid pointer type, for
-  // the given InstructionName. Returns true if valid. Otherwise
-  // generates an error message and returns false.
+  // Checks if the type of operand Op is the valid pointer type, for the given
+  // InstructionName. Returns true if valid. Otherwise generates an error
+  // message and returns false.
   bool isValidPointerType(Ice::Operand *Op, const char *InstructionName) {
     Ice::Type PtrType = Ice::getPointerType();
     if (Op->getType() == PtrType)
@@ -1567,9 +1547,8 @@ private:
     return false;
   }
 
-  // Checks if loading/storing a value of type Ty is allowed.
-  // Returns true if Valid. Otherwise generates an error message and
-  // returns false.
+  // Checks if loading/storing a value of type Ty is allowed. Returns true if
+  // Valid. Otherwise generates an error message and returns false.
   bool isValidLoadStoreType(Ice::Type Ty, const char *InstructionName) {
     if (isLoadStoreType(Ty))
       return true;
@@ -1580,9 +1559,8 @@ private:
     return false;
   }
 
-  // Checks if loading/storing a value of type Ty is allowed for
-  // the given Alignment. Otherwise generates an error message and
-  // returns false.
+  // Checks if loading/storing a value of type Ty is allowed for the given
+  // Alignment. Otherwise generates an error message and returns false.
   bool isValidLoadStoreAlignment(size_t Alignment, Ice::Type Ty,
                                  const char *InstructionName) {
     if (!isValidLoadStoreType(Ty, InstructionName))
@@ -1598,8 +1576,8 @@ private:
   }
 
   // Defines if the given alignment is valid for the given type. Simplified
-  // version of PNaClABIProps::isAllowedAlignment, based on API's offered
-  // for Ice::Type.
+  // version of PNaClABIProps::isAllowedAlignment, based on API's offered for
+  // Ice::Type.
   bool isAllowedAlignment(size_t Alignment, Ice::Type Ty) const {
     return Alignment == typeAlignInBytes(Ty) ||
            (Alignment == 1 && !isVectorType(Ty));
@@ -1655,9 +1633,9 @@ private:
     return VectorIndexValid;
   }
 
-  // Takes the PNaCl bitcode binary operator Opcode, and the opcode
-  // type Ty, and sets Op to the corresponding ICE binary
-  // opcode. Returns true if able to convert, false otherwise.
+  // Takes the PNaCl bitcode binary operator Opcode, and the opcode type Ty,
+  // and sets Op to the corresponding ICE binary opcode. Returns true if able
+  // to convert, false otherwise.
   bool convertBinopOpcode(unsigned Opcode, Ice::Type Ty,
                           Ice::InstArithmetic::OpKind &Op) {
     switch (Opcode) {
@@ -1736,9 +1714,9 @@ private:
     }
   }
 
-  /// Simplifies out vector types from Type1 and Type2, if both are vectors
-  /// of the same size. Returns true iff both are vectors of the same size,
-  /// or are both scalar types.
+  /// Simplifies out vector types from Type1 and Type2, if both are vectors of
+  /// the same size. Returns true iff both are vectors of the same size, or are
+  /// both scalar types.
   static bool simplifyOutCommonVectorType(Ice::Type &Type1, Ice::Type &Type2) {
     bool IsType1Vector = isVectorType(Type1);
     bool IsType2Vector = isVectorType(Type2);
@@ -1781,8 +1759,8 @@ private:
     return isFloatTruncCastValid(TargetType, SourceType);
   }
 
-  /// Returns true iff a cast from floating type SourceType to integer
-  /// type TargetType is valid.
+  /// Returns true iff a cast from floating type SourceType to integer type
+  /// TargetType is valid.
   static bool isFloatToIntCastValid(Ice::Type SourceType,
                                     Ice::Type TargetType) {
     if (!(Ice::isFloatingType(SourceType) && Ice::isIntegerType(TargetType)))
@@ -1797,15 +1775,15 @@ private:
     return true;
   }
 
-  /// Returns true iff a cast from integer type SourceType to floating
-  /// type TargetType is valid.
+  /// Returns true iff a cast from integer type SourceType to floating type
+  /// TargetType is valid.
   static bool isIntToFloatCastValid(Ice::Type SourceType,
                                     Ice::Type TargetType) {
     return isFloatToIntCastValid(TargetType, SourceType);
   }
 
-  /// Returns the number of bits used to model type Ty when defining the
-  /// bitcast instruction.
+  /// Returns the number of bits used to model type Ty when defining the bitcast
+  /// instruction.
   static Ice::SizeT bitcastSizeInBits(Ice::Type Ty) {
     if (Ice::isVectorType(Ty))
       return Ice::typeNumElements(Ty) *
@@ -1820,10 +1798,10 @@ private:
     return bitcastSizeInBits(SourceType) == bitcastSizeInBits(TargetType);
   }
 
-  /// Returns true iff the NaCl bitcode Opcode is a valid cast opcode
-  /// for converting SourceType to TargetType. Updates CastKind to the
-  /// corresponding instruction cast opcode. Also generates an error
-  /// message when this function returns false.
+  /// Returns true iff the NaCl bitcode Opcode is a valid cast opcode for
+  /// converting SourceType to TargetType. Updates CastKind to the corresponding
+  /// instruction cast opcode. Also generates an error message when this
+  /// function returns false.
   bool convertCastOpToIceOp(uint64_t Opcode, Ice::Type SourceType,
                             Ice::Type TargetType,
                             Ice::InstCast::OpKind &CastKind) {
@@ -1888,8 +1866,8 @@ private:
     return Result;
   }
 
-  // Converts PNaCl bitcode Icmp operator to corresponding ICE op.
-  // Returns true if able to convert, false otherwise.
+  // Converts PNaCl bitcode Icmp operator to corresponding ICE op. Returns true
+  // if able to convert, false otherwise.
   bool convertNaClBitcICmpOpToIce(uint64_t Op,
                                   Ice::InstIcmp::ICond &Cond) const {
     switch (Op) {
@@ -1930,8 +1908,8 @@ private:
     }
   }
 
-  // Converts PNaCl bitcode Fcmp operator to corresponding ICE op.
-  // Returns true if able to convert, false otherwise.
+  // Converts PNaCl bitcode Fcmp operator to corresponding ICE op. Returns true
+  // if able to convert, false otherwise.
   bool convertNaClBitcFCompOpToIce(uint64_t Op,
                                    Ice::InstFcmp::FCond &Cond) const {
     switch (Op) {
@@ -1990,15 +1968,14 @@ private:
     }
   }
 
-  // Creates an error instruction, generating a value of type Ty, and
-  // adds a placeholder so that instruction indices line up.
-  // Some instructions, such as a call, will not generate a value
-  // if the return type is void. In such cases, a placeholder value
-  // for the badly formed instruction is not needed. Hence, if Ty is
-  // void, an error instruction is not appended.
+  // Creates an error instruction, generating a value of type Ty, and adds a
+  // placeholder so that instruction indices line up. Some instructions, such
+  // as a call, will not generate a value if the return type is void. In such
+  // cases, a placeholder value for the badly formed instruction is not needed.
+  // Hence, if Ty is void, an error instruction is not appended.
   void appendErrorInstruction(Ice::Type Ty) {
-    // Note: we don't worry about downstream translation errors because
-    // the function will not be translated if any errors occur.
+    // Note: we don't worry about downstream translation errors because the
+    // function will not be translated if any errors occur.
     if (Ty == Ice::IceType_void)
       return;
     Ice::Variable *Var = getNextInstVar(Ty);
@@ -2025,8 +2002,8 @@ void FunctionParser::ExitBlock() {
   }
   if (isIRGenerationDisabled())
     return;
-  // Before translating, check for blocks without instructions, and
-  // insert unreachable. This shouldn't happen, but be safe.
+  // Before translating, check for blocks without instructions, and insert
+  // unreachable. This shouldn't happen, but be safe.
   size_t Index = 0;
   for (Ice::CfgNode *Node : Func->getNodes()) {
     if (Node->getInsts().empty()) {
@@ -2051,8 +2028,8 @@ void FunctionParser::reportInvalidBinaryOp(Ice::InstArithmetic::OpKind Op,
 }
 
 void FunctionParser::ProcessRecord() {
-  // Note: To better separate parse/IR generation times, when IR generation
-  // is disabled we do the following:
+  // Note: To better separate parse/IR generation times, when IR generation is
+  // disabled we do the following:
   // 1) Delay exiting until after we extract operands.
   // 2) return before we access operands, since all operands will be a nullptr.
   const NaClBitcodeRecord::RecordVector &Values = Record.GetValues();
@@ -2382,11 +2359,10 @@ void FunctionParser::ProcessRecord() {
     // SWITCH: [Condty, Cond, BbIndex, NumCases Case ...]
     // where Case = [1, 1, Value, BbIndex].
     //
-    // Note: Unlike most instructions, we don't infer the type of
-    // Cond, but provide it as a separate field. There are also
-    // unnecesary data fields (i.e. constants 1).  These were not
-    // cleaned up in PNaCl bitcode because the bitcode format was
-    // already frozen when the problem was noticed.
+    // Note: Unlike most instructions, we don't infer the type of Cond, but
+    // provide it as a separate field. There are also unnecessary data fields
+    // (i.e. constants 1). These were not cleaned up in PNaCl bitcode because
+    // the bitcode format was already frozen when the problem was noticed.
     InstIsTerminating = true;
     if (!isValidRecordSizeAtLeast(4, "switch"))
       return;
@@ -2591,13 +2567,12 @@ void FunctionParser::ProcessRecord() {
     // CALL: [cc, fnid, arg0, arg1...]
     // CALL_INDIRECT: [cc, fn, returnty, args...]
     //
-    // Note: The difference between CALL and CALL_INDIRECT is that
-    // CALL has a reference to an explicit function declaration, while
-    // the CALL_INDIRECT is just an address. For CALL, we can infer
-    // the return type by looking up the type signature associated
-    // with the function declaration. For CALL_INDIRECT we can only
-    // infer the type signature via argument types, and the
-    // corresponding return type stored in CALL_INDIRECT record.
+    // Note: The difference between CALL and CALL_INDIRECT is that CALL has a
+    // reference to an explicit function declaration, while the CALL_INDIRECT
+    // is just an address. For CALL, we can infer the return type by looking up
+    // the type signature associated with the function declaration. For
+    // CALL_INDIRECT we can only infer the type signature via argument types,
+    // and the corresponding return type stored in CALL_INDIRECT record.
     Ice::SizeT ParamsStartIndex = 2;
     if (Record.GetCode() == naclbitc::FUNC_CODE_INST_CALL) {
       if (!isValidRecordSizeAtLeast(2, "call"))
@@ -2763,8 +2738,8 @@ private:
 
   Ice::GlobalContext *getContext() { return getTranslator().getContext(); }
 
-  // Returns true if the type to use for succeeding constants is defined.
-  // If false, also generates an error message.
+  // Returns true if the type to use for succeeding constants is defined. If
+  // false, also generates an error message.
   bool isValidNextConstantType() {
     if (NextConstantType != Ice::IceType_void)
       return true;
@@ -2887,8 +2862,8 @@ private:
   void setValueName(NaClBcIndexSize_t Index, StringType &Name) override;
   void setBbName(NaClBcIndexSize_t Index, StringType &Name) override;
 
-  // Reports that the assignment of Name to the value associated with
-  // index is not possible, for the given Context.
+  // Reports that the assignment of Name to the value associated with index is
+  // not possible, for the given Context.
   void reportUnableToAssign(const char *Context, NaClBcIndexSize_t Index,
                             StringType &Name) {
     std::string Buffer;
@@ -2976,10 +2951,10 @@ private:
   // and have generated global constant initializers.
   bool GlobalDeclarationNamesAndInitializersInstalled = false;
 
-  // Generates names for unnamed global addresses (i.e. functions and
-  // global variables). Then lowers global variable declaration
-  // initializers to the target. May be called multiple times. Only
-  // the first call will do the installation.
+  // Generates names for unnamed global addresses (i.e. functions and global
+  // variables). Then lowers global variable declaration initializers to the
+  // target. May be called multiple times. Only the first call will do the
+  // installation.
   void installGlobalNamesAndGlobalVarInitializers() {
     if (!GlobalDeclarationNamesAndInitializersInstalled) {
       Context->installGlobalNames();
@@ -3130,11 +3105,11 @@ void PNaClTranslator::translateBuffer(const std::string &IRFilename,
 
 void PNaClTranslator::translate(const std::string &IRFilename,
                                 std::unique_ptr<MemoryObject> &&MemObj) {
-  // On error, we report_fatal_error to avoid destroying the MemObj.
-  // That may still be in use by IceBrowserCompileServer. Otherwise,
-  // we need to change the MemObj to be ref-counted, or have a wrapper,
-  // or simply leak. We also need a hook to tell the IceBrowserCompileServer
-  // to unblock its QueueStreamer.
+  // On error, we report_fatal_error to avoid destroying the MemObj. That may
+  // still be in use by IceBrowserCompileServer. Otherwise, we need to change
+  // the MemObj to be ref-counted, or have a wrapper, or simply leak. We also
+  // need a hook to tell the IceBrowserCompileServer to unblock its
+  // QueueStreamer.
   // https://code.google.com/p/nativeclient/issues/detail?id=4163
   Ostream &ErrStream = getContext()->getStrError();
   // Read header and verify it is good.

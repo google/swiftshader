@@ -8,9 +8,9 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file defines commandline flags parsing.
-/// This currently relies on llvm::cl to parse.  In the future, the minimal
-/// build can have a simpler parser.
+/// This file defines commandline flags parsing. This currently relies on
+/// llvm::cl to parse. In the future, the minimal build can have a simpler
+/// parser.
 ///
 //===----------------------------------------------------------------------===//
 
@@ -99,16 +99,15 @@ cl::opt<bool>
 cl::opt<bool> MockBoundsCheck("mock-bounds-check",
                               cl::desc("Mock bounds checking on loads/stores"));
 
-// Number of translation threads (in addition to the parser thread and
-// the emitter thread).  The special case of 0 means purely
-// sequential, i.e. parser, translator, and emitter all within the
-// same single thread.  (This may need a slight rework if we expand to
-// multiple parser or emitter threads.)
+// Number of translation threads (in addition to the parser thread and the
+// emitter thread). The special case of 0 means purely sequential, i.e. parser,
+// translator, and emitter all within the same single thread. (This may need a
+// slight rework if we expand to multiple parser or emitter threads.)
 cl::opt<uint32_t> NumThreads(
     "threads",
     cl::desc("Number of translation threads (0 for purely sequential)"),
-    // TODO(stichnot): Settle on a good default.  Consider
-    // something related to std::thread::hardware_concurrency().
+    // TODO(stichnot): Settle on a good default. Consider something related to
+    // std::thread::hardware_concurrency().
     cl::init(2));
 
 cl::opt<Ice::OptLevel> OLevel(cl::desc("Optimization level"),
@@ -125,9 +124,9 @@ cl::opt<bool>
                        cl::desc("Enable edge splitting for Phi lowering"),
                        cl::init(true));
 
-// TODO(stichnot): See if we can easily use LLVM's -rng-seed option
-// and implementation.  I expect the implementation is different and
-// therefore the tests would need to be changed.
+// TODO(stichnot): See if we can easily use LLVM's -rng-seed option and
+// implementation. I expect the implementation is different and therefore the
+// tests would need to be changed.
 cl::opt<unsigned long long>
     RandomSeed("sz-seed", cl::desc("Seed the random number generator"),
                cl::init(1));
@@ -255,10 +254,10 @@ cl::opt<bool> AlwaysExitSuccess(
     "exit-success", cl::desc("Exit with success status, even if errors found"),
     cl::init(false));
 
-// Note: While this flag isn't used in the minimal build, we keep this
-// flag so that tests can set this command-line flag without concern
-// to the type of build. We double check that this flag at runtime
-// to make sure the consistency is maintained.
+// Note: While this flag isn't used in the minimal build, we keep this flag so
+// that tests can set this command-line flag without concern to the type of
+// build. We double check that this flag at runtime to make sure the
+// consistency is maintained.
 cl::opt<bool>
     BuildOnRead("build-on-read",
                 cl::desc("Build ICE instructions when reading bitcode"),
@@ -413,8 +412,8 @@ void ClFlags::getParsedClFlags(ClFlags &OutFlags) {
     ::DisableTranslation = true;
 
   Ice::VerboseMask VMask = Ice::IceV_None;
-  // Don't generate verbose messages if routines
-  // to dump messages are not available.
+  // Don't generate verbose messages if routines to dump messages are not
+  // available.
   if (BuildDefs::dump()) {
     for (unsigned i = 0; i != VerboseList.size(); ++i)
       VMask |= VerboseList[i];

@@ -37,8 +37,8 @@ public:
   ~PNaClTranslator() override = default;
 
   /// Reads the PNaCl bitcode file and translates to ICE, which is then
-  /// converted to machine code. Sets ErrorStatus to 1 if any errors
-  /// occurred. Takes ownership of the MemoryObject.
+  /// converted to machine code. Sets ErrorStatus to 1 if any errors occurred.
+  /// Takes ownership of the MemoryObject.
   void translate(const std::string &IRFilename,
                  std::unique_ptr<llvm::MemoryObject> &&MemoryObject);
 

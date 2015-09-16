@@ -8,8 +8,8 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares the Cfg class, which represents the control flow
-/// graph and the overall per-function compilation context.
+/// This file declares the Cfg class, which represents the control flow graph
+/// and the overall per-function compilation context.
 ///
 //===----------------------------------------------------------------------===//
 
@@ -50,9 +50,9 @@ public:
   GlobalContext *getContext() const { return Ctx; }
   uint32_t getSequenceNumber() const { return SequenceNumber; }
 
-  /// Returns true if any of the specified options in the verbose mask
-  /// are set.  If the argument is omitted, it checks if any verbose
-  /// options at all are set.
+  /// Returns true if any of the specified options in the verbose mask are set.
+  /// If the argument is omitted, it checks if any verbose options at all are
+  /// set.
   bool isVerbose(VerboseMask Mask = IceV_All) const { return VMask & Mask; }
   void setVerbose(VerboseMask Mask) { VMask = Mask; }
 
@@ -72,11 +72,10 @@ public:
   /// \name Manage errors.
   /// @{
 
-  /// Translation error flagging.  If support for some construct is
-  /// known to be missing, instead of an assertion failure, setError()
-  /// should be called and the error should be propagated back up.
-  /// This way, we can gracefully fail to translate and let a fallback
-  /// translator handle the function.
+  /// Translation error flagging. If support for some construct is known to be
+  /// missing, instead of an assertion failure, setError() should be called and
+  /// the error should be propagated back up. This way, we can gracefully fail
+  /// to translate and let a fallback translator handle the function.
   void setError(const IceString &Message);
   bool hasError() const { return HasError; }
   IceString getError() const { return ErrorMessage; }
@@ -98,11 +97,10 @@ public:
   /// @}
 
   using IdentifierIndexType = int32_t;
-  /// Adds a name to the list and returns its index, suitable for the
-  /// argument to getIdentifierName().  No checking for duplicates is
-  /// done.  This is generally used for node names and variable names
-  /// to avoid embedding a std::string inside an arena-allocated
-  /// object.
+  /// Adds a name to the list and returns its index, suitable for the argument
+  /// to getIdentifierName(). No checking for duplicates is done. This is
+  /// generally used for node names and variable names to avoid embedding a
+  /// std::string inside an arena-allocated object.
   IdentifierIndexType addIdentifierName(const IceString &Name) {
     IdentifierIndexType Index = IdentifierNames.size();
     IdentifierNames.push_back(Name);
@@ -122,8 +120,8 @@ public:
   /// \name Manage Variables.
   /// @{
 
-  /// Create a new Variable with a particular type and an optional
-  /// name.  The Node argument is the node where the variable is defined.
+  /// Create a new Variable with a particular type and an optional name. The
+  /// Node argument is the node where the variable is defined.
   // TODO(jpp): untemplate this with separate methods: makeVariable,
   // makeSpillVariable, and makeStackVariable.
   template <typename T = Variable> T *makeVariable(Type Ty) {
@@ -176,9 +174,9 @@ public:
 
   /// Passes over the CFG.
   void translate();
-  /// After the CFG is fully constructed, iterate over the nodes and
-  /// compute the predecessor and successor edges, in the form of
-  /// CfgNode::InEdges[] and CfgNode::OutEdges[].
+  /// After the CFG is fully constructed, iterate over the nodes and compute the
+  /// predecessor and successor edges, in the form of CfgNode::InEdges[] and
+  /// CfgNode::OutEdges[].
   void computeInOutEdges();
   void renumberInstructions();
   void placePhiLoads();
@@ -277,16 +275,15 @@ private:
   std::unique_ptr<VariableDeclarationList> GlobalInits;
   std::vector<InstJumpTable *> JumpTables;
 
-  /// CurrentNode is maintained during dumping/emitting just for
-  /// validating Variable::DefNode.  Normally, a traversal over
-  /// CfgNodes maintains this, but before global operations like
-  /// register allocation, resetCurrentNode() should be called to avoid
-  /// spurious validation failures.
+  /// CurrentNode is maintained during dumping/emitting just for validating
+  /// Variable::DefNode. Normally, a traversal over CfgNodes maintains this, but
+  /// before global operations like register allocation, resetCurrentNode()
+  /// should be called to avoid spurious validation failures.
   const CfgNode *CurrentNode = nullptr;
 
-  /// Maintain a pointer in TLS to the current Cfg being translated.
-  /// This is primarily for accessing its allocator statelessly, but
-  /// other uses are possible.
+  /// Maintain a pointer in TLS to the current Cfg being translated. This is
+  /// primarily for accessing its allocator statelessly, but other uses are
+  /// possible.
   ICE_TLS_DECLARE_FIELD(const Cfg *, CurrentCfg);
 
 public:

@@ -37,9 +37,8 @@ namespace Ice {
 
 namespace {
 
-// Define a SmallVector backed buffer as a data stream, so that it
-// can hold the generated binary version of the textual bitcode in the
-// input file.
+// Define a SmallVector backed buffer as a data stream, so that it can hold the
+// generated binary version of the textual bitcode in the input file.
 class TextDataStreamer : public llvm::DataStreamer {
 public:
   TextDataStreamer() = default;
@@ -129,8 +128,8 @@ void CLCompileServer::run() {
     }
     ELFStr.reset(new ELFStreamer(*FdOs.get()));
     Os.reset(FdOs.release());
-    // NaCl sets st_blksize to 0, and LLVM uses that to pick the
-    // default preferred buffer size. Set to something non-zero.
+    // NaCl sets st_blksize to 0, and LLVM uses that to pick the default
+    // preferred buffer size. Set to something non-zero.
     Os->SetBufferSize(1 << 14);
   } break;
   case FT_Asm:

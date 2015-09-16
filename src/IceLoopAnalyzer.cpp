@@ -121,9 +121,9 @@ LoopAnalyzer::processNode(LoopAnalyzer::LoopNode &Node) {
     return nullptr;
   }
 
-  // Reaching here means a loop has been found! It consists of the nodes on
-  // the top of the stack, down until the current node being processed, Node,
-  // is found.
+  // Reaching here means a loop has been found! It consists of the nodes on the
+  // top of the stack, down until the current node being processed, Node, is
+  // found.
   for (auto It = LoopStack.rbegin(); It != LoopStack.rend(); ++It) {
     (*It)->setOnStack(false);
     (*It)->incrementLoopNestDepth();

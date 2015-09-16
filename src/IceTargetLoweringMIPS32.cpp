@@ -43,9 +43,8 @@ void UnimplementedError(const ClFlags &Flags) {
 } // end of anonymous namespace
 
 TargetMIPS32::TargetMIPS32(Cfg *Func) : TargetLowering(Func) {
-  // TODO: Don't initialize IntegerRegisters and friends every time.
-  // Instead, initialize in some sort of static initializer for the
-  // class.
+  // TODO: Don't initialize IntegerRegisters and friends every time. Instead,
+  // initialize in some sort of static initializer for the class.
   llvm::SmallBitVector IntegerRegisters(RegMIPS32::Reg_NUM);
   llvm::SmallBitVector FloatRegisters(RegMIPS32::Reg_NUM);
   llvm::SmallBitVector VectorRegisters(RegMIPS32::Reg_NUM);
@@ -105,19 +104,18 @@ void TargetMIPS32::translateO2() {
   // Argument lowering
   Func->doArgLowering();
 
-  // Target lowering.  This requires liveness analysis for some parts
-  // of the lowering decisions, such as compare/branch fusing.  If
-  // non-lightweight liveness analysis is used, the instructions need
-  // to be renumbered first.  TODO: This renumbering should only be
-  // necessary if we're actually calculating live intervals, which we
-  // only do for register allocation.
+  // Target lowering. This requires liveness analysis for some parts of the
+  // lowering decisions, such as compare/branch fusing. If non-lightweight
+  // liveness analysis is used, the instructions need to be renumbered first.
+  // TODO: This renumbering should only be necessary if we're actually
+  // calculating live intervals, which we only do for register allocation.
   Func->renumberInstructions();
   if (Func->hasError())
     return;
 
-  // TODO: It should be sufficient to use the fastest liveness
-  // calculation, i.e. livenessLightweight().  However, for some
-  // reason that slows down the rest of the translation.  Investigate.
+  // TODO: It should be sufficient to use the fastest liveness calculation,
+  // i.e. livenessLightweight(). However, for some reason that slows down the
+  // rest of the translation. Investigate.
   Func->liveness(Liveness_Basic);
   if (Func->hasError())
     return;
@@ -128,19 +126,19 @@ void TargetMIPS32::translateO2() {
     return;
   Func->dump("After MIPS32 codegen");
 
-  // Register allocation.  This requires instruction renumbering and
-  // full liveness analysis.
+  // Register allocation. This requires instruction renumbering and full
+  // liveness analysis.
   Func->renumberInstructions();
   if (Func->hasError())
     return;
   Func->liveness(Liveness_Intervals);
   if (Func->hasError())
     return;
-  // Validate the live range computations.  The expensive validation
-  // call is deliberately only made when assertions are enabled.
+  // Validate the live range computations. The expensive validation call is
+  // deliberately only made when assertions are enabled.
   assert(Func->validateLiveness());
-  // The post-codegen dump is done here, after liveness analysis and
-  // associated cleanup, to make the dump cleaner and more useful.
+  // The post-codegen dump is done here, after liveness analysis and associated
+  // cleanup, to make the dump cleaner and more useful.
   Func->dump("After initial MIPS32 codegen");
   Func->getVMetadata()->init(VMK_All);
   regAlloc(RAK_Global);
@@ -162,11 +160,10 @@ void TargetMIPS32::translateO2() {
   Func->contractEmptyNodes();
   Func->reorderNodes();
 
-  // Branch optimization.  This needs to be done just before code
-  // emission.  In particular, no transformations that insert or
-  // reorder CfgNodes should be done after branch optimization.  We go
-  // ahead and do it before nop insertion to reduce the amount of work
-  // needed for searching for opportunities.
+  // Branch optimization. This needs to be done just before code emission. In
+  // particular, no transformations that insert or reorder CfgNodes should be
+  // done after branch optimization. We go ahead and do it before nop insertion
+  // to reduce the amount of work needed for searching for opportunities.
   Func->doBranchOpt();
   Func->dump("After branch optimization");
 
@@ -246,8 +243,8 @@ Variable *TargetMIPS32::getPhysicalRegister(SizeT RegNum, Type Ty) {
     Reg = Func->makeVariable(Ty);
     Reg->setRegNum(RegNum);
     PhysicalRegisters[Ty][RegNum] = Reg;
-    // Specially mark SP as an "argument" so that it is considered
-    // live upon function entry.
+    // Specially mark SP as an "argument" so that it is considered live upon
+    // function entry.
     if (RegNum == RegMIPS32::Reg_SP || RegNum == RegMIPS32::Reg_RA) {
       Func->addImplicitArg(Reg);
       Reg->setIgnoreLiveness();
@@ -321,11 +318,11 @@ llvm::SmallBitVector TargetMIPS32::getRegisterSet(RegSetMask Include,
 
 void TargetMIPS32::lowerAlloca(const InstAlloca *Inst) {
   UsesFramePointer = true;
-  // Conservatively require the stack to be aligned.  Some stack
-  // adjustment operations implemented below assume that the stack is
-  // aligned before the alloca.  All the alloca code ensures that the
-  // stack alignment is preserved after the alloca.  The stack alignment
-  // restriction can be relaxed in some cases.
+  // Conservatively require the stack to be aligned. Some stack adjustment
+  // operations implemented below assume that the stack is aligned before the
+  // alloca. All the alloca code ensures that the stack alignment is preserved
+  // after the alloca. The stack alignment restriction can be relaxed in some
+  // cases.
   NeedsStackAlignment = true;
   (void)Inst;
   UnimplementedError(Func->getContext()->getFlags());
@@ -483,9 +480,9 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     UnimplementedError(Func->getContext()->getFlags());
     return;
   case Intrinsics::AtomicFenceAll:
-    // NOTE: FenceAll should prevent and load/store from being moved
-    // across the fence (both atomic and non-atomic). The InstMIPS32Mfence
-    // instruction is currently marked coarsely as "HasSideEffects".
+    // NOTE: FenceAll should prevent and load/store from being moved across the
+    // fence (both atomic and non-atomic). The InstMIPS32Mfence instruction is
+    // currently marked coarsely as "HasSideEffects".
     UnimplementedError(Func->getContext()->getFlags());
     return;
   case Intrinsics::AtomicIsLockFree: {
@@ -549,9 +546,8 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     return;
   }
   case Intrinsics::Memset: {
-    // The value operand needs to be extended to a stack slot size
-    // because the PNaCl ABI requires arguments to be at least 32 bits
-    // wide.
+    // The value operand needs to be extended to a stack slot size because the
+    // PNaCl ABI requires arguments to be at least 32 bits wide.
     Operand *ValOp = Instr->getArg(1);
     assert(ValOp->getType() == IceType_i8);
     Variable *ValExt = Func->makeVariable(stackSlotType());
@@ -651,10 +647,9 @@ void TargetMIPS32::lowerUnreachable(const InstUnreachable * /*Inst*/) {
   UnimplementedError(Func->getContext()->getFlags());
 }
 
-// Turn an i64 Phi instruction into a pair of i32 Phi instructions, to
-// preserve integrity of liveness analysis.  Undef values are also
-// turned into zeroes, since loOperand() and hiOperand() don't expect
-// Undef input.
+// Turn an i64 Phi instruction into a pair of i32 Phi instructions, to preserve
+// integrity of liveness analysis. Undef values are also turned into zeroes,
+// since loOperand() and hiOperand() don't expect Undef input.
 void TargetMIPS32::prelowerPhis() {
   UnimplementedError(Func->getContext()->getFlags());
 }
@@ -662,8 +657,8 @@ void TargetMIPS32::prelowerPhis() {
 void TargetMIPS32::postLower() {
   if (Ctx->getFlags().getOptLevel() == Opt_m1)
     return;
-  // Find two-address non-SSA instructions where Dest==Src0, and set
-  // the DestNonKillable flag to keep liveness analysis consistent.
+  // Find two-address non-SSA instructions where Dest==Src0, and set the
+  // DestNonKillable flag to keep liveness analysis consistent.
   UnimplementedError(Func->getContext()->getFlags());
 }
 

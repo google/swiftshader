@@ -25,9 +25,9 @@ constexpr unsigned MAX = 2147483647;
 // TODO(wala,stichnot): Switch to RNG implementation from LLVM or C++11.
 //
 // TODO(wala,stichnot): Make it possible to replay the RNG sequence in a
-// subsequent run, for reproducing a bug.  Print the seed in a comment
-// in the asm output.  Embed the seed in the binary via metadata that an
-// attacker can't introspect.
+// subsequent run, for reproducing a bug. Print the seed in a comment in the
+// asm output. Embed the seed in the binary via metadata that an attacker can't
+// introspect.
 RandomNumberGenerator::RandomNumberGenerator(uint64_t Seed, llvm::StringRef)
     : State(Seed) {}
 

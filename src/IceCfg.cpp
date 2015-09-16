@@ -8,8 +8,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file implements the Cfg class, including constant pool
-/// management.
+/// This file implements the Cfg class, including constant pool management.
 ///
 //===----------------------------------------------------------------------===//
 
@@ -46,8 +45,8 @@ Cfg::Cfg(GlobalContext *Ctx, uint32_t SequenceNumber)
       TargetAssembler(TargetLowering::createAssembler(
           Ctx->getFlags().getTargetArch(), this)) {
   if (Ctx->getFlags().getRandomizeAndPoolImmediatesOption() == RPI_Randomize) {
-    // If -randomize-pool-immediates=randomize, create a random number generator
-    // to generate a cookie for constant blinding.
+    // If -randomize-pool-immediates=randomize, create a random number
+    // generator to generate a cookie for constant blinding.
     RandomNumberGenerator RNG(Ctx->getFlags().getRandomSeed(),
                               RPE_ConstantBlinding, this->SequenceNumber);
     ConstantBlindingCookie =
@@ -86,8 +85,8 @@ void Cfg::addImplicitArg(Variable *Arg) {
   ImplicitArgs.push_back(Arg);
 }
 
-// Returns whether the stack frame layout has been computed yet.  This
-// is used for dumping the stack frame location of Variables.
+// Returns whether the stack frame layout has been computed yet. This is used
+// for dumping the stack frame location of Variables.
 bool Cfg::hasComputedFrame() const { return getTarget()->hasComputedFrame(); }
 
 namespace {
@@ -157,8 +156,8 @@ void Cfg::addCallToProfileSummary() {
 void Cfg::translate() {
   if (hasError())
     return;
-  // FunctionTimer conditionally pushes/pops a TimerMarker if
-  // TimeEachFunction is enabled.
+  // FunctionTimer conditionally pushes/pops a TimerMarker if TimeEachFunction
+  // is enabled.
   std::unique_ptr<TimerMarker> FunctionTimer;
   if (BuildDefs::dump()) {
     const IceString &TimingFocusOn =
@@ -180,16 +179,16 @@ void Cfg::translate() {
 
   if (getContext()->getFlags().getEnableBlockProfile()) {
     profileBlocks();
-    // TODO(jpp): this is fragile, at best. Figure out a better way of detecting
-    // exit functions.
+    // TODO(jpp): this is fragile, at best. Figure out a better way of
+    // detecting exit functions.
     if (GlobalContext::matchSymbolName(getFunctionName(), "exit")) {
       addCallToProfileSummary();
     }
     dump("Profiled CFG");
   }
 
-  // The set of translation passes and their order are determined by
-  // the target.
+  // The set of translation passes and their order are determined by the
+  // target.
   getTarget()->translate();
 
   dump("Final output");
@@ -273,8 +272,8 @@ void Cfg::advancedPhiLowering() {
   for (Variable *Var : Variables) {
     Var->getLiveRange().reset();
   }
-  // This splits edges and appends new nodes to the end of the node
-  // list.  This can invalidate iterators, so don't use an iterator.
+  // This splits edges and appends new nodes to the end of the node list. This
+  // can invalidate iterators, so don't use an iterator.
   SizeT NumNodes = getNumNodes();
   SizeT NumVars = getNumVariables();
   for (SizeT I = 0; I < NumNodes; ++I)
@@ -282,8 +281,8 @@ void Cfg::advancedPhiLowering() {
 
   TimerMarker TT(TimerStack::TT_lowerPhiAssignments, this);
   if (true) {
-    // The following code does an in-place update of liveness and live ranges as
-    // a result of adding the new phi edge split nodes.
+    // The following code does an in-place update of liveness and live ranges
+    // as a result of adding the new phi edge split nodes.
     getLiveness()->initPhiEdgeSplits(Nodes.begin() + NumNodes,
                                      Variables.begin() + NumVars);
     TimerMarker TTT(TimerStack::TT_liveness, this);
@@ -297,7 +296,7 @@ void Cfg::advancedPhiLowering() {
     }
   } else {
     // The following code does a brute-force recalculation of live ranges as a
-    // result of adding the new phi edge split nodes.  The liveness calculation
+    // result of adding the new phi edge split nodes. The liveness calculation
     // is particularly expensive because the new nodes are not yet in a proper
     // topological order and so convergence is slower.
     //
@@ -310,27 +309,25 @@ void Cfg::advancedPhiLowering() {
   Target->regAlloc(RAK_Phi);
 }
 
-// Find a reasonable placement for nodes that have not yet been
-// placed, while maintaining the same relative ordering among already
-// placed nodes.
+// Find a reasonable placement for nodes that have not yet been placed, while
+// maintaining the same relative ordering among already placed nodes.
 void Cfg::reorderNodes() {
-  // TODO(ascull): it would be nice if the switch tests were always followed
-  // by the default case to allow for fall through.
+  // TODO(ascull): it would be nice if the switch tests were always followed by
+  // the default case to allow for fall through.
   using PlacedList = std::list<CfgNode *>;
   PlacedList Placed;      // Nodes with relative placement locked down
   PlacedList Unreachable; // Unreachable nodes
   PlacedList::iterator NoPlace = Placed.end();
-  // Keep track of where each node has been tentatively placed so that
-  // we can manage insertions into the middle.
+  // Keep track of where each node has been tentatively placed so that we can
+  // manage insertions into the middle.
   std::vector<PlacedList::iterator> PlaceIndex(Nodes.size(), NoPlace);
   for (CfgNode *Node : Nodes) {
-    // The "do ... while(0);" construct is to factor out the
-    // --PlaceIndex and assert() statements before moving to the next
-    // node.
+    // The "do ... while(0);" construct is to factor out the --PlaceIndex and
+    // assert() statements before moving to the next node.
     do {
       if (Node != getEntryNode() && Node->getInEdges().empty()) {
-        // The node has essentially been deleted since it is not a
-        // successor of any other node.
+        // The node has essentially been deleted since it is not a successor of
+        // any other node.
         Unreachable.push_back(Node);
         PlaceIndex[Node->getIndex()] = Unreachable.end();
         Node->setNeedsPlacement(false);
@@ -343,10 +340,10 @@ void Cfg::reorderNodes() {
         continue;
       }
       Node->setNeedsPlacement(false);
-      // Assume for now that the unplaced node is from edge-splitting
-      // and therefore has 1 in-edge and 1 out-edge (actually, possibly
-      // more than 1 in-edge if the predecessor node was contracted).
-      // If this changes in the future, rethink the strategy.
+      // Assume for now that the unplaced node is from edge-splitting and
+      // therefore has 1 in-edge and 1 out-edge (actually, possibly more than 1
+      // in-edge if the predecessor node was contracted). If this changes in
+      // the future, rethink the strategy.
       assert(Node->getInEdges().size() >= 1);
       assert(Node->getOutEdges().size() == 1);
 
@@ -363,8 +360,8 @@ void Cfg::reorderNodes() {
       // Otherwise, place it after the (first) predecessor.
       CfgNode *Pred = Node->getInEdges().front();
       auto PredPosition = PlaceIndex[Pred->getIndex()];
-      // It shouldn't be the case that PredPosition==NoPlace, but if
-      // that somehow turns out to be true, we just insert Node before
+      // It shouldn't be the case that PredPosition==NoPlace, but if that
+      // somehow turns out to be true, we just insert Node before
       // PredPosition=NoPlace=Placed.end() .
       if (PredPosition != NoPlace)
         ++PredPosition;
@@ -475,9 +472,9 @@ void Cfg::computeLoopNestDepth() {
   LA.computeLoopNestDepth();
 }
 
-// This is a lightweight version of live-range-end calculation.  Marks the last
+// This is a lightweight version of live-range-end calculation. Marks the last
 // use of only those variables whose definition and uses are completely with a
-// single block.  It is a quick single pass and doesn't need to iterate until
+// single block. It is a quick single pass and doesn't need to iterate until
 // convergence.
 void Cfg::livenessLightweight() {
   TimerMarker T(TimerStack::TT_livenessLightweight, this);
@@ -513,9 +510,9 @@ void Cfg::liveness(LivenessMode Mode) {
     for (Variable *Var : Variables)
       Var->resetLiveRange();
   }
-  // Make a final pass over each node to delete dead instructions,
-  // collect the first and last instruction numbers, and add live
-  // range segments for that node.
+  // Make a final pass over each node to delete dead instructions, collect the
+  // first and last instruction numbers, and add live range segments for that
+  // node.
   for (CfgNode *Node : Nodes) {
     InstNumberT FirstInstNum = Inst::NumberSentinel;
     InstNumberT LastInstNum = Inst::NumberSentinel;
@@ -538,19 +535,18 @@ void Cfg::liveness(LivenessMode Mode) {
       }
     }
     if (Mode == Liveness_Intervals) {
-      // Special treatment for live in-args.  Their liveness needs to
-      // extend beyond the beginning of the function, otherwise an arg
-      // whose only use is in the first instruction will end up having
-      // the trivial live range [2,2) and will *not* interfere with
-      // other arguments.  So if the first instruction of the method
-      // is "r=arg1+arg2", both args may be assigned the same
-      // register.  This is accomplished by extending the entry
-      // block's instruction range from [2,n) to [1,n) which will
-      // transform the problematic [2,2) live ranges into [1,2).
+      // Special treatment for live in-args. Their liveness needs to extend
+      // beyond the beginning of the function, otherwise an arg whose only use
+      // is in the first instruction will end up having the trivial live range
+      // [2,2) and will *not* interfere with other arguments. So if the first
+      // instruction of the method is "r=arg1+arg2", both args may be assigned
+      // the same register. This is accomplished by extending the entry block's
+      // instruction range from [2,n) to [1,n) which will transform the
+      // problematic [2,2) live ranges into [1,2).
       if (Node == getEntryNode()) {
-        // TODO(stichnot): Make it a strict requirement that the entry
-        // node gets the lowest instruction numbers, so that extending
-        // the live range for in-args is guaranteed to work.
+        // TODO(stichnot): Make it a strict requirement that the entry node
+        // gets the lowest instruction numbers, so that extending the live
+        // range for in-args is guaranteed to work.
         FirstInstNum = Inst::NumberExtended;
       }
       Node->livenessAddIntervals(getLiveness(), FirstInstNum, LastInstNum);
@@ -558,8 +554,8 @@ void Cfg::liveness(LivenessMode Mode) {
   }
 }
 
-// Traverse every Variable of every Inst and verify that it
-// appears within the Variable's computed live range.
+// Traverse every Variable of every Inst and verify that it appears within the
+// Variable's computed live range.
 bool Cfg::validateLiveness() const {
   TimerMarker T(TimerStack::TT_validateLiveness, this);
   bool Valid = true;
@@ -579,13 +575,12 @@ bool Cfg::validateLiveness() const {
           const bool IsDest = true;
           if (!Dest->getLiveRange().containsValue(InstNumber, IsDest))
             Invalid = true;
-          // Check that this instruction actually *begins* Dest's live
-          // range, by checking that Dest is not live in the previous
-          // instruction.  As a special exception, we don't check this
-          // for the first instruction of the block, because a Phi
-          // temporary may be live at the end of the previous block,
-          // and if it is also assigned in the first instruction of
-          // this block, the adjacent live ranges get merged.
+          // Check that this instruction actually *begins* Dest's live range,
+          // by checking that Dest is not live in the previous instruction. As
+          // a special exception, we don't check this for the first instruction
+          // of the block, because a Phi temporary may be live at the end of
+          // the previous block, and if it is also assigned in the first
+          // instruction of this block, the adjacent live ranges get merged.
           if (static_cast<class Inst *>(&Inst) != FirstInst &&
               !Inst.isDestNonKillable() &&
               Dest->getLiveRange().containsValue(InstNumber - 1, IsDest))
@@ -642,9 +637,9 @@ void Cfg::markNodesForSandboxing() {
 
 // ======================== Dump routines ======================== //
 
-// emitTextHeader() is not target-specific (apart from what is
-// abstracted by the Assembler), so it is defined here rather than in
-// the target lowering class.
+// emitTextHeader() is not target-specific (apart from what is abstracted by
+// the Assembler), so it is defined here rather than in the target lowering
+// class.
 void Cfg::emitTextHeader(const IceString &MangledName, GlobalContext *Ctx,
                          const Assembler *Asm) {
   if (!BuildDefs::dump())
@@ -674,8 +669,8 @@ void Cfg::emitJumpTables() {
   switch (Ctx->getFlags().getOutFileType()) {
   case FT_Elf:
   case FT_Iasm: {
-    // The emission needs to be delayed until the after the text section so save
-    // the offsets in the global context.
+    // The emission needs to be delayed until the after the text section so
+    // save the offsets in the global context.
     IceString MangledName = Ctx->mangleName(getFunctionName());
     for (const InstJumpTable *JumpTable : JumpTables) {
       SizeT NumTargets = JumpTable->getNumTargets();
@@ -726,8 +721,8 @@ void Cfg::emit() {
 
 void Cfg::emitIAS() {
   TimerMarker T(TimerStack::TT_emit, this);
-  // The emitIAS() routines emit into the internal assembler buffer,
-  // so there's no need to lock the streams.
+  // The emitIAS() routines emit into the internal assembler buffer, so there's
+  // no need to lock the streams.
   deleteJumpTableInsts();
   const bool NeedSandboxing = Ctx->getFlags().getUseSandboxing();
   for (CfgNode *Node : Nodes) {

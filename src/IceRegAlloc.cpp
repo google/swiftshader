@@ -82,14 +82,14 @@ LinearScan::LinearScan(Cfg *Func)
     : Func(Func), Ctx(Func->getContext()), Target(Func->getTarget()),
       Verbose(BuildDefs::dump() && Func->isVerbose(IceV_LinearScan)) {}
 
-// Prepare for full register allocation of all variables.  We depend on
-// liveness analysis to have calculated live ranges.
+// Prepare for full register allocation of all variables. We depend on liveness
+// analysis to have calculated live ranges.
 void LinearScan::initForGlobal() {
   TimerMarker T(TimerStack::TT_initUnhandled, Func);
   FindPreference = true;
   // For full register allocation, normally we want to enable FindOverlap
   // (meaning we look for opportunities for two overlapping live ranges to
-  // safely share the same register).  However, we disable it for phi-lowering
+  // safely share the same register). However, we disable it for phi-lowering
   // register allocation since no overlap opportunities should be available and
   // it's more expensive to look for opportunities.
   FindOverlap = (Kind != RAK_Phi);
@@ -262,7 +262,7 @@ void LinearScan::init(RegAllocKind Kind) {
 }
 
 // This is called when Cur must be allocated a register but no registers are
-// available across Cur's live range.  To handle this, we find a register that
+// available across Cur's live range. To handle this, we find a register that
 // is not explicitly used during Cur's live range, spill that register to a
 // stack location right before Cur's live range begins, and fill (reload) the
 // register from the stack location right after Cur's live range ends.
@@ -297,9 +297,9 @@ void LinearScan::addSpillFill(IterationState &Iter) {
     if (I->getNumber() == End)
       FillPoint = I;
     if (SpillPoint != E) {
-      // Remove from RegMask any physical registers referenced during Cur's live
-      // range.  Start looking after SpillPoint gets set, i.e. once Cur's live
-      // range begins.
+      // Remove from RegMask any physical registers referenced during Cur's
+      // live range. Start looking after SpillPoint gets set, i.e. once Cur's
+      // live range begins.
       FOREACH_VAR_IN_INST(Var, *I) {
         if (!Var->hasRegTmp())
           continue;
@@ -319,8 +319,9 @@ void LinearScan::addSpillFill(IterationState &Iter) {
   assert(RegNum != -1);
   Iter.Cur->setRegNumTmp(RegNum);
   Variable *Preg = Target->getPhysicalRegister(RegNum, Iter.Cur->getType());
-  // TODO(stichnot): Add SpillLoc to VariablesMetadata tracking so that SpillLoc
-  // is correctly identified as !isMultiBlock(), reducing stack frame size.
+  // TODO(stichnot): Add SpillLoc to VariablesMetadata tracking so that
+  // SpillLoc is correctly identified as !isMultiBlock(), reducing stack frame
+  // size.
   Variable *SpillLoc = Func->makeVariable(Iter.Cur->getType());
   // Add "reg=FakeDef;spill=reg" before SpillPoint
   Target->lowerInst(Node, SpillPoint, InstFakeDef::create(Func, Preg));
@@ -413,8 +414,8 @@ void LinearScan::findRegisterPreference(IterationState &Iter) {
         if (Variable *SrcVar = llvm::dyn_cast<Variable>(DefInst->getSrc(i))) {
           int32_t SrcReg = SrcVar->getRegNumTmp();
           // Only consider source variables that have (so far) been assigned a
-          // register. That register must be one in the RegMask set, e.g.
-          // don't try to prefer the stack pointer as a result of the stacksave
+          // register. That register must be one in the RegMask set, e.g. don't
+          // try to prefer the stack pointer as a result of the stacksave
           // intrinsic.
           if (SrcVar->hasRegTmp() && Iter.RegMask[SrcReg]) {
             if (FindOverlap && !Iter.Free[SrcReg]) {
@@ -469,7 +470,7 @@ void LinearScan::filterFreeWithInactiveRanges(IterationState &Iter) {
 
 // Remove registers from the Free[] list where an Unhandled pre-colored range
 // overlaps with the current range, and set those registers to infinite weight
-// so that they aren't candidates for eviction.  Cur->rangeEndsBefore(Item) is
+// so that they aren't candidates for eviction. Cur->rangeEndsBefore(Item) is
 // an early exit check that turns a guaranteed O(N^2) algorithm into expected
 // linear complexity.
 void LinearScan::filterFreeWithPrecoloredRanges(IterationState &Iter) {
@@ -610,9 +611,9 @@ void LinearScan::handleNoFreeRegisters(IterationState &Iter) {
       const SizeT Index = I - 1;
       Variable *Item = Inactive[Index];
       // Note: The Item->rangeOverlaps(Cur) clause is not part of the
-      // description of AssignMemLoc() in the original paper.  But there
-      // doesn't seem to be any need to evict an inactive live range that
-      // doesn't overlap with the live range currently being considered. It's
+      // description of AssignMemLoc() in the original paper. But there doesn't
+      // seem to be any need to evict an inactive live range that doesn't
+      // overlap with the live range currently being considered. It's
       // especially bad if we would end up evicting an infinite-weight but
       // currently-inactive live range. The most common situation for this
       // would be a scratch register kill set for call instructions.
@@ -644,9 +645,9 @@ void LinearScan::assignFinalRegisters(
   if (Randomized) {
     // Create a random number generator for regalloc randomization. Merge
     // function's sequence and Kind value as the Salt. Because regAlloc() is
-    // called twice under O2, the second time with RAK_Phi, we check
-    // Kind == RAK_Phi to determine the lowest-order bit to make sure the Salt
-    // is different.
+    // called twice under O2, the second time with RAK_Phi, we check Kind ==
+    // RAK_Phi to determine the lowest-order bit to make sure the Salt is
+    // different.
     uint64_t Salt =
         (Func->getSequenceNumber() << 1) ^ (Kind == RAK_Phi ? 0u : 1u);
     Target->makeRandomRegisterPermutation(
