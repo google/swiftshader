@@ -538,26 +538,31 @@ void InstARM32Vmov::emitSingleDestMultiSource(const Cfg *Func) const {
   Src1->emit(Func);
 }
 
+namespace {
+bool isVariableWithoutRegister(const Operand *Op) {
+  if (const auto *OpV = llvm::dyn_cast<const Variable>(Op)) {
+    return !OpV->hasReg();
+  }
+  return false;
+}
+
+bool isMemoryAccess(Operand *Op) {
+  return isVariableWithoutRegister(Op) || llvm::isa<OperandARM32Mem>(Op);
+}
+} // end of anonymous namespace
+
 void InstARM32Vmov::emitSingleDestSingleSource(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   Variable *Dest = getDest();
   if (Dest->hasReg()) {
-    IceString ActualOpcode = "vmov";
     Operand *Src0 = getSrc(0);
-    if (const auto *Src0V = llvm::dyn_cast<Variable>(Src0)) {
-      if (!Src0V->hasReg()) {
-        ActualOpcode = IceString("vldr");
-      }
-    } else {
-      if (llvm::isa<OperandARM32Mem>(Src0))
-        ActualOpcode = IceString("vldr");
-    }
+    const char *ActualOpcode = isMemoryAccess(Src0) ? "vldr" : "vmov";
     Str << "\t" << ActualOpcode << "\t";
-    getDest()->emit(Func);
+    Dest->emit(Func);
     Str << ", ";
-    getSrc(0)->emit(Func);
+    Src0->emit(Func);
   } else {
     Variable *Src0 = llvm::cast<Variable>(getSrc(0));
     assert(Src0->hasReg());
@@ -897,8 +902,8 @@ void InstARM32Str::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 2);
   Type Ty = getSrc(0)->getType();
-  Str << "\t"
-      << "str" << getWidthString(Ty) << getPredicate() << "\t";
+  const char *Opcode = isScalarFloatingType(Ty) ? "vstr" : "str";
+  Str << "\t" << Opcode << getWidthString(Ty) << getPredicate() << "\t";
   getSrc(0)->emit(Func);
   Str << ", ";
   getSrc(1)->emit(Func);

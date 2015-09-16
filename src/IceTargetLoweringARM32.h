@@ -21,6 +21,8 @@
 #include "IceRegistersARM32.h"
 #include "IceTargetLowering.h"
 
+#include "llvm/ADT/SmallBitVector.h"
+
 namespace Ice {
 
 // Class encapsulating ARM cpu features / instruction set.
@@ -461,19 +463,34 @@ protected:
   /// Helper class that understands the Calling Convention and register
   /// assignments. The first few integer type parameters can use r0-r3,
   /// regardless of their position relative to the floating-point/vector
-  /// arguments in the argument list. Floating-point and vector arguments can
-  /// use q0-q3 (aka d0-d7, s0-s15). Technically, arguments that can start with
-  /// registers but extend beyond the available registers can be split between
-  /// the registers and the stack. However, this is typically for passing GPR
-  /// structs by value, and PNaCl transforms expand this out.
+  /// arguments in the argument list. Floating-point and vector arguments
+  /// can use q0-q3 (aka d0-d7, s0-s15). For more information on the topic,
+  /// see the ARM Architecture Procedure Calling Standards (AAPCS).
   ///
-  /// Also, at the point before the call, the stack must be aligned.
+  /// Technically, arguments that can start with registers but extend beyond the
+  /// available registers can be split between the registers and the stack.
+  /// However, this is typically  for passing GPR structs by value, and PNaCl
+  /// transforms expand this out.
+  ///
+  /// At (public) function entry, the stack must be 8-byte aligned.
   class CallingConv {
     CallingConv(const CallingConv &) = delete;
     CallingConv &operator=(const CallingConv &) = delete;
 
   public:
-    CallingConv() {}
+    CallingConv()
+        : VFPRegsFree(ARM32_MAX_FP_REG_UNITS, true),
+          ValidF64Regs(ARM32_MAX_FP_REG_UNITS),
+          ValidV128Regs(ARM32_MAX_FP_REG_UNITS) {
+      for (uint32_t i = 0; i < ARM32_MAX_FP_REG_UNITS; ++i) {
+        if ((i % 2) == 0) {
+          ValidF64Regs[i] = true;
+        }
+        if ((i % 4) == 0) {
+          ValidV128Regs[i] = true;
+        }
+      }
+    }
     ~CallingConv() = default;
 
     bool I64InRegs(std::pair<int32_t, int32_t> *Regs);
@@ -481,12 +498,14 @@ protected:
     bool FPInReg(Type Ty, int32_t *Reg);
 
     static constexpr uint32_t ARM32_MAX_GPR_ARG = 4;
-    // Units of S registers still available to S/D/Q arguments.
+    // TODO(jpp): comment.
     static constexpr uint32_t ARM32_MAX_FP_REG_UNITS = 16;
 
   private:
     uint32_t NumGPRRegsUsed = 0;
-    uint32_t NumFPRegUnits = 0;
+    llvm::SmallBitVector VFPRegsFree;
+    llvm::SmallBitVector ValidF64Regs;
+    llvm::SmallBitVector ValidV128Regs;
   };
 
 private:

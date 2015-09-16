@@ -12,7 +12,6 @@
 /// entirely of the lowering sequence for each high-level instruction.
 ///
 //===----------------------------------------------------------------------===//
-
 #include "IceTargetLoweringARM32.h"
 
 #include "IceCfg.h"
@@ -465,39 +464,50 @@ bool TargetARM32::CallingConv::I32InReg(int32_t *Reg) {
 }
 
 bool TargetARM32::CallingConv::FPInReg(Type Ty, int32_t *Reg) {
-  if (NumFPRegUnits >= ARM32_MAX_FP_REG_UNITS)
+  if (!VFPRegsFree.any()) {
     return false;
+  }
+
   if (isVectorType(Ty)) {
-    NumFPRegUnits = Utils::applyAlignment(NumFPRegUnits, 4);
     // Q registers are declared in reverse order, so RegARM32::Reg_q0 >
-    // RegARM32::Reg_q1. Therefore, we need to subtract NumFPRegUnits from
-    // Reg_q0. Same thing goes for D registers.
+    // RegARM32::Reg_q1. Therefore, we need to subtract QRegStart from Reg_q0.
+    // Same thing goes for D registers.
     static_assert(RegARM32::Reg_q0 > RegARM32::Reg_q1,
                   "ARM32 Q registers are possibly declared incorrectly.");
-    *Reg = RegARM32::Reg_q0 - (NumFPRegUnits / 4);
-    NumFPRegUnits += 4;
-    // If this bumps us past the boundary, don't allocate to a register and
-    // leave any previously speculatively consumed registers as consumed.
-    if (NumFPRegUnits > ARM32_MAX_FP_REG_UNITS)
-      return false;
+
+    int32_t QRegStart = (VFPRegsFree & ValidV128Regs).find_first();
+    if (QRegStart >= 0) {
+      VFPRegsFree.reset(QRegStart, QRegStart + 4);
+      *Reg = RegARM32::Reg_q0 - (QRegStart / 4);
+      return true;
+    }
   } else if (Ty == IceType_f64) {
     static_assert(RegARM32::Reg_d0 > RegARM32::Reg_d1,
                   "ARM32 D registers are possibly declared incorrectly.");
-    NumFPRegUnits = Utils::applyAlignment(NumFPRegUnits, 2);
-    *Reg = RegARM32::Reg_d0 - (NumFPRegUnits / 2);
-    NumFPRegUnits += 2;
-    // If this bumps us past the boundary, don't allocate to a register and
-    // leave any previously speculatively consumed registers as consumed.
-    if (NumFPRegUnits > ARM32_MAX_FP_REG_UNITS)
-      return false;
+
+    int32_t DRegStart = (VFPRegsFree & ValidF64Regs).find_first();
+    if (DRegStart >= 0) {
+      VFPRegsFree.reset(DRegStart, DRegStart + 2);
+      *Reg = RegARM32::Reg_d0 - (DRegStart / 2);
+      return true;
+    }
   } else {
     static_assert(RegARM32::Reg_s0 < RegARM32::Reg_s1,
                   "ARM32 S registers are possibly declared incorrectly.");
+
     assert(Ty == IceType_f32);
-    *Reg = RegARM32::Reg_s0 + NumFPRegUnits;
-    ++NumFPRegUnits;
+    int32_t SReg = VFPRegsFree.find_first();
+    assert(SReg >= 0);
+    VFPRegsFree.reset(SReg);
+    *Reg = RegARM32::Reg_s0 + SReg;
+    return true;
   }
-  return true;
+
+  // Parameter allocation failed. From now on, every fp register must be placed
+  // on the stack. We clear VFRegsFree in case there are any "holes" from S and
+  // D registers.
+  VFPRegsFree.clear();
+  return false;
 }
 
 void TargetARM32::lowerArguments() {
@@ -2235,6 +2245,8 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
       UnimplementedError(Func->getContext()->getFlags());
       break;
     case IceType_v4i32:
+      // avoid cryptic liveness errors
+      Context.insert(InstFakeDef::create(Func, Dest));
       UnimplementedError(Func->getContext()->getFlags());
       break;
     case IceType_v4f32:
@@ -2768,9 +2780,10 @@ void TargetARM32::lowerStore(const InstStore *Inst) {
     Variable *ValueLo = legalizeToReg(loOperand(Value));
     _str(ValueHi, llvm::cast<OperandARM32Mem>(hiOperand(NewAddr)));
     _str(ValueLo, llvm::cast<OperandARM32Mem>(loOperand(NewAddr)));
-  } else if (isVectorType(Ty)) {
-    UnimplementedError(Func->getContext()->getFlags());
   } else {
+    if (isVectorType(Ty)) {
+      UnimplementedError(Func->getContext()->getFlags());
+    }
     Variable *ValueR = legalizeToReg(Value);
     _str(ValueR, NewAddr);
   }
@@ -2832,7 +2845,10 @@ Variable *TargetARM32::makeVectorOfZeros(Type Ty, int32_t RegNum) {
 Variable *TargetARM32::copyToReg(Operand *Src, int32_t RegNum) {
   Type Ty = Src->getType();
   Variable *Reg = makeReg(Ty, RegNum);
-  if (isVectorType(Ty) || isFloatingType(Ty)) {
+  if (isVectorType(Ty)) {
+    // TODO(jpp): Src must be a register, or an address with base register.
+    _vmov(Reg, Src);
+  } else if (isFloatingType(Ty)) {
     _vmov(Reg, Src);
   } else {
     // Mov's Src operand can really only be the flexible second operand type or
