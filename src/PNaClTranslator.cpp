@@ -1283,16 +1283,14 @@ public:
     if (Index < CachedNumGlobalValueIDs) {
       return Context->getGlobalConstantByID(Index);
     }
+    if (isIRGenerationDisabled())
+      return nullptr;
     NaClBcIndexSize_t LocalIndex = Index - CachedNumGlobalValueIDs;
+    if (LocalIndex >= LocalOperands.size())
+      reportGetOperandUndefined(Index);
     Ice::Operand *Op = LocalOperands[LocalIndex];
-    if (Op == nullptr) {
-      if (isIRGenerationDisabled())
-        return nullptr;
-      std::string Buffer;
-      raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Value index " << Index << " not defined!";
-      Fatal(StrBuf.str());
-    }
+    if (Op == nullptr)
+      reportGetOperandUndefined(Index);
     return Op;
   }
 
@@ -1980,6 +1978,13 @@ private:
       return;
     Ice::Variable *Var = getNextInstVar(Ty);
     CurrentNode->appendInst(Ice::InstAssign::create(Func.get(), Var, Var));
+  }
+
+  Ice::Operand *reportGetOperandUndefined(NaClBcIndexSize_t Index) {
+    std::string Buffer;
+    raw_string_ostream StrBuf(Buffer);
+    StrBuf << "Value index " << Index << " not defined!";
+    Fatal(StrBuf.str());
   }
 };
 
