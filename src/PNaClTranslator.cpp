@@ -27,6 +27,7 @@
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-parameter"
+#include "llvm/ADT/Hashing.h"
 #include "llvm/ADT/SmallString.h"
 #include "llvm/Bitcode/NaCl/NaClBitcodeDecoders.h"
 #include "llvm/Bitcode/NaCl/NaClBitcodeDefs.h"
@@ -36,7 +37,18 @@
 #include "llvm/Support/Format.h"
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/raw_ostream.h"
+#include <unordered_set>
 #pragma clang diagnostic pop
+
+// Define a hash function for SmallString's, so that it can be used in hash
+// tables.
+namespace std {
+template <unsigned InternalLen> struct hash<llvm::SmallString<InternalLen>> {
+  size_t operator()(const llvm::SmallString<InternalLen> &Key) const {
+    return llvm::hash_combine_range(Key.begin(), Key.end());
+  }
+};
+} // end of namespace std
 
 namespace {
 using namespace llvm;
@@ -1146,22 +1158,59 @@ public:
 protected:
   using StringType = SmallString<128>;
 
+  // Returns the name to identify the kind of symbol table this is
+  // in error messages.
+  virtual const char *getTableKind() const = 0;
+
   // Associates Name with the value defined by the given Index.
   virtual void setValueName(NaClBcIndexSize_t Index, StringType &Name) = 0;
 
   // Associates Name with the value defined by the given Index;
   virtual void setBbName(NaClBcIndexSize_t Index, StringType &Name) = 0;
 
+  // Reports that the assignment of Name to the value associated with
+  // index is not possible, for the given Context.
+  void reportUnableToAssign(const char *Context, NaClBcIndexSize_t Index,
+                            StringType &Name);
+
 private:
+  using NamesSetType = std::unordered_set<StringType>;
+  NamesSetType ValueNames;
+  NamesSetType BlockNames;
+
   void ProcessRecord() override;
 
-  void convertToString(StringType &ConvertedName) {
+  // Extracts out ConvertedName. Returns true if unique wrt to Names.
+  bool convertToString(NamesSetType &Names, StringType &ConvertedName) {
     const NaClBitcodeRecord::RecordVector &Values = Record.GetValues();
     for (size_t i = 1, e = Values.size(); i != e; ++i) {
       ConvertedName += static_cast<char>(Values[i]);
     }
+    auto Pair = Names.insert(ConvertedName);
+    return Pair.second;
   }
+
+  void ReportDuplicateName(const char *NameCat, StringType &Name);
 };
+
+void ValuesymtabParser::reportUnableToAssign(const char *Context,
+                                             NaClBcIndexSize_t Index,
+                                             StringType &Name) {
+  std::string Buffer;
+  raw_string_ostream StrBuf(Buffer);
+  StrBuf << getTableKind() << " " << getBlockName() << ": " << Context
+         << " name '" << Name << "' can't be associated with index " << Index;
+  Error(StrBuf.str());
+}
+
+void ValuesymtabParser::ReportDuplicateName(const char *NameCat,
+                                            StringType &Name) {
+  std::string Buffer;
+  raw_string_ostream StrBuf(Buffer);
+  StrBuf << getTableKind() << " " << getBlockName() << " defines duplicate "
+         << NameCat << " name: '" << Name << "'";
+  Error(StrBuf.str());
+}
 
 void ValuesymtabParser::ProcessRecord() {
   const NaClBitcodeRecord::RecordVector &Values = Record.GetValues();
@@ -1171,16 +1220,20 @@ void ValuesymtabParser::ProcessRecord() {
     // VST_ENTRY: [ValueId, namechar x N]
     if (!isValidRecordSizeAtLeast(2, "value entry"))
       return;
-    convertToString(ConvertedName);
-    setValueName(Values[0], ConvertedName);
+    if (convertToString(ValueNames, ConvertedName))
+      setValueName(Values[0], ConvertedName);
+    else
+      ReportDuplicateName("value", ConvertedName);
     return;
   }
   case naclbitc::VST_CODE_BBENTRY: {
     // VST_BBENTRY: [BbId, namechar x N]
     if (!isValidRecordSizeAtLeast(2, "basic block entry"))
       return;
-    convertToString(ConvertedName);
-    setBbName(Values[0], ConvertedName);
+    if (convertToString(BlockNames, ConvertedName))
+      setBbName(Values[0], ConvertedName);
+    else
+      ReportDuplicateName("block", ConvertedName);
     return;
   }
   default:
@@ -2864,8 +2917,10 @@ private:
     return reinterpret_cast<FunctionParser *>(GetEnclosingParser());
   }
 
-  void setValueName(NaClBcIndexSize_t Index, StringType &Name) override;
-  void setBbName(NaClBcIndexSize_t Index, StringType &Name) override;
+  const char *getTableKind() const final { return "Function"; }
+
+  void setValueName(NaClBcIndexSize_t Index, StringType &Name) final;
+  void setBbName(NaClBcIndexSize_t Index, StringType &Name) final;
 
   // Reports that the assignment of Name to the value associated with index is
   // not possible, for the given Context.
@@ -2884,7 +2939,7 @@ void FunctionValuesymtabParser::setValueName(NaClBcIndexSize_t Index,
   // Note: We check when Index is too small, so that we can error recover
   // (FP->getOperand will create fatal error).
   if (Index < getFunctionParser()->getNumGlobalIDs()) {
-    reportUnableToAssign("instruction", Index, Name);
+    reportUnableToAssign("Global value", Index, Name);
     return;
   }
   if (isIRGenerationDisabled())
@@ -2896,7 +2951,7 @@ void FunctionValuesymtabParser::setValueName(NaClBcIndexSize_t Index,
       V->setName(getFunctionParser()->getFunc(), Nm);
     }
   } else {
-    reportUnableToAssign("variable", Index, Name);
+    reportUnableToAssign("Local value", Index, Name);
   }
 }
 
@@ -2907,7 +2962,7 @@ void FunctionValuesymtabParser::setBbName(NaClBcIndexSize_t Index,
   if (isIRGenerationDisabled())
     return;
   if (Index >= getFunctionParser()->getFunc()->getNumNodes()) {
-    reportUnableToAssign("block", Index, Name);
+    reportUnableToAssign("Basic block", Index, Name);
     return;
   }
   std::string Nm(Name.data(), Name.size());
@@ -2990,8 +3045,9 @@ public:
 
 private:
   Ice::TimerMarker Timer;
-  void setValueName(NaClBcIndexSize_t Index, StringType &Name) override;
-  void setBbName(NaClBcIndexSize_t Index, StringType &Name) override;
+  const char *getTableKind() const final { return "Module"; }
+  void setValueName(NaClBcIndexSize_t Index, StringType &Name) final;
+  void setBbName(NaClBcIndexSize_t Index, StringType &Name) final;
 };
 
 void ModuleValuesymtabParser::setValueName(NaClBcIndexSize_t Index,
@@ -3002,11 +3058,7 @@ void ModuleValuesymtabParser::setValueName(NaClBcIndexSize_t Index,
 
 void ModuleValuesymtabParser::setBbName(NaClBcIndexSize_t Index,
                                         StringType &Name) {
-  std::string Buffer;
-  raw_string_ostream StrBuf(Buffer);
-  StrBuf << "Can't define basic block name at global level: '" << Name
-         << "' -> " << Index;
-  Error(StrBuf.str());
+  reportUnableToAssign("Basic block", Index, Name);
 }
 
 bool ModuleParser::ParseBlock(unsigned BlockID) {
