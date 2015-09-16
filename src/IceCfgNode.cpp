@@ -80,6 +80,46 @@ void CfgNode::computeSuccessors() {
   OutEdges = Insts.rbegin()->getTerminatorEdges();
 }
 
+// Validate each Phi instruction in the node with respect to control flow.  For
+// every phi argument, its label must appear in the predecessor list.  For each
+// predecessor, there must be a phi argument with that label.  We don't check
+// that phi arguments with the same label have the same value.
+void CfgNode::validatePhis() {
+  for (Inst &Instr : Phis) {
+    auto *Phi = llvm::cast<InstPhi>(&Instr);
+    // We do a simple O(N^2) algorithm to check for consistency.  Even so, it
+    // shows up as only about 0.2% of the total translation time.  But if
+    // necessary, we could improve the complexity by using a hash table to count
+    // how many times each node is referenced in the Phi instruction, and how
+    // many times each node is referenced in the incoming edge list, and compare
+    // the two for equality.
+    for (SizeT i = 0; i < Phi->getSrcSize(); ++i) {
+      CfgNode *Label = Phi->getLabel(i);
+      bool Found = false;
+      for (CfgNode *InNode : getInEdges()) {
+        if (InNode == Label) {
+          Found = true;
+          break;
+        }
+      }
+      if (!Found)
+        llvm::report_fatal_error("Phi error: label for bad incoming edge");
+    }
+    for (CfgNode *InNode : getInEdges()) {
+      bool Found = false;
+      for (SizeT i = 0; i < Phi->getSrcSize(); ++i) {
+        CfgNode *Label = Phi->getLabel(i);
+        if (InNode == Label) {
+          Found = true;
+          break;
+        }
+      }
+      if (!Found)
+        llvm::report_fatal_error("Phi error: missing label for incoming edge");
+    }
+  }
+}
+
 // This does part 1 of Phi lowering, by creating a new dest variable
 // for each Phi instruction, replacing the Phi instruction's dest with
 // that variable, and adding an explicit assignment of the old dest to

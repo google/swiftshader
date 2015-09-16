@@ -46,6 +46,7 @@
   X(parseModule)               \
   X(parseModuleValuesymtabs)   \
   X(parseTypes)                \
+  X(phiValidation)             \
   X(placePhiLoads)             \
   X(placePhiStores)            \
   X(regAlloc)                  \

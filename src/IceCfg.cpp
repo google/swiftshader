@@ -232,6 +232,10 @@ void Cfg::computeInOutEdges() {
     }
   }
   Nodes.resize(Dest);
+
+  TimerMarker T(TimerStack::TT_phiValidation, this);
+  for (CfgNode *Node : Nodes)
+    Node->validatePhis();
 }
 
 void Cfg::renumberInstructions() {
