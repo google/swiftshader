@@ -64,3 +64,51 @@ entry:
 ; ARM32-LABEL: conv2
 ; ARM32: lsl {{.*}}, #16
 ; ARM32: lsr {{.*}}, #16
+
+define i32 @shlImmLarge(i32 %val) {
+entry:
+  %result = shl i32 %val, 257
+  ret i32 %result
+}
+; CHECK-LABEL: shlImmLarge
+; CHECK: shl {{.*}},0x1
+
+define i32 @shlImmNeg(i32 %val) {
+entry:
+  %result = shl i32 %val, -1
+  ret i32 %result
+}
+; CHECK-LABEL: shlImmNeg
+; CHECK: shl {{.*}},0xff
+
+define i32 @lshrImmLarge(i32 %val) {
+entry:
+  %result = lshr i32 %val, 257
+  ret i32 %result
+}
+; CHECK-LABEL: lshrImmLarge
+; CHECK: shr {{.*}},0x1
+
+define i32 @lshrImmNeg(i32 %val) {
+entry:
+  %result = lshr i32 %val, -1
+  ret i32 %result
+}
+; CHECK-LABEL: lshrImmNeg
+; CHECK: shr {{.*}},0xff
+
+define i32 @ashrImmLarge(i32 %val) {
+entry:
+  %result = ashr i32 %val, 257
+  ret i32 %result
+}
+; CHECK-LABEL: ashrImmLarge
+; CHECK: sar {{.*}},0x1
+
+define i32 @ashrImmNeg(i32 %val) {
+entry:
+  %result = ashr i32 %val, -1
+  ret i32 %result
+}
+; CHECK-LABEL: ashrImmNeg
+; CHECK: sar {{.*}},0xff

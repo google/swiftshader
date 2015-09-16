@@ -3371,7 +3371,10 @@ template <class Machine>
 void AssemblerX86Base<Machine>::emitGenericShift(
     int rm, Type Ty, typename Traits::GPRRegister reg, const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  assert(imm.is_int8());
+  // We don't assert that imm fits into 8 bits; instead, it gets masked below.
+  // Note that we don't mask it further (e.g. to 5 bits) because we want the
+  // same processor behavior regardless of whether it's an immediate (masked to
+  // 8 bits) or in register cl (essentially ecx masked to 8 bits).
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
   emitRexB(Ty, reg);
