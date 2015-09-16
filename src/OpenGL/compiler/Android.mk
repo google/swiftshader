@@ -1,12 +1,32 @@
 LOCAL_PATH:= $(call my-dir)
-include $(CLEAR_VARS)
 
-LOCAL_CLANG := true
+COMMON_C_INCLUDES := \
+	bionic \
+	$(GCE_STLPORT_INCLUDES) \
+	$(LOCAL_PATH)/../include \
+	$(LOCAL_PATH)/../ \
+	$(LOCAL_PATH)/../../ \
+	$(LOCAL_PATH)/../../LLVM/include-android \
+	$(LOCAL_PATH)/../../LLVM/include-linux \
+	$(LOCAL_PATH)/../../LLVM/include \
+	$(LOCAL_PATH)/../../LLVM/lib/Target/X86 \
+	$(LOCAL_PATH)/../../Renderer/ \
+	$(LOCAL_PATH)/../../Common/ \
+	$(LOCAL_PATH)/../../Shader/ \
+	$(LOCAL_PATH)/../../Main/
 
-LOCAL_MODULE := swiftshader_compiler
-LOCAL_MODULE_TAGS := optional
+COMMON_CFLAGS := \
+	-DLOG_TAG=\"swiftshader_compiler\" \
+	-Wno-unused-parameter \
+	-Wno-implicit-exception-spec-mismatch \
+	-Wno-overloaded-virtual \
+	-fno-operator-names \
+	-msse2 \
+	-D__STDC_CONSTANT_MACROS \
+	-D__STDC_LIMIT_MACROS \
+	-std=c++11
 
-LOCAL_SRC_FILES += \
+COMMON_SRC_FILES := \
 	preprocessor/Diagnostics.cpp \
 	preprocessor/DirectiveHandler.cpp \
 	preprocessor/DirectiveParser.cpp \
@@ -43,33 +63,29 @@ LOCAL_SRC_FILES += \
 	ValidateLimitations.cpp \
 	ValidateSwitch.cpp \
 
-LOCAL_CFLAGS += -DLOG_TAG=\"swiftshader_compiler\" \
-	-Wno-unused-parameter \
-	-Wno-implicit-exception-spec-mismatch \
-	-Wno-overloaded-virtual
+include $(CLEAR_VARS)
+LOCAL_CLANG := true
+LOCAL_MODULE := swiftshader_compiler_release
+LOCAL_MODULE_TAGS := optional
+LOCAL_SRC_FILES := $(COMMON_SRC_FILES)
+LOCAL_CFLAGS += \
+	$(COMMON_C_FLAGS) \
+	-ffunction-sections \
+	-fdata-sections \
+	-DANGLE_DISABLE_TRACE
+LOCAL_C_INCLUDES := $(COMMON_C_INCLUDES)
+include $(BUILD_STATIC_LIBRARY)
 
-# Android's make system also uses NDEBUG, so we need to set/unset it forcefully
-# Uncomment for ON:
-# LOCAL_CFLAGS += -UNDEBUG -g -O0
-# Uncomment for OFF:
-LOCAL_CFLAGS += -ffunction-sections -fdata-sections -DANGLE_DISABLE_TRACE
+include $(CLEAR_VARS)
+LOCAL_CLANG := true
+LOCAL_MODULE := swiftshader_compiler_debug
+LOCAL_MODULE_TAGS := optional
+LOCAL_SRC_FILES := $(COMMON_SRC_FILES)
 
-LOCAL_CFLAGS += -fno-operator-names -msse2 -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS
-LOCAL_CFLAGS += -std=c++11
-
-LOCAL_C_INCLUDES += \
-	bionic \
-	$(GCE_STLPORT_INCLUDES) \
-	$(LOCAL_PATH)/../include \
-	$(LOCAL_PATH)/../ \
-	$(LOCAL_PATH)/../../ \
-	$(LOCAL_PATH)/../../LLVM/include-android \
-	$(LOCAL_PATH)/../../LLVM/include-linux \
-	$(LOCAL_PATH)/../../LLVM/include \
-	$(LOCAL_PATH)/../../LLVM/lib/Target/X86 \
-	$(LOCAL_PATH)/../../Renderer/ \
-	$(LOCAL_PATH)/../../Common/ \
-	$(LOCAL_PATH)/../../Shader/ \
-	$(LOCAL_PATH)/../../Main/
-
+LOCAL_CFLAGS += \
+	$(COMMON_C_FLAGS) \
+	-UNDEBUG \
+	-g \
+	-O0
+LOCAL_C_INCLUDES := $(COMMON_C_INCLUDES)
 include $(BUILD_STATIC_LIBRARY)

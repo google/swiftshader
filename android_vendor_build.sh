@@ -66,6 +66,7 @@ for config in ${CONFIGS}; do
 
   # We don't need the obj files since they can be generated from the syms
 
+  mkdir -p ${OBJECT_DIR}/${TARGET_ARCH}
   rm -rf ${OBJECT_DIR}/${TARGET_ARCH}/*/obj
 
   # JBMR2 (and earlier?) doesn't allow the library name to differ from the
