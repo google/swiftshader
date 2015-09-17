@@ -116,7 +116,6 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
   // the document "OS X ABI Function Call Guide" by Apple.
   NeedsStackAlignment = true;
 
-  using OperandList = std::vector<Operand *>;
   OperandList XmmArgs;
   OperandList StackArgs, StackArgLocations;
   uint32_t ParameterAreaSizeBytes = 0;

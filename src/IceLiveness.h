@@ -47,7 +47,7 @@ class Liveness {
     // LiveToVarMap maps a liveness bitvector index to a Variable. This is
     // generally just for printing/dumping. The index should be less than
     // NumLocals + Liveness::NumGlobals.
-    std::vector<Variable *> LiveToVarMap;
+    CfgVector<Variable *> LiveToVarMap;
     // LiveIn and LiveOut track the in- and out-liveness of the global
     // variables. The size of each vector is LivenessNode::NumGlobals.
     LivenessBV LiveIn, LiveOut;
@@ -107,13 +107,13 @@ private:
   LivenessMode Mode;
   SizeT NumGlobals = 0;
   /// Size of Nodes is Cfg::Nodes.size().
-  std::vector<LivenessNode> Nodes;
+  CfgVector<LivenessNode> Nodes;
   /// VarToLiveMap maps a Variable's Variable::Number to its live index within
   /// its basic block.
-  std::vector<SizeT> VarToLiveMap;
+  CfgVector<SizeT> VarToLiveMap;
   /// LiveToVarMap is analogous to LivenessNode::LiveToVarMap, but for non-local
   /// variables.
-  std::vector<Variable *> LiveToVarMap;
+  CfgVector<Variable *> LiveToVarMap;
   /// RangeMask[Variable::Number] indicates whether we want to track that
   /// Variable's live range.
   llvm::BitVector RangeMask;

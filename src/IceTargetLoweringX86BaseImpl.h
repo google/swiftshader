@@ -491,8 +491,8 @@ bool isSameMemAddressOperand(const Operand *A, const Operand *B) {
 
 template <class Machine> void TargetX86Base<Machine>::findRMW() {
   Func->dump("Before RMW");
-  OstreamLocker L(Func->getContext());
-  Ostream &Str = Func->getContext()->getStrDump();
+  if (Func->isVerbose(IceV_RMW))
+    Func->getContext()->lockStr();
   for (CfgNode *Node : Func->getNodes()) {
     // Walk through the instructions, considering each sequence of 3
     // instructions, and look for the particular RMW pattern. Note that this
@@ -510,75 +510,76 @@ template <class Machine> void TargetX86Base<Machine>::findRMW() {
       assert(!I1->isDeleted());
       assert(!I2->isDeleted());
       assert(!I3->isDeleted());
-      if (auto *Load = llvm::dyn_cast<InstLoad>(I1)) {
-        if (auto *Arith = llvm::dyn_cast<InstArithmetic>(I2)) {
-          if (auto *Store = llvm::dyn_cast<InstStore>(I3)) {
-            // Look for:
-            //   a = Load addr
-            //   b = <op> a, other
-            //   Store b, addr
-            // Change to:
-            //   a = Load addr
-            //   b = <op> a, other
-            //   x = FakeDef
-            //   RMW <op>, addr, other, x
-            //   b = Store b, addr, x
-            // Note that inferTwoAddress() makes sure setDestNonKillable() gets
-            // called on the updated Store instruction, to avoid liveness
-            // problems later.
-            //
-            // With this transformation, the Store instruction acquires a Dest
-            // variable and is now subject to dead code elimination if there
-            // are no more uses of "b".  Variable "x" is a beacon for
-            // determining whether the Store instruction gets dead-code
-            // eliminated.  If the Store instruction is eliminated, then it
-            // must be the case that the RMW instruction ends x's live range,
-            // and therefore the RMW instruction will be retained and later
-            // lowered.  On the other hand, if the RMW instruction does not end
-            // x's live range, then the Store instruction must still be
-            // present, and therefore the RMW instruction is ignored during
-            // lowering because it is redundant with the Store instruction.
-            //
-            // Note that if "a" has further uses, the RMW transformation may
-            // still trigger, resulting in two loads and one store, which is
-            // worse than the original one load and one store.  However, this
-            // is probably rare, and caching probably keeps it just as fast.
-            if (!isSameMemAddressOperand<Machine>(Load->getSourceAddress(),
-                                                  Store->getAddr()))
-              continue;
-            Operand *ArithSrcFromLoad = Arith->getSrc(0);
-            Operand *ArithSrcOther = Arith->getSrc(1);
-            if (ArithSrcFromLoad != Load->getDest()) {
-              if (!Arith->isCommutative() || ArithSrcOther != Load->getDest())
-                continue;
-              std::swap(ArithSrcFromLoad, ArithSrcOther);
-            }
-            if (Arith->getDest() != Store->getData())
-              continue;
-            if (!canRMW(Arith))
-              continue;
-            if (Func->isVerbose(IceV_RMW)) {
-              Str << "Found RMW in " << Func->getFunctionName() << ":\n  ";
-              Load->dump(Func);
-              Str << "\n  ";
-              Arith->dump(Func);
-              Str << "\n  ";
-              Store->dump(Func);
-              Str << "\n";
-            }
-            Variable *Beacon = Func->makeVariable(IceType_i32);
-            Beacon->setMustNotHaveReg();
-            Store->setRmwBeacon(Beacon);
-            InstFakeDef *BeaconDef = InstFakeDef::create(Func, Beacon);
-            Node->getInsts().insert(I3, BeaconDef);
-            auto *RMW = Traits::Insts::FakeRMW::create(
-                Func, ArithSrcOther, Store->getAddr(), Beacon, Arith->getOp());
-            Node->getInsts().insert(I3, RMW);
-          }
-        }
+      auto *Load = llvm::dyn_cast<InstLoad>(I1);
+      auto *Arith = llvm::dyn_cast<InstArithmetic>(I2);
+      auto *Store = llvm::dyn_cast<InstStore>(I3);
+      if (!Load || !Arith || !Store)
+        continue;
+      // Look for:
+      //   a = Load addr
+      //   b = <op> a, other
+      //   Store b, addr
+      // Change to:
+      //   a = Load addr
+      //   b = <op> a, other
+      //   x = FakeDef
+      //   RMW <op>, addr, other, x
+      //   b = Store b, addr, x
+      // Note that inferTwoAddress() makes sure setDestNonKillable() gets
+      // called on the updated Store instruction, to avoid liveness problems
+      // later.
+      //
+      // With this transformation, the Store instruction acquires a Dest
+      // variable and is now subject to dead code elimination if there are no
+      // more uses of "b".  Variable "x" is a beacon for determining whether
+      // the Store instruction gets dead-code eliminated.  If the Store
+      // instruction is eliminated, then it must be the case that the RMW
+      // instruction ends x's live range, and therefore the RMW instruction
+      // will be retained and later lowered.  On the other hand, if the RMW
+      // instruction does not end x's live range, then the Store instruction
+      // must still be present, and therefore the RMW instruction is ignored
+      // during lowering because it is redundant with the Store instruction.
+      //
+      // Note that if "a" has further uses, the RMW transformation may still
+      // trigger, resulting in two loads and one store, which is worse than the
+      // original one load and one store.  However, this is probably rare, and
+      // caching probably keeps it just as fast.
+      if (!isSameMemAddressOperand<Machine>(Load->getSourceAddress(),
+                                            Store->getAddr()))
+        continue;
+      Operand *ArithSrcFromLoad = Arith->getSrc(0);
+      Operand *ArithSrcOther = Arith->getSrc(1);
+      if (ArithSrcFromLoad != Load->getDest()) {
+        if (!Arith->isCommutative() || ArithSrcOther != Load->getDest())
+          continue;
+        std::swap(ArithSrcFromLoad, ArithSrcOther);
       }
+      if (Arith->getDest() != Store->getData())
+        continue;
+      if (!canRMW(Arith))
+        continue;
+      if (Func->isVerbose(IceV_RMW)) {
+        Ostream &Str = Func->getContext()->getStrDump();
+        Str << "Found RMW in " << Func->getFunctionName() << ":\n  ";
+        Load->dump(Func);
+        Str << "\n  ";
+        Arith->dump(Func);
+        Str << "\n  ";
+        Store->dump(Func);
+        Str << "\n";
+      }
+      Variable *Beacon = Func->makeVariable(IceType_i32);
+      Beacon->setMustNotHaveReg();
+      Store->setRmwBeacon(Beacon);
+      InstFakeDef *BeaconDef = InstFakeDef::create(Func, Beacon);
+      Node->getInsts().insert(I3, BeaconDef);
+      auto *RMW = Traits::Insts::FakeRMW::create(
+          Func, ArithSrcOther, Store->getAddr(), Beacon, Arith->getOp());
+      Node->getInsts().insert(I3, RMW);
     }
   }
+  if (Func->isVerbose(IceV_RMW))
+    Func->getContext()->unlockStr();
 }
 
 // Converts a ConstantInteger32 operand into its constant value, or

@@ -273,7 +273,7 @@ private:
   std::unique_ptr<Assembler> TargetAssembler;
   /// Globals required by this CFG. Mostly used for the profiler's globals.
   std::unique_ptr<VariableDeclarationList> GlobalInits;
-  std::vector<InstJumpTable *> JumpTables;
+  CfgVector<InstJumpTable *> JumpTables;
 
   /// CurrentNode is maintained during dumping/emitting just for validating
   /// Variable::DefNode. Normally, a traversal over CfgNodes maintains this, but

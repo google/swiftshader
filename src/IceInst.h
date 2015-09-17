@@ -161,10 +161,7 @@ public:
   void dumpDest(const Cfg *Func) const;
   virtual bool isRedundantAssign() const { return false; }
 
-  // TODO(jpp): Insts should not have non-trivial destructors, but they
-  // currently do. This dtor is marked final as a multi-step refactor that
-  // will eventually fix this problem.
-  virtual ~Inst() = default;
+  ~Inst() = default;
 
 protected:
   Inst(Cfg *Func, InstKind Kind, SizeT MaxSrcs, Variable *Dest);

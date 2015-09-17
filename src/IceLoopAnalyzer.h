@@ -88,9 +88,8 @@ private:
     bool Deleted = false;
   };
 
-  using LoopNodeList = std::vector<LoopNode, CfgLocalAllocator<LoopNode>>;
-  using LoopNodePtrList =
-      std::vector<LoopNode *, CfgLocalAllocator<LoopNode *>>;
+  using LoopNodeList = CfgVector<LoopNode>;
+  using LoopNodePtrList = CfgVector<LoopNode *>;
 
   /// Process the node as part as part of Tarjan's algorithm and return either a
   /// node to recurse into or nullptr when the node has been fully processed.

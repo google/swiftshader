@@ -121,6 +121,7 @@ ifdef ASAN
 endif
 
 ifdef MSAN
+  # TODO(ascull): this has an as yet undiagnosed uninitialized memory access
   OBJDIR := $(OBJDIR)+MSan
   CXX_EXTRA += -fsanitize=memory
   LD_EXTRA += -fsanitize=memory

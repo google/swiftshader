@@ -85,12 +85,13 @@ public:
   }
   /// @}
 
+  ~Operand() = default;
+
 protected:
   Operand(OperandKind Kind, Type Ty) : Ty(Ty), Kind(Kind) {
     // It is undefined behavior to have a larger value in the enum
     assert(Kind <= kTarget_Max);
   }
-  virtual ~Operand() = default;
 
   const Type Ty;
   const OperandKind Kind;
@@ -354,7 +355,7 @@ public:
   LiveRange() = default;
   /// Special constructor for building a kill set. The advantage is that we can
   /// reserve the right amount of space in advance.
-  explicit LiveRange(const std::vector<InstNumberT> &Kills) {
+  explicit LiveRange(const CfgVector<InstNumberT> &Kills) {
     Range.reserve(Kills.size());
     for (InstNumberT I : Kills)
       addSegment(I, I);
@@ -388,8 +389,7 @@ public:
 private:
   using RangeElementType = std::pair<InstNumberT, InstNumberT>;
   /// RangeType is arena-allocated from the Cfg's allocator.
-  using RangeType =
-      std::vector<RangeElementType, CfgLocalAllocator<RangeElementType>>;
+  using RangeType = CfgVector<RangeElementType>;
   RangeType Range;
   /// TrimmedBegin is an optimization for the overlaps() computation. Since the
   /// linear-scan algorithm always calls it as overlaps(Cur) and Cur advances
@@ -556,7 +556,7 @@ enum MetadataKind {
   VMK_SingleDefs, /// Track uses+defs, but only record single def
   VMK_All         /// Track uses+defs, including full def list
 };
-using InstDefList = std::vector<const Inst *, CfgLocalAllocator<const Inst *>>;
+using InstDefList = CfgVector<const Inst *>;
 
 /// VariableTracking tracks the metadata for a single variable.  It is
 /// only meant to be used internally by VariablesMetadata.
@@ -652,7 +652,7 @@ public:
 private:
   const Cfg *Func;
   MetadataKind Kind;
-  std::vector<VariableTracking> Metadata;
+  CfgVector<VariableTracking> Metadata;
   const static InstDefList NoDefinitions;
 };
 

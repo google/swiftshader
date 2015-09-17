@@ -20,8 +20,7 @@ namespace Ice {
 
 class CaseCluster;
 
-using CaseClusterArray =
-    std::vector<CaseCluster, CfgLocalAllocator<CaseCluster>>;
+using CaseClusterArray = CfgVector<CaseCluster>;
 
 /// A cluster of cases can be tested by a common method during switch lowering.
 class CaseCluster {

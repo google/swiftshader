@@ -39,8 +39,8 @@ public:
   static constexpr size_t REGS_SIZE = 32;
 
 private:
-  using OrderedRanges = std::vector<Variable *>;
-  using UnorderedRanges = std::vector<Variable *>;
+  using OrderedRanges = CfgVector<Variable *>;
+  using UnorderedRanges = CfgVector<Variable *>;
 
   class IterationState {
     IterationState(const IterationState &) = delete;
@@ -103,7 +103,7 @@ private:
   /// faster processing.
   OrderedRanges UnhandledPrecolored;
   UnorderedRanges Active, Inactive, Handled;
-  std::vector<InstNumberT> Kills;
+  CfgVector<InstNumberT> Kills;
   RegAllocKind Kind = RAK_Unknown;
   /// RegUses[I] is the number of live ranges (variables) that register I is
   /// currently assigned to. It can be greater than 1 as a result of

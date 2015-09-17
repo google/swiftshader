@@ -145,10 +145,14 @@ using InstList = llvm::ilist<Inst>;
 using PhiList = InstList;
 using AssignList = InstList;
 
+// Standard library containers with CfgLocalAllocator.
+template <typename T> using CfgVector = std::vector<T, CfgLocalAllocator<T>>;
+template <typename T> using CfgList = std::list<T, CfgLocalAllocator<T>>;
+
 // Containers that are arena-allocated from the Cfg's allocator.
-using OperandList = std::vector<Operand *, CfgLocalAllocator<Operand *>>;
-using VarList = std::vector<Variable *, CfgLocalAllocator<Variable *>>;
-using NodeList = std::vector<CfgNode *, CfgLocalAllocator<CfgNode *>>;
+using OperandList = CfgVector<Operand *>;
+using VarList = CfgVector<Variable *>;
+using NodeList = CfgVector<CfgNode *>;
 
 // Contains that use the default (global) allocator.
 using ConstantList = std::vector<Constant *>;
@@ -168,8 +172,7 @@ using InstNumberT = int32_t;
 /// value, giving the instruction number that begins or ends a variable's live
 /// range.
 using LiveBeginEndMapEntry = std::pair<SizeT, InstNumberT>;
-using LiveBeginEndMap =
-    std::vector<LiveBeginEndMapEntry, CfgLocalAllocator<LiveBeginEndMapEntry>>;
+using LiveBeginEndMap = CfgVector<LiveBeginEndMapEntry>;
 using LivenessBV = llvm::BitVector;
 
 using TimerStackIdT = uint32_t;

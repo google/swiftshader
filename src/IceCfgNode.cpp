@@ -827,7 +827,7 @@ namespace {
 // Helper functions for emit().
 
 void emitRegisterUsage(Ostream &Str, const Cfg *Func, const CfgNode *Node,
-                       bool IsLiveIn, std::vector<SizeT> &LiveRegCount) {
+                       bool IsLiveIn, CfgVector<SizeT> &LiveRegCount) {
   if (!BuildDefs::dump())
     return;
   Liveness *Liveness = Func->getLiveness();
@@ -840,7 +840,7 @@ void emitRegisterUsage(Ostream &Str, const Cfg *Func, const CfgNode *Node,
     Str << "\t\t\t\t# LiveOut=";
   }
   if (!Live->empty()) {
-    std::vector<Variable *> LiveRegs;
+    CfgVector<Variable *> LiveRegs;
     for (SizeT i = 0; i < Live->size(); ++i) {
       if ((*Live)[i]) {
         Variable *Var = Liveness->getVariable(i, Node);
@@ -869,7 +869,7 @@ void emitRegisterUsage(Ostream &Str, const Cfg *Func, const CfgNode *Node,
 }
 
 void emitLiveRangesEnded(Ostream &Str, const Cfg *Func, const Inst *Instr,
-                         std::vector<SizeT> &LiveRegCount) {
+                         CfgVector<SizeT> &LiveRegCount) {
   if (!BuildDefs::dump())
     return;
   bool First = true;
@@ -935,7 +935,7 @@ void CfgNode::emit(Cfg *Func) const {
   // each register is assigned to. Normally that would be only 0 or 1, but the
   // register allocator's AllowOverlap inference allows it to be greater than 1
   // for short periods.
-  std::vector<SizeT> LiveRegCount(Func->getTarget()->getNumRegisters());
+  CfgVector<SizeT> LiveRegCount(Func->getTarget()->getNumRegisters());
   if (DecorateAsm) {
     constexpr bool IsLiveIn = true;
     emitRegisterUsage(Str, Func, this, IsLiveIn, LiveRegCount);

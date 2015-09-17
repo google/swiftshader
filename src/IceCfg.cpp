@@ -314,13 +314,13 @@ void Cfg::advancedPhiLowering() {
 void Cfg::reorderNodes() {
   // TODO(ascull): it would be nice if the switch tests were always followed by
   // the default case to allow for fall through.
-  using PlacedList = std::list<CfgNode *>;
+  using PlacedList = CfgList<CfgNode *>;
   PlacedList Placed;      // Nodes with relative placement locked down
   PlacedList Unreachable; // Unreachable nodes
   PlacedList::iterator NoPlace = Placed.end();
   // Keep track of where each node has been tentatively placed so that we can
   // manage insertions into the middle.
-  std::vector<PlacedList::iterator> PlaceIndex(Nodes.size(), NoPlace);
+  CfgVector<PlacedList::iterator> PlaceIndex(Nodes.size(), NoPlace);
   for (CfgNode *Node : Nodes) {
     // The "do ... while(0);" construct is to factor out the --PlaceIndex and
     // assert() statements before moving to the next node.

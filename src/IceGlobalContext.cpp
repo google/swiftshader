@@ -722,10 +722,8 @@ GlobalContext::~GlobalContext() {
   llvm::DeleteContainerPointers(AllThreadContexts);
   LockedPtr<DestructorArray> Dtors = getDestructors();
   // Destructors are invoked in the opposite object construction order.
-  for (auto DtorIter = Dtors->crbegin(); DtorIter != Dtors->crend();
-       ++DtorIter) {
-    (*DtorIter)();
-  }
+  for (const auto &Dtor : reverse_range(*Dtors))
+    Dtor();
 }
 
 // TODO(stichnot): Consider adding thread-local caches of constant pool entries

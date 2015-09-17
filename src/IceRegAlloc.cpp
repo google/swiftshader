@@ -166,8 +166,8 @@ void LinearScan::initForInfOnly() {
 
   // Iterate across all instructions and record the begin and end of the live
   // range for each variable that is pre-colored or infinite weight.
-  std::vector<InstNumberT> LRBegin(Vars.size(), Inst::NumberSentinel);
-  std::vector<InstNumberT> LREnd(Vars.size(), Inst::NumberSentinel);
+  CfgVector<InstNumberT> LRBegin(Vars.size(), Inst::NumberSentinel);
+  CfgVector<InstNumberT> LREnd(Vars.size(), Inst::NumberSentinel);
   for (CfgNode *Node : Func->getNodes()) {
     for (Inst &Inst : Node->getInsts()) {
       if (Inst.isDeleted())
