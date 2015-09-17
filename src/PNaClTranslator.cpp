@@ -3010,6 +3010,8 @@ private:
   // True if we have already installed names for unnamed global declarations,
   // and have generated global constant initializers.
   bool GlobalDeclarationNamesAndInitializersInstalled = false;
+  // True if we have already processed the symbol table for the module.
+  bool FoundValuesymtab = false;
 
   // Generates names for unnamed global addresses (i.e. functions and global
   // variables). Then lowers global variable declaration initializers to the
@@ -3019,7 +3021,10 @@ private:
     if (!GlobalDeclarationNamesAndInitializersInstalled) {
       Context->installGlobalNames();
       Context->createValueIDs();
-      getTranslator().lowerGlobals(Context->getGlobalVariables());
+      std::unique_ptr<Ice::VariableDeclarationList> Globals =
+          Context->getGlobalVariables();
+      if (Globals)
+        getTranslator().lowerGlobals(std::move(Globals));
       GlobalDeclarationNamesAndInitializersInstalled = true;
     }
   }
@@ -3074,6 +3079,10 @@ bool ModuleParser::ParseBlock(unsigned BlockID) {
     return Parser.ParseThisBlock();
   }
   case naclbitc::VALUE_SYMTAB_BLOCK_ID: {
+    if (FoundValuesymtab)
+      Fatal("Duplicate valuesymtab in module");
+
+    FoundValuesymtab = true;
     ModuleValuesymtabParser Parser(BlockID, this);
     return Parser.ParseThisBlock();
   }
