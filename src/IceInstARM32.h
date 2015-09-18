@@ -321,10 +321,12 @@ public:
     Umull,
     Uxt,
     Vadd,
+    Vcmp,
     Vcvt,
     Vdiv,
     Vldr,
     Vmov,
+    Vmrs,
     Vmul,
     Vsqrt,
     Vsub
@@ -1202,6 +1204,46 @@ private:
   void emitSingleDestSingleSource(const Cfg *Func) const;
 
   Variable *Dest1 = nullptr;
+};
+
+class InstARM32Vcmp final : public InstARM32Pred {
+  InstARM32Vcmp() = delete;
+  InstARM32Vcmp(const InstARM32Vcmp &) = delete;
+  InstARM32Vcmp &operator=(const InstARM32Vcmp &) = delete;
+
+public:
+  static InstARM32Vcmp *create(Cfg *Func, Variable *Src0, Variable *Src1,
+                               CondARM32::Cond Predicate) {
+    return new (Func->allocate<InstARM32Vcmp>())
+        InstARM32Vcmp(Func, Src0, Src1, Predicate);
+  }
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Vcmp); }
+
+private:
+  InstARM32Vcmp(Cfg *Func, Variable *Src0, Variable *Src1,
+                CondARM32::Cond Predicate);
+};
+
+/// Copies the FP Status and Control Register the core flags.
+class InstARM32Vmrs final : public InstARM32Pred {
+  InstARM32Vmrs() = delete;
+  InstARM32Vmrs(const InstARM32Vmrs &) = delete;
+  InstARM32Vmrs &operator=(const InstARM32Vmrs &) = delete;
+
+public:
+  static InstARM32Vmrs *create(Cfg *Func, CondARM32::Cond Predicate) {
+    return new (Func->allocate<InstARM32Vmrs>()) InstARM32Vmrs(Func, Predicate);
+  }
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Vmrs); }
+
+private:
+  InstARM32Vmrs(Cfg *Func, CondARM32::Cond Predicate);
 };
 
 // Declare partial template specializations of emit() methods that already have

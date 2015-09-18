@@ -87,40 +87,39 @@ CondARM32::Cond getIcmp32Mapping(InstIcmp::ICond Cond) {
 // instructions/operands that use the same enum key value. The tables are kept
 // separate to maintain a proper separation between abstraction layers. There
 // is a risk that the tables could get out of sync if enum values are reordered
-// or if entries are added or deleted. The following dummy namespaces use
+// or if entries are added or deleted. The following anonymous namespaces use
 // static_asserts to ensure everything is kept in sync.
 
 // Validate the enum values in ICMPARM32_TABLE.
-namespace dummy1 {
+namespace {
 // Define a temporary set of enum values based on low-level table entries.
-enum _tmp_enum {
-#define X(val, signed, swapped64, C_32, C1_64, C2_64) _tmp_##val,
+enum _icmp_ll_enum {
+#define X(val, signed, swapped64, C_32, C1_64, C2_64) _icmp_ll_##val,
   ICMPARM32_TABLE
 #undef X
       _num
 };
 // Define a set of constants based on high-level table entries.
-#define X(tag, str) static const int _table1_##tag = InstIcmp::tag;
+#define X(tag, str) static constexpr int _icmp_hl_##tag = InstIcmp::tag;
 ICEINSTICMP_TABLE
 #undef X
 // Define a set of constants based on low-level table entries, and ensure the
 // table entry keys are consistent.
 #define X(val, signed, swapped64, C_32, C1_64, C2_64)                          \
-  static const int _table2_##val = _tmp_##val;                                 \
   static_assert(                                                               \
-      _table1_##val == _table2_##val,                                          \
-      "Inconsistency between ICMPARM32_TABLE and ICEINSTICMP_TABLE");
+      _icmp_ll_##val == _icmp_hl_##val,                                        \
+      "Inconsistency between ICMPARM32_TABLE and ICEINSTICMP_TABLE: " #val);
 ICMPARM32_TABLE
 #undef X
 // Repeat the static asserts with respect to the high-level table entries in
 // case the high-level table has extra entries.
 #define X(tag, str)                                                            \
   static_assert(                                                               \
-      _table1_##tag == _table2_##tag,                                          \
-      "Inconsistency between ICMPARM32_TABLE and ICEINSTICMP_TABLE");
+      _icmp_hl_##tag == _icmp_ll_##tag,                                        \
+      "Inconsistency between ICMPARM32_TABLE and ICEINSTICMP_TABLE: " #tag);
 ICEINSTICMP_TABLE
 #undef X
-} // end of namespace dummy1
+} // end of anonymous namespace
 
 // Stack alignment
 const uint32_t ARM32_STACK_ALIGNMENT_BYTES = 16;
@@ -2229,9 +2228,76 @@ void TargetARM32::lowerExtractElement(const InstExtractElement *Inst) {
   UnimplementedError(Func->getContext()->getFlags());
 }
 
+namespace {
+// Validates FCMPARM32_TABLE's declaration w.r.t. InstFcmp::FCondition ordering
+// (and naming).
+enum {
+#define X(val, CC0, CC1) _fcmp_ll_##val,
+  FCMPARM32_TABLE
+#undef X
+      _fcmp_ll_NUM
+};
+
+enum {
+#define X(tag, str) _fcmp_hl_##tag = InstFcmp::tag,
+  ICEINSTFCMP_TABLE
+#undef X
+      _fcmp_hl_NUM
+};
+
+static_assert(_fcmp_hl_NUM == _fcmp_ll_NUM,
+              "Inconsistency between high-level and low-level fcmp tags.");
+#define X(tag, str)                                                            \
+  static_assert(                                                               \
+      _fcmp_hl_##tag == _fcmp_ll_##tag,                                        \
+      "Inconsistency between high-level and low-level fcmp tag " #tag);
+ICEINSTFCMP_TABLE
+#undef X
+
+struct {
+  CondARM32::Cond CC0;
+  CondARM32::Cond CC1;
+} TableFcmp[] = {
+#define X(val, CC0, CC1)                                                       \
+  { CondARM32::CC0, CondARM32::CC1 }                                           \
+  ,
+    FCMPARM32_TABLE
+#undef X
+};
+} // end of anonymous namespace
+
 void TargetARM32::lowerFcmp(const InstFcmp *Inst) {
-  (void)Inst;
-  UnimplementedError(Func->getContext()->getFlags());
+  Variable *Dest = Inst->getDest();
+  if (isVectorType(Dest->getType())) {
+    UnimplementedError(Func->getContext()->getFlags());
+    return;
+  }
+
+  Variable *Src0R = legalizeToReg(Inst->getSrc(0));
+  Variable *Src1R = legalizeToReg(Inst->getSrc(1));
+  Variable *T = makeReg(IceType_i32);
+  _vcmp(Src0R, Src1R);
+  _mov(T, Ctx->getConstantZero(IceType_i32));
+  _vmrs();
+  Operand *One = Ctx->getConstantInt32(1);
+  InstFcmp::FCond Condition = Inst->getCondition();
+  assert(Condition < llvm::array_lengthof(TableFcmp));
+  CondARM32::Cond CC0 = TableFcmp[Condition].CC0;
+  CondARM32::Cond CC1 = TableFcmp[Condition].CC1;
+  if (CC0 != CondARM32::kNone) {
+    _mov(T, One, CC0);
+    // If this mov is not a maybe mov, but an actual mov (i.e., CC0 == AL), we
+    // don't want to set_dest_nonkillable so that liveness + dead-code
+    // elimination will get rid of the previous assignment (i.e., T = 0) above.
+    if (CC0 != CondARM32::AL)
+      _set_dest_nonkillable();
+  }
+  if (CC1 != CondARM32::kNone) {
+    assert(CC0 != CondARM32::kNone);
+    assert(CC1 != CondARM32::AL);
+    _mov_nonkillable(T, One, CC1);
+  }
+  _mov(Dest, T);
 }
 
 void TargetARM32::lowerIcmp(const InstIcmp *Inst) {
@@ -2695,16 +2761,12 @@ void TargetARM32::lowerSelect(const InstSelect *Inst) {
     UnimplementedError(Func->getContext()->getFlags());
     return;
   }
-  if (isFloatingType(DestTy)) {
-    UnimplementedError(Func->getContext()->getFlags());
-    return;
-  }
   // TODO(jvoung): handle folding opportunities.
   // cmp cond, #0; mov t, SrcF; mov_cond t, SrcT; mov dest, t
   Variable *CmpOpnd0 = legalizeToReg(Condition);
   Operand *CmpOpnd1 = Ctx->getConstantZero(IceType_i32);
   _cmp(CmpOpnd0, CmpOpnd1);
-  CondARM32::Cond Cond = CondARM32::NE;
+  static constexpr CondARM32::Cond Cond = CondARM32::NE;
   if (DestTy == IceType_i64) {
     SrcT = legalizeUndef(SrcT);
     SrcF = legalizeUndef(SrcF);
@@ -2726,6 +2788,20 @@ void TargetARM32::lowerSelect(const InstSelect *Inst) {
     _mov(DestHi, THi);
     return;
   }
+
+  if (isFloatingType(DestTy)) {
+    Variable *T = makeReg(DestTy);
+    SrcF = legalizeToReg(SrcF);
+    assert(DestTy == SrcF->getType());
+    _vmov(T, SrcF);
+    SrcT = legalizeToReg(SrcT);
+    assert(DestTy == SrcT->getType());
+    _vmov(T, SrcT, Cond);
+    _set_dest_nonkillable();
+    _vmov(Dest, T);
+    return;
+  }
+
   Variable *T = nullptr;
   SrcF = legalize(SrcF, Legal_Reg | Legal_Flex);
   _mov(T, SrcF);

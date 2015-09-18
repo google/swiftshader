@@ -15,19 +15,47 @@
 #ifndef SUBZERO_SRC_ICETARGETLOWERINGARM32_DEF
 #define SUBZERO_SRC_ICETARGETLOWERINGARM32_DEF
 
+// Patterns for lowering fcmp. These are expected to be used in the following
+// manner:
+//
+//   mov reg, #0
+//   movCC0 reg, #1 /* only if CC0 != kNone */
+//   movCC1 reg, #1 /* only if CC1 != kNone */
+//
+// TODO(jpp): vector lowerings.
+#define FCMPARM32_TABLE                                                        \
+  /*  val, CC0,   CC1 */                                                       \
+  X(False, kNone, kNone)                                                       \
+  X(Oeq,   EQ,    kNone)                                                       \
+  X(Ogt,   GT,    kNone)                                                       \
+  X(Oge,   GE,    kNone)                                                       \
+  X(Olt,   MI,    kNone)                                                       \
+  X(Ole,   LS,    kNone)                                                       \
+  X(One,   MI,    GT)                                                          \
+  X(Ord,   VC,    kNone)                                                       \
+  X(Ueq,   EQ,    VS)                                                          \
+  X(Ugt,   HI,    kNone)                                                       \
+  X(Uge,   PL,    kNone)                                                       \
+  X(Ult,   LT,    kNone)                                                       \
+  X(Ule,   LE,    kNone)                                                       \
+  X(Une,   NE,    kNone)                                                       \
+  X(Uno,   VS,    kNone)                                                       \
+  X(True,  AL,    kNone)                                                       \
+//#define X(val, CC0, CC1)
+
 // Patterns for lowering icmp.
-#define ICMPARM32_TABLE                                             \
-  /* val, is_signed, swapped64, C_32, C1_64, C2_64 */               \
-  X(Eq,   false,     false,     EQ,   EQ,    NE)                    \
-  X(Ne,   false,     false,     NE,   NE,    EQ)                    \
-  X(Ugt,  false,     false,     HI,   HI,    LS)                    \
-  X(Uge,  false,     false,     CS,   CS,    CC)                    \
-  X(Ult,  false,     false,     CC,   CC,    CS)                    \
-  X(Ule,  false,     false,     LS,   LS,    HI)                    \
-  X(Sgt,  true,      true,      GT,   LT,    GE)                    \
-  X(Sge,  true,      false,     GE,   GE,    LT)                    \
-  X(Slt,  true,      false,     LT,   LT,    GE)                    \
-  X(Sle,  true,      true,      LE,   GE,    LT)                    \
+#define ICMPARM32_TABLE                                                        \
+  /* val, is_signed, swapped64, C_32, C1_64, C2_64 */                          \
+  X(Eq,   false,     false,     EQ,   EQ,    NE)                               \
+  X(Ne,   false,     false,     NE,   NE,    EQ)                               \
+  X(Ugt,  false,     false,     HI,   HI,    LS)                               \
+  X(Uge,  false,     false,     CS,   CS,    CC)                               \
+  X(Ult,  false,     false,     CC,   CC,    CS)                               \
+  X(Ule,  false,     false,     LS,   LS,    HI)                               \
+  X(Sgt,  true,      true,      GT,   LT,    GE)                               \
+  X(Sge,  true,      false,     GE,   GE,    LT)                               \
+  X(Slt,  true,      false,     LT,   LT,    GE)                               \
+  X(Sle,  true,      true,      LE,   GE,    LT)                               \
 //#define X(val, is_signed, swapped64, C_32, C1_64, C2_64)
 
 #endif // SUBZERO_SRC_ICETARGETLOWERINGARM32_DEF

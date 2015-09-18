@@ -382,6 +382,16 @@ InstARM32Vcvt::InstARM32Vcvt(Cfg *Func, Variable *Dest, Variable *Src,
   addSource(Src);
 }
 
+InstARM32Vcmp::InstARM32Vcmp(Cfg *Func, Variable *Src0, Variable *Src1,
+                             CondARM32::Cond Predicate)
+    : InstARM32Pred(Func, InstARM32::Vcmp, 2, nullptr, Predicate) {
+  addSource(Src0);
+  addSource(Src1);
+}
+
+InstARM32Vmrs::InstARM32Vmrs(Cfg *Func, CondARM32::Cond Predicate)
+    : InstARM32Pred(Func, InstARM32::Vmrs, 0, nullptr, Predicate) {}
+
 // ======================== Dump routines ======================== //
 
 // Two-addr ops
@@ -507,8 +517,7 @@ void InstARM32Vmov::emitMultiDestSingleSource(const Cfg *Func) const {
   assert(!llvm::isa<OperandARM32Mem>(Src0));
 
   Str << "\t"
-      << "vmov"
-      << "\t";
+      << "vmov" << getPredicate() << "\t";
   Dest0->emit(Func);
   Str << ", ";
   Dest1->emit(Func);
@@ -529,8 +538,7 @@ void InstARM32Vmov::emitSingleDestMultiSource(const Cfg *Func) const {
   assert(!llvm::isa<OperandARM32Mem>(Src1));
 
   Str << "\t"
-      << "vmov"
-      << "\t";
+      << "vmov" << getPredicate() << "\t";
   Dest0->emit(Func);
   Str << ", ";
   Src0->emit(Func);
@@ -549,6 +557,14 @@ bool isVariableWithoutRegister(const Operand *Op) {
 bool isMemoryAccess(Operand *Op) {
   return isVariableWithoutRegister(Op) || llvm::isa<OperandARM32Mem>(Op);
 }
+
+bool isMoveBetweenCoreAndVFPRegisters(Variable *Dest, Operand *Src) {
+  const Type DestTy = Dest->getType();
+  const Type SrcTy = Src->getType();
+  assert(!(isScalarIntegerType(DestTy) && isScalarIntegerType(SrcTy)) &&
+         "At most one of vmov's operands can be a core register.");
+  return isScalarIntegerType(DestTy) || isScalarIntegerType(SrcTy);
+}
 } // end of anonymous namespace
 
 void InstARM32Vmov::emitSingleDestSingleSource(const Cfg *Func) const {
@@ -559,7 +575,14 @@ void InstARM32Vmov::emitSingleDestSingleSource(const Cfg *Func) const {
   if (Dest->hasReg()) {
     Operand *Src0 = getSrc(0);
     const char *ActualOpcode = isMemoryAccess(Src0) ? "vldr" : "vmov";
-    Str << "\t" << ActualOpcode << "\t";
+    // when vmov{c}'ing, we need to emit a width string. Otherwise, the
+    // assembler might be tempted to assume we want a vector vmov{c}, and that
+    // is disallowed because ARM.
+    const char *WidthString =
+        (isMemoryAccess(Src0) || isMoveBetweenCoreAndVFPRegisters(Dest, Src0))
+            ? ""
+            : getVecWidthString(Src0->getType());
+    Str << "\t" << ActualOpcode << getPredicate() << WidthString << "\t";
     Dest->emit(Func);
     Str << ", ";
     Src0->emit(Func);
@@ -567,8 +590,7 @@ void InstARM32Vmov::emitSingleDestSingleSource(const Cfg *Func) const {
     Variable *Src0 = llvm::cast<Variable>(getSrc(0));
     assert(Src0->hasReg());
     Str << "\t"
-           "vstr"
-           "\t";
+           "vstr" << getPredicate() << "\t";
     Src0->emit(Func);
     Str << ", ";
     Dest->emit(Func);
@@ -578,7 +600,6 @@ void InstARM32Vmov::emitSingleDestSingleSource(const Cfg *Func) const {
 void InstARM32Vmov::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
-  assert(CondARM32::AL == getPredicate());
   assert(isMultiDest() + isMultiSource() <= 1 && "Invalid vmov type.");
   if (isMultiDest()) {
     emitMultiDestSingleSource(Func);
@@ -1043,6 +1064,59 @@ void InstARM32Vcvt::dump(const Cfg *Func) const {
   Str << " = "
       << "vcvt" << getPredicate() << vcvtVariantSuffix(Variant) << " ";
   dumpSources(Func);
+}
+
+void InstARM32Vcmp::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 2);
+  Str << "\t"
+         "vcmp" << getPredicate() << getVecWidthString(getSrc(0)->getType())
+      << "\t";
+  getSrc(0)->emit(Func);
+  Str << ", ";
+  getSrc(1)->emit(Func);
+}
+
+void InstARM32Vcmp::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 2);
+  (void)Func;
+  llvm_unreachable("Not yet implemented");
+}
+
+void InstARM32Vcmp::dump(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrDump();
+  Str << "vcmp" << getPredicate() << getVecWidthString(getSrc(0)->getType());
+  dumpSources(Func);
+}
+
+void InstARM32Vmrs::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 0);
+  Str << "\t"
+         "vmrs" << getPredicate() << "\t"
+                                     "APSR_nzcv"
+                                     ", "
+                                     "FPSCR";
+}
+
+void InstARM32Vmrs::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 0);
+  (void)Func;
+  llvm_unreachable("Not yet implemented");
+}
+
+void InstARM32Vmrs::dump(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrDump();
+  Str << "APSR{n,z,v,c} = vmrs" << getPredicate() << "\t"
+                                                     "FPSCR{n,z,c,v}";
 }
 
 void OperandARM32Mem::emit(const Cfg *Func) const {

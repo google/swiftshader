@@ -401,6 +401,13 @@ protected:
              CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Vldr::create(Func, Dest, Src, Pred));
   }
+  void _vcmp(Variable *Src0, Variable *Src1,
+             CondARM32::Cond Pred = CondARM32::AL) {
+    Context.insert(InstARM32Vcmp::create(Func, Src0, Src1, Pred));
+  }
+  void _vmrs(CondARM32::Cond Pred = CondARM32::AL) {
+    Context.insert(InstARM32Vmrs::create(Func, Pred));
+  }
   // There are a whole bunch of vmov variants, to transfer within S/D/Q
   // registers, between core integer registers and S/D, and from small
   // immediates into S/D. For integer -> S/D/Q there is a variant which takes
@@ -411,8 +418,8 @@ protected:
   // register is modified. This cannot model that.
   //
   // This represents the simple single source, single dest variants only.
-  void _vmov(Variable *Dest, Operand *Src0) {
-    constexpr CondARM32::Cond Pred = CondARM32::AL;
+  void _vmov(Variable *Dest, Operand *Src0,
+             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Vmov::create(Func, Dest, Src0, Pred));
   }
   // This represents the single source, multi dest variant.
