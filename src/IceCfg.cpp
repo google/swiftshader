@@ -184,11 +184,6 @@ void Cfg::translate() {
   }
   TimerMarker T(TimerStack::TT_translate, this);
 
-  // Create the Hi and Lo variables where a split was needed
-  for (Variable *Var : Variables)
-    if (auto Var64On32 = llvm::dyn_cast<Variable64On32>(Var))
-      Var64On32->initHiLo(this);
-
   dump("Initial CFG");
 
   if (getContext()->getFlags().getEnableBlockProfile()) {
@@ -200,6 +195,11 @@ void Cfg::translate() {
     }
     dump("Profiled CFG");
   }
+
+  // Create the Hi and Lo variables where a split was needed
+  for (Variable *Var : Variables)
+    if (auto Var64On32 = llvm::dyn_cast<Variable64On32>(Var))
+      Var64On32->initHiLo(this);
 
   // The set of translation passes and their order are determined by the
   // target.
