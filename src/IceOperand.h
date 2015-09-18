@@ -43,6 +43,7 @@ public:
     kConst_Target, // leave space for target-specific constant kinds
     kConst_Max = kConst_Target + MaxTargetKinds,
     kVariable,
+    kVariable64On32,
     kVariable_Target, // leave space for target-specific variable kinds
     kVariable_Max = kVariable_Target + MaxTargetKinds,
     // Target-specific operand classes use kTarget as the starting point for
@@ -411,7 +412,7 @@ class Variable : public Operand {
   Variable(const Variable &) = delete;
   Variable &operator=(const Variable &) = delete;
 
-  enum RegRequirement {
+  enum RegRequirement : uint8_t {
     RR_MayHaveRegister,
     RR_MustHaveRegister,
     RR_MustNotHaveRegister,
@@ -424,7 +425,7 @@ public:
 
   SizeT getIndex() const { return Number; }
   IceString getName(const Cfg *Func) const;
-  void setName(Cfg *Func, const IceString &NewName) {
+  virtual void setName(Cfg *Func, const IceString &NewName) {
     // Make sure that the name can only be set once.
     assert(NameIndex == Cfg::IdentifierIndexInvalid);
     if (!NewName.empty())
@@ -432,7 +433,7 @@ public:
   }
 
   bool getIsArg() const { return IsArgument; }
-  void setIsArg(bool Val = true) { IsArgument = Val; }
+  virtual void setIsArg(bool Val = true) { IsArgument = Val; }
   bool getIsImplicitArg() const { return IsImplicitArgument; }
   void setIsImplicitArg(bool Val = true) { IsImplicitArgument = Val; }
 
@@ -485,14 +486,6 @@ public:
     return Live.overlapsInst(Other->Live.getStart(), UseTrimmed);
   }
 
-  Variable *getLo() const { return LoVar; }
-  Variable *getHi() const { return HiVar; }
-  void setLoHi(Variable *Lo, Variable *Hi) {
-    assert(LoVar == nullptr);
-    assert(HiVar == nullptr);
-    LoVar = Lo;
-    HiVar = Hi;
-  }
   /// Creates a temporary copy of the variable with a different type. Used
   /// primarily for syntactic correctness of textual assembly emission. Note
   /// that only basic information is copied, in particular not IsArgument,
@@ -529,26 +522,82 @@ protected:
   /// and validating live ranges. This is usually reserved for the stack
   /// pointer.
   bool IgnoreLiveness = false;
-  /// StackOffset is the canonical location on stack (only if RegNum==NoRegister
-  /// || IsArgument).
-  int32_t StackOffset = 0;
+  RegRequirement RegRequirement = RR_MayHaveRegister;
   /// RegNum is the allocated register, or NoRegister if it isn't
   /// register-allocated.
   int32_t RegNum = NoRegister;
   /// RegNumTmp is the tentative assignment during register allocation.
   int32_t RegNumTmp = NoRegister;
-  RegRequirement RegRequirement = RR_MayHaveRegister;
+  /// StackOffset is the canonical location on stack (only if
+  /// RegNum==NoRegister || IsArgument).
+  int32_t StackOffset = 0;
   LiveRange Live;
-  // LoVar and HiVar are needed for lowering from 64 to 32 bits. When lowering
-  // from I64 to I32 on a 32-bit architecture, we split the variable into two
-  // machine-size pieces. LoVar is the low-order machine-size portion, and
-  // HiVar is the remaining high-order portion.
-  // TODO: It's wasteful to penalize all variables on all targets this way; use
-  // a sparser representation. It's also wasteful for a 64-bit target.
-  Variable *LoVar = nullptr;
-  Variable *HiVar = nullptr;
   /// VarsReal (and Operand::Vars) are set up such that Vars[0] == this.
   Variable *VarsReal[1];
+};
+
+// Variable64On32 represents a 64-bit variable on a 32-bit architecture. In
+// this situation the variable must be split into a low and a high word.
+class Variable64On32 : public Variable {
+  Variable64On32() = delete;
+  Variable64On32(const Variable64On32 &) = delete;
+  Variable64On32 &operator=(const Variable64On32 &) = delete;
+
+public:
+  static Variable64On32 *create(Cfg *Func, Type Ty, SizeT Index) {
+    return new (Func->allocate<Variable64On32>()) Variable64On32(
+        kVariable64On32, Ty, Index);
+  }
+
+  void setName(Cfg *Func, const IceString &NewName) override {
+    Variable::setName(Func, NewName);
+    if (LoVar && HiVar) {
+      LoVar->setName(Func, getName(Func) + "__lo");
+      HiVar->setName(Func, getName(Func) + "__hi");
+    }
+  }
+
+  void setIsArg(bool Val = true) override {
+    Variable::setIsArg(Val);
+    if (LoVar && HiVar) {
+      LoVar->setIsArg(Val);
+      HiVar->setIsArg(Val);
+    }
+  }
+
+  Variable *getLo() const {
+    assert(LoVar != nullptr);
+    return LoVar;
+  }
+  Variable *getHi() const {
+    assert(HiVar != nullptr);
+    return HiVar;
+  }
+
+  void initHiLo(Cfg *Func) {
+    assert(LoVar == nullptr);
+    assert(HiVar == nullptr);
+    LoVar = Func->makeVariable(IceType_i32);
+    HiVar = Func->makeVariable(IceType_i32);
+    LoVar->setIsArg(getIsArg());
+    HiVar->setIsArg(getIsArg());
+    LoVar->setName(Func, getName(Func) + "__lo");
+    HiVar->setName(Func, getName(Func) + "__hi");
+  }
+
+  static bool classof(const Operand *Operand) {
+    OperandKind Kind = Operand->getKind();
+    return Kind == kVariable64On32;
+  }
+
+protected:
+  Variable64On32(OperandKind K, Type Ty, SizeT Index)
+      : Variable(K, Ty, Index) {
+    assert(typeWidthInBytes(Ty) == 8);
+  }
+
+  Variable *LoVar = nullptr;
+  Variable *HiVar = nullptr;
 };
 
 enum MetadataKind {

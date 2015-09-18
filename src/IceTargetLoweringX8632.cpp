@@ -263,10 +263,9 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
   // Assign the result of the call to Dest.
   if (ReturnReg) {
     if (ReturnRegHi) {
-      assert(Dest->getType() == IceType_i64);
-      split64(Dest);
-      Variable *DestLo = Dest->getLo();
-      Variable *DestHi = Dest->getHi();
+      auto *Dest64On32 = llvm::cast<Variable64On32>(Dest);
+      Variable *DestLo = Dest64On32->getLo();
+      Variable *DestHi = Dest64On32->getHi();
       _mov(DestLo, ReturnReg);
       _mov(DestHi, ReturnRegHi);
     } else {

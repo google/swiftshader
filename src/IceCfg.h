@@ -290,6 +290,8 @@ public:
   static void TlsInit() { ICE_TLS_INIT_FIELD(CurrentCfg); }
 };
 
+template <> Variable *Cfg::makeVariable<Variable>(Type Ty);
+
 } // end of namespace Ice
 
 #endif // SUBZERO_SRC_ICECFG_H

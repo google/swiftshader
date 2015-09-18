@@ -181,6 +181,9 @@ public:
   virtual SizeT getFrameOrStackReg() const = 0;
   virtual size_t typeWidthInBytesOnStack(Type Ty) const = 0;
 
+  /// Return whether a 64-bit Variable should be split into a Variable64On32.
+  virtual bool shouldSplitToVariable64On32(Type Ty) const = 0;
+
   bool hasComputedFrame() const { return HasComputedFrame; }
   /// Returns true if this function calls a function that has the "returns
   /// twice" attribute.

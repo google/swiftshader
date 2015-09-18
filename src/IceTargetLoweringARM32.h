@@ -85,6 +85,10 @@ public:
     return (typeWidthInBytes(Ty) + 3) & ~3;
   }
 
+  bool shouldSplitToVariable64On32(Type Ty) const override {
+    return Ty == IceType_i64;
+  }
+
   // TODO(ascull): what size is best for ARM?
   SizeT getMinJumpTableSize() const override { return 3; }
   void emitJumpTable(const Cfg *Func,
@@ -103,9 +107,6 @@ public:
   void addProlog(CfgNode *Node) override;
   void addEpilog(CfgNode *Node) override;
 
-  /// Ensure that a 64-bit Variable has been split into 2 32-bit Variables,
-  /// creating them if necessary. This is needed for all I64 operations.
-  void split64(Variable *Var);
   Operand *loOperand(Operand *Operand);
   Operand *hiOperand(Operand *Operand);
   void finishArgumentLowering(Variable *Arg, Variable *FramePtr,

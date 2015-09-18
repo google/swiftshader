@@ -92,6 +92,10 @@ public:
     return Utils::applyAlignment(typeWidthInBytes(Ty), WordSizeInBytes);
   }
 
+  bool shouldSplitToVariable64On32(Type Ty) const override {
+    return Traits::Is64Bit ? false : Ty == IceType_i64;
+  }
+
   SizeT getMinJumpTableSize() const override { return 4; }
 
   void emitVariable(const Variable *Var) const override;
@@ -104,21 +108,6 @@ public:
   void emit(const ConstantDouble *C) const final;
 
   void initNodeForLowering(CfgNode *Node) override;
-  /// x86-32: Ensure that a 64-bit Variable has been split into 2 32-bit
-  /// Variables, creating them if necessary. This is needed for all I64
-  /// operations, and it is needed for pushing F64 arguments for function calls
-  /// using the 32-bit push instruction (though the latter could be done by
-  /// directly writing to the stack).
-  ///
-  /// x86-64: Complains loudly if invoked because the cpu can handle 64-bit
-  /// types natively.
-  template <typename T = Traits>
-  typename std::enable_if<!T::Is64Bit, void>::type split64(Variable *Var);
-  template <typename T = Traits>
-  typename std::enable_if<T::Is64Bit, void>::type split64(Variable *) {
-    llvm::report_fatal_error(
-        "Hey, yo! This is x86-64. Watcha doin'? (split64)");
-  }
 
   template <typename T = Traits>
   typename std::enable_if<!T::Is64Bit, Operand>::type *

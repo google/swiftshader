@@ -75,6 +75,16 @@ void Cfg::swapNodes(NodeList &NewNodes) {
     Nodes[I]->resetIndex(I);
 }
 
+template <>
+Variable *Cfg::makeVariable<Variable>(Type Ty) {
+  SizeT Index = Variables.size();
+  Variable *Var = Target->shouldSplitToVariable64On32(Ty)
+                      ? Variable64On32::create(this, Ty, Index)
+                      : Variable::create(this, Ty, Index);
+  Variables.push_back(Var);
+  return Var;
+}
+
 void Cfg::addArg(Variable *Arg) {
   Arg->setIsArg();
   Args.push_back(Arg);
@@ -174,6 +184,11 @@ void Cfg::translate() {
           getContext(), GlobalContext::TSK_Funcs));
   }
   TimerMarker T(TimerStack::TT_translate, this);
+
+  // Create the Hi and Lo variables where a split was needed
+  for (Variable *Var : Variables)
+    if (auto Var64On32 = llvm::dyn_cast<Variable64On32>(Var))
+      Var64On32->initHiLo(this);
 
   dump("Initial CFG");
 

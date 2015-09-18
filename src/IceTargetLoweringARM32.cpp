@@ -528,22 +528,16 @@ void TargetARM32::lowerArguments() {
       if (!CC.I64InRegs(&RegPair))
         continue;
       Variable *RegisterArg = Func->makeVariable(Ty);
-      Variable *RegisterLo = Func->makeVariable(IceType_i32);
-      Variable *RegisterHi = Func->makeVariable(IceType_i32);
-      if (BuildDefs::dump()) {
-        RegisterArg->setName(Func, "home_reg:" + Arg->getName(Func));
-        RegisterLo->setName(Func, "home_reg_lo:" + Arg->getName(Func));
-        RegisterHi->setName(Func, "home_reg_hi:" + Arg->getName(Func));
-      }
-      RegisterLo->setRegNum(RegPair.first);
-      RegisterLo->setIsArg();
-      RegisterHi->setRegNum(RegPair.second);
-      RegisterHi->setIsArg();
-      RegisterArg->setLoHi(RegisterLo, RegisterHi);
-      RegisterArg->setIsArg();
+      auto *RegisterArg64On32 = llvm::cast<Variable64On32>(RegisterArg);
+      if (BuildDefs::dump())
+        RegisterArg64On32->setName(Func, "home_reg:" + Arg->getName(Func));
+      RegisterArg64On32->initHiLo(Func);
+      RegisterArg64On32->setIsArg();
+      RegisterArg64On32->getLo()->setRegNum(RegPair.first);
+      RegisterArg64On32->getHi()->setRegNum(RegPair.second);
       Arg->setIsArg(false);
 
-      Args[I] = RegisterArg;
+      Args[I] = RegisterArg64On32;
       Context.insert(InstAssign::create(Func, Arg, RegisterArg));
       continue;
     } else {
@@ -582,16 +576,14 @@ void TargetARM32::lowerArguments() {
 void TargetARM32::finishArgumentLowering(Variable *Arg, Variable *FramePtr,
                                          size_t BasicFrameOffset,
                                          size_t &InArgsSizeBytes) {
-  Variable *Lo = Arg->getLo();
-  Variable *Hi = Arg->getHi();
-  Type Ty = Arg->getType();
-  if (Lo && Hi && Ty == IceType_i64) {
-    assert(Lo->getType() != IceType_i64); // don't want infinite recursion
-    assert(Hi->getType() != IceType_i64); // don't want infinite recursion
+  if (auto *Arg64On32 = llvm::dyn_cast<Variable64On32>(Arg)) {
+    Variable *Lo = Arg64On32->getLo();
+    Variable *Hi = Arg64On32->getHi();
     finishArgumentLowering(Lo, FramePtr, BasicFrameOffset, InArgsSizeBytes);
     finishArgumentLowering(Hi, FramePtr, BasicFrameOffset, InArgsSizeBytes);
     return;
   }
+  Type Ty = Arg->getType();
   InArgsSizeBytes = applyStackAlignmentTy(InArgsSizeBytes, Ty);
   Arg->setStackOffset(BasicFrameOffset + InArgsSizeBytes);
   InArgsSizeBytes += typeWidthInBytesOnStack(Ty);
@@ -1052,39 +1044,14 @@ void TargetARM32::legalizeStackSlots() {
   }
 }
 
-void TargetARM32::split64(Variable *Var) {
-  assert(Var->getType() == IceType_i64);
-  Variable *Lo = Var->getLo();
-  Variable *Hi = Var->getHi();
-  if (Lo) {
-    assert(Hi);
-    return;
-  }
-  assert(Hi == nullptr);
-  Lo = Func->makeVariable(IceType_i32);
-  Hi = Func->makeVariable(IceType_i32);
-  if (BuildDefs::dump()) {
-    Lo->setName(Func, Var->getName(Func) + "__lo");
-    Hi->setName(Func, Var->getName(Func) + "__hi");
-  }
-  Var->setLoHi(Lo, Hi);
-  if (Var->getIsArg()) {
-    Lo->setIsArg();
-    Hi->setIsArg();
-  }
-}
-
 Operand *TargetARM32::loOperand(Operand *Operand) {
   assert(Operand->getType() == IceType_i64);
   if (Operand->getType() != IceType_i64)
     return Operand;
-  if (auto *Var = llvm::dyn_cast<Variable>(Operand)) {
-    split64(Var);
-    return Var->getLo();
-  }
-  if (auto *Const = llvm::dyn_cast<ConstantInteger64>(Operand)) {
+  if (auto *Var64On32 = llvm::dyn_cast<Variable64On32>(Operand))
+    return Var64On32->getLo();
+  if (auto *Const = llvm::dyn_cast<ConstantInteger64>(Operand))
     return Ctx->getConstantInt32(static_cast<uint32_t>(Const->getValue()));
-  }
   if (auto *Mem = llvm::dyn_cast<OperandARM32Mem>(Operand)) {
     // Conservatively disallow memory operands with side-effects (pre/post
     // increment) in case of duplication.
@@ -1107,10 +1074,8 @@ Operand *TargetARM32::hiOperand(Operand *Operand) {
   assert(Operand->getType() == IceType_i64);
   if (Operand->getType() != IceType_i64)
     return Operand;
-  if (auto *Var = llvm::dyn_cast<Variable>(Operand)) {
-    split64(Var);
-    return Var->getHi();
-  }
+  if (auto *Var64On32 = llvm::dyn_cast<Variable64On32>(Operand))
+    return Var64On32->getHi();
   if (auto *Const = llvm::dyn_cast<ConstantInteger64>(Operand)) {
     return Ctx->getConstantInt32(
         static_cast<uint32_t>(Const->getValue() >> 32));
@@ -1935,10 +1900,9 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
   // Assign the result of the call to Dest.
   if (ReturnReg) {
     if (ReturnRegHi) {
-      assert(Dest->getType() == IceType_i64);
-      split64(Dest);
-      Variable *DestLo = Dest->getLo();
-      Variable *DestHi = Dest->getHi();
+      auto *Dest64On32 = llvm::cast<Variable64On32>(Dest);
+      Variable *DestLo = Dest64On32->getLo();
+      Variable *DestHi = Dest64On32->getHi();
       _mov(DestLo, ReturnReg);
       _mov(DestHi, ReturnRegHi);
     } else {
@@ -2103,10 +2067,10 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
     if (isVectorType(Dest->getType())) {
       UnimplementedError(Func->getContext()->getFlags());
       break;
-    } else if (Dest->getType() == IceType_i64) {
-      split64(Dest);
-      Context.insert(InstFakeDef::create(Func, Dest->getLo()));
-      Context.insert(InstFakeDef::create(Func, Dest->getHi()));
+    }
+    if (auto *Dest64On32 = llvm::dyn_cast<Variable64On32>(Dest)) {
+      Context.insert(InstFakeDef::create(Func, Dest64On32->getLo()));
+      Context.insert(InstFakeDef::create(Func, Dest64On32->getHi()));
       UnimplementedError(Func->getContext()->getFlags());
       break;
     }
@@ -2213,10 +2177,10 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
       Variable *T0 = makeReg(IceType_i32);
       Variable *T1 = makeReg(IceType_i32);
       Variable *Src0R = legalizeToReg(Src0);
-      split64(Dest);
       _vmov(InstARM32Vmov::RegisterPair(T0, T1), Src0R);
-      lowerAssign(InstAssign::create(Func, Dest->getLo(), T0));
-      lowerAssign(InstAssign::create(Func, Dest->getHi(), T1));
+      auto *Dest64On32 = llvm::cast<Variable64On32>(Dest);
+      lowerAssign(InstAssign::create(Func, Dest64On32->getLo(), T0));
+      lowerAssign(InstAssign::create(Func, Dest64On32->getHi(), T1));
       break;
     }
     case IceType_f64: {

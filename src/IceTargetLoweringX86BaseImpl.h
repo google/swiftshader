@@ -792,16 +792,16 @@ void TargetX86Base<Machine>::finishArgumentLowering(Variable *Arg,
                                                     Variable *FramePtr,
                                                     size_t BasicFrameOffset,
                                                     size_t &InArgsSizeBytes) {
-  Variable *Lo = Arg->getLo();
-  Variable *Hi = Arg->getHi();
-  Type Ty = Arg->getType();
-  if (!Traits::Is64Bit && Lo && Hi && Ty == IceType_i64) {
-    assert(Lo->getType() != IceType_i64); // don't want infinite recursion
-    assert(Hi->getType() != IceType_i64); // don't want infinite recursion
-    finishArgumentLowering(Lo, FramePtr, BasicFrameOffset, InArgsSizeBytes);
-    finishArgumentLowering(Hi, FramePtr, BasicFrameOffset, InArgsSizeBytes);
-    return;
+  if (!Traits::Is64Bit) {
+    if (auto *Arg64On32 = llvm::dyn_cast<Variable64On32>(Arg)) {
+      Variable *Lo = Arg64On32->getLo();
+      Variable *Hi = Arg64On32->getHi();
+      finishArgumentLowering(Lo, FramePtr, BasicFrameOffset, InArgsSizeBytes);
+      finishArgumentLowering(Hi, FramePtr, BasicFrameOffset, InArgsSizeBytes);
+      return;
+    }
   }
+  Type Ty = Arg->getType();
   if (isVectorType(Ty)) {
     InArgsSizeBytes = Traits::applyStackAlignment(InArgsSizeBytes);
   }
@@ -829,49 +829,14 @@ template <class Machine> Type TargetX86Base<Machine>::stackSlotType() {
 
 template <class Machine>
 template <typename T>
-typename std::enable_if<!T::Is64Bit, void>::type
-TargetX86Base<Machine>::split64(Variable *Var) {
-  switch (Var->getType()) {
-  default:
-    return;
-  case IceType_i64:
-  // TODO: Only consider F64 if we need to push each half when passing as an
-  // argument to a function call. Note that each half is still typed as I32.
-  case IceType_f64:
-    break;
-  }
-  Variable *Lo = Var->getLo();
-  Variable *Hi = Var->getHi();
-  if (Lo) {
-    assert(Hi);
-    return;
-  }
-  assert(Hi == nullptr);
-  Lo = Func->makeVariable(IceType_i32);
-  Hi = Func->makeVariable(IceType_i32);
-  if (BuildDefs::dump()) {
-    Lo->setName(Func, Var->getName(Func) + "__lo");
-    Hi->setName(Func, Var->getName(Func) + "__hi");
-  }
-  Var->setLoHi(Lo, Hi);
-  if (Var->getIsArg()) {
-    Lo->setIsArg();
-    Hi->setIsArg();
-  }
-}
-
-template <class Machine>
-template <typename T>
 typename std::enable_if<!T::Is64Bit, Operand>::type *
 TargetX86Base<Machine>::loOperand(Operand *Operand) {
   assert(Operand->getType() == IceType_i64 ||
          Operand->getType() == IceType_f64);
   if (Operand->getType() != IceType_i64 && Operand->getType() != IceType_f64)
     return Operand;
-  if (auto *Var = llvm::dyn_cast<Variable>(Operand)) {
-    split64(Var);
-    return Var->getLo();
-  }
+  if (auto *Var64On32 = llvm::dyn_cast<Variable64On32>(Operand))
+    return Var64On32->getLo();
   if (auto *Const = llvm::dyn_cast<ConstantInteger64>(Operand)) {
     auto *ConstInt = llvm::dyn_cast<ConstantInteger32>(
         Ctx->getConstantInt32(static_cast<int32_t>(Const->getValue())));
@@ -899,10 +864,8 @@ TargetX86Base<Machine>::hiOperand(Operand *Operand) {
          Operand->getType() == IceType_f64);
   if (Operand->getType() != IceType_i64 && Operand->getType() != IceType_f64)
     return Operand;
-  if (auto *Var = llvm::dyn_cast<Variable>(Operand)) {
-    split64(Var);
-    return Var->getHi();
-  }
+  if (auto *Var64On32 = llvm::dyn_cast<Variable64On32>(Operand))
+    return Var64On32->getHi();
   if (auto *Const = llvm::dyn_cast<ConstantInteger64>(Operand)) {
     auto *ConstInt = llvm::dyn_cast<ConstantInteger32>(
         Ctx->getConstantInt32(static_cast<int32_t>(Const->getValue() >> 32)));
@@ -2006,12 +1969,6 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       _cvt(T, Src0RM, Traits::Insts::Cvt::Tps2dq);
       _movp(Dest, T);
     } else if (!Traits::Is64Bit && Dest->getType() == IceType_i64) {
-      // Use a helper for converting floating-point values to 64-bit integers.
-      // SSE2 appears to have no way to convert from xmm registers to something
-      // like the edx:eax register pair, and gcc and clang both want to use x87
-      // instructions complete with temporary manipulation of the status word.
-      // This helper is not needed for x86-64.
-      split64(Dest);
       const SizeT MaxSrcs = 1;
       Type SrcType = Inst->getSrc(0)->getType();
       InstCall *Call =
@@ -2051,8 +2008,6 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
     } else if (Dest->getType() == IceType_i64 ||
                (!Traits::Is64Bit && Dest->getType() == IceType_i32)) {
       // Use a helper for both x86-32 and x86-64.
-      if (!Traits::Is64Bit)
-        split64(Dest);
       const SizeT MaxSrcs = 1;
       Type DestType = Dest->getType();
       Type SrcType = Inst->getSrc(0)->getType();
@@ -2901,23 +2856,25 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
       return;
     }
     Variable *Dest = Instr->getDest();
-    if (!Traits::Is64Bit && Dest->getType() == IceType_i64) {
-      // Follow what GCC does and use a movq instead of what lowerLoad()
-      // normally does (split the load into two). Thus, this skips
-      // load/arithmetic op folding. Load/arithmetic folding can't happen
-      // anyway, since this is x86-32 and integer arithmetic only happens on
-      // 32-bit quantities.
-      Variable *T = makeReg(IceType_f64);
-      typename Traits::X86OperandMem *Addr =
-          formMemoryOperand(Instr->getArg(0), IceType_f64);
-      _movq(T, Addr);
-      // Then cast the bits back out of the XMM register to the i64 Dest.
-      InstCast *Cast = InstCast::create(Func, InstCast::Bitcast, Dest, T);
-      lowerCast(Cast);
-      // Make sure that the atomic load isn't elided when unused.
-      Context.insert(InstFakeUse::create(Func, Dest->getLo()));
-      Context.insert(InstFakeUse::create(Func, Dest->getHi()));
-      return;
+    if (!Traits::Is64Bit) {
+      if (auto *Dest64On32 = llvm::dyn_cast<Variable64On32>(Dest)) {
+        // Follow what GCC does and use a movq instead of what lowerLoad()
+        // normally does (split the load into two). Thus, this skips
+        // load/arithmetic op folding. Load/arithmetic folding can't happen
+        // anyway, since this is x86-32 and integer arithmetic only happens on
+        // 32-bit quantities.
+        Variable *T = makeReg(IceType_f64);
+        typename Traits::X86OperandMem *Addr =
+            formMemoryOperand(Instr->getArg(0), IceType_f64);
+        _movq(T, Addr);
+        // Then cast the bits back out of the XMM register to the i64 Dest.
+        InstCast *Cast = InstCast::create(Func, InstCast::Bitcast, Dest, T);
+        lowerCast(Cast);
+        // Make sure that the atomic load isn't elided when unused.
+        Context.insert(InstFakeUse::create(Func, Dest64On32->getLo()));
+        Context.insert(InstFakeUse::create(Func, Dest64On32->getHi()));
+        return;
+      }
     }
     InstLoad *Load = InstLoad::create(Func, Dest, Instr->getArg(0));
     lowerLoad(Load);

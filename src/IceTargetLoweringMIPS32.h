@@ -57,6 +57,10 @@ public:
     return (typeWidthInBytes(Ty) + 3) & ~3;
   }
 
+  bool shouldSplitToVariable64On32(Type Ty) const override {
+    return Ty == IceType_i64;
+  }
+
   // TODO(ascull): what is the best size of MIPS?
   SizeT getMinJumpTableSize() const override { return 3; }
   void emitJumpTable(const Cfg *Func,
