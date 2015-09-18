@@ -29,6 +29,8 @@
 #include "IceUtils.h"
 #include "llvm/Support/MathExtras.h"
 
+#include <algorithm>
+
 namespace Ice {
 
 namespace {
@@ -3112,16 +3114,125 @@ void TargetDataARM32::lowerGlobals(const VariableDeclarationList &Vars,
   }
 }
 
+namespace {
+template <typename T> struct ConstantPoolEmitterTraits;
+
+static_assert(sizeof(uint64_t) == 8,
+              "uint64_t is supposed to be 8 bytes wide.");
+
+// TODO(jpp): implement the following when implementing constant randomization:
+//  * template <> struct ConstantPoolEmitterTraits<uint8_t>
+//  * template <> struct ConstantPoolEmitterTraits<uint16_t>
+//  * template <> struct ConstantPoolEmitterTraits<uint32_t>
+template <> struct ConstantPoolEmitterTraits<float> {
+  using ConstantType = ConstantFloat;
+  static constexpr Type IceType = IceType_f32;
+  // AsmTag and TypeName can't be constexpr because llvm::StringRef is unhappy
+  // about them being constexpr.
+  static const char AsmTag[];
+  static const char TypeName[];
+  static uint64_t bitcastToUint64(float Value) {
+    static_assert(sizeof(Value) == sizeof(uint32_t),
+                  "Float should be 4 bytes.");
+    uint32_t IntValue = *reinterpret_cast<uint32_t *>(&Value);
+    return static_cast<uint64_t>(IntValue);
+  }
+};
+const char ConstantPoolEmitterTraits<float>::AsmTag[] = ".long";
+const char ConstantPoolEmitterTraits<float>::TypeName[] = "f32";
+
+template <> struct ConstantPoolEmitterTraits<double> {
+  using ConstantType = ConstantDouble;
+  static constexpr Type IceType = IceType_f64;
+  static const char AsmTag[];
+  static const char TypeName[];
+  static uint64_t bitcastToUint64(double Value) {
+    static_assert(sizeof(double) == sizeof(uint64_t),
+                  "Double should be 8 bytes.");
+    return *reinterpret_cast<uint64_t *>(&Value);
+  }
+};
+const char ConstantPoolEmitterTraits<double>::AsmTag[] = ".quad";
+const char ConstantPoolEmitterTraits<double>::TypeName[] = "f64";
+
+template <typename T>
+void emitConstant(
+    Ostream &Str,
+    const typename ConstantPoolEmitterTraits<T>::ConstantType *Const) {
+  using Traits = ConstantPoolEmitterTraits<T>;
+  Const->emitPoolLabel(Str);
+  Str << ":\n\t" << Traits::AsmTag << "\t0x";
+  T Value = Const->getValue();
+  Str.write_hex(Traits::bitcastToUint64(Value));
+  Str << "\t@" << Traits::TypeName << " " << Value << "\n";
+}
+
+template <typename T> void emitConstantPool(GlobalContext *Ctx) {
+  if (!BuildDefs::dump()) {
+    return;
+  }
+
+  using Traits = ConstantPoolEmitterTraits<T>;
+  static constexpr size_t MinimumAlignment = 4;
+  SizeT Align = std::max(MinimumAlignment, typeAlignInBytes(Traits::IceType));
+  assert((Align % 4) == 0 && "Constants should be aligned");
+  Ostream &Str = Ctx->getStrEmit();
+  ConstantList Pool = Ctx->getConstantPool(Traits::IceType);
+
+  Str << "\t.section\t.rodata.cst" << Align << ",\"aM\",%progbits," << Align
+      << "\n"
+      << "\t.align\t" << Align << "\n";
+
+  if (Ctx->getFlags().shouldReorderPooledConstants()) {
+    // TODO(jpp): add constant pooling.
+    UnimplementedError(Ctx->getFlags());
+  }
+
+  for (Constant *C : Pool) {
+    if (!C->getShouldBePooled()) {
+      continue;
+    }
+
+    emitConstant<T>(Str, llvm::dyn_cast<typename Traits::ConstantType>(C));
+  }
+}
+} // end of anonymous namespace
+
 void TargetDataARM32::lowerConstants() {
   if (Ctx->getFlags().getDisableTranslation())
     return;
-  UnimplementedError(Ctx->getFlags());
+  switch (Ctx->getFlags().getOutFileType()) {
+  case FT_Elf:
+    UnimplementedError(Ctx->getFlags());
+    break;
+  case FT_Asm: {
+    OstreamLocker L(Ctx);
+    emitConstantPool<float>(Ctx);
+    emitConstantPool<double>(Ctx);
+    break;
+  }
+  case FT_Iasm: {
+    UnimplementedError(Ctx->getFlags());
+    break;
+  }
+  }
 }
 
 void TargetDataARM32::lowerJumpTables() {
   if (Ctx->getFlags().getDisableTranslation())
     return;
-  UnimplementedError(Ctx->getFlags());
+  switch (Ctx->getFlags().getOutFileType()) {
+  case FT_Elf:
+    UnimplementedError(Ctx->getFlags());
+    break;
+  case FT_Asm:
+    // Already emitted from Cfg
+    break;
+  case FT_Iasm: {
+    UnimplementedError(Ctx->getFlags());
+    break;
+  }
+  }
 }
 
 TargetHeaderARM32::TargetHeaderARM32(GlobalContext *Ctx)

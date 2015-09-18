@@ -533,7 +533,6 @@ protected:
 
 private:
   ~TargetDataARM32() override = default;
-  template <typename T> static void emitConstantPool(GlobalContext *Ctx);
 };
 
 class TargetHeaderARM32 final : public TargetHeaderLowering {

@@ -75,8 +75,7 @@ void Cfg::swapNodes(NodeList &NewNodes) {
     Nodes[I]->resetIndex(I);
 }
 
-template <>
-Variable *Cfg::makeVariable<Variable>(Type Ty) {
+template <> Variable *Cfg::makeVariable<Variable>(Type Ty) {
   SizeT Index = Variables.size();
   Variable *Var = Target->shouldSplitToVariable64On32(Ty)
                       ? Variable64On32::create(this, Ty, Index)

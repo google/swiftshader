@@ -545,8 +545,8 @@ class Variable64On32 : public Variable {
 
 public:
   static Variable64On32 *create(Cfg *Func, Type Ty, SizeT Index) {
-    return new (Func->allocate<Variable64On32>()) Variable64On32(
-        kVariable64On32, Ty, Index);
+    return new (Func->allocate<Variable64On32>())
+        Variable64On32(kVariable64On32, Ty, Index);
   }
 
   void setName(Cfg *Func, const IceString &NewName) override {
@@ -591,8 +591,7 @@ public:
   }
 
 protected:
-  Variable64On32(OperandKind K, Type Ty, SizeT Index)
-      : Variable(K, Ty, Index) {
+  Variable64On32(OperandKind K, Type Ty, SizeT Index) : Variable(K, Ty, Index) {
     assert(typeWidthInBytes(Ty) == 8);
   }
 
