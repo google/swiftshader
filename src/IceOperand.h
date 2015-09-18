@@ -520,7 +520,7 @@ protected:
   bool IsImplicitArgument = false;
   /// IgnoreLiveness means that the variable should be ignored when constructing
   /// and validating live ranges. This is usually reserved for the stack
-  /// pointer.
+  /// pointer and other physical registers specifically referenced by name.
   bool IgnoreLiveness = false;
   RegRequirement RegRequirement = RR_MayHaveRegister;
   /// RegNum is the allocated register, or NoRegister if it isn't

@@ -339,12 +339,12 @@ void LinearScan::handleActiveRangeExpiredOrInactive(const Variable *Cur) {
     bool Moved = false;
     if (Item->rangeEndsBefore(Cur)) {
       // Move Item from Active to Handled list.
-      dumpLiveRangeTrace("Expiring     ", Cur);
+      dumpLiveRangeTrace("Expiring     ", Item);
       moveItem(Active, Index, Handled);
       Moved = true;
     } else if (!Item->rangeOverlapsStart(Cur)) {
       // Move Item from Active to Inactive list.
-      dumpLiveRangeTrace("Inactivating ", Cur);
+      dumpLiveRangeTrace("Inactivating ", Item);
       moveItem(Active, Index, Inactive);
       Moved = true;
     }
@@ -368,11 +368,11 @@ void LinearScan::handleInactiveRangeExpiredOrReactivated(const Variable *Cur) {
     Item->trimLiveRange(Cur->getLiveRange().getStart());
     if (Item->rangeEndsBefore(Cur)) {
       // Move Item from Inactive to Handled list.
-      dumpLiveRangeTrace("Expiring     ", Cur);
+      dumpLiveRangeTrace("Expiring     ", Item);
       moveItem(Inactive, Index, Handled);
     } else if (Item->rangeOverlapsStart(Cur)) {
       // Move Item from Inactive to Active list.
-      dumpLiveRangeTrace("Reactivating ", Cur);
+      dumpLiveRangeTrace("Reactivating ", Item);
       moveItem(Inactive, Index, Active);
       // Increment Item in RegUses[].
       assert(Item->hasRegTmp());

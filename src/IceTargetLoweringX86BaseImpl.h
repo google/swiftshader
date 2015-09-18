@@ -720,12 +720,12 @@ Variable *TargetX86Base<Machine>::getPhysicalRegister(SizeT RegNum, Type Ty) {
     Reg = Func->makeVariable(Ty);
     Reg->setRegNum(RegNum);
     PhysicalRegisters[Ty][RegNum] = Reg;
-    // Specially mark esp as an "argument" so that it is considered live upon
-    // function entry.
-    if (RegNum == Traits::RegisterSet::Reg_esp) {
-      Func->addImplicitArg(Reg);
-      Reg->setIgnoreLiveness();
-    }
+    // Specially mark a named physical register as an "argument" so that it is
+    // considered live upon function entry.  Otherwise it's possible to get
+    // liveness validation errors for saving callee-save registers.
+    Func->addImplicitArg(Reg);
+    // Don't bother tracking the live range of a named physical register.
+    Reg->setIgnoreLiveness();
   }
   return Reg;
 }
