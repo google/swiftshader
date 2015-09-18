@@ -5730,7 +5730,7 @@ void TexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width,
 			case GL_DEPTH_COMPONENT32F:
 				switch(type)
 				{
-				case GL_UNSIGNED_INT:
+				case GL_FLOAT:
 					break;
 				default:
 					return error(GL_INVALID_ENUM);

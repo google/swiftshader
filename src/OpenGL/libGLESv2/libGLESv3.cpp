@@ -184,7 +184,7 @@ static FormatMap BuildFormatMap3D()
 	InsertFormatMapping(map, GL_LUMINANCE, GL_LUMINANCE, GL_UNSIGNED_BYTE);
 	InsertFormatMapping(map, GL_ALPHA, GL_ALPHA, GL_UNSIGNED_BYTE);
 	InsertFormatMapping(map, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
-	InsertFormatMapping(map, GL_R8_SNORM, GL_RED, GL_UNSIGNED_BYTE);
+	InsertFormatMapping(map, GL_R8_SNORM, GL_RED, GL_BYTE);
 	InsertFormatMapping(map, GL_R16F, GL_RED, GL_HALF_FLOAT);
 	InsertFormatMapping(map, GL_R16F, GL_RED, GL_FLOAT);
 	InsertFormatMapping(map, GL_R32F, GL_RED, GL_FLOAT);
@@ -196,8 +196,8 @@ static FormatMap BuildFormatMap3D()
 	InsertFormatMapping(map, GL_R32I, GL_RED_INTEGER, GL_INT);
 	InsertFormatMapping(map, GL_RG8, GL_RG, GL_UNSIGNED_BYTE);
 	InsertFormatMapping(map, GL_RG8_SNORM, GL_RG, GL_BYTE);
-	InsertFormatMapping(map, GL_R16F, GL_RED, GL_HALF_FLOAT);
-	InsertFormatMapping(map, GL_R16F, GL_RED, GL_FLOAT);
+	InsertFormatMapping(map, GL_RG16F, GL_RG, GL_HALF_FLOAT);
+	InsertFormatMapping(map, GL_RG16F, GL_RG, GL_FLOAT);
 	InsertFormatMapping(map, GL_RG32F, GL_RG, GL_FLOAT);
 	InsertFormatMapping(map, GL_RG8UI, GL_RG_INTEGER, GL_UNSIGNED_BYTE);
 	InsertFormatMapping(map, GL_RG8I, GL_RG_INTEGER, GL_BYTE);
@@ -230,6 +230,7 @@ static FormatMap BuildFormatMap3D()
 	InsertFormatMapping(map, GL_RGB5_A1, GL_RGBA, GL_UNSIGNED_BYTE);
 	InsertFormatMapping(map, GL_RGB5_A1, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1);
 	InsertFormatMapping(map, GL_RGB5_A1, GL_RGBA, GL_UNSIGNED_INT_2_10_10_10_REV);
+	InsertFormatMapping(map, GL_RGBA8_SNORM, GL_RGBA, GL_BYTE);
 	InsertFormatMapping(map, GL_RGBA4, GL_RGBA, GL_UNSIGNED_BYTE);
 	InsertFormatMapping(map, GL_RGBA4, GL_RGBA, GL_UNSIGNED_SHORT_4_4_4_4);
 	InsertFormatMapping(map, GL_RGB10_A2, GL_RGBA, GL_UNSIGNED_INT_2_10_10_10_REV);

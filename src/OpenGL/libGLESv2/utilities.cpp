@@ -429,6 +429,56 @@ namespace es2
 			case GL_LUMINANCE:
 			case GL_LUMINANCE_ALPHA:
 				return true;
+			case GL_RED:
+			case GL_RED_INTEGER:
+			case GL_RG:
+			case GL_RG_INTEGER:
+			case GL_RGB_INTEGER:
+			case GL_RGBA_INTEGER:
+				return clientVersion >= 3;
+			default:
+				return false;
+			}
+		case GL_BYTE:
+		case GL_SHORT:
+		case GL_INT:
+			switch(format)
+			{
+			case GL_RGBA:
+			case GL_BGRA_EXT:
+			case GL_RGB:
+			case GL_ALPHA:
+			case GL_LUMINANCE:
+			case GL_LUMINANCE_ALPHA:
+			case GL_RED:
+			case GL_RED_INTEGER:
+			case GL_RG:
+			case GL_RG_INTEGER:
+			case GL_RGB_INTEGER:
+			case GL_RGBA_INTEGER:
+				return clientVersion >= 3;
+			default:
+				return false;
+			}
+		case GL_UNSIGNED_SHORT:
+		case GL_UNSIGNED_INT:
+			switch(format)
+			{
+			case GL_RGBA:
+			case GL_BGRA_EXT:
+			case GL_RGB:
+			case GL_ALPHA:
+			case GL_LUMINANCE:
+			case GL_LUMINANCE_ALPHA:
+			case GL_RED:
+			case GL_RED_INTEGER:
+			case GL_RG:
+			case GL_RG_INTEGER:
+			case GL_RGB_INTEGER:
+			case GL_RGBA_INTEGER:
+				return clientVersion >= 3;
+			case GL_DEPTH_COMPONENT:
+				return (clientVersion >= 3) || (type == GL_UNSIGNED_INT);
 			default:
 				return false;
 			}
@@ -447,16 +497,37 @@ namespace es2
 			case GL_LUMINANCE:
 			case GL_LUMINANCE_ALPHA:
 				return true;
+			case GL_RED:
+			case GL_RG:
+				return clientVersion >= 3;
+			default:
+				return false;
+			}
+		case GL_UNSIGNED_INT_2_10_10_10_REV:
+			switch(format)
+			{
+			case GL_RGBA:
+			case GL_RGBA_INTEGER:
+				return clientVersion >= 3;
 			default:
 				return false;
 			}
 		case GL_UNSIGNED_SHORT_4_4_4_4:
 		case GL_UNSIGNED_SHORT_5_5_5_1:
 			return (format == GL_RGBA);
+		case GL_UNSIGNED_INT_10F_11F_11F_REV:
+		case GL_UNSIGNED_INT_5_9_9_9_REV:
+			if(clientVersion < 3)
+			{
+				return false;
+			}
 		case GL_UNSIGNED_SHORT_5_6_5:
 			return (format == GL_RGB);
-		case GL_UNSIGNED_INT:
-			return (format == GL_DEPTH_COMPONENT);
+		case GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
+			if(clientVersion < 3)
+			{
+				return false;
+			}
 		case GL_UNSIGNED_INT_24_8_OES:
 			return (format == GL_DEPTH_STENCIL_OES);
 		default:
