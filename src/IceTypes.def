@@ -19,33 +19,33 @@
 // sandboxes, but for now the 64-bit architectures use ELF64:
 // https://code.google.com/p/nativeclient/issues/detail?id=349 TODO: Whoever
 // adds AArch64 will need to set ABI e_flags.
-#define TARGETARCH_TABLE                                                 \
-  /* enum value, printable string, is_elf64,   e_machine, e_flags */     \
-  X(Target_X8632, "x86-32", false, EM_386,     0)                        \
-  X(Target_X8664, "x86-64", true,  EM_X86_64,  0)                        \
-  X(Target_ARM32, "arm32",  false, EM_ARM,     EF_ARM_EABI_VER5)         \
-  X(Target_ARM64, "arm64",  true,  EM_AARCH64, 0)                        \
-  X(Target_MIPS32,"mips32", false, EM_MIPS,    0)                        \
-  //#define X(tag, str, is_elf64, e_machine, e_flags)
+#define TARGETARCH_TABLE                                                       \
+  /* enum value, printable string, is_elf64,   e_machine, e_flags */           \
+  X(Target_X8632, "x86-32", false, EM_386,     0)                              \
+  X(Target_X8664, "x86-64", true,  EM_X86_64,  0)                              \
+  X(Target_ARM32, "arm32",  false, EM_ARM,     EF_ARM_EABI_VER5)               \
+  X(Target_ARM64, "arm64",  true,  EM_AARCH64, 0)                              \
+  X(Target_MIPS32,"mips32", false, EM_MIPS,    0)                              \
+//#define X(tag, str, is_elf64, e_machine, e_flags)
 
-#define ICETYPE_TABLE                                                    \
-  /* enum value, log_2(size), align, # elts, element type, printable */  \
-  /*     string (size and alignment in bytes) */                         \
-  X(IceType_void,  -1,  0,     1,      IceType_void, "void")             \
-  X(IceType_i1,     0,  1,     1,      IceType_i1,   "i1")               \
-  X(IceType_i8,     0,  1,     1,      IceType_i8,   "i8")               \
-  X(IceType_i16,    1,  1,     1,      IceType_i16,  "i16")              \
-  X(IceType_i32,    2,  1,     1,      IceType_i32,  "i32")              \
-  X(IceType_i64,    3,  1,     1,      IceType_i64,  "i64")              \
-  X(IceType_f32,    2,  4,     1,      IceType_f32,  "float")            \
-  X(IceType_f64,    3,  8,     1,      IceType_f64,  "double")           \
-  X(IceType_v4i1,   4,  1,     4,      IceType_i1,   "<4 x i1>")         \
-  X(IceType_v8i1,   4,  1,     8,      IceType_i1,   "<8 x i1>")         \
-  X(IceType_v16i1,  4,  1,    16,      IceType_i1,   "<16 x i1>")        \
-  X(IceType_v16i8,  4,  1,    16,      IceType_i8,   "<16 x i8>")        \
-  X(IceType_v8i16,  4,  2,     8,      IceType_i16,  "<8 x i16>")        \
-  X(IceType_v4i32,  4,  4,     4,      IceType_i32,  "<4 x i32>")        \
-  X(IceType_v4f32,  4,  4,     4,      IceType_f32,  "<4 x float>")      \
+#define ICETYPE_TABLE                                                          \
+  /* enum value, log_2(size), align, # elts, element type, printable */        \
+  /*     string (size and alignment in bytes) */                               \
+  X(IceType_void,  -1,  0,     1,      IceType_void, "void")                   \
+  X(IceType_i1,     0,  1,     1,      IceType_i1,   "i1")                     \
+  X(IceType_i8,     0,  1,     1,      IceType_i8,   "i8")                     \
+  X(IceType_i16,    1,  1,     1,      IceType_i16,  "i16")                    \
+  X(IceType_i32,    2,  1,     1,      IceType_i32,  "i32")                    \
+  X(IceType_i64,    3,  1,     1,      IceType_i64,  "i64")                    \
+  X(IceType_f32,    2,  4,     1,      IceType_f32,  "float")                  \
+  X(IceType_f64,    3,  8,     1,      IceType_f64,  "double")                 \
+  X(IceType_v4i1,   4,  1,     4,      IceType_i1,   "<4 x i1>")               \
+  X(IceType_v8i1,   4,  1,     8,      IceType_i1,   "<8 x i1>")               \
+  X(IceType_v16i1,  4,  1,    16,      IceType_i1,   "<16 x i1>")              \
+  X(IceType_v16i8,  4,  1,    16,      IceType_i8,   "<16 x i8>")              \
+  X(IceType_v8i16,  4,  2,     8,      IceType_i16,  "<8 x i16>")              \
+  X(IceType_v4i32,  4,  4,     4,      IceType_i32,  "<4 x i32>")              \
+  X(IceType_v4f32,  4,  4,     4,      IceType_f32,  "<4 x float>")            \
 //#define X(tag, sizeLog2, align, elts, elty, str)
 
 // Dictionary:
@@ -54,25 +54,27 @@
 //   F - Is floating point value (scalar or vector).
 //   IA - Is integer arithmetic type
 //   LS - true if load/store allowed on type.
+//   P  - true if can be used for parameter of call.
 //   CR - Result type of compare instruction for argument type
 //        (IceType_void if disallowed)
-#define ICETYPE_PROPS_TABLE                                              \
-  /* Enum Value    V  I  F IA  LS CR */                                  \
-  X(IceType_void,  0, 0, 0, 0, 0, IceType_void)                          \
-  X(IceType_i1,    0, 1, 0, 0, 0, IceType_i1)                            \
-  X(IceType_i8,    0, 1, 0, 1, 1, IceType_i1)                            \
-  X(IceType_i16,   0, 1, 0, 1, 1, IceType_i1)                            \
-  X(IceType_i32,   0, 1, 0, 1, 1, IceType_i1)                            \
-  X(IceType_i64,   0, 1, 0, 1, 1, IceType_i1)                            \
-  X(IceType_f32,   0, 0, 1, 0, 1, IceType_i1)                            \
-  X(IceType_f64,   0, 0, 1, 0, 1, IceType_i1)                            \
-  X(IceType_v4i1,  1, 1, 0, 0, 0, IceType_v4i1)                          \
-  X(IceType_v8i1,  1, 1, 0, 0, 0, IceType_v8i1)                          \
-  X(IceType_v16i1, 1, 1, 0, 0, 0, IceType_v16i1)                         \
-  X(IceType_v16i8, 1, 1, 0, 1, 1, IceType_v16i1)                         \
-  X(IceType_v8i16, 1, 1, 0, 1, 1, IceType_v8i1)                          \
-  X(IceType_v4i32, 1, 1, 0, 1, 1, IceType_v4i1)                          \
-  X(IceType_v4f32, 1, 0, 1, 0, 1, IceType_v4i1)                          \
-//#define X(tag, IsVec, IsInt, IsFloat, IsIntArith, IsLoadStore, CompareResult)
+#define ICETYPE_PROPS_TABLE                                                    \
+  /* Enum Value    V  I  F IA  LS P CR */                                      \
+  X(IceType_void,  0, 0, 0, 0, 0, 0, IceType_void)                             \
+  X(IceType_i1,    0, 1, 0, 0, 0, 0, IceType_i1)                               \
+  X(IceType_i8,    0, 1, 0, 1, 1, 0, IceType_i1)                               \
+  X(IceType_i16,   0, 1, 0, 1, 1, 0, IceType_i1)                               \
+  X(IceType_i32,   0, 1, 0, 1, 1, 1, IceType_i1)                               \
+  X(IceType_i64,   0, 1, 0, 1, 1, 1, IceType_i1)                               \
+  X(IceType_f32,   0, 0, 1, 0, 1, 1, IceType_i1)                               \
+  X(IceType_f64,   0, 0, 1, 0, 1, 1, IceType_i1)                               \
+  X(IceType_v4i1,  1, 1, 0, 0, 0, 1, IceType_v4i1)                             \
+  X(IceType_v8i1,  1, 1, 0, 0, 0, 1, IceType_v8i1)                             \
+  X(IceType_v16i1, 1, 1, 0, 0, 0, 1, IceType_v16i1)                            \
+  X(IceType_v16i8, 1, 1, 0, 1, 1, 1, IceType_v16i1)                            \
+  X(IceType_v8i16, 1, 1, 0, 1, 1, 1, IceType_v8i1)                             \
+  X(IceType_v4i32, 1, 1, 0, 1, 1, 1, IceType_v4i1)                             \
+  X(IceType_v4f32, 1, 0, 1, 0, 1, 1, IceType_v4i1)                             \
+//#define X(tag, IsVec, IsInt, IsFloat, IsIntArith, IsLoadStore, IsParam,      \
+//          CompareResult)
 
 #endif // SUBZERO_SRC_ICETYPES_DEF
