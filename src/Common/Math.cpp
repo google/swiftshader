@@ -31,4 +31,18 @@ namespace sw
 
 		return hash;
 	}
+
+	unsigned char sRGB8toLinear8(unsigned char value)
+	{
+		static unsigned char sRGBtoLinearTable[256] = { 255 };
+		if(sRGBtoLinearTable[0] == 255)
+		{
+			for(int i = 0; i < 256; i++)
+			{
+				sRGBtoLinearTable[i] = static_cast<unsigned char>(sw::sRGBtoLinear(static_cast<float>(i) / 255.0f) * 255.0f + 0.5f);
+			}
+		}
+
+		return sRGBtoLinearTable[value];
+	}
 }
