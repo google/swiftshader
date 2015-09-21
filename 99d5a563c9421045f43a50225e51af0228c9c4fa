@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "49fc33c5_848ee661",
+        "filename": "src/OpenGL/common/Image.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 779,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-09-21T19:16:49Z",
+      "side": 1,
+      "message": "SelectInternalFormat() does not return FORMAT_NULL. Only CovertFormatType() does. Is this applied after some other patch?",
+      "range": {
+        "startLine": 778,
+        "startChar": 38,
+        "endLine": 779,
+        "endChar": 47
+      },
+      "revId": "99d5a563c9421045f43a50225e51af0228c9c4fa",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
