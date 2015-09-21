@@ -370,6 +370,7 @@ enum TQualifier : unsigned char
     // built-ins written by fragment shader
     EvqFragColor,
     EvqFragData,
+    EvqFragDepth,
 
     // GLSL ES 3.0 vertex output and fragment input
     EvqSmooth,        // Incomplete qualifier, smooth is the default
@@ -441,6 +442,7 @@ inline const char *getQualifierString(TQualifier qualifier)
     case EvqFrontFacing:    return "FrontFacing";    break;
     case EvqFragColor:      return "FragColor";      break;
     case EvqFragData:       return "FragData";       break;
+    case EvqFragDepth:      return "FragDepth";      break;
     case EvqSmooth:         return "Smooth";         break;
     case EvqFlat:           return "Flat";           break;
     case EvqCentroidOut:    return "CentroidOut";    break;

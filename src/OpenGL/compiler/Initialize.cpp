@@ -447,6 +447,7 @@ void IdentifyBuiltIns(GLenum shaderType,
         symbolTable.insert(COMMON_BUILTINS, *new TVariable(NewPoolTString("gl_PointCoord"), TType(EbtFloat, EbpMedium, EvqPointCoord,  2)));
         symbolTable.insert(ESSL1_BUILTINS, *new TVariable(NewPoolTString("gl_FragColor"), TType(EbtFloat, EbpMedium, EvqFragColor,   4)));
         symbolTable.insert(ESSL1_BUILTINS, *new TVariable(NewPoolTString("gl_FragData[gl_MaxDrawBuffers]"), TType(EbtFloat, EbpMedium, EvqFragData,    4)));
+        symbolTable.insert(ESSL3_BUILTINS, *new TVariable(NewPoolTString("gl_FragDepth"), TType(EbtFloat, EbpHigh, EvqFragDepth, 1)));
         break;
     case GL_VERTEX_SHADER:
         symbolTable.insert(COMMON_BUILTINS, *new TVariable(NewPoolTString("gl_Position"), TType(EbtFloat, EbpHigh, EvqPosition,    4)));

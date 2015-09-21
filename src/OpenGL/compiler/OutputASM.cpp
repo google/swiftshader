@@ -2055,6 +2055,7 @@ namespace glsl
 		case EvqPointCoord:          return sw::Shader::PARAMETER_INPUT;
 		case EvqFragColor:           return sw::Shader::PARAMETER_COLOROUT;
 		case EvqFragData:            return sw::Shader::PARAMETER_COLOROUT;
+		case EvqFragDepth:           return sw::Shader::PARAMETER_DEPTHOUT;
 		default: UNREACHABLE(qualifier);
 		}
 
@@ -2101,6 +2102,7 @@ namespace glsl
 		case EvqPointCoord:          return varyingRegister(operand);
 		case EvqFragColor:           return 0;
 		case EvqFragData:            return 0;
+		case EvqFragDepth:           return 0;
 		default: UNREACHABLE(operand->getQualifier());
 		}
 
