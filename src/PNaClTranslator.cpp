@@ -2037,7 +2037,11 @@ private:
     std::string Buffer;
     raw_string_ostream StrBuf(Buffer);
     StrBuf << "Value index " << Index << " not defined!";
-    Fatal(StrBuf.str());
+    Error(StrBuf.str());
+    // Recover and return some value.
+    if (!LocalOperands.empty())
+      return LocalOperands.front();
+    return Context->getGlobalConstantByID(0);
   }
 };
 
@@ -2284,6 +2288,16 @@ void FunctionParser::ProcessRecord() {
       StrBuf << ": insertelement " << VecType << " " << *Vec << ", "
              << Elt->getType() << " " << *Elt << ", " << Index->getType() << " "
              << *Index;
+      Error(StrBuf.str());
+      appendErrorInstruction(Elt->getType());
+      return;
+    }
+    if (Ice::typeElementType(VecType) != Elt->getType()) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Insertelement: Element type "
+             << Ice::typeString(Elt->getType()) << " doesn't match vector type "
+             << Ice::typeString(VecType);
       Error(StrBuf.str());
       appendErrorInstruction(Elt->getType());
       return;
