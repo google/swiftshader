@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "49fc33c5_c4117ed1",
+        "filename": "src/Renderer/ETC_Decoder.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 602,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-09-21T18:26:56Z",
+      "side": 1,
+      "message": "Feel free to write each of these on a single line.",
+      "range": {
+        "startLine": 601,
+        "startChar": 3,
+        "endLine": 602,
+        "endChar": 14
+      },
+      "revId": "e5c8990c5baa08d9386b2ad27daad697d1dfc765",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "49fc33c5_840b869b",
+        "filename": "src/Renderer/ETC_Decoder.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-09-21T18:26:56Z",
+      "side": 1,
+      "message": "We haven\u0027t settled on any documentation generator.",
+      "range": {
+        "startLine": 27,
+        "startChar": 5,
+        "endLine": 27,
+        "endChar": 11
+      },
+      "revId": "e5c8990c5baa08d9386b2ad27daad697d1dfc765",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "49fc33c5_c4b61e34",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3528,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-09-21T18:26:56Z",
+      "side": 1,
+      "message": "Let\u0027s remove every trace of ASTC for now, since it\u0027s confusing and possibly error prone later on to already have these constants defined and make decisions about the internal format.",
+      "range": {
+        "startLine": 3499,
+        "startChar": 0,
+        "endLine": 3528,
+        "endChar": 101
+      },
+      "revId": "e5c8990c5baa08d9386b2ad27daad697d1dfc765",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "49fc33c5_04f8b6e7",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3533,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-09-21T18:26:56Z",
+      "side": 1,
+      "message": "16-bit",
+      "range": {
+        "startLine": 3533,
+        "startChar": 40,
+        "endLine": 3533,
+        "endChar": 44
+      },
+      "revId": "e5c8990c5baa08d9386b2ad27daad697d1dfc765",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "49fc33c5_e4b11a3e",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3538,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-09-21T18:26:56Z",
+      "side": 1,
+      "message": "16-bit",
+      "range": {
+        "startLine": 3538,
+        "startChar": 43,
+        "endLine": 3538,
+        "endChar": 47
+      },
+      "revId": "e5c8990c5baa08d9386b2ad27daad697d1dfc765",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
