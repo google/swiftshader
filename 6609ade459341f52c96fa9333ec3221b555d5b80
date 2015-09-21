@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "49fc33c5_47e8f0e8",
+        "filename": "src/Shader/PixelProgram.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-09-21T20:19:36Z",
+      "side": 1,
+      "message": "Let\u0027s call them Temporary registers.",
+      "range": {
+        "startLine": 59,
+        "startChar": 6,
+        "endLine": 59,
+        "endChar": 27
+      },
+      "revId": "6609ade459341f52c96fa9333ec3221b555d5b80",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "49fc33c5_27e5f410",
+        "filename": "src/Shader/PixelProgram.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-09-21T20:19:36Z",
+      "side": 1,
+      "message": "Could be named back to simply \"r\" now I think. \\o/",
+      "range": {
+        "startLine": 60,
+        "startChar": 23,
+        "endLine": 60,
+        "endChar": 25
+      },
+      "revId": "6609ade459341f52c96fa9333ec3221b555d5b80",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "49fc33c5_e7fb5cb3",
+        "filename": "src/Shader/PixelRoutine.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-09-21T20:19:36Z",
+      "side": 1,
+      "message": "Could probably be named \"v\" again.",
+      "range": {
+        "startLine": 40,
+        "startChar": 21,
+        "endLine": 40,
+        "endChar": 23
+      },
+      "revId": "6609ade459341f52c96fa9333ec3221b555d5b80",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
