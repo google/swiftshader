@@ -2797,7 +2797,7 @@ namespace sw
 		}
 	}
 
-	void Surface::clearColorBuffer(unsigned int colorARGB, unsigned int rgbaMask, int x0, int y0, int width, int height)
+	void Surface::clearColorBuffer(float red, float green, float blue, float alpha, unsigned int rgbaMask, int x0, int y0, int width, int height)
 	{
 		// FIXME: Also clear buffers in other formats?
 
@@ -2837,30 +2837,39 @@ namespace sw
 					case FORMAT_A8R8G8B8:
 				//	case FORMAT_X8G8R8B8Q:   // FIXME
 				//	case FORMAT_A8G8R8B8Q:   // FIXME
-						if(rgbaMask == 0xF || (internal.format == FORMAT_X8R8G8B8 && rgbaMask == 0x7))
 						{
-							memfill4(target, colorARGB, 4 * (x1 - x0));
-						}
-						else
-						{
-							unsigned int bgraMask = (rgbaMask & 0x1 ? 0x00FF0000 : 0) | (rgbaMask & 0x2 ? 0x0000FF00 : 0) | (rgbaMask & 0x4 ? 0x000000FF : 0) | (rgbaMask & 0x8 ? 0xFF000000 : 0);
-							unsigned int invMask = ~bgraMask;
-							unsigned int maskedColor = colorARGB & bgraMask;
-							unsigned int *target32 = (unsigned int*)target;
+							unsigned char r8 = iround(red * 0xFF);
+							unsigned char g8 = iround(green * 0xFF);
+							unsigned char b8 = iround(blue * 0xFF);
+							unsigned char a8 = iround(alpha * 0xFF);
+							unsigned char a8r8g8b8[4] = {b8, g8, r8, a8};
+							unsigned int colorARGB = (unsigned int&)a8r8g8b8;
 
-							for(int x = 0; x < width; x++)
+							if(rgbaMask == 0xF || (internal.format == FORMAT_X8R8G8B8 && rgbaMask == 0x7))
 							{
-								target32[x] = maskedColor | (target32[x] & invMask);
+								memfill4(target, colorARGB, 4 * (x1 - x0));
+							}
+							else
+							{
+								unsigned int bgraMask = (rgbaMask & 0x1 ? 0x00FF0000 : 0) | (rgbaMask & 0x2 ? 0x0000FF00 : 0) | (rgbaMask & 0x4 ? 0x000000FF : 0) | (rgbaMask & 0x8 ? 0xFF000000 : 0);
+								unsigned int invMask = ~bgraMask;
+								unsigned int maskedColor = colorARGB & bgraMask;
+								unsigned int *target32 = (unsigned int*)target;
+
+								for(int x = 0; x < width; x++)
+								{
+									target32[x] = maskedColor | (target32[x] & invMask);
+								}
 							}
 						}
 						break;
 					case FORMAT_X8B8G8R8:
 					case FORMAT_A8B8G8R8:
 						{
-							unsigned char r8 = (colorARGB & 0x00FF0000) >> 16;
-							unsigned char g8 = (colorARGB & 0x0000FF00) >> 8;
-							unsigned char b8 = (colorARGB & 0x000000FF) >> 0;
-							unsigned char a8 = (colorARGB & 0xFF000000) >> 24;
+							unsigned char r8 = iround(red * 0xFF);
+							unsigned char g8 = iround(green * 0xFF);
+							unsigned char b8 = iround(blue * 0xFF);
+							unsigned char a8 = iround(alpha * 0xFF);
 							unsigned char a8b8g8r8[4] = {r8, g8, b8, a8};
 							unsigned int colorABGR = (unsigned int&)a8b8g8r8;
 
@@ -2884,8 +2893,8 @@ namespace sw
 						break;
 					case FORMAT_G8R8:
 						{
-							unsigned char r8 = (colorARGB & 0x00FF0000) >> 16;
-							unsigned char g8 = (colorARGB & 0x0000FF00) >> 8;
+							unsigned char r8 = iround(red * 0xFF);
+							unsigned char g8 = iround(green * 0xFF);
 							unsigned char g8r8[4] = {r8, g8, r8, g8};
 
 							if((rgbaMask & 0x3) == 0x3)
@@ -2908,10 +2917,8 @@ namespace sw
 						break;
 					case FORMAT_G16R16:
 						{
-							unsigned char r8 = (colorARGB & 0x00FF0000) >> 16;
-							unsigned char g8 = (colorARGB & 0x0000FF00) >> 8;
-							unsigned short r16 = (r8 << 8) | r8;
-							unsigned short g16 = (g8 << 8) | g8;
+							unsigned char r16 = iround(red * 0xFFFF);
+							unsigned char g16 = iround(green * 0xFFFF);
 							unsigned short g16r16[2] = {r16, g16};
 
 							if((rgbaMask & 0x3) == 0x3)
@@ -2934,14 +2941,10 @@ namespace sw
 						break;
 					case FORMAT_A16B16G16R16:
 						{
-							unsigned char r8 = (colorARGB & 0x00FF0000) >> 16;
-							unsigned char g8 = (colorARGB & 0x0000FF00) >> 8;
-							unsigned char b8 = (colorARGB & 0x000000FF) >> 0;
-							unsigned char a8 = (colorARGB & 0xFF000000) >> 24;
-							unsigned short r16 = (r8 << 8) | r8;
-							unsigned short g16 = (g8 << 8) | g8;
-							unsigned short b16 = (b8 << 8) | b8;
-							unsigned short a16 = (a8 << 8) | a8;
+							unsigned char r16 = iround(red * 0xFFFF);
+							unsigned char g16 = iround(green * 0xFFFF);
+							unsigned char b16 = iround(blue * 0xFFFF);
+							unsigned char a16 = iround(alpha * 0xFFFF);
 
 							if(rgbaMask == 0xF)
 							{
@@ -2965,63 +2968,52 @@ namespace sw
 					case FORMAT_R32F:
 						if(rgbaMask & 0x1)
 						{
-							float r32f = (float)(colorARGB & 0x00FF0000) / 0x00FF0000;
-
 							for(int x = 0; x < width; x++)
 							{
-								((float*)target)[x] = r32f;
+								((float*)target)[x] = red;
 							}
 						}
 						break;
 					case FORMAT_G32R32F:
+						if((rgbaMask & 0x3) == 0x3)
 						{
-							float r32f = (float)(colorARGB & 0x00FF0000) / 0x00FF0000;
-							float g32f = (float)(colorARGB & 0x0000FF00) / 0x0000FF00;
-
-							if((rgbaMask & 0x3) == 0x3)
+							for(int x = 0; x < width; x++)
 							{
-								for(int x = 0; x < width; x++)
-								{
-									((float*)target)[2 * x + 0] = r32f;
-									((float*)target)[2 * x + 1] = g32f;
-								}
+								((float*)target)[2 * x + 0] = red;
+								((float*)target)[2 * x + 1] = green;
 							}
-							else
-							{
-								if(rgbaMask & 0x1) for(int x = 0; x < width; x++) ((float*)target)[2 * x + 0] = r32f;
-								if(rgbaMask & 0x2) for(int x = 0; x < width; x++) ((float*)target)[2 * x + 1] = g32f;
-							}
+						}
+						else
+						{
+							if(rgbaMask & 0x1) for(int x = 0; x < width; x++) ((float*)target)[2 * x + 0] = red;
+							if(rgbaMask & 0x2) for(int x = 0; x < width; x++) ((float*)target)[2 * x + 1] = green;
 						}
 						break;
 					case FORMAT_A32B32G32R32F:
+						if(rgbaMask == 0xF)
 						{
-							float r32f = (float)(colorARGB & 0x00FF0000) / 0x00FF0000;
-							float g32f = (float)(colorARGB & 0x0000FF00) / 0x0000FF00;
-							float b32f = (float)(colorARGB & 0x000000FF) / 0x000000FF;
-							float a32f = (float)(colorARGB & 0xFF000000) / 0xFF000000;
-
-							if(rgbaMask == 0xF)
+							for(int x = 0; x < width; x++)
 							{
-								for(int x = 0; x < width; x++)
-								{
-									((float*)target)[4 * x + 0] = r32f;
-									((float*)target)[4 * x + 1] = g32f;
-									((float*)target)[4 * x + 2] = b32f;
-									((float*)target)[4 * x + 3] = a32f;
-								}
+								((float*)target)[4 * x + 0] = red;
+								((float*)target)[4 * x + 1] = green;
+								((float*)target)[4 * x + 2] = blue;
+								((float*)target)[4 * x + 3] = alpha;
 							}
-							else
-							{
-								if(rgbaMask & 0x1) for(int x = 0; x < width; x++) ((float*)target)[4 * x + 0] = r32f;
-								if(rgbaMask & 0x2) for(int x = 0; x < width; x++) ((float*)target)[4 * x + 1] = g32f;
-								if(rgbaMask & 0x4) for(int x = 0; x < width; x++) ((float*)target)[4 * x + 2] = b32f;
-								if(rgbaMask & 0x8) for(int x = 0; x < width; x++) ((float*)target)[4 * x + 3] = a32f;
-							}
+						}
+						else
+						{
+							if(rgbaMask & 0x1) for(int x = 0; x < width; x++) ((float*)target)[4 * x + 0] = red;
+							if(rgbaMask & 0x2) for(int x = 0; x < width; x++) ((float*)target)[4 * x + 1] = green;
+							if(rgbaMask & 0x4) for(int x = 0; x < width; x++) ((float*)target)[4 * x + 2] = blue;
+							if(rgbaMask & 0x8) for(int x = 0; x < width; x++) ((float*)target)[4 * x + 3] = alpha;
 						}
 						break;
 					case FORMAT_R5G6B5:
 						{
-							unsigned int r5g6b5 = ((colorARGB >> 8) & 0xF800) | ((colorARGB >> 5) & 0x07E0) | ((colorARGB >> 3) & 0x001F);
+							unsigned int r5 = iround(red * 0x1F);
+							unsigned int g6 = iround(green * 0x3F);
+							unsigned int b5 = iround(blue * 0x1F);
+							unsigned int r5g6b5 = (r5 << 11) | (g6 << 5) | b5;
 
 							if((rgbaMask & 0x7) == 0x7)
 							{

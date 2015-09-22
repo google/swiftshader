@@ -2454,11 +2454,7 @@ void Context::clear(GLbitfield mask)
     {
         return;
     }
-	
-	unsigned int color = (unorm<8>(mState.colorClearValue.alpha) << 24) |
-                         (unorm<8>(mState.colorClearValue.red) << 16) |
-                         (unorm<8>(mState.colorClearValue.green) << 8) | 
-                         (unorm<8>(mState.colorClearValue.blue) << 0);
+
     float depth = clamp01(mState.depthClearValue);
     int stencil = mState.stencilClearValue & 0x000000FF;
 
@@ -2471,7 +2467,7 @@ void Context::clear(GLbitfield mask)
 
 		if(rgbaMask != 0)
 		{
-			device->clearColor(color, rgbaMask);
+			device->clearColor(mState.colorClearValue.red, mState.colorClearValue.green, mState.colorClearValue.blue, mState.colorClearValue.alpha, rgbaMask);
 		}
 	}
 

@@ -175,7 +175,7 @@ namespace es2
 		}
 	}
 
-	void Device::clearColor(unsigned int color, unsigned int rgbaMask)
+	void Device::clearColor(float red, float green, float blue, float alpha, unsigned int rgbaMask)
 	{
 		if(!renderTarget)
 		{
@@ -185,7 +185,7 @@ namespace es2
 		int x0(0), y0(0), width(0), height(0);
 		getScissoredRegion(renderTarget, x0, y0, width, height);
 
-		renderTarget->clearColorBuffer(color, rgbaMask, x0, y0, width, height);
+		renderTarget->clearColorBuffer(red, green, blue, alpha, rgbaMask, x0, y0, width, height);
 	}
 
 	void Device::clearDepth(float z)

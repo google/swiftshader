@@ -3538,11 +3538,7 @@ void Context::clear(GLbitfield mask)
 
 		if(rgbaMask != 0)
 		{
-			unsigned int color = (unorm<8>(mState.colorClearValue.alpha) << 24) |
-			                     (unorm<8>(mState.colorClearValue.red) << 16) |
-			                     (unorm<8>(mState.colorClearValue.green) << 8) |
-			                     (unorm<8>(mState.colorClearValue.blue) << 0);
-			device->clearColor(color, rgbaMask);
+			device->clearColor(mState.colorClearValue.red, mState.colorClearValue.green, mState.colorClearValue.blue, mState.colorClearValue.alpha, rgbaMask);
 		}
 	}
 
@@ -3573,11 +3569,12 @@ void Context::clearColorBuffer(GLint drawbuffer, const GLint *value)
 		int x0(0), y0(0), width(0), height(0);
 		egl::Image* image = getScissoredImage(drawbuffer, x0, y0, width, height, false);
 
-		unsigned int color = (value[0] < 0 ? 0 : (value[0] & 0x7F800000) << 1) |
-		                     (value[1] < 0 ? 0 : (value[1] & 0x7F800000) >> 7) |
-		                     (value[2] < 0 ? 0 : (value[2] & 0x7F800000) >> 15) |
-		                     (value[3] < 0 ? 0 : (value[3] & 0x7F800000) >> 23);
-		image->clearColorBuffer(color, rgbaMask, x0, y0, width, height);
+		float red = clamp01((float)value[0] / 0x7FFFFFFF);
+		float green = clamp01((float)value[1] / 0x7FFFFFFF);
+		float blue = clamp01((float)value[2] / 0x7FFFFFFF);
+		float alpha = clamp01((float)value[3] / 0x7FFFFFFF);
+
+		image->clearColorBuffer(red, green, blue, alpha, rgbaMask, x0, y0, width, height);
 	}
 }
 
@@ -3589,11 +3586,12 @@ void Context::clearColorBuffer(GLint drawbuffer, const GLuint *value)
 		int x0(0), y0(0), width(0), height(0);
 		egl::Image* image = getScissoredImage(drawbuffer, x0, y0, width, height, false);
 
-		unsigned int color = (value[0] & 0xFF000000) >> 0 |
-		                     (value[1] & 0xFF000000) >> 8 |
-		                     (value[2] & 0xFF000000) >> 16 |
-		                     (value[3] & 0xFF000000) >> 24;
-		image->clearColorBuffer(color, rgbaMask, x0, y0, width, height);
+		float red = (float)value[0] / 0xFFFFFFFF;
+		float green = (float)value[1] / 0xFFFFFFFF;
+		float blue = (float)value[2] / 0xFFFFFFFF;
+		float alpha = (float)value[3] / 0xFFFFFFFF;
+
+		image->clearColorBuffer(red, green, blue, alpha, rgbaMask, x0, y0, width, height);
 	}
 }
 
@@ -3605,11 +3603,12 @@ void Context::clearColorBuffer(GLint drawbuffer, const GLfloat *value)
 		int x0(0), y0(0), width(0), height(0);
 		egl::Image* image = getScissoredImage(drawbuffer, x0, y0, width, height, false);
 
-		unsigned int color = (unorm<8>(value[0]) << 24) |
-		                     (unorm<8>(value[1]) << 16) |
-		                     (unorm<8>(value[2]) << 8) |
-		                     (unorm<8>(value[3]) << 0);
-		image->clearColorBuffer(color, rgbaMask, x0, y0, width, height);
+		float red = clamp01(value[0]);
+		float green = clamp01(value[1]);
+		float blue = clamp01(value[2]);
+		float alpha = clamp01(value[3]);
+
+		image->clearColorBuffer(red, green, blue, alpha, rgbaMask, x0, y0, width, height);
 	}
 }
 

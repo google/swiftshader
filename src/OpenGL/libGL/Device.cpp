@@ -178,7 +178,7 @@ namespace gl
 		delete context;
 	}
 
-	void Device::clearColor(unsigned int color, unsigned int rgbaMask)
+	void Device::clearColor(float red, float green, float blue, float alpha, unsigned int rgbaMask)
 	{
 		if(!renderTarget)
 		{
@@ -198,7 +198,7 @@ namespace gl
 			if(height > scissorRect.y1 - scissorRect.y0) height = scissorRect.y1 - scissorRect.y0;
 		}
 
-		renderTarget->clearColorBuffer(color, rgbaMask, x0, y0, width, height);
+		renderTarget->clearColorBuffer(red, green, blue, alpha, rgbaMask, x0, y0, width, height);
 	}
 
 	void Device::clearDepth(float z)

@@ -51,7 +51,7 @@ namespace es2
 
 		virtual ~Device();
 
-		virtual void clearColor(unsigned int color, unsigned int rgbaMask);
+		virtual void clearColor(float red, float green, float blue, float alpha, unsigned int rgbaMask);
 		virtual void clearDepth(float z);
 		virtual void clearStencil(unsigned int stencil, unsigned int mask);
 		virtual egl::Image *createDepthStencilSurface(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard);
