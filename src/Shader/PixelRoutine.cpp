@@ -1009,7 +1009,7 @@ namespace sw
 		}
 	}
 
-	void PixelRoutine::readPixel(Registers &r, int index, Pointer<Byte> &cBuffer, Vector4s &current, Int &x, Vector4s &pixel)
+	void PixelRoutine::readPixel(Registers &r, int index, Pointer<Byte> &cBuffer, Int &x, Vector4s &pixel)
 	{
 		Short4 c01;
 		Short4 c23;
@@ -1115,17 +1115,17 @@ namespace sw
 			break;
 		case FORMAT_A8G8R8B8Q:
 			UNIMPLEMENTED();
-			//	pixel.z = UnpackLow(As<Byte8>(pixel.z), *Pointer<Byte8>(cBuffer + 8 * x + 0));
-			//	pixel.x = UnpackHigh(As<Byte8>(pixel.x), *Pointer<Byte8>(cBuffer + 8 * x + 0));
-			//	pixel.y = UnpackLow(As<Byte8>(pixel.y), *Pointer<Byte8>(cBuffer + 8 * x + 8));
-			//	pixel.w = UnpackHigh(As<Byte8>(pixel.w), *Pointer<Byte8>(cBuffer + 8 * x + 8));
+		//	pixel.z = UnpackLow(As<Byte8>(pixel.z), *Pointer<Byte8>(cBuffer + 8 * x + 0));
+		//	pixel.x = UnpackHigh(As<Byte8>(pixel.x), *Pointer<Byte8>(cBuffer + 8 * x + 0));
+		//	pixel.y = UnpackLow(As<Byte8>(pixel.y), *Pointer<Byte8>(cBuffer + 8 * x + 8));
+		//	pixel.w = UnpackHigh(As<Byte8>(pixel.w), *Pointer<Byte8>(cBuffer + 8 * x + 8));
 			break;
 		case FORMAT_X8G8R8B8Q:
 			UNIMPLEMENTED();
-			//	pixel.z = UnpackLow(As<Byte8>(pixel.z), *Pointer<Byte8>(cBuffer + 8 * x + 0));
-			//	pixel.x = UnpackHigh(As<Byte8>(pixel.x), *Pointer<Byte8>(cBuffer + 8 * x + 0));
-			//	pixel.y = UnpackLow(As<Byte8>(pixel.y), *Pointer<Byte8>(cBuffer + 8 * x + 8));
-			//	pixel.w = Short4(0xFFFFu);
+		//	pixel.z = UnpackLow(As<Byte8>(pixel.z), *Pointer<Byte8>(cBuffer + 8 * x + 0));
+		//	pixel.x = UnpackHigh(As<Byte8>(pixel.x), *Pointer<Byte8>(cBuffer + 8 * x + 0));
+		//	pixel.y = UnpackLow(As<Byte8>(pixel.y), *Pointer<Byte8>(cBuffer + 8 * x + 8));
+		//	pixel.w = Short4(0xFFFFu);
 			break;
 		case FORMAT_A16B16G16R16:
 			buffer = cBuffer;
@@ -1168,10 +1168,7 @@ namespace sw
 		}
 
 		Vector4s pixel;
-		Short4 c01;
-		Short4 c23;
-
-		readPixel(r, index, cBuffer, current, x, pixel);
+		readPixel(r, index, cBuffer, x, pixel);
 
 		// Final Color = ObjectColor * SourceBlendFactor + PixelColor * DestinationBlendFactor
 		Vector4s sourceFactor;
@@ -1290,9 +1287,7 @@ namespace sw
 		}
 
 		Vector4s pixel;
-
-		// Read pixel
-		readPixel(r, index, cBuffer, current, x, pixel);
+		readPixel(r, index, cBuffer, x, pixel);
 
 		switch(state.logicalOperation)
 		{

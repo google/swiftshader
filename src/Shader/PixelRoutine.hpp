@@ -70,7 +70,7 @@ namespace sw
 		// Raster operations
 		void blendFactor(Registers &r, const Vector4s &blendFactor, const Vector4s &current, const Vector4s &pixel, BlendFactor blendFactorActive);
 		void blendFactorAlpha(Registers &r, const Vector4s &blendFactor, const Vector4s &current, const Vector4s &pixel, BlendFactor blendFactorAlphaActive);
-		void readPixel(Registers &r, int index, Pointer<Byte> &cBuffer, Vector4s &current, Int &x, Vector4s &pixel);
+		void readPixel(Registers &r, int index, Pointer<Byte> &cBuffer, Int &x, Vector4s &pixel);
 		void alphaBlend(Registers &r, int index, Pointer<Byte> &cBuffer, Vector4s &current, Int &x);
 		void logicOperation(Registers &r, int index, Pointer<Byte> &cBuffer, Vector4s &current, Int &x);
 		void writeColor(Registers &r, int index, Pointer<Byte> &cBuffer, Int &i, Vector4s &current, Int &sMask, Int &zMask, Int &cMask);
