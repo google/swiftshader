@@ -1391,7 +1391,9 @@ namespace sw
 			switch(state.targetFormat[index])
 			{
 			case FORMAT_R5G6B5:
-			//	UNIMPLEMENTED();   // FIXME
+				current.x = AddSat(As<UShort4>(current.x), UShort4(0x0400));
+				current.y = AddSat(As<UShort4>(current.y), UShort4(0x0200));
+				current.z = AddSat(As<UShort4>(current.z), UShort4(0x0400));
 				break;
 			case FORMAT_X8G8R8B8Q:
 			case FORMAT_A8G8R8B8Q:
@@ -1399,12 +1401,10 @@ namespace sw
 			case FORMAT_X8B8G8R8:
 			case FORMAT_A8R8G8B8:
 			case FORMAT_A8B8G8R8:
-				{
-					current.x = current.x - As<Short4>(As<UShort4>(current.x) >> 8) + Short4(0x0080, 0x0080, 0x0080, 0x0080);
-					current.y = current.y - As<Short4>(As<UShort4>(current.y) >> 8) + Short4(0x0080, 0x0080, 0x0080, 0x0080);
-					current.z = current.z - As<Short4>(As<UShort4>(current.z) >> 8) + Short4(0x0080, 0x0080, 0x0080, 0x0080);
-					current.w = current.w - As<Short4>(As<UShort4>(current.w) >> 8) + Short4(0x0080, 0x0080, 0x0080, 0x0080);
-				}
+				current.x = current.x - As<Short4>(As<UShort4>(current.x) >> 8) + Short4(0x0080, 0x0080, 0x0080, 0x0080);
+				current.y = current.y - As<Short4>(As<UShort4>(current.y) >> 8) + Short4(0x0080, 0x0080, 0x0080, 0x0080);
+				current.z = current.z - As<Short4>(As<UShort4>(current.z) >> 8) + Short4(0x0080, 0x0080, 0x0080, 0x0080);
+				current.w = current.w - As<Short4>(As<UShort4>(current.w) >> 8) + Short4(0x0080, 0x0080, 0x0080, 0x0080);
 				break;
 			}
 		}
