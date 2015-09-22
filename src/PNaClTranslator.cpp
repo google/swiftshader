@@ -3158,6 +3158,12 @@ bool ModuleParser::ParseBlock(unsigned BlockID) {
     if (FoundValuesymtab)
       Fatal("Duplicate valuesymtab in module");
 
+    // If we have already processed a function block (i.e. we have already
+    // installed global names and variable initializers) we can no longer accept
+    // the value symbol table. Names have already been generated.
+    if (GlobalDeclarationNamesAndInitializersInstalled)
+      Fatal("Module valuesymtab not allowed after function blocks");
+
     FoundValuesymtab = true;
     ModuleValuesymtabParser Parser(BlockID, this);
     return Parser.ParseThisBlock();
