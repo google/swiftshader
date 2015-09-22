@@ -330,7 +330,7 @@ Intrinsics::FullIntrinsicInfo::validateCall(const InstCall *Call,
   }
   for (size_t i = 1; i < NumTypes; ++i) {
     if (Call->getArg(i - 1)->getType() != Signature[i]) {
-      ArgIndex = i;
+      ArgIndex = i - 1;
       return Intrinsics::WrongCallArgType;
     }
   }

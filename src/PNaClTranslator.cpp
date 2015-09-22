@@ -2666,8 +2666,10 @@ void FunctionParser::ProcessRecord() {
     const Ice::FuncSigType *Signature = nullptr;
     Ice::Type ReturnType = Ice::IceType_void;
     const Ice::Intrinsics::FullIntrinsicInfo *IntrinsicInfo = nullptr;
+    // Name of function if a direct call/intrinsic. Null otherwise.
+    Ice::FunctionDeclaration *Fcn = nullptr;
     if (Record.GetCode() == naclbitc::FUNC_CODE_INST_CALL) {
-      Ice::FunctionDeclaration *Fcn = Context->getFunctionByID(CalleeIndex);
+      Fcn = Context->getFunctionByID(CalleeIndex);
       Signature = &Fcn->getSignature();
       ReturnType = Signature->getReturnType();
 
@@ -2800,7 +2802,7 @@ void FunctionParser::ProcessRecord() {
       case Ice::Intrinsics::BadReturnType: {
         std::string Buffer;
         raw_string_ostream StrBuf(Buffer);
-        StrBuf << "Intrinsic call expects return type "
+        StrBuf << "Intrinsic " << Fcn->getName() << " expects return type"
                << IntrinsicInfo->getReturnType()
                << ". Found: " << Inst->getReturnType();
         Error(StrBuf.str());
@@ -2809,7 +2811,8 @@ void FunctionParser::ProcessRecord() {
       case Ice::Intrinsics::WrongNumOfArgs: {
         std::string Buffer;
         raw_string_ostream StrBuf(Buffer);
-        StrBuf << "Intrinsic call expects " << IntrinsicInfo->getNumArgs()
+        StrBuf << "Intrinsic " << Fcn->getName() << " expects "
+               << IntrinsicInfo->getNumArgs()
                << ". Found: " << Inst->getNumArgs();
         Error(StrBuf.str());
         break;
@@ -2817,8 +2820,9 @@ void FunctionParser::ProcessRecord() {
       case Ice::Intrinsics::WrongCallArgType: {
         std::string Buffer;
         raw_string_ostream StrBuf(Buffer);
-        StrBuf << "Intrinsic call argument " << ArgIndex << " expects type "
-               << IntrinsicInfo->getArgType(ArgIndex)
+        StrBuf << "Intrinsic " << Fcn->getName() << " expects "
+               << IntrinsicInfo->getArgType(ArgIndex) << " for argument "
+               << (ArgIndex + 1)
                << ". Found: " << Inst->getArg(ArgIndex)->getType();
         Error(StrBuf.str());
         break;
