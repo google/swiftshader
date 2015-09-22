@@ -338,6 +338,9 @@ public:
       return getGlobalVariableByID(Index - NumFunctionIds);
   }
 
+  /// Returns true if a module block has been parsed.
+  bool parsedModuleBlock() const { return ParsedModuleBlock; }
+
   /// Returns the list of parsed global variable declarations. Releases
   /// ownership of the current list of global variables. Note: only returns
   /// non-null pointer on first call. All successive calls return a null
@@ -374,6 +377,8 @@ private:
   Ice::FuncSigType UndefinedFuncSigType;
   // The block parser currently being applied. Used for error reporting.
   BlockParserBaseClass *BlockParser = nullptr;
+  // Defines if a module block has already been parsed.
+  bool ParsedModuleBlock = false;
 
   bool ParseBlock(unsigned BlockID) override;
 
@@ -3220,8 +3225,12 @@ void ModuleParser::ProcessRecord() {
 
 bool TopLevelParser::ParseBlock(unsigned BlockID) {
   if (BlockID == naclbitc::MODULE_BLOCK_ID) {
+    if (ParsedModuleBlock)
+      Fatal("Input can't contain more than one module");
     ModuleParser Parser(BlockID, this);
-    return Parser.ParseThisBlock();
+    bool ParseFailed = Parser.ParseThisBlock();
+    ParsedModuleBlock = true;
+    return ParseFailed;
   }
   // Generate error message by using default block implementation.
   BlockParserBaseClass Parser(BlockID, this);
@@ -3248,14 +3257,13 @@ void PNaClTranslator::translate(const std::string &IRFilename,
   // need a hook to tell the IceBrowserCompileServer to unblock its
   // QueueStreamer.
   // https://code.google.com/p/nativeclient/issues/detail?id=4163
-  Ostream &ErrStream = getContext()->getStrError();
   // Read header and verify it is good.
   NaClBitcodeHeader Header;
   if (Header.Read(MemObj.get())) {
     llvm::report_fatal_error("Invalid PNaCl bitcode header");
   }
   if (!Header.IsSupported()) {
-    ErrStream << Header.Unsupported();
+    getContext()->getStrError() << Header.Unsupported();
     if (!Header.IsReadable()) {
       llvm::report_fatal_error("Invalid PNaCl bitcode header");
     }
@@ -3266,25 +3274,20 @@ void PNaClTranslator::translate(const std::string &IRFilename,
   NaClBitstreamCursor InputStream(InputStreamFile);
 
   TopLevelParser Parser(*this, InputStream, ErrorStatus);
-  int TopLevelBlocks = 0;
   while (!InputStream.AtEndOfStream()) {
     if (Parser.Parse()) {
       ErrorStatus.assign(EC_Bitcode);
       return;
     }
-    ++TopLevelBlocks;
   }
 
-  if (TopLevelBlocks != 1) {
-    ErrStream << IRFilename
-              << ": Contains more than one module. Found: " << TopLevelBlocks
-              << "\n";
-    llvm::report_fatal_error("Bitcode has more than one module");
+  if (!Parser.parsedModuleBlock()) {
+    std::string Buffer;
+    raw_string_ostream StrBuf(Buffer);
+    StrBuf << IRFilename << ": Does not contain a module!";
+    llvm::report_fatal_error(StrBuf.str());
   }
   if (InputStreamFile.getBitcodeBytes().getExtent() % 4 != 0) {
-    ErrStream
-        << IRFilename
-        << ": Bitcode stream should be a multiple of 4 bytes in length.\n";
     llvm::report_fatal_error("Bitcode stream should be a multiple of 4 bytes");
   }
 }
