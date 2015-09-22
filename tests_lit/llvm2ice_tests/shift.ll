@@ -112,3 +112,105 @@ entry:
 }
 ; CHECK-LABEL: ashrImmNeg
 ; CHECK: sar {{.*}},0xff
+
+define i64 @shlImm64One(i64 %val) {
+entry:
+  %result = shl i64 %val, 1
+  ret i64 %result
+}
+; CHECK-LABEL: shlImm64One
+; CHECK: shl {{.*}},1
+
+define i64 @shlImm64LessThan32(i64 %val) {
+entry:
+  %result = shl i64 %val, 4
+  ret i64 %result
+}
+; CHECK-LABEL: shlImm64LessThan32
+; CHECK: shl {{.*}},0x4
+
+define i64 @shlImm64Equal32(i64 %val) {
+entry:
+  %result = shl i64 %val, 32
+  ret i64 %result
+}
+; CHECK-LABEL: shlImm64Equal32
+; CHECK-NOT: shl
+
+define i64 @shlImm64GreaterThan32(i64 %val) {
+entry:
+  %result = shl i64 %val, 40
+  ret i64 %result
+}
+; CHECK-LABEL: shlImm64GreaterThan32
+; CHECK: shl {{.*}},0x8
+
+define i64 @lshrImm64One(i64 %val) {
+entry:
+  %result = lshr i64 %val, 1
+  ret i64 %result
+}
+; CHECK-LABEL: lshrImm64One
+; CHECK: shr {{.*}},1
+
+define i64 @lshrImm64LessThan32(i64 %val) {
+entry:
+  %result = lshr i64 %val, 4
+  ret i64 %result
+}
+; CHECK-LABEL: lshrImm64LessThan32
+; CHECK: shrd {{.*}},0x4
+; CHECK: shr {{.*}},0x4
+
+define i64 @lshrImm64Equal32(i64 %val) {
+entry:
+  %result = lshr i64 %val, 32
+  ret i64 %result
+}
+; CHECK-LABEL: lshrImm64Equal32
+; CHECK-NOT: shr
+
+define i64 @lshrImm64GreaterThan32(i64 %val) {
+entry:
+  %result = lshr i64 %val, 40
+  ret i64 %result
+}
+; CHECK-LABEL: lshrImm64GreaterThan32
+; CHECK-NOT: shrd
+; CHECK: shr {{.*}},0x8
+
+define i64 @ashrImm64One(i64 %val) {
+entry:
+  %result = ashr i64 %val, 1
+  ret i64 %result
+}
+; CHECK-LABEL: ashrImm64One
+; CHECK: shrd {{.*}},0x1
+; CHECK: sar {{.*}},1
+
+define i64 @ashrImm64LessThan32(i64 %val) {
+entry:
+  %result = ashr i64 %val, 4
+  ret i64 %result
+}
+; CHECK-LABEL: ashrImm64LessThan32
+; CHECK: shrd {{.*}},0x4
+; CHECK: sar {{.*}},0x4
+
+define i64 @ashrImm64Equal32(i64 %val) {
+entry:
+  %result = ashr i64 %val, 32
+  ret i64 %result
+}
+; CHECK-LABEL: ashrImm64Equal32
+; CHECK: sar {{.*}},0x1f
+; CHECK-NOT: shrd
+
+define i64 @ashrImm64GreaterThan32(i64 %val) {
+entry:
+  %result = ashr i64 %val, 40
+  ret i64 %result
+}
+; CHECK-LABEL: ashrImm64GreaterThan32
+; CHECK: sar {{.*}},0x1f
+; CHECK: shrd {{.*}},0x8

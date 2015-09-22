@@ -74,7 +74,7 @@ InstX86Mul<Machine>::InstX86Mul(Cfg *Func, Variable *Dest, Variable *Source1,
 
 template <class Machine>
 InstX86Shld<Machine>::InstX86Shld(Cfg *Func, Variable *Dest, Variable *Source1,
-                                  Variable *Source2)
+                                  Operand *Source2)
     : InstX86Base<Machine>(Func, InstX86Base<Machine>::Shld, 3, Dest) {
   this->addSource(Dest);
   this->addSource(Source1);
@@ -83,7 +83,7 @@ InstX86Shld<Machine>::InstX86Shld(Cfg *Func, Variable *Dest, Variable *Source1,
 
 template <class Machine>
 InstX86Shrd<Machine>::InstX86Shrd(Cfg *Func, Variable *Dest, Variable *Source1,
-                                  Variable *Source2)
+                                  Operand *Source2)
     : InstX86Base<Machine>(Func, InstX86Base<Machine>::Shrd, 3, Dest) {
   this->addSource(Dest);
   this->addSource(Source1);

@@ -568,13 +568,13 @@ protected:
   void _shl(Variable *Dest, Operand *Src0) {
     Context.insert(Traits::Insts::Shl::create(Func, Dest, Src0));
   }
-  void _shld(Variable *Dest, Variable *Src0, Variable *Src1) {
+  void _shld(Variable *Dest, Variable *Src0, Operand *Src1) {
     Context.insert(Traits::Insts::Shld::create(Func, Dest, Src0, Src1));
   }
   void _shr(Variable *Dest, Operand *Src0) {
     Context.insert(Traits::Insts::Shr::create(Func, Dest, Src0));
   }
-  void _shrd(Variable *Dest, Variable *Src0, Variable *Src1) {
+  void _shrd(Variable *Dest, Variable *Src0, Operand *Src1) {
     Context.insert(Traits::Insts::Shrd::create(Func, Dest, Src0, Src1));
   }
   void _shufps(Variable *Dest, Operand *Src0, Operand *Src1) {

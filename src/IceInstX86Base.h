@@ -2103,7 +2103,7 @@ template <class Machine> class InstX86Shld final : public InstX86Base<Machine> {
 
 public:
   static InstX86Shld *create(Cfg *Func, Variable *Dest, Variable *Source1,
-                             Variable *Source2) {
+                             Operand *Source2) {
     return new (Func->allocate<InstX86Shld>())
         InstX86Shld(Func, Dest, Source1, Source2);
   }
@@ -2115,7 +2115,7 @@ public:
   }
 
 private:
-  InstX86Shld(Cfg *Func, Variable *Dest, Variable *Source1, Variable *Source2);
+  InstX86Shld(Cfg *Func, Variable *Dest, Variable *Source1, Operand *Source2);
 };
 
 /// Shrd instruction - shift across a pair of operands.
@@ -2126,7 +2126,7 @@ template <class Machine> class InstX86Shrd final : public InstX86Base<Machine> {
 
 public:
   static InstX86Shrd *create(Cfg *Func, Variable *Dest, Variable *Source1,
-                             Variable *Source2) {
+                             Operand *Source2) {
     return new (Func->allocate<InstX86Shrd>())
         InstX86Shrd(Func, Dest, Source1, Source2);
   }
@@ -2138,7 +2138,7 @@ public:
   }
 
 private:
-  InstX86Shrd(Cfg *Func, Variable *Dest, Variable *Source1, Variable *Source2);
+  InstX86Shrd(Cfg *Func, Variable *Dest, Variable *Source1, Operand *Source2);
 };
 
 /// Conditional move instruction.
