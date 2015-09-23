@@ -4,11 +4,11 @@
 ; REQUIRES: allow_dump
 ; RUN: %p2i --target x8632 -i %s --filetype=asm --args -O2 -asm-verbose \
 ; RUN:   | FileCheck %s
-; TODO(stichnot,jpp): Enable for x8664 and arm32.
+; TODO(stichnot,jpp): Enable for x8664.
 ; RUIN: %p2i --target x8664 -i %s --filetype=asm --args -O2 -asm-verbose \
 ; RUIN:   | FileCheck %s
-; RUIN: %p2i --target arm32 -i %s --filetype=asm --args -O2 -asm-verbose \
-; RUIN:   | FileCheck %s
+; RUN: %p2i --target arm32 -i %s --filetype=asm --args -O2 -asm-verbose \
+; RUN:   | FileCheck %s
 
 define i32 @single_bb(i32 %arg0, i32 %arg1, i32 %arg2, i32 %arg3, i32 %arg4, i32 %arg5, i32 %arg6, i32 %arg7) {
 b1:
