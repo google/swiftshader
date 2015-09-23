@@ -221,3 +221,37 @@ entry:
 ; ARM32: add r0, r0, [[REG]]
 ; ARM32: and r0, r0, #-536870912 ; 0xe0000000
 ; ARM32: sub sp, sp, r0
+
+; Test that a simple alloca sequence doesn't trigger a frame pointer.
+define void @fixed_no_frameptr(i32 %arg) {
+entry:
+  %a1 = alloca i8, i32 8, align 4
+  %a2 = alloca i8, i32 12, align 4
+  %a3 = alloca i8, i32 16, align 4
+  %p1 = bitcast i8* %a1 to i32*
+  %p2 = bitcast i8* %a2 to i32*
+  %p3 = bitcast i8* %a3 to i32*
+  store i32 %arg, i32* %p1, align 1
+  store i32 %arg, i32* %p2, align 1
+  store i32 %arg, i32* %p3, align 1
+  ret void
+}
+; CHECK-LABEL: fixed_no_frameptr
+; CHECK-NOT:      mov     ebp,esp
+
+; Test that a more complex alloca sequence does trigger a frame pointer.
+define void @var_with_frameptr(i32 %arg) {
+entry:
+  %a1 = alloca i8, i32 8, align 4
+  %a2 = alloca i8, i32 12, align 4
+  %a3 = alloca i8, i32 %arg, align 4
+  %p1 = bitcast i8* %a1 to i32*
+  %p2 = bitcast i8* %a2 to i32*
+  %p3 = bitcast i8* %a3 to i32*
+  store i32 %arg, i32* %p1, align 1
+  store i32 %arg, i32* %p2, align 1
+  store i32 %arg, i32* %p3, align 1
+  ret void
+}
+; CHECK-LABEL: var_with_frameptr
+; CHECK:      mov     ebp,esp

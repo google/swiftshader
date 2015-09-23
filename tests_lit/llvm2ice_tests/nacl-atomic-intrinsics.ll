@@ -265,6 +265,8 @@ declare void @use_ptr(i32 %iptr)
 
 define i64 @test_atomic_rmw_add_64_alloca(i32 %iptr, i64 %v) {
 entry:
+  br label %eblock  ; Disable alloca optimization
+eblock:
   %alloca_ptr = alloca i8, i32 16, align 16
   %ptr = inttoptr i32 %iptr to i64*
   %old = call i64 @llvm.nacl.atomic.rmw.i64(i32 1, i64* %ptr, i64 %v, i32 6)
@@ -805,6 +807,8 @@ entry:
 ; used to manage the stack frame, so it cannot be used as a register either.
 define i64 @test_atomic_cmpxchg_64_alloca(i32 %iptr, i64 %expected, i64 %desired) {
 entry:
+  br label %eblock  ; Disable alloca optimization
+eblock:
   %alloca_ptr = alloca i8, i32 16, align 16
   %ptr = inttoptr i32 %iptr to i64*
   %old = call i64 @llvm.nacl.atomic.cmpxchg.i64(i64* %ptr, i64 %expected,

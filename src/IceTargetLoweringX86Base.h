@@ -128,7 +128,8 @@ public:
   }
 
   void finishArgumentLowering(Variable *Arg, Variable *FramePtr,
-                              size_t BasicFrameOffset, size_t &InArgsSizeBytes);
+                              size_t BasicFrameOffset, size_t StackAdjBytes,
+                              size_t &InArgsSizeBytes);
   typename Traits::Address stackVarToAsmOperand(const Variable *Var) const;
 
   typename Traits::InstructionSet getInstructionSet() const {
@@ -675,6 +676,7 @@ protected:
   bool IsEbpBasedFrame = false;
   bool NeedsStackAlignment = false;
   size_t SpillAreaSizeBytes = 0;
+  size_t FixedAllocaSizeBytes = 0;
   std::array<llvm::SmallBitVector, IceType_NUM> TypeToRegisterSet;
   std::array<llvm::SmallBitVector, Traits::RegisterSet::Reg_NUM>
       RegisterAliases;

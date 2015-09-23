@@ -487,9 +487,16 @@ void TargetX8632::addProlog(CfgNode *Node) {
   if (SpillAreaSizeBytes)
     _sub(getPhysicalRegister(Traits::RegisterSet::Reg_esp),
          Ctx->getConstantInt32(SpillAreaSizeBytes));
+
+  // Account for alloca instructions with known frame offsets.
+  SpillAreaSizeBytes += FixedAllocaSizeBytes;
+
   Ctx->statsUpdateFrameBytes(SpillAreaSizeBytes);
 
+  // Initialize the stack adjustment so that after all the known-frame-offset
+  // alloca instructions are emitted, the stack adjustment will reach zero.
   resetStackAdjustment();
+  updateStackAdjustment(-FixedAllocaSizeBytes);
 
   // Fill in stack offsets for stack args, and copy args into registers for
   // those that were register-allocated. Args are pushed right to left, so
@@ -509,7 +516,13 @@ void TargetX8632::addProlog(CfgNode *Node) {
       ++NumXmmArgs;
       continue;
     }
-    finishArgumentLowering(Arg, FramePtr, BasicFrameOffset, InArgsSizeBytes);
+    // For esp-based frames, the esp value may not stabilize to its home value
+    // until after all the fixed-size alloca instructions have executed.  In
+    // this case, a stack adjustment is needed when accessing in-args in order
+    // to copy them into registers.
+    size_t StackAdjBytes = IsEbpBasedFrame ? 0 : -FixedAllocaSizeBytes;
+    finishArgumentLowering(Arg, FramePtr, BasicFrameOffset, StackAdjBytes,
+                           InArgsSizeBytes);
   }
 
   // Fill in stack offsets for locals.

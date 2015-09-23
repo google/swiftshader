@@ -40,6 +40,8 @@ declare void @ForceXmmSpills()
 
 define <4 x i32> @align_global_vector_ebp_based(i32 %arg) {
 entry:
+  br label %eblock  ; Disable alloca optimization
+eblock:
   %alloc = alloca i8, i32 1, align 1
   %vec.global = insertelement <4 x i32> undef, i32 %arg, i32 0
   br label %block
@@ -55,6 +57,8 @@ block:
 
 define <4 x i32> @align_local_vector_ebp_based(i32 %arg) {
 entry:
+  br label %eblock  ; Disable alloca optimization
+eblock:
   %alloc = alloca i8, i32 1, align 1
   %vec.local = insertelement <4 x i32> undef, i32 %arg, i32 0
   call void @ForceXmmSpillsAndUseAlloca(i8* %alloc)

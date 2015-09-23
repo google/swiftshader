@@ -201,6 +201,27 @@ void Cfg::translate() {
     if (auto Var64On32 = llvm::dyn_cast<Variable64On32>(Var))
       Var64On32->initHiLo(this);
 
+  // Figure out which alloca instructions result in storage at known stack frame
+  // offsets.  If this is true for all alloca instructions, then a stack pointer
+  // can still be used instead of a frame pointer, freeing up the frame pointer
+  // for normal register allocation.  Additionally, for each such alloca, its
+  // address could be rematerialized at each use in terms of the stack/frame
+  // pointer, saving a stack slot and a load from that stack slot.
+  //
+  // This simple implementation is limited to alloca instructions at the start
+  // of the entry node.
+  for (Inst &Instr : getEntryNode()->getInsts()) {
+    if (auto *Alloca = llvm::dyn_cast<InstAlloca>(&Instr)) {
+      if (llvm::isa<Constant>(Alloca->getSizeInBytes())) {
+        Alloca->setKnownFrameOffset();
+        continue;
+      }
+    }
+    // The first instruction that is not an alloca with a constant size stops
+    // the search.
+    break;
+  }
+
   // The set of translation passes and their order are determined by the
   // target.
   getTarget()->translate();

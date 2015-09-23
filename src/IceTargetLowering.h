@@ -359,7 +359,8 @@ protected:
   bool HasComputedFrame = false;
   bool CallsReturnsTwice = false;
   /// StackAdjustment keeps track of the current stack offset from its natural
-  /// location, as arguments are pushed for a function call.
+  /// location, e.g. as arguments are pushed for a function call or as
+  /// fixed-size alloca instructions are executed in the entry block.
   int32_t StackAdjustment = 0;
   SizeT NextLabelNumber = 0;
   SizeT NextJumpTableNumber = 0;

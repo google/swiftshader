@@ -246,6 +246,8 @@ public:
   }
   uint32_t getAlignInBytes() const { return AlignInBytes; }
   Operand *getSizeInBytes() const { return getSrc(0); }
+  bool getKnownFrameOffset() const { return KnownFrameOffset; }
+  void setKnownFrameOffset() { KnownFrameOffset = true; }
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return Inst->getKind() == Alloca; }
 
@@ -254,6 +256,7 @@ private:
              Variable *Dest);
 
   const uint32_t AlignInBytes;
+  bool KnownFrameOffset = false;
 };
 
 /// Binary arithmetic instruction. The source operands are captured in getSrc(0)

@@ -9,6 +9,8 @@ declare i32 @memcpy_helper2(i32 %buf, i32 %buf2, i32 %n)
 
 define i32 @memcpy_helper(i32 %buf, i32 %n) {
 entry:
+  br label %eblock  ; Disable alloca optimization
+eblock:
   %buf2 = alloca i8, i32 128, align 4
   %n.arg_trunc = trunc i32 %n to i8
   %arg.ext = zext i8 %n.arg_trunc to i32

@@ -791,13 +791,16 @@ template <class Machine>
 void TargetX86Base<Machine>::finishArgumentLowering(Variable *Arg,
                                                     Variable *FramePtr,
                                                     size_t BasicFrameOffset,
+                                                    size_t StackAdjBytes,
                                                     size_t &InArgsSizeBytes) {
   if (!Traits::Is64Bit) {
     if (auto *Arg64On32 = llvm::dyn_cast<Variable64On32>(Arg)) {
       Variable *Lo = Arg64On32->getLo();
       Variable *Hi = Arg64On32->getHi();
-      finishArgumentLowering(Lo, FramePtr, BasicFrameOffset, InArgsSizeBytes);
-      finishArgumentLowering(Hi, FramePtr, BasicFrameOffset, InArgsSizeBytes);
+      finishArgumentLowering(Lo, FramePtr, BasicFrameOffset, StackAdjBytes,
+                             InArgsSizeBytes);
+      finishArgumentLowering(Hi, FramePtr, BasicFrameOffset, StackAdjBytes,
+                             InArgsSizeBytes);
       return;
     }
   }
@@ -810,7 +813,8 @@ void TargetX86Base<Machine>::finishArgumentLowering(Variable *Arg,
   if (Arg->hasReg()) {
     assert(Ty != IceType_i64 || Traits::Is64Bit);
     typename Traits::X86OperandMem *Mem = Traits::X86OperandMem::create(
-        Func, Ty, FramePtr, Ctx->getConstantInt32(Arg->getStackOffset()));
+        Func, Ty, FramePtr,
+        Ctx->getConstantInt32(Arg->getStackOffset() + StackAdjBytes));
     if (isVectorType(Arg->getType())) {
       _movp(Arg, Mem);
     } else {
@@ -905,7 +909,8 @@ TargetX86Base<Machine>::getRegisterSet(RegSetMask Include,
 
 template <class Machine>
 void TargetX86Base<Machine>::lowerAlloca(const InstAlloca *Inst) {
-  IsEbpBasedFrame = true;
+  if (!Inst->getKnownFrameOffset())
+    IsEbpBasedFrame = true;
   // Conservatively require the stack to be aligned. Some stack adjustment
   // operations implemented below assume that the stack is aligned before the
   // alloca. All the alloca code ensures that the stack alignment is preserved
@@ -935,7 +940,12 @@ void TargetX86Base<Machine>::lowerAlloca(const InstAlloca *Inst) {
           llvm::dyn_cast<ConstantInteger32>(TotalSize)) {
     uint32_t Value = ConstantTotalSize->getValue();
     Value = Utils::applyAlignment(Value, Alignment);
-    _sub(esp, Ctx->getConstantInt32(Value));
+    if (Inst->getKnownFrameOffset()) {
+      _adjust_stack(Value);
+      FixedAllocaSizeBytes += Value;
+    } else {
+      _sub(esp, Ctx->getConstantInt32(Value));
+    }
   } else {
     // Non-constant sizes need to be adjusted to the next highest multiple of
     // the required alignment at runtime.
