@@ -171,6 +171,9 @@ namespace sw
 			case Shader::OPCODE_DP2ADD:     dp2add(d, s0, s1, s2);                         break;
 			case Shader::OPCODE_DP3:        dp3(d, s0, s1);                                break;
 			case Shader::OPCODE_DP4:        dp4(d, s0, s1);                                break;
+			case Shader::OPCODE_DET2:       det2(d, s0, s1);                               break;
+			case Shader::OPCODE_DET3:       det3(d, s0, s1, s2);                           break;
+			case Shader::OPCODE_DET4:       det4(d, s0, s1, s2, s3);                       break;
 			case Shader::OPCODE_CMP0:       cmp0(d, s0, s1, s2);                           break;
 			case Shader::OPCODE_ICMP:       icmp(d, s0, s1, control);                      break;
 			case Shader::OPCODE_UCMP:       ucmp(d, s0, s1, control);                      break;

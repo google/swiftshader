@@ -188,6 +188,9 @@ namespace sw
 			OPCODE_B2I,   // Bool to int
 			OPCODE_U2B,   // Uint to bool
 			OPCODE_B2U,   // Bool to uint
+			OPCODE_DET2,
+			OPCODE_DET3,
+			OPCODE_DET4,
 			OPCODE_ALL,
 			OPCODE_ANY,
 			OPCODE_NEG,

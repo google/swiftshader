@@ -636,6 +636,74 @@ namespace glsl
 		return true;
 	}
 
+	void OutputASM::emitDeterminant(TIntermTyped *result, TIntermTyped *arg, int size, int col, int row, int outCol, int outRow)
+	{
+		switch(size)
+		{
+		case 1: // Used for cofactor computation only
+			{
+				// For a 2x2 matrix, the cofactor is simply a transposed move or negate
+				bool isMov = (row == col);
+				sw::Shader::Opcode op = isMov ? sw::Shader::OPCODE_MOV : sw::Shader::OPCODE_NEG;
+				Instruction *mov = emit(op, result, arg);
+				mov->src[0].index += isMov ? 1 - row : row;
+				mov->src[0].swizzle = 0x55 * (isMov ? 1 - col : col);
+				mov->dst.index += outCol;
+				mov->dst.mask = 1 << outRow;
+			}
+			break;
+		case 2:
+			{
+				static const unsigned int swizzle[3] = { 0x99, 0x88, 0x44 }; // xy?? : yzyz, xzxz, xyxy
+
+				bool isCofactor = (col >= 0) && (row >= 0);
+				int col0 = (isCofactor && (col <= 0)) ? 1 : 0;
+				int col1 = (isCofactor && (col <= 1)) ? 2 : 1;
+				bool negate = isCofactor && ((col & 0x01) ^ (row & 0x01));
+
+				Instruction *det = emit(sw::Shader::OPCODE_DET2, result, arg, arg);
+				det->src[0].index += negate ? col1 : col0;
+				det->src[1].index += negate ? col0 : col1;
+				det->src[0].swizzle = det->src[1].swizzle = swizzle[isCofactor ? row : 2];
+				det->dst.index += outCol;
+				det->dst.mask = 1 << outRow;
+			}
+			break;
+		case 3:
+			{
+				static const unsigned int swizzle[4] = { 0xF9, 0xF8, 0xF4, 0xE4 }; // xyz? : yzww, xzww, xyww, xyzw
+
+				bool isCofactor = (col >= 0) && (row >= 0);
+				int col0 = (isCofactor && (col <= 0)) ? 1 : 0;
+				int col1 = (isCofactor && (col <= 1)) ? 2 : 1;
+				int col2 = (isCofactor && (col <= 2)) ? 3 : 2;
+				bool negate = isCofactor && ((col & 0x01) ^ (row & 0x01));
+
+				Instruction *det = emit(sw::Shader::OPCODE_DET3, result, arg, arg, arg);
+				det->src[0].index += col0;
+				det->src[1].index += negate ? col2 : col1;
+				det->src[2].index += negate ? col1 : col2;
+				det->src[0].swizzle = det->src[1].swizzle = det->src[2].swizzle = swizzle[isCofactor ? row : 3];
+				det->dst.index += outCol;
+				det->dst.mask = 1 << outRow;
+			}
+			break;
+		case 4:
+			{
+				Instruction *det = emit(sw::Shader::OPCODE_DET4, result, arg, arg, arg, arg);
+				det->src[1].index += 1;
+				det->src[2].index += 2;
+				det->src[3].index += 3;
+				det->dst.index += outCol;
+				det->dst.mask = 1 << outRow;
+			}
+			break;
+		default:
+			UNREACHABLE(size);
+			break;
+		}
+	}
+
 	bool OutputASM::visitUnary(Visit visit, TIntermUnary *node)
 	{
 		if(currentScope != emitScope)
@@ -804,6 +872,48 @@ namespace glsl
 						mov->dst.index += j;
 						mov->dst.mask = 1 << i;
 					}
+				}
+			}
+			break;
+		case EOpDeterminant:
+			if(visit == PostVisit)
+			{
+				int size = arg->getNominalSize();
+				ASSERT(size == arg->getSecondarySize());
+
+				emitDeterminant(result, arg, size);
+			}
+			break;
+		case EOpInverse:
+			if(visit == PostVisit)
+			{
+				int size = arg->getNominalSize();
+				ASSERT(size == arg->getSecondarySize());
+
+				// Compute transposed matrix of cofactors
+				for(int i = 0; i < size; ++i)
+				{
+					for(int j = 0; j < size; ++j)
+					{
+						// For a 2x2 matrix, the cofactor is simply a transposed move or negate
+						// For a 3x3 or 4x4 matrix, the cofactor is a transposed determinant
+						emitDeterminant(result, arg, size - 1, j, i, i, j);
+					}
+				}
+
+				// Compute 1 / determinant
+				Temporary invDet(this);
+				emitDeterminant(&invDet, arg, size);
+				Constant one(1.0f, 1.0f, 1.0f, 1.0f);
+				Instruction *div = emit(sw::Shader::OPCODE_DIV, &invDet, &one, &invDet);
+				div->src[1].swizzle = 0x00; // xxxx
+
+				// Divide transposed matrix of cofactors by determinant
+				for(int i = 0; i < size; ++i)
+				{
+					Instruction *div = emit(sw::Shader::OPCODE_MUL, result, result, &invDet);
+					div->src[0].index += i;
+					div->dst.index += i;
 				}
 			}
 			break;
@@ -1493,7 +1603,7 @@ namespace glsl
 		return IsSampler(type.getBasicType()) && (type.getQualifier() == EvqUniform || type.getQualifier() == EvqTemporary);
 	}
 
-	Instruction *OutputASM::emit(sw::Shader::Opcode op, TIntermTyped *dst, TIntermNode *src0, TIntermNode *src1, TIntermNode *src2, int index)
+	Instruction *OutputASM::emit(sw::Shader::Opcode op, TIntermTyped *dst, TIntermNode *src0, TIntermNode *src1, TIntermNode *src2, TIntermNode *src3, int index)
 	{
 		if(isSamplerRegister(dst))
 		{
@@ -1513,6 +1623,7 @@ namespace glsl
 		argument(instruction->src[0], src0, index);
 		argument(instruction->src[1], src1, index);
 		argument(instruction->src[2], src2, index);
+		argument(instruction->src[3], src3, index);
 
 		shader->append(instruction);
 
@@ -1568,7 +1679,7 @@ namespace glsl
 	{
 		for(int index = 0; index < dst->elementRegisterCount(); index++)
 		{
-			emit(op, dst, src0, src1, src2, index);
+			emit(op, dst, src0, src1, src2, 0, index);
 		}
 	}
 

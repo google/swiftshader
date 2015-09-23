@@ -284,6 +284,9 @@ namespace sw
 		void dp2add(Vector4f &dst, const Vector4f &src0, const Vector4f &src1, const Vector4f &src2);
 		void dp3(Vector4f &dst, const Vector4f &src0, const Vector4f &src1);
 		void dp4(Vector4f &dst, const Vector4f &src0, const Vector4f &src1);
+		void det2(Vector4f &dst, const Vector4f &src0, const Vector4f &src1);
+		void det3(Vector4f &dst, const Vector4f &src0, const Vector4f &src1, const Vector4f &src2);
+		void det4(Vector4f &dst, const Vector4f &src0, const Vector4f &src1, const Vector4f &src2, const Vector4f &src3);
 		void min(Vector4f &dst, const Vector4f &src0, const Vector4f &src1);
 		void imin(Vector4f &dst, const Vector4f &src0, const Vector4f &src1);
 		void umin(Vector4f &dst, const Vector4f &src0, const Vector4f &src1);

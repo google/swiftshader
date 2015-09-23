@@ -102,6 +102,7 @@ namespace sw
 			Src src0 = instruction->src[0];
 			Src src1 = instruction->src[1];
 			Src src2 = instruction->src[2];
+			Src src3 = instruction->src[3];
 
 			bool predicate = instruction->predicate;
 			Control control = instruction->control;
@@ -112,10 +113,12 @@ namespace sw
 			Vector4f s0;
 			Vector4f s1;
 			Vector4f s2;
+			Vector4f s3;
 
 			if(src0.type != Shader::PARAMETER_VOID) s0 = fetchRegisterF(r, src0);
 			if(src1.type != Shader::PARAMETER_VOID) s1 = fetchRegisterF(r, src1);
 			if(src2.type != Shader::PARAMETER_VOID) s2 = fetchRegisterF(r, src2);
+			if(src3.type != Shader::PARAMETER_VOID) s3 = fetchRegisterF(r, src3);
 
 			switch(opcode)
 			{
@@ -151,6 +154,9 @@ namespace sw
 			case Shader::OPCODE_DP2:		dp2(d, s0, s1);					break;
 			case Shader::OPCODE_DP3:		dp3(d, s0, s1);					break;
 			case Shader::OPCODE_DP4:		dp4(d, s0, s1);					break;
+			case Shader::OPCODE_DET2:       det2(d, s0, s1);                break;
+			case Shader::OPCODE_DET3:       det3(d, s0, s1, s2);            break;
+			case Shader::OPCODE_DET4:       det4(d, s0, s1, s2, s3);        break;
 			case Shader::OPCODE_ATT:		att(d, s0, s1);					break;
 			case Shader::OPCODE_EXP2X:		exp2x(d, s0, pp);				break;
 			case Shader::OPCODE_EXP2:		exp2(d, s0, pp);				break;

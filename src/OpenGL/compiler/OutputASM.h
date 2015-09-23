@@ -176,11 +176,12 @@ namespace glsl
 		virtual bool visitBranch(Visit visit, TIntermBranch*);
 
 		sw::Shader::Opcode getOpcode(sw::Shader::Opcode op, TIntermTyped *in) const;
-		Instruction *emit(sw::Shader::Opcode op, TIntermTyped *dst = 0, TIntermNode *src0 = 0, TIntermNode *src1 = 0, TIntermNode *src2 = 0, int index = 0);
+		Instruction *emit(sw::Shader::Opcode op, TIntermTyped *dst = 0, TIntermNode *src0 = 0, TIntermNode *src1 = 0, TIntermNode *src2 = 0, TIntermNode *src3 = 0, int index = 0);
 		Instruction *emitCast(TIntermTyped *dst, TIntermTyped *src);
 		void emitBinary(sw::Shader::Opcode op, TIntermTyped *dst = 0, TIntermNode *src0 = 0, TIntermNode *src1 = 0, TIntermNode *src2 = 0);
 		void emitAssign(sw::Shader::Opcode op, TIntermTyped *result, TIntermTyped *lhs, TIntermTyped *src0, TIntermTyped *src1 = 0);
 		void emitCmp(sw::Shader::Control cmpOp, TIntermTyped *dst, TIntermNode *left, TIntermNode *right, int index = 0);
+		void emitDeterminant(TIntermTyped *result, TIntermTyped *arg, int size, int col = -1, int row = -1, int outCol = 0, int outRow = 0);
 		void argument(sw::Shader::SourceParameter &parameter, TIntermNode *argument, int index = 0);
 		void copy(TIntermTyped *dst, TIntermNode *src, int offset = 0);
 		void assignLvalue(TIntermTyped *dst, TIntermTyped *src);

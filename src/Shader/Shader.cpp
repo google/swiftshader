@@ -764,6 +764,9 @@ namespace sw
 		case OPCODE_DIST4:			return "dist4";
 		case OPCODE_DP3:			return "dp3";
 		case OPCODE_DP4:			return "dp4";
+		case OPCODE_DET2:			return "det2";
+		case OPCODE_DET3:			return "det3";
+		case OPCODE_DET4:			return "det4";
 		case OPCODE_MIN:			return "min";
 		case OPCODE_IMIN:			return "imin";
 		case OPCODE_UMIN:			return "umin";

@@ -1139,6 +1139,34 @@ namespace sw
 		Float4 tw = Min(Max((x.w - edge0.w) / (edge1.w - edge0.w), Float4(0.0f)), Float4(1.0f)); dst.w = tw * tw * (Float4(3.0f) - Float4(2.0f) * tw);
 	}
 
+	void ShaderCore::det2(Vector4f &dst, const Vector4f &src0, const Vector4f &src1)
+	{
+		dst.x = src0.x * src1.y - src0.y * src1.x;
+		dst.y = dst.z = dst.w = dst.x;
+	}
+
+	void ShaderCore::det3(Vector4f &dst, const Vector4f &src0, const Vector4f &src1, const Vector4f &src2)
+	{
+		crs(dst, src1, src2);
+		dp3(dst, dst, src0);
+	}
+
+	void ShaderCore::det4(Vector4f &dst, const Vector4f &src0, const Vector4f &src1, const Vector4f &src2, const Vector4f &src3)
+	{
+		dst.x = src2.z * src3.w - src2.w * src3.z;
+		dst.y = src1.w * src3.z - src1.z * src3.w;
+		dst.z = src1.z * src2.w - src1.w * src2.z;
+		dst.x = src0.x * (src1.y * dst.x + src2.y * dst.y + src3.y * dst.z) -
+		        src0.y * (src1.x * dst.x + src2.x * dst.y + src3.x * dst.z) +
+		        src0.z * (src1.x * (src2.y * src3.w - src2.w * src3.y) +
+		                  src2.x * (src1.w * src3.y - src1.y * src3.w) +
+		                  src3.x * (src1.y * src2.w - src1.w * src2.y)) +
+		        src0.w * (src1.x * (src2.z * src3.y - src2.y * src3.z) +
+		                  src2.x * (src1.y * src3.z - src1.z * src3.y) +
+		                  src3.x * (src1.z * src2.y - src1.y * src2.z));
+		dst.y = dst.z = dst.w = dst.x;
+	}
+
 	void ShaderCore::frc(Vector4f &dst, const Vector4f &src)
 	{
 		dst.x = Frac(src.x);
