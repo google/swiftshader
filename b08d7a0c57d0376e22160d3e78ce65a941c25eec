@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "6959f7e7_259ceecf",
+        "filename": "src/Shader/PixelProgram.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 992,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-09-23T18:27:41Z",
+      "side": 1,
+      "message": "Removed lodBase.",
+      "parentUuid": "49fc33c5_e7d6bc30",
+      "range": {
+        "startLine": 992,
+        "startChar": 62,
+        "endLine": 992,
+        "endChar": 65
+      },
+      "revId": "b08d7a0c57d0376e22160d3e78ce65a941c25eec",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "49fc33c5_a7d0c433",
         "filename": "src/Shader/PixelProgram.cpp",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2015-09-21T20:13:44Z",
       "side": 1,
       "message": "We\u0027re going to have to support different lod values for each of the pixels in the quad. So just repeat it four .y, .z and .w, and below assign it to each of the respective components of the dst registers (instead of replicating into a Float4).",
+      "range": {
+        "startLine": 993,
+        "startChar": 33,
+        "endLine": 993,
+        "endChar": 35
+      },
+      "revId": "b08d7a0c57d0376e22160d3e78ce65a941c25eec",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6959f7e7_c515dad5",
+        "filename": "src/Shader/PixelProgram.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 993,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-09-23T18:27:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "49fc33c5_a7d0c433",
       "range": {
         "startLine": 993,
         "startChar": 33,
