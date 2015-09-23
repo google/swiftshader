@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "6959f7e7_a5c0de88",
+        "filename": "src/Renderer/ETC_Decoder.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 602,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-09-23T19:58:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "49fc33c5_c4117ed1",
+      "range": {
+        "startLine": 601,
+        "startChar": 3,
+        "endLine": 602,
+        "endChar": 14
+      },
+      "revId": "e5c8990c5baa08d9386b2ad27daad697d1dfc765",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "49fc33c5_840b869b",
         "filename": "src/Renderer/ETC_Decoder.hpp",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2015-09-21T18:26:56Z",
       "side": 1,
       "message": "We haven\u0027t settled on any documentation generator.",
+      "range": {
+        "startLine": 27,
+        "startChar": 5,
+        "endLine": 27,
+        "endChar": 11
+      },
+      "revId": "e5c8990c5baa08d9386b2ad27daad697d1dfc765",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6959f7e7_45c6caa4",
+        "filename": "src/Renderer/ETC_Decoder.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-09-23T19:58:56Z",
+      "side": 1,
+      "message": "Right. I just thought this format was fairly readable and easy to understand for a function that has this many parameters. We already have some generated code using it in Tokenizer.cpp and glslang.cpp and I didn\u0027t find any better format for this kind of function header.",
+      "parentUuid": "49fc33c5_840b869b",
       "range": {
         "startLine": 27,
         "startChar": 5,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "6959f7e7_65c3c693",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3528,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-09-23T19:58:56Z",
+      "side": 1,
+      "message": "Removed. Yeah, there wasn\u0027t supposed to be any ASTC related changes here. These are also in the ASTC related cl.",
+      "parentUuid": "49fc33c5_c4b61e34",
+      "range": {
+        "startLine": 3499,
+        "startChar": 0,
+        "endLine": 3528,
+        "endChar": 101
+      },
+      "revId": "e5c8990c5baa08d9386b2ad27daad697d1dfc765",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "49fc33c5_04f8b6e7",
         "filename": "src/Renderer/Surface.cpp",
         "patchSetId": 1
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "6959f7e7_05d0d255",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3533,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-09-23T19:58:56Z",
+      "side": 1,
+      "message": "I really meant signed 8 bit. This is what the decoder outputs.",
+      "parentUuid": "49fc33c5_04f8b6e7",
+      "range": {
+        "startLine": 3533,
+        "startChar": 40,
+        "endLine": 3533,
+        "endChar": 44
+      },
+      "revId": "e5c8990c5baa08d9386b2ad27daad697d1dfc765",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "49fc33c5_e4b11a3e",
         "filename": "src/Renderer/Surface.cpp",
         "patchSetId": 1
@@ -105,6 +201,30 @@
       "writtenOn": "2015-09-21T18:26:56Z",
       "side": 1,
       "message": "16-bit",
+      "range": {
+        "startLine": 3538,
+        "startChar": 43,
+        "endLine": 3538,
+        "endChar": 47
+      },
+      "revId": "e5c8990c5baa08d9386b2ad27daad697d1dfc765",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6959f7e7_25cdceba",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3538,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-09-23T19:58:56Z",
+      "side": 1,
+      "message": "same",
+      "parentUuid": "49fc33c5_e4b11a3e",
       "range": {
         "startLine": 3538,
         "startChar": 43,
