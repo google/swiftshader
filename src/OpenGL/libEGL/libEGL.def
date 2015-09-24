@@ -45,5 +45,6 @@ EXPORTS
 	eglDestroySyncKHR
 	eglClientWaitSyncKHR
 	eglGetSyncAttribKHR
+	eglSwapBuffersWithDamageKHR
 
 	libEGL_swiftshader

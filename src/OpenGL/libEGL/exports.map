@@ -45,6 +45,7 @@ global:
 	eglDestroySyncKHR;
 	eglClientWaitSyncKHR;
 	eglGetSyncAttribKHR;
+	eglSwapBuffersWithDamageKHR;
 
 	libEGL_swiftshader;
 

@@ -179,6 +179,7 @@ const char *QueryString(EGLDisplay dpy, EGLint name)
 		               "EGL_KHR_gl_renderbuffer_image "
 		               "EGL_KHR_fence_sync "
 		               "EGL_KHR_image_base "
+		               "EGL_KHR_swap_buffers_with_damage "
 		               "EGL_ANDROID_framebuffer_target "
 		               "EGL_ANDROID_recordable");
 	case EGL_VENDOR:
@@ -944,6 +945,11 @@ EGLBoolean DestroyImageKHR(EGLDisplay dpy, EGLImageKHR image)
 	return success(EGL_TRUE);
 }
 
+EGLBoolean SwapBuffersWithDamageKHR(EGLDisplay dpy, EGLSurface surface, EGLint *rects, EGLint n_rects)
+{
+	return eglSwapBuffers(dpy, surface);   // FIXME: Pass damage rects to compositor for optimization
+}
+
 EGLDisplay GetPlatformDisplayEXT(EGLenum platform, void *native_display, const EGLint *attrib_list)
 {
 	TRACE("(EGLenum platform = 0x%X, void *native_display = %p, const EGLint *attrib_list = %p)", platform, native_display, attrib_list);
@@ -1109,6 +1115,7 @@ __eglMustCastToProperFunctionPointerType GetProcAddress(const char *procname)
 		EXTENSION(eglDestroySyncKHR),
 		EXTENSION(eglClientWaitSyncKHR),
 		EXTENSION(eglGetSyncAttribKHR),
+		EXTENSION(eglSwapBuffersWithDamageKHR),
 
 		#undef EXTENSION
 	};
