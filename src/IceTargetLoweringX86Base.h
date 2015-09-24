@@ -715,6 +715,9 @@ private:
     (static_cast<Machine *>(this)->*Method)(std::forward<Args>(args)...);
   }
 
+  void lowerShift64(InstArithmetic::OpKind Op, Operand *Src0Lo, Operand *Src0Hi,
+                    Operand *Src1Lo, Variable *DestLo, Variable *DestHi);
+
   BoolFolding FoldingInfo;
 };
 } // end of namespace X86Internal

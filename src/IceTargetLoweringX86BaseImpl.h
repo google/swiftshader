@@ -1058,6 +1058,222 @@ bool TargetX86Base<Machine>::optimizeScalarMul(Variable *Dest, Operand *Src0,
 }
 
 template <class Machine>
+void TargetX86Base<Machine>::lowerShift64(InstArithmetic::OpKind Op,
+                                          Operand *Src0Lo, Operand *Src0Hi,
+                                          Operand *Src1Lo, Variable *DestLo,
+                                          Variable *DestHi) {
+  // TODO: Refactor the similarities between Shl, Lshr, and Ashr.
+  Variable *T_1 = nullptr, *T_2 = nullptr, *T_3 = nullptr;
+  Constant *Zero = Ctx->getConstantZero(IceType_i32);
+  Constant *SignExtend = Ctx->getConstantInt32(0x1f);
+  if (auto *ConstantShiftAmount = llvm::dyn_cast<ConstantInteger32>(Src1Lo)) {
+    uint32_t ShiftAmount = ConstantShiftAmount->getValue();
+    if (ShiftAmount > 32) {
+      Constant *ReducedShift = Ctx->getConstantInt32(ShiftAmount - 32);
+      switch (Op) {
+      default:
+        assert(0 && "non-shift op");
+        break;
+      case InstArithmetic::Shl: {
+        // a=b<<c ==>
+        //   t2 = b.lo
+        //   t2 = shl t2, ShiftAmount-32
+        //   t3 = t2
+        //   t2 = 0
+        _mov(T_2, Src0Lo);
+        _shl(T_2, ReducedShift);
+        _mov(DestHi, T_2);
+        _mov(DestLo, Zero);
+      } break;
+      case InstArithmetic::Lshr: {
+        // a=b>>c (unsigned) ==>
+        //   t2 = b.hi
+        //   t2 = shr t2, ShiftAmount-32
+        //   a.lo = t2
+        //   a.hi = 0
+        _mov(T_2, Src0Hi);
+        _shr(T_2, ReducedShift);
+        _mov(DestLo, T_2);
+        _mov(DestHi, Zero);
+      } break;
+      case InstArithmetic::Ashr: {
+        // a=b>>c (signed) ==>
+        //   t3 = b.hi
+        //   t3 = sar t3, 0x1f
+        //   t2 = b.hi
+        //   t2 = shrd t2, t3, ShiftAmount-32
+        //   a.lo = t2
+        //   a.hi = t3
+        _mov(T_3, Src0Hi);
+        _sar(T_3, SignExtend);
+        _mov(T_2, Src0Hi);
+        _shrd(T_2, T_3, ReducedShift);
+        _mov(DestLo, T_2);
+        _mov(DestHi, T_3);
+      } break;
+      }
+    } else if (ShiftAmount == 32) {
+      switch (Op) {
+      default:
+        assert(0 && "non-shift op");
+        break;
+      case InstArithmetic::Shl: {
+        // a=b<<c ==>
+        //   t2 = b.lo
+        //   a.hi = t2
+        //   a.lo = 0
+        _mov(T_2, Src0Lo);
+        _mov(DestHi, T_2);
+        _mov(DestLo, Zero);
+      } break;
+      case InstArithmetic::Lshr: {
+        // a=b>>c (unsigned) ==>
+        //   t2 = b.hi
+        //   a.lo = t2
+        //   a.hi = 0
+        _mov(T_2, Src0Hi);
+        _mov(DestLo, T_2);
+        _mov(DestHi, Zero);
+      } break;
+      case InstArithmetic::Ashr: {
+        // a=b>>c (signed) ==>
+        //   t2 = b.hi
+        //   a.lo = t2
+        //   t3 = b.hi
+        //   t3 = sar t3, 0x1f
+        //   a.hi = t3
+        _mov(T_2, Src0Hi);
+        _mov(DestLo, T_2);
+        _mov(T_3, Src0Hi);
+        _sar(T_3, SignExtend);
+        _mov(DestHi, T_3);
+      } break;
+      }
+    } else {
+      // COMMON PREFIX OF: a=b SHIFT_OP c ==>
+      //   t2 = b.lo
+      //   t3 = b.hi
+      _mov(T_2, Src0Lo);
+      _mov(T_3, Src0Hi);
+      switch (Op) {
+      default:
+        assert(0 && "non-shift op");
+        break;
+      case InstArithmetic::Shl: {
+        // a=b<<c ==>
+        //   t3 = shld t3, t2, ShiftAmount
+        //   t2 = shl t2, ShiftAmount
+        _shld(T_3, T_2, ConstantShiftAmount);
+        _shl(T_2, ConstantShiftAmount);
+      } break;
+      case InstArithmetic::Lshr: {
+        // a=b>>c (unsigned) ==>
+        //   t2 = shrd t2, t3, ShiftAmount
+        //   t3 = shr t3, ShiftAmount
+        _shrd(T_2, T_3, ConstantShiftAmount);
+        _shr(T_3, ConstantShiftAmount);
+      } break;
+      case InstArithmetic::Ashr: {
+        // a=b>>c (signed) ==>
+        //   t2 = shrd t2, t3, ShiftAmount
+        //   t3 = sar t3, ShiftAmount
+        _shrd(T_2, T_3, ConstantShiftAmount);
+        _sar(T_3, ConstantShiftAmount);
+      } break;
+      }
+      // COMMON SUFFIX OF: a=b SHIFT_OP c ==>
+      //   a.lo = t2
+      //   a.hi = t3
+      _mov(DestLo, T_2);
+      _mov(DestHi, T_3);
+    }
+  } else {
+    // NON-CONSTANT CASES.
+    Constant *BitTest = Ctx->getConstantInt32(0x20);
+    typename Traits::Insts::Label *Label =
+        Traits::Insts::Label::create(Func, this);
+    // COMMON PREFIX OF: a=b SHIFT_OP c ==>
+    //   t1:ecx = c.lo & 0xff
+    //   t2 = b.lo
+    //   t3 = b.hi
+    _mov(T_1, Src1Lo, Traits::RegisterSet::Reg_ecx);
+    _mov(T_2, Src0Lo);
+    _mov(T_3, Src0Hi);
+    switch (Op) {
+    default:
+      assert(0 && "non-shift op");
+      break;
+    case InstArithmetic::Shl: {
+      // a=b<<c ==>
+      //   t3 = shld t3, t2, t1
+      //   t2 = shl t2, t1
+      //   test t1, 0x20
+      //   je L1
+      //   use(t3)
+      //   t3 = t2
+      //   t2 = 0
+      _shld(T_3, T_2, T_1);
+      _shl(T_2, T_1);
+      _test(T_1, BitTest);
+      _br(Traits::Cond::Br_e, Label);
+      // T_2 and T_3 are being assigned again because of the intra-block
+      // control flow, so we need the _mov_nonkillable variant to avoid
+      // liveness problems.
+      _mov_nonkillable(T_3, T_2);
+      _mov_nonkillable(T_2, Zero);
+    } break;
+    case InstArithmetic::Lshr: {
+      // a=b>>c (unsigned) ==>
+      //   t2 = shrd t2, t3, t1
+      //   t3 = shr t3, t1
+      //   test t1, 0x20
+      //   je L1
+      //   use(t2)
+      //   t2 = t3
+      //   t3 = 0
+      _shrd(T_2, T_3, T_1);
+      _shr(T_3, T_1);
+      _test(T_1, BitTest);
+      _br(Traits::Cond::Br_e, Label);
+      // T_2 and T_3 are being assigned again because of the intra-block
+      // control flow, so we need the _mov_nonkillable variant to avoid
+      // liveness problems.
+      _mov_nonkillable(T_2, T_3);
+      _mov_nonkillable(T_3, Zero);
+    } break;
+    case InstArithmetic::Ashr: {
+      // a=b>>c (signed) ==>
+      //   t2 = shrd t2, t3, t1
+      //   t3 = sar t3, t1
+      //   test t1, 0x20
+      //   je L1
+      //   use(t2)
+      //   t2 = t3
+      //   t3 = sar t3, 0x1f
+      Constant *SignExtend = Ctx->getConstantInt32(0x1f);
+      _shrd(T_2, T_3, T_1);
+      _sar(T_3, T_1);
+      _test(T_1, BitTest);
+      _br(Traits::Cond::Br_e, Label);
+      // T_2 and T_3 are being assigned again because of the intra-block
+      // control flow, so T_2 needs the _mov_nonkillable variant to avoid
+      // liveness problems. T_3 doesn't need special treatment because it is
+      // reassigned via _sar instead of _mov.
+      _mov_nonkillable(T_2, T_3);
+      _sar(T_3, SignExtend);
+    } break;
+    }
+    // COMMON SUFFIX OF: a=b SHIFT_OP c ==>
+    // L1:
+    //   a.lo = t2
+    //   a.hi = t3
+    Context.insert(Label);
+    _mov(DestLo, T_2);
+    _mov(DestHi, T_3);
+  }
+}
+
+template <class Machine>
 void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
   Variable *Dest = Inst->getDest();
   Operand *Src0 = legalize(Inst->getSrc(0));
@@ -1193,240 +1409,11 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       _add(T_4Hi, T_2);
       _mov(DestHi, T_4Hi);
     } break;
-    case InstArithmetic::Shl: {
-      // TODO: Refactor the similarities between Shl, Lshr, and Ashr.
-      Variable *T_1 = nullptr, *T_2 = nullptr, *T_3 = nullptr;
-      Constant *Zero = Ctx->getConstantZero(IceType_i32);
-      if (const auto *ConstantShiftAmount =
-              llvm::dyn_cast<ConstantInteger32>(Src1Lo)) {
-        uint32_t ShiftAmount = ConstantShiftAmount->getValue();
-        if (ShiftAmount > 32) {
-          // a=b<<c ==>
-          //   t2 = b.lo
-          //   t2 = shl t2, ShiftAmount-32
-          //   t3 = t2
-          //   t2 = 0
-          _mov(T_2, Src0Lo);
-          _shl(T_2, Ctx->getConstantInt32(ShiftAmount - 32));
-          _mov(DestHi, T_2);
-          _mov(DestLo, Zero);
-        } else if (ShiftAmount == 32) {
-          // a=b<<c ==>
-          //   t2 = b.lo
-          //   a.hi = t2
-          //   a.lo = 0
-          _mov(T_2, Src0Lo);
-          _mov(DestHi, T_2);
-          _mov(DestLo, Zero);
-        } else {
-          // a=b<<c ==>
-          //   t2 = b.lo
-          //   t3 = b.hi
-          //   t3 = shld t3, t2, ShiftAmount
-          //   t2 = shl t2, ShiftAmount
-          //   a.lo = t2
-          //   a.hi = t3
-          _mov(T_2, Src0Lo);
-          _mov(T_3, Src0Hi);
-          _shld(T_3, T_2, Ctx->getConstantInt32(ShiftAmount));
-          _shl(T_2, Ctx->getConstantInt32(ShiftAmount));
-          // Move T_2 first to reduce register pressure.
-          _mov(DestLo, T_2);
-          _mov(DestHi, T_3);
-        }
-      } else {
-        // a=b<<c ==>
-        //   t1:ecx = c.lo & 0xff
-        //   t2 = b.lo
-        //   t3 = b.hi
-        //   t3 = shld t3, t2, t1
-        //   t2 = shl t2, t1
-        //   test t1, 0x20
-        //   je L1
-        //   use(t3)
-        //   t3 = t2
-        //   t2 = 0
-        // L1:
-        //   a.lo = t2
-        //   a.hi = t3
-        Constant *BitTest = Ctx->getConstantInt32(0x20);
-        typename Traits::Insts::Label *Label =
-            Traits::Insts::Label::create(Func, this);
-        _mov(T_1, Src1Lo, Traits::RegisterSet::Reg_ecx);
-        _mov(T_2, Src0Lo);
-        _mov(T_3, Src0Hi);
-        _shld(T_3, T_2, T_1);
-        _shl(T_2, T_1);
-        _test(T_1, BitTest);
-        _br(Traits::Cond::Br_e, Label);
-        // T_2 and T_3 are being assigned again because of the intra-block
-        // control flow, so we need the _mov_nonkillable variant to avoid
-        // liveness problems.
-        _mov_nonkillable(T_3, T_2);
-        _mov_nonkillable(T_2, Zero);
-        Context.insert(Label);
-        _mov(DestLo, T_2);
-        _mov(DestHi, T_3);
-      }
-    } break;
-    case InstArithmetic::Lshr: {
-      Variable *T_1 = nullptr, *T_2 = nullptr, *T_3 = nullptr;
-      Constant *Zero = Ctx->getConstantZero(IceType_i32);
-      if (const auto *ConstantShiftAmount =
-              llvm::dyn_cast<ConstantInteger32>(Src1Lo)) {
-        uint32_t ShiftAmount = ConstantShiftAmount->getValue();
-        if (ShiftAmount > 32) {
-          // a=b>>c (unsigned) ==>
-          //   t3 = b.hi
-          //   t3 = shr t3, ShiftAmount-32
-          //   a.lo = t3
-          //   a.hi = 0
-          _mov(T_3, Src0Hi);
-          _shr(T_3, Ctx->getConstantInt32(ShiftAmount - 32));
-          _mov(DestLo, T_3);
-          _mov(DestHi, Zero);
-        } else if (ShiftAmount == 32) {
-          // a=b>>c (unsigned) ==>
-          //   t3 = b.hi
-          //   a.lo = t3
-          //   a.hi = 0
-          _mov(T_3, Src0Hi);
-          _mov(DestLo, T_3);
-          _mov(DestHi, Zero);
-        } else {
-          // a=b>>c (unsigned) ==>
-          //   t2 = b.lo
-          //   t3 = b.hi
-          //   t2 = shrd t2, t3, ShiftAmount
-          //   t3 = shr t3, ShiftAmount
-          //   a.lo = t2
-          //   a.hi = t3
-          _mov(T_2, Src0Lo);
-          _mov(T_3, Src0Hi);
-          _shrd(T_2, T_3, Ctx->getConstantInt32(ShiftAmount));
-          _shr(T_3, Ctx->getConstantInt32(ShiftAmount));
-          // Move T_3 first to reduce register pressure.
-          _mov(DestHi, T_3);
-          _mov(DestLo, T_2);
-        }
-      } else {
-        // a=b>>c (unsigned) ==>
-        //   t1:ecx = c.lo & 0xff
-        //   t2 = b.lo
-        //   t3 = b.hi
-        //   t2 = shrd t2, t3, t1
-        //   t3 = shr t3, t1
-        //   test t1, 0x20
-        //   je L1
-        //   use(t2)
-        //   t2 = t3
-        //   t3 = 0
-        // L1:
-        //   a.lo = t2
-        //   a.hi = t3
-        Constant *BitTest = Ctx->getConstantInt32(0x20);
-        typename Traits::Insts::Label *Label =
-            Traits::Insts::Label::create(Func, this);
-        _mov(T_1, Src1Lo, Traits::RegisterSet::Reg_ecx);
-        _mov(T_2, Src0Lo);
-        _mov(T_3, Src0Hi);
-        _shrd(T_2, T_3, T_1);
-        _shr(T_3, T_1);
-        _test(T_1, BitTest);
-        _br(Traits::Cond::Br_e, Label);
-        // T_2 and T_3 are being assigned again because of the intra-block
-        // control flow, so we need the _mov_nonkillable variant to avoid
-        // liveness problems.
-        _mov_nonkillable(T_2, T_3);
-        _mov_nonkillable(T_3, Zero);
-        Context.insert(Label);
-        _mov(DestLo, T_2);
-        _mov(DestHi, T_3);
-      }
-    } break;
-    case InstArithmetic::Ashr: {
-      Variable *T_1 = nullptr, *T_2 = nullptr, *T_3 = nullptr;
-      if (const auto *ConstantShiftAmount =
-              llvm::dyn_cast<ConstantInteger32>(Src1Lo)) {
-        uint32_t ShiftAmount = ConstantShiftAmount->getValue();
-        if (ShiftAmount > 32) {
-          // a=b>>c (signed) ==>
-          //   t2 = b.hi
-          //   t3 = b.hi
-          //   t3 = sar t3, 0x1f
-          //   t2 = shrd t2, t3, ShiftAmount-32
-          //   a.lo = t2
-          //   a.hi = t3
-          _mov(T_2, Src0Hi);
-          _mov(T_3, Src0Hi);
-          _sar(T_3, Ctx->getConstantInt32(0x1f));
-          _shrd(T_2, T_3, Ctx->getConstantInt32(ShiftAmount - 32));
-          _mov(DestLo, T_2);
-          _mov(DestHi, T_3);
-        } else if (ShiftAmount == 32) {
-          // a=b>>c (signed) ==>
-          //   t2 = b.hi
-          //   a.lo = t2
-          //   t3 = b.hi
-          //   t3 = sar t3, 0x1f
-          //   a.hi = t3
-          _mov(T_2, Src0Hi);
-          _mov(DestLo, T_2);
-          _mov(T_3, Src0Hi);
-          _sar(T_3, Ctx->getConstantInt32(0x1f));
-          _mov(DestHi, T_3);
-        } else {
-          // a=b>>c (signed) ==>
-          //   t2 = b.lo
-          //   t3 = b.hi
-          //   t2 = shrd t2, t3, ShiftAmount
-          //   t3 = sar t3, ShiftAmount
-          //   a.lo = t2
-          //   a.hi = t3
-          _mov(T_2, Src0Lo);
-          _mov(T_3, Src0Hi);
-          _shrd(T_2, T_3, Ctx->getConstantInt32(ShiftAmount));
-          _sar(T_3, Ctx->getConstantInt32(ShiftAmount));
-          _mov(DestLo, T_2);
-          _mov(DestHi, T_3);
-        }
-      } else {
-        // a=b>>c (signed) ==>
-        //   t1:ecx = c.lo & 0xff
-        //   t2 = b.lo
-        //   t3 = b.hi
-        //   t2 = shrd t2, t3, t1
-        //   t3 = sar t3, t1
-        //   test t1, 0x20
-        //   je L1
-        //   use(t2)
-        //   t2 = t3
-        //   t3 = sar t3, 0x1f
-        // L1:
-        //   a.lo = t2
-        //   a.hi = t3
-        Constant *BitTest = Ctx->getConstantInt32(0x20);
-        Constant *SignExtend = Ctx->getConstantInt32(0x1f);
-        typename Traits::Insts::Label *Label =
-            Traits::Insts::Label::create(Func, this);
-        _mov(T_1, Src1Lo, Traits::RegisterSet::Reg_ecx);
-        _mov(T_2, Src0Lo);
-        _mov(T_3, Src0Hi);
-        _shrd(T_2, T_3, T_1);
-        _sar(T_3, T_1);
-        _test(T_1, BitTest);
-        _br(Traits::Cond::Br_e, Label);
-        // T_2 and T_3 are being assigned again because of the intra-block
-        // control flow, so T_2 needs the _mov_nonkillable variant to avoid
-        // liveness problems. T_3 doesn't need special treatment because it is
-        // reassigned via _sar instead of _mov.
-        _mov_nonkillable(T_2, T_3);
-        _sar(T_3, SignExtend);
-        Context.insert(Label);
-        _mov(DestLo, T_2);
-        _mov(DestHi, T_3);
-      }
-    } break;
+    case InstArithmetic::Shl:
+    case InstArithmetic::Lshr:
+    case InstArithmetic::Ashr:
+      lowerShift64(Inst->getOp(), Src0Lo, Src0Hi, Src1Lo, DestLo, DestHi);
+      break;
     case InstArithmetic::Fadd:
     case InstArithmetic::Fsub:
     case InstArithmetic::Fmul:
