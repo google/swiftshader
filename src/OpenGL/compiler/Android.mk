@@ -69,7 +69,7 @@ LOCAL_MODULE := swiftshader_compiler_release
 LOCAL_MODULE_TAGS := optional
 LOCAL_SRC_FILES := $(COMMON_SRC_FILES)
 LOCAL_CFLAGS += \
-	$(COMMON_C_FLAGS) \
+	$(COMMON_CFLAGS) \
 	-ffunction-sections \
 	-fdata-sections \
 	-DANGLE_DISABLE_TRACE
@@ -83,7 +83,7 @@ LOCAL_MODULE_TAGS := optional
 LOCAL_SRC_FILES := $(COMMON_SRC_FILES)
 
 LOCAL_CFLAGS += \
-	$(COMMON_C_FLAGS) \
+	$(COMMON_CFLAGS) \
 	-UNDEBUG \
 	-g \
 	-O0
