@@ -71,6 +71,30 @@
     },
     {
       "key": {
+        "uuid": "8e6c7116_76ef50c0",
+        "filename": "src/Common/Math.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-09-24T12:05:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "49fc33c5_64d88a90",
+      "range": {
+        "startLine": 38,
+        "startChar": 2,
+        "endLine": 38,
+        "endChar": 44
+      },
+      "revId": "914b040eb214da90bee32a320ef7b1fb997bef85",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "49fc33c5_044af6eb",
         "filename": "src/Common/Math.hpp",
         "patchSetId": 1
@@ -82,6 +106,30 @@
       "writtenOn": "2015-09-21T17:54:58Z",
       "side": 1,
       "message": "The variable below isn\u0027t named B, while there\u0027s a B defined above for the blue component. Also it\u0027s redundant that the value 15 is mentioned, and in fact the whole comment seems unnecessary if the variable was named exponentBias.",
+      "range": {
+        "startLine": 307,
+        "startChar": 5,
+        "endLine": 307,
+        "endChar": 6
+      },
+      "revId": "914b040eb214da90bee32a320ef7b1fb997bef85",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8e6c7116_56f4d48e",
+        "filename": "src/Common/Math.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 307,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-09-24T12:05:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "49fc33c5_044af6eb",
       "range": {
         "startLine": 307,
         "startChar": 5,
@@ -117,6 +165,30 @@
     },
     {
       "key": {
+        "uuid": "8e6c7116_b6f8c883",
+        "filename": "src/Common/Math.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 310,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-09-24T12:05:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "49fc33c5_c4e85e27",
+      "range": {
+        "startLine": 310,
+        "startChar": 5,
+        "endLine": 310,
+        "endChar": 6
+      },
+      "revId": "914b040eb214da90bee32a320ef7b1fb997bef85",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "49fc33c5_a4ed6235",
         "filename": "src/Common/Math.hpp",
         "patchSetId": 1
@@ -140,6 +212,30 @@
     },
     {
       "key": {
+        "uuid": "8e6c7116_96f5cc8b",
+        "filename": "src/Common/Math.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 316,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-09-24T12:05:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "49fc33c5_a4ed6235",
+      "range": {
+        "startLine": 316,
+        "startChar": 6,
+        "endLine": 316,
+        "endChar": 10
+      },
+      "revId": "914b040eb214da90bee32a320ef7b1fb997bef85",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "49fc33c5_84f26615",
         "filename": "src/Common/Math.hpp",
         "patchSetId": 1
@@ -151,6 +247,30 @@
       "writtenOn": "2015-09-21T17:54:58Z",
       "side": 1,
       "message": "I\u0027m not a fan of Hungarian notation, and this even seems wrong because it\u0027s not in the global namespace.",
+      "range": {
+        "startLine": 317,
+        "startChar": 20,
+        "endLine": 317,
+        "endChar": 22
+      },
+      "revId": "914b040eb214da90bee32a320ef7b1fb997bef85",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8e6c7116_f6024015",
+        "filename": "src/Common/Math.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 317,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-09-24T12:05:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "49fc33c5_84f26615",
       "range": {
         "startLine": 317,
         "startChar": 20,
