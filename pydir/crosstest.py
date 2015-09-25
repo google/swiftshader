@@ -122,7 +122,8 @@ def main():
             bitcode_nonfinal = os.path.join(args.dir, base + '.' + key + '.bc')
             bitcode = os.path.join(args.dir, base + '.' + key + '.pnacl.ll')
             shellcmd(['{bin}/pnacl-clang'.format(bin=bindir),
-                      ('-O2' if args.clang_opt else '-O0'), '-c', arg,
+                      ('-O2' if args.clang_opt else '-O0'),
+                      ('-DARM32' if args.target == 'arm32' else ''), '-c', arg,
                       '-o', bitcode_nonfinal])
             shellcmd(['{bin}/pnacl-opt'.format(bin=bindir),
                       '-pnacl-abi-simplify-preopt',
@@ -185,12 +186,16 @@ def main():
     # configuration. In order to run the crosstests we play nasty, dangerous
     # tricks with the stack pointer.
     needs_stack_hack = (args.target == 'x8664')
-    stack_hack_params = []
+    target_params = []
     if needs_stack_hack:
       shellcmd('{bin}/clang -g -o stack_hack.x8664.{key}.o -c '
                'stack_hack.x8664.c'.format(bin=bindir, key=key))
-      stack_hack_params.append('-DX8664_STACK_HACK')
-      stack_hack_params.append('stack_hack.x8664.{key}.o'.format(key=key))
+      target_params.append('-DX8664_STACK_HACK')
+      target_params.append('stack_hack.x8664.{key}.o'.format(key=key))
+
+    if args.target == 'arm32':
+      target_params.append('-DARM32')
+      target_params.append('-static')
     
     # Set compiler to clang, clang++, pnacl-clang, or pnacl-clang++.
     compiler = '{bin}/{prefix}{cc}'.format(
@@ -204,7 +209,7 @@ def main():
                        '-lm', '-lpthread',
                        '-Wl,--defsym=__Sz_AbsoluteZero=0'] +
                       target_info.cross_headers)
-    shellcmd([compiler] + stack_hack_params + [args.driver] + objs +
+    shellcmd([compiler] + target_params + [args.driver] + objs +
              ['-o', os.path.join(args.dir, args.output)] + sb_native_args)
 
 if __name__ == '__main__':

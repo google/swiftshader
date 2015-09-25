@@ -99,7 +99,7 @@ entry:
 ; ARM32-LABEL: doubleToSigned32Const
 ; ARM32-DAG: movw [[ADDR:r[0-9]+]], #:lower16:.L$
 ; ARM32-DAG: movt [[ADDR]], #:upper16:.L$
-; ARM32-DAG: vldr [[DREG:d[0-9]+]], {{\[}}[[ADDR]], #0{{\]}}
+; ARM32-DAG: vldr [[DREG:d[0-9]+]], {{\[}}[[ADDR]]{{\]}}
 ; ARM32-DAG: vcvt.s32.f64 [[REG:s[0-9]+]], [[DREG]]
 ; ARM32-DAF: vmov {{r[0-9]+}}, [[REG]]
 

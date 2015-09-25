@@ -183,8 +183,8 @@ entry:
 ; CHECK-NEXT: mov {{.*}} [esp+0x14]
 ; CHECK: ret
 ; ARM32-LABEL: test_returning64_even_arg2
-; ARM32-NEXT: ldr r0, [sp]
-; ARM32-NEXT: ldr r1, [sp, #4]
+; ARM32-DAG: ldr r0, [sp]
+; ARM32-DAG: ldr r1, [sp, #4]
 ; ARM32-NEXT: bx lr
 
 define i64 @test_returning64_even_arg2b(i64 %arg0, i32 %arg1, i32 %arg1b, i64 %arg2) {

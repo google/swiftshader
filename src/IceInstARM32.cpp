@@ -33,7 +33,7 @@ const struct TypeARM32Attributes_ {
   int8_t SExtAddrOffsetBits;
   int8_t ZExtAddrOffsetBits;
 } TypeARM32Attributes[] = {
-#define X(tag, elementty, int_width, vec_width, sbits, ubits)                  \
+#define X(tag, elementty, int_width, vec_width, sbits, ubits, rraddr)          \
   { int_width, vec_width, sbits, ubits }                                       \
   ,
     ICETYPEARM32_TABLE
@@ -211,8 +211,6 @@ bool OperandARM32Mem::canHoldOffset(Type Ty, bool SignExt, int32_t Offset) {
     return Offset == 0;
   // Note that encodings for offsets are sign-magnitude for ARM, so we check
   // with IsAbsoluteUint().
-  if (isScalarFloatingType(Ty))
-    return Utils::IsAligned(Offset, 4) && Utils::IsAbsoluteUint(Bits, Offset);
   return Utils::IsAbsoluteUint(Bits, Offset);
 }
 
@@ -392,6 +390,11 @@ InstARM32Vcmp::InstARM32Vcmp(Cfg *Func, Variable *Src0, Variable *Src1,
 InstARM32Vmrs::InstARM32Vmrs(Cfg *Func, CondARM32::Cond Predicate)
     : InstARM32Pred(Func, InstARM32::Vmrs, 0, nullptr, Predicate) {}
 
+InstARM32Vabs::InstARM32Vabs(Cfg *Func, Variable *Dest, Variable *Src,
+                             CondARM32::Cond Predicate)
+    : InstARM32Pred(Func, InstARM32::Vabs, 1, Dest, Predicate) {
+  addSource(Src);
+}
 // ======================== Dump routines ======================== //
 
 // Two-addr ops
@@ -408,9 +411,6 @@ template <> const char *InstARM32Uxt::Opcode = "uxt"; // still requires b/h
 template <> const char *InstARM32Vsqrt::Opcode = "vsqrt";
 // Mov-like ops
 template <> const char *InstARM32Ldr::Opcode = "ldr";
-template <> const char *InstARM32Mov::Opcode = "mov";
-// FP
-template <> const char *InstARM32Vldr::Opcode = "vldr";
 // Three-addr ops
 template <> const char *InstARM32Adc::Opcode = "adc";
 template <> const char *InstARM32Add::Opcode = "add";
@@ -447,113 +447,56 @@ void InstARM32::dump(const Cfg *Func) const {
   Inst::dump(Func);
 }
 
-template <> void InstARM32Mov::emit(const Cfg *Func) const {
+void InstARM32Mov::emitMultiDestSingleSource(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
-  assert(getSrcSize() == 1);
+  auto *Dest = llvm::cast<Variable64On32>(getDest());
+  Operand *Src = getSrc(0);
+
+  assert(Dest->getType() == IceType_i64);
+  assert(Dest->getHi()->hasReg());
+  assert(Dest->getLo()->hasReg());
+  assert(!llvm::isa<OperandARM32Mem>(Src));
+
+  Str << "\t"
+      << "vmov" << getPredicate() << "\t";
+  Dest->getLo()->emit(Func);
+  Str << ", ";
+  Dest->getHi()->emit(Func);
+  Str << ", ";
+  Src->emit(Func);
+}
+
+void InstARM32Mov::emitSingleDestMultiSource(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
   Variable *Dest = getDest();
-  if (Dest->hasReg()) {
-    IceString ActualOpcode = Opcode;
-    Operand *Src0 = getSrc(0);
-    if (const auto *Src0V = llvm::dyn_cast<Variable>(Src0)) {
-      if (!Src0V->hasReg()) {
-        // Always use the whole stack slot. A 32-bit load has a larger range of
-        // offsets than 16-bit, etc.
-        ActualOpcode = IceString("ldr");
-      }
-    } else {
-      if (llvm::isa<OperandARM32Mem>(Src0))
-        ActualOpcode = IceString("ldr") + getWidthString(Dest->getType());
-    }
-    Str << "\t" << ActualOpcode << getPredicate() << "\t";
-    getDest()->emit(Func);
-    Str << ", ";
-    getSrc(0)->emit(Func);
-  } else {
-    Variable *Src0 = llvm::cast<Variable>(getSrc(0));
-    assert(Src0->hasReg());
-    Str << "\t"
-        << "str" << getPredicate() << "\t";
-    Src0->emit(Func);
-    Str << ", ";
-    Dest->emit(Func);
-  }
-}
+  auto *Src = llvm::cast<Variable64On32>(getSrc(0));
 
-template <> void InstARM32Mov::emitIAS(const Cfg *Func) const {
-  assert(getSrcSize() == 1);
-  (void)Func;
-  llvm_unreachable("Not yet implemented");
-}
-
-template <> void InstARM32Vldr::emit(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-  Ostream &Str = Func->getContext()->getStrEmit();
-  assert(getSrcSize() == 1);
-  assert(getDest()->hasReg());
-  Str << "\t" << Opcode << getPredicate() << "\t";
-  getDest()->emit(Func);
-  Str << ", ";
-  getSrc(0)->emit(Func);
-}
-
-template <> void InstARM32Vldr::emitIAS(const Cfg *Func) const {
-  assert(getSrcSize() == 1);
-  (void)Func;
-  llvm_unreachable("Not yet implemented");
-}
-
-void InstARM32Vmov::emitMultiDestSingleSource(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-  Ostream &Str = Func->getContext()->getStrEmit();
-  Variable *Dest0 = getDest();
-  Operand *Src0 = getSrc(0);
-
-  assert(Dest0->hasReg());
-  assert(Dest1->hasReg());
-  assert(!llvm::isa<OperandARM32Mem>(Src0));
+  assert(Src->getType() == IceType_i64);
+  assert(Src->getHi()->hasReg());
+  assert(Src->getLo()->hasReg());
+  assert(Dest->hasReg());
 
   Str << "\t"
       << "vmov" << getPredicate() << "\t";
-  Dest0->emit(Func);
+  Dest->emit(Func);
   Str << ", ";
-  Dest1->emit(Func);
+  Src->getLo()->emit(Func);
   Str << ", ";
-  Src0->emit(Func);
-}
-
-void InstARM32Vmov::emitSingleDestMultiSource(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-  Ostream &Str = Func->getContext()->getStrEmit();
-  Variable *Dest0 = getDest();
-  Operand *Src0 = getSrc(0);
-  Operand *Src1 = getSrc(1);
-
-  assert(Dest0->hasReg());
-  assert(!llvm::isa<OperandARM32Mem>(Src0));
-  assert(!llvm::isa<OperandARM32Mem>(Src1));
-
-  Str << "\t"
-      << "vmov" << getPredicate() << "\t";
-  Dest0->emit(Func);
-  Str << ", ";
-  Src0->emit(Func);
-  Str << ", ";
-  Src1->emit(Func);
+  Src->getHi()->emit(Func);
 }
 
 namespace {
+
 bool isVariableWithoutRegister(const Operand *Op) {
   if (const auto *OpV = llvm::dyn_cast<const Variable>(Op)) {
     return !OpV->hasReg();
   }
   return false;
 }
-
 bool isMemoryAccess(Operand *Op) {
   return isVariableWithoutRegister(Op) || llvm::isa<OperandARM32Mem>(Op);
 }
@@ -561,27 +504,38 @@ bool isMemoryAccess(Operand *Op) {
 bool isMoveBetweenCoreAndVFPRegisters(Variable *Dest, Operand *Src) {
   const Type DestTy = Dest->getType();
   const Type SrcTy = Src->getType();
-  assert(!(isScalarIntegerType(DestTy) && isScalarIntegerType(SrcTy)) &&
-         "At most one of vmov's operands can be a core register.");
-  return isScalarIntegerType(DestTy) || isScalarIntegerType(SrcTy);
+  return !isVectorType(DestTy) && !isVectorType(SrcTy) &&
+         (isScalarIntegerType(DestTy) == isScalarFloatingType(SrcTy));
 }
+
 } // end of anonymous namespace
 
-void InstARM32Vmov::emitSingleDestSingleSource(const Cfg *Func) const {
+void InstARM32Mov::emitSingleDestSingleSource(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   Variable *Dest = getDest();
+
   if (Dest->hasReg()) {
+    Type DestTy = Dest->getType();
     Operand *Src0 = getSrc(0);
-    const char *ActualOpcode = isMemoryAccess(Src0) ? "vldr" : "vmov";
+    const bool DestIsVector = isVectorType(DestTy);
+    const bool DestIsScalarFP = isScalarFloatingType(Dest->getType());
+    const bool CoreVFPMove = isMoveBetweenCoreAndVFPRegisters(Dest, Src0);
+    const char *LoadOpcode =
+        DestIsVector ? "vld1" : (DestIsScalarFP ? "vldr" : "ldr");
+    const char *RegMovOpcode =
+        (DestIsVector || DestIsScalarFP || CoreVFPMove) ? "vmov" : "mov";
+    const char *ActualOpcode = isMemoryAccess(Src0) ? LoadOpcode : RegMovOpcode;
     // when vmov{c}'ing, we need to emit a width string. Otherwise, the
     // assembler might be tempted to assume we want a vector vmov{c}, and that
     // is disallowed because ARM.
+    const char *NoWidthString = "";
     const char *WidthString =
-        (isMemoryAccess(Src0) || isMoveBetweenCoreAndVFPRegisters(Dest, Src0))
-            ? ""
-            : getVecWidthString(Src0->getType());
+        isMemoryAccess(Src0)
+            ? (DestIsVector ? ".64" : NoWidthString)
+            : (!CoreVFPMove ? getVecWidthString(DestTy) : NoWidthString);
+
     Str << "\t" << ActualOpcode << getPredicate() << WidthString << "\t";
     Dest->emit(Func);
     Str << ", ";
@@ -589,18 +543,24 @@ void InstARM32Vmov::emitSingleDestSingleSource(const Cfg *Func) const {
   } else {
     Variable *Src0 = llvm::cast<Variable>(getSrc(0));
     assert(Src0->hasReg());
-    Str << "\t"
-           "vstr" << getPredicate() << "\t";
+    const char *ActualOpcode =
+        isVectorType(Src0->getType())
+            ? "vst1"
+            : (isScalarFloatingType(Src0->getType()) ? "vstr" : "str");
+    const char *NoWidthString = "";
+    const char *WidthString =
+        isVectorType(Src0->getType()) ? ".64" : NoWidthString;
+    Str << "\t" << ActualOpcode << getPredicate() << WidthString << "\t";
     Src0->emit(Func);
     Str << ", ";
     Dest->emit(Func);
   }
 }
 
-void InstARM32Vmov::emit(const Cfg *Func) const {
+void InstARM32Mov::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
-  assert(isMultiDest() + isMultiSource() <= 1 && "Invalid vmov type.");
+  assert(!(isMultiDest() && isMultiSource()) && "Invalid vmov type.");
   if (isMultiDest()) {
     emitMultiDestSingleSource(Func);
     return;
@@ -614,21 +574,37 @@ void InstARM32Vmov::emit(const Cfg *Func) const {
   emitSingleDestSingleSource(Func);
 }
 
-void InstARM32Vmov::emitIAS(const Cfg *Func) const {
+void InstARM32Mov::emitIAS(const Cfg *Func) const {
   assert(getSrcSize() == 1);
   (void)Func;
   llvm_unreachable("Not yet implemented");
 }
 
-void InstARM32Vmov::dump(const Cfg *Func) const {
+void InstARM32Mov::dump(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
+  assert(getSrcSize() == 1);
   Ostream &Str = Func->getContext()->getStrDump();
-  dumpOpcodePred(Str, "vmov", getDest()->getType());
+  Variable *Dest = getDest();
+  if (auto *Dest64 = llvm::dyn_cast<Variable64On32>(Dest)) {
+    Dest64->getLo()->dump(Func);
+    Str << ", ";
+    Dest64->getHi()->dump(Func);
+  } else {
+    Dest->dump(Func);
+  }
+
+  dumpOpcodePred(Str, " = mov", getDest()->getType());
   Str << " ";
-  dumpDest(Func);
-  Str << ", ";
-  dumpSources(Func);
+
+  Operand *Src = getSrc(0);
+  if (auto *Src64 = llvm::dyn_cast<Variable64On32>(Src)) {
+    Src64->getLo()->dump(Func);
+    Str << ", ";
+    Src64->getHi()->dump(Func);
+  } else {
+    Src->dump(Func);
+  }
 }
 
 void InstARM32Br::emit(const Cfg *Func) const {
@@ -748,8 +724,16 @@ template <> void InstARM32Ldr::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 1);
   assert(getDest()->hasReg());
-  Type Ty = getSrc(0)->getType();
-  Str << "\t" << Opcode << getWidthString(Ty) << getPredicate() << "\t";
+  Variable *Dest = getDest();
+  Type DestTy = Dest->getType();
+  const bool DestIsVector = isVectorType(DestTy);
+  const bool DestIsScalarFloat = isScalarFloatingType(DestTy);
+  const char *ActualOpcode =
+      DestIsVector ? "vld1" : (DestIsScalarFloat ? "vldr" : "ldr");
+  const char *VectorMarker = DestIsVector ? ".64" : "";
+  const char *WidthString = DestIsVector ? "" : getWidthString(DestTy);
+  Str << "\t" << ActualOpcode << WidthString << getPredicate() << VectorMarker
+      << "\t";
   getDest()->emit(Func);
   Str << ", ";
   getSrc(0)->emit(Func);
@@ -799,15 +783,28 @@ template <> void InstARM32Movt::emit(const Cfg *Func) const {
 void InstARM32Pop::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
-  assert(Dests.size() > 0);
+  SizeT IntegerCount = 0;
+  for (const Operand *Op : Dests) {
+    if (isScalarIntegerType(Op->getType())) {
+      ++IntegerCount;
+    }
+  }
   Ostream &Str = Func->getContext()->getStrEmit();
+  if (IntegerCount == 0) {
+    Str << "\t@ empty pop";
+    return;
+  }
   Str << "\t"
       << "pop"
       << "\t{";
-  for (SizeT I = 0; I < Dests.size(); ++I) {
-    if (I > 0)
-      Str << ", ";
-    Dests[I]->emit(Func);
+  bool PrintComma = false;
+  for (const Operand *Op : Dests) {
+    if (isScalarIntegerType(Op->getType())) {
+      if (PrintComma)
+        Str << ", ";
+      Op->emit(Func);
+      PrintComma = true;
+    }
   }
   Str << "}";
 }
@@ -866,12 +863,31 @@ void InstARM32AdjustStack::dump(const Cfg *Func) const {
 void InstARM32Push::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
-  assert(getSrcSize() > 0);
+  SizeT IntegerCount = 0;
+  for (SizeT i = 0; i < getSrcSize(); ++i) {
+    if (isScalarIntegerType(getSrc(i)->getType())) {
+      ++IntegerCount;
+    }
+  }
   Ostream &Str = Func->getContext()->getStrEmit();
+  if (IntegerCount == 0) {
+    Str << "\t"
+        << "@empty push";
+    return;
+  }
   Str << "\t"
       << "push"
       << "\t{";
-  emitSources(Func);
+  bool PrintComma = false;
+  for (SizeT i = 0; i < getSrcSize(); ++i) {
+    Operand *Op = getSrc(i);
+    if (isScalarIntegerType(Op->getType())) {
+      if (PrintComma)
+        Str << ", ";
+      Op->emit(Func);
+      PrintComma = true;
+    }
+  }
   Str << "}";
 }
 
@@ -923,8 +939,12 @@ void InstARM32Str::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 2);
   Type Ty = getSrc(0)->getType();
-  const char *Opcode = isScalarFloatingType(Ty) ? "vstr" : "str";
-  Str << "\t" << Opcode << getWidthString(Ty) << getPredicate() << "\t";
+  const bool IsVectorStore = isVectorType(Ty);
+  const char *Opcode =
+      IsVectorStore ? "vst1" : (isScalarFloatingType(Ty) ? "vstr" : "str");
+  const char *VecEltWidthString = IsVectorStore ? ".64" : "";
+  Str << "\t" << Opcode << getWidthString(Ty) << getPredicate()
+      << VecEltWidthString << "\t";
   getSrc(0)->emit(Func);
   Str << ", ";
   getSrc(1)->emit(Func);
@@ -1119,6 +1139,33 @@ void InstARM32Vmrs::dump(const Cfg *Func) const {
                                                      "FPSCR{n,z,c,v}";
 }
 
+void InstARM32Vabs::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 1);
+  Str << "\t"
+         "vabs" << getPredicate() << getVecWidthString(getSrc(0)->getType())
+      << "\t";
+  getDest()->emit(Func);
+  Str << ", ";
+  getSrc(0)->emit(Func);
+}
+
+void InstARM32Vabs::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 1);
+  (void)Func;
+  llvm_unreachable("Not yet implemented");
+}
+
+void InstARM32Vabs::dump(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrDump();
+  dumpDest(Func);
+  Str << " = vabs" << getPredicate() << getVecWidthString(getSrc(0)->getType());
+}
+
 void OperandARM32Mem::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
@@ -1128,13 +1175,13 @@ void OperandARM32Mem::emit(const Cfg *Func) const {
   switch (getAddrMode()) {
   case PostIndex:
   case NegPostIndex:
-    Str << "], ";
+    Str << "]";
     break;
   default:
-    Str << ", ";
     break;
   }
   if (isRegReg()) {
+    Str << ", ";
     if (isNegAddrMode()) {
       Str << "-";
     }
@@ -1144,7 +1191,11 @@ void OperandARM32Mem::emit(const Cfg *Func) const {
           << getShiftAmt();
     }
   } else {
-    getOffset()->emit(Func);
+    ConstantInteger32 *Offset = getOffset();
+    if (Offset && Offset->getValue() != 0) {
+      Str << ", ";
+      Offset->emit(Func);
+    }
   }
   switch (getAddrMode()) {
   case Offset:

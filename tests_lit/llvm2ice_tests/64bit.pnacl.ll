@@ -91,13 +91,11 @@ entry:
 
 ; ARM32-LABEL: pass64BitArg
 ; ARM32:      sub     sp, {{.*}} #16
-; ARM32:      str     {{.*}}, [sp, #4]
 ; ARM32:      str     {{.*}}, [sp]
 ; ARM32:      movw    r2, #123
 ; ARM32:      bl      {{.*}} ignore64BitArgNoInline
 ; ARM32:      add     sp, {{.*}} #16
 ; ARM32:      sub     sp, {{.*}} #16
-; ARM32:      str     {{.*}}, [sp, #4]
 ; ARM32:      str     {{.*}}, [sp]
 ; ARM32:      {{mov|ldr}} r0
 ; ARM32:      {{mov|ldr}} r1
@@ -105,7 +103,6 @@ entry:
 ; ARM32:      bl      {{.*}} ignore64BitArgNoInline
 ; ARM32:      add     sp, {{.*}} #16
 ; ARM32:      sub     sp, {{.*}} #16
-; ARM32:      str     {{.*}}, [sp, #4]
 ; ARM32:      str     {{.*}}, [sp]
 ; ARM32:      {{mov|ldr}} r0
 ; ARM32:      {{mov|ldr}} r1
@@ -147,9 +144,9 @@ entry:
 ; ARM32-LABEL: pass64BitConstArg
 ; ARM32:      sub     sp, {{.*}} #16
 ; ARM32:      movw    [[REG1:r.*]], {{.*}} ; 0xbeef
-; ARM32:      movt    [[REG1:r.*]], {{.*}} ; 0xdead
+; ARM32:      movt    [[REG1]], {{.*}}     ; 0xdead
 ; ARM32:      movw    [[REG2:r.*]], {{.*}} ; 0x5678
-; ARM32:      movt    [[REG2:r.*]], {{.*}} ; 0x1234
+; ARM32:      movt    [[REG2]], {{.*}}     ; 0x1234
 ; ARM32:      str     [[REG1]], [sp, #4]
 ; ARM32:      str     [[REG2]], [sp]
 ; ARM32:      {{mov|ldr}} r0
@@ -438,12 +435,13 @@ entry:
 ; OPTM1: je
 
 ; ARM32-LABEL: shl64BitSigned
-; ARM32: sub [[REG3:r.*]], [[REG2:r.*]], #32
-; ARM32: lsl [[REG1:r.*]], {{r.*}}, [[REG2]]
-; ARM32: orr [[REG1]], [[REG1]], [[REG0:r.*]], lsl [[REG3]]
-; ARM32: rsb [[REG4:r.*]], [[REG2]], #32
-; ARM32: orr [[REG1]], [[REG1]], [[REG0]], lsr [[REG4]]
-; ARM32: lsl {{.*}}, [[REG0]], [[REG2]]
+; ARM32: rsb     [[T0:r[0-9]+]], r2, #32
+; ARM32: lsr     [[T1:r[0-9]+]], r0, [[T0]]
+; ARM32: orr     [[T2:r[0-9]+]], [[T1]], r1, lsl r2
+; ARM32: sub     [[T3:r[0-9]+]], r2, #32
+; ARM32: cmp     [[T3]], #0
+; ARM32: lslge   [[T2]], r0, [[T3]]
+; ARM32: lsl     r{{[0-9]+}}, r0, r2
 
 define internal i32 @shl64BitSignedTrunc(i64 %a, i64 %b) {
 entry:
@@ -484,11 +482,12 @@ entry:
 ; OPTM1: je
 
 ; ARM32-LABEL: shl64BitUnsigned
-; ARM32: sub
-; ARM32: lsl
-; ARM32: orr
 ; ARM32: rsb
+; ARM32: lsr
 ; ARM32: orr
+; ARM32: sub
+; ARM32: cmp
+; ARM32: lslge
 ; ARM32: lsl
 
 define internal i64 @shr64BitSigned(i64 %a, i64 %b) {
@@ -511,12 +510,13 @@ entry:
 ; OPTM1: sar {{.*}},0x1f
 
 ; ARM32-LABEL: shr64BitSigned
-; ARM32: rsb
-; ARM32: lsr
-; ARM32: orr
-; ARM32: subs
-; ARM32: orrpl
-; ARM32: asr
+; ARM32: lsr     [[T0:r[0-9]+]], r0, r2
+; ARM32: rsb     [[T1:r[0-9]+]], r2, #32
+; ARM32: orr     r0, [[T0]], r1, lsl [[T1]]
+; ARM32: sub     [[T2:r[0-9]+]], r2, #32
+; ARM32: cmp     [[T2]], #0
+; ARM32: asrge   r0, r1, [[T2]] 
+; ARM32: asr     r{{[0-9]+}}, r1, r2
 
 define internal i32 @shr64BitSignedTrunc(i64 %a, i64 %b) {
 entry:
@@ -538,11 +538,12 @@ entry:
 ; OPTM1: sar {{.*}},0x1f
 
 ; ARM32-LABEL: shr64BitSignedTrunc
-; ARM32: rsb
 ; ARM32: lsr
+; ARM32: rsb
 ; ARM32: orr
-; ARM32: subs
-; ARM32: orrpl
+; ARM32: sub
+; ARM32: cmp
+; ARM32: asrge
 
 define internal i64 @shr64BitUnsigned(i64 %a, i64 %b) {
 entry:
@@ -562,11 +563,12 @@ entry:
 ; OPTM1: je
 
 ; ARM32-LABEL: shr64BitUnsigned
-; ARM32: rsb
 ; ARM32: lsr
+; ARM32: rsb
 ; ARM32: orr
 ; ARM32: sub
-; ARM32: orr
+; ARM32: cmp
+; ARM32: lsrge
 ; ARM32: lsr
 
 define internal i32 @shr64BitUnsignedTrunc(i64 %a, i64 %b) {
@@ -588,11 +590,12 @@ entry:
 ; OPTM1: je
 
 ; ARM32-LABEL: shr64BitUnsignedTrunc
-; ARM32: rsb
 ; ARM32: lsr
+; ARM32: rsb
 ; ARM32: orr
 ; ARM32: sub
-; ARM32: orr
+; ARM32: cmp
+; ARM32: lsrge
 
 define internal i64 @and64BitSigned(i64 %a, i64 %b) {
 entry:

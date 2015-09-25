@@ -20,7 +20,7 @@
 /* caller,             callee,           argc */   \
 X(caller_i,            callee_i,              1)   \
 X(caller_vvvvv,        callee_vvvvv,          5)   \
-X(caller_vlvlivfvdviv, callee_vlvlivfvdviv,  12)   \
+X(caller_vlvilvfvdviv, callee_vlvilvfvdviv,  12)   \
 // #define X(caller, callee, argc)
 
 #endif // TEST_CALLING_CONV_DEF

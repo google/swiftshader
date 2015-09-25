@@ -139,8 +139,8 @@ void testsInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
                 ++Failures;
                 std::cout << "test" << Funcs[f].Name
                           << (CHAR_BIT * sizeof(TypeUnsigned)) << "(" << Value1
-                          << ", " << Value2 << "): sz=" << (unsigned)ResultSz
-                          << " llc=" << (unsigned)ResultLlc << "\n";
+                          << ", " << Value2 << "): sz=" << (uint64)ResultSz
+                          << " llc=" << (uint64)ResultLlc << "\n";
               }
             }
           }
@@ -154,6 +154,8 @@ const static size_t MaxTestsPerFunc = 100000;
 
 template <typename TypeUnsignedLabel, typename TypeSignedLabel>
 void testsVecInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
+#ifndef ARM32
+  // TODO(jpp): remove this once vector support is implemented.
   typedef typename Vectors<TypeUnsignedLabel>::Ty TypeUnsigned;
   typedef typename Vectors<TypeSignedLabel>::Ty TypeSigned;
   typedef typename Vectors<TypeUnsignedLabel>::ElementTy ElementTypeUnsigned;
@@ -230,6 +232,7 @@ void testsVecInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
       }
     }
   }
+#endif // ARM32
 }
 
 template <typename Type>
@@ -305,6 +308,8 @@ void testsFp(size_t &TotalTests, size_t &Passes, size_t &Failures) {
 }
 
 void testsVecFp(size_t &TotalTests, size_t &Passes, size_t &Failures) {
+#ifndef ARM32
+  // TODO(jpp): remove this once vector support is implemented.
   static const float NegInf = -1.0 / 0.0;
   static const float PosInf = 1.0 / 0.0;
   static const float Nan = 0.0 / 0.0;
@@ -363,6 +368,7 @@ void testsVecFp(size_t &TotalTests, size_t &Passes, size_t &Failures) {
       }
     }
   }
+#endif // ARM32
 }
 
 #ifdef X8664_STACK_HACK

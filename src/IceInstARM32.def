@@ -350,23 +350,24 @@
 // the # of offset bits allowed as part of an addressing mode (for sign or zero
 // extending load/stores).
 #define ICETYPEARM32_TABLE                                                     \
-  /* tag,          element type, int_width, vec_width, addr bits sext, zext */ \
-  X(IceType_void,  IceType_void, "" , ""    , 0 , 0)                           \
-  X(IceType_i1,    IceType_void, "b", ""    , 8 , 12)                          \
-  X(IceType_i8,    IceType_void, "b", ""    , 8 , 12)                          \
-  X(IceType_i16,   IceType_void, "h", ""    , 8 , 8)                           \
-  X(IceType_i32,   IceType_void, "" , ""    , 12, 12)                          \
-  X(IceType_i64,   IceType_void, "d", ""    , 8 , 8)                           \
-  X(IceType_f32,   IceType_void, "" , ".f32", 10, 10)                          \
-  X(IceType_f64,   IceType_void, "" , ".f64", 10, 10)                          \
-  X(IceType_v4i1,  IceType_i32 , "" , ".i32", 0 , 0)                           \
-  X(IceType_v8i1,  IceType_i16 , "" , ".i16", 0 , 0)                           \
-  X(IceType_v16i1, IceType_i8  , "" , ".i8" , 0 , 0)                           \
-  X(IceType_v16i8, IceType_i8  , "" , ".i8" , 0 , 0)                           \
-  X(IceType_v8i16, IceType_i16 , "" , ".i16", 0 , 0)                           \
-  X(IceType_v4i32, IceType_i32 , "" , ".i32", 0 , 0)                           \
-  X(IceType_v4f32, IceType_f32 , "" , ".f32", 0 , 0)
-//#define X(tag, elementty, int_width, vec_width, sbits, ubits)
+  /* tag,          element type, int_width, vec_width, addr bits sext, zext,   \
+     reg-reg addr allowed */                    \
+  X(IceType_void,  IceType_void, "" , ""    , 0 , 0 , 0)                    \
+  X(IceType_i1,    IceType_void, "b", ""    , 8 , 12, 1)                    \
+  X(IceType_i8,    IceType_void, "b", ""    , 8 , 12, 1)                    \
+  X(IceType_i16,   IceType_void, "h", ""    , 8 , 8 , 1)                    \
+  X(IceType_i32,   IceType_void, "" , ""    , 12, 12, 1)                    \
+  X(IceType_i64,   IceType_void, "d", ""    , 8 , 8 , 1)                    \
+  X(IceType_f32,   IceType_void, "" , ".f32", 8,  8 , 0)                    \
+  X(IceType_f64,   IceType_void, "" , ".f64", 8,  8 , 0)                    \
+  X(IceType_v4i1,  IceType_i32 , "" , ".i32", 0 , 0 , 1)                    \
+  X(IceType_v8i1,  IceType_i16 , "" , ".i16", 0 , 0 , 1)                    \
+  X(IceType_v16i1, IceType_i8  , "" , ".i8" , 0 , 0 , 1)                    \
+  X(IceType_v16i8, IceType_i8  , "" , ".i8" , 0 , 0 , 1)                    \
+  X(IceType_v8i16, IceType_i16 , "" , ".i16", 0 , 0 , 1)                    \
+  X(IceType_v4i32, IceType_i32 , "" , ".i32", 0 , 0 , 1)                    \
+  X(IceType_v4f32, IceType_f32 , "" , ".f32", 0 , 0 , 1)
+//#define X(tag, elementty, int_width, vec_width, sbits, ubits, rraddr)
 
 // Shifter types for Data-processing operands as defined in section A5.1.2.
 #define ICEINSTARM32SHIFT_TABLE                                                \

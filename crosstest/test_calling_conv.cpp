@@ -36,12 +36,12 @@ void caller_vvvvv(void) {
   CALL_AS_TYPE(callee_vvvvv_Ty, Callee)(arg1, arg2, arg3, arg4, arg5);
 }
 
-void caller_vlvlivfvdviv(void) {
+void caller_vlvilvfvdviv(void) {
   v4f32 arg1 = {0, 1, 2, 3};
   int64 arg2 = 4;
   v4f32 arg3 = {6, 7, 8, 9};
-  int64 arg4 = 10;
-  int arg5 = 11;
+  int arg4 = 10;
+  int64 arg5 = 11;
   v4f32 arg6 = {12, 13, 14, 15};
   float arg7 = 16;
   v4f32 arg8 = {17, 18, 19, 20};
@@ -50,7 +50,7 @@ void caller_vlvlivfvdviv(void) {
   int arg11 = 26;
   v4f32 arg12 = {27, 28, 29, 30};
 
-  CALL_AS_TYPE(callee_vlvlivfvdviv_Ty, Callee)(arg1, arg2, arg3, arg4, arg5,
+  CALL_AS_TYPE(callee_vlvilvfvdviv_Ty, Callee)(arg1, arg2, arg3, arg4, arg5,
                                                arg6, arg7, arg8, arg9, arg10,
                                                arg11, arg12);
 }
@@ -66,6 +66,8 @@ void __attribute__((noinline)) callee_i(int arg1) {
 
 void __attribute__((noinline))
 callee_vvvvv(v4si32 arg1, v4si32 arg2, v4si32 arg3, v4si32 arg4, v4si32 arg5) {
+#ifndef ARM32
+  // TODO(jpp): remove this once vector support is implemented.
   switch (ArgNum) {
     HANDLE_ARG(1);
     HANDLE_ARG(2);
@@ -73,24 +75,28 @@ callee_vvvvv(v4si32 arg1, v4si32 arg2, v4si32 arg3, v4si32 arg4, v4si32 arg5) {
     HANDLE_ARG(4);
     HANDLE_ARG(5);
   }
+#endif // ARM32
 }
 
 void __attribute__((noinline))
-callee_vlvlivfvdviv(v4f32 arg1, int64 arg2, v4f32 arg3, int64 arg4, int arg5,
+callee_vlvilvfvdviv(v4f32 arg1, int64 arg2, v4f32 arg3, int arg4, int64 arg5,
                     v4f32 arg6, float arg7, v4f32 arg8, double arg9,
                     v4f32 arg10, int arg11, v4f32 arg12) {
   switch (ArgNum) {
+#ifndef ARM32
+    // TODO(jpp): remove this once vector support is implemented.
     HANDLE_ARG(1);
-    HANDLE_ARG(2);
     HANDLE_ARG(3);
+    HANDLE_ARG(6);
+    HANDLE_ARG(8);
+    HANDLE_ARG(10);
+    HANDLE_ARG(12);
+#endif // ARM32
+    HANDLE_ARG(2);
     HANDLE_ARG(4);
     HANDLE_ARG(5);
-    HANDLE_ARG(6);
     HANDLE_ARG(7);
-    HANDLE_ARG(8);
     HANDLE_ARG(9);
-    HANDLE_ARG(10);
     HANDLE_ARG(11);
-    HANDLE_ARG(12);
   }
 }

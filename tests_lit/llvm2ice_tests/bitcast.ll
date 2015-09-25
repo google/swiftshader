@@ -54,7 +54,7 @@ entry:
 ; ARM32-LABEL: cast_d2ll_const
 ; ARM32-DAG: movw [[ADDR:r[0-9]+]], #:lower16:.L$
 ; ARM32-DAG: movt [[ADDR]], #:upper16:.L$
-; ARM32-DAG: vldr [[DREG:d[0-9]+]], {{\[}}[[ADDR]], #0{{\]}}
+; ARM32-DAG: vldr [[DREG:d[0-9]+]], {{\[}}[[ADDR]]{{\]}}
 ; ARM32: vmov r{{[0-9]+}}, r{{[0-9]+}}, [[DREG]]
 
 define internal double @cast_ll2d(i64 %ll) {

@@ -92,6 +92,8 @@ void testValue(FromType Val, size_t &TotalTests, size_t &Passes,
 template <typename FromType, typename ToType>
 void testVector(size_t &TotalTests, size_t &Passes, size_t &Failures,
                 const char *FromTypeString, const char *ToTypeString) {
+#ifndef ARM32
+  // TODO(jpp): remove this once vector support is implemented.
   const static size_t NumElementsInType = Vectors<FromType>::NumElements;
   PRNG Index;
   static const float NegInf = -1.0 / 0.0;
@@ -109,6 +111,7 @@ void testVector(size_t &TotalTests, size_t &Passes, size_t &Failures,
     }
     COMPARE_VEC(cast, FromType, ToType, Value, FromTypeString, ToTypeString);
   }
+#endif // ARM32
 }
 
 #ifdef X8664_STACK_HACK

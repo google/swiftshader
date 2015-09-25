@@ -20,6 +20,7 @@
 #include "IceDefs.h"
 #include "IceELFObjectWriter.h"
 #include "IceGlobalInits.h"
+#include "IceInstARM32.def"
 #include "IceInstARM32.h"
 #include "IceLiveness.h"
 #include "IceOperand.h"
@@ -30,6 +31,7 @@
 #include "llvm/Support/MathExtras.h"
 
 #include <algorithm>
+#include <utility>
 
 namespace Ice {
 
@@ -380,8 +382,21 @@ IceString TargetARM32::getRegName(SizeT RegNum, Type Ty) const {
 }
 
 Variable *TargetARM32::getPhysicalRegister(SizeT RegNum, Type Ty) {
-  if (Ty == IceType_void)
-    Ty = IceType_i32;
+  static const Type DefaultType[] = {
+#define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
+          isFP32, isFP64, isVec128, alias_init)                                \
+  (isFP32)                                                                     \
+      ? IceType_f32                                                            \
+      : ((isFP64) ? IceType_f64 : ((isVec128 ? IceType_v4i32 : IceType_i32))),
+      REGARM32_TABLE
+#undef X
+  };
+
+  assert(RegNum < RegARM32::Reg_NUM);
+  if (Ty == IceType_void) {
+    assert(RegNum < llvm::array_lengthof(DefaultType));
+    Ty = DefaultType[RegNum];
+  }
   if (PhysicalRegisters[Ty].empty())
     PhysicalRegisters[Ty].resize(RegARM32::Reg_NUM);
   assert(RegNum < PhysicalRegisters[Ty].size());
@@ -425,11 +440,17 @@ void TargetARM32::emitVariable(const Variable *Var) const {
     if (!hasFramePointer())
       Offset += getStackAdjustment();
   }
-  if (!isLegalVariableStackOffset(Offset)) {
+  const Type VarTy = Var->getType();
+  // In general, no Variable64On32 should be emited in textual asm output. It
+  // turns out that some lowering sequences Fake-Def/Fake-Use such a variables.
+  // If they end up being assigned an illegal offset we get a runtime error. We
+  // liberally allow Variable64On32 to have illegal offsets because offsets
+  // don't matter in FakeDefs/FakeUses.
+  if (!llvm::isa<Variable64On32>(Var) &&
+      !isLegalVariableStackOffset(VarTy, Offset)) {
     llvm::report_fatal_error("Illegal stack offset");
   }
-  const Type FrameSPTy = stackSlotType();
-  Str << "[" << getRegName(BaseRegNum, FrameSPTy);
+  Str << "[" << getRegName(BaseRegNum, VarTy);
   if (Offset != 0) {
     Str << ", " << getConstantPrefix() << Offset;
   }
@@ -592,17 +613,14 @@ void TargetARM32::finishArgumentLowering(Variable *Arg, Variable *FramePtr,
   // value from the stack slot.
   if (Arg->hasReg()) {
     assert(Ty != IceType_i64);
-    OperandARM32Mem *Mem = OperandARM32Mem::create(
+    // This should be simple, just load the parameter off the stack using a nice
+    // sp + imm addressing mode. Because ARM, we can't do that (e.g., VLDR, for
+    // fp types, cannot have an index register), so we legalize the memory
+    // operand instead.
+    auto *Mem = OperandARM32Mem::create(
         Func, Ty, FramePtr, llvm::cast<ConstantInteger32>(
                                 Ctx->getConstantInt32(Arg->getStackOffset())));
-    if (isVectorType(Arg->getType())) {
-      // Use vld1.$elem or something?
-      UnimplementedError(Func->getContext()->getFlags());
-    } else if (isFloatingType(Arg->getType())) {
-      _vldr(Arg, Mem);
-    } else {
-      _ldr(Arg, Mem);
-    }
+    legalizeToReg(Mem, Arg->getRegNum());
     // This argument-copying instruction uses an explicit OperandARM32Mem
     // operand instead of a Variable, so its fill-from-stack operation has to
     // be tracked separately for statistics.
@@ -894,16 +912,15 @@ void TargetARM32::addEpilog(CfgNode *Node) {
   RI->setDeleted();
 }
 
-bool TargetARM32::isLegalVariableStackOffset(int32_t Offset) const {
+bool TargetARM32::isLegalVariableStackOffset(Type Ty, int32_t Offset) const {
   constexpr bool SignExt = false;
-  // TODO(jvoung): vldr of FP stack slots has a different limit from the plain
-  // stackSlotType().
-  return OperandARM32Mem::canHoldOffset(stackSlotType(), SignExt, Offset);
+  return OperandARM32Mem::canHoldOffset(Ty, SignExt, Offset);
 }
 
 StackVariable *TargetARM32::legalizeVariableSlot(Variable *Var,
+                                                 int32_t StackAdjust,
                                                  Variable *OrigBaseReg) {
-  int32_t Offset = Var->getStackOffset();
+  int32_t Offset = Var->getStackOffset() + StackAdjust;
   // Legalize will likely need a movw/movt combination, but if the top bits are
   // all 0 from negating the offset and subtracting, we could use that instead.
   bool ShouldSub = (-Offset & 0xFFFF0000) == 0;
@@ -937,7 +954,9 @@ void TargetARM32::legalizeStackSlots() {
   Func->dump("Before legalizeStackSlots");
   assert(hasComputedFrame());
   // Early exit, if SpillAreaSizeBytes is really small.
-  if (isLegalVariableStackOffset(SpillAreaSizeBytes))
+  // TODO(jpp): this is not safe -- loads and stores of q registers can't have
+  // offsets.
+  if (isLegalVariableStackOffset(IceType_v4i32, SpillAreaSizeBytes))
     return;
   Variable *OrigBaseReg = getPhysicalRegister(getFrameOrStackReg());
   int32_t StackAdjust = 0;
@@ -978,64 +997,77 @@ void TargetARM32::legalizeStackSlots() {
           continue;
         }
       }
+
       // For now, only Mov instructions can have stack variables. We need to
       // know the type of instruction because we currently create a fresh one
       // to replace Dest/Source, rather than mutate in place.
-      auto *MovInst = llvm::dyn_cast<InstARM32Mov>(CurInstr);
-      if (!MovInst) {
+      bool MayNeedOffsetRewrite = false;
+      if (auto *MovInstr = llvm::dyn_cast<InstARM32Mov>(CurInstr)) {
+        MayNeedOffsetRewrite =
+            !MovInstr->isMultiDest() && !MovInstr->isMultiSource();
+      }
+
+      if (!MayNeedOffsetRewrite) {
         continue;
       }
+
+      assert(Dest != nullptr);
+      Type DestTy = Dest->getType();
+      assert(DestTy != IceType_i64);
       if (!Dest->hasReg()) {
         int32_t Offset = Dest->getStackOffset();
         Offset += StackAdjust;
-        if (!isLegalVariableStackOffset(Offset)) {
+        if (!isLegalVariableStackOffset(DestTy, Offset)) {
           if (NewBaseReg) {
             int32_t OffsetDiff = Offset - NewBaseOffset;
-            if (isLegalVariableStackOffset(OffsetDiff)) {
+            if (isLegalVariableStackOffset(DestTy, OffsetDiff)) {
               StackVariable *NewDest =
                   Func->makeVariable<StackVariable>(stackSlotType());
               NewDest->setMustNotHaveReg();
               NewDest->setBaseRegNum(NewBaseReg->getBaseRegNum());
               NewDest->setStackOffset(OffsetDiff);
               Variable *NewDestVar = NewDest;
-              _mov(NewDestVar, MovInst->getSrc(0));
-              MovInst->setDeleted();
+              _mov(NewDestVar, CurInstr->getSrc(0));
+              CurInstr->setDeleted();
               continue;
             }
           }
-          StackVariable *LegalDest = legalizeVariableSlot(Dest, OrigBaseReg);
+          StackVariable *LegalDest =
+              legalizeVariableSlot(Dest, StackAdjust, OrigBaseReg);
           assert(LegalDest != Dest);
           Variable *LegalDestVar = LegalDest;
-          _mov(LegalDestVar, MovInst->getSrc(0));
-          MovInst->setDeleted();
+          _mov(LegalDestVar, CurInstr->getSrc(0));
+          CurInstr->setDeleted();
           NewBaseReg = LegalDest;
           NewBaseOffset = Offset;
           continue;
         }
       }
-      assert(MovInst->getSrcSize() == 1);
-      Variable *Var = llvm::dyn_cast<Variable>(MovInst->getSrc(0));
+      assert(CurInstr->getSrcSize() == 1);
+      Variable *Var = llvm::dyn_cast<Variable>(CurInstr->getSrc(0));
       if (Var && !Var->hasReg()) {
+        Type VarTy = Var->getType();
         int32_t Offset = Var->getStackOffset();
         Offset += StackAdjust;
-        if (!isLegalVariableStackOffset(Offset)) {
+        if (!isLegalVariableStackOffset(VarTy, Offset)) {
           if (NewBaseReg) {
             int32_t OffsetDiff = Offset - NewBaseOffset;
-            if (isLegalVariableStackOffset(OffsetDiff)) {
+            if (isLegalVariableStackOffset(VarTy, OffsetDiff)) {
               StackVariable *NewVar =
                   Func->makeVariable<StackVariable>(stackSlotType());
               NewVar->setMustNotHaveReg();
               NewVar->setBaseRegNum(NewBaseReg->getBaseRegNum());
               NewVar->setStackOffset(OffsetDiff);
               _mov(Dest, NewVar);
-              MovInst->setDeleted();
+              CurInstr->setDeleted();
               continue;
             }
           }
-          StackVariable *LegalVar = legalizeVariableSlot(Var, OrigBaseReg);
+          StackVariable *LegalVar =
+              legalizeVariableSlot(Var, StackAdjust, OrigBaseReg);
           assert(LegalVar != Var);
           _mov(Dest, LegalVar);
-          MovInst->setDeleted();
+          CurInstr->setDeleted();
           NewBaseReg = LegalVar;
           NewBaseOffset = Offset;
           continue;
@@ -1427,6 +1459,20 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
     }
     case InstArithmetic::Shl: {
       // a=b<<c ==>
+      // pnacl-llc does:
+      // mov     t_b.lo, b.lo
+      // mov     t_b.hi, b.hi
+      // mov     t_c.lo, c.lo
+      // rsb     T0, t_c.lo, #32
+      // lsr     T1, t_b.lo, T0
+      // orr     t_a.hi, T1, t_b.hi, lsl t_c.lo
+      // sub     T2, t_c.lo, #32
+      // cmp     T2, #0
+      // lslge   t_a.hi, t_b.lo, T2
+      // lsl     t_a.lo, t_b.lo, t_c.lo
+      // mov     a.lo, t_a.lo
+      // mov     a.hi, t_a.hi
+      //
       // GCC 4.8 does:
       // sub t_c1, c.lo, #32
       // lsl t_hi, b.hi, c.lo
@@ -1436,78 +1482,88 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
       // lsl t_lo, b.lo, c.lo
       // a.lo = t_lo
       // a.hi = t_hi
+      //
+      // These are incompatible, therefore we mimic pnacl-llc.
       // Can be strength-reduced for constant-shifts, but we don't do that for
       // now.
       // Given the sub/rsb T_C, C.lo, #32, one of the T_C will be negative. On
       // ARM, shifts only take the lower 8 bits of the shift register, and
       // saturate to the range 0-32, so the negative value will saturate to 32.
-      Variable *T_Hi = makeReg(IceType_i32);
+      Constant *_32 = Ctx->getConstantInt32(32);
+      Constant *_0 = Ctx->getConstantZero(IceType_i32);
       Variable *Src1RLo = legalizeToReg(Src1Lo);
-      Constant *ThirtyTwo = Ctx->getConstantInt32(32);
-      Variable *T_C1 = makeReg(IceType_i32);
-      Variable *T_C2 = makeReg(IceType_i32);
-      _sub(T_C1, Src1RLo, ThirtyTwo);
-      _lsl(T_Hi, Src0RHi, Src1RLo);
-      _orr(T_Hi, T_Hi, OperandARM32FlexReg::create(Func, IceType_i32, Src0RLo,
-                                                   OperandARM32::LSL, T_C1));
-      _rsb(T_C2, Src1RLo, ThirtyTwo);
-      _orr(T_Hi, T_Hi, OperandARM32FlexReg::create(Func, IceType_i32, Src0RLo,
-                                                   OperandARM32::LSR, T_C2));
-      _mov(DestHi, T_Hi);
-      Variable *T_Lo = makeReg(IceType_i32);
-      // _mov seems to sometimes have better register preferencing than lsl.
-      // Otherwise mov w/ lsl shifted register is a pseudo-instruction that
-      // maps to lsl.
-      _mov(T_Lo, OperandARM32FlexReg::create(Func, IceType_i32, Src0RLo,
-                                             OperandARM32::LSL, Src1RLo));
-      _mov(DestLo, T_Lo);
+      Variable *T0 = makeReg(IceType_i32);
+      Variable *T1 = makeReg(IceType_i32);
+      Variable *T2 = makeReg(IceType_i32);
+      Variable *TA_Hi = makeReg(IceType_i32);
+      Variable *TA_Lo = makeReg(IceType_i32);
+      _rsb(T0, Src1RLo, _32);
+      _lsr(T1, Src0RLo, T0);
+      _orr(TA_Hi, T1, OperandARM32FlexReg::create(Func, IceType_i32, Src0RHi,
+                                                  OperandARM32::LSL, Src1RLo));
+      _sub(T2, Src1RLo, _32);
+      _cmp(T2, _0);
+      _lsl(TA_Hi, Src0RLo, T2, CondARM32::GE);
+      _set_dest_nonkillable();
+      _lsl(TA_Lo, Src0RLo, Src1RLo);
+      _mov(DestLo, TA_Lo);
+      _mov(DestHi, TA_Hi);
       return;
     }
     case InstArithmetic::Lshr:
-    // a=b>>c (unsigned) ==>
-    // GCC 4.8 does:
-    // rsb t_c1, c.lo, #32
-    // lsr t_lo, b.lo, c.lo
-    // orr t_lo, t_lo, b.hi, lsl t_c1
-    // sub t_c2, c.lo, #32
-    // orr t_lo, t_lo, b.hi, lsr t_c2
-    // lsr t_hi, b.hi, c.lo
-    // a.lo = t_lo
-    // a.hi = t_hi
     case InstArithmetic::Ashr: {
-      // a=b>>c (signed) ==> ...
-      // Ashr is similar, but the sub t_c2, c.lo, #32 should set flags, and the
-      // next orr should be conditioned on PLUS. The last two right shifts
-      // should also be arithmetic.
-      bool IsAshr = Inst->getOp() == InstArithmetic::Ashr;
-      Variable *T_Lo = makeReg(IceType_i32);
+      // a=b>>c
+      // pnacl-llc does:
+      // mov        t_b.lo, b.lo
+      // mov        t_b.hi, b.hi
+      // mov        t_c.lo, c.lo
+      // lsr        T0, t_b.lo, t_c.lo
+      // rsb        T1, t_c.lo, #32
+      // orr        t_a.lo, T0, t_b.hi, lsl T1
+      // sub        T2, t_c.lo, #32
+      // cmp        T2, #0
+      // [al]srge   t_a.lo, t_b.hi, T2
+      // [al]sr     t_a.hi, t_b.hi, t_c.lo
+      // mov        a.lo, t_a.lo
+      // mov        a.hi, t_a.hi
+      //
+      // GCC 4.8 does (lsr):
+      // rsb        t_c1, c.lo, #32
+      // lsr        t_lo, b.lo, c.lo
+      // orr        t_lo, t_lo, b.hi, lsl t_c1
+      // sub        t_c2, c.lo, #32
+      // orr        t_lo, t_lo, b.hi, lsr t_c2
+      // lsr        t_hi, b.hi, c.lo
+      // mov        a.lo, t_lo
+      // mov        a.hi, t_hi
+      //
+      // These are incompatible, therefore we mimic pnacl-llc.
+      const bool IsAshr = Inst->getOp() == InstArithmetic::Ashr;
+      Constant *_32 = Ctx->getConstantInt32(32);
+      Constant *_0 = Ctx->getConstantZero(IceType_i32);
       Variable *Src1RLo = legalizeToReg(Src1Lo);
-      Constant *ThirtyTwo = Ctx->getConstantInt32(32);
-      Variable *T_C1 = makeReg(IceType_i32);
-      Variable *T_C2 = makeReg(IceType_i32);
-      _rsb(T_C1, Src1RLo, ThirtyTwo);
-      _lsr(T_Lo, Src0RLo, Src1RLo);
-      _orr(T_Lo, T_Lo, OperandARM32FlexReg::create(Func, IceType_i32, Src0RHi,
-                                                   OperandARM32::LSL, T_C1));
-      OperandARM32::ShiftKind RShiftKind;
-      CondARM32::Cond Pred;
+      Variable *T0 = makeReg(IceType_i32);
+      Variable *T1 = makeReg(IceType_i32);
+      Variable *T2 = makeReg(IceType_i32);
+      Variable *TA_Lo = makeReg(IceType_i32);
+      Variable *TA_Hi = makeReg(IceType_i32);
+      _lsr(T0, Src0RLo, Src1RLo);
+      _rsb(T1, Src1RLo, _32);
+      _orr(TA_Lo, T0, OperandARM32FlexReg::create(Func, IceType_i32, Src0RHi,
+                                                  OperandARM32::LSL, T1));
+      _sub(T2, Src1RLo, _32);
+      _cmp(T2, _0);
       if (IsAshr) {
-        _subs(T_C2, Src1RLo, ThirtyTwo);
-        RShiftKind = OperandARM32::ASR;
-        Pred = CondARM32::PL;
+        _asr(TA_Lo, Src0RHi, T2, CondARM32::GE);
+        _set_dest_nonkillable();
+        _asr(TA_Hi, Src0RHi, Src1RLo);
       } else {
-        _sub(T_C2, Src1RLo, ThirtyTwo);
-        RShiftKind = OperandARM32::LSR;
-        Pred = CondARM32::AL;
+        _lsr(TA_Lo, Src0RHi, T2, CondARM32::GE);
+        _set_dest_nonkillable();
+        _lsr(TA_Hi, Src0RHi, Src1RLo);
       }
-      _orr(T_Lo, T_Lo, OperandARM32FlexReg::create(Func, IceType_i32, Src0RHi,
-                                                   RShiftKind, T_C2),
-           Pred);
-      _mov(DestLo, T_Lo);
-      Variable *T_Hi = makeReg(IceType_i32);
-      _mov(T_Hi, OperandARM32FlexReg::create(Func, IceType_i32, Src0RHi,
-                                             RShiftKind, Src1RLo));
-      _mov(DestHi, T_Hi);
+      _mov(DestLo, TA_Lo);
+      _mov(DestHi, TA_Hi);
       return;
     }
     case InstArithmetic::Fadd:
@@ -1527,9 +1583,11 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
     }
     return;
   } else if (isVectorType(Dest->getType())) {
-    UnimplementedError(Func->getContext()->getFlags());
     // Add a fake def to keep liveness consistent in the meantime.
-    Context.insert(InstFakeDef::create(Func, Dest));
+    Variable *T = makeReg(Dest->getType());
+    Context.insert(InstFakeDef::create(Func, T));
+    _mov(Dest, T);
+    UnimplementedError(Func->getContext()->getFlags());
     return;
   }
   // Dest->getType() is a non-i64 scalar.
@@ -1585,25 +1643,25 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
   case InstArithmetic::Fadd: {
     Variable *Src1R = legalizeToReg(Src1);
     _vadd(T, Src0R, Src1R);
-    _vmov(Dest, T);
+    _mov(Dest, T);
     return;
   }
   case InstArithmetic::Fsub: {
     Variable *Src1R = legalizeToReg(Src1);
     _vsub(T, Src0R, Src1R);
-    _vmov(Dest, T);
+    _mov(Dest, T);
     return;
   }
   case InstArithmetic::Fmul: {
     Variable *Src1R = legalizeToReg(Src1);
     _vmul(T, Src0R, Src1R);
-    _vmov(Dest, T);
+    _mov(Dest, T);
     return;
   }
   case InstArithmetic::Fdiv: {
     Variable *Src1R = legalizeToReg(Src1);
     _vdiv(T, Src0R, Src1R);
-    _vmov(Dest, T);
+    _mov(Dest, T);
     return;
   }
   }
@@ -1677,7 +1735,8 @@ void TargetARM32::lowerAssign(const InstAssign *Inst) {
     Operand *Src0Hi = legalize(hiOperand(Src0), Legal_Reg | Legal_Flex);
     Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
     Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
-    Variable *T_Lo = nullptr, *T_Hi = nullptr;
+    Variable *T_Lo = makeReg(IceType_i32);
+    Variable *T_Hi = makeReg(IceType_i32);
     _mov(T_Lo, Src0Lo);
     _mov(DestLo, T_Lo);
     _mov(T_Hi, Src0Hi);
@@ -1696,10 +1755,11 @@ void TargetARM32::lowerAssign(const InstAssign *Inst) {
       NewSrc = legalize(Src0, Legal_Reg);
     }
     if (isVectorType(Dest->getType())) {
-      UnimplementedError(Func->getContext()->getFlags());
+      Variable *SrcR = legalizeToReg(NewSrc);
+      _mov(Dest, SrcR);
     } else if (isFloatingType(Dest->getType())) {
       Variable *SrcR = legalizeToReg(NewSrc);
-      _vmov(Dest, SrcR);
+      _mov(Dest, SrcR);
     } else {
       _mov(Dest, NewSrc);
     }
@@ -1769,7 +1829,7 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
       ParameterAreaSizeBytes =
           applyStackAlignmentTy(ParameterAreaSizeBytes, Ty);
       StackArgs.push_back(std::make_pair(Arg, ParameterAreaSizeBytes));
-      ParameterAreaSizeBytes += typeWidthInBytesOnStack(Arg->getType());
+      ParameterAreaSizeBytes += typeWidthInBytesOnStack(Ty);
     }
   }
 
@@ -1807,19 +1867,6 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
       Addr = formMemoryOperand(NewBase, Ty);
     }
     lowerStore(InstStore::create(Func, StackArg.first, Addr));
-  }
-
-  // Copy arguments to be passed in registers to the appropriate registers.
-  for (auto &GPRArg : GPRArgs) {
-    Variable *Reg = legalizeToReg(GPRArg.first, GPRArg.second);
-    // Generate a FakeUse of register arguments so that they do not get dead
-    // code eliminated as a result of the FakeKill of scratch registers after
-    // the call.
-    Context.insert(InstFakeUse::create(Func, Reg));
-  }
-  for (auto &FPArg : FPArgs) {
-    Variable *Reg = legalizeToReg(FPArg.first, FPArg.second);
-    Context.insert(InstFakeUse::create(Func, Reg));
   }
 
   // Generate the call instruction. Assign its result to a temporary with high
@@ -1872,6 +1919,19 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
   if (!llvm::isa<ConstantRelocatable>(CallTarget)) {
     CallTarget = legalize(CallTarget, Legal_Reg);
   }
+
+  // Copy arguments to be passed in registers to the appropriate registers.
+  for (auto &FPArg : FPArgs) {
+    Variable *Reg = legalizeToReg(FPArg.first, FPArg.second);
+    Context.insert(InstFakeUse::create(Func, Reg));
+  }
+  for (auto &GPRArg : GPRArgs) {
+    Variable *Reg = legalizeToReg(GPRArg.first, GPRArg.second);
+    // Generate a FakeUse of register arguments so that they do not get dead
+    // code eliminated as a result of the FakeKill of scratch registers after
+    // the call.
+    Context.insert(InstFakeUse::create(Func, Reg));
+  }
   Inst *NewCall = InstARM32Call::create(Func, ReturnReg, CallTarget);
   Context.insert(NewCall);
   if (ReturnRegHi)
@@ -1908,7 +1968,7 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
       _mov(DestHi, ReturnRegHi);
     } else {
       if (isFloatingType(Dest->getType()) || isVectorType(Dest->getType())) {
-        _vmov(Dest, ReturnReg);
+        _mov(Dest, ReturnReg);
       } else {
         assert(isIntegerType(Dest->getType()) &&
                typeWidthInBytes(Dest->getType()) <= 4);
@@ -1917,6 +1977,13 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
     }
   }
 }
+
+namespace {
+void forceHiLoInReg(Variable64On32 *Var) {
+  Var->getHi()->setMustHaveReg();
+  Var->getLo()->setMustHaveReg();
+}
+} // end of anonymous namespace
 
 void TargetARM32::lowerCast(const InstCast *Inst) {
   InstCast::OpKind CastKind = Inst->getCastKind();
@@ -1928,6 +1995,9 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
     return;
   case InstCast::Sext: {
     if (isVectorType(Dest->getType())) {
+      Variable *T = makeReg(Dest->getType());
+      Context.insert(InstFakeDef::create(Func, T, legalizeToReg(Src0)));
+      _mov(Dest, T);
       UnimplementedError(Func->getContext()->getFlags());
     } else if (Dest->getType() == IceType_i64) {
       // t1=sxtb src; t2= mov t1 asr #31; dst.lo=t1; dst.hi=t2
@@ -1978,6 +2048,9 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
   }
   case InstCast::Zext: {
     if (isVectorType(Dest->getType())) {
+      Variable *T = makeReg(Dest->getType());
+      Context.insert(InstFakeDef::create(Func, T, legalizeToReg(Src0)));
+      _mov(Dest, T);
       UnimplementedError(Func->getContext()->getFlags());
     } else if (Dest->getType() == IceType_i64) {
       // t1=uxtb src; dst.lo=t1; dst.hi=0
@@ -2024,6 +2097,9 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
   }
   case InstCast::Trunc: {
     if (isVectorType(Dest->getType())) {
+      Variable *T = makeReg(Dest->getType());
+      Context.insert(InstFakeDef::create(Func, T, legalizeToReg(Src0)));
+      _mov(Dest, T);
       UnimplementedError(Func->getContext()->getFlags());
     } else {
       if (Src0->getType() == IceType_i64)
@@ -2044,6 +2120,9 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
     // fpext: dest.f64 = fptrunc src0.fp32
     const bool IsTrunc = CastKind == InstCast::Fptrunc;
     if (isVectorType(Dest->getType())) {
+      Variable *T = makeReg(Dest->getType());
+      Context.insert(InstFakeDef::create(Func, T, legalizeToReg(Src0)));
+      _mov(Dest, T);
       UnimplementedError(Func->getContext()->getFlags());
       break;
     }
@@ -2057,6 +2136,26 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
   }
   case InstCast::Fptosi:
   case InstCast::Fptoui: {
+    if (isVectorType(Dest->getType())) {
+      Variable *T = makeReg(Dest->getType());
+      Context.insert(InstFakeDef::create(Func, T, legalizeToReg(Src0)));
+      _mov(Dest, T);
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    }
+
+    const bool DestIsSigned = CastKind == InstCast::Fptosi;
+    const bool Src0IsF32 = isFloat32Asserting32Or64(Src0->getType());
+    if (llvm::isa<Variable64On32>(Dest)) {
+      const char *HelperName =
+          Src0IsF32 ? (DestIsSigned ? H_fptosi_f32_i64 : H_fptoui_f32_i64)
+                    : (DestIsSigned ? H_fptosi_f64_i64 : H_fptoui_f64_i64);
+      static constexpr SizeT MaxSrcs = 1;
+      InstCall *Call = makeHelperCall(HelperName, Dest, MaxSrcs);
+      Call->addArg(Src0);
+      lowerCall(Call);
+      break;
+    }
     // fptosi:
     //     t1.fp = vcvt src0.fp
     //     t2.i32 = vmov t1.fp
@@ -2065,28 +2164,14 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
     //     t1.fp = vcvt src0.fp
     //     t2.u32 = vmov t1.fp
     //     dest.uint = conv t2.u32    @ Truncates the result if needed.
-    if (isVectorType(Dest->getType())) {
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
-    }
-    if (auto *Dest64On32 = llvm::dyn_cast<Variable64On32>(Dest)) {
-      Context.insert(InstFakeDef::create(Func, Dest64On32->getLo()));
-      Context.insert(InstFakeDef::create(Func, Dest64On32->getHi()));
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
-    }
-    const bool DestIsSigned = CastKind == InstCast::Fptosi;
     Variable *Src0R = legalizeToReg(Src0);
     Variable *T_fp = makeReg(IceType_f32);
-    if (isFloat32Asserting32Or64(Src0->getType())) {
-      _vcvt(T_fp, Src0R,
-            DestIsSigned ? InstARM32Vcvt::S2si : InstARM32Vcvt::S2ui);
-    } else {
-      _vcvt(T_fp, Src0R,
-            DestIsSigned ? InstARM32Vcvt::D2si : InstARM32Vcvt::D2ui);
-    }
+    const InstARM32Vcvt::VcvtVariant Conversion =
+        Src0IsF32 ? (DestIsSigned ? InstARM32Vcvt::S2si : InstARM32Vcvt::S2ui)
+                  : (DestIsSigned ? InstARM32Vcvt::D2si : InstARM32Vcvt::D2ui);
+    _vcvt(T_fp, Src0R, Conversion);
     Variable *T = makeReg(IceType_i32);
-    _vmov(T, T_fp);
+    _mov(T, T_fp);
     if (Dest->getType() != IceType_i32) {
       Variable *T_1 = makeReg(Dest->getType());
       lowerCast(InstCast::create(Func, InstCast::Trunc, T_1, T));
@@ -2097,6 +2182,25 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
   }
   case InstCast::Sitofp:
   case InstCast::Uitofp: {
+    if (isVectorType(Dest->getType())) {
+      Variable *T = makeReg(Dest->getType());
+      Context.insert(InstFakeDef::create(Func, T, legalizeToReg(Src0)));
+      _mov(Dest, T);
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    }
+    const bool SourceIsSigned = CastKind == InstCast::Sitofp;
+    const bool DestIsF32 = isFloat32Asserting32Or64(Dest->getType());
+    if (Src0->getType() == IceType_i64) {
+      const char *HelperName =
+          DestIsF32 ? (SourceIsSigned ? H_sitofp_i64_f32 : H_uitofp_i64_f32)
+                    : (SourceIsSigned ? H_sitofp_i64_f64 : H_uitofp_i64_f64);
+      static constexpr SizeT MaxSrcs = 1;
+      InstCall *Call = makeHelperCall(HelperName, Dest, MaxSrcs);
+      Call->addArg(Src0);
+      lowerCall(Call);
+      break;
+    }
     // sitofp:
     //     t1.i32 = sext src.int    @ sign-extends src0 if needed.
     //     t2.fp32 = vmov t1.i32
@@ -2105,17 +2209,6 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
     //     t1.i32 = zext src.int    @ zero-extends src0 if needed.
     //     t2.fp32 = vmov t1.i32
     //     t3.fp = vcvt.{fp}.s32    @ fp is either f32 or f64
-    if (isVectorType(Dest->getType())) {
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
-    }
-    if (Src0->getType() == IceType_i64) {
-      // avoid cryptic liveness errors
-      Context.insert(InstFakeDef::create(Func, Dest));
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
-    }
-    const bool SourceIsSigned = CastKind == InstCast::Sitofp;
     if (Src0->getType() != IceType_i32) {
       Variable *Src0R_32 = makeReg(IceType_i32);
       lowerCast(InstCast::create(Func, SourceIsSigned ? InstCast::Sext
@@ -2125,16 +2218,14 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
     }
     Variable *Src0R = legalizeToReg(Src0);
     Variable *Src0R_f32 = makeReg(IceType_f32);
-    _vmov(Src0R_f32, Src0R);
+    _mov(Src0R_f32, Src0R);
     Src0R = Src0R_f32;
     Variable *T = makeReg(Dest->getType());
-    if (isFloat32Asserting32Or64(Dest->getType())) {
-      _vcvt(T, Src0R,
-            SourceIsSigned ? InstARM32Vcvt::Si2s : InstARM32Vcvt::Ui2s);
-    } else {
-      _vcvt(T, Src0R,
-            SourceIsSigned ? InstARM32Vcvt::Si2d : InstARM32Vcvt::Ui2d);
-    }
+    const InstARM32Vcvt::VcvtVariant Conversion =
+        DestIsF32
+            ? (SourceIsSigned ? InstARM32Vcvt::Si2s : InstARM32Vcvt::Ui2s)
+            : (SourceIsSigned ? InstARM32Vcvt::Si2d : InstARM32Vcvt::Ui2d);
+    _vcvt(T, Src0R, Conversion);
     _mov(Dest, T);
     break;
   }
@@ -2153,9 +2244,6 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
     case IceType_i1:
       UnimplementedError(Func->getContext()->getFlags());
       break;
-    case IceType_v4i1:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
     case IceType_i8:
       UnimplementedError(Func->getContext()->getFlags());
       break;
@@ -2166,7 +2254,7 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
     case IceType_f32: {
       Variable *Src0R = legalizeToReg(Src0);
       Variable *T = makeReg(DestType);
-      _vmov(T, Src0R);
+      _mov(T, Src0R);
       lowerAssign(InstAssign::create(Func, Dest, T));
       break;
     }
@@ -2175,13 +2263,17 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
       // dest[31..0]  = t0
       // dest[63..32] = t1
       assert(Src0->getType() == IceType_f64);
-      Variable *T0 = makeReg(IceType_i32);
-      Variable *T1 = makeReg(IceType_i32);
+      auto *T = llvm::cast<Variable64On32>(Func->makeVariable(IceType_i64));
+      T->initHiLo(Func);
+      forceHiLoInReg(T);
       Variable *Src0R = legalizeToReg(Src0);
-      _vmov(InstARM32Vmov::RegisterPair(T0, T1), Src0R);
+      _mov(T, Src0R);
+      Context.insert(InstFakeDef::create(Func, T->getLo()));
+      Context.insert(InstFakeDef::create(Func, T->getHi()));
       auto *Dest64On32 = llvm::cast<Variable64On32>(Dest);
-      lowerAssign(InstAssign::create(Func, Dest64On32->getLo(), T0));
-      lowerAssign(InstAssign::create(Func, Dest64On32->getHi(), T1));
+      lowerAssign(InstAssign::create(Func, Dest64On32->getLo(), T->getLo()));
+      lowerAssign(InstAssign::create(Func, Dest64On32->getHi(), T->getHi()));
+      Context.insert(InstFakeUse::create(Func, T));
       break;
     }
     case IceType_f64: {
@@ -2190,33 +2282,35 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
       // vmov T2, T0, T1
       // Dest <- T2
       assert(Src0->getType() == IceType_i64);
-      Variable *SrcLo = legalizeToReg(loOperand(Src0));
-      Variable *SrcHi = legalizeToReg(hiOperand(Src0));
-      Variable *T = makeReg(IceType_f64);
-      _vmov(T, InstARM32Vmov::RegisterPair(SrcLo, SrcHi));
+      auto *Src64 = llvm::cast<Variable64On32>(Func->makeVariable(IceType_i64));
+      Src64->initHiLo(Func);
+      forceHiLoInReg(Src64);
+      Variable *T = Src64->getLo();
+      _mov(T, legalizeToReg(loOperand(Src0)));
+      T = Src64->getHi();
+      _mov(T, legalizeToReg(hiOperand(Src0)));
+      T = makeReg(IceType_f64);
+      Context.insert(InstFakeDef::create(Func, Src64));
+      _mov(T, Src64);
+      Context.insert(InstFakeUse::create(Func, Src64->getLo()));
+      Context.insert(InstFakeUse::create(Func, Src64->getHi()));
       lowerAssign(InstAssign::create(Func, Dest, T));
       break;
     }
+    case IceType_v4i1:
     case IceType_v8i1:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
     case IceType_v16i1:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
     case IceType_v8i16:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
     case IceType_v16i8:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
-    case IceType_v4i32:
-      // avoid cryptic liveness errors
-      Context.insert(InstFakeDef::create(Func, Dest));
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
     case IceType_v4f32:
+    case IceType_v4i32: {
+      // avoid cryptic liveness errors
+      Variable *T = makeReg(DestType);
+      Context.insert(InstFakeDef::create(Func, T, legalizeToReg(Src0)));
+      _mov(Dest, T);
       UnimplementedError(Func->getContext()->getFlags());
       break;
+    }
     }
     break;
   }
@@ -2224,7 +2318,11 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
 }
 
 void TargetARM32::lowerExtractElement(const InstExtractElement *Inst) {
-  (void)Inst;
+  Variable *Dest = Inst->getDest();
+  Type DestType = Dest->getType();
+  Variable *T = makeReg(DestType);
+  Context.insert(InstFakeDef::create(Func, T));
+  _mov(Dest, T);
   UnimplementedError(Func->getContext()->getFlags());
 }
 
@@ -2269,6 +2367,9 @@ struct {
 void TargetARM32::lowerFcmp(const InstFcmp *Inst) {
   Variable *Dest = Inst->getDest();
   if (isVectorType(Dest->getType())) {
+    Variable *T = makeReg(Dest->getType());
+    Context.insert(InstFakeDef::create(Func, T));
+    _mov(Dest, T);
     UnimplementedError(Func->getContext()->getFlags());
     return;
   }
@@ -2306,6 +2407,9 @@ void TargetARM32::lowerIcmp(const InstIcmp *Inst) {
   Operand *Src1 = legalizeUndef(Inst->getSrc(1));
 
   if (isVectorType(Dest->getType())) {
+    Variable *T = makeReg(Dest->getType());
+    Context.insert(InstFakeDef::create(Func, T));
+    _mov(Dest, T);
     UnimplementedError(Func->getContext()->getFlags());
     return;
   }
@@ -2514,7 +2618,7 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     if (Val->getType() == IceType_i64) {
       Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
       Constant *Zero = Ctx->getConstantZero(IceType_i32);
-      Variable *T = nullptr;
+      Variable *T = makeReg(Zero->getType());
       _mov(T, Zero);
       _mov(DestHi, T);
     }
@@ -2561,9 +2665,18 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     return;
   }
   case Intrinsics::Fabs: {
-    // Add a fake def to keep liveness consistent in the meantime.
-    Context.insert(InstFakeDef::create(Func, Instr->getDest()));
-    UnimplementedError(Func->getContext()->getFlags());
+    Variable *Dest = Instr->getDest();
+    Type DestTy = Dest->getType();
+    Variable *T = makeReg(DestTy);
+    if (isVectorType(DestTy)) {
+      // Add a fake def to keep liveness consistent in the meantime.
+      Context.insert(InstFakeDef::create(Func, T));
+      _mov(Instr->getDest(), T);
+      UnimplementedError(Func->getContext()->getFlags());
+      return;
+    }
+    _vabs(T, legalizeToReg(Instr->getArg(0)));
+    _mov(Dest, T);
     return;
   }
   case Intrinsics::Longjmp: {
@@ -2628,7 +2741,7 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     Variable *Dest = Instr->getDest();
     Variable *T = makeReg(Dest->getType());
     _vsqrt(T, Src);
-    _vmov(Dest, T);
+    _mov(Dest, T);
     return;
   }
   case Intrinsics::Stacksave: {
@@ -2674,7 +2787,7 @@ void TargetARM32::lowerCLZ(Variable *Dest, Variable *ValLoR, Variable *ValHiR) {
     // of T2 as if it was used as a source.
     _set_dest_nonkillable();
     _mov(DestLo, T2);
-    Variable *T3 = nullptr;
+    Variable *T3 = makeReg(Zero->getType());
     _mov(T3, Zero);
     _mov(DestHi, T3);
     return;
@@ -2734,7 +2847,8 @@ void TargetARM32::lowerRet(const InstRet *Inst) {
       Reg = Q0;
     } else {
       Operand *Src0F = legalize(Src0, Legal_Reg | Legal_Flex);
-      _mov(Reg, Src0F, CondARM32::AL, RegARM32::Reg_r0);
+      Reg = makeReg(Src0F->getType(), RegARM32::Reg_r0);
+      _mov(Reg, Src0F, CondARM32::AL);
     }
   }
   // Add a ret instruction even if sandboxing is enabled, because addEpilog
@@ -2758,6 +2872,9 @@ void TargetARM32::lowerSelect(const InstSelect *Inst) {
   Operand *Condition = Inst->getCondition();
 
   if (isVectorType(DestTy)) {
+    Variable *T = makeReg(DestTy);
+    Context.insert(InstFakeDef::create(Func, T));
+    _mov(Dest, T);
     UnimplementedError(Func->getContext()->getFlags());
     return;
   }
@@ -2772,16 +2889,16 @@ void TargetARM32::lowerSelect(const InstSelect *Inst) {
     SrcF = legalizeUndef(SrcF);
     // Set the low portion.
     Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
-    Variable *TLo = nullptr;
     Operand *SrcFLo = legalize(loOperand(SrcF), Legal_Reg | Legal_Flex);
+    Variable *TLo = makeReg(SrcFLo->getType());
     _mov(TLo, SrcFLo);
     Operand *SrcTLo = legalize(loOperand(SrcT), Legal_Reg | Legal_Flex);
     _mov_nonkillable(TLo, SrcTLo, Cond);
     _mov(DestLo, TLo);
     // Set the high portion.
     Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
-    Variable *THi = nullptr;
     Operand *SrcFHi = legalize(hiOperand(SrcF), Legal_Reg | Legal_Flex);
+    Variable *THi = makeReg(SrcFHi->getType());
     _mov(THi, SrcFHi);
     Operand *SrcTHi = legalize(hiOperand(SrcT), Legal_Reg | Legal_Flex);
     _mov_nonkillable(THi, SrcTHi, Cond);
@@ -2793,17 +2910,17 @@ void TargetARM32::lowerSelect(const InstSelect *Inst) {
     Variable *T = makeReg(DestTy);
     SrcF = legalizeToReg(SrcF);
     assert(DestTy == SrcF->getType());
-    _vmov(T, SrcF);
+    _mov(T, SrcF);
     SrcT = legalizeToReg(SrcT);
     assert(DestTy == SrcT->getType());
-    _vmov(T, SrcT, Cond);
+    _mov(T, SrcT, Cond);
     _set_dest_nonkillable();
-    _vmov(Dest, T);
+    _mov(Dest, T);
     return;
   }
 
-  Variable *T = nullptr;
   SrcF = legalize(SrcF, Legal_Reg | Legal_Flex);
+  Variable *T = makeReg(SrcF->getType());
   _mov(T, SrcF);
   SrcT = legalize(SrcT, Legal_Reg | Legal_Flex);
   _mov_nonkillable(T, SrcT, Cond);
@@ -2823,9 +2940,6 @@ void TargetARM32::lowerStore(const InstStore *Inst) {
     _str(ValueHi, llvm::cast<OperandARM32Mem>(hiOperand(NewAddr)));
     _str(ValueLo, llvm::cast<OperandARM32Mem>(loOperand(NewAddr)));
   } else {
-    if (isVectorType(Ty)) {
-      UnimplementedError(Func->getContext()->getFlags());
-    }
     Variable *ValueR = legalizeToReg(Value);
     _str(ValueR, NewAddr);
   }
@@ -2878,6 +2992,7 @@ void TargetARM32::prelowerPhis() {
 
 Variable *TargetARM32::makeVectorOfZeros(Type Ty, int32_t RegNum) {
   Variable *Reg = makeReg(Ty, RegNum);
+  Context.insert(InstFakeDef::create(Func, Reg));
   UnimplementedError(Func->getContext()->getFlags());
   return Reg;
 }
@@ -2887,16 +3002,7 @@ Variable *TargetARM32::makeVectorOfZeros(Type Ty, int32_t RegNum) {
 Variable *TargetARM32::copyToReg(Operand *Src, int32_t RegNum) {
   Type Ty = Src->getType();
   Variable *Reg = makeReg(Ty, RegNum);
-  if (isVectorType(Ty)) {
-    // TODO(jpp): Src must be a register, or an address with base register.
-    _vmov(Reg, Src);
-  } else if (isFloatingType(Ty)) {
-    _vmov(Reg, Src);
-  } else {
-    // Mov's Src operand can really only be the flexible second operand type or
-    // a register. Users should guarantee that.
-    _mov(Reg, Src);
-  }
+  _mov(Reg, Src);
   return Reg;
 }
 
@@ -2912,10 +3018,22 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
   // type of operand is not legal (e.g., OperandARM32Mem and !Legal_Mem), we
   // can always copy to a register.
   if (auto Mem = llvm::dyn_cast<OperandARM32Mem>(From)) {
+    static const struct {
+      bool CanHaveOffset;
+      bool CanHaveIndex;
+    } MemTraits[] = {
+#define X(tag, elementty, int_width, vec_width, sbits, ubits, rraddr)          \
+  { (ubits) > 0, rraddr }                                                      \
+  ,
+        ICETYPEARM32_TABLE
+#undef X
+    };
     // Before doing anything with a Mem operand, we need to ensure that the
     // Base and Index components are in physical registers.
     Variable *Base = Mem->getBase();
     Variable *Index = Mem->getIndex();
+    ConstantInteger32 *Offset = Mem->getOffset();
+    assert(Index == nullptr || Offset == nullptr);
     Variable *RegBase = nullptr;
     Variable *RegIndex = nullptr;
     if (Base) {
@@ -2923,32 +3041,43 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
     }
     if (Index) {
       RegIndex = legalizeToReg(Index);
+      if (!MemTraits[Ty].CanHaveIndex) {
+        Variable *T = makeReg(IceType_i32, getReservedTmpReg());
+        _add(T, RegBase, RegIndex);
+        RegBase = T;
+        RegIndex = nullptr;
+      }
     }
+    if (Offset && Offset->getValue() != 0) {
+      static constexpr bool SignExt = false;
+      if (!MemTraits[Ty].CanHaveOffset ||
+          !OperandARM32Mem::canHoldOffset(Ty, SignExt, Offset->getValue())) {
+        Variable *T = legalizeToReg(Offset, getReservedTmpReg());
+        _add(T, T, RegBase);
+        RegBase = T;
+        Offset = llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(0));
+      }
+    }
+
     // Create a new operand if there was a change.
     if (Base != RegBase || Index != RegIndex) {
       // There is only a reg +/- reg or reg + imm form.
       // Figure out which to re-create.
-      if (Mem->isRegReg()) {
+      if (RegBase && RegIndex) {
         Mem = OperandARM32Mem::create(Func, Ty, RegBase, RegIndex,
                                       Mem->getShiftOp(), Mem->getShiftAmt(),
                                       Mem->getAddrMode());
       } else {
-        Mem = OperandARM32Mem::create(Func, Ty, RegBase, Mem->getOffset(),
+        Mem = OperandARM32Mem::create(Func, Ty, RegBase, Offset,
                                       Mem->getAddrMode());
       }
     }
-    if (!(Allowed & Legal_Mem)) {
-      Variable *Reg = makeReg(Ty, RegNum);
-      if (isVectorType(Ty)) {
-        UnimplementedError(Func->getContext()->getFlags());
-      } else if (isFloatingType(Ty)) {
-        _vldr(Reg, Mem);
-      } else {
-        _ldr(Reg, Mem);
-      }
-      From = Reg;
-    } else {
+    if (Allowed & Legal_Mem) {
       From = Mem;
+    } else {
+      Variable *Reg = makeReg(Ty, RegNum);
+      _ldr(Reg, Mem);
+      From = Reg;
     }
     return From;
   }

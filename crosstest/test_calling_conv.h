@@ -31,7 +31,7 @@ void caller_vvvvv();
 typedef void(callee_vvvvv_Ty)(v4si32, v4si32, v4si32, v4si32, v4si32);
 callee_vvvvv_Ty callee_vvvvv;
 
-void caller_vlvlivfvdviv();
-typedef void(callee_vlvlivfvdviv_Ty)(v4f32, int64, v4f32, int64, int, v4f32,
+void caller_vlvilvfvdviv();
+typedef void(callee_vlvilvfvdviv_Ty)(v4f32, int64, v4f32, int, int64, v4f32,
                                      float, v4f32, double, v4f32, int, v4f32);
-callee_vlvlivfvdviv_Ty callee_vlvlivfvdviv;
+callee_vlvilvfvdviv_Ty callee_vlvilvfvdviv;

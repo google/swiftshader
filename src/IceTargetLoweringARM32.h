@@ -189,7 +189,6 @@ protected:
   // The following are helpers that insert lowered ARM32 instructions with
   // minimal syntactic overhead, so that the lowering code can look as close to
   // assembly as practical.
-
   void _add(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Add::create(Func, Dest, Src0, Src1, Pred));
@@ -246,6 +245,10 @@ protected:
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Eor::create(Func, Dest, Src0, Src1, Pred));
   }
+  /// _ldr, for all your memory to Variable data moves. It handles all types
+  /// (integer, floating point, and vectors.) Addr needs to be valid for Dest's
+  /// type (e.g., no immediates for vector loads, and no index registers for fp
+  /// loads.)
   void _ldr(Variable *Dest, OperandARM32Mem *Addr,
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Ldr::create(Func, Dest, Addr, Pred));
@@ -266,14 +269,17 @@ protected:
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Mls::create(Func, Dest, Src0, Src1, Acc, Pred));
   }
-  /// If Dest=nullptr is passed in, then a new variable is created, marked as
-  /// infinite register allocation weight, and returned through the in/out Dest
-  /// argument.
-  void _mov(Variable *&Dest, Operand *Src0,
-            CondARM32::Cond Pred = CondARM32::AL,
-            int32_t RegNum = Variable::NoRegister) {
-    if (Dest == nullptr)
-      Dest = makeReg(Src0->getType(), RegNum);
+  /// _mov, for all your Variable to Variable data movement needs. It handles
+  /// all types (integer, floating point, and vectors), as well as moves between
+  /// Core and VFP registers. This is not a panacea: you must obey the (weird,
+  /// confusing, non-uniform) rules for data moves in ARM.
+  void _mov(Variable *Dest, Operand *Src0,
+            CondARM32::Cond Pred = CondARM32::AL) {
+    // _mov used to be unique in the sense that it would create a temporary
+    // automagically if Dest was nullptr. It won't do that anymore, so we keep
+    // an assert around just in case there is some untested code path where Dest
+    // is nullptr.
+    assert(Dest != nullptr);
     Context.insert(InstARM32Mov::create(Func, Dest, Src0, Pred));
   }
   void _mov_nonkillable(Variable *Dest, Operand *Src0,
@@ -348,6 +354,8 @@ protected:
              CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Sdiv::create(Func, Dest, Src0, Src1, Pred));
   }
+  /// _str, for all your Variable to memory transfers. Addr has the same
+  /// restrictions that it does in _ldr.
   void _str(Variable *Value, OperandARM32Mem *Addr,
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Str::create(Func, Value, Addr, Pred));
@@ -387,6 +395,10 @@ protected:
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Uxt::create(Func, Dest, Src0, Pred));
   }
+  void _vabs(Variable *Dest, Variable *Src,
+             CondARM32::Cond Pred = CondARM32::AL) {
+    Context.insert(InstARM32Vabs::create(Func, Dest, Src, Pred));
+  }
   void _vadd(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert(InstARM32Vadd::create(Func, Dest, Src0, Src1));
   }
@@ -397,43 +409,12 @@ protected:
   void _vdiv(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert(InstARM32Vdiv::create(Func, Dest, Src0, Src1));
   }
-  void _vldr(Variable *Dest, OperandARM32Mem *Src,
-             CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Vldr::create(Func, Dest, Src, Pred));
-  }
   void _vcmp(Variable *Src0, Variable *Src1,
              CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Vcmp::create(Func, Src0, Src1, Pred));
   }
   void _vmrs(CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Vmrs::create(Func, Pred));
-  }
-  // There are a whole bunch of vmov variants, to transfer within S/D/Q
-  // registers, between core integer registers and S/D, and from small
-  // immediates into S/D. For integer -> S/D/Q there is a variant which takes
-  // two integer register to fill a D, or to fill two consecutive S registers.
-  // Vmov can also be used to insert-element. E.g.,
-  //    "vmov.8 d0[1], r0"
-  // but insert-element is a "two-address" operation where only part of the
-  // register is modified. This cannot model that.
-  //
-  // This represents the simple single source, single dest variants only.
-  void _vmov(Variable *Dest, Operand *Src0,
-             CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Vmov::create(Func, Dest, Src0, Pred));
-  }
-  // This represents the single source, multi dest variant.
-  void _vmov(InstARM32Vmov::RegisterPair Dests, Variable *Src0) {
-    constexpr CondARM32::Cond Pred = CondARM32::AL;
-    Context.insert(InstARM32Vmov::create(Func, Dests, Src0, Pred));
-    // The Vmov instruction created above does not define Dests._1. Therefore
-    // we add a Dest._1 = FakeDef pseudo instruction.
-    Context.insert(InstFakeDef::create(Func, Dests._1));
-  }
-  // This represents the multi source, single dest variant.
-  void _vmov(Variable *Dest, InstARM32Vmov::RegisterPair Srcs) {
-    constexpr CondARM32::Cond Pred = CondARM32::AL;
-    Context.insert(InstARM32Vmov::create(Func, Dest, Srcs, Pred));
   }
   void _vmul(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert(InstARM32Vmul::create(Func, Dest, Src0, Src1));
@@ -451,10 +432,11 @@ protected:
   /// offset, such that the addressing mode offset bits are now legal.
   void legalizeStackSlots();
   /// Returns true if the given Offset can be represented in a stack ldr/str.
-  bool isLegalVariableStackOffset(int32_t Offset) const;
+  bool isLegalVariableStackOffset(Type Ty, int32_t Offset) const;
   /// Assuming Var needs its offset legalized, define a new base register
-  /// centered on the given Var's offset and use it.
-  StackVariable *legalizeVariableSlot(Variable *Var, Variable *OrigBaseReg);
+  /// centered on the given Var's offset plus StackAdjust, and use it.
+  StackVariable *legalizeVariableSlot(Variable *Var, int32_t StackAdjust,
+                                      Variable *OrigBaseReg);
 
   TargetARM32Features CPUFeatures;
   bool UsesFramePointer = false;
