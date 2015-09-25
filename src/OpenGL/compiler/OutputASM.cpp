@@ -33,7 +33,7 @@ namespace glsl
 	class Temporary : public TIntermSymbol
 	{
 	public:
-		Temporary(OutputASM *assembler) : TIntermSymbol(0, "tmp", TType(EbtFloat, EbpHigh, EvqTemporary, 4, 1, false)), assembler(assembler)
+		Temporary(OutputASM *assembler) : TIntermSymbol(TSymbolTableLevel::nextUniqueId(), "tmp", TType(EbtFloat, EbpHigh, EvqTemporary, 4, 1, false)), assembler(assembler)
 		{
 		}
 
