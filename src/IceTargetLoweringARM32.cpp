@@ -1504,7 +1504,7 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
       _sub(T2, Src1RLo, _32);
       _cmp(T2, _0);
       _lsl(TA_Hi, Src0RLo, T2, CondARM32::GE);
-      _set_dest_nonkillable();
+      _set_dest_redefined();
       _lsl(TA_Lo, Src0RLo, Src1RLo);
       _mov(DestLo, TA_Lo);
       _mov(DestHi, TA_Hi);
@@ -1555,11 +1555,11 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
       _cmp(T2, _0);
       if (IsAshr) {
         _asr(TA_Lo, Src0RHi, T2, CondARM32::GE);
-        _set_dest_nonkillable();
+        _set_dest_redefined();
         _asr(TA_Hi, Src0RHi, Src1RLo);
       } else {
         _lsr(TA_Lo, Src0RHi, T2, CondARM32::GE);
-        _set_dest_nonkillable();
+        _set_dest_redefined();
         _lsr(TA_Hi, Src0RHi, Src1RLo);
       }
       _mov(DestLo, TA_Lo);
@@ -2304,7 +2304,7 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
     case IceType_v16i8:
     case IceType_v4f32:
     case IceType_v4i32: {
-      // avoid cryptic liveness errors
+      // avoid liveness errors
       Variable *T = makeReg(DestType);
       Context.insert(InstFakeDef::create(Func, T, legalizeToReg(Src0)));
       _mov(Dest, T);
@@ -2388,15 +2388,17 @@ void TargetARM32::lowerFcmp(const InstFcmp *Inst) {
   if (CC0 != CondARM32::kNone) {
     _mov(T, One, CC0);
     // If this mov is not a maybe mov, but an actual mov (i.e., CC0 == AL), we
-    // don't want to set_dest_nonkillable so that liveness + dead-code
+    // don't want to _set_dest_redefined so that liveness + dead-code
     // elimination will get rid of the previous assignment (i.e., T = 0) above.
+    // TODO(stichnot,jpp): We should be able to conditionally create the "T=0"
+    // instruction based on CC0, instead of relying on DCE to remove it.
     if (CC0 != CondARM32::AL)
-      _set_dest_nonkillable();
+      _set_dest_redefined();
   }
   if (CC1 != CondARM32::kNone) {
     assert(CC0 != CondARM32::kNone);
     assert(CC1 != CondARM32::AL);
-    _mov_nonkillable(T, One, CC1);
+    _mov_redefined(T, One, CC1);
   }
   _mov(Dest, T);
 }
@@ -2475,7 +2477,7 @@ void TargetARM32::lowerIcmp(const InstIcmp *Inst) {
       _cmp(Src0Lo, Src1LoRF, CondARM32::EQ);
     }
     _mov(T, One, TableIcmp64[Index].C1);
-    _mov_nonkillable(T, Zero, TableIcmp64[Index].C2);
+    _mov_redefined(T, Zero, TableIcmp64[Index].C2);
     _mov(Dest, T);
     return;
   }
@@ -2531,7 +2533,7 @@ void TargetARM32::lowerIcmp(const InstIcmp *Inst) {
     Operand *Src1RF = legalize(Src1, Legal_Reg | Legal_Flex);
     _cmp(Src0R, Src1RF);
   }
-  _mov_nonkillable(T, One, getIcmp32Mapping(Inst->getCondition()));
+  _mov_redefined(T, One, getIcmp32Mapping(Inst->getCondition()));
   _mov(Dest, T);
   return;
 }
@@ -2753,7 +2755,7 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   case Intrinsics::Stackrestore: {
     Variable *SP = getPhysicalRegister(RegARM32::Reg_sp);
     Operand *Val = legalize(Instr->getArg(0), Legal_Reg | Legal_Flex);
-    _mov_nonkillable(SP, Val);
+    _mov_redefined(SP, Val);
     return;
   }
   case Intrinsics::Trap:
@@ -2783,9 +2785,9 @@ void TargetARM32::lowerCLZ(Variable *Dest, Variable *ValLoR, Variable *ValHiR) {
     _add(T2, T, ThirtyTwo);
     _clz(T2, ValHiR, CondARM32::NE);
     // T2 is actually a source as well when the predicate is not AL (since it
-    // may leave T2 alone). We use set_dest_nonkillable to prolong the liveness
+    // may leave T2 alone). We use _set_dest_redefined to prolong the liveness
     // of T2 as if it was used as a source.
-    _set_dest_nonkillable();
+    _set_dest_redefined();
     _mov(DestLo, T2);
     Variable *T3 = makeReg(Zero->getType());
     _mov(T3, Zero);
@@ -2893,7 +2895,7 @@ void TargetARM32::lowerSelect(const InstSelect *Inst) {
     Variable *TLo = makeReg(SrcFLo->getType());
     _mov(TLo, SrcFLo);
     Operand *SrcTLo = legalize(loOperand(SrcT), Legal_Reg | Legal_Flex);
-    _mov_nonkillable(TLo, SrcTLo, Cond);
+    _mov_redefined(TLo, SrcTLo, Cond);
     _mov(DestLo, TLo);
     // Set the high portion.
     Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
@@ -2901,7 +2903,7 @@ void TargetARM32::lowerSelect(const InstSelect *Inst) {
     Variable *THi = makeReg(SrcFHi->getType());
     _mov(THi, SrcFHi);
     Operand *SrcTHi = legalize(hiOperand(SrcT), Legal_Reg | Legal_Flex);
-    _mov_nonkillable(THi, SrcTHi, Cond);
+    _mov_redefined(THi, SrcTHi, Cond);
     _mov(DestHi, THi);
     return;
   }
@@ -2914,7 +2916,7 @@ void TargetARM32::lowerSelect(const InstSelect *Inst) {
     SrcT = legalizeToReg(SrcT);
     assert(DestTy == SrcT->getType());
     _mov(T, SrcT, Cond);
-    _set_dest_nonkillable();
+    _set_dest_redefined();
     _mov(Dest, T);
     return;
   }
@@ -2923,7 +2925,7 @@ void TargetARM32::lowerSelect(const InstSelect *Inst) {
   Variable *T = makeReg(SrcF->getType());
   _mov(T, SrcF);
   SrcT = legalize(SrcT, Legal_Reg | Legal_Flex);
-  _mov_nonkillable(T, SrcT, Cond);
+  _mov_redefined(T, SrcT, Cond);
   _mov(Dest, T);
 }
 
@@ -3259,7 +3261,7 @@ void TargetARM32::alignRegisterPow2(Variable *Reg, uint32_t Align) {
 void TargetARM32::postLower() {
   if (Ctx->getFlags().getOptLevel() == Opt_m1)
     return;
-  inferTwoAddress();
+  markRedefinitions();
 }
 
 void TargetARM32::makeRandomRegisterPermutation(

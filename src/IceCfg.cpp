@@ -617,7 +617,7 @@ bool Cfg::validateLiveness() const {
           // the previous block, and if it is also assigned in the first
           // instruction of this block, the adjacent live ranges get merged.
           if (static_cast<class Inst *>(&Inst) != FirstInst &&
-              !Inst.isDestNonKillable() &&
+              !Inst.isDestRedefined() &&
               Dest->getLiveRange().containsValue(InstNumber - 1, IsDest))
             Invalid = true;
           if (Invalid) {

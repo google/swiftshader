@@ -110,6 +110,7 @@ public:
 
 private:
   CfgNode(Cfg *Func, SizeT LabelIndex);
+  bool livenessValidateIntervals(Liveness *Liveness);
   Cfg *const Func;
   SizeT Number;            /// invariant: Func->Nodes[Number]==this
   const SizeT LabelNumber; /// persistent number for label generation

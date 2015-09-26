@@ -41,6 +41,7 @@ public:
 private:
   using OrderedRanges = CfgVector<Variable *>;
   using UnorderedRanges = CfgVector<Variable *>;
+  using DefUseErrorList = llvm::SmallVector<SizeT, 10>;
 
   class IterationState {
     IterationState(const IterationState &) = delete;
@@ -58,6 +59,10 @@ private:
     llvm::SmallVector<RegWeight, REGS_SIZE> Weights;
   };
 
+  bool livenessValidateIntervals(const DefUseErrorList &DefsWithoutUses,
+                                 const DefUseErrorList &UsesBeforeDefs,
+                                 const CfgVector<InstNumberT> &LRBegin,
+                                 const CfgVector<InstNumberT> &LREnd);
   void initForGlobal();
   void initForInfOnly();
   /// Move an item from the From set to the To set. From[Index] is pushed onto

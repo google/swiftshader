@@ -525,20 +525,19 @@ template <class Machine> void TargetX86Base<Machine>::findRMW() {
       //   x = FakeDef
       //   RMW <op>, addr, other, x
       //   b = Store b, addr, x
-      // Note that inferTwoAddress() makes sure setDestNonKillable() gets
-      // called on the updated Store instruction, to avoid liveness problems
-      // later.
+      // Note that inferTwoAddress() makes sure setDestRedefined() gets called
+      // on the updated Store instruction, to avoid liveness problems later.
       //
       // With this transformation, the Store instruction acquires a Dest
       // variable and is now subject to dead code elimination if there are no
-      // more uses of "b".  Variable "x" is a beacon for determining whether
-      // the Store instruction gets dead-code eliminated.  If the Store
-      // instruction is eliminated, then it must be the case that the RMW
-      // instruction ends x's live range, and therefore the RMW instruction
-      // will be retained and later lowered.  On the other hand, if the RMW
-      // instruction does not end x's live range, then the Store instruction
-      // must still be present, and therefore the RMW instruction is ignored
-      // during lowering because it is redundant with the Store instruction.
+      // more uses of "b".  Variable "x" is a beacon for determining whether the
+      // Store instruction gets dead-code eliminated.  If the Store instruction
+      // is eliminated, then it must be the case that the RMW instruction ends
+      // x's live range, and therefore the RMW instruction will be retained and
+      // later lowered.  On the other hand, if the RMW instruction does not end
+      // x's live range, then the Store instruction must still be present, and
+      // therefore the RMW instruction is ignored during lowering because it is
+      // redundant with the Store instruction.
       //
       // Note that if "a" has further uses, the RMW transformation may still
       // trigger, resulting in two loads and one store, which is worse than the
@@ -1034,19 +1033,16 @@ bool TargetX86Base<Machine>::optimizeScalarMul(Variable *Dest, Operand *Src0,
     const uint16_t Shift = 3; // log2(9-1)
     _lea(T,
          Traits::X86OperandMem::create(Func, IceType_void, T, Zero, T, Shift));
-    _set_dest_nonkillable();
   }
   for (uint32_t i = 0; i < Count5; ++i) {
     const uint16_t Shift = 2; // log2(5-1)
     _lea(T,
          Traits::X86OperandMem::create(Func, IceType_void, T, Zero, T, Shift));
-    _set_dest_nonkillable();
   }
   for (uint32_t i = 0; i < Count3; ++i) {
     const uint16_t Shift = 1; // log2(3-1)
     _lea(T,
          Traits::X86OperandMem::create(Func, IceType_void, T, Zero, T, Shift));
-    _set_dest_nonkillable();
   }
   if (Count2) {
     _shl(T, Ctx->getConstantInt(Ty, Count2));
@@ -1216,11 +1212,10 @@ void TargetX86Base<Machine>::lowerShift64(InstArithmetic::OpKind Op,
       _shl(T_2, T_1);
       _test(T_1, BitTest);
       _br(Traits::Cond::Br_e, Label);
-      // T_2 and T_3 are being assigned again because of the intra-block
-      // control flow, so we need the _mov_nonkillable variant to avoid
-      // liveness problems.
-      _mov_nonkillable(T_3, T_2);
-      _mov_nonkillable(T_2, Zero);
+      // T_2 and T_3 are being assigned again because of the intra-block control
+      // flow, so we need the _mov_redefined variant to avoid liveness problems.
+      _mov_redefined(T_3, T_2);
+      _mov_redefined(T_2, Zero);
     } break;
     case InstArithmetic::Lshr: {
       // a=b>>c (unsigned) ==>
@@ -1235,11 +1230,10 @@ void TargetX86Base<Machine>::lowerShift64(InstArithmetic::OpKind Op,
       _shr(T_3, T_1);
       _test(T_1, BitTest);
       _br(Traits::Cond::Br_e, Label);
-      // T_2 and T_3 are being assigned again because of the intra-block
-      // control flow, so we need the _mov_nonkillable variant to avoid
-      // liveness problems.
-      _mov_nonkillable(T_2, T_3);
-      _mov_nonkillable(T_3, Zero);
+      // T_2 and T_3 are being assigned again because of the intra-block control
+      // flow, so we need the _mov_redefined variant to avoid liveness problems.
+      _mov_redefined(T_2, T_3);
+      _mov_redefined(T_3, Zero);
     } break;
     case InstArithmetic::Ashr: {
       // a=b>>c (signed) ==>
@@ -1255,11 +1249,11 @@ void TargetX86Base<Machine>::lowerShift64(InstArithmetic::OpKind Op,
       _sar(T_3, T_1);
       _test(T_1, BitTest);
       _br(Traits::Cond::Br_e, Label);
-      // T_2 and T_3 are being assigned again because of the intra-block
-      // control flow, so T_2 needs the _mov_nonkillable variant to avoid
-      // liveness problems. T_3 doesn't need special treatment because it is
-      // reassigned via _sar instead of _mov.
-      _mov_nonkillable(T_2, T_3);
+      // T_2 and T_3 are being assigned again because of the intra-block control
+      // flow, so T_2 needs the _mov_redefined variant to avoid liveness
+      // problems. T_3 doesn't need special treatment because it is reassigned
+      // via _sar instead of _mov.
+      _mov_redefined(T_2, T_3);
       _sar(T_3, SignExtend);
     } break;
     }
@@ -2615,7 +2609,7 @@ void TargetX86Base<Machine>::lowerFcmp(const InstFcmp *Inst) {
     }
     Constant *NonDefault =
         Ctx->getConstantInt32(!Traits::TableFcmp[Index].Default);
-    _mov_nonkillable(Dest, NonDefault);
+    _mov_redefined(Dest, NonDefault);
     Context.insert(Label);
   }
 }
@@ -2776,7 +2770,7 @@ TargetX86Base<Machine>::lowerIcmp64(const InstIcmp *Inst) {
   _cmp(Src0LoRM, Src1LoRI);
   _br(Traits::TableIcmp64[Index].C3, LabelTrue);
   Context.insert(LabelFalse);
-  _mov_nonkillable(Dest, Zero);
+  _mov_redefined(Dest, Zero);
   Context.insert(LabelTrue);
 }
 
@@ -3249,7 +3243,7 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
   case Intrinsics::Stackrestore: {
     Variable *esp =
         Func->getTarget()->getPhysicalRegister(Traits::RegisterSet::Reg_esp);
-    _mov_nonkillable(esp, Instr->getArg(0));
+    _mov_redefined(esp, Instr->getArg(0));
     return;
   }
   case Intrinsics::Trap:
@@ -4388,7 +4382,7 @@ void TargetX86Base<Machine>::lowerSelect(const InstSelect *Inst) {
     _mov(Dest, SrcT);
     _br(Cond, Label);
     SrcF = legalize(SrcF, Legal_Reg | Legal_Imm);
-    _mov_nonkillable(Dest, SrcF);
+    _mov_redefined(Dest, SrcF);
     Context.insert(Label);
     return;
   }
@@ -5224,7 +5218,7 @@ Type TargetX86Base<Machine>::firstTypeThatFitsSize(uint32_t Size,
 template <class Machine> void TargetX86Base<Machine>::postLower() {
   if (Ctx->getFlags().getOptLevel() == Opt_m1)
     return;
-  inferTwoAddress();
+  markRedefinitions();
 }
 
 template <class Machine>
@@ -5311,9 +5305,6 @@ Operand *TargetX86Base<Machine>::randomizeOrPoolImmediate(Constant *Immediate,
       Constant *Offset = Ctx->getConstantInt(IceType_i32, 0 - Cookie);
       _lea(Reg, Traits::X86OperandMem::create(Func, IceType_i32, Reg, Offset,
                                               nullptr, 0));
-      // make sure liveness analysis won't kill this variable, otherwise a
-      // liveness assertion will be triggered.
-      _set_dest_nonkillable();
       if (Immediate->getType() != IceType_i32) {
         Variable *TruncReg = makeReg(Immediate->getType(), RegNum);
         _mov(TruncReg, Reg);
@@ -5400,11 +5391,6 @@ TargetX86Base<Machine>::randomizeOrPoolImmediate(
         // use-def chain. So we add RegNum argument here.
         Variable *RegTemp = makeReg(MemOperand->getOffset()->getType(), RegNum);
         _lea(RegTemp, TempMemOperand);
-        // As source operand doesn't use the dstreg, we don't need to add
-        // _set_dest_nonkillable(). But if we use the same Dest Reg, that is,
-        // with RegNum assigned, we should add this _set_dest_nonkillable()
-        if (RegNum != Variable::NoRegister)
-          _set_dest_nonkillable();
 
         typename Traits::X86OperandMem *NewMemOperand =
             Traits::X86OperandMem::create(Func, MemOperand->getType(), RegTemp,
@@ -5457,7 +5443,6 @@ TargetX86Base<Machine>::randomizeOrPoolImmediate(
                   Func, MemOperand->getType(), MemOperand->getBase(), nullptr,
                   RegTemp, 0, MemOperand->getSegmentRegister());
           _lea(RegTemp, CalculateOperand);
-          _set_dest_nonkillable();
         }
         typename Traits::X86OperandMem *NewMemOperand =
             Traits::X86OperandMem::create(Func, MemOperand->getType(), RegTemp,

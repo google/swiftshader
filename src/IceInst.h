@@ -92,8 +92,8 @@ public:
 
   bool hasSideEffects() const { return HasSideEffects; }
 
-  bool isDestNonKillable() const { return IsDestNonKillable; }
-  void setDestNonKillable() { IsDestNonKillable = true; }
+  bool isDestRedefined() const { return IsDestRedefined; }
+  void setDestRedefined() { IsDestRedefined = true; }
 
   Variable *getDest() const { return Dest; }
 
@@ -192,10 +192,15 @@ protected:
   /// a volatile load that can't be removed even if its Dest variable is not
   /// live.
   bool HasSideEffects = false;
-  /// IsDestNonKillable means that liveness analysis shouldn't consider this
-  /// instruction to kill the Dest variable. This is used when lowering produces
-  /// two assignments to the same variable.
-  bool IsDestNonKillable = false;
+  /// IsDestRedefined indicates that this instruction is not the first
+  /// definition of Dest in the basic block.  The effect is that liveness
+  /// analysis shouldn't consider this instruction to be the start of Dest's
+  /// live range; rather, there is some other instruction earlier in the basic
+  /// block with the same Dest.  This is maintained because liveness analysis
+  /// has an invariant (primarily for performance reasons) that any Variable's
+  /// live range recorded in a basic block has at most one start and at most one
+  /// end.
+  bool IsDestRedefined = false;
 
   Variable *Dest;
   const SizeT MaxSrcs; // only used for assert

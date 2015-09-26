@@ -658,7 +658,7 @@ void TargetMIPS32::postLower() {
   if (Ctx->getFlags().getOptLevel() == Opt_m1)
     return;
   // Find two-address non-SSA instructions where Dest==Src0, and set the
-  // DestNonKillable flag to keep liveness analysis consistent.
+  // IsDestRedefined flag to keep liveness analysis consistent.
   UnimplementedError(Func->getContext()->getFlags());
 }
 

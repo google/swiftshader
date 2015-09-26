@@ -132,6 +132,35 @@ void LinearScan::initForGlobal() {
   }
 }
 
+// Validate the integrity of the live ranges.  If there are any errors, it
+// prints details and returns false.  On success, it returns true.
+bool LinearScan::livenessValidateIntervals(
+    const DefUseErrorList &DefsWithoutUses,
+    const DefUseErrorList &UsesBeforeDefs,
+    const CfgVector<InstNumberT> &LRBegin,
+    const CfgVector<InstNumberT> &LREnd) {
+  if (DefsWithoutUses.empty() && UsesBeforeDefs.empty())
+    return true;
+
+  if (!BuildDefs::dump())
+    return false;
+
+  const VarList &Vars = Func->getVariables();
+  OstreamLocker L(Ctx);
+  Ostream &Str = Ctx->getStrDump();
+  for (SizeT VarNum : DefsWithoutUses) {
+    Variable *Var = Vars[VarNum];
+    Str << "LR def without use, instruction " << LRBegin[VarNum]
+        << ", variable " << Var->getName(Func) << "\n";
+  }
+  for (SizeT VarNum : UsesBeforeDefs) {
+    Variable *Var = Vars[VarNum];
+    Str << "LR use before def, instruction " << LREnd[VarNum] << ", variable "
+        << Var->getName(Func) << "\n";
+  }
+  return false;
+}
+
 // Prepare for very simple register allocation of only infinite-weight
 // Variables while respecting pre-colored Variables. Some properties we take
 // advantage of:
@@ -168,10 +197,21 @@ void LinearScan::initForInfOnly() {
   // range for each variable that is pre-colored or infinite weight.
   CfgVector<InstNumberT> LRBegin(Vars.size(), Inst::NumberSentinel);
   CfgVector<InstNumberT> LREnd(Vars.size(), Inst::NumberSentinel);
+  DefUseErrorList DefsWithoutUses, UsesBeforeDefs;
   for (CfgNode *Node : Func->getNodes()) {
     for (Inst &Inst : Node->getInsts()) {
       if (Inst.isDeleted())
         continue;
+      FOREACH_VAR_IN_INST(Var, Inst) {
+        if (Var->getIgnoreLiveness())
+          continue;
+        if (Var->hasReg() || Var->mustHaveReg()) {
+          SizeT VarNum = Var->getIndex();
+          LREnd[VarNum] = Inst.getNumber();
+          if (!Var->getIsArg() && LRBegin[VarNum] == Inst::NumberSentinel)
+            UsesBeforeDefs.push_back(VarNum);
+        }
+      }
       if (const Variable *Var = Inst.getDest()) {
         if (!Var->getIgnoreLiveness() &&
             (Var->hasReg() || Var->mustHaveReg())) {
@@ -181,12 +221,6 @@ void LinearScan::initForInfOnly() {
           }
         }
       }
-      FOREACH_VAR_IN_INST(Var, Inst) {
-        if (Var->getIgnoreLiveness())
-          continue;
-        if (Var->hasReg() || Var->mustHaveReg())
-          LREnd[Var->getIndex()] = Inst.getNumber();
-      }
     }
   }
 
@@ -195,7 +229,10 @@ void LinearScan::initForInfOnly() {
   for (SizeT i = 0; i < Vars.size(); ++i) {
     Variable *Var = Vars[i];
     if (LRBegin[i] != Inst::NumberSentinel) {
-      assert(LREnd[i] != Inst::NumberSentinel);
+      if (LREnd[i] == Inst::NumberSentinel) {
+        DefsWithoutUses.push_back(i);
+        continue;
+      }
       Unhandled.push_back(Var);
       Var->resetLiveRange();
       Var->addLiveRange(LRBegin[i], LREnd[i]);
@@ -207,6 +244,30 @@ void LinearScan::initForInfOnly() {
       }
       --NumVars;
     }
+  }
+
+  if (!livenessValidateIntervals(DefsWithoutUses, UsesBeforeDefs, LRBegin,
+                                 LREnd)) {
+    llvm::report_fatal_error("initForInfOnly: Liveness error");
+    return;
+  }
+
+  if (!DefsWithoutUses.empty() || !UsesBeforeDefs.empty()) {
+    if (BuildDefs::dump()) {
+      OstreamLocker L(Ctx);
+      Ostream &Str = Ctx->getStrDump();
+      for (SizeT VarNum : DefsWithoutUses) {
+        Variable *Var = Vars[VarNum];
+        Str << "LR def without use, instruction " << LRBegin[VarNum]
+            << ", variable " << Var->getName(Func) << "\n";
+      }
+      for (SizeT VarNum : UsesBeforeDefs) {
+        Variable *Var = Vars[VarNum];
+        Str << "LR use before def, instruction " << LREnd[VarNum]
+            << ", variable " << Var->getName(Func) << "\n";
+      }
+    }
+    llvm::report_fatal_error("initForInfOnly: Liveness error");
   }
   // This isn't actually a fatal condition, but it would be nice to know if we
   // somehow pre-calculated Unhandled's size wrong.

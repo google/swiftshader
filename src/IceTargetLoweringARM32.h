@@ -282,10 +282,10 @@ protected:
     assert(Dest != nullptr);
     Context.insert(InstARM32Mov::create(Func, Dest, Src0, Pred));
   }
-  void _mov_nonkillable(Variable *Dest, Operand *Src0,
-                        CondARM32::Cond Pred = CondARM32::AL) {
+  void _mov_redefined(Variable *Dest, Operand *Src0,
+                      CondARM32::Cond Pred = CondARM32::AL) {
     Inst *NewInst = InstARM32Mov::create(Func, Dest, Src0, Pred);
-    NewInst->setDestNonKillable();
+    NewInst->setDestRedefined();
     Context.insert(NewInst);
   }
   /// The Operand can only be a 16-bit immediate or a ConstantRelocatable (with

@@ -170,7 +170,7 @@ bool Inst::liveness(InstNumberT InstNumber, LivenessBV &Live,
   if (Dest) {
     SizeT VarNum = Liveness->getLiveIndex(Dest->getIndex());
     if (Live[VarNum]) {
-      if (!isDestNonKillable()) {
+      if (!isDestRedefined()) {
         Live[VarNum] = false;
         if (LiveBegin && Liveness->getRangeMask(Dest->getIndex())) {
           LiveBegin->push_back(std::make_pair(VarNum, InstNumber));

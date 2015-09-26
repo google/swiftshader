@@ -374,7 +374,7 @@ protected:
     // Mark eax as possibly modified by cmpxchg.
     Context.insert(
         InstFakeDef::create(Func, Eax, llvm::dyn_cast<Variable>(DestOrAddr)));
-    _set_dest_nonkillable();
+    _set_dest_redefined();
     Context.insert(InstFakeUse::create(Func, Eax));
   }
   void _cmpxchg8b(typename Traits::X86OperandMem *Addr, Variable *Edx,
@@ -383,10 +383,10 @@ protected:
                                                     Ebx, Locked));
     // Mark edx, and eax as possibly modified by cmpxchg8b.
     Context.insert(InstFakeDef::create(Func, Edx));
-    _set_dest_nonkillable();
+    _set_dest_redefined();
     Context.insert(InstFakeUse::create(Func, Edx));
     Context.insert(InstFakeDef::create(Func, Eax));
-    _set_dest_nonkillable();
+    _set_dest_redefined();
     Context.insert(InstFakeUse::create(Func, Eax));
   }
   void _cvt(Variable *Dest, Operand *Src0,
@@ -447,9 +447,9 @@ protected:
       Dest = makeReg(Src0->getType(), RegNum);
     Context.insert(Traits::Insts::Mov::create(Func, Dest, Src0));
   }
-  void _mov_nonkillable(Variable *Dest, Operand *Src0) {
+  void _mov_redefined(Variable *Dest, Operand *Src0) {
     Inst *NewInst = Traits::Insts::Mov::create(Func, Dest, Src0);
-    NewInst->setDestNonKillable();
+    NewInst->setDestRedefined();
     Context.insert(NewInst);
   }
   void _movd(Variable *Dest, Operand *Src0) {
@@ -618,7 +618,7 @@ protected:
     // a FakeDef followed by a FakeUse.
     Context.insert(
         InstFakeDef::create(Func, Src, llvm::dyn_cast<Variable>(Dest)));
-    _set_dest_nonkillable();
+    _set_dest_redefined();
     Context.insert(InstFakeUse::create(Func, Src));
   }
   void _xchg(Operand *Dest, Variable *Src) {
@@ -627,7 +627,7 @@ protected:
     // FakeDef/FakeUse.
     Context.insert(
         InstFakeDef::create(Func, Src, llvm::dyn_cast<Variable>(Dest)));
-    _set_dest_nonkillable();
+    _set_dest_redefined();
     Context.insert(InstFakeUse::create(Func, Src));
   }
   void _xor(Variable *Dest, Operand *Src0) {

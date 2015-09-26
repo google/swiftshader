@@ -681,6 +681,61 @@ bool CfgNode::liveness(Liveness *Liveness) {
   return Changed;
 }
 
+// Validate the integrity of the live ranges in this block.  If there are any
+// errors, it prints details and returns false.  On success, it returns true.
+bool CfgNode::livenessValidateIntervals(Liveness *Liveness) {
+  if (!BuildDefs::asserts())
+    return true;
+
+  // Verify there are no duplicates.
+  auto ComparePair =
+      [](const LiveBeginEndMapEntry &A, const LiveBeginEndMapEntry &B) {
+        return A.first == B.first;
+      };
+  LiveBeginEndMap &MapBegin = *Liveness->getLiveBegin(this);
+  LiveBeginEndMap &MapEnd = *Liveness->getLiveEnd(this);
+  if (std::adjacent_find(MapBegin.begin(), MapBegin.end(), ComparePair) ==
+          MapBegin.end() &&
+      std::adjacent_find(MapEnd.begin(), MapEnd.end(), ComparePair) ==
+          MapEnd.end())
+    return true;
+
+  // There is definitely a liveness error.  All paths from here return false.
+  if (!BuildDefs::dump())
+    return false;
+
+  // Print all the errors.
+  if (BuildDefs::dump()) {
+    GlobalContext *Ctx = Func->getContext();
+    OstreamLocker L(Ctx);
+    Ostream &Str = Ctx->getStrDump();
+    if (Func->isVerbose()) {
+      Str << "Live range errors in the following block:\n";
+      dump(Func);
+    }
+    for (auto Start = MapBegin.begin();
+         (Start = std::adjacent_find(Start, MapBegin.end(), ComparePair)) !=
+         MapBegin.end();
+         ++Start) {
+      auto Next = Start + 1;
+      Str << "Duplicate LR begin, block " << getName() << ", instructions "
+          << Start->second << " & " << Next->second << ", variable "
+          << Liveness->getVariable(Start->first, this)->getName(Func) << "\n";
+    }
+    for (auto Start = MapEnd.begin();
+         (Start = std::adjacent_find(Start, MapEnd.end(), ComparePair)) !=
+         MapEnd.end();
+         ++Start) {
+      auto Next = Start + 1;
+      Str << "Duplicate LR end,   block " << getName() << ", instructions "
+          << Start->second << " & " << Next->second << ", variable "
+          << Liveness->getVariable(Start->first, this)->getName(Func) << "\n";
+    }
+  }
+
+  return false;
+}
+
 // Once basic liveness is complete, compute actual live ranges. It is assumed
 // that within a single basic block, a live range begins at most once and ends
 // at most once. This is certainly true for pure SSA form. It is also true once
@@ -698,16 +753,11 @@ void CfgNode::livenessAddIntervals(Liveness *Liveness, InstNumberT FirstInstNum,
   LiveBeginEndMap &MapEnd = *Liveness->getLiveEnd(this);
   std::sort(MapBegin.begin(), MapBegin.end());
   std::sort(MapEnd.begin(), MapEnd.end());
-  // Verify there are no duplicates.
-  auto ComparePair =
-      [](const LiveBeginEndMapEntry &A, const LiveBeginEndMapEntry &B) {
-        return A.first == B.first;
-      };
-  (void)ComparePair;
-  assert(std::adjacent_find(MapBegin.begin(), MapBegin.end(), ComparePair) ==
-         MapBegin.end());
-  assert(std::adjacent_find(MapEnd.begin(), MapEnd.end(), ComparePair) ==
-         MapEnd.end());
+
+  if (!livenessValidateIntervals(Liveness)) {
+    llvm::report_fatal_error("livenessAddIntervals: Liveness error");
+    return;
+  }
 
   LivenessBV LiveInAndOut = LiveIn;
   LiveInAndOut &= LiveOut;
@@ -875,11 +925,11 @@ void emitLiveRangesEnded(Ostream &Str, const Cfg *Func, const Inst *Instr,
   bool First = true;
   Variable *Dest = Instr->getDest();
   // Normally we increment the live count for the dest register. But we
-  // shouldn't if the instruction's IsDestNonKillable flag is set, because this
+  // shouldn't if the instruction's IsDestRedefined flag is set, because this
   // means that the target lowering created this instruction as a non-SSA
   // assignment; i.e., a different, previous instruction started the dest
   // variable's live range.
-  if (!Instr->isDestNonKillable() && Dest && Dest->hasReg())
+  if (!Instr->isDestRedefined() && Dest && Dest->hasReg())
     ++LiveRegCount[Dest->getRegNum()];
   FOREACH_VAR_IN_INST(Var, *Instr) {
     bool ShouldReport = Instr->isLastUse(Var);

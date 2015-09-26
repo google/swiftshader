@@ -287,9 +287,10 @@ protected:
   /// before returning.
   virtual void postLower() {}
 
-  /// Find two-address non-SSA instructions and set the DestNonKillable flag to
-  /// keep liveness analysis consistent.
-  void inferTwoAddress();
+  /// Find (non-SSA) instructions where the Dest variable appears in some source
+  /// operand, and set the IsDestRedefined flag.  This keeps liveness analysis
+  /// consistent.
+  void markRedefinitions();
 
   /// Make a pass over the Cfg to determine which variables need stack slots and
   /// place them in a sorted list (SortedSpilledVariables). Among those, vars,
@@ -348,9 +349,7 @@ protected:
     Context.insert(InstBundleLock::create(Func, BundleOption));
   }
   void _bundle_unlock() { Context.insert(InstBundleUnlock::create(Func)); }
-  void _set_dest_nonkillable() {
-    Context.getLastInserted()->setDestNonKillable();
-  }
+  void _set_dest_redefined() { Context.getLastInserted()->setDestRedefined(); }
 
   bool shouldOptimizeMemIntrins();
 
