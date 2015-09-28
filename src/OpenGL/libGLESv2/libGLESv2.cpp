@@ -5928,7 +5928,7 @@ void TexParameterf(GLenum target, GLenum pname, GLfloat param)
 			}
 			break;
 		case GL_TEXTURE_IMMUTABLE_FORMAT:
-			if(clientVersion < 3 || !texture->setCompareMode((GLboolean)param))
+			if(clientVersion < 3 || !texture->setImmutableFormat((GLboolean)param))
 			{
 				return error(GL_INVALID_VALUE);
 			}
@@ -6082,8 +6082,9 @@ void TexParameteri(GLenum target, GLenum pname, GLint param)
 			{
 				return error(GL_INVALID_VALUE);
 			}
+			break;
 		case GL_TEXTURE_IMMUTABLE_FORMAT:
-			if(clientVersion < 3 || !texture->setCompareMode((GLboolean)param))
+			if(clientVersion < 3 || !texture->setImmutableFormat((GLboolean)param))
 			{
 				return error(GL_INVALID_VALUE);
 			}
