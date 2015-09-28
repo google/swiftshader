@@ -1598,7 +1598,7 @@ private:
     std::string Buffer;
     raw_string_ostream StrBuf(Buffer);
     StrBuf << InstructionName << " address not " << PtrType
-           << ". Found: " << *Op;
+           << ". Found: " << Op->getType();
     Error(StrBuf.str());
     return false;
   }
@@ -2047,6 +2047,24 @@ private:
     if (!LocalOperands.empty())
       return LocalOperands.front();
     return Context->getGlobalConstantByID(0);
+  }
+
+  void verifyCallArgTypeMatches(Ice::FunctionDeclaration *Fcn,
+                                Ice::SizeT Index, Ice::Type ArgType,
+                                Ice::Type ParamType) {
+    if (ArgType != ParamType) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Argument " << (Index + 1)  << " of " << printName(Fcn)
+             << " expects " << ParamType << ". Found: " << ArgType;
+      Error(StrBuf.str());
+    }
+  }
+
+  const Ice::IceString printName(Ice::FunctionDeclaration *Fcn) {
+    if (Fcn)
+      return Fcn->getName();
+    return "function";
   }
 };
 
@@ -2660,44 +2678,114 @@ void FunctionParser::ProcessRecord() {
       ParamsStartIndex = 3;
     }
 
-    // Extract out the called function and its return type.
     uint32_t CalleeIndex = convertRelativeToAbsIndex(Values[1], BaseIndex);
     Ice::Operand *Callee = getOperand(CalleeIndex);
+
+    // Pull out signature/return type of call (if possible).
+    Ice::FunctionDeclaration *Fcn = nullptr;
     const Ice::FuncSigType *Signature = nullptr;
     Ice::Type ReturnType = Ice::IceType_void;
     const Ice::Intrinsics::FullIntrinsicInfo *IntrinsicInfo = nullptr;
-    // Name of function if a direct call/intrinsic. Null otherwise.
-    Ice::FunctionDeclaration *Fcn = nullptr;
     if (Record.GetCode() == naclbitc::FUNC_CODE_INST_CALL) {
       Fcn = Context->getFunctionByID(CalleeIndex);
       Signature = &Fcn->getSignature();
       ReturnType = Signature->getReturnType();
+      Ice::SizeT NumParams = Values.size() - ParamsStartIndex;
+      if (NumParams != Signature->getNumArgs()) {
+        std::string Buffer;
+        raw_string_ostream StrBuf(Buffer);
+        StrBuf << "Call to " << printName(Fcn) << " has " << NumParams
+               << " parameters. Signature expects: " << Signature->getNumArgs();
+        Error(StrBuf.str());
+        if (ReturnType != Ice::IceType_void)
+          setNextLocalInstIndex(nullptr);
+        return;
+      }
 
       // Check if this direct call is to an Intrinsic (starts with "llvm.")
       bool BadIntrinsic;
-      const Ice::IceString &Name = Fcn->getName();
       IntrinsicInfo = getTranslator().getContext()->getIntrinsicsInfo().find(
-          Name, BadIntrinsic);
+          Fcn->getName(), BadIntrinsic);
       if (BadIntrinsic) {
         std::string Buffer;
         raw_string_ostream StrBuf(Buffer);
-        StrBuf << "Invalid PNaCl intrinsic call to " << Name;
+        StrBuf << "Invalid PNaCl intrinsic call to " << Fcn->getName();
+        Error(StrBuf.str());
+        IntrinsicInfo = nullptr;
+      }
+      if (IntrinsicInfo && IntrinsicInfo->getNumArgs() != NumParams) {
+        std::string Buffer;
+        raw_string_ostream StrBuf(Buffer);
+        StrBuf << "Call to " << printName(Fcn) << " has " << NumParams
+               << " parameters. Intrinsic expects: " << Signature->getNumArgs();
         Error(StrBuf.str());
         if (ReturnType != Ice::IceType_void)
-          appendErrorInstruction(ReturnType);
+          setNextLocalInstIndex(nullptr);
         return;
       }
-    } else {
+    } else { // Record.GetCode() == naclbitc::FUNC_CODE_INST_CALL_INDIRECT
+      // There is no signature. Assume defined by parameter types.
       ReturnType = Context->getSimpleTypeByID(Values[2]);
+      if (!isIRGenerationDisabled() && Callee != nullptr)
+        isValidPointerType(Callee, "Call indirect");
+    }
+
+    if (Callee == nullptr && !isIRGenerationDisabled())
+      return;
+
+    // Extract out the the call parameters.
+    SmallVector<Ice::Operand*, 8> Params;
+    for (Ice::SizeT Index = ParamsStartIndex; Index < Values.size(); ++Index) {
+      Ice::Operand *Op = getRelativeOperand(Values[Index], BaseIndex);
+      if (isIRGenerationDisabled())
+        continue;
+      if (Op == nullptr) {
+        std::string Buffer;
+        raw_string_ostream StrBuf(Buffer);
+        StrBuf << "Parameter " << (Index - ParamsStartIndex + 1)
+               << " of " << printName(Fcn) << " is not defined";
+        Error(StrBuf.str());
+        if (ReturnType != Ice::IceType_void)
+          setNextLocalInstIndex(nullptr);
+        return;
+      }
+      Params.push_back(Op);
     }
 
     // Check return type.
     if (IntrinsicInfo == nullptr && !isCallReturnType(ReturnType)) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Return type of called function is invalid: " << ReturnType;
+      StrBuf << "Return type of " << printName(Fcn) << " is invalid: "
+             << ReturnType;
       Error(StrBuf.str());
       ReturnType = Ice::IceType_i32;
+    }
+
+    if (isIRGenerationDisabled()) {
+      if (ReturnType != Ice::IceType_void)
+        setNextLocalInstIndex(nullptr);
+      return;
+    }
+
+    // Type check call parameters.
+    for (Ice::SizeT Index = 0; Index < Params.size(); ++Index) {
+      Ice::Operand *Op = Params[Index];
+      Ice::Type OpType = Op->getType();
+      if (Signature)
+        verifyCallArgTypeMatches(
+            Fcn, Index, OpType, Signature->getArgType(Index));
+      if (IntrinsicInfo) {
+        verifyCallArgTypeMatches(Fcn, Index, OpType,
+                                 IntrinsicInfo->getArgType(Index));
+      } else if (!isCallParameterType(OpType)) {
+        std::string Buffer;
+        raw_string_ostream StrBuf(Buffer);
+        StrBuf << "Argument " << *Op << " of " << printName(Fcn)
+               << " has invalid type: " << Op->getType();
+        Error(StrBuf.str());
+        appendErrorInstruction(ReturnType);
+      }
     }
 
     // Extract call information.
@@ -2709,127 +2797,25 @@ void FunctionParser::ProcessRecord() {
       StrBuf << "Function call calling convention value " << (CCInfo >> 1)
              << " not understood.";
       Error(StrBuf.str());
-      if (ReturnType != Ice::IceType_void)
-        appendErrorInstruction(ReturnType);
+      appendErrorInstruction(ReturnType);
       return;
     }
     bool IsTailCall = static_cast<bool>(CCInfo & 1);
-    Ice::SizeT NumParams = Values.size() - ParamsStartIndex;
-    if (Signature && NumParams != Signature->getNumArgs()) {
-      std::string Buffer;
-      raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Call has " << NumParams
-             << " parameters. Signature expects: " << Signature->getNumArgs();
-      Error(StrBuf.str());
-      // Error recover by only checking parameters in both signature and call.
-      NumParams = std::min(NumParams, Signature->getNumArgs());
-    }
-    if (isIRGenerationDisabled()) {
-      assert(Callee == nullptr);
-      // Check that parameters are defined.
-      for (Ice::SizeT ParamIndex = 0; ParamIndex < NumParams; ++ParamIndex) {
-        assert(getRelativeOperand(Values[ParamsStartIndex + ParamIndex],
-                                  BaseIndex) == nullptr);
-      }
-      // Define value slot only if value returned.
-      if (ReturnType != Ice::IceType_void)
-        setNextLocalInstIndex(nullptr);
-      return;
-    }
+
     // Create the call instruction.
     Ice::Variable *Dest = (ReturnType == Ice::IceType_void)
                               ? nullptr
                               : getNextInstVar(ReturnType);
     std::unique_ptr<Ice::InstCall> Inst;
     if (IntrinsicInfo) {
-      Inst.reset(Ice::InstIntrinsicCall::create(Func.get(), NumParams, Dest,
+      Inst.reset(Ice::InstIntrinsicCall::create(Func.get(), Params.size(), Dest,
                                                 Callee, IntrinsicInfo->Info));
     } else {
-      Inst.reset(Ice::InstCall::create(Func.get(), NumParams, Dest, Callee,
+      Inst.reset(Ice::InstCall::create(Func.get(), Params.size(), Dest, Callee,
                                        IsTailCall));
     }
-
-    // Add parameters.
-    for (Ice::SizeT ParamIndex = 0; ParamIndex < NumParams; ++ParamIndex) {
-      Ice::Operand *Op =
-          getRelativeOperand(Values[ParamsStartIndex + ParamIndex], BaseIndex);
-      if (Op == nullptr) {
-        std::string Buffer;
-        raw_string_ostream StrBuf(Buffer);
-        StrBuf << "Parameter " << ParamIndex << " of call not defined";
-        Error(StrBuf.str());
-        if (ReturnType != Ice::IceType_void)
-          appendErrorInstruction(ReturnType);
-        return;
-      }
-
-      // Check that parameter type is valid.
-      if (Signature) {
-        if (Op->getType() != Signature->getArgType(ParamIndex)) {
-          std::string Buffer;
-          raw_string_ostream StrBuf(Buffer);
-          StrBuf << "Call argument " << *Op << " expects "
-                 << Signature->getArgType(ParamIndex)
-                 << ". Found: " << Op->getType();
-          Error(StrBuf.str());
-        } else if (IntrinsicInfo == nullptr &&
-                   !isCallParameterType(Op->getType())) {
-          // TODO(kschimpf): Move this check to the function declaration, so
-          // that it only needs to be checked once.
-          std::string Buffer;
-          raw_string_ostream StrBuf(Buffer);
-          StrBuf << "Call argument " << *Op
-                 << " matches declaration but has invalid type: "
-                 << Op->getType();
-          Error(StrBuf.str());
-        }
-      } else if (!isCallParameterType(Op->getType())) {
-        std::string Buffer;
-        raw_string_ostream StrBuf(Buffer);
-        StrBuf << "Call argument " << *Op
-               << " has invalid type: " << Op->getType();
-        Error(StrBuf.str());
-      }
-      Inst->addArg(Op);
-    }
-
-    // If intrinsic call, validate call signature.
-    if (IntrinsicInfo) {
-      Ice::SizeT ArgIndex = 0;
-      switch (IntrinsicInfo->validateCall(Inst.get(), ArgIndex)) {
-      case Ice::Intrinsics::IsValidCall:
-        break;
-      case Ice::Intrinsics::BadReturnType: {
-        std::string Buffer;
-        raw_string_ostream StrBuf(Buffer);
-        StrBuf << "Intrinsic " << Fcn->getName() << " expects return type"
-               << IntrinsicInfo->getReturnType()
-               << ". Found: " << Inst->getReturnType();
-        Error(StrBuf.str());
-        break;
-      }
-      case Ice::Intrinsics::WrongNumOfArgs: {
-        std::string Buffer;
-        raw_string_ostream StrBuf(Buffer);
-        StrBuf << "Intrinsic " << Fcn->getName() << " expects "
-               << IntrinsicInfo->getNumArgs()
-               << ". Found: " << Inst->getNumArgs();
-        Error(StrBuf.str());
-        break;
-      }
-      case Ice::Intrinsics::WrongCallArgType: {
-        std::string Buffer;
-        raw_string_ostream StrBuf(Buffer);
-        StrBuf << "Intrinsic " << Fcn->getName() << " expects "
-               << IntrinsicInfo->getArgType(ArgIndex) << " for argument "
-               << (ArgIndex + 1)
-               << ". Found: " << Inst->getArg(ArgIndex)->getType();
-        Error(StrBuf.str());
-        break;
-      }
-      }
-    }
-
+    for (Ice::Operand *Param : Params)
+      Inst->addArg(Param);
     CurrentNode->appendInst(Inst.release());
     return;
   }

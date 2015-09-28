@@ -9,11 +9,13 @@
 ; CHECK: Module valuesymtab not allowed after function blocks
 
 ; RUN: pnacl-bcfuzz -bitcode-as-text %p/Inputs/symtab-after-fcn.tbc \
-; RUN:   -output - | pnacl-bcdis -no-records | FileCheck -check-prefix=ASM %s
+; RUN:   -output - | not pnacl-bcdis -no-records \
+; RUN:             | FileCheck -check-prefix=ASM %s
 
 ; ASM: module {  // BlockID = 8
 ; ASM:   function void @f0() {  // BlockID = 12
 ; ASM:   }
 ; ASM:   valuesymtab {  // BlockID = 14
+; ASM: Error({{.*}}): Module symbol table must appear before function blocks
 ; ASM:   }
 ; ASM: }

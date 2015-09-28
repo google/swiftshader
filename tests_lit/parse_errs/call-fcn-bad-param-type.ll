@@ -10,6 +10,6 @@ declare void @f(i8);
 define void @Test() {
 entry:
   call void @f(i8 1)
-; CHECK: Call argument 1 matches declaration but has invalid type: i8
+; CHECK: Argument 1 of f has invalid type: i8
   ret void
 }

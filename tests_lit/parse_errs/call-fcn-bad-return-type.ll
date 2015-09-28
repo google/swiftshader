@@ -10,7 +10,7 @@ declare i1 @f();
 define void @Test() {
 entry:
   %v = call i1 @f()
-; CHECK: Return type of called function is invalid: i1
+; CHECK: Return type of f is invalid: i1
   ret void
 }
 

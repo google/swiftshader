@@ -7,7 +7,7 @@
 ; RUN:     -bitcode-format=pnacl -notranslate -build-on-read 2>&1 \
 ; RUN:   | FileCheck %s
 
-; CHECK: Intrinsic llvm.nacl.setjmp expects i32 for argument 1. Found: double
+; CHECK: Argument 1 of llvm.nacl.setjmp expects i32. Found: double
 
 ; RUN: pnacl-bcfuzz -bitcode-as-text \
 ; RUN:     %p/Inputs/bad-intrinsic-arg.tbc -output - \
