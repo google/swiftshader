@@ -593,5 +593,5 @@ entry:
 ; ARM32-LABEL: int64BitcastToDoubleConst
 ; ARM32-DAG: movw [[REG0:r[0-9]+]], #57336
 ; ARM32-DAG: movt [[REG0]], #137
-; ARM32-DAG: movw [[REG1:r[0-9]+]], #0
+; ARM32-DAG: mov [[REG1:r[0-9]+]], #0
 ; ARM32-DAG: vmov d{{[0-9]+}}, [[REG0]], [[REG1]]

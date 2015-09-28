@@ -280,13 +280,27 @@ protected:
     // an assert around just in case there is some untested code path where Dest
     // is nullptr.
     assert(Dest != nullptr);
-    Context.insert(InstARM32Mov::create(Func, Dest, Src0, Pred));
+    auto *Instr = InstARM32Mov::create(Func, Dest, Src0, Pred);
+
+    Context.insert(Instr);
+    if (Instr->isMultiDest()) {
+      // If Instr is multi-dest, then Dest must be a Variable64On32. We add a
+      // fake-def for Instr.DestHi here.
+      assert(llvm::isa<Variable64On32>(Dest));
+      Context.insert(InstFakeDef::create(Func, Instr->getDestHi()));
+    }
   }
   void _mov_redefined(Variable *Dest, Operand *Src0,
                       CondARM32::Cond Pred = CondARM32::AL) {
-    Inst *NewInst = InstARM32Mov::create(Func, Dest, Src0, Pred);
-    NewInst->setDestRedefined();
-    Context.insert(NewInst);
+    auto *Instr = InstARM32Mov::create(Func, Dest, Src0, Pred);
+    Instr->setDestRedefined();
+    Context.insert(Instr);
+    if (Instr->isMultiDest()) {
+      // If Instr is multi-dest, then Dest must be a Variable64On32. We add a
+      // fake-def for Instr.DestHi here.
+      assert(llvm::isa<Variable64On32>(Dest));
+      Context.insert(InstFakeDef::create(Func, Instr->getDestHi()));
+    }
   }
   /// The Operand can only be a 16-bit immediate or a ConstantRelocatable (with
   /// an upper16 relocation).

@@ -380,6 +380,28 @@ InstARM32Vcvt::InstARM32Vcvt(Cfg *Func, Variable *Dest, Variable *Src,
   addSource(Src);
 }
 
+InstARM32Mov::InstARM32Mov(Cfg *Func, Variable *Dest, Operand *Src,
+                           CondARM32::Cond Predicate)
+    : InstARM32Pred(Func, InstARM32::Mov, 2, Dest, Predicate) {
+  auto *Dest64 = llvm::dyn_cast<Variable64On32>(Dest);
+  auto *Src64 = llvm::dyn_cast<Variable64On32>(Src);
+
+  assert(Dest64 == nullptr || Src64 == nullptr);
+
+  if (Dest64 != nullptr) {
+    // this-> is needed below because there is a parameter named Dest.
+    this->Dest = Dest64->getLo();
+    DestHi = Dest64->getHi();
+  }
+
+  if (Src64 == nullptr) {
+    addSource(Src);
+  } else {
+    addSource(Src64->getLo());
+    addSource(Src64->getHi());
+  }
+}
+
 InstARM32Vcmp::InstARM32Vcmp(Cfg *Func, Variable *Src0, Variable *Src1,
                              CondARM32::Cond Predicate)
     : InstARM32Pred(Func, InstARM32::Vcmp, 2, nullptr, Predicate) {
@@ -451,19 +473,19 @@ void InstARM32Mov::emitMultiDestSingleSource(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
-  auto *Dest = llvm::cast<Variable64On32>(getDest());
-  Operand *Src = getSrc(0);
+  Variable *DestLo = getDest();
+  Variable *DestHi = getDestHi();
+  auto *Src = llvm::cast<Variable>(getSrc(0));
 
-  assert(Dest->getType() == IceType_i64);
-  assert(Dest->getHi()->hasReg());
-  assert(Dest->getLo()->hasReg());
-  assert(!llvm::isa<OperandARM32Mem>(Src));
+  assert(DestHi->hasReg());
+  assert(DestLo->hasReg());
+  assert(llvm::isa<Variable>(Src) && Src->hasReg());
 
   Str << "\t"
       << "vmov" << getPredicate() << "\t";
-  Dest->getLo()->emit(Func);
+  DestLo->emit(Func);
   Str << ", ";
-  Dest->getHi()->emit(Func);
+  DestHi->emit(Func);
   Str << ", ";
   Src->emit(Func);
 }
@@ -473,20 +495,20 @@ void InstARM32Mov::emitSingleDestMultiSource(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   Variable *Dest = getDest();
-  auto *Src = llvm::cast<Variable64On32>(getSrc(0));
+  Variable *SrcLo = llvm::cast<Variable>(getSrc(0));
+  Variable *SrcHi = llvm::cast<Variable>(getSrc(1));
 
-  assert(Src->getType() == IceType_i64);
-  assert(Src->getHi()->hasReg());
-  assert(Src->getLo()->hasReg());
+  assert(SrcHi->hasReg());
+  assert(SrcLo->hasReg());
   assert(Dest->hasReg());
 
   Str << "\t"
       << "vmov" << getPredicate() << "\t";
   Dest->emit(Func);
   Str << ", ";
-  Src->getLo()->emit(Func);
+  SrcLo->emit(Func);
   Str << ", ";
-  Src->getHi()->emit(Func);
+  SrcHi->emit(Func);
 }
 
 namespace {
@@ -583,28 +605,20 @@ void InstARM32Mov::emitIAS(const Cfg *Func) const {
 void InstARM32Mov::dump(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
-  assert(getSrcSize() == 1);
+  assert(getSrcSize() == 1 || getSrcSize() == 2);
   Ostream &Str = Func->getContext()->getStrDump();
   Variable *Dest = getDest();
-  if (auto *Dest64 = llvm::dyn_cast<Variable64On32>(Dest)) {
-    Dest64->getLo()->dump(Func);
+  Variable *DestHi = getDestHi();
+  Dest->dump(Func);
+  if (DestHi) {
     Str << ", ";
-    Dest64->getHi()->dump(Func);
-  } else {
-    Dest->dump(Func);
+    DestHi->dump(Func);
   }
 
   dumpOpcodePred(Str, " = mov", getDest()->getType());
   Str << " ";
 
-  Operand *Src = getSrc(0);
-  if (auto *Src64 = llvm::dyn_cast<Variable64On32>(Src)) {
-    Src64->getLo()->dump(Func);
-    Str << ", ";
-    Src64->getHi()->dump(Func);
-  } else {
-    Src->dump(Func);
-  }
+  dumpSources(Func);
 }
 
 void InstARM32Br::emit(const Cfg *Func) const {

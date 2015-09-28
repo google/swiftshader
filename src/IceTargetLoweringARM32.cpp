@@ -441,13 +441,7 @@ void TargetARM32::emitVariable(const Variable *Var) const {
       Offset += getStackAdjustment();
   }
   const Type VarTy = Var->getType();
-  // In general, no Variable64On32 should be emited in textual asm output. It
-  // turns out that some lowering sequences Fake-Def/Fake-Use such a variables.
-  // If they end up being assigned an illegal offset we get a runtime error. We
-  // liberally allow Variable64On32 to have illegal offsets because offsets
-  // don't matter in FakeDefs/FakeUses.
-  if (!llvm::isa<Variable64On32>(Var) &&
-      !isLegalVariableStackOffset(VarTy, Offset)) {
+  if (!isLegalVariableStackOffset(VarTy, Offset)) {
     llvm::report_fatal_error("Illegal stack offset");
   }
   Str << "[" << getRegName(BaseRegNum, VarTy);
@@ -684,8 +678,14 @@ void TargetARM32::addProlog(CfgNode *Node) {
   uint32_t SpillAreaAlignmentBytes = 0;
   // For now, we don't have target-specific variables that need special
   // treatment (no stack-slot-linked SpillVariable type).
-  std::function<bool(Variable *)> TargetVarHook =
-      [](Variable *) { return false; };
+  std::function<bool(Variable *)> TargetVarHook = [](Variable *Var) {
+    static constexpr bool AssignStackSlot = false;
+    static constexpr bool DontAssignStackSlot = !AssignStackSlot;
+    if (llvm::isa<Variable64On32>(Var)) {
+      return DontAssignStackSlot;
+    }
+    return AssignStackSlot;
+  };
 
   // Compute the list of spilled variables and bounds for GlobalsSize, etc.
   getVarStackSlotParams(SortedSpilledVariables, RegsUsed, &GlobalsSize,
@@ -1979,7 +1979,8 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
 }
 
 namespace {
-void forceHiLoInReg(Variable64On32 *Var) {
+void configureBitcastTemporary(Variable64On32 *Var) {
+  Var->setMustNotHaveReg();
   Var->getHi()->setMustHaveReg();
   Var->getLo()->setMustHaveReg();
 }
@@ -2265,15 +2266,12 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
       assert(Src0->getType() == IceType_f64);
       auto *T = llvm::cast<Variable64On32>(Func->makeVariable(IceType_i64));
       T->initHiLo(Func);
-      forceHiLoInReg(T);
+      configureBitcastTemporary(T);
       Variable *Src0R = legalizeToReg(Src0);
       _mov(T, Src0R);
-      Context.insert(InstFakeDef::create(Func, T->getLo()));
-      Context.insert(InstFakeDef::create(Func, T->getHi()));
       auto *Dest64On32 = llvm::cast<Variable64On32>(Dest);
       lowerAssign(InstAssign::create(Func, Dest64On32->getLo(), T->getLo()));
       lowerAssign(InstAssign::create(Func, Dest64On32->getHi(), T->getHi()));
-      Context.insert(InstFakeUse::create(Func, T));
       break;
     }
     case IceType_f64: {
@@ -2284,16 +2282,10 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
       assert(Src0->getType() == IceType_i64);
       auto *Src64 = llvm::cast<Variable64On32>(Func->makeVariable(IceType_i64));
       Src64->initHiLo(Func);
-      forceHiLoInReg(Src64);
-      Variable *T = Src64->getLo();
-      _mov(T, legalizeToReg(loOperand(Src0)));
-      T = Src64->getHi();
-      _mov(T, legalizeToReg(hiOperand(Src0)));
-      T = makeReg(IceType_f64);
-      Context.insert(InstFakeDef::create(Func, Src64));
+      configureBitcastTemporary(Src64);
+      lowerAssign(InstAssign::create(Func, Src64, Src0));
+      Variable *T = makeReg(IceType_f64);
       _mov(T, Src64);
-      Context.insert(InstFakeUse::create(Func, Src64->getLo()));
-      Context.insert(InstFakeUse::create(Func, Src64->getHi()));
       lowerAssign(InstAssign::create(Func, Dest, T));
       break;
     }

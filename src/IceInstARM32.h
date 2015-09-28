@@ -1133,26 +1133,24 @@ public:
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Mov); }
 
-  bool isMultiDest() const {
-    assert(getDest() != nullptr);
-    return llvm::isa<Variable64On32>(getDest());
-  }
+  bool isMultiDest() const { return DestHi != nullptr; }
 
   bool isMultiSource() const {
-    assert(getSrcSize() == 1);
-    return llvm::isa<Variable64On32>(getSrc(0));
+    assert(getSrcSize() == 1 || getSrcSize() == 2);
+    return getSrcSize() == 2;
   }
+
+  Variable *getDestHi() const { return DestHi; }
 
 private:
   InstARM32Mov(Cfg *Func, Variable *Dest, Operand *Src,
-               CondARM32::Cond Predicate)
-      : InstARM32Pred(Func, InstARM32::Mov, 1, Dest, Predicate) {
-    addSource(Src);
-  }
+               CondARM32::Cond Predicate);
 
   void emitMultiDestSingleSource(const Cfg *Func) const;
   void emitSingleDestMultiSource(const Cfg *Func) const;
   void emitSingleDestSingleSource(const Cfg *Func) const;
+
+  Variable *DestHi = nullptr;
 };
 
 class InstARM32Vcmp final : public InstARM32Pred {
