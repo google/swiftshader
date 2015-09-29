@@ -14,6 +14,37 @@
 #include "Constants.hpp"
 #include "Debug.hpp"
 
+namespace
+{
+	void applySwizzle(sw::SwizzleType swizzle, sw::Short4& s, const sw::Vector4s& c)
+	{
+		switch(swizzle)
+		{
+		case sw::SWIZZLE_RED:	s = c.x; break;
+		case sw::SWIZZLE_GREEN: s = c.y; break;
+		case sw::SWIZZLE_BLUE:  s = c.z; break;
+		case sw::SWIZZLE_ALPHA: s = c.w; break;
+		case sw::SWIZZLE_ZERO:  s = sw::Short4(0x0000, 0x0000, 0x0000, 0x0000); break;
+		case sw::SWIZZLE_ONE:   s = sw::Short4(0x1000, 0x1000, 0x1000, 0x1000); break;
+		default: ASSERT(false);
+		}
+	}
+
+	void applySwizzle(sw::SwizzleType swizzle, sw::Float4& f, const sw::Vector4f& c)
+	{
+		switch(swizzle)
+		{
+		case sw::SWIZZLE_RED:	f = c.x; break;
+		case sw::SWIZZLE_GREEN: f = c.y; break;
+		case sw::SWIZZLE_BLUE:  f = c.z; break;
+		case sw::SWIZZLE_ALPHA: f = c.w; break;
+		case sw::SWIZZLE_ZERO:  f = sw::Float4(0.0f, 0.0f, 0.0f, 0.0f); break;
+		case sw::SWIZZLE_ONE:   f = sw::Float4(1.0f, 1.0f, 1.0f, 1.0f); break;
+		default: ASSERT(false);
+		}
+	}
+}
+
 namespace sw
 {
 	SamplerCore::SamplerCore(Pointer<Byte> &constants, const Sampler::State &state) : constants(constants), state(state)
@@ -215,6 +246,19 @@ namespace sw
 				}
 			}
 		}
+
+		if(fixed12 &&
+		   ((state.swizzleR != SWIZZLE_RED) ||
+		    (state.swizzleG != SWIZZLE_GREEN) ||
+		    (state.swizzleB != SWIZZLE_BLUE) ||
+		    (state.swizzleA != SWIZZLE_ALPHA)))
+		{
+			const Vector4s col(c);
+			applySwizzle(state.swizzleR, c.x, col);
+			applySwizzle(state.swizzleG, c.y, col);
+			applySwizzle(state.swizzleB, c.z, col);
+			applySwizzle(state.swizzleA, c.w, col);
+		}
 	}
 
 	void SamplerCore::sampleTexture(Pointer<Byte> &texture, Vector4f &c, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, bool bias, bool gradients, bool lodProvided)
@@ -400,6 +444,18 @@ namespace sw
 					ASSERT(false);
 				}
 			}
+		}
+
+		if((state.swizzleR != SWIZZLE_RED) ||
+		   (state.swizzleG != SWIZZLE_GREEN) ||
+		   (state.swizzleB != SWIZZLE_BLUE) ||
+		   (state.swizzleA != SWIZZLE_ALPHA))
+		{
+			const Vector4f col(c);
+			applySwizzle(state.swizzleR, c.x, col);
+			applySwizzle(state.swizzleG, c.y, col);
+			applySwizzle(state.swizzleB, c.z, col);
+			applySwizzle(state.swizzleA, c.w, col);
 		}
 	}
 

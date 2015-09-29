@@ -822,6 +822,22 @@ namespace es2sw
 		return sw::ADDRESSING_WRAP;
 	}
 
+	sw::SwizzleType ConvertSwizzleType(GLenum swizzleType)
+	{
+		switch(swizzleType)
+		{
+		case GL_RED:   return sw::SWIZZLE_RED;
+		case GL_GREEN: return sw::SWIZZLE_GREEN;
+		case GL_BLUE:  return sw::SWIZZLE_BLUE;
+		case GL_ALPHA: return sw::SWIZZLE_ALPHA;
+		case GL_ZERO:  return sw::SWIZZLE_ZERO;
+		case GL_ONE:   return sw::SWIZZLE_ONE;
+		default: UNREACHABLE(swizzleType);
+		}
+
+		return sw::SWIZZLE_RED;
+	};
+
 	sw::CullMode ConvertCullMode(GLenum cullFace, GLenum frontFace)
 	{
 		switch(cullFace)

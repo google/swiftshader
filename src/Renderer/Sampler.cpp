@@ -87,6 +87,10 @@ namespace sw
 			state.mipmapFilter = mipmapFilter();
 			state.hasNPOTTexture = hasNPOTTexture();
 			state.sRGB = sRGB && Surface::isSRGBreadable(externalTextureFormat);
+			state.swizzleR = swizzleR;
+			state.swizzleG = swizzleG;
+			state.swizzleB = swizzleB;
+			state.swizzleA = swizzleA;
 
 			#if PERF_PROFILE
 				state.compressedFormat = Surface::isCompressed(externalTextureFormat);
@@ -301,6 +305,26 @@ namespace sw
 	void Sampler::setMaxAnisotropy(float maxAnisotropy)
 	{
 		texture.maxAnisotropy = maxAnisotropy;
+	}
+
+	void Sampler::setSwizzleR(SwizzleType swizzleR)
+	{
+		this->swizzleR = swizzleR;
+	}
+	
+	void Sampler::setSwizzleG(SwizzleType swizzleG)
+	{
+		this->swizzleG = swizzleG;
+	}
+
+	void Sampler::setSwizzleB(SwizzleType swizzleB)
+	{
+		this->swizzleB = swizzleB;
+	}
+
+	void Sampler::setSwizzleA(SwizzleType swizzleA)
+	{
+		this->swizzleA = swizzleA;
 	}
 
 	void Sampler::setFilterQuality(FilterType maximumFilterQuality)

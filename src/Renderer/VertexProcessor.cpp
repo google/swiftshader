@@ -545,6 +545,42 @@ namespace sw
 		else ASSERT(false);
 	}
 
+	void VertexProcessor::setSwizzleR(unsigned int sampler, SwizzleType swizzleR)
+	{
+		if(sampler < VERTEX_TEXTURE_IMAGE_UNITS)
+		{
+			context->sampler[TEXTURE_IMAGE_UNITS + sampler].setSwizzleR(swizzleR);
+		}
+		else ASSERT(false);
+	}
+
+	void VertexProcessor::setSwizzleG(unsigned int sampler, SwizzleType swizzleG)
+	{
+		if(sampler < VERTEX_TEXTURE_IMAGE_UNITS)
+		{
+			context->sampler[TEXTURE_IMAGE_UNITS + sampler].setSwizzleG(swizzleG);
+		}
+		else ASSERT(false);
+	}
+
+	void VertexProcessor::setSwizzleB(unsigned int sampler, SwizzleType swizzleB)
+	{
+		if(sampler < VERTEX_TEXTURE_IMAGE_UNITS)
+		{
+			context->sampler[TEXTURE_IMAGE_UNITS + sampler].setSwizzleB(swizzleB);
+		}
+		else ASSERT(false);
+	}
+
+	void VertexProcessor::setSwizzleA(unsigned int sampler, SwizzleType swizzleA)
+	{
+		if(sampler < VERTEX_TEXTURE_IMAGE_UNITS)
+		{
+			context->sampler[TEXTURE_IMAGE_UNITS + sampler].setSwizzleA(swizzleA);
+		}
+		else ASSERT(false);
+	}
+
 	void VertexProcessor::setPointSize(float pointSize)
 	{
 		point.pointSize = replicate(pointSize);

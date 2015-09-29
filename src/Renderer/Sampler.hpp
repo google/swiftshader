@@ -113,6 +113,18 @@ namespace sw
 		ADDRESSING_LAST = ADDRESSING_BORDER
 	};
 
+	enum SwizzleType : unsigned int
+	{
+		SWIZZLE_RED,
+		SWIZZLE_GREEN,
+		SWIZZLE_BLUE,
+		SWIZZLE_ALPHA,
+		SWIZZLE_ZERO,
+		SWIZZLE_ONE,
+
+		SWIZZLE_LAST = SWIZZLE_ONE
+	};
+
 	class Sampler
 	{
 	public:
@@ -129,6 +141,10 @@ namespace sw
 			MipmapType mipmapFilter        : BITS(FILTER_LAST);
 			bool hasNPOTTexture	           : 1;
 			bool sRGB                      : 1;
+			SwizzleType swizzleR           : BITS(SWIZZLE_LAST);
+			SwizzleType swizzleG           : BITS(SWIZZLE_LAST);
+			SwizzleType swizzleB           : BITS(SWIZZLE_LAST);
+			SwizzleType swizzleA           : BITS(SWIZZLE_LAST);
 
 			#if PERF_PROFILE
 			bool compressedFormat          : 1;
@@ -152,6 +168,10 @@ namespace sw
 		void setReadSRGB(bool sRGB);
 		void setBorderColor(const Color<float> &borderColor);
 		void setMaxAnisotropy(float maxAnisotropy);
+		void setSwizzleR(SwizzleType swizzleR);
+		void setSwizzleG(SwizzleType swizzleG);
+		void setSwizzleB(SwizzleType swizzleB);
+		void setSwizzleA(SwizzleType swizzleA);
 
 		static void setFilterQuality(FilterType maximumFilterQuality);
 		static void setMipmapQuality(MipmapType maximumFilterQuality);
@@ -185,6 +205,10 @@ namespace sw
 		bool sRGB;
 		bool gather;
 
+		SwizzleType swizzleR;
+		SwizzleType swizzleG;
+		SwizzleType swizzleB;
+		SwizzleType swizzleA;
 		Texture texture;
 		float exp2LOD;
 

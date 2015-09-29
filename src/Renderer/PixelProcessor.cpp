@@ -416,6 +416,42 @@ namespace sw
 		else ASSERT(false);
 	}
 
+	void PixelProcessor::setSwizzleR(unsigned int sampler, SwizzleType swizzleR)
+	{
+		if(sampler < TEXTURE_IMAGE_UNITS)
+		{
+			context->sampler[sampler].setSwizzleR(swizzleR);
+		}
+		else ASSERT(false);
+	}
+
+	void PixelProcessor::setSwizzleG(unsigned int sampler, SwizzleType swizzleG)
+	{
+		if(sampler < TEXTURE_IMAGE_UNITS)
+		{
+			context->sampler[sampler].setSwizzleG(swizzleG);
+		}
+		else ASSERT(false);
+	}
+
+	void PixelProcessor::setSwizzleB(unsigned int sampler, SwizzleType swizzleB)
+	{
+		if(sampler < TEXTURE_IMAGE_UNITS)
+		{
+			context->sampler[sampler].setSwizzleB(swizzleB);
+		}
+		else ASSERT(false);
+	}
+
+	void PixelProcessor::setSwizzleA(unsigned int sampler, SwizzleType swizzleA)
+	{
+		if(sampler < TEXTURE_IMAGE_UNITS)
+		{
+			context->sampler[sampler].setSwizzleA(swizzleA);
+		}
+		else ASSERT(false);
+	}
+
 	void PixelProcessor::setWriteSRGB(bool sRGB)
 	{
 		context->setWriteSRGB(sRGB);

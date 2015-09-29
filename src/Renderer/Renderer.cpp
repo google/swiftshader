@@ -2231,6 +2231,54 @@ namespace sw
 		}
 	}
 
+	void Renderer::setSwizzleR(SamplerType type, int sampler, SwizzleType swizzleR)
+	{
+		if(type == SAMPLER_PIXEL)
+		{
+			PixelProcessor::setSwizzleR(sampler, swizzleR);
+		}
+		else
+		{
+			VertexProcessor::setSwizzleR(sampler, swizzleR);
+		}
+	}
+
+	void Renderer::setSwizzleG(SamplerType type, int sampler, SwizzleType swizzleG)
+	{
+		if(type == SAMPLER_PIXEL)
+		{
+			PixelProcessor::setSwizzleG(sampler, swizzleG);
+		}
+		else
+		{
+			VertexProcessor::setSwizzleG(sampler, swizzleG);
+		}
+	}
+
+	void Renderer::setSwizzleB(SamplerType type, int sampler, SwizzleType swizzleB)
+	{
+		if(type == SAMPLER_PIXEL)
+		{
+			PixelProcessor::setSwizzleB(sampler, swizzleB);
+		}
+		else
+		{
+			VertexProcessor::setSwizzleB(sampler, swizzleB);
+		}
+	}
+
+	void Renderer::setSwizzleA(SamplerType type, int sampler, SwizzleType swizzleA)
+	{
+		if(type == SAMPLER_PIXEL)
+		{
+			PixelProcessor::setSwizzleA(sampler, swizzleA);
+		}
+		else
+		{
+			VertexProcessor::setSwizzleA(sampler, swizzleA);
+		}
+	}
+
 	void Renderer::setPointSpriteEnable(bool pointSpriteEnable)
 	{
 		context->setPointSpriteEnable(pointSpriteEnable);

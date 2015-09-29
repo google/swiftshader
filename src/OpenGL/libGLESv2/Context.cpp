@@ -3061,16 +3061,39 @@ void Context::applyTextures(sw::SamplerType samplerType)
 
 			if(texture->isSamplerComplete())
             {
-                GLenum wrapS = texture->getWrapS();
-                GLenum wrapT = texture->getWrapT();
-				GLenum wrapR = texture->getWrapR();
-                GLenum texFilter = texture->getMinFilter();
-                GLenum magFilter = texture->getMagFilter();
+				GLenum wrapS, wrapT, wrapR, texFilter, magFilter;
+
+				Sampler *samplerObject = mState.sampler[textureUnit];
+				if(samplerObject)
+				{
+					wrapS = samplerObject->getWrapS();
+					wrapT = samplerObject->getWrapT();
+					wrapR = samplerObject->getWrapR();
+					texFilter = samplerObject->getMinFilter();
+					magFilter = samplerObject->getMagFilter();
+				}
+				else
+				{
+					wrapS = texture->getWrapS();
+					wrapT = texture->getWrapT();
+					wrapR = texture->getWrapR();
+					texFilter = texture->getMinFilter();
+					magFilter = texture->getMagFilter();
+				}
 				GLfloat maxAnisotropy = texture->getMaxAnisotropy();
+
+				GLenum swizzleR = texture->getSwizzleR();
+				GLenum swizzleG = texture->getSwizzleG();
+				GLenum swizzleB = texture->getSwizzleB();
+				GLenum swizzleA = texture->getSwizzleA();
 
 				device->setAddressingModeU(samplerType, samplerIndex, es2sw::ConvertTextureWrap(wrapS));
 				device->setAddressingModeV(samplerType, samplerIndex, es2sw::ConvertTextureWrap(wrapT));
 				device->setAddressingModeW(samplerType, samplerIndex, es2sw::ConvertTextureWrap(wrapR));
+				device->setSwizzleR(samplerType, samplerIndex, es2sw::ConvertSwizzleType(swizzleR));
+				device->setSwizzleG(samplerType, samplerIndex, es2sw::ConvertSwizzleType(swizzleG));
+				device->setSwizzleB(samplerType, samplerIndex, es2sw::ConvertSwizzleType(swizzleB));
+				device->setSwizzleA(samplerType, samplerIndex, es2sw::ConvertSwizzleType(swizzleA));
 
 				sw::FilterType minFilter;
 				sw::MipmapType mipFilter;
