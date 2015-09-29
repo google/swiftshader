@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8e6c7116_252bd8c5",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1219,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-09-29T16:35:28Z",
+      "side": 1,
+      "message": "nit: There\u0027s not really any risk of these being different in tested code, and the min() wouldn\u0027t save us if they were. The ASSERT() ensures we\u0027d be pointed straight to the cause of any regressions during development. So it seems perfectly sane to just use dim(arg[0]) like in PS1.",
+      "range": {
+        "startLine": 1219,
+        "startChar": 4,
+        "endLine": 1219,
+        "endChar": 72
+      },
+      "revId": "ca4fb088d869755af3ae603ded185072b65eeea9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
