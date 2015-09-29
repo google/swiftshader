@@ -22,6 +22,30 @@
       "revId": "9793d4aca1ecfc3bbf478b8954a76f2164810642",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8e6c7116_a559a873",
+        "filename": "src/Shader/ShaderCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1166,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-09-29T17:10:14Z",
+      "side": 1,
+      "message": "You have to look at how a determinant is computed. When you compute the cofactors, it looks like:\nFor 1st col, sum of (2nd col)  * cross(3rd col, 4th col).\nFor 2nd col, sum of (1st col)  * cross(3rd col, 4th col).\nFor 3rd col, sum of (1st col)  * cross(2nd col, 4th col).\nFor 4th col, sum of (1st col)  * cross(2nd col, 3rd col).\nThe same cross products will be used for 1st col and 2nd col, which is why I compute them 1st and store them. I could reuse more cross product computations if I was computing ALL cofactors for the 4x4 matrix, but I just need a single column (or single row, since the determinant computation can be done on the transposed matrix), so this is just a simplification of the \"vanilla\" formula you can find on math websites.\n\nI did not see any mention of the algorithm used inside the spec.\n\nI can absolutely perform it symmetrically, by not storing the intermediate results in dst.xyz (first 3 lines), but then it\u0027d be recomputing these twice.",
+      "parentUuid": "8e6c7116_e510c084",
+      "range": {
+        "startLine": 1159,
+        "startChar": 10,
+        "endLine": 1166,
+        "endChar": 66
+      },
+      "revId": "9793d4aca1ecfc3bbf478b8954a76f2164810642",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
