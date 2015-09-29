@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8e6c7116_e510c084",
+        "filename": "src/Shader/ShaderCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1166,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-09-29T16:52:42Z",
+      "side": 1,
+      "message": "This looks strangely asymmetrical to me.\n\nNote that the numerical precision can depend dramatically on the order of the additions and subtractions. Symmetrical formulas where the additions and subtractions alternate typically have higher average precision.\n\nThat said, we probably want to do whatever GPUs are really doing. Does the spec mention anything about how the determinant should be computed using cross products and dot products?",
+      "range": {
+        "startLine": 1159,
+        "startChar": 10,
+        "endLine": 1166,
+        "endChar": 66
+      },
+      "revId": "9793d4aca1ecfc3bbf478b8954a76f2164810642",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
