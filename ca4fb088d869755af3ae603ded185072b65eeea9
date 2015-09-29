@@ -22,6 +22,30 @@
       "revId": "ca4fb088d869755af3ae603ded185072b65eeea9",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8e6c7116_0514dc76",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1219,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-09-29T16:55:21Z",
+      "side": 1,
+      "message": "Can\u0027t use dim(), because these are matrices, and dim() explicitly checks that it is NOT a matrix. I just removed the min and used arg0-\u003egetNominalSize() directly.",
+      "parentUuid": "8e6c7116_252bd8c5",
+      "range": {
+        "startLine": 1219,
+        "startChar": 4,
+        "endLine": 1219,
+        "endChar": 72
+      },
+      "revId": "ca4fb088d869755af3ae603ded185072b65eeea9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
