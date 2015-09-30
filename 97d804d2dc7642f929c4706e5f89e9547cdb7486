@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d5cefe75_01deaa45",
+        "filename": "groups",
+        "patchSetId": 2
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-09-30T14:06:24Z",
+      "side": 1,
+      "message": "This UUID was copied from the Gerrit web UI (https://swiftshader-review.googlesource.com/#/admin/groups/) after creating the Managers group there (listed under the General tab of each group).",
+      "range": {
+        "startLine": 4,
+        "startChar": 0,
+        "endLine": 4,
+        "endChar": 40
+      },
+      "revId": "97d804d2dc7642f929c4706e5f89e9547cdb7486",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
