@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d5cefe75_81e9da74",
+        "filename": "groups",
+        "patchSetId": 2
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-09-30T20:21:43Z",
+      "side": 1,
+      "message": "I made this change through the Gerrit web UI. Apparently it decided to sort these.",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 5,
+        "endChar": 49
+      },
+      "revId": "9f01d16887b33c8199d19ba81bb4622a1651d778",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}

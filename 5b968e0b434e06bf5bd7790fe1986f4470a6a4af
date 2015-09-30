@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d5cefe75_a1edfe7f",
+        "filename": "project.config",
+        "patchSetId": 2
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-09-30T20:21:43Z",
+      "side": 0,
+      "message": "I made this change through the Gerrit web UI. Apparently it decided this was redundant or conflicting.",
+      "range": {
+        "startLine": 25,
+        "startChar": 1,
+        "endLine": 25,
+        "endChar": 21
+      },
+      "revId": "5b968e0b434e06bf5bd7790fe1986f4470a6a4af",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
