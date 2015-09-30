@@ -352,6 +352,26 @@ public:
     return std::move(VariableDeclarations);
   }
 
+  // Upper limit of alignment power allowed by LLVM
+  static constexpr uint32_t AlignPowerLimit = 29;
+
+  // Extracts the corresponding Alignment to use, given the AlignPower (i.e.
+  // 2**(AlignPower-1), or 0 if AlignPower == 0). Parser defines the block
+  // context the alignment check appears in, and Prefix defines the context the
+  // alignment appears in.
+  uint32_t extractAlignment(NaClBitcodeParser *Parser, const char *Prefix,
+                            uint32_t AlignPower) {
+    if (AlignPower <= AlignPowerLimit + 1)
+      return (1 << AlignPower) >> 1;
+    std::string Buffer;
+    raw_string_ostream StrBuf(Buffer);
+    StrBuf << Prefix << " alignment greater than 2**" << AlignPowerLimit
+           << ". Found: 2**" << (AlignPower - 1);
+    Parser->Error(StrBuf.str());
+    // Error recover with value that is always acceptable.
+    return 1;
+  }
+
 private:
   // The translator associated with the parser.
   Ice::Translator &Translator;
@@ -1061,10 +1081,12 @@ void GlobalsParser::ProcessRecord() {
     // Always build the global variable, even if IR generation is turned off.
     // This is needed because we need a placeholder in the top-level context
     // when no IR is generated.
+    uint32_t Alignment =
+        Context->extractAlignment(this, "Global variable", Values[0]);
     CurGlobalVar = getGlobalVarByID(NextGlobalID);
     if (!isIRGenerationDisabled()) {
       InitializersNeeded = 1;
-      CurGlobalVar->setAlignment((1 << Values[0]) >> 1);
+      CurGlobalVar->setAlignment(Alignment);
       CurGlobalVar->setIsConstant(Values[1] != 0);
     }
     ++NextGlobalID;
@@ -1381,26 +1403,6 @@ private:
   NaClBcIndexSize_t NextLocalInstIndex;
   // True if the last processed instruction was a terminating instruction.
   bool InstIsTerminating = false;
-  // Upper limit of alignment power allowed by LLVM
-  static const uint32_t AlignPowerLimit = 29;
-
-  // Extracts the corresponding Alignment to use, given the AlignPower (i.e.
-  // 2**(AlignPower-1), or 0 if AlignPower == 0). InstName is the name of the
-  // instruction the alignment appears in.
-  void extractAlignment(const char *InstName, uint32_t AlignPower,
-                        uint32_t &Alignment) {
-    if (AlignPower <= AlignPowerLimit + 1) {
-      Alignment = (1 << AlignPower) >> 1;
-      return;
-    }
-    std::string Buffer;
-    raw_string_ostream StrBuf(Buffer);
-    StrBuf << InstName << " alignment greater than 2**" << AlignPowerLimit
-           << ". Found: 2**" << (AlignPower - 1);
-    Error(StrBuf.str());
-    // Error recover with value that is always acceptable.
-    Alignment = 1;
-  }
 
   bool ParseBlock(unsigned BlockID) override;
 
@@ -2592,8 +2594,7 @@ void FunctionParser::ProcessRecord() {
     if (!isValidRecordSize(2, "alloca"))
       return;
     Ice::Operand *ByteCount = getRelativeOperand(Values[0], BaseIndex);
-    uint32_t Alignment;
-    extractAlignment("Alloca", Values[1], Alignment);
+    uint32_t Alignment = Context->extractAlignment(this, "Alloca", Values[1]);
     if (isIRGenerationDisabled()) {
       assert(ByteCount == nullptr);
       setNextLocalInstIndex(nullptr);
@@ -2618,8 +2619,7 @@ void FunctionParser::ProcessRecord() {
       return;
     Ice::Operand *Address = getRelativeOperand(Values[0], BaseIndex);
     Ice::Type Ty = Context->getSimpleTypeByID(Values[2]);
-    uint32_t Alignment;
-    extractAlignment("Load", Values[1], Alignment);
+    uint32_t Alignment = Context->extractAlignment(this, "Load", Values[1]);
     if (isIRGenerationDisabled()) {
       assert(Address == nullptr);
       setNextLocalInstIndex(nullptr);
@@ -2643,8 +2643,7 @@ void FunctionParser::ProcessRecord() {
       return;
     Ice::Operand *Address = getRelativeOperand(Values[0], BaseIndex);
     Ice::Operand *Value = getRelativeOperand(Values[1], BaseIndex);
-    uint32_t Alignment;
-    extractAlignment("Store", Values[2], Alignment);
+    uint32_t Alignment = Context->extractAlignment(this, "Store", Values[2]);
     if (isIRGenerationDisabled()) {
       assert(Address == nullptr && Value == nullptr);
       return;
