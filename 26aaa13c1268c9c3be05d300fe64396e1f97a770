@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "958e467f_6fe971e0",
+        "filename": "project.config",
+        "patchSetId": 3
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5190
+      },
+      "writtenOn": "2015-09-30T15:46:41Z",
+      "side": 1,
+      "message": "Do Managers need to be granted force permissions to be able to clean up branches they create, or are you OK having to do that?",
+      "revId": "26aaa13c1268c9c3be05d300fe64396e1f97a770",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
