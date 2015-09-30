@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d5cefe75_21e2ced3",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 887,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-09-30T17:22:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d5cefe75_61585676",
+      "range": {
+        "startLine": 884,
+        "startChar": 4,
+        "endLine": 887,
+        "endChar": 5
+      },
+      "revId": "9793d4aca1ecfc3bbf478b8954a76f2164810642",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d5cefe75_815d5a67",
         "filename": "src/OpenGL/compiler/OutputASM.cpp",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2015-09-30T15:36:16Z",
       "side": 1,
       "message": "Same. By the way, this might be a good time to double check that the parser generates an error on trying to use determinant or inverse on non-square matrices.",
+      "range": {
+        "startLine": 923,
+        "startChar": 4,
+        "endLine": 926,
+        "endChar": 5
+      },
+      "revId": "9793d4aca1ecfc3bbf478b8954a76f2164810642",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d5cefe75_413c32f7",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 926,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-09-30T17:22:43Z",
+      "side": 1,
+      "message": "It should. Inside Initialize.cpp, the determinant and inverse functions are only defined for mat2, mat3 and mat4, so the functions should be undefined for all other types.",
+      "parentUuid": "d5cefe75_815d5a67",
       "range": {
         "startLine": 923,
         "startChar": 4,
