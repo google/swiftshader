@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "958e467f_ef2561ea",
+        "filename": "project.config",
+        "patchSetId": 4
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5190
+      },
+      "writtenOn": "2015-09-30T15:52:07Z",
+      "side": 1,
+      "message": "Does this allow managers to create branches/tags/etc on master? Not clear on how \"create\" works without a wildcard involved.",
+      "range": {
+        "startLine": 8,
+        "startChar": 1,
+        "endLine": 8,
+        "endChar": 24
+      },
+      "revId": "3c5115750a86fc2072ddfe3e35d873bee1184a39",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
