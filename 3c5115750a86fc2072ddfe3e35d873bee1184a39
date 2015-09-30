@@ -22,6 +22,30 @@
       "revId": "3c5115750a86fc2072ddfe3e35d873bee1184a39",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d5cefe75_01422a78",
+        "filename": "project.config",
+        "patchSetId": 4
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-09-30T16:10:00Z",
+      "side": 1,
+      "message": "It means Managers can create branches (and indeed also tags) *from* master. The Gerrit manual says it\u0027s a non destructive permission, so I think it\u0027s perfectly safe: https://gerrit-review.googlesource.com/Documentation/access-control.html#category_create I merely created the Managers group to avoid Contributors from creating feature branches at liberty. Managers should be people conscious about the workflow, which I plan on documenting on go/swiftshader.",
+      "parentUuid": "958e467f_ef2561ea",
+      "range": {
+        "startLine": 8,
+        "startChar": 1,
+        "endLine": 8,
+        "endChar": 24
+      },
+      "revId": "3c5115750a86fc2072ddfe3e35d873bee1184a39",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
