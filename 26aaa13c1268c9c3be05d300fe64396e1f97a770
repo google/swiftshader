@@ -16,6 +16,24 @@
       "revId": "26aaa13c1268c9c3be05d300fe64396e1f97a770",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d5cefe75_6131361e",
+        "filename": "project.config",
+        "patchSetId": 3
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-09-30T15:50:57Z",
+      "side": 1,
+      "message": "Indeed I think they\u0027d need more permissions to delete branches. I\u0027m not sure which permissions, but I suspect it\u0027s more than we should grant them. I\u0027m fine with deleting branches for them if they mess up. And we can revisit this later if it becomes a frequent thing.",
+      "parentUuid": "958e467f_6fe971e0",
+      "revId": "26aaa13c1268c9c3be05d300fe64396e1f97a770",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
