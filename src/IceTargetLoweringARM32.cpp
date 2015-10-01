@@ -176,14 +176,16 @@ TargetARM32::TargetARM32(Cfg *Func)
   // initialize in some sort of static initializer for the class.
   // Limit this size (or do all bitsets need to be the same width)???
   llvm::SmallBitVector IntegerRegisters(RegARM32::Reg_NUM);
+  llvm::SmallBitVector I64PairRegisters(RegARM32::Reg_NUM);
   llvm::SmallBitVector Float32Registers(RegARM32::Reg_NUM);
   llvm::SmallBitVector Float64Registers(RegARM32::Reg_NUM);
   llvm::SmallBitVector VectorRegisters(RegARM32::Reg_NUM);
   llvm::SmallBitVector InvalidRegisters(RegARM32::Reg_NUM);
   ScratchRegs.resize(RegARM32::Reg_NUM);
 #define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
-          isFP32, isFP64, isVec128, alias_init)                                \
+          isI64Pair, isFP32, isFP64, isVec128, alias_init)                     \
   IntegerRegisters[RegARM32::val] = isInt;                                     \
+  I64PairRegisters[RegARM32::val] = isI64Pair;                                 \
   Float32Registers[RegARM32::val] = isFP32;                                    \
   Float64Registers[RegARM32::val] = isFP64;                                    \
   VectorRegisters[RegARM32::val] = isVec128;                                   \
@@ -203,7 +205,7 @@ TargetARM32::TargetARM32(Cfg *Func)
   TypeToRegisterSet[IceType_i8] = IntegerRegisters;
   TypeToRegisterSet[IceType_i16] = IntegerRegisters;
   TypeToRegisterSet[IceType_i32] = IntegerRegisters;
-  TypeToRegisterSet[IceType_i64] = IntegerRegisters;
+  TypeToRegisterSet[IceType_i64] = I64PairRegisters;
   TypeToRegisterSet[IceType_f32] = Float32Registers;
   TypeToRegisterSet[IceType_f64] = Float64Registers;
   TypeToRegisterSet[IceType_v4i1] = VectorRegisters;
@@ -372,7 +374,7 @@ IceString TargetARM32::getRegName(SizeT RegNum, Type Ty) const {
   (void)Ty;
   static const char *RegNames[] = {
 #define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
-          isFP32, isFP64, isVec128, alias_init)                                \
+          isI64Pair, isFP32, isFP64, isVec128, alias_init)                     \
   name,
       REGARM32_TABLE
 #undef X
@@ -384,7 +386,7 @@ IceString TargetARM32::getRegName(SizeT RegNum, Type Ty) const {
 Variable *TargetARM32::getPhysicalRegister(SizeT RegNum, Type Ty) {
   static const Type DefaultType[] = {
 #define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
-          isFP32, isFP64, isVec128, alias_init)                                \
+          isI64Pair, isFP32, isFP64, isVec128, alias_init)                     \
   (isFP32)                                                                     \
       ? IceType_f32                                                            \
       : ((isFP64) ? IceType_f64 : ((isVec128 ? IceType_v4i32 : IceType_i32))),
@@ -1165,7 +1167,7 @@ llvm::SmallBitVector TargetARM32::getRegisterSet(RegSetMask Include,
   llvm::SmallBitVector Registers(RegARM32::Reg_NUM);
 
 #define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
-          isFP32, isFP64, isVec128, alias_init)                                \
+          isI64Pair, isFP32, isFP64, isVec128, alias_init)                     \
   if (scratch && (Include & RegSet_CallerSave))                                \
     Registers[RegARM32::val] = true;                                           \
   if (preserved && (Include & RegSet_CalleeSave))                              \

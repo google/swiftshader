@@ -27,7 +27,7 @@ public:
   /// to binary encode register operands in instructions.
   enum AllRegisters {
 #define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
-          isFP32, isFP64, isVec128, alias_init)                                \
+          isI64Pair, isFP32, isFP64, isVec128, alias_init)                     \
   val,
     REGARM32_TABLE
 #undef X
@@ -41,7 +41,7 @@ public:
   /// binary encode register operands in instructions.
   enum GPRRegister {
 #define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
-          isFP32, isFP64, isVec128, alias_init)                                \
+          isI64Pair, isFP32, isFP64, isVec128, alias_init)                     \
   Encoded_##val = encode,
     REGARM32_GPR_TABLE
 #undef X
@@ -52,7 +52,7 @@ public:
   /// to binary encode register operands in instructions.
   enum SRegister {
 #define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
-          isFP32, isFP64, isVec128, alias_init)                                \
+          isI64Pair, isFP32, isFP64, isVec128, alias_init)                     \
   Encoded_##val = encode,
     REGARM32_FP32_TABLE
 #undef X
@@ -63,7 +63,7 @@ public:
   /// to binary encode register operands in instructions.
   enum DRegister {
 #define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
-          isFP32, isFP64, isVec128, alias_init)                                \
+          isI64Pair, isFP32, isFP64, isVec128, alias_init)                     \
   Encoded_##val = encode,
     REGARM32_FP64_TABLE
 #undef X
@@ -74,7 +74,7 @@ public:
   /// used to binary encode register operands in instructions.
   enum QRegister {
 #define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
-          isFP32, isFP64, isVec128, alias_init)                                \
+          isI64Pair, isFP32, isFP64, isVec128, alias_init)                     \
   Encoded_##val = encode,
     REGARM32_VEC128_TABLE
 #undef X
@@ -85,6 +85,16 @@ public:
     assert(Reg_GPR_First <= RegNum);
     assert(RegNum <= Reg_GPR_Last);
     return GPRRegister(RegNum - Reg_GPR_First);
+  }
+
+  static inline GPRRegister getI64PairFirstGPRNum(int32_t RegNum) {
+    assert(Reg_I64PAIR_First <= RegNum);
+    assert(RegNum <= Reg_I64PAIR_Last);
+    return GPRRegister(2 * (RegNum - Reg_I64PAIR_First + Reg_GPR_First));
+  }
+
+  static inline bool isI64RegisterPair(int32_t RegNum) {
+    return Reg_I64PAIR_First <= RegNum && RegNum <= Reg_I64PAIR_Last;
   }
 
   static inline SRegister getEncodedSReg(int32_t RegNum) {
