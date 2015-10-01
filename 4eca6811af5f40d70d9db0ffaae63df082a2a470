@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c2b482b2_0805c755",
+        "filename": "src/OpenGL/libGLES_CM/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-10-01T05:59:26Z",
+      "side": 1,
+      "message": "This is fine because the actual viewport dimensions are set in Context::makeCurrent() after an eglMakeCurrent() call, which is always called before any drawing can happen.",
+      "range": {
+        "startLine": 95,
+        "startChar": 0,
+        "endLine": 96,
+        "endChar": 30
+      },
+      "revId": "4eca6811af5f40d70d9db0ffaae63df082a2a470",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
