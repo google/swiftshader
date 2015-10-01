@@ -629,8 +629,9 @@ public:
   VariableTracking(const VariableTracking &) = default;
   MultiDefState getMultiDef() const { return MultiDef; }
   MultiBlockState getMultiBlock() const { return MultiBlock; }
-  const Inst *getFirstDefinition() const;
+  const Inst *getFirstDefinitionSingleBlock() const;
   const Inst *getSingleDefinition() const;
+  const Inst *getFirstDefinition() const;
   const InstDefList &getLatterDefinitions() const { return Definitions; }
   CfgNode *getNode() const { return SingleUseNode; }
   RegWeight getUseWeight() const { return UseWeight; }
@@ -643,11 +644,10 @@ private:
   MultiBlockState MultiBlock = MBS_Unknown;
   CfgNode *SingleUseNode = nullptr;
   CfgNode *SingleDefNode = nullptr;
-  /// All definitions of the variable are collected here, in increasing
-  /// order of instruction number.
+  /// All definitions of the variable are collected in Definitions[] (except for
+  /// the earliest definition), in increasing order of instruction number.
   InstDefList Definitions; /// Only used if Kind==VMK_All
-  const Inst *FirstOrSingleDefinition =
-      nullptr; /// Is a copy of Definitions[0] if Kind==VMK_All
+  const Inst *FirstOrSingleDefinition = nullptr;
   RegWeight UseWeight;
 };
 
@@ -665,6 +665,7 @@ public:
   /// Add a single node. This is called by init(), and can be called
   /// incrementally from elsewhere, e.g. after edge-splitting.
   void addNode(CfgNode *Node);
+  MetadataKind getKind() const { return Kind; }
   /// Returns whether the given Variable is tracked in this object. It should
   /// only return false if changes were made to the CFG after running init(), in
   /// which case the state is stale and the results shouldn't be trusted (but it
@@ -678,13 +679,17 @@ public:
   /// Returns the first definition instruction of the given Variable. This is
   /// only valid for variables whose definitions are all within the same block,
   /// e.g. T after the lowered sequence "T=B; T+=C; A=T", for which
-  /// getFirstDefinition(T) would return the "T=B" instruction. For variables
-  /// with definitions span multiple blocks, nullptr is returned.
-  const Inst *getFirstDefinition(const Variable *Var) const;
+  /// getFirstDefinitionSingleBlock(T) would return the "T=B" instruction. For
+  /// variables with definitions span multiple blocks, nullptr is returned.
+  const Inst *getFirstDefinitionSingleBlock(const Variable *Var) const;
   /// Returns the definition instruction of the given Variable, when the
   /// variable has exactly one definition. Otherwise, nullptr is returned.
   const Inst *getSingleDefinition(const Variable *Var) const;
-  /// Returns the list of all definition instructions of the given Variable.
+  /// getFirstDefinition() and getLatterDefinitions() are used together to
+  /// return the complete set of instructions that define the given Variable,
+  /// regardless of whether the definitions are within the same block (in
+  /// contrast to getFirstDefinitionSingleBlock).
+  const Inst *getFirstDefinition(const Variable *Var) const;
   const InstDefList &getLatterDefinitions(const Variable *Var) const;
 
   /// Returns whether the given Variable is live across multiple blocks. Mainly,

@@ -810,6 +810,22 @@ void Cfg::dump(const IceString &Message) {
         Str << getVMetadata()->isMultiBlock(Var);
       else
         Str << "?";
+      Str << " defs=";
+      bool FirstPrint = true;
+      if (VMetadata->getKind() != VMK_Uses) {
+        if (const Inst *FirstDef = VMetadata->getFirstDefinition(Var)) {
+          Str << FirstDef->getNumber();
+          FirstPrint = false;
+        }
+      }
+      if (VMetadata->getKind() == VMK_All) {
+        for (const Inst *Instr : VMetadata->getLatterDefinitions(Var)) {
+          if (!FirstPrint)
+            Str << ",";
+          Str << Instr->getNumber();
+          FirstPrint = false;
+        }
+      }
       Str << " weight=" << Var->getWeight(this) << " ";
       Var->dump(this);
       Str << " LIVE=" << Var->getLiveRange() << "\n";

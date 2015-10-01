@@ -213,15 +213,16 @@ void VariableTracking::markDef(MetadataKind TrackingKind, const Inst *Instr,
   // omit all uses of the variable if markDef() and markUse() both use this
   // optimization.
   assert(Node);
-// Verify that instructions are added in increasing order.
-#ifndef NDEBUG
-  if (TrackingKind == VMK_All) {
-    const Inst *LastInstruction =
-        Definitions.empty() ? FirstOrSingleDefinition : Definitions.back();
-    assert(LastInstruction == nullptr ||
-           Instr->getNumber() >= LastInstruction->getNumber());
+  // Verify that instructions are added in increasing order.
+  if (BuildDefs::asserts()) {
+    if (TrackingKind == VMK_All) {
+      const Inst *LastInstruction =
+          Definitions.empty() ? FirstOrSingleDefinition : Definitions.back();
+      (void)LastInstruction;
+      assert(LastInstruction == nullptr ||
+             Instr->getNumber() >= LastInstruction->getNumber());
+    }
   }
-#endif
   constexpr bool IsImplicit = false;
   markUse(TrackingKind, Instr, Node, IsImplicit);
   if (TrackingKind == VMK_Uses)
@@ -258,7 +259,7 @@ void VariableTracking::markDef(MetadataKind TrackingKind, const Inst *Instr,
   }
 }
 
-const Inst *VariableTracking::getFirstDefinition() const {
+const Inst *VariableTracking::getFirstDefinitionSingleBlock() const {
   switch (MultiDef) {
   case MDS_Unknown:
   case MDS_MultiDefMultiBlock:
@@ -284,6 +285,19 @@ const Inst *VariableTracking::getSingleDefinition() const {
   return nullptr;
 }
 
+const Inst *VariableTracking::getFirstDefinition() const {
+  switch (MultiDef) {
+  case MDS_Unknown:
+    return nullptr;
+  case MDS_MultiDefMultiBlock:
+  case MDS_SingleDef:
+  case MDS_MultiDefSingleBlock:
+    assert(FirstOrSingleDefinition);
+    return FirstOrSingleDefinition;
+  }
+  return nullptr;
+}
+
 void VariablesMetadata::init(MetadataKind TrackingKind) {
   TimerMarker T(TimerStack::TT_vmetadata, Func);
   Kind = TrackingKind;
@@ -303,7 +317,7 @@ void VariablesMetadata::init(MetadataKind TrackingKind) {
 }
 
 void VariablesMetadata::addNode(CfgNode *Node) {
-  if (Func->getNumVariables() >= Metadata.size())
+  if (Func->getNumVariables() > Metadata.size())
     Metadata.resize(Func->getNumVariables());
 
   for (Inst &I : Node->getPhis()) {
@@ -364,12 +378,13 @@ bool VariablesMetadata::isMultiBlock(const Variable *Var) const {
   return Metadata[VarNum].getMultiBlock() != VariableTracking::MBS_SingleBlock;
 }
 
-const Inst *VariablesMetadata::getFirstDefinition(const Variable *Var) const {
+const Inst *
+VariablesMetadata::getFirstDefinitionSingleBlock(const Variable *Var) const {
   assert(Kind != VMK_Uses);
   if (!isTracked(Var))
     return nullptr; // conservative answer
   SizeT VarNum = Var->getIndex();
-  return Metadata[VarNum].getFirstDefinition();
+  return Metadata[VarNum].getFirstDefinitionSingleBlock();
 }
 
 const Inst *VariablesMetadata::getSingleDefinition(const Variable *Var) const {
@@ -378,6 +393,14 @@ const Inst *VariablesMetadata::getSingleDefinition(const Variable *Var) const {
     return nullptr; // conservative answer
   SizeT VarNum = Var->getIndex();
   return Metadata[VarNum].getSingleDefinition();
+}
+
+const Inst *VariablesMetadata::getFirstDefinition(const Variable *Var) const {
+  assert(Kind != VMK_Uses);
+  if (!isTracked(Var))
+    return nullptr; // conservative answer
+  SizeT VarNum = Var->getIndex();
+  return Metadata[VarNum].getFirstDefinition();
 }
 
 const InstDefList &

@@ -94,8 +94,7 @@ ErrorCodes getReturnValue(const Ice::ClFlagsExtra &Flags, ErrorCodes Val) {
 }
 
 // Reports fatal error message, and then exits with success status 0.
-void reportFatalErrorThenExitSuccess(void * UserData,
-                                     const std::string &Reason,
+void reportFatalErrorThenExitSuccess(void *UserData, const std::string &Reason,
                                      bool GenCrashDag) {
   (void)UserData;
   (void)GenCrashDag;

@@ -38,9 +38,8 @@ bool overlapsDefs(const Cfg *Func, const Variable *Item, const Variable *Var) {
   if (const Inst *FirstDef = VMetadata->getFirstDefinition(Var))
     if (Item->getLiveRange().overlapsInst(FirstDef->getNumber(), UseTrimmed))
       return true;
-  const InstDefList &Defs = VMetadata->getLatterDefinitions(Var);
-  for (size_t i = 0; i < Defs.size(); ++i) {
-    if (Item->getLiveRange().overlapsInst(Defs[i]->getNumber(), UseTrimmed))
+  for (const Inst *Def : VMetadata->getLatterDefinitions(Var)) {
+    if (Item->getLiveRange().overlapsInst(Def->getNumber(), UseTrimmed))
       return true;
   }
   return false;
@@ -463,7 +462,8 @@ void LinearScan::findRegisterPreference(IterationState &Iter) {
 
   if (FindPreference) {
     VariablesMetadata *VMetadata = Func->getVMetadata();
-    if (const Inst *DefInst = VMetadata->getFirstDefinition(Iter.Cur)) {
+    if (const Inst *DefInst =
+            VMetadata->getFirstDefinitionSingleBlock(Iter.Cur)) {
       assert(DefInst->getDest() == Iter.Cur);
       bool IsAssign = DefInst->isSimpleAssign();
       bool IsSingleDef = !VMetadata->isMultiDef(Iter.Cur);

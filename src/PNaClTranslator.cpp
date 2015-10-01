@@ -2051,13 +2051,12 @@ private:
     return Context->getGlobalConstantByID(0);
   }
 
-  void verifyCallArgTypeMatches(Ice::FunctionDeclaration *Fcn,
-                                Ice::SizeT Index, Ice::Type ArgType,
-                                Ice::Type ParamType) {
+  void verifyCallArgTypeMatches(Ice::FunctionDeclaration *Fcn, Ice::SizeT Index,
+                                Ice::Type ArgType, Ice::Type ParamType) {
     if (ArgType != ParamType) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Argument " << (Index + 1)  << " of " << printName(Fcn)
+      StrBuf << "Argument " << (Index + 1) << " of " << printName(Fcn)
              << " expects " << ParamType << ". Found: " << ArgType;
       Error(StrBuf.str());
     }
@@ -2733,7 +2732,7 @@ void FunctionParser::ProcessRecord() {
       return;
 
     // Extract out the the call parameters.
-    SmallVector<Ice::Operand*, 8> Params;
+    SmallVector<Ice::Operand *, 8> Params;
     for (Ice::SizeT Index = ParamsStartIndex; Index < Values.size(); ++Index) {
       Ice::Operand *Op = getRelativeOperand(Values[Index], BaseIndex);
       if (isIRGenerationDisabled())
@@ -2741,8 +2740,8 @@ void FunctionParser::ProcessRecord() {
       if (Op == nullptr) {
         std::string Buffer;
         raw_string_ostream StrBuf(Buffer);
-        StrBuf << "Parameter " << (Index - ParamsStartIndex + 1)
-               << " of " << printName(Fcn) << " is not defined";
+        StrBuf << "Parameter " << (Index - ParamsStartIndex + 1) << " of "
+               << printName(Fcn) << " is not defined";
         Error(StrBuf.str());
         if (ReturnType != Ice::IceType_void)
           setNextLocalInstIndex(nullptr);
@@ -2755,8 +2754,8 @@ void FunctionParser::ProcessRecord() {
     if (IntrinsicInfo == nullptr && !isCallReturnType(ReturnType)) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Return type of " << printName(Fcn) << " is invalid: "
-             << ReturnType;
+      StrBuf << "Return type of " << printName(Fcn)
+             << " is invalid: " << ReturnType;
       Error(StrBuf.str());
       ReturnType = Ice::IceType_i32;
     }
@@ -2772,8 +2771,8 @@ void FunctionParser::ProcessRecord() {
       Ice::Operand *Op = Params[Index];
       Ice::Type OpType = Op->getType();
       if (Signature)
-        verifyCallArgTypeMatches(
-            Fcn, Index, OpType, Signature->getArgType(Index));
+        verifyCallArgTypeMatches(Fcn, Index, OpType,
+                                 Signature->getArgType(Index));
       if (IntrinsicInfo) {
         verifyCallArgTypeMatches(Fcn, Index, OpType,
                                  IntrinsicInfo->getArgType(Index));
