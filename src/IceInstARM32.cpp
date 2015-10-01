@@ -360,6 +360,13 @@ InstARM32Str::InstARM32Str(Cfg *Func, Variable *Value, OperandARM32Mem *Mem,
   addSource(Mem);
 }
 
+InstARM32Strex::InstARM32Strex(Cfg *Func, Variable *Dest, Variable *Value,
+                               OperandARM32Mem *Mem, CondARM32::Cond Predicate)
+    : InstARM32Pred(Func, InstARM32::Strex, 2, Dest, Predicate) {
+  addSource(Value);
+  addSource(Mem);
+}
+
 InstARM32Trap::InstARM32Trap(Cfg *Func)
     : InstARM32(Func, InstARM32::Trap, 0, nullptr) {}
 
@@ -417,6 +424,10 @@ InstARM32Vabs::InstARM32Vabs(Cfg *Func, Variable *Dest, Variable *Src,
     : InstARM32Pred(Func, InstARM32::Vabs, 1, Dest, Predicate) {
   addSource(Src);
 }
+
+InstARM32Dmb::InstARM32Dmb(Cfg *Func)
+    : InstARM32Pred(Func, InstARM32::Dmb, 0, nullptr, CondARM32::AL) {}
+
 // ======================== Dump routines ======================== //
 
 // Two-addr ops
@@ -433,6 +444,7 @@ template <> const char *InstARM32Uxt::Opcode = "uxt"; // still requires b/h
 template <> const char *InstARM32Vsqrt::Opcode = "vsqrt";
 // Mov-like ops
 template <> const char *InstARM32Ldr::Opcode = "ldr";
+template <> const char *InstARM32Ldrex::Opcode = "ldrex";
 // Three-addr ops
 template <> const char *InstARM32Adc::Opcode = "adc";
 template <> const char *InstARM32Add::Opcode = "add";
@@ -501,6 +513,7 @@ void InstARM32Mov::emitSingleDestMultiSource(const Cfg *Func) const {
   assert(SrcHi->hasReg());
   assert(SrcLo->hasReg());
   assert(Dest->hasReg());
+  assert(getSrcSize() == 2);
 
   Str << "\t"
       << "vmov" << getPredicate() << "\t";
@@ -759,6 +772,28 @@ template <> void InstARM32Ldr::emitIAS(const Cfg *Func) const {
   llvm_unreachable("Not yet implemented");
 }
 
+template <> void InstARM32Ldrex::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 1);
+  assert(getDest()->hasReg());
+  Variable *Dest = getDest();
+  Type DestTy = Dest->getType();
+  assert(isScalarIntegerType(DestTy));
+  const char *WidthString = getWidthString(DestTy);
+  Str << "\t" << Opcode << WidthString << getPredicate() << "\t";
+  getDest()->emit(Func);
+  Str << ", ";
+  getSrc(0)->emit(Func);
+}
+
+template <> void InstARM32Ldrex::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 1);
+  (void)Func;
+  llvm_unreachable("Not yet implemented");
+}
+
 template <> void InstARM32Movw::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
@@ -982,6 +1017,43 @@ void InstARM32Str::dump(const Cfg *Func) const {
   getSrc(0)->dump(Func);
 }
 
+void InstARM32Strex::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  assert(getSrcSize() == 2);
+  Type Ty = getSrc(0)->getType();
+  assert(isScalarIntegerType(Ty));
+  Variable *Dest = getDest();
+  Ostream &Str = Func->getContext()->getStrEmit();
+  static constexpr char Opcode[] = "strex";
+  const char *WidthString = getWidthString(Ty);
+  Str << "\t" << Opcode << WidthString << getPredicate() << "\t";
+  Dest->emit(Func);
+  Str << ", ";
+  emitSources(Func);
+}
+
+void InstARM32Strex::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 2);
+  (void)Func;
+  llvm_unreachable("Not yet implemented");
+}
+
+void InstARM32Strex::dump(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrDump();
+  Variable *Dest = getDest();
+  Dest->dump(Func);
+  Str << " = ";
+  Type Ty = getSrc(0)->getType();
+  dumpOpcodePred(Str, "strex", Ty);
+  Str << " ";
+  getSrc(1)->dump(Func);
+  Str << ", ";
+  getSrc(0)->dump(Func);
+}
+
 void InstARM32Trap::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
@@ -1178,6 +1250,29 @@ void InstARM32Vabs::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
   Str << " = vabs" << getPredicate() << getVecWidthString(getSrc(0)->getType());
+}
+
+void InstARM32Dmb::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 0);
+  Str << "\t"
+         "dmb"
+         "\t"
+         "sy";
+}
+
+void InstARM32Dmb::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 1);
+  (void)Func;
+  llvm_unreachable("Not yet implemented");
+}
+
+void InstARM32Dmb::dump(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Func->getContext()->getStrDump() << "dmb\tsy";
 }
 
 void OperandARM32Mem::emit(const Cfg *Func) const {

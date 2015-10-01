@@ -291,9 +291,11 @@ public:
     Call,
     Cmp,
     Clz,
+    Dmb,
     Eor,
     Label,
     Ldr,
+    Ldrex,
     Lsl,
     Lsr,
     Mla,
@@ -313,6 +315,7 @@ public:
     Sbc,
     Sdiv,
     Str,
+    Strex,
     Sub,
     Sxt,
     Trap,
@@ -525,24 +528,19 @@ private:
   static const char *Opcode;
 };
 
-/// Base class for assignment instructions. These can be tested for redundancy
-/// (and elided if redundant).
+/// Base class for load instructions.
 template <InstARM32::InstKindARM32 K>
-class InstARM32Movlike : public InstARM32Pred {
-  InstARM32Movlike() = delete;
-  InstARM32Movlike(const InstARM32Movlike &) = delete;
-  InstARM32Movlike &operator=(const InstARM32Movlike &) = delete;
+class InstARM32LoadBase : public InstARM32Pred {
+  InstARM32LoadBase() = delete;
+  InstARM32LoadBase(const InstARM32LoadBase &) = delete;
+  InstARM32LoadBase &operator=(const InstARM32LoadBase &) = delete;
 
 public:
-  static InstARM32Movlike *create(Cfg *Func, Variable *Dest, Operand *Source,
-                                  CondARM32::Cond Predicate) {
-    return new (Func->allocate<InstARM32Movlike>())
-        InstARM32Movlike(Func, Dest, Source, Predicate);
+  static InstARM32LoadBase *create(Cfg *Func, Variable *Dest, Operand *Source,
+                                   CondARM32::Cond Predicate) {
+    return new (Func->allocate<InstARM32LoadBase>())
+        InstARM32LoadBase(Func, Dest, Source, Predicate);
   }
-  bool isRedundantAssign() const override {
-    return checkForRedundantAssign(getDest(), getSrc(0));
-  }
-  bool isSimpleAssign() const override { return true; }
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override {
@@ -558,8 +556,8 @@ public:
   static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
 
 private:
-  InstARM32Movlike(Cfg *Func, Variable *Dest, Operand *Source,
-                   CondARM32::Cond Predicate)
+  InstARM32LoadBase(Cfg *Func, Variable *Dest, Operand *Source,
+                    CondARM32::Cond Predicate)
       : InstARM32Pred(Func, K, 1, Dest, Predicate) {
     addSource(Source);
   }
@@ -778,7 +776,8 @@ using InstARM32Vadd = InstARM32ThreeAddrFP<InstARM32::Vadd>;
 using InstARM32Vdiv = InstARM32ThreeAddrFP<InstARM32::Vdiv>;
 using InstARM32Vmul = InstARM32ThreeAddrFP<InstARM32::Vmul>;
 using InstARM32Vsub = InstARM32ThreeAddrFP<InstARM32::Vsub>;
-using InstARM32Ldr = InstARM32Movlike<InstARM32::Ldr>;
+using InstARM32Ldr = InstARM32LoadBase<InstARM32::Ldr>;
+using InstARM32Ldrex = InstARM32LoadBase<InstARM32::Ldrex>;
 /// MovT leaves the bottom bits alone so dest is also a source. This helps
 /// indicate that a previous MovW setting dest is not dead code.
 using InstARM32Movt = InstARM32TwoAddrGPR<InstARM32::Movt>;
@@ -1020,7 +1019,7 @@ private:
 
 /// Store instruction. It's important for liveness that there is no Dest operand
 /// (OperandARM32Mem instead of Dest Variable).
-class InstARM32Str : public InstARM32Pred {
+class InstARM32Str final : public InstARM32Pred {
   InstARM32Str() = delete;
   InstARM32Str(const InstARM32Str &) = delete;
   InstARM32Str &operator=(const InstARM32Str &) = delete;
@@ -1040,6 +1039,32 @@ public:
 private:
   InstARM32Str(Cfg *Func, Variable *Value, OperandARM32Mem *Mem,
                CondARM32::Cond Predicate);
+};
+
+/// Exclusive Store instruction. Like its non-exclusive sibling, it's important
+/// for liveness that there is no Dest operand (OperandARM32Mem instead of Dest
+/// Variable).
+class InstARM32Strex final : public InstARM32Pred {
+  InstARM32Strex() = delete;
+  InstARM32Strex(const InstARM32Strex &) = delete;
+  InstARM32Strex &operator=(const InstARM32Strex &) = delete;
+
+public:
+  /// Value must be a register.
+  static InstARM32Strex *create(Cfg *Func, Variable *Dest, Variable *Value,
+                                OperandARM32Mem *Mem,
+                                CondARM32::Cond Predicate) {
+    return new (Func->allocate<InstARM32Strex>())
+        InstARM32Strex(Func, Dest, Value, Mem, Predicate);
+  }
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Strex); }
+
+private:
+  InstARM32Strex(Cfg *Func, Variable *Dest, Variable *Value,
+                 OperandARM32Mem *Mem, CondARM32::Cond Predicate);
 };
 
 class InstARM32Trap : public InstARM32 {
@@ -1213,6 +1238,25 @@ private:
   InstARM32Vabs(Cfg *Func, Variable *Dest, Variable *Src,
                 CondARM32::Cond Predicate);
 };
+
+class InstARM32Dmb final : public InstARM32Pred {
+  InstARM32Dmb() = delete;
+  InstARM32Dmb(const InstARM32Dmb &) = delete;
+  InstARM32Dmb &operator=(const InstARM32Dmb &) = delete;
+
+public:
+  static InstARM32Dmb *create(Cfg *Func) {
+    return new (Func->allocate<InstARM32Dmb>()) InstARM32Dmb(Func);
+  }
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Dmb); }
+
+private:
+  explicit InstARM32Dmb(Cfg *Func);
+};
+
 // Declare partial template specializations of emit() methods that already have
 // default implementations. Without this, there is the possibility of ODR
 // violations and link errors.

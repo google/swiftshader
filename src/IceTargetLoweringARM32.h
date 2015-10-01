@@ -241,6 +241,7 @@ protected:
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Clz::create(Func, Dest, Src0, Pred));
   }
+  void _dmb() { Context.insert(InstARM32Dmb::create(Func)); }
   void _eor(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Eor::create(Func, Dest, Src0, Src1, Pred));
@@ -253,6 +254,14 @@ protected:
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Ldr::create(Func, Dest, Addr, Pred));
   }
+  void _ldrex(Variable *Dest, OperandARM32Mem *Addr,
+             CondARM32::Cond Pred = CondARM32::AL) {
+   Context.insert(InstARM32Ldrex::create(Func, Dest, Addr, Pred));
+   if (auto *Dest64 = llvm::dyn_cast<Variable64On32>(Dest)) {
+     Context.insert(InstFakeDef::create(Func, Dest64->getLo(), Dest));
+     Context.insert(InstFakeDef::create(Func, Dest64->getHi(), Dest));
+   }
+ }
   void _lsl(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Lsl::create(Func, Dest, Src0, Src1, Pred));
@@ -373,6 +382,14 @@ protected:
   void _str(Variable *Value, OperandARM32Mem *Addr,
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Str::create(Func, Value, Addr, Pred));
+  }
+  void _strex(Variable *Dest, Variable *Value, OperandARM32Mem *Addr,
+              CondARM32::Cond Pred = CondARM32::AL) {
+    if (auto *Value64 = llvm::dyn_cast<Variable64On32>(Value)) {
+      Context.insert(InstFakeUse::create(Func, Value64->getLo()));
+      Context.insert(InstFakeUse::create(Func, Value64->getHi()));
+    }
+    Context.insert(InstARM32Strex::create(Func, Dest, Value, Addr, Pred));
   }
   void _sub(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
