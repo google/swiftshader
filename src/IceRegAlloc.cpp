@@ -652,17 +652,15 @@ void LinearScan::handleNoFreeRegisters(IterationState &Iter) {
   } else {
     // Evict all live ranges in Active that register number MinWeightIndex is
     // assigned to.
+    const llvm::SmallBitVector &Aliases = *RegAliases[MinWeightIndex];
     for (SizeT I = Active.size(); I > 0; --I) {
       const SizeT Index = I - 1;
       Variable *Item = Active[Index];
-      if (Item->getRegNumTmp() == MinWeightIndex) {
-        dumpLiveRangeTrace("Evicting     ", Item);
-        const llvm::SmallBitVector &Aliases = *RegAliases[MinWeightIndex];
-        for (int32_t RegAlias = Aliases.find_first(); RegAlias >= 0;
-             RegAlias = Aliases.find_next(RegAlias)) {
-          --RegUses[RegAlias];
-          assert(RegUses[RegAlias] >= 0);
-        }
+      int32_t RegNum = Item->getRegNumTmp();
+      if (Aliases[RegNum]) {
+        dumpLiveRangeTrace("Evicting A   ", Item);
+        --RegUses[RegNum];
+        assert(RegUses[RegNum] >= 0);
         Item->setRegNumTmp(Variable::NoRegister);
         moveItem(Active, Index, Handled);
       }
@@ -678,16 +676,14 @@ void LinearScan::handleNoFreeRegisters(IterationState &Iter) {
       // especially bad if we would end up evicting an infinite-weight but
       // currently-inactive live range. The most common situation for this
       // would be a scratch register kill set for call instructions.
-      if (Item->getRegNumTmp() == MinWeightIndex &&
-          Item->rangeOverlaps(Iter.Cur)) {
-        dumpLiveRangeTrace("Evicting     ", Item);
+      if (Aliases[Item->getRegNumTmp()] && Item->rangeOverlaps(Iter.Cur)) {
+        dumpLiveRangeTrace("Evicting I   ", Item);
         Item->setRegNumTmp(Variable::NoRegister);
         moveItem(Inactive, Index, Handled);
       }
     }
     // Assign the register to Cur.
     Iter.Cur->setRegNumTmp(MinWeightIndex);
-    const llvm::SmallBitVector &Aliases = *RegAliases[MinWeightIndex];
     for (int32_t RegAlias = Aliases.find_first(); RegAlias >= 0;
          RegAlias = Aliases.find_next(RegAlias)) {
       assert(RegUses[RegAlias] >= 0);
