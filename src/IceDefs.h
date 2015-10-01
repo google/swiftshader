@@ -80,12 +80,22 @@ ArenaAllocator<> *getCurrentCfgAllocator();
 
 template <typename T> struct CfgLocalAllocator {
   using value_type = T;
+  using pointer = T *;
+  using const_pointer = const T *;
+  using reference = T &;
+  using const_reference = const T &;
+  using size_type = std::size_t;
   CfgLocalAllocator() = default;
   template <class U> CfgLocalAllocator(const CfgLocalAllocator<U> &) {}
-  T *allocate(std::size_t Num) {
+  pointer allocate(size_type Num) {
     return getCurrentCfgAllocator()->Allocate<T>(Num);
   }
-  void deallocate(T *, std::size_t) {}
+  void deallocate(pointer, size_type) {}
+  template <class U> struct rebind { typedef CfgLocalAllocator<U> other; };
+  void construct(pointer P, const T &Val) {
+    new (static_cast<void *>(P)) T(Val);
+  }
+  void destroy(pointer P) { P->~T(); }
 };
 template <typename T, typename U>
 inline bool operator==(const CfgLocalAllocator<T> &,
