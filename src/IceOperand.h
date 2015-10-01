@@ -442,6 +442,11 @@ public:
 
   int32_t getStackOffset() const { return StackOffset; }
   void setStackOffset(int32_t Offset) { StackOffset = Offset; }
+  /// Returns the variable's stack offset in symbolic form, to improve
+  /// readability in DecorateAsm mode.
+  IceString getSymbolicStackOffset(const Cfg *Func) const {
+    return "lv$" + getName(Func);
+  }
 
   static const int32_t NoRegister = -1;
   bool hasReg() const { return getRegNum() != NoRegister; }

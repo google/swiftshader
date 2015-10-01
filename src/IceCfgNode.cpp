@@ -978,7 +978,7 @@ void CfgNode::emit(Cfg *Func) const {
   Func->setCurrentNode(this);
   Ostream &Str = Func->getContext()->getStrEmit();
   Liveness *Liveness = Func->getLiveness();
-  bool DecorateAsm =
+  const bool DecorateAsm =
       Liveness && Func->getContext()->getFlags().getDecorateAsm();
   Str << getAsmName() << ":\n";
   // LiveRegCount keeps track of the number of currently live variables that
@@ -989,6 +989,20 @@ void CfgNode::emit(Cfg *Func) const {
   if (DecorateAsm) {
     constexpr bool IsLiveIn = true;
     emitRegisterUsage(Str, Func, this, IsLiveIn, LiveRegCount);
+    if (getInEdges().size()) {
+      Str << "\t\t\t\t# preds=";
+      bool First = true;
+      for (CfgNode *I : getInEdges()) {
+        if (!First)
+          Str << ",";
+        First = false;
+        Str << I->getAsmName();
+      }
+      Str << "\n";
+    }
+    if (getLoopNestDepth()) {
+      Str << "\t\t\t\t# loop depth=" << getLoopNestDepth() << "\n";
+    }
   }
 
   for (const Inst &I : Phis) {

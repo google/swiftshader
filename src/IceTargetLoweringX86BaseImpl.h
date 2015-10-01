@@ -746,15 +746,35 @@ void TargetX86Base<Machine>::emitVariable(const Variable *Var) const {
   if (Var->mustHaveReg()) {
     llvm_unreachable("Infinite-weight Variable has no register assigned");
   }
-  int32_t Offset = Var->getStackOffset();
+  const int32_t Offset = Var->getStackOffset();
+  int32_t OffsetAdj = 0;
   int32_t BaseRegNum = Var->getBaseRegNum();
   if (BaseRegNum == Variable::NoRegister) {
     BaseRegNum = getFrameOrStackReg();
     if (!hasFramePointer())
-      Offset += getStackAdjustment();
+      OffsetAdj = getStackAdjustment();
   }
-  if (Offset)
-    Str << Offset;
+  // Print in the form "OffsetAdj+Offset(%reg)", taking care that:
+  //   - OffsetAdj may be 0
+  //   - Offset is never printed when it is 0
+  //   - Offset may be positive or symbolic, so a "+" might be needed
+
+  // Only print nonzero OffsetAdj.
+  if (OffsetAdj) {
+    Str << OffsetAdj;
+  }
+  const bool DecorateAsm = Func->getContext()->getFlags().getDecorateAsm();
+  // Only print Offset when it is nonzero, regardless of DecorateAsm.
+  if (Offset) {
+    if (OffsetAdj && (DecorateAsm || Offset > 0)) {
+      Str << "+";
+    }
+    if (DecorateAsm) {
+      Str << Var->getSymbolicStackOffset(Func);
+    } else {
+      Str << Offset;
+    }
+  }
   const Type FrameSPTy = Traits::WordType;
   Str << "(%" << getRegName(BaseRegNum, FrameSPTy) << ")";
 }

@@ -743,6 +743,14 @@ void Cfg::emit() {
 
   emitTextHeader(MangledName, Ctx, Asm);
   deleteJumpTableInsts();
+  if (Ctx->getFlags().getDecorateAsm()) {
+    for (Variable *Var : getVariables()) {
+      if (Var->getStackOffset()) {
+        Str << "\t" << Var->getSymbolicStackOffset(this) << " = "
+            << Var->getStackOffset() << "\n";
+      }
+    }
+  }
   for (CfgNode *Node : Nodes) {
     if (NeedSandboxing && Node->needsAlignment()) {
       Str << "\t" << Asm->getAlignDirective() << " "
