@@ -26,7 +26,6 @@
 
 #ifdef __ANDROID__
 #include <system/window.h>
-#include <GceFrameBufferConfig.h>
 #endif
 
 #include <algorithm>
@@ -165,7 +164,7 @@ bool Display::initialize()
     //  sw::FORMAT_D24FS8
     };
 
-	DisplayMode currentDisplayMode = getDisplayMode();
+	sw::Format currentDisplayFormat = getDisplayFormat();
     ConfigSet configSet;
 
 	for(int samplesIndex = 0; samplesIndex < sizeof(samples) / sizeof(int); samplesIndex++)
@@ -178,7 +177,7 @@ bool Display::initialize()
 			{
 				sw::Format depthStencilFormat = depthStencilFormats[depthStencilIndex];
 
-				configSet.add(currentDisplayMode, mMinSwapInterval, mMaxSwapInterval, renderTargetFormat, depthStencilFormat, samples[samplesIndex]);
+				configSet.add(currentDisplayFormat, mMinSwapInterval, mMaxSwapInterval, renderTargetFormat, depthStencilFormat, samples[samplesIndex]);
 			}
 		}
 	}
@@ -580,59 +579,44 @@ EGLNativeDisplayType Display::getNativeDisplay() const
 	return displayId;
 }
 
-DisplayMode Display::getDisplayMode() const
+sw::Format Display::getDisplayFormat() const
 {
-	DisplayMode displayMode = {0};
-
 	#if defined(_WIN32)
 		HDC deviceContext = GetDC(0);
-
-		displayMode.width = ::GetDeviceCaps(deviceContext, HORZRES);
-		displayMode.height = ::GetDeviceCaps(deviceContext, VERTRES);
 		unsigned int bpp = ::GetDeviceCaps(deviceContext, BITSPIXEL);
+		ReleaseDC(0, deviceContext);
 
 		switch(bpp)
 		{
-		case 32: displayMode.format = sw::FORMAT_X8R8G8B8; break;
-		case 24: displayMode.format = sw::FORMAT_R8G8B8;   break;
-		case 16: displayMode.format = sw::FORMAT_R5G6B5;   break;
-		default:
-			ASSERT(false);   // Unexpected display mode color depth
+		case 32: return sw::FORMAT_X8R8G8B8;
+		case 24: return sw::FORMAT_R8G8B8;
+		case 16: return sw::FORMAT_R5G6B5;
+		default: UNREACHABLE(bpp);   // Unexpected display mode color depth
 		}
-
-		ReleaseDC(0, deviceContext);
 	#elif defined(__ANDROID__)
-		displayMode.width = GceFrameBufferConfig::getInstance().x_res();
-		displayMode.height = GceFrameBufferConfig::getInstance().y_res();
-		displayMode.format = sw::FORMAT_X8R8G8B8;
-		ALOGI("Returning framebuffer config width=%d height=%d, format=%d", displayMode.width, displayMode.height, displayMode.format);
+		return sw::FORMAT_X8R8G8B8;
     #else
         if(platform == EGL_PLATFORM_X11_EXT)
         {
             Screen *screen = libX11->XDefaultScreenOfDisplay(displayId);
-            displayMode.width = libX11->XWidthOfScreen(screen);
-            displayMode.height = libX11->XHeightOfScreen(screen);
             unsigned int bpp = libX11->XPlanesOfScreen(screen);
 
             switch(bpp)
             {
-            case 32: displayMode.format = sw::FORMAT_X8R8G8B8; break;
-            case 24: displayMode.format = sw::FORMAT_R8G8B8;   break;
-            case 16: displayMode.format = sw::FORMAT_R5G6B5;   break;
-            default:
-                ASSERT(false);   // Unexpected display mode color depth
+            case 32: return sw::FORMAT_X8R8G8B8;
+            case 24: return sw::FORMAT_R8G8B8;
+            case 16: return sw::FORMAT_R5G6B5;
+            default: UNREACHABLE(bpp);   // Unexpected display mode color depth
             }
         }
         else if(platform == EGL_PLATFORM_GBM_MESA)
         {
-            displayMode.width = 0;
-            displayMode.height = 0;
-            displayMode.format = sw::FORMAT_X8R8G8B8;
+            return sw::FORMAT_X8R8G8B8;
         }
         else UNREACHABLE(platform);
 	#endif
 
-	return displayMode;
+	return sw::FORMAT_X8R8G8B8;
 }
 
 }

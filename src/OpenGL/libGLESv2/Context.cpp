@@ -104,15 +104,15 @@ Context::Context(const egl::Config *config, const Context *shareContext, EGLint 
 
     mState.viewportX = 0;
     mState.viewportY = 0;
-    mState.viewportWidth = config->mDisplayMode.width;
-    mState.viewportHeight = config->mDisplayMode.height;
+    mState.viewportWidth = 0;
+    mState.viewportHeight = 0;
     mState.zNear = 0.0f;
     mState.zFar = 1.0f;
 
     mState.scissorX = 0;
     mState.scissorY = 0;
-    mState.scissorWidth = config->mDisplayMode.width;
-    mState.scissorHeight = config->mDisplayMode.height;
+    mState.scissorWidth = 0;
+    mState.scissorHeight = 0;
 
     mState.colorMaskRed = true;
     mState.colorMaskGreen = true;

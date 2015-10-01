@@ -26,22 +26,15 @@ namespace egl
 {
 class Display;
 
-struct DisplayMode
-{
-	unsigned int width;
-	unsigned int height;
-	sw::Format format;
-};
-
 class Config
 {
 public:
-    Config(const DisplayMode &displayMode, EGLint minSwapInterval, EGLint maxSwapInterval, sw::Format renderTargetFormat, sw::Format depthStencilFormat, EGLint multiSample);
+    Config(sw::Format displayFormat, EGLint minSwapInterval, EGLint maxSwapInterval, sw::Format renderTargetFormat, sw::Format depthStencilFormat, EGLint multiSample);
 
     EGLConfig getHandle() const;
 	bool isSlowConfig() const;
 
-    const DisplayMode mDisplayMode;
+    const sw::Format mDisplayFormat;
     const sw::Format mRenderTargetFormat;
     const sw::Format mDepthStencilFormat;
     const EGLint mMultiSample;
@@ -96,7 +89,7 @@ class ConfigSet
   public:
     ConfigSet();
 
-    void add(const DisplayMode &displayMode, EGLint minSwapInterval, EGLint maxSwapInterval, sw::Format renderTargetFormat, sw::Format depthStencilFormat, EGLint multiSample);
+    void add(sw::Format displayFormat, EGLint minSwapInterval, EGLint maxSwapInterval, sw::Format renderTargetFormat, sw::Format depthStencilFormat, EGLint multiSample);
     size_t size() const;
     bool getConfigs(EGLConfig *configs, const EGLint *attribList, EGLint configSize, EGLint *numConfig);
     const egl::Config *get(EGLConfig configHandle);

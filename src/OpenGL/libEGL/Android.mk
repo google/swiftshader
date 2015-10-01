@@ -19,17 +19,14 @@ COMMON_SRC_FILES := \
 COMMON_C_INCLUDES := \
 	bionic \
 	$(GCE_STLPORT_INCLUDES) \
-	device/google/gce/include \
 	$(LOCAL_PATH)/../include \
 	$(LOCAL_PATH)/../ \
 	$(LOCAL_PATH)/../../
 
 COMMON_STATIC_LIBRARIES := \
-	libLLVM_swiftshader \
-	libgcemetadata
+	libLLVM_swiftshader
 
 COMMON_SHARED_LIBRARIES := \
-	libgceframebufferconfig \
 	libdl \
 	liblog \
 	libandroid \

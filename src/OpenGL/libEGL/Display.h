@@ -61,7 +61,7 @@ namespace egl
 	private:
 		Display(EGLenum platform, EGLNativeDisplayType displayId);
 
-		DisplayMode getDisplayMode() const;
+		sw::Format getDisplayFormat() const;
 
         const EGLenum platform;
 		const EGLNativeDisplayType displayId;
