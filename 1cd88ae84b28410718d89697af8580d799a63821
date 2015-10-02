@@ -16,6 +16,24 @@
       "revId": "1cd88ae84b28410718d89697af8580d799a63821",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d5cefe75_6a7f4ba3",
+        "filename": "src/OpenGL/libGLESv2/Texture.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1897,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-10-02T19:18:37Z",
+      "side": 0,
+      "message": "It shouldn\u0027t, but then again this was clearly respecting the format so I reverted it just in case this made things worse. Thanks.",
+      "parentUuid": "f5586271_95849301",
+      "revId": "1cd88ae84b28410718d89697af8580d799a63821",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
