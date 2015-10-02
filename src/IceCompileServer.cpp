@@ -109,9 +109,9 @@ void reportFatalErrorThenExitSuccess(void *UserData, const std::string &Reason,
   llvm::raw_svector_ostream OS(Buffer);
   OS << "LLVM ERROR: " << Reason << "\n";
   llvm::StringRef MessageStr = OS.str();
-  ssize_t written =
-      ::fwrite(MessageStr.data(), sizeof(char), MessageStr.size(), ::stdout);
-  (void)written; // If something went wrong, we deliberately just give up.
+  ssize_t Written =
+      std::fwrite(MessageStr.data(), sizeof(char), MessageStr.size(), stderr);
+  (void)Written; // If something went wrong, we deliberately just give up.
 
   // If we reached here, we are failing ungracefully. Run the interrupt handlers
   // to make sure any special cleanups get done, in particular that we remove
