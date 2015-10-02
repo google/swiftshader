@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f5586271_95849301",
+        "filename": "src/OpenGL/libGLESv2/Texture.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1897,
+      "author": {
+        "id": 5200
+      },
+      "writtenOn": "2015-10-02T18:52:36Z",
+      "side": 0,
+      "message": "I don\u0027t understand the code, but this is a little disconcerting. It\u0027s quite possible to allocate 32 bit gralloc buffers on devices with 16 bit framebuffers. Would this change interfere?",
+      "revId": "1cd88ae84b28410718d89697af8580d799a63821",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
