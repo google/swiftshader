@@ -137,7 +137,7 @@ bool LinearScan::livenessValidateIntervals(
     const DefUseErrorList &DefsWithoutUses,
     const DefUseErrorList &UsesBeforeDefs,
     const CfgVector<InstNumberT> &LRBegin,
-    const CfgVector<InstNumberT> &LREnd) {
+    const CfgVector<InstNumberT> &LREnd) const {
   if (DefsWithoutUses.empty() && UsesBeforeDefs.empty())
     return true;
 

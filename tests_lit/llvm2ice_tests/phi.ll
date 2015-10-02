@@ -92,12 +92,15 @@ exit:
 
 ; CHECK-LABEL: testPhi3
 ; CHECK: push [[EBX:.*]]
-; CHECK: mov {{.*}},DWORD PTR [esp
-; CHECK: mov
-; CHECK: mov {{.*}},DWORD PTR [[ADDR:.*0x3e8]]
+; CHECK: mov [[EAX:.*]],DWORD PTR [esp
+; CHECK: mov [[ECX:.*]],[[EAX]]
+;;; start of loop body
+; CHECK: mov [[EDX:.*]],[[ECX]]
+; CHECK: mov {{.*}},DWORD PTR [{{.*}}+0x3e8]
 ; CHECK: cmp {{.*}},0x0
 ; CHECK: jne
-; CHECK: mov DWORD PTR [[ADDR]]
+;;; start of epilog
+; CHECK: mov DWORD PTR {{.}}[[EDX]]+0x3e8],
 ; CHECK: pop [[EBX]]
 
 ; Test of "advanced phi lowering" with undef phi arg (integer vector).

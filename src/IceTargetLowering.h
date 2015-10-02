@@ -65,6 +65,9 @@ public:
   void setNext(InstList::iterator N) { Next = N; }
   void rewind();
   void setInsertPoint(const InstList::iterator &Position) { Next = Position; }
+  void availabilityReset();
+  void availabilityUpdate();
+  Variable *availabilityGet(Operand *Src) const;
 
 private:
   /// Node is the argument to Inst::updateVars().
@@ -85,6 +88,11 @@ private:
   InstList::iterator Begin;
   /// End is a copy of Insts.end(), used if Next needs to be advanced.
   InstList::iterator End;
+  /// LastDest and LastSrc capture the parameters of the last "Dest=Src" simple
+  /// assignment inserted (provided Src is a variable).  This is used for simple
+  /// availability analysis.
+  Variable *LastDest = nullptr;
+  Variable *LastSrc = nullptr;
 
   void skipDeleted(InstList::iterator &I) const;
   void advanceForward(InstList::iterator &I) const;

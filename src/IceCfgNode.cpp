@@ -570,6 +570,7 @@ void CfgNode::genCode() {
     // Ensure target lowering actually moved the cursor.
     assert(Context.getCur() != Orig);
   }
+  Context.availabilityReset();
   // Do preliminary lowering of the Phi instructions.
   Target->prelowerPhis();
 }
@@ -683,7 +684,7 @@ bool CfgNode::liveness(Liveness *Liveness) {
 
 // Validate the integrity of the live ranges in this block.  If there are any
 // errors, it prints details and returns false.  On success, it returns true.
-bool CfgNode::livenessValidateIntervals(Liveness *Liveness) {
+bool CfgNode::livenessValidateIntervals(Liveness *Liveness) const {
   if (!BuildDefs::asserts())
     return true;
 

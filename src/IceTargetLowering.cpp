@@ -46,6 +46,7 @@ void LoweringContext::rewind() {
   Cur = Begin;
   skipDeleted(Cur);
   Next = Cur;
+  availabilityReset();
 }
 
 void LoweringContext::insert(Inst *Inst) {
@@ -68,6 +69,31 @@ void LoweringContext::advanceForward(InstList::iterator &I) const {
 Inst *LoweringContext::getLastInserted() const {
   assert(LastInserted);
   return LastInserted;
+}
+
+void LoweringContext::availabilityReset() {
+  LastDest = nullptr;
+  LastSrc = nullptr;
+}
+
+void LoweringContext::availabilityUpdate() {
+  availabilityReset();
+  Inst *Instr = LastInserted;
+  if (Instr == nullptr)
+    return;
+  if (!Instr->isSimpleAssign())
+    return;
+  if (auto *SrcVar = llvm::dyn_cast<Variable>(Instr->getSrc(0))) {
+    LastDest = Instr->getDest();
+    LastSrc = SrcVar;
+  }
+}
+
+Variable *LoweringContext::availabilityGet(Operand *Src) const {
+  assert(Src);
+  if (Src == LastDest)
+    return LastSrc;
+  return nullptr;
 }
 
 TargetLowering *TargetLowering::createLowering(TargetArch Target, Cfg *Func) {

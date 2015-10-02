@@ -5016,6 +5016,24 @@ Operand *TargetX86Base<Machine>::legalize(Operand *From, LegalMask Allowed,
   // the shl shift amount to be either an immediate or in ecx.)
   assert(RegNum == Variable::NoRegister || Allowed == Legal_Reg);
 
+  // Substitute with an available infinite-weight variable if possible.  Only do
+  // this when we are not asking for a specific register, and when the
+  // substitution is not locked to a specific register, and when the types
+  // match, in order to capture the vast majority of opportunities and avoid
+  // corner cases in the lowering.
+  if (RegNum == Variable::NoRegister) {
+    if (Variable *Subst = getContext().availabilityGet(From)) {
+      // At this point we know there is a potential substitution available.
+      if (Subst->mustHaveReg() && !Subst->hasReg()) {
+        // At this point we know the substitution will have a register.
+        if (From->getType() == Subst->getType()) {
+          // At this point we know the substitution's register is compatible.
+          return Subst;
+        }
+      }
+    }
+  }
+
   if (auto Mem = llvm::dyn_cast<typename Traits::X86OperandMem>(From)) {
     // Before doing anything with a Mem operand, we need to ensure that the
     // Base and Index components are in physical registers.
@@ -5239,6 +5257,7 @@ template <class Machine> void TargetX86Base<Machine>::postLower() {
   if (Ctx->getFlags().getOptLevel() == Opt_m1)
     return;
   markRedefinitions();
+  Context.availabilityUpdate();
 }
 
 template <class Machine>

@@ -77,8 +77,10 @@ entry:
   ret void
 }
 ; CHECK-LABEL: CallIndirectGlobal
+; Allow the first call to be to a different register because of simple
+; availability optimization.
+; CHECK: call
 ; CHECK: call [[REGISTER:[a-z]+]]
-; CHECK: call [[REGISTER]]
 ; CHECK: call [[REGISTER]]
 ; CHECK: call [[REGISTER]]
 ;
