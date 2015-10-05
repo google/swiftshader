@@ -1492,7 +1492,7 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       if (TypesAreValidForPmull && InstructionSetIsValidForPmull) {
         Variable *T = makeReg(Dest->getType());
         _movp(T, Src0);
-        _pmull(T, Src1);
+        _pmull(T, Src0 == Src1 ? T : Src1);
         _movp(Dest, T);
       } else if (Dest->getType() == IceType_v4i32) {
         // Lowering sequence:
@@ -1532,9 +1532,10 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
         _shufps(T1, T2, Ctx->getConstantInt32(Mask0202));
         _pshufd(T4, T1, Ctx->getConstantInt32(Mask0213));
         _movp(Dest, T4);
-      } else {
-        assert(Dest->getType() == IceType_v16i8);
+      } else if (Dest->getType() == IceType_v16i8) {
         scalarizeArithmetic(Inst->getOp(), Dest, Src0, Src1);
+      } else {
+        llvm::report_fatal_error("Invalid vector multiply type");
       }
     } break;
     case InstArithmetic::Shl:
@@ -1561,7 +1562,7 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
     case InstArithmetic::Fmul: {
       Variable *T = makeReg(Dest->getType());
       _movp(T, Src0);
-      _mulps(T, Src1);
+      _mulps(T, Src0 == Src1 ? T : Src1);
       _movp(Dest, T);
     } break;
     case InstArithmetic::Fdiv: {
@@ -1620,7 +1621,7 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
     } else {
       _mov(T, Src0);
     }
-    _imul(T, Src1);
+    _imul(T, Src0 == Src1 ? T : Src1);
     _mov(Dest, T);
     break;
   case InstArithmetic::Shl:
@@ -1826,7 +1827,7 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
     break;
   case InstArithmetic::Fmul:
     _mov(T, Src0);
-    _mulss(T, Src1);
+    _mulss(T, Src0 == Src1 ? T : Src1);
     _mov(Dest, T);
     break;
   case InstArithmetic::Fdiv:
