@@ -55,8 +55,8 @@ entry:
   ret float %f
 }
 ; TEXT-RELOCS-LABEL: returnFloatConst
-; TEXT-RELOCS: movss {{.*}} R_386_32 .L$float$0
-; TEXT-RELOCS: addss {{.*}} R_386_32 .L$float$1
+; TEXT-RELOCS: movss {{.*}} R_386_32 .L$float$80000000
+; TEXT-RELOCS: addss {{.*}} R_386_32 .L$float$3f9d70a0
 
 define internal double @returnDoubleConst() {
 entry:
@@ -65,9 +65,9 @@ entry:
   ret double %d2
 }
 ; TEXT-RELOCS-LABEL: returnDoubleConst
-; TEXT-RELOCS: movsd {{.*}} R_386_32 .L$double$0
-; TEXT-RELOCS: addsd {{.*}} R_386_32 .L$double$1
-; TEXT-RELOCS: addsd {{.*}} R_386_32 .L$double$2
+; TEXT-RELOCS: movsd {{.*}} R_386_32 .L$double$ffffffffffffffff
+; TEXT-RELOCS: addsd {{.*}} R_386_32 .L$double$fff7ffffffffffff
+; TEXT-RELOCS: addsd {{.*}} R_386_32 .L$double$fff8000000000003
 
 ; Test intrinsics that call out to external functions.
 define internal void @test_memcpy(i32 %iptr_dst, i32 %len) {
@@ -383,11 +383,11 @@ define void @_start(i32) {
 
 ; CHECK: Relocations [
 ; CHECK:   Section ({{[0-9]+}}) .rel.text {
-; CHECK:     0x4 R_386_32 .L$float$0 0x0
-; CHECK:     0xC R_386_32 .L$float$1 0x0
-; CHECK:     0x24 R_386_32 .L$double$0 0x0
-; CHECK:     0x2C R_386_32 .L$double$1 0x0
-; CHECK:     0x34 R_386_32 .L$double$2 0x0
+; CHECK:     0x4 R_386_32 .L$float$80000000 0x0
+; CHECK:     0xC R_386_32 .L$float$3f9d70a0 0x0
+; CHECK:     0x24 R_386_32 .L$double$ffffffffffffffff 0x0
+; CHECK:     0x2C R_386_32 .L$double$fff7ffffffffffff 0x0
+; CHECK:     0x34 R_386_32 .L$double$fff8000000000003 0x0
 ; CHECK:     0x{{.*}} R_386_PC32 memcpy
 ; CHECK:     0x{{.*}} R_386_PC32 memset
 ; CHECK:     0x{{.*}} R_386_PC32 external_foo
@@ -419,16 +419,7 @@ define void @_start(i32) {
 ; CHECK-NEXT:     Section: Undefined (0x0)
 ; CHECK-NEXT:   }
 ; CHECK:        Symbol {
-; CHECK:          Name: .L$double$0
-; CHECK-NEXT:     Value: 0x10
-; CHECK-NEXT:     Size: 0
-; CHECK-NEXT:     Binding: Local (0x0)
-; CHECK-NEXT:     Type: None (0x0)
-; CHECK-NEXT:     Other: 0
-; CHECK-NEXT:     Section: .rodata.cst8
-; CHECK-NEXT:   }
-; CHECK:        Symbol {
-; CHECK:          Name: .L$double$2
+; CHECK:          Name: .L$double$fff8000000000003
 ; CHECK-NEXT:     Value: 0x8
 ; CHECK-NEXT:     Size: 0
 ; CHECK-NEXT:     Binding: Local (0x0)
@@ -437,8 +428,17 @@ define void @_start(i32) {
 ; CHECK-NEXT:     Section: .rodata.cst8
 ; CHECK-NEXT:   }
 ; CHECK:        Symbol {
-; CHECK:          Name: .L$float$0
-; CHECK-NEXT:     Value: 0x4
+; CHECK:          Name: .L$double$ffffffffffffffff
+; CHECK-NEXT:     Value: 0x10
+; CHECK-NEXT:     Size: 0
+; CHECK-NEXT:     Binding: Local (0x0)
+; CHECK-NEXT:     Type: None (0x0)
+; CHECK-NEXT:     Other: 0
+; CHECK-NEXT:     Section: .rodata.cst8
+; CHECK-NEXT:   }
+; CHECK:        Symbol {
+; CHECK:          Name: .L$float$3f9d70a0
+; CHECK-NEXT:     Value: 0x0
 ; CHECK-NEXT:     Size: 0
 ; CHECK-NEXT:     Binding: Local (0x0)
 ; CHECK-NEXT:     Type: None (0x0)
@@ -446,8 +446,8 @@ define void @_start(i32) {
 ; CHECK-NEXT:     Section: .rodata.cst4
 ; CHECK-NEXT:   }
 ; CHECK:        Symbol {
-; CHECK:          Name: .L$float$1
-; CHECK-NEXT:     Value: 0x0
+; CHECK:          Name: .L$float$80000000
+; CHECK-NEXT:     Value: 0x4
 ; CHECK-NEXT:     Size: 0
 ; CHECK-NEXT:     Binding: Local (0x0)
 ; CHECK-NEXT:     Type: None (0x0)

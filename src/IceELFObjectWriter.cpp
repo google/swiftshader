@@ -526,7 +526,7 @@ template <typename ConstType> void ELFObjectWriter::writeConstantPool(Type Ty) {
     auto Const = llvm::cast<ConstType>(C);
     std::string SymBuffer;
     llvm::raw_string_ostream SymStrBuf(SymBuffer);
-    Const->emitPoolLabel(SymStrBuf);
+    Const->emitPoolLabel(SymStrBuf, &Ctx);
     std::string &SymName = SymStrBuf.str();
     SymTab->createDefinedSym(SymName, STT_NOTYPE, STB_LOCAL, Section,
                              OffsetInSection, SymbolSize);

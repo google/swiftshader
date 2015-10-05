@@ -130,7 +130,7 @@ public:
     auto Iter = Pool.find(Key);
     if (Iter != Pool.end())
       return Iter->second;
-    ValueType *Result = ValueType::create(Ctx, Ty, Key, NextPoolID++);
+    ValueType *Result = ValueType::create(Ctx, Ty, Key);
     Pool[Key] = Result;
     return Result;
   }
@@ -157,7 +157,6 @@ private:
       std::unordered_map<KeyType, ValueType *, std::hash<KeyType>,
                          KeyCompare<KeyType>>;
   ContainerType Pool;
-  uint32_t NextPoolID = 0;
 };
 
 // UndefPool maps ICE types to the corresponding ConstantUndef values.
@@ -170,12 +169,11 @@ public:
 
   ConstantUndef *getOrAdd(GlobalContext *Ctx, Type Ty) {
     if (Pool[Ty] == nullptr)
-      Pool[Ty] = ConstantUndef::create(Ctx, Ty, NextPoolID++);
+      Pool[Ty] = ConstantUndef::create(Ctx, Ty);
     return Pool[Ty];
   }
 
 private:
-  uint32_t NextPoolID = 0;
   std::vector<ConstantUndef *> Pool;
 };
 

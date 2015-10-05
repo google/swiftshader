@@ -5096,7 +5096,7 @@ Operand *TargetX86Base<Machine>::legalize(Operand *From, LegalMask Allowed,
       Variable *Base = nullptr;
       std::string Buffer;
       llvm::raw_string_ostream StrBuf(Buffer);
-      llvm::cast<Constant>(From)->emitPoolLabel(StrBuf);
+      llvm::cast<Constant>(From)->emitPoolLabel(StrBuf, Ctx);
       llvm::cast<Constant>(From)->setShouldBePooled(true);
       Constant *Offset = Ctx->getConstantSym(0, StrBuf.str(), true);
       From = Traits::X86OperandMem::create(Func, Ty, Base, Offset);
@@ -5293,7 +5293,7 @@ void TargetX86Base<Machine>::emit(const ConstantFloat *C) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Ctx->getStrEmit();
-  C->emitPoolLabel(Str);
+  C->emitPoolLabel(Str, Ctx);
 }
 
 template <class Machine>
@@ -5301,7 +5301,7 @@ void TargetX86Base<Machine>::emit(const ConstantDouble *C) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Ctx->getStrEmit();
-  C->emitPoolLabel(Str);
+  C->emitPoolLabel(Str, Ctx);
 }
 
 template <class Machine>
@@ -5367,7 +5367,7 @@ Operand *TargetX86Base<Machine>::randomizeOrPoolImmediate(Constant *Immediate,
       Variable *Reg = makeReg(Immediate->getType(), RegNum);
       IceString Label;
       llvm::raw_string_ostream Label_stream(Label);
-      Immediate->emitPoolLabel(Label_stream);
+      Immediate->emitPoolLabel(Label_stream, Ctx);
       const RelocOffsetT Offset = 0;
       const bool SuppressMangling = true;
       Constant *Symbol =
@@ -5463,7 +5463,7 @@ TargetX86Base<Machine>::randomizeOrPoolImmediate(
         Variable *RegTemp = makeReg(IceType_i32);
         IceString Label;
         llvm::raw_string_ostream Label_stream(Label);
-        MemOperand->getOffset()->emitPoolLabel(Label_stream);
+        MemOperand->getOffset()->emitPoolLabel(Label_stream, Ctx);
         MemOperand->getOffset()->setShouldBePooled(true);
         const RelocOffsetT SymOffset = 0;
         bool SuppressMangling = true;

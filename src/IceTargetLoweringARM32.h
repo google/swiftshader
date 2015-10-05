@@ -255,13 +255,13 @@ protected:
     Context.insert(InstARM32Ldr::create(Func, Dest, Addr, Pred));
   }
   void _ldrex(Variable *Dest, OperandARM32Mem *Addr,
-             CondARM32::Cond Pred = CondARM32::AL) {
-   Context.insert(InstARM32Ldrex::create(Func, Dest, Addr, Pred));
-   if (auto *Dest64 = llvm::dyn_cast<Variable64On32>(Dest)) {
-     Context.insert(InstFakeDef::create(Func, Dest64->getLo(), Dest));
-     Context.insert(InstFakeDef::create(Func, Dest64->getHi(), Dest));
-   }
- }
+              CondARM32::Cond Pred = CondARM32::AL) {
+    Context.insert(InstARM32Ldrex::create(Func, Dest, Addr, Pred));
+    if (auto *Dest64 = llvm::dyn_cast<Variable64On32>(Dest)) {
+      Context.insert(InstFakeDef::create(Func, Dest64->getLo(), Dest));
+      Context.insert(InstFakeDef::create(Func, Dest64->getHi(), Dest));
+    }
+  }
   void _lsl(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Lsl::create(Func, Dest, Src0, Src1, Pred));

@@ -3150,7 +3150,7 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
       // loading to SREG.
       std::string Buffer;
       llvm::raw_string_ostream StrBuf(Buffer);
-      llvm::cast<Constant>(From)->emitPoolLabel(StrBuf);
+      llvm::cast<Constant>(From)->emitPoolLabel(StrBuf, Ctx);
       llvm::cast<Constant>(From)->setShouldBePooled(true);
       Constant *Offset = Ctx->getConstantSym(0, StrBuf.str(), true);
       Variable *BaseReg = makeReg(getPointerType());
@@ -3358,10 +3358,10 @@ const char ConstantPoolEmitterTraits<double>::TypeName[] = "f64";
 
 template <typename T>
 void emitConstant(
-    Ostream &Str,
+    Ostream &Str, const GlobalContext *Ctx,
     const typename ConstantPoolEmitterTraits<T>::ConstantType *Const) {
   using Traits = ConstantPoolEmitterTraits<T>;
-  Const->emitPoolLabel(Str);
+  Const->emitPoolLabel(Str, Ctx);
   Str << ":\n\t" << Traits::AsmTag << "\t0x";
   T Value = Const->getValue();
   Str.write_hex(Traits::bitcastToUint64(Value));
@@ -3394,7 +3394,7 @@ template <typename T> void emitConstantPool(GlobalContext *Ctx) {
       continue;
     }
 
-    emitConstant<T>(Str, llvm::dyn_cast<typename Traits::ConstantType>(C));
+    emitConstant<T>(Str, Ctx, llvm::dyn_cast<typename Traits::ConstantType>(C));
   }
 }
 } // end of anonymous namespace

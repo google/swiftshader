@@ -49,8 +49,8 @@ entry:
   ret i64 %v0
 }
 ; CHECK-LABEL: cast_d2ll_const
-; CHECK: mov e{{..}},DWORD PTR ds:0x0 {{.*}} .L$double$0
-; CHECK: mov e{{..}},DWORD PTR ds:0x4 {{.*}} .L$double$0
+; CHECK: mov e{{..}},DWORD PTR ds:0x0 {{.*}} .L$double$0012345678901234
+; CHECK: mov e{{..}},DWORD PTR ds:0x4 {{.*}} .L$double$0012345678901234
 ; ARM32-LABEL: cast_d2ll_const
 ; ARM32-DAG: movw [[ADDR:r[0-9]+]], #:lower16:.L$
 ; ARM32-DAG: movt [[ADDR]], #:upper16:.L$

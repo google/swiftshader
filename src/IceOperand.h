@@ -23,6 +23,8 @@
 #include "IceGlobalContext.h"
 #include "IceTypes.h"
 
+#include "llvm/Support/Format.h"
+
 namespace Ice {
 
 class Operand {
@@ -115,9 +117,11 @@ class Constant : public Operand {
   Constant &operator=(const Constant &) = delete;
 
 public:
-  void emitPoolLabel(Ostream &Str) const {
-    Str << ".L$" << getType() << "$" << PoolEntryID;
-  }
+  virtual void emitPoolLabel(Ostream &Str, const GlobalContext *Ctx) const {
+    (void)Str;
+    (void)Ctx;
+    llvm::report_fatal_error("emitPoolLabel not defined for type");
+  };
   void emit(const Cfg *Func) const override { emit(Func->getTarget()); }
   virtual void emit(TargetLowering *Target) const = 0;
 
@@ -139,15 +143,11 @@ public:
   bool getShouldBePooled() const { return shouldBePooled; }
 
 protected:
-  Constant(OperandKind Kind, Type Ty, uint32_t PoolEntryID)
-      : Operand(Kind, Ty), PoolEntryID(PoolEntryID), shouldBePooled(false) {
+  Constant(OperandKind Kind, Type Ty)
+      : Operand(Kind, Ty), shouldBePooled(false) {
     Vars = nullptr;
     NumVars = 0;
   }
-  /// PoolEntryID is an integer that uniquely identifies the constant within its
-  /// constant pool. It is used for building the constant pool in the object
-  /// code and for referencing its entries.
-  const uint32_t PoolEntryID;
   /// Whether we should pool this constant. Usually Float/Double and pooled
   /// Integers should be flagged true.
   bool shouldBePooled;
@@ -163,14 +163,42 @@ class ConstantPrimitive : public Constant {
 public:
   using PrimType = T;
 
-  static ConstantPrimitive *create(GlobalContext *Ctx, Type Ty, PrimType Value,
-                                   uint32_t PoolEntryID) {
+  static ConstantPrimitive *create(GlobalContext *Ctx, Type Ty,
+                                   PrimType Value) {
     assert(!Ctx->isIRGenerationDisabled() &&
            "Attempt to build primitive constant when IR generation disabled");
     return new (Ctx->allocate<ConstantPrimitive>())
-        ConstantPrimitive(Ty, Value, PoolEntryID);
+        ConstantPrimitive(Ty, Value);
   }
   PrimType getValue() const { return Value; }
+  void emitPoolLabel(Ostream &Str, const GlobalContext *Ctx) const final {
+    Str << ".L$" << getType() << "$";
+    // Print hex characters byte by byte, starting from the most significant
+    // byte.  NOTE: This ordering assumes Subzero runs on a little-endian
+    // platform.  That means the possibility of different label names depending
+    // on the endian-ness of the platform where Subzero runs.
+    for (unsigned i = 0; i < sizeof(Value); ++i) {
+      constexpr unsigned HexWidthChars = 2;
+      unsigned Offset = sizeof(Value) - 1 - i;
+      Str << llvm::format_hex_no_prefix(
+          *(Offset + (const unsigned char *)&Value), HexWidthChars);
+    }
+    // For a floating-point value in DecorateAsm mode, also append the value in
+    // human-readable sprintf form, changing '+' to 'p' and '-' to 'm' to
+    // maintain valid asm labels.
+    if (std::is_floating_point<PrimType>::value && !BuildDefs::minimal() &&
+        Ctx->getFlags().getDecorateAsm()) {
+      char Buf[30];
+      snprintf(Buf, llvm::array_lengthof(Buf), "$%g", (double)Value);
+      for (unsigned i = 0; i < llvm::array_lengthof(Buf) && Buf[i]; ++i) {
+        if (Buf[i] == '-')
+          Buf[i] = 'm';
+        else if (Buf[i] == '+')
+          Buf[i] = 'p';
+      }
+      Str << Buf;
+    }
+  }
   using Constant::emit;
   void emit(TargetLowering *Target) const final;
   using Constant::dump;
@@ -189,8 +217,7 @@ public:
   }
 
 private:
-  ConstantPrimitive(Type Ty, PrimType Value, uint32_t PoolEntryID)
-      : Constant(K, Ty, PoolEntryID), Value(Value) {}
+  ConstantPrimitive(Type Ty, PrimType Value) : Constant(K, Ty), Value(Value) {}
   const PrimType Value;
 };
 
@@ -250,12 +277,11 @@ class ConstantRelocatable : public Constant {
 
 public:
   static ConstantRelocatable *create(GlobalContext *Ctx, Type Ty,
-                                     const RelocatableTuple &Tuple,
-                                     uint32_t PoolEntryID) {
+                                     const RelocatableTuple &Tuple) {
     assert(!Ctx->isIRGenerationDisabled() &&
            "Attempt to build relocatable constant when IR generation disabled");
     return new (Ctx->allocate<ConstantRelocatable>()) ConstantRelocatable(
-        Ty, Tuple.Offset, Tuple.Name, Tuple.SuppressMangling, PoolEntryID);
+        Ty, Tuple.Offset, Tuple.Name, Tuple.SuppressMangling);
   }
 
   RelocOffsetT getOffset() const { return Offset; }
@@ -275,9 +301,9 @@ public:
 
 private:
   ConstantRelocatable(Type Ty, RelocOffsetT Offset, const IceString &Name,
-                      bool SuppressMangling, uint32_t PoolEntryID)
-      : Constant(kConstRelocatable, Ty, PoolEntryID), Offset(Offset),
-        Name(Name), SuppressMangling(SuppressMangling) {}
+                      bool SuppressMangling)
+      : Constant(kConstRelocatable, Ty), Offset(Offset), Name(Name),
+        SuppressMangling(SuppressMangling) {}
   const RelocOffsetT Offset; /// fixed offset to add
   const IceString Name;      /// optional for debug/dump
   bool SuppressMangling;
@@ -292,11 +318,10 @@ class ConstantUndef : public Constant {
   ConstantUndef &operator=(const ConstantUndef &) = delete;
 
 public:
-  static ConstantUndef *create(GlobalContext *Ctx, Type Ty,
-                               uint32_t PoolEntryID) {
+  static ConstantUndef *create(GlobalContext *Ctx, Type Ty) {
     assert(!Ctx->isIRGenerationDisabled() &&
            "Attempt to build undefined constant when IR generation disabled");
-    return new (Ctx->allocate<ConstantUndef>()) ConstantUndef(Ty, PoolEntryID);
+    return new (Ctx->allocate<ConstantUndef>()) ConstantUndef(Ty);
   }
 
   using Constant::emit;
@@ -312,8 +337,7 @@ public:
   }
 
 private:
-  ConstantUndef(Type Ty, uint32_t PoolEntryID)
-      : Constant(kConstUndef, Ty, PoolEntryID) {}
+  ConstantUndef(Type Ty) : Constant(kConstUndef, Ty) {}
 };
 
 /// RegWeight is a wrapper for a uint32_t weight value, with a special value

@@ -757,7 +757,7 @@ void TargetDataX8632::emitConstantPool(GlobalContext *Ctx) {
     assert(CharsPrinted >= 0 &&
            (size_t)CharsPrinted < llvm::array_lengthof(buf));
     (void)CharsPrinted; // avoid warnings if asserts are disabled
-    Const->emitPoolLabel(Str);
+    Const->emitPoolLabel(Str, Ctx);
     Str << ":\n\t" << T::AsmTag << "\t" << buf << "\t# " << T::TypeName << " "
         << Value << "\n";
   }
