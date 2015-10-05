@@ -997,7 +997,7 @@ void CfgNode::emit(Cfg *Func) const {
         if (!First)
           Str << ",";
         First = false;
-        Str << I->getAsmName();
+        Str << "$" << I->getName();
       }
       Str << "\n";
     }
