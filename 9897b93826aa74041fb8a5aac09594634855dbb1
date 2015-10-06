@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eb66c411_8d96b146",
+        "filename": "android_vendor_build.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5200
+      },
+      "writtenOn": "2015-10-06T17:37:36Z",
+      "side": 1,
+      "message": "Strategically I don\u0027t understand this change: this script shouldn\u0027t be needed with the source branch. The approach taken in this script is completely incompatible with merging to master, which is a short-term goal.\n\nTactically this could work. We\u0027d need to add this file on all on the -dev branches (jb-dev, jb-mr1-dev, jb-mr2-dev, klp-dev, lmp-dev, lmp-mr1-dev, mnc-dev, and master.\n\nI don\u0027t have the power to approve them, but bohu@google.com might.\n\nThere are some considerations: this file would appear in the AOSP release but is actually Gubuntu specific. It might be possible to put the file somewhere else where it would not appear (vendor/google/ comes to mind).",
+      "revId": "9897b93826aa74041fb8a5aac09594634855dbb1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
