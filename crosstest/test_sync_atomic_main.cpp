@@ -92,7 +92,8 @@ void testAtomicRMW(volatile Type *AtomicLoc, size_t &TotalTests, size_t &Passes,
           } else {
             ++Failures;
             std::cout << "test_" << Funcs[f].Name << (CHAR_BIT * sizeof(Type))
-                      << "(" << static_cast<uint64>(Value1) << ", "
+                      << "(" << fetch_first << ", "
+                      << static_cast<uint64>(Value1) << ", "
                       << static_cast<uint64>(Value2)
                       << "): sz1=" << static_cast<uint64>(ResultSz1)
                       << " llc1=" << static_cast<uint64>(ResultLlc1)
@@ -139,7 +140,7 @@ void testValCompareAndSwap(volatile Type *AtomicLoc, size_t &TotalTests,
             ++Failures;
             std::cout << "test_" << Funcs[f].Name << (CHAR_BIT * sizeof(Type))
                       << "(" << static_cast<uint64>(Value1) << ", "
-                      << static_cast<uint64>(Value2)
+                      << static_cast<uint64>(Value2) << ", flip=" << flip
                       << "): sz1=" << static_cast<uint64>(ResultSz1)
                       << " llc1=" << static_cast<uint64>(ResultLlc1)
                       << " sz2=" << static_cast<uint64>(ResultSz2)
@@ -159,7 +160,15 @@ template <typename Type> struct ThreadData {
 };
 
 template <typename Type> void *threadWrapper(void *Data) {
-  const size_t NumReps = 8000;
+#ifdef ARM32
+  // Given that most of times these crosstests for ARM are run under qemu, we
+  // set a lower NumReps to allow crosstests to complete within a reasonable
+  // amount of time.
+  static const size_t NumReps = 1000;
+#else  // ARM32
+  static const size_t NumReps = 8000;
+#endif // ARM32
+
   ThreadData<Type> *TData = reinterpret_cast<ThreadData<Type> *>(Data);
   for (size_t i = 0; i < NumReps; ++i) {
     (void)TData->FuncPtr(TData->Fetch, TData->Ptr, TData->Adjustment);

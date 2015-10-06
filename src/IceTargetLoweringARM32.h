@@ -131,6 +131,8 @@ protected:
   void lowerExtractElement(const InstExtractElement *Inst) override;
   void lowerFcmp(const InstFcmp *Inst) override;
   void lowerIcmp(const InstIcmp *Inst) override;
+  void lowerAtomicRMW(Variable *Dest, uint32_t Operation, Operand *Ptr,
+                      Operand *Val);
   void lowerIntrinsicCall(const InstIntrinsicCall *Inst) override;
   void lowerInsertElement(const InstInsertElement *Inst) override;
   void lowerLoad(const InstLoad *Inst) override;
@@ -160,6 +162,7 @@ protected:
   Variable *legalizeToReg(Operand *From, int32_t RegNum = Variable::NoRegister);
   OperandARM32Mem *formMemoryOperand(Operand *Ptr, Type Ty);
 
+  Variable64On32 *makeI64RegPair();
   Variable *makeReg(Type Ty, int32_t RegNum = Variable::NoRegister);
   static Type stackSlotType();
   Variable *copyToReg(Operand *Src, int32_t RegNum = Variable::NoRegister);
@@ -299,6 +302,7 @@ protected:
       Context.insert(InstFakeDef::create(Func, Instr->getDestHi()));
     }
   }
+
   void _mov_redefined(Variable *Dest, Operand *Src0,
                       CondARM32::Cond Pred = CondARM32::AL) {
     auto *Instr = InstARM32Mov::create(Func, Dest, Src0, Pred);
@@ -385,11 +389,17 @@ protected:
   }
   void _strex(Variable *Dest, Variable *Value, OperandARM32Mem *Addr,
               CondARM32::Cond Pred = CondARM32::AL) {
+    // strex requires Dest to be a register other than Value or Addr. This
+    // restriction is cleanly represented by adding an "early" definition of
+    // Dest (or a latter use of all the sources.)
+    Context.insert(InstFakeDef::create(Func, Dest));
     if (auto *Value64 = llvm::dyn_cast<Variable64On32>(Value)) {
       Context.insert(InstFakeUse::create(Func, Value64->getLo()));
       Context.insert(InstFakeUse::create(Func, Value64->getHi()));
     }
-    Context.insert(InstARM32Strex::create(Func, Dest, Value, Addr, Pred));
+    auto *Instr = InstARM32Strex::create(Func, Dest, Value, Addr, Pred);
+    Context.insert(Instr);
+    Instr->setDestRedefined();
   }
   void _sub(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {

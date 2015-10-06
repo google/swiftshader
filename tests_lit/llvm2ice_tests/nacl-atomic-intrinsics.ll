@@ -8,6 +8,21 @@
 ; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 \
 ; RUN:   | FileCheck %s
 
+; RUN: %if --need=allow_dump --need=target_ARM32 --command %p2i --filetype=asm \
+; RUN:   --target arm32 -i %s --args -O2 --skip-unimplemented \
+; RUN:   | %if --need=allow_dump --need=target_ARM32 --command FileCheck %s \
+; RUN:   --check-prefix=ARM32
+
+; RUN: %if --need=allow_dump --need=target_ARM32 --command %p2i --filetype=asm \
+; RUN:   --target arm32 -i %s --args -O2 --skip-unimplemented \
+; RUN:   | %if --need=allow_dump --need=target_ARM32 --command FileCheck %s \
+; RUN:   --check-prefix=ARM32O2
+
+; RUN: %if --need=allow_dump --need=target_ARM32 --command %p2i --filetype=asm \
+; RUN:   --target arm32 -i %s --args -Om1 --skip-unimplemented \
+; RUN:   | %if --need=allow_dump --need=target_ARM32 --command FileCheck %s \
+; RUN:   --check-prefix=ARM32
+
 declare i8 @llvm.nacl.atomic.load.i8(i8*, i32)
 declare i16 @llvm.nacl.atomic.load.i16(i16*, i32)
 declare i32 @llvm.nacl.atomic.load.i32(i32*, i32)
@@ -55,6 +70,9 @@ entry:
 ; CHECK-LABEL: test_atomic_load_8
 ; CHECK: mov {{.*}},DWORD
 ; CHECK: mov {{.*}},BYTE
+; ARM32-LABEL: test_atomic_load_8
+; ARM32: ldrb r{{[0-9]+}}, [r{{[0-9]+}}
+; ARM32: dmb
 
 define i32 @test_atomic_load_16(i32 %iptr) {
 entry:
@@ -67,6 +85,9 @@ entry:
 ; CHECK-LABEL: test_atomic_load_16
 ; CHECK: mov {{.*}},DWORD
 ; CHECK: mov {{.*}},WORD
+; ARM32-LABEL: test_atomic_load_16
+; ARM32: ldrh r{{[0-9]+}}, [r{{[0-9]+}}
+; ARM32: dmb
 
 define i32 @test_atomic_load_32(i32 %iptr) {
 entry:
@@ -77,6 +98,9 @@ entry:
 ; CHECK-LABEL: test_atomic_load_32
 ; CHECK: mov {{.*}},DWORD
 ; CHECK: mov {{.*}},DWORD
+; ARM32-LABEL: test_atomic_load_32
+; ARM32: ldr r{{[0-9]+}}, [r{{[0-9]+}}
+; ARM32: dmb
 
 define i64 @test_atomic_load_64(i32 %iptr) {
 entry:
@@ -87,6 +111,9 @@ entry:
 ; CHECK-LABEL: test_atomic_load_64
 ; CHECK: movq x{{.*}},QWORD
 ; CHECK: movq QWORD {{.*}},x{{.*}}
+; ARM32-LABEL: test_atomic_load_64
+; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}
+; ARM32: dmb
 
 define i32 @test_atomic_load_32_with_arith(i32 %iptr) {
 entry:
@@ -106,6 +133,9 @@ next:
 ; O2-LABEL: test_atomic_load_32_with_arith
 ; O2: mov {{.*}},DWORD
 ; O2: sub {{.*}},DWORD
+; ARM32-LABEL: test_atomic_load_32_with_arith
+; ARM32: ldr r{{[0-9]+}}, [r{{[0-9]+}}
+; ARM32: dmb
 
 define i32 @test_atomic_load_32_ignored(i32 %iptr) {
 entry:
@@ -119,6 +149,9 @@ entry:
 ; O2-LABEL: test_atomic_load_32_ignored
 ; O2: mov {{.*}},DWORD
 ; O2: mov {{.*}},DWORD
+; ARM32-LABEL: test_atomic_load_32_ignored
+; ARM32: ldr r{{[0-9]+}}, [r{{[0-9]+}}
+; ARM32: dmb
 
 define i64 @test_atomic_load_64_ignored(i32 %iptr) {
 entry:
@@ -129,6 +162,9 @@ entry:
 ; CHECK-LABEL: test_atomic_load_64_ignored
 ; CHECK: movq x{{.*}},QWORD
 ; CHECK: movq QWORD {{.*}},x{{.*}}
+; ARM32-LABEL: test_atomic_load_64_ignored
+; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}
+; ARM32: dmb
 
 ;;; Store
 
@@ -142,6 +178,10 @@ entry:
 ; CHECK-LABEL: test_atomic_store_8
 ; CHECK: mov BYTE
 ; CHECK: mfence
+; ARM32-LABEL: test_atomic_store_8
+; ARM32: dmb
+; ARM32: strb r{{[0-9]+}}, [r{{[0-9]+}}
+; ARM32: dmb
 
 define void @test_atomic_store_16(i32 %iptr, i32 %v) {
 entry:
@@ -153,6 +193,10 @@ entry:
 ; CHECK-LABEL: test_atomic_store_16
 ; CHECK: mov WORD
 ; CHECK: mfence
+; ARM32-LABEL: test_atomic_store_16
+; ARM32: dmb
+; ARM32: strh r{{[0-9]+}}, [r{{[0-9]+}}
+; ARM32: dmb
 
 define void @test_atomic_store_32(i32 %iptr, i32 %v) {
 entry:
@@ -163,6 +207,10 @@ entry:
 ; CHECK-LABEL: test_atomic_store_32
 ; CHECK: mov DWORD
 ; CHECK: mfence
+; ARM32-LABEL: test_atomic_store_32
+; ARM32: dmb
+; ARM32: str r{{[0-9]+}}, [r{{[0-9]+}}
+; ARM32: dmb
 
 define void @test_atomic_store_64(i32 %iptr, i64 %v) {
 entry:
@@ -174,6 +222,13 @@ entry:
 ; CHECK: movq x{{.*}},QWORD
 ; CHECK: movq QWORD {{.*}},x{{.*}}
 ; CHECK: mfence
+; ARM32-LABEL: test_atomic_store_64
+; ARM32: dmb
+; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, [[MEM:.*]]
+; ARM32: strexd [[S:r[0-9]+]], r{{[0-9]+}}, r{{[0-9]+}}, [[MEM]]
+; ARM32: cmp [[S]], #0
+; ARM32: bne
+; ARM32: dmb
 
 define void @test_atomic_store_64_const(i32 %iptr) {
 entry:
@@ -187,7 +242,17 @@ entry:
 ; CHECK: movq x{{.*}},QWORD
 ; CHECK: movq QWORD {{.*}},x{{.*}}
 ; CHECK: mfence
-
+; ARM32-LABEL: test_atomic_store_64_const
+; ARM32: dmb
+; ARM32: movw [[T0:r[0-9]+]], #12274
+; ARM32: movt [[T0]], #29646
+; ARM32: movw r{{[0-9]+}}, #2874
+; ARM32: .L[[RETRY:.*]]:
+; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, [[MEM:.*]]
+; ARM32: strexd [[S:r[0-9]+]], r{{[0-9]+}}, r{{[0-9]+}}, [[MEM]]
+; ARM32: cmp [[S]], #0
+; ARM32: bne .L[[RETRY]]
+; ARM32: dmb
 
 ;;; RMW
 
@@ -205,6 +270,13 @@ entry:
 ; CHECK-LABEL: test_atomic_rmw_add_8
 ; CHECK: lock xadd BYTE {{.*}},[[REG:.*]]
 ; CHECK: {{mov|movzx}} {{.*}},[[REG]]
+; ARM32-LABEL: test_atomic_rmw_add_8
+; ARM32: dmb
+; ARM32: ldrexb
+; ARM32: add
+; ARM32: strexb
+; ARM32: bne
+; ARM32: dmb
 
 define i32 @test_atomic_rmw_add_16(i32 %iptr, i32 %v) {
 entry:
@@ -217,6 +289,13 @@ entry:
 ; CHECK-LABEL: test_atomic_rmw_add_16
 ; CHECK: lock xadd WORD {{.*}},[[REG:.*]]
 ; CHECK: {{mov|movzx}} {{.*}},[[REG]]
+; ARM32-LABEL: test_atomic_rmw_add_16
+; ARM32: dmb
+; ARM32: ldrexh
+; ARM32: add
+; ARM32: strexh
+; ARM32: bne
+; ARM32: dmb
 
 define i32 @test_atomic_rmw_add_32(i32 %iptr, i32 %v) {
 entry:
@@ -227,6 +306,13 @@ entry:
 ; CHECK-LABEL: test_atomic_rmw_add_32
 ; CHECK: lock xadd DWORD {{.*}},[[REG:.*]]
 ; CHECK: mov {{.*}},[[REG]]
+; ARM32-LABEL: test_atomic_rmw_add_32
+; ARM32: dmb
+; ARM32: ldrex
+; ARM32: add
+; ARM32: strex
+; ARM32: bne
+; ARM32: dmb
 
 define i64 @test_atomic_rmw_add_64(i32 %iptr, i64 %v) {
 entry:
@@ -249,6 +335,14 @@ entry:
 ; about rejecting eb* and ed*.)
 ; CHECK: lock cmpxchg8b QWORD PTR [e{{.[^x]}}
 ; CHECK: jne [[LABEL]]
+; ARM32-LABEL: test_atomic_rmw_add_64
+; ARM32: dmb
+; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
+; ARM32: adds
+; ARM32-NEXT: adc
+; ARM32: strexd r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
+; ARM32: bne
+; ARM32: dmb
 
 ; Same test as above, but with a global address to test FakeUse issues.
 define i64 @test_atomic_rmw_add_64_global(i64 %v) {
@@ -258,6 +352,14 @@ entry:
   ret i64 %a
 }
 ; CHECK-LABEL: test_atomic_rmw_add_64_global
+; ARM32-LABEL: test_atomic_rmw_add_64_global
+; ARM32: dmb
+; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
+; ARM32: adds
+; ARM32-NEXT: adc
+; ARM32: strexd r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
+; ARM32: bne
+; ARM32: dmb
 
 ; Test with some more register pressure. When we have an alloca, ebp is
 ; used to manage the stack frame, so it cannot be used as a register either.
@@ -291,6 +393,14 @@ eblock:
 ; That pretty much leaves esi, or edi as the only viable registers.
 ; CHECK: lock cmpxchg8b QWORD PTR [e{{[ds]}}i]
 ; CHECK: call {{.*}} R_{{.*}} use_ptr
+; ARM32-LABEL: test_atomic_rmw_add_64_alloca
+; ARM32: dmb
+; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
+; ARM32: adds
+; ARM32-NEXT: adc
+; ARM32: strexd r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
+; ARM32: bne
+; ARM32: dmb
 
 define i32 @test_atomic_rmw_add_32_ignored(i32 %iptr, i32 %v) {
 entry:
@@ -302,6 +412,13 @@ entry:
 ; tells us that the destination variable is dead.
 ; CHECK-LABEL: test_atomic_rmw_add_32_ignored
 ; CHECK: lock xadd DWORD {{.*}},[[REG:.*]]
+; ARM32-LABEL: test_atomic_rmw_add_32_ignored
+; ARM32: dmb
+; ARM32: ldrex
+; ARM32: add
+; ARM32: strex
+; ARM32: bne
+; ARM32: dmb
 
 ; Atomic RMW 64 needs to be expanded into its own loop.
 ; Make sure that works w/ non-trivial function bodies.
@@ -333,6 +450,15 @@ err:
 ; CHECK: adc ecx,{{.*e.[^x]}}
 ; CHECK: lock cmpxchg8b QWORD PTR [e{{.[^x]}}+0x0]
 ; CHECK: jne [[LABEL]]
+; ARM32-LABEL: test_atomic_rmw_add_64_loop
+; ARM32: dmb
+; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
+; ARM32: adds
+; ARM32-NEXT: adc
+; ARM32: strexd r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
+; ARM32: bne
+; ARM32: dmb
+; ARM32: b
 
 ;; sub
 
@@ -348,6 +474,13 @@ entry:
 ; CHECK: neg [[REG:.*]]
 ; CHECK: lock xadd BYTE {{.*}},[[REG]]
 ; CHECK: {{mov|movzx}} {{.*}},[[REG]]
+; ARM32-LABEL: test_atomic_rmw_sub_8
+; ARM32: dmb
+; ARM32: ldrexb
+; ARM32: sub
+; ARM32: strexb
+; ARM32: bne
+; ARM32: dmb
 
 define i32 @test_atomic_rmw_sub_16(i32 %iptr, i32 %v) {
 entry:
@@ -361,6 +494,13 @@ entry:
 ; CHECK: neg [[REG:.*]]
 ; CHECK: lock xadd WORD {{.*}},[[REG]]
 ; CHECK: {{mov|movzx}} {{.*}},[[REG]]
+; ARM32-LABEL: test_atomic_rmw_sub_16
+; ARM32: dmb
+; ARM32: ldrexh
+; ARM32: sub
+; ARM32: strexh
+; ARM32: bne
+; ARM32: dmb
 
 define i32 @test_atomic_rmw_sub_32(i32 %iptr, i32 %v) {
 entry:
@@ -372,6 +512,13 @@ entry:
 ; CHECK: neg [[REG:.*]]
 ; CHECK: lock xadd DWORD {{.*}},[[REG]]
 ; CHECK: mov {{.*}},[[REG]]
+; ARM32-LABEL: test_atomic_rmw_sub_32
+; ARM32: dmb
+; ARM32: ldrex
+; ARM32: sub
+; ARM32: strex
+; ARM32: bne
+; ARM32: dmb
 
 define i64 @test_atomic_rmw_sub_64(i32 %iptr, i64 %v) {
 entry:
@@ -389,7 +536,14 @@ entry:
 ; CHECK: sbb ecx,{{.*e.[^x]}}
 ; CHECK: lock cmpxchg8b QWORD PTR [e{{.[^x]}}
 ; CHECK: jne [[LABEL]]
-
+; ARM32-LABEL: test_atomic_rmw_sub_64
+; ARM32: dmb
+; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
+; ARM32: subs
+; ARM32-NEXT: sbc
+; ARM32: strexd r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
+; ARM32: bne
+; ARM32: dmb
 
 define i32 @test_atomic_rmw_sub_32_ignored(i32 %iptr, i32 %v) {
 entry:
@@ -401,6 +555,13 @@ entry:
 ; CHECK-LABEL: test_atomic_rmw_sub_32_ignored
 ; CHECK: neg [[REG:.*]]
 ; CHECK: lock xadd DWORD {{.*}},[[REG]]
+; ARM32-LABEL: test_atomic_rmw_sub_32_ignored
+; ARM32: dmb
+; ARM32: ldrex
+; ARM32: sub
+; ARM32: strex
+; ARM32: bne
+; ARM32: dmb
 
 ;; or
 
@@ -419,6 +580,13 @@ entry:
 ; CHECK: or [[REG:[^a].]]
 ; CHECK: lock cmpxchg BYTE PTR [e{{[^a].}}],[[REG]]
 ; CHECK: jne
+; ARM32-LABEL: test_atomic_rmw_or_8
+; ARM32: dmb
+; ARM32: ldrexb
+; ARM32: orr
+; ARM32: strexb
+; ARM32: bne
+; ARM32: dmb
 
 ; Same test as above, but with a global address to test FakeUse issues.
 define i32 @test_atomic_rmw_or_8_global(i32 %v) {
@@ -430,6 +598,15 @@ entry:
   ret i32 %a_ext
 }
 ; CHECK-LABEL: test_atomic_rmw_or_8_global
+; ARM32-LABEL: test_atomic_rmw_or_8_global
+; ARM32: movw [[PTR:r[0-9]+]], #:lower16:Global8
+; ARM32: movt [[PTR]], #:upper16:Global8
+; ARM32: dmb
+; ARM32: ldrexb r{{[0-9]+}}, {{[[]}}[[PTR]]{{[]]}}
+; ARM32: orr
+; ARM32: strexb
+; ARM32: bne
+; ARM32: dmb
 
 define i32 @test_atomic_rmw_or_16(i32 %iptr, i32 %v) {
 entry:
@@ -444,6 +621,13 @@ entry:
 ; CHECK: or [[REG:[^a].]]
 ; CHECK: lock cmpxchg WORD PTR [e{{[^a].}}],[[REG]]
 ; CHECK: jne
+; ARM32-LABEL: test_atomic_rmw_or_16
+; ARM32: dmb
+; ARM32: ldrexh
+; ARM32: orr
+; ARM32: strexh
+; ARM32: bne
+; ARM32: dmb
 
 ; Same test as above, but with a global address to test FakeUse issues.
 define i32 @test_atomic_rmw_or_16_global(i32 %v) {
@@ -455,6 +639,15 @@ entry:
   ret i32 %a_ext
 }
 ; CHECK-LABEL: test_atomic_rmw_or_16_global
+; ARM32-LABEL: test_atomic_rmw_or_16_global
+; ARM32: movw [[PTR:r[0-9]+]], #:lower16:Global16
+; ARM32: movt [[PTR]], #:upper16:Global16
+; ARM32: dmb
+; ARM32: ldrexh r{{[0-9]+}}, {{[[]}}[[PTR]]{{[]]}}
+; ARM32: orr
+; ARM32: strexh
+; ARM32: bne
+; ARM32: dmb
 
 define i32 @test_atomic_rmw_or_32(i32 %iptr, i32 %v) {
 entry:
@@ -467,6 +660,13 @@ entry:
 ; CHECK: or [[REG:e[^a].]]
 ; CHECK: lock cmpxchg DWORD PTR [e{{[^a].}}],[[REG]]
 ; CHECK: jne
+; ARM32-LABEL: test_atomic_rmw_or_32
+; ARM32: dmb
+; ARM32: ldrex
+; ARM32: orr
+; ARM32: strex
+; ARM32: bne
+; ARM32: dmb
 
 ; Same test as above, but with a global address to test FakeUse issues.
 define i32 @test_atomic_rmw_or_32_global(i32 %v) {
@@ -476,6 +676,15 @@ entry:
   ret i32 %a
 }
 ; CHECK-LABEL: test_atomic_rmw_or_32_global
+; ARM32-LABEL: test_atomic_rmw_or_32_global
+; ARM32: movw [[PTR:r[0-9]+]], #:lower16:Global32
+; ARM32: movt [[PTR]], #:upper16:Global32
+; ARM32: dmb
+; ARM32: ldrex r{{[0-9]+}}, {{[[]}}[[PTR]]{{[]]}}
+; ARM32: orr
+; ARM32: strex
+; ARM32: bne
+; ARM32: dmb
 
 define i64 @test_atomic_rmw_or_64(i32 %iptr, i64 %v) {
 entry:
@@ -493,6 +702,14 @@ entry:
 ; CHECK: or ecx,{{.*e.[^x]}}
 ; CHECK: lock cmpxchg8b QWORD PTR [e{{.[^x]}}
 ; CHECK: jne [[LABEL]]
+; ARM32-LABEL: test_atomic_rmw_or_64
+; ARM32: dmb
+; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
+; ARM32: orr
+; ARM32-NEXT: orr
+; ARM32: strexd r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
+; ARM32: bne
+; ARM32: dmb
 
 define i32 @test_atomic_rmw_or_32_ignored(i32 %iptr, i32 %v) {
 entry:
@@ -508,6 +725,13 @@ entry:
 ; CHECK: or [[REG:e[^a].]]
 ; CHECK: lock cmpxchg DWORD PTR [e{{[^a].}}],[[REG]]
 ; CHECK: jne
+; ARM32-LABEL: test_atomic_rmw_or_32_ignored
+; ARM32: dmb
+; ARM32: ldrex
+; ARM32: orr
+; ARM32: strex
+; ARM32: bne
+; ARM32: dmb
 
 ;; and
 
@@ -524,6 +748,13 @@ entry:
 ; CHECK: and [[REG:[^a].]]
 ; CHECK: lock cmpxchg BYTE PTR [e{{[^a].}}],[[REG]]
 ; CHECK: jne
+; ARM32-LABEL: test_atomic_rmw_and_8
+; ARM32: dmb
+; ARM32: ldrexb
+; ARM32: and
+; ARM32: strexb
+; ARM32: bne
+; ARM32: dmb
 
 define i32 @test_atomic_rmw_and_16(i32 %iptr, i32 %v) {
 entry:
@@ -538,6 +769,13 @@ entry:
 ; CHECK: and
 ; CHECK: lock cmpxchg WORD PTR [e{{[^a].}}]
 ; CHECK: jne
+; ARM32-LABEL: test_atomic_rmw_and_16
+; ARM32: dmb
+; ARM32: ldrexh
+; ARM32: and
+; ARM32: strexh
+; ARM32: bne
+; ARM32: dmb
 
 define i32 @test_atomic_rmw_and_32(i32 %iptr, i32 %v) {
 entry:
@@ -550,6 +788,13 @@ entry:
 ; CHECK: and
 ; CHECK: lock cmpxchg DWORD PTR [e{{[^a].}}]
 ; CHECK: jne
+; ARM32-LABEL: test_atomic_rmw_and_32
+; ARM32: dmb
+; ARM32: ldrex
+; ARM32: and
+; ARM32: strex
+; ARM32: bne
+; ARM32: dmb
 
 define i64 @test_atomic_rmw_and_64(i32 %iptr, i64 %v) {
 entry:
@@ -567,6 +812,14 @@ entry:
 ; CHECK: and ecx,{{.*e.[^x]}}
 ; CHECK: lock cmpxchg8b QWORD PTR [e{{.[^x]}}
 ; CHECK: jne [[LABEL]]
+; ARM32-LABEL: test_atomic_rmw_and_64
+; ARM32: dmb
+; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
+; ARM32: and
+; ARM32-NEXT: and
+; ARM32: strexd r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
+; ARM32: bne
+; ARM32: dmb
 
 define i32 @test_atomic_rmw_and_32_ignored(i32 %iptr, i32 %v) {
 entry:
@@ -580,6 +833,13 @@ entry:
 ; CHECK: and
 ; CHECK: lock cmpxchg DWORD PTR [e{{[^a].}}]
 ; CHECK: jne
+; ARM32-LABEL: test_atomic_rmw_and_32_ignored
+; ARM32: dmb
+; ARM32: ldrex
+; ARM32: and
+; ARM32: strex
+; ARM32: bne
+; ARM32: dmb
 
 ;; xor
 
@@ -596,6 +856,13 @@ entry:
 ; CHECK: xor [[REG:[^a].]]
 ; CHECK: lock cmpxchg BYTE PTR [e{{[^a].}}],[[REG]]
 ; CHECK: jne
+; ARM32-LABEL: test_atomic_rmw_xor_8
+; ARM32: dmb
+; ARM32: ldrexb
+; ARM32: eor
+; ARM32: strexb
+; ARM32: bne
+; ARM32: dmb
 
 define i32 @test_atomic_rmw_xor_16(i32 %iptr, i32 %v) {
 entry:
@@ -610,7 +877,13 @@ entry:
 ; CHECK: xor
 ; CHECK: lock cmpxchg WORD PTR [e{{[^a].}}]
 ; CHECK: jne
-
+; ARM32-LABEL: test_atomic_rmw_xor_16
+; ARM32: dmb
+; ARM32: ldrexh
+; ARM32: eor
+; ARM32: strexh
+; ARM32: bne
+; ARM32: dmb
 
 define i32 @test_atomic_rmw_xor_32(i32 %iptr, i32 %v) {
 entry:
@@ -623,6 +896,13 @@ entry:
 ; CHECK: xor
 ; CHECK: lock cmpxchg DWORD PTR [e{{[^a].}}]
 ; CHECK: jne
+; ARM32-LABEL: test_atomic_rmw_xor_32
+; ARM32: dmb
+; ARM32: ldrex
+; ARM32: eor
+; ARM32: strex
+; ARM32: bne
+; ARM32: dmb
 
 define i64 @test_atomic_rmw_xor_64(i32 %iptr, i64 %v) {
 entry:
@@ -640,6 +920,14 @@ entry:
 ; CHECK: or ecx,{{.*e.[^x]}}
 ; CHECK: lock cmpxchg8b QWORD PTR [e{{.[^x]}}
 ; CHECK: jne
+; ARM32-LABEL: test_atomic_rmw_xor_64
+; ARM32: dmb
+; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
+; ARM32: eor
+; ARM32-NEXT: eor
+; ARM32: strexd r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
+; ARM32: bne
+; ARM32: dmb
 
 define i32 @test_atomic_rmw_xor_32_ignored(i32 %iptr, i32 %v) {
 entry:
@@ -652,6 +940,13 @@ entry:
 ; CHECK: xor
 ; CHECK: lock cmpxchg DWORD PTR [e{{[^a].}}]
 ; CHECK: jne
+; ARM32-LABEL: test_atomic_rmw_xor_32_ignored
+; ARM32: dmb
+; ARM32: ldrex
+; ARM32: eor
+; ARM32: strex
+; ARM32: bne
+; ARM32: dmb
 
 ;; exchange
 
@@ -665,6 +960,13 @@ entry:
 }
 ; CHECK-LABEL: test_atomic_rmw_xchg_8
 ; CHECK: xchg BYTE PTR {{.*}},[[REG:.*]]
+; ARM32-LABEL: test_atomic_rmw_xchg_8
+; ARM32: dmb
+; ARM32: ldrexb
+; ARM32: strexb
+; ARM32: cmp
+; ARM32: bne
+; ARM32: dmb
 
 define i32 @test_atomic_rmw_xchg_16(i32 %iptr, i32 %v) {
 entry:
@@ -676,6 +978,13 @@ entry:
 }
 ; CHECK-LABEL: test_atomic_rmw_xchg_16
 ; CHECK: xchg WORD PTR {{.*}},[[REG:.*]]
+; ARM32-LABEL: test_atomic_rmw_xchg_16
+; ARM32: dmb
+; ARM32: ldrexh
+; ARM32: strexh
+; ARM32: cmp
+; ARM32: bne
+; ARM32: dmb
 
 define i32 @test_atomic_rmw_xchg_32(i32 %iptr, i32 %v) {
 entry:
@@ -685,6 +994,13 @@ entry:
 }
 ; CHECK-LABEL: test_atomic_rmw_xchg_32
 ; CHECK: xchg DWORD PTR {{.*}},[[REG:.*]]
+; ARM32-LABEL: test_atomic_rmw_xchg_32
+; ARM32: dmb
+; ARM32: ldrex
+; ARM32: strex
+; ARM32: cmp
+; ARM32: bne
+; ARM32: dmb
 
 define i64 @test_atomic_rmw_xchg_64(i32 %iptr, i64 %v) {
 entry:
@@ -700,6 +1016,13 @@ entry:
 ; CHECK-DAG: mov ebx
 ; CHECK: lock cmpxchg8b QWORD PTR [{{e.[^x]}}
 ; CHECK: jne
+; ARM32-LABEL: test_atomic_rmw_xchg_64
+; ARM32: dmb
+; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, {{[[]}}[[PTR:r[0-9]+]]{{[]]}}
+; ARM32: strexd r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, {{[[]}}[[PTR]]{{[]]}}
+; ARM32: cmp
+; ARM32: bne
+; ARM32: dmb
 
 define i32 @test_atomic_rmw_xchg_32_ignored(i32 %iptr, i32 %v) {
 entry:
@@ -711,6 +1034,13 @@ entry:
 ; used to do an atomic store.
 ; CHECK-LABEL: test_atomic_rmw_xchg_32_ignored
 ; CHECK: xchg DWORD PTR {{.*}},[[REG:.*]]
+; ARM32-LABEL: test_atomic_rmw_xchg_32_ignored
+; ARM32: dmb
+; ARM32: ldrex
+; ARM32: strex
+; ARM32: cmp
+; ARM32: bne
+; ARM32: dmb
 
 ;;;; Cmpxchg
 
@@ -729,6 +1059,15 @@ entry:
 ; Need to check that eax isn't used as the address register or the desired.
 ; since it is already used as the *expected* register.
 ; CHECK: lock cmpxchg BYTE PTR [e{{[^a].}}],{{[^a]}}l
+; ARM32-LABEL: test_atomic_cmpxchg_8
+; ARM32: dmb
+; ARM32: ldrexb
+; ARM32: cmp
+; ARM32: strexbeq
+; ARM32: {{str|mov}}ne
+; ARM32: cmpeq
+; ARM32: bne
+; ARM32: dmb
 
 define i32 @test_atomic_cmpxchg_16(i32 %iptr, i32 %expected, i32 %desired) {
 entry:
@@ -743,6 +1082,15 @@ entry:
 ; CHECK-LABEL: test_atomic_cmpxchg_16
 ; CHECK: mov eax,{{.*}}
 ; CHECK: lock cmpxchg WORD PTR [e{{[^a].}}],{{[^a]}}x
+; ARM32-LABEL: test_atomic_cmpxchg_16
+; ARM32: dmb
+; ARM32: ldrexh
+; ARM32: cmp
+; ARM32: strexheq
+; ARM32: {{str|mov}}ne
+; ARM32: cmpeq
+; ARM32: bne
+; ARM32: dmb
 
 define i32 @test_atomic_cmpxchg_32(i32 %iptr, i32 %expected, i32 %desired) {
 entry:
@@ -754,6 +1102,15 @@ entry:
 ; CHECK-LABEL: test_atomic_cmpxchg_32
 ; CHECK: mov eax,{{.*}}
 ; CHECK: lock cmpxchg DWORD PTR [e{{[^a].}}],e{{[^a]}}
+; ARM32-LABEL: test_atomic_cmpxchg_32
+; ARM32: dmb
+; ARM32: ldrex
+; ARM32: cmp
+; ARM32: strexeq
+; ARM32: {{str|mov}}ne
+; ARM32: cmpeq
+; ARM32: bne
+; ARM32: dmb
 
 define i64 @test_atomic_cmpxchg_64(i32 %iptr, i64 %expected, i64 %desired) {
 entry:
@@ -772,6 +1129,17 @@ entry:
 ; edx and eax are already the return registers, so they don't actually
 ; need to be reshuffled via movs. The next test stores the result
 ; somewhere, so in that case they do need to be mov'ed.
+; ARM32-LABEL: test_atomic_cmpxchg_64
+; ARM32: dmb
+; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, {{[[]}}[[PTR:r[0-9]+]]{{[]]}}
+; ARM32: cmp
+; ARM32-NEXT: cmpeq
+; ARM32: strexdeq r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, {{[[]}}[[PTR]]{{[]]}}
+; ARM32: {{str|mov}}ne
+; ARM32: {{str|mov}}ne
+; ARM32: cmpeq
+; ARM32: bne
+; ARM32: dmb
 
 define i64 @test_atomic_cmpxchg_64_undef(i32 %iptr, i64 %desired) {
 entry:
@@ -782,6 +1150,19 @@ entry:
 }
 ; CHECK-LABEL: test_atomic_cmpxchg_64_undef
 ; CHECK: lock cmpxchg8b QWORD PTR [e{{.[^x]}}+0x0]
+; ARM32-LABEL: test_atomic_cmpxchg_64_undef
+; ARM32: mov r{{[0-9]+}}, #0
+; ARM32: mov r{{[0-9]+}}, #0
+; ARM32: dmb
+; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, {{[[]}}[[PTR:r[0-9]+]]{{[]]}}
+; ARM32: cmp
+; ARM32-NEXT: cmpeq
+; ARM32: strexdeq r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, {{[[]}}[[PTR]]{{[]]}}
+; ARM32: {{str|mov}}ne
+; ARM32: {{str|mov}}ne
+; ARM32: cmpeq
+; ARM32: bne
+; ARM32: dmb
 
 ; Test a case where %old really does need to be copied out of edx:eax.
 define void @test_atomic_cmpxchg_64_store(i32 %ret_iptr, i32 %iptr, i64 %expected, i64 %desired) {
@@ -802,6 +1183,19 @@ entry:
 ; CHECK: lock cmpxchg8b QWORD PTR [e{{.[^x]}}
 ; CHECK-DAG: mov {{.*}},edx
 ; CHECK-DAG: mov {{.*}},eax
+; ARM32-LABEL: test_atomic_cmpxchg_64_store
+; ARM32: dmb
+; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, {{[[]}}[[PTR:r[0-9]+]]{{[]]}}
+; ARM32: cmp
+; ARM32-NEXT: cmpeq
+; ARM32: strexdeq r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, {{[[]}}[[PTR]]{{[]]}}
+; ARM32: {{str|mov}}ne
+; ARM32: {{str|mov}}ne
+; ARM32: cmpeq
+; ARM32: bne
+; ARM32: dmb
+; ARM32: str
+; ARM32: str
 
 ; Test with some more register pressure. When we have an alloca, ebp is
 ; used to manage the stack frame, so it cannot be used as a register either.
@@ -834,6 +1228,17 @@ eblock:
 ; That pretty much leaves esi, or edi as the only viable registers.
 ; CHECK: lock cmpxchg8b QWORD PTR [e{{[ds]}}i]
 ; CHECK: call {{.*}} R_{{.*}} use_ptr
+; ARM32-LABEL: test_atomic_cmpxchg_64_alloca
+; ARM32: dmb
+; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, {{[[]}}[[PTR:r[0-9]+]]{{[]]}}
+; ARM32: cmp
+; ARM32-NEXT: cmpeq
+; ARM32: strexdeq r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, {{[[]}}[[PTR]]{{[]]}}
+; ARM32: {{str|mov}}ne
+; ARM32: {{str|mov}}ne
+; ARM32: cmpeq
+; ARM32: bne
+; ARM32: dmb
 
 define i32 @test_atomic_cmpxchg_32_ignored(i32 %iptr, i32 %expected, i32 %desired) {
 entry:
@@ -845,6 +1250,15 @@ entry:
 ; CHECK-LABEL: test_atomic_cmpxchg_32_ignored
 ; CHECK: mov eax,{{.*}}
 ; CHECK: lock cmpxchg DWORD PTR [e{{[^a].}}]
+; ARM32-LABEL: test_atomic_cmpxchg_32_ignored
+; ARM32: dmb
+; ARM32: ldrex
+; ARM32: cmp
+; ARM32: strexeq
+; ARM32: {{str|mov}}ne
+; ARM32: cmpeq
+; ARM32: bne
+; ARM32: dmb
 
 define i64 @test_atomic_cmpxchg_64_ignored(i32 %iptr, i64 %expected, i64 %desired) {
 entry:
@@ -860,6 +1274,17 @@ entry:
 ; CHECK-DAG: mov ecx
 ; CHECK-DAG: mov ebx
 ; CHECK: lock cmpxchg8b QWORD PTR [e{{.[^x]}}+0x0]
+; ARM32-LABEL: test_atomic_cmpxchg_64_ignored
+; ARM32: dmb
+; ARM32: ldrexd [[R0:r[0-9]+]], [[R1:r[0-9]+]], {{[[]}}[[PTR:r[0-9]+]]{{[]]}}
+; ARM32: cmp
+; ARM32-NEXT: cmpeq
+; ARM32: strexdeq r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, {{[[]}}[[PTR]]{{[]]}}
+; ARM32O2-NOT: {{str|mov}}ne [[R0]]
+; ARM32O2-NOT: {{str|mov}}ne [[R1]]
+; ARM32: cmpeq
+; ARM32: bne
+; ARM32: dmb
 
 ;;;; Fence and is-lock-free.
 
@@ -870,6 +1295,8 @@ entry:
 }
 ; CHECK-LABEL: test_atomic_fence
 ; CHECK: mfence
+; ARM32-LABEL: test_atomic_fence
+; ARM32: dmb sy
 
 define void @test_atomic_fence_all() {
 entry:
@@ -878,6 +1305,8 @@ entry:
 }
 ; CHECK-LABEL: test_atomic_fence_all
 ; CHECK: mfence
+; ARM32-LABEL: test_atomic_fence_all
+; ARM32: dmb sy
 
 define i32 @test_atomic_is_lock_free(i32 %iptr) {
 entry:
@@ -888,6 +1317,8 @@ entry:
 }
 ; CHECK-LABEL: test_atomic_is_lock_free
 ; CHECK: mov {{.*}},0x1
+; ARM32-LABEL: test_atomic_is_lock_free
+; ARM32: movw {{.*}}, #1
 
 define i32 @test_not_lock_free(i32 %iptr) {
 entry:
@@ -898,6 +1329,8 @@ entry:
 }
 ; CHECK-LABEL: test_not_lock_free
 ; CHECK: mov {{.*}},0x0
+; ARM32-LABEL: test_not_lock_free
+; ARM32: mov {{.*}}, #0
 
 define i32 @test_atomic_is_lock_free_ignored(i32 %iptr) {
 entry:
@@ -911,6 +1344,9 @@ entry:
 ; O2-LABEL: test_atomic_is_lock_free_ignored
 ; O2-NOT: mov {{.*}}, 1
 ; O2: mov {{.*}},0x0
+; ARM32O2-LABEL: test_atomic_is_lock_free_ignored
+; ARM32O2-NOT: mov {{.*}}, #1
+; ARM32O2: mov {{.*}}, #0
 
 ; TODO(jvoung): at some point we can take advantage of the
 ; fact that nacl.atomic.is.lock.free will resolve to a constant
