@@ -1330,8 +1330,8 @@ void InstX86Imul<Machine>::emitIAS(const Cfg *Func) const {
         &InstX86Base<Machine>::Traits::Assembler::imul};
     emitIASOpTyGPR<Machine>(Func, Ty, this->getSrc(1), Emitter);
   } else {
-    // We only use imul as a two-address instruction even though there is a 3
-    // operand version when one of the operands is a constant.
+    // The two-address version is used when multiplying by a non-constant
+    // or doing an 8-bit multiply.
     assert(Var == this->getSrc(0));
     static const typename InstX86Base<
         Machine>::Traits::Assembler::GPREmitterRegOp Emitter = {
@@ -1340,6 +1340,43 @@ void InstX86Imul<Machine>::emitIAS(const Cfg *Func) const {
         &InstX86Base<Machine>::Traits::Assembler::imul};
     emitIASRegOpTyGPR<Machine>(Func, Ty, Var, Src, Emitter);
   }
+}
+
+template <class Machine>
+void InstX86ImulImm<Machine>::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(this->getSrcSize() == 2);
+  Variable *Dest = this->getDest();
+  assert(Dest->getType() == IceType_i16 || Dest->getType() == IceType_i32);
+  assert(llvm::isa<Constant>(this->getSrc(1)));
+  Str << "\timul" << this->getWidthString(Dest->getType()) << "\t";
+  this->getSrc(1)->emit(Func);
+  Str << ", ";
+  this->getSrc(0)->emit(Func);
+  Str << ", ";
+  Dest->emit(Func);
+}
+
+template <class Machine>
+void InstX86ImulImm<Machine>::emitIAS(const Cfg *Func) const {
+  assert(this->getSrcSize() == 2);
+  const Variable *Dest = this->getDest();
+  Type Ty = Dest->getType();
+  assert(llvm::isa<Constant>(this->getSrc(1)));
+  static const typename InstX86Base<Machine>::Traits::Assembler::
+      template ThreeOpImmEmitter<
+          typename InstX86Base<Machine>::Traits::RegisterSet::GPRRegister,
+          typename InstX86Base<Machine>::Traits::RegisterSet::GPRRegister>
+          Emitter = {&InstX86Base<Machine>::Traits::Assembler::imul,
+                     &InstX86Base<Machine>::Traits::Assembler::imul};
+  emitIASThreeOpImmOps<
+      Machine, typename InstX86Base<Machine>::Traits::RegisterSet::GPRRegister,
+      typename InstX86Base<Machine>::Traits::RegisterSet::GPRRegister,
+      InstX86Base<Machine>::Traits::RegisterSet::getEncodedGPR,
+      InstX86Base<Machine>::Traits::RegisterSet::getEncodedGPR>(
+      Func, Ty, Dest, this->getSrc(0), this->getSrc(1), Emitter);
 }
 
 template <class Machine>

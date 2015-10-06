@@ -428,6 +428,9 @@ protected:
   void _imul(Variable *Dest, Operand *Src0) {
     Context.insert(Traits::Insts::Imul::create(Func, Dest, Src0));
   }
+  void _imul_imm(Variable *Dest, Operand *Src0, Constant *Imm) {
+    Context.insert(Traits::Insts::ImulImm::create(Func, Dest, Src0, Imm));
+  }
   void _insertps(Variable *Dest, Operand *Src0, Operand *Src1) {
     Context.insert(Traits::Insts::Insertps::create(Func, Dest, Src0, Src1));
   }

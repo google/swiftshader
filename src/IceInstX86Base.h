@@ -68,6 +68,7 @@ public:
     Icmp,
     Idiv,
     Imul,
+    ImulImm,
     Insertps,
     Jmp,
     Label,
@@ -1622,6 +1623,25 @@ private:
 };
 
 template <class Machine>
+class InstX86ImulImm
+    : public InstX86BaseThreeAddressop<Machine, InstX86Base<Machine>::ImulImm> {
+public:
+  static InstX86ImulImm *create(Cfg *Func, Variable *Dest, Operand *Source0,
+                                Operand *Source1) {
+    return new (Func->allocate<InstX86ImulImm>())
+        InstX86ImulImm(Func, Dest, Source0, Source1);
+  }
+
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+
+private:
+  InstX86ImulImm(Cfg *Func, Variable *Dest, Operand *Source0, Operand *Source1)
+      : InstX86BaseThreeAddressop<Machine, InstX86Base<Machine>::ImulImm>(
+            Func, Dest, Source0, Source1) {}
+};
+
+template <class Machine>
 class InstX86Mulps
     : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Mulps, true> {
 public:
@@ -2790,6 +2810,7 @@ template <class Machine> struct Insts {
   using XorRMW = InstX86XorRMW<Machine>;
   using Pxor = InstX86Pxor<Machine>;
   using Imul = InstX86Imul<Machine>;
+  using ImulImm = InstX86ImulImm<Machine>;
   using Mulps = InstX86Mulps<Machine>;
   using Mulss = InstX86Mulss<Machine>;
   using Pmull = InstX86Pmull<Machine>;
@@ -2897,6 +2918,7 @@ template <class Machine> struct Insts {
   template <> const char *InstX86XorRMW<Machine>::Base::Opcode = "xor";        \
   template <> const char *InstX86Pxor<Machine>::Base::Opcode = "pxor";         \
   template <> const char *InstX86Imul<Machine>::Base::Opcode = "imul";         \
+  template <> const char *InstX86ImulImm<Machine>::Base::Opcode = "imul";      \
   template <> const char *InstX86Mulps<Machine>::Base::Opcode = "mulps";       \
   template <> const char *InstX86Mulss<Machine>::Base::Opcode = "mulss";       \
   template <> const char *InstX86Pmull<Machine>::Base::Opcode = "pmull";       \

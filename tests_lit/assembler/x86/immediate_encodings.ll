@@ -250,6 +250,88 @@ entry:
 ; CHECK-LABEL: testMul32Imm16Neg
 ; CHECK: 69 c0 01 ff ff ff  imul eax,eax,0xffffff01
 
+define i32 @testMul32Imm32ThreeAddress(i32 %a) {
+entry:
+  %mul = mul i32 232, %a
+  %add = add i32 %mul, %a
+  ret i32 %add
+}
+; CHECK-LABEL: testMul32Imm32ThreeAddress
+; CHECK: 69 c8 e8 00 00 00  imul ecx,eax,0xe8
+
+define i32 @testMul32Mem32Imm32ThreeAddress(i32 %addr_arg) {
+entry:
+  %__1 = inttoptr i32 %addr_arg to i32*
+  %a = load i32, i32* %__1, align 1
+  %mul = mul i32 232, %a
+  ret i32 %mul
+}
+; CHECK-LABEL: testMul32Mem32Imm32ThreeAddress
+; CHECK: 69 00 e8 00 00 00  imul eax,DWORD PTR [eax],0xe8
+
+define i32 @testMul32Imm8ThreeAddress(i32 %a) {
+entry:
+  %mul = mul i32 127, %a
+  %add = add i32 %mul, %a
+  ret i32 %add
+}
+; CHECK-LABEL: testMul32Imm8ThreeAddress
+; CHECK: 6b c8 7f imul ecx,eax,0x7f
+
+define i32 @testMul32Mem32Imm8ThreeAddress(i32 %addr_arg) {
+entry:
+  %__1 = inttoptr i32 %addr_arg to i32*
+  %a = load i32, i32* %__1, align 1
+  %mul = mul i32 127, %a
+  ret i32 %mul
+}
+; CHECK-LABEL: testMul32Mem32Imm8ThreeAddress
+; CHECK: 6b 00 7f imul eax,DWORD PTR [eax],0x7f
+
+define i32 @testMul16Imm16ThreeAddress(i32 %a) {
+entry:
+  %arg_i16 = trunc i32 %a to i16
+  %mul = mul i16 232, %arg_i16
+  %add = add i16 %mul, %arg_i16
+  %result = zext i16 %add to i32
+  ret i32 %result
+}
+; CHECK-LABEL: testMul16Imm16ThreeAddress
+; CHECK: 66 69 c8 e8 00 imul cx,ax,0xe8
+
+define i32 @testMul16Mem16Imm16ThreeAddress(i32 %addr_arg) {
+entry:
+  %__1 = inttoptr i32 %addr_arg to i16*
+  %a = load i16, i16* %__1, align 1
+  %mul = mul i16 232, %a
+  %result = zext i16 %mul to i32
+  ret i32 %result
+}
+; CHECK-LABEL: testMul16Mem16Imm16ThreeAddress
+; CHECK: 66 69 00 e8 00 imul ax,WORD PTR [eax],0xe8
+
+define i32 @testMul16Imm8ThreeAddress(i32 %a) {
+entry:
+  %arg_i16 = trunc i32 %a to i16
+  %mul = mul i16 127, %arg_i16
+  %add = add i16 %mul, %arg_i16
+  %result = zext i16 %add to i32
+  ret i32 %result
+}
+; CHECK-LABEL: testMul16Imm8ThreeAddress
+; CHECK: 66 6b c8 7f imul cx,ax,0x7f
+
+define i32 @testMul16Mem16Imm8ThreeAddress(i32 %addr_arg) {
+entry:
+  %__1 = inttoptr i32 %addr_arg to i16*
+  %a = load i16, i16* %__1, align 1
+  %mul = mul i16 127, %a
+  %result = zext i16 %mul to i32
+  ret i32 %result
+}
+; CHECK-LABEL: testMul16Mem16Imm8ThreeAddress
+; CHECK: 66 6b 00 7f imul ax,WORD PTR [eax],0x7f
+
 ; The GPR shift instructions either allow an 8-bit immediate or
 ; have a special encoding for "1".
 define internal i32 @testShl16Imm8(i32 %arg) {

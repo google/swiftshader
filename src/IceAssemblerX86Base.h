@@ -751,6 +751,11 @@ public:
   void imul(Type Ty, typename Traits::GPRRegister reg);
   void imul(Type Ty, const typename Traits::Address &address);
 
+  void imul(Type Ty, typename Traits::GPRRegister dst,
+            typename Traits::GPRRegister src, const Immediate &imm);
+  void imul(Type Ty, typename Traits::GPRRegister dst,
+            const typename Traits::Address &address, const Immediate &imm);
+
   void mul(Type Ty, typename Traits::GPRRegister reg);
   void mul(Type Ty, const typename Traits::Address &address);
 

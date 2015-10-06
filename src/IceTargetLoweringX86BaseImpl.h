@@ -1618,11 +1618,17 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
     if (isByteSizedArithType(Dest->getType())) {
       _mov(T, Src0, Traits::RegisterSet::Reg_eax);
       Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
+      _imul(T, Src0 == Src1 ? T : Src1);
+      _mov(Dest, T);
+    } else if (auto *ImmConst = llvm::dyn_cast<ConstantInteger32>(Src1)) {
+      T = makeReg(Dest->getType());
+      _imul_imm(T, Src0, ImmConst);
+      _mov(Dest, T);
     } else {
       _mov(T, Src0);
+      _imul(T, Src0 == Src1 ? T : Src1);
+      _mov(Dest, T);
     }
-    _imul(T, Src0 == Src1 ? T : Src1);
-    _mov(Dest, T);
     break;
   case InstArithmetic::Shl:
     _mov(T, Src0);

@@ -2581,6 +2581,46 @@ void AssemblerX86Base<Machine>::imul(Type Ty,
 }
 
 template <class Machine>
+void AssemblerX86Base<Machine>::imul(Type Ty, typename Traits::GPRRegister dst,
+                                     typename Traits::GPRRegister src,
+                                     const Immediate &imm) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  assert(Ty == IceType_i16 || Ty == IceType_i32);
+  if (Ty == IceType_i16)
+    emitOperandSizeOverride();
+  emitRexRB(Ty, dst, src);
+  if (imm.is_int8()) {
+    emitUint8(0x6B);
+    emitRegisterOperand(gprEncoding(dst), gprEncoding(src));
+    emitUint8(imm.value() & 0xFF);
+  } else {
+    emitUint8(0x69);
+    emitRegisterOperand(gprEncoding(dst), gprEncoding(src));
+    emitImmediate(Ty, imm);
+  }
+}
+
+template <class Machine>
+void AssemblerX86Base<Machine>::imul(Type Ty, typename Traits::GPRRegister dst,
+                                     const typename Traits::Address &address,
+                                     const Immediate &imm) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  assert(Ty == IceType_i16 || Ty == IceType_i32);
+  if (Ty == IceType_i16)
+    emitOperandSizeOverride();
+  emitRex(Ty, address, dst);
+  if (imm.is_int8()) {
+    emitUint8(0x6B);
+    emitOperand(gprEncoding(dst), address);
+    emitUint8(imm.value() & 0xFF);
+  } else {
+    emitUint8(0x69);
+    emitOperand(gprEncoding(dst), address);
+    emitImmediate(Ty, imm);
+  }
+}
+
+template <class Machine>
 void AssemblerX86Base<Machine>::mul(Type Ty, typename Traits::GPRRegister reg) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
