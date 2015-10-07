@@ -398,6 +398,8 @@ FORMAT_BLACKLIST =
 # Add one of the following lines for each source file to ignore.
 FORMAT_BLACKLIST += ! -name IceParseInstsTest.cpp
 FORMAT_BLACKLIST += ! -name IceParseTypesTest.cpp
+FORMAT_BLACKLIST += ! -name assembler_arm.h
+FORMAT_BLACKLIST += ! -name assembler_arm.cc
 format:
 	$(CLANG_FORMAT_PATH)/clang-format -style=LLVM -i \
 	`find . -regex '.*\.\(c\|h\|cpp\)' $(FORMAT_BLACKLIST)`
