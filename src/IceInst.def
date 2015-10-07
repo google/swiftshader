@@ -14,14 +14,31 @@
 #ifndef SUBZERO_SRC_ICEINST_DEF
 #define SUBZERO_SRC_ICEINST_DEF
 
+// Floating point addition and multiplication are commutative.
+// 1) non-special values and infinities are required to commute.
+// 2) signed zeroes are handled by:
+//    From IEEE standard 754-2008:
+//      When the sum of two operands with opposite signs (or the difference of
+//      two operands with like signs) is exactly zero, the sign of that sum
+//      (or difference) shall be +0 in all rounding-direction attributes
+//      except roundTowardNegative; under that attribute, the sign of an exact
+//      zero sum (or difference) shall be −0.
+// 3) NaNs are handled by:
+//    http://grouper.ieee.org/groups/1788/email/msg03558.html
+//      clause of 754 at work is 6.2.3 NaN propagation:
+//      "If two or more inputs are NaN, then the payload of the resulting NaN
+//      should be identical to the payload of one of the input NaNs if
+//      representable in the destination format. This standard does not
+//      specify which of the input NaNs will provide the payload."
+
 #define ICEINSTARITHMETIC_TABLE                   \
   /* enum value, printable string, commutative */ \
   X(Add,         "add",            1)             \
-  X(Fadd,        "fadd",           0)             \
+  X(Fadd,        "fadd",           1)             \
   X(Sub,         "sub",            0)             \
   X(Fsub,        "fsub",           0)             \
   X(Mul,         "mul",            1)             \
-  X(Fmul,        "fmul",           0)             \
+  X(Fmul,        "fmul",           1)             \
   X(Udiv,        "udiv",           0)             \
   X(Sdiv,        "sdiv",           0)             \
   X(Fdiv,        "fdiv",           0)             \

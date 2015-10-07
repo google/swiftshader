@@ -16,14 +16,14 @@ entry:
 ; Test register and address mode encoding.
 define <8 x i16> @test_mul_v8i16_more_regs(<8 x i1> %cond, <8 x i16> %arg0, <8 x i16> %arg1, <8 x i16> %arg2, <8 x i16> %arg3, <8 x i16> %arg4, <8 x i16> %arg5, <8 x i16> %arg6, <8 x i16> %arg7, <8 x i16> %arg8) {
 entry:
-  %res1 = mul <8 x i16> %arg0, %arg1
-  %res2 = mul <8 x i16> %arg0, %arg2
-  %res3 = mul <8 x i16> %arg0, %arg3
-  %res4 = mul <8 x i16> %arg0, %arg4
-  %res5 = mul <8 x i16> %arg0, %arg5
-  %res6 = mul <8 x i16> %arg0, %arg6
-  %res7 = mul <8 x i16> %arg0, %arg7
-  %res8 = mul <8 x i16> %arg0, %arg8
+  %res1 = sub <8 x i16> %arg0, %arg1
+  %res2 = sub <8 x i16> %arg0, %arg2
+  %res3 = sub <8 x i16> %arg0, %arg3
+  %res4 = sub <8 x i16> %arg0, %arg4
+  %res5 = sub <8 x i16> %arg0, %arg5
+  %res6 = sub <8 x i16> %arg0, %arg6
+  %res7 = sub <8 x i16> %arg0, %arg7
+  %res8 = sub <8 x i16> %arg0, %arg8
   %res_acc1 = select <8 x i1> %cond, <8 x i16> %res1, <8 x i16> %res2
   %res_acc2 = select <8 x i1> %cond, <8 x i16> %res3, <8 x i16> %res4
   %res_acc3 = select <8 x i1> %cond, <8 x i16> %res5, <8 x i16> %res6
@@ -33,14 +33,14 @@ entry:
   %res = select <8 x i1> %cond, <8 x i16> %res_acc1_3, <8 x i16> %res_acc2_4
   ret <8 x i16> %res
 ; CHECK-LABEL: test_mul_v8i16_more_regs
-; CHECK-DAG: pmullw xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
-; CHECK-DAG: pmullw xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
-; CHECK-DAG: pmullw xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
-; CHECK-DAG: pmullw xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
-; CHECK-DAG: pmullw xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
-; CHECK-DAG: pmullw xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
-; CHECK-DAG: pmullw xmm0,XMMWORD PTR [esp
-; CHECK-DAG: pmullw xmm1,XMMWORD PTR [esp
+; CHECK-DAG: psubw xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
+; CHECK-DAG: psubw xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
+; CHECK-DAG: psubw xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
+; CHECK-DAG: psubw xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
+; CHECK-DAG: psubw xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
+; CHECK-DAG: psubw xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
+; CHECK-DAG: psubw xmm0,XMMWORD PTR [esp
+; CHECK-DAG: psubw xmm1,XMMWORD PTR [esp
 }
 
 define <4 x i32> @test_mul_v4i32(<4 x i32> %arg0, <4 x i32> %arg1) {
@@ -53,14 +53,14 @@ entry:
 
 define <4 x i32> @test_mul_v4i32_more_regs(<4 x i1> %cond, <4 x i32> %arg0, <4 x i32> %arg1, <4 x i32> %arg2, <4 x i32> %arg3, <4 x i32> %arg4, <4 x i32> %arg5, <4 x i32> %arg6, <4 x i32> %arg7, <4 x i32> %arg8) {
 entry:
-  %res1 = mul <4 x i32> %arg0, %arg1
-  %res2 = mul <4 x i32> %arg0, %arg2
-  %res3 = mul <4 x i32> %arg0, %arg3
-  %res4 = mul <4 x i32> %arg0, %arg4
-  %res5 = mul <4 x i32> %arg0, %arg5
-  %res6 = mul <4 x i32> %arg0, %arg6
-  %res7 = mul <4 x i32> %arg0, %arg7
-  %res8 = mul <4 x i32> %arg0, %arg8
+  %res1 = sub <4 x i32> %arg0, %arg1
+  %res2 = sub <4 x i32> %arg0, %arg2
+  %res3 = sub <4 x i32> %arg0, %arg3
+  %res4 = sub <4 x i32> %arg0, %arg4
+  %res5 = sub <4 x i32> %arg0, %arg5
+  %res6 = sub <4 x i32> %arg0, %arg6
+  %res7 = sub <4 x i32> %arg0, %arg7
+  %res8 = sub <4 x i32> %arg0, %arg8
   %res_acc1 = select <4 x i1> %cond, <4 x i32> %res1, <4 x i32> %res2
   %res_acc2 = select <4 x i1> %cond, <4 x i32> %res3, <4 x i32> %res4
   %res_acc3 = select <4 x i1> %cond, <4 x i32> %res5, <4 x i32> %res6
@@ -70,14 +70,14 @@ entry:
   %res = select <4 x i1> %cond, <4 x i32> %res_acc1_3, <4 x i32> %res_acc2_4
   ret <4 x i32> %res
 ; CHECK-LABEL: test_mul_v4i32_more_regs
-; CHECK-DAG: pmulld xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
-; CHECK-DAG: pmulld xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
-; CHECK-DAG: pmulld xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
-; CHECK-DAG: pmulld xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
-; CHECK-DAG: pmulld xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
-; CHECK-DAG: pmulld xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
-; CHECK-DAG: pmulld xmm0,XMMWORD PTR [esp
-; CHECK-DAG: pmulld xmm1,XMMWORD PTR [esp
+; CHECK-DAG: psubd xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
+; CHECK-DAG: psubd xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
+; CHECK-DAG: psubd xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
+; CHECK-DAG: psubd xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
+; CHECK-DAG: psubd xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
+; CHECK-DAG: psubd xmm0,{{xmm[0-7]|xmmword ptr\[esp}}
+; CHECK-DAG: psubd xmm0,XMMWORD PTR [esp
+; CHECK-DAG: psubd xmm1,XMMWORD PTR [esp
 }
 
 ; Test movq, which is used by atomic stores.

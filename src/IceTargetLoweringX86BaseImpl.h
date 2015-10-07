@@ -1293,10 +1293,23 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
   Operand *Src0 = legalize(Inst->getSrc(0));
   Operand *Src1 = legalize(Inst->getSrc(1));
   if (Inst->isCommutative()) {
-    if (!llvm::isa<Variable>(Src0) && llvm::isa<Variable>(Src1))
+    uint32_t SwapCount = 0;
+    if (!llvm::isa<Variable>(Src0) && llvm::isa<Variable>(Src1)) {
       std::swap(Src0, Src1);
-    if (llvm::isa<Constant>(Src0) && !llvm::isa<Constant>(Src1))
+      ++SwapCount;
+    }
+    if (llvm::isa<Constant>(Src0) && !llvm::isa<Constant>(Src1)) {
       std::swap(Src0, Src1);
+      ++SwapCount;
+    }
+    // Improve two-address code patterns by avoiding a copy to the dest
+    // register when one of the source operands ends its lifetime here.
+    if (!Inst->isLastUse(Src0) && Inst->isLastUse(Src1)) {
+      std::swap(Src0, Src1);
+      ++SwapCount;
+    }
+    assert(SwapCount <= 1);
+    (void) SwapCount;
   }
   if (!Traits::Is64Bit && Dest->getType() == IceType_i64) {
     // These x86-32 helper-call-involved instructions are lowered in this
