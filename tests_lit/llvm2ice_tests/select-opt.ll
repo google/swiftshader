@@ -4,24 +4,26 @@
 ; match lines.
 
 ; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
-; RUN:   --target x8632 -i %s --args -O2 \
+; RUN:   --target x8632 -i %s --args -O2 -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_X8632 --command FileCheck %s
 ; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
-; RUN:   --target x8632 -i %s --args -Om1 \
+; RUN:   --target x8632 -i %s --args -Om1 -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_X8632 --command FileCheck %s
 
 ; RUN: %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command %p2i --filetype=asm --assemble \
 ; RUN:   --disassemble --target arm32 -i %s --args -O2 --skip-unimplemented \
+; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32 %s
 ; RUN: %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command %p2i --filetype=asm --assemble \
 ; RUN:   --disassemble --target arm32 -i %s --args -Om1 --skip-unimplemented \
+; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32 %s
 
-define void @testSelect(i32 %a, i32 %b) {
+define internal void @testSelect(i32 %a, i32 %b) {
 entry:
   %cmp = icmp slt i32 %a, %b
   %cond = select i1 %cmp, i32 %a, i32 %b
@@ -60,7 +62,7 @@ declare void @useInt(i32 %x)
 
 ; Check for valid addressing mode in the cmp instruction when the
 ; operand is an immediate.
-define i32 @testSelectImm32(i32 %a, i32 %b) {
+define internal i32 @testSelectImm32(i32 %a, i32 %b) {
 entry:
   %cond = select i1 false, i32 %a, i32 %b
   ret i32 %cond
@@ -73,7 +75,7 @@ entry:
 ; Check for valid addressing mode in the cmp instruction when the
 ; operand is an immediate.  There is a different x86-32 lowering
 ; sequence for 64-bit operands.
-define i64 @testSelectImm64(i64 %a, i64 %b) {
+define internal i64 @testSelectImm64(i64 %a, i64 %b) {
 entry:
   %cond = select i1 true, i64 %a, i64 %b
   ret i64 %cond

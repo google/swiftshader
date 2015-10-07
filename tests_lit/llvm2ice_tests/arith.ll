@@ -23,7 +23,7 @@
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32 %s
 
-define i32 @Add(i32 %a, i32 %b) {
+define internal i32 @Add(i32 %a, i32 %b) {
 entry:
   %add = add i32 %b, %a
   ret i32 %add
@@ -33,7 +33,7 @@ entry:
 ; ARM32-LABEL: Add
 ; ARM32: add r
 
-define i32 @And(i32 %a, i32 %b) {
+define internal i32 @And(i32 %a, i32 %b) {
 entry:
   %and = and i32 %b, %a
   ret i32 %and
@@ -43,7 +43,7 @@ entry:
 ; ARM32-LABEL: And
 ; ARM32: and r
 
-define i32 @Or(i32 %a, i32 %b) {
+define internal i32 @Or(i32 %a, i32 %b) {
 entry:
   %or = or i32 %b, %a
   ret i32 %or
@@ -53,7 +53,7 @@ entry:
 ; ARM32-LABEL: Or
 ; ARM32: orr r
 
-define i32 @Xor(i32 %a, i32 %b) {
+define internal i32 @Xor(i32 %a, i32 %b) {
 entry:
   %xor = xor i32 %b, %a
   ret i32 %xor
@@ -63,7 +63,7 @@ entry:
 ; ARM32-LABEL: Xor
 ; ARM32: eor r
 
-define i32 @Sub(i32 %a, i32 %b) {
+define internal i32 @Sub(i32 %a, i32 %b) {
 entry:
   %sub = sub i32 %a, %b
   ret i32 %sub
@@ -73,7 +73,7 @@ entry:
 ; ARM32-LABEL: Sub
 ; ARM32: sub r
 
-define i32 @Mul(i32 %a, i32 %b) {
+define internal i32 @Mul(i32 %a, i32 %b) {
 entry:
   %mul = mul i32 %b, %a
   ret i32 %mul
@@ -85,7 +85,7 @@ entry:
 
 ; Check for a valid ARM mul instruction where operands have to be registers.
 ; On the other hand x86-32 does allow an immediate.
-define i32 @MulImm(i32 %a, i32 %b) {
+define internal i32 @MulImm(i32 %a, i32 %b) {
 entry:
   %mul = mul i32 %a, 99
   ret i32 %mul
@@ -98,7 +98,7 @@ entry:
 
 ; Check for a valid addressing mode in the x86-32 mul instruction when
 ; the second source operand is an immediate.
-define i64 @MulImm64(i64 %a) {
+define internal i64 @MulImm64(i64 %a) {
 entry:
   %mul = mul i64 %a, 99
   ret i64 %mul
@@ -119,7 +119,7 @@ entry:
 ; ARM32: umull r
 ; ARM32: add r
 
-define i32 @Sdiv(i32 %a, i32 %b) {
+define internal i32 @Sdiv(i32 %a, i32 %b) {
 entry:
   %div = sdiv i32 %a, %b
   ret i32 %div
@@ -138,7 +138,7 @@ entry:
 ; ARM32HWDIV: bne
 ; ARM32HWDIV: sdiv
 
-define i32 @SdivConst(i32 %a) {
+define internal i32 @SdivConst(i32 %a) {
 entry:
   %div = sdiv i32 %a, 219
   ret i32 %div
@@ -154,7 +154,7 @@ entry:
 ; ARM32HWDIV-NOT: tst
 ; ARM32HWDIV: sdiv
 
-define i32 @Srem(i32 %a, i32 %b) {
+define internal i32 @Srem(i32 %a, i32 %b) {
 entry:
   %rem = srem i32 %a, %b
   ret i32 %rem
@@ -173,7 +173,7 @@ entry:
 ; ARM32HWDIV: sdiv
 ; ARM32HWDIV: mls
 
-define i32 @Udiv(i32 %a, i32 %b) {
+define internal i32 @Udiv(i32 %a, i32 %b) {
 entry:
   %div = udiv i32 %a, %b
   ret i32 %div
@@ -190,7 +190,7 @@ entry:
 ; ARM32HWDIV: bne
 ; ARM32HWDIV: udiv
 
-define i32 @Urem(i32 %a, i32 %b) {
+define internal i32 @Urem(i32 %a, i32 %b) {
 entry:
   %rem = urem i32 %a, %b
   ret i32 %rem
@@ -213,7 +213,7 @@ entry:
 
 @G = internal global [4 x i8] zeroinitializer, align 4
 
-define i32 @ShlReloc(i32 %a) {
+define internal i32 @ShlReloc(i32 %a) {
 entry:
   %opnd = ptrtoint [4 x i8]* @G to i32
   %result = shl i32 %a, %opnd
@@ -222,7 +222,7 @@ entry:
 ; CHECK-LABEL: ShlReloc
 ; CHECK: shl {{.*}},cl
 
-define i32 @LshrReloc(i32 %a) {
+define internal i32 @LshrReloc(i32 %a) {
 entry:
   %opnd = ptrtoint [4 x i8]* @G to i32
   %result = lshr i32 %a, %opnd
@@ -231,7 +231,7 @@ entry:
 ; CHECK-LABEL: LshrReloc
 ; CHECK: shr {{.*}},cl
 
-define i32 @AshrReloc(i32 %a) {
+define internal i32 @AshrReloc(i32 %a) {
 entry:
   %opnd = ptrtoint [4 x i8]* @G to i32
   %result = ashr i32 %a, %opnd

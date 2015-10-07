@@ -116,7 +116,12 @@ void ELFSymbolTableSection::noteUndefinedSym(const IceString &Name,
   NewSymbol.Section = NullSection;
   NewSymbol.Number = ELFSym::UnknownNumber;
   bool Unique = GlobalSymbols.insert(std::make_pair(Name, NewSymbol)).second;
-  assert(Unique);
+  if (!Unique) {
+    std::string Buffer;
+    llvm::raw_string_ostream StrBuf(Buffer);
+    StrBuf << "Symbol external and defined: " << Name;
+    llvm::report_fatal_error(StrBuf.str());
+  }
   (void)Unique;
 }
 

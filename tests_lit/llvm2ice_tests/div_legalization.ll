@@ -4,7 +4,7 @@
 ; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 | FileCheck %s
 ; RUN: %p2i --filetype=obj --disassemble -i %s --args -Om1 | FileCheck %s
 
-define i32 @Sdiv_const8_b(i8 %a) {
+define internal i32 @Sdiv_const8_b(i8 %a) {
 ; CHECK-LABEL: Sdiv_const8_b
 entry:
   %div = sdiv i8 %a, 12
@@ -14,7 +14,7 @@ entry:
   ret i32 %div_ext
 }
 
-define i32 @Sdiv_const16_b(i16 %a) {
+define internal i32 @Sdiv_const16_b(i16 %a) {
 ; CHECK-LABEL: Sdiv_const16_b
 entry:
   %div = sdiv i16 %a, 1234
@@ -24,7 +24,7 @@ entry:
   ret i32 %div_ext
 }
 
-define i32 @Sdiv_const32_b(i32 %a) {
+define internal i32 @Sdiv_const32_b(i32 %a) {
 ; CHECK-LABEL: Sdiv_const32_b
 entry:
   %div = sdiv i32 %a, 1234
@@ -33,7 +33,7 @@ entry:
   ret i32 %div
 }
 
-define i32 @Srem_const_b(i32 %a) {
+define internal i32 @Srem_const_b(i32 %a) {
 ; CHECK-LABEL: Srem_const_b
 entry:
   %rem = srem i32 %a, 2345
@@ -42,7 +42,7 @@ entry:
   ret i32 %rem
 }
 
-define i32 @Udiv_const_b(i32 %a) {
+define internal i32 @Udiv_const_b(i32 %a) {
 ; CHECK-LABEL: Udiv_const_b
 entry:
   %div = udiv i32 %a, 3456
@@ -51,7 +51,7 @@ entry:
   ret i32 %div
 }
 
-define i32 @Urem_const_b(i32 %a) {
+define internal i32 @Urem_const_b(i32 %a) {
 ; CHECK-LABEL: Urem_const_b
 entry:
   %rem = urem i32 %a, 4567

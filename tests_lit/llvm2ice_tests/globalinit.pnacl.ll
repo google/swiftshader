@@ -4,25 +4,29 @@
 
 ; Test initializers with -filetype=asm.
 ; RUN: %if --need=target_X8632 --command %p2i --filetype=asm --target x8632 \
-; RUN:   -i %s --args -O2 | %if --need=target_X8632 --command FileCheck %s
+; RUN:   -i %s --args -O2 -allow-externally-defined-symbols \
+; RUN:   | %if --need=target_X8632 --command FileCheck %s
 
 ; RUN: %if --need=target_ARM32 --command %p2i --filetype=asm --target arm32 \
 ; RUN:   -i %s --args -O2 --skip-unimplemented \
+; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_ARM32 --command FileCheck %s
 
 ; Test instructions for materializing addresses.
 ; RUN: %if --need=target_X8632 --command %p2i --filetype=asm --target x8632 \
-; RUN:   -i %s --args -O2 \
+; RUN:   -i %s --args -O2 -allow-externally-defined-symbols \
 ; RUN: | %if --need=target_X8632 --command FileCheck %s --check-prefix=X8632
 
 ; Test instructions with -filetype=obj and try to cross reference instructions
 ; w/ the symbol table.
 ; RUN: %if --need=target_X8632 --command %p2i --assemble --disassemble \
 ; RUN:   --target x8632 -i %s --args --verbose none \
+; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_X8632 --command FileCheck --check-prefix=IAS %s
 
 ; RUN: %if --need=target_X8632 --command %p2i --assemble --disassemble \
 ; RUN:   --dis-flags=-t --target x8632 -i %s --args --verbose none \
+; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_X8632 --command FileCheck --check-prefix=SYMTAB %s
 
 ; This is not really IAS, but we can switch when that is implemented.
@@ -30,12 +34,14 @@
 ; RUN: %if --need=target_ARM32 --command %p2i --filetype=asm --assemble \
 ; RUN:   --disassemble --target arm32 -i %s \
 ; RUN:   --args --verbose none --skip-unimplemented \
+; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_ARM32 --command FileCheck \
 ; RUN:   --check-prefix=IASARM32 %s
 
 ; RUN: %if --need=target_ARM32 --command %p2i --filetype=asm --assemble \
 ; RUN:   --disassemble --dis-flags=-t --target arm32 -i %s \
 ; RUN:   --args --verbose none --skip-unimplemented \
+; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_ARM32 --command FileCheck --check-prefix=SYMTAB %s
 
 define internal i32 @main(i32 %argc, i32 %argv) {

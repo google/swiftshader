@@ -1,7 +1,9 @@
 ; This checks to ensure that Subzero aligns spill slots.
 
-; RUN: %p2i --filetype=obj --disassemble -i %s --args -Om1 | FileCheck %s
-; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 | FileCheck %s
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -Om1 \
+; RUN:   -allow-externally-defined-symbols | FileCheck %s
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 \
+; RUN:   -allow-externally-defined-symbols | FileCheck %s
 
 ; The location of the stack slot for a variable is inferred from the
 ; return sequence.
@@ -10,7 +12,7 @@
 ; multiple basic blocks (not an LLVM global variable) and "local"
 ; refers to a variable that is live in only a single basic block.
 
-define <4 x i32> @align_global_vector(i32 %arg) {
+define internal <4 x i32> @align_global_vector(i32 %arg) {
 entry:
   %vec.global = insertelement <4 x i32> undef, i32 %arg, i32 0
   br label %block
@@ -23,7 +25,7 @@ block:
 ; CHECK-NEXT: ret
 }
 
-define <4 x i32> @align_local_vector(i32 %arg) {
+define internal <4 x i32> @align_local_vector(i32 %arg) {
 entry:
   br label %block
 block:
@@ -38,7 +40,7 @@ block:
 
 declare void @ForceXmmSpills()
 
-define <4 x i32> @align_global_vector_ebp_based(i32 %arg) {
+define internal <4 x i32> @align_global_vector_ebp_based(i32 %arg) {
 entry:
   br label %eblock  ; Disable alloca optimization
 eblock:
@@ -55,7 +57,7 @@ block:
 ; CHECK: ret
 }
 
-define <4 x i32> @align_local_vector_ebp_based(i32 %arg) {
+define internal <4 x i32> @align_local_vector_ebp_based(i32 %arg) {
 entry:
   br label %eblock  ; Disable alloca optimization
 eblock:
@@ -70,7 +72,7 @@ eblock:
 ; CHECK: ret
 }
 
-define <4 x i32> @align_local_vector_and_global_float(i32 %arg) {
+define internal <4 x i32> @align_local_vector_and_global_float(i32 %arg) {
 entry:
   %float.global = sitofp i32 %arg to float
   call void @ForceXmmSpillsAndUseFloat(float %float.global)

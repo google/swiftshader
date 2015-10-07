@@ -23,39 +23,39 @@
 @1 = internal constant [10 x i8] c"Some stuff", align 1
 @g = internal global [4 x i8] zeroinitializer, align 4
 
-define i32 @2(i32 %v) {
+define internal i32 @2(i32 %v) {
   ret i32 %v
 }
 
-; CHECK:      define i32 @Function(i32 %__0) {
+; CHECK:      define internal i32 @Function(i32 %__0) {
 ; CHECK-NEXT: __0:
 ; CHECK-NEXT:   ret i32 %__0
 ; CHECK-NEXT: }
 
-define void @hg() {
+define internal void @hg() {
   ret void
 }
 
 
-; CHECK-NEXT: define void @hg() {
+; CHECK-NEXT: define internal void @hg() {
 ; CHECK-NEXT: __0:
 ; CHECK-NEXT:   ret void
 ; CHECK-NEXT: }
 
-define void @3() {
+define internal void @3() {
   ret void
 }
 
-; CHECK-NEXT: define void @Function1() {
+; CHECK-NEXT: define internal void @Function1() {
 ; CHECK-NEXT: __0:
 ; CHECK-NEXT:   ret void
 ; CHECK-NEXT: }
 
-define void @h5() {
+define internal void @h5() {
   ret void
 }
 
-; CHECK-NEXT: define void @h5() {
+; CHECK-NEXT: define internal void @h5() {
 ; CHECK-NEXT: __0:
 ; CHECK-NEXT:   ret void
 ; CHECK-NEXT: }

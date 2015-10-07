@@ -4,10 +4,12 @@
 ; For the integrated ELF writer, we can't pipe the output because we need
 ; to seek backward and patch up the file headers. So, use a temporary file.
 ; RUN: %p2i -i %s --filetype=obj --args -O2 --verbose none -o %t \
+; RUN:   -allow-externally-defined-symbols \
 ; RUN:   && llvm-readobj -file-headers -sections -section-data \
 ; RUN:       -relocations -symbols %t | FileCheck %s
 
 ; RUN: %if --need=allow_dump --command %p2i -i %s --args -O2 --verbose none \
+; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=allow_dump --command llvm-mc -triple=i686-nacl \
 ; RUN:     -filetype=obj -o - \
 ; RUN:   | %if --need=allow_dump --command llvm-readobj -file-headers \
@@ -16,6 +18,7 @@
 
 ; Add a run that shows relocations in code inline.
 ; RUN: %p2i -i %s --filetype=obj --args -O2 --verbose none -o %t \
+; RUN:   -allow-externally-defined-symbols \
 ; RUN:   && le32-nacl-objdump -w -d -r -Mintel %t \
 ; RUN:   | FileCheck --check-prefix=TEXT-RELOCS %s
 

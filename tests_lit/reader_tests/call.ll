@@ -1,12 +1,14 @@
 ; Test handling of call instructions.
 
-; RUN: %p2i -i %s --insts | FileCheck %s
+; RUN: %p2i -i %s --insts --args -allow-externally-defined-symbols \
+; RUN: | FileCheck %s
 ; RUN: %if --need=allow_disable_ir_gen --command \
 ; RUN:   %p2i -i %s --args -notranslate -timing -no-ir-gen \
+; RUN:        -allow-externally-defined-symbols \
 ; RUN: | %if --need=allow_disable_ir_gen --command \
 ; RUN:   FileCheck --check-prefix=NOIR %s
 
-define i32 @fib(i32 %n) {
+define internal i32 @fib(i32 %n) {
 entry:
   %cmp = icmp slt i32 %n, 2
   br i1 %cmp, label %return, label %if.end
@@ -23,7 +25,7 @@ return:                                           ; preds = %entry
   ret i32 %n
 }
 
-; CHECK:      define i32 @fib(i32 %n) {
+; CHECK:      define internal i32 @fib(i32 %n) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %cmp = icmp slt i32 %n, 2
 ; CHECK-NEXT:   br i1 %cmp, label %return, label %if.end
@@ -38,7 +40,7 @@ return:                                           ; preds = %entry
 ; CHECK-NEXT:   ret i32 %n
 ; CHECK-NEXT: }
 
-define i32 @fact(i32 %n) {
+define internal i32 @fact(i32 %n) {
 entry:
   %cmp = icmp slt i32 %n, 2
   br i1 %cmp, label %return, label %if.end
@@ -53,7 +55,7 @@ return:                                           ; preds = %entry
   ret i32 %n
 }
 
-; CHECK-NEXT: define i32 @fact(i32 %n) {
+; CHECK-NEXT: define internal i32 @fact(i32 %n) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %cmp = icmp slt i32 %n, 2
 ; CHECK-NEXT:   br i1 %cmp, label %return, label %if.end
@@ -66,13 +68,13 @@ return:                                           ; preds = %entry
 ; CHECK-NEXT:   ret i32 %n
 ; CHECK-NEXT: }
 
-define i32 @redirect(i32 %n) {
+define internal i32 @redirect(i32 %n) {
 entry:
   %call = tail call i32 @redirect_target(i32 %n)
   ret i32 %call
 }
 
-; CHECK-NEXT: define i32 @redirect(i32 %n) {
+; CHECK-NEXT: define internal i32 @redirect(i32 %n) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %call = call i32 @redirect_target(i32 %n)
 ; CHECK-NEXT:   ret i32 %call
@@ -80,7 +82,7 @@ entry:
 
 declare i32 @redirect_target(i32)
 
-define void @call_void(i32 %n) {
+define internal void @call_void(i32 %n) {
 entry:
   %cmp2 = icmp sgt i32 %n, 0
   br i1 %cmp2, label %if.then, label %if.end
@@ -96,7 +98,7 @@ if.end:                                           ; preds = %if.then, %entry
   ret void
 }
 
-; CHECK-NEXT: define void @call_void(i32 %n) {
+; CHECK-NEXT: define internal void @call_void(i32 %n) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %cmp2 = icmp sgt i32 %n, 0
 ; CHECK-NEXT:   br i1 %cmp2, label %if.then, label %if.end

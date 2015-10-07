@@ -2,17 +2,19 @@
 ; variables are combined to implicitly use flags instead of explicitly using
 ; stack or register variables.
 
-; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 | FileCheck %s
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 \
+; RUN:   -allow-externally-defined-symbols | FileCheck %s
 
 ; RUN: %if --need=allow_dump --need=target_ARM32 --command %p2i --filetype=asm \
 ; RUN:   --target arm32 -i %s --args -O2 --skip-unimplemented \
+; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=allow_dump --need=target_ARM32 --command FileCheck %s \
 ; RUN:   --check-prefix=ARM32
 
 declare void @use_value(i32)
 
 ; Basic cmp/branch folding.
-define i32 @fold_cmp_br(i32 %arg1, i32 %arg2) {
+define internal i32 @fold_cmp_br(i32 %arg1, i32 %arg2) {
 entry:
   %cmp1 = icmp slt i32 %arg1, %arg2
   br i1 %cmp1, label %branch1, label %branch2
@@ -31,7 +33,7 @@ branch2:
 
 
 ; Cmp/branch folding with intervening instructions.
-define i32 @fold_cmp_br_intervening_insts(i32 %arg1, i32 %arg2) {
+define internal i32 @fold_cmp_br_intervening_insts(i32 %arg1, i32 %arg2) {
 entry:
   %cmp1 = icmp slt i32 %arg1, %arg2
   call void @use_value(i32 %arg1)
@@ -57,7 +59,7 @@ branch2:
 
 
 ; Cmp/branch non-folding because of live-out.
-define i32 @no_fold_cmp_br_liveout(i32 %arg1, i32 %arg2) {
+define internal i32 @no_fold_cmp_br_liveout(i32 %arg1, i32 %arg2) {
 entry:
   %cmp1 = icmp slt i32 %arg1, %arg2
   br label %next
@@ -82,7 +84,7 @@ branch2:
 
 
 ; Cmp/branch non-folding because of extra non-whitelisted uses.
-define i32 @no_fold_cmp_br_non_whitelist(i32 %arg1, i32 %arg2) {
+define internal i32 @no_fold_cmp_br_non_whitelist(i32 %arg1, i32 %arg2) {
 entry:
   %cmp1 = icmp slt i32 %arg1, %arg2
   %result = zext i1 %cmp1 to i32
@@ -110,7 +112,7 @@ branch2:
 
 
 ; Basic cmp/select folding.
-define i32 @fold_cmp_select(i32 %arg1, i32 %arg2) {
+define internal i32 @fold_cmp_select(i32 %arg1, i32 %arg2) {
 entry:
   %cmp1 = icmp slt i32 %arg1, %arg2
   %result = select i1 %cmp1, i32 %arg1, i32 %arg2
@@ -128,7 +130,7 @@ entry:
 
 
 ; 64-bit cmp/select folding.
-define i64 @fold_cmp_select_64(i64 %arg1, i64 %arg2) {
+define internal i64 @fold_cmp_select_64(i64 %arg1, i64 %arg2) {
 entry:
   %arg1_trunc = trunc i64 %arg1 to i32
   %arg2_trunc = trunc i64 %arg2 to i32
@@ -153,7 +155,7 @@ entry:
 ; ARM32: bx lr
 
 
-define i64 @fold_cmp_select_64_undef(i64 %arg1) {
+define internal i64 @fold_cmp_select_64_undef(i64 %arg1) {
 entry:
   %arg1_trunc = trunc i64 %arg1 to i32
   %cmp1 = icmp slt i32 undef, %arg1_trunc
@@ -176,7 +178,7 @@ entry:
 
 
 ; Cmp/select folding with intervening instructions.
-define i32 @fold_cmp_select_intervening_insts(i32 %arg1, i32 %arg2) {
+define internal i32 @fold_cmp_select_intervening_insts(i32 %arg1, i32 %arg2) {
 entry:
   %cmp1 = icmp slt i32 %arg1, %arg2
   call void @use_value(i32 %arg1)
@@ -203,7 +205,7 @@ entry:
 
 
 ; Cmp/multi-select folding.
-define i32 @fold_cmp_select_multi(i32 %arg1, i32 %arg2) {
+define internal i32 @fold_cmp_select_multi(i32 %arg1, i32 %arg2) {
 entry:
   %cmp1 = icmp slt i32 %arg1, %arg2
   %a = select i1 %cmp1, i32 %arg1, i32 %arg2
@@ -241,7 +243,7 @@ entry:
 
 
 ; Cmp/multi-select non-folding because of live-out.
-define i32 @no_fold_cmp_select_multi_liveout(i32 %arg1, i32 %arg2) {
+define internal i32 @no_fold_cmp_select_multi_liveout(i32 %arg1, i32 %arg2) {
 entry:
   %cmp1 = icmp slt i32 %arg1, %arg2
   %a = select i1 %cmp1, i32 %arg1, i32 %arg2
@@ -282,7 +284,8 @@ next:
 ; ARM32: bx lr
 
 ; Cmp/multi-select non-folding because of extra non-whitelisted uses.
-define i32 @no_fold_cmp_select_multi_non_whitelist(i32 %arg1, i32 %arg2) {
+define internal i32 @no_fold_cmp_select_multi_non_whitelist(i32 %arg1,
+                                                            i32 %arg2) {
 entry:
   %cmp1 = icmp slt i32 %arg1, %arg2
   %a = select i1 %cmp1, i32 %arg1, i32 %arg2

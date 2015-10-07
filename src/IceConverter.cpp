@@ -867,6 +867,13 @@ void Converter::installGlobalDeclarations(Module *Mod) {
     FunctionDeclaration *IceFunc = FunctionDeclaration::create(
         Ctx, Signature, Func.getCallingConv(), Func.getLinkage(), Func.empty());
     IceFunc->setName(Func.getName());
+    if (!IceFunc->verifyLinkageCorrect(Ctx)) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Function " << IceFunc->getName()
+             << " has incorrect linkage: " << IceFunc->getLinkageName();
+      report_fatal_error(StrBuf.str());
+    }
     GlobalDeclarationMap[&Func] = IceFunc;
   }
   // Install global variable declarations.
@@ -879,6 +886,13 @@ void Converter::installGlobalDeclarations(Module *Mod) {
     Var->setAlignment(GV->getAlignment());
     Var->setIsConstant(GV->isConstant());
     Var->setLinkage(GV->getLinkage());
+    if (!Var->verifyLinkageCorrect(Ctx)) {
+      std::string Buffer;
+      raw_string_ostream StrBuf(Buffer);
+      StrBuf << "Global " << Var->getName()
+             << " has incorrect linkage: " << Var->getLinkageName();
+      report_fatal_error(StrBuf.str());
+    }
     GlobalDeclarationMap[GV] = Var;
   }
 }

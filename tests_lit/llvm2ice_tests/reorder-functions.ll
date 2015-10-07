@@ -37,27 +37,27 @@
 ; RUN:    -reorder-functions-window-size=0xffffffff \
 ; RUN:    | FileCheck %s --check-prefix=WINDOWSIZEMAX
 
-define void @func1() {
+define internal void @func1() {
   ret void
 }
 
-define void @func2() {
+define internal void @func2() {
   ret void
 }
 
-define void @func3() {
+define internal void @func3() {
   ret void
 }
 
-define void @func4() {
+define internal void @func4() {
   ret void
 }
 
-define void @func5() {
+define internal void @func5() {
   ret void
 }
 
-define void @func6() {
+define internal void @func6() {
   ret void
 }
 

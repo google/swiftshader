@@ -2,11 +2,11 @@
 ; optimizations under Om1).
 
 ; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
-; RUN:   --target x8632 -i %s --args -O2 \
+; RUN:   --target x8632 -i %s --args -O2 -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_X8632 --command FileCheck --check-prefix=O2 %s
 
 ; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
-; RUN:   --target x8632 -i %s --args -Om1 \
+; RUN:   --target x8632 -i %s --args -Om1 -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_X8632 --command FileCheck --check-prefix=OM1 %s
 
 ; TODO(jvoung): Stop skipping unimplemented parts (via --skip-unimplemented)
@@ -15,12 +15,14 @@
 ; RUN: %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command %p2i --filetype=asm --assemble \
 ; RUN:   --disassemble --target arm32 -i %s --args -O2 --skip-unimplemented \
+; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32O2 %s
 
 ; RUN: %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command %p2i --filetype=asm --assemble \
 ; RUN:   --disassemble --target arm32 -i %s --args -Om1 --skip-unimplemented \
+; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck \
 ; RUN:   --check-prefix ARM32OM1 %s
@@ -28,7 +30,7 @@
 declare void @dummy()
 
 ; An unconditional branch to the next block should be removed.
-define void @testUncondToNextBlock() {
+define internal void @testUncondToNextBlock() {
 entry:
   call void @dummy()
   br label %next
@@ -59,7 +61,7 @@ next:
 
 ; For a conditional branch with a fallthrough to the next block, the
 ; fallthrough branch should be removed.
-define void @testCondFallthroughToNextBlock(i32 %arg) {
+define internal void @testCondFallthroughToNextBlock(i32 %arg) {
 entry:
   %cmp = icmp sge i32 %arg, 123
   br i1 %cmp, label %target, label %fallthrough
@@ -116,7 +118,7 @@ target:
 ; different block as the fallthrough, the branch condition should be
 ; inverted, the fallthrough block changed to the target, and the
 ; branch to the next block removed.
-define void @testCondTargetNextBlock(i32 %arg) {
+define internal void @testCondTargetNextBlock(i32 %arg) {
 entry:
   %cmp = icmp sge i32 %arg, 123
   br i1 %cmp, label %fallthrough, label %target
@@ -172,7 +174,7 @@ target:
 
 ; Unconditional branches to the block after a contracted block should be
 ; removed.
-define void @testUncondToBlockAfterContract() {
+define internal void @testUncondToBlockAfterContract() {
 entry:
   call void @dummy()
   br label %target

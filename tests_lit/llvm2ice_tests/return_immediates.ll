@@ -2,7 +2,8 @@
 ; sets, some immediates are more complicated than others.
 ; For x86-32, it shouldn't be a problem.
 
-; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 | FileCheck %s
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 \
+; RUN:      -allow-externally-defined-symbols | FileCheck %s
 
 ; TODO(jvoung): Stop skipping unimplemented parts (via --skip-unimplemented)
 ; once enough infrastructure is in. Also, switch to --filetype=obj
@@ -17,7 +18,7 @@
 ; ARM has a shifter that allows encoding 8-bits rotated right by even amounts.
 ; The first few "rotate right" test cases are expressed as shift-left.
 
-define i32 @ret_8bits_shift_left0() {
+define internal i32 @ret_8bits_shift_left0() {
   ret i32 255
 }
 ; CHECK-LABEL: ret_8bits_shift_left0
@@ -25,7 +26,7 @@ define i32 @ret_8bits_shift_left0() {
 ; ARM32-LABEL: ret_8bits_shift_left0
 ; ARM32-NEXT: mov r0, #255
 
-define i32 @ret_8bits_shift_left1() {
+define internal i32 @ret_8bits_shift_left1() {
   ret i32 510
 }
 ; CHECK-LABEL: ret_8bits_shift_left1
@@ -33,7 +34,7 @@ define i32 @ret_8bits_shift_left1() {
 ; ARM32-LABEL: ret_8bits_shift_left1
 ; ARM32-NEXT: movw r0, #510
 
-define i32 @ret_8bits_shift_left2() {
+define internal i32 @ret_8bits_shift_left2() {
   ret i32 1020
 }
 ; CHECK-LABEL: ret_8bits_shift_left2
@@ -41,7 +42,7 @@ define i32 @ret_8bits_shift_left2() {
 ; ARM32-LABEL: ret_8bits_shift_left2
 ; ARM32-NEXT: mov r0, #1020
 
-define i32 @ret_8bits_shift_left4() {
+define internal i32 @ret_8bits_shift_left4() {
   ret i32 4080
 }
 ; CHECK-LABEL: ret_8bits_shift_left4
@@ -49,7 +50,7 @@ define i32 @ret_8bits_shift_left4() {
 ; ARM32-LABEL: ret_8bits_shift_left4
 ; ARM32-NEXT: mov r0, #4080
 
-define i32 @ret_8bits_shift_left14() {
+define internal i32 @ret_8bits_shift_left14() {
   ret i32 4177920
 }
 ; CHECK-LABEL: ret_8bits_shift_left14
@@ -57,7 +58,7 @@ define i32 @ret_8bits_shift_left14() {
 ; ARM32-LABEL: ret_8bits_shift_left14
 ; ARM32-NEXT: mov r0, #4177920
 
-define i32 @ret_8bits_shift_left15() {
+define internal i32 @ret_8bits_shift_left15() {
   ret i32 8355840
 }
 ; CHECK-LABEL: ret_8bits_shift_left15
@@ -68,7 +69,7 @@ define i32 @ret_8bits_shift_left15() {
 
 ; Shift 8 bits left by 24 to the i32 limit. This is also ror by 8 bits.
 
-define i32 @ret_8bits_shift_left24() {
+define internal i32 @ret_8bits_shift_left24() {
   ret i32 4278190080
 }
 ; CHECK-LABEL: ret_8bits_shift_left24
@@ -79,7 +80,7 @@ define i32 @ret_8bits_shift_left24() {
 
 ; The next few cases wrap around and actually demonstrate the rotation.
 
-define i32 @ret_8bits_ror7() {
+define internal i32 @ret_8bits_ror7() {
   ret i32 4261412865
 }
 ; CHECK-LABEL: ret_8bits_ror7
@@ -88,7 +89,7 @@ define i32 @ret_8bits_ror7() {
 ; ARM32-NEXT: movw r0, #1
 ; ARM32-NEXT: movt r0, #65024
 
-define i32 @ret_8bits_ror6() {
+define internal i32 @ret_8bits_ror6() {
   ret i32 4227858435
 }
 ; CHECK-LABEL: ret_8bits_ror6
@@ -97,7 +98,7 @@ define i32 @ret_8bits_ror6() {
 ; ARM32-NEXT: mov r0, #-67108861
 ; ARM32-NEXT: bx lr
 
-define i32 @ret_8bits_ror5() {
+define internal i32 @ret_8bits_ror5() {
   ret i32 4160749575
 }
 ; CHECK-LABEL: ret_8bits_ror5
@@ -106,7 +107,7 @@ define i32 @ret_8bits_ror5() {
 ; ARM32-NEXT: movw r0, #7
 ; ARM32-NEXT: movt r0, #63488
 
-define i32 @ret_8bits_ror4() {
+define internal i32 @ret_8bits_ror4() {
   ret i32 4026531855
 }
 ; CHECK-LABEL: ret_8bits_ror4
@@ -115,7 +116,7 @@ define i32 @ret_8bits_ror4() {
 ; ARM32-NEXT: mov r0, #-268435441
 ; ARM32-NEXT: bx lr
 
-define i32 @ret_8bits_ror3() {
+define internal i32 @ret_8bits_ror3() {
   ret i32 3758096415
 }
 ; CHECK-LABEL: ret_8bits_ror3
@@ -124,7 +125,7 @@ define i32 @ret_8bits_ror3() {
 ; ARM32-NEXT: movw r0, #31
 ; ARM32-NEXT: movt r0, #57344
 
-define i32 @ret_8bits_ror2() {
+define internal i32 @ret_8bits_ror2() {
   ret i32 3221225535
 }
 ; CHECK-LABEL: ret_8bits_ror2
@@ -133,7 +134,7 @@ define i32 @ret_8bits_ror2() {
 ; ARM32-NEXT: mov r0, #-1073741761
 ; ARM32-NEXT: bx lr
 
-define i32 @ret_8bits_ror1() {
+define internal i32 @ret_8bits_ror1() {
   ret i32 2147483775
 }
 ; CHECK-LABEL: ret_8bits_ror1
@@ -145,7 +146,7 @@ define i32 @ret_8bits_ror1() {
 ; Some architectures can handle 16-bits at a time efficiently,
 ; so also test those.
 
-define i32 @ret_16bits_lower() {
+define internal i32 @ret_16bits_lower() {
   ret i32 65535
 }
 ; CHECK-LABEL: ret_16bits_lower
@@ -154,7 +155,7 @@ define i32 @ret_16bits_lower() {
 ; ARM32-NEXT: movw r0, #65535
 ; ARM32-NEXT: bx lr
 
-define i32 @ret_17bits_lower() {
+define internal i32 @ret_17bits_lower() {
   ret i32 131071
 }
 ; CHECK-LABEL: ret_17bits_lower
@@ -163,7 +164,7 @@ define i32 @ret_17bits_lower() {
 ; ARM32-NEXT: movw r0, #65535
 ; ARM32-NEXT: movt r0, #1
 
-define i32 @ret_16bits_upper() {
+define internal i32 @ret_16bits_upper() {
   ret i32 4294901760
 }
 ; CHECK-LABEL: ret_16bits_upper
@@ -174,7 +175,7 @@ define i32 @ret_16bits_upper() {
 
 ; Some 32-bit immediates can be inverted, and moved in a single instruction.
 
-define i32 @ret_8bits_inverted_shift_left0() {
+define internal i32 @ret_8bits_inverted_shift_left0() {
   ret i32 4294967040
 }
 ; CHECK-LABEL: ret_8bits_inverted_shift_left0
@@ -183,7 +184,7 @@ define i32 @ret_8bits_inverted_shift_left0() {
 ; ARM32-NEXT: mvn r0, #255
 ; ARM32-NEXT: bx lr
 
-define i32 @ret_8bits_inverted_shift_left24() {
+define internal i32 @ret_8bits_inverted_shift_left24() {
   ret i32 16777215
 }
 ; CHECK-LABEL: ret_8bits_inverted_shift_left24
@@ -192,7 +193,7 @@ define i32 @ret_8bits_inverted_shift_left24() {
 ; ARM32-NEXT: mvn r0, #-16777216
 ; ARM32-NEXT: bx lr
 
-define i32 @ret_8bits_inverted_ror2() {
+define internal i32 @ret_8bits_inverted_ror2() {
   ret i32 1073741760
 }
 ; CHECK-LABEL: ret_8bits_inverted_ror2
@@ -201,7 +202,7 @@ define i32 @ret_8bits_inverted_ror2() {
 ; ARM32-NEXT: mvn r0, #-1073741761
 ; ARM32-NEXT: bx lr
 
-define i32 @ret_8bits_inverted_ror6() {
+define internal i32 @ret_8bits_inverted_ror6() {
   ret i32 67108860
 }
 ; CHECK-LABEL: ret_8bits_inverted_ror6
@@ -210,7 +211,7 @@ define i32 @ret_8bits_inverted_ror6() {
 ; ARM32-NEXT: mvn r0, #-67108861
 ; ARM32-NEXT: bx lr
 
-define i32 @ret_8bits_inverted_ror7() {
+define internal i32 @ret_8bits_inverted_ror7() {
   ret i32 33554430
 }
 ; CHECK-LABEL: ret_8bits_inverted_ror7
@@ -221,7 +222,7 @@ define i32 @ret_8bits_inverted_ror7() {
 
 ; 64-bit immediates.
 
-define i64 @ret_64bits_shift_left0() {
+define internal i64 @ret_64bits_shift_left0() {
   ret i64 1095216660735
 }
 ; CHECK-LABEL: ret_64bits_shift_left0
@@ -236,7 +237,7 @@ define i64 @ret_64bits_shift_left0() {
 
 declare void @_start()
 
-define i32 @ret_addr() {
+define internal i32 @ret_addr() {
   %ptr = ptrtoint void ()* @_start to i32
   ret i32 %ptr
 }

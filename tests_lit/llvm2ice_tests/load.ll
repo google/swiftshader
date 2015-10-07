@@ -4,7 +4,7 @@
 
 ; RUN: %p2i -i %s --args --verbose inst -threads=0 | FileCheck %s
 
-define void @load_i64(i32 %addr_arg) {
+define internal void @load_i64(i32 %addr_arg) {
 entry:
   %__1 = inttoptr i32 %addr_arg to i64*
   %iv = load i64, i64* %__1, align 1
@@ -16,7 +16,7 @@ entry:
 ; CHECK-NEXT:  ret void
 }
 
-define void @load_i32(i32 %addr_arg) {
+define internal void @load_i32(i32 %addr_arg) {
 entry:
   %__1 = inttoptr i32 %addr_arg to i32*
   %iv = load i32, i32* %__1, align 1
@@ -28,7 +28,7 @@ entry:
 ; CHECK-NEXT:  ret void
 }
 
-define void @load_i16(i32 %addr_arg) {
+define internal void @load_i16(i32 %addr_arg) {
 entry:
   %__1 = inttoptr i32 %addr_arg to i16*
   %iv = load i16, i16* %__1, align 1
@@ -40,7 +40,7 @@ entry:
 ; CHECK-NEXT:  ret void
 }
 
-define void @load_i8(i32 %addr_arg) {
+define internal void @load_i8(i32 %addr_arg) {
 entry:
   %__1 = inttoptr i32 %addr_arg to i8*
   %iv = load i8, i8* %__1, align 1

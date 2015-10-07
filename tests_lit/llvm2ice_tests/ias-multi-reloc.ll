@@ -2,6 +2,7 @@
 ; relocations.
 
 ; RUN: %if --need=allow_dump --command %p2i -i %s --args -O2 \
+; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=allow_dump --command FileCheck %s
 
 ; char global_char;

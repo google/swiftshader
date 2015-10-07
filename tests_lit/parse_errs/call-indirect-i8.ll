@@ -4,7 +4,7 @@
 
 ; RUN: %p2i --expect-fail -i %s --insts | FileCheck %s
 
-define void @CallIndirectI32(i32 %f_addr) {
+define internal void @CallIndirectI32(i32 %f_addr) {
 entry:
   %f = inttoptr i32 %f_addr to i32(i8)*
   %r = call i32 %f(i8 1)

@@ -6,7 +6,7 @@
 ; RUN: | %if --need=allow_disable_ir_gen --command \
 ; RUN:   FileCheck --check-prefix=NOIR %s
 
-define void @TestIntegers() {
+define internal void @TestIntegers() {
 entry:
 ; CHECK: entry:
 
@@ -62,7 +62,7 @@ entry:
 
 }
 
-define void @TestFloats() {
+define internal void @TestFloats() {
 entry:
 ; CHECK: entry:
 

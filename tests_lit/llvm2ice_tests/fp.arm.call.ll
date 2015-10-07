@@ -3,11 +3,13 @@
 ; RUN: %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command %p2i --filetype=asm --assemble \
 ; RUN:   --disassemble --target arm32 -i %s --args -O2 --skip-unimplemented \
+; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck %s
 ; RUN: %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target arm32 \
 ; RUN:   -i %s --args -Om1 --skip-unimplemented \
+; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck %s
 
@@ -57,7 +59,7 @@ declare void @float18(float %p0, float %p1, float %p2, float %p3, float %p4,
                       float %p5, float %p6, float %p7, float %p8, float %p9,
                       float %p10, float %p11, float %p12, float %p13,
                       float %p14, float %p15, float %p16, float %p17)
-define void @floatHarness() nounwind {
+define internal void @floatHarness() nounwind {
 ; CHECK-LABEL: floatHarness
   call void @float1(float 1.0)
 ; CHECK-DAG: vldr s0
@@ -312,7 +314,7 @@ declare void @double9(double %p0, double %p1, double %p2, double %p3,
 declare void @double10(double %p0, double %p1, double %p2, double %p3,
                       double %p4, double %p5, double %p6, double %p7,
                       double %p8, double %p9)
-define void @doubleHarness() nounwind {
+define internal void @doubleHarness() nounwind {
 ; CHECK-LABEL: doubleHarness
   call void @double1(double 1.0)
 ; CHECK-DAG: vldr d0
@@ -429,7 +431,7 @@ declare void @testFDDDDDDDDFD(float %p0, double %p1, double %p2, double %p3,
 declare void @testFDDDDDDDDFDF(float %p0, double %p1, double %p2, double %p3,
                                double %p4, double %p5, double %p6, double %p7,
                                double %p8, float %p9, double %p10, float %p11)
-define void @packsFloats() nounwind {
+define internal void @packsFloats() nounwind {
 ; CHECK-LABEL: packsFloats
   call void @testFDF(float 1.0, double 2.0, float 3.0)
 ; CHECK-DAG: vldr s0

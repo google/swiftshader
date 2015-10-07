@@ -2,9 +2,11 @@
 
 ; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
 ; RUN:   --target x8632 -i %s --args -O2 -sandbox \
+; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_X8632 --command FileCheck %s
 ; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
 ; RUN:   --target x8632 -i %s --args -Om1 -sandbox \
+; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_X8632 --command FileCheck %s
 
 ; Do another run w/ O2 and a different check-prefix (otherwise O2 and Om1
@@ -12,6 +14,7 @@
 ; some code is optimized out.
 ; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
 ; RUN:   --target x8632 -i %s --args -O2 -sandbox \
+; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_X8632 \
 ; RUN:   --command FileCheck --check-prefix=CHECKO2REM %s
 
@@ -20,12 +23,14 @@
 ; We also know that because it's O2, it'll have the O2REM optimizations.
 ; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
 ; RUN:   --target x8632 -i %s --args -O2 \
+; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_X8632 \
 ; RUN:   --command FileCheck --check-prefix=CHECKO2UNSANDBOXEDREM %s
 
 ; RUN: %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target arm32 \
 ; RUN:   -i %s --args -O2 --skip-unimplemented \
+; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32 %s
 
@@ -50,7 +55,7 @@ declare i64 @llvm.ctpop.i64(i64)
 declare i8* @llvm.stacksave()
 declare void @llvm.stackrestore(i8*)
 
-define i32 @test_nacl_read_tp() {
+define internal i32 @test_nacl_read_tp() {
 entry:
   %ptr = call i8* @llvm.nacl.read.tp()
   %__1 = ptrtoint i8* %ptr to i32
@@ -63,7 +68,7 @@ entry:
 ; CHECKO2UNSANDBOXEDREM-LABEL: test_nacl_read_tp
 ; CHECKO2UNSANDBOXEDREM: call {{.*}} R_{{.*}} __nacl_read_tp
 
-define i32 @test_nacl_read_tp_more_addressing() {
+define internal i32 @test_nacl_read_tp_more_addressing() {
 entry:
   %ptr = call i8* @llvm.nacl.read.tp()
   %__1 = ptrtoint i8* %ptr to i32
@@ -90,7 +95,7 @@ entry:
 ; CHECKO2UNSANDBOXEDREM: call {{.*}} R_{{.*}} __nacl_read_tp
 ; CHECKO2UNSANDBOXEDREM: call {{.*}} R_{{.*}} __nacl_read_tp
 
-define i32 @test_nacl_read_tp_dead(i32 %a) {
+define internal i32 @test_nacl_read_tp_dead(i32 %a) {
 entry:
   %ptr = call i8* @llvm.nacl.read.tp()
   ; Not actually using the result of nacl read tp call.
@@ -103,7 +108,7 @@ entry:
 ; CHECKO2UNSANDBOXEDREM-LABEL: test_nacl_read_tp_dead
 ; CHECKO2UNSANDBOXEDREM-NOT: call {{.*}} R_{{.*}} __nacl_read_tp
 
-define i32 @test_setjmplongjmp(i32 %iptr_env) {
+define internal i32 @test_setjmplongjmp(i32 %iptr_env) {
 entry:
   %env = inttoptr i32 %iptr_env to i8*
   %i = call i32 @llvm.nacl.setjmp(i8* %env)
@@ -127,7 +132,7 @@ NonZero:
 ; ARM32: bl {{.*}} setjmp
 ; ARM32: bl {{.*}} longjmp
 
-define i32 @test_setjmp_unused(i32 %iptr_env, i32 %i_other) {
+define internal i32 @test_setjmp_unused(i32 %iptr_env, i32 %i_other) {
 entry:
   %env = inttoptr i32 %iptr_env to i8*
   %i = call i32 @llvm.nacl.setjmp(i8* %env)
@@ -138,7 +143,7 @@ entry:
 ; CHECKO2REM-LABEL: test_setjmp_unused
 ; CHECKO2REM: call {{.*}} R_{{.*}} setjmp
 
-define float @test_sqrt_float(float %x, i32 %iptr) {
+define internal float @test_sqrt_float(float %x, i32 %iptr) {
 entry:
   %r = call float @llvm.sqrt.f32(float %x)
   %r2 = call float @llvm.sqrt.f32(float %r)
@@ -156,7 +161,7 @@ entry:
 ; ARM32: vsqrt.f32
 ; ARM32: vadd.f32
 
-define float @test_sqrt_float_mergeable_load(float %x, i32 %iptr) {
+define internal float @test_sqrt_float_mergeable_load(float %x, i32 %iptr) {
 entry:
   %__2 = inttoptr i32 %iptr to float*
   %y = load float, float* %__2, align 4
@@ -173,7 +178,7 @@ entry:
 ; ARM32: vldr s{{.*}}
 ; ARM32: vsqrt.f32
 
-define double @test_sqrt_double(double %x, i32 %iptr) {
+define internal double @test_sqrt_double(double %x, i32 %iptr) {
 entry:
   %r = call double @llvm.sqrt.f64(double %x)
   %r2 = call double @llvm.sqrt.f64(double %r)
@@ -191,7 +196,7 @@ entry:
 ; ARM32: vsqrt.f64
 ; ARM32: vadd.f64
 
-define double @test_sqrt_double_mergeable_load(double %x, i32 %iptr) {
+define internal double @test_sqrt_double_mergeable_load(double %x, i32 %iptr) {
 entry:
   %__2 = inttoptr i32 %iptr to double*
   %y = load double, double* %__2, align 8
@@ -205,7 +210,7 @@ entry:
 ; ARM32: vldr d{{.*}}
 ; ARM32: vsqrt.f64
 
-define float @test_sqrt_ignored(float %x, double %y) {
+define internal float @test_sqrt_ignored(float %x, double %y) {
 entry:
   %ignored1 = call float @llvm.sqrt.f32(float %x)
   %ignored2 = call double @llvm.sqrt.f64(double %y)
@@ -215,7 +220,7 @@ entry:
 ; CHECKO2REM-NOT: sqrtss
 ; CHECKO2REM-NOT: sqrtsd
 
-define float @test_fabs_float(float %x) {
+define internal float @test_fabs_float(float %x) {
 entry:
   %r = call float @llvm.fabs.f32(float %x)
   %r2 = call float @llvm.fabs.f32(float %r)
@@ -236,7 +241,7 @@ entry:
 ; CHECK: psrld
 ; CHECK: pand {{.*}}xmm{{.*}}xmm
 
-define double @test_fabs_double(double %x) {
+define internal double @test_fabs_double(double %x) {
 entry:
   %r = call double @llvm.fabs.f64(double %x)
   %r2 = call double @llvm.fabs.f64(double %r)
@@ -257,7 +262,7 @@ entry:
 ; CHECK: psrlq
 ; CHECK: pand {{.*}}xmm{{.*}}xmm
 
-define <4 x float> @test_fabs_v4f32(<4 x float> %x) {
+define internal <4 x float> @test_fabs_v4f32(<4 x float> %x) {
 entry:
   %r = call <4 x float> @llvm.fabs.v4f32(<4 x float> %x)
   %r2 = call <4 x float> @llvm.fabs.v4f32(<4 x float> %r)
@@ -276,7 +281,7 @@ entry:
 ; CHECK: psrld
 ; CHECK: pand
 
-define i32 @test_trap(i32 %br) {
+define internal i32 @test_trap(i32 %br) {
 entry:
   %r1 = icmp eq i32 %br, 0
   br i1 %r1, label %Zero, label %NonZero
@@ -291,7 +296,7 @@ NonZero:
 ; ARM32-LABEL: test_trap
 ; ARM32: .word 0xe7fedef0
 
-define i32 @test_bswap_16(i32 %x) {
+define internal i32 @test_bswap_16(i32 %x) {
 entry:
   %x_trunc = trunc i32 %x to i16
   %r = call i16 @llvm.bswap.i16(i16 %x_trunc)
@@ -306,7 +311,7 @@ entry:
 ; ARM32: rev
 ; ARM32: lsr {{.*}} #16
 
-define i32 @test_bswap_32(i32 %x) {
+define internal i32 @test_bswap_32(i32 %x) {
 entry:
   %r = call i32 @llvm.bswap.i32(i32 %x)
   ret i32 %r
@@ -316,7 +321,7 @@ entry:
 ; ARM32-LABEL: test_bswap_32
 ; ARM32: rev
 
-define i64 @test_bswap_64(i64 %x) {
+define internal i64 @test_bswap_64(i64 %x) {
 entry:
   %r = call i64 @llvm.bswap.i64(i64 %x)
   ret i64 %r
@@ -328,7 +333,7 @@ entry:
 ; ARM32: rev
 ; ARM32: rev
 
-define i64 @test_bswap_64_undef() {
+define internal i64 @test_bswap_64_undef() {
 entry:
   %r = call i64 @llvm.bswap.i64(i64 undef)
   ret i64 %r
@@ -340,7 +345,7 @@ entry:
 ; ARM32: rev
 ; ARM32: rev
 
-define i32 @test_ctlz_32(i32 %x) {
+define internal i32 @test_ctlz_32(i32 %x) {
 entry:
   %r = call i32 @llvm.ctlz.i32(i32 %x, i1 false)
   ret i32 %r
@@ -356,7 +361,7 @@ entry:
 ; ARM32-LABEL: test_ctlz_32
 ; ARM32: clz
 
-define i32 @test_ctlz_32_const() {
+define internal i32 @test_ctlz_32_const() {
 entry:
   %r = call i32 @llvm.ctlz.i32(i32 123456, i1 false)
   ret i32 %r
@@ -369,7 +374,7 @@ entry:
 ; ARM32-LABEL: test_ctlz_32_const
 ; ARM32: clz
 
-define i32 @test_ctlz_32_ignored(i32 %x) {
+define internal i32 @test_ctlz_32_ignored(i32 %x) {
 entry:
   %ignored = call i32 @llvm.ctlz.i32(i32 %x, i1 false)
   ret i32 1
@@ -377,7 +382,7 @@ entry:
 ; CHECKO2REM-LABEL: test_ctlz_32_ignored
 ; CHECKO2REM-NOT: bsr
 
-define i64 @test_ctlz_64(i64 %x) {
+define internal i64 @test_ctlz_64(i64 %x) {
 entry:
   %r = call i64 @llvm.ctlz.i64(i64 %x, i1 false)
   ret i64 %r
@@ -401,7 +406,7 @@ entry:
 ; ARM32: clzne
 ; ARM32: mov {{.*}}, #0
 
-define i32 @test_ctlz_64_const(i64 %x) {
+define internal i32 @test_ctlz_64_const(i64 %x) {
 entry:
   %r = call i64 @llvm.ctlz.i64(i64 123456789012, i1 false)
   %r2 = trunc i64 %r to i32
@@ -414,7 +419,7 @@ entry:
 ; ARM32: clz
 ; ARM32: clzne
 
-define i32 @test_ctlz_64_ignored(i64 %x) {
+define internal i32 @test_ctlz_64_ignored(i64 %x) {
 entry:
   %ignored = call i64 @llvm.ctlz.i64(i64 1234567890, i1 false)
   ret i32 2
@@ -422,7 +427,7 @@ entry:
 ; CHECKO2REM-LABEL: test_ctlz_64_ignored
 ; CHECKO2REM-NOT: bsr
 
-define i32 @test_cttz_32(i32 %x) {
+define internal i32 @test_cttz_32(i32 %x) {
 entry:
   %r = call i32 @llvm.cttz.i32(i32 %x, i1 false)
   ret i32 %r
@@ -435,7 +440,7 @@ entry:
 ; ARM32: rbit
 ; ARM32: clz
 
-define i64 @test_cttz_64(i64 %x) {
+define internal i64 @test_cttz_64(i64 %x) {
 entry:
   %r = call i64 @llvm.cttz.i64(i64 %x, i1 false)
   ret i64 %r
@@ -458,7 +463,7 @@ entry:
 ; ARM32: clzne
 ; ARM32: mov {{.*}}, #0
 
-define i32 @test_popcount_32(i32 %x) {
+define internal i32 @test_popcount_32(i32 %x) {
 entry:
   %r = call i32 @llvm.ctpop.i32(i32 %x)
   ret i32 %r
@@ -468,7 +473,7 @@ entry:
 ; ARM32-LABEL: test_popcount_32
 ; ARM32: bl {{.*}} __popcountsi2
 
-define i64 @test_popcount_64(i64 %x) {
+define internal i64 @test_popcount_64(i64 %x) {
 entry:
   %r = call i64 @llvm.ctpop.i64(i64 %x)
   ret i64 %r
@@ -482,7 +487,7 @@ entry:
 ; ARM32: bl {{.*}} __popcountdi2
 ; ARM32: mov {{.*}}, #0
 
-define i32 @test_popcount_64_ret_i32(i64 %x) {
+define internal i32 @test_popcount_64_ret_i32(i64 %x) {
 entry:
   %r_i64 = call i64 @llvm.ctpop.i64(i64 %x)
   %r = trunc i64 %r_i64 to i32
@@ -493,7 +498,7 @@ entry:
 ; CHECKO2REM: call {{.*}} R_{{.*}} __popcountdi2
 ; CHECKO2REM-NOT: mov {{.*}}, 0
 
-define void @test_stacksave_noalloca() {
+define internal void @test_stacksave_noalloca() {
 entry:
   %sp = call i8* @llvm.stacksave()
   call void @llvm.stackrestore(i8* %sp)
@@ -508,7 +513,7 @@ entry:
 
 declare i32 @foo(i32 %x)
 
-define void @test_stacksave_multiple(i32 %x) {
+define internal void @test_stacksave_multiple(i32 %x) {
 entry:
   %x_4 = mul i32 %x, 4
   %sp1 = call i8* @llvm.stacksave()

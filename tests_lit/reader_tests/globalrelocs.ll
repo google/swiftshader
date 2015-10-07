@@ -93,10 +93,10 @@
 @short = internal constant [2 x i8] zeroinitializer
 ; CHECK-NEXT: @short = internal constant [2 x i8] zeroinitializer
 
-define void @func() {
+define internal void @func() {
   ret void
 }
 
-; CHECK-NEXT: define void @func() {
+; CHECK-NEXT: define internal void @func() {
 
 ; NOIR: Total across all functions

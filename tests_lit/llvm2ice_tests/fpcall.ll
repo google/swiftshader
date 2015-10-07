@@ -3,8 +3,10 @@
 ; particular, the top-of-stack must be popped regardless of whether
 ; its value is used.
 
-; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 | FileCheck %s
-; RUN: %p2i --filetype=obj --disassemble -i %s --args -Om1 | FileCheck %s
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 \
+; RUN:      -allow-externally-defined-symbols | FileCheck %s
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -Om1 \
+; RUN:      -allow-externally-defined-symbols | FileCheck %s
 
 declare float @dummy()
 

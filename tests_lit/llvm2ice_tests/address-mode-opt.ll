@@ -1,11 +1,11 @@
 ; This file checks support for address mode optimization.
 
 ; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 \
-; RUN:   | FileCheck %s
+; RUN:   -allow-externally-defined-symbols | FileCheck %s
 ; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 -mattr=sse4.1 \
-; RUN:   | FileCheck --check-prefix=SSE41 %s
+; RUN:   -allow-externally-defined-symbols | FileCheck --check-prefix=SSE41 %s
 
-define float @load_arg_plus_200000(float* %arg) {
+define internal float @load_arg_plus_200000(float* %arg) {
 entry:
   %arg.int = ptrtoint float* %arg to i32
   %addr.int = add i32 %arg.int, 200000
@@ -16,7 +16,7 @@ entry:
 ; CHECK: movss xmm0,DWORD PTR [eax+0x30d40]
 }
 
-define float @load_200000_plus_arg(float* %arg) {
+define internal float @load_200000_plus_arg(float* %arg) {
 entry:
   %arg.int = ptrtoint float* %arg to i32
   %addr.int = add i32 200000, %arg.int
@@ -27,7 +27,7 @@ entry:
 ; CHECK: movss xmm0,DWORD PTR [eax+0x30d40]
 }
 
-define float @load_arg_minus_200000(float* %arg) {
+define internal float @load_arg_minus_200000(float* %arg) {
 entry:
   %arg.int = ptrtoint float* %arg to i32
   %addr.int = sub i32 %arg.int, 200000
@@ -38,7 +38,7 @@ entry:
 ; CHECK: movss xmm0,DWORD PTR [eax-0x30d40]
 }
 
-define float @load_200000_minus_arg(float* %arg) {
+define internal float @load_200000_minus_arg(float* %arg) {
 entry:
   %arg.int = ptrtoint float* %arg to i32
   %addr.int = sub i32 200000, %arg.int
@@ -49,7 +49,7 @@ entry:
 ; CHECK: movss xmm0,DWORD PTR [e{{..}}]
 }
 
-define <8 x i16> @load_mul_v8i16_mem(<8 x i16> %arg0, i32 %arg1_iptr) {
+define internal <8 x i16> @load_mul_v8i16_mem(<8 x i16> %arg0, i32 %arg1_iptr) {
 entry:
   %addr_sub = sub i32 %arg1_iptr, 200000
   %addr_ptr = inttoptr i32 %addr_sub to <8 x i16>*
@@ -61,7 +61,7 @@ entry:
 ; CHECK-NOT: pmullw xmm{{.*}},XMMWORD PTR [e{{..}}-0x30d40]
 }
 
-define <4 x i32> @load_mul_v4i32_mem(<4 x i32> %arg0, i32 %arg1_iptr) {
+define internal <4 x i32> @load_mul_v4i32_mem(<4 x i32> %arg0, i32 %arg1_iptr) {
 entry:
   %addr_sub = sub i32 %arg1_iptr, 200000
   %addr_ptr = inttoptr i32 %addr_sub to <4 x i32>*
@@ -77,7 +77,7 @@ entry:
 ; SSE41-NOT: pmulld xmm{{.*}},XMMWORD PTR [e{{..}}-0x30d40]
 }
 
-define float @address_mode_opt_chaining(float* %arg) {
+define internal float @address_mode_opt_chaining(float* %arg) {
 entry:
   %arg.int = ptrtoint float* %arg to i32
   %addr1.int = add i32 12, %arg.int
@@ -89,7 +89,7 @@ entry:
 ; CHECK: movss xmm0,DWORD PTR [eax+0x8]
 }
 
-define float @address_mode_opt_chaining_overflow(float* %arg) {
+define internal float @address_mode_opt_chaining_overflow(float* %arg) {
 entry:
   %arg.int = ptrtoint float* %arg to i32
   %addr1.int = add i32 2147483640, %arg.int
@@ -102,7 +102,7 @@ entry:
 ; CHECK: movss xmm0,DWORD PTR [{{.*}}+0x7ffffffb]
 }
 
-define float @address_mode_opt_chaining_overflow_sub(float* %arg) {
+define internal float @address_mode_opt_chaining_overflow_sub(float* %arg) {
 entry:
   %arg.int = ptrtoint float* %arg to i32
   %addr1.int = sub i32 %arg.int, 2147483640
@@ -115,7 +115,7 @@ entry:
 ; CHECK: movss xmm0,DWORD PTR [{{.*}}-0x7ffffffb]
 }
 
-define float @address_mode_opt_chaining_no_overflow(float* %arg) {
+define internal float @address_mode_opt_chaining_no_overflow(float* %arg) {
 entry:
   %arg.int = ptrtoint float* %arg to i32
   %addr1.int = sub i32 %arg.int, 2147483640
@@ -127,7 +127,7 @@ entry:
 ; CHECK: movss xmm0,DWORD PTR [{{.*}}+0x3]
 }
 
-define float @address_mode_opt_add_pos_min_int(float* %arg) {
+define internal float @address_mode_opt_add_pos_min_int(float* %arg) {
 entry:
   %arg.int = ptrtoint float* %arg to i32
   %addr1.int = add i32 %arg.int, 2147483648
@@ -138,7 +138,7 @@ entry:
 ; CHECK: movss xmm0,DWORD PTR [{{.*}}-0x80000000]
 }
 
-define float @address_mode_opt_sub_min_int(float* %arg) {
+define internal float @address_mode_opt_sub_min_int(float* %arg) {
 entry:
   %arg.int = ptrtoint float* %arg to i32
   %addr1.int = sub i32 %arg.int, 2147483648

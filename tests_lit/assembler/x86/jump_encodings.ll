@@ -10,7 +10,7 @@ declare void @llvm.nacl.atomic.store.i32(i32, i32*, i32)
 declare i32 @llvm.nacl.atomic.load.i32(i32*, i32)
 declare i32 @llvm.nacl.atomic.rmw.i32(i32, i32*, i32, i32)
 
-define void @test_near_backward(i32 %iptr, i32 %val) {
+define internal void @test_near_backward(i32 %iptr, i32 %val) {
 entry:
   br label %next
 next:
@@ -34,7 +34,7 @@ next2:
 
 ; Test one of the backward branches being too large for 8 bits
 ; and one being just okay.
-define void @test_far_backward1(i32 %iptr, i32 %val) {
+define internal void @test_far_backward1(i32 %iptr, i32 %val) {
 entry:
   br label %next
 next:
@@ -79,7 +79,7 @@ next2:
 
 ; Same as test_far_backward1, but with the conditional branch being
 ; the one that is too far.
-define void @test_far_backward2(i32 %iptr, i32 %val) {
+define internal void @test_far_backward2(i32 %iptr, i32 %val) {
 entry:
   br label %next
 next:
@@ -126,7 +126,7 @@ next2:
 ; CHECK: 8c: 0f 8e 7a ff ff ff jle c
 ; CHECK-NEXT: 92: eb 82 jmp 16
 
-define void @test_near_forward(i32 %iptr, i32 %val) {
+define internal void @test_near_forward(i32 %iptr, i32 %val) {
 entry:
   br label %next1
 next1:
@@ -157,7 +157,8 @@ next3:
 ; to make sure that the instruction size accounting for the forward
 ; branches are correct, by the time the backward branch is hit.
 ; A 64-bit compare happens to use local forward branches.
-define void @test_local_forward_then_back(i64 %val64, i32 %iptr, i32 %val) {
+define internal void @test_local_forward_then_back(i64 %val64, i32 %iptr,
+                                                   i32 %val) {
 entry:
   br label %next
 next:
@@ -180,7 +181,7 @@ next2:
 
 ; Test that backward local branches also work and are small.
 ; Some of the atomic instructions use a cmpxchg loop.
-define void @test_local_backward(i64 %val64, i32 %iptr, i32 %val) {
+define internal void @test_local_backward(i64 %val64, i32 %iptr, i32 %val) {
 entry:
   br label %next
 next:

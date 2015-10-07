@@ -4,7 +4,7 @@
 ; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 \
 ; RUN:   | FileCheck %s
 
-define void @SimpleBranch() {
+define internal void @SimpleBranch() {
 label0:
   br label %label2
 label1:

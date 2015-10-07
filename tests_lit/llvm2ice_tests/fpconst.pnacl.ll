@@ -7,15 +7,19 @@
 ; http://llvm.org/docs/LangRef.html#simple-constants .
 
 ; RUN: %p2i --assemble --disassemble --filetype=obj --dis-flags=-s \
-; RUN:   -i %s --args -O2 --verbose none | FileCheck %s
+; RUN:   -i %s --args -O2 --verbose none -allow-externally-defined-symbols \
+; RUN:   | FileCheck %s
 ; RUN: %p2i --assemble --disassemble --filetype=obj --dis-flags=-s \
-; RUN:   -i %s --args -Om1 --verbose none | FileCheck %s
+; RUN:   -i %s --args -Om1 --verbose none -allow-externally-defined-symbols \
+; RUN:   | FileCheck %s
 
 ; RUN: %if --need allow_dump --command %p2i --assemble --disassemble \
 ; RUN:   --dis-flags=-s -i %s --args -O2 --verbose none \
+; RUN:  -allow-externally-defined-symbols \
 ; RUN:  | %if --need allow_dump --command FileCheck %s
 ; RUN: %if --need allow_dump --command %p2i --assemble --disassemble \
 ; RUN:   --dis-flags=-s -i %s --args -Om1 --verbose none \
+; RUN:  -allow-externally-defined-symbols \
 ; RUN:  | %if --need allow_dump --command FileCheck %s
 
 @__init_array_start = internal constant [0 x i8] zeroinitializer, align 4

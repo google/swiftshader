@@ -6,7 +6,7 @@
 ; RUN: | %if --need=allow_disable_ir_gen --command \
 ; RUN:   FileCheck --check-prefix=NOIR %s
 
-define void @testDefaultSwitch(i32 %a) {
+define internal void @testDefaultSwitch(i32 %a) {
 entry:
   switch i32 %a, label %exit [
   ]
@@ -14,7 +14,7 @@ exit:
   ret void
 }
 
-; CHECK:      define void @testDefaultSwitch(i32 %a) {
+; CHECK:      define internal void @testDefaultSwitch(i32 %a) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   switch i32 %a, label %exit [
 ; CHECK-NEXT:   ]
@@ -22,7 +22,7 @@ exit:
 ; CHECK-NEXT:   ret void
 ; CHECK-NEXT: }
 
-define i32 @testSwitch(i32 %a) {
+define internal i32 @testSwitch(i32 %a) {
 entry:
   switch i32 %a, label %sw.default [
     i32 1, label %sw.epilog
@@ -51,7 +51,7 @@ sw.epilog:                                        ; preds = %sw.bb2, %sw.default
   ret i32 %result.1
 }
 
-; CHECK-NEXT:      define i32 @testSwitch(i32 %a) {
+; CHECK-NEXT:      define internal i32 @testSwitch(i32 %a) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   switch i32 %a, label %sw.default [
 ; CHECK-NEXT:     i32 1, label %sw.epilog
@@ -76,7 +76,7 @@ sw.epilog:                                        ; preds = %sw.bb2, %sw.default
 ; CHECK-NEXT:   ret i32 %result.1
 ; CHECK-NEXT: }
 
-define void @testSignedI32Values(i32 %a) {
+define internal void @testSignedI32Values(i32 %a) {
 entry:
   switch i32 %a, label %labelDefault [
   i32 0, label %label0
@@ -100,7 +100,7 @@ labelOther:
   ret void
 }
 
-; CHECK-NEXT: define void @testSignedI32Values(i32 %a) {
+; CHECK-NEXT: define internal void @testSignedI32Values(i32 %a) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   switch i32 %a, label %labelDefault [
 ; CHECK-NEXT:     i32 0, label %label0
@@ -125,7 +125,7 @@ labelOther:
 ; CHECK-NEXT: }
 
 ; Test values that cross signed i32 size boundaries.
-define void @testSignedI32Boundary(i32 %a) {
+define internal void @testSignedI32Boundary(i32 %a) {
 entry:
   switch i32 %a, label %exit [
   i32 -2147483649, label %exit  ; min signed i32 - 1
@@ -135,7 +135,7 @@ exit:
   ret void
 }
 
-; CHECK-NEXT: define void @testSignedI32Boundary(i32 %a) {
+; CHECK-NEXT: define internal void @testSignedI32Boundary(i32 %a) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   switch i32 %a, label %exit [
 ; CHECK-NEXT:     i32 2147483647, label %exit
@@ -145,7 +145,7 @@ exit:
 ; CHECK-NEXT:   ret void
 ; CHECK-NEXT: }
 
-define void @testUnsignedI32Values(i32 %a) {
+define internal void @testUnsignedI32Values(i32 %a) {
 entry:
   switch i32 %a, label %exit [
   i32 0, label %exit
@@ -156,7 +156,7 @@ exit:
   ret void
 }
 
-; CHECK-NEXT: define void @testUnsignedI32Values(i32 %a) {
+; CHECK-NEXT: define internal void @testUnsignedI32Values(i32 %a) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   switch i32 %a, label %exit [
 ; CHECK-NEXT:     i32 0, label %exit
@@ -169,7 +169,7 @@ exit:
 ; CHECK-NEXT: }
 
 ; Test values that cross unsigned i32 boundaries.
-define void @testUnsignedI32Boundary(i32 %a) {
+define internal void @testUnsignedI32Boundary(i32 %a) {
 entry:
   switch i32 %a, label %exit [
   i32 4294967296, label %exit   ; max unsigned i32 + 1
@@ -178,7 +178,7 @@ exit:
   ret void
 }
 
-; CHECK-NEXT: define void @testUnsignedI32Boundary(i32 %a) {
+; CHECK-NEXT: define internal void @testUnsignedI32Boundary(i32 %a) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   switch i32 %a, label %exit [
 ; CHECK-NEXT:     i32 0, label %exit
@@ -187,7 +187,7 @@ exit:
 ; CHECK-NEXT:   ret void
 ; CHECK-NEXT: }
 
-define void @testSignedI64Values(i64 %a) {
+define internal void @testSignedI64Values(i64 %a) {
 entry:
   switch i64 %a, label %exit [
   i64 0, label %exit
@@ -198,7 +198,7 @@ exit:
   ret void
 }
 
-; CHECK-NEXT: define void @testSignedI64Values(i64 %a) {
+; CHECK-NEXT: define internal void @testSignedI64Values(i64 %a) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   switch i64 %a, label %exit [
 ; CHECK-NEXT:     i64 0, label %exit
@@ -210,7 +210,7 @@ exit:
 ; CHECK-NEXT: }
 
 ; Test values that cross signed i64 size boundaries.
-define void @testSignedI64Boundary(i64 %a) {
+define internal void @testSignedI64Boundary(i64 %a) {
 entry:
   switch i64 %a, label %exit [
   i64 0, label %exit
@@ -221,7 +221,7 @@ exit:
   ret void
 }
 
-; CHECK-NEXT: define void @testSignedI64Boundary(i64 %a) {
+; CHECK-NEXT: define internal void @testSignedI64Boundary(i64 %a) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   switch i64 %a, label %exit [
 ; CHECK-NEXT:     i64 0, label %exit
@@ -232,7 +232,7 @@ exit:
 ; CHECK-NEXT:   ret void
 ; CHECK-NEXT: }
 
-define void @testUnsignedI64Values(i64 %a) {
+define internal void @testUnsignedI64Values(i64 %a) {
 entry:
   switch i64 %a, label %exit [
   i64 0, label %exit
@@ -243,7 +243,7 @@ exit:
   ret void
 }
 
-; CHECK-NEXT: define void @testUnsignedI64Values(i64 %a) {
+; CHECK-NEXT: define internal void @testUnsignedI64Values(i64 %a) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   switch i64 %a, label %exit [
 ; CHECK-NEXT:     i64 0, label %exit
@@ -255,7 +255,7 @@ exit:
 ; CHECK-NEXT: }
 
 ; Test values that cross unsigned i64 size boundaries.
-define void @testUnsignedI64Boundary(i64 %a) {
+define internal void @testUnsignedI64Boundary(i64 %a) {
 entry:
   switch i64 %a, label %exit [
   i64 18446744073709551616, label %exit   ; max unsigned i64 + 1
@@ -264,7 +264,7 @@ exit:
   ret void
 }
 
-; CHECK-NEXT: define void @testUnsignedI64Boundary(i64 %a) {
+; CHECK-NEXT: define internal void @testUnsignedI64Boundary(i64 %a) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   switch i64 %a, label %exit [
 ; CHECK-NEXT:     i64 0, label %exit
@@ -273,7 +273,7 @@ exit:
 ; CHECK-NEXT:   ret void
 ; CHECK-NEXT: }
 
-define void @testSignedI16Values(i32 %p) {
+define internal void @testSignedI16Values(i32 %p) {
 entry:
   %a = trunc i32 %p to i16
   switch i16 %a, label %exit [
@@ -288,7 +288,7 @@ exit:
   ret void
 }
 
-; CHECK-NEXT: define void @testSignedI16Values(i32 %p) {
+; CHECK-NEXT: define internal void @testSignedI16Values(i32 %p) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %a = trunc i32 %p to i16
 ; CHECK-NEXT:   switch i16 %a, label %exit [
@@ -304,7 +304,7 @@ exit:
 ; CHECK-NEXT: }
 
 ; Test values that cross signed i16 size boundaries.
-define void @testSignedI16Boundary(i32 %p) {
+define internal void @testSignedI16Boundary(i32 %p) {
 entry:
   %a = trunc i32 %p to i16
   switch i16 %a, label %exit [
@@ -315,7 +315,7 @@ exit:
   ret void
 }
 
-; CHECK-NEXT: define void @testSignedI16Boundary(i32 %p) {
+; CHECK-NEXT: define internal void @testSignedI16Boundary(i32 %p) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %a = trunc i32 %p to i16
 ; CHECK-NEXT:   switch i16 %a, label %exit [
@@ -326,7 +326,7 @@ exit:
 ; CHECK-NEXT:   ret void
 ; CHECK-NEXT: }
 
-define void @testUnsignedI16Values(i32 %p) {
+define internal void @testUnsignedI16Values(i32 %p) {
 entry:
   %a = trunc i32 %p to i16
   switch i16 %a, label %exit [
@@ -338,7 +338,7 @@ exit:
   ret void
 }
 
-; CHECK-NEXT: define void @testUnsignedI16Values(i32 %p) {
+; CHECK-NEXT: define internal void @testUnsignedI16Values(i32 %p) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %a = trunc i32 %p to i16
 ; CHECK-NEXT:   switch i16 %a, label %exit [
@@ -352,7 +352,7 @@ exit:
 ; CHECK-NEXT: }
 
 ; Test values that cross unsigned i16 size boundaries.
-define void @testUnsignedI16Boundary(i32 %p) {
+define internal void @testUnsignedI16Boundary(i32 %p) {
 entry:
   %a = trunc i32 %p to i16
   switch i16 %a, label %exit [
@@ -362,7 +362,7 @@ exit:
   ret void
 }
 
-; CHECK-NEXT: define void @testUnsignedI16Boundary(i32 %p) {
+; CHECK-NEXT: define internal void @testUnsignedI16Boundary(i32 %p) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %a = trunc i32 %p to i16
 ; CHECK-NEXT:   switch i16 %a, label %exit [
@@ -372,7 +372,7 @@ exit:
 ; CHECK-NEXT:   ret void
 ; CHECK-NEXT: }
 
-define void @testSignedI8Values(i32 %p) {
+define internal void @testSignedI8Values(i32 %p) {
 entry:
   %a = trunc i32 %p to i8
   switch i8 %a, label %exit [
@@ -387,7 +387,7 @@ exit:
   ret void
 }
 
-; CHECK-NEXT: define void @testSignedI8Values(i32 %p) {
+; CHECK-NEXT: define internal void @testSignedI8Values(i32 %p) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %a = trunc i32 %p to i8
 ; CHECK-NEXT:   switch i8 %a, label %exit [
@@ -403,7 +403,7 @@ exit:
 ; CHECK-NEXT: }
 
 ; Test values that cross signed i8 size boundaries.
-define void @testSignedI8Boundary(i32 %p) {
+define internal void @testSignedI8Boundary(i32 %p) {
 entry:
   %a = trunc i32 %p to i8
   switch i8 %a, label %exit [
@@ -414,7 +414,7 @@ exit:
   ret void
 }
 
-; CHECK-NEXT: define void @testSignedI8Boundary(i32 %p) {
+; CHECK-NEXT: define internal void @testSignedI8Boundary(i32 %p) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %a = trunc i32 %p to i8
 ; CHECK-NEXT:   switch i8 %a, label %exit [
@@ -426,7 +426,7 @@ exit:
 ; CHECK-NEXT: }
 
 
-define void @testUnsignedI8Values(i32 %p) {
+define internal void @testUnsignedI8Values(i32 %p) {
 entry:
   %a = trunc i32 %p to i8
   switch i8 %a, label %exit [
@@ -438,7 +438,7 @@ exit:
   ret void
 }
 
-; CHECK-NEXT: define void @testUnsignedI8Values(i32 %p) {
+; CHECK-NEXT: define internal void @testUnsignedI8Values(i32 %p) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %a = trunc i32 %p to i8
 ; CHECK-NEXT:   switch i8 %a, label %exit [
@@ -452,7 +452,7 @@ exit:
 ; CHECK-NEXT: }
 
 ; Test values that cross unsigned i8 size boundaries.
-define void @testUnsignedI8Boundary(i32 %p) {
+define internal void @testUnsignedI8Boundary(i32 %p) {
 entry:
   %a = trunc i32 %p to i8
   switch i8 %a, label %exit [
@@ -462,7 +462,7 @@ exit:
   ret void
 }
 
-; CHECK-NEXT: define void @testUnsignedI8Boundary(i32 %p) {
+; CHECK-NEXT: define internal void @testUnsignedI8Boundary(i32 %p) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %a = trunc i32 %p to i8
 ; CHECK-NEXT:   switch i8 %a, label %exit [
@@ -472,7 +472,7 @@ exit:
 ; CHECK-NEXT:   ret void
 ; CHECK-NEXT: }
 
-define void @testI1Values(i32 %p) {
+define internal void @testI1Values(i32 %p) {
 entry:
   %a = trunc i32 %p to i1
   switch i1 %a, label %exit [
@@ -483,7 +483,7 @@ exit:
   ret void
 }
 
-; CHECK-NEXT: define void @testI1Values(i32 %p) {
+; CHECK-NEXT: define internal void @testI1Values(i32 %p) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %a = trunc i32 %p to i1
 ; CHECK-NEXT:   switch i1 %a, label %exit [

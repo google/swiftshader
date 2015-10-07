@@ -4,7 +4,7 @@
 
 ; RUN: %p2i -i %s --insts | FileCheck %s
 
-define void @f(i32 %foo, i32 %bar) {
+define internal void @f(i32 %foo, i32 %bar) {
 entry:
   %c = icmp ult i32 %foo, %bar
   br i1 %c, label %block, label %block
@@ -14,7 +14,7 @@ block:
 
 ; Note that the branch is converted to an unconditional branch.
 
-; CHECK:      define void @f(i32 %foo, i32 %bar) {
+; CHECK:      define internal void @f(i32 %foo, i32 %bar) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %c = icmp ult i32 %foo, %bar
 ; CHECK-NEXT:   br label %block

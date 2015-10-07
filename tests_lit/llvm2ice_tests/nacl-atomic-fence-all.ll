@@ -14,7 +14,7 @@ declare void @llvm.nacl.atomic.store.i32(i32, i32*, i32)
 @g32_c = internal global [4 x i8] zeroinitializer, align 4
 @g32_d = internal global [4 x i8] zeroinitializer, align 4
 
-define i32 @test_fused_load_sub_a() {
+define internal i32 @test_fused_load_sub_a() {
 entry:
   %p_alloca = alloca i8, i32 4, align 4
   %p_alloca_bc = bitcast i8* %p_alloca to i32*
@@ -54,7 +54,7 @@ entry:
 ; CHECK: mov DWORD PTR
 
 ; Test with the fence moved up a bit.
-define i32 @test_fused_load_sub_b() {
+define internal i32 @test_fused_load_sub_b() {
 entry:
   %p_alloca = alloca i8, i32 4, align 4
   %p_alloca_bc = bitcast i8* %p_alloca to i32*
@@ -95,7 +95,7 @@ entry:
 ; CHECK: mov DWORD PTR
 
 ; Test with the fence splitting a load/sub.
-define i32 @test_fused_load_sub_c() {
+define internal i32 @test_fused_load_sub_c() {
 entry:
   %p_alloca = alloca i8, i32 4, align 4
   %p_alloca_bc = bitcast i8* %p_alloca to i32*
@@ -141,7 +141,7 @@ entry:
 
 ; Test where a bunch of i8 loads could have been fused into one
 ; i32 load, but a fence blocks that.
-define i32 @could_have_fused_loads() {
+define internal i32 @could_have_fused_loads() {
 entry:
   %ptr1 = bitcast [4 x i8]* @g32_d to i8*
   %b1 = load i8, i8* %ptr1, align 1
@@ -183,7 +183,7 @@ entry:
 
 ; Test where an identical load from two branches could have been hoisted
 ; up, and then the code merged, but a fence prevents it.
-define i32 @could_have_hoisted_loads(i32 %x) {
+define internal i32 @could_have_hoisted_loads(i32 %x) {
 entry:
   %ptr = bitcast [4 x i8]* @g32_d to i32*
   %cmp = icmp eq i32 %x, 1

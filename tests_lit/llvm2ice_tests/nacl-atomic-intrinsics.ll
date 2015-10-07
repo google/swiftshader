@@ -2,24 +2,27 @@
 ; size allowed.
 
 ; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 \
-; RUN:   | FileCheck %s
+; RUN:   -allow-externally-defined-symbols | FileCheck %s
 ; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 \
-; RUN:   | FileCheck --check-prefix=O2 %s
+; RUN:   -allow-externally-defined-symbols | FileCheck --check-prefix=O2 %s
 ; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 \
-; RUN:   | FileCheck %s
+; RUN:   -allow-externally-defined-symbols | FileCheck %s
 
 ; RUN: %if --need=allow_dump --need=target_ARM32 --command %p2i --filetype=asm \
 ; RUN:   --target arm32 -i %s --args -O2 --skip-unimplemented \
+; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=allow_dump --need=target_ARM32 --command FileCheck %s \
 ; RUN:   --check-prefix=ARM32
 
 ; RUN: %if --need=allow_dump --need=target_ARM32 --command %p2i --filetype=asm \
 ; RUN:   --target arm32 -i %s --args -O2 --skip-unimplemented \
+; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=allow_dump --need=target_ARM32 --command FileCheck %s \
 ; RUN:   --check-prefix=ARM32O2
 
 ; RUN: %if --need=allow_dump --need=target_ARM32 --command %p2i --filetype=asm \
 ; RUN:   --target arm32 -i %s --args -Om1 --skip-unimplemented \
+; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=allow_dump --need=target_ARM32 --command FileCheck %s \
 ; RUN:   --check-prefix=ARM32
 
@@ -58,7 +61,7 @@ declare i1 @llvm.nacl.atomic.is.lock.free(i32, i8*)
 ; x86 guarantees load/store to be atomic if naturally aligned.
 ; The PNaCl IR requires all atomic accesses to be naturally aligned.
 
-define i32 @test_atomic_load_8(i32 %iptr) {
+define internal i32 @test_atomic_load_8(i32 %iptr) {
 entry:
   %ptr = inttoptr i32 %iptr to i8*
   ; parameter value "6" is for the sequential consistency memory order.
@@ -74,7 +77,7 @@ entry:
 ; ARM32: ldrb r{{[0-9]+}}, [r{{[0-9]+}}
 ; ARM32: dmb
 
-define i32 @test_atomic_load_16(i32 %iptr) {
+define internal i32 @test_atomic_load_16(i32 %iptr) {
 entry:
   %ptr = inttoptr i32 %iptr to i16*
   %i = call i16 @llvm.nacl.atomic.load.i16(i16* %ptr, i32 6)
@@ -89,7 +92,7 @@ entry:
 ; ARM32: ldrh r{{[0-9]+}}, [r{{[0-9]+}}
 ; ARM32: dmb
 
-define i32 @test_atomic_load_32(i32 %iptr) {
+define internal i32 @test_atomic_load_32(i32 %iptr) {
 entry:
   %ptr = inttoptr i32 %iptr to i32*
   %r = call i32 @llvm.nacl.atomic.load.i32(i32* %ptr, i32 6)
@@ -102,7 +105,7 @@ entry:
 ; ARM32: ldr r{{[0-9]+}}, [r{{[0-9]+}}
 ; ARM32: dmb
 
-define i64 @test_atomic_load_64(i32 %iptr) {
+define internal i64 @test_atomic_load_64(i32 %iptr) {
 entry:
   %ptr = inttoptr i32 %iptr to i64*
   %r = call i64 @llvm.nacl.atomic.load.i64(i64* %ptr, i32 6)
@@ -115,7 +118,7 @@ entry:
 ; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}
 ; ARM32: dmb
 
-define i32 @test_atomic_load_32_with_arith(i32 %iptr) {
+define internal i32 @test_atomic_load_32_with_arith(i32 %iptr) {
 entry:
   br label %next
 
@@ -137,7 +140,7 @@ next:
 ; ARM32: ldr r{{[0-9]+}}, [r{{[0-9]+}}
 ; ARM32: dmb
 
-define i32 @test_atomic_load_32_ignored(i32 %iptr) {
+define internal i32 @test_atomic_load_32_ignored(i32 %iptr) {
 entry:
   %ptr = inttoptr i32 %iptr to i32*
   %ignored = call i32 @llvm.nacl.atomic.load.i32(i32* %ptr, i32 6)
@@ -153,7 +156,7 @@ entry:
 ; ARM32: ldr r{{[0-9]+}}, [r{{[0-9]+}}
 ; ARM32: dmb
 
-define i64 @test_atomic_load_64_ignored(i32 %iptr) {
+define internal i64 @test_atomic_load_64_ignored(i32 %iptr) {
 entry:
   %ptr = inttoptr i32 %iptr to i64*
   %ignored = call i64 @llvm.nacl.atomic.load.i64(i64* %ptr, i32 6)
@@ -168,7 +171,7 @@ entry:
 
 ;;; Store
 
-define void @test_atomic_store_8(i32 %iptr, i32 %v) {
+define internal void @test_atomic_store_8(i32 %iptr, i32 %v) {
 entry:
   %truncv = trunc i32 %v to i8
   %ptr = inttoptr i32 %iptr to i8*
@@ -183,7 +186,7 @@ entry:
 ; ARM32: strb r{{[0-9]+}}, [r{{[0-9]+}}
 ; ARM32: dmb
 
-define void @test_atomic_store_16(i32 %iptr, i32 %v) {
+define internal void @test_atomic_store_16(i32 %iptr, i32 %v) {
 entry:
   %truncv = trunc i32 %v to i16
   %ptr = inttoptr i32 %iptr to i16*
@@ -198,7 +201,7 @@ entry:
 ; ARM32: strh r{{[0-9]+}}, [r{{[0-9]+}}
 ; ARM32: dmb
 
-define void @test_atomic_store_32(i32 %iptr, i32 %v) {
+define internal void @test_atomic_store_32(i32 %iptr, i32 %v) {
 entry:
   %ptr = inttoptr i32 %iptr to i32*
   call void @llvm.nacl.atomic.store.i32(i32 %v, i32* %ptr, i32 6)
@@ -212,7 +215,7 @@ entry:
 ; ARM32: str r{{[0-9]+}}, [r{{[0-9]+}}
 ; ARM32: dmb
 
-define void @test_atomic_store_64(i32 %iptr, i64 %v) {
+define internal void @test_atomic_store_64(i32 %iptr, i64 %v) {
 entry:
   %ptr = inttoptr i32 %iptr to i64*
   call void @llvm.nacl.atomic.store.i64(i64 %v, i64* %ptr, i32 6)
@@ -230,7 +233,7 @@ entry:
 ; ARM32: bne
 ; ARM32: dmb
 
-define void @test_atomic_store_64_const(i32 %iptr) {
+define internal void @test_atomic_store_64_const(i32 %iptr) {
 entry:
   %ptr = inttoptr i32 %iptr to i64*
   call void @llvm.nacl.atomic.store.i64(i64 12345678901234, i64* %ptr, i32 6)
@@ -258,7 +261,7 @@ entry:
 
 ;; add
 
-define i32 @test_atomic_rmw_add_8(i32 %iptr, i32 %v) {
+define internal i32 @test_atomic_rmw_add_8(i32 %iptr, i32 %v) {
 entry:
   %trunc = trunc i32 %v to i8
   %ptr = inttoptr i32 %iptr to i8*
@@ -278,7 +281,7 @@ entry:
 ; ARM32: bne
 ; ARM32: dmb
 
-define i32 @test_atomic_rmw_add_16(i32 %iptr, i32 %v) {
+define internal i32 @test_atomic_rmw_add_16(i32 %iptr, i32 %v) {
 entry:
   %trunc = trunc i32 %v to i16
   %ptr = inttoptr i32 %iptr to i16*
@@ -297,7 +300,7 @@ entry:
 ; ARM32: bne
 ; ARM32: dmb
 
-define i32 @test_atomic_rmw_add_32(i32 %iptr, i32 %v) {
+define internal i32 @test_atomic_rmw_add_32(i32 %iptr, i32 %v) {
 entry:
   %ptr = inttoptr i32 %iptr to i32*
   %a = call i32 @llvm.nacl.atomic.rmw.i32(i32 1, i32* %ptr, i32 %v, i32 6)
@@ -314,7 +317,7 @@ entry:
 ; ARM32: bne
 ; ARM32: dmb
 
-define i64 @test_atomic_rmw_add_64(i32 %iptr, i64 %v) {
+define internal i64 @test_atomic_rmw_add_64(i32 %iptr, i64 %v) {
 entry:
   %ptr = inttoptr i32 %iptr to i64*
   %a = call i64 @llvm.nacl.atomic.rmw.i64(i32 1, i64* %ptr, i64 %v, i32 6)
@@ -345,7 +348,7 @@ entry:
 ; ARM32: dmb
 
 ; Same test as above, but with a global address to test FakeUse issues.
-define i64 @test_atomic_rmw_add_64_global(i64 %v) {
+define internal i64 @test_atomic_rmw_add_64_global(i64 %v) {
 entry:
   %ptr = bitcast [8 x i8]* @Global64 to i64*
   %a = call i64 @llvm.nacl.atomic.rmw.i64(i32 1, i64* %ptr, i64 %v, i32 6)
@@ -365,7 +368,7 @@ entry:
 ; used to manage the stack frame, so it cannot be used as a register either.
 declare void @use_ptr(i32 %iptr)
 
-define i64 @test_atomic_rmw_add_64_alloca(i32 %iptr, i64 %v) {
+define internal i64 @test_atomic_rmw_add_64_alloca(i32 %iptr, i64 %v) {
 entry:
   br label %eblock  ; Disable alloca optimization
 eblock:
@@ -402,7 +405,7 @@ eblock:
 ; ARM32: bne
 ; ARM32: dmb
 
-define i32 @test_atomic_rmw_add_32_ignored(i32 %iptr, i32 %v) {
+define internal i32 @test_atomic_rmw_add_32_ignored(i32 %iptr, i32 %v) {
 entry:
   %ptr = inttoptr i32 %iptr to i32*
   %ignored = call i32 @llvm.nacl.atomic.rmw.i32(i32 1, i32* %ptr, i32 %v, i32 6)
@@ -422,7 +425,7 @@ entry:
 
 ; Atomic RMW 64 needs to be expanded into its own loop.
 ; Make sure that works w/ non-trivial function bodies.
-define i64 @test_atomic_rmw_add_64_loop(i32 %iptr, i64 %v) {
+define internal i64 @test_atomic_rmw_add_64_loop(i32 %iptr, i64 %v) {
 entry:
   %x = icmp ult i64 %v, 100
   br i1 %x, label %err, label %loop
@@ -462,7 +465,7 @@ err:
 
 ;; sub
 
-define i32 @test_atomic_rmw_sub_8(i32 %iptr, i32 %v) {
+define internal i32 @test_atomic_rmw_sub_8(i32 %iptr, i32 %v) {
 entry:
   %trunc = trunc i32 %v to i8
   %ptr = inttoptr i32 %iptr to i8*
@@ -482,7 +485,7 @@ entry:
 ; ARM32: bne
 ; ARM32: dmb
 
-define i32 @test_atomic_rmw_sub_16(i32 %iptr, i32 %v) {
+define internal i32 @test_atomic_rmw_sub_16(i32 %iptr, i32 %v) {
 entry:
   %trunc = trunc i32 %v to i16
   %ptr = inttoptr i32 %iptr to i16*
@@ -502,7 +505,7 @@ entry:
 ; ARM32: bne
 ; ARM32: dmb
 
-define i32 @test_atomic_rmw_sub_32(i32 %iptr, i32 %v) {
+define internal i32 @test_atomic_rmw_sub_32(i32 %iptr, i32 %v) {
 entry:
   %ptr = inttoptr i32 %iptr to i32*
   %a = call i32 @llvm.nacl.atomic.rmw.i32(i32 2, i32* %ptr, i32 %v, i32 6)
@@ -520,7 +523,7 @@ entry:
 ; ARM32: bne
 ; ARM32: dmb
 
-define i64 @test_atomic_rmw_sub_64(i32 %iptr, i64 %v) {
+define internal i64 @test_atomic_rmw_sub_64(i32 %iptr, i64 %v) {
 entry:
   %ptr = inttoptr i32 %iptr to i64*
   %a = call i64 @llvm.nacl.atomic.rmw.i64(i32 2, i64* %ptr, i64 %v, i32 6)
@@ -545,7 +548,7 @@ entry:
 ; ARM32: bne
 ; ARM32: dmb
 
-define i32 @test_atomic_rmw_sub_32_ignored(i32 %iptr, i32 %v) {
+define internal i32 @test_atomic_rmw_sub_32_ignored(i32 %iptr, i32 %v) {
 entry:
   %ptr = inttoptr i32 %iptr to i32*
   %ignored = call i32 @llvm.nacl.atomic.rmw.i32(i32 2, i32* %ptr, i32 %v, i32 6)
@@ -565,7 +568,7 @@ entry:
 
 ;; or
 
-define i32 @test_atomic_rmw_or_8(i32 %iptr, i32 %v) {
+define internal i32 @test_atomic_rmw_or_8(i32 %iptr, i32 %v) {
 entry:
   %trunc = trunc i32 %v to i8
   %ptr = inttoptr i32 %iptr to i8*
@@ -589,7 +592,7 @@ entry:
 ; ARM32: dmb
 
 ; Same test as above, but with a global address to test FakeUse issues.
-define i32 @test_atomic_rmw_or_8_global(i32 %v) {
+define internal i32 @test_atomic_rmw_or_8_global(i32 %v) {
 entry:
   %trunc = trunc i32 %v to i8
   %ptr = bitcast [1 x i8]* @Global8 to i8*
@@ -608,7 +611,7 @@ entry:
 ; ARM32: bne
 ; ARM32: dmb
 
-define i32 @test_atomic_rmw_or_16(i32 %iptr, i32 %v) {
+define internal i32 @test_atomic_rmw_or_16(i32 %iptr, i32 %v) {
 entry:
   %trunc = trunc i32 %v to i16
   %ptr = inttoptr i32 %iptr to i16*
@@ -630,7 +633,7 @@ entry:
 ; ARM32: dmb
 
 ; Same test as above, but with a global address to test FakeUse issues.
-define i32 @test_atomic_rmw_or_16_global(i32 %v) {
+define internal i32 @test_atomic_rmw_or_16_global(i32 %v) {
 entry:
   %trunc = trunc i32 %v to i16
   %ptr = bitcast [2 x i8]* @Global16 to i16*
@@ -649,7 +652,7 @@ entry:
 ; ARM32: bne
 ; ARM32: dmb
 
-define i32 @test_atomic_rmw_or_32(i32 %iptr, i32 %v) {
+define internal i32 @test_atomic_rmw_or_32(i32 %iptr, i32 %v) {
 entry:
   %ptr = inttoptr i32 %iptr to i32*
   %a = call i32 @llvm.nacl.atomic.rmw.i32(i32 3, i32* %ptr, i32 %v, i32 6)
@@ -669,7 +672,7 @@ entry:
 ; ARM32: dmb
 
 ; Same test as above, but with a global address to test FakeUse issues.
-define i32 @test_atomic_rmw_or_32_global(i32 %v) {
+define internal i32 @test_atomic_rmw_or_32_global(i32 %v) {
 entry:
   %ptr = bitcast [4 x i8]* @Global32 to i32*
   %a = call i32 @llvm.nacl.atomic.rmw.i32(i32 3, i32* %ptr, i32 %v, i32 6)
@@ -686,7 +689,7 @@ entry:
 ; ARM32: bne
 ; ARM32: dmb
 
-define i64 @test_atomic_rmw_or_64(i32 %iptr, i64 %v) {
+define internal i64 @test_atomic_rmw_or_64(i32 %iptr, i64 %v) {
 entry:
   %ptr = inttoptr i32 %iptr to i64*
   %a = call i64 @llvm.nacl.atomic.rmw.i64(i32 3, i64* %ptr, i64 %v, i32 6)
@@ -711,7 +714,7 @@ entry:
 ; ARM32: bne
 ; ARM32: dmb
 
-define i32 @test_atomic_rmw_or_32_ignored(i32 %iptr, i32 %v) {
+define internal i32 @test_atomic_rmw_or_32_ignored(i32 %iptr, i32 %v) {
 entry:
   %ptr = inttoptr i32 %iptr to i32*
   %ignored = call i32 @llvm.nacl.atomic.rmw.i32(i32 3, i32* %ptr, i32 %v, i32 6)
@@ -735,7 +738,7 @@ entry:
 
 ;; and
 
-define i32 @test_atomic_rmw_and_8(i32 %iptr, i32 %v) {
+define internal i32 @test_atomic_rmw_and_8(i32 %iptr, i32 %v) {
 entry:
   %trunc = trunc i32 %v to i8
   %ptr = inttoptr i32 %iptr to i8*
@@ -756,7 +759,7 @@ entry:
 ; ARM32: bne
 ; ARM32: dmb
 
-define i32 @test_atomic_rmw_and_16(i32 %iptr, i32 %v) {
+define internal i32 @test_atomic_rmw_and_16(i32 %iptr, i32 %v) {
 entry:
   %trunc = trunc i32 %v to i16
   %ptr = inttoptr i32 %iptr to i16*
@@ -777,7 +780,7 @@ entry:
 ; ARM32: bne
 ; ARM32: dmb
 
-define i32 @test_atomic_rmw_and_32(i32 %iptr, i32 %v) {
+define internal i32 @test_atomic_rmw_and_32(i32 %iptr, i32 %v) {
 entry:
   %ptr = inttoptr i32 %iptr to i32*
   %a = call i32 @llvm.nacl.atomic.rmw.i32(i32 4, i32* %ptr, i32 %v, i32 6)
@@ -796,7 +799,7 @@ entry:
 ; ARM32: bne
 ; ARM32: dmb
 
-define i64 @test_atomic_rmw_and_64(i32 %iptr, i64 %v) {
+define internal i64 @test_atomic_rmw_and_64(i32 %iptr, i64 %v) {
 entry:
   %ptr = inttoptr i32 %iptr to i64*
   %a = call i64 @llvm.nacl.atomic.rmw.i64(i32 4, i64* %ptr, i64 %v, i32 6)
@@ -821,7 +824,7 @@ entry:
 ; ARM32: bne
 ; ARM32: dmb
 
-define i32 @test_atomic_rmw_and_32_ignored(i32 %iptr, i32 %v) {
+define internal i32 @test_atomic_rmw_and_32_ignored(i32 %iptr, i32 %v) {
 entry:
   %ptr = inttoptr i32 %iptr to i32*
   %ignored = call i32 @llvm.nacl.atomic.rmw.i32(i32 4, i32* %ptr, i32 %v, i32 6)
@@ -843,7 +846,7 @@ entry:
 
 ;; xor
 
-define i32 @test_atomic_rmw_xor_8(i32 %iptr, i32 %v) {
+define internal i32 @test_atomic_rmw_xor_8(i32 %iptr, i32 %v) {
 entry:
   %trunc = trunc i32 %v to i8
   %ptr = inttoptr i32 %iptr to i8*
@@ -864,7 +867,7 @@ entry:
 ; ARM32: bne
 ; ARM32: dmb
 
-define i32 @test_atomic_rmw_xor_16(i32 %iptr, i32 %v) {
+define internal i32 @test_atomic_rmw_xor_16(i32 %iptr, i32 %v) {
 entry:
   %trunc = trunc i32 %v to i16
   %ptr = inttoptr i32 %iptr to i16*
@@ -885,7 +888,7 @@ entry:
 ; ARM32: bne
 ; ARM32: dmb
 
-define i32 @test_atomic_rmw_xor_32(i32 %iptr, i32 %v) {
+define internal i32 @test_atomic_rmw_xor_32(i32 %iptr, i32 %v) {
 entry:
   %ptr = inttoptr i32 %iptr to i32*
   %a = call i32 @llvm.nacl.atomic.rmw.i32(i32 5, i32* %ptr, i32 %v, i32 6)
@@ -904,7 +907,7 @@ entry:
 ; ARM32: bne
 ; ARM32: dmb
 
-define i64 @test_atomic_rmw_xor_64(i32 %iptr, i64 %v) {
+define internal i64 @test_atomic_rmw_xor_64(i32 %iptr, i64 %v) {
 entry:
   %ptr = inttoptr i32 %iptr to i64*
   %a = call i64 @llvm.nacl.atomic.rmw.i64(i32 5, i64* %ptr, i64 %v, i32 6)
@@ -929,7 +932,7 @@ entry:
 ; ARM32: bne
 ; ARM32: dmb
 
-define i32 @test_atomic_rmw_xor_32_ignored(i32 %iptr, i32 %v) {
+define internal i32 @test_atomic_rmw_xor_32_ignored(i32 %iptr, i32 %v) {
 entry:
   %ptr = inttoptr i32 %iptr to i32*
   %ignored = call i32 @llvm.nacl.atomic.rmw.i32(i32 5, i32* %ptr, i32 %v, i32 6)
@@ -950,7 +953,7 @@ entry:
 
 ;; exchange
 
-define i32 @test_atomic_rmw_xchg_8(i32 %iptr, i32 %v) {
+define internal i32 @test_atomic_rmw_xchg_8(i32 %iptr, i32 %v) {
 entry:
   %trunc = trunc i32 %v to i8
   %ptr = inttoptr i32 %iptr to i8*
@@ -968,7 +971,7 @@ entry:
 ; ARM32: bne
 ; ARM32: dmb
 
-define i32 @test_atomic_rmw_xchg_16(i32 %iptr, i32 %v) {
+define internal i32 @test_atomic_rmw_xchg_16(i32 %iptr, i32 %v) {
 entry:
   %trunc = trunc i32 %v to i16
   %ptr = inttoptr i32 %iptr to i16*
@@ -986,7 +989,7 @@ entry:
 ; ARM32: bne
 ; ARM32: dmb
 
-define i32 @test_atomic_rmw_xchg_32(i32 %iptr, i32 %v) {
+define internal i32 @test_atomic_rmw_xchg_32(i32 %iptr, i32 %v) {
 entry:
   %ptr = inttoptr i32 %iptr to i32*
   %a = call i32 @llvm.nacl.atomic.rmw.i32(i32 6, i32* %ptr, i32 %v, i32 6)
@@ -1002,7 +1005,7 @@ entry:
 ; ARM32: bne
 ; ARM32: dmb
 
-define i64 @test_atomic_rmw_xchg_64(i32 %iptr, i64 %v) {
+define internal i64 @test_atomic_rmw_xchg_64(i32 %iptr, i64 %v) {
 entry:
   %ptr = inttoptr i32 %iptr to i64*
   %a = call i64 @llvm.nacl.atomic.rmw.i64(i32 6, i64* %ptr, i64 %v, i32 6)
@@ -1024,7 +1027,7 @@ entry:
 ; ARM32: bne
 ; ARM32: dmb
 
-define i32 @test_atomic_rmw_xchg_32_ignored(i32 %iptr, i32 %v) {
+define internal i32 @test_atomic_rmw_xchg_32_ignored(i32 %iptr, i32 %v) {
 entry:
   %ptr = inttoptr i32 %iptr to i32*
   %ignored = call i32 @llvm.nacl.atomic.rmw.i32(i32 6, i32* %ptr, i32 %v, i32 6)
@@ -1044,7 +1047,8 @@ entry:
 
 ;;;; Cmpxchg
 
-define i32 @test_atomic_cmpxchg_8(i32 %iptr, i32 %expected, i32 %desired) {
+define internal i32 @test_atomic_cmpxchg_8(i32 %iptr, i32 %expected,
+                                           i32 %desired) {
 entry:
   %trunc_exp = trunc i32 %expected to i8
   %trunc_des = trunc i32 %desired to i8
@@ -1069,7 +1073,8 @@ entry:
 ; ARM32: bne
 ; ARM32: dmb
 
-define i32 @test_atomic_cmpxchg_16(i32 %iptr, i32 %expected, i32 %desired) {
+define internal i32 @test_atomic_cmpxchg_16(i32 %iptr, i32 %expected,
+                                            i32 %desired) {
 entry:
   %trunc_exp = trunc i32 %expected to i16
   %trunc_des = trunc i32 %desired to i16
@@ -1092,7 +1097,8 @@ entry:
 ; ARM32: bne
 ; ARM32: dmb
 
-define i32 @test_atomic_cmpxchg_32(i32 %iptr, i32 %expected, i32 %desired) {
+define internal i32 @test_atomic_cmpxchg_32(i32 %iptr, i32 %expected,
+                                            i32 %desired) {
 entry:
   %ptr = inttoptr i32 %iptr to i32*
   %old = call i32 @llvm.nacl.atomic.cmpxchg.i32(i32* %ptr, i32 %expected,
@@ -1112,7 +1118,8 @@ entry:
 ; ARM32: bne
 ; ARM32: dmb
 
-define i64 @test_atomic_cmpxchg_64(i32 %iptr, i64 %expected, i64 %desired) {
+define internal i64 @test_atomic_cmpxchg_64(i32 %iptr, i64 %expected,
+                                            i64 %desired) {
 entry:
   %ptr = inttoptr i32 %iptr to i64*
   %old = call i64 @llvm.nacl.atomic.cmpxchg.i64(i64* %ptr, i64 %expected,
@@ -1141,7 +1148,7 @@ entry:
 ; ARM32: bne
 ; ARM32: dmb
 
-define i64 @test_atomic_cmpxchg_64_undef(i32 %iptr, i64 %desired) {
+define internal i64 @test_atomic_cmpxchg_64_undef(i32 %iptr, i64 %desired) {
 entry:
   %ptr = inttoptr i32 %iptr to i64*
   %old = call i64 @llvm.nacl.atomic.cmpxchg.i64(i64* %ptr, i64 undef,
@@ -1165,7 +1172,8 @@ entry:
 ; ARM32: dmb
 
 ; Test a case where %old really does need to be copied out of edx:eax.
-define void @test_atomic_cmpxchg_64_store(i32 %ret_iptr, i32 %iptr, i64 %expected, i64 %desired) {
+define internal void @test_atomic_cmpxchg_64_store(
+    i32 %ret_iptr, i32 %iptr, i64 %expected, i64 %desired) {
 entry:
   %ptr = inttoptr i32 %iptr to i64*
   %old = call i64 @llvm.nacl.atomic.cmpxchg.i64(i64* %ptr, i64 %expected,
@@ -1199,7 +1207,8 @@ entry:
 
 ; Test with some more register pressure. When we have an alloca, ebp is
 ; used to manage the stack frame, so it cannot be used as a register either.
-define i64 @test_atomic_cmpxchg_64_alloca(i32 %iptr, i64 %expected, i64 %desired) {
+define internal i64 @test_atomic_cmpxchg_64_alloca(i32 %iptr, i64 %expected,
+                                                   i64 %desired) {
 entry:
   br label %eblock  ; Disable alloca optimization
 eblock:
@@ -1240,7 +1249,8 @@ eblock:
 ; ARM32: bne
 ; ARM32: dmb
 
-define i32 @test_atomic_cmpxchg_32_ignored(i32 %iptr, i32 %expected, i32 %desired) {
+define internal i32 @test_atomic_cmpxchg_32_ignored(i32 %iptr, i32 %expected,
+                                                    i32 %desired) {
 entry:
   %ptr = inttoptr i32 %iptr to i32*
   %ignored = call i32 @llvm.nacl.atomic.cmpxchg.i32(i32* %ptr, i32 %expected,
@@ -1260,7 +1270,8 @@ entry:
 ; ARM32: bne
 ; ARM32: dmb
 
-define i64 @test_atomic_cmpxchg_64_ignored(i32 %iptr, i64 %expected, i64 %desired) {
+define internal i64 @test_atomic_cmpxchg_64_ignored(i32 %iptr, i64 %expected,
+                                                    i64 %desired) {
 entry:
   %ptr = inttoptr i32 %iptr to i64*
   %ignored = call i64 @llvm.nacl.atomic.cmpxchg.i64(i64* %ptr, i64 %expected,
@@ -1288,7 +1299,7 @@ entry:
 
 ;;;; Fence and is-lock-free.
 
-define void @test_atomic_fence() {
+define internal void @test_atomic_fence() {
 entry:
   call void @llvm.nacl.atomic.fence(i32 6)
   ret void
@@ -1298,7 +1309,7 @@ entry:
 ; ARM32-LABEL: test_atomic_fence
 ; ARM32: dmb sy
 
-define void @test_atomic_fence_all() {
+define internal void @test_atomic_fence_all() {
 entry:
   call void @llvm.nacl.atomic.fence.all()
   ret void
@@ -1308,7 +1319,7 @@ entry:
 ; ARM32-LABEL: test_atomic_fence_all
 ; ARM32: dmb sy
 
-define i32 @test_atomic_is_lock_free(i32 %iptr) {
+define internal i32 @test_atomic_is_lock_free(i32 %iptr) {
 entry:
   %ptr = inttoptr i32 %iptr to i8*
   %i = call i1 @llvm.nacl.atomic.is.lock.free(i32 4, i8* %ptr)
@@ -1320,7 +1331,7 @@ entry:
 ; ARM32-LABEL: test_atomic_is_lock_free
 ; ARM32: movw {{.*}}, #1
 
-define i32 @test_not_lock_free(i32 %iptr) {
+define internal i32 @test_not_lock_free(i32 %iptr) {
 entry:
   %ptr = inttoptr i32 %iptr to i8*
   %i = call i1 @llvm.nacl.atomic.is.lock.free(i32 7, i8* %ptr)
@@ -1332,7 +1343,7 @@ entry:
 ; ARM32-LABEL: test_not_lock_free
 ; ARM32: mov {{.*}}, #0
 
-define i32 @test_atomic_is_lock_free_ignored(i32 %iptr) {
+define internal i32 @test_atomic_is_lock_free_ignored(i32 %iptr) {
 entry:
   %ptr = inttoptr i32 %iptr to i8*
   %ignored = call i1 @llvm.nacl.atomic.is.lock.free(i32 4, i8* %ptr)
@@ -1352,7 +1363,8 @@ entry:
 ; fact that nacl.atomic.is.lock.free will resolve to a constant
 ; (which adds DCE opportunities). Once we optimize, the test expectations
 ; for this case should change.
-define i32 @test_atomic_is_lock_free_can_dce(i32 %iptr, i32 %x, i32 %y) {
+define internal i32 @test_atomic_is_lock_free_can_dce(i32 %iptr, i32 %x,
+                                                      i32 %y) {
 entry:
   %ptr = inttoptr i32 %iptr to i8*
   %i = call i1 @llvm.nacl.atomic.is.lock.free(i32 4, i8* %ptr)
@@ -1376,7 +1388,7 @@ not_lock_free:
 ; Make sure we model that the Src register is modified and therefore it can't
 ; share a register with an overlapping live range, even if the result of the
 ; xadd instruction is unused.
-define void @test_xadd_regalloc() {
+define internal void @test_xadd_regalloc() {
 entry:
   br label %body
 body:
@@ -1397,7 +1409,7 @@ done:
 ; O2: ret
 
 ; Do the same test for the xchg instruction instead of xadd.
-define void @test_xchg_regalloc() {
+define internal void @test_xchg_regalloc() {
 entry:
   br label %body
 body:
@@ -1418,7 +1430,7 @@ done:
 ; O2: ret
 
 ; Same test for cmpxchg.
-define void @test_cmpxchg_regalloc() {
+define internal void @test_cmpxchg_regalloc() {
 entry:
   br label %body
 body:
@@ -1439,7 +1451,7 @@ done:
 ; O2: ret
 
 ; Same test for cmpxchg8b.
-define void @test_cmpxchg8b_regalloc() {
+define internal void @test_cmpxchg8b_regalloc() {
 entry:
   br label %body
 body:

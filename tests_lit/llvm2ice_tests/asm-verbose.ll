@@ -10,7 +10,8 @@
 ; RUN: %p2i --target arm32 -i %s --filetype=asm --args -O2 -asm-verbose \
 ; RUN:   | FileCheck %s
 
-define i32 @single_bb(i32 %arg0, i32 %arg1, i32 %arg2, i32 %arg3, i32 %arg4, i32 %arg5, i32 %arg6, i32 %arg7) {
+define internal i32 @single_bb(i32 %arg0, i32 %arg1, i32 %arg2, i32 %arg3,
+                               i32 %arg4, i32 %arg5, i32 %arg6, i32 %arg7) {
 b1:
   %t1 = add i32 %arg0, %arg1
   %t2 = add i32 %t1, %arg2

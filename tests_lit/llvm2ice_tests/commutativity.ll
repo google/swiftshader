@@ -6,7 +6,7 @@
 ; RUN:   --target x8632 -i %s --args -O2 \
 ; RUN:   | %if --need=target_X8632 --command FileCheck %s
 
-define i32 @integerAddLeft(i32 %a, i32 %b) {
+define internal i32 @integerAddLeft(i32 %a, i32 %b) {
 entry:
   %tmp = add i32 %a, %b
   %result = add i32 %a, %tmp
@@ -18,7 +18,7 @@ entry:
 ; CHECK-NEXT: add {{e..}},{{e..}}
 ; CHECK-NEXT: add {{e..}},{{e..}}
 
-define i32 @integerAddRight(i32 %a, i32 %b) {
+define internal i32 @integerAddRight(i32 %a, i32 %b) {
 entry:
   %tmp = add i32 %a, %b
   %result = add i32 %b, %tmp
@@ -30,7 +30,7 @@ entry:
 ; CHECK-NEXT: add {{e..}},{{e..}}
 ; CHECK-NEXT: add {{e..}},{{e..}}
 
-define i32 @integerMultiplyLeft(i32 %a, i32 %b) {
+define internal i32 @integerMultiplyLeft(i32 %a, i32 %b) {
 entry:
   %tmp = mul i32 %a, %b
   %result = mul i32 %a, %tmp
@@ -42,7 +42,7 @@ entry:
 ; CHECK-NEXT: imul {{e..}},{{e..}}
 ; CHECK-NEXT: imul {{e..}},{{e..}}
 
-define i32 @integerMultiplyRight(i32 %a, i32 %b) {
+define internal i32 @integerMultiplyRight(i32 %a, i32 %b) {
 entry:
   %tmp = mul i32 %a, %b
   %result = mul i32 %b, %tmp
@@ -54,7 +54,7 @@ entry:
 ; CHECK-NEXT: imul {{e..}},{{e..}}
 ; CHECK-NEXT: imul {{e..}},{{e..}}
 
-define float @floatAddLeft(float %a, float %b) {
+define internal float @floatAddLeft(float %a, float %b) {
 entry:
   %tmp = fadd float %a, %b
   %result = fadd float %a, %tmp
@@ -66,7 +66,7 @@ entry:
 ; CHECK-NEXT: addss xmm1,xmm0
 ; CHECK-NEXT: addss xmm0,xmm1
 
-define float @floatAddRight(float %a, float %b) {
+define internal float @floatAddRight(float %a, float %b) {
 entry:
   %tmp = fadd float %a, %b
   %result = fadd float %b, %tmp
@@ -78,7 +78,7 @@ entry:
 ; CHECK-NEXT: addss xmm0,xmm1
 ; CHECK-NEXT: addss xmm1,xmm0
 
-define float @floatMultiplyLeft(float %a, float %b) {
+define internal float @floatMultiplyLeft(float %a, float %b) {
 entry:
   %tmp = fmul float %a, %b
   %result = fmul float %a, %tmp
@@ -90,7 +90,7 @@ entry:
 ; CHECK-NEXT: mulss xmm1,xmm0
 ; CHECK-NEXT: mulss xmm0,xmm1
 
-define float @floatMultiplyRight(float %a, float %b) {
+define internal float @floatMultiplyRight(float %a, float %b) {
 entry:
   %tmp = fmul float %a, %b
   %result = fmul float %b, %tmp

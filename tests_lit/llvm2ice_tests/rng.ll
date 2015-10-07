@@ -104,7 +104,7 @@
 @ArrayUninitConstInt = internal constant [20 x i8] zeroinitializer, align 4
 
 
-define <4 x i32> @func1(<4 x i32> %a, <4 x i32> %b) {
+define internal <4 x i32> @func1(<4 x i32> %a, <4 x i32> %b) {
 entry:
   %res = mul <4 x i32> %a, %b
   ret <4 x i32> %res
@@ -136,7 +136,7 @@ entry:
 
 
 
-define float @func2(float* %arg) {
+define internal float @func2(float* %arg) {
 entry:
   %arg.int = ptrtoint float* %arg to i32
   %addr.int = add i32 %arg.int, 200000
@@ -148,7 +148,7 @@ entry:
 ; BLINDINGO2: lea [[REG:e[a-z]*]],{{[[]}}{{e[a-z]*}}+0x69ed4ee7{{[]]}}
 }
 
-define float @func3(i32 %arg, float %input) {
+define internal float @func3(i32 %arg, float %input) {
 entry:
   switch i32 %arg, label %return [
     i32 0, label %sw.bb
@@ -183,7 +183,7 @@ return:
   ret float %retval.0
 }
 
-define <4 x i32> @func4(<4 x i32> %a, <4 x i32> %b) {
+define internal <4 x i32> @func4(<4 x i32> %a, <4 x i32> %b) {
 entry:
   %res = mul <4 x i32> %a, %b
   ret <4 x i32> %res
@@ -200,7 +200,7 @@ entry:
 ; REGALLOC-NEXT: ret
 }
 
-define void @func5(i32 %foo, i32 %bar) {
+define internal void @func5(i32 %foo, i32 %bar) {
 entry:
   %r1 = icmp eq i32 %foo, %bar
   br i1 %r1, label %BB1, label %BB2
@@ -223,7 +223,7 @@ BB4:
 ; BBREORDERING: .Lfunc5$BB3
 }
 
-define i32 @func6(i32 %arg) {
+define internal i32 @func6(i32 %arg) {
 entry:
   %res = add i32 200000, %arg
   ret i32 %res

@@ -6,7 +6,7 @@
 ; RUN: | %if --need=allow_disable_ir_gen --command \
 ; RUN:   FileCheck --check-prefix=NOIR %s
 
-define i1 @IcmpI1(i32 %p1, i32 %p2) {
+define internal i1 @IcmpI1(i32 %p1, i32 %p2) {
 entry:
   %a1 = trunc i32 %p1 to i1
   %a2 = trunc i32 %p2 to i1
@@ -23,7 +23,7 @@ entry:
   ret i1 %veq
 }
 
-; CHECK:      define i1 @IcmpI1(i32 %p1, i32 %p2) {
+; CHECK:      define internal i1 @IcmpI1(i32 %p1, i32 %p2) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %a1 = trunc i32 %p1 to i1
 ; CHECK-NEXT:   %a2 = trunc i32 %p2 to i1
@@ -40,7 +40,7 @@ entry:
 ; CHECK-NEXT:   ret i1 %veq
 ; CHECK-NEXT: }
 
-define i1 @IcmpI8(i32 %p1, i32 %p2) {
+define internal i1 @IcmpI8(i32 %p1, i32 %p2) {
 entry:
   %a1 = trunc i32 %p1 to i8
   %a2 = trunc i32 %p2 to i8
@@ -57,7 +57,7 @@ entry:
   ret i1 %veq
 }
 
-; CHECK-NEXT: define i1 @IcmpI8(i32 %p1, i32 %p2) {
+; CHECK-NEXT: define internal i1 @IcmpI8(i32 %p1, i32 %p2) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %a1 = trunc i32 %p1 to i8
 ; CHECK-NEXT:   %a2 = trunc i32 %p2 to i8
@@ -74,7 +74,7 @@ entry:
 ; CHECK-NEXT:   ret i1 %veq
 ; CHECK-NEXT: }
 
-define i1 @IcmpI16(i32 %p1, i32 %p2) {
+define internal i1 @IcmpI16(i32 %p1, i32 %p2) {
 entry:
   %a1 = trunc i32 %p1 to i16
   %a2 = trunc i32 %p2 to i16
@@ -91,7 +91,7 @@ entry:
   ret i1 %veq
 }
 
-; CHECK-NEXT: define i1 @IcmpI16(i32 %p1, i32 %p2) {
+; CHECK-NEXT: define internal i1 @IcmpI16(i32 %p1, i32 %p2) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %a1 = trunc i32 %p1 to i16
 ; CHECK-NEXT:   %a2 = trunc i32 %p2 to i16
@@ -108,7 +108,7 @@ entry:
 ; CHECK-NEXT:   ret i1 %veq
 ; CHECK-NEXT: }
 
-define i1 @IcmpI32(i32 %a1, i32 %a2) {
+define internal i1 @IcmpI32(i32 %a1, i32 %a2) {
 entry:
   %veq = icmp eq i32 %a1, %a2
   %vne = icmp ne i32 %a1, %a2
@@ -123,7 +123,7 @@ entry:
   ret i1 %veq
 }
 
-; CHECK-NEXT: define i1 @IcmpI32(i32 %a1, i32 %a2) {
+; CHECK-NEXT: define internal i1 @IcmpI32(i32 %a1, i32 %a2) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %veq = icmp eq i32 %a1, %a2
 ; CHECK-NEXT:   %vne = icmp ne i32 %a1, %a2
@@ -138,7 +138,7 @@ entry:
 ; CHECK-NEXT:   ret i1 %veq
 ; CHECK-NEXT: }
 
-define i1 @IcmpI64(i64 %a1, i64 %a2) {
+define internal i1 @IcmpI64(i64 %a1, i64 %a2) {
 entry:
   %veq = icmp eq i64 %a1, %a2
   %vne = icmp ne i64 %a1, %a2
@@ -153,7 +153,7 @@ entry:
   ret i1 %veq
 }
 
-; CHECK-NEXT: define i1 @IcmpI64(i64 %a1, i64 %a2) {
+; CHECK-NEXT: define internal i1 @IcmpI64(i64 %a1, i64 %a2) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %veq = icmp eq i64 %a1, %a2
 ; CHECK-NEXT:   %vne = icmp ne i64 %a1, %a2
@@ -168,7 +168,7 @@ entry:
 ; CHECK-NEXT:   ret i1 %veq
 ; CHECK-NEXT: }
 
-define <4 x i1> @IcmpV4xI1(<4 x i1> %a1, <4 x i1> %a2) {
+define internal <4 x i1> @IcmpV4xI1(<4 x i1> %a1, <4 x i1> %a2) {
 entry:
   %veq = icmp eq <4 x i1> %a1, %a2
   %vne = icmp ne <4 x i1> %a1, %a2
@@ -183,7 +183,7 @@ entry:
   ret <4 x i1> %veq
 }
 
-; CHECK-NEXT: define <4 x i1> @IcmpV4xI1(<4 x i1> %a1, <4 x i1> %a2) {
+; CHECK-NEXT: define internal <4 x i1> @IcmpV4xI1(<4 x i1> %a1, <4 x i1> %a2) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %veq = icmp eq <4 x i1> %a1, %a2
 ; CHECK-NEXT:   %vne = icmp ne <4 x i1> %a1, %a2
@@ -198,7 +198,7 @@ entry:
 ; CHECK-NEXT:   ret <4 x i1> %veq
 ; CHECK-NEXT: }
 
-define <8 x i1> @IcmpV8xI1(<8 x i1> %a1, <8 x i1> %a2) {
+define internal <8 x i1> @IcmpV8xI1(<8 x i1> %a1, <8 x i1> %a2) {
 entry:
   %veq = icmp eq <8 x i1> %a1, %a2
   %vne = icmp ne <8 x i1> %a1, %a2
@@ -213,7 +213,7 @@ entry:
   ret <8 x i1> %veq
 }
 
-; CHECK-NEXT: define <8 x i1> @IcmpV8xI1(<8 x i1> %a1, <8 x i1> %a2) {
+; CHECK-NEXT: define internal <8 x i1> @IcmpV8xI1(<8 x i1> %a1, <8 x i1> %a2) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %veq = icmp eq <8 x i1> %a1, %a2
 ; CHECK-NEXT:   %vne = icmp ne <8 x i1> %a1, %a2
@@ -228,7 +228,7 @@ entry:
 ; CHECK-NEXT:   ret <8 x i1> %veq
 ; CHECK-NEXT: }
 
-define <16 x i1> @IcmpV16xI1(<16 x i1> %a1, <16 x i1> %a2) {
+define internal <16 x i1> @IcmpV16xI1(<16 x i1> %a1, <16 x i1> %a2) {
 entry:
   %veq = icmp eq <16 x i1> %a1, %a2
   %vne = icmp ne <16 x i1> %a1, %a2
@@ -243,7 +243,7 @@ entry:
   ret <16 x i1> %veq
 }
 
-; CHECK-NEXT: define <16 x i1> @IcmpV16xI1(<16 x i1> %a1, <16 x i1> %a2) {
+; CHECK-NEXT: define internal <16 x i1> @IcmpV16xI1(<16 x i1> %a1, <16 x i1> %a2) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %veq = icmp eq <16 x i1> %a1, %a2
 ; CHECK-NEXT:   %vne = icmp ne <16 x i1> %a1, %a2
@@ -258,7 +258,7 @@ entry:
 ; CHECK-NEXT:   ret <16 x i1> %veq
 ; CHECK-NEXT: }
 
-define <16 x i1> @IcmpV16xI8(<16 x i8> %a1, <16 x i8> %a2) {
+define internal <16 x i1> @IcmpV16xI8(<16 x i8> %a1, <16 x i8> %a2) {
 entry:
   %veq = icmp eq <16 x i8> %a1, %a2
   %vne = icmp ne <16 x i8> %a1, %a2
@@ -273,7 +273,7 @@ entry:
   ret <16 x i1> %veq
 }
 
-; CHECK-NEXT: define <16 x i1> @IcmpV16xI8(<16 x i8> %a1, <16 x i8> %a2) {
+; CHECK-NEXT: define internal <16 x i1> @IcmpV16xI8(<16 x i8> %a1, <16 x i8> %a2) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %veq = icmp eq <16 x i8> %a1, %a2
 ; CHECK-NEXT:   %vne = icmp ne <16 x i8> %a1, %a2
@@ -288,7 +288,7 @@ entry:
 ; CHECK-NEXT:   ret <16 x i1> %veq
 ; CHECK-NEXT: }
 
-define <8 x i1> @IcmpV8xI16(<8 x i16> %a1, <8 x i16> %a2) {
+define internal <8 x i1> @IcmpV8xI16(<8 x i16> %a1, <8 x i16> %a2) {
 entry:
   %veq = icmp eq <8 x i16> %a1, %a2
   %vne = icmp ne <8 x i16> %a1, %a2
@@ -303,7 +303,7 @@ entry:
   ret <8 x i1> %veq
 }
 
-; CHECK-NEXT: define <8 x i1> @IcmpV8xI16(<8 x i16> %a1, <8 x i16> %a2) {
+; CHECK-NEXT: define internal <8 x i1> @IcmpV8xI16(<8 x i16> %a1, <8 x i16> %a2) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %veq = icmp eq <8 x i16> %a1, %a2
 ; CHECK-NEXT:   %vne = icmp ne <8 x i16> %a1, %a2
@@ -318,7 +318,7 @@ entry:
 ; CHECK-NEXT:   ret <8 x i1> %veq
 ; CHECK-NEXT: }
 
-define <4 x i1> @IcmpV4xI32(<4 x i32> %a1, <4 x i32> %a2) {
+define internal <4 x i1> @IcmpV4xI32(<4 x i32> %a1, <4 x i32> %a2) {
 entry:
   %veq = icmp eq <4 x i32> %a1, %a2
   %vne = icmp ne <4 x i32> %a1, %a2
@@ -333,7 +333,7 @@ entry:
   ret <4 x i1> %veq
 }
 
-; CHECK-NEXT: define <4 x i1> @IcmpV4xI32(<4 x i32> %a1, <4 x i32> %a2) {
+; CHECK-NEXT: define internal <4 x i1> @IcmpV4xI32(<4 x i32> %a1, <4 x i32> %a2) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %veq = icmp eq <4 x i32> %a1, %a2
 ; CHECK-NEXT:   %vne = icmp ne <4 x i32> %a1, %a2
@@ -348,7 +348,7 @@ entry:
 ; CHECK-NEXT:   ret <4 x i1> %veq
 ; CHECK-NEXT: }
 
-define i1 @FcmpFloat(float %a1, float %a2) {
+define internal i1 @FcmpFloat(float %a1, float %a2) {
 entry:
   %vfalse = fcmp false float %a1, %a2
   %voeq = fcmp oeq float %a1, %a2
@@ -369,7 +369,7 @@ entry:
   ret i1 %voeq
 }
 
-; CHECK-NEXT: define i1 @FcmpFloat(float %a1, float %a2) {
+; CHECK-NEXT: define internal i1 @FcmpFloat(float %a1, float %a2) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %vfalse = fcmp false float %a1, %a2
 ; CHECK-NEXT:   %voeq = fcmp oeq float %a1, %a2
@@ -390,7 +390,7 @@ entry:
 ; CHECK-NEXT:   ret i1 %voeq
 ; CHECK-NEXT: }
 
-define i1 @FcmpDouble(double %a1, double %a2) {
+define internal i1 @FcmpDouble(double %a1, double %a2) {
 entry:
   %vfalse = fcmp false double %a1, %a2
   %voeq = fcmp oeq double %a1, %a2
@@ -411,7 +411,7 @@ entry:
   ret i1 %voeq
 }
 
-; CHECK-NEXT: define i1 @FcmpDouble(double %a1, double %a2) {
+; CHECK-NEXT: define internal i1 @FcmpDouble(double %a1, double %a2) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %vfalse = fcmp false double %a1, %a2
 ; CHECK-NEXT:   %voeq = fcmp oeq double %a1, %a2
@@ -432,7 +432,7 @@ entry:
 ; CHECK-NEXT:   ret i1 %voeq
 ; CHECK-NEXT: }
 
-define <4 x i1> @FcmpV4xFloat(<4 x float> %a1, <4 x float> %a2) {
+define internal <4 x i1> @FcmpV4xFloat(<4 x float> %a1, <4 x float> %a2) {
 entry:
   %vfalse = fcmp false <4 x float> %a1, %a2
   %voeq = fcmp oeq <4 x float> %a1, %a2
@@ -453,7 +453,7 @@ entry:
   ret <4 x i1> %voeq
 }
 
-; CHECK-NEXT: define <4 x i1> @FcmpV4xFloat(<4 x float> %a1, <4 x float> %a2) {
+; CHECK-NEXT: define internal <4 x i1> @FcmpV4xFloat(<4 x float> %a1, <4 x float> %a2) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %vfalse = fcmp false <4 x float> %a1, %a2
 ; CHECK-NEXT:   %voeq = fcmp oeq <4 x float> %a1, %a2

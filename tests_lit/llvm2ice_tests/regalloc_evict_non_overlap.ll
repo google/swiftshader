@@ -5,7 +5,7 @@
 ; TODO(kschimpf) Find out why lc2i is needed.
 ; RUN: %lc2i -i %s --args -O2 --verbose regalloc
 
-define void @foo() {
+define internal void @foo() {
 bb:
   br i1 undef, label %bb13, label %bb14
 

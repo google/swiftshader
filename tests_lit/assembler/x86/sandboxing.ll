@@ -4,6 +4,7 @@
 ; minimal use of registers and stack slots in the lowering sequence.
 
 ; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 \
+; RUN:   -allow-externally-defined-symbols \
 ; RUN:   -ffunction-sections -sandbox | FileCheck %s
 
 declare void @call_target()
@@ -12,7 +13,7 @@ declare void @call_target()
 @global_int = internal global [4 x i8] zeroinitializer
 
 ; A direct call sequence uses the right mask and register-call sequence.
-define void @test_direct_call() {
+define internal void @test_direct_call() {
 entry:
   call void @call_target()
   ret void
@@ -23,7 +24,7 @@ entry:
 ; CHECK-NEXT: 20:
 
 ; An indirect call sequence uses the right mask and register-call sequence.
-define void @test_indirect_call(i32 %target) {
+define internal void @test_indirect_call(i32 %target) {
 entry:
   %__1 = inttoptr i32 %target to void ()*
   call void %__1()
@@ -37,7 +38,7 @@ entry:
 ; CHECk-NEXT: 20:
 
 ; A return sequences uses the right pop / mask / jmp sequence.
-define void @test_ret() {
+define internal void @test_ret() {
 entry:
   ret void
 }
@@ -47,7 +48,7 @@ entry:
 ; CHECK-NEXT: jmp ecx
 
 ; A perfectly packed bundle should not have nops at the end.
-define void @packed_bundle() {
+define internal void @packed_bundle() {
 entry:
   call void @call_target()
   ; bundle boundary
@@ -72,7 +73,7 @@ entry:
 ; CHECK-NEXT: 47: {{.*}} mov WORD PTR
 
 ; An imperfectly packed bundle should have one or more nops at the end.
-define void @nonpacked_bundle() {
+define internal void @nonpacked_bundle() {
 entry:
   call void @call_target()
   ; bundle boundary
@@ -95,7 +96,7 @@ entry:
 
 ; A zero-byte instruction (e.g. local label definition) at a bundle
 ; boundary should not trigger nop padding.
-define void @label_at_boundary(i32 %arg, float %farg1, float %farg2) {
+define internal void @label_at_boundary(i32 %arg, float %farg1, float %farg2) {
 entry:
   %argi8 = trunc i32 %arg to i8
   call void @call_target()
@@ -123,7 +124,7 @@ entry:
 ; CHECK-NEXT: 40: {{.*}} mov WORD PTR
 
 ; Bundle lock without padding.
-define void @bundle_lock_without_padding() {
+define internal void @bundle_lock_without_padding() {
 entry:
   %addr_short = bitcast [2 x i8]* @global_short to i16*
   store i16 0, i16* %addr_short, align 1   ; 9-byte instruction
@@ -136,7 +137,7 @@ entry:
 ; CHECK-NEXT: jmp ecx
 
 ; Bundle lock with padding.
-define void @bundle_lock_with_padding() {
+define internal void @bundle_lock_with_padding() {
 entry:
   call void @call_target()
   ; bundle boundary
@@ -167,7 +168,7 @@ entry:
 ; CHECK-NEXT: 43: {{.*}} jmp ecx
 
 ; Bundle lock align_to_end without any padding.
-define void @bundle_lock_align_to_end_padding_0() {
+define internal void @bundle_lock_align_to_end_padding_0() {
 entry:
   call void @call_target()
   ; bundle boundary
@@ -186,7 +187,7 @@ entry:
 ; CHECK-NEXT: 3b: {{.*}} call
 
 ; Bundle lock align_to_end with one bunch of padding.
-define void @bundle_lock_align_to_end_padding_1() {
+define internal void @bundle_lock_align_to_end_padding_1() {
 entry:
   call void @call_target()
   ; bundle boundary
@@ -206,7 +207,7 @@ entry:
 ; CHECK: 3b: {{.*}} call
 
 ; Bundle lock align_to_end with two bunches of padding.
-define void @bundle_lock_align_to_end_padding_2(i32 %target) {
+define internal void @bundle_lock_align_to_end_padding_2(i32 %target) {
 entry:
   call void @call_target()
   ; bundle boundary
@@ -242,7 +243,7 @@ entry:
 ; properly checkpointed and restored during the two passes, as
 ; observed by the stack adjustment for accessing stack-allocated
 ; variables.
-define void @checkpoint_restore_stack_adjustment(i32 %arg) {
+define internal void @checkpoint_restore_stack_adjustment(i32 %arg) {
 entry:
   call void @call_target()
   ; bundle boundary

@@ -6,7 +6,7 @@
 ; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 --verbose=loop \
 ; RUN: --threads=0 | FileCheck %s
 
-define void @test_single_loop(i32 %a32) {
+define internal void @test_single_loop(i32 %a32) {
 entry:
   %a = trunc i32 %a32 to i1
   br label %loop0
@@ -31,7 +31,7 @@ out:
 ; CHECK-NEXT: LoopNestDepth = 0
 ; CHECK-LABEL: Before RMW
 
-define void @test_single_loop_with_continue(i32 %a32, i32 %b32) {
+define internal void @test_single_loop_with_continue(i32 %a32, i32 %b32) {
 entry:
   %a = trunc i32 %a32 to i1
   %b = trunc i32 %b32 to i1
@@ -61,7 +61,7 @@ out:
 ; CHECK-NEXT: LoopNestDepth = 0
 ; CHECK-LABEL: Before RMW
 
-define void @test_multiple_exits(i32 %a32, i32 %b32) {
+define internal void @test_multiple_exits(i32 %a32, i32 %b32) {
 entry:
   %a = trunc i32 %a32 to i1
   %b = trunc i32 %b32 to i1
@@ -91,7 +91,7 @@ out:                                 ; <---+
 ; CHECK-NEXT: LoopNestDepth = 0
 ; CHECK-LABEL: Before RMW
 
-define void @test_two_nested_loops(i32 %a32, i32 %b32) {
+define internal void @test_two_nested_loops(i32 %a32, i32 %b32) {
 entry:
   %a = trunc i32 %a32 to i1
   %b = trunc i32 %b32 to i1
@@ -125,7 +125,8 @@ out:
 ; CHECK-NEXT: LoopNestDepth = 0
 ; CHECK-LABEL: Before RMW
 
-define void @test_two_nested_loops_with_continue(i32 %a32, i32 %b32, i32 %c32) {
+define internal void @test_two_nested_loops_with_continue(i32 %a32, i32 %b32,
+                                                          i32 %c32) {
 entry:
   %a = trunc i32 %a32 to i1
   %b = trunc i32 %b32 to i1
@@ -164,7 +165,7 @@ out:
 ; CHECK-NEXT: LoopNestDepth = 0
 ; CHECK-LABEL: Before RMW
 
-define void @test_multiple_nested_loops(i32 %a32, i32 %b32) {
+define internal void @test_multiple_nested_loops(i32 %a32, i32 %b32) {
 entry:
   %a = trunc i32 %a32 to i1
   %b = trunc i32 %b32 to i1
@@ -210,7 +211,7 @@ out:
 ; CHECK-NEXT: LoopNestDepth = 0
 ; CHECK-LABEL: Before RMW
 
-define void @test_three_nested_loops(i32 %a32, i32 %b32, i32 %c32) {
+define internal void @test_three_nested_loops(i32 %a32, i32 %b32, i32 %c32) {
 entry:
   %a = trunc i32 %a32 to i1
   %b = trunc i32 %b32 to i1
@@ -253,7 +254,7 @@ out:
 ; CHECK-NEXT: LoopNestDepth = 0
 ; CHECK-LABEL: Before RMW
 
-define void @test_diamond(i32 %a32) {
+define internal void @test_diamond(i32 %a32) {
 entry:
   %a = trunc i32 %a32 to i1
   br i1 %a, label %left, label %right

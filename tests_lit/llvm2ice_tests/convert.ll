@@ -32,7 +32,7 @@
 @u32v = internal global [4 x i8] zeroinitializer, align 4
 @u64v = internal global [8 x i8] zeroinitializer, align 8
 
-define void @from_int8() {
+define internal void @from_int8() {
 entry:
   %__0 = bitcast [1 x i8]* @i8v to i8*
   %v0 = load i8, i8* %__0, align 1
@@ -73,7 +73,7 @@ entry:
 ; ARM32-DAG: str r{{.*}}, [r{{[0-9]+}}]
 ; ARM32-DAG: str r{{.*}}, [{{.*}}, #4]
 
-define void @from_int16() {
+define internal void @from_int16() {
 entry:
   %__0 = bitcast [2 x i8]* @i16v to i16*
   %v0 = load i16, i16* %__0, align 1
@@ -110,7 +110,7 @@ entry:
 ; ARM32: movw {{.*}}i64v
 ; ARM32: str r
 
-define void @from_int32() {
+define internal void @from_int32() {
 entry:
   %__0 = bitcast [4 x i8]* @i32v to i32*
   %v0 = load i32, i32* %__0, align 1
@@ -143,7 +143,7 @@ entry:
 ; ARM32: movw {{.*}}i64v
 ; ARM32: str r
 
-define void @from_int64() {
+define internal void @from_int64() {
 entry:
   %__0 = bitcast [8 x i8]* @i64v to i64*
   %v0 = load i64, i64* %__0, align 1
@@ -174,7 +174,7 @@ entry:
 ; ARM32: movw {{.*}}i32v
 ; ARM32: str r
 
-define void @from_uint8() {
+define internal void @from_uint8() {
 entry:
   %__0 = bitcast [1 x i8]* @u8v to i8*
   %v0 = load i8, i8* %__0, align 1
@@ -213,7 +213,7 @@ entry:
 ; ARM32: movw {{.*}}i64v
 ; ARM32: str r
 
-define void @from_uint16() {
+define internal void @from_uint16() {
 entry:
   %__0 = bitcast [2 x i8]* @u16v to i16*
   %v0 = load i16, i16* %__0, align 1
@@ -250,7 +250,7 @@ entry:
 ; ARM32: movw {{.*}}i64v
 ; ARM32: str r
 
-define void @from_uint32() {
+define internal void @from_uint32() {
 entry:
   %__0 = bitcast [4 x i8]* @u32v to i32*
   %v0 = load i32, i32* %__0, align 1
@@ -283,7 +283,7 @@ entry:
 ; ARM32: movw {{.*}}i64v
 ; ARM32: str r
 
-define void @from_uint64() {
+define internal void @from_uint64() {
 entry:
   %__0 = bitcast [8 x i8]* @u64v to i64*
   %v0 = load i64, i64* %__0, align 1

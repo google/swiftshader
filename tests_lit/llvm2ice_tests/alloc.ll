@@ -1,11 +1,11 @@
 ; This is a basic test of the alloca instruction.
 
 ; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
-; RUN:   --target x8632 -i %s --args -O2 \
+; RUN:   --target x8632 -i %s --args -O2 -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_X8632 --command FileCheck %s
 
 ; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
-; RUN:   --target x8632 -i %s --args -Om1 \
+; RUN:   --target x8632 -i %s --args -Om1 -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_X8632 --command FileCheck %s
 
 ; TODO(jvoung): Stop skipping unimplemented parts (via --skip-unimplemented)
@@ -14,16 +14,18 @@
 ; RUN: %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command %p2i --filetype=asm --assemble \
 ; RUN:   --disassemble --target arm32 -i %s --args -O2 --skip-unimplemented \
+; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32 %s
 
 ; RUN: %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command %p2i --filetype=asm --assemble \
 ; RUN:   --disassemble --target arm32 -i %s --args -Om1 --skip-unimplemented \
+; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32 %s
 
-define void @fixed_416_align_16(i32 %n) {
+define internal void @fixed_416_align_16(i32 %n) {
 entry:
   %array = alloca i8, i32 416, align 16
   %__2 = ptrtoint i8* %array to i32
@@ -40,7 +42,7 @@ entry:
 ; ARM32:      sub sp, sp, #416
 ; ARM32:      bl {{.*}} R_{{.*}}    f1
 
-define void @fixed_416_align_32(i32 %n) {
+define internal void @fixed_416_align_32(i32 %n) {
 entry:
   %array = alloca i8, i32 400, align 32
   %__2 = ptrtoint i8* %array to i32
@@ -60,7 +62,7 @@ entry:
 ; ARM32:      bl {{.*}} R_{{.*}}    f1
 
 ; Show that the amount to allocate will be rounded up.
-define void @fixed_351_align_16(i32 %n) {
+define internal void @fixed_351_align_16(i32 %n) {
 entry:
   %array = alloca i8, i32 351, align 16
   %__2 = ptrtoint i8* %array to i32
@@ -77,7 +79,7 @@ entry:
 ; ARM32:      sub sp, sp, #352
 ; ARM32:      bl {{.*}} R_{{.*}}    f1
 
-define void @fixed_351_align_32(i32 %n) {
+define internal void @fixed_351_align_32(i32 %n) {
 entry:
   %array = alloca i8, i32 351, align 32
   %__2 = ptrtoint i8* %array to i32
@@ -100,7 +102,7 @@ declare void @f1(i32 %ignored)
 
 declare void @f2(i32 %ignored)
 
-define void @variable_n_align_16(i32 %n) {
+define internal void @variable_n_align_16(i32 %n) {
 entry:
   %array = alloca i8, i32 %n, align 16
   %__2 = ptrtoint i8* %array to i32
@@ -122,7 +124,7 @@ entry:
 ; ARM32:      sub sp, sp, r0
 ; ARM32:      bl {{.*}} R_{{.*}}    f2
 
-define void @variable_n_align_32(i32 %n) {
+define internal void @variable_n_align_32(i32 %n) {
 entry:
   %array = alloca i8, i32 %n, align 32
   %__2 = ptrtoint i8* %array to i32
@@ -156,7 +158,7 @@ entry:
 ; ARM32:      pop {fp, lr}
 
 ; Test alloca with default (0) alignment.
-define void @align0(i32 %n) {
+define internal void @align0(i32 %n) {
 entry:
   %array = alloca i8, i32 %n
   %__2 = ptrtoint i8* %array to i32
@@ -175,7 +177,7 @@ entry:
 
 ; Test a large alignment where a mask might not fit in an immediate
 ; field of an instruction for some architectures.
-define void @align1MB(i32 %n) {
+define internal void @align1MB(i32 %n) {
 entry:
   %array = alloca i8, i32 %n, align 1048576
   %__2 = ptrtoint i8* %array to i32
@@ -202,7 +204,7 @@ entry:
 
 ; Test a large alignment where a mask might still fit in an immediate
 ; field of an instruction for some architectures.
-define void @align512MB(i32 %n) {
+define internal void @align512MB(i32 %n) {
 entry:
   %array = alloca i8, i32 %n, align 536870912
   %__2 = ptrtoint i8* %array to i32
@@ -223,7 +225,7 @@ entry:
 ; ARM32: sub sp, sp, r0
 
 ; Test that a simple alloca sequence doesn't trigger a frame pointer.
-define void @fixed_no_frameptr(i32 %arg) {
+define internal void @fixed_no_frameptr(i32 %arg) {
 entry:
   %a1 = alloca i8, i32 8, align 4
   %a2 = alloca i8, i32 12, align 4
@@ -240,7 +242,7 @@ entry:
 ; CHECK-NOT:      mov     ebp,esp
 
 ; Test that a more complex alloca sequence does trigger a frame pointer.
-define void @var_with_frameptr(i32 %arg) {
+define internal void @var_with_frameptr(i32 %arg) {
 entry:
   %a1 = alloca i8, i32 8, align 4
   %a2 = alloca i8, i32 12, align 4

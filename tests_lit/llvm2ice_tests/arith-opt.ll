@@ -3,10 +3,11 @@
 
 ; REQUIRES: allow_dump
 
-; RUN: %p2i -i %s --filetype=asm --args --verbose inst -threads=0 | FileCheck %s
+; RUN: %p2i -i %s --filetype=asm --args --verbose inst -threads=0 \
+; RUN:   -allow-externally-defined-symbols | FileCheck %s
 
-define i32 @Add(i32 %a, i32 %b) {
-; CHECK: define i32 @Add
+define internal i32 @Add(i32 %a, i32 %b) {
+; CHECK: define internal i32 @Add
 entry:
   %add = add i32 %b, %a
 ; CHECK: add
@@ -17,8 +18,8 @@ entry:
 
 declare void @Use(i32)
 
-define i32 @And(i32 %a, i32 %b) {
-; CHECK: define i32 @And
+define internal i32 @And(i32 %a, i32 %b) {
+; CHECK: define internal i32 @And
 entry:
   %and = and i32 %b, %a
 ; CHECK: and
@@ -27,8 +28,8 @@ entry:
   ret i32 %and
 }
 
-define i32 @Or(i32 %a, i32 %b) {
-; CHECK: define i32 @Or
+define internal i32 @Or(i32 %a, i32 %b) {
+; CHECK: define internal i32 @Or
 entry:
   %or = or i32 %b, %a
 ; CHECK: or
@@ -37,8 +38,8 @@ entry:
   ret i32 %or
 }
 
-define i32 @Xor(i32 %a, i32 %b) {
-; CHECK: define i32 @Xor
+define internal i32 @Xor(i32 %a, i32 %b) {
+; CHECK: define internal i32 @Xor
 entry:
   %xor = xor i32 %b, %a
 ; CHECK: xor
@@ -47,8 +48,8 @@ entry:
   ret i32 %xor
 }
 
-define i32 @Sub(i32 %a, i32 %b) {
-; CHECK: define i32 @Sub
+define internal i32 @Sub(i32 %a, i32 %b) {
+; CHECK: define internal i32 @Sub
 entry:
   %sub = sub i32 %a, %b
 ; CHECK: sub
@@ -57,8 +58,8 @@ entry:
   ret i32 %sub
 }
 
-define i32 @Mul(i32 %a, i32 %b) {
-; CHECK: define i32 @Mul
+define internal i32 @Mul(i32 %a, i32 %b) {
+; CHECK: define internal i32 @Mul
 entry:
   %mul = mul i32 %b, %a
 ; CHECK: imul
@@ -67,8 +68,8 @@ entry:
   ret i32 %mul
 }
 
-define i32 @Sdiv(i32 %a, i32 %b) {
-; CHECK: define i32 @Sdiv
+define internal i32 @Sdiv(i32 %a, i32 %b) {
+; CHECK: define internal i32 @Sdiv
 entry:
   %div = sdiv i32 %a, %b
 ; CHECK: cdq
@@ -78,8 +79,8 @@ entry:
   ret i32 %div
 }
 
-define i32 @Srem(i32 %a, i32 %b) {
-; CHECK: define i32 @Srem
+define internal i32 @Srem(i32 %a, i32 %b) {
+; CHECK: define internal i32 @Srem
 entry:
   %rem = srem i32 %a, %b
 ; CHECK: cdq
@@ -89,8 +90,8 @@ entry:
   ret i32 %rem
 }
 
-define i32 @Udiv(i32 %a, i32 %b) {
-; CHECK: define i32 @Udiv
+define internal i32 @Udiv(i32 %a, i32 %b) {
+; CHECK: define internal i32 @Udiv
 entry:
   %div = udiv i32 %a, %b
 ; CHECK: div
@@ -99,8 +100,8 @@ entry:
   ret i32 %div
 }
 
-define i32 @Urem(i32 %a, i32 %b) {
-; CHECK: define i32 @Urem
+define internal i32 @Urem(i32 %a, i32 %b) {
+; CHECK: define internal i32 @Urem
 entry:
   %rem = urem i32 %a, %b
 ; CHECK: div
@@ -111,7 +112,7 @@ entry:
 
 ; Check for a valid addressing mode in the x86-32 mul instruction when
 ; the second source operand is an immediate.
-define i64 @MulImm() {
+define internal i64 @MulImm() {
 entry:
   %mul = mul i64 3, 4
   ret i64 %mul

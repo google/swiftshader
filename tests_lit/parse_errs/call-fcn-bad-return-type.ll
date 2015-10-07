@@ -3,7 +3,8 @@
 
 ; REQUIRES: no_minimal_build
 
-; RUN: %p2i --expect-fail -i %s --insts | FileCheck %s
+; RUN: %p2i --expect-fail -i %s --insts --args \
+; RUN:      -allow-externally-defined-symbols | FileCheck %s
 
 declare i1 @f();
 

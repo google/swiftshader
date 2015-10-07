@@ -39,6 +39,13 @@ public:
   bool getAllowErrorRecovery() const { return AllowErrorRecovery; }
   void setAllowErrorRecovery(bool NewValue) { AllowErrorRecovery = NewValue; }
 
+  bool getAllowExternDefinedSymbols() const {
+    return AllowExternDefinedSymbols;
+  }
+  void setAllowExternDefinedSymbols(bool NewValue) {
+    AllowExternDefinedSymbols = NewValue;
+  }
+
   bool getAllowIacaMarks() const { return AllowIacaMarks; }
   void setAllowIacaMarks(bool NewValue) { AllowIacaMarks = NewValue; }
 
@@ -238,6 +245,7 @@ public:
 
 private:
   bool AllowErrorRecovery;
+  bool AllowExternDefinedSymbols;
   bool AllowIacaMarks;
   bool AllowUninitializedGlobals;
   bool DataSections;

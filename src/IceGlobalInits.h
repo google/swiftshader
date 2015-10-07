@@ -87,10 +87,28 @@ public:
     return getSuppressMangling() ? Name : Ctx->mangleName(Name);
   }
 
+  /// Returns textual name of linkage.
+  const char *getLinkageName() const {
+    return isInternal() ? "internal" : "external";
+  }
+
 protected:
   GlobalDeclaration(GlobalDeclarationKind Kind,
                     llvm::GlobalValue::LinkageTypes Linkage)
       : Kind(Kind), Linkage(Linkage) {}
+
+  /// Returns true if linkage is defined correctly for the global declaration,
+  /// based on default rules.
+  bool verifyLinkageDefault(const GlobalContext *Ctx) const {
+    switch (Linkage) {
+    default:
+      return false;
+    case llvm::GlobalValue::InternalLinkage:
+      return true;
+    case llvm::GlobalValue::ExternalLinkage:
+      return Ctx->getFlags().getAllowExternDefinedSymbols();
+    }
+  }
 
   const GlobalDeclarationKind Kind;
   IceString Name;
@@ -124,6 +142,13 @@ public:
   void dump(GlobalContext *Ctx, Ostream &Stream) const final;
   bool getSuppressMangling() const final { return isExternal() && IsProto; }
 
+  /// Returns true if linkage is correct for the function declaration.
+  bool verifyLinkageCorrect(const GlobalContext *Ctx) const {
+    if (isPNaClABIExternalName() || isIntrinsicName(Ctx))
+      return Linkage == llvm::GlobalValue::ExternalLinkage;
+    return verifyLinkageDefault(Ctx);
+  }
+
 private:
   const Ice::FuncSigType Signature;
   llvm::CallingConv::ID CallingConv;
@@ -134,6 +159,19 @@ private:
                       llvm::GlobalValue::LinkageTypes Linkage, bool IsProto)
       : GlobalDeclaration(FunctionDeclarationKind, Linkage),
         Signature(Signature), CallingConv(CallingConv), IsProto(IsProto) {}
+
+  bool isPNaClABIExternalName() const {
+    const char *Name = getName().c_str();
+    return strcmp(Name, "_start") == 0 || strcmp(Name, "__pnacl_pso_root") == 0;
+  }
+
+  bool isIntrinsicName(const GlobalContext *Ctx) const {
+    if (!hasName())
+      return false;
+    bool BadIntrinsic;
+    return Ctx->getIntrinsicsInfo().find(getName(), BadIntrinsic) &&
+           !BadIntrinsic;
+  }
 };
 
 /// Models a global variable declaration, and its initializers.
@@ -308,6 +346,11 @@ public:
   /// Prints out the definition of the global variable declaration (including
   /// initialization).
   void dump(GlobalContext *Ctx, Ostream &Stream) const final;
+
+  /// Returns true if linkage is correct for the variable declaration.
+  bool verifyLinkageCorrect(const GlobalContext *Ctx) const {
+    return verifyLinkageDefault(Ctx);
+  }
 
   static bool classof(const GlobalDeclaration *Addr) {
     return Addr->getKind() == VariableDeclarationKind;

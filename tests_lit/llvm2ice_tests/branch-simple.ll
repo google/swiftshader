@@ -9,7 +9,7 @@
 ; RUN: %p2i -i %s --args -O2 --verbose inst -threads=0 | FileCheck %s
 ; RUN: %p2i -i %s --args -Om1 --verbose inst -threads=0 | FileCheck %s
 
-define i32 @simple_cond_branch(i32 %foo, i32 %bar) {
+define internal i32 @simple_cond_branch(i32 %foo, i32 %bar) {
 entry:
   %r1 = icmp eq i32 %foo, %bar
   br i1 %r1, label %Equal, label %Unequal

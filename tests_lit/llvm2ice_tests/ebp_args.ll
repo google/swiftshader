@@ -3,11 +3,12 @@
 ; adjustment was incorrectly added to the stack/frame offset for
 ; ebp-based frames.
 
-; RUN: %p2i --filetype=obj --disassemble -i %s --args -Om1 | FileCheck %s
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -Om1 \
+; RUN:   -allow-externally-defined-symbols | FileCheck %s
 
 declare i32 @memcpy_helper2(i32 %buf, i32 %buf2, i32 %n)
 
-define i32 @memcpy_helper(i32 %buf, i32 %n) {
+define internal i32 @memcpy_helper(i32 %buf, i32 %n) {
 entry:
   br label %eblock  ; Disable alloca optimization
 eblock:

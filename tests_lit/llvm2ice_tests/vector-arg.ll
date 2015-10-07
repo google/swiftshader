@@ -2,14 +2,16 @@
 ; calling convention for vectors.
 
 ; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 \
-; RUN:   | FileCheck %s
+; RUN:   -allow-externally-defined-symbols | FileCheck %s
 ; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 \
-; RUN:   | FileCheck --check-prefix=OPTM1 %s
+; RUN:   -allow-externally-defined-symbols | FileCheck --check-prefix=OPTM1 %s
 
 ; The first five functions test that vectors are moved from their
 ; correct argument location to xmm0.
 
-define <4 x float> @test_returning_arg0(<4 x float> %arg0, <4 x float> %arg1, <4 x float> %arg2, <4 x float> %arg3, <4 x float> %arg4, <4 x float> %arg5) {
+define internal <4 x float> @test_returning_arg0(
+    <4 x float> %arg0, <4 x float> %arg1, <4 x float> %arg2, <4 x float> %arg3,
+    <4 x float> %arg4, <4 x float> %arg5) {
 entry:
   ret <4 x float> %arg0
 ; CHECK-LABEL: test_returning_arg0
@@ -22,7 +24,9 @@ entry:
 ; OPTM1: ret
 }
 
-define <4 x float> @test_returning_arg1(<4 x float> %arg0, <4 x float> %arg1, <4 x float> %arg2, <4 x float> %arg3, <4 x float> %arg4, <4 x float> %arg5) {
+define internal <4 x float> @test_returning_arg1(
+    <4 x float> %arg0, <4 x float> %arg1, <4 x float> %arg2, <4 x float> %arg3,
+    <4 x float> %arg4, <4 x float> %arg5) {
 entry:
   ret <4 x float> %arg1
 ; CHECK-LABEL: test_returning_arg1
@@ -35,7 +39,9 @@ entry:
 ; OPTM1: ret
 }
 
-define <4 x float> @test_returning_arg2(<4 x float> %arg0, <4 x float> %arg1, <4 x float> %arg2, <4 x float> %arg3, <4 x float> %arg4, <4 x float> %arg5) {
+define internal <4 x float> @test_returning_arg2(
+    <4 x float> %arg0, <4 x float> %arg1, <4 x float> %arg2, <4 x float> %arg3,
+    <4 x float> %arg4, <4 x float> %arg5) {
 entry:
   ret <4 x float> %arg2
 ; CHECK-LABEL: test_returning_arg2
@@ -48,7 +54,9 @@ entry:
 ; OPTM1: ret
 }
 
-define <4 x float> @test_returning_arg3(<4 x float> %arg0, <4 x float> %arg1, <4 x float> %arg2, <4 x float> %arg3, <4 x float> %arg4, <4 x float> %arg5) {
+define internal <4 x float> @test_returning_arg3(
+    <4 x float> %arg0, <4 x float> %arg1, <4 x float> %arg2, <4 x float> %arg3,
+    <4 x float> %arg4, <4 x float> %arg5) {
 entry:
   ret <4 x float> %arg3
 ; CHECK-LABEL: test_returning_arg3
@@ -61,7 +69,9 @@ entry:
 ; OPTM1: ret
 }
 
-define <4 x float> @test_returning_arg4(<4 x float> %arg0, <4 x float> %arg1, <4 x float> %arg2, <4 x float> %arg3, <4 x float> %arg4, <4 x float> %arg5) {
+define internal <4 x float> @test_returning_arg4(
+    <4 x float> %arg0, <4 x float> %arg1, <4 x float> %arg2, <4 x float> %arg3,
+    <4 x float> %arg4, <4 x float> %arg5) {
 entry:
   ret <4 x float> %arg4
 ; CHECK-LABEL: test_returning_arg4
@@ -77,7 +87,11 @@ entry:
 ; correctly when interspersed with stack arguments in the argument
 ; list.
 
-define <4 x float> @test_returning_interspersed_arg0(i32 %i32arg0, double %doublearg0, <4 x float> %arg0, <4 x float> %arg1, i32 %i32arg1, <4 x float> %arg2, double %doublearg1, <4 x float> %arg3, i32 %i32arg2, double %doublearg2, float %floatarg0, <4 x float> %arg4, <4 x float> %arg5, float %floatarg1) {
+define internal <4 x float> @test_returning_interspersed_arg0(
+    i32 %i32arg0, double %doublearg0, <4 x float> %arg0, <4 x float> %arg1,
+    i32 %i32arg1, <4 x float> %arg2, double %doublearg1, <4 x float> %arg3,
+    i32 %i32arg2, double %doublearg2, float %floatarg0, <4 x float> %arg4,
+     <4 x float> %arg5, float %floatarg1) {
 entry:
   ret <4 x float> %arg0
 ; CHECK-LABEL: test_returning_interspersed_arg0
@@ -90,7 +104,11 @@ entry:
 ; OPTM1: ret
 }
 
-define <4 x float> @test_returning_interspersed_arg1(i32 %i32arg0, double %doublearg0, <4 x float> %arg0, <4 x float> %arg1, i32 %i32arg1, <4 x float> %arg2, double %doublearg1, <4 x float> %arg3, i32 %i32arg2, double %doublearg2, float %floatarg0, <4 x float> %arg4, <4 x float> %arg5, float %floatarg1) {
+define internal <4 x float> @test_returning_interspersed_arg1(
+    i32 %i32arg0, double %doublearg0, <4 x float> %arg0, <4 x float> %arg1,
+    i32 %i32arg1, <4 x float> %arg2, double %doublearg1, <4 x float> %arg3,
+    i32 %i32arg2, double %doublearg2, float %floatarg0, <4 x float> %arg4,
+    <4 x float> %arg5, float %floatarg1) {
 entry:
   ret <4 x float> %arg1
 ; CHECK-LABEL: test_returning_interspersed_arg1
@@ -103,7 +121,11 @@ entry:
 ; OPTM1: ret
 }
 
-define <4 x float> @test_returning_interspersed_arg2(i32 %i32arg0, double %doublearg0, <4 x float> %arg0, <4 x float> %arg1, i32 %i32arg1, <4 x float> %arg2, double %doublearg1, <4 x float> %arg3, i32 %i32arg2, double %doublearg2, float %floatarg0, <4 x float> %arg4, <4 x float> %arg5, float %floatarg1) {
+define internal <4 x float> @test_returning_interspersed_arg2(
+    i32 %i32arg0, double %doublearg0, <4 x float> %arg0, <4 x float> %arg1,
+    i32 %i32arg1, <4 x float> %arg2, double %doublearg1, <4 x float> %arg3,
+    i32 %i32arg2, double %doublearg2, float %floatarg0, <4 x float> %arg4,
+    <4 x float> %arg5, float %floatarg1) {
 entry:
   ret <4 x float> %arg2
 ; CHECK-LABEL: test_returning_interspersed_arg2
@@ -116,7 +138,11 @@ entry:
 ; OPTM1: ret
 }
 
-define <4 x float> @test_returning_interspersed_arg3(i32 %i32arg0, double %doublearg0, <4 x float> %arg0, <4 x float> %arg1, i32 %i32arg1, <4 x float> %arg2, double %doublearg1, <4 x float> %arg3, i32 %i32arg2, double %doublearg2, float %floatarg0, <4 x float> %arg4, <4 x float> %arg5, float %floatarg1) {
+define internal <4 x float> @test_returning_interspersed_arg3(
+    i32 %i32arg0, double %doublearg0, <4 x float> %arg0, <4 x float> %arg1,
+    i32 %i32arg1, <4 x float> %arg2, double %doublearg1, <4 x float> %arg3,
+    i32 %i32arg2, double %doublearg2, float %floatarg0, <4 x float> %arg4,
+    <4 x float> %arg5, float %floatarg1) {
 entry:
   ret <4 x float> %arg3
 ; CHECK-LABEL: test_returning_interspersed_arg3
@@ -129,7 +155,11 @@ entry:
 ; OPTM1: ret
 }
 
-define <4 x float> @test_returning_interspersed_arg4(i32 %i32arg0, double %doublearg0, <4 x float> %arg0, <4 x float> %arg1, i32 %i32arg1, <4 x float> %arg2, double %doublearg1, <4 x float> %arg3, i32 %i32arg2, double %doublearg2, float %floatarg0, <4 x float> %arg4, <4 x float> %arg5, float %floatarg1) {
+define internal <4 x float> @test_returning_interspersed_arg4(
+    i32 %i32arg0, double %doublearg0, <4 x float> %arg0, <4 x float> %arg1,
+    i32 %i32arg1, <4 x float> %arg2, double %doublearg1, <4 x float> %arg3,
+    i32 %i32arg2, double %doublearg2, float %floatarg0, <4 x float> %arg4,
+    <4 x float> %arg5, float %floatarg1) {
 entry:
   ret <4 x float> %arg4
 ; CHECK-LABEL: test_returning_interspersed_arg4
@@ -143,16 +173,21 @@ entry:
 
 ; Test that vectors are passed correctly as arguments to a function.
 
-declare void @VectorArgs(<4 x float>, <4 x float>, <4 x float>, <4 x float>, <4 x float>, <4 x float>)
+declare void @VectorArgs(<4 x float>, <4 x float>, <4 x float>, <4 x float>,
+                         <4 x float>, <4 x float>)
 
 declare void @killXmmRegisters()
 
-define void @test_passing_vectors(<4 x float> %arg0, <4 x float> %arg1, <4 x float> %arg2, <4 x float> %arg3, <4 x float> %arg4, <4 x float> %arg5, <4 x float> %arg6, <4 x float> %arg7, <4 x float> %arg8, <4 x float> %arg9) {
+define internal void @test_passing_vectors(
+    <4 x float> %arg0, <4 x float> %arg1, <4 x float> %arg2, <4 x float> %arg3,
+    <4 x float> %arg4, <4 x float> %arg5, <4 x float> %arg6, <4 x float> %arg7,
+    <4 x float> %arg8, <4 x float> %arg9) {
 entry:
   ; Kills XMM registers so that no in-arg lowering code interferes
   ; with the test.
   call void @killXmmRegisters()
-  call void @VectorArgs(<4 x float> %arg9, <4 x float> %arg8, <4 x float> %arg7, <4 x float> %arg6, <4 x float> %arg5, <4 x float> %arg4)
+  call void @VectorArgs(<4 x float> %arg9, <4 x float> %arg8, <4 x float> %arg7,
+                        <4 x float> %arg6, <4 x float> %arg5, <4 x float> %arg4)
   ret void
 ; CHECK-LABEL: test_passing_vectors
 ; CHECK: sub esp,0x20
@@ -181,14 +216,22 @@ entry:
 ; OPTM1-NEXT: add esp,0x20
 }
 
-declare void @InterspersedVectorArgs(<4 x float>, i64, <4 x float>, i64, <4 x float>, float, <4 x float>, double, <4 x float>, i32, <4 x float>)
+declare void @InterspersedVectorArgs(
+    <4 x float>, i64, <4 x float>, i64, <4 x float>, float, <4 x float>,
+    double, <4 x float>, i32, <4 x float>)
 
-define void @test_passing_vectors_interspersed(<4 x float> %arg0, <4 x float> %arg1, <4 x float> %arg2, <4 x float> %arg3, <4 x float> %arg4, <4 x float> %arg5, <4 x float> %arg6, <4 x float> %arg7, <4 x float> %arg8, <4 x float> %arg9) {
+define internal void @test_passing_vectors_interspersed(
+    <4 x float> %arg0, <4 x float> %arg1, <4 x float> %arg2, <4 x float> %arg3,
+    <4 x float> %arg4, <4 x float> %arg5, <4 x float> %arg6, <4 x float> %arg7,
+    <4 x float> %arg8, <4 x float> %arg9) {
 entry:
   ; Kills XMM registers so that no in-arg lowering code interferes
   ; with the test.
   call void @killXmmRegisters()
-  call void @InterspersedVectorArgs(<4 x float> %arg9, i64 0, <4 x float> %arg8, i64 1, <4 x float> %arg7, float 2.000000e+00, <4 x float> %arg6, double 3.000000e+00, <4 x float> %arg5, i32 4, <4 x float> %arg4)
+  call void @InterspersedVectorArgs(<4 x float> %arg9, i64 0, <4 x float> %arg8,
+                                    i64 1, <4 x float> %arg7, float 2.000000e+00,
+                                    <4 x float> %arg6, double 3.000000e+00,
+                                    <4 x float> %arg5, i32 4, <4 x float> %arg4)
   ret void
 ; CHECK-LABEL: test_passing_vectors_interspersed
 ; CHECK: sub esp,0x50
@@ -224,7 +267,7 @@ entry:
 
 declare <4 x float> @VectorReturn(<4 x float> %arg0)
 
-define void @test_receiving_vectors(<4 x float> %arg0) {
+define internal void @test_receiving_vectors(<4 x float> %arg0) {
 entry:
   %result = call <4 x float> @VectorReturn(<4 x float> %arg0)
   %result2 = call <4 x float> @VectorReturn(<4 x float> %result)

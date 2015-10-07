@@ -1,7 +1,9 @@
 ; This tries to be a comprehensive test of i8 operations.
 
-; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 | FileCheck %s
-; RUN: %p2i --filetype=obj --disassemble -i %s --args -Om1 | FileCheck %s
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 \
+; RUN:   -allow-externally-defined-symbols | FileCheck %s
+; RUN: %p2i --filetype=obj --disassemble -i %s --args -Om1 \
+; RUN:   -allow-externally-defined-symbols | FileCheck %s
 
 declare void @useInt(i32 %x)
 

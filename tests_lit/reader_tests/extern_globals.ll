@@ -8,8 +8,10 @@
 ; work if we read LLVM IR source, and convert to to ICE.
 
 ; REQUIRES: allow_llvm_ir_as_input
-; RUN: %lc2i -i %s --insts --args --allow-uninitialized-globals | FileCheck %s
 ; RUN: %lc2i -i %s --insts --args --allow-uninitialized-globals \
+; RUN:       -allow-externally-defined-symbols | FileCheck %s
+; RUN: %lc2i -i %s --insts --args --allow-uninitialized-globals \
+; RUN:       -allow-externally-defined-symbols \
 ; RUN:       -prefix Subzero_ | FileCheck --check-prefix=CROSS %s
 
 @ArrayInitPartial = internal global [40 x i8] c"<\00\00\00F\00\00\00P\00\00\00Z\00\00\00d\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", align 4

@@ -4,7 +4,7 @@
 ; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 | FileCheck %s
 ; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 | FileCheck %s
 
-define i32 @sdiv_i8(i32 %a.i32, i32 %b.i32) {
+define internal i32 @sdiv_i8(i32 %a.i32, i32 %b.i32) {
 entry:
   %a = trunc i32 %a.i32 to i8
   %b = trunc i32 %b.i32 to i8
@@ -16,7 +16,7 @@ entry:
 ; CHECK: idiv
 }
 
-define i32 @sdiv_i16(i32 %a.i32, i32 %b.i32) {
+define internal i32 @sdiv_i16(i32 %a.i32, i32 %b.i32) {
 entry:
   %a = trunc i32 %a.i32 to i16
   %b = trunc i32 %b.i32 to i16
@@ -28,7 +28,7 @@ entry:
 ; CHECK: idiv
 }
 
-define i32 @sdiv_i32(i32 %a, i32 %b) {
+define internal i32 @sdiv_i32(i32 %a, i32 %b) {
 entry:
   %res = sdiv i32 %a, %b
   ret i32 %res
@@ -37,7 +37,7 @@ entry:
 ; CHECK: idiv
 }
 
-define i32 @srem_i8(i32 %a.i32, i32 %b.i32) {
+define internal i32 @srem_i8(i32 %a.i32, i32 %b.i32) {
 entry:
   %a = trunc i32 %a.i32 to i8
   %b = trunc i32 %b.i32 to i8
@@ -49,7 +49,7 @@ entry:
 ; CHECK: idiv
 }
 
-define i32 @srem_i16(i32 %a.i32, i32 %b.i32) {
+define internal i32 @srem_i16(i32 %a.i32, i32 %b.i32) {
 entry:
   %a = trunc i32 %a.i32 to i16
   %b = trunc i32 %b.i32 to i16
@@ -61,7 +61,7 @@ entry:
 ; CHECK: idiv
 }
 
-define i32 @srem_i32(i32 %a, i32 %b) {
+define internal i32 @srem_i32(i32 %a, i32 %b) {
 entry:
   %res = srem i32 %a, %b
   ret i32 %res

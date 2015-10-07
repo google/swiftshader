@@ -19,7 +19,7 @@
 ; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix MIPS32 %s
 
-define void @foo() {
+define internal void @foo() {
   ret void
 }
 ; CHECK-LABEL: foo
@@ -34,7 +34,7 @@ define void @foo() {
 ; MIPS32: 0: {{.*}} jr ra
 ; MIPS32-NEXT: 4: {{.*}} nop
 
-define void @bar() {
+define internal void @bar() {
   ret void
 }
 ; CHECK-LABEL: bar

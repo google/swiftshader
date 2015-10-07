@@ -9,7 +9,7 @@
 ; RUN: -reorder-basic-blocks -threads=0 \
 ; RUN: | FileCheck %s --check-prefix=SEED2
 
-define void @basic_block_reordering(i32 %foo, i32 %bar) {
+define internal void @basic_block_reordering(i32 %foo, i32 %bar) {
 entry:
   %r1 = icmp eq i32 %foo, %bar
   br i1 %r1, label %BB1, label %BB2

@@ -4,10 +4,10 @@
 ; there are no special OPTM1 match lines.
 
 ; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
-; RUN:   --target x8632 -i %s --args -O2 \
+; RUN:   --target x8632 -i %s --args -O2 -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_X8632 --command FileCheck %s
 ; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
-; RUN:   --target x8632 -i %s --args -Om1 \
+; RUN:   --target x8632 -i %s --args -Om1 -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_X8632 --command FileCheck %s
 
 ; Can't test on ARM yet. Need to use several vpush {contiguous FP regs},

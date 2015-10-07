@@ -475,7 +475,16 @@ private:
 
   // Converts function declarations into constant value IDs.
   void createValueIDsForFunctions() {
+    Ice::GlobalContext *Ctx = getTranslator().getContext();
     for (const Ice::FunctionDeclaration *Func : FunctionDeclarations) {
+      if (!Func->verifyLinkageCorrect(Ctx)) {
+        std::string Buffer;
+        raw_string_ostream StrBuf(Buffer);
+        StrBuf << "Function " << Func->getName()
+               << " has incorrect linkage: " << Func->getLinkageName();
+        Error(StrBuf.str());
+        continue;
+      }
       Ice::Constant *C = nullptr;
       if (!isIRGenerationDisabled()) {
         C = getConstantSym(Func->getName(), Func->getSuppressMangling(),
@@ -487,7 +496,15 @@ private:
 
   // Converts global variable declarations into constant value IDs.
   void createValueIDsForGlobalVars() {
+    Ice::GlobalContext *Ctx = getTranslator().getContext();
     for (const Ice::VariableDeclaration *Decl : *VariableDeclarations) {
+      if (!Decl->verifyLinkageCorrect(Ctx)) {
+        std::string Buffer;
+        raw_string_ostream StrBuf(Buffer);
+        StrBuf << "Global " << Decl->getName()
+               << " has incorrect linkage: " << Decl->getLinkageName();
+        Error(StrBuf.str());
+      }
       Ice::Constant *C = nullptr;
       if (!isIRGenerationDisabled()) {
         C = getConstantSym(Decl->getName(), Decl->getSuppressMangling(),

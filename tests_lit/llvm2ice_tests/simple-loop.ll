@@ -6,7 +6,7 @@
 ; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 \
 ; RUN:   | FileCheck --check-prefix=OPTM1 %s
 
-define i32 @simple_loop(i32 %a, i32 %n) {
+define internal i32 @simple_loop(i32 %a, i32 %n) {
 entry:
   %cmp4 = icmp sgt i32 %n, 0
   br i1 %cmp4, label %for.body, label %for.end

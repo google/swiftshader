@@ -29,7 +29,7 @@
 @i2 = internal global [4 x i8] zeroinitializer, align 4
 @u1 = internal global [4 x i8] zeroinitializer, align 4
 
-define void @conv1() {
+define internal void @conv1() {
 entry:
   %__0 = bitcast [4 x i8]* @u1 to i32*
   %v0 = load i32, i32* %__0, align 1
@@ -47,7 +47,7 @@ entry:
 ; ARM32: lsl {{.*}}, #24
 ; ARM32: asr {{.*}}, #24
 
-define void @conv2() {
+define internal void @conv2() {
 entry:
   %__0 = bitcast [4 x i8]* @u1 to i32*
   %v0 = load i32, i32* %__0, align 1
@@ -65,7 +65,7 @@ entry:
 ; ARM32: lsl {{.*}}, #16
 ; ARM32: lsr {{.*}}, #16
 
-define i32 @shlImmLarge(i32 %val) {
+define internal i32 @shlImmLarge(i32 %val) {
 entry:
   %result = shl i32 %val, 257
   ret i32 %result
@@ -73,7 +73,7 @@ entry:
 ; CHECK-LABEL: shlImmLarge
 ; CHECK: shl {{.*}},0x1
 
-define i32 @shlImmNeg(i32 %val) {
+define internal i32 @shlImmNeg(i32 %val) {
 entry:
   %result = shl i32 %val, -1
   ret i32 %result
@@ -81,7 +81,7 @@ entry:
 ; CHECK-LABEL: shlImmNeg
 ; CHECK: shl {{.*}},0xff
 
-define i32 @lshrImmLarge(i32 %val) {
+define internal i32 @lshrImmLarge(i32 %val) {
 entry:
   %result = lshr i32 %val, 257
   ret i32 %result
@@ -89,7 +89,7 @@ entry:
 ; CHECK-LABEL: lshrImmLarge
 ; CHECK: shr {{.*}},0x1
 
-define i32 @lshrImmNeg(i32 %val) {
+define internal i32 @lshrImmNeg(i32 %val) {
 entry:
   %result = lshr i32 %val, -1
   ret i32 %result
@@ -97,7 +97,7 @@ entry:
 ; CHECK-LABEL: lshrImmNeg
 ; CHECK: shr {{.*}},0xff
 
-define i32 @ashrImmLarge(i32 %val) {
+define internal i32 @ashrImmLarge(i32 %val) {
 entry:
   %result = ashr i32 %val, 257
   ret i32 %result
@@ -105,7 +105,7 @@ entry:
 ; CHECK-LABEL: ashrImmLarge
 ; CHECK: sar {{.*}},0x1
 
-define i32 @ashrImmNeg(i32 %val) {
+define internal i32 @ashrImmNeg(i32 %val) {
 entry:
   %result = ashr i32 %val, -1
   ret i32 %result
@@ -113,7 +113,7 @@ entry:
 ; CHECK-LABEL: ashrImmNeg
 ; CHECK: sar {{.*}},0xff
 
-define i64 @shlImm64One(i64 %val) {
+define internal i64 @shlImm64One(i64 %val) {
 entry:
   %result = shl i64 %val, 1
   ret i64 %result
@@ -121,7 +121,7 @@ entry:
 ; CHECK-LABEL: shlImm64One
 ; CHECK: shl {{.*}},1
 
-define i64 @shlImm64LessThan32(i64 %val) {
+define internal i64 @shlImm64LessThan32(i64 %val) {
 entry:
   %result = shl i64 %val, 4
   ret i64 %result
@@ -129,7 +129,7 @@ entry:
 ; CHECK-LABEL: shlImm64LessThan32
 ; CHECK: shl {{.*}},0x4
 
-define i64 @shlImm64Equal32(i64 %val) {
+define internal i64 @shlImm64Equal32(i64 %val) {
 entry:
   %result = shl i64 %val, 32
   ret i64 %result
@@ -137,7 +137,7 @@ entry:
 ; CHECK-LABEL: shlImm64Equal32
 ; CHECK-NOT: shl
 
-define i64 @shlImm64GreaterThan32(i64 %val) {
+define internal i64 @shlImm64GreaterThan32(i64 %val) {
 entry:
   %result = shl i64 %val, 40
   ret i64 %result
@@ -145,7 +145,7 @@ entry:
 ; CHECK-LABEL: shlImm64GreaterThan32
 ; CHECK: shl {{.*}},0x8
 
-define i64 @lshrImm64One(i64 %val) {
+define internal i64 @lshrImm64One(i64 %val) {
 entry:
   %result = lshr i64 %val, 1
   ret i64 %result
@@ -153,7 +153,7 @@ entry:
 ; CHECK-LABEL: lshrImm64One
 ; CHECK: shr {{.*}},1
 
-define i64 @lshrImm64LessThan32(i64 %val) {
+define internal i64 @lshrImm64LessThan32(i64 %val) {
 entry:
   %result = lshr i64 %val, 4
   ret i64 %result
@@ -162,7 +162,7 @@ entry:
 ; CHECK: shrd {{.*}},0x4
 ; CHECK: shr {{.*}},0x4
 
-define i64 @lshrImm64Equal32(i64 %val) {
+define internal i64 @lshrImm64Equal32(i64 %val) {
 entry:
   %result = lshr i64 %val, 32
   ret i64 %result
@@ -170,7 +170,7 @@ entry:
 ; CHECK-LABEL: lshrImm64Equal32
 ; CHECK-NOT: shr
 
-define i64 @lshrImm64GreaterThan32(i64 %val) {
+define internal i64 @lshrImm64GreaterThan32(i64 %val) {
 entry:
   %result = lshr i64 %val, 40
   ret i64 %result
@@ -179,7 +179,7 @@ entry:
 ; CHECK-NOT: shrd
 ; CHECK: shr {{.*}},0x8
 
-define i64 @ashrImm64One(i64 %val) {
+define internal i64 @ashrImm64One(i64 %val) {
 entry:
   %result = ashr i64 %val, 1
   ret i64 %result
@@ -188,7 +188,7 @@ entry:
 ; CHECK: shrd {{.*}},0x1
 ; CHECK: sar {{.*}},1
 
-define i64 @ashrImm64LessThan32(i64 %val) {
+define internal i64 @ashrImm64LessThan32(i64 %val) {
 entry:
   %result = ashr i64 %val, 4
   ret i64 %result
@@ -197,7 +197,7 @@ entry:
 ; CHECK: shrd {{.*}},0x4
 ; CHECK: sar {{.*}},0x4
 
-define i64 @ashrImm64Equal32(i64 %val) {
+define internal i64 @ashrImm64Equal32(i64 %val) {
 entry:
   %result = ashr i64 %val, 32
   ret i64 %result
@@ -206,7 +206,7 @@ entry:
 ; CHECK: sar {{.*}},0x1f
 ; CHECK-NOT: shrd
 
-define i64 @ashrImm64GreaterThan32(i64 %val) {
+define internal i64 @ashrImm64GreaterThan32(i64 %val) {
 entry:
   %result = ashr i64 %val, 40
   ret i64 %result

@@ -6,7 +6,7 @@
 ; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 \
 ; RUN:   | FileCheck --check-prefix=OPTM1 %s
 
-define <16 x i8> @test_bitcast_v16i8_to_v16i8(<16 x i8> %arg) {
+define internal <16 x i8> @test_bitcast_v16i8_to_v16i8(<16 x i8> %arg) {
 entry:
   %res = bitcast <16 x i8> %arg to <16 x i8>
   ret <16 x i8> %res
@@ -15,7 +15,7 @@ entry:
 ; CHECK-NEXT: ret
 }
 
-define <8 x i16> @test_bitcast_v16i8_to_v8i16(<16 x i8> %arg) {
+define internal <8 x i16> @test_bitcast_v16i8_to_v8i16(<16 x i8> %arg) {
 entry:
   %res = bitcast <16 x i8> %arg to <8 x i16>
   ret <8 x i16> %res
@@ -24,7 +24,7 @@ entry:
 ; CHECK-NEXT: ret
 }
 
-define <4 x i32> @test_bitcast_v16i8_to_v4i32(<16 x i8> %arg) {
+define internal <4 x i32> @test_bitcast_v16i8_to_v4i32(<16 x i8> %arg) {
 entry:
   %res = bitcast <16 x i8> %arg to <4 x i32>
   ret <4 x i32> %res
@@ -33,7 +33,7 @@ entry:
 ; CHECK-NEXT: ret
 }
 
-define <4 x float> @test_bitcast_v16i8_to_v4f32(<16 x i8> %arg) {
+define internal <4 x float> @test_bitcast_v16i8_to_v4f32(<16 x i8> %arg) {
 entry:
   %res = bitcast <16 x i8> %arg to <4 x float>
   ret <4 x float> %res
@@ -42,7 +42,7 @@ entry:
 ; CHECK-NEXT: ret
 }
 
-define <16 x i8> @test_bitcast_v8i16_to_v16i8(<8 x i16> %arg) {
+define internal <16 x i8> @test_bitcast_v8i16_to_v16i8(<8 x i16> %arg) {
 entry:
   %res = bitcast <8 x i16> %arg to <16 x i8>
   ret <16 x i8> %res
@@ -51,7 +51,7 @@ entry:
 ; CHECK-NEXT: ret
 }
 
-define <8 x i16> @test_bitcast_v8i16_to_v8i16(<8 x i16> %arg) {
+define internal <8 x i16> @test_bitcast_v8i16_to_v8i16(<8 x i16> %arg) {
 entry:
   %res = bitcast <8 x i16> %arg to <8 x i16>
   ret <8 x i16> %res
@@ -60,7 +60,7 @@ entry:
 ; CHECK-NEXT: ret
 }
 
-define <4 x i32> @test_bitcast_v8i16_to_v4i32(<8 x i16> %arg) {
+define internal <4 x i32> @test_bitcast_v8i16_to_v4i32(<8 x i16> %arg) {
 entry:
   %res = bitcast <8 x i16> %arg to <4 x i32>
   ret <4 x i32> %res
@@ -69,7 +69,7 @@ entry:
 ; CHECK-NEXT: ret
 }
 
-define <4 x float> @test_bitcast_v8i16_to_v4f32(<8 x i16> %arg) {
+define internal <4 x float> @test_bitcast_v8i16_to_v4f32(<8 x i16> %arg) {
 entry:
   %res = bitcast <8 x i16> %arg to <4 x float>
   ret <4 x float> %res
@@ -78,7 +78,7 @@ entry:
 ; CHECK-NEXT: ret
 }
 
-define <16 x i8> @test_bitcast_v4i32_to_v16i8(<4 x i32> %arg) {
+define internal <16 x i8> @test_bitcast_v4i32_to_v16i8(<4 x i32> %arg) {
 entry:
   %res = bitcast <4 x i32> %arg to <16 x i8>
   ret <16 x i8> %res
@@ -87,7 +87,7 @@ entry:
 ; CHECK-NEXT: ret
 }
 
-define <8 x i16> @test_bitcast_v4i32_to_v8i16(<4 x i32> %arg) {
+define internal <8 x i16> @test_bitcast_v4i32_to_v8i16(<4 x i32> %arg) {
 entry:
   %res = bitcast <4 x i32> %arg to <8 x i16>
   ret <8 x i16> %res
@@ -96,7 +96,7 @@ entry:
 ; CHECK-NEXT: ret
 }
 
-define <4 x i32> @test_bitcast_v4i32_to_v4i32(<4 x i32> %arg) {
+define internal <4 x i32> @test_bitcast_v4i32_to_v4i32(<4 x i32> %arg) {
 entry:
   %res = bitcast <4 x i32> %arg to <4 x i32>
   ret <4 x i32> %res
@@ -105,7 +105,7 @@ entry:
 ; CHECK-NEXT: ret
 }
 
-define <4 x float> @test_bitcast_v4i32_to_v4f32(<4 x i32> %arg) {
+define internal <4 x float> @test_bitcast_v4i32_to_v4f32(<4 x i32> %arg) {
 entry:
   %res = bitcast <4 x i32> %arg to <4 x float>
   ret <4 x float> %res
@@ -114,7 +114,7 @@ entry:
 ; CHECK-NEXT: ret
 }
 
-define <16 x i8> @test_bitcast_v4f32_to_v16i8(<4 x float> %arg) {
+define internal <16 x i8> @test_bitcast_v4f32_to_v16i8(<4 x float> %arg) {
 entry:
   %res = bitcast <4 x float> %arg to <16 x i8>
   ret <16 x i8> %res
@@ -123,7 +123,7 @@ entry:
 ; CHECK-NEXT: ret
 }
 
-define <8 x i16> @test_bitcast_v4f32_to_v8i16(<4 x float> %arg) {
+define internal <8 x i16> @test_bitcast_v4f32_to_v8i16(<4 x float> %arg) {
 entry:
   %res = bitcast <4 x float> %arg to <8 x i16>
   ret <8 x i16> %res
@@ -132,7 +132,7 @@ entry:
 ; CHECK-NEXT: ret
 }
 
-define <4 x i32> @test_bitcast_v4f32_to_v4i32(<4 x float> %arg) {
+define internal <4 x i32> @test_bitcast_v4f32_to_v4i32(<4 x float> %arg) {
 entry:
   %res = bitcast <4 x float> %arg to <4 x i32>
   ret <4 x i32> %res
@@ -141,7 +141,7 @@ entry:
 ; CHECK-NEXT: ret
 }
 
-define <4 x float> @test_bitcast_v4f32_to_v4f32(<4 x float> %arg) {
+define internal <4 x float> @test_bitcast_v4f32_to_v4f32(<4 x float> %arg) {
 entry:
   %res = bitcast <4 x float> %arg to <4 x float>
   ret <4 x float> %res
@@ -150,7 +150,7 @@ entry:
 ; CHECK-NEXT: ret
 }
 
-define i8 @test_bitcast_v8i1_to_i8(<8 x i1> %arg) {
+define internal i8 @test_bitcast_v8i1_to_i8(<8 x i1> %arg) {
 entry:
   %res = bitcast <8 x i1> %arg to i8
   ret i8 %res
@@ -162,7 +162,7 @@ entry:
 ; OPMT1: call -4
 }
 
-define i16 @test_bitcast_v16i1_to_i16(<16 x i1> %arg) {
+define internal i16 @test_bitcast_v16i1_to_i16(<16 x i1> %arg) {
 entry:
   %res = bitcast <16 x i1> %arg to i16
   ret i16 %res
@@ -174,7 +174,7 @@ entry:
 ; OPMT1: call -4
 }
 
-define <8 x i1> @test_bitcast_i8_to_v8i1(i32 %arg) {
+define internal <8 x i1> @test_bitcast_i8_to_v8i1(i32 %arg) {
 entry:
   %arg.trunc = trunc i32 %arg to i8
   %res = bitcast i8 %arg.trunc to <8 x i1>
@@ -187,7 +187,7 @@ entry:
 ; OPTM1: call {{.*}} R_{{.*}} __Sz_bitcast_i8_8xi1
 }
 
-define <16 x i1> @test_bitcast_i16_to_v16i1(i32 %arg) {
+define internal <16 x i1> @test_bitcast_i16_to_v16i1(i32 %arg) {
 entry:
   %arg.trunc = trunc i32 %arg to i16
   %res = bitcast i16 %arg.trunc to <16 x i1>

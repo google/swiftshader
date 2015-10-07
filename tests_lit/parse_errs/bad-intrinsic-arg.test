@@ -4,7 +4,8 @@
 
 ; RUN: not %pnacl_sz -bitcode-as-text \
 ; RUN:     %p/Inputs/bad-intrinsic-arg.tbc \
-; RUN:     -bitcode-format=pnacl -notranslate -build-on-read 2>&1 \
+; RUN:     -bitcode-format=pnacl -notranslate -build-on-read \
+; RUN:     -allow-externally-defined-symbols 2>&1 \
 ; RUN:   | FileCheck %s
 
 ; CHECK: Argument 1 of llvm.nacl.setjmp expects i32. Found: double

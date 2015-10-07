@@ -34,6 +34,12 @@ cl::opt<bool> AllowErrorRecovery(
     cl::desc("Allow error recovery when reading PNaCl bitcode."),
     cl::init(false));
 
+cl::opt<bool> AllowExternDefinedSymbols(
+    "allow-externally-defined-symbols",
+    cl::desc("Allow global symbols to be externally defined (other than _start "
+             "and __pnacl_pso_root)."),
+    cl::init(false));
+
 cl::opt<bool> AllowIacaMarks(
     "allow-iaca-marks",
     cl::desc("Allow IACA (Intel Architecture Code Analyzer) marks to be "
@@ -360,6 +366,7 @@ void ClFlags::parseFlags(int argc, char **argv) {
 void ClFlags::resetClFlags(ClFlags &OutFlags) {
   // bool fields
   OutFlags.AllowErrorRecovery = false;
+  OutFlags.AllowExternDefinedSymbols = false;
   OutFlags.AllowIacaMarks = false;
   OutFlags.AllowUninitializedGlobals = false;
   OutFlags.DataSections = false;
@@ -420,6 +427,8 @@ void ClFlags::getParsedClFlags(ClFlags &OutFlags) {
   }
 
   OutFlags.setAllowErrorRecovery(::AllowErrorRecovery);
+  OutFlags.setAllowExternDefinedSymbols(::AllowExternDefinedSymbols ||
+                                        ::DisableInternal);
   OutFlags.setAllowIacaMarks(::AllowIacaMarks);
   OutFlags.setAllowUninitializedGlobals(::AllowUninitializedGlobals);
   OutFlags.setDataSections(::DataSections);

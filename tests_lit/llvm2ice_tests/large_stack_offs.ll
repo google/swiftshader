@@ -8,6 +8,7 @@
 ; RUN: %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target arm32 \
 ; RUN:   -i %s --args -Om1 --skip-unimplemented --test-stack-extra 4096 \
+; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32 %s
 

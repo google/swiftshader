@@ -5,7 +5,7 @@
 ; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 -mattr=sse4.1 \
 ; RUN:  -sandbox | FileCheck %s
 
-define <8 x i16> @test_mul_v8i16(<8 x i16> %arg0, <8 x i16> %arg1) {
+define internal <8 x i16> @test_mul_v8i16(<8 x i16> %arg0, <8 x i16> %arg1) {
 entry:
   %res = mul <8 x i16> %arg0, %arg1
   ret <8 x i16> %res
@@ -14,7 +14,10 @@ entry:
 }
 
 ; Test register and address mode encoding.
-define <8 x i16> @test_mul_v8i16_more_regs(<8 x i1> %cond, <8 x i16> %arg0, <8 x i16> %arg1, <8 x i16> %arg2, <8 x i16> %arg3, <8 x i16> %arg4, <8 x i16> %arg5, <8 x i16> %arg6, <8 x i16> %arg7, <8 x i16> %arg8) {
+define internal <8 x i16> @test_mul_v8i16_more_regs(
+     <8 x i1> %cond, <8 x i16> %arg0, <8 x i16> %arg1, <8 x i16> %arg2,
+     <8 x i16> %arg3, <8 x i16> %arg4, <8 x i16> %arg5, <8 x i16> %arg6,
+     <8 x i16> %arg7, <8 x i16> %arg8) {
 entry:
   %res1 = sub <8 x i16> %arg0, %arg1
   %res2 = sub <8 x i16> %arg0, %arg2
@@ -43,7 +46,7 @@ entry:
 ; CHECK-DAG: psubw xmm1,XMMWORD PTR [esp
 }
 
-define <4 x i32> @test_mul_v4i32(<4 x i32> %arg0, <4 x i32> %arg1) {
+define internal <4 x i32> @test_mul_v4i32(<4 x i32> %arg0, <4 x i32> %arg1) {
 entry:
   %res = mul <4 x i32> %arg0, %arg1
   ret <4 x i32> %res
@@ -51,7 +54,10 @@ entry:
 ; CHECK: 66 0f 38 40 c1  pmulld  xmm0,xmm1
 }
 
-define <4 x i32> @test_mul_v4i32_more_regs(<4 x i1> %cond, <4 x i32> %arg0, <4 x i32> %arg1, <4 x i32> %arg2, <4 x i32> %arg3, <4 x i32> %arg4, <4 x i32> %arg5, <4 x i32> %arg6, <4 x i32> %arg7, <4 x i32> %arg8) {
+define internal <4 x i32> @test_mul_v4i32_more_regs(
+    <4 x i1> %cond, <4 x i32> %arg0, <4 x i32> %arg1, <4 x i32> %arg2,
+    <4 x i32> %arg3, <4 x i32> %arg4, <4 x i32> %arg5, <4 x i32> %arg6,
+    <4 x i32> %arg7, <4 x i32> %arg8) {
 entry:
   %res1 = sub <4 x i32> %arg0, %arg1
   %res2 = sub <4 x i32> %arg0, %arg2
@@ -83,7 +89,8 @@ entry:
 ; Test movq, which is used by atomic stores.
 declare void @llvm.nacl.atomic.store.i64(i64, i64*, i32)
 
-define void @test_atomic_store_64(i32 %iptr, i32 %iptr2, i32 %iptr3, i64 %v) {
+define internal void @test_atomic_store_64(i32 %iptr, i32 %iptr2,
+                                           i32 %iptr3, i64 %v) {
 entry:
   %ptr = inttoptr i32 %iptr to i64*
   %ptr2 = inttoptr i32 %iptr2 to i64*
@@ -99,7 +106,8 @@ entry:
 ; CHECK-DAG: 66 0f d6 0{{.*}}  movq QWORD PTR [e{{.*}}],xmm0
 
 ; Test "movups" via vector stores and loads.
-define void @store_v16xI8(i32 %addr, i32 %addr2, i32 %addr3, <16 x i8> %v) {
+define internal void @store_v16xI8(i32 %addr, i32 %addr2, i32 %addr3,
+                                   <16 x i8> %v) {
   %addr_v16xI8 = inttoptr i32 %addr to <16 x i8>*
   %addr2_v16xI8 = inttoptr i32 %addr2 to <16 x i8>*
   %addr3_v16xI8 = inttoptr i32 %addr3 to <16 x i8>*
@@ -111,7 +119,7 @@ define void @store_v16xI8(i32 %addr, i32 %addr2, i32 %addr3, <16 x i8> %v) {
 ; CHECK-LABEL: store_v16xI8
 ; CHECK: 0f 11 0{{.*}} movups XMMWORD PTR [e{{.*}}],xmm0
 
-define <16 x i8> @load_v16xI8(i32 %addr, i32 %addr2, i32 %addr3) {
+define internal <16 x i8> @load_v16xI8(i32 %addr, i32 %addr2, i32 %addr3) {
   %addr_v16xI8 = inttoptr i32 %addr to <16 x i8>*
   %addr2_v16xI8 = inttoptr i32 %addr2 to <16 x i8>*
   %addr3_v16xI8 = inttoptr i32 %addr3 to <16 x i8>*
@@ -129,7 +137,7 @@ define <16 x i8> @load_v16xI8(i32 %addr, i32 %addr2, i32 %addr3) {
 declare i8* @llvm.nacl.read.tp()
 
 ; Also test more address complex operands via address-mode-optimization.
-define i32 @test_nacl_read_tp_more_addressing() {
+define internal i32 @test_nacl_read_tp_more_addressing() {
 entry:
   %ptr = call i8* @llvm.nacl.read.tp()
   %__1 = ptrtoint i8* %ptr to i32
@@ -162,7 +170,8 @@ entry:
 ; The 16-bit pinsrw/pextrw (SSE2) are quite different from
 ; the pinsr{b,d}/pextr{b,d} (SSE4.1).
 
-define <4 x i32> @test_pinsrd(<4 x i32> %vec, i32 %elt1, i32 %elt2, i32 %elt3, i32 %elt4) {
+define internal <4 x i32> @test_pinsrd(<4 x i32> %vec, i32 %elt1, i32 %elt2,
+                                       i32 %elt3, i32 %elt4) {
 entry:
   %elt12 = add i32 %elt1, %elt2
   %elt34 = add i32 %elt3, %elt4
@@ -176,7 +185,8 @@ entry:
 ; CHECK-DAG: 66 0f 3a 22 c{{.*}} 02 pinsrd xmm0,e{{.*}}
 ; CHECK-DAG: 66 0f 3a 22 c{{.*}} 03 pinsrd xmm0,e{{.*}}
 
-define <16 x i8> @test_pinsrb(<16 x i8> %vec, i32 %elt1_w, i32 %elt2_w, i32 %elt3_w, i32 %elt4_w) {
+define internal <16 x i8> @test_pinsrb(<16 x i8> %vec, i32 %elt1_w, i32 %elt2_w,
+                                       i32 %elt3_w, i32 %elt4_w) {
 entry:
   %elt1 = trunc i32 %elt1_w to i8
   %elt2 = trunc i32 %elt2_w to i8
@@ -194,7 +204,8 @@ entry:
 ; CHECK-DAG: 66 0f 3a 20 c{{.*}} 07 pinsrb xmm0,e{{.*}}
 ; CHECK-DAG: 66 0f 3a 20 c{{.*}} 0f pinsrb xmm0,e{{.*}}
 
-define <8 x i16> @test_pinsrw(<8 x i16> %vec, i32 %elt1_w, i32 %elt2_w, i32 %elt3_w, i32 %elt4_w) {
+define internal <8 x i16> @test_pinsrw(<8 x i16> %vec, i32 %elt1_w, i32 %elt2_w,
+                                       i32 %elt3_w, i32 %elt4_w) {
 entry:
   %elt1 = trunc i32 %elt1_w to i16
   %elt2 = trunc i32 %elt2_w to i16
@@ -212,7 +223,8 @@ entry:
 ; CHECK-DAG: 66 0f c4 c{{.*}} 04 pinsrw xmm0,e{{.*}}
 ; CHECK-DAG: 66 0f c4 c{{.*}} 07 pinsrw xmm0,e{{.*}}
 
-define i32 @test_pextrd(i32 %c, <4 x i32> %vec1, <4 x i32> %vec2, <4 x i32> %vec3, <4 x i32> %vec4) {
+define internal i32 @test_pextrd(i32 %c, <4 x i32> %vec1, <4 x i32> %vec2,
+                                 <4 x i32> %vec3, <4 x i32> %vec4) {
 entry:
   switch i32 %c, label %three [i32 0, label %zero
                                i32 1, label %one
@@ -236,7 +248,8 @@ three:
 ; CHECK-DAG: 66 0f 3a 16 d0 02 pextrd eax,xmm2
 ; CHECK-DAG: 66 0f 3a 16 d8 03 pextrd eax,xmm3
 
-define i32 @test_pextrb(i32 %c, <16 x i8> %vec1, <16 x i8> %vec2, <16 x i8> %vec3, <16 x i8> %vec4) {
+define internal i32 @test_pextrb(i32 %c, <16 x i8> %vec1, <16 x i8> %vec2,
+                                 <16 x i8> %vec3, <16 x i8> %vec4) {
 entry:
   switch i32 %c, label %three [i32 0, label %zero
                                i32 1, label %one
@@ -264,7 +277,8 @@ three:
 ; CHECK-DAG: 66 0f 3a 14 d0 0c pextrb eax,xmm2
 ; CHECK-DAG: 66 0f 3a 14 d8 0f pextrb eax,xmm3
 
-define i32 @test_pextrw(i32 %c, <8 x i16> %vec1, <8 x i16> %vec2, <8 x i16> %vec3, <8 x i16> %vec4) {
+define internal i32 @test_pextrw(i32 %c, <8 x i16> %vec1, <8 x i16> %vec2,
+                                 <8 x i16> %vec3, <8 x i16> %vec4) {
 entry:
   switch i32 %c, label %three [i32 0, label %zero
                                i32 1, label %one

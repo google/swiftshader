@@ -2,7 +2,7 @@
 ; calling convention for integers.
 
 ; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
-; RUN:   --target x8632 -i %s --args -O2 \
+; RUN:   --target x8632 -i %s --args -O2 -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_X8632 --command FileCheck %s
 
 ; TODO(jvoung): Stop skipping unimplemented parts (via --skip-unimplemented)
@@ -11,6 +11,7 @@
 ; RUN: %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command %p2i --filetype=asm --assemble \
 ; RUN:   --disassemble --target arm32 -i %s --args -O2 --skip-unimplemented \
+; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32 %s
 
@@ -21,7 +22,7 @@
 
 ; i32
 
-define i32 @test_returning32_arg0(i32 %arg0, i32 %arg1, i32 %arg2, i32 %arg3, i32 %arg4, i32 %arg5, i32 %arg6, i32 %arg7) {
+define internal i32 @test_returning32_arg0(i32 %arg0, i32 %arg1, i32 %arg2, i32 %arg3, i32 %arg4, i32 %arg5, i32 %arg6, i32 %arg7) {
 entry:
   ret i32 %arg0
 }
@@ -31,7 +32,7 @@ entry:
 ; ARM32-LABEL: test_returning32_arg0
 ; ARM32-NEXT: bx lr
 
-define i32 @test_returning32_arg1(i32 %arg0, i32 %arg1, i32 %arg2, i32 %arg3, i32 %arg4, i32 %arg5, i32 %arg6, i32 %arg7) {
+define internal i32 @test_returning32_arg1(i32 %arg0, i32 %arg1, i32 %arg2, i32 %arg3, i32 %arg4, i32 %arg5, i32 %arg6, i32 %arg7) {
 entry:
   ret i32 %arg1
 }
@@ -43,7 +44,7 @@ entry:
 ; ARM32-NEXT: bx lr
 
 
-define i32 @test_returning32_arg2(i32 %arg0, i32 %arg1, i32 %arg2, i32 %arg3, i32 %arg4, i32 %arg5, i32 %arg6, i32 %arg7) {
+define internal i32 @test_returning32_arg2(i32 %arg0, i32 %arg1, i32 %arg2, i32 %arg3, i32 %arg4, i32 %arg5, i32 %arg6, i32 %arg7) {
 entry:
   ret i32 %arg2
 }
@@ -55,7 +56,7 @@ entry:
 ; ARM32-NEXT: bx lr
 
 
-define i32 @test_returning32_arg3(i32 %arg0, i32 %arg1, i32 %arg2, i32 %arg3, i32 %arg4, i32 %arg5, i32 %arg6, i32 %arg7) {
+define internal i32 @test_returning32_arg3(i32 %arg0, i32 %arg1, i32 %arg2, i32 %arg3, i32 %arg4, i32 %arg5, i32 %arg6, i32 %arg7) {
 entry:
   ret i32 %arg3
 }
@@ -67,7 +68,7 @@ entry:
 ; ARM32-NEXT: bx lr
 
 
-define i32 @test_returning32_arg4(i32 %arg0, i32 %arg1, i32 %arg2, i32 %arg3, i32 %arg4, i32 %arg5, i32 %arg6, i32 %arg7) {
+define internal i32 @test_returning32_arg4(i32 %arg0, i32 %arg1, i32 %arg2, i32 %arg3, i32 %arg4, i32 %arg5, i32 %arg6, i32 %arg7) {
 entry:
   ret i32 %arg4
 }
@@ -79,7 +80,7 @@ entry:
 ; ARM32-NEXT: bx lr
 
 
-define i32 @test_returning32_arg5(i32 %arg0, i32 %arg1, i32 %arg2, i32 %arg3, i32 %arg4, i32 %arg5, i32 %arg6, i32 %arg7) {
+define internal i32 @test_returning32_arg5(i32 %arg0, i32 %arg1, i32 %arg2, i32 %arg3, i32 %arg4, i32 %arg5, i32 %arg6, i32 %arg7) {
 entry:
   ret i32 %arg5
 }
@@ -92,7 +93,7 @@ entry:
 
 ; i64
 
-define i64 @test_returning64_arg0(i64 %arg0, i64 %arg1, i64 %arg2, i64 %arg3) {
+define internal i64 @test_returning64_arg0(i64 %arg0, i64 %arg1, i64 %arg2, i64 %arg3) {
 entry:
   ret i64 %arg0
 }
@@ -103,7 +104,7 @@ entry:
 ; ARM32-LABEL: test_returning64_arg0
 ; ARM32-NEXT: bx lr
 
-define i64 @test_returning64_arg1(i64 %arg0, i64 %arg1, i64 %arg2, i64 %arg3) {
+define internal i64 @test_returning64_arg1(i64 %arg0, i64 %arg1, i64 %arg2, i64 %arg3) {
 entry:
   ret i64 %arg1
 }
@@ -116,7 +117,7 @@ entry:
 ; ARM32-NEXT: mov r1, r3
 ; ARM32-NEXT: bx lr
 
-define i64 @test_returning64_arg2(i64 %arg0, i64 %arg1, i64 %arg2, i64 %arg3) {
+define internal i64 @test_returning64_arg2(i64 %arg0, i64 %arg1, i64 %arg2, i64 %arg3) {
 entry:
   ret i64 %arg2
 }
@@ -130,7 +131,7 @@ entry:
 ; ARM32-NEXT: ldr r1, [sp, #4]
 ; ARM32-NEXT: bx lr
 
-define i64 @test_returning64_arg3(i64 %arg0, i64 %arg1, i64 %arg2, i64 %arg3) {
+define internal i64 @test_returning64_arg3(i64 %arg0, i64 %arg1, i64 %arg2, i64 %arg3) {
 entry:
   ret i64 %arg3
 }
@@ -146,7 +147,7 @@ entry:
 
 ; Test that on ARM, the i64 arguments start with an even register.
 
-define i64 @test_returning64_even_arg1(i32 %arg0, i64 %arg1, i64 %arg2) {
+define internal i64 @test_returning64_even_arg1(i32 %arg0, i64 %arg1, i64 %arg2) {
 entry:
   ret i64 %arg1
 }
@@ -160,7 +161,7 @@ entry:
 ; ARM32-NEXT: mov r1, r3
 ; ARM32-NEXT: bx lr
 
-define i64 @test_returning64_even_arg1b(i32 %arg0, i32 %arg0b, i64 %arg1, i64 %arg2) {
+define internal i64 @test_returning64_even_arg1b(i32 %arg0, i32 %arg0b, i64 %arg1, i64 %arg2) {
 entry:
   ret i64 %arg1
 }
@@ -173,7 +174,7 @@ entry:
 ; ARM32-NEXT: mov r1, r3
 ; ARM32-NEXT: bx lr
 
-define i64 @test_returning64_even_arg2(i64 %arg0, i32 %arg1, i64 %arg2) {
+define internal i64 @test_returning64_even_arg2(i64 %arg0, i32 %arg1, i64 %arg2) {
 entry:
   ret i64 %arg2
 }
@@ -187,7 +188,7 @@ entry:
 ; ARM32-DAG: ldr r1, [sp, #4]
 ; ARM32-NEXT: bx lr
 
-define i64 @test_returning64_even_arg2b(i64 %arg0, i32 %arg1, i32 %arg1b, i64 %arg2) {
+define internal i64 @test_returning64_even_arg2b(i64 %arg0, i32 %arg1, i32 %arg1b, i64 %arg2) {
 entry:
   ret i64 %arg2
 }
@@ -200,7 +201,7 @@ entry:
 ; ARM32-NEXT: ldr r1, [sp, #4]
 ; ARM32-NEXT: bx lr
 
-define i32 @test_returning32_even_arg2(i64 %arg0, i32 %arg1, i32 %arg2) {
+define internal i32 @test_returning32_even_arg2(i64 %arg0, i32 %arg1, i32 %arg2) {
 entry:
   ret i32 %arg2
 }
@@ -211,7 +212,7 @@ entry:
 ; ARM32-NEXT: mov r0, r3
 ; ARM32-NEXT: bx lr
 
-define i32 @test_returning32_even_arg2b(i32 %arg0, i32 %arg1, i32 %arg2, i64 %arg3) {
+define internal i32 @test_returning32_even_arg2b(i32 %arg0, i32 %arg1, i32 %arg2, i64 %arg3) {
 entry:
   ret i32 %arg2
 }
@@ -224,7 +225,7 @@ entry:
 
 ; The i64 won't fit in a pair of register, and consumes the last register so a
 ; following i32 can't use that free register.
-define i32 @test_returning32_even_arg4(i32 %arg0, i32 %arg1, i32 %arg2, i64 %arg3, i32 %arg4) {
+define internal i32 @test_returning32_even_arg4(i32 %arg0, i32 %arg1, i32 %arg2, i64 %arg3, i32 %arg4) {
 entry:
   ret i32 %arg4
 }
@@ -244,7 +245,7 @@ declare void @IntArgs(i32, i32, i32, i32, i32, i32)
 
 declare void @killRegisters()
 
-define void @test_passing_integers(i32 %arg0, i32 %arg1, i32 %arg2, i32 %arg3, i32 %arg4, i32 %arg5, i32 %arg6) {
+define internal void @test_passing_integers(i32 %arg0, i32 %arg1, i32 %arg2, i32 %arg3, i32 %arg4, i32 %arg5, i32 %arg6) {
   call void @killRegisters()
   call void @IntArgs(i32 %arg6, i32 %arg5, i32 %arg4, i32 %arg3, i32 %arg2, i32 %arg1)
   ret void

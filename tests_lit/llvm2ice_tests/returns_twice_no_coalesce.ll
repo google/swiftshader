@@ -1,7 +1,8 @@
 ; This file checks that SimpleCoalescing of local stack slots is not done
 ; when calling a function with the "returns twice" attribute.
 
-; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 | FileCheck %s
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 \
+; RUN:      -allow-externally-defined-symbols | FileCheck %s
 
 ; Setjmp is a function with the "returns twice" attribute.
 declare i32 @llvm.nacl.setjmp(i8*)
@@ -9,7 +10,7 @@ declare i32 @llvm.nacl.setjmp(i8*)
 declare i32 @other(i32)
 declare void @user(i32)
 
-define i32 @call_returns_twice(i32 %iptr_jmpbuf, i32 %x) {
+define internal i32 @call_returns_twice(i32 %iptr_jmpbuf, i32 %x) {
 entry:
   %local = add i32 %x, 12345
   %jmpbuf = inttoptr i32 %iptr_jmpbuf to i8*
@@ -32,7 +33,7 @@ NonZero:
 ; There should not be sharing of the stack slot.
 ; CHECK-NOT: mov DWORD PTR [esp + [[OFF]]], [[REG2]]
 
-define i32 @no_call_returns_twice(i32 %iptr_jmpbuf, i32 %x) {
+define internal i32 @no_call_returns_twice(i32 %iptr_jmpbuf, i32 %x) {
 entry:
   %local = add i32 %x, 12345
   %y = call i32 @other(i32 %x)

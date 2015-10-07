@@ -11,7 +11,8 @@
 
 ; insertelement operations
 
-define <4 x float> @insertelement_v4f32_0(<4 x float> %vec, float %elt) {
+define internal <4 x float> @insertelement_v4f32_0(<4 x float> %vec,
+                                                   float %elt) {
 entry:
   %res = insertelement <4 x float> %vec, float %elt, i32 0
   ret <4 x float> %res
@@ -22,7 +23,7 @@ entry:
 ; SSE41: insertps {{.*}},{{.*}},0x0
 }
 
-define <4 x i32> @insertelement_v4i32_0(<4 x i32> %vec, i32 %elt) {
+define internal <4 x i32> @insertelement_v4i32_0(<4 x i32> %vec, i32 %elt) {
 entry:
   %res = insertelement <4 x i32> %vec, i32 %elt, i32 0
   ret <4 x i32> %res
@@ -35,7 +36,8 @@ entry:
 }
 
 
-define <4 x float> @insertelement_v4f32_1(<4 x float> %vec, float %elt) {
+define internal <4 x float> @insertelement_v4f32_1(<4 x float> %vec,
+                                                   float %elt) {
 entry:
   %res = insertelement <4 x float> %vec, float %elt, i32 1
   ret <4 x float> %res
@@ -47,7 +49,7 @@ entry:
 ; SSE41: insertps {{.*}},{{.*}},0x10
 }
 
-define <4 x i32> @insertelement_v4i32_1(<4 x i32> %vec, i32 %elt) {
+define internal <4 x i32> @insertelement_v4i32_1(<4 x i32> %vec, i32 %elt) {
 entry:
   %res = insertelement <4 x i32> %vec, i32 %elt, i32 1
   ret <4 x i32> %res
@@ -59,7 +61,7 @@ entry:
 ; SSE41: pinsrd {{.*}},{{.*}},0x1
 }
 
-define <8 x i16> @insertelement_v8i16(<8 x i16> %vec, i32 %elt.arg) {
+define internal <8 x i16> @insertelement_v8i16(<8 x i16> %vec, i32 %elt.arg) {
 entry:
   %elt = trunc i32 %elt.arg to i16
   %res = insertelement <8 x i16> %vec, i16 %elt, i32 1
@@ -71,7 +73,7 @@ entry:
 ; SSE41: pinsrw
 }
 
-define <16 x i8> @insertelement_v16i8(<16 x i8> %vec, i32 %elt.arg) {
+define internal <16 x i8> @insertelement_v16i8(<16 x i8> %vec, i32 %elt.arg) {
 entry:
   %elt = trunc i32 %elt.arg to i8
   %res = insertelement <16 x i8> %vec, i8 %elt, i32 1
@@ -85,7 +87,7 @@ entry:
 ; SSE41: pinsrb
 }
 
-define <4 x i1> @insertelement_v4i1_0(<4 x i1> %vec, i32 %elt.arg) {
+define internal <4 x i1> @insertelement_v4i1_0(<4 x i1> %vec, i32 %elt.arg) {
 entry:
   %elt = trunc i32 %elt.arg to i1
   %res = insertelement <4 x i1> %vec, i1 %elt, i32 0
@@ -97,7 +99,7 @@ entry:
 ; SSE41: pinsrd {{.*}},{{.*}},0x0
 }
 
-define <4 x i1> @insertelement_v4i1_1(<4 x i1> %vec, i32 %elt.arg) {
+define internal <4 x i1> @insertelement_v4i1_1(<4 x i1> %vec, i32 %elt.arg) {
 entry:
   %elt = trunc i32 %elt.arg to i1
   %res = insertelement <4 x i1> %vec, i1 %elt, i32 1
@@ -110,7 +112,7 @@ entry:
 ; SSE41: pinsrd {{.*}},{{.*}},0x1
 }
 
-define <8 x i1> @insertelement_v8i1(<8 x i1> %vec, i32 %elt.arg) {
+define internal <8 x i1> @insertelement_v8i1(<8 x i1> %vec, i32 %elt.arg) {
 entry:
   %elt = trunc i32 %elt.arg to i1
   %res = insertelement <8 x i1> %vec, i1 %elt, i32 1
@@ -122,7 +124,7 @@ entry:
 ; SSE41: pinsrw
 }
 
-define <16 x i1> @insertelement_v16i1(<16 x i1> %vec, i32 %elt.arg) {
+define internal <16 x i1> @insertelement_v16i1(<16 x i1> %vec, i32 %elt.arg) {
 entry:
   %elt = trunc i32 %elt.arg to i1
   %res = insertelement <16 x i1> %vec, i1 %elt, i32 1
@@ -138,7 +140,7 @@ entry:
 
 ; extractelement operations
 
-define float @extractelement_v4f32(<4 x float> %vec) {
+define internal float @extractelement_v4f32(<4 x float> %vec) {
 entry:
   %res = extractelement <4 x float> %vec, i32 1
   ret float %res
@@ -149,7 +151,7 @@ entry:
 ; SSE41: pshufd
 }
 
-define i32 @extractelement_v4i32(<4 x i32> %vec) {
+define internal i32 @extractelement_v4i32(<4 x i32> %vec) {
 entry:
   %res = extractelement <4 x i32> %vec, i32 1
   ret i32 %res
@@ -161,7 +163,7 @@ entry:
 ; SSE41: pextrd
 }
 
-define i32 @extractelement_v8i16(<8 x i16> %vec) {
+define internal i32 @extractelement_v8i16(<8 x i16> %vec) {
 entry:
   %res = extractelement <8 x i16> %vec, i32 1
   %res.ext = zext i16 %res to i32
@@ -173,7 +175,7 @@ entry:
 ; SSE41: pextrw
 }
 
-define i32 @extractelement_v16i8(<16 x i8> %vec) {
+define internal i32 @extractelement_v16i8(<16 x i8> %vec) {
 entry:
   %res = extractelement <16 x i8> %vec, i32 1
   %res.ext = zext i8 %res to i32
@@ -187,7 +189,7 @@ entry:
 ; SSE41: pextrb
 }
 
-define i32 @extractelement_v4i1(<4 x i1> %vec) {
+define internal i32 @extractelement_v4i1(<4 x i1> %vec) {
 entry:
   %res = extractelement <4 x i1> %vec, i32 1
   %res.ext = zext i1 %res to i32
@@ -199,7 +201,7 @@ entry:
 ; SSE41: pextrd
 }
 
-define i32 @extractelement_v8i1(<8 x i1> %vec) {
+define internal i32 @extractelement_v8i1(<8 x i1> %vec) {
 entry:
   %res = extractelement <8 x i1> %vec, i32 1
   %res.ext = zext i1 %res to i32
@@ -211,7 +213,7 @@ entry:
 ; SSE41: pextrw
 }
 
-define i32 @extractelement_v16i1(<16 x i1> %vec) {
+define internal i32 @extractelement_v16i1(<16 x i1> %vec) {
 entry:
   %res = extractelement <16 x i1> %vec, i32 1
   %res.ext = zext i1 %res to i32

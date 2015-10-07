@@ -8,7 +8,7 @@
 ; RUN: | %if --need=allow_disable_ir_gen --command \
 ; RUN:   FileCheck --check-prefix=NOIR %s
 
-define void @ExtractV4xi1(<4 x i1> %v) {
+define internal void @ExtractV4xi1(<4 x i1> %v) {
 entry:
   %e0 = extractelement <4 x i1> %v, i32 0
   %e1 = extractelement <4 x i1> %v, i32 1
@@ -17,7 +17,7 @@ entry:
   ret void
 }
 
-; CHECK:      define void @ExtractV4xi1(<4 x i1> %v) {
+; CHECK:      define internal void @ExtractV4xi1(<4 x i1> %v) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %e0 = extractelement <4 x i1> %v, i32 0
 ; CHECK-NEXT:   %e1 = extractelement <4 x i1> %v, i32 1
@@ -26,7 +26,7 @@ entry:
 ; CHECK-NEXT:   ret void
 ; CHECK-NEXT: }
 
-define void @ExtractV8xi1(<8 x i1> %v) {
+define internal void @ExtractV8xi1(<8 x i1> %v) {
 entry:
   %e0 = extractelement <8 x i1> %v, i32 0
   %e1 = extractelement <8 x i1> %v, i32 1
@@ -39,7 +39,7 @@ entry:
   ret void
 }
 
-; CHECK-NEXT: define void @ExtractV8xi1(<8 x i1> %v) {
+; CHECK-NEXT: define internal void @ExtractV8xi1(<8 x i1> %v) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %e0 = extractelement <8 x i1> %v, i32 0
 ; CHECK-NEXT:   %e1 = extractelement <8 x i1> %v, i32 1
@@ -52,7 +52,7 @@ entry:
 ; CHECK-NEXT:   ret void
 ; CHECK-NEXT: }
 
-define void @ExtractV16xi1(<16 x i1> %v) {
+define internal void @ExtractV16xi1(<16 x i1> %v) {
 entry:
   %e0 = extractelement <16 x i1> %v, i32 0
   %e1 = extractelement <16 x i1> %v, i32 1
@@ -73,7 +73,7 @@ entry:
   ret void
 }
 
-; CHECK-NEXT: define void @ExtractV16xi1(<16 x i1> %v) {
+; CHECK-NEXT: define internal void @ExtractV16xi1(<16 x i1> %v) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %e0 = extractelement <16 x i1> %v, i32 0
 ; CHECK-NEXT:   %e1 = extractelement <16 x i1> %v, i32 1
@@ -94,7 +94,7 @@ entry:
 ; CHECK-NEXT:   ret void
 ; CHECK-NEXT: }
 
-define void @ExtractV16xi8(<16 x i8> %v, i32 %i) {
+define internal void @ExtractV16xi8(<16 x i8> %v, i32 %i) {
 entry:
   %e0 = extractelement <16 x i8> %v, i32 0
   %e1 = extractelement <16 x i8> %v, i32 1
@@ -115,7 +115,7 @@ entry:
   ret void
 }
 
-; CHECK-NEXT: define void @ExtractV16xi8(<16 x i8> %v, i32 %i) {
+; CHECK-NEXT: define internal void @ExtractV16xi8(<16 x i8> %v, i32 %i) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %e0 = extractelement <16 x i8> %v, i32 0
 ; CHECK-NEXT:   %e1 = extractelement <16 x i8> %v, i32 1
@@ -136,7 +136,7 @@ entry:
 ; CHECK-NEXT:   ret void
 ; CHECK-NEXT: }
 
-define void @ExtractV8xi16(<8 x i16> %v) {
+define internal void @ExtractV8xi16(<8 x i16> %v) {
 entry:
   %e0 = extractelement <8 x i16> %v, i32 0
   %e1 = extractelement <8 x i16> %v, i32 1
@@ -149,7 +149,7 @@ entry:
   ret void
 }
 
-; CHECK-NEXT: define void @ExtractV8xi16(<8 x i16> %v) {
+; CHECK-NEXT: define internal void @ExtractV8xi16(<8 x i16> %v) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %e0 = extractelement <8 x i16> %v, i32 0
 ; CHECK-NEXT:   %e1 = extractelement <8 x i16> %v, i32 1
@@ -162,7 +162,7 @@ entry:
 ; CHECK-NEXT:   ret void
 ; CHECK-NEXT: }
 
-define i32 @ExtractV4xi32(<4 x i32> %v) {
+define internal i32 @ExtractV4xi32(<4 x i32> %v) {
 entry:
   %e0 = extractelement <4 x i32> %v, i32 0
   %e1 = extractelement <4 x i32> %v, i32 1
@@ -171,7 +171,7 @@ entry:
   ret i32 %e0
 }
 
-; CHECK-NEXT: define i32 @ExtractV4xi32(<4 x i32> %v) {
+; CHECK-NEXT: define internal i32 @ExtractV4xi32(<4 x i32> %v) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %e0 = extractelement <4 x i32> %v, i32 0
 ; CHECK-NEXT:   %e1 = extractelement <4 x i32> %v, i32 1
@@ -180,7 +180,7 @@ entry:
 ; CHECK-NEXT:   ret i32 %e0
 ; CHECK-NEXT: }
 
-define float @ExtractV4xfloat(<4 x float> %v) {
+define internal float @ExtractV4xfloat(<4 x float> %v) {
 entry:
   %e0 = extractelement <4 x float> %v, i32 0
   %e1 = extractelement <4 x float> %v, i32 1
@@ -189,7 +189,7 @@ entry:
   ret float %e0
 }
 
-; CHECK-NEXT: define float @ExtractV4xfloat(<4 x float> %v) {
+; CHECK-NEXT: define internal float @ExtractV4xfloat(<4 x float> %v) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %e0 = extractelement <4 x float> %v, i32 0
 ; CHECK-NEXT:   %e1 = extractelement <4 x float> %v, i32 1
@@ -198,7 +198,7 @@ entry:
 ; CHECK-NEXT:   ret float %e0
 ; CHECK-NEXT: }
 
-define <4 x i1> @InsertV4xi1(<4 x i1> %v, i32 %pe) {
+define internal <4 x i1> @InsertV4xi1(<4 x i1> %v, i32 %pe) {
 entry:
   %e = trunc i32 %pe to i1
   %r0 = insertelement <4 x i1> %v, i1 %e, i32 0
@@ -208,7 +208,7 @@ entry:
   ret <4 x i1> %r3
 }
 
-; CHECK-NEXT: define <4 x i1> @InsertV4xi1(<4 x i1> %v, i32 %pe) {
+; CHECK-NEXT: define internal <4 x i1> @InsertV4xi1(<4 x i1> %v, i32 %pe) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %e = trunc i32 %pe to i1
 ; CHECK-NEXT:   %r0 = insertelement <4 x i1> %v, i1 %e, i32 0
@@ -218,7 +218,7 @@ entry:
 ; CHECK-NEXT:   ret <4 x i1> %r3
 ; CHECK-NEXT: }
 
-define <8 x i1> @InsertV8xi1(<8 x i1> %v, i32 %pe) {
+define internal <8 x i1> @InsertV8xi1(<8 x i1> %v, i32 %pe) {
 entry:
   %e = trunc i32 %pe to i1
   %r0 = insertelement <8 x i1> %v, i1 %e, i32 0
@@ -232,7 +232,7 @@ entry:
   ret <8 x i1> %r7
 }
 
-; CHECK-NEXT: define <8 x i1> @InsertV8xi1(<8 x i1> %v, i32 %pe) {
+; CHECK-NEXT: define internal <8 x i1> @InsertV8xi1(<8 x i1> %v, i32 %pe) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %e = trunc i32 %pe to i1
 ; CHECK-NEXT:   %r0 = insertelement <8 x i1> %v, i1 %e, i32 0
@@ -246,7 +246,7 @@ entry:
 ; CHECK-NEXT:   ret <8 x i1> %r7
 ; CHECK-NEXT: }
 
-define <16 x i1> @InsertV16xi1(<16 x i1> %v, i32 %pe) {
+define internal <16 x i1> @InsertV16xi1(<16 x i1> %v, i32 %pe) {
 entry:
   %e = trunc i32 %pe to i1
   %r0 = insertelement <16 x i1> %v, i1 %e, i32 0
@@ -268,7 +268,7 @@ entry:
   ret <16 x i1> %r15
 }
 
-; CHECK-NEXT: define <16 x i1> @InsertV16xi1(<16 x i1> %v, i32 %pe) {
+; CHECK-NEXT: define internal <16 x i1> @InsertV16xi1(<16 x i1> %v, i32 %pe) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %e = trunc i32 %pe to i1
 ; CHECK-NEXT:   %r0 = insertelement <16 x i1> %v, i1 %e, i32 0
@@ -290,7 +290,7 @@ entry:
 ; CHECK-NEXT:   ret <16 x i1> %r15
 ; CHECK-NEXT: }
 
-define <16 x i8> @InsertV16xi8(<16 x i8> %v, i32 %pe) {
+define internal <16 x i8> @InsertV16xi8(<16 x i8> %v, i32 %pe) {
 entry:
   %e = trunc i32 %pe to i8
   %r0 = insertelement <16 x i8> %v, i8 %e, i32 0
@@ -304,7 +304,7 @@ entry:
   ret <16 x i8> %r7
 }
 
-; CHECK-NEXT: define <16 x i8> @InsertV16xi8(<16 x i8> %v, i32 %pe) {
+; CHECK-NEXT: define internal <16 x i8> @InsertV16xi8(<16 x i8> %v, i32 %pe) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %e = trunc i32 %pe to i8
 ; CHECK-NEXT:   %r0 = insertelement <16 x i8> %v, i8 %e, i32 0
@@ -318,7 +318,7 @@ entry:
 ; CHECK-NEXT:   ret <16 x i8> %r7
 ; CHECK-NEXT: }
 
-define <8 x i16> @InsertV8xi16(<8 x i16> %v, i32 %pe) {
+define internal <8 x i16> @InsertV8xi16(<8 x i16> %v, i32 %pe) {
 entry:
   %e = trunc i32 %pe to i16
   %r0 = insertelement <8 x i16> %v, i16 %e, i32 0
@@ -332,7 +332,7 @@ entry:
   ret <8 x i16> %r7
 }
 
-; CHECK-NEXT: define <8 x i16> @InsertV8xi16(<8 x i16> %v, i32 %pe) {
+; CHECK-NEXT: define internal <8 x i16> @InsertV8xi16(<8 x i16> %v, i32 %pe) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %e = trunc i32 %pe to i16
 ; CHECK-NEXT:   %r0 = insertelement <8 x i16> %v, i16 %e, i32 0
@@ -346,7 +346,7 @@ entry:
 ; CHECK-NEXT:   ret <8 x i16> %r7
 ; CHECK-NEXT: }
 
-define <4 x i32> @InsertV4xi32(<4 x i32> %v, i32 %e) {
+define internal <4 x i32> @InsertV4xi32(<4 x i32> %v, i32 %e) {
 entry:
   %r0 = insertelement <4 x i32> %v, i32 %e, i32 0
   %r1 = insertelement <4 x i32> %v, i32 %e, i32 1
@@ -355,7 +355,7 @@ entry:
   ret <4 x i32> %r3
 }
 
-; CHECK-NEXT: define <4 x i32> @InsertV4xi32(<4 x i32> %v, i32 %e) {
+; CHECK-NEXT: define internal <4 x i32> @InsertV4xi32(<4 x i32> %v, i32 %e) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %r0 = insertelement <4 x i32> %v, i32 %e, i32 0
 ; CHECK-NEXT:   %r1 = insertelement <4 x i32> %v, i32 %e, i32 1
@@ -364,7 +364,7 @@ entry:
 ; CHECK-NEXT:   ret <4 x i32> %r3
 ; CHECK-NEXT: }
 
-define <4 x float> @InsertV4xfloat(<4 x float> %v, float %e) {
+define internal <4 x float> @InsertV4xfloat(<4 x float> %v, float %e) {
 entry:
   %r0 = insertelement <4 x float> %v, float %e, i32 0
   %r1 = insertelement <4 x float> %v, float %e, i32 1
@@ -373,7 +373,7 @@ entry:
   ret <4 x float> %r3
 }
 
-; CHECK-NEXT: define <4 x float> @InsertV4xfloat(<4 x float> %v, float %e) {
+; CHECK-NEXT: define internal <4 x float> @InsertV4xfloat(<4 x float> %v, float %e) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %r0 = insertelement <4 x float> %v, float %e, i32 0
 ; CHECK-NEXT:   %r1 = insertelement <4 x float> %v, float %e, i32 1

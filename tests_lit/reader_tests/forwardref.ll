@@ -8,7 +8,7 @@
 ; RUN: | %if --need=allow_disable_ir_gen --command \
 ; RUN:   FileCheck --check-prefix=NOIR %s
 
-define void @LoopCarriedDep() {
+define internal void @LoopCarriedDep() {
 b0:
   %v0 = add i32 1, 2
   br label %b1
@@ -18,7 +18,7 @@ b1:
   br label %b1
 }
 
-; CHECK:      define void @LoopCarriedDep() {
+; CHECK:      define internal void @LoopCarriedDep() {
 ; CHECK-NEXT: b0:
 ; CHECK-NEXT:   %v0 = add i32 1, 2
 ; CHECK-NEXT:   br label %b1
@@ -46,7 +46,7 @@ b1:
 ; DUMP-NEXT:     br label %b1;
 ; DUMP-NEXT:   }
 
-define void @BackBranch(i32 %p0) {
+define internal void @BackBranch(i32 %p0) {
 b0:
   br label %b4
 b1:
@@ -68,7 +68,7 @@ b6:
   ret void
 }
 
-; CHECK:      define void @BackBranch(i32 %p0) {
+; CHECK:      define internal void @BackBranch(i32 %p0) {
 ; CHECK-NEXT: b0:
 ; CHECK-NEXT:   br label %b4
 ; CHECK-NEXT: b1:

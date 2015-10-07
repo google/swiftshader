@@ -1,9 +1,9 @@
 ; This tests the optimization of atomic cmpxchg w/ following cmp + branches.
 
 ; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 \
-; RUN:   | FileCheck --check-prefix=O2 %s
+; RUN:   -allow-externally-defined-symbols | FileCheck --check-prefix=O2 %s
 ; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 \
-; RUN:   | FileCheck --check-prefix=OM1 %s
+; RUN:   -allow-externally-defined-symbols | FileCheck --check-prefix=OM1 %s
 
 declare i32 @llvm.nacl.atomic.cmpxchg.i32(i32*, i32, i32, i32, i32)
 
@@ -14,7 +14,8 @@ declare i32 @llvm.nacl.atomic.cmpxchg.i32(i32*, i32, i32, i32, i32)
 ; (Or if we had other means to detect the only use).
 declare void @use_value(i32)
 
-define i32 @test_atomic_cmpxchg_loop(i32 %iptr, i32 %expected, i32 %desired) {
+define internal i32 @test_atomic_cmpxchg_loop(i32 %iptr, i32 %expected,
+                                              i32 %desired) {
 entry:
   br label %loop
 
@@ -45,7 +46,8 @@ done:
 ; OM1: call
 
 ; Still works if the compare operands are flipped.
-define i32 @test_atomic_cmpxchg_loop2(i32 %iptr, i32 %expected, i32 %desired) {
+define internal i32 @test_atomic_cmpxchg_loop2(i32 %iptr, i32 %expected,
+                                               i32 %desired) {
 entry:
   br label %loop
 
@@ -67,7 +69,7 @@ done:
 
 
 ; Still works if the compare operands are constants.
-define i32 @test_atomic_cmpxchg_loop_const(i32 %iptr, i32 %desired) {
+define internal i32 @test_atomic_cmpxchg_loop_const(i32 %iptr, i32 %desired) {
 entry:
   br label %loop
 
@@ -88,7 +90,8 @@ done:
 
 ; This is a case where the flags cannot be reused (compare is for some
 ; other condition).
-define i32 @test_atomic_cmpxchg_no_opt(i32 %iptr, i32 %expected, i32 %desired) {
+define internal i32 @test_atomic_cmpxchg_no_opt(i32 %iptr, i32 %expected,
+                                                i32 %desired) {
 entry:
   br label %loop
 
@@ -110,7 +113,8 @@ done:
 
 ; Another case where the flags cannot be reused (the comparison result
 ; is used somewhere else).
-define i32 @test_atomic_cmpxchg_no_opt2(i32 %iptr, i32 %expected, i32 %desired) {
+define internal i32 @test_atomic_cmpxchg_no_opt2(i32 %iptr, i32 %expected,
+                                                 i32 %desired) {
 entry:
   br label %loop
 

@@ -23,7 +23,7 @@ declare i1 @llvm.nacl.atomic.is.lock.free(i32, i8*)
 ;;; Check unexpected memory order parameter (release=4 and acq_rel=5
 ;;; are disallowed).
 
-define i32 @error_atomic_load_8(i32 %iptr) {
+define internal i32 @error_atomic_load_8(i32 %iptr) {
 entry:
   %ptr = inttoptr i32 %iptr to i8*
   %i = call i8 @llvm.nacl.atomic.load.i8(i8* %ptr, i32 0)
@@ -32,7 +32,7 @@ entry:
 }
 ; CHECK: Unexpected memory ordering for AtomicLoad
 
-define i32 @error_atomic_load_16(i32 %iptr) {
+define internal i32 @error_atomic_load_16(i32 %iptr) {
 entry:
   %ptr = inttoptr i32 %iptr to i16*
   %i = call i16 @llvm.nacl.atomic.load.i16(i16* %ptr, i32 4)
@@ -41,7 +41,7 @@ entry:
 }
 ; CHECK: Unexpected memory ordering for AtomicLoad
 
-define i64 @error_atomic_load_64(i32 %iptr) {
+define internal i64 @error_atomic_load_64(i32 %iptr) {
 entry:
   %ptr = inttoptr i32 %iptr to i64*
   %r = call i64 @llvm.nacl.atomic.load.i64(i64* %ptr, i32 5)
@@ -53,7 +53,7 @@ entry:
 ;;; Store
 ;;; consume=2, acquire=3, acq_rel=5 are disallowed
 
-define void @error_atomic_store_32(i32 %iptr, i32 %v) {
+define internal void @error_atomic_store_32(i32 %iptr, i32 %v) {
 entry:
   %ptr = inttoptr i32 %iptr to i32*
   call void @llvm.nacl.atomic.store.i32(i32 %v, i32* %ptr, i32 2)
@@ -61,7 +61,7 @@ entry:
 }
 ; CHECK: Unexpected memory ordering for AtomicStore
 
-define void @error_atomic_store_64(i32 %iptr, i64 %v) {
+define internal void @error_atomic_store_64(i32 %iptr, i64 %v) {
 entry:
   %ptr = inttoptr i32 %iptr to i64*
   call void @llvm.nacl.atomic.store.i64(i64 %v, i64* %ptr, i32 3)
@@ -69,7 +69,7 @@ entry:
 }
 ; CHECK: Unexpected memory ordering for AtomicStore
 
-define void @error_atomic_store_64_const(i32 %iptr) {
+define internal void @error_atomic_store_64_const(i32 %iptr) {
 entry:
   %ptr = inttoptr i32 %iptr to i64*
   call void @llvm.nacl.atomic.store.i64(i64 12345678901234, i64* %ptr, i32 5)
@@ -81,7 +81,7 @@ entry:
 ;;; Test atomic memory order and operation.
 ;;; Modes 3:6 allowed.
 
-define i32 @error_atomic_rmw_add_8(i32 %iptr, i32 %v) {
+define internal i32 @error_atomic_rmw_add_8(i32 %iptr, i32 %v) {
 entry:
   %trunc = trunc i32 %v to i8
   %ptr = inttoptr i32 %iptr to i8*
@@ -91,7 +91,7 @@ entry:
 }
 ; CHECK: Unexpected memory ordering for AtomicRMW
 
-define i64 @error_atomic_rmw_add_64(i32 %iptr, i64 %v) {
+define internal i64 @error_atomic_rmw_add_64(i32 %iptr, i64 %v) {
 entry:
   %ptr = inttoptr i32 %iptr to i64*
   %a = call i64 @llvm.nacl.atomic.rmw.i64(i32 1, i64* %ptr, i64 %v, i32 7)
@@ -99,7 +99,7 @@ entry:
 }
 ; CHECK: Unexpected memory ordering for AtomicRMW
 
-define i32 @error_atomic_rmw_add_16(i32 %iptr, i32 %v) {
+define internal i32 @error_atomic_rmw_add_16(i32 %iptr, i32 %v) {
 entry:
   %trunc = trunc i32 %v to i16
   %ptr = inttoptr i32 %iptr to i16*
@@ -109,7 +109,7 @@ entry:
 }
 ; CHECK: Unknown AtomicRMW operation
 
-define i32 @error_atomic_rmw_add_32(i32 %iptr, i32 %v) {
+define internal i32 @error_atomic_rmw_add_32(i32 %iptr, i32 %v) {
 entry:
   %ptr = inttoptr i32 %iptr to i32*
   %a = call i32 @llvm.nacl.atomic.rmw.i32(i32 7, i32* %ptr, i32 %v, i32 6)
@@ -117,7 +117,7 @@ entry:
 }
 ; CHECK: Unknown AtomicRMW operation
 
-define i32 @error_atomic_rmw_add_32_max(i32 %iptr, i32 %v) {
+define internal i32 @error_atomic_rmw_add_32_max(i32 %iptr, i32 %v) {
 entry:
   %ptr = inttoptr i32 %iptr to i32*
   %a = call i32 @llvm.nacl.atomic.rmw.i32(i32 4294967295, i32* %ptr, i32 %v, i32 6)
@@ -127,7 +127,8 @@ entry:
 
 ;;; Cmpxchg
 
-define i32 @error_atomic_cmpxchg_32_success(i32 %iptr, i32 %expected, i32 %desired) {
+define internal i32 @error_atomic_cmpxchg_32_success(i32 %iptr, i32 %expected,
+                                                     i32 %desired) {
 entry:
   %ptr = inttoptr i32 %iptr to i32*
   %old = call i32 @llvm.nacl.atomic.cmpxchg.i32(i32* %ptr, i32 %expected,
@@ -136,7 +137,8 @@ entry:
 }
 ; CHECK: Unexpected memory ordering for AtomicCmpxchg
 
-define i32 @error_atomic_cmpxchg_32_failure(i32 %iptr, i32 %expected, i32 %desired) {
+define internal i32 @error_atomic_cmpxchg_32_failure(i32 %iptr, i32 %expected,
+                                                     i32 %desired) {
 entry:
   %ptr = inttoptr i32 %iptr to i32*
   %old = call i32 @llvm.nacl.atomic.cmpxchg.i32(i32* %ptr, i32 %expected,
@@ -145,7 +147,8 @@ entry:
 }
 ; CHECK: Unexpected memory ordering for AtomicCmpxchg
 
-define i64 @error_atomic_cmpxchg_64_failure(i32 %iptr, i64 %expected, i64 %desired) {
+define internal i64 @error_atomic_cmpxchg_64_failure(i32 %iptr, i64 %expected,
+                                                     i64 %desired) {
 entry:
   %ptr = inttoptr i32 %iptr to i64*
   %old = call i64 @llvm.nacl.atomic.cmpxchg.i64(i64* %ptr, i64 %expected,
@@ -156,14 +159,14 @@ entry:
 
 ;;; Fence and is-lock-free.
 
-define void @error_atomic_fence() {
+define internal void @error_atomic_fence() {
 entry:
   call void @llvm.nacl.atomic.fence(i32 0)
   ret void
 }
 ; CHECK: Unexpected memory ordering for AtomicFence
 
-define i32 @error_atomic_is_lock_free_var(i32 %iptr, i32 %bs) {
+define internal i32 @error_atomic_is_lock_free_var(i32 %iptr, i32 %bs) {
 entry:
   %ptr = inttoptr i32 %iptr to i8*
   %i = call i1 @llvm.nacl.atomic.is.lock.free(i32 %bs, i8* %ptr)
@@ -175,7 +178,7 @@ entry:
 
 ;;; Test bad non-constant memory ordering values.
 
-define i32 @error_atomic_load_8_nonconst(i32 %iptr) {
+define internal i32 @error_atomic_load_8_nonconst(i32 %iptr) {
 entry:
   %ptr = inttoptr i32 %iptr to i8*
   %i = call i8 @llvm.nacl.atomic.load.i8(i8* %ptr, i32 %iptr)
@@ -184,7 +187,7 @@ entry:
 }
 ; CHECK: Unexpected memory ordering for AtomicLoad
 
-define void @error_atomic_store_32_nonconst(i32 %iptr, i32 %v) {
+define internal void @error_atomic_store_32_nonconst(i32 %iptr, i32 %v) {
 entry:
   %ptr = inttoptr i32 %iptr to i32*
   call void @llvm.nacl.atomic.store.i32(i32 %v, i32* %ptr, i32 %v)
@@ -192,7 +195,7 @@ entry:
 }
 ; CHECK: Unexpected memory ordering for AtomicStore
 
-define i32 @error_atomic_rmw_add_8_nonconst(i32 %iptr, i32 %v) {
+define internal i32 @error_atomic_rmw_add_8_nonconst(i32 %iptr, i32 %v) {
 entry:
   %trunc = trunc i32 %v to i8
   %ptr = inttoptr i32 %iptr to i8*
@@ -202,7 +205,8 @@ entry:
 }
 ; CHECK: Unexpected memory ordering for AtomicRMW
 
-define i32 @error_atomic_cmpxchg_32_success_nonconst_1(i32 %iptr, i32 %expected, i32 %desired) {
+define internal i32 @error_atomic_cmpxchg_32_success_nonconst_1(i32 %iptr, i32 %expected,
+                                                                i32 %desired) {
 entry:
   %ptr = inttoptr i32 %iptr to i32*
   %old = call i32 @llvm.nacl.atomic.cmpxchg.i32(i32* %ptr, i32 %expected,
@@ -211,7 +215,8 @@ entry:
 }
 ; CHECK: Unexpected memory ordering for AtomicCmpxchg
 
-define i32 @error_atomic_cmpxchg_32_success_nonconst_2(i32 %iptr, i32 %expected, i32 %desired) {
+define internal i32 @error_atomic_cmpxchg_32_success_nonconst_2(i32 %iptr, i32 %expected,
+                                                                i32 %desired) {
 entry:
   %ptr = inttoptr i32 %iptr to i32*
   %old = call i32 @llvm.nacl.atomic.cmpxchg.i32(i32* %ptr, i32 %expected,
@@ -220,7 +225,7 @@ entry:
 }
 ; CHECK: Unexpected memory ordering for AtomicCmpxchg
 
-define void @error_atomic_fence_nonconst(i32 %v) {
+define internal void @error_atomic_fence_nonconst(i32 %v) {
 entry:
   call void @llvm.nacl.atomic.fence(i32 %v)
   ret void

@@ -6,7 +6,7 @@
 ; RUN: | %if --need=allow_disable_ir_gen --command \
 ; RUN:   FileCheck --check-prefix=NOIR %s
 
-define void @SimpleBranch() {
+define internal void @SimpleBranch() {
 entry:
   br label %b3
 b1:
@@ -17,7 +17,7 @@ b3:
   br label %b1
 }
 
-; CHECK:      define void @SimpleBranch() {
+; CHECK:      define internal void @SimpleBranch() {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   br label %b3
 ; CHECK-NEXT: b1:
@@ -28,7 +28,7 @@ b3:
 ; CHECK-NEXT:   br label %b1
 ; CHECK-NEXT: }
 
-define void @CondBranch(i32 %p) {
+define internal void @CondBranch(i32 %p) {
 entry:
   %test = trunc i32 %p to i1
   br i1 %test, label %b1, label %b2
@@ -38,7 +38,7 @@ b2:
   br i1 %test, label %b2, label %b1
 }
 
-; CHECK-NEXT: define void @CondBranch(i32 %p) {
+; CHECK-NEXT: define internal void @CondBranch(i32 %p) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %test = trunc i32 %p to i1
 ; CHECK-NEXT:   br i1 %test, label %b1, label %b2

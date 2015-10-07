@@ -6,7 +6,7 @@
 ; RUN: | %if --need=allow_disable_ir_gen --command \
 ; RUN:   FileCheck --check-prefix=NOIR %s
 
-define void @store_i8(i32 %addr) {
+define internal void @store_i8(i32 %addr) {
 entry:
   %addr_i8 = inttoptr i32 %addr to i8*
   store i8 3, i8* %addr_i8, align 1
@@ -17,7 +17,7 @@ entry:
 ; CHECK-NEXT:   ret void
 }
 
-define void @store_i16(i32 %addr) {
+define internal void @store_i16(i32 %addr) {
 entry:
   %addr_i16 = inttoptr i32 %addr to i16*
   store i16 5, i16* %addr_i16, align 1
@@ -28,7 +28,7 @@ entry:
 ; CHECK-NEXT:   ret void
 }
 
-define void @store_i32(i32 %addr, i32 %v) {
+define internal void @store_i32(i32 %addr, i32 %v) {
 entry:
   %addr_i32 = inttoptr i32 %addr to i32*
   store i32 %v, i32* %addr_i32, align 1
@@ -39,7 +39,7 @@ entry:
 ; CHECK-NEXT:   ret void
 }
 
-define void @store_i64(i32 %addr, i64 %v) {
+define internal void @store_i64(i32 %addr, i64 %v) {
 entry:
   %addr_i64 = inttoptr i32 %addr to i64*
   store i64 %v, i64* %addr_i64, align 1
@@ -50,7 +50,7 @@ entry:
 ; CHECK-NEXT:   ret void
 }
 
-define void @store_float_a1(i32 %addr, float %v) {
+define internal void @store_float_a1(i32 %addr, float %v) {
 entry:
   %addr_float = inttoptr i32 %addr to float*
   store float %v, float* %addr_float, align 1
@@ -63,7 +63,7 @@ entry:
 ; CHECK-NEXT:   ret void
 }
 
-define void @store_float_a4(i32 %addr, float %v) {
+define internal void @store_float_a4(i32 %addr, float %v) {
 entry:
   %addr_float = inttoptr i32 %addr to float*
   store float %v, float* %addr_float, align 4
@@ -74,7 +74,7 @@ entry:
 ; CHECK-NEXT:   ret void
 }
 
-define void @store_double_a1(i32 %addr, double %v) {
+define internal void @store_double_a1(i32 %addr, double %v) {
 entry:
   %addr_double = inttoptr i32 %addr to double*
   store double %v, double* %addr_double, align 1
@@ -87,7 +87,7 @@ entry:
 ; CHECK-NEXT:   ret void
 }
 
-define void @store_double_a8(i32 %addr, double %v) {
+define internal void @store_double_a8(i32 %addr, double %v) {
 entry:
   %addr_double = inttoptr i32 %addr to double*
   store double %v, double* %addr_double, align 8
@@ -98,7 +98,7 @@ entry:
 ; CHECK-NEXT:   ret void
 }
 
-define void @store_v16xI8(i32 %addr, <16 x i8> %v) {
+define internal void @store_v16xI8(i32 %addr, <16 x i8> %v) {
   %addr_v16xI8 = inttoptr i32 %addr to <16 x i8>*
   store <16 x i8> %v, <16 x i8>* %addr_v16xI8, align 1
   ret void
@@ -108,7 +108,7 @@ define void @store_v16xI8(i32 %addr, <16 x i8> %v) {
 ; CHECK-NEXT:   ret void
 }
 
-define void @store_v8xI16(i32 %addr, <8 x i16> %v) {
+define internal void @store_v8xI16(i32 %addr, <8 x i16> %v) {
   %addr_v8xI16 = inttoptr i32 %addr to <8 x i16>*
   store <8 x i16> %v, <8 x i16>* %addr_v8xI16, align 2
   ret void
@@ -118,7 +118,7 @@ define void @store_v8xI16(i32 %addr, <8 x i16> %v) {
 ; CHECK-NEXT:   ret void
 }
 
-define void @store_v4xI32(i32 %addr, <4 x i32> %v) {
+define internal void @store_v4xI32(i32 %addr, <4 x i32> %v) {
   %addr_v4xI32 = inttoptr i32 %addr to <4 x i32>*
   store <4 x i32> %v, <4 x i32>* %addr_v4xI32, align 4
   ret void
@@ -128,7 +128,7 @@ define void @store_v4xI32(i32 %addr, <4 x i32> %v) {
 ; CHECK-NEXT:   ret void
 }
 
-define void @store_v4xFloat(i32 %addr, <4 x float> %v) {
+define internal void @store_v4xFloat(i32 %addr, <4 x float> %v) {
   %addr_v4xFloat = inttoptr i32 %addr to <4 x float>*
   store <4 x float> %v, <4 x float>* %addr_v4xFloat, align 4
   ret void

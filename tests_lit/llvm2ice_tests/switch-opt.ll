@@ -11,7 +11,7 @@
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:     --command FileCheck --check-prefix ARM32 %s
 
-define i32 @testSwitch(i32 %a) {
+define internal i32 @testSwitch(i32 %a) {
 entry:
   switch i32 %a, label %sw.default [
     i32 1, label %sw.epilog
@@ -44,7 +44,7 @@ sw.epilog:                                        ; preds = %sw.bb2, %sw.default
 ; immediate.  It's important that there is exactly one case, because
 ; for two or more cases the source operand is legalized into a
 ; register.
-define i32 @testSwitchImm() {
+define internal i32 @testSwitchImm() {
 entry:
   switch i32 10, label %sw.default [
     i32 1, label %sw.default
@@ -105,7 +105,7 @@ return:                                           ; preds = %sw.default, %sw.bb3
 ; Similar to testSwitchImm, make sure proper addressing modes are
 ; used.  In reality, this is tested by running the output through the
 ; assembler.
-define i32 @testSwitchImm64() {
+define internal i32 @testSwitchImm64() {
 entry:
   switch i64 10, label %sw.default [
     i64 1, label %sw.default
@@ -120,7 +120,7 @@ sw.default:
 ; ARM32-NEXT: beq [[ADDR:[0-9a-f]+]]
 ; ARM32-NEXT: b [[ADDR]]
 
-define i32 @testSwitchUndef64() {
+define internal i32 @testSwitchUndef64() {
 entry:
   switch i64 undef, label %sw.default [
     i64 1, label %sw.default

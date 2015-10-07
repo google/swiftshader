@@ -258,9 +258,9 @@
 ; CHECK:	.zero	2
 ; CHECK:	.size	short, 2
 
-define void @func() {
+define internal void @func() {
   ret void
 }
 
-; DUMP: define void @func() {
+; DUMP: define internal void @func() {
 

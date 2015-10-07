@@ -3,11 +3,11 @@
 
 ; RUN: %p2i --assemble --disassemble --filetype=obj --dis-flags=-s \
 ; RUN:   --target x8632 -i %s --args -sz-seed=1 -O2 -reorder-pooled-constants \
-; RUN:   | FileCheck %s --check-prefix=X86
+; RUN:   -allow-externally-defined-symbols | FileCheck %s --check-prefix=X86
 
 ; RUN: %p2i --assemble --disassemble --filetype=obj --dis-flags=-s \
 ; RUN:   --target x8632 -i %s --args -sz-seed=1 -Om1 -reorder-pooled-constants \
-; RUN:   | FileCheck %s --check-prefix=X86
+; RUN:   -allow-externally-defined-symbols | FileCheck %s --check-prefix=X86
 
 @__init_array_start = internal constant [0 x i8] zeroinitializer, align 4
 @__fini_array_start = internal constant [0 x i8] zeroinitializer, align 4

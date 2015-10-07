@@ -19,7 +19,7 @@
 ; RUN:    | FileCheck %s --check-prefix=POOLING
 
 
-define i32 @add_arg_plus_200000(i32 %arg) {
+define internal i32 @add_arg_plus_200000(i32 %arg) {
 entry:
   %res = add i32 200000, %arg
   ret i32 %res
@@ -36,7 +36,7 @@ entry:
 ; POOLING: mov e{{[a-z]*}},DWORD PTR ds:0x0 {{[0-9a-f]*}}: R_386_32 .L$i32$00030d40
 }
 
-define float @load_arg_plus_200000(float* %arg) {
+define internal float @load_arg_plus_200000(float* %arg) {
 entry:
   %arg.int = ptrtoint float* %arg to i32
   %addr.int = add i32 %arg.int, 200000
@@ -53,7 +53,7 @@ entry:
 ; POOLING: mov e{{[a-z]*}},DWORD PTR ds:0x0 {{[0-9a-f]*}}: R_386_32 .L$i32$00030d40
 }
 
-define i64 @add_arg_plus_64bits(i32 %arg) {
+define internal i64 @add_arg_plus_64bits(i32 %arg) {
 entry:
   %0 = sext i32 %arg to i64
   %res = add i64 90000000000, %0
@@ -73,7 +73,7 @@ entry:
 ; POOLING: mov e{{[a-z]*}},DWORD PTR ds:0x0 {{[0-9a-f]*}}: R_386_32 .L$i32$f46b0400
 }
 
-define i64 @load_arg_plus_64bits(i64* %arg) {
+define internal i64 @load_arg_plus_64bits(i64* %arg) {
 entry:
   %arg.int = ptrtoint i64* %arg to i32
   %arg.new = add i32 %arg.int, 90000

@@ -5,15 +5,15 @@
 
 ; REQUIRES: allow_dump
 
-define void @consume_float(float %f) {
+define internal void @consume_float(float %f) {
   ret void
 }
 
-define void @consume_double(double %d) {
+define internal void @consume_double(double %d) {
   ret void
 }
 
-define void @test_zeros() {
+define internal void @test_zeros() {
 entry:
   call void @consume_float(float 0.0)
   call void @consume_float(float -0.0)
@@ -34,7 +34,7 @@ entry:
 ; ZERO-NEXT: call void @consume_double(double -0.0
 
 
-define void @test_nans() {
+define internal void @test_nans() {
 entry:
   call void @consume_float(float 0x7FF8000000000000)
   call void @consume_float(float 0x7FF8000000000000)

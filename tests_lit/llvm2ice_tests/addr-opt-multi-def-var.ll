@@ -7,7 +7,8 @@
 
 ; REQUIRES: target_X8632
 ; REQUIRES: allow_dump
-; RUN: %p2i -i %s --args -O2 --verbose addropt | FileCheck %s
+; RUN: %p2i -i %s --args -O2 --verbose addropt \
+; RUN:   -allow-externally-defined-symbols | FileCheck %s
 
 declare i32 @_calloc_r(i32, i32, i32)
 

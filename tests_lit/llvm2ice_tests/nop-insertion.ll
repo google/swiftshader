@@ -19,7 +19,7 @@
 ; RUN:    | FileCheck %s --check-prefix=SANDBOX50
 
 
-define <4 x i32> @mul_v4i32(<4 x i32> %a, <4 x i32> %b) {
+define internal <4 x i32> @mul_v4i32(<4 x i32> %a, <4 x i32> %b) {
 entry:
   %res = mul <4 x i32> %a, %b
   ret <4 x i32> %res
