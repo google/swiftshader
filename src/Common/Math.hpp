@@ -323,7 +323,7 @@ namespace sw
 			const float blue_c = sw::max(0.0f, sw::min(MaxValue, blue));
 
 			const float max_c = sw::max(sw::max(red_c, green_c), blue_c);
-			const float exp_p = sw::max(-Bias - 1.0f, floor(log(max_c))) + 1.0f + Bias;
+			const float exp_p = sw::max(-Bias - 1.0f, floorf(log(max_c))) + 1.0f + Bias;
 			const int max_s = static_cast<int>(floor((max_c / (pow(2.0f, exp_p - Bias - MantissaBits))) + 0.5f));
 			const int exp_s = static_cast<int>((max_s < pow(2.0f, MantissaBits)) ? exp_p : exp_p + 1);
 
