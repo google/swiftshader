@@ -114,7 +114,7 @@
 //     is_preserved = 1 if i >= 16 else 0
 //     print ('  X(Reg_s{regnum:<2}, {regnum:<2}, "s{regnum}", ' +
 //            '{scratch}, {preserved}, 0, 0, 0, 0, 1, 0, 0, ' +
-//            'ALIASES(Reg_s{regnum_s:<2}, Reg_d{regnum:<2}, ' + 
+//            'ALIASES(Reg_s{regnum_s:<2}, Reg_d{regnum:<2}, ' +
 //            'Reg_q{regnum_q:<2}))    \\').format(
 //            regnum=i, regnum_d=i>>1,
 //            regnum_q=i>>2, scratch=is_scratch, preserved=is_preserved)
@@ -187,7 +187,7 @@
   X(Reg_s30, 30, "s30", 0, 1, 0, 0, 0, 0, 1, 0, 0,                             \
     ALIASES3(Reg_s30, Reg_d15, Reg_q7))                                        \
   X(Reg_s31, 31, "s31", 0, 1, 0, 0, 0, 0, 1, 0, 0,                             \
-    ALIASES3(Reg_s31, Reg_d15, Reg_q7)) 
+    ALIASES3(Reg_s31, Reg_d15, Reg_q7))
 //#define X(val, encode, name, scratch, preserved, stackptr, frameptr,
 //          isInt, isI64Pair, isFP32,isFP64, isVec128, aliases_init)
 
@@ -286,7 +286,7 @@
   X(Reg_d1 , 1 ,  "d1", 1, 0, 0, 0, 0, 0, 0, 1, 0,                             \
     ALIASES4(Reg_s2 , Reg_s3 , Reg_d1 , Reg_q0))                               \
   X(Reg_d0 , 0 ,  "d0", 1, 0, 0, 0, 0, 0, 0, 1, 0,                             \
-    ALIASES4(Reg_s0 , Reg_s1 , Reg_d0 , Reg_q0)) 
+    ALIASES4(Reg_s0 , Reg_s1 , Reg_d0 , Reg_q0))
 //#define X(val, encode, name, scratch, preserved, stackptr, frameptr,
 //          isInt, isI64Pair, isFP32, isFP64, isVec128, aliases_init)
 
@@ -354,7 +354,7 @@
   X(Reg_q1 , 1 , "q1", 1, 0, 0, 0, 0, 0, 0, 0, 1,                              \
     ALIASES7(Reg_s4 , Reg_s5 , Reg_s6 , Reg_s7 , Reg_d2 , Reg_d3 , Reg_q1))    \
   X(Reg_q0 , 0 , "q0", 1, 0, 0, 0, 0, 0, 0, 0, 1,                              \
-    ALIASES7(Reg_s0 , Reg_s1 , Reg_s2 , Reg_s3 , Reg_d0 , Reg_d1 , Reg_q0)) 
+    ALIASES7(Reg_s0 , Reg_s1 , Reg_s2 , Reg_s3 , Reg_d0 , Reg_d1 , Reg_q0))
 //#define X(val, encode, name, scratch, preserved, stackptr, frameptr,
 //          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)
 #undef ALIASES

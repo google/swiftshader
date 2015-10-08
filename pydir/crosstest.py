@@ -196,7 +196,7 @@ def main():
     if args.target == 'arm32':
       target_params.append('-DARM32')
       target_params.append('-static')
-    
+
     # Set compiler to clang, clang++, pnacl-clang, or pnacl-clang++.
     compiler = '{bin}/{prefix}{cc}'.format(
         bin=bindir, prefix='pnacl-' if args.sandbox else '',

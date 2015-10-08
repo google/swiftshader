@@ -26,7 +26,7 @@
   X(Reg_esp, 4, "esp", "sp", ""  , 0, 0, 1, 0, 0, 0, 0)                 \
   X(Reg_ebp, 5, "ebp", "bp", ""  , 0, 1, 0, 1, 0, 1, 0)                 \
   X(Reg_esi, 6, "esi", "si", ""  , 0, 1, 0, 0, 0, 1, 0)                 \
-  X(Reg_edi, 7, "edi", "di", ""  , 0, 1, 0, 0, 0, 1, 0)      
+  X(Reg_edi, 7, "edi", "di", ""  , 0, 1, 0, 0, 0, 1, 0)
 
 #define REGX8632_XMM_TABLE                                              \
   X(Reg_xmm0, 0, "xmm0", "" , "" , 1, 0, 0, 0, 0, 0, 1)                 \

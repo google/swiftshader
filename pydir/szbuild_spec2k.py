@@ -23,7 +23,7 @@ def main():
                    '175.vpr', '176.gcc', '181.mcf', '186.crafty', '197.parser',
                    '253.perlbmk', '254.gap', '255.vortex', '256.bzip2',
                    '300.twolf', '252.eon' ]
-    
+
     argparser = argparse.ArgumentParser(description=main.__doc__)
     szbuild.AddOptionalArgs(argparser)
     argparser.add_argument('comps', nargs='*', default=components)
