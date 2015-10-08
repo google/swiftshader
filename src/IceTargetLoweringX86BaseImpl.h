@@ -1309,7 +1309,7 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       ++SwapCount;
     }
     assert(SwapCount <= 1);
-    (void) SwapCount;
+    (void)SwapCount;
   }
   if (!Traits::Is64Bit && Dest->getType() == IceType_i64) {
     // These x86-32 helper-call-involved instructions are lowered in this
