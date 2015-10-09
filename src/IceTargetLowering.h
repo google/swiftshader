@@ -186,6 +186,7 @@ public:
   virtual IceString getRegName(SizeT RegNum, Type Ty) const = 0;
 
   virtual bool hasFramePointer() const { return false; }
+  virtual SizeT getStackReg() const = 0;
   virtual SizeT getFrameOrStackReg() const = 0;
   virtual size_t typeWidthInBytesOnStack(Type Ty) const = 0;
 

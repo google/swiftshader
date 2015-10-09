@@ -883,6 +883,8 @@ void emitRegisterUsage(Ostream &Str, const Cfg *Func, const CfgNode *Node,
     return;
   Liveness *Liveness = Func->getLiveness();
   const LivenessBV *Live;
+  const int32_t StackReg = Func->getTarget()->getStackReg();
+  const int32_t FrameOrStackReg = Func->getTarget()->getFrameOrStackReg();
   if (IsLiveIn) {
     Live = &Liveness->getLiveIn(Node);
     Str << "\t\t\t\t# LiveIn=";
@@ -893,14 +895,17 @@ void emitRegisterUsage(Ostream &Str, const Cfg *Func, const CfgNode *Node,
   if (!Live->empty()) {
     CfgVector<Variable *> LiveRegs;
     for (SizeT i = 0; i < Live->size(); ++i) {
-      if ((*Live)[i]) {
-        Variable *Var = Liveness->getVariable(i, Node);
-        if (Var->hasReg()) {
-          if (IsLiveIn)
-            ++LiveRegCount[Var->getRegNum()];
-          LiveRegs.push_back(Var);
-        }
-      }
+      if (!(*Live)[i])
+        continue;
+      Variable *Var = Liveness->getVariable(i, Node);
+      if (!Var->hasReg())
+        continue;
+      const int32_t RegNum = Var->getRegNum();
+      if (RegNum == StackReg || RegNum == FrameOrStackReg)
+        continue;
+      if (IsLiveIn)
+        ++LiveRegCount[RegNum];
+      LiveRegs.push_back(Var);
     }
     // Sort the variables by regnum so they are always printed in a familiar
     // order.

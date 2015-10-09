@@ -74,6 +74,7 @@ public:
     return RegisterAliases[Reg];
   }
   bool hasFramePointer() const override { return UsesFramePointer; }
+  SizeT getStackReg() const override { return RegARM32::Reg_sp; }
   SizeT getFrameOrStackReg() const override {
     return UsesFramePointer ? RegARM32::Reg_fp : RegARM32::Reg_sp;
   }
