@@ -87,7 +87,7 @@ entry:
 ; match the trunc instruction
 ; CHECK: and {{.*}},0x1
 ; match the zext i1 instruction (NOTE: no mov need between i1 and i8).
-; CHECK: and {{.*}},0x1
+; CHECK-NOT: and {{.*}},0x1
 ; ARM32-LABEL: testZextI8
 ; ARM32: and {{.*}}, #1
 ; ARM32: and {{.*}}, #1
@@ -105,7 +105,7 @@ entry:
 ; CHECK: and {{.*}},0x1
 ; match the zext i1 instruction (note 32-bit reg is used because it's shorter).
 ; CHECK: movzx [[REG:e.*]],{{[a-d]l|BYTE PTR}}
-; CHECK: and [[REG]],0x1
+; CHECK-NOT: and [[REG]],0x1
 
 ; ARM32-LABEL: testZextI16
 ; match the trunc instruction
@@ -125,7 +125,7 @@ entry:
 ; CHECK: and {{.*}},0x1
 ; match the zext i1 instruction
 ; CHECK: movzx
-; CHECK: and {{.*}},0x1
+; CHECK-NOT: and {{.*}},0x1
 ; ARM32-LABEL: testZextI32
 ; ARM32: and {{.*}}, #1
 ; ARM32: and {{.*}}, #1
@@ -142,7 +142,6 @@ entry:
 ; CHECK: and {{.*}},0x1
 ; match the zext i1 instruction
 ; CHECK: movzx
-; CHECK: and {{.*}},0x1
 ; CHECK: mov {{.*}},0x0
 ; ARM32-LABEL: testZextI64
 ; ARM32: and {{.*}}, #1
@@ -257,7 +256,7 @@ define internal i32 @testZextTrue() {
 }
 ; CHECK-LABEL: testZextTrue
 ; CHECK: movzx
-; CHECK: and {{.*}},0x1
+; CHECK-NOT: and {{.*}},0x1
 ; ARM32-LABEL: testZextTrue
 ; ARM32: mov{{.*}}, #1
 ; ARM32: and {{.*}}, #1

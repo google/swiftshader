@@ -841,12 +841,12 @@ entry:
 ; CHECK-LABEL: trunc64To1
 ; CHECK:      mov     eax,DWORD PTR [esp+0x4]
 ; CHECK:      and     eax,0x1
-; CHECK:      and     eax,0x1
+; CHECK-NOT:  and     eax,0x1
 ;
 ; OPTM1-LABEL: trunc64To1
 ; OPTM1:      mov     eax,DWORD PTR [esp+
 ; OPTM1:      and     eax,0x1
-; OPTM1:      and     eax,0x1
+; OPTM1-NOT:  and     eax,0x1
 
 ; ARM32-LABEL: trunc64To1
 ; ARM32: and r0, r0, #1

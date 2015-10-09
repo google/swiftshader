@@ -256,7 +256,7 @@ entry:
 }
 ; CHECK-LABEL: doubleToUnsigned1
 ; CHECK: cvttsd2si
-; CHECK: and eax,0x1
+; CHECK-NOT: and eax,0x1
 ; ARM32-LABEL: doubleToUnsigned1
 ; ARM32-DAG: vcvt.u32.f64 [[REG:s[0-9]*]], {{d[0-9]*}}
 ; ARM32-DAG: vmov [[RES:r[0-9]+]], [[REG]]
@@ -272,7 +272,7 @@ entry:
 }
 ; CHECK-LABEL: floatToUnsigned1
 ; CHECK: cvttss2si
-; CHECK: and eax,0x1
+; CHECK-NOT: and eax,0x1
 ; ARM32-LABEL: floatToUnsigned1
 ; ARM32-DAG: vcvt.u32.f32 [[REG:s[0-9]*]], {{s[0-9]*}}
 ; ARM32-DAG: vmov [[RES:r[0-9]+]], [[REG]]

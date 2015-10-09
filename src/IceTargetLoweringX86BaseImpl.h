@@ -2047,15 +2047,10 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       } else {
         _movzx(Tmp, Src0RM);
       }
-      if (Src0RM->getType() == IceType_i1) {
-        Constant *One = Ctx->getConstantInt32(1);
-        _and(Tmp, One);
-      }
       _mov(DestLo, Tmp);
       _mov(DestHi, Zero);
     } else if (Src0RM->getType() == IceType_i1) {
-      // t = Src0RM; t &= 1; Dest = t
-      Constant *One = Ctx->getConstantInt32(1);
+      // t = Src0RM; Dest = t
       Type DestTy = Dest->getType();
       Variable *T = nullptr;
       if (DestTy == IceType_i8) {
@@ -2069,7 +2064,6 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
         T = makeReg(DestTy == IceType_i64 ? IceType_i64 : IceType_i32);
         _movzx(T, Src0RM);
       }
-      _and(T, One);
       _mov(Dest, T);
     } else {
       // t1 = movzx src; dst = t1
