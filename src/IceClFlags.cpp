@@ -146,6 +146,11 @@ cl::opt<bool>
                                 cl::desc("Randomize register allocation"),
                                 cl::init(false));
 
+cl::opt<bool>
+    RepeatRegAlloc("regalloc-repeat",
+                   cl::desc("Repeat register allocation until convergence"),
+                   cl::init(true));
+
 cl::opt<bool> SkipUnimplemented(
     "skip-unimplemented",
     cl::desc("Skip through unimplemented lowering code instead of aborting."),
@@ -383,6 +388,7 @@ void ClFlags::resetClFlags(ClFlags &OutFlags) {
   OutFlags.PhiEdgeSplit = false;
   OutFlags.RandomNopInsertion = false;
   OutFlags.RandomRegAlloc = false;
+  OutFlags.RepeatRegAlloc = false;
   OutFlags.ReorderBasicBlocks = false;
   OutFlags.ReorderFunctions = false;
   OutFlags.ReorderGlobalVariables = false;
@@ -455,6 +461,7 @@ void ClFlags::getParsedClFlags(ClFlags &OutFlags) {
   OutFlags.setShouldReorderBasicBlocks(::ReorderBasicBlocks);
   OutFlags.setShouldDoNopInsertion(::ShouldDoNopInsertion);
   OutFlags.setShouldRandomizeRegAlloc(::RandomizeRegisterAllocation);
+  OutFlags.setShouldRepeatRegAlloc(::RepeatRegAlloc);
   OutFlags.setShouldReorderFunctions(::ReorderFunctions);
   OutFlags.setShouldReorderGlobalVariables(::ReorderGlobalVariables);
   OutFlags.setShouldReorderPooledConstants(::ReorderPooledConstants);

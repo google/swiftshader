@@ -1,6 +1,8 @@
 ; Shows that the ARM integrated assembler can translate a trivial,
 ; bundle-aligned function.
 
+; REQUIRES: allow_dump
+
 ; RUN: %p2i --filetype=asm -i %s --target=arm32 \
 ; RUN:   | FileCheck %s --check-prefix=ASM
 ; RUN: %p2i --filetype=iasm -i %s --target=arm32 \

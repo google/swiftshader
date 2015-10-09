@@ -267,9 +267,15 @@ void TargetLowering::regAlloc(RegAllocKind Kind) {
   RegInclude |= RegSet_CalleeSave;
   if (hasFramePointer())
     RegExclude |= RegSet_FramePointer;
-  LinearScan.init(Kind);
   llvm::SmallBitVector RegMask = getRegisterSet(RegInclude, RegExclude);
-  LinearScan.scan(RegMask, Ctx->getFlags().shouldRandomizeRegAlloc());
+  bool Repeat = (Kind == RAK_Global && Ctx->getFlags().shouldRepeatRegAlloc());
+  do {
+    LinearScan.init(Kind);
+    LinearScan.scan(RegMask, Ctx->getFlags().shouldRandomizeRegAlloc());
+    if (!LinearScan.hasEvictions())
+      Repeat = false;
+    Kind = RAK_SecondChance;
+  } while (Repeat);
 }
 
 void TargetLowering::markRedefinitions() {

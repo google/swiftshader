@@ -106,6 +106,9 @@ public:
   bool shouldRandomizeRegAlloc() const { return RandomRegAlloc; }
   void setShouldRandomizeRegAlloc(bool NewValue) { RandomRegAlloc = NewValue; }
 
+  bool shouldRepeatRegAlloc() const { return RepeatRegAlloc; }
+  void setShouldRepeatRegAlloc(bool NewValue) { RepeatRegAlloc = NewValue; }
+
   bool getSkipUnimplemented() const { return SkipUnimplemented; }
   void setSkipUnimplemented(bool NewValue) { SkipUnimplemented = NewValue; }
 
@@ -262,6 +265,7 @@ private:
   bool PhiEdgeSplit;
   bool RandomNopInsertion;
   bool RandomRegAlloc;
+  bool RepeatRegAlloc;
   bool ReorderBasicBlocks;
   bool ReorderFunctions;
   bool ReorderGlobalVariables;

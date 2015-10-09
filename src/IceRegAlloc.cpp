@@ -277,6 +277,28 @@ void LinearScan::initForInfOnly() {
   Kills.clear();
 }
 
+void LinearScan::initForSecondChance() {
+  TimerMarker T(TimerStack::TT_initUnhandled, Func);
+  FindPreference = true;
+  FindOverlap = true;
+  const VarList &Vars = Func->getVariables();
+  Unhandled.reserve(Vars.size());
+  UnhandledPrecolored.reserve(Vars.size());
+  for (Variable *Var : Vars) {
+    if (Var->hasReg()) {
+      Var->untrimLiveRange();
+      Var->setRegNumTmp(Var->getRegNum());
+      Var->setMustHaveReg();
+      UnhandledPrecolored.push_back(Var);
+      Unhandled.push_back(Var);
+    }
+  }
+  for (Variable *Var : Evicted) {
+    Var->untrimLiveRange();
+    Unhandled.push_back(Var);
+  }
+}
+
 void LinearScan::init(RegAllocKind Kind) {
   this->Kind = Kind;
   Unhandled.clear();
@@ -302,7 +324,12 @@ void LinearScan::init(RegAllocKind Kind) {
   case RAK_InfOnly:
     initForInfOnly();
     break;
+  case RAK_SecondChance:
+    initForSecondChance();
+    break;
   }
+
+  Evicted.clear();
 
   auto CompareRanges = [](const Variable *L, const Variable *R) {
     InstNumberT Lstart = L->getLiveRange().getStart();
@@ -319,6 +346,7 @@ void LinearScan::init(RegAllocKind Kind) {
   Handled.reserve(Unhandled.size());
   Inactive.reserve(Unhandled.size());
   Active.reserve(Unhandled.size());
+  Evicted.reserve(Unhandled.size());
 }
 
 // This is called when Cur must be allocated a register but no registers are
@@ -663,6 +691,7 @@ void LinearScan::handleNoFreeRegisters(IterationState &Iter) {
         assert(RegUses[RegNum] >= 0);
         Item->setRegNumTmp(Variable::NoRegister);
         moveItem(Active, Index, Handled);
+        Evicted.push_back(Item);
       }
     }
     // Do the same for Inactive.
@@ -680,6 +709,7 @@ void LinearScan::handleNoFreeRegisters(IterationState &Iter) {
         dumpLiveRangeTrace("Evicting I   ", Item);
         Item->setRegNumTmp(Variable::NoRegister);
         moveItem(Inactive, Index, Handled);
+        Evicted.push_back(Item);
       }
     }
     // Assign the register to Cur.

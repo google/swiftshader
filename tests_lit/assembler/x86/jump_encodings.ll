@@ -172,11 +172,11 @@ next2:
 ; CHECK-LABEL: test_local_forward_then_back
 ; CHECK:      {{.*}} mov DWORD PTR
 ; CHECK-NEXT: {{.*}} mfence
-; CHECK-NEXT: 16: {{.*}} mov {{.*}},0x1
+; CHECK-NEXT: [[LABEL:[0-9a-f]+]]: {{.*}} mov {{.*}},0x1
 ; CHECK-NEXT: {{.*}} cmp
 ; CHECK-NEXT: {{.*}} jb
 ; CHECK:      {{.*}} jne
-; CHECK:      {{.*}} jmp 16
+; CHECK:      {{.*}} jmp [[LABEL]]
 
 
 ; Test that backward local branches also work and are small.

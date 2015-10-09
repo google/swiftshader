@@ -32,6 +32,12 @@ public:
   explicit LinearScan(Cfg *Func);
   void init(RegAllocKind Kind);
   void scan(const llvm::SmallBitVector &RegMask, bool Randomized);
+  // Returns the number of times some variable has been assigned a register but
+  // later evicted because of a higher-priority allocation.  The idea is that we
+  // can implement "second-chance bin-packing" by rerunning register allocation
+  // until there are no more evictions.
+  SizeT getNumEvictions() const { return Evicted.size(); }
+  bool hasEvictions() const { return !Evicted.empty(); }
   void dump(Cfg *Func) const;
 
   // TODO(stichnot): Statically choose the size based on the target being
@@ -65,6 +71,7 @@ private:
                                  const CfgVector<InstNumberT> &LREnd) const;
   void initForGlobal();
   void initForInfOnly();
+  void initForSecondChance();
   /// Move an item from the From set to the To set. From[Index] is pushed onto
   /// the end of To[], then the item is efficiently removed from From[] by
   /// effectively swapping it with the last item in From[] and then popping it
@@ -108,6 +115,7 @@ private:
   /// faster processing.
   OrderedRanges UnhandledPrecolored;
   UnorderedRanges Active, Inactive, Handled;
+  UnorderedRanges Evicted;
   CfgVector<InstNumberT> Kills;
   RegAllocKind Kind = RAK_Unknown;
   /// RegUses[I] is the number of live ranges (variables) that register I is
