@@ -46,7 +46,7 @@
 
 #define REGARM32_GPR_TABLE                                                     \
   /* val, encode, name, scratch, preserved, stackptr, frameptr,                \
-     isInt, isI64Pair, isFP32, isFP64, isVec128, aliases_init */               \
+     isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init */                 \
   X(Reg_r0,  0, "r0",   1, 0, 0, 0, 1, 0, 0, 0, 0,                             \
     ALIASES2(Reg_r0, Reg_r0r1))                                                \
   X(Reg_r1,  1, "r1",   1, 0, 0, 0, 1, 0, 0, 0, 0,                             \
@@ -80,7 +80,7 @@
   X(Reg_pc,  15, "pc",  0, 0, 0, 0, 0, 0, 0, 0, 0,                             \
     ALIASES1(Reg_pc))
 //#define X(val, encode, name, scratch, preserved, stackptr, frameptr,
-//          isInt, isI64Pair, isFP32, isFP64, isVec128, aliases_init)
+//          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)
 
 // The following defines a table with the available pairs of consecutive i32
 // GPRs starting at an even GPR that is not r14. Those are used to hold i64
@@ -89,7 +89,7 @@
 // allocator.
 #define REGARM32_I64PAIR_TABLE                                                 \
   /* val, encode, name, scratch, preserved, stackptr, frameptr,                \
-     isInt, isI64Pair, isFP32, isFP64, isVec128, aliases_init */               \
+     isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init */                 \
   X(Reg_r0r1,  0, "r0, r1",   1, 0, 0, 0, 0, 1, 0, 0, 0,                       \
     ALIASES3(Reg_r0, Reg_r1, Reg_r0r1))                                        \
   X(Reg_r2r3,  2, "r2, r3",   1, 0, 0, 0, 0, 1, 0, 0, 0,                       \
@@ -103,7 +103,7 @@
   X(Reg_r10fp, 10, "r10, fp", 0, 1, 0, 0, 0, 0, 0, 0, 0,                       \
     ALIASES3(Reg_r10, Reg_fp, Reg_r10fp))                                      \
 //#define X(val, encode, name, scratch, preserved, stackptr, frameptr,
-//          isInt, isI64Pair, isFP32, isFP64, isVec128, aliases_init)
+//          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)
 
 // S registers 0-15 are scratch, but 16-31 are preserved.
 // Regenerate this with the following python script:
@@ -123,7 +123,7 @@
 //
 #define REGARM32_FP32_TABLE                                                    \
   /* val, encode, name, scratch, preserved, stackptr, frameptr,                \
-     isInt, isI64Pair, isFP32, isFP64, isVec128, aliases_init */               \
+     isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init */                 \
   X(Reg_s0 , 0 , "s0" , 1, 0, 0, 0, 0, 0, 1, 0, 0,                             \
     ALIASES3(Reg_s0 , Reg_d0 , Reg_q0))                                        \
   X(Reg_s1 , 1 , "s1" , 1, 0, 0, 0, 0, 0, 1, 0, 0,                             \
@@ -189,7 +189,7 @@
   X(Reg_s31, 31, "s31", 0, 1, 0, 0, 0, 0, 1, 0, 0,                             \
     ALIASES3(Reg_s31, Reg_d15, Reg_q7))
 //#define X(val, encode, name, scratch, preserved, stackptr, frameptr,
-//          isInt, isI64Pair, isFP32,isFP64, isVec128, aliases_init)
+//          isInt, isI64Pair, isFP32,isFP64, isVec128, alias_init)
 
 // D registers 0-7 are scratch, 8-15 are preserved, and 16-31 are also scratch
 // (if supported by the D32 feature vs D16). D registers are defined in reverse
@@ -222,7 +222,7 @@
 //
 #define REGARM32_FP64_TABLE                                                    \
   /* val, encode, name, scratch, preserved, stackptr, frameptr,                \
-     isInt, isI64Pair, isFP32, isFP64, isVec128, aliases_init */               \
+     isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init */                 \
   X(Reg_d31, 31, "d31", 1, 0, 0, 0, 0, 0, 0, 1, 0,                             \
     ALIASES2(Reg_d31, Reg_q15))                                                \
   X(Reg_d30, 30, "d30", 1, 0, 0, 0, 0, 0, 0, 1, 0,                             \
@@ -288,7 +288,7 @@
   X(Reg_d0 , 0 ,  "d0", 1, 0, 0, 0, 0, 0, 0, 1, 0,                             \
     ALIASES4(Reg_s0 , Reg_s1 , Reg_d0 , Reg_q0))
 //#define X(val, encode, name, scratch, preserved, stackptr, frameptr,
-//          isInt, isI64Pair, isFP32, isFP64, isVec128, aliases_init)
+//          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)
 
 // Q registers 0-3 are scratch, 4-7 are preserved, and 8-15 are also scratch
 // (if supported by the D32 feature). Q registers are defined in reverse order
@@ -357,7 +357,6 @@
     ALIASES7(Reg_s0 , Reg_s1 , Reg_s2 , Reg_s3 , Reg_d0 , Reg_d1 , Reg_q0))
 //#define X(val, encode, name, scratch, preserved, stackptr, frameptr,
 //          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)
-#undef ALIASES
 
 // We also provide a combined table, so that there is a namespace where all of
 // the registers are considered and have distinct numberings. This is in
