@@ -37,18 +37,6 @@ namespace Ice {
 
 namespace {
 
-// UnimplementedError is defined as a macro so that we can get actual line
-// numbers.
-#define UnimplementedError(Flags)                                              \
-  do {                                                                         \
-    if (!static_cast<const ClFlags &>(Flags).getSkipUnimplemented()) {         \
-      /* Use llvm_unreachable instead of report_fatal_error, which gives       \
-         better stack traces. */                                               \
-      llvm_unreachable("Not yet implemented");                                 \
-      abort();                                                                 \
-    }                                                                          \
-  } while (0)
-
 // The following table summarizes the logic for lowering the icmp instruction
 // for i32 and narrower types. Each icmp condition has a clear mapping to an
 // ARM32 conditional move instruction.
@@ -3871,14 +3859,11 @@ void TargetDataARM32::lowerConstants() {
   case FT_Elf:
     UnimplementedError(Ctx->getFlags());
     break;
-  case FT_Asm: {
+  case FT_Asm:
+  case FT_Iasm: {
     OstreamLocker L(Ctx);
     emitConstantPool<float>(Ctx);
     emitConstantPool<double>(Ctx);
-    break;
-  }
-  case FT_Iasm: {
-    UnimplementedError(Ctx->getFlags());
     break;
   }
   }
@@ -3895,7 +3880,7 @@ void TargetDataARM32::lowerJumpTables() {
     // Already emitted from Cfg
     break;
   case FT_Iasm: {
-    UnimplementedError(Ctx->getFlags());
+    // TODO(kschimpf): Fill this in when we get more information.
     break;
   }
   }

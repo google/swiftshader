@@ -113,7 +113,7 @@ std::unique_ptr<Assembler> TargetLowering::createAssembler(TargetArch Target,
                                                            Cfg *Func) {
 #define SUBZERO_TARGET(X)                                                      \
   if (Target == Target_##X)                                                    \
-    return std::unique_ptr<Assembler>(new X::Assembler##X());
+    return std::unique_ptr<Assembler>(new X::Assembler##X(Func->getContext()));
 #include "llvm/Config/SZTargets.def"
 
   Func->setError("Unsupported target assembler");

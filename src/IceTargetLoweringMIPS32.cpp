@@ -31,17 +31,6 @@
 
 namespace Ice {
 
-namespace {
-void UnimplementedError(const ClFlags &Flags) {
-  if (!Flags.getSkipUnimplemented()) {
-    // Use llvm_unreachable instead of report_fatal_error, which gives better
-    // stack traces.
-    llvm_unreachable("Not yet implemented");
-    abort();
-  }
-}
-} // end of anonymous namespace
-
 TargetMIPS32::TargetMIPS32(Cfg *Func) : TargetLowering(Func) {
   // TODO: Don't initialize IntegerRegisters and friends every time. Instead,
   // initialize in some sort of static initializer for the class.

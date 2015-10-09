@@ -27,7 +27,8 @@ namespace dart {
 class RuntimeEntry;
 class StubEntry;
 
-
+#if 0
+// Moved to: ARM32::AssemblerARM32.
 // Instruction encoding bits.
 enum {
   H   = 1 << 5,   // halfword (or byte)
@@ -68,7 +69,7 @@ enum {
   B26 = 1 << 26,
   B27 = 1 << 27,
 };
-
+#endif
 
 class Label : public ValueObject {
  public:
@@ -532,6 +533,8 @@ class Assembler : public ValueObject {
   void clrex();
   void nop(Condition cond = AL);
 
+#if 0
+  // Moved to: ARM32::AssemblerARM32.
   // Note that gdb sets breakpoints using the undefined instruction 0xe7f001f0.
   void bkpt(uint16_t imm16);
 
@@ -540,6 +543,7 @@ class Assembler : public ValueObject {
     return (AL << kConditionShift) | B24 | B21 |
            ((imm16 >> 4) << 8) | B6 | B5 | B4 | (imm16 & 0xf);
   }
+#endif
 
   static uword GetBreakInstructionFiller() {
     return BkptEncoding(0);
@@ -660,7 +664,10 @@ class Assembler : public ValueObject {
   // Branch instructions.
   void b(Label* label, Condition cond = AL);
   void bl(Label* label, Condition cond = AL);
+#if 0
+  // Moved to: ARM32::AssemblerARM32.
   void bx(Register rm, Condition cond = AL);
+#endif
   void blx(Register rm, Condition cond = AL);
 
   void Branch(const StubEntry& stub_entry,

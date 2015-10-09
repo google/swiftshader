@@ -519,7 +519,7 @@ void GlobalContext::emitItems() {
         case FT_Iasm: {
           OstreamLocker L(this);
           Cfg::emitTextHeader(MangledName, this, Asm.get());
-          Asm->emitIASBytes(this);
+          Asm->emitIASBytes();
         } break;
         case FT_Asm:
           llvm::report_fatal_error("Unexpected FT_Asm");

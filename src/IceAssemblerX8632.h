@@ -45,8 +45,8 @@ class AssemblerX8632 : public X86Internal::AssemblerX86Base<TargetX8632> {
   AssemblerX8632 &operator=(const AssemblerX8632 &) = delete;
 
 public:
-  explicit AssemblerX8632(bool use_far_branches = false)
-      : X86Internal::AssemblerX86Base<TargetX8632>(Asm_X8632,
+  explicit AssemblerX8632(GlobalContext *Ctx, bool use_far_branches = false)
+      : X86Internal::AssemblerX86Base<TargetX8632>(Asm_X8632, Ctx,
                                                    use_far_branches) {}
   ~AssemblerX8632() override = default;
 

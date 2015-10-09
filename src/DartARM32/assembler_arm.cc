@@ -1433,9 +1433,12 @@ void Assembler::vcgtqs(QRegister qd, QRegister qn, QRegister qm) {
 }
 
 
+#if 0
+// Moved to: ARM32::AssemblerARM32.
 void Assembler::bkpt(uint16_t imm16) {
   Emit(BkptEncoding(imm16));
 }
+#endif
 
 
 void Assembler::b(Label* label, Condition cond) {
@@ -1447,7 +1450,8 @@ void Assembler::bl(Label* label, Condition cond) {
   EmitBranch(cond, label, true);
 }
 
-
+#if 0
+// Moved to: ARM32::AssemblerARM32.
 void Assembler::bx(Register rm, Condition cond) {
   ASSERT(rm != kNoRegister);
   ASSERT(cond != kNoCondition);
@@ -1456,6 +1460,7 @@ void Assembler::bx(Register rm, Condition cond) {
                      (static_cast<int32_t>(rm) << kRmShift);
   Emit(encoding);
 }
+#endif
 
 
 void Assembler::blx(Register rm, Condition cond) {
@@ -2314,7 +2319,10 @@ void Assembler::BindARMv6(Label* label) {
   label->BindTo(bound_pc);
 }
 
-
+#if 0
+// Moved to: ARM32::AssemblerARM32 as method bind(Label* Label)
+// Note: Most of this code isn't needed because instruction selection has
+// already been handler
 void Assembler::BindARMv7(Label* label) {
   ASSERT(!label->IsBound());
   intptr_t bound_pc = buffer_.Size();
@@ -2381,6 +2389,7 @@ void Assembler::BindARMv7(Label* label) {
   }
   label->BindTo(bound_pc);
 }
+#endif
 
 
 void Assembler::Bind(Label* label) {

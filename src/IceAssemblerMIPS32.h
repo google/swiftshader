@@ -35,8 +35,8 @@ class AssemblerMIPS32 : public Assembler {
   AssemblerMIPS32 &operator=(const AssemblerMIPS32 &) = delete;
 
 public:
-  explicit AssemblerMIPS32(bool use_far_branches = false)
-      : Assembler(Asm_MIPS32) {
+  explicit AssemblerMIPS32(GlobalContext *Ctx, bool use_far_branches = false)
+      : Assembler(Asm_MIPS32, Ctx) {
     // This mode is only needed and implemented for MIPS32 and ARM.
     assert(!use_far_branches);
     (void)use_far_branches;

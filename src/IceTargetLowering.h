@@ -28,6 +28,18 @@
 
 namespace Ice {
 
+// UnimplementedError is defined as a macro so that we can get actual line
+// numbers.
+#define UnimplementedError(Flags)                                              \
+  do {                                                                         \
+    if (!static_cast<const ClFlags &>(Flags).getSkipUnimplemented()) {         \
+      /* Use llvm_unreachable instead of report_fatal_error, which gives       \
+         better stack traces. */                                               \
+      llvm_unreachable("Not yet implemented");                                 \
+      abort();                                                                 \
+    }                                                                          \
+  } while (0)
+
 /// LoweringContext makes it easy to iterate through non-deleted instructions in
 /// a node, and insert new (lowered) instructions at the current point. Along
 /// with the instruction list container and associated iterators, it holds the

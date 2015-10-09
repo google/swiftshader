@@ -196,6 +196,7 @@ SB_LDFLAGS := $(LINKOPTLEVEL) $(LD_EXTRA)
 
 SRCS = \
 	IceAssembler.cpp \
+	IceAssemblerARM32.cpp \
 	IceBrowserCompileServer.cpp \
 	IceCfg.cpp \
 	IceCfgNode.cpp \

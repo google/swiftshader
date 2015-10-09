@@ -64,17 +64,20 @@ public:
     return Position - kWordSize;
   }
 
+  void setPosition(intptr_t NewValue) { Position = NewValue; }
+
   bool isBound() const { return Position < 0; }
   bool isLinked() const { return Position > 0; }
+
   virtual bool isUnused() const { return Position == 0; }
 
-protected:
   void bindTo(intptr_t position) {
     assert(!isBound());
     Position = -position - kWordSize;
     assert(isBound());
   }
 
+protected:
   void linkTo(intptr_t position) {
     assert(!isBound());
     Position = position + kWordSize;
@@ -83,7 +86,6 @@ protected:
 
   intptr_t Position = 0;
 
-private:
   // TODO(jvoung): why are labels offset by this?
   static constexpr uint32_t kWordSize = sizeof(uint32_t);
 };
@@ -272,7 +274,7 @@ public:
     return Buffer.createFixup(Kind, Value);
   }
 
-  void emitIASBytes(GlobalContext *Ctx) const;
+  void emitIASBytes() const;
   bool getInternal() const { return IsInternal; }
   void setInternal(bool Internal) { IsInternal = Internal; }
   const IceString &getFunctionName() { return FunctionName; }
@@ -286,8 +288,8 @@ public:
   AssemblerKind getKind() const { return Kind; }
 
 protected:
-  explicit Assembler(AssemblerKind Kind)
-      : Kind(Kind), Allocator(), Buffer(*this) {}
+  explicit Assembler(AssemblerKind Kind, GlobalContext *Ctx)
+      : Kind(Kind), Allocator(), Ctx(Ctx), Buffer(*this) {}
 
 private:
   const AssemblerKind Kind;
@@ -305,6 +307,7 @@ private:
   bool Preliminary = false;
 
 protected:
+  GlobalContext *Ctx;
   // Buffer's constructor uses the Allocator, so it needs to appear after it.
   // TODO(jpp): dependencies on construction order are a nice way of shooting
   // yourself in the foot. Fix this.

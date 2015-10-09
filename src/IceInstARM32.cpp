@@ -969,8 +969,8 @@ void InstARM32Ret::emit(const Cfg *Func) const {
 }
 
 void InstARM32Ret::emitIAS(const Cfg *Func) const {
-  (void)Func;
-  llvm_unreachable("Not yet implemented");
+  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  Asm->bx(RegARM32::Encoded_Reg_lr);
 }
 
 void InstARM32Ret::dump(const Cfg *Func) const {
