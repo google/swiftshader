@@ -145,8 +145,8 @@
 #define FOREACH_VAR_IN_INST(Var, Instr)                                        \
   for (SizeT Sz_I##Var##_ = 0, Sz_##Var##Index_ = 0,                           \
              Sz_SrcSize##Var##_ = (Instr).getSrcSize(), Sz_J##Var##_ = 0,      \
-             Sz_NumVars##Var##_ = 0;                                           \
-       Sz_I##Var##_ < Sz_SrcSize##Var##_; ++Sz_I##Var##_)                      \
+             Sz_NumVars##Var##_ = 0, Sz_Foreach_Break = 0;                     \
+       !Sz_Foreach_Break && Sz_I##Var##_ < Sz_SrcSize##Var##_; ++Sz_I##Var##_) \
     if (Operand *Sz_Op##Var##_ = nullptr)                                      \
       /*nothing*/;                                                             \
     else                                                                       \
@@ -154,7 +154,7 @@
                (Sz_J##Var##_ = 0,                                              \
                Sz_Op##Var##_ = (Instr).getSrc(Sz_I##Var##_),                   \
                Sz_NumVars##Var##_ = Sz_Op##Var##_->getNumVars(), nullptr);     \
-           Sz_J##Var##_ < Sz_NumVars##Var##_ &&                                \
+           !Sz_Foreach_Break && Sz_J##Var##_ < Sz_NumVars##Var##_ &&           \
            ((Var = Sz_Op##Var##_->getVar(Sz_J##Var##_)), true);                \
            ++Sz_J##Var##_, ++Sz_##Var##Index_)
 
@@ -162,6 +162,12 @@
   (static_cast<const SizeT>(Sz_##V##_))
 #define IndexOfVarInInst(Var) IsOnlyValidInFOREACH_VAR_IN_INST(Var##Index)
 #define IndexOfVarOperandInInst(Var) IsOnlyValidInFOREACH_VAR_IN_INST(I##Var)
+#define FOREACH_VAR_IN_INST_BREAK                                              \
+  if (true) {                                                                  \
+    Sz_Foreach_Break = 1;                                                      \
+    continue;                                                                  \
+  } else {                                                                     \
+  }
 #undef OnlyValidIn_FOREACH_VAR_IN_INSTS
 
 #endif // SUBZERO_SRC_ICEINSTVARITER_H

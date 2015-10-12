@@ -249,6 +249,8 @@ InstAssign::InstAssign(Cfg *Func, Variable *Dest, Operand *Source)
   addSource(Source);
 }
 
+bool InstAssign::isVarAssign() const { return llvm::isa<Variable>(getSrc(0)); }
+
 // If TargetTrue==TargetFalse, we turn it into an unconditional branch. This
 // ensures that, along with the 'switch' instruction semantics, there is at
 // most one edge from one node to another.

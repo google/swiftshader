@@ -127,7 +127,9 @@ public:
     return false;
   }
 
-  virtual bool isSimpleAssign() const { return false; }
+  /// Returns true if the instruction is equivalent to a simple
+  /// "var_dest=var_src" assignment where the dest and src are both variables.
+  virtual bool isVarAssign() const { return false; }
 
   void livenessLightweight(Cfg *Func, LivenessBV &Live);
   /// Calculates liveness for this instruction. Returns true if this instruction
@@ -313,7 +315,7 @@ public:
   static InstAssign *create(Cfg *Func, Variable *Dest, Operand *Source) {
     return new (Func->allocate<InstAssign>()) InstAssign(Func, Dest, Source);
   }
-  bool isSimpleAssign() const override { return true; }
+  bool isVarAssign() const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return Inst->getKind() == Assign; }
 

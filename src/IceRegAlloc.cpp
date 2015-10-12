@@ -493,20 +493,18 @@ void LinearScan::findRegisterPreference(IterationState &Iter) {
     if (const Inst *DefInst =
             VMetadata->getFirstDefinitionSingleBlock(Iter.Cur)) {
       assert(DefInst->getDest() == Iter.Cur);
-      bool IsAssign = DefInst->isSimpleAssign();
+      bool IsAssign = DefInst->isVarAssign();
       bool IsSingleDef = !VMetadata->isMultiDef(Iter.Cur);
-      for (SizeT i = 0; i < DefInst->getSrcSize(); ++i) {
-        // TODO(stichnot): Iterate through the actual Variables of the
-        // instruction, not just the source operands. This could capture Load
-        // instructions, including address mode optimization, for Prefer (but
-        // not for AllowOverlap).
-        if (Variable *SrcVar = llvm::dyn_cast<Variable>(DefInst->getSrc(i))) {
-          int32_t SrcReg = SrcVar->getRegNumTmp();
-          // Only consider source variables that have (so far) been assigned a
-          // register. That register must be one in the RegMask set, e.g. don't
-          // try to prefer the stack pointer as a result of the stacksave
-          // intrinsic.
-          if (SrcVar->hasRegTmp() && Iter.RegMask[SrcReg]) {
+      FOREACH_VAR_IN_INST(SrcVar, *DefInst) {
+        // Only consider source variables that have (so far) been assigned a
+        // register. That register must be one in the RegMask set, e.g. don't
+        // try to prefer the stack pointer as a result of the stacksave
+        // intrinsic.
+        if (SrcVar->hasRegTmp()) {
+          const int32_t SrcReg = SrcVar->getRegNumTmp();
+          const bool IsAliasAvailable =
+              (Iter.RegMask & *RegAliases[SrcReg]).any();
+          if (IsAliasAvailable) {
             if (FindOverlap && !Iter.Free[SrcReg]) {
               // Don't bother trying to enable AllowOverlap if the register is
               // already free.
@@ -516,6 +514,14 @@ void LinearScan::findRegisterPreference(IterationState &Iter) {
             if (Iter.AllowOverlap || Iter.Free[SrcReg]) {
               Iter.Prefer = SrcVar;
               Iter.PreferReg = SrcReg;
+              // Stop looking for a preference after the first valid preference
+              // is found.  One might think that we should look at all
+              // instruction variables to find the best <Prefer,AllowOverlap>
+              // combination, but note that AllowOverlap can only be true for a
+              // simple assignment statement which can have only one source
+              // operand, so it's not possible for AllowOverlap to be true
+              // beyond the first source operand.
+              FOREACH_VAR_IN_INST_BREAK;
             }
           }
         }
@@ -539,6 +545,7 @@ void LinearScan::filterFreeWithInactiveRanges(IterationState &Iter) {
     if (!Item->rangeOverlaps(Iter.Cur))
       continue;
     const llvm::SmallBitVector &Aliases = *RegAliases[Item->getRegNumTmp()];
+    // TODO(stichnot): Do this with bitvector ops, not a loop, for efficiency.
     for (int32_t RegAlias = Aliases.find_first(); RegAlias >= 0;
          RegAlias = Aliases.find_next(RegAlias)) {
       // Don't assert(Free[RegNum]) because in theory (though probably never in
@@ -852,6 +859,8 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
     if (Iter.AllowOverlap) {
       for (const Variable *Item : Active) {
         int32_t RegNum = Item->getRegNumTmp();
+        // TODO(stichnot): Consider aliases of RegNum.  This is probably a
+        // correctness issue.
         if (Item != Iter.Prefer && RegNum == Iter.PreferReg &&
             overlapsDefs(Func, Iter.Cur, Item)) {
           Iter.AllowOverlap = false;

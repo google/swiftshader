@@ -1152,7 +1152,7 @@ public:
     return !isMultiDest() && !isMultiSource() &&
            checkForRedundantAssign(getDest(), getSrc(0));
   }
-  bool isSimpleAssign() const override { return true; }
+  bool isVarAssign() const override { return llvm::isa<Variable>(getSrc(0)); }
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;

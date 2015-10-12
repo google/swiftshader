@@ -977,7 +977,9 @@ public:
   bool isRedundantAssign() const override {
     return checkForRedundantAssign(this->getDest(), this->getSrc(0));
   }
-  bool isSimpleAssign() const override { return true; }
+  bool isVarAssign() const override {
+    return llvm::isa<Variable>(this->getSrc(0));
+  }
   void dump(const Cfg *Func) const override {
     if (!BuildDefs::dump())
       return;

@@ -81,12 +81,11 @@ void LoweringContext::availabilityUpdate() {
   Inst *Instr = LastInserted;
   if (Instr == nullptr)
     return;
-  if (!Instr->isSimpleAssign())
+  if (!Instr->isVarAssign())
     return;
-  if (auto *SrcVar = llvm::dyn_cast<Variable>(Instr->getSrc(0))) {
-    LastDest = Instr->getDest();
-    LastSrc = SrcVar;
-  }
+  // Since isVarAssign() is true, the source operand must be a Variable.
+  LastDest = Instr->getDest();
+  LastSrc = llvm::cast<Variable>(Instr->getSrc(0));
 }
 
 Variable *LoweringContext::availabilityGet(Operand *Src) const {
