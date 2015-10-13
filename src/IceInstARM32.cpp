@@ -318,6 +318,18 @@ bool InstARM32Br::repointEdges(CfgNode *OldNode, CfgNode *NewNode) {
   return Found;
 }
 
+template <InstARM32::InstKindARM32 K>
+void InstARM32ThreeAddrGPR<K>::emitIAS(const Cfg *Func) const {
+  (void)Func;
+  UnimplementedError(Func->getContext()->getFlags());
+}
+
+template <>
+void InstARM32ThreeAddrGPR<InstARM32::Add>::emitIAS(const Cfg *Func) const {
+  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  Asm->add(getDest(), getSrc(0), getSrc(1), SetFlags, getPredicate());
+}
+
 InstARM32Call::InstARM32Call(Cfg *Func, Variable *Dest, Operand *CallTarget)
     : InstARM32(Func, InstARM32::Call, 1, Dest) {
   HasSideEffects = true;
@@ -605,11 +617,8 @@ void InstARM32Mov::emitIASSingleDestSingleSource(const Cfg *Func) const {
       const bool CoreVFPMove = isMoveBetweenCoreAndVFPRegisters(Dest, Src0);
       if (DestIsVector || DestIsScalarFP || CoreVFPMove)
         break;
-      if (const auto *FlexImm = llvm::dyn_cast<OperandARM32FlexImm>(Src0)) {
-        Asm->mov(static_cast<RegARM32::GPRRegister>(Dest->getRegNum()),
-                 *FlexImm, getPredicate());
-        return;
-      }
+      Asm->mov(Dest, Src0, getPredicate());
+      return;
     }
   } while (0);
   llvm_unreachable("not yet implemented");
@@ -1422,5 +1431,26 @@ void OperandARM32FlexReg::dump(const Cfg *Func, Ostream &Str) const {
       getShiftAmt()->dump(Str);
   }
 }
+
+// Force instantition of template classes
+template class InstARM32ThreeAddrGPR<InstARM32::Adc>;
+template class InstARM32ThreeAddrGPR<InstARM32::Add>;
+template class InstARM32ThreeAddrGPR<InstARM32::And>;
+template class InstARM32ThreeAddrGPR<InstARM32::Asr>;
+template class InstARM32ThreeAddrGPR<InstARM32::Bic>;
+template class InstARM32ThreeAddrGPR<InstARM32::Eor>;
+template class InstARM32ThreeAddrGPR<InstARM32::Lsl>;
+template class InstARM32ThreeAddrGPR<InstARM32::Lsr>;
+template class InstARM32ThreeAddrGPR<InstARM32::Mul>;
+template class InstARM32ThreeAddrGPR<InstARM32::Orr>;
+template class InstARM32ThreeAddrGPR<InstARM32::Rsb>;
+template class InstARM32ThreeAddrGPR<InstARM32::Sbc>;
+template class InstARM32ThreeAddrGPR<InstARM32::Sdiv>;
+template class InstARM32ThreeAddrGPR<InstARM32::Sub>;
+template class InstARM32ThreeAddrGPR<InstARM32::Udiv>;
+template class InstARM32ThreeAddrFP<InstARM32::Vadd>;
+template class InstARM32ThreeAddrFP<InstARM32::Vdiv>;
+template class InstARM32ThreeAddrFP<InstARM32::Vmul>;
+template class InstARM32ThreeAddrFP<InstARM32::Vsub>;
 
 } // end of namespace Ice

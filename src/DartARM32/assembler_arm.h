@@ -140,7 +140,7 @@ class Operand : public ValueObject {
   }
 
 #if 0
-  // Moved to AssemblerARM32::encodeImm12FromFlexImm.
+  // Moved to decode in IceAssemblerARM32.cpp
   // Data-processing operands - Rotated immediate.
   Operand(uint32_t rotate, uint32_t immed8) {
     ASSERT((rotate < (1 << kRotateBits)) && (immed8 < (1 << kImmed8Bits)));
@@ -149,11 +149,14 @@ class Operand : public ValueObject {
   }
 #endif
 
+#if 0
+  // Moved to decode in IceAssemblerARM32.cpp
   // Data-processing operands - Register.
   explicit Operand(Register rm) {
     type_ = 0;
     encoding_ = static_cast<uint32_t>(rm);
   }
+#endif
 
   // Data-processing operands - Logical shift/rotate by immediate.
   Operand(Register rm, Shift shift, uint32_t shift_imm) {
@@ -443,9 +446,12 @@ class Assembler : public ValueObject {
   void rsb(Register rd, Register rn, Operand o, Condition cond = AL);
   void rsbs(Register rd, Register rn, Operand o, Condition cond = AL);
 
+#if 0
+  // Moved to IceAssemblerARM32::mov
   void add(Register rd, Register rn, Operand o, Condition cond = AL);
 
   void adds(Register rd, Register rn, Operand o, Condition cond = AL);
+#endif
 
   void adc(Register rd, Register rn, Operand o, Condition cond = AL);
 
@@ -469,11 +475,10 @@ class Assembler : public ValueObject {
   void orrs(Register rd, Register rn, Operand o, Condition cond = AL);
 
 #if 0
-  // Moved to IceAssemblerARM32::mov(..FlexImm..)
-  // TODO(kschimpf) other forms of move.
+  // Moved to IceAssemblerARM32::mov
   void mov(Register rd, Operand o, Condition cond = AL);
-#endif
   void movs(Register rd, Operand o, Condition cond = AL);
+#endif
 
   void bic(Register rd, Register rn, Operand o, Condition cond = AL);
   void bics(Register rd, Register rn, Operand o, Condition cond = AL);

@@ -22,7 +22,9 @@
 
 #include "IceAssemblerARM32.h"
 
-namespace Ice {
+namespace {
+
+using namespace Ice;
 
 // The following define individual bits.
 static constexpr uint32_t B0 = 1;
@@ -50,9 +52,6 @@ static constexpr uint32_t kImmed8Shift = 0;
 static constexpr uint32_t kRotateBits = 4;
 static constexpr uint32_t kRotateShift = 8;
 
-// Types of instructions.
-static constexpr uint32_t kInstTypeImmediate = 1;
-
 inline uint32_t encodeBool(bool b) { return b ? 1 : 0; }
 
 inline uint32_t encodeGPRRegister(RegARM32::GPRRegister Rn) {
@@ -75,13 +74,32 @@ inline uint32_t encodeCondition(CondARM32::Cond Cond) {
   return static_cast<uint32_t>(Cond);
 }
 
-// Converts rotated immediate into imm12.
-inline uint32_t encodeImm12FromFlexImm(const OperandARM32FlexImm &FlexImm) {
-  uint32_t Immed8 = FlexImm.getImm();
-  uint32_t Rotate = FlexImm.getRotateAmt();
-  assert((Rotate < (1 << kRotateBits)) && (Immed8 < (1 << kImmed8Bits)));
-  return (Rotate << kRotateShift) | (Immed8 << kImmed8Shift);
+// The way an operand was decoded in function decode below.
+enum DecodedResult {
+  CantDecode = 0, // I.e. will fail in test.
+  DecodedAsRegister,
+  DecodedAsRotatedImm8
+};
+
+DecodedResult decode(const Operand *Opnd, uint32_t &Value) {
+  if (const auto *Var = llvm::dyn_cast<Variable>(Opnd)) {
+    if (Var->hasReg()) {
+      Value = Var->getRegNum();
+      return DecodedAsRegister;
+    }
+  } else if (const auto *FlexImm = llvm::dyn_cast<OperandARM32FlexImm>(Opnd)) {
+    uint32_t Immed8 = FlexImm->getImm();
+    uint32_t Rotate = FlexImm->getRotateAmt();
+    assert((Rotate < (1 << kRotateBits)) && (Immed8 < (1 << kImmed8Bits)));
+    Value = (Rotate << kRotateShift) | (Immed8 << kImmed8Shift);
+    return DecodedAsRotatedImm8;
+  }
+  return CantDecode;
 }
+
+} // end of anonymous namespace
+
+namespace Ice {
 
 Label *ARM32::AssemblerARM32::getOrCreateLabel(SizeT Number,
                                                LabelVector &Labels) {
@@ -120,11 +138,42 @@ void ARM32::AssemblerARM32::emitType01(CondARM32::Cond Cond, uint32_t Type,
                                        uint32_t Rd, uint32_t Imm12) {
   assert(isGPRRegisterDefined(Rd));
   assert(Cond != CondARM32::kNone);
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   uint32_t Encoding = encodeCondition(Cond) << kConditionShift |
                       (Type << kTypeShift) | (Opcode << kOpcodeShift) |
                       (encodeBool(SetCc) << kSShift) | (Rn << kRnShift) |
                       (Rd << kRdShift) | Imm12;
   emitInst(Encoding);
+}
+
+void ARM32::AssemblerARM32::add(const Operand *OpRd, const Operand *OpRn,
+                                const Operand *OpSrc1, bool SetFlags,
+                                CondARM32::Cond Cond) {
+  // Note: Loop is used so that we can short circuit using break;
+  do {
+    uint32_t Rd;
+    if (decode(OpRd, Rd) != DecodedAsRegister)
+      break;
+    uint32_t Rn;
+    if (decode(OpRn, Rn) != DecodedAsRegister)
+      break;
+    uint32_t Src1Value;
+    // TODO(kschimpf) Other possible decodings of add.
+    if (decode(OpSrc1, Src1Value) == DecodedAsRotatedImm8) {
+      // ADD (Immediate): See ARM section A8.8.5, rule A1.
+      // cccc0010100snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
+      // s=SetFlags and iiiiiiiiiiii=Src1Value
+      if (!isConditionDefined(Cond) || (Rd == RegARM32::Reg_pc && SetFlags) ||
+          (Rn == RegARM32::Reg_lr) || (Rn == RegARM32::Reg_pc && SetFlags))
+        // Conditions of rule violated.
+        break;
+      uint32_t Add = B2; // 0100
+      uint32_t InstType = 1;
+      emitType01(Cond, InstType, Add, SetFlags, Rn, Rd, Src1Value);
+      return;
+    }
+  } while (0);
+  UnimplementedError(Ctx->getFlags());
 }
 
 void ARM32::AssemblerARM32::bkpt(uint16_t imm16) {
@@ -145,17 +194,30 @@ void ARM32::AssemblerARM32::bx(RegARM32::GPRRegister Rm, CondARM32::Cond Cond) {
   emitInst(Encoding);
 }
 
-void ARM32::AssemblerARM32::mov(RegARM32::GPRRegister Rd,
-                                const OperandARM32FlexImm &FlexImm,
+void ARM32::AssemblerARM32::mov(const Operand *OpRd, const Operand *OpSrc,
                                 CondARM32::Cond Cond) {
-  // cccc0011101s0000ddddiiiiiiiiiiii (ARM section A8.8.102, encoding A1)
-  assert(isConditionDefined(Cond));
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  bool SetCc = false; // Note: We don't use movs in this assembler.
-  uint32_t Rn = 0;
-  uint32_t Mov = B3 | B2 | B0; // 1101.
-  emitType01(Cond, kInstTypeImmediate, Mov, SetCc, Rn, encodeGPRRegister(Rd),
-             encodeImm12FromFlexImm(FlexImm));
+  // Note: Loop is used so that we can short ciruit using break;
+  do {
+    uint32_t Rd;
+    if (decode(OpRd, Rd) != DecodedAsRegister)
+      break;
+    uint32_t Src;
+    // TODO(kschimpf) Handle other forms of mov.
+    if (decode(OpSrc, Src) == DecodedAsRotatedImm8) {
+      // cccc0011101s0000ddddiiiiiiiiiiii (ARM section A8.8.102, encoding A1)
+      // Note: We don't use movs in this assembler.
+      constexpr bool SetFlags = false;
+      if (!isConditionDefined(Cond) || (Rd == RegARM32::Reg_pc && SetFlags))
+        // Conditions of rule violated.
+        break;
+      uint32_t Rn = 0;
+      uint32_t Mov = B3 | B2 | B0; // 1101.
+      uint32_t InstType = 1;
+      emitType01(Cond, InstType, Mov, SetFlags, Rn, Rd, Src);
+      return;
+    }
+  } while (0);
+  UnimplementedError(Ctx->getFlags());
 }
 
 } // end of namespace Ice

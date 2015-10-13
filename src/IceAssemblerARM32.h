@@ -93,12 +93,17 @@ public:
     (void)Kind;
     llvm_unreachable("Not yet implemented.");
   }
+
   void bind(Label *label);
+
+  // List of instructions implemented by integrated assembler.
+
+  void add(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
+           bool SetFlags, CondARM32::Cond Cond);
 
   void bkpt(uint16_t Imm16);
 
-  void mov(RegARM32::GPRRegister Rd, const OperandARM32FlexImm &FlexImm,
-           CondARM32::Cond Cond);
+  void mov(const Operand *OpRd, const Operand *OpSrc, CondARM32::Cond Cond);
 
   void bx(RegARM32::GPRRegister Rm, CondARM32::Cond Cond = CondARM32::AL);
 

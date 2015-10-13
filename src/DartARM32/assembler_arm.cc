@@ -208,6 +208,8 @@ void Assembler::rsbs(Register rd, Register rn, Operand o, Condition cond) {
 }
 
 
+#if 0
+// Moved to IceAssemberARM32::add.
 void Assembler::add(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), ADD, 0, rn, rd, o);
 }
@@ -216,6 +218,7 @@ void Assembler::add(Register rd, Register rn, Operand o, Condition cond) {
 void Assembler::adds(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), ADD, 1, rn, rd, o);
 }
+#endif
 
 
 void Assembler::subs(Register rd, Register rn, Operand o, Condition cond) {

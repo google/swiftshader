@@ -588,10 +588,7 @@ public:
       return;
     emitThreeAddr(Opcode, this, Func, SetFlags);
   }
-  void emitIAS(const Cfg *Func) const override {
-    (void)Func;
-    llvm::report_fatal_error("Not yet implemented");
-  }
+  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override {
     if (!BuildDefs::dump())
       return;
