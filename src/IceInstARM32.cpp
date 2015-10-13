@@ -592,6 +592,29 @@ void InstARM32Mov::emitSingleDestSingleSource(const Cfg *Func) const {
   }
 }
 
+void InstARM32Mov::emitIASSingleDestSingleSource(const Cfg *Func) const {
+  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  Variable *Dest = getDest();
+  Operand *Src0 = getSrc(0);
+  // Note: Loop is used so that we can short circuit using break.
+  do {
+    if (Dest->hasReg()) {
+      Type DestTy = Dest->getType();
+      const bool DestIsVector = isVectorType(DestTy);
+      const bool DestIsScalarFP = isScalarFloatingType(DestTy);
+      const bool CoreVFPMove = isMoveBetweenCoreAndVFPRegisters(Dest, Src0);
+      if (DestIsVector || DestIsScalarFP || CoreVFPMove)
+        break;
+      if (const auto *FlexImm = llvm::dyn_cast<OperandARM32FlexImm>(Src0)) {
+        Asm->mov(static_cast<RegARM32::GPRRegister>(Dest->getRegNum()),
+                 *FlexImm, getPredicate());
+        return;
+      }
+    }
+  } while (0);
+  llvm_unreachable("not yet implemented");
+}
+
 void InstARM32Mov::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
@@ -612,7 +635,13 @@ void InstARM32Mov::emit(const Cfg *Func) const {
 void InstARM32Mov::emitIAS(const Cfg *Func) const {
   assert(getSrcSize() == 1);
   (void)Func;
-  llvm_unreachable("Not yet implemented");
+  assert(!(isMultiDest() && isMultiSource()) && "Invalid vmov type.");
+  if (isMultiDest())
+    llvm_unreachable("Not yet implemented");
+  if (isMultiSource())
+    llvm_unreachable("Not yet implemented");
+  // Must be single source/dest.
+  emitIASSingleDestSingleSource(Func);
 }
 
 void InstARM32Mov::dump(const Cfg *Func) const {

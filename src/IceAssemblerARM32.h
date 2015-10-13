@@ -18,6 +18,10 @@
 /// \file
 /// This file implements the Assembler class for ARM32.
 ///
+/// Note: All references to ARM "section" documentation refers to the "ARM
+/// Architecture Reference Manual, ARMv7-A and ARMv7-R edition". See:
+/// http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.ddi0406c
+///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICEASSEMBLERARM32_H
@@ -27,6 +31,7 @@
 #include "IceConditionCodesARM32.h"
 #include "IceDefs.h"
 #include "IceFixups.h"
+#include "IceInstARM32.h"
 #include "IceRegistersARM32.h"
 #include "IceTargetLowering.h"
 
@@ -74,8 +79,8 @@ public:
   }
 
   Ice::Label *getCfgNodeLabel(SizeT NodeNumber) override {
-    (void)NodeNumber;
-    llvm_unreachable("Not yet implemented.");
+    assert(NodeNumber < CfgNodeLabels.size());
+    return CfgNodeLabels[NodeNumber];
   }
 
   void bindCfgNodeLabel(SizeT NodeNumber) override {
@@ -90,145 +95,18 @@ public:
   }
   void bind(Label *label);
 
-  void bkpt(uint16_t imm16);
+  void bkpt(uint16_t Imm16);
 
-  void bx(RegARM32::GPRRegister rm, CondARM32::Cond cond = CondARM32::AL);
+  void mov(RegARM32::GPRRegister Rd, const OperandARM32FlexImm &FlexImm,
+           CondARM32::Cond Cond);
+
+  void bx(RegARM32::GPRRegister Rm, CondARM32::Cond Cond = CondARM32::AL);
 
   static bool classof(const Assembler *Asm) {
     return Asm->getKind() == Asm_ARM32;
   }
 
 private:
-  // Instruction encoding bits.
-
-  // halfword (or byte)
-  static constexpr uint32_t H = 1 << 5;
-  // load (or store)
-  static constexpr uint32_t L = 1 << 20;
-  // set condition code (or leave unchanged)
-  static constexpr uint32_t S = 1 << 20;
-  // writeback base register (or leave unchanged)
-  static constexpr uint32_t W = 1 << 21;
-  // accumulate in multiply instruction (or not)
-  static constexpr uint32_t A = 1 << 21;
-  // unsigned byte (or word)
-  static constexpr uint32_t B = 1 << 22;
-  // high/lo bit of start of s/d register range
-  static constexpr uint32_t D = 1 << 22;
-  // long (or short)
-  static constexpr uint32_t N = 1 << 22;
-  // positive (or negative) offset/index
-  static constexpr uint32_t U = 1 << 23;
-  // offset/pre-indexed addressing (or post-indexed addressing)
-  static constexpr uint32_t P = 1 << 24;
-  // immediate shifter operand (or not)
-  static constexpr uint32_t I = 1 << 25;
-
-  // The following define individual bits.
-  static constexpr uint32_t B0 = 1;
-  static constexpr uint32_t B1 = 1 << 1;
-  static constexpr uint32_t B2 = 1 << 2;
-  static constexpr uint32_t B3 = 1 << 3;
-  static constexpr uint32_t B4 = 1 << 4;
-  static constexpr uint32_t B5 = 1 << 5;
-  static constexpr uint32_t B6 = 1 << 6;
-  static constexpr uint32_t B7 = 1 << 7;
-  static constexpr uint32_t B8 = 1 << 8;
-  static constexpr uint32_t B9 = 1 << 9;
-  static constexpr uint32_t B10 = 1 << 10;
-  static constexpr uint32_t B11 = 1 << 11;
-  static constexpr uint32_t B12 = 1 << 12;
-  static constexpr uint32_t B16 = 1 << 16;
-  static constexpr uint32_t B17 = 1 << 17;
-  static constexpr uint32_t B18 = 1 << 18;
-  static constexpr uint32_t B19 = 1 << 19;
-  static constexpr uint32_t B20 = 1 << 20;
-  static constexpr uint32_t B21 = 1 << 21;
-  static constexpr uint32_t B22 = 1 << 22;
-  static constexpr uint32_t B23 = 1 << 23;
-  static constexpr uint32_t B24 = 1 << 24;
-  static constexpr uint32_t B25 = 1 << 25;
-  static constexpr uint32_t B26 = 1 << 26;
-  static constexpr uint32_t B27 = 1 << 27;
-
-  // Constants used for the decoding or encoding of the individual fields of
-  // instructions. Based on section A5.1 from the "ARM Architecture Reference
-  // Manual, ARMv7-A and ARMv7-R edition". See:
-  // http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.ddi0406c
-  static constexpr uint32_t kConditionShift = 28;
-  static constexpr uint32_t kConditionBits = 4;
-  static constexpr uint32_t kTypeShift = 25;
-  static constexpr uint32_t kTypeBits = 3;
-  static constexpr uint32_t kLinkShift = 24;
-  static constexpr uint32_t kLinkBits = 1;
-  static constexpr uint32_t kUShift = 23;
-  static constexpr uint32_t kUBits = 1;
-  static constexpr uint32_t kOpcodeShift = 21;
-  static constexpr uint32_t kOpcodeBits = 4;
-  static constexpr uint32_t kSShift = 20;
-  static constexpr uint32_t kSBits = 1;
-  static constexpr uint32_t kRnShift = 16;
-  static constexpr uint32_t kRnBits = 4;
-  static constexpr uint32_t kRdShift = 12;
-  static constexpr uint32_t kRdBits = 4;
-  static constexpr uint32_t kRsShift = 8;
-  static constexpr uint32_t kRsBits = 4;
-  static constexpr uint32_t kRmShift = 0;
-  static constexpr uint32_t kRmBits = 4;
-
-  // Immediate instruction fields encoding.
-  static constexpr uint32_t kRotateShift = 8;
-  static constexpr uint32_t kRotateBits = 4;
-  static constexpr uint32_t kImmed8Shift = 0;
-  static constexpr uint32_t kImmed8Bits = 8;
-
-  // Shift instruction register fields encodings.
-  static constexpr uint32_t kShiftImmShift = 7;
-  static constexpr uint32_t kShiftRegisterShift = 8;
-  static constexpr uint32_t kShiftImmBits = 5;
-  static constexpr uint32_t kShiftShift = 5;
-  static constexpr uint32_t kShiftBits = 2;
-
-  // Load/store instruction offset field encoding.
-  static constexpr uint32_t kOffset12Shift = 0;
-  static constexpr uint32_t kOffset12Bits = 12;
-  static constexpr uint32_t kOffset12Mask = 0x00000fff;
-
-  // Mul instruction register field encodings.
-  static constexpr uint32_t kMulRdShift = 16;
-  static constexpr uint32_t kMulRdBits = 4;
-  static constexpr uint32_t kMulRnShift = 12;
-  static constexpr uint32_t kMulRnBits = 4;
-
-  // Div instruction register field encodings.
-  static constexpr uint32_t kDivRdShift = 16;
-  static constexpr uint32_t kDivRdBits = 4;
-  static constexpr uint32_t kDivRmShift = 8;
-  static constexpr uint32_t kDivRmBints = 4;
-  static constexpr uint32_t kDivRnShift = 0;
-  static constexpr uint32_t kDivRnBits = 4;
-
-  // ldrex/strex register field encodings.
-  static constexpr uint32_t kLdExRnShift = 16;
-  static constexpr uint32_t kLdExRtShift = 12;
-  static constexpr uint32_t kStrExRnShift = 16;
-  static constexpr uint32_t kStrExRdShift = 12;
-  static constexpr uint32_t kStrExRtShift = 0;
-
-  // MRC instruction offset field encoding.
-  static constexpr uint32_t kCRmShift = 0;
-  static constexpr uint32_t kCRmBits = 4;
-  static constexpr uint32_t kOpc2Shift = 5;
-  static constexpr uint32_t kOpc2Bits = 3;
-  static constexpr uint32_t kCoprocShift = 8;
-  static constexpr uint32_t kCoprocBits = 4;
-  static constexpr uint32_t kCRnShift = 16;
-  static constexpr uint32_t kCRnBits = 4;
-  static constexpr uint32_t kOpc1Shift = 21;
-  static constexpr uint32_t kOpc1Bits = 3;
-
-  static constexpr uint32_t kBranchOffsetMask = 0x00ffffff;
-
   // A vector of pool-allocated x86 labels for CFG nodes.
   using LabelVector = std::vector<Label *>;
   LabelVector CfgNodeLabels;
@@ -238,14 +116,12 @@ private:
     return getOrCreateLabel(NodeNumber, CfgNodeLabels);
   }
 
-  void emitInt32(int32_t Value) { Buffer.emit<int32_t>(Value); }
+  void emitInst(uint32_t Value) { Buffer.emit<uint32_t>(Value); }
 
-  static int32_t BkptEncoding(uint16_t imm16) {
-    // bkpt requires that the cond field is AL.
-    // cccc00010010iiiiiiiiiiii0111iiii where cccc=AL and i in imm16
-    return (CondARM32::AL << kConditionShift) | B24 | B21 |
-           ((imm16 >> 4) << 8) | B6 | B5 | B4 | (imm16 & 0xf);
-  }
+  // Pattern cccctttoooosnnnnddddiiiiiiiiiiii where cccc=Cond, ttt=Type,
+  // oooo=Opcode, nnnn=Rn, dddd=Rd, iiiiiiiiiiii=imm12 (See ARM section A5.2.3).
+  void emitType01(CondARM32::Cond Cond, uint32_t Type, uint32_t Opcode,
+                  bool SetCc, uint32_t Rn, uint32_t Rd, uint32_t imm12);
 };
 
 } // end of namespace ARM32

@@ -1175,6 +1175,8 @@ private:
   void emitSingleDestMultiSource(const Cfg *Func) const;
   void emitSingleDestSingleSource(const Cfg *Func) const;
 
+  void emitIASSingleDestSingleSource(const Cfg *Func) const;
+
   Variable *DestHi = nullptr;
 };
 

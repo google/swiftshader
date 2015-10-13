@@ -28,7 +28,7 @@ class RuntimeEntry;
 class StubEntry;
 
 #if 0
-// Moved to: ARM32::AssemblerARM32.
+// Moved to: ARM32::AssemblerARM32 as needed
 // Instruction encoding bits.
 enum {
   H   = 1 << 5,   // halfword (or byte)
@@ -139,12 +139,15 @@ class Operand : public ValueObject {
     encoding_ = immediate;
   }
 
+#if 0
+  // Moved to AssemblerARM32::encodeImm12FromFlexImm.
   // Data-processing operands - Rotated immediate.
   Operand(uint32_t rotate, uint32_t immed8) {
     ASSERT((rotate < (1 << kRotateBits)) && (immed8 < (1 << kImmed8Bits)));
     type_ = 1;
     encoding_ = (rotate << kRotateShift) | (immed8 << kImmed8Shift);
   }
+#endif
 
   // Data-processing operands - Register.
   explicit Operand(Register rm) {
@@ -465,7 +468,11 @@ class Assembler : public ValueObject {
   void orr(Register rd, Register rn, Operand o, Condition cond = AL);
   void orrs(Register rd, Register rn, Operand o, Condition cond = AL);
 
+#if 0
+  // Moved to IceAssemblerARM32::mov(..FlexImm..)
+  // TODO(kschimpf) other forms of move.
   void mov(Register rd, Operand o, Condition cond = AL);
+#endif
   void movs(Register rd, Operand o, Condition cond = AL);
 
   void bic(Register rd, Register rn, Operand o, Condition cond = AL);
@@ -1084,6 +1091,8 @@ class Assembler : public ValueObject {
                         bool is_unique,
                         Register pp);
 
+#if 0
+  // Moved to class AssemblerARM32.
   void EmitType01(Condition cond,
                   int type,
                   Opcode opcode,
@@ -1091,6 +1100,7 @@ class Assembler : public ValueObject {
                   Register rn,
                   Register rd,
                   Operand o);
+#endif
 
   void EmitType5(Condition cond, int32_t offset, bool link);
 

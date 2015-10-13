@@ -71,7 +71,8 @@ void Assembler::Emit(int32_t value) {
   buffer_.Emit<int32_t>(value);
 }
 
-
+#if 0
+// Moved to class AssemblerARM32.
 void Assembler::EmitType01(Condition cond,
                            int type,
                            Opcode opcode,
@@ -90,7 +91,7 @@ void Assembler::EmitType01(Condition cond,
                      o.encoding();
   Emit(encoding);
 }
-
+#endif
 
 void Assembler::EmitType5(Condition cond, int32_t offset, bool link) {
   ASSERT(cond != kNoCondition);
@@ -277,10 +278,13 @@ void Assembler::orrs(Register rd, Register rn, Operand o, Condition cond) {
 }
 
 
+#if 0
+// Moved to AssemblerARM32::mov(..FlexImm..)
+// TODO(kschimpf) other forms of move.
 void Assembler::mov(Register rd, Operand o, Condition cond) {
   EmitType01(cond, o.type(), MOV, 0, R0, rd, o);
 }
-
+#endif
 
 void Assembler::movs(Register rd, Operand o, Condition cond) {
   EmitType01(cond, o.type(), MOV, 1, R0, rd, o);
