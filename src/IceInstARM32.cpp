@@ -330,6 +330,12 @@ void InstARM32ThreeAddrGPR<InstARM32::Add>::emitIAS(const Cfg *Func) const {
   Asm->add(getDest(), getSrc(0), getSrc(1), SetFlags, getPredicate());
 }
 
+template <>
+void InstARM32ThreeAddrGPR<InstARM32::Sub>::emitIAS(const Cfg *Func) const {
+  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  Asm->sub(getDest(), getSrc(0), getSrc(1), SetFlags, getPredicate());
+}
+
 InstARM32Call::InstARM32Call(Cfg *Func, Variable *Dest, Operand *CallTarget)
     : InstARM32(Func, InstARM32::Call, 1, Dest) {
   HasSideEffects = true;

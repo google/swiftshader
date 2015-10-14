@@ -107,6 +107,9 @@ public:
 
   void bx(RegARM32::GPRRegister Rm, CondARM32::Cond Cond = CondARM32::AL);
 
+  void sub(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
+           bool SetFlags, CondARM32::Cond Cond);
+
   static bool classof(const Assembler *Asm) {
     return Asm->getKind() == Asm_ARM32;
   }

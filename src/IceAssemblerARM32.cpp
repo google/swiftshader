@@ -28,6 +28,7 @@ using namespace Ice;
 
 // The following define individual bits.
 static constexpr uint32_t B0 = 1;
+static constexpr uint32_t B1 = 1 << 1;
 static constexpr uint32_t B2 = 1 << 2;
 static constexpr uint32_t B3 = 1 << 3;
 static constexpr uint32_t B4 = 1 << 4;
@@ -214,6 +215,36 @@ void ARM32::AssemblerARM32::mov(const Operand *OpRd, const Operand *OpSrc,
       uint32_t Mov = B3 | B2 | B0; // 1101.
       uint32_t InstType = 1;
       emitType01(Cond, InstType, Mov, SetFlags, Rn, Rd, Src);
+      return;
+    }
+  } while (0);
+  UnimplementedError(Ctx->getFlags());
+}
+
+void ARM32::AssemblerARM32::sub(const Operand *OpRd, const Operand *OpRn,
+                                const Operand *OpSrc1, bool SetFlags,
+                                CondARM32::Cond Cond) {
+  // Note: Loop is used so that we can short circuit using break;
+  do {
+    uint32_t Rd;
+    if (decode(OpRd, Rd) != DecodedAsRegister)
+      break;
+    uint32_t Rn;
+    if (decode(OpRn, Rn) != DecodedAsRegister)
+      break;
+    uint32_t Src1Value;
+    // TODO(kschimpf) Other possible decodings of add.
+    if (decode(OpSrc1, Src1Value) == DecodedAsRotatedImm8) {
+      // Sub (Immediate): See ARM section A8.8.222, rule A1.
+      // cccc0010010snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
+      // s=SetFlags and iiiiiiiiiiii=Src1Value
+      if (!isConditionDefined(Cond) || (Rd == RegARM32::Reg_pc && SetFlags) ||
+          (Rn == RegARM32::Reg_lr) || (Rn == RegARM32::Reg_pc && SetFlags))
+        // Conditions of rule violated.
+        break;
+      uint32_t Add = B1; // 0010
+      uint32_t InstType = 1;
+      emitType01(Cond, InstType, Add, SetFlags, Rn, Rd, Src1Value);
       return;
     }
   } while (0);
