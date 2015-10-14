@@ -1619,6 +1619,8 @@ namespace sw
 	{
 	public:
 		explicit Int4(RValue<Float4> cast);
+		explicit Int4(RValue<Short4> cast);
+		explicit Int4(RValue<UShort4> cast);
 
 		Int4();
 		Int4(int xyzw);

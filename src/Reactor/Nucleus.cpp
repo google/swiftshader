@@ -5142,6 +5142,70 @@ namespace sw
 		storeValue(xyzw);
 	}
 
+	Int4::Int4(RValue<Short4> cast)
+	{
+		Value *long2 = UndefValue::get(Long2::getType());
+		Value *element = Nucleus::createBitCast(cast.value, Long::getType());
+		long2 = Nucleus::createInsertElement(long2, element, 0);
+		RValue<Int4> vector = RValue<Int4>(Nucleus::createBitCast(long2, Int4::getType()));
+		
+		if(CPUID::supportsSSE4_1())
+		{
+			storeValue(x86::pmovsxwd(vector).value);
+		}
+		else
+		{
+			Value *b = Nucleus::createBitCast(vector.value, Short8::getType());
+
+			Constant *swizzle[8];
+			swizzle[0] = Nucleus::createConstantInt(0);
+			swizzle[1] = Nucleus::createConstantInt(0);
+			swizzle[2] = Nucleus::createConstantInt(1);
+			swizzle[3] = Nucleus::createConstantInt(1);
+			swizzle[4] = Nucleus::createConstantInt(2);
+			swizzle[5] = Nucleus::createConstantInt(2);
+			swizzle[6] = Nucleus::createConstantInt(3);
+			swizzle[7] = Nucleus::createConstantInt(3);
+
+			storeValue(Nucleus::createShuffleVector(b, b, Nucleus::createConstantVector(swizzle, 8)));
+
+			// Each Short is packed into each Int in the (Short | Short) format.
+			// Shifting by 16 will retrieve the original Short value.
+			// Shitfing an Int will propagate the sign bit, which will work
+			// for both positive and negative values of a Short.
+			*this >>= 16;
+		}
+	}
+
+	Int4::Int4(RValue<UShort4> cast)
+	{
+		Value *long2 = UndefValue::get(Long2::getType());
+		Value *element = Nucleus::createBitCast(cast.value, Long::getType());
+		long2 = Nucleus::createInsertElement(long2, element, 0);
+		RValue<Int4> vector = RValue<Int4>(Nucleus::createBitCast(long2, Int4::getType()));
+
+		if(CPUID::supportsSSE4_1())
+		{
+			storeValue(x86::pmovzxwd(RValue<Int4>(vector)).value);
+		}
+		else
+		{
+			Value *b = Nucleus::createBitCast(vector.value, Short8::getType());
+
+			Constant *swizzle[8];
+			swizzle[0] = Nucleus::createConstantInt(0);
+			swizzle[1] = Nucleus::createConstantInt(8);
+			swizzle[2] = Nucleus::createConstantInt(1);
+			swizzle[3] = Nucleus::createConstantInt(9);
+			swizzle[4] = Nucleus::createConstantInt(2);
+			swizzle[5] = Nucleus::createConstantInt(10);
+			swizzle[6] = Nucleus::createConstantInt(3);
+			swizzle[7] = Nucleus::createConstantInt(11);
+
+			storeValue(Nucleus::createShuffleVector(b, Nucleus::createNullValue(Short8::getType()), Nucleus::createConstantVector(swizzle, 8)));
+		}
+	}
+
 	Int4::Int4()
 	{
 	//	xyzw.parent = this;
@@ -6210,130 +6274,16 @@ namespace sw
 	{
 		xyzw.parent = this;
 
-		#if 0
-			Value *xyzw = Nucleus::createSIToFP(cast.value, Float4::getType());   // FIXME: Crashes
-		#elif 0
-			Value *vector = loadValue();
-
-			Value *i16x = Nucleus::createExtractElement(cast.value, 0);
-			Value *f32x = Nucleus::createSIToFP(i16x, Float::getType());
-			Value *x = Nucleus::createInsertElement(vector, f32x, 0);
-
-			Value *i16y = Nucleus::createExtractElement(cast.value, Nucleus::createConstantInt(1));
-			Value *f32y = Nucleus::createSIToFP(i16y, Float::getType());
-			Value *xy = Nucleus::createInsertElement(x, f32y, Nucleus::createConstantInt(1));
-
-			Value *i16z = Nucleus::createExtractElement(cast.value, Nucleus::createConstantInt(2));
-			Value *f32z = Nucleus::createSIToFP(i16z, Float::getType());
-			Value *xyz = Nucleus::createInsertElement(xy, f32z, Nucleus::createConstantInt(2));
-
-			Value *i16w = Nucleus::createExtractElement(cast.value, Nucleus::createConstantInt(3));
-			Value *f32w = Nucleus::createSIToFP(i16w, Float::getType());
-			Value *xyzw = Nucleus::createInsertElement(xyz, f32w, Nucleus::createConstantInt(3));
-		#else
-			Value *long2 = UndefValue::get(Long2::getType());
-			Value *element = Nucleus::createBitCast(cast.value, Long::getType());
-			long2 = Nucleus::createInsertElement(long2, element, 0);
-			RValue<Int4> vector = RValue<Int4>(Nucleus::createBitCast(long2, Int4::getType()));
-
-			Value *xyzw;
-
-			if(CPUID::supportsSSE4_1())
-			{
-				Value *c = x86::pmovsxwd(vector).value;
-
-				xyzw = Nucleus::createSIToFP(c, Float4::getType());
-			}
-			else
-			{
-				Value *b = Nucleus::createBitCast(vector.value, Short8::getType());
-
-				Constant *swizzle[8];
-				swizzle[0] = Nucleus::createConstantInt(0);
-				swizzle[1] = Nucleus::createConstantInt(0);
-				swizzle[2] = Nucleus::createConstantInt(1);
-				swizzle[3] = Nucleus::createConstantInt(1);
-				swizzle[4] = Nucleus::createConstantInt(2);
-				swizzle[5] = Nucleus::createConstantInt(2);
-				swizzle[6] = Nucleus::createConstantInt(3);
-				swizzle[7] = Nucleus::createConstantInt(3);
-
-				Value *c = Nucleus::createShuffleVector(b, b, Nucleus::createConstantVector(swizzle, 8));
-				Value *d = Nucleus::createBitCast(c, Int4::getType());
-				Value *e = Nucleus::createSIToFP(d, Float4::getType());
-
-				Constant *constantVector[4];
-				constantVector[0] = Nucleus::createConstantFloat(1.0f / (1 << 16));
-				constantVector[1] = Nucleus::createConstantFloat(1.0f / (1 << 16));
-				constantVector[2] = Nucleus::createConstantFloat(1.0f / (1 << 16));
-				constantVector[3] = Nucleus::createConstantFloat(1.0f / (1 << 16));
-
-				xyzw = Nucleus::createFMul(e, Nucleus::createConstantVector(constantVector, 4));
-			}
-		#endif
-
-		storeValue(xyzw);
+		Int4 c(cast);
+		storeValue(Nucleus::createSIToFP(RValue<Int4>(c).value, Float4::getType()));
 	}
 
 	Float4::Float4(RValue<UShort4> cast)
 	{
 		xyzw.parent = this;
 
-		#if 0
-			Value *xyzw = Nucleus::createUIToFP(cast.value, Float4::getType());   // FIXME: Crashes
-		#elif 0
-			Value *vector = loadValue();
-
-			Value *i16x = Nucleus::createExtractElement(cast.value, 0);
-			Value *f32x = Nucleus::createUIToFP(i16x, Float::getType());
-			Value *x = Nucleus::createInsertElement(vector, f32x, 0);
-
-			Value *i16y = Nucleus::createExtractElement(cast.value, Nucleus::createConstantInt(1));
-			Value *f32y = Nucleus::createUIToFP(i16y, Float::getType());
-			Value *xy = Nucleus::createInsertElement(x, f32y, Nucleus::createConstantInt(1));
-
-			Value *i16z = Nucleus::createExtractElement(cast.value, Nucleus::createConstantInt(2));
-			Value *f32z = Nucleus::createUIToFP(i16z, Float::getType());
-			Value *xyz = Nucleus::createInsertElement(xy, f32z, Nucleus::createConstantInt(2));
-
-			Value *i16w = Nucleus::createExtractElement(cast.value, Nucleus::createConstantInt(3));
-			Value *f32w = Nucleus::createUIToFP(i16w, Float::getType());
-			Value *xyzw = Nucleus::createInsertElement(xyz, f32w, Nucleus::createConstantInt(3));
-		#else
-			Value *long2 = UndefValue::get(Long2::getType());
-			Value *element = Nucleus::createBitCast(cast.value, Long::getType());
-			long2 = Nucleus::createInsertElement(long2, element, 0);
-			RValue<Int4> vector = RValue<Int4>(Nucleus::createBitCast(long2, Int4::getType()));
-
-			Value *c;
-
-			if(CPUID::supportsSSE4_1())
-			{
-				c = x86::pmovzxwd(RValue<Int4>(vector)).value;
-			}
-			else
-			{
-				Value *b = Nucleus::createBitCast(vector.value, Short8::getType());
-
-				Constant *swizzle[8];
-				swizzle[0] = Nucleus::createConstantInt(0);
-				swizzle[1] = Nucleus::createConstantInt(8);
-				swizzle[2] = Nucleus::createConstantInt(1);
-				swizzle[3] = Nucleus::createConstantInt(9);
-				swizzle[4] = Nucleus::createConstantInt(2);
-				swizzle[5] = Nucleus::createConstantInt(10);
-				swizzle[6] = Nucleus::createConstantInt(3);
-				swizzle[7] = Nucleus::createConstantInt(11);
-
-				c = Nucleus::createShuffleVector(b, Nucleus::createNullValue(Short8::getType()), Nucleus::createConstantVector(swizzle, 8));
-			}
-
-			Value *d = Nucleus::createBitCast(c, Int4::getType());
-			Value *e = Nucleus::createSIToFP(d, Float4::getType());
-			Value *xyzw = e;
-		#endif
-
-		storeValue(xyzw);
+		Int4 c(cast);
+		storeValue(Nucleus::createSIToFP(RValue<Int4>(c).value, Float4::getType()));
 	}
 
 	Float4::Float4(RValue<Int4> cast)
