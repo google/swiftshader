@@ -339,13 +339,13 @@ GLsizei Texture2D::getHeight(GLenum target, GLint level) const
 GLenum Texture2D::getFormat(GLenum target, GLint level) const
 {
 	ASSERT(target == GL_TEXTURE_2D || target == GL_PROXY_TEXTURE_2D);
-    return image[level] ? image[level]->getFormat() : 0;
+	return image[level] ? image[level]->getFormat() : GL_NONE;
 }
 
 GLenum Texture2D::getType(GLenum target, GLint level) const
 {
 	ASSERT(target == GL_TEXTURE_2D || target == GL_PROXY_TEXTURE_2D);
-    return image[level] ? image[level]->getType() : 0;
+	return image[level] ? image[level]->getType() : GL_NONE;
 }
 
 sw::Format Texture2D::getInternalFormat(GLenum target, GLint level) const
@@ -716,13 +716,13 @@ GLsizei TextureCubeMap::getHeight(GLenum target, GLint level) const
 GLenum TextureCubeMap::getFormat(GLenum target, GLint level) const
 {
 	int face = CubeFaceIndex(target);
-    return image[face][level] ? image[face][level]->getFormat() : 0;
+	return image[face][level] ? image[face][level]->getFormat() : GL_NONE;
 }
 
 GLenum TextureCubeMap::getType(GLenum target, GLint level) const
 {
 	int face = CubeFaceIndex(target);
-    return image[face][level] ? image[face][level]->getType() : 0;
+	return image[face][level] ? image[face][level]->getType() : GL_NONE;
 }
 
 sw::Format TextureCubeMap::getInternalFormat(GLenum target, GLint level) const

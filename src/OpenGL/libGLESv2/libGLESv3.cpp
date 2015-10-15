@@ -46,49 +46,13 @@ static bool validImageSize(GLint level, GLsizei width, GLsizei height)
 	return true;
 }
 
-static bool validateSubImageParams(bool compressed, GLsizei width, GLsizei height, GLsizei depth, GLint xoffset, GLint yoffset, GLint zoffset, GLenum target, GLint level, GLenum format, es2::Texture *texture)
-{
-	if(!texture)
-	{
-		return error(GL_INVALID_OPERATION, false);
-	}
-
-	if(compressed != texture->isCompressed(target, level))
-	{
-		return error(GL_INVALID_OPERATION, false);
-	}
-
-	if(format != GL_NONE && format != texture->getFormat(target, level))
-	{
-		return error(GL_INVALID_OPERATION, false);
-	}
-
-	if(compressed)
-	{
-		if((width % 4 != 0 && width != texture->getWidth(target, 0)) ||
-		   (height % 4 != 0 && height != texture->getHeight(target, 0)) ||
-		   (depth % 4 != 0 && depth != texture->getDepth(target, 0)))
-		{
-			return error(GL_INVALID_OPERATION, false);
-		}
-	}
-
-	if(xoffset + width > texture->getWidth(target, level) ||
-		yoffset + height > texture->getHeight(target, level) ||
-		zoffset + depth > texture->getDepth(target, level))
-	{
-		return error(GL_INVALID_VALUE, false);
-	}
-
-	return true;
-}
 
 static bool validateColorBufferFormat(GLenum textureFormat, GLenum colorbufferFormat)
 {
-	GLenum formatError = ValidateCompressedFormat(textureFormat, egl::getClientVersion(), false);
-	if(formatError != GL_NONE)
+	GLenum validationError = ValidateCompressedFormat(textureFormat, egl::getClientVersion(), false);
+	if(validationError != GL_NONE)
 	{
-		return error(formatError, false);
+		return error(validationError, false);
 	}
 
 	switch(textureFormat)
@@ -706,7 +670,7 @@ GL_APICALL void GL_APIENTRY glTexImage3D(GLenum target, GLint level, GLint inter
 			return error(GL_INVALID_OPERATION);
 		}
 
-		texture->setImage(level, width, height, depth, internalformat, type, context->getUnpackInfo(), pixels);
+		texture->setImage(level, width, height, depth, GetSizedInternalFormat(internalformat, type), type, context->getUnpackInfo(), pixels);
 	}
 }
 
@@ -747,9 +711,16 @@ GL_APICALL void GL_APIENTRY glTexSubImage3D(GLenum target, GLint level, GLint xo
 	{
 		es2::Texture3D *texture = (target == GL_TEXTURE_3D) ? context->getTexture3D() : context->getTexture2DArray();
 
-		if(validateSubImageParams(false, width, height, depth, xoffset, yoffset, zoffset, target, level, format, texture))
+		GLenum sizedInternalFormat = GetSizedInternalFormat(format, type);
+
+		GLenum validationError = ValidateSubImageParams(false, width, height, depth, xoffset, yoffset, zoffset, target, level, sizedInternalFormat, texture);
+		if(validationError == GL_NONE)
 		{
-			texture->subImage(level, xoffset, yoffset, zoffset, width, height, depth, format, type, context->getUnpackInfo(), pixels);
+			texture->subImage(level, xoffset, yoffset, zoffset, width, height, depth, sizedInternalFormat, type, context->getUnpackInfo(), pixels);
+		}
+		else
+		{
+			return error(validationError);
 		}
 	}
 }
@@ -800,9 +771,10 @@ GL_APICALL void GL_APIENTRY glCopyTexSubImage3D(GLenum target, GLint level, GLin
 		GLenum colorbufferFormat = source->getFormat();
 		es2::Texture3D *texture = (target == GL_TEXTURE_3D) ? context->getTexture3D() : context->getTexture2DArray();
 
-		if(!validateSubImageParams(false, width, height, 1, xoffset, yoffset, zoffset, target, level, GL_NONE, texture))
+		GLenum validationError = ValidateSubImageParams(false, width, height, 1, xoffset, yoffset, zoffset, target, level, GL_NONE, texture);
+		if(validationError != GL_NONE)
 		{
-			return;
+			return error(validationError);
 		}
 
 		GLenum textureFormat = texture->getFormat(target, level);
@@ -852,10 +824,10 @@ GL_APICALL void GL_APIENTRY glCompressedTexImage3D(GLenum target, GLint level, G
 		return error(GL_INVALID_OPERATION);
 	default:
 		{
-			GLenum formatError = ValidateCompressedFormat(internalformat, egl::getClientVersion(), true);
-			if(formatError != GL_NONE)
+			GLenum validationError = ValidateCompressedFormat(internalformat, egl::getClientVersion(), true);
+			if(validationError != GL_NONE)
 			{
-				return error(formatError);
+				return error(validationError);
 			}
 		}
 	}
@@ -901,10 +873,10 @@ GL_APICALL void GL_APIENTRY glCompressedTexSubImage3D(GLenum target, GLint level
 		return error(GL_INVALID_VALUE);
 	}
 
-	GLenum formatError = ValidateCompressedFormat(format, egl::getClientVersion(), true);
-	if(formatError != GL_NONE)
+	GLenum validationError = ValidateCompressedFormat(format, egl::getClientVersion(), true);
+	if(validationError != GL_NONE)
 	{
-		return error(formatError);
+		return error(validationError);
 	}
 
 	if(width == 0 || height == 0 || depth == 0 || data == NULL)
@@ -3875,7 +3847,7 @@ GL_APICALL void GL_APIENTRY glTexStorage2D(GLenum target, GLsizei levels, GLenum
 
 			for(int level = 0; level < levels; ++level)
 			{
-				texture->setImage(level, width, height, internalformat, type, context->getUnpackInfo(), NULL);
+				texture->setImage(level, width, height, GetSizedInternalFormat(internalformat, type), type, context->getUnpackInfo(), NULL);
 				width = std::max(1, (width / 2));
 				height = std::max(1, (height / 2));
 			}
@@ -3894,7 +3866,7 @@ GL_APICALL void GL_APIENTRY glTexStorage2D(GLenum target, GLsizei levels, GLenum
 			{
 				for(int face = GL_TEXTURE_CUBE_MAP_POSITIVE_X; face <= GL_TEXTURE_CUBE_MAP_NEGATIVE_Z; ++face)
 				{
-					texture->setImage(face, level, width, height, internalformat, type, context->getUnpackInfo(), NULL);
+					texture->setImage(face, level, width, height, GetSizedInternalFormat(internalformat, type), type, context->getUnpackInfo(), NULL);
 				}
 				width = std::max(1, (width / 2));
 				height = std::max(1, (height / 2));
@@ -3945,7 +3917,7 @@ GL_APICALL void GL_APIENTRY glTexStorage3D(GLenum target, GLsizei levels, GLenum
 
 			for(int level = 0; level < levels; ++level)
 			{
-				texture->setImage(level, width, height, depth, internalformat, type, context->getUnpackInfo(), NULL);
+				texture->setImage(level, width, height, depth, GetSizedInternalFormat(internalformat, type), type, context->getUnpackInfo(), NULL);
 				width = std::max(1, (width / 2));
 				height = std::max(1, (height / 2));
 				depth = std::max(1, (depth / 2));
@@ -3970,7 +3942,7 @@ GL_APICALL void GL_APIENTRY glTexStorage3D(GLenum target, GLsizei levels, GLenum
 			{
 				for(int face = GL_TEXTURE_CUBE_MAP_POSITIVE_X; face <= GL_TEXTURE_CUBE_MAP_NEGATIVE_Z; ++face)
 				{
-					texture->setImage(level, width, height, depth, internalformat, type, context->getUnpackInfo(), NULL);
+					texture->setImage(level, width, height, depth, GetSizedInternalFormat(internalformat, type), type, context->getUnpackInfo(), NULL);
 				}
 				width = std::max(1, (width / 2));
 				height = std::max(1, (height / 2));

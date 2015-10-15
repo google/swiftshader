@@ -468,6 +468,7 @@ namespace egl
 			}
 			break;
 		case GL_BGRA_EXT:
+		case GL_BGRA8_EXT:
 			switch(type)
 			{
 			case GL_UNSIGNED_BYTE:          return sw::FORMAT_A8R8G8B8;
@@ -735,6 +736,7 @@ namespace egl
 			case GL_RGBA_INTEGER:
 				return sw::FORMAT_A8B8G8R8UI;
 			case GL_BGRA_EXT:
+			case GL_BGRA8_EXT:
 				return sw::FORMAT_A8R8G8B8;
 			case GL_ALPHA:
 			case GL_ALPHA8_EXT:
@@ -923,7 +925,8 @@ namespace egl
 			case GL_SRGB8_ALPHA8:
 			case GL_RGBA:            return sizeof(unsigned char) * 4;
 			case GL_RGBA_INTEGER:    return sizeof(unsigned char) * 4;
-			case GL_BGRA_EXT:        return sizeof(unsigned char) * 4;
+			case GL_BGRA_EXT:
+			case GL_BGRA8_EXT:       return sizeof(unsigned char)* 4;
 			default: UNREACHABLE(format);
 			}
 			break;
@@ -1226,6 +1229,7 @@ namespace egl
 					case GL_RGBA:
 					case GL_RGBA_INTEGER:
 					case GL_BGRA_EXT:
+					case GL_BGRA8_EXT:
 						LoadImageData<Bytes_4>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getHeight(), input, buffer);
 						break;
 					default: UNREACHABLE(format);
@@ -1267,6 +1271,7 @@ namespace egl
 					case GL_RGBA:
 					case GL_RGBA_INTEGER:
 					case GL_BGRA_EXT:
+					case GL_BGRA8_EXT:
 						LoadImageData<Bytes_4>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getHeight(), input, buffer);
 						break;
 					case GL_SRGB8:
@@ -1441,6 +1446,7 @@ namespace egl
 					case GL_RGBA:
 					case GL_RGBA_INTEGER:
 					case GL_BGRA_EXT:
+					case GL_BGRA8_EXT:
 						LoadImageData<Bytes_8>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getHeight(), input, buffer);
 						break;
 					default: UNREACHABLE(format);
@@ -1471,6 +1477,7 @@ namespace egl
 					case GL_RGBA:
 					case GL_RGBA_INTEGER:
 					case GL_BGRA_EXT:
+					case GL_BGRA8_EXT:
 						LoadImageData<Bytes_8>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getHeight(), input, buffer);
 						break;
 					case GL_DEPTH_COMPONENT:
@@ -1505,6 +1512,7 @@ namespace egl
 					case GL_RGBA:
 					case GL_RGBA_INTEGER:
 					case GL_BGRA_EXT:
+					case GL_BGRA8_EXT:
 						LoadImageData<Bytes_16>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getHeight(), input, buffer);
 						break;
 					default: UNREACHABLE(format);
@@ -1535,6 +1543,7 @@ namespace egl
 					case GL_RGBA:
 					case GL_RGBA_INTEGER:
 					case GL_BGRA_EXT:
+					case GL_BGRA8_EXT:
 						LoadImageData<Bytes_8>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getHeight(), input, buffer);
 						break;
 					case GL_DEPTH_COMPONENT16:

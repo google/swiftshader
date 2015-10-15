@@ -578,13 +578,13 @@ GLsizei Texture2D::getHeight(GLenum target, GLint level) const
 GLenum Texture2D::getFormat(GLenum target, GLint level) const
 {
 	ASSERT(target == GL_TEXTURE_2D);
-    return image[level] ? image[level]->getFormat() : 0;
+	return image[level] ? image[level]->getFormat() : GL_NONE;
 }
 
 GLenum Texture2D::getType(GLenum target, GLint level) const
 {
 	ASSERT(target == GL_TEXTURE_2D);
-    return image[level] ? image[level]->getType() : 0;
+	return image[level] ? image[level]->getType() : GL_NONE;
 }
 
 sw::Format Texture2D::getInternalFormat(GLenum target, GLint level) const
@@ -678,7 +678,8 @@ void Texture2D::setCompressedImage(GLint level, GLenum format, GLsizei width, GL
 		image[level]->unbind(this);
 	}
 
-	image[level] = new egl::Image(this, width, height, format, GL_UNSIGNED_BYTE);
+	GLenum sizedInternalFormat = GetSizedInternalFormat(format, GL_UNSIGNED_BYTE);
+	image[level] = new egl::Image(this, width, height, sizedInternalFormat, GL_UNSIGNED_BYTE);
 
 	if(!image[level])
 	{
@@ -713,7 +714,8 @@ void Texture2D::copyImage(GLint level, GLenum format, GLint x, GLint y, GLsizei 
 		image[level]->unbind(this);
 	}
 
-	image[level] = new egl::Image(this, width, height, format, GL_UNSIGNED_BYTE);
+	GLenum sizedInternalFormat = GetSizedInternalFormat(format, GL_UNSIGNED_BYTE);
+	image[level] = new egl::Image(this, width, height, sizedInternalFormat, GL_UNSIGNED_BYTE);
 
 	if(!image[level])
 	{
@@ -733,7 +735,7 @@ void Texture2D::copyImage(GLint level, GLenum format, GLint x, GLint y, GLsizei 
 		sw::SliceRect sourceRect(x, y, x + width, y + height, 0);
 		sourceRect.clip(0, 0, renderbuffer->getWidth(), renderbuffer->getHeight());
 
-        copy(renderTarget, sourceRect, format, 0, 0, 0, image[level]);
+		copy(renderTarget, sourceRect, sizedInternalFormat, 0, 0, 0, image[level]);
     }
 
 	renderTarget->release();
@@ -1079,7 +1081,8 @@ void TextureCubeMap::setCompressedImage(GLenum target, GLint level, GLenum forma
 		image[face][level]->unbind(this);
 	}
 
-	image[face][level] = new egl::Image(this, width, height, format, GL_UNSIGNED_BYTE);
+	GLenum sizedInternalFormat = GetSizedInternalFormat(format, GL_UNSIGNED_BYTE);
+	image[face][level] = new egl::Image(this, width, height, sizedInternalFormat, GL_UNSIGNED_BYTE);
 
 	if(!image[face][level])
 	{
@@ -1247,7 +1250,8 @@ void TextureCubeMap::copyImage(GLenum target, GLint level, GLenum format, GLint 
 		image[face][level]->unbind(this);
 	}
 
-	image[face][level] = new egl::Image(this, width, height, format, GL_UNSIGNED_BYTE);
+	GLenum sizedInternalFormat = GetSizedInternalFormat(format, GL_UNSIGNED_BYTE);
+	image[face][level] = new egl::Image(this, width, height, sizedInternalFormat, GL_UNSIGNED_BYTE);
 
 	if(!image[face][level])
 	{
@@ -1267,7 +1271,7 @@ void TextureCubeMap::copyImage(GLenum target, GLint level, GLenum format, GLint 
 		sw::SliceRect sourceRect(x, y, x + width, y + height, 0);
 		sourceRect.clip(0, 0, renderbuffer->getWidth(), renderbuffer->getHeight());
         
-        copy(renderTarget, sourceRect, format, 0, 0, 0, image[face][level]);
+		copy(renderTarget, sourceRect, sizedInternalFormat, 0, 0, 0, image[face][level]);
     }
 
 	renderTarget->release();
@@ -1484,13 +1488,13 @@ GLsizei Texture3D::getDepth(GLenum target, GLint level) const
 GLenum Texture3D::getFormat(GLenum target, GLint level) const
 {
 	ASSERT(target == getTarget());
-	return image[level] ? image[level]->getFormat() : 0;
+	return image[level] ? image[level]->getFormat() : GL_NONE;
 }
 
 GLenum Texture3D::getType(GLenum target, GLint level) const
 {
 	ASSERT(target == getTarget());
-	return image[level] ? image[level]->getType() : 0;
+	return image[level] ? image[level]->getType() : GL_NONE;
 }
 
 sw::Format Texture3D::getInternalFormat(GLenum target, GLint level) const
@@ -1580,7 +1584,8 @@ void Texture3D::setCompressedImage(GLint level, GLenum format, GLsizei width, GL
 		image[level]->unbind(this);
 	}
 
-	image[level] = new egl::Image(this, width, height, depth, format, GL_UNSIGNED_BYTE);
+	GLenum sizedInternalFormat = GetSizedInternalFormat(format, GL_UNSIGNED_BYTE);
+	image[level] = new egl::Image(this, width, height, depth, sizedInternalFormat, GL_UNSIGNED_BYTE);
 
 	if(!image[level])
 	{
@@ -1592,7 +1597,7 @@ void Texture3D::setCompressedImage(GLint level, GLenum format, GLsizei width, GL
 
 void Texture3D::subImage(GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const egl::Image::UnpackInfo& unpackInfo, const void *pixels)
 {
-	Texture::subImage(xoffset, yoffset, zoffset, width, height, format, depth, type, unpackInfo, pixels, image[level]);
+	Texture::subImage(xoffset, yoffset, zoffset, width, height, depth, format, type, unpackInfo, pixels, image[level]);
 }
 
 void Texture3D::subImageCompressed(GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *pixels)
@@ -1615,7 +1620,8 @@ void Texture3D::copyImage(GLint level, GLenum format, GLint x, GLint y, GLint z,
 		image[level]->unbind(this);
 	}
 
-	image[level] = new egl::Image(this, width, height, depth, format, GL_UNSIGNED_BYTE);
+	GLenum sizedInternalFormat = GetSizedInternalFormat(format, GL_UNSIGNED_BYTE);
+	image[level] = new egl::Image(this, width, height, depth, sizedInternalFormat, GL_UNSIGNED_BYTE);
 
 	if(!image[level])
 	{
@@ -1636,7 +1642,7 @@ void Texture3D::copyImage(GLint level, GLenum format, GLint x, GLint y, GLint z,
 		sourceRect.clip(0, 0, renderbuffer->getWidth(), renderbuffer->getHeight());
 		for(GLint sliceZ = 0; sliceZ < depth; ++sliceZ, ++sourceRect.slice)
 		{
-			copy(renderTarget, sourceRect, format, 0, 0, sliceZ, image[level]);
+			copy(renderTarget, sourceRect, sizedInternalFormat, 0, 0, sliceZ, image[level]);
 		}
 	}
 
