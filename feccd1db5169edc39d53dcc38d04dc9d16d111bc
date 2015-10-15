@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "19d29ae7_9281dcc7",
+        "filename": "src/OpenGL/libGLESv2/Texture.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1595,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-10-15T21:25:22Z",
+      "side": 0,
+      "message": "The format and depth arguments were passed in the wrong order here, which is also fixed in this cl.",
+      "range": {
+        "startLine": 1595,
+        "startChar": 61,
+        "endLine": 1595,
+        "endChar": 74
+      },
+      "revId": "feccd1db5169edc39d53dcc38d04dc9d16d111bc",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
