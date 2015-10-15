@@ -121,6 +121,78 @@ void testsInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
   }
 }
 
+template <typename TypeUnsigned, typename TypeSigned>
+void testsIntWithZero(size_t &TotalTests, size_t &Passes, size_t &Failures) {
+  typedef bool (*FuncTypeUnsigned)(TypeUnsigned);
+  typedef bool (*FuncTypeSigned)(TypeSigned);
+  static struct {
+    const char *Name;
+    FuncTypeUnsigned FuncLlc;
+    FuncTypeUnsigned FuncSz;
+  } Funcs[] = {
+#define X(cmp, op)                                                             \
+  {                                                                            \
+    STR(cmp), (FuncTypeUnsigned)icmp_zero##cmp,                                \
+        (FuncTypeUnsigned)Subzero_::icmp_zero##cmp                             \
+  }                                                                            \
+  ,
+      ICMP_U_TABLE
+#undef X
+#define X(cmp, op)                                                             \
+  {                                                                            \
+    STR(cmp), (FuncTypeUnsigned)(FuncTypeSigned)icmp_zero##cmp,                \
+        (FuncTypeUnsigned)(FuncTypeSigned)Subzero_::icmp_zero##cmp             \
+  }                                                                            \
+  ,
+          ICMP_S_TABLE
+#undef X
+  };
+  const static size_t NumFuncs = sizeof(Funcs) / sizeof(*Funcs);
+
+  if (sizeof(TypeUnsigned) <= sizeof(uint32_t)) {
+    // This is the "normal" version of the loop nest, for 32-bit or
+    // narrower types.
+    for (size_t f = 0; f < NumFuncs; ++f) {
+      for (size_t i = 0; i < NumValues; ++i) {
+        TypeUnsigned Value = Values[i];
+        ++TotalTests;
+        bool ResultSz = Funcs[f].FuncSz(Value);
+        bool ResultLlc = Funcs[f].FuncLlc(Value);
+        if (ResultSz == ResultLlc) {
+          ++Passes;
+        } else {
+          ++Failures;
+          std::cout << "icmp" << Funcs[f].Name
+                    << (CHAR_BIT * sizeof(TypeUnsigned)) << "(" << Value
+                    << "): sz=" << ResultSz << " llc=" << ResultLlc << "\n";
+        }
+      }
+    }
+  } else {
+    // This is the 64-bit version.  Test values are synthesized from
+    // the 32-bit values in Values[].
+    for (size_t f = 0; f < NumFuncs; ++f) {
+      for (size_t iLo = 0; iLo < NumValues; ++iLo) {
+        for (size_t iHi = 0; iHi < NumValues; ++iHi) {
+          TypeUnsigned Value =
+              (((TypeUnsigned)Values[iHi]) << 32) + Values[iLo];
+          ++TotalTests;
+          bool ResultSz = Funcs[f].FuncSz(Value);
+          bool ResultLlc = Funcs[f].FuncLlc(Value);
+          if (ResultSz == ResultLlc) {
+            ++Passes;
+          } else {
+            ++Failures;
+            std::cout << "icmp" << Funcs[f].Name
+                      << (CHAR_BIT * sizeof(TypeUnsigned)) << "(" << Value
+                      << "): sz=" << ResultSz << " llc=" << ResultLlc << "\n";
+          }
+        }
+      }
+    }
+  }
+}
+
 const static size_t MaxTestsPerFunc = 100000;
 
 template <typename TypeUnsignedLabel, typename TypeSignedLabel>
@@ -287,6 +359,10 @@ int main(int argc, char *argv[]) {
   testsInt<uint16_t, int16_t>(TotalTests, Passes, Failures);
   testsInt<uint32_t, int32_t>(TotalTests, Passes, Failures);
   testsInt<uint64, int64>(TotalTests, Passes, Failures);
+  testsIntWithZero<uint8_t, myint8_t>(TotalTests, Passes, Failures);
+  testsIntWithZero<uint16_t, int16_t>(TotalTests, Passes, Failures);
+  testsIntWithZero<uint32_t, int32_t>(TotalTests, Passes, Failures);
+  testsIntWithZero<uint64, int64>(TotalTests, Passes, Failures);
   testsVecInt<v4ui32, v4si32>(TotalTests, Passes, Failures);
   testsVecInt<v8ui16, v8si16>(TotalTests, Passes, Failures);
   testsVecInt<v16ui8, v16si8>(TotalTests, Passes, Failures);

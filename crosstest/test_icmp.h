@@ -24,7 +24,11 @@
   bool icmp##cmp(uint64 a, uint64 b);                                          \
   v4ui32 icmp##cmp(v4ui32 a, v4ui32 b);                                        \
   v8ui16 icmp##cmp(v8ui16 a, v8ui16 b);                                        \
-  v16ui8 icmp##cmp(v16ui8 a, v16ui8 b);
+  v16ui8 icmp##cmp(v16ui8 a, v16ui8 b);                                        \
+  bool icmp_zero##cmp(uint8_t a);                                              \
+  bool icmp_zero##cmp(uint16_t a);                                             \
+  bool icmp_zero##cmp(uint32_t a);                                             \
+  bool icmp_zero##cmp(uint64 a);
 ICMP_U_TABLE
 #undef X
 
@@ -35,7 +39,11 @@ ICMP_U_TABLE
   bool icmp##cmp(int64 a, int64 b);                                            \
   v4si32 icmp##cmp(v4si32 a, v4si32 b);                                        \
   v8si16 icmp##cmp(v8si16 a, v8si16 b);                                        \
-  v16si8 icmp##cmp(v16si8 a, v16si8 b);
+  v16si8 icmp##cmp(v16si8 a, v16si8 b);                                        \
+  bool icmp_zero##cmp(myint8_t a);                                             \
+  bool icmp_zero##cmp(int16_t a);                                              \
+  bool icmp_zero##cmp(int32_t a);                                              \
+  bool icmp_zero##cmp(int64 a);
 ICMP_S_TABLE
 #undef X
 

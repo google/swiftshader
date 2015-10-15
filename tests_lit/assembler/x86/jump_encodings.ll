@@ -166,7 +166,7 @@ next:
   call void @llvm.nacl.atomic.store.i32(i32 %val, i32* %ptr, i32 6)
   br label %next2
 next2:
-  %cmp = icmp ult i64 %val64, 0
+  %cmp = icmp ult i64 %val64, 1
   br i1 %cmp, label %next, label %next2
 }
 ; CHECK-LABEL: test_local_forward_then_back

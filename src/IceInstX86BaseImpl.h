@@ -2092,7 +2092,6 @@ void InstX86Test<Machine>::emitIAS(const Cfg *Func) const {
       return;
     }
   }
-  llvm_unreachable("Nothing actually generates this so it's untested");
   emitIASAsAddrOpTyGPR<Machine>(Func, Ty, Src0, Src1, AddrEmitter);
 }
 

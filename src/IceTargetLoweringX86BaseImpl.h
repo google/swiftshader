@@ -2648,6 +2648,14 @@ void TargetX86Base<Machine>::lowerFcmp(const InstFcmp *Inst) {
   }
 }
 
+inline bool isZero(const Operand *Opnd) {
+  if (auto *C64 = llvm::dyn_cast<ConstantInteger64>(Opnd))
+    return C64->getValue() == 0;
+  if (auto *C32 = llvm::dyn_cast<ConstantInteger32>(Opnd))
+    return C32->getValue() == 0;
+  return false;
+}
+
 template <class Machine>
 void TargetX86Base<Machine>::lowerIcmp(const InstIcmp *Inst) {
   Operand *Src0 = legalize(Inst->getSrc(0));
@@ -2769,6 +2777,18 @@ void TargetX86Base<Machine>::lowerIcmp(const InstIcmp *Inst) {
   }
 
   // cmp b, c
+  if (isZero(Src1)) {
+    switch (Inst->getCondition()) {
+    default:
+      break;
+    case InstIcmp::Uge:
+      _mov(Dest, Ctx->getConstantInt(Dest->getType(), 1));
+      return;
+    case InstIcmp::Ult:
+      _mov(Dest, Ctx->getConstantInt(Dest->getType(), 0));
+      return;
+    }
+  }
   Operand *Src0RM = legalizeSrc0ForCmp(Src0, Src1);
   _cmp(Src0RM, Src1);
   _setcc(Dest, Traits::getIcmp32Mapping(Inst->getCondition()));
@@ -2785,12 +2805,88 @@ TargetX86Base<Machine>::lowerIcmp64(const InstIcmp *Inst) {
   InstIcmp::ICond Condition = Inst->getCondition();
   size_t Index = static_cast<size_t>(Condition);
   assert(Index < Traits::TableIcmp64Size);
-  Operand *Src0LoRM = legalize(loOperand(Src0), Legal_Reg | Legal_Mem);
-  Operand *Src0HiRM = legalize(hiOperand(Src0), Legal_Reg | Legal_Mem);
-  Operand *Src1LoRI = legalize(loOperand(Src1), Legal_Reg | Legal_Imm);
-  Operand *Src1HiRI = legalize(hiOperand(Src1), Legal_Reg | Legal_Imm);
   Constant *Zero = Ctx->getConstantZero(IceType_i32);
   Constant *One = Ctx->getConstantInt32(1);
+  Operand *Src0LoRM = nullptr;
+  Operand *Src0HiRM = nullptr;
+  // Legalize the portions of Src0 that are going to be needed.
+  if (isZero(Src1)) {
+    switch (Condition) {
+    default:
+      llvm_unreachable("unexpected condition");
+      break;
+    // These two are not optimized, so we fall through to the general case,
+    // which needs the upper and lower halves legalized.
+    case InstIcmp::Sgt:
+    case InstIcmp::Sle:
+    // These four compare after performing an "or" of the high and low half, so they
+    // need the upper and lower halves legalized.
+    case InstIcmp::Eq:
+    case InstIcmp::Ule:
+    case InstIcmp::Ne:
+    case InstIcmp::Ugt:
+      Src0LoRM = legalize(loOperand(Src0), Legal_Reg | Legal_Mem);
+    // These two test only the high half's sign bit, so they need only
+    // the upper half legalized.
+    case InstIcmp::Sge:
+    case InstIcmp::Slt:
+      Src0HiRM = legalize(hiOperand(Src0), Legal_Reg | Legal_Mem);
+      break;
+
+    // These two move constants and hence need no legalization.
+    case InstIcmp::Uge:
+    case InstIcmp::Ult:
+      break;
+    }
+  } else {
+    Src0LoRM = legalize(loOperand(Src0), Legal_Reg | Legal_Mem);
+    Src0HiRM = legalize(hiOperand(Src0), Legal_Reg | Legal_Mem);
+  }
+  // Optimize comparisons with zero.
+  if (isZero(Src1)) {
+    Constant *SignMask = Ctx->getConstantInt32(0x80000000);
+    Variable *Temp = nullptr;
+    switch (Condition) {
+    default:
+      llvm_unreachable("unexpected condition");
+      break;
+    case InstIcmp::Eq:
+    case InstIcmp::Ule:
+      _mov(Temp, Src0LoRM);
+      _or(Temp, Src0HiRM);
+      Context.insert(InstFakeUse::create(Func, Temp));
+      _setcc(Dest, Traits::Cond::Br_e);
+      return;
+    case InstIcmp::Ne:
+    case InstIcmp::Ugt:
+      _mov(Temp, Src0LoRM);
+      _or(Temp, Src0HiRM);
+      Context.insert(InstFakeUse::create(Func, Temp));
+      _setcc(Dest, Traits::Cond::Br_ne);
+      return;
+    case InstIcmp::Uge:
+      _mov(Dest, Ctx->getConstantInt(Dest->getType(), 1));
+      return;
+    case InstIcmp::Ult:
+      _mov(Dest, Ctx->getConstantInt(Dest->getType(), 0));
+      return;
+    case InstIcmp::Sgt:
+      break;
+    case InstIcmp::Sge:
+      _test(Src0HiRM, SignMask);
+      _setcc(Dest, Traits::Cond::Br_e);
+      return;
+    case InstIcmp::Slt:
+      _test(Src0HiRM, SignMask);
+      _setcc(Dest, Traits::Cond::Br_ne);
+      return;
+    case InstIcmp::Sle:
+      break;
+    }
+  }
+  // Handle general compares.
+  Operand *Src1LoRI = legalize(loOperand(Src1), Legal_Reg | Legal_Imm);
+  Operand *Src1HiRI = legalize(hiOperand(Src1), Legal_Reg | Legal_Imm);
   typename Traits::Insts::Label *LabelFalse =
       Traits::Insts::Label::create(Func, this);
   typename Traits::Insts::Label *LabelTrue =
