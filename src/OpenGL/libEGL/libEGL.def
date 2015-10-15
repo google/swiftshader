@@ -41,5 +41,9 @@ EXPORTS
 	eglGetPlatformDisplayEXT
     eglCreatePlatformWindowSurfaceEXT
     eglCreatePlatformPixmapSurfaceEXT
+	eglCreateSyncKHR
+	eglDestroySyncKHR
+	eglClientWaitSyncKHR
+	eglGetSyncAttribKHR
 
 	libEGL_swiftshader

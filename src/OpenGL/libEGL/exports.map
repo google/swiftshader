@@ -39,8 +39,12 @@ global:
 	eglCreateImageKHR;
 	eglDestroyImageKHR;
 	eglGetPlatformDisplayEXT;
-    eglCreatePlatformWindowSurfaceEXT;
-    eglCreatePlatformPixmapSurfaceEXT;
+	eglCreatePlatformWindowSurfaceEXT;
+	eglCreatePlatformPixmapSurfaceEXT;
+	eglCreateSyncKHR;
+	eglDestroySyncKHR;
+	eglClientWaitSyncKHR;
+	eglGetSyncAttribKHR;
 
 	libEGL_swiftshader;
 

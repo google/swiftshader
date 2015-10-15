@@ -4485,6 +4485,7 @@ const GLubyte* Context::getExtensions(GLuint index, GLuint* numExt) const
 		(const GLubyte*)"GL_OES_depth_texture_cube_map",
 		(const GLubyte*)"GL_OES_EGL_image",
 		(const GLubyte*)"GL_OES_EGL_image_external",
+		(const GLubyte*)"GL_OES_EGL_sync",
 		(const GLubyte*)"GL_OES_element_index_uint",
 		(const GLubyte*)"GL_OES_packed_depth_stencil",
 		(const GLubyte*)"GL_OES_rgb8_rgba8",

@@ -521,6 +521,26 @@ EGLAPI __eglMustCastToProperFunctionPointerType EGLAPIENTRY eglGetProcAddress(co
 	return libEGL->eglGetProcAddress(procname);
 }
 
+EGLAPI EGLSyncKHR EGLAPIENTRY eglCreateSyncKHR(EGLDisplay dpy, EGLenum type, const EGLint *attrib_list)
+{
+	return libEGL->eglCreateSyncKHR(dpy, type, attrib_list);
+}
+
+EGLAPI EGLBoolean EGLAPIENTRY eglDestroySyncKHR(EGLDisplay dpy, EGLSyncKHR sync)
+{
+	return libEGL->eglDestroySyncKHR(dpy, sync);
+}
+
+EGLAPI EGLint EGLAPIENTRY eglClientWaitSyncKHR(EGLDisplay dpy, EGLSyncKHR sync, EGLint flags, EGLTimeKHR timeout)
+{
+	return libEGL->eglClientWaitSyncKHR(dpy, sync, flags, timeout);
+}
+
+EGLAPI EGLBoolean EGLAPIENTRY eglGetSyncAttribKHR(EGLDisplay dpy, EGLSyncKHR sync, EGLint attribute, EGLint *value)
+{
+	return libEGL->eglGetSyncAttribKHR(dpy, sync, attribute, value);
+}
+
 GL_API void GL_APIENTRY glActiveTexture(GLenum texture)
 {
 	return es1::ActiveTexture(texture);

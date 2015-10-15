@@ -177,6 +177,7 @@ const char *QueryString(EGLDisplay dpy, EGLint name)
 		return success("EGL_KHR_gl_texture_2D_image "
 		               "EGL_KHR_gl_texture_cubemap_image "
 		               "EGL_KHR_gl_renderbuffer_image "
+		               "EGL_KHR_fence_sync "
 		               "EGL_KHR_image_base "
 		               "EGL_ANDROID_framebuffer_target "
 		               "EGL_ANDROID_recordable");
@@ -428,12 +429,12 @@ EGLBoolean BindAPI(EGLenum api)
 
 	switch(api)
 	{
-		case EGL_OPENGL_API:
-		case EGL_OPENVG_API:
+	case EGL_OPENGL_API:
+	case EGL_OPENVG_API:
 		return error(EGL_BAD_PARAMETER, EGL_FALSE);   // Not supported by this implementation
-		case EGL_OPENGL_ES_API:
+	case EGL_OPENGL_ES_API:
 		break;
-		default:
+	default:
 		return error(EGL_BAD_PARAMETER, EGL_FALSE);
 	}
 
@@ -960,6 +961,131 @@ EGLSurface CreatePlatformPixmapSurfaceEXT(EGLDisplay dpy, EGLConfig config, void
 	return CreatePixmapSurface(dpy, config, (EGLNativePixmapType)native_pixmap, attrib_list);
 }
 
+class FenceSync
+{
+public:
+	explicit FenceSync(Context *context) : context(context)
+	{
+		status = EGL_UNSIGNALED_KHR;
+		context->addRef();
+	}
+
+	~FenceSync()
+	{
+		context->release();
+		context = nullptr;
+	}
+
+	void wait() const { return context->finish(); }
+	void signal() { status = EGL_SIGNALED_KHR; }
+	bool isSignaled() const { return status == EGL_SIGNALED_KHR; }
+
+private:
+	EGLint status;
+	Context *context;
+};
+
+EGLSyncKHR CreateSyncKHR(EGLDisplay dpy, EGLenum type, const EGLint *attrib_list)
+{
+	TRACE("(EGLDisplay dpy = %p, EGLunum type = %x, EGLint *attrib_list=%p)", dpy, type, attrib_list);
+
+	egl::Display *display = static_cast<egl::Display*>(dpy);
+
+	if(!validateDisplay(display))
+	{
+		return error(EGL_BAD_DISPLAY, EGL_NO_SYNC_KHR);
+	}
+
+	if(type != EGL_SYNC_FENCE_KHR)
+	{
+		return error(EGL_BAD_ATTRIBUTE, EGL_NO_SYNC_KHR);
+	}
+
+	if(attrib_list && attrib_list[0] != EGL_NONE)
+	{
+		return error(EGL_BAD_ATTRIBUTE, EGL_NO_SYNC_KHR);
+	}
+
+	egl::Context *context = static_cast<egl::Context*>(egl::getCurrentContext());
+
+	if(!validateContext(display, context))
+	{
+		return error(EGL_BAD_MATCH, EGL_NO_SYNC_KHR);
+	}
+
+	return new FenceSync(context);
+}
+
+EGLBoolean DestroySyncKHR(EGLDisplay dpy, EGLSyncKHR sync)
+{
+	TRACE("(EGLDisplay dpy = %p, EGLSyncKHR sync = %p)", dpy, sync);
+
+	egl::Display *display = static_cast<egl::Display*>(dpy);
+	FenceSync *eglSync = static_cast<FenceSync*>(sync);
+
+	if(!validateDisplay(display))
+	{
+		return error(EGL_BAD_DISPLAY, EGL_FALSE);
+	}
+
+	delete eglSync;
+
+	return EGL_TRUE;
+}
+
+EGLint ClientWaitSyncKHR(EGLDisplay dpy, EGLSyncKHR sync, EGLint flags, EGLTimeKHR timeout)
+{
+	TRACE("(EGLDisplay dpy = %p, EGLSyncKHR sync = %p, EGLint flags = %x, EGLTimeKHR value = %llx)", dpy, sync, flags, timeout);
+
+	egl::Display *display = static_cast<egl::Display*>(dpy);
+	FenceSync *eglSync = static_cast<FenceSync*>(sync);
+
+	if(!validateDisplay(display))
+	{
+		return error(EGL_BAD_DISPLAY, EGL_FALSE);
+	}
+
+	(void)flags;
+	(void)timeout;
+
+	if(!eglSync->isSignaled())
+	{
+		eglSync->wait();
+		eglSync->signal();
+	}
+
+	return EGL_CONDITION_SATISFIED_KHR;
+}
+
+EGLBoolean GetSyncAttribKHR(EGLDisplay dpy, EGLSyncKHR sync, EGLint attribute, EGLint *value)
+{
+	TRACE("(EGLDisplay dpy = %p, EGLSyncKHR sync = %p, EGLint attribute = %x, EGLint *value = %p)", dpy, sync, attribute, value);
+
+	egl::Display *display = static_cast<egl::Display*>(dpy);
+
+	if(!validateDisplay(display))
+	{
+		return error(EGL_BAD_DISPLAY, EGL_FALSE);
+	}
+
+	FenceSync *eglSync = static_cast<FenceSync*>(sync);
+
+	switch(attribute)
+	{
+	case EGL_SYNC_TYPE_KHR:
+		*value = EGL_SYNC_FENCE_KHR;
+		return EGL_TRUE;
+	case EGL_SYNC_STATUS_KHR:
+		*value = eglSync->isSignaled() ? EGL_SIGNALED_KHR : EGL_UNSIGNALED_KHR;
+		return EGL_TRUE;
+	case EGL_SYNC_CONDITION_KHR:
+		*value = EGL_SYNC_PRIOR_COMMANDS_COMPLETE_KHR;
+		return EGL_TRUE;
+	default:
+		return error(EGL_BAD_ATTRIBUTE, EGL_FALSE);
+	}
+}
+
 __eglMustCastToProperFunctionPointerType GetProcAddress(const char *procname)
 {
 	TRACE("(const char *procname = \"%s\")", procname);
@@ -979,6 +1105,10 @@ __eglMustCastToProperFunctionPointerType GetProcAddress(const char *procname)
 		EXTENSION(eglGetPlatformDisplayEXT),
 		EXTENSION(eglCreatePlatformWindowSurfaceEXT),
 		EXTENSION(eglCreatePlatformPixmapSurfaceEXT),
+		EXTENSION(eglCreateSyncKHR),
+		EXTENSION(eglDestroySyncKHR),
+		EXTENSION(eglClientWaitSyncKHR),
+		EXTENSION(eglGetSyncAttribKHR),
 
 		#undef EXTENSION
 	};

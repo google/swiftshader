@@ -47,6 +47,10 @@ public:
 	EGLImageKHR (*eglCreateImageKHR)(EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLClientBuffer buffer, const EGLint *attrib_list);
 	EGLBoolean (*eglDestroyImageKHR)(EGLDisplay dpy, EGLImageKHR image);
 	__eglMustCastToProperFunctionPointerType (*eglGetProcAddress)(const char*);
+	EGLSyncKHR (*eglCreateSyncKHR)(EGLDisplay dpy, EGLenum type, const EGLint *attrib_list);
+	EGLBoolean (*eglDestroySyncKHR)(EGLDisplay dpy, EGLSyncKHR sync);
+	EGLint (*eglClientWaitSyncKHR)(EGLDisplay dpy, EGLSyncKHR sync, EGLint flags, EGLTimeKHR timeout);
+	EGLBoolean (*eglGetSyncAttribKHR)(EGLDisplay dpy, EGLSyncKHR sync, EGLint attribute, EGLint *value);
 
 	// Functions that don't change the error code, for use by client APIs
 	egl::Context *(*clientGetCurrentContext)();

@@ -294,6 +294,7 @@ public:
 
 	virtual void makeCurrent(egl::Surface *surface);
 	virtual int getClientVersion() const;
+    virtual void finish();
 
     void markAllStateDirty();
 
@@ -486,7 +487,6 @@ public:
     void drawArrays(GLenum mode, GLint first, GLsizei count);
     void drawElements(GLenum mode, GLsizei count, GLenum type, const void *indices);
     void drawTexture(GLfloat x, GLfloat y, GLfloat z, GLfloat width, GLfloat height);
-    void finish();
     void flush();
 
     void recordInvalidEnum();
