@@ -1885,7 +1885,7 @@ namespace glsl
 			switch(dst->getBasicType())
 			{
 			case EbtInt:   return emit(sw::Shader::OPCODE_B2I, dst, src);
-			case EbtUInt:  return emit(sw::Shader::OPCODE_B2U, dst, src);
+			case EbtUInt:  return emit(sw::Shader::OPCODE_B2I, dst, src);
 			case EbtFloat: return emit(sw::Shader::OPCODE_B2F, dst, src);
 			default:       break;
 			}
@@ -1901,7 +1901,7 @@ namespace glsl
 		case EbtUInt:
 			switch(dst->getBasicType())
 			{
-			case EbtBool:  return emit(sw::Shader::OPCODE_U2B, dst, src);
+			case EbtBool:  return emit(sw::Shader::OPCODE_I2B, dst, src);
 			case EbtFloat: return emit(sw::Shader::OPCODE_U2F, dst, src);
 			default:       break;
 			}
@@ -1918,6 +1918,8 @@ namespace glsl
 		default:
 			break;
 		}
+
+		ASSERT(src->getBasicType() == dst->getBasicType());
 
 		return emit(sw::Shader::OPCODE_MOV, dst, src);
 	}

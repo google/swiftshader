@@ -129,7 +129,7 @@ namespace sw
 			OPCODE_PS_2_0 = 0xFFFF0200,
 			OPCODE_PS_2_x = 0xFFFF0201,
 			OPCODE_PS_3_0 = 0xFFFF0300,
-					
+
 			OPCODE_VS_1_0 = 0xFFFE0100,
 			OPCODE_VS_1_1 = 0xFFFE0101,
 			OPCODE_VS_2_0 = 0xFFFE0200,
@@ -187,8 +187,6 @@ namespace sw
 			OPCODE_U2F,   // Uint to float
 			OPCODE_I2B,   // Int to bool
 			OPCODE_B2I,   // Bool to int
-			OPCODE_U2B,   // Uint to bool
-			OPCODE_B2U,   // Bool to uint
 			OPCODE_DET2,
 			OPCODE_DET3,
 			OPCODE_DET4,
@@ -495,11 +493,11 @@ namespace sw
 			bool isPredicated() const;
 
 			Opcode opcode;
-			
+
 			union
 			{
 				Control control;
-				
+
 				struct
 				{
 					unsigned char project : 1;

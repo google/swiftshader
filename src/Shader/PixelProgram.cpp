@@ -161,8 +161,6 @@ namespace sw
 			case Shader::OPCODE_U2F:        u2f(d, s0);                                    break;
 			case Shader::OPCODE_I2B:        i2b(d, s0);                                    break;
 			case Shader::OPCODE_B2I:        b2i(d, s0);                                    break;
-			case Shader::OPCODE_U2B:        u2b(d, s0);                                    break;
-			case Shader::OPCODE_B2U:        b2u(d, s0);                                    break;
 			case Shader::OPCODE_ADD:        add(d, s0, s1);                                break;
 			case Shader::OPCODE_IADD:       iadd(d, s0, s1);                               break;
 			case Shader::OPCODE_SUB:        sub(d, s0, s1);                                break;
