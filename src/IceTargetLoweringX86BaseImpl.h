@@ -2136,7 +2136,6 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
         T_1 = makeReg(IceType_i32);
       }
       // cvt() requires its integer argument to be a GPR.
-      T_1->setMustHaveReg();
       Variable *T_2 = makeReg(Dest->getType());
       _cvt(T_1, Src0RM, Traits::Insts::Cvt::Tss2si);
       _mov(T_2, T_1); // T_1 and T_2 may have different integer types
@@ -2185,7 +2184,6 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
         assert(Dest->getType() != IceType_i32);
         T_1 = makeReg(IceType_i32);
       }
-      T_1->setMustHaveReg();
       Variable *T_2 = makeReg(Dest->getType());
       _cvt(T_1, Src0RM, Traits::Insts::Cvt::Tss2si);
       _mov(T_2, T_1); // T_1 and T_2 may have different integer types
@@ -2227,7 +2225,6 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
         assert(Src0RM->getType() != IceType_i64);
         T_1 = makeReg(IceType_i32);
       }
-      T_1->setMustHaveReg();
       Variable *T_2 = makeReg(Dest->getType());
       if (Src0RM->getType() == T_1->getType())
         _mov(T_1, Src0RM);
@@ -2276,7 +2273,6 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
         assert(Traits::Is64Bit || Src0RM->getType() != IceType_i32);
         T_1 = makeReg(IceType_i32);
       }
-      T_1->setMustHaveReg();
       Variable *T_2 = makeReg(Dest->getType());
       if (Src0RM->getType() == T_1->getType())
         _mov(T_1, Src0RM);
@@ -2385,7 +2381,6 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
         Variable *T = makeReg(IceType_f64);
         // Movd requires its fp argument (in this case, the bitcast
         // destination) to be an xmm register.
-        T->setMustHaveReg();
         _movd(T, Src0RM);
         _mov(Dest, T);
       } else {
@@ -2632,7 +2627,8 @@ void TargetX86Base<Machine>::lowerFcmp(const InstFcmp *Inst) {
       return;
     }
   }
-  Constant *Default = Ctx->getConstantInt32(Traits::TableFcmp[Index].Default);
+  Constant *Default =
+      Ctx->getConstantInt(Dest->getType(), Traits::TableFcmp[Index].Default);
   _mov(Dest, Default);
   if (HasC1) {
     typename Traits::Insts::Label *Label =
@@ -2642,7 +2638,7 @@ void TargetX86Base<Machine>::lowerFcmp(const InstFcmp *Inst) {
       _br(Traits::TableFcmp[Index].C2, Label);
     }
     Constant *NonDefault =
-        Ctx->getConstantInt32(!Traits::TableFcmp[Index].Default);
+        Ctx->getConstantInt(Dest->getType(), !Traits::TableFcmp[Index].Default);
     _mov_redefined(Dest, NonDefault);
     Context.insert(Label);
   }
@@ -2819,8 +2815,8 @@ TargetX86Base<Machine>::lowerIcmp64(const InstIcmp *Inst) {
     // which needs the upper and lower halves legalized.
     case InstIcmp::Sgt:
     case InstIcmp::Sle:
-    // These four compare after performing an "or" of the high and low half, so they
-    // need the upper and lower halves legalized.
+    // These four compare after performing an "or" of the high and low half, so
+    // they need the upper and lower halves legalized.
     case InstIcmp::Eq:
     case InstIcmp::Ule:
     case InstIcmp::Ne:
@@ -5186,7 +5182,6 @@ Operand *TargetX86Base<Machine>::legalize(Operand *From, LegalMask Allowed,
     if (Traits::Is64Bit) {
       if (llvm::isa<ConstantInteger64>(Const)) {
         Variable *V = copyToReg(Const, RegNum);
-        V->setMustHaveReg();
         return V;
       }
     }

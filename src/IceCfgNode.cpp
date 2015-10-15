@@ -299,14 +299,29 @@ CfgNode *CfgNode::splitIncomingEdge(CfgNode *Pred, SizeT EdgeIndex) {
 namespace {
 
 // Helper function used by advancedPhiLowering().
-bool sameVarOrReg(const Variable *Var, const Operand *Opnd) {
-  if (Var == Opnd)
+bool sameVarOrReg(TargetLowering *Target, const Variable *Var1,
+                  const Operand *Opnd) {
+  if (Var1 == Opnd)
     return true;
-  if (const auto Var2 = llvm::dyn_cast<Variable>(Opnd)) {
-    if (Var->hasReg() && Var->getRegNum() == Var2->getRegNum())
-      return true;
-  }
-  return false;
+  const auto Var2 = llvm::dyn_cast<Variable>(Opnd);
+  if (Var2 == nullptr)
+    return false;
+
+  // If either operand lacks a register, they cannot be the same.
+  if (!Var1->hasReg())
+    return false;
+  if (!Var2->hasReg())
+    return false;
+
+  int32_t RegNum1 = Var1->getRegNum();
+  int32_t RegNum2 = Var2->getRegNum();
+  // Quick common-case check.
+  if (RegNum1 == RegNum2)
+    return true;
+
+  assert(Target->getAliasesForRegister(RegNum1)[RegNum2] ==
+         Target->getAliasesForRegister(RegNum2)[RegNum1]);
+  return Target->getAliasesForRegister(RegNum1)[RegNum2];
 }
 
 } // end of anonymous namespace
@@ -383,6 +398,7 @@ void CfgNode::advancedPhiLowering() {
   if (NumPhis == 0)
     return;
 
+  TargetLowering *Target = Func->getTarget();
   SizeT InEdgeIndex = 0;
   for (CfgNode *Pred : InEdges) {
     CfgNode *Split = splitIncomingEdge(Pred, InEdgeIndex++);
@@ -397,7 +413,7 @@ void CfgNode::advancedPhiLowering() {
       Desc[I].NumPred = 0;
       // Cherry-pick any trivial assignments, so that they don't contribute to
       // the running complexity of the topological sort.
-      if (sameVarOrReg(Dest, Src)) {
+      if (sameVarOrReg(Target, Dest, Src)) {
         Desc[I].Processed = true;
         --Remaining;
         if (Dest != Src)
@@ -420,10 +436,10 @@ void CfgNode::advancedPhiLowering() {
         if (I != J) {
           // There shouldn't be two Phis with the same Dest variable or
           // register.
-          assert(!sameVarOrReg(Dest, Desc[J].Dest));
+          assert(!sameVarOrReg(Target, Dest, Desc[J].Dest));
         }
         const Operand *Src = Desc[J].Src;
-        if (sameVarOrReg(Dest, Src))
+        if (sameVarOrReg(Target, Dest, Src))
           ++Desc[I].NumPred;
       }
     }
@@ -473,7 +489,7 @@ void CfgNode::advancedPhiLowering() {
       assert(Desc[BestIndex].NumPred <= 1);
       Variable *Dest = Desc[BestIndex].Dest;
       Operand *Src = Desc[BestIndex].Src;
-      assert(!sameVarOrReg(Dest, Src));
+      assert(!sameVarOrReg(Target, Dest, Src));
       // Break a cycle by introducing a temporary.
       if (Desc[BestIndex].NumPred) {
         bool Found = false;
@@ -484,7 +500,7 @@ void CfgNode::advancedPhiLowering() {
           if (Desc[J].Processed)
             continue;
           Operand *OtherSrc = Desc[J].Src;
-          if (Desc[J].NumPred && sameVarOrReg(Dest, OtherSrc)) {
+          if (Desc[J].NumPred && sameVarOrReg(Target, Dest, OtherSrc)) {
             SizeT VarNum = Func->getNumVariables();
             Variable *Tmp = Func->makeVariable(OtherSrc->getType());
             if (BuildDefs::dump())
@@ -505,7 +521,7 @@ void CfgNode::advancedPhiLowering() {
         for (size_t I = 0; I < NumPhis; ++I) {
           if (Desc[I].Processed)
             continue;
-          if (sameVarOrReg(Var, Desc[I].Dest)) {
+          if (sameVarOrReg(Target, Var, Desc[I].Dest)) {
             if (--Desc[I].NumPred == 0)
               Desc[I].Weight += WeightNoPreds;
           }
@@ -1030,8 +1046,11 @@ void CfgNode::emit(Cfg *Func) const {
       // That normally would have happened as part of emitLiveRangesEnded(),
       // but that isn't called for redundant assignments.
       Variable *Dest = I.getDest();
-      if (DecorateAsm && Dest->hasReg() && !I.isLastUse(I.getSrc(0)))
+      if (DecorateAsm && Dest->hasReg()) {
         ++LiveRegCount[Dest->getRegNum()];
+        if (I.isLastUse(I.getSrc(0)))
+          --LiveRegCount[llvm::cast<Variable>(I.getSrc(0))->getRegNum()];
+      }
       continue;
     }
     I.emit(Func);

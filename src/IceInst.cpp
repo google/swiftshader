@@ -947,7 +947,7 @@ void InstTarget::dump(const Cfg *Func) const {
 }
 
 bool checkForRedundantAssign(const Variable *Dest, const Operand *Source) {
-  const auto SrcVar = llvm::dyn_cast<const Variable>(Source);
+  const auto *SrcVar = llvm::dyn_cast<const Variable>(Source);
   if (!SrcVar)
     return false;
   if (Dest->hasReg() && Dest->getRegNum() == SrcVar->getRegNum()) {

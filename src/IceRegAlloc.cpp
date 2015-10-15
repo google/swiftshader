@@ -501,9 +501,10 @@ void LinearScan::findRegisterPreference(IterationState &Iter) {
         // try to prefer the stack pointer as a result of the stacksave
         // intrinsic.
         if (SrcVar->hasRegTmp()) {
-          const int32_t SrcReg = SrcVar->getRegNumTmp();
-          const bool IsAliasAvailable =
-              (Iter.RegMask & *RegAliases[SrcReg]).any();
+          const llvm::SmallBitVector &Aliases =
+              *RegAliases[SrcVar->getRegNumTmp()];
+          const int32_t SrcReg = (Iter.RegMask & Aliases).find_first();
+          const bool IsAliasAvailable = (SrcReg != -1);
           if (IsAliasAvailable) {
             if (FindOverlap && !Iter.Free[SrcReg]) {
               // Don't bother trying to enable AllowOverlap if the register is
@@ -694,8 +695,12 @@ void LinearScan::handleNoFreeRegisters(IterationState &Iter) {
       int32_t RegNum = Item->getRegNumTmp();
       if (Aliases[RegNum]) {
         dumpLiveRangeTrace("Evicting A   ", Item);
-        --RegUses[RegNum];
-        assert(RegUses[RegNum] >= 0);
+        const llvm::SmallBitVector &Aliases = *RegAliases[RegNum];
+        for (int32_t RegAlias = Aliases.find_first(); RegAlias >= 0;
+             RegAlias = Aliases.find_next(RegAlias)) {
+          --RegUses[RegAlias];
+          assert(RegUses[RegAlias] >= 0);
+        }
         Item->setRegNumTmp(Variable::NoRegister);
         moveItem(Active, Index, Handled);
         Evicted.push_back(Item);

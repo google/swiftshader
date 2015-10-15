@@ -436,8 +436,16 @@ void TargetX8632::addProlog(CfgNode *Node) {
   // Add push instructions for preserved registers.
   uint32_t NumCallee = 0;
   size_t PreservedRegsSizeBytes = 0;
+  llvm::SmallBitVector Pushed(CalleeSaves.size());
   for (SizeT i = 0; i < CalleeSaves.size(); ++i) {
+    // SizeT Canonical = RegX8632::getCanonicalReg(i); // TODO(stichnot)
+    SizeT Canonical = i;
     if (CalleeSaves[i] && RegsUsed[i]) {
+      Pushed[Canonical] = true;
+    }
+  }
+  for (SizeT i = 0; i < Pushed.size(); ++i) {
+    if (Pushed[i]) {
       ++NumCallee;
       PreservedRegsSizeBytes += typeWidthInBytes(IceType_i32);
       _push(getPhysicalRegister(i));
@@ -601,11 +609,19 @@ void TargetX8632::addEpilog(CfgNode *Node) {
   // Add pop instructions for preserved registers.
   llvm::SmallBitVector CalleeSaves =
       getRegisterSet(RegSet_CalleeSave, RegSet_None);
+  llvm::SmallBitVector Popped(CalleeSaves.size());
   for (SizeT i = 0; i < CalleeSaves.size(); ++i) {
-    SizeT j = CalleeSaves.size() - i - 1;
+    // SizeT Canonical = RegX8632::getCanonicalReg(i); // TODO(stichnot)
+    SizeT Canonical = i;
+    if (CalleeSaves[i] && RegsUsed[i]) {
+      Popped[Canonical] = true;
+    }
+  }
+  for (SizeT i = 0; i < Popped.size(); ++i) {
+    SizeT j = Popped.size() - i - 1;
     if (j == Traits::RegisterSet::Reg_ebp && IsEbpBasedFrame)
       continue;
-    if (CalleeSaves[j] && RegsUsed[j]) {
+    if (Popped[j]) {
       _pop(getPhysicalRegister(j));
     }
   }
