@@ -682,7 +682,7 @@ void Cfg::emitTextHeader(const IceString &MangledName, GlobalContext *Ctx,
   Ostream &Str = Ctx->getStrEmit();
   Str << "\t.text\n";
   if (Ctx->getFlags().getFunctionSections())
-    Str << "\t.section\t.text." << MangledName << ",\"ax\",@progbits\n";
+    Str << "\t.section\t.text." << MangledName << ",\"ax\",%progbits\n";
   if (!Asm->getInternal() || Ctx->getFlags().getDisableInternal()) {
     Str << "\t.globl\t" << MangledName << "\n";
     Str << "\t.type\t" << MangledName << ",%function\n";

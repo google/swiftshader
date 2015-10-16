@@ -889,6 +889,7 @@ template <> void InstARM32Movt::emit(const Cfg *Func) const {
 }
 
 void InstARM32Pop::emit(const Cfg *Func) const {
+  // TODO(jpp): Improve FP register save/restore.
   if (!BuildDefs::dump())
     return;
   SizeT IntegerCount = 0;
@@ -898,23 +899,31 @@ void InstARM32Pop::emit(const Cfg *Func) const {
     }
   }
   Ostream &Str = Func->getContext()->getStrEmit();
-  if (IntegerCount == 0) {
-    Str << "\t@ empty pop";
-    return;
-  }
-  Str << "\t"
-      << "pop"
-      << "\t{";
-  bool PrintComma = false;
-  for (const Operand *Op : Dests) {
-    if (isScalarIntegerType(Op->getType())) {
-      if (PrintComma)
-        Str << ", ";
-      Op->emit(Func);
-      PrintComma = true;
+  if (IntegerCount != 0) {
+    Str << "\t"
+        << "pop"
+        << "\t{";
+    bool PrintComma = false;
+    for (const Operand *Op : Dests) {
+      if (isScalarIntegerType(Op->getType())) {
+        if (PrintComma)
+          Str << ", ";
+        Op->emit(Func);
+        PrintComma = true;
+      }
     }
+    Str << "}\n";
   }
-  Str << "}";
+
+  for (const Operand *Op : Dests) {
+    if (isScalarIntegerType(Op->getType()))
+      continue;
+    Str << "\t"
+        << "vpop"
+        << "\t{";
+    Op->emit(Func);
+    Str << "}\n";
+  }
 }
 
 void InstARM32Pop::emitIAS(const Cfg *Func) const {
@@ -969,6 +978,7 @@ void InstARM32AdjustStack::dump(const Cfg *Func) const {
 }
 
 void InstARM32Push::emit(const Cfg *Func) const {
+  // TODO(jpp): Improve FP register save/restore.
   if (!BuildDefs::dump())
     return;
   SizeT IntegerCount = 0;
@@ -978,25 +988,32 @@ void InstARM32Push::emit(const Cfg *Func) const {
     }
   }
   Ostream &Str = Func->getContext()->getStrEmit();
-  if (IntegerCount == 0) {
+  for (SizeT i = getSrcSize(); i > 0; --i) {
+    Operand *Op = getSrc(i - 1);
+    if (isScalarIntegerType(Op->getType()))
+      continue;
     Str << "\t"
-        << "@empty push";
-    return;
+        << "vpush"
+        << "\t{";
+    Op->emit(Func);
+    Str << "}\n";
   }
-  Str << "\t"
-      << "push"
-      << "\t{";
-  bool PrintComma = false;
-  for (SizeT i = 0; i < getSrcSize(); ++i) {
-    Operand *Op = getSrc(i);
-    if (isScalarIntegerType(Op->getType())) {
-      if (PrintComma)
-        Str << ", ";
-      Op->emit(Func);
-      PrintComma = true;
+  if (IntegerCount != 0) {
+    Str << "\t"
+        << "push"
+        << "\t{";
+    bool PrintComma = false;
+    for (SizeT i = 0; i < getSrcSize(); ++i) {
+      Operand *Op = getSrc(i);
+      if (isScalarIntegerType(Op->getType())) {
+        if (PrintComma)
+          Str << ", ";
+        Op->emit(Func);
+        PrintComma = true;
+      }
     }
+    Str << "}\n";
   }
-  Str << "}";
 }
 
 void InstARM32Push::emitIAS(const Cfg *Func) const {

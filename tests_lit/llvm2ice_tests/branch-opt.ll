@@ -96,6 +96,7 @@ target:
 ; ARM32O2-LABEL: testCondFallthroughToNextBlock
 ; ARM32O2: cmp {{.*}}, #123
 ; ARM32O2-NEXT: movge {{.*}}, #1
+; ARM32O2-NEXT: uxtb
 ; ARM32O2-NEXT: cmp {{.*}}, #0
 ; ARM32O2-NEXT: bne
 ; ARM32O2-NEXT: bl
@@ -154,6 +155,7 @@ target:
 ; ARM32O2-LABEL: testCondTargetNextBlock
 ; ARM32O2: cmp {{.*}}, #123
 ; ARM32O2-NEXT: movge {{.*}}, #1
+; ARM32O2-NEXT: uxtb
 ; ARM32O2-NEXT: cmp {{.*}}, #0
 ; ARM32O2-NEXT: beq
 ; ARM32O2-NEXT: bl

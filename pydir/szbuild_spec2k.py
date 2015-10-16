@@ -33,7 +33,9 @@ def main():
         print 'Unknown component{s}: '.format(s='s' if len(bad) > 1 else '') + \
             ' '.join(x for x in bad)
         sys.exit(1)
-    suffix = 'pnacl.opt.x8632' if args.sandbox else 'gcc.opt.x8632'
+    suffix = (
+        'pnacl.opt.{target}' if args.sandbox else 'gcc.opt.{target}').format(
+             target=args.target);
     for comp in args.comps:
         name = os.path.splitext(comp)[1] or comp
         if name[0] == '.':

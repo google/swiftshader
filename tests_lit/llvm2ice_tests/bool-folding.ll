@@ -226,19 +226,20 @@ entry:
 ; CHECK: add
 ; CHECK: add
 ; ARM32-LABEL: fold_cmp_select_multi
-; ARM32-DAG: mov [[T0:r[0-9]+]], #0
-; ARM32-DAG: cmp r0, r1
+; ARM32: mov [[T0:r[0-9]+]], #0
+; ARM32: cmp r0, r1
 ; ARM32: movlt [[T0]], #1
-; ARM32-DAG: mov [[T1:r[0-9]+]], r1
-; ARM32-DAG: cmp [[T0]], #0
-; ARM32: [[T1]], r0
-; ARM32-DAG: mov [[T2:r[0-9]+]], r0
-; ARM32-DAG: cmp [[T0]], #0
-; ARM32: [[T2]], r1
-; ARM32: cmp [[T0]], #0
-; ARM32: movne
-; ARM32: add
-; ARM32: add
+; ARM32: uxtb [[T1:r[0-9]+]], [[T1]]
+; ARM32-NEXT: cmp [[T1]], #0
+; ARM32: movne [[T2:r[0-9]+]], r0
+; ARM32: uxtb [[T3:r[0-9]+]], [[T3]]
+; ARM32-NEXT: cmp [[T3]], #0
+; ARM32: movne [[T4:r[0-9]+]], r1
+; ARM32: uxtb [[T5:r[0-9]+]], [[T5]]
+; ARM32-NEXT: cmp [[T5]], #0
+; ARM32: movne [[T6:r[0-9]+]], #123
+; ARM32: add [[T7:r[0-9]+]], [[T2]], [[T4]]
+; ARM32: add {{r[0-9]+}}, [[T7]], [[T6]]
 ; ARM32: bx lr
 
 
@@ -268,19 +269,21 @@ next:
 ; CHECK: add
 ; ARM32-LABEL: no_fold_cmp_select_multi_liveout
 ; ARM32-LABEL: fold_cmp_select_multi
-; ARM32-DAG: mov [[T0:r[0-9]+]], #0
-; ARM32-DAG: cmp r0, r1
+; ARM32: mov [[T0:r[0-9]+]], #0
+; ARM32: cmp r0, r1
 ; ARM32: movlt [[T0]], #1
-; ARM32-DAG: mov [[T1:r[0-9]+]], r1
-; ARM32-DAG: cmp [[T0]], #0
-; ARM32: [[T1]], r0
-; ARM32-DAG: mov [[T2:r[0-9]+]], r0
-; ARM32-DAG: cmp [[T0]], #0
-; ARM32: [[T2]], r1
-; ARM32: cmp [[T0]], #0
-; ARM32: movne
-; ARM32: add
-; ARM32: add
+; ARM32: uxtb [[T2:r[0-9]+]], [[T2]]
+; ARM32-NEXT: cmp [[T2]], #0
+; ARM32: movne [[T1]], r0
+; ARM32: uxtb [[T4:r[0-9]+]], [[T4]]
+; ARM32-NEXT: cmp [[T4]], #0
+; ARM32: movne [[T3]], r1
+; ARM32-LABEL: .Lno_fold_cmp_select_multi_liveout$next:
+; ARM32: uxtb [[T5:r[0-9]+]], [[T5]]
+; ARM32: cmp [[T5]], #0
+; ARM32: movne [[T6:r[0-9]+]], #123
+; ARM32: add [[T7:r[0-9]+]], [[T2]], [[T4]]
+; ARM32: add {{r[0-9]+}}, [[T7]], [[T6]]
 ; ARM32: bx lr
 
 ; Cmp/multi-select non-folding because of extra non-whitelisted uses.
@@ -311,19 +314,19 @@ entry:
 ; CHECK: add
 ; CHECK: add
 ; ARM32-LABEL: no_fold_cmp_select_multi_non_whitelist
-; ARM32-DAG: mov [[T0:r[0-9]+]], #0
-; ARM32-DAG: cmp r0, r1
+; ARM32: mov [[T0:r[0-9]+]], #0
+; ARM32: cmp r0, r1
 ; ARM32: movlt [[T0]], #1
-; ARM32-DAG: mov [[T1:r[0-9]+]], r1
-; ARM32-DAG: cmp [[T0]], #0
-; ARM32: [[T1]], r0
-; ARM32-DAG: mov [[T2:r[0-9]+]], r0
-; ARM32-DAG: cmp [[T0]], #0
-; ARM32: [[T2]], r1
-; ARM32: cmp [[T0]], #0
-; ARM32: movne
-; ARM32: and {{.*}}, [[T0]], #1
-; ARM32: add
-; ARM32: add
-; ARM32: add
+; ARM32: uxtb [[T1:r[0-9]+]], [[T1]]
+; ARM32-NEXT: cmp [[T1]], #0
+; ARM32: movne [[T2:r[0-9]+]], r0
+; ARM32: uxtb [[T3:r[0-9]+]], [[T3]]
+; ARM32-NEXT: cmp [[T3]], #0
+; ARM32: movne [[T4:r[0-9]+]], r1
+; ARM32: uxtb [[T5:r[0-9]+]], [[T5]]
+; ARM32-NEXT: cmp [[T5]], #0
+; ARM32: movne [[T6:r[0-9]+]], #123
+; ARM32: and [[T7:r[0-9]+]], [[T0]], #1
+; ARM32: add [[T8:r[0-9]+]], [[T2]], [[T4]]
+; ARM32: add {{r[0-9]+}}, [[T8]], [[T7]]
 ; ARM32: bx lr

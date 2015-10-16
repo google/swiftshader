@@ -88,6 +88,9 @@ def AddOptionalArgs(argparser):
     argparser.add_argument('--enable-block-profile',
                            dest='enable_block_profile', action='store_true',
                            help='Enable basic block profiling.')
+    argparser.add_argument('--target', default='x8632', dest='target',
+                           choices=['arm32', 'x8632'],
+                           help='Generate code for specified target.')
     argparser.add_argument('--verbose', '-v', dest='verbose',
                            action='store_true',
                            help='Display some extra debugging output')
@@ -185,13 +188,18 @@ def ProcessPexe(args, pexe, exe):
     if hybrid and (args.force or
                    NewerThanOrNotThere(pexe, obj_llc) or
                    NewerThanOrNotThere(llcbin, obj_llc)):
+        arch = {
+          'arm32': 'armv7' if args.sandbox else 'arm-nonsfi',
+          'x8632': 'x86-32' if args.sandbox else 'x86-32-linux',
+        }[args.target]
+
         # Only run pnacl-translate in hybrid mode.
         shellcmd(['pnacl-translate',
                   '-split-module=1',
                   '-ffunction-sections',
                   '-fdata-sections',
                   '-c',
-                  '-arch', 'x86-32' if args.sandbox else 'x86-32-linux',
+                  '-arch',  arch,
                   '-O' + opt_level_map[opt_level],
                   '--pnacl-driver-append-LLC_FLAGS_EXTRA=-externalize',
                   '-o', obj_llc] +
@@ -216,7 +224,8 @@ def ProcessPexe(args, pexe, exe):
                   '-O' + opt_level,
                   '-bitcode-format=pnacl',
                   '-filetype=' + args.filetype,
-                  '-o', obj_sz if args.filetype == 'obj' else asm_sz] +
+                  '-o', obj_sz if args.filetype == 'obj' else asm_sz,
+                  '-target=' + args.target] +
                  (['-externalize',
                    '-ffunction-sections',
                    '-fdata-sections'] if hybrid else []) +
@@ -227,10 +236,14 @@ def ProcessPexe(args, pexe, exe):
                  [pexe],
                  echo=args.verbose)
         if args.filetype != 'obj':
+            triple = {
+              'arm32': 'arm-nacl' if args.sandbox else 'arm',
+              'x8632': 'i686-nacl' if args.sandbox else 'i686',
+            }[args.target]
+
             shellcmd((
                 'llvm-mc -triple={triple} -filetype=obj -o {obj} {asm}'
-                ).format(asm=asm_sz, obj=obj_sz,
-                         triple='i686-nacl' if args.sandbox else 'i686'),
+                ).format(asm=asm_sz, obj=obj_sz, triple=triple),
                      echo=args.verbose)
         if not args.sandbox:
             shellcmd((
@@ -277,9 +290,18 @@ def ProcessPexe(args, pexe, exe):
                 ).format(objcopy=objcopy, obj=obj_llc, weak=obj_llc_weak),
                 echo=args.verbose)
         obj_partial = pexe_base + '.o'
+        ld = {
+          'arm32': 'arm-linux-gnueabihf-ld',
+          'x8632': 'ld',
+        }[args.target]
+        emulation = {
+          'arm32': 'armelf_linux_eabi',
+          'x8632': 'elf_i386',
+        }[args.target]
         shellcmd((
-            'ld -r -m elf_i386 -o {partial} {sz} {llc}'
-            ).format(partial=obj_partial, sz=obj_sz_weak, llc=obj_llc_weak),
+            '{ld} -r -m {emulation} -o {partial} {sz} {llc}'
+            ).format(ld=ld, emulation=emulation, partial=obj_partial,
+                     sz=obj_sz_weak, llc=obj_llc_weak),
                  echo=args.verbose)
         shellcmd((
             '{objcopy} -w --localize-symbol="*" {partial}'
@@ -293,10 +315,9 @@ def ProcessPexe(args, pexe, exe):
                  echo=args.verbose)
 
     # Run the linker regardless of hybrid mode.
-    linker = (
-        '{root}/../third_party/llvm-build/Release+Asserts/bin/clang'
-        ).format(root=nacl_root)
     if args.sandbox:
+        assert args.target in ['x8632'], \
+            '-sandbox is not available for %s' % args.target
         linklib = ('{root}/toolchain/linux_x86/pnacl_newlib_raw/translator/' +
                    'x86-32/lib').format(root=nacl_root)
         shellcmd((
@@ -304,27 +325,45 @@ def ProcessPexe(args, pexe, exe):
             '--build-id --entry=__pnacl_start -static ' +
             '{linklib}/crtbegin.o {partial} ' +
             '{root}/toolchain_build/src/subzero/build/runtime/' +
-            'szrt_sb_x8632.o ' +
+            'szrt_sb_{target}.o ' +
             '{linklib}/libpnacl_irt_shim_dummy.a --start-group ' +
             '{linklib}/libgcc.a {linklib}/libcrt_platform.a ' +
             '--end-group {linklib}/crtend.o --undefined=_start ' +
             '--defsym=__Sz_AbsoluteZero=0 ' +
             '-o {exe}'
             ).format(gold=gold, linklib=linklib, partial=obj_partial, exe=exe,
-                     root=nacl_root),
+                     root=nacl_root, target=args.target),
                  echo=args.verbose)
     else:
+        linker = {
+          'arm32': '/usr/bin/arm-linux-gnueabihf-g++',
+          'x8632': ('{root}/../third_party/llvm-build/Release+Asserts/bin/clang'
+                   ).format(root=nacl_root)
+        }[args.target]
+
+        extra_linker_args = ' '.join({
+          'arm32': ['-mcpu=cortex-a9'],
+          'x8632': ['-m32']
+        }[args.target])
+
+        lib_dir = {
+          'arm32': 'arm-linux',
+          'x8632': 'x86-32-linux',
+        }[args.target]
+
         shellcmd((
-            '{ld} -m32 {partial} -o {exe} ' +
+            '{ld} {ld_extra_args} {partial} -o {exe} ' +
             # Keep the rest of this command line (except szrt_native_x8632.o) in
             # sync with RunHostLD() in pnacl-translate.py.
             '{root}/toolchain/linux_x86/pnacl_newlib_raw/translator/' +
-            'x86-32-linux/lib/' +
+            '{lib_dir}/lib/' +
             '{{unsandboxed_irt,irt_random,irt_query_list}}.o ' +
             '{root}/toolchain_build/src/subzero/build/runtime/' +
-            'szrt_native_x8632.o -lpthread -lrt ' +
+            'szrt_native_{target}.o -lpthread -lrt ' +
             '-Wl,--defsym=__Sz_AbsoluteZero=0'
-            ).format(ld=linker, partial=obj_partial, exe=exe, root=nacl_root),
+            ).format(ld=linker, ld_extra_args=extra_linker_args,
+                     partial=obj_partial, exe=exe, root=nacl_root,
+                     target=args.target, lib_dir=lib_dir),
                  echo=args.verbose)
 
     # Put the extra verbose printing at the end.

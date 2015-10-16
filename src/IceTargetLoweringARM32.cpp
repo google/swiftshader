@@ -742,7 +742,9 @@ void TargetARM32::addProlog(CfgNode *Node) {
       // TODO(jvoung): do separate vpush for each floating point register
       // segment and += 4, or 8 depending on type.
       ++NumCallee;
-      PreservedRegsSizeBytes += 4;
+      Variable *PhysicalRegister = getPhysicalRegister(i);
+      PreservedRegsSizeBytes +=
+          typeWidthInBytesOnStack(PhysicalRegister->getType());
       GPRsToPreserve.push_back(getPhysicalRegister(i));
     }
   }
@@ -1628,15 +1630,15 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
   default:
     break;
   case InstArithmetic::Udiv: {
-    constexpr bool IsRemainder = false;
+    constexpr bool NotRemainder = false;
     lowerIDivRem(Dest, T, Src0R, Src1, &TargetARM32::_uxt, &TargetARM32::_udiv,
-                 H_udiv_i32, IsRemainder);
+                 H_udiv_i32, NotRemainder);
     return;
   }
   case InstArithmetic::Sdiv: {
-    constexpr bool IsRemainder = false;
+    constexpr bool NotRemainder = false;
     lowerIDivRem(Dest, T, Src0R, Src1, &TargetARM32::_sxt, &TargetARM32::_sdiv,
-                 H_sdiv_i32, IsRemainder);
+                 H_sdiv_i32, NotRemainder);
     return;
   }
   case InstArithmetic::Urem: {
@@ -1730,10 +1732,16 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
     _mov(Dest, T);
     return;
   case InstArithmetic::Lshr:
+    if (Dest->getType() != IceType_i32) {
+      _uxt(Src0R, Src0R);
+    }
     _lsr(T, Src0R, Src1RF);
     _mov(Dest, T);
     return;
   case InstArithmetic::Ashr:
+    if (Dest->getType() != IceType_i32) {
+      _sxt(Src0R, Src0R);
+    }
     _asr(T, Src0R, Src1RF);
     _mov(Dest, T);
     return;
@@ -1803,7 +1811,11 @@ void TargetARM32::lowerBr(const InstBr *Inst) {
   Operand *Cond = Inst->getCondition();
   // TODO(jvoung): Handle folding opportunities.
 
+  Type Ty = Cond->getType();
   Variable *Src0R = legalizeToReg(Cond);
+  assert(Ty == IceType_i1);
+  if (Ty != IceType_i32)
+    _uxt(Src0R, Src0R);
   Constant *Zero = Ctx->getConstantZero(IceType_i32);
   _cmp(Src0R, Zero);
   _br(Inst->getTargetTrue(), Inst->getTargetFalse(), CondARM32::NE);
@@ -2298,6 +2310,8 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
       configureBitcastTemporary(T);
       Variable *Src0R = legalizeToReg(Src0);
       _mov(T, Src0R);
+      Context.insert(InstFakeUse::create(Func, T->getHi()));
+      Context.insert(InstFakeUse::create(Func, T->getLo()));
       lowerAssign(InstAssign::create(Func, Dest, T));
       break;
     }
@@ -3248,9 +3262,7 @@ void TargetARM32::lowerLoad(const InstLoad *Load) {
   lowerAssign(Assign);
 }
 
-void TargetARM32::doAddressOptLoad() {
-  UnimplementedError(Func->getContext()->getFlags());
-}
+void TargetARM32::doAddressOptLoad() {}
 
 void TargetARM32::randomlyInsertNop(float Probability,
                                     RandomNumberGenerator &RNG) {
@@ -3320,7 +3332,11 @@ void TargetARM32::lowerSelect(const InstSelect *Inst) {
   // TODO(jvoung): handle folding opportunities.
   // cmp cond, #0; mov t, SrcF; mov_cond t, SrcT; mov dest, t
   Variable *CmpOpnd0 = legalizeToReg(Condition);
+  Type CmpOpnd0Ty = CmpOpnd0->getType();
   Operand *CmpOpnd1 = Ctx->getConstantZero(IceType_i32);
+  assert(CmpOpnd0Ty == IceType_i1);
+  if (CmpOpnd0Ty != IceType_i32)
+    _uxt(CmpOpnd0, CmpOpnd0);
   _cmp(CmpOpnd0, CmpOpnd1);
   static constexpr CondARM32::Cond Cond = CondARM32::NE;
   if (DestTy == IceType_i64) {
@@ -3384,9 +3400,7 @@ void TargetARM32::lowerStore(const InstStore *Inst) {
   }
 }
 
-void TargetARM32::doAddressOptStore() {
-  UnimplementedError(Func->getContext()->getFlags());
-}
+void TargetARM32::doAddressOptStore() {}
 
 void TargetARM32::lowerSwitch(const InstSwitch *Inst) {
   // This implements the most naive possible lowering.
@@ -3410,10 +3424,21 @@ void TargetARM32::lowerSwitch(const InstSwitch *Inst) {
     return;
   }
 
-  // 32 bit integer
   Variable *Src0Var = legalizeToReg(Src0);
+  // If Src0 is not an i32, we left shift it -- see the icmp lowering for the
+  // reason.
+  assert(Src0Var->mustHaveReg());
+  const size_t ShiftAmt = 32 - getScalarIntBitWidth(Src0->getType());
+  assert(ShiftAmt < 32);
+  if (ShiftAmt > 0) {
+    Operand *ShiftConst = Ctx->getConstantInt32(ShiftAmt);
+    Variable *T = makeReg(IceType_i32);
+    _lsl(T, Src0Var, ShiftConst);
+    Src0Var = T;
+  }
+
   for (SizeT I = 0; I < NumCases; ++I) {
-    Operand *Value = Ctx->getConstantInt32(Inst->getValue(I));
+    Operand *Value = Ctx->getConstantInt32(Inst->getValue(I) << ShiftAmt);
     Value = legalize(Value, Legal_Reg | Legal_Flex);
     _cmp(Src0Var, Value);
     _br(Inst->getLabel(I), CondARM32::EQ);
