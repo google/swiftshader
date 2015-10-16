@@ -40,6 +40,10 @@ cl::opt<bool> AllowExternDefinedSymbols(
              "and __pnacl_pso_root)."),
     cl::init(false));
 
+cl::alias AllowExternDefinedSymbolsA(
+    "allow-extern", cl::desc("Alias for --allow-externally-defined-symbols"),
+    cl::NotHidden, cl::aliasopt(AllowExternDefinedSymbols));
+
 cl::opt<bool> AllowIacaMarks(
     "allow-iaca-marks",
     cl::desc("Allow IACA (Intel Architecture Code Analyzer) marks to be "
@@ -216,7 +220,7 @@ cl::opt<bool> UseSandboxing("sandbox", cl::desc("Use sandboxing"));
 
 cl::opt<std::string> VerboseFocusOn(
     "verbose-focus",
-    cl::desc("Temporarily enable full verbosity for a specific function"),
+    cl::desc("Override with -verbose=none except for the specified function"),
     cl::init(""));
 
 cl::opt<Ice::FileType> OutFileType(

@@ -872,6 +872,8 @@ void Converter::installGlobalDeclarations(Module *Mod) {
       raw_string_ostream StrBuf(Buffer);
       StrBuf << "Function " << IceFunc->getName()
              << " has incorrect linkage: " << IceFunc->getLinkageName();
+      if (IceFunc->isExternal())
+        StrBuf << "\n  Use flag -allow-externally-defined-symbols to override";
       report_fatal_error(StrBuf.str());
     }
     GlobalDeclarationMap[&Func] = IceFunc;
@@ -891,6 +893,8 @@ void Converter::installGlobalDeclarations(Module *Mod) {
       raw_string_ostream StrBuf(Buffer);
       StrBuf << "Global " << Var->getName()
              << " has incorrect linkage: " << Var->getLinkageName();
+      if (Var->isExternal())
+        StrBuf << "\n  Use flag -allow-externally-defined-symbols to override";
       report_fatal_error(StrBuf.str());
     }
     GlobalDeclarationMap[GV] = Var;
