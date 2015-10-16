@@ -19,7 +19,7 @@ next:
   br label %next2
 next2:
   call void @llvm.nacl.atomic.store.i32(i32 %val, i32* %ptr, i32 6)
-  %cmp = icmp ult i32 %val, 0
+  %cmp = icmp ult i32 %val, 1
   br i1 %cmp, label %next2, label %next
 }
 
@@ -131,7 +131,7 @@ entry:
   br label %next1
 next1:
   %ptr = inttoptr i32 %iptr to i32*
-  %cmp = icmp ult i32 %val, 0
+  %cmp = icmp ult i32 %val, 1
   br i1 %cmp, label %next3, label %next2
 next2:
   call void @llvm.nacl.atomic.store.i32(i32 %val, i32* %ptr, i32 6)
@@ -172,11 +172,12 @@ next2:
 ; CHECK-LABEL: test_local_forward_then_back
 ; CHECK:      {{.*}} mov DWORD PTR
 ; CHECK-NEXT: {{.*}} mfence
-; CHECK-NEXT: [[LABEL:[0-9a-f]+]]: {{.*}} mov {{.*}},0x1
+; CHECK-NEXT: [[LABEL:[0-9a-f]+]]: {{.*}} cmp
+; CHECK-NEXT: {{.*}} jb
+; CHECK-NEXT: {{.*}} ja
 ; CHECK-NEXT: {{.*}} cmp
 ; CHECK-NEXT: {{.*}} jb
-; CHECK:      {{.*}} jne
-; CHECK:      {{.*}} jmp [[LABEL]]
+; CHECK-NEXT: {{.*}} jmp [[LABEL]]
 
 
 ; Test that backward local branches also work and are small.

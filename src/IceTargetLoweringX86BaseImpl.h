@@ -123,7 +123,7 @@ BoolFolding<MachineTraits>::getProducerKind(const Inst *Instr) {
   if (llvm::isa<InstIcmp>(Instr)) {
     if (MachineTraits::Is64Bit || Instr->getSrc(0)->getType() != IceType_i64)
       return PK_Icmp32;
-    return PK_None; // TODO(stichnot): actually PK_Icmp64;
+    return PK_Icmp64;
   }
   return PK_None; // TODO(stichnot): remove this
 
@@ -200,8 +200,11 @@ void BoolFolding<MachineTraits>::init(CfgNode *Node) {
                 0 // All valid consumers use Var as the first source operand
             ||
             getConsumerKind(&Instr) == CK_None // must be white-listed
-            || (Producers[VarNum].IsComplex && // complex can't be multi-use
-                Producers[VarNum].NumUses > 0)) {
+            ||
+            (getConsumerKind(&Instr) != CK_Br && // Icmp64 only folds in branch
+             getProducerKind(Producers[VarNum].Instr) != PK_Icmp32) ||
+            (Producers[VarNum].IsComplex && // complex can't be multi-use
+             Producers[VarNum].NumUses > 0)) {
           setInvalid(VarNum);
           continue;
         }
@@ -1915,16 +1918,9 @@ void TargetX86Base<Machine>::lowerBr(const InstBr *Inst) {
     switch (BoolFolding::getProducerKind(Producer)) {
     default:
       break;
-    case BoolFolding::PK_Icmp32: {
-      // TODO(stichnot): Refactor similarities between this block and the
-      // corresponding code in lowerIcmp().
-      auto *Cmp = llvm::dyn_cast<InstIcmp>(Producer);
-      Operand *Src0 = Producer->getSrc(0);
-      Operand *Src1 = legalize(Producer->getSrc(1));
-      Operand *Src0RM = legalizeSrc0ForCmp(Src0, Src1);
-      _cmp(Src0RM, Src1);
-      _br(Traits::getIcmp32Mapping(Cmp->getCondition()), Inst->getTargetTrue(),
-          Inst->getTargetFalse());
+    case BoolFolding::PK_Icmp32:
+    case BoolFolding::PK_Icmp64: {
+      lowerIcmpAndBr(llvm::dyn_cast<InstIcmp>(Producer), Inst);
       return;
     }
     }
@@ -2654,11 +2650,20 @@ inline bool isZero(const Operand *Opnd) {
 
 template <class Machine>
 void TargetX86Base<Machine>::lowerIcmp(const InstIcmp *Inst) {
-  Operand *Src0 = legalize(Inst->getSrc(0));
-  Operand *Src1 = legalize(Inst->getSrc(1));
-  Variable *Dest = Inst->getDest();
+  constexpr InstBr *Br = nullptr;
+  lowerIcmpAndBr(Inst, Br);
+}
+
+template <class Machine>
+void TargetX86Base<Machine>::lowerIcmpAndBr(const InstIcmp *Icmp,
+                                            const InstBr *Br) {
+  Operand *Src0 = legalize(Icmp->getSrc(0));
+  Operand *Src1 = legalize(Icmp->getSrc(1));
+  Variable *Dest = Icmp->getDest();
 
   if (isVectorType(Dest->getType())) {
+    if (Br)
+      llvm::report_fatal_error("vector compare/branch cannot be folded");
     Type Ty = Src0->getType();
     // Promote i1 vectors to 128 bit integer vector types.
     if (typeElementType(Ty) == IceType_i1) {
@@ -2686,7 +2691,7 @@ void TargetX86Base<Machine>::lowerIcmp(const InstIcmp *Inst) {
       Ty = NewTy;
     }
 
-    InstIcmp::ICond Condition = Inst->getCondition();
+    InstIcmp::ICond Condition = Icmp->getCondition();
 
     Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
     Operand *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
@@ -2768,41 +2773,39 @@ void TargetX86Base<Machine>::lowerIcmp(const InstIcmp *Inst) {
   }
 
   if (!Traits::Is64Bit && Src0->getType() == IceType_i64) {
-    lowerIcmp64(Inst);
+    lowerIcmp64(Icmp, Br);
     return;
   }
 
   // cmp b, c
   if (isZero(Src1)) {
-    switch (Inst->getCondition()) {
+    switch (Icmp->getCondition()) {
     default:
       break;
     case InstIcmp::Uge:
-      _mov(Dest, Ctx->getConstantInt(Dest->getType(), 1));
+      movOrBr(true, Dest, Br);
       return;
     case InstIcmp::Ult:
-      _mov(Dest, Ctx->getConstantInt(Dest->getType(), 0));
+      movOrBr(false, Dest, Br);
       return;
     }
   }
   Operand *Src0RM = legalizeSrc0ForCmp(Src0, Src1);
   _cmp(Src0RM, Src1);
-  _setcc(Dest, Traits::getIcmp32Mapping(Inst->getCondition()));
+  setccOrBr(Traits::getIcmp32Mapping(Icmp->getCondition()), Dest, Br);
 }
 
 template <typename Machine>
 template <typename T>
 typename std::enable_if<!T::Is64Bit, void>::type
-TargetX86Base<Machine>::lowerIcmp64(const InstIcmp *Inst) {
+TargetX86Base<Machine>::lowerIcmp64(const InstIcmp *Icmp, const InstBr *Br) {
   // a=icmp cond, b, c ==> cmp b,c; a=1; br cond,L1; FakeUse(a); a=0; L1:
-  Operand *Src0 = legalize(Inst->getSrc(0));
-  Operand *Src1 = legalize(Inst->getSrc(1));
-  Variable *Dest = Inst->getDest();
-  InstIcmp::ICond Condition = Inst->getCondition();
+  Operand *Src0 = legalize(Icmp->getSrc(0));
+  Operand *Src1 = legalize(Icmp->getSrc(1));
+  Variable *Dest = Icmp->getDest();
+  InstIcmp::ICond Condition = Icmp->getCondition();
   size_t Index = static_cast<size_t>(Condition);
   assert(Index < Traits::TableIcmp64Size);
-  Constant *Zero = Ctx->getConstantZero(IceType_i32);
-  Constant *One = Ctx->getConstantInt32(1);
   Operand *Src0LoRM = nullptr;
   Operand *Src0HiRM = nullptr;
   // Legalize the portions of Src0 that are going to be needed.
@@ -2851,30 +2854,30 @@ TargetX86Base<Machine>::lowerIcmp64(const InstIcmp *Inst) {
       _mov(Temp, Src0LoRM);
       _or(Temp, Src0HiRM);
       Context.insert(InstFakeUse::create(Func, Temp));
-      _setcc(Dest, Traits::Cond::Br_e);
+      setccOrBr(Traits::Cond::Br_e, Dest, Br);
       return;
     case InstIcmp::Ne:
     case InstIcmp::Ugt:
       _mov(Temp, Src0LoRM);
       _or(Temp, Src0HiRM);
       Context.insert(InstFakeUse::create(Func, Temp));
-      _setcc(Dest, Traits::Cond::Br_ne);
+      setccOrBr(Traits::Cond::Br_ne, Dest, Br);
       return;
     case InstIcmp::Uge:
-      _mov(Dest, Ctx->getConstantInt(Dest->getType(), 1));
+      movOrBr(true, Dest, Br);
       return;
     case InstIcmp::Ult:
-      _mov(Dest, Ctx->getConstantInt(Dest->getType(), 0));
+      movOrBr(false, Dest, Br);
       return;
     case InstIcmp::Sgt:
       break;
     case InstIcmp::Sge:
       _test(Src0HiRM, SignMask);
-      _setcc(Dest, Traits::Cond::Br_e);
+      setccOrBr(Traits::Cond::Br_e, Dest, Br);
       return;
     case InstIcmp::Slt:
       _test(Src0HiRM, SignMask);
-      _setcc(Dest, Traits::Cond::Br_ne);
+      setccOrBr(Traits::Cond::Br_ne, Dest, Br);
       return;
     case InstIcmp::Sle:
       break;
@@ -2883,21 +2886,59 @@ TargetX86Base<Machine>::lowerIcmp64(const InstIcmp *Inst) {
   // Handle general compares.
   Operand *Src1LoRI = legalize(loOperand(Src1), Legal_Reg | Legal_Imm);
   Operand *Src1HiRI = legalize(hiOperand(Src1), Legal_Reg | Legal_Imm);
-  typename Traits::Insts::Label *LabelFalse =
-      Traits::Insts::Label::create(Func, this);
-  typename Traits::Insts::Label *LabelTrue =
-      Traits::Insts::Label::create(Func, this);
-  _mov(Dest, One);
-  _cmp(Src0HiRM, Src1HiRI);
-  if (Traits::TableIcmp64[Index].C1 != Traits::Cond::Br_None)
-    _br(Traits::TableIcmp64[Index].C1, LabelTrue);
-  if (Traits::TableIcmp64[Index].C2 != Traits::Cond::Br_None)
-    _br(Traits::TableIcmp64[Index].C2, LabelFalse);
-  _cmp(Src0LoRM, Src1LoRI);
-  _br(Traits::TableIcmp64[Index].C3, LabelTrue);
-  Context.insert(LabelFalse);
-  _mov_redefined(Dest, Zero);
-  Context.insert(LabelTrue);
+  if (Br == nullptr) {
+    Constant *Zero = Ctx->getConstantInt(Dest->getType(), 0);
+    Constant *One = Ctx->getConstantInt(Dest->getType(), 1);
+    typename Traits::Insts::Label *LabelFalse =
+        Traits::Insts::Label::create(Func, this);
+    typename Traits::Insts::Label *LabelTrue =
+        Traits::Insts::Label::create(Func, this);
+    _mov(Dest, One);
+    _cmp(Src0HiRM, Src1HiRI);
+    if (Traits::TableIcmp64[Index].C1 != Traits::Cond::Br_None)
+      _br(Traits::TableIcmp64[Index].C1, LabelTrue);
+    if (Traits::TableIcmp64[Index].C2 != Traits::Cond::Br_None)
+      _br(Traits::TableIcmp64[Index].C2, LabelFalse);
+    _cmp(Src0LoRM, Src1LoRI);
+    _br(Traits::TableIcmp64[Index].C3, LabelTrue);
+    Context.insert(LabelFalse);
+    _mov_redefined(Dest, Zero);
+    Context.insert(LabelTrue);
+  } else {
+    _cmp(Src0HiRM, Src1HiRI);
+    if (Traits::TableIcmp64[Index].C1 != Traits::Cond::Br_None)
+      _br(Traits::TableIcmp64[Index].C1, Br->getTargetTrue());
+    if (Traits::TableIcmp64[Index].C2 != Traits::Cond::Br_None)
+      _br(Traits::TableIcmp64[Index].C2, Br->getTargetFalse());
+    _cmp(Src0LoRM, Src1LoRI);
+    _br(Traits::TableIcmp64[Index].C3, Br->getTargetTrue(),
+        Br->getTargetFalse());
+  }
+}
+
+template <class Machine>
+void TargetX86Base<Machine>::setccOrBr(typename Traits::Cond::BrCond Condition,
+                                       Variable *Dest, const InstBr *Br) {
+  if (Br == nullptr) {
+    _setcc(Dest, Condition);
+  } else {
+    _br(Condition, Br->getTargetTrue(), Br->getTargetFalse());
+  }
+}
+
+template <class Machine>
+void TargetX86Base<Machine>::movOrBr(bool IcmpResult, Variable *Dest,
+                                     const InstBr *Br) {
+  if (Br == nullptr) {
+    _mov(Dest, Ctx->getConstantInt(Dest->getType(), (IcmpResult ? 1 : 0)));
+  } else {
+    // TODO(sehr,stichnot): This could be done with a single unconditional
+    // branch instruction, but subzero doesn't know how to handle the resulting
+    // control flow graph changes now.  Make it do so to eliminate mov and cmp.
+    _mov(Dest, Ctx->getConstantInt(Dest->getType(), (IcmpResult ? 1 : 0)));
+    _cmp(Dest, Ctx->getConstantInt(Dest->getType(), 0));
+    _br(Traits::Cond::Br_ne, Br->getTargetTrue(), Br->getTargetFalse());
+  }
 }
 
 template <class Machine>

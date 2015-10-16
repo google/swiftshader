@@ -1015,20 +1015,38 @@ if.end3:                                          ; preds = %if.then2, %if.end
   ret void
 }
 ; CHECK-LABEL: icmpEq64
-; CHECK: jne
-; CHECK: je
-; CHECK: call
-; CHECK: jne
-; CHECK: je
-; CHECK: call
+; CHECK: cmp {{.*}}
+; CHECK-NEXT: jne {{.*}}
+; CHECK-NEXT: cmp {{.*}}
+; CHECK-NEXT: jne {{.*}}
+; CHECK-NEXT: call {{.*}}
+; CHECK: cmp {{.*}}
+; CHECK-NEXT: jne {{.*}}
+; CHECK-NEXT: cmp {{.*}}
+; CHECK-NEXT: jne {{.*}}
+; CHECK-NEXT: call {{.*}}
 ;
 ; OPTM1-LABEL: icmpEq64
-; OPTM1: jne
-; OPTM1: je
-; OPTM1: call
-; OPTM1: jne
-; OPTM1: je
-; OPTM1: call
+; OPTM1: mov [[RESULT:.*]],0x1
+; OPTM1-NEXT: cmp {{.*}}
+; OPTM1-NEXT: jne {{.*}}
+; OPTM1-NEXT: cmp {{.*}}
+; OPTM1-NEXT: je {{.*}}
+; OPTM1-NEXT: mov [[RESULT]],0x0
+; OPTM1-NEXT: cmp [[RESULT]],0x0
+; OPTM1-NEXT: jne
+; OPTM1-NEXT: jmp
+; OPTM1-NEXT: call
+; OPTM1: mov [[RESULT:.*]],0x1
+; OPTM1-NEXT: cmp {{.*}}
+; OPTM1-NEXT: jne {{.*}}
+; OPTM1-NEXT: cmp {{.*}}
+; OPTM1-NEXT: je {{.*}}
+; OPTM1-NEXT: mov [[RESULT]],0x0
+; OPTM1-NEXT: cmp [[RESULT]],0x0
+; OPTM1-NEXT: jne
+; OPTM1-NEXT: jmp
+; OPTM1-NEXT: call
 
 ; ARM32-LABEL: icmpEq64
 ; ARM32: cmp
@@ -1065,20 +1083,38 @@ if.end3:                                          ; preds = %if.end, %if.then2
   ret void
 }
 ; CHECK-LABEL: icmpNe64
-; CHECK: jne
-; CHECK: jne
-; CHECK: call
-; CHECK: jne
-; CHECK: jne
-; CHECK: call
+; CHECK: cmp {{.*}}
+; CHECK-NEXT: jne {{.*}}
+; CHECK-NEXT: cmp {{.*}}
+; CHECK-NEXT: je {{.*}}
+; CHECK-NEXT: call {{.*}}
+; CHECK: cmp {{.*}}
+; CHECK-NEXT: jne {{.*}}
+; CHECK-NEXT: cmp {{.*}}
+; CHECK-NEXT: je {{.*}}
+; CHECK-NEXT: call {{.*}}
 ;
 ; OPTM1-LABEL: icmpNe64
-; OPTM1: jne
-; OPTM1: jne
-; OPTM1: call
-; OPTM1: jne
-; OPTM1: jne
-; OPTM1: call
+; OPTM1: mov [[RESULT:.*]],0x1
+; OPTM1-NEXT: cmp {{.*}}
+; OPTM1-NEXT: jne {{.*}}
+; OPTM1-NEXT: cmp {{.*}}
+; OPTM1-NEXT: jne {{.*}}
+; OPTM1-NEXT: mov [[RESULT:.*]],0x0
+; OPTM1-NEXT: cmp [[RESULT]],0x0
+; OPTM1-NEXT: jne {{.*}}
+; OPTM1-NEXT: jmp {{.*}}
+; OPTM1-NEXT: call
+; OPTM1: mov [[RESULT:.*]],0x1
+; OPTM1-NEXT: cmp {{.*}}
+; OPTM1-NEXT: jne {{.*}}
+; OPTM1-NEXT: cmp {{.*}}
+; OPTM1-NEXT: jne {{.*}}
+; OPTM1-NEXT: mov [[RESULT:.*]],0x0
+; OPTM1-NEXT: cmp [[RESULT]],0x0
+; OPTM1-NEXT: jne {{.*}}
+; OPTM1-NEXT: jmp {{.*}}
+; OPTM1-NEXT: call
 
 ; ARM32-LABEL: icmpNe64
 ; ARM32: cmp
@@ -1115,11 +1151,11 @@ if.end3:                                          ; preds = %if.then2, %if.end
 ; CHECK-LABEL: icmpGt64
 ; CHECK: ja
 ; CHECK: jb
-; CHECK: ja
+; CHECK: jbe
 ; CHECK: call
 ; CHECK: jg
 ; CHECK: jl
-; CHECK: ja
+; CHECK: jbe
 ; CHECK: call
 ;
 ; OPTM1-LABEL: icmpGt64
@@ -1167,11 +1203,11 @@ if.end3:                                          ; preds = %if.end, %if.then2
 ; CHECK-LABEL: icmpGe64
 ; CHECK: ja
 ; CHECK: jb
-; CHECK: jae
+; CHECK: jb
 ; CHECK: call
 ; CHECK: jg
 ; CHECK: jl
-; CHECK: jae
+; CHECK: jb
 ; CHECK: call
 ;
 ; OPTM1-LABEL: icmpGe64
@@ -1219,11 +1255,11 @@ if.end3:                                          ; preds = %if.then2, %if.end
 ; CHECK-LABEL: icmpLt64
 ; CHECK: jb
 ; CHECK: ja
-; CHECK: jb
+; CHECK: jae
 ; CHECK: call
 ; CHECK: jl
 ; CHECK: jg
-; CHECK: jb
+; CHECK: jae
 ; CHECK: call
 ;
 ; OPTM1-LABEL: icmpLt64
@@ -1271,11 +1307,11 @@ if.end3:                                          ; preds = %if.end, %if.then2
 ; CHECK-LABEL: icmpLe64
 ; CHECK: jb
 ; CHECK: ja
-; CHECK: jbe
+; CHECK: ja
 ; CHECK: call
 ; CHECK: jl
 ; CHECK: jg
-; CHECK: jbe
+; CHECK: ja
 ; CHECK: call
 ;
 ; OPTM1-LABEL: icmpLe64

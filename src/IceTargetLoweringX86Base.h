@@ -151,18 +151,6 @@ protected:
   void lowerExtractElement(const InstExtractElement *Inst) override;
   void lowerFcmp(const InstFcmp *Inst) override;
   void lowerIcmp(const InstIcmp *Inst) override;
-  /// Complains loudly if invoked because the cpu can handle 64-bit types
-  /// natively.
-  template <typename T = Traits>
-  typename std::enable_if<T::Is64Bit, void>::type
-  lowerIcmp64(const InstIcmp *) {
-    llvm::report_fatal_error(
-        "Hey, yo! This is x86-64. Watcha doin'? (lowerIcmp64)");
-  }
-  /// x86lowerIcmp64 handles 64-bit icmp lowering.
-  template <typename T = Traits>
-  typename std::enable_if<!T::Is64Bit, void>::type
-  lowerIcmp64(const InstIcmp *Inst);
 
   void lowerIntrinsicCall(const InstIntrinsicCall *Inst) override;
   void lowerInsertElement(const InstInsertElement *Inst) override;
@@ -721,6 +709,30 @@ private:
 
   void lowerShift64(InstArithmetic::OpKind Op, Operand *Src0Lo, Operand *Src0Hi,
                     Operand *Src1Lo, Variable *DestLo, Variable *DestHi);
+
+  /// Emit the code for a combined compare and branch, or sets the destination
+  /// variable of the compare if branch is nullptr.
+  void lowerIcmpAndBr(const InstIcmp *Icmp, const InstBr *Br);
+
+  /// Emit a setcc instruction if Br == nullptr; otherwise emit a branch.
+  void setccOrBr(typename Traits::Cond::BrCond Condition, Variable *Dest,
+                 const InstBr *Br);
+
+  /// Emit a mov [1|0] instruction if Br == nullptr; otherwise emit a branch.
+  void movOrBr(bool IcmpResult, Variable *Dest, const InstBr *Br);
+
+  /// Complains loudly if invoked because the cpu can handle 64-bit types
+  /// natively.
+  template <typename T = Traits>
+  typename std::enable_if<T::Is64Bit, void>::type lowerIcmp64(const InstIcmp *,
+                                                              const InstBr *) {
+    llvm::report_fatal_error(
+        "Hey, yo! This is x86-64. Watcha doin'? (lowerIcmp64)");
+  }
+  /// x86lowerIcmp64 handles 64-bit icmp lowering.
+  template <typename T = Traits>
+  typename std::enable_if<!T::Is64Bit, void>::type
+  lowerIcmp64(const InstIcmp *Icmp, const InstBr *Br);
 
   BoolFolding FoldingInfo;
 };
