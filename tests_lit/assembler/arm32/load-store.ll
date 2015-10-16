@@ -1,5 +1,7 @@
 ; Show that we can handle variable (i.e. stack) spills.
 
+; REQUIRES: allow_dump
+
 ; RUN: %p2i --filetype=asm -i %s --target=arm32 --args -Om1 \
 ; RUN:   | FileCheck %s --check-prefix=ASM
 ; RUN: %p2i --filetype=iasm -i %s --target=arm32 --args -Om1 \

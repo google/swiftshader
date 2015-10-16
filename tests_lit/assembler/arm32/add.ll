@@ -3,6 +3,8 @@
 
 ; NOTE: We use -O2 to get rid of memory stores.
 
+; REQUIRES: allow_dump
+
 ; RUN: %p2i --filetype=asm -i %s --target=arm32 --args -O2 \
 ; RUN:   | FileCheck %s --check-prefix=ASM
 ; RUN: %p2i --filetype=iasm -i %s --target=arm32 --args -O2 \

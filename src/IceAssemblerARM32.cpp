@@ -128,6 +128,9 @@ DecodedResult decodeOperand(const Operand *Opnd, uint32_t &Value) {
     const uint32_t Immed8 = FlexImm->getImm();
     const uint32_t Rotate = FlexImm->getRotateAmt();
     assert((Rotate < (1 << kRotateBits)) && (Immed8 < (1 << kImmed8Bits)));
+    // TODO(kschimpf): Remove void casts when MINIMAL build allows.
+    (void) kRotateBits;
+    (void) kImmed8Bits;
     Value = (Rotate << kRotateShift) | (Immed8 << kImmed8Shift);
     return DecodedAsRotatedImm8;
   }
@@ -202,6 +205,8 @@ void ARM32::AssemblerARM32::emitType01(CondARM32::Cond Cond, uint32_t Type,
                                        uint32_t Opcode, bool SetCc, uint32_t Rn,
                                        uint32_t Rd, uint32_t Imm12) {
   assert(isGPRRegisterDefined(Rd));
+  // TODO(kschimpf): Remove void cast when MINIMAL build allows.
+  (void) isGPRRegisterDefined(Rd);
   assert(Cond != CondARM32::kNone);
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   const uint32_t Encoding = (encodeCondition(Cond) << kConditionShift) |
@@ -264,6 +269,8 @@ void ARM32::AssemblerARM32::bx(RegARM32::GPRRegister Rm, CondARM32::Cond Cond) {
   // cccc000100101111111111110001mmmm where mmmm=rm and cccc=Cond.
   // (ARM section A8.8.27, encoding A1).
   assert(isGPRRegisterDefined(Rm));
+  // TODO(kschimpf): Remove void cast when MINIMAL build allows.
+  (void) isGPRRegisterDefined(Rm);
   assert(isConditionDefined(Cond));
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   const uint32_t Encoding = (encodeCondition(Cond) << kConditionShift) | B24 |
