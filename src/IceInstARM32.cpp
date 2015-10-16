@@ -617,13 +617,28 @@ void InstARM32Mov::emitIASSingleDestSingleSource(const Cfg *Func) const {
   // Note: Loop is used so that we can short circuit using break.
   do {
     if (Dest->hasReg()) {
-      Type DestTy = Dest->getType();
+      const Type DestTy = Dest->getType();
       const bool DestIsVector = isVectorType(DestTy);
       const bool DestIsScalarFP = isScalarFloatingType(DestTy);
       const bool CoreVFPMove = isMoveBetweenCoreAndVFPRegisters(Dest, Src0);
       if (DestIsVector || DestIsScalarFP || CoreVFPMove)
         break;
-      Asm->mov(Dest, Src0, getPredicate());
+      if (isMemoryAccess(Src0)) {
+        // TODO(kschimpf) Figure out how to do ldr on CoreVPFMove? (see
+        // emitSingleDestSingleSource, local variable LoadOpcode).
+        Asm->ldr(Dest, Src0, getPredicate());
+      } else {
+        Asm->mov(Dest, Src0, getPredicate());
+      }
+      return;
+    } else {
+      const Type Src0Type = Src0->getType();
+      const bool Src0IsVector = isVectorType(Src0Type);
+      const bool Src0IsScalarFP = isScalarFloatingType(Src0Type);
+      const bool CoreVFPMove = isMoveBetweenCoreAndVFPRegisters(Dest, Src0);
+      if (Src0IsVector || Src0IsScalarFP || CoreVFPMove)
+        break;
+      Asm->str(Src0, Dest, getPredicate());
       return;
     }
   } while (0);

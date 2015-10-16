@@ -72,7 +72,7 @@ void Assembler::Emit(int32_t value) {
 }
 
 #if 0
-// Moved to class AssemblerARM32.
+// Moved to ARM32::AssemblerARM32::emitType01()
 void Assembler::EmitType01(Condition cond,
                            int type,
                            Opcode opcode,
@@ -102,6 +102,8 @@ void Assembler::EmitType5(Condition cond, int32_t offset, bool link) {
 }
 
 
+#if 0
+// Moved to ARM32::AssemblerARM32::emitMemOp()
 void Assembler::EmitMemOp(Condition cond,
                           bool load,
                           bool byte,
@@ -117,7 +119,7 @@ void Assembler::EmitMemOp(Condition cond,
                      ad.encoding();
   Emit(encoding);
 }
-
+#endif
 
 void Assembler::EmitMemOpAddressMode3(Condition cond,
                                       int32_t mode,
@@ -194,10 +196,12 @@ void Assembler::eor(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), EOR, 0, rn, rd, o);
 }
 
-
+#if 0
+// Moved to ARM32::AssemberARM32::sub()
 void Assembler::sub(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), SUB, 0, rn, rd, o);
 }
+#endif
 
 void Assembler::rsb(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), RSB, 0, rn, rd, o);
@@ -209,22 +213,23 @@ void Assembler::rsbs(Register rd, Register rn, Operand o, Condition cond) {
 
 
 #if 0
-// Moved to IceAssemberARM32::add.
+// Moved to ARM32::AssemberARM32::add()
 void Assembler::add(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), ADD, 0, rn, rd, o);
 }
 
-
+// Moved to ARM32::AssemberARM32::add()
 void Assembler::adds(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), ADD, 1, rn, rd, o);
 }
 #endif
 
-
+#if 0
+// Moved to ARM32::AssemberARM32::sub()
 void Assembler::subs(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), SUB, 1, rn, rd, o);
 }
-
+#endif
 
 void Assembler::adc(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), ADC, 0, rn, rd, o);
@@ -464,25 +469,27 @@ void Assembler::udiv(Register rd, Register rn, Register rm, Condition cond) {
 }
 
 
+#if 0
+// Moved to ARM32::AssemblerARM32::ldr()
 void Assembler::ldr(Register rd, Address ad, Condition cond) {
   EmitMemOp(cond, true, false, rd, ad);
 }
 
-
+// Moved to ARM32::AssemblerARM32::str()
 void Assembler::str(Register rd, Address ad, Condition cond) {
   EmitMemOp(cond, false, false, rd, ad);
 }
 
-
+// Moved to ARM32::AssemblerARM32::ldr()
 void Assembler::ldrb(Register rd, Address ad, Condition cond) {
   EmitMemOp(cond, true, true, rd, ad);
 }
 
-
+// Moved to ARM32::AssemblerARM32::str()
 void Assembler::strb(Register rd, Address ad, Condition cond) {
   EmitMemOp(cond, false, true, rd, ad);
 }
-
+#endif
 
 void Assembler::ldrh(Register rd, Address ad, Condition cond) {
   EmitMemOpAddressMode3(cond, L | B7 | H | B4, rd, ad);
@@ -1441,7 +1448,7 @@ void Assembler::vcgtqs(QRegister qd, QRegister qn, QRegister qm) {
 
 
 #if 0
-// Moved to: ARM32::AssemblerARM32.
+// Moved to: ARM32::AssemblerARM32::bkpt()
 void Assembler::bkpt(uint16_t imm16) {
   Emit(BkptEncoding(imm16));
 }
@@ -1458,7 +1465,7 @@ void Assembler::bl(Label* label, Condition cond) {
 }
 
 #if 0
-// Moved to: ARM32::AssemblerARM32.
+// Moved to: ARM32::AssemblerARM32::bx()
 void Assembler::bx(Register rm, Condition cond) {
   ASSERT(rm != kNoRegister);
   ASSERT(cond != kNoCondition);
@@ -2327,7 +2334,7 @@ void Assembler::BindARMv6(Label* label) {
 }
 
 #if 0
-// Moved to: ARM32::AssemblerARM32 as method bind(Label* Label)
+// Moved to: ARM32::AssemblerARM32::bind(Label* Label)
 // Note: Most of this code isn't needed because instruction selection has
 // already been handler
 void Assembler::BindARMv7(Label* label) {

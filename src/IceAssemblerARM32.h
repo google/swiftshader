@@ -103,9 +103,13 @@ public:
 
   void bkpt(uint16_t Imm16);
 
+  void ldr(const Operand *OpRt, const Operand *OpAddress, CondARM32::Cond Cond);
+
   void mov(const Operand *OpRd, const Operand *OpSrc, CondARM32::Cond Cond);
 
   void bx(RegARM32::GPRRegister Rm, CondARM32::Cond Cond = CondARM32::AL);
+
+  void str(const Operand *OpRt, const Operand *OpAddress, CondARM32::Cond Cond);
 
   void sub(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
            bool SetFlags, CondARM32::Cond Cond);
@@ -130,6 +134,13 @@ private:
   // oooo=Opcode, nnnn=Rn, dddd=Rd, iiiiiiiiiiii=imm12 (See ARM section A5.2.3).
   void emitType01(CondARM32::Cond Cond, uint32_t Type, uint32_t Opcode,
                   bool SetCc, uint32_t Rn, uint32_t Rd, uint32_t imm12);
+
+  // Pattern ccccoooaabalnnnnttttaaaaaaaaaaaa where cccc=Cond, ooo=InstType,
+  // l=isLoad, b=isByte, and aaa0a0aaaa0000aaaaaaaaaaaa=Address. Note that
+  // Address is assumed to be defined by decodeAddress() in
+  // IceAssemblerARM32.cpp.
+  void emitMemOp(CondARM32::Cond Cond, uint32_t InstType, bool IsLoad,
+                 bool IsByte, uint32_t Rt, uint32_t Address);
 };
 
 } // end of namespace ARM32

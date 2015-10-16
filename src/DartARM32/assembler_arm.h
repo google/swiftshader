@@ -140,7 +140,7 @@ class Operand : public ValueObject {
   }
 
 #if 0
-  // Moved to decode in IceAssemblerARM32.cpp
+  // Moved to decodeOperand() in IceAssemblerARM32.cpp
   // Data-processing operands - Rotated immediate.
   Operand(uint32_t rotate, uint32_t immed8) {
     ASSERT((rotate < (1 << kRotateBits)) && (immed8 < (1 << kImmed8Bits)));
@@ -150,7 +150,7 @@ class Operand : public ValueObject {
 #endif
 
 #if 0
-  // Moved to decode in IceAssemblerARM32.cpp
+  // Moved to decodeOperand() in IceAssemblerARM32.cpp
   // Data-processing operands - Register.
   explicit Operand(Register rm) {
     type_ = 0;
@@ -277,6 +277,9 @@ class Address : public ValueObject {
     return (encoding_ == other.encoding_) && (kind_ == other.kind_);
   }
 
+#if 0
+  // Moved to decodeImmRegOffset() in IceAssemblerARM32.cpp.
+  // Used to model stack offsets.
   explicit Address(Register rn, int32_t offset = 0, Mode am = Offset) {
     ASSERT(Utils::IsAbsoluteUint(12, offset));
     kind_ = Immediate;
@@ -287,6 +290,7 @@ class Address : public ValueObject {
     }
     encoding_ |= static_cast<uint32_t>(rn) << kRnShift;
   }
+#endif
 
   // There is no register offset mode unless Mode is Offset, in which case the
   // shifted register case below should be used.
@@ -440,14 +444,17 @@ class Assembler : public ValueObject {
 
   void eor(Register rd, Register rn, Operand o, Condition cond = AL);
 
+#if 0
+  // Moved to ARM32::AssemberARM32::sub()
   void sub(Register rd, Register rn, Operand o, Condition cond = AL);
   void subs(Register rd, Register rn, Operand o, Condition cond = AL);
+#endif
 
   void rsb(Register rd, Register rn, Operand o, Condition cond = AL);
   void rsbs(Register rd, Register rn, Operand o, Condition cond = AL);
 
 #if 0
-  // Moved to IceAssemblerARM32::mov
+  // Moved to ARM32::AssemblerARM32::add()
   void add(Register rd, Register rn, Operand o, Condition cond = AL);
 
   void adds(Register rd, Register rn, Operand o, Condition cond = AL);
@@ -475,7 +482,7 @@ class Assembler : public ValueObject {
   void orrs(Register rd, Register rn, Operand o, Condition cond = AL);
 
 #if 0
-  // Moved to IceAssemblerARM32::mov
+  // Moved to IceAssemblerARM32::mov()
   void mov(Register rd, Operand o, Condition cond = AL);
   void movs(Register rd, Operand o, Condition cond = AL);
 #endif
@@ -514,12 +521,18 @@ class Assembler : public ValueObject {
   void sdiv(Register rd, Register rn, Register rm, Condition cond = AL);
   void udiv(Register rd, Register rn, Register rm, Condition cond = AL);
 
+#if 0
+  // Moved to AssemblerARM32::ldr()
   // Load/store instructions.
   void ldr(Register rd, Address ad, Condition cond = AL);
+  // Moved to AssemblerARM32::str()
   void str(Register rd, Address ad, Condition cond = AL);
 
+  // Moved to AssemblerARM32::ldr()
   void ldrb(Register rd, Address ad, Condition cond = AL);
+  // Moved to AssemblerARM32::str()
   void strb(Register rd, Address ad, Condition cond = AL);
+#endif
 
   void ldrh(Register rd, Address ad, Condition cond = AL);
   void strh(Register rd, Address ad, Condition cond = AL);
@@ -546,7 +559,7 @@ class Assembler : public ValueObject {
   void nop(Condition cond = AL);
 
 #if 0
-  // Moved to: ARM32::AssemblerARM32.
+  // Moved to: ARM32::AssemblerARM32::bkpt()
   // Note that gdb sets breakpoints using the undefined instruction 0xe7f001f0.
   void bkpt(uint16_t imm16);
 
@@ -677,7 +690,7 @@ class Assembler : public ValueObject {
   void b(Label* label, Condition cond = AL);
   void bl(Label* label, Condition cond = AL);
 #if 0
-  // Moved to: ARM32::AssemblerARM32.
+  // Moved to: ARM32::AssemblerARM32::bx()
   void bx(Register rm, Condition cond = AL);
 #endif
   void blx(Register rm, Condition cond = AL);
@@ -1097,7 +1110,7 @@ class Assembler : public ValueObject {
                         Register pp);
 
 #if 0
-  // Moved to class AssemblerARM32.
+  // Moved to ARM32::AssemblerARM32::emitType01()
   void EmitType01(Condition cond,
                   int type,
                   Opcode opcode,
@@ -1109,11 +1122,14 @@ class Assembler : public ValueObject {
 
   void EmitType5(Condition cond, int32_t offset, bool link);
 
+#if 0
+  // Moved to ARM32::AssemberARM32::emitMemOp()
   void EmitMemOp(Condition cond,
                  bool load,
                  bool byte,
                  Register rd,
                  Address ad);
+#endif
 
   void EmitMemOpAddressMode3(Condition cond,
                              int32_t mode,
