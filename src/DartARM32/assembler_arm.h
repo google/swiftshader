@@ -158,6 +158,8 @@ class Operand : public ValueObject {
   }
 #endif
 
+#if 0
+  // Moved to encodeShiftRotateImm5()
   // Data-processing operands - Logical shift/rotate by immediate.
   Operand(Register rm, Shift shift, uint32_t shift_imm) {
     ASSERT(shift_imm < (1 << kShiftImmBits));
@@ -166,6 +168,7 @@ class Operand : public ValueObject {
                 static_cast<uint32_t>(shift) << kShiftShift |
                 static_cast<uint32_t>(rm);
   }
+#endif
 
   // Data-processing operands - Logical shift/rotate by register.
   Operand(Register rm, Shift shift, Register rs) {

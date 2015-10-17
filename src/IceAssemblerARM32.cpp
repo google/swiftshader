@@ -62,6 +62,11 @@ static constexpr uint32_t kImmed8Shift = 0;
 static constexpr uint32_t kRotateBits = 4;
 static constexpr uint32_t kRotateShift = 8;
 
+// Shift instruction register fields encodings.
+static constexpr uint32_t kShiftImmShift = 7;
+static constexpr uint32_t kShiftImmBits = 5;
+static constexpr uint32_t kShiftShift = 5;
+
 static constexpr uint32_t kImmed12Bits = 12;
 static constexpr uint32_t kImm12Shift = 0;
 
@@ -85,6 +90,22 @@ inline bool isConditionDefined(CondARM32::Cond Cond) {
 
 inline uint32_t encodeCondition(CondARM32::Cond Cond) {
   return static_cast<uint32_t>(Cond);
+}
+
+uint32_t encodeShift(OperandARM32::ShiftKind Shift) {
+  // Follows encoding in ARM section A8.4.1 "Constant shifts".
+  switch (Shift) {
+  case OperandARM32::kNoShift:
+  case OperandARM32::LSL:
+    return 0; // 0b00
+  case OperandARM32::LSR:
+    return 1; // 0b01
+  case OperandARM32::ASR:
+    return 2; // 0b10
+  case OperandARM32::ROR:
+  case OperandARM32::RRX:
+    return 3; // 0b11
+  }
 }
 
 // Returns the bits in the corresponding masked value.
@@ -118,6 +139,15 @@ enum DecodedResult {
   DecodedAsImmRegOffset
 };
 
+// Encodes iiiiitt0mmmm for data-processing (2nd) operands where iiiii=Imm5,
+// tt=Shift, and mmmm=Rm.
+uint32_t encodeShiftRotateImm5(uint32_t Rm, OperandARM32::ShiftKind Shift,
+                               uint32_t imm5) {
+  (void)kShiftImmBits;
+  assert(imm5 < (1 << kShiftImmBits));
+  return (imm5 << kShiftImmShift) | (encodeShift(Shift) << kShiftShift) | Rm;
+}
+
 DecodedResult decodeOperand(const Operand *Opnd, uint32_t &Value) {
   if (const auto *Var = llvm::dyn_cast<Variable>(Opnd)) {
     if (Var->hasReg()) {
@@ -129,8 +159,8 @@ DecodedResult decodeOperand(const Operand *Opnd, uint32_t &Value) {
     const uint32_t Rotate = FlexImm->getRotateAmt();
     assert((Rotate < (1 << kRotateBits)) && (Immed8 < (1 << kImmed8Bits)));
     // TODO(kschimpf): Remove void casts when MINIMAL build allows.
-    (void) kRotateBits;
-    (void) kImmed8Bits;
+    (void)kRotateBits;
+    (void)kImmed8Bits;
     Value = (Rotate << kRotateShift) | (Immed8 << kImmed8Shift);
     return DecodedAsRotatedImm8;
   }
@@ -206,7 +236,7 @@ void ARM32::AssemblerARM32::emitType01(CondARM32::Cond Cond, uint32_t Type,
                                        uint32_t Rd, uint32_t Imm12) {
   assert(isGPRRegisterDefined(Rd));
   // TODO(kschimpf): Remove void cast when MINIMAL build allows.
-  (void) isGPRRegisterDefined(Rd);
+  (void)isGPRRegisterDefined(Rd);
   assert(Cond != CondARM32::kNone);
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   const uint32_t Encoding = (encodeCondition(Cond) << kConditionShift) |
@@ -239,39 +269,69 @@ void ARM32::AssemblerARM32::add(const Operand *OpRd, const Operand *OpRn,
     uint32_t Rn;
     if (decodeOperand(OpRn, Rn) != DecodedAsRegister)
       break;
+    constexpr uint32_t Add = B2; // 0100
     uint32_t Src1Value;
     // TODO(kschimpf) Other possible decodings of add.
-    if (decodeOperand(OpSrc1, Src1Value) == DecodedAsRotatedImm8) {
-      // ADD (Immediate): See ARM section A8.8.5, rule A1.
-      // cccc0010100snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
-      // s=SetFlags and iiiiiiiiiiii=Src1Value
-      if (!isConditionDefined(Cond) || (Rd == RegARM32::Reg_pc && SetFlags) ||
-          (Rn == RegARM32::Reg_lr) || (Rn == RegARM32::Reg_pc && SetFlags))
+    switch (decodeOperand(OpSrc1, Src1Value)) {
+    default:
+      break;
+    case DecodedAsRegister: {
+      // ADD (register) - ARM section A8.8.7, encoding A1:
+      //   add{s}<c> <Rd>, <Rn>, <Rm>{, <shiff>}
+      // ADD (Sp plus register) - ARM section A8.8.11, encoding A1:
+      //   add{s}<c> sp, <Rn>, <Rm>{, <shiff>}
+      //
+      // cccc0000100snnnnddddiiiiitt0mmmm where cccc=Cond, dddd=Rd, nnnn=Rn,
+      // mmmm=Rm, iiiii=Shift, tt=ShiftKind, and s=SetFlags
+      Src1Value = encodeShiftRotateImm5(Src1Value, OperandARM32::kNoShift, 0);
+      if (((Rd == RegARM32::Encoded_Reg_pc) && SetFlags))
         // Conditions of rule violated.
         break;
-      constexpr uint32_t Add = B2; // 0100
-      constexpr uint32_t InstType = 1;
-      emitType01(Cond, InstType, Add, SetFlags, Rn, Rd, Src1Value);
+      constexpr uint32_t InstTypeRegister = 0;
+      emitType01(Cond, InstTypeRegister, Add, SetFlags, Rn, Rd, Src1Value);
       return;
+    }
+    case DecodedAsRotatedImm8: {
+      // ADD (Immediate) - ARM section A8.8.5, encoding A1:
+      //   add{s}<c> <Rd>, <Rn>, #<RotatedImm8>
+      // ADD (SP plus immediate) - ARM section A8.8.9, encoding A1.
+      //   add{s}<c> <Rd>, sp, #<RotatedImm8>
+      //
+      // cccc0010100snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
+      // s=SetFlags and iiiiiiiiiiii=Src1Value=RotatedImm8.
+      if ((Rd == RegARM32::Encoded_Reg_pc && SetFlags))
+        // Conditions of rule violated.
+        break;
+      constexpr uint32_t InstTypeImmediate = 1;
+      emitType01(Cond, InstTypeImmediate, Add, SetFlags, Rn, Rd, Src1Value);
+      return;
+    }
     }
   } while (0);
   UnimplementedError(Ctx->getFlags());
 }
 
-void ARM32::AssemblerARM32::bkpt(uint16_t imm16) {
+void ARM32::AssemblerARM32::bkpt(uint16_t Imm16) {
+  // BKPT - ARM section A*.8.24 - encoding A1:
+  //   bkpt #<Imm16>
+  //
+  // cccc00010010iiiiiiiiiiii0111iiii where cccc=AL and iiiiiiiiiiiiiiii=Imm16
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   const uint32_t Encoding = (CondARM32::AL << kConditionShift) | B24 | B21 |
-                            ((imm16 >> 4) << 8) | B6 | B5 | B4 | (imm16 & 0xf);
+                            ((Imm16 >> 4) << 8) | B6 | B5 | B4 | (Imm16 & 0xf);
   emitInst(Encoding);
 }
 
 void ARM32::AssemblerARM32::bx(RegARM32::GPRRegister Rm, CondARM32::Cond Cond) {
+  // BX - ARM section A8.8.27, encoding A1:
+  //   bx<c> <Rm>
+  //
   // cccc000100101111111111110001mmmm where mmmm=rm and cccc=Cond.
-  // (ARM section A8.8.27, encoding A1).
   assert(isGPRRegisterDefined(Rm));
   // TODO(kschimpf): Remove void cast when MINIMAL build allows.
-  (void) isGPRRegisterDefined(Rm);
+  (void)isGPRRegisterDefined(Rm);
   assert(isConditionDefined(Cond));
+  (void)isConditionDefined(Cond);
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   const uint32_t Encoding = (encodeCondition(Cond) << kConditionShift) | B24 |
                             B21 | (0xfff << 8) | B4 |
@@ -289,8 +349,17 @@ void ARM32::AssemblerARM32::ldr(const Operand *OpRt, const Operand *OpAddress,
     uint32_t Address;
     if (decodeAddress(OpAddress, Address) != DecodedAsImmRegOffset)
       break;
-    // cccc010pu0w1nnnnttttiiiiiiiiiiii (ARM section A8.8.63, encoding A1; and
-    // section A8.6.68, encoding A1).
+    // LDR (immediate) - ARM section A8.8.63, encoding A1:
+    //   ldr<c> <Rt>, [<Rn>{, #+/-<imm12>}]      ; p=1, w=0
+    //   ldr<c> <Rt>, [<Rn>], #+/-<imm12>        ; p=1, w=1
+    //   ldr<c> <Rt>, [<Rn>, #+/-<imm12>]!       ; p=0, w=1
+    // LDRB (immediate) - ARM section A8.8.68, encoding A1:
+    //   ldrb<c> <Rt>, [<Rn>{, #+/-<imm12>}]     ; p=1, w=0
+    //   ldrb<c> <Rt>, [<Rn>], #+/-<imm12>       ; p=1, w=1
+    //   ldrb<c> <Rt>, [<Rn>, #+/-<imm12>]!      ; p=0, w=1
+    //
+    // cccc010pubw1nnnnttttiiiiiiiiiiii where cccc=Cond, tttt=Rt, nnnn=Rn,
+    // iiiiiiiiiiii=imm12, b=1 if STRB, u=1 if +.
     constexpr uint32_t InstType = B1; // 010
     constexpr bool IsLoad = true;
     const Type Ty = OpRt->getType();
@@ -298,8 +367,9 @@ void ARM32::AssemblerARM32::ldr(const Operand *OpRt, const Operand *OpAddress,
       break;
     const bool IsByte = typeWidthInBytes(Ty) == 1;
     if ((getGPRReg(kRnShift, Address) == RegARM32::Encoded_Reg_pc) ||
-        (!IsByte && !isBitSet(P, Address) && isBitSet(W, Address)) ||
-        ((getGPRReg(kRnShift, Address) == RegARM32::Encoded_Reg_sp) &&
+        (!isBitSet(P, Address) && isBitSet(W, Address)) ||
+        (!IsByte &&
+         (getGPRReg(kRnShift, Address) == RegARM32::Encoded_Reg_sp) &&
          !isBitSet(P, Address) &&
          isBitSet(U, Address) & !isBitSet(W, Address) &&
          (mask(Address, kImm12Shift, kImmed12Bits) == 0x8 /* 000000000100 */)))
@@ -320,10 +390,14 @@ void ARM32::AssemblerARM32::mov(const Operand *OpRd, const Operand *OpSrc,
     uint32_t Src;
     // TODO(kschimpf) Handle other forms of mov.
     if (decodeOperand(OpSrc, Src) == DecodedAsRotatedImm8) {
-      // cccc0011101s0000ddddiiiiiiiiiiii (ARM section A8.8.102, encoding A1)
-      // Note: We don't use movs in this assembler.
+      // MOV (immediate) - ARM section A8.8.102, encoding A1:
+      //   mov{S}<c> <Rd>, #<RotatedImm8>
+      //
+      // cccc0011101s0000ddddiiiiiiiiiiii where cccc=Cond, s=SetFlags, dddd=Rd,
+      // and iiiiiiiiiiii=RotatedImm8=Src.  Note: We don't use movs in this
+      // assembler.
       constexpr bool SetFlags = false;
-      if (!isConditionDefined(Cond) || (Rd == RegARM32::Reg_pc && SetFlags))
+      if ((Rd == RegARM32::Encoded_Reg_pc && SetFlags))
         // Conditions of rule violated.
         break;
       constexpr uint32_t Rn = 0;
@@ -346,8 +420,17 @@ void ARM32::AssemblerARM32::str(const Operand *OpRt, const Operand *OpAddress,
     uint32_t Address;
     if (decodeAddress(OpAddress, Address) != DecodedAsImmRegOffset)
       break;
-    // cccc010pub0nnnnttttiiiiiiiiiiii (ARM section A8.8.204, encoding A1; and
-    // section 18.8.207, encoding A1).
+    // STR (immediate) - ARM section A8.8.204, encoding A1:
+    //   str<c> <Rt>, [<Rn>{, #+/-<imm12>}]      ; p=1, w=0
+    //   str<c> <Rt>, [<Rn>], #+/-<imm12>        ; p=1, w=1
+    //   str<c> <Rt>, [<Rn>, #+/-<imm12>]!       ; p=0, w=1
+    // STRB (immediate) - ARM section A8.8.207, encoding A1:
+    //   strb<c> <Rt>, [<Rn>{, #+/-<imm12>}]     ; p=1, w=0
+    //   strb<c> <Rt>, [<Rn>], #+/-<imm12>       ; p=1, w=1
+    //   strb<c> <Rt>, [<Rn>, #+/-<imm12>]!      ; p=0, w=1
+    //
+    // cccc010pubw0nnnnttttiiiiiiiiiiii where cccc=Cond, tttt=Rt, nnnn=Rn,
+    // iiiiiiiiiiii=imm12, b=1 if STRB, u=1 if +.
     constexpr uint32_t InstType = B1; // 010
     constexpr bool IsLoad = false;
     const Type Ty = OpRt->getType();
@@ -362,6 +445,7 @@ void ARM32::AssemblerARM32::str(const Operand *OpRt, const Operand *OpAddress,
          isBitSet(P, Address) && !isBitSet(U, Address) &&
          isBitSet(W, Address) &&
          (mask(Address, kImm12Shift, kImmed12Bits) == 0x8 /* 000000000100 */)))
+      // Conditions of rule violated.
       break;
     emitMemOp(Cond, InstType, IsLoad, IsByte, Rt, Address);
     return;
@@ -380,20 +464,43 @@ void ARM32::AssemblerARM32::sub(const Operand *OpRd, const Operand *OpRn,
     uint32_t Rn;
     if (decodeOperand(OpRn, Rn) != DecodedAsRegister)
       break;
+    constexpr uint32_t Sub = B1; // 0010
     uint32_t Src1Value;
-    // TODO(kschimpf) Other possible decodings of add.
-    if (decodeOperand(OpSrc1, Src1Value) == DecodedAsRotatedImm8) {
-      // Sub (Immediate): See ARM section A8.8.222, rule A1.
-      // cccc0010010snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
-      // s=SetFlags and iiiiiiiiiiii=Src1Value
-      if (!isConditionDefined(Cond) || (Rd == RegARM32::Reg_pc && SetFlags) ||
-          (Rn == RegARM32::Reg_lr) || (Rn == RegARM32::Reg_pc && SetFlags))
+    // TODO(kschimpf) Other possible decodings of sub.
+    switch (decodeOperand(OpSrc1, Src1Value)) {
+    default:
+      break;
+    case DecodedAsRegister: {
+      // SUB (register) - ARM section A8.8.223, encoding A1:
+      //   sub{s}<c> <Rd>, <Rn>, <Rm>{, <shift>}
+      // SUB (SP minus register): See ARM section 8.8.226, encoding A1:
+      //   sub{s}<c> <Rd>, sp, <Rm>{, <Shift>}
+      //
+      // cccc0000010snnnnddddiiiiitt0mmmm where cccc=Cond, dddd=Rd, nnnn=Rn,
+      // mmmm=Rm, iiiiii=shift, tt=ShiftKind, and s=SetFlags.
+      Src1Value = encodeShiftRotateImm5(Src1Value, OperandARM32::kNoShift, 0);
+      constexpr uint32_t InstType = 0; // i.e. register
+      if (((Rd == RegARM32::Encoded_Reg_pc) && SetFlags))
         // Conditions of rule violated.
         break;
-      constexpr uint32_t Add = B1; // 0010
-      constexpr uint32_t InstType = 1;
-      emitType01(Cond, InstType, Add, SetFlags, Rn, Rd, Src1Value);
+      emitType01(Cond, InstType, Sub, SetFlags, Rn, Rd, Src1Value);
       return;
+    }
+    case DecodedAsRotatedImm8: {
+      // Sub (Immediate) - ARM section A8.8.222, encoding A1:
+      //    sub{s}<c> <Rd>, <Rn>, #<RotatedImm8>
+      // Sub (Sp minus immediate) - ARM section A8.*.225, encoding A1:
+      //    sub{s}<c> sp, <Rn>, #<RotatedImm8>
+      //
+      // cccc0010010snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
+      // s=SetFlags and iiiiiiiiiiii=Src1Value=RotatedImm8
+      if (Rd == RegARM32::Encoded_Reg_pc)
+        // Conditions of rule violated.
+        break;
+      constexpr uint32_t InstType = 1;
+      emitType01(Cond, InstType, Sub, SetFlags, Rn, Rd, Src1Value);
+      return;
+    }
     }
   } while (0);
   UnimplementedError(Ctx->getFlags());

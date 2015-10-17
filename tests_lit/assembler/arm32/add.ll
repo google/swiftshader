@@ -1,5 +1,4 @@
 ; Show that we know how to translate add.
-; TODO(kschimpf) Currently only know how to test add 1 to R0.
 
 ; NOTE: We use -O2 to get rid of memory stores.
 
@@ -16,8 +15,8 @@ define internal i32 @add1ToR0(i32 %p) {
 }
 
 ; ASM-LABEL: add1ToR0:
-; ASM:  add     r0, r0, #1
-; ASM:  bx      lr
+; ASM:       add     r0, r0, #1
+; ASM-NEXT:  bx      lr
 
 ; IASM-LABEL: add1ToR0:
 ; IASM:      .byte 0x1
@@ -25,3 +24,18 @@ define internal i32 @add1ToR0(i32 %p) {
 ; IASM-NEXT: .byte 0x80
 ; IASM-NEXT: .byte 0xe2
 
+define internal i32 @Add2Regs(i32 %p1, i32 %p2) {
+  %v = add i32 %p1, %p2
+  ret i32 %v
+}
+
+; ASM-LABEL: Add2Regs:
+; ASM:       add r0, r0, r1
+; ASM-NEXT:  bx lr
+
+; IASM-LABEL: Add2Regs:
+
+; IASM:      .byte 0x1
+; IASM-NEXT: .byte 0x0
+; IASM-NEXT: .byte 0x80
+; IASM-NEXT: .byte 0xe0

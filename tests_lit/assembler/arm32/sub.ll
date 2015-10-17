@@ -1,5 +1,4 @@
 ; Show that we know how to translate instruction sub.
-; TODO(kschimpf) Currently only know how to test subtract 1 from R0.
 
 ; NOTE: We use -O2 to get rid of memory stores.
 
@@ -24,4 +23,21 @@ define internal i32 @sub1FromR0(i32 %p) {
 ; IASM-NEXT: .byte 0x0
 ; IASM-NEXT: .byte 0x40
 ; IASM-NEXT: .byte 0xe2
+
+
+define internal i32 @Sub2Regs(i32 %p1, i32 %p2) {
+  %v = sub i32 %p1, %p2
+  ret i32 %v
+}
+
+; ASM-LABEL: Sub2Regs:
+; ASM:       sub r0, r0, r1
+; ASM-NEXT:  bx lr
+
+; IASM-LABEL: Sub2Regs:
+
+; IASM:      .byte 0x1
+; IASM-NEXT: .byte 0x0
+; IASM-NEXT: .byte 0x40
+; IASM-NEXT: .byte 0xe0
 
