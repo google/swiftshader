@@ -29,7 +29,6 @@ COMMON_STATIC_LIBRARIES := \
 COMMON_SHARED_LIBRARIES := \
 	libdl \
 	liblog \
-	libandroid \
 	libutils \
 	libcutils \
 	libhardware \

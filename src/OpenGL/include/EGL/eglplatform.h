@@ -85,8 +85,6 @@ typedef void *EGLNativePixmapType;
 
 #elif defined(__ANDROID__) || defined(ANDROID)
 
-#include <android/native_window.h>
-
 struct egl_native_pixmap_t;
 
 typedef struct ANativeWindow*           EGLNativeWindowType;

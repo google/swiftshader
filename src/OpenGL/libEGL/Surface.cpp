@@ -230,6 +230,22 @@ WindowSurface::WindowSurface(Display *display, const Config *config, EGLNativeWi
     frameBuffer = nullptr;
 }
 
+#ifdef __ANDROID__
+static int32_t getWindowProp(ANativeWindow* window, int what) {
+    int value;
+    int res = window->query(window, what, &value);
+    return res < 0 ? res : value;
+}
+
+static int32_t ANativeWindow_getHeight(ANativeWindow* window) {
+    return getWindowProp(window, NATIVE_WINDOW_HEIGHT);
+}
+
+static int32_t ANativeWindow_getWidth(ANativeWindow* window) {
+  return getWindowProp(window, NATIVE_WINDOW_WIDTH);
+}
+#endif
+
 bool WindowSurface::initialize()
 {
     ASSERT(!frameBuffer && !backBuffer && !depthStencil);
