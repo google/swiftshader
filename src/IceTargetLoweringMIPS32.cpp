@@ -24,6 +24,7 @@
 #include "IceInstMIPS32.h"
 #include "IceLiveness.h"
 #include "IceOperand.h"
+#include "IcePhiLoweringImpl.h"
 #include "IceRegistersMIPS32.h"
 #include "IceTargetLoweringMIPS32.def"
 #include "IceUtils.h"
@@ -31,21 +32,41 @@
 
 namespace Ice {
 
+using llvm::isInt;
+
+namespace {
+
+// The maximum number of arguments to pass in GPR registers.
+constexpr uint32_t MIPS32_MAX_GPR_ARG = 4;
+
+} // end of anonymous namespace
+
 TargetMIPS32::TargetMIPS32(Cfg *Func) : TargetLowering(Func) {
   // TODO: Don't initialize IntegerRegisters and friends every time. Instead,
   // initialize in some sort of static initializer for the class.
+
   llvm::SmallBitVector IntegerRegisters(RegMIPS32::Reg_NUM);
-  llvm::SmallBitVector FloatRegisters(RegMIPS32::Reg_NUM);
+  llvm::SmallBitVector I64PairRegisters(RegMIPS32::Reg_NUM);
+  llvm::SmallBitVector Float32Registers(RegMIPS32::Reg_NUM);
+  llvm::SmallBitVector Float64Registers(RegMIPS32::Reg_NUM);
   llvm::SmallBitVector VectorRegisters(RegMIPS32::Reg_NUM);
   llvm::SmallBitVector InvalidRegisters(RegMIPS32::Reg_NUM);
   ScratchRegs.resize(RegMIPS32::Reg_NUM);
 #define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
-          isFP)                                                                \
+          isI64Pair, isFP32, isFP64, isVec128, alias_init)                     \
   IntegerRegisters[RegMIPS32::val] = isInt;                                    \
-  FloatRegisters[RegMIPS32::val] = isFP;                                       \
-  VectorRegisters[RegMIPS32::val] = isFP;                                      \
+  I64PairRegisters[RegMIPS32::val] = isI64Pair;                                \
+  Float32Registers[RegMIPS32::val] = isFP32;                                   \
+  Float64Registers[RegMIPS32::val] = isFP64;                                   \
+  VectorRegisters[RegMIPS32::val] = isVec128;                                  \
   RegisterAliases[RegMIPS32::val].resize(RegMIPS32::Reg_NUM);                  \
-  RegisterAliases[RegMIPS32::val].set(RegMIPS32::val);                         \
+  for (SizeT RegAlias : alias_init) {                                          \
+    assert(!RegisterAliases[RegMIPS32::val][RegAlias] &&                       \
+           "Duplicate alias for " #val);                                       \
+    RegisterAliases[RegMIPS32::val].set(RegAlias);                             \
+  }                                                                            \
+  RegisterAliases[RegMIPS32::val].resize(RegMIPS32::Reg_NUM);                  \
+  assert(RegisterAliases[RegMIPS32::val][RegMIPS32::val]);                     \
   ScratchRegs[RegMIPS32::val] = scratch;
   REGMIPS32_TABLE;
 #undef X
@@ -55,8 +76,8 @@ TargetMIPS32::TargetMIPS32(Cfg *Func) : TargetLowering(Func) {
   TypeToRegisterSet[IceType_i16] = IntegerRegisters;
   TypeToRegisterSet[IceType_i32] = IntegerRegisters;
   TypeToRegisterSet[IceType_i64] = IntegerRegisters;
-  TypeToRegisterSet[IceType_f32] = FloatRegisters;
-  TypeToRegisterSet[IceType_f64] = FloatRegisters;
+  TypeToRegisterSet[IceType_f32] = Float32Registers;
+  TypeToRegisterSet[IceType_f64] = Float64Registers;
   TypeToRegisterSet[IceType_v4i1] = VectorRegisters;
   TypeToRegisterSet[IceType_v8i1] = VectorRegisters;
   TypeToRegisterSet[IceType_v16i1] = VectorRegisters;
@@ -213,7 +234,7 @@ IceString TargetMIPS32::getRegName(SizeT RegNum, Type Ty) const {
   (void)Ty;
   static const char *RegNames[] = {
 #define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
-          isFP)                                                                \
+          isI64Pair, isFP32, isFP64, isVec128, alias_init)                     \
   name,
       REGMIPS32_TABLE
 #undef X
@@ -248,31 +269,207 @@ void TargetMIPS32::emitJumpTable(const Cfg *Func,
   UnimplementedError(Func->getContext()->getFlags());
 }
 
+/// Provide a trivial wrapper to legalize() for this common usage.
+Variable *TargetMIPS32::legalizeToReg(Operand *From, int32_t RegNum) {
+  return llvm::cast<Variable>(legalize(From, Legal_Reg, RegNum));
+}
+
+/// Legalize undef values to concrete values.
+Operand *TargetMIPS32::legalizeUndef(Operand *From, int32_t RegNum) {
+  (void)RegNum;
+  Type Ty = From->getType();
+  if (llvm::isa<ConstantUndef>(From)) {
+    // Lower undefs to zero.  Another option is to lower undefs to an
+    // uninitialized register; however, using an uninitialized register
+    // results in less predictable code.
+    //
+    // If in the future the implementation is changed to lower undef
+    // values to uninitialized registers, a FakeDef will be needed:
+    //     Context.insert(InstFakeDef::create(Func, Reg));
+    // This is in order to ensure that the live range of Reg is not
+    // overestimated.  If the constant being lowered is a 64 bit value,
+    // then the result should be split and the lo and hi components will
+    // need to go in uninitialized registers.
+    if (isVectorType(Ty))
+      UnimplementedError(Func->getContext()->getFlags());
+    return Ctx->getConstantZero(Ty);
+  }
+  return From;
+}
+
+Variable *TargetMIPS32::makeReg(Type Type, int32_t RegNum) {
+  // There aren't any 64-bit integer registers for Mips32.
+  assert(Type != IceType_i64);
+  Variable *Reg = Func->makeVariable(Type);
+  if (RegNum == Variable::NoRegister)
+    Reg->setMustHaveReg();
+  else
+    Reg->setRegNum(RegNum);
+  return Reg;
+}
+
 void TargetMIPS32::emitVariable(const Variable *Var) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Ctx->getStrEmit();
-  (void)Var;
-  (void)Str;
+  const Type FrameSPTy = IceType_i32;
+  if (Var->hasReg()) {
+    Str << '$' << getRegName(Var->getRegNum(), Var->getType());
+    return;
+  } else {
+    int32_t Offset = Var->getStackOffset();
+    Str << Offset;
+    Str << "(" << getRegName(getFrameOrStackReg(), FrameSPTy);
+    Str << ")";
+  }
   UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetMIPS32::lowerArguments() {
   VarList &Args = Func->getArgs();
-  if (Args.size() > 0)
-    UnimplementedError(Func->getContext()->getFlags());
+  // We are only handling integer registers for now. The Mips o32 ABI is
+  // somewhat complex but will be implemented in its totality through follow
+  // on patches.
+  //
+  unsigned NumGPRRegsUsed = 0;
+  // For each register argument, replace Arg in the argument list with the
+  // home register.  Then generate an instruction in the prolog to copy the
+  // home register to the assigned location of Arg.
+  Context.init(Func->getEntryNode());
+  Context.setInsertPoint(Context.getCur());
+  for (SizeT I = 0, E = Args.size(); I < E; ++I) {
+    Variable *Arg = Args[I];
+    Type Ty = Arg->getType();
+    // TODO(rkotler): handle float/vector types.
+    if (isVectorType(Ty)) {
+      UnimplementedError(Func->getContext()->getFlags());
+      continue;
+    }
+    if (isFloatingType(Ty)) {
+      UnimplementedError(Func->getContext()->getFlags());
+      continue;
+    }
+    if (Ty == IceType_i64) {
+      if (NumGPRRegsUsed >= MIPS32_MAX_GPR_ARG)
+        continue;
+      int32_t RegLo = RegMIPS32::Reg_A0 + NumGPRRegsUsed;
+      int32_t RegHi = RegLo + 1;
+      ++NumGPRRegsUsed;
+      // Always start i64 registers at an even register, so this may end
+      // up padding away a register.
+      if (RegLo % 2 != 0) {
+        ++RegLo;
+        ++NumGPRRegsUsed;
+      }
+      // If this leaves us without room to consume another register,
+      // leave any previously speculatively consumed registers as consumed.
+      if (NumGPRRegsUsed >= MIPS32_MAX_GPR_ARG)
+        continue;
+      // RegHi = RegMIPS32::Reg_A0 + NumGPRRegsUsed;
+      ++NumGPRRegsUsed;
+      Variable *RegisterArg = Func->makeVariable(Ty);
+      auto *RegisterArg64On32 = llvm::cast<Variable64On32>(RegisterArg);
+      if (BuildDefs::dump())
+        RegisterArg64On32->setName(Func, "home_reg:" + Arg->getName(Func));
+      RegisterArg64On32->initHiLo(Func);
+      RegisterArg64On32->setIsArg();
+      RegisterArg64On32->getLo()->setRegNum(RegLo);
+      RegisterArg64On32->getHi()->setRegNum(RegHi);
+      Arg->setIsArg(false);
+      Args[I] = RegisterArg64On32;
+      Context.insert(InstAssign::create(Func, Arg, RegisterArg));
+      continue;
+    } else {
+      assert(Ty == IceType_i32);
+      if (NumGPRRegsUsed >= MIPS32_MAX_GPR_ARG)
+        continue;
+      int32_t RegNum = RegMIPS32::Reg_A0 + NumGPRRegsUsed;
+      ++NumGPRRegsUsed;
+      Variable *RegisterArg = Func->makeVariable(Ty);
+      if (BuildDefs::dump()) {
+        RegisterArg->setName(Func, "home_reg:" + Arg->getName(Func));
+      }
+      RegisterArg->setRegNum(RegNum);
+      RegisterArg->setIsArg();
+      Arg->setIsArg(false);
+      Args[I] = RegisterArg;
+      Context.insert(InstAssign::create(Func, Arg, RegisterArg));
+    }
+  }
 }
 
 Type TargetMIPS32::stackSlotType() { return IceType_i32; }
 
 void TargetMIPS32::addProlog(CfgNode *Node) {
   (void)Node;
+  return;
   UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetMIPS32::addEpilog(CfgNode *Node) {
   (void)Node;
+  return;
   UnimplementedError(Func->getContext()->getFlags());
+}
+
+Operand *TargetMIPS32::loOperand(Operand *Operand) {
+  assert(Operand->getType() == IceType_i64);
+  if (auto *Var64On32 = llvm::dyn_cast<Variable64On32>(Operand))
+    return Var64On32->getLo();
+  if (auto *Const = llvm::dyn_cast<ConstantInteger64>(Operand)) {
+    return Ctx->getConstantInt32(static_cast<uint32_t>(Const->getValue()));
+  }
+  if (auto *Mem = llvm::dyn_cast<OperandMIPS32Mem>(Operand)) {
+    // Conservatively disallow memory operands with side-effects (pre/post
+    // increment) in case of duplication.
+    assert(Mem->getAddrMode() == OperandMIPS32Mem::Offset);
+    return OperandMIPS32Mem::create(Func, IceType_i32, Mem->getBase(),
+                                    Mem->getOffset(), Mem->getAddrMode());
+  }
+  llvm_unreachable("Unsupported operand type");
+  return nullptr;
+}
+
+Operand *TargetMIPS32::hiOperand(Operand *Operand) {
+  assert(Operand->getType() == IceType_i64);
+  if (Operand->getType() != IceType_i64)
+    return Operand;
+  if (auto *Var64On32 = llvm::dyn_cast<Variable64On32>(Operand))
+    return Var64On32->getHi();
+  if (auto *Const = llvm::dyn_cast<ConstantInteger64>(Operand)) {
+    return Ctx->getConstantInt32(
+        static_cast<uint32_t>(Const->getValue() >> 32));
+  }
+  if (auto *Mem = llvm::dyn_cast<OperandMIPS32Mem>(Operand)) {
+    // Conservatively disallow memory operands with side-effects
+    // in case of duplication.
+    assert(Mem->getAddrMode() == OperandMIPS32Mem::Offset);
+    const Type SplitType = IceType_i32;
+    Variable *Base = Mem->getBase();
+    ConstantInteger32 *Offset = Mem->getOffset();
+    assert(!Utils::WouldOverflowAdd(Offset->getValue(), 4));
+    int32_t NextOffsetVal = Offset->getValue() + 4;
+    constexpr bool SignExt = false;
+    if (!OperandMIPS32Mem::canHoldOffset(SplitType, SignExt, NextOffsetVal)) {
+      // We have to make a temp variable and add 4 to either Base or Offset.
+      // If we add 4 to Offset, this will convert a non-RegReg addressing
+      // mode into a RegReg addressing mode. Since NaCl sandboxing disallows
+      // RegReg addressing modes, prefer adding to base and replacing instead.
+      // Thus we leave the old offset alone.
+      Constant *Four = Ctx->getConstantInt32(4);
+      Variable *NewBase = Func->makeVariable(Base->getType());
+      lowerArithmetic(InstArithmetic::create(Func, InstArithmetic::Add, NewBase,
+                                             Base, Four));
+      Base = NewBase;
+    } else {
+      Offset =
+          llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(NextOffsetVal));
+    }
+    return OperandMIPS32Mem::create(Func, SplitType, Base, Offset,
+                                    Mem->getAddrMode());
+  }
+  llvm_unreachable("Unsupported operand type");
+  return nullptr;
 }
 
 llvm::SmallBitVector TargetMIPS32::getRegisterSet(RegSetMask Include,
@@ -280,7 +477,7 @@ llvm::SmallBitVector TargetMIPS32::getRegisterSet(RegSetMask Include,
   llvm::SmallBitVector Registers(RegMIPS32::Reg_NUM);
 
 #define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
-          isFP)                                                                \
+          isI64Pair, isFP32, isFP64, isVec128, alias_init)                     \
   if (scratch && (Include & RegSet_CallerSave))                                \
     Registers[RegMIPS32::val] = true;                                          \
   if (preserved && (Include & RegSet_CalleeSave))                              \
@@ -318,70 +515,117 @@ void TargetMIPS32::lowerAlloca(const InstAlloca *Inst) {
 }
 
 void TargetMIPS32::lowerArithmetic(const InstArithmetic *Inst) {
-  switch (Inst->getOp()) {
-  case InstArithmetic::_num:
+  Variable *Dest = Inst->getDest();
+  Operand *Src0 = legalizeUndef(Inst->getSrc(0));
+  Operand *Src1 = legalizeUndef(Inst->getSrc(1));
+  (void)Src0;
+  (void)Src1;
+  if (Dest->getType() == IceType_i64) {
     UnimplementedError(Func->getContext()->getFlags());
-    break;
-  case InstArithmetic::Add:
+  } else if (isVectorType(Dest->getType())) {
     UnimplementedError(Func->getContext()->getFlags());
-    break;
-  case InstArithmetic::And:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
-  case InstArithmetic::Or:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
-  case InstArithmetic::Xor:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
-  case InstArithmetic::Sub:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
-  case InstArithmetic::Mul:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
-  case InstArithmetic::Shl:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
-  case InstArithmetic::Lshr:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
-  case InstArithmetic::Ashr:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
-  case InstArithmetic::Udiv:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
-  case InstArithmetic::Sdiv:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
-  case InstArithmetic::Urem:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
-  case InstArithmetic::Srem:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
-  case InstArithmetic::Fadd:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
-  case InstArithmetic::Fsub:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
-  case InstArithmetic::Fmul:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
-  case InstArithmetic::Fdiv:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
-  case InstArithmetic::Frem:
-    UnimplementedError(Func->getContext()->getFlags());
-    break;
+  } else { // Dest->getType() is non-i64 scalar
+    switch (Inst->getOp()) {
+    case InstArithmetic::_num:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case InstArithmetic::Add:
+      UnimplementedError(Func->getContext()->getFlags());
+      // Variable *T = makeReg(Dest->getType());
+      // _add(T, Src0, Src1);
+      // _mov(Dest, T);
+      return;
+    case InstArithmetic::And:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case InstArithmetic::Or:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case InstArithmetic::Xor:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case InstArithmetic::Sub:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case InstArithmetic::Mul:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case InstArithmetic::Shl:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case InstArithmetic::Lshr:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case InstArithmetic::Ashr:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case InstArithmetic::Udiv:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case InstArithmetic::Sdiv:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case InstArithmetic::Urem:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case InstArithmetic::Srem:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case InstArithmetic::Fadd:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case InstArithmetic::Fsub:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case InstArithmetic::Fmul:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case InstArithmetic::Fdiv:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    case InstArithmetic::Frem:
+      UnimplementedError(Func->getContext()->getFlags());
+      break;
+    }
   }
 }
 
 void TargetMIPS32::lowerAssign(const InstAssign *Inst) {
-  (void)Inst;
-  UnimplementedError(Func->getContext()->getFlags());
+  Variable *Dest = Inst->getDest();
+  Operand *Src0 = Inst->getSrc(0);
+  assert(Dest->getType() == Src0->getType());
+  if (Dest->getType() == IceType_i64) {
+    Src0 = legalizeUndef(Src0);
+    Operand *Src0Lo = legalize(loOperand(Src0), Legal_Reg);
+    Operand *Src0Hi = legalize(hiOperand(Src0), Legal_Reg);
+    Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
+    Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+    // Variable *T_Lo = nullptr, *T_Hi = nullptr;
+    Variable *T_Lo = makeReg(IceType_i32);
+    Variable *T_Hi = makeReg(IceType_i32);
+    _mov(T_Lo, Src0Lo);
+    _mov(DestLo, T_Lo);
+    _mov(T_Hi, Src0Hi);
+    _mov(DestHi, T_Hi);
+  } else {
+    Operand *SrcR;
+    if (Dest->hasReg()) {
+      // If Dest already has a physical register, then legalize the Src operand
+      // into a Variable with the same register assignment.  This especially
+      // helps allow the use of Flex operands.
+      SrcR = legalize(Src0, Legal_Reg, Dest->getRegNum());
+    } else {
+      // Dest could be a stack operand. Since we could potentially need
+      // to do a Store (and store can only have Register operands),
+      // legalize this to a register.
+      SrcR = legalize(Src0, Legal_Reg);
+    }
+    if (isVectorType(Dest->getType())) {
+      UnimplementedError(Func->getContext()->getFlags());
+    } else {
+      _mov(Dest, SrcR);
+    }
+  }
 }
 
 void TargetMIPS32::lowerBr(const InstBr *Inst) {
@@ -608,8 +852,32 @@ void TargetMIPS32::lowerPhi(const InstPhi * /*Inst*/) {
 
 void TargetMIPS32::lowerRet(const InstRet *Inst) {
   Variable *Reg = nullptr;
-  if (Inst->hasRetValue())
-    UnimplementedError(Func->getContext()->getFlags());
+  if (Inst->hasRetValue()) {
+    Operand *Src0 = Inst->getRetValue();
+    switch (Src0->getType()) {
+    case IceType_i1:
+    case IceType_i8:
+    case IceType_i16:
+    case IceType_i32: {
+      // Reg = legalizeToReg(Src0, RegMIPS32::Reg_V0);
+      Operand *Src0F = legalize(Src0, Legal_Reg);
+      Reg = makeReg(Src0F->getType(), RegMIPS32::Reg_V0);
+      _mov(Reg, Src0F);
+      break;
+    }
+    case IceType_i64: {
+      Src0 = legalizeUndef(Src0);
+      Variable *R0 = legalizeToReg(loOperand(Src0), RegMIPS32::Reg_V0);
+      Variable *R1 = legalizeToReg(hiOperand(Src0), RegMIPS32::Reg_V1);
+      Reg = R0;
+      Context.insert(InstFakeUse::create(Func, R1));
+      break;
+    }
+
+    default:
+      UnimplementedError(Func->getContext()->getFlags());
+    }
+  }
   _ret(getPhysicalRegister(RegMIPS32::Reg_RA), Reg);
 }
 
@@ -640,7 +908,7 @@ void TargetMIPS32::lowerUnreachable(const InstUnreachable * /*Inst*/) {
 // integrity of liveness analysis. Undef values are also turned into zeroes,
 // since loOperand() and hiOperand() don't expect Undef input.
 void TargetMIPS32::prelowerPhis() {
-  UnimplementedError(Func->getContext()->getFlags());
+  PhiLowering::prelowerPhis32Bit<TargetMIPS32>(this, Context.getNode(), Func);
 }
 
 void TargetMIPS32::postLower() {
@@ -705,7 +973,86 @@ void TargetDataMIPS32::lowerJumpTables() {
   UnimplementedError(Ctx->getFlags());
 }
 
+// Helper for legalize() to emit the right code to lower an operand to a
+// register of the appropriate type.
+Variable *TargetMIPS32::copyToReg(Operand *Src, int32_t RegNum) {
+  Type Ty = Src->getType();
+  Variable *Reg = makeReg(Ty, RegNum);
+  if (isVectorType(Ty) || isFloatingType(Ty)) {
+    UnimplementedError(Ctx->getFlags());
+  } else {
+    // Mov's Src operand can really only be the flexible second operand type
+    // or a register. Users should guarantee that.
+    _mov(Reg, Src);
+  }
+  return Reg;
+}
+
+Operand *TargetMIPS32::legalize(Operand *From, LegalMask Allowed,
+                                int32_t RegNum) {
+  Type Ty = From->getType();
+  // Assert that a physical register is allowed.  To date, all calls
+  // to legalize() allow a physical register. Legal_Flex converts
+  // registers to the right type OperandMIPS32FlexReg as needed.
+  assert(Allowed & Legal_Reg);
+  // Go through the various types of operands:
+  // OperandMIPS32Mem, OperandMIPS32Flex, Constant, and Variable.
+  // Given the above assertion, if type of operand is not legal
+  // (e.g., OperandMIPS32Mem and !Legal_Mem), we can always copy
+  // to a register.
+  if (auto C = llvm::dyn_cast<ConstantRelocatable>(From)) {
+    (void)C;
+    return From;
+  } else if (auto *C32 = llvm::dyn_cast<ConstantInteger32>(From)) {
+    uint32_t Value = static_cast<uint32_t>(C32->getValue());
+    // Check if the immediate will fit in a Flexible second operand,
+    // if a Flexible second operand is allowed. We need to know the exact
+    // value, so that rules out relocatable constants.
+    // Also try the inverse and use MVN if possible.
+    // Do a movw/movt to a register.
+    Variable *Reg;
+    if (RegNum == Variable::NoRegister)
+      Reg = makeReg(Ty, RegNum);
+    else
+      Reg = getPhysicalRegister(RegNum);
+    if (isInt<16>(int32_t(Value))) {
+      _addiu(Reg, getPhysicalRegister(RegMIPS32::Reg_ZERO, Ty), Value);
+    } else {
+      uint32_t UpperBits = (Value >> 16) & 0xFFFF;
+      (void)UpperBits;
+      uint32_t LowerBits = Value & 0xFFFF;
+      Variable *TReg = makeReg(Ty, RegNum);
+      _lui(TReg, UpperBits);
+      _ori(Reg, TReg, LowerBits);
+    }
+    return Reg;
+  }
+  if (auto Var = llvm::dyn_cast<Variable>(From)) {
+    // Check if the variable is guaranteed a physical register.  This
+    // can happen either when the variable is pre-colored or when it is
+    // assigned infinite weight.
+    bool MustHaveRegister = (Var->hasReg() || Var->mustHaveReg());
+    // We need a new physical register for the operand if:
+    //   Mem is not allowed and Var isn't guaranteed a physical
+    //   register, or
+    //   RegNum is required and Var->getRegNum() doesn't match.
+    if ((!(Allowed & Legal_Mem) && !MustHaveRegister) ||
+        (RegNum != Variable::NoRegister && RegNum != Var->getRegNum())) {
+      From = copyToReg(From, RegNum);
+    }
+    return From;
+  }
+  return From;
+}
+
 TargetHeaderMIPS32::TargetHeaderMIPS32(GlobalContext *Ctx)
     : TargetHeaderLowering(Ctx) {}
+
+void TargetHeaderMIPS32::lower() {
+  OstreamLocker L(Ctx);
+  Ostream &Str = Ctx->getStrEmit();
+  Str << "\t.set\tnomicromips\n";
+  Str << "\t.set\tnomips16\n";
+}
 
 } // end of namespace Ice

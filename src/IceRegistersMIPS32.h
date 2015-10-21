@@ -27,7 +27,7 @@ namespace RegMIPS32 {
 /// used to binary encode register operands in instructions.
 enum AllRegisters {
 #define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
-          isFP)                                                                \
+          isI64Pair, isFP32, isFP64, isVec128, alias_init)                     \
   val,
   REGMIPS32_TABLE
 #undef X
@@ -41,7 +41,8 @@ enum AllRegisters {
 /// to binary encode register operands in instructions.
 enum GPRRegister {
 #define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
-          isFP)                                                                \
+          isI64Pair, isFP32, isFP64, isVec128, alias_init)                     \
+                                                                               \
   Encoded_##val encode,
   REGMIPS32_GPR_TABLE
 #undef X

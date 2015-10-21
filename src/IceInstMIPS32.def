@@ -18,61 +18,151 @@
 // TODO(reed kotler). This needs to be scrubbed and is a placeholder to get
 // the Mips skeleton in.
 //
-#define REGMIPS32_GPR_TABLE                                                    \
-  /* val, encode, name, scratch, preserved, stackptr, frameptr, isInt, isFP */ \
-  X(Reg_ZERO,     = 0,          "zero",  0, 0, 0, 0, 0, 0)                     \
-  X(Reg_AT,       = Reg_ZERO + 1,   "at",    1, 0, 0, 0, 1, 0)                 \
-  X(Reg_V0,       = Reg_ZERO + 2,   "v0",    1, 0, 0, 0, 1, 0)                 \
-  X(Reg_V1,       = Reg_ZERO + 3,   "v1",    1, 0, 0, 0, 1, 0)                 \
-  X(Reg_A0,       = Reg_ZERO + 4,   "a0",    1, 0, 0, 0, 1, 0)                 \
-  X(Reg_A1,       = Reg_ZERO + 5,   "a1",    1, 0, 0, 0, 1, 0)                 \
-  X(Reg_A2,       = Reg_ZERO + 6,   "a2",    1, 0, 0, 0, 1, 0)                 \
-  X(Reg_A3,       = Reg_ZERO + 7,   "a3",    1, 0, 0, 0, 1, 0)                 \
-  X(Reg_T0,       = Reg_ZERO + 8,   "t0",    1, 0, 0, 0, 1, 0)                 \
-  X(Reg_T1,       = Reg_ZERO + 9,   "t1",    1, 0, 0, 0, 1, 0)                 \
-  X(Reg_T2,       = Reg_ZERO + 10,  "t2",    1, 0, 0, 0, 1, 0)                 \
-  X(Reg_T3,       = Reg_ZERO + 11,  "t3",    1, 0, 0, 0, 1, 0)                 \
-  X(Reg_T4,       = Reg_ZERO + 12,  "t4",    1, 0, 0, 0, 1, 0)                 \
-  X(Reg_T5,       = Reg_ZERO + 14,  "t5",    1, 0, 0, 0, 1, 0)                 \
-  X(Reg_T6,       = Reg_ZERO + 14,  "t6",    1, 0, 0, 0, 1, 0)                 \
-  X(Reg_T7,       = Reg_ZERO + 15,  "t7",    1, 0, 0, 0, 1, 0)                 \
-  X(Reg_S0,       = Reg_ZERO + 16,  "s0",    0, 1, 0, 0, 1, 0)                 \
-  X(Reg_S1,       = Reg_ZERO + 17,  "s1",    0, 1, 0, 0, 1, 0)                 \
-  X(Reg_S2,       = Reg_ZERO + 18,  "s2",    0, 1, 0, 0, 1, 0)                 \
-  X(Reg_S3,       = Reg_ZERO + 19,  "s3",    0, 1, 0, 0, 1, 0)                 \
-  X(Reg_S4,       = Reg_ZERO + 20,  "s4",    0, 1, 0, 0, 1, 0)                 \
-  X(Reg_S5,       = Reg_ZERO + 21,  "s5",    0, 1, 0, 0, 1, 0)                 \
-  X(Reg_S6,       = Reg_ZERO + 22,  "s6",    0, 1, 0, 0, 1, 0)                 \
-  X(Reg_S7,       = Reg_ZERO + 23,  "s7",    0, 1, 0, 0, 1, 0)                 \
-  X(Reg_T8,       = Reg_ZERO + 23,  "t8",    1, 0, 0, 0, 1, 0)                 \
-  X(Reg_T9,       = Reg_ZERO + 25,  "t9",    1, 0, 0, 0, 1, 0)                 \
-  X(Reg_K0,       = Reg_ZERO + 26,  "k0",    0, 0, 0, 0, 0, 0)                 \
-  X(Reg_K1,       = Reg_ZERO + 27,  "k1",    0, 0, 0, 0, 0, 0)                 \
-  X(Reg_GP,       = Reg_ZERO + 28,  "gp",    0, 0, 0, 0, 0, 0)                 \
-  X(Reg_SP,       = Reg_ZERO + 29,  "sp",    0, 0, 1, 0, 0, 0)                 \
-  X(Reg_FP,       = Reg_ZERO + 30,  "fp",    0, 0, 0, 1, 0, 0)                 \
-  X(Reg_RA,       = Reg_ZERO + 31,  "ra",    0, 1, 0, 0, 0, 0)                 \
-//#define X(val, encode, name, scratch, preserved, stackptr, frameptr,
-//          isInt, isFP)
+// ALIASESn is a family of macros that we use to define register aliasing in
+// MIPS32. n indicates how many aliases are being provided to the macro. It
+// assumes the parameters are register names declared in a namespace/class
+// named RegMIPS32.
+#ifndef ALIASES1
+#define ALIASES1(r0)                                                           \
+    {RegMIPS32::r0}
+#define ALIASES2(r0, r1)                                                       \
+    {RegMIPS32::r0, RegMIPS32::r1}
+#define ALIASES3(r0, r1, r2)                                                   \
+    {RegMIPS32::r0, RegMIPS32::r1, RegMIPS32::r2}
+#define ALIASES4(r0, r1, r2, r3)                                               \
+    {RegMIPS32::r0, RegMIPS32::r1, RegMIPS32::r2, RegMIPS32::r3}
+#define ALIASES7(r0, r1, r2, r3, r4, r5, r6)                                   \
+    {RegMIPS32::r0, RegMIPS32::r1, RegMIPS32::r2, RegMIPS32::r3, RegMIPS32::r4,\
+     RegMIPS32::r5,RegMIPS32::r6}
+#endif
 
+#define REGMIPS32_GPR_TABLE                                                    \
+  /* val, encode, name, scratch, preserved, stackptr, frameptr,                \
+     isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init */                 \
+  X(Reg_ZERO,     = 0,              "zero",  0, 0, 0, 0, 0, 0, 0, 0, 0,        \
+    ALIASES1(Reg_ZERO))                                                        \
+  X(Reg_AT,       = Reg_ZERO + 1,   "at",    0, 0, 0, 0, 1, 0, 0, 0, 0,        \
+    ALIASES1(Reg_AT))                                                          \
+  X(Reg_V0,       = Reg_ZERO + 2,   "v0",    1, 0, 0, 0, 1, 0, 0, 0, 0,        \
+     ALIASES2(Reg_V0, Reg_V0V1))                                               \
+  X(Reg_V1,       = Reg_ZERO + 3,   "v1",    1, 0, 0, 0, 1, 0, 0, 0, 0,        \
+    ALIASES2(Reg_V1, Reg_V0V1))                                                \
+  X(Reg_A0,       = Reg_ZERO + 4,   "a0",    1, 0, 0, 0, 1, 0, 0, 0, 0,        \
+    ALIASES2(Reg_A0, Reg_A0A1))                                                \
+  X(Reg_A1,       = Reg_ZERO + 5,   "a1",    1, 0, 0, 0, 1, 0, 0, 0, 0,        \
+    ALIASES2(Reg_A1, Reg_A0A1))                                                \
+  X(Reg_A2,       = Reg_ZERO + 6,   "a2",    1, 0, 0, 0, 1, 0, 0, 0, 0,        \
+    ALIASES2(Reg_A2, Reg_A2A3))                                                \
+  X(Reg_A3,       = Reg_ZERO + 7,   "a3",    1, 0, 0, 0, 1, 0, 0, 0, 0,        \
+    ALIASES2(Reg_A3, Reg_A2A3))                                                \
+  X(Reg_T0,       = Reg_ZERO + 8,   "t0",    1, 0, 0, 0, 1, 0, 0, 0, 0,        \
+    ALIASES2(Reg_T0, Reg_T0T1))                                                \
+  X(Reg_T1,       = Reg_ZERO + 9,   "t1",    1, 0, 0, 0, 1, 0, 0, 0, 0,        \
+    ALIASES2(Reg_T1, Reg_T0T1))                                                \
+  X(Reg_T2,       = Reg_ZERO + 10,  "t2",    1, 0, 0, 0, 1, 0, 0, 0, 0,        \
+    ALIASES2(Reg_T2, Reg_T2T3))                                                \
+  X(Reg_T3,       = Reg_ZERO + 11,  "t3",    1, 0, 0, 0, 1, 0, 0, 0, 0,        \
+    ALIASES2(Reg_T3, Reg_T2T3))                                                \
+  X(Reg_T4,       = Reg_ZERO + 12,  "t4",    1, 0, 0, 0, 1, 0, 0, 0, 0,        \
+    ALIASES2(Reg_T4, Reg_T4T5))                                                \
+  X(Reg_T5,       = Reg_ZERO + 14,  "t5",    1, 0, 0, 0, 1, 0, 0, 0, 0,        \
+    ALIASES2(Reg_T5, Reg_T4T5))                                                \
+  X(Reg_T6,       = Reg_ZERO + 14,  "t6",    1, 0, 0, 0, 1, 0, 0, 0, 0,        \
+    ALIASES2(Reg_T6, Reg_T6T7))                                                \
+  X(Reg_T7,       = Reg_ZERO + 15,  "t7",    1, 0, 0, 0, 1, 0, 0, 0, 0,        \
+    ALIASES2(Reg_T7, Reg_T6T7))                                                \
+  X(Reg_S0,       = Reg_ZERO + 16,  "s0",    0, 1, 0, 0, 1, 0, 0, 0, 0,        \
+    ALIASES2(Reg_S0, Reg_S0S1))                                                \
+  X(Reg_S1,       = Reg_ZERO + 17,  "s1",    0, 1, 0, 0, 1, 0, 0, 0, 0,        \
+    ALIASES2(Reg_S1, Reg_S0S1))                                                \
+  X(Reg_S2,       = Reg_ZERO + 18,  "s2",    0, 1, 0, 0, 1, 0, 0, 0, 0,        \
+    ALIASES2(Reg_S2, Reg_S2S3))                                                \
+  X(Reg_S3,       = Reg_ZERO + 19,  "s3",    0, 1, 0, 0, 1, 0, 0, 0, 0,        \
+    ALIASES2(Reg_S3, Reg_S2S3))                                                \
+  X(Reg_S4,       = Reg_ZERO + 20,  "s4",    0, 1, 0, 0, 1, 0, 0, 0, 0,        \
+    ALIASES2(Reg_S4, Reg_S4S5))                                                \
+  X(Reg_S5,       = Reg_ZERO + 21,  "s5",    0, 1, 0, 0, 1, 0, 0, 0, 0,        \
+    ALIASES2(Reg_S5, Reg_S4S5))                                                \
+  X(Reg_S6,       = Reg_ZERO + 22,  "s6",    0, 1, 0, 0, 1, 0, 0, 0, 0,        \
+    ALIASES2(Reg_S6, Reg_S6S7))                                                \
+  X(Reg_S7,       = Reg_ZERO + 23,  "s7",    0, 1, 0, 0, 1, 0, 0, 0, 0,        \
+    ALIASES2(Reg_S7, Reg_S6S7))                                                \
+  X(Reg_T8,       = Reg_ZERO + 23,  "t8",    1, 0, 0, 0, 1, 0, 0, 0, 0,        \
+    ALIASES2(Reg_T8, Reg_T8T9))                                                \
+  X(Reg_T9,       = Reg_ZERO + 25,  "t9",    1, 0, 0, 0, 1, 0, 0, 0, 0,        \
+    ALIASES2(Reg_T9, Reg_T8T9))                                                \
+  X(Reg_K0,       = Reg_ZERO + 26,  "k0",    0, 0, 0, 0, 0, 0, 0, 0, 0,        \
+    ALIASES1(Reg_K0))                                                          \
+  X(Reg_K1,       = Reg_ZERO + 27,  "k1",    0, 0, 0, 0, 0, 0, 0, 0, 0,        \
+    ALIASES1(Reg_K1))                                                          \
+  X(Reg_GP,       = Reg_ZERO + 28,  "gp",    0, 0, 0, 0, 0, 0, 0, 0, 0,        \
+    ALIASES1(Reg_GP))                                                          \
+  X(Reg_SP,       = Reg_ZERO + 29,  "sp",    0, 0, 1, 0, 0, 0, 0, 0, 0,        \
+    ALIASES1(Reg_SP))                                                          \
+  X(Reg_FP,       = Reg_ZERO + 30,  "fp",    0, 0, 0, 1, 0, 0, 0, 0, 0,        \
+    ALIASES1(Reg_FP))                                                          \
+  X(Reg_RA,       = Reg_ZERO + 31,  "ra",    0, 1, 0, 0, 0, 0, 0, 0, 0,        \
+    ALIASES1(Reg_RA))                                                          \
+//#define X(val, encode, name, scratch, preserved, stackptr, frameptr,
+//          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)
 // TODO(reed kotler): List FP registers etc.
 // Be able to grab even registers, and the corresponding odd register
 // for each even register.
+//#define X(val, encode, name, scratch, preserved, stackptr, frameptr,
+//          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)
+// The following defines a table with the available pairs of consecutive i32
+// GPRs starting at an even GPR that is not r14. Those are used to hold i64
+// variables for atomic memory operations. If one of the registers in the pair
+// is preserved, then we mark the whole pair as preserved to help the register
+// allocator.
+#define REGMIPS32_I64PAIR_TABLE                                                \
+  /* val, encode, name, scratch, preserved, stackptr, frameptr,                \
+     isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init */                 \
+  X(Reg_V0V1,  0, "v0, v1",   1, 0, 0, 0, 0, 1, 0, 0, 0,                       \
+    ALIASES3(Reg_V0, Reg_V1, Reg_V0V1))                                        \
+  X(Reg_A0A1,  2, "a0, a1",   1, 0, 0, 0, 0, 1, 0, 0, 0,                       \
+    ALIASES3(Reg_A0, Reg_A1, Reg_A0A1))                                        \
+  X(Reg_A2A3,  4, "a2, a3",   1, 0, 0, 0, 0, 1, 0, 0, 0,                       \
+    ALIASES3(Reg_A2, Reg_A3, Reg_A2A3))                                        \
+  X(Reg_T0T1,  8, "t0, t1",   1, 0, 0, 0, 0, 1, 0, 0, 0,                       \
+    ALIASES3(Reg_T0, Reg_T1, Reg_T0T1))                                        \
+  X(Reg_T2T3,  10, "t2, t3",   1, 0, 0, 0, 0, 1, 0, 0, 0,                      \
+    ALIASES3(Reg_T2, Reg_T3, Reg_T2T3))                                        \
+  X(Reg_T4T5,  12,"t4, t5",   1, 0, 0, 0, 0, 1, 0, 0, 0,                       \
+    ALIASES3(Reg_T4, Reg_T5, Reg_T4T5))                                        \
+  X(Reg_T6T7,  14, "t6, t7",   1, 0, 0, 0, 0, 1, 0, 0, 0,                      \
+    ALIASES3(Reg_T6, Reg_T7, Reg_T6T7))                                        \
+  X(Reg_S0S1,  16, "s0, s1",   0, 1, 0, 0, 0, 1, 0, 0, 0,                      \
+    ALIASES3(Reg_S0, Reg_S1, Reg_S0S1))                                        \
+  X(Reg_S2S3,  18, "s2, s3",   0, 1, 0, 0, 0, 1, 0, 0, 0,                      \
+    ALIASES3(Reg_S2, Reg_S3, Reg_S2S3))                                        \
+  X(Reg_S4S5,  20, "s4, s5",   0, 1, 0, 0, 0, 1, 0, 0, 0,                      \
+    ALIASES3(Reg_S4, Reg_S5, Reg_S4S5))                                        \
+  X(Reg_S6S7,  22, "s6, s7",   0, 1, 0, 0, 0, 1, 0, 0, 0,                      \
+    ALIASES3(Reg_S6, Reg_S7, Reg_S6S7))                                        \
+  X(Reg_T8T9,  26, "t8, t9",   1, 0, 0, 0, 0, 1, 0, 0, 0,                      \
+    ALIASES3(Reg_T8, Reg_T9, Reg_T8T9))                                        \
+//#define X(val, encode, name, scratch, preserved, stackptr, frameptr,
+//          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)
 
 // We also provide a combined table, so that there is a namespace where
 // all of the registers are considered and have distinct numberings.
 // This is in contrast to the above, where the "encode" is based on how
 // the register numbers will be encoded in binaries and values can overlap.
-#define REGMIPS32_TABLE                                                  \
-  /* val, encode, name, scratch, preserved, stackptr, frameptr, isInt, isFP */ \
-  REGMIPS32_GPR_TABLE
-//#define X(val, encode, name, scratch, preserved, stackptr, frameptr,
-//          isInt, isFP)
+#define REGMIPS32_TABLE                                                        \
+  /* val, encode, name, scratch, preserved, stackptr, frameptr, isInt,         \
+     isFP32, isFP64, isVec128, alias_init */                                   \
+  REGMIPS32_GPR_TABLE                                                          \
+  REGMIPS32_I64PAIR_TABLE
 
+//#define X(val, encode, name, scratch, preserved, stackptr, frameptr,
+//          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)
 #define REGMIPS32_TABLE_BOUNDS                                                 \
   /* val, init */                                                              \
   X(Reg_GPR_First, = Reg_ZERO)                                                 \
-  X(Reg_GPR_Last,  = Reg_RA)
+  X(Reg_GPR_Last,  = Reg_RA)                                                   \
+  X(Reg_I64PAIR_First, = Reg_V0V1)                                             \
+  X(Reg_I64PAIR_Last, = Reg_T8T9)                                              \
 //define X(val, init)
 
 // TODO(reed kotler): add condition code tables, etc.

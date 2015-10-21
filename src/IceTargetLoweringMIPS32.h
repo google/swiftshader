@@ -94,9 +94,73 @@ public:
     Context.insert(InstMIPS32Ret::create(Func, RA, Src0));
   }
 
+  void _addiu(Variable *Dest, Variable *Src, uint32_t Imm) {
+    Context.insert(InstMIPS32Addiu::create(Func, Dest, Src, Imm));
+  }
+
+  void _lui(Variable *Dest, uint32_t Imm) {
+    Context.insert(InstMIPS32Lui::create(Func, Dest, Imm));
+  }
+
+  void _mov(Variable *Dest, Operand *Src0) {
+    assert(Dest != nullptr);
+    // Variable* Src0_ = llvm::dyn_cast<Variable>(Src0);
+    if (llvm::isa<ConstantRelocatable>(Src0)) {
+      Context.insert(InstMIPS32La::create(Func, Dest, Src0));
+    } else {
+      auto *Instr = InstMIPS32Mov::create(Func, Dest, Src0);
+      Context.insert(Instr);
+      if (Instr->isMultiDest()) {
+        // If Instr is multi-dest, then Dest must be a Variable64On32. We add a
+        // fake-def for Instr.DestHi here.
+        assert(llvm::isa<Variable64On32>(Dest));
+        Context.insert(InstFakeDef::create(Func, Instr->getDestHi()));
+      }
+    }
+  }
+
+  void _ori(Variable *Dest, Variable *Src, uint32_t Imm) {
+    Context.insert(InstMIPS32Ori::create(Func, Dest, Src, Imm));
+  }
+
   void lowerArguments() override;
+
+  /// Operand legalization helpers.  To deal with address mode constraints,
+  /// the helpers will create a new Operand and emit instructions that
+  /// guarantee that the Operand kind is one of those indicated by the
+  /// LegalMask (a bitmask of allowed kinds).  If the input Operand is known
+  /// to already meet the constraints, it may be simply returned as the result,
+  /// without creating any new instructions or operands.
+  enum OperandLegalization {
+    Legal_None = 0,
+    Legal_Reg = 1 << 0, // physical register, not stack location
+    Legal_Imm = 1 << 1,
+    Legal_Mem = 1 << 2,
+    Legal_All = ~Legal_None
+  };
+  typedef uint32_t LegalMask;
+  Operand *legalize(Operand *From, LegalMask Allowed = Legal_All,
+                    int32_t RegNum = Variable::NoRegister);
+
+  Variable *legalizeToVar(Operand *From, int32_t RegNum = Variable::NoRegister);
+
+  Variable *legalizeToReg(Operand *From, int32_t RegNum = Variable::NoRegister);
+
+  Variable *makeReg(Type Ty, int32_t RegNum = Variable::NoRegister);
+  static Type stackSlotType();
+  Variable *copyToReg(Operand *Src, int32_t RegNum = Variable::NoRegister);
+
   void addProlog(CfgNode *Node) override;
   void addEpilog(CfgNode *Node) override;
+
+  // Ensure that a 64-bit Variable has been split into 2 32-bit
+  // Variables, creating them if necessary.  This is needed for all
+  // I64 operations.
+  void split64(Variable *Var);
+  Operand *loOperand(Operand *Operand);
+  Operand *hiOperand(Operand *Operand);
+
+  Operand *legalizeUndef(Operand *From, int32_t RegNum = Variable::NoRegister);
 
 protected:
   explicit TargetMIPS32(Cfg *Func);
@@ -130,8 +194,6 @@ protected:
   makeRandomRegisterPermutation(llvm::SmallVectorImpl<int32_t> &Permutation,
                                 const llvm::SmallBitVector &ExcludeRegisters,
                                 uint64_t Salt) const override;
-
-  static Type stackSlotType();
 
   bool UsesFramePointer = false;
   bool NeedsStackAlignment = false;
@@ -177,6 +239,8 @@ public:
   static std::unique_ptr<TargetHeaderLowering> create(GlobalContext *Ctx) {
     return std::unique_ptr<TargetHeaderLowering>(new TargetHeaderMIPS32(Ctx));
   }
+
+  void lower() override;
 
 protected:
   explicit TargetHeaderMIPS32(GlobalContext *Ctx);
