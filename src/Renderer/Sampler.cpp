@@ -64,6 +64,11 @@ namespace sw
 		sRGB = false;
 		gather = false;
 
+		swizzleR = SWIZZLE_RED;
+		swizzleG = SWIZZLE_GREEN;
+		swizzleB = SWIZZLE_BLUE;
+		swizzleA = SWIZZLE_ALPHA;
+
 		texture.LOD = 0.0f;
 		exp2LOD = 1.0f;
 	}
