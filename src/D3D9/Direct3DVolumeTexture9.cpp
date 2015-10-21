@@ -216,18 +216,7 @@ namespace D3D9
 
 					for(int i = 0; i < dWidth; i++)
 					{
-						sw::Color<float> color;
-
-						if(filter <= D3DTEXF_POINT)
-						{
-							color = source->readInternal((int)x, (int)y, (int)z);
-						}
-						else   // filter >= D3DTEXF_LINEAR
-						{
-							color = source->sampleInternal(x, y, z);
-						}
-
-						dest->writeInternal(i, j, k, color);
+						dest->copyInternal(source, i, j, k, x, y, z, filter > D3DTEXF_POINT);
 
 						x += w;
 					}

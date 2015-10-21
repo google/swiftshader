@@ -294,12 +294,8 @@ namespace sw
 		void writeExternal(int x, int y, int z, const Color<float> &color);
 		void writeExternal(int x, int y, const Color<float> &color);
 		
-		Color<float> readInternal(int x, int y, int z) const;
-		Color<float> readInternal(int x, int y) const;
-		Color<float> sampleInternal(float x, float y, float z) const;
-		Color<float> sampleInternal(float x, float y) const;
-		void writeInternal(int x, int y, int z, const Color<float> &color);
-		void writeInternal(int x, int y, const Color<float> &color);
+		void copyInternal(const Surface* src, int x, int y, float srcX, float srcY, bool filter);
+		void copyInternal(const Surface* src, int x, int y, int z, float srcX, float srcY, float srcZ, bool filter);
 
 		bool hasStencil() const;
 		bool hasDepth() const;
@@ -327,6 +323,7 @@ namespace sw
 		static bool isSRGBreadable(Format format);
 		static bool isSRGBwritable(Format format);
 		static bool isCompressed(Format format);
+		static bool isNonNormalizedInteger(Format format);
 		static int componentCount(Format format);
 
 		static void setTexturePalette(unsigned int *palette);

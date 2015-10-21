@@ -2290,11 +2290,30 @@ namespace sw
 		{
 		case FORMAT_R5G6B5:
 		case FORMAT_X8R8G8B8:
+		case FORMAT_X8B8G8R8I:
 		case FORMAT_X8B8G8R8:
 		case FORMAT_A8R8G8B8:
+		case FORMAT_A8B8G8R8I:
+		case FORMAT_R8UI:
+		case FORMAT_G8R8UI:
+		case FORMAT_X8B8G8R8UI:
+		case FORMAT_A8B8G8R8UI:
 		case FORMAT_A8B8G8R8:
+		case FORMAT_G8R8I:
 		case FORMAT_G8R8:
+		case FORMAT_R8I_SNORM:
+		case FORMAT_G8R8I_SNORM:
+		case FORMAT_X8B8G8R8I_SNORM:
+		case FORMAT_A8B8G8R8I_SNORM:
+		case FORMAT_R16I:
+		case FORMAT_R16UI:
+		case FORMAT_G16R16I:
+		case FORMAT_G16R16UI:
 		case FORMAT_G16R16:
+		case FORMAT_X16B16G16R16I:
+		case FORMAT_X16B16G16R16UI:
+		case FORMAT_A16B16G16R16I:
+		case FORMAT_A16B16G16R16UI:
 		case FORMAT_A16B16G16R16:
 		case FORMAT_V8U8:
 		case FORMAT_Q8W8V8U8:
@@ -2303,6 +2322,7 @@ namespace sw
 		case FORMAT_A16W16V16U16:
 		case FORMAT_Q16W16V16U16:
 		case FORMAT_A8:
+		case FORMAT_R8I:
 		case FORMAT_R8:
 		case FORMAT_L8:
 		case FORMAT_L16:
@@ -2310,6 +2330,14 @@ namespace sw
 		case FORMAT_YV12_BT601:
 		case FORMAT_YV12_BT709:
 		case FORMAT_YV12_JFIF:
+		case FORMAT_R32I:
+		case FORMAT_R32UI:
+		case FORMAT_G32R32I:
+		case FORMAT_G32R32UI:
+		case FORMAT_X32B32G32R32I:
+		case FORMAT_X32B32G32R32UI:
+		case FORMAT_A32B32G32R32I:
+		case FORMAT_A32B32G32R32UI:
 			return false;
 		case FORMAT_R32F:
 		case FORMAT_G32R32F:
@@ -2506,6 +2534,40 @@ namespace sw
 		case FORMAT_SRGB8_ALPHA8_ASTC_10x10_KHR:
 		case FORMAT_SRGB8_ALPHA8_ASTC_12x10_KHR:
 		case FORMAT_SRGB8_ALPHA8_ASTC_12x12_KHR:
+			return true;
+		default:
+			return false;
+		}
+	}
+
+	bool Surface::isNonNormalizedInteger(Format format)
+	{
+		switch(format)
+		{
+		case FORMAT_A8B8G8R8I:
+		case FORMAT_X8B8G8R8I:
+		case FORMAT_G8R8I:
+		case FORMAT_R8I:
+		case FORMAT_A8B8G8R8UI:
+		case FORMAT_X8B8G8R8UI:
+		case FORMAT_G8R8UI:
+		case FORMAT_R8UI:
+		case FORMAT_A16B16G16R16I:
+		case FORMAT_X16B16G16R16I:
+		case FORMAT_G16R16I:
+		case FORMAT_R16I:
+		case FORMAT_A16B16G16R16UI:
+		case FORMAT_X16B16G16R16UI:
+		case FORMAT_G16R16UI:
+		case FORMAT_R16UI:
+		case FORMAT_A32B32G32R32I:
+		case FORMAT_X32B32G32R32I:
+		case FORMAT_G32R32I:
+		case FORMAT_R32I:
+		case FORMAT_A32B32G32R32UI:
+		case FORMAT_X32B32G32R32UI:
+		case FORMAT_G32R32UI:
+		case FORMAT_R32UI:
 			return true;
 		default:
 			return false;
@@ -3300,46 +3362,40 @@ namespace sw
 		external.write(x, y, color);
 	}
 
-	Color<float> Surface::readInternal(int x, int y, int z) const
+	void Surface::copyInternal(const Surface* source, int x, int y, float srcX, float srcY, bool filter)
 	{
-		ASSERT(internal.lock != LOCK_UNLOCKED);
+		ASSERT(internal.lock != LOCK_UNLOCKED && source && source->internal.lock != LOCK_UNLOCKED);
 
-		return internal.read(x, y, z);
-	}
+		sw::Color<float> color;
 
-	Color<float> Surface::readInternal(int x, int y) const
-	{
-		ASSERT(internal.lock != LOCK_UNLOCKED);
-
-		return internal.read(x, y);
-	}
-
-	Color<float> Surface::sampleInternal(float x, float y, float z) const
-	{
-		ASSERT(internal.lock != LOCK_UNLOCKED);
-
-		return internal.sample(x, y, z);
-	}
-
-	Color<float> Surface::sampleInternal(float x, float y) const
-	{
-		ASSERT(internal.lock != LOCK_UNLOCKED);
-
-		return internal.sample(x, y);
-	}
-
-	void Surface::writeInternal(int x, int y, int z, const Color<float> &color)
-	{
-		ASSERT(internal.lock != LOCK_UNLOCKED);
-
-		internal.write(x, y, z, color);
-	}
-
-	void Surface::writeInternal(int x, int y, const Color<float> &color)
-	{
-		ASSERT(internal.lock != LOCK_UNLOCKED);
+		if(!filter)
+		{
+			color = source->internal.read((int)srcX, (int)srcY);
+		}
+		else   // Bilinear filtering
+		{
+			color = source->internal.sample(srcX, srcY);
+		}
 
 		internal.write(x, y, color);
+	}
+
+	void Surface::copyInternal(const Surface* source, int x, int y, int z, float srcX, float srcY, float srcZ, bool filter)
+	{
+		ASSERT(internal.lock != LOCK_UNLOCKED && source && source->internal.lock != LOCK_UNLOCKED);
+
+		sw::Color<float> color;
+
+		if(!filter)
+		{
+			color = source->internal.read((int)srcX, (int)srcY, int(srcZ));
+		}
+		else   // Bilinear filtering
+		{
+			color = source->internal.sample(srcX, srcY, srcZ);
+		}
+
+		internal.write(x, y, z, color);
 	}
 
 	bool Surface::hasStencil() const

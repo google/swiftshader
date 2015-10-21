@@ -65,6 +65,10 @@ namespace sw
 
 	private:
 		bool read(Float4 &color, Pointer<Byte> element, Format format);
+		bool write(Float4 &color, Pointer<Byte> element, Format format);
+		bool read(Int4 &color, Pointer<Byte> element, Format format);
+		bool write(Int4 &color, Pointer<Byte> element, Format format);
+		static bool GetScale(float4& scale, Format format);
 		bool blitReactor(Surface *source, const SliceRect &sRect, Surface *dest, const SliceRect &dRect, bool filter);
 		Routine *generate(BlitState &state);
 
