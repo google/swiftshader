@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f66155ea_29154d85",
+        "filename": "src/Shader/PixelProgram.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1024,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-10-21T16:44:54Z",
+      "side": 1,
+      "message": "This feels a bit awkward and won\u0027t scale well to wider vectors. Let\u0027s implement an operator[] to select individual components (read-only rvalues is fine for now).",
+      "range": {
+        "startLine": 1024,
+        "startChar": 2,
+        "endLine": 1024,
+        "endChar": 52
+      },
+      "revId": "3ad1a49310d4af42d9c212881b2b71e56634fa34",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
