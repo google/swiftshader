@@ -544,7 +544,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglDestroyImageKHR(EGLDisplay dpy, EGLImageKHR ima
 	return egl::DestroyImageKHR(dpy, image);
 }
 
-EGLAPI EGLBoolean eglSwapBuffersWithDamageKHR(EGLDisplay dpy, EGLSurface surface, EGLint *rects, EGLint n_rects)
+EGLAPI EGLBoolean EGLAPIENTRY eglSwapBuffersWithDamageKHR(EGLDisplay dpy, EGLSurface surface, EGLint *rects, EGLint n_rects)
 {
 	return egl::SwapBuffersWithDamageKHR(dpy, surface, rects, n_rects);
 }
