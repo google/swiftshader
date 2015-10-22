@@ -44,6 +44,7 @@ public:
     if (BuildDefs::dump())
       Str << "<OperandMIPS32>";
   }
+
 protected:
   OperandMIPS32(OperandKindMIPS32 Kind, Type Ty)
       : Operand(static_cast<OperandKind>(Kind), Ty) {}
@@ -272,13 +273,12 @@ public:
 
 private:
   InstMIPS32Imm16(Cfg *Func, Variable *Dest, Operand *Source, uint32_t Imm)
-      : InstMIPS32(Func, K, 1, Dest), Imm(Imm){
+      : InstMIPS32(Func, K, 1, Dest), Imm(Imm) {
     addSource(Source);
   }
 
   InstMIPS32Imm16(Cfg *Func, Variable *Dest, uint32_t Imm)
-      : InstMIPS32(Func, K, 0, Dest), Imm(Imm) {
-  }
+      : InstMIPS32(Func, K, 0, Dest), Imm(Imm) {}
 
   static const char *Opcode;
 
@@ -304,7 +304,7 @@ public:
     return !isMultiDest() && !isMultiSource() &&
            checkForRedundantAssign(getDest(), getSrc(0));
   }
-  //bool isSimpleAssign() const override { return true; }
+  // bool isSimpleAssign() const override { return true; }
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;

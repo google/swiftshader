@@ -344,6 +344,8 @@ public:
 
   void dump(const Cfg *Func) const override;
 
+  void emitIAS(const Cfg *Func) const override;
+
 protected:
   InstARM32(Cfg *Func, InstKindARM32 Kind, SizeT Maxsrcs, Variable *Dest)
       : InstTarget(Func, static_cast<InstKind>(Kind), Maxsrcs, Dest) {}
@@ -351,6 +353,10 @@ protected:
   static bool isClassof(const Inst *Inst, InstKindARM32 MyKind) {
     return Inst->getKind() == static_cast<InstKind>(MyKind);
   }
+
+  // Generates text of assembly instruction using method emit(), and then adds
+  // to the assembly buffer as a Fixup.
+  void emitUsingTextFixup(const Cfg *Func) const;
 };
 
 /// A predicable ARM instruction.
@@ -412,10 +418,6 @@ public:
       return;
     emitUnaryopGPR(Opcode, this, Func, NeedsWidthSuffix);
   }
-  void emitIAS(const Cfg *Func) const override {
-    (void)Func;
-    llvm_unreachable("Not yet implemented");
-  }
   void dump(const Cfg *Func) const override {
     if (!BuildDefs::dump())
       return;
@@ -455,10 +457,6 @@ public:
     if (!BuildDefs::dump())
       return;
     emitUnaryopFP(Opcode, this, Func);
-  }
-  void emitIAS(const Cfg *Func) const override {
-    (void)Func;
-    llvm::report_fatal_error("Not yet implemented");
   }
   void dump(const Cfg *Func) const override {
     if (!BuildDefs::dump())
@@ -501,10 +499,7 @@ public:
       return;
     emitTwoAddr(Opcode, this, Func);
   }
-  void emitIAS(const Cfg *Func) const override {
-    (void)Func;
-    llvm::report_fatal_error("Not yet implemented");
-  }
+  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override {
     if (!BuildDefs::dump())
       return;
@@ -542,7 +537,6 @@ public:
         InstARM32LoadBase(Func, Dest, Source, Predicate);
   }
   void emit(const Cfg *Func) const override;
-  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override {
     if (!BuildDefs::dump())
       return;
@@ -636,10 +630,6 @@ public:
       return;
     emitThreeAddrFP(Opcode, this, Func);
   }
-  void emitIAS(const Cfg *Func) const override {
-    (void)Func;
-    llvm::report_fatal_error("Not yet implemented");
-  }
   void dump(const Cfg *Func) const override {
     if (!BuildDefs::dump())
       return;
@@ -681,10 +671,6 @@ public:
     if (!BuildDefs::dump())
       return;
     emitFourAddr(Opcode, this, Func);
-  }
-  void emitIAS(const Cfg *Func) const override {
-    (void)Func;
-    llvm::report_fatal_error("Not yet implemented");
   }
   void dump(const Cfg *Func) const override {
     if (!BuildDefs::dump())
@@ -728,10 +714,6 @@ public:
     if (!BuildDefs::dump())
       return;
     emitCmpLike(Opcode, this, Func);
-  }
-  void emitIAS(const Cfg *Func) const override {
-    (void)Func;
-    llvm_unreachable("Not yet implemented");
   }
   void dump(const Cfg *Func) const override {
     if (!BuildDefs::dump())
@@ -810,7 +792,6 @@ public:
   IceString getName(const Cfg *Func) const;
   SizeT getNumber() const { return Number; }
   void emit(const Cfg *Func) const override;
-  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
 
 private:
@@ -879,7 +860,6 @@ public:
   }
   bool repointEdges(CfgNode *OldNode, CfgNode *NewNode) override;
   void emit(const Cfg *Func) const override;
-  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Br); }
 
@@ -910,7 +890,6 @@ public:
         InstARM32AdjustStack(Func, SP, Amount, SrcAmount);
   }
   void emit(const Cfg *Func) const override;
-  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Adjuststack); }
   SizeT getAmount() const { return Amount; }
@@ -936,7 +915,6 @@ public:
   }
   Operand *getCallTarget() const { return getSrc(0); }
   void emit(const Cfg *Func) const override;
-  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Call); }
 
@@ -956,7 +934,6 @@ public:
     return new (Func->allocate<InstARM32Pop>()) InstARM32Pop(Func, Dests);
   }
   void emit(const Cfg *Func) const override;
-  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Pop); }
 
@@ -978,7 +955,6 @@ public:
     return new (Func->allocate<InstARM32Push>()) InstARM32Push(Func, Srcs);
   }
   void emit(const Cfg *Func) const override;
-  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Push); }
 
@@ -1029,7 +1005,6 @@ public:
         InstARM32Str(Func, Value, Mem, Predicate);
   }
   void emit(const Cfg *Func) const override;
-  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Str); }
 
@@ -1055,7 +1030,6 @@ public:
         InstARM32Strex(Func, Dest, Value, Mem, Predicate);
   }
   void emit(const Cfg *Func) const override;
-  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Strex); }
 
@@ -1074,7 +1048,6 @@ public:
     return new (Func->allocate<InstARM32Trap>()) InstARM32Trap(Func);
   }
   void emit(const Cfg *Func) const override;
-  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Trap); }
 
@@ -1097,7 +1070,6 @@ public:
         InstARM32Umull(Func, DestLo, DestHi, Src0, Src1, Predicate);
   }
   void emit(const Cfg *Func) const override;
-  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Umull); }
 
@@ -1122,7 +1094,6 @@ public:
         InstARM32Vcvt(Func, Dest, Src, Variant, Predicate);
   }
   void emit(const Cfg *Func) const override;
-  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Vcvt); }
 
@@ -1189,7 +1160,6 @@ public:
         InstARM32Vcmp(Func, Src0, Src1, Predicate);
   }
   void emit(const Cfg *Func) const override;
-  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Vcmp); }
 
@@ -1209,7 +1179,6 @@ public:
     return new (Func->allocate<InstARM32Vmrs>()) InstARM32Vmrs(Func, Predicate);
   }
   void emit(const Cfg *Func) const override;
-  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Vmrs); }
 
@@ -1229,7 +1198,6 @@ public:
         InstARM32Vabs(Func, Dest, Src, Predicate);
   }
   void emit(const Cfg *Func) const override;
-  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Vabs); }
 
@@ -1248,7 +1216,6 @@ public:
     return new (Func->allocate<InstARM32Dmb>()) InstARM32Dmb(Func);
   }
   void emit(const Cfg *Func) const override;
-  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Dmb); }
 

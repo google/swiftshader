@@ -175,6 +175,7 @@ public:
   Ostream &getStrDump() { return *StrDump; }
   Ostream &getStrError() { return *StrError; }
   Ostream &getStrEmit() { return *StrEmit; }
+  void setStrEmit(Ostream &NewStrEmit) { StrEmit = &NewStrEmit; }
 
   LockedPtr<ErrorCode> getErrorStatus() {
     return LockedPtr<ErrorCode>(&ErrorStatus, &ErrorStatusLock);

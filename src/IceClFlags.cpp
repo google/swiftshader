@@ -74,6 +74,11 @@ cl::opt<std::string>
                         cl::desc("Define default global prefix for naming "
                                  "unnamed globals"),
                         cl::init("Global"));
+
+cl::opt<bool> DisableHybridAssembly(
+    "no-hybrid-asm", cl::desc("Disable hybrid assembly when -filetype=iasm"),
+    cl::init(false));
+
 cl::opt<bool> DisableInternal("externalize",
                               cl::desc("Externalize all symbols"));
 // Note: Modifiable only if ALLOW_DISABLE_IR_GEN.
@@ -380,6 +385,7 @@ void ClFlags::resetClFlags(ClFlags &OutFlags) {
   OutFlags.AllowUninitializedGlobals = false;
   OutFlags.DataSections = false;
   OutFlags.DecorateAsm = false;
+  OutFlags.DisableHybridAssembly = false;
   OutFlags.DisableInternal = false;
   OutFlags.DisableIRGeneration = false;
   OutFlags.DisableTranslation = false;
@@ -445,6 +451,7 @@ void ClFlags::getParsedClFlags(ClFlags &OutFlags) {
   OutFlags.setDecorateAsm(::DecorateAsm);
   OutFlags.setDefaultFunctionPrefix(::DefaultFunctionPrefix);
   OutFlags.setDefaultGlobalPrefix(::DefaultGlobalPrefix);
+  OutFlags.setDisableHybridAssembly(::DisableHybridAssembly);
   OutFlags.setDisableInternal(::DisableInternal);
   OutFlags.setDisableIRGeneration(::DisableIRGeneration);
   OutFlags.setDisableTranslation(::DisableTranslation);

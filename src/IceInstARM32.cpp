@@ -84,6 +84,27 @@ CondARM32::Cond InstARM32::getOppositeCondition(CondARM32::Cond Cond) {
   return InstARM32CondAttributes[Cond].Opposite;
 }
 
+void InstARM32::emitUsingTextFixup(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  GlobalContext *Ctx = Func->getContext();
+  if (Ctx->getFlags().getDisableHybridAssembly()) {
+    UnimplementedError(Ctx->getFlags());
+    return;
+  }
+  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  std::string Buffer;
+  llvm::raw_string_ostream StrBuf(Buffer);
+  OstreamLocker L(Ctx);
+  Ostream &OldStr = Ctx->getStrEmit();
+  Ctx->setStrEmit(StrBuf);
+  emit(Func);
+  Ctx->setStrEmit(OldStr);
+  Asm->emitTextInst(StrBuf.str());
+}
+
+void InstARM32::emitIAS(const Cfg *Func) const { emitUsingTextFixup(Func); }
+
 void InstARM32Pred::emitUnaryopGPR(const char *Opcode,
                                    const InstARM32Pred *Inst, const Cfg *Func,
                                    bool NeedsWidthSuffix) {
@@ -320,20 +341,23 @@ bool InstARM32Br::repointEdges(CfgNode *OldNode, CfgNode *NewNode) {
 
 template <InstARM32::InstKindARM32 K>
 void InstARM32ThreeAddrGPR<K>::emitIAS(const Cfg *Func) const {
-  (void)Func;
-  UnimplementedError(Func->getContext()->getFlags());
+  emitUsingTextFixup(Func);
 }
 
 template <>
 void InstARM32ThreeAddrGPR<InstARM32::Add>::emitIAS(const Cfg *Func) const {
   ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Asm->add(getDest(), getSrc(0), getSrc(1), SetFlags, getPredicate());
+  if (Asm->needsTextFixup())
+    emitUsingTextFixup(Func);
 }
 
 template <>
 void InstARM32ThreeAddrGPR<InstARM32::Sub>::emitIAS(const Cfg *Func) const {
   ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Asm->sub(getDest(), getSrc(0), getSrc(1), SetFlags, getPredicate());
+  if (Asm->needsTextFixup())
+    emitUsingTextFixup(Func);
 }
 
 InstARM32Call::InstARM32Call(Cfg *Func, Variable *Dest, Operand *CallTarget)
@@ -614,35 +638,29 @@ void InstARM32Mov::emitIASSingleDestSingleSource(const Cfg *Func) const {
   ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Variable *Dest = getDest();
   Operand *Src0 = getSrc(0);
-  // Note: Loop is used so that we can short circuit using break.
-  do {
-    if (Dest->hasReg()) {
-      const Type DestTy = Dest->getType();
-      const bool DestIsVector = isVectorType(DestTy);
-      const bool DestIsScalarFP = isScalarFloatingType(DestTy);
-      const bool CoreVFPMove = isMoveBetweenCoreAndVFPRegisters(Dest, Src0);
-      if (DestIsVector || DestIsScalarFP || CoreVFPMove)
-        break;
-      if (isMemoryAccess(Src0)) {
-        // TODO(kschimpf) Figure out how to do ldr on CoreVPFMove? (see
-        // emitSingleDestSingleSource, local variable LoadOpcode).
-        Asm->ldr(Dest, Src0, getPredicate());
-      } else {
-        Asm->mov(Dest, Src0, getPredicate());
-      }
-      return;
-    } else {
-      const Type Src0Type = Src0->getType();
-      const bool Src0IsVector = isVectorType(Src0Type);
-      const bool Src0IsScalarFP = isScalarFloatingType(Src0Type);
-      const bool CoreVFPMove = isMoveBetweenCoreAndVFPRegisters(Dest, Src0);
-      if (Src0IsVector || Src0IsScalarFP || CoreVFPMove)
-        break;
-      Asm->str(Src0, Dest, getPredicate());
-      return;
+  if (Dest->hasReg()) {
+    const Type DestTy = Dest->getType();
+    const bool DestIsVector = isVectorType(DestTy);
+    const bool DestIsScalarFP = isScalarFloatingType(DestTy);
+    const bool CoreVFPMove = isMoveBetweenCoreAndVFPRegisters(Dest, Src0);
+    if (DestIsVector || DestIsScalarFP || CoreVFPMove)
+      return Asm->setNeedsTextFixup();
+    if (isMemoryAccess(Src0)) {
+      // TODO(kschimpf) Figure out how to do ldr on CoreVPFMove? (see
+      // emitSingleDestSingleSource, local variable LoadOpcode).
+      return Asm->ldr(Dest, Src0, getPredicate());
     }
-  } while (0);
-  llvm_unreachable("not yet implemented");
+    return Asm->mov(Dest, Src0, getPredicate());
+  } else {
+    const Type Src0Type = Src0->getType();
+    const bool Src0IsVector = isVectorType(Src0Type);
+    const bool Src0IsScalarFP = isScalarFloatingType(Src0Type);
+    const bool CoreVFPMove = isMoveBetweenCoreAndVFPRegisters(Dest, Src0);
+    if (Src0IsVector || Src0IsScalarFP || CoreVFPMove)
+      return Asm->setNeedsTextFixup();
+    return Asm->str(Src0, Dest, getPredicate());
+  }
+  Asm->setNeedsTextFixup();
 }
 
 void InstARM32Mov::emit(const Cfg *Func) const {
@@ -666,12 +684,13 @@ void InstARM32Mov::emitIAS(const Cfg *Func) const {
   assert(getSrcSize() == 1);
   (void)Func;
   assert(!(isMultiDest() && isMultiSource()) && "Invalid vmov type.");
-  if (isMultiDest())
-    llvm_unreachable("Not yet implemented");
-  if (isMultiSource())
-    llvm_unreachable("Not yet implemented");
-  // Must be single source/dest.
-  emitIASSingleDestSingleSource(Func);
+  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  if (!(isMultiDest() || isMultiSource())) {
+    // Must be single source/dest.
+    emitIASSingleDestSingleSource(Func);
+  }
+  if (Asm->needsTextFixup())
+    emitUsingTextFixup(Func);
 }
 
 void InstARM32Mov::dump(const Cfg *Func) const {
@@ -713,11 +732,6 @@ void InstARM32Br::emit(const Cfg *Func) const {
       }
     }
   }
-}
-
-void InstARM32Br::emitIAS(const Cfg *Func) const {
-  (void)Func;
-  llvm_unreachable("Not yet implemented");
 }
 
 void InstARM32Br::dump(const Cfg *Func) const {
@@ -768,11 +782,6 @@ void InstARM32Call::emit(const Cfg *Func) const {
   Func->getTarget()->resetStackAdjustment();
 }
 
-void InstARM32Call::emitIAS(const Cfg *Func) const {
-  (void)Func;
-  llvm_unreachable("Not yet implemented");
-}
-
 void InstARM32Call::dump(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
@@ -790,11 +799,6 @@ void InstARM32Label::emit(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << getName(Func) << ":";
-}
-
-void InstARM32Label::emitIAS(const Cfg *Func) const {
-  (void)Func;
-  llvm_unreachable("Not yet implemented");
 }
 
 void InstARM32Label::dump(const Cfg *Func) const {
@@ -825,12 +829,6 @@ template <> void InstARM32Ldr::emit(const Cfg *Func) const {
   getSrc(0)->emit(Func);
 }
 
-template <> void InstARM32Ldr::emitIAS(const Cfg *Func) const {
-  assert(getSrcSize() == 1);
-  (void)Func;
-  llvm_unreachable("Not yet implemented");
-}
-
 template <> void InstARM32Ldrex::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
@@ -847,10 +845,9 @@ template <> void InstARM32Ldrex::emit(const Cfg *Func) const {
   getSrc(0)->emit(Func);
 }
 
-template <> void InstARM32Ldrex::emitIAS(const Cfg *Func) const {
-  assert(getSrcSize() == 1);
-  (void)Func;
-  llvm_unreachable("Not yet implemented");
+template <InstARM32::InstKindARM32 K>
+void InstARM32TwoAddrGPR<K>::emitIAS(const Cfg *Func) const {
+  emitUsingTextFixup(Func);
 }
 
 template <> void InstARM32Movw::emit(const Cfg *Func) const {
@@ -926,11 +923,6 @@ void InstARM32Pop::emit(const Cfg *Func) const {
   }
 }
 
-void InstARM32Pop::emitIAS(const Cfg *Func) const {
-  (void)Func;
-  llvm_unreachable("Not yet implemented");
-}
-
 void InstARM32Pop::dump(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
@@ -957,12 +949,6 @@ void InstARM32AdjustStack::emit(const Cfg *Func) const {
   getSrc(0)->emit(Func);
   Str << ", ";
   getSrc(1)->emit(Func);
-  Func->getTarget()->updateStackAdjustment(Amount);
-}
-
-void InstARM32AdjustStack::emitIAS(const Cfg *Func) const {
-  (void)Func;
-  llvm_unreachable("Not yet implemented");
   Func->getTarget()->updateStackAdjustment(Amount);
 }
 
@@ -1016,11 +1002,6 @@ void InstARM32Push::emit(const Cfg *Func) const {
   }
 }
 
-void InstARM32Push::emitIAS(const Cfg *Func) const {
-  (void)Func;
-  llvm_unreachable("Not yet implemented");
-}
-
 void InstARM32Push::dump(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
@@ -1047,6 +1028,8 @@ void InstARM32Ret::emit(const Cfg *Func) const {
 void InstARM32Ret::emitIAS(const Cfg *Func) const {
   ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Asm->bx(RegARM32::Encoded_Reg_lr);
+  if (Asm->needsTextFixup())
+    emitUsingTextFixup(Func);
 }
 
 void InstARM32Ret::dump(const Cfg *Func) const {
@@ -1075,12 +1058,6 @@ void InstARM32Str::emit(const Cfg *Func) const {
   getSrc(1)->emit(Func);
 }
 
-void InstARM32Str::emitIAS(const Cfg *Func) const {
-  assert(getSrcSize() == 2);
-  (void)Func;
-  llvm_unreachable("Not yet implemented");
-}
-
 void InstARM32Str::dump(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
@@ -1107,12 +1084,6 @@ void InstARM32Strex::emit(const Cfg *Func) const {
   Dest->emit(Func);
   Str << ", ";
   emitSources(Func);
-}
-
-void InstARM32Strex::emitIAS(const Cfg *Func) const {
-  assert(getSrcSize() == 2);
-  (void)Func;
-  llvm_unreachable("Not yet implemented");
 }
 
 void InstARM32Strex::dump(const Cfg *Func) const {
@@ -1144,12 +1115,6 @@ void InstARM32Trap::emit(const Cfg *Func) const {
   }
 }
 
-void InstARM32Trap::emitIAS(const Cfg *Func) const {
-  assert(getSrcSize() == 0);
-  (void)Func;
-  llvm_unreachable("Not yet implemented");
-}
-
 void InstARM32Trap::dump(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
@@ -1172,12 +1137,6 @@ void InstARM32Umull::emit(const Cfg *Func) const {
   getSrc(0)->emit(Func);
   Str << ", ";
   getSrc(1)->emit(Func);
-}
-
-void InstARM32Umull::emitIAS(const Cfg *Func) const {
-  assert(getSrcSize() == 2);
-  (void)Func;
-  llvm_unreachable("Not yet implemented");
 }
 
 void InstARM32Umull::dump(const Cfg *Func) const {
@@ -1232,12 +1191,6 @@ void InstARM32Vcvt::emit(const Cfg *Func) const {
   getSrc(0)->emit(Func);
 }
 
-void InstARM32Vcvt::emitIAS(const Cfg *Func) const {
-  assert(getSrcSize() == 1);
-  (void)Func;
-  llvm_unreachable("Not yet implemented");
-}
-
 void InstARM32Vcvt::dump(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
@@ -1261,12 +1214,6 @@ void InstARM32Vcmp::emit(const Cfg *Func) const {
   getSrc(1)->emit(Func);
 }
 
-void InstARM32Vcmp::emitIAS(const Cfg *Func) const {
-  assert(getSrcSize() == 2);
-  (void)Func;
-  llvm_unreachable("Not yet implemented");
-}
-
 void InstARM32Vcmp::dump(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
@@ -1285,12 +1232,6 @@ void InstARM32Vmrs::emit(const Cfg *Func) const {
                                      "APSR_nzcv"
                                      ", "
                                      "FPSCR";
-}
-
-void InstARM32Vmrs::emitIAS(const Cfg *Func) const {
-  assert(getSrcSize() == 0);
-  (void)Func;
-  llvm_unreachable("Not yet implemented");
 }
 
 void InstARM32Vmrs::dump(const Cfg *Func) const {
@@ -1314,12 +1255,6 @@ void InstARM32Vabs::emit(const Cfg *Func) const {
   getSrc(0)->emit(Func);
 }
 
-void InstARM32Vabs::emitIAS(const Cfg *Func) const {
-  assert(getSrcSize() == 1);
-  (void)Func;
-  llvm_unreachable("Not yet implemented");
-}
-
 void InstARM32Vabs::dump(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
@@ -1337,12 +1272,6 @@ void InstARM32Dmb::emit(const Cfg *Func) const {
          "dmb"
          "\t"
          "sy";
-}
-
-void InstARM32Dmb::emitIAS(const Cfg *Func) const {
-  assert(getSrcSize() == 1);
-  (void)Func;
-  llvm_unreachable("Not yet implemented");
 }
 
 void InstARM32Dmb::dump(const Cfg *Func) const {
@@ -1486,9 +1415,12 @@ template class InstARM32ThreeAddrGPR<InstARM32::Sbc>;
 template class InstARM32ThreeAddrGPR<InstARM32::Sdiv>;
 template class InstARM32ThreeAddrGPR<InstARM32::Sub>;
 template class InstARM32ThreeAddrGPR<InstARM32::Udiv>;
+
 template class InstARM32ThreeAddrFP<InstARM32::Vadd>;
 template class InstARM32ThreeAddrFP<InstARM32::Vdiv>;
 template class InstARM32ThreeAddrFP<InstARM32::Vmul>;
 template class InstARM32ThreeAddrFP<InstARM32::Vsub>;
+
+template class InstARM32TwoAddrGPR<InstARM32::Movt>;
 
 } // end of namespace Ice

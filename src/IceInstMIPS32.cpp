@@ -48,7 +48,6 @@ const char *InstMIPS32::getWidthString(Type Ty) {
   return "TBD";
 }
 
-
 template <> const char *InstMIPS32Addiu::Opcode = "addiu";
 template <> const char *InstMIPS32Lui::Opcode = "lui";
 template <> const char *InstMIPS32La::Opcode = "la";

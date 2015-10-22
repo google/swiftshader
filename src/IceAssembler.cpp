@@ -35,15 +35,28 @@ static uintptr_t NewContents(Assembler &Assemblr, intptr_t Capacity) {
   return Result;
 }
 
+void AssemblerBuffer::installFixup(AssemblerFixup *F) {
+  F->set_position(0);
+  if (!Assemblr.getPreliminary())
+    Fixups.push_back(F);
+}
+
 AssemblerFixup *AssemblerBuffer::createFixup(FixupKind Kind,
                                              const Constant *Value) {
   AssemblerFixup *F =
       new (Assemblr.allocate<AssemblerFixup>()) AssemblerFixup();
-  F->set_position(0);
   F->set_kind(Kind);
   F->set_value(Value);
-  if (!Assemblr.getPreliminary())
-    Fixups.push_back(F);
+  installFixup(F);
+  return F;
+}
+
+AssemblerTextFixup *AssemblerBuffer::createTextFixup(const std::string &Text,
+                                                     size_t BytesUsed) {
+  AssemblerTextFixup *F = new (Assemblr.allocate<AssemblerTextFixup>())
+      AssemblerTextFixup(Text, BytesUsed);
+  installFixup(F);
+  TextFixupNeeded = false;
   return F;
 }
 
@@ -72,12 +85,13 @@ AssemblerBuffer::EnsureCapacity::~EnsureCapacity() {
 }
 
 AssemblerBuffer::AssemblerBuffer(Assembler &Asm) : Assemblr(Asm) {
-  const intptr_t OneKB = 1024;
-  static const intptr_t kInitialBufferCapacity = 4 * OneKB;
+  constexpr intptr_t OneKB = 1024;
+  static constexpr intptr_t kInitialBufferCapacity = 4 * OneKB;
   Contents = NewContents(Assemblr, kInitialBufferCapacity);
   Cursor = Contents;
   Limit = computeLimit(Contents, kInitialBufferCapacity);
   HasEnsuredCapacity = false;
+  TextFixupNeeded = false;
 
   // Verify internal state.
   assert(capacity() == kInitialBufferCapacity);
@@ -89,7 +103,7 @@ AssemblerBuffer::~AssemblerBuffer() = default;
 void AssemblerBuffer::extendCapacity() {
   intptr_t old_size = size();
   intptr_t old_capacity = capacity();
-  const intptr_t OneMB = 1 << 20;
+  constexpr intptr_t OneMB = 1 << 20;
   intptr_t new_capacity = std::min(old_capacity * 2, old_capacity + OneMB);
   if (new_capacity < old_capacity) {
     llvm::report_fatal_error(
@@ -123,7 +137,6 @@ void Assembler::emitIASBytes() const {
   Ostream &Str = Ctx->getStrEmit();
   intptr_t EndPosition = Buffer.size();
   intptr_t CurPosition = 0;
-  const intptr_t FixupSize = 4;
   for (const AssemblerFixup *NextFixup : fixups()) {
     intptr_t NextFixupLoc = NextFixup->position();
     for (intptr_t i = CurPosition; i < NextFixupLoc; ++i) {
@@ -131,16 +144,13 @@ void Assembler::emitIASBytes() const {
       Str.write_hex(Buffer.load<uint8_t>(i));
       Str << "\n";
     }
-    Str << "\t.long ";
     // For PCRel fixups, we write the pc-offset from a symbol into the Buffer
     // (e.g., -4), but we don't represent that in the fixup's offset. Otherwise
     // the fixup holds the true offset, and so does the Buffer. Just load the
     // offset from the buffer.
-    NextFixup->emit(Ctx, Buffer.load<RelocOffsetT>(NextFixupLoc));
-    if (fixupIsPCRel(NextFixup->kind()))
-      Str << " - .";
-    Str << "\n";
-    CurPosition = NextFixupLoc + FixupSize;
+    CurPosition = NextFixupLoc +
+                  NextFixup->emit(Ctx, Buffer.load<RelocOffsetT>(NextFixupLoc),
+                                  fixupIsPCRel(NextFixup->kind()));
     assert(CurPosition <= EndPosition);
   }
   // Handle any bytes that are not prefixed by a fixup.

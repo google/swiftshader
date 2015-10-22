@@ -174,6 +174,20 @@ public:
   /// Create and track a fixup in the current function.
   AssemblerFixup *createFixup(FixupKind Kind, const Constant *Value);
 
+  /// Create and track a textual fixup in the current function.
+  AssemblerTextFixup *createTextFixup(const std::string &Text,
+                                      size_t BytesUsed);
+
+  /// Mark that an attempt was made to emit, but failed. Hence, in order to
+  /// continue, one must emit a text fixup.
+  void setNeedsTextFixup() { TextFixupNeeded = true; }
+
+  /// Returns true if last emit failed and needs a text fixup.
+  bool needsTextFixup() const { return TextFixupNeeded; }
+
+  /// Installs a created fixup, after it has been allocated.
+  void installFixup(AssemblerFixup *F);
+
   const FixupRefList &fixups() const { return Fixups; }
 
   void setSize(intptr_t NewSize) {
@@ -194,6 +208,9 @@ private:
   Assembler &Assemblr;
   /// List of pool-allocated fixups relative to the current function.
   FixupRefList Fixups;
+  // True if a textual fixup is needed, because the assembler was unable to
+  // emit the last request.
+  bool TextFixupNeeded;
 
   uintptr_t cursor() const { return Cursor; }
   uintptr_t limit() const { return Limit; }
@@ -268,11 +285,23 @@ public:
   // Return a view of all the bytes of code for the current function.
   llvm::StringRef getBufferView() const;
 
+  /// Emit a fixup at the current location.
+  void emitFixup(AssemblerFixup *Fixup) { Buffer.emitFixup(Fixup); }
+
   const FixupRefList &fixups() const { return Buffer.fixups(); }
 
   AssemblerFixup *createFixup(FixupKind Kind, const Constant *Value) {
     return Buffer.createFixup(Kind, Value);
   }
+
+  AssemblerTextFixup *createTextFixup(const std::string &Text,
+                                      size_t BytesUsed) {
+    return Buffer.createTextFixup(Text, BytesUsed);
+  }
+
+  void setNeedsTextFixup() { Buffer.setNeedsTextFixup(); }
+
+  bool needsTextFixup() const { return Buffer.needsTextFixup(); }
 
   void emitIASBytes() const;
   bool getInternal() const { return IsInternal; }
@@ -305,6 +334,9 @@ private:
   /// all changes to label bindings, label links, and relocation fixups are
   /// fully committed (Preliminary=false).
   bool Preliminary = false;
+
+  /// Installs a created fixup, after it has been allocated.
+  void installFixup(AssemblerFixup *F) { Buffer.installFixup(F); }
 
 protected:
   GlobalContext *Ctx;

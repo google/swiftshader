@@ -48,11 +48,13 @@ IceString AssemblerFixup::symbol(const GlobalContext *Ctx) const {
   return Str.str();
 }
 
-void AssemblerFixup::emit(GlobalContext *Ctx,
-                          RelocOffsetT OverrideOffset) const {
+size_t AssemblerFixup::emit(GlobalContext *Ctx, RelocOffsetT OverrideOffset,
+                            bool IsPCRel) const {
+  static constexpr const size_t FixupSize = 4;
   if (!BuildDefs::dump())
-    return;
+    return FixupSize;
   Ostream &Str = Ctx->getStrEmit();
+  Str << "\t.long ";
   if (isNullSymbol())
     Str << "__Sz_AbsoluteZero";
   else
@@ -60,6 +62,22 @@ void AssemblerFixup::emit(GlobalContext *Ctx,
   RelocOffsetT Offset = OverrideOffset;
   if (Offset)
     Str << " + " << Offset;
+  // For PCRel fixups, we write the pc-offset from a symbol into the Buffer
+  // (e.g., -4), but we don't represent that in the fixup's offset. Otherwise
+  // the fixup holds the true offset, and so does the Buffer. Just load the
+  // offset from the buffer.
+  if (IsPCRel)
+    Str << " - .";
+  Str << "\n";
+  return FixupSize;
+}
+
+size_t AssemblerTextFixup::emit(GlobalContext *Ctx, RelocOffsetT OverrideOffset,
+                                bool IsPCRel) const {
+  (void)OverrideOffset;
+  (void)IsPCRel;
+  Ctx->getStrEmit() << Message << "\n";
+  return NumBytes;
 }
 
 } // end of namespace Ice

@@ -70,6 +70,11 @@ static constexpr uint32_t kShiftShift = 5;
 static constexpr uint32_t kImmed12Bits = 12;
 static constexpr uint32_t kImm12Shift = 0;
 
+// Type of instruction encoding (bits 25-27). See ARM section A5.1
+static constexpr uint32_t kInstTypeDataRegister = 0;  // i.e. 000
+static constexpr uint32_t kInstTypeDataImmediate = 1; // i.e. 001
+static constexpr uint32_t kInstTypeMemImmediate = 2;  // i.e. 010
+
 inline uint32_t encodeBool(bool b) { return b ? 1 : 0; }
 
 inline uint32_t encodeGPRRegister(RegARM32::GPRRegister Rn) {
@@ -231,6 +236,14 @@ void ARM32::AssemblerARM32::bind(Label *label) {
   label->bindTo(bound);
 }
 
+void ARM32::AssemblerARM32::emitTextInst(const std::string &Text) {
+  static constexpr uint32_t Placeholder = 0;
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  AssemblerFixup *F = createTextFixup(Text, sizeof(Placeholder));
+  emitFixup(F);
+  emitInst(Placeholder);
+}
+
 void ARM32::AssemblerARM32::emitType01(CondARM32::Cond Cond, uint32_t Type,
                                        uint32_t Opcode, bool SetCc, uint32_t Rn,
                                        uint32_t Rd, uint32_t Imm12) {
@@ -261,54 +274,48 @@ void ARM32::AssemblerARM32::emitMemOp(CondARM32::Cond Cond, uint32_t InstType,
 void ARM32::AssemblerARM32::add(const Operand *OpRd, const Operand *OpRn,
                                 const Operand *OpSrc1, bool SetFlags,
                                 CondARM32::Cond Cond) {
-  // Note: Loop is used so that we can short circuit using break;
-  do {
-    uint32_t Rd;
-    if (decodeOperand(OpRd, Rd) != DecodedAsRegister)
-      break;
-    uint32_t Rn;
-    if (decodeOperand(OpRn, Rn) != DecodedAsRegister)
-      break;
-    constexpr uint32_t Add = B2; // 0100
-    uint32_t Src1Value;
-    // TODO(kschimpf) Other possible decodings of add.
-    switch (decodeOperand(OpSrc1, Src1Value)) {
-    default:
-      break;
-    case DecodedAsRegister: {
-      // ADD (register) - ARM section A8.8.7, encoding A1:
-      //   add{s}<c> <Rd>, <Rn>, <Rm>{, <shiff>}
-      // ADD (Sp plus register) - ARM section A8.8.11, encoding A1:
-      //   add{s}<c> sp, <Rn>, <Rm>{, <shiff>}
-      //
-      // cccc0000100snnnnddddiiiiitt0mmmm where cccc=Cond, dddd=Rd, nnnn=Rn,
-      // mmmm=Rm, iiiii=Shift, tt=ShiftKind, and s=SetFlags
-      Src1Value = encodeShiftRotateImm5(Src1Value, OperandARM32::kNoShift, 0);
-      if (((Rd == RegARM32::Encoded_Reg_pc) && SetFlags))
-        // Conditions of rule violated.
-        break;
-      constexpr uint32_t InstTypeRegister = 0;
-      emitType01(Cond, InstTypeRegister, Add, SetFlags, Rn, Rd, Src1Value);
-      return;
-    }
-    case DecodedAsRotatedImm8: {
-      // ADD (Immediate) - ARM section A8.8.5, encoding A1:
-      //   add{s}<c> <Rd>, <Rn>, #<RotatedImm8>
-      // ADD (SP plus immediate) - ARM section A8.8.9, encoding A1.
-      //   add{s}<c> <Rd>, sp, #<RotatedImm8>
-      //
-      // cccc0010100snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
-      // s=SetFlags and iiiiiiiiiiii=Src1Value=RotatedImm8.
-      if ((Rd == RegARM32::Encoded_Reg_pc && SetFlags))
-        // Conditions of rule violated.
-        break;
-      constexpr uint32_t InstTypeImmediate = 1;
-      emitType01(Cond, InstTypeImmediate, Add, SetFlags, Rn, Rd, Src1Value);
-      return;
-    }
-    }
-  } while (0);
-  UnimplementedError(Ctx->getFlags());
+  uint32_t Rd;
+  if (decodeOperand(OpRd, Rd) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  uint32_t Rn;
+  if (decodeOperand(OpRn, Rn) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  constexpr uint32_t Add = B2; // 0100
+  uint32_t Src1Value;
+  // TODO(kschimpf) Other possible decodings of add.
+  switch (decodeOperand(OpSrc1, Src1Value)) {
+  default:
+    return setNeedsTextFixup();
+  case DecodedAsRegister: {
+    // ADD (register) - ARM section A8.8.7, encoding A1:
+    //   add{s}<c> <Rd>, <Rn>, <Rm>{, <shiff>}
+    // ADD (Sp plus register) - ARM section A8.8.11, encoding A1:
+    //   add{s}<c> sp, <Rn>, <Rm>{, <shiff>}
+    //
+    // cccc0000100snnnnddddiiiiitt0mmmm where cccc=Cond, dddd=Rd, nnnn=Rn,
+    // mmmm=Rm, iiiii=Shift, tt=ShiftKind, and s=SetFlags
+    Src1Value = encodeShiftRotateImm5(Src1Value, OperandARM32::kNoShift, 0);
+    if (((Rd == RegARM32::Encoded_Reg_pc) && SetFlags))
+      // Conditions of rule violated.
+      return setNeedsTextFixup();
+    emitType01(Cond, kInstTypeDataRegister, Add, SetFlags, Rn, Rd, Src1Value);
+    return;
+  }
+  case DecodedAsRotatedImm8: {
+    // ADD (Immediate) - ARM section A8.8.5, encoding A1:
+    //   add{s}<c> <Rd>, <Rn>, #<RotatedImm8>
+    // ADD (SP plus immediate) - ARM section A8.8.9, encoding A1.
+    //   add{s}<c> <Rd>, sp, #<RotatedImm8>
+    //
+    // cccc0010100snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
+    // s=SetFlags and iiiiiiiiiiii=Src1Value=RotatedImm8.
+    if ((Rd == RegARM32::Encoded_Reg_pc && SetFlags))
+      // Conditions of rule violated.
+      return setNeedsTextFixup();
+    emitType01(Cond, kInstTypeDataImmediate, Add, SetFlags, Rn, Rd, Src1Value);
+    return;
+  }
+  };
 }
 
 void ARM32::AssemblerARM32::bkpt(uint16_t Imm16) {
@@ -327,11 +334,8 @@ void ARM32::AssemblerARM32::bx(RegARM32::GPRRegister Rm, CondARM32::Cond Cond) {
   //   bx<c> <Rm>
   //
   // cccc000100101111111111110001mmmm where mmmm=rm and cccc=Cond.
-  assert(isGPRRegisterDefined(Rm));
-  // TODO(kschimpf): Remove void cast when MINIMAL build allows.
-  (void)isGPRRegisterDefined(Rm);
-  assert(isConditionDefined(Cond));
-  (void)isConditionDefined(Cond);
+  if (!(isGPRRegisterDefined(Rm) && isConditionDefined(Cond)))
+    return setNeedsTextFixup();
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   const uint32_t Encoding = (encodeCondition(Cond) << kConditionShift) | B24 |
                             B21 | (0xfff << 8) | B4 |
@@ -341,169 +345,145 @@ void ARM32::AssemblerARM32::bx(RegARM32::GPRRegister Rm, CondARM32::Cond Cond) {
 
 void ARM32::AssemblerARM32::ldr(const Operand *OpRt, const Operand *OpAddress,
                                 CondARM32::Cond Cond) {
-  // Note: Loop is used so that we can short ciruit using break;
-  do {
-    uint32_t Rt;
-    if (decodeOperand(OpRt, Rt) != DecodedAsRegister)
-      break;
-    uint32_t Address;
-    if (decodeAddress(OpAddress, Address) != DecodedAsImmRegOffset)
-      break;
-    // LDR (immediate) - ARM section A8.8.63, encoding A1:
-    //   ldr<c> <Rt>, [<Rn>{, #+/-<imm12>}]      ; p=1, w=0
-    //   ldr<c> <Rt>, [<Rn>], #+/-<imm12>        ; p=1, w=1
-    //   ldr<c> <Rt>, [<Rn>, #+/-<imm12>]!       ; p=0, w=1
-    // LDRB (immediate) - ARM section A8.8.68, encoding A1:
-    //   ldrb<c> <Rt>, [<Rn>{, #+/-<imm12>}]     ; p=1, w=0
-    //   ldrb<c> <Rt>, [<Rn>], #+/-<imm12>       ; p=1, w=1
-    //   ldrb<c> <Rt>, [<Rn>, #+/-<imm12>]!      ; p=0, w=1
-    //
-    // cccc010pubw1nnnnttttiiiiiiiiiiii where cccc=Cond, tttt=Rt, nnnn=Rn,
-    // iiiiiiiiiiii=imm12, b=1 if STRB, u=1 if +.
-    constexpr uint32_t InstType = B1; // 010
-    constexpr bool IsLoad = true;
-    const Type Ty = OpRt->getType();
-    if (!(Ty == IceType_i32 || Ty == IceType_i8)) // TODO(kschimpf) Expand?
-      break;
-    const bool IsByte = typeWidthInBytes(Ty) == 1;
-    if ((getGPRReg(kRnShift, Address) == RegARM32::Encoded_Reg_pc) ||
-        (!isBitSet(P, Address) && isBitSet(W, Address)) ||
-        (!IsByte &&
-         (getGPRReg(kRnShift, Address) == RegARM32::Encoded_Reg_sp) &&
-         !isBitSet(P, Address) &&
-         isBitSet(U, Address) & !isBitSet(W, Address) &&
-         (mask(Address, kImm12Shift, kImmed12Bits) == 0x8 /* 000000000100 */)))
-      break;
-    emitMemOp(Cond, InstType, IsLoad, IsByte, Rt, Address);
-    return;
-  } while (0);
-  UnimplementedError(Ctx->getFlags());
+  uint32_t Rt;
+  if (decodeOperand(OpRt, Rt) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  uint32_t Address;
+  if (decodeAddress(OpAddress, Address) != DecodedAsImmRegOffset)
+    return setNeedsTextFixup();
+  // LDR (immediate) - ARM section A8.8.63, encoding A1:
+  //   ldr<c> <Rt>, [<Rn>{, #+/-<imm12>}]      ; p=1, w=0
+  //   ldr<c> <Rt>, [<Rn>], #+/-<imm12>        ; p=1, w=1
+  //   ldr<c> <Rt>, [<Rn>, #+/-<imm12>]!       ; p=0, w=1
+  // LDRB (immediate) - ARM section A8.8.68, encoding A1:
+  //   ldrb<c> <Rt>, [<Rn>{, #+/-<imm12>}]     ; p=1, w=0
+  //   ldrb<c> <Rt>, [<Rn>], #+/-<imm12>       ; p=1, w=1
+  //   ldrb<c> <Rt>, [<Rn>, #+/-<imm12>]!      ; p=0, w=1
+  //
+  // cccc010pubw1nnnnttttiiiiiiiiiiii where cccc=Cond, tttt=Rt, nnnn=Rn,
+  // iiiiiiiiiiii=imm12, b=1 if STRB, u=1 if +.
+  constexpr bool IsLoad = true;
+  const Type Ty = OpRt->getType();
+  if (!(Ty == IceType_i32 || Ty == IceType_i8)) // TODO(kschimpf) Expand?
+    return setNeedsTextFixup();
+  const bool IsByte = typeWidthInBytes(Ty) == 1;
+  // Check conditions of rules violated.
+  if (getGPRReg(kRnShift, Address) == RegARM32::Encoded_Reg_pc)
+    return setNeedsTextFixup();
+  if (!isBitSet(P, Address) && isBitSet(W, Address))
+    return setNeedsTextFixup();
+  if (!IsByte && (getGPRReg(kRnShift, Address) == RegARM32::Encoded_Reg_sp) &&
+      !isBitSet(P, Address) && isBitSet(U, Address) & !isBitSet(W, Address) &&
+      (mask(Address, kImm12Shift, kImmed12Bits) == 0x8 /* 000000000100 */))
+    return setNeedsTextFixup();
+  emitMemOp(Cond, kInstTypeMemImmediate, IsLoad, IsByte, Rt, Address);
 }
 
 void ARM32::AssemblerARM32::mov(const Operand *OpRd, const Operand *OpSrc,
                                 CondARM32::Cond Cond) {
-  // Note: Loop is used so that we can short ciruit using break;
-  do {
-    uint32_t Rd;
-    if (decodeOperand(OpRd, Rd) != DecodedAsRegister)
-      break;
-    uint32_t Src;
-    // TODO(kschimpf) Handle other forms of mov.
-    if (decodeOperand(OpSrc, Src) == DecodedAsRotatedImm8) {
-      // MOV (immediate) - ARM section A8.8.102, encoding A1:
-      //   mov{S}<c> <Rd>, #<RotatedImm8>
-      //
-      // cccc0011101s0000ddddiiiiiiiiiiii where cccc=Cond, s=SetFlags, dddd=Rd,
-      // and iiiiiiiiiiii=RotatedImm8=Src.  Note: We don't use movs in this
-      // assembler.
-      constexpr bool SetFlags = false;
-      if ((Rd == RegARM32::Encoded_Reg_pc && SetFlags))
-        // Conditions of rule violated.
-        break;
-      constexpr uint32_t Rn = 0;
-      constexpr uint32_t Mov = B3 | B2 | B0; // 1101.
-      constexpr uint32_t InstType = 1;
-      emitType01(Cond, InstType, Mov, SetFlags, Rn, Rd, Src);
-      return;
-    }
-  } while (0);
-  UnimplementedError(Ctx->getFlags());
+  uint32_t Rd;
+  if (decodeOperand(OpRd, Rd) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  uint32_t Src;
+  // TODO(kschimpf) Handle other forms of mov.
+  if (decodeOperand(OpSrc, Src) != DecodedAsRotatedImm8)
+    return setNeedsTextFixup();
+  // MOV (immediate) - ARM section A8.8.102, encoding A1:
+  //   mov{S}<c> <Rd>, #<RotatedImm8>
+  //
+  // cccc0011101s0000ddddiiiiiiiiiiii where cccc=Cond, s=SetFlags, dddd=Rd,
+  // and iiiiiiiiiiii=RotatedImm8=Src.  Note: We don't use movs in this
+  // assembler.
+  constexpr bool SetFlags = false;
+  if ((Rd == RegARM32::Encoded_Reg_pc && SetFlags))
+    // Conditions of rule violated.
+    return setNeedsTextFixup();
+  constexpr uint32_t Rn = 0;
+  constexpr uint32_t Mov = B3 | B2 | B0; // 1101.
+  emitType01(Cond, kInstTypeDataImmediate, Mov, SetFlags, Rn, Rd, Src);
 }
 
 void ARM32::AssemblerARM32::str(const Operand *OpRt, const Operand *OpAddress,
                                 CondARM32::Cond Cond) {
-  // Note: Loop is used so that we can short ciruit using break;
-  do {
-    uint32_t Rt;
-    if (decodeOperand(OpRt, Rt) != DecodedAsRegister)
-      break;
-    uint32_t Address;
-    if (decodeAddress(OpAddress, Address) != DecodedAsImmRegOffset)
-      break;
-    // STR (immediate) - ARM section A8.8.204, encoding A1:
-    //   str<c> <Rt>, [<Rn>{, #+/-<imm12>}]      ; p=1, w=0
-    //   str<c> <Rt>, [<Rn>], #+/-<imm12>        ; p=1, w=1
-    //   str<c> <Rt>, [<Rn>, #+/-<imm12>]!       ; p=0, w=1
-    // STRB (immediate) - ARM section A8.8.207, encoding A1:
-    //   strb<c> <Rt>, [<Rn>{, #+/-<imm12>}]     ; p=1, w=0
-    //   strb<c> <Rt>, [<Rn>], #+/-<imm12>       ; p=1, w=1
-    //   strb<c> <Rt>, [<Rn>, #+/-<imm12>]!      ; p=0, w=1
-    //
-    // cccc010pubw0nnnnttttiiiiiiiiiiii where cccc=Cond, tttt=Rt, nnnn=Rn,
-    // iiiiiiiiiiii=imm12, b=1 if STRB, u=1 if +.
-    constexpr uint32_t InstType = B1; // 010
-    constexpr bool IsLoad = false;
-    const Type Ty = OpRt->getType();
-    if (!(Ty == IceType_i32 || Ty == IceType_i8)) // TODO(kschimpf) Expand?
-      break;
-    const bool IsByte = typeWidthInBytes(Ty) == 1;
-    // Check for rule violations.
-    if ((getGPRReg(kRnShift, Address) == RegARM32::Encoded_Reg_pc) ||
-        (!isBitSet(P, Address) && isBitSet(W, Address)) ||
-        (!IsByte &&
-         (getGPRReg(kRnShift, Address) == RegARM32::Encoded_Reg_sp) &&
-         isBitSet(P, Address) && !isBitSet(U, Address) &&
-         isBitSet(W, Address) &&
-         (mask(Address, kImm12Shift, kImmed12Bits) == 0x8 /* 000000000100 */)))
-      // Conditions of rule violated.
-      break;
-    emitMemOp(Cond, InstType, IsLoad, IsByte, Rt, Address);
-    return;
-  } while (0);
-  UnimplementedError(Ctx->getFlags());
+  uint32_t Rt;
+  if (decodeOperand(OpRt, Rt) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  uint32_t Address;
+  if (decodeAddress(OpAddress, Address) != DecodedAsImmRegOffset)
+    return setNeedsTextFixup();
+  // STR (immediate) - ARM section A8.8.204, encoding A1:
+  //   str<c> <Rt>, [<Rn>{, #+/-<imm12>}]      ; p=1, w=0
+  //   str<c> <Rt>, [<Rn>], #+/-<imm12>        ; p=1, w=1
+  //   str<c> <Rt>, [<Rn>, #+/-<imm12>]!       ; p=0, w=1
+  // STRB (immediate) - ARM section A8.8.207, encoding A1:
+  //   strb<c> <Rt>, [<Rn>{, #+/-<imm12>}]     ; p=1, w=0
+  //   strb<c> <Rt>, [<Rn>], #+/-<imm12>       ; p=1, w=1
+  //   strb<c> <Rt>, [<Rn>, #+/-<imm12>]!      ; p=0, w=1
+  //
+  // cccc010pubw0nnnnttttiiiiiiiiiiii where cccc=Cond, tttt=Rt, nnnn=Rn,
+  // iiiiiiiiiiii=imm12, b=1 if STRB, u=1 if +.
+  constexpr bool IsLoad = false;
+  const Type Ty = OpRt->getType();
+  if (!(Ty == IceType_i32 || Ty == IceType_i8)) // TODO(kschimpf) Expand?
+    return setNeedsTextFixup();
+  const bool IsByte = typeWidthInBytes(Ty) == 1;
+  // Check for rule violations.
+  if ((getGPRReg(kRnShift, Address) == RegARM32::Encoded_Reg_pc))
+    return setNeedsTextFixup();
+  if (!isBitSet(P, Address) && isBitSet(W, Address))
+    return setNeedsTextFixup();
+  if (!IsByte && (getGPRReg(kRnShift, Address) == RegARM32::Encoded_Reg_sp) &&
+      isBitSet(P, Address) && !isBitSet(U, Address) && isBitSet(W, Address) &&
+      (mask(Address, kImm12Shift, kImmed12Bits) == 0x8 /* 000000000100 */))
+    return setNeedsTextFixup();
+  emitMemOp(Cond, kInstTypeMemImmediate, IsLoad, IsByte, Rt, Address);
 }
 
 void ARM32::AssemblerARM32::sub(const Operand *OpRd, const Operand *OpRn,
                                 const Operand *OpSrc1, bool SetFlags,
                                 CondARM32::Cond Cond) {
-  // Note: Loop is used so that we can short circuit using break;
-  do {
-    uint32_t Rd;
-    if (decodeOperand(OpRd, Rd) != DecodedAsRegister)
-      break;
-    uint32_t Rn;
-    if (decodeOperand(OpRn, Rn) != DecodedAsRegister)
-      break;
-    constexpr uint32_t Sub = B1; // 0010
-    uint32_t Src1Value;
-    // TODO(kschimpf) Other possible decodings of sub.
-    switch (decodeOperand(OpSrc1, Src1Value)) {
-    default:
-      break;
-    case DecodedAsRegister: {
-      // SUB (register) - ARM section A8.8.223, encoding A1:
-      //   sub{s}<c> <Rd>, <Rn>, <Rm>{, <shift>}
-      // SUB (SP minus register): See ARM section 8.8.226, encoding A1:
-      //   sub{s}<c> <Rd>, sp, <Rm>{, <Shift>}
-      //
-      // cccc0000010snnnnddddiiiiitt0mmmm where cccc=Cond, dddd=Rd, nnnn=Rn,
-      // mmmm=Rm, iiiiii=shift, tt=ShiftKind, and s=SetFlags.
-      Src1Value = encodeShiftRotateImm5(Src1Value, OperandARM32::kNoShift, 0);
-      constexpr uint32_t InstType = 0; // i.e. register
-      if (((Rd == RegARM32::Encoded_Reg_pc) && SetFlags))
-        // Conditions of rule violated.
-        break;
-      emitType01(Cond, InstType, Sub, SetFlags, Rn, Rd, Src1Value);
-      return;
-    }
-    case DecodedAsRotatedImm8: {
-      // Sub (Immediate) - ARM section A8.8.222, encoding A1:
-      //    sub{s}<c> <Rd>, <Rn>, #<RotatedImm8>
-      // Sub (Sp minus immediate) - ARM section A8.*.225, encoding A1:
-      //    sub{s}<c> sp, <Rn>, #<RotatedImm8>
-      //
-      // cccc0010010snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
-      // s=SetFlags and iiiiiiiiiiii=Src1Value=RotatedImm8
-      if (Rd == RegARM32::Encoded_Reg_pc)
-        // Conditions of rule violated.
-        break;
-      constexpr uint32_t InstType = 1;
-      emitType01(Cond, InstType, Sub, SetFlags, Rn, Rd, Src1Value);
-      return;
-    }
-    }
-  } while (0);
-  UnimplementedError(Ctx->getFlags());
+  uint32_t Rd;
+  if (decodeOperand(OpRd, Rd) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  uint32_t Rn;
+  if (decodeOperand(OpRn, Rn) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  constexpr uint32_t Sub = B1; // 0010
+  uint32_t Src1Value;
+  // TODO(kschimpf) Other possible decodings of sub.
+  switch (decodeOperand(OpSrc1, Src1Value)) {
+  default:
+    return setNeedsTextFixup();
+  case DecodedAsRegister: {
+    // SUB (register) - ARM section A8.8.223, encoding A1:
+    //   sub{s}<c> <Rd>, <Rn>, <Rm>{, <shift>}
+    // SUB (SP minus register): See ARM section 8.8.226, encoding A1:
+    //   sub{s}<c> <Rd>, sp, <Rm>{, <Shift>}
+    //
+    // cccc0000010snnnnddddiiiiitt0mmmm where cccc=Cond, dddd=Rd, nnnn=Rn,
+    // mmmm=Rm, iiiiii=shift, tt=ShiftKind, and s=SetFlags.
+    Src1Value = encodeShiftRotateImm5(Src1Value, OperandARM32::kNoShift, 0);
+    if (((Rd == RegARM32::Encoded_Reg_pc) && SetFlags))
+      // Conditions of rule violated.
+      return setNeedsTextFixup();
+    emitType01(Cond, kInstTypeDataRegister, Sub, SetFlags, Rn, Rd, Src1Value);
+    return;
+  }
+  case DecodedAsRotatedImm8: {
+    // Sub (Immediate) - ARM section A8.8.222, encoding A1:
+    //    sub{s}<c> <Rd>, <Rn>, #<RotatedImm8>
+    // Sub (Sp minus immediate) - ARM section A8.*.225, encoding A1:
+    //    sub{s}<c> sp, <Rn>, #<RotatedImm8>
+    //
+    // cccc0010010snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
+    // s=SetFlags and iiiiiiiiiiii=Src1Value=RotatedImm8
+    if (Rd == RegARM32::Encoded_Reg_pc)
+      // Conditions of rule violated.
+      return setNeedsTextFixup();
+    emitType01(Cond, kInstTypeDataImmediate, Sub, SetFlags, Rn, Rd, Src1Value);
+    return;
+  }
+  }
 }
 
 } // end of namespace Ice

@@ -62,6 +62,11 @@ public:
   bool getDecorateAsm() const { return DecorateAsm; }
   void setDecorateAsm(bool NewValue) { DecorateAsm = NewValue; }
 
+  bool getDisableHybridAssembly() const { return DisableHybridAssembly; }
+  void setDisableHybridAssembly(bool NewValue) {
+    DisableHybridAssembly = NewValue;
+  }
+
   bool getDisableInternal() const { return DisableInternal; }
   void setDisableInternal(bool NewValue) { DisableInternal = NewValue; }
 
@@ -253,6 +258,7 @@ private:
   bool AllowUninitializedGlobals;
   bool DataSections;
   bool DecorateAsm;
+  bool DisableHybridAssembly;
   bool DisableInternal;
   bool DisableIRGeneration;
   bool DisableTranslation;

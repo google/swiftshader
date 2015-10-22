@@ -885,7 +885,6 @@ private:
   inline void emitRegisterOperand(int rm, int reg);
   template <typename RegType, typename RmType>
   inline void emitXmmRegisterOperand(RegType reg, RmType rm);
-  inline void emitFixup(AssemblerFixup *fixup);
   inline void emitOperandSizeOverride();
 
   void emitOperand(int rm, const typename Traits::Operand &operand);
@@ -1060,11 +1059,6 @@ template <typename RegType, typename RmType>
 inline void AssemblerX86Base<Machine>::emitXmmRegisterOperand(RegType reg,
                                                               RmType rm) {
   emitRegisterOperand(gprEncoding(reg), gprEncoding(rm));
-}
-
-template <class Machine>
-inline void AssemblerX86Base<Machine>::emitFixup(AssemblerFixup *fixup) {
-  Buffer.emitFixup(fixup);
 }
 
 template <class Machine>

@@ -45,12 +45,34 @@ public:
 
   void set_value(const Constant *Value) { value_ = Value; }
 
-  void emit(GlobalContext *Ctx, RelocOffsetT OverrideOffset) const;
+  /// Emits fixup, then returns the number of bytes to skip.
+  virtual size_t emit(GlobalContext *Ctx, RelocOffsetT OverrideOffset,
+                      bool IsPCRel) const;
 
 private:
   intptr_t position_ = 0;
   FixupKind kind_ = 0;
   const Constant *value_ = nullptr;
+};
+
+/// Extends a fixup to be textual. That is, it emits text instead of a sequence
+/// of bytes. This class is used as a fallback for unimplemented emitIAS
+/// methods, allowing them to generate compilable assembly code.
+class AssemblerTextFixup : public AssemblerFixup {
+  AssemblerTextFixup() = delete;
+  AssemblerTextFixup(const AssemblerTextFixup &) = delete;
+  AssemblerTextFixup &operator=(const AssemblerTextFixup &) = delete;
+
+public:
+  AssemblerTextFixup(const std::string &Message, size_t NumBytes)
+      : AssemblerFixup(), Message(Message), NumBytes(NumBytes) {}
+  ~AssemblerTextFixup() = default;
+  virtual size_t emit(GlobalContext *Ctx, RelocOffsetT OverrideOffset,
+                      bool isPcRel) const;
+
+private:
+  const std::string Message;
+  const size_t NumBytes;
 };
 
 using FixupList = std::vector<AssemblerFixup>;

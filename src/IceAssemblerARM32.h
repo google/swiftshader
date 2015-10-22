@@ -53,11 +53,12 @@ public:
   void alignFunction() override {
     const SizeT Align = 1 << getBundleAlignLog2Bytes();
     SizeT BytesNeeded = Utils::OffsetToAlignment(Buffer.getPosition(), Align);
+    constexpr uint32_t UndefinedInst = 0xe7fedef0; // udf #60896
     constexpr SizeT InstSize = sizeof(int32_t);
     assert(BytesNeeded % InstSize == 0);
     while (BytesNeeded > 0) {
-      // TODO(kschimpf) Should this be NOP or some other instruction?
-      bkpt(0);
+      AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+      emitInst(UndefinedInst);
       BytesNeeded -= InstSize;
     }
   }
@@ -91,7 +92,8 @@ public:
 
   bool fixupIsPCRel(FixupKind Kind) const override {
     (void)Kind;
-    llvm_unreachable("Not yet implemented.");
+    // TODO(kschimpf) Decide if we need this.
+    return false;
   }
 
   void bind(Label *label);
@@ -117,6 +119,8 @@ public:
   static bool classof(const Assembler *Asm) {
     return Asm->getKind() == Asm_ARM32;
   }
+
+  void emitTextInst(const std::string &Text);
 
 private:
   // A vector of pool-allocated x86 labels for CFG nodes.

@@ -1,13 +1,22 @@
 ; Show that we know how to translate instruction sub.
 
-; NOTE: We use -O2 to get rid of memory stores.
-
 ; REQUIRES: allow_dump
 
+; Compile using standalone assembler.
 ; RUN: %p2i --filetype=asm -i %s --target=arm32 --args -O2 \
 ; RUN:   | FileCheck %s --check-prefix=ASM
+
+; Show bytes in assembled standalone code.
+; RUN: %p2i --filetype=asm -i %s --target=arm32 --assemble --disassemble \
+; RUN:   --args -O2 | FileCheck %s --check-prefix=DIS
+
+; Compile using integrated assembler.
 ; RUN: %p2i --filetype=iasm -i %s --target=arm32 --args -O2 \
 ; RUN:   | FileCheck %s --check-prefix=IASM
+
+; Show bytes in assembled integrated code.
+; RUN: %p2i --filetype=iasm -i %s --target=arm32 --assemble --disassemble \
+; RUN:   --args -O2 | FileCheck %s --check-prefix=DIS
 
 define internal i32 @sub1FromR0(i32 %p) {
   %v = sub i32 %p, 1
@@ -17,6 +26,9 @@ define internal i32 @sub1FromR0(i32 %p) {
 ; ASM-LABEL: sub1FromR0:
 ; ASM:	sub	r0, r0, #1
 ; ASM:	bx	lr
+
+; DIS-LABEL:00000000 <sub1FromR0>:
+; DIS-NEXT:   0:	e2400001
 
 ; IASM-LABEL: sub1FromR0:
 ; IASM:	     .byte 0x1
@@ -34,9 +46,11 @@ define internal i32 @Sub2Regs(i32 %p1, i32 %p2) {
 ; ASM:       sub r0, r0, r1
 ; ASM-NEXT:  bx lr
 
-; IASM-LABEL: Sub2Regs:
+; DIS-LABEL:00000010 <Sub2Regs>:
+; DIS-NEXT:  10:	e0400001
 
-; IASM:      .byte 0x1
+; IASM-LABEL: Sub2Regs:
+; IASM-NEXT: .byte 0x1
 ; IASM-NEXT: .byte 0x0
 ; IASM-NEXT: .byte 0x40
 ; IASM-NEXT: .byte 0xe0
