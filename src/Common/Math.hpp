@@ -209,49 +209,103 @@ namespace sw
 	template<const int n>
 	inline unsigned int unorm(float x)
 	{
-		const unsigned int max = 0xFFFFFFFF >> (32 - n);
+		static const unsigned int max = 0xFFFFFFFF >> (32 - n);
+		static const float maxf = static_cast<float>(max);
 
-		if(x > 1)
+		if(x >= 1.0f)
 		{
 			return max;
 		}
-		else if(x < 0)
+		else if(x <= 0.0f)
 		{
 			return 0;
 		}
 		else
 		{
-			return (unsigned int)(max * x + 0.5f);
+			return static_cast<unsigned int>(maxf * x + 0.5f);
 		}
 	}
 
 	template<const int n>
 	inline int snorm(float x)
 	{
-		const unsigned int min = 0x80000000 >> (32 - n);
-		const unsigned int max = 0xFFFFFFFF >> (32 - n + 1);
-		const unsigned int range = 0xFFFFFFFF >> (32 - n);
+		static const unsigned int min = 0x80000000 >> (32 - n);
+		static const unsigned int max = 0xFFFFFFFF >> (32 - n + 1);
+		static const float maxf = static_cast<float>(max);
+		static const unsigned int range = 0xFFFFFFFF >> (32 - n);
 
-		if(x > 0)
+		if(x >= 0.0f)
 		{
-			if(x > 1)
+			if(x >= 1.0f)
 			{
 				return max;
 			}
 			else
 			{
-				return (int)(max * x + 0.5f);
+				return static_cast<int>(maxf * x + 0.5f);
 			}
 		}
 		else
 		{
-			if(x < -1)
+			if(x <= -1.0f)
 			{
 				return min;
 			}
 			else
 			{
-				return (int)(max * x - 0.5f) & range;
+				return static_cast<int>(maxf * x - 0.5f) & range;
+			}
+		}
+	}
+
+	template<const int n>
+	inline unsigned int ucast(float x)
+	{
+		static const unsigned int max = 0xFFFFFFFF >> (32 - n);
+		static const float maxf = static_cast<float>(max);
+
+		if(x >= maxf)
+		{
+			return max;
+		}
+		else if(x <= 0.0f)
+		{
+			return 0;
+		}
+		else
+		{
+			return static_cast<unsigned int>(x + 0.5f);
+		}
+	}
+
+	template<const int n>
+	inline int scast(float x)
+	{
+		static const unsigned int min = 0x80000000 >> (32 - n);
+		static const unsigned int max = 0xFFFFFFFF >> (32 - n + 1);
+		static const float maxf = static_cast<float>(max);
+		static const unsigned int range = 0xFFFFFFFF >> (32 - n);
+
+		if(x > 0.0f)
+		{
+			if(x >= maxf)
+			{
+				return max;
+			}
+			else
+			{
+				return static_cast<int>(maxf * x + 0.5f);
+			}
+		}
+		else
+		{
+			if(x <= -1.0f)
+			{
+				return min;
+			}
+			else
+			{
+				return static_cast<int>(maxf * x - 0.5f) & range;
 			}
 		}
 	}
