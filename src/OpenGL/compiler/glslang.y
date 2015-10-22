@@ -38,13 +38,12 @@ WHICH GENERATES THE GLSL ES PARSER (glslang_tab.cpp AND glslang_tab.h).
 #include "ParseHelper.h"
 
 #define YYENABLE_NLS 0
-
-#define YYLEX_PARAM context->getScanner()
 %}
 
 %expect 1 /* One shift reduce conflict because of if | else */
 %pure-parser
 %parse-param {TParseContext* context}
+%param {void* yyscanner}
 
 %code requires {
 #define YYLTYPE TSourceLoc
@@ -87,7 +86,7 @@ WHICH GENERATES THE GLSL ES PARSER (glslang_tab.cpp AND glslang_tab.h).
 
 %{
 extern int yylex(YYSTYPE* yylval, YYLTYPE* yylloc, void* yyscanner);
-extern void yyerror(YYLTYPE* lloc, TParseContext* context, const char* reason);
+extern void yyerror(YYLTYPE* lloc, TParseContext* context, void* scanner, const char* reason);
 
 #define YYLLOC_DEFAULT(Current, Rhs, N)                      \
   do {                                                       \
@@ -1747,5 +1746,5 @@ function_definition
 %%
 
 int glslang_parse(TParseContext* context) {
-    return yyparse(context);
+    return yyparse(context, context->getScanner());
 }

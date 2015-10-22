@@ -526,8 +526,8 @@ int float_constant(yyscan_t yyscanner) {
     return FLOATCONSTANT;
 }
 
-void yyerror(YYLTYPE* lloc, TParseContext* context, const char* reason) {
-    struct yyguts_t* yyg = (struct yyguts_t*) context->getScanner();
+void yyerror(YYLTYPE* lloc, TParseContext* context, void* scanner, const char* reason) {
+    struct yyguts_t* yyg = (struct yyguts_t*) scanner;
 
     if (context->AfterEOF) {
         context->error(*lloc, reason, "unexpected EOF");
