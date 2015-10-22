@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "f63875ce_7447a63a",
+        "filename": "src/OpenGL/compiler/glslang.y",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-10-22T16:22:07Z",
+      "side": 1,
+      "message": "This should probably be \"TParseContext* context\" instead. It\u0027s the signature of the last parameter we\u0027re passing to glslang_scan() in glslang.l.\n\nWe should define \"void* yyscanner \u003d context-\u003egetScanner();\" somewhere, but I\u0027m not sure yet where that belongs...",
+      "range": {
+        "startLine": 46,
+        "startChar": 12,
+        "endLine": 46,
+        "endChar": 27
+      },
+      "revId": "940cabb3283288a5dd572cae70792dfb429d8d4c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f66155ea_ac34abc1",
         "filename": "src/OpenGL/compiler/glslang_tab.cpp",
         "patchSetId": 1
