@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f66155ea_ac34abc1",
+        "filename": "src/OpenGL/compiler/glslang_tab.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2274,
+      "author": {
+        "id": 5440
+      },
+      "writtenOn": "2015-10-22T15:43:58Z",
+      "side": 1,
+      "message": "This line does not compile. Correct version:\nyychar \u003d yylex (\u0026\u0026yylval, \u0026yylloc, context-\u003egetScanner());\n\nIn previous versions of Bison, additional arguments to yylex were specified by macro defininition of YYLEX_PARAM:\n#define YYLEX_PARAM context-\u003egetScanner()\n\nIn this case bison would generate macro \n\"#define YYLEX yylex(\u0026yylval, \u0026yylloc, YYLEX_PARAM)\" and used it on this line instead of call to yylex.\n\nThis macro was deprecated and replaced by %lex-param. However, %lex-param specifies the type of an additional yylex argument, not the argument itself.\n\nAnd I have no idea how to tell Bison to generate a correct third argument :(",
+      "revId": "940cabb3283288a5dd572cae70792dfb429d8d4c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
