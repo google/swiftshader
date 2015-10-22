@@ -205,6 +205,12 @@ namespace sw
 			OPCODE_SMOOTH,
 			OPCODE_ISNAN,
 			OPCODE_ISINF,
+			OPCODE_TEXOFFSET,
+			OPCODE_TEXLDLOFFSET,
+			OPCODE_TEXELFETCH,
+			OPCODE_TEXELFETCHOFFSET,
+			OPCODE_TEXGRAD,
+			OPCODE_TEXGRADOFFSET,
 			OPCODE_FLOATBITSTOINT,
 			OPCODE_FLOATBITSTOUINT,
 			OPCODE_INTBITSTOFLOAT,
@@ -511,7 +517,7 @@ namespace sw
 			unsigned char usageIndex;
 
 			DestinationParameter dst;
-			SourceParameter src[4];
+			SourceParameter src[5];
 
 			union
 			{

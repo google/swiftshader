@@ -865,6 +865,12 @@ namespace sw
 		case OPCODE_TEXLDD:			return "texldd";
 		case OPCODE_CMP:			return "cmp";
 		case OPCODE_TEXLDL:			return "texldl";
+		case OPCODE_TEXOFFSET:		return "texoffset";
+		case OPCODE_TEXLDLOFFSET:	return "texldloffset";
+		case OPCODE_TEXELFETCH:		return "texelfetch";
+		case OPCODE_TEXELFETCHOFFSET: return "texelfetchoffset";
+		case OPCODE_TEXGRAD:		return "texgrad";
+		case OPCODE_TEXGRADOFFSET:	return "texgradoffset";
 		case OPCODE_BREAKP:			return "breakp";
 		case OPCODE_TEXSIZE:        return "texsize";
 		case OPCODE_PHASE:			return "phase";
@@ -1772,6 +1778,12 @@ namespace sw
 			case OPCODE_TEXM3X2DEPTH:
 			case OPCODE_TEXLDD:
 			case OPCODE_TEXLDL:
+			case OPCODE_TEXOFFSET:
+			case OPCODE_TEXLDLOFFSET:
+			case OPCODE_TEXELFETCH:
+			case OPCODE_TEXELFETCHOFFSET:
+			case OPCODE_TEXGRAD:
+			case OPCODE_TEXGRADOFFSET:
 				{
 					Parameter &dst = instruction[i]->dst;
 					Parameter &src1 = instruction[i]->src[1];

@@ -113,6 +113,86 @@ namespace glsl
 		return 0;
 	}
 
+	OutputASM::TextureFunction::TextureFunction(const TString& nodeName) : method(IMPLICIT), proj(false), offset(false)
+	{
+		TString name = TFunction::unmangleName(nodeName);
+
+		if(name == "texture2D" || name == "textureCube" || name == "texture" || name == "texture3D")
+		{
+			method = IMPLICIT;
+		}
+		else if(name == "texture2DProj" || name == "textureProj")
+		{
+			method = IMPLICIT;
+			proj = true;
+		}
+		else if(name == "texture2DLod" || name == "textureCubeLod" || name == "textureLod")
+		{
+			method = LOD;
+		}
+		else if(name == "texture2DProjLod" || name == "textureProjLod")
+		{
+			method = LOD;
+			proj = true;
+		}
+		else if(name == "textureSize")
+		{
+			method = SIZE;
+		}
+		else if(name == "textureOffset")
+		{
+			method = IMPLICIT;
+			offset = true;
+		}
+		else if(name == "textureProjOffset")
+		{
+			method = IMPLICIT;
+			offset = true;
+			proj = true;
+		}
+		else if(name == "textureLodOffset")
+		{
+			method = LOD;
+			offset = true;
+		}
+		else if(name == "textureProjLodOffset")
+		{
+			method = LOD;
+			proj = true;
+			offset = true;
+		}
+		else if(name == "texelFetch")
+		{
+			method = FETCH;
+		}
+		else if(name == "texelFetchOffset")
+		{
+			method = FETCH;
+			offset = true;
+		}
+		else if(name == "textureGrad")
+		{
+			method = GRAD;
+		}
+		else if(name == "textureGradOffset")
+		{
+			method = GRAD;
+			offset = true;
+		}
+		else if(name == "textureProjGrad")
+		{
+			method = GRAD;
+			proj = true;
+		}
+		else if(name == "textureProjGradOffset")
+		{
+			method = GRAD;
+			proj = true;
+			offset = true;
+		}
+		else UNREACHABLE(0);
+	}
+
 	OutputASM::OutputASM(TParseContext &context, Shader *shaderObject) : TIntermTraverser(true, true, true), mContext(context), shaderObject(shaderObject)
 	{
 		shader = 0;
@@ -1042,105 +1122,161 @@ namespace glsl
 				}
 				else
 				{
-					TString name = TFunction::unmangleName(node->getName());
-
-					if(name == "texture" || name == "texture2D" || name == "textureCube" || name == "texture3D")
+					const TextureFunction textureFunction(node->getName());
+					switch(textureFunction.method)
 					{
-						if(argumentCount == 2)
+					case TextureFunction::IMPLICIT:
 						{
-							emit(sw::Shader::OPCODE_TEX, result, arg[1], arg[0]);
-						}
-						else if(argumentCount == 3)   // bias
-						{
-							Temporary uvwb(this);
-							emit(sw::Shader::OPCODE_MOV, &uvwb, arg[1]);
-							Instruction *bias = emit(sw::Shader::OPCODE_MOV, &uvwb, arg[2]);
-							bias->dst.mask = 0x8;
+							TIntermTyped *t = arg[1]->getAsTyped();
 
-							Instruction *tex = emit(sw::Shader::OPCODE_TEX, result, &uvwb, arg[0]);   // FIXME: Implement an efficient TEXLDB instruction
-							tex->bias = true;
-						}
-						else UNREACHABLE(argumentCount);
-					}
-					else if(name == "texture2DProj" || name == "textureProj")
-					{
-						TIntermTyped *t = arg[1]->getAsTyped();
+							TIntermNode* offset = textureFunction.offset ? arg[2] : 0;
 
-						if(argumentCount == 2)
-						{
-							Instruction *tex = emit(sw::Shader::OPCODE_TEX, result, arg[1], arg[0]);
-							tex->project = true;
-
-							if(t->getNominalSize() == 3)
+							if(argumentCount == 2 || (textureFunction.offset && argumentCount == 3))
 							{
-								tex->src[0].swizzle = 0xA4;
+								Instruction *tex = emit(textureFunction.offset ? sw::Shader::OPCODE_TEXOFFSET : sw::Shader::OPCODE_TEX,
+								                        result, arg[1], arg[0], offset);
+								if(textureFunction.proj)
+								{
+									tex->project = true;
+
+									switch(t->getNominalSize())
+									{
+									case 2: tex->src[0].swizzle = 0x54; break; // xyyy
+									case 3: tex->src[0].swizzle = 0xA4; break; // xyzz
+									case 4: break; // xyzw
+									default:
+										UNREACHABLE(t->getNominalSize());
+										break;
+									}
+								}
 							}
-							else ASSERT(t->getNominalSize() == 4);
+							else if(argumentCount == 3 || (textureFunction.offset && argumentCount == 4))   // bias
+							{
+								Temporary proj(this);
+								if(textureFunction.proj)
+								{
+									Instruction *div = emit(sw::Shader::OPCODE_DIV, &proj, arg[1], arg[1]);
+									div->dst.mask = 0x3;
+
+									switch(t->getNominalSize())
+									{
+									case 2:
+									case 3:
+									case 4:
+										div->src[1].swizzle = 0x55 * (t->getNominalSize() - 1);
+										break;
+									default:
+										UNREACHABLE(t->getNominalSize());
+										break;
+									}
+								}
+								else
+								{
+									emit(sw::Shader::OPCODE_MOV, &proj, arg[1]);
+								}
+
+								Instruction *bias = emit(sw::Shader::OPCODE_MOV, &proj, arg[textureFunction.offset ? 3 : 2]);
+								bias->dst.mask = 0x8;
+
+								Instruction *tex = emit(textureFunction.offset ? sw::Shader::OPCODE_TEXOFFSET : sw::Shader::OPCODE_TEX, 
+								                        result, &proj, arg[0], offset); // FIXME: Implement an efficient TEXLDB instruction
+								tex->bias = true;
+							}
+							else UNREACHABLE(argumentCount);
 						}
-						else if(argumentCount == 3)   // bias
+						break;
+					case TextureFunction::LOD:
 						{
+							TIntermTyped *t = arg[1]->getAsTyped();
 							Temporary proj(this);
 
-							if(t->getNominalSize() == 3)
+							if(textureFunction.proj)
 							{
-								Instruction *div = emit(sw::Shader::OPCODE_DIV, &proj, arg[1], arg[1]);
-								div->src[1].swizzle = 0xAA;
-								div->dst.mask = 0x3;
+									Instruction *div = emit(sw::Shader::OPCODE_DIV, &proj, arg[1], arg[1]);
+									div->dst.mask = 0x3;
+
+								switch(t->getNominalSize())
+								{
+								case 2:
+								case 3:
+								case 4:
+									div->src[1].swizzle = 0x55 * (t->getNominalSize() - 1);
+									break;
+								default:
+									UNREACHABLE(t->getNominalSize());
+									break;
+								}
 							}
-							else if(t->getNominalSize() == 4)
+							else
 							{
-								Instruction *div = emit(sw::Shader::OPCODE_DIV, &proj, arg[1], arg[1]);
-								div->src[1].swizzle = 0xFF;
-								div->dst.mask = 0x3;
+								emit(sw::Shader::OPCODE_MOV, &proj, arg[1]);
 							}
-							else UNREACHABLE(t->getNominalSize());
 
-							Instruction *bias = emit(sw::Shader::OPCODE_MOV, &proj, arg[2]);
-							bias->dst.mask = 0x8;
+							Instruction *lod = emit(sw::Shader::OPCODE_MOV, &proj, arg[2]);
+							lod->dst.mask = 0x8;
 
-							Instruction *tex = emit(sw::Shader::OPCODE_TEX, result, &proj, arg[0]);
-							tex->bias = true;
+							emit(textureFunction.offset ? sw::Shader::OPCODE_TEXLDLOFFSET : sw::Shader::OPCODE_TEXLDL,
+							     result, &proj, arg[0], textureFunction.offset ? arg[3] : 0);
 						}
-						else UNREACHABLE(argumentCount);
-					}
-					else if(name == "texture2DLod" || name == "textureCubeLod" || name == "textureLod")
-					{
-						Temporary uvwb(this);
-						emit(sw::Shader::OPCODE_MOV, &uvwb, arg[1]);
-						Instruction *lod = emit(sw::Shader::OPCODE_MOV, &uvwb, arg[2]);
-						lod->dst.mask = 0x8;
-
-						emit(sw::Shader::OPCODE_TEXLDL, result, &uvwb, arg[0]);
-					}
-					else if(name == "texture2DProjLod" || name == "textureProjLod")
-					{
-						TIntermTyped *t = arg[1]->getAsTyped();
-						Temporary proj(this);
-
-						if(t->getNominalSize() == 3)
+						break;
+					case TextureFunction::FETCH:
 						{
-							Instruction *div = emit(sw::Shader::OPCODE_DIV, &proj, arg[1], arg[1]);
-							div->src[1].swizzle = 0xAA;
-							div->dst.mask = 0x3;
+							TIntermTyped *t = arg[1]->getAsTyped();
+
+							if(argumentCount == 3 || (textureFunction.offset && argumentCount == 4))
+							{
+								TIntermNode* offset = textureFunction.offset ? arg[3] : 0;
+
+								emit(textureFunction.offset ? sw::Shader::OPCODE_TEXELFETCHOFFSET : sw::Shader::OPCODE_TEXELFETCH,
+								     result, arg[1], arg[0], arg[2], offset);
+							}
+							else UNREACHABLE(argumentCount);
 						}
-						else if(t->getNominalSize() == 4)
+						break;
+					case TextureFunction::GRAD:
 						{
-							Instruction *div = emit(sw::Shader::OPCODE_DIV, &proj, arg[1], arg[1]);
-							div->src[1].swizzle = 0xFF;
-							div->dst.mask = 0x3;
+							TIntermTyped *t = arg[1]->getAsTyped();
+
+							if(argumentCount == 4 || (textureFunction.offset && argumentCount == 5))
+							{
+								Temporary uvwb(this);
+
+								if(textureFunction.proj)
+								{
+									Instruction *div = emit(sw::Shader::OPCODE_DIV, &uvwb, arg[1], arg[1]);
+									div->dst.mask = 0x3;
+
+									switch(t->getNominalSize())
+									{
+									case 2:
+									case 3:
+									case 4:
+										div->src[1].swizzle = 0x55 * (t->getNominalSize() - 1);
+										break;
+									default:
+										UNREACHABLE(t->getNominalSize());
+										break;
+									}
+								}
+								else
+								{
+									emit(sw::Shader::OPCODE_MOV, &uvwb, arg[1]);
+								}
+
+								TIntermNode* offset = textureFunction.offset ? arg[4] : 0;
+
+								emit(textureFunction.offset ? sw::Shader::OPCODE_TEXGRADOFFSET : sw::Shader::OPCODE_TEXGRAD,
+								     result, &uvwb, arg[0], arg[2], arg[3], offset);
+							}
+							else UNREACHABLE(argumentCount);
 						}
-						else UNREACHABLE(t->getNominalSize());
-
-						Instruction *lod = emit(sw::Shader::OPCODE_MOV, &proj, arg[2]);
-						lod->dst.mask = 0x8;
-
-						emit(sw::Shader::OPCODE_TEXLDL, result, &proj, arg[0]);
-					}
-					else if(name == "textureSize")
-					{
+						break;
+					case TextureFunction::SIZE:
 						emit(sw::Shader::OPCODE_TEXSIZE, result, arg[1], arg[0]);
+						break;
+					default:
+						UNREACHABLE(textureFunction.method);
 					}
-					else UNREACHABLE(0);
 				}
 			}
 			break;
@@ -1483,7 +1619,7 @@ namespace glsl
 		TIntermTyped *condition = node->getCondition();
 		TIntermTyped *expression = node->getExpression();
 		TIntermNode *body = node->getBody();
-
+		
 		if(node->getType() == ELoopDoWhile)
 		{
 			Temporary iterate(this);
@@ -1607,7 +1743,7 @@ namespace glsl
 		return IsSampler(type.getBasicType()) && (type.getQualifier() == EvqUniform || type.getQualifier() == EvqTemporary);
 	}
 
-	Instruction *OutputASM::emit(sw::Shader::Opcode op, TIntermTyped *dst, TIntermNode *src0, TIntermNode *src1, TIntermNode *src2, TIntermNode *src3, int index)
+	Instruction *OutputASM::emit(sw::Shader::Opcode op, TIntermTyped *dst, TIntermNode *src0, TIntermNode *src1, TIntermNode *src2, TIntermNode *src3, TIntermNode *src4, int index)
 	{
 		if(isSamplerRegister(dst))
 		{
@@ -1628,6 +1764,7 @@ namespace glsl
 		argument(instruction->src[1], src1, index);
 		argument(instruction->src[2], src2, index);
 		argument(instruction->src[3], src3, index);
+		argument(instruction->src[4], src4, index);
 
 		shader->append(instruction);
 
@@ -1683,7 +1820,7 @@ namespace glsl
 	{
 		for(int index = 0; index < dst->elementRegisterCount(); index++)
 		{
-			emit(op, dst, src0, src1, src2, 0, index);
+			emit(op, dst, src0, src1, src2, 0, 0, index);
 		}
 	}
 

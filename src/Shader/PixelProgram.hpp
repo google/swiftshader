@@ -112,6 +112,12 @@ namespace sw
 		void TEXLDL(Registers &r, Vector4f &dst, Vector4f &src0, const Src &src1, bool project, bool bias);
 		void TEXSIZE(Registers &r, Vector4f &dst, Float4 &lod, const Src &src1);
 		void TEXKILL(Int cMask[4], Vector4f &src, unsigned char mask);
+		void TEXOFFSET(Registers &r, Vector4f &dst, Vector4f &src, const Src&, Vector4f &src2, Vector4f &src3, bool project, bool bias);
+		void TEXLDL(Registers &r, Vector4f &dst, Vector4f &src0, const Src &src1, Vector4f &src2, bool project, bool bias);
+		void TEXELFETCH(Registers &r, Vector4f &dst, Vector4f &src, const Src&, Vector4f &src2);
+		void TEXELFETCH(Registers &r, Vector4f &dst, Vector4f &src, const Src&, Vector4f &src2, Vector4f &src3);
+		void TEXGRAD(Registers &r, Vector4f &dst, Vector4f &src, const Src&, Vector4f &src2, Vector4f &src3);
+		void TEXGRAD(Registers &r, Vector4f &dst, Vector4f &src, const Src&, Vector4f &src2, Vector4f &src3, Vector4f &src4);
 		void DISCARD(Registers &r, Int cMask[4], const Shader::Instruction *instruction);
 		void DFDX(Vector4f &dst, Vector4f &src);
 		void DFDY(Vector4f &dst, Vector4f &src);

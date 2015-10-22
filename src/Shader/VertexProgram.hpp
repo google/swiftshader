@@ -79,6 +79,12 @@ namespace sw
 		void LEAVE(Registers &r);
 		void TEXLDL(Registers &r, Vector4f &dst, Vector4f &src, const Src&);
 		void TEX(Registers &r, Vector4f &dst, Vector4f &src, const Src&);
+		void TEXOFFSET(Registers &r, Vector4f &dst, Vector4f &src, const Src&, Vector4f &src2, Vector4f &src3);
+		void TEXLDL(Registers &r, Vector4f &dst, Vector4f &src, const Src&, Vector4f &src2);
+		void TEXELFETCH(Registers &r, Vector4f &dst, Vector4f &src, const Src&, Vector4f &src2);
+		void TEXELFETCH(Registers &r, Vector4f &dst, Vector4f &src, const Src&, Vector4f &src2, Vector4f &src3);
+		void TEXGRAD(Registers &r, Vector4f &dst, Vector4f &src, const Src&, Vector4f &src2, Vector4f &src3);
+		void TEXGRAD(Registers &r, Vector4f &dst, Vector4f &src, const Src&, Vector4f &src2, Vector4f &src3, Vector4f &src4);
 		void TEXSIZE(Registers &r, Vector4f &dst, Float4 &lod, const Src&);
 
 		void sampleTexture(Registers &r, Vector4f &c, const Src &s, Float4 &u, Float4 &v, Float4 &w, Float4 &q);

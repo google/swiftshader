@@ -299,6 +299,12 @@ namespace sw
 						case Shader::OPCODE_TEX:
 						case Shader::OPCODE_TEXLDD:
 						case Shader::OPCODE_TEXLDL:
+						case Shader::OPCODE_TEXOFFSET:
+						case Shader::OPCODE_TEXLDLOFFSET:
+						case Shader::OPCODE_TEXELFETCH:
+						case Shader::OPCODE_TEXELFETCHOFFSET:
+						case Shader::OPCODE_TEXGRAD:
+						case Shader::OPCODE_TEXGRADOFFSET:
 							{
 								int sampler = instruction[i]->src[1].index;
 

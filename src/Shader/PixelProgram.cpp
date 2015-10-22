@@ -110,6 +110,7 @@ namespace sw
 			const Src &src1 = instruction->src[1];
 			const Src &src2 = instruction->src[2];
 			const Src &src3 = instruction->src[3];
+			const Src &src4 = instruction->src[4];
 
 			bool predicate = instruction->predicate;
 			Control control = instruction->control;
@@ -122,6 +123,7 @@ namespace sw
 			Vector4f s1;
 			Vector4f s2;
 			Vector4f s3;
+			Vector4f s4;
 
 			if(opcode == Shader::OPCODE_TEXKILL)   // Takes destination as input
 			{
@@ -142,6 +144,7 @@ namespace sw
 			if(src1.type != Shader::PARAMETER_VOID) s1 = fetchRegisterF(r, src1);
 			if(src2.type != Shader::PARAMETER_VOID) s2 = fetchRegisterF(r, src2);
 			if(src3.type != Shader::PARAMETER_VOID) s3 = fetchRegisterF(r, src3);
+			if(src4.type != Shader::PARAMETER_VOID) s4 = fetchRegisterF(r, src4);
 
 			switch(opcode)
 			{
@@ -275,6 +278,12 @@ namespace sw
 			case Shader::OPCODE_TEXLDL:     TEXLDL(r, d, s0, src1, project, bias);         break;
 			case Shader::OPCODE_TEXSIZE:    TEXSIZE(r, d, s0.x, src1);                     break;
 			case Shader::OPCODE_TEXKILL:    TEXKILL(cMask, d, dst.mask);                   break;
+			case Shader::OPCODE_TEXOFFSET:  TEXOFFSET(r, d, s0, src1, s2, s3, project, bias); break;
+			case Shader::OPCODE_TEXLDLOFFSET: TEXLDL(r, d, s0, src1, s2, project, bias);   break;
+			case Shader::OPCODE_TEXELFETCH: TEXELFETCH(r, d, s0, src1, s2);                break;
+			case Shader::OPCODE_TEXELFETCHOFFSET: TEXELFETCH(r, d, s0, src1, s2, s3);      break;
+			case Shader::OPCODE_TEXGRAD:    TEXGRAD(r, d, s0, src1, s2, s3);               break;
+			case Shader::OPCODE_TEXGRADOFFSET: TEXGRAD(r, d, s0, src1, s2, s3, s4);        break;
 			case Shader::OPCODE_DISCARD:    DISCARD(r, cMask, instruction);                break;
 			case Shader::OPCODE_DFDX:       DFDX(d, s0);                                   break;
 			case Shader::OPCODE_DFDY:       DFDY(d, s0);                                   break;
@@ -1028,6 +1037,36 @@ namespace sw
 		dst.y = tmp[(src1.swizzle >> 2) & 0x3];
 		dst.z = tmp[(src1.swizzle >> 4) & 0x3];
 		dst.w = tmp[(src1.swizzle >> 6) & 0x3];
+	}
+
+	void PixelProgram::TEXOFFSET(Registers &r, Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2, Vector4f &src3, bool project, bool bias)
+	{
+		UNIMPLEMENTED();
+	}
+
+	void PixelProgram::TEXLDL(Registers &r, Vector4f &dst, Vector4f &src0, const Src &src1, Vector4f &offset, bool project, bool bias)
+	{
+		UNIMPLEMENTED();
+	}
+
+	void PixelProgram::TEXELFETCH(Registers &r, Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2)
+	{
+		UNIMPLEMENTED();
+	}
+
+	void PixelProgram::TEXELFETCH(Registers &r, Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2, Vector4f &offset)
+	{
+		UNIMPLEMENTED();
+	}
+
+	void PixelProgram::TEXGRAD(Registers &r, Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2, Vector4f &src3)
+	{
+		UNIMPLEMENTED();
+	}
+
+	void PixelProgram::TEXGRAD(Registers &r, Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2, Vector4f &src3, Vector4f &offset)
+	{
+		UNIMPLEMENTED();
 	}
 
 	void PixelProgram::TEXLDD(Registers &r, Vector4f &dst, Vector4f &src0, const Src &src1, Vector4f &src2, Vector4f &src3, bool project, bool bias)

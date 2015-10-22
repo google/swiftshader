@@ -103,6 +103,7 @@ namespace sw
 			Src src1 = instruction->src[1];
 			Src src2 = instruction->src[2];
 			Src src3 = instruction->src[3];
+			Src src4 = instruction->src[4];
 
 			bool predicate = instruction->predicate;
 			Control control = instruction->control;
@@ -114,11 +115,13 @@ namespace sw
 			Vector4f s1;
 			Vector4f s2;
 			Vector4f s3;
+			Vector4f s4;
 
 			if(src0.type != Shader::PARAMETER_VOID) s0 = fetchRegisterF(r, src0);
 			if(src1.type != Shader::PARAMETER_VOID) s1 = fetchRegisterF(r, src1);
 			if(src2.type != Shader::PARAMETER_VOID) s2 = fetchRegisterF(r, src2);
 			if(src3.type != Shader::PARAMETER_VOID) s3 = fetchRegisterF(r, src3);
+			if(src4.type != Shader::PARAMETER_VOID) s4 = fetchRegisterF(r, src4);
 
 			switch(opcode)
 			{
@@ -289,6 +292,12 @@ namespace sw
 			case Shader::OPCODE_NE:         notEqual(d, s0, s1);            break;
 			case Shader::OPCODE_TEXLDL:		TEXLDL(r, d, s0, src1);			break;
 			case Shader::OPCODE_TEX:		TEX(r, d, s0, src1);			break;
+			case Shader::OPCODE_TEXOFFSET:  TEXOFFSET(r, d, s0, src1, s2, s3);        break;
+			case Shader::OPCODE_TEXLDLOFFSET: TEXLDL(r, d, s0, src1, s2);	break;
+			case Shader::OPCODE_TEXELFETCH: TEXELFETCH(r, d, s0, src1, s2);           break;
+			case Shader::OPCODE_TEXELFETCHOFFSET: TEXELFETCH(r, d, s0, src1, s2, s3); break;
+			case Shader::OPCODE_TEXGRAD:    TEXGRAD(r, d, s0, src1, s2, s3);          break;
+			case Shader::OPCODE_TEXGRADOFFSET: TEXGRAD(r, d, s0, src1, s2, s3, s4);   break;
 			case Shader::OPCODE_TEXSIZE:	TEXSIZE(r, d, s0.x, src1);		break;
 			case Shader::OPCODE_END:										break;
 			default:
@@ -1486,6 +1495,36 @@ namespace sw
 		dst.y = tmp[(src1.swizzle >> 2) & 0x3];
 		dst.z = tmp[(src1.swizzle >> 4) & 0x3];
 		dst.w = tmp[(src1.swizzle >> 6) & 0x3];
+	}
+
+	void VertexProgram::TEXOFFSET(Registers &r, Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2, Vector4f &src3)
+	{
+		UNIMPLEMENTED();
+	}
+
+	void VertexProgram::TEXLDL(Registers &r, Vector4f &dst, Vector4f &src, const Src&, Vector4f &offset)
+	{
+		UNIMPLEMENTED();
+	}
+
+	void VertexProgram::TEXELFETCH(Registers &r, Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2)
+	{
+		UNIMPLEMENTED();
+	}
+
+	void VertexProgram::TEXELFETCH(Registers &r, Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2, Vector4f &offset)
+	{
+		UNIMPLEMENTED();
+	}
+
+	void VertexProgram::TEXGRAD(Registers &r, Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2, Vector4f &src3)
+	{
+		UNIMPLEMENTED();
+	}
+
+	void VertexProgram::TEXGRAD(Registers &r, Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2, Vector4f &src3, Vector4f &offset)
+	{
+		UNIMPLEMENTED();
 	}
 
 	void VertexProgram::TEXSIZE(Registers &r, Vector4f &dst, Float4 &lod, const Src &src1)
