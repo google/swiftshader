@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f63875ce_54d5c2a4",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-10-22T16:38:44Z",
+      "side": 1,
+      "message": "These should be clamped instead of allowing them to wrap. Something similar to snorm\u003c8\u003e, except not normalized (sint\u003c\u003e and uint\u003c\u003e would probably be ok as long as they\u0027re in the sw:: namespace).",
+      "range": {
+        "startLine": 76,
+        "startChar": 21,
+        "endLine": 76,
+        "endChar": 38
+      },
+      "revId": "1ec35efd41157cc70c10d3714a6bb7a933566fb0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
