@@ -26,15 +26,16 @@ define internal i32 @add1ToR0(i32 %p) {
 }
 
 ; ASM-LABEL: add1ToR0:
-; ASM:       add     r0, r0, #1
-; ASM-NEXT:  bx      lr
+; ASM-NEXT:  .Ladd1ToR0$__0:
+; ASM-NEXT:     add     r0, r0, #1
+; ASM-NEXT:     bx      lr
 
 ; DIS-LABEL:00000000 <add1ToR0>:
 ; DIS-NEXT:   0:        e2800001
 ; DIS-NEXT:   4:        e12fff1e
 
 ; IASM-LABEL: add1ToR0:
-
+; IASM-LABEL: .Ladd1ToR0$__0:
 ; IASM-NEXT:    .byte 0x1
 ; IASM-NEXT:    .byte 0x0
 ; IASM-NEXT:    .byte 0x80
@@ -51,15 +52,16 @@ define internal i32 @Add2Regs(i32 %p1, i32 %p2) {
 }
 
 ; ASM-LABEL: Add2Regs:
-; ASM:       add r0, r0, r1
-; ASM-NEXT:  bx lr
+; ASM-NEXT:  .LAdd2Regs$__0:
+; ASM-NEXT:     add r0, r0, r1
+; ASM-NEXT:     bx lr
 
 ; DIS-LABEL:00000010 <Add2Regs>:
 ; DIS-NEXT:  10:        e0800001
 ; DIS-NEXT:  14:        e12fff1e
 
 ; IASM-LABEL: Add2Regs:
-
+; IASM-NEXT:  .LAdd2Regs$__0:
 ; IASM-NEXT:    .byte 0x1
 ; IASM-NEXT:    .byte 0x0
 ; IASM-NEXT:    .byte 0x80

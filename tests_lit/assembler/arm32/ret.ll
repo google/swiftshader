@@ -27,10 +27,9 @@ define internal void @f() {
 ; ASM-NEXT: .Lf$__0:
 ; ASM-NEXT:     bx      lr
 
-
-
 ; DIS-LABEL:00000000 <f>:
 ; IASM-LABEL:f:
+; IASM-NEXT:.Lf$__0:
 
 ; DIS-NEXT:   0:        e12fff1e
 ; IASM-NEXT:    .byte 0x1e

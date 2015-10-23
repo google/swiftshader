@@ -152,7 +152,7 @@ public:
   }
 
   Ice::Label *getCfgNodeLabel(SizeT NodeNumber) override;
-  void bindCfgNodeLabel(SizeT NodeNumber) override;
+  void bindCfgNodeLabel(const CfgNode *Node) override;
   Label *getOrCreateCfgNodeLabel(SizeT Number);
   Label *getOrCreateLocalLabel(SizeT Number);
   void bindLocalLabel(SizeT Number);

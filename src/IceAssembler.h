@@ -276,9 +276,8 @@ public:
 
   /// Get the label for a CfgNode.
   virtual Label *getCfgNodeLabel(SizeT NodeNumber) = 0;
-  /// Mark the current text location as the start of a CFG node (represented by
-  /// NodeNumber).
-  virtual void bindCfgNodeLabel(SizeT NodeNumber) = 0;
+  /// Mark the current text location as the start of a CFG node.
+  virtual void bindCfgNodeLabel(const CfgNode *Node) = 0;
 
   virtual bool fixupIsPCRel(FixupKind Kind) const = 0;
 

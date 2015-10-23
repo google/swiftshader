@@ -67,8 +67,7 @@ public:
     llvm_unreachable("Not yet implemented.");
   }
 
-  void bindCfgNodeLabel(SizeT NodeNumber) override {
-    (void)NodeNumber;
+  void bindCfgNodeLabel(const CfgNode *) override {
     llvm::report_fatal_error("Not yet implemented.");
   }
 

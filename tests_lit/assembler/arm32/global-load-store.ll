@@ -52,6 +52,7 @@ define internal i32 @load() {
 ; DIS-NEXT:   c:   e12fff1e
 
 ; IASM-LABEL:load:
+; IASM-NEXT: .Lload$__0:
 ; IASM-NEXT:    movw    r0, #:lower16:global1
 ; IASM-NEXT:    movt    r0, #:upper16:global1
 ; IASM-NEXT:    ldr     r0, [r0]
@@ -80,6 +81,7 @@ define internal void @store(i32 %v) {
 ; DIS-NEXT:  1c:   e12fff1e
 
 ; IASM-LABEL:store:
+; IASM-NEXT: .Lstore$__0:
 ; IASM-NEXT:    movw    r1, #:lower16:global1
 ; IASM-NEXT:    movt    r1, #:upper16:global1
 ; IASM-NEXT:    str     r0, [r1]

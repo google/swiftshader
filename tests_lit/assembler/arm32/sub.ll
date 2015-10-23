@@ -50,7 +50,7 @@ define internal i32 @Sub2Regs(i32 %p1, i32 %p2) {
 ; DIS-NEXT:  10:	e0400001
 
 ; IASM-LABEL: Sub2Regs:
-; IASM-NEXT: .byte 0x1
+; IASM:      .byte 0x1
 ; IASM-NEXT: .byte 0x0
 ; IASM-NEXT: .byte 0x40
 ; IASM-NEXT: .byte 0xe0

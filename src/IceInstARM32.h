@@ -792,6 +792,7 @@ public:
   IceString getName(const Cfg *Func) const;
   SizeT getNumber() const { return Number; }
   void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
 
 private:

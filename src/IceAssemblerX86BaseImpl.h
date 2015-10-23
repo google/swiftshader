@@ -22,6 +22,7 @@
 #include "IceAssemblerX86Base.h"
 
 #include "IceCfg.h"
+#include "IceCfgNode.h"
 #include "IceOperand.h"
 
 namespace Ice {
@@ -86,9 +87,9 @@ Label *AssemblerX86Base<Machine>::getOrCreateLocalLabel(SizeT Number) {
 }
 
 template <class Machine>
-void AssemblerX86Base<Machine>::bindCfgNodeLabel(SizeT NodeNumber) {
+void AssemblerX86Base<Machine>::bindCfgNodeLabel(const CfgNode *Node) {
   assert(!getPreliminary());
-  Label *L = getOrCreateCfgNodeLabel(NodeNumber);
+  Label *L = getOrCreateCfgNodeLabel(Node->getIndex());
   this->bind(L);
 }
 

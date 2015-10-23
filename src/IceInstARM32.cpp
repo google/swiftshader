@@ -801,6 +801,13 @@ void InstARM32Label::emit(const Cfg *Func) const {
   Str << getName(Func) << ":";
 }
 
+void InstARM32Label::emitIAS(const Cfg *Func) const {
+  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  Asm->bindLocalLabel(Number);
+  if (Asm->needsTextFixup())
+    emitUsingTextFixup(Func);
+}
+
 void InstARM32Label::dump(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;

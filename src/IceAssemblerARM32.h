@@ -39,6 +39,7 @@ namespace Ice {
 namespace ARM32 {
 
 class AssemblerARM32 : public Assembler {
+  AssemblerARM32() = delete;
   AssemblerARM32(const AssemblerARM32 &) = delete;
   AssemblerARM32 &operator=(const AssemblerARM32 &) = delete;
 
@@ -48,7 +49,16 @@ public:
     // TODO(kschimpf): Add mode if needed when branches are handled.
     (void)use_far_branches;
   }
-  ~AssemblerARM32() override = default;
+  ~AssemblerARM32() override {
+    if (BuildDefs::asserts()) {
+      for (const Label *Label : CfgNodeLabels) {
+        Label->finalCheck();
+      }
+      for (const Label *Label : LocalLabels) {
+        Label->finalCheck();
+      }
+    }
+  }
 
   void alignFunction() override {
     const SizeT Align = 1 << getBundleAlignLog2Bytes();
@@ -84,10 +94,12 @@ public:
     return CfgNodeLabels[NodeNumber];
   }
 
-  void bindCfgNodeLabel(SizeT NodeNumber) override {
-    assert(!getPreliminary());
-    Label *L = getOrCreateCfgNodeLabel(NodeNumber);
-    this->bind(L);
+  void bindCfgNodeLabel(const CfgNode *Node) override;
+
+  void bindLocalLabel(SizeT Number) {
+    Label *L = getOrCreateLocalLabel(Number);
+    if (!getPreliminary())
+      this->bind(L);
   }
 
   bool fixupIsPCRel(FixupKind Kind) const override {
@@ -120,16 +132,21 @@ public:
     return Asm->getKind() == Asm_ARM32;
   }
 
-  void emitTextInst(const std::string &Text);
+  void emitTextInst(const std::string &Text, SizeT InstSize = sizeof(uint32_t));
 
 private:
   // A vector of pool-allocated x86 labels for CFG nodes.
   using LabelVector = std::vector<Label *>;
   LabelVector CfgNodeLabels;
+  // A vector of pool-allocated x86 labels for Local labels.
+  LabelVector LocalLabels;
 
   Label *getOrCreateLabel(SizeT Number, LabelVector &Labels);
   Label *getOrCreateCfgNodeLabel(SizeT NodeNumber) {
     return getOrCreateLabel(NodeNumber, CfgNodeLabels);
+  }
+  Label *getOrCreateLocalLabel(SizeT Number) {
+    return getOrCreateLabel(Number, LocalLabels);
   }
 
   void emitInst(uint32_t Value) { Buffer.emit<uint32_t>(Value); }

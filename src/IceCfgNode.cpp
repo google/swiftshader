@@ -1184,7 +1184,7 @@ void CfgNode::emitIAS(Cfg *Func) const {
   // TODO(stichnot): When sandboxing, defer binding the node label until just
   // before the first instruction is emitted, to reduce the chance that a
   // padding nop is a branch target.
-  Asm->bindCfgNodeLabel(getIndex());
+  Asm->bindCfgNodeLabel(this);
   for (const Inst &I : Phis) {
     if (I.isDeleted())
       continue;

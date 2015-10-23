@@ -21,6 +21,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "IceAssemblerARM32.h"
+#include "IceCfgNode.h"
 #include "IceUtils.h"
 
 namespace {
@@ -204,6 +205,18 @@ DecodedResult decodeAddress(const Operand *Opnd, uint32_t &Value) {
 
 namespace Ice {
 
+void ARM32::AssemblerARM32::bindCfgNodeLabel(const CfgNode *Node) {
+  if (BuildDefs::dump() && !Ctx->getFlags().getDisableHybridAssembly()) {
+    // Generate label name so that branches can find it.
+    constexpr SizeT InstSize = 0;
+    emitTextInst(Node->getAsmName() + ":", InstSize);
+  }
+  SizeT NodeNumber = Node->getIndex();
+  assert(!getPreliminary());
+  Label *L = getOrCreateCfgNodeLabel(NodeNumber);
+  this->bind(L);
+}
+
 Label *ARM32::AssemblerARM32::getOrCreateLabel(SizeT Number,
                                                LabelVector &Labels) {
   Label *L = nullptr;
@@ -236,12 +249,13 @@ void ARM32::AssemblerARM32::bind(Label *label) {
   label->bindTo(bound);
 }
 
-void ARM32::AssemblerARM32::emitTextInst(const std::string &Text) {
-  static constexpr uint32_t Placeholder = 0;
+void ARM32::AssemblerARM32::emitTextInst(const std::string &Text,
+                                         SizeT InstSize) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  AssemblerFixup *F = createTextFixup(Text, sizeof(Placeholder));
+  AssemblerFixup *F = createTextFixup(Text, InstSize);
   emitFixup(F);
-  emitInst(Placeholder);
+  for (SizeT I = 0; I < InstSize; ++I)
+    Buffer.emit<char>(0);
 }
 
 void ARM32::AssemblerARM32::emitType01(CondARM32::Cond Cond, uint32_t Type,
