@@ -19,8 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{9F14A82C-19FD-4A8A-B4FF-FF00FFF6F2DD}</ProjectGuid>
-    <RootNamespace>OGLES2ColourGrading</RootNamespace>
+    <ProjectGuid>{2EA5725B-25DA-44E2-B71E-BD9F55F3C2E2}</ProjectGuid>
+    <RootNamespace>OGLES3ColourGrading</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -81,32 +81,32 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>BUILD_OGLES2;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\..\..\..\Shell;..\..\..\..\..\..\Shell\API\KEGL;..\..\..\..\..\..\Shell\OS\Windows;..\..\..\..\..\..\Builds\Include;..\..\..\..\..\..\Tools\OGLES2;..\..\..\..\..\..\Tools\OGLES2;</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>BUILD_OGLES3;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\..\..\..\..\Shell;..\..\..\..\..\..\Shell\API\KEGL;..\..\..\..\..\..\Shell\OS\Windows;..\..\..\..\..\..\Builds\Include;..\..\..\..\..\..\Tools\OGLES2;..\..\..\..\..\..\Tools\OGLES3;</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>false</MinimalRebuild>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\..\..\..\..\..\Builds\Windows\x86_32\Lib;..\..\..\..\..\..\Tools\OGLES2\Build\WindowsVC2010\$(IntDir)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libEGL.lib;libGLESv2.lib;OGLES2Tools.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\..\..\..\Builds\Windows\x86_32\Lib;..\..\..\..\..\..\Tools\OGLES3\Build\WindowsVC2010\$(IntDir)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libEGL.lib;libGLESv2.lib;OGLES3Tools.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>BUILD_OGLES2;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\..\..\..\Shell;..\..\..\..\..\..\Shell\API\KEGL;..\..\..\..\..\..\Shell\OS\Windows;..\..\..\..\..\..\Builds\Include;..\..\..\..\..\..\Tools\OGLES2;..\..\..\..\..\..\Tools\OGLES2;</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>BUILD_OGLES3;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\..\..\..\..\Shell;..\..\..\..\..\..\Shell\API\KEGL;..\..\..\..\..\..\Shell\OS\Windows;..\..\..\..\..\..\Builds\Include;..\..\..\..\..\..\Tools\OGLES2;..\..\..\..\..\..\Tools\OGLES3;</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>false</MinimalRebuild>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\..\..\..\..\..\Builds\Windows\x86_64\Lib;..\..\..\..\..\..\Tools\OGLES2\Build\WindowsVC2010\$(IntDir);</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libEGL.lib;libGLESv2.lib;OGLES2Tools.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\..\..\..\Builds\Windows\x86_64\Lib;..\..\..\..\..\..\Tools\OGLES3\Build\WindowsVC2010\$(IntDir);</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libEGL.lib;libGLESv2.lib;OGLES3Tools.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -115,8 +115,8 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>BUILD_OGLES2;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\..\..\..\Shell;..\..\..\..\..\..\Shell\API\KEGL;..\..\..\..\..\..\Shell\OS\Windows;..\..\..\..\..\..\Builds\Include;..\..\..\..\..\..\Tools\OGLES2;..\..\..\..\..\..\Tools\OGLES2;</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>BUILD_OGLES3;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\..\..\..\..\Shell;..\..\..\..\..\..\Shell\API\KEGL;..\..\..\..\..\..\Shell\OS\Windows;..\..\..\..\..\..\Builds\Include;..\..\..\..\..\..\Tools\OGLES2;..\..\..\..\..\..\Tools\OGLES3;</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>false</MinimalRebuild>
@@ -125,8 +125,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>..\..\..\..\..\..\Builds\Windows\x86_32\Lib;..\..\..\..\..\..\Tools\OGLES2\Build\WindowsVC2010\$(IntDir);</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libEGL.lib;libGLESv2.lib;OGLES2Tools.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\..\..\..\Builds\Windows\x86_32\Lib;..\..\..\..\..\..\Tools\OGLES3\Build\WindowsVC2010\$(IntDir);</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libEGL.lib;libGLESv2.lib;OGLES3Tools.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -135,8 +135,8 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>BUILD_OGLES2;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\..\..\..\Shell;..\..\..\..\..\..\Shell\API\KEGL;..\..\..\..\..\..\Shell\OS\Windows;..\..\..\..\..\..\Builds\Include;..\..\..\..\..\..\Tools\OGLES2;..\..\..\..\..\..\Tools\OGLES2;</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>BUILD_OGLES3;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\..\..\..\..\Shell;..\..\..\..\..\..\Shell\API\KEGL;..\..\..\..\..\..\Shell\OS\Windows;..\..\..\..\..\..\Builds\Include;..\..\..\..\..\..\Tools\OGLES2;..\..\..\..\..\..\Tools\OGLES3;</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>false</MinimalRebuild>
@@ -145,12 +145,12 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>..\..\..\..\..\..\Builds\Windows\x86_64\Lib;..\..\..\..\..\..\Tools\OGLES2\Build\WindowsVC2010\$(IntDir);</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libEGL.lib;libGLESv2.lib;OGLES2Tools.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\..\..\..\Builds\Windows\x86_64\Lib;..\..\..\..\..\..\Tools\OGLES3\Build\WindowsVC2010\$(IntDir);</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libEGL.lib;libGLESv2.lib;OGLES3Tools.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\OGLES2ColourGrading.cpp" />
+    <ClCompile Include="..\..\OGLES3ColourGrading.cpp" />
     <ClCompile Include="..\..\..\..\..\..\Shell\PVRShell.cpp" />
     <ClCompile Include="..\..\..\..\..\..\Shell\API\KEGL\PVRShellAPI.cpp" />
     <ClCompile Include="..\..\..\..\..\..\Shell\OS\Windows\PVRShellOS.cpp" />
@@ -414,8 +414,8 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\..\Tools\OGLES2\Build\WindowsVC2010\OGLES2Tools.vcxproj">
-      <Project>{09abe661-9bc0-4152-a820-1fb0522cac01}</Project>
+    <ProjectReference Include="..\..\..\..\..\..\Tools\OGLES3\Build\WindowsVC2010\OGLES3Tools.vcxproj">
+      <Project>{9088fc9e-9843-4e0d-85d0-1b657afc480a}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

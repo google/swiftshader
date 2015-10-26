@@ -1,6 +1,6 @@
 /******************************************************************************
  
- @File         OGLES2ColourGrading.cpp
+ @File         OGLES3ColourGrading.cpp
  
  @Title        Colour grading
  
@@ -14,7 +14,7 @@
  
  ******************************************************************************/
 #include "PVRShell.h"
-#include "OGLES2Tools.h"
+#include "OGLES3Tools.h"
 
 /******************************************************************************
  Constants
@@ -88,15 +88,8 @@ const char* const c_pszLUTNames[] =
 /*!****************************************************************************
  Class implementing the PVRShell functions.
  ******************************************************************************/
-class OGLES2ColourGrading : public PVRShell
+class OGLES3ColourGrading : public PVRShell
 {
-	enum EMultisampleExtension
-	{
-		eMultisampleExtension_None,
-		eMultisampleExtension_IMG,
-		eMultisampleExtension_ANGLE
-	};
-
 	// Print3D object
 	CPVRTPrint3D			m_Print3D;
 	
@@ -158,7 +151,6 @@ class OGLES2ColourGrading : public PVRShell
 
 	// Texture IDs used by the app
 	GLuint	m_uiTextureToRenderTo;
-	GLuint  m_uiDepthToRenderTo;
 
 	// Handle for our FBO and the depth buffer that it requires
 	GLuint m_uiFBO;
@@ -171,47 +163,7 @@ class OGLES2ColourGrading : public PVRShell
 	// Start time
 	unsigned long m_ulStartTime;
 
-	// Extensions
-	CPVRTgles2Ext m_Extensions;
-
-	// Discard the frame buffer attachments
-	bool m_bDiscard;
-	bool m_bMultisampledSupported;
-	EMultisampleExtension m_eMultisampleMode;
-
-	bool m_flipX;
-	bool m_flipY;
-
 public:
-	OGLES2ColourGrading() :
-		m_uiMaskTexture(0),
-		m_uiBackgroundTexture(0),
-		m_iCurrentLUT(0),
-		m_ui32FullScreenRectVBO(0),
-		m_ui32VertexStride(0),
-		m_puiMaskVBO(0),
-		m_puiMaskIBO(0),
-		m_ui32BackgroundVBO(0),
-		m_uiPostVertShader(0),
-		m_uiPostFragShader(0),
-		m_uiBackgroundFragShader(0),
-		m_uiSceneVertShader(0),
-		m_uiSceneFragShader(0),
-		m_i32OriginalFbo(0),
-		m_uiTextureToRenderTo(0),
-		m_uiDepthToRenderTo(0),
-		m_uiFBO(0),
-		m_uiFBOMultisampled(0),
-		m_uiDepthBufferMultisampled(0),
-		m_uiColourBufferMultisampled(0),
-		m_ulStartTime(0),
-		m_bDiscard(false),
-		m_bMultisampledSupported(false),
-		m_flipX(false),
-		m_flipY(false)
-	{
-	}
-
 	// PVRShell functions
 	virtual bool InitApplication();
 	virtual bool InitView();
@@ -237,7 +189,7 @@ private:
                 If the rendering context is lost, InitApplication() will
                 not be called again.
  ******************************************************************************/
-bool OGLES2ColourGrading::InitApplication()
+bool OGLES3ColourGrading::InitApplication()
 {
 	// Get and set the read path for content files
 	CPVRTResourceFile::SetReadPath((char*)PVRShellGet(prefReadPath));
@@ -268,7 +220,7 @@ bool OGLES2ColourGrading::InitApplication()
                 If the rendering context is lost, QuitApplication() will
                 not be called.
  ******************************************************************************/
-bool OGLES2ColourGrading::QuitApplication()
+bool OGLES3ColourGrading::QuitApplication()
 {
 	// Free the memory allocated for the scene
 	m_Mask.Destroy();
@@ -288,7 +240,7 @@ bool OGLES2ColourGrading::QuitApplication()
  @Description	Loads and parses the bundled PFX and generates the various
                 effect objects.
  ******************************************************************************/
-bool OGLES2ColourGrading::LoadShaders(CPVRTString& ErrorStr)
+bool OGLES3ColourGrading::LoadShaders(CPVRTString& ErrorStr)
 {
 	// Load and compile the shaders from files.
 	if(PVRTShaderLoadFromFile(NULL, c_szVertShaderSrcFile, GL_VERTEX_SHADER, GL_SGX_BINARY_IMG, &m_uiPostVertShader, &ErrorStr) != PVR_SUCCESS)
@@ -373,7 +325,7 @@ bool OGLES2ColourGrading::LoadShaders(CPVRTString& ErrorStr)
  @Description	Loads the mesh data required for this training course into
 				vertex buffer objects
 ******************************************************************************/
-void OGLES2ColourGrading::LoadVbos(const bool bRotated)
+void OGLES3ColourGrading::LoadVbos(const bool bRotated)
 {
 	if(!m_puiMaskVBO)      
 		m_puiMaskVBO = new GLuint[m_Mask.nNumMesh];
@@ -495,20 +447,13 @@ void OGLES2ColourGrading::LoadVbos(const bool bRotated)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-bool OGLES2ColourGrading::CreateFBO()
+bool OGLES3ColourGrading::CreateFBO()
 {
-	// Figure out if the platform supports either EXT or IMG extension
-	m_eMultisampleMode = eMultisampleExtension_IMG;
-	if(m_Extensions.glRenderbufferStorageMultisampleANGLE)
-	{
-		m_eMultisampleMode = eMultisampleExtension_ANGLE;
-	}
-
 	GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0 };
 
 	// Query the max amount of samples that are supported, we are going to use the max
 	GLint samples;
-	glGetIntegerv(GL_MAX_SAMPLES_EXT, &samples);
+	glGetIntegerv(GL_MAX_SAMPLES, &samples);
 
 	// Get the currently bound frame buffer object. On most platforms this just gives 0.
 	glGetIntegerv(GL_FRAMEBUFFER_BINDING, &m_i32OriginalFbo);
@@ -516,7 +461,7 @@ bool OGLES2ColourGrading::CreateFBO()
 	// Create a texture for rendering to
 	glGenTextures(1, &m_uiTextureToRenderTo);
 	glBindTexture(GL_TEXTURE_2D, m_uiTextureToRenderTo);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, PVRShellGet(prefWidth), PVRShellGet(prefHeight), 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, PVRShellGet(prefWidth), PVRShellGet(prefHeight), 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -525,18 +470,12 @@ bool OGLES2ColourGrading::CreateFBO()
 	// Create the object that will allow us to render to the aforementioned texture
 	glGenFramebuffers(1, &m_uiFBO);
 	glBindFramebuffer(GL_FRAMEBUFFER, m_uiFBO);
+	
+	glDrawBuffers(1, drawBuffers);
+	glReadBuffer(GL_COLOR_ATTACHMENT0);
 
 	// Attach the texture to the FBO
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_uiTextureToRenderTo, 0);
-	if(!m_bMultisampledSupported)
-	{
-		glGenTextures(1, &m_uiDepthToRenderTo);
-		glBindTexture(GL_TEXTURE_2D, m_uiDepthToRenderTo);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, PVRShellGet(prefWidth), PVRShellGet(prefHeight), 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, 0);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_uiDepthToRenderTo, 0);
-	}
 
 	// Check that our FBO creation was successful
 	GLuint uStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -546,46 +485,38 @@ bool OGLES2ColourGrading::CreateFBO()
 		return false;
 	}
 
+	// Create and initialize the multi-sampled FBO.
+
+	// Create the object that will allow us to render to the aforementioned texture
+	glGenFramebuffers(1, &m_uiFBOMultisampled);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_uiFBOMultisampled);
+	
+	glDrawBuffers(1, drawBuffers);
+	glReadBuffer(GL_COLOR_ATTACHMENT0);			
+
 	// Generate and bind a render buffer which will become a multisampled depth buffer shared between our two FBOs
-	if(m_bMultisampledSupported)
+	glGenRenderbuffers(1, &m_uiDepthBufferMultisampled);
+	glBindRenderbuffer(GL_RENDERBUFFER, m_uiDepthBufferMultisampled);	
+	glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_DEPTH_COMPONENT24, PVRShellGet(prefWidth), PVRShellGet(prefHeight));
+
+	glGenRenderbuffers(1, &m_uiColourBufferMultisampled);
+	glBindRenderbuffer(GL_RENDERBUFFER, m_uiColourBufferMultisampled);	
+	glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_RGB8, PVRShellGet(prefWidth), PVRShellGet(prefHeight));
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	// Attach the multisampled depth buffer we created earlier to our FBO.
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_uiDepthBufferMultisampled);
+
+	// Attach the multisampled colour renderbuffer to the FBO
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, m_uiColourBufferMultisampled);
+
+	// Check that our FBO creation was successful
+	uStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if(uStatus != GL_FRAMEBUFFER_COMPLETE)
 	{
-		// Create and initialize the multi-sampled FBO.
-
-		// Create the object that will allow us to render to the aforementioned texture
-		glGenFramebuffers(1, &m_uiFBOMultisampled);
-		glBindFramebuffer(GL_FRAMEBUFFER, m_uiFBOMultisampled);
-
-		glGenRenderbuffers(1, &m_uiDepthBufferMultisampled);
-		glBindRenderbuffer(GL_RENDERBUFFER, m_uiDepthBufferMultisampled);
-
-		if(m_eMultisampleMode == eMultisampleExtension_ANGLE)
-			m_Extensions.glRenderbufferStorageMultisampleANGLE(GL_RENDERBUFFER, samples, GL_DEPTH_COMPONENT16, PVRShellGet(prefWidth), PVRShellGet(prefHeight));
-		else
-			m_Extensions.glRenderbufferStorageMultisampleIMG(GL_RENDERBUFFER, samples, GL_DEPTH_COMPONENT16, PVRShellGet(prefWidth), PVRShellGet(prefHeight));
-
-		glGenRenderbuffers(1, &m_uiColourBufferMultisampled);
-		glBindRenderbuffer(GL_RENDERBUFFER, m_uiColourBufferMultisampled);
-		if(m_eMultisampleMode == eMultisampleExtension_ANGLE)
-			m_Extensions.glRenderbufferStorageMultisampleANGLE(GL_RENDERBUFFER, samples, GL_RGB8_OES, PVRShellGet(prefWidth), PVRShellGet(prefHeight));
-		else
-			m_Extensions.glRenderbufferStorageMultisampleIMG(GL_RENDERBUFFER, samples, GL_RGB8_OES, PVRShellGet(prefWidth), PVRShellGet(prefHeight));
-
-		glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-		// Attach the multisampled depth buffer we created earlier to our FBO.
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_uiDepthBufferMultisampled);
-
-		// Attach the multisampled colour renderbuffer to the FBO
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, m_uiColourBufferMultisampled);
-
-		// Check that our FBO creation was successful
-		uStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-		if(uStatus != GL_FRAMEBUFFER_COMPLETE)
-		{
-			PVRShellSet(prefExitMessage, "ERROR: Failed to initialise multisampled FBO");
-			return false;
-		}
-	}
+		PVRShellSet(prefExitMessage, "ERROR: Failed to initialise multisampled FBO");
+		return false;
+	}		
 
 	// Unbind the frame buffer object so rendering returns back to the backbuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, m_i32OriginalFbo);
@@ -601,10 +532,8 @@ bool OGLES2ColourGrading::CreateFBO()
                 Used to initialize variables that are dependent on the rendering
                 context (e.g. textures, vertex buffers, etc.)
  ******************************************************************************/
-bool OGLES2ColourGrading::InitView()
+bool OGLES3ColourGrading::InitView()
 {
-	m_Extensions.LoadExtensions();
-
 	// Initialize the textures used by Print3D.
 	bool bRotate = PVRShellGet(prefIsRotated) && PVRShellGet(prefFullScreen);
 	
@@ -636,12 +565,12 @@ bool OGLES2ColourGrading::InitView()
 			return false;
 		}
 
-		glTexParameteri(GL_TEXTURE_3D_OES, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_3D_OES, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_3D_OES, GL_TEXTURE_WRAP_R_OES, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
-		glTexParameteri(GL_TEXTURE_3D_OES, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_3D_OES, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	}
 
 	// Load the effects
@@ -652,24 +581,11 @@ bool OGLES2ColourGrading::InitView()
 		return false;
 	}
 	
-	// Create a multisampled FBO if the required extension is supported
-	m_eMultisampleMode = eMultisampleExtension_None;
-	m_bMultisampledSupported = false;
-	m_bMultisampledSupported |= CPVRTgles2Ext::IsGLExtensionSupported("GL_ANGLE_framebuffer_multisample");
-	m_bMultisampledSupported |= CPVRTgles2Ext::IsGLExtensionSupported("GL_IMG_multisampled_render_to_texture");
-
 	// Create FBOs
 	if(!CreateFBO())
 	{
 		PVRShellSet(prefExitMessage, "Failed to create FBO");
 		return false;
-	}
-
-	// Check to see if the GL_EXT_discard_framebuffer extension is supported
-	m_bDiscard = CPVRTgles2Ext::IsGLExtensionSupported("GL_EXT_discard_framebuffer");
-	if(m_bDiscard)
-	{
-		m_bDiscard = m_Extensions.glDiscardFramebufferEXT != 0;
 	}
 
 	// Initialise VBO data
@@ -699,14 +615,13 @@ bool OGLES2ColourGrading::InitView()
  @Description	Code in ReleaseView() will be called by PVRShell when the
                 application quits or before a change in the rendering context.
  ******************************************************************************/
-bool OGLES2ColourGrading::ReleaseView()
+bool OGLES3ColourGrading::ReleaseView()
 {
 	// Frees the texture
 	glDeleteTextures(1, &m_uiMaskTexture);
 	glDeleteTextures(1, &m_uiBackgroundTexture);
 	glDeleteTextures(eLast, m_uiLUTs);
 	glDeleteTextures(1, &m_uiTextureToRenderTo);
-	glDeleteTextures(1, &m_uiDepthToRenderTo);
 
 	// Release Vertex buffer object.
 	glDeleteBuffers(1, &m_ui32FullScreenRectVBO);
@@ -753,7 +668,7 @@ bool OGLES2ColourGrading::ReleaseView()
                 Will also manage relevant OS events. The user has access to
 				these events through an abstraction layer provided by PVRShell.
  ******************************************************************************/
-bool OGLES2ColourGrading::RenderScene()
+bool OGLES3ColourGrading::RenderScene()
 {
 	// Clears the colour buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -775,19 +690,11 @@ bool OGLES2ColourGrading::RenderScene()
 		if(m_iCurrentLUT < eA)
 			m_iCurrentLUT = eB;
 	}
-	else if(PVRShellIsKeyPressed(PVRShellKeyNameUP))
-	{
-		m_flipX = !m_flipX;
-	}
-	else if(PVRShellIsKeyPressed(PVRShellKeyNameDOWN))
-	{
-		m_flipY = !m_flipY;
-	}
-
+	
 	// Render to our texture
 	{
 		// Bind our FBO
-		glBindFramebuffer(GL_FRAMEBUFFER, m_bMultisampledSupported ? m_uiFBOMultisampled : m_uiFBO);
+		glBindFramebuffer(GL_FRAMEBUFFER, m_uiFBOMultisampled);
 
 		// Clear the colour and depth buffer of our FBO surface
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -848,73 +755,42 @@ bool OGLES2ColourGrading::RenderScene()
 		// Unbind the VBO
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-		if(m_bDiscard) // Was GL_EXT_discard_framebuffer supported?
-		{
-			/*
-			Give the drivers a hint that we don't want the depth and stencil information stored for future use.
-
-			Note: This training course doesn't have any stencil information so the STENCIL_ATTACHMENT enum
-			is used for demonstrations purposes only and will be ignored by the driver.
-			*/
-			const GLenum attachments[] = { GL_DEPTH_ATTACHMENT, GL_STENCIL_ATTACHMENT };
-			m_Extensions.glDiscardFramebufferEXT(GL_FRAMEBUFFER, 2, attachments);
-		}
+		//	Give the drivers a hint that we don't want the depth and stencil information stored for future use.
+		const GLenum attachments[] = { GL_DEPTH_ATTACHMENT, GL_STENCIL_ATTACHMENT };
+		glInvalidateFramebuffer(GL_FRAMEBUFFER, 2, attachments);	
 
 		// Blit and resolve the multisampled render buffer to the non-multisampled FBO
-		if(m_bMultisampledSupported)
-		{
-			glBindFramebuffer(GL_READ_FRAMEBUFFER_NV, m_uiFBOMultisampled);
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER_NV, m_uiFBO);
-			int w = PVRShellGet(prefWidth);
-			int h = PVRShellGet(prefHeight);
-			int destX0 = m_flipX ? w : 0;
-			int destX1 = m_flipX ? 0 : w;
-			int destY0 = m_flipY ? h : 0;
-			int destY1 = m_flipY ? 0 : h;
-			m_Extensions.glBlitFramebufferNV(0, 0, w, h, destX0, destY0, destX1, destY1, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-		}
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, m_uiFBOMultisampled);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_uiFBO);
+		glBlitFramebuffer(0, 0, PVRShellGet(prefWidth), PVRShellGet(prefHeight), 0, 0, PVRShellGet(prefWidth), PVRShellGet(prefHeight), GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
 		// We are done with rendering to our FBO so switch back to the back buffer.
 		glBindFramebuffer(GL_FRAMEBUFFER, m_i32OriginalFbo);
 	}
 
-	GLenum error = glGetError();
-
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
 
-	error = glGetError();
-
 	// Use shader program
 	glUseProgram(m_PostShaderProgram.uiId);
-
+	
 	// Bind the VBO
 	glBindBuffer(GL_ARRAY_BUFFER, m_ui32FullScreenRectVBO);
-
-	error = glGetError();
-
+	
 	// Enable the vertex attribute arrays
 	glEnableVertexAttribArray(VERTEX_ARRAY);
 	glEnableVertexAttribArray(TEXCOORD_ARRAY);
 
-	error = glGetError();
-
 	// Set the vertex attribute offsets
 	glVertexAttribPointer(VERTEX_ARRAY, 4, GL_FLOAT, GL_FALSE, m_ui32VertexStride, 0);
 	glVertexAttribPointer(TEXCOORD_ARRAY, 2, GL_FLOAT, GL_FALSE, m_ui32VertexStride, (void*) (4 * sizeof(GLfloat)));
-
-	error = glGetError();
-
+	
 	// Bind texture
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, m_uiTextureToRenderTo);
 
-	error = glGetError();
-
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_3D_OES, m_uiLUTs[m_iCurrentLUT]);
-
-	error = glGetError();
+	glBindTexture(GL_TEXTURE_3D, m_uiLUTs[m_iCurrentLUT]);
 
 	// Draw a screen-aligned quad.
 
@@ -922,7 +798,7 @@ bool OGLES2ColourGrading::RenderScene()
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	
 	// Draw the right-hande side showing the scene how it looks without
-	glBindTexture(GL_TEXTURE_3D_OES, m_uiLUTs[eIdentity]);
+	glBindTexture(GL_TEXTURE_3D, m_uiLUTs[eIdentity]);
 	glDrawArrays(GL_TRIANGLE_STRIP, 2, 4);
 
 	// Safely disable the vertex attribute arrays
@@ -945,7 +821,7 @@ bool OGLES2ColourGrading::RenderScene()
  @Description	Draws a SPODMesh after the model view matrix has been set and
 				the material prepared.
 ******************************************************************************/
-void OGLES2ColourGrading::DrawMesh(const int i32NodeIndex)
+void OGLES3ColourGrading::DrawMesh(const int i32NodeIndex)
 {
 	int i32MeshIndex = m_Mask.pNode[i32NodeIndex].nIdx;
 	SPODMesh* pMesh = &m_Mask.pMesh[i32MeshIndex];
@@ -986,10 +862,10 @@ void OGLES2ColourGrading::DrawMesh(const int i32NodeIndex)
  ******************************************************************************/
 PVRShell* NewDemo()
 {
-	return new OGLES2ColourGrading();
+	return new OGLES3ColourGrading();
 }
 
 /******************************************************************************
- End of file (OGLES2ColourGrading.cpp)
+ End of file (OGLES3ColourGrading.cpp)
  ******************************************************************************/
 

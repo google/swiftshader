@@ -13,20 +13,23 @@
 
 // File data
 static const char _FragShader_fsh[] = 
+	"#version 300 es\n"
+	"\n"
 	"uniform  sampler2D     sTexture;\n"
 	"uniform  mediump sampler3D\t\tsColourLUT;\n"
 	"\n"
-	"varying mediump vec2 texCoords;\n"
+	"in mediump vec2 texCoords;\n"
+	"layout(location = 0) out lowp vec4 oFragColour;\n"
 	"\n"
 	"void main()\n"
 	"{\n"
-	"    highp vec3 vCol = texture2D(sTexture, texCoords).rgb;\n"
-	"\tlowp vec3 vAlteredCol = texture3D(sColourLUT, vCol).rgb;\n"
-	"    gl_FragColor = vec4(vAlteredCol, 1.0);\n"
+	"    highp vec3 vCol = texture(sTexture, texCoords).rgb;\n"
+	"\tlowp vec3 vAlteredCol = texture(sColourLUT, vCol.rgb).rgb;\n"
+	"    oFragColour = vec4(vAlteredCol, 1.0);\n"
 	"}\n";
 
 // Register FragShader.fsh in memory file system at application startup time
-static CPVRTMemoryFileSystem RegisterFile_FragShader_fsh("FragShader.fsh", _FragShader_fsh, 282);
+static CPVRTMemoryFileSystem RegisterFile_FragShader_fsh("FragShader.fsh", _FragShader_fsh, 341);
 
 // ******** End: FragShader.fsh ********
 

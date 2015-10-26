@@ -13,18 +13,21 @@
 
 // File data
 static const char _BackgroundFragShader_fsh[] = 
-	"uniform sampler2D sTexture;\n"
+	"#version 300 es\n"
 	"\n"
-	"varying mediump vec2 texCoords;\n"
+	"uniform  sampler2D      sTexture;\n"
+	"\n"
+	"in mediump vec2 texCoords;\n"
+	"layout(location = 0) out lowp vec4 oFragColour;\n"
 	"\n"
 	"void main()\n"
 	"{\n"
-	"    highp vec3 vCol = texture2D(sTexture, texCoords).rgb;\n"
-	"    gl_FragColor = vec4(vCol, 1.0);\n"
+	"    highp vec3 vCol = texture(sTexture, texCoords).rgb;\n"
+	"    oFragColour = vec4(vCol, 1.0);\n"
 	"}\n";
 
 // Register BackgroundFragShader.fsh in memory file system at application startup time
-static CPVRTMemoryFileSystem RegisterFile_BackgroundFragShader_fsh("BackgroundFragShader.fsh", _BackgroundFragShader_fsh, 172);
+static CPVRTMemoryFileSystem RegisterFile_BackgroundFragShader_fsh("BackgroundFragShader.fsh", _BackgroundFragShader_fsh, 235);
 
 // ******** End: BackgroundFragShader.fsh ********
 

@@ -56,7 +56,7 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\OGLES2ColourGrading.cpp">
+    <ClCompile Include="..\..\OGLES3ColourGrading.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\..\..\Shell\PVRShell.cpp">

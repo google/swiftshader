@@ -68,37 +68,37 @@ $(CONTENTDIR)/SceneVertShader.cpp: $(CONTENTDIR) ./SceneVertShader.vsh
 $(CONTENTDIR)/BackgroundFragShader.cpp: $(CONTENTDIR) ./BackgroundFragShader.fsh
 	$(FILEWRAP)  -s  -o $@ ./BackgroundFragShader.fsh
 
-$(CONTENTDIR)/Mask.cpp: $(CONTENTDIR)
+$(CONTENTDIR)/Mask.cpp: $(CONTENTDIR) ./Mask.pod
 	$(FILEWRAP)  -o $@ ./Mask.pod
 
-$(CONTENTDIR)/MaskTexture.cpp: $(CONTENTDIR)
+$(CONTENTDIR)/MaskTexture.cpp: $(CONTENTDIR) ./MaskTexture.pvr
 	$(FILEWRAP)  -o $@ ./MaskTexture.pvr
 
-$(CONTENTDIR)/Background.cpp: $(CONTENTDIR)
+$(CONTENTDIR)/Background.cpp: $(CONTENTDIR) ./Background.pvr
 	$(FILEWRAP)  -o $@ ./Background.pvr
 
-$(CONTENTDIR)/identity.cpp: $(CONTENTDIR)
+$(CONTENTDIR)/identity.cpp: $(CONTENTDIR) ./identity.pvr
 	$(FILEWRAP)  -o $@ ./identity.pvr
 
-$(CONTENTDIR)/cooler.cpp: $(CONTENTDIR)
+$(CONTENTDIR)/cooler.cpp: $(CONTENTDIR) ./cooler.pvr
 	$(FILEWRAP)  -o $@ ./cooler.pvr
 
-$(CONTENTDIR)/warmer.cpp: $(CONTENTDIR)
+$(CONTENTDIR)/warmer.cpp: $(CONTENTDIR) ./warmer.pvr
 	$(FILEWRAP)  -o $@ ./warmer.pvr
 
-$(CONTENTDIR)/bw.cpp: $(CONTENTDIR)
+$(CONTENTDIR)/bw.cpp: $(CONTENTDIR) ./bw.pvr
 	$(FILEWRAP)  -o $@ ./bw.pvr
 
-$(CONTENTDIR)/sepia.cpp: $(CONTENTDIR)
+$(CONTENTDIR)/sepia.cpp: $(CONTENTDIR) ./sepia.pvr
 	$(FILEWRAP)  -o $@ ./sepia.pvr
 
-$(CONTENTDIR)/inverted.cpp: $(CONTENTDIR)
+$(CONTENTDIR)/inverted.cpp: $(CONTENTDIR) ./inverted.pvr
 	$(FILEWRAP)  -o $@ ./inverted.pvr
 
-$(CONTENTDIR)/highcontrast.cpp: $(CONTENTDIR)
+$(CONTENTDIR)/highcontrast.cpp: $(CONTENTDIR) ./highcontrast.pvr
 	$(FILEWRAP)  -o $@ ./highcontrast.pvr
 
-$(CONTENTDIR)/bluewhitegradient.cpp: $(CONTENTDIR)
+$(CONTENTDIR)/bluewhitegradient.cpp: $(CONTENTDIR) ./bluewhitegradient.pvr
 	$(FILEWRAP)  -o $@ ./bluewhitegradient.pvr
 
 ############################################################################
