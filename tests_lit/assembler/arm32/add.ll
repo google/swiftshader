@@ -96,3 +96,28 @@ define internal i64 @addI64ToR0R1(i64 %p) {
 ; IASM-NEXT:    .byte 0x10
 ; IASM-NEXT:    .byte 0xa1
 ; IASM-NEXT:    .byte 0xe2
+
+define internal i64 @AddI64Regs(i64 %p1, i64 %p2) {
+  %v = add i64 %p1, %p2
+  ret i64 %v
+}
+
+; ASM-LABEL:AddI64Regs:
+; ASM-NEXT:.LAddI64Regs$__0:
+; ASM-NEXT:     adds    r0, r0, r2
+; ASM-NEXT:     adc     r1, r1, r3
+
+; DIS-LABEL:00000030 <AddI64Regs>:
+; DIS-NEXT:  30:	e0900002
+; DIS-NEXT:  34:	e0a11003
+
+; IASM-LABEL:AddI64Regs:
+; IASM-NEXT:.LAddI64Regs$__0:
+; IASM-NEXT:    .byte 0x2
+; IASM-NEXT:    .byte 0x0
+; IASM-NEXT:    .byte 0x90
+; IASM-NEXT:    .byte 0xe0
+; IASM-NEXT:    .byte 0x3
+; IASM-NEXT:    .byte 0x10
+; IASM-NEXT:    .byte 0xa1
+; IASM-NEXT:    .byte 0xe0

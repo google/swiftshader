@@ -362,8 +362,22 @@ void AssemblerARM32::adc(const Operand *OpRd, const Operand *OpRn,
   switch (decodeOperand(OpSrc1, Src1Value)) {
   default:
     return setNeedsTextFixup();
+  case DecodedAsRegister: {
+    // ADC (register) - ARM section 18.8.2, encoding A1:
+    //   adc{s}<c> <Rd>, <Rn>, <Rm>{, <shift>}
+    //
+    // cccc0000101snnnnddddiiiiitt0mmmm where cccc=Cond, dddd=Rd, nnnn=Rn,
+    // mmmm=Rm, iiiii=Shift, tt=ShiftKind, and s=SetFlags.
+    constexpr IValueT Imm5 = 0;
+    Src1Value = encodeShiftRotateImm5(Src1Value, OperandARM32::kNoShift, Imm5);
+    if (((Rd == RegARM32::Encoded_Reg_pc) && SetFlags))
+      // Conditions of rule violated.
+      return setNeedsTextFixup();
+    emitType01(Cond, kInstTypeDataRegister, Adc, SetFlags, Rn, Rd, Src1Value);
+    return;
+  }
   case DecodedAsRotatedImm8: {
-    // ADC (Immediated) = ARM section A8.8.1, encoding A1:
+    // ADC (Immediate) - ARM section A8.8.1, encoding A1:
     //   adc{s}<c> <Rd>, <Rn>, #<RotatedImm8>
     //
     // cccc0010101snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
@@ -399,8 +413,9 @@ void AssemblerARM32::add(const Operand *OpRd, const Operand *OpRn,
     //   add{s}<c> sp, <Rn>, <Rm>{, <shiff>}
     //
     // cccc0000100snnnnddddiiiiitt0mmmm where cccc=Cond, dddd=Rd, nnnn=Rn,
-    // mmmm=Rm, iiiii=Shift, tt=ShiftKind, and s=SetFlags
-    Src1Value = encodeShiftRotateImm5(Src1Value, OperandARM32::kNoShift, 0);
+    // mmmm=Rm, iiiii=Shift, tt=ShiftKind, and s=SetFlags.
+    constexpr IValueT Imm5 = 0;
+    Src1Value = encodeShiftRotateImm5(Src1Value, OperandARM32::kNoShift, Imm5);
     if (((Rd == RegARM32::Encoded_Reg_pc) && SetFlags))
       // Conditions of rule violated.
       return setNeedsTextFixup();
