@@ -734,6 +734,23 @@ void InstARM32Br::emit(const Cfg *Func) const {
   }
 }
 
+void InstARM32Br::emitIAS(const Cfg *Func) const {
+  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  if (Label) {
+    Asm->b(Asm->getOrCreateLocalLabel(Label->getNumber()), getPredicate());
+  } else if (isUnconditionalBranch()) {
+    Asm->b(Asm->getOrCreateCfgNodeLabel(getTargetFalse()->getIndex()),
+           getPredicate());
+  } else {
+    Asm->b(Asm->getOrCreateCfgNodeLabel(getTargetTrue()->getIndex()),
+           getPredicate());
+    Asm->b(Asm->getOrCreateCfgNodeLabel(getTargetFalse()->getIndex()),
+           CondARM32::AL);
+  }
+  if (Asm->needsTextFixup())
+    emitUsingTextFixup(Func);
+}
+
 void InstARM32Br::dump(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;

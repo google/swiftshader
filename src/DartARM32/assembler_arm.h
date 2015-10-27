@@ -147,18 +147,14 @@ class Operand : public ValueObject {
     type_ = 1;
     encoding_ = (rotate << kRotateShift) | (immed8 << kImmed8Shift);
   }
-#endif
 
-#if 0
   // Moved to decodeOperand() in IceAssemblerARM32.cpp
   // Data-processing operands - Register.
   explicit Operand(Register rm) {
     type_ = 0;
     encoding_ = static_cast<uint32_t>(rm);
   }
-#endif
 
-#if 0
   // Moved to encodeShiftRotateImm5()
   // Data-processing operands - Logical shift/rotate by immediate.
   Operand(Register rm, Shift shift, uint32_t shift_imm) {
@@ -1121,11 +1117,10 @@ class Assembler : public ValueObject {
                   Register rn,
                   Register rd,
                   Operand o);
-#endif
 
+  // Moved to ARM32::AssemblerARM32::emitType05()
   void EmitType5(Condition cond, int32_t offset, bool link);
 
-#if 0
   // Moved to ARM32::AssemberARM32::emitMemOp()
   void EmitMemOp(Condition cond,
                  bool load,
@@ -1214,8 +1209,12 @@ class Assembler : public ValueObject {
 
   void EmitFarBranch(Condition cond, int32_t offset, bool link);
   void EmitBranch(Condition cond, Label* label, bool link);
+#if 0
+  // Moved to ARM32::AssemblerARM32::encodeBranchoffset().
   int32_t EncodeBranchOffset(int32_t offset, int32_t inst);
+  // Moved to ARM32::AssemberARM32::decodeBranchOffset().
   static int32_t DecodeBranchOffset(int32_t inst);
+#endif
   int32_t EncodeTstOffset(int32_t offset, int32_t inst);
   int32_t DecodeTstOffset(int32_t inst);
 

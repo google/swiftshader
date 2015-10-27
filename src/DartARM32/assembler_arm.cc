@@ -91,8 +91,8 @@ void Assembler::EmitType01(Condition cond,
                      o.encoding();
   Emit(encoding);
 }
-#endif
 
+// Moved to ARM32::AssemblerARM32::emitType05.
 void Assembler::EmitType5(Condition cond, int32_t offset, bool link) {
   ASSERT(cond != kNoCondition);
   int32_t encoding = static_cast<int32_t>(cond) << kConditionShift |
@@ -101,8 +101,6 @@ void Assembler::EmitType5(Condition cond, int32_t offset, bool link) {
   Emit(Assembler::EncodeBranchOffset(offset, encoding));
 }
 
-
-#if 0
 // Moved to ARM32::AssemblerARM32::emitMemOp()
 void Assembler::EmitMemOp(Condition cond,
                           bool load,
@@ -222,9 +220,7 @@ void Assembler::add(Register rd, Register rn, Operand o, Condition cond) {
 void Assembler::adds(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), ADD, 1, rn, rd, o);
 }
-#endif
 
-#if 0
 // Moved to ARM32::AssemberARM32::sub()
 void Assembler::subs(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), SUB, 1, rn, rd, o);
@@ -2083,13 +2079,16 @@ void Assembler::UpdateRangeFeedback(Register value,
   str(scratch2, FieldAddress(ic_data, ICData::state_bits_offset()));
 }
 
-
+#if 0
+// Moved to ::canEncodeBranchoffset in IceAssemblerARM32.cpp.
 static bool CanEncodeBranchOffset(int32_t offset) {
   ASSERT(Utils::IsAligned(offset, 4));
+  // Note: This check doesn't take advantage of the fact that offset>>2
+  // is stored (allowing two more bits in address space).
   return Utils::IsInt(Utils::CountOneBits(kBranchOffsetMask), offset);
 }
 
-
+// Moved to AssemblerARM32::encodeBranchOffset.
 int32_t Assembler::EncodeBranchOffset(int32_t offset, int32_t inst) {
   // The offset is off by 8 due to the way the ARM CPUs read PC.
   offset -= Instr::kPCReadOffset;
@@ -2106,12 +2105,12 @@ int32_t Assembler::EncodeBranchOffset(int32_t offset, int32_t inst) {
   return (inst & ~kBranchOffsetMask) | offset;
 }
 
-
+// Moved to AssemberARM32::decodeBranchOffset.
 int Assembler::DecodeBranchOffset(int32_t inst) {
   // Sign-extend, left-shift by 2, then add 8.
   return ((((inst & kBranchOffsetMask) << 8) >> 6) + Instr::kPCReadOffset);
 }
-
+#endif
 
 static int32_t DecodeARMv7LoadImmediate(int32_t movt, int32_t movw) {
   int32_t offset = 0;

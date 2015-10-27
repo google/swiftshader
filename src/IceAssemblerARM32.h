@@ -38,6 +38,12 @@
 namespace Ice {
 namespace ARM32 {
 
+/// Encoding of an ARM 32-bit instruction.
+using IValueT = uint32_t;
+
+/// An Offset value (+/-) used in an ARM 32-bit instruction.
+using IOffsetT = int32_t;
+
 class AssemblerARM32 : public Assembler {
   AssemblerARM32() = delete;
   AssemblerARM32(const AssemblerARM32 &) = delete;
@@ -63,8 +69,8 @@ public:
   void alignFunction() override {
     const SizeT Align = 1 << getBundleAlignLog2Bytes();
     SizeT BytesNeeded = Utils::OffsetToAlignment(Buffer.getPosition(), Align);
-    constexpr uint32_t UndefinedInst = 0xe7fedef0; // udf #60896
-    constexpr SizeT InstSize = sizeof(int32_t);
+    constexpr IValueT UndefinedInst = 0xe7fedef0; // udf #60896
+    constexpr SizeT InstSize = sizeof(IValueT);
     assert(BytesNeeded % InstSize == 0);
     while (BytesNeeded > 0) {
       AssemblerBuffer::EnsureCapacity ensured(&Buffer);
@@ -94,7 +100,13 @@ public:
     return CfgNodeLabels[NodeNumber];
   }
 
-  void bindCfgNodeLabel(const CfgNode *Node) override;
+  Label *getOrCreateCfgNodeLabel(SizeT NodeNumber) {
+    return getOrCreateLabel(NodeNumber, CfgNodeLabels);
+  }
+
+  Label *getOrCreateLocalLabel(SizeT Number) {
+    return getOrCreateLabel(Number, LocalLabels);
+  }
 
   void bindLocalLabel(SizeT Number) {
     Label *L = getOrCreateLocalLabel(Number);
@@ -115,6 +127,8 @@ public:
   void add(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
            bool SetFlags, CondARM32::Cond Cond);
 
+  void b(Label *L, CondARM32::Cond Cond);
+
   void bkpt(uint16_t Imm16);
 
   void ldr(const Operand *OpRt, const Operand *OpAddress, CondARM32::Cond Cond);
@@ -132,7 +146,7 @@ public:
     return Asm->getKind() == Asm_ARM32;
   }
 
-  void emitTextInst(const std::string &Text, SizeT InstSize = sizeof(uint32_t));
+  void emitTextInst(const std::string &Text, SizeT InstSize = sizeof(IValueT));
 
 private:
   // A vector of pool-allocated x86 labels for CFG nodes.
@@ -142,26 +156,32 @@ private:
   LabelVector LocalLabels;
 
   Label *getOrCreateLabel(SizeT Number, LabelVector &Labels);
-  Label *getOrCreateCfgNodeLabel(SizeT NodeNumber) {
-    return getOrCreateLabel(NodeNumber, CfgNodeLabels);
-  }
-  Label *getOrCreateLocalLabel(SizeT Number) {
-    return getOrCreateLabel(Number, LocalLabels);
-  }
 
-  void emitInst(uint32_t Value) { Buffer.emit<uint32_t>(Value); }
+  void bindCfgNodeLabel(const CfgNode *Node) override;
+
+  void emitInst(IValueT Value) { Buffer.emit<IValueT>(Value); }
 
   // Pattern cccctttoooosnnnnddddiiiiiiiiiiii where cccc=Cond, ttt=Type,
   // oooo=Opcode, nnnn=Rn, dddd=Rd, iiiiiiiiiiii=imm12 (See ARM section A5.2.3).
-  void emitType01(CondARM32::Cond Cond, uint32_t Type, uint32_t Opcode,
-                  bool SetCc, uint32_t Rn, uint32_t Rd, uint32_t imm12);
+  void emitType01(CondARM32::Cond Cond, IValueT Type, IValueT Opcode,
+                  bool SetCc, IValueT Rn, IValueT Rd, IValueT imm12);
+
+  void emitType05(CondARM32::Cond COnd, int32_t Offset, bool Link);
 
   // Pattern ccccoooaabalnnnnttttaaaaaaaaaaaa where cccc=Cond, ooo=InstType,
   // l=isLoad, b=isByte, and aaa0a0aaaa0000aaaaaaaaaaaa=Address. Note that
   // Address is assumed to be defined by decodeAddress() in
   // IceAssemblerARM32.cpp.
-  void emitMemOp(CondARM32::Cond Cond, uint32_t InstType, bool IsLoad,
+  void emitMemOp(CondARM32::Cond Cond, IValueT InstType, bool IsLoad,
                  bool IsByte, uint32_t Rt, uint32_t Address);
+
+  void emitBranch(Label *L, CondARM32::Cond, bool Link);
+
+  // Encodes the given Offset into the branch instruction Inst.
+  IValueT encodeBranchOffset(IOffsetT Offset, IValueT Inst);
+
+  // Returns the offset encoded in the branch instruction Inst.
+  static IOffsetT decodeBranchOffset(IValueT Inst);
 };
 
 } // end of namespace ARM32

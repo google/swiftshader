@@ -27,66 +27,78 @@
 namespace {
 
 using namespace Ice;
+using namespace Ice::ARM32;
 
 // The following define individual bits.
-static constexpr uint32_t B0 = 1;
-static constexpr uint32_t B1 = 1 << 1;
-static constexpr uint32_t B2 = 1 << 2;
-static constexpr uint32_t B3 = 1 << 3;
-static constexpr uint32_t B4 = 1 << 4;
-static constexpr uint32_t B5 = 1 << 5;
-static constexpr uint32_t B6 = 1 << 6;
-static constexpr uint32_t B21 = 1 << 21;
-static constexpr uint32_t B24 = 1 << 24;
+static constexpr IValueT B0 = 1;
+static constexpr IValueT B1 = 1 << 1;
+static constexpr IValueT B2 = 1 << 2;
+static constexpr IValueT B3 = 1 << 3;
+static constexpr IValueT B4 = 1 << 4;
+static constexpr IValueT B5 = 1 << 5;
+static constexpr IValueT B6 = 1 << 6;
+static constexpr IValueT B21 = 1 << 21;
+static constexpr IValueT B24 = 1 << 24;
 
 // Constants used for the decoding or encoding of the individual fields of
 // instructions. Based on ARM section A5.1.
-static constexpr uint32_t L = 1 << 20; // load (or store)
-static constexpr uint32_t W = 1 << 21; // writeback base register (or leave
-                                       // unchanged)
-static constexpr uint32_t B = 1 << 22; // unsigned byte (or word)
-static constexpr uint32_t U = 1 << 23; // positive (or negative) offset/index
-static constexpr uint32_t P = 1 << 24; // offset/pre-indexed addressing (or
-                                       // post-indexed addressing)
+static constexpr IValueT L = 1 << 20; // load (or store)
+static constexpr IValueT W = 1 << 21; // writeback base register
+                                      // (or leave unchanged)
+static constexpr IValueT B = 1 << 22; // unsigned byte (or word)
+static constexpr IValueT U = 1 << 23; // positive (or negative)
+                                      // offset/index
+static constexpr IValueT P = 1 << 24; // offset/pre-indexed
+                                      // addressing (or
+                                      // post-indexed addressing)
 
-static constexpr uint32_t kConditionShift = 28;
-static constexpr uint32_t kOpcodeShift = 21;
-static constexpr uint32_t kRdShift = 12;
-static constexpr uint32_t kRmShift = 0;
-static constexpr uint32_t kRnShift = 16;
-static constexpr uint32_t kSShift = 20;
-static constexpr uint32_t kTypeShift = 25;
+static constexpr IValueT kConditionShift = 28;
+static constexpr IValueT kLinkShift = 24;
+static constexpr IValueT kOpcodeShift = 21;
+static constexpr IValueT kRdShift = 12;
+static constexpr IValueT kRmShift = 0;
+static constexpr IValueT kRnShift = 16;
+static constexpr IValueT kSShift = 20;
+static constexpr IValueT kTypeShift = 25;
 
 // Immediate instruction fields encoding.
-static constexpr uint32_t kImmed8Bits = 8;
-static constexpr uint32_t kImmed8Shift = 0;
-static constexpr uint32_t kRotateBits = 4;
-static constexpr uint32_t kRotateShift = 8;
+static constexpr IValueT kImmed8Bits = 8;
+static constexpr IValueT kImmed8Shift = 0;
+static constexpr IValueT kRotateBits = 4;
+static constexpr IValueT kRotateShift = 8;
 
 // Shift instruction register fields encodings.
-static constexpr uint32_t kShiftImmShift = 7;
-static constexpr uint32_t kShiftImmBits = 5;
-static constexpr uint32_t kShiftShift = 5;
+static constexpr IValueT kShiftImmShift = 7;
+static constexpr IValueT kShiftImmBits = 5;
+static constexpr IValueT kShiftShift = 5;
 
-static constexpr uint32_t kImmed12Bits = 12;
-static constexpr uint32_t kImm12Shift = 0;
+static constexpr IValueT kImmed12Bits = 12;
+static constexpr IValueT kImm12Shift = 0;
 
 // Type of instruction encoding (bits 25-27). See ARM section A5.1
-static constexpr uint32_t kInstTypeDataRegister = 0;  // i.e. 000
-static constexpr uint32_t kInstTypeDataImmediate = 1; // i.e. 001
-static constexpr uint32_t kInstTypeMemImmediate = 2;  // i.e. 010
+static constexpr IValueT kInstTypeDataRegister = 0;  // i.e. 000
+static constexpr IValueT kInstTypeDataImmediate = 1; // i.e. 001
+static constexpr IValueT kInstTypeMemImmediate = 2;  // i.e. 010
 
-inline uint32_t encodeBool(bool b) { return b ? 1 : 0; }
+// Offset modifier to current PC for next instruction.  The offset is off by 8
+// due to the way the ARM CPUs read PC.
+static constexpr IOffsetT kPCReadOffset = 8;
 
-inline uint32_t encodeGPRRegister(RegARM32::GPRRegister Rn) {
-  return static_cast<uint32_t>(Rn);
+// Mask to pull out PC offset from branch (b) instruction.
+static constexpr int kBranchOffsetBits = 24;
+static constexpr IOffsetT kBranchOffsetMask = 0x00ffffff;
+
+inline IValueT encodeBool(bool B) { return B ? 1 : 0; }
+
+inline IValueT encodeGPRRegister(RegARM32::GPRRegister Rn) {
+  return static_cast<IValueT>(Rn);
 }
 
 inline bool isGPRRegisterDefined(RegARM32::GPRRegister R) {
   return R != RegARM32::Encoded_Not_GPR;
 }
 
-inline bool isGPRRegisterDefined(uint32_t R) {
+inline bool isGPRRegisterDefined(IValueT R) {
   return R != encodeGPRRegister(RegARM32::Encoded_Not_GPR);
 }
 
@@ -94,11 +106,11 @@ inline bool isConditionDefined(CondARM32::Cond Cond) {
   return Cond != CondARM32::kNone;
 }
 
-inline uint32_t encodeCondition(CondARM32::Cond Cond) {
-  return static_cast<uint32_t>(Cond);
+inline IValueT encodeCondition(CondARM32::Cond Cond) {
+  return static_cast<IValueT>(Cond);
 }
 
-uint32_t encodeShift(OperandARM32::ShiftKind Shift) {
+IValueT encodeShift(OperandARM32::ShiftKind Shift) {
   // Follows encoding in ARM section A8.4.1 "Constant shifts".
   switch (Shift) {
   case OperandARM32::kNoShift:
@@ -115,17 +127,17 @@ uint32_t encodeShift(OperandARM32::ShiftKind Shift) {
 }
 
 // Returns the bits in the corresponding masked value.
-inline uint32_t mask(uint32_t Value, uint32_t Shift, uint32_t Bits) {
+inline IValueT mask(IValueT Value, IValueT Shift, IValueT Bits) {
   return (Value >> Shift) & ((1 << Bits) - 1);
 }
 
 // Extract out a Bit in Value.
-inline bool isBitSet(uint32_t Bit, uint32_t Value) {
+inline bool isBitSet(IValueT Bit, IValueT Value) {
   return (Value & Bit) == Bit;
 }
 
 // Returns the GPR register at given Shift in Value.
-inline RegARM32::GPRRegister getGPRReg(uint32_t Shift, uint32_t Value) {
+inline RegARM32::GPRRegister getGPRReg(IValueT Shift, IValueT Value) {
   return static_cast<RegARM32::GPRRegister>((Value >> Shift) & 0xF);
 }
 
@@ -147,35 +159,33 @@ enum DecodedResult {
 
 // Encodes iiiiitt0mmmm for data-processing (2nd) operands where iiiii=Imm5,
 // tt=Shift, and mmmm=Rm.
-uint32_t encodeShiftRotateImm5(uint32_t Rm, OperandARM32::ShiftKind Shift,
-                               uint32_t imm5) {
+IValueT encodeShiftRotateImm5(IValueT Rm, OperandARM32::ShiftKind Shift,
+                              IValueT imm5) {
   (void)kShiftImmBits;
   assert(imm5 < (1 << kShiftImmBits));
   return (imm5 << kShiftImmShift) | (encodeShift(Shift) << kShiftShift) | Rm;
 }
 
-DecodedResult decodeOperand(const Operand *Opnd, uint32_t &Value) {
+DecodedResult decodeOperand(const Operand *Opnd, IValueT &Value) {
   if (const auto *Var = llvm::dyn_cast<Variable>(Opnd)) {
     if (Var->hasReg()) {
       Value = Var->getRegNum();
       return DecodedAsRegister;
     }
   } else if (const auto *FlexImm = llvm::dyn_cast<OperandARM32FlexImm>(Opnd)) {
-    const uint32_t Immed8 = FlexImm->getImm();
-    const uint32_t Rotate = FlexImm->getRotateAmt();
-    assert((Rotate < (1 << kRotateBits)) && (Immed8 < (1 << kImmed8Bits)));
-    // TODO(kschimpf): Remove void casts when MINIMAL build allows.
-    (void)kRotateBits;
-    (void)kImmed8Bits;
+    const IValueT Immed8 = FlexImm->getImm();
+    const IValueT Rotate = FlexImm->getRotateAmt();
+    if (!((Rotate < (1 << kRotateBits)) && (Immed8 < (1 << kImmed8Bits))))
+      return CantDecode;
     Value = (Rotate << kRotateShift) | (Immed8 << kImmed8Shift);
     return DecodedAsRotatedImm8;
   }
   return CantDecode;
 }
 
-uint32_t decodeImmRegOffset(RegARM32::GPRRegister Reg, int32_t Offset,
-                            OperandARM32Mem::AddrMode Mode) {
-  uint32_t Value = Mode | (encodeGPRRegister(Reg) << kRnShift);
+IValueT decodeImmRegOffset(RegARM32::GPRRegister Reg, IOffsetT Offset,
+                           OperandARM32Mem::AddrMode Mode) {
+  IValueT Value = Mode | (encodeGPRRegister(Reg) << kRnShift);
   if (Offset < 0) {
     Value = (Value ^ U) | -Offset; // Flip U to adjust sign.
   } else {
@@ -186,12 +196,12 @@ uint32_t decodeImmRegOffset(RegARM32::GPRRegister Reg, int32_t Offset,
 
 // Decodes memory address Opnd, and encodes that information into Value,
 // based on how ARM represents the address. Returns how the value was encoded.
-DecodedResult decodeAddress(const Operand *Opnd, uint32_t &Value) {
+DecodedResult decodeAddress(const Operand *Opnd, IValueT &Value) {
   if (const auto *Var = llvm::dyn_cast<Variable>(Opnd)) {
     // Should be a stack variable, with an offset.
     if (Var->hasReg())
       return CantDecode;
-    const int32_t Offset = Var->getStackOffset();
+    const IOffsetT Offset = Var->getStackOffset();
     if (!Utils::IsAbsoluteUint(12, Offset))
       return CantDecode;
     Value = decodeImmRegOffset(RegARM32::Encoded_Reg_sp, Offset,
@@ -201,11 +211,18 @@ DecodedResult decodeAddress(const Operand *Opnd, uint32_t &Value) {
   return CantDecode;
 }
 
+// Checks that Offset can fit in imm24 constant of branch (b) instruction.
+bool canEncodeBranchOffset(IOffsetT Offset) {
+  return Utils::IsAligned(Offset, 4) &&
+         Utils::IsInt(kBranchOffsetBits, Offset >> 2);
+}
+
 } // end of anonymous namespace
 
 namespace Ice {
+namespace ARM32 {
 
-void ARM32::AssemblerARM32::bindCfgNodeLabel(const CfgNode *Node) {
+void AssemblerARM32::bindCfgNodeLabel(const CfgNode *Node) {
   if (BuildDefs::dump() && !Ctx->getFlags().getDisableHybridAssembly()) {
     // Generate label name so that branches can find it.
     constexpr SizeT InstSize = 0;
@@ -217,8 +234,7 @@ void ARM32::AssemblerARM32::bindCfgNodeLabel(const CfgNode *Node) {
   this->bind(L);
 }
 
-Label *ARM32::AssemblerARM32::getOrCreateLabel(SizeT Number,
-                                               LabelVector &Labels) {
+Label *AssemblerARM32::getOrCreateLabel(SizeT Number, LabelVector &Labels) {
   Label *L = nullptr;
   if (Number == Labels.size()) {
     L = new (this->allocate<Label>()) Label();
@@ -236,21 +252,41 @@ Label *ARM32::AssemblerARM32::getOrCreateLabel(SizeT Number,
   return L;
 }
 
-void ARM32::AssemblerARM32::bind(Label *label) {
-  intptr_t bound = Buffer.size();
-  assert(!label->isBound()); // Labels can only be bound once.
-  while (label->isLinked()) {
-    intptr_t position = label->getLinkPosition();
-    intptr_t next = Buffer.load<int32_t>(position);
-    Buffer.store<int32_t>(position, bound - (position + 4));
-    label->setPosition(next);
-  }
-  // TODO(kschimpf) Decide if we have near jumps.
-  label->bindTo(bound);
+IValueT AssemblerARM32::encodeBranchOffset(IOffsetT Offset, IValueT Inst) {
+  // Adjust offset to the way ARM CPUs read PC.
+  Offset -= kPCReadOffset;
+
+  bool IsGoodOffset = canEncodeBranchOffset(Offset);
+  assert(IsGoodOffset);
+  // Note: Following cast is for MINIMAL build.
+  (void)IsGoodOffset;
+
+  // Properly preserve only the bits supported in the instruction.
+  Offset >>= 2;
+  Offset &= kBranchOffsetMask;
+  return (Inst & ~kBranchOffsetMask) | Offset;
 }
 
-void ARM32::AssemblerARM32::emitTextInst(const std::string &Text,
-                                         SizeT InstSize) {
+IOffsetT AssemblerARM32::decodeBranchOffset(IValueT Inst) {
+  // Sign-extend, left-shift by 2, and adjust to the way ARM CPUs read PC.
+  IOffsetT Offset = static_cast<IOffsetT>((Inst & kBranchOffsetMask) << 8);
+  return (Offset >> 6) + kPCReadOffset;
+}
+
+void AssemblerARM32::bind(Label *L) {
+  IOffsetT BoundPc = Buffer.size();
+  assert(!L->isBound()); // Labels can only be bound once.
+  while (L->isLinked()) {
+    IOffsetT Position = L->getLinkPosition();
+    IOffsetT Dest = BoundPc - Position;
+    IValueT Inst = Buffer.load<IValueT>(Position);
+    Buffer.store<IValueT>(Position, encodeBranchOffset(Dest, Inst));
+    L->setPosition(decodeBranchOffset(Inst));
+  }
+  L->bindTo(BoundPc);
+}
+
+void AssemblerARM32::emitTextInst(const std::string &Text, SizeT InstSize) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   AssemblerFixup *F = createTextFixup(Text, InstSize);
   emitFixup(F);
@@ -258,44 +294,72 @@ void ARM32::AssemblerARM32::emitTextInst(const std::string &Text,
     Buffer.emit<char>(0);
 }
 
-void ARM32::AssemblerARM32::emitType01(CondARM32::Cond Cond, uint32_t Type,
-                                       uint32_t Opcode, bool SetCc, uint32_t Rn,
-                                       uint32_t Rd, uint32_t Imm12) {
+void AssemblerARM32::emitType01(CondARM32::Cond Cond, IValueT Type,
+                                IValueT Opcode, bool SetCc, IValueT Rn,
+                                IValueT Rd, IValueT Imm12) {
   assert(isGPRRegisterDefined(Rd));
   // TODO(kschimpf): Remove void cast when MINIMAL build allows.
   (void)isGPRRegisterDefined(Rd);
   assert(Cond != CondARM32::kNone);
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  const uint32_t Encoding = (encodeCondition(Cond) << kConditionShift) |
-                            (Type << kTypeShift) | (Opcode << kOpcodeShift) |
-                            (encodeBool(SetCc) << kSShift) | (Rn << kRnShift) |
-                            (Rd << kRdShift) | Imm12;
+  const IValueT Encoding = (encodeCondition(Cond) << kConditionShift) |
+                           (Type << kTypeShift) | (Opcode << kOpcodeShift) |
+                           (encodeBool(SetCc) << kSShift) | (Rn << kRnShift) |
+                           (Rd << kRdShift) | Imm12;
   emitInst(Encoding);
 }
 
-void ARM32::AssemblerARM32::emitMemOp(CondARM32::Cond Cond, uint32_t InstType,
-                                      bool IsLoad, bool IsByte, uint32_t Rt,
-                                      uint32_t Address) {
+void AssemblerARM32::emitType05(CondARM32::Cond Cond, IOffsetT Offset,
+                                bool Link) {
+  // cccc101liiiiiiiiiiiiiiiiiiiiiiii where cccc=Cond, l=Link, and
+  // iiiiiiiiiiiiiiiiiiiiiiii=
+  // EncodedBranchOffset(cccc101l000000000000000000000000, Offset);
+  if (!isConditionDefined(Cond))
+    return setNeedsTextFixup();
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  IValueT Encoding = static_cast<int32_t>(Cond) << kConditionShift |
+                     5 << kTypeShift | (Link ? 1 : 0) << kLinkShift;
+  Encoding = encodeBranchOffset(Offset, Encoding);
+  emitInst(Encoding);
+}
+
+void AssemblerARM32::emitBranch(Label *L, CondARM32::Cond Cond, bool Link) {
+  // TODO(kschimpf): Handle far jumps.
+  if (L->isBound()) {
+    const int32_t Dest = L->getPosition() - Buffer.size();
+    emitType05(Cond, Dest, Link);
+    return;
+  }
+  const IOffsetT Position = Buffer.size();
+  // Use the offset field of the branch instruction for linking the sites.
+  emitType05(Cond, L->getEncodedPosition(), Link);
+  if (!needsTextFixup())
+    L->linkTo(Position);
+}
+
+void AssemblerARM32::emitMemOp(CondARM32::Cond Cond, IValueT InstType,
+                               bool IsLoad, bool IsByte, IValueT Rt,
+                               IValueT Address) {
   assert(isGPRRegisterDefined(Rt));
   assert(Cond != CondARM32::kNone);
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  const uint32_t Encoding = (encodeCondition(Cond) << kConditionShift) |
-                            (InstType << kTypeShift) | (IsLoad ? L : 0) |
-                            (IsByte ? B : 0) | (Rt << kRdShift) | Address;
+  const IValueT Encoding = (encodeCondition(Cond) << kConditionShift) |
+                           (InstType << kTypeShift) | (IsLoad ? L : 0) |
+                           (IsByte ? B : 0) | (Rt << kRdShift) | Address;
   emitInst(Encoding);
 }
 
-void ARM32::AssemblerARM32::add(const Operand *OpRd, const Operand *OpRn,
-                                const Operand *OpSrc1, bool SetFlags,
-                                CondARM32::Cond Cond) {
-  uint32_t Rd;
+void AssemblerARM32::add(const Operand *OpRd, const Operand *OpRn,
+                         const Operand *OpSrc1, bool SetFlags,
+                         CondARM32::Cond Cond) {
+  IValueT Rd;
   if (decodeOperand(OpRd, Rd) != DecodedAsRegister)
     return setNeedsTextFixup();
-  uint32_t Rn;
+  IValueT Rn;
   if (decodeOperand(OpRn, Rn) != DecodedAsRegister)
     return setNeedsTextFixup();
-  constexpr uint32_t Add = B2; // 0100
-  uint32_t Src1Value;
+  constexpr IValueT Add = B2; // 0100
+  IValueT Src1Value;
   // TODO(kschimpf) Other possible decodings of add.
   switch (decodeOperand(OpSrc1, Src1Value)) {
   default:
@@ -332,18 +396,22 @@ void ARM32::AssemblerARM32::add(const Operand *OpRd, const Operand *OpRn,
   };
 }
 
-void ARM32::AssemblerARM32::bkpt(uint16_t Imm16) {
+void AssemblerARM32::b(Label *L, CondARM32::Cond Cond) {
+  emitBranch(L, Cond, false);
+}
+
+void AssemblerARM32::bkpt(uint16_t Imm16) {
   // BKPT - ARM section A*.8.24 - encoding A1:
   //   bkpt #<Imm16>
   //
   // cccc00010010iiiiiiiiiiii0111iiii where cccc=AL and iiiiiiiiiiiiiiii=Imm16
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  const uint32_t Encoding = (CondARM32::AL << kConditionShift) | B24 | B21 |
-                            ((Imm16 >> 4) << 8) | B6 | B5 | B4 | (Imm16 & 0xf);
+  const IValueT Encoding = (CondARM32::AL << kConditionShift) | B24 | B21 |
+                           ((Imm16 >> 4) << 8) | B6 | B5 | B4 | (Imm16 & 0xf);
   emitInst(Encoding);
 }
 
-void ARM32::AssemblerARM32::bx(RegARM32::GPRRegister Rm, CondARM32::Cond Cond) {
+void AssemblerARM32::bx(RegARM32::GPRRegister Rm, CondARM32::Cond Cond) {
   // BX - ARM section A8.8.27, encoding A1:
   //   bx<c> <Rm>
   //
@@ -351,18 +419,18 @@ void ARM32::AssemblerARM32::bx(RegARM32::GPRRegister Rm, CondARM32::Cond Cond) {
   if (!(isGPRRegisterDefined(Rm) && isConditionDefined(Cond)))
     return setNeedsTextFixup();
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  const uint32_t Encoding = (encodeCondition(Cond) << kConditionShift) | B24 |
-                            B21 | (0xfff << 8) | B4 |
-                            (encodeGPRRegister(Rm) << kRmShift);
+  const IValueT Encoding = (encodeCondition(Cond) << kConditionShift) | B24 |
+                           B21 | (0xfff << 8) | B4 |
+                           (encodeGPRRegister(Rm) << kRmShift);
   emitInst(Encoding);
 }
 
-void ARM32::AssemblerARM32::ldr(const Operand *OpRt, const Operand *OpAddress,
-                                CondARM32::Cond Cond) {
-  uint32_t Rt;
+void AssemblerARM32::ldr(const Operand *OpRt, const Operand *OpAddress,
+                         CondARM32::Cond Cond) {
+  IValueT Rt;
   if (decodeOperand(OpRt, Rt) != DecodedAsRegister)
     return setNeedsTextFixup();
-  uint32_t Address;
+  IValueT Address;
   if (decodeAddress(OpAddress, Address) != DecodedAsImmRegOffset)
     return setNeedsTextFixup();
   // LDR (immediate) - ARM section A8.8.63, encoding A1:
@@ -393,12 +461,12 @@ void ARM32::AssemblerARM32::ldr(const Operand *OpRt, const Operand *OpAddress,
   emitMemOp(Cond, kInstTypeMemImmediate, IsLoad, IsByte, Rt, Address);
 }
 
-void ARM32::AssemblerARM32::mov(const Operand *OpRd, const Operand *OpSrc,
-                                CondARM32::Cond Cond) {
-  uint32_t Rd;
+void AssemblerARM32::mov(const Operand *OpRd, const Operand *OpSrc,
+                         CondARM32::Cond Cond) {
+  IValueT Rd;
   if (decodeOperand(OpRd, Rd) != DecodedAsRegister)
     return setNeedsTextFixup();
-  uint32_t Src;
+  IValueT Src;
   // TODO(kschimpf) Handle other forms of mov.
   if (decodeOperand(OpSrc, Src) != DecodedAsRotatedImm8)
     return setNeedsTextFixup();
@@ -412,17 +480,17 @@ void ARM32::AssemblerARM32::mov(const Operand *OpRd, const Operand *OpSrc,
   if ((Rd == RegARM32::Encoded_Reg_pc && SetFlags))
     // Conditions of rule violated.
     return setNeedsTextFixup();
-  constexpr uint32_t Rn = 0;
-  constexpr uint32_t Mov = B3 | B2 | B0; // 1101.
+  constexpr IValueT Rn = 0;
+  constexpr IValueT Mov = B3 | B2 | B0; // 1101.
   emitType01(Cond, kInstTypeDataImmediate, Mov, SetFlags, Rn, Rd, Src);
 }
 
-void ARM32::AssemblerARM32::str(const Operand *OpRt, const Operand *OpAddress,
-                                CondARM32::Cond Cond) {
-  uint32_t Rt;
+void AssemblerARM32::str(const Operand *OpRt, const Operand *OpAddress,
+                         CondARM32::Cond Cond) {
+  IValueT Rt;
   if (decodeOperand(OpRt, Rt) != DecodedAsRegister)
     return setNeedsTextFixup();
-  uint32_t Address;
+  IValueT Address;
   if (decodeAddress(OpAddress, Address) != DecodedAsImmRegOffset)
     return setNeedsTextFixup();
   // STR (immediate) - ARM section A8.8.204, encoding A1:
@@ -453,17 +521,17 @@ void ARM32::AssemblerARM32::str(const Operand *OpRt, const Operand *OpAddress,
   emitMemOp(Cond, kInstTypeMemImmediate, IsLoad, IsByte, Rt, Address);
 }
 
-void ARM32::AssemblerARM32::sub(const Operand *OpRd, const Operand *OpRn,
-                                const Operand *OpSrc1, bool SetFlags,
-                                CondARM32::Cond Cond) {
-  uint32_t Rd;
+void AssemblerARM32::sub(const Operand *OpRd, const Operand *OpRn,
+                         const Operand *OpSrc1, bool SetFlags,
+                         CondARM32::Cond Cond) {
+  IValueT Rd;
   if (decodeOperand(OpRd, Rd) != DecodedAsRegister)
     return setNeedsTextFixup();
-  uint32_t Rn;
+  IValueT Rn;
   if (decodeOperand(OpRn, Rn) != DecodedAsRegister)
     return setNeedsTextFixup();
-  constexpr uint32_t Sub = B1; // 0010
-  uint32_t Src1Value;
+  constexpr IValueT Sub = B1; // 0010
+  IValueT Src1Value;
   // TODO(kschimpf) Other possible decodings of sub.
   switch (decodeOperand(OpSrc1, Src1Value)) {
   default:
@@ -500,4 +568,5 @@ void ARM32::AssemblerARM32::sub(const Operand *OpRd, const Operand *OpRn,
   }
 }
 
+} // end of namespace ARM32
 } // end of namespace Ice

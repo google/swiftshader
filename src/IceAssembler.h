@@ -47,6 +47,9 @@ public:
     assert(!isLinked());
   }
 
+  /// Returns the encoded position stored in the label.
+  intptr_t getEncodedPosition() const { return Position; }
+
   /// Returns the position for bound labels (branches that come after this are
   /// considered backward branches). Cannot be used for unused or linked labels.
   intptr_t getPosition() const {
@@ -77,13 +80,13 @@ public:
     assert(isBound());
   }
 
-protected:
   void linkTo(intptr_t position) {
     assert(!isBound());
     Position = position + kWordSize;
     assert(isLinked());
   }
 
+protected:
   intptr_t Position = 0;
 
   // TODO(jvoung): why are labels offset by this?
