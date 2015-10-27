@@ -124,6 +124,9 @@ public:
 
   // List of instructions implemented by integrated assembler.
 
+  void adc(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
+           bool SetFlags, CondARM32::Cond Cond);
+
   void add(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
            bool SetFlags, CondARM32::Cond Cond);
 

@@ -297,10 +297,8 @@ void AssemblerARM32::emitTextInst(const std::string &Text, SizeT InstSize) {
 void AssemblerARM32::emitType01(CondARM32::Cond Cond, IValueT Type,
                                 IValueT Opcode, bool SetCc, IValueT Rn,
                                 IValueT Rd, IValueT Imm12) {
-  assert(isGPRRegisterDefined(Rd));
-  // TODO(kschimpf): Remove void cast when MINIMAL build allows.
-  (void)isGPRRegisterDefined(Rd);
-  assert(Cond != CondARM32::kNone);
+  if (!isGPRRegisterDefined(Rd) || !isConditionDefined(Cond))
+    return setNeedsTextFixup();
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   const IValueT Encoding = (encodeCondition(Cond) << kConditionShift) |
                            (Type << kTypeShift) | (Opcode << kOpcodeShift) |
@@ -340,13 +338,43 @@ void AssemblerARM32::emitBranch(Label *L, CondARM32::Cond Cond, bool Link) {
 void AssemblerARM32::emitMemOp(CondARM32::Cond Cond, IValueT InstType,
                                bool IsLoad, bool IsByte, IValueT Rt,
                                IValueT Address) {
-  assert(isGPRRegisterDefined(Rt));
-  assert(Cond != CondARM32::kNone);
+  if (!isGPRRegisterDefined(Rt) || !isConditionDefined(Cond))
+    return setNeedsTextFixup();
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   const IValueT Encoding = (encodeCondition(Cond) << kConditionShift) |
                            (InstType << kTypeShift) | (IsLoad ? L : 0) |
                            (IsByte ? B : 0) | (Rt << kRdShift) | Address;
   emitInst(Encoding);
+}
+
+void AssemblerARM32::adc(const Operand *OpRd, const Operand *OpRn,
+                         const Operand *OpSrc1, bool SetFlags,
+                         CondARM32::Cond Cond) {
+  IValueT Rd;
+  if (decodeOperand(OpRd, Rd) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  IValueT Rn;
+  if (decodeOperand(OpRn, Rn) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  constexpr IValueT Adc = B2 | B0; // 0101
+  IValueT Src1Value;
+  // TODO(kschimpf) Other possible decodings of adc.
+  switch (decodeOperand(OpSrc1, Src1Value)) {
+  default:
+    return setNeedsTextFixup();
+  case DecodedAsRotatedImm8: {
+    // ADC (Immediated) = ARM section A8.8.1, encoding A1:
+    //   adc{s}<c> <Rd>, <Rn>, #<RotatedImm8>
+    //
+    // cccc0010101snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
+    // s=SetFlags and iiiiiiiiiiii=Src1Value=RotatedImm8.
+    if ((Rd == RegARM32::Encoded_Reg_pc && SetFlags))
+      // Conditions of rule violated.
+      return setNeedsTextFixup();
+    emitType01(Cond, kInstTypeDataImmediate, Adc, SetFlags, Rn, Rd, Src1Value);
+    return;
+  }
+  };
 }
 
 void AssemblerARM32::add(const Operand *OpRd, const Operand *OpRn,

@@ -225,16 +225,17 @@ void Assembler::adds(Register rd, Register rn, Operand o, Condition cond) {
 void Assembler::subs(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), SUB, 1, rn, rd, o);
 }
-#endif
 
+// Moved to ARM32::AssemberARM32::adc()
 void Assembler::adc(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), ADC, 0, rn, rd, o);
 }
 
-
+// Moved to ARM32::AssemberARM32::adc()
 void Assembler::adcs(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), ADC, 1, rn, rd, o);
 }
+#endif
 
 
 void Assembler::sbc(Register rd, Register rn, Operand o, Condition cond) {

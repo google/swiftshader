@@ -457,11 +457,12 @@ class Assembler : public ValueObject {
   void add(Register rd, Register rn, Operand o, Condition cond = AL);
 
   void adds(Register rd, Register rn, Operand o, Condition cond = AL);
-#endif
 
+  // Moved to ARM32::AssemblerARM32::adc()
   void adc(Register rd, Register rn, Operand o, Condition cond = AL);
 
   void adcs(Register rd, Register rn, Operand o, Condition cond = AL);
+#endif
 
   void sbc(Register rd, Register rn, Operand o, Condition cond = AL);
 
