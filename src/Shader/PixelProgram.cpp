@@ -743,7 +743,7 @@ namespace sw
 			}
 			else
 			{
-				Int a = relativeAddress(src);
+				Int a = relativeAddress(src, src.bufferIndex);
 
 				reg = r[i + a];
 			}
@@ -756,7 +756,7 @@ namespace sw
 				}
 				else
 				{
-					Int a = relativeAddress(src);
+					Int a = relativeAddress(src, src.bufferIndex);
 
 					reg = v[i + a];
 				}
@@ -800,7 +800,7 @@ namespace sw
 			}
 			else
 			{
-				Int a = relativeAddress(src);
+				Int a = relativeAddress(src, src.bufferIndex);
 
 				reg = oC[i + a];
 			}
@@ -858,6 +858,23 @@ namespace sw
 		return mod;
 	}
 
+	RValue<Pointer<Byte>> PixelProgram::uniformAddress(int bufferIndex, unsigned int index)
+	{
+		if(bufferIndex == -1)
+		{
+			return data + OFFSET(DrawData, ps.c[index]);
+		}
+		else
+		{
+			return *Pointer<Pointer<Byte>>(data + OFFSET(DrawData, ps.u[bufferIndex])) + index;
+		}
+	}
+
+	RValue<Pointer<Byte>> PixelProgram::uniformAddress(int bufferIndex, unsigned int index, Int& offset)
+	{
+		return uniformAddress(bufferIndex, index) + offset * sizeof(float4);
+	}
+
 	Vector4f PixelProgram::readConstant(const Src &src, unsigned int offset)
 	{
 		Vector4f c;
@@ -865,7 +882,7 @@ namespace sw
 
 		if(src.rel.type == Shader::PARAMETER_VOID)   // Not relative
 		{
-			c.x = c.y = c.z = c.w = *Pointer<Float4>(data + OFFSET(DrawData, ps.c[i]));
+			c.x = c.y = c.z = c.w = *Pointer<Float4>(uniformAddress(src.bufferIndex, i));
 
 			c.x = c.x.xxxx;
 			c.y = c.y.yyyy;
@@ -897,7 +914,7 @@ namespace sw
 		{
 			Int loopCounter = aL[loopDepth];
 
-			c.x = c.y = c.z = c.w = *Pointer<Float4>(data + OFFSET(DrawData, ps.c[i]) + loopCounter * 16);
+			c.x = c.y = c.z = c.w = *Pointer<Float4>(uniformAddress(src.bufferIndex, i, loopCounter));
 
 			c.x = c.x.xxxx;
 			c.y = c.y.yyyy;
@@ -906,9 +923,9 @@ namespace sw
 		}
 		else
 		{
-			Int a = relativeAddress(src);
+			Int a = relativeAddress(src, src.bufferIndex);
 
-			c.x = c.y = c.z = c.w = *Pointer<Float4>(data + OFFSET(DrawData, ps.c[i]) + a * 16);
+			c.x = c.y = c.z = c.w = *Pointer<Float4>(uniformAddress(src.bufferIndex, i, a));
 
 			c.x = c.x.xxxx;
 			c.y = c.y.yyyy;
@@ -919,7 +936,7 @@ namespace sw
 		return c;
 	}
 
-	Int PixelProgram::relativeAddress(const Shader::Parameter &var)
+	Int PixelProgram::relativeAddress(const Shader::Parameter &var, int bufferIndex)
 	{
 		ASSERT(var.rel.deterministic);
 
@@ -937,7 +954,7 @@ namespace sw
 		}
 		else if(var.rel.type == Shader::PARAMETER_CONST)
 		{
-			RValue<Int4> c = *Pointer<Int4>(data + OFFSET(DrawData, ps.c[var.rel.index]));
+			RValue<Int4> c = *Pointer<Int4>(uniformAddress(bufferIndex, var.rel.index));
 
 			return Extract(c, 0) * var.rel.scale;
 		}

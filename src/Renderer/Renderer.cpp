@@ -382,6 +382,8 @@ namespace sw
 					memcpy(&data->ps.b, PixelProcessor::b, sizeof(bool) * draw->psDirtyConstB);
 					draw->psDirtyConstB = 0;
 				}
+
+				PixelProcessor::lockUniformBuffers(data->ps.u);
 			}
 			
 			if(context->pixelShaderVersion() <= 0x0104)
@@ -434,6 +436,8 @@ namespace sw
 				{
 					data->instanceID = context->instanceID;
 				}
+
+				VertexProcessor::lockUniformBuffers(data->vs.u);
 			}
 			else
 			{
@@ -953,6 +957,9 @@ namespace sw
 				{
 					draw.indexBuffer->unlock();
 				}
+
+				PixelProcessor::unlockUniformBuffers();
+				VertexProcessor::unlockUniformBuffers();
 
 				draw.vertexRoutine->unbind();
 				draw.setupRoutine->unbind();

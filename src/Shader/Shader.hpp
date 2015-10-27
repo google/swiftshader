@@ -455,7 +455,7 @@ namespace sw
 
 		struct SourceParameter : Parameter
 		{
-			SourceParameter() : swizzle(0xE4), modifier(MODIFIER_NONE)
+			SourceParameter() : swizzle(0xE4), modifier(MODIFIER_NONE), bufferIndex(-1)
 			{
 			}
 
@@ -465,6 +465,7 @@ namespace sw
 
 			unsigned int swizzle : 8;
 			Modifier modifier : 8;
+			int bufferIndex : 8;
 		};
 
 		struct Instruction

@@ -167,7 +167,7 @@ namespace es2
 
 		void dirtyAllUniforms();
 		void applyUniforms();
-		void applyUniformBuffers();
+		void applyUniformBuffers(gl::BindingPointer<Buffer>* uniformBuffers);
 
 		void link();
 		bool isLinked() const;

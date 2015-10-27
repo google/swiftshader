@@ -157,6 +157,32 @@ namespace sw
 		else ASSERT(false);
 	}
 
+	void VertexProcessor::setUniformBuffer(int index, sw::Resource* buffer, int offset)
+	{
+		uniformBuffer[index] = buffer;
+		uniformBufferOffset[index] = offset;
+	}
+
+	void VertexProcessor::lockUniformBuffers(byte** u)
+	{
+		for(int i = 0; i < MAX_UNIFORM_BUFFER_BINDINGS; ++i)
+		{
+			u[i] = uniformBuffer[i] ? static_cast<byte*>(uniformBuffer[i]->lock(PUBLIC, PRIVATE)) + uniformBufferOffset[i] : nullptr;
+		}
+	}
+
+	void VertexProcessor::unlockUniformBuffers()
+	{
+		for(int i = 0; i < MAX_UNIFORM_BUFFER_BINDINGS; ++i)
+		{
+			if(uniformBuffer[i])
+			{
+				uniformBuffer[i]->unlock();
+				uniformBuffer[i] = nullptr;
+			}
+		}
+	}
+
 	void VertexProcessor::setModelMatrix(const Matrix &M, int i)
 	{
 		if(i < 12)
