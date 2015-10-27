@@ -132,7 +132,8 @@ TEST_F(AssemblerX8632Test, Lea) {
              Immediate(BaseValue));                                            \
     }                                                                          \
     __ lea(IceType_i32, GPRRegister::Encoded_Reg_##Dst,                        \
-           Address(GPRRegister::Encoded_Reg_##Base, Disp));                    \
+           Address(GPRRegister::Encoded_Reg_##Base, Disp,                      \
+                   AssemblerFixup::NoFixup));                                  \
     AssembledTest test = assemble();                                           \
     test.run();                                                                \
     ASSERT_EQ(test.Base() + (Disp), test.Dst()) << TestString << " with Disp " \
@@ -148,13 +149,17 @@ TEST_F(AssemblerX8632Test, Lea) {
     __ mov(IceType_i32, GPRRegister::Encoded_Reg_##Index,                      \
            Immediate(IndexValue));                                             \
     __ lea(IceType_i32, GPRRegister::Encoded_Reg_##Dst0,                       \
-           Address(GPRRegister::Encoded_Reg_##Index, Traits::TIMES_1, Disp));  \
+           Address(GPRRegister::Encoded_Reg_##Index, Traits::TIMES_1, Disp,    \
+                   AssemblerFixup::NoFixup));                                  \
     __ lea(IceType_i32, GPRRegister::Encoded_Reg_##Dst1,                       \
-           Address(GPRRegister::Encoded_Reg_##Index, Traits::TIMES_2, Disp));  \
+           Address(GPRRegister::Encoded_Reg_##Index, Traits::TIMES_2, Disp,    \
+                   AssemblerFixup::NoFixup));                                  \
     __ lea(IceType_i32, GPRRegister::Encoded_Reg_##Dst2,                       \
-           Address(GPRRegister::Encoded_Reg_##Index, Traits::TIMES_4, Disp));  \
+           Address(GPRRegister::Encoded_Reg_##Index, Traits::TIMES_4, Disp,    \
+                   AssemblerFixup::NoFixup));                                  \
     __ lea(IceType_i32, GPRRegister::Encoded_Reg_##Dst3,                       \
-           Address(GPRRegister::Encoded_Reg_##Index, Traits::TIMES_8, Disp));  \
+           Address(GPRRegister::Encoded_Reg_##Index, Traits::TIMES_8, Disp,    \
+                   AssemblerFixup::NoFixup));                                  \
     AssembledTest test = assemble();                                           \
     test.run();                                                                \
     ASSERT_EQ((test.Index() << Traits::TIMES_1) + (Disp), test.Dst0())         \
@@ -186,16 +191,20 @@ TEST_F(AssemblerX8632Test, Lea) {
     }                                                                          \
     __ lea(IceType_i32, GPRRegister::Encoded_Reg_##Dst0,                       \
            Address(GPRRegister::Encoded_Reg_##Base,                            \
-                   GPRRegister::Encoded_Reg_##Index, Traits::TIMES_1, Disp));  \
+                   GPRRegister::Encoded_Reg_##Index, Traits::TIMES_1, Disp,    \
+                   AssemblerFixup::NoFixup));                                  \
     __ lea(IceType_i32, GPRRegister::Encoded_Reg_##Dst1,                       \
            Address(GPRRegister::Encoded_Reg_##Base,                            \
-                   GPRRegister::Encoded_Reg_##Index, Traits::TIMES_2, Disp));  \
+                   GPRRegister::Encoded_Reg_##Index, Traits::TIMES_2, Disp,    \
+                   AssemblerFixup::NoFixup));                                  \
     __ lea(IceType_i32, GPRRegister::Encoded_Reg_##Dst2,                       \
            Address(GPRRegister::Encoded_Reg_##Base,                            \
-                   GPRRegister::Encoded_Reg_##Index, Traits::TIMES_4, Disp));  \
+                   GPRRegister::Encoded_Reg_##Index, Traits::TIMES_4, Disp,    \
+                   AssemblerFixup::NoFixup));                                  \
     __ lea(IceType_i32, GPRRegister::Encoded_Reg_##Dst3,                       \
            Address(GPRRegister::Encoded_Reg_##Base,                            \
-                   GPRRegister::Encoded_Reg_##Index, Traits::TIMES_8, Disp));  \
+                   GPRRegister::Encoded_Reg_##Index, Traits::TIMES_8, Disp,    \
+                   AssemblerFixup::NoFixup));                                  \
     AssembledTest test = assemble();                                           \
     test.run();                                                                \
     uint32_t ExpectedIndexValue = test.Index();                                \
@@ -287,7 +296,7 @@ TEST_F(AssemblerX8632LowLevelTest, LeaAbsolute) {
   do {                                                                         \
     static constexpr char TestString[] = "(" #Dst ", " #Value ")";             \
     __ lea(IceType_i32, GPRRegister::Encoded_Reg_##Dst,                        \
-           Address(Address::ABSOLUTE, Value));                                 \
+           Address(Value, AssemblerFixup::NoFixup));                           \
     static constexpr uint32_t ByteCount = 6;                                   \
     ASSERT_EQ(ByteCount, codeBytesSize()) << TestString;                       \
     static constexpr uint8_t Opcode = 0x8D;                                    \

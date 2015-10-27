@@ -930,7 +930,7 @@ protected:
   }
 
   Address dwordAddress(uint32_t Dword) {
-    return Address(Encoded_GPR_r9(), dwordDisp(Dword));
+    return Address(Encoded_GPR_r9(), dwordDisp(Dword), nullptr);
   }
 
 private:

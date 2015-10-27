@@ -133,7 +133,7 @@ TEST_F(AssemblerX8632Test, CallAddr) {
   __ hlt();
   __ hlt();
   __ mov(IceType_i32, GPRRegister::Encoded_Reg_eax, Immediate(0xf1f2f300));
-  __ call(Address(GPRRegister::Encoded_Reg_esp, 0));
+  __ call(Address(GPRRegister::Encoded_Reg_esp, 0, AssemblerFixup::NoFixup));
   __ popl(GPRRegister::Encoded_Reg_edx);
 
   AssembledTest test = assemble();

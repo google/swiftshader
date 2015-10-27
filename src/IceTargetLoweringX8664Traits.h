@@ -201,81 +201,72 @@ template <> struct MachineTraits<TargetX8664> {
       return *this;
     }
 
-    Address(GPRRegister base, int32_t disp) {
-      if (disp == 0 && (base & 7) != RegX8664::Encoded_Reg_ebp) {
-        SetModRM(0, base);
-        if ((base & 7) == RegX8664::Encoded_Reg_esp)
-          SetSIB(TIMES_1, RegX8664::Encoded_Reg_esp, base);
-      } else if (Utils::IsInt(8, disp)) {
-        SetModRM(1, base);
-        if ((base & 7) == RegX8664::Encoded_Reg_esp)
-          SetSIB(TIMES_1, RegX8664::Encoded_Reg_esp, base);
-        SetDisp8(disp);
+    Address(GPRRegister Base, int32_t Disp, AssemblerFixup *Fixup) {
+      if (Fixup == nullptr && Disp == 0 &&
+          (Base & 7) != RegX8664::Encoded_Reg_ebp) {
+        SetModRM(0, Base);
+        if ((Base & 7) == RegX8664::Encoded_Reg_esp)
+          SetSIB(TIMES_1, RegX8664::Encoded_Reg_esp, Base);
+      } else if (Fixup == nullptr && Utils::IsInt(8, Disp)) {
+        SetModRM(1, Base);
+        if ((Base & 7) == RegX8664::Encoded_Reg_esp)
+          SetSIB(TIMES_1, RegX8664::Encoded_Reg_esp, Base);
+        SetDisp8(Disp);
       } else {
-        SetModRM(2, base);
-        if ((base & 7) == RegX8664::Encoded_Reg_esp)
-          SetSIB(TIMES_1, RegX8664::Encoded_Reg_esp, base);
-        SetDisp32(disp);
+        SetModRM(2, Base);
+        if ((Base & 7) == RegX8664::Encoded_Reg_esp)
+          SetSIB(TIMES_1, RegX8664::Encoded_Reg_esp, Base);
+        SetDisp32(Disp);
+        if (Fixup)
+          SetFixup(Fixup);
       }
     }
 
-    Address(GPRRegister index, ScaleFactor scale, int32_t disp) {
-      assert(index != RegX8664::Encoded_Reg_esp); // Illegal addressing mode.
+    Address(GPRRegister Index, ScaleFactor Scale, int32_t Disp,
+            AssemblerFixup *Fixup) {
+      assert(Index != RegX8664::Encoded_Reg_esp); // Illegal addressing mode.
       SetModRM(0, RegX8664::Encoded_Reg_esp);
-      SetSIB(scale, index, RegX8664::Encoded_Reg_ebp);
-      SetDisp32(disp);
+      SetSIB(Scale, Index, RegX8664::Encoded_Reg_ebp);
+      SetDisp32(Disp);
+      if (Fixup)
+        SetFixup(Fixup);
     }
 
-    Address(GPRRegister base, GPRRegister index, ScaleFactor scale,
-            int32_t disp) {
-      assert(index != RegX8664::Encoded_Reg_esp); // Illegal addressing mode.
-      if (disp == 0 && (base & 7) != RegX8664::Encoded_Reg_ebp) {
+    Address(GPRRegister Base, GPRRegister Index, ScaleFactor Scale,
+            int32_t Disp, AssemblerFixup *Fixup) {
+      assert(Index != RegX8664::Encoded_Reg_esp); // Illegal addressing mode.
+      if (Fixup == nullptr && Disp == 0 &&
+          (Base & 7) != RegX8664::Encoded_Reg_ebp) {
         SetModRM(0, RegX8664::Encoded_Reg_esp);
-        SetSIB(scale, index, base);
-      } else if (Utils::IsInt(8, disp)) {
+        SetSIB(Scale, Index, Base);
+      } else if (Fixup == nullptr && Utils::IsInt(8, Disp)) {
         SetModRM(1, RegX8664::Encoded_Reg_esp);
-        SetSIB(scale, index, base);
-        SetDisp8(disp);
+        SetSIB(Scale, Index, Base);
+        SetDisp8(Disp);
       } else {
         SetModRM(2, RegX8664::Encoded_Reg_esp);
-        SetSIB(scale, index, base);
-        SetDisp32(disp);
+        SetSIB(Scale, Index, Base);
+        SetDisp32(Disp);
+        if (Fixup)
+          SetFixup(Fixup);
       }
     }
 
-    // PcRelTag is a special tag for requesting rip-relative addressing in
-    // X86-64.
-    // TODO(jpp): this is bogus. remove.
-    enum AbsoluteTag { ABSOLUTE };
-
-    Address(AbsoluteTag, const uintptr_t Addr) {
-      SetModRM(0, RegX8664::Encoded_Reg_ebp);
-      SetDisp32(Addr);
-    }
-
-    // TODO(jpp): remove this.
-    static Address Absolute(const uintptr_t Addr) {
-      return Address(ABSOLUTE, Addr);
-    }
-
-    Address(AbsoluteTag, RelocOffsetT Offset, AssemblerFixup *Fixup) {
+    /// Generate a RIP-relative address expression on x86-64.
+    Address(RelocOffsetT Offset, AssemblerFixup *Fixup) {
       SetModRM(0, RegX8664::Encoded_Reg_ebp);
       // Use the Offset in the displacement for now. If we decide to process
       // fixups later, we'll need to patch up the emitted displacement.
       SetDisp32(Offset);
-      SetFixup(Fixup);
-    }
-
-    // TODO(jpp): remove this.
-    static Address Absolute(RelocOffsetT Offset, AssemblerFixup *Fixup) {
-      return Address(ABSOLUTE, Offset, Fixup);
+      if (Fixup)
+        SetFixup(Fixup);
     }
 
     static Address ofConstPool(Assembler *Asm, const Constant *Imm) {
       // TODO(jpp): ???
       AssemblerFixup *Fixup = Asm->createFixup(RelFixup, Imm);
       const RelocOffsetT Offset = 4;
-      return Address(ABSOLUTE, Offset, Fixup);
+      return Address(Offset, Fixup);
     }
   };
 

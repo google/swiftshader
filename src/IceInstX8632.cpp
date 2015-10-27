@@ -120,9 +120,10 @@ void MachineTraits<TargetX8632>::X86OperandMem::emit(const Cfg *Func) const {
     llvm_unreachable("Invalid offset type for x86 mem operand");
   }
 
-  if (Base) {
+  if (Base || Index) {
     Str << "(";
-    Base->emit(Func);
+    if (Base)
+      Base->emit(Func);
     if (Index) {
       Str << ",";
       Index->emit(Func);
@@ -151,8 +152,8 @@ void MachineTraits<TargetX8632>::X86OperandMem::dump(const Cfg *Func,
     Dumped = true;
   }
   if (Index) {
-    assert(Base);
-    Str << "+";
+    if (Base)
+      Str << "+";
     if (Shift > 0)
       Str << (1u << Shift) << "*";
     if (Func)
@@ -216,18 +217,16 @@ MachineTraits<TargetX8632>::X86OperandMem::toAsmAddress(
     return X8632::Traits::Address(
         RegX8632::getEncodedGPR(getBase()->getRegNum()),
         RegX8632::getEncodedGPR(getIndex()->getRegNum()),
-        X8632::Traits::ScaleFactor(getShift()), Disp);
+        X8632::Traits::ScaleFactor(getShift()), Disp, Fixup);
   } else if (getBase()) {
     return X8632::Traits::Address(
-        RegX8632::getEncodedGPR(getBase()->getRegNum()), Disp);
+        RegX8632::getEncodedGPR(getBase()->getRegNum()), Disp, Fixup);
   } else if (getIndex()) {
     return X8632::Traits::Address(
         RegX8632::getEncodedGPR(getIndex()->getRegNum()),
-        X8632::Traits::ScaleFactor(getShift()), Disp);
-  } else if (Fixup) {
-    return X8632::Traits::Address::Absolute(Disp, Fixup);
+        X8632::Traits::ScaleFactor(getShift()), Disp, Fixup);
   } else {
-    return X8632::Traits::Address::Absolute(Disp);
+    return X8632::Traits::Address(Disp, Fixup);
   }
 }
 
@@ -238,7 +237,8 @@ MachineTraits<TargetX8632>::VariableSplit::toAsmAddress(const Cfg *Func) const {
   int32_t Offset =
       Var->getStackOffset() + Target->getStackAdjustment() + getOffset();
   return X8632::Traits::Address(
-      RegX8632::getEncodedGPR(Target->getFrameOrStackReg()), Offset);
+      RegX8632::getEncodedGPR(Target->getFrameOrStackReg()), Offset,
+      AssemblerFixup::NoFixup);
 }
 
 void MachineTraits<TargetX8632>::VariableSplit::emit(const Cfg *Func) const {

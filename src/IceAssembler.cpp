@@ -36,7 +36,6 @@ static uintptr_t NewContents(Assembler &Assemblr, intptr_t Capacity) {
 }
 
 void AssemblerBuffer::installFixup(AssemblerFixup *F) {
-  F->set_position(0);
   if (!Assemblr.getPreliminary())
     Fixups.push_back(F);
 }

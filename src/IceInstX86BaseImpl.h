@@ -2657,7 +2657,8 @@ void InstX86Fld<Machine>::emitIAS(const Cfg *Func) const {
                Width);
       typename InstX86Base<Machine>::Traits::Address StackSlot =
           typename InstX86Base<Machine>::Traits::Address(
-              InstX86Base<Machine>::Traits::RegisterSet::Encoded_Reg_esp, 0);
+              InstX86Base<Machine>::Traits::RegisterSet::Encoded_Reg_esp, 0,
+              AssemblerFixup::NoFixup);
       Asm->movss(Ty, StackSlot,
                  InstX86Base<Machine>::Traits::RegisterSet::getEncodedXmm(
                      Var->getRegNum()));
@@ -2755,7 +2756,8 @@ void InstX86Fstp<Machine>::emitIAS(const Cfg *Func) const {
              InstX86Base<Machine>::Traits::RegisterSet::Encoded_Reg_esp, Width);
     typename InstX86Base<Machine>::Traits::Address StackSlot =
         typename InstX86Base<Machine>::Traits::Address(
-            InstX86Base<Machine>::Traits::RegisterSet::Encoded_Reg_esp, 0);
+            InstX86Base<Machine>::Traits::RegisterSet::Encoded_Reg_esp, 0,
+            AssemblerFixup::NoFixup);
     Asm->fstp(Ty, StackSlot);
     Asm->movss(Ty, InstX86Base<Machine>::Traits::RegisterSet::getEncodedXmm(
                        Dest->getRegNum()),

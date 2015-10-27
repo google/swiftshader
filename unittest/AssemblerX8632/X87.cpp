@@ -14,8 +14,10 @@ namespace Test {
 namespace {
 
 TEST_F(AssemblerX8632LowLevelTest, Fld) {
-  __ fld(IceType_f32, Address(GPRRegister::Encoded_Reg_ebp, 1));
-  __ fld(IceType_f64, Address(GPRRegister::Encoded_Reg_ebp, 0x10000));
+  __ fld(IceType_f32, Address(GPRRegister::Encoded_Reg_ebp, 1,
+                              AssemblerFixup::NoFixup));
+  __ fld(IceType_f64, Address(GPRRegister::Encoded_Reg_ebp, 0x10000,
+                              AssemblerFixup::NoFixup));
 
   constexpr size_t ByteCount = 9;
   ASSERT_EQ(ByteCount, codeBytesSize());
@@ -31,8 +33,10 @@ TEST_F(AssemblerX8632LowLevelTest, Fld) {
 }
 
 TEST_F(AssemblerX8632LowLevelTest, FstpAddr) {
-  __ fstp(IceType_f32, Address(GPRRegister::Encoded_Reg_ebp, 1));
-  __ fstp(IceType_f64, Address(GPRRegister::Encoded_Reg_ebp, 0x10000));
+  __ fstp(IceType_f32, Address(GPRRegister::Encoded_Reg_ebp, 1,
+                               AssemblerFixup::NoFixup));
+  __ fstp(IceType_f64, Address(GPRRegister::Encoded_Reg_ebp, 0x10000,
+                               AssemblerFixup::NoFixup));
 
   constexpr size_t ByteCount = 9;
   ASSERT_EQ(ByteCount, codeBytesSize());
@@ -57,7 +61,8 @@ TEST_F(AssemblerX8632LowLevelTest, Fincstp) {
 }
 
 TEST_F(AssemblerX8632LowLevelTest, FnstcwAddr) {
-  __ fnstcw(Address(GPRRegister::Encoded_Reg_ebp, 0x12345));
+  __ fnstcw(Address(GPRRegister::Encoded_Reg_ebp, 0x12345,
+                    AssemblerFixup::NoFixup));
 
   constexpr size_t ByteCount = 6;
   ASSERT_EQ(ByteCount, codeBytesSize());
@@ -69,7 +74,8 @@ TEST_F(AssemblerX8632LowLevelTest, FnstcwAddr) {
 }
 
 TEST_F(AssemblerX8632LowLevelTest, FldcwAddr) {
-  __ fldcw(Address(GPRRegister::Encoded_Reg_ebp, 0x12345));
+  __ fldcw(Address(GPRRegister::Encoded_Reg_ebp, 0x12345,
+                   AssemblerFixup::NoFixup));
 
   constexpr size_t ByteCount = 6;
   ASSERT_EQ(ByteCount, codeBytesSize());

@@ -31,8 +31,14 @@ struct AssemblerFixup {
 public:
   AssemblerFixup() = default;
   AssemblerFixup(const AssemblerFixup &) = default;
-  intptr_t position() const { return position_; }
-  void set_position(intptr_t Position) { position_ = Position; }
+  intptr_t position() const {
+    assert(position_was_set_);
+    return position_;
+  }
+  void set_position(intptr_t Position) {
+    position_ = Position;
+    position_was_set_ = true;
+  }
 
   FixupKind kind() const { return kind_; }
   void set_kind(FixupKind Kind) { kind_ = Kind; }
@@ -43,12 +49,15 @@ public:
   static const Constant *NullSymbol;
   bool isNullSymbol() const { return value_ == NullSymbol; }
 
+  static constexpr AssemblerFixup *NoFixup = nullptr;
+
   void set_value(const Constant *Value) { value_ = Value; }
 
   /// Emits fixup, then returns the number of bytes to skip.
   virtual size_t emit(GlobalContext *Ctx, const Assembler &Asm) const;
 
 private:
+  bool position_was_set_ = false;
   intptr_t position_ = 0;
   FixupKind kind_ = 0;
   const Constant *value_ = nullptr;

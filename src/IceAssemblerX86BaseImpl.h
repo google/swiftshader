@@ -3313,14 +3313,23 @@ void AssemblerX86Base<Machine>::emitOperand(
   assert(rm >= 0 && rm < 8);
   const intptr_t length = operand.length_;
   assert(length > 0);
+  intptr_t displacement_start = 1;
   // Emit the ModRM byte updated with the given RM value.
   assert((operand.encoding_[0] & 0x38) == 0);
   emitUint8(operand.encoding_[0] + (rm << 3));
+  // Whenever the addressing mode is not register indirect, using esp == 0x4
+  // as the register operation indicates an SIB byte follows.
+  if (((operand.encoding_[0] & 0xc0) != 0xc0) &&
+      ((operand.encoding_[0] & 0x07) == 0x04)) {
+    emitUint8(operand.encoding_[1]);
+    displacement_start = 2;
+  }
+  // Emit the displacement and the fixup that affects it, if any.
   if (operand.fixup()) {
     emitFixup(operand.fixup());
+    assert(length - displacement_start == 4);
   }
-  // Emit the rest of the encoded operand.
-  for (intptr_t i = 1; i < length; i++) {
+  for (intptr_t i = displacement_start; i < length; i++) {
     emitUint8(operand.encoding_[i]);
   }
 }

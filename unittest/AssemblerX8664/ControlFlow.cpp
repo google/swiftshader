@@ -169,7 +169,7 @@ TEST_F(AssemblerX8664Test, CallAddr) {
     }                                                                          \
     __ mov(IceType_i64, Encoded_GPR_##Dst##q(), dwordAddress(T0));             \
     __ mov(IceType_i64, Encoded_GPR_##Src##q(), Encoded_GPR_rsp());            \
-    __ call(Address(Encoded_GPR_##Src##q(), 0));                               \
+    __ call(Address(Encoded_GPR_##Src##q(), 0, AssemblerFixup::NoFixup));      \
     __ popl(Encoded_GPR_##Src##q());                                           \
                                                                                \
     AssembledTest test = assemble();                                           \

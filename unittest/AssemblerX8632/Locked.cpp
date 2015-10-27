@@ -200,7 +200,7 @@ TEST_F(AssemblerX8632LowLevelTest, Xadd) {
 
   // Ensures that xadd emits a lock prefix accordingly.
   {
-    __ xadd(IceType_i8, Address::Absolute(0x1FF00),
+    __ xadd(IceType_i8, Address(0x1FF00, AssemblerFixup::NoFixup),
             GPRRegister::Encoded_Reg_esi, NotLocked);
     static constexpr uint8_t ByteCountNotLocked8 = 7;
     ASSERT_EQ(ByteCountNotLocked8, codeBytesSize());
@@ -208,7 +208,7 @@ TEST_F(AssemblerX8632LowLevelTest, Xadd) {
                                      0x01, 0x00);
     reset();
 
-    __ xadd(IceType_i8, Address::Absolute(0x1FF00),
+    __ xadd(IceType_i8, Address(0x1FF00, AssemblerFixup::NoFixup),
             GPRRegister::Encoded_Reg_esi, Locked);
     static constexpr uint8_t ByteCountLocked8 = 1 + ByteCountNotLocked8;
     ASSERT_EQ(ByteCountLocked8, codeBytesSize());
@@ -218,7 +218,7 @@ TEST_F(AssemblerX8632LowLevelTest, Xadd) {
   }
 
   {
-    __ xadd(IceType_i16, Address::Absolute(0x1FF00),
+    __ xadd(IceType_i16, Address(0x1FF00, AssemblerFixup::NoFixup),
             GPRRegister::Encoded_Reg_esi, NotLocked);
     static constexpr uint8_t ByteCountNotLocked16 = 8;
     ASSERT_EQ(ByteCountNotLocked16, codeBytesSize());
@@ -226,7 +226,7 @@ TEST_F(AssemblerX8632LowLevelTest, Xadd) {
                                       0xFF, 0x01, 0x00);
     reset();
 
-    __ xadd(IceType_i16, Address::Absolute(0x1FF00),
+    __ xadd(IceType_i16, Address(0x1FF00, AssemblerFixup::NoFixup),
             GPRRegister::Encoded_Reg_esi, Locked);
     static constexpr uint8_t ByteCountLocked16 = 1 + ByteCountNotLocked16;
     ASSERT_EQ(ByteCountLocked16, codeBytesSize());
@@ -236,7 +236,7 @@ TEST_F(AssemblerX8632LowLevelTest, Xadd) {
   }
 
   {
-    __ xadd(IceType_i32, Address::Absolute(0x1FF00),
+    __ xadd(IceType_i32, Address(0x1FF00, AssemblerFixup::NoFixup),
             GPRRegister::Encoded_Reg_esi, NotLocked);
     static constexpr uint8_t ByteCountNotLocked32 = 7;
     ASSERT_EQ(ByteCountNotLocked32, codeBytesSize());
@@ -244,7 +244,7 @@ TEST_F(AssemblerX8632LowLevelTest, Xadd) {
                                       0x01, 0x00);
     reset();
 
-    __ xadd(IceType_i32, Address::Absolute(0x1FF00),
+    __ xadd(IceType_i32, Address(0x1FF00, AssemblerFixup::NoFixup),
             GPRRegister::Encoded_Reg_esi, Locked);
     static constexpr uint8_t ByteCountLocked32 = 1 + ByteCountNotLocked32;
     ASSERT_EQ(ByteCountLocked32, codeBytesSize());
@@ -307,14 +307,14 @@ TEST_F(AssemblerX8632LowLevelTest, Cmpxchg8b) {
   static constexpr bool Locked = true;
 
   // Ensures that cmpxchg8b emits a lock prefix accordingly.
-  __ cmpxchg8b(Address::Absolute(0x1FF00), NotLocked);
+  __ cmpxchg8b(Address(0x1FF00, AssemblerFixup::NoFixup), NotLocked);
   static constexpr uint8_t ByteCountNotLocked = 7;
   ASSERT_EQ(ByteCountNotLocked, codeBytesSize());
   verifyBytes<ByteCountNotLocked>(codeBytes(), 0x0F, 0xC7, 0x0D, 0x00, 0xFF,
                                   0x01, 0x00);
   reset();
 
-  __ cmpxchg8b(Address::Absolute(0x1FF00), Locked);
+  __ cmpxchg8b(Address(0x1FF00, AssemblerFixup::NoFixup), Locked);
   static constexpr uint8_t ByteCountLocked = 1 + ByteCountNotLocked;
   ASSERT_EQ(ByteCountLocked, codeBytesSize());
   verifyBytes<ByteCountLocked>(codeBytes(), 0xF0, 0x0F, 0xC7, 0x0D, 0x00, 0xFF,
@@ -400,7 +400,7 @@ TEST_F(AssemblerX8632LowLevelTest, Cmpxchg) {
 
   // Ensures that cmpxchg emits a lock prefix accordingly.
   {
-    __ cmpxchg(IceType_i8, Address::Absolute(0x1FF00),
+    __ cmpxchg(IceType_i8, Address(0x1FF00, AssemblerFixup::NoFixup),
                GPRRegister::Encoded_Reg_esi, NotLocked);
     static constexpr uint8_t ByteCountNotLocked8 = 7;
     ASSERT_EQ(ByteCountNotLocked8, codeBytesSize());
@@ -408,7 +408,7 @@ TEST_F(AssemblerX8632LowLevelTest, Cmpxchg) {
                                      0x01, 0x00);
     reset();
 
-    __ cmpxchg(IceType_i8, Address::Absolute(0x1FF00),
+    __ cmpxchg(IceType_i8, Address(0x1FF00, AssemblerFixup::NoFixup),
                GPRRegister::Encoded_Reg_esi, Locked);
     static constexpr uint8_t ByteCountLocked8 = 1 + ByteCountNotLocked8;
     ASSERT_EQ(ByteCountLocked8, codeBytesSize());
@@ -418,7 +418,7 @@ TEST_F(AssemblerX8632LowLevelTest, Cmpxchg) {
   }
 
   {
-    __ cmpxchg(IceType_i16, Address::Absolute(0x1FF00),
+    __ cmpxchg(IceType_i16, Address(0x1FF00, AssemblerFixup::NoFixup),
                GPRRegister::Encoded_Reg_esi, NotLocked);
     static constexpr uint8_t ByteCountNotLocked16 = 8;
     ASSERT_EQ(ByteCountNotLocked16, codeBytesSize());
@@ -426,7 +426,7 @@ TEST_F(AssemblerX8632LowLevelTest, Cmpxchg) {
                                       0xFF, 0x01, 0x00);
     reset();
 
-    __ cmpxchg(IceType_i16, Address::Absolute(0x1FF00),
+    __ cmpxchg(IceType_i16, Address(0x1FF00, AssemblerFixup::NoFixup),
                GPRRegister::Encoded_Reg_esi, Locked);
     static constexpr uint8_t ByteCountLocked16 = 1 + ByteCountNotLocked16;
     ASSERT_EQ(ByteCountLocked16, codeBytesSize());
@@ -436,7 +436,7 @@ TEST_F(AssemblerX8632LowLevelTest, Cmpxchg) {
   }
 
   {
-    __ cmpxchg(IceType_i32, Address::Absolute(0x1FF00),
+    __ cmpxchg(IceType_i32, Address(0x1FF00, AssemblerFixup::NoFixup),
                GPRRegister::Encoded_Reg_esi, NotLocked);
     static constexpr uint8_t ByteCountNotLocked32 = 7;
     ASSERT_EQ(ByteCountNotLocked32, codeBytesSize());
@@ -444,7 +444,7 @@ TEST_F(AssemblerX8632LowLevelTest, Cmpxchg) {
                                       0x01, 0x00);
     reset();
 
-    __ cmpxchg(IceType_i32, Address::Absolute(0x1FF00),
+    __ cmpxchg(IceType_i32, Address(0x1FF00, AssemblerFixup::NoFixup),
                GPRRegister::Encoded_Reg_esi, Locked);
     static constexpr uint8_t ByteCountLocked32 = 1 + ByteCountNotLocked32;
     ASSERT_EQ(ByteCountLocked32, codeBytesSize());

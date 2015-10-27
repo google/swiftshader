@@ -751,7 +751,7 @@ protected:
   }
 
   Address dwordAddress(uint32_t Dword) {
-    return Address(GPRRegister::Encoded_Reg_ebp, dwordDisp(Dword));
+    return Address(GPRRegister::Encoded_Reg_ebp, dwordDisp(Dword), nullptr);
   }
 
 private:

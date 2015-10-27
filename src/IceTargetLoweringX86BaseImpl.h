@@ -798,7 +798,8 @@ TargetX86Base<Machine>::stackVarToAsmOperand(const Variable *Var) const {
       Offset += getStackAdjustment();
   }
   return typename Traits::Address(
-      Traits::RegisterSet::getEncodedGPR(BaseRegNum), Offset);
+      Traits::RegisterSet::getEncodedGPR(BaseRegNum), Offset,
+      AssemblerFixup::NoFixup);
 }
 
 /// Helper function for addProlog().
@@ -2851,15 +2852,19 @@ TargetX86Base<Machine>::lowerIcmp64(const InstIcmp *Icmp, const InstBr *Br) {
       break;
     case InstIcmp::Eq:
     case InstIcmp::Ule:
-      _mov(Temp, Src0LoRM);
-      _or(Temp, Src0HiRM);
+      // Mov Src0HiRM first, because it was legalized most recently, and will
+      // sometimes avoid a move before the OR.
+      _mov(Temp, Src0HiRM);
+      _or(Temp, Src0LoRM);
       Context.insert(InstFakeUse::create(Func, Temp));
       setccOrBr(Traits::Cond::Br_e, Dest, Br);
       return;
     case InstIcmp::Ne:
     case InstIcmp::Ugt:
-      _mov(Temp, Src0LoRM);
-      _or(Temp, Src0HiRM);
+      // Mov Src0HiRM first, because it was legalized most recently, and will
+      // sometimes avoid a move before the OR.
+      _mov(Temp, Src0HiRM);
+      _or(Temp, Src0LoRM);
       Context.insert(InstFakeUse::create(Func, Temp));
       setccOrBr(Traits::Cond::Br_ne, Dest, Br);
       return;
@@ -4094,16 +4099,17 @@ void TargetX86Base<Machine>::lowerIndirectJump(Variable *Target) {
 }
 
 inline bool isAdd(const Inst *Inst) {
-  if (const InstArithmetic *Arith =
-          llvm::dyn_cast_or_null<const InstArithmetic>(Inst)) {
+  if (auto *Arith = llvm::dyn_cast_or_null<const InstArithmetic>(Inst)) {
     return (Arith->getOp() == InstArithmetic::Add);
   }
   return false;
 }
 
-inline void dumpAddressOpt(const Cfg *Func, const Variable *Base,
+inline void dumpAddressOpt(const Cfg *Func,
+                           const ConstantRelocatable *Relocatable,
+                           int32_t Offset, const Variable *Base,
                            const Variable *Index, uint16_t Shift,
-                           int32_t Offset, const Inst *Reason) {
+                           const Inst *Reason) {
   if (!BuildDefs::dump())
     return;
   if (!Func->isVerbose(IceV_AddrOpt))
@@ -4122,11 +4128,13 @@ inline void dumpAddressOpt(const Cfg *Func, const Variable *Base,
     Index->dump(Func);
   else
     Str << "<null>";
-  Str << ", Shift=" << Shift << ", Offset=" << Offset << "\n";
+  Str << ", Shift=" << Shift << ", Offset=" << Offset
+      << ", Relocatable=" << Relocatable << "\n";
 }
 
-inline bool matchTransitiveAssign(const VariablesMetadata *VMetadata,
-                                  Variable *&Var, const Inst *&Reason) {
+inline bool matchAssign(const VariablesMetadata *VMetadata, Variable *&Var,
+                        ConstantRelocatable *&Relocatable, int32_t &Offset,
+                        const Inst *&Reason) {
   // Var originates from Var=SrcVar ==> set Var:=SrcVar
   if (Var == nullptr)
     return false;
@@ -4135,11 +4143,26 @@ inline bool matchTransitiveAssign(const VariablesMetadata *VMetadata,
     if (llvm::isa<InstAssign>(VarAssign)) {
       Operand *SrcOp = VarAssign->getSrc(0);
       assert(SrcOp);
-      if (Variable *SrcVar = llvm::dyn_cast<Variable>(SrcOp)) {
+      if (auto *SrcVar = llvm::dyn_cast<Variable>(SrcOp)) {
         if (!VMetadata->isMultiDef(SrcVar) &&
             // TODO: ensure SrcVar stays single-BB
             true) {
           Var = SrcVar;
+          Reason = VarAssign;
+          return true;
+        }
+      } else if (auto *Const = llvm::dyn_cast<ConstantInteger32>(SrcOp)) {
+        int32_t MoreOffset = Const->getValue();
+        if (Utils::WouldOverflowAdd(Offset, MoreOffset))
+          return false;
+        Var = nullptr;
+        Offset += MoreOffset;
+        Reason = VarAssign;
+        return true;
+      } else if (auto *AddReloc = llvm::dyn_cast<ConstantRelocatable>(SrcOp)) {
+        if (Relocatable == nullptr) {
+          Var = nullptr;
+          Relocatable = AddReloc;
           Reason = VarAssign;
           return true;
         }
@@ -4158,16 +4181,16 @@ inline bool matchCombinedBaseIndex(const VariablesMetadata *VMetadata,
     return false;
   if (Index != nullptr)
     return false;
-  const Inst *BaseInst = VMetadata->getSingleDefinition(Base);
+  auto *BaseInst = VMetadata->getSingleDefinition(Base);
   if (BaseInst == nullptr)
     return false;
   assert(!VMetadata->isMultiDef(Base));
   if (BaseInst->getSrcSize() < 2)
     return false;
-  if (Variable *Var1 = llvm::dyn_cast<Variable>(BaseInst->getSrc(0))) {
+  if (auto *Var1 = llvm::dyn_cast<Variable>(BaseInst->getSrc(0))) {
     if (VMetadata->isMultiDef(Var1))
       return false;
-    if (Variable *Var2 = llvm::dyn_cast<Variable>(BaseInst->getSrc(1))) {
+    if (auto *Var2 = llvm::dyn_cast<Variable>(BaseInst->getSrc(1))) {
       if (VMetadata->isMultiDef(Var2))
         return false;
       if (isAdd(BaseInst) &&
@@ -4191,20 +4214,23 @@ inline bool matchShiftedIndex(const VariablesMetadata *VMetadata,
   //   Index=Var, Shift+=log2(Const)
   if (Index == nullptr)
     return false;
-  const Inst *IndexInst = VMetadata->getSingleDefinition(Index);
+  auto *IndexInst = VMetadata->getSingleDefinition(Index);
   if (IndexInst == nullptr)
     return false;
   assert(!VMetadata->isMultiDef(Index));
   if (IndexInst->getSrcSize() < 2)
     return false;
-  if (const InstArithmetic *ArithInst =
-          llvm::dyn_cast<InstArithmetic>(IndexInst)) {
-    if (Variable *Var = llvm::dyn_cast<Variable>(ArithInst->getSrc(0))) {
-      if (ConstantInteger32 *Const =
+  if (auto *ArithInst = llvm::dyn_cast<InstArithmetic>(IndexInst)) {
+    if (auto *Var = llvm::dyn_cast<Variable>(ArithInst->getSrc(0))) {
+      if (auto *Const =
               llvm::dyn_cast<ConstantInteger32>(ArithInst->getSrc(1))) {
-        if (ArithInst->getOp() == InstArithmetic::Mul &&
-            !VMetadata->isMultiDef(Var) && Const->getType() == IceType_i32) {
-          uint64_t Mult = Const->getValue();
+        if (VMetadata->isMultiDef(Var) || Const->getType() != IceType_i32)
+          return false;
+        switch (ArithInst->getOp()) {
+        default:
+          return false;
+        case InstArithmetic::Mul: {
+          uint32_t Mult = Const->getValue();
           uint32_t LogMult;
           switch (Mult) {
           case 1:
@@ -4229,6 +4255,25 @@ inline bool matchShiftedIndex(const VariablesMetadata *VMetadata,
             return true;
           }
         }
+        case InstArithmetic::Shl: {
+          uint32_t ShiftAmount = Const->getValue();
+          switch (ShiftAmount) {
+          case 0:
+          case 1:
+          case 2:
+          case 3:
+            break;
+          default:
+            return false;
+          }
+          if (Shift + ShiftAmount <= 3) {
+            Index = Var;
+            Shift += ShiftAmount;
+            Reason = IndexInst;
+            return true;
+          }
+        }
+        }
       }
     }
   }
@@ -4236,49 +4281,93 @@ inline bool matchShiftedIndex(const VariablesMetadata *VMetadata,
 }
 
 inline bool matchOffsetBase(const VariablesMetadata *VMetadata, Variable *&Base,
-                            int32_t &Offset, const Inst *&Reason) {
+                            ConstantRelocatable *&Relocatable, int32_t &Offset,
+                            const Inst *&Reason) {
   // Base is Base=Var+Const || Base is Base=Const+Var ==>
   //   set Base=Var, Offset+=Const
   // Base is Base=Var-Const ==>
   //   set Base=Var, Offset-=Const
-  if (Base == nullptr)
+  if (Base == nullptr) {
     return false;
+  }
   const Inst *BaseInst = VMetadata->getSingleDefinition(Base);
-  if (BaseInst == nullptr)
+  if (BaseInst == nullptr) {
     return false;
+  }
   assert(!VMetadata->isMultiDef(Base));
-  if (const InstArithmetic *ArithInst =
-          llvm::dyn_cast<const InstArithmetic>(BaseInst)) {
+  if (auto *ArithInst = llvm::dyn_cast<const InstArithmetic>(BaseInst)) {
     if (ArithInst->getOp() != InstArithmetic::Add &&
         ArithInst->getOp() != InstArithmetic::Sub)
       return false;
     bool IsAdd = ArithInst->getOp() == InstArithmetic::Add;
-    Variable *Var = nullptr;
-    ConstantInteger32 *Const = nullptr;
-    if (Variable *VariableOperand =
-            llvm::dyn_cast<Variable>(ArithInst->getSrc(0))) {
-      Var = VariableOperand;
-      Const = llvm::dyn_cast<ConstantInteger32>(ArithInst->getSrc(1));
-    } else if (IsAdd) {
-      Const = llvm::dyn_cast<ConstantInteger32>(ArithInst->getSrc(0));
-      Var = llvm::dyn_cast<Variable>(ArithInst->getSrc(1));
+    Operand *Src0 = ArithInst->getSrc(0);
+    Operand *Src1 = ArithInst->getSrc(1);
+    auto *Var0 = llvm::dyn_cast<Variable>(Src0);
+    auto *Var1 = llvm::dyn_cast<Variable>(Src1);
+    auto *Const0 = llvm::dyn_cast<ConstantInteger32>(Src0);
+    auto *Const1 = llvm::dyn_cast<ConstantInteger32>(Src1);
+    auto *Reloc0 = llvm::dyn_cast<ConstantRelocatable>(Src0);
+    auto *Reloc1 = llvm::dyn_cast<ConstantRelocatable>(Src1);
+    Variable *NewBase = nullptr;
+    int32_t NewOffset = Offset;
+    ConstantRelocatable *NewRelocatable = Relocatable;
+    if (Var0 && Var1)
+      // TODO(sehr): merge base/index splitting into here.
+      return false;
+    if (!IsAdd && Var1)
+      return false;
+    if (Var0)
+      NewBase = Var0;
+    else if (Var1)
+      NewBase = Var1;
+    // Don't know how to add/subtract two relocatables.
+    if ((Relocatable && (Reloc0 || Reloc1)) || (Reloc0 && Reloc1))
+      return false;
+    // Don't know how to subtract a relocatable.
+    if (!IsAdd && Reloc1)
+      return false;
+    // Incorporate ConstantRelocatables.
+    if (Reloc0)
+      NewRelocatable = Reloc0;
+    else if (Reloc1)
+      NewRelocatable = Reloc1;
+    // Compute the updated constant offset.
+    if (Const0) {
+      int32_t MoreOffset = IsAdd ? Const0->getValue() : -Const0->getValue();
+      if (Utils::WouldOverflowAdd(NewOffset, MoreOffset))
+        return false;
+      NewOffset += MoreOffset;
     }
-    if (Var == nullptr || Const == nullptr || VMetadata->isMultiDef(Var))
-      return false;
-    int32_t MoreOffset = IsAdd ? Const->getValue() : -Const->getValue();
-    if (Utils::WouldOverflowAdd(Offset, MoreOffset))
-      return false;
-    Base = Var;
-    Offset += MoreOffset;
+    if (Const1) {
+      int32_t MoreOffset = IsAdd ? Const1->getValue() : -Const1->getValue();
+      if (Utils::WouldOverflowAdd(NewOffset, MoreOffset))
+        return false;
+      NewOffset += MoreOffset;
+    }
+    // Update the computed address parameters once we are sure optimization
+    // is valid.
+    Base = NewBase;
+    Offset = NewOffset;
+    Relocatable = NewRelocatable;
     Reason = BaseInst;
     return true;
   }
   return false;
 }
 
-inline void computeAddressOpt(Cfg *Func, const Inst *Instr, Variable *&Base,
-                              Variable *&Index, uint16_t &Shift,
-                              int32_t &Offset) {
+// Builds information for a canonical address expresion:
+//   <Relocatable + Offset>(Base, Index, Shift)
+// On entry:
+//   Relocatable == null,
+//   Offset == 0,
+//   Base is a Variable,
+//   Index == nullptr,
+//   Shift == 0
+inline bool computeAddressOpt(Cfg *Func, const Inst *Instr,
+                              ConstantRelocatable *&Relocatable,
+                              int32_t &Offset, Variable *&Base,
+                              Variable *&Index, uint16_t &Shift) {
+  bool AddressWasOptimized = false;
   Func->resetCurrentNode();
   if (Func->isVerbose(IceV_AddrOpt)) {
     OstreamLocker L(Func->getContext());
@@ -4286,54 +4375,75 @@ inline void computeAddressOpt(Cfg *Func, const Inst *Instr, Variable *&Base,
     Str << "\nStarting computeAddressOpt for instruction:\n  ";
     Instr->dumpDecorated(Func);
   }
-  (void)Offset; // TODO: pattern-match for non-zero offsets.
   if (Base == nullptr)
-    return;
+    return AddressWasOptimized;
   // If the Base has more than one use or is live across multiple blocks, then
   // don't go further. Alternatively (?), never consider a transformation that
   // would change a variable that is currently *not* live across basic block
   // boundaries into one that *is*.
   if (Func->getVMetadata()->isMultiBlock(Base) /* || Base->getUseCount() > 1*/)
-    return;
+    return AddressWasOptimized;
 
   const bool MockBounds = Func->getContext()->getFlags().getMockBoundsCheck();
   const VariablesMetadata *VMetadata = Func->getVMetadata();
-  bool Continue = true;
-  while (Continue) {
-    const Inst *Reason = nullptr;
-    if (matchTransitiveAssign(VMetadata, Base, Reason) ||
-        matchTransitiveAssign(VMetadata, Index, Reason) ||
-        (!MockBounds &&
-         matchCombinedBaseIndex(VMetadata, Base, Index, Shift, Reason)) ||
-        (!MockBounds && matchShiftedIndex(VMetadata, Index, Shift, Reason)) ||
-        matchOffsetBase(VMetadata, Base, Offset, Reason)) {
-      dumpAddressOpt(Func, Base, Index, Shift, Offset, Reason);
-    } else {
-      Continue = false;
+  const Inst *Reason = nullptr;
+  do {
+    if (Reason) {
+      dumpAddressOpt(Func, Relocatable, Offset, Base, Index, Shift, Reason);
+      AddressWasOptimized = true;
+      Reason = nullptr;
     }
+    // Update Base and Index to follow through assignments to definitions.
+    if (matchAssign(VMetadata, Base, Relocatable, Offset, Reason)) {
+      // Assignments of Base from a Relocatable or ConstantInt32 can result
+      // in Base becoming nullptr.  To avoid code duplication in this loop we
+      // prefer that Base be non-nullptr if possible.
+      if ((Base == nullptr) && (Index != nullptr) && (Shift == 0))
+        std::swap(Base, Index);
+      continue;
+    }
+    if (matchAssign(VMetadata, Index, Relocatable, Offset, Reason))
+      continue;
 
-    // Index is Index=Var<<Const && Const+Shift<=3 ==>
-    //   Index=Var, Shift+=Const
-
-    // Index is Index=Const*Var && log2(Const)+Shift<=3 ==>
-    //   Index=Var, Shift+=log2(Const)
-
-    // Index && Shift==0 && Base is Base=Var*Const && log2(Const)+Shift<=3 ==>
-    //   swap(Index,Base)
-    // Similar for Base=Const*Var and Base=Var<<Const
-
-    // Index is Index=Var+Const ==>
-    //   set Index=Var, Offset+=(Const<<Shift)
-
-    // Index is Index=Const+Var ==>
-    //   set Index=Var, Offset+=(Const<<Shift)
-
-    // Index is Index=Var-Const ==>
-    //   set Index=Var, Offset-=(Const<<Shift)
-
+    if (!MockBounds) {
+      // Transition from:
+      //   <Relocatable + Offset>(Base) to
+      //   <Relocatable + Offset>(Base, Index)
+      if (matchCombinedBaseIndex(VMetadata, Base, Index, Shift, Reason))
+        continue;
+      // Recognize multiply/shift and update Shift amount.
+      // Index becomes Index=Var<<Const && Const+Shift<=3 ==>
+      //   Index=Var, Shift+=Const
+      // Index becomes Index=Const*Var && log2(Const)+Shift<=3 ==>
+      //   Index=Var, Shift+=log2(Const)
+      if (matchShiftedIndex(VMetadata, Index, Shift, Reason))
+        continue;
+      // If Shift is zero, the choice of Base and Index was purely arbitrary.
+      // Recognize multiply/shift and set Shift amount.
+      // Shift==0 && Base is Base=Var*Const && log2(Const)+Shift<=3 ==>
+      //   swap(Index,Base)
+      // Similar for Base=Const*Var and Base=Var<<Const
+      if ((Shift == 0) && matchShiftedIndex(VMetadata, Base, Shift, Reason)) {
+        std::swap(Base, Index);
+        continue;
+      }
+    }
+    // Update Offset to reflect additions/subtractions with constants and
+    // relocatables.
     // TODO: consider overflow issues with respect to Offset.
     // TODO: handle symbolic constants.
-  }
+    if (matchOffsetBase(VMetadata, Base, Relocatable, Offset, Reason))
+      continue;
+    // TODO(sehr, stichnot): Handle updates of Index with Shift != 0.
+    // Index is Index=Var+Const ==>
+    //   set Index=Var, Offset+=(Const<<Shift)
+    // Index is Index=Const+Var ==>
+    //   set Index=Var, Offset+=(Const<<Shift)
+    // Index is Index=Var-Const ==>
+    //   set Index=Var, Offset-=(Const<<Shift)
+    break;
+  } while (Reason);
+  return AddressWasOptimized;
 }
 
 /// Add a mock bounds check on the memory address before using it as a load or
@@ -4415,19 +4525,26 @@ template <class Machine> void TargetX86Base<Machine>::doAddressOptLoad() {
   Variable *Dest = Inst->getDest();
   Operand *Addr = Inst->getSrc(0);
   Variable *Index = nullptr;
+  ConstantRelocatable *Relocatable = nullptr;
   uint16_t Shift = 0;
-  int32_t Offset = 0; // TODO: make Constant
+  int32_t Offset = 0;
   // Vanilla ICE load instructions should not use the segment registers, and
   // computeAddressOpt only works at the level of Variables and Constants, not
   // other Traits::X86OperandMem, so there should be no mention of segment
   // registers there either.
   const typename Traits::X86OperandMem::SegmentRegisters SegmentReg =
       Traits::X86OperandMem::DefaultSegment;
-  Variable *Base = llvm::dyn_cast<Variable>(Addr);
-  computeAddressOpt(Func, Inst, Base, Index, Shift, Offset);
-  if (Base && Addr != Base) {
+  auto *Base = llvm::dyn_cast<Variable>(Addr);
+  if (computeAddressOpt(Func, Inst, Relocatable, Offset, Base, Index, Shift)) {
     Inst->setDeleted();
-    Constant *OffsetOp = Ctx->getConstantInt32(Offset);
+    Constant *OffsetOp = nullptr;
+    if (Relocatable == nullptr) {
+      OffsetOp = Ctx->getConstantInt32(Offset);
+    } else {
+      OffsetOp = Ctx->getConstantSym(Relocatable->getOffset() + Offset,
+                                     Relocatable->getName(),
+                                     Relocatable->getSuppressMangling());
+    }
     Addr = Traits::X86OperandMem::create(Func, Dest->getType(), Base, OffsetOp,
                                          Index, Shift, SegmentReg);
     Context.insert(InstLoad::create(Func, Dest, Addr));
@@ -4623,19 +4740,26 @@ template <class Machine> void TargetX86Base<Machine>::doAddressOptStore() {
   Operand *Data = Inst->getData();
   Operand *Addr = Inst->getAddr();
   Variable *Index = nullptr;
+  ConstantRelocatable *Relocatable = nullptr;
   uint16_t Shift = 0;
-  int32_t Offset = 0; // TODO: make Constant
-  Variable *Base = llvm::dyn_cast<Variable>(Addr);
+  int32_t Offset = 0;
+  auto *Base = llvm::dyn_cast<Variable>(Addr);
   // Vanilla ICE store instructions should not use the segment registers, and
   // computeAddressOpt only works at the level of Variables and Constants, not
   // other Traits::X86OperandMem, so there should be no mention of segment
   // registers there either.
   const typename Traits::X86OperandMem::SegmentRegisters SegmentReg =
       Traits::X86OperandMem::DefaultSegment;
-  computeAddressOpt(Func, Inst, Base, Index, Shift, Offset);
-  if (Base && Addr != Base) {
+  if (computeAddressOpt(Func, Inst, Relocatable, Offset, Base, Index, Shift)) {
     Inst->setDeleted();
-    Constant *OffsetOp = Ctx->getConstantInt32(Offset);
+    Constant *OffsetOp = nullptr;
+    if (Relocatable == nullptr) {
+      OffsetOp = Ctx->getConstantInt32(Offset);
+    } else {
+      OffsetOp = Ctx->getConstantSym(Relocatable->getOffset() + Offset,
+                                     Relocatable->getName(),
+                                     Relocatable->getSuppressMangling());
+    }
     Addr = Traits::X86OperandMem::create(Func, Data->getType(), Base, OffsetOp,
                                          Index, Shift, SegmentReg);
     InstStore *NewStore = InstStore::create(Func, Data, Addr);
