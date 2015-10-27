@@ -46,8 +46,7 @@ public:
   void set_value(const Constant *Value) { value_ = Value; }
 
   /// Emits fixup, then returns the number of bytes to skip.
-  virtual size_t emit(GlobalContext *Ctx, RelocOffsetT OverrideOffset,
-                      bool IsPCRel) const;
+  virtual size_t emit(GlobalContext *Ctx, const Assembler &Asm) const;
 
 private:
   intptr_t position_ = 0;
@@ -67,8 +66,7 @@ public:
   AssemblerTextFixup(const std::string &Message, size_t NumBytes)
       : AssemblerFixup(), Message(Message), NumBytes(NumBytes) {}
   ~AssemblerTextFixup() = default;
-  virtual size_t emit(GlobalContext *Ctx, RelocOffsetT OverrideOffset,
-                      bool isPcRel) const;
+  size_t emit(GlobalContext *Ctx, const Assembler &Asm) const override;
 
 private:
   const std::string Message;

@@ -144,13 +144,7 @@ void Assembler::emitIASBytes() const {
       Str.write_hex(Buffer.load<uint8_t>(i));
       Str << "\n";
     }
-    // For PCRel fixups, we write the pc-offset from a symbol into the Buffer
-    // (e.g., -4), but we don't represent that in the fixup's offset. Otherwise
-    // the fixup holds the true offset, and so does the Buffer. Just load the
-    // offset from the buffer.
-    CurPosition = NextFixupLoc +
-                  NextFixup->emit(Ctx, Buffer.load<RelocOffsetT>(NextFixupLoc),
-                                  fixupIsPCRel(NextFixup->kind()));
+    CurPosition = NextFixupLoc + NextFixup->emit(Ctx, *this);
     assert(CurPosition <= EndPosition);
   }
   // Handle any bytes that are not prefixed by a fixup.

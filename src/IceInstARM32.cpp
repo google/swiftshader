@@ -689,7 +689,6 @@ void InstARM32Mov::emit(const Cfg *Func) const {
 }
 
 void InstARM32Mov::emitIAS(const Cfg *Func) const {
-  assert(getSrcSize() == 1);
   (void)Func;
   assert(!(isMultiDest() && isMultiSource()) && "Invalid vmov type.");
   ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
@@ -752,8 +751,8 @@ void InstARM32Br::emitIAS(const Cfg *Func) const {
   } else {
     Asm->b(Asm->getOrCreateCfgNodeLabel(getTargetTrue()->getIndex()),
            getPredicate());
-    Asm->b(Asm->getOrCreateCfgNodeLabel(getTargetFalse()->getIndex()),
-           CondARM32::AL);
+    if (const CfgNode *False = getTargetFalse())
+      Asm->b(Asm->getOrCreateCfgNodeLabel(False->getIndex()), CondARM32::AL);
   }
   if (Asm->needsTextFixup())
     emitUsingTextFixup(Func);

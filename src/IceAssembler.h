@@ -284,8 +284,13 @@ public:
 
   virtual bool fixupIsPCRel(FixupKind Kind) const = 0;
 
-  // Return a view of all the bytes of code for the current function.
+  /// Return a view of all the bytes of code for the current function.
   llvm::StringRef getBufferView() const;
+
+  /// Return the value of the given type in the corresponding buffer.
+  template <typename T> T load(intptr_t Position) const {
+    return Buffer.load<T>(Position);
+  }
 
   /// Emit a fixup at the current location.
   void emitFixup(AssemblerFixup *Fixup) { Buffer.emitFixup(Fixup); }
