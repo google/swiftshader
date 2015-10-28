@@ -5167,7 +5167,9 @@ namespace sw
 			swizzle[6] = Nucleus::createConstantInt(3);
 			swizzle[7] = Nucleus::createConstantInt(3);
 
-			storeValue(Nucleus::createShuffleVector(b, b, Nucleus::createConstantVector(swizzle, 8)));
+			Value *c = Nucleus::createShuffleVector(b, b, Nucleus::createConstantVector(swizzle, 8));
+			Value *d = Nucleus::createBitCast(c, Int4::getType());
+			storeValue(d);
 
 			// Each Short is packed into each Int in the (Short | Short) format.
 			// Shifting by 16 will retrieve the original Short value.
@@ -5202,7 +5204,9 @@ namespace sw
 			swizzle[6] = Nucleus::createConstantInt(3);
 			swizzle[7] = Nucleus::createConstantInt(11);
 
-			storeValue(Nucleus::createShuffleVector(b, Nucleus::createNullValue(Short8::getType()), Nucleus::createConstantVector(swizzle, 8)));
+			Value *c = Nucleus::createShuffleVector(b, Nucleus::createNullValue(Short8::getType()), Nucleus::createConstantVector(swizzle, 8));
+			Value *d = Nucleus::createBitCast(c, Int4::getType());
+			storeValue(d);
 		}
 	}
 
