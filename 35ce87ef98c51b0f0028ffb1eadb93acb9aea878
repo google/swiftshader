@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "166b496b_aac8af3d",
+        "filename": "src/OpenGL/libGLESv2/Program.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1182,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-10-28T14:31:18Z",
+      "side": 1,
+      "message": "bufferIndex / uniformBufferIndex ?",
+      "range": {
+        "startLine": 1182,
+        "startChar": 19,
+        "endLine": 1182,
+        "endChar": 32
+      },
+      "revId": "35ce87ef98c51b0f0028ffb1eadb93acb9aea878",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
