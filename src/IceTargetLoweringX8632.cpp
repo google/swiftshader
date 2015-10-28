@@ -438,8 +438,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
   size_t PreservedRegsSizeBytes = 0;
   llvm::SmallBitVector Pushed(CalleeSaves.size());
   for (SizeT i = 0; i < CalleeSaves.size(); ++i) {
-    // SizeT Canonical = RegX8632::getCanonicalReg(i); // TODO(stichnot)
-    SizeT Canonical = i;
+    SizeT Canonical = Traits::getBaseReg(i);
     if (CalleeSaves[i] && RegsUsed[i]) {
       Pushed[Canonical] = true;
     }
@@ -611,18 +610,18 @@ void TargetX8632::addEpilog(CfgNode *Node) {
       getRegisterSet(RegSet_CalleeSave, RegSet_None);
   llvm::SmallBitVector Popped(CalleeSaves.size());
   for (SizeT i = 0; i < CalleeSaves.size(); ++i) {
-    // SizeT Canonical = RegX8632::getCanonicalReg(i); // TODO(stichnot)
-    SizeT Canonical = i;
+    SizeT Canonical = Traits::getBaseReg(i);
     if (CalleeSaves[i] && RegsUsed[i]) {
       Popped[Canonical] = true;
     }
   }
   for (SizeT i = 0; i < Popped.size(); ++i) {
     SizeT j = Popped.size() - i - 1;
+    SizeT Canonical = Traits::getBaseReg(j);
     if (j == Traits::RegisterSet::Reg_ebp && IsEbpBasedFrame)
       continue;
     if (Popped[j]) {
-      _pop(getPhysicalRegister(j));
+      _pop(getPhysicalRegister(Canonical));
     }
   }
 

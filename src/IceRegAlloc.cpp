@@ -123,7 +123,7 @@ void LinearScan::initForGlobal() {
     return;
   for (CfgNode *Node : Func->getNodes()) {
     for (Inst &I : Node->getInsts()) {
-      if (auto Kill = llvm::dyn_cast<InstFakeKill>(&I)) {
+      if (auto *Kill = llvm::dyn_cast<InstFakeKill>(&I)) {
         if (!Kill->isDeleted() && !Kill->getLinked()->isDeleted())
           Kills.push_back(I.getNumber());
       }

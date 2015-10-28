@@ -22,7 +22,7 @@ namespace Ice {
 
 class InstCall;
 
-static const size_t kMaxIntrinsicParameters = 6;
+static constexpr size_t kMaxIntrinsicParameters = 6;
 
 class Intrinsics {
   Intrinsics(const Intrinsics &) = delete;

@@ -349,9 +349,9 @@ public:
   explicit RegWeight(uint32_t Weight) : Weight(Weight) {}
   RegWeight(const RegWeight &) = default;
   RegWeight &operator=(const RegWeight &) = default;
-  const static uint32_t Inf = ~0;      /// Force regalloc to give a register
-  const static uint32_t Zero = 0;      /// Force regalloc NOT to give a register
-  const static uint32_t Max = Inf - 1; /// Max natural weight.
+  constexpr static uint32_t Inf = ~0; /// Force regalloc to give a register
+  constexpr static uint32_t Zero = 0; /// Force regalloc NOT to give a register
+  constexpr static uint32_t Max = Inf - 1; /// Max natural weight.
   void addWeight(uint32_t Delta) {
     if (Delta == Inf)
       Weight = Inf;
@@ -472,7 +472,7 @@ public:
     return "lv$" + getName(Func);
   }
 
-  static const int32_t NoRegister = -1;
+  static constexpr int32_t NoRegister = -1;
   bool hasReg() const { return getRegNum() != NoRegister; }
   int32_t getRegNum() const { return RegNum; }
   void setRegNum(int32_t NewRegNum) {
@@ -507,11 +507,11 @@ public:
     return Live.endsBefore(Other->Live);
   }
   bool rangeOverlaps(const Variable *Other) const {
-    const bool UseTrimmed = true;
+    constexpr bool UseTrimmed = true;
     return Live.overlaps(Other->Live, UseTrimmed);
   }
   bool rangeOverlapsStart(const Variable *Other) const {
-    const bool UseTrimmed = true;
+    constexpr bool UseTrimmed = true;
     return Live.overlapsInst(Other->Live.getStart(), UseTrimmed);
   }
 
@@ -519,8 +519,9 @@ public:
   /// primarily for syntactic correctness of textual assembly emission. Note
   /// that only basic information is copied, in particular not IsArgument,
   /// IsImplicitArgument, IgnoreLiveness, RegNumTmp, Live, LoVar, HiVar,
-  /// VarsReal.
-  Variable *asType(Type Ty);
+  /// VarsReal.  If NewRegNum!=NoRegister, then that register assignment is made
+  /// instead of copying the existing assignment.
+  const Variable *asType(Type Ty, int32_t NewRegNum) const;
 
   void emit(const Cfg *Func) const override;
   using Operand::dump;

@@ -587,7 +587,7 @@ template <class Machine> void TargetX86Base<Machine>::findRMW() {
 // Converts a ConstantInteger32 operand into its constant value, or
 // MemoryOrderInvalid if the operand is not a ConstantInteger32.
 inline uint64_t getConstantMemoryOrder(Operand *Opnd) {
-  if (auto Integer = llvm::dyn_cast<ConstantInteger32>(Opnd))
+  if (auto *Integer = llvm::dyn_cast<ConstantInteger32>(Opnd))
     return Integer->getValue();
   return Intrinsics::MemoryOrderInvalid;
 }
@@ -622,7 +622,7 @@ template <class Machine> void TargetX86Base<Machine>::doLoadOpt() {
       if (auto *Load = llvm::dyn_cast<InstLoad>(CurInst)) {
         // An InstLoad always qualifies.
         LoadDest = Load->getDest();
-        const bool DoLegalize = false;
+        constexpr bool DoLegalize = false;
         LoadSrc = formMemoryOperand(Load->getSourceAddress(),
                                     LoadDest->getType(), DoLegalize);
       } else if (auto *Intrin = llvm::dyn_cast<InstIntrinsicCall>(CurInst)) {
@@ -635,7 +635,7 @@ template <class Machine> void TargetX86Base<Machine>::doLoadOpt() {
             Intrinsics::isMemoryOrderValid(
                 ID, getConstantMemoryOrder(Intrin->getArg(1)))) {
           LoadDest = Intrin->getDest();
-          const bool DoLegalize = false;
+          constexpr bool DoLegalize = false;
           LoadSrc = formMemoryOperand(Intrin->getArg(0), LoadDest->getType(),
                                       DoLegalize);
         }
@@ -733,8 +733,8 @@ Variable *TargetX86Base<Machine>::getPhysicalRegister(SizeT RegNum, Type Ty) {
 }
 
 template <class Machine>
-IceString TargetX86Base<Machine>::getRegName(SizeT RegNum, Type Ty) const {
-  return Traits::getRegName(RegNum, Ty);
+IceString TargetX86Base<Machine>::getRegName(SizeT RegNum, Type) const {
+  return Traits::getRegName(RegNum);
 }
 
 template <class Machine>
@@ -797,9 +797,8 @@ TargetX86Base<Machine>::stackVarToAsmOperand(const Variable *Var) const {
     if (!hasFramePointer())
       Offset += getStackAdjustment();
   }
-  return typename Traits::Address(
-      Traits::RegisterSet::getEncodedGPR(BaseRegNum), Offset,
-      AssemblerFixup::NoFixup);
+  return typename Traits::Address(Traits::getEncodedGPR(BaseRegNum), Offset,
+                                  AssemblerFixup::NoFixup);
 }
 
 /// Helper function for addProlog().
@@ -1048,23 +1047,23 @@ bool TargetX86Base<Machine>::optimizeScalarMul(Variable *Dest, Operand *Src0,
     return false;
   // Limit the number of lea/shl operations for a single multiply, to a
   // somewhat arbitrary choice of 3.
-  const uint32_t MaxOpsForOptimizedMul = 3;
+  constexpr uint32_t MaxOpsForOptimizedMul = 3;
   if (CountOps > MaxOpsForOptimizedMul)
     return false;
   _mov(T, Src0);
   Constant *Zero = Ctx->getConstantZero(IceType_i32);
   for (uint32_t i = 0; i < Count9; ++i) {
-    const uint16_t Shift = 3; // log2(9-1)
+    constexpr uint16_t Shift = 3; // log2(9-1)
     _lea(T,
          Traits::X86OperandMem::create(Func, IceType_void, T, Zero, T, Shift));
   }
   for (uint32_t i = 0; i < Count5; ++i) {
-    const uint16_t Shift = 2; // log2(5-1)
+    constexpr uint16_t Shift = 2; // log2(5-1)
     _lea(T,
          Traits::X86OperandMem::create(Func, IceType_void, T, Zero, T, Shift));
   }
   for (uint32_t i = 0; i < Count3; ++i) {
-    const uint16_t Shift = 1; // log2(3-1)
+    constexpr uint16_t Shift = 1; // log2(3-1)
     _lea(T,
          Traits::X86OperandMem::create(Func, IceType_void, T, Zero, T, Shift));
   }
@@ -1216,7 +1215,8 @@ void TargetX86Base<Machine>::lowerShift64(InstArithmetic::OpKind Op,
     //   t1:ecx = c.lo & 0xff
     //   t2 = b.lo
     //   t3 = b.hi
-    _mov(T_1, Src1Lo, Traits::RegisterSet::Reg_ecx);
+    T_1 = makeReg(IceType_i8, Traits::RegisterSet::Reg_cl);
+    _mov(T_1, Src1Lo);
     _mov(T_2, Src0Lo);
     _mov(T_3, Src0Hi);
     switch (Op) {
@@ -1324,7 +1324,7 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
     // and hiOperand() to be used.
     switch (Inst->getOp()) {
     case InstArithmetic::Udiv: {
-      const SizeT MaxSrcs = 2;
+      constexpr SizeT MaxSrcs = 2;
       InstCall *Call = makeHelperCall(H_udiv_i64, Dest, MaxSrcs);
       Call->addArg(Inst->getSrc(0));
       Call->addArg(Inst->getSrc(1));
@@ -1332,7 +1332,7 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       return;
     }
     case InstArithmetic::Sdiv: {
-      const SizeT MaxSrcs = 2;
+      constexpr SizeT MaxSrcs = 2;
       InstCall *Call = makeHelperCall(H_sdiv_i64, Dest, MaxSrcs);
       Call->addArg(Inst->getSrc(0));
       Call->addArg(Inst->getSrc(1));
@@ -1340,7 +1340,7 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       return;
     }
     case InstArithmetic::Urem: {
-      const SizeT MaxSrcs = 2;
+      constexpr SizeT MaxSrcs = 2;
       InstCall *Call = makeHelperCall(H_urem_i64, Dest, MaxSrcs);
       Call->addArg(Inst->getSrc(0));
       Call->addArg(Inst->getSrc(1));
@@ -1348,7 +1348,7 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       return;
     }
     case InstArithmetic::Srem: {
-      const SizeT MaxSrcs = 2;
+      constexpr SizeT MaxSrcs = 2;
       InstCall *Call = makeHelperCall(H_srem_i64, Dest, MaxSrcs);
       Call->addArg(Inst->getSrc(0));
       Call->addArg(Inst->getSrc(1));
@@ -1529,14 +1529,14 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
 
         // Mask that directs pshufd to create a vector with entries
         // Src[1, 0, 3, 0]
-        const unsigned Constant1030 = 0x31;
+        constexpr unsigned Constant1030 = 0x31;
         Constant *Mask1030 = Ctx->getConstantInt32(Constant1030);
         // Mask that directs shufps to create a vector with entries
         // Dest[0, 2], Src[0, 2]
-        const unsigned Mask0202 = 0x88;
+        constexpr unsigned Mask0202 = 0x88;
         // Mask that directs pshufd to create a vector with entries
         // Src[0, 2, 1, 3]
-        const unsigned Mask0213 = 0xd8;
+        constexpr unsigned Mask0213 = 0xd8;
         Variable *T1 = makeReg(IceType_v4i32);
         Variable *T2 = makeReg(IceType_v4i32);
         Variable *T3 = makeReg(IceType_v4i32);
@@ -1631,9 +1631,9 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
         return;
     }
     // The 8-bit version of imul only allows the form "imul r/m8" where T must
-    // be in eax.
+    // be in al.
     if (isByteSizedArithType(Dest->getType())) {
-      _mov(T, Src0, Traits::RegisterSet::Reg_eax);
+      _mov(T, Src0, Traits::RegisterSet::Reg_al);
       Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
       _imul(T, Src0 == Src1 ? T : Src1);
       _mov(Dest, T);
@@ -1649,22 +1649,31 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
     break;
   case InstArithmetic::Shl:
     _mov(T, Src0);
-    if (!llvm::isa<ConstantInteger32>(Src1))
-      Src1 = legalizeToReg(Src1, Traits::RegisterSet::Reg_ecx);
+    if (!llvm::isa<ConstantInteger32>(Src1)) {
+      Variable *Cl = makeReg(IceType_i8, Traits::RegisterSet::Reg_cl);
+      _mov(Cl, Src1);
+      Src1 = Cl;
+    }
     _shl(T, Src1);
     _mov(Dest, T);
     break;
   case InstArithmetic::Lshr:
     _mov(T, Src0);
-    if (!llvm::isa<ConstantInteger32>(Src1))
-      Src1 = legalizeToReg(Src1, Traits::RegisterSet::Reg_ecx);
+    if (!llvm::isa<ConstantInteger32>(Src1)) {
+      Variable *Cl = makeReg(IceType_i8, Traits::RegisterSet::Reg_cl);
+      _mov(Cl, Src1);
+      Src1 = Cl;
+    }
     _shr(T, Src1);
     _mov(Dest, T);
     break;
   case InstArithmetic::Ashr:
     _mov(T, Src0);
-    if (!llvm::isa<ConstantInteger32>(Src1))
-      Src1 = legalizeToReg(Src1, Traits::RegisterSet::Reg_ecx);
+    if (!llvm::isa<ConstantInteger32>(Src1)) {
+      Variable *Cl = makeReg(IceType_i8, Traits::RegisterSet::Reg_cl);
+      _mov(Cl, Src1);
+      Src1 = Cl;
+    }
     _sar(T, Src1);
     _mov(Dest, T);
     break;
@@ -1684,14 +1693,28 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       Variable *T_eax = makeReg(IceType_i32, Traits::RegisterSet::Reg_eax);
       Context.insert(InstFakeDef::create(Func, T_eax));
       _xor(T_eax, T_eax);
-      _mov(T, Src0, Traits::RegisterSet::Reg_eax);
+      _mov(T, Src0, Traits::RegisterSet::Reg_al);
       _div(T, Src1, T);
       _mov(Dest, T);
       Context.insert(InstFakeUse::create(Func, T_eax));
     } else {
-      Constant *Zero = Ctx->getConstantZero(IceType_i32);
-      _mov(T, Src0, Traits::RegisterSet::Reg_eax);
-      _mov(T_edx, Zero, Traits::RegisterSet::Reg_edx);
+      Type Ty = Dest->getType();
+      uint32_t Eax = Traits::RegisterSet::Reg_eax;
+      uint32_t Edx = Traits::RegisterSet::Reg_edx;
+      switch (Ty) {
+      default:
+        llvm_unreachable("Bad type for udiv");
+      // fallthrough
+      case IceType_i32:
+        break;
+      case IceType_i16:
+        Eax = Traits::RegisterSet::Reg_ax;
+        Edx = Traits::RegisterSet::Reg_dx;
+        break;
+      }
+      Constant *Zero = Ctx->getConstantZero(Ty);
+      _mov(T, Src0, Eax);
+      _mov(T_edx, Zero, Edx);
       _div(T, Src1, T_edx);
       _mov(Dest, T);
     }
@@ -1733,18 +1756,26 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       }
     }
     Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
-    if (isByteSizedArithType(Dest->getType())) {
+    switch (Type Ty = Dest->getType()) {
+    default:
+      llvm_unreachable("Bad type for sdiv");
+    // fallthrough
+    case IceType_i32:
+      T_edx = makeReg(Ty, Traits::RegisterSet::Reg_edx);
       _mov(T, Src0, Traits::RegisterSet::Reg_eax);
-      _cbwdq(T, T);
-      _idiv(T, Src1, T);
-      _mov(Dest, T);
-    } else {
-      T_edx = makeReg(IceType_i32, Traits::RegisterSet::Reg_edx);
-      _mov(T, Src0, Traits::RegisterSet::Reg_eax);
-      _cbwdq(T_edx, T);
-      _idiv(T, Src1, T_edx);
-      _mov(Dest, T);
+      break;
+    case IceType_i16:
+      T_edx = makeReg(Ty, Traits::RegisterSet::Reg_dx);
+      _mov(T, Src0, Traits::RegisterSet::Reg_ax);
+      break;
+    case IceType_i8:
+      T_edx = makeReg(IceType_i16, Traits::RegisterSet::Reg_ax);
+      _mov(T, Src0, Traits::RegisterSet::Reg_al);
+      break;
     }
+    _cbwdq(T_edx, T);
+    _idiv(T, Src1, T_edx);
+    _mov(Dest, T);
     break;
   case InstArithmetic::Urem:
     Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
@@ -1752,7 +1783,7 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       Variable *T_eax = makeReg(IceType_i32, Traits::RegisterSet::Reg_eax);
       Context.insert(InstFakeDef::create(Func, T_eax));
       _xor(T_eax, T_eax);
-      _mov(T, Src0, Traits::RegisterSet::Reg_eax);
+      _mov(T, Src0, Traits::RegisterSet::Reg_al);
       _div(T, Src1, T);
       // shr $8, %eax shifts ah (i.e., the 8 bit remainder) into al. We don't
       // mov %ah, %al because it would make x86-64 codegen more complicated. If
@@ -1764,10 +1795,24 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       _mov(Dest, T);
       Context.insert(InstFakeUse::create(Func, T_eax));
     } else {
-      Constant *Zero = Ctx->getConstantZero(IceType_i32);
-      T_edx = makeReg(Dest->getType(), Traits::RegisterSet::Reg_edx);
+      Type Ty = Dest->getType();
+      uint32_t Eax = Traits::RegisterSet::Reg_eax;
+      uint32_t Edx = Traits::RegisterSet::Reg_edx;
+      switch (Ty) {
+      default:
+        llvm_unreachable("Bad type for urem");
+      // fallthrough
+      case IceType_i32:
+        break;
+      case IceType_i16:
+        Eax = Traits::RegisterSet::Reg_ax;
+        Edx = Traits::RegisterSet::Reg_dx;
+        break;
+      }
+      Constant *Zero = Ctx->getConstantZero(Ty);
+      T_edx = makeReg(Dest->getType(), Edx);
       _mov(T_edx, Zero);
-      _mov(T, Src0, Traits::RegisterSet::Reg_eax);
+      _mov(T, Src0, Eax);
       _div(T_edx, Src1, T);
       _mov(Dest, T_edx);
     }
@@ -1814,28 +1859,35 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       }
     }
     Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
-    if (isByteSizedArithType(Dest->getType())) {
-      _mov(T, Src0, Traits::RegisterSet::Reg_eax);
-      // T is %al.
-      _cbwdq(T, T);
-      _idiv(T, Src1, T);
-      Variable *T_eax = makeReg(IceType_i32, Traits::RegisterSet::Reg_eax);
-      Context.insert(InstFakeDef::create(Func, T_eax));
-      // shr $8, %eax shifts ah (i.e., the 8 bit remainder) into al. We don't
-      // mov %ah, %al because it would make x86-64 codegen more complicated. If
-      // this ever becomes a problem we can introduce a pseudo rem instruction
-      // that returns the remainder in %al directly (and uses a mov for copying
-      // %ah to %al.)
-      static constexpr uint8_t AlSizeInBits = 8;
-      _shr(T_eax, Ctx->getConstantInt8(AlSizeInBits));
-      _mov(Dest, T);
-      Context.insert(InstFakeUse::create(Func, T_eax));
-    } else {
-      T_edx = makeReg(Dest->getType(), Traits::RegisterSet::Reg_edx);
+    switch (Type Ty = Dest->getType()) {
+    default:
+      llvm_unreachable("Bad type for srem");
+    // fallthrough
+    case IceType_i32:
+      T_edx = makeReg(Ty, Traits::RegisterSet::Reg_edx);
       _mov(T, Src0, Traits::RegisterSet::Reg_eax);
       _cbwdq(T_edx, T);
       _idiv(T_edx, Src1, T);
       _mov(Dest, T_edx);
+      break;
+    case IceType_i16:
+      T_edx = makeReg(Ty, Traits::RegisterSet::Reg_dx);
+      _mov(T, Src0, Traits::RegisterSet::Reg_ax);
+      _cbwdq(T_edx, T);
+      _idiv(T_edx, Src1, T);
+      _mov(Dest, T_edx);
+      break;
+    case IceType_i8:
+      T_edx = makeReg(IceType_i16, Traits::RegisterSet::Reg_ax);
+      // TODO(stichnot): Use register ah for T_edx, and remove the _shr().
+      // T_edx = makeReg(Ty, Traits::RegisterSet::Reg_ah);
+      _mov(T, Src0, Traits::RegisterSet::Reg_al);
+      _cbwdq(T_edx, T);
+      _idiv(T_edx, Src1, T);
+      static constexpr uint8_t AlSizeInBits = 8;
+      _shr(T_edx, Ctx->getConstantInt8(AlSizeInBits));
+      _mov(Dest, T_edx);
+      break;
     }
     break;
   case InstArithmetic::Fadd:
@@ -1859,7 +1911,7 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
     _mov(Dest, T);
     break;
   case InstArithmetic::Frem: {
-    const SizeT MaxSrcs = 2;
+    constexpr SizeT MaxSrcs = 2;
     Type Ty = Dest->getType();
     InstCall *Call = makeHelperCall(
         isFloat32Asserting32Or64(Ty) ? H_frem_f32 : H_frem_f64, Dest, MaxSrcs);
@@ -2114,7 +2166,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       _cvt(T, Src0RM, Traits::Insts::Cvt::Tps2dq);
       _movp(Dest, T);
     } else if (!Traits::Is64Bit && Dest->getType() == IceType_i64) {
-      const SizeT MaxSrcs = 1;
+      constexpr SizeT MaxSrcs = 1;
       Type SrcType = Inst->getSrc(0)->getType();
       InstCall *Call =
           makeHelperCall(isFloat32Asserting32Or64(SrcType) ? H_fptosi_f32_i64
@@ -2145,14 +2197,14 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
     if (isVectorType(Dest->getType())) {
       assert(Dest->getType() == IceType_v4i32 &&
              Inst->getSrc(0)->getType() == IceType_v4f32);
-      const SizeT MaxSrcs = 1;
+      constexpr SizeT MaxSrcs = 1;
       InstCall *Call = makeHelperCall(H_fptoui_4xi32_f32, Dest, MaxSrcs);
       Call->addArg(Inst->getSrc(0));
       lowerCall(Call);
     } else if (Dest->getType() == IceType_i64 ||
                (!Traits::Is64Bit && Dest->getType() == IceType_i32)) {
       // Use a helper for both x86-32 and x86-64.
-      const SizeT MaxSrcs = 1;
+      constexpr SizeT MaxSrcs = 1;
       Type DestType = Dest->getType();
       Type SrcType = Inst->getSrc(0)->getType();
       IceString TargetString;
@@ -2201,7 +2253,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       _movp(Dest, T);
     } else if (!Traits::Is64Bit && Inst->getSrc(0)->getType() == IceType_i64) {
       // Use a helper for x86-32.
-      const SizeT MaxSrcs = 1;
+      constexpr SizeT MaxSrcs = 1;
       Type DestType = Dest->getType();
       InstCall *Call =
           makeHelperCall(isFloat32Asserting32Or64(DestType) ? H_sitofp_i64_f32
@@ -2236,7 +2288,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
     if (isVectorType(Src0->getType())) {
       assert(Dest->getType() == IceType_v4f32 &&
              Src0->getType() == IceType_v4i32);
-      const SizeT MaxSrcs = 1;
+      constexpr SizeT MaxSrcs = 1;
       InstCall *Call = makeHelperCall(H_uitofp_4xi32_4xf32, Dest, MaxSrcs);
       Call->addArg(Src0);
       lowerCall(Call);
@@ -2244,7 +2296,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
                (!Traits::Is64Bit && Src0->getType() == IceType_i32)) {
       // Use a helper for x86-32 and x86-64. Also use a helper for i32 on
       // x86-32.
-      const SizeT MaxSrcs = 1;
+      constexpr SizeT MaxSrcs = 1;
       Type DestType = Dest->getType();
       IceString TargetString;
       if (isInt32Asserting32Or64(Src0->getType())) {
@@ -2460,13 +2512,17 @@ void TargetX86Base<Machine>::lowerExtractElement(
   Type Ty = SourceVectNotLegalized->getType();
   Type ElementTy = typeElementType(Ty);
   Type InVectorElementTy = Traits::getInVectorElementType(Ty);
-  Variable *ExtractedElementR = makeReg(InVectorElementTy);
 
   // TODO(wala): Determine the best lowering sequences for each type.
   bool CanUsePextr = Ty == IceType_v8i16 || Ty == IceType_v8i1 ||
-                     InstructionSet >= Traits::SSE4_1;
-  if (CanUsePextr && Ty != IceType_v4f32) {
-    // Use pextrb, pextrw, or pextrd.
+                     (InstructionSet >= Traits::SSE4_1 && Ty != IceType_v4f32);
+  Variable *ExtractedElementR =
+      makeReg(CanUsePextr ? IceType_i32 : InVectorElementTy);
+  if (CanUsePextr) {
+    // Use pextrb, pextrw, or pextrd.  The "b" and "w" versions clear the upper
+    // bits of the destination register, so we represent this by always
+    // extracting into an i32 register.  The _mov into Dest below will do
+    // truncation as necessary.
     Constant *Mask = Ctx->getConstantInt32(Index);
     Variable *SourceVectR = legalizeToReg(SourceVectNotLegalized);
     _pextr(ExtractedElementR, SourceVectR, Mask);
@@ -2983,6 +3039,13 @@ void TargetX86Base<Machine>::lowerInsertElement(const InstInsertElement *Inst) {
     if (Ty == IceType_v4f32)
       _insertps(T, ElementRM, Ctx->getConstantInt32(Index << 4));
     else
+      // TODO(stichnot): For the pinsrb and pinsrw instructions, when the source
+      // operand is a register, it must be a full r32 register like eax, and not
+      // ax/al/ah.  For filetype=asm, InstX86Pinsr<Machine>::emit() compensates
+      // for the use of r16 and r8 by converting them through getBaseReg(),
+      // while emitIAS() validates that the original and base register encodings
+      // are the same.  But for an "interior" register like ah, it should
+      // probably be copied into an r32 via movzx so that the types work out.
       _pinsr(T, ElementRM, Ctx->getConstantInt32(Index));
     _movp(Inst->getDest(), T);
   } else if (Ty == IceType_v4i32 || Ty == IceType_v4f32 || Ty == IceType_v4i1) {
@@ -3317,7 +3380,7 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
     } else {
       FirstVal = Val;
     }
-    const bool IsCttz = false;
+    constexpr bool IsCttz = false;
     lowerCountZeros(IsCttz, Val->getType(), Instr->getDest(), FirstVal,
                     SecondVal);
     return;
@@ -3334,7 +3397,7 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
     } else {
       FirstVal = Val;
     }
-    const bool IsCttz = true;
+    constexpr bool IsCttz = true;
     lowerCountZeros(IsCttz, Val->getType(), Instr->getDest(), FirstVal,
                     SecondVal);
     return;
@@ -3432,7 +3495,8 @@ template <class Machine>
 void TargetX86Base<Machine>::lowerAtomicCmpxchg(Variable *DestPrev,
                                                 Operand *Ptr, Operand *Expected,
                                                 Operand *Desired) {
-  if (!Traits::Is64Bit && Expected->getType() == IceType_i64) {
+  Type Ty = Expected->getType();
+  if (!Traits::Is64Bit && Ty == IceType_i64) {
     // Reserve the pre-colored registers first, before adding any more
     // infinite-weight variables from formMemoryOperand's legalization.
     Variable *T_edx = makeReg(IceType_i32, Traits::RegisterSet::Reg_edx);
@@ -3443,9 +3507,8 @@ void TargetX86Base<Machine>::lowerAtomicCmpxchg(Variable *DestPrev,
     _mov(T_edx, hiOperand(Expected));
     _mov(T_ebx, loOperand(Desired));
     _mov(T_ecx, hiOperand(Desired));
-    typename Traits::X86OperandMem *Addr =
-        formMemoryOperand(Ptr, Expected->getType());
-    const bool Locked = true;
+    typename Traits::X86OperandMem *Addr = formMemoryOperand(Ptr, Ty);
+    constexpr bool Locked = true;
     _cmpxchg8b(Addr, T_edx, T_eax, T_ecx, T_ebx, Locked);
     Variable *DestLo = llvm::cast<Variable>(loOperand(DestPrev));
     Variable *DestHi = llvm::cast<Variable>(hiOperand(DestPrev));
@@ -3453,12 +3516,26 @@ void TargetX86Base<Machine>::lowerAtomicCmpxchg(Variable *DestPrev,
     _mov(DestHi, T_edx);
     return;
   }
-  Variable *T_eax = makeReg(Expected->getType(), Traits::RegisterSet::Reg_eax);
+  int32_t Eax;
+  switch (Ty) {
+  default:
+    llvm_unreachable("Bad type for cmpxchg");
+  // fallthrough
+  case IceType_i32:
+    Eax = Traits::RegisterSet::Reg_eax;
+    break;
+  case IceType_i16:
+    Eax = Traits::RegisterSet::Reg_ax;
+    break;
+  case IceType_i8:
+    Eax = Traits::RegisterSet::Reg_al;
+    break;
+  }
+  Variable *T_eax = makeReg(Ty, Eax);
   _mov(T_eax, Expected);
-  typename Traits::X86OperandMem *Addr =
-      formMemoryOperand(Ptr, Expected->getType());
+  typename Traits::X86OperandMem *Addr = formMemoryOperand(Ptr, Ty);
   Variable *DesiredReg = legalizeToReg(Desired);
-  const bool Locked = true;
+  constexpr bool Locked = true;
   _cmpxchg(Addr, T_eax, DesiredReg, Locked);
   _mov(DestPrev, T_eax);
 }
@@ -3560,7 +3637,7 @@ void TargetX86Base<Machine>::lowerAtomicRMW(Variable *Dest, uint32_t Operation,
     }
     typename Traits::X86OperandMem *Addr =
         formMemoryOperand(Ptr, Dest->getType());
-    const bool Locked = true;
+    constexpr bool Locked = true;
     Variable *T = nullptr;
     _mov(T, Val);
     _xadd(Addr, T, Locked);
@@ -3576,7 +3653,7 @@ void TargetX86Base<Machine>::lowerAtomicRMW(Variable *Dest, uint32_t Operation,
     }
     typename Traits::X86OperandMem *Addr =
         formMemoryOperand(Ptr, Dest->getType());
-    const bool Locked = true;
+    constexpr bool Locked = true;
     Variable *T = nullptr;
     _mov(T, Val);
     _neg(T);
@@ -3684,7 +3761,7 @@ void TargetX86Base<Machine>::expandAtomicRMWAsCmpxchg(LowerBinOp Op_Lo,
       _mov(T_ecx, hiOperand(Val));
       Context.insert(Label);
     }
-    const bool Locked = true;
+    constexpr bool Locked = true;
     _cmpxchg8b(Addr, T_edx, T_eax, T_ecx, T_ebx, Locked);
     _br(Traits::Cond::Br_ne, Label);
     if (!IsXchg8b) {
@@ -3711,7 +3788,22 @@ void TargetX86Base<Machine>::expandAtomicRMWAsCmpxchg(LowerBinOp Op_Lo,
     return;
   }
   typename Traits::X86OperandMem *Addr = formMemoryOperand(Ptr, Ty);
-  Variable *T_eax = makeReg(Ty, Traits::RegisterSet::Reg_eax);
+  int32_t Eax;
+  switch (Ty) {
+  default:
+    llvm_unreachable("Bad type for atomicRMW");
+  // fallthrough
+  case IceType_i32:
+    Eax = Traits::RegisterSet::Reg_eax;
+    break;
+  case IceType_i16:
+    Eax = Traits::RegisterSet::Reg_ax;
+    break;
+  case IceType_i8:
+    Eax = Traits::RegisterSet::Reg_al;
+    break;
+  }
+  Variable *T_eax = makeReg(Ty, Eax);
   _mov(T_eax, Addr);
   typename Traits::Insts::Label *Label =
       Traits::Insts::Label::create(Func, this);
@@ -3721,7 +3813,7 @@ void TargetX86Base<Machine>::expandAtomicRMWAsCmpxchg(LowerBinOp Op_Lo,
   Variable *T = makeReg(Ty);
   _mov(T, T_eax);
   (this->*Op_Lo)(T, Val);
-  const bool Locked = true;
+  constexpr bool Locked = true;
   _cmpxchg(Addr, T_eax, T, Locked);
   _br(Traits::Cond::Br_ne, Label);
   // If Val is a variable, model the extended live range of Val through
@@ -5218,7 +5310,7 @@ Variable *TargetX86Base<Machine>::makeVectorOfHighOrderBits(Type Ty,
     return Reg;
   } else {
     // SSE has no left shift operation for vectors of 8 bit integers.
-    const uint32_t HIGH_ORDER_BITS_MASK = 0x80808080;
+    constexpr uint32_t HIGH_ORDER_BITS_MASK = 0x80808080;
     Constant *ConstantMask = Ctx->getConstantInt32(HIGH_ORDER_BITS_MASK);
     Variable *Reg = makeReg(Ty, RegNum);
     _movd(Reg, legalize(ConstantMask, Legal_Reg | Legal_Mem));
@@ -5252,7 +5344,7 @@ TargetX86Base<Machine>::getMemoryOperandForStackSlot(Type Ty, Variable *Slot,
   // TODO(wala,stichnot): lea should not
   // be required. The address of the stack slot is known at compile time
   // (although not until after addProlog()).
-  const Type PointerType = IceType_i32;
+  constexpr Type PointerType = IceType_i32;
   Variable *Loc = makeReg(PointerType);
   _lea(Loc, Slot);
   Constant *ConstantOffset = Ctx->getConstantInt32(Offset);
@@ -5305,7 +5397,7 @@ Operand *TargetX86Base<Machine>::legalize(Operand *From, LegalMask Allowed,
     }
   }
 
-  if (auto Mem = llvm::dyn_cast<typename Traits::X86OperandMem>(From)) {
+  if (auto *Mem = llvm::dyn_cast<typename Traits::X86OperandMem>(From)) {
     // Before doing anything with a Mem operand, we need to ensure that the
     // Base and Index components are in physical registers.
     Variable *Base = Mem->getBase();
@@ -5383,7 +5475,7 @@ Operand *TargetX86Base<Machine>::legalize(Operand *From, LegalMask Allowed,
     }
     return From;
   }
-  if (auto Var = llvm::dyn_cast<Variable>(From)) {
+  if (auto *Var = llvm::dyn_cast<Variable>(From)) {
     // Check if the variable is guaranteed a physical register. This can happen
     // either when the variable is pre-colored or when it is assigned infinite
     // weight.
@@ -5638,8 +5730,8 @@ Operand *TargetX86Base<Machine>::randomizeOrPoolImmediate(Constant *Immediate,
       IceString Label;
       llvm::raw_string_ostream Label_stream(Label);
       Immediate->emitPoolLabel(Label_stream, Ctx);
-      const RelocOffsetT Offset = 0;
-      const bool SuppressMangling = true;
+      constexpr RelocOffsetT Offset = 0;
+      constexpr bool SuppressMangling = true;
       Constant *Symbol =
           Ctx->getConstantSym(Offset, Label_stream.str(), SuppressMangling);
       typename Traits::X86OperandMem *MemOperand =
@@ -5735,8 +5827,8 @@ TargetX86Base<Machine>::randomizeOrPoolImmediate(
         llvm::raw_string_ostream Label_stream(Label);
         MemOperand->getOffset()->emitPoolLabel(Label_stream, Ctx);
         MemOperand->getOffset()->setShouldBePooled(true);
-        const RelocOffsetT SymOffset = 0;
-        bool SuppressMangling = true;
+        constexpr RelocOffsetT SymOffset = 0;
+        constexpr bool SuppressMangling = true;
         Constant *Symbol = Ctx->getConstantSym(SymOffset, Label_stream.str(),
                                                SuppressMangling);
         typename Traits::X86OperandMem *SymbolOperand =

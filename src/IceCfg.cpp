@@ -198,7 +198,7 @@ void Cfg::translate() {
 
   // Create the Hi and Lo variables where a split was needed
   for (Variable *Var : Variables)
-    if (auto Var64On32 = llvm::dyn_cast<Variable64On32>(Var))
+    if (auto *Var64On32 = llvm::dyn_cast<Variable64On32>(Var))
       Var64On32->initHiLo(this);
 
   // Figure out which alloca instructions result in storage at known stack frame
@@ -607,7 +607,7 @@ bool Cfg::validateLiveness() const {
       if (Variable *Dest = Inst.getDest()) {
         if (!Dest->getIgnoreLiveness()) {
           bool Invalid = false;
-          const bool IsDest = true;
+          constexpr bool IsDest = true;
           if (!Dest->getLiveRange().containsValue(InstNumber, IsDest))
             Invalid = true;
           // Check that this instruction actually *begins* Dest's live range,

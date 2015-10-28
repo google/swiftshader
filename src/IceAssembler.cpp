@@ -132,7 +132,7 @@ llvm::StringRef Assembler::getBufferView() const {
                          Buffer.size());
 }
 
-void Assembler::emitIASBytes() const {
+void Assembler::emitIASBytes(GlobalContext *Ctx) const {
   Ostream &Str = Ctx->getStrEmit();
   intptr_t EndPosition = Buffer.size();
   intptr_t CurPosition = 0;

@@ -183,7 +183,7 @@ TargetARM32::TargetARM32(Cfg *Func)
            "Duplicate alias for " #val);                                       \
     RegisterAliases[RegARM32::val].set(RegAlias);                              \
   }                                                                            \
-  assert(RegisterAliases[RegARM32::val][RegARM32::val]);                       \
+  RegisterAliases[RegARM32::val].set(RegARM32::val);                           \
   ScratchRegs[RegARM32::val] = scratch;
   REGARM32_TABLE;
 #undef X
@@ -2578,7 +2578,7 @@ void TargetARM32::lowerInsertElement(const InstInsertElement *Inst) {
 
 namespace {
 inline uint64_t getConstantMemoryOrder(Operand *Opnd) {
-  if (auto Integer = llvm::dyn_cast<ConstantInteger32>(Opnd))
+  if (auto *Integer = llvm::dyn_cast<ConstantInteger32>(Opnd))
     return Integer->getValue();
   return Intrinsics::MemoryOrderInvalid;
 }
@@ -3496,7 +3496,7 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
   // OperandARM32Flex, Constant, and Variable. Given the above assertion, if
   // type of operand is not legal (e.g., OperandARM32Mem and !Legal_Mem), we
   // can always copy to a register.
-  if (auto Mem = llvm::dyn_cast<OperandARM32Mem>(From)) {
+  if (auto *Mem = llvm::dyn_cast<OperandARM32Mem>(From)) {
     static const struct {
       bool CanHaveOffset;
       bool CanHaveIndex;
@@ -3561,9 +3561,9 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
     return From;
   }
 
-  if (auto Flex = llvm::dyn_cast<OperandARM32Flex>(From)) {
+  if (auto *Flex = llvm::dyn_cast<OperandARM32Flex>(From)) {
     if (!(Allowed & Legal_Flex)) {
-      if (auto FlexReg = llvm::dyn_cast<OperandARM32FlexReg>(Flex)) {
+      if (auto *FlexReg = llvm::dyn_cast<OperandARM32FlexReg>(Flex)) {
         if (FlexReg->getShiftOp() == OperandARM32::kNoShift) {
           From = FlexReg->getReg();
           // Fall through and let From be checked as a Variable below, where it
@@ -3644,7 +3644,7 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
     }
   }
 
-  if (auto Var = llvm::dyn_cast<Variable>(From)) {
+  if (auto *Var = llvm::dyn_cast<Variable>(From)) {
     // Check if the variable is guaranteed a physical register. This can happen
     // either when the variable is pre-colored or when it is assigned infinite
     // weight.

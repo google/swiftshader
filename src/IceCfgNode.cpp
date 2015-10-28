@@ -130,7 +130,7 @@ void CfgNode::validatePhis() {
 // transformation preserves SSA form.
 void CfgNode::placePhiLoads() {
   for (Inst &I : Phis) {
-    auto Phi = llvm::dyn_cast<InstPhi>(&I);
+    auto *Phi = llvm::dyn_cast<InstPhi>(&I);
     Insts.insert(Insts.begin(), Phi->lower(Func));
   }
 }
@@ -222,7 +222,7 @@ void CfgNode::placePhiStores() {
   for (CfgNode *Succ : OutEdges) {
     // Consider every Phi instruction at the out-edge.
     for (Inst &I : Succ->Phis) {
-      auto Phi = llvm::dyn_cast<InstPhi>(&I);
+      auto *Phi = llvm::dyn_cast<InstPhi>(&I);
       Operand *Operand = Phi->getOperandForTarget(this);
       assert(Operand);
       Variable *Dest = I.getDest();
@@ -303,7 +303,7 @@ bool sameVarOrReg(TargetLowering *Target, const Variable *Var1,
                   const Operand *Opnd) {
   if (Var1 == Opnd)
     return true;
-  const auto Var2 = llvm::dyn_cast<Variable>(Opnd);
+  const auto *Var2 = llvm::dyn_cast<Variable>(Opnd);
   if (Var2 == nullptr)
     return false;
 
@@ -459,7 +459,7 @@ void CfgNode::advancedPhiLowering() {
       int32_t Weight = 0;
       if (Desc[I].NumPred == 0)
         Weight += WeightNoPreds;
-      if (auto Var = llvm::dyn_cast<Variable>(Desc[I].Src))
+      if (auto *Var = llvm::dyn_cast<Variable>(Desc[I].Src))
         if (Var->hasReg())
           Weight += WeightSrcIsReg;
       if (!Desc[I].Dest->hasReg())
@@ -517,7 +517,7 @@ void CfgNode::advancedPhiLowering() {
       Split->appendInst(InstAssign::create(Func, Dest, Src));
       // Update NumPred for all Phi assignments using this Phi's Src as their
       // Dest variable. Also update Weight if NumPred dropped from 1 to 0.
-      if (auto Var = llvm::dyn_cast<Variable>(Src)) {
+      if (auto *Var = llvm::dyn_cast<Variable>(Src)) {
         for (size_t I = 0; I < NumPhis; ++I) {
           if (Desc[I].Processed)
             continue;
@@ -634,7 +634,7 @@ bool CfgNode::liveness(Liveness *Liveness) {
     for (Inst &I : Succ->Phis) {
       if (I.isDeleted())
         continue;
-      auto Phi = llvm::dyn_cast<InstPhi>(&I);
+      auto *Phi = llvm::dyn_cast<InstPhi>(&I);
       Phi->livenessPhiOperand(Live, this, Liveness);
     }
   }

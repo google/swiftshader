@@ -25,7 +25,7 @@ public:
   /// An enum of condition codes used for branches and cmov. The enum value
   /// should match the value used to encode operands in binary instructions.
   enum BrCond {
-#define X(tag, encode, opp, dump, emit) tag encode,
+#define X(val, encode, opp, dump, emit) val = encode,
     ICEINSTX8664BR_TABLE
 #undef X
         Br_None
@@ -35,7 +35,7 @@ public:
   /// value should match the value used to encode operands in binary
   /// instructions.
   enum CmppsCond {
-#define X(tag, emit) tag,
+#define X(val, emit) val,
     ICEINSTX8664CMPPS_TABLE
 #undef X
         Cmpps_Invalid

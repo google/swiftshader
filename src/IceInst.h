@@ -382,8 +382,8 @@ public:
     /// Set HasSideEffects to true so that the call instruction can't be
     /// dead-code eliminated. IntrinsicCalls can override this if the particular
     /// intrinsic is deletable and has no side-effects.
-    const bool HasSideEffects = true;
-    const InstKind Kind = Inst::Call;
+    constexpr bool HasSideEffects = true;
+    constexpr InstKind Kind = Inst::Call;
     return new (Func->allocate<InstCall>()) InstCall(
         Func, NumArgs, Dest, CallTarget, HasTailCall, HasSideEffects, Kind);
   }

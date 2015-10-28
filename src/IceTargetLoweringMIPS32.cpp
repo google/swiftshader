@@ -1000,7 +1000,7 @@ Operand *TargetMIPS32::legalize(Operand *From, LegalMask Allowed,
   // Given the above assertion, if type of operand is not legal
   // (e.g., OperandMIPS32Mem and !Legal_Mem), we can always copy
   // to a register.
-  if (auto C = llvm::dyn_cast<ConstantRelocatable>(From)) {
+  if (auto *C = llvm::dyn_cast<ConstantRelocatable>(From)) {
     (void)C;
     return From;
   } else if (auto *C32 = llvm::dyn_cast<ConstantInteger32>(From)) {
@@ -1027,7 +1027,7 @@ Operand *TargetMIPS32::legalize(Operand *From, LegalMask Allowed,
     }
     return Reg;
   }
-  if (auto Var = llvm::dyn_cast<Variable>(From)) {
+  if (auto *Var = llvm::dyn_cast<Variable>(From)) {
     // Check if the variable is guaranteed a physical register.  This
     // can happen either when the variable is pre-colored or when it is
     // assigned infinite weight.

@@ -60,8 +60,8 @@ template <> struct MachineTraits<TargetX8664> {
   enum ScaleFactor { TIMES_1 = 0, TIMES_2 = 1, TIMES_4 = 2, TIMES_8 = 3 };
 
   using GPRRegister = ::Ice::RegX8664::GPRRegister;
-  using XmmRegister = ::Ice::RegX8664::XmmRegister;
   using ByteRegister = ::Ice::RegX8664::ByteRegister;
+  using XmmRegister = ::Ice::RegX8664::XmmRegister;
 
   using Cond = ::Ice::CondX8664;
 
@@ -289,53 +289,123 @@ template <> struct MachineTraits<TargetX8664> {
   static const char *TargetName;
   static constexpr Type WordType = IceType_i64;
 
-  static IceString getRegName(SizeT RegNum, Type Ty) {
-    assert(RegNum < RegisterSet::Reg_NUM);
-    static const struct {
-      const char *const Name8;
-      const char *const Name16;
-      const char *const Name /*32*/;
-      const char *const Name64;
-    } RegNames[] = {
-#define X(val, encode, name64, name32, name16, name8, scratch, preserved,      \
-          stackptr, frameptr, isInt, isFP)                                     \
-  { name8, name16, name32, name64 }                                            \
-  ,
+  static IceString getRegName(int32_t RegNum) {
+    static const char *const RegNames[] = {
+#define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
+          isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
+          isTrunc8Rcvr, isAhRcvr, aliases)                                     \
+  name,
         REGX8664_TABLE
 #undef X
     };
-
-    switch (Ty) {
-    case IceType_i1:
-    case IceType_i8:
-      return RegNames[RegNum].Name8;
-    case IceType_i16:
-      return RegNames[RegNum].Name16;
-    case IceType_i64:
-      return RegNames[RegNum].Name64;
-    default:
-      return RegNames[RegNum].Name;
-    }
+    assert(RegNum >= 0);
+    assert(RegNum < RegisterSet::Reg_NUM);
+    return RegNames[RegNum];
   }
+
+  static GPRRegister getEncodedGPR(int32_t RegNum) {
+    static const GPRRegister GPRRegs[] = {
+#define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
+          isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
+          isTrunc8Rcvr, isAhRcvr, aliases)                                     \
+  GPRRegister(isGPR ? encode : GPRRegister::Encoded_Not_GPR),
+        REGX8664_TABLE
+#undef X
+    };
+    assert(RegNum >= 0);
+    assert(RegNum < RegisterSet::Reg_NUM);
+    assert(GPRRegs[RegNum] != GPRRegister::Encoded_Not_GPR);
+    return GPRRegs[RegNum];
+  }
+
+  static ByteRegister getEncodedByteReg(int32_t RegNum) {
+    static const ByteRegister ByteRegs[] = {
+#define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
+          isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
+          isTrunc8Rcvr, isAhRcvr, aliases)                                     \
+  ByteRegister(is8 ? encode : ByteRegister::Encoded_Not_ByteReg),
+        REGX8664_TABLE
+#undef X
+    };
+    assert(RegNum >= 0);
+    assert(RegNum < RegisterSet::Reg_NUM);
+    assert(ByteRegs[RegNum] != ByteRegister::Encoded_Not_ByteReg);
+    return ByteRegs[RegNum];
+  }
+
+  static XmmRegister getEncodedXmm(int32_t RegNum) {
+    static const XmmRegister XmmRegs[] = {
+#define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
+          isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
+          isTrunc8Rcvr, isAhRcvr, aliases)                                     \
+  XmmRegister(isXmm ? encode : XmmRegister::Encoded_Not_Xmm),
+        REGX8664_TABLE
+#undef X
+    };
+    assert(RegNum >= 0);
+    assert(RegNum < RegisterSet::Reg_NUM);
+    assert(XmmRegs[RegNum] != XmmRegister::Encoded_Not_Xmm);
+    return XmmRegs[RegNum];
+  }
+
+  static uint32_t getEncoding(int32_t RegNum) {
+    static const uint32_t Encoding[] = {
+#define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
+          isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
+          isTrunc8Rcvr, isAhRcvr, aliases)                                     \
+  encode,
+        REGX8664_TABLE
+#undef X
+    };
+    assert(RegNum >= 0);
+    assert(RegNum < RegisterSet::Reg_NUM);
+    return Encoding[RegNum];
+  }
+
+  static inline int32_t getBaseReg(int32_t RegNum) {
+    static const int32_t BaseRegs[] = {
+#define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
+          isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
+          isTrunc8Rcvr, isAhRcvr, aliases)                                     \
+  RegisterSet::base,
+        REGX8664_TABLE
+#undef X
+    };
+    assert(RegNum >= 0);
+    assert(RegNum < RegisterSet::Reg_NUM);
+    return BaseRegs[RegNum];
+  }
+
+  static int32_t getGprForType(Type, int32_t RegNum) { return RegNum; }
 
   static void initRegisterSet(
       std::array<llvm::SmallBitVector, IceType_NUM> *TypeToRegisterSet,
       std::array<llvm::SmallBitVector, RegisterSet::Reg_NUM> *RegisterAliases,
       llvm::SmallBitVector *ScratchRegs) {
-    llvm::SmallBitVector IntegerRegisters(RegisterSet::Reg_NUM);
+    llvm::SmallBitVector IntegerRegistersI64(RegisterSet::Reg_NUM);
+    llvm::SmallBitVector IntegerRegistersI32(RegisterSet::Reg_NUM);
+    llvm::SmallBitVector IntegerRegistersI16(RegisterSet::Reg_NUM);
     llvm::SmallBitVector IntegerRegistersI8(RegisterSet::Reg_NUM);
     llvm::SmallBitVector FloatRegisters(RegisterSet::Reg_NUM);
     llvm::SmallBitVector VectorRegisters(RegisterSet::Reg_NUM);
     llvm::SmallBitVector InvalidRegisters(RegisterSet::Reg_NUM);
     ScratchRegs->resize(RegisterSet::Reg_NUM);
 
-#define X(val, encode, name64, name32, name16, name8, scratch, preserved,      \
-          stackptr, frameptr, isInt, isFP)                                     \
-  (IntegerRegisters)[RegisterSet::val] = isInt;                                \
-  (IntegerRegistersI8)[RegisterSet::val] = isInt;                              \
-  (FloatRegisters)[RegisterSet::val] = isFP;                                   \
-  (VectorRegisters)[RegisterSet::val] = isFP;                                  \
+#define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
+          isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
+          isTrunc8Rcvr, isAhRcvr, aliases)                                     \
+  (IntegerRegistersI64)[RegisterSet::val] = is64;                              \
+  (IntegerRegistersI32)[RegisterSet::val] = is32;                              \
+  (IntegerRegistersI16)[RegisterSet::val] = is16;                              \
+  (IntegerRegistersI8)[RegisterSet::val] = is8;                                \
+  (FloatRegisters)[RegisterSet::val] = isXmm;                                  \
+  (VectorRegisters)[RegisterSet::val] = isXmm;                                 \
   (*RegisterAliases)[RegisterSet::val].resize(RegisterSet::Reg_NUM);           \
+  for (SizeT RegAlias : aliases) {                                             \
+    assert(!(*RegisterAliases)[RegisterSet::val][RegAlias] &&                  \
+           "Duplicate alias for " #val);                                       \
+    (*RegisterAliases)[RegisterSet::val].set(RegAlias);                        \
+  }                                                                            \
   (*RegisterAliases)[RegisterSet::val].set(RegisterSet::val);                  \
   (*ScratchRegs)[RegisterSet::val] = scratch;
     REGX8664_TABLE;
@@ -344,9 +414,9 @@ template <> struct MachineTraits<TargetX8664> {
     (*TypeToRegisterSet)[IceType_void] = InvalidRegisters;
     (*TypeToRegisterSet)[IceType_i1] = IntegerRegistersI8;
     (*TypeToRegisterSet)[IceType_i8] = IntegerRegistersI8;
-    (*TypeToRegisterSet)[IceType_i16] = IntegerRegisters;
-    (*TypeToRegisterSet)[IceType_i32] = IntegerRegisters;
-    (*TypeToRegisterSet)[IceType_i64] = IntegerRegisters;
+    (*TypeToRegisterSet)[IceType_i16] = IntegerRegistersI16;
+    (*TypeToRegisterSet)[IceType_i32] = IntegerRegistersI32;
+    (*TypeToRegisterSet)[IceType_i64] = IntegerRegistersI64;
     (*TypeToRegisterSet)[IceType_f32] = FloatRegisters;
     (*TypeToRegisterSet)[IceType_f64] = FloatRegisters;
     (*TypeToRegisterSet)[IceType_v4i1] = VectorRegisters;
@@ -363,8 +433,9 @@ template <> struct MachineTraits<TargetX8664> {
                  TargetLowering::RegSetMask Exclude) {
     llvm::SmallBitVector Registers(RegisterSet::Reg_NUM);
 
-#define X(val, encode, name64, name32, name16, name8, scratch, preserved,      \
-          stackptr, frameptr, isInt, isFP)                                     \
+#define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
+          isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
+          isTrunc8Rcvr, isAhRcvr, aliases)                                     \
   if (scratch && (Include & ::Ice::TargetLowering::RegSet_CallerSave))         \
     Registers[RegisterSet::val] = true;                                        \
   if (preserved && (Include & ::Ice::TargetLowering::RegSet_CalleeSave))       \
@@ -409,15 +480,24 @@ template <> struct MachineTraits<TargetX8664> {
 // Build up the equivalence classes of registers by looking at the register
 // properties as well as whether the registers should be explicitly excluded
 // from shuffling.
-#define X(val, encode, name64, name32, name16, name8, scratch, preserved,      \
-          stackptr, frameptr, isInt, isFP)                                     \
+#define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
+          isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
+          isTrunc8Rcvr, isAhRcvr, aliases)                                     \
   if (ExcludeRegisters[RegisterSet::val]) {                                    \
     /* val stays the same in the resulting permutation. */                     \
     Permutation[RegisterSet::val] = RegisterSet::val;                          \
     ++NumPreserved;                                                            \
   } else {                                                                     \
-    const uint32_t Index = (scratch << 0) | (preserved << 1) |                 \
-                           (/*isI8=*/1 << 2) | (isInt << 3) | (isFP << 4);     \
+    uint32_t AttrKey = 0;                                                      \
+    uint32_t Index = 0;                                                        \
+    /* Combine relevant attributes into an equivalence class key. */           \
+    Index |= (scratch << (AttrKey++));                                         \
+    Index |= (preserved << (AttrKey++));                                       \
+    Index |= (is8 << (AttrKey++));                                             \
+    Index |= (is16 << (AttrKey++));                                            \
+    Index |= (is32 << (AttrKey++));                                            \
+    Index |= (is64 << (AttrKey++));                                            \
+    Index |= (isXmm << (AttrKey++));                                           \
     /* val is assigned to an equivalence class based on its properties. */     \
     EquivalenceClasses[Index].push_back(RegisterSet::val);                     \
   }
@@ -454,7 +534,7 @@ template <> struct MachineTraits<TargetX8664> {
           if (!First)
             Str << " ";
           First = false;
-          Str << getRegName(Register, IceType_i32);
+          Str << getRegName(Register);
         }
         Str << "}\n";
       }

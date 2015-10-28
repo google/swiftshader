@@ -668,8 +668,8 @@ private:
   // declaration.
   void addGlobalInitializer(Ice::VariableDeclaration &Global,
                             const Constant *Initializer) {
-    const bool HasOffset = false;
-    const Ice::RelocOffsetT Offset = 0;
+    constexpr bool HasOffset = false;
+    constexpr Ice::RelocOffsetT Offset = 0;
     addGlobalInitializer(Global, Initializer, HasOffset, Offset);
   }
 

@@ -14,6 +14,8 @@
 #ifndef SUBZERO_SRC_ICEINSTARM32_DEF
 #define SUBZERO_SRC_ICEINSTARM32_DEF
 
+#include "IceRegList.h"
+
 // NOTE: PC and SP are not considered isInt, to avoid register allocating.
 //
 // For the NaCl sandbox we also need to r9 (and the r8-r9 pair) for TLS, so
@@ -27,58 +29,25 @@
 // technically preserved, but save/restore is handled separately, based on
 // whether or not the function MaybeLeafFunc.
 
-// ALIASESn is a family of macros that we use to define register aliasing in
-// ARM32. n indicates how many aliases are being provided to the macro. It
-// assumes the parameters are register names declared in a namespace/class
-// named RegARM32.
-#define ALIASES1(r0)                                                           \
-    {RegARM32::r0}
-#define ALIASES2(r0, r1)                                                       \
-    {RegARM32::r0, RegARM32::r1}
-#define ALIASES3(r0, r1, r2)                                                   \
-    {RegARM32::r0, RegARM32::r1, RegARM32::r2}
-#define ALIASES4(r0, r1, r2, r3)                                               \
-    {RegARM32::r0, RegARM32::r1, RegARM32::r2, RegARM32::r3}
-#define ALIASES7(r0, r1, r2, r3, r4, r5, r6)                                   \
-    {RegARM32::r0, RegARM32::r1, RegARM32::r2, RegARM32::r3, RegARM32::r4,     \
-     RegARM32::r5,RegARM32::r6}
-
-
 #define REGARM32_GPR_TABLE                                                     \
-  /* val, encode, name, scratch, preserved, stackptr, frameptr,                \
-     isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init */                 \
-  X(Reg_r0,  0, "r0",   1, 0, 0, 0, 1, 0, 0, 0, 0,                             \
-    ALIASES2(Reg_r0, Reg_r0r1))                                                \
-  X(Reg_r1,  1, "r1",   1, 0, 0, 0, 1, 0, 0, 0, 0,                             \
-    ALIASES2(Reg_r1, Reg_r0r1))                                                \
-  X(Reg_r2,  2, "r2",   1, 0, 0, 0, 1, 0, 0, 0, 0,                             \
-    ALIASES2(Reg_r2, Reg_r2r3))                                                \
-  X(Reg_r3,  3, "r3",   1, 0, 0, 0, 1, 0, 0, 0, 0,                             \
-    ALIASES2(Reg_r3, Reg_r2r3))                                                \
-  X(Reg_r4,  4, "r4",   0, 1, 0, 0, 1, 0, 0, 0, 0,                             \
-    ALIASES2(Reg_r4, Reg_r4r5))                                                \
-  X(Reg_r5,  5, "r5",   0, 1, 0, 0, 1, 0, 0, 0, 0,                             \
-    ALIASES2(Reg_r5, Reg_r4r5))                                                \
-  X(Reg_r6,  6, "r6",   0, 1, 0, 0, 1, 0, 0, 0, 0,                             \
-    ALIASES2(Reg_r6, Reg_r6r7))                                                \
-  X(Reg_r7,  7, "r7",   0, 1, 0, 0, 1, 0, 0, 0, 0,                             \
-    ALIASES2(Reg_r7, Reg_r6r7))                                                \
-  X(Reg_r8,  8, "r8",   0, 1, 0, 0, 1, 0, 0, 0, 0,                             \
-    ALIASES2(Reg_r8, Reg_r8r9))                                                \
-  X(Reg_r9,  9, "r9",   0, 1, 0, 0, 0, 0, 0, 0, 0,                             \
-    ALIASES2(Reg_r9, Reg_r8r9))                                                \
-  X(Reg_r10, 10, "r10", 0, 1, 0, 0, 1, 0, 0, 0, 0,                             \
-    ALIASES2(Reg_r10, Reg_r10fp))                                              \
-  X(Reg_fp,  11, "fp",  0, 1, 0, 1, 1, 0, 0, 0, 0,                             \
-    ALIASES2(Reg_fp, Reg_r10fp))                                               \
-  X(Reg_ip,  12, "ip",  1, 0, 0, 0, 0, 0, 0, 0, 0,                             \
-    ALIASES1(Reg_ip))                                                          \
-  X(Reg_sp,  13, "sp",  0, 0, 1, 0, 0, 0, 0, 0, 0,                             \
-    ALIASES1(Reg_sp))                                                          \
-  X(Reg_lr,  14, "lr",  0, 0, 0, 0, 0, 0, 0, 0, 0,                             \
-    ALIASES1(Reg_lr))                                                          \
-  X(Reg_pc,  15, "pc",  0, 0, 0, 0, 0, 0, 0, 0, 0,                             \
-    ALIASES1(Reg_pc))
+  /* val, encode, name, scratch,preserved,stackptr,frameptr,                   \
+     isInt,isI64Pair,isFP32,isFP64,isVec128, alias_init */                     \
+  X(Reg_r0,   0, "r0",  1,0,0,0, 1,0,0,0,0, REGLIST1(RegARM32, r0r1))          \
+  X(Reg_r1,   1, "r1",  1,0,0,0, 1,0,0,0,0, REGLIST1(RegARM32, r0r1))          \
+  X(Reg_r2,   2, "r2",  1,0,0,0, 1,0,0,0,0, REGLIST1(RegARM32, r2r3))          \
+  X(Reg_r3,   3, "r3",  1,0,0,0, 1,0,0,0,0, REGLIST1(RegARM32, r2r3))          \
+  X(Reg_r4,   4, "r4",  0,1,0,0, 1,0,0,0,0, REGLIST1(RegARM32, r4r5))          \
+  X(Reg_r5,   5, "r5",  0,1,0,0, 1,0,0,0,0, REGLIST1(RegARM32, r4r5))          \
+  X(Reg_r6,   6, "r6",  0,1,0,0, 1,0,0,0,0, REGLIST1(RegARM32, r6r7))          \
+  X(Reg_r7,   7, "r7",  0,1,0,0, 1,0,0,0,0, REGLIST1(RegARM32, r6r7))          \
+  X(Reg_r8,   8, "r8",  0,1,0,0, 1,0,0,0,0, REGLIST1(RegARM32, r8r9))          \
+  X(Reg_r9,   9, "r9",  0,1,0,0, 0,0,0,0,0, REGLIST1(RegARM32, r8r9))          \
+  X(Reg_r10, 10, "r10", 0,1,0,0, 1,0,0,0,0, REGLIST1(RegARM32, r10fp))         \
+  X(Reg_fp,  11, "fp",  0,1,0,1, 1,0,0,0,0, REGLIST1(RegARM32, r10fp))         \
+  X(Reg_ip,  12, "ip",  1,0,0,0, 0,0,0,0,0, REGLIST1(RegARM32, ip))            \
+  X(Reg_sp,  13, "sp",  0,0,1,0, 0,0,0,0,0, REGLIST1(RegARM32, sp))            \
+  X(Reg_lr,  14, "lr",  0,0,0,0, 0,0,0,0,0, REGLIST1(RegARM32, lr))            \
+  X(Reg_pc,  15, "pc",  0,0,0,0, 0,0,0,0,0, REGLIST1(RegARM32, pc))
 //#define X(val, encode, name, scratch, preserved, stackptr, frameptr,
 //          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)
 
@@ -88,20 +57,14 @@
 // is preserved, then we mark the whole pair as preserved to help the register
 // allocator.
 #define REGARM32_I64PAIR_TABLE                                                 \
-  /* val, encode, name, scratch, preserved, stackptr, frameptr,                \
-     isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init */                 \
-  X(Reg_r0r1,  0, "r0, r1",   1, 0, 0, 0, 0, 1, 0, 0, 0,                       \
-    ALIASES3(Reg_r0, Reg_r1, Reg_r0r1))                                        \
-  X(Reg_r2r3,  2, "r2, r3",   1, 0, 0, 0, 0, 1, 0, 0, 0,                       \
-    ALIASES3(Reg_r2, Reg_r3, Reg_r2r3))                                        \
-  X(Reg_r4r5,  4, "r4, r5",   0, 1, 0, 0, 0, 1, 0, 0, 0,                       \
-    ALIASES3(Reg_r4, Reg_r5, Reg_r4r5))                                        \
-  X(Reg_r6r7,  6, "r6, r7",   0, 1, 0, 0, 0, 1, 0, 0, 0,                       \
-    ALIASES3(Reg_r6, Reg_r7, Reg_r6r7))                                        \
-  X(Reg_r8r9,  8, "r8, r9",   0, 1, 0, 0, 0, 0, 0, 0, 0,                       \
-    ALIASES3(Reg_r8, Reg_r9, Reg_r8r9))                                        \
-  X(Reg_r10fp, 10, "r10, fp", 0, 1, 0, 0, 0, 0, 0, 0, 0,                       \
-    ALIASES3(Reg_r10, Reg_fp, Reg_r10fp))                                      \
+  /* val, encode, name, scratch,preserved,stackptr,frameptr,                   \
+     isInt,isI64Pair,isFP32,isFP64,isVec128, alias_init */                     \
+  X(Reg_r0r1,   0, "r0, r1",  1,0,0,0, 0,1,0,0,0, REGLIST2(RegARM32, r0, r1))  \
+  X(Reg_r2r3,   2, "r2, r3",  1,0,0,0, 0,1,0,0,0, REGLIST2(RegARM32, r2, r3))  \
+  X(Reg_r4r5,   4, "r4, r5",  0,1,0,0, 0,1,0,0,0, REGLIST2(RegARM32, r4, r5))  \
+  X(Reg_r6r7,   6, "r6, r7",  0,1,0,0, 0,1,0,0,0, REGLIST2(RegARM32, r6, r7))  \
+  X(Reg_r8r9,   8, "r8, r9",  0,1,0,0, 0,0,0,0,0, REGLIST2(RegARM32, r8, r9))  \
+  X(Reg_r10fp, 10, "r10, fp", 0,1,0,0, 0,0,0,0,0, REGLIST2(RegARM32, r10, fp))
 //#define X(val, encode, name, scratch, preserved, stackptr, frameptr,
 //          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)
 
@@ -114,80 +77,48 @@
 //     is_preserved = 1 if i >= 16 else 0
 //     print ('  X(Reg_s{regnum:<2}, {regnum:<2}, "s{regnum}", ' +
 //            '{scratch}, {preserved}, 0, 0, 0, 0, 1, 0, 0, ' +
-//            'ALIASES(Reg_s{regnum_s:<2}, Reg_d{regnum:<2}, ' +
-//            'Reg_q{regnum_q:<2}))    \\').format(
+//            'REGLIST2(RegARM32, d{regnum:<2}, ' +
+//            'q{regnum_q:<2}))    \\').format(
 //            regnum=i, regnum_d=i>>1,
 //            regnum_q=i>>2, scratch=is_scratch, preserved=is_preserved)
 //
 // print_sregs()
 //
 #define REGARM32_FP32_TABLE                                                    \
-  /* val, encode, name, scratch, preserved, stackptr, frameptr,                \
-     isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init */                 \
-  X(Reg_s0 , 0 , "s0" , 1, 0, 0, 0, 0, 0, 1, 0, 0,                             \
-    ALIASES3(Reg_s0 , Reg_d0 , Reg_q0))                                        \
-  X(Reg_s1 , 1 , "s1" , 1, 0, 0, 0, 0, 0, 1, 0, 0,                             \
-    ALIASES3(Reg_s1 , Reg_d0 , Reg_q0))                                        \
-  X(Reg_s2 , 2 , "s2" , 1, 0, 0, 0, 0, 0, 1, 0, 0,                             \
-    ALIASES3(Reg_s2 , Reg_d1 , Reg_q0))                                        \
-  X(Reg_s3 , 3 , "s3" , 1, 0, 0, 0, 0, 0, 1, 0, 0,                             \
-    ALIASES3(Reg_s3 , Reg_d1 , Reg_q0))                                        \
-  X(Reg_s4 , 4 , "s4" , 1, 0, 0, 0, 0, 0, 1, 0, 0,                             \
-    ALIASES3(Reg_s4 , Reg_d2 , Reg_q1))                                        \
-  X(Reg_s5 , 5 , "s5" , 1, 0, 0, 0, 0, 0, 1, 0, 0,                             \
-    ALIASES3(Reg_s5 , Reg_d2 , Reg_q1))                                        \
-  X(Reg_s6 , 6 , "s6" , 1, 0, 0, 0, 0, 0, 1, 0, 0,                             \
-    ALIASES3(Reg_s6 , Reg_d3 , Reg_q1))                                        \
-  X(Reg_s7 , 7 , "s7" , 1, 0, 0, 0, 0, 0, 1, 0, 0,                             \
-    ALIASES3(Reg_s7 , Reg_d3 , Reg_q1))                                        \
-  X(Reg_s8 , 8 , "s8" , 1, 0, 0, 0, 0, 0, 1, 0, 0,                             \
-    ALIASES3(Reg_s8 , Reg_d4 , Reg_q2))                                        \
-  X(Reg_s9 , 9 , "s9" , 1, 0, 0, 0, 0, 0, 1, 0, 0,                             \
-    ALIASES3(Reg_s9 , Reg_d4 , Reg_q2))                                        \
-  X(Reg_s10, 10, "s10", 1, 0, 0, 0, 0, 0, 1, 0, 0,                             \
-    ALIASES3(Reg_s10, Reg_d5 , Reg_q2))                                        \
-  X(Reg_s11, 11, "s11", 1, 0, 0, 0, 0, 0, 1, 0, 0,                             \
-    ALIASES3(Reg_s11, Reg_d5 , Reg_q2))                                        \
-  X(Reg_s12, 12, "s12", 1, 0, 0, 0, 0, 0, 1, 0, 0,                             \
-    ALIASES3(Reg_s12, Reg_d6 , Reg_q3))                                        \
-  X(Reg_s13, 13, "s13", 1, 0, 0, 0, 0, 0, 1, 0, 0,                             \
-    ALIASES3(Reg_s13, Reg_d6 , Reg_q3))                                        \
-  X(Reg_s14, 14, "s14", 1, 0, 0, 0, 0, 0, 1, 0, 0,                             \
-    ALIASES3(Reg_s14, Reg_d7 , Reg_q3))                                        \
-  X(Reg_s15, 15, "s15", 1, 0, 0, 0, 0, 0, 1, 0, 0,                             \
-    ALIASES3(Reg_s15, Reg_d7 , Reg_q3))                                        \
-  X(Reg_s16, 16, "s16", 0, 1, 0, 0, 0, 0, 1, 0, 0,                             \
-    ALIASES3(Reg_s16, Reg_d8 , Reg_q4))                                        \
-  X(Reg_s17, 17, "s17", 0, 1, 0, 0, 0, 0, 1, 0, 0,                             \
-    ALIASES3(Reg_s17, Reg_d8 , Reg_q4))                                        \
-  X(Reg_s18, 18, "s18", 0, 1, 0, 0, 0, 0, 1, 0, 0,                             \
-    ALIASES3(Reg_s18, Reg_d9 , Reg_q4))                                        \
-  X(Reg_s19, 19, "s19", 0, 1, 0, 0, 0, 0, 1, 0, 0,                             \
-    ALIASES3(Reg_s19, Reg_d9 , Reg_q4))                                        \
-  X(Reg_s20, 20, "s20", 0, 1, 0, 0, 0, 0, 1, 0, 0,                             \
-    ALIASES3(Reg_s20, Reg_d10, Reg_q5))                                        \
-  X(Reg_s21, 21, "s21", 0, 1, 0, 0, 0, 0, 1, 0, 0,                             \
-    ALIASES3(Reg_s21, Reg_d10, Reg_q5))                                        \
-  X(Reg_s22, 22, "s22", 0, 1, 0, 0, 0, 0, 1, 0, 0,                             \
-    ALIASES3(Reg_s22, Reg_d11, Reg_q5))                                        \
-  X(Reg_s23, 23, "s23", 0, 1, 0, 0, 0, 0, 1, 0, 0,                             \
-    ALIASES3(Reg_s23, Reg_d11, Reg_q5))                                        \
-  X(Reg_s24, 24, "s24", 0, 1, 0, 0, 0, 0, 1, 0, 0,                             \
-    ALIASES3(Reg_s24, Reg_d12, Reg_q6))                                        \
-  X(Reg_s25, 25, "s25", 0, 1, 0, 0, 0, 0, 1, 0, 0,                             \
-    ALIASES3(Reg_s25, Reg_d12, Reg_q6))                                        \
-  X(Reg_s26, 26, "s26", 0, 1, 0, 0, 0, 0, 1, 0, 0,                             \
-    ALIASES3(Reg_s26, Reg_d13, Reg_q6))                                        \
-  X(Reg_s27, 27, "s27", 0, 1, 0, 0, 0, 0, 1, 0, 0,                             \
-    ALIASES3(Reg_s27, Reg_d13, Reg_q6))                                        \
-  X(Reg_s28, 28, "s28", 0, 1, 0, 0, 0, 0, 1, 0, 0,                             \
-    ALIASES3(Reg_s28, Reg_d14, Reg_q7))                                        \
-  X(Reg_s29, 29, "s29", 0, 1, 0, 0, 0, 0, 1, 0, 0,                             \
-    ALIASES3(Reg_s29, Reg_d14, Reg_q7))                                        \
-  X(Reg_s30, 30, "s30", 0, 1, 0, 0, 0, 0, 1, 0, 0,                             \
-    ALIASES3(Reg_s30, Reg_d15, Reg_q7))                                        \
-  X(Reg_s31, 31, "s31", 0, 1, 0, 0, 0, 0, 1, 0, 0,                             \
-    ALIASES3(Reg_s31, Reg_d15, Reg_q7))
+  /* val, encode, name, scratch,preserved,stackptr,frameptr,                   \
+     isInt,isI64Pair,isFP32,isFP64,isVec128, alias_init */                     \
+  X(Reg_s0,   0, "s0",  1,0,0,0, 0,0,1,0,0, REGLIST2(RegARM32,  d0, q0))       \
+  X(Reg_s1,   1, "s1",  1,0,0,0, 0,0,1,0,0, REGLIST2(RegARM32,  d0, q0))       \
+  X(Reg_s2,   2, "s2",  1,0,0,0, 0,0,1,0,0, REGLIST2(RegARM32,  d1, q0))       \
+  X(Reg_s3,   3, "s3",  1,0,0,0, 0,0,1,0,0, REGLIST2(RegARM32,  d1, q0))       \
+  X(Reg_s4,   4, "s4",  1,0,0,0, 0,0,1,0,0, REGLIST2(RegARM32,  d2, q1))       \
+  X(Reg_s5,   5, "s5",  1,0,0,0, 0,0,1,0,0, REGLIST2(RegARM32,  d2, q1))       \
+  X(Reg_s6,   6, "s6",  1,0,0,0, 0,0,1,0,0, REGLIST2(RegARM32,  d3, q1))       \
+  X(Reg_s7,   7, "s7",  1,0,0,0, 0,0,1,0,0, REGLIST2(RegARM32,  d3, q1))       \
+  X(Reg_s8,   8, "s8",  1,0,0,0, 0,0,1,0,0, REGLIST2(RegARM32,  d4, q2))       \
+  X(Reg_s9,   9, "s9",  1,0,0,0, 0,0,1,0,0, REGLIST2(RegARM32,  d4, q2))       \
+  X(Reg_s10, 10, "s10", 1,0,0,0, 0,0,1,0,0, REGLIST2(RegARM32,  d5, q2))       \
+  X(Reg_s11, 11, "s11", 1,0,0,0, 0,0,1,0,0, REGLIST2(RegARM32,  d5, q2))       \
+  X(Reg_s12, 12, "s12", 1,0,0,0, 0,0,1,0,0, REGLIST2(RegARM32,  d6, q3))       \
+  X(Reg_s13, 13, "s13", 1,0,0,0, 0,0,1,0,0, REGLIST2(RegARM32,  d6, q3))       \
+  X(Reg_s14, 14, "s14", 1,0,0,0, 0,0,1,0,0, REGLIST2(RegARM32,  d7, q3))       \
+  X(Reg_s15, 15, "s15", 1,0,0,0, 0,0,1,0,0, REGLIST2(RegARM32,  d7, q3))       \
+  X(Reg_s16, 16, "s16", 0,1,0,0, 0,0,1,0,0, REGLIST2(RegARM32,  d8, q4))       \
+  X(Reg_s17, 17, "s17", 0,1,0,0, 0,0,1,0,0, REGLIST2(RegARM32,  d8, q4))       \
+  X(Reg_s18, 18, "s18", 0,1,0,0, 0,0,1,0,0, REGLIST2(RegARM32,  d9, q4))       \
+  X(Reg_s19, 19, "s19", 0,1,0,0, 0,0,1,0,0, REGLIST2(RegARM32,  d9, q4))       \
+  X(Reg_s20, 20, "s20", 0,1,0,0, 0,0,1,0,0, REGLIST2(RegARM32, d10, q5))       \
+  X(Reg_s21, 21, "s21", 0,1,0,0, 0,0,1,0,0, REGLIST2(RegARM32, d10, q5))       \
+  X(Reg_s22, 22, "s22", 0,1,0,0, 0,0,1,0,0, REGLIST2(RegARM32, d11, q5))       \
+  X(Reg_s23, 23, "s23", 0,1,0,0, 0,0,1,0,0, REGLIST2(RegARM32, d11, q5))       \
+  X(Reg_s24, 24, "s24", 0,1,0,0, 0,0,1,0,0, REGLIST2(RegARM32, d12, q6))       \
+  X(Reg_s25, 25, "s25", 0,1,0,0, 0,0,1,0,0, REGLIST2(RegARM32, d12, q6))       \
+  X(Reg_s26, 26, "s26", 0,1,0,0, 0,0,1,0,0, REGLIST2(RegARM32, d13, q6))       \
+  X(Reg_s27, 27, "s27", 0,1,0,0, 0,0,1,0,0, REGLIST2(RegARM32, d13, q6))       \
+  X(Reg_s28, 28, "s28", 0,1,0,0, 0,0,1,0,0, REGLIST2(RegARM32, d14, q7))       \
+  X(Reg_s29, 29, "s29", 0,1,0,0, 0,0,1,0,0, REGLIST2(RegARM32, d14, q7))       \
+  X(Reg_s30, 30, "s30", 0,1,0,0, 0,0,1,0,0, REGLIST2(RegARM32, d15, q7))       \
+  X(Reg_s31, 31, "s31", 0,1,0,0, 0,0,1,0,0, REGLIST2(RegARM32, d15, q7))
 //#define X(val, encode, name, scratch, preserved, stackptr, frameptr,
 //          isInt, isI64Pair, isFP32,isFP64, isVec128, alias_init)
 
@@ -205,7 +136,7 @@
 //     is_preserved = 1 if (8 <= i and i < 16) else 0
 //     print ('  X(Reg_d{regnum:<2}, {regnum:<2}, "d{regnum}", ' +
 //            '{scratch}, {preserved}, 0, 0, 0, 0, 0, 1, 0, ' +
-//            'ALIASES(Reg_d{regnum:<2}, Reg_q{regnum_q:<2})    \\').format(
+//            'REGLIST1(RegARM32, q{regnum_q:<2})    \\').format(
 //            regnum=i, regnum_q=i>>1, scratch=is_scratch,
 //            preserved=is_preserved)
 //   for i in xrange(15, -1, -1):
@@ -213,80 +144,48 @@
 //     is_preserved = 1 if (8 <= i and i < 16) else 0
 //     print ('  X(Reg_d{regnum:<2}, {regnum:<2}, "d{regnum}", ' +
 //            '{scratch}, {preserved}, 0, 0, 0, 0, 0, 1, 0, ' +
-//            'ALIASES(Reg_s{regnum_s0:<2}, Reg_s{regnum_s1:<2}, ' +
-//            'Reg_d{regnum:<2}, Reg_q{regnum_q:<2}))   \\').format(
+//            'REGLIST3(RegARM32, s{regnum_s0:<2}, s{regnum_s1:<2}, ' +
+//            'q{regnum_q:<2}))   \\').format(
 //            regnum_s0 = (i<<1), regnum_s1 = (i<<1) + 1, regnum=i,
 //            regnum_q=i>>1, scratch=is_scratch, preserved=is_preserved)
 //
 // print_dregs()
 //
 #define REGARM32_FP64_TABLE                                                    \
-  /* val, encode, name, scratch, preserved, stackptr, frameptr,                \
-     isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init */                 \
-  X(Reg_d31, 31, "d31", 1, 0, 0, 0, 0, 0, 0, 1, 0,                             \
-    ALIASES2(Reg_d31, Reg_q15))                                                \
-  X(Reg_d30, 30, "d30", 1, 0, 0, 0, 0, 0, 0, 1, 0,                             \
-    ALIASES2(Reg_d30, Reg_q15))                                                \
-  X(Reg_d29, 29, "d29", 1, 0, 0, 0, 0, 0, 0, 1, 0,                             \
-    ALIASES2(Reg_d29, Reg_q14))                                                \
-  X(Reg_d28, 28, "d28", 1, 0, 0, 0, 0, 0, 0, 1, 0,                             \
-    ALIASES2(Reg_d28, Reg_q14))                                                \
-  X(Reg_d27, 27, "d27", 1, 0, 0, 0, 0, 0, 0, 1, 0,                             \
-    ALIASES2(Reg_d27, Reg_q13))                                                \
-  X(Reg_d26, 26, "d26", 1, 0, 0, 0, 0, 0, 0, 1, 0,                             \
-    ALIASES2(Reg_d26, Reg_q13))                                                \
-  X(Reg_d25, 25, "d25", 1, 0, 0, 0, 0, 0, 0, 1, 0,                             \
-    ALIASES2(Reg_d25, Reg_q12))                                                \
-  X(Reg_d24, 24, "d24", 1, 0, 0, 0, 0, 0, 0, 1, 0,                             \
-    ALIASES2(Reg_d24, Reg_q12))                                                \
-  X(Reg_d23, 23, "d23", 1, 0, 0, 0, 0, 0, 0, 1, 0,                             \
-    ALIASES2(Reg_d23, Reg_q11))                                                \
-  X(Reg_d22, 22, "d22", 1, 0, 0, 0, 0, 0, 0, 1, 0,                             \
-    ALIASES2(Reg_d22, Reg_q11))                                                \
-  X(Reg_d21, 21, "d21", 1, 0, 0, 0, 0, 0, 0, 1, 0,                             \
-    ALIASES2(Reg_d21, Reg_q10))                                                \
-  X(Reg_d20, 20, "d20", 1, 0, 0, 0, 0, 0, 0, 1, 0,                             \
-    ALIASES2(Reg_d20, Reg_q10))                                                \
-  X(Reg_d19, 19, "d19", 1, 0, 0, 0, 0, 0, 0, 1, 0,                             \
-    ALIASES2(Reg_d19, Reg_q9))                                                 \
-  X(Reg_d18, 18, "d18", 1, 0, 0, 0, 0, 0, 0, 1, 0,                             \
-    ALIASES2(Reg_d18, Reg_q9))                                                 \
-  X(Reg_d17, 17, "d17", 1, 0, 0, 0, 0, 0, 0, 1, 0,                             \
-    ALIASES2(Reg_d17, Reg_q8))                                                 \
-  X(Reg_d16, 16, "d16", 1, 0, 0, 0, 0, 0, 0, 1, 0,                             \
-    ALIASES2(Reg_d16, Reg_q8))                                                 \
-  X(Reg_d15, 15, "d15", 0, 1, 0, 0, 0, 0, 0, 1, 0,                             \
-    ALIASES4(Reg_s30, Reg_s31, Reg_d15, Reg_q7))                               \
-  X(Reg_d14, 14, "d14", 0, 1, 0, 0, 0, 0, 0, 1, 0,                             \
-    ALIASES4(Reg_s28, Reg_s29, Reg_d14, Reg_q7))                               \
-  X(Reg_d13, 13, "d13", 0, 1, 0, 0, 0, 0, 0, 1, 0,                             \
-    ALIASES4(Reg_s26, Reg_s27, Reg_d13, Reg_q6))                               \
-  X(Reg_d12, 12, "d12", 0, 1, 0, 0, 0, 0, 0, 1, 0,                             \
-    ALIASES4(Reg_s24, Reg_s25, Reg_d12, Reg_q6))                               \
-  X(Reg_d11, 11, "d11", 0, 1, 0, 0, 0, 0, 0, 1, 0,                             \
-    ALIASES4(Reg_s22, Reg_s23, Reg_d11, Reg_q5))                               \
-  X(Reg_d10, 10, "d10", 0, 1, 0, 0, 0, 0, 0, 1, 0,                             \
-    ALIASES4(Reg_s20, Reg_s21, Reg_d10, Reg_q5))                               \
-  X(Reg_d9 , 9 ,  "d9", 0, 1, 0, 0, 0, 0, 0, 1, 0,                             \
-    ALIASES4(Reg_s18, Reg_s19, Reg_d9 , Reg_q4))                               \
-  X(Reg_d8 , 8 ,  "d8", 0, 1, 0, 0, 0, 0, 0, 1, 0,                             \
-    ALIASES4(Reg_s16, Reg_s17, Reg_d8 , Reg_q4))                               \
-  X(Reg_d7 , 7 ,  "d7", 1, 0, 0, 0, 0, 0, 0, 1, 0,                             \
-    ALIASES4(Reg_s14, Reg_s15, Reg_d7 , Reg_q3))                               \
-  X(Reg_d6 , 6 ,  "d6", 1, 0, 0, 0, 0, 0, 0, 1, 0,                             \
-    ALIASES4(Reg_s12, Reg_s13, Reg_d6 , Reg_q3))                               \
-  X(Reg_d5 , 5 ,  "d5", 1, 0, 0, 0, 0, 0, 0, 1, 0,                             \
-    ALIASES4(Reg_s10, Reg_s11, Reg_d5 , Reg_q2))                               \
-  X(Reg_d4 , 4 ,  "d4", 1, 0, 0, 0, 0, 0, 0, 1, 0,                             \
-    ALIASES4(Reg_s8 , Reg_s9 , Reg_d4 , Reg_q2))                               \
-  X(Reg_d3 , 3 ,  "d3", 1, 0, 0, 0, 0, 0, 0, 1, 0,                             \
-    ALIASES4(Reg_s6 , Reg_s7 , Reg_d3 , Reg_q1))                               \
-  X(Reg_d2 , 2 ,  "d2", 1, 0, 0, 0, 0, 0, 0, 1, 0,                             \
-    ALIASES4(Reg_s4 , Reg_s5 , Reg_d2 , Reg_q1))                               \
-  X(Reg_d1 , 1 ,  "d1", 1, 0, 0, 0, 0, 0, 0, 1, 0,                             \
-    ALIASES4(Reg_s2 , Reg_s3 , Reg_d1 , Reg_q0))                               \
-  X(Reg_d0 , 0 ,  "d0", 1, 0, 0, 0, 0, 0, 0, 1, 0,                             \
-    ALIASES4(Reg_s0 , Reg_s1 , Reg_d0 , Reg_q0))
+  /* val, encode, name, scratch,preserved,stackptr,frameptr,                   \
+     isInt,isI64Pair,isFP32,isFP64,isVec128, alias_init */                     \
+  X(Reg_d31, 31, "d31", 1,0,0,0, 0,0,0,1,0, REGLIST1(RegARM32, q15))           \
+  X(Reg_d30, 30, "d30", 1,0,0,0, 0,0,0,1,0, REGLIST1(RegARM32, q15))           \
+  X(Reg_d29, 29, "d29", 1,0,0,0, 0,0,0,1,0, REGLIST1(RegARM32, q14))           \
+  X(Reg_d28, 28, "d28", 1,0,0,0, 0,0,0,1,0, REGLIST1(RegARM32, q14))           \
+  X(Reg_d27, 27, "d27", 1,0,0,0, 0,0,0,1,0, REGLIST1(RegARM32, q13))           \
+  X(Reg_d26, 26, "d26", 1,0,0,0, 0,0,0,1,0, REGLIST1(RegARM32, q13))           \
+  X(Reg_d25, 25, "d25", 1,0,0,0, 0,0,0,1,0, REGLIST1(RegARM32, q12))           \
+  X(Reg_d24, 24, "d24", 1,0,0,0, 0,0,0,1,0, REGLIST1(RegARM32, q12))           \
+  X(Reg_d23, 23, "d23", 1,0,0,0, 0,0,0,1,0, REGLIST1(RegARM32, q11))           \
+  X(Reg_d22, 22, "d22", 1,0,0,0, 0,0,0,1,0, REGLIST1(RegARM32, q11))           \
+  X(Reg_d21, 21, "d21", 1,0,0,0, 0,0,0,1,0, REGLIST1(RegARM32, q10))           \
+  X(Reg_d20, 20, "d20", 1,0,0,0, 0,0,0,1,0, REGLIST1(RegARM32, q10))           \
+  X(Reg_d19, 19, "d19", 1,0,0,0, 0,0,0,1,0, REGLIST1(RegARM32, q9))            \
+  X(Reg_d18, 18, "d18", 1,0,0,0, 0,0,0,1,0, REGLIST1(RegARM32, q9))            \
+  X(Reg_d17, 17, "d17", 1,0,0,0, 0,0,0,1,0, REGLIST1(RegARM32, q8))            \
+  X(Reg_d16, 16, "d16", 1,0,0,0, 0,0,0,1,0, REGLIST1(RegARM32, q8))            \
+  X(Reg_d15, 15, "d15", 0,1,0,0, 0,0,0,1,0, REGLIST3(RegARM32, s30, s31, q7))  \
+  X(Reg_d14, 14, "d14", 0,1,0,0, 0,0,0,1,0, REGLIST3(RegARM32, s28, s29, q7))  \
+  X(Reg_d13, 13, "d13", 0,1,0,0, 0,0,0,1,0, REGLIST3(RegARM32, s26, s27, q6))  \
+  X(Reg_d12, 12, "d12", 0,1,0,0, 0,0,0,1,0, REGLIST3(RegARM32, s24, s25, q6))  \
+  X(Reg_d11, 11, "d11", 0,1,0,0, 0,0,0,1,0, REGLIST3(RegARM32, s22, s23, q5))  \
+  X(Reg_d10, 10, "d10", 0,1,0,0, 0,0,0,1,0, REGLIST3(RegARM32, s20, s21, q5))  \
+  X(Reg_d9,   9, "d9",  0,1,0,0, 0,0,0,1,0, REGLIST3(RegARM32, s18, s19, q4))  \
+  X(Reg_d8,   8, "d8",  0,1,0,0, 0,0,0,1,0, REGLIST3(RegARM32, s16, s17, q4))  \
+  X(Reg_d7,   7, "d7",  1,0,0,0, 0,0,0,1,0, REGLIST3(RegARM32, s14, s15, q3))  \
+  X(Reg_d6,   6, "d6",  1,0,0,0, 0,0,0,1,0, REGLIST3(RegARM32, s12, s13, q3))  \
+  X(Reg_d5,   5, "d5",  1,0,0,0, 0,0,0,1,0, REGLIST3(RegARM32, s10, s11, q2))  \
+  X(Reg_d4,   4, "d4",  1,0,0,0, 0,0,0,1,0, REGLIST3(RegARM32, s8, s9, q2))    \
+  X(Reg_d3,   3, "d3",  1,0,0,0, 0,0,0,1,0, REGLIST3(RegARM32, s6, s7, q1))    \
+  X(Reg_d2,   2, "d2",  1,0,0,0, 0,0,0,1,0, REGLIST3(RegARM32, s4, s5, q1))    \
+  X(Reg_d1,   1, "d1",  1,0,0,0, 0,0,0,1,0, REGLIST3(RegARM32, s2, s3, q0))    \
+  X(Reg_d0,   0, "d0",  1,0,0,0, 0,0,0,1,0, REGLIST3(RegARM32, s0, s1, q0))
 //#define X(val, encode, name, scratch, preserved, stackptr, frameptr,
 //          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)
 
@@ -300,20 +199,18 @@
 //     is_scratch = 1 if (i < 4 or i >= 8) else 0
 //     is_preserved = 1 if (4 <= i and i < 8) else 0
 //     print ('  X(Reg_q{regnum:<2}, {regnum:<2}, "q{regnum}", ' +
-//            '{scratch}, {preserved}, 0, 0, 0, 0, 0, 0, 1, ALIASES(' +
-//            'Reg_d{regnum_d0:<2}, Reg_d{regnum_d1:<2}, ' +
-//            'Reg_q{regnum:<2}))    \\').format(
+//            '{scratch}, {preserved}, 0, 0, 0, 0, 0, 0, 1, REGLIST2(' +
+//            'RegARM32, d{regnum_d0:<2}, d{regnum_d1:<2}))    \\').format(
 //            regnum_d0=(i<<1), regnum_d1=(i<<1)+1, regnum=i,
 //            scratch=is_scratch, preserved=is_preserved)
 //   for i in xrange(7, -1, -1):
 //     is_scratch = 1 if (i < 4 or i >= 8) else 0
 //     is_preserved = 1 if (4 <= i and i < 8) else 0
 //     print ('  X(Reg_q{regnum:<2}, {regnum:<2}, "q{regnum}", ' +
-//            '{scratch}, {preserved}, 0, 0, 0, 0, 0, 0, 1, ALIASES(' +
-//            'Reg_s{regnum_s0:<2}, Reg_s{regnum_s1:<2}, ' +
-//            'Reg_s{regnum_s2:<2}, Reg_s{regnum_s3:<2}, ' +
-//            'Reg_d{regnum_d0:<2}, Reg_d{regnum_d1:<2}, ' +
-//            'Reg_q{regnum:<2}))    \\').format(
+//            '{scratch}, {preserved}, 0, 0, 0, 0, 0, 0, 1, REGLIST6(' +
+//            'RegARM32, s{regnum_s0:<2}, s{regnum_s1:<2}, ' +
+//            's{regnum_s2:<2}, s{regnum_s3:<2}, ' +
+//            'd{regnum_d0:<2}, d{regnum_d1:<2}))    \\').format(
 //            regnum_s0=(i<<2), regnum_s1=(i<<2)+1, regnum_s2=(i<<2)+2,
 //            regnum_s3=(i<<2)+3, regnum_d0=(i<<1), regnum_d1=(i<<1)+1,
 //            regnum=i, scratch=is_scratch, preserved=is_preserved)
@@ -324,37 +221,37 @@
   /* val, encode, name, scratch, preserved, stackptr, frameptr,                \
      isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init */                 \
   X(Reg_q15, 15, "q15", 1, 0, 0, 0, 0, 0, 0, 0, 1,                             \
-    ALIASES3(Reg_d30, Reg_d31, Reg_q15))                                       \
+    REGLIST2(RegARM32, d30, d31))                                              \
   X(Reg_q14, 14, "q14", 1, 0, 0, 0, 0, 0, 0, 0, 1,                             \
-    ALIASES3(Reg_d28, Reg_d29, Reg_q14))                                       \
+    REGLIST2(RegARM32, d28, d29))                                              \
   X(Reg_q13, 13, "q13", 1, 0, 0, 0, 0, 0, 0, 0, 1,                             \
-    ALIASES3(Reg_d26, Reg_d27, Reg_q13))                                       \
+    REGLIST2(RegARM32, d26, d27))                                              \
   X(Reg_q12, 12, "q12", 1, 0, 0, 0, 0, 0, 0, 0, 1,                             \
-    ALIASES3(Reg_d24, Reg_d25, Reg_q12))                                       \
+    REGLIST2(RegARM32, d24, d25))                                              \
   X(Reg_q11, 11, "q11", 1, 0, 0, 0, 0, 0, 0, 0, 1,                             \
-    ALIASES3(Reg_d22, Reg_d23, Reg_q11))                                       \
+    REGLIST2(RegARM32, d22, d23))                                              \
   X(Reg_q10, 10, "q10", 1, 0, 0, 0, 0, 0, 0, 0, 1,                             \
-    ALIASES3(Reg_d20, Reg_d21, Reg_q10))                                       \
-  X(Reg_q9 , 9 , "q9", 1, 0, 0, 0, 0, 0, 0, 0, 1,                              \
-    ALIASES3(Reg_d18, Reg_d19, Reg_q9))                                        \
-  X(Reg_q8 , 8 , "q8", 1, 0, 0, 0, 0, 0, 0, 0, 1,                              \
-    ALIASES3(Reg_d16, Reg_d17, Reg_q8))                                        \
-  X(Reg_q7 , 7 , "q7", 0, 1, 0, 0, 0, 0, 0, 0, 1,                              \
-    ALIASES7(Reg_s28, Reg_s29, Reg_s30, Reg_s31, Reg_d14, Reg_d15, Reg_q7))    \
-  X(Reg_q6 , 6 , "q6", 0, 1, 0, 0, 0, 0, 0, 0, 1,                              \
-    ALIASES7(Reg_s24, Reg_s25, Reg_s26, Reg_s27, Reg_d12, Reg_d13, Reg_q6))    \
-  X(Reg_q5 , 5 , "q5", 0, 1, 0, 0, 0, 0, 0, 0, 1,                              \
-    ALIASES7(Reg_s20, Reg_s21, Reg_s22, Reg_s23, Reg_d10, Reg_d11, Reg_q5))    \
-  X(Reg_q4 , 4 , "q4", 0, 1, 0, 0, 0, 0, 0, 0, 1,                              \
-    ALIASES7(Reg_s16, Reg_s17, Reg_s18, Reg_s19, Reg_d8 , Reg_d9 , Reg_q4))    \
-  X(Reg_q3 , 3 , "q3", 1, 0, 0, 0, 0, 0, 0, 0, 1,                              \
-    ALIASES7(Reg_s12, Reg_s13, Reg_s14, Reg_s15, Reg_d6 , Reg_d7 , Reg_q3))    \
-  X(Reg_q2 , 2 , "q2", 1, 0, 0, 0, 0, 0, 0, 0, 1,                              \
-    ALIASES7(Reg_s8 , Reg_s9 , Reg_s10, Reg_s11, Reg_d4 , Reg_d5 , Reg_q2))    \
-  X(Reg_q1 , 1 , "q1", 1, 0, 0, 0, 0, 0, 0, 0, 1,                              \
-    ALIASES7(Reg_s4 , Reg_s5 , Reg_s6 , Reg_s7 , Reg_d2 , Reg_d3 , Reg_q1))    \
-  X(Reg_q0 , 0 , "q0", 1, 0, 0, 0, 0, 0, 0, 0, 1,                              \
-    ALIASES7(Reg_s0 , Reg_s1 , Reg_s2 , Reg_s3 , Reg_d0 , Reg_d1 , Reg_q0))
+    REGLIST2(RegARM32, d20, d21))                                              \
+  X(Reg_q9, 9, "q9", 1, 0, 0, 0, 0, 0, 0, 0, 1,                                \
+    REGLIST2(RegARM32, d18, d19))                                              \
+  X(Reg_q8, 8, "q8", 1, 0, 0, 0, 0, 0, 0, 0, 1,                                \
+    REGLIST2(RegARM32, d16, d17))                                              \
+  X(Reg_q7, 7, "q7", 0, 1, 0, 0, 0, 0, 0, 0, 1,                                \
+    REGLIST6(RegARM32, s28, s29, s30, s31, d14, d15))                          \
+  X(Reg_q6, 6, "q6", 0, 1, 0, 0, 0, 0, 0, 0, 1,                                \
+    REGLIST6(RegARM32, s24, s25, s26, s27, d12, d13))                          \
+  X(Reg_q5, 5, "q5", 0, 1, 0, 0, 0, 0, 0, 0, 1,                                \
+    REGLIST6(RegARM32, s20, s21, s22, s23, d10, d11))                          \
+  X(Reg_q4, 4, "q4", 0, 1, 0, 0, 0, 0, 0, 0, 1,                                \
+    REGLIST6(RegARM32, s16, s17, s18, s19, d8, d9))                            \
+  X(Reg_q3, 3, "q3", 1, 0, 0, 0, 0, 0, 0, 0, 1,                                \
+    REGLIST6(RegARM32, s12, s13, s14, s15, d6, d7))                            \
+  X(Reg_q2, 2, "q2", 1, 0, 0, 0, 0, 0, 0, 0, 1,                                \
+    REGLIST6(RegARM32, s8, s9, s10, s11, d4, d5))                              \
+  X(Reg_q1, 1, "q1", 1, 0, 0, 0, 0, 0, 0, 0, 1,                                \
+    REGLIST6(RegARM32, s4, s5, s6, s7, d2, d3))                                \
+  X(Reg_q0, 0, "q0", 1, 0, 0, 0, 0, 0, 0, 0, 1,                                \
+    REGLIST6(RegARM32, s0, s1, s2, s3, d0, d1))
 //#define X(val, encode, name, scratch, preserved, stackptr, frameptr,
 //          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)
 
@@ -425,21 +322,21 @@
 // is 1, but corresponds to Z = 0.
 #define ICEINSTARM32COND_TABLE                                                 \
   /* enum value, encoding, opposite, emit */                                   \
-  X(EQ, 0 , NE, "eq")   /* equal */                                            \
-  X(NE, 1 , EQ, "ne")   /* not equal */                                        \
-  X(CS, 2 , CC, "cs")   /* carry set/unsigned (AKA hs: higher or same) */      \
-  X(CC, 3 , CS, "cc")   /* carry clear/unsigned (AKA lo: lower) */             \
-  X(MI, 4 , PL, "mi")   /* minus/negative */                                   \
-  X(PL, 5 , MI, "pl")   /* plus/positive or zero */                            \
-  X(VS, 6 , VC, "vs")   /* overflow (float unordered) */                       \
-  X(VC, 7 , VS, "vc")   /* no overflow (float not unordered) */                \
-  X(HI, 8 , LS, "hi")   /* unsigned higher */                                  \
-  X(LS, 9 , HI, "ls")   /* unsigned lower or same */                           \
-  X(GE, 10, LT, "ge")  /* signed greater than or equal */                      \
-  X(LT, 11, GE, "lt")  /* signed less than */                                  \
-  X(GT, 12, LE, "gt")  /* signed greater than */                               \
-  X(LE, 13, GT, "le")  /* signed less than or equal */                         \
-  X(AL, 14, kNone, "") /* always (unconditional) */                            \
+  X(EQ, 0, NE, "eq")        /* equal */                                        \
+  X(NE, 1, EQ, "ne")        /* not equal */                                    \
+  X(CS, 2, CC, "cs")        /* carry set/unsigned (AKA hs: higher or same) */  \
+  X(CC, 3, CS, "cc")        /* carry clear/unsigned (AKA lo: lower) */         \
+  X(MI, 4, PL, "mi")        /* minus/negative */                               \
+  X(PL, 5, MI, "pl")        /* plus/positive or zero */                        \
+  X(VS, 6, VC, "vs")        /* overflow (float unordered) */                   \
+  X(VC, 7, VS, "vc")        /* no overflow (float not unordered) */            \
+  X(HI, 8, LS, "hi")        /* unsigned higher */                              \
+  X(LS, 9, HI, "ls")        /* unsigned lower or same */                       \
+  X(GE, 10, LT, "ge")       /* signed greater than or equal */                 \
+  X(LT, 11, GE, "lt")       /* signed less than */                             \
+  X(GT, 12, LE, "gt")       /* signed greater than */                          \
+  X(LE, 13, GT, "le")       /* signed less than or equal */                    \
+  X(AL, 14, kNone, "")      /* always (unconditional) */                       \
   X(kNone, 15, kNone, "??") /* special condition / none */
 //#define X(tag, encode, opp, emit)
 

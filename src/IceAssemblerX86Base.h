@@ -115,9 +115,8 @@ template <class Machine> class AssemblerX86Base : public Assembler {
   AssemblerX86Base &operator=(const AssemblerX86Base &) = delete;
 
 protected:
-  AssemblerX86Base(AssemblerKind Kind, GlobalContext *Ctx,
-                   bool use_far_branches)
-      : Assembler(Kind, Ctx) {
+  AssemblerX86Base(AssemblerKind Kind, bool use_far_branches)
+      : Assembler(Kind) {
     // This mode is only needed and implemented for MIPS and ARM.
     assert(!use_far_branches);
     (void)use_far_branches;

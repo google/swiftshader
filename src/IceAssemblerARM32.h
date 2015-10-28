@@ -45,13 +45,12 @@ using IValueT = uint32_t;
 using IOffsetT = int32_t;
 
 class AssemblerARM32 : public Assembler {
-  AssemblerARM32() = delete;
   AssemblerARM32(const AssemblerARM32 &) = delete;
   AssemblerARM32 &operator=(const AssemblerARM32 &) = delete;
 
 public:
-  explicit AssemblerARM32(GlobalContext *Ctx, bool use_far_branches = false)
-      : Assembler(Asm_ARM32, Ctx) {
+  explicit AssemblerARM32(bool use_far_branches = false)
+      : Assembler(Asm_ARM32) {
     // TODO(kschimpf): Add mode if needed when branches are handled.
     (void)use_far_branches;
   }

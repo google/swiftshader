@@ -45,8 +45,8 @@ class AssemblerX8664 : public X86Internal::AssemblerX86Base<TargetX8664> {
   AssemblerX8664 &operator=(const AssemblerX8664 &) = delete;
 
 public:
-  explicit AssemblerX8664(GlobalContext *Ctx, bool use_far_branches = false)
-      : X86Internal::AssemblerX86Base<TargetX8664>(Asm_X8664, Ctx,
+  explicit AssemblerX8664(bool use_far_branches = false)
+      : X86Internal::AssemblerX86Base<TargetX8664>(Asm_X8664,
                                                    use_far_branches) {}
   ~AssemblerX8664() override = default;
 

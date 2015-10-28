@@ -181,7 +181,7 @@ void Compiler::run(const Ice::ClFlagsExtra &ExtraFlags, GlobalContext &Ctx,
     Ctx.dumpTimers();
 
   if (Ctx.getFlags().getTimeEachFunction()) {
-    const bool DumpCumulative = false;
+    constexpr bool DumpCumulative = false;
     Ctx.dumpTimers(GlobalContext::TSK_Funcs, DumpCumulative);
   }
   constexpr bool FinalStats = true;

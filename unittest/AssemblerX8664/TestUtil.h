@@ -29,9 +29,9 @@ namespace Test {
 class AssemblerX8664TestBase : public ::testing::Test {
 protected:
   using Address = AssemblerX8664::Traits::Address;
-  using ByteRegister = AssemblerX8664::Traits::ByteRegister;
   using Cond = AssemblerX8664::Traits::Cond;
   using GPRRegister = AssemblerX8664::Traits::GPRRegister;
+  using ByteRegister = AssemblerX8664::Traits::ByteRegister;
   using Traits = AssemblerX8664::Traits;
   using XmmRegister = AssemblerX8664::Traits::XmmRegister;
 
@@ -58,6 +58,9 @@ protected:
   }                                                                            \
   static constexpr GPRRegister Encoded_GPR_##NewName##l() {                    \
     return GPRRegister::Encoded_Reg_##Name32;                                  \
+  }                                                                            \
+  static constexpr ByteRegister Encoded_Bytereg_##NewName() {                  \
+    return ByteRegister::Encoded_8_Reg_##Name8;                                \
   }                                                                            \
   static constexpr GPRRegister Encoded_GPR_##Name64() {                        \
     return GPRRegister::Encoded_Reg_##Name32;                                  \
@@ -86,6 +89,9 @@ protected:
   }                                                                            \
   static constexpr GPRRegister Encoded_GPR_##Name##l() {                       \
     return GPRRegister::Encoded_Reg_##Name##d;                                 \
+  }                                                                            \
+  static constexpr ByteRegister Encoded_Bytereg_##Name() {                     \
+    return ByteRegister::Encoded_8_Reg_##Name##l;                              \
   }
 #define XmmRegAliases(Name)                                                    \
   static constexpr XmmRegister Encoded_Xmm_##Name() {                          \

@@ -26,11 +26,11 @@ entry:
 ; OPTM1_1-NEXT: movups  XMMWORD PTR [esp+0x20],xmm0
 ; OPTM1_1-NEXT: movups  XMMWORD PTR [esp+0x10],xmm1
 ; OPTM1_1-NEXT: movups  xmm0,XMMWORD PTR [esp+0x20]
-; OPTM1_1-NEXT: pshufd  xmm7,XMMWORD PTR [esp+0x20],0x31
-; OPTM1_1-NEXT: pshufd  xmm3,XMMWORD PTR [esp+0x10],0x31
+; OPTM1_1-NEXT: pshufd  xmm1,XMMWORD PTR [esp+0x20],0x31
+; OPTM1_1-NEXT: pshufd  xmm2,XMMWORD PTR [esp+0x10],0x31
 ; OPTM1_1-NEXT: pmuludq xmm0,XMMWORD PTR [esp+0x10]
-; OPTM1_1-NEXT: pmuludq xmm7,xmm3
-; OPTM1_1-NEXT: shufps  xmm0,xmm7,0x88
+; OPTM1_1-NEXT: pmuludq xmm1,xmm2
+; OPTM1_1-NEXT: shufps  xmm0,xmm1,0x88
 ; OPTM1_1-NEXT: pshufd  xmm0,xmm0,0xd8
 ; OPTM1_1-NEXT: movups  XMMWORD PTR [esp],xmm0
 ; OPTM1_1-NEXT: movups  xmm0,XMMWORD PTR [esp]
@@ -40,9 +40,9 @@ entry:
 ; CHECK_1-LABEL: mul_v4i32
 ; CHECK_1: movups  xmm7,xmm0
 ; CHECK_1-NEXT: pshufd  xmm0,xmm0,0x31
-; CHECK_1-NEXT: pshufd  xmm3,xmm1,0x31
+; CHECK_1-NEXT: pshufd  xmm4,xmm1,0x31
 ; CHECK_1-NEXT: pmuludq xmm7,xmm1
-; CHECK_1-NEXT: pmuludq xmm0,xmm3
+; CHECK_1-NEXT: pmuludq xmm0,xmm4
 ; CHECK_1-NEXT: shufps  xmm7,xmm0,0x88
 ; CHECK_1-NEXT: pshufd  xmm7,xmm7,0xd8
 ; CHECK_1-NEXT: movups  xmm0,xmm7
@@ -53,11 +53,11 @@ entry:
 ; OPTM1_123-NEXT: movups  XMMWORD PTR [esp+0x20],xmm0
 ; OPTM1_123-NEXT: movups  XMMWORD PTR [esp+0x10],xmm1
 ; OPTM1_123-NEXT: movups  xmm0,XMMWORD PTR [esp+0x20]
-; OPTM1_123-NEXT: pshufd  xmm2,XMMWORD PTR [esp+0x20],0x31
-; OPTM1_123-NEXT: pshufd  xmm1,XMMWORD PTR [esp+0x10],0x31
+; OPTM1_123-NEXT: pshufd  xmm3,XMMWORD PTR [esp+0x20],0x31
+; OPTM1_123-NEXT: pshufd  xmm7,XMMWORD PTR [esp+0x10],0x31
 ; OPTM1_123-NEXT: pmuludq xmm0,XMMWORD PTR [esp+0x10]
-; OPTM1_123-NEXT: pmuludq xmm2,xmm1
-; OPTM1_123-NEXT: shufps  xmm0,xmm2,0x88
+; OPTM1_123-NEXT: pmuludq xmm3,xmm7
+; OPTM1_123-NEXT: shufps  xmm0,xmm3,0x88
 ; OPTM1_123-NEXT: pshufd  xmm0,xmm0,0xd8
 ; OPTM1_123-NEXT: movups  XMMWORD PTR [esp],xmm0
 ; OPTM1_123-NEXT: movups  xmm0,XMMWORD PTR [esp]
@@ -65,14 +65,14 @@ entry:
 ; OPTM1_123-NEXT: ret
 
 ; CHECK_123-LABEL: mul_v4i32
-; CHECK_123: movups  xmm3,xmm0
+; CHECK_123: movups  xmm4,xmm0
 ; CHECK_123-NEXT: pshufd  xmm0,xmm0,0x31
-; CHECK_123-NEXT: pshufd  xmm5,xmm1,0x31
-; CHECK_123-NEXT: pmuludq xmm3,xmm1
-; CHECK_123-NEXT: pmuludq xmm0,xmm5
-; CHECK_123-NEXT: shufps  xmm3,xmm0,0x88
-; CHECK_123-NEXT: pshufd  xmm3,xmm3,0xd8
-; CHECK_123-NEXT: movups  xmm0,xmm3
+; CHECK_123-NEXT: pshufd  xmm7,xmm1,0x31
+; CHECK_123-NEXT: pmuludq xmm4,xmm1
+; CHECK_123-NEXT: pmuludq xmm0,xmm7
+; CHECK_123-NEXT: shufps  xmm4,xmm0,0x88
+; CHECK_123-NEXT: pshufd  xmm4,xmm4,0xd8
+; CHECK_123-NEXT: movups  xmm0,xmm4
 ; CHECK_123-NEXT: ret
 }
 

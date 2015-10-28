@@ -94,8 +94,8 @@ struct nacl_irt_pnacl_compile_funcs SubzeroCallbacks {
 std::unique_ptr<llvm::raw_fd_ostream> getOutputStream(int FD) {
   if (FD <= 0)
     llvm::report_fatal_error("Invalid output FD");
-  const bool CloseOnDtor = true;
-  const bool Unbuffered = false;
+  constexpr bool CloseOnDtor = true;
+  constexpr bool Unbuffered = false;
   return std::unique_ptr<llvm::raw_fd_ostream>(
       new llvm::raw_fd_ostream(FD, CloseOnDtor, Unbuffered));
 }

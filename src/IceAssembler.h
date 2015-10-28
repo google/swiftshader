@@ -310,7 +310,7 @@ public:
 
   bool needsTextFixup() const { return Buffer.needsTextFixup(); }
 
-  void emitIASBytes() const;
+  void emitIASBytes(GlobalContext *Ctx) const;
   bool getInternal() const { return IsInternal; }
   void setInternal(bool Internal) { IsInternal = Internal; }
   const IceString &getFunctionName() { return FunctionName; }
@@ -324,8 +324,8 @@ public:
   AssemblerKind getKind() const { return Kind; }
 
 protected:
-  explicit Assembler(AssemblerKind Kind, GlobalContext *Ctx)
-      : Kind(Kind), Allocator(), Ctx(Ctx), Buffer(*this) {}
+  explicit Assembler(AssemblerKind Kind)
+      : Kind(Kind), Allocator(), Buffer(*this) {}
 
 private:
   const AssemblerKind Kind;
@@ -346,7 +346,6 @@ private:
   void installFixup(AssemblerFixup *F) { Buffer.installFixup(F); }
 
 protected:
-  GlobalContext *Ctx;
   // Buffer's constructor uses the Allocator, so it needs to appear after it.
   // TODO(jpp): dependencies on construction order are a nice way of shooting
   // yourself in the foot. Fix this.

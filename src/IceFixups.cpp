@@ -24,7 +24,7 @@ const Constant *AssemblerFixup::NullSymbol = nullptr;
 RelocOffsetT AssemblerFixup::offset() const {
   if (isNullSymbol())
     return 0;
-  if (const auto CR = llvm::dyn_cast<ConstantRelocatable>(value_))
+  if (const auto *CR = llvm::dyn_cast<ConstantRelocatable>(value_))
     return CR->getOffset();
   return 0;
 }
@@ -34,7 +34,7 @@ IceString AssemblerFixup::symbol(const GlobalContext *Ctx) const {
   llvm::raw_string_ostream Str(Buffer);
   const Constant *C = value_;
   assert(!isNullSymbol());
-  if (const auto CR = llvm::dyn_cast<ConstantRelocatable>(C)) {
+  if (const auto *CR = llvm::dyn_cast<ConstantRelocatable>(C)) {
     if (CR->getSuppressMangling())
       Str << CR->getName();
     else

@@ -110,8 +110,8 @@ struct KeyCompareLess<
     ValueType, typename std::enable_if<
                    std::is_same<ValueType, ConstantRelocatable>::value>::type> {
   bool operator()(const Constant *Const1, const Constant *Const2) const {
-    auto V1 = llvm::cast<ValueType>(Const1);
-    auto V2 = llvm::cast<ValueType>(Const2);
+    auto *V1 = llvm::cast<ValueType>(Const1);
+    auto *V2 = llvm::cast<ValueType>(Const2);
     if (V1->getName() == V2->getName())
       return V1->getOffset() < V2->getOffset();
     return V1->getName() < V2->getName();
@@ -519,7 +519,7 @@ void GlobalContext::emitItems() {
         case FT_Iasm: {
           OstreamLocker L(this);
           Cfg::emitTextHeader(MangledName, this, Asm.get());
-          Asm->emitIASBytes();
+          Asm->emitIASBytes(this);
         } break;
         case FT_Asm:
           llvm::report_fatal_error("Unexpected FT_Asm");
@@ -783,8 +783,8 @@ Constant *GlobalContext::getConstantSym(RelocOffsetT Offset,
 }
 
 Constant *GlobalContext::getConstantExternSym(const IceString &Name) {
-  const RelocOffsetT Offset = 0;
-  const bool SuppressMangling = true;
+  constexpr RelocOffsetT Offset = 0;
+  constexpr bool SuppressMangling = true;
   return getConstPool()->ExternRelocatables.getOrAdd(
       this, RelocatableTuple(Offset, Name, SuppressMangling));
 }

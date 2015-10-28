@@ -203,10 +203,10 @@ TEST_F(AssemblerX8632LowLevelTest, Cmp) {
         "(" #Inst ", " #Base ", " #Index ", " #Scale ", " #Disp ", " #Imm      \
         ", " #OpType ", " #ByteCountUntyped ",  " #__VA_ARGS__ ")";            \
     static constexpr uint8_t ByteCount = ByteCountUntyped;                     \
-    __ Inst(IceType_##OpType, Address(GPRRegister::Encoded_Reg_##Base,         \
-                                      GPRRegister::Encoded_Reg_##Index,        \
-                                      Traits::TIMES_##Scale, Disp,             \
-                                      AssemblerFixup::NoFixup),                \
+    __ Inst(IceType_##OpType,                                                  \
+            Address(GPRRegister::Encoded_Reg_##Base,                           \
+                    GPRRegister::Encoded_Reg_##Index, Traits::TIMES_##Scale,   \
+                    Disp, AssemblerFixup::NoFixup),                            \
             Immediate(Imm));                                                   \
     ASSERT_EQ(ByteCount, codeBytesSize()) << TestString;                       \
     ASSERT_TRUE(verifyBytes<ByteCount>(codeBytes(), __VA_ARGS__))              \
@@ -221,10 +221,10 @@ TEST_F(AssemblerX8632LowLevelTest, Cmp) {
         "(" #Inst ", " #Base ", " #Index ", " #Scale ", " #Disp ", " #Src      \
         ", " #OpType ", " #ByteCountUntyped ",  " #__VA_ARGS__ ")";            \
     static constexpr uint8_t ByteCount = ByteCountUntyped;                     \
-    __ Inst(IceType_##OpType, Address(GPRRegister::Encoded_Reg_##Base,         \
-                                      GPRRegister::Encoded_Reg_##Index,        \
-                                      Traits::TIMES_##Scale, Disp,             \
-                                      AssemblerFixup::NoFixup),                \
+    __ Inst(IceType_##OpType,                                                  \
+            Address(GPRRegister::Encoded_Reg_##Base,                           \
+                    GPRRegister::Encoded_Reg_##Index, Traits::TIMES_##Scale,   \
+                    Disp, AssemblerFixup::NoFixup),                            \
             GPRRegister::Encoded_Reg_##Src);                                   \
     ASSERT_EQ(ByteCount, codeBytesSize()) << TestString;                       \
     ASSERT_TRUE(verifyBytes<ByteCount>(codeBytes(), __VA_ARGS__))              \

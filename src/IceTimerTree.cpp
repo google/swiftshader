@@ -142,7 +142,7 @@ TimerStack::TTindex TimerStack::findPath(const PathType &Path) {
 void TimerStack::push(TimerIdT ID) {
   if (!BuildDefs::dump())
     return;
-  const bool UpdateCounts = false;
+  constexpr bool UpdateCounts = false;
   update(UpdateCounts);
   StackTop = getChildIndex(StackTop, ID);
   assert(StackTop);
@@ -153,7 +153,7 @@ void TimerStack::push(TimerIdT ID) {
 void TimerStack::pop(TimerIdT ID) {
   if (!BuildDefs::dump())
     return;
-  const bool UpdateCounts = true;
+  constexpr bool UpdateCounts = true;
   update(UpdateCounts);
   assert(StackTop);
   assert(Nodes[StackTop].Parent < StackTop);
@@ -253,7 +253,7 @@ void makePrintfFormatString(char *Buf, size_t BufLen, size_t MaxVal) {
 void TimerStack::dump(Ostream &Str, bool DumpCumulative) {
   if (!BuildDefs::dump())
     return;
-  const bool UpdateCounts = true;
+  constexpr bool UpdateCounts = true;
   update(UpdateCounts);
   double TotalTime = LastTimestamp - FirstTimestamp;
   assert(TotalTime);

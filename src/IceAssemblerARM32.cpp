@@ -223,6 +223,7 @@ namespace Ice {
 namespace ARM32 {
 
 void AssemblerARM32::bindCfgNodeLabel(const CfgNode *Node) {
+  GlobalContext *Ctx = Node->getCfg()->getContext();
   if (BuildDefs::dump() && !Ctx->getFlags().getDisableHybridAssembly()) {
     // Generate label name so that branches can find it.
     constexpr SizeT InstSize = 0;

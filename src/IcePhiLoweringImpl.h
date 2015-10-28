@@ -32,7 +32,7 @@ namespace PhiLowering {
 template <class TargetT>
 void prelowerPhis32Bit(TargetT *Target, CfgNode *Node, Cfg *Func) {
   for (Inst &I : Node->getPhis()) {
-    auto Phi = llvm::dyn_cast<InstPhi>(&I);
+    auto *Phi = llvm::dyn_cast<InstPhi>(&I);
     if (Phi->isDeleted())
       continue;
     Variable *Dest = Phi->getDest();

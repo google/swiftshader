@@ -115,7 +115,7 @@ ELFObjectWriter::createRelocationSection(const ELFSection *RelatedSection) {
   const Elf64_Xword ShEntSize = ELF64 ? sizeof(Elf64_Rela) : sizeof(Elf32_Rel);
   static_assert(sizeof(Elf64_Rela) == 24 && sizeof(Elf32_Rel) == 8,
                 "Elf_Rel/Rela sizes cannot be derived from sizeof");
-  const Elf64_Xword ShFlags = 0;
+  constexpr Elf64_Xword ShFlags = 0;
   ELFRelocationSection *RelSection = createSection<ELFRelocationSection>(
       RelSectionName, ShType, ShFlags, ShAlign, ShEntSize);
   RelSection->setRelatedSection(RelatedSection);
@@ -218,7 +218,7 @@ void ELFObjectWriter::writeFunctionCode(const IceString &FuncName,
     IceString SectionName = ".text";
     if (FunctionSections)
       SectionName += "." + FuncName;
-    const Elf64_Xword ShFlags = SHF_ALLOC | SHF_EXECINSTR;
+    constexpr Elf64_Xword ShFlags = SHF_ALLOC | SHF_EXECINSTR;
     const Elf64_Xword ShAlign = 1 << Asm->getBundleAlignLog2Bytes();
     Section = createSection<ELFTextSection>(SectionName, SHT_PROGBITS, ShFlags,
                                             ShAlign, 0);
@@ -322,12 +322,12 @@ void ELFObjectWriter::writeDataOfType(SectionType ST,
     Elf64_Xword Align = Var->getAlignment();
     ShAddralign = std::max(ShAddralign, Align);
   }
-  const Elf64_Xword ShEntsize = 0; // non-uniform data element size.
+  constexpr Elf64_Xword ShEntsize = 0; // non-uniform data element size.
   // Lift this out, so it can be re-used if we do fdata-sections?
   switch (ST) {
   case ROData: {
     const IceString SectionName = MangleSectionName(".rodata", SectionSuffix);
-    const Elf64_Xword ShFlags = SHF_ALLOC;
+    constexpr Elf64_Xword ShFlags = SHF_ALLOC;
     Section = createSection<ELFDataSection>(SectionName, SHT_PROGBITS, ShFlags,
                                             ShAddralign, ShEntsize);
     Section->setFileOffset(alignFileOffset(ShAddralign));
@@ -338,7 +338,7 @@ void ELFObjectWriter::writeDataOfType(SectionType ST,
   }
   case Data: {
     const IceString SectionName = MangleSectionName(".data", SectionSuffix);
-    const Elf64_Xword ShFlags = SHF_ALLOC | SHF_WRITE;
+    constexpr Elf64_Xword ShFlags = SHF_ALLOC | SHF_WRITE;
     Section = createSection<ELFDataSection>(SectionName, SHT_PROGBITS, ShFlags,
                                             ShAddralign, ShEntsize);
     Section->setFileOffset(alignFileOffset(ShAddralign));
@@ -349,7 +349,7 @@ void ELFObjectWriter::writeDataOfType(SectionType ST,
   }
   case BSS: {
     const IceString SectionName = MangleSectionName(".bss", SectionSuffix);
-    const Elf64_Xword ShFlags = SHF_ALLOC | SHF_WRITE;
+    constexpr Elf64_Xword ShFlags = SHF_ALLOC | SHF_WRITE;
     Section = createSection<ELFDataSection>(SectionName, SHT_NOBITS, ShFlags,
                                             ShAddralign, ShEntsize);
     Section->setFileOffset(alignFileOffset(ShAddralign));
@@ -361,14 +361,14 @@ void ELFObjectWriter::writeDataOfType(SectionType ST,
     break;
   }
 
-  const uint8_t SymbolType = STT_OBJECT;
+  constexpr uint8_t SymbolType = STT_OBJECT;
   for (VariableDeclaration *Var : Vars) {
     // If the variable declaration does not have an initializer, its symtab
     // entry will be created separately.
     if (!Var->hasInitializer())
       continue;
     Elf64_Xword Align = Var->getAlignment();
-    const Elf64_Xword MinAlign = 1;
+    constexpr Elf64_Xword MinAlign = 1;
     Align = std::max(Align, MinAlign);
     Section->padToAlignment(Str, Align);
     SizeT SymbolSize = Var->getNumBytes();
@@ -405,7 +405,7 @@ void ELFObjectWriter::writeDataOfType(SectionType ST,
           AssemblerFixup NewFixup;
           NewFixup.set_position(Section->getCurrentSize());
           NewFixup.set_kind(RelocationKind);
-          const bool SuppressMangling = true;
+          constexpr bool SuppressMangling = true;
           NewFixup.set_value(Ctx.getConstantSym(
               Reloc->getOffset(), Reloc->getDeclaration()->mangleName(&Ctx),
               SuppressMangling));
@@ -422,9 +422,9 @@ void ELFObjectWriter::writeDataOfType(SectionType ST,
 
 void ELFObjectWriter::writeInitialELFHeader() {
   assert(!SectionNumbersAssigned);
-  const Elf64_Off DummySHOffset = 0;
-  const SizeT DummySHStrIndex = 0;
-  const SizeT DummyNumSections = 0;
+  constexpr Elf64_Off DummySHOffset = 0;
+  constexpr SizeT DummySHStrIndex = 0;
+  constexpr SizeT DummyNumSections = 0;
   if (ELF64) {
     writeELFHeaderInternal<true>(DummySHOffset, DummySHStrIndex,
                                  DummyNumSections);
@@ -445,7 +445,7 @@ void ELFObjectWriter::writeELFHeaderInternal(Elf64_Off SectionHeaderOffset,
   Str.write8(ELFDATA2LSB);
   Str.write8(EV_CURRENT);
   Str.write8(ELFOSABI_NONE);
-  const uint8_t ELF_ABIVersion = 0;
+  constexpr uint8_t ELF_ABIVersion = 0;
   Str.write8(ELF_ABIVersion);
   Str.writeZeroPadding(EI_NIDENT - EI_PAD);
 
@@ -495,7 +495,7 @@ template <typename ConstType> void ELFObjectWriter::writeConstantPool(Type Ty) {
   // Assume that writing WriteAmt bytes at a time allows us to avoid aligning
   // between entries.
   assert(WriteAmt % Align == 0);
-  const Elf64_Xword ShFlags = SHF_ALLOC | SHF_MERGE;
+  constexpr Elf64_Xword ShFlags = SHF_ALLOC | SHF_MERGE;
   std::string SecBuffer;
   llvm::raw_string_ostream SecStrBuf(SecBuffer);
   SecStrBuf << ".rodata.cst" << WriteAmt;
@@ -505,7 +505,7 @@ template <typename ConstType> void ELFObjectWriter::writeConstantPool(Type Ty) {
   SizeT OffsetInSection = 0;
   // The symbol table entry doesn't need to know the defined symbol's size
   // since this is in a section with a fixed Entry Size.
-  const SizeT SymbolSize = 0;
+  constexpr SizeT SymbolSize = 0;
   Section->setFileOffset(alignFileOffset(Align));
 
   // If the -reorder-pooled-constant option is set to true, we should shuffle
@@ -523,7 +523,7 @@ template <typename ConstType> void ELFObjectWriter::writeConstantPool(Type Ty) {
   for (Constant *C : Pool) {
     if (!C->getShouldBePooled())
       continue;
-    auto Const = llvm::cast<ConstType>(C);
+    auto *Const = llvm::cast<ConstType>(C);
     std::string SymBuffer;
     llvm::raw_string_ostream SymStrBuf(SymBuffer);
     Const->emitPoolLabel(SymStrBuf, &Ctx);
@@ -572,7 +572,7 @@ void ELFObjectWriter::writeJumpTable(const JumpTableData &JT,
   RelSection = createRelocationSection(Section);
   RelRODataSections.push_back(RelSection);
 
-  const uint8_t SymbolType = STT_OBJECT;
+  constexpr uint8_t SymbolType = STT_OBJECT;
   Section->padToAlignment(Str, PointerSize);
   bool IsExternal = Ctx.getFlags().getDisableInternal();
   const uint8_t SymbolBinding = IsExternal ? STB_GLOBAL : STB_LOCAL;
@@ -596,7 +596,7 @@ void ELFObjectWriter::writeJumpTable(const JumpTableData &JT,
 
 void ELFObjectWriter::setUndefinedSyms(const ConstantList &UndefSyms) {
   for (const Constant *S : UndefSyms) {
-    const auto Sym = llvm::cast<ConstantRelocatable>(S);
+    const auto *Sym = llvm::cast<ConstantRelocatable>(S);
     const IceString &Name = Sym->getName();
     bool BadIntrinsic;
     const Intrinsics::FullIntrinsicInfo *Info =

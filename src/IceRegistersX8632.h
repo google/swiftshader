@@ -26,22 +26,21 @@ public:
   /// An enum of every register. The enum value may not match the encoding used
   /// to binary encode register operands in instructions.
   enum AllRegisters {
-#define X(val, encode, name, name16, name8, scratch, preserved, stackptr,      \
-          frameptr, isI8, isInt, isFP)                                         \
+#define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
+          isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
+          isTrunc8Rcvr, isAhRcvr, aliases)                                     \
   val,
     REGX8632_TABLE
 #undef X
-        Reg_NUM,
-#define X(val, init) val init,
-    REGX8632_TABLE_BOUNDS
-#undef X
+        Reg_NUM
   };
 
   /// An enum of GPR Registers. The enum value does match the encoding used to
   /// binary encode register operands in instructions.
   enum GPRRegister {
-#define X(val, encode, name, name16, name8, scratch, preserved, stackptr,      \
-          frameptr, isI8, isInt, isFP)                                         \
+#define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
+          isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
+          isTrunc8Rcvr, isAhRcvr, aliases)                                     \
   Encoded_##val = encode,
     REGX8632_GPR_TABLE
 #undef X
@@ -51,8 +50,9 @@ public:
   /// An enum of XMM Registers. The enum value does match the encoding used to
   /// binary encode register operands in instructions.
   enum XmmRegister {
-#define X(val, encode, name, name16, name8, scratch, preserved, stackptr,      \
-          frameptr, isI8, isInt, isFP)                                         \
+#define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
+          isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
+          isTrunc8Rcvr, isAhRcvr, aliases)                                     \
   Encoded_##val = encode,
     REGX8632_XMM_TABLE
 #undef X
@@ -62,7 +62,10 @@ public:
   /// An enum of Byte Registers. The enum value does match the encoding used to
   /// binary encode register operands in instructions.
   enum ByteRegister {
-#define X(val, encode) Encoded_##val encode,
+#define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
+          isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
+          isTrunc8Rcvr, isAhRcvr, aliases)                                     \
+  Encoded_8_##val = encode,
     REGX8632_BYTEREG_TABLE
 #undef X
         Encoded_Not_ByteReg = -1
@@ -71,36 +74,11 @@ public:
   /// An enum of X87 Stack Registers. The enum value does match the encoding
   /// used to binary encode register operands in instructions.
   enum X87STRegister {
-#define X(val, encode, name) Encoded_##val encode,
+#define X(val, encode, name) Encoded_##val = encode,
     X87ST_REGX8632_TABLE
 #undef X
         Encoded_Not_X87STReg = -1
   };
-
-  static inline GPRRegister getEncodedGPR(int32_t RegNum) {
-    assert(Reg_GPR_First <= RegNum);
-    assert(RegNum <= Reg_GPR_Last);
-    return GPRRegister(RegNum - Reg_GPR_First);
-  }
-
-  static inline XmmRegister getEncodedXmm(int32_t RegNum) {
-    assert(Reg_XMM_First <= RegNum);
-    assert(RegNum <= Reg_XMM_Last);
-    return XmmRegister(RegNum - Reg_XMM_First);
-  }
-
-  static inline ByteRegister getEncodedByteReg(int32_t RegNum) {
-    assert(Reg_GPR_First <= RegNum);
-    assert(RegNum <= Reg_ebx);
-    return ByteRegister(RegNum - Reg_GPR_First);
-  }
-
-  static inline GPRRegister getEncodedByteRegOrGPR(Type Ty, int32_t RegNum) {
-    if (isByteSizedType(Ty))
-      return GPRRegister(getEncodedByteReg(RegNum));
-    else
-      return getEncodedGPR(RegNum);
-  }
 
   static inline X87STRegister getEncodedSTReg(int32_t RegNum) {
     assert(Encoded_X87ST_First <= RegNum);

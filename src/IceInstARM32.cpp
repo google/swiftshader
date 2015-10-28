@@ -890,7 +890,7 @@ template <> void InstARM32Movw::emit(const Cfg *Func) const {
   getDest()->emit(Func);
   Str << ", ";
   Constant *Src0 = llvm::cast<Constant>(getSrc(0));
-  if (auto CR = llvm::dyn_cast<ConstantRelocatable>(Src0)) {
+  if (auto *CR = llvm::dyn_cast<ConstantRelocatable>(Src0)) {
     Str << "#:lower16:";
     CR->emitWithoutPrefix(Func->getTarget());
   } else {
@@ -908,7 +908,7 @@ template <> void InstARM32Movt::emit(const Cfg *Func) const {
   Str << "\t" << Opcode << getPredicate() << "\t";
   Dest->emit(Func);
   Str << ", ";
-  if (auto CR = llvm::dyn_cast<ConstantRelocatable>(Src1)) {
+  if (auto *CR = llvm::dyn_cast<ConstantRelocatable>(Src1)) {
     Str << "#:upper16:";
     CR->emitWithoutPrefix(Func->getTarget());
   } else {

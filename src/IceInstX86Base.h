@@ -147,10 +147,9 @@ public:
   getOppositeCondition(typename Traits::Cond::BrCond Cond);
   void dump(const Cfg *Func) const override;
 
-  // Shared emit routines for common forms of instructions. See the definition
-  // of emitTwoAddress() for a description of ShiftHack.
+  // Shared emit routines for common forms of instructions.
   static void emitTwoAddress(const char *Opcode, const Inst *Inst,
-                             const Cfg *Func, bool ShiftHack = false);
+                             const Cfg *Func);
 
   static void
   emitIASGPRShift(const Cfg *Func, Type Ty, const Variable *Var,
@@ -303,14 +302,14 @@ public:
          typename InstX86Base<Machine>::Traits::Cond::BrCond Condition,
          Mode Kind) {
     assert(Condition != InstX86Base<Machine>::Traits::Cond::Br_None);
-    const InstX86Label<Machine> *NoLabel = nullptr;
+    constexpr InstX86Label<Machine> *NoLabel = nullptr;
     return new (Func->allocate<InstX86Br>())
         InstX86Br(Func, TargetTrue, TargetFalse, NoLabel, Condition, Kind);
   }
   /// Create an unconditional branch to a node.
   static InstX86Br *create(Cfg *Func, CfgNode *Target, Mode Kind) {
-    const CfgNode *NoCondTarget = nullptr;
-    const InstX86Label<Machine> *NoLabel = nullptr;
+    constexpr CfgNode *NoCondTarget = nullptr;
+    constexpr InstX86Label<Machine> *NoLabel = nullptr;
     return new (Func->allocate<InstX86Br>())
         InstX86Br(Func, NoCondTarget, Target, NoLabel,
                   InstX86Base<Machine>::Traits::Cond::Br_None, Kind);
@@ -323,8 +322,8 @@ public:
          typename InstX86Base<Machine>::Traits::Cond::BrCond Condition,
          Mode Kind) {
     assert(Condition != InstX86Base<Machine>::Traits::Cond::Br_None);
-    const CfgNode *NoUncondTarget = nullptr;
-    const InstX86Label<Machine> *NoLabel = nullptr;
+    constexpr CfgNode *NoUncondTarget = nullptr;
+    constexpr InstX86Label<Machine> *NoLabel = nullptr;
     return new (Func->allocate<InstX86Br>())
         InstX86Br(Func, Target, NoUncondTarget, NoLabel, Condition, Kind);
   }
@@ -334,8 +333,8 @@ public:
   create(Cfg *Func, InstX86Label<Machine> *Label,
          typename InstX86Base<Machine>::Traits::Cond::BrCond Condition,
          Mode Kind) {
-    const CfgNode *NoCondTarget = nullptr;
-    const CfgNode *NoUncondTarget = nullptr;
+    constexpr CfgNode *NoCondTarget = nullptr;
+    constexpr CfgNode *NoUncondTarget = nullptr;
     return new (Func->allocate<InstX86Br>())
         InstX86Br(Func, NoCondTarget, NoUncondTarget, Label, Condition, Kind);
   }
@@ -643,8 +642,7 @@ public:
   void emit(const Cfg *Func) const override {
     if (!BuildDefs::dump())
       return;
-    const bool ShiftHack = true;
-    this->emitTwoAddress(Opcode, this, Func, ShiftHack);
+    this->emitTwoAddress(Opcode, this, Func);
   }
   void emitIAS(const Cfg *Func) const override {
     Type Ty = this->getDest()->getType();
@@ -687,8 +685,7 @@ public:
   void emit(const Cfg *Func) const override {
     if (!BuildDefs::dump())
       return;
-    const bool ShiftHack = false;
-    this->emitTwoAddress(Opcode, this, Func, ShiftHack);
+    this->emitTwoAddress(Opcode, this, Func);
   }
   void emitIAS(const Cfg *Func) const override {
     Type Ty = this->getDest()->getType();
@@ -732,8 +729,7 @@ public:
   void emit(const Cfg *Func) const override {
     if (!BuildDefs::dump())
       return;
-    const bool ShiftHack = false;
-    this->emitTwoAddress(Opcode, this, Func, ShiftHack);
+    this->emitTwoAddress(Opcode, this, Func);
   }
   void emitIAS(const Cfg *Func) const override {
     Type Ty = this->getSrc(0)->getType();
@@ -780,8 +776,7 @@ public:
     if (!BuildDefs::dump())
       return;
     this->validateVectorAddrMode();
-    const bool ShiftHack = false;
-    this->emitTwoAddress(Opcode, this, Func, ShiftHack);
+    this->emitTwoAddress(Opcode, this, Func);
   }
   void emitIAS(const Cfg *Func) const override {
     this->validateVectorAddrMode();
@@ -837,8 +832,7 @@ public:
     if (!BuildDefs::dump())
       return;
     this->validateVectorAddrMode();
-    const bool ShiftHack = false;
-    this->emitTwoAddress(Opcode, this, Func, ShiftHack);
+    this->emitTwoAddress(Opcode, this, Func);
   }
   void emitIAS(const Cfg *Func) const override {
     this->validateVectorAddrMode();
@@ -975,6 +969,23 @@ public:
   using Base = InstX86BaseMovlike<Machine, K>;
 
   bool isRedundantAssign() const override {
+    if (const auto *SrcVar = llvm::dyn_cast<const Variable>(this->getSrc(0))) {
+      if (SrcVar->hasReg() && this->Dest->hasReg()) {
+        // An assignment between physical registers is considered redundant if
+        // they have the same base register and the same encoding. E.g.:
+        //   mov cl, ecx ==> redundant
+        //   mov ch, ecx ==> not redundant due to different encodings
+        //   mov ch, ebp ==> not redundant due to different base registers
+        // TODO(stichnot): Don't consider "mov eax, eax" to be redundant when
+        // used in 64-bit mode to clear the upper half of rax.
+        int32_t SrcReg = SrcVar->getRegNum();
+        int32_t DestReg = this->Dest->getRegNum();
+        return (InstX86Base<Machine>::Traits::getEncoding(SrcReg) ==
+                InstX86Base<Machine>::Traits::getEncoding(DestReg)) &&
+               (InstX86Base<Machine>::Traits::getBaseReg(SrcReg) ==
+                InstX86Base<Machine>::Traits::getBaseReg(DestReg));
+      }
+    }
     return checkForRedundantAssign(this->getDest(), this->getSrc(0));
   }
   bool isVarAssign() const override {
@@ -997,6 +1008,11 @@ protected:
   InstX86BaseMovlike(Cfg *Func, Variable *Dest, Operand *Source)
       : InstX86Base<Machine>(Func, K, 1, Dest) {
     this->addSource(Source);
+    // For an integer assignment, make sure it's either a same-type assignment
+    // or a truncation.
+    assert(!isScalarIntegerType(Dest->getType()) ||
+           (typeWidthInBytes(Dest->getType()) <=
+            typeWidthInBytes(Source->getType())));
   }
 
   static const char *Opcode;

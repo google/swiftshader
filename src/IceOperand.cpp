@@ -131,7 +131,7 @@ IceString Variable::getName(const Cfg *Func) const {
   return "__" + std::to_string(getIndex());
 }
 
-Variable *Variable::asType(Type Ty) {
+const Variable *Variable::asType(Type Ty, int32_t NewRegNum) const {
   // Note: This returns a Variable, even if the "this" object is a subclass of
   // Variable.
   if (!BuildDefs::dump() || getType() == Ty)
@@ -139,7 +139,7 @@ Variable *Variable::asType(Type Ty) {
   Variable *V = new (getCurrentCfgAllocator()->Allocate<Variable>())
       Variable(kVariable, Ty, Number);
   V->NameIndex = NameIndex;
-  V->RegNum = RegNum;
+  V->RegNum = NewRegNum == NoRegister ? RegNum : NewRegNum;
   V->StackOffset = StackOffset;
   return V;
 }

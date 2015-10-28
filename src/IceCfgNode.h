@@ -31,6 +31,8 @@ public:
     return new (Func->allocate<CfgNode>()) CfgNode(Func, LabelIndex);
   }
 
+  Cfg *getCfg() const { return Func; }
+
   /// Access the label number and name for this node.
   SizeT getIndex() const { return Number; }
   void resetIndex(SizeT NewNumber) { Number = NewNumber; }

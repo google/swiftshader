@@ -54,8 +54,7 @@ TEST_F(AssemblerX8632Test, SetCC) {
     __ cmp(IceType_i32, GPRRegister::Encoded_Reg_##Src0,                       \
            GPRRegister::Encoded_Reg_##Src1);                                   \
     __ mov(IceType_i32, GPRRegister::Encoded_Reg_##Dest, Immediate(0));        \
-    __ setcc(Cond::Br_##C,                                                     \
-             RegX8632::getEncodedByteReg(GPRRegister::Encoded_Reg_##Dest));    \
+    __ setcc(Cond::Br_##C, ByteRegister(GPRRegister::Encoded_Reg_##Dest));     \
     __ setcc(Cond::Br_##C, dwordAddress(T0));                                  \
                                                                                \
     AssembledTest test = assemble();                                           \
@@ -1756,7 +1755,7 @@ TEST_F(AssemblerX8632Test, Bt) {
     __ mov(IceType_i32, GPRRegister::Encoded_Reg_##Dst, Immediate(Value0));    \
     __ mov(IceType_i32, GPRRegister::Encoded_Reg_##Src, Immediate(Value1));    \
     __ bt(GPRRegister::Encoded_Reg_##Dst, GPRRegister::Encoded_Reg_##Src);     \
-    __ setcc(Cond::Br_b, ByteRegister::Encoded_Reg_al);                        \
+    __ setcc(Cond::Br_b, ByteRegister::Encoded_8_Reg_al);                      \
     __ And(IceType_i32, GPRRegister::Encoded_Reg_eax, Immediate(0xFFu));       \
                                                                                \
     AssembledTest test = assemble();                                           \

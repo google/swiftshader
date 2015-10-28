@@ -32,7 +32,7 @@ namespace X86Internal {
 
 const MachineTraits<TargetX8632>::InstBrAttributesType
     MachineTraits<TargetX8632>::InstBrAttributes[] = {
-#define X(tag, encode, opp, dump, emit)                                        \
+#define X(val, encode, opp, dump, emit)                                        \
   { X8632::Traits::Cond::opp, dump, emit }                                     \
   ,
         ICEINSTX8632BR_TABLE
@@ -41,7 +41,7 @@ const MachineTraits<TargetX8632>::InstBrAttributesType
 
 const MachineTraits<TargetX8632>::InstCmppsAttributesType
     MachineTraits<TargetX8632>::InstCmppsAttributes[] = {
-#define X(tag, emit)                                                           \
+#define X(val, emit)                                                           \
   { emit }                                                                     \
   ,
         ICEINSTX8632CMPPS_TABLE
@@ -110,11 +110,11 @@ void MachineTraits<TargetX8632>::X86OperandMem::emit(const Cfg *Func) const {
   // '$'. Omit the (Base,Index,1<<Shift) part if Base==nullptr.
   if (!Offset) {
     // No offset, emit nothing.
-  } else if (const auto CI = llvm::dyn_cast<ConstantInteger32>(Offset)) {
+  } else if (const auto *CI = llvm::dyn_cast<ConstantInteger32>(Offset)) {
     if (Base == nullptr || CI->getValue())
       // Emit a non-zero offset without a leading '$'.
       Str << CI->getValue();
-  } else if (const auto CR = llvm::dyn_cast<ConstantRelocatable>(Offset)) {
+  } else if (const auto *CR = llvm::dyn_cast<ConstantRelocatable>(Offset)) {
     CR->emitWithoutPrefix(Func->getTarget());
   } else {
     llvm_unreachable("Invalid offset type for x86 mem operand");
@@ -167,7 +167,7 @@ void MachineTraits<TargetX8632>::X86OperandMem::dump(const Cfg *Func,
   bool OffsetIsNegative = false;
   if (!Offset) {
     OffsetIsZero = true;
-  } else if (const auto CI = llvm::dyn_cast<ConstantInteger32>(Offset)) {
+  } else if (const auto *CI = llvm::dyn_cast<ConstantInteger32>(Offset)) {
     OffsetIsZero = (CI->getValue() == 0);
     OffsetIsNegative = (static_cast<int32_t>(CI->getValue()) < 0);
   } else {
@@ -201,7 +201,7 @@ MachineTraits<TargetX8632>::X86OperandMem::toAsmAddress(
   AssemblerFixup *Fixup = nullptr;
   // Determine the offset (is it relocatable?)
   if (getOffset()) {
-    if (const auto CI = llvm::dyn_cast<ConstantInteger32>(getOffset())) {
+    if (const auto *CI = llvm::dyn_cast<ConstantInteger32>(getOffset())) {
       Disp = static_cast<int32_t>(CI->getValue());
     } else if (const auto CR =
                    llvm::dyn_cast<ConstantRelocatable>(getOffset())) {
@@ -214,17 +214,17 @@ MachineTraits<TargetX8632>::X86OperandMem::toAsmAddress(
 
   // Now convert to the various possible forms.
   if (getBase() && getIndex()) {
-    return X8632::Traits::Address(
-        RegX8632::getEncodedGPR(getBase()->getRegNum()),
-        RegX8632::getEncodedGPR(getIndex()->getRegNum()),
-        X8632::Traits::ScaleFactor(getShift()), Disp, Fixup);
+    return X8632::Traits::Address(getEncodedGPR(getBase()->getRegNum()),
+                                  getEncodedGPR(getIndex()->getRegNum()),
+                                  X8632::Traits::ScaleFactor(getShift()), Disp,
+                                  Fixup);
   } else if (getBase()) {
-    return X8632::Traits::Address(
-        RegX8632::getEncodedGPR(getBase()->getRegNum()), Disp, Fixup);
+    return X8632::Traits::Address(getEncodedGPR(getBase()->getRegNum()), Disp,
+                                  Fixup);
   } else if (getIndex()) {
-    return X8632::Traits::Address(
-        RegX8632::getEncodedGPR(getIndex()->getRegNum()),
-        X8632::Traits::ScaleFactor(getShift()), Disp, Fixup);
+    return X8632::Traits::Address(getEncodedGPR(getIndex()->getRegNum()),
+                                  X8632::Traits::ScaleFactor(getShift()), Disp,
+                                  Fixup);
   } else {
     return X8632::Traits::Address(Disp, Fixup);
   }
@@ -236,9 +236,8 @@ MachineTraits<TargetX8632>::VariableSplit::toAsmAddress(const Cfg *Func) const {
   const ::Ice::TargetLowering *Target = Func->getTarget();
   int32_t Offset =
       Var->getStackOffset() + Target->getStackAdjustment() + getOffset();
-  return X8632::Traits::Address(
-      RegX8632::getEncodedGPR(Target->getFrameOrStackReg()), Offset,
-      AssemblerFixup::NoFixup);
+  return X8632::Traits::Address(getEncodedGPR(Target->getFrameOrStackReg()),
+                                Offset, AssemblerFixup::NoFixup);
 }
 
 void MachineTraits<TargetX8632>::VariableSplit::emit(const Cfg *Func) const {
@@ -248,7 +247,7 @@ void MachineTraits<TargetX8632>::VariableSplit::emit(const Cfg *Func) const {
   assert(!Var->hasReg());
   // The following is copied/adapted from TargetX8632::emitVariable().
   const ::Ice::TargetLowering *Target = Func->getTarget();
-  const Type Ty = IceType_i32;
+  constexpr Type Ty = IceType_i32;
   int32_t Offset =
       Var->getStackOffset() + Target->getStackAdjustment() + getOffset();
   if (Offset)

@@ -28,9 +28,9 @@ namespace Test {
 class AssemblerX8632TestBase : public ::testing::Test {
 protected:
   using Address = AssemblerX8632::Traits::Address;
-  using ByteRegister = AssemblerX8632::Traits::ByteRegister;
   using Cond = AssemblerX8632::Traits::Cond;
   using GPRRegister = AssemblerX8632::Traits::GPRRegister;
+  using ByteRegister = AssemblerX8632::Traits::ByteRegister;
   using Label = ::Ice::X86Internal::Label;
   using Traits = AssemblerX8632::Traits;
   using XmmRegister = AssemblerX8632::Traits::XmmRegister;
