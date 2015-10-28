@@ -37,12 +37,6 @@ namespace
 		Bytes_4,
 		Bytes_8,
 		Bytes_16,
-		AlphaFloat,
-		AlphaHalfFloat,
-		LuminanceFloat,
-		LuminanceHalfFloat,
-		LuminanceAlphaFloat,
-		LuminanceAlphaHalfFloat,
 		ByteRGB,
 		UByteRGB,
 		ShortRGB,
@@ -101,96 +95,6 @@ namespace
 	void LoadImageRow<Bytes_16>(const unsigned char *source, unsigned char *dest, GLint xoffset, GLsizei width)
 	{
 		memcpy(dest + xoffset * 16, source, width * 16);
-	}
-
-	template<>
-	void LoadImageRow<AlphaFloat>(const unsigned char *source, unsigned char *dest, GLint xoffset, GLsizei width)
-	{
-		const float *sourceF = reinterpret_cast<const float*>(source);
-		float *destF = reinterpret_cast<float*>(dest + (xoffset * 16));
-
-		for(int x = 0; x < width; x++)
-		{
-			destF[4 * x + 0] = 0;
-			destF[4 * x + 1] = 0;
-			destF[4 * x + 2] = 0;
-			destF[4 * x + 3] = sourceF[x];
-		}
-	}
-
-	template<>
-	void LoadImageRow<AlphaHalfFloat>(const unsigned char *source, unsigned char *dest, GLint xoffset, GLsizei width)
-	{
-		const unsigned short *sourceH = reinterpret_cast<const unsigned short*>(source);
-		unsigned short *destH = reinterpret_cast<unsigned short*>(dest + xoffset * 8);
-
-		for(int x = 0; x < width; x++)
-		{
-			destH[4 * x + 0] = 0;
-			destH[4 * x + 1] = 0;
-			destH[4 * x + 2] = 0;
-			destH[4 * x + 3] = sourceH[x];
-		}
-	}
-
-	template<>
-	void LoadImageRow<LuminanceFloat>(const unsigned char *source, unsigned char *dest, GLint xoffset, GLsizei width)
-	{
-		const float *sourceF = reinterpret_cast<const float*>(source);
-		float *destF = reinterpret_cast<float*>(dest + xoffset * 16);
-
-		for(int x = 0; x < width; x++)
-		{
-			destF[4 * x + 0] = sourceF[x];
-			destF[4 * x + 1] = sourceF[x];
-			destF[4 * x + 2] = sourceF[x];
-			destF[4 * x + 3] = 1.0f;
-		}
-	}
-
-	template<>
-	void LoadImageRow<LuminanceHalfFloat>(const unsigned char *source, unsigned char *dest, GLint xoffset, GLsizei width)
-	{
-		const unsigned short *sourceH = reinterpret_cast<const unsigned short*>(source);
-		unsigned short *destH = reinterpret_cast<unsigned short*>(dest + xoffset * 8);
-
-		for(int x = 0; x < width; x++)
-		{
-			destH[4 * x + 0] = sourceH[x];
-			destH[4 * x + 1] = sourceH[x];
-			destH[4 * x + 2] = sourceH[x];
-			destH[4 * x + 3] = 0x3C00; // SEEEEEMMMMMMMMMM, S = 0, E = 15, M = 0: 16bit flpt representation of 1
-		}
-	}
-
-	template<>
-	void LoadImageRow<LuminanceAlphaFloat>(const unsigned char *source, unsigned char *dest, GLint xoffset, GLsizei width)
-	{
-		const float *sourceF = reinterpret_cast<const float*>(source);
-		float *destF = reinterpret_cast<float*>(dest + xoffset * 16);
-
-		for(int x = 0; x < width; x++)
-		{
-			destF[4 * x + 0] = sourceF[2 * x + 0];
-			destF[4 * x + 1] = sourceF[2 * x + 0];
-			destF[4 * x + 2] = sourceF[2 * x + 0];
-			destF[4 * x + 3] = sourceF[2 * x + 1];
-		}
-	}
-
-	template<>
-	void LoadImageRow<LuminanceAlphaHalfFloat>(const unsigned char *source, unsigned char *dest, GLint xoffset, GLsizei width)
-	{
-		const unsigned short *sourceH = reinterpret_cast<const unsigned short*>(source);
-		unsigned short *destH = reinterpret_cast<unsigned short*>(dest + xoffset * 8);
-
-		for(int x = 0; x < width; x++)
-		{
-			destH[4 * x + 0] = sourceH[2 * x + 0];
-			destH[4 * x + 1] = sourceH[2 * x + 0];
-			destH[4 * x + 2] = sourceH[2 * x + 0];
-			destH[4 * x + 3] = sourceH[2 * x + 1];
-		}
 	}
 
 	template<>
@@ -689,11 +593,11 @@ namespace egl
 		#if S3TC_SUPPORT
 		case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
 		case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
-				return sw::FORMAT_DXT1;
+			return sw::FORMAT_DXT1;
 		case GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE:
-				return sw::FORMAT_DXT3;
+			return sw::FORMAT_DXT3;
 		case GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE:
-				return sw::FORMAT_DXT5;
+			return sw::FORMAT_DXT5;
 		#endif
 		default:
 			break;
@@ -704,6 +608,15 @@ namespace egl
 		case GL_FLOAT:
 			switch(format)
 			{
+			case GL_ALPHA:
+			case GL_ALPHA32F_EXT:
+				return sw::FORMAT_A32F;
+			case GL_LUMINANCE:
+			case GL_LUMINANCE32F_EXT:
+				return sw::FORMAT_L32F;
+			case GL_LUMINANCE_ALPHA:
+			case GL_LUMINANCE_ALPHA32F_EXT:
+				return sw::FORMAT_A32L32F;
 			case GL_RED:
 			case GL_R32F:
 				return sw::FORMAT_R32F;
@@ -714,7 +627,7 @@ namespace egl
 			case GL_RGB32F:
 			case GL_RGBA:
 			case GL_RGBA32F:
-			return sw::FORMAT_A32B32G32R32F;
+				return sw::FORMAT_A32B32G32R32F;
 			case GL_DEPTH_COMPONENT:
 			case GL_DEPTH_COMPONENT32F:
 				return sw::FORMAT_D32F;
@@ -725,6 +638,15 @@ namespace egl
 		case GL_HALF_FLOAT_OES:
 			switch(format)
 			{
+			case GL_ALPHA:
+			case GL_ALPHA16F_EXT:
+				return sw::FORMAT_A16F;
+			case GL_LUMINANCE:
+			case GL_LUMINANCE16F_EXT:
+				return sw::FORMAT_L16F;
+			case GL_LUMINANCE_ALPHA:
+			case GL_LUMINANCE_ALPHA16F_EXT:
+				return sw::FORMAT_A16L16F;
 			case GL_RED:
 			case GL_R16F:
 				return sw::FORMAT_R16F;
@@ -735,7 +657,7 @@ namespace egl
 			case GL_RGB16F:
 			case GL_RGBA:
 			case GL_RGBA16F:
-			return sw::FORMAT_A16B16G16R16F;
+				return sw::FORMAT_A16B16G16R16F;
 			default:
 				UNREACHABLE(format);
 			}
@@ -1426,15 +1348,15 @@ namespace egl
 					// float textures are converted to RGBA, not BGRA
 					case GL_ALPHA:
 					case GL_ALPHA32F_EXT:
-						LoadImageData<AlphaFloat>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getHeight(), input, buffer);
+						LoadImageData<Bytes_4>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getHeight(), input, buffer);
 						break;
 					case GL_LUMINANCE:
 					case GL_LUMINANCE32F_EXT:
-						LoadImageData<LuminanceFloat>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getHeight(), input, buffer);
+						LoadImageData<Bytes_4>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getHeight(), input, buffer);
 						break;
 					case GL_LUMINANCE_ALPHA:
 					case GL_LUMINANCE_ALPHA32F_EXT:
-						LoadImageData<LuminanceAlphaFloat>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getHeight(), input, buffer);
+						LoadImageData<Bytes_8>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getHeight(), input, buffer);
 						break;
 					case GL_RED:
 					case GL_R32F:
@@ -1465,15 +1387,15 @@ namespace egl
 					{
 					case GL_ALPHA:
 					case GL_ALPHA16F_EXT:
-						LoadImageData<AlphaHalfFloat>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getHeight(), input, buffer);
+						LoadImageData<Bytes_2>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getHeight(), input, buffer);
 						break;
 					case GL_LUMINANCE:
 					case GL_LUMINANCE16F_EXT:
-						LoadImageData<LuminanceHalfFloat>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getHeight(), input, buffer);
+						LoadImageData<Bytes_2>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getHeight(), input, buffer);
 						break;
 					case GL_LUMINANCE_ALPHA:
 					case GL_LUMINANCE_ALPHA16F_EXT:
-						LoadImageData<LuminanceAlphaHalfFloat>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getHeight(), input, buffer);
+						LoadImageData<Bytes_4>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getHeight(), input, buffer);
 						break;
 					case GL_RED:
 					case GL_R16F:
