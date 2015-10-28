@@ -91,8 +91,8 @@ entry:
 ; OPTM1: call [[TARGET]]
 ;
 ; ARM32-LABEL: CallIndirectGlobal
-; ARM32: blx [[REGISTER:r.*]]
-; ARM32: blx [[REGISTER]]
+; ARM32: blx {{r.*}}
+; ARM32: blx [[REGISTER:r[0-9]*]]
 ; ARM32: blx [[REGISTER]]
 ; ARM32: blx [[REGISTER]]
 

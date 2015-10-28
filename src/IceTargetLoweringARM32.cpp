@@ -3477,6 +3477,21 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
   // legalize() allow a physical register. Legal_Flex converts registers to the
   // right type OperandARM32FlexReg as needed.
   assert(Allowed & Legal_Reg);
+
+  // Copied ipsis literis from TargetX86Base<Machine>.
+  if (RegNum == Variable::NoRegister) {
+    if (Variable *Subst = getContext().availabilityGet(From)) {
+      // At this point we know there is a potential substitution available.
+      if (Subst->mustHaveReg() && !Subst->hasReg()) {
+        // At this point we know the substitution will have a register.
+        if (From->getType() == Subst->getType()) {
+          // At this point we know the substitution's register is compatible.
+          return Subst;
+        }
+      }
+    }
+  }
+
   // Go through the various types of operands: OperandARM32Mem,
   // OperandARM32Flex, Constant, and Variable. Given the above assertion, if
   // type of operand is not legal (e.g., OperandARM32Mem and !Legal_Mem), we
@@ -3734,6 +3749,7 @@ void TargetARM32::postLower() {
   if (Ctx->getFlags().getOptLevel() == Opt_m1)
     return;
   markRedefinitions();
+  Context.availabilityUpdate();
 }
 
 void TargetARM32::makeRandomRegisterPermutation(
