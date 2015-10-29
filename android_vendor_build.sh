@@ -12,7 +12,7 @@ popd > /dev/null 2>&1
 # The Android build configurations to use. There should be one representative
 # configuration per TARGET_ARCH, ideally the primary user of SwiftShader
 
-CONFIGS=gce_x86_tablet-userdebug
+CONFIGS=aosp_x86-eng
 
 SOURCE_DIR_LINKED="$(pwd)/vendor/transgaming/swiftshader-src"
 OBJECT_DIR="$(pwd)/vendor/transgaming/swiftshader"
