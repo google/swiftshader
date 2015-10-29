@@ -185,10 +185,12 @@ void Assembler::EmitShiftRegister(Condition cond,
 }
 
 
+#if 0
+// Moved to ARM32::AssemblerARM32::and_()
 void Assembler::and_(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), AND, 0, rn, rd, o);
 }
-
+#endif
 
 void Assembler::eor(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), EOR, 0, rn, rd, o);

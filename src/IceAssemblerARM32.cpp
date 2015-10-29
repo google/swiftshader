@@ -465,7 +465,51 @@ void AssemblerARM32::add(const Operand *OpRd, const Operand *OpRn,
     emitType01(Cond, kInstTypeDataImmediate, Add, SetFlags, Rn, Rd, Src1Value);
     return;
   }
-  };
+  }
+}
+
+void AssemblerARM32::and_(const Operand *OpRd, const Operand *OpRn,
+                          const Operand *OpSrc1, bool SetFlags,
+                          CondARM32::Cond Cond) {
+  IValueT Rd;
+  if (decodeOperand(OpRd, Rd) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  IValueT Rn;
+  if (decodeOperand(OpRn, Rn) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  constexpr IValueT And = 0; // 0000
+  IValueT Src1Value;
+  // TODO(kschimpf) Other possible decodings of add.
+  switch (decodeOperand(OpSrc1, Src1Value)) {
+  default:
+    return setNeedsTextFixup();
+  case DecodedAsRegister: {
+    // AND (register) - ARM section A8.8.14, encoding A1:
+    //   and{s}<c> <Rd>, <Rn>{, <shift>}
+    //
+    // cccc0000000snnnnddddiiiiitt0mmmm where cccc=Cond, dddd=Rd, nnnn=Rn,
+    // mmmm=Rm, iiiii=Shift, tt=ShiftKind, and s=SetFlags.
+    constexpr IValueT Imm5 = 0;
+    Src1Value = encodeShiftRotateImm5(Src1Value, OperandARM32::kNoShift, Imm5);
+    if (((Rd == RegARM32::Encoded_Reg_pc) && SetFlags))
+      // Conditions of rule violated.
+      return setNeedsTextFixup();
+    emitType01(Cond, kInstTypeDataRegister, And, SetFlags, Rn, Rd, Src1Value);
+    return;
+  }
+  case DecodedAsRotatedImm8: {
+    // AND (Immediate) - ARM section A8.8.13, encoding A1:
+    //   and{s}<c> <Rd>, <Rn>, #<RotatedImm8>
+    //
+    // cccc0010100snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
+    // s=SetFlags and iiiiiiiiiiii=Src1Value defining RotatedImm8.
+    if ((Rd == RegARM32::Encoded_Reg_pc && SetFlags))
+      // Conditions of rule violated.
+      return setNeedsTextFixup();
+    emitType01(Cond, kInstTypeDataImmediate, And, SetFlags, Rn, Rd, Src1Value);
+    return;
+  }
+  }
 }
 
 void AssemblerARM32::b(Label *L, CondARM32::Cond Cond) {

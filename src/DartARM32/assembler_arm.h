@@ -438,8 +438,11 @@ class Assembler : public ValueObject {
 
   static const char* FpuRegisterName(FpuRegister reg);
 
+#if 0
+  // Moved to ARM32::AssemblerARM32::and_()
   // Data-processing instructions.
   void and_(Register rd, Register rn, Operand o, Condition cond = AL);
+#endif
 
   void eor(Register rd, Register rn, Operand o, Condition cond = AL);
 

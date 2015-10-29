@@ -141,6 +141,9 @@ public:
   void add(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
            bool SetFlags, CondARM32::Cond Cond);
 
+  void and_(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
+            bool SetFlags, CondARM32::Cond Cond);
+
   void b(Label *L, CondARM32::Cond Cond);
 
   void bkpt(uint16_t Imm16);
