@@ -139,6 +139,9 @@ public:
 
   void bx(RegARM32::GPRRegister Rm, CondARM32::Cond Cond = CondARM32::AL);
 
+  void sbc(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
+           bool SetFlags, CondARM32::Cond Cond);
+
   void str(const Operand *OpRt, const Operand *OpAddress, CondARM32::Cond Cond);
 
   void sub(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,

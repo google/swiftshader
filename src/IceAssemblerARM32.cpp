@@ -529,6 +529,50 @@ void AssemblerARM32::mov(const Operand *OpRd, const Operand *OpSrc,
   emitType01(Cond, kInstTypeDataImmediate, Mov, SetFlags, Rn, Rd, Src);
 }
 
+void AssemblerARM32::sbc(const Operand *OpRd, const Operand *OpRn,
+                         const Operand *OpSrc1, bool SetFlags,
+                         CondARM32::Cond Cond) {
+  IValueT Rd;
+  if (decodeOperand(OpRd, Rd) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  IValueT Rn;
+  if (decodeOperand(OpRn, Rn) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  constexpr IValueT Sbc = B2 | B1; // 0110
+  IValueT Src1Value;
+  // TODO(kschimpf) Other possible decodings of sbc.
+  switch (decodeOperand(OpSrc1, Src1Value)) {
+  default:
+    return setNeedsTextFixup();
+  case DecodedAsRegister: {
+    // SBC (register) - ARM section 18.8.162, encoding A1:
+    //   sbc{s}<c> <Rd>, <Rn>, <Rm>{, <shift>}
+    //
+    // cccc0000110snnnnddddiiiiitt0mmmm where cccc=Cond, dddd=Rd, nnnn=Rn,
+    // mmmm=Rm, iiiii=Shift, tt=ShiftKind, and s=SetFlags.
+    constexpr IValueT Imm5 = 0;
+    Src1Value = encodeShiftRotateImm5(Src1Value, OperandARM32::kNoShift, Imm5);
+    if (((Rd == RegARM32::Encoded_Reg_pc) && SetFlags))
+      // Conditions of rule violated.
+      return setNeedsTextFixup();
+    emitType01(Cond, kInstTypeDataRegister, Sbc, SetFlags, Rn, Rd, Src1Value);
+    return;
+  }
+  case DecodedAsRotatedImm8: {
+    // SBC (Immediate) - ARM section A8.8.161, encoding A1:
+    //   sbc{s}<c> <Rd>, <Rn>, #<RotatedImm8>
+    //
+    // cccc0010110snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
+    // s=SetFlags and iiiiiiiiiiii=Src1Value=RotatedImm8.
+    if ((Rd == RegARM32::Encoded_Reg_pc && SetFlags))
+      // Conditions of rule violated.
+      return setNeedsTextFixup();
+    emitType01(Cond, kInstTypeDataImmediate, Sbc, SetFlags, Rn, Rd, Src1Value);
+    return;
+  }
+  };
+}
+
 void AssemblerARM32::str(const Operand *OpRt, const Operand *OpAddress,
                          CondARM32::Cond Cond) {
   IValueT Rt;

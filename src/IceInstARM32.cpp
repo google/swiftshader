@@ -361,6 +361,14 @@ void InstARM32ThreeAddrGPR<InstARM32::Add>::emitIAS(const Cfg *Func) const {
 }
 
 template <>
+void InstARM32ThreeAddrGPR<InstARM32::Sbc>::emitIAS(const Cfg *Func) const {
+  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  Asm->sbc(getDest(), getSrc(0), getSrc(1), SetFlags, getPredicate());
+  if (Asm->needsTextFixup())
+    emitUsingTextFixup(Func);
+}
+
+template <>
 void InstARM32ThreeAddrGPR<InstARM32::Sub>::emitIAS(const Cfg *Func) const {
   ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Asm->sub(getDest(), getSrc(0), getSrc(1), SetFlags, getPredicate());
