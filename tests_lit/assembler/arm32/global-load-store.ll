@@ -18,6 +18,8 @@
 ; RUN: %p2i --filetype=iasm -i %s --target=arm32 --assemble --disassemble \
 ; RUN:   --args -O2 | FileCheck %s --check-prefix=DIS
 
+@filler = internal global [128 x i8] zeroinitializer, align 4
+
 @global1 = internal global [4 x i8] zeroinitializer, align 4
 
 ; ASM-LABEL: global1:
@@ -53,8 +55,8 @@ define internal i32 @load() {
 
 ; IASM-LABEL:load:
 ; IASM-NEXT: .Lload$__0:
-; IASM-NEXT:    movw    r0, #:lower16:global1
-; IASM-NEXT:    movt    r0, #:upper16:global1
+; IASM-NEXT:    movw    r0, #:lower16:global1   @ .word e3000000
+; IASM-NEXT:    movt    r0, #:upper16:global1   @ .word e3400000
 ; IASM-NEXT:    ldr     r0, [r0]
 ; IASM-NEXT:    .byte 0x1e
 ; IASM-NEXT:    .byte 0xff
@@ -82,8 +84,8 @@ define internal void @store(i32 %v) {
 
 ; IASM-LABEL:store:
 ; IASM-NEXT: .Lstore$__0:
-; IASM-NEXT:    movw    r1, #:lower16:global1
-; IASM-NEXT:    movt    r1, #:upper16:global1
+; IASM-NEXT:    movw    r1, #:lower16:global1   @ .word e3001000
+; IASM-NEXT:    movt    r1, #:upper16:global1   @ .word e3401000
 ; IASM-NEXT:    str     r0, [r1]
 ; IASM-NEXT:    .byte 0x1e
 ; IASM-NEXT:    .byte 0xff

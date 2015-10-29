@@ -38,7 +38,9 @@ static constexpr IValueT B4 = 1 << 4;
 static constexpr IValueT B5 = 1 << 5;
 static constexpr IValueT B6 = 1 << 6;
 static constexpr IValueT B21 = 1 << 21;
+static constexpr IValueT B22 = 1 << 22;
 static constexpr IValueT B24 = 1 << 24;
+static constexpr IValueT B25 = 1 << 25;
 
 // Constants used for the decoding or encoding of the individual fields of
 // instructions. Based on ARM section A5.1.
@@ -221,6 +223,32 @@ bool canEncodeBranchOffset(IOffsetT Offset) {
 
 namespace Ice {
 namespace ARM32 {
+
+size_t MoveRelocatableFixup::emit(GlobalContext *Ctx,
+                                  const Assembler &Asm) const {
+  static constexpr const size_t FixupSize = sizeof(IValueT);
+  if (!BuildDefs::dump())
+    return FixupSize;
+  Ostream &Str = Ctx->getStrEmit();
+  IValueT Inst = Asm.load<IValueT>(position());
+  Str << "\tmov" << (kind() == llvm::ELF::R_ARM_MOVW_ABS_NC ? "w" : "t") << "\t"
+      << RegARM32::RegNames[(Inst >> kRdShift) & 0xF]
+      << ", #:" << (kind() == llvm::ELF::R_ARM_MOVW_ABS_NC ? "lower" : "upper")
+      << "16:" << symbol(Ctx) << "\t@ .word "
+      << llvm::format_hex_no_prefix(Inst, 8) << "\n";
+  return FixupSize;
+}
+
+MoveRelocatableFixup *AssemblerARM32::createMoveFixup(bool IsMovW,
+                                                      const Constant *Value) {
+  MoveRelocatableFixup *F =
+      new (allocate<MoveRelocatableFixup>()) MoveRelocatableFixup();
+  F->set_kind(IsMovW ? llvm::ELF::R_ARM_MOVW_ABS_NC
+                     : llvm::ELF::R_ARM_MOVT_ABS);
+  F->set_value(Value);
+  Buffer.installFixup(F);
+  return F;
+}
 
 void AssemblerARM32::bindCfgNodeLabel(const CfgNode *Node) {
   GlobalContext *Ctx = Node->getCfg()->getContext();
@@ -517,9 +545,8 @@ void AssemblerARM32::mov(const Operand *OpRd, const Operand *OpSrc,
   // MOV (immediate) - ARM section A8.8.102, encoding A1:
   //   mov{S}<c> <Rd>, #<RotatedImm8>
   //
-  // cccc0011101s0000ddddiiiiiiiiiiii where cccc=Cond, s=SetFlags, dddd=Rd,
-  // and iiiiiiiiiiii=RotatedImm8=Src.  Note: We don't use movs in this
-  // assembler.
+  // cccc0011101s0000ddddiiiiiiiiiiii where cccc=Cond, s=SetFlags, dddd=Rd, and
+  // iiiiiiiiiiii=RotatedImm8=Src.  Note: We don't use movs in this assembler.
   constexpr bool SetFlags = false;
   if ((Rd == RegARM32::Encoded_Reg_pc && SetFlags))
     // Conditions of rule violated.
@@ -527,6 +554,62 @@ void AssemblerARM32::mov(const Operand *OpRd, const Operand *OpSrc,
   constexpr IValueT Rn = 0;
   constexpr IValueT Mov = B3 | B2 | B0; // 1101.
   emitType01(Cond, kInstTypeDataImmediate, Mov, SetFlags, Rn, Rd, Src);
+}
+
+void AssemblerARM32::movw(const Operand *OpRd, const Operand *OpSrc,
+                          CondARM32::Cond Cond) {
+  IValueT Rd;
+  if (decodeOperand(OpRd, Rd) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  auto *Src = llvm::dyn_cast<ConstantRelocatable>(OpSrc);
+  if (Src == nullptr)
+    return setNeedsTextFixup();
+  // MOV (immediate) - ARM section A8.8.102, encoding A2:
+  //  movw<c> <Rd>, #<imm16>
+  //
+  // cccc00110000iiiiddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, and
+  // iiiiiiiiiiiiiiii=imm16.
+  if (!isConditionDefined(Cond))
+    // Conditions of rule violated.
+    return setNeedsTextFixup();
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  // Use 0 for the lower 16 bits of the relocatable, and add a fixup to
+  // install the correct bits.
+  constexpr bool IsMovW = true;
+  emitFixup(createMoveFixup(IsMovW, Src));
+  constexpr IValueT Imm16 = 0;
+  const IValueT Encoding = encodeCondition(Cond) << kConditionShift | B25 |
+                           B24 | ((Imm16 >> 12) << 16) | Rd << kRdShift |
+                           (Imm16 & 0xfff);
+  emitInst(Encoding);
+}
+
+void AssemblerARM32::movt(const Operand *OpRd, const Operand *OpSrc,
+                          CondARM32::Cond Cond) {
+  IValueT Rd;
+  if (decodeOperand(OpRd, Rd) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  auto *Src = llvm::dyn_cast<ConstantRelocatable>(OpSrc);
+  if (Src == nullptr)
+    return setNeedsTextFixup();
+  // MOVT - ARM section A8.8.102, encoding A2:
+  //  movt<c> <Rd>, #<imm16>
+  //
+  // cccc00110100iiiiddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, and
+  // iiiiiiiiiiiiiiii=imm16.
+  if (!isConditionDefined(Cond))
+    // Conditions of rule violated.
+    return setNeedsTextFixup();
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  // Use 0 for the lower 16 bits of the relocatable, and add a fixup to
+  // install the correct bits.
+  constexpr bool IsMovW = false;
+  emitFixup(createMoveFixup(IsMovW, Src));
+  constexpr IValueT Imm16 = 0;
+  const IValueT Encoding = encodeCondition(Cond) << kConditionShift | B25 |
+                           B24 | B22 | ((Imm16 >> 12) << 16) | Rd << kRdShift |
+                           (Imm16 & 0xfff);
+  emitInst(Encoding);
 }
 
 void AssemblerARM32::sbc(const Operand *OpRd, const Operand *OpRn,

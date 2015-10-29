@@ -1069,10 +1069,14 @@ class Assembler : public ValueObject {
 
   bool use_far_branches_;
 
+#if 0
   // If you are thinking of using one or both of these instructions directly,
   // instead LoadImmediate should probably be used.
+  // Moved to ARM::AssemblerARM32::movw
   void movw(Register rd, uint16_t imm16, Condition cond = AL);
+  // Moved to ARM::AssemblerARM32::movt
   void movt(Register rd, uint16_t imm16, Condition cond = AL);
+#endif
 
   void BindARMv6(Label* label);
   void BindARMv7(Label* label);

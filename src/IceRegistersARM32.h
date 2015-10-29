@@ -114,6 +114,8 @@ public:
     assert(RegNum <= Reg_QREG_Last);
     return QRegister(RegNum - Reg_QREG_First);
   }
+
+  static const char *RegNames[];
 };
 
 } // end of namespace Ice

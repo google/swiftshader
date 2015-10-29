@@ -386,18 +386,18 @@ bool TargetARM32::doBranchOpt(Inst *I, const CfgNode *NextNode) {
   return false;
 }
 
-IceString TargetARM32::getRegName(SizeT RegNum, Type Ty) const {
-  assert(RegNum < RegARM32::Reg_NUM);
-  (void)Ty;
-  static const char *RegNames[] = {
+const char *RegARM32::RegNames[] = {
 #define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
           isI64Pair, isFP32, isFP64, isVec128, alias_init)                     \
   name,
-      REGARM32_TABLE
+    REGARM32_TABLE
 #undef X
-  };
+};
 
-  return RegNames[RegNum];
+IceString TargetARM32::getRegName(SizeT RegNum, Type Ty) const {
+  assert(RegNum < RegARM32::Reg_NUM);
+  (void)Ty;
+  return RegARM32::RegNames[RegNum];
 }
 
 Variable *TargetARM32::getPhysicalRegister(SizeT RegNum, Type Ty) {

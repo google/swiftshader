@@ -44,6 +44,16 @@ using IValueT = uint32_t;
 /// An Offset value (+/-) used in an ARM 32-bit instruction.
 using IOffsetT = int32_t;
 
+/// Handles encoding of bottom/top 16 bits of an address using movw/movt.
+class MoveRelocatableFixup : public AssemblerFixup {
+  MoveRelocatableFixup &operator=(const MoveRelocatableFixup &) = delete;
+  MoveRelocatableFixup(const MoveRelocatableFixup &) = default;
+
+public:
+  MoveRelocatableFixup() = default;
+  size_t emit(GlobalContext *Ctx, const Assembler &Asm) const override;
+};
+
 class AssemblerARM32 : public Assembler {
   AssemblerARM32(const AssemblerARM32 &) = delete;
   AssemblerARM32 &operator=(const AssemblerARM32 &) = delete;
@@ -64,6 +74,8 @@ public:
       }
     }
   }
+
+  MoveRelocatableFixup *createMoveFixup(bool IsMovW, const Constant *Value);
 
   void alignFunction() override {
     const SizeT Align = 1 << getBundleAlignLog2Bytes();
@@ -136,6 +148,10 @@ public:
   void ldr(const Operand *OpRt, const Operand *OpAddress, CondARM32::Cond Cond);
 
   void mov(const Operand *OpRd, const Operand *OpSrc, CondARM32::Cond Cond);
+
+  void movw(const Operand *OpRd, const Operand *OpSrc, CondARM32::Cond Cond);
+
+  void movt(const Operand *OpRd, const Operand *OpSrc, CondARM32::Cond Cond);
 
   void bx(RegARM32::GPRRegister Rm, CondARM32::Cond Cond = CondARM32::AL);
 

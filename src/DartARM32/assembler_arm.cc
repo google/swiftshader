@@ -330,6 +330,8 @@ void Assembler::clz(Register rd, Register rm, Condition cond) {
 }
 
 
+#if
+// Moved to ARM::AssemblerARM32::movw
 void Assembler::movw(Register rd, uint16_t imm16, Condition cond) {
   ASSERT(cond != kNoCondition);
   int32_t encoding = static_cast<int32_t>(cond) << kConditionShift |
@@ -339,6 +341,7 @@ void Assembler::movw(Register rd, uint16_t imm16, Condition cond) {
 }
 
 
+// Moved to ARM::AssemblerARM32::movt
 void Assembler::movt(Register rd, uint16_t imm16, Condition cond) {
   ASSERT(cond != kNoCondition);
   int32_t encoding = static_cast<int32_t>(cond) << kConditionShift |
@@ -346,6 +349,7 @@ void Assembler::movt(Register rd, uint16_t imm16, Condition cond) {
                      static_cast<int32_t>(rd) << kRdShift | (imm16 & 0xfff);
   Emit(encoding);
 }
+#endif
 
 
 void Assembler::EmitMulOp(Condition cond, int32_t opcode,

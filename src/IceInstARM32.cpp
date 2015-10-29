@@ -797,7 +797,7 @@ void InstARM32Call::emit(const Cfg *Func) const {
     // This shouldn't happen (typically have to copy the full 32-bits to a
     // register and do an indirect jump).
     llvm::report_fatal_error("ARM32Call to ConstantInteger32");
-  } else if (const auto CallTarget =
+  } else if (const auto *CallTarget =
                  llvm::dyn_cast<ConstantRelocatable>(getCallTarget())) {
     // Calls only have 24-bits, but the linker should insert veneers to extend
     // the range if needed.
@@ -889,6 +889,11 @@ void InstARM32TwoAddrGPR<K>::emitIAS(const Cfg *Func) const {
   emitUsingTextFixup(Func);
 }
 
+template <InstARM32::InstKindARM32 K, bool Nws>
+void InstARM32UnaryopGPR<K, Nws>::emitIAS(const Cfg *Func) const {
+  emitUsingTextFixup(Func);
+}
+
 template <> void InstARM32Movw::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
@@ -904,6 +909,14 @@ template <> void InstARM32Movw::emit(const Cfg *Func) const {
   } else {
     Src0->emit(Func);
   }
+}
+
+template <> void InstARM32Movw::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 1);
+  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  Asm->movw(getDest(), getSrc(0), getPredicate());
+  if (Asm->needsTextFixup())
+    emitUsingTextFixup(Func);
 }
 
 template <> void InstARM32Movt::emit(const Cfg *Func) const {
@@ -922,6 +935,14 @@ template <> void InstARM32Movt::emit(const Cfg *Func) const {
   } else {
     Src1->emit(Func);
   }
+}
+
+template <> void InstARM32Movt::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 2);
+  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  Asm->movt(getDest(), getSrc(1), getPredicate());
+  if (Asm->needsTextFixup())
+    emitUsingTextFixup(Func);
 }
 
 void InstARM32Pop::emit(const Cfg *Func) const {
@@ -1461,5 +1482,14 @@ template class InstARM32ThreeAddrFP<InstARM32::Vmul>;
 template class InstARM32ThreeAddrFP<InstARM32::Vsub>;
 
 template class InstARM32TwoAddrGPR<InstARM32::Movt>;
+
+template class InstARM32UnaryopGPR<InstARM32::Movw, false>;
+template class InstARM32UnaryopGPR<InstARM32::Clz, false>;
+template class InstARM32UnaryopGPR<InstARM32::Mvn, false>;
+template class InstARM32UnaryopGPR<InstARM32::Rbit, false>;
+template class InstARM32UnaryopGPR<InstARM32::Rev, false>;
+template class InstARM32UnaryopGPR<InstARM32::Sxt, true>;
+template class InstARM32UnaryopGPR<InstARM32::Uxt, true>;
+template class InstARM32UnaryopFP<InstARM32::Vsqrt>;
 
 } // end of namespace Ice
