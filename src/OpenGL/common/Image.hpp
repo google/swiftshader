@@ -181,8 +181,8 @@ class AndroidNativeImage : public egl::Image
 public:
 	explicit AndroidNativeImage(ANativeWindowBuffer *nativeBuffer)
 		: egl::Image(0, nativeBuffer->width, nativeBuffer->height, 1,
-					getColorFormatFromAndroid(nativeBuffer->format),
-					getPixelFormatFromAndroid(nativeBuffer->format)),
+		             GLPixelFormatFromAndroid(nativeBuffer->format),
+		             GLPixelTypeFromAndroid(nativeBuffer->format)),
 		  nativeBuffer(nativeBuffer)
 {
     nativeBuffer->common.incRef(&nativeBuffer->common);
@@ -204,25 +204,30 @@ private:
 	virtual void *lockInternal(int x, int y, int z, sw::Lock lock, sw::Accessor client)
 	{
 		LOGLOCK("image=%p op=%s.swsurface lock=%d", this, __FUNCTION__, lock);
+
 		// Always do this for reference counting.
 		void *data = sw::Surface::lockInternal(x, y, z, lock, client);
+
 		if(nativeBuffer)
 		{
-			if (x || y || z)
+			if(x != 0 || y != 0 || z != 0)
 			{
 				ALOGI("badness: %s called with unsupported parms: image=%p x=%d y=%d z=%d", __FUNCTION__, this, x, y, z);
 			}
+
 			LOGLOCK("image=%p op=%s.ani lock=%d", this, __FUNCTION__, lock);
+
 			// Lock the ANativeWindowBuffer and use its address.
-			data = lockNativeBuffer(
-				GRALLOC_USAGE_SW_READ_OFTEN | GRALLOC_USAGE_SW_WRITE_OFTEN);
-			if (lock == sw::LOCK_UNLOCKED)
+			data = lockNativeBuffer(GRALLOC_USAGE_SW_READ_OFTEN | GRALLOC_USAGE_SW_WRITE_OFTEN);
+
+			if(lock == sw::LOCK_UNLOCKED)
 			{
 				// We're never going to get a corresponding unlock, so unlock
 				// immediately. This keeps the gralloc reference counts sane.
 				unlockNativeBuffer();
 			}
 		}
+
 		return data;
 	}
 
@@ -233,6 +238,7 @@ private:
 			LOGLOCK("image=%p op=%s.ani", this, __FUNCTION__);
 			unlockNativeBuffer();
 		}
+
 		LOGLOCK("image=%p op=%s.swsurface", this, __FUNCTION__);
 		sw::Surface::unlockInternal();
 	}
@@ -241,6 +247,7 @@ private:
 	{
 		LOGLOCK("image=%p op=%s lock=%d", this, __FUNCTION__, lock);
 		(void)sw::Surface::lockExternal(left, top, 0, lock, sw::PUBLIC);
+
 		return lockNativeBuffer(GRALLOC_USAGE_SW_READ_OFTEN | GRALLOC_USAGE_SW_WRITE_OFTEN);
 	}
 
@@ -248,16 +255,16 @@ private:
 	{
 		LOGLOCK("image=%p op=%s.ani", this, __FUNCTION__);
 		unlockNativeBuffer();
+
 		LOGLOCK("image=%p op=%s.swsurface", this, __FUNCTION__);
 		sw::Surface::unlockExternal();
 	}
 
 	void* lockNativeBuffer(int usage)
 	{
-		void *buffer = 0;
-		GrallocModule::getInstance()->lock(
-			nativeBuffer->handle, usage, 0, 0,
-			nativeBuffer->width, nativeBuffer->height, &buffer);
+		void *buffer = nullptr;
+		GrallocModule::getInstance()->lock(nativeBuffer->handle, usage, 0, 0, nativeBuffer->width, nativeBuffer->height, &buffer);
+
 		return buffer;
 	}
 

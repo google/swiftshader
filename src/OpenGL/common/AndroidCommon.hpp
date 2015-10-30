@@ -1,10 +1,9 @@
 #ifndef ANDROID_COMMON
 #define ANDROID_COMMON
 
-// Used internally
-GLenum getColorFormatFromAndroid(int format);
+#include <GLES/gl.h>
 
-// Used internally
-GLenum getPixelFormatFromAndroid(int format);
+GLenum GLPixelFormatFromAndroid(int format);
+GLenum GLPixelTypeFromAndroid(int format);
 
 #endif  // ANDROID_COMMON
