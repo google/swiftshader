@@ -684,21 +684,38 @@ void AssemblerARM32::mov(const Operand *OpRd, const Operand *OpSrc,
     return setNeedsTextFixup();
   IValueT Src;
   // TODO(kschimpf) Handle other forms of mov.
-  if (decodeOperand(OpSrc, Src) != DecodedAsRotatedImm8)
-    return setNeedsTextFixup();
-  // MOV (immediate) - ARM section A8.8.102, encoding A1:
-  //   mov{S}<c> <Rd>, #<RotatedImm8>
-  //
-  // cccc0011101s0000ddddiiiiiiiiiiii where cccc=Cond, s=SetFlags, dddd=Rd, and
-  // iiiiiiiiiiii=Src defining RotatedImm8.  Note: We don't use movs in this
-  // assembler.
   constexpr bool SetFlags = false;
-  if ((Rd == RegARM32::Encoded_Reg_pc && SetFlags))
-    // Conditions of rule violated.
-    return setNeedsTextFixup();
   constexpr IValueT Rn = 0;
   constexpr IValueT Mov = B3 | B2 | B0; // 1101.
-  emitType01(Cond, kInstTypeDataImmediate, Mov, SetFlags, Rn, Rd, Src);
+  switch (decodeOperand(OpSrc, Src)) {
+  default:
+    return setNeedsTextFixup();
+  case DecodedAsRegister: {
+    // MOV (register) - ARM section A8.8.104, encoding A1:
+    //   mov{S}<c> <Rd>, <Rn>
+    //
+    // cccc0001101s0000dddd00000000mmmm where cccc=Cond, s=SetFlags, dddd=Rd,
+    // and nnnn=Rn.
+    if ((Rd == RegARM32::Encoded_Reg_pc && SetFlags))
+      // Conditions of rule violated.
+      return setNeedsTextFixup();
+    emitType01(Cond, kInstTypeDataRegister, Mov, SetFlags, Rn, Rd, Src);
+    return;
+  }
+  case DecodedAsRotatedImm8: {
+    // MOV (immediate) - ARM section A8.8.102, encoding A1:
+    //   mov{S}<c> <Rd>, #<RotatedImm8>
+    //
+    // cccc0011101s0000ddddiiiiiiiiiiii where cccc=Cond, s=SetFlags, dddd=Rd,
+    // and iiiiiiiiiiii=RotatedImm8=Src.  Note: We don't use movs in this
+    // assembler.
+    if ((Rd == RegARM32::Encoded_Reg_pc && SetFlags))
+      // Conditions of rule violated.
+      return setNeedsTextFixup();
+    emitType01(Cond, kInstTypeDataImmediate, Mov, SetFlags, Rn, Rd, Src);
+    return;
+  }
+  }
 }
 
 void AssemblerARM32::movw(const Operand *OpRd, const Operand *OpSrc,

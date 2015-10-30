@@ -74,7 +74,12 @@ define internal i64 @MulTwoI64Regs(i64 %a, i64 %b) {
 ; IASM-NEXT:    .byte 0x20
 ; IASM-NEXT:    .byte 0x82
 ; IASM-NEXT:    .byte 0xe0
-; IASM-NEXT:    mov     r1, r2
+
+; IASM-NEXT:    .byte 0x2
+; IASM-NEXT:    .byte 0x10
+; IASM-NEXT:    .byte 0xa0
+; IASM-NEXT:    .byte 0xe1
+
 ; IASM-NEXT:    .byte 0x1e
 ; IASM-NEXT:    .byte 0xff
 ; IASM-NEXT:    .byte 0x2f
