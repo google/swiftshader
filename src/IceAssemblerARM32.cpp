@@ -37,6 +37,7 @@ static constexpr IValueT B3 = 1 << 3;
 static constexpr IValueT B4 = 1 << 4;
 static constexpr IValueT B5 = 1 << 5;
 static constexpr IValueT B6 = 1 << 6;
+static constexpr IValueT B7 = 1 << 7;
 static constexpr IValueT B21 = 1 << 21;
 static constexpr IValueT B22 = 1 << 22;
 static constexpr IValueT B24 = 1 << 24;
@@ -60,6 +61,7 @@ static constexpr IValueT kOpcodeShift = 21;
 static constexpr IValueT kRdShift = 12;
 static constexpr IValueT kRmShift = 0;
 static constexpr IValueT kRnShift = 16;
+static constexpr IValueT kRsShift = 8;
 static constexpr IValueT kSShift = 20;
 static constexpr IValueT kTypeShift = 25;
 
@@ -373,6 +375,20 @@ void AssemblerARM32::emitMemOp(CondARM32::Cond Cond, IValueT InstType,
   const IValueT Encoding = (encodeCondition(Cond) << kConditionShift) |
                            (InstType << kTypeShift) | (IsLoad ? L : 0) |
                            (IsByte ? B : 0) | (Rt << kRdShift) | Address;
+  emitInst(Encoding);
+}
+
+void AssemblerARM32::emitMulOp(CondARM32::Cond Cond, IValueT Opcode, IValueT Rd,
+                               IValueT Rn, IValueT Rm, IValueT Rs, bool SetCc) {
+  if (!isGPRRegisterDefined(Rd) || !isGPRRegisterDefined(Rn) ||
+      !isGPRRegisterDefined(Rm) || !isGPRRegisterDefined(Rs) ||
+      !isConditionDefined(Cond))
+    return setNeedsTextFixup();
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  IValueT Encoding = Opcode | (encodeCondition(Cond) << kConditionShift) |
+                     (encodeBool(SetCc) << kSShift) | (Rn << kRnShift) |
+                     (Rd << kRdShift) | (Rs << kRsShift) | B7 | B4 |
+                     (Rm << kRmShift);
   emitInst(Encoding);
 }
 
@@ -734,6 +750,31 @@ void AssemblerARM32::str(const Operand *OpRt, const Operand *OpAddress,
       (mask(Address, kImm12Shift, kImmed12Bits) == 0x8 /* 000000000100 */))
     return setNeedsTextFixup();
   emitMemOp(Cond, kInstTypeMemImmediate, IsLoad, IsByte, Rt, Address);
+}
+
+void AssemblerARM32::mul(const Operand *OpRd, const Operand *OpRn,
+                         const Operand *OpSrc1, bool SetFlags,
+                         CondARM32::Cond Cond) {
+  IValueT Rd;
+  if (decodeOperand(OpRd, Rd) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  IValueT Rn;
+  if (decodeOperand(OpRn, Rn) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  IValueT Rm;
+  if (decodeOperand(OpSrc1, Rm) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  // MUL - ARM section A8.8.114, encoding A1.
+  //   mul{s}<c> <Rd>, <Rn>, <Rm>
+  //
+  // cccc0000000sdddd0000mmmm1001nnnn where cccc=Cond, dddd=Rd, nnnn=Rn,
+  // mmmm=Rm, and s=SetFlags.
+  if (Rd == RegARM32::Encoded_Reg_pc || Rn == RegARM32::Encoded_Reg_pc ||
+      Rm == RegARM32::Encoded_Reg_pc)
+    llvm::report_fatal_error("Mul instruction unpredictable on pc");
+  // Assembler registers rd, rn, rm are encoded as rn, rm, rs.
+  constexpr IValueT MulOpcode = 0;
+  emitMulOp(Cond, MulOpcode, RegARM32::Encoded_Reg_r0, Rd, Rn, Rm, SetFlags);
 }
 
 void AssemblerARM32::sub(const Operand *OpRd, const Operand *OpRn,

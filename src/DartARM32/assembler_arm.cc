@@ -353,7 +353,8 @@ void Assembler::movt(Register rd, uint16_t imm16, Condition cond) {
 }
 #endif
 
-
+#if 0
+// Moved to ARM32::AssemblerARM32::emitMulOp
 void Assembler::EmitMulOp(Condition cond, int32_t opcode,
                           Register rd, Register rn,
                           Register rm, Register rs) {
@@ -372,12 +373,12 @@ void Assembler::EmitMulOp(Condition cond, int32_t opcode,
   Emit(encoding);
 }
 
-
+// Moved to ARM32::AssemblerARM32::mul
 void Assembler::mul(Register rd, Register rn, Register rm, Condition cond) {
   // Assembler registers rd, rn, rm are encoded as rn, rm, rs.
   EmitMulOp(cond, 0, R0, rd, rn, rm);
 }
-
+#endif
 
 // Like mul, but sets condition flags.
 void Assembler::muls(Register rd, Register rn, Register rm, Condition cond) {

@@ -500,8 +500,11 @@ class Assembler : public ValueObject {
   void clz(Register rd, Register rm, Condition cond = AL);
 
   // Multiply instructions.
+#if 0
+  // Moved to AssemblerARM32::mul()
   void mul(Register rd, Register rn, Register rm, Condition cond = AL);
   void muls(Register rd, Register rn, Register rm, Condition cond = AL);
+#endif
   void mla(Register rd, Register rn, Register rm, Register ra,
            Condition cond = AL);
   void mls(Register rd, Register rn, Register rm, Register ra,
@@ -1160,12 +1163,15 @@ class Assembler : public ValueObject {
                          Register rm,
                          Operand o);
 
+#if 0
+  // Moved to ARM32::AssemblerARM32::emitMulOp()
   void EmitMulOp(Condition cond,
                  int32_t opcode,
                  Register rd,
                  Register rn,
                  Register rm,
                  Register rs);
+#endif
 
   void EmitDivOp(Condition cond,
                  int32_t opcode,

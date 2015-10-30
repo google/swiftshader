@@ -344,16 +344,14 @@ void InstARM32ThreeAddrGPR<K>::emitIAS(const Cfg *Func) const {
   emitUsingTextFixup(Func);
 }
 
-template <>
-void InstARM32ThreeAddrGPR<InstARM32::Adc>::emitIAS(const Cfg *Func) const {
+template <> void InstARM32Adc::emitIAS(const Cfg *Func) const {
   ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Asm->adc(getDest(), getSrc(0), getSrc(1), SetFlags, getPredicate());
   if (Asm->needsTextFixup())
     emitUsingTextFixup(Func);
 }
 
-template <>
-void InstARM32ThreeAddrGPR<InstARM32::Add>::emitIAS(const Cfg *Func) const {
+template <> void InstARM32Add::emitIAS(const Cfg *Func) const {
   ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Asm->add(getDest(), getSrc(0), getSrc(1), SetFlags, getPredicate());
   if (Asm->needsTextFixup())
@@ -367,16 +365,21 @@ template <> void InstARM32And::emitIAS(const Cfg *Func) const {
     emitUsingTextFixup(Func);
 }
 
-template <>
-void InstARM32ThreeAddrGPR<InstARM32::Sbc>::emitIAS(const Cfg *Func) const {
+template <> void InstARM32Mul::emitIAS(const Cfg *Func) const {
+  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  Asm->mul(getDest(), getSrc(0), getSrc(1), SetFlags, getPredicate());
+  if (Asm->needsTextFixup())
+    emitUsingTextFixup(Func);
+}
+
+template <> void InstARM32Sbc::emitIAS(const Cfg *Func) const {
   ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Asm->sbc(getDest(), getSrc(0), getSrc(1), SetFlags, getPredicate());
   if (Asm->needsTextFixup())
     emitUsingTextFixup(Func);
 }
 
-template <>
-void InstARM32ThreeAddrGPR<InstARM32::Sub>::emitIAS(const Cfg *Func) const {
+template <> void InstARM32Sub::emitIAS(const Cfg *Func) const {
   ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Asm->sub(getDest(), getSrc(0), getSrc(1), SetFlags, getPredicate());
   if (Asm->needsTextFixup())

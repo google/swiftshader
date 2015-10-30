@@ -146,17 +146,20 @@ public:
 
   void b(Label *L, CondARM32::Cond Cond);
 
+  void bx(RegARM32::GPRRegister Rm, CondARM32::Cond Cond = CondARM32::AL);
+
   void bkpt(uint16_t Imm16);
 
   void ldr(const Operand *OpRt, const Operand *OpAddress, CondARM32::Cond Cond);
 
   void mov(const Operand *OpRd, const Operand *OpSrc, CondARM32::Cond Cond);
 
+  void mul(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
+           bool SetFlags, CondARM32::Cond Cond);
+
   void movw(const Operand *OpRd, const Operand *OpSrc, CondARM32::Cond Cond);
 
   void movt(const Operand *OpRd, const Operand *OpSrc, CondARM32::Cond Cond);
-
-  void bx(RegARM32::GPRRegister Rm, CondARM32::Cond Cond = CondARM32::AL);
 
   void sbc(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
            bool SetFlags, CondARM32::Cond Cond);
@@ -198,6 +201,11 @@ private:
   // IceAssemblerARM32.cpp.
   void emitMemOp(CondARM32::Cond Cond, IValueT InstType, bool IsLoad,
                  bool IsByte, uint32_t Rt, uint32_t Address);
+
+  // Pattern ccccxxxxxxxfnnnnddddssss1001mmmm where cccc=Cond, dddd=Rd, nnnn=Rn,
+  // mmmm=Rm, ssss=Rs, f=SetCc, and xxxxxxx=Opcode.
+  void emitMulOp(CondARM32::Cond Cond, IValueT Opcode, IValueT Rd, IValueT Rn,
+                 IValueT Rm, IValueT Rs, bool SetCc);
 
   void emitBranch(Label *L, CondARM32::Cond, bool Link);
 
