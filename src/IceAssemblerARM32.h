@@ -161,6 +161,9 @@ public:
 
   void movt(const Operand *OpRd, const Operand *OpSrc, CondARM32::Cond Cond);
 
+  void orr(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
+           bool SetFlags, CondARM32::Cond Cond);
+
   void sbc(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
            bool SetFlags, CondARM32::Cond Cond);
 

@@ -481,11 +481,12 @@ class Assembler : public ValueObject {
 
   void cmn(Register rn, Operand o, Condition cond = AL);
 
+#if 0
+  // Moved to ARM32::IceAssemblerARM32::orr().
   void orr(Register rd, Register rn, Operand o, Condition cond = AL);
   void orrs(Register rd, Register rn, Operand o, Condition cond = AL);
 
-#if 0
-  // Moved to IceAssemblerARM32::mov()
+  // Moved to ARM32::IceAssemblerARM32::mov()
   void mov(Register rd, Operand o, Condition cond = AL);
   void movs(Register rd, Operand o, Condition cond = AL);
 #endif

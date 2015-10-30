@@ -274,19 +274,18 @@ void Assembler::cmn(Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), CMN, 1, rn, R0, o);
 }
 
-
+#if 0
+// Moved to ARM32::AssemberARM32::orr()
 void Assembler::orr(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), ORR, 0, rn, rd, o);
 }
 
-
+// Moved to ARM32::AssemberARM32::orr()
 void Assembler::orrs(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), ORR, 1, rn, rd, o);
 }
 
-
-#if 0
-// Moved to AssemblerARM32::mov(..FlexImm..)
+// Moved to AssemblerARM32::mov()
 // TODO(kschimpf) other forms of move.
 void Assembler::mov(Register rd, Operand o, Condition cond) {
   EmitType01(cond, o.type(), MOV, 0, R0, rd, o);

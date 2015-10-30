@@ -442,7 +442,7 @@ void AssemblerARM32::adc(const Operand *OpRd, const Operand *OpRn,
     //   adc{s}<c> <Rd>, <Rn>, #<RotatedImm8>
     //
     // cccc0010101snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
-    // s=SetFlags and iiiiiiiiiiii=Src1Value=RotatedImm8.
+    // s=SetFlags and iiiiiiiiiiii=Src1Value defining RotatedImm8.
     if ((Rd == RegARM32::Encoded_Reg_pc && SetFlags))
       // Conditions of rule violated.
       return setNeedsTextFixup();
@@ -490,7 +490,7 @@ void AssemblerARM32::add(const Operand *OpRd, const Operand *OpRn,
     //   add{s}<c> <Rd>, sp, #<RotatedImm8>
     //
     // cccc0010100snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
-    // s=SetFlags and iiiiiiiiiiii=Src1Value=RotatedImm8.
+    // s=SetFlags and iiiiiiiiiiii=Src1Value defining RotatedImm8.
     if ((Rd == RegARM32::Encoded_Reg_pc && SetFlags))
       // Conditions of rule violated.
       return setNeedsTextFixup();
@@ -722,7 +722,7 @@ void AssemblerARM32::sbc(const Operand *OpRd, const Operand *OpRn,
     //   sbc{s}<c> <Rd>, <Rn>, #<RotatedImm8>
     //
     // cccc0010110snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
-    // s=SetFlags and iiiiiiiiiiii=Src1Value=RotatedImm8.
+    // s=SetFlags and iiiiiiiiiiii=Src1Value defining RotatedImm8.
     if ((Rd == RegARM32::Encoded_Reg_pc && SetFlags))
       // Conditions of rule violated.
       return setNeedsTextFixup();
@@ -766,6 +766,50 @@ void AssemblerARM32::str(const Operand *OpRt, const Operand *OpAddress,
       (mask(Address, kImm12Shift, kImmed12Bits) == 0x8 /* 000000000100 */))
     return setNeedsTextFixup();
   emitMemOp(Cond, kInstTypeMemImmediate, IsLoad, IsByte, Rt, Address);
+}
+
+void AssemblerARM32::orr(const Operand *OpRd, const Operand *OpRn,
+                         const Operand *OpSrc1, bool SetFlags,
+                         CondARM32::Cond Cond) {
+  IValueT Rd;
+  if (decodeOperand(OpRd, Rd) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  IValueT Rn;
+  if (decodeOperand(OpRn, Rn) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  constexpr IValueT Orr = B3 | B2; // i.e. 1100
+  IValueT Src1Value;
+  // TODO(kschimpf) Handle other possible decodings of orr.
+  switch (decodeOperand(OpSrc1, Src1Value)) {
+  default:
+    return setNeedsTextFixup();
+  case DecodedAsRegister: {
+    // ORR (register) - ARM Section A8.8.123, encoding A1:
+    //   orr{s}<c> <Rd>, <Rn>, <Rm>
+    //
+    // cccc0001100snnnnddddiiiiitt0mmmm where cccc=Cond, dddd=Rd, nnnn=Rn,
+    // mmmm=Rm, iiiii=shift, tt=ShiftKind,, and s=SetFlags.
+    constexpr IValueT Shift = 0;
+    Src1Value = encodeShiftRotateImm5(Src1Value, OperandARM32::kNoShift, Shift);
+    if (((Rd == RegARM32::Encoded_Reg_pc) && SetFlags))
+      // Conditions of rule violated.
+      return setNeedsTextFixup();
+    emitType01(Cond, kInstTypeDataRegister, Orr, SetFlags, Rn, Rd, Src1Value);
+    return;
+  }
+  case DecodedAsRotatedImm8: {
+    // ORR (register) - ARM Section A8.8.123, encoding A1:
+    //   orr{s}<c> <Rd>, <Rn>,  #<RotatedImm8>
+    //
+    // cccc0001100snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
+    // s=SetFlags and iiiiiiiiiiii=Src1Value defining RotatedImm8.
+    if (Rd == RegARM32::Encoded_Reg_pc && SetFlags)
+      // Conditions of rule violated.
+      return setNeedsTextFixup();
+    emitType01(Cond, kInstTypeDataImmediate, Orr, SetFlags, Rn, Rd, Src1Value);
+    return;
+  }
+  }
 }
 
 void AssemblerARM32::mul(const Operand *OpRd, const Operand *OpRn,
@@ -816,7 +860,8 @@ void AssemblerARM32::sub(const Operand *OpRd, const Operand *OpRn,
     //
     // cccc0000010snnnnddddiiiiitt0mmmm where cccc=Cond, dddd=Rd, nnnn=Rn,
     // mmmm=Rm, iiiiii=shift, tt=ShiftKind, and s=SetFlags.
-    Src1Value = encodeShiftRotateImm5(Src1Value, OperandARM32::kNoShift, 0);
+    constexpr IValueT Shift = 0;
+    Src1Value = encodeShiftRotateImm5(Src1Value, OperandARM32::kNoShift, Shift);
     if (((Rd == RegARM32::Encoded_Reg_pc) && SetFlags))
       // Conditions of rule violated.
       return setNeedsTextFixup();
@@ -830,7 +875,7 @@ void AssemblerARM32::sub(const Operand *OpRd, const Operand *OpRn,
     //    sub{s}<c> sp, <Rn>, #<RotatedImm8>
     //
     // cccc0010010snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
-    // s=SetFlags and iiiiiiiiiiii=Src1Value=RotatedImm8
+    // s=SetFlags and iiiiiiiiiiii=Src1Value defining RotatedImm8.
     if (Rd == RegARM32::Encoded_Reg_pc)
       // Conditions of rule violated.
       return setNeedsTextFixup();
