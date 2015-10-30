@@ -26,6 +26,9 @@
 
 #ifdef __ANDROID__
 #include <system/window.h>
+#include <sys/ioctl.h>
+#include <linux/fb.h>
+#include <fcntl.h>
 #endif
 
 #include <algorithm>
@@ -594,6 +597,66 @@ sw::Format Display::getDisplayFormat() const
 		default: UNREACHABLE(bpp);   // Unexpected display mode color depth
 		}
 	#elif defined(__ANDROID__)
+		static const char *const framebuffer[] =
+		{
+			"/dev/graphics/fb0",
+			"/dev/fb0",
+			0
+		};
+
+		for(int i = 0; framebuffer[i]; i++)
+		{
+			int fd = open(framebuffer[i], O_RDONLY, 0);
+
+			if(fd != -1)
+			{
+				struct fb_var_screeninfo info;
+				if(ioctl(fd, FBIOGET_VSCREENINFO, &info) >= 0)
+				{
+					switch(info.bits_per_pixel)
+					{
+					case 16:
+						return sw::FORMAT_R5G6B5;
+					case 32:
+						if(info.red.length    == 8 && info.red.offset    == 16 &&
+						   info.green.length  == 8 && info.green.offset  == 8  &&
+						   info.blue.length   == 8 && info.blue.offset   == 0  &&
+						   info.transp.length == 0)
+						{
+							return sw::FORMAT_X8R8G8B8;
+						}
+						if(info.red.length    == 8 && info.red.offset    == 0  &&
+						   info.green.length  == 8 && info.green.offset  == 8  &&
+						   info.blue.length   == 8 && info.blue.offset   == 16 &&
+						   info.transp.length == 0)
+						{
+							return sw::FORMAT_X8B8G8R8;
+						}
+						if(info.red.length    == 8 && info.red.offset    == 16 &&
+						   info.green.length  == 8 && info.green.offset  == 8  &&
+						   info.blue.length   == 8 && info.blue.offset   == 0  &&
+						   info.transp.length == 8 && info.transp.offset == 24)
+						{
+							return sw::FORMAT_A8R8G8B8;
+						}
+						if(info.red.length    == 8 && info.red.offset    == 0  &&
+						   info.green.length  == 8 && info.green.offset  == 8  &&
+						   info.blue.length   == 8 && info.blue.offset   == 16 &&
+						   info.transp.length == 8 && info.transp.offset == 24)
+						{
+							return sw::FORMAT_A8B8G8R8;
+						}
+						else UNIMPLEMENTED();
+					default:
+						UNIMPLEMENTED();
+					}
+				}
+
+				close(fd);
+			}
+		}
+
+		// No framebuffer device found, or we're in user space
 		return sw::FORMAT_X8R8G8B8;
     #else
         if(platform == EGL_PLATFORM_X11_EXT)
