@@ -239,8 +239,9 @@ def ProcessPexe(args, pexe, exe):
             }[args.target]
 
             shellcmd((
-                'llvm-mc -triple={triple} -filetype=obj -o {obj} {asm}'
-                ).format(asm=asm_sz, obj=obj_sz, triple=triple),
+                '{base}/llvm-mc -triple={triple} -filetype=obj -o {obj} {asm}'
+                ).format(base=path_addition, asm=asm_sz, obj=obj_sz,
+                         triple=triple),
                      echo=args.verbose)
         if not args.sandbox:
             shellcmd((
