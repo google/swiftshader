@@ -150,6 +150,9 @@ public:
 
   void bkpt(uint16_t Imm16);
 
+  void eor(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
+           bool SetFlags, CondARM32::Cond Cond);
+
   void ldr(const Operand *OpRt, const Operand *OpAddress, CondARM32::Cond Cond);
 
   void mov(const Operand *OpRd, const Operand *OpSrc, CondARM32::Cond Cond);
@@ -195,6 +198,11 @@ private:
   // oooo=Opcode, nnnn=Rn, dddd=Rd, iiiiiiiiiiii=imm12 (See ARM section A5.2.3).
   void emitType01(CondARM32::Cond Cond, IValueT Type, IValueT Opcode,
                   bool SetCc, IValueT Rn, IValueT Rd, IValueT imm12);
+
+  // Converts arguments to appropriate representation on a data operation,
+  // and then calls emitType01 above.
+  void emitType01(IValueT Opcode, const Operand *OpRd, const Operand *OpRn,
+                  const Operand *OpSrc1, bool SetFlags, CondARM32::Cond Cond);
 
   void emitType05(CondARM32::Cond COnd, int32_t Offset, bool Link);
 

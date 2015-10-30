@@ -444,9 +444,10 @@ class Assembler : public ValueObject {
   void and_(Register rd, Register rn, Operand o, Condition cond = AL);
 #endif
 
+#if 0
+  // Moved to ARM32::AssemblerARM32::eor()
   void eor(Register rd, Register rn, Operand o, Condition cond = AL);
 
-#if 0
   // Moved to ARM32::AssemberARM32::sub()
   void sub(Register rd, Register rn, Operand o, Condition cond = AL);
   void subs(Register rd, Register rn, Operand o, Condition cond = AL);

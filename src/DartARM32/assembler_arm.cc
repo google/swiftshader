@@ -192,11 +192,12 @@ void Assembler::and_(Register rd, Register rn, Operand o, Condition cond) {
 }
 #endif
 
+#if 0
+// Moved to ARM32::AssemberARM32::eor()
 void Assembler::eor(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), EOR, 0, rn, rd, o);
 }
 
-#if 0
 // Moved to ARM32::AssemberARM32::sub()
 void Assembler::sub(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), SUB, 0, rn, rd, o);
