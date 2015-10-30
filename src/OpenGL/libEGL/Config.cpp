@@ -33,7 +33,7 @@ Config::Config(sw::Format displayFormat, EGLint minInterval, EGLint maxInterval,
     mBindToTextureRGB = EGL_FALSE;
     mBindToTextureRGBA = EGL_FALSE;
 
-    switch (renderTargetFormat)
+    switch(renderTargetFormat)
     {
     case sw::FORMAT_A1R5G5B5:
         mRedSize = 5;
@@ -54,6 +54,13 @@ Config::Config(sw::Format displayFormat, EGLint minInterval, EGLint maxInterval,
         mAlphaSize = 8;
         mBindToTextureRGBA = EGL_TRUE;
         break;
+	case sw::FORMAT_A8B8G8R8:
+        mRedSize = 8;
+        mGreenSize = 8;
+        mBlueSize = 8;
+        mAlphaSize = 8;
+        mBindToTextureRGBA = EGL_TRUE;
+        break;
     case sw::FORMAT_R5G6B5:
         mRedSize = 5;
         mGreenSize = 6;
@@ -66,6 +73,13 @@ Config::Config(sw::Format displayFormat, EGLint minInterval, EGLint maxInterval,
         mBlueSize = 8;
         mAlphaSize = 0;
         mBindToTextureRGB = EGL_TRUE;
+        break;
+	case sw::FORMAT_X8B8G8R8:
+        mRedSize = 8;
+        mGreenSize = 8;
+        mBlueSize = 8;
+        mAlphaSize = 0;
+        mBindToTextureRGBA = EGL_TRUE;
         break;
     default:
         UNREACHABLE(renderTargetFormat);   // Other formats should not be valid
@@ -83,7 +97,7 @@ Config::Config(sw::Format displayFormat, EGLint minInterval, EGLint maxInterval,
 #endif
         ;
 
-	switch (depthStencilFormat)
+	switch(depthStencilFormat)
 	{
 	case sw::FORMAT_NULL:
 		mDepthSize = 0;
