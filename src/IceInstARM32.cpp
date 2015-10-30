@@ -857,6 +857,11 @@ void InstARM32Label::dump(const Cfg *Func) const {
   Str << getName(Func) << ":";
 }
 
+template <InstARM32::InstKindARM32 K>
+void InstARM32LoadBase<K>::emitIAS(const Cfg *Func) const {
+  emitUsingTextFixup(Func);
+}
+
 template <> void InstARM32Ldr::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
@@ -876,6 +881,20 @@ template <> void InstARM32Ldr::emit(const Cfg *Func) const {
   getDest()->emit(Func);
   Str << ", ";
   getSrc(0)->emit(Func);
+}
+
+template <> void InstARM32Ldr::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 1);
+  Variable *Dest = getDest();
+  Type DestTy = Dest->getType();
+  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  if (isVectorType(DestTy) || isScalarFloatingType(DestTy))
+    // TODO(kschimpf) Handle case.
+    Asm->setNeedsTextFixup();
+  else
+    Asm->ldr(Dest, getSrc(0), getPredicate());
+  if (Asm->needsTextFixup())
+    emitUsingTextFixup(Func);
 }
 
 template <> void InstARM32Ldrex::emit(const Cfg *Func) const {
@@ -1126,6 +1145,19 @@ void InstARM32Str::emit(const Cfg *Func) const {
   getSrc(0)->emit(Func);
   Str << ", ";
   getSrc(1)->emit(Func);
+}
+
+void InstARM32Str::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 2);
+  Type Ty = getSrc(0)->getType();
+  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  if (isVectorType(Ty) || isScalarFloatingType(Ty))
+    // TODO(kschimpf) Handle case.
+    Asm->setNeedsTextFixup();
+  else
+    Asm->str(getSrc(0), getSrc(1), getPredicate());
+  if (Asm->needsTextFixup())
+    emitUsingTextFixup(Func);
 }
 
 void InstARM32Str::dump(const Cfg *Func) const {
@@ -1490,6 +1522,9 @@ template class InstARM32ThreeAddrFP<InstARM32::Vadd>;
 template class InstARM32ThreeAddrFP<InstARM32::Vdiv>;
 template class InstARM32ThreeAddrFP<InstARM32::Vmul>;
 template class InstARM32ThreeAddrFP<InstARM32::Vsub>;
+
+template class InstARM32LoadBase<InstARM32::Ldr>;
+template class InstARM32LoadBase<InstARM32::Ldrex>;
 
 template class InstARM32TwoAddrGPR<InstARM32::Movt>;
 

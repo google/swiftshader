@@ -98,6 +98,10 @@ inline IValueT encodeGPRRegister(RegARM32::GPRRegister Rn) {
   return static_cast<IValueT>(Rn);
 }
 
+inline RegARM32::GPRRegister decodeGPRRegister(IValueT R) {
+  return static_cast<RegARM32::GPRRegister>(R);
+}
+
 inline bool isGPRRegisterDefined(RegARM32::GPRRegister R) {
   return R != RegARM32::Encoded_Not_GPR;
 }
@@ -142,7 +146,7 @@ inline bool isBitSet(IValueT Bit, IValueT Value) {
 
 // Returns the GPR register at given Shift in Value.
 inline RegARM32::GPRRegister getGPRReg(IValueT Shift, IValueT Value) {
-  return static_cast<RegARM32::GPRRegister>((Value >> Shift) & 0xF);
+  return decodeGPRRegister((Value >> Shift) & 0xF);
 }
 
 // The way an operand was decoded in functions decodeOperand and decodeAddress
@@ -164,7 +168,7 @@ enum DecodedResult {
 // Encodes iiiiitt0mmmm for data-processing (2nd) operands where iiiii=Imm5,
 // tt=Shift, and mmmm=Rm.
 IValueT encodeShiftRotateImm5(IValueT Rm, OperandARM32::ShiftKind Shift,
-                              IValueT imm5) {
+                              IOffsetT imm5) {
   (void)kShiftImmBits;
   assert(imm5 < (1 << kShiftImmBits));
   return (imm5 << kShiftImmShift) | (encodeShift(Shift) << kShiftShift) | Rm;
@@ -210,6 +214,18 @@ DecodedResult decodeAddress(const Operand *Opnd, IValueT &Value) {
       return CantDecode;
     Value = decodeImmRegOffset(RegARM32::Encoded_Reg_sp, Offset,
                                OperandARM32Mem::Offset);
+    return DecodedAsImmRegOffset;
+  }
+  if (const auto *Mem = llvm::dyn_cast<OperandARM32Mem>(Opnd)) {
+    if (Mem->isRegReg())
+      // TODO(kschimpf) Add this case.
+      return CantDecode;
+    Variable *Var = Mem->getBase();
+    if (!Var->hasReg())
+      return CantDecode;
+    ConstantInteger32 *Offset = Mem->getOffset();
+    Value = decodeImmRegOffset(decodeGPRRegister(Var->getRegNum()),
+                               Offset->getValue(), Mem->getAddrMode());
     return DecodedAsImmRegOffset;
   }
   return CantDecode;
