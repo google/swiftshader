@@ -469,14 +469,12 @@ void Assembler::EmitDivOp(Condition cond, int32_t opcode,
 void Assembler::sdiv(Register rd, Register rn, Register rm, Condition cond) {
   EmitDivOp(cond, 0, rd, rn, rm);
 }
-#endif
 
+// Moved to ARM32::AssemblerARM32::udiv()
 void Assembler::udiv(Register rd, Register rn, Register rm, Condition cond) {
   EmitDivOp(cond, B21 , rd, rn, rm);
 }
 
-
-#if 0
 // Moved to ARM32::AssemblerARM32::ldr()
 void Assembler::ldr(Register rd, Address ad, Condition cond) {
   EmitMemOp(cond, true, false, rd, ad);

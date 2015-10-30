@@ -529,10 +529,9 @@ class Assembler : public ValueObject {
 #if 0
   // Moved to ARM32::AssemblerARM32::sdiv()
   void sdiv(Register rd, Register rn, Register rm, Condition cond = AL);
-#endif
+  // Moved to ARM32::AssemblerARM32::udiv()
   void udiv(Register rd, Register rn, Register rm, Condition cond = AL);
 
-#if 0
   // Moved to ARM32::AssemblerARM32::ldr()
   // Load/store instructions.
   void ldr(Register rd, Address ad, Condition cond = AL);

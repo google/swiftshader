@@ -844,6 +844,30 @@ void AssemblerARM32::mul(const Operand *OpRd, const Operand *OpRn,
   emitMulOp(Cond, MulOpcode, RegARM32::Encoded_Reg_r0, Rd, Rn, Rm, SetFlags);
 }
 
+void AssemblerARM32::udiv(const Operand *OpRd, const Operand *OpRn,
+                          const Operand *OpSrc1, CondARM32::Cond Cond) {
+  // UDIV - ARM section A8.8.248, encoding A1.
+  //   udiv<c> <Rd>, <Rn>, <Rm>
+  //
+  // cccc01110011dddd1111mmmm0001nnnn where cccc=Cond, dddd=Rd, nnnn=Rn, and
+  // mmmm=Rm.
+  IValueT Rd;
+  if (decodeOperand(OpRd, Rd) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  IValueT Rn;
+  if (decodeOperand(OpRn, Rn) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  IValueT Rm;
+  if (decodeOperand(OpSrc1, Rm) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  if (Rd == RegARM32::Encoded_Reg_pc || Rn == RegARM32::Encoded_Reg_pc ||
+      Rm == RegARM32::Encoded_Reg_pc)
+    llvm::report_fatal_error("Sdiv instruction unpredictable on pc");
+  // Assembler registers rd, rn, rm are encoded as rn, rm, rs.
+  constexpr IValueT Opcode = B21;
+  emitDivOp(Cond, Opcode, Rd, Rn, Rm);
+}
+
 void AssemblerARM32::sub(const Operand *OpRd, const Operand *OpRn,
                          const Operand *OpSrc1, bool SetFlags,
                          CondARM32::Cond Cond) {
