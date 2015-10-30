@@ -22,6 +22,30 @@
       "revId": "02a53c5946fa403e0a07cf7029c177914b8c4f80",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "56722192_7aceb13e",
+        "filename": "src/OpenGL/libEGL/Config.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-10-30T18:55:46Z",
+      "side": 1,
+      "message": "We don\u0027t. The configs are stored as a set in the Display, so the duplicates are removed. We don\u0027t really care much if the surface is RGB or BGR, since both are supported natively now, and with fast reordering of the components in case the native framebuffer has a different format.\n\nThat said, I kept the order the same in the previous patch so that the new formats get dropped as duplicates on non-Anroid. Thus no change in behavior there. That\u0027s probably worth adding as a comment on that CL...",
+      "parentUuid": "56722192_5ab815ac",
+      "range": {
+        "startLine": 61,
+        "startChar": 3,
+        "endLine": 61,
+        "endChar": 18
+      },
+      "revId": "02a53c5946fa403e0a07cf7029c177914b8c4f80",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
