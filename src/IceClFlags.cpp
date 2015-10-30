@@ -451,7 +451,8 @@ void ClFlags::getParsedClFlags(ClFlags &OutFlags) {
   OutFlags.setDecorateAsm(::DecorateAsm);
   OutFlags.setDefaultFunctionPrefix(::DefaultFunctionPrefix);
   OutFlags.setDefaultGlobalPrefix(::DefaultGlobalPrefix);
-  OutFlags.setDisableHybridAssembly(::DisableHybridAssembly);
+  OutFlags.setDisableHybridAssembly(::DisableHybridAssembly ||
+                                    (::OutFileType != Ice::FT_Iasm));
   OutFlags.setDisableInternal(::DisableInternal);
   OutFlags.setDisableIRGeneration(::DisableIRGeneration);
   OutFlags.setDisableTranslation(::DisableTranslation);
