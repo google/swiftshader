@@ -132,15 +132,18 @@ class Operand : public ValueObject {
     return *this;
   }
 
+#if 0
+  // Moved to encodeRotatedImm8() in IceAssemblerARM32.cpp
   // Data-processing operands - Immediate.
   explicit Operand(uint32_t immediate) {
     ASSERT(immediate < (1 << kImmed8Bits));
     type_ = 1;
     encoding_ = immediate;
   }
+#endif
 
 #if 0
-  // Moved to decodeOperand() in IceAssemblerARM32.cpp
+  // Moved to decodeOperand() and encodeRotatedImm8() in IceAssemblerARM32.cpp
   // Data-processing operands - Rotated immediate.
   Operand(uint32_t rotate, uint32_t immed8) {
     ASSERT((rotate < (1 << kRotateBits)) && (immed8 < (1 << kImmed8Bits)));
@@ -174,6 +177,8 @@ class Operand : public ValueObject {
                 static_cast<uint32_t>(rm);
   }
 
+#if 0
+  // Already defined as ARM32::OperandARM32FlexImm::canHoldImm().
   static bool CanHold(uint32_t immediate, Operand* o) {
     // Avoid the more expensive test for frequent small immediate values.
     if (immediate < (1 << kImmed8Bits)) {
@@ -192,6 +197,7 @@ class Operand : public ValueObject {
     }
     return false;
   }
+#endif
 
  private:
   bool is_valid() const { return (type_ == 0) || (type_ == 1); }
@@ -478,7 +484,10 @@ class Assembler : public ValueObject {
 
   void teq(Register rn, Operand o, Condition cond = AL);
 
+#if 0
+  // Moved to ARM32::AssemblerARM32::cmp()
   void cmp(Register rn, Operand o, Condition cond = AL);
+#endif
 
   void cmn(Register rn, Operand o, Condition cond = AL);
 

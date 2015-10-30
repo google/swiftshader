@@ -150,6 +150,8 @@ public:
 
   void bkpt(uint16_t Imm16);
 
+  void cmp(const Operand *OpRn, const Operand *OpSrc1, CondARM32::Cond Cond);
+
   void eor(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
            bool SetFlags, CondARM32::Cond Cond);
 

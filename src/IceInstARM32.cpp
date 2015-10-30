@@ -507,6 +507,19 @@ InstARM32Mov::InstARM32Mov(Cfg *Func, Variable *Dest, Operand *Src,
   }
 }
 
+template <InstARM32::InstKindARM32 K>
+void InstARM32CmpLike<K>::emitIAS(const Cfg *Func) const {
+  emitUsingTextFixup(Func);
+}
+
+template <> void InstARM32Cmp::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 2);
+  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  Asm->cmp(getSrc(0), getSrc(1), getPredicate());
+  if (Asm->needsTextFixup())
+    emitUsingTextFixup(Func);
+}
+
 InstARM32Vcmp::InstARM32Vcmp(Cfg *Func, Variable *Src0, Variable *Src1,
                              CondARM32::Cond Predicate)
     : InstARM32Pred(Func, InstARM32::Vcmp, 2, nullptr, Predicate) {
@@ -1566,5 +1579,8 @@ template class InstARM32UnaryopGPR<InstARM32::Rev, false>;
 template class InstARM32UnaryopGPR<InstARM32::Sxt, true>;
 template class InstARM32UnaryopGPR<InstARM32::Uxt, true>;
 template class InstARM32UnaryopFP<InstARM32::Vsqrt>;
+
+template class InstARM32CmpLike<InstARM32::Cmp>;
+template class InstARM32CmpLike<InstARM32::Tst>;
 
 } // end of namespace Ice
