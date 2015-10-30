@@ -132,9 +132,9 @@ def main():
     work necessary.  The --force option suppresses those checks and
     re-translates everything.
 
-    This script augments PATH so that various PNaCl and LLVM tools can be run.
-    These extra paths are within the native_client tree.  When changes are made
-    to these tools, copy them this way:
+    This script expects various PNaCl and LLVM tools to be found within the
+    native_client tree.  When changes are made to these tools, copy them this
+    way:
       cd native_client
       toolchain_build/toolchain_build_pnacl.py llvm_x86_64_linux \\
       --install=toolchain/linux_x86/pnacl_newlib_raw
@@ -161,9 +161,6 @@ def ProcessPexe(args, pexe, exe):
     path_addition = (
         '{root}/toolchain/linux_x86/pnacl_newlib_raw/bin'
         ).format(root=nacl_root)
-    os.environ['PATH'] = (
-        '{dir}{sep}{path}'
-        ).format(dir=path_addition, sep=os.pathsep, path=os.environ['PATH'])
     obj_llc = pexe_base + '.llc.o'
     obj_sz = pexe_base + '.sz.o'
     asm_sz = pexe_base + '.sz.s'
@@ -179,8 +176,8 @@ def ProcessPexe(args, pexe, exe):
         '{root}/toolchain_build/src/subzero/pnacl-sz'
         ).format(root=nacl_root)
     llcbin = '{base}/pnacl-llc'.format(base=path_addition)
-    gold = 'le32-nacl-ld.gold'
-    objcopy = 'le32-nacl-objcopy'
+    gold = '{base}/le32-nacl-ld.gold'.format(base=path_addition)
+    objcopy = '{base}/le32-nacl-objcopy'.format(base=path_addition)
     opt_level = args.optlevel
     opt_level_map = { 'm1':'0', '-1':'0', '0':'0', '1':'1', '2':'2' }
     hybrid = args.include or args.exclude
@@ -194,7 +191,7 @@ def ProcessPexe(args, pexe, exe):
         }[args.target]
 
         # Only run pnacl-translate in hybrid mode.
-        shellcmd(['pnacl-translate',
+        shellcmd(['{base}/pnacl-translate'.format(base=path_addition),
                   '-split-module=1',
                   '-ffunction-sections',
                   '-fdata-sections',
@@ -367,13 +364,11 @@ def ProcessPexe(args, pexe, exe):
                  echo=args.verbose)
 
     # Put the extra verbose printing at the end.
-    if args.verbose:
-        print 'PATH: {path}'.format(path=path_addition)
-        if hybrid:
-            print 'include={regex}'.format(regex=re_include_str)
-            print 'exclude={regex}'.format(regex=re_exclude_str)
-            print 'default_match={dm}'.format(dm=default_match)
-            print 'Number of Subzero syms = {num}'.format(num=len(sz_syms))
+    if args.verbose and hybrid:
+        print 'include={regex}'.format(regex=re_include_str)
+        print 'exclude={regex}'.format(regex=re_exclude_str)
+        print 'default_match={dm}'.format(dm=default_match)
+        print 'Number of Subzero syms = {num}'.format(num=len(sz_syms))
 
 if __name__ == '__main__':
     main()
