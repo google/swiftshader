@@ -286,7 +286,7 @@ void Assembler::orrs(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), ORR, 1, rn, rd, o);
 }
 
-// Moved to AssemblerARM32::mov()
+// Moved to ARM32::AssemblerARM32::mov()
 // TODO(kschimpf) other forms of move.
 void Assembler::mov(Register rd, Operand o, Condition cond) {
   EmitType01(cond, o.type(), MOV, 0, R0, rd, o);
@@ -333,7 +333,7 @@ void Assembler::clz(Register rd, Register rm, Condition cond) {
 
 
 #if
-// Moved to ARM::AssemblerARM32::movw
+// Moved to ARM32::AssemblerARM32::movw
 void Assembler::movw(Register rd, uint16_t imm16, Condition cond) {
   ASSERT(cond != kNoCondition);
   int32_t encoding = static_cast<int32_t>(cond) << kConditionShift |
@@ -343,7 +343,7 @@ void Assembler::movw(Register rd, uint16_t imm16, Condition cond) {
 }
 
 
-// Moved to ARM::AssemblerARM32::movt
+// Moved to ARM32::AssemblerARM32::movt
 void Assembler::movt(Register rd, uint16_t imm16, Condition cond) {
   ASSERT(cond != kNoCondition);
   int32_t encoding = static_cast<int32_t>(cond) << kConditionShift |
@@ -446,6 +446,8 @@ void Assembler::umaal(Register rd_lo, Register rd_hi,
 }
 
 
+#if 0
+// Moved to ARM32::AssemblerARM32::emitDivOp()
 void Assembler::EmitDivOp(Condition cond, int32_t opcode,
                           Register rd, Register rn, Register rm) {
   ASSERT(TargetCPUFeatures::integer_division_supported());
@@ -457,16 +459,17 @@ void Assembler::EmitDivOp(Condition cond, int32_t opcode,
     (static_cast<int32_t>(cond) << kConditionShift) |
     (static_cast<int32_t>(rn) << kDivRnShift) |
     (static_cast<int32_t>(rd) << kDivRdShift) |
+      // TODO(kschimpf): Why not also: B15 | B14 | B13 | B12?
     B26 | B25 | B24 | B20 | B4 |
     (static_cast<int32_t>(rm) << kDivRmShift);
   Emit(encoding);
 }
 
-
+// Moved to ARM32::AssemblerARM32::sdiv()
 void Assembler::sdiv(Register rd, Register rn, Register rm, Condition cond) {
   EmitDivOp(cond, 0, rd, rn, rm);
 }
-
+#endif
 
 void Assembler::udiv(Register rd, Register rn, Register rm, Condition cond) {
   EmitDivOp(cond, B21 , rd, rn, rm);
@@ -2096,7 +2099,7 @@ static bool CanEncodeBranchOffset(int32_t offset) {
   return Utils::IsInt(Utils::CountOneBits(kBranchOffsetMask), offset);
 }
 
-// Moved to AssemblerARM32::encodeBranchOffset.
+// Moved to ARM32::AssemblerARM32::encodeBranchOffset.
 int32_t Assembler::EncodeBranchOffset(int32_t offset, int32_t inst) {
   // The offset is off by 8 due to the way the ARM CPUs read PC.
   offset -= Instr::kPCReadOffset;

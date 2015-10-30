@@ -503,7 +503,7 @@ class Assembler : public ValueObject {
 
   // Multiply instructions.
 #if 0
-  // Moved to AssemblerARM32::mul()
+  // Moved to ARM32::AssemblerARM32::mul()
   void mul(Register rd, Register rn, Register rm, Condition cond = AL);
   void muls(Register rd, Register rn, Register rm, Condition cond = AL);
 #endif
@@ -526,19 +526,22 @@ class Assembler : public ValueObject {
   void umaal(Register rd_lo, Register rd_hi, Register rn, Register rm);
 
   // Division instructions.
+#if 0
+  // Moved to ARM32::AssemblerARM32::sdiv()
   void sdiv(Register rd, Register rn, Register rm, Condition cond = AL);
+#endif
   void udiv(Register rd, Register rn, Register rm, Condition cond = AL);
 
 #if 0
-  // Moved to AssemblerARM32::ldr()
+  // Moved to ARM32::AssemblerARM32::ldr()
   // Load/store instructions.
   void ldr(Register rd, Address ad, Condition cond = AL);
-  // Moved to AssemblerARM32::str()
+  // Moved to ARM32::AssemblerARM32::str()
   void str(Register rd, Address ad, Condition cond = AL);
 
-  // Moved to AssemblerARM32::ldr()
+  // Moved to ARM32::AssemblerARM32::ldr()
   void ldrb(Register rd, Address ad, Condition cond = AL);
-  // Moved to AssemblerARM32::str()
+  // Moved to ARM32::AssemblerARM32::str()
   void strb(Register rd, Address ad, Condition cond = AL);
 #endif
 
@@ -1173,13 +1176,14 @@ class Assembler : public ValueObject {
                  Register rn,
                  Register rm,
                  Register rs);
-#endif
 
+  // Moved to ARM32::AssemblerAR32::emitDivOp();
   void EmitDivOp(Condition cond,
                  int32_t opcode,
                  Register rd,
                  Register rn,
                  Register rm);
+#endif
 
   void EmitMultiVSMemOp(Condition cond,
                         BlockAddressMode am,

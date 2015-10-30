@@ -38,10 +38,16 @@ static constexpr IValueT B4 = 1 << 4;
 static constexpr IValueT B5 = 1 << 5;
 static constexpr IValueT B6 = 1 << 6;
 static constexpr IValueT B7 = 1 << 7;
+static constexpr IValueT B12 = 1 << 12;
+static constexpr IValueT B13 = 1 << 13;
+static constexpr IValueT B14 = 1 << 14;
+static constexpr IValueT B15 = 1 << 15;
+static constexpr IValueT B20 = 1 << 20;
 static constexpr IValueT B21 = 1 << 21;
 static constexpr IValueT B22 = 1 << 22;
 static constexpr IValueT B24 = 1 << 24;
 static constexpr IValueT B25 = 1 << 25;
+static constexpr IValueT B26 = 1 << 26;
 
 // Constants used for the decoding or encoding of the individual fields of
 // instructions. Based on ARM section A5.1.
@@ -78,6 +84,11 @@ static constexpr IValueT kShiftShift = 5;
 
 static constexpr IValueT kImmed12Bits = 12;
 static constexpr IValueT kImm12Shift = 0;
+
+// Div instruction register field encodings.
+static constexpr IValueT kDivRdShift = 16;
+static constexpr IValueT kDivRmShift = 8;
+static constexpr IValueT kDivRnShift = 0;
 
 // Type of instruction encoding (bits 25-27). See ARM section A5.1
 static constexpr IValueT kInstTypeDataRegister = 0;  // i.e. 000
@@ -439,6 +450,19 @@ void AssemblerARM32::emitMemOp(CondARM32::Cond Cond, IValueT InstType,
   emitInst(Encoding);
 }
 
+void AssemblerARM32::emitDivOp(CondARM32::Cond Cond, IValueT Opcode, IValueT Rd,
+                               IValueT Rn, IValueT Rm) {
+  if (!isGPRRegisterDefined(Rd) || !isGPRRegisterDefined(Rn) ||
+      !isGPRRegisterDefined(Rm) || !isConditionDefined(Cond))
+    return setNeedsTextFixup();
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  const IValueT Encoding = Opcode | (encodeCondition(Cond) << kConditionShift) |
+                           (Rn << kDivRnShift) | (Rd << kDivRdShift) | B26 |
+                           B25 | B24 | B20 | B15 | B14 | B13 | B12 | B4 |
+                           (Rm << kDivRmShift);
+  emitInst(Encoding);
+}
+
 void AssemblerARM32::emitMulOp(CondARM32::Cond Cond, IValueT Opcode, IValueT Rd,
                                IValueT Rn, IValueT Rm, IValueT Rs, bool SetCc) {
   if (!isGPRRegisterDefined(Rd) || !isGPRRegisterDefined(Rn) ||
@@ -689,6 +713,30 @@ void AssemblerARM32::sbc(const Operand *OpRd, const Operand *OpRn,
   // s=SetFlags and iiiiiiiiiiii=Src1Value=RotatedImm8.
   constexpr IValueT Sbc = B2 | B1; // 0110
   emitType01(Sbc, OpRd, OpRn, OpSrc1, SetFlags, Cond);
+}
+
+void AssemblerARM32::sdiv(const Operand *OpRd, const Operand *OpRn,
+                          const Operand *OpSrc1, CondARM32::Cond Cond) {
+  // SDIV - ARM section A8.8.165, encoding A1.
+  //   sdiv<c> <Rd>, <Rn>, <Rm>
+  //
+  // cccc01110001dddd1111mmmm0001nnnn where cccc=Cond, dddd=Rd, nnnn=Rn, and
+  // mmmm=Rm.
+  IValueT Rd;
+  if (decodeOperand(OpRd, Rd) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  IValueT Rn;
+  if (decodeOperand(OpRn, Rn) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  IValueT Rm;
+  if (decodeOperand(OpSrc1, Rm) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  if (Rd == RegARM32::Encoded_Reg_pc || Rn == RegARM32::Encoded_Reg_pc ||
+      Rm == RegARM32::Encoded_Reg_pc)
+    llvm::report_fatal_error("Sdiv instruction unpredictable on pc");
+  // Assembler registers rd, rn, rm are encoded as rn, rm, rs.
+  constexpr IValueT Opcode = 0;
+  emitDivOp(Cond, Opcode, Rd, Rn, Rm);
 }
 
 void AssemblerARM32::str(const Operand *OpRt, const Operand *OpAddress,

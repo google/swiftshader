@@ -170,6 +170,9 @@ public:
   void sbc(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
            bool SetFlags, CondARM32::Cond Cond);
 
+  void sdiv(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
+            CondARM32::Cond Cond);
+
   void str(const Operand *OpRt, const Operand *OpAddress, CondARM32::Cond Cond);
 
   void sub(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
@@ -212,6 +215,11 @@ private:
   // IceAssemblerARM32.cpp.
   void emitMemOp(CondARM32::Cond Cond, IValueT InstType, bool IsLoad,
                  bool IsByte, uint32_t Rt, uint32_t Address);
+
+  // Pattern cccc011100x1dddd1111mmmm0001nnn where cccc=Cond,
+  // x=Opcode, dddd=Rd, nnnn=Rn, mmmm=Rm.
+  void emitDivOp(CondARM32::Cond Cond, IValueT Opcode, IValueT Rd, IValueT Rn,
+                 IValueT Rm);
 
   // Pattern ccccxxxxxxxfnnnnddddssss1001mmmm where cccc=Cond, dddd=Rd, nnnn=Rn,
   // mmmm=Rm, ssss=Rs, f=SetCc, and xxxxxxx=Opcode.
