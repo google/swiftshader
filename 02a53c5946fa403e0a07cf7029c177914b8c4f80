@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "56722192_5ab815ac",
+        "filename": "src/OpenGL/libEGL/Config.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-10-30T18:44:07Z",
+      "side": 1,
+      "message": "How do you differentiate RGB from BGR when __ANDROID__ is not defined?",
+      "range": {
+        "startLine": 61,
+        "startChar": 3,
+        "endLine": 61,
+        "endChar": 18
+      },
+      "revId": "02a53c5946fa403e0a07cf7029c177914b8c4f80",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
