@@ -50,6 +50,8 @@ entry:
   ret void
 }
 ; CHECK-LABEL: fixed_416_align_32
+; CHECK:      push    ebp
+; CHECK-NEXT: mov     ebp,esp
 ; CHECK:      and     esp,0xffffffe0
 ; CHECK:      sub     esp,0x1a0
 ; CHECK:      sub     esp,0x10
@@ -87,6 +89,8 @@ entry:
   ret void
 }
 ; CHECK-LABEL: fixed_351_align_32
+; CHECK:      push    ebp
+; CHECK-NEXT: mov     ebp,esp
 ; CHECK:      and     esp,0xffffffe0
 ; CHECK:      sub     esp,0x160
 ; CHECK:      sub     esp,0x10
@@ -185,6 +189,8 @@ entry:
   ret void
 }
 ; CHECK-LABEL: align1MB
+; CHECK: push ebp
+; CHECK-NEXT: mov ebp,esp
 ; CHECK: and esp,0xfff00000
 ; CHECK: add [[REG:.*]],0xfffff
 ; CHECK: and [[REG]],0xfff00000
@@ -212,6 +218,8 @@ entry:
   ret void
 }
 ; CHECK-LABEL: align512MB
+; CHECK: push ebp
+; CHECK-NEXT: mov ebp,esp
 ; CHECK: and esp,0xe0000000
 ; CHECK: add [[REG:.*]],0x1fffffff
 ; CHECK: and [[REG]],0xe0000000
@@ -240,6 +248,24 @@ entry:
 }
 ; CHECK-LABEL: fixed_no_frameptr
 ; CHECK-NOT:      mov     ebp,esp
+
+; Test that a simple alloca sequence with at least one large alignment does
+; trigger a frame pointer.
+define internal void @fixed_bigalign_with_frameptr(i32 %arg) {
+entry:
+  %a1 = alloca i8, i32 8, align 4
+  %a2 = alloca i8, i32 12, align 4
+  %a3 = alloca i8, i32 16, align 64
+  %p1 = bitcast i8* %a1 to i32*
+  %p2 = bitcast i8* %a2 to i32*
+  %p3 = bitcast i8* %a3 to i32*
+  store i32 %arg, i32* %p1, align 1
+  store i32 %arg, i32* %p2, align 1
+  store i32 %arg, i32* %p3, align 1
+  ret void
+}
+; CHECK-LABEL: fixed_bigalign_with_frameptr
+; CHECK:      mov     ebp,esp
 
 ; Test that a more complex alloca sequence does trigger a frame pointer.
 define internal void @var_with_frameptr(i32 %arg) {
