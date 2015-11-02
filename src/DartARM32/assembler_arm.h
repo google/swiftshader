@@ -501,8 +501,11 @@ class Assembler : public ValueObject {
   void movs(Register rd, Operand o, Condition cond = AL);
 #endif
 
+#if 0
+  // Moved to ARM32::IceAssemblerARM32::bic()
   void bic(Register rd, Register rn, Operand o, Condition cond = AL);
   void bics(Register rd, Register rn, Operand o, Condition cond = AL);
+#endif
 
   void mvn(Register rd, Operand o, Condition cond = AL);
   void mvns(Register rd, Operand o, Condition cond = AL);

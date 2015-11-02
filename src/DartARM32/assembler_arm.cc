@@ -301,15 +301,17 @@ void Assembler::movs(Register rd, Operand o, Condition cond) {
 }
 
 
+#if 0
+// Moved to ARM32::AssemblerARM32::bic();
 void Assembler::bic(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), BIC, 0, rn, rd, o);
 }
 
-
+// Moved to ARM32::AssemblerARM32::bic();
 void Assembler::bics(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), BIC, 1, rn, rd, o);
 }
-
+#endif
 
 void Assembler::mvn(Register rd, Operand o, Condition cond) {
   EmitType01(cond, o.type(), MVN, 0, R0, rd, o);

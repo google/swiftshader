@@ -563,6 +563,24 @@ void AssemblerARM32::bkpt(uint16_t Imm16) {
   emitInst(Encoding);
 }
 
+void AssemblerARM32::bic(const Operand *OpRd, const Operand *OpRn,
+                         const Operand *OpSrc1, bool SetFlags,
+                         CondARM32::Cond Cond) {
+  // BIC (register) - ARM section A8.8.22, encoding A1:
+  //   bic{s}<c> <Rd>, <Rn>, <Rm>{, <shift>}
+  //
+  // cccc0001110snnnnddddiiiiitt0mmmm where cccc=Cond, dddd=Rd, nnnn=Rn,
+  // mmmm=Rm, iiiii=Shift, tt=ShiftKind, and s=SetFlags.
+  //
+  // BIC (immediate) - ARM section A8.8.21, encoding A1:
+  //   bic{s}<c> <Rd>, <Rn>, #<RotatedImm8>
+  //
+  // cccc0011110snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rn, nnnn=Rn,
+  // s=SetFlags, and iiiiiiiiiiii=Src1Value defining RotatedImm8.
+  IValueT Opcode = B3 | B2 | B1; // i.e. 1110
+  emitType01(Opcode, OpRd, OpRn, OpSrc1, SetFlags, Cond);
+}
+
 void AssemblerARM32::bx(RegARM32::GPRRegister Rm, CondARM32::Cond Cond) {
   // BX - ARM section A8.8.27, encoding A1:
   //   bx<c> <Rm>
