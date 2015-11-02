@@ -67,14 +67,12 @@ COMMON_LDFLAGS := \
 	-Wl,--hash-style=sysv
 
 include $(CLEAR_VARS)
-
+LOCAL_MODULE := libGLESv2_swiftshader_vendor_debug
 LOCAL_MODULE_PATH := vendor/transgaming/swiftshader/$(TARGET_ARCH)/debug/obj
 LOCAL_UNSTRIPPED_PATH := vendor/transgaming/swiftshader/$(TARGET_ARCH)/debug/sym
-LOCAL_MODULE := libGLESv2_swiftshader_vendor_debug
 LOCAL_MODULE_TAGS := optional
 LOCAL_INSTALLED_MODULE_STEM := libGLESv2_swiftshader.so
 LOCAL_CFLAGS += $(COMMON_CFLAGS) -UNDEBUG -g -O0
-
 LOCAL_CLANG := true
 LOCAL_SRC_FILES += $(COMMON_SRC_FILES)
 LOCAL_C_INCLUDES += $(COMMON_C_INCLUDES)
@@ -84,10 +82,9 @@ LOCAL_LDFLAGS += $(COMMON_LDFLAGS)
 include $(BUILD_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
-
+LOCAL_MODULE := libGLESv2_swiftshader_vendor_release
 LOCAL_MODULE_PATH := vendor/transgaming/swiftshader/$(TARGET_ARCH)/release/obj
 LOCAL_UNSTRIPPED_PATH := vendor/transgaming/swiftshader/$(TARGET_ARCH)/release/sym
-LOCAL_MODULE := libGLESv2_swiftshader_vendor_release
 LOCAL_MODULE_TAGS := optional
 LOCAL_INSTALLED_MODULE_STEM := libGLESv2_swiftshader.so
 LOCAL_CFLAGS += \
@@ -96,11 +93,32 @@ LOCAL_CFLAGS += \
 	-ffunction-sections \
 	-fdata-sections \
 	-DANGLE_DISABLE_TRACE
-
 LOCAL_CLANG := true
 LOCAL_SRC_FILES += $(COMMON_SRC_FILES)
 LOCAL_C_INCLUDES += $(COMMON_C_INCLUDES)
 LOCAL_STATIC_LIBRARIES += swiftshader_compiler_release swiftshader_top_release $(COMMON_STATIC_LIBRARIES)
 LOCAL_SHARED_LIBRARIES += $(COMMON_SHARED_LIBRARIES)
 LOCAL_LDFLAGS += $(COMMON_LDFLAGS)
+include $(BUILD_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libGLESv2_swiftshader
+LOCAL_MODULE_PATH := $(TARGET_OUT_VENDOR)/lib/egl
+LOCAL_MODULE_TAGS := optional
+LOCAL_CLANG := true
+LOCAL_SRC_FILES += $(COMMON_SRC_FILES)
+LOCAL_C_INCLUDES += $(COMMON_C_INCLUDES)
+LOCAL_STATIC_LIBRARIES += swiftshader_compiler_$(SWIFTSHADER_OPTIM) swiftshader_top_$(SWIFTSHADER_OPTIM) $(COMMON_STATIC_LIBRARIES)
+LOCAL_SHARED_LIBRARIES += $(COMMON_SHARED_LIBRARIES)
+LOCAL_LDFLAGS += $(COMMON_LDFLAGS)
+ifeq (debug,$(SWIFTSHADER_OPTIM))
+LOCAL_CFLAGS += $(COMMON_CFLAGS) -UNDEBUG -g -O0
+else
+LOCAL_CFLAGS += \
+	$(COMMON_CFLAGS) \
+	-fomit-frame-pointer \
+	-ffunction-sections \
+	-fdata-sections \
+	-DANGLE_DISABLE_TRACE
+endif
 include $(BUILD_SHARED_LIBRARY)
