@@ -16,11 +16,11 @@ LLVM_SRC_PATH ?= ../llvm
 # The x86-32-specific sandboxed translator directory.
 # It holds sandboxed versions of libraries and binaries.
 SB_LLVM_PATH ?= $(shell readlink -e \
-	../../out/sandboxed_translators_work/translator-i686/llvm-sb/Release)
+  ../../out/sandboxed_translators_work/translator-i686/llvm-sb/Release)
 
 # NACL_ROOT is the root of the native client repository.
 NACL_ROOT ?= $(shell python -c "import sys; sys.path.insert(0, 'pydir'); \
-	import utils; print utils.FindBaseNaCl()")
+  import utils; print utils.FindBaseNaCl()")
 
 # TOOLCHAIN_ROOT is the location of NaCl/PNaCl toolchains and other
 # tools like qemu.
@@ -42,7 +42,7 @@ AUTOCONF ?= $(shell ldd $(PNACL_BIN_PATH)/opt | grep -c libLLVM-)
 # CLANG_PATH is the location of the clang compiler to use for building
 # the host binaries.
 CLANG_PATH ?= $(shell readlink -e \
-	$(NACL_ROOT)/../third_party/llvm-build/Release+Asserts/bin)
+  $(NACL_ROOT)/../third_party/llvm-build/Release+Asserts/bin)
 
 # LIBCXX_INSTALL_PATH is the directory where libc++ is located. It should
 # contain header files and corresponding libraries. This is used for
@@ -78,11 +78,11 @@ ifdef MINIMAL
   NOASSERT = 1
   OBJDIR := $(OBJDIR)+Min
   BASE_CXX_DEFINES += -DALLOW_DUMP=0 -DALLOW_LLVM_CL=0 -DALLOW_LLVM_IR=0 \
-	-DALLOW_LLVM_IR_AS_INPUT=0 -DALLOW_DISABLE_IR_GEN=0 \
+    -DALLOW_LLVM_IR_AS_INPUT=0 -DALLOW_DISABLE_IR_GEN=0 \
     -DALLOW_MINIMAL_BUILD=1
 else
   BASE_CXX_DEFINES += -DALLOW_DUMP=1 -DALLOW_LLVM_CL=1 -DALLOW_LLVM_IR=1 \
-	-DALLOW_LLVM_IR_AS_INPUT=1 -DALLOW_DISABLE_IR_GEN=1 \
+    -DALLOW_LLVM_IR_AS_INPUT=1 -DALLOW_DISABLE_IR_GEN=1 \
     -DALLOW_MINIMAL_BUILD=0
 endif
 
@@ -98,13 +98,15 @@ endif
 
 ifdef UBSAN
   OBJDIR := $(OBJDIR)+UBSan
-  CXX_EXTRA += -fsanitize=undefined -fno-sanitize=vptr -fno-sanitize=nonnull-attribute
+  CXX_EXTRA += -fsanitize=undefined -fno-sanitize=vptr \
+               -fno-sanitize=nonnull-attribute
   LD_EXTRA += -fsanitize=undefined
 endif
 
 ifdef UBSAN_TRAP
   OBJDIR := $(OBJDIR)+UBSan_Trap
-  CXX_EXTRA += -fsanitize=undefined-trap -fsanitize-undefined-trap-on-error -fno-sanitize=vptr -fno-sanitize=nonnull-attribute
+  CXX_EXTRA += -fsanitize=undefined-trap -fsanitize-undefined-trap-on-error \
+               -fno-sanitize=vptr -fno-sanitize=nonnull-attribute
   LD_EXTRA += -fsanitize=undefined-trap
 endif
 
@@ -182,90 +184,91 @@ SB_TRANSLATE := $(PNACL_BIN_PATH)/pnacl-translate
 LLVM_EXTRA_WARNINGS := -Wcovered-switch-default
 
 BASE_CXXFLAGS := -std=gnu++11 -Wall -Wextra -Werror -fno-rtti \
-	-fno-exceptions $(OPTLEVEL) $(ASSERTIONS) -g -pedantic \
-	$(LLVM_EXTRA_WARNINGS) $(CXX_EXTRA)
+  -fno-exceptions $(OPTLEVEL) $(ASSERTIONS) -g -pedantic \
+  $(LLVM_EXTRA_WARNINGS) $(CXX_EXTRA)
 
 CXXFLAGS := $(LLVM_CXXFLAGS) $(BASE_CXXFLAGS) $(CXX_DEFINES) $(HOST_FLAGS) \
-	$(STDLIB_FLAGS)
+  $(STDLIB_FLAGS)
 SB_CXXFLAGS := $(SB_LLVM_CXXFLAGS) $(BASE_CXXFLAGS) $(SB_CXX_DEFINES)
 
 LDFLAGS := $(HOST_FLAGS) -L$(LIBCXX_INSTALL_PATH)/lib -Wl,--gc-sections \
-	$(LD_EXTRA) $(STDLIB_FLAGS)
+  $(LD_EXTRA) $(STDLIB_FLAGS)
 # Not specifying -Wl,--gc-sections but instead doing bitcode linking GC w/ LTO.
 SB_LDFLAGS := $(LINKOPTLEVEL) $(LD_EXTRA)
 
 SRCS = \
-	IceAssembler.cpp \
-	IceAssemblerARM32.cpp \
-	IceBrowserCompileServer.cpp \
-	IceCfg.cpp \
-	IceCfgNode.cpp \
-	IceClFlags.cpp \
-	IceCompiler.cpp \
-	IceCompileServer.cpp \
-	IceELFObjectWriter.cpp \
-	IceELFSection.cpp \
-	IceFixups.cpp \
-	IceGlobalContext.cpp \
-	IceGlobalInits.cpp \
-	IceInst.cpp \
-	IceInstARM32.cpp \
-	IceInstMIPS32.cpp \
-	IceInstX8632.cpp \
-	IceInstX8664.cpp \
-	IceIntrinsics.cpp \
-	IceLiveness.cpp \
-	IceLoopAnalyzer.cpp \
-	IceOperand.cpp \
-	IceRegAlloc.cpp \
-	IceRNG.cpp \
-	IceSwitchLowering.cpp \
-	IceTargetLowering.cpp \
-	IceTargetLoweringARM32.cpp \
-	IceTargetLoweringMIPS32.cpp \
-	IceTargetLoweringX8632.cpp \
-	IceTargetLoweringX8664.cpp \
-	IceThreading.cpp \
-	IceTimerTree.cpp \
-	IceTranslator.cpp \
-	IceTypes.cpp \
-	main.cpp \
-	PNaClTranslator.cpp
+  IceAssembler.cpp \
+  IceAssemblerARM32.cpp \
+  IceBrowserCompileServer.cpp \
+  IceCfg.cpp \
+  IceCfgNode.cpp \
+  IceClFlags.cpp \
+  IceCompiler.cpp \
+  IceCompileServer.cpp \
+  IceELFObjectWriter.cpp \
+  IceELFSection.cpp \
+  IceFixups.cpp \
+  IceGlobalContext.cpp \
+  IceGlobalInits.cpp \
+  IceInst.cpp \
+  IceInstARM32.cpp \
+  IceInstMIPS32.cpp \
+  IceInstX8632.cpp \
+  IceInstX8664.cpp \
+  IceIntrinsics.cpp \
+  IceLiveness.cpp \
+  IceLoopAnalyzer.cpp \
+  IceOperand.cpp \
+  IceRegAlloc.cpp \
+  IceRNG.cpp \
+  IceSwitchLowering.cpp \
+  IceTargetLowering.cpp \
+  IceTargetLoweringARM32.cpp \
+  IceTargetLoweringMIPS32.cpp \
+  IceTargetLoweringX8632.cpp \
+  IceTargetLoweringX8664.cpp \
+  IceThreading.cpp \
+  IceTimerTree.cpp \
+  IceTranslator.cpp \
+  IceTypes.cpp \
+  main.cpp \
+  PNaClTranslator.cpp
 
 ifndef MINIMAL
-  SRCS += IceConverter.cpp \
-	IceTypeConverter.cpp
+  SRCS += \
+    IceConverter.cpp \
+    IceTypeConverter.cpp
 endif
 
 OBJS=$(patsubst %.cpp, $(OBJDIR)/%.o, $(SRCS))
 SB_OBJS=$(patsubst %.cpp, $(SB_OBJDIR)/%.o, $(SRCS))
 
 UNITTEST_SRCS = \
-	BitcodeMunge.cpp \
-	IceELFSectionTest.cpp \
-	IceParseInstsTest.cpp
+  BitcodeMunge.cpp \
+  IceELFSectionTest.cpp \
+  IceParseInstsTest.cpp
 
 # The X86 assembler tests take too long to compile. Given how infrequently the
 # assembler will change, we disable them.
 ifdef CHECK_X86_ASM
-ifndef DEBUG
-$(error Run check-unit with DEBUG=1 lest your machine perish)
-endif
+  ifndef DEBUG
+  $(error Run check-unit with DEBUG=1 lest your machine perish)
+  endif
   UNITTEST_SRCS += AssemblerX8632/LowLevel.cpp \
-        AssemblerX8632/DataMov.cpp \
-        AssemblerX8632/Locked.cpp \
-        AssemblerX8632/GPRArith.cpp \
-        AssemblerX8632/XmmArith.cpp \
-        AssemblerX8632/ControlFlow.cpp \
-        AssemblerX8632/Other.cpp \
-        AssemblerX8632/X87.cpp \
-        AssemblerX8664/LowLevel.cpp \
-        AssemblerX8664/DataMov.cpp \
-        AssemblerX8664/Locked.cpp \
-        AssemblerX8664/GPRArith.cpp \
-        AssemblerX8664/XmmArith.cpp \
-        AssemblerX8664/ControlFlow.cpp \
-        AssemblerX8664/Other.cpp
+    AssemblerX8632/DataMov.cpp \
+    AssemblerX8632/Locked.cpp \
+    AssemblerX8632/GPRArith.cpp \
+    AssemblerX8632/XmmArith.cpp \
+    AssemblerX8632/ControlFlow.cpp \
+    AssemblerX8632/Other.cpp \
+    AssemblerX8632/X87.cpp \
+    AssemblerX8664/LowLevel.cpp \
+    AssemblerX8664/DataMov.cpp \
+    AssemblerX8664/Locked.cpp \
+    AssemblerX8664/GPRArith.cpp \
+    AssemblerX8664/XmmArith.cpp \
+    AssemblerX8664/ControlFlow.cpp \
+    AssemblerX8664/Other.cpp
 endif
 
 UNITTEST_OBJS = $(patsubst %.cpp, $(OBJDIR)/unittest/%.o, $(UNITTEST_SRCS))
@@ -298,14 +301,14 @@ make_symlink: $(OBJDIR)/pnacl-sz
 
 $(OBJDIR)/pnacl-sz: $(OBJS)
 	$(CXX) $(LDFLAGS) -o $@ $^ $(LLVM_LDFLAGS) \
-               -Wl,-rpath=$(abspath $(LIBCXX_INSTALL_PATH)/lib)
+          -Wl,-rpath=$(abspath $(LIBCXX_INSTALL_PATH)/lib)
 
 $(SB_OBJDIR)/pnacl-sz.x86-32.nexe: $(SB_OBJS)
 	$(eval PNACL_SZ_BASE := $(patsubst %.nexe, %, $@))
 	$(SB_CXX) $(SB_LDFLAGS) -o $(PNACL_SZ_BASE).nonfinal.pexe $^ \
-		$(SB_LLVM_LDFLAGS)
+          $(SB_LLVM_LDFLAGS)
 	$(SB_TRANSLATE) -arch x86-32 $(PNACL_SZ_BASE).nonfinal.pexe -o $@ \
-		--allow-llvm-bitcode-input
+          --allow-llvm-bitcode-input
 
 # TODO(stichnot): Be more precise than "*.h" here and elsewhere.
 $(OBJS): $(OBJDIR)/%.o: src/%.cpp src/*.h src/*.def
@@ -316,23 +319,24 @@ $(SB_OBJS): $(SB_OBJDIR)/%.o: src/%.cpp src/*.h src/*.def
 
 $(OBJDIR)/run_unittests: $(UNITTEST_OBJS) $(UNITTEST_LIB_OBJS)
 	$(CXX) $(GTEST_LIB_PATH) $(LDFLAGS) -o $@ $^ $(LLVM_LDFLAGS) \
-               -lgtest -lgtest_main -ldl \
-               -Wl,-rpath=$(abspath $(LIBCXX_INSTALL_PATH)/lib)
+          -lgtest -lgtest_main -ldl \
+          -Wl,-rpath=$(abspath $(LIBCXX_INSTALL_PATH)/lib)
 
-$(UNITTEST_OBJS): $(OBJDIR)/unittest/%.o: unittest/%.cpp \
-		unittest/*.h src/*.h src/*.def
+$(UNITTEST_OBJS): $(OBJDIR)/unittest/%.o: unittest/%.cpp unittest/*.h \
+                  src/*.h src/*.def
 	$(CXX) -c $(CXXFLAGS) \
-		-Isrc/ \
-                -Iunittest/ \
-		-I$(LLVM_SRC_PATH)/utils/unittest/googletest/include \
-		-I$(LLVM_SRC_PATH) \
-		-DGTEST_HAS_RTTI=0 -DGTEST_USE_OWN_TR1_TUPLE \
-		$< -o $@
+          -Isrc/ \
+          -Iunittest/ \
+          -I$(LLVM_SRC_PATH)/utils/unittest/googletest/include \
+          -I$(LLVM_SRC_PATH) \
+          -DGTEST_HAS_RTTI=0 -DGTEST_USE_OWN_TR1_TUPLE \
+          $< -o $@
 
 $(OBJS): | $(OBJDIR)
 $(SB_OBJS): | $(SB_OBJDIR)
 
-$(UNITTEST_OBJS): | $(OBJDIR)/unittest $(OBJDIR)/unittest/AssemblerX8632 $(OBJDIR)/unittest/AssemblerX8664
+$(UNITTEST_OBJS): | $(OBJDIR)/unittest $(OBJDIR)/unittest/AssemblerX8632 \
+                    $(OBJDIR)/unittest/AssemblerX8664
 
 $(OBJDIR):
 	@mkdir -p $@
@@ -349,8 +353,8 @@ $(OBJDIR)/unittest/AssemblerX8664: $(OBJDIR)/unittest
 
 RT_SRC := runtime/szrt.c runtime/szrt_ll.ll runtime/szrt_profiler.c
 RT_OBJ := build/runtime/szrt_native_x8632.o build/runtime/szrt_sb_x8632.o \
-	build/runtime/szrt_native_x8664.o build/runtime/szrt_sb_x8664.o \
-	build/runtime/szrt_native_arm32.o build/runtime/szrt_sb_arm32.o
+          build/runtime/szrt_native_x8664.o build/runtime/szrt_sb_x8664.o \
+          build/runtime/szrt_native_arm32.o build/runtime/szrt_sb_arm32.o
 
 runtime: $(RT_OBJ)
 
@@ -376,22 +380,46 @@ check-xtest: $(OBJDIR)/pnacl-sz make_symlink runtime
        # TODO(jpp): implement x8664 sandbox, then enable xtests.
        # TODO(jpp): reenable the x86-64 tests.
 	./pydir/crosstest_generator.py -v --lit \
-	  --toolchain-root $(TOOLCHAIN_ROOT) \
-	  -i x8632,native,sse2 \
-	  -i x8632,native,sse4.1,test_vector_ops \
-	  -i x8632,sandbox,sse4.1,Om1 \
-	  -e x8664,native,sse2 \
-	  -e x8664,native,sse4.1,test_vector_ops \
-	  -e x8664,native,sse2,test_global \
-	  -i arm32,native,neon \
-	  -e arm32,native,neon,test_vector_ops \
-	  -e arm32,native,neon,test_select
+          --toolchain-root $(TOOLCHAIN_ROOT) \
+          -i x8632,native,sse2 \
+          -i x8632,native,sse4.1,test_vector_ops \
+          -i x8632,sandbox,sse4.1,Om1 \
+          -e x8664,native,sse2 \
+          -e x8664,native,sse4.1,test_vector_ops \
+          -e x8664,native,sse2,test_global \
+          -i arm32,native,neon \
+          -e arm32,native,neon,test_vector_ops \
+          -e arm32,native,neon,test_select
 	PNACL_BIN_PATH=$(PNACL_BIN_PATH) \
 	$(LLVM_SRC_PATH)/utils/lit/lit.py -sv crosstest/Output
 endif
 
 check-unit: $(OBJDIR)/run_unittests
 	$(OBJDIR)/run_unittests
+
+ALLSPEC := 177.mesa 179.art 183.equake 188.ammp 164.gzip 175.vpr 176.gcc \
+           181.mcf 186.crafty 197.parser 253.perlbmk 254.gap 255.vortex \
+           256.bzip2 300.twolf 252.eon
+.PHONY: $(ALLSPEC)
+
+TARGET := x8632
+ifeq ($(TARGET),x8632)
+  TARGETFLAG=x8632
+  SETUP=SetupGccX8632Opt
+  SPEC := -O2 --filetype=obj
+endif
+ifeq ($(TARGET),arm32)
+  TARGETFLAG=arm32
+  SETUP=SetupGccArmOpt
+  SPEC := -O2 --filetype=asm
+endif
+
+%.spec2k: %
+	./pydir/szbuild_spec2k.py -v --force --target=$(TARGETFLAG) $(SPEC) $<
+	( cd ../../../tests/spec2k; \
+	 ./run_all.sh RunTimedBenchmarks $(SETUP) train $< )
+
+check-spec: $(OBJDIR)/pnacl-sz make_symlink $(ALLSPEC:=.spec2k)
 
 check: check-lit check-unit check-xtest
 
@@ -403,17 +431,17 @@ FORMAT_BLACKLIST += ! -name assembler_arm.h
 FORMAT_BLACKLIST += ! -name assembler_arm.cc
 format:
 	$(CLANG_FORMAT_PATH)/clang-format -style=LLVM -i \
-	`find . -regex '.*\.\(c\|h\|cpp\)' $(FORMAT_BLACKLIST)`
+          `find . -regex '.*\.\(c\|h\|cpp\)' $(FORMAT_BLACKLIST)`
 
 format-diff:
 	git diff -U0 `git merge-base HEAD master` | \
-	PATH=$(PNACL_BIN_PATH):$(PATH) \
-	$(LLVM_SRC_PATH)/../clang/tools/clang-format/clang-format-diff.py \
-	-p1 -style=LLVM -i
+          PATH=$(PNACL_BIN_PATH):$(PATH) \
+          $(LLVM_SRC_PATH)/../clang/tools/clang-format/clang-format-diff.py \
+          -p1 -style=LLVM -i
 
 bloat: make_symlink
 	nm -C -S -l pnacl-sz | \
-	bloat/bloat.py --nm-output=/dev/stdin syms > build/pnacl-sz.bloat.json
+          bloat/bloat.py --nm-output=/dev/stdin syms > build/pnacl-sz.bloat.json
 	@echo See Subzero size breakdown in bloat/pnacl-sz.bloat.html
 
 docs:
