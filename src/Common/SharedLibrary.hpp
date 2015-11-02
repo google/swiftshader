@@ -84,20 +84,20 @@ void *loadLibrary(const char *(&names)[n], const char *mustContainSymbol = nullp
 #else
 	inline void *loadLibrary(const char *path)
 	{
-		return dlopen(path, RTLD_LAZY);
+		return dlopen(path, RTLD_LAZY | RTLD_LOCAL);
 	}
 
 	inline void *getLibraryHandle(const char *path)
 	{
 		#ifdef __ANDROID__
 			// bionic doesn't support RTLD_NOLOAD before L
-			return dlopen(path, RTLD_NOW);
+			return dlopen(path, RTLD_NOW | RTLD_LOCAL);
 		#else
-			void *resident = dlopen(path, RTLD_LAZY | RTLD_NOLOAD);
+			void *resident = dlopen(path, RTLD_LAZY | RTLD_NOLOAD | RTLD_LOCAL);
 
 			if(resident)
 			{
-				return dlopen(path, RTLD_LAZY);   // Increment reference count
+				return dlopen(path, RTLD_LAZY | RTLD_LOCAL);   // Increment reference count
 			}
 
 			return 0;
