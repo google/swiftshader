@@ -659,7 +659,7 @@ sw::Format Display::getDisplayFormat() const
 		}
 
 		// No framebuffer device found, or we're in user space
-		return sw::FORMAT_X8R8G8B8;
+		return sw::FORMAT_X8B8G8R8;
     #else
         if(platform == EGL_PLATFORM_X11_EXT)
         {
