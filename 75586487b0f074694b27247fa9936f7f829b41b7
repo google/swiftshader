@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "56722192_68d18bdc",
+        "filename": "Android.mk",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-11-03T18:42:11Z",
+      "side": 1,
+      "message": "Why are gce and calypso excluded from this?",
+      "range": {
+        "startLine": 17,
+        "startChar": 16,
+        "endLine": 17,
+        "endChar": 35
+      },
+      "revId": "75586487b0f074694b27247fa9936f7f829b41b7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
