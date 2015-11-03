@@ -46,6 +46,23 @@
       "revId": "75586487b0f074694b27247fa9936f7f829b41b7",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "765c8636_6969fca0",
+        "filename": "src/OpenGL/libEGL/Android.mk",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5200
+      },
+      "writtenOn": "2015-11-03T19:03:37Z",
+      "side": 1,
+      "message": "To answer your other question: this line determines the position of the output libraries.\n\nTARGET_OUT_VENDOR is out/target/product/gce_x86/system/vendor in our builds. The lib/egl subpath then puts the libraries in position to be loaded by the Android framework.",
+      "revId": "75586487b0f074694b27247fa9936f7f829b41b7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
