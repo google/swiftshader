@@ -22,6 +22,30 @@
       "revId": "75586487b0f074694b27247fa9936f7f829b41b7",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "765c8636_c90c681b",
+        "filename": "Android.mk",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5200
+      },
+      "writtenOn": "2015-11-03T18:51:25Z",
+      "side": 1,
+      "message": "This is here to match the behavior of the Android.mk that was checked in to vendor/transgaming/swiftshader\n\nThis is used to prune off directories that aren\u0027t relevant to all builds. There are several reasons that we don\u0027t want this to happen. For example, checkbuilds would include this project without this.\n\nThe sense is the reverse of what you\u0027re assuming: this run takes effect only if the strings \"gce_x86\" or \"calypso\" match TARGET_DEVICE. We may want to add additional targets in the future.",
+      "parentUuid": "56722192_68d18bdc",
+      "range": {
+        "startLine": 17,
+        "startChar": 16,
+        "endLine": 17,
+        "endChar": 35
+      },
+      "revId": "75586487b0f074694b27247fa9936f7f829b41b7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
