@@ -49,6 +49,9 @@ public:
   bool getAllowIacaMarks() const { return AllowIacaMarks; }
   void setAllowIacaMarks(bool NewValue) { AllowIacaMarks = NewValue; }
 
+  bool getAllowUnsafeIas() const { return AllowUnsafeIas; }
+  void setAllowUnsafeIas(bool NewValue) { AllowUnsafeIas = NewValue; }
+
   bool getAllowUninitializedGlobals() const {
     return AllowUninitializedGlobals;
   }
@@ -256,6 +259,9 @@ private:
   bool AllowExternDefinedSymbols;
   bool AllowIacaMarks;
   bool AllowUninitializedGlobals;
+  // TODO(kschimpf): This is a temporary flag. Nuke this once the ARM integrated
+  // assembler is working.
+  bool AllowUnsafeIas;
   bool DataSections;
   bool DecorateAsm;
   bool DisableHybridAssembly;

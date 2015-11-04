@@ -11,12 +11,12 @@
 ; RUN:   --args -Om1 | FileCheck %s --check-prefix=DIS
 
 ; Compile using integrated assembler.
-; RUN: %p2i --filetype=iasm -i %s --target=arm32 --args -Om1 \
+; RUN: %p2i --filetype=iasm -i %s --target=arm32 --args -Om1 -unsafe-ias \
 ; RUN:   | FileCheck %s --check-prefix=IASM
 
 ; Show bytes in assembled integrated code.
 ; RUN: %p2i --filetype=iasm -i %s --target=arm32 --assemble --disassemble \
-; RUN:   --args -Om1 | FileCheck %s --check-prefix=DIS
+; RUN:   --args -Om1 -unsafe-ias | FileCheck %s --check-prefix=DIS
 
 define internal i32 @add1ToR0(i32 %p) {
   %v = add i32 %p, 1

@@ -757,7 +757,8 @@ void InstARM32Mov::emit(const Cfg *Func) const {
 }
 
 void InstARM32Mov::emitIAS(const Cfg *Func) const {
-  (void)Func;
+  if (!Func->getContext()->getFlags().getAllowUnsafeIas())
+    return emitUsingTextFixup(Func);
   assert(!(isMultiDest() && isMultiSource()) && "Invalid vmov type.");
   ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   if (!(isMultiDest() || isMultiSource())) {
@@ -810,6 +811,8 @@ void InstARM32Br::emit(const Cfg *Func) const {
 }
 
 void InstARM32Br::emitIAS(const Cfg *Func) const {
+  if (!Func->getContext()->getFlags().getAllowUnsafeIas())
+    return emitUsingTextFixup(Func);
   ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   if (Label) {
     Asm->b(Asm->getOrCreateLocalLabel(Label->getNumber()), getPredicate());
@@ -895,7 +898,7 @@ void InstARM32Label::emit(const Cfg *Func) const {
 
 void InstARM32Label::emitIAS(const Cfg *Func) const {
   ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
-  Asm->bindLocalLabel(Number);
+  Asm->bindLocalLabel(Func, this, Number);
   if (Asm->needsTextFixup())
     emitUsingTextFixup(Func);
 }
@@ -991,6 +994,8 @@ template <> void InstARM32Movw::emit(const Cfg *Func) const {
 }
 
 template <> void InstARM32Movw::emitIAS(const Cfg *Func) const {
+  if (!Func->getContext()->getFlags().getAllowUnsafeIas())
+    return emitUsingTextFixup(Func);
   assert(getSrcSize() == 1);
   ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Asm->movw(getDest(), getSrc(0), getPredicate());
@@ -1017,6 +1022,8 @@ template <> void InstARM32Movt::emit(const Cfg *Func) const {
 }
 
 template <> void InstARM32Movt::emitIAS(const Cfg *Func) const {
+  if (!Func->getContext()->getFlags().getAllowUnsafeIas())
+    return emitUsingTextFixup(Func);
   assert(getSrcSize() == 2);
   ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Asm->movt(getDest(), getSrc(1), getPredicate());

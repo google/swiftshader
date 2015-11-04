@@ -119,7 +119,13 @@ public:
     return getOrCreateLabel(Number, LocalLabels);
   }
 
-  void bindLocalLabel(SizeT Number) {
+  void bindLocalLabel(const Cfg *Func, const InstARM32Label *InstL,
+                      SizeT Number) {
+    if (BuildDefs::dump() &&
+        !Func->getContext()->getFlags().getDisableHybridAssembly()) {
+      constexpr SizeT InstSize = 0;
+      emitTextInst(InstL->getName(Func) + ":", InstSize);
+    }
     Label *L = getOrCreateLocalLabel(Number);
     if (!getPreliminary())
       this->bind(L);

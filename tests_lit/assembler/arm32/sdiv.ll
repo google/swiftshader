@@ -14,11 +14,12 @@
 
 ; Compile using integrated assembler.
 ; RUN: %p2i --filetype=iasm -i %s --target=arm32 --args -O2 -mattr=hwdiv-arm \
-; RUN:   | FileCheck %s --check-prefix=IASM
+; RUN:   -unsafe-ias | FileCheck %s --check-prefix=IASM
 
 ; Show bytes in assembled integrated code.
 ; RUN: %p2i --filetype=iasm -i %s --target=arm32 --assemble --disassemble \
-; RUN:   --args -O2 -mattr=hwdiv-arm | FileCheck %s --check-prefix=DIS
+; RUN:   --args -O2 -mattr=hwdiv-arm -unsafe-ias \
+; RUN:   | FileCheck %s --check-prefix=DIS
 
 define internal i32 @SdivTwoRegs(i32 %a, i32 %b) {
   %v = sdiv i32 %a, %b
@@ -49,6 +50,7 @@ define internal i32 @SdivTwoRegs(i32 %a, i32 %b) {
 ; IASM-NEXT:    .byte 0x0
 ; IASM-NEXT:    .byte 0x1a
 ; IASM-NEXT:    .long 0xe7fedef0
+; IASM-NEXT:.LSdivTwoRegs$local$__0:
 ; IASM-NEXT:    .byte 0x10
 ; IASM-NEXT:    .byte 0xf1
 ; IASM-NEXT:    .byte 0x10
