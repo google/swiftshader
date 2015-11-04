@@ -236,8 +236,10 @@ DecodedResult decodeAddress(const Operand *Opnd, IValueT &Value) {
     const IOffsetT Offset = Var->getStackOffset();
     if (!Utils::IsAbsoluteUint(12, Offset))
       return CantDecode;
-    Value = decodeImmRegOffset(RegARM32::Encoded_Reg_sp, Offset,
-                               OperandARM32Mem::Offset);
+    RegARM32::GPRRegister BaseReg = RegARM32::Encoded_Reg_sp;
+    if (const auto *StackVar = llvm::dyn_cast<StackVariable>(Var))
+      BaseReg = decodeGPRRegister(StackVar->getBaseRegNum());
+    Value = decodeImmRegOffset(BaseReg, Offset, OperandARM32Mem::Offset);
     return DecodedAsImmRegOffset;
   }
   if (const auto *Mem = llvm::dyn_cast<OperandARM32Mem>(Opnd)) {
