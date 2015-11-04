@@ -4491,7 +4491,7 @@ inline bool computeAddressOpt(Cfg *Func, const Inst *Instr,
       // Assignments of Base from a Relocatable or ConstantInt32 can result
       // in Base becoming nullptr.  To avoid code duplication in this loop we
       // prefer that Base be non-nullptr if possible.
-      if ((Base == nullptr) && (Index != nullptr) && (Shift == 0))
+      if ((Base == nullptr) && (Index != nullptr) && Shift == 0)
         std::swap(Base, Index);
       continue;
     }
@@ -4516,7 +4516,7 @@ inline bool computeAddressOpt(Cfg *Func, const Inst *Instr,
       // Shift==0 && Base is Base=Var*Const && log2(Const)+Shift<=3 ==>
       //   swap(Index,Base)
       // Similar for Base=Const*Var and Base=Var<<Const
-      if ((Shift == 0) && matchShiftedIndex(VMetadata, Base, Shift, Reason)) {
+      if (Shift == 0 && matchShiftedIndex(VMetadata, Base, Shift, Reason)) {
         std::swap(Base, Index);
         continue;
       }
@@ -4524,8 +4524,10 @@ inline bool computeAddressOpt(Cfg *Func, const Inst *Instr,
     // Update Offset to reflect additions/subtractions with constants and
     // relocatables.
     // TODO: consider overflow issues with respect to Offset.
-    // TODO: handle symbolic constants.
     if (matchOffsetBase(VMetadata, Base, Relocatable, Offset, Reason))
+      continue;
+    if (Shift == 0 &&
+        matchOffsetBase(VMetadata, Index, Relocatable, Offset, Reason))
       continue;
     // TODO(sehr, stichnot): Handle updates of Index with Shift != 0.
     // Index is Index=Var+Const ==>
