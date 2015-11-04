@@ -28,8 +28,12 @@ branch2:
 ; CHECK: cmp
 ; CHECK: jge
 ; ARM32-LABEL: fold_cmp_br
-; ARM32: cmp
-; ARM32: beq
+; ARM32: cmp r0, r1
+; ARM32: bge
+; ARM32: mov r0, #1
+; ARM32: bx lr
+; ARM32: mov r0, #2
+; ARM32: bx lr
 
 
 ; Cmp/branch folding with intervening instructions.
@@ -51,11 +55,13 @@ branch2:
 ; CHECK: jge
 ; ARM32-LABEL: fold_cmp_br_intervening_insts
 ; ARM32: push {{[{].*[}]}}
-; ARM32: movlt [[TMP:r[0-9]+]], #1
-; ARM32: mov [[P:r[4-7]]], [[TMP]]
-; ARM32: bl
-; ARM32: cmp [[P]], #0
-; ARM32: beq
+; ARM32: bl use_value
+; ARM32: cmp {{r[0-9]+}}, {{r[0-9]+}}
+; ARM32: bge
+; ARM32: mov r0, #1
+; ARM32: bx lr
+; ARM32: mov r0, #2
+; ARM32: bx lr
 
 
 ; Cmp/branch non-folding because of live-out.
@@ -102,13 +108,14 @@ branch2:
 ; CHECK: cmp
 ; CHECK: je
 ; ARM32-LABEL: no_fold_cmp_br_non_whitelist
-; ARM32: mov [[R:r[0-9]+]], #0
 ; ARM32: cmp r0, r1
+; ARM32: movge [[R:r[0-9]+]], #0
 ; ARM32: movlt [[R]], #1
-; ARM32: mov [[R2:r[0-9]+]], [[R]]
-; ARM32: and [[R3:r[0-9]+]], [[R2]], #1
-; ARM32: cmp [[R]]
-; ARM32: beq
+; ARM32: cmp r0, r1
+; ARM32: bge
+; ARM32: bx lr
+; ARM32: mov r0, #2
+; ARM32: bx lr
 
 
 ; Basic cmp/select folding.
@@ -123,11 +130,8 @@ entry:
 ; CHECK: cmp
 ; CHECK: cmovl
 ; ARM32-LABEL: fold_cmp_select
-; ARM32: mov [[R:r[0-9]+]], #0
 ; ARM32: cmp r0, r1
-; ARM32: movlt [[R]], #1
-; ARM32: cmp [[R]], #0
-
+; ARM32: movlt {{r[0-9]+}}, r0
 
 ; 64-bit cmp/select folding.
 define internal i64 @fold_cmp_select_64(i64 %arg1, i64 %arg2) {
@@ -144,14 +148,11 @@ entry:
 ; CHECK: cmovl
 ; CHECK: cmovl
 ; ARM32-LABEL: fold_cmp_select_64
-; ARM32: mov [[R:r[0-9]+]], #0
 ; ARM32: cmp r0, r2
-; ARM32: movlt [[R]], #1
-; ARM32: cmp [[R]], #0
-; ARM32: movne
-; ARM32: movne
-; ARM32-DAG: mov r0
-; ARM32-DAG: mov r1
+; ARM32: movlt [[LOW:r[0-9]+]], r0
+; ARM32: movlt [[HIGH:r[0-9]+]], r1
+; ARM32: mov r0, [[LOW]]
+; ARM32: mov r1, [[HIGH]]
 ; ARM32: bx lr
 
 
@@ -168,12 +169,10 @@ entry:
 ; CHECK: cmovl
 ; ARM32-LABEL: fold_cmp_select_64_undef
 ; ARM32: cmp {{r[0-9]+}}, r0
-; ARM32: movlt [[R:r[0-9]+]], #1
-; ARM32: cmp [[R]]
-; ARM32: movne
-; ARM32: movne
-; ARM32-DAG: mov r0
-; ARM32-DAG: mov r1
+; ARM32: movge
+; ARM32: movlt
+; ARM32: movge
+; ARM32: movlt
 ; ARM32: bx lr
 
 
@@ -192,17 +191,10 @@ entry:
 ; CHECK: cmp
 ; CHECK: cmovl
 ; ARM32-LABEL: fold_cmp_select_intervening_insts
-; ARM32: mov [[RES0:r[4-7]+]], r0
-; ARM32: mov [[RES1:r[4-7]+]], r1
-; ARM32: mov [[R:r[0-9]+]], #0
-; ARM32: cmp r{{[0-9]+}}, r{{[0-9]+}}
-; ARM32: movlt [[R]], #1
-; ARM32: mov [[R2:r[4-7]]], [[R]]
 ; ARM32: bl use_value
-; ARM32: cmp [[R2]], #0
-; ARM32: movne [[RES1]], [[RES0]]
-; ARM32: mov r0, [[RES1]]
-
+; ARM32: cmp r{{[0-9]+}}, r{{[0-9]+}}
+; ARM32: movlt
+; ARM32: bx lr
 
 ; Cmp/multi-select folding.
 define internal i32 @fold_cmp_select_multi(i32 %arg1, i32 %arg2) {
@@ -226,20 +218,14 @@ entry:
 ; CHECK: add
 ; CHECK: add
 ; ARM32-LABEL: fold_cmp_select_multi
-; ARM32: mov [[T0:r[0-9]+]], #0
 ; ARM32: cmp r0, r1
-; ARM32: movlt [[T0]], #1
-; ARM32: uxtb [[T1:r[0-9]+]], [[T1]]
-; ARM32-NEXT: cmp [[T1]], #0
-; ARM32: movne [[T2:r[0-9]+]], r0
-; ARM32: uxtb [[T3:r[0-9]+]], [[T3]]
-; ARM32-NEXT: cmp [[T3]], #0
-; ARM32: movne [[T4:r[0-9]+]], r1
-; ARM32: uxtb [[T5:r[0-9]+]], [[T5]]
-; ARM32-NEXT: cmp [[T5]], #0
-; ARM32: movne [[T6:r[0-9]+]], #123
-; ARM32: add [[T7:r[0-9]+]], [[T2]], [[T4]]
-; ARM32: add {{r[0-9]+}}, [[T7]], [[T6]]
+; ARM32: movlt {{r[0-9]+}}, r0
+; ARM32: cmp r0, r1
+; ARM32: movlt {{r[0-9]+}}, r1
+; ARM32: cmp r0, r1
+; ARM32: movlt {{r[0-9]+}}, #123
+; ARM32: add
+; ARM32: add
 ; ARM32: bx lr
 
 
@@ -269,21 +255,21 @@ next:
 ; CHECK: add
 ; ARM32-LABEL: no_fold_cmp_select_multi_liveout
 ; ARM32-LABEL: fold_cmp_select_multi
-; ARM32: mov [[T0:r[0-9]+]], #0
 ; ARM32: cmp r0, r1
+; ARM32: movge [[T0:r[0-9]+]], #0
 ; ARM32: movlt [[T0]], #1
-; ARM32: uxtb [[T2:r[0-9]+]], [[T2]]
-; ARM32-NEXT: cmp [[T2]], #0
-; ARM32: movne [[T1]], r0
-; ARM32: uxtb [[T4:r[0-9]+]], [[T4]]
-; ARM32-NEXT: cmp [[T4]], #0
-; ARM32: movne [[T3]], r1
+; ARM32: uxtb [[T1:r[0-9]+]], [[T1]]
+; ARM32-NEXT: cmp [[T1]], #0
+; ARM32: movne [[T2:r[0-9]+]], r0
+; ARM32: uxtb [[T3:r[0-9]+]], [[T3]]
+; ARM32-NEXT: cmp [[T3]], #0
+; ARM32: movne [[T4:r[0-9]+]], r1
 ; ARM32-LABEL: .Lno_fold_cmp_select_multi_liveout$next:
 ; ARM32: uxtb [[T5:r[0-9]+]], [[T5]]
 ; ARM32: cmp [[T5]], #0
 ; ARM32: movne [[T6:r[0-9]+]], #123
-; ARM32: add [[T7:r[0-9]+]], [[T2]], [[T4]]
-; ARM32: add {{r[0-9]+}}, [[T7]], [[T6]]
+; ARM32: add
+; ARM32: add
 ; ARM32: bx lr
 
 ; Cmp/multi-select non-folding because of extra non-whitelisted uses.
@@ -314,19 +300,19 @@ entry:
 ; CHECK: add
 ; CHECK: add
 ; ARM32-LABEL: no_fold_cmp_select_multi_non_whitelist
-; ARM32: mov [[T0:r[0-9]+]], #0
 ; ARM32: cmp r0, r1
-; ARM32: movlt [[T0]], #1
-; ARM32: uxtb [[T1:r[0-9]+]], [[T1]]
-; ARM32-NEXT: cmp [[T1]], #0
-; ARM32: movne [[T2:r[0-9]+]], r0
-; ARM32: uxtb [[T3:r[0-9]+]], [[T3]]
-; ARM32-NEXT: cmp [[T3]], #0
-; ARM32: movne [[T4:r[0-9]+]], r1
-; ARM32: uxtb [[T5:r[0-9]+]], [[T5]]
-; ARM32-NEXT: cmp [[T5]], #0
-; ARM32: movne [[T6:r[0-9]+]], #123
-; ARM32: and [[T7:r[0-9]+]], [[T0]], #1
-; ARM32: add [[T8:r[0-9]+]], [[T2]], [[T4]]
-; ARM32: add {{r[0-9]+}}, [[T8]], [[T7]]
+; ARM32: movge [[R0:r[0-9]+]]
+; ARM32: movlt [[R0]]
+; ARM32: cmp r0, r1
+; ARM32: movge [[R1:r[0-9]+]]
+; ARM32: movlt [[R1]]
+; ARM32: cmp r0, r1
+; ARM32: movge [[R2:r[0-9]+]]
+; ARM32: movlt [[R2]]
+; ARM32: cmp r0, r1
+; ARM32: movge [[R3:r[0-9]+]]
+; ARM32: movlt [[R3]]
+; ARM32: add
+; ARM32: add
+; ARM32: add
 ; ARM32: bx lr

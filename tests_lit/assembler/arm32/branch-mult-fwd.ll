@@ -53,40 +53,40 @@ define internal void @mult_fwd_branches(i32 %a, i32 %b) {
   %cmp = icmp slt i32 %a, %b
 
 ; ASM-NEXT:     ldr     r0, [sp, #8]
-; ASM-NEXT:     mov     r1, #0
-; ASM-NEXT:     ldr     r2, [sp, #4]
-; ASM-NEXT:     cmp     r0, r2
-; ASM-NEXT:     movlt   r1, #1
-; ASM-NEXT:     str     r1, [sp]
+; ASM-NEXT:     ldr     r1, [sp, #4]
+; ASM-NEXT:     cmp     r0, r1
+; ASM-NEXT:     movge   r0, #0
+; ASM-NEXT:     movlt   r0, #1
+; ASM-NEXT:     str     r0, [sp]
 
 ; DIS-NEXT:   c:        e59d0008
-; DIS-NEXT:  10:        e3a01000
-; DIS-NEXT:  14:        e59d2004
-; DIS-NEXT:  18:        e1500002
-; DIS-NEXT:  1c:        b3a01001
-; DIS-NEXT:  20:        e58d1000
+; DIS-NEXT:  10:        e59d1004
+; DIS-NEXT:  14:        e1500001
+; DIS-NEXT:  18:        a3a00000
+; DIS-NEXT:  1c:        b3a00001
+; DIS-NEXT:  20:        e58d0000
 
 ; IASM-NEXT:    .byte 0x8
 ; IASM-NEXT:    .byte 0x0
 ; IASM-NEXT:    .byte 0x9d
 ; IASM-NEXT:    .byte 0xe5
 
-; IASM-NEXT:    mov     r1, #0
-
 ; IASM-NEXT:    .byte 0x4
-; IASM-NEXT:    .byte 0x20
+; IASM-NEXT:    .byte 0x10
 ; IASM-NEXT:    .byte 0x9d
 ; IASM-NEXT:    .byte 0xe5
 
-; IASM-NEXT:    .byte 0x2
+; IASM-NEXT:    .byte 0x1
 ; IASM-NEXT:    .byte 0x0
 ; IASM-NEXT:    .byte 0x50
 ; IASM-NEXT:    .byte 0xe1
 
-; IASM-NEXT:    movlt   r1, #1
+; IASM-NEXT:    movge   r0, #0
+
+; IASM-NEXT:    movlt   r0, #1
 
 ; IASM-NEXT:    .byte 0x0
-; IASM-NEXT:    .byte 0x10
+; IASM-NEXT:    .byte 0x0
 ; IASM-NEXT:    .byte 0x8d
 ; IASM-NEXT:    .byte 0xe5
 

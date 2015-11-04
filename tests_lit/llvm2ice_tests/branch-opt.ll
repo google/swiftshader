@@ -14,14 +14,14 @@
 ; when possible.
 ; RUN: %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command %p2i --filetype=asm --assemble \
-; RUN:   --disassemble --target arm32 -i %s --args -O2 --skip-unimplemented \
+; RUN:   --disassemble --target arm32 -i %s --args -O2 \
 ; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32O2 %s
 
 ; RUN: %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command %p2i --filetype=asm --assemble \
-; RUN:   --disassemble --target arm32 -i %s --args -Om1 --skip-unimplemented \
+; RUN:   --disassemble --target arm32 -i %s --args -Om1 \
 ; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck \
@@ -95,10 +95,7 @@ target:
 ; Note that compare and branch folding isn't implemented yet (unlike x86-32).
 ; ARM32O2-LABEL: testCondFallthroughToNextBlock
 ; ARM32O2: cmp {{.*}}, #123
-; ARM32O2-NEXT: movge {{.*}}, #1
-; ARM32O2-NEXT: uxtb
-; ARM32O2-NEXT: cmp {{.*}}, #0
-; ARM32O2-NEXT: bne
+; ARM32O2-NEXT: bge
 ; ARM32O2-NEXT: bl
 ; ARM32O2: bx lr
 ; ARM32O2: bl
@@ -106,7 +103,8 @@ target:
 
 ; ARM32OM1-LABEL: testCondFallthroughToNextBlock
 ; ARM32OM1: cmp {{.*}}, #123
-; ARM32OM1-NEXT: movge {{.*}}, #1
+; ARM32OM1: movlt {{.*}}, #0
+; ARM32OM1: movge {{.*}}, #1
 ; ARM32OM1: cmp {{.*}}, #0
 ; ARM32OM1: bne
 ; ARM32OM1: b
@@ -154,10 +152,7 @@ target:
 ; (compared to x86-32).
 ; ARM32O2-LABEL: testCondTargetNextBlock
 ; ARM32O2: cmp {{.*}}, #123
-; ARM32O2-NEXT: movge {{.*}}, #1
-; ARM32O2-NEXT: uxtb
-; ARM32O2-NEXT: cmp {{.*}}, #0
-; ARM32O2-NEXT: beq
+; ARM32O2-NEXT: blt
 ; ARM32O2-NEXT: bl
 ; ARM32O2: bx lr
 ; ARM32O2: bl

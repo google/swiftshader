@@ -12,16 +12,16 @@
 
 ; RUN: %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command %p2i --filetype=asm --assemble \
-; RUN:   --disassemble --target arm32 -i %s --args -O2 --skip-unimplemented \
+; RUN:   --disassemble --target arm32 -i %s --args -O2 \
 ; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
-; RUN:   --command FileCheck --check-prefix ARM32 %s
+; RUN:   --command FileCheck --check-prefix ARM32 --check-prefix ARM32-O2 %s
 ; RUN: %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command %p2i --filetype=asm --assemble \
-; RUN:   --disassemble --target arm32 -i %s --args -Om1 --skip-unimplemented \
+; RUN:   --disassemble --target arm32 -i %s --args -Om1 \
 ; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
-; RUN:   --command FileCheck --check-prefix ARM32 %s
+; RUN:   --command FileCheck --check-prefix ARM32 --check-prefix ARM32-OM1 %s
 
 define internal void @testSelect(i32 %a, i32 %b) {
 entry:
@@ -51,12 +51,16 @@ declare void @useInt(i32 %x)
 ; CHECK:      ret
 ; ARM32-LABEL: testSelect
 ; ARM32: cmp
-; ARM32: cmp
+; ARM32-OM1: cmp
 ; ARM32: bl {{.*}} useInt
 ; ARM32: cmp
-; ARM32: cmp
-; ARM32: mov {{.*}}, #20
-; ARM32: movne {{.*}}, #10
+; ARM32-Om1: cmp
+; ARM32-Om1: mov {{.*}}, #20
+; ARM32-Om1: movne {{.*}}, #10
+; ARM32-O2: movle [[REG:r[0-9]+]], #20
+; ARM32-O2: movgt [[REG]], #10
+; ARM32: bl {{.*}} useInt
+; ARM32: bl {{.*}} useInt
 ; ARM32: bl {{.*}} useInt
 ; ARM32: bx lr
 

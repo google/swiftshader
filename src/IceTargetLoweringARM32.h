@@ -58,6 +58,12 @@ public:
   // TODO(jvoung): return a unique_ptr.
   static TargetARM32 *create(Cfg *Func) { return new TargetARM32(Func); }
 
+  void initNodeForLowering(CfgNode *Node) override {
+    BoolComputations.forgetProducers();
+    BoolComputations.recordProducers(Node);
+    BoolComputations.dump(Func);
+  }
+
   void translateOm1() override;
   void translateO2() override;
   bool doBranchOpt(Inst *I, const CfgNode *NextNode) override;
@@ -130,8 +136,13 @@ protected:
   void lowerCall(const InstCall *Inst) override;
   void lowerCast(const InstCast *Inst) override;
   void lowerExtractElement(const InstExtractElement *Inst) override;
-  void lowerFcmp(const InstFcmp *Inst) override;
-  void lowerIcmp(const InstIcmp *Inst) override;
+  void lowerFcmpCond(const InstFcmp *Instr, CondARM32::Cond *CondIfTrue0,
+                     CondARM32::Cond *CondIfTrue1,
+                     CondARM32::Cond *CondIfFalse);
+  void lowerFcmp(const InstFcmp *Instr) override;
+  void lowerIcmpCond(const InstIcmp *Instr, CondARM32::Cond *CondIfTrue,
+                     CondARM32::Cond *CondIfFalse);
+  void lowerIcmp(const InstIcmp *Instr) override;
   void lowerAtomicRMW(Variable *Dest, uint32_t Operation, Operand *Ptr,
                       Operand *Val);
   void lowerIntrinsicCall(const InstIntrinsicCall *Inst) override;
@@ -316,6 +327,60 @@ protected:
       Context.insert(InstFakeDef::create(Func, Instr->getDestHi()));
     }
   }
+
+  // _mov_i1_to_flags is used for bool folding. If "Boolean" is folded, this
+  // method returns true, and sets "CondIfTrue0" and "CondIfTrue1" to the
+  // appropriate ARM condition codes. If "Boolean" is not to be folded, then this
+  // method returns false.
+  bool _mov_i1_to_flags(Operand *Boolean, CondARM32::Cond *CondIfTrue0,
+                        CondARM32::Cond *CondIfTrue1,
+                        CondARM32::Cond *CondIfFalse);
+
+  // _cmov is a pseudo instruction that is used for boolean folding. It emits
+  // code that moves "SrcIfTrue" to dest if either "CondIfTrue0" or
+  // "CondIfTrue1" holds, and "SrcIfFalse", if "CondIfFalse" holds. It requires
+  // "Dest" to be an infinite-weight temporary.
+  void _cmov(Variable *Dest, Operand *SrcIfTrue, CondARM32::Cond CondIfTrue0,
+             CondARM32::Cond CondIfTrue1, Operand *SrcIfFalse,
+             CondARM32::Cond CondIfFalse) {
+    assert(Dest->mustHaveReg());
+
+    if (CondIfFalse == CondARM32::kNone) {
+      assert(CondIfTrue0 == CondARM32::AL);
+      assert(CondIfTrue1 == CondARM32::kNone);
+    }
+
+    if (CondIfTrue0 == CondARM32::kNone) {
+      assert(CondIfFalse == CondARM32::AL);
+      assert(CondIfTrue1 == CondARM32::kNone);
+    }
+
+    if (CondIfTrue1 != CondARM32::kNone) {
+      assert(CondIfFalse == CondARM32::AL);
+      assert(CondIfTrue1 != CondARM32::kNone);
+    }
+
+    bool RedefineT = false;
+    if (CondIfFalse != CondARM32::kNone) {
+      _mov(Dest, SrcIfFalse, CondIfFalse);
+      RedefineT = true;
+    }
+
+    if (CondIfTrue0 != CondARM32::kNone) {
+      if (RedefineT) {
+        _mov_redefined(Dest, SrcIfTrue, CondIfTrue0);
+      } else {
+        _mov(Dest, SrcIfTrue, CondIfTrue0);
+      }
+      RedefineT = true;
+    }
+
+    if (CondIfTrue1 != CondARM32::kNone) {
+      assert(RedefineT);
+      _mov_redefined(Dest, SrcIfTrue, CondIfTrue1);
+    }
+  }
+
   /// The Operand can only be a 16-bit immediate or a ConstantRelocatable (with
   /// an upper16 relocation).
   void _movt(Variable *Dest, Operand *Src0,
@@ -542,6 +607,64 @@ protected:
 
 private:
   ~TargetARM32() override = default;
+
+  void lowerTruncToFlags(Operand *Src, CondARM32::Cond *CondIfTrue,
+                         CondARM32::Cond *CondIfFalse);
+  class BoolComputationTracker {
+  public:
+    BoolComputationTracker() = default;
+    ~BoolComputationTracker() = default;
+
+    void forgetProducers() { KnownComputations.clear(); }
+    void recordProducers(CfgNode *Node);
+
+    const Inst *getProducerOf(const Operand *Opnd) const {
+      auto *Var = llvm::dyn_cast<Variable>(Opnd);
+      if (Var == nullptr) {
+        return nullptr;
+      }
+
+      auto Iter = KnownComputations.find(Var->getIndex());
+      if (Iter == KnownComputations.end()) {
+        return nullptr;
+      }
+
+      return Iter->second.Instr;
+    }
+
+    void dump(const Cfg *Func) const {
+      if (!BuildDefs::dump() || !Func->isVerbose(IceV_Folding))
+        return;
+      OstreamLocker L(Func->getContext());
+      Ostream &Str = Func->getContext()->getStrDump();
+      Str << "foldable producer:\n  ";
+      for (const auto &Computation : KnownComputations) {
+        Str << "    ";
+        Computation.second.Instr->dump(Func);
+        Str << "\n";
+      }
+      Str << "\n";
+    }
+
+  private:
+    class BoolComputationEntry {
+    public:
+      explicit BoolComputationEntry(Inst *I) : Instr(I) {}
+      Inst *const Instr;
+      // Boolean folding is disabled for variables whose live range is multi
+      // block. We conservatively initialize IsLiveOut to true, and set it to
+      // false once we find the end of the live range for the variable defined
+      // by this instruction. If liveness analysis is not performed (e.g., in
+      // Om1 mode) IsLiveOut will never be set to false, and folding will be
+      // disabled.
+      bool IsLiveOut = true;
+    };
+
+    using BoolComputationMap = std::unordered_map<SizeT, BoolComputationEntry>;
+    BoolComputationMap KnownComputations;
+  };
+
+  BoolComputationTracker BoolComputations;
 };
 
 class TargetDataARM32 final : public TargetDataLowering {
