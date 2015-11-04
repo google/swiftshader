@@ -168,12 +168,12 @@ public:
 
   void mov(const Operand *OpRd, const Operand *OpSrc, CondARM32::Cond Cond);
 
-  void mul(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
-           bool SetFlags, CondARM32::Cond Cond);
-
   void movw(const Operand *OpRd, const Operand *OpSrc, CondARM32::Cond Cond);
 
   void movt(const Operand *OpRd, const Operand *OpSrc, CondARM32::Cond Cond);
+
+  void mul(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
+           bool SetFlags, CondARM32::Cond Cond);
 
   void orr(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
            bool SetFlags, CondARM32::Cond Cond);
@@ -188,6 +188,8 @@ public:
 
   void sub(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
            bool SetFlags, CondARM32::Cond Cond);
+
+  void tst(const Operand *OpRn, const Operand *OpSrc1, CondARM32::Cond Cond);
 
   void udiv(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
             CondARM32::Cond Cond);
@@ -216,10 +218,23 @@ private:
   void emitType01(CondARM32::Cond Cond, IValueT Type, IValueT Opcode,
                   bool SetCc, IValueT Rn, IValueT Rd, IValueT imm12);
 
-  // Converts arguments to appropriate representation on a data operation,
-  // and then calls emitType01 above.
+  // List of possible checks to apply when calling emitType01() (below).
+  enum Type01Checks {
+    NoChecks,
+    RdIsPcAndSetFlags,
+  };
+
+  // Converts appropriate representation on a data operation, and then calls
+  // emitType01 above.
   void emitType01(IValueT Opcode, const Operand *OpRd, const Operand *OpRn,
-                  const Operand *OpSrc1, bool SetFlags, CondARM32::Cond Cond);
+                  const Operand *OpSrc1, bool SetFlags, CondARM32::Cond Cond,
+                  Type01Checks RuleChecks = RdIsPcAndSetFlags);
+
+  // Same as above, but the value for Rd and Rn have already been converted
+  // into instruction values.
+  void emitType01(IValueT Opcode, IValueT OpRd, IValueT OpRn,
+                  const Operand *OpSrc1, bool SetFlags, CondARM32::Cond Cond,
+                  Type01Checks RuleChecks = RdIsPcAndSetFlags);
 
   void emitType05(CondARM32::Cond COnd, int32_t Offset, bool Link);
 
@@ -239,6 +254,12 @@ private:
   // mmmm=Rm, ssss=Rs, f=SetCc, and xxxxxxx=Opcode.
   void emitMulOp(CondARM32::Cond Cond, IValueT Opcode, IValueT Rd, IValueT Rn,
                  IValueT Rm, IValueT Rs, bool SetCc);
+
+  // Pattern cccctttxxxxnnnn0000iiiiiiiiiiii where cccc=Cond, nnnn=Rn,
+  // ttt=Instruction type (derived from OpSrc1), iiiiiiiiiiii is derived from
+  // OpSrc1, and xxxx=Opcode.
+  void emitCompareOp(IValueT Opcode, const Operand *OpRn, const Operand *OpSrc1,
+                     CondARM32::Cond Cond);
 
   void emitBranch(Label *L, CondARM32::Cond, bool Link);
 

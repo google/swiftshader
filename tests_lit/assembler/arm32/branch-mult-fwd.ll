@@ -81,9 +81,15 @@ define internal void @mult_fwd_branches(i32 %a, i32 %b) {
 ; IASM-NEXT:    .byte 0x50
 ; IASM-NEXT:    .byte 0xe1
 
-; IASM-NEXT:    movge   r0, #0
+; IASM-NEXT:    .byte 0x0
+; IASM-NEXT:    .byte 0x0
+; IASM-NEXT:    .byte 0xa0
+; IASM-NEXT:    .byte 0xa3
 
-; IASM-NEXT:    movlt   r0, #1
+; IASM-NEXT:    .byte 0x1
+; IASM-NEXT:    .byte 0x0
+; IASM-NEXT:    .byte 0xa0
+; IASM-NEXT:    .byte 0xb3
 
 ; IASM-NEXT:    .byte 0x0
 ; IASM-NEXT:    .byte 0x0

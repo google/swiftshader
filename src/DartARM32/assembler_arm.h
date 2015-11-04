@@ -480,7 +480,10 @@ class Assembler : public ValueObject {
 
   void rsc(Register rd, Register rn, Operand o, Condition cond = AL);
 
+#if 0
+  // Moved to ARM32::AssemblerARM32::tst();
   void tst(Register rn, Operand o, Condition cond = AL);
+#endif
 
   void teq(Register rn, Operand o, Condition cond = AL);
 

@@ -44,17 +44,24 @@ define internal i32 @UdivTwoRegs(i32 %a, i32 %b) {
 
 ; IASM-LABEL:UdivTwoRegs:
 ; IASM-NEXT:.LUdivTwoRegs$__0:
-; IASM-NEXT:    tst     r1, r1
+
+; IASM-NEXT:    .byte 0x1
+; IASM-NEXT:    .byte 0x0
+; IASM-NEXT:    .byte 0x11
+; IASM-NEXT:    .byte 0xe1
+
 ; IASM-NEXT:    .byte 0x0
 ; IASM-NEXT:    .byte 0x0
 ; IASM-NEXT:    .byte 0x0
 ; IASM-NEXT:    .byte 0x1a
+
 ; IASM-NEXT:    .long 0xe7fedef0
 ; IASM-NEXT:.LUdivTwoRegs$local$__0:
 ; IASM-NEXT:    .byte 0x10
 ; IASM-NEXT:    .byte 0xf1
 ; IASM-NEXT:    .byte 0x30
 ; IASM-NEXT:    .byte 0xe7
+
 ; IASM-NEXT:    .byte 0x1e
 ; IASM-NEXT:    .byte 0xff
 ; IASM-NEXT:    .byte 0x2f

@@ -382,15 +382,33 @@ void AssemblerARM32::emitType01(CondARM32::Cond Cond, IValueT Type,
 
 void AssemblerARM32::emitType01(IValueT Opcode, const Operand *OpRd,
                                 const Operand *OpRn, const Operand *OpSrc1,
-                                bool SetFlags, CondARM32::Cond Cond) {
+                                bool SetFlags, CondARM32::Cond Cond,
+                                Type01Checks RuleChecks) {
   IValueT Rd;
   if (decodeOperand(OpRd, Rd) != DecodedAsRegister)
     return setNeedsTextFixup();
   IValueT Rn;
   if (decodeOperand(OpRn, Rn) != DecodedAsRegister)
     return setNeedsTextFixup();
+  emitType01(Opcode, Rd, Rn, OpSrc1, SetFlags, Cond, RuleChecks);
+}
+
+void AssemblerARM32::emitType01(IValueT Opcode, IValueT Rd,
+                                IValueT Rn, const Operand *OpSrc1,
+                                bool SetFlags, CondARM32::Cond Cond,
+                                Type01Checks RuleChecks) {
+  switch (RuleChecks) {
+  case NoChecks:
+    break;
+  case RdIsPcAndSetFlags:
+    if (((Rd == RegARM32::Encoded_Reg_pc) && SetFlags))
+      // Conditions of rule violated.
+      return setNeedsTextFixup();
+    break;
+  }
+
   IValueT Src1Value;
-  // TODO(kschimpf) Other possible decodings of add.
+  // TODO(kschimpf) Other possible decodings of data operations.
   switch (decodeOperand(OpSrc1, Src1Value)) {
   default:
     return setNeedsTextFixup();
@@ -402,12 +420,18 @@ void AssemblerARM32::emitType01(IValueT Opcode, const Operand *OpRd,
     // mmmm=Rm, iiiii=Shift, tt=ShiftKind, and s=SetFlags.
     constexpr IValueT Imm5 = 0;
     Src1Value = encodeShiftRotateImm5(Src1Value, OperandARM32::kNoShift, Imm5);
-    if (((Rd == RegARM32::Encoded_Reg_pc) && SetFlags))
-      // Conditions of rule violated.
-      return setNeedsTextFixup();
     emitType01(Cond, kInstTypeDataRegister, Opcode, SetFlags, Rn, Rd,
                Src1Value);
     return;
+  }
+  case DecodedAsConstI32: {
+    // See if we can convert this to an XXX (immediate).
+    IValueT RotateAmt;
+    IValueT Imm8;
+    if (!OperandARM32FlexImm::canHoldImm(Src1Value, &RotateAmt, &Imm8))
+      return setNeedsTextFixup();
+    Src1Value = encodeRotatedImm8(RotateAmt, Imm8);
+    // Intentionally fall to next case!
   }
   case DecodedAsRotatedImm8: {
     // XXX (Immediate)
@@ -415,9 +439,6 @@ void AssemblerARM32::emitType01(IValueT Opcode, const Operand *OpRd,
     //
     // cccc0010100snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
     // s=SetFlags and iiiiiiiiiiii=Src1Value defining RotatedImm8.
-    if ((Rd == RegARM32::Encoded_Reg_pc && SetFlags))
-      // Conditions of rule violated.
-      return setNeedsTextFixup();
     emitType01(Cond, kInstTypeDataImmediate, Opcode, SetFlags, Rn, Rd,
                Src1Value);
     return;
@@ -451,6 +472,29 @@ void AssemblerARM32::emitBranch(Label *L, CondARM32::Cond Cond, bool Link) {
   emitType05(Cond, L->getEncodedPosition(), Link);
   if (!needsTextFixup())
     L->linkTo(Position);
+}
+
+void AssemblerARM32::emitCompareOp(IValueT Opcode, const Operand *OpRn,
+                                   const Operand *OpSrc1,
+                                   CondARM32::Cond Cond) {
+  // XXX (register)
+  //   XXX<c> <Rn>, <Rm>{, <shift>}
+  //
+  // ccccyyyxxxx1nnnn0000iiiiitt0mmmm where cccc=Cond, nnnn=Rn, mmmm=Rm,
+  // iiiii=Shift, tt=ShiftKind, yyy=kInstTypeDataRegister, and xxxx=Opcode.
+  //
+  // XXX (immediate)
+  //  XXX<c> <Rn>, #<RotatedImm8>
+  //
+  // ccccyyyxxxx1nnnn0000iiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
+  // yyy=kInstTypeDataImmdiate, xxxx=Opcode, and iiiiiiiiiiii=Src1Value
+  // defining RotatedImm8.
+  constexpr bool SetFlags = true;
+  constexpr IValueT Rd = RegARM32::Encoded_Reg_r0;
+  IValueT Rn;
+  if (decodeOperand(OpRn, Rn) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  emitType01(Opcode, Rd, Rn, OpSrc1, SetFlags, Cond, NoChecks);
 }
 
 void AssemblerARM32::emitMemOp(CondARM32::Cond Cond, IValueT InstType,
@@ -599,48 +643,19 @@ void AssemblerARM32::bx(RegARM32::GPRRegister Rm, CondARM32::Cond Cond) {
 
 void AssemblerARM32::cmp(const Operand *OpRn, const Operand *OpSrc1,
                          CondARM32::Cond Cond) {
-  IValueT Rn;
-  if (decodeOperand(OpRn, Rn) != DecodedAsRegister)
-    return setNeedsTextFixup();
-  constexpr IValueT Cmp = B3 | B1; // ie. 1010
-  constexpr bool SetFlags = true;
-  constexpr IValueT Rd = RegARM32::Encoded_Reg_r0;
-  IValueT Src1Value;
-  // TODO(kschimpf) Other possible decodings of cmp.
-  switch (decodeOperand(OpSrc1, Src1Value)) {
-  default:
-    return setNeedsTextFixup();
-  case DecodedAsRegister: {
-    // CMP (register) - ARM section A8.8.38, encoding A1:
-    //   cmp<c> <Rn>, <Rm>{, <shift>}
-    //
-    // cccc00010101nnnn0000iiiiitt0mmmm where cccc=Cond, nnnn=Rn, mmmm=Rm,
-    // iiiii=Shift, and tt=ShiftKind.
-    constexpr IValueT Imm5 = 0;
-    Src1Value = encodeShiftRotateImm5(Src1Value, OperandARM32::kNoShift, Imm5);
-    emitType01(Cond, kInstTypeDataRegister, Cmp, SetFlags, Rn, Rd, Src1Value);
-    return;
-  }
-  case DecodedAsConstI32: {
-    // See if we can convert this to an CMP (immediate).
-    IValueT RotateAmt;
-    IValueT Imm8;
-    if (!OperandARM32FlexImm::canHoldImm(Src1Value, &RotateAmt, &Imm8))
-      return setNeedsTextFixup();
-    Src1Value = encodeRotatedImm8(RotateAmt, Imm8);
-    // Intentionally fall to next case!
-  }
-  case DecodedAsRotatedImm8: {
-    // CMP (immediate) - ARM section A8.8.37
-    //  cmp<c: <Rn>, #<RotatedImm8>
-    //
-    // cccc00110101nnnn0000iiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
-    // s=SetFlags and iiiiiiiiiiii=Src1Value defining RotatedImm8.
-    emitType01(Cond, kInstTypeDataImmediate, Cmp, SetFlags, Rn, Rd, Src1Value);
-    return;
-  }
-  }
-  setNeedsTextFixup();
+  // CMP (register) - ARM section A8.8.38, encoding A1:
+  //   cmp<c> <Rn>, <Rm>{, <shift>}
+  //
+  // cccc00010101nnnn0000iiiiitt0mmmm where cccc=Cond, nnnn=Rn, mmmm=Rm,
+  // iiiii=Shift, and tt=ShiftKind.
+  //
+  // CMP (immediate) - ARM section A8.8.37
+  //  cmp<c: <Rn>, #<RotatedImm8>
+  //
+  // cccc00110101nnnn0000iiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
+  // s=SetFlags and iiiiiiiiiiii=Src1Value defining RotatedImm8.
+  constexpr IValueT Opcode = B3 | B1; // ie. 1010
+  emitCompareOp(Opcode, OpRn, OpSrc1, Cond);
 }
 
 void AssemblerARM32::eor(const Operand *OpRd, const Operand *OpRn,
@@ -699,43 +714,25 @@ void AssemblerARM32::ldr(const Operand *OpRt, const Operand *OpAddress,
 
 void AssemblerARM32::mov(const Operand *OpRd, const Operand *OpSrc,
                          CondARM32::Cond Cond) {
+  // MOV (register) - ARM section A8.8.104, encoding A1:
+  //   mov{S}<c> <Rd>, <Rn>
+  //
+  // cccc0001101s0000dddd00000000mmmm where cccc=Cond, s=SetFlags, dddd=Rd,
+  // and nnnn=Rn.
+  //
+  // MOV (immediate) - ARM section A8.8.102, encoding A1:
+  //   mov{S}<c> <Rd>, #<RotatedImm8>
+  //
+  // cccc0011101s0000ddddiiiiiiiiiiii where cccc=Cond, s=SetFlags, dddd=Rd,
+  // and iiiiiiiiiiii=RotatedImm8=Src.  Note: We don't use movs in this
+  // assembler.
   IValueT Rd;
   if (decodeOperand(OpRd, Rd) != DecodedAsRegister)
     return setNeedsTextFixup();
-  IValueT Src;
-  // TODO(kschimpf) Handle other forms of mov.
   constexpr bool SetFlags = false;
   constexpr IValueT Rn = 0;
   constexpr IValueT Mov = B3 | B2 | B0; // 1101.
-  switch (decodeOperand(OpSrc, Src)) {
-  default:
-    return setNeedsTextFixup();
-  case DecodedAsRegister: {
-    // MOV (register) - ARM section A8.8.104, encoding A1:
-    //   mov{S}<c> <Rd>, <Rn>
-    //
-    // cccc0001101s0000dddd00000000mmmm where cccc=Cond, s=SetFlags, dddd=Rd,
-    // and nnnn=Rn.
-    if ((Rd == RegARM32::Encoded_Reg_pc && SetFlags))
-      // Conditions of rule violated.
-      return setNeedsTextFixup();
-    emitType01(Cond, kInstTypeDataRegister, Mov, SetFlags, Rn, Rd, Src);
-    return;
-  }
-  case DecodedAsRotatedImm8: {
-    // MOV (immediate) - ARM section A8.8.102, encoding A1:
-    //   mov{S}<c> <Rd>, #<RotatedImm8>
-    //
-    // cccc0011101s0000ddddiiiiiiiiiiii where cccc=Cond, s=SetFlags, dddd=Rd,
-    // and iiiiiiiiiiii=RotatedImm8=Src.  Note: We don't use movs in this
-    // assembler.
-    if ((Rd == RegARM32::Encoded_Reg_pc && SetFlags))
-      // Conditions of rule violated.
-      return setNeedsTextFixup();
-    emitType01(Cond, kInstTypeDataImmediate, Mov, SetFlags, Rn, Rd, Src);
-    return;
-  }
-  }
+  emitType01(Mov, Rd, Rn, OpSrc, SetFlags, Cond);
 }
 
 void AssemblerARM32::movw(const Operand *OpRd, const Operand *OpSrc,
@@ -746,7 +743,7 @@ void AssemblerARM32::movw(const Operand *OpRd, const Operand *OpSrc,
   auto *Src = llvm::dyn_cast<ConstantRelocatable>(OpSrc);
   if (Src == nullptr)
     return setNeedsTextFixup();
-  // MOV (immediate) - ARM section A8.8.102, encoding A2:
+  // MOVW (immediate) - ARM section A8.8.102, encoding A2:
   //  movw<c> <Rd>, #<imm16>
   //
   // cccc00110000iiiiddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, and
@@ -875,45 +872,19 @@ void AssemblerARM32::str(const Operand *OpRt, const Operand *OpAddress,
 void AssemblerARM32::orr(const Operand *OpRd, const Operand *OpRn,
                          const Operand *OpSrc1, bool SetFlags,
                          CondARM32::Cond Cond) {
-  IValueT Rd;
-  if (decodeOperand(OpRd, Rd) != DecodedAsRegister)
-    return setNeedsTextFixup();
-  IValueT Rn;
-  if (decodeOperand(OpRn, Rn) != DecodedAsRegister)
-    return setNeedsTextFixup();
+  // ORR (register) - ARM Section A8.8.123, encoding A1:
+  //   orr{s}<c> <Rd>, <Rn>, <Rm>
+  //
+  // cccc0001100snnnnddddiiiiitt0mmmm where cccc=Cond, dddd=Rd, nnnn=Rn,
+  // mmmm=Rm, iiiii=shift, tt=ShiftKind,, and s=SetFlags.
+  //
+  // ORR (register) - ARM Section A8.8.123, encoding A1:
+  //   orr{s}<c> <Rd>, <Rn>,  #<RotatedImm8>
+  //
+  // cccc0001100snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
+  // s=SetFlags and iiiiiiiiiiii=Src1Value defining RotatedImm8.
   constexpr IValueT Orr = B3 | B2; // i.e. 1100
-  IValueT Src1Value;
-  // TODO(kschimpf) Handle other possible decodings of orr.
-  switch (decodeOperand(OpSrc1, Src1Value)) {
-  default:
-    return setNeedsTextFixup();
-  case DecodedAsRegister: {
-    // ORR (register) - ARM Section A8.8.123, encoding A1:
-    //   orr{s}<c> <Rd>, <Rn>, <Rm>
-    //
-    // cccc0001100snnnnddddiiiiitt0mmmm where cccc=Cond, dddd=Rd, nnnn=Rn,
-    // mmmm=Rm, iiiii=shift, tt=ShiftKind,, and s=SetFlags.
-    constexpr IValueT Shift = 0;
-    Src1Value = encodeShiftRotateImm5(Src1Value, OperandARM32::kNoShift, Shift);
-    if (((Rd == RegARM32::Encoded_Reg_pc) && SetFlags))
-      // Conditions of rule violated.
-      return setNeedsTextFixup();
-    emitType01(Cond, kInstTypeDataRegister, Orr, SetFlags, Rn, Rd, Src1Value);
-    return;
-  }
-  case DecodedAsRotatedImm8: {
-    // ORR (register) - ARM Section A8.8.123, encoding A1:
-    //   orr{s}<c> <Rd>, <Rn>,  #<RotatedImm8>
-    //
-    // cccc0001100snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
-    // s=SetFlags and iiiiiiiiiiii=Src1Value defining RotatedImm8.
-    if (Rd == RegARM32::Encoded_Reg_pc && SetFlags)
-      // Conditions of rule violated.
-      return setNeedsTextFixup();
-    emitType01(Cond, kInstTypeDataImmediate, Orr, SetFlags, Rn, Rd, Src1Value);
-    return;
-  }
-  }
+  emitType01(Orr, OpRd, OpRn, OpSrc1, SetFlags, Cond);
 }
 
 void AssemblerARM32::mul(const Operand *OpRd, const Operand *OpRn,
@@ -985,6 +956,23 @@ void AssemblerARM32::sub(const Operand *OpRd, const Operand *OpRn,
   // s=SetFlags and iiiiiiiiiiii=Src1Value defining RotatedImm8
   constexpr IValueT Sub = B1; // 0010
   emitType01(Sub, OpRd, OpRn, OpSrc1, SetFlags, Cond);
+}
+
+void AssemblerARM32::tst(const Operand *OpRn, const Operand *OpSrc1,
+                         CondARM32::Cond Cond) {
+  // TST (register) - ARM section A8.8.241, encoding A1:
+  //   tst<c> <Rn>, <Rm>(, <shift>}
+  //
+  // cccc00010001nnnn0000iiiiitt0mmmm where cccc=Cond, nnnn=Rn, mmmm=Rm,
+  // iiiii=Shift, and tt=ShiftKind.
+  //
+  // TST (immediate) - ARM section A8.8.240, encoding A1:
+  //   tst<c> <Rn>, #<RotatedImm8>
+  //
+  // cccc00110001nnnn0000iiiiiiiiiiii where cccc=Cond, nnnn=Rn, and
+  // iiiiiiiiiiii defines RotatedImm8.
+  constexpr IValueT Opcode = B3; // ie. 1000
+  emitCompareOp(Opcode, OpRn, OpSrc1, Cond);
 }
 
 } // end of namespace ARM32
