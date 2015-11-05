@@ -521,9 +521,11 @@ class Assembler : public ValueObject {
   // Moved to ARM32::AssemblerARM32::mul()
   void mul(Register rd, Register rn, Register rm, Condition cond = AL);
   void muls(Register rd, Register rn, Register rm, Condition cond = AL);
-#endif
+
+  // Moved to ARM32::AssemblerARM32::mla()
   void mla(Register rd, Register rn, Register rm, Register ra,
            Condition cond = AL);
+#endif
   void mls(Register rd, Register rn, Register rm, Register ra,
            Condition cond = AL);
   void smull(Register rd_lo, Register rd_hi, Register rn, Register rm,

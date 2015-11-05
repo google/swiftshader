@@ -332,8 +332,7 @@ protected:
   // _mov_i1_to_flags is used for bool folding. If "Boolean" is folded, this
   // method returns true, and sets "CondIfTrue0" and "CondIfTrue1" to the
   // appropriate ARM condition codes. If "Boolean" is not to be folded, then
-  // this
-  // method returns false.
+  // this method returns false.
   bool _mov_i1_to_flags(Operand *Boolean, CondARM32::Cond *CondIfTrue0,
                         CondARM32::Cond *CondIfTrue1,
                         CondARM32::Cond *CondIfFalse);

@@ -97,7 +97,7 @@ void InstARM32::emitUsingTextFixup(const Cfg *Func) const {
     UnimplementedError(Ctx->getFlags());
     return;
   }
-  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   std::string Buffer;
   llvm::raw_string_ostream StrBuf(Buffer);
   OstreamLocker L(Ctx);
@@ -199,6 +199,19 @@ void InstARM32Pred::emitFourAddr(const char *Opcode, const InstARM32Pred *Inst,
   Inst->getSrc(1)->emit(Func);
   Str << ", ";
   Inst->getSrc(2)->emit(Func);
+}
+
+template <InstARM32::InstKindARM32 K>
+void InstARM32FourAddrGPR<K>::emitIAS(const Cfg *Func) const {
+  emitUsingTextFixup(Func);
+}
+
+template <> void InstARM32Mla::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 3);
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  Asm->mla(getDest(), getSrc(0), getSrc(1), getSrc(2), getPredicate());
+  if (Asm->needsTextFixup())
+    emitUsingTextFixup(Func);
 }
 
 void InstARM32Pred::emitCmpLike(const char *Opcode, const InstARM32Pred *Inst,
@@ -354,56 +367,56 @@ void InstARM32ThreeAddrGPR<K>::emitIAS(const Cfg *Func) const {
 }
 
 template <> void InstARM32Adc::emitIAS(const Cfg *Func) const {
-  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Asm->adc(getDest(), getSrc(0), getSrc(1), SetFlags, getPredicate());
   if (Asm->needsTextFixup())
     emitUsingTextFixup(Func);
 }
 
 template <> void InstARM32Add::emitIAS(const Cfg *Func) const {
-  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Asm->add(getDest(), getSrc(0), getSrc(1), SetFlags, getPredicate());
   if (Asm->needsTextFixup())
     emitUsingTextFixup(Func);
 }
 
 template <> void InstARM32And::emitIAS(const Cfg *Func) const {
-  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Asm->and_(getDest(), getSrc(0), getSrc(1), SetFlags, getPredicate());
   if (Asm->needsTextFixup())
     emitUsingTextFixup(Func);
 }
 
 template <> void InstARM32Bic::emitIAS(const Cfg *Func) const {
-  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Asm->bic(getDest(), getSrc(0), getSrc(1), SetFlags, getPredicate());
   if (Asm->needsTextFixup())
     emitUsingTextFixup(Func);
 }
 
 template <> void InstARM32Eor::emitIAS(const Cfg *Func) const {
-  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Asm->eor(getDest(), getSrc(0), getSrc(1), SetFlags, getPredicate());
   if (Asm->needsTextFixup())
     emitUsingTextFixup(Func);
 }
 
 template <> void InstARM32Orr::emitIAS(const Cfg *Func) const {
-  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Asm->orr(getDest(), getSrc(0), getSrc(1), SetFlags, getPredicate());
   if (Asm->needsTextFixup())
     emitUsingTextFixup(Func);
 }
 
 template <> void InstARM32Mul::emitIAS(const Cfg *Func) const {
-  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Asm->mul(getDest(), getSrc(0), getSrc(1), SetFlags, getPredicate());
   if (Asm->needsTextFixup())
     emitUsingTextFixup(Func);
 }
 
 template <> void InstARM32Sbc::emitIAS(const Cfg *Func) const {
-  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Asm->sbc(getDest(), getSrc(0), getSrc(1), SetFlags, getPredicate());
   if (Asm->needsTextFixup())
     emitUsingTextFixup(Func);
@@ -411,14 +424,14 @@ template <> void InstARM32Sbc::emitIAS(const Cfg *Func) const {
 
 template <> void InstARM32Sdiv::emitIAS(const Cfg *Func) const {
   assert(!SetFlags);
-  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Asm->sdiv(getDest(), getSrc(0), getSrc(1), getPredicate());
   if (Asm->needsTextFixup())
     emitUsingTextFixup(Func);
 }
 
 template <> void InstARM32Sub::emitIAS(const Cfg *Func) const {
-  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Asm->sub(getDest(), getSrc(0), getSrc(1), SetFlags, getPredicate());
   if (Asm->needsTextFixup())
     emitUsingTextFixup(Func);
@@ -426,7 +439,7 @@ template <> void InstARM32Sub::emitIAS(const Cfg *Func) const {
 
 template <> void InstARM32Udiv::emitIAS(const Cfg *Func) const {
   assert(!SetFlags);
-  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Asm->udiv(getDest(), getSrc(0), getSrc(1), getPredicate());
   if (Asm->needsTextFixup())
     emitUsingTextFixup(Func);
@@ -530,7 +543,7 @@ void InstARM32CmpLike<K>::emitIAS(const Cfg *Func) const {
 
 template <> void InstARM32Cmp::emitIAS(const Cfg *Func) const {
   assert(getSrcSize() == 2);
-  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Asm->cmp(getSrc(0), getSrc(1), getPredicate());
   if (Asm->needsTextFixup())
     emitUsingTextFixup(Func);
@@ -538,7 +551,7 @@ template <> void InstARM32Cmp::emitIAS(const Cfg *Func) const {
 
 template <> void InstARM32Tst::emitIAS(const Cfg *Func) const {
   assert(getSrcSize() == 2);
-  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Asm->tst(getSrc(0), getSrc(1), getPredicate());
   if (Asm->needsTextFixup())
     emitUsingTextFixup(Func);
@@ -728,7 +741,7 @@ void InstARM32Mov::emitSingleDestSingleSource(const Cfg *Func) const {
 }
 
 void InstARM32Mov::emitIASSingleDestSingleSource(const Cfg *Func) const {
-  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Variable *Dest = getDest();
   Operand *Src0 = getSrc(0);
   if (Dest->hasReg()) {
@@ -777,7 +790,7 @@ void InstARM32Mov::emitIAS(const Cfg *Func) const {
   if (!Func->getContext()->getFlags().getAllowUnsafeIas())
     return emitUsingTextFixup(Func);
   assert(!(isMultiDest() && isMultiSource()) && "Invalid vmov type.");
-  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   if (!(isMultiDest() || isMultiSource())) {
     // Must be single source/dest.
     emitIASSingleDestSingleSource(Func);
@@ -831,7 +844,7 @@ void InstARM32Br::emit(const Cfg *Func) const {
 void InstARM32Br::emitIAS(const Cfg *Func) const {
   if (!Func->getContext()->getFlags().getAllowUnsafeIas())
     return emitUsingTextFixup(Func);
-  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   if (Label) {
     Asm->b(Asm->getOrCreateLocalLabel(Label->getNumber()), getPredicate());
   } else if (isUnconditionalBranch()) {
@@ -915,7 +928,7 @@ void InstARM32Label::emit(const Cfg *Func) const {
 }
 
 void InstARM32Label::emitIAS(const Cfg *Func) const {
-  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Asm->bindLocalLabel(Func, this, Number);
   if (Asm->needsTextFixup())
     emitUsingTextFixup(Func);
@@ -958,7 +971,7 @@ template <> void InstARM32Ldr::emitIAS(const Cfg *Func) const {
   assert(getSrcSize() == 1);
   Variable *Dest = getDest();
   Type DestTy = Dest->getType();
-  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   if (isVectorType(DestTy) || isScalarFloatingType(DestTy))
     // TODO(kschimpf) Handle case.
     Asm->setNeedsTextFixup();
@@ -1015,7 +1028,7 @@ template <> void InstARM32Movw::emitIAS(const Cfg *Func) const {
   if (!Func->getContext()->getFlags().getAllowUnsafeIas())
     return emitUsingTextFixup(Func);
   assert(getSrcSize() == 1);
-  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Asm->movw(getDest(), getSrc(0), getPredicate());
   if (Asm->needsTextFixup())
     emitUsingTextFixup(Func);
@@ -1043,7 +1056,7 @@ template <> void InstARM32Movt::emitIAS(const Cfg *Func) const {
   if (!Func->getContext()->getFlags().getAllowUnsafeIas())
     return emitUsingTextFixup(Func);
   assert(getSrcSize() == 2);
-  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Asm->movt(getDest(), getSrc(1), getPredicate());
   if (Asm->needsTextFixup())
     emitUsingTextFixup(Func);
@@ -1192,7 +1205,7 @@ void InstARM32Ret::emit(const Cfg *Func) const {
 }
 
 void InstARM32Ret::emitIAS(const Cfg *Func) const {
-  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Asm->bx(RegARM32::Encoded_Reg_lr);
   if (Asm->needsTextFixup())
     emitUsingTextFixup(Func);
@@ -1227,7 +1240,7 @@ void InstARM32Str::emit(const Cfg *Func) const {
 void InstARM32Str::emitIAS(const Cfg *Func) const {
   assert(getSrcSize() == 2);
   Type Ty = getSrc(0)->getType();
-  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   if (isVectorType(Ty) || isScalarFloatingType(Ty))
     // TODO(kschimpf) Handle case.
     Asm->setNeedsTextFixup();
@@ -1288,7 +1301,7 @@ void InstARM32Trap::emit(const Cfg *Func) const {
   // There isn't a mnemonic for the special NaCl Trap encoding, so dump
   // the raw bytes.
   Str << "\t.long 0x";
-  ARM32::AssemblerARM32 *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   for (uint8_t I : Asm->getNonExecBundlePadding()) {
     Str.write_hex(I);
   }
@@ -1613,6 +1626,9 @@ template class InstARM32UnaryopGPR<InstARM32::Rev, false>;
 template class InstARM32UnaryopGPR<InstARM32::Sxt, true>;
 template class InstARM32UnaryopGPR<InstARM32::Uxt, true>;
 template class InstARM32UnaryopFP<InstARM32::Vsqrt>;
+
+template class InstARM32FourAddrGPR<InstARM32::Mla>;
+template class InstARM32FourAddrGPR<InstARM32::Mls>;
 
 template class InstARM32CmpLike<InstARM32::Cmp>;
 template class InstARM32CmpLike<InstARM32::Tst>;

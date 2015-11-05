@@ -886,6 +886,35 @@ void AssemblerARM32::orr(const Operand *OpRd, const Operand *OpRn,
   emitType01(Orr, OpRd, OpRn, OpSrc1, SetFlags, Cond);
 }
 
+void AssemblerARM32::mla(const Operand *OpRd, const Operand *OpRn,
+                         const Operand *OpRm, const Operand *OpRa,
+                         CondARM32::Cond Cond) {
+  IValueT Rd;
+  if (decodeOperand(OpRd, Rd) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  IValueT Rn;
+  if (decodeOperand(OpRn, Rn) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  IValueT Rm;
+  if (decodeOperand(OpRm, Rm) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  IValueT Ra;
+  if (decodeOperand(OpRa, Ra) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  // MLA - ARM section A8.8.114, encoding A1.
+  //   mla{s}<c> <Rd>, <Rn>, <Rm>, <Ra>
+  //
+  // cccc0000001sddddaaaammmm1001nnnn where cccc=Cond, s=SetFlags, dddd=Rd,
+  // aaaa=Ra, mmmm=Rm, and nnnn=Rn.
+  if (Rd == RegARM32::Encoded_Reg_pc || Rn == RegARM32::Encoded_Reg_pc ||
+      Rm == RegARM32::Encoded_Reg_pc || Ra == RegARM32::Encoded_Reg_pc)
+    llvm::report_fatal_error("Mul instruction unpredictable on pc");
+  constexpr IValueT MlaOpcode = B21;
+  constexpr bool SetFlags = false;
+  // Assembler registers rd, rn, rm, ra are encoded as rn, rm, rs, rd.
+  emitMulOp(Cond, MlaOpcode, Ra, Rd, Rn, Rm, SetFlags);
+}
+
 void AssemblerARM32::mul(const Operand *OpRd, const Operand *OpRn,
                          const Operand *OpSrc1, bool SetFlags,
                          CondARM32::Cond Cond) {

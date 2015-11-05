@@ -391,13 +391,15 @@ void Assembler::muls(Register rd, Register rn, Register rm, Condition cond) {
   EmitMulOp(cond, B20, R0, rd, rn, rm);
 }
 
-
+#if 0
+// Moved to ARM32::AssemblerARM32::mla
 void Assembler::mla(Register rd, Register rn,
                     Register rm, Register ra, Condition cond) {
   // rd <- ra + rn * rm.
   // Assembler registers rd, rn, rm, ra are encoded as rn, rm, rs, rd.
   EmitMulOp(cond, B21, ra, rd, rn, rm);
 }
+#endif
 
 
 void Assembler::mls(Register rd, Register rn,
