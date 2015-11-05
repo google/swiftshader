@@ -976,7 +976,7 @@ public:
 		context = nullptr;
 	}
 
-	void wait() const { return context->finish(); }
+	void wait() { context->finish(); signal(); }
 	void signal() { status = EGL_SIGNALED_KHR; }
 	bool isSignaled() const { return status == EGL_SIGNALED_KHR; }
 
@@ -1051,7 +1051,6 @@ EGLint ClientWaitSyncKHR(EGLDisplay dpy, EGLSyncKHR sync, EGLint flags, EGLTimeK
 	if(!eglSync->isSignaled())
 	{
 		eglSync->wait();
-		eglSync->signal();
 	}
 
 	return EGL_CONDITION_SATISFIED_KHR;
@@ -1076,6 +1075,7 @@ EGLBoolean GetSyncAttribKHR(EGLDisplay dpy, EGLSyncKHR sync, EGLint attribute, E
 		*value = EGL_SYNC_FENCE_KHR;
 		return EGL_TRUE;
 	case EGL_SYNC_STATUS_KHR:
+		eglSync->wait();   // TODO: Don't block. Just poll based on sw::Query.
 		*value = eglSync->isSignaled() ? EGL_SIGNALED_KHR : EGL_UNSIGNALED_KHR;
 		return EGL_TRUE;
 	case EGL_SYNC_CONDITION_KHR:
