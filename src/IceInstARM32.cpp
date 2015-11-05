@@ -84,6 +84,11 @@ CondARM32::Cond InstARM32::getOppositeCondition(CondARM32::Cond Cond) {
   return InstARM32CondAttributes[Cond].Opposite;
 }
 
+void InstARM32::startNextInst(const Cfg *Func) const {
+  if (auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>())
+    Asm->incEmitTextSize(InstSize);
+}
+
 void InstARM32::emitUsingTextFixup(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
@@ -98,9 +103,13 @@ void InstARM32::emitUsingTextFixup(const Cfg *Func) const {
   OstreamLocker L(Ctx);
   Ostream &OldStr = Ctx->getStrEmit();
   Ctx->setStrEmit(StrBuf);
+  // Start counting instructions here, so that emit() methods don't
+  // need to call this for the first instruction.
+  Asm->resetEmitTextSize();
+  Asm->incEmitTextSize(InstSize);
   emit(Func);
   Ctx->setStrEmit(OldStr);
-  Asm->emitTextInst(StrBuf.str());
+  Asm->emitTextInst(StrBuf.str(), Asm->getEmitTextSize());
 }
 
 void InstARM32::emitIAS(const Cfg *Func) const { emitUsingTextFixup(Func); }
@@ -810,6 +819,7 @@ void InstARM32Br::emit(const Cfg *Func) const {
     } else {
       Str << getTargetTrue()->getAsmName();
       if (getTargetFalse()) {
+        startNextInst(Func);
         Str << "\n\t"
             << "b"
             << "\t" << getTargetFalse()->getAsmName();
@@ -1069,6 +1079,7 @@ void InstARM32Pop::emit(const Cfg *Func) const {
   for (const Operand *Op : Dests) {
     if (isScalarIntegerType(Op->getType()))
       continue;
+    startNextInst(Func);
     Str << "\t"
         << "vpop"
         << "\t{";
@@ -1139,6 +1150,7 @@ void InstARM32Push::emit(const Cfg *Func) const {
     Str << "}\n";
   }
   if (IntegerCount != 0) {
+    startNextInst(Func);
     Str << "\t"
         << "push"
         << "\t{";

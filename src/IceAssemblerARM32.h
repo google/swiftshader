@@ -82,7 +82,7 @@ public:
     SizeT BytesNeeded = Utils::OffsetToAlignment(Buffer.getPosition(), Align);
     constexpr IValueT UndefinedInst = 0xe7fedef0; // udf #60896
     constexpr SizeT InstSize = sizeof(IValueT);
-    assert(BytesNeeded % InstSize == 0);
+    assert(BytesNeeded % InstARM32::InstSize == 0);
     while (BytesNeeded > 0) {
       AssemblerBuffer::EnsureCapacity ensured(&Buffer);
       emitInst(UndefinedInst);
@@ -136,6 +136,14 @@ public:
     // TODO(kschimpf) Decide if we need this.
     return false;
   }
+
+  /// Accessors to keep track of the number of bytes generated inside
+  /// InstARM32::emit() methods, when run inside of
+  /// InstARM32::emitUsingTextFixup().
+  void resetEmitTextSize() { EmitTextSize = 0; }
+  void incEmitTextSize(size_t Amount) { EmitTextSize += Amount; }
+  void decEmitTextSize(size_t Amount) { EmitTextSize -= Amount; }
+  size_t getEmitTextSize() const { return EmitTextSize; }
 
   void bind(Label *label);
 
@@ -198,7 +206,7 @@ public:
     return Asm->getKind() == Asm_ARM32;
   }
 
-  void emitTextInst(const std::string &Text, SizeT InstSize = sizeof(IValueT));
+  void emitTextInst(const std::string &Text, SizeT InstSize);
 
 private:
   // A vector of pool-allocated x86 labels for CFG nodes.
@@ -206,6 +214,9 @@ private:
   LabelVector CfgNodeLabels;
   // A vector of pool-allocated x86 labels for Local labels.
   LabelVector LocalLabels;
+  // Number of bytes emitted by InstARM32::emit() methods, when run inside
+  // InstARM32::emitUsingTextFixup().
+  size_t EmitTextSize = 0;
 
   Label *getOrCreateLabel(SizeT Number, LabelVector &Labels);
 

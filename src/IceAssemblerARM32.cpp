@@ -270,9 +270,8 @@ namespace ARM32 {
 
 size_t MoveRelocatableFixup::emit(GlobalContext *Ctx,
                                   const Assembler &Asm) const {
-  static constexpr const size_t FixupSize = sizeof(IValueT);
   if (!BuildDefs::dump())
-    return FixupSize;
+    return InstARM32::InstSize;
   Ostream &Str = Ctx->getStrEmit();
   IValueT Inst = Asm.load<IValueT>(position());
   Str << "\tmov" << (kind() == llvm::ELF::R_ARM_MOVW_ABS_NC ? "w" : "t") << "\t"
@@ -280,7 +279,7 @@ size_t MoveRelocatableFixup::emit(GlobalContext *Ctx,
       << ", #:" << (kind() == llvm::ELF::R_ARM_MOVW_ABS_NC ? "lower" : "upper")
       << "16:" << symbol(Ctx) << "\t@ .word "
       << llvm::format_hex_no_prefix(Inst, 8) << "\n";
-  return FixupSize;
+  return InstARM32::InstSize;
 }
 
 MoveRelocatableFixup *AssemblerARM32::createMoveFixup(bool IsMovW,
@@ -360,11 +359,12 @@ void AssemblerARM32::bind(Label *L) {
 }
 
 void AssemblerARM32::emitTextInst(const std::string &Text, SizeT InstSize) {
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   AssemblerFixup *F = createTextFixup(Text, InstSize);
   emitFixup(F);
-  for (SizeT I = 0; I < InstSize; ++I)
+  for (SizeT I = 0; I < InstSize; ++I) {
+    AssemblerBuffer::EnsureCapacity ensured(&Buffer);
     Buffer.emit<char>(0);
+  }
 }
 
 void AssemblerARM32::emitType01(CondARM32::Cond Cond, IValueT Type,
@@ -393,10 +393,9 @@ void AssemblerARM32::emitType01(IValueT Opcode, const Operand *OpRd,
   emitType01(Opcode, Rd, Rn, OpSrc1, SetFlags, Cond, RuleChecks);
 }
 
-void AssemblerARM32::emitType01(IValueT Opcode, IValueT Rd,
-                                IValueT Rn, const Operand *OpSrc1,
-                                bool SetFlags, CondARM32::Cond Cond,
-                                Type01Checks RuleChecks) {
+void AssemblerARM32::emitType01(IValueT Opcode, IValueT Rd, IValueT Rn,
+                                const Operand *OpSrc1, bool SetFlags,
+                                CondARM32::Cond Cond, Type01Checks RuleChecks) {
   switch (RuleChecks) {
   case NoChecks:
     break;

@@ -334,9 +334,17 @@ public:
     Vsub
   };
 
+  static constexpr size_t InstSize = sizeof(uint32_t);
+
   static const char *getWidthString(Type Ty);
   static const char *getVecWidthString(Type Ty);
   static CondARM32::Cond getOppositeCondition(CondARM32::Cond Cond);
+
+  /// Called inside derived methods emit() to communicate that multiple
+  /// instructions are being generated. Used by emitIAS() methods to
+  /// generate textual fixups for instructions that are not yet
+  /// implemented.
+  void startNextInst(const Cfg *Func) const;
 
   /// Shared emit routines for common forms of instructions.
   static void emitThreeAddrFP(const char *Opcode, const InstARM32 *Inst,
