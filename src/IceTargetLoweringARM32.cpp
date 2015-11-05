@@ -160,9 +160,9 @@ TargetARM32Features::TargetARM32Features(const ClFlags &Flags) {
 }
 
 TargetARM32::TargetARM32(Cfg *Func)
-    : TargetLowering(Func), CPUFeatures(Func->getContext()->getFlags()) {
-  // TODO: Don't initialize IntegerRegisters and friends every time. Instead,
-  // initialize in some sort of static initializer for the class.
+    : TargetLowering(Func), CPUFeatures(Func->getContext()->getFlags()) {}
+
+void TargetARM32::staticInit() {
   // Limit this size (or do all bitsets need to be the same width)???
   llvm::SmallBitVector IntegerRegisters(RegARM32::Reg_NUM);
   llvm::SmallBitVector I64PairRegisters(RegARM32::Reg_NUM);
@@ -4267,5 +4267,9 @@ void TargetHeaderARM32::lower() {
   // However, for compatibility with current NaCl LLVM, don't claim that.
   Str << ".eabi_attribute 14, 3   @ Tag_ABI_PCS_R9_use: Not used\n";
 }
+
+llvm::SmallBitVector TargetARM32::TypeToRegisterSet[IceType_NUM];
+llvm::SmallBitVector TargetARM32::RegisterAliases[RegARM32::Reg_NUM];
+llvm::SmallBitVector TargetARM32::ScratchRegs;
 
 } // end of namespace Ice

@@ -281,8 +281,9 @@ TargetX86Base<Machine>::TargetX86Base(Cfg *Func)
          TargetInstructionSet::X86InstructionSet_Begin) +
         Traits::InstructionSet::Begin);
   }
-  // TODO: Don't initialize IntegerRegisters and friends every time. Instead,
-  // initialize in some sort of static initializer for the class.
+}
+
+template <class Machine> void TargetX86Base<Machine>::staticInit() {
   Traits::initRegisterSet(&TypeToRegisterSet, &RegisterAliases, &ScratchRegs);
 }
 

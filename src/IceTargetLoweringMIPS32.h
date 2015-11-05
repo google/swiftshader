@@ -29,6 +29,7 @@ class TargetMIPS32 : public TargetLowering {
   TargetMIPS32 &operator=(const TargetMIPS32 &) = delete;
 
 public:
+  static void staticInit();
   // TODO(jvoung): return a unique_ptr.
   static TargetMIPS32 *create(Cfg *Func) { return new TargetMIPS32(Func); }
 
@@ -197,9 +198,9 @@ protected:
 
   bool UsesFramePointer = false;
   bool NeedsStackAlignment = false;
-  llvm::SmallBitVector TypeToRegisterSet[IceType_NUM];
-  llvm::SmallBitVector RegisterAliases[RegMIPS32::Reg_NUM];
-  llvm::SmallBitVector ScratchRegs;
+  static llvm::SmallBitVector TypeToRegisterSet[IceType_NUM];
+  static llvm::SmallBitVector RegisterAliases[RegMIPS32::Reg_NUM];
+  static llvm::SmallBitVector ScratchRegs;
   llvm::SmallBitVector RegsUsed;
   VarList PhysicalRegisters[IceType_NUM];
 

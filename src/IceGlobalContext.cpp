@@ -270,6 +270,8 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit, Ostream *OsError,
   ProfileBlockInfoVarDecl->setName("__Sz_block_profile_info");
   ProfileBlockInfoVarDecl->setSuppressMangling();
   ProfileBlockInfoVarDecl->setLinkage(llvm::GlobalValue::ExternalLinkage);
+
+  TargetLowering::staticInit(Flags.getTargetArch());
 }
 
 void GlobalContext::translateFunctions() {

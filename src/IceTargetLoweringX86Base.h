@@ -58,6 +58,7 @@ public:
 
   ~TargetX86Base() override = default;
 
+  static void staticInit();
   static TargetX86Base *create(Cfg *Func) { return new TargetX86Base(Func); }
 
   void translateOm1() override;
@@ -669,10 +670,10 @@ protected:
   bool NeedsStackAlignment = false;
   size_t SpillAreaSizeBytes = 0;
   size_t FixedAllocaSizeBytes = 0;
-  std::array<llvm::SmallBitVector, IceType_NUM> TypeToRegisterSet;
-  std::array<llvm::SmallBitVector, Traits::RegisterSet::Reg_NUM>
+  static std::array<llvm::SmallBitVector, IceType_NUM> TypeToRegisterSet;
+  static std::array<llvm::SmallBitVector, Traits::RegisterSet::Reg_NUM>
       RegisterAliases;
-  llvm::SmallBitVector ScratchRegs;
+  static llvm::SmallBitVector ScratchRegs;
   llvm::SmallBitVector RegsUsed;
   std::array<VarList, IceType_NUM> PhysicalRegisters;
 

@@ -41,10 +41,9 @@ constexpr uint32_t MIPS32_MAX_GPR_ARG = 4;
 
 } // end of anonymous namespace
 
-TargetMIPS32::TargetMIPS32(Cfg *Func) : TargetLowering(Func) {
-  // TODO: Don't initialize IntegerRegisters and friends every time. Instead,
-  // initialize in some sort of static initializer for the class.
+TargetMIPS32::TargetMIPS32(Cfg *Func) : TargetLowering(Func) {}
 
+void TargetMIPS32::staticInit() {
   llvm::SmallBitVector IntegerRegisters(RegMIPS32::Reg_NUM);
   llvm::SmallBitVector I64PairRegisters(RegMIPS32::Reg_NUM);
   llvm::SmallBitVector Float32Registers(RegMIPS32::Reg_NUM);
@@ -1054,5 +1053,9 @@ void TargetHeaderMIPS32::lower() {
   Str << "\t.set\tnomicromips\n";
   Str << "\t.set\tnomips16\n";
 }
+
+llvm::SmallBitVector TargetMIPS32::TypeToRegisterSet[IceType_NUM];
+llvm::SmallBitVector TargetMIPS32::RegisterAliases[RegMIPS32::Reg_NUM];
+llvm::SmallBitVector TargetMIPS32::ScratchRegs;
 
 } // end of namespace Ice

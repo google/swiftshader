@@ -105,6 +105,24 @@ TargetLowering *TargetLowering::createLowering(TargetArch Target, Cfg *Func) {
   return nullptr;
 }
 
+void TargetLowering::staticInit(TargetArch Target) {
+  // Call the specified target's static initializer.
+  switch (Target) {
+  default:
+    llvm::report_fatal_error("Unsupported target");
+    break;
+#define SUBZERO_TARGET(X)                                                      \
+  case Target_##X: {                                                           \
+    static bool InitGuard##X = false;                                          \
+    if (InitGuard##X)                                                          \
+      return;                                                                  \
+    InitGuard##X = true;                                                       \
+    Target##X::staticInit();                                                   \
+  } break;
+#include "llvm/Config/SZTargets.def"
+  }
+}
+
 TargetLowering::TargetLowering(Cfg *Func)
     : Func(Func), Ctx(Func->getContext()), Context() {}
 

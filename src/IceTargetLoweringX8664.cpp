@@ -86,6 +86,19 @@ const size_t MachineTraits<TargetX8664>::TableTypeX8664AttributesSize =
 const uint32_t MachineTraits<TargetX8664>::X86_STACK_ALIGNMENT_BYTES = 16;
 const char *MachineTraits<TargetX8664>::TargetName = "X8664";
 
+template <>
+std::array<llvm::SmallBitVector, IceType_NUM>
+    TargetX86Base<TargetX8664>::TypeToRegisterSet = {};
+
+template <>
+std::array<llvm::SmallBitVector,
+           TargetX86Base<TargetX8664>::Traits::RegisterSet::Reg_NUM>
+    TargetX86Base<TargetX8664>::RegisterAliases = {};
+
+template <>
+llvm::SmallBitVector
+    TargetX86Base<TargetX8664>::ScratchRegs = llvm::SmallBitVector();
+
 } // end of namespace X86Internal
 
 //------------------------------------------------------------------------------

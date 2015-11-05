@@ -55,6 +55,7 @@ class TargetARM32 : public TargetLowering {
   TargetARM32 &operator=(const TargetARM32 &) = delete;
 
 public:
+  static void staticInit();
   // TODO(jvoung): return a unique_ptr.
   static TargetARM32 *create(Cfg *Func) { return new TargetARM32(Func); }
 
@@ -551,9 +552,9 @@ protected:
   bool MaybeLeafFunc = true;
   size_t SpillAreaSizeBytes = 0;
   // TODO(jpp): std::array instead of array.
-  llvm::SmallBitVector TypeToRegisterSet[IceType_NUM];
-  llvm::SmallBitVector RegisterAliases[RegARM32::Reg_NUM];
-  llvm::SmallBitVector ScratchRegs;
+  static llvm::SmallBitVector TypeToRegisterSet[IceType_NUM];
+  static llvm::SmallBitVector RegisterAliases[RegARM32::Reg_NUM];
+  static llvm::SmallBitVector ScratchRegs;
   llvm::SmallBitVector RegsUsed;
   VarList PhysicalRegisters[IceType_NUM];
 

@@ -136,6 +136,9 @@ class TargetLowering {
 public:
   // TODO(jvoung): return a unique_ptr like the other factory functions.
   static TargetLowering *createLowering(TargetArch Target, Cfg *Func);
+  static void staticInit(TargetArch Target);
+  // Each target must define a public static method:
+  //   static void staticInit();
   static std::unique_ptr<Assembler> createAssembler(TargetArch Target,
                                                     Cfg *Func);
   void translate() {
