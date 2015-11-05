@@ -380,7 +380,7 @@ namespace es1
 		scissorEnable = enable;
 	}
 
-	void Device::setRenderTarget(egl::Image *renderTarget)
+	void Device::setRenderTarget(int index, egl::Image *renderTarget)
 	{
 		if(renderTarget)
 		{
@@ -394,7 +394,7 @@ namespace es1
 
 		this->renderTarget = renderTarget;
 
-		Renderer::setRenderTarget(0, renderTarget);
+		Renderer::setRenderTarget(index, renderTarget);
 	}
 
 	void Device::setScissorRect(const sw::Rect &rect)

@@ -111,11 +111,11 @@ namespace sw
 
 	void QuadRasterizer::rasterize(Registers &r, Int &yMin, Int &yMax)
 	{
-		Pointer<Byte> cBuffer[4];
+		Pointer<Byte> cBuffer[RENDERTARGETS];
 		Pointer<Byte> zBuffer;
 		Pointer<Byte> sBuffer;
 
-		for(int index = 0; index < 4; index++)
+		for(int index = 0; index < RENDERTARGETS; index++)
 		{
 			if(state.colorWriteActive(index))
 			{
@@ -310,7 +310,7 @@ namespace sw
 				}
 			}
 
-			for(int index = 0; index < 4; index++)
+			for(int index = 0; index < RENDERTARGETS; index++)
 			{
 				if(state.colorWriteActive(index))
 				{

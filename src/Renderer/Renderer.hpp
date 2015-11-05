@@ -172,9 +172,9 @@ namespace sw
 		float depthNear;
 		Plane clipPlane[6];
 
-		unsigned int *colorBuffer[4];
-		int colorPitchB[4];
-		int colorSliceB[4];
+		unsigned int *colorBuffer[RENDERTARGETS];
+		int colorPitchB[RENDERTARGETS];
+		int colorSliceB[RENDERTARGETS];
 		float *depthBuffer;
 		int depthPitchB;
 		int depthSliceB;
@@ -215,7 +215,7 @@ namespace sw
 
 		Resource *vertexStream[VERTEX_ATTRIBUTES];
 		Resource *indexBuffer;
-		Surface *renderTarget[4];
+		Surface *renderTarget[RENDERTARGETS];
 		Surface *depthStencil;
 		Resource *texture[TOTAL_IMAGE_UNITS];
 

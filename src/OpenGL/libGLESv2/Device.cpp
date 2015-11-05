@@ -31,8 +31,8 @@ namespace es2
 
 	Device::Device(Context *context) : Renderer(context, OpenGL, true), context(context)
 	{
-		depthStencil = 0;
-		renderTarget = 0;
+		depthStencil = nullptr;
+		for(int i = 0; i < RENDERTARGETS; ++i) { renderTarget[i] = nullptr; }
 
 		setDepthBufferEnable(true);
 		setFillMode(FILL_SOLID);
@@ -119,8 +119,8 @@ namespace es2
 			setClipPlane(i, plane);
 		}
 
-		pixelShader = 0;
-		vertexShader = 0;
+		pixelShader = nullptr;
+		vertexShader = nullptr;
 
 		pixelShaderDirty = true;
 		pixelShaderConstantsFDirty = 0;
@@ -147,13 +147,16 @@ namespace es2
 		if(depthStencil)
 		{
 			depthStencil->release();
-			depthStencil = 0;
+			depthStencil = nullptr;
 		}
 		
-		if(renderTarget)
+		for(int i = 0; i < RENDERTARGETS; ++i)
 		{
-			renderTarget->release();
-			renderTarget = 0;
+			if(renderTarget[i])
+			{
+				renderTarget[i]->release();
+				renderTarget[i] = nullptr;
+			}
 		}
 
 		delete context;
@@ -177,15 +180,16 @@ namespace es2
 
 	void Device::clearColor(float red, float green, float blue, float alpha, unsigned int rgbaMask)
 	{
-		if(!renderTarget)
+		for(int i = 0; i < RENDERTARGETS; ++i)
 		{
-			return;
+			if(renderTarget[i])
+			{
+				int x0(0), y0(0), width(0), height(0);
+				getScissoredRegion(renderTarget[i], x0, y0, width, height);
+
+				renderTarget[i]->clearColorBuffer(red, green, blue, alpha, rgbaMask, x0, y0, width, height);
+			}
 		}
-
-		int x0(0), y0(0), width(0), height(0);
-		getScissoredRegion(renderTarget, x0, y0, width, height);
-
-		renderTarget->clearColorBuffer(red, green, blue, alpha, rgbaMask, x0, y0, width, height);
 	}
 
 	void Device::clearDepth(float z)
@@ -409,21 +413,21 @@ namespace es2
 		scissorEnable = enable;
 	}
 
-	void Device::setRenderTarget(egl::Image *renderTarget)
+	void Device::setRenderTarget(int index, egl::Image *renderTarget)
 	{
 		if(renderTarget)
 		{
 			renderTarget->addRef();
 		}
 
-		if(this->renderTarget)
+		if(this->renderTarget[index])
 		{
-			this->renderTarget->release();
+			this->renderTarget[index]->release();
 		}
 
-		this->renderTarget = renderTarget;
+		this->renderTarget[index] = renderTarget;
 
-		Renderer::setRenderTarget(0, renderTarget);
+		Renderer::setRenderTarget(index, renderTarget);
 	}
 
 	void Device::setScissorRect(const sw::Rect &rect)
@@ -816,12 +820,15 @@ namespace es2
 			scissor.y0 = viewport.y0;
 			scissor.y1 = viewport.y0 + viewport.height;
 			
-			if(renderTarget)
+			for(int i = 0; i < RENDERTARGETS; ++i)
 			{
-				scissor.x0 = max(scissor.x0, 0);
-				scissor.x1 = min(scissor.x1, renderTarget->getWidth());
-				scissor.y0 = max(scissor.y0, 0);
-				scissor.y1 = min(scissor.y1, renderTarget->getHeight());
+				if(renderTarget[i])
+				{
+					scissor.x0 = max(scissor.x0, 0);
+					scissor.x1 = min(scissor.x1, renderTarget[i]->getWidth());
+					scissor.y0 = max(scissor.y0, 0);
+					scissor.y1 = min(scissor.y1, renderTarget[i]->getHeight());
+				}
 			}
 
 			if(depthStencil)

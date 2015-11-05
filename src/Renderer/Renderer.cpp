@@ -567,7 +567,7 @@ namespace sw
 
 			// Target
 			{
-				for(int index = 0; index < 4; index++)
+				for(int index = 0; index < RENDERTARGETS; index++)
 				{
 					draw->renderTarget[index] = context->renderTarget[index];
 
@@ -916,7 +916,7 @@ namespace sw
 					draw.queries = 0;
 				}
 
-				for(int i = 0; i < 4; i++)
+				for(int i = 0; i < RENDERTARGETS; i++)
 				{
 					if(draw.renderTarget[i])
 					{
@@ -2052,7 +2052,7 @@ namespace sw
 
 	bool Renderer::isReadWriteTexture(int sampler)
 	{
-		for(int index = 0; index < 4; index++)
+		for(int index = 0; index < RENDERTARGETS; index++)
 		{
 			if(context->renderTarget[index] && context->texture[sampler] == context->renderTarget[index]->getResource())
 			{

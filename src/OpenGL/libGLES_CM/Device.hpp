@@ -60,7 +60,7 @@ namespace es1
 		virtual void drawPrimitive(PrimitiveType primitiveType, unsigned int primiveCount);
 		virtual void setDepthStencilSurface(egl::Image *newDepthStencil);
 		virtual void setScissorEnable(bool enable);
-		virtual void setRenderTarget(egl::Image *renderTarget);
+		virtual void setRenderTarget(int index, egl::Image *renderTarget);
 		virtual void setScissorRect(const sw::Rect &rect);
 		virtual void setViewport(const Viewport &viewport);
 

@@ -60,7 +60,8 @@ namespace sw
 			RegisterArray<4096> r;
 
 			// Color outputs
-			Vector4f oC[4];
+			Vector4f c[RENDERTARGETS];
+			RegisterArray<RENDERTARGETS, true> oC;
 
 			// Shader variables
 			Vector4f vPos;
@@ -88,7 +89,7 @@ namespace sw
 		void sampleTexture(Registers &r, Vector4f &c, int sampler, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, bool project = false, bool bias = false, bool gradients = false, bool lodProvided = false);
 
 		// Raster operations
-		void clampColor(Vector4f oC[4]);
+		void clampColor(Vector4f oC[RENDERTARGETS]);
 
 		Int4 enableMask(Registers &r, const Shader::Instruction *instruction);
 

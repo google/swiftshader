@@ -1718,7 +1718,7 @@ bool Context::applyRenderTarget()
     }
 
     Image *renderTarget = framebuffer->getRenderTarget();
-	device->setRenderTarget(renderTarget);
+	device->setRenderTarget(0, renderTarget);
 	if(renderTarget) renderTarget->release();
 
     Image *depthStencil = framebuffer->getDepthStencil();

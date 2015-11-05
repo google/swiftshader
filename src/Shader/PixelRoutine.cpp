@@ -55,7 +55,7 @@ namespace sw
 		}
 	}
 
-	void PixelRoutine::quad(QuadRasterizer::Registers &rBase, Pointer<Byte> cBuffer[4], Pointer<Byte> &zBuffer, Pointer<Byte> &sBuffer, Int cMask[4], Int &x, Int &y)
+	void PixelRoutine::quad(QuadRasterizer::Registers &rBase, Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBuffer, Pointer<Byte> &sBuffer, Int cMask[4], Int &x, Int &y)
 	{
 		Registers& r = *static_cast<Registers*>(&rBase);
 

@@ -59,7 +59,7 @@ namespace gl
 		virtual void setPixelShader(sw::PixelShader *shader);
 		virtual void setPixelShaderConstantF(unsigned int startRegister, const float *constantData, unsigned int count);
 		virtual void setScissorEnable(bool enable);
-		virtual void setRenderTarget(Image *renderTarget);
+		virtual void setRenderTarget(int index, Image *renderTarget);
 		virtual void setScissorRect(const sw::Rect &rect);
 		virtual void setVertexShader(sw::VertexShader *shader);
 		virtual void setVertexShaderConstantF(unsigned int startRegister, const float *constantData, unsigned int count);

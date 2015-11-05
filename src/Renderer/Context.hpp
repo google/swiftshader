@@ -450,7 +450,7 @@ namespace sw
 		int textureTransformCount[8];
 		bool textureTransformProject[8];
 
-		Surface *renderTarget[4];
+		Surface *renderTarget[RENDERTARGETS];
 		Surface *depthStencil;
 
 		// Fog

@@ -2702,8 +2702,8 @@ void Context::applyScissor(int width, int height)
 
 egl::Image *Context::getScissoredImage(GLint drawbuffer, int &x0, int &y0, int &width, int &height, bool depthStencil)
 {
-	Framebuffer* framebuffer = getFramebuffer(drawbuffer);
-	egl::Image* image = depthStencil ? framebuffer->getDepthStencil() : framebuffer->getRenderTarget(0);
+	Framebuffer* framebuffer = getDrawFramebuffer();
+	egl::Image* image = depthStencil ? framebuffer->getDepthStencil() : framebuffer->getRenderTarget(drawbuffer);
 
 	applyScissor(image->getWidth(), image->getHeight());
 
@@ -2723,9 +2723,12 @@ bool Context::applyRenderTarget()
         return error(GL_INVALID_FRAMEBUFFER_OPERATION, false);
     }
 
-	egl::Image *renderTarget = framebuffer->getRenderTarget(0);
-	device->setRenderTarget(renderTarget);
-	if(renderTarget) renderTarget->release();
+	for(int i = 0; i < MAX_DRAW_BUFFERS; ++i)
+	{
+		egl::Image *renderTarget = framebuffer->getRenderTarget(i);
+		device->setRenderTarget(i, renderTarget);
+		if(renderTarget) renderTarget->release();
+	}
 
     egl::Image *depthStencil = framebuffer->getDepthStencil();
     device->setDepthStencilSurface(depthStencil);
@@ -3279,7 +3282,7 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
         }
     }
 
-    egl::Image *renderTarget = framebuffer->getRenderTarget(0);
+    egl::Image *renderTarget = framebuffer->getReadRenderTarget();
 
     if(!renderTarget)
     {

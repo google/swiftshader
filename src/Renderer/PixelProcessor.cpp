@@ -938,7 +938,7 @@ namespace sw
 		                       (context->colorWriteActive(2) << 8) |
 		                       (context->colorWriteActive(3) << 12);
 
-		for(int i = 0; i < 4; i++)
+		for(int i = 0; i < RENDERTARGETS; i++)
 		{
 			state.targetFormat[i] = context->renderTargetInternalFormat(i);
 		}

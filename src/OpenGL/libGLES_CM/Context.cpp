@@ -1705,7 +1705,7 @@ bool Context::applyRenderTarget()
     }
 
     egl::Image *renderTarget = framebuffer->getRenderTarget();
-	device->setRenderTarget(renderTarget);
+	device->setRenderTarget(0, renderTarget);
 	if(renderTarget) renderTarget->release();
 
     egl::Image *depthStencil = framebuffer->getDepthStencil();

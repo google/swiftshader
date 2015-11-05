@@ -72,7 +72,13 @@ namespace sw
 			r.enableLeave = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
 		}
 
-		bool out[4][4] = { false };
+		for(int i = 0; i < RENDERTARGETS; i++)
+		{
+			if(state.targetFormat[i] != FORMAT_NULL)
+			{
+				r.oC[i] = Vector4f(0.0f, 0.0f, 0.0f, 0.0f);
+			}
+		}
 
 		// Create all call site return blocks up front
 		for(size_t i = 0; i < shader->getLength(); i++)
@@ -362,11 +368,22 @@ namespace sw
 						}
 						break;
 					case Shader::PARAMETER_COLOROUT:
-						ASSERT(dst.rel.type == Shader::PARAMETER_VOID);
-						if(dst.x) pDst.x = r.oC[dst.index].x;
-						if(dst.y) pDst.y = r.oC[dst.index].y;
-						if(dst.z) pDst.z = r.oC[dst.index].z;
-						if(dst.w) pDst.w = r.oC[dst.index].w;
+						if(dst.rel.type == Shader::PARAMETER_VOID)
+						{
+							if(dst.x) pDst.x = r.oC[dst.index].x;
+							if(dst.y) pDst.y = r.oC[dst.index].y;
+							if(dst.z) pDst.z = r.oC[dst.index].z;
+							if(dst.w) pDst.w = r.oC[dst.index].w;
+						}
+						else
+						{
+							Int a = relativeAddress(r, dst) + dst.index;
+
+							if(dst.x) pDst.x = r.oC[a].x;
+							if(dst.y) pDst.y = r.oC[a].y;
+							if(dst.z) pDst.z = r.oC[a].z;
+							if(dst.w) pDst.w = r.oC[a].w;
+						}
 						break;
 					case Shader::PARAMETER_PREDICATE:
 						if(dst.x) pDst.x = r.p0.x;
@@ -445,11 +462,22 @@ namespace sw
 					}
 					break;
 				case Shader::PARAMETER_COLOROUT:
-					ASSERT(dst.rel.type == Shader::PARAMETER_VOID);
-					if(dst.x) { r.oC[dst.index].x = d.x; out[dst.index][0] = true; }
-					if(dst.y) { r.oC[dst.index].y = d.y; out[dst.index][1] = true; }
-					if(dst.z) { r.oC[dst.index].z = d.z; out[dst.index][2] = true; }
-					if(dst.w) { r.oC[dst.index].w = d.w; out[dst.index][3] = true; }
+					if(dst.rel.type == Shader::PARAMETER_VOID)
+					{
+						if(dst.x) { r.oC[dst.index].x = d.x; }
+						if(dst.y) { r.oC[dst.index].y = d.y; }
+						if(dst.z) { r.oC[dst.index].z = d.z; }
+						if(dst.w) { r.oC[dst.index].w = d.w; }
+					}
+					else
+					{
+						Int a = relativeAddress(r, dst) + dst.index;
+
+						if(dst.x) { r.oC[a].x = d.x; }
+						if(dst.y) { r.oC[a].y = d.y; }
+						if(dst.z) { r.oC[a].z = d.z; }
+						if(dst.w) { r.oC[a].w = d.w; }
+					}
 					break;
 				case Shader::PARAMETER_PREDICATE:
 					if(dst.x) r.p0.x = d.x;
@@ -471,15 +499,9 @@ namespace sw
 			Nucleus::setInsertBlock(returnBlock);
 		}
 
-		for(int i = 0; i < 4; i++)
+		for(int i = 0; i < RENDERTARGETS; i++)
 		{
-			if(state.targetFormat[i] != FORMAT_NULL)
-			{
-				if(!out[i][0]) r.oC[i].x = Float4(0.0f);
-				if(!out[i][1]) r.oC[i].y = Float4(0.0f);
-				if(!out[i][2]) r.oC[i].z = Float4(0.0f);
-				if(!out[i][3]) r.oC[i].w = Float4(0.0f);
-			}
+			r.c[i] = r.oC[i];
 		}
 	}
 
@@ -487,7 +509,7 @@ namespace sw
 	{
 		Registers& r = *static_cast<Registers*>(&rBase);
 
-		clampColor(r.oC);
+		clampColor(r.c);
 
 		if(!state.alphaTestActive())
 		{
@@ -498,7 +520,7 @@ namespace sw
 
 		if(state.transparencyAntialiasing == TRANSPARENCY_NONE)
 		{
-			Short4 alpha = RoundShort4(r.oC[0].w * Float4(0x1000));
+			Short4 alpha = RoundShort4(r.c[0].w * Float4(0x1000));
 
 			PixelRoutine::alphaTest(r, aMask, alpha);
 
@@ -509,7 +531,7 @@ namespace sw
 		}
 		else if(state.transparencyAntialiasing == TRANSPARENCY_ALPHA_TO_COVERAGE)
 		{
-			alphaToCoverage(r, cMask, r.oC[0].w);
+			alphaToCoverage(r, cMask, r.c[0].w);
 		}
 		else ASSERT(false);
 
@@ -527,7 +549,7 @@ namespace sw
 	{
 		Registers& r = *static_cast<Registers*>(&rBase);
 
-		for(int index = 0; index < 4; index++)
+		for(int index = 0; index < RENDERTARGETS; index++)
 		{
 			if(!state.colorWriteActive(index))
 			{
@@ -536,14 +558,14 @@ namespace sw
 
 			if(!postBlendSRGB && state.writeSRGB)
 			{
-				r.oC[index].x = linearToSRGB(r.oC[index].x);
-				r.oC[index].y = linearToSRGB(r.oC[index].y);
-				r.oC[index].z = linearToSRGB(r.oC[index].z);
+				r.c[index].x = linearToSRGB(r.c[index].x);
+				r.c[index].y = linearToSRGB(r.c[index].y);
+				r.c[index].z = linearToSRGB(r.c[index].z);
 			}
 
 			if(index == 0)
 			{
-				fogBlend(r, r.oC[index], fog);
+				fogBlend(r, r.c[index], fog);
 			}
 
 			switch(state.targetFormat[index])
@@ -561,10 +583,10 @@ namespace sw
 					Pointer<Byte> buffer = cBuffer[index] + q * *Pointer<Int>(r.data + OFFSET(DrawData, colorSliceB[index]));
 					Vector4s color;
 
-					color.x = convertFixed16(r.oC[index].x, false);
-					color.y = convertFixed16(r.oC[index].y, false);
-					color.z = convertFixed16(r.oC[index].z, false);
-					color.w = convertFixed16(r.oC[index].w, false);
+					color.x = convertFixed16(r.c[index].x, false);
+					color.y = convertFixed16(r.c[index].y, false);
+					color.z = convertFixed16(r.c[index].z, false);
+					color.w = convertFixed16(r.c[index].w, false);
 
 					if(state.multiSampleMask & (1 << q))
 					{
@@ -580,7 +602,7 @@ namespace sw
 				for(unsigned int q = 0; q < state.multiSample; q++)
 				{
 					Pointer<Byte> buffer = cBuffer[index] + q * *Pointer<Int>(r.data + OFFSET(DrawData, colorSliceB[index]));
-					Vector4f color = r.oC[index];
+					Vector4f color = r.c[index];
 
 					if(state.multiSampleMask & (1 << q))
 					{
@@ -647,9 +669,9 @@ namespace sw
 #endif
 	}
 
-	void PixelProgram::clampColor(Vector4f oC[4])
+	void PixelProgram::clampColor(Vector4f oC[RENDERTARGETS])
 	{
-		for(int index = 0; index < 4; index++)
+		for(int index = 0; index < RENDERTARGETS; index++)
 		{
 			if(!state.colorWriteActive(index) && !(index == 0 && state.alphaTestActive()))
 			{
@@ -779,7 +801,16 @@ namespace sw
 		case Shader::PARAMETER_CONSTBOOL:   return reg; // Dummy
 		case Shader::PARAMETER_LOOP:        return reg; // Dummy
 		case Shader::PARAMETER_COLOROUT:
-			reg = r.oC[i];
+			if(src.rel.type == Shader::PARAMETER_VOID)   // Not relative
+			{
+				reg = r.oC[i];
+			}
+			else
+			{
+				Int a = relativeAddress(r, src);
+
+				reg = r.oC[i + a];
+			}
 			break;
 		case Shader::PARAMETER_DEPTHOUT:
 			reg.x = r.oDepth;

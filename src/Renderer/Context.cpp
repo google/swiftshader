@@ -218,10 +218,10 @@ namespace sw
 		localViewer = true;
 		normalizeNormals = false;
 		
-		renderTarget[0] = 0;
-		renderTarget[1] = 0;
-		renderTarget[2] = 0;
-		renderTarget[3] = 0;
+		for(int i = 0; i < RENDERTARGETS; ++i)
+		{
+			renderTarget[i] = 0;
+		}
 		depthStencil = 0;
 
 		stencilEnable = false;

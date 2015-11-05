@@ -443,7 +443,7 @@ namespace gl
 		scissorEnable = enable;
 	}
 
-	void Device::setRenderTarget(Image *renderTarget)
+	void Device::setRenderTarget(int index, Image *renderTarget)
 	{
 		if(renderTarget)
 		{
@@ -457,7 +457,7 @@ namespace gl
 
 		this->renderTarget = renderTarget;
 
-		Renderer::setRenderTarget(0, renderTarget);
+		Renderer::setRenderTarget(index, renderTarget);
 	}
 
 	void Device::setScissorRect(const sw::Rect &rect)
