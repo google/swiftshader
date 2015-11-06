@@ -842,8 +842,6 @@ void InstARM32Br::emit(const Cfg *Func) const {
 }
 
 void InstARM32Br::emitIAS(const Cfg *Func) const {
-  if (!Func->getContext()->getFlags().getAllowUnsafeIas())
-    return emitUsingTextFixup(Func);
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   if (Label) {
     Asm->b(Asm->getOrCreateLocalLabel(Label->getNumber()), getPredicate());
@@ -923,6 +921,10 @@ void InstARM32Call::dump(const Cfg *Func) const {
 void InstARM32Label::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
+  // A label is not really an instruction. Hence, we need to fix the
+  // emitted text size.
+  if (auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>())
+    Asm->decEmitTextSize(InstSize);
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << getName(Func) << ":";
 }
@@ -1025,8 +1027,6 @@ template <> void InstARM32Movw::emit(const Cfg *Func) const {
 }
 
 template <> void InstARM32Movw::emitIAS(const Cfg *Func) const {
-  if (!Func->getContext()->getFlags().getAllowUnsafeIas())
-    return emitUsingTextFixup(Func);
   assert(getSrcSize() == 1);
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Asm->movw(getDest(), getSrc(0), getPredicate());
@@ -1053,8 +1053,6 @@ template <> void InstARM32Movt::emit(const Cfg *Func) const {
 }
 
 template <> void InstARM32Movt::emitIAS(const Cfg *Func) const {
-  if (!Func->getContext()->getFlags().getAllowUnsafeIas())
-    return emitUsingTextFixup(Func);
   assert(getSrcSize() == 2);
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Asm->movt(getDest(), getSrc(1), getPredicate());

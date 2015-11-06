@@ -12,12 +12,12 @@
 ; RUN:   --args -Om1 | FileCheck %s --check-prefix=DIS
 
 ; Compile using integrated assembler.
-; RUN: %p2i --filetype=iasm -i %s --target=arm32 --args -Om1 -unsafe-ias \
+; RUN: %p2i --filetype=iasm -i %s --target=arm32 --args -Om1 \
 ; RUN:   | FileCheck %s --check-prefix=IASM
 
 ; Show bytes in assembled integrated code.
 ; RUN: %p2i --filetype=iasm -i %s --target=arm32 --assemble --disassemble \
-; RUN:   --args -Om1 -unsafe-ias | FileCheck %s --check-prefix=DIS
+; RUN:   --args -Om1 | FileCheck %s --check-prefix=DIS
 
 define internal void @simple_uncond_branch() {
 ; DIS-LABEL: 00000000 <simple_uncond_branch>:

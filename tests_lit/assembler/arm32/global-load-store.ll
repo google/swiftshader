@@ -11,12 +11,12 @@
 ; RUN:   --args -O2 | FileCheck %s --check-prefix=DIS
 
 ; Compile using integrated assembler.
-; RUN: %p2i --filetype=iasm -i %s --target=arm32 --args -O2 -unsafe-ias \
+; RUN: %p2i --filetype=iasm -i %s --target=arm32 --args -O2 \
 ; RUN:   | FileCheck %s --check-prefix=IASM
 
 ; Show bytes in assembled integrated code.
 ; RUN: %p2i --filetype=iasm -i %s --target=arm32 --assemble --disassemble \
-; RUN:   --args -O2 -unsafe-ias | FileCheck %s --check-prefix=DIS
+; RUN:   --args -O2 | FileCheck %s --check-prefix=DIS
 
 @filler = internal global [128 x i8] zeroinitializer, align 4
 

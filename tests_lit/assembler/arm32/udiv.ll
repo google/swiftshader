@@ -14,11 +14,11 @@
 
 ; Compile using integrated assembler.
 ; RUN: %p2i --filetype=iasm -i %s --target=arm32 --args -O2 -mattr=hwdiv-arm \
-; RUN:   -unsafe-ias | FileCheck %s --check-prefix=IASM
+; RUN:   | FileCheck %s --check-prefix=IASM
 
 ; Show bytes in assembled integrated code.
 ; RUN: %p2i --filetype=iasm -i %s --target=arm32 --assemble --disassemble \
-; RUN:   --args -O2 -mattr=hwdiv-arm -unsafe-ias \
+; RUN:   --args -O2 -mattr=hwdiv-arm \
 ; RUN:   | FileCheck %s --check-prefix=DIS
 
 define internal i32 @UdivTwoRegs(i32 %a, i32 %b) {
