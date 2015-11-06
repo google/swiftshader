@@ -49,6 +49,7 @@ public:
     return RegisterAliases[Reg];
   }
   bool hasFramePointer() const override { return UsesFramePointer; }
+  void setHasFramePointer() override { UsesFramePointer = true; }
   SizeT getStackReg() const override { return RegMIPS32::Reg_SP; }
   SizeT getFrameOrStackReg() const override {
     return UsesFramePointer ? RegMIPS32::Reg_FP : RegMIPS32::Reg_SP;
@@ -57,6 +58,10 @@ public:
     // Round up to the next multiple of 4 bytes. In particular, i1, i8, and i16
     // are rounded up to 4 bytes.
     return (typeWidthInBytes(Ty) + 3) & ~3;
+  }
+  uint32_t getStackAlignment() const override {
+    // TODO(sehr): what is the stack alignment?
+    return 1;
   }
 
   bool shouldSplitToVariable64On32(Type Ty) const override {

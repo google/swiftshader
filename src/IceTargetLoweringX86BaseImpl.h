@@ -957,7 +957,6 @@ void TargetX86Base<Machine>::lowerAlloca(const InstAlloca *Inst) {
   uint32_t Alignment =
       std::max(AlignmentParam, Traits::X86_STACK_ALIGNMENT_BYTES);
   if (Alignment > Traits::X86_STACK_ALIGNMENT_BYTES) {
-    IsEbpBasedFrame = true;
     _and(esp, Ctx->getConstantInt32(-Alignment));
   }
   if (const auto *ConstantTotalSize =

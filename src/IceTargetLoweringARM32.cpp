@@ -380,6 +380,10 @@ void TargetARM32::translateOm1() {
   }
 }
 
+uint32_t TargetARM32::getStackAlignment() const {
+  return ARM32_STACK_ALIGNMENT_BYTES;
+}
+
 bool TargetARM32::doBranchOpt(Inst *I, const CfgNode *NextNode) {
   if (InstARM32Br *Br = llvm::dyn_cast<InstARM32Br>(I)) {
     return Br->optimizeBranch(NextNode);

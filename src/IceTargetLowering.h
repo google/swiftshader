@@ -201,9 +201,11 @@ public:
   virtual IceString getRegName(SizeT RegNum, Type Ty) const = 0;
 
   virtual bool hasFramePointer() const { return false; }
+  virtual void setHasFramePointer() = 0;
   virtual SizeT getStackReg() const = 0;
   virtual SizeT getFrameOrStackReg() const = 0;
   virtual size_t typeWidthInBytesOnStack(Type Ty) const = 0;
+  virtual uint32_t getStackAlignment() const = 0;
 
   /// Return whether a 64-bit Variable should be split into a Variable64On32.
   virtual bool shouldSplitToVariable64On32(Type Ty) const = 0;

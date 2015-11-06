@@ -201,26 +201,7 @@ void Cfg::translate() {
     if (auto *Var64On32 = llvm::dyn_cast<Variable64On32>(Var))
       Var64On32->initHiLo(this);
 
-  // Figure out which alloca instructions result in storage at known stack frame
-  // offsets.  If this is true for all alloca instructions, then a stack pointer
-  // can still be used instead of a frame pointer, freeing up the frame pointer
-  // for normal register allocation.  Additionally, for each such alloca, its
-  // address could be rematerialized at each use in terms of the stack/frame
-  // pointer, saving a stack slot and a load from that stack slot.
-  //
-  // This simple implementation is limited to alloca instructions at the start
-  // of the entry node.
-  for (Inst &Instr : getEntryNode()->getInsts()) {
-    if (auto *Alloca = llvm::dyn_cast<InstAlloca>(&Instr)) {
-      if (llvm::isa<Constant>(Alloca->getSizeInBytes())) {
-        Alloca->setKnownFrameOffset();
-        continue;
-      }
-    }
-    // The first instruction that is not an alloca with a constant size stops
-    // the search.
-    break;
-  }
+  processAllocas();
 
   // The set of translation passes and their order are determined by the
   // target.
@@ -468,6 +449,91 @@ void Cfg::shuffleNodes() {
 void Cfg::doArgLowering() {
   TimerMarker T(TimerStack::TT_doArgLowering, this);
   getTarget()->lowerArguments();
+}
+
+void Cfg::sortAllocas(CfgVector<Inst *> &Allocas, InstList &Insts,
+                      bool IsKnownFrameOffset) {
+  if (Allocas.empty())
+    return;
+  // Sort by decreasing alignment.  This does not really matter at the moment,
+  // but will allow compacting stack allocation when we fuse to one alloca.
+  std::sort(Allocas.begin(), Allocas.end(),
+            [](Inst *I1, Inst *I2) {
+              auto *A1 = llvm::dyn_cast<InstAlloca>(I1);
+              auto *A2 = llvm::dyn_cast<InstAlloca>(I2);
+              return A1->getAlignInBytes() > A2->getAlignInBytes();
+            });
+  for (Inst *Instr: Allocas) {
+    auto *Alloca = llvm::cast<InstAlloca>(Instr);
+    // Move the alloca to its sorted position.
+    InstAlloca *NewAlloca = InstAlloca::create(this,
+                                               Alloca->getSizeInBytes(),
+                                               Alloca->getAlignInBytes(),
+                                               Alloca->getDest());
+    if (IsKnownFrameOffset)
+      NewAlloca->setKnownFrameOffset();
+    Insts.push_front(NewAlloca);
+    Alloca->setDeleted();
+  }
+}
+
+void Cfg::processAllocas() {
+  const uint32_t StackAlignment = getTarget()->getStackAlignment();
+  CfgNode *EntryNode = getEntryNode();
+  // Allocas in the entry block that have constant size and alignment less
+  // than or equal to the function's stack alignment.
+  CfgVector<Inst *> FixedAllocas;
+  // Allocas in the entry block that have constant size and alignment greater
+  // than the function's stack alignment.
+  CfgVector<Inst *> AlignedAllocas;
+  // LLVM enforces power of 2 alignment.
+  assert(llvm::isPowerOf2_32(StackAlignment));
+  // Collect the Allocas into the two vectors.
+  bool RequiresFramePointer = false;
+  for (Inst &Instr : EntryNode->getInsts()) {
+    if (auto *Alloca = llvm::dyn_cast<InstAlloca>(&Instr)) {
+      if (!llvm::isa<Constant>(Alloca->getSizeInBytes())) {
+        // Variable-sized allocations require a frame pointer.
+        RequiresFramePointer = true;
+        continue;
+      }
+      uint32_t AlignmentParam = Alloca->getAlignInBytes();
+      // For default align=0, set it to the real value 1, to avoid any
+      // bit-manipulation problems below.
+      AlignmentParam = std::max(AlignmentParam, 1u);
+      assert(llvm::isPowerOf2_32(AlignmentParam));
+      if (AlignmentParam > StackAlignment) {
+        // Allocations aligned more than the stack require a frame pointer.
+        RequiresFramePointer = true;
+        AlignedAllocas.push_back(Alloca);
+      }
+      else
+        FixedAllocas.push_back(Alloca);
+    }
+  }
+  // Look for alloca instructions in other blocks
+  for (CfgNode *Node : Nodes) {
+    if (Node == EntryNode)
+      continue;
+    for (Inst &Instr : Node->getInsts()) {
+      if (llvm::isa<InstAlloca>(&Instr)) {
+        // Allocations outside the entry block require a frame pointer.
+        RequiresFramePointer = true;
+        break;
+      }
+    }
+    if (RequiresFramePointer)
+      break;
+  }
+  // Mark the target as requiring a frame pointer.
+  if (RequiresFramePointer)
+    getTarget()->setHasFramePointer();
+  // Add instructions to the head of the entry block in reverse order.
+  InstList &Insts = getEntryNode()->getInsts();
+  // Fixed, large alignment alloca addresses do not have known offset.
+  sortAllocas(AlignedAllocas, Insts, false);
+  // Fixed, small alignment alloca addresses have known offset.
+  sortAllocas(FixedAllocas, Insts, true);
 }
 
 void Cfg::doAddressOpt() {

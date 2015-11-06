@@ -81,6 +81,7 @@ public:
     return RegisterAliases[Reg];
   }
   bool hasFramePointer() const override { return UsesFramePointer; }
+  void setHasFramePointer() override { UsesFramePointer = true; }
   SizeT getStackReg() const override { return RegARM32::Reg_sp; }
   SizeT getFrameOrStackReg() const override {
     return UsesFramePointer ? RegARM32::Reg_fp : RegARM32::Reg_sp;
@@ -92,6 +93,7 @@ public:
     // are rounded up to 4 bytes.
     return (typeWidthInBytes(Ty) + 3) & ~3;
   }
+  uint32_t getStackAlignment() const override;
 
   bool shouldSplitToVariable64On32(Type Ty) const override {
     return Ty == IceType_i64;

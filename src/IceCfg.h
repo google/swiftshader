@@ -185,6 +185,10 @@ public:
   void advancedPhiLowering();
   void reorderNodes();
   void shuffleNodes();
+  void sortAllocas(CfgVector<Inst *> &Allocas, InstList &Insts,
+                   bool IsKnownFrameOffset);
+  /// Merge all the fixed-size allocas in the entry block.
+  void processAllocas();
   void doAddressOpt();
   void doArgLowering();
   void doNopInsertion();

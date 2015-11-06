@@ -83,6 +83,7 @@ public:
   }
 
   bool hasFramePointer() const override { return IsEbpBasedFrame; }
+  void setHasFramePointer() override { IsEbpBasedFrame = true; }
   SizeT getStackReg() const override { return Traits::RegisterSet::Reg_esp; }
   SizeT getFrameOrStackReg() const override {
     return IsEbpBasedFrame ? Traits::RegisterSet::Reg_ebp
@@ -92,6 +93,9 @@ public:
     // Round up to the next multiple of WordType bytes.
     const uint32_t WordSizeInBytes = typeWidthInBytes(Traits::WordType);
     return Utils::applyAlignment(typeWidthInBytes(Ty), WordSizeInBytes);
+  }
+  uint32_t getStackAlignment() const override {
+    return Traits::X86_STACK_ALIGNMENT_BYTES;
   }
 
   bool shouldSplitToVariable64On32(Type Ty) const override {
