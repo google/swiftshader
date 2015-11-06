@@ -318,7 +318,7 @@ void TargetMIPS32::emitVariable(const Variable *Var) const {
   } else {
     int32_t Offset = Var->getStackOffset();
     Str << Offset;
-    Str << "(" << getRegName(getFrameOrStackReg(), FrameSPTy);
+    Str << "($" << getRegName(getFrameOrStackReg(), FrameSPTy);
     Str << ")";
   }
   UnimplementedError(Func->getContext()->getFlags());
@@ -517,76 +517,83 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Inst) {
   Variable *Dest = Inst->getDest();
   Operand *Src0 = legalizeUndef(Inst->getSrc(0));
   Operand *Src1 = legalizeUndef(Inst->getSrc(1));
-  (void)Src0;
-  (void)Src1;
   if (Dest->getType() == IceType_i64) {
+    // TODO(reed kotler): fakedef needed for now until all cases are implemented
+    Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
+    Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+    Context.insert(InstFakeDef::create(Func, DestLo));
+    Context.insert(InstFakeDef::create(Func, DestHi));
     UnimplementedError(Func->getContext()->getFlags());
-  } else if (isVectorType(Dest->getType())) {
-    UnimplementedError(Func->getContext()->getFlags());
-  } else { // Dest->getType() is non-i64 scalar
-    switch (Inst->getOp()) {
-    case InstArithmetic::_num:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
-    case InstArithmetic::Add:
-      UnimplementedError(Func->getContext()->getFlags());
-      // Variable *T = makeReg(Dest->getType());
-      // _add(T, Src0, Src1);
-      // _mov(Dest, T);
-      return;
-    case InstArithmetic::And:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
-    case InstArithmetic::Or:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
-    case InstArithmetic::Xor:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
-    case InstArithmetic::Sub:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
-    case InstArithmetic::Mul:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
-    case InstArithmetic::Shl:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
-    case InstArithmetic::Lshr:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
-    case InstArithmetic::Ashr:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
-    case InstArithmetic::Udiv:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
-    case InstArithmetic::Sdiv:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
-    case InstArithmetic::Urem:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
-    case InstArithmetic::Srem:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
-    case InstArithmetic::Fadd:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
-    case InstArithmetic::Fsub:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
-    case InstArithmetic::Fmul:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
-    case InstArithmetic::Fdiv:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
-    case InstArithmetic::Frem:
-      UnimplementedError(Func->getContext()->getFlags());
-      break;
-    }
+    return;
   }
+  if (isVectorType(Dest->getType())) {
+    Context.insert(InstFakeDef::create(Func, Dest));
+    UnimplementedError(Func->getContext()->getFlags());
+    return;
+  }
+  // Dest->getType() is non-i64 scalar
+  Variable *T = makeReg(Dest->getType());
+  Variable *Src0R = legalizeToReg(Src0);
+  Variable *Src1R = legalizeToReg(Src1);
+  switch (Inst->getOp()) {
+  case InstArithmetic::_num:
+    break;
+  case InstArithmetic::Add:
+    _add(T, Src0R, Src1R);
+    _mov(Dest, T);
+    return;
+  case InstArithmetic::And:
+    _and(T, Src0R, Src1R);
+    _mov(Dest, T);
+    return;
+  case InstArithmetic::Or:
+    _or(T, Src0R, Src1R);
+    _mov(Dest, T);
+    return;
+  case InstArithmetic::Xor:
+    _xor(T, Src0R, Src1R);
+    _mov(Dest, T);
+    return;
+  case InstArithmetic::Sub:
+    _sub(T, Src0R, Src1R);
+    _mov(Dest, T);
+    return;
+  case InstArithmetic::Mul: {
+    _mul(T, Src0R, Src1R);
+    _mov(Dest, T);
+    return;
+  }
+  case InstArithmetic::Shl:
+    break;
+  case InstArithmetic::Lshr:
+    break;
+  case InstArithmetic::Ashr:
+    break;
+  case InstArithmetic::Udiv:
+    break;
+  case InstArithmetic::Sdiv:
+    break;
+  case InstArithmetic::Urem:
+    break;
+  case InstArithmetic::Srem:
+    break;
+  case InstArithmetic::Fadd:
+    break;
+  case InstArithmetic::Fsub:
+    break;
+  case InstArithmetic::Fmul:
+    break;
+  case InstArithmetic::Fdiv:
+    break;
+  case InstArithmetic::Frem:
+    break;
+  }
+  // TODO(reed kotler):
+  // fakedef and fakeuse needed for now until all cases are implemented
+  Context.insert(InstFakeUse::create(Func, Src0R));
+  Context.insert(InstFakeUse::create(Func, Src1R));
+  Context.insert(InstFakeDef::create(Func, Dest));
+  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetMIPS32::lowerAssign(const InstAssign *Inst) {
@@ -995,13 +1002,16 @@ Operand *TargetMIPS32::legalize(Operand *From, LegalMask Allowed,
   // registers to the right type OperandMIPS32FlexReg as needed.
   assert(Allowed & Legal_Reg);
   // Go through the various types of operands:
-  // OperandMIPS32Mem, OperandMIPS32Flex, Constant, and Variable.
+  // OperandMIPS32Mem, Constant, and Variable.
   // Given the above assertion, if type of operand is not legal
   // (e.g., OperandMIPS32Mem and !Legal_Mem), we can always copy
   // to a register.
   if (auto *C = llvm::dyn_cast<ConstantRelocatable>(From)) {
     (void)C;
-    return From;
+    // TODO(reed kotler): complete this case for proper implementation
+    Variable *Reg = makeReg(Ty, RegNum);
+    Context.insert(InstFakeDef::create(Func, Reg));
+    return Reg;
   } else if (auto *C32 = llvm::dyn_cast<ConstantInteger32>(From)) {
     uint32_t Value = static_cast<uint32_t>(C32->getValue());
     // Check if the immediate will fit in a Flexible second operand,

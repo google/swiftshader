@@ -91,6 +91,18 @@ public:
     (void)C;
     llvm::report_fatal_error("Not yet implemented");
   }
+
+  // The following are helpers that insert lowered MIPS32 instructions with
+  // minimal syntactic overhead, so that the lowering code can look as close to
+  // assembly as practical.
+  void _add(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert(InstMIPS32Add::create(Func, Dest, Src0, Src1));
+  }
+
+  void _and(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert(InstMIPS32And::create(Func, Dest, Src0, Src1));
+  }
+
   void _ret(Variable *RA, Variable *Src0 = nullptr) {
     Context.insert(InstMIPS32Ret::create(Func, RA, Src0));
   }
@@ -120,8 +132,24 @@ public:
     }
   }
 
+  void _mul(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert(InstMIPS32Mul::create(Func, Dest, Src0, Src1));
+  }
+
+  void _or(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert(InstMIPS32Or::create(Func, Dest, Src0, Src1));
+  }
+
   void _ori(Variable *Dest, Variable *Src, uint32_t Imm) {
     Context.insert(InstMIPS32Ori::create(Func, Dest, Src, Imm));
+  }
+
+  void _sub(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert(InstMIPS32Sub::create(Func, Dest, Src0, Src1));
+  }
+
+  void _xor(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert(InstMIPS32Xor::create(Func, Dest, Src0, Src1));
   }
 
   void lowerArguments() override;

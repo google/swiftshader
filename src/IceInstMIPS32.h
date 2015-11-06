@@ -114,12 +114,18 @@ class InstMIPS32 : public InstTarget {
 public:
   enum InstKindMIPS32 {
     k__Start = Inst::Target,
+    Add,
+    And,
     Addiu,
     La,
     Lui,
     Mov, // actually a pseudo op for addi rd, rs, 0
+    Mul,
+    Or,
     Ori,
-    Ret
+    Ret,
+    Sub,
+    Xor
   };
 
   static const char *getWidthString(Type Ty);
@@ -133,6 +139,8 @@ public:
   /// Shared emit routines for common forms of instructions.
   static void emitUnaryopGPR(const char *Opcode, const InstMIPS32 *Inst,
                              const Cfg *Func);
+  static void emitThreeAddr(const char *Opcode, const InstMIPS32 *Inst,
+                            const Cfg *Func);
 
 protected:
   InstMIPS32(Cfg *Func, InstKindMIPS32 Kind, SizeT Maxsrcs, Variable *Dest)
@@ -213,6 +221,55 @@ private:
   static const char *Opcode;
 };
 
+/// Instructions of the form x := y op z. May have the side-effect of setting
+/// status flags.
+template <InstMIPS32::InstKindMIPS32 K>
+class InstMIPS32ThreeAddrGPR : public InstMIPS32 {
+  InstMIPS32ThreeAddrGPR() = delete;
+  InstMIPS32ThreeAddrGPR(const InstMIPS32ThreeAddrGPR &) = delete;
+  InstMIPS32ThreeAddrGPR &operator=(const InstMIPS32ThreeAddrGPR &) = delete;
+
+public:
+  /// Create an ordinary binary-op instruction like add, and sub. Dest and Src1
+  /// must be registers.
+  static InstMIPS32ThreeAddrGPR *create(Cfg *Func, Variable *Dest,
+                                        Variable *Src0, Variable *Src1) {
+    return new (Func->allocate<InstMIPS32ThreeAddrGPR>())
+        InstMIPS32ThreeAddrGPR(Func, Dest, Src0, Src1);
+  }
+  void emit(const Cfg *Func) const override {
+    if (!BuildDefs::dump())
+      return;
+    emitThreeAddr(Opcode, this, Func);
+  }
+  void emitIAS(const Cfg *Func) const override {
+    (void)Func;
+    llvm_unreachable("Not yet implemented");
+  }
+
+  void dump(const Cfg *Func) const override {
+    if (!BuildDefs::dump())
+      return;
+    Ostream &Str = Func->getContext()->getStrDump();
+    dumpDest(Func);
+    Str << " = ";
+    dumpOpcode(Str, Opcode, getDest()->getType());
+    Str << " ";
+    dumpSources(Func);
+  }
+  static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
+
+private:
+  InstMIPS32ThreeAddrGPR(Cfg *Func, Variable *Dest, Variable *Src0,
+                         Variable *Src1)
+      : InstMIPS32(Func, K, 2, Dest) {
+    addSource(Src0);
+    addSource(Src1);
+  }
+
+  static const char *Opcode;
+};
+
 template <InstMIPS32::InstKindMIPS32 K, bool Signed = false>
 class InstMIPS32Imm16 : public InstMIPS32 {
   InstMIPS32Imm16() = delete;
@@ -285,10 +342,17 @@ private:
   const uint32_t Imm;
 };
 
-typedef InstMIPS32Imm16<InstMIPS32::Addiu, true> InstMIPS32Addiu;
-typedef InstMIPS32Imm16<InstMIPS32::Lui> InstMIPS32Lui;
-typedef InstMIPS32UnaryopGPR<InstMIPS32::La> InstMIPS32La;
-typedef InstMIPS32Imm16<InstMIPS32::Ori> InstMIPS32Ori;
+using InstMIPS32Add = InstMIPS32ThreeAddrGPR<InstMIPS32::Add>;
+using InstMIPS32Addiu = InstMIPS32Imm16<InstMIPS32::Addiu, true>;
+using InstMIPS32And = InstMIPS32ThreeAddrGPR<InstMIPS32::And>;
+using InstMIPS32Lui = InstMIPS32Imm16<InstMIPS32::Lui>;
+using InstMIPS32La = InstMIPS32UnaryopGPR<InstMIPS32::La>;
+using InstMIPS32Mul = InstMIPS32ThreeAddrGPR<InstMIPS32::Mul>;
+using InstMIPS32Or = InstMIPS32ThreeAddrGPR<InstMIPS32::Or>;
+using InstMIPS32Ori = InstMIPS32Imm16<InstMIPS32::Ori>;
+using InstMIPS32Sub = InstMIPS32ThreeAddrGPR<InstMIPS32::Sub>;
+using InstMIPS32Ori = InstMIPS32Imm16<InstMIPS32::Ori>;
+using InstMIPS32Xor = InstMIPS32ThreeAddrGPR<InstMIPS32::Xor>;
 
 /// Handles (some of) vmov's various formats.
 class InstMIPS32Mov final : public InstMIPS32 {

@@ -22,6 +22,18 @@
 ; RUN:   -i %s --args -Om1 --skip-unimplemented \
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32 %s
+;
+; RUN: %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target mips32\
+; RUN:   -i %s --args -O2 --skip-unimplemented \
+; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix MIPS32 %s
+
+; RUN: %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target mips32\
+; RUN:   -i %s --args -Om1 --skip-unimplemented \
+; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix MIPS32 %s
 
 define internal i32 @Add(i32 %a, i32 %b) {
 entry:
@@ -32,6 +44,8 @@ entry:
 ; CHECK: add e
 ; ARM32-LABEL: Add
 ; ARM32: add r
+; MIPS32-LABEL: Add
+; MIPS32: add
 
 define internal i32 @And(i32 %a, i32 %b) {
 entry:
@@ -42,6 +56,8 @@ entry:
 ; CHECK: and e
 ; ARM32-LABEL: And
 ; ARM32: and r
+; MIPS32-LABEL: And
+; MIPS32: and
 
 define internal i32 @Or(i32 %a, i32 %b) {
 entry:
@@ -52,6 +68,8 @@ entry:
 ; CHECK: or e
 ; ARM32-LABEL: Or
 ; ARM32: orr r
+; MIPS32-LABEL: Or
+; MIPS32: or
 
 define internal i32 @Xor(i32 %a, i32 %b) {
 entry:
@@ -62,6 +80,8 @@ entry:
 ; CHECK: xor e
 ; ARM32-LABEL: Xor
 ; ARM32: eor r
+; MIPS32-LABEL: Xor
+; MIPS32: xor
 
 define internal i32 @Sub(i32 %a, i32 %b) {
 entry:
@@ -72,6 +92,8 @@ entry:
 ; CHECK: sub e
 ; ARM32-LABEL: Sub
 ; ARM32: sub r
+; MIPS32-LABEL: Sub
+; MIPS32: sub
 
 define internal i32 @Mul(i32 %a, i32 %b) {
 entry:
@@ -82,6 +104,8 @@ entry:
 ; CHECK: imul e
 ; ARM32-LABEL: Mul
 ; ARM32: mul r
+; MIPS32-LABEL: Mul
+; MIPS32: mul
 
 ; Check for a valid ARM mul instruction where operands have to be registers.
 ; On the other hand x86-32 does allow an immediate.
@@ -95,6 +119,8 @@ entry:
 ; ARM32-LABEL: MulImm
 ; ARM32: mov {{.*}}, #99
 ; ARM32: mul r{{.*}}, r{{.*}}, r{{.*}}
+; MIPS32-LABEL: MulImm
+; MIPS32: mul
 
 ; Check for a valid addressing mode in the x86-32 mul instruction when
 ; the second source operand is an immediate.
@@ -119,6 +145,8 @@ entry:
 ; ARM32: umull r
 ; ARM32: add r
 
+; MIPS32-LABEL: MulImm64
+
 define internal i32 @Sdiv(i32 %a, i32 %b) {
 entry:
   %div = sdiv i32 %a, %b
@@ -138,6 +166,8 @@ entry:
 ; ARM32HWDIV: bne
 ; ARM32HWDIV: sdiv
 
+; MIPS32-LABEL: Sdiv
+
 define internal i32 @SdivConst(i32 %a) {
 entry:
   %div = sdiv i32 %a, 219
@@ -153,6 +183,8 @@ entry:
 ; ARM32HWDIV-LABEL: SdivConst
 ; ARM32HWDIV-NOT: tst
 ; ARM32HWDIV: sdiv
+
+; MIPS32-LABEL: SdivConst
 
 define internal i32 @Srem(i32 %a, i32 %b) {
 entry:
@@ -173,6 +205,8 @@ entry:
 ; ARM32HWDIV: sdiv
 ; ARM32HWDIV: mls
 
+; MIPS32-LABEL: Srem
+
 define internal i32 @Udiv(i32 %a, i32 %b) {
 entry:
   %div = udiv i32 %a, %b
@@ -189,6 +223,8 @@ entry:
 ; ARM32HWDIV: tst
 ; ARM32HWDIV: bne
 ; ARM32HWDIV: udiv
+
+; MIPS32-LABEL: Udiv
 
 define internal i32 @Urem(i32 %a, i32 %b) {
 entry:
@@ -207,6 +243,8 @@ entry:
 ; ARM32HWDIV: bne
 ; ARM32HWDIV: udiv
 ; ARM32HWDIV: mls
+
+; MIPS32-LABEL: Urem
 
 ; The following tests check that shift instructions don't try to use a
 ; ConstantRelocatable as an immediate operand.

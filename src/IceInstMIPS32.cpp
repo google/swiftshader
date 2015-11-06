@@ -51,8 +51,14 @@ const char *InstMIPS32::getWidthString(Type Ty) {
 template <> const char *InstMIPS32Addiu::Opcode = "addiu";
 template <> const char *InstMIPS32Lui::Opcode = "lui";
 template <> const char *InstMIPS32La::Opcode = "la";
-
+// Three-addr ops
+template <> const char *InstMIPS32Add::Opcode = "add";
+template <> const char *InstMIPS32And::Opcode = "and";
+template <> const char *InstMIPS32Mul::Opcode = "mul";
+template <> const char *InstMIPS32Or::Opcode = "or";
 template <> const char *InstMIPS32Ori::Opcode = "ori";
+template <> const char *InstMIPS32Sub::Opcode = "sub";
+template <> const char *InstMIPS32Xor::Opcode = "xor";
 
 InstMIPS32Mov::InstMIPS32Mov(Cfg *Func, Variable *Dest, Operand *Src)
     : InstMIPS32(Func, InstMIPS32::Mov, 2, Dest) {
@@ -104,11 +110,24 @@ void InstMIPS32::emitUnaryopGPR(const char *Opcode, const InstMIPS32 *Inst,
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
-  // Type SrcTy = Inst->getSrc(0)->getType();
   Str << "\t" << Opcode << "\t";
   Inst->getDest()->emit(Func);
   Str << ", ";
   Inst->getSrc(0)->emit(Func);
+}
+
+void InstMIPS32::emitThreeAddr(const char *Opcode, const InstMIPS32 *Inst,
+                               const Cfg *Func) {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(Inst->getSrcSize() == 2);
+  Str << "\t" << Opcode << "\t";
+  Inst->getDest()->emit(Func);
+  Str << ", ";
+  Inst->getSrc(0)->emit(Func);
+  Str << ", ";
+  Inst->getSrc(1)->emit(Func);
 }
 
 void InstMIPS32Ret::emit(const Cfg *Func) const {
@@ -225,12 +244,31 @@ void InstMIPS32Mov::emitSingleDestMultiSource(const Cfg *Func) const {
 }
 
 void InstMIPS32Mov::emitSingleDestSingleSource(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
   Ostream &Str = Func->getContext()->getStrEmit();
-  // assert(Inst->getSrcSize() == 1);
-  // Type SrcTy = Inst->getSrc(0)->getType();
-  Str << "\t"
-      << "move"
-      << "\t";
+  Variable *Dest = getDest();
+  Operand *Src = getSrc(0);
+  auto *S = llvm::dyn_cast<Variable>(Src);
+  Str << "\t";
+  if (Dest->hasReg()) {
+    if (S && S->hasReg())
+      Str << "move";
+    else
+      Str << "lw";
+  } else {
+    if (S && S->hasReg()) {
+      Str << "sw";
+      Str << "\t";
+      getSrc(0)->emit(Func);
+      Str << ", ";
+      getDest()->emit(Func);
+      return;
+    } else
+      Str << "move";
+  }
+
+  Str << "\t";
   getDest()->emit(Func);
   Str << ", ";
   getSrc(0)->emit(Func);
