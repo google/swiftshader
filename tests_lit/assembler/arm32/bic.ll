@@ -52,7 +52,11 @@ define internal i32 @AllocBigAlign() {
 
 ; IASM-LABEL:AllocBigAlign:
 ; IASM-NEXT:.LAllocBigAlign$__0:
-; IASM:         push    {fp}
+; IASM-NEXT:    .byte 0x4
+; IASM-NEXT:    .byte 0xb0
+; IASM-NEXT:    .byte 0x2d
+; IASM-NEXT:    .byte 0xe5
+
 ; IASM:         .byte 0xd
 ; IASM-NEXT:    .byte 0xb0
 ; IASM-NEXT:    .byte 0xa0

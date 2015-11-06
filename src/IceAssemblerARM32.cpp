@@ -29,6 +29,9 @@ namespace {
 using namespace Ice;
 using namespace Ice::ARM32;
 
+using WordType = uint32_t;
+static constexpr IValueT kWordSize = sizeof(WordType);
+
 // The following define individual bits.
 static constexpr IValueT B0 = 1;
 static constexpr IValueT B1 = 1 << 1;
@@ -48,6 +51,7 @@ static constexpr IValueT B22 = 1 << 22;
 static constexpr IValueT B24 = 1 << 24;
 static constexpr IValueT B25 = 1 << 25;
 static constexpr IValueT B26 = 1 << 26;
+static constexpr IValueT B27 = 1 << 27;
 
 // Constants used for the decoding or encoding of the individual fields of
 // instructions. Based on ARM section A5.1.
@@ -535,6 +539,20 @@ void AssemblerARM32::emitMulOp(CondARM32::Cond Cond, IValueT Opcode, IValueT Rd,
   emitInst(Encoding);
 }
 
+void AssemblerARM32::emitMultiMemOp(CondARM32::Cond Cond,
+                                    BlockAddressMode AddressMode, bool IsLoad,
+                                    IValueT BaseReg, IValueT Registers) {
+  constexpr IValueT NumGPRegisters = 16;
+  if (!isConditionDefined(Cond) || !isGPRRegisterDefined(BaseReg) ||
+      Registers >= (1 << NumGPRegisters))
+    return setNeedsTextFixup();
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  IValueT Encoding = (encodeCondition(Cond) << kConditionShift) | B27 |
+                     AddressMode | (IsLoad ? L : 0) | (BaseReg << kRnShift) |
+                     Registers;
+  emitInst(Encoding);
+}
+
 void AssemblerARM32::adc(const Operand *OpRd, const Operand *OpRn,
                          const Operand *OpSrc1, bool SetFlags,
                          CondARM32::Cond Cond) {
@@ -884,6 +902,33 @@ void AssemblerARM32::orr(const Operand *OpRd, const Operand *OpRn,
   // s=SetFlags and iiiiiiiiiiii=Src1Value defining RotatedImm8.
   constexpr IValueT Orr = B3 | B2; // i.e. 1100
   emitType01(Orr, OpRd, OpRn, OpSrc1, SetFlags, Cond);
+}
+
+void AssemblerARM32::push(const Operand *OpRt, CondARM32::Cond Cond) {
+  // PUSH - ARM section A8.8.133, encoding A2:
+  //   push<c> {Rt}
+  //
+  // cccc010100101101dddd000000000100 where dddd=Rd and cccc=Cond.
+  IValueT Rt;
+  if (decodeOperand(OpRt, Rt) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  assert(Rt != RegARM32::Encoded_Reg_sp);
+  // Same as store instruction.
+  constexpr bool isLoad = false;
+  constexpr bool isByte = false;
+  IValueT Address = decodeImmRegOffset(RegARM32::Encoded_Reg_sp, -kWordSize,
+                                       OperandARM32Mem::PreIndex);
+  emitMemOp(Cond, kInstTypeMemImmediate, isLoad, isByte, Rt, Address);
+}
+
+void AssemblerARM32::pushList(const IValueT Registers, CondARM32::Cond Cond) {
+  // PUSH - ARM section A8.8.133, encoding A1:
+  //   push<c> <Registers>
+  //
+  // cccc100100101101rrrrrrrrrrrrrrrr where cccc=Cond and
+  // rrrrrrrrrrrrrrrr=Registers (one bit for each GP register).
+  constexpr bool IsLoad = false;
+  emitMultiMemOp(Cond, DB_W, IsLoad, RegARM32::Encoded_Reg_sp, Registers);
 }
 
 void AssemblerARM32::mla(const Operand *OpRd, const Operand *OpRn,

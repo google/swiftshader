@@ -575,8 +575,12 @@ class Assembler : public ValueObject {
 
   void ldm(BlockAddressMode am, Register base,
            RegList regs, Condition cond = AL);
+#if 0
+  // Folded into ARM32::AssemblerARM32::pushList(), since it is its only
+  // use (and doesn't implement ARM STM instruction).
   void stm(BlockAddressMode am, Register base,
            RegList regs, Condition cond = AL);
+#endif
 
   void ldrex(Register rd, Register rn, Condition cond = AL);
   void strex(Register rd, Register rt, Register rn, Condition cond = AL);
@@ -926,10 +930,16 @@ class Assembler : public ValueObject {
   void CopyFloat64x2Field(Register dst, Register src,
                           Register tmp1, Register tmp2, DRegister dtmp);
 
+#if 0
+  // Moved to ARM32::AssemblerARM32::push().
   void Push(Register rd, Condition cond = AL);
+#endif
   void Pop(Register rd, Condition cond = AL);
 
+#if 0
+  // Moved to ARM32::AssemblerARM32::pushList();
   void PushList(RegList regs, Condition cond = AL);
+#endif
   void PopList(RegList regs, Condition cond = AL);
 
   void MoveRegister(Register rd, Register rm, Condition cond = AL);
@@ -1166,11 +1176,14 @@ class Assembler : public ValueObject {
                              Register rd,
                              Address ad);
 
+#if 0
+  // Moved to ARM32::AssemblerARM32::emitMultiMemOp()
   void EmitMultiMemOp(Condition cond,
                       BlockAddressMode am,
                       bool load,
                       Register base,
                       RegList regs);
+#endif
 
   void EmitShiftImmediate(Condition cond,
                           Shift opcode,

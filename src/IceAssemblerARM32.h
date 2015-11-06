@@ -189,6 +189,11 @@ public:
   void orr(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
            bool SetFlags, CondARM32::Cond Cond);
 
+  void push(const Operand *OpRt, CondARM32::Cond Cond);
+
+  // Note: Registers is a bitset, where bit n corresponds to register Rn.
+  void pushList(const IValueT Registers, CondARM32::Cond Cond);
+
   void sbc(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
            bool SetFlags, CondARM32::Cond Cond);
 
@@ -220,6 +225,19 @@ private:
   // Number of bytes emitted by InstARM32::emit() methods, when run inside
   // InstARM32::emitUsingTextFixup().
   size_t EmitTextSize = 0;
+
+  // Load/store multiple addressing mode.
+  enum BlockAddressMode {
+    // bit encoding P U W
+    DA = (0 | 0 | 0) << 21,   // decrement after
+    IA = (0 | 4 | 0) << 21,   // increment after
+    DB = (8 | 0 | 0) << 21,   // decrement before
+    IB = (8 | 4 | 0) << 21,   // increment before
+    DA_W = (0 | 0 | 1) << 21, // decrement after with writeback to base
+    IA_W = (0 | 4 | 1) << 21, // increment after with writeback to base
+    DB_W = (8 | 0 | 1) << 21, // decrement before with writeback to base
+    IB_W = (8 | 4 | 1) << 21  // increment before with writeback to base
+  };
 
   Label *getOrCreateLabel(SizeT Number, LabelVector &Labels);
 
@@ -258,6 +276,12 @@ private:
   // IceAssemblerARM32.cpp.
   void emitMemOp(CondARM32::Cond Cond, IValueT InstType, bool IsLoad,
                  bool IsByte, uint32_t Rt, uint32_t Address);
+
+  // Pattern cccc100aaaalnnnnrrrrrrrrrrrrrrrr where cccc=Cond,
+  // aaaa<<21=AddressMode, l=IsLoad, nnnn=BaseReg, and
+  // rrrrrrrrrrrrrrrr is bitset of Registers.
+  void emitMultiMemOp(CondARM32::Cond Cond, BlockAddressMode AddressMode,
+                      bool IsLoad, IValueT BaseReg, IValueT Registers);
 
   // Pattern cccc011100x1dddd1111mmmm0001nnn where cccc=Cond,
   // x=Opcode, dddd=Rd, nnnn=Rn, mmmm=Rm.

@@ -132,7 +132,8 @@ void Assembler::EmitMemOpAddressMode3(Condition cond,
   Emit(encoding);
 }
 
-
+#if 0
+// Moved to ARM32::AssemblerARM32::emitMuliMemOp()
 void Assembler::EmitMultiMemOp(Condition cond,
                                BlockAddressMode am,
                                bool load,
@@ -148,7 +149,7 @@ void Assembler::EmitMultiMemOp(Condition cond,
                      regs;
   Emit(encoding);
 }
-
+#endif
 
 void Assembler::EmitShiftImmediate(Condition cond,
                                    Shift opcode,
@@ -555,11 +556,15 @@ void Assembler::ldm(BlockAddressMode am, Register base, RegList regs,
 }
 
 
+#if 0
+// Folded into ARM32::AssemblerARM32::pushList(), since it is its only
+// use (and doesn't implement ARM STM instruction).
 void Assembler::stm(BlockAddressMode am, Register base, RegList regs,
                     Condition cond) {
   ASSERT(regs != 0);
   EmitMultiMemOp(cond, am, false, base, regs);
 }
+#endif
 
 
 void Assembler::ldrex(Register rt, Register rn, Condition cond) {
@@ -2561,21 +2566,23 @@ bool Address::CanHoldImmediateOffset(
   }
 }
 
-
+#if 0
+// Moved to ARM32::AssemblerARM32::push();
 void Assembler::Push(Register rd, Condition cond) {
   str(rd, Address(SP, -kWordSize, Address::PreIndex), cond);
 }
-
+#endif
 
 void Assembler::Pop(Register rd, Condition cond) {
   ldr(rd, Address(SP, kWordSize, Address::PostIndex), cond);
 }
 
-
+#if 0
+// Moved to ARM32::AssemblerARM32::pushList();
 void Assembler::PushList(RegList regs, Condition cond) {
   stm(DB_W, SP, regs, cond);
 }
-
+#endif
 
 void Assembler::PopList(RegList regs, Condition cond) {
   ldm(IA_W, SP, regs, cond);
