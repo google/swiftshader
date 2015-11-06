@@ -739,6 +739,12 @@ namespace egl
 			case GL_ALPHA:
 			case GL_ALPHA8_EXT:
 				return sw::FORMAT_A8;
+			case SW_YV12_BT601:
+				return sw::FORMAT_YV12_BT601;
+			case SW_YV12_BT709:
+				return sw::FORMAT_YV12_BT709;
+			case SW_YV12_JFIF:
+				return sw::FORMAT_YV12_JFIF;
 			default:
 				UNREACHABLE(format);
 			}
@@ -852,12 +858,6 @@ namespace egl
 		case GL_UNSIGNED_INT_10F_11F_11F_REV:
 		case GL_UNSIGNED_INT_5_9_9_9_REV:
 			return sw::FORMAT_A32B32G32R32F;
-		case SW_YV12_BT601:
-			return sw::FORMAT_YV12_BT601;
-		case SW_YV12_BT709:
-			return sw::FORMAT_YV12_BT709;
-		case SW_YV12_JFIF:
-			return sw::FORMAT_YV12_JFIF;
 		default:
 			UNREACHABLE(type);
 		}
