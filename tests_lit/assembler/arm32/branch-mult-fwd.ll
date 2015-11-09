@@ -57,14 +57,14 @@ define internal void @mult_fwd_branches(i32 %a, i32 %b) {
 ; ASM-NEXT:     cmp     r0, r1
 ; ASM-NEXT:     movge   r0, #0
 ; ASM-NEXT:     movlt   r0, #1
-; ASM-NEXT:     str     r0, [sp]
+; ASM-NEXT:     strb    r0, [sp]
 
 ; DIS-NEXT:   c:        e59d0008
 ; DIS-NEXT:  10:        e59d1004
 ; DIS-NEXT:  14:        e1500001
 ; DIS-NEXT:  18:        a3a00000
 ; DIS-NEXT:  1c:        b3a00001
-; DIS-NEXT:  20:        e58d0000
+; DIS-NEXT:  20:        e5cd0000
 
 ; IASM-NEXT:    .byte 0x8
 ; IASM-NEXT:    .byte 0x0
@@ -91,26 +91,23 @@ define internal void @mult_fwd_branches(i32 %a, i32 %b) {
 ; IASM-NEXT:    .byte 0xa0
 ; IASM-NEXT:    .byte 0xb3
 
-; IASM-NEXT:    .byte 0x0
-; IASM-NEXT:    .byte 0x0
-; IASM-NEXT:    .byte 0x8d
-; IASM-NEXT:    .byte 0xe5
+; IASM-NEXT:    strb    r0, [sp]
 
   br i1 %cmp, label %then, label %else
 
-; ASM-NEXT:     ldr     r0, [sp]
+; ASM-NEXT:     ldrb    r0, [sp]
 ; ASM-NEXT:     uxtb    r0, r0
 ; ASM-NEXT:     cmp     r0, #0
 ; ASM-NEXT:     bne     .Lmult_fwd_branches$then
 ; ASM-NEXT:     b       .Lmult_fwd_branches$else
 
-; DIS-NEXT:  24:        e59d0000
+; DIS-NEXT:  24:        e5dd0000
 ; DIS-NEXT:  28:        e6ef0070
 ; DIS-NEXT:  2c:        e3500000
 ; DIS-NEXT:  30:        1a000000
 ; DIS-NEXT:  34:        ea000000
 
-; IASM-NEXT:    ldr     r0, [sp]
+; IASM-NEXT:    ldrb    r0, [sp]
 ; IASM-NEXT:    uxtb    r0, r0
 
 ; IASM-NEXT:    .byte 0x0

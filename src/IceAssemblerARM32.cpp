@@ -705,6 +705,7 @@ void AssemblerARM32::ldr(const Operand *OpRt, const Operand *OpAddress,
   //   ldr<c> <Rt>, [<Rn>{, #+/-<imm12>}]      ; p=1, w=0
   //   ldr<c> <Rt>, [<Rn>], #+/-<imm12>        ; p=1, w=1
   //   ldr<c> <Rt>, [<Rn>, #+/-<imm12>]!       ; p=0, w=1
+  //
   // LDRB (immediate) - ARM section A8.8.68, encoding A1:
   //   ldrb<c> <Rt>, [<Rn>{, #+/-<imm12>}]     ; p=1, w=0
   //   ldrb<c> <Rt>, [<Rn>], #+/-<imm12>       ; p=1, w=1
@@ -716,7 +717,7 @@ void AssemblerARM32::ldr(const Operand *OpRt, const Operand *OpAddress,
   const Type Ty = OpRt->getType();
   if (!(Ty == IceType_i32 || Ty == IceType_i8)) // TODO(kschimpf) Expand?
     return setNeedsTextFixup();
-  const bool IsByte = typeWidthInBytes(Ty) == 1;
+  const bool IsByte = isByteSizedType(Ty);
   // Check conditions of rules violated.
   if (getGPRReg(kRnShift, Address) == RegARM32::Encoded_Reg_pc)
     return setNeedsTextFixup();
@@ -873,7 +874,7 @@ void AssemblerARM32::str(const Operand *OpRt, const Operand *OpAddress,
   const Type Ty = OpRt->getType();
   if (!(Ty == IceType_i32 || Ty == IceType_i8)) // TODO(kschimpf) Expand?
     return setNeedsTextFixup();
-  const bool IsByte = typeWidthInBytes(Ty) == 1;
+  const bool IsByte = isByteSizedType(Ty);
   // Check for rule violations.
   if ((getGPRReg(kRnShift, Address) == RegARM32::Encoded_Reg_pc))
     return setNeedsTextFixup();

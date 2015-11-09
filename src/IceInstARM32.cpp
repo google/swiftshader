@@ -700,15 +700,14 @@ void InstARM32Mov::emitSingleDestSingleSource(const Cfg *Func) const {
   Variable *Dest = getDest();
 
   if (Dest->hasReg()) {
-    Type DestTy = Dest->getType();
+    Type Ty = Dest->getType();
     Operand *Src0 = getSrc(0);
-    const bool DestIsVector = isVectorType(DestTy);
-    const bool DestIsScalarFP = isScalarFloatingType(Dest->getType());
+    const bool IsVector = isVectorType(Ty);
+    const bool IsScalarFP = isScalarFloatingType(Ty);
     const bool CoreVFPMove = isMoveBetweenCoreAndVFPRegisters(Dest, Src0);
-    const char *LoadOpcode =
-        DestIsVector ? "vld1" : (DestIsScalarFP ? "vldr" : "ldr");
-    const char *RegMovOpcode =
-        (DestIsVector || DestIsScalarFP || CoreVFPMove) ? "vmov" : "mov";
+    const char *LoadOpcode = IsVector ? "vld1" : (IsScalarFP ? "vldr" : "ldr");
+    const bool IsVMove = (IsVector || IsScalarFP || CoreVFPMove);
+    const char *RegMovOpcode = IsVMove ? "vmov" : "mov";
     const char *ActualOpcode = isMemoryAccess(Src0) ? LoadOpcode : RegMovOpcode;
     // when vmov{c}'ing, we need to emit a width string. Otherwise, the
     // assembler might be tempted to assume we want a vector vmov{c}, and that
@@ -716,24 +715,36 @@ void InstARM32Mov::emitSingleDestSingleSource(const Cfg *Func) const {
     const char *NoWidthString = "";
     const char *WidthString =
         isMemoryAccess(Src0)
-            ? (DestIsVector ? ".64" : NoWidthString)
-            : (!CoreVFPMove ? getVecWidthString(DestTy) : NoWidthString);
-
-    Str << "\t" << ActualOpcode << getPredicate() << WidthString << "\t";
+            ? (IsVector ? ".64" : getWidthString(Ty))
+            : (!CoreVFPMove ? getVecWidthString(Ty) : NoWidthString);
+    Str << "\t" << ActualOpcode;
+    const bool IsVInst = IsVMove || IsVector || IsScalarFP;
+    if (IsVInst) {
+      Str << getPredicate() << WidthString;
+    } else {
+      Str << WidthString << getPredicate();
+    }
+    Str << "\t";
     Dest->emit(Func);
     Str << ", ";
     Src0->emit(Func);
   } else {
     Variable *Src0 = llvm::cast<Variable>(getSrc(0));
     assert(Src0->hasReg());
+    Type Ty = Src0->getType();
+    const bool IsVector = isVectorType(Ty);
+    const bool IsScalarFP = isScalarFloatingType(Ty);
     const char *ActualOpcode =
-        isVectorType(Src0->getType())
-            ? "vst1"
-            : (isScalarFloatingType(Src0->getType()) ? "vstr" : "str");
-    const char *NoWidthString = "";
-    const char *WidthString =
-        isVectorType(Src0->getType()) ? ".64" : NoWidthString;
-    Str << "\t" << ActualOpcode << getPredicate() << WidthString << "\t";
+        IsVector ? "vst1" : (IsScalarFP ? "vstr" : "str");
+    const char *WidthString = IsVector ? ".64" : getWidthString(Ty);
+    Str << "\t" << ActualOpcode;
+    const bool IsVInst = IsVector || IsScalarFP;
+    if (IsVInst) {
+      Str << getPredicate() << WidthString;
+    } else {
+      Str << WidthString << getPredicate();
+    }
+    Str << "\t";
     Src0->emit(Func);
     Str << ", ";
     Dest->emit(Func);
@@ -955,15 +966,21 @@ template <> void InstARM32Ldr::emit(const Cfg *Func) const {
   assert(getSrcSize() == 1);
   assert(getDest()->hasReg());
   Variable *Dest = getDest();
-  Type DestTy = Dest->getType();
-  const bool DestIsVector = isVectorType(DestTy);
-  const bool DestIsScalarFloat = isScalarFloatingType(DestTy);
+  Type Ty = Dest->getType();
+  const bool IsVector = isVectorType(Ty);
+  const bool IsScalarFloat = isScalarFloatingType(Ty);
   const char *ActualOpcode =
-      DestIsVector ? "vld1" : (DestIsScalarFloat ? "vldr" : "ldr");
-  const char *VectorMarker = DestIsVector ? ".64" : "";
-  const char *WidthString = DestIsVector ? "" : getWidthString(DestTy);
-  Str << "\t" << ActualOpcode << WidthString << getPredicate() << VectorMarker
-      << "\t";
+      IsVector ? "vld1" : (IsScalarFloat ? "vldr" : "ldr");
+  const char *VectorMarker = IsVector ? ".64" : "";
+  const char *WidthString = IsVector ? "" : getWidthString(Ty);
+  Str << "\t" << ActualOpcode;
+  const bool IsVInst = IsVector || IsScalarFloat;
+  if (IsVInst) {
+    Str << getPredicate() << WidthString;
+  } else {
+    Str << WidthString << getPredicate();
+  }
+  Str << VectorMarker << "\t";
   getDest()->emit(Func);
   Str << ", ";
   getSrc(0)->emit(Func);
@@ -1270,11 +1287,18 @@ void InstARM32Str::emit(const Cfg *Func) const {
   assert(getSrcSize() == 2);
   Type Ty = getSrc(0)->getType();
   const bool IsVectorStore = isVectorType(Ty);
+  const bool IsScalarFloat = isScalarFloatingType(Ty);
   const char *Opcode =
-      IsVectorStore ? "vst1" : (isScalarFloatingType(Ty) ? "vstr" : "str");
+      IsVectorStore ? "vst1" : (IsScalarFloat ? "vstr" : "str");
   const char *VecEltWidthString = IsVectorStore ? ".64" : "";
-  Str << "\t" << Opcode << getWidthString(Ty) << getPredicate()
-      << VecEltWidthString << "\t";
+  Str << "\t" << Opcode;
+  const bool IsVInst = IsVectorStore || IsScalarFloat;
+  if (IsVInst) {
+    Str << getPredicate() << getWidthString(Ty);
+  } else {
+    Str << getWidthString(Ty) << getPredicate();
+  }
+  Str << VecEltWidthString << "\t";
   getSrc(0)->emit(Func);
   Str << ", ";
   getSrc(1)->emit(Func);

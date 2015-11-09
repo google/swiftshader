@@ -1068,7 +1068,7 @@ entry:
 ; ARM32: ldrexb
 ; ARM32: cmp
 ; ARM32: strexbeq
-; ARM32: {{str|mov}}ne
+; ARM32: {{strb|mov}}ne
 ; ARM32: cmpeq
 ; ARM32: bne
 ; ARM32: dmb
@@ -1092,7 +1092,7 @@ entry:
 ; ARM32: ldrexh
 ; ARM32: cmp
 ; ARM32: strexheq
-; ARM32: {{str|mov}}ne
+; ARM32: {{strh|mov}}ne
 ; ARM32: cmpeq
 ; ARM32: bne
 ; ARM32: dmb

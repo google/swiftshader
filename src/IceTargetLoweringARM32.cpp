@@ -2506,7 +2506,7 @@ void TargetARM32::lowerFcmp(const InstFcmp *Instr) {
     return;
   }
 
-  Variable *T = makeReg(IceType_i32);
+  Variable *T = makeReg(IceType_i1);
   Operand *_1 = Ctx->getConstantInt32(1);
   Operand *_0 = Ctx->getConstantZero(IceType_i32);
 
@@ -2672,7 +2672,7 @@ void TargetARM32::lowerIcmp(const InstIcmp *Inst) {
 
   Constant *_0 = Ctx->getConstantZero(IceType_i32);
   Constant *_1 = Ctx->getConstantInt32(1);
-  Variable *T = makeReg(IceType_i32);
+  Variable *T = makeReg(IceType_i1);
 
   CondARM32::Cond CondIfTrue, CondIfFalse;
   lowerIcmpCond(Inst, &CondIfTrue, &CondIfFalse);
