@@ -544,12 +544,23 @@ protected:
   /// If the offset is not legal, use a new base register that accounts for the
   /// offset, such that the addressing mode offset bits are now legal.
   void legalizeStackSlots();
-  /// Returns true if the given Offset can be represented in a stack ldr/str.
-  bool isLegalVariableStackOffset(Type Ty, int32_t Offset) const;
-  /// Assuming Var needs its offset legalized, define a new base register
-  /// centered on the given Var's offset plus StackAdjust, and use it.
-  StackVariable *legalizeVariableSlot(Variable *Var, int32_t StackAdjust,
-                                      Variable *OrigBaseReg);
+  /// Returns true if the given Offset can be represented in a ldr/str.
+  bool isLegalMemOffset(Type Ty, int32_t Offset) const;
+  // Creates a new Base register centered around
+  // [OrigBaseReg, +/- Offset+StackAdjust].
+  Variable *newBaseRegister(int32_t Offset, int32_t StackAdjust,
+                            Variable *OrigBaseReg);
+  /// Creates a new, legal StackVariable w.r.t. ARM's Immediate requirements.
+  /// This method is not very smart: it will always create and return a new
+  /// StackVariable, even if Offset + StackAdjust is encodable.
+  StackVariable *legalizeStackSlot(Type Ty, int32_t Offset, int32_t StackAdjust,
+                                   Variable *OrigBaseReg, Variable **NewBaseReg,
+                                   int32_t *NewBaseOffset);
+  /// Legalizes Mov if its Source (or Destination) contains an invalid
+  /// immediate.
+  void legalizeMovStackAddrImm(InstARM32Mov *Mov, int32_t StackAdjust,
+                               Variable *OrigBaseReg, Variable **NewBaseReg,
+                               int32_t *NewBaseOffset);
 
   TargetARM32Features CPUFeatures;
   bool UsesFramePointer = false;
@@ -614,8 +625,12 @@ protected:
 private:
   ~TargetARM32() override = default;
 
+  OperandARM32Mem *formAddressingMode(Type Ty, Cfg *Func, const Inst *LdSt,
+                                      Operand *Base);
+
   void lowerTruncToFlags(Operand *Src, CondARM32::Cond *CondIfTrue,
                          CondARM32::Cond *CondIfFalse);
+
   class BoolComputationTracker {
   public:
     BoolComputationTracker() = default;

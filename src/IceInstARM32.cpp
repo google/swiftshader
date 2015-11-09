@@ -33,7 +33,7 @@ const struct TypeARM32Attributes_ {
   int8_t SExtAddrOffsetBits;
   int8_t ZExtAddrOffsetBits;
 } TypeARM32Attributes[] = {
-#define X(tag, elementty, int_width, vec_width, sbits, ubits, rraddr)          \
+#define X(tag, elementty, int_width, vec_width, sbits, ubits, rraddr, shaddr)  \
   { int_width, vec_width, sbits, ubits }                                       \
   ,
     ICETYPEARM32_TABLE
