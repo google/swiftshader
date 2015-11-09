@@ -279,3 +279,28 @@ out:
 ; CHECK-NEXT: out:
 ; CHECK-NEXT: LoopNestDepth = 0
 ; CHECK-LABEL: Before RMW
+
+define internal void @test_single_block_loop(i32 %count) {
+entry:
+  br label %body
+body:
+;  %i = phi i32 [ 0, %entry ], [ %inc, %body ]
+; A normal loop would have a phi instruction like above for the induction
+; variable, but that may introduce new basic blocks due to phi edge splitting,
+; so we use an alternative definition for %i to make the test more clear.
+  %i = add i32 %count, 1
+  %inc = add i32 %i, 1
+  %cmp = icmp slt i32 %inc, %count
+  br i1 %cmp, label %body, label %exit
+exit:
+  ret void
+}
+
+; CHECK-LABEL: After loop nest depth analysis
+; CHECK-NEXT: entry:
+; CHECK-NEXT: LoopNestDepth = 0
+; CHECK-NEXT: body:
+; CHECK-NEXT: LoopNestDepth = 1
+; CHECK-NEXT: exit:
+; CHECK-NEXT: LoopNestDepth = 0
+; CHECK-LABEL: Before RMW

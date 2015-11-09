@@ -34,6 +34,14 @@ void LoopAnalyzer::LoopNode::incrementLoopNestDepth() {
   BB->incrementLoopNestDepth();
 }
 
+bool LoopAnalyzer::LoopNode::hasSelfEdge() const {
+  for (CfgNode *Succ : BB->getOutEdges()) {
+    if (Succ == BB)
+      return true;
+  }
+  return false;
+}
+
 LoopAnalyzer::LoopAnalyzer(Cfg *Fn) : Func(Fn) {
   const NodeList &Nodes = Func->getNodes();
 
@@ -115,6 +123,8 @@ LoopAnalyzer::processNode(LoopAnalyzer::LoopNode &Node) {
   // Single node means no loop in the CFG
   if (LoopStack.back() == &Node) {
     LoopStack.back()->setOnStack(false);
+    if (Node.hasSelfEdge())
+      LoopStack.back()->incrementLoopNestDepth();
     LoopStack.back()->setDeleted();
     ++NumDeletedNodes;
     LoopStack.pop_back();

@@ -78,6 +78,7 @@ private:
     bool isDeleted() const { return Deleted; }
 
     void incrementLoopNestDepth();
+    bool hasSelfEdge() const;
 
   private:
     CfgNode *BB;
