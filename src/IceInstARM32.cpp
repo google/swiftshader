@@ -1398,6 +1398,14 @@ void InstARM32Umull::emit(const Cfg *Func) const {
   getSrc(1)->emit(Func);
 }
 
+void InstARM32Umull::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 2);
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  Asm->umull(getDest(), DestHi, getSrc(0), getSrc(1), getPredicate());
+  if (Asm->needsTextFixup())
+    emitUsingTextFixup(Func);
+}
+
 void InstARM32Umull::dump(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;

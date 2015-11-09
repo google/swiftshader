@@ -210,6 +210,9 @@ public:
   void udiv(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
             CondARM32::Cond Cond);
 
+  void umull(const Operand *OpRdLo, const Operand *OpRdHi, const Operand *OpRn,
+             const Operand *OpRm, CondARM32::Cond Cond);
+
   static bool classof(const Assembler *Asm) {
     return Asm->getKind() == Asm_ARM32;
   }

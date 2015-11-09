@@ -393,7 +393,7 @@ void Assembler::muls(Register rd, Register rn, Register rm, Condition cond) {
 }
 
 #if 0
-// Moved to ARM32::AssemblerARM32::mla
+// Moved to ARM32::AssemblerARM32::mla()
 void Assembler::mla(Register rd, Register rn,
                     Register rm, Register ra, Condition cond) {
   // rd <- ra + rn * rm.
@@ -422,13 +422,14 @@ void Assembler::smull(Register rd_lo, Register rd_hi,
   EmitMulOp(cond, B23 | B22, rd_lo, rd_hi, rn, rm);
 }
 
-
+#if 0
+// Moved to ARM32::AssemblerARM32::umull()
 void Assembler::umull(Register rd_lo, Register rd_hi,
                       Register rn, Register rm, Condition cond) {
   // Assembler registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
   EmitMulOp(cond, B23, rd_lo, rd_hi, rn, rm);
 }
-
+#endif
 
 void Assembler::umlal(Register rd_lo, Register rd_hi,
                       Register rn, Register rm, Condition cond) {

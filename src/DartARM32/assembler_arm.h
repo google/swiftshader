@@ -530,8 +530,11 @@ class Assembler : public ValueObject {
            Condition cond = AL);
   void smull(Register rd_lo, Register rd_hi, Register rn, Register rm,
              Condition cond = AL);
+#if 0
+  // Moved to ARM32::AssemblerARM32::umull();
   void umull(Register rd_lo, Register rd_hi, Register rn, Register rm,
              Condition cond = AL);
+#endif
   void smlal(Register rd_lo, Register rd_hi, Register rn, Register rm,
              Condition cond = AL);
   void umlal(Register rd_lo, Register rd_hi, Register rn, Register rm,

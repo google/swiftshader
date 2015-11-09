@@ -48,6 +48,7 @@ static constexpr IValueT B15 = 1 << 15;
 static constexpr IValueT B20 = 1 << 20;
 static constexpr IValueT B21 = 1 << 21;
 static constexpr IValueT B22 = 1 << 22;
+static constexpr IValueT B23 = 1 << 23;
 static constexpr IValueT B24 = 1 << 24;
 static constexpr IValueT B25 = 1 << 25;
 static constexpr IValueT B26 = 1 << 26;
@@ -1004,7 +1005,7 @@ void AssemblerARM32::udiv(const Operand *OpRd, const Operand *OpRn,
     return setNeedsTextFixup();
   if (Rd == RegARM32::Encoded_Reg_pc || Rn == RegARM32::Encoded_Reg_pc ||
       Rm == RegARM32::Encoded_Reg_pc)
-    llvm::report_fatal_error("Sdiv instruction unpredictable on pc");
+    llvm::report_fatal_error("Udiv instruction unpredictable on pc");
   // Assembler registers rd, rn, rm are encoded as rn, rm, rs.
   constexpr IValueT Opcode = B21;
   emitDivOp(Cond, Opcode, Rd, Rn, Rm);
@@ -1047,6 +1048,31 @@ void AssemblerARM32::tst(const Operand *OpRn, const Operand *OpSrc1,
   // iiiiiiiiiiii defines RotatedImm8.
   constexpr IValueT Opcode = B3; // ie. 1000
   emitCompareOp(Opcode, OpRn, OpSrc1, Cond);
+}
+
+void AssemblerARM32::umull(const Operand *OpRdLo, const Operand *OpRdHi,
+                           const Operand *OpRn, const Operand *OpRm,
+                           CondARM32::Cond Cond) {
+  // UMULL - ARM section A8.8.257, encoding A1:
+  //   umull<c> <RdLo>, <RdHi>, <Rn>, <Rm>
+  //
+  // cccc0000100shhhhllllmmmm1001nnnn where hhhh=RdHi, llll=RdLo, nnnn=Rn,
+  // mmmm=Rm, and s=SetFlags
+  IValueT RdLo;
+  IValueT RdHi;
+  IValueT Rn;
+  IValueT Rm;
+  if (decodeOperand(OpRdLo, RdLo) != DecodedAsRegister ||
+      decodeOperand(OpRdHi, RdHi) != DecodedAsRegister ||
+      decodeOperand(OpRn, Rn) != DecodedAsRegister ||
+      decodeOperand(OpRm, Rm) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  if (RdHi == RegARM32::Encoded_Reg_pc || RdLo == RegARM32::Encoded_Reg_pc ||
+      Rn == RegARM32::Encoded_Reg_pc || Rm == RegARM32::Encoded_Reg_pc ||
+      RdHi == RdLo)
+    llvm::report_fatal_error("Umull instruction unpredictable on pc");
+  constexpr bool SetFlags = false;
+  emitMulOp(Cond, B23, RdLo, RdHi, Rn, Rm, SetFlags);
 }
 
 } // end of namespace ARM32
