@@ -42,8 +42,11 @@ public:
   IceString getRegName(SizeT RegNum, Type Ty) const override;
   llvm::SmallBitVector getRegisterSet(RegSetMask Include,
                                       RegSetMask Exclude) const override;
-  const llvm::SmallBitVector &getRegisterSetForType(Type Ty) const override {
-    return TypeToRegisterSet[Ty];
+  const llvm::SmallBitVector &
+  getRegistersForVariable(const Variable *Var) const override {
+    RegClass RC = Var->getRegClass();
+    assert(RC < RC_Target);
+    return TypeToRegisterSet[RC];
   }
   const llvm::SmallBitVector &getAliasesForRegister(SizeT Reg) const override {
     return RegisterAliases[Reg];
@@ -231,7 +234,7 @@ protected:
 
   bool UsesFramePointer = false;
   bool NeedsStackAlignment = false;
-  static llvm::SmallBitVector TypeToRegisterSet[IceType_NUM];
+  static llvm::SmallBitVector TypeToRegisterSet[RCMIPS32_NUM];
   static llvm::SmallBitVector RegisterAliases[RegMIPS32::Reg_NUM];
   static llvm::SmallBitVector ScratchRegs;
   llvm::SmallBitVector RegsUsed;

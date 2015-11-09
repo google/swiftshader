@@ -74,7 +74,7 @@ const size_t MachineTraits<TargetX8664>::TableIcmp64Size =
 const MachineTraits<TargetX8664>::TableTypeX8664AttributesType
     MachineTraits<TargetX8664>::TableTypeX8664Attributes[] = {
 #define X(tag, elementty, cvt, sdss, pack, width, fld)                         \
-  { elementty }                                                                \
+  { IceType_##elementty }                                                      \
   ,
         ICETYPEX8664_TABLE
 #undef X
@@ -87,7 +87,7 @@ const uint32_t MachineTraits<TargetX8664>::X86_STACK_ALIGNMENT_BYTES = 16;
 const char *MachineTraits<TargetX8664>::TargetName = "X8664";
 
 template <>
-std::array<llvm::SmallBitVector, IceType_NUM>
+std::array<llvm::SmallBitVector, RCX86_NUM>
     TargetX86Base<TargetX8664>::TypeToRegisterSet = {};
 
 template <>
@@ -955,7 +955,7 @@ enum _tmp_enum {
 };
 // Define a set of constants based on high-level table entries.
 #define X(tag, sizeLog2, align, elts, elty, str)                               \
-  static const int _table1_##tag = tag;
+  static const int _table1_##tag = IceType_##tag;
 ICETYPE_TABLE
 #undef X
 // Define a set of constants based on low-level table entries, and ensure the

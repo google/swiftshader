@@ -24,6 +24,7 @@
 #include "IceRegistersX8664.h"
 #include "IceTargetLowering.h"
 #include "IceTargetLoweringX8664.def"
+#include "IceTargetLoweringX86RegClass.h"
 
 #include <array>
 
@@ -379,7 +380,7 @@ template <> struct MachineTraits<TargetX8664> {
   static int32_t getGprForType(Type, int32_t RegNum) { return RegNum; }
 
   static void initRegisterSet(
-      std::array<llvm::SmallBitVector, IceType_NUM> *TypeToRegisterSet,
+      std::array<llvm::SmallBitVector, RCX86_NUM> *TypeToRegisterSet,
       std::array<llvm::SmallBitVector, RegisterSet::Reg_NUM> *RegisterAliases,
       llvm::SmallBitVector *ScratchRegs) {
     llvm::SmallBitVector IntegerRegistersI64(RegisterSet::Reg_NUM);
@@ -388,6 +389,11 @@ template <> struct MachineTraits<TargetX8664> {
     llvm::SmallBitVector IntegerRegistersI8(RegisterSet::Reg_NUM);
     llvm::SmallBitVector FloatRegisters(RegisterSet::Reg_NUM);
     llvm::SmallBitVector VectorRegisters(RegisterSet::Reg_NUM);
+    llvm::SmallBitVector Trunc64To8Registers(RegisterSet::Reg_NUM);
+    llvm::SmallBitVector Trunc32To8Registers(RegisterSet::Reg_NUM);
+    llvm::SmallBitVector Trunc16To8Registers(RegisterSet::Reg_NUM);
+    llvm::SmallBitVector Trunc8RcvrRegisters(RegisterSet::Reg_NUM);
+    llvm::SmallBitVector AhRcvrRegisters(RegisterSet::Reg_NUM);
     llvm::SmallBitVector InvalidRegisters(RegisterSet::Reg_NUM);
     ScratchRegs->resize(RegisterSet::Reg_NUM);
 
@@ -400,6 +406,11 @@ template <> struct MachineTraits<TargetX8664> {
   (IntegerRegistersI8)[RegisterSet::val] = is8;                                \
   (FloatRegisters)[RegisterSet::val] = isXmm;                                  \
   (VectorRegisters)[RegisterSet::val] = isXmm;                                 \
+  (Trunc64To8Registers)[RegisterSet::val] = is64To8;                           \
+  (Trunc32To8Registers)[RegisterSet::val] = is32To8;                           \
+  (Trunc16To8Registers)[RegisterSet::val] = is16To8;                           \
+  (Trunc8RcvrRegisters)[RegisterSet::val] = isTrunc8Rcvr;                      \
+  (AhRcvrRegisters)[RegisterSet::val] = isAhRcvr;                              \
   (*RegisterAliases)[RegisterSet::val].resize(RegisterSet::Reg_NUM);           \
   for (SizeT RegAlias : aliases) {                                             \
     assert(!(*RegisterAliases)[RegisterSet::val][RegAlias] &&                  \
@@ -411,21 +422,26 @@ template <> struct MachineTraits<TargetX8664> {
     REGX8664_TABLE;
 #undef X
 
-    (*TypeToRegisterSet)[IceType_void] = InvalidRegisters;
-    (*TypeToRegisterSet)[IceType_i1] = IntegerRegistersI8;
-    (*TypeToRegisterSet)[IceType_i8] = IntegerRegistersI8;
-    (*TypeToRegisterSet)[IceType_i16] = IntegerRegistersI16;
-    (*TypeToRegisterSet)[IceType_i32] = IntegerRegistersI32;
-    (*TypeToRegisterSet)[IceType_i64] = IntegerRegistersI64;
-    (*TypeToRegisterSet)[IceType_f32] = FloatRegisters;
-    (*TypeToRegisterSet)[IceType_f64] = FloatRegisters;
-    (*TypeToRegisterSet)[IceType_v4i1] = VectorRegisters;
-    (*TypeToRegisterSet)[IceType_v8i1] = VectorRegisters;
-    (*TypeToRegisterSet)[IceType_v16i1] = VectorRegisters;
-    (*TypeToRegisterSet)[IceType_v16i8] = VectorRegisters;
-    (*TypeToRegisterSet)[IceType_v8i16] = VectorRegisters;
-    (*TypeToRegisterSet)[IceType_v4i32] = VectorRegisters;
-    (*TypeToRegisterSet)[IceType_v4f32] = VectorRegisters;
+    (*TypeToRegisterSet)[RC_void] = InvalidRegisters;
+    (*TypeToRegisterSet)[RC_i1] = IntegerRegistersI8;
+    (*TypeToRegisterSet)[RC_i8] = IntegerRegistersI8;
+    (*TypeToRegisterSet)[RC_i16] = IntegerRegistersI16;
+    (*TypeToRegisterSet)[RC_i32] = IntegerRegistersI32;
+    (*TypeToRegisterSet)[RC_i64] = IntegerRegistersI64;
+    (*TypeToRegisterSet)[RC_f32] = FloatRegisters;
+    (*TypeToRegisterSet)[RC_f64] = FloatRegisters;
+    (*TypeToRegisterSet)[RC_v4i1] = VectorRegisters;
+    (*TypeToRegisterSet)[RC_v8i1] = VectorRegisters;
+    (*TypeToRegisterSet)[RC_v16i1] = VectorRegisters;
+    (*TypeToRegisterSet)[RC_v16i8] = VectorRegisters;
+    (*TypeToRegisterSet)[RC_v8i16] = VectorRegisters;
+    (*TypeToRegisterSet)[RC_v4i32] = VectorRegisters;
+    (*TypeToRegisterSet)[RC_v4f32] = VectorRegisters;
+    (*TypeToRegisterSet)[RCX86_Is64To8] = Trunc64To8Registers;
+    (*TypeToRegisterSet)[RCX86_Is32To8] = Trunc32To8Registers;
+    (*TypeToRegisterSet)[RCX86_Is16To8] = Trunc16To8Registers;
+    (*TypeToRegisterSet)[RCX86_IsTrunc8Rcvr] = Trunc8RcvrRegisters;
+    (*TypeToRegisterSet)[RCX86_IsAhRcvr] = AhRcvrRegisters;
   }
 
   static llvm::SmallBitVector
@@ -498,6 +514,10 @@ template <> struct MachineTraits<TargetX8664> {
     Index |= (is32 << (AttrKey++));                                            \
     Index |= (is64 << (AttrKey++));                                            \
     Index |= (isXmm << (AttrKey++));                                           \
+    Index |= (is16To8 << (AttrKey++));                                         \
+    Index |= (is32To8 << (AttrKey++));                                         \
+    Index |= (is64To8 << (AttrKey++));                                         \
+    Index |= (isTrunc8Rcvr << (AttrKey++));                                    \
     /* val is assigned to an equivalence class based on its properties. */     \
     EquivalenceClasses[Index].push_back(RegisterSet::val);                     \
   }

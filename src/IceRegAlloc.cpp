@@ -833,8 +833,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
     Iter.Cur = Unhandled.back();
     Unhandled.pop_back();
     dumpLiveRangeTrace("\nConsidering  ", Iter.Cur);
-    Iter.RegMask =
-        RegMaskFull & Target->getRegisterSetForType(Iter.Cur->getType());
+    Iter.RegMask = RegMaskFull & Target->getRegistersForVariable(Iter.Cur);
     KillsRange.trim(Iter.Cur->getLiveRange().getStart());
 
     // Check for pre-colored ranges. If Cur is pre-colored, it definitely gets
@@ -862,11 +861,10 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
     // Disable AllowOverlap if an Active variable, which is not Prefer, shares
     // Prefer's register, and has a definition within Cur's live range.
     if (Iter.AllowOverlap) {
+      const llvm::SmallBitVector &Aliases = *RegAliases[Iter.PreferReg];
       for (const Variable *Item : Active) {
         int32_t RegNum = Item->getRegNumTmp();
-        // TODO(stichnot): Consider aliases of RegNum.  This is probably a
-        // correctness issue.
-        if (Item != Iter.Prefer && RegNum == Iter.PreferReg &&
+        if (Item != Iter.Prefer && Aliases[RegNum] &&
             overlapsDefs(Func, Iter.Cur, Item)) {
           Iter.AllowOverlap = false;
           dumpDisableOverlap(Func, Item, "Active");

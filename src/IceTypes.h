@@ -22,7 +22,7 @@
 namespace Ice {
 
 enum Type {
-#define X(tag, sizeLog2, align, elts, elty, str) tag,
+#define X(tag, sizeLog2, align, elts, elty, str) IceType_##tag,
   ICETYPE_TABLE
 #undef X
       IceType_NUM

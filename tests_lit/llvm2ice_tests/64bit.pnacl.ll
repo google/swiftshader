@@ -726,7 +726,7 @@ entry:
 ; CHECK-NEXT: movsx  eax,ax
 ;
 ; OPTM1-LABEL: trunc64To16Signed
-; OPTM1:      mov     eax,DWORD PTR [esp+
+; OPTM1:      mov     ax,WORD PTR [esp+
 ; OPTM1: movsx  eax,
 
 ; ARM32-LABEL: trunc64To16Signed
@@ -808,7 +808,7 @@ entry:
 ; CHECK-NEXT: movzx  eax,ax
 ;
 ; OPTM1-LABEL: trunc64To16Unsigned
-; OPTM1:      mov     eax,DWORD PTR [esp+
+; OPTM1:      mov     ax,WORD PTR [esp+
 ; OPTM1: movzx  eax,
 
 ; ARM32-LABEL: trunc64To16Unsigned
@@ -840,12 +840,12 @@ entry:
 }
 ; CHECK-LABEL: trunc64To1
 ; CHECK:      mov     eax,DWORD PTR [esp+0x4]
-; CHECK:      and     eax,0x1
+; CHECK:      and     al,0x1
 ; CHECK-NOT:  and     eax,0x1
 ;
 ; OPTM1-LABEL: trunc64To1
 ; OPTM1:      mov     eax,DWORD PTR [esp+
-; OPTM1:      and     eax,0x1
+; OPTM1:      and     al,0x1
 ; OPTM1-NOT:  and     eax,0x1
 
 ; ARM32-LABEL: trunc64To1

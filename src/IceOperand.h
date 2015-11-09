@@ -428,6 +428,23 @@ private:
 
 Ostream &operator<<(Ostream &Str, const LiveRange &L);
 
+/// RegClass indicates the physical register class that a Variable may be
+/// register-allocated from.  By default, a variable's register class is
+/// directly associated with its type.  However, the target lowering may define
+/// additional target-specific register classes by extending the set of enum
+/// values.
+enum RegClass : uint8_t {
+// Define RC_void, RC_i1, RC_i8, etc.
+#define X(tag, sizeLog2, align, elts, elty, str) RC_##tag = IceType_##tag,
+  ICETYPE_TABLE
+#undef X
+      RC_Target,
+  // Leave plenty of space for target-specific values.
+  RC_Max = std::numeric_limits<uint8_t>::max()
+};
+static_assert(RC_Target == static_cast<RegClass>(IceType_NUM),
+              "Expected RC_Target and IceType_NUM to be the same");
+
 /// Variable represents an operand that is register-allocated or
 /// stack-allocated. If it is register-allocated, it will ultimately have a
 /// non-negative RegNum field.
@@ -493,6 +510,9 @@ public:
     return RegRequirement == RR_MustNotHaveRegister;
   }
 
+  void setRegClass(uint8_t RC) { RegisterClass = static_cast<RegClass>(RC); }
+  RegClass getRegClass() const { return RegisterClass; }
+
   LiveRange &getLiveRange() { return Live; }
   const LiveRange &getLiveRange() const { return Live; }
   void setLiveRange(const LiveRange &Range) { Live = Range; }
@@ -537,7 +557,8 @@ public:
 
 protected:
   Variable(OperandKind K, Type Ty, SizeT Index)
-      : Operand(K, Ty), Number(Index) {
+      : Operand(K, Ty), Number(Index),
+        RegisterClass(static_cast<RegClass>(Ty)) {
     Vars = VarsReal;
     Vars[0] = this;
     NumVars = 1;
@@ -553,6 +574,7 @@ protected:
   /// pointer and other physical registers specifically referenced by name.
   bool IgnoreLiveness = false;
   RegRequirement RegRequirement = RR_MayHaveRegister;
+  RegClass RegisterClass;
   /// RegNum is the allocated register, or NoRegister if it isn't
   /// register-allocated.
   int32_t RegNum = NoRegister;

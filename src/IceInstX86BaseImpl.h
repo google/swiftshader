@@ -1384,38 +1384,35 @@ void InstX86Cbwdq<Machine>::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 1);
   Operand *Src0 = this->getSrc(0);
-  assert(llvm::isa<Variable>(Src0));
+  int32_t DestReg = this->getDest()->getRegNum();
+  int32_t SrcReg = llvm::cast<Variable>(Src0)->getRegNum();
+  (void)DestReg;
+  (void)SrcReg;
   switch (Src0->getType()) {
   default:
     llvm_unreachable("unexpected source type!");
     break;
   case IceType_i8:
-    assert(llvm::cast<Variable>(Src0)->getRegNum() ==
-           InstX86Base<Machine>::Traits::RegisterSet::Reg_al);
-    assert(this->getDest()->getRegNum() ==
-           InstX86Base<Machine>::Traits::RegisterSet::Reg_ax);
+    assert(SrcReg == InstX86Base<Machine>::Traits::RegisterSet::Reg_al);
+    assert(DestReg == InstX86Base<Machine>::Traits::RegisterSet::Reg_ax ||
+           DestReg == InstX86Base<Machine>::Traits::RegisterSet::Reg_ah);
     Str << "\t"
         << "cbtw";
     break;
   case IceType_i16:
-    assert(llvm::cast<Variable>(Src0)->getRegNum() ==
-           InstX86Base<Machine>::Traits::RegisterSet::Reg_ax);
-    assert(this->getDest()->getRegNum() ==
-           InstX86Base<Machine>::Traits::RegisterSet::Reg_dx);
+    assert(SrcReg == InstX86Base<Machine>::Traits::RegisterSet::Reg_ax);
+    assert(DestReg == InstX86Base<Machine>::Traits::RegisterSet::Reg_dx);
     Str << "\t"
         << "cwtd";
     break;
   case IceType_i32:
-    assert(llvm::cast<Variable>(Src0)->getRegNum() ==
-           InstX86Base<Machine>::Traits::RegisterSet::Reg_eax);
-    assert(this->getDest()->getRegNum() ==
-           InstX86Base<Machine>::Traits::RegisterSet::Reg_edx);
+    assert(SrcReg == InstX86Base<Machine>::Traits::RegisterSet::Reg_eax);
+    assert(DestReg == InstX86Base<Machine>::Traits::RegisterSet::Reg_edx);
     Str << "\t"
         << "cltd";
     break;
   case IceType_i64:
-    assert(this->getDest()->getRegNum() ==
-           InstX86Base<Machine>::Traits::RegisterSet::Reg_edx);
+    assert(DestReg == InstX86Base<Machine>::Traits::RegisterSet::Reg_edx);
     Str << "\t"
         << "cdto";
     break;
@@ -1428,35 +1425,32 @@ void InstX86Cbwdq<Machine>::emitIAS(const Cfg *Func) const {
       Func->getAssembler<typename InstX86Base<Machine>::Traits::Assembler>();
   assert(this->getSrcSize() == 1);
   Operand *Src0 = this->getSrc(0);
-  assert(llvm::isa<Variable>(Src0));
+  int32_t DestReg = this->getDest()->getRegNum();
+  int32_t SrcReg = llvm::cast<Variable>(Src0)->getRegNum();
+  (void)DestReg;
+  (void)SrcReg;
   switch (Src0->getType()) {
   default:
     llvm_unreachable("unexpected source type!");
     break;
   case IceType_i8:
-    assert(llvm::cast<Variable>(Src0)->getRegNum() ==
-           InstX86Base<Machine>::Traits::RegisterSet::Reg_al);
-    assert(this->getDest()->getRegNum() ==
-           InstX86Base<Machine>::Traits::RegisterSet::Reg_ax);
+    assert(SrcReg == InstX86Base<Machine>::Traits::RegisterSet::Reg_al);
+    assert(DestReg == InstX86Base<Machine>::Traits::RegisterSet::Reg_ax ||
+           DestReg == InstX86Base<Machine>::Traits::RegisterSet::Reg_ah);
     Asm->cbw();
     break;
   case IceType_i16:
-    assert(llvm::cast<Variable>(Src0)->getRegNum() ==
-           InstX86Base<Machine>::Traits::RegisterSet::Reg_ax);
-    assert(this->getDest()->getRegNum() ==
-           InstX86Base<Machine>::Traits::RegisterSet::Reg_dx);
+    assert(SrcReg == InstX86Base<Machine>::Traits::RegisterSet::Reg_ax);
+    assert(DestReg == InstX86Base<Machine>::Traits::RegisterSet::Reg_dx);
     Asm->cwd();
     break;
   case IceType_i32:
-    assert(llvm::cast<Variable>(Src0)->getRegNum() ==
-           InstX86Base<Machine>::Traits::RegisterSet::Reg_eax);
-    assert(this->getDest()->getRegNum() ==
-           InstX86Base<Machine>::Traits::RegisterSet::Reg_edx);
+    assert(SrcReg == InstX86Base<Machine>::Traits::RegisterSet::Reg_eax);
+    assert(DestReg == InstX86Base<Machine>::Traits::RegisterSet::Reg_edx);
     Asm->cdq();
     break;
   case IceType_i64:
-    assert(this->getDest()->getRegNum() ==
-           InstX86Base<Machine>::Traits::RegisterSet::Reg_edx);
+    assert(DestReg == InstX86Base<Machine>::Traits::RegisterSet::Reg_edx);
     Asm->cqo();
     break;
   }
@@ -2278,32 +2272,29 @@ template <class Machine> void InstX86Mov<Machine>::emit(const Cfg *Func) const {
   } else {
     Str << "\tmov"
         << (!isScalarFloatingType(DestTy)
-                ? this->getWidthString(SrcTy)
+                ? this->getWidthString(DestTy)
                 : InstX86Base<Machine>::Traits::TypeAttributes[DestTy]
                       .SdSsString) << "\t";
   }
-  // For an integer truncation operation, src is wider than dest. Ideally, we
-  // use a mov instruction whose data width matches the narrower dest. This is
-  // a problem if e.g. src is a register like esi or si where there is no 8-bit
-  // version of the register. To be safe, we instead widen the dest to match
-  // src. This works even for stack-allocated dest variables because
-  // typeWidthOnStack() pads to a 4-byte boundary even if only a lower portion
-  // is used.
+  // For an integer truncation operation, src is wider than dest. In this case,
+  // we use a mov instruction whose data width matches the narrower dest.
   // TODO: This assert disallows usages such as copying a floating
   // point value between a vector and a scalar (which movss is used for). Clean
   // this up.
   assert(Func->getTarget()->typeWidthInBytesOnStack(DestTy) ==
          Func->getTarget()->typeWidthInBytesOnStack(SrcTy));
-  Src->emit(Func);
+  const Operand *NewSrc = Src;
+  if (auto *SrcVar = llvm::dyn_cast<Variable>(Src)) {
+    int32_t NewRegNum = Variable::NoRegister;
+    if (SrcVar->hasReg())
+      NewRegNum = InstX86Base<Machine>::Traits::getGprForType(
+          DestTy, SrcVar->getRegNum());
+    if (SrcTy != DestTy)
+      NewSrc = SrcVar->asType(DestTy, NewRegNum);
+  }
+  NewSrc->emit(Func);
   Str << ", ";
-  int32_t NewRegNum = Variable::NoRegister;
-  if (this->getDest()->hasReg())
-    NewRegNum = InstX86Base<Machine>::Traits::getGprForType(
-        SrcTy, this->getDest()->getRegNum());
-  const Variable *NewDest = SrcTy == DestTy
-                                ? this->getDest()
-                                : this->getDest()->asType(SrcTy, NewRegNum);
-  NewDest->emit(Func);
+  this->getDest()->emit(Func);
 }
 
 template <class Machine>
@@ -2330,13 +2321,8 @@ void InstX86Mov<Machine>::emitIAS(const Cfg *Func) const {
       Machine>::Traits::Assembler::GPREmitterAddrOp GPRAddrEmitter = {
       &InstX86Base<Machine>::Traits::Assembler::mov,
       &InstX86Base<Machine>::Traits::Assembler::mov};
-  // For an integer truncation operation, src is wider than dest. Ideally, we
-  // use a mov instruction whose data width matches the narrower dest. This is
-  // a problem if e.g. src is a register like esi or si where there is no 8-bit
-  // version of the register. To be safe, we instead widen the dest to match
-  // src. This works even for stack-allocated dest variables because
-  // typeWidthOnStack() pads to a 4-byte boundary even if only a lower portion
-  // is used.
+  // For an integer truncation operation, src is wider than dest. In this case,
+  // we use a mov instruction whose data width matches the narrower dest.
   // TODO: This assert disallows usages such as copying a floating
   // point value between a vector and a scalar (which movss is used for). Clean
   // this up.
@@ -2366,7 +2352,7 @@ void InstX86Mov<Machine>::emitIAS(const Cfg *Func) const {
         return;
       }
       if (isScalarIntegerType(SrcTy)) {
-        DestTy = SrcTy;
+        SrcTy = DestTy;
       }
       emitIASRegOpTyGPR<Machine>(Func, DestTy, Dest, Src, GPRRegEmitter);
       return;

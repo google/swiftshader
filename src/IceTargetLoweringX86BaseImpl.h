@@ -1216,8 +1216,7 @@ void TargetX86Base<Machine>::lowerShift64(InstArithmetic::OpKind Op,
     //   t1:ecx = c.lo & 0xff
     //   t2 = b.lo
     //   t3 = b.hi
-    T_1 = makeReg(IceType_i8, Traits::RegisterSet::Reg_cl);
-    _mov(T_1, Src1Lo);
+    T_1 = copyToReg8(Src1Lo, Traits::RegisterSet::Reg_cl);
     _mov(T_2, Src0Lo);
     _mov(T_3, Src0Hi);
     switch (Op) {
@@ -1295,6 +1294,7 @@ void TargetX86Base<Machine>::lowerShift64(InstArithmetic::OpKind Op,
 template <class Machine>
 void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
   Variable *Dest = Inst->getDest();
+  Type Ty = Dest->getType();
   Operand *Src0 = legalize(Inst->getSrc(0));
   Operand *Src1 = legalize(Inst->getSrc(1));
   if (Inst->isCommutative()) {
@@ -1316,7 +1316,7 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
     assert(SwapCount <= 1);
     (void)SwapCount;
   }
-  if (!Traits::Is64Bit && Dest->getType() == IceType_i64) {
+  if (!Traits::Is64Bit && Ty == IceType_i64) {
     // These x86-32 helper-call-involved instructions are lowered in this
     // separate switch. This is because loOperand() and hiOperand() may insert
     // redundant instructions for constant blinding and pooling. Such redundant
@@ -1463,7 +1463,7 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
     }
     return;
   }
-  if (isVectorType(Dest->getType())) {
+  if (isVectorType(Ty)) {
     // TODO: Trap on integer divide and integer modulo by zero. See:
     // https://code.google.com/p/nativeclient/issues/detail?id=3899
     if (llvm::isa<typename Traits::X86OperandMem>(Src1))
@@ -1473,46 +1473,45 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       llvm_unreachable("Unknown arithmetic operator");
       break;
     case InstArithmetic::Add: {
-      Variable *T = makeReg(Dest->getType());
+      Variable *T = makeReg(Ty);
       _movp(T, Src0);
       _padd(T, Src1);
       _movp(Dest, T);
     } break;
     case InstArithmetic::And: {
-      Variable *T = makeReg(Dest->getType());
+      Variable *T = makeReg(Ty);
       _movp(T, Src0);
       _pand(T, Src1);
       _movp(Dest, T);
     } break;
     case InstArithmetic::Or: {
-      Variable *T = makeReg(Dest->getType());
+      Variable *T = makeReg(Ty);
       _movp(T, Src0);
       _por(T, Src1);
       _movp(Dest, T);
     } break;
     case InstArithmetic::Xor: {
-      Variable *T = makeReg(Dest->getType());
+      Variable *T = makeReg(Ty);
       _movp(T, Src0);
       _pxor(T, Src1);
       _movp(Dest, T);
     } break;
     case InstArithmetic::Sub: {
-      Variable *T = makeReg(Dest->getType());
+      Variable *T = makeReg(Ty);
       _movp(T, Src0);
       _psub(T, Src1);
       _movp(Dest, T);
     } break;
     case InstArithmetic::Mul: {
-      bool TypesAreValidForPmull =
-          Dest->getType() == IceType_v4i32 || Dest->getType() == IceType_v8i16;
+      bool TypesAreValidForPmull = Ty == IceType_v4i32 || Ty == IceType_v8i16;
       bool InstructionSetIsValidForPmull =
-          Dest->getType() == IceType_v8i16 || InstructionSet >= Traits::SSE4_1;
+          Ty == IceType_v8i16 || InstructionSet >= Traits::SSE4_1;
       if (TypesAreValidForPmull && InstructionSetIsValidForPmull) {
-        Variable *T = makeReg(Dest->getType());
+        Variable *T = makeReg(Ty);
         _movp(T, Src0);
         _pmull(T, Src0 == Src1 ? T : Src1);
         _movp(Dest, T);
-      } else if (Dest->getType() == IceType_v4i32) {
+      } else if (Ty == IceType_v4i32) {
         // Lowering sequence:
         // Note: The mask arguments have index 0 on the left.
         //
@@ -1550,7 +1549,7 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
         _shufps(T1, T2, Ctx->getConstantInt32(Mask0202));
         _pshufd(T4, T1, Ctx->getConstantInt32(Mask0213));
         _movp(Dest, T4);
-      } else if (Dest->getType() == IceType_v16i8) {
+      } else if (Ty == IceType_v16i8) {
         scalarizeArithmetic(Inst->getOp(), Dest, Src0, Src1);
       } else {
         llvm::report_fatal_error("Invalid vector multiply type");
@@ -1566,25 +1565,25 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       scalarizeArithmetic(Inst->getOp(), Dest, Src0, Src1);
       break;
     case InstArithmetic::Fadd: {
-      Variable *T = makeReg(Dest->getType());
+      Variable *T = makeReg(Ty);
       _movp(T, Src0);
       _addps(T, Src1);
       _movp(Dest, T);
     } break;
     case InstArithmetic::Fsub: {
-      Variable *T = makeReg(Dest->getType());
+      Variable *T = makeReg(Ty);
       _movp(T, Src0);
       _subps(T, Src1);
       _movp(Dest, T);
     } break;
     case InstArithmetic::Fmul: {
-      Variable *T = makeReg(Dest->getType());
+      Variable *T = makeReg(Ty);
       _movp(T, Src0);
       _mulps(T, Src0 == Src1 ? T : Src1);
       _movp(Dest, T);
     } break;
     case InstArithmetic::Fdiv: {
-      Variable *T = makeReg(Dest->getType());
+      Variable *T = makeReg(Ty);
       _movp(T, Src0);
       _divps(T, Src1);
       _movp(Dest, T);
@@ -1633,13 +1632,13 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
     }
     // The 8-bit version of imul only allows the form "imul r/m8" where T must
     // be in al.
-    if (isByteSizedArithType(Dest->getType())) {
+    if (isByteSizedArithType(Ty)) {
       _mov(T, Src0, Traits::RegisterSet::Reg_al);
       Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
       _imul(T, Src0 == Src1 ? T : Src1);
       _mov(Dest, T);
     } else if (auto *ImmConst = llvm::dyn_cast<ConstantInteger32>(Src1)) {
-      T = makeReg(Dest->getType());
+      T = makeReg(Ty);
       _imul_imm(T, Src0, ImmConst);
       _mov(Dest, T);
     } else {
@@ -1650,76 +1649,51 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
     break;
   case InstArithmetic::Shl:
     _mov(T, Src0);
-    if (!llvm::isa<ConstantInteger32>(Src1)) {
-      Variable *Cl = makeReg(IceType_i8, Traits::RegisterSet::Reg_cl);
-      _mov(Cl, Src1);
-      Src1 = Cl;
-    }
+    if (!llvm::isa<ConstantInteger32>(Src1))
+      Src1 = copyToReg8(Src1, Traits::RegisterSet::Reg_cl);
     _shl(T, Src1);
     _mov(Dest, T);
     break;
   case InstArithmetic::Lshr:
     _mov(T, Src0);
-    if (!llvm::isa<ConstantInteger32>(Src1)) {
-      Variable *Cl = makeReg(IceType_i8, Traits::RegisterSet::Reg_cl);
-      _mov(Cl, Src1);
-      Src1 = Cl;
-    }
+    if (!llvm::isa<ConstantInteger32>(Src1))
+      Src1 = copyToReg8(Src1, Traits::RegisterSet::Reg_cl);
     _shr(T, Src1);
     _mov(Dest, T);
     break;
   case InstArithmetic::Ashr:
     _mov(T, Src0);
-    if (!llvm::isa<ConstantInteger32>(Src1)) {
-      Variable *Cl = makeReg(IceType_i8, Traits::RegisterSet::Reg_cl);
-      _mov(Cl, Src1);
-      Src1 = Cl;
-    }
+    if (!llvm::isa<ConstantInteger32>(Src1))
+      Src1 = copyToReg8(Src1, Traits::RegisterSet::Reg_cl);
     _sar(T, Src1);
     _mov(Dest, T);
     break;
-  case InstArithmetic::Udiv:
+  case InstArithmetic::Udiv: {
     // div and idiv are the few arithmetic operators that do not allow
     // immediates as the operand.
     Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
-    if (isByteSizedArithType(Dest->getType())) {
-      // For 8-bit unsigned division we need to zero-extend al into ah. A mov
-      // $0, %ah (or xor %ah, %ah) would work just fine, except that the x86-64
-      // assembler refuses to encode %ah (encoding %spl with a REX prefix
-      // instead.) Accessing %ah in 64-bit is "tricky" as you can't encode %ah
-      // with any other 8-bit register except for %a[lh], %b[lh], %c[lh], and
-      // d[%lh], which means the X86 target lowering (and the register
-      // allocator) would have to be aware of this restriction. For now, we
-      // simply zero %eax completely, and move the dividend into %al.
-      Variable *T_eax = makeReg(IceType_i32, Traits::RegisterSet::Reg_eax);
-      Context.insert(InstFakeDef::create(Func, T_eax));
-      _xor(T_eax, T_eax);
-      _mov(T, Src0, Traits::RegisterSet::Reg_al);
-      _div(T, Src1, T);
-      _mov(Dest, T);
-      Context.insert(InstFakeUse::create(Func, T_eax));
-    } else {
-      Type Ty = Dest->getType();
-      uint32_t Eax = Traits::RegisterSet::Reg_eax;
-      uint32_t Edx = Traits::RegisterSet::Reg_edx;
-      switch (Ty) {
-      default:
-        llvm_unreachable("Bad type for udiv");
-      // fallthrough
-      case IceType_i32:
-        break;
-      case IceType_i16:
-        Eax = Traits::RegisterSet::Reg_ax;
-        Edx = Traits::RegisterSet::Reg_dx;
-        break;
-      }
-      Constant *Zero = Ctx->getConstantZero(Ty);
-      _mov(T, Src0, Eax);
-      _mov(T_edx, Zero, Edx);
-      _div(T, Src1, T_edx);
-      _mov(Dest, T);
+    uint32_t Eax = Traits::RegisterSet::Reg_eax;
+    uint32_t Edx = Traits::RegisterSet::Reg_edx;
+    switch (Ty) {
+    default:
+      llvm_unreachable("Bad type for udiv");
+    // fallthrough
+    case IceType_i32:
+      break;
+    case IceType_i16:
+      Eax = Traits::RegisterSet::Reg_ax;
+      Edx = Traits::RegisterSet::Reg_dx;
+      break;
+    case IceType_i8:
+      Eax = Traits::RegisterSet::Reg_al;
+      Edx = Traits::RegisterSet::Reg_ah;
+      break;
     }
-    break;
+    _mov(T, Src0, Eax);
+    _mov(T_edx, Ctx->getConstantZero(Ty), Edx);
+    _div(T, Src1, T_edx);
+    _mov(Dest, T);
+  } break;
   case InstArithmetic::Sdiv:
     // TODO(stichnot): Enable this after doing better performance and cross
     // testing.
@@ -1731,7 +1705,6 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
         uint32_t UDivisor = static_cast<uint32_t>(Divisor);
         if (Divisor > 0 && llvm::isPowerOf2_32(UDivisor)) {
           uint32_t LogDiv = llvm::Log2_32(UDivisor);
-          Type Ty = Dest->getType();
           // LLVM does the following for dest=src/(1<<log):
           //   t=src
           //   sar t,typewidth-1 // -1 if src is negative, 0 if not
@@ -1757,7 +1730,7 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       }
     }
     Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
-    switch (Type Ty = Dest->getType()) {
+    switch (Ty) {
     default:
       llvm_unreachable("Bad type for sdiv");
     // fallthrough
@@ -1778,47 +1751,32 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
     _idiv(T, Src1, T_edx);
     _mov(Dest, T);
     break;
-  case InstArithmetic::Urem:
+  case InstArithmetic::Urem: {
     Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
-    if (isByteSizedArithType(Dest->getType())) {
-      Variable *T_eax = makeReg(IceType_i32, Traits::RegisterSet::Reg_eax);
-      Context.insert(InstFakeDef::create(Func, T_eax));
-      _xor(T_eax, T_eax);
-      _mov(T, Src0, Traits::RegisterSet::Reg_al);
-      _div(T, Src1, T);
-      // shr $8, %eax shifts ah (i.e., the 8 bit remainder) into al. We don't
-      // mov %ah, %al because it would make x86-64 codegen more complicated. If
-      // this ever becomes a problem we can introduce a pseudo rem instruction
-      // that returns the remainder in %al directly (and uses a mov for copying
-      // %ah to %al.)
-      static constexpr uint8_t AlSizeInBits = 8;
-      _shr(T_eax, Ctx->getConstantInt8(AlSizeInBits));
-      _mov(Dest, T);
-      Context.insert(InstFakeUse::create(Func, T_eax));
-    } else {
-      Type Ty = Dest->getType();
-      uint32_t Eax = Traits::RegisterSet::Reg_eax;
-      uint32_t Edx = Traits::RegisterSet::Reg_edx;
-      switch (Ty) {
-      default:
-        llvm_unreachable("Bad type for urem");
-      // fallthrough
-      case IceType_i32:
-        break;
-      case IceType_i16:
-        Eax = Traits::RegisterSet::Reg_ax;
-        Edx = Traits::RegisterSet::Reg_dx;
-        break;
-      }
-      Constant *Zero = Ctx->getConstantZero(Ty);
-      T_edx = makeReg(Dest->getType(), Edx);
-      _mov(T_edx, Zero);
-      _mov(T, Src0, Eax);
-      _div(T_edx, Src1, T);
-      _mov(Dest, T_edx);
+    uint32_t Eax = Traits::RegisterSet::Reg_eax;
+    uint32_t Edx = Traits::RegisterSet::Reg_edx;
+    switch (Ty) {
+    default:
+      llvm_unreachable("Bad type for urem");
+    // fallthrough
+    case IceType_i32:
+      break;
+    case IceType_i16:
+      Eax = Traits::RegisterSet::Reg_ax;
+      Edx = Traits::RegisterSet::Reg_dx;
+      break;
+    case IceType_i8:
+      Eax = Traits::RegisterSet::Reg_al;
+      Edx = Traits::RegisterSet::Reg_ah;
+      break;
     }
-    break;
-  case InstArithmetic::Srem:
+    T_edx = makeReg(Ty, Edx);
+    _mov(T_edx, Ctx->getConstantZero(Ty));
+    _mov(T, Src0, Eax);
+    _div(T_edx, Src1, T);
+    _mov(Dest, T_edx);
+  } break;
+  case InstArithmetic::Srem: {
     // TODO(stichnot): Enable this after doing better performance and cross
     // testing.
     if (false && Ctx->getFlags().getOptLevel() >= Opt_1) {
@@ -1829,7 +1787,6 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
         uint32_t UDivisor = static_cast<uint32_t>(Divisor);
         if (Divisor > 0 && llvm::isPowerOf2_32(UDivisor)) {
           uint32_t LogDiv = llvm::Log2_32(UDivisor);
-          Type Ty = Dest->getType();
           // LLVM does the following for dest=src%(1<<log):
           //   t=src
           //   sar t,typewidth-1 // -1 if src is negative, 0 if not
@@ -1860,37 +1817,29 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       }
     }
     Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
-    switch (Type Ty = Dest->getType()) {
+    uint32_t Eax = Traits::RegisterSet::Reg_eax;
+    uint32_t Edx = Traits::RegisterSet::Reg_edx;
+    switch (Ty) {
     default:
       llvm_unreachable("Bad type for srem");
     // fallthrough
     case IceType_i32:
-      T_edx = makeReg(Ty, Traits::RegisterSet::Reg_edx);
-      _mov(T, Src0, Traits::RegisterSet::Reg_eax);
-      _cbwdq(T_edx, T);
-      _idiv(T_edx, Src1, T);
-      _mov(Dest, T_edx);
       break;
     case IceType_i16:
-      T_edx = makeReg(Ty, Traits::RegisterSet::Reg_dx);
-      _mov(T, Src0, Traits::RegisterSet::Reg_ax);
-      _cbwdq(T_edx, T);
-      _idiv(T_edx, Src1, T);
-      _mov(Dest, T_edx);
+      Eax = Traits::RegisterSet::Reg_ax;
+      Edx = Traits::RegisterSet::Reg_dx;
       break;
     case IceType_i8:
-      T_edx = makeReg(IceType_i16, Traits::RegisterSet::Reg_ax);
-      // TODO(stichnot): Use register ah for T_edx, and remove the _shr().
-      // T_edx = makeReg(Ty, Traits::RegisterSet::Reg_ah);
-      _mov(T, Src0, Traits::RegisterSet::Reg_al);
-      _cbwdq(T_edx, T);
-      _idiv(T_edx, Src1, T);
-      static constexpr uint8_t AlSizeInBits = 8;
-      _shr(T_edx, Ctx->getConstantInt8(AlSizeInBits));
-      _mov(Dest, T_edx);
+      Eax = Traits::RegisterSet::Reg_al;
+      Edx = Traits::RegisterSet::Reg_ah;
       break;
     }
-    break;
+    T_edx = makeReg(Ty, Edx);
+    _mov(T, Src0, Eax);
+    _cbwdq(T_edx, T);
+    _idiv(T_edx, Src1, T);
+    _mov(Dest, T_edx);
+  } break;
   case InstArithmetic::Fadd:
     _mov(T, Src0);
     _addss(T, Src1);
@@ -1913,7 +1862,6 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
     break;
   case InstArithmetic::Frem: {
     constexpr SizeT MaxSrcs = 2;
-    Type Ty = Dest->getType();
     InstCall *Call = makeHelperCall(
         isFloat32Asserting32Or64(Ty) ? H_frem_f32 : H_frem_f64, Dest, MaxSrcs);
     Call->addArg(Src0);
@@ -1991,6 +1939,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
   // a = cast(b) ==> t=cast(b); a=t; (link t->b, link a->t, no overlap)
   InstCast::OpKind CastKind = Inst->getCastKind();
   Variable *Dest = Inst->getDest();
+  Type DestTy = Dest->getType();
   switch (CastKind) {
   default:
     Func->setError("Cast type not supported");
@@ -2003,15 +1952,14 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
     // we're unlikely to see something like that in the bitcode that the
     // optimizer wouldn't have already taken care of.
     Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
-    if (isVectorType(Dest->getType())) {
-      Type DestTy = Dest->getType();
+    if (isVectorType(DestTy)) {
       if (DestTy == IceType_v16i8) {
         // onemask = materialize(1,1,...); dst = (src & onemask) > 0
-        Variable *OneMask = makeVectorOfOnes(Dest->getType());
+        Variable *OneMask = makeVectorOfOnes(DestTy);
         Variable *T = makeReg(DestTy);
         _movp(T, Src0RM);
         _pand(T, OneMask);
-        Variable *Zeros = makeVectorOfZeros(Dest->getType());
+        Variable *Zeros = makeVectorOfZeros(DestTy);
         _pcmpgt(T, Zeros);
         _movp(Dest, T);
       } else {
@@ -2026,7 +1974,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
         _psra(T, ShiftConstant);
         _movp(Dest, T);
       }
-    } else if (!Traits::Is64Bit && Dest->getType() == IceType_i64) {
+    } else if (!Traits::Is64Bit && DestTy == IceType_i64) {
       // t1=movsx src; t2=t1; t2=sar t2, 31; dst.lo=t1; dst.hi=t2
       Constant *Shift = Ctx->getConstantInt32(31);
       Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
@@ -2053,12 +2001,10 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       // shl t1, dst_bitwidth - 1
       // sar t1, dst_bitwidth - 1
       // dst = t1
-      size_t DestBits =
-          Traits::X86_CHAR_BIT * typeWidthInBytes(Dest->getType());
+      size_t DestBits = Traits::X86_CHAR_BIT * typeWidthInBytes(DestTy);
       Constant *ShiftAmount = Ctx->getConstantInt32(DestBits - 1);
-      Variable *T = makeReg(Dest->getType());
-      if (typeWidthInBytes(Dest->getType()) <=
-          typeWidthInBytes(Src0RM->getType())) {
+      Variable *T = makeReg(DestTy);
+      if (typeWidthInBytes(DestTy) <= typeWidthInBytes(Src0RM->getType())) {
         _mov(T, Src0RM);
       } else {
         // Widen the source using movsx or movzx. (It doesn't matter which one,
@@ -2070,7 +2016,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       _mov(Dest, T);
     } else {
       // t1 = movsx src; dst = t1
-      Variable *T = makeReg(Dest->getType());
+      Variable *T = makeReg(DestTy);
       _movsx(T, Src0RM);
       _mov(Dest, T);
     }
@@ -2078,15 +2024,14 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
   }
   case InstCast::Zext: {
     Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
-    if (isVectorType(Dest->getType())) {
+    if (isVectorType(DestTy)) {
       // onemask = materialize(1,1,...); dest = onemask & src
-      Type DestTy = Dest->getType();
       Variable *OneMask = makeVectorOfOnes(DestTy);
       Variable *T = makeReg(DestTy);
       _movp(T, Src0RM);
       _pand(T, OneMask);
       _movp(Dest, T);
-    } else if (!Traits::Is64Bit && Dest->getType() == IceType_i64) {
+    } else if (!Traits::Is64Bit && DestTy == IceType_i64) {
       // t1=movzx src; dst.lo=t1; dst.hi=0
       Constant *Zero = Ctx->getConstantZero(IceType_i32);
       Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
@@ -2101,7 +2046,6 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       _mov(DestHi, Zero);
     } else if (Src0RM->getType() == IceType_i1) {
       // t = Src0RM; Dest = t
-      Type DestTy = Dest->getType();
       Variable *T = nullptr;
       if (DestTy == IceType_i8) {
         _mov(T, Src0RM);
@@ -2117,32 +2061,40 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       _mov(Dest, T);
     } else {
       // t1 = movzx src; dst = t1
-      Variable *T = makeReg(Dest->getType());
+      Variable *T = makeReg(DestTy);
       _movzx(T, Src0RM);
       _mov(Dest, T);
     }
     break;
   }
   case InstCast::Trunc: {
-    if (isVectorType(Dest->getType())) {
+    if (isVectorType(DestTy)) {
       // onemask = materialize(1,1,...); dst = src & onemask
       Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
       Type Src0Ty = Src0RM->getType();
       Variable *OneMask = makeVectorOfOnes(Src0Ty);
-      Variable *T = makeReg(Dest->getType());
+      Variable *T = makeReg(DestTy);
       _movp(T, Src0RM);
       _pand(T, OneMask);
       _movp(Dest, T);
+    } else if (DestTy == IceType_i1 || DestTy == IceType_i8) {
+      // Make sure we truncate from and into valid registers.
+      Operand *Src0 = legalizeUndef(Inst->getSrc(0));
+      if (!Traits::Is64Bit && Src0->getType() == IceType_i64)
+        Src0 = loOperand(Src0);
+      Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
+      Variable *T = copyToReg8(Src0RM);
+      if (DestTy == IceType_i1)
+        _and(T, Ctx->getConstantInt1(1));
+      _mov(Dest, T);
     } else {
       Operand *Src0 = legalizeUndef(Inst->getSrc(0));
       if (!Traits::Is64Bit && Src0->getType() == IceType_i64)
         Src0 = loOperand(Src0);
       Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
       // t1 = trunc Src0RM; Dest = t1
-      Variable *T = nullptr;
+      Variable *T = makeReg(DestTy);
       _mov(T, Src0RM);
-      if (Dest->getType() == IceType_i1)
-        _and(T, Ctx->getConstantInt1(1));
       _mov(Dest, T);
     }
     break;
@@ -2151,22 +2103,22 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
   case InstCast::Fpext: {
     Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
     // t1 = cvt Src0RM; Dest = t1
-    Variable *T = makeReg(Dest->getType());
+    Variable *T = makeReg(DestTy);
     _cvt(T, Src0RM, Traits::Insts::Cvt::Float2float);
     _mov(Dest, T);
     break;
   }
   case InstCast::Fptosi:
-    if (isVectorType(Dest->getType())) {
-      assert(Dest->getType() == IceType_v4i32 &&
+    if (isVectorType(DestTy)) {
+      assert(DestTy == IceType_v4i32 &&
              Inst->getSrc(0)->getType() == IceType_v4f32);
       Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
       if (llvm::isa<typename Traits::X86OperandMem>(Src0RM))
         Src0RM = legalizeToReg(Src0RM);
-      Variable *T = makeReg(Dest->getType());
+      Variable *T = makeReg(DestTy);
       _cvt(T, Src0RM, Traits::Insts::Cvt::Tps2dq);
       _movp(Dest, T);
-    } else if (!Traits::Is64Bit && Dest->getType() == IceType_i64) {
+    } else if (!Traits::Is64Bit && DestTy == IceType_i64) {
       constexpr SizeT MaxSrcs = 1;
       Type SrcType = Inst->getSrc(0)->getType();
       InstCall *Call =
@@ -2179,40 +2131,44 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
       // t1.i32 = cvt Src0RM; t2.dest_type = t1; Dest = t2.dest_type
       Variable *T_1 = nullptr;
-      if (Traits::Is64Bit && Dest->getType() == IceType_i64) {
+      if (Traits::Is64Bit && DestTy == IceType_i64) {
         T_1 = makeReg(IceType_i64);
       } else {
-        assert(Dest->getType() != IceType_i64);
+        assert(DestTy != IceType_i64);
         T_1 = makeReg(IceType_i32);
       }
       // cvt() requires its integer argument to be a GPR.
-      Variable *T_2 = makeReg(Dest->getType());
+      Variable *T_2 = makeReg(DestTy);
+      if (isByteSizedType(DestTy)) {
+        assert(T_1->getType() == IceType_i32);
+        T_1->setRegClass(RCX86_Is32To8);
+        T_2->setRegClass(RCX86_IsTrunc8Rcvr);
+      }
       _cvt(T_1, Src0RM, Traits::Insts::Cvt::Tss2si);
       _mov(T_2, T_1); // T_1 and T_2 may have different integer types
-      if (Dest->getType() == IceType_i1)
+      if (DestTy == IceType_i1)
         _and(T_2, Ctx->getConstantInt1(1));
       _mov(Dest, T_2);
     }
     break;
   case InstCast::Fptoui:
-    if (isVectorType(Dest->getType())) {
-      assert(Dest->getType() == IceType_v4i32 &&
+    if (isVectorType(DestTy)) {
+      assert(DestTy == IceType_v4i32 &&
              Inst->getSrc(0)->getType() == IceType_v4f32);
       constexpr SizeT MaxSrcs = 1;
       InstCall *Call = makeHelperCall(H_fptoui_4xi32_f32, Dest, MaxSrcs);
       Call->addArg(Inst->getSrc(0));
       lowerCall(Call);
-    } else if (Dest->getType() == IceType_i64 ||
-               (!Traits::Is64Bit && Dest->getType() == IceType_i32)) {
+    } else if (DestTy == IceType_i64 ||
+               (!Traits::Is64Bit && DestTy == IceType_i32)) {
       // Use a helper for both x86-32 and x86-64.
       constexpr SizeT MaxSrcs = 1;
-      Type DestType = Dest->getType();
       Type SrcType = Inst->getSrc(0)->getType();
       IceString TargetString;
       if (Traits::Is64Bit) {
         TargetString = isFloat32Asserting32Or64(SrcType) ? H_fptoui_f32_i64
                                                          : H_fptoui_f64_i64;
-      } else if (isInt32Asserting32Or64(DestType)) {
+      } else if (isInt32Asserting32Or64(DestTy)) {
         TargetString = isFloat32Asserting32Or64(SrcType) ? H_fptoui_f32_i32
                                                          : H_fptoui_f64_i32;
       } else {
@@ -2226,39 +2182,43 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
     } else {
       Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
       // t1.i32 = cvt Src0RM; t2.dest_type = t1; Dest = t2.dest_type
-      assert(Dest->getType() != IceType_i64);
+      assert(DestTy != IceType_i64);
       Variable *T_1 = nullptr;
-      if (Traits::Is64Bit && Dest->getType() == IceType_i32) {
+      if (Traits::Is64Bit && DestTy == IceType_i32) {
         T_1 = makeReg(IceType_i64);
       } else {
-        assert(Dest->getType() != IceType_i32);
+        assert(DestTy != IceType_i32);
         T_1 = makeReg(IceType_i32);
       }
-      Variable *T_2 = makeReg(Dest->getType());
+      Variable *T_2 = makeReg(DestTy);
+      if (isByteSizedType(DestTy)) {
+        assert(T_1->getType() == IceType_i32);
+        T_1->setRegClass(RCX86_Is32To8);
+        T_2->setRegClass(RCX86_IsTrunc8Rcvr);
+      }
       _cvt(T_1, Src0RM, Traits::Insts::Cvt::Tss2si);
       _mov(T_2, T_1); // T_1 and T_2 may have different integer types
-      if (Dest->getType() == IceType_i1)
+      if (DestTy == IceType_i1)
         _and(T_2, Ctx->getConstantInt1(1));
       _mov(Dest, T_2);
     }
     break;
   case InstCast::Sitofp:
-    if (isVectorType(Dest->getType())) {
-      assert(Dest->getType() == IceType_v4f32 &&
+    if (isVectorType(DestTy)) {
+      assert(DestTy == IceType_v4f32 &&
              Inst->getSrc(0)->getType() == IceType_v4i32);
       Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
       if (llvm::isa<typename Traits::X86OperandMem>(Src0RM))
         Src0RM = legalizeToReg(Src0RM);
-      Variable *T = makeReg(Dest->getType());
+      Variable *T = makeReg(DestTy);
       _cvt(T, Src0RM, Traits::Insts::Cvt::Dq2ps);
       _movp(Dest, T);
     } else if (!Traits::Is64Bit && Inst->getSrc(0)->getType() == IceType_i64) {
       // Use a helper for x86-32.
       constexpr SizeT MaxSrcs = 1;
-      Type DestType = Dest->getType();
       InstCall *Call =
-          makeHelperCall(isFloat32Asserting32Or64(DestType) ? H_sitofp_i64_f32
-                                                            : H_sitofp_i64_f64,
+          makeHelperCall(isFloat32Asserting32Or64(DestTy) ? H_sitofp_i64_f32
+                                                          : H_sitofp_i64_f64,
                          Dest, MaxSrcs);
       // TODO: Call the correct compiler-rt helper function.
       Call->addArg(Inst->getSrc(0));
@@ -2275,7 +2235,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
         assert(Src0RM->getType() != IceType_i64);
         T_1 = makeReg(IceType_i32);
       }
-      Variable *T_2 = makeReg(Dest->getType());
+      Variable *T_2 = makeReg(DestTy);
       if (Src0RM->getType() == T_1->getType())
         _mov(T_1, Src0RM);
       else
@@ -2287,8 +2247,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
   case InstCast::Uitofp: {
     Operand *Src0 = Inst->getSrc(0);
     if (isVectorType(Src0->getType())) {
-      assert(Dest->getType() == IceType_v4f32 &&
-             Src0->getType() == IceType_v4i32);
+      assert(DestTy == IceType_v4f32 && Src0->getType() == IceType_v4i32);
       constexpr SizeT MaxSrcs = 1;
       InstCall *Call = makeHelperCall(H_uitofp_4xi32_4xf32, Dest, MaxSrcs);
       Call->addArg(Src0);
@@ -2298,14 +2257,13 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       // Use a helper for x86-32 and x86-64. Also use a helper for i32 on
       // x86-32.
       constexpr SizeT MaxSrcs = 1;
-      Type DestType = Dest->getType();
       IceString TargetString;
       if (isInt32Asserting32Or64(Src0->getType())) {
-        TargetString = isFloat32Asserting32Or64(DestType) ? H_uitofp_i32_f32
-                                                          : H_uitofp_i32_f64;
+        TargetString = isFloat32Asserting32Or64(DestTy) ? H_uitofp_i32_f32
+                                                        : H_uitofp_i32_f64;
       } else {
-        TargetString = isFloat32Asserting32Or64(DestType) ? H_uitofp_i64_f32
-                                                          : H_uitofp_i64_f64;
+        TargetString = isFloat32Asserting32Or64(DestTy) ? H_uitofp_i64_f32
+                                                        : H_uitofp_i64_f64;
       }
       InstCall *Call = makeHelperCall(TargetString, Dest, MaxSrcs);
       Call->addArg(Src0);
@@ -2323,7 +2281,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
         assert(Traits::Is64Bit || Src0RM->getType() != IceType_i32);
         T_1 = makeReg(IceType_i32);
       }
-      Variable *T_2 = makeReg(Dest->getType());
+      Variable *T_2 = makeReg(DestTy);
       if (Src0RM->getType() == T_1->getType())
         _mov(T_1, Src0RM);
       else
@@ -2335,12 +2293,12 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
   }
   case InstCast::Bitcast: {
     Operand *Src0 = Inst->getSrc(0);
-    if (Dest->getType() == Src0->getType()) {
+    if (DestTy == Src0->getType()) {
       InstAssign *Assign = InstAssign::create(Func, Dest, Src0);
       lowerAssign(Assign);
       return;
     }
-    switch (Dest->getType()) {
+    switch (DestTy) {
     default:
       llvm_unreachable("Unexpected Bitcast dest type");
     case IceType_i8: {
@@ -2358,11 +2316,9 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
     case IceType_i32:
     case IceType_f32: {
       Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
-      Type DestType = Dest->getType();
       Type SrcType = Src0RM->getType();
-      (void)DestType;
-      assert((DestType == IceType_i32 && SrcType == IceType_f32) ||
-             (DestType == IceType_f32 && SrcType == IceType_i32));
+      assert((DestTy == IceType_i32 && SrcType == IceType_f32) ||
+             (DestTy == IceType_f32 && SrcType == IceType_i32));
       // a.i32 = bitcast b.f32 ==>
       //   t.f32 = b.f32
       //   s.f32 = spill t.f32
@@ -2436,7 +2392,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       } else {
         Src0 = legalize(Src0);
         if (llvm::isa<typename Traits::X86OperandMem>(Src0)) {
-          Variable *T = Func->makeVariable(Dest->getType());
+          Variable *T = Func->makeVariable(DestTy);
           _movq(T, Src0);
           _movq(Dest, T);
           break;
@@ -3037,17 +2993,21 @@ void TargetX86Base<Machine>::lowerInsertElement(const InstInsertElement *Inst) {
         legalize(SourceVectNotLegalized, Legal_Reg | Legal_Mem);
     Variable *T = makeReg(Ty);
     _movp(T, SourceVectRM);
-    if (Ty == IceType_v4f32)
+    if (Ty == IceType_v4f32) {
       _insertps(T, ElementRM, Ctx->getConstantInt32(Index << 4));
-    else
-      // TODO(stichnot): For the pinsrb and pinsrw instructions, when the source
-      // operand is a register, it must be a full r32 register like eax, and not
-      // ax/al/ah.  For filetype=asm, InstX86Pinsr<Machine>::emit() compensates
-      // for the use of r16 and r8 by converting them through getBaseReg(),
-      // while emitIAS() validates that the original and base register encodings
-      // are the same.  But for an "interior" register like ah, it should
-      // probably be copied into an r32 via movzx so that the types work out.
+    } else {
+      // For the pinsrb and pinsrw instructions, when the source operand is a
+      // register, it must be a full r32 register like eax, and not ax/al/ah.
+      // For filetype=asm, InstX86Pinsr<Machine>::emit() compensates for the use
+      // of r16 and r8 by converting them through getBaseReg(), while emitIAS()
+      // validates that the original and base register encodings are the same.
+      if (ElementRM->getType() == IceType_i8 &&
+          llvm::isa<Variable>(ElementRM)) {
+        // Don't use ah/bh/ch/dh for pinsrb.
+        ElementRM = copyToReg8(ElementRM);
+      }
       _pinsr(T, ElementRM, Ctx->getConstantInt32(Index));
+    }
     _movp(Inst->getDest(), T);
   } else if (Ty == IceType_v4i32 || Ty == IceType_v4f32 || Ty == IceType_v4i1) {
     // Use shufps or movss.
@@ -5352,6 +5312,67 @@ TargetX86Base<Machine>::getMemoryOperandForStackSlot(Type Ty, Variable *Slot,
   _lea(Loc, Slot);
   Constant *ConstantOffset = Ctx->getConstantInt32(Offset);
   return Traits::X86OperandMem::create(Func, Ty, Loc, ConstantOffset);
+}
+
+/// Lowering helper to copy a scalar integer source operand into some 8-bit GPR.
+/// Src is assumed to already be legalized.  If the source operand is known to
+/// be a memory or immediate operand, a simple mov will suffice.  But if the
+/// source operand can be a physical register, then it must first be copied into
+/// a physical register that is truncable to 8-bit, then truncated into a
+/// physical register that can receive a truncation, and finally copied into the
+/// result 8-bit register (which in general can be any 8-bit register).  For
+/// example, moving %ebp into %ah may be accomplished as:
+///   movl %ebp, %edx
+///   mov_trunc %edx, %dl  // this redundant assignment is ultimately elided
+///   movb %dl, %ah
+/// On the other hand, moving a memory or immediate operand into ah:
+///   movb 4(%ebp), %ah
+///   movb $my_imm, %ah
+///
+/// Note #1.  On a 64-bit target, the "movb 4(%ebp), %ah" is likely not
+/// encodable, so RegNum=Reg_ah should NOT be given as an argument.  Instead,
+/// use RegNum=NoRegister and then let the caller do a separate copy into
+/// Reg_ah.
+///
+/// Note #2.  ConstantRelocatable operands are also put through this process
+/// (not truncated directly) because our ELF emitter does R_386_32 relocations
+/// but not R_386_8 relocations.
+///
+/// Note #3.  If Src is a Variable, the result will be an infinite-weight i8
+/// Variable with the RCX86_IsTrunc8Rcvr register class.  As such, this helper
+/// is a convenient way to prevent ah/bh/ch/dh from being an (invalid) argument
+/// to the pinsrb instruction.
+template <class Machine>
+Variable *TargetX86Base<Machine>::copyToReg8(Operand *Src, int32_t RegNum) {
+  Type Ty = Src->getType();
+  assert(isScalarIntegerType(Ty));
+  assert(Ty != IceType_i1);
+  Variable *Reg = makeReg(IceType_i8, RegNum);
+  Reg->setRegClass(RCX86_IsTrunc8Rcvr);
+  if (llvm::isa<Variable>(Src) || llvm::isa<ConstantRelocatable>(Src)) {
+    Variable *SrcTruncable = makeReg(Ty);
+    switch (Ty) {
+    case IceType_i64:
+      SrcTruncable->setRegClass(RCX86_Is64To8);
+      break;
+    case IceType_i32:
+      SrcTruncable->setRegClass(RCX86_Is32To8);
+      break;
+    case IceType_i16:
+      SrcTruncable->setRegClass(RCX86_Is16To8);
+      break;
+    default:
+      // i8 - just use default register class
+      break;
+    }
+    Variable *SrcRcvr = makeReg(IceType_i8);
+    SrcRcvr->setRegClass(RCX86_IsTrunc8Rcvr);
+    _mov(SrcTruncable, Src);
+    _mov(SrcRcvr, SrcTruncable);
+    Src = SrcRcvr;
+  }
+  _mov(Reg, Src);
+  return Reg;
 }
 
 /// Helper for legalize() to emit the right code to lower an operand to a

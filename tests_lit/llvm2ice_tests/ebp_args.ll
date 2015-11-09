@@ -31,7 +31,7 @@ eblock:
 ; CHECK:  sub   esp,0x80
 ; CHECK:  mov   DWORD PTR [ebp-0x4],esp
 ; CHECK:  mov   eax,DWORD PTR [ebp+0xc]
-; CHECK:  mov   DWORD PTR [ebp-0x8],eax
+; CHECK:  mov   BYTE PTR [ebp-0x8],al
 ; CHECK:  movzx eax,BYTE PTR [ebp-0x8]
 ; CHECK:  mov   DWORD PTR [ebp-0xc],eax
 ; CHECK:  sub   esp,0x10

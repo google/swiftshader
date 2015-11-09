@@ -304,6 +304,7 @@ class PhiDesc {
   PhiDesc() = delete;
   PhiDesc(const PhiDesc &) = delete;
   PhiDesc &operator=(const PhiDesc &) = delete;
+
 public:
   PhiDesc(InstPhi *Phi, Variable *Dest) : Phi(Phi), Dest(Dest) {}
   PhiDesc(PhiDesc &&) = default;
@@ -457,7 +458,7 @@ void CfgNode::advancedPhiLowering() {
         if (Item2.Processed)
           continue;
         // There shouldn't be two different Phis with the same Dest variable or
-          // register.
+        // register.
         assert((&Item == &Item2) || !sameVarOrReg(Target, Dest, Item2.Dest));
         if (sameVarOrReg(Target, Dest, Item2.Src))
           ++Item.NumPred;

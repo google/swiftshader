@@ -196,9 +196,20 @@ LDFLAGS := $(HOST_FLAGS) -L$(LIBCXX_INSTALL_PATH)/lib -Wl,--gc-sections \
 # Not specifying -Wl,--gc-sections but instead doing bitcode linking GC w/ LTO.
 SB_LDFLAGS := $(LINKOPTLEVEL) $(LD_EXTRA)
 
+# List the target-specific source files first, which generally take longer to
+# compile, in the hope of improving parallel build time.
 SRCS = \
-  IceAssembler.cpp \
   IceAssemblerARM32.cpp \
+  IceInstARM32.cpp \
+  IceInstMIPS32.cpp \
+  IceInstX8632.cpp \
+  IceInstX8664.cpp \
+  IceTargetLowering.cpp \
+  IceTargetLoweringARM32.cpp \
+  IceTargetLoweringMIPS32.cpp \
+  IceTargetLoweringX8632.cpp \
+  IceTargetLoweringX8664.cpp \
+  IceAssembler.cpp \
   IceBrowserCompileServer.cpp \
   IceCfg.cpp \
   IceCfgNode.cpp \
@@ -211,10 +222,6 @@ SRCS = \
   IceGlobalContext.cpp \
   IceGlobalInits.cpp \
   IceInst.cpp \
-  IceInstARM32.cpp \
-  IceInstMIPS32.cpp \
-  IceInstX8632.cpp \
-  IceInstX8664.cpp \
   IceIntrinsics.cpp \
   IceLiveness.cpp \
   IceLoopAnalyzer.cpp \
@@ -222,11 +229,6 @@ SRCS = \
   IceRegAlloc.cpp \
   IceRNG.cpp \
   IceSwitchLowering.cpp \
-  IceTargetLowering.cpp \
-  IceTargetLoweringARM32.cpp \
-  IceTargetLoweringMIPS32.cpp \
-  IceTargetLoweringX8632.cpp \
-  IceTargetLoweringX8664.cpp \
   IceThreading.cpp \
   IceTimerTree.cpp \
   IceTranslator.cpp \
@@ -397,9 +399,11 @@ endif
 check-unit: $(OBJDIR)/run_unittests
 	$(OBJDIR)/run_unittests
 
-ALLSPEC := 177.mesa 179.art 183.equake 188.ammp 164.gzip 175.vpr 176.gcc \
-           181.mcf 186.crafty 197.parser 253.perlbmk 254.gap 255.vortex \
-           256.bzip2 300.twolf 252.eon
+# List the spec2k components in roughly reverse order of runtime, to help with
+# parallel execution speed.
+ALLSPEC := 253.perlbmk 177.mesa 188.ammp 256.bzip2 164.gzip 179.art 183.equake \
+           175.vpr 176.gcc 181.mcf 186.crafty 197.parser 254.gap 255.vortex \
+           300.twolf 252.eon
 .PHONY: $(ALLSPEC)
 
 TARGET := x8632
@@ -414,12 +418,12 @@ ifeq ($(TARGET),arm32)
   SPEC := -O2 --filetype=asm
 endif
 
-%.spec2k: %
+%.spec2k: % $(OBJDIR)/pnacl-sz make_symlink runtime
 	./pydir/szbuild_spec2k.py -v --force --target=$(TARGETFLAG) $(SPEC) $<
 	( cd ../../../tests/spec2k; \
 	 ./run_all.sh RunTimedBenchmarks $(SETUP) train $< )
 
-check-spec: $(OBJDIR)/pnacl-sz make_symlink $(ALLSPEC:=.spec2k)
+check-spec: $(ALLSPEC:=.spec2k)
 
 check: check-lit check-unit check-xtest
 

@@ -55,13 +55,13 @@
   X(Reg_bl, 3, "bl", Reg_ebx, 0,1,0,0, 1,0,0,0,1, 0, 0,0,0,1,1,                \
     REGLIST2(RegX8632, ebx, bx))                                               \
   /* High 8-bit registers */                                                   \
-  X(Reg_ah, 4, "ah", Reg_eax, 1,0,0,0, 1,0,0,0,0, 0, 0,0,0,0,1,                \
+  X(Reg_ah, 4, "ah", Reg_eax, 1,0,0,0, 1,0,0,0,1, 0, 0,0,0,0,1,                \
     REGLIST2(RegX8632, eax, ax))                                               \
-  X(Reg_ch, 5, "ch", Reg_ecx, 1,0,0,0, 1,0,0,0,0, 0, 0,0,0,0,1,                \
+  X(Reg_ch, 5, "ch", Reg_ecx, 1,0,0,0, 1,0,0,0,1, 0, 0,0,0,0,1,                \
     REGLIST2(RegX8632, ecx, cx))                                               \
-  X(Reg_dh, 6, "dh", Reg_edx, 1,0,0,0, 1,0,0,0,0, 0, 0,0,0,0,1,                \
+  X(Reg_dh, 6, "dh", Reg_edx, 1,0,0,0, 1,0,0,0,1, 0, 0,0,0,0,1,                \
     REGLIST2(RegX8632, edx, dx))                                               \
-  X(Reg_bh, 7, "bh", Reg_ebx, 0,1,0,0, 1,0,0,0,0, 0, 0,0,0,0,1,                \
+  X(Reg_bh, 7, "bh", Reg_ebx, 0,1,0,0, 1,0,0,0,1, 0, 0,0,0,0,1,                \
     REGLIST2(RegX8632, ebx, bx))                                               \
   /* End of 8-bit register set */
 //#define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,
@@ -212,22 +212,22 @@
 //#define X(val, emit)
 
 #define ICETYPEX8632_TABLE                                                     \
-  /* tag, element type, cvt , sdss, pack, width, fld */                        \
-  X(IceType_void,  IceType_void, "?",  "",   "",  "",  "")                     \
-  X(IceType_i1,    IceType_void, "si", "",   "",  "b", "")                     \
-  X(IceType_i8,    IceType_void, "si", "",   "",  "b", "")                     \
-  X(IceType_i16,   IceType_void, "si", "",   "",  "w", "")                     \
-  X(IceType_i32,   IceType_void, "si", "",   "",  "l", "")                     \
-  X(IceType_i64,   IceType_void, "si", "",   "",  "q", "")                     \
-  X(IceType_f32,   IceType_void, "ss", "ss", "d", "",  "s")                    \
-  X(IceType_f64,   IceType_void, "sd", "sd", "q", "",  "l")                    \
-  X(IceType_v4i1,  IceType_i32,  "?",  "",   "d", "",  "")                     \
-  X(IceType_v8i1,  IceType_i16,  "?",  "",   "w", "",  "")                     \
-  X(IceType_v16i1, IceType_i8,   "?",  "",   "b", "",  "")                     \
-  X(IceType_v16i8, IceType_i8,   "?",  "",   "b", "",  "")                     \
-  X(IceType_v8i16, IceType_i16,  "?",  "",   "w", "",  "")                     \
-  X(IceType_v4i32, IceType_i32,  "dq", "",   "d", "",  "")                     \
-  X(IceType_v4f32, IceType_f32,  "ps", "",   "d", "",  "")
+  /* tag,  element type, cvt , sdss, pack, width, fld */                       \
+  X(void,  void,         "?",  "",   "",   "",    "")                          \
+  X(i1,    void,         "si", "",   "",   "b",   "")                          \
+  X(i8,    void,         "si", "",   "",   "b",   "")                          \
+  X(i16,   void,         "si", "",   "",   "w",   "")                          \
+  X(i32,   void,         "si", "",   "",   "l",   "")                          \
+  X(i64,   void,         "si", "",   "",   "q",   "")                          \
+  X(f32,   void,         "ss", "ss", "d",  "",    "s")                         \
+  X(f64,   void,         "sd", "sd", "q",  "",    "l")                         \
+  X(v4i1,  i32,          "?",  "",   "d",  "",    "")                          \
+  X(v8i1,  i16,          "?",  "",   "w",  "",    "")                          \
+  X(v16i1, i8,           "?",  "",   "b",  "",    "")                          \
+  X(v16i8, i8,           "?",  "",   "b",  "",    "")                          \
+  X(v8i16, i16,          "?",  "",   "w",  "",    "")                          \
+  X(v4i32, i32,          "dq", "",   "d",  "",    "")                          \
+  X(v4f32, f32,          "ps", "",   "d",  "",    "")
 //#define X(tag, elementty, cvt, sdss, pack, width, fld)
 
 #endif // SUBZERO_SRC_ICEINSTX8632_DEF

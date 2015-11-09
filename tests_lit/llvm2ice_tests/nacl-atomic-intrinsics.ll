@@ -1085,7 +1085,7 @@ entry:
   ret i32 %old_ext
 }
 ; CHECK-LABEL: test_atomic_cmpxchg_16
-; CHECK: mov eax,{{.*}}
+; CHECK: mov {{ax|eax}},{{.*}}
 ; CHECK: lock cmpxchg WORD PTR [e{{[^a].}}],{{[^a]}}x
 ; ARM32-LABEL: test_atomic_cmpxchg_16
 ; ARM32: dmb

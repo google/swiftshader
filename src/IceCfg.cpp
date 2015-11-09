@@ -457,19 +457,17 @@ void Cfg::sortAllocas(CfgVector<Inst *> &Allocas, InstList &Insts,
     return;
   // Sort by decreasing alignment.  This does not really matter at the moment,
   // but will allow compacting stack allocation when we fuse to one alloca.
-  std::sort(Allocas.begin(), Allocas.end(),
-            [](Inst *I1, Inst *I2) {
-              auto *A1 = llvm::dyn_cast<InstAlloca>(I1);
-              auto *A2 = llvm::dyn_cast<InstAlloca>(I2);
-              return A1->getAlignInBytes() > A2->getAlignInBytes();
-            });
-  for (Inst *Instr: Allocas) {
+  std::sort(Allocas.begin(), Allocas.end(), [](Inst *I1, Inst *I2) {
+    auto *A1 = llvm::dyn_cast<InstAlloca>(I1);
+    auto *A2 = llvm::dyn_cast<InstAlloca>(I2);
+    return A1->getAlignInBytes() > A2->getAlignInBytes();
+  });
+  for (Inst *Instr : Allocas) {
     auto *Alloca = llvm::cast<InstAlloca>(Instr);
     // Move the alloca to its sorted position.
-    InstAlloca *NewAlloca = InstAlloca::create(this,
-                                               Alloca->getSizeInBytes(),
-                                               Alloca->getAlignInBytes(),
-                                               Alloca->getDest());
+    InstAlloca *NewAlloca =
+        InstAlloca::create(this, Alloca->getSizeInBytes(),
+                           Alloca->getAlignInBytes(), Alloca->getDest());
     if (IsKnownFrameOffset)
       NewAlloca->setKnownFrameOffset();
     Insts.push_front(NewAlloca);
@@ -506,8 +504,7 @@ void Cfg::processAllocas() {
         // Allocations aligned more than the stack require a frame pointer.
         RequiresFramePointer = true;
         AlignedAllocas.push_back(Alloca);
-      }
-      else
+      } else
         FixedAllocas.push_back(Alloca);
     }
   }

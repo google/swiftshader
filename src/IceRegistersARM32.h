@@ -17,6 +17,7 @@
 
 #include "IceDefs.h"
 #include "IceInstARM32.def"
+#include "IceOperand.h" // RC_Target
 #include "IceTypes.h"
 
 namespace Ice {
@@ -117,6 +118,9 @@ public:
 
   static const char *RegNames[];
 };
+
+// Extend enum RegClass with ARM32-specific register classes (if any).
+enum RegClassARM32 : uint8_t { RCARM32_NUM = RC_Target };
 
 } // end of namespace Ice
 

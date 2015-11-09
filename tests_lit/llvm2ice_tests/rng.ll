@@ -189,14 +189,14 @@ entry:
   ret <4 x i32> %res
 
 ; REGALLOC-LABEL: func4
-; REGALLOC: movups  xmm5,xmm0
+; REGALLOC: movups  xmm3,xmm0
 ; REGALLOC-NEXT: pshufd  xmm0,xmm0,0x31
 ; REGALLOC-NEXT: pshufd  xmm4,xmm1,0x31
-; REGALLOC-NEXT: pmuludq xmm5,xmm1
+; REGALLOC-NEXT: pmuludq xmm3,xmm1
 ; REGALLOC-NEXT: pmuludq xmm0,xmm4
-; REGALLOC-NEXT: shufps  xmm5,xmm0,0x88
-; REGALLOC-NEXT: pshufd  xmm5,xmm5,0xd8
-; REGALLOC-NEXT: movups  xmm0,xmm5
+; REGALLOC-NEXT: shufps  xmm3,xmm0,0x88
+; REGALLOC-NEXT: pshufd  xmm3,xmm3,0xd8
+; REGALLOC-NEXT: movups  xmm0,xmm3
 ; REGALLOC-NEXT: ret
 }
 

@@ -20,6 +20,7 @@
 #include "IceInst.h"
 #include "IceSwitchLowering.h"
 #include "IceTargetLowering.h"
+#include "IceTargetLoweringX86RegClass.h"
 #include "IceUtils.h"
 
 #include <array>
@@ -73,8 +74,11 @@ public:
   IceString getRegName(SizeT RegNum, Type Ty) const override;
   llvm::SmallBitVector getRegisterSet(RegSetMask Include,
                                       RegSetMask Exclude) const override;
-  const llvm::SmallBitVector &getRegisterSetForType(Type Ty) const override {
-    return TypeToRegisterSet[Ty];
+  const llvm::SmallBitVector &
+  getRegistersForVariable(const Variable *Var) const override {
+    RegClass RC = Var->getRegClass();
+    assert(static_cast<RegClassX86>(RC) < RCX86_NUM);
+    return TypeToRegisterSet[RC];
   }
 
   const llvm::SmallBitVector &getAliasesForRegister(SizeT Reg) const override {
@@ -263,6 +267,7 @@ protected:
   static Type firstTypeThatFitsSize(uint32_t Size,
                                     uint32_t MaxSize = NoSizeLimit);
 
+  Variable *copyToReg8(Operand *Src, int32_t RegNum = Variable::NoRegister);
   Variable *copyToReg(Operand *Src, int32_t RegNum = Variable::NoRegister);
 
   /// \name Returns a vector in a register with the given constant entries.
@@ -674,7 +679,7 @@ protected:
   bool NeedsStackAlignment = false;
   size_t SpillAreaSizeBytes = 0;
   size_t FixedAllocaSizeBytes = 0;
-  static std::array<llvm::SmallBitVector, IceType_NUM> TypeToRegisterSet;
+  static std::array<llvm::SmallBitVector, RCX86_NUM> TypeToRegisterSet;
   static std::array<llvm::SmallBitVector, Traits::RegisterSet::Reg_NUM>
       RegisterAliases;
   static llvm::SmallBitVector ScratchRegs;
