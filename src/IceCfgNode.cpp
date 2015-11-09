@@ -298,7 +298,31 @@ CfgNode *CfgNode::splitIncomingEdge(CfgNode *Pred, SizeT EdgeIndex) {
 
 namespace {
 
-// Helper function used by advancedPhiLowering().
+// Helpers for advancedPhiLowering().
+
+class PhiDesc {
+  PhiDesc() = delete;
+  PhiDesc(const PhiDesc &) = delete;
+  PhiDesc &operator=(const PhiDesc &) = delete;
+public:
+  PhiDesc(InstPhi *Phi, Variable *Dest) : Phi(Phi), Dest(Dest) {}
+  PhiDesc(PhiDesc &&) = default;
+  InstPhi *Phi = nullptr;
+  Variable *Dest = nullptr;
+  Operand *Src = nullptr;
+  bool Processed = false;
+  size_t NumPred = 0; // number of entries whose Src is this Dest
+  int32_t Weight = 0; // preference for topological order
+};
+using PhiDescList = llvm::SmallVector<PhiDesc, 32>;
+
+// Always pick NumPred=0 over NumPred>0.
+constexpr int32_t WeightNoPreds = 4;
+// Prefer Src as a register because the register might free up.
+constexpr int32_t WeightSrcIsReg = 2;
+// Prefer Dest not as a register because the register stays free longer.
+constexpr int32_t WeightDestNotReg = 1;
+
 bool sameVarOrReg(TargetLowering *Target, const Variable *Var1,
                   const Operand *Opnd) {
   if (Var1 == Opnd)
@@ -322,6 +346,18 @@ bool sameVarOrReg(TargetLowering *Target, const Variable *Var1,
   assert(Target->getAliasesForRegister(RegNum1)[RegNum2] ==
          Target->getAliasesForRegister(RegNum2)[RegNum1]);
   return Target->getAliasesForRegister(RegNum1)[RegNum2];
+}
+
+// Update NumPred for all Phi assignments using Var as their Dest variable.
+// Also update Weight if NumPred dropped from 1 to 0.
+void updatePreds(PhiDescList &Desc, TargetLowering *Target, Variable *Var) {
+  for (PhiDesc &Item : Desc) {
+    if (!Item.Processed && sameVarOrReg(Target, Var, Item.Dest)) {
+      if (--Item.NumPred == 0) {
+        Item.Weight += WeightNoPreds;
+      }
+    }
+  }
 }
 
 } // end of anonymous namespace
@@ -368,53 +404,41 @@ void CfgNode::advancedPhiLowering() {
   if (getPhis().empty())
     return;
 
-  // Count the number of non-deleted Phi instructions.
-  struct PhiDesc {
-    InstPhi *Phi;
-    Variable *Dest;
-    Operand *Src;
-    bool Processed;
-    size_t NumPred; // number of entries whose Src is this Dest
-    int32_t Weight; // preference for topological order
-  };
-  llvm::SmallVector<PhiDesc, 32> Desc(getPhis().size());
+  PhiDescList Desc;
 
-  size_t NumPhis = 0;
   for (Inst &I : Phis) {
-    auto *Inst = llvm::dyn_cast<InstPhi>(&I);
-    if (!Inst->isDeleted()) {
-      Variable *Dest = Inst->getDest();
-      Desc[NumPhis].Phi = Inst;
-      Desc[NumPhis].Dest = Dest;
-      ++NumPhis;
+    auto *Phi = llvm::dyn_cast<InstPhi>(&I);
+    if (!Phi->isDeleted()) {
+      Variable *Dest = Phi->getDest();
+      Desc.emplace_back(Phi, Dest);
       // Undo the effect of the phi instruction on this node's live-in set by
       // marking the phi dest variable as live on entry.
       SizeT VarNum = Func->getLiveness()->getLiveIndex(Dest->getIndex());
       assert(!Func->getLiveness()->getLiveIn(this)[VarNum]);
       Func->getLiveness()->getLiveIn(this)[VarNum] = true;
-      Inst->setDeleted();
+      Phi->setDeleted();
     }
   }
-  if (NumPhis == 0)
+  if (Desc.empty())
     return;
 
   TargetLowering *Target = Func->getTarget();
   SizeT InEdgeIndex = 0;
   for (CfgNode *Pred : InEdges) {
     CfgNode *Split = splitIncomingEdge(Pred, InEdgeIndex++);
-    SizeT Remaining = NumPhis;
+    SizeT Remaining = Desc.size();
 
     // First pass computes Src and initializes NumPred.
-    for (size_t I = 0; I < NumPhis; ++I) {
-      Variable *Dest = Desc[I].Dest;
-      Operand *Src = Desc[I].Phi->getOperandForTarget(Pred);
-      Desc[I].Src = Src;
-      Desc[I].Processed = false;
-      Desc[I].NumPred = 0;
+    for (PhiDesc &Item : Desc) {
+      Variable *Dest = Item.Dest;
+      Operand *Src = Item.Phi->getOperandForTarget(Pred);
+      Item.Src = Src;
+      Item.Processed = false;
+      Item.NumPred = 0;
       // Cherry-pick any trivial assignments, so that they don't contribute to
       // the running complexity of the topological sort.
       if (sameVarOrReg(Target, Dest, Src)) {
-        Desc[I].Processed = true;
+        Item.Processed = true;
         --Remaining;
         if (Dest != Src)
           // If Dest and Src are syntactically the same, don't bother adding
@@ -424,90 +448,80 @@ void CfgNode::advancedPhiLowering() {
           Split->appendInst(InstAssign::create(Func, Dest, Src));
       }
     }
-    // Second pass computes NumPred by comparing every pair of Phi
-    // instructions.
-    for (size_t I = 0; I < NumPhis; ++I) {
-      if (Desc[I].Processed)
+    // Second pass computes NumPred by comparing every pair of Phi instructions.
+    for (PhiDesc &Item : Desc) {
+      if (Item.Processed)
         continue;
-      const Variable *Dest = Desc[I].Dest;
-      for (size_t J = 0; J < NumPhis; ++J) {
-        if (Desc[J].Processed)
+      const Variable *Dest = Item.Dest;
+      for (PhiDesc &Item2 : Desc) {
+        if (Item2.Processed)
           continue;
-        if (I != J) {
-          // There shouldn't be two Phis with the same Dest variable or
+        // There shouldn't be two different Phis with the same Dest variable or
           // register.
-          assert(!sameVarOrReg(Target, Dest, Desc[J].Dest));
-        }
-        const Operand *Src = Desc[J].Src;
-        if (sameVarOrReg(Target, Dest, Src))
-          ++Desc[I].NumPred;
+        assert((&Item == &Item2) || !sameVarOrReg(Target, Dest, Item2.Dest));
+        if (sameVarOrReg(Target, Dest, Item2.Src))
+          ++Item.NumPred;
       }
     }
 
     // Another pass to compute initial Weight values.
-
-    // Always pick NumPred=0 over NumPred>0.
-    constexpr int32_t WeightNoPreds = 4;
-    // Prefer Src as a register because the register might free up.
-    constexpr int32_t WeightSrcIsReg = 2;
-    // Prefer Dest not as a register because the register stays free longer.
-    constexpr int32_t WeightDestNotReg = 1;
-
-    for (size_t I = 0; I < NumPhis; ++I) {
-      if (Desc[I].Processed)
+    for (PhiDesc &Item : Desc) {
+      if (Item.Processed)
         continue;
       int32_t Weight = 0;
-      if (Desc[I].NumPred == 0)
+      if (Item.NumPred == 0)
         Weight += WeightNoPreds;
-      if (auto *Var = llvm::dyn_cast<Variable>(Desc[I].Src))
+      if (auto *Var = llvm::dyn_cast<Variable>(Item.Src))
         if (Var->hasReg())
           Weight += WeightSrcIsReg;
-      if (!Desc[I].Dest->hasReg())
+      if (!Item.Dest->hasReg())
         Weight += WeightDestNotReg;
-      Desc[I].Weight = Weight;
+      Item.Weight = Weight;
     }
 
-    // Repeatedly choose and process the best candidate in the topological
-    // sort, until no candidates remain. This implementation is O(N^2) where N
-    // is the number of Phi instructions, but with a small constant factor
-    // compared to a likely implementation of O(N) topological sort.
+    // Repeatedly choose and process the best candidate in the topological sort,
+    // until no candidates remain. This implementation is O(N^2) where N is the
+    // number of Phi instructions, but with a small constant factor compared to
+    // a likely implementation of O(N) topological sort.
     for (; Remaining; --Remaining) {
-      size_t BestIndex = 0;
       int32_t BestWeight = -1;
+      PhiDesc *BestItem = nullptr;
       // Find the best candidate.
-      for (size_t I = 0; I < NumPhis; ++I) {
-        if (Desc[I].Processed)
+      for (PhiDesc &Item : Desc) {
+        if (Item.Processed)
           continue;
         int32_t Weight = 0;
-        Weight = Desc[I].Weight;
+        Weight = Item.Weight;
         if (Weight > BestWeight) {
-          BestIndex = I;
+          BestItem = &Item;
           BestWeight = Weight;
         }
       }
       assert(BestWeight >= 0);
-      assert(Desc[BestIndex].NumPred <= 1);
-      Variable *Dest = Desc[BestIndex].Dest;
-      Operand *Src = Desc[BestIndex].Src;
+      assert(BestItem->NumPred <= 1);
+      Variable *Dest = BestItem->Dest;
+      Operand *Src = BestItem->Src;
       assert(!sameVarOrReg(Target, Dest, Src));
       // Break a cycle by introducing a temporary.
-      if (Desc[BestIndex].NumPred) {
+      if (BestItem->NumPred) {
         bool Found = false;
         // If the target instruction "A=B" is part of a cycle, find the "X=A"
         // assignment in the cycle because it will have to be rewritten as
         // "X=tmp".
-        for (size_t J = 0; !Found && J < NumPhis; ++J) {
-          if (Desc[J].Processed)
+        for (PhiDesc &Item : Desc) {
+          if (Item.Processed)
             continue;
-          Operand *OtherSrc = Desc[J].Src;
-          if (Desc[J].NumPred && sameVarOrReg(Target, Dest, OtherSrc)) {
+          Operand *OtherSrc = Item.Src;
+          if (Item.NumPred && sameVarOrReg(Target, Dest, OtherSrc)) {
             SizeT VarNum = Func->getNumVariables();
             Variable *Tmp = Func->makeVariable(OtherSrc->getType());
             if (BuildDefs::dump())
               Tmp->setName(Func, "__split_" + std::to_string(VarNum));
             Split->appendInst(InstAssign::create(Func, Tmp, OtherSrc));
-            Desc[J].Src = Tmp;
+            Item.Src = Tmp;
+            updatePreds(Desc, Target, llvm::cast<Variable>(OtherSrc));
             Found = true;
+            break;
           }
         }
         assert(Found);
@@ -515,24 +529,23 @@ void CfgNode::advancedPhiLowering() {
       // Now that a cycle (if any) has been broken, create the actual
       // assignment.
       Split->appendInst(InstAssign::create(Func, Dest, Src));
-      // Update NumPred for all Phi assignments using this Phi's Src as their
-      // Dest variable. Also update Weight if NumPred dropped from 1 to 0.
-      if (auto *Var = llvm::dyn_cast<Variable>(Src)) {
-        for (size_t I = 0; I < NumPhis; ++I) {
-          if (Desc[I].Processed)
-            continue;
-          if (sameVarOrReg(Target, Var, Desc[I].Dest)) {
-            if (--Desc[I].NumPred == 0)
-              Desc[I].Weight += WeightNoPreds;
-          }
-        }
-      }
-      Desc[BestIndex].Processed = true;
+      if (auto *Var = llvm::dyn_cast<Variable>(Src))
+        updatePreds(Desc, Target, Var);
+      BestItem->Processed = true;
     }
     Split->appendInst(InstBr::create(Func, this));
 
     Split->genCode();
     Func->getVMetadata()->addNode(Split);
+    // Validate to be safe.  All items should be marked as processed, and have
+    // no predecessors.
+    if (BuildDefs::asserts()) {
+      for (PhiDesc &Item : Desc) {
+        (void)Item;
+        assert(Item.Processed);
+        assert(Item.NumPred == 0);
+      }
+    }
   }
 }
 
