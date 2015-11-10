@@ -387,6 +387,7 @@
 		<Unit filename="exports.map" />
 		<Unit filename="libGLESv2.cpp" />
 		<Unit filename="libGLESv2.hpp" />
+		<Unit filename="libGLESv3.cpp" />
 		<Unit filename="main.cpp" />
 		<Unit filename="main.h" />
 		<Unit filename="mathutil.h" />
