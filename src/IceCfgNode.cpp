@@ -954,11 +954,13 @@ void emitRegisterUsage(Ostream &Str, const Cfg *Func, const CfgNode *Node,
   Str << "\n";
 }
 
-void emitLiveRangesEnded(Ostream &Str, const Cfg *Func, const Inst *Instr,
+/// Returns true if some text was emitted - in which case the caller definitely
+/// needs to emit a newline character.
+bool emitLiveRangesEnded(Ostream &Str, const Cfg *Func, const Inst *Instr,
                          CfgVector<SizeT> &LiveRegCount) {
+  bool Printed = false;
   if (!BuildDefs::dump())
-    return;
-  bool First = true;
+    return Printed;
   Variable *Dest = Instr->getDest();
   // Normally we increment the live count for the dest register. But we
   // shouldn't if the instruction's IsDestRedefined flag is set, because this
@@ -976,14 +978,15 @@ void emitLiveRangesEnded(Ostream &Str, const Cfg *Func, const Inst *Instr,
         ShouldReport = false;
     }
     if (ShouldReport) {
-      if (First)
-        Str << " \t# END=";
-      else
+      if (Printed)
         Str << ",";
+      else
+        Str << " \t# END=";
       Var->emit(Func);
-      First = false;
+      Printed = true;
     }
   }
+  return Printed;
 }
 
 void updateStats(Cfg *Func, const Inst *I) {
@@ -1068,9 +1071,11 @@ void CfgNode::emit(Cfg *Func) const {
       continue;
     }
     I.emit(Func);
+    bool Printed = false;
     if (DecorateAsm)
-      emitLiveRangesEnded(Str, Func, &I, LiveRegCount);
-    Str << "\n";
+      Printed = emitLiveRangesEnded(Str, Func, &I, LiveRegCount);
+    if (Printed || llvm::isa<InstTarget>(&I))
+      Str << "\n";
     updateStats(Func, &I);
   }
   if (DecorateAsm) {

@@ -1088,6 +1088,7 @@ void InstARM32Pop::emit(const Cfg *Func) const {
     }
   }
   Ostream &Str = Func->getContext()->getStrEmit();
+  bool NeedNewline = false;
   if (IntegerCount != 0) {
     Str << "\t"
         << "pop"
@@ -1101,19 +1102,26 @@ void InstARM32Pop::emit(const Cfg *Func) const {
         PrintComma = true;
       }
     }
-    Str << "}\n";
+    Str << "}";
+    NeedNewline = true;
   }
 
   for (const Operand *Op : Dests) {
     if (isScalarIntegerType(Op->getType()))
       continue;
     startNextInst(Func);
+    if (NeedNewline) {
+      Str << "\n";
+      NeedNewline = false;
+    }
     Str << "\t"
         << "vpop"
         << "\t{";
     Op->emit(Func);
-    Str << "}\n";
+    Str << "}";
+    NeedNewline = true;
   }
+  assert(NeedNewline); // caller will add the newline
 }
 
 void InstARM32Pop::emitIAS(const Cfg *Func) const {

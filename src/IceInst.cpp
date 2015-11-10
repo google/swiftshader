@@ -896,6 +896,7 @@ void InstFakeDef::emit(const Cfg *Func) const {
   getDest()->emit(Func);
   Str << " = def.pseudo ";
   emitSources(Func);
+  Str << "\n";
 }
 
 void InstFakeDef::dump(const Cfg *Func) const {
