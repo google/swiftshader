@@ -576,11 +576,14 @@ class Assembler : public ValueObject {
   void ldrd(Register rd, Register rn, int32_t offset, Condition cond = AL);
   void strd(Register rd, Register rn, int32_t offset, Condition cond = AL);
 
+#if 0
+  // Folded into ARM32::AssemblerARM32::popList(), since it is its only use (and
+  // doesn't implement ARM LDM instructions).
   void ldm(BlockAddressMode am, Register base,
            RegList regs, Condition cond = AL);
-#if 0
-  // Folded into ARM32::AssemblerARM32::pushList(), since it is its only
-  // use (and doesn't implement ARM STM instruction).
+
+  // Folded into ARM32::AssemblerARM32::pushList(), since it is its only use
+  // (and doesn't implement ARM STM instruction).
   void stm(BlockAddressMode am, Register base,
            RegList regs, Condition cond = AL);
 #endif
@@ -936,15 +939,16 @@ class Assembler : public ValueObject {
 #if 0
   // Moved to ARM32::AssemblerARM32::push().
   void Push(Register rd, Condition cond = AL);
-#endif
+
+  // Moved to ARM32::AssemblerARM32::pop().
   void Pop(Register rd, Condition cond = AL);
 
-#if 0
-  // Moved to ARM32::AssemblerARM32::pushList();
+  // Moved to ARM32::AssemblerARM32::pushList().
   void PushList(RegList regs, Condition cond = AL);
-#endif
-  void PopList(RegList regs, Condition cond = AL);
 
+  // Moved to ARM32::AssemblerARM32::popList().
+  void PopList(RegList regs, Condition cond = AL);
+#endif
   void MoveRegister(Register rd, Register rm, Condition cond = AL);
 
   // Convenience shift instructions. Use mov instruction with shifter operand

@@ -189,6 +189,11 @@ public:
   void orr(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
            bool SetFlags, CondARM32::Cond Cond);
 
+  void pop(const Operand *OpRt, CondARM32::Cond Cond);
+
+  // Note: Registers is a bitset, where bit n corresponds to register Rn.
+  void popList(const IValueT Registers, CondARM32::Cond Cond);
+
   void push(const Operand *OpRt, CondARM32::Cond Cond);
 
   // Note: Registers is a bitset, where bit n corresponds to register Rn.

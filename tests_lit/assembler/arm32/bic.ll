@@ -86,7 +86,12 @@ define internal i32 @AllocBigAlign() {
 ; IASM-NEXT:    .byte 0xd0
 ; IASM-NEXT:    .byte 0xa0
 ; IASM-NEXT:    .byte 0xe1
-; IASM:         pop     {fp}
+
+; IASM-NEXT:    .byte 0x4
+; IASM-NEXT:    .byte 0xb0
+; IASM-NEXT:    .byte 0x9d
+; IASM-NEXT:    .byte 0xe4
+
 ; IASM:         .byte 0x1e
 ; IASM-NEXT:    .byte 0xff
 ; IASM-NEXT:    .byte 0x2f

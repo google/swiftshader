@@ -549,15 +549,15 @@ void Assembler::strd(Register rd, Register rn, int32_t offset, Condition cond) {
   }
 }
 
-
+#if 0
+// Folded into ARM32::AssemblerARM32::popList(), since it is its only
+// use (and doesn't implement ARM STM instruction).
 void Assembler::ldm(BlockAddressMode am, Register base, RegList regs,
                     Condition cond) {
   ASSERT(regs != 0);
   EmitMultiMemOp(cond, am, true, base, regs);
 }
 
-
-#if 0
 // Folded into ARM32::AssemblerARM32::pushList(), since it is its only
 // use (and doesn't implement ARM STM instruction).
 void Assembler::stm(BlockAddressMode am, Register base, RegList regs,
@@ -2568,27 +2568,26 @@ bool Address::CanHoldImmediateOffset(
 }
 
 #if 0
-// Moved to ARM32::AssemblerARM32::push();
+// Moved to ARM32::AssemblerARM32::push().
 void Assembler::Push(Register rd, Condition cond) {
   str(rd, Address(SP, -kWordSize, Address::PreIndex), cond);
 }
-#endif
 
+// Moved to ARM32::AssemblerARM32::pop().
 void Assembler::Pop(Register rd, Condition cond) {
   ldr(rd, Address(SP, kWordSize, Address::PostIndex), cond);
 }
 
-#if 0
-// Moved to ARM32::AssemblerARM32::pushList();
+// Moved to ARM32::AssemblerARM32::pushList().
 void Assembler::PushList(RegList regs, Condition cond) {
   stm(DB_W, SP, regs, cond);
 }
-#endif
 
+// Moved to ARM32::AssemblerARM32::popList().
 void Assembler::PopList(RegList regs, Condition cond) {
   ldm(IA_W, SP, regs, cond);
 }
-
+#endif
 
 void Assembler::MoveRegister(Register rd, Register rm, Condition cond) {
   if (rd != rm) {

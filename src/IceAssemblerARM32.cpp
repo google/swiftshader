@@ -906,11 +906,38 @@ void AssemblerARM32::orr(const Operand *OpRd, const Operand *OpRn,
   emitType01(Orr, OpRd, OpRn, OpSrc1, SetFlags, Cond);
 }
 
+void AssemblerARM32::pop(const Operand *OpRt, CondARM32::Cond Cond) {
+  // POP - ARM section A8.8.132, encoding A2:
+  //   pop<c> {Rt}
+  //
+  // cccc010010011101dddd000000000100 where dddd=Rt and cccc=Cond.
+  IValueT Rt;
+  if (decodeOperand(OpRt, Rt) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  assert(Rt != RegARM32::Encoded_Reg_sp);
+  // Same as load instruction.
+  constexpr bool IsLoad = true;
+  constexpr bool IsByte = false;
+  IValueT Address = decodeImmRegOffset(RegARM32::Encoded_Reg_sp, kWordSize,
+                                       OperandARM32Mem::PostIndex);
+  emitMemOp(Cond, kInstTypeMemImmediate, IsLoad, IsByte, Rt, Address);
+}
+
+void AssemblerARM32::popList(const IValueT Registers, CondARM32::Cond Cond) {
+  // POP - ARM section A8.*.131, encoding A1:
+  //   pop<c> <registers>
+  //
+  // cccc100010111101rrrrrrrrrrrrrrrr where cccc=Cond and
+  // rrrrrrrrrrrrrrrr=Registers (one bit for each GP register).
+  constexpr bool IsLoad = true;
+  emitMultiMemOp(Cond, IA_W, IsLoad, RegARM32::Encoded_Reg_sp, Registers);
+}
+
 void AssemblerARM32::push(const Operand *OpRt, CondARM32::Cond Cond) {
   // PUSH - ARM section A8.8.133, encoding A2:
   //   push<c> {Rt}
   //
-  // cccc010100101101dddd000000000100 where dddd=Rd and cccc=Cond.
+  // cccc010100101101dddd000000000100 where dddd=Rt and cccc=Cond.
   IValueT Rt;
   if (decodeOperand(OpRt, Rt) != DecodedAsRegister)
     return setNeedsTextFixup();

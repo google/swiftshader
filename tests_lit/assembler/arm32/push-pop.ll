@@ -61,7 +61,11 @@ define internal void @SinglePushPop() {
 ; IASM-NEXT:    .byte 0xd0
 ; IASM-NEXT:    .byte 0x8d
 ; IASM-NEXT:    .byte 0xe2
-; IASM-NEXT:    pop     {lr}
+
+; IASM-NEXT:    .byte 0x4
+; IASM-NEXT:    .byte 0xe0
+; IASM-NEXT:    .byte 0x9d
+; IASM-NEXT:    .byte 0xe4
 
 ; IASM:         .byte 0x1e
 ; IASM-NEXT:    .byte 0xff
@@ -141,7 +145,11 @@ define internal i32 @MultPushPop(i32 %v1, i32 %v2) {
 ; IASM-NEXT:    .byte 0xd0
 ; IASM-NEXT:    .byte 0x8d
 ; IASM-NEXT:    .byte 0xe2
-; IASM-NEXT:    pop     {r4, r5, lr}
+
+; IASM-NEXT:    .byte 0x30
+; IASM-NEXT:    .byte 0x40
+; IASM-NEXT:    .byte 0xbd
+; IASM-NEXT:    .byte 0xe8
 
 ; IASM:         .byte 0x1e
 ; IASM-NEXT:    .byte 0xff

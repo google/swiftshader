@@ -1116,6 +1116,45 @@ void InstARM32Pop::emit(const Cfg *Func) const {
   }
 }
 
+void InstARM32Pop::emitIAS(const Cfg *Func) const {
+  SizeT IntegerCount = 0;
+  ARM32::IValueT GPRegisters = 0;
+  const Variable *LastDest = nullptr;
+  for (const Variable *Var : Dests) {
+    if (!isScalarIntegerType(Var->getType()))
+      // TODO(kschimpf) Implement vpush.
+      return emitUsingTextFixup(Func);
+    assert((Var && Var->hasReg()) && "pop only applies to registers");
+    int32_t Reg = Var->getRegNum();
+    assert(Reg != RegARM32::Encoded_Not_GPR);
+    LastDest = Var;
+    GPRegisters |= (1 << Reg);
+    ++IntegerCount;
+  }
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  switch (IntegerCount) {
+  case 0:
+    return;
+  case 1:
+    // Note: Can only apply pop register if single register is not sp.
+    assert((RegARM32::Encoded_Reg_sp != LastDest->getRegNum()) &&
+           "Effects of pop register SP is undefined!");
+    // TODO(kschimpf) ARM sandbox does not allow the single register form of
+    // pop, and the popList form expects multiple registers. Convert this
+    // assert to a conditional check once it has been shown that popList
+    // works.
+    assert(!Func->getContext()->getFlags().getUseSandboxing() &&
+           "pop register not in ARM sandbox!");
+    Asm->pop(LastDest, CondARM32::AL);
+    break;
+  default:
+    Asm->popList(GPRegisters, CondARM32::AL);
+    break;
+  }
+  if (Asm->needsTextFixup())
+    emitUsingTextFixup(Func);
+}
+
 void InstARM32Pop::dump(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
@@ -1197,19 +1236,19 @@ void InstARM32Push::emit(const Cfg *Func) const {
 }
 
 void InstARM32Push::emitIAS(const Cfg *Func) const {
-  SizeT SrcReg = 0;
   SizeT IntegerCount = 0;
-  ARM32::IValueT GPURegisters = 0;
-  for (SizeT i = 0; i < getSrcSize(); ++i) {
-    if (!isScalarIntegerType(getSrc(i)->getType()))
+  ARM32::IValueT GPRegisters = 0;
+  const Variable *LastSrc = nullptr;
+  for (SizeT Index = 0; Index < getSrcSize(); ++Index) {
+    if (!isScalarIntegerType(getSrc(Index)->getType()))
       // TODO(kschimpf) Implement vpush.
       return emitUsingTextFixup(Func);
-    auto *Var = llvm::dyn_cast<Variable>(getSrc(i));
+    const auto *Var = llvm::dyn_cast<Variable>(getSrc(Index));
     assert((Var && Var->hasReg()) && "push only applies to registers");
-    ARM32::IValueT Reg = Var->getRegNum();
-    assert(Reg != static_cast<ARM32::IValueT>(RegARM32::Encoded_Not_GPR));
-    SrcReg = i;
-    GPURegisters |= (1 << Reg);
+    int32_t Reg = Var->getRegNum();
+    assert(Reg != RegARM32::Encoded_Not_GPR);
+    LastSrc = Var;
+    GPRegisters |= (1 << Reg);
     ++IntegerCount;
   }
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
@@ -1217,24 +1256,21 @@ void InstARM32Push::emitIAS(const Cfg *Func) const {
   case 0:
     return;
   case 1: {
-    if (auto *Var = llvm::dyn_cast<Variable>(getSrc(SrcReg))) {
-      // Note: Can only apply push register if single register is not sp.
-      assert((RegARM32::Encoded_Reg_sp != Var->getRegNum()) &&
-             "Effects of push register SP is undefined!");
-      // TODO(kschimpf) ARM sandbox does not allow the single register form of
-      // push, and the pushList form expects multiple registers. Convert this
-      // assert to a conditional check once it has been shown that pushList
-      // works.
-      assert(!Func->getContext()->getFlags().getUseSandboxing() &&
-             "push register not in ARM sandbox!");
-      Asm->push(Var, CondARM32::AL);
-      break;
-    }
-    // Intentionally fall to next case.
+    // Note: Can only apply push register if single register is not sp.
+    assert((RegARM32::Encoded_Reg_sp != LastSrc->getRegNum()) &&
+           "Effects of push register SP is undefined!");
+    // TODO(kschimpf) ARM sandbox does not allow the single register form of
+    // push, and the pushList form expects multiple registers. Convert this
+    // assert to a conditional check once it has been shown that pushList
+    // works.
+    assert(!Func->getContext()->getFlags().getUseSandboxing() &&
+           "push register not in ARM sandbox!");
+    Asm->push(LastSrc, CondARM32::AL);
+    break;
   }
   default:
     // TODO(kschimpf) Implement pushList in assembler.
-    Asm->pushList(GPURegisters, CondARM32::AL);
+    Asm->pushList(GPRegisters, CondARM32::AL);
     break;
   }
   if (Asm->needsTextFixup())
