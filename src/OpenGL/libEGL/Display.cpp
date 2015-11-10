@@ -19,6 +19,7 @@
 #include "libEGL/Surface.h"
 #include "libEGL/Context.hpp"
 #include "common/debug.h"
+#include "Common/MutexLock.hpp"
 
 #if defined(__unix__) && !defined(__ANDROID__)
 #include "Main/libX11.hpp"
@@ -38,7 +39,17 @@
 namespace egl
 {
 typedef std::map<EGLNativeDisplayType, Display*> DisplayMap;
-DisplayMap displays;
+
+// Protects the global displays map.
+sw::BackoffLock displays_lock;
+
+// The order of construction of globals is undefined in C++.
+// This function ensures that construction has completed before we attempt
+// to access displays.
+DisplayMap* getDisplays() {
+  static DisplayMap displays;
+  return &displays;
+}
 
 egl::Display *Display::getPlatformDisplay(EGLenum platform, EGLNativeDisplayType displayId)
 {
@@ -81,15 +92,19 @@ egl::Display *Display::getPlatformDisplay(EGLenum platform, EGLNativeDisplayType
         }
     #endif
 
-    if(displays.find(displayId) != displays.end())
+    egl::Display *rval;
+    displays_lock.lock();
+    DisplayMap* displays = getDisplays();
+    if (displays->find(displayId) != displays->end())
     {
-        return displays[displayId];
+        rval = (*displays)[displayId];
+    } else {
+        rval = new egl::Display(platform, displayId);
+
+        (*displays)[displayId] = rval;
     }
-
-    egl::Display *display = new egl::Display(platform, displayId);
-
-    displays[displayId] = display;
-    return display;
+    displays_lock.unlock();
+    return rval;
 }
 
 Display::Display(EGLenum platform, EGLNativeDisplayType displayId) : platform(platform), displayId(displayId)
@@ -102,7 +117,9 @@ Display::~Display()
 {
     terminate();
 
-	displays.erase(displayId);
+    displays_lock.lock();
+    getDisplays()->erase(displayId);
+    displays_lock.unlock();
 }
 
 static void cpuid(int registers[4], int info)
