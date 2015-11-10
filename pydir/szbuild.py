@@ -98,6 +98,8 @@ def AddOptionalArgs(argparser):
                            help='Extra arguments for Subzero')
     argparser.add_argument('--llc', dest='llc_args', action='append',
                            default=[], help='Extra arguments for llc')
+    argparser.add_argument('--no-sz', dest='nosz', action='store_true',
+                           help='Run only post-Subzero build steps')
 
 def main():
     """Create a hybrid translation from Subzero and llc.
@@ -216,22 +218,24 @@ def ProcessPexe(args, pexe, exe):
     if (args.force or
         NewerThanOrNotThere(pexe, obj_sz) or
         NewerThanOrNotThere(pnacl_sz, obj_sz)):
-        # Run pnacl-sz regardless of hybrid mode.
-        shellcmd([pnacl_sz,
-                  '-O' + opt_level,
-                  '-bitcode-format=pnacl',
-                  '-filetype=' + args.filetype,
-                  '-o', obj_sz if args.filetype == 'obj' else asm_sz,
-                  '-target=' + args.target] +
-                 (['-externalize',
-                   '-ffunction-sections',
-                   '-fdata-sections'] if hybrid else []) +
-                 (['-sandbox'] if args.sandbox else []) +
-                 (['-enable-block-profile'] if
-                      args.enable_block_profile and not args.sandbox else []) +
-                 args.sz_args +
-                 [pexe],
-                 echo=args.verbose)
+        if not args.nosz:
+            # Run pnacl-sz regardless of hybrid mode.
+            shellcmd([pnacl_sz,
+                      '-O' + opt_level,
+                      '-bitcode-format=pnacl',
+                      '-filetype=' + args.filetype,
+                      '-o', obj_sz if args.filetype == 'obj' else asm_sz,
+                      '-target=' + args.target] +
+                     (['-externalize',
+                       '-ffunction-sections',
+                       '-fdata-sections'] if hybrid else []) +
+                     (['-sandbox'] if args.sandbox else []) +
+                     (['-enable-block-profile'] if
+                          args.enable_block_profile and not args.sandbox
+                          else []) +
+                     args.sz_args +
+                     [pexe],
+                     echo=args.verbose)
         if args.filetype != 'obj':
             triple = {
               'arm32': 'arm-nacl' if args.sandbox else 'arm',
