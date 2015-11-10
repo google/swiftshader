@@ -17,37 +17,41 @@
 #ifndef SUBZERO_SRC_ICETLS_H
 #define SUBZERO_SRC_ICETLS_H
 
-#if defined(_MSC_VER)
-#define ICE_ATTRIBUTE_TLS __declspec(thread)
-#else // !_MSC_VER
-#define ICE_ATTRIBUTE_TLS thread_local
-#endif // !_MSC_VER
 
-// Defines 4 macros for unifying thread_local and pthread:
-//
-// ICE_TLS_DECLARE_FIELD(Type, FieldName): Declare a static thread_local field
-// inside the current class definition. "Type" needs to be a pointer type, such
-// as int* or class Foo*.
-//
-// ICE_TLS_DEFINE_FIELD(Type, ClassName, FieldName): Define a static
-// thread_local field outside of its class definition. The field will
-// ultimately be initialized to nullptr.
-//
-// ICE_TLS_INIT_FIELD(FieldName): Ensure the thread_local field is properly
-// initialized. This is intended to be called from within a static method of
-// the field's class after main() starts (to ensure that the pthread library is
-// fully initialized) but before any uses of ICE_TLS_GET_FIELD or
-// ICE_TLS_SET_FIELD.
-//
-// ICE_TLS_GET_FIELD(Type, FieldName): Read the value of the static
-// thread_local field. Must be done within the context of its class.
-//
-// ICE_TLS_SET_FIELD(FieldName, Value): Write a value into the static
-// thread_local field. Must be done within the context of its class.
+///
+/// @defgroup /IceTLS Defines 5 macros for unifying thread_local and pthread:
+/// @{
+///
+/// \def ICE_TLS_DECLARE_FIELD(Type, FieldName)
+/// Declare a static thread_local field inside the current class definition.
+/// "Type" needs to be a pointer type, such as int* or class Foo*.
+///
+/// \def ICE_TLS_DEFINE_FIELD(Type, ClassName, FieldName)
+/// Define a static thread_local field outside of its class definition. The
+/// field will ultimately be initialized to nullptr.
+///
+/// \def ICE_TLS_INIT_FIELD(FieldName)
+/// Ensure the thread_local field is properly initialized. This is intended
+/// to be called from within a static method of the field's class after main()
+/// starts (to ensure that the pthread library is fully initialized) but before
+/// any uses of ICE_TLS_GET_FIELD or ICE_TLS_SET_FIELD.
+///
+/// \def ICE_TLS_GET_FIELD(Type, FieldName)
+/// Read the value of the static thread_local field. Must be done within the
+/// context of its class.
+///
+/// \def ICE_TLS_SET_FIELD(FieldName, Value)
+/// Write a value into the static thread_local field. Must be done within the
+/// context of its class.
 
-// TODO(stichnot): Limit this define to only the platforms that
-// absolutely require it.  And ideally, eventually remove this hack
-// altogether.
+/// \todo TODO(stichnot)
+/// Limit this define to only the platforms that absolutely require it. And
+/// ideally, eventually remove this hack altogether.
+///
+
+///
+/// \def ICE_THREAD_LOCAL_HACK
+///
 #define ICE_THREAD_LOCAL_HACK
 #ifdef ICE_THREAD_LOCAL_HACK
 
@@ -86,6 +90,13 @@
 
 #else // !ICE_THREAD_LOCAL_HACK
 
+#if defined(_MSC_VER)
+#define ICE_ATTRIBUTE_TLS __declspec(thread)
+#else // !_MSC_VER
+#define ICE_ATTRIBUTE_TLS thread_local
+#endif // !_MSC_VER
+
+
 #define ICE_TLS_DECLARE_FIELD(Type, FieldName)                                 \
   static ICE_ATTRIBUTE_TLS Type FieldName
 #define ICE_TLS_DEFINE_FIELD(Type, ClassName, FieldName)                       \
@@ -95,5 +106,9 @@
 #define ICE_TLS_SET_FIELD(FieldName, Value) (FieldName = (Value))
 
 #endif // !ICE_THREAD_LOCAL_HACK
+
+///
+/// @}
+///
 
 #endif // SUBZERO_SRC_ICETLS_H
