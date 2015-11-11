@@ -754,32 +754,56 @@ void AssemblerARM32::mov(const Operand *OpRd, const Operand *OpSrc,
   emitType01(Mov, Rd, Rn, OpSrc, SetFlags, Cond);
 }
 
+void AssemblerARM32::emitMovw(IValueT Opcode, IValueT Rd, IValueT Imm16,
+                              bool SetFlags, CondARM32::Cond Cond) {
+  if (!isConditionDefined(Cond) || !Utils::IsAbsoluteUint(16, Imm16))
+    return setNeedsTextFixup();
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  const IValueT Encoding = encodeCondition(Cond) << kConditionShift | Opcode |
+                           (encodeBool(SetFlags) << kSShift) |
+                           ((Imm16 >> 12) << 16) | Rd << kRdShift |
+                           (Imm16 & 0xfff);
+  emitInst(Encoding);
+}
+
 void AssemblerARM32::movw(const Operand *OpRd, const Operand *OpSrc,
                           CondARM32::Cond Cond) {
   IValueT Rd;
   if (decodeOperand(OpRd, Rd) != DecodedAsRegister)
     return setNeedsTextFixup();
-  auto *Src = llvm::dyn_cast<ConstantRelocatable>(OpSrc);
-  if (Src == nullptr)
+  if (const auto *Src = llvm::dyn_cast<ConstantRelocatable>(OpSrc)) {
+    // MOVW (immediate) - ARM section A8.8.102, encoding A2:
+    //  movw<c> <Rd>, #<imm16>
+    //
+    // cccc00110000iiiiddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, and
+    // iiiiiiiiiiiiiiii=imm16.
+    if (!isConditionDefined(Cond))
+      // Conditions of rule violated.
+      return setNeedsTextFixup();
+    // Use 0 for the lower 16 bits of the relocatable, and add a fixup to
+    // install the correct bits.
+    constexpr bool IsMovW = true;
+    emitFixup(createMoveFixup(IsMovW, Src));
+    constexpr IValueT Imm16 = 0;
+    constexpr bool SetFlags = false;
+    emitMovw(B25 | B24, Rd, Imm16, SetFlags, Cond);
+    return;
+  }
+  IValueT ConstVal;
+  if (decodeOperand(OpSrc, ConstVal) != DecodedAsConstI32)
     return setNeedsTextFixup();
-  // MOVW (immediate) - ARM section A8.8.102, encoding A2:
-  //  movw<c> <Rd>, #<imm16>
+  // TODO(kschimpf): Determine if we want to handle rotated immediate 8 values
+  // to handle cases where the constant is greater than 16 bits (encoding A1
+  // below).  For now, handle using encoding A2.
+  constexpr bool SetFlags = 0;
+  emitMovw(B25 | B24, Rd, ConstVal, SetFlags, Cond);
+  return;
+
+  // MOVW (immediate) - ARM section A8.8.102, encoding A1:
+  //   movw<c> <Rd>, #<RotatedImm8>
   //
-  // cccc00110000iiiiddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, and
-  // iiiiiiiiiiiiiiii=imm16.
-  if (!isConditionDefined(Cond))
-    // Conditions of rule violated.
-    return setNeedsTextFixup();
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  // Use 0 for the lower 16 bits of the relocatable, and add a fixup to
-  // install the correct bits.
-  constexpr bool IsMovW = true;
-  emitFixup(createMoveFixup(IsMovW, Src));
-  constexpr IValueT Imm16 = 0;
-  const IValueT Encoding = encodeCondition(Cond) << kConditionShift | B25 |
-                           B24 | ((Imm16 >> 12) << 16) | Rd << kRdShift |
-                           (Imm16 & 0xfff);
-  emitInst(Encoding);
+  // cccc0011101s0000ddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, s=SetFlags=0,
+  // and iiiiiiiiiiii is a shift-rotated value defining RotatedImm8.
 }
 
 void AssemblerARM32::movt(const Operand *OpRd, const Operand *OpSrc,
