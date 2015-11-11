@@ -237,7 +237,8 @@ protected:
     Legal_Reg = 1 << 0, // physical register, not stack location
     Legal_Imm = 1 << 1,
     Legal_Mem = 1 << 2, // includes [eax+4*ecx] as well as [esp+12]
-    Legal_All = ~Legal_None
+    Legal_Rematerializable = 1 << 3,
+    Legal_All = ~Legal_Rematerializable
   };
   using LegalMask = uint32_t;
   Operand *legalize(Operand *From, LegalMask Allowed = Legal_All,

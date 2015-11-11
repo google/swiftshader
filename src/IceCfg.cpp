@@ -201,8 +201,6 @@ void Cfg::translate() {
     if (auto *Var64On32 = llvm::dyn_cast<Variable64On32>(Var))
       Var64On32->initHiLo(this);
 
-  processAllocas();
-
   // The set of translation passes and their order are determined by the
   // target.
   getTarget()->translate();
@@ -451,86 +449,185 @@ void Cfg::doArgLowering() {
   getTarget()->lowerArguments();
 }
 
-void Cfg::sortAllocas(CfgVector<Inst *> &Allocas, InstList &Insts,
-                      bool IsKnownFrameOffset) {
+void Cfg::sortAndCombineAllocas(CfgVector<Inst *> &Allocas,
+                                uint32_t CombinedAlignment, InstList &Insts,
+                                AllocaBaseVariableType BaseVariableType) {
   if (Allocas.empty())
     return;
-  // Sort by decreasing alignment.  This does not really matter at the moment,
-  // but will allow compacting stack allocation when we fuse to one alloca.
+  // Sort by decreasing alignment.
   std::sort(Allocas.begin(), Allocas.end(), [](Inst *I1, Inst *I2) {
     auto *A1 = llvm::dyn_cast<InstAlloca>(I1);
     auto *A2 = llvm::dyn_cast<InstAlloca>(I2);
     return A1->getAlignInBytes() > A2->getAlignInBytes();
   });
+  // Process the allocas in order of decreasing stack alignment.  This allows
+  // us to pack less-aligned pieces after more-aligned ones, resulting in less
+  // stack growth.  It also allows there to be at most one stack alignment "and"
+  // instruction for a whole list of allocas.
+  uint32_t CurrentOffset = 0;
+  CfgVector<int32_t> Offsets;
   for (Inst *Instr : Allocas) {
     auto *Alloca = llvm::cast<InstAlloca>(Instr);
-    // Move the alloca to its sorted position.
-    InstAlloca *NewAlloca =
-        InstAlloca::create(this, Alloca->getSizeInBytes(),
-                           Alloca->getAlignInBytes(), Alloca->getDest());
-    if (IsKnownFrameOffset)
-      NewAlloca->setKnownFrameOffset();
-    Insts.push_front(NewAlloca);
+    // Adjust the size of the allocation up to the next multiple of the
+    // object's alignment.
+    uint32_t Alignment = std::max(Alloca->getAlignInBytes(), 1u);
+    auto *ConstSize =
+        llvm::dyn_cast<ConstantInteger32>(Alloca->getSizeInBytes());
+    uint32_t Size = Utils::applyAlignment(ConstSize->getValue(), Alignment);
+    if (BaseVariableType == BVT_FramePointer) {
+      // Addressing is relative to the frame pointer.  Subtract the offset after
+      // adding the size of the alloca, because it grows downwards from the
+      // frame pointer.
+      Offsets.push_back(-(CurrentOffset + Size));
+    } else {
+      // Addressing is relative to the stack pointer or to a user pointer.  Add
+      // the offset before adding the size of the object, because it grows
+      // upwards from the stack pointer.
+      Offsets.push_back(CurrentOffset);
+    }
+    // Update the running offset of the fused alloca region.
+    CurrentOffset += Size;
+  }
+  // Round the offset up to the alignment granularity to use as the size.
+  uint32_t TotalSize = Utils::applyAlignment(CurrentOffset, CombinedAlignment);
+  // Ensure every alloca was assigned an offset.
+  assert(Allocas.size() == Offsets.size());
+  Variable *BaseVariable = makeVariable(IceType_i32);
+  Variable *AllocaDest = BaseVariable;
+  // Emit one addition for each alloca after the first.
+  for (size_t i = 0; i < Allocas.size(); ++i) {
+    auto *Alloca = llvm::cast<InstAlloca>(Allocas[i]);
+    switch (BaseVariableType) {
+    case BVT_FramePointer:
+    case BVT_UserPointer: {
+      // Emit a new addition operation to replace the alloca.
+      Operand *AllocaOffset = Ctx->getConstantInt32(Offsets[i]);
+      InstArithmetic *Add =
+          InstArithmetic::create(this, InstArithmetic::Add, Alloca->getDest(),
+                                 BaseVariable, AllocaOffset);
+      Insts.push_front(Add);
+    } break;
+    case BVT_StackPointer: {
+      // Emit a fake definition of the rematerializable variable.
+      Variable *Dest = Alloca->getDest();
+      InstFakeDef *Def = InstFakeDef::create(this, Dest);
+      Dest->setRematerializable(getTarget()->getStackReg(), Offsets[i]);
+      Insts.push_front(Def);
+    } break;
+    }
     Alloca->setDeleted();
   }
+  Operand *AllocaSize = Ctx->getConstantInt32(TotalSize);
+  switch (BaseVariableType) {
+  case BVT_FramePointer: {
+    // Adjust the return of the alloca to the top of the returned region.
+    AllocaDest = makeVariable(IceType_i32);
+    InstArithmetic *Add = InstArithmetic::create(
+        this, InstArithmetic::Add, BaseVariable, AllocaDest, AllocaSize);
+    Insts.push_front(Add);
+  } break;
+  case BVT_StackPointer: {
+    // Emit a fake use to keep the Alloca live.
+    InstFakeUse *Use = InstFakeUse::create(this, AllocaDest);
+    Insts.push_front(Use);
+  } break;
+  case BVT_UserPointer:
+    break;
+  }
+  // And insert the fused alloca.
+  InstAlloca *CombinedAlloca =
+      InstAlloca::create(this, AllocaSize, CombinedAlignment, AllocaDest);
+  CombinedAlloca->setKnownFrameOffset();
+  Insts.push_front(CombinedAlloca);
 }
 
-void Cfg::processAllocas() {
+void Cfg::processAllocas(bool SortAndCombine) {
   const uint32_t StackAlignment = getTarget()->getStackAlignment();
   CfgNode *EntryNode = getEntryNode();
-  // Allocas in the entry block that have constant size and alignment less
-  // than or equal to the function's stack alignment.
-  CfgVector<Inst *> FixedAllocas;
-  // Allocas in the entry block that have constant size and alignment greater
-  // than the function's stack alignment.
-  CfgVector<Inst *> AlignedAllocas;
   // LLVM enforces power of 2 alignment.
   assert(llvm::isPowerOf2_32(StackAlignment));
-  // Collect the Allocas into the two vectors.
-  bool RequiresFramePointer = false;
+  // Determine if there are large alignment allocations in the entry block or
+  // dynamic allocations (variable size in the entry block).
+  bool HasLargeAlignment = false;
+  bool HasDynamicAllocation = false;
   for (Inst &Instr : EntryNode->getInsts()) {
     if (auto *Alloca = llvm::dyn_cast<InstAlloca>(&Instr)) {
-      if (!llvm::isa<Constant>(Alloca->getSizeInBytes())) {
-        // Variable-sized allocations require a frame pointer.
-        RequiresFramePointer = true;
-        continue;
-      }
       uint32_t AlignmentParam = Alloca->getAlignInBytes();
-      // For default align=0, set it to the real value 1, to avoid any
-      // bit-manipulation problems below.
-      AlignmentParam = std::max(AlignmentParam, 1u);
-      assert(llvm::isPowerOf2_32(AlignmentParam));
-      if (AlignmentParam > StackAlignment) {
-        // Allocations aligned more than the stack require a frame pointer.
-        RequiresFramePointer = true;
-        AlignedAllocas.push_back(Alloca);
-      } else
-        FixedAllocas.push_back(Alloca);
+      if (AlignmentParam > StackAlignment)
+        HasLargeAlignment = true;
+      if (llvm::isa<Constant>(Alloca->getSizeInBytes()))
+        Alloca->setKnownFrameOffset();
+      else {
+        HasDynamicAllocation = true;
+        // If Allocas are not sorted, the first dynamic allocation causes
+        // later Allocas to be at unknown offsets relative to the stack/frame.
+        if (!SortAndCombine)
+          break;
+      }
     }
   }
-  // Look for alloca instructions in other blocks
+  // Don't do the heavyweight sorting and layout for low optimization levels.
+  if (!SortAndCombine)
+    return;
+  // Any alloca outside the entry block is a dynamic allocation.
   for (CfgNode *Node : Nodes) {
     if (Node == EntryNode)
       continue;
     for (Inst &Instr : Node->getInsts()) {
       if (llvm::isa<InstAlloca>(&Instr)) {
         // Allocations outside the entry block require a frame pointer.
-        RequiresFramePointer = true;
+        HasDynamicAllocation = true;
         break;
       }
     }
-    if (RequiresFramePointer)
+    if (HasDynamicAllocation)
       break;
   }
   // Mark the target as requiring a frame pointer.
-  if (RequiresFramePointer)
+  if (HasLargeAlignment || HasDynamicAllocation)
     getTarget()->setHasFramePointer();
+  // Collect the Allocas into the two vectors.
+  // Allocas in the entry block that have constant size and alignment less
+  // than or equal to the function's stack alignment.
+  CfgVector<Inst *> FixedAllocas;
+  // Allocas in the entry block that have constant size and alignment greater
+  // than the function's stack alignment.
+  CfgVector<Inst *> AlignedAllocas;
+  // Maximum alignment used for the dynamic/aligned allocas.
+  uint32_t MaxAlignment = StackAlignment;
+  for (Inst &Instr : EntryNode->getInsts()) {
+    if (auto *Alloca = llvm::dyn_cast<InstAlloca>(&Instr)) {
+      if (!llvm::isa<Constant>(Alloca->getSizeInBytes()))
+        continue;
+      uint32_t AlignmentParam = Alloca->getAlignInBytes();
+      // For default align=0, set it to the real value 1, to avoid any
+      // bit-manipulation problems below.
+      AlignmentParam = std::max(AlignmentParam, 1u);
+      assert(llvm::isPowerOf2_32(AlignmentParam));
+      if (HasDynamicAllocation && AlignmentParam > StackAlignment) {
+        // If we have both dynamic allocations and large stack alignments,
+        // high-alignment allocations are pulled out with their own base.
+        AlignedAllocas.push_back(Alloca);
+      } else {
+        FixedAllocas.push_back(Alloca);
+      }
+      MaxAlignment = std::max(AlignmentParam, MaxAlignment);
+    }
+  }
   // Add instructions to the head of the entry block in reverse order.
   InstList &Insts = getEntryNode()->getInsts();
-  // Fixed, large alignment alloca addresses do not have known offset.
-  sortAllocas(AlignedAllocas, Insts, false);
-  // Fixed, small alignment alloca addresses have known offset.
-  sortAllocas(FixedAllocas, Insts, true);
+  if (HasDynamicAllocation && HasLargeAlignment) {
+    // We are using a frame pointer, but fixed large-alignment alloca addresses,
+    // do not have a known offset from either the stack or frame pointer.
+    // They grow up from a user pointer from an alloca.
+    sortAndCombineAllocas(AlignedAllocas, MaxAlignment, Insts, BVT_UserPointer);
+  }
+  // Otherwise, fixed size allocas are always addressed relative to the stack
+  // unless there are dynamic allocas.
+  // TODO(sehr): re-enable frame pointer and decrementing addressing.
+  AllocaBaseVariableType BasePointerType =
+      (HasDynamicAllocation ? BVT_UserPointer : BVT_StackPointer);
+  sortAndCombineAllocas(FixedAllocas, MaxAlignment, Insts, BasePointerType);
 }
 
 void Cfg::doAddressOpt() {

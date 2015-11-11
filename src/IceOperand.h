@@ -509,6 +509,13 @@ public:
   bool mustNotHaveReg() const {
     return RegRequirement == RR_MustNotHaveRegister;
   }
+  void setRematerializable(int32_t NewRegNum, int32_t NewOffset) {
+    IsRematerializable = true;
+    setRegNum(NewRegNum);
+    setStackOffset(NewOffset);
+    setMustHaveReg();
+  }
+  bool isRematerializable() const { return IsRematerializable; }
 
   void setRegClass(uint8_t RC) { RegisterClass = static_cast<RegClass>(RC); }
   RegClass getRegClass() const { return RegisterClass; }
@@ -573,6 +580,9 @@ protected:
   /// and validating live ranges. This is usually reserved for the stack
   /// pointer and other physical registers specifically referenced by name.
   bool IgnoreLiveness = false;
+  // If IsRematerializable, RegNum keeps track of which register (stack or frame
+  // pointer), and StackOffset is the known offset from that register.
+  bool IsRematerializable = false;
   RegRequirement RegRequirement = RR_MayHaveRegister;
   RegClass RegisterClass;
   /// RegNum is the allocated register, or NoRegister if it isn't

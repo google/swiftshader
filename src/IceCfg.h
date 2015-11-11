@@ -185,10 +185,19 @@ public:
   void advancedPhiLowering();
   void reorderNodes();
   void shuffleNodes();
-  void sortAllocas(CfgVector<Inst *> &Allocas, InstList &Insts,
-                   bool IsKnownFrameOffset);
-  /// Merge all the fixed-size allocas in the entry block.
-  void processAllocas();
+
+  enum AllocaBaseVariableType {
+    BVT_StackPointer,
+    BVT_FramePointer,
+    BVT_UserPointer
+  };
+  void sortAndCombineAllocas(CfgVector<Inst *> &Allocas,
+                             uint32_t CombinedAlignment, InstList &Insts,
+                             AllocaBaseVariableType BaseVariableType);
+  /// Scan allocas to determine whether we need to use a frame pointer.
+  /// If SortAndCombine == true, merge all the fixed-size allocas in the
+  /// entry block and emit stack or frame pointer-relative addressing.
+  void processAllocas(bool SortAndCombine);
   void doAddressOpt();
   void doArgLowering();
   void doNopInsertion();

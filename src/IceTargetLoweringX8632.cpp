@@ -151,8 +151,10 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
       Variable *esp =
           Func->getTarget()->getPhysicalRegister(Traits::RegisterSet::Reg_esp);
       Constant *Loc = Ctx->getConstantInt32(ParameterAreaSizeBytes);
-      StackArgLocations.push_back(
-          Traits::X86OperandMem::create(Func, Ty, esp, Loc));
+      auto *Mem = Traits::X86OperandMem::create(Func, Ty, esp, Loc);
+      // Stack stores for arguments are fixed to esp.
+      Mem->setIgnoreStackAdjust(true);
+      StackArgLocations.push_back(Mem);
       ParameterAreaSizeBytes += typeWidthInBytesOnStack(Arg->getType());
     }
   }

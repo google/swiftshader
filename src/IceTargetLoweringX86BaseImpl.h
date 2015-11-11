@@ -302,6 +302,11 @@ template <class Machine> void TargetX86Base<Machine>::staticInit() {
 template <class Machine> void TargetX86Base<Machine>::translateO2() {
   TimerMarker T(TimerStack::TT_O2, Func);
 
+  // Merge Alloca instructions, and lay out the stack.
+  static constexpr bool SortAndCombineAllocas = true;
+  Func->processAllocas(SortAndCombineAllocas);
+  Func->dump("After Alloca processing");
+
   if (!Ctx->getFlags().getPhiEdgeSplit()) {
     // Lower Phi instructions.
     Func->placePhiLoads();
@@ -419,6 +424,11 @@ template <class Machine> void TargetX86Base<Machine>::translateO2() {
 
 template <class Machine> void TargetX86Base<Machine>::translateOm1() {
   TimerMarker T(TimerStack::TT_Om1, Func);
+
+  // Do not merge Alloca instructions, and lay out the stack.
+  static constexpr bool SortAndCombineAllocas = false;
+  Func->processAllocas(SortAndCombineAllocas);
+  Func->dump("After Alloca processing");
 
   Func->placePhiLoads();
   if (Func->hasError())
@@ -945,7 +955,7 @@ TargetX86Base<Machine>::getRegisterSet(RegSetMask Include,
 template <class Machine>
 void TargetX86Base<Machine>::lowerAlloca(const InstAlloca *Inst) {
   if (!Inst->getKnownFrameOffset())
-    IsEbpBasedFrame = true;
+    setHasFramePointer();
   // Conservatively require the stack to be aligned. Some stack adjustment
   // operations implemented below assume that the stack is aligned before the
   // alloca. All the alloca code ensures that the stack alignment is preserved
@@ -969,6 +979,7 @@ void TargetX86Base<Machine>::lowerAlloca(const InstAlloca *Inst) {
   uint32_t Alignment =
       std::max(AlignmentParam, Traits::X86_STACK_ALIGNMENT_BYTES);
   if (Alignment > Traits::X86_STACK_ALIGNMENT_BYTES) {
+    setHasFramePointer();
     _and(esp, Ctx->getConstantInt32(-Alignment));
   }
   if (const auto *ConstantTotalSize =
@@ -5500,10 +5511,12 @@ Operand *TargetX86Base<Machine>::legalize(Operand *From, LegalMask Allowed,
     Variable *RegBase = nullptr;
     Variable *RegIndex = nullptr;
     if (Base) {
-      RegBase = legalizeToReg(Base);
+      RegBase = llvm::cast<Variable>(
+          legalize(Base, Legal_Reg | Legal_Rematerializable));
     }
     if (Index) {
-      RegIndex = legalizeToReg(Index);
+      RegIndex = llvm::cast<Variable>(
+          legalize(Index, Legal_Reg | Legal_Rematerializable));
     }
     if (Base != RegBase || Index != RegIndex) {
       Mem = Traits::X86OperandMem::create(Func, Ty, RegBase, Mem->getOffset(),
@@ -5575,12 +5588,25 @@ Operand *TargetX86Base<Machine>::legalize(Operand *From, LegalMask Allowed,
     // either when the variable is pre-colored or when it is assigned infinite
     // weight.
     bool MustHaveRegister = (Var->hasReg() || Var->mustHaveReg());
+    bool MustRematerialize =
+        (Var->isRematerializable() && !(Allowed & Legal_Rematerializable));
     // We need a new physical register for the operand if:
-    //   Mem is not allowed and Var isn't guaranteed a physical
-    //   register, or
-    //   RegNum is required and Var->getRegNum() doesn't match.
-    if ((!(Allowed & Legal_Mem) && !MustHaveRegister) ||
-        (RegNum != Variable::NoRegister && RegNum != Var->getRegNum())) {
+    // - Mem is not allowed and Var isn't guaranteed a physical register, or
+    // - RegNum is required and Var->getRegNum() doesn't match, or
+    // - Var is a rematerializable variable and rematerializable pass-through is
+    //   not allowed (in which case we need an lea instruction).
+    if (MustRematerialize) {
+      assert(Ty == IceType_i32);
+      Variable *NewVar = makeReg(Ty, RegNum);
+      // Since Var is rematerializable, the offset will be added when the lea is
+      // emitted.
+      constexpr Constant *NoOffset = nullptr;
+      auto *Mem = Traits::X86OperandMem::create(Func, Ty, Var, NoOffset);
+      _lea(NewVar, Mem);
+      From = NewVar;
+    } else if ((!(Allowed & Legal_Mem) && !MustHaveRegister) ||
+               (RegNum != Variable::NoRegister && RegNum != Var->getRegNum()) ||
+               MustRematerialize) {
       From = copyToReg(From, RegNum);
     }
     return From;

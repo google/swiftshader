@@ -170,7 +170,14 @@ void MachineTraits<TargetX8664>::X86OperandMem::dump(const Cfg *Func,
 
 MachineTraits<TargetX8664>::Address
 MachineTraits<TargetX8664>::X86OperandMem::toAsmAddress(
-    MachineTraits<TargetX8664>::Assembler *Asm) const {
+    MachineTraits<TargetX8664>::Assembler *Asm,
+    const Ice::TargetLowering *Target) const {
+  // TODO(sehr): handle rematerializable base/index.
+  (void)Target;
+  if (getBase())
+    assert(!getBase()->isRematerializable());
+  if (getIndex())
+    assert(!getIndex()->isRematerializable());
   int32_t Disp = 0;
   AssemblerFixup *Fixup = nullptr;
   // Determine the offset (is it relocatable?)

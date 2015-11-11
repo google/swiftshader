@@ -92,6 +92,11 @@ void TargetMIPS32::translateO2() {
   // TODO(stichnot): share passes with X86?
   // https://code.google.com/p/nativeclient/issues/detail?id=4094
 
+  // Merge Alloca instructions, and lay out the stack.
+  static constexpr bool SortAndCombineAllocas = true;
+  Func->processAllocas(SortAndCombineAllocas);
+  Func->dump("After Alloca processing");
+
   if (!Ctx->getFlags().getPhiEdgeSplit()) {
     // Lower Phi instructions.
     Func->placePhiLoads();
@@ -186,6 +191,11 @@ void TargetMIPS32::translateOm1() {
   TimerMarker T(TimerStack::TT_Om1, Func);
 
   // TODO: share passes with X86?
+
+  // Do not merge Alloca instructions, and lay out the stack.
+  static constexpr bool SortAndCombineAllocas = false;
+  Func->processAllocas(SortAndCombineAllocas);
+  Func->dump("After Alloca processing");
 
   Func->placePhiLoads();
   if (Func->hasError())

@@ -40,7 +40,6 @@ entry:
 }
 ; CHECK-LABEL: test_fused_load_sub_a
 ;    alloca store
-; CHECK: mov {{.*}},esp
 ; CHECK: mov DWORD PTR {{.*}},0x3e7
 ;    atomic store (w/ its own mfence)
 ; The load + sub are optimized into one everywhere.
@@ -80,7 +79,6 @@ entry:
 }
 ; CHECK-LABEL: test_fused_load_sub_b
 ;    alloca store
-; CHECK: mov {{.*}},esp
 ; CHECK: mov DWORD PTR {{.*}},0x3e7
 ;    atomic store (w/ its own mfence)
 ; CHECK: sub {{.*}},DWORD PTR {{.*}}g32_a
@@ -121,7 +119,6 @@ entry:
 }
 ; CHECK-LABEL: test_fused_load_sub_c
 ;    alloca store
-; CHECK: mov {{.*}},esp
 ; CHECK: mov DWORD PTR {{.*}},0x3e7
 ;    atomic store (w/ its own mfence)
 ; CHECK: sub {{.*}},DWORD PTR {{.*}}g32_a
