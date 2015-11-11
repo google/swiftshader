@@ -59,6 +59,24 @@ class AssemblerARM32 : public Assembler {
   AssemblerARM32 &operator=(const AssemblerARM32 &) = delete;
 
 public:
+  class TargetInfo {
+    TargetInfo(const TargetInfo &) = delete;
+    TargetInfo &operator=(const TargetInfo &) = delete;
+
+  public:
+    TargetInfo(bool HasFramePointer, SizeT FrameOrStackReg,
+               int32_t StackAdjustment)
+        : HasFramePointer(HasFramePointer), FrameOrStackReg(FrameOrStackReg),
+          StackAdjustment(StackAdjustment) {}
+    explicit TargetInfo(const TargetLowering *Target)
+        : HasFramePointer(Target->hasFramePointer()),
+          FrameOrStackReg(Target->getFrameOrStackReg()),
+          StackAdjustment(Target->getStackAdjustment()) {}
+    const bool HasFramePointer;
+    const SizeT FrameOrStackReg;
+    const int32_t StackAdjustment;
+  };
+
   explicit AssemblerARM32(bool use_far_branches = false)
       : Assembler(Asm_ARM32) {
     // TODO(kschimpf): Add mode if needed when branches are handled.
@@ -172,7 +190,14 @@ public:
   void eor(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
            bool SetFlags, CondARM32::Cond Cond);
 
-  void ldr(const Operand *OpRt, const Operand *OpAddress, CondARM32::Cond Cond);
+  void ldr(const Operand *OpRt, const Operand *OpAddress, CondARM32::Cond Cond,
+           const TargetInfo &TInfo);
+
+  void ldr(const Operand *OpRt, const Operand *OpAddress, CondARM32::Cond Cond,
+           const TargetLowering *Lowering) {
+    const TargetInfo TInfo(Lowering);
+    ldr(OpRt, OpAddress, Cond, TInfo);
+  }
 
   void mov(const Operand *OpRd, const Operand *OpSrc, CondARM32::Cond Cond);
 
@@ -205,7 +230,14 @@ public:
   void sdiv(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
             CondARM32::Cond Cond);
 
-  void str(const Operand *OpRt, const Operand *OpAddress, CondARM32::Cond Cond);
+  void str(const Operand *OpRt, const Operand *OpAddress, CondARM32::Cond Cond,
+           const TargetInfo &TInfo);
+
+  void str(const Operand *OpRt, const Operand *OpAddress, CondARM32::Cond Cond,
+           const TargetLowering *Lowering) {
+    const TargetInfo TInfo(Lowering);
+    str(OpRt, OpAddress, Cond, TInfo);
+  }
 
   void sub(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
            bool SetFlags, CondARM32::Cond Cond);

@@ -765,7 +765,7 @@ void InstARM32Mov::emitIASSingleDestSingleSource(const Cfg *Func) const {
     if (isMemoryAccess(Src0)) {
       // TODO(kschimpf) Figure out how to do ldr on CoreVPFMove? (see
       // emitSingleDestSingleSource, local variable LoadOpcode).
-      return Asm->ldr(Dest, Src0, getPredicate());
+      return Asm->ldr(Dest, Src0, getPredicate(), Func->getTarget());
     }
     return Asm->mov(Dest, Src0, getPredicate());
   } else {
@@ -775,7 +775,7 @@ void InstARM32Mov::emitIASSingleDestSingleSource(const Cfg *Func) const {
     const bool CoreVFPMove = isMoveBetweenCoreAndVFPRegisters(Dest, Src0);
     if (Src0IsVector || Src0IsScalarFP || CoreVFPMove)
       return Asm->setNeedsTextFixup();
-    return Asm->str(Src0, Dest, getPredicate());
+    return Asm->str(Src0, Dest, getPredicate(), Func->getTarget());
   }
   Asm->setNeedsTextFixup();
 }
@@ -995,7 +995,7 @@ template <> void InstARM32Ldr::emitIAS(const Cfg *Func) const {
     // TODO(kschimpf) Handle case.
     Asm->setNeedsTextFixup();
   else
-    Asm->ldr(Dest, getSrc(0), getPredicate());
+    Asm->ldr(Dest, getSrc(0), getPredicate(), Func->getTarget());
   if (Asm->needsTextFixup())
     emitUsingTextFixup(Func);
 }
@@ -1364,7 +1364,7 @@ void InstARM32Str::emitIAS(const Cfg *Func) const {
     // TODO(kschimpf) Handle case.
     Asm->setNeedsTextFixup();
   else
-    Asm->str(getSrc(0), getSrc(1), getPredicate());
+    Asm->str(getSrc(0), getSrc(1), getPredicate(), Func->getTarget());
   if (Asm->needsTextFixup())
     emitUsingTextFixup(Func);
 }

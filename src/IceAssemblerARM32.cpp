@@ -233,18 +233,23 @@ IValueT decodeImmRegOffset(RegARM32::GPRRegister Reg, IOffsetT Offset,
 
 // Decodes memory address Opnd, and encodes that information into Value,
 // based on how ARM represents the address. Returns how the value was encoded.
-DecodedResult decodeAddress(const Operand *Opnd, IValueT &Value) {
+DecodedResult decodeAddress(const Operand *Opnd, IValueT &Value,
+                            const AssemblerARM32::TargetInfo &TInfo) {
   if (const auto *Var = llvm::dyn_cast<Variable>(Opnd)) {
     // Should be a stack variable, with an offset.
     if (Var->hasReg())
       return CantDecode;
-    const IOffsetT Offset = Var->getStackOffset();
+    IOffsetT Offset = Var->getStackOffset();
     if (!Utils::IsAbsoluteUint(12, Offset))
       return CantDecode;
-    RegARM32::GPRRegister BaseReg = RegARM32::Encoded_Reg_sp;
-    if (const auto *StackVar = llvm::dyn_cast<StackVariable>(Var))
-      BaseReg = decodeGPRRegister(StackVar->getBaseRegNum());
-    Value = decodeImmRegOffset(BaseReg, Offset, OperandARM32Mem::Offset);
+    int32_t BaseRegNum = Var->getBaseRegNum();
+    if (BaseRegNum == Variable::NoRegister) {
+      BaseRegNum = TInfo.FrameOrStackReg;
+      if (!TInfo.HasFramePointer)
+        Offset += TInfo.StackAdjustment;
+    }
+    Value = decodeImmRegOffset(decodeGPRRegister(BaseRegNum), Offset,
+                               OperandARM32Mem::Offset);
     return DecodedAsImmRegOffset;
   }
   if (const auto *Mem = llvm::dyn_cast<OperandARM32Mem>(Opnd)) {
@@ -695,12 +700,12 @@ void AssemblerARM32::eor(const Operand *OpRd, const Operand *OpRn,
 }
 
 void AssemblerARM32::ldr(const Operand *OpRt, const Operand *OpAddress,
-                         CondARM32::Cond Cond) {
+                         CondARM32::Cond Cond, const TargetInfo &TInfo) {
   IValueT Rt;
   if (decodeOperand(OpRt, Rt) != DecodedAsRegister)
     return setNeedsTextFixup();
   IValueT Address;
-  if (decodeAddress(OpAddress, Address) != DecodedAsImmRegOffset)
+  if (decodeAddress(OpAddress, Address, TInfo) != DecodedAsImmRegOffset)
     return setNeedsTextFixup();
   // LDR (immediate) - ARM section A8.8.63, encoding A1:
   //   ldr<c> <Rt>, [<Rn>{, #+/-<imm12>}]      ; p=1, w=0
@@ -877,12 +882,12 @@ void AssemblerARM32::sdiv(const Operand *OpRd, const Operand *OpRn,
 }
 
 void AssemblerARM32::str(const Operand *OpRt, const Operand *OpAddress,
-                         CondARM32::Cond Cond) {
+                         CondARM32::Cond Cond, const TargetInfo &TInfo) {
   IValueT Rt;
   if (decodeOperand(OpRt, Rt) != DecodedAsRegister)
     return setNeedsTextFixup();
   IValueT Address;
-  if (decodeAddress(OpAddress, Address) != DecodedAsImmRegOffset)
+  if (decodeAddress(OpAddress, Address, TInfo) != DecodedAsImmRegOffset)
     return setNeedsTextFixup();
   // STR (immediate) - ARM section A8.8.204, encoding A1:
   //   str<c> <Rt>, [<Rn>{, #+/-<imm12>}]      ; p=1, w=0
