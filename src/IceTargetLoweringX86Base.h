@@ -720,9 +720,11 @@ private:
   void lowerShift64(InstArithmetic::OpKind Op, Operand *Src0Lo, Operand *Src0Hi,
                     Operand *Src1Lo, Variable *DestLo, Variable *DestHi);
 
-  /// Emit the code for a combined compare and branch, or sets the destination
-  /// variable of the compare if branch is nullptr.
+  /// Emit the code for a combined operation and branch, or set the destination
+  /// variable of the operation if Br == nullptr.
   void lowerIcmpAndBr(const InstIcmp *Icmp, const InstBr *Br);
+  void lowerFcmpAndBr(const InstFcmp *Fcmp, const InstBr *Br);
+  void lowerArithAndBr(const InstArithmetic *Arith, const InstBr *Br);
 
   /// Emit a setcc instruction if Br == nullptr; otherwise emit a branch.
   void setccOrBr(typename Traits::Cond::BrCond Condition, Variable *Dest,

@@ -81,7 +81,8 @@ public:
     PK_Icmp32,
     PK_Icmp64,
     PK_Fcmp,
-    PK_Trunc
+    PK_Trunc,
+    PK_Arith  // A flag-setting arithmetic instruction.
   };
 
   /// Currently the actual enum values are not used (other than CK_None), but we
@@ -125,10 +126,21 @@ BoolFolding<MachineTraits>::getProducerKind(const Inst *Instr) {
       return PK_Icmp32;
     return PK_Icmp64;
   }
-  return PK_None; // TODO(stichnot): remove this
-
   if (llvm::isa<InstFcmp>(Instr))
     return PK_Fcmp;
+  if (auto *Arith = llvm::dyn_cast<InstArithmetic>(Instr)) {
+    if (MachineTraits::Is64Bit || Arith->getSrc(0)->getType() != IceType_i64) {
+      switch (Arith->getOp()) {
+      default:
+        return PK_None;
+      case InstArithmetic::And:
+      case InstArithmetic::Or:
+        return PK_Arith;
+      }
+    }
+  }
+  return PK_None; // TODO(stichnot): remove this
+
   if (auto *Cast = llvm::dyn_cast<InstCast>(Instr)) {
     switch (Cast->getCastKind()) {
     default:
@@ -1925,9 +1937,16 @@ void TargetX86Base<Machine>::lowerBr(const InstBr *Inst) {
       lowerIcmpAndBr(llvm::dyn_cast<InstIcmp>(Producer), Inst);
       return;
     }
+    case BoolFolding::PK_Fcmp: {
+      lowerFcmpAndBr(llvm::dyn_cast<InstFcmp>(Producer), Inst);
+      return;
+    }
+    case BoolFolding::PK_Arith: {
+      lowerArithAndBr(llvm::dyn_cast<InstArithmetic>(Producer), Inst);
+      return;
+    }
     }
   }
-
   Operand *Src0 = legalize(Cond, Legal_Reg | Legal_Mem);
   Constant *Zero = Ctx->getConstantZero(IceType_i32);
   _cmp(Src0, Zero);
@@ -2540,20 +2559,26 @@ void TargetX86Base<Machine>::lowerExtractElement(
 
 template <class Machine>
 void TargetX86Base<Machine>::lowerFcmp(const InstFcmp *Inst) {
+  constexpr InstBr *Br = nullptr;
+  lowerFcmpAndBr(Inst, Br);
+}
+
+template <class Machine>
+void TargetX86Base<Machine>::lowerFcmpAndBr(const InstFcmp *Inst,
+                                            const InstBr *Br) {
   Operand *Src0 = Inst->getSrc(0);
   Operand *Src1 = Inst->getSrc(1);
   Variable *Dest = Inst->getDest();
 
   if (isVectorType(Dest->getType())) {
+    if (Br)
+      llvm::report_fatal_error("vector compare/branch cannot be folded");
     InstFcmp::FCond Condition = Inst->getCondition();
     size_t Index = static_cast<size_t>(Condition);
     assert(Index < Traits::TableFcmpSize);
 
-    if (Traits::TableFcmp[Index].SwapVectorOperands) {
-      Operand *T = Src0;
-      Src0 = Src1;
-      Src1 = T;
-    }
+    if (Traits::TableFcmp[Index].SwapVectorOperands)
+      std::swap(Src0, Src1);
 
     Variable *T = nullptr;
 
@@ -2633,24 +2658,39 @@ void TargetX86Base<Machine>::lowerFcmp(const InstFcmp *Inst) {
     _ucomiss(T, Src1RM);
     if (!HasC2) {
       assert(Traits::TableFcmp[Index].Default);
-      _setcc(Dest, Traits::TableFcmp[Index].C1);
+      setccOrBr(Traits::TableFcmp[Index].C1, Dest, Br);
       return;
     }
   }
-  Constant *Default =
-      Ctx->getConstantInt(Dest->getType(), Traits::TableFcmp[Index].Default);
-  _mov(Dest, Default);
-  if (HasC1) {
-    typename Traits::Insts::Label *Label =
-        Traits::Insts::Label::create(Func, this);
-    _br(Traits::TableFcmp[Index].C1, Label);
-    if (HasC2) {
-      _br(Traits::TableFcmp[Index].C2, Label);
+  int32_t IntDefault = Traits::TableFcmp[Index].Default;
+  if (Br == nullptr) {
+    Constant *Default = Ctx->getConstantInt(Dest->getType(), IntDefault);
+    _mov(Dest, Default);
+    if (HasC1) {
+      typename Traits::Insts::Label *Label =
+          Traits::Insts::Label::create(Func, this);
+      _br(Traits::TableFcmp[Index].C1, Label);
+      if (HasC2) {
+        _br(Traits::TableFcmp[Index].C2, Label);
+      }
+      Constant *NonDefault = Ctx->getConstantInt(Dest->getType(), !IntDefault);
+      _mov_redefined(Dest, NonDefault);
+      Context.insert(Label);
     }
-    Constant *NonDefault =
-        Ctx->getConstantInt(Dest->getType(), !Traits::TableFcmp[Index].Default);
-    _mov_redefined(Dest, NonDefault);
-    Context.insert(Label);
+  } else {
+    CfgNode *TrueSucc = Br->getTargetTrue();
+    CfgNode *FalseSucc = Br->getTargetFalse();
+    if (IntDefault != 0)
+      std::swap(TrueSucc, FalseSucc);
+    if (HasC1) {
+      _br(Traits::TableFcmp[Index].C1, FalseSucc);
+      if (HasC2) {
+        _br(Traits::TableFcmp[Index].C2, FalseSucc);
+      }
+      _br(TrueSucc);
+      return;
+    }
+    _br(FalseSucc);
   }
 }
 
@@ -2957,6 +2997,37 @@ void TargetX86Base<Machine>::movOrBr(bool IcmpResult, Variable *Dest,
     _cmp(Dest, Ctx->getConstantInt(Dest->getType(), 0));
     _br(Traits::Cond::Br_ne, Br->getTargetTrue(), Br->getTargetFalse());
   }
+}
+
+template <class Machine>
+void TargetX86Base<Machine>::lowerArithAndBr(const InstArithmetic *Arith,
+                                             const InstBr *Br) {
+  Variable *T = nullptr;
+  Operand *Src0 = legalize(Arith->getSrc(0));
+  Operand *Src1 = legalize(Arith->getSrc(1));
+  Variable *Dest = Arith->getDest();
+  switch (Arith->getOp()) {
+  default:
+    llvm_unreachable("arithmetic operator not AND or OR");
+    break;
+  case InstArithmetic::And:
+    _mov(T, Src0);
+    // Test cannot have an address in the second position.  Since T is
+    // guaranteed to be a register and Src1 could be a memory load, ensure
+    // that the second argument is a register.
+    if (llvm::isa<Constant>(Src1))
+      _test(T, Src1);
+    else
+      _test(Src1, T);
+    break;
+  case InstArithmetic::Or:
+    _mov(T, Src0);
+    _or(T, Src1);
+    break;
+  }
+  Context.insert(InstFakeUse::create(Func, T));
+  Context.insert(InstFakeDef::create(Func, Dest));
+  _br(Traits::Cond::Br_ne, Br->getTargetTrue(), Br->getTargetFalse());
 }
 
 template <class Machine>

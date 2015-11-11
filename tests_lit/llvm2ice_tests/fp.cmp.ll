@@ -1,12 +1,10 @@
 ; This tries to be a comprehensive test of f32 and f64 compare operations.
-; The CHECK lines are only checking for basic instruction patterns
-; that should be present regardless of the optimization level, so
-; there are no special OPTM1 match lines.
 
 ; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 \
 ; RUN:   -allow-externally-defined-symbols | FileCheck %s
 ; RUN: %p2i --filetype=obj --disassemble -i %s --args -Om1 \
-; RUN:   -allow-externally-defined-symbols | FileCheck %s
+; RUN:   -allow-externally-defined-symbols | FileCheck %s \
+; RUN:   --check-prefix=CHECK-OM1
 
 ; RUN: %if --need=allow_dump --need=target_ARM32 --command %p2i --filetype=asm \
 ; RUN:   --target arm32 -i %s --args -O2 \
@@ -42,13 +40,21 @@ if.end3:                                          ; preds = %if.then2, %if.end
 }
 ; CHECK-LABEL: fcmpEq
 ; CHECK: ucomiss
-; CHECK: jne
+; CHECK-NEXT: jne
 ; CHECK-NEXT: jp
-; CHECK: call {{.*}} R_{{.*}} func
+; CHECK-NEXT: call {{.*}} R_{{.*}} func
 ; CHECK: ucomisd
-; CHECK: jne
+; CHECK-NEXT: jne
 ; CHECK-NEXT: jp
 ; CHECK: call {{.*}} R_{{.*}} func
+; CHECK-OM1-LABEL: fcmpEq
+; CHECK-OM1: ucomiss
+; CHECK-OM1: jne
+; CHECK-OM1-NEXT: jp
+; CHECK-OM1: call {{.*}} R_{{.*}} func
+; CHECK-OM1: ucomisd
+; CHECK-OM1: jne
+; CHECK-NEXT-OM1: jp
 ; ARM32-LABEL: fcmpEq
 ; ARM32: vcmp.f32
 ; ARM32: vmrs
@@ -86,13 +92,26 @@ if.end3:                                          ; preds = %if.then2, %if.end
 }
 ; CHECK-LABEL: fcmpNe
 ; CHECK: ucomiss
-; CHECK: jne
+; CHECK-NEXT: jne
 ; CHECK-NEXT: jp
-; CHECK: call {{.*}} R_{{.*}} func
+; CHECK-NEXT: jmp
+; CHECK-NEXT: call {{.*}} R_{{.*}} func
 ; CHECK: ucomisd
-; CHECK: jne
+; CHECK-NEXT: jne
 ; CHECK-NEXT: jp
-; CHECK: call {{.*}} R_{{.*}} func
+; CHECK-NEXT: jmp
+; CHECK-NEXT: call {{.*}} R_{{.*}} func
+; CHECK-OM1-LABEL: fcmpNe
+; CHECK-OM1: ucomiss
+; CHECK-OM1: jne
+; CHECK-OM1: jp
+; CHECK-OM1: jmp
+; CHECK-OM1: call {{.*}} R_{{.*}} func
+; CHECK-OM1: ucomisd
+; CHECK-OM1: jne
+; CHECK-OM1: jp
+; CHECK-OM1: jmp
+; CHECK-OM1: call {{.*}} R_{{.*}} func
 ; ARM32-LABEL: fcmpNe
 ; ARM32: vcmp.f32
 ; ARM32: vmrs
@@ -127,11 +146,18 @@ if.end3:                                          ; preds = %if.then2, %if.end
 }
 ; CHECK-LABEL: fcmpGt
 ; CHECK: ucomiss
-; CHECK: seta
-; CHECK: call {{.*}} R_{{.*}} func
+; CHECK-NEXT: jbe
+; CHECK-NEXT: call {{.*}} R_{{.*}} func
 ; CHECK: ucomisd
-; CHECK: seta
-; CHECK: call {{.*}} R_{{.*}} func
+; CHECK-NEXT: jbe
+; CHECK-NEXT: call {{.*}} R_{{.*}} func
+; CHECK-OM1-LABEL: fcmpGt
+; CHECK-OM1: ucomiss
+; CHECK-OM1: seta
+; CHECK-OM1: call {{.*}} R_{{.*}} func
+; CHECK-OM1: ucomisd
+; CHECK-OM1: seta
+; CHECK-OM1: call {{.*}} R_{{.*}} func
 ; ARM32-LABEL: fcmpGt
 ; ARM32: vcmp.f32
 ; ARM32: vmrs
@@ -166,11 +192,18 @@ if.end3:                                          ; preds = %if.end, %if.then2
 }
 ; CHECK-LABEL: fcmpGe
 ; CHECK: ucomiss
-; CHECK: setb
-; CHECK: call {{.*}} R_{{.*}} func
+; CHECK-NEXT: jb
+; CHECK-NEXT: call {{.*}} R_{{.*}} func
 ; CHECK: ucomisd
-; CHECK: setb
-; CHECK: call {{.*}} R_{{.*}} func
+; CHECK-NEXT: jb
+; CHECK-NEXT: call {{.*}} R_{{.*}} func
+; CHECK-OM1-LABEL: fcmpGe
+; CHECK-OM1: ucomiss
+; CHECK-OM1-NEXT: setb
+; CHECK-OM1: call {{.*}} R_{{.*}} func
+; CHECK-OM1: ucomisd
+; CHECK-OM1-NEXT: setb
+; CHECK-OM1: call {{.*}} R_{{.*}} func
 ; ARM32-LABEL: fcmpGe
 ; ARM32: vcmp.f32
 ; ARM32: vmrs
@@ -205,11 +238,18 @@ if.end3:                                          ; preds = %if.then2, %if.end
 }
 ; CHECK-LABEL: fcmpLt
 ; CHECK: ucomiss
-; CHECK: seta
-; CHECK: call {{.*}} R_{{.*}} func
+; CHECK-NEXT: jbe
+; CHECK-NEXT: call {{.*}} R_{{.*}} func
 ; CHECK: ucomisd
-; CHECK: seta
-; CHECK: call {{.*}} R_{{.*}} func
+; CHECK-NEXT: jbe
+; CHECK-NEXT: call {{.*}} R_{{.*}} func
+; CHECK-OM1-LABEL: fcmpLt
+; CHECK-OM1: ucomiss
+; CHECK-OM1-NEXT: seta
+; CHECK-OM1: call {{.*}} R_{{.*}} func
+; CHECK-OM1: ucomisd
+; CHECK-OM1-NEXT: seta
+; CHECK-OM1: call {{.*}} R_{{.*}} func
 ; ARM32-LABEL: fcmpLt
 ; ARM32: vcmp.f32
 ; ARM32: vmrs
@@ -244,11 +284,18 @@ if.end3:                                          ; preds = %if.end, %if.then2
 }
 ; CHECK-LABEL: fcmpLe
 ; CHECK: ucomiss
-; CHECK: setb
-; CHECK: call {{.*}} R_{{.*}} func
+; CHECK-NEXT: jb
+; CHECK-NEXT: call {{.*}} R_{{.*}} func
 ; CHECK: ucomisd
-; CHECK: setb
-; CHECK: call {{.*}} R_{{.*}} func
+; CHECK-NEXT: jb
+; CHECK-NEXT: call {{.*}} R_{{.*}} func
+; CHECK-OM1-LABEL: fcmpLe
+; CHECK-OM1: ucomiss
+; CHECK-OM1-NEXT: setb
+; CHECK-OM1: call {{.*}} R_{{.*}} func
+; CHECK-OM1: ucomisd
+; CHECK-OM1-NEXT: setb
+; CHECK-OM1: call {{.*}} R_{{.*}} func
 ; ARM32-LABEL: fcmpLe
 ; ARM32: vcmp.f32
 ; ARM32: vmrs
