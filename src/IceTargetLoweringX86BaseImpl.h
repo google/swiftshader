@@ -82,7 +82,7 @@ public:
     PK_Icmp64,
     PK_Fcmp,
     PK_Trunc,
-    PK_Arith  // A flag-setting arithmetic instruction.
+    PK_Arith // A flag-setting arithmetic instruction.
   };
 
   /// Currently the actual enum values are not used (other than CK_None), but we

@@ -17,7 +17,6 @@
 #ifndef SUBZERO_SRC_ICETLS_H
 #define SUBZERO_SRC_ICETLS_H
 
-
 ///
 /// @defgroup /IceTLS Defines 5 macros for unifying thread_local and pthread:
 /// @{
@@ -95,7 +94,6 @@
 #else // !_MSC_VER
 #define ICE_ATTRIBUTE_TLS thread_local
 #endif // !_MSC_VER
-
 
 #define ICE_TLS_DECLARE_FIELD(Type, FieldName)                                 \
   static ICE_ATTRIBUTE_TLS Type FieldName

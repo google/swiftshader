@@ -850,10 +850,7 @@ entry:
 
 ; ARM32-LABEL: trunc64To1
 ; ARM32-OM1: and r0, r0, #1
-; ARM32-OM1: and r0, r0, #1
-; ARM32-O2: tst r0, #1
-; ARM32-O2: moveq [[RES:r[0-9]+]], #0
-; ARM32-O2: movne [[RES]], #1
+; ARM32-O2: and r0, r0, #1
 
 define internal i64 @sext32To64(i32 %a) {
 entry:
@@ -924,12 +921,10 @@ entry:
 ; OPTM1: sar {{.*}},0x1f
 
 ; ARM32-LABEL: sext1To64
-; ARM32-OM1: lsl {{.*}}, #31
-; ARM32-OM1: asr {{.*}}, #31
-; ARM32-O2: tst r0, #1
-; ARM32-O2: mvn [[M1:r[0-9]+]], #0
-; ARM32-O2: moveq [[RES:r[0-9]+]], #0
-; ARM32-O2: movne [[RES]], [[M1]]
+; ARM32: mov {{.*}}, #0
+; ARM32: tst {{.*}}, #1
+; ARM32: mvn {{.*}}, #0
+; ARM32: movne
 
 define internal i64 @zext32To64(i32 %a) {
 entry:
@@ -998,11 +993,9 @@ entry:
 ; OPTM1: mov {{.*}},0x0
 
 ; ARM32-LABEL: zext1To64
-; ARM32-OM1: and {{.*}}, #1
-; ARM32-OM1: mov {{.*}}, #0
-; ARM32-O2: tst r0, #1
-; ARM32-O2: moveq {{[^,]*}}, #0
-; ARM32-O2: movne {{[^,]*}}, #1
+; ARM32: and {{.*}}, #1
+; ARM32: mov {{.*}}, #0
+; ARM32: bx
 
 define internal void @icmpEq64(i64 %a, i64 %b, i64 %c, i64 %d) {
 entry:
@@ -1061,18 +1054,15 @@ if.end3:                                          ; preds = %if.then2, %if.end
 ; ARM32-LABEL: icmpEq64
 ; ARM32: cmp
 ; ARM32: cmpeq
-; ARM32-OM1: movne
-; ARM32-OM1: moveq
-; ARM32-OM1: cmp
-; ARM32-O2: bne
-; ARM32: bl
+; ARM32-OM1: tst
+; ARM32: bne
+; ARM32: bl {{.*}} <func>
 ; ARM32: cmp
 ; ARM32: cmpeq
-; ARM32-OM1: movne
-; ARM32-OM1: moveq
-; ARM32-OM1: cmp
-; ARM32-O2: bne
-; ARM32: bl
+; ARM32-OM1: tst
+; ARM32: bne
+; ARM32: bl {{.*}} <func>
+; ARM32: bx
 
 declare void @func()
 
@@ -1133,16 +1123,14 @@ if.end3:                                          ; preds = %if.end, %if.then2
 ; ARM32-LABEL: icmpNe64
 ; ARM32: cmp
 ; ARM32: cmpeq
-; ARM32-OM1: moveq
-; ARM32-OM1: movne
-; ARM32-OM1: cmp
+; ARM32-OM1: tst
+; ARM32-OM1: bne
 ; ARM32-O2: beq
-; ARM32: bl
+; ARM32: bl {{.*}} <func>
 ; ARM32: cmp
 ; ARM32: cmpeq
-; ARM32-OM1: moveq
-; ARM32-OM1: movne
-; ARM32-OM1: cmp
+; ARM32-OM1: tst
+; ARM32-OM1: bne
 ; ARM32-O2: beq
 ; ARM32: bl
 
@@ -1189,16 +1177,14 @@ if.end3:                                          ; preds = %if.then2, %if.end
 ; ARM32-LABEL: icmpGt64
 ; ARM32: cmp
 ; ARM32: cmpeq
-; ARM32-OM1: movls
-; ARM32-OM1: movhi
-; ARM32-OM1: cmp
+; ARM32-OM1: tst
+; ARM32-OM1: bne
 ; ARM32-O2: bls
 ; ARM32: bl
 ; ARM32: cmp
 ; ARM32: sbcs
-; ARM32-OM1: movge
-; ARM32-OM1: movlt
-; ARM32-OM1: cmp
+; ARM32-OM1: tst
+; ARM32-OM1: bne
 ; ARM32-O2: bge
 ; ARM32: bl
 
@@ -1245,16 +1231,14 @@ if.end3:                                          ; preds = %if.end, %if.then2
 ; ARM32-LABEL: icmpGe64
 ; ARM32: cmp
 ; ARM32: cmpeq
-; ARM32-OM1: movcc
-; ARM32-OM1: movcs
-; ARM32-OM1: cmp
+; ARM32-OM1: tst
+; ARM32-OM1: bne
 ; ARM32-O2: bcc
 ; ARM32: bl
 ; ARM32: cmp
 ; ARM32: sbcs
-; ARM32-OM1: movlt
-; ARM32-OM1: movge
-; ARM32-OM1: cmp
+; ARM32-OM1: tst
+; ARM32-OM1: bne
 ; ARM32-O2: blt
 ; ARM32: bl
 
@@ -1301,16 +1285,14 @@ if.end3:                                          ; preds = %if.then2, %if.end
 ; ARM32-LABEL: icmpLt64
 ; ARM32: cmp
 ; ARM32: cmpeq
-; ARM32-OM1: movcs
-; ARM32-OM1: movcc
-; ARM32-OM1: cmp
+; ARM32-OM1: tst
+; ARM32-OM1: bne
 ; ARM32-O2: bcs
 ; ARM32: bl
 ; ARM32: cmp
 ; ARM32: sbcs
-; ARM32-OM1: movge
-; ARM32-OM1: movlt
-; ARM32-OM1: cmp
+; ARM32-OM1: tst
+; ARM32-OM1: bne
 ; ARM32-O2: bge
 ; ARM32: bl
 
@@ -1357,15 +1339,14 @@ if.end3:                                          ; preds = %if.end, %if.then2
 ; ARM32-LABEL: icmpLe64
 ; ARM32: cmp
 ; ARM32: cmpeq
-; ARM32-OM1: movhi
-; ARM32-OM1: movls
-; ARM32-OM1: cmp
+; ARM32-OM1: tst
+; ARM32-OM1: bne
 ; ARM32-O2: bhi
 ; ARM32: bl
 ; ARM32: cmp
 ; ARM32: sbcs
-; ARM32-OM1: movlt
-; ARM32-OM1: movge
+; ARM32-OM1: tst
+; ARM32-OM1: bne
 ; ARM32-O2: blt
 ; ARM32: bl
 
@@ -1384,7 +1365,7 @@ entry:
 ; OPTM1: je
 
 ; ARM32-LABEL: icmpEq64Bool
-; ARM32: movne
+; ARM32: mov
 ; ARM32: moveq
 
 define internal i32 @icmpNe64Bool(i64 %a, i64 %b) {
@@ -1402,7 +1383,7 @@ entry:
 ; OPTM1: jne
 
 ; ARM32-LABEL: icmpNe64Bool
-; ARM32: moveq
+; ARM32: mov
 ; ARM32: movne
 
 define internal i32 @icmpSgt64Bool(i64 %a, i64 %b) {
@@ -1426,9 +1407,9 @@ entry:
 ; OPTM1: ja
 
 ; ARM32-LABEL: icmpSgt64Bool
+; ARM32: mov
 ; ARM32: cmp
 ; ARM32: sbcs
-; ARM32: movge
 ; ARM32: movlt
 
 define internal i32 @icmpUgt64Bool(i64 %a, i64 %b) {
@@ -1452,9 +1433,9 @@ entry:
 ; OPTM1: ja
 
 ; ARM32-LABEL: icmpUgt64Bool
+; ARM32: mov
 ; ARM32: cmp
 ; ARM32: cmpeq
-; ARM32: movls
 ; ARM32: movhi
 
 define internal i32 @icmpSge64Bool(i64 %a, i64 %b) {
@@ -1478,9 +1459,9 @@ entry:
 ; OPTM1: jae
 
 ; ARM32-LABEL: icmpSge64Bool
+; ARM32: mov
 ; ARM32: cmp
 ; ARM32: sbcs
-; ARM32: movlt
 ; ARM32: movge
 
 define internal i32 @icmpUge64Bool(i64 %a, i64 %b) {
@@ -1504,9 +1485,9 @@ entry:
 ; OPTM1: jae
 
 ; ARM32-LABEL: icmpUge64Bool
+; ARM32: mov
 ; ARM32: cmp
 ; ARM32: cmpeq
-; ARM32: movcc
 ; ARM32: movcs
 
 define internal i32 @icmpSlt64Bool(i64 %a, i64 %b) {
@@ -1530,9 +1511,9 @@ entry:
 ; OPTM1: jb
 
 ; ARM32-LABEL: icmpSlt64Bool
+; ARM32: mov
 ; ARM32: cmp
 ; ARM32: sbcs
-; ARM32: movge
 ; ARM32: movlt
 
 define internal i32 @icmpUlt64Bool(i64 %a, i64 %b) {
@@ -1556,9 +1537,9 @@ entry:
 ; OPTM1: jb
 
 ; ARM32-LABEL: icmpUlt64Bool
+; ARM32: mov
 ; ARM32: cmp
 ; ARM32: cmpeq
-; ARM32: movcs
 ; ARM32: movcc
 
 define internal i32 @icmpSle64Bool(i64 %a, i64 %b) {
@@ -1582,9 +1563,9 @@ entry:
 ; OPTM1: jbe
 
 ; ARM32-LABEL: icmpSle64Bool
+; ARM32: mov
 ; ARM32: cmp
 ; ARM32: sbcs
-; ARM32: movlt
 ; ARM32: movge
 
 define internal i32 @icmpUle64Bool(i64 %a, i64 %b) {
@@ -1608,9 +1589,9 @@ entry:
 ; OPTM1: jbe
 
 ; ARM32-LABEL: icmpUle64Bool
+; ARM32: mov
 ; ARM32: cmp
 ; ARM32: cmpeq
-; ARM32: movhi
 ; ARM32: movls
 
 define internal i64 @load64(i32 %a) {
@@ -1701,9 +1682,7 @@ entry:
 ; ARM32-LABEL: select64VarVar
 ; ARM32: cmp
 ; ARM32: cmpeq
-; ARM32-OM1: movcs
-; ARM32-OM1: movcc
-; ARM32-OM1: cmp
+; ARM32-OM1: tst
 ; ARM32-OM1: movne
 ; ARM32-O2: movcc
 ; ARM32-OM1: movne
@@ -1734,19 +1713,17 @@ entry:
 ; OPTM1: cmovne
 
 ; ARM32-LABEL: select64VarConst
+; ARM32: mov
+; ARM32: mov
 ; ARM32: cmp
 ; ARM32: cmpeq
-; ARM32-OM1: movcs
-; ARM32-OM1: movcc
-; ARM32-OM1: cmp
-; ARM32: movw
-; ARM32: movt
+; ARM32-OM1: tst
 ; ARM32-OM1: movne
 ; ARM32-O2: movcc
-; ARM32: movw
-; ARM32: movt
 ; ARM32-OM1: movne
 ; ARM32-O2: movcc
+; ARM32-O2: mov
+; ARM32-O2: mov
 
 define internal i64 @select64ConstVar(i64 %a, i64 %b) {
 entry:
@@ -1775,9 +1752,7 @@ entry:
 ; ARM32-LABEL: select64ConstVar
 ; ARM32: cmp
 ; ARM32: cmpeq
-; ARM32-OM1: movcs
-; ARM32-OM1: movcc
-; ARM32-OM1: cmp
+; ARM32-OM1: tst
 ; ARM32: movw
 ; ARM32: movt
 ; ARM32-OM1: movne

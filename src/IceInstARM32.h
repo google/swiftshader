@@ -1136,6 +1136,7 @@ public:
   }
   bool isRedundantAssign() const override {
     return !isMultiDest() && !isMultiSource() &&
+           getPredicate() == CondARM32::AL &&
            checkForRedundantAssign(getDest(), getSrc(0));
   }
   bool isVarAssign() const override { return llvm::isa<Variable>(getSrc(0)); }

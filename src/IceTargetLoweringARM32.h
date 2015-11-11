@@ -135,19 +135,52 @@ protected:
 
   void postLower() override;
 
+  enum SafeBoolChain {
+    SBC_No,
+    SBC_Yes,
+  };
+
   void lowerAlloca(const InstAlloca *Inst) override;
+  SafeBoolChain lowerInt1Arithmetic(const InstArithmetic *Inst);
   void lowerArithmetic(const InstArithmetic *Inst) override;
   void lowerAssign(const InstAssign *Inst) override;
   void lowerBr(const InstBr *Inst) override;
   void lowerCall(const InstCall *Inst) override;
   void lowerCast(const InstCast *Inst) override;
   void lowerExtractElement(const InstExtractElement *Inst) override;
-  void lowerFcmpCond(const InstFcmp *Instr, CondARM32::Cond *CondIfTrue0,
-                     CondARM32::Cond *CondIfTrue1,
-                     CondARM32::Cond *CondIfFalse);
+
+  /// CondWhenTrue is a helper type returned by every method in the lowering
+  /// that emits code to set the condition codes.
+  class CondWhenTrue {
+  public:
+    explicit CondWhenTrue(CondARM32::Cond T0,
+                          CondARM32::Cond T1 = CondARM32::kNone)
+        : WhenTrue0(T0), WhenTrue1(T1) {
+      assert(T1 == CondARM32::kNone || T0 != CondARM32::kNone);
+      assert(T1 != T0 || T0 == CondARM32::kNone);
+    }
+    CondARM32::Cond WhenTrue0;
+    CondARM32::Cond WhenTrue1;
+
+    /// invert returns a new object with WhenTrue0 and WhenTrue1 inverted.
+    CondWhenTrue invert() const {
+      switch (WhenTrue0) {
+      default:
+        if (WhenTrue1 == CondARM32::kNone)
+          return CondWhenTrue(InstARM32::getOppositeCondition(WhenTrue0));
+        return CondWhenTrue(InstARM32::getOppositeCondition(WhenTrue0),
+                            InstARM32::getOppositeCondition(WhenTrue1));
+      case CondARM32::AL:
+        return CondWhenTrue(CondARM32::kNone);
+      case CondARM32::kNone:
+        return CondWhenTrue(CondARM32::AL);
+      }
+    }
+  };
+
+  CondWhenTrue lowerFcmpCond(const InstFcmp *Instr);
   void lowerFcmp(const InstFcmp *Instr) override;
-  void lowerIcmpCond(const InstIcmp *Instr, CondARM32::Cond *CondIfTrue,
-                     CondARM32::Cond *CondIfFalse);
+  CondWhenTrue lowerIcmpCond(const InstIcmp *Instr);
   void lowerIcmp(const InstIcmp *Instr) override;
   void lowerAtomicRMW(Variable *Dest, uint32_t Operation, Operand *Ptr,
                       Operand *Val);
@@ -334,58 +367,232 @@ protected:
     }
   }
 
-  // _mov_i1_to_flags is used for bool folding. If "Boolean" is folded, this
-  // method returns true, and sets "CondIfTrue0" and "CondIfTrue1" to the
-  // appropriate ARM condition codes. If "Boolean" is not to be folded, then
-  // this method returns false.
-  bool _mov_i1_to_flags(Operand *Boolean, CondARM32::Cond *CondIfTrue0,
-                        CondARM32::Cond *CondIfTrue1,
-                        CondARM32::Cond *CondIfFalse);
+  // --------------------------------------------------------------------------
+  // Begin bool folding machinery.
+  //
+  // There are three types of boolean lowerings handled by this target:
+  //
+  // 1) Boolean expressions leading to a boolean Variable definition
+  // ---------------------------------------------------------------
+  //
+  // Whenever a i1 Variable is live out (i.e., its live range extends beyond
+  // the defining basic block) we do not fold the operation. We instead
+  // materialize (i.e., compute) the variable normally, so that it can be used
+  // when needed. We also materialize i1 values that are not single use to
+  // avoid code duplication. These expressions are not short circuited.
+  //
+  // 2) Boolean expressions leading to a select
+  // ------------------------------------------
+  //
+  // These include boolean chains leading to a select instruction, as well as
+  // i1 Sexts. These boolean expressions are lowered to:
+  //
+  // mov T, <false value>
+  // CC <- eval(Boolean Expression)
+  // movCC T, <true value>
+  //
+  // For Sexts, <false value> is 0, and <true value> is -1.
+  //
+  // 3) Boolean expressions leading to a br i1
+  // -----------------------------------------
+  //
+  // These are the boolean chains leading to a branch. These chains are
+  // short-circuited, i.e.:
+  //
+  //   A = or i1 B, C
+  //   br i1 A, label %T, label %F
+  //
+  // becomes
+  //
+  //   tst B
+  //   jne %T
+  //   tst B
+  //   jne %T
+  //   j %F
+  //
+  // and
+  //
+  //   A = and i1 B, C
+  //   br i1 A, label %T, label %F
+  //
+  // becomes
+  //
+  //   tst B
+  //   jeq %F
+  //   tst B
+  //   jeq %F
+  //   j %T
+  //
+  // Arbitrarily long chains are short circuited, e.g
+  //
+  //   A = or  i1 B, C
+  //   D = and i1 A, E
+  //   F = and i1 G, H
+  //   I = or i1 D, F
+  //   br i1 I, label %True, label %False
+  //
+  // becomes
+  //
+  // Label[A]:
+  //   tst B, 1
+  //   bne Label[D]
+  //   tst C, 1
+  //   beq Label[I]
+  // Label[D]:
+  //   tst E, 1
+  //   bne %True
+  // Label[I]
+  //   tst G, 1
+  //   beq %False
+  //   tst H, 1
+  //   beq %False (bne %True)
 
-  // _cmov is a pseudo instruction that is used for boolean folding. It emits
-  // code that moves "SrcIfTrue" to dest if either "CondIfTrue0" or
-  // "CondIfTrue1" holds, and "SrcIfFalse", if "CondIfFalse" holds. It requires
-  // "Dest" to be an infinite-weight temporary.
-  void _cmov(Variable *Dest, Operand *SrcIfTrue, CondARM32::Cond CondIfTrue0,
-             CondARM32::Cond CondIfTrue1, Operand *SrcIfFalse,
-             CondARM32::Cond CondIfFalse) {
-    assert(Dest->mustHaveReg());
+  /// lowerInt1 materializes Boolean to a Variable.
+  SafeBoolChain lowerInt1(Variable *Dest, Operand *Boolean);
 
-    if (CondIfFalse == CondARM32::kNone) {
-      assert(CondIfTrue0 == CondARM32::AL);
-      assert(CondIfTrue1 == CondARM32::kNone);
+  /// lowerInt1ForSelect generates the following instruction sequence:
+  ///
+  ///   mov T, FalseValue
+  ///   CC <- eval(Boolean)
+  ///   movCC T, TrueValue
+  ///   mov Dest, T
+  ///
+  /// It is used for lowering select i1, as well as i1 Sext.
+  void lowerInt1ForSelect(Variable *Dest, Operand *Boolean, Operand *TrueValue,
+                          Operand *FalseValue);
+
+  /// LowerInt1BranchTarget is used by lowerIntForBranch. It wraps a CfgNode, or
+  /// an InstARM32Label (but never both) so that, during br i1 lowering, we can
+  /// create auxiliary labels for short circuiting the condition evaluation.
+  class LowerInt1BranchTarget {
+  public:
+    explicit LowerInt1BranchTarget(CfgNode *const Target)
+        : NodeTarget(Target) {}
+    explicit LowerInt1BranchTarget(InstARM32Label *const Target)
+        : LabelTarget(Target) {}
+
+    /// createForLabelOrDuplicate will return a new LowerInt1BranchTarget that
+    /// is the exact copy of this if Label is nullptr; otherwise, the returned
+    /// object will wrap Label instead.
+    LowerInt1BranchTarget
+    createForLabelOrDuplicate(InstARM32Label *Label) const {
+      if (Label != nullptr)
+        return LowerInt1BranchTarget(Label);
+      if (NodeTarget)
+        return LowerInt1BranchTarget(NodeTarget);
+      return LowerInt1BranchTarget(LabelTarget);
     }
 
-    if (CondIfTrue0 == CondARM32::kNone) {
-      assert(CondIfFalse == CondARM32::AL);
-      assert(CondIfTrue1 == CondARM32::kNone);
-    }
+    CfgNode *const NodeTarget = nullptr;
+    InstARM32Label *const LabelTarget = nullptr;
+  };
 
-    if (CondIfTrue1 != CondARM32::kNone) {
-      assert(CondIfFalse == CondARM32::AL);
-      assert(CondIfTrue1 != CondARM32::kNone);
-    }
+  /// LowerInt1AllowShortCircuit is a helper type used by lowerInt1ForBranch for
+  /// determining which type arithmetic is allowed to be short circuited. This
+  /// is useful for lowering
+  ///
+  ///   t1 = and i1 A, B
+  ///   t2 = and i1 t1, C
+  ///   br i1 t2, label %False, label %True
+  ///
+  /// to
+  ///
+  ///   tst A, 1
+  ///   beq %False
+  ///   tst B, 1
+  ///   beq %False
+  ///   tst C, 1
+  ///   bne %True
+  ///   b %False
+  ///
+  /// Without this information, short circuiting would only allow to short
+  /// circuit a single high level instruction. For example:
+  ///
+  ///   t1 = or i1 A, B
+  ///   t2 = and i1 t1, C
+  ///   br i1 t2, label %False, label %True
+  ///
+  /// cannot be lowered to
+  ///
+  ///   tst A, 1
+  ///   bne %True
+  ///   tst B, 1
+  ///   bne %True
+  ///   tst C, 1
+  ///   beq %True
+  ///   b %False
+  ///
+  /// It needs to be lowered to
+  ///
+  ///   tst A, 1
+  ///   bne Aux
+  ///   tst B, 1
+  ///   beq %False
+  /// Aux:
+  ///   tst C, 1
+  ///   bne %True
+  ///   b %False
+  ///
+  /// TODO(jpp): evaluate if this kind of short circuiting hurts performance (it
+  /// might.)
+  enum LowerInt1AllowShortCircuit {
+    SC_And = 1,
+    SC_Or = 2,
+    SC_All = SC_And | SC_Or,
+  };
 
-    bool RedefineT = false;
-    if (CondIfFalse != CondARM32::kNone) {
-      _mov(Dest, SrcIfFalse, CondIfFalse);
-      RedefineT = true;
-    }
+  /// ShortCircuitCondAndLabel wraps the condition codes that should be used
+  /// after a lowerInt1ForBranch returns to branch to the
+  /// TrueTarget/FalseTarget. If ShortCircuitLabel is not nullptr, then the
+  /// called lowerInt1forBranch created an internal (i.e., short-circuit) label
+  /// used for short circuiting.
+  class ShortCircuitCondAndLabel {
+  public:
+    explicit ShortCircuitCondAndLabel(CondWhenTrue &&C,
+                                      InstARM32Label *L = nullptr)
+        : Cond(std::move(C)), ShortCircuitTarget(L) {}
+    const CondWhenTrue Cond;
+    InstARM32Label *const ShortCircuitTarget;
 
-    if (CondIfTrue0 != CondARM32::kNone) {
-      if (RedefineT) {
-        _mov_redefined(Dest, SrcIfTrue, CondIfTrue0);
-      } else {
-        _mov(Dest, SrcIfTrue, CondIfTrue0);
-      }
-      RedefineT = true;
+    CondWhenTrue assertNoLabelAndReturnCond() const {
+      assert(ShortCircuitTarget == nullptr);
+      return Cond;
     }
+  };
 
-    if (CondIfTrue1 != CondARM32::kNone) {
-      assert(RedefineT);
-      _mov_redefined(Dest, SrcIfTrue, CondIfTrue1);
+  /// lowerInt1ForBranch expands Boolean, and returns the condition codes that
+  /// are to be used for branching to the branch's TrueTarget. It may return a
+  /// label that the expansion of Boolean used to short circuit the chain's
+  /// evaluation.
+  ShortCircuitCondAndLabel
+  lowerInt1ForBranch(Operand *Boolean, const LowerInt1BranchTarget &TargetTrue,
+                     const LowerInt1BranchTarget &TargetFalse,
+                     uint32_t ShortCircuitable);
+
+  // _br is a convenience wrapper that emits br instructions to Target.
+  void _br(const LowerInt1BranchTarget &BrTarget,
+           CondARM32::Cond Cond = CondARM32::AL) {
+    assert((BrTarget.NodeTarget == nullptr) !=
+           (BrTarget.LabelTarget == nullptr));
+    if (BrTarget.NodeTarget != nullptr)
+      _br(BrTarget.NodeTarget, Cond);
+    else
+      _br(BrTarget.LabelTarget, Cond);
+  }
+
+  // _br_short_circuit is used when lowering InstArithmetic::And and
+  // InstArithmetic::Or and a short circuit branch is needed.
+  void _br_short_circuit(const LowerInt1BranchTarget &Target,
+                         const CondWhenTrue &Cond) {
+    if (Cond.WhenTrue1 != CondARM32::kNone) {
+      _br(Target, Cond.WhenTrue1);
+    }
+    if (Cond.WhenTrue0 != CondARM32::kNone) {
+      _br(Target, Cond.WhenTrue0);
     }
   }
+  // End of bool folding machinery
+  // --------------------------------------------------------------------------
 
   /// The Operand can only be a 16-bit immediate or a ConstantRelocatable (with
   /// an upper16 relocation).
@@ -628,9 +835,6 @@ private:
   OperandARM32Mem *formAddressingMode(Type Ty, Cfg *Func, const Inst *LdSt,
                                       Operand *Base);
 
-  void lowerTruncToFlags(Operand *Src, CondARM32::Cond *CondIfTrue,
-                         CondARM32::Cond *CondIfFalse);
-
   class BoolComputationTracker {
   public:
     BoolComputationTracker() = default;
@@ -658,7 +862,7 @@ private:
         return;
       OstreamLocker L(Func->getContext());
       Ostream &Str = Func->getContext()->getStrDump();
-      Str << "foldable producer:\n  ";
+      Str << "foldable producer:\n";
       for (const auto &Computation : KnownComputations) {
         Str << "    ";
         Computation.second.Instr->dump(Func);
@@ -679,6 +883,7 @@ private:
       // Om1 mode) IsLiveOut will never be set to false, and folding will be
       // disabled.
       bool IsLiveOut = true;
+      int32_t NumUses = 0;
     };
 
     using BoolComputationMap = std::unordered_map<SizeT, BoolComputationEntry>;

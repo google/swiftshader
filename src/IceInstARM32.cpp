@@ -882,7 +882,7 @@ void InstARM32Br::dump(const Cfg *Func) const {
   }
 
   if (Label) {
-    Str << "label %" << Label->getName(Func);
+    Str << getPredicate() << ", label %" << Label->getName(Func);
   } else {
     Str << getPredicate() << ", label %" << getTargetTrue()->getName();
     if (getTargetFalse()) {

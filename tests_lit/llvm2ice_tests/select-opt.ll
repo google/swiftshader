@@ -51,14 +51,12 @@ declare void @useInt(i32 %x)
 ; CHECK:      ret
 ; ARM32-LABEL: testSelect
 ; ARM32: cmp
-; ARM32-OM1: cmp
 ; ARM32: bl {{.*}} useInt
-; ARM32: cmp
-; ARM32-Om1: cmp
 ; ARM32-Om1: mov {{.*}}, #20
+; ARM32-O2: mov [[REG:r[0-9]+]], #20
+; ARM32: tst
 ; ARM32-Om1: movne {{.*}}, #10
-; ARM32-O2: movle [[REG:r[0-9]+]], #20
-; ARM32-O2: movgt [[REG]], #10
+; ARM32-O2: movne [[REG]], #10
 ; ARM32: bl {{.*}} useInt
 ; ARM32: bl {{.*}} useInt
 ; ARM32: bl {{.*}} useInt

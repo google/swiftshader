@@ -85,7 +85,7 @@ branch2:
 ; ARM32-LABEL: no_fold_cmp_br_liveout
 ; ARM32: cmp
 ; ARM32: movlt [[REG:r[0-9]+]]
-; ARM32: cmp [[REG]], #0
+; ARM32: tst [[REG]], #1
 ; ARM32: beq
 
 
@@ -108,11 +108,11 @@ branch2:
 ; CHECK: cmp
 ; CHECK: je
 ; ARM32-LABEL: no_fold_cmp_br_non_whitelist
+; ARM32: mov [[R:r[0-9]+]], #0
 ; ARM32: cmp r0, r1
-; ARM32: movge [[R:r[0-9]+]], #0
 ; ARM32: movlt [[R]], #1
-; ARM32: cmp r0, r1
-; ARM32: bge
+; ARM32: tst [[R]], #1
+; ARM32: beq
 ; ARM32: bx lr
 ; ARM32: mov r0, #2
 ; ARM32: bx lr
@@ -168,10 +168,10 @@ entry:
 ; CHECK: cmovl
 ; CHECK: cmovl
 ; ARM32-LABEL: fold_cmp_select_64_undef
+; ARM32: mov
+; ARM32: mov
 ; ARM32: cmp {{r[0-9]+}}, r0
-; ARM32: movge
 ; ARM32: movlt
-; ARM32: movge
 ; ARM32: movlt
 ; ARM32: bx lr
 
@@ -218,14 +218,17 @@ entry:
 ; CHECK: add
 ; CHECK: add
 ; ARM32-LABEL: fold_cmp_select_multi
-; ARM32: cmp r0, r1
-; ARM32: movlt {{r[0-9]+}}, r0
-; ARM32: cmp r0, r1
-; ARM32: movlt {{r[0-9]+}}, r1
-; ARM32: cmp r0, r1
-; ARM32: movlt {{r[0-9]+}}, #123
-; ARM32: add
-; ARM32: add
+; ARM32: mov
+; ARM32: cmp
+; ARM32: movlt {{.*}}, #1
+; ARM32: mov
+; ARM32: tst {{.*}}, #1
+; ARM32: movne
+; ARM32: mov
+; ARM32: tst {{.*}}, #1
+; ARM32: movne
+; ARM32: tst {{.*}}, #1
+; ARM32: movne {{.*}}, #123
 ; ARM32: bx lr
 
 
@@ -254,22 +257,17 @@ next:
 ; CHECK: add
 ; CHECK: add
 ; ARM32-LABEL: no_fold_cmp_select_multi_liveout
-; ARM32-LABEL: fold_cmp_select_multi
+; ARM32: mov
 ; ARM32: cmp r0, r1
-; ARM32: movge [[T0:r[0-9]+]], #0
-; ARM32: movlt [[T0]], #1
-; ARM32: uxtb [[T1:r[0-9]+]], [[T1]]
-; ARM32-NEXT: cmp [[T1]], #0
-; ARM32: movne [[T2:r[0-9]+]], r0
-; ARM32: uxtb [[T3:r[0-9]+]], [[T3]]
-; ARM32-NEXT: cmp [[T3]], #0
-; ARM32: movne [[T4:r[0-9]+]], r1
-; ARM32-LABEL: .Lno_fold_cmp_select_multi_liveout$next:
-; ARM32: uxtb [[T5:r[0-9]+]], [[T5]]
-; ARM32: cmp [[T5]], #0
-; ARM32: movne [[T6:r[0-9]+]], #123
-; ARM32: add
-; ARM32: add
+; ARM32: movlt
+; ARM32: mov
+; ARM32: tst
+; ARM32: movne
+; ARM32: mov
+; ARM32: tst
+; ARM32: movne
+; ARM32: tst
+; ARM32: movne
 ; ARM32: bx lr
 
 ; Cmp/multi-select non-folding because of extra non-whitelisted uses.
@@ -300,19 +298,133 @@ entry:
 ; CHECK: add
 ; CHECK: add
 ; ARM32-LABEL: no_fold_cmp_select_multi_non_whitelist
+; ARM32: mov
 ; ARM32: cmp r0, r1
-; ARM32: movge [[R0:r[0-9]+]]
-; ARM32: movlt [[R0]]
-; ARM32: cmp r0, r1
-; ARM32: movge [[R1:r[0-9]+]]
-; ARM32: movlt [[R1]]
-; ARM32: cmp r0, r1
-; ARM32: movge [[R2:r[0-9]+]]
-; ARM32: movlt [[R2]]
-; ARM32: cmp r0, r1
-; ARM32: movge [[R3:r[0-9]+]]
-; ARM32: movlt [[R3]]
-; ARM32: add
-; ARM32: add
-; ARM32: add
+; ARM32: movlt
+; ARM32: mov
+; ARM32: tst
+; ARM32: movne
+; ARM32: mov
+; ARM32: tst
+; ARM32: movne
+; ARM32: tst
+; ARM32: movne
 ; ARM32: bx lr
+
+define internal i32 @br_i1_folding2_and(i32 %arg1, i32 %arg2) {
+  %t0 = trunc i32 %arg1 to i1
+  %t1 = trunc i32 %arg2 to i1
+
+  %t2 = and i1 %t0, %t1
+  br i1 %t2, label %target_true, label %target_false
+
+target_true:
+  ret i32 1
+
+target_false:
+  ret i32 0
+}
+; ARM32-LABEL: br_i1_folding2_and
+; ARM32: tst r0, #1
+; ARM32: beq {{.*}}target_false
+; ARM32: tst r1, #1
+; ARM32: beq {{.*}}target_false
+
+define internal i32 @br_i1_folding2_or(i32 %arg1, i32 %arg2) {
+  %t0 = trunc i32 %arg1 to i1
+  %t1 = trunc i32 %arg2 to i1
+
+  %t2 = or i1 %t0, %t1
+  br i1 %t2, label %target_true, label %target_false
+
+target_true:
+  ret i32 1
+
+target_false:
+  ret i32 0
+}
+; ARM32-LABEL: br_i1_folding2_or
+; ARM32: tst r0, #1
+; ARM32: bne {{.*}}target_true
+; ARM32: tst r1, #1
+; ARM32: beq {{.*}}target_false
+
+define internal i32 @br_i1_folding3_and_or(i32 %arg1, i32 %arg2, i32 %arg3) {
+  %t0 = trunc i32 %arg1 to i1
+  %t1 = trunc i32 %arg2 to i1
+  %t2 = trunc i32 %arg3 to i1
+
+  %t3 = and i1 %t0, %t1
+  %t4 = or i1 %t3, %t2
+
+  br i1 %t4, label %target_true, label %target_false
+
+target_true:
+  ret i32 1
+
+target_false:
+  ret i32 0
+}
+; ARM32-LABEL: br_i1_folding3_and_or
+; ARM32: tst r0, #1
+; ARM32: beq
+; ARM32: tst r1, #1
+; ARM32: bne {{.*}}target_true
+; ARM32: tst r2, #1
+; ARM32: beq {{.*}}target_false
+
+define internal i32 @br_i1_folding3_or_and(i32 %arg1, i32 %arg2, i32 %arg3) {
+  %t0 = trunc i32 %arg1 to i1
+  %t1 = trunc i32 %arg2 to i1
+  %t2 = trunc i32 %arg3 to i1
+
+  %t3 = or i1 %t0, %t1
+  %t4 = and i1 %t3, %t2
+
+  br i1 %t4, label %target_true, label %target_false
+
+target_true:
+  ret i32 1
+
+target_false:
+  ret i32 0
+}
+; ARM32-LABEL: br_i1_folding3_or_and
+; ARM32: tst r0, #1
+; ARM32: bne
+; ARM32: tst r1, #1
+; ARM32: beq {{.*}}target_false
+; ARM32: tst r2, #1
+; ARM32: beq {{.*}}target_false
+
+define internal i32 @br_i1_folding4(i32 %arg1, i32 %arg2, i32 %arg3, i32 %arg4,
+                                    i32 %arg5) {
+  %t0 = trunc i32 %arg1 to i1
+  %t1 = trunc i32 %arg2 to i1
+  %t2 = trunc i32 %arg3 to i1
+  %t3 = trunc i32 %arg4 to i1
+  %t4 = trunc i32 %arg5 to i1
+
+  %t5 = or i1 %t0, %t1
+  %t6 = and i1 %t5, %t2
+  %t7 = and i1 %t3, %t4
+  %t8 = or i1 %t6, %t7
+  br i1 %t8, label %target_true, label %target_false
+
+target_true:
+  ret i32 1
+
+target_false:
+  ret i32 0
+}
+; ARM32-LABEL: br_i1_folding4
+; ARM32: tst r0, #1
+; ARM32: bne
+; ARM32: tst r1, #1
+; ARM32: beq
+; ARM32: tst r2, #1
+; ARM32: bne     {{.*}}target_true
+; ARM32: tst     r3, #1
+; ARM32: beq     {{.*}}target_false
+; ARM32: tst     r4, #1
+; ARM32: beq     {{.*}}target_false

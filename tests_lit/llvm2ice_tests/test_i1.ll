@@ -15,8 +15,6 @@
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32 %s
 
-; TODO(jvoung): test this.
-
 ; Test that and with true uses immediate 1, not -1.
 define internal i32 @testAndTrue(i32 %arg) {
 entry:
@@ -66,9 +64,7 @@ entry:
 ; CHECK-LABEL: testTrunc
 ; CHECK: and {{.*}},0x1
 ; ARM32-LABEL: testTrunc
-; ARM32: tst r0, #1
-; ARM32: moveq [[REG:r[0-9]*]], #0
-; ARM32: movne [[REG]], #1
+; ARM32: and {{.*}}, #1
 
 ; Test zext to i8.
 define internal i32 @testZextI8(i32 %arg) {
@@ -84,10 +80,8 @@ entry:
 ; match the zext i1 instruction (NOTE: no mov need between i1 and i8).
 ; CHECK-NOT: and {{.*}},0x1
 ; ARM32-LABEL: testZextI8
-; ARM32: tst r0, #1
-; ARM32: moveq [[REG:r[0-9]*]], #0
-; ARM32: movne [[REG]], #1
-; ARM32: uxtb [[REG]]
+; ARM32: {{.*}}, #1
+; ARM32: uxtb
 
 ; Test zext to i16.
 define internal i32 @testZextI16(i32 %arg) {
@@ -105,10 +99,8 @@ entry:
 ; CHECK-NOT: and [[REG]],0x1
 
 ; ARM32-LABEL: testZextI16
-; ARM32: tst r0, #1
-; ARM32: moveq [[REG:r[0-9]*]], #0
-; ARM32: movne [[REG]], #1
-; ARM32: uxth [[REG]]
+; ARM32: and {{.*}}, #1
+; ARM32: uxth
 
 ; Test zext to i32.
 define internal i32 @testZextI32(i32 %arg) {
@@ -124,9 +116,7 @@ entry:
 ; CHECK: movzx
 ; CHECK-NOT: and {{.*}},0x1
 ; ARM32-LABEL: testZextI32
-; ARM32: tst r0, #1
-; ARM32: moveq [[REG:r[0-9]*]], #0
-; ARM32: movne [[REG]], #1
+; ARM32: and {{.*}}, #1
 
 ; Test zext to i64.
 define internal i64 @testZextI64(i32 %arg) {
@@ -142,10 +132,8 @@ entry:
 ; CHECK: movzx
 ; CHECK: mov {{.*}},0x0
 ; ARM32-LABEL: testZextI64
-; ARM32: tst r0, #1
-; ARM32: mov r{{[0-9]*}}, #0
-; ARM32: moveq [[REG:r[0-9]*]], #0
-; ARM32: movne [[REG]], #1
+; ARM32: and {{.*}}, #1
+; ARM32: mov {{.*}}, #0
 
 ; Test sext to i8.
 define internal i32 @testSextI8(i32 %arg) {
@@ -163,11 +151,11 @@ entry:
 ; CHECK-NEXT: sar [[REG]],0x7
 ;
 ; ARM32-LABEL: testSextI8
-; ARM32: tst r0, #1
-; ARM32: mvn [[REG_M1:r[0-9]*]], #0
-; ARM32: moveq [[REG:r[0-9]*]], #0
-; ARM32: movne [[REG]], [[REG_M1]]
-; ARM32: sxtb [[REG]]
+; ARM32: mov {{.*}}, #0
+; ARM32: tst {{.*}}, #1
+; ARM32: mvn {{.*}}, #0
+; ARM32: movne
+; ARM32: sxtb
 
 ; Test sext to i16.
 define internal i32 @testSextI16(i32 %arg) {
@@ -186,11 +174,11 @@ entry:
 ; CHECK-NEXT: sar [[REG]],0xf
 
 ; ARM32-LABEL: testSextI16
-; ARM32: tst r0, #1
-; ARM32: mvn [[REG_M1:r[0-9]*]], #0
-; ARM32: moveq [[REG:r[0-9]*]], #0
-; ARM32: movne [[REG]], [[REG_M1]]
-; ARM32: sxth [[REG]]
+; ARM32: mov {{.*}}, #0
+; ARM32: tst {{.*}}, #1
+; ARM32: mvn {{.*}}, #0
+; ARM32: movne
+; ARM32: sxth
 
 ; Test sext to i32.
 define internal i32 @testSextI32(i32 %arg) {
@@ -208,10 +196,10 @@ entry:
 ; CHECK-NEXT: sar [[REG]],0x1f
 
 ; ARM32-LABEL: testSextI32
-; ARM32: tst r0, #1
-; ARM32: mvn [[REG_M1:r[0-9]*]], #0
-; ARM32: moveq [[REG:r[0-9]*]], #0
-; ARM32: movne [[REG]], [[REG_M1]]
+; ARM32: mov {{.*}}, #0
+; ARM32: tst {{.*}}, #1
+; ARM32: mvn {{.*}}, #0
+; ARM32: movne
 
 ; Test sext to i64.
 define internal i64 @testSextI64(i32 %arg) {
@@ -229,11 +217,11 @@ entry:
 ; CHECK-NEXT: sar [[REG]],0x1f
 
 ; ARM32-LABEL: testSextI64
-; ARM32: tst r0, #1
-; ARM32: mvn [[REG_M1:r[0-9]*]], #0
-; ARM32: moveq [[REG:r[0-9]*]], #0
-; ARM32: movne [[REG]], [[REG_M1]]
-; ARM32: mov r{{[0-9]+}}, [[REG]]
+; ARM32: mov {{.*}}, #0
+; ARM32: tst {{.*}}, #1
+; ARM32: mvn {{.*}}, #0
+; ARM32: movne [[REG:r[0-9]+]]
+; ARM32: mov {{.*}}, [[REG]]
 
 ; Kind of like sext i1 to i32, but with an immediate source. On ARM,
 ; sxtb cannot take an immediate operand, so make sure it's using a reg.
@@ -248,9 +236,10 @@ define internal i32 @testSextTrue() {
 ; CHECK-NEXT: shl
 ; CHECK-NEXT: sar
 ; ARM32-LABEL: testSextTrue
-; ARM32: mov{{.*}}, #1
-; ARM32: lsl
-; ARM32: asr
+; ARM32: mov {{.*}}, #0
+; ARM32: tst {{.*}}, #1
+; ARM32: mvn {{.*}}, #0
+; ARM32: movne
 
 define internal i32 @testZextTrue() {
   %result = zext i1 true to i32

@@ -58,13 +58,13 @@ if.end3:                                          ; preds = %if.then2, %if.end
 ; ARM32-LABEL: fcmpEq
 ; ARM32: vcmp.f32
 ; ARM32: vmrs
-; ARM32-OM1: movne [[R0:r[0-9]+]], #0
+; ARM32-OM1: mov [[R0:r[0-9]+]], #0
 ; ARM32-OM1: moveq [[R0]], #1
 ; ARM32-O2: bne
 ; ARM32: bl func
 ; ARM32: vcmp.f64
 ; ARM32: vmrs
-; ARM32-OM1: movne [[R1:r[0-9]+]], #0
+; ARM32-OM1: mov [[R1:r[0-9]+]], #0
 ; ARM32-OM1: moveq [[R1]], #1
 ; ARM32-O2: bne
 
@@ -115,12 +115,12 @@ if.end3:                                          ; preds = %if.then2, %if.end
 ; ARM32-LABEL: fcmpNe
 ; ARM32: vcmp.f32
 ; ARM32: vmrs
-; ARM32-OM1: moveq [[R0:r[0-9]+]], #0
+; ARM32-OM1: mov [[R0:r[0-9]+]], #0
 ; ARM32-OM1: movne [[R0]], #1
 ; ARM32-O2: beq
 ; ARM32: vcmp.f64
 ; ARM32: vmrs
-; ARM32-OM1: moveq [[R1:r[0-9]+]], #0
+; ARM32-OM1: mov [[R1:r[0-9]+]], #0
 ; ARM32-OM1: movne [[R1]], #1
 ; ARM32-O2: beq
 
@@ -161,12 +161,12 @@ if.end3:                                          ; preds = %if.then2, %if.end
 ; ARM32-LABEL: fcmpGt
 ; ARM32: vcmp.f32
 ; ARM32: vmrs
-; ARM32-OM1: movle [[R0:r[0-9]+]], #0
+; ARM32-OM1: mov [[R0:r[0-9]+]], #0
 ; ARM32-OM1: movgt [[R0]], #1
 ; ARM32-O2: ble
 ; ARM32: vcmp.f64
 ; ARM32: vmrs
-; ARM32-OM1: movle [[R1:r[0-9]+]], #0
+; ARM32-OM1: mov [[R1:r[0-9]+]], #0
 ; ARM32-OM1: movgt [[R1]], #1
 ; ARM32-O2: ble
 
@@ -207,12 +207,12 @@ if.end3:                                          ; preds = %if.end, %if.then2
 ; ARM32-LABEL: fcmpGe
 ; ARM32: vcmp.f32
 ; ARM32: vmrs
-; ARM32-OM1: movge [[R0:r[0-9]+]], #0
+; ARM32-OM1: mov [[R0:r[0-9]+]], #0
 ; ARM32-OM1: movlt [[R0]], #1
 ; ARM32-O2: blt
 ; ARM32: vcmp.f64
 ; ARM32: vmrs
-; ARM32-OM1: movge [[R1:r[0-9]+]], #0
+; ARM32-OM1: mov [[R1:r[0-9]+]], #0
 ; ARM32-OM1: movlt [[R1]], #1
 ; ARM32-O2: blt
 
@@ -253,12 +253,12 @@ if.end3:                                          ; preds = %if.then2, %if.end
 ; ARM32-LABEL: fcmpLt
 ; ARM32: vcmp.f32
 ; ARM32: vmrs
-; ARM32-OM1: movpl [[R0:r[0-9]+]], #0
+; ARM32-OM1: mov [[R0:r[0-9]+]], #0
 ; ARM32-OM1: movmi [[R0]], #1
 ; ARM32-O2: bpl
 ; ARM32: vcmp.f64
 ; ARM32: vmrs
-; ARM32-OM1: movpl [[R1:r[0-9]+]], #0
+; ARM32-OM1: mov [[R1:r[0-9]+]], #0
 ; ARM32-OM1: movmi [[R1]], #1
 ; ARM32-O2: bpl
 
@@ -299,12 +299,12 @@ if.end3:                                          ; preds = %if.end, %if.then2
 ; ARM32-LABEL: fcmpLe
 ; ARM32: vcmp.f32
 ; ARM32: vmrs
-; ARM32-OM1: movls [[R0:r[0-9]+]], #0
+; ARM32-OM1: mov [[R0:r[0-9]+]], #0
 ; ARM32-OM1: movhi [[R0]], #1
 ; ARM32-O2: bhi
 ; ARM32: vcmp.f64
 ; ARM32: vmrs
-; ARM32-OM1: movls [[R1:r[0-9]+]], #0
+; ARM32-OM1: mov [[R1:r[0-9]+]], #0
 ; ARM32-OM1: movhi [[R1]], #1
 ; ARM32-O2: bhi
 
@@ -341,9 +341,10 @@ entry:
 ; CHECK: jne
 ; CHECK: jp
 ; ARM32-LABEL: fcmpOeqFloat
+; ARM32-O2: mov [[R:r[0-9]+]], #0
 ; ARM32: vcmp.f32
 ; ARM32: vmrs
-; ARM32: movne [[R:r[0-9]+]], #0
+; ARM32-OM1: mov [[R:r[0-9]+]], #0
 ; ARM32: moveq [[R]], #1
 
 define internal i32 @fcmpOeqDouble(double %a, double %b) {
@@ -357,9 +358,10 @@ entry:
 ; CHECK: jne
 ; CHECK: jp
 ; ARM32-LABEL: fcmpOeqDouble
+; ARM32-O2: mov [[R:r[0-9]+]], #0
 ; ARM32: vcmp.f64
 ; ARM32: vmrs
-; ARM32: movne [[R:r[0-9]+]], #0
+; ARM32-OM1: mov [[R:r[0-9]+]], #0
 ; ARM32: moveq [[R]], #1
 
 define internal i32 @fcmpOgtFloat(float %a, float %b) {
@@ -372,9 +374,10 @@ entry:
 ; CHECK: ucomiss
 ; CHECK: seta
 ; ARM32-LABEL: fcmpOgtFloat
+; ARM32-O2: mov [[R:r[0-9]+]], #0
 ; ARM32: vcmp.f32
 ; ARM32: vmrs
-; ARM32: movle [[R:r[0-9]+]], #0
+; ARM32-OM1: mov [[R:r[0-9]+]], #0
 ; ARM32: movgt [[R]], #1
 
 define internal i32 @fcmpOgtDouble(double %a, double %b) {
@@ -387,9 +390,10 @@ entry:
 ; CHECK: ucomisd
 ; CHECK: seta
 ; ARM32-LABEL: fcmpOgtDouble
+; ARM32-O2: mov [[R:r[0-9]+]], #0
 ; ARM32: vcmp.f64
 ; ARM32: vmrs
-; ARM32: movle [[R:r[0-9]+]], #0
+; ARM32-OM1: mov [[R:r[0-9]+]], #0
 ; ARM32: movgt [[R]], #1
 
 define internal i32 @fcmpOgeFloat(float %a, float %b) {
@@ -402,9 +406,10 @@ entry:
 ; CHECK: ucomiss
 ; CHECK: setae
 ; ARM32-LABEL: fcmpOgeFloat
+; ARM32-O2: mov [[R:r[0-9]+]], #0
 ; ARM32: vcmp.f32
 ; ARM32: vmrs
-; ARM32: movlt [[R:r[0-9]+]], #0
+; ARM32-OM1: mov [[R:r[0-9]+]], #0
 ; ARM32: movge [[R]], #1
 
 define internal i32 @fcmpOgeDouble(double %a, double %b) {
@@ -417,9 +422,10 @@ entry:
 ; CHECK: ucomisd
 ; CHECK: setae
 ; ARM32-LABEL: fcmpOgeDouble
+; ARM32-O2: mov [[R:r[0-9]+]], #0
 ; ARM32: vcmp.f64
 ; ARM32: vmrs
-; ARM32: movlt [[R:r[0-9]+]], #0
+; ARM32-OM1: mov [[R:r[0-9]+]], #0
 ; ARM32: movge [[R]], #1
 
 define internal i32 @fcmpOltFloat(float %a, float %b) {
@@ -432,9 +438,10 @@ entry:
 ; CHECK: ucomiss
 ; CHECK: seta
 ; ARM32-LABEL: fcmpOltFloat
+; ARM32-O2: mov [[R:r[0-9]+]], #0
 ; ARM32: vcmp.f32
 ; ARM32: vmrs
-; ARM32: movpl [[R:r[0-9]+]], #0
+; ARM32-OM1: mov [[R:r[0-9]+]], #0
 ; ARM32: movmi [[R]], #1
 
 define internal i32 @fcmpOltDouble(double %a, double %b) {
@@ -447,9 +454,10 @@ entry:
 ; CHECK: ucomisd
 ; CHECK: seta
 ; ARM32-LABEL: fcmpOltDouble
+; ARM32-O2: mov [[R:r[0-9]+]], #0
 ; ARM32: vcmp.f64
 ; ARM32: vmrs
-; ARM32: movpl [[R:r[0-9]+]], #0
+; ARM32-OM1: mov [[R:r[0-9]+]], #0
 ; ARM32: movmi [[R]], #1
 
 define internal i32 @fcmpOleFloat(float %a, float %b) {
@@ -462,9 +470,10 @@ entry:
 ; CHECK: ucomiss
 ; CHECK: setae
 ; ARM32-LABEL: fcmpOleFloat
+; ARM32-O2: mov [[R:r[0-9]+]], #0
 ; ARM32: vcmp.f32
 ; ARM32: vmrs
-; ARM32: movhi [[R:r[0-9]+]], #0
+; ARM32-OM1: mov [[R:r[0-9]+]], #0
 ; ARM32: movls [[R]], #1
 
 define internal i32 @fcmpOleDouble(double %a, double %b) {
@@ -477,9 +486,10 @@ entry:
 ; CHECK: ucomisd
 ; CHECK: setae
 ; ARM32-LABEL: fcmpOleDouble
+; ARM32-O2: mov [[R:r[0-9]+]], #0
 ; ARM32: vcmp.f64
 ; ARM32: vmrs
-; ARM32: movhi [[R:r[0-9]+]], #0
+; ARM32-OM1: mov [[R:r[0-9]+]], #0
 ; ARM32: movls [[R]], #1
 
 define internal i32 @fcmpOneFloat(float %a, float %b) {
@@ -492,9 +502,10 @@ entry:
 ; CHECK: ucomiss
 ; CHECK: setne
 ; ARM32-LABEL: fcmpOneFloat
+; ARM32-O2: mov [[R:r[0-9]+]], #0
 ; ARM32: vcmp.f32
 ; ARM32: vmrs
-; ARM32: mov [[R:r[0-9]+]], #0
+; ARM32-OM1: mov [[R:r[0-9]+]], #0
 ; ARM32: movmi [[R]], #1
 ; ARM32: movgt [[R]], #1
 
@@ -508,9 +519,10 @@ entry:
 ; CHECK: ucomisd
 ; CHECK: setne
 ; ARM32-LABEL: fcmpOneDouble
+; ARM32-O2: mov [[R:r[0-9]+]], #0
 ; ARM32: vcmp.f64
 ; ARM32: vmrs
-; ARM32: mov [[R:r[0-9]+]], #0
+; ARM32-OM1: mov [[R:r[0-9]+]], #0
 ; ARM32: movmi [[R]], #1
 ; ARM32: movgt [[R]], #1
 
@@ -524,9 +536,10 @@ entry:
 ; CHECK: ucomiss
 ; CHECK: setnp
 ; ARM32-LABEL: fcmpOrdFloat
+; ARM32-O2: mov [[R:r[0-9]+]], #0
 ; ARM32: vcmp.f32
 ; ARM32: vmrs
-; ARM32: movvs [[R:r[0-9]+]], #0
+; ARM32-OM1: mov [[R:r[0-9]+]], #0
 ; ARM32: movvc [[R]], #1
 
 define internal i32 @fcmpOrdDouble(double %a, double %b) {
@@ -539,9 +552,10 @@ entry:
 ; CHECK: ucomisd
 ; CHECK: setnp
 ; ARM32-LABEL: fcmpOrdDouble
+; ARM32-O2: mov [[R:r[0-9]+]], #0
 ; ARM32: vcmp.f64
 ; ARM32: vmrs
-; ARM32: movvs [[R:r[0-9]+]], #0
+; ARM32-OM1: mov [[R:r[0-9]+]], #0
 ; ARM32: movvc [[R]], #1
 
 define internal i32 @fcmpUeqFloat(float %a, float %b) {
@@ -554,9 +568,10 @@ entry:
 ; CHECK: ucomiss
 ; CHECK: sete
 ; ARM32-LABEL: fcmpUeqFloat
+; ARM32-O2: mov [[R:r[0-9]+]], #0
 ; ARM32: vcmp.f32
 ; ARM32: vmrs
-; ARM32: mov [[R:r[0-9]+]], #0
+; ARM32-OM1: mov [[R:r[0-9]+]], #0
 ; ARM32: moveq [[R]], #1
 ; ARM32: movvs [[R]], #1
 
@@ -570,9 +585,10 @@ entry:
 ; CHECK: ucomisd
 ; CHECK: sete
 ; ARM32-LABEL: fcmpUeqDouble
+; ARM32-O2: mov [[R:r[0-9]+]], #0
 ; ARM32: vcmp.f64
 ; ARM32: vmrs
-; ARM32: mov [[R:r[0-9]+]], #0
+; ARM32-OM1: mov [[R:r[0-9]+]], #0
 ; ARM32: moveq [[R]], #1
 ; ARM32: movvs [[R]], #1
 
@@ -586,9 +602,10 @@ entry:
 ; CHECK: ucomiss
 ; CHECK: setb
 ; ARM32-LABEL: fcmpUgtFloat
+; ARM32-O2: mov [[R:r[0-9]+]], #0
 ; ARM32: vcmp.f32
 ; ARM32: vmrs
-; ARM32: movls [[R:r[0-9]+]], #0
+; ARM32-OM1: mov [[R:r[0-9]+]], #0
 ; ARM32: movhi [[R]], #1
 
 define internal i32 @fcmpUgtDouble(double %a, double %b) {
@@ -601,9 +618,10 @@ entry:
 ; CHECK: ucomisd
 ; CHECK: setb
 ; ARM32-LABEL: fcmpUgtDouble
+; ARM32-O2: mov [[R:r[0-9]+]], #0
 ; ARM32: vcmp.f64
 ; ARM32: vmrs
-; ARM32: movls [[R:r[0-9]+]], #0
+; ARM32-OM1: mov [[R:r[0-9]+]], #0
 ; ARM32: movhi [[R]], #1
 
 define internal i32 @fcmpUgeFloat(float %a, float %b) {
@@ -616,9 +634,10 @@ entry:
 ; CHECK: ucomiss
 ; CHECK: setbe
 ; ARM32-LABEL: fcmpUgeFloat
+; ARM32-O2: mov [[R:r[0-9]+]], #0
 ; ARM32: vcmp.f32
 ; ARM32: vmrs
-; ARM32: movmi [[R:r[0-9]+]], #0
+; ARM32-OM1: mov [[R:r[0-9]+]], #0
 ; ARM32: movpl [[R]], #1
 
 define internal i32 @fcmpUgeDouble(double %a, double %b) {
@@ -631,9 +650,10 @@ entry:
 ; CHECK: ucomisd
 ; CHECK: setbe
 ; ARM32-LABEL: fcmpUgeDouble
+; ARM32-O2: mov [[R:r[0-9]+]], #0
 ; ARM32: vcmp.f64
 ; ARM32: vmrs
-; ARM32: movmi [[R:r[0-9]+]], #0
+; ARM32-OM1: mov [[R:r[0-9]+]], #0
 ; ARM32: movpl [[R]], #1
 
 define internal i32 @fcmpUltFloat(float %a, float %b) {
@@ -646,9 +666,10 @@ entry:
 ; CHECK: ucomiss
 ; CHECK: setb
 ; ARM32-LABEL: fcmpUltFloat
+; ARM32-O2: mov [[R:r[0-9]+]], #0
 ; ARM32: vcmp.f32
 ; ARM32: vmrs
-; ARM32: movge [[R:r[0-9]+]], #0
+; ARM32-OM1: mov [[R:r[0-9]+]], #0
 ; ARM32: movlt [[R]], #1
 
 define internal i32 @fcmpUltDouble(double %a, double %b) {
@@ -661,9 +682,10 @@ entry:
 ; CHECK: ucomisd
 ; CHECK: setb
 ; ARM32-LABEL: fcmpUltDouble
+; ARM32-O2: mov [[R:r[0-9]+]], #0
 ; ARM32: vcmp.f64
 ; ARM32: vmrs
-; ARM32: movge [[R:r[0-9]+]], #0
+; ARM32-OM1: mov [[R:r[0-9]+]], #0
 ; ARM32: movlt [[R]], #1
 
 define internal i32 @fcmpUleFloat(float %a, float %b) {
@@ -676,9 +698,10 @@ entry:
 ; CHECK: ucomiss
 ; CHECK: setbe
 ; ARM32-LABEL: fcmpUleFloat
+; ARM32-O2: mov [[R:r[0-9]+]], #0
 ; ARM32: vcmp.f32
 ; ARM32: vmrs
-; ARM32: movgt [[R:r[0-9]+]], #0
+; ARM32-OM1: mov [[R:r[0-9]+]], #0
 ; ARM32: movle [[R]], #1
 
 define internal i32 @fcmpUleDouble(double %a, double %b) {
@@ -691,9 +714,10 @@ entry:
 ; CHECK: ucomisd
 ; CHECK: setbe
 ; ARM32-LABEL: fcmpUleDouble
+; ARM32-O2: mov [[R:r[0-9]+]], #0
 ; ARM32: vcmp.f64
 ; ARM32: vmrs
-; ARM32: movgt [[R:r[0-9]+]], #0
+; ARM32-OM1: mov [[R:r[0-9]+]], #0
 ; ARM32: movle [[R]], #1
 
 define internal i32 @fcmpUneFloat(float %a, float %b) {
@@ -707,9 +731,10 @@ entry:
 ; CHECK: jne
 ; CHECK: jp
 ; ARM32-LABEL: fcmpUneFloat
+; ARM32-O2: mov [[R:r[0-9]+]], #0
 ; ARM32: vcmp.f32
 ; ARM32: vmrs
-; ARM32: moveq [[R:r[0-9]+]], #0
+; ARM32-OM1: mov [[R:r[0-9]+]], #0
 ; ARM32: movne [[R]], #1
 
 define internal i32 @fcmpUneDouble(double %a, double %b) {
@@ -723,9 +748,10 @@ entry:
 ; CHECK: jne
 ; CHECK: jp
 ; ARM32-LABEL: fcmpUneDouble
+; ARM32-O2: mov [[R:r[0-9]+]], #0
 ; ARM32: vcmp.f64
 ; ARM32: vmrs
-; ARM32: moveq [[R:r[0-9]+]], #0
+; ARM32-OM1: mov [[R:r[0-9]+]], #0
 ; ARM32: movne [[R]], #1
 
 define internal i32 @fcmpUnoFloat(float %a, float %b) {
@@ -738,9 +764,10 @@ entry:
 ; CHECK: ucomiss
 ; CHECK: setp
 ; ARM32-LABEL: fcmpUnoFloat
+; ARM32-O2: mov [[R:r[0-9]+]], #0
 ; ARM32: vcmp.f32
 ; ARM32: vmrs
-; ARM32: movvc [[R:r[0-9]+]], #0
+; ARM32-OM1: mov [[R:r[0-9]+]], #0
 ; ARM32: movvs [[R]], #1
 
 define internal i32 @fcmpUnoDouble(double %a, double %b) {
@@ -753,9 +780,10 @@ entry:
 ; CHECK: ucomisd
 ; CHECK: setp
 ; ARM32-LABEL: fcmpUnoDouble
+; ARM32-O2: mov [[R:r[0-9]+]], #0
 ; ARM32: vcmp.f64
 ; ARM32: vmrs
-; ARM32: movvc [[R:r[0-9]+]], #0
+; ARM32-OM1: mov [[R:r[0-9]+]], #0
 ; ARM32: movvs [[R]], #1
 
 define internal i32 @fcmpTrueFloat(float %a, float %b) {

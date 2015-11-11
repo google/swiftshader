@@ -92,7 +92,6 @@ target:
 ; OM1: call
 ; OM1: ret
 
-; Note that compare and branch folding isn't implemented yet (unlike x86-32).
 ; ARM32O2-LABEL: testCondFallthroughToNextBlock
 ; ARM32O2: cmp {{.*}}, #123
 ; ARM32O2-NEXT: bge
@@ -102,10 +101,10 @@ target:
 ; ARM32O2: bx lr
 
 ; ARM32OM1-LABEL: testCondFallthroughToNextBlock
+; ARM32OM1: mov {{.*}}, #0
 ; ARM32OM1: cmp {{.*}}, #123
-; ARM32OM1: movlt {{.*}}, #0
 ; ARM32OM1: movge {{.*}}, #1
-; ARM32OM1: cmp {{.*}}, #0
+; ARM32OM1: tst {{.*}}, #1
 ; ARM32OM1: bne
 ; ARM32OM1: b
 ; ARM32OM1: bl
@@ -161,7 +160,7 @@ target:
 ; ARM32OM1-LABEL: testCondTargetNextBlock
 ; ARM32OM1: cmp {{.*}}, #123
 ; ARM32OM1: movge {{.*}}, #1
-; ARM32OM1: cmp {{.*}}, #0
+; ARM32OM1: tst {{.*}}, #1
 ; ARM32OM1: bne
 ; ARM32OM1: b
 ; ARM32OM1: bl

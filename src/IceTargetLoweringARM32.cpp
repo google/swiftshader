@@ -1044,7 +1044,11 @@ void TargetARM32::legalizeMovStackAddrImm(InstARM32Mov *MovInstr,
   }
 
   if (Legalized) {
-    _mov(Dest, Src);
+    if (MovInstr->isDestRedefined()) {
+      _mov_redefined(Dest, Src, MovInstr->getPredicate());
+    } else {
+      _mov(Dest, Src, MovInstr->getPredicate());
+    }
     MovInstr->setDeleted();
   }
 }
@@ -1346,8 +1350,57 @@ void TargetARM32::lowerIDivRem(Variable *Dest, Variable *T, Variable *Src0R,
   return;
 }
 
+TargetARM32::SafeBoolChain
+TargetARM32::lowerInt1Arithmetic(const InstArithmetic *Inst) {
+  Variable *Dest = Inst->getDest();
+  assert(Dest->getType() == IceType_i1);
+
+  // So folding didn't work for Inst. Not a problem: We just need to
+  // materialize the Sources, and perform the operation. We create regular
+  // Variables (and not infinite-weight ones) because this call might recurse a
+  // lot, and we might end up with tons of infinite weight temporaries.
+  assert(Inst->getSrcSize() == 2);
+  Variable *Src0 = Func->makeVariable(IceType_i1);
+  SafeBoolChain Src0Safe = lowerInt1(Src0, Inst->getSrc(0));
+
+  Operand *Src1 = Inst->getSrc(1);
+  SafeBoolChain Src1Safe = SBC_Yes;
+
+  if (!llvm::isa<Constant>(Src1)) {
+    Variable *Src1V = Func->makeVariable(IceType_i1);
+    Src1Safe = lowerInt1(Src1V, Src1);
+    Src1 = Src1V;
+  }
+
+  Variable *T = makeReg(IceType_i1);
+  Src0 = legalizeToReg(Src0);
+  Operand *Src1RF = legalize(Src1, Legal_Reg | Legal_Flex);
+  switch (Inst->getOp()) {
+  default:
+    // If this Unreachable is ever executed, add the offending operation to
+    // the list of valid consumers.
+    llvm::report_fatal_error("Unhandled i1 Op");
+  case InstArithmetic::And:
+    _and(T, Src0, Src1RF);
+    break;
+  case InstArithmetic::Or:
+    _orr(T, Src0, Src1RF);
+    break;
+  case InstArithmetic::Xor:
+    _eor(T, Src0, Src1RF);
+    break;
+  }
+  _mov(Dest, T);
+  return Src0Safe == SBC_Yes && Src1Safe == SBC_Yes ? SBC_Yes : SBC_No;
+}
+
 void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
   Variable *Dest = Inst->getDest();
+  if (Dest->getType() == IceType_i1) {
+    lowerInt1Arithmetic(Inst);
+    return;
+  }
+
   // TODO(jvoung): Should be able to flip Src0 and Src1 if it is easier to
   // legalize Src0 to flex or Src1 to flex and there is a reversible
   // instruction. E.g., reverse subtract with immediate, register vs register,
@@ -1814,46 +1867,129 @@ void TargetARM32::lowerAssign(const InstAssign *Inst) {
   }
 }
 
+TargetARM32::ShortCircuitCondAndLabel TargetARM32::lowerInt1ForBranch(
+    Operand *Boolean, const LowerInt1BranchTarget &TargetTrue,
+    const LowerInt1BranchTarget &TargetFalse, uint32_t ShortCircuitable) {
+  InstARM32Label *NewShortCircuitLabel = nullptr;
+  Operand *_1 = legalize(Ctx->getConstantInt1(1), Legal_Reg | Legal_Flex);
+
+  const Inst *Producer = BoolComputations.getProducerOf(Boolean);
+
+  if (Producer == nullptr) {
+    // No producer, no problem: just do emit code to perform (Boolean & 1) and
+    // set the flags register. The branch should be taken if the resulting flags
+    // indicate a non-zero result.
+    _tst(legalizeToReg(Boolean), _1);
+    return ShortCircuitCondAndLabel(CondWhenTrue(CondARM32::NE));
+  }
+
+  switch (Producer->getKind()) {
+  default:
+    llvm_unreachable("Unexpected producer.");
+  case Inst::Icmp: {
+    return ShortCircuitCondAndLabel(
+        lowerIcmpCond(llvm::cast<InstIcmp>(Producer)));
+  } break;
+  case Inst::Fcmp: {
+    return ShortCircuitCondAndLabel(
+        lowerFcmpCond(llvm::cast<InstFcmp>(Producer)));
+  } break;
+  case Inst::Cast: {
+    const auto *CastProducer = llvm::cast<InstCast>(Producer);
+    assert(CastProducer->getCastKind() == InstCast::Trunc);
+    Operand *Src = CastProducer->getSrc(0);
+    if (Src->getType() == IceType_i64)
+      Src = loOperand(Src);
+    _tst(legalizeToReg(Src), _1);
+    return ShortCircuitCondAndLabel(CondWhenTrue(CondARM32::NE));
+  } break;
+  case Inst::Arithmetic: {
+    const auto *ArithProducer = llvm::cast<InstArithmetic>(Producer);
+    switch (ArithProducer->getOp()) {
+    default:
+      llvm_unreachable("Unhandled Arithmetic Producer.");
+    case InstArithmetic::And: {
+      if (!(ShortCircuitable & SC_And)) {
+        NewShortCircuitLabel = InstARM32Label::create(Func, this);
+      }
+
+      LowerInt1BranchTarget NewTarget =
+          TargetFalse.createForLabelOrDuplicate(NewShortCircuitLabel);
+
+      ShortCircuitCondAndLabel CondAndLabel = lowerInt1ForBranch(
+          Producer->getSrc(0), TargetTrue, NewTarget, SC_And);
+      const CondWhenTrue &Cond = CondAndLabel.Cond;
+
+      _br_short_circuit(NewTarget, Cond.invert());
+
+      InstARM32Label *const ShortCircuitLabel = CondAndLabel.ShortCircuitTarget;
+      if (ShortCircuitLabel != nullptr)
+        Context.insert(ShortCircuitLabel);
+
+      return ShortCircuitCondAndLabel(
+          lowerInt1ForBranch(Producer->getSrc(1), TargetTrue, NewTarget, SC_All)
+              .assertNoLabelAndReturnCond(),
+          NewShortCircuitLabel);
+    } break;
+    case InstArithmetic::Or: {
+      if (!(ShortCircuitable & SC_Or)) {
+        NewShortCircuitLabel = InstARM32Label::create(Func, this);
+      }
+
+      LowerInt1BranchTarget NewTarget =
+          TargetTrue.createForLabelOrDuplicate(NewShortCircuitLabel);
+
+      ShortCircuitCondAndLabel CondAndLabel = lowerInt1ForBranch(
+          Producer->getSrc(0), NewTarget, TargetFalse, SC_Or);
+      const CondWhenTrue &Cond = CondAndLabel.Cond;
+
+      _br_short_circuit(NewTarget, Cond);
+
+      InstARM32Label *const ShortCircuitLabel = CondAndLabel.ShortCircuitTarget;
+      if (ShortCircuitLabel != nullptr)
+        Context.insert(ShortCircuitLabel);
+
+      return ShortCircuitCondAndLabel(lowerInt1ForBranch(Producer->getSrc(1),
+                                                         NewTarget, TargetFalse,
+                                                         SC_All)
+                                          .assertNoLabelAndReturnCond(),
+                                      NewShortCircuitLabel);
+    } break;
+    }
+  }
+  }
+}
+
 void TargetARM32::lowerBr(const InstBr *Instr) {
   if (Instr->isUnconditional()) {
     _br(Instr->getTargetUnconditional());
     return;
   }
-  Operand *Cond = Instr->getCondition();
 
-  CondARM32::Cond BrCondTrue0 = CondARM32::NE;
-  CondARM32::Cond BrCondTrue1 = CondARM32::kNone;
-  CondARM32::Cond BrCondFalse = CondARM32::kNone;
-  if (!_mov_i1_to_flags(Cond, &BrCondTrue0, &BrCondTrue1, &BrCondFalse)) {
-    // "Cond" was not folded.
-    Type Ty = Cond->getType();
-    Variable *Src0R = legalizeToReg(Cond);
-    assert(Ty == IceType_i1);
-    if (Ty != IceType_i32)
-      _uxt(Src0R, Src0R);
-    Constant *_0 = Ctx->getConstantZero(IceType_i32);
-    _cmp(Src0R, _0);
-    BrCondTrue0 = CondARM32::NE;
+  CfgNode *TargetTrue = Instr->getTargetTrue();
+  CfgNode *TargetFalse = Instr->getTargetFalse();
+  ShortCircuitCondAndLabel CondAndLabel = lowerInt1ForBranch(
+      Instr->getCondition(), LowerInt1BranchTarget(TargetTrue),
+      LowerInt1BranchTarget(TargetFalse), SC_All);
+  assert(CondAndLabel.ShortCircuitTarget == nullptr);
+
+  const CondWhenTrue &Cond = CondAndLabel.Cond;
+  if (Cond.WhenTrue1 != CondARM32::kNone) {
+    assert(Cond.WhenTrue0 != CondARM32::AL);
+    _br(TargetTrue, Cond.WhenTrue1);
   }
 
-  if (BrCondTrue1 != CondARM32::kNone) {
-    _br(Instr->getTargetTrue(), BrCondTrue1);
+  switch (Cond.WhenTrue0) {
+  default:
+    _br(TargetTrue, TargetFalse, Cond.WhenTrue0);
+    break;
+  case CondARM32::kNone:
+    _br(TargetFalse);
+    break;
+  case CondARM32::AL:
+    _br(TargetTrue);
+    break;
   }
-
-  if (BrCondTrue0 == CondARM32::kNone) {
-    assert(BrCondTrue1 == CondARM32::kNone);
-    _br(Instr->getTargetFalse());
-    return;
-  }
-
-  if (BrCondTrue0 == CondARM32::AL) {
-    assert(BrCondTrue1 == CondARM32::kNone);
-    assert(BrCondFalse == CondARM32::kNone);
-    _br(Instr->getTargetTrue());
-    return;
-  }
-
-  _br(Instr->getTargetTrue(), Instr->getTargetFalse(), BrCondTrue0);
 }
 
 void TargetARM32::lowerCall(const InstCall *Instr) {
@@ -1959,6 +2095,8 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
     case IceType_void:
       break;
     case IceType_i1:
+      assert(BoolComputations.getProducerOf(Dest) == nullptr);
+    // Fall-through intended.
     case IceType_i8:
     case IceType_i16:
     case IceType_i32:
@@ -2089,18 +2227,9 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
         Variable *Src0R = legalizeToReg(Src0);
         _sxt(T_Lo, Src0R);
       } else {
-        CondARM32::Cond CondTrue0, CondTrue1, CondFalse;
-        if (_mov_i1_to_flags(Src0, &CondTrue0, &CondTrue1, &CondFalse)) {
-          // Handle bool folding.
-          Constant *_0 = Ctx->getConstantZero(IceType_i32);
-          Operand *_m1 =
-              legalize(Ctx->getConstantInt32(-1), Legal_Reg | Legal_Flex);
-          _cmov(T_Lo, _m1, CondTrue0, CondTrue1, _0, CondFalse);
-        } else {
-          Variable *Src0R = legalizeToReg(Src0);
-          _lsl(T_Lo, Src0R, ShiftAmt);
-          _asr(T_Lo, T_Lo, ShiftAmt);
-        }
+        Operand *_0 = Ctx->getConstantZero(IceType_i32);
+        Operand *_m1 = Ctx->getConstantInt32(-1);
+        lowerInt1ForSelect(T_Lo, Src0, _m1, _0);
       }
       _mov(DestLo, T_Lo);
       Variable *T_Hi = makeReg(DestHi->getType());
@@ -2119,24 +2248,10 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
       _sxt(T, Src0R);
       _mov(Dest, T);
     } else {
+      Constant *_0 = Ctx->getConstantZero(IceType_i32);
+      Operand *_m1 = Ctx->getConstantInt(Dest->getType(), -1);
       Variable *T = makeReg(Dest->getType());
-      CondARM32::Cond CondTrue0, CondTrue1, CondFalse;
-      if (_mov_i1_to_flags(Src0, &CondTrue0, &CondTrue1, &CondFalse)) {
-        // Handle bool folding.
-        Constant *_0 = Ctx->getConstantZero(IceType_i32);
-        Operand *_m1 =
-            legalize(Ctx->getConstantInt32(-1), Legal_Reg | Legal_Flex);
-        _cmov(T, _m1, CondTrue0, CondTrue1, _0, CondFalse);
-      } else {
-        // GPR registers are 32-bit, so just use 31 as dst_bitwidth - 1.
-        // lsl t1, src_reg, 31
-        // asr t1, t1, 31
-        // dst = t1
-        Variable *Src0R = legalizeToReg(Src0);
-        Constant *ShiftAmt = Ctx->getConstantInt32(31);
-        _lsl(T, Src0R, ShiftAmt);
-        _asr(T, T, ShiftAmt);
-      }
+      lowerInt1ForSelect(T, Src0, _m1, _0);
       _mov(Dest, T);
     }
     break;
@@ -2149,60 +2264,44 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
       UnimplementedError(Func->getContext()->getFlags());
     } else if (Dest->getType() == IceType_i64) {
       // t1=uxtb src; dst.lo=t1; dst.hi=0
-      Constant *_0 = Ctx->getConstantZero(IceType_i32);
-      Constant *_1 = Ctx->getConstantInt32(1);
+      Operand *_0 =
+          legalize(Ctx->getConstantZero(IceType_i32), Legal_Reg | Legal_Flex);
       Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
       Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
       Variable *T_Lo = makeReg(DestLo->getType());
 
-      CondARM32::Cond CondTrue0, CondTrue1, CondFalse;
-      if (_mov_i1_to_flags(Src0, &CondTrue0, &CondTrue1, &CondFalse)) {
-        // Handle folding opportunities.
-        Variable *T_Hi = makeReg(DestLo->getType());
-        _mov(T_Hi, _0);
-        _mov(DestHi, T_Hi);
-        _cmov(T_Lo, _1, CondTrue0, CondTrue1, _0, CondFalse);
-        _mov(DestLo, T_Lo);
-        return;
+      switch (Src0->getType()) {
+      default: {
+        assert(Src0->getType() != IceType_i64);
+        _uxt(T_Lo, legalizeToReg(Src0));
+      } break;
+      case IceType_i32: {
+        _mov(T_Lo, legalize(Src0, Legal_Reg | Legal_Flex));
+      } break;
+      case IceType_i1: {
+        SafeBoolChain Safe = lowerInt1(T_Lo, Src0);
+        if (Safe == SBC_No) {
+          Operand *_1 =
+              legalize(Ctx->getConstantInt1(1), Legal_Reg | Legal_Flex);
+          _and(T_Lo, T_Lo, _1);
+        }
+      } break;
       }
 
-      // i32 and i1 can just take up the whole register. i32 doesn't need uxt,
-      // while i1 will have an and mask later anyway.
-      if (Src0->getType() == IceType_i32 || Src0->getType() == IceType_i1) {
-        Operand *Src0RF = legalize(Src0, Legal_Reg | Legal_Flex);
-        _mov(T_Lo, Src0RF);
-      } else {
-        Variable *Src0R = legalizeToReg(Src0);
-        _uxt(T_Lo, Src0R);
-      }
-      if (Src0->getType() == IceType_i1) {
-        Constant *One = Ctx->getConstantInt32(1);
-        _and(T_Lo, T_Lo, One);
-      }
       _mov(DestLo, T_Lo);
+
       Variable *T_Hi = makeReg(DestLo->getType());
       _mov(T_Hi, _0);
       _mov(DestHi, T_Hi);
     } else if (Src0->getType() == IceType_i1) {
-      Constant *_1 = Ctx->getConstantInt32(1);
       Variable *T = makeReg(Dest->getType());
 
-      CondARM32::Cond CondTrue0, CondTrue1, CondFalse;
-      if (_mov_i1_to_flags(Src0, &CondTrue0, &CondTrue1, &CondFalse)) {
-        // Handle folding opportunities.
-        Constant *_0 = Ctx->getConstantZero(IceType_i32);
-        _cmov(T, _1, CondTrue0, CondTrue1, _0, CondFalse);
-        _mov(Dest, T);
-        return;
+      SafeBoolChain Safe = lowerInt1(T, Src0);
+      if (Safe == SBC_No) {
+        Operand *_1 = legalize(Ctx->getConstantInt1(1), Legal_Reg | Legal_Flex);
+        _and(T, T, _1);
       }
 
-      // t = Src0; t &= 1; Dest = t
-      Operand *Src0RF = legalize(Src0, Legal_Reg | Legal_Flex);
-      // Just use _mov instead of _uxt since all registers are 32-bit. _uxt
-      // requires the source to be a register so could have required a _mov
-      // from legalize anyway.
-      _mov(T, Src0RF);
-      _and(T, T, _1);
       _mov(Dest, T);
     } else {
       // t1 = uxt src; dst = t1
@@ -2473,19 +2572,13 @@ struct {
 };
 } // end of anonymous namespace
 
-void TargetARM32::lowerFcmpCond(const InstFcmp *Instr,
-                                CondARM32::Cond *CondIfTrue0,
-                                CondARM32::Cond *CondIfTrue1,
-                                CondARM32::Cond *CondIfFalse) {
+TargetARM32::CondWhenTrue TargetARM32::lowerFcmpCond(const InstFcmp *Instr) {
   InstFcmp::FCond Condition = Instr->getCondition();
   switch (Condition) {
   case InstFcmp::False:
-    *CondIfFalse = CondARM32::AL;
-    *CondIfTrue0 = *CondIfTrue1 = CondARM32::kNone;
-    break;
+    return CondWhenTrue(CondARM32::kNone);
   case InstFcmp::True:
-    *CondIfFalse = *CondIfTrue1 = CondARM32::kNone;
-    *CondIfTrue0 = CondARM32::AL;
+    return CondWhenTrue(CondARM32::AL);
     break;
   default: {
     Variable *Src0R = legalizeToReg(Instr->getSrc(0));
@@ -2493,11 +2586,7 @@ void TargetARM32::lowerFcmpCond(const InstFcmp *Instr,
     _vcmp(Src0R, Src1R);
     _vmrs();
     assert(Condition < llvm::array_lengthof(TableFcmp));
-    *CondIfTrue0 = TableFcmp[Condition].CC0;
-    *CondIfTrue1 = TableFcmp[Condition].CC1;
-    *CondIfFalse = (*CondIfTrue1 != CondARM32::kNone)
-                       ? CondARM32::AL
-                       : InstARM32::getOppositeCondition(*CondIfTrue0);
+    return CondWhenTrue(TableFcmp[Condition].CC0, TableFcmp[Condition].CC1);
   }
   }
 }
@@ -2513,39 +2602,40 @@ void TargetARM32::lowerFcmp(const InstFcmp *Instr) {
   }
 
   Variable *T = makeReg(IceType_i1);
-  Operand *_1 = Ctx->getConstantInt32(1);
-  Operand *_0 = Ctx->getConstantZero(IceType_i32);
+  Operand *_1 = legalize(Ctx->getConstantInt32(1), Legal_Reg | Legal_Flex);
+  Operand *_0 =
+      legalize(Ctx->getConstantZero(IceType_i32), Legal_Reg | Legal_Flex);
 
-  CondARM32::Cond CondIfTrue0, CondIfTrue1, CondIfFalse;
-  lowerFcmpCond(Instr, &CondIfTrue0, &CondIfTrue1, &CondIfFalse);
+  CondWhenTrue Cond = lowerFcmpCond(Instr);
 
   bool RedefineT = false;
-  if (CondIfFalse != CondARM32::kNone) {
-    assert(!RedefineT);
-    _mov(T, _0, CondIfFalse);
+  if (Cond.WhenTrue0 != CondARM32::AL) {
+    _mov(T, _0);
     RedefineT = true;
   }
 
-  if (CondIfTrue0 != CondARM32::kNone) {
-    if (RedefineT) {
-      _mov_redefined(T, _1, CondIfTrue0);
-    } else {
-      _mov(T, _1, CondIfTrue0);
-    }
-    RedefineT = true;
+  if (Cond.WhenTrue0 == CondARM32::kNone) {
+    _mov(Dest, T);
+    return;
   }
 
-  if (CondIfTrue1 != CondARM32::kNone) {
-    assert(RedefineT);
-    _mov_redefined(T, _1, CondIfTrue1);
+  if (RedefineT) {
+    _mov_redefined(T, _1, Cond.WhenTrue0);
+  } else {
+    _mov(T, _1, Cond.WhenTrue0);
+  }
+
+  if (Cond.WhenTrue1 != CondARM32::kNone) {
+    _mov_redefined(T, _1, Cond.WhenTrue1);
   }
 
   _mov(Dest, T);
 }
 
-void TargetARM32::lowerIcmpCond(const InstIcmp *Inst,
-                                CondARM32::Cond *CondIfTrue,
-                                CondARM32::Cond *CondIfFalse) {
+TargetARM32::CondWhenTrue TargetARM32::lowerIcmpCond(const InstIcmp *Inst) {
+  assert(Inst->getSrc(0)->getType() != IceType_i1);
+  assert(Inst->getSrc(1)->getType() != IceType_i1);
+
   Operand *Src0 = legalizeUndef(Inst->getSrc(0));
   Operand *Src1 = legalizeUndef(Inst->getSrc(1));
 
@@ -2607,9 +2697,7 @@ void TargetARM32::lowerIcmpCond(const InstIcmp *Inst,
       _cmp(Src0Hi, Src1HiRF);
       _cmp(Src0Lo, Src1LoRF, CondARM32::EQ);
     }
-    *CondIfTrue = TableIcmp64[Index].C1;
-    *CondIfFalse = TableIcmp64[Index].C2;
-    return;
+    return CondWhenTrue(TableIcmp64[Index].C1);
   }
 
   // a=icmp cond b, c ==>
@@ -2661,8 +2749,7 @@ void TargetARM32::lowerIcmpCond(const InstIcmp *Inst,
     Operand *Src1RF = legalize(Src1, Legal_Reg | Legal_Flex);
     _cmp(Src0R, Src1RF);
   }
-  *CondIfTrue = getIcmp32Mapping(Inst->getCondition());
-  *CondIfFalse = InstARM32::getOppositeCondition(*CondIfTrue);
+  return CondWhenTrue(getIcmp32Mapping(Inst->getCondition()));
 }
 
 void TargetARM32::lowerIcmp(const InstIcmp *Inst) {
@@ -2676,16 +2763,17 @@ void TargetARM32::lowerIcmp(const InstIcmp *Inst) {
     return;
   }
 
-  Constant *_0 = Ctx->getConstantZero(IceType_i32);
-  Constant *_1 = Ctx->getConstantInt32(1);
+  Operand *_0 =
+      legalize(Ctx->getConstantZero(IceType_i32), Legal_Reg | Legal_Flex);
+  Operand *_1 = legalize(Ctx->getConstantInt32(1), Legal_Reg | Legal_Flex);
   Variable *T = makeReg(IceType_i1);
 
-  CondARM32::Cond CondIfTrue, CondIfFalse;
-  lowerIcmpCond(Inst, &CondIfTrue, &CondIfFalse);
-
-  _mov(T, _0, CondIfFalse);
-  _mov_redefined(T, _1, CondIfTrue);
+  _mov(T, _0);
+  CondWhenTrue Cond = lowerIcmpCond(Inst);
+  _mov_redefined(T, _1, Cond.WhenTrue0);
   _mov(Dest, T);
+
+  assert(Cond.WhenTrue1 == CondARM32::kNone);
 
   return;
 }
@@ -3903,119 +3991,7 @@ void TargetARM32::lowerSelect(const InstSelect *Inst) {
     return;
   }
 
-  CondARM32::Cond CondIfTrue0, CondIfTrue1, CondIfFalse;
-  if (!_mov_i1_to_flags(Condition, &CondIfTrue0, &CondIfTrue1, &CondIfFalse)) {
-    // "Condition" was not fold.
-    // cmp cond, #0; mov t, SrcF; mov_cond t, SrcT; mov dest, t
-    Variable *CmpOpnd0 = legalizeToReg(Condition);
-    Type CmpOpnd0Ty = CmpOpnd0->getType();
-    Operand *CmpOpnd1 = Ctx->getConstantZero(IceType_i32);
-    assert(CmpOpnd0Ty == IceType_i1);
-    if (CmpOpnd0Ty != IceType_i32)
-      _uxt(CmpOpnd0, CmpOpnd0);
-    _cmp(CmpOpnd0, CmpOpnd1);
-    CondIfTrue0 = CondARM32::NE;
-    CondIfTrue1 = CondARM32::kNone;
-    CondIfFalse = CondARM32::EQ;
-  }
-
-  if (DestTy == IceType_i64) {
-    SrcT = legalizeUndef(SrcT);
-    SrcF = legalizeUndef(SrcF);
-    // Set the low portion.
-    Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
-    Operand *SrcTLo = legalize(loOperand(SrcT), Legal_Reg | Legal_Flex);
-    Operand *SrcFLo = legalize(loOperand(SrcF), Legal_Reg | Legal_Flex);
-    Variable *TLo = makeReg(SrcFLo->getType());
-    bool RedefineTLo = false;
-    if (CondIfFalse != CondARM32::kNone) {
-      _mov(TLo, SrcFLo, CondIfFalse);
-      RedefineTLo = true;
-    }
-    if (CondIfTrue0 != CondARM32::kNone) {
-      if (!RedefineTLo)
-        _mov(TLo, SrcTLo, CondIfTrue0);
-      else
-        _mov_redefined(TLo, SrcTLo, CondIfTrue0);
-      RedefineTLo = true;
-    }
-    if (CondIfTrue1 != CondARM32::kNone) {
-      assert(RedefineTLo);
-      _mov_redefined(TLo, SrcTLo, CondIfTrue1);
-    }
-    _mov(DestLo, TLo);
-
-    // Set the high portion.
-    Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
-    Operand *SrcTHi = legalize(hiOperand(SrcT), Legal_Reg | Legal_Flex);
-    Operand *SrcFHi = legalize(hiOperand(SrcF), Legal_Reg | Legal_Flex);
-    Variable *THi = makeReg(SrcFHi->getType());
-    bool RedefineTHi = false;
-    if (CondIfFalse != CondARM32::kNone) {
-      _mov(THi, SrcFHi, CondIfFalse);
-      RedefineTHi = true;
-    }
-    if (CondIfTrue0 != CondARM32::kNone) {
-      if (!RedefineTHi)
-        _mov(THi, SrcTHi, CondIfTrue0);
-      else
-        _mov_redefined(THi, SrcTHi, CondIfTrue0);
-      RedefineTHi = true;
-    }
-    if (CondIfTrue1 != CondARM32::kNone) {
-      assert(RedefineTHi);
-      _mov_redefined(THi, SrcTHi, CondIfTrue1);
-    }
-    _mov(DestHi, THi);
-    return;
-  }
-
-  if (isFloatingType(DestTy)) {
-    SrcT = legalizeToReg(SrcT);
-    SrcF = legalizeToReg(SrcF);
-    Variable *T = makeReg(DestTy);
-    assert(DestTy == SrcF->getType());
-    bool RedefineT = false;
-    if (CondIfFalse != CondARM32::kNone) {
-      _mov(T, SrcF, CondIfFalse);
-      RedefineT = true;
-    }
-    if (CondIfTrue0 != CondARM32::kNone) {
-      if (!RedefineT)
-        _mov(T, SrcT, CondIfTrue0);
-      else
-        _mov_redefined(T, SrcT, CondIfTrue0);
-      RedefineT = true;
-    }
-    if (CondIfTrue1 != CondARM32::kNone) {
-      assert(RedefineT);
-      _mov_redefined(T, SrcT, CondIfTrue1);
-    }
-    assert(DestTy == SrcT->getType());
-    _mov(Dest, T);
-    return;
-  }
-
-  Variable *T = makeReg(SrcF->getType());
-  SrcT = legalize(SrcT, Legal_Reg | Legal_Flex);
-  SrcF = legalize(SrcF, Legal_Reg | Legal_Flex);
-  bool RedefineT = false;
-  if (CondIfFalse != CondARM32::kNone) {
-    _mov(T, SrcF, CondIfFalse);
-    RedefineT = true;
-  }
-  if (CondIfTrue0 != CondARM32::kNone) {
-    if (!RedefineT)
-      _mov(T, SrcT, CondIfTrue0);
-    else
-      _mov_redefined(T, SrcT, CondIfTrue0);
-    RedefineT = true;
-  }
-  if (CondIfTrue1 != CondARM32::kNone) {
-    assert(RedefineT);
-    _mov_redefined(T, SrcT, CondIfTrue1);
-  }
-  _mov(Dest, T);
+  lowerInt1ForSelect(Dest, Condition, legalizeUndef(SrcT), legalizeUndef(SrcF));
 }
 
 void TargetARM32::lowerStore(const InstStore *Inst) {
@@ -4430,74 +4406,250 @@ void TargetARM32::emit(const ConstantUndef *) const {
   llvm::report_fatal_error("undef value encountered by emitter.");
 }
 
-void TargetARM32::lowerTruncToFlags(Operand *Src, CondARM32::Cond *CondIfTrue,
-                                    CondARM32::Cond *CondIfFalse) {
-  Operand *_1 = Ctx->getConstantInt32(1);
-  Variable *SrcR =
-      legalizeToReg(Src->getType() == IceType_i64 ? loOperand(Src) : Src);
-  _tst(SrcR, _1);
-  *CondIfTrue = CondARM32::NE;  // NE <-> APSR.Z == 0
-  *CondIfFalse = CondARM32::EQ; // EQ <-> APSR.Z == 1
-}
+void TargetARM32::lowerInt1ForSelect(Variable *Dest, Operand *Boolean,
+                                     Operand *TrueValue, Operand *FalseValue) {
+  Operand *_1 = legalize(Ctx->getConstantInt1(1), Legal_Reg | Legal_Flex);
 
-bool TargetARM32::_mov_i1_to_flags(Operand *Boolean,
-                                   CondARM32::Cond *CondIfTrue0,
-                                   CondARM32::Cond *CondIfTrue1,
-                                   CondARM32::Cond *CondIfFalse) {
-  *CondIfTrue0 = CondARM32::kNone;
-  *CondIfTrue1 = CondARM32::kNone;
-  *CondIfFalse = CondARM32::AL;
-  bool FoldOK = false;
+  assert(Boolean->getType() == IceType_i1);
+
+  bool NeedsAnd1 = false;
+  if (TrueValue->getType() == IceType_i1) {
+    assert(FalseValue->getType() == IceType_i1);
+
+    Variable *TrueValueV = Func->makeVariable(IceType_i1);
+    SafeBoolChain Src0Safe = lowerInt1(TrueValueV, TrueValue);
+    TrueValue = TrueValueV;
+
+    Variable *FalseValueV = Func->makeVariable(IceType_i1);
+    SafeBoolChain Src1Safe = lowerInt1(FalseValueV, FalseValue);
+    FalseValue = FalseValueV;
+
+    NeedsAnd1 = Src0Safe == SBC_No || Src1Safe == SBC_No;
+  }
+
+  Variable *DestLo = (Dest->getType() == IceType_i64)
+                         ? llvm::cast<Variable>(loOperand(Dest))
+                         : Dest;
+  Variable *DestHi = (Dest->getType() == IceType_i64)
+                         ? llvm::cast<Variable>(hiOperand(Dest))
+                         : nullptr;
+  Operand *FalseValueLo = (FalseValue->getType() == IceType_i64)
+                              ? loOperand(FalseValue)
+                              : FalseValue;
+  Operand *FalseValueHi =
+      (FalseValue->getType() == IceType_i64) ? hiOperand(FalseValue) : nullptr;
+
+  Operand *TrueValueLo =
+      (TrueValue->getType() == IceType_i64) ? loOperand(TrueValue) : TrueValue;
+  Operand *TrueValueHi =
+      (TrueValue->getType() == IceType_i64) ? hiOperand(TrueValue) : nullptr;
+
+  Variable *T_Lo = makeReg(DestLo->getType());
+  Variable *T_Hi = (DestHi == nullptr) ? nullptr : makeReg(DestHi->getType());
+
+  _mov(T_Lo, legalize(FalseValueLo, Legal_Reg | Legal_Flex));
+  if (DestHi) {
+    _mov(T_Hi, legalize(FalseValueHi, Legal_Reg | Legal_Flex));
+  }
+
+  CondWhenTrue Cond(CondARM32::kNone);
+  // FlagsWereSet is used to determine wether Boolean was folded or not. If not,
+  // add an explicit _tst instruction below.
+  bool FlagsWereSet = false;
   if (const Inst *Producer = BoolComputations.getProducerOf(Boolean)) {
-    if (const auto *IcmpProducer = llvm::dyn_cast<InstIcmp>(Producer)) {
-      lowerIcmpCond(IcmpProducer, CondIfTrue0, CondIfFalse);
-      FoldOK = true;
-    } else if (const auto *FcmpProducer = llvm::dyn_cast<InstFcmp>(Producer)) {
-      lowerFcmpCond(FcmpProducer, CondIfTrue0, CondIfTrue1, CondIfFalse);
-      FoldOK = true;
-    } else if (const auto *CastProducer = llvm::dyn_cast<InstCast>(Producer)) {
+    switch (Producer->getKind()) {
+    default:
+      llvm_unreachable("Unexpected producer.");
+    case Inst::Icmp: {
+      Cond = lowerIcmpCond(llvm::cast<InstIcmp>(Producer));
+      FlagsWereSet = true;
+    } break;
+    case Inst::Fcmp: {
+      Cond = lowerFcmpCond(llvm::cast<InstFcmp>(Producer));
+      FlagsWereSet = true;
+    } break;
+    case Inst::Cast: {
+      const auto *CastProducer = llvm::cast<InstCast>(Producer);
       assert(CastProducer->getCastKind() == InstCast::Trunc);
-      lowerTruncToFlags(CastProducer->getSrc(0), CondIfTrue0, CondIfFalse);
-      FoldOK = true;
+      Boolean = CastProducer->getSrc(0);
+      // No flags were set, so a _tst(Src, 1) will be emitted below. Don't
+      // bother legalizing Src to a Reg because it will be legalized before
+      // emitting the tst instruction.
+      FlagsWereSet = false;
+    } break;
+    case Inst::Arithmetic: {
+      // This is a special case: we eagerly assumed Producer could be folded,
+      // but in reality, it can't. No reason to panic: we just lower it using
+      // the regular lowerArithmetic helper.
+      const auto *ArithProducer = llvm::cast<InstArithmetic>(Producer);
+      lowerArithmetic(ArithProducer);
+      Boolean = ArithProducer->getDest();
+      // No flags were set, so a _tst(Dest, 1) will be emitted below. Don't
+      // bother legalizing Dest to a Reg because it will be legalized before
+      // emitting  the tst instruction.
+      FlagsWereSet = false;
+    } break;
     }
   }
-  return FoldOK;
+
+  if (!FlagsWereSet) {
+    // No flags have been set, so emit a tst Boolean, 1.
+    Variable *Src = legalizeToReg(Boolean);
+    _tst(Src, _1);
+    Cond = CondWhenTrue(CondARM32::NE); // i.e., CondARM32::NotZero.
+  }
+
+  if (Cond.WhenTrue0 == CondARM32::kNone) {
+    assert(Cond.WhenTrue1 == CondARM32::kNone);
+  } else {
+    _mov_redefined(T_Lo, legalize(TrueValueLo, Legal_Reg | Legal_Flex),
+                   Cond.WhenTrue0);
+    if (DestHi) {
+      _mov_redefined(T_Hi, legalize(TrueValueHi, Legal_Reg | Legal_Flex),
+                     Cond.WhenTrue0);
+    }
+  }
+
+  if (Cond.WhenTrue1 != CondARM32::kNone) {
+    _mov_redefined(T_Lo, legalize(TrueValueLo, Legal_Reg | Legal_Flex),
+                   Cond.WhenTrue1);
+    if (DestHi) {
+      _mov_redefined(T_Hi, legalize(TrueValueHi, Legal_Reg | Legal_Flex),
+                     Cond.WhenTrue1);
+    }
+  }
+
+  if (NeedsAnd1) {
+    // We lowered something that is unsafe (i.e., can't provably be zero or
+    // one). Truncate the result.
+    _and(T_Lo, T_Lo, _1);
+  }
+
+  _mov(DestLo, T_Lo);
+  if (DestHi) {
+    _mov(DestHi, T_Hi);
+  }
+}
+
+TargetARM32::SafeBoolChain TargetARM32::lowerInt1(Variable *Dest,
+                                                  Operand *Boolean) {
+  assert(Boolean->getType() == IceType_i1);
+  Variable *T = makeReg(IceType_i1);
+  Operand *_0 =
+      legalize(Ctx->getConstantZero(IceType_i1), Legal_Reg | Legal_Flex);
+  Operand *_1 = legalize(Ctx->getConstantInt1(1), Legal_Reg | Legal_Flex);
+
+  SafeBoolChain Safe = SBC_Yes;
+  if (const Inst *Producer = BoolComputations.getProducerOf(Boolean)) {
+    switch (Producer->getKind()) {
+    default:
+      llvm_unreachable("Unexpected producer.");
+    case Inst::Icmp: {
+      _mov(T, _0);
+      CondWhenTrue Cond = lowerIcmpCond(llvm::cast<InstIcmp>(Producer));
+      assert(Cond.WhenTrue0 != CondARM32::AL);
+      assert(Cond.WhenTrue0 != CondARM32::kNone);
+      assert(Cond.WhenTrue1 == CondARM32::kNone);
+      _mov_redefined(T, _1, Cond.WhenTrue0);
+    } break;
+    case Inst::Fcmp: {
+      _mov(T, _0);
+      Inst *MovZero = Context.getLastInserted();
+      CondWhenTrue Cond = lowerFcmpCond(llvm::cast<InstFcmp>(Producer));
+      if (Cond.WhenTrue0 == CondARM32::AL) {
+        assert(Cond.WhenTrue1 == CondARM32::kNone);
+        MovZero->setDeleted();
+        _mov(T, _1);
+      } else if (Cond.WhenTrue0 != CondARM32::kNone) {
+        _mov_redefined(T, _1, Cond.WhenTrue0);
+      }
+      if (Cond.WhenTrue1 != CondARM32::kNone) {
+        assert(Cond.WhenTrue0 != CondARM32::kNone);
+        assert(Cond.WhenTrue0 != CondARM32::AL);
+        _mov_redefined(T, _1, Cond.WhenTrue1);
+      }
+    } break;
+    case Inst::Cast: {
+      const auto *CastProducer = llvm::cast<InstCast>(Producer);
+      assert(CastProducer->getCastKind() == InstCast::Trunc);
+      Operand *Src = CastProducer->getSrc(0);
+      if (Src->getType() == IceType_i64)
+        Src = loOperand(Src);
+      _mov(T, legalize(Src, Legal_Reg | Legal_Flex));
+      Safe = SBC_No;
+    } break;
+    case Inst::Arithmetic: {
+      const auto *ArithProducer = llvm::cast<InstArithmetic>(Producer);
+      Safe = lowerInt1Arithmetic(ArithProducer);
+      _mov(T, ArithProducer->getDest());
+    } break;
+    }
+  } else {
+    _mov(T, legalize(Boolean, Legal_Reg | Legal_Flex));
+  }
+
+  _mov(Dest, T);
+  return Safe;
 }
 
 namespace {
 namespace BoolFolding {
 bool shouldTrackProducer(const Inst &Instr) {
-  switch (static_cast<uint32_t>(Instr.getKind())) {
+  switch (Instr.getKind()) {
+  default:
+    return false;
   case Inst::Icmp:
-    return true;
   case Inst::Fcmp:
     return true;
-  }
-  if (const auto *Cast = llvm::dyn_cast<InstCast>(&Instr)) {
-    switch (static_cast<uint32_t>(Cast->getCastKind())) {
+  case Inst::Cast: {
+    switch (llvm::cast<InstCast>(&Instr)->getCastKind()) {
+    default:
+      return false;
     case InstCast::Trunc:
       return true;
     }
   }
-  return false;
+  case Inst::Arithmetic: {
+    switch (llvm::cast<InstArithmetic>(&Instr)->getOp()) {
+    default:
+      return false;
+    case InstArithmetic::And:
+    case InstArithmetic::Or:
+      return true;
+    }
+  }
+  }
 }
 
 bool isValidConsumer(const Inst &Instr) {
-  switch (static_cast<uint32_t>(Instr.getKind())) {
+  switch (Instr.getKind()) {
+  default:
+    return false;
   case Inst::Br:
     return true;
   case Inst::Select:
     return !isVectorType(Instr.getDest()->getType());
-  }
-  if (const auto *Cast = llvm::dyn_cast<InstCast>(&Instr)) {
-    switch (static_cast<uint32_t>(Cast->getCastKind())) {
+  case Inst::Cast: {
+    switch (llvm::cast<InstCast>(&Instr)->getCastKind()) {
+    default:
+      return false;
     case InstCast::Sext:
       return !isVectorType(Instr.getDest()->getType());
     case InstCast::Zext:
       return !isVectorType(Instr.getDest()->getType());
     }
   }
-  return false;
+  case Inst::Arithmetic: {
+    switch (llvm::cast<InstArithmetic>(&Instr)->getOp()) {
+    default:
+      return false;
+    case InstArithmetic::And:
+      return !isVectorType(Instr.getDest()->getType());
+    case InstArithmetic::Or:
+      return !isVectorType(Instr.getDest()->getType());
+    }
+  }
+  }
 }
 } // end of namespace BoolFolding
 } // end of anonymous namespace
@@ -4520,9 +4672,8 @@ void TargetARM32::BoolComputationTracker::recordProducers(CfgNode *Node) {
         continue;
       }
 
-      if (IndexOfVarOperandInInst(Var) != 0 ||
-          !BoolFolding::isValidConsumer(Instr)) {
-        // All valid consumers use Var as the first source operand
+      ++ComputationIter->second.NumUses;
+      if (!BoolFolding::isValidConsumer(Instr)) {
         KnownComputations.erase(VarNum);
         continue;
       }
@@ -4536,7 +4687,7 @@ void TargetARM32::BoolComputationTracker::recordProducers(CfgNode *Node) {
   for (auto Iter = KnownComputations.begin(), End = KnownComputations.end();
        Iter != End;) {
     // Disable the folding if its dest may be live beyond this block.
-    if (Iter->second.IsLiveOut) {
+    if (Iter->second.IsLiveOut || Iter->second.NumUses > 1) {
       Iter = KnownComputations.erase(Iter);
       continue;
     }

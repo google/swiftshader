@@ -52,39 +52,39 @@ define internal void @mult_fwd_branches(i32 %a, i32 %b) {
 
   %cmp = icmp slt i32 %a, %b
 
-; ASM-NEXT:     ldr     r0, [sp, #8]
-; ASM-NEXT:     ldr     r1, [sp, #4]
-; ASM-NEXT:     cmp     r0, r1
-; ASM-NEXT:     movge   r0, #0
+; ASM-NEXT:     mov     r0, #0
+; ASM-NEXT:     ldr     r1, [sp, #8]
+; ASM-NEXT:     ldr     r2, [sp, #4]
+; ASM-NEXT:     cmp     r1, r2
 ; ASM-NEXT:     movlt   r0, #1
 ; ASM-NEXT:     strb    r0, [sp]
 
-; DIS-NEXT:   c:        e59d0008
-; DIS-NEXT:  10:        e59d1004
-; DIS-NEXT:  14:        e1500001
-; DIS-NEXT:  18:        a3a00000
+; DIS-NEXT:   c:        e3a00000
+; DIS-NEXT:  10:        e59d1008
+; DIS-NEXT:  14:        e59d2004
+; DIS-NEXT:  18:        e1510002
 ; DIS-NEXT:  1c:        b3a00001
 ; DIS-NEXT:  20:        e5cd0000
-
-; IASM-NEXT:    .byte 0x8
-; IASM-NEXT:    .byte 0x0
-; IASM-NEXT:    .byte 0x9d
-; IASM-NEXT:    .byte 0xe5
-
-; IASM-NEXT:    .byte 0x4
-; IASM-NEXT:    .byte 0x10
-; IASM-NEXT:    .byte 0x9d
-; IASM-NEXT:    .byte 0xe5
-
-; IASM-NEXT:    .byte 0x1
-; IASM-NEXT:    .byte 0x0
-; IASM-NEXT:    .byte 0x50
-; IASM-NEXT:    .byte 0xe1
 
 ; IASM-NEXT:    .byte 0x0
 ; IASM-NEXT:    .byte 0x0
 ; IASM-NEXT:    .byte 0xa0
-; IASM-NEXT:    .byte 0xa3
+; IASM-NEXT:    .byte 0xe3
+
+; IASM-NEXT:    .byte 0x8
+; IASM-NEXT:    .byte 0x10
+; IASM-NEXT:    .byte 0x9d
+; IASM-NEXT:    .byte 0xe5
+
+; IASM-NEXT:    .byte 0x4
+; IASM-NEXT:    .byte 0x20
+; IASM-NEXT:    .byte 0x9d
+; IASM-NEXT:    .byte 0xe5
+
+; IASM-NEXT:    .byte 0x2
+; IASM-NEXT:    .byte 0x0
+; IASM-NEXT:    .byte 0x51
+; IASM-NEXT:    .byte 0xe1
 
 ; IASM-NEXT:    .byte 0x1
 ; IASM-NEXT:    .byte 0x0
@@ -96,23 +96,20 @@ define internal void @mult_fwd_branches(i32 %a, i32 %b) {
   br i1 %cmp, label %then, label %else
 
 ; ASM-NEXT:     ldrb    r0, [sp]
-; ASM-NEXT:     uxtb    r0, r0
-; ASM-NEXT:     cmp     r0, #0
+; ASM-NEXT:     tst     r0, #1
 ; ASM-NEXT:     bne     .Lmult_fwd_branches$then
 ; ASM-NEXT:     b       .Lmult_fwd_branches$else
 
 ; DIS-NEXT:  24:        e5dd0000
-; DIS-NEXT:  28:        e6ef0070
-; DIS-NEXT:  2c:        e3500000
-; DIS-NEXT:  30:        1a000000
-; DIS-NEXT:  34:        ea000000
+; DIS-NEXT:  28:        e3100001
+; DIS-NEXT:  2c:        1a000000
+; DIS-NEXT:  30:        ea000000
 
 ; IASM-NEXT:    ldrb    r0, [sp]
-; IASM-NEXT:    uxtb    r0, r0
 
+; IASM-NEXT:    .byte 0x1
 ; IASM-NEXT:    .byte 0x0
-; IASM-NEXT:    .byte 0x0
-; IASM-NEXT:    .byte 0x50
+; IASM-NEXT:    .byte 0x10
 ; IASM-NEXT:    .byte 0xe3
 
 ; IASM-NEXT:    .byte 0x0
@@ -132,7 +129,7 @@ then:
   br label %end
 ; ASM-NEXT:     b       .Lmult_fwd_branches$end
 
-; DIS-NEXT:  38:        ea000000
+; DIS-NEXT:  34:        ea000000
 
 ; IASM-NEXT:    .byte 0x0
 ; IASM-NEXT:    .byte 0x0
@@ -146,7 +143,7 @@ else:
   br label %end
 ; ASM-NEXT:     b       .Lmult_fwd_branches$end
 
-; DIS-NEXT:  3c:        eaffffff
+; DIS-NEXT:  38:        eaffffff
 
 ; IASM-NEXT:    .byte 0xff
 ; IASM-NEXT:    .byte 0xff
@@ -163,8 +160,8 @@ end:
 ; ASM-NEXT:     add     sp, sp, #12
 ; ASM-NEXT:     bx      lr
 
-; DIS-NEXT:  40:        e28dd00c
-; DIS-NEXT:  44:        e12fff1e
+; DIS-NEXT:  3c:        e28dd00c
+; DIS-NEXT:  40:        e12fff1e
 
 ; IASM-NEXT:    .byte 0xc
 ; IASM-NEXT:    .byte 0xd0
