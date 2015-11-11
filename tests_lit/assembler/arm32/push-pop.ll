@@ -31,11 +31,12 @@ define internal void @SinglePushPop() {
 ; ASM-LABEL:SinglePushPop:
 ; ASM-NEXT:.LSinglePushPop$__0:
 ; ASM-NEXT:    push    {lr}
-; ASM:         sub     sp, sp, #12
+; ASM-NEXT:    sub     sp, sp, #12
 ; ASM-NEXT:    bl      DoSomething
-; ASM:         add     sp, sp, #12
+; ASM-NEXT:    add     sp, sp, #12
 ; ASM-NEXT:    pop     {lr}
-; ASM:         bx      lr
+; ASM-NEXT:     # lr = def.pseudo 
+; ASM-NEXT:    bx      lr
 
 ; DIS-LABEL:00000000 <SinglePushPop>:
 ; DIS-NEXT:   0:        e52de004
@@ -86,15 +87,18 @@ define internal i32 @MultPushPop(i32 %v1, i32 %v2) {
 ; ASM-LABEL:MultPushPop:
 ; ASM-NEXT:.LMultPushPop$__0:
 ; ASM-NEXT:     push    {r4, r5, lr}
-; ASM:          sub     sp, sp, #4
+; ASM-NEXT:     sub     sp, sp, #4
 ; ASM-NEXT:     mov     r4, r0
 ; ASM-NEXT:     mov     r5, r1
 ; ASM-NEXT:     bl      DoSomething
-; ASM:          add     r4, r4, r5
+; ASM-NEXT:     add     r4, r4, r5
 ; ASM-NEXT:     mov     r0, r4
 ; ASM-NEXT:     add     sp, sp, #4
 ; ASM-NEXT:     pop     {r4, r5, lr}
-; ASM:          bx      lr
+; ASM-NEXT:     # r4 = def.pseudo 
+; ASM-NEXT:     # r5 = def.pseudo 
+; ASM-NEXT:     # lr = def.pseudo 
+; ASM-NEXT:     bx      lr
 
 ; DIS-LABEL:00000020 <MultPushPop>:
 ; DIS-NEXT:  20:        e92d4030

@@ -27,17 +27,17 @@ define internal i32 @AllocBigAlign() {
 }
 
 ; ASM-LABEL:AllocBigAlign:
-; ASM:.LAllocBigAlign$__0:
-; ASM:  push    {fp}
-; ASM:  mov     fp, sp
-; ASM:  sub     sp, sp, #12
-; ASM:  bic     sp, sp, #31
-; ASM:  sub     sp, sp, #32
-; ASM:  mov     r0, sp
-; ASM:  mov     sp, fp
-; ASM:  pop     {fp}
-; ASM:  # fp = def.pseudo 
-; ASM:  bx      lr
+; ASM-NEXT:.LAllocBigAlign$__0:
+; ASM-NEXT:  push    {fp}
+; ASM-NEXT:  mov     fp, sp
+; ASM-NEXT:  sub     sp, sp, #12
+; ASM-NEXT:  bic     sp, sp, #31
+; ASM-NEXT:  sub     sp, sp, #32
+; ASM-NEXT:  mov     r0, sp
+; ASM-NEXT:  mov     sp, fp
+; ASM-NEXT:  pop     {fp}
+; ASM-NEXT:  # fp = def.pseudo 
+; ASM-NEXT:  bx      lr
 
 ; DIS-LABEL:00000000 <AllocBigAlign>:
 ; DIS-NEXT:   0:        e52db004

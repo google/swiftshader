@@ -1214,6 +1214,7 @@ void InstARM32Push::emit(const Cfg *Func) const {
     }
   }
   Ostream &Str = Func->getContext()->getStrEmit();
+  bool NeedNewline = false;
   for (SizeT i = getSrcSize(); i > 0; --i) {
     Operand *Op = getSrc(i - 1);
     if (isScalarIntegerType(Op->getType()))
@@ -1222,10 +1223,15 @@ void InstARM32Push::emit(const Cfg *Func) const {
         << "vpush"
         << "\t{";
     Op->emit(Func);
-    Str << "}\n";
+    Str << "}";
+    NeedNewline = true;
   }
   if (IntegerCount != 0) {
     startNextInst(Func);
+    if (NeedNewline) {
+      Str << "\n";
+      NeedNewline = false;
+    }
     Str << "\t"
         << "push"
         << "\t{";
@@ -1239,8 +1245,10 @@ void InstARM32Push::emit(const Cfg *Func) const {
         PrintComma = true;
       }
     }
-    Str << "}\n";
+    Str << "}";
+    NeedNewline = true;
   }
+  assert(NeedNewline); // caller will add the newline
 }
 
 void InstARM32Push::emitIAS(const Cfg *Func) const {
