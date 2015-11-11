@@ -1077,6 +1077,14 @@ template <> void InstARM32Movt::emitIAS(const Cfg *Func) const {
     emitUsingTextFixup(Func);
 }
 
+template <> void InstARM32Uxt::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 1);
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  Asm->uxt(getDest(), getSrc(0), getPredicate());
+  if (Asm->needsTextFixup())
+    emitUsingTextFixup(Func);
+}
+
 void InstARM32Pop::emit(const Cfg *Func) const {
   // TODO(jpp): Improve FP register save/restore.
   if (!BuildDefs::dump())

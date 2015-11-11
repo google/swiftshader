@@ -90,6 +90,9 @@ static constexpr IValueT kShiftShift = 5;
 static constexpr IValueT kImmed12Bits = 12;
 static constexpr IValueT kImm12Shift = 0;
 
+// Rotation instructions (uxtb etc.).
+static constexpr IValueT kRotationShift = 10;
+
 // Div instruction register field encodings.
 static constexpr IValueT kDivRdShift = 16;
 static constexpr IValueT kDivRmShift = 8;
@@ -109,6 +112,10 @@ static constexpr int kBranchOffsetBits = 24;
 static constexpr IOffsetT kBranchOffsetMask = 0x00ffffff;
 
 inline IValueT encodeBool(bool B) { return B ? 1 : 0; }
+
+inline IValueT encodeRotation(ARM32::AssemblerARM32::RotationValue Value) {
+  return static_cast<IValueT>(Value);
+}
 
 inline IValueT encodeGPRRegister(RegARM32::GPRRegister Rn) {
   return static_cast<IValueT>(Rn);
@@ -542,6 +549,18 @@ void AssemblerARM32::emitMulOp(CondARM32::Cond Cond, IValueT Opcode, IValueT Rd,
                      (encodeBool(SetCc) << kSShift) | (Rn << kRnShift) |
                      (Rd << kRdShift) | (Rs << kRsShift) | B7 | B4 |
                      (Rm << kRmShift);
+  emitInst(Encoding);
+}
+
+void AssemblerARM32::emitUxt(CondARM32::Cond Cond, IValueT Opcode, IValueT Rd,
+                             IValueT Rn, IValueT Rm, RotationValue Rotation) {
+  IValueT Rot = encodeRotation(Rotation);
+  if (!isConditionDefined(Cond) || !Utils::IsUint(2, Rot))
+    return setNeedsTextFixup();
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  IValueT Encoding = (encodeCondition(Cond) << kConditionShift) | Opcode |
+                     (Rn << kRnShift) | (Rd << kRdShift) |
+                     (Rot << kRotationShift) | B6 | B5 | B4 | (Rm << kRmShift);
   emitInst(Encoding);
 }
 
@@ -1129,6 +1148,43 @@ void AssemblerARM32::umull(const Operand *OpRdLo, const Operand *OpRdHi,
     llvm::report_fatal_error("Umull instruction unpredictable on pc");
   constexpr bool SetFlags = false;
   emitMulOp(Cond, B23, RdLo, RdHi, Rn, Rm, SetFlags);
+}
+
+void AssemblerARM32::uxt(const Operand *OpRd, const Operand *OpSrc0,
+                         CondARM32::Cond Cond) {
+  IValueT Rd;
+  if (decodeOperand(OpRd, Rd) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  // Note: For the moment, we assume no rotation is specified.
+  RotationValue Rotation = kRotateNone;
+  constexpr IValueT Rn = RegARM32::Encoded_Reg_pc;
+  IValueT Rm;
+  if (decodeOperand(OpSrc0, Rm) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  switch (typeWidthInBytes(OpSrc0->getType())) {
+  default:
+    return setNeedsTextFixup();
+  case 1: {
+    // UXTB - ARM section A8.8.274, encoding A1:
+    //   uxtb<c> <Rd>, <Rm>{, <rotate>}
+    //
+    // cccc011011101111ddddrr000111mmmm where cccc=Cond, dddd=Rd, mmmm=Rm, and
+    // rr defined (RotationValue) rotate.
+    constexpr IValueT Opcode = B26 | B25 | B23 | B22 | B21;
+    emitUxt(Cond, Opcode, Rd, Rn, Rm, Rotation);
+    return;
+  }
+  case 2: {
+    // UXTH - ARM section A8.8.276, encoding A1:
+    //   uxth<c> <Rd>< <Rm>{, <rotate>}
+    //
+    // cccc01101111nnnnddddrr000111mmmm where cccc=Cond, dddd=Rd, mmmm=Rm, and
+    // rr defined (RotationValue) rotate.
+    constexpr IValueT Opcode = B26 | B25 | B23 | B22 | B21 | B20;
+    emitUxt(Cond, Opcode, Rd, Rn, Rm, Rotation);
+    return;
+  }
+  }
 }
 
 } // end of namespace ARM32

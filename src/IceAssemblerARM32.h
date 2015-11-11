@@ -59,6 +59,14 @@ class AssemblerARM32 : public Assembler {
   AssemblerARM32 &operator=(const AssemblerARM32 &) = delete;
 
 public:
+  // Rotation values.
+  enum RotationValue {
+    kRotateNone, // Omitted
+    kRotate8,    // ror #8
+    kRotate16,   // ror #16
+    kRotate24    // ror #24
+  };
+
   class TargetInfo {
     TargetInfo(const TargetInfo &) = delete;
     TargetInfo &operator=(const TargetInfo &) = delete;
@@ -250,6 +258,9 @@ public:
   void umull(const Operand *OpRdLo, const Operand *OpRdHi, const Operand *OpRn,
              const Operand *OpRm, CondARM32::Cond Cond);
 
+  // Implements uxtb/uxth depending on type of OpSrc0.
+  void uxt(const Operand *OpRd, const Operand *OpSrc0, CondARM32::Cond Cond);
+
   static bool classof(const Assembler *Asm) {
     return Asm->getKind() == Asm_ARM32;
   }
@@ -332,6 +343,12 @@ private:
   // mmmm=Rm, ssss=Rs, f=SetCc, and xxxxxxx=Opcode.
   void emitMulOp(CondARM32::Cond Cond, IValueT Opcode, IValueT Rd, IValueT Rn,
                  IValueT Rm, IValueT Rs, bool SetCc);
+
+  // Implements various forms of Unsigned extend value, using pattern
+  // ccccxxxxxxxxnnnnddddrr000111mmmm where cccc=Cond, xxxxxxxx<<20=Opcode,
+  // nnnn=Rn, dddd=Rd, rr=Rotation, and mmmm=Rm.
+  void emitUxt(CondARM32::Cond, IValueT Opcode, IValueT Rd, IValueT Rn,
+               IValueT Rm, RotationValue Rotation);
 
   // Pattern cccctttxxxxnnnn0000iiiiiiiiiiii where cccc=Cond, nnnn=Rn,
   // ttt=Instruction type (derived from OpSrc1), iiiiiiiiiiii is derived from

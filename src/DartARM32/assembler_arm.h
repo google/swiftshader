@@ -1301,6 +1301,12 @@ class Assembler : public ValueObject {
                      Register new_value,
                      FieldContent old_content);
 
+#if 0
+  // Added the following missing operations:
+  //
+  // ARM32::AssemblerARM::uxt() (uxtb and uxth).
+#endif
+
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Assembler);
 };
