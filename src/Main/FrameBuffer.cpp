@@ -23,8 +23,12 @@
 #include <string.h>
 #include <time.h>
 
+#ifdef __ANDROID__
+#include <cutils/properties.h>
+#endif
+
 #ifndef DISPLAY_LOGO
-#define DISPLAY_LOGO (NDEBUG & 1)
+#define DISPLAY_LOGO ((NDEBUG | __ANDROID__) & 1)
 #endif
 
 #define ASYNCHRONOUS_BLIT 0   // FIXME: Currently leads to rare race conditions
@@ -227,29 +231,13 @@ namespace sw
 		const int sBytes = Surface::bytes(state.sourceFormat);
 		const int sStride = topLeftOrigin ? (sBytes * width2) : -(sBytes * width2);
 
-	//	char compareApp[32] = SCRAMBLE31(validationApp, APPNAME_SCRAMBLE);
-	//	bool validApp = strcmp(compareApp, registeredApp) == 0;
-		bool validKey = ValidateSerialNumber(validationKey, CHECKSUM_KEY, SERIAL_PREFIX);
-
-		// Date of the end of the logo-free license
-		const int endYear = 2099;
-		const int endMonth = 12;
-		const int endDay = 31;
-
-		const int endDate = (endYear << 16) + (endMonth << 8) + endDay;
-
-		time_t rawtime = time(0);
-		tm *timeinfo = localtime(&rawtime);
-		int year = timeinfo->tm_year + 1900;
-		int month = timeinfo->tm_mon + 1;
-		int day = timeinfo->tm_mday;
-
-		int date = (year << 16) + (month << 8) + day;
-
-		if(date > endDate)
-		{
-			validKey = false;
-		}
+		#ifdef __ANDROID__
+			char ro_product_model[PROPERTY_VALUE_MAX] = "";
+    		property_get("ro.product.model", ro_product_model, nullptr);
+			bool validKey = strstr(ro_product_model, "Android") != nullptr;
+		#else
+			bool validKey = ValidateSerialNumber(validationKey, CHECKSUM_KEY, SERIAL_PREFIX);
+		#endif
 
 		Function<Void, Pointer<Byte>, Pointer<Byte> > function;
 		{

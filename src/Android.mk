@@ -82,7 +82,11 @@ COMMON_SRC_FILES += \
 	OpenGL/common/Object.cpp \
 	OpenGL/common/MatrixStack.cpp \
 
-COMMON_CFLAGS := -DLOG_TAG=\"swiftshader\" -Wno-unused-parameter -DDISPLAY_LOGO=0 -Wno-implicit-exception-spec-mismatch -Wno-overloaded-virtual -fno-operator-names -msse2 -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS -std=c++11
+COMMON_CFLAGS := -DLOG_TAG=\"swiftshader\" -Wno-unused-parameter -Wno-implicit-exception-spec-mismatch -Wno-overloaded-virtual -fno-operator-names -msse2 -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS -std=c++11
+
+ifneq ($(filter gce_x86 gce calypso, $(TARGET_DEVICE)),)
+COMMON_CFLAGS += -DDISPLAY_LOGO=0
+endif
 
 include $(CLEAR_VARS)
 LOCAL_CLANG := true
