@@ -377,6 +377,66 @@ namespace es2
 		}
 	}
 
+	bool ValidReadPixelsFormatType(GLenum internalFormat, GLenum internalType, GLenum format, GLenum type, egl::GLint clientVersion)
+	{
+		switch(format)
+		{
+		case GL_RGBA:
+			switch(type)
+			{
+			case GL_UNSIGNED_BYTE:
+				break;
+			case GL_UNSIGNED_INT_2_10_10_10_REV:
+				return (clientVersion >= 3) && (internalFormat == GL_RGB10_A2);
+			case GL_FLOAT:
+				return (clientVersion >= 3) && (internalType == GL_FLOAT);
+			default:
+				return false;
+			}
+			break;
+		case GL_RGBA_INTEGER:
+			if(clientVersion < 3)
+			{
+				return false;
+			}
+			switch(type)
+			{
+			case GL_INT:
+				if(internalType != GL_INT)
+				{
+					return false;
+				}
+				break;
+			case GL_UNSIGNED_INT:
+				if(internalType != GL_UNSIGNED_INT)
+				{
+					return false;
+				}
+				break;
+			default:
+				return false;
+			}
+			break;
+		case GL_BGRA_EXT:
+			switch(type)
+			{
+			case GL_UNSIGNED_BYTE:
+			case GL_UNSIGNED_SHORT_4_4_4_4_REV_EXT:
+			case GL_UNSIGNED_SHORT_1_5_5_5_REV_EXT:
+				break;
+			default:
+				return false;
+			}
+			break;
+		case GL_RG_EXT:
+		case GL_RED_EXT:
+			return (clientVersion >= 3) && (type == GL_UNSIGNED_BYTE);
+		default:
+			return false;
+		}
+		return true;
+	}
+
 	bool IsDepthTexture(GLenum format)
 	{
 		return format == GL_DEPTH_COMPONENT ||
@@ -535,7 +595,7 @@ namespace es2
 		}
 	}
 
-	bool IsColorRenderable(GLenum internalformat)
+	bool IsColorRenderable(GLenum internalformat, egl::GLint clientVersion)
 	{
 		switch(internalformat)
 		{
@@ -568,7 +628,18 @@ namespace es2
 		case GL_RGB8_OES:
 		case GL_RGBA8_OES:
 			return true;
+		case GL_R16F:
+		case GL_RG16F:
+		case GL_R11F_G11F_B10F:
+		case GL_RGB16F:
+		case GL_RGBA16F:
+		case GL_R32F:
+		case GL_RG32F:
+		case GL_RGB32F:
+		case GL_RGBA32F:
+			return clientVersion >= 3;
 		case GL_DEPTH_COMPONENT24:
+		case GL_DEPTH_COMPONENT32_OES:
 		case GL_DEPTH_COMPONENT32F:
 		case GL_DEPTH32F_STENCIL8:
 		case GL_DEPTH_COMPONENT16:
@@ -587,6 +658,7 @@ namespace es2
 		switch(internalformat)
 		{
 		case GL_DEPTH_COMPONENT24:
+		case GL_DEPTH_COMPONENT32_OES:
 		case GL_DEPTH_COMPONENT32F:
 		case GL_DEPTH32F_STENCIL8:
 		case GL_DEPTH_COMPONENT16:
@@ -621,6 +693,15 @@ namespace es2
 		case GL_RGB565:
 		case GL_RGB8_OES:
 		case GL_RGBA8_OES:
+		case GL_R16F:
+		case GL_RG16F:
+		case GL_R11F_G11F_B10F:
+		case GL_RGB16F:
+		case GL_RGBA16F:
+		case GL_R32F:
+		case GL_RG32F:
+		case GL_RGB32F:
+		case GL_RGBA32F:
 			return false;
 		default:
 			UNIMPLEMENTED();
@@ -665,8 +746,18 @@ namespace es2
 		case GL_RGB565:
 		case GL_RGB8_OES:
 		case GL_RGBA8_OES:
+		case GL_R16F:
+		case GL_RG16F:
+		case GL_R11F_G11F_B10F:
+		case GL_RGB16F:
+		case GL_RGBA16F:
+		case GL_R32F:
+		case GL_RG32F:
+		case GL_RGB32F:
+		case GL_RGBA32F:
 		case GL_DEPTH_COMPONENT16:
 		case GL_DEPTH_COMPONENT24:
+		case GL_DEPTH_COMPONENT32_OES:
 		case GL_DEPTH_COMPONENT32F:
 			return false;
 		default:
@@ -965,7 +1056,46 @@ namespace es2sw
 		case GL_DEPTH_COMPONENT16:
 		case GL_STENCIL_INDEX8:       
 		case GL_DEPTH24_STENCIL8_OES: return sw::FORMAT_D24S8;
-		default: UNREACHABLE(format); return sw::FORMAT_A8B8G8R8;
+		case GL_DEPTH_COMPONENT32_OES:return sw::FORMAT_D32;
+		case GL_R8:                   return sw::FORMAT_R8;
+		case GL_RG8:                  return sw::FORMAT_G8R8;
+		case GL_R8I:                  return sw::FORMAT_R8I;
+		case GL_RG8I:                 return sw::FORMAT_G8R8I;
+		case GL_RGB8I:                return sw::FORMAT_X8B8G8R8I;
+		case GL_RGBA8I:               return sw::FORMAT_A8B8G8R8I;
+		case GL_R8UI:                 return sw::FORMAT_R8UI;
+		case GL_RG8UI:                return sw::FORMAT_G8R8UI;
+		case GL_RGB8UI:               return sw::FORMAT_X8B8G8R8UI;
+		case GL_RGBA8UI:              return sw::FORMAT_A8B8G8R8UI;
+		case GL_R16I:                 return sw::FORMAT_R16I;
+		case GL_RG16I:                return sw::FORMAT_G16R16I;
+		case GL_RGB16I:               return sw::FORMAT_X16B16G16R16I;
+		case GL_RGBA16I:              return sw::FORMAT_A16B16G16R16I;
+		case GL_R16UI:                return sw::FORMAT_R16UI;
+		case GL_RG16UI:               return sw::FORMAT_G16R16UI;
+		case GL_RGB16UI:              return sw::FORMAT_X16B16G16R16UI;
+		case GL_RGB10_A2UI:
+		case GL_RGBA16UI:             return sw::FORMAT_A16B16G16R16UI;
+		case GL_R32I:                 return sw::FORMAT_R32I;
+		case GL_RG32I:                return sw::FORMAT_G32R32I;
+		case GL_RGB32I:               return sw::FORMAT_X32B32G32R32I;
+		case GL_RGBA32I:              return sw::FORMAT_A32B32G32R32I;
+		case GL_R32UI:                return sw::FORMAT_R32UI;
+		case GL_RG32UI:               return sw::FORMAT_G32R32UI;
+		case GL_RGB32UI:              return sw::FORMAT_X32B32G32R32UI;
+		case GL_RGBA32UI:             return sw::FORMAT_A32B32G32R32UI;
+		case GL_R16F:                 return sw::FORMAT_R16F;
+		case GL_RG16F:                return sw::FORMAT_G16R16F;
+		case GL_R11F_G11F_B10F:
+		case GL_RGB16F:               return sw::FORMAT_B16G16R16F;
+		case GL_RGBA16F:              return sw::FORMAT_A16B16G16R16F;
+		case GL_R32F:                 return sw::FORMAT_R32F;
+		case GL_RG32F:                return sw::FORMAT_G32R32F;
+		case GL_RGB32F:               return sw::FORMAT_B32G32R32F;
+		case GL_RGBA32F:              return sw::FORMAT_A32B32G32R32F;
+		case GL_RGB10_A2:             return sw::FORMAT_A2B10G10R10;
+		case GL_SRGB8_ALPHA8:         // FIXME: Implement SRGB
+		default: UNREACHABLE(format); return sw::FORMAT_NULL;
 		}
 	}
 }
@@ -1002,14 +1132,23 @@ namespace sw2es
 		switch(colorFormat)
 		{
 		case sw::FORMAT_A16B16G16R16F:
+		case sw::FORMAT_A16B16G16R16I:
+		case sw::FORMAT_A16B16G16R16UI:
 			return 16;
 		case sw::FORMAT_A32B32G32R32F:
+		case sw::FORMAT_A32B32G32R32I:
+		case sw::FORMAT_A32B32G32R32UI:
 			return 32;
 		case sw::FORMAT_A2R10G10B10:
 			return 2;
 		case sw::FORMAT_A8R8G8B8:
 		case sw::FORMAT_A8B8G8R8:
+		case sw::FORMAT_A8B8G8R8I:
+		case sw::FORMAT_A8B8G8R8UI:
+		case sw::FORMAT_A8B8G8R8I_SNORM:
 			return 8;
+		case sw::FORMAT_A2B10G10R10:
+			return 2;
 		case sw::FORMAT_A1R5G5B5:
 			return 1;
 		case sw::FORMAT_X8R8G8B8:
@@ -1025,16 +1164,53 @@ namespace sw2es
 	{
 		switch(colorFormat)
 		{
+		case sw::FORMAT_R16F:
+		case sw::FORMAT_G16R16F:
+		case sw::FORMAT_B16G16R16F:
 		case sw::FORMAT_A16B16G16R16F:
+		case sw::FORMAT_R16I:
+		case sw::FORMAT_G16R16I:
+		case sw::FORMAT_X16B16G16R16I:
+		case sw::FORMAT_A16B16G16R16I:
+		case sw::FORMAT_R16UI:
+		case sw::FORMAT_G16R16UI:
+		case sw::FORMAT_X16B16G16R16UI:
+		case sw::FORMAT_A16B16G16R16UI:
 			return 16;
+		case sw::FORMAT_R32F:
+		case sw::FORMAT_G32R32F:
+		case sw::FORMAT_B32G32R32F:
 		case sw::FORMAT_A32B32G32R32F:
+		case sw::FORMAT_R32I:
+		case sw::FORMAT_G32R32I:
+		case sw::FORMAT_X32B32G32R32I:
+		case sw::FORMAT_A32B32G32R32I:
+		case sw::FORMAT_R32UI:
+		case sw::FORMAT_G32R32UI:
+		case sw::FORMAT_X32B32G32R32UI:
+		case sw::FORMAT_A32B32G32R32UI:
 			return 32;
+		case sw::FORMAT_A2B10G10R10:
 		case sw::FORMAT_A2R10G10B10:
 			return 10;
 		case sw::FORMAT_A8R8G8B8:
 		case sw::FORMAT_A8B8G8R8:
 		case sw::FORMAT_X8R8G8B8:
 		case sw::FORMAT_X8B8G8R8:
+		case sw::FORMAT_R8:
+		case sw::FORMAT_G8R8:
+		case sw::FORMAT_R8I:
+		case sw::FORMAT_G8R8I:
+		case sw::FORMAT_X8B8G8R8I:
+		case sw::FORMAT_A8B8G8R8I:
+		case sw::FORMAT_R8UI:
+		case sw::FORMAT_G8R8UI:
+		case sw::FORMAT_X8B8G8R8UI:
+		case sw::FORMAT_A8B8G8R8UI:
+		case sw::FORMAT_R8I_SNORM:
+		case sw::FORMAT_G8R8I_SNORM:
+		case sw::FORMAT_X8B8G8R8I_SNORM:
+		case sw::FORMAT_A8B8G8R8I_SNORM:
 			return 8;
 		case sw::FORMAT_A1R5G5B5:
 		case sw::FORMAT_R5G6B5:
@@ -1048,16 +1224,43 @@ namespace sw2es
 	{
 		switch(colorFormat)
 		{
+		case sw::FORMAT_G16R16F:
+		case sw::FORMAT_B16G16R16F:
 		case sw::FORMAT_A16B16G16R16F:
+		case sw::FORMAT_G16R16I:
+		case sw::FORMAT_X16B16G16R16I:
+		case sw::FORMAT_A16B16G16R16I:
+		case sw::FORMAT_G16R16UI:
+		case sw::FORMAT_X16B16G16R16UI:
+		case sw::FORMAT_A16B16G16R16UI:
 			return 16;
+		case sw::FORMAT_G32R32F:
+		case sw::FORMAT_B32G32R32F:
 		case sw::FORMAT_A32B32G32R32F:
+		case sw::FORMAT_G32R32I:
+		case sw::FORMAT_X32B32G32R32I:
+		case sw::FORMAT_A32B32G32R32I:
+		case sw::FORMAT_G32R32UI:
+		case sw::FORMAT_X32B32G32R32UI:
+		case sw::FORMAT_A32B32G32R32UI:
 			return 32;
+		case sw::FORMAT_A2B10G10R10:
 		case sw::FORMAT_A2R10G10B10:
 			return 10;
 		case sw::FORMAT_A8R8G8B8:
 		case sw::FORMAT_A8B8G8R8:
 		case sw::FORMAT_X8R8G8B8:
 		case sw::FORMAT_X8B8G8R8:
+		case sw::FORMAT_G8R8:
+		case sw::FORMAT_G8R8I:
+		case sw::FORMAT_X8B8G8R8I:
+		case sw::FORMAT_A8B8G8R8I:
+		case sw::FORMAT_G8R8UI:
+		case sw::FORMAT_X8B8G8R8UI:
+		case sw::FORMAT_A8B8G8R8UI:
+		case sw::FORMAT_G8R8I_SNORM:
+		case sw::FORMAT_X8B8G8R8I_SNORM:
+		case sw::FORMAT_A8B8G8R8I_SNORM:
 			return 8;
 		case sw::FORMAT_A1R5G5B5:
 			return 5;
@@ -1072,16 +1275,33 @@ namespace sw2es
 	{
 		switch(colorFormat)
 		{
+		case sw::FORMAT_B16G16R16F:
 		case sw::FORMAT_A16B16G16R16F:
+		case sw::FORMAT_X16B16G16R16I:
+		case sw::FORMAT_A16B16G16R16I:
+		case sw::FORMAT_X16B16G16R16UI:
+		case sw::FORMAT_A16B16G16R16UI:
 			return 16;
+		case sw::FORMAT_B32G32R32F:
 		case sw::FORMAT_A32B32G32R32F:
+		case sw::FORMAT_X32B32G32R32I:
+		case sw::FORMAT_A32B32G32R32I:
+		case sw::FORMAT_X32B32G32R32UI:
+		case sw::FORMAT_A32B32G32R32UI:
 			return 32;
+		case sw::FORMAT_A2B10G10R10:
 		case sw::FORMAT_A2R10G10B10:
 			return 10;
 		case sw::FORMAT_A8R8G8B8:
 		case sw::FORMAT_A8B8G8R8:
 		case sw::FORMAT_X8R8G8B8:
 		case sw::FORMAT_X8B8G8R8:
+		case sw::FORMAT_X8B8G8R8I:
+		case sw::FORMAT_A8B8G8R8I:
+		case sw::FORMAT_X8B8G8R8UI:
+		case sw::FORMAT_A8B8G8R8UI:
+		case sw::FORMAT_X8B8G8R8I_SNORM:
+		case sw::FORMAT_A8B8G8R8I_SNORM:
 			return 8;
 		case sw::FORMAT_A1R5G5B5:
 		case sw::FORMAT_R5G6B5:
@@ -1134,9 +1354,44 @@ namespace sw2es
 		case GL_COLOR_ATTACHMENT15:
 			switch(format)
 			{
+			case sw::FORMAT_R8I:
+			case sw::FORMAT_G8R8I:
+			case sw::FORMAT_X8B8G8R8I:
+			case sw::FORMAT_A8B8G8R8I:
+			case sw::FORMAT_R16I:
+			case sw::FORMAT_G16R16I:
+			case sw::FORMAT_X16B16G16R16I:
+			case sw::FORMAT_A16B16G16R16I:
+			case sw::FORMAT_R32I:
+			case sw::FORMAT_G32R32I:
+			case sw::FORMAT_X32B32G32R32I:
+			case sw::FORMAT_A32B32G32R32I:
+				return GL_INT;
+			case sw::FORMAT_R8UI:
+			case sw::FORMAT_G8R8UI:
+			case sw::FORMAT_X8B8G8R8UI:
+			case sw::FORMAT_A8B8G8R8UI:
+			case sw::FORMAT_R16UI:
+			case sw::FORMAT_G16R16UI:
+			case sw::FORMAT_X16B16G16R16UI:
+			case sw::FORMAT_A16B16G16R16UI:
+			case sw::FORMAT_R32UI:
+			case sw::FORMAT_G32R32UI:
+			case sw::FORMAT_X32B32G32R32UI:
+			case sw::FORMAT_A32B32G32R32UI:
+				return GL_UNSIGNED_INT;
+			case sw::FORMAT_R16F:
+			case sw::FORMAT_G16R16F:
+			case sw::FORMAT_B16G16R16F:
 			case sw::FORMAT_A16B16G16R16F:
+			case sw::FORMAT_R32F:
+			case sw::FORMAT_G32R32F:
+			case sw::FORMAT_B32G32R32F:
 			case sw::FORMAT_A32B32G32R32F:
 				return GL_FLOAT;
+			case sw::FORMAT_R8:
+			case sw::FORMAT_G8R8:
+			case sw::FORMAT_A2B10G10R10:
 			case sw::FORMAT_A2R10G10B10:
 			case sw::FORMAT_A8R8G8B8:
 			case sw::FORMAT_A8B8G8R8:
@@ -1145,6 +1400,11 @@ namespace sw2es
 			case sw::FORMAT_A1R5G5B5:
 			case sw::FORMAT_R5G6B5:
 				return GL_UNSIGNED_NORMALIZED;
+			case sw::FORMAT_R8I_SNORM:
+			case sw::FORMAT_X8B8G8R8I_SNORM:
+			case sw::FORMAT_A8B8G8R8I_SNORM:
+			case sw::FORMAT_G8R8I_SNORM:
+				return GL_SIGNED_NORMALIZED;
 			default:
 				UNREACHABLE(format);
 				return 0;

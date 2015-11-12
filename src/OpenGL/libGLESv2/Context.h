@@ -397,8 +397,10 @@ struct State
 	egl::Image::UnpackInfo unpackInfo;
     GLint packAlignment;
 	GLint packRowLength;
+	GLint packImageHeight;
 	GLint packSkipPixels;
 	GLint packSkipRows;
+	GLint packSkipImages;
 };
 
 class Context : public egl::Context
@@ -511,8 +513,10 @@ public:
 
     void setPackAlignment(GLint alignment);
 	void setPackRowLength(GLint rowLength);
+	void setPackImageHeight(GLint imageHeight);
 	void setPackSkipPixels(GLint skipPixels);
 	void setPackSkipRows(GLint skipRows);
+	void setPackSkipImages(GLint skipImages);
 
     // These create  and destroy methods are merely pass-throughs to 
     // ResourceManager, which owns these object types

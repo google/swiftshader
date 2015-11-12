@@ -4744,6 +4744,14 @@ void RenderbufferStorageMultisampleANGLE(GLenum target, GLsizei samples, GLenum 
 		case GL_RGBA16I:
 		case GL_RGBA32I:
 		case GL_RGBA32UI:
+		case GL_R16F:
+		case GL_RG16F:
+		case GL_R11F_G11F_B10F:
+		case GL_RGBA16F:
+		case GL_R32F:
+		case GL_RG32F:
+		case GL_RGB32F:
+		case GL_RGBA32F:
 			if(clientVersion < 3)
 			{
 				return error(GL_INVALID_ENUM);
@@ -4760,6 +4768,7 @@ void RenderbufferStorageMultisampleANGLE(GLenum target, GLsizei samples, GLenum 
 			context->setRenderbufferStorage(new es2::Stencilbuffer(width, height, samples));
 			break;
 		case GL_DEPTH32F_STENCIL8:
+		case GL_DEPTH_COMPONENT32_OES:
 			if(clientVersion < 3)
 			{
 				return error(GL_INVALID_ENUM);

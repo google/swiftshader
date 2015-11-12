@@ -42,6 +42,7 @@ namespace es2
 
 	bool IsCompressed(GLenum format, egl::GLint clientVersion);
 	GLenum ValidateCompressedFormat(GLenum format, egl::GLint clientVersion, bool expectCompressedFormats);
+	bool ValidReadPixelsFormatType(GLenum internalFormat, GLenum internalType, GLenum format, GLenum type, egl::GLint clientVersion);
 	bool IsDepthTexture(GLenum format);
 	bool IsStencilTexture(GLenum format);
 	bool IsCubemapTextureTarget(GLenum target);
@@ -49,7 +50,7 @@ namespace es2
 	bool IsTextureTarget(GLenum target);
 	bool CheckTextureFormatType(GLenum format, GLenum type, egl::GLint clientVersion);
 
-	bool IsColorRenderable(GLenum internalformat);
+	bool IsColorRenderable(GLenum internalformat, egl::GLint clientVersion);
 	bool IsDepthRenderable(GLenum internalformat);
 	bool IsStencilRenderable(GLenum internalformat);
 

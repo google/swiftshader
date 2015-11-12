@@ -165,8 +165,10 @@ Context::Context(const egl::Config *config, const Context *shareContext, EGLint 
     mState.packAlignment = 4;
 	mState.unpackInfo.alignment = 4;
 	mState.packRowLength = 0;
+	mState.packImageHeight = 0;
 	mState.packSkipPixels = 0;
 	mState.packSkipRows = 0;
+	mState.packSkipImages = 0;
 	mState.unpackInfo.rowLength = 0;
 	mState.unpackInfo.imageHeight = 0;
 	mState.unpackInfo.skipPixels = 0;
@@ -848,6 +850,11 @@ void Context::setPackRowLength(GLint rowLength)
 	mState.packRowLength = rowLength;
 }
 
+void Context::setPackImageHeight(GLint imageHeight)
+{
+	mState.packImageHeight = imageHeight;
+}
+
 void Context::setPackSkipPixels(GLint skipPixels)
 {
 	mState.packSkipPixels = skipPixels;
@@ -856,6 +863,11 @@ void Context::setPackSkipPixels(GLint skipPixels)
 void Context::setPackSkipRows(GLint skipRows)
 {
 	mState.packSkipRows = skipRows;
+}
+
+void Context::setPackSkipImages(GLint skipImages)
+{
+	mState.packSkipImages = skipImages;
 }
 
 void Context::setUnpackRowLength(GLint rowLength)
@@ -3262,15 +3274,18 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
         return error(GL_INVALID_OPERATION);
     }
 
-	if(format != GL_RGBA || type != GL_UNSIGNED_BYTE)
+	GLenum readFormat = framebuffer->getImplementationColorReadFormat();
+	GLenum readType = framebuffer->getImplementationColorReadType();
+
+	if(!(readFormat == format && readType == type) && !ValidReadPixelsFormatType(readFormat, readType, format, type, clientVersion))
 	{
-		if(format != framebuffer->getImplementationColorReadFormat() || type != framebuffer->getImplementationColorReadType())
-		{
-			return error(GL_INVALID_OPERATION);
-		}
+		return error(GL_INVALID_OPERATION);
 	}
 
-	GLsizei outputPitch = (mState.packRowLength > 0) ? mState.packRowLength : egl::ComputePitch(width, format, type, mState.packAlignment);
+	GLsizei outputPitch = egl::ComputePitch((mState.packRowLength > 0) ? mState.packRowLength : width, format, type, mState.packAlignment);
+	GLsizei outputHeight = (mState.packImageHeight == 0) ? height : mState.packImageHeight;
+	pixels = getPixelPackBuffer() ? (unsigned char*)getPixelPackBuffer()->data() + (ptrdiff_t)pixels : (unsigned char*)pixels;
+	pixels = ((char*)pixels) + (mState.packSkipImages * outputHeight + mState.packSkipRows) * outputPitch + mState.packSkipPixels;
     
 	// Sized query sanity check
     if(bufSize)
@@ -3292,256 +3307,13 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 	x += mState.packSkipPixels;
 	y += mState.packSkipRows;
 	sw::Rect rect = {x, y, x + width, y + height};
+	sw::Rect dstRect = { 0, 0, width, height };
 	rect.clip(0, 0, renderTarget->getWidth(), renderTarget->getHeight());
 
-    unsigned char *source = (unsigned char*)renderTarget->lock(rect.x0, rect.y0, sw::LOCK_READONLY);
-    unsigned char *dest = getPixelPackBuffer() ? (unsigned char*)getPixelPackBuffer()->data() + (ptrdiff_t)pixels : (unsigned char*)pixels;
-    int inputPitch = (int)renderTarget->getPitch();
-
-    for(int j = 0; j < rect.y1 - rect.y0; j++)
-    {
-		unsigned short *dest16 = (unsigned short*)dest;
-		unsigned int *dest32 = (unsigned int*)dest;
-
-		if(renderTarget->getInternalFormat() == sw::FORMAT_A8B8G8R8 &&
-           format == GL_RGBA && type == GL_UNSIGNED_BYTE)
-        {
-            memcpy(dest, source, (rect.x1 - rect.x0) * 4);
-        }
-		else if(renderTarget->getInternalFormat() == sw::FORMAT_A8R8G8B8 &&
-                format == GL_RGBA && type == GL_UNSIGNED_BYTE)
-        {
-            for(int i = 0; i < rect.x1 - rect.x0; i++)
-			{
-				unsigned int argb = *(unsigned int*)(source + 4 * i);
-
-				dest32[i] = (argb & 0xFF00FF00) | ((argb & 0x000000FF) << 16) | ((argb & 0x00FF0000) >> 16);
-			}
-        }
-		else if(renderTarget->getInternalFormat() == sw::FORMAT_X8R8G8B8 &&
-                format == GL_RGBA && type == GL_UNSIGNED_BYTE)
-        {
-            for(int i = 0; i < rect.x1 - rect.x0; i++)
-			{
-				unsigned int xrgb = *(unsigned int*)(source + 4 * i);
-
-				dest32[i] = (xrgb & 0xFF00FF00) | ((xrgb & 0x000000FF) << 16) | ((xrgb & 0x00FF0000) >> 16) | 0xFF000000;
-			}
-        }
-		else if(renderTarget->getInternalFormat() == sw::FORMAT_X8R8G8B8 &&
-                format == GL_BGRA_EXT && type == GL_UNSIGNED_BYTE)
-        {
-            for(int i = 0; i < rect.x1 - rect.x0; i++)
-			{
-				unsigned int xrgb = *(unsigned int*)(source + 4 * i);
-
-				dest32[i] = xrgb | 0xFF000000;
-			}
-        }
-        else if(renderTarget->getInternalFormat() == sw::FORMAT_A8R8G8B8 &&
-                format == GL_BGRA_EXT && type == GL_UNSIGNED_BYTE)
-        {
-            memcpy(dest, source, (rect.x1 - rect.x0) * 4);
-        }
-		else if(renderTarget->getInternalFormat() == sw::FORMAT_A16B16G16R16F &&
-                format == GL_RGBA && (type == GL_HALF_FLOAT || type == GL_HALF_FLOAT_OES))
-        {
-            memcpy(dest, source, (rect.x1 - rect.x0) * 8);
-        }
-		else if(renderTarget->getInternalFormat() == sw::FORMAT_A32B32G32R32F &&
-                format == GL_RGBA && type == GL_FLOAT)
-        {
-            memcpy(dest, source, (rect.x1 - rect.x0) * 16);
-        }
-		else if(renderTarget->getInternalFormat() == sw::FORMAT_A1R5G5B5 &&
-                format == GL_BGRA_EXT && type == GL_UNSIGNED_SHORT_1_5_5_5_REV_EXT)
-        {
-            memcpy(dest, source, (rect.x1 - rect.x0) * 2);
-        }
-		else if(renderTarget->getInternalFormat() == sw::FORMAT_R5G6B5 &&
-                format == 0x80E0 && type == GL_UNSIGNED_SHORT_5_6_5)   // GL_BGR_EXT
-        {
-            memcpy(dest, source, (rect.x1 - rect.x0) * 2);
-        }
-		else
-		{
-			for(int i = 0; i < rect.x1 - rect.x0; i++)
-			{
-				float r;
-				float g;
-				float b;
-				float a;
-
-				switch(renderTarget->getInternalFormat())
-				{
-				case sw::FORMAT_R5G6B5:
-					{
-						unsigned short rgb = *(unsigned short*)(source + 2 * i);
-
-						a = 1.0f;
-						b = (rgb & 0x001F) * (1.0f / 0x001F);
-						g = (rgb & 0x07E0) * (1.0f / 0x07E0);
-						r = (rgb & 0xF800) * (1.0f / 0xF800);
-					}
-					break;
-				case sw::FORMAT_A1R5G5B5:
-					{
-						unsigned short argb = *(unsigned short*)(source + 2 * i);
-
-						a = (argb & 0x8000) ? 1.0f : 0.0f;
-						b = (argb & 0x001F) * (1.0f / 0x001F);
-						g = (argb & 0x03E0) * (1.0f / 0x03E0);
-						r = (argb & 0x7C00) * (1.0f / 0x7C00);
-					}
-					break;
-				case sw::FORMAT_A8R8G8B8:
-					{
-						unsigned int argb = *(unsigned int*)(source + 4 * i);
-
-						a = (argb & 0xFF000000) * (1.0f / 0xFF000000);
-						b = (argb & 0x000000FF) * (1.0f / 0x000000FF);
-						g = (argb & 0x0000FF00) * (1.0f / 0x0000FF00);
-						r = (argb & 0x00FF0000) * (1.0f / 0x00FF0000);
-					}
-					break;
-				case sw::FORMAT_A8B8G8R8:
-					{
-						unsigned int abgr = *(unsigned int*)(source + 4 * i);
-
-						a = (abgr & 0xFF000000) * (1.0f / 0xFF000000);
-						b = (abgr & 0x00FF0000) * (1.0f / 0x00FF0000);
-						g = (abgr & 0x0000FF00) * (1.0f / 0x0000FF00);
-						r = (abgr & 0x000000FF) * (1.0f / 0x000000FF);
-					}
-					break;
-				case sw::FORMAT_X8R8G8B8:
-					{
-						unsigned int xrgb = *(unsigned int*)(source + 4 * i);
-
-						a = 1.0f;
-						b = (xrgb & 0x000000FF) * (1.0f / 0x000000FF);
-						g = (xrgb & 0x0000FF00) * (1.0f / 0x0000FF00);
-						r = (xrgb & 0x00FF0000) * (1.0f / 0x00FF0000);
-					}
-					break;
-				case sw::FORMAT_X8B8G8R8:
-					{
-						unsigned int xbgr = *(unsigned int*)(source + 4 * i);
-
-						a = 1.0f;
-						b = (xbgr & 0x00FF0000) * (1.0f / 0x00FF0000);
-						g = (xbgr & 0x0000FF00) * (1.0f / 0x0000FF00);
-						r = (xbgr & 0x000000FF) * (1.0f / 0x000000FF);
-					}
-					break;
-				case sw::FORMAT_A2R10G10B10:
-					{
-						unsigned int argb = *(unsigned int*)(source + 4 * i);
-
-						a = (argb & 0xC0000000) * (1.0f / 0xC0000000);
-						b = (argb & 0x000003FF) * (1.0f / 0x000003FF);
-						g = (argb & 0x000FFC00) * (1.0f / 0x000FFC00);
-						r = (argb & 0x3FF00000) * (1.0f / 0x3FF00000);
-					}
-					break;
-				case sw::FORMAT_A32B32G32R32F:
-					{
-						r = *((float*)(source + 16 * i) + 0);
-						g = *((float*)(source + 16 * i) + 1);
-						b = *((float*)(source + 16 * i) + 2);
-						a = *((float*)(source + 16 * i) + 3);
-					}
-					break;
-				case sw::FORMAT_A16B16G16R16F:
-					{
-						r = (float)*((sw::half*)(source + 8 * i) + 0);
-						g = (float)*((sw::half*)(source + 8 * i) + 1);
-						b = (float)*((sw::half*)(source + 8 * i) + 2);
-						a = (float)*((sw::half*)(source + 8 * i) + 3);
-					}
-					break;
-				default:
-					UNIMPLEMENTED();   // FIXME
-					UNREACHABLE(renderTarget->getInternalFormat());
-				}
-
-				switch(format)
-				{
-				case GL_RGBA:
-					switch(type)
-					{
-					case GL_UNSIGNED_BYTE:
-						dest[4 * i + 0] = (unsigned char)(255 * r + 0.5f);
-						dest[4 * i + 1] = (unsigned char)(255 * g + 0.5f);
-						dest[4 * i + 2] = (unsigned char)(255 * b + 0.5f);
-						dest[4 * i + 3] = (unsigned char)(255 * a + 0.5f);
-						break;
-					default: UNREACHABLE(type);
-					}
-					break;
-				case GL_BGRA_EXT:
-					switch(type)
-					{
-					case GL_UNSIGNED_BYTE:
-						dest[4 * i + 0] = (unsigned char)(255 * b + 0.5f);
-						dest[4 * i + 1] = (unsigned char)(255 * g + 0.5f);
-						dest[4 * i + 2] = (unsigned char)(255 * r + 0.5f);
-						dest[4 * i + 3] = (unsigned char)(255 * a + 0.5f);
-						break;
-					case GL_UNSIGNED_SHORT_4_4_4_4_REV_EXT:
-						// According to the desktop GL spec in the "Transfer of Pixel Rectangles" section
-						// this type is packed as follows:
-						//   15   14   13   12   11   10    9    8    7    6    5    4    3    2    1    0
-						//  --------------------------------------------------------------------------------
-						// |       4th         |        3rd         |        2nd        |   1st component   |
-						//  --------------------------------------------------------------------------------
-						// in the case of BGRA_EXT, B is the first component, G the second, and so forth.
-						dest16[i] =
-							((unsigned short)(15 * a + 0.5f) << 12)|
-							((unsigned short)(15 * r + 0.5f) << 8) |
-							((unsigned short)(15 * g + 0.5f) << 4) |
-							((unsigned short)(15 * b + 0.5f) << 0);
-						break;
-					case GL_UNSIGNED_SHORT_1_5_5_5_REV_EXT:
-						// According to the desktop GL spec in the "Transfer of Pixel Rectangles" section
-						// this type is packed as follows:
-						//   15   14   13   12   11   10    9    8    7    6    5    4    3    2    1    0
-						//  --------------------------------------------------------------------------------
-						// | 4th |          3rd           |           2nd          |      1st component     |
-						//  --------------------------------------------------------------------------------
-						// in the case of BGRA_EXT, B is the first component, G the second, and so forth.
-						dest16[i] =
-							((unsigned short)(     a + 0.5f) << 15) |
-							((unsigned short)(31 * r + 0.5f) << 10) |
-							((unsigned short)(31 * g + 0.5f) << 5) |
-							((unsigned short)(31 * b + 0.5f) << 0);
-						break;
-					default: UNREACHABLE(type);
-					}
-					break;
-				case GL_RGB:
-					switch(type)
-					{
-					case GL_UNSIGNED_SHORT_5_6_5:
-						dest16[i] =
-							((unsigned short)(31 * b + 0.5f) << 0) |
-							((unsigned short)(63 * g + 0.5f) << 5) |
-							((unsigned short)(31 * r + 0.5f) << 11);
-						break;
-					default: UNREACHABLE(type);
-					}
-					break;
-				default: UNREACHABLE(format);
-				}
-			}
-        }
-
-		source += inputPitch;
-		dest += outputPitch;
-    }
-
-	renderTarget->unlock();
-	renderTarget->release();
+	sw::Surface externalSurface(width, height, 1, egl::SelectInternalFormat(format, type), pixels, outputPitch, outputPitch * outputHeight);
+	sw::SliceRect sliceRect(rect);
+	sw::SliceRect dstSliceRect(dstRect);
+	device->blit(renderTarget, sliceRect, &externalSurface, dstSliceRect, false);
 }
 
 void Context::clear(GLbitfield mask)

@@ -3951,7 +3951,7 @@ GL_APICALL void GL_APIENTRY glGetInternalformativ(GLenum target, GLenum internal
 		return error(GL_INVALID_VALUE);
 	}
 
-	if(!IsColorRenderable(internalformat) && !IsDepthRenderable(internalformat) && !IsStencilRenderable(internalformat))
+	if(!IsColorRenderable(internalformat, egl::getClientVersion()) && !IsDepthRenderable(internalformat) && !IsStencilRenderable(internalformat))
 	{
 		return error(GL_INVALID_ENUM);
 	}
