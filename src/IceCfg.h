@@ -50,10 +50,15 @@ public:
   GlobalContext *getContext() const { return Ctx; }
   uint32_t getSequenceNumber() const { return SequenceNumber; }
 
+  static constexpr VerboseMask defaultVerboseMask() {
+    return IceV_All & ~IceV_Status;
+  }
   /// Returns true if any of the specified options in the verbose mask are set.
   /// If the argument is omitted, it checks if any verbose options at all are
   /// set.
-  bool isVerbose(VerboseMask Mask = IceV_All) const { return VMask & Mask; }
+  bool isVerbose(VerboseMask Mask = defaultVerboseMask()) const {
+    return VMask & Mask;
+  }
   void setVerbose(VerboseMask Mask) { VMask = Mask; }
 
   /// \name Manage the name and return type of the function being translated.

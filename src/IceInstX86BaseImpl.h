@@ -1237,6 +1237,7 @@ void InstX86Blendvps<Machine>::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   TargetLowering *Target = Func->getTarget();
+  (void)Target;
   assert(static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
              Target)
              ->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1);
@@ -1246,6 +1247,7 @@ void InstX86Blendvps<Machine>::emit(const Cfg *Func) const {
 template <class Machine>
 void InstX86Blendvps<Machine>::emitIAS(const Cfg *Func) const {
   TargetLowering *Target = Func->getTarget();
+  (void)Target;
   assert(static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
              Target)
              ->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1);
@@ -1260,6 +1262,7 @@ void InstX86Pblendvb<Machine>::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   TargetLowering *Target = Func->getTarget();
+  (void)Target;
   assert(static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
              Target)
              ->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1);
@@ -1269,6 +1272,7 @@ void InstX86Pblendvb<Machine>::emit(const Cfg *Func) const {
 template <class Machine>
 void InstX86Pblendvb<Machine>::emitIAS(const Cfg *Func) const {
   TargetLowering *Target = Func->getTarget();
+  (void)Target;
   assert(static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
              Target)
              ->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1);
@@ -1376,6 +1380,7 @@ template <class Machine>
 void InstX86Insertps<Machine>::emitIAS(const Cfg *Func) const {
   assert(this->getSrcSize() == 3);
   TargetLowering *Target = Func->getTarget();
+  (void)Target;
   assert(static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
              Target)
              ->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1);
@@ -2308,6 +2313,7 @@ template <class Machine> void InstX86Mov<Machine>::emit(const Cfg *Func) const {
   // point value between a vector and a scalar (which movss is used for). Clean
   // this up.
   TargetLowering *Target = Func->getTarget();
+  (void)Target;
   assert(Target->typeWidthInBytesOnStack(DestTy) ==
          Target->typeWidthInBytesOnStack(SrcTy));
   const Operand *NewSrc = Src;
@@ -2786,6 +2792,7 @@ void InstX86Pextr<Machine>::emit(const Cfg *Func) const {
   assert(this->getSrcSize() == 2);
   // pextrb and pextrd are SSE4.1 instructions.
   TargetLowering *Target = Func->getTarget();
+  (void)Target;
   assert(this->getSrc(0)->getType() == IceType_v8i16 ||
          this->getSrc(0)->getType() == IceType_v8i1 ||
          static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
@@ -2815,6 +2822,7 @@ void InstX86Pextr<Machine>::emitIAS(const Cfg *Func) const {
   Type DispatchTy = InstX86Base<Machine>::Traits::getInVectorElementType(
       this->getSrc(0)->getType());
   TargetLowering *Target = Func->getTarget();
+  (void)Target;
   assert(DispatchTy == IceType_i16 ||
          static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
              Target)
@@ -2846,6 +2854,7 @@ void InstX86Pinsr<Machine>::emit(const Cfg *Func) const {
   assert(this->getSrcSize() == 3);
   // pinsrb and pinsrd are SSE4.1 instructions.
   TargetLowering *Target = Func->getTarget();
+  (void)Target;
   assert(this->getDest()->getType() == IceType_v8i16 ||
          this->getDest()->getType() == IceType_v8i1 ||
          static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
@@ -2883,6 +2892,7 @@ void InstX86Pinsr<Machine>::emitIAS(const Cfg *Func) const {
   const Operand *Src0 = this->getSrc(1);
   Type DispatchTy = Src0->getType();
   TargetLowering *Target = Func->getTarget();
+  (void)Target;
   assert(DispatchTy == IceType_i16 ||
          static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
              Target)

@@ -269,6 +269,8 @@ cl::list<Ice::VerboseItem> VerboseList(
         clEnumValN(Ice::IceV_Folding, "fold", "Instruction folding details"),
         clEnumValN(Ice::IceV_RMW, "rmw", "ReadModifyWrite optimization"),
         clEnumValN(Ice::IceV_Loop, "loop", "Loop nest depth analysis"),
+        clEnumValN(Ice::IceV_Status, "status",
+                   "Print the name of the function being translated"),
         clEnumValN(Ice::IceV_All, "all", "Use all verbose options"),
         clEnumValN(Ice::IceV_Most, "most",
                    "Use all verbose options except 'regalloc'"),

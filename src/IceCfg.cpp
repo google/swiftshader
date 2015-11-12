@@ -181,6 +181,8 @@ void Cfg::translate() {
       FunctionTimer.reset(new TimerMarker(
           getContext()->getTimerID(GlobalContext::TSK_Funcs, Name),
           getContext(), GlobalContext::TSK_Funcs));
+    if (isVerbose(IceV_Status))
+      getContext()->getStrDump() << ">>>Translating " << Name << "\n";
   }
   TimerMarker T(TimerStack::TT_translate, this);
 

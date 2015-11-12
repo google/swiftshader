@@ -379,8 +379,9 @@ void GlobalContext::lowerJumpTables() { DataLowering->lowerJumpTables(); }
 
 void GlobalContext::lowerGlobals(const IceString &SectionSuffix) {
   TimerMarker T(TimerStack::TT_emitGlobalInitializers, this);
-  const bool DumpGlobalVariables = BuildDefs::dump() && Flags.getVerbose() &&
-                                   Flags.getVerboseFocusOn().empty();
+  const bool DumpGlobalVariables =
+      BuildDefs::dump() && (Flags.getVerbose() & Cfg::defaultVerboseMask()) &&
+      Flags.getVerboseFocusOn().empty();
   if (DumpGlobalVariables) {
     OstreamLocker L(this);
     Ostream &Stream = getStrDump();
