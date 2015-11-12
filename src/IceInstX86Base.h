@@ -35,6 +35,7 @@ template <class Machine> class InstX86Base : public InstTarget {
 
 public:
   using Traits = MachineTraits<Machine>;
+  using X86TargetLowering = typename Traits::TargetLowering;
 
   enum InstKindX86 {
     k__Start = Inst::Target,
@@ -155,6 +156,10 @@ public:
   emitIASGPRShift(const Cfg *Func, Type Ty, const Variable *Var,
                   const Operand *Src,
                   const typename Traits::Assembler::GPREmitterShiftOp &Emitter);
+
+  static X86TargetLowering *getTarget(const Cfg* Func) {
+    return static_cast<X86TargetLowering *>(Func->getTarget());
+  }
 
 protected:
   InstX86Base<Machine>(Cfg *Func, InstKindX86 Kind, SizeT Maxsrcs,

@@ -570,7 +570,7 @@ void InstX86Call<Machine>::emit(const Cfg *Func) const {
   assert(this->getSrcSize() == 1);
   Str << "\tcall\t";
   Operand *CallTarget = getCallTarget();
-  TargetLowering *Target = Func->getTarget();
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
   if (const auto *CI = llvm::dyn_cast<ConstantInteger32>(CallTarget)) {
     // Emit without a leading '$'.
     Str << CI->getValue();
@@ -589,15 +589,12 @@ void InstX86Call<Machine>::emitIAS(const Cfg *Func) const {
   typename InstX86Base<Machine>::Traits::Assembler *Asm =
       Func->getAssembler<typename InstX86Base<Machine>::Traits::Assembler>();
   Operand *CallTarget = getCallTarget();
-  TargetLowering *Target = Func->getTarget();
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
   if (const auto *Var = llvm::dyn_cast<Variable>(CallTarget)) {
     if (Var->hasReg()) {
       Asm->call(InstX86Base<Machine>::Traits::getEncodedGPR(Var->getRegNum()));
     } else {
-      Asm->call(
-          static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
-              Target)
-              ->stackVarToAsmOperand(Var));
+      Asm->call(Target->stackVarToAsmOperand(Var));
     }
   } else if (const auto *Mem = llvm::dyn_cast<
                  typename InstX86Base<Machine>::Traits::X86OperandMem>(
@@ -654,7 +651,7 @@ template <class Machine>
 void emitIASOpTyGPR(const Cfg *Func, Type Ty, const Operand *Op,
                     const typename InstX86Base<
                         Machine>::Traits::Assembler::GPREmitterOneOp &Emitter) {
-  TargetLowering *Target = Func->getTarget();
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
   typename InstX86Base<Machine>::Traits::Assembler *Asm =
       Func->getAssembler<typename InstX86Base<Machine>::Traits::Assembler>();
   if (const auto *Var = llvm::dyn_cast<Variable>(Op)) {
@@ -665,9 +662,7 @@ void emitIASOpTyGPR(const Cfg *Func, Type Ty, const Operand *Op,
       (Asm->*(Emitter.Reg))(Ty, VarReg);
     } else {
       typename InstX86Base<Machine>::Traits::Address StackAddr(
-          static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
-              Target)
-              ->stackVarToAsmOperand(Var));
+          Target->stackVarToAsmOperand(Var));
       (Asm->*(Emitter.Addr))(Ty, StackAddr);
     }
   } else if (const auto *Mem = llvm::dyn_cast<
@@ -684,7 +679,7 @@ void emitIASRegOpTyGPR(
     const Cfg *Func, Type Ty, const Variable *Var, const Operand *Src,
     const typename InstX86Base<Machine>::Traits::Assembler::GPREmitterRegOp
         &Emitter) {
-  TargetLowering *Target = Func->getTarget();
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
   typename InstX86Base<Machine>::Traits::Assembler *Asm =
       Func->getAssembler<typename InstX86Base<Machine>::Traits::Assembler>();
   assert(Var->hasReg());
@@ -703,9 +698,7 @@ void emitIASRegOpTyGPR(
       (Asm->*(Emitter.GPRGPR))(Ty, VarReg, SrcReg);
     } else {
       typename InstX86Base<Machine>::Traits::Address SrcStackAddr =
-          static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
-              Target)
-              ->stackVarToAsmOperand(SrcVar);
+          Target->stackVarToAsmOperand(SrcVar);
       (Asm->*(Emitter.GPRAddr))(Ty, VarReg, SrcStackAddr);
     }
   } else if (const auto *Mem = llvm::dyn_cast<
@@ -757,13 +750,11 @@ void emitIASAsAddrOpTyGPR(
     const Cfg *Func, Type Ty, const Operand *Op0, const Operand *Op1,
     const typename InstX86Base<Machine>::Traits::Assembler::GPREmitterAddrOp
         &Emitter) {
-  TargetLowering *Target = Func->getTarget();
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
   if (const auto *Op0Var = llvm::dyn_cast<Variable>(Op0)) {
     assert(!Op0Var->hasReg());
     typename InstX86Base<Machine>::Traits::Address StackAddr(
-        static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
-            Target)
-            ->stackVarToAsmOperand(Op0Var));
+        Target->stackVarToAsmOperand(Op0Var));
     emitIASAddrOpTyGPR<Machine>(Func, Ty, StackAddr, Op1, Emitter);
   } else if (const auto *Op0Mem = llvm::dyn_cast<
                  typename InstX86Base<Machine>::Traits::X86OperandMem>(Op0)) {
@@ -841,7 +832,7 @@ void emitIASXmmShift(
     const Cfg *Func, Type Ty, const Variable *Var, const Operand *Src,
     const typename InstX86Base<Machine>::Traits::Assembler::XmmEmitterShiftOp
         &Emitter) {
-  TargetLowering *Target = Func->getTarget();
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
   typename InstX86Base<Machine>::Traits::Assembler *Asm =
       Func->getAssembler<typename InstX86Base<Machine>::Traits::Assembler>();
   assert(Var->hasReg());
@@ -854,9 +845,7 @@ void emitIASXmmShift(
       (Asm->*(Emitter.XmmXmm))(Ty, VarReg, SrcReg);
     } else {
       typename InstX86Base<Machine>::Traits::Address SrcStackAddr =
-          static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
-              Target)
-              ->stackVarToAsmOperand(SrcVar);
+          Target->stackVarToAsmOperand(SrcVar);
       (Asm->*(Emitter.XmmAddr))(Ty, VarReg, SrcStackAddr);
     }
   } else if (const auto *Mem = llvm::dyn_cast<
@@ -876,7 +865,7 @@ void emitIASRegOpTyXMM(
     const Cfg *Func, Type Ty, const Variable *Var, const Operand *Src,
     const typename InstX86Base<Machine>::Traits::Assembler::XmmEmitterRegOp
         &Emitter) {
-  TargetLowering *Target = Func->getTarget();
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
   typename InstX86Base<Machine>::Traits::Assembler *Asm =
       Func->getAssembler<typename InstX86Base<Machine>::Traits::Assembler>();
   assert(Var->hasReg());
@@ -889,9 +878,7 @@ void emitIASRegOpTyXMM(
       (Asm->*(Emitter.XmmXmm))(Ty, VarReg, SrcReg);
     } else {
       typename InstX86Base<Machine>::Traits::Address SrcStackAddr =
-          static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
-              Target)
-              ->stackVarToAsmOperand(SrcVar);
+          Target->stackVarToAsmOperand(SrcVar);
       (Asm->*(Emitter.XmmAddr))(Ty, VarReg, SrcStackAddr);
     }
   } else if (const auto *Mem = llvm::dyn_cast<
@@ -914,7 +901,7 @@ void emitIASCastRegOp(const Cfg *Func, Type DestTy, const Variable *Dest,
                       Type SrcTy, const Operand *Src,
                       const typename InstX86Base<Machine>::Traits::Assembler::
                           template CastEmitterRegOp<DReg_t, SReg_t> &Emitter) {
-  TargetLowering *Target = Func->getTarget();
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
   typename InstX86Base<Machine>::Traits::Assembler *Asm =
       Func->getAssembler<typename InstX86Base<Machine>::Traits::Assembler>();
   assert(Dest->hasReg());
@@ -925,9 +912,7 @@ void emitIASCastRegOp(const Cfg *Func, Type DestTy, const Variable *Dest,
       (Asm->*(Emitter.RegReg))(DestTy, DestReg, SrcTy, SrcReg);
     } else {
       typename InstX86Base<Machine>::Traits::Address SrcStackAddr =
-          static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
-              Target)
-              ->stackVarToAsmOperand(SrcVar);
+          Target->stackVarToAsmOperand(SrcVar);
       (Asm->*(Emitter.RegAddr))(DestTy, DestReg, SrcTy, SrcStackAddr);
     }
   } else if (const auto *Mem = llvm::dyn_cast<
@@ -947,7 +932,7 @@ void emitIASThreeOpImmOps(
     const Operand *Src1,
     const typename InstX86Base<Machine>::Traits::Assembler::
         template ThreeOpImmEmitter<DReg_t, SReg_t> Emitter) {
-  TargetLowering *Target = Func->getTarget();
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
   typename InstX86Base<Machine>::Traits::Assembler *Asm =
       Func->getAssembler<typename InstX86Base<Machine>::Traits::Assembler>();
   // This only handles Dest being a register, and Src1 being an immediate.
@@ -960,9 +945,7 @@ void emitIASThreeOpImmOps(
       (Asm->*(Emitter.RegRegImm))(DispatchTy, DestReg, SrcReg, Imm);
     } else {
       typename InstX86Base<Machine>::Traits::Address SrcStackAddr =
-          static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
-              Target)
-              ->stackVarToAsmOperand(SrcVar);
+          Target->stackVarToAsmOperand(SrcVar);
       (Asm->*(Emitter.RegAddrImm))(DispatchTy, DestReg, SrcStackAddr, Imm);
     }
   } else if (const auto *Mem = llvm::dyn_cast<
@@ -980,7 +963,7 @@ void emitIASMovlikeXMM(
     const Cfg *Func, const Variable *Dest, const Operand *Src,
     const typename InstX86Base<Machine>::Traits::Assembler::XmmEmitterMovOps
         Emitter) {
-  TargetLowering *Target = Func->getTarget();
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
   typename InstX86Base<Machine>::Traits::Assembler *Asm =
       Func->getAssembler<typename InstX86Base<Machine>::Traits::Assembler>();
   if (Dest->hasReg()) {
@@ -993,9 +976,7 @@ void emitIASMovlikeXMM(
             InstX86Base<Machine>::Traits::getEncodedXmm(SrcVar->getRegNum()));
       } else {
         typename InstX86Base<Machine>::Traits::Address StackAddr(
-            static_cast<
-                typename InstX86Base<Machine>::Traits::TargetLowering *>(Target)
-                ->stackVarToAsmOperand(SrcVar));
+            Target->stackVarToAsmOperand(SrcVar));
         (Asm->*(Emitter.XmmAddr))(DestReg, StackAddr);
       }
     } else if (const auto *SrcMem = llvm::dyn_cast<
@@ -1008,9 +989,7 @@ void emitIASMovlikeXMM(
     }
   } else {
     typename InstX86Base<Machine>::Traits::Address StackAddr(
-        static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
-            Target)
-            ->stackVarToAsmOperand(Dest));
+        Target->stackVarToAsmOperand(Dest));
     // Src must be a register in this case.
     const auto *SrcVar = llvm::cast<Variable>(Src);
     assert(SrcVar->hasReg());
@@ -1066,12 +1045,10 @@ void InstX86Pmull<Machine>::emit(const Cfg *Func) const {
   char buf[30];
   bool TypesAreValid = this->getDest()->getType() == IceType_v4i32 ||
                        this->getDest()->getType() == IceType_v8i16;
-  TargetLowering *Target = Func->getTarget();
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
   bool InstructionSetIsValid =
       this->getDest()->getType() == IceType_v8i16 ||
-      static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
-          Target)
-              ->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1;
+      Target->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1;
   (void)TypesAreValid;
   (void)InstructionSetIsValid;
   assert(TypesAreValid);
@@ -1087,12 +1064,10 @@ template <class Machine>
 void InstX86Pmull<Machine>::emitIAS(const Cfg *Func) const {
   Type Ty = this->getDest()->getType();
   bool TypesAreValid = Ty == IceType_v4i32 || Ty == IceType_v8i16;
-  TargetLowering *Target = Func->getTarget();
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
   bool InstructionSetIsValid =
       Ty == IceType_v8i16 ||
-      static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
-          Target)
-              ->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1;
+      Target->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1;
   (void)TypesAreValid;
   (void)InstructionSetIsValid;
   assert(TypesAreValid);
@@ -1236,21 +1211,15 @@ template <class Machine>
 void InstX86Blendvps<Machine>::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
-  TargetLowering *Target = Func->getTarget();
-  (void)Target;
-  assert(static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
-             Target)
-             ->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1);
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
+  assert(Target->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1);
   emitVariableBlendInst<Machine>(this->Opcode, this, Func);
 }
 
 template <class Machine>
 void InstX86Blendvps<Machine>::emitIAS(const Cfg *Func) const {
-  TargetLowering *Target = Func->getTarget();
-  (void)Target;
-  assert(static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
-             Target)
-             ->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1);
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
+  assert(Target->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1);
   static const typename InstX86Base<Machine>::Traits::Assembler::XmmEmitterRegOp
       Emitter = {&InstX86Base<Machine>::Traits::Assembler::blendvps,
                  &InstX86Base<Machine>::Traits::Assembler::blendvps};
@@ -1261,21 +1230,15 @@ template <class Machine>
 void InstX86Pblendvb<Machine>::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
-  TargetLowering *Target = Func->getTarget();
-  (void)Target;
-  assert(static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
-             Target)
-             ->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1);
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
+  assert(Target->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1);
   emitVariableBlendInst<Machine>(this->Opcode, this, Func);
 }
 
 template <class Machine>
 void InstX86Pblendvb<Machine>::emitIAS(const Cfg *Func) const {
-  TargetLowering *Target = Func->getTarget();
-  (void)Target;
-  assert(static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
-             Target)
-             ->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1);
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
+  assert(Target->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1);
   static const typename InstX86Base<Machine>::Traits::Assembler::XmmEmitterRegOp
       Emitter = {&InstX86Base<Machine>::Traits::Assembler::pblendvb,
                  &InstX86Base<Machine>::Traits::Assembler::pblendvb};
@@ -1379,11 +1342,8 @@ void InstX86ImulImm<Machine>::emitIAS(const Cfg *Func) const {
 template <class Machine>
 void InstX86Insertps<Machine>::emitIAS(const Cfg *Func) const {
   assert(this->getSrcSize() == 3);
-  TargetLowering *Target = Func->getTarget();
-  (void)Target;
-  assert(static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
-             Target)
-             ->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1);
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
+  assert(Target->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1);
   const Variable *Dest = this->getDest();
   assert(Dest == this->getSrc(0));
   Type Ty = Dest->getType();
@@ -1629,7 +1589,7 @@ void InstX86Cmov<Machine>::emitIAS(const Cfg *Func) const {
          (InstX86Base<Machine>::Traits::Is64Bit));
   typename InstX86Base<Machine>::Traits::Assembler *Asm =
       Func->getAssembler<typename InstX86Base<Machine>::Traits::Assembler>();
-  TargetLowering *Target = Func->getTarget();
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
   if (const auto *SrcVar = llvm::dyn_cast<Variable>(Src)) {
     if (SrcVar->hasReg()) {
       Asm->cmov(
@@ -1640,9 +1600,7 @@ void InstX86Cmov<Machine>::emitIAS(const Cfg *Func) const {
       Asm->cmov(
           SrcTy, Condition, InstX86Base<Machine>::Traits::getEncodedGPR(
                                 this->getDest()->getRegNum()),
-          static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
-              Target)
-              ->stackVarToAsmOperand(SrcVar));
+          Target->stackVarToAsmOperand(SrcVar));
     }
   } else if (const auto *Mem = llvm::dyn_cast<
                  typename InstX86Base<Machine>::Traits::X86OperandMem>(Src)) {
@@ -1696,7 +1654,7 @@ void InstX86Cmpps<Machine>::emitIAS(const Cfg *Func) const {
   // Assuming there isn't any load folding for cmpps, and vector constants are
   // not allowed in PNaCl.
   assert(llvm::isa<Variable>(this->getSrc(1)));
-  TargetLowering *Target = Func->getTarget();
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
   const auto *SrcVar = llvm::cast<Variable>(this->getSrc(1));
   if (SrcVar->hasReg()) {
     Asm->cmpps(InstX86Base<Machine>::Traits::getEncodedXmm(
@@ -1705,9 +1663,7 @@ void InstX86Cmpps<Machine>::emitIAS(const Cfg *Func) const {
                Condition);
   } else {
     typename InstX86Base<Machine>::Traits::Address SrcStackAddr =
-        static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
-            Target)
-            ->stackVarToAsmOperand(SrcVar);
+        Target->stackVarToAsmOperand(SrcVar);
     Asm->cmpps(InstX86Base<Machine>::Traits::getEncodedXmm(
                    this->getDest()->getRegNum()),
                SrcStackAddr, Condition);
@@ -1750,7 +1706,7 @@ void InstX86Cmpxchg<Machine>::emitIAS(const Cfg *Func) const {
   typename InstX86Base<Machine>::Traits::Assembler *Asm =
       Func->getAssembler<typename InstX86Base<Machine>::Traits::Assembler>();
   Type Ty = this->getSrc(0)->getType();
-  TargetLowering *Target = Func->getTarget();
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
   const auto Mem =
       llvm::cast<typename InstX86Base<Machine>::Traits::X86OperandMem>(
           this->getSrc(0));
@@ -1800,7 +1756,7 @@ void InstX86Cmpxchg8b<Machine>::emitIAS(const Cfg *Func) const {
           this->getSrc(0));
   assert(Mem->getSegmentRegister() ==
          InstX86Base<Machine>::Traits::X86OperandMem::DefaultSegment);
-  TargetLowering *Target = Func->getTarget();
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
   const typename InstX86Base<Machine>::Traits::Address Addr =
       Mem->toAsmAddress(Asm, Target);
   Asm->cmpxchg8b(Addr, this->Locked);
@@ -2142,13 +2098,11 @@ void InstX86Store<Machine>::emitIAS(const Cfg *Func) const {
         InstX86Base<Machine>::Traits::getEncodedXmm(SrcVar->getRegNum());
     typename InstX86Base<Machine>::Traits::Assembler *Asm =
         Func->getAssembler<typename InstX86Base<Machine>::Traits::Assembler>();
-    TargetLowering *Target = Func->getTarget();
+    auto *Target = InstX86Base<Machine>::getTarget(Func);
     if (const auto *DestVar = llvm::dyn_cast<Variable>(Dest)) {
       assert(!DestVar->hasReg());
       typename InstX86Base<Machine>::Traits::Address StackAddr(
-          static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
-              Target)
-              ->stackVarToAsmOperand(DestVar));
+          Target->stackVarToAsmOperand(DestVar));
       Asm->movss(DestTy, StackAddr, SrcReg);
     } else {
       const auto DestMem =
@@ -2205,7 +2159,7 @@ void InstX86StoreP<Machine>::emitIAS(const Cfg *Func) const {
   assert(DestMem->getSegmentRegister() ==
          InstX86Base<Machine>::Traits::X86OperandMem::DefaultSegment);
   assert(SrcVar->hasReg());
-  TargetLowering *Target = Func->getTarget();
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
   Asm->movups(DestMem->toAsmAddress(Asm, Target),
               InstX86Base<Machine>::Traits::getEncodedXmm(SrcVar->getRegNum()));
 }
@@ -2248,7 +2202,7 @@ void InstX86StoreQ<Machine>::emitIAS(const Cfg *Func) const {
   assert(DestMem->getSegmentRegister() ==
          InstX86Base<Machine>::Traits::X86OperandMem::DefaultSegment);
   assert(SrcVar->hasReg());
-  TargetLowering *Target = Func->getTarget();
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
   Asm->movq(DestMem->toAsmAddress(Asm, Target),
             InstX86Base<Machine>::Traits::getEncodedXmm(SrcVar->getRegNum()));
 }
@@ -2312,8 +2266,7 @@ template <class Machine> void InstX86Mov<Machine>::emit(const Cfg *Func) const {
   // TODO: This assert disallows usages such as copying a floating
   // point value between a vector and a scalar (which movss is used for). Clean
   // this up.
-  TargetLowering *Target = Func->getTarget();
-  (void)Target;
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
   assert(Target->typeWidthInBytesOnStack(DestTy) ==
          Target->typeWidthInBytesOnStack(SrcTy));
   const Operand *NewSrc = Src;
@@ -2359,7 +2312,7 @@ void InstX86Mov<Machine>::emitIAS(const Cfg *Func) const {
   // TODO: This assert disallows usages such as copying a floating
   // point value between a vector and a scalar (which movss is used for). Clean
   // this up.
-  TargetLowering *Target = Func->getTarget();
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
   assert(Target->typeWidthInBytesOnStack(this->getDest()->getType()) ==
          Target->typeWidthInBytesOnStack(Src->getType()));
   if (Dest->hasReg()) {
@@ -2394,9 +2347,7 @@ void InstX86Mov<Machine>::emitIAS(const Cfg *Func) const {
     // Dest must be Stack and Src *could* be a register. Use Src's type to
     // decide on the emitters.
     typename InstX86Base<Machine>::Traits::Address StackAddr(
-        static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
-            Target)
-            ->stackVarToAsmOperand(Dest));
+        Target->stackVarToAsmOperand(Dest));
     if (isScalarFloatingType(SrcTy)) {
       // Src must be a register.
       const auto *SrcVar = llvm::cast<Variable>(Src);
@@ -2424,7 +2375,7 @@ void InstX86Movd<Machine>::emitIAS(const Cfg *Func) const {
   assert(this->getSrcSize() == 1);
   const Variable *Dest = this->getDest();
   const auto *SrcVar = llvm::cast<Variable>(this->getSrc(0));
-  TargetLowering *Target = Func->getTarget();
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
   // For insert/extract element (one of Src/Dest is an Xmm vector and the other
   // is an int type).
   if (SrcVar->getType() == IceType_i32 ||
@@ -2443,9 +2394,7 @@ void InstX86Movd<Machine>::emitIAS(const Cfg *Func) const {
           InstX86Base<Machine>::Traits::getEncodedGPR(SrcVar->getRegNum()));
     } else {
       typename InstX86Base<Machine>::Traits::Address StackAddr(
-          static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
-              Target)
-              ->stackVarToAsmOperand(SrcVar));
+          Target->stackVarToAsmOperand(SrcVar));
       Asm->movd(SrcVar->getType(), DestReg, StackAddr);
     }
   } else {
@@ -2465,9 +2414,7 @@ void InstX86Movd<Machine>::emitIAS(const Cfg *Func) const {
                 SrcReg);
     } else {
       typename InstX86Base<Machine>::Traits::Address StackAddr(
-          static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
-              Target)
-              ->stackVarToAsmOperand(Dest));
+          Target->stackVarToAsmOperand(Dest));
       Asm->movd(Dest->getType(), StackAddr, SrcReg);
     }
   }
@@ -2629,7 +2576,7 @@ void InstX86Fld<Machine>::emitIAS(const Cfg *Func) const {
       Func->getAssembler<typename InstX86Base<Machine>::Traits::Assembler>();
   assert(this->getSrcSize() == 1);
   const Operand *Src = this->getSrc(0);
-  TargetLowering *Target = Func->getTarget();
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
   Type Ty = Src->getType();
   if (const auto *Var = llvm::dyn_cast<Variable>(Src)) {
     if (Var->hasReg()) {
@@ -2651,9 +2598,7 @@ void InstX86Fld<Machine>::emitIAS(const Cfg *Func) const {
                Width);
     } else {
       typename InstX86Base<Machine>::Traits::Address StackAddr(
-          static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
-              Target)
-              ->stackVarToAsmOperand(Var));
+          Target->stackVarToAsmOperand(Var));
       Asm->fld(Ty, StackAddr);
     }
   } else if (const auto *Mem = llvm::dyn_cast<
@@ -2723,13 +2668,11 @@ void InstX86Fstp<Machine>::emitIAS(const Cfg *Func) const {
     Asm->fstp(InstX86Base<Machine>::Traits::RegisterSet::getEncodedSTReg(0));
     return;
   }
-  TargetLowering *Target = Func->getTarget();
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
   Type Ty = Dest->getType();
   if (!Dest->hasReg()) {
     typename InstX86Base<Machine>::Traits::Address StackAddr(
-        static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
-            Target)
-            ->stackVarToAsmOperand(Dest));
+        Target->stackVarToAsmOperand(Dest));
     Asm->fstp(Ty, StackAddr);
   } else {
     // Dest is a physical (xmm) register, so st(0) needs to go through memory.
@@ -2791,13 +2734,10 @@ void InstX86Pextr<Machine>::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 2);
   // pextrb and pextrd are SSE4.1 instructions.
-  TargetLowering *Target = Func->getTarget();
-  (void)Target;
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
   assert(this->getSrc(0)->getType() == IceType_v8i16 ||
          this->getSrc(0)->getType() == IceType_v8i1 ||
-         static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
-             Target)
-                 ->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1);
+         Target->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1);
   Str << "\t" << this->Opcode
       << InstX86Base<Machine>::Traits::TypeAttributes[this->getSrc(0)
                                                           ->getType()]
@@ -2821,12 +2761,9 @@ void InstX86Pextr<Machine>::emitIAS(const Cfg *Func) const {
   const Variable *Dest = this->getDest();
   Type DispatchTy = InstX86Base<Machine>::Traits::getInVectorElementType(
       this->getSrc(0)->getType());
-  TargetLowering *Target = Func->getTarget();
-  (void)Target;
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
   assert(DispatchTy == IceType_i16 ||
-         static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
-             Target)
-                 ->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1);
+         Target->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1);
   // pextrw must take a register dest. There is an SSE4.1 version that takes a
   // memory dest, but we aren't using it. For uniformity, just restrict them
   // all to have a register dest for now.
@@ -2853,13 +2790,10 @@ void InstX86Pinsr<Machine>::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 3);
   // pinsrb and pinsrd are SSE4.1 instructions.
-  TargetLowering *Target = Func->getTarget();
-  (void)Target;
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
   assert(this->getDest()->getType() == IceType_v8i16 ||
          this->getDest()->getType() == IceType_v8i1 ||
-         static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
-             Target)
-                 ->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1);
+         Target->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1);
   Str << "\t" << this->Opcode
       << InstX86Base<
              Machine>::Traits::TypeAttributes[this->getDest()->getType()]
@@ -2891,12 +2825,9 @@ void InstX86Pinsr<Machine>::emitIAS(const Cfg *Func) const {
   // pinsrb and pinsrd are SSE4.1 instructions.
   const Operand *Src0 = this->getSrc(1);
   Type DispatchTy = Src0->getType();
-  TargetLowering *Target = Func->getTarget();
-  (void)Target;
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
   assert(DispatchTy == IceType_i16 ||
-         static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
-             Target)
-                 ->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1);
+         Target->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1);
   // If src1 is a register, it should always be r32 (this should fall out from
   // the encodings for ByteRegs overlapping the encodings for r32), but we have
   // to make sure the register allocator didn't choose an 8-bit high register
@@ -2983,11 +2914,8 @@ void InstX86Pop<Machine>::emitIAS(const Cfg *Func) const {
     Asm->popl(InstX86Base<Machine>::Traits::getEncodedGPR(
         this->getDest()->getRegNum()));
   } else {
-    TargetLowering *Target = Func->getTarget();
-    Asm->popl(
-        static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
-            Target)
-            ->stackVarToAsmOperand(this->getDest()));
+    auto *Target = InstX86Base<Machine>::getTarget(Func);
+    Asm->popl(Target->stackVarToAsmOperand(this->getDest()));
   }
 }
 
@@ -3005,7 +2933,7 @@ void InstX86AdjustStack<Machine>::emit(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << "\tsubl\t$" << Amount << ", %esp";
-  TargetLowering *Target = Func->getTarget();
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
   Target->updateStackAdjustment(Amount);
 }
 
@@ -3016,7 +2944,7 @@ void InstX86AdjustStack<Machine>::emitIAS(const Cfg *Func) const {
   Asm->sub(IceType_i32,
            InstX86Base<Machine>::Traits::RegisterSet::Encoded_Reg_esp,
            Immediate(Amount));
-  TargetLowering *Target = Func->getTarget();
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
   Target->updateStackAdjustment(Amount);
 }
 
@@ -3147,16 +3075,12 @@ void InstX86Setcc<Machine>::emitIAS(const Cfg *Func) const {
   assert(this->getSrcSize() == 0);
   typename InstX86Base<Machine>::Traits::Assembler *Asm =
       Func->getAssembler<typename InstX86Base<Machine>::Traits::Assembler>();
-  TargetLowering *Target = Func->getTarget();
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
   if (this->getDest()->hasReg())
     Asm->setcc(Condition, InstX86Base<Machine>::Traits::getEncodedByteReg(
                               this->getDest()->getRegNum()));
   else
-    Asm->setcc(
-        Condition,
-        static_cast<typename InstX86Base<Machine>::Traits::TargetLowering *>(
-            Target)
-            ->stackVarToAsmOperand(this->getDest()));
+    Asm->setcc(Condition, Target->stackVarToAsmOperand(this->getDest()));
   return;
 }
 
@@ -3196,7 +3120,7 @@ void InstX86Xadd<Machine>::emitIAS(const Cfg *Func) const {
           this->getSrc(0));
   assert(Mem->getSegmentRegister() ==
          InstX86Base<Machine>::Traits::X86OperandMem::DefaultSegment);
-  TargetLowering *Target = Func->getTarget();
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
   const typename InstX86Base<Machine>::Traits::Address Addr =
       Mem->toAsmAddress(Asm, Target);
   const auto *VarReg = llvm::cast<Variable>(this->getSrc(1));
@@ -3254,7 +3178,7 @@ void InstX86Xchg<Machine>::emitIAS(const Cfg *Func) const {
           this->getSrc(0));
   assert(Mem->getSegmentRegister() ==
          InstX86Base<Machine>::Traits::X86OperandMem::DefaultSegment);
-  TargetLowering *Target = Func->getTarget();
+  auto *Target = InstX86Base<Machine>::getTarget(Func);
   const typename InstX86Base<Machine>::Traits::Address Addr =
       Mem->toAsmAddress(Asm, Target);
   Asm->xchg(Ty, Addr, Reg1);
