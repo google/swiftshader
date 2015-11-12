@@ -189,19 +189,22 @@ void MachineTraits<TargetX8632>::X86OperandMem::dump(const Cfg *Func,
       getIndex()->dump(Str);
     Dumped = true;
   }
+  if (Disp) {
+    if (Disp > 0)
+      Str << "+";
+    Str << Disp;
+    Dumped = true;
+  }
   // Pretty-print the Offset.
   bool OffsetIsZero = false;
   bool OffsetIsNegative = false;
-  if (getOffset() == 0 && Disp == 0) {
+  if (getOffset() == nullptr) {
     OffsetIsZero = true;
-  } else if (getOffset() == 0 && Disp != 0) {
-    OffsetIsZero = (Disp == 0);
-    OffsetIsNegative = (Disp < 0);
   } else if (const auto *CI = llvm::dyn_cast<ConstantInteger32>(getOffset())) {
-    OffsetIsZero = (CI->getValue() + Disp == 0);
-    OffsetIsNegative = (static_cast<int32_t>(CI->getValue()) + Disp < 0);
+    OffsetIsZero = (CI->getValue() == 0);
+    OffsetIsNegative = (static_cast<int32_t>(CI->getValue()) < 0);
   } else {
-    assert(llvm::isa<ConstantRelocatable>(getOffset()) && Disp == 0);
+    assert(llvm::isa<ConstantRelocatable>(getOffset()));
   }
   if (Dumped) {
     if (!OffsetIsZero) {     // Suppress if Offset is known to be 0
