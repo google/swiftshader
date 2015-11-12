@@ -49,9 +49,10 @@ define internal i64 @MulTwoI64Regs(i64 %a, i64 %b) {
 ; ASM-NEXT:     mul     r3, r0, r3
 ; ASM-NEXT:     mla     r1, r2, r1, r3
 ; ASM-NEXT:     umull   r0, r2, r0, r2
-; ASM:          add     r2, r2, r1
+; ASM-NEXT:     # r2 = def.pseudo r0
+; ASM-NEXT:     add     r2, r2, r1
 ; ASM-NEXT:     mov     r1, r2
-; ASM:          bx      lr
+; ASM-NEXT:     bx      lr
 
 
 ; DIS-LABEL:00000010 <MulTwoI64Regs>:

@@ -1117,9 +1117,9 @@ void InstARM32Pop::emit(const Cfg *Func) const {
   for (const Operand *Op : Dests) {
     if (isScalarIntegerType(Op->getType()))
       continue;
-    startNextInst(Func);
     if (NeedNewline) {
       Str << "\n";
+      startNextInst(Func);
       NeedNewline = false;
     }
     Str << "\t"
@@ -1227,6 +1227,11 @@ void InstARM32Push::emit(const Cfg *Func) const {
     Operand *Op = getSrc(i - 1);
     if (isScalarIntegerType(Op->getType()))
       continue;
+    if (NeedNewline) {
+      Str << "\n";
+      startNextInst(Func);
+      NeedNewline = false;
+    }
     Str << "\t"
         << "vpush"
         << "\t{";
@@ -1235,9 +1240,9 @@ void InstARM32Push::emit(const Cfg *Func) const {
     NeedNewline = true;
   }
   if (IntegerCount != 0) {
-    startNextInst(Func);
     if (NeedNewline) {
       Str << "\n";
+      startNextInst(Func);
       NeedNewline = false;
     }
     Str << "\t"
