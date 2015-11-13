@@ -13,7 +13,8 @@ COMMON_CFLAGS := \
 	-DGL_GLEXT_PROTOTYPES \
 	-Wno-unused-parameter \
 	-Wno-implicit-exception-spec-mismatch \
-	-Wno-overloaded-virtual
+	-Wno-overloaded-virtual \
+	-Xclang -fuse-init-array
 
 
 COMMON_SRC_FILES := \

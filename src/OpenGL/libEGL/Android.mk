@@ -7,7 +7,8 @@ COMMON_CFLAGS := \
 	-DEGL_EGLEXT_PROTOTYPES \
 	-Wno-unused-parameter \
 	-Wno-implicit-exception-spec-mismatch \
-	-Wno-overloaded-virtual
+	-Wno-overloaded-virtual \
+	-Xclang -fuse-init-array
 
 COMMON_SRC_FILES := \
 	Config.cpp \

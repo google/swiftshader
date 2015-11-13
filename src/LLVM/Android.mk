@@ -399,7 +399,8 @@ LOCAL_SRC_FILES += \
 LOCAL_CFLAGS += -DLOG_TAG=\"libLLVM_swiftshader\" \
 	-Wno-unused-parameter \
 	-Wno-implicit-exception-spec-mismatch \
-	-Wno-overloaded-virtual
+	-Wno-overloaded-virtual \
+	-Xclang -fuse-init-array
 
 LOCAL_CFLAGS += -fomit-frame-pointer -Os -ffunction-sections -fdata-sections
 LOCAL_CFLAGS += -fno-operator-names -msse2 -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS
