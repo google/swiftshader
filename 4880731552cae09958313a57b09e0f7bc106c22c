@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "563ea29c_5424848b",
+        "filename": "src/OpenGL/libGLESv2/Context.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-11-13T18:08:16Z",
+      "side": 1,
+      "message": "Make this \"RENDERTARGETS\", or something like that, defined in config.hpp.",
+      "range": {
+        "startLine": 82,
+        "startChar": 23,
+        "endLine": 82,
+        "endChar": 24
+      },
+      "revId": "4880731552cae09958313a57b09e0f7bc106c22c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "563ea29c_7421807a",
+        "filename": "src/OpenGL/libGLESv2/Device.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-11-13T18:08:16Z",
+      "side": 1,
+      "message": "nullptr",
+      "range": {
+        "startLine": 35,
+        "startChar": 49,
+        "endLine": 35,
+        "endChar": 50
+      },
+      "revId": "4880731552cae09958313a57b09e0f7bc106c22c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "563ea29c_943c2ca6",
+        "filename": "src/OpenGL/libGLESv2/Device.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-11-13T18:08:16Z",
+      "side": 1,
+      "message": "nullptr",
+      "range": {
+        "startLine": 150,
+        "startChar": 18,
+        "endLine": 150,
+        "endChar": 19
+      },
+      "revId": "4880731552cae09958313a57b09e0f7bc106c22c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "563ea29c_b441281f",
+        "filename": "src/OpenGL/libGLESv2/Device.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-11-13T18:08:16Z",
+      "side": 1,
+      "message": "nullptr",
+      "range": {
+        "startLine": 158,
+        "startChar": 22,
+        "endLine": 158,
+        "endChar": 23
+      },
+      "revId": "4880731552cae09958313a57b09e0f7bc106c22c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "563ea29c_d446b433",
+        "filename": "src/OpenGL/libGLESv2/Device.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 823,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-11-13T18:08:16Z",
+      "side": 1,
+      "message": "Symbolic constant",
+      "range": {
+        "startLine": 823,
+        "startChar": 22,
+        "endLine": 823,
+        "endChar": 23
+      },
+      "revId": "4880731552cae09958313a57b09e0f7bc106c22c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "563ea29c_f44bb03a",
+        "filename": "src/Shader/PixelProgram.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-11-13T18:08:16Z",
+      "side": 1,
+      "message": "Do we still need both?",
+      "range": {
+        "startLine": 63,
+        "startChar": 3,
+        "endLine": 64,
+        "endChar": 29
+      },
+      "revId": "4880731552cae09958313a57b09e0f7bc106c22c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "563ea29c_342e1867",
+        "filename": "src/Shader/PixelProgram.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-11-13T18:08:16Z",
+      "side": 1,
+      "message": "I don\u0027t think we need this any more.",
+      "range": {
+        "startLine": 65,
+        "startChar": 8,
+        "endLine": 65,
+        "endChar": 11
+      },
+      "revId": "4880731552cae09958313a57b09e0f7bc106c22c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "563ea29c_14311cc8",
+        "filename": "src/Shader/PixelProgram.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-11-13T18:08:16Z",
+      "side": 1,
+      "message": "Remove",
+      "range": {
+        "startLine": 66,
+        "startChar": 8,
+        "endLine": 66,
+        "endChar": 18
+      },
+      "revId": "4880731552cae09958313a57b09e0f7bc106c22c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
