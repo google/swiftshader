@@ -271,6 +271,10 @@ protected:
   Variable *copyToReg8(Operand *Src, int32_t RegNum = Variable::NoRegister);
   Variable *copyToReg(Operand *Src, int32_t RegNum = Variable::NoRegister);
 
+  /// Returns a register containing all zeros, without affecting the FLAGS
+  /// register, using the best instruction for the type.
+  Variable *makeZeroedRegister(Type Ty, int32_t RegNum = Variable::NoRegister);
+
   /// \name Returns a vector in a register with the given constant entries.
   /// @{
   Variable *makeVectorOfZeros(Type Ty, int32_t RegNum = Variable::NoRegister);

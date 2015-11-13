@@ -38,7 +38,8 @@ define internal float @undef_float() {
 entry:
   ret float undef
 ; CHECK-LABEL: undef_float
-; CHECK: fld DWORD PTR {{.*}} .L$float$00000000
+; CHECK: pxor [[REG:xmm.]],[[REG]]
+; CHECK: fld
 }
 
 define internal <4 x i1> @undef_v4i1() {
@@ -191,7 +192,8 @@ entry:
   %val = insertelement <4 x float> %arg, float undef, i32 0
   ret <4 x float> %val
 ; CHECK-LABEL: vector_insertelement_arg2
-; CHECK: {{movss|insertps}} {{.*}},DWORD PTR {{.*}} .L$float$00000000
+; CHECK: pxor [[REG:xmm.]],[[REG]]
+; CHECK: {{movss|insertps}} {{.*}},[[REG]]
 }
 
 define internal float @vector_extractelement_v4f32_index_0() {

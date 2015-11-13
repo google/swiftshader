@@ -29,6 +29,7 @@
 #include "IceUtils.h"
 #include "llvm/Support/MathExtras.h"
 
+#include <cmath> // signbit()
 #include <stack>
 
 namespace Ice {
@@ -1916,7 +1917,7 @@ void TargetX86Base<Machine>::lowerAssign(const InstAssign *Inst) {
       // If Dest already has a physical register, then only basic legalization
       // is needed, as the source operand can be a register, immediate, or
       // memory.
-      Src0Legal = legalize(Src0);
+      Src0Legal = legalize(Src0, Legal_Reg, Dest->getRegNum());
     } else {
       // If Dest could be a stack operand, then RI must be a physical register
       // or a scalar integer immediate.
@@ -5307,6 +5308,34 @@ template <class Machine> void TargetX86Base<Machine>::prelowerPhis() {
       this, Context.getNode(), Func);
 }
 
+template <class Machine>
+Variable *TargetX86Base<Machine>::makeZeroedRegister(Type Ty, int32_t RegNum) {
+  Variable *Reg = makeReg(Ty, RegNum);
+  switch (Ty) {
+  case IceType_i1:
+  case IceType_i8:
+  case IceType_i16:
+  case IceType_i32:
+  case IceType_i64:
+    // Conservatively do "mov reg, 0" to avoid modifying FLAGS.
+    _mov(Reg, Ctx->getConstantZero(Ty));
+    break;
+  case IceType_f32:
+  case IceType_f64:
+    Context.insert(InstFakeDef::create(Func, Reg));
+    // TODO(stichnot): Use xorps/xorpd instead of pxor.
+    _pxor(Reg, Reg);
+    break;
+  default:
+    // All vector types use the same pxor instruction.
+    assert(isVectorType(Ty));
+    Context.insert(InstFakeDef::create(Func, Reg));
+    _pxor(Reg, Reg);
+    break;
+  }
+  return Reg;
+}
+
 // There is no support for loading or emitting vector constants, so the vector
 // values returned from makeVectorOfZeros, makeVectorOfOnes, etc. are
 // initialized with register operations.
@@ -5316,12 +5345,7 @@ template <class Machine> void TargetX86Base<Machine>::prelowerPhis() {
 
 template <class Machine>
 Variable *TargetX86Base<Machine>::makeVectorOfZeros(Type Ty, int32_t RegNum) {
-  Variable *Reg = makeReg(Ty, RegNum);
-  // Insert a FakeDef, since otherwise the live range of Reg might be
-  // overestimated.
-  Context.insert(InstFakeDef::create(Func, Reg));
-  _pxor(Reg, Reg);
-  return Reg;
+  return makeZeroedRegister(Ty, RegNum);
 }
 
 template <class Machine>
@@ -5471,6 +5495,16 @@ Variable *TargetX86Base<Machine>::copyToReg(Operand *Src, int32_t RegNum) {
   return Reg;
 }
 
+namespace {
+
+template <typename T> bool isPositiveZero(T Val) {
+  static_assert(std::is_floating_point<T>::value,
+                "Input type must be floating point");
+  return Val == 0 && !signbit(Val);
+}
+
+} // end of anonymous namespace
+
 template <class Machine>
 Operand *TargetX86Base<Machine>::legalize(Operand *From, LegalMask Allowed,
                                           int32_t RegNum) {
@@ -5563,6 +5597,13 @@ Operand *TargetX86Base<Machine>::legalize(Operand *From, LegalMask Allowed,
     // Convert a scalar floating point constant into an explicit memory
     // operand.
     if (isScalarFloatingType(Ty)) {
+      if (auto *ConstFloat = llvm::dyn_cast<ConstantFloat>(Const)) {
+        if (isPositiveZero(ConstFloat->getValue()))
+          return makeZeroedRegister(Ty, RegNum);
+      } else if (auto *ConstDouble = llvm::dyn_cast<ConstantDouble>(Const)) {
+        if (isPositiveZero(ConstDouble->getValue()))
+          return makeZeroedRegister(Ty, RegNum);
+      }
       Variable *Base = nullptr;
       std::string Buffer;
       llvm::raw_string_ostream StrBuf(Buffer);
