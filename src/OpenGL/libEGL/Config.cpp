@@ -109,7 +109,7 @@ Config::Config(sw::Format displayFormat, EGLint minInterval, EGLint maxInterval,
     mBufferSize = mRedSize + mGreenSize + mBlueSize + mLuminanceSize + mAlphaSize;
     mAlphaMaskSize = 0;
     mColorBufferType = EGL_RGB_BUFFER;
-    mConfigCaveat = isSlowConfig() ? EGL_SLOW_CONFIG : EGL_NONE;
+    mConfigCaveat = EGL_NONE;
     mConfigID = 0;
     mConformant = EGL_OPENGL_ES_BIT | EGL_OPENGL_ES2_BIT
 #ifndef __ANDROID__ // Do not allow GLES 3.0 on Android
@@ -192,11 +192,6 @@ Config::Config(sw::Format displayFormat, EGLint minInterval, EGLint maxInterval,
 EGLConfig Config::getHandle() const
 {
     return (EGLConfig)(size_t)mConfigID;
-}
-
-bool Config::isSlowConfig() const
-{
-	return mRenderTargetFormat != sw::FORMAT_X8R8G8B8 && mRenderTargetFormat != sw::FORMAT_A8R8G8B8;
 }
 
 // This ordering determines the config ID

@@ -32,7 +32,6 @@ public:
     Config(sw::Format displayFormat, EGLint minSwapInterval, EGLint maxSwapInterval, sw::Format renderTargetFormat, sw::Format depthStencilFormat, EGLint multiSample);
 
     EGLConfig getHandle() const;
-	bool isSlowConfig() const;
 
     const sw::Format mDisplayFormat;
     const sw::Format mRenderTargetFormat;
