@@ -36,7 +36,8 @@ Config::Config(sw::Format displayFormat, EGLint minInterval, EGLint maxInterval,
     mBindToTextureRGB = EGL_FALSE;
     mBindToTextureRGBA = EGL_FALSE;
 
-    mNativeVisualID = 0;
+	// Initialize to a high value to lower the preference of formats for which there's no native support
+    mNativeVisualID = 0x7FFFFFFF;
 
     switch(renderTargetFormat)
     {
@@ -60,6 +61,8 @@ Config::Config(sw::Format displayFormat, EGLint minInterval, EGLint maxInterval,
         mBindToTextureRGBA = EGL_TRUE;
         #ifdef __ANDROID__
 			mNativeVisualID = HAL_PIXEL_FORMAT_BGRA_8888;
+		#else
+			mNativeVisualID = 2;   // Arbitrary; prefer over ABGR
 		#endif
         break;
 	case sw::FORMAT_A8B8G8R8:
@@ -88,7 +91,9 @@ Config::Config(sw::Format displayFormat, EGLint minInterval, EGLint maxInterval,
         mAlphaSize = 0;
         mBindToTextureRGB = EGL_TRUE;
 		#ifdef __ANDROID__
-			mNativeVisualID = HAL_PIXEL_FORMAT_BGRA_8888;
+			mNativeVisualID = 0x1FF;   // HAL_PIXEL_FORMAT_BGRX_8888
+		#else
+			mNativeVisualID = 1;   // Arbitrary; prefer over XBGR
 		#endif
         break;
 	case sw::FORMAT_X8B8G8R8:
@@ -102,7 +107,7 @@ Config::Config(sw::Format displayFormat, EGLint minInterval, EGLint maxInterval,
 		#endif
         break;
     default:
-        UNREACHABLE(renderTargetFormat);   // Other formats should not be valid
+        UNREACHABLE(renderTargetFormat);
     }
 
     mLuminanceSize = 0;
@@ -221,6 +226,7 @@ bool CompareConfig::operator()(const Config &x, const Config &y) const
     SORT_SMALLER(mStencilSize);
     SORT_SMALLER(mAlphaMaskSize);
     SORT_SMALLER(mNativeVisualType);
+	SORT_SMALLER(mNativeVisualID);
 
     #undef SORT_SMALLER
 
