@@ -191,14 +191,6 @@ public:
   void reorderNodes();
   void shuffleNodes();
 
-  enum AllocaBaseVariableType {
-    BVT_StackPointer,
-    BVT_FramePointer,
-    BVT_UserPointer
-  };
-  void sortAndCombineAllocas(CfgVector<Inst *> &Allocas,
-                             uint32_t CombinedAlignment, InstList &Insts,
-                             AllocaBaseVariableType BaseVariableType);
   /// Scan allocas to determine whether we need to use a frame pointer.
   /// If SortAndCombine == true, merge all the fixed-size allocas in the
   /// entry block and emit stack or frame pointer-relative addressing.
@@ -266,6 +258,16 @@ private:
   void deleteJumpTableInsts();
   /// Iterate through the registered jump tables and emit them.
   void emitJumpTables();
+
+  enum AllocaBaseVariableType {
+    BVT_StackPointer,
+    BVT_FramePointer,
+    BVT_UserPointer
+  };
+  void sortAndCombineAllocas(CfgVector<Inst *> &Allocas,
+                             uint32_t CombinedAlignment, InstList &Insts,
+                             AllocaBaseVariableType BaseVariableType);
+  void findRematerializable();
 
   GlobalContext *Ctx;
   uint32_t SequenceNumber;             /// output order for emission

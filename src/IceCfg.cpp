@@ -630,6 +630,108 @@ void Cfg::processAllocas(bool SortAndCombine) {
   AllocaBaseVariableType BasePointerType =
       (HasDynamicAllocation ? BVT_UserPointer : BVT_StackPointer);
   sortAndCombineAllocas(FixedAllocas, MaxAlignment, Insts, BasePointerType);
+
+  if (!FixedAllocas.empty() || !AlignedAllocas.empty())
+    // No use calling findRematerializable() unless there is some
+    // rematerializable alloca instruction to seed it.
+    findRematerializable();
+}
+
+namespace {
+
+// Helpers for findRematerializable().  For each of them, if a suitable
+// rematerialization is found, the instruction's Dest variable is set to be
+// rematerializable and it returns true, otherwise it returns false.
+
+bool rematerializeArithmetic(const Inst *Instr) {
+  // Check that it's an Arithmetic instruction with an Add operation.
+  auto *Arith = llvm::dyn_cast<InstArithmetic>(Instr);
+  if (Arith == nullptr || Arith->getOp() != InstArithmetic::Add)
+    return false;
+  // Check that Src(0) is rematerializable.
+  auto *Src0Var = llvm::dyn_cast<Variable>(Arith->getSrc(0));
+  if (Src0Var == nullptr || !Src0Var->isRematerializable())
+    return false;
+  // Check that Src(1) is an immediate.
+  auto *Src1Imm = llvm::dyn_cast<ConstantInteger32>(Arith->getSrc(1));
+  if (Src1Imm == nullptr)
+    return false;
+  Arith->getDest()->setRematerializable(
+      Src0Var->getRegNum(), Src0Var->getStackOffset() + Src1Imm->getValue());
+  return true;
+}
+
+bool rematerializeAssign(const Inst *Instr) {
+  // An InstAssign only originates from an inttoptr or ptrtoint instruction,
+  // which never occurs in a MINIMAL build.
+  if (BuildDefs::minimal())
+    return false;
+  // Check that it's an Assign instruction.
+  if (!llvm::isa<InstAssign>(Instr))
+    return false;
+  // Check that Src(0) is rematerializable.
+  auto *Src0Var = llvm::dyn_cast<Variable>(Instr->getSrc(0));
+  if (Src0Var == nullptr || !Src0Var->isRematerializable())
+    return false;
+  Instr->getDest()->setRematerializable(Src0Var->getRegNum(),
+                                        Src0Var->getStackOffset());
+  return true;
+}
+
+bool rematerializeCast(const Inst *Instr) {
+  // An pointer-type bitcast never occurs in a MINIMAL build.
+  if (BuildDefs::minimal())
+    return false;
+  // Check that it's a Cast instruction with a Bitcast operation.
+  auto *Cast = llvm::dyn_cast<InstCast>(Instr);
+  if (Cast == nullptr || Cast->getCastKind() != InstCast::Bitcast)
+    return false;
+  // Check that Src(0) is rematerializable.
+  auto *Src0Var = llvm::dyn_cast<Variable>(Cast->getSrc(0));
+  if (Src0Var == nullptr || !Src0Var->isRematerializable())
+    return false;
+  // Check that Dest and Src(0) have the same type.
+  Variable *Dest = Cast->getDest();
+  if (Dest->getType() != Src0Var->getType())
+    return false;
+  Dest->setRematerializable(Src0Var->getRegNum(), Src0Var->getStackOffset());
+  return true;
+}
+
+} // end of anonymous namespace
+
+/// Scan the function to find additional rematerializable variables.  This is
+/// possible when the source operand of an InstAssignment is a rematerializable
+/// variable, or the same for a pointer-type InstCast::Bitcast, or when an
+/// InstArithmetic is an add of a rematerializable variable and an immediate.
+/// Note that InstAssignment instructions and pointer-type InstCast::Bitcast
+/// instructions generally only come about from the IceConverter's treatment of
+/// inttoptr, ptrtoint, and bitcast instructions.  TODO(stichnot): Consider
+/// other possibilities, however unlikely, such as InstArithmetic::Sub, or
+/// commutativity.
+void Cfg::findRematerializable() {
+  // Scan the instructions in order, and repeat until no new opportunities are
+  // found.  It may take more than one iteration because a variable's defining
+  // block may happen to come after a block where it is used, depending on the
+  // CfgNode linearization order.
+  bool FoundNewAssignment;
+  do {
+    FoundNewAssignment = false;
+    for (CfgNode *Node : getNodes()) {
+      // No need to process Phi instructions.
+      for (Inst &Instr : Node->getInsts()) {
+        if (Instr.isDeleted())
+          continue;
+        Variable *Dest = Instr.getDest();
+        if (Dest == nullptr || Dest->isRematerializable())
+          continue;
+        if (rematerializeArithmetic(&Instr) || rematerializeAssign(&Instr) ||
+            rematerializeCast(&Instr)) {
+          FoundNewAssignment = true;
+        }
+      }
+    }
+  } while (FoundNewAssignment);
 }
 
 void Cfg::doAddressOpt() {
@@ -907,7 +1009,7 @@ void Cfg::emit() {
   deleteJumpTableInsts();
   if (Ctx->getFlags().getDecorateAsm()) {
     for (Variable *Var : getVariables()) {
-      if (Var->getStackOffset()) {
+      if (Var->getStackOffset() && !Var->isRematerializable()) {
         Str << "\t" << Var->getSymbolicStackOffset(this) << " = "
             << Var->getStackOffset() << "\n";
       }

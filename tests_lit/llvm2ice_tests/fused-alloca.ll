@@ -55,3 +55,38 @@ entry:
 ; CHECK-NEXT: mov    DWORD PTR [esp+0x60],eax
 ; CHECK-NEXT: mov    esp,ebp
 ; CHECK-NEXT: pop    ebp
+
+; Test that an interior pointer into a rematerializable variable is also
+; rematerializable, and test that it is detected even when the use appears
+; syntactically before the definition.  Test that it is folded into mem
+; operands, and also rematerializable through an lea instruction for direct use.
+define internal i32 @fused_derived(i32 %arg) {
+entry:
+  %a1 = alloca i8, i32 128, align 4
+  %a2 = alloca i8, i32 128, align 4
+  %a3 = alloca i8, i32 128, align 4
+  br label %block2
+block1:
+  %a2_i32 = bitcast i8* %a2 to i32*
+  store i32 %arg, i32* %a2_i32, align 1
+  store i32 %arg, i32* %derived, align 1
+  ret i32 %retval
+block2:
+; The following are all rematerializable variables deriving from %a2.
+  %p2 = ptrtoint i8* %a2 to i32
+  %d = add i32 %p2, 12
+  %retval = add i32 %p2, 1
+  %derived = inttoptr i32 %d to i32*
+  br label %block1
+}
+; CHECK-LABEL: fused_derived
+; CHECK-NEXT: sub    esp,0xc
+; CHECK-NEXT: mov    [[ARG:e..]],DWORD PTR [esp+0x10]
+; CHECK-NEXT: sub    esp,0x180
+; CHECK-NEXT: mov    {{.*}},esp
+; CHECK-NEXT: jmp
+; CHECK-NEXT: mov    DWORD PTR [esp+0x80],[[ARG]]
+; CHECK-NEXT: mov    DWORD PTR [esp+0x8c],[[ARG]]
+; CHECK-NEXT: lea    eax,[esp+0x81]
+; CHECK-NEXT: add    esp,0x18c
+; CHECK-NEXT: ret

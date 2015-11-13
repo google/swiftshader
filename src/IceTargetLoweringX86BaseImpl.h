@@ -1318,6 +1318,10 @@ void TargetX86Base<Machine>::lowerShift64(InstArithmetic::OpKind Op,
 template <class Machine>
 void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
   Variable *Dest = Inst->getDest();
+  if (Dest->isRematerializable()) {
+    Context.insert(InstFakeDef::create(Func, Dest));
+    return;
+  }
   Type Ty = Dest->getType();
   Operand *Src0 = legalize(Inst->getSrc(0));
   Operand *Src1 = legalize(Inst->getSrc(1));
@@ -1898,6 +1902,10 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
 template <class Machine>
 void TargetX86Base<Machine>::lowerAssign(const InstAssign *Inst) {
   Variable *Dest = Inst->getDest();
+  if (Dest->isRematerializable()) {
+    Context.insert(InstFakeDef::create(Func, Dest));
+    return;
+  }
   Operand *Src0 = Inst->getSrc(0);
   assert(Dest->getType() == Src0->getType());
   if (!Traits::Is64Bit && Dest->getType() == IceType_i64) {
