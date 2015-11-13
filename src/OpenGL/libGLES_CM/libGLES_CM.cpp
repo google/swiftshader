@@ -2257,7 +2257,7 @@ const GLubyte* GetString(GLenum name)
 	case GL_VENDOR:
 		return (GLubyte*)"TransGaming Inc.";
 	case GL_RENDERER:
-		return (GLubyte*)"SwiftShader";
+		return (GLubyte*)"Google SwiftShader";
 	case GL_VERSION:
 		return (GLubyte*)"OpenGL ES 1.1 SwiftShader " VERSION_STRING;
 	case GL_EXTENSIONS:

@@ -3569,7 +3569,7 @@ const GLubyte* GetString(GLenum name)
 	case GL_VENDOR:
 		return (GLubyte*)"Google Inc.";
 	case GL_RENDERER:
-		return (GLubyte*)"SwiftShader";
+		return (GLubyte*)"Google SwiftShader";
 	case GL_VERSION:
 	{
 		es2::Context *context = es2::getContext();
