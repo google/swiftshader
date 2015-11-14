@@ -131,7 +131,7 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
 
   OperandList XmmArgs;
   OperandList StackArgs, StackArgLocations;
-  uint32_t ParameterAreaSizeBytes = 0;
+  int32_t ParameterAreaSizeBytes = 0;
 
   // Classify each argument operand according to the location where the
   // argument is passed.
@@ -157,6 +157,13 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
       StackArgLocations.push_back(Mem);
       ParameterAreaSizeBytes += typeWidthInBytesOnStack(Arg->getType());
     }
+  }
+  // Ensure there is enough space for the fstp/movs for floating returns.
+  Variable *Dest = Instr->getDest();
+  if (Dest != nullptr && isScalarFloatingType(Dest->getType())) {
+    ParameterAreaSizeBytes =
+        std::max(static_cast<size_t>(ParameterAreaSizeBytes),
+                 typeWidthInBytesOnStack(Dest->getType()));
   }
 
   // Adjust the parameter area so that the stack is aligned. It is assumed that
@@ -197,7 +204,6 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
   }
   // Generate the call instruction. Assign its result to a temporary with high
   // register allocation weight.
-  Variable *Dest = Instr->getDest();
   // ReturnReg doubles as ReturnRegLo as necessary.
   Variable *ReturnReg = nullptr;
   Variable *ReturnRegHi = nullptr;
@@ -255,16 +261,23 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
   if (ReturnRegHi)
     Context.insert(InstFakeDef::create(Func, ReturnRegHi));
 
-  // Add the appropriate offset to esp. The call instruction takes care of
-  // resetting the stack offset during emission.
-  if (ParameterAreaSizeBytes) {
-    Variable *esp =
-        Func->getTarget()->getPhysicalRegister(Traits::RegisterSet::Reg_esp);
-    _add(esp, Ctx->getConstantInt32(ParameterAreaSizeBytes));
-  }
-
   // Insert a register-kill pseudo instruction.
   Context.insert(InstFakeKill::create(Func, NewCall));
+
+  if (Dest != nullptr && isScalarFloatingType(Dest->getType())) {
+    // Special treatment for an FP function which returns its result in st(0).
+    // If Dest ends up being a physical xmm register, the fstp emit code will
+    // route st(0) through the space reserved in the function argument area
+    // we allocated.
+    _fstp(Dest);
+    // Create a fake use of Dest in case it actually isn't used, because st(0)
+    // still needs to be popped.
+    Context.insert(InstFakeUse::create(Func, Dest));
+  }
+
+  // Add the appropriate offset to esp.
+  if (ParameterAreaSizeBytes)
+    _adjust_stack(-ParameterAreaSizeBytes);
 
   // Generate a FakeUse to keep the call live if necessary.
   if (Instr->hasSideEffects() && ReturnReg) {
@@ -293,14 +306,6 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
         _mov(Dest, ReturnReg);
       }
     }
-  } else if (isScalarFloatingType(Dest->getType())) {
-    // Special treatment for an FP function which returns its result in st(0).
-    // If Dest ends up being a physical xmm register, the fstp emit code will
-    // route st(0) through a temporary stack slot.
-    _fstp(Dest);
-    // Create a fake use of Dest in case it actually isn't used, because st(0)
-    // still needs to be popped.
-    Context.insert(InstFakeUse::create(Func, Dest));
   }
 }
 
@@ -363,11 +368,7 @@ void TargetX8632::lowerRet(const InstRet *Inst) {
   _ret(Reg);
   // Add a fake use of esp to make sure esp stays alive for the entire
   // function. Otherwise post-call esp adjustments get dead-code eliminated.
-  // TODO: Are there more places where the fake use should be inserted? E.g.
-  // "void f(int n){while(1) g(n);}" may not have a ret instruction.
-  Variable *esp =
-      Func->getTarget()->getPhysicalRegister(Traits::RegisterSet::Reg_esp);
-  Context.insert(InstFakeUse::create(Func, esp));
+  keepEspLiveAtExit();
 }
 
 void TargetX8632::addProlog(CfgNode *Node) {

@@ -226,6 +226,13 @@ protected:
   void scalarizeArithmetic(InstArithmetic::OpKind K, Variable *Dest,
                            Operand *Src0, Operand *Src1);
 
+  /// Emit a fake use of esp to make sure esp stays alive for the entire
+  /// function. Otherwise some esp adjustments get dead-code eliminated.
+  void keepEspLiveAtExit() {
+    Variable *esp = Func->getTarget()->getPhysicalRegister(getStackReg());
+    Context.insert(InstFakeUse::create(Func, esp));
+  }
+
   /// Operand legalization helpers. To deal with address mode constraints, the
   /// helpers will create a new Operand and emit instructions that guarantee
   /// that the Operand kind is one of those indicated by the LegalMask (a

@@ -386,11 +386,7 @@ void TargetX8664::lowerRet(const InstRet *Inst) {
   _ret(Reg);
   // Add a fake use of esp to make sure esp stays alive for the entire
   // function. Otherwise post-call esp adjustments get dead-code eliminated.
-  // TODO: Are there more places where the fake use should be inserted? E.g.
-  // "void f(int n){while(1) g(n);}" may not have a ret instruction.
-  Variable *esp =
-      Func->getTarget()->getPhysicalRegister(Traits::RegisterSet::Reg_esp);
-  Context.insert(InstFakeUse::create(Func, esp));
+  keepEspLiveAtExit();
 }
 
 void TargetX8664::addProlog(CfgNode *Node) {

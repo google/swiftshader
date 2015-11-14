@@ -57,7 +57,7 @@ InstX86FakeRMW<Machine>::InstX86FakeRMW(Cfg *Func, Operand *Data, Operand *Addr,
 }
 
 template <class Machine>
-InstX86AdjustStack<Machine>::InstX86AdjustStack(Cfg *Func, SizeT Amount,
+InstX86AdjustStack<Machine>::InstX86AdjustStack(Cfg *Func, int32_t Amount,
                                                 Variable *Esp)
     : InstX86Base<Machine>(Func, InstX86Base<Machine>::Adjuststack, 1, Esp),
       Amount(Amount) {
@@ -581,7 +581,6 @@ void InstX86Call<Machine>::emit(const Cfg *Func) const {
     Str << "*";
     CallTarget->emit(Func);
   }
-  Target->resetStackAdjustment();
 }
 
 template <class Machine>
@@ -610,7 +609,6 @@ void InstX86Call<Machine>::emitIAS(const Cfg *Func) const {
   } else {
     llvm_unreachable("Unexpected operand type");
   }
-  Target->resetStackAdjustment();
 }
 
 template <class Machine>
@@ -1597,10 +1595,9 @@ void InstX86Cmov<Machine>::emitIAS(const Cfg *Func) const {
                                 this->getDest()->getRegNum()),
           InstX86Base<Machine>::Traits::getEncodedGPR(SrcVar->getRegNum()));
     } else {
-      Asm->cmov(
-          SrcTy, Condition, InstX86Base<Machine>::Traits::getEncodedGPR(
-                                this->getDest()->getRegNum()),
-          Target->stackVarToAsmOperand(SrcVar));
+      Asm->cmov(SrcTy, Condition, InstX86Base<Machine>::Traits::getEncodedGPR(
+                                      this->getDest()->getRegNum()),
+                Target->stackVarToAsmOperand(SrcVar));
     }
   } else if (const auto *Mem = llvm::dyn_cast<
                  typename InstX86Base<Machine>::Traits::X86OperandMem>(Src)) {
@@ -2635,16 +2632,14 @@ void InstX86Fstp<Machine>::emit(const Cfg *Func) const {
     return;
   }
   Type Ty = this->getDest()->getType();
-  size_t Width = typeWidthInBytes(Ty);
   if (!this->getDest()->hasReg()) {
     Str << "\tfstp" << this->getFldString(Ty) << "\t";
     this->getDest()->emit(Func);
     return;
   }
   // Dest is a physical (xmm) register, so st(0) needs to go through memory.
-  // Hack this by creating a temporary stack slot, spilling st(0) there,
-  // loading it into the xmm register, and deallocating the stack slot.
-  Str << "\tsubl\t$" << Width << ", %esp\n";
+  // Hack this by using caller-reserved memory at the top of stack, spilling
+  // st(0) there, and loading it into the xmm register.
   Str << "\tfstp" << this->getFldString(Ty) << "\t"
       << "(%esp)\n";
   Str << "\tmov" << InstX86Base<Machine>::Traits::TypeAttributes[Ty].SdSsString
@@ -2652,7 +2647,6 @@ void InstX86Fstp<Machine>::emit(const Cfg *Func) const {
       << "(%esp), ";
   this->getDest()->emit(Func);
   Str << "\n";
-  Str << "\taddl\t$" << Width << ", %esp";
 }
 
 template <class Machine>
@@ -2676,11 +2670,8 @@ void InstX86Fstp<Machine>::emitIAS(const Cfg *Func) const {
     Asm->fstp(Ty, StackAddr);
   } else {
     // Dest is a physical (xmm) register, so st(0) needs to go through memory.
-    // Hack this by creating a temporary stack slot, spilling st(0) there,
-    // loading it into the xmm register, and deallocating the stack slot.
-    Immediate Width(typeWidthInBytes(Ty));
-    Asm->sub(IceType_i32,
-             InstX86Base<Machine>::Traits::RegisterSet::Encoded_Reg_esp, Width);
+    // Hack this by using caller-reserved memory at the top of stack, spilling
+    // st(0) there, and loading it into the xmm register.
     typename InstX86Base<Machine>::Traits::Address StackSlot =
         typename InstX86Base<Machine>::Traits::Address(
             InstX86Base<Machine>::Traits::RegisterSet::Encoded_Reg_esp, 0,
@@ -2689,8 +2680,6 @@ void InstX86Fstp<Machine>::emitIAS(const Cfg *Func) const {
     Asm->movss(Ty,
                InstX86Base<Machine>::Traits::getEncodedXmm(Dest->getRegNum()),
                StackSlot);
-    Asm->add(IceType_i32,
-             InstX86Base<Machine>::Traits::RegisterSet::Encoded_Reg_esp, Width);
   }
 }
 
@@ -2932,7 +2921,10 @@ void InstX86AdjustStack<Machine>::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
-  Str << "\tsubl\t$" << Amount << ", %esp";
+  if (Amount > 0)
+    Str << "\tsubl\t$" << Amount << ", %esp";
+  else
+    Str << "\taddl\t$" << -Amount << ", %esp";
   auto *Target = InstX86Base<Machine>::getTarget(Func);
   Target->updateStackAdjustment(Amount);
 }
@@ -2941,9 +2933,14 @@ template <class Machine>
 void InstX86AdjustStack<Machine>::emitIAS(const Cfg *Func) const {
   typename InstX86Base<Machine>::Traits::Assembler *Asm =
       Func->getAssembler<typename InstX86Base<Machine>::Traits::Assembler>();
-  Asm->sub(IceType_i32,
-           InstX86Base<Machine>::Traits::RegisterSet::Encoded_Reg_esp,
-           Immediate(Amount));
+  if (Amount > 0)
+    Asm->sub(IceType_i32,
+             InstX86Base<Machine>::Traits::RegisterSet::Encoded_Reg_esp,
+             Immediate(Amount));
+  else
+    Asm->add(IceType_i32,
+             InstX86Base<Machine>::Traits::RegisterSet::Encoded_Reg_esp,
+             Immediate(-Amount));
   auto *Target = InstX86Base<Machine>::getTarget(Func);
   Target->updateStackAdjustment(Amount);
 }
@@ -2953,7 +2950,10 @@ void InstX86AdjustStack<Machine>::dump(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
-  Str << "esp = sub.i32 esp, " << Amount;
+  if (Amount > 0)
+    Str << "esp = sub.i32 esp, " << Amount;
+  else
+    Str << "esp = add.i32 esp, " << -Amount;
 }
 
 template <class Machine>

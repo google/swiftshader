@@ -157,7 +157,7 @@ public:
                   const Operand *Src,
                   const typename Traits::Assembler::GPREmitterShiftOp &Emitter);
 
-  static X86TargetLowering *getTarget(const Cfg* Func) {
+  static X86TargetLowering *getTarget(const Cfg *Func) {
     return static_cast<X86TargetLowering *>(Func->getTarget());
   }
 
@@ -405,8 +405,9 @@ private:
   InstX86Jmp(Cfg *Func, Operand *Target);
 };
 
-/// AdjustStack instruction - subtracts esp by the given amount and updates the
-/// stack offset during code emission.
+/// AdjustStack instruction - grows the stack (moves esp down) by the given
+/// amount.  If the amount is negative, it shrinks the stack (moves esp up).
+/// It also updates the target lowering StackAdjustment during code emission.
 template <class Machine>
 class InstX86AdjustStack final : public InstX86Base<Machine> {
   InstX86AdjustStack() = delete;
@@ -414,7 +415,7 @@ class InstX86AdjustStack final : public InstX86Base<Machine> {
   InstX86AdjustStack &operator=(const InstX86AdjustStack &) = delete;
 
 public:
-  static InstX86AdjustStack *create(Cfg *Func, SizeT Amount, Variable *Esp) {
+  static InstX86AdjustStack *create(Cfg *Func, int32_t Amount, Variable *Esp) {
     return new (Func->allocate<InstX86AdjustStack>())
         InstX86AdjustStack(Func, Amount, Esp);
   }
@@ -427,8 +428,8 @@ public:
   }
 
 private:
-  InstX86AdjustStack(Cfg *Func, SizeT Amount, Variable *Esp);
-  SizeT Amount;
+  InstX86AdjustStack(Cfg *Func, int32_t Amount, Variable *Esp);
+  const int32_t Amount;
 };
 
 /// Call instruction. Arguments should have already been pushed.

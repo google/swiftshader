@@ -5207,6 +5207,9 @@ template <class Machine>
 void TargetX86Base<Machine>::lowerUnreachable(
     const InstUnreachable * /*Inst*/) {
   _ud2();
+  // Add a fake use of esp to make sure esp adjustments after the unreachable
+  // do not get dead-code eliminated.
+  keepEspLiveAtExit();
 }
 
 template <class Machine>
