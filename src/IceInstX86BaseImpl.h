@@ -1209,15 +1209,15 @@ template <class Machine>
 void InstX86Blendvps<Machine>::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
-  auto *Target = InstX86Base<Machine>::getTarget(Func);
-  assert(Target->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1);
+  assert(InstX86Base<Machine>::getTarget(Func)->getInstructionSet() >=
+         InstX86Base<Machine>::Traits::SSE4_1);
   emitVariableBlendInst<Machine>(this->Opcode, this, Func);
 }
 
 template <class Machine>
 void InstX86Blendvps<Machine>::emitIAS(const Cfg *Func) const {
-  auto *Target = InstX86Base<Machine>::getTarget(Func);
-  assert(Target->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1);
+  assert(InstX86Base<Machine>::getTarget(Func)->getInstructionSet() >=
+         InstX86Base<Machine>::Traits::SSE4_1);
   static const typename InstX86Base<Machine>::Traits::Assembler::XmmEmitterRegOp
       Emitter = {&InstX86Base<Machine>::Traits::Assembler::blendvps,
                  &InstX86Base<Machine>::Traits::Assembler::blendvps};
@@ -1228,15 +1228,15 @@ template <class Machine>
 void InstX86Pblendvb<Machine>::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
-  auto *Target = InstX86Base<Machine>::getTarget(Func);
-  assert(Target->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1);
+  assert(InstX86Base<Machine>::getTarget(Func)->getInstructionSet() >=
+         InstX86Base<Machine>::Traits::SSE4_1);
   emitVariableBlendInst<Machine>(this->Opcode, this, Func);
 }
 
 template <class Machine>
 void InstX86Pblendvb<Machine>::emitIAS(const Cfg *Func) const {
-  auto *Target = InstX86Base<Machine>::getTarget(Func);
-  assert(Target->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1);
+  assert(InstX86Base<Machine>::getTarget(Func)->getInstructionSet() >=
+         InstX86Base<Machine>::Traits::SSE4_1);
   static const typename InstX86Base<Machine>::Traits::Assembler::XmmEmitterRegOp
       Emitter = {&InstX86Base<Machine>::Traits::Assembler::pblendvb,
                  &InstX86Base<Machine>::Traits::Assembler::pblendvb};
@@ -1340,8 +1340,8 @@ void InstX86ImulImm<Machine>::emitIAS(const Cfg *Func) const {
 template <class Machine>
 void InstX86Insertps<Machine>::emitIAS(const Cfg *Func) const {
   assert(this->getSrcSize() == 3);
-  auto *Target = InstX86Base<Machine>::getTarget(Func);
-  assert(Target->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1);
+  assert(InstX86Base<Machine>::getTarget(Func)->getInstructionSet() >=
+         InstX86Base<Machine>::Traits::SSE4_1);
   const Variable *Dest = this->getDest();
   assert(Dest == this->getSrc(0));
   Type Ty = Dest->getType();
@@ -2263,9 +2263,9 @@ template <class Machine> void InstX86Mov<Machine>::emit(const Cfg *Func) const {
   // TODO: This assert disallows usages such as copying a floating
   // point value between a vector and a scalar (which movss is used for). Clean
   // this up.
-  auto *Target = InstX86Base<Machine>::getTarget(Func);
-  assert(Target->typeWidthInBytesOnStack(DestTy) ==
-         Target->typeWidthInBytesOnStack(SrcTy));
+  assert(
+      InstX86Base<Machine>::getTarget(Func)->typeWidthInBytesOnStack(DestTy) ==
+      InstX86Base<Machine>::getTarget(Func)->typeWidthInBytesOnStack(SrcTy));
   const Operand *NewSrc = Src;
   if (auto *SrcVar = llvm::dyn_cast<Variable>(Src)) {
     int32_t NewRegNum = Variable::NoRegister;
@@ -2723,10 +2723,10 @@ void InstX86Pextr<Machine>::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 2);
   // pextrb and pextrd are SSE4.1 instructions.
-  auto *Target = InstX86Base<Machine>::getTarget(Func);
   assert(this->getSrc(0)->getType() == IceType_v8i16 ||
          this->getSrc(0)->getType() == IceType_v8i1 ||
-         Target->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1);
+         InstX86Base<Machine>::getTarget(Func)->getInstructionSet() >=
+             InstX86Base<Machine>::Traits::SSE4_1);
   Str << "\t" << this->Opcode
       << InstX86Base<Machine>::Traits::TypeAttributes[this->getSrc(0)
                                                           ->getType()]
@@ -2750,9 +2750,9 @@ void InstX86Pextr<Machine>::emitIAS(const Cfg *Func) const {
   const Variable *Dest = this->getDest();
   Type DispatchTy = InstX86Base<Machine>::Traits::getInVectorElementType(
       this->getSrc(0)->getType());
-  auto *Target = InstX86Base<Machine>::getTarget(Func);
   assert(DispatchTy == IceType_i16 ||
-         Target->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1);
+         InstX86Base<Machine>::getTarget(Func)->getInstructionSet() >=
+             InstX86Base<Machine>::Traits::SSE4_1);
   // pextrw must take a register dest. There is an SSE4.1 version that takes a
   // memory dest, but we aren't using it. For uniformity, just restrict them
   // all to have a register dest for now.
@@ -2779,10 +2779,10 @@ void InstX86Pinsr<Machine>::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 3);
   // pinsrb and pinsrd are SSE4.1 instructions.
-  auto *Target = InstX86Base<Machine>::getTarget(Func);
   assert(this->getDest()->getType() == IceType_v8i16 ||
          this->getDest()->getType() == IceType_v8i1 ||
-         Target->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1);
+         InstX86Base<Machine>::getTarget(Func)->getInstructionSet() >=
+             InstX86Base<Machine>::Traits::SSE4_1);
   Str << "\t" << this->Opcode
       << InstX86Base<
              Machine>::Traits::TypeAttributes[this->getDest()->getType()]
@@ -2814,9 +2814,9 @@ void InstX86Pinsr<Machine>::emitIAS(const Cfg *Func) const {
   // pinsrb and pinsrd are SSE4.1 instructions.
   const Operand *Src0 = this->getSrc(1);
   Type DispatchTy = Src0->getType();
-  auto *Target = InstX86Base<Machine>::getTarget(Func);
   assert(DispatchTy == IceType_i16 ||
-         Target->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1);
+         InstX86Base<Machine>::getTarget(Func)->getInstructionSet() >=
+             InstX86Base<Machine>::Traits::SSE4_1);
   // If src1 is a register, it should always be r32 (this should fall out from
   // the encodings for ByteRegs overlapping the encodings for r32), but we have
   // to make sure the register allocator didn't choose an 8-bit high register
