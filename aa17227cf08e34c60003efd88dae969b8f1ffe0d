@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "db6d5bee_bab731a2",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3280,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-11-16T20:51:29Z",
+      "side": 1,
+      "message": "not aligned",
+      "range": {
+        "startLine": 3279,
+        "startChar": 1,
+        "endLine": 3280,
+        "endChar": 3
+      },
+      "revId": "aa17227cf08e34c60003efd88dae969b8f1ffe0d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "db6d5bee_5a7295ca",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 4272,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-11-16T20:51:29Z",
+      "side": 1,
+      "message": "GL_EXT_color_buffer_half_float is a separate extension.",
+      "range": {
+        "startLine": 4272,
+        "startChar": 19,
+        "endLine": 4272,
+        "endChar": 44
+      },
+      "revId": "aa17227cf08e34c60003efd88dae969b8f1ffe0d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "db6d5bee_3acc813a",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 432,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-11-16T20:51:29Z",
+      "side": 1,
+      "message": "Do we want these to be valid for ES2? It seems like it would be easier to handle ES2 at the top, since it\u0027s only two formats + maybe extensions.",
+      "range": {
+        "startLine": 431,
+        "startChar": 0,
+        "endLine": 432,
+        "endChar": 18
+      },
+      "revId": "aa17227cf08e34c60003efd88dae969b8f1ffe0d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "db6d5bee_dac0e500",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1422,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-11-16T20:51:29Z",
+      "side": 1,
+      "message": "Did you double-check this one?",
+      "range": {
+        "startLine": 1421,
+        "startChar": 3,
+        "endLine": 1422,
+        "endChar": 19
+      },
+      "revId": "aa17227cf08e34c60003efd88dae969b8f1ffe0d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
