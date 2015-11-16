@@ -71,6 +71,30 @@
     },
     {
       "key": {
+        "uuid": "db6d5bee_fa8289b5",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 432,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-11-16T21:49:56Z",
+      "side": 1,
+      "message": "They are in ES 2.0, in the GL_EXT_texture_rg extension, which I should have added to the extension list.",
+      "parentUuid": "db6d5bee_3acc813a",
+      "range": {
+        "startLine": 431,
+        "startChar": 0,
+        "endLine": 432,
+        "endChar": 18
+      },
+      "revId": "aa17227cf08e34c60003efd88dae969b8f1ffe0d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "db6d5bee_dac0e500",
         "filename": "src/OpenGL/libGLESv2/utilities.cpp",
         "patchSetId": 1
@@ -82,6 +106,30 @@
       "writtenOn": "2015-11-16T20:51:29Z",
       "side": 1,
       "message": "Did you double-check this one?",
+      "range": {
+        "startLine": 1421,
+        "startChar": 3,
+        "endLine": 1422,
+        "endChar": 19
+      },
+      "revId": "aa17227cf08e34c60003efd88dae969b8f1ffe0d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "db6d5bee_3a4fa169",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1422,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-11-16T21:49:56Z",
+      "side": 1,
+      "message": "Ok, so here\u0027s the long version of the answer. To begin, the extensions implemented here are GL_EXT_color_buffer_float and GL_EXT_color_buffer_half_float as you pointed out, so this shouldn\u0027t affect floating point depth/stencil related types.\n\nThat being said, if we look at ARB_depth_buffer_float:\n\n\"Should we add a new state query to determine if the depth buffer is using a floating-point representation?\n\nRESOLVED: No. The old EXT version of this extension had DEPTH_BUFFER_FLOAT_MODE_EXT boolean state to see if the depth buffer is using a floating-point representation, but in this ARB extension we rely on the GetFramebufferAttachmentiv query FRAMEBUFFER_ATTACHMENT_COMPONENT_TYPE query introduced with ARB_framebuffer_object and OpenGL 3.0.\"\n\nThis points to the ARB_framebuffer_object\u0027s spec, which states the following:\n\"If \u003cpname\u003e is FRAMEBUFFER_ATTACHMENT_COMPONENT_TYPE, \u003cparam\u003e will contain the format of components of the specified attachment, one of FLOAT, INT, UNSIGNED_INT, UNSIGNED_NORMALIZED or INDEX for floating-point, signed integer, unsigned integer, unsigned fixed-point, or index components respectively. Only color buffers may have index or integer components.\"\n\nSo the statement in the comment is true, since we have no support for INDEX components, AFAIK.",
+      "parentUuid": "db6d5bee_dac0e500",
       "range": {
         "startLine": 1421,
         "startChar": 3,
