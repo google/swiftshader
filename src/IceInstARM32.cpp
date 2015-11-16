@@ -777,7 +777,6 @@ void InstARM32Mov::emitIASSingleDestSingleSource(const Cfg *Func) const {
       return Asm->setNeedsTextFixup();
     return Asm->str(Src0, Dest, getPredicate(), Func->getTarget());
   }
-  Asm->setNeedsTextFixup();
 }
 
 void InstARM32Mov::emit(const Cfg *Func) const {
@@ -798,14 +797,13 @@ void InstARM32Mov::emit(const Cfg *Func) const {
 }
 
 void InstARM32Mov::emitIAS(const Cfg *Func) const {
-  if (!Func->getContext()->getFlags().getAllowUnsafeIas())
-    return emitUsingTextFixup(Func);
   assert(!(isMultiDest() && isMultiSource()) && "Invalid vmov type.");
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
-  if (!(isMultiDest() || isMultiSource())) {
+  if (!(isMultiDest() || isMultiSource()))
     // Must be single source/dest.
     emitIASSingleDestSingleSource(Func);
-  }
+  else
+    Asm->setNeedsTextFixup();
   if (Asm->needsTextFixup())
     emitUsingTextFixup(Func);
 }

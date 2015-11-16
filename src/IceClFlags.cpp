@@ -50,12 +50,6 @@ cl::opt<bool> AllowIacaMarks(
              "inserted. These binaries are not executable."),
     cl::init(false));
 
-cl::opt<bool> AllowUnsafeIas(
-    "unsafe-ias",
-    cl::desc("Convert (potentially broken) instructions to bytes in "
-             "integrated assembler."),
-    cl::init(false));
-
 // This is currently needed by crosstest.py.
 cl::opt<bool> AllowUninitializedGlobals(
     "allow-uninitialized-globals",
@@ -390,7 +384,6 @@ void ClFlags::resetClFlags(ClFlags &OutFlags) {
   OutFlags.AllowErrorRecovery = false;
   OutFlags.AllowExternDefinedSymbols = false;
   OutFlags.AllowIacaMarks = false;
-  OutFlags.AllowUnsafeIas = false;
   OutFlags.AllowUninitializedGlobals = false;
   OutFlags.DataSections = false;
   OutFlags.DecorateAsm = false;
@@ -465,7 +458,6 @@ void ClFlags::getParsedClFlags(ClFlags &OutFlags) {
   OutFlags.setDisableInternal(::DisableInternal);
   OutFlags.setDisableIRGeneration(::DisableIRGeneration);
   OutFlags.setDisableTranslation(::DisableTranslation);
-  OutFlags.setAllowUnsafeIas(::AllowUnsafeIas);
   OutFlags.setDumpStats(::DumpStats);
   OutFlags.setEnableBlockProfile(::EnableBlockProfile);
   OutFlags.setForceMemIntrinOpt(::ForceMemIntrinOpt);

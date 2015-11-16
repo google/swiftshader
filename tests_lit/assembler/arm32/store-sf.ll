@@ -13,11 +13,11 @@
 
 ; Compile using integrated assembler.
 ; RUN: %p2i --filetype=iasm -i %s --target=arm32 --args -Om1 \
-; RUN:   -unsafe-ias | FileCheck %s --check-prefix=IASM
+; RUN:   | FileCheck %s --check-prefix=IASM
 
 ; Show bytes in assembled integrated code.
 ; RUN: %p2i --filetype=iasm -i %s --target=arm32 --assemble --disassemble \
-; RUN:   --args -Om1 -unsafe-ias | FileCheck %s --check-prefix=DIS
+; RUN:   --args -Om1 | FileCheck %s --check-prefix=DIS
 
 define internal void @test_vla_in_loop(i32 %n) {
 ; ASM-LABEL: test_vla_in_loop:

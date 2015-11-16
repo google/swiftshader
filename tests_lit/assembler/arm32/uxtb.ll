@@ -73,7 +73,11 @@ entry:
 
 ; ASM-NEXT:     mov     r0, r1
 ; DIS-NEXT:   10:       e1a00001
-; IASM-NEXT:    mov     r0, r1
+; IASM-NEXT:    .byte 0x1
+; IASM-NEXT:    .byte 0x0
+; IASM-NEXT:    .byte 0xa0
+; IASM-NEXT:    .byte 0xe1
+
 
 ; ASM-NEXT:     bx      lr
 ; DIS-NEXT:   14:       e12fff1e

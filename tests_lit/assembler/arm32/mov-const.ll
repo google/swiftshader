@@ -12,12 +12,12 @@
 ; RUN:   --args -Om1 --test-stack-extra 4084 | FileCheck %s --check-prefix=DIS
 
 ; Compile using integrated assembler.
-; RUN: %p2i --filetype=iasm -i %s --target=arm32 --args -Om1 -unsafe-ias \
+; RUN: %p2i --filetype=iasm -i %s --target=arm32 --args -Om1 \
 ; RUN:   --test-stack-extra 4084 | FileCheck %s --check-prefix=IASM
 
 ; Show bytes in assembled integrated code.
 ; RUN: %p2i --filetype=iasm -i %s --target=arm32 --assemble --disassemble \
-; RUN:   --args -Om1 -unsafe-ias --test-stack-extra 4084 \
+; RUN:   --args -Om1 --test-stack-extra 4084 \
 ; RUN:   | FileCheck %s --check-prefix=DIS
 
 define internal i32 @foo(i32 %x) {
