@@ -22,6 +22,30 @@
       "revId": "9a01ed53760f6a7cc0b970d96e0a88e81fd2eab8",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "db6d5bee_dae9c5a6",
+        "filename": "src/OpenGL/libGLESv2/Context.h",
+        "patchSetId": 4
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-11-16T19:47:45Z",
+      "side": 1,
+      "message": "I\u0027ll change it, I was hesitating about this one, since RENDERTARGETS seems to have taken on the meaning \"maximum amount of render targets supported by SwiftShader\", while MAX_DRAW_BUFFERS means \"maximum amount of render targets allowed in that specific version of GLES\". I have no problem merging the 2, I just wanted to expose why I hadn\u0027t done the change right away.",
+      "parentUuid": "db6d5bee_9a5eed51",
+      "range": {
+        "startLine": 82,
+        "startChar": 23,
+        "endLine": 82,
+        "endChar": 24
+      },
+      "revId": "9a01ed53760f6a7cc0b970d96e0a88e81fd2eab8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
