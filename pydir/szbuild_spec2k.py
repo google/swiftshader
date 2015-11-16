@@ -33,9 +33,18 @@ def main():
         print 'Unknown component{s}: '.format(s='s' if len(bad) > 1 else '') + \
             ' '.join(x for x in bad)
         sys.exit(1)
+
+    # Fix up Subzero target strings for the run_all.sh script.
+    target_map = {
+         'arm32':'arm',
+         'x8632':'x8632',
+         'x8664':'x8664'
+         }
+    run_all_target = target_map[args.target] # fail if target not listed above
+
     suffix = (
         'pnacl.opt.{target}' if args.sandbox else 'gcc.opt.{target}').format(
-             target=args.target);
+             target=run_all_target);
     for comp in args.comps:
         name = os.path.splitext(comp)[1] or comp
         if name[0] == '.':

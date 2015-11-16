@@ -417,15 +417,40 @@ ifeq ($(TARGET),arm32)
   SETUP=SetupGccArmOpt
   SPEC := -O2 --filetype=asm
 endif
-
+SPECFLAGS :=
+SPECBUILDONLY := false
 %.spec2k: % $(OBJDIR)/pnacl-sz make_symlink runtime
-	./pydir/szbuild_spec2k.py -v --force --target=$(TARGETFLAG) $(SPEC) $<
-	( cd ../../../tests/spec2k; \
+	./pydir/szbuild_spec2k.py -v --force \
+          $(SPECFLAGS) --target=$(TARGETFLAG) $(SPEC) $<
+	$(SPECBUILDONLY) || ( cd ../../../tests/spec2k; \
 	 ./run_all.sh RunTimedBenchmarks $(SETUP) train $< )
 
 check-spec: $(ALLSPEC:=.spec2k)
 
 check: check-lit check-unit check-xtest
+
+NPROCS := $(shell grep processor /proc/cpuinfo | wc -l)
+
+check-presubmit:
+	+make -f Makefile.standalone format
+	git diff --quiet
+	+make -f Makefile.standalone \
+          MINIMAL=1 check
+	+make -f Makefile.standalone \
+          DEBUG=1 CHECK_X86_ASM=1 check-unit
+	+make -f Makefile.standalone \
+          check check-spec
+	+make -f Makefile.standalone \
+          SPECFLAGS='-Om1' SPECBUILDONLY=true check-spec
+	+make -f Makefile.standalone \
+          SPECFLAGS='--sz=--phi-edge-split=0' check-spec
+	+make -f Makefile.standalone \
+          TARGET=arm32 SPECBUILDONLY=true check-spec
+	+make -f Makefile.standalone \
+          TARGET=arm32 SPECFLAGS='-Om1' SPECBUILDONLY=true check-spec
+	+make -f Makefile.standalone \
+          TARGET=arm32 ALLSPEC='176.gcc 181.mcf 254.gap' check-spec
+	echo Success
 
 FORMAT_BLACKLIST =
 # Add one of the following lines for each source file to ignore.
