@@ -293,6 +293,11 @@ void TargetLowering::regAlloc(RegAllocKind Kind) {
       Repeat = false;
     Kind = RAK_SecondChance;
   } while (Repeat);
+  // TODO(stichnot): Run the register allocator one more time to do stack slot
+  // coalescing.  The idea would be to initialize the Unhandled list with the
+  // set of Variables that have no register and a non-empty live range, and
+  // model an infinite number of registers.  Maybe use the register aliasing
+  // mechanism to get better packing of narrower slots.
 }
 
 void TargetLowering::markRedefinitions() {

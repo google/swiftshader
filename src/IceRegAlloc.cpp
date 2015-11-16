@@ -49,19 +49,20 @@ void dumpDisableOverlap(const Cfg *Func, const Variable *Var,
                         const char *Reason) {
   if (!BuildDefs::dump())
     return;
-  if (Func->isVerbose(IceV_LinearScan)) {
-    VariablesMetadata *VMetadata = Func->getVMetadata();
-    Ostream &Str = Func->getContext()->getStrDump();
-    Str << "Disabling Overlap due to " << Reason << " " << *Var
-        << " LIVE=" << Var->getLiveRange() << " Defs=";
-    if (const Inst *FirstDef = VMetadata->getFirstDefinition(Var))
-      Str << FirstDef->getNumber();
-    const InstDefList &Defs = VMetadata->getLatterDefinitions(Var);
-    for (size_t i = 0; i < Defs.size(); ++i) {
-      Str << "," << Defs[i]->getNumber();
-    }
-    Str << "\n";
+  if (!Func->isVerbose(IceV_LinearScan))
+    return;
+
+  VariablesMetadata *VMetadata = Func->getVMetadata();
+  Ostream &Str = Func->getContext()->getStrDump();
+  Str << "Disabling Overlap due to " << Reason << " " << *Var
+      << " LIVE=" << Var->getLiveRange() << " Defs=";
+  if (const Inst *FirstDef = VMetadata->getFirstDefinition(Var))
+    Str << FirstDef->getNumber();
+  const InstDefList &Defs = VMetadata->getLatterDefinitions(Var);
+  for (size_t i = 0; i < Defs.size(); ++i) {
+    Str << "," << Defs[i]->getNumber();
   }
+  Str << "\n";
 }
 
 void dumpLiveRange(const Variable *Var, const Cfg *Func) {
@@ -160,9 +161,8 @@ bool LinearScan::livenessValidateIntervals(
   return false;
 }
 
-// Prepare for very simple register allocation of only infinite-weight
-// Variables while respecting pre-colored Variables. Some properties we take
-// advantage of:
+// Prepare for very simple register allocation of only infinite-weight Variables
+// while respecting pre-colored Variables. Some properties we take advantage of:
 //
 // * Live ranges of interest consist of a single segment.
 //
@@ -172,9 +172,9 @@ bool LinearScan::livenessValidateIntervals(
 //   lowered, or they don't contain any pre-colored or infinite-weight
 //   Variables.
 //
-// * We don't need to renumber instructions before computing live ranges
-//   because all the high-level ICE instructions are deleted prior to lowering,
-//   and the low-level instructions are added in monotonically increasing order.
+// * We don't need to renumber instructions before computing live ranges because
+//   all the high-level ICE instructions are deleted prior to lowering, and the
+//   low-level instructions are added in monotonically increasing order.
 //
 // * There are no opportunities for register preference or allowing overlap.
 //
@@ -183,8 +183,7 @@ bool LinearScan::livenessValidateIntervals(
 // * Because live ranges are a single segment, the Inactive set will always be
 //   empty, and the live range trimming operation is unnecessary.
 //
-// * Calculating overlap of single-segment live ranges could be optimized a
-//   bit.
+// * Calculating overlap of single-segment live ranges could be optimized a bit.
 void LinearScan::initForInfOnly() {
   TimerMarker T(TimerStack::TT_initUnhandled, Func);
   FindPreference = false;
@@ -350,10 +349,10 @@ void LinearScan::init(RegAllocKind Kind) {
 }
 
 // This is called when Cur must be allocated a register but no registers are
-// available across Cur's live range. To handle this, we find a register that
-// is not explicitly used during Cur's live range, spill that register to a
-// stack location right before Cur's live range begins, and fill (reload) the
-// register from the stack location right after Cur's live range ends.
+// available across Cur's live range. To handle this, we find a register that is
+// not explicitly used during Cur's live range, spill that register to a stack
+// location right before Cur's live range begins, and fill (reload) the register
+// from the stack location right after Cur's live range ends.
 void LinearScan::addSpillFill(IterationState &Iter) {
   // Identify the actual instructions that begin and end Iter.Cur's live range.
   // Iterate through Iter.Cur's node's instruction list until we find the actual
@@ -385,9 +384,9 @@ void LinearScan::addSpillFill(IterationState &Iter) {
     if (I->getNumber() == End)
       FillPoint = I;
     if (SpillPoint != E) {
-      // Remove from RegMask any physical registers referenced during Cur's
-      // live range. Start looking after SpillPoint gets set, i.e. once Cur's
-      // live range begins.
+      // Remove from RegMask any physical registers referenced during Cur's live
+      // range. Start looking after SpillPoint gets set, i.e. once Cur's live
+      // range begins.
       FOREACH_VAR_IN_INST(Var, *I) {
         if (!Var->hasRegTmp())
           continue;
@@ -407,9 +406,8 @@ void LinearScan::addSpillFill(IterationState &Iter) {
   assert(RegNum != -1);
   Iter.Cur->setRegNumTmp(RegNum);
   Variable *Preg = Target->getPhysicalRegister(RegNum, Iter.Cur->getType());
-  // TODO(stichnot): Add SpillLoc to VariablesMetadata tracking so that
-  // SpillLoc is correctly identified as !isMultiBlock(), reducing stack frame
-  // size.
+  // TODO(stichnot): Add SpillLoc to VariablesMetadata tracking so that SpillLoc
+  // is correctly identified as !isMultiBlock(), reducing stack frame size.
   Variable *SpillLoc = Func->makeVariable(Iter.Cur->getType());
   // Add "reg=FakeDef;spill=reg" before SpillPoint
   Target->lowerInst(Node, SpillPoint, InstFakeDef::create(Func, Preg));
@@ -475,67 +473,66 @@ void LinearScan::handleInactiveRangeExpiredOrReactivated(const Variable *Cur) {
 }
 
 // Infer register preference and allowable overlap. Only form a preference when
-// the current Variable has an unambiguous "first" definition. The preference
-// is some source Variable of the defining instruction that either is assigned
-// a register that is currently free, or that is assigned a register that is
-// not free but overlap is allowed. Overlap is allowed when the Variable under
-// consideration is single-definition, and its definition is a simple
-// assignment - i.e., the register gets copied/aliased but is never modified.
-// Furthermore, overlap is only allowed when preferred Variable definition
-// instructions do not appear within the current Variable's live range.
+// the current Variable has an unambiguous "first" definition. The preference is
+// some source Variable of the defining instruction that either is assigned a
+// register that is currently free, or that is assigned a register that is not
+// free but overlap is allowed. Overlap is allowed when the Variable under
+// consideration is single-definition, and its definition is a simple assignment
+// - i.e., the register gets copied/aliased but is never modified.  Furthermore,
+// overlap is only allowed when preferred Variable definition instructions do
+// not appear within the current Variable's live range.
 void LinearScan::findRegisterPreference(IterationState &Iter) {
   Iter.Prefer = nullptr;
   Iter.PreferReg = Variable::NoRegister;
   Iter.AllowOverlap = false;
 
-  if (FindPreference) {
-    VariablesMetadata *VMetadata = Func->getVMetadata();
-    if (const Inst *DefInst =
-            VMetadata->getFirstDefinitionSingleBlock(Iter.Cur)) {
-      assert(DefInst->getDest() == Iter.Cur);
-      bool IsAssign = DefInst->isVarAssign();
-      bool IsSingleDef = !VMetadata->isMultiDef(Iter.Cur);
-      FOREACH_VAR_IN_INST(SrcVar, *DefInst) {
-        // Only consider source variables that have (so far) been assigned a
-        // register. That register must be one in the RegMask set, e.g. don't
-        // try to prefer the stack pointer as a result of the stacksave
-        // intrinsic.
-        if (SrcVar->hasRegTmp()) {
-          const llvm::SmallBitVector &Aliases =
-              *RegAliases[SrcVar->getRegNumTmp()];
-          const int32_t SrcReg = (Iter.RegMask & Aliases).find_first();
-          const bool IsAliasAvailable = (SrcReg != -1);
-          if (IsAliasAvailable) {
-            if (FindOverlap && !Iter.Free[SrcReg]) {
-              // Don't bother trying to enable AllowOverlap if the register is
-              // already free.
-              Iter.AllowOverlap = IsSingleDef && IsAssign &&
-                                  !overlapsDefs(Func, Iter.Cur, SrcVar);
-            }
-            if (Iter.AllowOverlap || Iter.Free[SrcReg]) {
-              Iter.Prefer = SrcVar;
-              Iter.PreferReg = SrcReg;
-              // Stop looking for a preference after the first valid preference
-              // is found.  One might think that we should look at all
-              // instruction variables to find the best <Prefer,AllowOverlap>
-              // combination, but note that AllowOverlap can only be true for a
-              // simple assignment statement which can have only one source
-              // operand, so it's not possible for AllowOverlap to be true
-              // beyond the first source operand.
-              FOREACH_VAR_IN_INST_BREAK;
-            }
-          }
-        }
-      }
-      if (Verbose && Iter.Prefer) {
-        Ostream &Str = Ctx->getStrDump();
-        Str << "Initial Iter.Prefer=";
-        Iter.Prefer->dump(Func);
-        Str << " R=" << Iter.PreferReg
-            << " LIVE=" << Iter.Prefer->getLiveRange()
-            << " Overlap=" << Iter.AllowOverlap << "\n";
-      }
+  if (!FindPreference)
+    return;
+
+  VariablesMetadata *VMetadata = Func->getVMetadata();
+  const Inst *DefInst = VMetadata->getFirstDefinitionSingleBlock(Iter.Cur);
+  if (DefInst == nullptr)
+    return;
+
+  assert(DefInst->getDest() == Iter.Cur);
+  const bool IsSingleDefAssign =
+      DefInst->isVarAssign() && !VMetadata->isMultiDef(Iter.Cur);
+  FOREACH_VAR_IN_INST(SrcVar, *DefInst) {
+    // Only consider source variables that have (so far) been assigned a
+    // register.
+    if (!SrcVar->hasRegTmp())
+      continue;
+
+    // That register must be one in the RegMask set, e.g. don't try to prefer
+    // the stack pointer as a result of the stacksave intrinsic.
+    const llvm::SmallBitVector &Aliases = *RegAliases[SrcVar->getRegNumTmp()];
+    const int32_t SrcReg = (Iter.RegMask & Aliases).find_first();
+    if (SrcReg == -1)
+      continue;
+
+    if (FindOverlap && IsSingleDefAssign && !Iter.Free[SrcReg]) {
+      // Don't bother trying to enable AllowOverlap if the register is already
+      // free (hence the test on Iter.Free[SrcReg]).
+      Iter.AllowOverlap = !overlapsDefs(Func, Iter.Cur, SrcVar);
     }
+    if (Iter.AllowOverlap || Iter.Free[SrcReg]) {
+      Iter.Prefer = SrcVar;
+      Iter.PreferReg = SrcReg;
+      // Stop looking for a preference after the first valid preference is
+      // found.  One might think that we should look at all instruction
+      // variables to find the best <Prefer,AllowOverlap> combination, but note
+      // that AllowOverlap can only be true for a simple assignment statement
+      // which can have only one source operand, so it's not possible for
+      // AllowOverlap to be true beyond the first source operand.
+      FOREACH_VAR_IN_INST_BREAK;
+    }
+  }
+  if (BuildDefs::dump() && Verbose && Iter.Prefer) {
+    Ostream &Str = Ctx->getStrDump();
+    Str << "Initial Iter.Prefer=";
+    Iter.Prefer->dump(Func);
+    Str << " R=" << Iter.PreferReg << " LIVE=" << Iter.Prefer->getLiveRange()
+        << " Overlap=" << Iter.AllowOverlap << "\n";
   }
 }
 
@@ -554,8 +551,7 @@ void LinearScan::filterFreeWithInactiveRanges(IterationState &Iter) {
       // AllowOverlap.
       Iter.Free[RegAlias] = false;
       // Disable AllowOverlap if an Inactive variable, which is not Prefer,
-      // shares Prefer's register, and has a definition within Cur's live
-      // range.
+      // shares Prefer's register, and has a definition within Cur's live range.
       if (Iter.AllowOverlap && Item != Iter.Prefer &&
           RegAlias == Iter.PreferReg && overlapsDefs(Func, Iter.Cur, Item)) {
         Iter.AllowOverlap = false;
@@ -567,28 +563,28 @@ void LinearScan::filterFreeWithInactiveRanges(IterationState &Iter) {
 
 // Remove registers from the Free[] list where an Unhandled pre-colored range
 // overlaps with the current range, and set those registers to infinite weight
-// so that they aren't candidates for eviction. Cur->rangeEndsBefore(Item) is
-// an early exit check that turns a guaranteed O(N^2) algorithm into expected
+// so that they aren't candidates for eviction. Cur->rangeEndsBefore(Item) is an
+// early exit check that turns a guaranteed O(N^2) algorithm into expected
 // linear complexity.
 void LinearScan::filterFreeWithPrecoloredRanges(IterationState &Iter) {
   for (Variable *Item : reverse_range(UnhandledPrecolored)) {
     assert(Item->hasReg());
     if (Iter.Cur->rangeEndsBefore(Item))
       break;
-    if (Item->rangeOverlaps(Iter.Cur)) {
-      const llvm::SmallBitVector &Aliases =
-          *RegAliases[Item->getRegNum()]; // Note: not getRegNumTmp()
-      for (int32_t RegAlias = Aliases.find_first(); RegAlias >= 0;
-           RegAlias = Aliases.find_next(RegAlias)) {
-        Iter.Weights[RegAlias].setWeight(RegWeight::Inf);
-        Iter.Free[RegAlias] = false;
-        Iter.PrecoloredUnhandledMask[RegAlias] = true;
-        // Disable Iter.AllowOverlap if the preferred register is one of these
-        // pre-colored unhandled overlapping ranges.
-        if (Iter.AllowOverlap && RegAlias == Iter.PreferReg) {
-          Iter.AllowOverlap = false;
-          dumpDisableOverlap(Func, Item, "PrecoloredUnhandled");
-        }
+    if (!Item->rangeOverlaps(Iter.Cur))
+      continue;
+    const llvm::SmallBitVector &Aliases =
+        *RegAliases[Item->getRegNum()]; // Note: not getRegNumTmp()
+    for (int32_t RegAlias = Aliases.find_first(); RegAlias >= 0;
+         RegAlias = Aliases.find_next(RegAlias)) {
+      Iter.Weights[RegAlias].setWeight(RegWeight::Inf);
+      Iter.Free[RegAlias] = false;
+      Iter.PrecoloredUnhandledMask[RegAlias] = true;
+      // Disable Iter.AllowOverlap if the preferred register is one of these
+      // pre-colored unhandled overlapping ranges.
+      if (Iter.AllowOverlap && RegAlias == Iter.PreferReg) {
+        Iter.AllowOverlap = false;
+        dumpDisableOverlap(Func, Item, "PrecoloredUnhandled");
       }
     }
   }
@@ -664,8 +660,7 @@ void LinearScan::handleNoFreeRegisters(IterationState &Iter) {
     }
   }
 
-  // All the weights are now calculated. Find the register with smallest
-  // weight.
+  // All the weights are now calculated. Find the register with smallest weight.
   int32_t MinWeightIndex = Iter.RegMask.find_first();
   // MinWeightIndex must be valid because of the initial RegMask.any() test.
   assert(MinWeightIndex >= 0);
@@ -713,10 +708,10 @@ void LinearScan::handleNoFreeRegisters(IterationState &Iter) {
       // Note: The Item->rangeOverlaps(Cur) clause is not part of the
       // description of AssignMemLoc() in the original paper. But there doesn't
       // seem to be any need to evict an inactive live range that doesn't
-      // overlap with the live range currently being considered. It's
-      // especially bad if we would end up evicting an infinite-weight but
-      // currently-inactive live range. The most common situation for this
-      // would be a scratch register kill set for call instructions.
+      // overlap with the live range currently being considered. It's especially
+      // bad if we would end up evicting an infinite-weight but
+      // currently-inactive live range. The most common situation for this would
+      // be a scratch register kill set for call instructions.
       if (Aliases[Item->getRegNumTmp()] && Item->rangeOverlaps(Iter.Cur)) {
         dumpLiveRangeTrace("Evicting I   ", Item);
         Item->setRegNumTmp(Variable::NoRegister);
@@ -762,7 +757,7 @@ void LinearScan::assignFinalRegisters(
     if (Randomized && Item->hasRegTmp() && !Item->hasReg()) {
       AssignedRegNum = Permutation[RegNum];
     }
-    if (Verbose) {
+    if (BuildDefs::dump() && Verbose) {
       Ostream &Str = Ctx->getStrDump();
       if (!Item->hasRegTmp()) {
         Str << "Not assigning ";
@@ -785,8 +780,8 @@ void LinearScan::assignFinalRegisters(
 // Allocation in the Context of SSA Form and Register Constraints" by Hanspeter
 // Mössenböck and Michael Pfeiffer,
 // ftp://ftp.ssw.uni-linz.ac.at/pub/Papers/Moe02.PDF. This implementation is
-// modified to take affinity into account and allow two interfering variables
-// to share the same register in certain cases.
+// modified to take affinity into account and allow two interfering variables to
+// share the same register in certain cases.
 //
 // Requires running Cfg::liveness(Liveness_Intervals) in preparation. Results
 // are assigned to Variable::RegNum for each Variable.
@@ -809,12 +804,11 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
   LiveRange KillsRange(Kills);
   KillsRange.untrim();
 
-  // Reset the register use count
+  // Reset the register use count.
   RegUses.resize(NumRegisters);
   std::fill(RegUses.begin(), RegUses.end(), 0);
 
-  // Unhandled is already set to all ranges in increasing order of start
-  // points.
+  // Unhandled is already set to all ranges in increasing order of start points.
   assert(Active.empty());
   assert(Inactive.empty());
   assert(Handled.empty());
@@ -824,7 +818,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
   const llvm::SmallBitVector KillsMask =
       Target->getRegisterSet(RegsInclude, RegsExclude);
 
-  // Allocate memory once outside the loop
+  // Allocate memory once outside the loop.
   IterationState Iter;
   Iter.Weights.reserve(NumRegisters);
   Iter.PrecoloredUnhandledMask.reserve(NumRegisters);
@@ -894,7 +888,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
     }
 
     // Print info about physical register availability.
-    if (Verbose) {
+    if (BuildDefs::dump() && Verbose) {
       Ostream &Str = Ctx->getStrDump();
       for (SizeT i = 0; i < Iter.RegMask.size(); ++i) {
         if (Iter.RegMask[i]) {
@@ -907,15 +901,15 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
     }
 
     if (Iter.Prefer && (Iter.AllowOverlap || Iter.Free[Iter.PreferReg])) {
-      // First choice: a preferred register that is either free or is allowed
-      // to overlap with its linked variable.
+      // First choice: a preferred register that is either free or is allowed to
+      // overlap with its linked variable.
       allocatePreferredRegister(Iter);
     } else if (Iter.Free.any()) {
       // Second choice: any free register.
       allocateFreeRegister(Iter);
     } else {
-      // Fallback: there are no free registers, so we look for the
-      // lowest-weight register and see if Cur has higher weight.
+      // Fallback: there are no free registers, so we look for the lowest-weight
+      // register and see if Cur has higher weight.
       handleNoFreeRegisters(Iter);
     }
     dump(Func);
@@ -929,16 +923,6 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
   dump(Func);
 
   assignFinalRegisters(RegMaskFull, PreDefinedRegisters, Randomized);
-
-  // TODO: Consider running register allocation one more time, with infinite
-  // registers, for two reasons. First, evicted live ranges get a second chance
-  // for a register. Second, it allows coalescing of stack slots. If there is
-  // no time budget for the second register allocation run, each unallocated
-  // variable just gets its own slot.
-  //
-  // Another idea for coalescing stack slots is to initialize the Unhandled
-  // list with just the unallocated variables, saving time but not offering
-  // second-chance opportunities.
 
   if (Verbose)
     Ctx->unlockStr();
@@ -961,7 +945,7 @@ void LinearScan::dumpLiveRangeTrace(const char *Label, const Variable *Item) {
 void LinearScan::dump(Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
-  if (!Func->isVerbose(IceV_LinearScan))
+  if (!Verbose)
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   Func->resetCurrentNode();
