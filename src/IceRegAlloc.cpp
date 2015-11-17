@@ -98,6 +98,9 @@ void LinearScan::initForGlobal() {
   UnhandledPrecolored.reserve(Vars.size());
   // Gather the live ranges of all variables and add them to the Unhandled set.
   for (Variable *Var : Vars) {
+    // Don't consider rematerializable variables.
+    if (Var->isRematerializable())
+      continue;
     // Explicitly don't consider zero-weight variables, which are meant to be
     // spill slots.
     if (Var->mustNotHaveReg())
@@ -201,6 +204,8 @@ void LinearScan::initForInfOnly() {
       if (Inst.isDeleted())
         continue;
       FOREACH_VAR_IN_INST(Var, Inst) {
+        if (Var->isRematerializable())
+          continue;
         if (Var->getIgnoreLiveness())
           continue;
         if (Var->hasReg() || Var->mustHaveReg()) {
@@ -211,7 +216,7 @@ void LinearScan::initForInfOnly() {
         }
       }
       if (const Variable *Var = Inst.getDest()) {
-        if (!Var->getIgnoreLiveness() &&
+        if (!Var->isRematerializable() && !Var->getIgnoreLiveness() &&
             (Var->hasReg() || Var->mustHaveReg())) {
           if (LRBegin[Var->getIndex()] == Inst::NumberSentinel) {
             LRBegin[Var->getIndex()] = Inst.getNumber();
@@ -226,6 +231,8 @@ void LinearScan::initForInfOnly() {
   UnhandledPrecolored.reserve(NumVars);
   for (SizeT i = 0; i < Vars.size(); ++i) {
     Variable *Var = Vars[i];
+    if (Var->isRematerializable())
+      continue;
     if (LRBegin[i] != Inst::NumberSentinel) {
       if (LREnd[i] == Inst::NumberSentinel) {
         DefsWithoutUses.push_back(i);
@@ -284,6 +291,8 @@ void LinearScan::initForSecondChance() {
   Unhandled.reserve(Vars.size());
   UnhandledPrecolored.reserve(Vars.size());
   for (Variable *Var : Vars) {
+    if (Var->isRematerializable())
+      continue;
     if (Var->hasReg()) {
       Var->untrimLiveRange();
       Var->setRegNumTmp(Var->getRegNum());
@@ -567,6 +576,8 @@ void LinearScan::filterFreeWithInactiveRanges(IterationState &Iter) {
 // early exit check that turns a guaranteed O(N^2) algorithm into expected
 // linear complexity.
 void LinearScan::filterFreeWithPrecoloredRanges(IterationState &Iter) {
+  // TODO(stichnot): Partition UnhandledPrecolored according to register class,
+  // to restrict the number of overlap comparisons needed.
   for (Variable *Item : reverse_range(UnhandledPrecolored)) {
     assert(Item->hasReg());
     if (Iter.Cur->rangeEndsBefore(Item))
