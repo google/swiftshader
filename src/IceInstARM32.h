@@ -40,6 +40,8 @@ public:
     kMem,
     kFlexStart,
     kFlexImm = kFlexStart,
+    kFlexFpImm,
+    kFlexFpZero,
     kFlexReg,
     kFlexEnd = kFlexReg
   };
@@ -205,6 +207,59 @@ private:
   uint32_t RotateAmt;
 };
 
+/// Modified Floating-point constant.
+class OperandARM32FlexFpImm : public OperandARM32Flex {
+  OperandARM32FlexFpImm() = delete;
+  OperandARM32FlexFpImm(const OperandARM32FlexFpImm &) = delete;
+  OperandARM32FlexFpImm &operator=(const OperandARM32FlexFpImm &) = delete;
+
+public:
+  static OperandARM32FlexFpImm *create(Cfg *Func, Type Ty,
+                                       uint32_t ModifiedImm) {
+    return new (Func->allocate<OperandARM32FlexFpImm>())
+        OperandARM32FlexFpImm(Func, Ty, ModifiedImm);
+  }
+
+  void emit(const Cfg *Func) const override;
+  using OperandARM32::dump;
+  void dump(const Cfg *Func, Ostream &Str) const override;
+
+  static bool classof(const Operand *Operand) {
+    return Operand->getKind() == static_cast<OperandKind>(kFlexFpImm);
+  }
+
+  static bool canHoldImm(Operand *C, uint32_t *ModifiedImm);
+
+private:
+  OperandARM32FlexFpImm(Cfg *Func, Type Ty, uint32_t ModifiedImm);
+
+  uint32_t ModifiedImm;
+};
+
+/// An operand for representing the 0.0 immediate in vcmp.
+class OperandARM32FlexFpZero : public OperandARM32Flex {
+  OperandARM32FlexFpZero() = delete;
+  OperandARM32FlexFpZero(const OperandARM32FlexFpZero &) = delete;
+  OperandARM32FlexFpZero &operator=(const OperandARM32FlexFpZero &) = delete;
+
+public:
+  static OperandARM32FlexFpZero *create(Cfg *Func, Type Ty) {
+    return new (Func->allocate<OperandARM32FlexFpZero>())
+        OperandARM32FlexFpZero(Func, Ty);
+  }
+
+  void emit(const Cfg *Func) const override;
+  using OperandARM32::dump;
+  void dump(const Cfg *Func, Ostream &Str) const override;
+
+  static bool classof(const Operand *Operand) {
+    return Operand->getKind() == static_cast<OperandKind>(kFlexFpZero);
+  }
+
+private:
+  OperandARM32FlexFpZero(Cfg *Func, Type Ty);
+};
+
 /// Shifted register variant.
 class OperandARM32FlexReg : public OperandARM32Flex {
   OperandARM32FlexReg() = delete;
@@ -289,6 +344,7 @@ public:
     Bic,
     Br,
     Call,
+    Cmn,
     Cmp,
     Clz,
     Dmb,
@@ -312,6 +368,7 @@ public:
     Ret,
     Rev,
     Rsb,
+    Rsc,
     Sbc,
     Sdiv,
     Str,
@@ -328,6 +385,7 @@ public:
     Vcmp,
     Vcvt,
     Vdiv,
+    Veor,
     Vmrs,
     Vmul,
     Vsqrt,
@@ -609,6 +667,7 @@ private:
   InstARM32ThreeAddrGPR(Cfg *Func, Variable *Dest, Variable *Src0,
                         Operand *Src1, CondARM32::Cond Predicate, bool SetFlags)
       : InstARM32Pred(Func, K, 2, Dest, Predicate), SetFlags(SetFlags) {
+    HasSideEffects = SetFlags;
     addSource(Src0);
     addSource(Src1);
   }
@@ -741,6 +800,7 @@ private:
   InstARM32CmpLike(Cfg *Func, Variable *Src0, Operand *Src1,
                    CondARM32::Cond Predicate)
       : InstARM32Pred(Func, K, 2, nullptr, Predicate) {
+    HasSideEffects = true;
     addSource(Src0);
     addSource(Src1);
   }
@@ -759,6 +819,7 @@ using InstARM32Lsr = InstARM32ThreeAddrGPR<InstARM32::Lsr>;
 using InstARM32Mul = InstARM32ThreeAddrGPR<InstARM32::Mul>;
 using InstARM32Orr = InstARM32ThreeAddrGPR<InstARM32::Orr>;
 using InstARM32Rsb = InstARM32ThreeAddrGPR<InstARM32::Rsb>;
+using InstARM32Rsc = InstARM32ThreeAddrGPR<InstARM32::Rsc>;
 using InstARM32Sbc = InstARM32ThreeAddrGPR<InstARM32::Sbc>;
 using InstARM32Sdiv = InstARM32ThreeAddrGPR<InstARM32::Sdiv>;
 using InstARM32Sub = InstARM32ThreeAddrGPR<InstARM32::Sub>;
@@ -766,6 +827,7 @@ using InstARM32Udiv = InstARM32ThreeAddrGPR<InstARM32::Udiv>;
 using InstARM32Vadd = InstARM32ThreeAddrFP<InstARM32::Vadd>;
 using InstARM32Vdiv = InstARM32ThreeAddrFP<InstARM32::Vdiv>;
 using InstARM32Vmul = InstARM32ThreeAddrFP<InstARM32::Vmul>;
+using InstARM32Veor = InstARM32ThreeAddrFP<InstARM32::Veor>;
 using InstARM32Vsub = InstARM32ThreeAddrFP<InstARM32::Vsub>;
 using InstARM32Ldr = InstARM32LoadBase<InstARM32::Ldr>;
 using InstARM32Ldrex = InstARM32LoadBase<InstARM32::Ldrex>;
@@ -785,6 +847,7 @@ using InstARM32Uxt = InstARM32UnaryopGPR<InstARM32::Uxt, true>;
 using InstARM32Vsqrt = InstARM32UnaryopFP<InstARM32::Vsqrt>;
 using InstARM32Mla = InstARM32FourAddrGPR<InstARM32::Mla>;
 using InstARM32Mls = InstARM32FourAddrGPR<InstARM32::Mls>;
+using InstARM32Cmn = InstARM32CmpLike<InstARM32::Cmn>;
 using InstARM32Cmp = InstARM32CmpLike<InstARM32::Cmp>;
 using InstARM32Tst = InstARM32CmpLike<InstARM32::Tst>;
 
@@ -1178,12 +1241,18 @@ public:
     return new (Func->allocate<InstARM32Vcmp>())
         InstARM32Vcmp(Func, Src0, Src1, Predicate);
   }
+  static InstARM32Vcmp *create(Cfg *Func, Variable *Src0,
+                               OperandARM32FlexFpZero *Src1,
+                               CondARM32::Cond Predicate) {
+    return new (Func->allocate<InstARM32Vcmp>())
+        InstARM32Vcmp(Func, Src0, Src1, Predicate);
+  }
   void emit(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Vcmp); }
 
 private:
-  InstARM32Vcmp(Cfg *Func, Variable *Src0, Variable *Src1,
+  InstARM32Vcmp(Cfg *Func, Variable *Src0, Operand *Src1,
                 CondARM32::Cond Predicate);
 };
 

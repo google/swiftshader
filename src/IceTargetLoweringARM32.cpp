@@ -1297,29 +1297,26 @@ void TargetARM32::div0Check(Type Ty, Operand *SrcLo, Operand *SrcHi) {
   Variable *SrcLoReg = legalizeToReg(SrcLo);
   switch (Ty) {
   default:
-    llvm_unreachable("Unexpected type");
-  case IceType_i8: {
-    Operand *Mask =
-        legalize(Ctx->getConstantInt32(0xFF), Legal_Reg | Legal_Flex);
-    _tst(SrcLoReg, Mask);
-    break;
-  }
+    llvm::report_fatal_error("Unexpected type");
+  case IceType_i8:
   case IceType_i16: {
-    Operand *Mask =
-        legalize(Ctx->getConstantInt32(0xFFFF), Legal_Reg | Legal_Flex);
-    _tst(SrcLoReg, Mask);
-    break;
-  }
+    Operand *ShAmtF =
+        legalize(Ctx->getConstantInt32(32 - getScalarIntBitWidth(Ty)),
+                 Legal_Reg | Legal_Flex);
+    Variable *T = makeReg(IceType_i32);
+    _lsls(T, SrcLoReg, ShAmtF);
+    Context.insert(InstFakeUse::create(Func, T));
+  } break;
   case IceType_i32: {
     _tst(SrcLoReg, SrcLoReg);
     break;
   }
   case IceType_i64: {
-    Variable *ScratchReg = makeReg(IceType_i32);
-    _orrs(ScratchReg, SrcLoReg, SrcHi);
-    // ScratchReg isn't going to be used, but we need the side-effect of
-    // setting flags from this operation.
-    Context.insert(InstFakeUse::create(Func, ScratchReg));
+    Variable *T = makeReg(IceType_i32);
+    _orrs(T, SrcLoReg, legalize(SrcHi, Legal_Reg | Legal_Flex));
+    // T isn't going to be used, but we need the side-effect of setting flags
+    // from this operation.
+    Context.insert(InstFakeUse::create(Func, T));
   }
   }
   InstARM32Label *Label = InstARM32Label::create(Func, this);
@@ -1404,6 +1401,560 @@ TargetARM32::lowerInt1Arithmetic(const InstArithmetic *Inst) {
   return Src0Safe == SBC_Yes && Src1Safe == SBC_Yes ? SBC_Yes : SBC_No;
 }
 
+namespace {
+// NumericOperands is used during arithmetic/icmp lowering for constant folding.
+// It holds the two sources operands, and maintains some state as to whether one
+// of them is a constant. If one of the operands is a constant, then it will be
+// be stored as the operation's second source, with a bit indicating whether the
+// operands were swapped.
+//
+// The class is split into a base class with operand type-independent methods,
+// and a derived, templated class, for each type of operand we want to fold
+// constants for:
+//
+// NumericOperandsBase --> NumericOperands<ConstantFloat>
+//                     --> NumericOperands<ConstantDouble>
+//                     --> NumericOperands<ConstantInt32>
+//
+// NumericOperands<ConstantInt32> also exposes helper methods for emitting
+// inverted/negated immediates.
+class NumericOperandsBase {
+  NumericOperandsBase() = delete;
+  NumericOperandsBase(const NumericOperandsBase &) = delete;
+  NumericOperandsBase &operator=(const NumericOperandsBase &) = delete;
+
+public:
+  NumericOperandsBase(Operand *S0, Operand *S1)
+      : Src0(NonConstOperand(S0, S1)), Src1(ConstOperand(S0, S1)),
+        Swapped(Src0 == S1 && S0 != S1) {
+    assert(Src0 != nullptr);
+    assert(Src1 != nullptr);
+    assert(Src0 != Src1 || S0 == S1);
+  }
+
+  bool hasConstOperand() const {
+    return llvm::isa<Constant>(Src1) && !llvm::isa<ConstantRelocatable>(Src1);
+  }
+
+  bool swappedOperands() const { return Swapped; }
+
+  Variable *src0R(TargetARM32 *Target) const {
+    return legalizeToReg(Target, Src0);
+  }
+
+  Variable *unswappedSrc0R(TargetARM32 *Target) const {
+    return legalizeToReg(Target, Swapped ? Src1 : Src0);
+  }
+
+  Operand *src1RF(TargetARM32 *Target) const {
+    return legalizeToRegOrFlex(Target, Src1);
+  }
+
+  Variable *unswappedSrc1R(TargetARM32 *Target) const {
+    return legalizeToReg(Target, Swapped ? Src0 : Src1);
+  }
+
+  Operand *unswappedSrc1RF(TargetARM32 *Target) const {
+    return legalizeToRegOrFlex(Target, Swapped ? Src0 : Src1);
+  }
+
+protected:
+  Operand *const Src0;
+  Operand *const Src1;
+  const bool Swapped;
+
+  static Variable *legalizeToReg(TargetARM32 *Target, Operand *Src) {
+    return Target->legalizeToReg(Src);
+  }
+
+  static Operand *legalizeToRegOrFlex(TargetARM32 *Target, Operand *Src) {
+    return Target->legalize(Src,
+                            TargetARM32::Legal_Reg | TargetARM32::Legal_Flex);
+  }
+
+private:
+  static Operand *NonConstOperand(Operand *S0, Operand *S1) {
+    if (!llvm::isa<Constant>(S0))
+      return S0;
+    if (!llvm::isa<Constant>(S1))
+      return S1;
+    if (llvm::isa<ConstantRelocatable>(S1) &&
+        !llvm::isa<ConstantRelocatable>(S0))
+      return S1;
+    return S0;
+  }
+
+  static Operand *ConstOperand(Operand *S0, Operand *S1) {
+    if (!llvm::isa<Constant>(S0))
+      return S1;
+    if (!llvm::isa<Constant>(S1))
+      return S0;
+    if (llvm::isa<ConstantRelocatable>(S1) &&
+        !llvm::isa<ConstantRelocatable>(S0))
+      return S0;
+    return S1;
+  }
+};
+
+template <typename C> class NumericOperands : public NumericOperandsBase {
+  NumericOperands() = delete;
+  NumericOperands(const NumericOperands &) = delete;
+  NumericOperands &operator=(const NumericOperands &) = delete;
+
+public:
+  NumericOperands(Operand *S0, Operand *S1) : NumericOperandsBase(S0, S1) {
+    assert(!hasConstOperand() || llvm::isa<C>(this->Src1));
+  }
+
+  typename C::PrimType getConstantValue() const {
+    return llvm::cast<C>(Src1)->getValue();
+  }
+};
+
+using FloatOperands = NumericOperands<ConstantFloat>;
+using DoubleOperands = NumericOperands<ConstantDouble>;
+
+class Int32Operands : public NumericOperands<ConstantInteger32> {
+  Int32Operands() = delete;
+  Int32Operands(const Int32Operands &) = delete;
+  Int32Operands &operator=(const Int32Operands &) = delete;
+
+public:
+  Int32Operands(Operand *S0, Operand *S1) : NumericOperands(S0, S1) {}
+
+  bool immediateIsFlexEncodable() const {
+    uint32_t Rotate, Imm8;
+    return OperandARM32FlexImm::canHoldImm(getConstantValue(), &Rotate, &Imm8);
+  }
+
+  bool negatedImmediateIsFlexEncodable() const {
+    uint32_t Rotate, Imm8;
+    return OperandARM32FlexImm::canHoldImm(
+        -static_cast<int32_t>(getConstantValue()), &Rotate, &Imm8);
+  }
+
+  Operand *negatedSrc1F(TargetARM32 *Target) const {
+    return legalizeToRegOrFlex(Target,
+                               Target->getCtx()->getConstantInt32(
+                                   -static_cast<int32_t>(getConstantValue())));
+  }
+
+  bool invertedImmediateIsFlexEncodable() const {
+    uint32_t Rotate, Imm8;
+    return OperandARM32FlexImm::canHoldImm(
+        ~static_cast<uint32_t>(getConstantValue()), &Rotate, &Imm8);
+  }
+
+  Operand *invertedSrc1F(TargetARM32 *Target) const {
+    return legalizeToRegOrFlex(Target,
+                               Target->getCtx()->getConstantInt32(
+                                   ~static_cast<uint32_t>(getConstantValue())));
+  }
+};
+} // end of anonymous namespace
+
+void TargetARM32::lowerInt64Arithmetic(InstArithmetic::OpKind Op,
+                                       Variable *Dest, Operand *Src0,
+                                       Operand *Src1) {
+  Int32Operands SrcsLo(loOperand(Src0), loOperand(Src1));
+  Int32Operands SrcsHi(hiOperand(Src0), hiOperand(Src1));
+  assert(SrcsLo.swappedOperands() == SrcsHi.swappedOperands());
+  assert(SrcsLo.hasConstOperand() == SrcsHi.hasConstOperand());
+
+  // These helper-call-involved instructions are lowered in this separate
+  // switch. This is because we would otherwise assume that we need to
+  // legalize Src0 to Src0RLo and Src0Hi. However, those go unused with
+  // helper calls, and such unused/redundant instructions will fail liveness
+  // analysis under -Om1 setting.
+  switch (Op) {
+  default:
+    break;
+  case InstArithmetic::Udiv:
+  case InstArithmetic::Sdiv:
+  case InstArithmetic::Urem:
+  case InstArithmetic::Srem: {
+    // Check for divide by 0 (ARM normally doesn't trap, but we want it to
+    // trap for NaCl). Src1Lo and Src1Hi may have already been legalized to a
+    // register, which will hide a constant source operand. Instead, check
+    // the not-yet-legalized Src1 to optimize-out a divide by 0 check.
+    if (!SrcsLo.swappedOperands() && SrcsLo.hasConstOperand()) {
+      if (SrcsLo.getConstantValue() == 0 && SrcsHi.getConstantValue() == 0) {
+        _trap();
+        return;
+      }
+    } else {
+      Operand *Src1Lo = SrcsLo.unswappedSrc1R(this);
+      Operand *Src1Hi = SrcsHi.unswappedSrc1R(this);
+      div0Check(IceType_i64, Src1Lo, Src1Hi);
+    }
+    // Technically, ARM has its own aeabi routines, but we can use the
+    // non-aeabi routine as well. LLVM uses __aeabi_ldivmod for div, but uses
+    // the more standard __moddi3 for rem.
+    const char *HelperName = "";
+    switch (Op) {
+    default:
+      llvm::report_fatal_error("Should have only matched div ops.");
+      break;
+    case InstArithmetic::Udiv:
+      HelperName = H_udiv_i64;
+      break;
+    case InstArithmetic::Sdiv:
+      HelperName = H_sdiv_i64;
+      break;
+    case InstArithmetic::Urem:
+      HelperName = H_urem_i64;
+      break;
+    case InstArithmetic::Srem:
+      HelperName = H_srem_i64;
+      break;
+    }
+    constexpr SizeT MaxSrcs = 2;
+    InstCall *Call = makeHelperCall(HelperName, Dest, MaxSrcs);
+    Call->addArg(Src0);
+    Call->addArg(Src1);
+    lowerCall(Call);
+    return;
+  }
+  }
+
+  Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
+  Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+  Variable *T_Lo = makeReg(DestLo->getType());
+  Variable *T_Hi = makeReg(DestHi->getType());
+
+  switch (Op) {
+  case InstArithmetic::_num:
+    llvm::report_fatal_error("Unknown arithmetic operator");
+    return;
+  case InstArithmetic::Add: {
+    Variable *Src0LoR = SrcsLo.src0R(this);
+    Operand *Src1LoRF = SrcsLo.src1RF(this);
+    Variable *Src0HiR = SrcsHi.src0R(this);
+    Operand *Src1HiRF = SrcsHi.src1RF(this);
+    _adds(T_Lo, Src0LoR, Src1LoRF);
+    _mov(DestLo, T_Lo);
+    _adc(T_Hi, Src0HiR, Src1HiRF);
+    _mov(DestHi, T_Hi);
+    return;
+  }
+  case InstArithmetic::And: {
+    Variable *Src0LoR = SrcsLo.src0R(this);
+    Operand *Src1LoRF = SrcsLo.src1RF(this);
+    Variable *Src0HiR = SrcsHi.src0R(this);
+    Operand *Src1HiRF = SrcsHi.src1RF(this);
+    _and(T_Lo, Src0LoR, Src1LoRF);
+    _mov(DestLo, T_Lo);
+    _and(T_Hi, Src0HiR, Src1HiRF);
+    _mov(DestHi, T_Hi);
+    return;
+  }
+  case InstArithmetic::Or: {
+    Variable *Src0LoR = SrcsLo.src0R(this);
+    Operand *Src1LoRF = SrcsLo.src1RF(this);
+    Variable *Src0HiR = SrcsHi.src0R(this);
+    Operand *Src1HiRF = SrcsHi.src1RF(this);
+    _orr(T_Lo, Src0LoR, Src1LoRF);
+    _mov(DestLo, T_Lo);
+    _orr(T_Hi, Src0HiR, Src1HiRF);
+    _mov(DestHi, T_Hi);
+    return;
+  }
+  case InstArithmetic::Xor: {
+    Variable *Src0LoR = SrcsLo.src0R(this);
+    Operand *Src1LoRF = SrcsLo.src1RF(this);
+    Variable *Src0HiR = SrcsHi.src0R(this);
+    Operand *Src1HiRF = SrcsHi.src1RF(this);
+    _eor(T_Lo, Src0LoR, Src1LoRF);
+    _mov(DestLo, T_Lo);
+    _eor(T_Hi, Src0HiR, Src1HiRF);
+    _mov(DestHi, T_Hi);
+    return;
+  }
+  case InstArithmetic::Sub: {
+    Variable *Src0LoR = SrcsLo.src0R(this);
+    Operand *Src1LoRF = SrcsLo.src1RF(this);
+    Variable *Src0HiR = SrcsHi.src0R(this);
+    Operand *Src1HiRF = SrcsHi.src1RF(this);
+    if (SrcsLo.swappedOperands()) {
+      _rsbs(T_Lo, Src0LoR, Src1LoRF);
+      _mov(DestLo, T_Lo);
+      _rsc(T_Hi, Src0HiR, Src1HiRF);
+      _mov(DestHi, T_Hi);
+    } else {
+      _subs(T_Lo, Src0LoR, Src1LoRF);
+      _mov(DestLo, T_Lo);
+      _sbc(T_Hi, Src0HiR, Src1HiRF);
+      _mov(DestHi, T_Hi);
+    }
+    return;
+  }
+  case InstArithmetic::Mul: {
+    // GCC 4.8 does:
+    // a=b*c ==>
+    //   t_acc =(mul) (b.lo * c.hi)
+    //   t_acc =(mla) (c.lo * b.hi) + t_acc
+    //   t.hi,t.lo =(umull) b.lo * c.lo
+    //   t.hi += t_acc
+    //   a.lo = t.lo
+    //   a.hi = t.hi
+    //
+    // LLVM does:
+    //   t.hi,t.lo =(umull) b.lo * c.lo
+    //   t.hi =(mla) (b.lo * c.hi) + t.hi
+    //   t.hi =(mla) (b.hi * c.lo) + t.hi
+    //   a.lo = t.lo
+    //   a.hi = t.hi
+    //
+    // LLVM's lowering has fewer instructions, but more register pressure:
+    // t.lo is live from beginning to end, while GCC delays the two-dest
+    // instruction till the end, and kills c.hi immediately.
+    Variable *T_Acc = makeReg(IceType_i32);
+    Variable *T_Acc1 = makeReg(IceType_i32);
+    Variable *T_Hi1 = makeReg(IceType_i32);
+    Variable *Src0RLo = SrcsLo.unswappedSrc0R(this);
+    Variable *Src0RHi = SrcsHi.unswappedSrc0R(this);
+    Variable *Src1RLo = SrcsLo.unswappedSrc1R(this);
+    Variable *Src1RHi = SrcsHi.unswappedSrc1R(this);
+    _mul(T_Acc, Src0RLo, Src1RHi);
+    _mla(T_Acc1, Src1RLo, Src0RHi, T_Acc);
+    _umull(T_Lo, T_Hi1, Src0RLo, Src1RLo);
+    _add(T_Hi, T_Hi1, T_Acc1);
+    _mov(DestLo, T_Lo);
+    _mov(DestHi, T_Hi);
+    return;
+  }
+  case InstArithmetic::Shl: {
+    if (!SrcsLo.swappedOperands() && SrcsLo.hasConstOperand()) {
+      Variable *Src0RLo = SrcsLo.src0R(this);
+      // Truncating the ShAmt to [0, 63] because that's what ARM does anyway.
+      const int32_t ShAmtImm = SrcsLo.getConstantValue() & 0x3F;
+      if (ShAmtImm == 0) {
+        _mov(DestLo, Src0RLo);
+        _mov(DestHi, SrcsHi.src0R(this));
+        return;
+      }
+
+      if (ShAmtImm >= 32) {
+        if (ShAmtImm == 32) {
+          _mov(DestHi, Src0RLo);
+        } else {
+          Operand *ShAmtOp = legalize(Ctx->getConstantInt32(ShAmtImm - 32),
+                                      Legal_Reg | Legal_Flex);
+          _lsl(T_Hi, Src0RLo, ShAmtOp);
+          _mov(DestHi, T_Hi);
+        }
+
+        Operand *_0 =
+            legalize(Ctx->getConstantZero(IceType_i32), Legal_Reg | Legal_Flex);
+        _mov(T_Lo, _0);
+        _mov(DestLo, T_Lo);
+        return;
+      }
+
+      Variable *Src0RHi = SrcsHi.src0R(this);
+      Operand *ShAmtOp =
+          legalize(Ctx->getConstantInt32(ShAmtImm), Legal_Reg | Legal_Flex);
+      Operand *ComplShAmtOp = legalize(Ctx->getConstantInt32(32 - ShAmtImm),
+                                       Legal_Reg | Legal_Flex);
+      _lsl(T_Hi, Src0RHi, ShAmtOp);
+      _orr(T_Hi, T_Hi,
+           OperandARM32FlexReg::create(Func, IceType_i32, Src0RLo,
+                                       OperandARM32::LSR, ComplShAmtOp));
+      _mov(DestHi, T_Hi);
+
+      _lsl(T_Lo, Src0RLo, ShAmtOp);
+      _mov(DestLo, T_Lo);
+      return;
+    }
+
+    // a=b<<c ==>
+    // pnacl-llc does:
+    // mov     t_b.lo, b.lo
+    // mov     t_b.hi, b.hi
+    // mov     t_c.lo, c.lo
+    // rsb     T0, t_c.lo, #32
+    // lsr     T1, t_b.lo, T0
+    // orr     t_a.hi, T1, t_b.hi, lsl t_c.lo
+    // sub     T2, t_c.lo, #32
+    // cmp     T2, #0
+    // lslge   t_a.hi, t_b.lo, T2
+    // lsl     t_a.lo, t_b.lo, t_c.lo
+    // mov     a.lo, t_a.lo
+    // mov     a.hi, t_a.hi
+    //
+    // GCC 4.8 does:
+    // sub t_c1, c.lo, #32
+    // lsl t_hi, b.hi, c.lo
+    // orr t_hi, t_hi, b.lo, lsl t_c1
+    // rsb t_c2, c.lo, #32
+    // orr t_hi, t_hi, b.lo, lsr t_c2
+    // lsl t_lo, b.lo, c.lo
+    // a.lo = t_lo
+    // a.hi = t_hi
+    //
+    // These are incompatible, therefore we mimic pnacl-llc.
+    // Can be strength-reduced for constant-shifts, but we don't do that for
+    // now.
+    // Given the sub/rsb T_C, C.lo, #32, one of the T_C will be negative. On
+    // ARM, shifts only take the lower 8 bits of the shift register, and
+    // saturate to the range 0-32, so the negative value will saturate to 32.
+    Operand *_32 = legalize(Ctx->getConstantInt32(32), Legal_Reg | Legal_Flex);
+    Operand *_0 =
+        legalize(Ctx->getConstantZero(IceType_i32), Legal_Reg | Legal_Flex);
+    Variable *T0 = makeReg(IceType_i32);
+    Variable *T1 = makeReg(IceType_i32);
+    Variable *T2 = makeReg(IceType_i32);
+    Variable *TA_Hi = makeReg(IceType_i32);
+    Variable *TA_Lo = makeReg(IceType_i32);
+    Variable *Src0RLo = SrcsLo.src0R(this);
+    Variable *Src0RHi = SrcsHi.unswappedSrc0R(this);
+    Variable *Src1RLo = SrcsLo.unswappedSrc1R(this);
+    _rsb(T0, Src1RLo, _32);
+    _lsr(T1, Src0RLo, T0);
+    _orr(TA_Hi, T1, OperandARM32FlexReg::create(Func, IceType_i32, Src0RHi,
+                                                OperandARM32::LSL, Src1RLo));
+    _sub(T2, Src1RLo, _32);
+    _cmp(T2, _0);
+    _lsl(TA_Hi, Src0RLo, T2, CondARM32::GE);
+    _set_dest_redefined();
+    _lsl(TA_Lo, Src0RLo, Src1RLo);
+    _mov(DestLo, TA_Lo);
+    _mov(DestHi, TA_Hi);
+    return;
+  }
+  case InstArithmetic::Lshr:
+  case InstArithmetic::Ashr: {
+    const bool ASR = Op == InstArithmetic::Ashr;
+    if (!SrcsLo.swappedOperands() && SrcsLo.hasConstOperand()) {
+      Variable *Src0RHi = SrcsHi.src0R(this);
+      // Truncating the ShAmt to [0, 63] because that's what ARM does anyway.
+      const int32_t ShAmtImm = SrcsLo.getConstantValue() & 0x3F;
+      if (ShAmtImm == 0) {
+        _mov(DestHi, Src0RHi);
+        _mov(DestLo, SrcsLo.src0R(this));
+        return;
+      }
+
+      if (ShAmtImm >= 32) {
+        if (ShAmtImm == 32) {
+          _mov(DestLo, Src0RHi);
+        } else {
+          Operand *ShAmtOp = legalize(Ctx->getConstantInt32(ShAmtImm - 32),
+                                      Legal_Reg | Legal_Flex);
+          if (ASR) {
+            _asr(T_Lo, Src0RHi, ShAmtOp);
+          } else {
+            _lsr(T_Lo, Src0RHi, ShAmtOp);
+          }
+          _mov(DestLo, T_Lo);
+        }
+
+        if (ASR) {
+          Operand *_31 = legalize(Ctx->getConstantZero(IceType_i32),
+                                  Legal_Reg | Legal_Flex);
+          _asr(T_Hi, Src0RHi, _31);
+        } else {
+          Operand *_0 = legalize(Ctx->getConstantZero(IceType_i32),
+                                 Legal_Reg | Legal_Flex);
+          _mov(T_Hi, _0);
+        }
+        _mov(DestHi, T_Hi);
+        return;
+      }
+
+      Variable *Src0RLo = SrcsLo.src0R(this);
+      Operand *ShAmtOp =
+          legalize(Ctx->getConstantInt32(ShAmtImm), Legal_Reg | Legal_Flex);
+      Operand *ComplShAmtOp = legalize(Ctx->getConstantInt32(32 - ShAmtImm),
+                                       Legal_Reg | Legal_Flex);
+      _lsr(T_Lo, Src0RLo, ShAmtOp);
+      _orr(T_Lo, T_Lo,
+           OperandARM32FlexReg::create(Func, IceType_i32, Src0RHi,
+                                       OperandARM32::LSL, ComplShAmtOp));
+      _mov(DestLo, T_Lo);
+
+      if (ASR) {
+        _asr(T_Hi, Src0RHi, ShAmtOp);
+      } else {
+        _lsr(T_Hi, Src0RHi, ShAmtOp);
+      }
+      _mov(DestHi, T_Hi);
+      return;
+    }
+
+    // a=b>>c
+    // pnacl-llc does:
+    // mov        t_b.lo, b.lo
+    // mov        t_b.hi, b.hi
+    // mov        t_c.lo, c.lo
+    // lsr        T0, t_b.lo, t_c.lo
+    // rsb        T1, t_c.lo, #32
+    // orr        t_a.lo, T0, t_b.hi, lsl T1
+    // sub        T2, t_c.lo, #32
+    // cmp        T2, #0
+    // [al]srge   t_a.lo, t_b.hi, T2
+    // [al]sr     t_a.hi, t_b.hi, t_c.lo
+    // mov        a.lo, t_a.lo
+    // mov        a.hi, t_a.hi
+    //
+    // GCC 4.8 does (lsr):
+    // rsb        t_c1, c.lo, #32
+    // lsr        t_lo, b.lo, c.lo
+    // orr        t_lo, t_lo, b.hi, lsl t_c1
+    // sub        t_c2, c.lo, #32
+    // orr        t_lo, t_lo, b.hi, lsr t_c2
+    // lsr        t_hi, b.hi, c.lo
+    // mov        a.lo, t_lo
+    // mov        a.hi, t_hi
+    //
+    // These are incompatible, therefore we mimic pnacl-llc.
+    Operand *_32 = legalize(Ctx->getConstantInt32(32), Legal_Reg | Legal_Flex);
+    Operand *_0 =
+        legalize(Ctx->getConstantZero(IceType_i32), Legal_Reg | Legal_Flex);
+    Variable *T0 = makeReg(IceType_i32);
+    Variable *T1 = makeReg(IceType_i32);
+    Variable *T2 = makeReg(IceType_i32);
+    Variable *TA_Lo = makeReg(IceType_i32);
+    Variable *TA_Hi = makeReg(IceType_i32);
+    Variable *Src0RLo = SrcsLo.unswappedSrc0R(this);
+    Variable *Src0RHi = SrcsHi.unswappedSrc0R(this);
+    Variable *Src1RLo = SrcsLo.unswappedSrc1R(this);
+    _lsr(T0, Src0RLo, Src1RLo);
+    _rsb(T1, Src1RLo, _32);
+    _orr(TA_Lo, T0, OperandARM32FlexReg::create(Func, IceType_i32, Src0RHi,
+                                                OperandARM32::LSL, T1));
+    _sub(T2, Src1RLo, _32);
+    _cmp(T2, _0);
+    if (ASR) {
+      _asr(TA_Lo, Src0RHi, T2, CondARM32::GE);
+      _set_dest_redefined();
+      _asr(TA_Hi, Src0RHi, Src1RLo);
+    } else {
+      _lsr(TA_Lo, Src0RHi, T2, CondARM32::GE);
+      _set_dest_redefined();
+      _lsr(TA_Hi, Src0RHi, Src1RLo);
+    }
+    _mov(DestLo, TA_Lo);
+    _mov(DestHi, TA_Hi);
+    return;
+  }
+  case InstArithmetic::Fadd:
+  case InstArithmetic::Fsub:
+  case InstArithmetic::Fmul:
+  case InstArithmetic::Fdiv:
+  case InstArithmetic::Frem:
+    llvm::report_fatal_error("FP instruction with i64 type");
+    return;
+  case InstArithmetic::Udiv:
+  case InstArithmetic::Sdiv:
+  case InstArithmetic::Urem:
+  case InstArithmetic::Srem:
+    llvm::report_fatal_error("Call-helper-involved instruction for i64 type "
+                             "should have already been handled before");
+    return;
+  }
+}
+
 void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
   Variable *Dest = Inst->getDest();
   if (Dest->getType() == IceType_i1) {
@@ -1411,282 +1962,14 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
     return;
   }
 
-  // TODO(jvoung): Should be able to flip Src0 and Src1 if it is easier to
-  // legalize Src0 to flex or Src1 to flex and there is a reversible
-  // instruction. E.g., reverse subtract with immediate, register vs register,
-  // immediate.
-  // Or it may be the case that the operands aren't swapped, but the bits can
-  // be flipped and a different operation applied. E.g., use BIC (bit clear)
-  // instead of AND for some masks.
   Operand *Src0 = legalizeUndef(Inst->getSrc(0));
   Operand *Src1 = legalizeUndef(Inst->getSrc(1));
   if (Dest->getType() == IceType_i64) {
-    // These helper-call-involved instructions are lowered in this separate
-    // switch. This is because we would otherwise assume that we need to
-    // legalize Src0 to Src0RLo and Src0Hi. However, those go unused with
-    // helper calls, and such unused/redundant instructions will fail liveness
-    // analysis under -Om1 setting.
-    switch (Inst->getOp()) {
-    default:
-      break;
-    case InstArithmetic::Udiv:
-    case InstArithmetic::Sdiv:
-    case InstArithmetic::Urem:
-    case InstArithmetic::Srem: {
-      // Check for divide by 0 (ARM normally doesn't trap, but we want it to
-      // trap for NaCl). Src1Lo and Src1Hi may have already been legalized to a
-      // register, which will hide a constant source operand. Instead, check
-      // the not-yet-legalized Src1 to optimize-out a divide by 0 check.
-      if (auto *C64 = llvm::dyn_cast<ConstantInteger64>(Src1)) {
-        if (C64->getValue() == 0) {
-          _trap();
-          return;
-        }
-      } else {
-        Operand *Src1Lo = legalize(loOperand(Src1), Legal_Reg | Legal_Flex);
-        Operand *Src1Hi = legalize(hiOperand(Src1), Legal_Reg | Legal_Flex);
-        div0Check(IceType_i64, Src1Lo, Src1Hi);
-      }
-      // Technically, ARM has their own aeabi routines, but we can use the
-      // non-aeabi routine as well. LLVM uses __aeabi_ldivmod for div, but uses
-      // the more standard __moddi3 for rem.
-      const char *HelperName = "";
-      switch (Inst->getOp()) {
-      default:
-        llvm_unreachable("Should have only matched div ops.");
-        break;
-      case InstArithmetic::Udiv:
-        HelperName = H_udiv_i64;
-        break;
-      case InstArithmetic::Sdiv:
-        HelperName = H_sdiv_i64;
-        break;
-      case InstArithmetic::Urem:
-        HelperName = H_urem_i64;
-        break;
-      case InstArithmetic::Srem:
-        HelperName = H_srem_i64;
-        break;
-      }
-      constexpr SizeT MaxSrcs = 2;
-      InstCall *Call = makeHelperCall(HelperName, Dest, MaxSrcs);
-      Call->addArg(Src0);
-      Call->addArg(Src1);
-      lowerCall(Call);
-      return;
-    }
-    }
-    Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
-    Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
-    Variable *Src0RLo = legalizeToReg(loOperand(Src0));
-    Variable *Src0RHi = legalizeToReg(hiOperand(Src0));
-    Operand *Src1Lo = loOperand(Src1);
-    Operand *Src1Hi = hiOperand(Src1);
-    Variable *T_Lo = makeReg(DestLo->getType());
-    Variable *T_Hi = makeReg(DestHi->getType());
-    switch (Inst->getOp()) {
-    case InstArithmetic::_num:
-      llvm_unreachable("Unknown arithmetic operator");
-      return;
-    case InstArithmetic::Add:
-      Src1Lo = legalize(Src1Lo, Legal_Reg | Legal_Flex);
-      Src1Hi = legalize(Src1Hi, Legal_Reg | Legal_Flex);
-      _adds(T_Lo, Src0RLo, Src1Lo);
-      _mov(DestLo, T_Lo);
-      _adc(T_Hi, Src0RHi, Src1Hi);
-      _mov(DestHi, T_Hi);
-      return;
-    case InstArithmetic::And:
-      Src1Lo = legalize(Src1Lo, Legal_Reg | Legal_Flex);
-      Src1Hi = legalize(Src1Hi, Legal_Reg | Legal_Flex);
-      _and(T_Lo, Src0RLo, Src1Lo);
-      _mov(DestLo, T_Lo);
-      _and(T_Hi, Src0RHi, Src1Hi);
-      _mov(DestHi, T_Hi);
-      return;
-    case InstArithmetic::Or:
-      Src1Lo = legalize(Src1Lo, Legal_Reg | Legal_Flex);
-      Src1Hi = legalize(Src1Hi, Legal_Reg | Legal_Flex);
-      _orr(T_Lo, Src0RLo, Src1Lo);
-      _mov(DestLo, T_Lo);
-      _orr(T_Hi, Src0RHi, Src1Hi);
-      _mov(DestHi, T_Hi);
-      return;
-    case InstArithmetic::Xor:
-      Src1Lo = legalize(Src1Lo, Legal_Reg | Legal_Flex);
-      Src1Hi = legalize(Src1Hi, Legal_Reg | Legal_Flex);
-      _eor(T_Lo, Src0RLo, Src1Lo);
-      _mov(DestLo, T_Lo);
-      _eor(T_Hi, Src0RHi, Src1Hi);
-      _mov(DestHi, T_Hi);
-      return;
-    case InstArithmetic::Sub:
-      Src1Lo = legalize(Src1Lo, Legal_Reg | Legal_Flex);
-      Src1Hi = legalize(Src1Hi, Legal_Reg | Legal_Flex);
-      _subs(T_Lo, Src0RLo, Src1Lo);
-      _mov(DestLo, T_Lo);
-      _sbc(T_Hi, Src0RHi, Src1Hi);
-      _mov(DestHi, T_Hi);
-      return;
-    case InstArithmetic::Mul: {
-      // GCC 4.8 does:
-      // a=b*c ==>
-      //   t_acc =(mul) (b.lo * c.hi)
-      //   t_acc =(mla) (c.lo * b.hi) + t_acc
-      //   t.hi,t.lo =(umull) b.lo * c.lo
-      //   t.hi += t_acc
-      //   a.lo = t.lo
-      //   a.hi = t.hi
-      //
-      // LLVM does:
-      //   t.hi,t.lo =(umull) b.lo * c.lo
-      //   t.hi =(mla) (b.lo * c.hi) + t.hi
-      //   t.hi =(mla) (b.hi * c.lo) + t.hi
-      //   a.lo = t.lo
-      //   a.hi = t.hi
-      //
-      // LLVM's lowering has fewer instructions, but more register pressure:
-      // t.lo is live from beginning to end, while GCC delays the two-dest
-      // instruction till the end, and kills c.hi immediately.
-      Variable *T_Acc = makeReg(IceType_i32);
-      Variable *T_Acc1 = makeReg(IceType_i32);
-      Variable *T_Hi1 = makeReg(IceType_i32);
-      Variable *Src1RLo = legalizeToReg(Src1Lo);
-      Variable *Src1RHi = legalizeToReg(Src1Hi);
-      _mul(T_Acc, Src0RLo, Src1RHi);
-      _mla(T_Acc1, Src1RLo, Src0RHi, T_Acc);
-      _umull(T_Lo, T_Hi1, Src0RLo, Src1RLo);
-      _add(T_Hi, T_Hi1, T_Acc1);
-      _mov(DestLo, T_Lo);
-      _mov(DestHi, T_Hi);
-      return;
-    }
-    case InstArithmetic::Shl: {
-      // a=b<<c ==>
-      // pnacl-llc does:
-      // mov     t_b.lo, b.lo
-      // mov     t_b.hi, b.hi
-      // mov     t_c.lo, c.lo
-      // rsb     T0, t_c.lo, #32
-      // lsr     T1, t_b.lo, T0
-      // orr     t_a.hi, T1, t_b.hi, lsl t_c.lo
-      // sub     T2, t_c.lo, #32
-      // cmp     T2, #0
-      // lslge   t_a.hi, t_b.lo, T2
-      // lsl     t_a.lo, t_b.lo, t_c.lo
-      // mov     a.lo, t_a.lo
-      // mov     a.hi, t_a.hi
-      //
-      // GCC 4.8 does:
-      // sub t_c1, c.lo, #32
-      // lsl t_hi, b.hi, c.lo
-      // orr t_hi, t_hi, b.lo, lsl t_c1
-      // rsb t_c2, c.lo, #32
-      // orr t_hi, t_hi, b.lo, lsr t_c2
-      // lsl t_lo, b.lo, c.lo
-      // a.lo = t_lo
-      // a.hi = t_hi
-      //
-      // These are incompatible, therefore we mimic pnacl-llc.
-      // Can be strength-reduced for constant-shifts, but we don't do that for
-      // now.
-      // Given the sub/rsb T_C, C.lo, #32, one of the T_C will be negative. On
-      // ARM, shifts only take the lower 8 bits of the shift register, and
-      // saturate to the range 0-32, so the negative value will saturate to 32.
-      Constant *_32 = Ctx->getConstantInt32(32);
-      Constant *_0 = Ctx->getConstantZero(IceType_i32);
-      Variable *Src1RLo = legalizeToReg(Src1Lo);
-      Variable *T0 = makeReg(IceType_i32);
-      Variable *T1 = makeReg(IceType_i32);
-      Variable *T2 = makeReg(IceType_i32);
-      Variable *TA_Hi = makeReg(IceType_i32);
-      Variable *TA_Lo = makeReg(IceType_i32);
-      _rsb(T0, Src1RLo, _32);
-      _lsr(T1, Src0RLo, T0);
-      _orr(TA_Hi, T1, OperandARM32FlexReg::create(Func, IceType_i32, Src0RHi,
-                                                  OperandARM32::LSL, Src1RLo));
-      _sub(T2, Src1RLo, _32);
-      _cmp(T2, _0);
-      _lsl(TA_Hi, Src0RLo, T2, CondARM32::GE);
-      _set_dest_redefined();
-      _lsl(TA_Lo, Src0RLo, Src1RLo);
-      _mov(DestLo, TA_Lo);
-      _mov(DestHi, TA_Hi);
-      return;
-    }
-    case InstArithmetic::Lshr:
-    case InstArithmetic::Ashr: {
-      // a=b>>c
-      // pnacl-llc does:
-      // mov        t_b.lo, b.lo
-      // mov        t_b.hi, b.hi
-      // mov        t_c.lo, c.lo
-      // lsr        T0, t_b.lo, t_c.lo
-      // rsb        T1, t_c.lo, #32
-      // orr        t_a.lo, T0, t_b.hi, lsl T1
-      // sub        T2, t_c.lo, #32
-      // cmp        T2, #0
-      // [al]srge   t_a.lo, t_b.hi, T2
-      // [al]sr     t_a.hi, t_b.hi, t_c.lo
-      // mov        a.lo, t_a.lo
-      // mov        a.hi, t_a.hi
-      //
-      // GCC 4.8 does (lsr):
-      // rsb        t_c1, c.lo, #32
-      // lsr        t_lo, b.lo, c.lo
-      // orr        t_lo, t_lo, b.hi, lsl t_c1
-      // sub        t_c2, c.lo, #32
-      // orr        t_lo, t_lo, b.hi, lsr t_c2
-      // lsr        t_hi, b.hi, c.lo
-      // mov        a.lo, t_lo
-      // mov        a.hi, t_hi
-      //
-      // These are incompatible, therefore we mimic pnacl-llc.
-      const bool IsAshr = Inst->getOp() == InstArithmetic::Ashr;
-      Constant *_32 = Ctx->getConstantInt32(32);
-      Constant *_0 = Ctx->getConstantZero(IceType_i32);
-      Variable *Src1RLo = legalizeToReg(Src1Lo);
-      Variable *T0 = makeReg(IceType_i32);
-      Variable *T1 = makeReg(IceType_i32);
-      Variable *T2 = makeReg(IceType_i32);
-      Variable *TA_Lo = makeReg(IceType_i32);
-      Variable *TA_Hi = makeReg(IceType_i32);
-      _lsr(T0, Src0RLo, Src1RLo);
-      _rsb(T1, Src1RLo, _32);
-      _orr(TA_Lo, T0, OperandARM32FlexReg::create(Func, IceType_i32, Src0RHi,
-                                                  OperandARM32::LSL, T1));
-      _sub(T2, Src1RLo, _32);
-      _cmp(T2, _0);
-      if (IsAshr) {
-        _asr(TA_Lo, Src0RHi, T2, CondARM32::GE);
-        _set_dest_redefined();
-        _asr(TA_Hi, Src0RHi, Src1RLo);
-      } else {
-        _lsr(TA_Lo, Src0RHi, T2, CondARM32::GE);
-        _set_dest_redefined();
-        _lsr(TA_Hi, Src0RHi, Src1RLo);
-      }
-      _mov(DestLo, TA_Lo);
-      _mov(DestHi, TA_Hi);
-      return;
-    }
-    case InstArithmetic::Fadd:
-    case InstArithmetic::Fsub:
-    case InstArithmetic::Fmul:
-    case InstArithmetic::Fdiv:
-    case InstArithmetic::Frem:
-      llvm_unreachable("FP instruction with i64 type");
-      return;
-    case InstArithmetic::Udiv:
-    case InstArithmetic::Sdiv:
-    case InstArithmetic::Urem:
-    case InstArithmetic::Srem:
-      llvm_unreachable("Call-helper-involved instruction for i64 type "
-                       "should have already been handled before");
-      return;
-    }
+    lowerInt64Arithmetic(Inst->getOp(), Inst->getDest(), Src0, Src1);
     return;
-  } else if (isVectorType(Dest->getType())) {
+  }
+
+  if (isVectorType(Dest->getType())) {
     // Add a fake def to keep liveness consistent in the meantime.
     Variable *T = makeReg(Dest->getType());
     Context.insert(InstFakeDef::create(Func, T));
@@ -1694,41 +1977,49 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
     UnimplementedError(Func->getContext()->getFlags());
     return;
   }
+
   // Dest->getType() is a non-i64 scalar.
-  Variable *Src0R = legalizeToReg(Src0);
   Variable *T = makeReg(Dest->getType());
-  // Handle div/rem separately. They require a non-legalized Src1 to inspect
+
+  // * Handle div/rem separately. They require a non-legalized Src1 to inspect
   // whether or not Src1 is a non-zero constant. Once legalized it is more
   // difficult to determine (constant may be moved to a register).
+  // * Handle floating point arithmetic separately: they require Src1 to be
+  // legalized to a register.
   switch (Inst->getOp()) {
   default:
     break;
   case InstArithmetic::Udiv: {
     constexpr bool NotRemainder = false;
+    Variable *Src0R = legalizeToReg(Src0);
     lowerIDivRem(Dest, T, Src0R, Src1, &TargetARM32::_uxt, &TargetARM32::_udiv,
                  H_udiv_i32, NotRemainder);
     return;
   }
   case InstArithmetic::Sdiv: {
     constexpr bool NotRemainder = false;
+    Variable *Src0R = legalizeToReg(Src0);
     lowerIDivRem(Dest, T, Src0R, Src1, &TargetARM32::_sxt, &TargetARM32::_sdiv,
                  H_sdiv_i32, NotRemainder);
     return;
   }
   case InstArithmetic::Urem: {
     constexpr bool IsRemainder = true;
+    Variable *Src0R = legalizeToReg(Src0);
     lowerIDivRem(Dest, T, Src0R, Src1, &TargetARM32::_uxt, &TargetARM32::_udiv,
                  H_urem_i32, IsRemainder);
     return;
   }
   case InstArithmetic::Srem: {
     constexpr bool IsRemainder = true;
+    Variable *Src0R = legalizeToReg(Src0);
     lowerIDivRem(Dest, T, Src0R, Src1, &TargetARM32::_sxt, &TargetARM32::_sdiv,
                  H_srem_i32, IsRemainder);
     return;
   }
   case InstArithmetic::Frem: {
-    const SizeT MaxSrcs = 2;
+    constexpr SizeT MaxSrcs = 2;
+    Variable *Src0R = legalizeToReg(Src0);
     Type Ty = Dest->getType();
     InstCall *Call = makeHelperCall(
         isFloat32Asserting32Or64(Ty) ? H_frem_f32 : H_frem_f64, Dest, MaxSrcs);
@@ -1737,32 +2028,29 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
     lowerCall(Call);
     return;
   }
-  }
-
-  // Handle floating point arithmetic separately: they require Src1 to be
-  // legalized to a register.
-  switch (Inst->getOp()) {
-  default:
-    break;
   case InstArithmetic::Fadd: {
+    Variable *Src0R = legalizeToReg(Src0);
     Variable *Src1R = legalizeToReg(Src1);
     _vadd(T, Src0R, Src1R);
     _mov(Dest, T);
     return;
   }
   case InstArithmetic::Fsub: {
+    Variable *Src0R = legalizeToReg(Src0);
     Variable *Src1R = legalizeToReg(Src1);
     _vsub(T, Src0R, Src1R);
     _mov(Dest, T);
     return;
   }
   case InstArithmetic::Fmul: {
+    Variable *Src0R = legalizeToReg(Src0);
     Variable *Src1R = legalizeToReg(Src1);
     _vmul(T, Src0R, Src1R);
     _mov(Dest, T);
     return;
   }
   case InstArithmetic::Fdiv: {
+    Variable *Src0R = legalizeToReg(Src0);
     Variable *Src1R = legalizeToReg(Src1);
     _vdiv(T, Src0R, Src1R);
     _mov(Dest, T);
@@ -1770,67 +2058,136 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
   }
   }
 
-  Operand *Src1RF = legalize(Src1, Legal_Reg | Legal_Flex);
+  // Handle everything else here.
+  Int32Operands Srcs(Src0, Src1);
   switch (Inst->getOp()) {
   case InstArithmetic::_num:
-    llvm_unreachable("Unknown arithmetic operator");
+    llvm::report_fatal_error("Unknown arithmetic operator");
     return;
-  case InstArithmetic::Add:
+  case InstArithmetic::Add: {
+    if (Srcs.hasConstOperand()) {
+      if (!Srcs.immediateIsFlexEncodable() &&
+          Srcs.negatedImmediateIsFlexEncodable()) {
+        Variable *Src0R = Srcs.src0R(this);
+        Operand *Src1F = Srcs.negatedSrc1F(this);
+        if (!Srcs.swappedOperands()) {
+          _sub(T, Src0R, Src1F);
+        } else {
+          _rsb(T, Src0R, Src1F);
+        }
+        _mov(Dest, T);
+        return;
+      }
+    }
+    Variable *Src0R = Srcs.src0R(this);
+    Operand *Src1RF = Srcs.src1RF(this);
     _add(T, Src0R, Src1RF);
     _mov(Dest, T);
     return;
-  case InstArithmetic::And:
+  }
+  case InstArithmetic::And: {
+    if (Srcs.hasConstOperand()) {
+      if (!Srcs.immediateIsFlexEncodable() &&
+          Srcs.invertedImmediateIsFlexEncodable()) {
+        Variable *Src0R = Srcs.src0R(this);
+        Operand *Src1F = Srcs.invertedSrc1F(this);
+        _bic(T, Src0R, Src1F);
+        _mov(Dest, T);
+        return;
+      }
+    }
+    Variable *Src0R = Srcs.src0R(this);
+    Operand *Src1RF = Srcs.src1RF(this);
     _and(T, Src0R, Src1RF);
     _mov(Dest, T);
     return;
-  case InstArithmetic::Or:
+  }
+  case InstArithmetic::Or: {
+    Variable *Src0R = Srcs.src0R(this);
+    Operand *Src1RF = Srcs.src1RF(this);
     _orr(T, Src0R, Src1RF);
     _mov(Dest, T);
     return;
-  case InstArithmetic::Xor:
+  }
+  case InstArithmetic::Xor: {
+    Variable *Src0R = Srcs.src0R(this);
+    Operand *Src1RF = Srcs.src1RF(this);
     _eor(T, Src0R, Src1RF);
     _mov(Dest, T);
     return;
-  case InstArithmetic::Sub:
-    _sub(T, Src0R, Src1RF);
+  }
+  case InstArithmetic::Sub: {
+    if (Srcs.hasConstOperand()) {
+      Variable *Src0R = Srcs.src0R(this);
+      if (Srcs.immediateIsFlexEncodable()) {
+        Operand *Src1RF = Srcs.src1RF(this);
+        if (Srcs.swappedOperands()) {
+          _rsb(T, Src0R, Src1RF);
+        } else {
+          _sub(T, Src0R, Src1RF);
+        }
+        _mov(Dest, T);
+        return;
+      }
+      if (!Srcs.swappedOperands() && Srcs.negatedImmediateIsFlexEncodable()) {
+        Operand *Src1F = Srcs.negatedSrc1F(this);
+        _add(T, Src0R, Src1F);
+        _mov(Dest, T);
+        return;
+      }
+    }
+    Variable *Src0R = Srcs.unswappedSrc0R(this);
+    Variable *Src1R = Srcs.unswappedSrc1R(this);
+    _sub(T, Src0R, Src1R);
     _mov(Dest, T);
     return;
+  }
   case InstArithmetic::Mul: {
-    Variable *Src1R = legalizeToReg(Src1RF);
+    Variable *Src0R = Srcs.unswappedSrc0R(this);
+    Variable *Src1R = Srcs.unswappedSrc1R(this);
     _mul(T, Src0R, Src1R);
     _mov(Dest, T);
     return;
   }
-  case InstArithmetic::Shl:
-    _lsl(T, Src0R, Src1RF);
+  case InstArithmetic::Shl: {
+    Variable *Src0R = Srcs.unswappedSrc0R(this);
+    Operand *Src1R = Srcs.unswappedSrc1RF(this);
+    _lsl(T, Src0R, Src1R);
     _mov(Dest, T);
     return;
-  case InstArithmetic::Lshr:
+  }
+  case InstArithmetic::Lshr: {
+    Variable *Src0R = Srcs.unswappedSrc0R(this);
     if (Dest->getType() != IceType_i32) {
       _uxt(Src0R, Src0R);
     }
-    _lsr(T, Src0R, Src1RF);
+    _lsr(T, Src0R, Srcs.unswappedSrc1RF(this));
     _mov(Dest, T);
     return;
-  case InstArithmetic::Ashr:
+  }
+  case InstArithmetic::Ashr: {
+    Variable *Src0R = Srcs.unswappedSrc0R(this);
     if (Dest->getType() != IceType_i32) {
       _sxt(Src0R, Src0R);
     }
-    _asr(T, Src0R, Src1RF);
+    _asr(T, Src0R, Srcs.unswappedSrc1RF(this));
     _mov(Dest, T);
     return;
+  }
   case InstArithmetic::Udiv:
   case InstArithmetic::Sdiv:
   case InstArithmetic::Urem:
   case InstArithmetic::Srem:
-    llvm_unreachable("Integer div/rem should have been handled earlier.");
+    llvm::report_fatal_error(
+        "Integer div/rem should have been handled earlier.");
     return;
   case InstArithmetic::Fadd:
   case InstArithmetic::Fsub:
   case InstArithmetic::Fmul:
   case InstArithmetic::Fdiv:
   case InstArithmetic::Frem:
-    llvm_unreachable("Floating point arith should have been handled earlier.");
+    llvm::report_fatal_error(
+        "Floating point arith should have been handled earlier.");
     return;
   }
 }
@@ -1841,40 +2198,39 @@ void TargetARM32::lowerAssign(const InstAssign *Inst) {
   assert(Dest->getType() == Src0->getType());
   if (Dest->getType() == IceType_i64) {
     Src0 = legalizeUndef(Src0);
-    Operand *Src0Lo = legalize(loOperand(Src0), Legal_Reg | Legal_Flex);
-    Operand *Src0Hi = legalize(hiOperand(Src0), Legal_Reg | Legal_Flex);
-    Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
-    Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
-    Variable *T_Lo = makeReg(IceType_i32);
-    Variable *T_Hi = makeReg(IceType_i32);
 
+    Variable *T_Lo = makeReg(IceType_i32);
+    auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
+    Operand *Src0Lo = legalize(loOperand(Src0), Legal_Reg | Legal_Flex);
     _mov(T_Lo, Src0Lo);
     _mov(DestLo, T_Lo);
+
+    Variable *T_Hi = makeReg(IceType_i32);
+    auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+    Operand *Src0Hi = legalize(hiOperand(Src0), Legal_Reg | Legal_Flex);
     _mov(T_Hi, Src0Hi);
     _mov(DestHi, T_Hi);
-  } else {
-    Operand *NewSrc;
-    if (Dest->hasReg()) {
-      // If Dest already has a physical register, then legalize the Src operand
-      // into a Variable with the same register assignment. This especially
-      // helps allow the use of Flex operands.
-      NewSrc = legalize(Src0, Legal_Reg | Legal_Flex, Dest->getRegNum());
-    } else {
-      // Dest could be a stack operand. Since we could potentially need to do a
-      // Store (and store can only have Register operands), legalize this to a
-      // register.
-      NewSrc = legalize(Src0, Legal_Reg);
-    }
-    if (isVectorType(Dest->getType())) {
-      Variable *SrcR = legalizeToReg(NewSrc);
-      _mov(Dest, SrcR);
-    } else if (isFloatingType(Dest->getType())) {
-      Variable *SrcR = legalizeToReg(NewSrc);
-      _mov(Dest, SrcR);
-    } else {
-      _mov(Dest, NewSrc);
-    }
+
+    return;
   }
+
+  Operand *NewSrc;
+  if (Dest->hasReg()) {
+    // If Dest already has a physical register, then legalize the Src operand
+    // into a Variable with the same register assignment. This especially
+    // helps allow the use of Flex operands.
+    NewSrc = legalize(Src0, Legal_Reg | Legal_Flex, Dest->getRegNum());
+  } else {
+    // Dest could be a stack operand. Since we could potentially need to do a
+    // Store (and store can only have Register operands), legalize this to a
+    // register.
+    NewSrc = legalize(Src0, Legal_Reg);
+  }
+
+  if (isVectorType(Dest->getType()) || isScalarFloatingType(Dest->getType())) {
+    NewSrc = legalize(NewSrc, Legal_Reg | Legal_Mem);
+  }
+  _mov(Dest, NewSrc);
 }
 
 TargetARM32::ShortCircuitCondAndLabel TargetARM32::lowerInt1ForBranch(
@@ -2580,6 +2936,18 @@ struct {
     FCMPARM32_TABLE
 #undef X
 };
+
+bool isFloatingPointZero(Operand *Src) {
+  if (const auto *F32 = llvm::dyn_cast<ConstantFloat>(Src)) {
+    return Utils::isPositiveZero(F32->getValue());
+  }
+
+  if (const auto *F64 = llvm::dyn_cast<ConstantDouble>(Src)) {
+    return Utils::isPositiveZero(F64->getValue());
+  }
+
+  return false;
+}
 } // end of anonymous namespace
 
 TargetARM32::CondWhenTrue TargetARM32::lowerFcmpCond(const InstFcmp *Instr) {
@@ -2592,8 +2960,12 @@ TargetARM32::CondWhenTrue TargetARM32::lowerFcmpCond(const InstFcmp *Instr) {
     break;
   default: {
     Variable *Src0R = legalizeToReg(Instr->getSrc(0));
-    Variable *Src1R = legalizeToReg(Instr->getSrc(1));
-    _vcmp(Src0R, Src1R);
+    Operand *Src1 = Instr->getSrc(1);
+    if (isFloatingPointZero(Src1)) {
+      _vcmp(Src0R, OperandARM32FlexFpZero::create(Func, Src0R->getType()));
+    } else {
+      _vcmp(Src0R, legalizeToReg(Src1));
+    }
     _vmrs();
     assert(Condition < llvm::array_lengthof(TableFcmp));
     return CondWhenTrue(TableFcmp[Condition].CC0, TableFcmp[Condition].CC1);
@@ -2642,12 +3014,87 @@ void TargetARM32::lowerFcmp(const InstFcmp *Instr) {
   _mov(Dest, T);
 }
 
-TargetARM32::CondWhenTrue TargetARM32::lowerIcmpCond(const InstIcmp *Inst) {
-  assert(Inst->getSrc(0)->getType() != IceType_i1);
-  assert(Inst->getSrc(1)->getType() != IceType_i1);
+TargetARM32::CondWhenTrue
+TargetARM32::lowerInt64IcmpCond(InstIcmp::ICond Condition, Operand *Src0,
+                                Operand *Src1) {
+  size_t Index = static_cast<size_t>(Condition);
+  assert(Index < llvm::array_lengthof(TableIcmp64));
 
-  Operand *Src0 = legalizeUndef(Inst->getSrc(0));
-  Operand *Src1 = legalizeUndef(Inst->getSrc(1));
+  Int32Operands SrcsLo(loOperand(Src0), loOperand(Src1));
+  Int32Operands SrcsHi(hiOperand(Src0), hiOperand(Src1));
+  assert(SrcsLo.hasConstOperand() == SrcsHi.hasConstOperand());
+  assert(SrcsLo.swappedOperands() == SrcsHi.swappedOperands());
+
+  if (SrcsLo.hasConstOperand()) {
+    const uint32_t ValueLo = SrcsLo.getConstantValue();
+    const uint32_t ValueHi = SrcsHi.getConstantValue();
+    const uint64_t Value = (static_cast<uint64_t>(ValueHi) << 32) | ValueLo;
+    if ((Condition == InstIcmp::Eq || Condition == InstIcmp::Ne) &&
+        Value == 0) {
+      Variable *T = makeReg(IceType_i32);
+      Variable *Src0LoR = SrcsLo.src0R(this);
+      Variable *Src0HiR = SrcsHi.src0R(this);
+      _orrs(T, Src0LoR, Src0HiR);
+      Context.insert(InstFakeUse::create(Func, T));
+      return CondWhenTrue(TableIcmp64[Index].C1);
+    }
+
+    Variable *Src0RLo = SrcsLo.src0R(this);
+    Variable *Src0RHi = SrcsHi.src0R(this);
+    Operand *Src1RFLo = SrcsLo.src1RF(this);
+    Operand *Src1RFHi = ValueLo == ValueHi ? Src1RFLo : SrcsHi.src1RF(this);
+
+    const bool UseRsb = TableIcmp64[Index].Swapped != SrcsLo.swappedOperands();
+
+    if (UseRsb) {
+      if (TableIcmp64[Index].IsSigned) {
+        Variable *T = makeReg(IceType_i32);
+        _rsbs(T, Src0RLo, Src1RFLo);
+        Context.insert(InstFakeUse::create(Func, T));
+
+        T = makeReg(IceType_i32);
+        _rscs(T, Src0RHi, Src1RFHi);
+        // We need to add a FakeUse here because liveness gets mad at us (Def
+        // without Use.) Note that flag-setting instructions are considered to
+        // have side effects and, therefore, are not DCE'ed.
+        Context.insert(InstFakeUse::create(Func, T));
+      } else {
+        Variable *T = makeReg(IceType_i32);
+        _rsbs(T, Src0RHi, Src1RFHi);
+        Context.insert(InstFakeUse::create(Func, T));
+
+        T = makeReg(IceType_i32);
+        _rsbs(T, Src0RLo, Src1RFLo, CondARM32::EQ);
+        Context.insert(InstFakeUse::create(Func, T));
+      }
+    } else {
+      if (TableIcmp64[Index].IsSigned) {
+        _cmp(Src0RLo, Src1RFLo);
+        Variable *T = makeReg(IceType_i32);
+        _sbcs(T, Src0RHi, Src1RFHi);
+        Context.insert(InstFakeUse::create(Func, T));
+      } else {
+        _cmp(Src0RHi, Src1RFHi);
+        _cmp(Src0RLo, Src1RFLo, CondARM32::EQ);
+      }
+    }
+
+    return CondWhenTrue(TableIcmp64[Index].C1);
+  }
+
+  Variable *Src0RLo, *Src0RHi;
+  Operand *Src1RFLo, *Src1RFHi;
+  if (TableIcmp64[Index].Swapped) {
+    Src0RLo = legalizeToReg(loOperand(Src1));
+    Src0RHi = legalizeToReg(hiOperand(Src1));
+    Src1RFLo = legalizeToReg(loOperand(Src0));
+    Src1RFHi = legalizeToReg(hiOperand(Src0));
+  } else {
+    Src0RLo = legalizeToReg(loOperand(Src0));
+    Src0RHi = legalizeToReg(hiOperand(Src0));
+    Src1RFLo = legalizeToReg(loOperand(Src1));
+    Src1RFHi = legalizeToReg(hiOperand(Src1));
+  }
 
   // a=icmp cond, b, c ==>
   // GCC does:
@@ -2678,38 +3125,111 @@ TargetARM32::CondWhenTrue TargetARM32::lowerIcmpCond(const InstIcmp *Inst) {
   //
   // So, we are going with the GCC version since it's usually better (except
   // perhaps for eq/ne). We could revisit special-casing eq/ne later.
+  if (TableIcmp64[Index].IsSigned) {
+    Variable *ScratchReg = makeReg(IceType_i32);
+    _cmp(Src0RLo, Src1RFLo);
+    _sbcs(ScratchReg, Src0RHi, Src1RFHi);
+    // ScratchReg isn't going to be used, but we need the side-effect of
+    // setting flags from this operation.
+    Context.insert(InstFakeUse::create(Func, ScratchReg));
+  } else {
+    _cmp(Src0RHi, Src1RFHi);
+    _cmp(Src0RLo, Src1RFLo, CondARM32::EQ);
+  }
+  return CondWhenTrue(TableIcmp64[Index].C1);
+}
 
-  if (Src0->getType() == IceType_i64) {
-    InstIcmp::ICond Conditon = Inst->getCondition();
-    size_t Index = static_cast<size_t>(Conditon);
-    assert(Index < llvm::array_lengthof(TableIcmp64));
-    Variable *Src0Lo, *Src0Hi;
-    Operand *Src1LoRF, *Src1HiRF;
-    if (TableIcmp64[Index].Swapped) {
-      Src0Lo = legalizeToReg(loOperand(Src1));
-      Src0Hi = legalizeToReg(hiOperand(Src1));
-      Src1LoRF = legalize(loOperand(Src0), Legal_Reg | Legal_Flex);
-      Src1HiRF = legalize(hiOperand(Src0), Legal_Reg | Legal_Flex);
-    } else {
-      Src0Lo = legalizeToReg(loOperand(Src0));
-      Src0Hi = legalizeToReg(hiOperand(Src0));
-      Src1LoRF = legalize(loOperand(Src1), Legal_Reg | Legal_Flex);
-      Src1HiRF = legalize(hiOperand(Src1), Legal_Reg | Legal_Flex);
-    }
-    if (TableIcmp64[Index].IsSigned) {
-      Variable *ScratchReg = makeReg(IceType_i32);
-      _cmp(Src0Lo, Src1LoRF);
-      _sbcs(ScratchReg, Src0Hi, Src1HiRF);
-      // ScratchReg isn't going to be used, but we need the side-effect of
-      // setting flags from this operation.
-      Context.insert(InstFakeUse::create(Func, ScratchReg));
-    } else {
-      _cmp(Src0Hi, Src1HiRF);
-      _cmp(Src0Lo, Src1LoRF, CondARM32::EQ);
-    }
-    return CondWhenTrue(TableIcmp64[Index].C1);
+TargetARM32::CondWhenTrue
+TargetARM32::lowerInt32IcmpCond(InstIcmp::ICond Condition, Operand *Src0,
+                                Operand *Src1) {
+  Int32Operands Srcs(Src0, Src1);
+  if (!Srcs.hasConstOperand()) {
+
+    Variable *Src0R = Srcs.src0R(this);
+    Operand *Src1RF = Srcs.src1RF(this);
+    _cmp(Src0R, Src1RF);
+    return CondWhenTrue(getIcmp32Mapping(Condition));
   }
 
+  Variable *Src0R = Srcs.src0R(this);
+  const int32_t Value = Srcs.getConstantValue();
+  if ((Condition == InstIcmp::Eq || Condition == InstIcmp::Ne) && Value == 0) {
+    _tst(Src0R, Src0R);
+    return CondWhenTrue(getIcmp32Mapping(Condition));
+  }
+
+  if (!Srcs.swappedOperands() && !Srcs.immediateIsFlexEncodable() &&
+      Srcs.negatedImmediateIsFlexEncodable()) {
+    Operand *Src1F = Srcs.negatedSrc1F(this);
+    _cmn(Src0R, Src1F);
+    return CondWhenTrue(getIcmp32Mapping(Condition));
+  }
+
+  Operand *Src1RF = Srcs.src1RF(this);
+  if (!Srcs.swappedOperands()) {
+    _cmp(Src0R, Src1RF);
+  } else {
+    Variable *T = makeReg(IceType_i32);
+    _rsbs(T, Src0R, Src1RF);
+    Context.insert(InstFakeUse::create(Func, T));
+  }
+  return CondWhenTrue(getIcmp32Mapping(Condition));
+}
+
+TargetARM32::CondWhenTrue
+TargetARM32::lowerInt8AndInt16IcmpCond(InstIcmp::ICond Condition, Operand *Src0,
+                                       Operand *Src1) {
+  Int32Operands Srcs(Src0, Src1);
+  const int32_t ShAmt = 32 - getScalarIntBitWidth(Src0->getType());
+  assert(ShAmt >= 0);
+
+  if (!Srcs.hasConstOperand()) {
+    Variable *Src0R = makeReg(IceType_i32);
+    Operand *ShAmtF =
+        legalize(Ctx->getConstantInt32(ShAmt), Legal_Reg | Legal_Flex);
+    _lsl(Src0R, legalizeToReg(Src0), ShAmtF);
+
+    Variable *Src1R = legalizeToReg(Src1);
+    OperandARM32FlexReg *Src1F = OperandARM32FlexReg::create(
+        Func, IceType_i32, Src1R, OperandARM32::LSL, ShAmtF);
+    _cmp(Src0R, Src1F);
+    return CondWhenTrue(getIcmp32Mapping(Condition));
+  }
+
+  const int32_t Value = Srcs.getConstantValue();
+  if ((Condition == InstIcmp::Eq || Condition == InstIcmp::Ne) && Value == 0) {
+    Operand *ShAmtOp = Ctx->getConstantInt32(ShAmt);
+    Variable *T = makeReg(IceType_i32);
+    _lsls(T, Srcs.src0R(this), ShAmtOp);
+    Context.insert(InstFakeUse::create(Func, T));
+    return CondWhenTrue(getIcmp32Mapping(Condition));
+  }
+
+  Variable *ConstR = makeReg(IceType_i32);
+  _mov(ConstR,
+       legalize(Ctx->getConstantInt32(Value << ShAmt), Legal_Reg | Legal_Flex));
+  Operand *NonConstF = OperandARM32FlexReg::create(
+      Func, IceType_i32, Srcs.src0R(this), OperandARM32::LSL,
+      Ctx->getConstantInt32(ShAmt));
+
+  if (Srcs.swappedOperands()) {
+    _cmp(ConstR, NonConstF);
+  } else {
+    Variable *T = makeReg(IceType_i32);
+    _rsbs(T, ConstR, NonConstF);
+    Context.insert(InstFakeUse::create(Func, T));
+  }
+  return CondWhenTrue(getIcmp32Mapping(Condition));
+}
+
+TargetARM32::CondWhenTrue TargetARM32::lowerIcmpCond(const InstIcmp *Inst) {
+  assert(Inst->getSrc(0)->getType() != IceType_i1);
+  assert(Inst->getSrc(1)->getType() != IceType_i1);
+
+  Operand *Src0 = legalizeUndef(Inst->getSrc(0));
+  Operand *Src1 = legalizeUndef(Inst->getSrc(1));
+
+  const InstIcmp::ICond Condition = Inst->getCondition();
   // a=icmp cond b, c ==>
   // GCC does:
   //   <u/s>xtb tb, b
@@ -2739,27 +3259,17 @@ TargetARM32::CondWhenTrue TargetARM32::lowerIcmpCond(const InstIcmp *Inst) {
   //
   // We'll go with the LLVM way for now, since it's shorter and has just as few
   // dependencies.
-  int32_t ShiftAmt = 32 - getScalarIntBitWidth(Src0->getType());
-  assert(ShiftAmt >= 0);
-  Constant *ShiftConst = nullptr;
-  Variable *Src0R = nullptr;
-  if (ShiftAmt) {
-    ShiftConst = Ctx->getConstantInt32(ShiftAmt);
-    Src0R = makeReg(IceType_i32);
-    _lsl(Src0R, legalizeToReg(Src0), ShiftConst);
-  } else {
-    Src0R = legalizeToReg(Src0);
+  switch (Src0->getType()) {
+  default:
+    llvm::report_fatal_error("Unhandled type in lowerIcmpCond");
+  case IceType_i8:
+  case IceType_i16:
+    return lowerInt8AndInt16IcmpCond(Condition, Src0, Src1);
+  case IceType_i32:
+    return lowerInt32IcmpCond(Condition, Src0, Src1);
+  case IceType_i64:
+    return lowerInt64IcmpCond(Condition, Src0, Src1);
   }
-  if (ShiftAmt) {
-    Variable *Src1R = legalizeToReg(Src1);
-    OperandARM32FlexReg *Src1RShifted = OperandARM32FlexReg::create(
-        Func, IceType_i32, Src1R, OperandARM32::LSL, ShiftConst);
-    _cmp(Src0R, Src1RShifted);
-  } else {
-    Operand *Src1RF = legalize(Src1, Legal_Reg | Legal_Flex);
-    _cmp(Src0R, Src1RF);
-  }
-  return CondWhenTrue(getIcmp32Mapping(Inst->getCondition()));
 }
 
 void TargetARM32::lowerIcmp(const InstIcmp *Inst) {
@@ -4254,13 +4764,24 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
       return Reg;
     } else {
       assert(isScalarFloatingType(Ty));
+      uint32_t ModifiedImm;
+      if (OperandARM32FlexFpImm::canHoldImm(From, &ModifiedImm)) {
+        Variable *T = makeReg(Ty, RegNum);
+        _mov(T,
+             OperandARM32FlexFpImm::create(Func, From->getType(), ModifiedImm));
+        return T;
+      }
+
+      if (Ty == IceType_f64 && isFloatingPointZero(From)) {
+        // Use T = T ^ T to load a 64-bit fp zero. This does not work for f32
+        // because ARM does not have a veor instruction with S registers.
+        Variable *T = makeReg(IceType_f64, RegNum);
+        Context.insert(InstFakeDef::create(Func, T));
+        _veor(T, T, T);
+        return T;
+      }
+
       // Load floats/doubles from literal pool.
-      // TODO(jvoung): Allow certain immediates to be encoded directly in an
-      // operand. See Table A7-18 of the ARM manual: "Floating-point modified
-      // immediate constants". Or, for 32-bit floating point numbers, just
-      // encode the raw bits into a movw/movt pair to GPR, and vmov to an SREG
-      // instead of using a movw/movt pair to get the const-pool address then
-      // loading to SREG.
       std::string Buffer;
       llvm::raw_string_ostream StrBuf(Buffer);
       llvm::cast<Constant>(From)->emitPoolLabel(StrBuf, Ctx);

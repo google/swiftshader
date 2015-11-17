@@ -39,7 +39,7 @@ return:                                           ; preds = %entry
 ; CHECK: ret
 
 ; ARM32-LABEL: divide
-; ARM32: cmp
+; ARM32: tst
 ; ARM32: .word 0xe7fedef0
 ; ARM32: bl {{.*}} __divsi3
 ; ARM32: bx lr

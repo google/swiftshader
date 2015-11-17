@@ -16,6 +16,7 @@
 #define SUBZERO_SRC_ICEUTILS_H
 
 #include <climits>
+#include <cmath> // std::signbit()
 
 namespace Ice {
 
@@ -116,6 +117,13 @@ public:
     if (shift == 0)
       return value;
     return (value >> shift) | (value << (32 - shift));
+  }
+
+  /// Returns true if Val is +0.0. It requires T to be a floating point type.
+  template <typename T> static bool isPositiveZero(T Val) {
+    static_assert(std::is_floating_point<T>::value,
+                  "Input type must be floating point");
+    return Val == 0 && !std::signbit(Val);
   }
 };
 

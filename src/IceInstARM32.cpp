@@ -284,6 +284,87 @@ bool OperandARM32FlexImm::canHoldImm(uint32_t Immediate, uint32_t *RotateAmt,
   return false;
 }
 
+OperandARM32FlexFpImm::OperandARM32FlexFpImm(Cfg * /*Func*/, Type Ty,
+                                             uint32_t ModifiedImm)
+    : OperandARM32Flex(kFlexFpImm, Ty), ModifiedImm(ModifiedImm) {}
+
+bool OperandARM32FlexFpImm::canHoldImm(Operand *C, uint32_t *ModifiedImm) {
+  switch (C->getType()) {
+  default:
+    llvm::report_fatal_error("Unhandled fp constant type.");
+  case IceType_f32: {
+    // We violate llvm naming conventions a bit here so that the constants are
+    // named after the bit fields they represent. See "A7.5.1 Operation of
+    // modified immediate constants, Floating-point" in the ARM ARM.
+    static constexpr uint32_t a = 0x80000000u;
+    static constexpr uint32_t B = 0x40000000;
+    static constexpr uint32_t bbbbb = 0x3E000000;
+    static constexpr uint32_t cdefgh = 0x01F80000;
+    static constexpr uint32_t AllowedBits = a | B | bbbbb | cdefgh;
+    static_assert(AllowedBits == 0xFFF80000u,
+                  "Invalid mask for f32 modified immediates.");
+    const float F32 = llvm::cast<ConstantFloat>(C)->getValue();
+    const uint32_t I32 = *reinterpret_cast<const uint32_t *>(&F32);
+    if (I32 & ~AllowedBits) {
+      // constant has disallowed bits.
+      return false;
+    }
+
+    if ((I32 & bbbbb) != bbbbb && (I32 & bbbbb)) {
+      // not all bbbbb bits are 0 or 1.
+      return false;
+    }
+
+    if (((I32 & B) != 0) == ((I32 & bbbbb) != 0)) {
+      // B ^ b = 0;
+      return false;
+    }
+
+    *ModifiedImm = ((I32 & a) ? 0x80 : 0x00) | ((I32 & bbbbb) ? 0x40 : 0x00) |
+                   ((I32 & cdefgh) >> 19);
+    return true;
+  }
+  case IceType_f64: {
+    static constexpr uint32_t a = 0x80000000u;
+    static constexpr uint32_t B = 0x40000000;
+    static constexpr uint32_t bbbbbbbb = 0x3FC00000;
+    static constexpr uint32_t cdefgh = 0x003F0000;
+    static constexpr uint32_t AllowedBits = a | B | bbbbbbbb | cdefgh;
+    static_assert(AllowedBits == 0xFFFF0000u,
+                  "Invalid mask for f64 modified immediates.");
+    const double F64 = llvm::cast<ConstantDouble>(C)->getValue();
+    const uint64_t I64 = *reinterpret_cast<const uint64_t *>(&F64);
+    if (I64 & 0xFFFFFFFFu) {
+      // constant has disallowed bits.
+      return false;
+    }
+    const uint32_t I32 = I64 >> 32;
+
+    if (I32 & ~AllowedBits) {
+      // constant has disallowed bits.
+      return false;
+    }
+
+    if ((I32 & bbbbbbbb) != bbbbbbbb && (I32 & bbbbbbbb)) {
+      // not all bbbbb bits are 0 or 1.
+      return false;
+    }
+
+    if (((I32 & B) != 0) == ((I32 & bbbbbbbb) != 0)) {
+      // B ^ b = 0;
+      return false;
+    }
+
+    *ModifiedImm = ((I32 & a) ? 0x80 : 0x00) |
+                   ((I32 & bbbbbbbb) ? 0x40 : 0x00) | ((I32 & cdefgh) >> 16);
+    return true;
+  }
+  }
+}
+
+OperandARM32FlexFpZero::OperandARM32FlexFpZero(Cfg * /*Func*/, Type Ty)
+    : OperandARM32Flex(kFlexFpZero, Ty) {}
+
 OperandARM32FlexReg::OperandARM32FlexReg(Cfg *Func, Type Ty, Variable *Reg,
                                          ShiftKind ShiftOp, Operand *ShiftAmt)
     : OperandARM32Flex(kFlexReg, Ty), Reg(Reg), ShiftOp(ShiftOp),
@@ -557,15 +638,18 @@ template <> void InstARM32Tst::emitIAS(const Cfg *Func) const {
     emitUsingTextFixup(Func);
 }
 
-InstARM32Vcmp::InstARM32Vcmp(Cfg *Func, Variable *Src0, Variable *Src1,
+InstARM32Vcmp::InstARM32Vcmp(Cfg *Func, Variable *Src0, Operand *Src1,
                              CondARM32::Cond Predicate)
     : InstARM32Pred(Func, InstARM32::Vcmp, 2, nullptr, Predicate) {
+  HasSideEffects = true;
   addSource(Src0);
   addSource(Src1);
 }
 
 InstARM32Vmrs::InstARM32Vmrs(Cfg *Func, CondARM32::Cond Predicate)
-    : InstARM32Pred(Func, InstARM32::Vmrs, 0, nullptr, Predicate) {}
+    : InstARM32Pred(Func, InstARM32::Vmrs, 0, nullptr, Predicate) {
+  HasSideEffects = true;
+}
 
 InstARM32Vabs::InstARM32Vabs(Cfg *Func, Variable *Dest, Variable *Src,
                              CondARM32::Cond Predicate)
@@ -605,6 +689,7 @@ template <> const char *InstARM32Lsr::Opcode = "lsr";
 template <> const char *InstARM32Mul::Opcode = "mul";
 template <> const char *InstARM32Orr::Opcode = "orr";
 template <> const char *InstARM32Rsb::Opcode = "rsb";
+template <> const char *InstARM32Rsc::Opcode = "rsc";
 template <> const char *InstARM32Sbc::Opcode = "sbc";
 template <> const char *InstARM32Sdiv::Opcode = "sdiv";
 template <> const char *InstARM32Sub::Opcode = "sub";
@@ -613,11 +698,13 @@ template <> const char *InstARM32Udiv::Opcode = "udiv";
 template <> const char *InstARM32Vadd::Opcode = "vadd";
 template <> const char *InstARM32Vdiv::Opcode = "vdiv";
 template <> const char *InstARM32Vmul::Opcode = "vmul";
+template <> const char *InstARM32Veor::Opcode = "veor";
 template <> const char *InstARM32Vsub::Opcode = "vsub";
 // Four-addr ops
 template <> const char *InstARM32Mla::Opcode = "mla";
 template <> const char *InstARM32Mls::Opcode = "mls";
 // Cmp-like ops
+template <> const char *InstARM32Cmn::Opcode = "cmn";
 template <> const char *InstARM32Cmp::Opcode = "cmp";
 template <> const char *InstARM32Tst::Opcode = "tst";
 
@@ -1701,6 +1788,67 @@ void OperandARM32FlexImm::dump(const Cfg * /* Func */, Ostream &Str) const {
   Str << "#(" << Imm << " ror 2*" << RotateAmt << ")";
 }
 
+namespace {
+static constexpr uint32_t a = 0x80;
+static constexpr uint32_t b = 0x40;
+static constexpr uint32_t cdefgh = 0x3F;
+static constexpr uint32_t AllowedBits = a | b | cdefgh;
+static_assert(AllowedBits == 0xFF,
+              "Invalid mask for f32/f64 constant rematerialization.");
+
+// There's no loss in always returning the modified immediate as float.
+// TODO(jpp): returning a double causes problems when outputting the constants
+// for filetype=asm. Why?
+float materializeFloatImmediate(uint32_t ModifiedImm) {
+  const uint32_t Ret = ((ModifiedImm & a) ? 0x80000000 : 0) |
+                       ((ModifiedImm & b) ? 0x3E000000 : 0x40000000) |
+                       ((ModifiedImm & cdefgh) << 19);
+  return *reinterpret_cast<const float *>(&Ret);
+}
+
+} // end of anonymous namespace
+
+void OperandARM32FlexFpImm::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  switch (Ty) {
+  default:
+    llvm::report_fatal_error("Invalid flex fp imm type.");
+  case IceType_f64:
+  case IceType_f32:
+    Str << "#" << materializeFloatImmediate(ModifiedImm)
+        << " @ Modified: " << ModifiedImm;
+    break;
+  }
+}
+
+void OperandARM32FlexFpImm::dump(const Cfg * /*Func*/, Ostream &Str) const {
+  if (!BuildDefs::dump())
+    return;
+  Str << "#" << materializeFloatImmediate(ModifiedImm)
+      << InstARM32::getVecWidthString(Ty);
+}
+
+void OperandARM32FlexFpZero::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  switch (Ty) {
+  default:
+    llvm::report_fatal_error("Invalid flex fp imm type.");
+  case IceType_f64:
+  case IceType_f32:
+    Str << "#0.0";
+  }
+}
+
+void OperandARM32FlexFpZero::dump(const Cfg * /*Func*/, Ostream &Str) const {
+  if (!BuildDefs::dump())
+    return;
+  Str << "#0.0" << InstARM32::getVecWidthString(Ty);
+}
+
 void OperandARM32FlexReg::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
@@ -1741,6 +1889,7 @@ template class InstARM32ThreeAddrGPR<InstARM32::Lsr>;
 template class InstARM32ThreeAddrGPR<InstARM32::Mul>;
 template class InstARM32ThreeAddrGPR<InstARM32::Orr>;
 template class InstARM32ThreeAddrGPR<InstARM32::Rsb>;
+template class InstARM32ThreeAddrGPR<InstARM32::Rsc>;
 template class InstARM32ThreeAddrGPR<InstARM32::Sbc>;
 template class InstARM32ThreeAddrGPR<InstARM32::Sdiv>;
 template class InstARM32ThreeAddrGPR<InstARM32::Sub>;
@@ -1749,6 +1898,7 @@ template class InstARM32ThreeAddrGPR<InstARM32::Udiv>;
 template class InstARM32ThreeAddrFP<InstARM32::Vadd>;
 template class InstARM32ThreeAddrFP<InstARM32::Vdiv>;
 template class InstARM32ThreeAddrFP<InstARM32::Vmul>;
+template class InstARM32ThreeAddrFP<InstARM32::Veor>;
 template class InstARM32ThreeAddrFP<InstARM32::Vsub>;
 
 template class InstARM32LoadBase<InstARM32::Ldr>;
@@ -1768,6 +1918,7 @@ template class InstARM32UnaryopFP<InstARM32::Vsqrt>;
 template class InstARM32FourAddrGPR<InstARM32::Mla>;
 template class InstARM32FourAddrGPR<InstARM32::Mls>;
 
+template class InstARM32CmpLike<InstARM32::Cmn>;
 template class InstARM32CmpLike<InstARM32::Cmp>;
 template class InstARM32CmpLike<InstARM32::Tst>;
 

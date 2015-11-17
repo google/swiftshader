@@ -140,7 +140,23 @@ public:
   bool hasCPUFeature(TargetARM32Features::ARM32InstructionSet I) const {
     return CPUFeatures.hasFeature(I);
   }
+
+  enum OperandLegalization {
+    Legal_None = 0,
+    Legal_Reg = 1 << 0,  /// physical register, not stack location
+    Legal_Flex = 1 << 1, /// A flexible operand2, which can hold rotated small
+                         /// immediates, shifted registers, or modified fp imm.
+    Legal_Mem = 1 << 2,  /// includes [r0, r1 lsl #2] as well as [sp, #12]
+    Legal_All = ~Legal_None
+  };
+
+  using LegalMask = uint32_t;
   Operand *legalizeUndef(Operand *From, int32_t RegNum = Variable::NoRegister);
+  Operand *legalize(Operand *From, LegalMask Allowed = Legal_All,
+                    int32_t RegNum = Variable::NoRegister);
+  Variable *legalizeToReg(Operand *From, int32_t RegNum = Variable::NoRegister);
+
+  GlobalContext *getCtx() const { return Ctx; }
 
 protected:
   explicit TargetARM32(Cfg *Func);
@@ -154,6 +170,8 @@ protected:
 
   void lowerAlloca(const InstAlloca *Inst) override;
   SafeBoolChain lowerInt1Arithmetic(const InstArithmetic *Inst);
+  void lowerInt64Arithmetic(InstArithmetic::OpKind Op, Variable *Dest,
+                            Operand *Src0, Operand *Src1);
   void lowerArithmetic(const InstArithmetic *Inst) override;
   void lowerAssign(const InstAssign *Inst) override;
   void lowerBr(const InstBr *Inst) override;
@@ -192,6 +210,12 @@ protected:
 
   CondWhenTrue lowerFcmpCond(const InstFcmp *Instr);
   void lowerFcmp(const InstFcmp *Instr) override;
+  CondWhenTrue lowerInt8AndInt16IcmpCond(InstIcmp::ICond Condition,
+                                         Operand *Src0, Operand *Src1);
+  CondWhenTrue lowerInt32IcmpCond(InstIcmp::ICond Condition, Operand *Src0,
+                                  Operand *Src1);
+  CondWhenTrue lowerInt64IcmpCond(InstIcmp::ICond Condition, Operand *Src0,
+                                  Operand *Src1);
   CondWhenTrue lowerIcmpCond(const InstIcmp *Instr);
   void lowerIcmp(const InstIcmp *Instr) override;
   void lowerAtomicRMW(Variable *Dest, uint32_t Operation, Operand *Ptr,
@@ -211,18 +235,6 @@ protected:
   void randomlyInsertNop(float Probability,
                          RandomNumberGenerator &RNG) override;
 
-  enum OperandLegalization {
-    Legal_None = 0,
-    Legal_Reg = 1 << 0,  /// physical register, not stack location
-    Legal_Flex = 1 << 1, /// A flexible operand2, which can hold rotated small
-                         /// immediates, or shifted registers.
-    Legal_Mem = 1 << 2,  /// includes [r0, r1 lsl #2] as well as [sp, #12]
-    Legal_All = ~Legal_None
-  };
-  using LegalMask = uint32_t;
-  Operand *legalize(Operand *From, LegalMask Allowed = Legal_All,
-                    int32_t RegNum = Variable::NoRegister);
-  Variable *legalizeToReg(Operand *From, int32_t RegNum = Variable::NoRegister);
   OperandARM32Mem *formMemoryOperand(Operand *Ptr, Type Ty);
 
   Variable64On32 *makeI64RegPair();
@@ -299,6 +311,10 @@ protected:
   void _br(InstARM32Label *Label, CondARM32::Cond Condition) {
     Context.insert(InstARM32Br::create(Func, Label, Condition));
   }
+  void _cmn(Variable *Src0, Operand *Src1,
+            CondARM32::Cond Pred = CondARM32::AL) {
+    Context.insert(InstARM32Cmn::create(Func, Src0, Src1, Pred));
+  }
   void _cmp(Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Cmp::create(Func, Src0, Src1, Pred));
@@ -331,6 +347,12 @@ protected:
   void _lsl(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Lsl::create(Func, Dest, Src0, Src1, Pred));
+  }
+  void _lsls(Variable *Dest, Variable *Src0, Operand *Src1,
+             CondARM32::Cond Pred = CondARM32::AL) {
+    constexpr bool SetFlags = true;
+    Context.insert(
+        InstARM32Lsl::create(Func, Dest, Src0, Src1, Pred, SetFlags));
   }
   void _lsr(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
@@ -654,6 +676,22 @@ protected:
   void _ret(Variable *LR, Variable *Src0 = nullptr) {
     Context.insert(InstARM32Ret::create(Func, LR, Src0));
   }
+  void _rscs(Variable *Dest, Variable *Src0, Operand *Src1,
+             CondARM32::Cond Pred = CondARM32::AL) {
+    constexpr bool SetFlags = true;
+    Context.insert(
+        InstARM32Rsc::create(Func, Dest, Src0, Src1, Pred, SetFlags));
+  }
+  void _rsc(Variable *Dest, Variable *Src0, Operand *Src1,
+            CondARM32::Cond Pred = CondARM32::AL) {
+    Context.insert(InstARM32Rsc::create(Func, Dest, Src0, Src1, Pred));
+  }
+  void _rsbs(Variable *Dest, Variable *Src0, Operand *Src1,
+             CondARM32::Cond Pred = CondARM32::AL) {
+    constexpr bool SetFlags = true;
+    Context.insert(
+        InstARM32Rsb::create(Func, Dest, Src0, Src1, Pred, SetFlags));
+  }
   void _rsb(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Rsb::create(Func, Dest, Src0, Src1, Pred));
@@ -745,11 +783,18 @@ protected:
              CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Vcmp::create(Func, Src0, Src1, Pred));
   }
+  void _vcmp(Variable *Src0, OperandARM32FlexFpZero *FpZero,
+             CondARM32::Cond Pred = CondARM32::AL) {
+    Context.insert(InstARM32Vcmp::create(Func, Src0, FpZero, Pred));
+  }
   void _vmrs(CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Vmrs::create(Func, Pred));
   }
   void _vmul(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert(InstARM32Vmul::create(Func, Dest, Src0, Src1));
+  }
+  void _veor(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert(InstARM32Veor::create(Func, Dest, Src0, Src1));
   }
   void _vsqrt(Variable *Dest, Variable *Src,
               CondARM32::Cond Pred = CondARM32::AL) {

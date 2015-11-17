@@ -29,7 +29,6 @@
 #include "IceUtils.h"
 #include "llvm/Support/MathExtras.h"
 
-#include <cmath> // signbit()
 #include <stack>
 
 namespace Ice {
@@ -5506,16 +5505,6 @@ Variable *TargetX86Base<Machine>::copyToReg(Operand *Src, int32_t RegNum) {
   return Reg;
 }
 
-namespace {
-
-template <typename T> bool isPositiveZero(T Val) {
-  static_assert(std::is_floating_point<T>::value,
-                "Input type must be floating point");
-  return Val == 0 && !std::signbit(Val);
-}
-
-} // end of anonymous namespace
-
 template <class Machine>
 Operand *TargetX86Base<Machine>::legalize(Operand *From, LegalMask Allowed,
                                           int32_t RegNum) {
@@ -5609,10 +5598,10 @@ Operand *TargetX86Base<Machine>::legalize(Operand *From, LegalMask Allowed,
     // operand.
     if (isScalarFloatingType(Ty)) {
       if (auto *ConstFloat = llvm::dyn_cast<ConstantFloat>(Const)) {
-        if (isPositiveZero(ConstFloat->getValue()))
+        if (Utils::isPositiveZero(ConstFloat->getValue()))
           return makeZeroedRegister(Ty, RegNum);
       } else if (auto *ConstDouble = llvm::dyn_cast<ConstantDouble>(Const)) {
-        if (isPositiveZero(ConstDouble->getValue()))
+        if (Utils::isPositiveZero(ConstDouble->getValue()))
           return makeZeroedRegister(Ty, RegNum);
       }
       Variable *Base = nullptr;

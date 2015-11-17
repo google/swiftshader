@@ -512,13 +512,13 @@ entry:
 ; OPTM1: sar {{.*}},0x1f
 
 ; ARM32-LABEL: shr64BitSigned
-; ARM32: lsr     [[T0:r[0-9]+]], r0, r2
-; ARM32: rsb     [[T1:r[0-9]+]], r2, #32
-; ARM32: orr     r0, [[T0]], r1, lsl [[T1]]
-; ARM32: sub     [[T2:r[0-9]+]], r2, #32
+; ARM32: lsr     [[T0:r[0-9]+]], r{{[0-9]+}}, r{{[0-9]+}}
+; ARM32: rsb     [[T1:r[0-9]+]], r{{[0-9]+}}, #32
+; ARM32: orr     r{{[0-9]+}}, [[T0]], r{{[0-9]+}}, lsl [[T1]]
+; ARM32: sub     [[T2:r[0-9]+]], r{{[0-9]+}}, #32
 ; ARM32: cmp     [[T2]], #0
-; ARM32: asrge   r0, r1, [[T2]]
-; ARM32: asr     r{{[0-9]+}}, r1, r2
+; ARM32: asrge   r{{[0-9]+}}, r{{[0-9]+}}, [[T2]]
+; ARM32: asr     r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}
 
 define internal i32 @shr64BitSignedTrunc(i64 %a, i64 %b) {
 entry:

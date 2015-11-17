@@ -117,7 +117,7 @@ entry:
 ; CHECK-LABEL: MulImm
 ; CHECK: imul e{{.*}},e{{.*}},0x63
 ; ARM32-LABEL: MulImm
-; ARM32: mov {{.*}}, #99
+; ARM32: movw {{.*}}, #99
 ; ARM32: mul r{{.*}}, r{{.*}}, r{{.*}}
 ; MIPS32-LABEL: MulImm
 ; MIPS32: mul

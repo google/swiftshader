@@ -169,8 +169,7 @@ entry:
 ; CHECK: cmovl
 ; ARM32-LABEL: fold_cmp_select_64_undef
 ; ARM32: mov
-; ARM32: mov
-; ARM32: cmp {{r[0-9]+}}, r0
+; ARM32: rsbs r{{[0-9]+}}, r{{[0-9]+}}, #0
 ; ARM32: movlt
 ; ARM32: movlt
 ; ARM32: bx lr
