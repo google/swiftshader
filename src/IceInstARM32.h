@@ -76,7 +76,7 @@ public:
   /// The enum value also carries the encoding.
   // TODO(jvoung): unify with the assembler.
   enum AddrMode {
-    // bit encoding P U W
+    // bit encoding P U 0 W
     Offset = (8 | 4 | 0) << 21,      // offset (w/o writeback to base)
     PreIndex = (8 | 4 | 1) << 21,    // pre-indexed addressing with writeback
     PostIndex = (0 | 4 | 0) << 21,   // post-indexed addressing with writeback
