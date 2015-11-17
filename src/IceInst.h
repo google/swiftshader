@@ -246,10 +246,10 @@ class InstAlloca : public InstHighLevel {
   InstAlloca &operator=(const InstAlloca &) = delete;
 
 public:
-  static InstAlloca *create(Cfg *Func, Operand *ByteCount,
-                            uint32_t AlignInBytes, Variable *Dest) {
+  static InstAlloca *create(Cfg *Func, Variable *Dest, Operand *ByteCount,
+                            uint32_t AlignInBytes) {
     return new (Func->allocate<InstAlloca>())
-        InstAlloca(Func, ByteCount, AlignInBytes, Dest);
+        InstAlloca(Func, Dest, ByteCount, AlignInBytes);
   }
   uint32_t getAlignInBytes() const { return AlignInBytes; }
   Operand *getSizeInBytes() const { return getSrc(0); }
@@ -259,8 +259,8 @@ public:
   static bool classof(const Inst *Inst) { return Inst->getKind() == Alloca; }
 
 private:
-  InstAlloca(Cfg *Func, Operand *ByteCount, uint32_t AlignInBytes,
-             Variable *Dest);
+  InstAlloca(Cfg *Func, Variable *Dest, Operand *ByteCount,
+             uint32_t AlignInBytes);
 
   const uint32_t AlignInBytes;
   bool KnownFrameOffset = false;

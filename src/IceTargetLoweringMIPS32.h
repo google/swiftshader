@@ -54,8 +54,9 @@ public:
   bool hasFramePointer() const override { return UsesFramePointer; }
   void setHasFramePointer() override { UsesFramePointer = true; }
   SizeT getStackReg() const override { return RegMIPS32::Reg_SP; }
+  SizeT getFrameReg() const override { return RegMIPS32::Reg_FP; }
   SizeT getFrameOrStackReg() const override {
-    return UsesFramePointer ? RegMIPS32::Reg_FP : RegMIPS32::Reg_SP;
+    return UsesFramePointer ? getFrameReg() : getStackReg();
   }
   size_t typeWidthInBytesOnStack(Type Ty) const override {
     // Round up to the next multiple of 4 bytes. In particular, i1, i8, and i16
@@ -65,6 +66,17 @@ public:
   uint32_t getStackAlignment() const override {
     // TODO(sehr): what is the stack alignment?
     return 1;
+  }
+  void reserveFixedAllocaArea(size_t Size, size_t Align) override {
+    // TODO(sehr): Implement fixed stack layout.
+    (void)Size;
+    (void)Align;
+    llvm::report_fatal_error("Not yet implemented");
+  }
+  int32_t getFrameFixedAllocaOffset() const override {
+    // TODO(sehr): Implement fixed stack layout.
+    llvm::report_fatal_error("Not yet implemented");
+    return 0;
   }
 
   bool shouldSplitToVariable64On32(Type Ty) const override {

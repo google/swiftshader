@@ -17,10 +17,8 @@ entry:
 }
 
 ; CHECK-LABEL:  caller1
-; CHECK-NEXT:   sub    esp,0xc
-; CHECK-NEXT:   mov    eax,DWORD PTR [esp+0x10]
-; CHECK-NEXT:   sub    esp,0x20
-; CHECK-NEXT:   mov    ecx,esp
+; CHECK-NEXT:   sub    esp,0x2c
+; CHECK-NEXT:   mov    eax,DWORD PTR [esp+0x30]
 ; CHECK-NEXT:   mov    DWORD PTR [esp],eax
 ; CHECK-NEXT:   sub    esp,0x20
 ; CHECK-NEXT:   mov    DWORD PTR [esp],eax
@@ -51,10 +49,8 @@ entry:
 }
 
 ; CHECK-LABEL:  caller2
-; CHECK-NEXT:   sub    esp,0xc
-; CHECK-NEXT:   mov    eax,DWORD PTR [esp+0x10]
-; CHECK-NEXT:   sub    esp,0x40
-; CHECK-NEXT:   mov    ecx,esp
+; CHECK-NEXT:   sub    esp,0x4c
+; CHECK-NEXT:   mov    eax,DWORD PTR [esp+0x50]
 ; CHECK-NEXT:   mov    DWORD PTR [esp],eax
 ; CHECK-NEXT:   mov    DWORD PTR [esp+0x20],eax
 ; CHECK-NEXT:   sub    esp,0x20

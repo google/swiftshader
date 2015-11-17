@@ -98,17 +98,34 @@ MachineTraits<TargetX8632>::X86OperandMem::X86OperandMem(
   }
 }
 
+namespace {
+static int32_t GetRematerializableOffset(Variable *Var, bool IgnoreStackAdjust,
+                                         const Ice::TargetX8632 *Target) {
+  int32_t Disp = 0;
+  Disp += Var->getStackOffset();
+  SizeT RegNum = static_cast<SizeT>(Var->getRegNum());
+  if (RegNum == Target->getStackReg()) {
+    if (!IgnoreStackAdjust)
+      Disp += Target->getStackAdjustment();
+  } else if (RegNum == Target->getFrameReg()) {
+    Disp += Target->getFrameFixedAllocaOffset();
+  } else {
+    llvm::report_fatal_error("Unexpected rematerializable register type");
+  }
+  return Disp;
+}
+} // end of anonymous namespace
+
 void MachineTraits<TargetX8632>::X86OperandMem::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
-  const ::Ice::TargetLowering *Target = Func->getTarget();
+  const auto *Target = static_cast<const Ice::TargetX8632 *>(Func->getTarget());
   // If the base is rematerializable, we need to replace it with the correct
   // physical register (esp or ebp), and update the Offset.
   int32_t Disp = 0;
   if (getBase() && getBase()->isRematerializable()) {
-    Disp += getBase()->getStackOffset();
-    if (!getIgnoreStackAdjust())
-      Disp += Target->getStackAdjustment();
+    Disp +=
+        GetRematerializableOffset(getBase(), getIgnoreStackAdjust(), Target);
   }
   // The index should never be rematerializable.  But if we ever allow it, then
   // we should make sure the rematerialization offset is shifted by the Shift
@@ -135,7 +152,7 @@ void MachineTraits<TargetX8632>::X86OperandMem::emit(const Cfg *Func) const {
     // TODO(sehr): ConstantRelocatable still needs updating for
     // rematerializable base/index and Disp.
     assert(Disp == 0);
-    CR->emitWithoutPrefix(Func->getTarget());
+    CR->emitWithoutPrefix(Target);
   } else {
     llvm_unreachable("Invalid offset type for x86 mem operand");
   }
@@ -165,10 +182,10 @@ void MachineTraits<TargetX8632>::X86OperandMem::dump(const Cfg *Func,
   bool Dumped = false;
   Str << "[";
   int32_t Disp = 0;
+  const auto *Target = static_cast<const Ice::TargetX8632 *>(Func->getTarget());
   if (getBase() && getBase()->isRematerializable()) {
-    Disp += getBase()->getStackOffset();
-    if (!getIgnoreStackAdjust())
-      Disp += Func->getTarget()->getStackAdjustment();
+    Disp +=
+        GetRematerializableOffset(getBase(), getIgnoreStackAdjust(), Target);
   }
   if (getBase()) {
     if (Func)
@@ -230,13 +247,12 @@ void MachineTraits<TargetX8632>::X86OperandMem::emitSegmentOverride(
 MachineTraits<TargetX8632>::Address
 MachineTraits<TargetX8632>::X86OperandMem::toAsmAddress(
     MachineTraits<TargetX8632>::Assembler *Asm,
-    const Ice::TargetLowering *Target) const {
+    const Ice::TargetLowering *TargetLowering) const {
   int32_t Disp = 0;
+  const auto *Target = static_cast<const Ice::TargetX8632 *>(TargetLowering);
   if (getBase() && getBase()->isRematerializable()) {
-    Disp += getBase()->getStackOffset();
-    if (!getIgnoreStackAdjust()) {
-      Disp += Target->getStackAdjustment();
-    }
+    Disp +=
+        GetRematerializableOffset(getBase(), getIgnoreStackAdjust(), Target);
   }
   // The index should never be rematerializable.  But if we ever allow it, then
   // we should make sure the rematerialization offset is shifted by the Shift

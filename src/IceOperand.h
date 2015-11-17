@@ -290,7 +290,7 @@ public:
   bool getSuppressMangling() const { return SuppressMangling; }
   using Constant::emit;
   void emit(TargetLowering *Target) const final;
-  void emitWithoutPrefix(TargetLowering *Target) const;
+  void emitWithoutPrefix(const TargetLowering *Target) const;
   using Constant::dump;
   void dump(const Cfg *Func, Ostream &Str) const override;
 

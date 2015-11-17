@@ -218,8 +218,8 @@ bool Inst::liveness(InstNumberT InstNumber, LivenessBV &Live,
   return true;
 }
 
-InstAlloca::InstAlloca(Cfg *Func, Operand *ByteCount, uint32_t AlignInBytes,
-                       Variable *Dest)
+InstAlloca::InstAlloca(Cfg *Func, Variable *Dest, Operand *ByteCount,
+                       uint32_t AlignInBytes)
     : InstHighLevel(Func, Inst::Alloca, 1, Dest), AlignInBytes(AlignInBytes) {
   // Verify AlignInBytes is 0 or a power of 2.
   assert(AlignInBytes == 0 || llvm::isPowerOf2_32(AlignInBytes));

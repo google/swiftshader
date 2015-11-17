@@ -2626,7 +2626,7 @@ void FunctionParser::ProcessRecord() {
       return;
     }
     CurrentNode->appendInst(Ice::InstAlloca::create(
-        Func.get(), ByteCount, Alignment, getNextInstVar(PtrTy)));
+        Func.get(), getNextInstVar(PtrTy), ByteCount, Alignment));
     return;
   }
   case naclbitc::FUNC_CODE_INST_LOAD: {

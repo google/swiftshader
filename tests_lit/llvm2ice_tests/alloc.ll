@@ -6,7 +6,8 @@
 
 ; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
 ; RUN:   --target x8632 -i %s --args -Om1 -allow-externally-defined-symbols \
-; RUN:   | %if --need=target_X8632 --command FileCheck %s
+; RUN:   | %if --need=target_X8632 --command FileCheck \
+; RUN:   --check-prefix CHECK-OPTM1 %s
 
 ; TODO(jvoung): Stop skipping unimplemented parts (via --skip-unimplemented)
 ; once enough infrastructure is in. Also, switch to --filetype=obj
@@ -33,10 +34,17 @@ entry:
   ret void
 }
 ; CHECK-LABEL: fixed_416_align_16
-; CHECK:      sub     esp,0x1a0
+; CHECK:      sub     esp,0x1ac
 ; CHECK:      sub     esp,0x10
 ; CHECK:      mov     DWORD PTR [esp],eax
 ; CHECK:      call {{.*}} R_{{.*}}    f1
+
+; CHECK-OPTM1-LABEL: fixed_416_align_16
+; CHECK-OPTM1:      sub     esp,0xc
+; CHECK-OPTM1:      sub     esp,0x1a0
+; CHECK-OPTM1:      sub     esp,0x10
+; CHECK-OPTM1:      mov     DWORD PTR [esp],eax
+; CHECK-OPTM1:      call {{.*}} R_{{.*}}    f1
 
 ; ARM32-LABEL: fixed_416_align_16
 ; ARM32:      sub sp, sp, #416
@@ -52,8 +60,8 @@ entry:
 ; CHECK-LABEL: fixed_416_align_32
 ; CHECK:      push    ebp
 ; CHECK-NEXT: mov     ebp,esp
+; CHECK:      sub     esp,0x1a8
 ; CHECK:      and     esp,0xffffffe0
-; CHECK:      sub     esp,0x1a0
 ; CHECK:      sub     esp,0x10
 ; CHECK:      mov     DWORD PTR [esp],eax
 ; CHECK:      call {{.*}} R_{{.*}}    f1
@@ -72,10 +80,15 @@ entry:
   ret void
 }
 ; CHECK-LABEL: fixed_351_align_16
-; CHECK:      sub     esp,0x160
-; CHECK:      sub     esp,0x10
+; CHECK:      sub     esp,0x16c
 ; CHECK:      mov     DWORD PTR [esp],eax
 ; CHECK:      call {{.*}} R_{{.*}}    f1
+
+; CHECK-OPTM1-LABEL: fixed_351_align_16
+; CHECK-OPTM1:      sub     esp,0xc
+; CHECK-OPTM1:      sub     esp,0x160
+; CHECK-OPTM1:      mov     DWORD PTR [esp],eax
+; CHECK-OPTM1:      call {{.*}} R_{{.*}}    f1
 
 ; ARM32-LABEL: fixed_351_align_16
 ; ARM32:      sub sp, sp, #352
@@ -91,8 +104,8 @@ entry:
 ; CHECK-LABEL: fixed_351_align_32
 ; CHECK:      push    ebp
 ; CHECK-NEXT: mov     ebp,esp
+; CHECK:      sub     esp,0x168
 ; CHECK:      and     esp,0xffffffe0
-; CHECK:      sub     esp,0x160
 ; CHECK:      sub     esp,0x10
 ; CHECK:      mov     DWORD PTR [esp],eax
 ; CHECK:      call {{.*}} R_{{.*}}    f1

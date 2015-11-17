@@ -506,20 +506,36 @@ void TargetX8632::addProlog(CfgNode *Node) {
     SpillAreaSizeBytes = StackSize - StackOffset;
   }
 
-  // Generate "sub esp, SpillAreaSizeBytes"
-  if (SpillAreaSizeBytes)
+  // Combine fixed allocations into SpillAreaSizeBytes if we are emitting the
+  // fixed allocations in the prolog.
+  if (PrologEmitsFixedAllocas)
+    SpillAreaSizeBytes += FixedAllocaSizeBytes;
+  if (SpillAreaSizeBytes) {
+    // Generate "sub esp, SpillAreaSizeBytes"
     _sub(getPhysicalRegister(Traits::RegisterSet::Reg_esp),
          Ctx->getConstantInt32(SpillAreaSizeBytes));
+    // If the fixed allocas are aligned more than the stack frame, align the
+    // stack pointer accordingly.
+    if (PrologEmitsFixedAllocas &&
+        FixedAllocaAlignBytes > Traits::X86_STACK_ALIGNMENT_BYTES) {
+      assert(IsEbpBasedFrame);
+      _and(getPhysicalRegister(Traits::RegisterSet::Reg_esp),
+           Ctx->getConstantInt32(-FixedAllocaAlignBytes));
+    }
+  }
 
-  // Account for alloca instructions with known frame offsets.
-  SpillAreaSizeBytes += FixedAllocaSizeBytes;
+  // Account for known-frame-offset alloca instructions that were not already
+  // combined into the prolog.
+  if (!PrologEmitsFixedAllocas)
+    SpillAreaSizeBytes += FixedAllocaSizeBytes;
 
   Ctx->statsUpdateFrameBytes(SpillAreaSizeBytes);
 
   // Initialize the stack adjustment so that after all the known-frame-offset
   // alloca instructions are emitted, the stack adjustment will reach zero.
   resetStackAdjustment();
-  updateStackAdjustment(-FixedAllocaSizeBytes);
+  if (!PrologEmitsFixedAllocas)
+    updateStackAdjustment(-FixedAllocaSizeBytes);
 
   // Fill in stack offsets for stack args, and copy args into registers for
   // those that were register-allocated. Args are pushed right to left, so
@@ -539,11 +555,14 @@ void TargetX8632::addProlog(CfgNode *Node) {
       ++NumXmmArgs;
       continue;
     }
-    // For esp-based frames, the esp value may not stabilize to its home value
-    // until after all the fixed-size alloca instructions have executed.  In
-    // this case, a stack adjustment is needed when accessing in-args in order
-    // to copy them into registers.
-    size_t StackAdjBytes = IsEbpBasedFrame ? 0 : -FixedAllocaSizeBytes;
+    // For esp-based frames where the allocas are done outside the prolog, the
+    // esp value may not stabilize to its home value until after all the
+    // fixed-size alloca instructions have executed.  In this case, a stack
+    // adjustment is needed when accessing in-args in order to copy them into
+    // registers.
+    size_t StackAdjBytes = 0;
+    if (!IsEbpBasedFrame && !PrologEmitsFixedAllocas)
+      StackAdjBytes -= FixedAllocaSizeBytes;
     finishArgumentLowering(Arg, FramePtr, BasicFrameOffset, StackAdjBytes,
                            InArgsSizeBytes);
   }

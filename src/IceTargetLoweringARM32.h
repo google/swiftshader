@@ -86,8 +86,9 @@ public:
   bool hasFramePointer() const override { return UsesFramePointer; }
   void setHasFramePointer() override { UsesFramePointer = true; }
   SizeT getStackReg() const override { return RegARM32::Reg_sp; }
+  SizeT getFrameReg() const override { return RegARM32::Reg_fp; }
   SizeT getFrameOrStackReg() const override {
-    return UsesFramePointer ? RegARM32::Reg_fp : RegARM32::Reg_sp;
+    return UsesFramePointer ? getFrameReg() : getStackReg();
   }
   SizeT getReservedTmpReg() const { return RegARM32::Reg_ip; }
 
@@ -97,6 +98,17 @@ public:
     return (typeWidthInBytes(Ty) + 3) & ~3;
   }
   uint32_t getStackAlignment() const override;
+  void reserveFixedAllocaArea(size_t Size, size_t Align) override {
+    // TODO(sehr,jpp): Implement fixed stack layout.
+    (void)Size;
+    (void)Align;
+    llvm::report_fatal_error("Not yet implemented");
+  }
+  int32_t getFrameFixedAllocaOffset() const override {
+    // TODO(sehr,jpp): Implement fixed stack layout.
+    llvm::report_fatal_error("Not yet implemented");
+    return 0;
+  }
 
   bool shouldSplitToVariable64On32(Type Ty) const override {
     return Ty == IceType_i64;

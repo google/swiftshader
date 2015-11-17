@@ -586,7 +586,7 @@ private:
     uint32_t Align = Inst->getAlignment();
     Ice::Variable *Dest = mapValueToIceVar(Inst, Ice::getPointerType());
 
-    return Ice::InstAlloca::create(Func.get(), ByteCount, Align, Dest);
+    return Ice::InstAlloca::create(Func.get(), Dest, ByteCount, Align);
   }
 
   Ice::Inst *convertUnreachableInstruction(const UnreachableInst * /*Inst*/) {

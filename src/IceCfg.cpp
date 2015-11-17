@@ -494,53 +494,44 @@ void Cfg::sortAndCombineAllocas(CfgVector<Inst *> &Allocas,
   uint32_t TotalSize = Utils::applyAlignment(CurrentOffset, CombinedAlignment);
   // Ensure every alloca was assigned an offset.
   assert(Allocas.size() == Offsets.size());
-  Variable *BaseVariable = makeVariable(IceType_i32);
-  Variable *AllocaDest = BaseVariable;
-  // Emit one addition for each alloca after the first.
-  for (size_t i = 0; i < Allocas.size(); ++i) {
-    auto *Alloca = llvm::cast<InstAlloca>(Allocas[i]);
-    switch (BaseVariableType) {
-    case BVT_FramePointer:
-    case BVT_UserPointer: {
+
+  switch (BaseVariableType) {
+  case BVT_UserPointer: {
+    Variable *BaseVariable = makeVariable(IceType_i32);
+    for (SizeT i = 0; i < Allocas.size(); ++i) {
+      auto *Alloca = llvm::cast<InstAlloca>(Allocas[i]);
       // Emit a new addition operation to replace the alloca.
       Operand *AllocaOffset = Ctx->getConstantInt32(Offsets[i]);
       InstArithmetic *Add =
           InstArithmetic::create(this, InstArithmetic::Add, Alloca->getDest(),
                                  BaseVariable, AllocaOffset);
       Insts.push_front(Add);
-    } break;
-    case BVT_StackPointer: {
+      Alloca->setDeleted();
+    }
+    Operand *AllocaSize = Ctx->getConstantInt32(TotalSize);
+    InstAlloca *CombinedAlloca =
+        InstAlloca::create(this, BaseVariable, AllocaSize, CombinedAlignment);
+    CombinedAlloca->setKnownFrameOffset();
+    Insts.push_front(CombinedAlloca);
+  } break;
+  case BVT_StackPointer:
+  case BVT_FramePointer: {
+    for (SizeT i = 0; i < Allocas.size(); ++i) {
+      auto *Alloca = llvm::cast<InstAlloca>(Allocas[i]);
       // Emit a fake definition of the rematerializable variable.
       Variable *Dest = Alloca->getDest();
       InstFakeDef *Def = InstFakeDef::create(this, Dest);
-      Dest->setRematerializable(getTarget()->getStackReg(), Offsets[i]);
+      if (BaseVariableType == BVT_StackPointer)
+        Dest->setRematerializable(getTarget()->getStackReg(), Offsets[i]);
+      else
+        Dest->setRematerializable(getTarget()->getFrameReg(), Offsets[i]);
       Insts.push_front(Def);
-    } break;
+      Alloca->setDeleted();
     }
-    Alloca->setDeleted();
-  }
-  Operand *AllocaSize = Ctx->getConstantInt32(TotalSize);
-  switch (BaseVariableType) {
-  case BVT_FramePointer: {
-    // Adjust the return of the alloca to the top of the returned region.
-    AllocaDest = makeVariable(IceType_i32);
-    InstArithmetic *Add = InstArithmetic::create(
-        this, InstArithmetic::Add, BaseVariable, AllocaDest, AllocaSize);
-    Insts.push_front(Add);
+    // Allocate the fixed area in the function prolog.
+    getTarget()->reserveFixedAllocaArea(TotalSize, CombinedAlignment);
   } break;
-  case BVT_StackPointer: {
-    // Emit a fake use to keep the Alloca live.
-    InstFakeUse *Use = InstFakeUse::create(this, AllocaDest);
-    Insts.push_front(Use);
-  } break;
-  case BVT_UserPointer:
-    break;
   }
-  // And insert the fused alloca.
-  InstAlloca *CombinedAlloca =
-      InstAlloca::create(this, AllocaSize, CombinedAlignment, AllocaDest);
-  CombinedAlloca->setKnownFrameOffset();
-  Insts.push_front(CombinedAlloca);
 }
 
 void Cfg::processAllocas(bool SortAndCombine) {
@@ -595,7 +586,7 @@ void Cfg::processAllocas(bool SortAndCombine) {
   // Allocas in the entry block that have constant size and alignment greater
   // than the function's stack alignment.
   CfgVector<Inst *> AlignedAllocas;
-  // Maximum alignment used for the dynamic/aligned allocas.
+  // Maximum alignment used by any alloca.
   uint32_t MaxAlignment = StackAlignment;
   for (Inst &Instr : EntryNode->getInsts()) {
     if (auto *Alloca = llvm::dyn_cast<InstAlloca>(&Instr)) {
@@ -623,14 +614,16 @@ void Cfg::processAllocas(bool SortAndCombine) {
     // do not have a known offset from either the stack or frame pointer.
     // They grow up from a user pointer from an alloca.
     sortAndCombineAllocas(AlignedAllocas, MaxAlignment, Insts, BVT_UserPointer);
+    // Fixed size allocas are addressed relative to the frame pointer.
+    sortAndCombineAllocas(FixedAllocas, StackAlignment, Insts,
+                          BVT_FramePointer);
+  } else {
+    // Otherwise, fixed size allocas are addressed relative to the stack unless
+    // there are dynamic allocas.
+    const AllocaBaseVariableType BasePointerType =
+        (HasDynamicAllocation ? BVT_FramePointer : BVT_StackPointer);
+    sortAndCombineAllocas(FixedAllocas, MaxAlignment, Insts, BasePointerType);
   }
-  // Otherwise, fixed size allocas are always addressed relative to the stack
-  // unless there are dynamic allocas.
-  // TODO(sehr): re-enable frame pointer and decrementing addressing.
-  AllocaBaseVariableType BasePointerType =
-      (HasDynamicAllocation ? BVT_UserPointer : BVT_StackPointer);
-  sortAndCombineAllocas(FixedAllocas, MaxAlignment, Insts, BasePointerType);
-
   if (!FixedAllocas.empty() || !AlignedAllocas.empty())
     // No use calling findRematerializable() unless there is some
     // rematerializable alloca instruction to seed it.

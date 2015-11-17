@@ -89,9 +89,9 @@ public:
   bool hasFramePointer() const override { return IsEbpBasedFrame; }
   void setHasFramePointer() override { IsEbpBasedFrame = true; }
   SizeT getStackReg() const override { return Traits::RegisterSet::Reg_esp; }
+  SizeT getFrameReg() const override { return Traits::RegisterSet::Reg_ebp; }
   SizeT getFrameOrStackReg() const override {
-    return IsEbpBasedFrame ? Traits::RegisterSet::Reg_ebp
-                           : Traits::RegisterSet::Reg_esp;
+    return IsEbpBasedFrame ? getFrameReg() : getStackReg();
   }
   size_t typeWidthInBytesOnStack(Type Ty) const override {
     // Round up to the next multiple of WordType bytes.
@@ -100,6 +100,16 @@ public:
   }
   uint32_t getStackAlignment() const override {
     return Traits::X86_STACK_ALIGNMENT_BYTES;
+  }
+  void reserveFixedAllocaArea(size_t Size, size_t Align) override {
+    FixedAllocaSizeBytes = Size;
+    assert(llvm::isPowerOf2_32(Align));
+    FixedAllocaAlignBytes = Align;
+    PrologEmitsFixedAllocas = true;
+  }
+  /// Returns the (negative) offset from ebp/rbp where the fixed Allocas start.
+  int32_t getFrameFixedAllocaOffset() const override {
+    return FixedAllocaSizeBytes - SpillAreaSizeBytes;
   }
 
   bool shouldSplitToVariable64On32(Type Ty) const override {
@@ -691,6 +701,8 @@ protected:
   bool NeedsStackAlignment = false;
   size_t SpillAreaSizeBytes = 0;
   size_t FixedAllocaSizeBytes = 0;
+  size_t FixedAllocaAlignBytes = 0;
+  bool PrologEmitsFixedAllocas = false;
   static std::array<llvm::SmallBitVector, RCX86_NUM> TypeToRegisterSet;
   static std::array<llvm::SmallBitVector, Traits::RegisterSet::Reg_NUM>
       RegisterAliases;

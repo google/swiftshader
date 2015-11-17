@@ -487,7 +487,8 @@ void ConstantRelocatable::emit(TargetLowering *Target) const {
   Target->emit(this);
 }
 
-void ConstantRelocatable::emitWithoutPrefix(TargetLowering *Target) const {
+void ConstantRelocatable::emitWithoutPrefix(
+    const TargetLowering *Target) const {
   Target->emitWithoutPrefix(this);
 }
 

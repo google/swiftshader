@@ -368,7 +368,13 @@ void TargetLowering::getVarStackSlotParams(
   VarList SpilledVariables;
   for (Variable *Var : Variables) {
     if (Var->hasReg()) {
-      RegsUsed[Var->getRegNum()] = true;
+      // Don't consider a rematerializable variable to be an actual register use
+      // (specifically of the frame pointer).  Otherwise, the prolog may decide
+      // to save the frame pointer twice - once because of the explicit need for
+      // a frame pointer, and once because of an active use of a callee-save
+      // register.
+      if (!Var->isRematerializable())
+        RegsUsed[Var->getRegNum()] = true;
       continue;
     }
     // An argument either does not need a stack slot (if passed in a register)
