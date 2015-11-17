@@ -299,7 +299,9 @@ make_symlink: $(OBJDIR)/pnacl-sz
 	@echo "Build Attributes:"
 	@$(SHOW_BUILD_ATTS)
 
-.PHONY: all make_symlink runtime bloat sb docs
+.PHONY: all compile_only make_symlink runtime bloat sb docs
+
+compile_only: $(OBJS)
 
 $(OBJDIR)/pnacl-sz: $(OBJS)
 	$(CXX) $(LDFLAGS) -o $@ $^ $(LLVM_LDFLAGS) \
@@ -429,27 +431,43 @@ check-spec: $(ALLSPEC:=.spec2k)
 
 check: check-lit check-unit check-xtest
 
-NPROCS := $(shell grep processor /proc/cpuinfo | wc -l)
-
-check-presubmit:
+check-presubmit presubmit:
+# Make sure clang-format gets run.
 	+make -f Makefile.standalone format
-	git diff --quiet
+# Verify MINIMAL build, plus proper usage of REQUIRES in lit tests.
 	+make -f Makefile.standalone \
           MINIMAL=1 check
+# Check the x86 assembler unit tests.
 	+make -f Makefile.standalone \
           DEBUG=1 CHECK_X86_ASM=1 check-unit
+# Check that there are no g++ build errors or warnings.
+	+make -f Makefile.standalone clean
+	+make -f Makefile.standalone compile_only \
+          CXX=g++ STDLIB_FLAGS= \
+          LLVM_EXTRA_WARNINGS="-Wno-unknown-pragmas -Wno-unused-parameter \
+          -Wno-comment -Wno-enum-compare -Wno-strict-aliasing"
+	+make -f Makefile.standalone clean
+# Run spec2k for x86-32.
 	+make -f Makefile.standalone \
           check check-spec
+# Build spec2k under -Om1/x86-32, to check for liveness errors.
 	+make -f Makefile.standalone \
           SPECFLAGS='-Om1' SPECBUILDONLY=true check-spec
+# Run spec2k for x86-32 without advanced phi lowering.
 	+make -f Makefile.standalone \
           SPECFLAGS='--sz=--phi-edge-split=0' check-spec
+# Build spec2k for arm32.
 	+make -f Makefile.standalone \
           TARGET=arm32 SPECBUILDONLY=true check-spec
+# Build spec2k under -Om1/arm32.
 	+make -f Makefile.standalone \
           TARGET=arm32 SPECFLAGS='-Om1' SPECBUILDONLY=true check-spec
+# Run a few spec2k tests for arm32 using qemu.
 	+make -f Makefile.standalone \
           TARGET=arm32 ALLSPEC='176.gcc 181.mcf 254.gap' check-spec
+# Verify that all changes are committed (including clang-format above).
+	git diff --quiet
+# Provide validation of user awesomeness!
 	echo Success
 
 FORMAT_BLACKLIST =
