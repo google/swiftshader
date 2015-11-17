@@ -5511,7 +5511,7 @@ namespace {
 template <typename T> bool isPositiveZero(T Val) {
   static_assert(std::is_floating_point<T>::value,
                 "Input type must be floating point");
-  return Val == 0 && !signbit(Val);
+  return Val == 0 && !std::signbit(Val);
 }
 
 } // end of anonymous namespace

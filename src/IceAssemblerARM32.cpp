@@ -155,6 +155,9 @@ IValueT encodeShift(OperandARM32::ShiftKind Shift) {
   case OperandARM32::RRX:
     return 3; // 0b11
   }
+
+  llvm::report_fatal_error("Unknown Shift value");
+  return 0;
 }
 
 // Returns the bits in the corresponding masked value.

@@ -88,12 +88,12 @@ const char *MachineTraits<TargetX8664>::TargetName = "X8664";
 
 template <>
 std::array<llvm::SmallBitVector, RCX86_NUM>
-    TargetX86Base<TargetX8664>::TypeToRegisterSet = {};
+    TargetX86Base<TargetX8664>::TypeToRegisterSet = {{}};
 
 template <>
 std::array<llvm::SmallBitVector,
            TargetX86Base<TargetX8664>::Traits::RegisterSet::Reg_NUM>
-    TargetX86Base<TargetX8664>::RegisterAliases = {};
+    TargetX86Base<TargetX8664>::RegisterAliases = {{}};
 
 template <>
 llvm::SmallBitVector
