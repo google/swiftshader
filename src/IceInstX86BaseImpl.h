@@ -2547,20 +2547,17 @@ template <class Machine> void InstX86Fld<Machine>::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 1);
   Type Ty = this->getSrc(0)->getType();
-  SizeT Width = typeWidthInBytes(Ty);
   const auto *Var = llvm::dyn_cast<Variable>(this->getSrc(0));
   if (Var && Var->hasReg()) {
     // This is a physical xmm register, so we need to spill it to a temporary
-    // stack slot.
-    Str << "\tsubl\t$" << Width << ", %esp"
-        << "\n";
+    // stack slot.  Function prolog emission guarantees that there is sufficient
+    // space to do this.
     Str << "\tmov"
         << InstX86Base<Machine>::Traits::TypeAttributes[Ty].SdSsString << "\t";
     Var->emit(Func);
     Str << ", (%esp)\n";
     Str << "\tfld" << this->getFldString(Ty) << "\t"
-        << "(%esp)\n";
-    Str << "\taddl\t$" << Width << ", %esp";
+        << "(%esp)";
     return;
   }
   Str << "\tfld" << this->getFldString(Ty) << "\t";
@@ -2578,11 +2575,8 @@ void InstX86Fld<Machine>::emitIAS(const Cfg *Func) const {
   if (const auto *Var = llvm::dyn_cast<Variable>(Src)) {
     if (Var->hasReg()) {
       // This is a physical xmm register, so we need to spill it to a temporary
-      // stack slot.
-      Immediate Width(typeWidthInBytes(Ty));
-      Asm->sub(IceType_i32,
-               InstX86Base<Machine>::Traits::RegisterSet::Encoded_Reg_esp,
-               Width);
+      // stack slot.  Function prolog emission guarantees that there is
+      // sufficient space to do this.
       typename InstX86Base<Machine>::Traits::Address StackSlot =
           typename InstX86Base<Machine>::Traits::Address(
               InstX86Base<Machine>::Traits::RegisterSet::Encoded_Reg_esp, 0,
@@ -2590,9 +2584,6 @@ void InstX86Fld<Machine>::emitIAS(const Cfg *Func) const {
       Asm->movss(Ty, StackSlot,
                  InstX86Base<Machine>::Traits::getEncodedXmm(Var->getRegNum()));
       Asm->fld(Ty, StackSlot);
-      Asm->add(IceType_i32,
-               InstX86Base<Machine>::Traits::RegisterSet::Encoded_Reg_esp,
-               Width);
     } else {
       typename InstX86Base<Machine>::Traits::Address StackAddr(
           Target->stackVarToAsmOperand(Var));
@@ -2646,7 +2637,6 @@ void InstX86Fstp<Machine>::emit(const Cfg *Func) const {
       << "\t"
       << "(%esp), ";
   this->getDest()->emit(Func);
-  Str << "\n";
 }
 
 template <class Machine>

@@ -497,6 +497,18 @@ void TargetX8632::addProlog(CfgNode *Node) {
   uint32_t GlobalsAndSubsequentPaddingSize =
       GlobalsSize + LocalsSlotsPaddingBytes;
 
+  // Functions returning scalar floating point types may need to convert values
+  // from an in-register xmm value to the top of the x87 floating point stack.
+  // This is done by a movp[sd] and an fld[sd].  Ensure there is enough scratch
+  // space on the stack for this.
+  const Type ReturnType = Func->getReturnType();
+  if (isScalarFloatingType(ReturnType)) {
+    // Avoid misaligned double-precicion load/store.
+    NeedsStackAlignment = true;
+    SpillAreaSizeBytes =
+        std::max(typeWidthInBytesOnStack(ReturnType), SpillAreaSizeBytes);
+  }
+
   // Align esp if necessary.
   if (NeedsStackAlignment) {
     uint32_t StackOffset =

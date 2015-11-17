@@ -66,6 +66,7 @@ public:
   void setFunctionName(const IceString &Name) { FunctionName = Name; }
   IceString getFunctionName() const { return FunctionName; }
   void setReturnType(Type Ty) { ReturnType = Ty; }
+  Type getReturnType() const { return ReturnType; }
   /// @}
 
   /// \name Manage the "internal" attribute of the function.

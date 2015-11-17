@@ -386,11 +386,11 @@ define void @_start(i32) {
 
 ; CHECK: Relocations [
 ; CHECK:   Section ({{[0-9]+}}) .rel.text {
-; CHECK:     0x4 R_386_32 .L$float$80000000 0x0
-; CHECK:     0xC R_386_32 .L$float$3f9d70a0 0x0
-; CHECK:     0x24 R_386_32 .L$double$ffffffffffffffff 0x0
-; CHECK:     0x2C R_386_32 .L$double$fff7ffffffffffff 0x0
-; CHECK:     0x34 R_386_32 .L$double$fff8000000000003 0x0
+; CHECK:     0x7 R_386_32 .L$float$80000000 0x0
+; CHECK:     0xF R_386_32 .L$float$3f9d70a0 0x0
+; CHECK:     0x27 R_386_32 .L$double$ffffffffffffffff 0x0
+; CHECK:     0x2F R_386_32 .L$double$fff7ffffffffffff 0x0
+; CHECK:     0x37 R_386_32 .L$double$fff8000000000003 0x0
 ; CHECK:     0x{{.*}} R_386_PC32 memcpy
 ; CHECK:     0x{{.*}} R_386_PC32 memset
 ; CHECK:     0x{{.*}} R_386_PC32 external_foo

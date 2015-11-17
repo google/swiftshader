@@ -61,6 +61,7 @@ entry:
   ret float %result
 }
 ; CHECK-LABEL: floatAddLeft
+; CHECK-NEXT: sub esp,0xc
 ; CHECK-NEXT: movss xmm0,DWORD PTR
 ; CHECK-NEXT: movss xmm1,DWORD PTR
 ; CHECK-NEXT: addss xmm1,xmm0
@@ -73,6 +74,7 @@ entry:
   ret float %result
 }
 ; CHECK-LABEL: floatAddRight
+; CHECK-NEXT: sub esp,0xc
 ; CHECK-NEXT: movss xmm0,DWORD PTR
 ; CHECK-NEXT: movss xmm1,DWORD PTR
 ; CHECK-NEXT: addss xmm0,xmm1
@@ -85,6 +87,7 @@ entry:
   ret float %result
 }
 ; CHECK-LABEL: floatMultiplyLeft
+; CHECK-NEXT: sub esp,0xc
 ; CHECK-NEXT: movss xmm0,DWORD PTR
 ; CHECK-NEXT: movss xmm1,DWORD PTR
 ; CHECK-NEXT: mulss xmm1,xmm0
@@ -97,6 +100,7 @@ entry:
   ret float %result
 }
 ; CHECK-LABEL: floatMultiplyRight
+; CHECK-NEXT: sub esp,0xc
 ; CHECK-NEXT: movss xmm0,DWORD PTR
 ; CHECK-NEXT: movss xmm1,DWORD PTR
 ; CHECK-NEXT: mulss xmm0,xmm1
