@@ -1300,11 +1300,9 @@ void TargetARM32::div0Check(Type Ty, Operand *SrcLo, Operand *SrcHi) {
     llvm::report_fatal_error("Unexpected type");
   case IceType_i8:
   case IceType_i16: {
-    Operand *ShAmtF =
-        legalize(Ctx->getConstantInt32(32 - getScalarIntBitWidth(Ty)),
-                 Legal_Reg | Legal_Flex);
+    Operand *ShAmtImm = shAmtImm(32 - getScalarIntBitWidth(Ty));
     Variable *T = makeReg(IceType_i32);
-    _lsls(T, SrcLoReg, ShAmtF);
+    _lsls(T, SrcLoReg, ShAmtImm);
     Context.insert(InstFakeUse::create(Func, T));
   } break;
   case IceType_i32: {
@@ -1454,10 +1452,6 @@ public:
     return legalizeToReg(Target, Swapped ? Src0 : Src1);
   }
 
-  Operand *unswappedSrc1RF(TargetARM32 *Target) const {
-    return legalizeToRegOrFlex(Target, Swapped ? Src0 : Src1);
-  }
-
 protected:
   Operand *const Src0;
   Operand *const Src1;
@@ -1521,6 +1515,13 @@ class Int32Operands : public NumericOperands<ConstantInteger32> {
 
 public:
   Int32Operands(Operand *S0, Operand *S1) : NumericOperands(S0, S1) {}
+
+  Operand *unswappedSrc1RShAmtImm(TargetARM32 *Target) const {
+    if (!swappedOperands() && hasConstOperand()) {
+      return Target->shAmtImm(getConstantValue() & 0x1F);
+    }
+    return legalizeToReg(Target, Swapped ? Src0 : Src1);
+  }
 
   bool immediateIsFlexEncodable() const {
     uint32_t Rotate, Imm8;
@@ -1738,8 +1739,7 @@ void TargetARM32::lowerInt64Arithmetic(InstArithmetic::OpKind Op,
         if (ShAmtImm == 32) {
           _mov(DestHi, Src0RLo);
         } else {
-          Operand *ShAmtOp = legalize(Ctx->getConstantInt32(ShAmtImm - 32),
-                                      Legal_Reg | Legal_Flex);
+          Operand *ShAmtOp = shAmtImm(ShAmtImm - 32);
           _lsl(T_Hi, Src0RLo, ShAmtOp);
           _mov(DestHi, T_Hi);
         }
@@ -1752,10 +1752,8 @@ void TargetARM32::lowerInt64Arithmetic(InstArithmetic::OpKind Op,
       }
 
       Variable *Src0RHi = SrcsHi.src0R(this);
-      Operand *ShAmtOp =
-          legalize(Ctx->getConstantInt32(ShAmtImm), Legal_Reg | Legal_Flex);
-      Operand *ComplShAmtOp = legalize(Ctx->getConstantInt32(32 - ShAmtImm),
-                                       Legal_Reg | Legal_Flex);
+      Operand *ShAmtOp = shAmtImm(ShAmtImm);
+      Operand *ComplShAmtOp = shAmtImm(32 - ShAmtImm);
       _lsl(T_Hi, Src0RHi, ShAmtOp);
       _orr(T_Hi, T_Hi,
            OperandARM32FlexReg::create(Func, IceType_i32, Src0RLo,
@@ -1828,30 +1826,28 @@ void TargetARM32::lowerInt64Arithmetic(InstArithmetic::OpKind Op,
     if (!SrcsLo.swappedOperands() && SrcsLo.hasConstOperand()) {
       Variable *Src0RHi = SrcsHi.src0R(this);
       // Truncating the ShAmt to [0, 63] because that's what ARM does anyway.
-      const int32_t ShAmtImm = SrcsLo.getConstantValue() & 0x3F;
-      if (ShAmtImm == 0) {
+      const int32_t ShAmt = SrcsLo.getConstantValue() & 0x3F;
+      if (ShAmt == 0) {
         _mov(DestHi, Src0RHi);
         _mov(DestLo, SrcsLo.src0R(this));
         return;
       }
 
-      if (ShAmtImm >= 32) {
-        if (ShAmtImm == 32) {
+      if (ShAmt >= 32) {
+        if (ShAmt == 32) {
           _mov(DestLo, Src0RHi);
         } else {
-          Operand *ShAmtOp = legalize(Ctx->getConstantInt32(ShAmtImm - 32),
-                                      Legal_Reg | Legal_Flex);
+          Operand *ShAmtImm = shAmtImm(ShAmt - 32);
           if (ASR) {
-            _asr(T_Lo, Src0RHi, ShAmtOp);
+            _asr(T_Lo, Src0RHi, ShAmtImm);
           } else {
-            _lsr(T_Lo, Src0RHi, ShAmtOp);
+            _lsr(T_Lo, Src0RHi, ShAmtImm);
           }
           _mov(DestLo, T_Lo);
         }
 
         if (ASR) {
-          Operand *_31 = legalize(Ctx->getConstantZero(IceType_i32),
-                                  Legal_Reg | Legal_Flex);
+          Operand *_31 = shAmtImm(31);
           _asr(T_Hi, Src0RHi, _31);
         } else {
           Operand *_0 = legalize(Ctx->getConstantZero(IceType_i32),
@@ -1863,20 +1859,18 @@ void TargetARM32::lowerInt64Arithmetic(InstArithmetic::OpKind Op,
       }
 
       Variable *Src0RLo = SrcsLo.src0R(this);
-      Operand *ShAmtOp =
-          legalize(Ctx->getConstantInt32(ShAmtImm), Legal_Reg | Legal_Flex);
-      Operand *ComplShAmtOp = legalize(Ctx->getConstantInt32(32 - ShAmtImm),
-                                       Legal_Reg | Legal_Flex);
-      _lsr(T_Lo, Src0RLo, ShAmtOp);
+      Operand *ShAmtImm = shAmtImm(ShAmt);
+      Operand *ComplShAmtImm = shAmtImm(32 - ShAmt);
+      _lsr(T_Lo, Src0RLo, ShAmtImm);
       _orr(T_Lo, T_Lo,
            OperandARM32FlexReg::create(Func, IceType_i32, Src0RHi,
-                                       OperandARM32::LSL, ComplShAmtOp));
+                                       OperandARM32::LSL, ComplShAmtImm));
       _mov(DestLo, T_Lo);
 
       if (ASR) {
-        _asr(T_Hi, Src0RHi, ShAmtOp);
+        _asr(T_Hi, Src0RHi, ShAmtImm);
       } else {
-        _lsr(T_Hi, Src0RHi, ShAmtOp);
+        _lsr(T_Hi, Src0RHi, ShAmtImm);
       }
       _mov(DestHi, T_Hi);
       return;
@@ -2151,7 +2145,7 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
   }
   case InstArithmetic::Shl: {
     Variable *Src0R = Srcs.unswappedSrc0R(this);
-    Operand *Src1R = Srcs.unswappedSrc1RF(this);
+    Operand *Src1R = Srcs.unswappedSrc1RShAmtImm(this);
     _lsl(T, Src0R, Src1R);
     _mov(Dest, T);
     return;
@@ -2161,7 +2155,7 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
     if (Dest->getType() != IceType_i32) {
       _uxt(Src0R, Src0R);
     }
-    _lsr(T, Src0R, Srcs.unswappedSrc1RF(this));
+    _lsr(T, Src0R, Srcs.unswappedSrc1RShAmtImm(this));
     _mov(Dest, T);
     return;
   }
@@ -2170,7 +2164,7 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
     if (Dest->getType() != IceType_i32) {
       _sxt(Src0R, Src0R);
     }
-    _asr(T, Src0R, Srcs.unswappedSrc1RF(this));
+    _asr(T, Src0R, Srcs.unswappedSrc1RShAmtImm(this));
     _mov(Dest, T);
     return;
   }
@@ -3185,22 +3179,21 @@ TargetARM32::lowerInt8AndInt16IcmpCond(InstIcmp::ICond Condition, Operand *Src0,
 
   if (!Srcs.hasConstOperand()) {
     Variable *Src0R = makeReg(IceType_i32);
-    Operand *ShAmtF =
-        legalize(Ctx->getConstantInt32(ShAmt), Legal_Reg | Legal_Flex);
-    _lsl(Src0R, legalizeToReg(Src0), ShAmtF);
+    Operand *ShAmtImm = shAmtImm(ShAmt);
+    _lsl(Src0R, legalizeToReg(Src0), ShAmtImm);
 
     Variable *Src1R = legalizeToReg(Src1);
     OperandARM32FlexReg *Src1F = OperandARM32FlexReg::create(
-        Func, IceType_i32, Src1R, OperandARM32::LSL, ShAmtF);
+        Func, IceType_i32, Src1R, OperandARM32::LSL, ShAmtImm);
     _cmp(Src0R, Src1F);
     return CondWhenTrue(getIcmp32Mapping(Condition));
   }
 
   const int32_t Value = Srcs.getConstantValue();
   if ((Condition == InstIcmp::Eq || Condition == InstIcmp::Ne) && Value == 0) {
-    Operand *ShAmtOp = Ctx->getConstantInt32(ShAmt);
+    Operand *ShAmtImm = shAmtImm(ShAmt);
     Variable *T = makeReg(IceType_i32);
-    _lsls(T, Srcs.src0R(this), ShAmtOp);
+    _lsls(T, Srcs.src0R(this), ShAmtImm);
     Context.insert(InstFakeUse::create(Func, T));
     return CondWhenTrue(getIcmp32Mapping(Condition));
   }
@@ -3777,9 +3770,8 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
       Variable *T = makeReg(Ty);
       _rev(T, ValR);
       if (Val->getType() == IceType_i16) {
-        Operand *Sixteen =
-            legalize(Ctx->getConstantInt32(16), Legal_Reg | Legal_Flex);
-        _lsr(T, T, Sixteen);
+        Operand *_16 = shAmtImm(16);
+        _lsr(T, T, _16);
       }
       _mov(Dest, T);
     }
@@ -4573,9 +4565,9 @@ void TargetARM32::lowerSwitch(const InstSwitch *Inst) {
   const size_t ShiftAmt = 32 - getScalarIntBitWidth(Src0->getType());
   assert(ShiftAmt < 32);
   if (ShiftAmt > 0) {
-    Operand *ShiftConst = Ctx->getConstantInt32(ShiftAmt);
+    Operand *ShAmtImm = shAmtImm(ShiftAmt);
     Variable *T = makeReg(IceType_i32);
-    _lsl(T, Src0Var, ShiftConst);
+    _lsl(T, Src0Var, ShAmtImm);
     Src0Var = T;
   }
 

@@ -247,6 +247,9 @@ OperandARM32Mem::OperandARM32Mem(Cfg *Func, Type Ty, Variable *Base,
   Vars[1] = Index;
 }
 
+OperandARM32ShAmtImm::OperandARM32ShAmtImm(ConstantInteger32 *SA)
+    : OperandARM32(kShAmtImm, IceType_i8), ShAmt(SA) {}
+
 bool OperandARM32Mem::canHoldOffset(Type Ty, bool SignExt, int32_t Offset) {
   int32_t Bits = SignExt ? TypeARM32Attributes[Ty].SExtAddrOffsetBits
                          : TypeARM32Attributes[Ty].ZExtAddrOffsetBits;
@@ -1769,6 +1772,12 @@ void OperandARM32Mem::dump(const Cfg *Func, Ostream &Str) const {
     getOffset()->dump(Func, Str);
   }
   Str << "] AddrMode==" << getAddrMode();
+}
+
+void OperandARM32ShAmtImm::emit(const Cfg *Func) const { ShAmt->emit(Func); }
+
+void OperandARM32ShAmtImm::dump(const Cfg *, Ostream &Str) const {
+  ShAmt->dump(Str);
 }
 
 void OperandARM32FlexImm::emit(const Cfg *Func) const {

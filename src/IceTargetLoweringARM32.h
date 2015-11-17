@@ -156,6 +156,13 @@ public:
                     int32_t RegNum = Variable::NoRegister);
   Variable *legalizeToReg(Operand *From, int32_t RegNum = Variable::NoRegister);
 
+  OperandARM32ShAmtImm *shAmtImm(uint32_t ShAmtImm) const {
+    assert(ShAmtImm < 32);
+    return OperandARM32ShAmtImm::create(
+        Func,
+        llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(ShAmtImm & 0x1F)));
+  }
+
   GlobalContext *getCtx() const { return Ctx; }
 
 protected:

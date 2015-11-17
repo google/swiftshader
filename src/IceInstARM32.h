@@ -38,6 +38,7 @@ public:
   enum OperandKindARM32 {
     k__Start = Operand::kTarget,
     kMem,
+    kShAmtImm,
     kFlexStart,
     kFlexImm = kFlexStart,
     kFlexFpImm,
@@ -150,6 +151,36 @@ private:
   ShiftKind ShiftOp;
   uint16_t ShiftAmt;
   AddrMode Mode;
+};
+
+/// OperandARM32ShAmtImm represents an Immediate that is used in one of the
+/// shift-by-immediate instructions (lsl, lsr, and asr), and shift-by-immediate
+/// shifted registers.
+class OperandARM32ShAmtImm : public OperandARM32 {
+  OperandARM32ShAmtImm() = delete;
+  OperandARM32ShAmtImm(const OperandARM32ShAmtImm &) = delete;
+  OperandARM32ShAmtImm &operator=(const OperandARM32ShAmtImm &) = delete;
+
+public:
+  static OperandARM32ShAmtImm *create(Cfg *Func, ConstantInteger32 *ShAmt) {
+    return new (Func->allocate<OperandARM32ShAmtImm>())
+        OperandARM32ShAmtImm(ShAmt);
+  }
+
+  static bool classof(const Operand *Operand) {
+    return Operand->getKind() == static_cast<OperandKind>(kShAmtImm);
+  }
+
+  void emit(const Cfg *Func) const override;
+  using OperandARM32::dump;
+  void dump(const Cfg *Func, Ostream &Str) const override;
+
+  uint32_t getShAmtImm() const { return ShAmt->getValue(); }
+
+private:
+  explicit OperandARM32ShAmtImm(ConstantInteger32 *SA);
+
+  const ConstantInteger32 *const ShAmt;
 };
 
 /// OperandARM32Flex represent the "flexible second operand" for data-processing
