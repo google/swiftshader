@@ -45,13 +45,23 @@ using IValueT = uint32_t;
 using IOffsetT = int32_t;
 
 /// Handles encoding of bottom/top 16 bits of an address using movw/movt.
-class MoveRelocatableFixup : public AssemblerFixup {
+class MoveRelocatableFixup final : public AssemblerFixup {
   MoveRelocatableFixup &operator=(const MoveRelocatableFixup &) = delete;
   MoveRelocatableFixup(const MoveRelocatableFixup &) = default;
 
 public:
   MoveRelocatableFixup() = default;
-  size_t emit(GlobalContext *Ctx, const Assembler &Asm) const override;
+  size_t emit(GlobalContext *Ctx, const Assembler &Asm) const final;
+};
+
+/// Handles encoding of branch and link to global location.
+class BlRelocatableFixup final : public AssemblerFixup {
+  BlRelocatableFixup(const BlRelocatableFixup &) = delete;
+  BlRelocatableFixup &operator=(const BlRelocatableFixup &) = delete;
+
+public:
+  BlRelocatableFixup() = default;
+  size_t emit(GlobalContext *Ctx, const Assembler &Asm) const final;
 };
 
 class AssemblerARM32 : public Assembler {
@@ -102,6 +112,8 @@ public:
   }
 
   MoveRelocatableFixup *createMoveFixup(bool IsMovW, const Constant *Value);
+
+  BlRelocatableFixup *createBlFixup(const ConstantRelocatable *Target);
 
   void alignFunction() override {
     const SizeT Align = 1 << getBundleAlignLog2Bytes();
@@ -186,14 +198,18 @@ public:
 
   void b(Label *L, CondARM32::Cond Cond);
 
-  void bx(RegARM32::GPRRegister Rm, CondARM32::Cond Cond = CondARM32::AL);
-
   void bkpt(uint16_t Imm16);
-
-  void cmp(const Operand *OpRn, const Operand *OpSrc1, CondARM32::Cond Cond);
 
   void bic(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
            bool SetFlags, CondARM32::Cond Cond);
+
+  void bl(const ConstantRelocatable *Target);
+
+  void blx(const Operand *Target);
+
+  void bx(RegARM32::GPRRegister Rm, CondARM32::Cond Cond = CondARM32::AL);
+
+  void cmp(const Operand *OpRn, const Operand *OpSrc1, CondARM32::Cond Cond);
 
   void eor(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
            bool SetFlags, CondARM32::Cond Cond);

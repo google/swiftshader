@@ -1005,6 +1005,26 @@ void InstARM32Call::emit(const Cfg *Func) const {
   Func->getTarget()->resetStackAdjustment();
 }
 
+void InstARM32Call::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 1);
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  if (llvm::isa<ConstantInteger32>(getCallTarget())) {
+    // This shouldn't happen (typically have to copy the full 32-bits to a
+    // register and do an indirect jump).
+    llvm::report_fatal_error("ARM32Call to ConstantInteger32");
+  } else if (const auto *CallTarget =
+                 llvm::dyn_cast<ConstantRelocatable>(getCallTarget())) {
+    // Calls only have 24-bits, but the linker should insert veneers to extend
+    // the range if needed.
+    Asm->bl(CallTarget);
+  } else {
+    Asm->blx(getCallTarget());
+  }
+  if (Asm->needsTextFixup())
+    return emitUsingTextFixup(Func);
+  Func->getTarget()->resetStackAdjustment();
+}
+
 void InstARM32Call::dump(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;

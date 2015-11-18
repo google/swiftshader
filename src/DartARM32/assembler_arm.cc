@@ -1467,7 +1467,7 @@ void Assembler::vcgtqs(QRegister qd, QRegister qn, QRegister qm) {
 
 
 #if 0
-// Moved to: ARM32::AssemblerARM32::bkpt()
+// Moved to ARM32::AssemblerARM32::bkpt()
 void Assembler::bkpt(uint16_t imm16) {
   Emit(BkptEncoding(imm16));
 }
@@ -1479,12 +1479,13 @@ void Assembler::b(Label* label, Condition cond) {
 }
 
 
+#if 0
+// Moved to ARM32::AssemblerARM32::bl()
 void Assembler::bl(Label* label, Condition cond) {
   EmitBranch(cond, label, true);
 }
 
-#if 0
-// Moved to: ARM32::AssemblerARM32::bx()
+// Moved to ARM32::AssemblerARM32::bx()
 void Assembler::bx(Register rm, Condition cond) {
   ASSERT(rm != kNoRegister);
   ASSERT(cond != kNoCondition);
@@ -1493,9 +1494,8 @@ void Assembler::bx(Register rm, Condition cond) {
                      (static_cast<int32_t>(rm) << kRmShift);
   Emit(encoding);
 }
-#endif
 
-
+// Moved to ARM32::AssemblerARM32::blx()
 void Assembler::blx(Register rm, Condition cond) {
   ASSERT(rm != kNoRegister);
   ASSERT(cond != kNoCondition);
@@ -1504,6 +1504,7 @@ void Assembler::blx(Register rm, Condition cond) {
                      (static_cast<int32_t>(rm) << kRmShift);
   Emit(encoding);
 }
+#endif
 
 
 void Assembler::MarkExceptionHandler(Label* label) {
@@ -2356,7 +2357,7 @@ void Assembler::BindARMv6(Label* label) {
 }
 
 #if 0
-// Moved to: ARM32::AssemblerARM32::bind(Label* Label)
+// Moved to ARM32::AssemblerARM32::bind(Label* Label)
 // Note: Most of this code isn't needed because instruction selection has
 // already been handler
 void Assembler::BindARMv7(Label* label) {

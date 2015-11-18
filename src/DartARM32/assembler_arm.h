@@ -28,7 +28,7 @@ class RuntimeEntry;
 class StubEntry;
 
 #if 0
-// Moved to: ARM32::AssemblerARM32 as needed
+// Moved to ARM32::AssemblerARM32 as needed
 // Instruction encoding bits.
 enum {
   H   = 1 << 5,   // halfword (or byte)
@@ -596,7 +596,7 @@ class Assembler : public ValueObject {
   void nop(Condition cond = AL);
 
 #if 0
-  // Moved to: ARM32::AssemblerARM32::bkpt()
+  // Moved to ARM32::AssemblerARM32::bkpt()
   // Note that gdb sets breakpoints using the undefined instruction 0xe7f001f0.
   void bkpt(uint16_t imm16);
 
@@ -724,13 +724,16 @@ class Assembler : public ValueObject {
   void vzipqw(QRegister qd, QRegister qm);
 
   // Branch instructions.
-  void b(Label* label, Condition cond = AL);
-  void bl(Label* label, Condition cond = AL);
 #if 0
-  // Moved to: ARM32::AssemblerARM32::bx()
+  // Moved to ARM32::AssemblerARM32::b();
+  void b(Label* label, Condition cond = AL);
+  // Moved to ARM32::AssemblerARM32::bl()
+  void bl(Label* label, Condition cond = AL);
+  // Moved to ARM32::AssemblerARM32::bx()
   void bx(Register rm, Condition cond = AL);
-#endif
+  // Moved to ARM32::AssemblerARM32::blx()
   void blx(Register rm, Condition cond = AL);
+#endif
 
   void Branch(const StubEntry& stub_entry,
               Patchability patchable = kNotPatchable,
@@ -1264,8 +1267,9 @@ class Assembler : public ValueObject {
                    DRegister dd, DRegister dn, DRegister dm);
 
   void EmitFarBranch(Condition cond, int32_t offset, bool link);
-  void EmitBranch(Condition cond, Label* label, bool link);
 #if 0
+  // Moved to ARM32::AssemblerARM32::emitBranch()
+  void EmitBranch(Condition cond, Label* label, bool link);
   // Moved to ARM32::AssemblerARM32::encodeBranchoffset().
   int32_t EncodeBranchOffset(int32_t offset, int32_t inst);
   // Moved to ARM32::AssemberARM32::decodeBranchOffset().

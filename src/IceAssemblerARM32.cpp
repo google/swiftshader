@@ -327,6 +327,27 @@ MoveRelocatableFixup *AssemblerARM32::createMoveFixup(bool IsMovW,
   return F;
 }
 
+size_t BlRelocatableFixup::emit(GlobalContext *Ctx,
+                                const Assembler &Asm) const {
+  if (!BuildDefs::dump())
+    return InstARM32::InstSize;
+  Ostream &Str = Ctx->getStrEmit();
+  IValueT Inst = Asm.load<IValueT>(position());
+  Str << "\tbl\t" << symbol(Ctx) << "\t@ .word "
+      << llvm::format_hex_no_prefix(Inst, 8) << "\n";
+  return InstARM32::InstSize;
+}
+
+BlRelocatableFixup *
+AssemblerARM32::createBlFixup(const ConstantRelocatable *Target) {
+  BlRelocatableFixup *F =
+      new (allocate<BlRelocatableFixup>()) BlRelocatableFixup();
+  F->set_kind(llvm::ELF::R_ARM_CALL);
+  F->set_value(Target);
+  Buffer.installFixup(F);
+  return F;
+}
+
 void AssemblerARM32::bindCfgNodeLabel(const CfgNode *Node) {
   GlobalContext *Ctx = Node->getCfg()->getContext();
   if (BuildDefs::dump() && !Ctx->getFlags().getDisableHybridAssembly()) {
@@ -684,6 +705,38 @@ void AssemblerARM32::bic(const Operand *OpRd, const Operand *OpRn,
   // s=SetFlags, and iiiiiiiiiiii=Src1Value defining RotatedImm8.
   IValueT Opcode = B3 | B2 | B1; // i.e. 1110
   emitType01(Opcode, OpRd, OpRn, OpSrc1, SetFlags, Cond);
+}
+
+void AssemblerARM32::bl(const ConstantRelocatable *Target) {
+  // BL (immediate) - ARM section A8.8.25, encoding A1:
+  //   bl<c> <label>
+  //
+  // cccc1011iiiiiiiiiiiiiiiiiiiiiiii where cccc=Cond (not currently allowed)
+  // and iiiiiiiiiiiiiiiiiiiiiiii is the (encoded) Target to branch to.
+  emitFixup(createBlFixup(Target));
+  constexpr CondARM32::Cond Cond = CondARM32::AL;
+  constexpr IValueT Immed = 0;
+  constexpr bool Link = true;
+  emitType05(Cond, Immed, Link);
+}
+
+void AssemblerARM32::blx(const Operand *Target) {
+  IValueT Rm;
+  if (decodeOperand(Target, Rm) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  // BLX (register) - ARM section A8.8.26, encoding A1:
+  //   blx<c> <Rm>
+  //
+  // cccc000100101111111111110011mmmm where cccc=Cond (not currently allowed)
+  // and mmmm=Rm.
+  if (Rm == RegARM32::Encoded_Reg_pc)
+    // Unpredictable.
+    return setNeedsTextFixup();
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  constexpr CondARM32::Cond Cond = CondARM32::AL;
+  int32_t Encoding = (static_cast<int32_t>(Cond) << kConditionShift) | B24 |
+                     B21 | (0xfff << 8) | B5 | B4 | (Rm << kRmShift);
+  emitInst(Encoding);
 }
 
 void AssemblerARM32::bx(RegARM32::GPRRegister Rm, CondARM32::Cond Cond) {
