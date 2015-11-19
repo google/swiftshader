@@ -686,6 +686,7 @@ private:
     void applyTextures();
     void applyTextures(sw::SamplerType type);
 	void applyTexture(sw::SamplerType type, int sampler, Texture *texture);
+	void clearColorBuffer(GLint drawbuffer, void *value, sw::Format format);
 
     void detachBuffer(GLuint buffer);
     void detachTexture(GLuint texture);

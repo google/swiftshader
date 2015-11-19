@@ -1700,6 +1700,13 @@ namespace sw
 		storeValue(integer);
 	}
 
+	UShort::UShort(RValue<Int> cast)
+	{
+		Value *integer = Nucleus::createTrunc(cast.value, UShort::getType());
+
+		storeValue(integer);
+	}
+
 	UShort::UShort()
 	{
 	}

@@ -138,7 +138,7 @@ namespace es1
 
 	void Device::clearColor(float red, float green, float blue, float alpha, unsigned int rgbaMask)
 	{
-		if(!renderTarget)
+		if(!renderTarget || !rgbaMask)
 		{
 			return;
 		}
@@ -156,7 +156,17 @@ namespace es1
 			if(height > scissorRect.y1 - scissorRect.y0) height = scissorRect.y1 - scissorRect.y0;
 		}
 
-		renderTarget->clearColorBuffer(red, green, blue, alpha, rgbaMask, x0, y0, width, height);
+		float rgba[4];
+		rgba[0] = red;
+		rgba[1] = green;
+		rgba[2] = blue;
+		rgba[3] = alpha;
+
+		sw::SliceRect sliceRect;
+		if(renderTarget->getClearRect(x0, y0, width, height, sliceRect))
+		{
+			clear(rgba, FORMAT_A32B32G32R32F, renderTarget, sliceRect, rgbaMask);
+		}
 	}
 
 	void Device::clearDepth(float z)

@@ -303,6 +303,7 @@ namespace sw
 
 		virtual ~Renderer();
 
+		virtual void clear(void* pixel, Format format, Surface *dest, const SliceRect &dRect, unsigned int rgbaMask);
 		virtual void blit(Surface *source, const SliceRect &sRect, Surface *dest, const SliceRect &dRect, bool filter);
 		virtual void blit3D(Surface *source, Surface *dest);
 		virtual void draw(DrawType drawType, unsigned int indexOffset, unsigned int count, bool update = true);

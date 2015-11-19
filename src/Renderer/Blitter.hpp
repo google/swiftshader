@@ -22,6 +22,18 @@ namespace sw
 {
 	class Blitter
 	{
+		enum Options : unsigned char
+		{
+			FILTER_POINT = 0x00,
+			WRITE_RED = 0x01,
+			WRITE_GREEN = 0x02,
+			WRITE_BLUE = 0x04,
+			WRITE_ALPHA = 0x08,
+			WRITE_RGBA = WRITE_RED | WRITE_GREEN | WRITE_BLUE | WRITE_ALPHA,
+			FILTER_LINEAR = 0x10,
+			CLEAR_OPERATION = 0x20
+		};
+
 		struct BlitState
 		{
 			bool operator==(const BlitState &state) const
@@ -31,7 +43,7 @@ namespace sw
 
 			Format sourceFormat;
 			Format destFormat;
-			bool filter;
+			Blitter::Options options;
 		};
 
 		struct BlitData
@@ -60,16 +72,19 @@ namespace sw
 
 		virtual ~Blitter();
 
+		void clear(void* pixel, sw::Format format, Surface *dest, const SliceRect &dRect, unsigned int rgbaMask);
 		void blit(Surface *source, const SliceRect &sRect, Surface *dest, const SliceRect &dRect, bool filter);
 		void blit3D(Surface *source, Surface *dest);
 
 	private:
 		bool read(Float4 &color, Pointer<Byte> element, Format format);
-		bool write(Float4 &color, Pointer<Byte> element, Format format);
+		bool write(Float4 &color, Pointer<Byte> element, Format format, const Blitter::Options& options);
 		bool read(Int4 &color, Pointer<Byte> element, Format format);
-		bool write(Int4 &color, Pointer<Byte> element, Format format);
+		bool write(Int4 &color, Pointer<Byte> element, Format format, const Blitter::Options& options);
 		static bool GetScale(float4& scale, Format format);
-		bool blitReactor(Surface *source, const SliceRect &sRect, Surface *dest, const SliceRect &dRect, bool filter);
+		static bool ApplyScaleAndClamp(Float4& value, const BlitState& state);
+		void blit(Surface *source, const SliceRect &sRect, Surface *dest, const SliceRect &dRect, const Blitter::Options& options);
+		bool blitReactor(Surface *source, const SliceRect &sRect, Surface *dest, const SliceRect &dRect, const Blitter::Options& options);
 		Routine *generate(BlitState &state);
 
 		RoutineCache<BlitState> *blitCache;

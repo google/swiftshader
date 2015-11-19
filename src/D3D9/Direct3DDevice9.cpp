@@ -435,19 +435,24 @@ namespace D3D9
 						D3DSURFACE_DESC description;
 						renderTarget[index]->GetDesc(&description);
 
-						float r = (float)(color & 0x00FF0000) / 0x00FF0000;
-						float g = (float)(color & 0x0000FF00) / 0x0000FF00;
-						float b = (float)(color & 0x000000FF) / 0x000000FF;
-						float a = (float)(color & 0xFF000000) / 0xFF000000;
+						float rgba[4];
+						rgba[0] = (float)(color & 0x00FF0000) / 0x00FF0000;
+						rgba[1] = (float)(color & 0x0000FF00) / 0x0000FF00;
+						rgba[2] = (float)(color & 0x000000FF) / 0x000000FF;
+						rgba[3] = (float)(color & 0xFF000000) / 0xFF000000;
 
 						if(renderState[D3DRS_SRGBWRITEENABLE] != FALSE && index == 0 && Capabilities::isSRGBwritable(description.Format))
 						{
-							r = sw::linearToSRGB(r);
-							g = sw::linearToSRGB(g);
-							b = sw::linearToSRGB(b);
+							rgba[0] = sw::linearToSRGB(rgba[0]);
+							rgba[1] = sw::linearToSRGB(rgba[1]);
+							rgba[2] = sw::linearToSRGB(rgba[2]);
 						}
 
-						renderTarget[index]->clearColorBuffer(r, g, b, a, 0xF, rect.x1, rect.y1, rect.x2 - rect.x1, rect.y2 - rect.y1);
+						sw::SliceRect sliceRect;
+						if(renderTarget[index]->getClearRect(rect.x1, rect.y1, rect.x2 - rect.x1, rect.y2 - rect.y1, sliceRect))
+						{
+							renderer->clear(rgba, sw::FORMAT_A32B32G32R32F, renderTarget[index], sliceRect, 0xF);
+						}
 					}
 				}
 			}

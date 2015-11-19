@@ -570,6 +570,7 @@ namespace sw
 		explicit UShort(llvm::Argument *argument);
 
 		explicit UShort(RValue<UInt> cast);
+		explicit UShort(RValue<Int> cast);
 
 		UShort();
 		UShort(unsigned short x);
