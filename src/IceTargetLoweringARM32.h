@@ -135,7 +135,7 @@ public:
   Operand *loOperand(Operand *Operand);
   Operand *hiOperand(Operand *Operand);
   void finishArgumentLowering(Variable *Arg, Variable *FramePtr,
-                              size_t BasicFrameOffset, size_t &InArgsSizeBytes);
+                              size_t BasicFrameOffset, size_t *InArgsSizeBytes);
 
   bool hasCPUFeature(TargetARM32Features::ARM32InstructionSet I) const {
     return CPUFeatures.hasFeature(I);
@@ -384,6 +384,7 @@ protected:
     // an assert around just in case there is some untested code path where Dest
     // is nullptr.
     assert(Dest != nullptr);
+    assert(!llvm::isa<OperandARM32Mem>(Src0));
     auto *Instr = InstARM32Mov::create(Func, Dest, Src0, Pred);
 
     Context.insert(Instr);
@@ -794,14 +795,14 @@ protected:
              CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Vcmp::create(Func, Src0, FpZero, Pred));
   }
+  void _veor(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert(InstARM32Veor::create(Func, Dest, Src0, Src1));
+  }
   void _vmrs(CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Vmrs::create(Func, Pred));
   }
   void _vmul(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert(InstARM32Vmul::create(Func, Dest, Src0, Src1));
-  }
-  void _veor(Variable *Dest, Variable *Src0, Variable *Src1) {
-    Context.insert(InstARM32Veor::create(Func, Dest, Src0, Src1));
   }
   void _vsqrt(Variable *Dest, Variable *Src,
               CondARM32::Cond Pred = CondARM32::AL) {
@@ -821,17 +822,27 @@ protected:
   // [OrigBaseReg, +/- Offset+StackAdjust].
   Variable *newBaseRegister(int32_t Offset, int32_t StackAdjust,
                             Variable *OrigBaseReg);
-  /// Creates a new, legal StackVariable w.r.t. ARM's Immediate requirements.
-  /// This method is not very smart: it will always create and return a new
-  /// StackVariable, even if Offset + StackAdjust is encodable.
-  StackVariable *legalizeStackSlot(Type Ty, int32_t Offset, int32_t StackAdjust,
-                                   Variable *OrigBaseReg, Variable **NewBaseReg,
-                                   int32_t *NewBaseOffset);
-  /// Legalizes Mov if its Source (or Destination) contains an invalid
-  /// immediate.
-  void legalizeMovStackAddrImm(InstARM32Mov *Mov, int32_t StackAdjust,
-                               Variable *OrigBaseReg, Variable **NewBaseReg,
-                               int32_t *NewBaseOffset);
+  /// Creates a new, legal OperandARM32Mem for accessing OrigBase + Offset +
+  /// StackAdjust. The returned mem operand is a legal operand for accessing
+  /// memory that is of type Ty.
+  ///
+  /// If [OrigBaseReg, #Offset+StackAdjust] is encodable, then the method
+  /// returns a Mem operand expressing it. Otherwise,
+  ///
+  /// if [*NewBaseReg, #Offset+StackAdjust-*NewBaseOffset] is encodable, the
+  /// method will return that. Otherwise,
+  ///
+  /// a new base register ip=OrigBaseReg+Offset+StackAdjust is created, and the
+  /// method returns [ip, #0].
+  OperandARM32Mem *createMemOperand(Type Ty, int32_t Offset,
+                                    int32_t StackAdjust, Variable *OrigBaseReg,
+                                    Variable **NewBaseReg,
+                                    int32_t *NewBaseOffset);
+  /// Legalizes Mov if its Source (or Destination) is a spilled Variable. Moves
+  /// to memory become store instructions, and moves from memory, loads.
+  void legalizeMov(InstARM32Mov *Mov, int32_t StackAdjust,
+                   Variable *OrigBaseReg, Variable **NewBaseReg,
+                   int32_t *NewBaseOffset);
 
   TargetARM32Features CPUFeatures;
   bool UsesFramePointer = false;

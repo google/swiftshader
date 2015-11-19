@@ -475,9 +475,6 @@ void TargetARM32::emitVariable(const Variable *Var) const {
       Offset += getStackAdjustment();
   }
   const Type VarTy = Var->getType();
-  if (!isLegalMemOffset(VarTy, Offset)) {
-    llvm::report_fatal_error("Illegal stack offset");
-  }
   Str << "[" << getRegName(BaseRegNum, VarTy);
   if (Offset != 0) {
     Str << ", " << getConstantPrefix() << Offset;
@@ -625,7 +622,7 @@ void TargetARM32::lowerArguments() {
 // to copy Arg into its assigned register if applicable.
 void TargetARM32::finishArgumentLowering(Variable *Arg, Variable *FramePtr,
                                          size_t BasicFrameOffset,
-                                         size_t &InArgsSizeBytes) {
+                                         size_t *InArgsSizeBytes) {
   if (auto *Arg64On32 = llvm::dyn_cast<Variable64On32>(Arg)) {
     Variable *Lo = Arg64On32->getLo();
     Variable *Hi = Arg64On32->getHi();
@@ -634,26 +631,23 @@ void TargetARM32::finishArgumentLowering(Variable *Arg, Variable *FramePtr,
     return;
   }
   Type Ty = Arg->getType();
-  InArgsSizeBytes = applyStackAlignmentTy(InArgsSizeBytes, Ty);
-  Arg->setStackOffset(BasicFrameOffset + InArgsSizeBytes);
-  InArgsSizeBytes += typeWidthInBytesOnStack(Ty);
-  // If the argument variable has been assigned a register, we need to load the
-  // value from the stack slot.
-  if (Arg->hasReg()) {
-    assert(Ty != IceType_i64);
-    // This should be simple, just load the parameter off the stack using a nice
-    // sp + imm addressing mode. Because ARM, we can't do that (e.g., VLDR, for
-    // fp types, cannot have an index register), so we legalize the memory
-    // operand instead.
-    auto *Mem = OperandARM32Mem::create(
-        Func, Ty, FramePtr, llvm::cast<ConstantInteger32>(
-                                Ctx->getConstantInt32(Arg->getStackOffset())));
-    _mov(Arg, legalizeToReg(Mem, Arg->getRegNum()));
-    // This argument-copying instruction uses an explicit OperandARM32Mem
-    // operand instead of a Variable, so its fill-from-stack operation has to
-    // be tracked separately for statistics.
-    Ctx->statsUpdateFills();
+  assert(Ty != IceType_i64);
+
+  *InArgsSizeBytes = applyStackAlignmentTy(*InArgsSizeBytes, Ty);
+  const int32_t ArgStackOffset = BasicFrameOffset + *InArgsSizeBytes;
+  *InArgsSizeBytes += typeWidthInBytesOnStack(Ty);
+
+  if (!Arg->hasReg()) {
+    Arg->setStackOffset(ArgStackOffset);
+    return;
   }
+
+  // If the argument variable has been assigned a register, we need to copy the
+  // value from the stack slot.
+  Variable *Parameter = Func->makeVariable(Ty);
+  Parameter->setMustNotHaveReg();
+  Parameter->setStackOffset(ArgStackOffset);
+  _mov(Arg, Parameter);
 }
 
 Type TargetARM32::stackSlotType() { return IceType_i32; }
@@ -754,8 +748,6 @@ void TargetARM32::addProlog(CfgNode *Node) {
       continue;
     }
     if (CalleeSaves[i] && RegsUsed[i]) {
-      // TODO(jvoung): do separate vpush for each floating point register
-      // segment and += 4, or 8 depending on type.
       ++NumCallee;
       Variable *PhysicalRegister = getPhysicalRegister(i);
       PreservedRegsSizeBytes +=
@@ -837,7 +829,7 @@ void TargetARM32::addProlog(CfgNode *Node) {
       InRegs = CC.I32InReg(&DummyReg);
     }
     if (!InRegs)
-      finishArgumentLowering(Arg, FramePtr, BasicFrameOffset, InArgsSizeBytes);
+      finishArgumentLowering(Arg, FramePtr, BasicFrameOffset, &InArgsSizeBytes);
   }
 
   // Fill in stack offsets for locals.
@@ -981,11 +973,18 @@ Variable *TargetARM32::newBaseRegister(int32_t OriginalOffset,
   return ScratchReg;
 }
 
-StackVariable *TargetARM32::legalizeStackSlot(Type Ty, int32_t Offset,
-                                              int32_t StackAdjust,
-                                              Variable *OrigBaseReg,
-                                              Variable **NewBaseReg,
-                                              int32_t *NewBaseOffset) {
+OperandARM32Mem *TargetARM32::createMemOperand(Type Ty, int32_t Offset,
+                                               int32_t StackAdjust,
+                                               Variable *OrigBaseReg,
+                                               Variable **NewBaseReg,
+                                               int32_t *NewBaseOffset) {
+  if (isLegalMemOffset(Ty, Offset + StackAdjust)) {
+    return OperandARM32Mem::create(
+        Func, Ty, OrigBaseReg, llvm::cast<ConstantInteger32>(
+                                   Ctx->getConstantInt32(Offset + StackAdjust)),
+        OperandARM32Mem::Offset);
+  }
+
   if (*NewBaseReg == nullptr) {
     *NewBaseReg = newBaseRegister(Offset, StackAdjust, OrigBaseReg);
     *NewBaseOffset = Offset + StackAdjust;
@@ -998,18 +997,15 @@ StackVariable *TargetARM32::legalizeStackSlot(Type Ty, int32_t Offset,
     OffsetDiff = 0;
   }
 
-  StackVariable *NewDest = Func->makeVariable<StackVariable>(Ty);
-  NewDest->setMustNotHaveReg();
-  NewDest->setBaseRegNum((*NewBaseReg)->getRegNum());
-  NewDest->setStackOffset(OffsetDiff);
-  return NewDest;
+  return OperandARM32Mem::create(
+      Func, Ty, *NewBaseReg,
+      llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(OffsetDiff)),
+      OperandARM32Mem::Offset);
 }
 
-void TargetARM32::legalizeMovStackAddrImm(InstARM32Mov *MovInstr,
-                                          int32_t StackAdjust,
-                                          Variable *OrigBaseReg,
-                                          Variable **NewBaseReg,
-                                          int32_t *NewBaseOffset) {
+void TargetARM32::legalizeMov(InstARM32Mov *MovInstr, int32_t StackAdjust,
+                              Variable *OrigBaseReg, Variable **NewBaseReg,
+                              int32_t *NewBaseOffset) {
   Variable *Dest = MovInstr->getDest();
   assert(Dest != nullptr);
   Type DestTy = Dest->getType();
@@ -1017,6 +1013,7 @@ void TargetARM32::legalizeMovStackAddrImm(InstARM32Mov *MovInstr,
 
   Operand *Src = MovInstr->getSrc(0);
   Type SrcTy = Src->getType();
+  (void)SrcTy;
   assert(SrcTy != IceType_i64);
 
   if (MovInstr->isMultiDest() || MovInstr->isMultiSource())
@@ -1024,40 +1021,29 @@ void TargetARM32::legalizeMovStackAddrImm(InstARM32Mov *MovInstr,
 
   bool Legalized = false;
   if (!Dest->hasReg()) {
-    assert(llvm::cast<Variable>(Src)->hasReg());
+    auto *const SrcR = llvm::cast<Variable>(Src);
+    assert(SrcR->hasReg());
     const int32_t Offset = Dest->getStackOffset();
-    if (!isLegalMemOffset(DestTy, Offset + StackAdjust)) {
-      Legalized = true;
-      Dest = legalizeStackSlot(DestTy, Offset, StackAdjust, OrigBaseReg,
-                               NewBaseReg, NewBaseOffset);
-    }
+    // This is a _mov(Mem(), Variable), i.e., a store.
+    _str(SrcR, createMemOperand(DestTy, Offset, StackAdjust, OrigBaseReg,
+                                NewBaseReg, NewBaseOffset),
+         MovInstr->getPredicate());
+    // _str() does not have a Dest, so we add a fake-def(Dest).
+    Context.insert(InstFakeDef::create(Func, Dest));
+    Legalized = true;
   } else if (auto *Var = llvm::dyn_cast<Variable>(Src)) {
     if (!Var->hasReg()) {
       const int32_t Offset = Var->getStackOffset();
-      if (!isLegalMemOffset(SrcTy, Offset + StackAdjust)) {
-        Legalized = true;
-        Src = legalizeStackSlot(SrcTy, Offset, StackAdjust, OrigBaseReg,
-                                NewBaseReg, NewBaseOffset);
-      }
-    }
-  } else if (auto *Mem = llvm::dyn_cast<OperandARM32Mem>(Src)) {
-    if (ConstantInteger32 *OffsetOp = Mem->getOffset()) {
-      const int32_t Offset = OffsetOp->getValue();
-      if (!isLegalMemOffset(SrcTy, Offset + StackAdjust)) {
-        assert(Mem->getBase()->hasReg());
-        assert(Mem->getBase()->getRegNum() == (int32_t)getFrameOrStackReg());
-        Legalized = true;
-        Src = legalizeStackSlot(SrcTy, Offset, StackAdjust, OrigBaseReg,
-                                NewBaseReg, NewBaseOffset);
-      }
+      _ldr(Dest, createMemOperand(DestTy, Offset, StackAdjust, OrigBaseReg,
+                                  NewBaseReg, NewBaseOffset),
+           MovInstr->getPredicate());
+      Legalized = true;
     }
   }
 
   if (Legalized) {
     if (MovInstr->isDestRedefined()) {
-      _mov_redefined(Dest, Src, MovInstr->getPredicate());
-    } else {
-      _mov(Dest, Src, MovInstr->getPredicate());
+      _set_dest_redefined();
     }
     MovInstr->setDeleted();
   }
@@ -1075,11 +1061,6 @@ void TargetARM32::legalizeStackSlots() {
   // clobber the flags register.
   Func->dump("Before legalizeStackSlots");
   assert(hasComputedFrame());
-  // Early exit, if SpillAreaSizeBytes is really small.
-  // TODO(jpp): this is not safe -- loads and stores of q registers can't have
-  // offsets.
-  if (isLegalMemOffset(IceType_v4i32, SpillAreaSizeBytes))
-    return;
   Variable *OrigBaseReg = getPhysicalRegister(getFrameOrStackReg());
   int32_t StackAdjust = 0;
   // Do a fairly naive greedy clustering for now. Pick the first stack slot
@@ -1122,11 +1103,9 @@ void TargetARM32::legalizeStackSlots() {
         }
       }
 
-      // The Lowering ensures that ldr and str always have legal Mem operands.
-      // The only other instruction that may access memory is mov.
       if (auto *MovInstr = llvm::dyn_cast<InstARM32Mov>(CurInstr)) {
-        legalizeMovStackAddrImm(MovInstr, StackAdjust, OrigBaseReg, &NewBaseReg,
-                                &NewBaseOffset);
+        legalizeMov(MovInstr, StackAdjust, OrigBaseReg, &NewBaseReg,
+                    &NewBaseOffset);
       }
     }
   }
@@ -4600,7 +4579,11 @@ Variable *TargetARM32::makeVectorOfZeros(Type Ty, int32_t RegNum) {
 Variable *TargetARM32::copyToReg(Operand *Src, int32_t RegNum) {
   Type Ty = Src->getType();
   Variable *Reg = makeReg(Ty, RegNum);
-  _mov(Reg, Src);
+  if (auto *Mem = llvm::dyn_cast<OperandARM32Mem>(Src)) {
+    _ldr(Reg, Mem);
+  } else {
+    _mov(Reg, Src);
+  }
   return Reg;
 }
 
@@ -4641,7 +4624,6 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
     Variable *RegIndex = nullptr;
     assert(Base);
     RegBase = legalizeToReg(Base);
-    bool InvalidImm = false;
     assert(Ty < MemTraitsSize);
     if (Index) {
       assert(Offset == nullptr);
@@ -4653,12 +4635,7 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
       static constexpr bool ZeroExt = false;
       assert(MemTraits[Ty].CanHaveImm);
       if (!OperandARM32Mem::canHoldOffset(Ty, ZeroExt, Offset->getValue())) {
-        assert(RegBase->hasReg());
-        assert(RegBase->getRegNum() == (int32_t)getFrameOrStackReg());
-        // We are a bit more lenient with invalid immediate when accessing the
-        // stack here, and then rely on legalizeStackSlots() to fix things as
-        // appropriate.
-        InvalidImm = true;
+        llvm::report_fatal_error("Invalid memory offset.");
       }
     }
 
@@ -4679,15 +4656,7 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
       From = Mem;
     } else {
       Variable *Reg = makeReg(Ty, RegNum);
-      if (InvalidImm) {
-        // If Mem has an invalid immediate, we legalize it to a Reg using mov
-        // instead of ldr because legalizeStackSlots() will later kick in and
-        // fix the immediate for us.
-        _mov(Reg, Mem);
-      } else {
-        _ldr(Reg, Mem);
-      }
-
+      _ldr(Reg, Mem);
       From = Reg;
     }
     return From;

@@ -29,7 +29,7 @@ entry:
 ; ASM-NEXT:     movw    ip, #4092
 ; ASM-NEXT:     sub     sp, sp, ip
 ; ASM-NEXT:     str     r0, [sp, #4088]
-
+; ASM-NEXT:     # [sp, #4088] = def.pseudo
 ; DIS-LABEL: 00000000 <foo>:
 ; DIS-NEXT:    0:       e300cffc
 ; DIS-NEXT:    4:       e04dd00c
@@ -59,6 +59,7 @@ entry:
 ; ASM-NEXT:     ldr     r1, [sp, #4088]
 ; ASM-NEXT:     mul     r0, r0, r1
 ; ASM-NEXT:     str     r0, [sp, #4084]
+; ASM-NEXT:     # [sp, #4084] = def.pseudo
 
 ; DIS-NEXT:    c:       e59d0ff8
 ; DIS-NEXT:   10:       e59d1ff8

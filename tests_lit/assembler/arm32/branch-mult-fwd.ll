@@ -24,7 +24,9 @@ define internal void @mult_fwd_branches(i32 %a, i32 %b) {
 
 ; ASM-NEXT:     sub     sp, sp, #12
 ; ASM-NEXT:     str     r0, [sp, #8]
+; ASM-NEXT:     # [sp, #8] = def.pseudo
 ; ASM-NEXT:     str     r1, [sp, #4]
+; ASM-NEXT:     # [sp, #4] = def.pseudo
 
 ; DIS-LABEL:00000000 <mult_fwd_branches>:
 
@@ -58,6 +60,7 @@ define internal void @mult_fwd_branches(i32 %a, i32 %b) {
 ; ASM-NEXT:     cmp     r1, r2
 ; ASM-NEXT:     movlt   r0, #1
 ; ASM-NEXT:     strb    r0, [sp]
+; ASM-NEXT:     # [sp] = def.pseudo
 
 ; DIS-NEXT:   c:        e3a00000
 ; DIS-NEXT:  10:        e59d1008
@@ -172,5 +175,4 @@ end:
 ; IASM-NEXT:    .byte 0xff
 ; IASM-NEXT:    .byte 0x2f
 ; IASM-NEXT:    .byte 0xe1
-
 }

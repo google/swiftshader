@@ -57,7 +57,7 @@ entry:
 ; IASM-NEXT: 	.byte 0x0
 ; IASM-NEXT: 	.byte 0xb
 ; IASM-NEXT: 	.byte 0xe5
-
+; ASM-NEXT:     # [fp, #-4] = def.pseudo
   br label %next
 
 ; ASM-NEXT: 	b	.Ltest_vla_in_loop$next

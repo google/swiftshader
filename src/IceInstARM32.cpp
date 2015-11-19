@@ -765,7 +765,7 @@ void InstARM32Mov::emitSingleDestMultiSource(const Cfg *Func) const {
 namespace {
 
 bool isVariableWithoutRegister(const Operand *Op) {
-  if (const auto *OpV = llvm::dyn_cast<const Variable>(Op)) {
+  if (const auto *OpV = llvm::dyn_cast<Variable>(Op)) {
     return !OpV->hasReg();
   }
   return false;
@@ -789,84 +789,57 @@ void InstARM32Mov::emitSingleDestSingleSource(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   Variable *Dest = getDest();
 
-  if (Dest->hasReg()) {
-    Type Ty = Dest->getType();
-    Operand *Src0 = getSrc(0);
-    const bool IsVector = isVectorType(Ty);
-    const bool IsScalarFP = isScalarFloatingType(Ty);
-    const bool CoreVFPMove = isMoveBetweenCoreAndVFPRegisters(Dest, Src0);
-    const char *LoadOpcode = IsVector ? "vld1" : (IsScalarFP ? "vldr" : "ldr");
-    const bool IsVMove = (IsVector || IsScalarFP || CoreVFPMove);
-    const char *RegMovOpcode = IsVMove ? "vmov" : "mov";
-    const char *ActualOpcode = isMemoryAccess(Src0) ? LoadOpcode : RegMovOpcode;
-    // when vmov{c}'ing, we need to emit a width string. Otherwise, the
-    // assembler might be tempted to assume we want a vector vmov{c}, and that
-    // is disallowed because ARM.
-    const char *NoWidthString = "";
-    const char *WidthString =
-        isMemoryAccess(Src0)
-            ? (IsVector ? ".64" : getWidthString(Ty))
-            : (!CoreVFPMove ? getVecWidthString(Ty) : NoWidthString);
-    Str << "\t" << ActualOpcode;
-    const bool IsVInst = IsVMove || IsVector || IsScalarFP;
-    if (IsVInst) {
-      Str << getPredicate() << WidthString;
-    } else {
-      Str << WidthString << getPredicate();
-    }
-    Str << "\t";
-    Dest->emit(Func);
-    Str << ", ";
-    Src0->emit(Func);
-  } else {
-    Variable *Src0 = llvm::cast<Variable>(getSrc(0));
-    assert(Src0->hasReg());
-    Type Ty = Src0->getType();
-    const bool IsVector = isVectorType(Ty);
-    const bool IsScalarFP = isScalarFloatingType(Ty);
-    const char *ActualOpcode =
-        IsVector ? "vst1" : (IsScalarFP ? "vstr" : "str");
-    const char *WidthString = IsVector ? ".64" : getWidthString(Ty);
-    Str << "\t" << ActualOpcode;
-    const bool IsVInst = IsVector || IsScalarFP;
-    if (IsVInst) {
-      Str << getPredicate() << WidthString;
-    } else {
-      Str << WidthString << getPredicate();
-    }
-    Str << "\t";
-    Src0->emit(Func);
-    Str << ", ";
-    Dest->emit(Func);
+  if (!Dest->hasReg()) {
+    llvm::report_fatal_error("mov can't store.");
   }
+
+  Operand *Src0 = getSrc(0);
+  if (isMemoryAccess(Src0)) {
+    llvm::report_fatal_error("mov can't load.");
+  }
+
+  Type Ty = Dest->getType();
+  const bool IsVector = isVectorType(Ty);
+  const bool IsScalarFP = isScalarFloatingType(Ty);
+  const bool CoreVFPMove = isMoveBetweenCoreAndVFPRegisters(Dest, Src0);
+  const bool IsVMove = (IsVector || IsScalarFP || CoreVFPMove);
+  const char *Opcode = IsVMove ? "vmov" : "mov";
+  // when vmov{c}'ing, we need to emit a width string. Otherwise, the
+  // assembler might be tempted to assume we want a vector vmov{c}, and that
+  // is disallowed because ARM.
+  const char *WidthString = !CoreVFPMove ? getVecWidthString(Ty) : "";
+  Str << "\t" << Opcode;
+  if (IsVMove) {
+    Str << getPredicate() << WidthString;
+  } else {
+    Str << WidthString << getPredicate();
+  }
+  Str << "\t";
+  Dest->emit(Func);
+  Str << ", ";
+  Src0->emit(Func);
 }
 
 void InstARM32Mov::emitIASSingleDestSingleSource(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Variable *Dest = getDest();
   Operand *Src0 = getSrc(0);
-  if (Dest->hasReg()) {
-    const Type DestTy = Dest->getType();
-    const bool DestIsVector = isVectorType(DestTy);
-    const bool DestIsScalarFP = isScalarFloatingType(DestTy);
-    const bool CoreVFPMove = isMoveBetweenCoreAndVFPRegisters(Dest, Src0);
-    if (DestIsVector || DestIsScalarFP || CoreVFPMove)
-      return Asm->setNeedsTextFixup();
-    if (isMemoryAccess(Src0)) {
-      // TODO(kschimpf) Figure out how to do ldr on CoreVPFMove? (see
-      // emitSingleDestSingleSource, local variable LoadOpcode).
-      return Asm->ldr(Dest, Src0, getPredicate(), Func->getTarget());
-    }
-    return Asm->mov(Dest, Src0, getPredicate());
-  } else {
-    const Type Src0Type = Src0->getType();
-    const bool Src0IsVector = isVectorType(Src0Type);
-    const bool Src0IsScalarFP = isScalarFloatingType(Src0Type);
-    const bool CoreVFPMove = isMoveBetweenCoreAndVFPRegisters(Dest, Src0);
-    if (Src0IsVector || Src0IsScalarFP || CoreVFPMove)
-      return Asm->setNeedsTextFixup();
-    return Asm->str(Src0, Dest, getPredicate(), Func->getTarget());
+
+  if (!Dest->hasReg()) {
+    llvm::report_fatal_error("mov can't store.");
   }
+
+  if (isMemoryAccess(Src0)) {
+    llvm::report_fatal_error("mov can't load.");
+  }
+
+  const Type DestTy = Dest->getType();
+  const bool DestIsVector = isVectorType(DestTy);
+  const bool DestIsScalarFP = isScalarFloatingType(DestTy);
+  const bool CoreVFPMove = isMoveBetweenCoreAndVFPRegisters(Dest, Src0);
+  if (DestIsVector || DestIsScalarFP || CoreVFPMove)
+    return Asm->setNeedsTextFixup();
+  return Asm->mov(Dest, Src0, getPredicate());
 }
 
 void InstARM32Mov::emit(const Cfg *Func) const {

@@ -35,6 +35,7 @@ define internal i32 @add1ToR0(i32 %p) {
 ; IASM-NEXT:    .byte 0xe2
 
 ; ASM-NEXT:     str     r0, [sp, #4]
+; ASM-NEXT:     # [sp, #4] = def.pseudo
 ; DIS-NEXT:   4:        e58d0004
 ; IASM-NEXT:    .byte 0x4
 ; IASM-NEXT:    .byte 0x0
@@ -56,6 +57,7 @@ define internal i32 @add1ToR0(i32 %p) {
 ; IASM-NEXT:    .byte 0xe2
 
 ; ASM-NEXT:     str     r0, [sp]
+; ASM-NEXT:     # [sp] = def.pseudo
 ; DIS-NEXT:  10:        e58d0000
 ; IASM-NEXT:    .byte 0x0
 ; IASM-NEXT:    .byte 0x0
