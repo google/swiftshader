@@ -2596,7 +2596,8 @@ void Assembler::MoveRegister(Register rd, Register rm, Condition cond) {
   }
 }
 
-
+#if 0
+// Moved to ARM32::AssemblerARM32::lsl()
 void Assembler::Lsl(Register rd, Register rm, const Operand& shift_imm,
                     Condition cond) {
   ASSERT(shift_imm.type() == 1);
@@ -2604,10 +2605,11 @@ void Assembler::Lsl(Register rd, Register rm, const Operand& shift_imm,
   mov(rd, Operand(rm, LSL, shift_imm.encoding()), cond);
 }
 
-
+// Moved to ARM32::AssemblerARM32::lsl()
 void Assembler::Lsl(Register rd, Register rm, Register rs, Condition cond) {
   mov(rd, Operand(rm, LSL, rs), cond);
 }
+#endif
 
 
 void Assembler::Lsr(Register rd, Register rm, const Operand& shift_imm,

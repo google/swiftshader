@@ -485,6 +485,13 @@ template <> void InstARM32Eor::emitIAS(const Cfg *Func) const {
     emitUsingTextFixup(Func);
 }
 
+template <> void InstARM32Lsl::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  Asm->lsl(getDest(), getSrc(0), getSrc(1), SetFlags, getPredicate());
+  if (Asm->needsTextFixup())
+    emitUsingTextFixup(Func);
+}
+
 template <> void InstARM32Orr::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Asm->orr(getDest(), getSrc(0), getSrc(1), SetFlags, getPredicate());

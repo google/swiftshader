@@ -158,7 +158,7 @@ class Operand : public ValueObject {
     encoding_ = static_cast<uint32_t>(rm);
   }
 
-  // Moved to encodeShiftRotateImm5()
+  // Moved to encodeShiftRotateImm5() in IceAssemblerARM32.cpp
   // Data-processing operands - Logical shift/rotate by immediate.
   Operand(Register rm, Shift shift, uint32_t shift_imm) {
     ASSERT(shift_imm < (1 << kShiftImmBits));
@@ -167,8 +167,8 @@ class Operand : public ValueObject {
                 static_cast<uint32_t>(shift) << kShiftShift |
                 static_cast<uint32_t>(rm);
   }
-#endif
 
+  // Moved to encodeShiftRotateReg() in IceAssemblerARM32.cpp
   // Data-processing operands - Logical shift/rotate by register.
   Operand(Register rm, Shift shift, Register rs) {
     type_ = 0;
@@ -177,7 +177,6 @@ class Operand : public ValueObject {
                 static_cast<uint32_t>(rm);
   }
 
-#if 0
   // Already defined as ARM32::OperandARM32FlexImm::canHoldImm().
   static bool CanHold(uint32_t immediate, Operand* o) {
     // Avoid the more expensive test for frequent small immediate values.
@@ -956,9 +955,13 @@ class Assembler : public ValueObject {
 
   // Convenience shift instructions. Use mov instruction with shifter operand
   // for variants setting the status flags.
+#if 0
+  // Moved to ARM32::AssemblerARM32::lsl()
   void Lsl(Register rd, Register rm, const Operand& shift_imm,
            Condition cond = AL);
+  // Moved to ARM32::AssemblerARM32::lsl()
   void Lsl(Register rd, Register rm, Register rs, Condition cond = AL);
+#endif
   void Lsr(Register rd, Register rm, const Operand& shift_imm,
            Condition cond = AL);
   void Lsr(Register rd, Register rm, Register rs, Condition cond = AL);

@@ -100,6 +100,7 @@ static constexpr IValueT kDivRnShift = 0;
 
 // Type of instruction encoding (bits 25-27). See ARM section A5.1
 static constexpr IValueT kInstTypeDataRegister = 0;  // i.e. 000
+static constexpr IValueT kInstTypeDataRegShift = 0;  // i.e. 000
 static constexpr IValueT kInstTypeDataImmediate = 1; // i.e. 001
 static constexpr IValueT kInstTypeMemImmediate = 2;  // i.e. 010
 static constexpr IValueT kInstTypeRegisterShift = 3; // i.e. 011
@@ -195,6 +196,8 @@ enum DecodedResult {
   // kind, p=1 if pre-indexed addressing, u=1 if offset positive, and w=1 if
   // writeback to Rn.
   DecodedAsShiftRotateImm5,
+  // i.e. 000000000000000000000iiiii0000000 iiii defines Imm5 value to shift.
+  DecodedAsShiftImm5,
   // Value is 32bit integer constant.
   DecodedAsConstI32
 };
@@ -215,13 +218,23 @@ IValueT encodeShiftRotateImm5(IValueT Rm, OperandARM32::ShiftKind Shift,
   return (imm5 << kShiftImmShift) | (encodeShift(Shift) << kShiftShift) | Rm;
 }
 
+// Encodes mmmmtt01ssss for data-processing (2nd) operands where mmmm=Rm,
+// ssss=Rs, and tt=Shift.
+IValueT encodeShiftRotateReg(IValueT Rm, OperandARM32::ShiftKind Shift,
+                             IValueT Rs) {
+  return (Rs << kRsShift) | (encodeShift(Shift) << kShiftShift) | B4 |
+         (Rm << kRmShift);
+}
+
 DecodedResult decodeOperand(const Operand *Opnd, IValueT &Value) {
   if (const auto *Var = llvm::dyn_cast<Variable>(Opnd)) {
     if (Var->hasReg()) {
       Value = Var->getRegNum();
       return DecodedAsRegister;
     }
-  } else if (const auto *FlexImm = llvm::dyn_cast<OperandARM32FlexImm>(Opnd)) {
+    return CantDecode;
+  }
+  if (const auto *FlexImm = llvm::dyn_cast<OperandARM32FlexImm>(Opnd)) {
     const IValueT Immed8 = FlexImm->getImm();
     const IValueT Rotate = FlexImm->getRotateAmt();
     if (!((Rotate < (1 << kRotateBits)) && (Immed8 < (1 << kImmed8Bits))))
@@ -232,6 +245,12 @@ DecodedResult decodeOperand(const Operand *Opnd, IValueT &Value) {
   if (const auto *Const = llvm::dyn_cast<ConstantInteger32>(Opnd)) {
     Value = Const->getValue();
     return DecodedAsConstI32;
+  }
+  if (const auto *ShImm = llvm::dyn_cast<OperandARM32ShAmtImm>(Opnd)) {
+    const IValueT Immed5 = ShImm->getShAmtImm();
+    assert(Immed5 < (1 << kShiftImmBits));
+    Value = (Immed5 << kShiftImmShift);
+    return DecodedAsShiftImm5;
   }
   return CantDecode;
 }
@@ -423,22 +442,33 @@ void AssemblerARM32::emitTextInst(const std::string &Text, SizeT InstSize) {
 }
 
 void AssemblerARM32::emitType01(CondARM32::Cond Cond, IValueT Type,
-                                IValueT Opcode, bool SetCc, IValueT Rn,
-                                IValueT Rd, IValueT Imm12) {
+                                IValueT Opcode, bool SetFlags, IValueT Rn,
+                                IValueT Rd, IValueT Imm12,
+                                EmitChecks RuleChecks) {
+  switch (RuleChecks) {
+  case NoChecks:
+    break;
+  case RdIsPcAndSetFlags:
+    if (((Rd == RegARM32::Encoded_Reg_pc) && SetFlags))
+      // Conditions of rule violated.
+      return setNeedsTextFixup();
+    break;
+  }
+
   if (!isGPRRegisterDefined(Rd) || !isConditionDefined(Cond))
     return setNeedsTextFixup();
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   const IValueT Encoding = (encodeCondition(Cond) << kConditionShift) |
                            (Type << kTypeShift) | (Opcode << kOpcodeShift) |
-                           (encodeBool(SetCc) << kSShift) | (Rn << kRnShift) |
-                           (Rd << kRdShift) | Imm12;
+                           (encodeBool(SetFlags) << kSShift) |
+                           (Rn << kRnShift) | (Rd << kRdShift) | Imm12;
   emitInst(Encoding);
 }
 
 void AssemblerARM32::emitType01(IValueT Opcode, const Operand *OpRd,
                                 const Operand *OpRn, const Operand *OpSrc1,
                                 bool SetFlags, CondARM32::Cond Cond,
-                                Type01Checks RuleChecks) {
+                                EmitChecks RuleChecks) {
   IValueT Rd;
   if (decodeOperand(OpRd, Rd) != DecodedAsRegister)
     return setNeedsTextFixup();
@@ -450,7 +480,7 @@ void AssemblerARM32::emitType01(IValueT Opcode, const Operand *OpRd,
 
 void AssemblerARM32::emitType01(IValueT Opcode, IValueT Rd, IValueT Rn,
                                 const Operand *OpSrc1, bool SetFlags,
-                                CondARM32::Cond Cond, Type01Checks RuleChecks) {
+                                CondARM32::Cond Cond, EmitChecks RuleChecks) {
   switch (RuleChecks) {
   case NoChecks:
     break;
@@ -474,8 +504,8 @@ void AssemblerARM32::emitType01(IValueT Opcode, IValueT Rd, IValueT Rn,
     // mmmm=Rm, iiiii=Shift, tt=ShiftKind, and s=SetFlags.
     constexpr IValueT Imm5 = 0;
     Src1Value = encodeShiftRotateImm5(Src1Value, OperandARM32::kNoShift, Imm5);
-    emitType01(Cond, kInstTypeDataRegister, Opcode, SetFlags, Rn, Rd,
-               Src1Value);
+    emitType01(Cond, kInstTypeDataRegister, Opcode, SetFlags, Rn, Rd, Src1Value,
+               RuleChecks);
     return;
   }
   case DecodedAsConstI32: {
@@ -494,7 +524,7 @@ void AssemblerARM32::emitType01(IValueT Opcode, IValueT Rd, IValueT Rn,
     // cccc0010100snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
     // s=SetFlags and iiiiiiiiiiii=Src1Value defining RotatedImm8.
     emitType01(Cond, kInstTypeDataImmediate, Opcode, SetFlags, Rn, Rd,
-               Src1Value);
+               Src1Value, RuleChecks);
     return;
   }
   }
@@ -577,14 +607,15 @@ void AssemblerARM32::emitDivOp(CondARM32::Cond Cond, IValueT Opcode, IValueT Rd,
 }
 
 void AssemblerARM32::emitMulOp(CondARM32::Cond Cond, IValueT Opcode, IValueT Rd,
-                               IValueT Rn, IValueT Rm, IValueT Rs, bool SetCc) {
+                               IValueT Rn, IValueT Rm, IValueT Rs,
+                               bool SetFlags) {
   if (!isGPRRegisterDefined(Rd) || !isGPRRegisterDefined(Rn) ||
       !isGPRRegisterDefined(Rm) || !isGPRRegisterDefined(Rs) ||
       !isConditionDefined(Cond))
     return setNeedsTextFixup();
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   IValueT Encoding = Opcode | (encodeCondition(Cond) << kConditionShift) |
-                     (encodeBool(SetCc) << kSShift) | (Rn << kRnShift) |
+                     (encodeBool(SetFlags) << kSShift) | (Rn << kRnShift) |
                      (Rd << kRdShift) | (Rs << kRsShift) | B7 | B4 |
                      (Rm << kRmShift);
   emitInst(Encoding);
@@ -631,7 +662,7 @@ void AssemblerARM32::adc(const Operand *OpRd, const Operand *OpRn,
   // cccc0010101snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
   // s=SetFlags and iiiiiiiiiiii=Src1Value defining RotatedImm8.
   constexpr IValueT Adc = B2 | B0; // 0101
-  emitType01(Adc, OpRd, OpRn, OpSrc1, SetFlags, Cond);
+  emitType01(Adc, OpRd, OpRn, OpSrc1, SetFlags, Cond, RdIsPcAndSetFlags);
 }
 
 void AssemblerARM32::add(const Operand *OpRd, const Operand *OpRn,
@@ -653,7 +684,7 @@ void AssemblerARM32::add(const Operand *OpRd, const Operand *OpRn,
   // cccc0010100snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
   // s=SetFlags and iiiiiiiiiiii=Src1Value defining RotatedImm8.
   constexpr IValueT Add = B2; // 0100
-  emitType01(Add, OpRd, OpRn, OpSrc1, SetFlags, Cond);
+  emitType01(Add, OpRd, OpRn, OpSrc1, SetFlags, Cond, RdIsPcAndSetFlags);
 }
 
 void AssemblerARM32::and_(const Operand *OpRd, const Operand *OpRn,
@@ -671,7 +702,7 @@ void AssemblerARM32::and_(const Operand *OpRd, const Operand *OpRn,
   // cccc0010100snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
   // s=SetFlags and iiiiiiiiiiii=Src1Value defining RotatedImm8.
   constexpr IValueT And = 0; // 0000
-  emitType01(And, OpRd, OpRn, OpSrc1, SetFlags, Cond);
+  emitType01(And, OpRd, OpRn, OpSrc1, SetFlags, Cond, RdIsPcAndSetFlags);
 }
 
 void AssemblerARM32::b(Label *L, CondARM32::Cond Cond) {
@@ -704,7 +735,7 @@ void AssemblerARM32::bic(const Operand *OpRd, const Operand *OpRn,
   // cccc0011110snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rn, nnnn=Rn,
   // s=SetFlags, and iiiiiiiiiiii=Src1Value defining RotatedImm8.
   IValueT Opcode = B3 | B2 | B1; // i.e. 1110
-  emitType01(Opcode, OpRd, OpRn, OpSrc1, SetFlags, Cond);
+  emitType01(Opcode, OpRd, OpRn, OpSrc1, SetFlags, Cond, RdIsPcAndSetFlags);
 }
 
 void AssemblerARM32::bl(const ConstantRelocatable *Target) {
@@ -785,7 +816,7 @@ void AssemblerARM32::eor(const Operand *OpRd, const Operand *OpRn,
   // cccc0010001snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
   // s=SetFlags and iiiiiiiiiiii=Src1Value defining RotatedImm8.
   constexpr IValueT Eor = B0; // 0001
-  emitType01(Eor, OpRd, OpRn, OpSrc1, SetFlags, Cond);
+  emitType01(Eor, OpRd, OpRn, OpSrc1, SetFlags, Cond, RdIsPcAndSetFlags);
 }
 
 void AssemblerARM32::ldr(const Operand *OpRt, const Operand *OpAddress,
@@ -868,6 +899,51 @@ void AssemblerARM32::ldr(const Operand *OpRt, const Operand *OpAddress,
   }
 }
 
+void AssemblerARM32::lsl(const Operand *OpRd, const Operand *OpRm,
+                         const Operand *OpSrc1, bool SetFlags,
+                         CondARM32::Cond Cond) {
+  constexpr IValueT Lsl = B3 | B2 | B0; // 1101
+  constexpr IValueT Rn = 0;             // Rn field is not used.
+  IValueT Rd;
+  if (decodeOperand(OpRd, Rd) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  IValueT Rm;
+  if (decodeOperand(OpRm, Rm) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  IValueT Value;
+  switch (decodeOperand(OpSrc1, Value)) {
+  default:
+    return setNeedsTextFixup();
+  case DecodedAsShiftImm5: {
+    // LSL (immediate) - ARM section A8.8.94, encoding A1:
+    //   lsl{s}<c> <Rd>, <Rm>, #imm5
+    //
+    // cccc0001101s0000ddddiiiii000mmmm where cccc=Cond, s=SetFlags, dddd=Rd,
+    // iiiii=imm5, and mmmm=Rm.
+    Value = Value | (Rm << kRmShift);
+    emitType01(Cond, kInstTypeDataRegShift, Lsl, SetFlags, Rn, Rd, Value,
+               RdIsPcAndSetFlags);
+    return;
+  }
+  case DecodedAsRegister: {
+    // LSL (register) - ARM section A8.8.95, encoding A1:
+    //   lsl{S}<c> <Rd>, <Rm>, <Rs>
+    //
+    // cccc0001101s0000ddddssss0001mmmm where cccc=Cond, s=SetFlags, dddd=Rd,
+    // mmmm=Rm, and ssss=Rs.
+    IValueT Rs;
+    if (decodeOperand(OpSrc1, Rs) != DecodedAsRegister)
+      return setNeedsTextFixup();
+    if ((Rd == RegARM32::Encoded_Reg_pc) || (Rm == RegARM32::Encoded_Reg_pc) ||
+        (Rs == RegARM32::Encoded_Reg_pc))
+      setNeedsTextFixup();
+    emitType01(Cond, kInstTypeDataRegShift, Lsl, SetFlags, Rn, Rd,
+               encodeShiftRotateReg(Rm, OperandARM32::kNoShift, Rs), NoChecks);
+    return;
+  }
+  }
+}
+
 void AssemblerARM32::mov(const Operand *OpRd, const Operand *OpSrc,
                          CondARM32::Cond Cond) {
   // MOV (register) - ARM section A8.8.104, encoding A1:
@@ -888,7 +964,7 @@ void AssemblerARM32::mov(const Operand *OpRd, const Operand *OpSrc,
   constexpr bool SetFlags = false;
   constexpr IValueT Rn = 0;
   constexpr IValueT Mov = B3 | B2 | B0; // 1101.
-  emitType01(Mov, Rd, Rn, OpSrc, SetFlags, Cond);
+  emitType01(Mov, Rd, Rn, OpSrc, SetFlags, Cond, RdIsPcAndSetFlags);
 }
 
 void AssemblerARM32::emitMovw(IValueT Opcode, IValueT Rd, IValueT Imm16,
@@ -986,7 +1062,7 @@ void AssemblerARM32::sbc(const Operand *OpRd, const Operand *OpRn,
   // cccc0010110snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
   // s=SetFlags and iiiiiiiiiiii=Src1Value defining RotatedImm8.
   constexpr IValueT Sbc = B2 | B1; // 0110
-  emitType01(Sbc, OpRd, OpRn, OpSrc1, SetFlags, Cond);
+  emitType01(Sbc, OpRd, OpRn, OpSrc1, SetFlags, Cond, RdIsPcAndSetFlags);
 }
 
 void AssemblerARM32::sdiv(const Operand *OpRd, const Operand *OpRn,
@@ -1064,7 +1140,7 @@ void AssemblerARM32::orr(const Operand *OpRd, const Operand *OpRn,
   // cccc0001100snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
   // s=SetFlags and iiiiiiiiiiii=Src1Value defining RotatedImm8.
   constexpr IValueT Orr = B3 | B2; // i.e. 1100
-  emitType01(Orr, OpRd, OpRn, OpSrc1, SetFlags, Cond);
+  emitType01(Orr, OpRd, OpRn, OpSrc1, SetFlags, Cond, RdIsPcAndSetFlags);
 }
 
 void AssemblerARM32::pop(const Operand *OpRt, CondARM32::Cond Cond) {
@@ -1218,7 +1294,7 @@ void AssemblerARM32::sub(const Operand *OpRd, const Operand *OpRn,
   // cccc0010010snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
   // s=SetFlags and iiiiiiiiiiii=Src1Value defining RotatedImm8
   constexpr IValueT Sub = B1; // 0010
-  emitType01(Sub, OpRd, OpRn, OpSrc1, SetFlags, Cond);
+  emitType01(Sub, OpRd, OpRn, OpSrc1, SetFlags, Cond, RdIsPcAndSetFlags);
 }
 
 void AssemblerARM32::tst(const Operand *OpRn, const Operand *OpSrc1,

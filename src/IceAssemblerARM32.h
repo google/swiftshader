@@ -223,6 +223,9 @@ public:
     ldr(OpRt, OpAddress, Cond, TInfo);
   }
 
+  void lsl(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
+           bool SetFlags, CondARM32::Cond Cond);
+
   void mov(const Operand *OpRd, const Operand *OpSrc, CondARM32::Cond Cond);
 
   void movw(const Operand *OpRd, const Operand *OpSrc, CondARM32::Cond Cond);
@@ -312,28 +315,27 @@ private:
 
   void emitInst(IValueT Value) { Buffer.emit<IValueT>(Value); }
 
-  // Pattern cccctttoooosnnnnddddiiiiiiiiiiii where cccc=Cond, ttt=Type,
-  // oooo=Opcode, nnnn=Rn, dddd=Rd, iiiiiiiiiiii=imm12 (See ARM section A5.2.3).
-  void emitType01(CondARM32::Cond Cond, IValueT Type, IValueT Opcode,
-                  bool SetCc, IValueT Rn, IValueT Rd, IValueT imm12);
-
   // List of possible checks to apply when calling emitType01() (below).
-  enum Type01Checks {
-    NoChecks,
-    RdIsPcAndSetFlags,
-  };
+  enum EmitChecks { NoChecks, RdIsPcAndSetFlags };
+
+  // Pattern cccctttoooosnnnnddddiiiiiiiiiiii where cccc=Cond, ttt=Type,
+  // s=SetFlags, oooo=Opcode, nnnn=Rn, dddd=Rd, iiiiiiiiiiii=imm12 (See ARM
+  // section A5.2.3).
+  void emitType01(CondARM32::Cond Cond, IValueT Type, IValueT Opcode,
+                  bool SetFlags, IValueT Rn, IValueT Rd, IValueT imm12,
+                  EmitChecks RuleChecks);
 
   // Converts appropriate representation on a data operation, and then calls
   // emitType01 above.
   void emitType01(IValueT Opcode, const Operand *OpRd, const Operand *OpRn,
                   const Operand *OpSrc1, bool SetFlags, CondARM32::Cond Cond,
-                  Type01Checks RuleChecks = RdIsPcAndSetFlags);
+                  EmitChecks RuleChecks);
 
   // Same as above, but the value for Rd and Rn have already been converted
   // into instruction values.
   void emitType01(IValueT Opcode, IValueT OpRd, IValueT OpRn,
                   const Operand *OpSrc1, bool SetFlags, CondARM32::Cond Cond,
-                  Type01Checks RuleChecks = RdIsPcAndSetFlags);
+                  EmitChecks RuleChecks);
 
   void emitType05(CondARM32::Cond COnd, int32_t Offset, bool Link);
 
@@ -356,9 +358,9 @@ private:
                  IValueT Rm);
 
   // Pattern ccccxxxxxxxfnnnnddddssss1001mmmm where cccc=Cond, dddd=Rd, nnnn=Rn,
-  // mmmm=Rm, ssss=Rs, f=SetCc, and xxxxxxx=Opcode.
+  // mmmm=Rm, ssss=Rs, f=SetFlags and xxxxxxx=Opcode.
   void emitMulOp(CondARM32::Cond Cond, IValueT Opcode, IValueT Rd, IValueT Rn,
-                 IValueT Rm, IValueT Rs, bool SetCc);
+                 IValueT Rm, IValueT Rs, bool SetFlags);
 
   // Implements various forms of Unsigned extend value, using pattern
   // ccccxxxxxxxxnnnnddddrr000111mmmm where cccc=Cond, xxxxxxxx<<20=Opcode,
