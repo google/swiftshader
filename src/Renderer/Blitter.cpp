@@ -752,12 +752,12 @@ namespace sw
 
 						if(Surface::isFloatFormat(state.sourceFormat) && !Surface::isFloatFormat(state.destFormat))
 						{
-							color = Min(color, Float4(1.0f, 1.0f, 1.0f, 1.0f));
+							color = Min(color, Float4(scale.x, scale.y, scale.z, scale.w));
 
-							color = Max(color, Float4(Surface::isUnsignedComponent(state.destFormat, 0) ? 0.0f : -1.0f,
-							                          Surface::isUnsignedComponent(state.destFormat, 1) ? 0.0f : -1.0f,
-							                          Surface::isUnsignedComponent(state.destFormat, 2) ? 0.0f : -1.0f,
-							                          Surface::isUnsignedComponent(state.destFormat, 3) ? 0.0f : -1.0f));
+							color = Max(color, Float4(Surface::isUnsignedComponent(state.destFormat, 0) ? 0.0f : -scale.x,
+							                          Surface::isUnsignedComponent(state.destFormat, 1) ? 0.0f : -scale.y,
+							                          Surface::isUnsignedComponent(state.destFormat, 2) ? 0.0f : -scale.z,
+							                          Surface::isUnsignedComponent(state.destFormat, 3) ? 0.0f : -scale.w));
 						}
 
 						Pointer<Byte> d = destLine + i * Surface::bytes(state.destFormat);
