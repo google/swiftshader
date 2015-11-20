@@ -507,10 +507,11 @@ class Assembler : public ValueObject {
   // Moved to ARM32::IceAssemblerARM32::bic()
   void bic(Register rd, Register rn, Operand o, Condition cond = AL);
   void bics(Register rd, Register rn, Operand o, Condition cond = AL);
-#endif
 
+  // Moved to ARM32::IceAssemblerARM32::mvn()
   void mvn(Register rd, Operand o, Condition cond = AL);
   void mvns(Register rd, Operand o, Condition cond = AL);
+#endif
 
   // Miscellaneous data-processing instructions.
   void clz(Register rd, Register rm, Condition cond = AL);

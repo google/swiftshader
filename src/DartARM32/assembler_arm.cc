@@ -92,7 +92,7 @@ void Assembler::EmitType01(Condition cond,
   Emit(encoding);
 }
 
-// Moved to ARM32::AssemblerARM32::emitType05.
+// Moved to ARM32::AssemblerARM32::emitType05()
 void Assembler::EmitType5(Condition cond, int32_t offset, bool link) {
   ASSERT(cond != kNoCondition);
   int32_t encoding = static_cast<int32_t>(cond) << kConditionShift |
@@ -304,26 +304,26 @@ void Assembler::movs(Register rd, Operand o, Condition cond) {
 
 
 #if 0
-// Moved to ARM32::AssemblerARM32::bic();
+// Moved to ARM32::AssemblerARM32::bic()
 void Assembler::bic(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), BIC, 0, rn, rd, o);
 }
 
-// Moved to ARM32::AssemblerARM32::bic();
+// Moved to ARM32::AssemblerARM32::bic()
 void Assembler::bics(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), BIC, 1, rn, rd, o);
 }
-#endif
 
+// Moved to ARM32::AssemblerARM32::mvn()
 void Assembler::mvn(Register rd, Operand o, Condition cond) {
   EmitType01(cond, o.type(), MVN, 0, R0, rd, o);
 }
 
-
+// Moved to ARM32::AssemblerARM32::mvn()
 void Assembler::mvns(Register rd, Operand o, Condition cond) {
   EmitType01(cond, o.type(), MVN, 1, R0, rd, o);
 }
-
+#endif
 
 void Assembler::clz(Register rd, Register rm, Condition cond) {
   ASSERT(rd != kNoRegister);
@@ -340,7 +340,7 @@ void Assembler::clz(Register rd, Register rm, Condition cond) {
 
 
 #if
-// Moved to ARM32::AssemblerARM32::movw
+// Moved to ARM32::AssemblerARM32::movw()
 void Assembler::movw(Register rd, uint16_t imm16, Condition cond) {
   ASSERT(cond != kNoCondition);
   int32_t encoding = static_cast<int32_t>(cond) << kConditionShift |
@@ -350,7 +350,7 @@ void Assembler::movw(Register rd, uint16_t imm16, Condition cond) {
 }
 
 
-// Moved to ARM32::AssemblerARM32::movt
+// Moved to ARM32::AssemblerARM32::movt()
 void Assembler::movt(Register rd, uint16_t imm16, Condition cond) {
   ASSERT(cond != kNoCondition);
   int32_t encoding = static_cast<int32_t>(cond) << kConditionShift |
@@ -361,7 +361,7 @@ void Assembler::movt(Register rd, uint16_t imm16, Condition cond) {
 #endif
 
 #if 0
-// Moved to ARM32::AssemblerARM32::emitMulOp
+// Moved to ARM32::AssemblerARM32::emitMulOp()
 void Assembler::EmitMulOp(Condition cond, int32_t opcode,
                           Register rd, Register rn,
                           Register rm, Register rs) {
@@ -380,7 +380,7 @@ void Assembler::EmitMulOp(Condition cond, int32_t opcode,
   Emit(encoding);
 }
 
-// Moved to ARM32::AssemblerARM32::mul
+// Moved to ARM32::AssemblerARM32::mul()
 void Assembler::mul(Register rd, Register rn, Register rm, Condition cond) {
   // Assembler registers rd, rn, rm are encoded as rn, rm, rs.
   EmitMulOp(cond, 0, R0, rd, rn, rm);
@@ -2104,7 +2104,7 @@ void Assembler::UpdateRangeFeedback(Register value,
 }
 
 #if 0
-// Moved to ::canEncodeBranchoffset in IceAssemblerARM32.cpp.
+// Moved to ::canEncodeBranchoffset() in IceAssemblerARM32.cpp.
 static bool CanEncodeBranchOffset(int32_t offset) {
   ASSERT(Utils::IsAligned(offset, 4));
   // Note: This check doesn't take advantage of the fact that offset>>2
@@ -2112,7 +2112,7 @@ static bool CanEncodeBranchOffset(int32_t offset) {
   return Utils::IsInt(Utils::CountOneBits(kBranchOffsetMask), offset);
 }
 
-// Moved to ARM32::AssemblerARM32::encodeBranchOffset.
+// Moved to ARM32::AssemblerARM32::encodeBranchOffset()
 int32_t Assembler::EncodeBranchOffset(int32_t offset, int32_t inst) {
   // The offset is off by 8 due to the way the ARM CPUs read PC.
   offset -= Instr::kPCReadOffset;
@@ -2129,7 +2129,7 @@ int32_t Assembler::EncodeBranchOffset(int32_t offset, int32_t inst) {
   return (inst & ~kBranchOffsetMask) | offset;
 }
 
-// Moved to AssemberARM32::decodeBranchOffset.
+// Moved to AssemberARM32::decodeBranchOffset()
 int Assembler::DecodeBranchOffset(int32_t inst) {
   // Sign-extend, left-shift by 2, then add 8.
   return ((((inst & kBranchOffsetMask) << 8) >> 6) + Instr::kPCReadOffset);

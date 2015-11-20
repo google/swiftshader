@@ -187,16 +187,17 @@ enum DecodedResult {
   // Value=rrrriiiiiiii where rrrr is the rotation, and iiiiiiii is the imm8
   // value.
   DecodedAsRotatedImm8,
-  // i.e. 0000000pu0w0nnnn0000iiiiiiiiiiii where nnnn is the base register Rn,
+  // Value=0000000pu0w0nnnn0000iiiiiiiiiiii where nnnn is the base register Rn,
   // p=1 if pre-indexed addressing, u=1 if offset positive, w=1 if writeback to
   // Rn should be used, and iiiiiiiiiiii defines the rotated Imm8 value.
   DecodedAsImmRegOffset,
-  // i.e. 0000000pu0w00nnnnttttiiiiiss0mmmm where nnnn is the base register Rn,
+  // Value=0000000pu0w00nnnnttttiiiiiss0mmmm where nnnn is the base register Rn,
   // mmmm is the index register Rm, iiiii is the shift amount, ss is the shift
   // kind, p=1 if pre-indexed addressing, u=1 if offset positive, and w=1 if
   // writeback to Rn.
   DecodedAsShiftRotateImm5,
-  // i.e. 000000000000000000000iiiii0000000 iiii defines Imm5 value to shift.
+  // Value=000000000000000000000iiiii0000000 iiii defines the Imm5 value to
+  // shift.
   DecodedAsShiftImm5,
   // Value is 32bit integer constant.
   DecodedAsConstI32
@@ -218,8 +219,8 @@ IValueT encodeShiftRotateImm5(IValueT Rm, OperandARM32::ShiftKind Shift,
   return (imm5 << kShiftImmShift) | (encodeShift(Shift) << kShiftShift) | Rm;
 }
 
-// Encodes mmmmtt01ssss for data-processing (2nd) operands where mmmm=Rm,
-// ssss=Rs, and tt=Shift.
+// Encodes mmmmtt01ssss for data-processing operands where mmmm=Rm, ssss=Rs, and
+// tt=Shift.
 IValueT encodeShiftRotateReg(IValueT Rm, OperandARM32::ShiftKind Shift,
                              IValueT Rs) {
   return (Rs << kRsShift) | (encodeShift(Shift) << kShiftShift) | B4 |
@@ -481,15 +482,6 @@ void AssemblerARM32::emitType01(IValueT Opcode, const Operand *OpRd,
 void AssemblerARM32::emitType01(IValueT Opcode, IValueT Rd, IValueT Rn,
                                 const Operand *OpSrc1, bool SetFlags,
                                 CondARM32::Cond Cond, EmitChecks RuleChecks) {
-  switch (RuleChecks) {
-  case NoChecks:
-    break;
-  case RdIsPcAndSetFlags:
-    if (((Rd == RegARM32::Encoded_Reg_pc) && SetFlags))
-      // Conditions of rule violated.
-      return setNeedsTextFixup();
-    break;
-  }
 
   IValueT Src1Value;
   // TODO(kschimpf) Other possible decodings of data operations.
@@ -564,8 +556,9 @@ void AssemblerARM32::emitCompareOp(IValueT Opcode, const Operand *OpRn,
   // XXX (register)
   //   XXX<c> <Rn>, <Rm>{, <shift>}
   //
-  // ccccyyyxxxx1nnnn0000iiiiitt0mmmm where cccc=Cond, nnnn=Rn, mmmm=Rm,
-  // iiiii=Shift, tt=ShiftKind, yyy=kInstTypeDataRegister, and xxxx=Opcode.
+  // ccccyyyxxxx1nnnn0000iiiiitt0mmmm where cccc=Cond, nnnn=Rn, mmmm=Rm, iiiii
+  // defines shift constant, tt=ShiftKind, yyy=kInstTypeDataRegister, and
+  // xxxx=Opcode.
   //
   // XXX (immediate)
   //  XXX<c> <Rn>, #<RotatedImm8>
@@ -1045,6 +1038,28 @@ void AssemblerARM32::movt(const Operand *OpRd, const Operand *OpSrc,
                            B24 | B22 | ((Imm16 >> 12) << 16) | Rd << kRdShift |
                            (Imm16 & 0xfff);
   emitInst(Encoding);
+}
+
+void AssemblerARM32::mvn(const Operand *OpRd, const Operand *OpSrc,
+                         CondARM32::Cond Cond) {
+  // MVN (immediate) - ARM section A8.8.115, encoding A1:
+  //   mvn{s}<c> <Rd>, #<const>
+  //
+  // cccc0011111s0000ddddiiiiiiiiiiii where cccc=Cond, s=SetFlags=0, dddd=Rd,
+  // and iiiiiiiiiiii=const
+  //
+  // MVN (register) - ARM section A8.8.116, encoding A1:
+  //   mvn{s}<c> <Rd>, <Rm>{, <shift>
+  //
+  // cccc0001111s0000ddddiiiiitt0mmmm where cccc=Cond, s=SetFlags=0, dddd=Rd,
+  // mmmm=Rm, iiii defines shift constant, and tt=ShiftKind.
+  IValueT Rd;
+  if (decodeOperand(OpRd, Rd) != DecodedAsRegister)
+    return setNeedsTextFixup();
+  constexpr IValueT MvnOpcode = B3 | B2 | B1 | B0; // i.e. 1111
+  constexpr IValueT Rn = 0;
+  constexpr bool SetFlags = false;
+  emitType01(MvnOpcode, Rd, Rn, OpSrc, SetFlags, Cond, RdIsPcAndSetFlags);
 }
 
 void AssemblerARM32::sbc(const Operand *OpRd, const Operand *OpRn,

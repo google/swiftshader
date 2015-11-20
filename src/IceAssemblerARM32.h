@@ -238,6 +238,8 @@ public:
   void mul(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
            bool SetFlags, CondARM32::Cond Cond);
 
+  void mvn(const Operand *OpRd, const Operand *OpScc, CondARM32::Cond Cond);
+
   void orr(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
            bool SetFlags, CondARM32::Cond Cond);
 

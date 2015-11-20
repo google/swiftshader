@@ -1158,6 +1158,14 @@ template <> void InstARM32Movt::emitIAS(const Cfg *Func) const {
     emitUsingTextFixup(Func);
 }
 
+template <> void InstARM32Mvn::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 1);
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  Asm->mvn(getDest(), getSrc(0), getPredicate());
+  if (Asm->needsTextFixup())
+    emitUsingTextFixup(Func);
+}
+
 template <> void InstARM32Uxt::emitIAS(const Cfg *Func) const {
   assert(getSrcSize() == 1);
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
