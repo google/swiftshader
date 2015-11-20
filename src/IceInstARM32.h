@@ -980,34 +980,6 @@ private:
   const InstARM32Label *Label; // Intra-block branch target
 };
 
-/// AdjustStack instruction - subtracts SP by the given amount and updates the
-/// stack offset during code emission.
-class InstARM32AdjustStack : public InstARM32 {
-  InstARM32AdjustStack() = delete;
-  InstARM32AdjustStack(const InstARM32AdjustStack &) = delete;
-  InstARM32AdjustStack &operator=(const InstARM32AdjustStack &) = delete;
-
-public:
-  /// Note: We need both Amount and SrcAmount. If Amount is too large then it
-  /// needs to be copied to a register (so SrcAmount could be a register).
-  /// However, we also need the numeric Amount for bookkeeping, and it's hard to
-  /// pull that from the generic SrcAmount operand.
-  static InstARM32AdjustStack *create(Cfg *Func, Variable *SP, SizeT Amount,
-                                      Operand *SrcAmount) {
-    return new (Func->allocate<InstARM32AdjustStack>())
-        InstARM32AdjustStack(Func, SP, Amount, SrcAmount);
-  }
-  void emit(const Cfg *Func) const override;
-  void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return isClassof(Inst, Adjuststack); }
-  SizeT getAmount() const { return Amount; }
-
-private:
-  InstARM32AdjustStack(Cfg *Func, Variable *SP, SizeT Amount,
-                       Operand *SrcAmount);
-  const SizeT Amount;
-};
-
 /// Call instruction (bl/blx). Arguments should have already been pushed.
 /// Technically bl and the register form of blx can be predicated, but we'll
 /// leave that out until needed.

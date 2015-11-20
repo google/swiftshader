@@ -233,12 +233,62 @@ void copyRegAllocFromInfWeightVariable64On32(const VarList &Vars) {
 }
 } // end of anonymous namespace
 
+uint32_t TargetARM32::getCallStackArgumentsSizeBytes(const InstCall *Call) {
+  TargetARM32::CallingConv CC;
+  size_t OutArgsSizeBytes = 0;
+  for (SizeT i = 0, NumArgs = Call->getNumArgs(); i < NumArgs; ++i) {
+    Operand *Arg = legalizeUndef(Call->getArg(i));
+    Type Ty = Arg->getType();
+    if (Ty == IceType_i64) {
+      std::pair<int32_t, int32_t> Regs;
+      if (CC.I64InRegs(&Regs)) {
+        continue;
+      }
+    } else if (isVectorType(Ty) || isFloatingType(Ty)) {
+      int32_t Reg;
+      if (CC.FPInReg(Ty, &Reg)) {
+        continue;
+      }
+    } else {
+      assert(Ty == IceType_i32);
+      int32_t Reg;
+      if (CC.I32InReg(&Reg)) {
+        continue;
+      }
+    }
+
+    OutArgsSizeBytes = applyStackAlignmentTy(OutArgsSizeBytes, Ty);
+    OutArgsSizeBytes += typeWidthInBytesOnStack(Ty);
+  }
+
+  return applyStackAlignment(OutArgsSizeBytes);
+}
+
+void TargetARM32::findMaxStackOutArgsSize() {
+  // MinNeededOutArgsBytes should be updated if the Target ever creates an
+  // high-level InstCall that requires more stack bytes.
+  constexpr size_t MinNeededOutArgsBytes = 0;
+  MaxOutArgsSizeBytes = MinNeededOutArgsBytes;
+  for (CfgNode *Node : Func->getNodes()) {
+    Context.init(Node);
+    while (!Context.atEnd()) {
+      PostIncrLoweringContext PostIncrement(Context);
+      Inst *CurInstr = Context.getCur();
+      if (auto *Call = llvm::dyn_cast<InstCall>(CurInstr)) {
+        SizeT OutArgsSizeBytes = getCallStackArgumentsSizeBytes(Call);
+        MaxOutArgsSizeBytes = std::max(MaxOutArgsSizeBytes, OutArgsSizeBytes);
+      }
+    }
+  }
+}
+
 void TargetARM32::translateO2() {
   TimerMarker T(TimerStack::TT_O2, Func);
 
   // TODO(stichnot): share passes with X86?
   // https://code.google.com/p/nativeclient/issues/detail?id=4094
   genTargetHelperCalls();
+  findMaxStackOutArgsSize();
 
   // Do not merge Alloca instructions, and lay out the stack.
   static constexpr bool SortAndCombineAllocas = false;
@@ -346,6 +396,7 @@ void TargetARM32::translateOm1() {
 
   // TODO: share passes with X86?
   genTargetHelperCalls();
+  findMaxStackOutArgsSize();
 
   // Do not merge Alloca instructions, and lay out the stack.
   static constexpr bool SortAndCombineAllocas = false;
@@ -473,8 +524,6 @@ void TargetARM32::emitVariable(const Variable *Var) const {
   int32_t BaseRegNum = Var->getBaseRegNum();
   if (BaseRegNum == Variable::NoRegister) {
     BaseRegNum = getFrameOrStackReg();
-    if (!hasFramePointer())
-      Offset += getStackAdjustment();
   }
   const Type VarTy = Var->getType();
   Str << "[" << getRegName(BaseRegNum, VarTy);
@@ -670,7 +719,11 @@ void TargetARM32::addProlog(CfgNode *Node) {
   // +------------------------+
   // | 6. padding             |
   // +------------------------+
-  // | 7. allocas             |
+  // | 7. allocas (variable)  |
+  // +------------------------+
+  // | 8. padding             |
+  // +------------------------+
+  // | 9. out args            |
   // +------------------------+ <--- StackPointer
   //
   // The following variables record the size in bytes of the given areas:
@@ -679,7 +732,9 @@ void TargetARM32::addProlog(CfgNode *Node) {
   //  * GlobalsSize:            area 3
   //  * GlobalsAndSubsequentPaddingSize: areas 3 - 4
   //  * LocalsSpillAreaSize:    area 5
-  //  * SpillAreaSizeBytes:     areas 2 - 6
+  //  * SpillAreaSizeBytes:     areas 2 - 6, and 9
+  //  * MaxOutArgsSizeBytes:    area 9
+  //
   // Determine stack frame offsets for each Variable without a register
   // assignment.  This can be done as one variable per stack slot.  Or, do
   // coalescing by running the register allocator again with an infinite set of
@@ -785,10 +840,13 @@ void TargetARM32::addProlog(CfgNode *Node) {
   uint32_t GlobalsAndSubsequentPaddingSize =
       GlobalsSize + LocalsSlotsPaddingBytes;
 
-  // Align SP if necessary.
-  if (NeedsStackAlignment) {
+  // Adds the out args space to the stack, and align SP if necessary.
+  if (!NeedsStackAlignment) {
+    SpillAreaSizeBytes += MaxOutArgsSizeBytes;
+  } else {
     uint32_t StackOffset = PreservedRegsSizeBytes;
     uint32_t StackSize = applyStackAlignment(StackOffset + SpillAreaSizeBytes);
+    StackSize = applyStackAlignment(StackSize + MaxOutArgsSizeBytes);
     SpillAreaSizeBytes = StackSize - StackOffset;
   }
 
@@ -801,8 +859,6 @@ void TargetARM32::addProlog(CfgNode *Node) {
     _sub(SP, SP, SubAmount);
   }
   Ctx->statsUpdateFrameBytes(SpillAreaSizeBytes);
-
-  resetStackAdjustment();
 
   // Fill in stack offsets for stack args, and copy args into registers for
   // those that were register-allocated. Args are pushed right to left, so
@@ -847,7 +903,8 @@ void TargetARM32::addProlog(CfgNode *Node) {
     Str << "Stack layout:\n";
     uint32_t SPAdjustmentPaddingSize =
         SpillAreaSizeBytes - LocalsSpillAreaSize -
-        GlobalsAndSubsequentPaddingSize - SpillAreaPaddingBytes;
+        GlobalsAndSubsequentPaddingSize - SpillAreaPaddingBytes -
+        MaxOutArgsSizeBytes;
     Str << " in-args = " << InArgsSizeBytes << " bytes\n"
         << " preserved registers = " << PreservedRegsSizeBytes << " bytes\n"
         << " spill area padding = " << SpillAreaPaddingBytes << " bytes\n"
@@ -860,6 +917,7 @@ void TargetARM32::addProlog(CfgNode *Node) {
     Str << "Stack details:\n"
         << " SP adjustment = " << SpillAreaSizeBytes << " bytes\n"
         << " spill area alignment = " << SpillAreaAlignmentBytes << " bytes\n"
+        << " outgoing args size = " << MaxOutArgsSizeBytes << " bytes\n"
         << " locals spill area alignment = " << LocalsSlotsAlignmentBytes
         << " bytes\n"
         << " is FP based = " << UsesFramePointer << "\n";
@@ -956,10 +1014,7 @@ bool TargetARM32::isLegalMemOffset(Type Ty, int32_t Offset) const {
   return OperandARM32Mem::canHoldOffset(Ty, ZeroExt, Offset);
 }
 
-Variable *TargetARM32::newBaseRegister(int32_t OriginalOffset,
-                                       int32_t StackAdjust,
-                                       Variable *OrigBaseReg) {
-  int32_t Offset = OriginalOffset + StackAdjust;
+Variable *TargetARM32::newBaseRegister(int32_t Offset, Variable *OrigBaseReg) {
   // Legalize will likely need a movw/movt combination, but if the top bits are
   // all 0 from negating the offset and subtracting, we could use that instead.
   bool ShouldSub = (-Offset & 0xFFFF0000) == 0;
@@ -976,26 +1031,25 @@ Variable *TargetARM32::newBaseRegister(int32_t OriginalOffset,
 }
 
 OperandARM32Mem *TargetARM32::createMemOperand(Type Ty, int32_t Offset,
-                                               int32_t StackAdjust,
                                                Variable *OrigBaseReg,
                                                Variable **NewBaseReg,
                                                int32_t *NewBaseOffset) {
-  if (isLegalMemOffset(Ty, Offset + StackAdjust)) {
+  if (isLegalMemOffset(Ty, Offset)) {
     return OperandARM32Mem::create(
-        Func, Ty, OrigBaseReg, llvm::cast<ConstantInteger32>(
-                                   Ctx->getConstantInt32(Offset + StackAdjust)),
+        Func, Ty, OrigBaseReg,
+        llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(Offset)),
         OperandARM32Mem::Offset);
   }
 
   if (*NewBaseReg == nullptr) {
-    *NewBaseReg = newBaseRegister(Offset, StackAdjust, OrigBaseReg);
-    *NewBaseOffset = Offset + StackAdjust;
+    *NewBaseReg = newBaseRegister(Offset, OrigBaseReg);
+    *NewBaseOffset = Offset;
   }
 
-  int32_t OffsetDiff = Offset + StackAdjust - *NewBaseOffset;
+  int32_t OffsetDiff = Offset - *NewBaseOffset;
   if (!isLegalMemOffset(Ty, OffsetDiff)) {
-    *NewBaseReg = newBaseRegister(Offset, StackAdjust, OrigBaseReg);
-    *NewBaseOffset = Offset + StackAdjust;
+    *NewBaseReg = newBaseRegister(Offset, OrigBaseReg);
+    *NewBaseOffset = Offset;
     OffsetDiff = 0;
   }
 
@@ -1005,9 +1059,8 @@ OperandARM32Mem *TargetARM32::createMemOperand(Type Ty, int32_t Offset,
       OperandARM32Mem::Offset);
 }
 
-void TargetARM32::legalizeMov(InstARM32Mov *MovInstr, int32_t StackAdjust,
-                              Variable *OrigBaseReg, Variable **NewBaseReg,
-                              int32_t *NewBaseOffset) {
+void TargetARM32::legalizeMov(InstARM32Mov *MovInstr, Variable *OrigBaseReg,
+                              Variable **NewBaseReg, int32_t *NewBaseOffset) {
   Variable *Dest = MovInstr->getDest();
   assert(Dest != nullptr);
   Type DestTy = Dest->getType();
@@ -1027,8 +1080,8 @@ void TargetARM32::legalizeMov(InstARM32Mov *MovInstr, int32_t StackAdjust,
     assert(SrcR->hasReg());
     const int32_t Offset = Dest->getStackOffset();
     // This is a _mov(Mem(), Variable), i.e., a store.
-    _str(SrcR, createMemOperand(DestTy, Offset, StackAdjust, OrigBaseReg,
-                                NewBaseReg, NewBaseOffset),
+    _str(SrcR, createMemOperand(DestTy, Offset, OrigBaseReg, NewBaseReg,
+                                NewBaseOffset),
          MovInstr->getPredicate());
     // _str() does not have a Dest, so we add a fake-def(Dest).
     Context.insert(InstFakeDef::create(Func, Dest));
@@ -1036,8 +1089,8 @@ void TargetARM32::legalizeMov(InstARM32Mov *MovInstr, int32_t StackAdjust,
   } else if (auto *Var = llvm::dyn_cast<Variable>(Src)) {
     if (!Var->hasReg()) {
       const int32_t Offset = Var->getStackOffset();
-      _ldr(Dest, createMemOperand(DestTy, Offset, StackAdjust, OrigBaseReg,
-                                  NewBaseReg, NewBaseOffset),
+      _ldr(Dest, createMemOperand(DestTy, Offset, OrigBaseReg, NewBaseReg,
+                                  NewBaseOffset),
            MovInstr->getPredicate());
       Legalized = true;
     }
@@ -1064,7 +1117,6 @@ void TargetARM32::legalizeStackSlots() {
   Func->dump("Before legalizeStackSlots");
   assert(hasComputedFrame());
   Variable *OrigBaseReg = getPhysicalRegister(getFrameOrStackReg());
-  int32_t StackAdjust = 0;
   // Do a fairly naive greedy clustering for now. Pick the first stack slot
   // that's out of bounds and make a new base reg using the architecture's temp
   // register. If that works for the next slot, then great. Otherwise, create a
@@ -1091,23 +1143,8 @@ void TargetARM32::legalizeStackSlots() {
         NewBaseOffset = 0;
       }
 
-      // The stack adjustment only matters if we are using SP instead of FP.
-      if (!hasFramePointer()) {
-        if (auto *AdjInst = llvm::dyn_cast<InstARM32AdjustStack>(CurInstr)) {
-          StackAdjust += AdjInst->getAmount();
-          NewBaseOffset += AdjInst->getAmount();
-          continue;
-        }
-        if (llvm::isa<InstARM32Call>(CurInstr)) {
-          NewBaseOffset -= StackAdjust;
-          StackAdjust = 0;
-          continue;
-        }
-      }
-
       if (auto *MovInstr = llvm::dyn_cast<InstARM32Mov>(CurInstr)) {
-        legalizeMov(MovInstr, StackAdjust, OrigBaseReg, &NewBaseReg,
-                    &NewBaseOffset);
+        legalizeMov(MovInstr, OrigBaseReg, &NewBaseReg, &NewBaseOffset);
       }
     }
   }
@@ -1269,7 +1306,14 @@ void TargetARM32::lowerAlloca(const InstAlloca *Inst) {
     alignRegisterPow2(T, Alignment);
     _sub(SP, SP, T);
   }
-  _mov(Dest, SP);
+  Variable *T = SP;
+  if (MaxOutArgsSizeBytes != 0) {
+    T = makeReg(getPointerType());
+    Operand *OutArgsSizeRF = legalize(
+        Ctx->getConstantInt32(MaxOutArgsSizeBytes), Legal_Reg | Legal_Flex);
+    _add(T, SP, OutArgsSizeRF);
+  }
+  _mov(Dest, T);
 }
 
 void TargetARM32::div0Check(Type Ty, Operand *SrcLo, Operand *SrcHi) {
@@ -2093,6 +2137,8 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
   }
   case InstArithmetic::Sub: {
     if (Srcs.hasConstOperand()) {
+      // TODO(jpp): lowering Src0R here is wrong -- Src0R it is not guaranteed
+      // to be used.
       Variable *Src0R = Srcs.src0R(this);
       if (Srcs.immediateIsFlexEncodable()) {
         Operand *Src1RF = Srcs.src1RF(this);
@@ -2346,7 +2392,7 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
                     TargetARM32::CallingConv::ARM32_MAX_FP_REG_UNITS> FPArgs;
   // Pair of Arg Operand -> stack offset.
   llvm::SmallVector<std::pair<Operand *, int32_t>, 8> StackArgs;
-  int32_t ParameterAreaSizeBytes = 0;
+  size_t ParameterAreaSizeBytes = 0;
 
   // Classify each argument operand according to the location where the
   // argument is passed.
@@ -2390,16 +2436,8 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
   // the stack is already aligned at the start of the calling sequence.
   ParameterAreaSizeBytes = applyStackAlignment(ParameterAreaSizeBytes);
 
-  // Subtract the appropriate amount for the argument area. This also takes
-  // care of setting the stack adjustment during emission.
-  //
-  // TODO: If for some reason the call instruction gets dead-code eliminated
-  // after lowering, we would need to ensure that the pre-call and the
-  // post-call esp adjustment get eliminated as well.
-  if (ParameterAreaSizeBytes) {
-    Operand *SubAmount = legalize(Ctx->getConstantInt32(ParameterAreaSizeBytes),
-                                  Legal_Reg | Legal_Flex);
-    _adjust_stack(ParameterAreaSizeBytes, SubAmount);
+  if (ParameterAreaSizeBytes > MaxOutArgsSizeBytes) {
+    llvm::report_fatal_error("MaxOutArgsSizeBytes is not really a max.");
   }
 
   // Copy arguments that are passed on the stack to the appropriate stack
@@ -2491,15 +2529,6 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
   Context.insert(NewCall);
   if (ReturnRegHi)
     Context.insert(InstFakeDef::create(Func, ReturnRegHi));
-
-  // Add the appropriate offset to SP. The call instruction takes care of
-  // resetting the stack offset during emission.
-  if (ParameterAreaSizeBytes) {
-    Operand *AddAmount = legalize(Ctx->getConstantInt32(ParameterAreaSizeBytes),
-                                  Legal_Reg | Legal_Flex);
-    Variable *SP = getPhysicalRegister(RegARM32::Reg_sp);
-    _add(SP, SP, AddAmount);
-  }
 
   // Insert a register-kill pseudo instruction.
   Context.insert(InstFakeKill::create(Func, NewCall));

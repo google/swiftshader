@@ -237,6 +237,7 @@ protected:
   void lowerSwitch(const InstSwitch *Inst) override;
   void lowerUnreachable(const InstUnreachable *Inst) override;
   void prelowerPhis() override;
+  uint32_t getCallStackArgumentsSizeBytes(const InstCall *Instr) override;
   void genTargetHelperCallFor(Inst *Instr) override { (void)Instr; }
   void doAddressOptLoad() override;
   void doAddressOptStore() override;
@@ -288,10 +289,6 @@ protected:
   void _adc(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Adc::create(Func, Dest, Src0, Src1, Pred));
-  }
-  void _adjust_stack(int32_t Amount, Operand *SrcAmount) {
-    Context.insert(InstARM32AdjustStack::create(
-        Func, getPhysicalRegister(RegARM32::Reg_sp), Amount, SrcAmount));
   }
   void _and(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
@@ -813,6 +810,13 @@ protected:
     Context.insert(InstARM32Vsub::create(Func, Dest, Src0, Src1));
   }
 
+  // Iterates over the CFG and determines the maximum outgoing stack arguments
+  // bytes. This information is later used during addProlog() do pre-allocate
+  // the outargs area.
+  // TODO(jpp): This could live in the Parser, if we provided a Target-specific
+  // method that the Parser could call.
+  void findMaxStackOutArgsSize();
+
   /// Run a pass through stack variables and ensure that the offsets are legal.
   /// If the offset is not legal, use a new base register that accounts for the
   /// offset, such that the addressing mode offset bits are now legal.
@@ -820,36 +824,35 @@ protected:
   /// Returns true if the given Offset can be represented in a ldr/str.
   bool isLegalMemOffset(Type Ty, int32_t Offset) const;
   // Creates a new Base register centered around
-  // [OrigBaseReg, +/- Offset+StackAdjust].
-  Variable *newBaseRegister(int32_t Offset, int32_t StackAdjust,
-                            Variable *OrigBaseReg);
-  /// Creates a new, legal OperandARM32Mem for accessing OrigBase + Offset +
-  /// StackAdjust. The returned mem operand is a legal operand for accessing
-  /// memory that is of type Ty.
+  // [OrigBaseReg, +/- Offset].
+  Variable *newBaseRegister(int32_t Offset, Variable *OrigBaseReg);
+  /// Creates a new, legal OperandARM32Mem for accessing OrigBase + Offset. The
+  /// returned mem operand is a legal operand for accessing memory that is of
+  /// type Ty.
   ///
-  /// If [OrigBaseReg, #Offset+StackAdjust] is encodable, then the method
-  /// returns a Mem operand expressing it. Otherwise,
+  /// If [OrigBaseReg, #Offset] is encodable, then the method returns a Mem
+  /// operand expressing it. Otherwise,
   ///
-  /// if [*NewBaseReg, #Offset+StackAdjust-*NewBaseOffset] is encodable, the
-  /// method will return that. Otherwise,
+  /// if [*NewBaseReg, #Offset-*NewBaseOffset] is encodable, the method will
+  /// return that. Otherwise,
   ///
-  /// a new base register ip=OrigBaseReg+Offset+StackAdjust is created, and the
-  /// method returns [ip, #0].
+  /// a new base register ip=OrigBaseReg+Offset is created, and the method
+  /// returns [ip, #0].
   OperandARM32Mem *createMemOperand(Type Ty, int32_t Offset,
-                                    int32_t StackAdjust, Variable *OrigBaseReg,
+                                    Variable *OrigBaseReg,
                                     Variable **NewBaseReg,
                                     int32_t *NewBaseOffset);
   /// Legalizes Mov if its Source (or Destination) is a spilled Variable. Moves
   /// to memory become store instructions, and moves from memory, loads.
-  void legalizeMov(InstARM32Mov *Mov, int32_t StackAdjust,
-                   Variable *OrigBaseReg, Variable **NewBaseReg,
-                   int32_t *NewBaseOffset);
+  void legalizeMov(InstARM32Mov *Mov, Variable *OrigBaseReg,
+                   Variable **NewBaseReg, int32_t *NewBaseOffset);
 
   TargetARM32Features CPUFeatures;
   bool UsesFramePointer = false;
   bool NeedsStackAlignment = false;
   bool MaybeLeafFunc = true;
   size_t SpillAreaSizeBytes = 0;
+  uint32_t MaxOutArgsSizeBytes = 0;
   // TODO(jpp): std::array instead of array.
   static llvm::SmallBitVector TypeToRegisterSet[RCARM32_NUM];
   static llvm::SmallBitVector RegisterAliases[RegARM32::Reg_NUM];

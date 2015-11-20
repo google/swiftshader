@@ -311,6 +311,7 @@ protected:
   virtual void lowerOther(const Inst *Instr);
 
   virtual void genTargetHelperCallFor(Inst *Instr) = 0;
+  virtual uint32_t getCallStackArgumentsSizeBytes(const InstCall *Instr) = 0;
 
   virtual void doAddressOptLoad() {}
   virtual void doAddressOptStore() {}

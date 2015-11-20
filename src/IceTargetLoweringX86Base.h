@@ -182,6 +182,10 @@ protected:
   void lowerOther(const Inst *Instr) override;
   void lowerRMW(const typename Traits::Insts::FakeRMW *RMW);
   void prelowerPhis() override;
+  uint32_t getCallStackArgumentsSizeBytes(const InstCall *Instr) override {
+    (void)Instr;
+    return 0;
+  }
   void genTargetHelperCallFor(Inst *Instr) override { (void)Instr; }
   void doAddressOptLoad() override;
   void doAddressOptStore() override;

@@ -235,6 +235,10 @@ protected:
   void lowerSwitch(const InstSwitch *Inst) override;
   void lowerUnreachable(const InstUnreachable *Inst) override;
   void prelowerPhis() override;
+  uint32_t getCallStackArgumentsSizeBytes(const InstCall *Instr) override {
+    (void)Instr;
+    return 0;
+  }
   void genTargetHelperCallFor(Inst *Instr) override { (void)Instr; }
   void doAddressOptLoad() override;
   void doAddressOptStore() override;

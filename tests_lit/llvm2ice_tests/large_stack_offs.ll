@@ -49,7 +49,7 @@ end:
 ; ARM32-NOT: mov fp, sp
 ; ARM32: movw ip, #4{{.*}}
 ; ARM32-NEXT: sub sp, sp, ip
-; ARM32: movw ip, #4232
+; ARM32: movw ip, #4248
 ; ARM32-NEXT: add ip, sp, ip
 ; ARM32-NOT: movw ip
 ; %t2 is the result of the "or", and %t2 will be passed via r1 to the call.
@@ -61,14 +61,10 @@ end:
 ; ARM32: str [[REG]], [ip, #-20]
 ; ARM32: b {{[a-f0-9]+}}
 ; Now skip ahead to where the call in br_1 begins, to check how %t2 is used.
-; ARM32: movw ip, #4216
+; ARM32: movw ip, #4232
 ; ARM32-NEXT: add ip, sp, ip
-; ARM32: sub sp, sp, #16
-; Now sp1 = sp0 - 16, but ip is still in terms of sp0.
-; So, sp0 + 4212 == ip - 4.
 ; ARM32: ldr r2, [ip, #-4]
 ; ARM32: bl {{.*}} dummy
-; ARM32: add sp, sp
 ; The call clobbers ip, so we need to re-create the base register.
 ; ARM32: movw ip, #4{{.*}}
 ; ARM32: b {{[a-f0-9]+}}
@@ -122,12 +118,8 @@ end:
 ; Now skip ahead to where the call in br_1 begins, to check how %t2 is used.
 ; ARM32: movw ip, #4120
 ; ARM32-NEXT: sub ip, fp, ip
-; ARM32: sub sp, sp, #16
-; Now sp1 = sp0 - 16, but ip is still in terms of fp0.
-; So, fp0 - 4124 == ip - 4.
 ; ARM32: ldr r2, [ip, #-4]
 ; ARM32: bl {{.*}} dummy
-; ARM32: add sp, sp
 ; The call clobbers ip, so we need to re-create the base register.
 ; ARM32: movw ip, #4{{.*}}
 ; ARM32: b {{[a-f0-9]+}}
