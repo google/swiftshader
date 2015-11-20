@@ -235,6 +235,7 @@ protected:
   void lowerSwitch(const InstSwitch *Inst) override;
   void lowerUnreachable(const InstUnreachable *Inst) override;
   void prelowerPhis() override;
+  void genTargetHelperCallFor(Inst *Instr) override { (void)Instr; }
   void doAddressOptLoad() override;
   void doAddressOptStore() override;
   void randomlyInsertNop(float Probability,

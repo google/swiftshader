@@ -238,6 +238,7 @@ void TargetARM32::translateO2() {
 
   // TODO(stichnot): share passes with X86?
   // https://code.google.com/p/nativeclient/issues/detail?id=4094
+  genTargetHelperCalls();
 
   // Do not merge Alloca instructions, and lay out the stack.
   static constexpr bool SortAndCombineAllocas = false;
@@ -344,6 +345,7 @@ void TargetARM32::translateOm1() {
   TimerMarker T(TimerStack::TT_Om1, Func);
 
   // TODO: share passes with X86?
+  genTargetHelperCalls();
 
   // Do not merge Alloca instructions, and lay out the stack.
   static constexpr bool SortAndCombineAllocas = false;

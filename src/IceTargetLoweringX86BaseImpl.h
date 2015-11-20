@@ -302,6 +302,8 @@ template <class Machine> void TargetX86Base<Machine>::staticInit() {
 template <class Machine> void TargetX86Base<Machine>::translateO2() {
   TimerMarker T(TimerStack::TT_O2, Func);
 
+  genTargetHelperCalls();
+
   // Merge Alloca instructions, and lay out the stack.
   static constexpr bool SortAndCombineAllocas = true;
   Func->processAllocas(SortAndCombineAllocas);
@@ -424,6 +426,8 @@ template <class Machine> void TargetX86Base<Machine>::translateO2() {
 
 template <class Machine> void TargetX86Base<Machine>::translateOm1() {
   TimerMarker T(TimerStack::TT_Om1, Func);
+
+  genTargetHelperCalls();
 
   // Do not merge Alloca instructions, and lay out the stack.
   static constexpr bool SortAndCombineAllocas = false;

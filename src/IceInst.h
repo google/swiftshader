@@ -378,34 +378,40 @@ class InstCall : public InstHighLevel {
 
 public:
   static InstCall *create(Cfg *Func, SizeT NumArgs, Variable *Dest,
-                          Operand *CallTarget, bool HasTailCall) {
+                          Operand *CallTarget, bool HasTailCall,
+                          bool IsTargetHelperCall = false) {
     /// Set HasSideEffects to true so that the call instruction can't be
     /// dead-code eliminated. IntrinsicCalls can override this if the particular
     /// intrinsic is deletable and has no side-effects.
     constexpr bool HasSideEffects = true;
     constexpr InstKind Kind = Inst::Call;
-    return new (Func->allocate<InstCall>()) InstCall(
-        Func, NumArgs, Dest, CallTarget, HasTailCall, HasSideEffects, Kind);
+    return new (Func->allocate<InstCall>())
+        InstCall(Func, NumArgs, Dest, CallTarget, HasTailCall,
+                 IsTargetHelperCall, HasSideEffects, Kind);
   }
   void addArg(Operand *Arg) { addSource(Arg); }
   Operand *getCallTarget() const { return getSrc(0); }
   Operand *getArg(SizeT I) const { return getSrc(I + 1); }
   SizeT getNumArgs() const { return getSrcSize() - 1; }
   bool isTailcall() const { return HasTailCall; }
+  bool isTargetHelperCall() const { return IsTargetHelperCall; }
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return Inst->getKind() == Call; }
   Type getReturnType() const;
 
 protected:
   InstCall(Cfg *Func, SizeT NumArgs, Variable *Dest, Operand *CallTarget,
-           bool HasTailCall, bool HasSideEff, InstKind Kind)
-      : InstHighLevel(Func, Kind, NumArgs + 1, Dest), HasTailCall(HasTailCall) {
+           bool HasTailCall, bool IsTargetHelperCall, bool HasSideEff,
+           InstKind Kind)
+      : InstHighLevel(Func, Kind, NumArgs + 1, Dest), HasTailCall(HasTailCall),
+        IsTargetHelperCall(IsTargetHelperCall) {
     HasSideEffects = HasSideEff;
     addSource(CallTarget);
   }
 
 private:
-  bool HasTailCall;
+  const bool HasTailCall;
+  const bool IsTargetHelperCall;
 };
 
 /// Cast instruction (a.k.a. conversion operation).
@@ -570,8 +576,8 @@ public:
 private:
   InstIntrinsicCall(Cfg *Func, SizeT NumArgs, Variable *Dest,
                     Operand *CallTarget, const Intrinsics::IntrinsicInfo &Info)
-      : InstCall(Func, NumArgs, Dest, CallTarget, false, Info.HasSideEffects,
-                 Inst::IntrinsicCall),
+      : InstCall(Func, NumArgs, Dest, CallTarget, false, false,
+                 Info.HasSideEffects, Inst::IntrinsicCall),
         Info(Info) {}
 
   const Intrinsics::IntrinsicInfo Info;

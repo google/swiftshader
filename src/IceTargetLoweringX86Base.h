@@ -182,6 +182,7 @@ protected:
   void lowerOther(const Inst *Instr) override;
   void lowerRMW(const typename Traits::Insts::FakeRMW *RMW);
   void prelowerPhis() override;
+  void genTargetHelperCallFor(Inst *Instr) override { (void)Instr; }
   void doAddressOptLoad() override;
   void doAddressOptStore() override;
   void doMockBoundsCheck(Operand *Opnd) override;

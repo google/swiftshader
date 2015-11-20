@@ -137,6 +137,16 @@ std::unique_ptr<Assembler> TargetLowering::createAssembler(TargetArch Target,
   return nullptr;
 }
 
+void TargetLowering::genTargetHelperCalls() {
+  for (CfgNode *Node : Func->getNodes()) {
+    Context.init(Node);
+    while (!Context.atEnd()) {
+      PostIncrLoweringContext _(Context);
+      genTargetHelperCallFor(Context.getCur());
+    }
+  }
+}
+
 void TargetLowering::doAddressOpt() {
   if (llvm::isa<InstLoad>(*Context.getCur()))
     doAddressOptLoad();

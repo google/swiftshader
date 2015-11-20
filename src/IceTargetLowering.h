@@ -170,6 +170,8 @@ public:
     Func->setError("Target doesn't specify O2 lowering steps.");
   }
 
+  /// Generates calls to intrinsics for operations the Target can't handle.
+  void genTargetHelperCalls();
   /// Tries to do address mode optimization on a single instruction.
   void doAddressOpt();
   /// Randomly insert NOPs.
@@ -307,6 +309,8 @@ protected:
   virtual void lowerSwitch(const InstSwitch *Inst) = 0;
   virtual void lowerUnreachable(const InstUnreachable *Inst) = 0;
   virtual void lowerOther(const Inst *Instr);
+
+  virtual void genTargetHelperCallFor(Inst *Instr) = 0;
 
   virtual void doAddressOptLoad() {}
   virtual void doAddressOptStore() {}
