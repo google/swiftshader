@@ -199,6 +199,9 @@ enum DecodedResult {
   // Value=000000000000000000000iiiii0000000 iiii defines the Imm5 value to
   // shift.
   DecodedAsShiftImm5,
+  // i.e. iiiiiss0mmmm where mmmm is the register to rotate, ss is the shift
+  // kind, and iiiii is the shift amount.
+  DecodedAsShiftedRegister,
   // Value is 32bit integer constant.
   DecodedAsConstI32
 };
@@ -228,6 +231,7 @@ IValueT encodeShiftRotateReg(IValueT Rm, OperandARM32::ShiftKind Shift,
 }
 
 DecodedResult decodeOperand(const Operand *Opnd, IValueT &Value) {
+  Value = 0; // Make sure initialized.
   if (const auto *Var = llvm::dyn_cast<Variable>(Opnd)) {
     if (Var->hasReg()) {
       Value = Var->getRegNum();
@@ -246,6 +250,18 @@ DecodedResult decodeOperand(const Operand *Opnd, IValueT &Value) {
   if (const auto *Const = llvm::dyn_cast<ConstantInteger32>(Opnd)) {
     Value = Const->getValue();
     return DecodedAsConstI32;
+  }
+  if (const auto *FlexReg = llvm::dyn_cast<OperandARM32FlexReg>(Opnd)) {
+    Operand *Amt = FlexReg->getShiftAmt();
+    if (const auto *Imm5 = llvm::dyn_cast<OperandARM32ShAmtImm>(Amt)) {
+      IValueT Rm;
+      if (decodeOperand(FlexReg->getReg(), Rm) != DecodedAsRegister)
+        return CantDecode;
+      Value =
+          encodeShiftRotateImm5(Rm, FlexReg->getShiftOp(), Imm5->getShAmtImm());
+      return DecodedAsShiftedRegister;
+    }
+    // TODO(kschimpf): Handle case where Amt is a register?
   }
   if (const auto *ShImm = llvm::dyn_cast<OperandARM32ShAmtImm>(Opnd)) {
     const IValueT Immed5 = ShImm->getShAmtImm();
@@ -271,6 +287,7 @@ IValueT decodeImmRegOffset(RegARM32::GPRRegister Reg, IOffsetT Offset,
 // based on how ARM represents the address. Returns how the value was encoded.
 DecodedResult decodeAddress(const Operand *Opnd, IValueT &Value,
                             const AssemblerARM32::TargetInfo &TInfo) {
+  Value = 0; // Make sure initialized.
   if (const auto *Var = llvm::dyn_cast<Variable>(Opnd)) {
     // Should be a stack variable, with an offset.
     if (Var->hasReg())
@@ -496,6 +513,12 @@ void AssemblerARM32::emitType01(IValueT Opcode, IValueT Rd, IValueT Rn,
     // mmmm=Rm, iiiii=Shift, tt=ShiftKind, and s=SetFlags.
     constexpr IValueT Imm5 = 0;
     Src1Value = encodeShiftRotateImm5(Src1Value, OperandARM32::kNoShift, Imm5);
+    emitType01(Cond, kInstTypeDataRegister, Opcode, SetFlags, Rn, Rd, Src1Value,
+               RuleChecks);
+    return;
+  }
+  case DecodedAsShiftedRegister: {
+    // Form is defined in case DecodedAsRegister. (i.e. XXX (register)).
     emitType01(Cond, kInstTypeDataRegister, Opcode, SetFlags, Rn, Rd, Src1Value,
                RuleChecks);
     return;
