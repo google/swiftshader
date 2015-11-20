@@ -81,26 +81,23 @@ class JumpTableData {
   JumpTableData &operator=(const JumpTableData &) = delete;
 
 public:
-  JumpTableData(IceString FuncName, SizeT Id, SizeT NumTargets)
-      : FuncName(FuncName), Id(Id) {
-    TargetOffsets.reserve(NumTargets);
-  }
+  using TargetList = std::vector<intptr_t>;
+
+  JumpTableData(const IceString &FuncName, SizeT Id,
+                const TargetList &TargetOffsets)
+      : FuncName(FuncName), Id(Id), TargetOffsets(TargetOffsets) {}
   JumpTableData(const JumpTableData &) = default;
   JumpTableData(JumpTableData &&) = default;
   JumpTableData &operator=(JumpTableData &&) = default;
 
-  void pushTarget(intptr_t Offset) { TargetOffsets.emplace_back(Offset); }
-
   const IceString &getFunctionName() const { return FuncName; }
   SizeT getId() const { return Id; }
-  const std::vector<intptr_t> &getTargetOffsets() const {
-    return TargetOffsets;
-  }
+  const TargetList &getTargetOffsets() const { return TargetOffsets; }
 
 private:
   IceString FuncName;
   SizeT Id;
-  std::vector<intptr_t> TargetOffsets;
+  TargetList TargetOffsets;
 };
 
 using JumpTableDataList = std::vector<JumpTableData>;

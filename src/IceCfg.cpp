@@ -966,12 +966,13 @@ void Cfg::emitJumpTables() {
     IceString MangledName = Ctx->mangleName(getFunctionName());
     for (const InstJumpTable *JumpTable : JumpTables) {
       SizeT NumTargets = JumpTable->getNumTargets();
-      JumpTableData &JT =
-          Ctx->addJumpTable(MangledName, JumpTable->getId(), NumTargets);
+      JumpTableData::TargetList TargetList;
       for (SizeT I = 0; I < NumTargets; ++I) {
         SizeT Index = JumpTable->getTarget(I)->getIndex();
-        JT.pushTarget(getAssembler()->getCfgNodeLabel(Index)->getPosition());
+        TargetList.emplace_back(
+            getAssembler()->getCfgNodeLabel(Index)->getPosition());
       }
+      Ctx->addJumpTable(MangledName, JumpTable->getId(), TargetList);
     }
   } break;
   case FT_Asm: {

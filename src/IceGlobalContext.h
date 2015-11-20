@@ -217,7 +217,8 @@ public:
   /// Return a locked pointer to the registered jump tables.
   JumpTableDataList getJumpTables();
   /// Create a new jump table entry and return a reference to it.
-  JumpTableData &addJumpTable(IceString FuncName, SizeT Id, SizeT NumTargets);
+  JumpTableData &addJumpTable(IceString FuncName, SizeT Id,
+                              const JumpTableData::TargetList &TargetList);
 
   const ClFlags &getFlags() const { return Flags; }
 

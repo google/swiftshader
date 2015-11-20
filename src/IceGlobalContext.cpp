@@ -895,10 +895,11 @@ JumpTableDataList GlobalContext::getJumpTables() {
   return JumpTables;
 }
 
-JumpTableData &GlobalContext::addJumpTable(IceString FuncName, SizeT Id,
-                                           SizeT NumTargets) {
+JumpTableData &
+GlobalContext::addJumpTable(IceString FuncName, SizeT Id,
+                            const JumpTableData::TargetList &TargetList) {
   auto JumpTableList = getJumpTableList();
-  JumpTableList->emplace_back(FuncName, Id, NumTargets);
+  JumpTableList->emplace_back(FuncName, Id, TargetList);
   return JumpTableList->back();
 }
 
