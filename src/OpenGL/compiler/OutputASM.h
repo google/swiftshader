@@ -199,6 +199,7 @@ namespace glsl
 		void declareVarying(TIntermTyped *varying, int reg);
 		int uniformRegister(TIntermTyped *uniform);
 		int attributeRegister(TIntermTyped *attribute);
+		int fragmentOutputRegister(TIntermTyped *fragmentOutput);
 		int samplerRegister(TIntermTyped *sampler);
 		int samplerRegister(TIntermSymbol *sampler);
 
@@ -228,6 +229,7 @@ namespace glsl
 		VariableArray varyings;
 		VariableArray attributes;
 		VariableArray samplers;
+		VariableArray fragmentOutputs;
 
 		Scope emitScope;
 		Scope currentScope;

@@ -2199,7 +2199,7 @@ namespace glsl
 		case EvqVaryingIn:           return varyingRegister(operand);
 		case EvqVaryingOut:          return varyingRegister(operand);
 		case EvqVertexIn:            return attributeRegister(operand);
-		case EvqFragmentOut:         return 0;
+		case EvqFragmentOut:         return fragmentOutputRegister(operand);
 		case EvqVertexOut:           return varyingRegister(operand);
 		case EvqFragmentIn:          return varyingRegister(operand);
 		case EvqInvariantVaryingIn:  return varyingRegister(operand);
@@ -2525,6 +2525,11 @@ namespace glsl
 		}
 
 		return index;
+	}
+
+	int OutputASM::fragmentOutputRegister(TIntermTyped *fragmentOutput)
+	{
+		return allocate(fragmentOutputs, fragmentOutput);
 	}
 
 	int OutputASM::samplerRegister(TIntermTyped *sampler)
