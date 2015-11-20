@@ -224,7 +224,7 @@ namespace sw
 				   internalTextureFormat == FORMAT_YV12_BT709 ||
 				   internalTextureFormat == FORMAT_YV12_JFIF)
 				{
-					unsigned int YStride = align(width, 16);
+					unsigned int YStride = pitchP;
 					unsigned int YSize = YStride * height;
 					unsigned int CStride = align(YStride / 2, 16);
  					unsigned int CSize = CStride * height / 2;
