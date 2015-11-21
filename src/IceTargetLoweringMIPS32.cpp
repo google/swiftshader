@@ -94,7 +94,7 @@ void TargetMIPS32::translateO2() {
   genTargetHelperCalls();
 
   // Merge Alloca instructions, and lay out the stack.
-  static constexpr bool SortAndCombineAllocas = true;
+  static constexpr bool SortAndCombineAllocas = false;
   Func->processAllocas(SortAndCombineAllocas);
   Func->dump("After Alloca processing");
 

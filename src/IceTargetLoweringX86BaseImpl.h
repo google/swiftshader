@@ -5323,6 +5323,49 @@ template <class Machine> void TargetX86Base<Machine>::prelowerPhis() {
 }
 
 template <class Machine>
+uint32_t
+TargetX86Base<Machine>::getCallStackArgumentsSizeBytes(const InstCall *Instr) {
+  uint32_t OutArgumentsSizeBytes = 0;
+  uint32_t XmmArgCount = 0;
+  uint32_t GprArgCount = 0;
+  // Classify each argument operand according to the location where the
+  // argument is passed.
+  for (SizeT i = 0, NumArgs = Instr->getNumArgs(); i < NumArgs; ++i) {
+    Operand *Arg = Instr->getArg(i);
+    Type Ty = Arg->getType();
+    // The PNaCl ABI requires the width of arguments to be at least 32 bits.
+    assert(typeWidthInBytes(Ty) >= 4);
+    if (isVectorType(Ty) && XmmArgCount < Traits::X86_MAX_XMM_ARGS) {
+      ++XmmArgCount;
+    } else if (isScalarIntegerType(Ty) &&
+               GprArgCount < Traits::X86_MAX_GPR_ARGS) {
+      // The 64 bit ABI allows some integers to be passed in GPRs.
+      ++GprArgCount;
+    } else {
+      if (isVectorType(Arg->getType())) {
+        OutArgumentsSizeBytes =
+            Traits::applyStackAlignment(OutArgumentsSizeBytes);
+      }
+      OutArgumentsSizeBytes += typeWidthInBytesOnStack(Arg->getType());
+    }
+  }
+  if (Traits::Is64Bit)
+    return OutArgumentsSizeBytes;
+  // The 32 bit ABI requires floating point values to be returned on the x87 FP
+  // stack. Ensure there is enough space for the fstp/movs for floating returns.
+  Variable *Dest = Instr->getDest();
+  if (Dest == nullptr)
+    return OutArgumentsSizeBytes;
+  const Type DestType = Dest->getType();
+  if (isScalarFloatingType(Dest->getType())) {
+    OutArgumentsSizeBytes =
+        std::max(OutArgumentsSizeBytes,
+                 static_cast<uint32_t>(typeWidthInBytesOnStack(DestType)));
+  }
+  return OutArgumentsSizeBytes;
+}
+
+template <class Machine>
 Variable *TargetX86Base<Machine>::makeZeroedRegister(Type Ty, int32_t RegNum) {
   Variable *Reg = makeReg(Ty, RegNum);
   switch (Ty) {

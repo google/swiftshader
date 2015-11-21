@@ -579,6 +579,8 @@ template <> struct MachineTraits<TargetX8632> {
 
   /// The maximum number of arguments to pass in XMM registers
   static const uint32_t X86_MAX_XMM_ARGS = 4;
+  /// The maximum number of arguments to pass in GPR registers
+  static const uint32_t X86_MAX_GPR_ARGS = 0;
   /// The number of bits in a byte
   static const uint32_t X86_CHAR_BIT = 8;
   /// Stack alignment. This is defined in IceTargetLoweringX8632.cpp because it
