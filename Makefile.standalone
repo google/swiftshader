@@ -96,6 +96,17 @@ else
   OBJDIR := $(OBJDIR)+Asserts
 endif
 
+# Use g++ to compile, to check for errors/warnings that clang++ might have
+# missed.  It's unlikely to link, unless LLVM was also built with g++, so the
+# compile_only target should be used.
+ifdef GPLUSPLUS
+  CXX = CCACHE_CPP2=yes $(CCACHE) g++
+  STDLIB_FLAGS =
+    LLVM_EXTRA_WARNINGS="-Wno-unknown-pragmas -Wno-unused-parameter \
+    -Wno-comment -Wno-enum-compare -Wno-strict-aliasing"
+  OBJDIR := $(OBJDIR)+Gplusplus
+endif
+
 ifdef UBSAN
   OBJDIR := $(OBJDIR)+UBSan
   CXX_EXTRA += -fsanitize=undefined -fno-sanitize=vptr \
@@ -437,16 +448,12 @@ check-presubmit presubmit:
 # Verify MINIMAL build, plus proper usage of REQUIRES in lit tests.
 	+make -f Makefile.standalone \
           MINIMAL=1 check
+# Check that there are no g++ build errors or warnings.
+	+make -f Makefile.standalone \
+	  GPLUSPLUS=1 compile_only
 # Check the x86 assembler unit tests.
 	+make -f Makefile.standalone \
           DEBUG=1 CHECK_X86_ASM=1 check-unit
-# Check that there are no g++ build errors or warnings.
-	+make -f Makefile.standalone clean
-	+make -f Makefile.standalone compile_only \
-          CXX=g++ STDLIB_FLAGS= \
-          LLVM_EXTRA_WARNINGS="-Wno-unknown-pragmas -Wno-unused-parameter \
-          -Wno-comment -Wno-enum-compare -Wno-strict-aliasing"
-	+make -f Makefile.standalone clean
 # Run spec2k for x86-32.
 	+make -f Makefile.standalone \
           check check-spec
@@ -465,8 +472,6 @@ check-presubmit presubmit:
 # Run a few spec2k tests for arm32 using qemu.
 	+make -f Makefile.standalone \
           TARGET=arm32 ALLSPEC='176.gcc 181.mcf 254.gap' check-spec
-# Verify that all changes are committed (including clang-format above).
-	git diff --quiet
 # Provide validation of user awesomeness!
 	echo Success
 
