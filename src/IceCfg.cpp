@@ -484,8 +484,14 @@ void Cfg::sortAndCombineAllocas(CfgVector<Inst *> &Allocas,
     } else {
       // Addressing is relative to the stack pointer or to a user pointer.  Add
       // the offset before adding the size of the object, because it grows
-      // upwards from the stack pointer.
-      Offsets.push_back(CurrentOffset);
+      // upwards from the stack pointer. In addition, if the addressing is
+      // relative to the stack pointer, we need to add the pre-computed max out
+      // args size bytes.
+      const uint32_t OutArgsOffsetOrZero =
+          (BaseVariableType == BVT_StackPointer)
+              ? getTarget()->maxOutArgsSizeBytes()
+              : 0;
+      Offsets.push_back(CurrentOffset + OutArgsOffsetOrZero);
     }
     // Update the running offset of the fused alloca region.
     CurrentOffset += Size;

@@ -99,16 +99,15 @@ public:
   }
   uint32_t getStackAlignment() const override;
   void reserveFixedAllocaArea(size_t Size, size_t Align) override {
-    // TODO(sehr,jpp): Implement fixed stack layout.
-    (void)Size;
-    (void)Align;
-    llvm::report_fatal_error("Not yet implemented");
+    FixedAllocaSizeBytes = Size;
+    assert(llvm::isPowerOf2_32(Align));
+    FixedAllocaAlignBytes = Align;
+    PrologEmitsFixedAllocas = true;
   }
   int32_t getFrameFixedAllocaOffset() const override {
-    // TODO(sehr,jpp): Implement fixed stack layout.
-    llvm::report_fatal_error("Not yet implemented");
-    return 0;
+    return FixedAllocaSizeBytes - (SpillAreaSizeBytes - MaxOutArgsSizeBytes);
   }
+  uint32_t maxOutArgsSizeBytes() const override { return MaxOutArgsSizeBytes; }
 
   bool shouldSplitToVariable64On32(Type Ty) const override {
     return Ty == IceType_i64;
@@ -250,7 +249,8 @@ protected:
   Variable *makeReg(Type Ty, int32_t RegNum = Variable::NoRegister);
   static Type stackSlotType();
   Variable *copyToReg(Operand *Src, int32_t RegNum = Variable::NoRegister);
-  void alignRegisterPow2(Variable *Reg, uint32_t Align);
+  void alignRegisterPow2(Variable *Reg, uint32_t Align,
+                         int32_t TmpRegNum = Variable::NoRegister);
 
   /// Returns a vector in a register with the given constant entries.
   Variable *makeVectorOfZeros(Type Ty, int32_t RegNum = Variable::NoRegister);
@@ -811,7 +811,7 @@ protected:
   }
 
   // Iterates over the CFG and determines the maximum outgoing stack arguments
-  // bytes. This information is later used during addProlog() do pre-allocate
+  // bytes. This information is later used during addProlog() to pre-allocate
   // the outargs area.
   // TODO(jpp): This could live in the Parser, if we provided a Target-specific
   // method that the Parser could call.
@@ -852,6 +852,9 @@ protected:
   bool NeedsStackAlignment = false;
   bool MaybeLeafFunc = true;
   size_t SpillAreaSizeBytes = 0;
+  size_t FixedAllocaSizeBytes = 0;
+  size_t FixedAllocaAlignBytes = 0;
+  bool PrologEmitsFixedAllocas = false;
   uint32_t MaxOutArgsSizeBytes = 0;
   // TODO(jpp): std::array instead of array.
   static llvm::SmallBitVector TypeToRegisterSet[RCARM32_NUM];
@@ -970,6 +973,29 @@ private:
   };
 
   BoolComputationTracker BoolComputations;
+
+  // AllowTemporaryWithNoReg indicates if TargetARM32::makeReg() can be invoked
+  // without specifying a physical register. This is needed for creating unbound
+  // temporaries during Ice -> ARM lowering, but before register allocation.
+  // This a safe-guard that, during the legalization post-passes no unbound
+  // temporaries are created.
+  bool AllowTemporaryWithNoReg = true;
+  // ForbidTemporaryWithoutReg is a RAII class that manages
+  // AllowTemporaryWithNoReg.
+  class ForbidTemporaryWithoutReg {
+    ForbidTemporaryWithoutReg() = delete;
+    ForbidTemporaryWithoutReg(const ForbidTemporaryWithoutReg&) = delete;
+    ForbidTemporaryWithoutReg &operator=(const ForbidTemporaryWithoutReg&) = delete;
+
+  public:
+    explicit ForbidTemporaryWithoutReg(TargetARM32 *Target) : Target(Target) {
+      Target->AllowTemporaryWithNoReg = false;
+    }
+    ~ForbidTemporaryWithoutReg() { Target->AllowTemporaryWithNoReg = true; }
+
+  private:
+    TargetARM32 *const Target;
+  };
 };
 
 class TargetDataARM32 final : public TargetDataLowering {

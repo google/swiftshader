@@ -265,7 +265,7 @@ uint32_t TargetARM32::getCallStackArgumentsSizeBytes(const InstCall *Call) {
 }
 
 void TargetARM32::findMaxStackOutArgsSize() {
-  // MinNeededOutArgsBytes should be updated if the Target ever creates an
+  // MinNeededOutArgsBytes should be updated if the Target ever creates a
   // high-level InstCall that requires more stack bytes.
   constexpr size_t MinNeededOutArgsBytes = 0;
   MaxOutArgsSizeBytes = MinNeededOutArgsBytes;
@@ -291,7 +291,7 @@ void TargetARM32::translateO2() {
   findMaxStackOutArgsSize();
 
   // Do not merge Alloca instructions, and lay out the stack.
-  static constexpr bool SortAndCombineAllocas = false;
+  static constexpr bool SortAndCombineAllocas = true;
   Func->processAllocas(SortAndCombineAllocas);
   Func->dump("After Alloca processing");
 
@@ -356,6 +356,7 @@ void TargetARM32::translateO2() {
   regAlloc(RAK_Global);
   if (Func->hasError())
     return;
+
   copyRegAllocFromInfWeightVariable64On32(Func->getVariables());
   Func->dump("After linear scan regalloc");
 
@@ -363,6 +364,8 @@ void TargetARM32::translateO2() {
     Func->advancedPhiLowering();
     Func->dump("After advanced Phi lowering");
   }
+
+  ForbidTemporaryWithoutReg _(this);
 
   // Stack frame mapping.
   Func->genFrame();
@@ -399,8 +402,8 @@ void TargetARM32::translateOm1() {
   findMaxStackOutArgsSize();
 
   // Do not merge Alloca instructions, and lay out the stack.
-  static constexpr bool SortAndCombineAllocas = false;
-  Func->processAllocas(SortAndCombineAllocas);
+  static constexpr bool DontSortAndCombineAllocas = false;
+  Func->processAllocas(DontSortAndCombineAllocas);
   Func->dump("After Alloca processing");
 
   Func->placePhiLoads();
@@ -424,8 +427,11 @@ void TargetARM32::translateOm1() {
   regAlloc(RAK_InfOnly);
   if (Func->hasError())
     return;
+
   copyRegAllocFromInfWeightVariable64On32(Func->getVariables());
   Func->dump("After regalloc of infinite-weight variables");
+
+  ForbidTemporaryWithoutReg _(this);
 
   Func->genFrame();
   if (Func->hasError())
@@ -520,6 +526,7 @@ void TargetARM32::emitVariable(const Variable *Var) const {
     llvm::report_fatal_error(
         "Infinite-weight Variable has no register assigned");
   }
+  assert(!Var->isRematerializable());
   int32_t Offset = Var->getStackOffset();
   int32_t BaseRegNum = Var->getBaseRegNum();
   if (BaseRegNum == Variable::NoRegister) {
@@ -850,6 +857,9 @@ void TargetARM32::addProlog(CfgNode *Node) {
     SpillAreaSizeBytes = StackSize - StackOffset;
   }
 
+  // Combine fixed alloca with SpillAreaSize.
+  SpillAreaSizeBytes += FixedAllocaSizeBytes;
+
   // Generate "sub sp, SpillAreaSizeBytes"
   if (SpillAreaSizeBytes) {
     // Use the scratch register if needed to legalize the immediate.
@@ -857,7 +867,11 @@ void TargetARM32::addProlog(CfgNode *Node) {
                                   Legal_Reg | Legal_Flex, getReservedTmpReg());
     Variable *SP = getPhysicalRegister(RegARM32::Reg_sp);
     _sub(SP, SP, SubAmount);
+    if (FixedAllocaAlignBytes > ARM32_STACK_ALIGNMENT_BYTES) {
+      alignRegisterPow2(SP, FixedAllocaAlignBytes);
+    }
   }
+
   Ctx->statsUpdateFrameBytes(SpillAreaSizeBytes);
 
   // Fill in stack offsets for stack args, and copy args into registers for
@@ -1034,6 +1048,7 @@ OperandARM32Mem *TargetARM32::createMemOperand(Type Ty, int32_t Offset,
                                                Variable *OrigBaseReg,
                                                Variable **NewBaseReg,
                                                int32_t *NewBaseOffset) {
+  assert(!OrigBaseReg->isRematerializable());
   if (isLegalMemOffset(Ty, Offset)) {
     return OperandARM32Mem::create(
         Func, Ty, OrigBaseReg,
@@ -1053,6 +1068,7 @@ OperandARM32Mem *TargetARM32::createMemOperand(Type Ty, int32_t Offset,
     OffsetDiff = 0;
   }
 
+  assert(!(*NewBaseReg)->isRematerializable());
   return OperandARM32Mem::create(
       Func, Ty, *NewBaseReg,
       llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(OffsetDiff)),
@@ -1076,8 +1092,9 @@ void TargetARM32::legalizeMov(InstARM32Mov *MovInstr, Variable *OrigBaseReg,
 
   bool Legalized = false;
   if (!Dest->hasReg()) {
-    auto *const SrcR = llvm::cast<Variable>(Src);
+    auto *SrcR = llvm::cast<Variable>(Src);
     assert(SrcR->hasReg());
+    assert(!SrcR->isRematerializable());
     const int32_t Offset = Dest->getStackOffset();
     // This is a _mov(Mem(), Variable), i.e., a store.
     _str(SrcR, createMemOperand(DestTy, Offset, OrigBaseReg, NewBaseReg,
@@ -1087,12 +1104,26 @@ void TargetARM32::legalizeMov(InstARM32Mov *MovInstr, Variable *OrigBaseReg,
     Context.insert(InstFakeDef::create(Func, Dest));
     Legalized = true;
   } else if (auto *Var = llvm::dyn_cast<Variable>(Src)) {
-    if (!Var->hasReg()) {
-      const int32_t Offset = Var->getStackOffset();
-      _ldr(Dest, createMemOperand(DestTy, Offset, OrigBaseReg, NewBaseReg,
-                                  NewBaseOffset),
-           MovInstr->getPredicate());
+    if (Var->isRematerializable()) {
+      // Rematerialization arithmetic.
+      const int32_t ExtraOffset =
+          (static_cast<SizeT>(Var->getRegNum()) == getFrameReg())
+              ? getFrameFixedAllocaOffset()
+              : 0;
+
+      const int32_t Offset = Var->getStackOffset() + ExtraOffset;
+      Operand *OffsetRF = legalize(Ctx->getConstantInt32(Offset),
+                                   Legal_Reg | Legal_Flex, Dest->getRegNum());
+      _add(Dest, Var, OffsetRF);
       Legalized = true;
+    } else {
+      if (!Var->hasReg()) {
+        const int32_t Offset = Var->getStackOffset();
+        _ldr(Dest, createMemOperand(DestTy, Offset, OrigBaseReg, NewBaseReg,
+                                    NewBaseOffset),
+             MovInstr->getPredicate());
+        Legalized = true;
+      }
     }
   }
 
@@ -1163,13 +1194,15 @@ Operand *TargetARM32::loOperand(Operand *Operand) {
     // increment) in case of duplication.
     assert(Mem->getAddrMode() == OperandARM32Mem::Offset ||
            Mem->getAddrMode() == OperandARM32Mem::NegOffset);
+    Variable *BaseR = legalizeToReg(Mem->getBase());
     if (Mem->isRegReg()) {
-      return OperandARM32Mem::create(Func, IceType_i32, Mem->getBase(),
-                                     Mem->getIndex(), Mem->getShiftOp(),
-                                     Mem->getShiftAmt(), Mem->getAddrMode());
+      Variable *IndexR = legalizeToReg(Mem->getIndex());
+      return OperandARM32Mem::create(Func, IceType_i32, BaseR, IndexR,
+                                     Mem->getShiftOp(), Mem->getShiftAmt(),
+                                     Mem->getAddrMode());
     } else {
-      return OperandARM32Mem::create(Func, IceType_i32, Mem->getBase(),
-                                     Mem->getOffset(), Mem->getAddrMode());
+      return OperandARM32Mem::create(Func, IceType_i32, BaseR, Mem->getOffset(),
+                                     Mem->getAddrMode());
     }
   }
   llvm_unreachable("Unsupported operand type");
@@ -1201,7 +1234,9 @@ Operand *TargetARM32::hiOperand(Operand *Operand) {
       Variable *NewBase = Func->makeVariable(Base->getType());
       lowerArithmetic(InstArithmetic::create(Func, InstArithmetic::Add, NewBase,
                                              Base, Four));
-      return OperandARM32Mem::create(Func, SplitType, NewBase, Mem->getIndex(),
+      Variable *BaseR = legalizeToReg(NewBase);
+      Variable *IndexR = legalizeToReg(Mem->getIndex());
+      return OperandARM32Mem::create(Func, SplitType, BaseR, IndexR,
                                      Mem->getShiftOp(), Mem->getShiftAmt(),
                                      Mem->getAddrMode());
     } else {
@@ -1216,16 +1251,17 @@ Operand *TargetARM32::hiOperand(Operand *Operand) {
         // mode into a RegReg addressing mode. Since NaCl sandboxing disallows
         // RegReg addressing modes, prefer adding to base and replacing
         // instead. Thus we leave the old offset alone.
-        Constant *Four = Ctx->getConstantInt32(4);
+        Constant *_4 = Ctx->getConstantInt32(4);
         Variable *NewBase = Func->makeVariable(Base->getType());
         lowerArithmetic(InstArithmetic::create(Func, InstArithmetic::Add,
-                                               NewBase, Base, Four));
+                                               NewBase, Base, _4));
         Base = NewBase;
       } else {
         Offset =
             llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(NextOffsetVal));
       }
-      return OperandARM32Mem::create(Func, SplitType, Base, Offset,
+      Variable *BaseR = legalizeToReg(Base);
+      return OperandARM32Mem::create(Func, SplitType, BaseR, Offset,
                                      Mem->getAddrMode());
     }
   }
@@ -1264,7 +1300,6 @@ llvm::SmallBitVector TargetARM32::getRegisterSet(RegSetMask Include,
 }
 
 void TargetARM32::lowerAlloca(const InstAlloca *Inst) {
-  UsesFramePointer = true;
   // Conservatively require the stack to be aligned. Some stack adjustment
   // operations implemented below assume that the stack is aligned before the
   // alloca. All the alloca code ensures that the stack alignment is preserved
@@ -1272,29 +1307,53 @@ void TargetARM32::lowerAlloca(const InstAlloca *Inst) {
   // cases.
   NeedsStackAlignment = true;
 
-  // TODO(stichnot): minimize the number of adjustments of SP, etc.
-  Variable *SP = getPhysicalRegister(RegARM32::Reg_sp);
-  Variable *Dest = Inst->getDest();
-  uint32_t AlignmentParam = Inst->getAlignInBytes();
   // For default align=0, set it to the real value 1, to avoid any
   // bit-manipulation problems below.
-  AlignmentParam = std::max(AlignmentParam, 1u);
+  const uint32_t AlignmentParam = std::max(1u, Inst->getAlignInBytes());
 
   // LLVM enforces power of 2 alignment.
   assert(llvm::isPowerOf2_32(AlignmentParam));
   assert(llvm::isPowerOf2_32(ARM32_STACK_ALIGNMENT_BYTES));
 
-  uint32_t Alignment = std::max(AlignmentParam, ARM32_STACK_ALIGNMENT_BYTES);
-  if (Alignment > ARM32_STACK_ALIGNMENT_BYTES) {
+  const uint32_t Alignment =
+      std::max(AlignmentParam, ARM32_STACK_ALIGNMENT_BYTES);
+  const bool OverAligned = Alignment > ARM32_STACK_ALIGNMENT_BYTES;
+  const bool OptM1 = Ctx->getFlags().getOptLevel() == Opt_m1;
+  const bool AllocaWithKnownOffset = Inst->getKnownFrameOffset();
+  const bool UseFramePointer =
+      hasFramePointer() || OverAligned || !AllocaWithKnownOffset || OptM1;
+
+  if (UseFramePointer)
+    setHasFramePointer();
+
+  Variable *SP = getPhysicalRegister(RegARM32::Reg_sp);
+  if (OverAligned) {
     alignRegisterPow2(SP, Alignment);
   }
+
+  Variable *Dest = Inst->getDest();
   Operand *TotalSize = Inst->getSizeInBytes();
+
   if (const auto *ConstantTotalSize =
           llvm::dyn_cast<ConstantInteger32>(TotalSize)) {
-    uint32_t Value = ConstantTotalSize->getValue();
-    Value = Utils::applyAlignment(Value, Alignment);
-    Operand *SubAmount = legalize(Ctx->getConstantInt32(Value));
-    _sub(SP, SP, SubAmount);
+    const uint32_t Value =
+        Utils::applyAlignment(ConstantTotalSize->getValue(), Alignment);
+    // Constant size alloca.
+    if (!UseFramePointer) {
+      // If we don't need a Frame Pointer, this alloca has a known offset to the
+      // stack pointer. We don't need adjust the stack pointer, nor assign any
+      // value to Dest, as Dest is rematerializable.
+      assert(Dest->isRematerializable());
+      FixedAllocaSizeBytes += Value;
+      Context.insert(InstFakeDef::create(Func, Dest));
+      return;
+    }
+
+    // If a frame pointer is required, then we need to store the alloca'd result
+    // in Dest.
+    Operand *SubAmountRF =
+        legalize(Ctx->getConstantInt32(Value), Legal_Reg | Legal_Flex);
+    _sub(SP, SP, SubAmountRF);
   } else {
     // Non-constant sizes need to be adjusted to the next highest multiple of
     // the required alignment at runtime.
@@ -1306,6 +1365,8 @@ void TargetARM32::lowerAlloca(const InstAlloca *Inst) {
     alignRegisterPow2(T, Alignment);
     _sub(SP, SP, T);
   }
+
+  // Adds back a few bytes to SP to account for the out args area.
   Variable *T = SP;
   if (MaxOutArgsSizeBytes != 0) {
     T = makeReg(getPointerType());
@@ -1313,6 +1374,7 @@ void TargetARM32::lowerAlloca(const InstAlloca *Inst) {
         Ctx->getConstantInt32(MaxOutArgsSizeBytes), Legal_Reg | Legal_Flex);
     _add(T, SP, OutArgsSizeRF);
   }
+
   _mov(Dest, T);
 }
 
@@ -1976,6 +2038,12 @@ void TargetARM32::lowerInt64Arithmetic(InstArithmetic::OpKind Op,
 
 void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
   Variable *Dest = Inst->getDest();
+
+  if (Dest->isRematerializable()) {
+    Context.insert(InstFakeDef::create(Func, Dest));
+    return;
+  }
+
   if (Dest->getType() == IceType_i1) {
     lowerInt1Arithmetic(Inst);
     return;
@@ -2139,8 +2207,8 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
     if (Srcs.hasConstOperand()) {
       // TODO(jpp): lowering Src0R here is wrong -- Src0R it is not guaranteed
       // to be used.
-      Variable *Src0R = Srcs.src0R(this);
       if (Srcs.immediateIsFlexEncodable()) {
+        Variable *Src0R = Srcs.src0R(this);
         Operand *Src1RF = Srcs.src1RF(this);
         if (Srcs.swappedOperands()) {
           _rsb(T, Src0R, Src1RF);
@@ -2151,6 +2219,7 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
         return;
       }
       if (!Srcs.swappedOperands() && Srcs.negatedImmediateIsFlexEncodable()) {
+        Variable *Src0R = Srcs.src0R(this);
         Operand *Src1F = Srcs.negatedSrc1F(this);
         _add(T, Src0R, Src1F);
         _mov(Dest, T);
@@ -2215,6 +2284,12 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
 
 void TargetARM32::lowerAssign(const InstAssign *Inst) {
   Variable *Dest = Inst->getDest();
+
+  if (Dest->isRematerializable()) {
+    Context.insert(InstFakeDef::create(Func, Dest));
+    return;
+  }
+
   Operand *Src0 = Inst->getSrc(0);
   assert(Dest->getType() == Src0->getType());
   if (Dest->getType() == IceType_i64) {
@@ -4425,13 +4500,17 @@ OperandARM32Mem *TargetARM32::formAddressingMode(Type Ty, Cfg *Func,
   assert(OffsetImm < 0 ? (ValidImmMask & -OffsetImm) == -OffsetImm
                        : (ValidImmMask & OffsetImm) == OffsetImm);
 
+  Variable *BaseR = makeReg(getPointerType());
+  Context.insert(InstAssign::create(Func, BaseR, BaseVar));
   if (OffsetReg != nullptr) {
-    return OperandARM32Mem::create(Func, Ty, BaseVar, OffsetReg, ShiftKind,
+    Variable *OffsetR = makeReg(getPointerType());
+    Context.insert(InstAssign::create(Func, OffsetR, OffsetReg));
+    return OperandARM32Mem::create(Func, Ty, BaseR, OffsetR, ShiftKind,
                                    OffsetRegShamt);
   }
 
   return OperandARM32Mem::create(
-      Func, Ty, BaseVar,
+      Func, Ty, BaseR,
       llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(OffsetImm)));
 }
 
@@ -4630,7 +4709,8 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
   if (RegNum == Variable::NoRegister) {
     if (Variable *Subst = getContext().availabilityGet(From)) {
       // At this point we know there is a potential substitution available.
-      if (Subst->mustHaveReg() && !Subst->hasReg()) {
+      if (!Subst->isRematerializable() && Subst->mustHaveReg() &&
+          !Subst->hasReg()) {
         // At this point we know the substitution will have a register.
         if (From->getType() == Subst->getType()) {
           // At this point we know the substitution's register is compatible.
@@ -4788,6 +4868,13 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
   }
 
   if (auto *Var = llvm::dyn_cast<Variable>(From)) {
+    if (Var->isRematerializable()) {
+      // TODO(jpp): We don't need to rematerialize Var if legalize() was invoked
+      // for a Variable in a Mem operand.
+      Variable *T = makeReg(Var->getType(), RegNum);
+      _mov(T, Var);
+      return T;
+    }
     // Check if the variable is guaranteed a physical register. This can happen
     // either when the variable is pre-colored or when it is assigned infinite
     // weight.
@@ -4844,9 +4931,9 @@ OperandARM32Mem *TargetARM32::formMemoryOperand(Operand *Operand, Type Ty) {
   // If we didn't do address mode optimization, then we only have a
   // base/offset to work with. ARM always requires a base register, so
   // just use that to hold the operand.
-  Variable *Base = legalizeToReg(Operand);
+  Variable *BaseR = legalizeToReg(Operand);
   return OperandARM32Mem::create(
-      Func, Ty, Base,
+      Func, Ty, BaseR,
       llvm::cast<ConstantInteger32>(Ctx->getConstantZero(IceType_i32)));
 }
 
@@ -4863,6 +4950,7 @@ Variable64On32 *TargetARM32::makeI64RegPair() {
 Variable *TargetARM32::makeReg(Type Type, int32_t RegNum) {
   // There aren't any 64-bit integer registers for ARM32.
   assert(Type != IceType_i64);
+  assert(AllowTemporaryWithNoReg || RegNum != Variable::NoRegister);
   Variable *Reg = Func->makeVariable(Type);
   if (RegNum == Variable::NoRegister)
     Reg->setMustHaveReg();
@@ -4871,7 +4959,8 @@ Variable *TargetARM32::makeReg(Type Type, int32_t RegNum) {
   return Reg;
 }
 
-void TargetARM32::alignRegisterPow2(Variable *Reg, uint32_t Align) {
+void TargetARM32::alignRegisterPow2(Variable *Reg, uint32_t Align,
+                                    int32_t TmpRegNum) {
   assert(llvm::isPowerOf2_32(Align));
   uint32_t RotateAmt;
   uint32_t Immed_8;
@@ -4880,10 +4969,12 @@ void TargetARM32::alignRegisterPow2(Variable *Reg, uint32_t Align) {
   // it fits at all). Assume Align is usually small, in which case BIC works
   // better. Thus, this rounds down to the alignment.
   if (OperandARM32FlexImm::canHoldImm(Align - 1, &RotateAmt, &Immed_8)) {
-    Mask = legalize(Ctx->getConstantInt32(Align - 1), Legal_Reg | Legal_Flex);
+    Mask = legalize(Ctx->getConstantInt32(Align - 1), Legal_Reg | Legal_Flex,
+                    TmpRegNum);
     _bic(Reg, Reg, Mask);
   } else {
-    Mask = legalize(Ctx->getConstantInt32(-Align), Legal_Reg | Legal_Flex);
+    Mask = legalize(Ctx->getConstantInt32(-Align), Legal_Reg | Legal_Flex,
+                    TmpRegNum);
     _and(Reg, Reg, Mask);
   }
 }

@@ -211,6 +211,7 @@ public:
   virtual uint32_t getStackAlignment() const = 0;
   virtual void reserveFixedAllocaArea(size_t Size, size_t Align) = 0;
   virtual int32_t getFrameFixedAllocaOffset() const = 0;
+  virtual uint32_t maxOutArgsSizeBytes() const { return 0; }
 
   /// Return whether a 64-bit Variable should be split into a Variable64On32.
   virtual bool shouldSplitToVariable64On32(Type Ty) const = 0;
