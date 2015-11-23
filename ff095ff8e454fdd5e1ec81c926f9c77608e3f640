@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5b8ecb42_8e62db89",
+        "filename": "src/Reactor/Nucleus.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 4243,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-11-23T21:55:38Z",
+      "side": 1,
+      "message": "Nice catch",
+      "range": {
+        "startLine": 4243,
+        "startChar": 28,
+        "endLine": 4243,
+        "endChar": 40
+      },
+      "revId": "ff095ff8e454fdd5e1ec81c926f9c77608e3f640",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5b8ecb42_ce5ce3cc",
+        "filename": "src/Reactor/Nucleus.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 4546,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-11-23T21:55:38Z",
+      "side": 1,
+      "message": "I\u0027m not sure if this is correct. I think it works for positive values but not negative. See the IfThenElse used in the commented out original code.",
+      "range": {
+        "startLine": 4543,
+        "startChar": 0,
+        "endLine": 4546,
+        "endChar": 2
+      },
+      "revId": "ff095ff8e454fdd5e1ec81c926f9c77608e3f640",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
