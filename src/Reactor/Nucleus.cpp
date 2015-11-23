@@ -933,6 +933,20 @@ namespace sw
 		storeValue(integer);
 	}
 
+	Byte::Byte(RValue<UInt> cast)
+	{
+		Value *integer = Nucleus::createTrunc(cast.value, Byte::getType());
+
+		storeValue(integer);
+	}
+
+	Byte::Byte(RValue<UShort> cast)
+	{
+		Value *integer = Nucleus::createTrunc(cast.value, Byte::getType());
+
+		storeValue(integer);
+	}
+
 	Byte::Byte()
 	{
 	}
@@ -1176,6 +1190,20 @@ namespace sw
 	SByte::SByte(Argument *argument)
 	{
 		storeValue(argument);
+	}
+
+	SByte::SByte(RValue<Int> cast)
+	{
+		Value *integer = Nucleus::createTrunc(cast.value, SByte::getType());
+
+		storeValue(integer);
+	}
+
+	SByte::SByte(RValue<Short> cast)
+	{
+		Value *integer = Nucleus::createTrunc(cast.value, SByte::getType());
+
+		storeValue(integer);
 	}
 
 	SByte::SByte()
@@ -1663,6 +1691,13 @@ namespace sw
 	UShort::UShort(Argument *argument)
 	{
 		storeValue(argument);
+	}
+
+	UShort::UShort(RValue<UInt> cast)
+	{
+		Value *integer = Nucleus::createTrunc(cast.value, UShort::getType());
+
+		storeValue(integer);
 	}
 
 	UShort::UShort()
@@ -4205,7 +4240,7 @@ namespace sw
 
 	UInt::UInt(RValue<Float> cast)
 	{
-		Value *integer = Nucleus::createFPToSI(cast.value, UInt::getType());
+		Value *integer = Nucleus::createFPToUI(cast.value, UInt::getType());
 
 		storeValue(integer);
 	}
