@@ -977,15 +977,16 @@ private:
   // AllowTemporaryWithNoReg indicates if TargetARM32::makeReg() can be invoked
   // without specifying a physical register. This is needed for creating unbound
   // temporaries during Ice -> ARM lowering, but before register allocation.
-  // This a safe-guard that, during the legalization post-passes no unbound
-  // temporaries are created.
+  // This a safe-guard that no unbound temporaries are created during the
+  // legalization post-passes.
   bool AllowTemporaryWithNoReg = true;
   // ForbidTemporaryWithoutReg is a RAII class that manages
   // AllowTemporaryWithNoReg.
   class ForbidTemporaryWithoutReg {
     ForbidTemporaryWithoutReg() = delete;
-    ForbidTemporaryWithoutReg(const ForbidTemporaryWithoutReg&) = delete;
-    ForbidTemporaryWithoutReg &operator=(const ForbidTemporaryWithoutReg&) = delete;
+    ForbidTemporaryWithoutReg(const ForbidTemporaryWithoutReg &) = delete;
+    ForbidTemporaryWithoutReg &
+    operator=(const ForbidTemporaryWithoutReg &) = delete;
 
   public:
     explicit ForbidTemporaryWithoutReg(TargetARM32 *Target) : Target(Target) {

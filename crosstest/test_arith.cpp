@@ -49,3 +49,37 @@ SINTOP_TABLE
   v4f32 test##inst(v4f32 a, v4f32 b) { return func(a op b); }
 FPOP_TABLE
 #undef X
+
+#define X(mult_by)                                                             \
+  bool testMultiplyBy##mult_by(bool a, bool /*unused*/) {                      \
+    return a * (mult_by);                                                      \
+  }                                                                            \
+  bool testMultiplyByNeg##mult_by(bool a, bool /*unused*/) {                   \
+    return a * (-(mult_by));                                                   \
+  }                                                                            \
+  uint8_t testMultiplyBy##mult_by(uint8_t a, uint8_t /*unused*/) {             \
+    return a * (mult_by);                                                      \
+  }                                                                            \
+  uint8_t testMultiplyByNeg##mult_by(uint8_t a, uint8_t /*unused*/) {          \
+    return a * (-(mult_by));                                                   \
+  }                                                                            \
+  uint16_t testMultiplyBy##mult_by(uint16_t a, uint16_t /*unused*/) {          \
+    return a * (mult_by);                                                      \
+  }                                                                            \
+  uint16_t testMultiplyByNeg##mult_by(uint16_t a, uint16_t /*unused*/) {       \
+    return a * (-(mult_by));                                                   \
+  }                                                                            \
+  uint32_t testMultiplyBy##mult_by(uint32_t a, uint32_t /*unused*/) {          \
+    return a * (mult_by);                                                      \
+  }                                                                            \
+  uint32_t testMultiplyByNeg##mult_by(uint32_t a, uint32_t /*unused*/) {       \
+    return a * (-(mult_by));                                                   \
+  }                                                                            \
+  uint64_t testMultiplyBy##mult_by(uint64_t a, uint64_t /*unused*/) {          \
+    return a * (mult_by);                                                      \
+  }                                                                            \
+  uint64_t testMultiplyByNeg##mult_by(uint64_t a, uint64_t /*unused*/) {       \
+    return a * (-(mult_by));                                                   \
+  }
+MULIMM_TABLE
+#undef X

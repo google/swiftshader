@@ -11,7 +11,7 @@
 ; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target arm32 \
 ; RUN:   -i %s --args -O2 --skip-unimplemented \
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
-; RUN:   --command FileCheck --check-prefix ARM32 %s
+; RUN:   --command FileCheck --check-prefix ARM32 --check-prefix ARM-OPT2 %s
 ; RUN: %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target arm32 \
 ; RUN:   -i %s --args -O2 --mattr=hwdiv-arm --skip-unimplemented \
@@ -21,7 +21,7 @@
 ; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target arm32 \
 ; RUN:   -i %s --args -Om1 --skip-unimplemented \
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
-; RUN:   --command FileCheck --check-prefix ARM32 %s
+; RUN:   --command FileCheck --check-prefix ARM32 --check-prefix ARM32-OPTM1 %s
 ;
 ; RUN: %if --need=target_MIPS32 --need=allow_dump \
 ; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target mips32\
@@ -117,8 +117,11 @@ entry:
 ; CHECK-LABEL: MulImm
 ; CHECK: imul e{{.*}},e{{.*}},0x63
 ; ARM32-LABEL: MulImm
-; ARM32: movw {{.*}}, #99
-; ARM32: mul r{{.*}}, r{{.*}}, r{{.*}}
+; ARM32-OPTM1: movw {{.*}}, #99
+; ARM32-OPTM1: mul r{{.*}}, r{{.*}}, r{{.*}}
+; ARM32-OPT2: rsb [[T:r[0-9]+]], [[S:r[0-9]+]], [[S]], lsl #2
+; ARM32-OPT2-DAG: add [[T]], [[T]], [[S]], lsl #7
+; ARM32-OPT2-DAG: sub [[T]], [[T]], [[S]], lsl #5
 ; MIPS32-LABEL: MulImm
 ; MIPS32: mul
 

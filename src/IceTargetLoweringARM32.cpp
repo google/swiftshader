@@ -32,6 +32,7 @@
 #include "llvm/Support/MathExtras.h"
 
 #include <algorithm>
+#include <array>
 #include <utility>
 
 namespace Ice {
@@ -2036,6 +2037,154 @@ void TargetARM32::lowerInt64Arithmetic(InstArithmetic::OpKind Op,
   }
 }
 
+namespace {
+// StrengthReduction is a namespace with the strength reduction machinery. The
+// entry point is the StrengthReduction::tryToOptimize method. It returns true
+// if the optimization can be performed, and false otherwise.
+//
+// If the optimization can be performed, tryToOptimize sets its NumOperations
+// parameter to the number of shifts that are needed to perform the
+// multiplication; and it sets the Operations parameter with <ShAmt, AddOrSub>
+// tuples that describe how to materialize the multiplication.
+//
+// The algorithm finds contiguous 1s in the Multiplication source, and uses one
+// or two shifts to materialize it. A sequence of 1s, e.g.,
+//
+//                  M           N
+//   ...00000000000011111...111110000000...
+//
+// is materializable with (1 << (M + 1)) - (1 << N):
+//
+//   ...00000000000100000...000000000000...      [1 << (M + 1)]
+//   ...00000000000000000...000010000000... (-)  [1 << N]
+//   --------------------------------------
+//   ...00000000000011111...111110000000...
+//
+// And a single bit set, which is just a left shift.
+namespace StrengthReduction {
+enum AggregationOperation {
+  AO_Invalid,
+  AO_Add,
+  AO_Sub,
+};
+
+// AggregateElement is a glorified <ShAmt, AddOrSub> tuple.
+class AggregationElement {
+  AggregationElement(const AggregationElement &) = delete;
+
+public:
+  AggregationElement() = default;
+  AggregationElement &operator=(const AggregationElement &) = default;
+  AggregationElement(AggregationOperation Op, uint32_t ShAmt)
+      : Op(Op), ShAmt(ShAmt) {}
+
+  Operand *createShiftedOperand(Cfg *Func, Variable *OpR) const {
+    assert(OpR->mustHaveReg());
+    if (ShAmt == 0) {
+      return OpR;
+    }
+    return OperandARM32FlexReg::create(
+        Func, IceType_i32, OpR, OperandARM32::LSL,
+        OperandARM32ShAmtImm::create(
+            Func, llvm::cast<ConstantInteger32>(
+                      Func->getContext()->getConstantInt32(ShAmt))));
+  }
+
+  bool aggregateWithAdd() const {
+    switch (Op) {
+    case AO_Invalid:
+      llvm::report_fatal_error("Invalid Strength Reduction Operations.");
+    case AO_Add:
+      return true;
+    case AO_Sub:
+      return false;
+    }
+  }
+
+  uint32_t shAmt() const { return ShAmt; }
+
+private:
+  AggregationOperation Op = AO_Invalid;
+  uint32_t ShAmt;
+};
+
+// [RangeStart, RangeEnd] is a range of 1s in Src.
+template <std::size_t N>
+bool addOperations(uint32_t RangeStart, uint32_t RangeEnd, SizeT *NumOperations,
+                   std::array<AggregationElement, N> *Operations) {
+  assert(*NumOperations < N);
+  if (RangeStart == RangeEnd) {
+    // Single bit set:
+    // Src           : 0...00010...
+    // RangeStart    :        ^
+    // RangeEnd      :        ^
+    // NegSrc        : 0...00001...
+    (*Operations)[*NumOperations] = AggregationElement(AO_Add, RangeStart);
+    ++(*NumOperations);
+    return true;
+  }
+
+  // Sequence of 1s: (two operations required.)
+  // Src           : 0...00011...110...
+  // RangeStart    :        ^
+  // RangeEnd      :              ^
+  // NegSrc        : 0...00000...001...
+  if (*NumOperations + 1 >= N) {
+    return false;
+  }
+  (*Operations)[*NumOperations] = AggregationElement(AO_Add, RangeStart + 1);
+  ++(*NumOperations);
+  (*Operations)[*NumOperations] = AggregationElement(AO_Sub, RangeEnd);
+  ++(*NumOperations);
+  return true;
+}
+
+// tryToOptmize scans Src looking for sequences of 1s (including the unitary bit
+// 1 surrounded by zeroes.
+template <std::size_t N>
+bool tryToOptimize(uint32_t Src, SizeT *NumOperations,
+                   std::array<AggregationElement, N> *Operations) {
+  constexpr uint32_t SrcSizeBits = sizeof(Src) * CHAR_BIT;
+  uint32_t NegSrc = ~Src;
+
+  *NumOperations = 0;
+  while (Src != 0 && *NumOperations < N) {
+    // Each step of the algorithm:
+    //   * finds L, the last bit set in Src;
+    //   * clears all the upper bits in NegSrc up to bit L;
+    //   * finds nL, the last bit set in NegSrc;
+    //   * clears all the upper bits in Src up to bit nL;
+    //
+    // if L == nL + 1, then a unitary 1 was found in Src. Otherwise, a sequence
+    // of 1s starting at L, and ending at nL + 1, was found.
+    const uint32_t SrcLastBitSet = llvm::findLastSet(Src);
+    const uint32_t NegSrcClearMask =
+        (SrcLastBitSet == 0) ? 0
+                             : (0xFFFFFFFFu) >> (SrcSizeBits - SrcLastBitSet);
+    NegSrc &= NegSrcClearMask;
+    if (NegSrc == 0) {
+      if (addOperations(SrcLastBitSet, 0, NumOperations, Operations)) {
+        return true;
+      }
+      return false;
+    }
+    const uint32_t NegSrcLastBitSet = llvm::findLastSet(NegSrc);
+    assert(NegSrcLastBitSet < SrcLastBitSet);
+    const uint32_t SrcClearMask =
+        (NegSrcLastBitSet == 0) ? 0 : (0xFFFFFFFFu) >>
+                                          (SrcSizeBits - NegSrcLastBitSet);
+    Src &= SrcClearMask;
+    if (!addOperations(SrcLastBitSet, NegSrcLastBitSet + 1, NumOperations,
+                       Operations)) {
+      return false;
+    }
+  }
+
+  return Src == 0;
+}
+} // end of namespace StrengthReduction
+} // end of anonymous namespace
+
 void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
   Variable *Dest = Inst->getDest();
 
@@ -2044,29 +2193,30 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
     return;
   }
 
-  if (Dest->getType() == IceType_i1) {
+  Type DestTy = Dest->getType();
+  if (DestTy == IceType_i1) {
     lowerInt1Arithmetic(Inst);
     return;
   }
 
   Operand *Src0 = legalizeUndef(Inst->getSrc(0));
   Operand *Src1 = legalizeUndef(Inst->getSrc(1));
-  if (Dest->getType() == IceType_i64) {
+  if (DestTy == IceType_i64) {
     lowerInt64Arithmetic(Inst->getOp(), Inst->getDest(), Src0, Src1);
     return;
   }
 
-  if (isVectorType(Dest->getType())) {
+  if (isVectorType(DestTy)) {
     // Add a fake def to keep liveness consistent in the meantime.
-    Variable *T = makeReg(Dest->getType());
+    Variable *T = makeReg(DestTy);
     Context.insert(InstFakeDef::create(Func, T));
     _mov(Dest, T);
     UnimplementedError(Func->getContext()->getFlags());
     return;
   }
 
-  // Dest->getType() is a non-i64 scalar.
-  Variable *T = makeReg(Dest->getType());
+  // DestTy is a non-i64 scalar.
+  Variable *T = makeReg(DestTy);
 
   // * Handle div/rem separately. They require a non-legalized Src1 to inspect
   // whether or not Src1 is a non-zero constant. Once legalized it is more
@@ -2107,7 +2257,7 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
   case InstArithmetic::Frem: {
     constexpr SizeT MaxSrcs = 2;
     Variable *Src0R = legalizeToReg(Src0);
-    Type Ty = Dest->getType();
+    Type Ty = DestTy;
     InstCall *Call = makeHelperCall(
         isFloat32Asserting32Or64(Ty) ? H_frem_f32 : H_frem_f64, Dest, MaxSrcs);
     Call->addArg(Src0R);
@@ -2205,8 +2355,6 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
   }
   case InstArithmetic::Sub: {
     if (Srcs.hasConstOperand()) {
-      // TODO(jpp): lowering Src0R here is wrong -- Src0R it is not guaranteed
-      // to be used.
       if (Srcs.immediateIsFlexEncodable()) {
         Variable *Src0R = Srcs.src0R(this);
         Operand *Src1RF = Srcs.src1RF(this);
@@ -2233,6 +2381,85 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
     return;
   }
   case InstArithmetic::Mul: {
+    const bool OptM1 = Ctx->getFlags().getOptLevel() == Opt_m1;
+    if (!OptM1 && Srcs.hasConstOperand()) {
+      constexpr std::size_t MaxShifts = 4;
+      std::array<StrengthReduction::AggregationElement, MaxShifts> Shifts;
+      SizeT NumOperations;
+      int32_t Const = Srcs.getConstantValue();
+      const bool Invert = Const < 0;
+      const bool MultiplyByZero = Const == 0;
+      Operand *_0 =
+          legalize(Ctx->getConstantZero(DestTy), Legal_Reg | Legal_Flex);
+
+      if (MultiplyByZero) {
+        _mov(T, _0);
+        _mov(Dest, T);
+        return;
+      }
+
+      if (Invert) {
+        Const = -Const;
+      }
+
+      if (StrengthReduction::tryToOptimize(Const, &NumOperations, &Shifts)) {
+        assert(NumOperations >= 1);
+        Variable *Src0R = Srcs.src0R(this);
+        int32_t Start;
+        int32_t End;
+        if (NumOperations == 1 || Shifts[NumOperations - 1].shAmt() != 0) {
+          // Multiplication by a power of 2 (NumOperations == 1); or
+          // Multiplication by a even number not a power of 2.
+          Start = 1;
+          End = NumOperations;
+          assert(Shifts[0].aggregateWithAdd());
+          _lsl(T, Src0R, shAmtImm(Shifts[0].shAmt()));
+        } else {
+          // Multiplication by an odd number. Put the free barrel shifter to a
+          // good use.
+          Start = 0;
+          End = NumOperations - 2;
+          const StrengthReduction::AggregationElement &Last =
+              Shifts[NumOperations - 1];
+          const StrengthReduction::AggregationElement &SecondToLast =
+              Shifts[NumOperations - 2];
+          if (!Last.aggregateWithAdd()) {
+            assert(SecondToLast.aggregateWithAdd());
+            _rsb(T, Src0R, SecondToLast.createShiftedOperand(Func, Src0R));
+          } else if (!SecondToLast.aggregateWithAdd()) {
+            assert(Last.aggregateWithAdd());
+            _sub(T, Src0R, SecondToLast.createShiftedOperand(Func, Src0R));
+          } else {
+            _add(T, Src0R, SecondToLast.createShiftedOperand(Func, Src0R));
+          }
+        }
+
+        // Odd numbers :   S                                 E   I   I
+        //               +---+---+---+---+---+---+ ... +---+---+---+---+
+        //     Shifts  = |   |   |   |   |   |   | ... |   |   |   |   |
+        //               +---+---+---+---+---+---+ ... +---+---+---+---+
+        // Even numbers:   I   S                                     E
+        //
+        // S: Start; E: End; I: Init
+        for (int32_t I = Start; I < End; ++I) {
+          const StrengthReduction::AggregationElement &Current = Shifts[I];
+          Operand *SrcF = Current.createShiftedOperand(Func, Src0R);
+          if (Current.aggregateWithAdd()) {
+            _add(T, T, SrcF);
+          } else {
+            _sub(T, T, SrcF);
+          }
+        }
+
+        if (Invert) {
+          // T = 0 - T.
+          _rsb(T, T, _0);
+        }
+
+        _mov(Dest, T);
+        return;
+      }
+    }
     Variable *Src0R = Srcs.unswappedSrc0R(this);
     Variable *Src1R = Srcs.unswappedSrc1R(this);
     _mul(T, Src0R, Src1R);
@@ -2248,7 +2475,7 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
   }
   case InstArithmetic::Lshr: {
     Variable *Src0R = Srcs.unswappedSrc0R(this);
-    if (Dest->getType() != IceType_i32) {
+    if (DestTy != IceType_i32) {
       _uxt(Src0R, Src0R);
     }
     _lsr(T, Src0R, Srcs.unswappedSrc1RShAmtImm(this));
@@ -2257,7 +2484,7 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
   }
   case InstArithmetic::Ashr: {
     Variable *Src0R = Srcs.unswappedSrc0R(this);
-    if (Dest->getType() != IceType_i32) {
+    if (DestTy != IceType_i32) {
       _sxt(Src0R, Src0R);
     }
     _asr(T, Src0R, Srcs.unswappedSrc1RShAmtImm(this));

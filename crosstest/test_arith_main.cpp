@@ -73,7 +73,15 @@ void testsInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
   ,
           SINTOP_TABLE
 #undef X
-  };
+#define X(mult_by)                                                             \
+  {                                                                            \
+    "Mult-By-" STR(mult_by), testMultiplyBy##mult_by,                          \
+        Subzero_::testMultiplyBy##mult_by, NULL, NULL, false                   \
+  }                                                                            \
+  , {"Mult-By-Neg-" STR(mult_by), testMultiplyByNeg##mult_by,                  \
+     Subzero_::testMultiplyByNeg##mult_by, NULL, NULL, false},
+              MULIMM_TABLE};
+#undef X
   const static size_t NumFuncs = sizeof(Funcs) / sizeof(*Funcs);
 
   if (sizeof(TypeUnsigned) <= sizeof(uint32_t)) {

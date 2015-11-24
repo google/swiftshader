@@ -60,3 +60,17 @@ double mySqrt(double a);
 float myFabs(float a);
 double myFabs(double a);
 v4f32 myFabs(v4f32 a);
+
+#define X(mult_by)                                                             \
+  bool testMultiplyBy##mult_by(bool a, bool);                                  \
+  bool testMultiplyByNeg##mult_by(bool a, bool);                               \
+  uint8_t testMultiplyBy##mult_by(uint8_t a, uint8_t);                         \
+  uint8_t testMultiplyByNeg##mult_by(uint8_t a, uint8_t);                      \
+  uint16_t testMultiplyBy##mult_by(uint16_t a, uint16_t);                      \
+  uint16_t testMultiplyByNeg##mult_by(uint16_t a, uint16_t);                   \
+  uint32_t testMultiplyBy##mult_by(uint32_t a, uint32_t);                      \
+  uint32_t testMultiplyByNeg##mult_by(uint32_t a, uint32_t);                   \
+  uint64_t testMultiplyBy##mult_by(uint64_t a, uint64_t);                      \
+  uint64_t testMultiplyByNeg##mult_by(uint64_t a, uint64_t);
+MULIMM_TABLE
+#undef X
