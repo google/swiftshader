@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5b1b2bb8_d7b1e309",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1235,
+      "author": {
+        "id": 5225
+      },
+      "writtenOn": "2015-11-24T21:56:54Z",
+      "side": 1,
+      "message": "removing this line at 1235 is fine, while enabling caused a large corruption (space between pixels is too wide looks like).",
+      "range": {
+        "startLine": 1235,
+        "startChar": 21,
+        "endLine": 1235,
+        "endChar": 26
+      },
+      "revId": "e3c7cb99746463154ed42c4cb446d5f5cb6be53b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
