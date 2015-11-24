@@ -45,6 +45,30 @@
       "revId": "ff095ff8e454fdd5e1ec81c926f9c77608e3f640",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5b8ecb42_d157264e",
+        "filename": "src/Reactor/Nucleus.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 4546,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-11-24T13:32:18Z",
+      "side": 1,
+      "message": "Why do we care about negative values when we convert to UInt?",
+      "parentUuid": "5b8ecb42_ce5ce3cc",
+      "range": {
+        "startLine": 4543,
+        "startChar": 0,
+        "endLine": 4546,
+        "endChar": 2
+      },
+      "revId": "ff095ff8e454fdd5e1ec81c926f9c77608e3f640",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
