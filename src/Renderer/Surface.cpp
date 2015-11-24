@@ -2635,6 +2635,8 @@ namespace sw
 		switch(format)
 		{
 		case FORMAT_R5G6B5:
+		case FORMAT_R8G8B8:
+		case FORMAT_B8G8R8:
 		case FORMAT_X8R8G8B8:
 		case FORMAT_X8B8G8R8I:
 		case FORMAT_X8B8G8R8:
@@ -2711,6 +2713,8 @@ namespace sw
 		{
 		case FORMAT_NULL:
 		case FORMAT_R5G6B5:
+		case FORMAT_R8G8B8:
+		case FORMAT_B8G8R8:
 		case FORMAT_X8R8G8B8:
 		case FORMAT_X8B8G8R8:
 		case FORMAT_A8R8G8B8:
