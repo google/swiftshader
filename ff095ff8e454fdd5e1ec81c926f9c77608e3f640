@@ -69,6 +69,30 @@
       "revId": "ff095ff8e454fdd5e1ec81c926f9c77608e3f640",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5b8ecb42_71fe725b",
+        "filename": "src/Reactor/Nucleus.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 4546,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-11-24T17:58:37Z",
+      "side": 1,
+      "message": "Good question. My expectation was that it would be treated as a signed conversion which is then reinterpreted as unsigned. However, I did some research and found that x86 doesn\u0027t have any floating-point to unsigned int conversion! The signed conversion returns 0x80000000 on overflow. The C++ standard says that overflow/underflow behavior is undefined.\n\nIt appears that some compilers implement it by converting from float to double, then convert to 64-bit integer, then take the lower 32-bit. Alternatively I think we could subtract 0x80000000 from the float, then convert, then add 0x80000000 to the result. Either way, this has a bit of performance impact.\n\nThe only place where we currently seem to use UInt(Float) is the Blitter, and mostly to convert to a Byte or UShort. So we could use signed Int conversion there instead to avoid any performance impact. Also I think it\u0027s best to make the + 0.5 explicit where needed instead of hiding it here and causing unexpected behavior. So leave RoundUInt() unimplemented.",
+      "parentUuid": "5b8ecb42_d157264e",
+      "range": {
+        "startLine": 4543,
+        "startChar": 0,
+        "endLine": 4546,
+        "endChar": 2
+      },
+      "revId": "ff095ff8e454fdd5e1ec81c926f9c77608e3f640",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
