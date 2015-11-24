@@ -199,7 +199,7 @@ void Shader::compile()
 	TranslatorASM *compiler = createCompiler(getType());
 
 	// Ensure we don't pass a NULL source to the compiler
-    char *source = "\0";
+    const char *source = "\0";
 	if(mSource)
     {
         source = mSource;

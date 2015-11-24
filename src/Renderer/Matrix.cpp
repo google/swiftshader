@@ -343,9 +343,9 @@ namespace sw
 		float sxsy = sx * sy;
 		float sxcy = sx * cy;
 
-		return Matrix(cy * cz - sy * sx * sz, -cy * sz - sy * sx * cz, -sy * cx,
-		              cx * sz,                 cx * cz,                -sx,
-		              sy * cz + cy * sx * sz, -sy * sz + cy * sx * cz,  cy * cx);
+		return Matrix(cy * cz - sxsy * sz, -cy * sz - sxsy * cz, -sy * cx,
+		              cx * sz,              cx * cz,             -sx,
+		              sy * cz + sxcy * sz, -sy * sz + sxcy * cz,  cy * cx);
 	}
 
 	Matrix Matrix::eulerRotate(float x, float y, float z)

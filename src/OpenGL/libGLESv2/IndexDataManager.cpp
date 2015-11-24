@@ -162,7 +162,7 @@ std::size_t IndexDataManager::typeSize(GLenum type)
     }
 }
 
-StreamingIndexBuffer::StreamingIndexBuffer(unsigned int initialSize) : mBufferSize(initialSize), mIndexBuffer(NULL)
+StreamingIndexBuffer::StreamingIndexBuffer(unsigned int initialSize) : mIndexBuffer(NULL), mBufferSize(initialSize)
 {
 	if(initialSize > 0)
     {

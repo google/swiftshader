@@ -46,41 +46,6 @@ static bool validImageSize(GLint level, GLsizei width, GLsizei height)
 	return true;
 }
 
-static bool validateSubImageParams(bool compressed, GLsizei width, GLsizei height, GLint xoffset, GLint yoffset, GLenum target, GLint level, GLenum format, es2::Texture *texture)
-{
-	if(!texture)
-	{
-		return error(GL_INVALID_OPERATION, false);
-	}
-
-	if(compressed != texture->isCompressed(target, level))
-	{
-		return error(GL_INVALID_OPERATION, false);
-	}
-
-	if(format != GL_NONE && format != texture->getFormat(target, level))
-	{
-		return error(GL_INVALID_OPERATION, false);
-	}
-
-	if(compressed)
-	{
-		if((width % 4 != 0 && width != texture->getWidth(target, 0)) ||
-		   (height % 4 != 0 && height != texture->getHeight(target, 0)))
-		{
-			return error(GL_INVALID_OPERATION, false);
-		}
-	}
-
-	if(xoffset + width > texture->getWidth(target, level) ||
-	   yoffset + height > texture->getHeight(target, level))
-	{
-		return error(GL_INVALID_VALUE, false);
-	}
-
-	return true;
-}
-
 static bool validateSubImageParams(bool compressed, GLsizei width, GLsizei height, GLsizei depth, GLint xoffset, GLint yoffset, GLint zoffset, GLenum target, GLint level, GLenum format, es2::Texture *texture)
 {
 	if(!texture)
@@ -407,26 +372,6 @@ static bool ValidateQueryTarget(GLenum target)
 	case GL_ANY_SAMPLES_PASSED:
 	case GL_ANY_SAMPLES_PASSED_CONSERVATIVE:
 	case GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN:
-		break;
-	default:
-		return false;
-	}
-
-	return true;
-}
-
-static bool ValidateBufferTarget(GLenum target)
-{
-	switch(target)
-	{
-	case GL_ARRAY_BUFFER:
-	case GL_COPY_READ_BUFFER:
-	case GL_COPY_WRITE_BUFFER:
-	case GL_ELEMENT_ARRAY_BUFFER:
-	case GL_PIXEL_PACK_BUFFER:
-	case GL_PIXEL_UNPACK_BUFFER:
-	case GL_TRANSFORM_FEEDBACK_BUFFER:
-	case GL_UNIFORM_BUFFER:
 		break;
 	default:
 		return false;
@@ -1624,7 +1569,11 @@ GL_APICALL void GL_APIENTRY glFramebufferTextureLayer(GLenum target, GLenum atta
 	TRACE("(GLenum target = 0x%X, GLenum attachment = 0x%X, GLuint texture = %d, GLint level = %d, GLint layer = %d)",
 	      target, attachment, texture, level, layer);
 	
-	if(texture != 0 && layer < 0 || level < 0)
+	// GLES 3.0.4 spec, p.209, section 4.4.2
+	// If texture is zero, any image or array of images attached to the attachment point
+	// named by attachment is detached. Any additional parameters(level, textarget,
+	// and / or layer) are ignored when texture is zero.
+	if(texture != 0 && (layer < 0 || level < 0))
 	{
 		return error(GL_INVALID_VALUE);
 	}
@@ -2814,12 +2763,16 @@ GL_APICALL void GL_APIENTRY glCopyBufferSubData(GLenum readTarget, GLenum writeT
 		{
 			return error(GL_INVALID_OPERATION);
 		}
-		if((readBuffer == writeBuffer) && // If same buffer, check for overlap
-		   ((readOffset >= writeOffset) && (readOffset < (writeOffset + size)) ||
-		    (writeOffset >= readOffset) && (writeOffset < (readOffset + size))))
+		if(readBuffer == writeBuffer)
 		{
-			return error(GL_INVALID_VALUE);
+			// If same buffer, check for overlap
+			if(((readOffset >= writeOffset) && (readOffset < (writeOffset + size))) ||
+			   ((writeOffset >= readOffset) && (writeOffset < (readOffset + size))))
+			{
+				return error(GL_INVALID_VALUE);
+			}
 		}
+
 		if((static_cast<size_t>(readOffset + size) > readBuffer->size()) ||
 		   (static_cast<size_t>(writeOffset + size) > writeBuffer->size()))
 		{

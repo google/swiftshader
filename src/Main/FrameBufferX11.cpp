@@ -41,7 +41,7 @@ namespace sw
 		}
 	}
 
-	FrameBufferX11::FrameBufferX11(Display *display, Window window, int width, int height) : FrameBuffer(width, height, false, false), x_window(window), x_display(display), ownX11(!display)
+	FrameBufferX11::FrameBufferX11(Display *display, Window window, int width, int height) : FrameBuffer(width, height, false, false), ownX11(!display), x_display(display), x_window(window)
 	{
 		if(!x_display)
 		{

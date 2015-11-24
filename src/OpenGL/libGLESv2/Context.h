@@ -747,7 +747,6 @@ private:
     // state caching flags
     bool mDepthStateDirty;
     bool mMaskStateDirty;
-    bool mPixelPackingStateDirty;
     bool mBlendStateDirty;
     bool mStencilStateDirty;
     bool mPolygonOffsetStateDirty;
