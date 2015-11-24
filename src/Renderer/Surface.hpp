@@ -237,14 +237,14 @@ namespace sw
 			int sliceP;
 			Format format;
 			Lock lock;
-			
+
 			bool dirty;
 		};
 
 	public:
 		Surface(int width, int height, int depth, Format format, void *pixels, int pitch, int slice);
-		Surface(Resource *texture, int width, int height, int depth, Format format, bool lockable, bool renderTarget);
-		
+		Surface(Resource *texture, int width, int height, int depth, Format format, bool lockable, bool renderTarget, int pitchP = 0);
+
 		virtual ~Surface();
 
 		inline void *lock(int x, int y, int z, Lock lock, Accessor client, bool internal = false);

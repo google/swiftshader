@@ -1205,7 +1205,7 @@ namespace sw
 		paletteUsed = 0;
 	}
 
-	Surface::Surface(Resource *texture, int width, int height, int depth, Format format, bool lockable, bool renderTarget) : lockable(lockable), renderTarget(renderTarget)
+	Surface::Surface(Resource *texture, int width, int height, int depth, Format format, bool lockable, bool renderTarget, int pitchPprovided) : lockable(lockable), renderTarget(renderTarget)
 	{
 		resource = texture ? texture : new Resource(0);
 		hasParent = texture != 0;
@@ -1231,8 +1231,8 @@ namespace sw
 		internal.depth = depth;
 		internal.format = selectInternalFormat(format);
 		internal.bytes = bytes(internal.format);
-		internal.pitchB = pitchB(internal.width, internal.format, renderTarget);
-		internal.pitchP = pitchP(internal.width, internal.format, renderTarget);
+		internal.pitchB = !pitchPprovided ? pitchB(internal.width, internal.format, renderTarget) : pitchPprovided * internal.bytes;
+		internal.pitchP = !pitchPprovided ? pitchP(internal.width, internal.format, renderTarget) : pitchPprovided;
 		internal.sliceB = sliceB(internal.width, internal.height, internal.format, renderTarget);
 		internal.sliceP = sliceP(internal.width, internal.height, internal.format, renderTarget);
 		internal.lock = LOCK_UNLOCKED;

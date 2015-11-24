@@ -54,8 +54,8 @@ public:
 		referenceCount = 1;
 	}
 
-	Image(Texture *parentTexture, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type)
-		: sw::Surface(getParentResource(parentTexture), width, height, depth, SelectInternalFormat(format, type), true, true),
+	Image(Texture *parentTexture, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, int pitchP = 0)
+		: sw::Surface(getParentResource(parentTexture), width, height, depth, SelectInternalFormat(format, type), true, true, pitchP),
 		  width(width), height(height), format(format), type(type), internalFormat(SelectInternalFormat(format, type)), depth(depth),
 		  parentTexture(parentTexture)
 	{
@@ -182,12 +182,13 @@ public:
 	explicit AndroidNativeImage(ANativeWindowBuffer *nativeBuffer)
 		: egl::Image(0, nativeBuffer->width, nativeBuffer->height, 1,
 		             GLPixelFormatFromAndroid(nativeBuffer->format),
-		             GLPixelTypeFromAndroid(nativeBuffer->format)),
+		             GLPixelTypeFromAndroid(nativeBuffer->format),
+		             nativeBuffer->stride),
 		  nativeBuffer(nativeBuffer)
-{
-    nativeBuffer->common.incRef(&nativeBuffer->common);
-    markShared();
-}
+	{
+		nativeBuffer->common.incRef(&nativeBuffer->common);
+		markShared();
+	}
 
 private:
 	ANativeWindowBuffer *nativeBuffer;
