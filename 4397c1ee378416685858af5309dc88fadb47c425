@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5b8ecb42_91e75e43",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2202,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-11-25T04:30:18Z",
+      "side": 1,
+      "message": "nit: Create a fragmentOutputRegister() method for this. Inside of it we\u0027ll have to eventually keep track of the mapping, to implement glGetFragDataLocation().",
+      "range": {
+        "startLine": 2202,
+        "startChar": 38,
+        "endLine": 2202,
+        "endChar": 72
+      },
+      "revId": "4397c1ee378416685858af5309dc88fadb47c425",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
