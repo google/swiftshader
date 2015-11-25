@@ -3214,6 +3214,8 @@ namespace sw
 
 	void Surface::clearStencilBuffer(unsigned char s, unsigned char mask, int x0, int y0, int width, int height)
 	{
+		if(mask == 0) return;
+
 		// Not overlapping
 		if(x0 > internal.width) return;
 		if(y0 > internal.height) return;
@@ -3236,77 +3238,46 @@ namespace sw
 		unsigned int fill = maskedS;
 		fill = fill | (fill << 8) | (fill << 16) + (fill << 24);
 
-		if(false)
+		char *buffer = (char*)lockStencil(0, PUBLIC);
+
+		// Stencil buffers are assumed to use quad layout
+		for(int z = 0; z < stencil.depth; z++)
 		{
-			char *target = (char*)lockStencil(0, PUBLIC) + x0 + width2 * y0;
-
-			for(int z = 0; z < stencil.depth; z++)
+			for(int y = y0; y < y1; y++)
 			{
-				for(int y = y0; y < y0 + height; y++)
+				char *target = buffer + (y & ~1) * width2 + (y & 1) * 2;
+
+				if((y & 1) == 0 && y + 1 < y1 && mask == 0xFF)   // Fill quad line at once
 				{
-					if(mask == 0xFF)
+					if((x0 & 1) != 0)
 					{
-						memfill4(target, fill, width);
-					}
-					else
-					{
-						for(int x = 0; x < width; x++)
-						{
-							target[x] = maskedS | (target[x] & invMask);
-						}
+						target[(x0 & ~1) * 2 + 1] = fill;
+						target[(x0 & ~1) * 2 + 3] = fill;
 					}
 
-					target += width2;
+					memfill4(&target[((x0 + 1) & ~1) * 2], fill, ((x1 + 1) & ~1) * 2 - ((x0 + 1) & ~1) * 2);
+
+					if((x1 & 1) != 0)
+					{
+						target[(x1 & ~1) * 2 + 0] = fill;
+						target[(x1 & ~1) * 2 + 2] = fill;
+					}
+
+					y++;
+				}
+				else
+				{
+					for(int x = x0; x < x1; x++)
+					{
+						target[(x & ~1) * 2 + (x & 1)] = maskedS | (target[x] & invMask);
+					}
 				}
 			}
 
-			unlockStencil();
+			buffer += stencil.sliceP;
 		}
-		else   // Quad layout
-		{
-			char *buffer = (char*)lockStencil(0, PUBLIC);
 
-			if(mask == 0xFF)
-			{
-				for(int z = 0; z < stencil.depth; z++)
-				{
-					for(int y = y0; y < y1; y++)
-					{
-						char *target = buffer + (y & ~1) * width2 + (y & 1) * 2;
-
-						if((y & 1) == 0 && y + 1 < y1 && mask == 0xFF)   // Fill quad line at once
-						{
-							if((x0 & 1) != 0)
-							{
-								target[(x0 & ~1) * 2 + 1] = fill;
-								target[(x0 & ~1) * 2 + 3] = fill;
-							}
-
-							memfill4(&target[((x0 + 1) & ~1) * 2], fill, ((x1 + 1) & ~1) * 2 - ((x0 + 1) & ~1) * 2);
-
-							if((x1 & 1) != 0)
-							{
-								target[(x1 & ~1) * 2 + 0] = fill;
-								target[(x1 & ~1) * 2 + 2] = fill;
-							}
-
-							y++;
-						}
-						else
-						{
-							for(int x = x0; x < x1; x++)
-							{
-								target[(x & ~1) * 2 + (x & 1)] = maskedS | (target[x] & invMask);
-							}
-						}
-					}
-
-					buffer += stencil.sliceP;
-				}
-			}
-
-			unlockStencil();
-		}
+		unlockStencil();
 	}
 
 	void Surface::fill(const Color<float> &color, int x0, int y0, int width, int height)
