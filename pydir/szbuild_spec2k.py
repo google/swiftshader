@@ -6,7 +6,7 @@ import sys
 
 import szbuild
 
-from utils import FindBaseNaCl
+from utils import FindBaseNaCl, shellcmd
 
 def main():
     """Build native gcc-style executables for one or all Spec2K components.
@@ -26,6 +26,8 @@ def main():
 
     argparser = argparse.ArgumentParser(description=main.__doc__)
     szbuild.AddOptionalArgs(argparser)
+    argparser.add_argument('--run', dest='run', action='store_true',
+                           help='Run after building')
     argparser.add_argument('comps', nargs='*', default=components)
     args = argparser.parse_args()
     bad = set(args.comps) - set(components)
@@ -57,6 +59,15 @@ def main():
                              '{name}.{suffix}'
                              ).format(root=nacl_root, comp=comp, name=name,
                                       suffix=suffix))
+    if args.run:
+        os.chdir('{root}/tests/spec2k'.format(root=FindBaseNaCl()))
+        setup = 'SetupGcc' + {
+            'arm32': 'Arm',
+            'x8632': 'X8632'}[args.target] + 'Opt'
+        shellcmd(['./run_all.sh',
+                  'RunTimedBenchmarks',
+                  setup,
+                  'train'] + args.comps)
 
 if __name__ == '__main__':
     main()
