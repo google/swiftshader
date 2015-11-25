@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5b8ecb42_74ad80aa",
+        "filename": "src/OpenGL/libGLESv2/utilities.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-11-25T16:19:52Z",
+      "side": 1,
+      "message": "nit: Please rename to ValidReadPixelsFormatType.",
+      "range": {
+        "startLine": 45,
+        "startChar": 6,
+        "endLine": 45,
+        "endChar": 25
+      },
+      "revId": "af3597123a136d1944083354b2fb48c7329ef318",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
