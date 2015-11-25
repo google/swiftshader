@@ -22,6 +22,30 @@
       "revId": "e3c7cb99746463154ed42c4cb446d5f5cb6be53b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5b8ecb42_f18a623a",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1235,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-11-25T15:01:20Z",
+      "side": 1,
+      "message": "Oh, I forgot gralloc\u0027s stride is in pixels, not bytes. Fixed it in updated CL.\n\nBy the way, what\u0027s the repro for this? I\u0027ve been flying blind so far. I\u0027m starting to have a bit of time to look into this more deeply.",
+      "parentUuid": "5b1b2bb8_d7b1e309",
+      "range": {
+        "startLine": 1235,
+        "startChar": 21,
+        "endLine": 1235,
+        "endChar": 26
+      },
+      "revId": "e3c7cb99746463154ed42c4cb446d5f5cb6be53b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
