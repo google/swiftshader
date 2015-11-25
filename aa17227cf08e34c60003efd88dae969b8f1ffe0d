@@ -187,6 +187,30 @@
       "revId": "aa17227cf08e34c60003efd88dae969b8f1ffe0d",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5b8ecb42_14c7dc6c",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1422,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-11-25T16:19:52Z",
+      "side": 1,
+      "message": "Mesa uses GL_INDEX for stencil: https://cs.corp.google.com/#android/external/mesa3d/src/mesa/main/fbobject.c\u0026l\u003d2518\n\nAnyway, indeed let\u0027s not change this in this CL. I\u0027ve filed b/25871914 to have another look at it later.",
+      "parentUuid": "db6d5bee_3a4fa169",
+      "range": {
+        "startLine": 1421,
+        "startChar": 3,
+        "endLine": 1422,
+        "endChar": 19
+      },
+      "revId": "aa17227cf08e34c60003efd88dae969b8f1ffe0d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
