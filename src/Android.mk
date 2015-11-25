@@ -106,6 +106,4 @@ LOCAL_CFLAGS := $(COMMON_CFLAGS) -UNDEBUG -g -O0 -DDEFAULT_THREAD_COUNT=1
 LOCAL_C_INCLUDES := $(COMMON_C_INCLUDES)
 include $(BUILD_STATIC_LIBRARY)
 
-ifneq ($(filter gce_x86 gce calypso, $(TARGET_DEVICE)),)
 include $(call all-makefiles-under,$(LOCAL_PATH))
-endif

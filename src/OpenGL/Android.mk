@@ -14,8 +14,6 @@
 # limitations under the License.
 #
 
-ifneq ($(filter gce_x86 gce calypso, $(TARGET_DEVICE)),)
 LOCAL_PATH:= $(call my-dir)
 
 include $(call all-makefiles-under,$(LOCAL_PATH))
-endif
