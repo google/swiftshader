@@ -1092,9 +1092,8 @@ class BundleEmitHelper {
   BundleEmitHelper &operator=(const BundleEmitHelper &) = delete;
 
 public:
-  BundleEmitHelper(Assembler *Asm, TargetLowering *Target,
-                   const InstList &Insts)
-      : Asm(Asm), Target(Target), End(Insts.end()), BundleLockStart(End),
+  BundleEmitHelper(Assembler *Asm, const InstList &Insts)
+      : Asm(Asm), End(Insts.end()), BundleLockStart(End),
         BundleSize(1 << Asm->getBundleAlignLog2Bytes()),
         BundleMaskLo(BundleSize - 1), BundleMaskHi(~BundleMaskLo) {}
   // Check whether we're currently within a bundle_lock region.
@@ -1136,7 +1135,6 @@ public:
     BundleLockStart = I;
     SizeSnapshotPre = Asm->getBufferSize();
     Asm->setPreliminary(true);
-    Target->snapshotEmitState();
     assert(isInBundleLockRegion());
   }
   // Update bookkeeping when the bundle_unlock instruction is processed.
@@ -1176,12 +1174,10 @@ public:
     assert(isInBundleLockRegion());
     Asm->setBufferSize(SizeSnapshotPre);
     Asm->setPreliminary(false);
-    Target->rollbackEmitState();
   }
 
 private:
   Assembler *const Asm;
-  TargetLowering *const Target;
   // End is a sentinel value such that BundleLockStart==End implies that we are
   // not in a bundle_lock region.
   const InstList::const_iterator End;
@@ -1236,7 +1232,7 @@ void CfgNode::emitIAS(Cfg *Func) const {
   // bindings, label links, and relocation fixups. Instead, the first pass just
   // disables all mutation of that state.
 
-  BundleEmitHelper Helper(Asm, Func->getTarget(), Insts);
+  BundleEmitHelper Helper(Asm, Insts);
   InstList::const_iterator End = Insts.end();
   // Retrying indicates that we had to roll back to the bundle_lock instruction
   // to apply padding before the bundle_lock sequence.

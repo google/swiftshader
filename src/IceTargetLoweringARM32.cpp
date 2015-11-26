@@ -849,13 +849,13 @@ void TargetARM32::addProlog(CfgNode *Node) {
       GlobalsSize + LocalsSlotsPaddingBytes;
 
   // Adds the out args space to the stack, and align SP if necessary.
-  if (!NeedsStackAlignment) {
-    SpillAreaSizeBytes += MaxOutArgsSizeBytes;
-  } else {
+  if (NeedsStackAlignment) {
     uint32_t StackOffset = PreservedRegsSizeBytes;
     uint32_t StackSize = applyStackAlignment(StackOffset + SpillAreaSizeBytes);
     StackSize = applyStackAlignment(StackSize + MaxOutArgsSizeBytes);
     SpillAreaSizeBytes = StackSize - StackOffset;
+  } else {
+    SpillAreaSizeBytes += MaxOutArgsSizeBytes;
   }
 
   // Combine fixed alloca with SpillAreaSize.

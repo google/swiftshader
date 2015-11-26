@@ -149,8 +149,8 @@ if.end:                                          ; preds = %if.then, %if.end
 ; CHECK-LABEL: icmpUltZero32
 ; CHECK: mov [[RESULT:.*]],0x0
 ; CHECK-NEXT: cmp [[RESULT]],0x0
-; OPTM1: icmpUltZero32
-; OPTM1 [[RESULT:.*]],0x0
+; OPTM1-LABEL: icmpUltZero32
+; OPTM1: mov [[RESULT:.*]],0x0
 ; OPTM1: cmp [[RESULT]],0x0
 
 define internal void @icmpUgeZero32() {

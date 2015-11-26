@@ -83,9 +83,9 @@ block:
   ret <4 x i32> %vec.local
 ; CHECK-LABEL: align_local_vector_and_global_float
 ; CHECK: cvtsi2ss xmm0,eax
-; CHECK-NEXT: movss DWORD PTR [esp+{{0xc|0x1c}}],xmm0
-; CHECK: movups xmm0,XMMWORD PTR [{{esp|esp\+0x10}}]
-; CHECK-NEXT: add esp,0x2c
+; CHECK-NEXT: movss DWORD PTR [esp+{{0x1c|0x2c}}],xmm0
+; CHECK: movups xmm0,XMMWORD PTR [{{esp\+0x10|esp\+0x20}}]
+; CHECK-NEXT: add esp,0x3c
 ; CHECK-NEXT: ret
 }
 

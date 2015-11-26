@@ -34,15 +34,14 @@ entry:
   ret void
 }
 ; CHECK-LABEL: fixed_416_align_16
-; CHECK:      sub     esp,0x1ac
-; CHECK:      sub     esp,0x10
+; CHECK:      sub     esp,0x1bc
+; CHECK:      lea     eax,[esp+0x10]
 ; CHECK:      mov     DWORD PTR [esp],eax
 ; CHECK:      call {{.*}} R_{{.*}}    f1
 
 ; CHECK-OPTM1-LABEL: fixed_416_align_16
-; CHECK-OPTM1:      sub     esp,0xc
+; CHECK-OPTM1:      sub     esp,0x18
 ; CHECK-OPTM1:      sub     esp,0x1a0
-; CHECK-OPTM1:      sub     esp,0x10
 ; CHECK-OPTM1:      mov     DWORD PTR [esp],eax
 ; CHECK-OPTM1:      call {{.*}} R_{{.*}}    f1
 
@@ -61,9 +60,9 @@ entry:
 ; CHECK-LABEL: fixed_416_align_32
 ; CHECK:      push    ebp
 ; CHECK-NEXT: mov     ebp,esp
-; CHECK:      sub     esp,0x1a8
+; CHECK:      sub     esp,0x1b8
 ; CHECK:      and     esp,0xffffffe0
-; CHECK:      sub     esp,0x10
+; CHECK:      lea     eax,[esp+0x10]
 ; CHECK:      mov     DWORD PTR [esp],eax
 ; CHECK:      call {{.*}} R_{{.*}}    f1
 
@@ -82,12 +81,13 @@ entry:
   ret void
 }
 ; CHECK-LABEL: fixed_351_align_16
-; CHECK:      sub     esp,0x16c
+; CHECK:      sub     esp,0x17c
+; CHECK:      lea     eax,[esp+0x10]
 ; CHECK:      mov     DWORD PTR [esp],eax
 ; CHECK:      call {{.*}} R_{{.*}}    f1
 
 ; CHECK-OPTM1-LABEL: fixed_351_align_16
-; CHECK-OPTM1:      sub     esp,0xc
+; CHECK-OPTM1:      sub     esp,0x18
 ; CHECK-OPTM1:      sub     esp,0x160
 ; CHECK-OPTM1:      mov     DWORD PTR [esp],eax
 ; CHECK-OPTM1:      call {{.*}} R_{{.*}}    f1
@@ -107,9 +107,9 @@ entry:
 ; CHECK-LABEL: fixed_351_align_32
 ; CHECK:      push    ebp
 ; CHECK-NEXT: mov     ebp,esp
-; CHECK:      sub     esp,0x168
+; CHECK:      sub     esp,0x178
 ; CHECK:      and     esp,0xffffffe0
-; CHECK:      sub     esp,0x10
+; CHECK:      lea     eax,[esp+0x10]
 ; CHECK:      mov     DWORD PTR [esp],eax
 ; CHECK:      call {{.*}} R_{{.*}}    f1
 
@@ -131,11 +131,12 @@ entry:
   ret void
 }
 ; CHECK-LABEL: variable_n_align_16
+; CHECK:      sub     esp,0x18
 ; CHECK:      mov     eax,DWORD PTR [ebp+0x8]
 ; CHECK:      add     eax,0xf
 ; CHECK:      and     eax,0xfffffff0
 ; CHECK:      sub     esp,eax
-; CHECK:      sub     esp,0x10
+; CHECK:      lea     eax,[esp+0x10]
 ; CHECK:      mov     DWORD PTR [esp],eax
 ; CHECK:      call {{.*}} R_{{.*}}    f2
 
@@ -156,12 +157,13 @@ entry:
 ; CHECK-LABEL: variable_n_align_32
 ; CHECK:      push    ebp
 ; CHECK:      mov     ebp,esp
+; CHECK:      sub     esp,0x18
 ; CHECK-DAG:  and     esp,0xffffffe0
 ; CHECK-DAG:  mov     eax,DWORD PTR [ebp+0x8]
 ; CHECK:      add     eax,0x1f
 ; CHECK:      and     eax,0xffffffe0
 ; CHECK:      sub     esp,eax
-; CHECK:      sub     esp,0x10
+; CHECK:      lea     eax,[esp+0x10]
 ; CHECK:      mov     DWORD PTR [esp],eax
 ; CHECK:      call {{.*}} R_{{.*}}    f2
 ; CHECK:      mov     esp,ebp

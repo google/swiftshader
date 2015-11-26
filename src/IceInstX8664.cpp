@@ -215,8 +215,7 @@ MachineTraits<TargetX8664>::Address
 MachineTraits<TargetX8664>::VariableSplit::toAsmAddress(const Cfg *Func) const {
   assert(!Var->hasReg());
   const ::Ice::TargetLowering *Target = Func->getTarget();
-  int32_t Offset =
-      Var->getStackOffset() + Target->getStackAdjustment() + getOffset();
+  int32_t Offset = Var->getStackOffset() + getOffset();
   return X8664::Traits::Address(getEncodedGPR(Target->getFrameOrStackReg()),
                                 Offset, AssemblerFixup::NoFixup);
 }
@@ -229,8 +228,7 @@ void MachineTraits<TargetX8664>::VariableSplit::emit(const Cfg *Func) const {
   // The following is copied/adapted from TargetX8664::emitVariable().
   const ::Ice::TargetLowering *Target = Func->getTarget();
   constexpr Type Ty = IceType_i32;
-  int32_t Offset =
-      Var->getStackOffset() + Target->getStackAdjustment() + getOffset();
+  int32_t Offset = Var->getStackOffset() + getOffset();
   if (Offset)
     Str << Offset;
   Str << "(%" << Target->getRegName(Target->getFrameOrStackReg(), Ty) << ")";

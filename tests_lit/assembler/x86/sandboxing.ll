@@ -251,10 +251,10 @@ entry:
   ret void
 }
 ; CHECK-LABEL: checkpoint_restore_stack_adjustment
+; CHECK: sub esp,0x1c
 ; CHECK: call
-; CHECK: sub esp,0x10
 ; The address of %arg should be [esp+0x20], not [esp+0x30].
 ; CHECK-NEXT: mov [[REG:.*]],DWORD PTR [esp+0x20]
 ; CHECK-NEXT: mov DWORD PTR [esp],[[REG]]
 ; CHECK: call
-; CHECK: add esp,0x10
+; CHECK: add esp,0x1c

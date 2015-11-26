@@ -303,6 +303,7 @@ template <class Machine> void TargetX86Base<Machine>::translateO2() {
   TimerMarker T(TimerStack::TT_O2, Func);
 
   genTargetHelperCalls();
+  Func->dump("After target helper call insertion");
 
   // Merge Alloca instructions, and lay out the stack.
   static constexpr bool SortAndCombineAllocas = true;
@@ -777,28 +778,15 @@ void TargetX86Base<Machine>::emitVariable(const Variable *Var) const {
     llvm_unreachable("Infinite-weight Variable has no register assigned");
   }
   const int32_t Offset = Var->getStackOffset();
-  int32_t OffsetAdj = 0;
   int32_t BaseRegNum = Var->getBaseRegNum();
-  if (BaseRegNum == Variable::NoRegister) {
+  if (BaseRegNum == Variable::NoRegister)
     BaseRegNum = getFrameOrStackReg();
-    if (!hasFramePointer())
-      OffsetAdj = getStackAdjustment();
-  }
-  // Print in the form "OffsetAdj+Offset(%reg)", taking care that:
-  //   - OffsetAdj may be 0
+  // Print in the form "Offset(%reg)", taking care that:
   //   - Offset is never printed when it is 0
-  //   - Offset may be positive or symbolic, so a "+" might be needed
 
-  // Only print nonzero OffsetAdj.
-  if (OffsetAdj) {
-    Str << OffsetAdj;
-  }
   const bool DecorateAsm = Func->getContext()->getFlags().getDecorateAsm();
   // Only print Offset when it is nonzero, regardless of DecorateAsm.
   if (Offset) {
-    if (OffsetAdj && (DecorateAsm || Offset > 0)) {
-      Str << "+";
-    }
     if (DecorateAsm) {
       Str << Var->getSymbolicStackOffset(Func);
     } else {
@@ -819,11 +807,8 @@ TargetX86Base<Machine>::stackVarToAsmOperand(const Variable *Var) const {
   }
   int32_t Offset = Var->getStackOffset();
   int32_t BaseRegNum = Var->getBaseRegNum();
-  if (Var->getBaseRegNum() == Variable::NoRegister) {
+  if (Var->getBaseRegNum() == Variable::NoRegister)
     BaseRegNum = getFrameOrStackReg();
-    if (!hasFramePointer())
-      Offset += getStackAdjustment();
-  }
   return typename Traits::Address(Traits::getEncodedGPR(BaseRegNum), Offset,
                                   AssemblerFixup::NoFixup);
 }
@@ -958,8 +943,6 @@ TargetX86Base<Machine>::getRegisterSet(RegSetMask Include,
 
 template <class Machine>
 void TargetX86Base<Machine>::lowerAlloca(const InstAlloca *Inst) {
-  if (!Inst->getKnownFrameOffset())
-    setHasFramePointer();
   // Conservatively require the stack to be aligned. Some stack adjustment
   // operations implemented below assume that the stack is aligned before the
   // alloca. All the alloca code ensures that the stack alignment is preserved
@@ -967,32 +950,44 @@ void TargetX86Base<Machine>::lowerAlloca(const InstAlloca *Inst) {
   // cases.
   NeedsStackAlignment = true;
 
-  // TODO(stichnot): minimize the number of adjustments of esp, etc.
-  Variable *esp = getPhysicalRegister(Traits::RegisterSet::Reg_esp);
-  Operand *TotalSize = legalize(Inst->getSizeInBytes());
-  Variable *Dest = Inst->getDest();
-  uint32_t AlignmentParam = Inst->getAlignInBytes();
   // For default align=0, set it to the real value 1, to avoid any
   // bit-manipulation problems below.
-  AlignmentParam = std::max(AlignmentParam, 1u);
+  const uint32_t AlignmentParam = std::max(1u, Inst->getAlignInBytes());
 
   // LLVM enforces power of 2 alignment.
   assert(llvm::isPowerOf2_32(AlignmentParam));
   assert(llvm::isPowerOf2_32(Traits::X86_STACK_ALIGNMENT_BYTES));
 
-  uint32_t Alignment =
+  const uint32_t Alignment =
       std::max(AlignmentParam, Traits::X86_STACK_ALIGNMENT_BYTES);
-  if (Alignment > Traits::X86_STACK_ALIGNMENT_BYTES) {
+  const bool OverAligned = Alignment > Traits::X86_STACK_ALIGNMENT_BYTES;
+  const bool OptM1 = Ctx->getFlags().getOptLevel() == Opt_m1;
+  const bool AllocaWithKnownOffset = Inst->getKnownFrameOffset();
+  const bool UseFramePointer =
+      hasFramePointer() || OverAligned || !AllocaWithKnownOffset || OptM1;
+
+  if (UseFramePointer)
     setHasFramePointer();
+
+  Variable *esp = getPhysicalRegister(Traits::RegisterSet::Reg_esp);
+  if (OverAligned) {
     _and(esp, Ctx->getConstantInt32(-Alignment));
   }
+
+  Variable *Dest = Inst->getDest();
+  Operand *TotalSize = legalize(Inst->getSizeInBytes());
+
   if (const auto *ConstantTotalSize =
           llvm::dyn_cast<ConstantInteger32>(TotalSize)) {
-    uint32_t Value = ConstantTotalSize->getValue();
-    Value = Utils::applyAlignment(Value, Alignment);
-    if (Inst->getKnownFrameOffset()) {
-      _adjust_stack(Value);
+    const uint32_t Value =
+        Utils::applyAlignment(ConstantTotalSize->getValue(), Alignment);
+    if (!UseFramePointer) {
+      // If we don't need a Frame Pointer, this alloca has a known offset to the
+      // stack pointer. We don't need adjust the stack pointer, nor assign any
+      // value to Dest, as Dest is rematerializable.
+      assert(Dest->isRematerializable());
       FixedAllocaSizeBytes += Value;
+      Context.insert(InstFakeDef::create(Func, Dest));
     } else {
       _sub(esp, Ctx->getConstantInt32(Value));
     }
@@ -1005,7 +1000,19 @@ void TargetX86Base<Machine>::lowerAlloca(const InstAlloca *Inst) {
     _and(T, Ctx->getConstantInt32(-Alignment));
     _sub(esp, T);
   }
-  _mov(Dest, esp);
+  // Add enough to the returned address to account for the out args area.
+  uint32_t OutArgsSize = maxOutArgsSizeBytes();
+  if (OutArgsSize > 0) {
+    Variable *T = makeReg(IceType_i32);
+    typename Traits::X86OperandMem *CalculateOperand =
+        Traits::X86OperandMem::create(
+            Func, IceType_i32, esp,
+            Ctx->getConstantInt(IceType_i32, OutArgsSize));
+    _lea(T, CalculateOperand);
+    _mov(Dest, T);
+  } else {
+    _mov(Dest, esp);
+  }
 }
 
 /// Strength-reduce scalar integer multiplication by a constant (for i32 or
@@ -1355,38 +1362,12 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
     // actually these arguments do not need to be processed with loOperand()
     // and hiOperand() to be used.
     switch (Inst->getOp()) {
-    case InstArithmetic::Udiv: {
-      constexpr SizeT MaxSrcs = 2;
-      InstCall *Call = makeHelperCall(H_udiv_i64, Dest, MaxSrcs);
-      Call->addArg(Inst->getSrc(0));
-      Call->addArg(Inst->getSrc(1));
-      lowerCall(Call);
+    case InstArithmetic::Udiv:
+    case InstArithmetic::Sdiv:
+    case InstArithmetic::Urem:
+    case InstArithmetic::Srem:
+      llvm::report_fatal_error("Helper call was expected");
       return;
-    }
-    case InstArithmetic::Sdiv: {
-      constexpr SizeT MaxSrcs = 2;
-      InstCall *Call = makeHelperCall(H_sdiv_i64, Dest, MaxSrcs);
-      Call->addArg(Inst->getSrc(0));
-      Call->addArg(Inst->getSrc(1));
-      lowerCall(Call);
-      return;
-    }
-    case InstArithmetic::Urem: {
-      constexpr SizeT MaxSrcs = 2;
-      InstCall *Call = makeHelperCall(H_urem_i64, Dest, MaxSrcs);
-      Call->addArg(Inst->getSrc(0));
-      Call->addArg(Inst->getSrc(1));
-      lowerCall(Call);
-      return;
-    }
-    case InstArithmetic::Srem: {
-      constexpr SizeT MaxSrcs = 2;
-      InstCall *Call = makeHelperCall(H_srem_i64, Dest, MaxSrcs);
-      Call->addArg(Inst->getSrc(0));
-      Call->addArg(Inst->getSrc(1));
-      lowerCall(Call);
-      return;
-    }
     default:
       break;
     }
@@ -1581,7 +1562,7 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
         _pshufd(T4, T1, Ctx->getConstantInt32(Mask0213));
         _movp(Dest, T4);
       } else if (Ty == IceType_v16i8) {
-        scalarizeArithmetic(Inst->getOp(), Dest, Src0, Src1);
+        llvm::report_fatal_error("Scalarized operation was expected");
       } else {
         llvm::report_fatal_error("Invalid vector multiply type");
       }
@@ -1593,7 +1574,7 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
     case InstArithmetic::Urem:
     case InstArithmetic::Sdiv:
     case InstArithmetic::Srem:
-      scalarizeArithmetic(Inst->getOp(), Dest, Src0, Src1);
+      llvm::report_fatal_error("Scalarized operation was expected");
       break;
     case InstArithmetic::Fadd: {
       Variable *T = makeReg(Ty);
@@ -1620,7 +1601,7 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       _movp(Dest, T);
     } break;
     case InstArithmetic::Frem:
-      scalarizeArithmetic(Inst->getOp(), Dest, Src0, Src1);
+      llvm::report_fatal_error("Scalarized operation was expected");
       break;
     }
     return;
@@ -1891,14 +1872,9 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
     _divss(T, Src1);
     _mov(Dest, T);
     break;
-  case InstArithmetic::Frem: {
-    constexpr SizeT MaxSrcs = 2;
-    InstCall *Call = makeHelperCall(
-        isFloat32Asserting32Or64(Ty) ? H_frem_f32 : H_frem_f64, Dest, MaxSrcs);
-    Call->addArg(Src0);
-    Call->addArg(Src1);
-    return lowerCall(Call);
-  }
+  case InstArithmetic::Frem:
+    llvm::report_fatal_error("Helper call was expected");
+    break;
   }
 }
 
@@ -2161,14 +2137,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       _cvt(T, Src0RM, Traits::Insts::Cvt::Tps2dq);
       _movp(Dest, T);
     } else if (!Traits::Is64Bit && DestTy == IceType_i64) {
-      constexpr SizeT MaxSrcs = 1;
-      Type SrcType = Inst->getSrc(0)->getType();
-      InstCall *Call =
-          makeHelperCall(isFloat32Asserting32Or64(SrcType) ? H_fptosi_f32_i64
-                                                           : H_fptosi_f64_i64,
-                         Dest, MaxSrcs);
-      Call->addArg(Inst->getSrc(0));
-      lowerCall(Call);
+      llvm::report_fatal_error("Helper call was expected");
     } else {
       Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
       // t1.i32 = cvt Src0RM; t2.dest_type = t1; Dest = t2.dest_type
@@ -2195,32 +2164,10 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
     break;
   case InstCast::Fptoui:
     if (isVectorType(DestTy)) {
-      assert(DestTy == IceType_v4i32 &&
-             Inst->getSrc(0)->getType() == IceType_v4f32);
-      constexpr SizeT MaxSrcs = 1;
-      InstCall *Call = makeHelperCall(H_fptoui_4xi32_f32, Dest, MaxSrcs);
-      Call->addArg(Inst->getSrc(0));
-      lowerCall(Call);
+      llvm::report_fatal_error("Helper call was expected");
     } else if (DestTy == IceType_i64 ||
                (!Traits::Is64Bit && DestTy == IceType_i32)) {
-      // Use a helper for both x86-32 and x86-64.
-      constexpr SizeT MaxSrcs = 1;
-      Type SrcType = Inst->getSrc(0)->getType();
-      IceString TargetString;
-      if (Traits::Is64Bit) {
-        TargetString = isFloat32Asserting32Or64(SrcType) ? H_fptoui_f32_i64
-                                                         : H_fptoui_f64_i64;
-      } else if (isInt32Asserting32Or64(DestTy)) {
-        TargetString = isFloat32Asserting32Or64(SrcType) ? H_fptoui_f32_i32
-                                                         : H_fptoui_f64_i32;
-      } else {
-        TargetString = isFloat32Asserting32Or64(SrcType) ? H_fptoui_f32_i64
-                                                         : H_fptoui_f64_i64;
-      }
-      InstCall *Call = makeHelperCall(TargetString, Dest, MaxSrcs);
-      Call->addArg(Inst->getSrc(0));
-      lowerCall(Call);
-      return;
+      llvm::report_fatal_error("Helper call was expected");
     } else {
       Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
       // t1.i32 = cvt Src0RM; t2.dest_type = t1; Dest = t2.dest_type
@@ -2256,16 +2203,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       _cvt(T, Src0RM, Traits::Insts::Cvt::Dq2ps);
       _movp(Dest, T);
     } else if (!Traits::Is64Bit && Inst->getSrc(0)->getType() == IceType_i64) {
-      // Use a helper for x86-32.
-      constexpr SizeT MaxSrcs = 1;
-      InstCall *Call =
-          makeHelperCall(isFloat32Asserting32Or64(DestTy) ? H_sitofp_i64_f32
-                                                          : H_sitofp_i64_f64,
-                         Dest, MaxSrcs);
-      // TODO: Call the correct compiler-rt helper function.
-      Call->addArg(Inst->getSrc(0));
-      lowerCall(Call);
-      return;
+      llvm::report_fatal_error("Helper call was expected");
     } else {
       Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
       // Sign-extend the operand.
@@ -2289,28 +2227,10 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
   case InstCast::Uitofp: {
     Operand *Src0 = Inst->getSrc(0);
     if (isVectorType(Src0->getType())) {
-      assert(DestTy == IceType_v4f32 && Src0->getType() == IceType_v4i32);
-      constexpr SizeT MaxSrcs = 1;
-      InstCall *Call = makeHelperCall(H_uitofp_4xi32_4xf32, Dest, MaxSrcs);
-      Call->addArg(Src0);
-      lowerCall(Call);
+      llvm::report_fatal_error("Helper call was expected");
     } else if (Src0->getType() == IceType_i64 ||
                (!Traits::Is64Bit && Src0->getType() == IceType_i32)) {
-      // Use a helper for x86-32 and x86-64. Also use a helper for i32 on
-      // x86-32.
-      constexpr SizeT MaxSrcs = 1;
-      IceString TargetString;
-      if (isInt32Asserting32Or64(Src0->getType())) {
-        TargetString = isFloat32Asserting32Or64(DestTy) ? H_uitofp_i32_f32
-                                                        : H_uitofp_i32_f64;
-      } else {
-        TargetString = isFloat32Asserting32Or64(DestTy) ? H_uitofp_i64_f32
-                                                        : H_uitofp_i64_f64;
-      }
-      InstCall *Call = makeHelperCall(TargetString, Dest, MaxSrcs);
-      Call->addArg(Src0);
-      lowerCall(Call);
-      return;
+      llvm::report_fatal_error("Helper call was expected");
     } else {
       Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
       // Zero-extend the operand.
@@ -2344,16 +2264,10 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
     default:
       llvm_unreachable("Unexpected Bitcast dest type");
     case IceType_i8: {
-      assert(Src0->getType() == IceType_v8i1);
-      InstCall *Call = makeHelperCall(H_bitcast_8xi1_i8, Dest, 1);
-      Call->addArg(Src0);
-      lowerCall(Call);
+      llvm::report_fatal_error("Helper call was expected");
     } break;
     case IceType_i16: {
-      assert(Src0->getType() == IceType_v16i1);
-      InstCall *Call = makeHelperCall(H_bitcast_16xi1_i16, Dest, 1);
-      Call->addArg(Src0);
-      lowerCall(Call);
+      llvm::report_fatal_error("Helper call was expected");
     } break;
     case IceType_i32:
     case IceType_f32: {
@@ -2469,22 +2383,10 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       }
     } break;
     case IceType_v8i1: {
-      assert(Src0->getType() == IceType_i8);
-      InstCall *Call = makeHelperCall(H_bitcast_i8_8xi1, Dest, 1);
-      Variable *Src0AsI32 = Func->makeVariable(stackSlotType());
-      // Arguments to functions are required to be at least 32 bits wide.
-      lowerCast(InstCast::create(Func, InstCast::Zext, Src0AsI32, Src0));
-      Call->addArg(Src0AsI32);
-      lowerCall(Call);
+      llvm::report_fatal_error("Helper call was expected");
     } break;
     case IceType_v16i1: {
-      assert(Src0->getType() == IceType_i16);
-      InstCall *Call = makeHelperCall(H_bitcast_i16_16xi1, Dest, 1);
-      Variable *Src0AsI32 = Func->makeVariable(stackSlotType());
-      // Arguments to functions are required to be at least 32 bits wide.
-      lowerCast(InstCast::create(Func, InstCast::Zext, Src0AsI32, Src0));
-      Call->addArg(Src0AsI32);
-      lowerCall(Call);
+      llvm::report_fatal_error("Helper call was expected");
     } break;
     case IceType_v8i16:
     case IceType_v16i8:
@@ -5166,21 +5068,24 @@ void TargetX86Base<Machine>::scalarizeArithmetic(InstArithmetic::OpKind Kind,
 
     // Extract the next two inputs.
     Variable *Op0 = Func->makeVariable(ElementTy);
-    lowerExtractElement(InstExtractElement::create(Func, Op0, Src0, Index));
+    Context.insert(InstExtractElement::create(Func, Op0, Src0, Index));
     Variable *Op1 = Func->makeVariable(ElementTy);
-    lowerExtractElement(InstExtractElement::create(Func, Op1, Src1, Index));
+    Context.insert(InstExtractElement::create(Func, Op1, Src1, Index));
 
     // Perform the arithmetic as a scalar operation.
     Variable *Res = Func->makeVariable(ElementTy);
-    lowerArithmetic(InstArithmetic::create(Func, Kind, Res, Op0, Op1));
+    auto *Arith = InstArithmetic::create(Func, Kind, Res, Op0, Op1);
+    Context.insert(Arith);
+    // We might have created an operation that needed a helper call.
+    genTargetHelperCallFor(Arith);
 
     // Insert the result into position.
     Variable *DestT = Func->makeVariable(Ty);
-    lowerInsertElement(InstInsertElement::create(Func, DestT, T, Res, Index));
+    Context.insert(InstInsertElement::create(Func, DestT, T, Res, Index));
     T = DestT;
   }
 
-  lowerAssign(InstAssign::create(Func, Dest, T));
+  Context.insert(InstAssign::create(Func, Dest, T));
 }
 
 /// The following pattern occurs often in lowered C and C++ code:
@@ -5323,16 +5228,238 @@ template <class Machine> void TargetX86Base<Machine>::prelowerPhis() {
 }
 
 template <class Machine>
-uint32_t
-TargetX86Base<Machine>::getCallStackArgumentsSizeBytes(const InstCall *Instr) {
+void TargetX86Base<Machine>::genTargetHelperCallFor(Inst *Instr) {
+  uint32_t StackArgumentsSize = 0;
+  if (auto *Arith = llvm::dyn_cast<InstArithmetic>(Instr)) {
+    const char *HelperName = nullptr;
+    Variable *Dest = Arith->getDest();
+    Type DestTy = Dest->getType();
+    if (!Traits::Is64Bit && DestTy == IceType_i64) {
+      switch (Arith->getOp()) {
+      default:
+        return;
+      case InstArithmetic::Udiv:
+        HelperName = H_udiv_i64;
+        break;
+      case InstArithmetic::Sdiv:
+        HelperName = H_sdiv_i64;
+        break;
+      case InstArithmetic::Urem:
+        HelperName = H_urem_i64;
+        break;
+      case InstArithmetic::Srem:
+        HelperName = H_srem_i64;
+        break;
+      }
+    } else if (isVectorType(DestTy)) {
+      Variable *Dest = Arith->getDest();
+      Operand *Src0 = Arith->getSrc(0);
+      Operand *Src1 = Arith->getSrc(1);
+      switch (Arith->getOp()) {
+      default:
+        return;
+      case InstArithmetic::Mul:
+        if (DestTy == IceType_v16i8) {
+          scalarizeArithmetic(Arith->getOp(), Dest, Src0, Src1);
+          Arith->setDeleted();
+        }
+        return;
+      case InstArithmetic::Shl:
+      case InstArithmetic::Lshr:
+      case InstArithmetic::Ashr:
+      case InstArithmetic::Udiv:
+      case InstArithmetic::Urem:
+      case InstArithmetic::Sdiv:
+      case InstArithmetic::Srem:
+      case InstArithmetic::Frem:
+        scalarizeArithmetic(Arith->getOp(), Dest, Src0, Src1);
+        Arith->setDeleted();
+        return;
+      }
+    } else {
+      switch (Arith->getOp()) {
+      default:
+        return;
+      case InstArithmetic::Frem:
+        if (isFloat32Asserting32Or64(DestTy))
+          HelperName = H_frem_f32;
+        else
+          HelperName = H_frem_f64;
+      }
+    }
+    constexpr SizeT MaxSrcs = 2;
+    InstCall *Call = makeHelperCall(HelperName, Dest, MaxSrcs);
+    Call->addArg(Arith->getSrc(0));
+    Call->addArg(Arith->getSrc(1));
+    StackArgumentsSize = getCallStackArgumentsSizeBytes(Call);
+    Context.insert(Call);
+    Arith->setDeleted();
+  } else if (auto *Cast = llvm::dyn_cast<InstCast>(Instr)) {
+    InstCast::OpKind CastKind = Cast->getCastKind();
+    Operand *Src0 = Cast->getSrc(0);
+    const Type SrcType = Src0->getType();
+    Variable *Dest = Cast->getDest();
+    const Type DestTy = Dest->getType();
+    const char *HelperName = nullptr;
+    switch (CastKind) {
+    default:
+      return;
+    case InstCast::Fptosi:
+      if (!Traits::Is64Bit && DestTy == IceType_i64) {
+        HelperName = isFloat32Asserting32Or64(SrcType) ? H_fptosi_f32_i64
+                                                       : H_fptosi_f64_i64;
+      } else {
+        return;
+      }
+      break;
+    case InstCast::Fptoui:
+      if (isVectorType(DestTy)) {
+        assert(DestTy == IceType_v4i32 && SrcType == IceType_v4f32);
+        HelperName = H_fptoui_4xi32_f32;
+      } else if (DestTy == IceType_i64 ||
+                 (!Traits::Is64Bit && DestTy == IceType_i32)) {
+        if (Traits::Is64Bit) {
+          HelperName = isFloat32Asserting32Or64(SrcType) ? H_fptoui_f32_i64
+                                                         : H_fptoui_f64_i64;
+        } else if (isInt32Asserting32Or64(DestTy)) {
+          HelperName = isFloat32Asserting32Or64(SrcType) ? H_fptoui_f32_i32
+                                                         : H_fptoui_f64_i32;
+        } else {
+          HelperName = isFloat32Asserting32Or64(SrcType) ? H_fptoui_f32_i64
+                                                         : H_fptoui_f64_i64;
+        }
+      } else {
+        return;
+      }
+      break;
+    case InstCast::Sitofp:
+      if (!Traits::Is64Bit && SrcType == IceType_i64) {
+        HelperName = isFloat32Asserting32Or64(DestTy) ? H_sitofp_i64_f32
+                                                      : H_sitofp_i64_f64;
+      } else {
+        return;
+      }
+      break;
+    case InstCast::Uitofp:
+      if (isVectorType(SrcType)) {
+        assert(DestTy == IceType_v4f32 && SrcType == IceType_v4i32);
+        HelperName = H_uitofp_4xi32_4xf32;
+      } else if (SrcType == IceType_i64 ||
+                 (!Traits::Is64Bit && SrcType == IceType_i32)) {
+        if (isInt32Asserting32Or64(SrcType)) {
+          HelperName = isFloat32Asserting32Or64(DestTy) ? H_uitofp_i32_f32
+                                                        : H_uitofp_i32_f64;
+        } else {
+          HelperName = isFloat32Asserting32Or64(DestTy) ? H_uitofp_i64_f32
+                                                        : H_uitofp_i64_f64;
+        }
+      } else {
+        return;
+      }
+      break;
+    case InstCast::Bitcast: {
+      if (DestTy == Src0->getType())
+        return;
+      switch (DestTy) {
+      default:
+        return;
+      case IceType_i8:
+        assert(Src0->getType() == IceType_v8i1);
+        HelperName = H_bitcast_8xi1_i8;
+        break;
+      case IceType_i16:
+        assert(Src0->getType() == IceType_v16i1);
+        HelperName = H_bitcast_16xi1_i16;
+        break;
+      case IceType_v8i1: {
+        assert(Src0->getType() == IceType_i8);
+        HelperName = H_bitcast_i8_8xi1;
+        Variable *Src0AsI32 = Func->makeVariable(stackSlotType());
+        // Arguments to functions are required to be at least 32 bits wide.
+        Context.insert(InstCast::create(Func, InstCast::Zext, Src0AsI32, Src0));
+        Src0 = Src0AsI32;
+      } break;
+      case IceType_v16i1: {
+        assert(Src0->getType() == IceType_i16);
+        HelperName = H_bitcast_i16_16xi1;
+        Variable *Src0AsI32 = Func->makeVariable(stackSlotType());
+        // Arguments to functions are required to be at least 32 bits wide.
+        Context.insert(InstCast::create(Func, InstCast::Zext, Src0AsI32, Src0));
+        Src0 = Src0AsI32;
+      } break;
+      }
+    } break;
+    }
+    constexpr SizeT MaxSrcs = 1;
+    InstCall *Call = makeHelperCall(HelperName, Dest, MaxSrcs);
+    Call->addArg(Src0);
+    StackArgumentsSize = getCallStackArgumentsSizeBytes(Call);
+    Context.insert(Call);
+    Cast->setDeleted();
+  } else if (auto *Intrinsic = llvm::dyn_cast<InstIntrinsicCall>(Instr)) {
+    std::vector<Type> ArgTypes;
+    Type ReturnType = IceType_void;
+    switch (Intrinsics::IntrinsicID ID = Intrinsic->getIntrinsicInfo().ID) {
+    default:
+      return;
+    case Intrinsics::Ctpop: {
+      Operand *Val = Intrinsic->getArg(0);
+      Type ValTy = Val->getType();
+      if (ValTy == IceType_i64)
+        ArgTypes = {IceType_i64};
+      else
+        ArgTypes = {IceType_i32};
+      ReturnType = IceType_i32;
+    } break;
+    case Intrinsics::Longjmp:
+      ArgTypes = {IceType_i32, IceType_i32};
+      ReturnType = IceType_void;
+      break;
+    case Intrinsics::Memcpy:
+      ArgTypes = {IceType_i32, IceType_i32, IceType_i32};
+      ReturnType = IceType_void;
+      break;
+    case Intrinsics::Memmove:
+      ArgTypes = {IceType_i32, IceType_i32, IceType_i32};
+      ReturnType = IceType_void;
+      break;
+    case Intrinsics::Memset:
+      ArgTypes = {IceType_i32, IceType_i32, IceType_i32};
+      ReturnType = IceType_void;
+      break;
+    case Intrinsics::NaClReadTP:
+      ReturnType = IceType_i32;
+      break;
+    case Intrinsics::Setjmp:
+      ArgTypes = {IceType_i32};
+      ReturnType = IceType_i32;
+      break;
+    }
+    StackArgumentsSize = getCallStackArgumentsSizeBytes(ArgTypes, ReturnType);
+  } else if (auto *Call = llvm::dyn_cast<InstCall>(Instr)) {
+    StackArgumentsSize = getCallStackArgumentsSizeBytes(Call);
+  } else if (auto *Ret = llvm::dyn_cast<InstRet>(Instr)) {
+    if (!Ret->hasRetValue())
+      return;
+    Operand *RetValue = Ret->getRetValue();
+    Type ReturnType = RetValue->getType();
+    if (!isScalarFloatingType(ReturnType))
+      return;
+    StackArgumentsSize = typeWidthInBytes(ReturnType);
+  } else {
+    return;
+  }
+  StackArgumentsSize = Traits::applyStackAlignment(StackArgumentsSize);
+  updateMaxOutArgsSizeBytes(StackArgumentsSize);
+}
+
+template <class Machine>
+uint32_t TargetX86Base<Machine>::getCallStackArgumentsSizeBytes(
+    const std::vector<Type> &ArgTypes, Type ReturnType) {
   uint32_t OutArgumentsSizeBytes = 0;
   uint32_t XmmArgCount = 0;
   uint32_t GprArgCount = 0;
-  // Classify each argument operand according to the location where the
-  // argument is passed.
-  for (SizeT i = 0, NumArgs = Instr->getNumArgs(); i < NumArgs; ++i) {
-    Operand *Arg = Instr->getArg(i);
-    Type Ty = Arg->getType();
+  for (Type Ty : ArgTypes) {
     // The PNaCl ABI requires the width of arguments to be at least 32 bits.
     assert(typeWidthInBytes(Ty) >= 4);
     if (isVectorType(Ty) && XmmArgCount < Traits::X86_MAX_XMM_ARGS) {
@@ -5342,27 +5469,40 @@ TargetX86Base<Machine>::getCallStackArgumentsSizeBytes(const InstCall *Instr) {
       // The 64 bit ABI allows some integers to be passed in GPRs.
       ++GprArgCount;
     } else {
-      if (isVectorType(Arg->getType())) {
+      if (isVectorType(Ty)) {
         OutArgumentsSizeBytes =
             Traits::applyStackAlignment(OutArgumentsSizeBytes);
       }
-      OutArgumentsSizeBytes += typeWidthInBytesOnStack(Arg->getType());
+      OutArgumentsSizeBytes += typeWidthInBytesOnStack(Ty);
     }
   }
   if (Traits::Is64Bit)
     return OutArgumentsSizeBytes;
   // The 32 bit ABI requires floating point values to be returned on the x87 FP
   // stack. Ensure there is enough space for the fstp/movs for floating returns.
-  Variable *Dest = Instr->getDest();
-  if (Dest == nullptr)
-    return OutArgumentsSizeBytes;
-  const Type DestType = Dest->getType();
-  if (isScalarFloatingType(Dest->getType())) {
+  if (isScalarFloatingType(ReturnType)) {
     OutArgumentsSizeBytes =
         std::max(OutArgumentsSizeBytes,
-                 static_cast<uint32_t>(typeWidthInBytesOnStack(DestType)));
+                 static_cast<uint32_t>(typeWidthInBytesOnStack(ReturnType)));
   }
   return OutArgumentsSizeBytes;
+}
+
+template <class Machine>
+uint32_t
+TargetX86Base<Machine>::getCallStackArgumentsSizeBytes(const InstCall *Instr) {
+  // Build a vector of the arguments' types.
+  std::vector<Type> ArgTypes;
+  for (SizeT i = 0, NumArgs = Instr->getNumArgs(); i < NumArgs; ++i) {
+    Operand *Arg = Instr->getArg(i);
+    ArgTypes.emplace_back(Arg->getType());
+  }
+  // Compute the return type (if any);
+  Type ReturnType = IceType_void;
+  Variable *Dest = Instr->getDest();
+  if (Dest != nullptr)
+    ReturnType = Dest->getType();
+  return getCallStackArgumentsSizeBytes(ArgTypes, ReturnType);
 }
 
 template <class Machine>

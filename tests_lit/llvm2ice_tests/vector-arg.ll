@@ -190,7 +190,7 @@ entry:
                         <4 x float> %arg6, <4 x float> %arg5, <4 x float> %arg4)
   ret void
 ; CHECK-LABEL: test_passing_vectors
-; CHECK: sub esp,0x20
+; CHECK-NEXT: sub esp,0x2c
 ; CHECK: movups  [[ARG5:.*]],XMMWORD PTR [esp+0x40]
 ; CHECK: movups  XMMWORD PTR [esp],[[ARG5]]
 ; CHECK: movups  [[ARG6:.*]],XMMWORD PTR [esp+0x30]
@@ -200,10 +200,10 @@ entry:
 ; CHECK: movups  xmm2,XMMWORD PTR [esp+0x60]
 ; CHECK: movups  xmm3,XMMWORD PTR [esp+0x50]
 ; CHECK: call {{.*}} R_{{.*}} VectorArgs
-; CHECK-NEXT: add esp,0x20
+; CHECK-NEXT: add esp,0x2c
 
 ; OPTM1-LABEL: test_passing_vectors
-; OPTM1: sub esp,0x20
+; OPTM1: sub esp,0x6c
 ; OPTM1: movups  [[ARG5:.*]],XMMWORD PTR {{.*}}
 ; OPTM1: movups  XMMWORD PTR [esp],[[ARG5]]
 ; OPTM1: movups  [[ARG6:.*]],XMMWORD PTR {{.*}}
@@ -213,7 +213,7 @@ entry:
 ; OPTM1: movups  xmm2,XMMWORD PTR {{.*}}
 ; OPTM1: movups  xmm3,XMMWORD PTR {{.*}}
 ; OPTM1: call {{.*}} R_{{.*}} VectorArgs
-; OPTM1-NEXT: add esp,0x20
+; OPTM1-NEXT: add esp,0x6c
 }
 
 declare void @InterspersedVectorArgs(
@@ -234,7 +234,7 @@ entry:
                                     <4 x float> %arg5, i32 4, <4 x float> %arg4)
   ret void
 ; CHECK-LABEL: test_passing_vectors_interspersed
-; CHECK: sub esp,0x50
+; CHECK: sub esp,0x5c
 ; CHECK: movups  [[ARG9:.*]],XMMWORD PTR [esp+0x70]
 ; CHECK: movups  XMMWORD PTR [esp+0x20],[[ARG9]]
 ; CHECK: movups  [[ARG11:.*]],XMMWORD PTR [esp+0x60]
@@ -244,11 +244,11 @@ entry:
 ; CHECK: movups  xmm2,XMMWORD PTR [esp+0x90]
 ; CHECK: movups  xmm3,XMMWORD PTR [esp+0x80]
 ; CHECK: call {{.*}} R_{{.*}} InterspersedVectorArgs
-; CHECK-NEXT: add esp,0x50
+; CHECK-NEXT: add esp,0x5c
 ; CHECK: ret
 
 ; OPTM1-LABEL: test_passing_vectors_interspersed
-; OPTM1: sub esp,0x50
+; OPTM1: sub esp,0x9c
 ; OPTM1: movups  [[ARG9:.*]],XMMWORD PTR {{.*}}
 ; OPTM1: movups  XMMWORD PTR [esp+0x20],[[ARG9]]
 ; OPTM1: movups  [[ARG11:.*]],XMMWORD PTR {{.*}}
@@ -258,7 +258,7 @@ entry:
 ; OPTM1: movups  xmm2,XMMWORD PTR {{.*}}
 ; OPTM1: movups  xmm3,XMMWORD PTR {{.*}}
 ; OPTM1: call {{.*}} R_{{.*}} InterspersedVectorArgs
-; OPTM1-NEXT: add esp,0x50
+; OPTM1-NEXT: add esp,0x9c
 ; OPTM1: ret
 }
 

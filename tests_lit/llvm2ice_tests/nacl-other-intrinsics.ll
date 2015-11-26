@@ -540,11 +540,15 @@ entry:
   ret void
 }
 ; CHECK-LABEL: test_stacksave_multiple
-; At least 3 copies of esp, but probably more from having to do the allocas.
+; lea is used to copy from esp for the allocas.
+; Otherwise, only one stacksave is live.
+; CHECK: mov ebp,esp
 ; CHECK: mov {{.*}},esp
-; CHECK: mov {{.*}},esp
-; CHECK: mov {{.*}},esp
+; CHECK: lea {{.*}},[esp+0x10]
+; CHECK: lea {{.*}},[esp+0x10]
+; CHECK: call
 ; CHECK: mov esp,{{.*}}
+; CHECK: mov esp,ebp
 ; ARM32-LABEL: test_stacksave_multiple
 ; ARM32: mov {{.*}}, sp
 ; ARM32: mov {{.*}}, sp

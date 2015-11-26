@@ -221,9 +221,6 @@ public:
   /// twice" attribute.
   bool callsReturnsTwice() const { return CallsReturnsTwice; }
   void setCallsReturnsTwice(bool RetTwice) { CallsReturnsTwice = RetTwice; }
-  int32_t getStackAdjustment() const { return StackAdjustment; }
-  void updateStackAdjustment(int32_t Offset) { StackAdjustment += Offset; }
-  void resetStackAdjustment() { StackAdjustment = 0; }
   SizeT makeNextLabelNumber() { return NextLabelNumber++; }
   SizeT makeNextJumpTableNumber() { return NextJumpTableNumber++; }
   LoweringContext &getContext() { return Context; }
@@ -250,17 +247,6 @@ public:
   makeRandomRegisterPermutation(llvm::SmallVectorImpl<int32_t> &Permutation,
                                 const llvm::SmallBitVector &ExcludeRegisters,
                                 uint64_t Salt) const = 0;
-
-  /// Save/restore any mutable state for the situation where code emission needs
-  /// multiple passes, such as sandboxing or relaxation. Subclasses may provide
-  /// their own implementation, but should be sure to also call the parent
-  /// class's methods.
-  virtual void snapshotEmitState() {
-    SnapshotStackAdjustment = StackAdjustment;
-  }
-  virtual void rollbackEmitState() {
-    StackAdjustment = SnapshotStackAdjustment;
-  }
 
   /// Get the minimum number of clusters required for a jump table to be
   /// considered.
@@ -393,10 +379,6 @@ protected:
   GlobalContext *Ctx;
   bool HasComputedFrame = false;
   bool CallsReturnsTwice = false;
-  /// StackAdjustment keeps track of the current stack offset from its natural
-  /// location, e.g. as arguments are pushed for a function call or as
-  /// fixed-size alloca instructions are executed in the entry block.
-  int32_t StackAdjustment = 0;
   SizeT NextLabelNumber = 0;
   SizeT NextJumpTableNumber = 0;
   LoweringContext Context;
@@ -438,9 +420,6 @@ protected:
   const static constexpr char *H_uitofp_i64_f64 = "__Sz_uitofp_i64_f64";
   const static constexpr char *H_urem_i32 = "__umodsi3";
   const static constexpr char *H_urem_i64 = "__umoddi3";
-
-private:
-  int32_t SnapshotStackAdjustment = 0;
 };
 
 /// TargetDataLowering is used for "lowering" data including initializers for

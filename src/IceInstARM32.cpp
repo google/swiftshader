@@ -975,7 +975,6 @@ void InstARM32Call::emit(const Cfg *Func) const {
         << "\t";
     getCallTarget()->emit(Func);
   }
-  Func->getTarget()->resetStackAdjustment();
 }
 
 void InstARM32Call::emitIAS(const Cfg *Func) const {
@@ -995,7 +994,6 @@ void InstARM32Call::emitIAS(const Cfg *Func) const {
   }
   if (Asm->needsTextFixup())
     return emitUsingTextFixup(Func);
-  Func->getTarget()->resetStackAdjustment();
 }
 
 void InstARM32Call::dump(const Cfg *Func) const {

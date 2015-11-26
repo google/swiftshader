@@ -82,17 +82,13 @@ public:
     TargetInfo &operator=(const TargetInfo &) = delete;
 
   public:
-    TargetInfo(bool HasFramePointer, SizeT FrameOrStackReg,
-               int32_t StackAdjustment)
-        : HasFramePointer(HasFramePointer), FrameOrStackReg(FrameOrStackReg),
-          StackAdjustment(StackAdjustment) {}
+    TargetInfo(bool HasFramePointer, SizeT FrameOrStackReg)
+        : HasFramePointer(HasFramePointer), FrameOrStackReg(FrameOrStackReg) {}
     explicit TargetInfo(const TargetLowering *Target)
         : HasFramePointer(Target->hasFramePointer()),
-          FrameOrStackReg(Target->getFrameOrStackReg()),
-          StackAdjustment(Target->getStackAdjustment()) {}
+          FrameOrStackReg(Target->getFrameOrStackReg()) {}
     const bool HasFramePointer;
     const SizeT FrameOrStackReg;
-    const int32_t StackAdjustment;
   };
 
   explicit AssemblerARM32(bool use_far_branches = false)

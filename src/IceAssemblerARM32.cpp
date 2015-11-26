@@ -296,11 +296,8 @@ DecodedResult decodeAddress(const Operand *Opnd, IValueT &Value,
     if (!Utils::IsAbsoluteUint(12, Offset))
       return CantDecode;
     int32_t BaseRegNum = Var->getBaseRegNum();
-    if (BaseRegNum == Variable::NoRegister) {
+    if (BaseRegNum == Variable::NoRegister)
       BaseRegNum = TInfo.FrameOrStackReg;
-      if (!TInfo.HasFramePointer)
-        Offset += TInfo.StackAdjustment;
-    }
     Value = decodeImmRegOffset(decodeGPRRegister(BaseRegNum), Offset,
                                OperandARM32Mem::Offset);
     return DecodedAsImmRegOffset;

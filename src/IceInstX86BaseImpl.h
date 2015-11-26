@@ -57,14 +57,6 @@ InstX86FakeRMW<Machine>::InstX86FakeRMW(Cfg *Func, Operand *Data, Operand *Addr,
 }
 
 template <class Machine>
-InstX86AdjustStack<Machine>::InstX86AdjustStack(Cfg *Func, int32_t Amount,
-                                                Variable *Esp)
-    : InstX86Base<Machine>(Func, InstX86Base<Machine>::Adjuststack, 1, Esp),
-      Amount(Amount) {
-  this->addSource(Esp);
-}
-
-template <class Machine>
 InstX86Mul<Machine>::InstX86Mul(Cfg *Func, Variable *Dest, Variable *Source1,
                                 Operand *Source2)
     : InstX86Base<Machine>(Func, InstX86Base<Machine>::Mul, 2, Dest) {
@@ -2904,46 +2896,6 @@ template <class Machine> void InstX86Pop<Machine>::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   this->dumpDest(Func);
   Str << " = pop." << this->getDest()->getType() << " ";
-}
-
-template <class Machine>
-void InstX86AdjustStack<Machine>::emit(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-  Ostream &Str = Func->getContext()->getStrEmit();
-  if (Amount > 0)
-    Str << "\tsubl\t$" << Amount << ", %esp";
-  else
-    Str << "\taddl\t$" << -Amount << ", %esp";
-  auto *Target = InstX86Base<Machine>::getTarget(Func);
-  Target->updateStackAdjustment(Amount);
-}
-
-template <class Machine>
-void InstX86AdjustStack<Machine>::emitIAS(const Cfg *Func) const {
-  typename InstX86Base<Machine>::Traits::Assembler *Asm =
-      Func->getAssembler<typename InstX86Base<Machine>::Traits::Assembler>();
-  if (Amount > 0)
-    Asm->sub(IceType_i32,
-             InstX86Base<Machine>::Traits::RegisterSet::Encoded_Reg_esp,
-             Immediate(Amount));
-  else
-    Asm->add(IceType_i32,
-             InstX86Base<Machine>::Traits::RegisterSet::Encoded_Reg_esp,
-             Immediate(-Amount));
-  auto *Target = InstX86Base<Machine>::getTarget(Func);
-  Target->updateStackAdjustment(Amount);
-}
-
-template <class Machine>
-void InstX86AdjustStack<Machine>::dump(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-  Ostream &Str = Func->getContext()->getStrDump();
-  if (Amount > 0)
-    Str << "esp = sub.i32 esp, " << Amount;
-  else
-    Str << "esp = add.i32 esp, " << -Amount;
 }
 
 template <class Machine>

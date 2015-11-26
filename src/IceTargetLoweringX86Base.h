@@ -109,7 +109,13 @@ public:
   }
   /// Returns the (negative) offset from ebp/rbp where the fixed Allocas start.
   int32_t getFrameFixedAllocaOffset() const override {
-    return FixedAllocaSizeBytes - SpillAreaSizeBytes;
+    return FixedAllocaSizeBytes - (SpillAreaSizeBytes - maxOutArgsSizeBytes());
+  }
+  virtual uint32_t maxOutArgsSizeBytes() const override {
+    return MaxOutArgsSizeBytes;
+  }
+  virtual void updateMaxOutArgsSizeBytes(uint32_t Size) {
+    MaxOutArgsSizeBytes = std::max(MaxOutArgsSizeBytes, Size);
   }
 
   bool shouldSplitToVariable64On32(Type Ty) const override {
@@ -182,8 +188,10 @@ protected:
   void lowerOther(const Inst *Instr) override;
   void lowerRMW(const typename Traits::Insts::FakeRMW *RMW);
   void prelowerPhis() override;
+  uint32_t getCallStackArgumentsSizeBytes(const std::vector<Type> &ArgTypes,
+                                          Type ReturnType);
   uint32_t getCallStackArgumentsSizeBytes(const InstCall *Instr) override;
-  void genTargetHelperCallFor(Inst *Instr) override { (void)Instr; }
+  void genTargetHelperCallFor(Inst *Instr) override;
   void doAddressOptLoad() override;
   void doAddressOptStore() override;
   void doMockBoundsCheck(Operand *Opnd) override;
@@ -329,10 +337,6 @@ protected:
   }
   void _add_rmw(typename Traits::X86OperandMem *DestSrc0, Operand *Src1) {
     Context.insert(Traits::Insts::AddRMW::create(Func, DestSrc0, Src1));
-  }
-  void _adjust_stack(int32_t Amount) {
-    Context.insert(Traits::Insts::AdjustStack::create(
-        Func, Amount, getPhysicalRegister(Traits::RegisterSet::Reg_esp)));
   }
   void _addps(Variable *Dest, Operand *Src0) {
     Context.insert(Traits::Insts::Addps::create(Func, Dest, Src0));
@@ -705,6 +709,7 @@ protected:
   size_t FixedAllocaSizeBytes = 0;
   size_t FixedAllocaAlignBytes = 0;
   bool PrologEmitsFixedAllocas = false;
+  uint32_t MaxOutArgsSizeBytes = 0;
   static std::array<llvm::SmallBitVector, RCX86_NUM> TypeToRegisterSet;
   static std::array<llvm::SmallBitVector, Traits::RegisterSet::Reg_NUM>
       RegisterAliases;

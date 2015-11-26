@@ -27,14 +27,14 @@ eblock:
 ; CHECK-LABEL: memcpy_helper
 ; CHECK:  push  ebp
 ; CHECK:  mov   ebp,esp
-; CHECK:  sub   esp,0x18
+; CHECK:  sub   esp,0x28
 ; CHECK:  sub   esp,0x80
-; CHECK:  mov   DWORD PTR [ebp-0x4],esp
+; CHECK:  lea   eax,[esp+0x10]
+; CHECK:  mov   DWORD PTR [ebp-0x4],eax
 ; CHECK:  mov   eax,DWORD PTR [ebp+0xc]
 ; CHECK:  mov   BYTE PTR [ebp-0x8],al
 ; CHECK:  movzx eax,BYTE PTR [ebp-0x8]
 ; CHECK:  mov   DWORD PTR [ebp-0xc],eax
-; CHECK:  sub   esp,0x10
 ; CHECK:  mov   eax,DWORD PTR [ebp+0x8]
 ; CHECK:  mov   DWORD PTR [esp],eax
 ; CHECK:  mov   eax,DWORD PTR [ebp-0x4]

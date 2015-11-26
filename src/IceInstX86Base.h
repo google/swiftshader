@@ -405,33 +405,6 @@ private:
   InstX86Jmp(Cfg *Func, Operand *Target);
 };
 
-/// AdjustStack instruction - grows the stack (moves esp down) by the given
-/// amount.  If the amount is negative, it shrinks the stack (moves esp up).
-/// It also updates the target lowering StackAdjustment during code emission.
-template <class Machine>
-class InstX86AdjustStack final : public InstX86Base<Machine> {
-  InstX86AdjustStack() = delete;
-  InstX86AdjustStack(const InstX86AdjustStack &) = delete;
-  InstX86AdjustStack &operator=(const InstX86AdjustStack &) = delete;
-
-public:
-  static InstX86AdjustStack *create(Cfg *Func, int32_t Amount, Variable *Esp) {
-    return new (Func->allocate<InstX86AdjustStack>())
-        InstX86AdjustStack(Func, Amount, Esp);
-  }
-  void emit(const Cfg *Func) const override;
-  void emitIAS(const Cfg *Func) const override;
-  void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) {
-    return InstX86Base<Machine>::isClassof(Inst,
-                                           InstX86Base<Machine>::Adjuststack);
-  }
-
-private:
-  InstX86AdjustStack(Cfg *Func, int32_t Amount, Variable *Esp);
-  const int32_t Amount;
-};
-
 /// Call instruction. Arguments should have already been pushed.
 template <class Machine> class InstX86Call final : public InstX86Base<Machine> {
   InstX86Call() = delete;
@@ -2791,7 +2764,6 @@ template <class Machine> struct Insts {
   using FakeRMW = InstX86FakeRMW<Machine>;
   using Label = InstX86Label<Machine>;
 
-  using AdjustStack = InstX86AdjustStack<Machine>;
   using Call = InstX86Call<Machine>;
 
   using Br = InstX86Br<Machine>;

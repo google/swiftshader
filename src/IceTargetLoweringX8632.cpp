@@ -152,8 +152,6 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
           Func->getTarget()->getPhysicalRegister(Traits::RegisterSet::Reg_esp);
       Constant *Loc = Ctx->getConstantInt32(ParameterAreaSizeBytes);
       auto *Mem = Traits::X86OperandMem::create(Func, Ty, esp, Loc);
-      // Stack stores for arguments are fixed to esp.
-      Mem->setIgnoreStackAdjust(true);
       StackArgLocations.push_back(Mem);
       ParameterAreaSizeBytes += typeWidthInBytesOnStack(Arg->getType());
     }
@@ -169,16 +167,8 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
   // Adjust the parameter area so that the stack is aligned. It is assumed that
   // the stack is already aligned at the start of the calling sequence.
   ParameterAreaSizeBytes = Traits::applyStackAlignment(ParameterAreaSizeBytes);
-
-  // Subtract the appropriate amount for the argument area. This also takes
-  // care of setting the stack adjustment during emission.
-  //
-  // TODO: If for some reason the call instruction gets dead-code eliminated
-  // after lowering, we would need to ensure that the pre-call and the
-  // post-call esp adjustment get eliminated as well.
-  if (ParameterAreaSizeBytes) {
-    _adjust_stack(ParameterAreaSizeBytes);
-  }
+  assert(static_cast<uint32_t>(ParameterAreaSizeBytes) <=
+         maxOutArgsSizeBytes());
 
   // Copy arguments that are passed on the stack to the appropriate stack
   // locations.
@@ -274,10 +264,6 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
     // still needs to be popped.
     Context.insert(InstFakeUse::create(Func, Dest));
   }
-
-  // Add the appropriate offset to esp.
-  if (ParameterAreaSizeBytes)
-    _adjust_stack(-ParameterAreaSizeBytes);
 
   // Generate a FakeUse to keep the call live if necessary.
   if (Instr->hasSideEffects() && ReturnReg) {
@@ -391,6 +377,10 @@ void TargetX8632::addProlog(CfgNode *Node) {
   // +------------------------+
   // | 8. allocas             |
   // +------------------------+
+  // | 9. padding             |
+  // +------------------------+
+  // | 10. out args           |
+  // +------------------------+ <--- StackPointer
   //
   // The following variables record the size in bytes of the given areas:
   //  * X86_RET_IP_SIZE_BYTES:  area 1
@@ -399,7 +389,8 @@ void TargetX8632::addProlog(CfgNode *Node) {
   //  * GlobalsSize:            area 4
   //  * GlobalsAndSubsequentPaddingSize: areas 4 - 5
   //  * LocalsSpillAreaSize:    area 6
-  //  * SpillAreaSizeBytes:     areas 3 - 7
+  //  * SpillAreaSizeBytes:     areas 3 - 10
+  //  * maxOutArgsSizeBytes():  area 10
 
   // Determine stack frame offsets for each Variable without a register
   // assignment. This can be done as one variable per stack slot. Or, do
@@ -515,7 +506,10 @@ void TargetX8632::addProlog(CfgNode *Node) {
         Traits::X86_RET_IP_SIZE_BYTES + PreservedRegsSizeBytes;
     uint32_t StackSize =
         Traits::applyStackAlignment(StackOffset + SpillAreaSizeBytes);
+    StackSize = Traits::applyStackAlignment(StackSize + maxOutArgsSizeBytes());
     SpillAreaSizeBytes = StackSize - StackOffset;
+  } else {
+    SpillAreaSizeBytes += maxOutArgsSizeBytes();
   }
 
   // Combine fixed allocations into SpillAreaSizeBytes if we are emitting the
@@ -542,12 +536,6 @@ void TargetX8632::addProlog(CfgNode *Node) {
     SpillAreaSizeBytes += FixedAllocaSizeBytes;
 
   Ctx->statsUpdateFrameBytes(SpillAreaSizeBytes);
-
-  // Initialize the stack adjustment so that after all the known-frame-offset
-  // alloca instructions are emitted, the stack adjustment will reach zero.
-  resetStackAdjustment();
-  if (!PrologEmitsFixedAllocas)
-    updateStackAdjustment(-FixedAllocaSizeBytes);
 
   // Fill in stack offsets for stack args, and copy args into registers for
   // those that were register-allocated. Args are pushed right to left, so
@@ -599,7 +587,8 @@ void TargetX8632::addProlog(CfgNode *Node) {
     Str << "Stack layout:\n";
     uint32_t EspAdjustmentPaddingSize =
         SpillAreaSizeBytes - LocalsSpillAreaSize -
-        GlobalsAndSubsequentPaddingSize - SpillAreaPaddingBytes;
+        GlobalsAndSubsequentPaddingSize - SpillAreaPaddingBytes -
+        maxOutArgsSizeBytes();
     Str << " in-args = " << InArgsSizeBytes << " bytes\n"
         << " return address = " << Traits::X86_RET_IP_SIZE_BYTES << " bytes\n"
         << " preserved registers = " << PreservedRegsSizeBytes << " bytes\n"
@@ -614,6 +603,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
     Str << "Stack details:\n"
         << " esp adjustment = " << SpillAreaSizeBytes << " bytes\n"
         << " spill area alignment = " << SpillAreaAlignmentBytes << " bytes\n"
+        << " outgoing args size = " << maxOutArgsSizeBytes() << " bytes\n"
         << " locals spill area alignment = " << LocalsSlotsAlignmentBytes
         << " bytes\n"
         << " is ebp based = " << IsEbpBasedFrame << "\n";

@@ -732,9 +732,6 @@ template <> struct MachineTraits<TargetX8664> {
 
     bool getRandomized() const { return Randomized; }
 
-    void setIgnoreStackAdjust(bool Ignore) { IgnoreStackAdjust = Ignore; }
-    bool getIgnoreStackAdjust() const { return IgnoreStackAdjust; }
-
   private:
     X86OperandMem(Cfg *Func, Type Ty, Variable *Base, Constant *Offset,
                   Variable *Index, uint16_t Shift);
@@ -747,11 +744,6 @@ template <> struct MachineTraits<TargetX8664> {
     /// memory operands are generated in
     /// TargetX86Base::randomizeOrPoolImmediate()
     bool Randomized = false;
-    /// Memory operations involving the stack pointer need to know when the
-    /// stack pointer was moved temporarily.  Ignore that adjustment in
-    /// cases that should be pinned to the stack pointer, such as outgoing
-    /// arguments to calls.
-    bool IgnoreStackAdjust = false;
   };
 
   /// VariableSplit is a way to treat an f64 memory location as a pair of i32

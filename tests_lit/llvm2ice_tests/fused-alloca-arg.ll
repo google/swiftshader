@@ -17,10 +17,9 @@ entry:
 }
 
 ; CHECK-LABEL:  caller1
-; CHECK-NEXT:   sub    esp,0x2c
-; CHECK-NEXT:   mov    eax,DWORD PTR [esp+0x30]
-; CHECK-NEXT:   mov    DWORD PTR [esp],eax
-; CHECK-NEXT:   sub    esp,0x20
+; CHECK-NEXT:   sub    esp,0x4c
+; CHECK-NEXT:   mov    eax,DWORD PTR [esp+0x50]
+; CHECK-NEXT:   mov    DWORD PTR [esp+0x20],eax
 ; CHECK-NEXT:   mov    DWORD PTR [esp],eax
 ; CHECK-NEXT:   lea    eax,[esp+0x20]
 ; CHECK-NEXT:   mov    DWORD PTR [esp+0x4],eax
@@ -31,8 +30,7 @@ entry:
 ; CHECK-NEXT:   lea    eax,[esp+0x20]
 ; CHECK-NEXT:   mov    DWORD PTR [esp+0x10],eax
 ; CHECK-NEXT:   call
-; CHECK-NEXT:   add    esp,0x20
-; CHECK-NEXT:   add    esp,0x2c
+; CHECK-NEXT:   add    esp,0x4c
 ; CHECK-NEXT:   ret
 
 ; Test that alloca base addresses get passed correctly to functions.
@@ -49,11 +47,10 @@ entry:
 }
 
 ; CHECK-LABEL:  caller2
-; CHECK-NEXT:   sub    esp,0x4c
-; CHECK-NEXT:   mov    eax,DWORD PTR [esp+0x50]
-; CHECK-NEXT:   mov    DWORD PTR [esp],eax
+; CHECK-NEXT:   sub    esp,0x6c
+; CHECK-NEXT:   mov    eax,DWORD PTR [esp+0x70]
 ; CHECK-NEXT:   mov    DWORD PTR [esp+0x20],eax
-; CHECK-NEXT:   sub    esp,0x20
+; CHECK-NEXT:   mov    DWORD PTR [esp+0x40],eax
 ; CHECK-NEXT:   mov    DWORD PTR [esp],eax
 ; CHECK-NEXT:   lea    eax,[esp+0x20]
 ; CHECK-NEXT:   mov    DWORD PTR [esp+0x4],eax
@@ -64,6 +61,5 @@ entry:
 ; CHECK-NEXT:   lea    eax,[esp+0x40]
 ; CHECK-NEXT:   mov    DWORD PTR [esp+0x10],eax
 ; CHECK-NEXT:   call
-; CHECK-NEXT:   add    esp,0x20
-; CHECK-NEXT:   add    esp,0x4c
+; CHECK-NEXT:   add    esp,0x6c
 ; CHECK-NEXT:   ret

@@ -144,7 +144,7 @@ next:
 ; CHECK-NEXT: push   ebx
 ; CHECK-NEXT: push   ebp
 ; CHECK-NEXT: mov    ebp,esp
-; CHECK-NEXT: sub    esp,0x64
+; CHECK-NEXT: sub    esp,0x24
 ; CHECK-NEXT: mov    eax,DWORD PTR [ebp+0xc]
 ; CHECK-NEXT: and    esp,0xffffffe0
 ; CHECK-NEXT: sub    esp,0x40

@@ -77,13 +77,13 @@ define void @_start(i32 %x) {
 
 ; CHECK: Relocations [
 ; CHECK:   Section ({{[0-9]+}}) .rel.text.foo {
-; CHECK:     0x21 R_386_PC32 memcpy 0x0
+; CHECK:     0x1E R_386_PC32 memcpy 0x0
 ; CHECK:   }
 ;   Relocation can be against the start of the section or
 ;   the function's symbol itself.
 ; CHECK:   Section ({{[0-9]+}}) .rel.text._start {
-; CHECK:     0x13 R_386_PC32 {{.*}}bar 0x0
-; CHECK:     0x25 R_386_PC32 {{.*}}foo 0x0
+; CHECK:     0x10 R_386_PC32 {{.*}}bar 0x0
+; CHECK:     0x1C R_386_PC32 {{.*}}foo 0x0
 ; CHECK:   }
 ; CHECK: ]
 

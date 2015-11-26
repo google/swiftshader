@@ -53,14 +53,12 @@ entry:
 ; CHECK:      mov     DWORD PTR [esp+0x10]
 ; CHECK:      mov     DWORD PTR [esp+0xc]
 ; CHECK:      call {{.*}} R_{{.*}}    ignore64BitArgNoInline
-; CHECK:      sub     esp
 ; CHECK:      mov     DWORD PTR [esp+0x4]
 ; CHECK:      mov     DWORD PTR [esp]
 ; CHECK:      mov     DWORD PTR [esp+0x8],0x7b
 ; CHECK:      mov     DWORD PTR [esp+0x10]
 ; CHECK:      mov     DWORD PTR [esp+0xc]
 ; CHECK:      call {{.*}} R_{{.*}}    ignore64BitArgNoInline
-; CHECK:      sub     esp
 ; CHECK:      mov     DWORD PTR [esp+0x4]
 ; CHECK:      mov     DWORD PTR [esp]
 ; CHECK:      mov     DWORD PTR [esp+0x8],0x7b
@@ -76,14 +74,12 @@ entry:
 ; OPTM1:      mov     DWORD PTR [esp+0x10]
 ; OPTM1:      mov     DWORD PTR [esp+0xc]
 ; OPTM1:      call {{.*}} R_{{.*}}    ignore64BitArgNoInline
-; OPTM1:      sub     esp
 ; OPTM1:      mov     DWORD PTR [esp+0x4]
 ; OPTM1:      mov     DWORD PTR [esp]
 ; OPTM1:      mov     DWORD PTR [esp+0x8],0x7b
 ; OPTM1:      mov     DWORD PTR [esp+0x10]
 ; OPTM1:      mov     DWORD PTR [esp+0xc]
 ; OPTM1:      call {{.*}} R_{{.*}}    ignore64BitArgNoInline
-; OPTM1:      sub     esp
 ; OPTM1:      mov     DWORD PTR [esp+0x4]
 ; OPTM1:      mov     DWORD PTR [esp]
 ; OPTM1:      mov     DWORD PTR [esp+0x8],0x7b
