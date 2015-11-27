@@ -857,6 +857,7 @@ void InstBundleLock::emit(const Cfg *Func) const {
     Str << "\talign_to_end";
     break;
   }
+  Str << "\n";
 }
 
 void InstBundleLock::dump(const Cfg *Func) const {
@@ -878,6 +879,7 @@ void InstBundleUnlock::emit(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << "\t.bundle_unlock";
+  Str << "\n";
 }
 
 void InstBundleUnlock::dump(const Cfg *Func) const {
