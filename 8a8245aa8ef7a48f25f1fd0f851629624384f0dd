@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5b8ecb42_d702b64c",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 377,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-11-27T21:08:12Z",
+      "side": 1,
+      "message": "Yep.",
+      "parentUuid": "5b8ecb42_371a1abc",
+      "range": {
+        "startLine": 377,
+        "startChar": 60,
+        "endLine": 377,
+        "endChar": 70
+      },
+      "revId": "8a8245aa8ef7a48f25f1fd0f851629624384f0dd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5b8ecb42_17151e8d",
         "filename": "src/Renderer/Blitter.cpp",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2015-11-27T20:28:32Z",
       "side": 1,
       "message": "nit: adding \" + 0\" makes it align nicer.",
+      "range": {
+        "startLine": 379,
+        "startChar": 38,
+        "endLine": 379,
+        "endChar": 39
+      },
+      "revId": "8a8245aa8ef7a48f25f1fd0f851629624384f0dd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5b8ecb42_f7ffb27f",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 379,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-11-27T21:08:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5b8ecb42_17151e8d",
       "range": {
         "startLine": 379,
         "startChar": 38,
