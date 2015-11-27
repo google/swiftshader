@@ -72,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "5b8ecb42_d7d47615",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-11-27T18:25:41Z",
+      "side": 1,
+      "message": "Done\nhttps://buganizer.corp.google.com/u/0/issues/25908520",
+      "parentUuid": "5b8ecb42_77ad82aa",
+      "range": {
+        "startLine": 83,
+        "startChar": 4,
+        "endLine": 83,
+        "endChar": 31
+      },
+      "revId": "0ee9d80e76250b95693eeeb93ee37314e320cf66",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5b8ecb42_97b10e0b",
         "filename": "src/Renderer/Blitter.cpp",
         "patchSetId": 8
@@ -83,6 +107,30 @@
       "writtenOn": "2015-11-27T18:01:37Z",
       "side": 1,
       "message": "write",
+      "range": {
+        "startLine": 292,
+        "startChar": 7,
+        "endLine": 292,
+        "endChar": 10
+      },
+      "revId": "0ee9d80e76250b95693eeeb93ee37314e320cf66",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5b8ecb42_b7d7ea17",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 292,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-11-27T18:25:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5b8ecb42_97b10e0b",
       "range": {
         "startLine": 292,
         "startChar": 7,
