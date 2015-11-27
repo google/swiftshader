@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5b8ecb42_d7bb96e4",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-11-27T18:21:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5b8ecb42_b469a83e",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 0
+      },
+      "revId": "0ee9d80e76250b95693eeeb93ee37314e320cf66",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5b8ecb42_77ad82aa",
         "filename": "src/Renderer/Blitter.cpp",
         "patchSetId": 8
@@ -94,6 +118,30 @@
     },
     {
       "key": {
+        "uuid": "5b8ecb42_37ccda8c",
+        "filename": "src/Renderer/Blitter.hpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-11-27T18:21:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5b8ecb42_d466346d",
+      "range": {
+        "startLine": 27,
+        "startChar": 3,
+        "endLine": 27,
+        "endChar": 19
+      },
+      "revId": "0ee9d80e76250b95693eeeb93ee37314e320cf66",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5b8ecb42_f463305a",
         "filename": "src/Renderer/Blitter.hpp",
         "patchSetId": 8
@@ -105,6 +153,30 @@
       "writtenOn": "2015-11-27T18:01:37Z",
       "side": 1,
       "message": "nit: \"USE\" isn\u0027t very clear what it\u0027s actually used for. Let\u0027s use \"WRITE\" instead.\n\nI think we should also spell out RED, GREEN, BLUE, ALPHA. RGBA is fine as-is. This would match OpenGL nomenclature.",
+      "range": {
+        "startLine": 28,
+        "startChar": 3,
+        "endLine": 28,
+        "endChar": 8
+      },
+      "revId": "0ee9d80e76250b95693eeeb93ee37314e320cf66",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5b8ecb42_57c16653",
+        "filename": "src/Renderer/Blitter.hpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-11-27T18:21:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5b8ecb42_f463305a",
       "range": {
         "startLine": 28,
         "startChar": 3,
@@ -140,6 +212,30 @@
     },
     {
       "key": {
+        "uuid": "5b8ecb42_17c7de6c",
+        "filename": "src/Renderer/Blitter.hpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-11-27T18:21:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5b8ecb42_179efe78",
+      "range": {
+        "startLine": 33,
+        "startChar": 3,
+        "endLine": 33,
+        "endChar": 13
+      },
+      "revId": "0ee9d80e76250b95693eeeb93ee37314e320cf66",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5b8ecb42_57a8869b",
         "filename": "src/Renderer/Blitter.hpp",
         "patchSetId": 8
@@ -151,6 +247,30 @@
       "writtenOn": "2015-11-27T18:01:37Z",
       "side": 1,
       "message": "CLEAR_OPERATION, or something like that?",
+      "range": {
+        "startLine": 34,
+        "startChar": 3,
+        "endLine": 34,
+        "endChar": 16
+      },
+      "revId": "0ee9d80e76250b95693eeeb93ee37314e320cf66",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5b8ecb42_f7b892ea",
+        "filename": "src/Renderer/Blitter.hpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-11-27T18:21:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5b8ecb42_57a8869b",
       "range": {
         "startLine": 34,
         "startChar": 3,
