@@ -150,7 +150,7 @@ namespace sw
 		cursorPositionY = y;
 	}
 
-	void FrameBuffer::copy(void *source, Format format)
+	void FrameBuffer::copy(void *source, Format format, size_t stride)
 	{
 		if(!source)
 		{
@@ -170,11 +170,7 @@ namespace sw
 		}
 		else
 		{
-			const int width2 = (width + 1) & ~1;
-			const int sBytes = Surface::bytes(sourceFormat);
-			const int sStride = sBytes * width2;
-
-			target = (byte*)source + (height - 1) * sStride;
+			target = (byte*)source + (height - 1) * stride;
 		}
 
 		cursorX = cursorPositionX - cursorHotspotX;

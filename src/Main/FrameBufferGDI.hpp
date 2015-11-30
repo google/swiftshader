@@ -23,20 +23,20 @@ namespace sw
 
 		virtual ~FrameBufferGDI();
 		
-		virtual void flip(void *source, Format format);
-		virtual void blit(void *source, const Rect *sourceRect, const Rect *destRect, Format format);
+		void flip(void *source, Format sourceFormat, size_t sourceStride) override;
+		void blit(void *source, const Rect *sourceRect, const Rect *destRect, Format sourceFormat, size_t sourceStride) override;
 
-		virtual void flip(HWND windowOverride, void *source, Format format);
-		virtual void blit(HWND windowOverride, void *source, const Rect *sourceRect, const Rect *destRect, Format format);
+		void flip(HWND windowOverride, void *source, Format sourceFormat, size_t sourceStride) override;
+		void blit(HWND windowOverride, void *source, const Rect *sourceRect, const Rect *destRect, Format sourceFormat, size_t sourceStride) override;
 
-		virtual void *lock();
-		virtual void unlock();
+		void *lock() override;
+		void unlock() override;
 
-		virtual void setGammaRamp(GammaRamp *gammaRamp, bool calibrate);
-		virtual void getGammaRamp(GammaRamp *gammaRamp);
+		void setGammaRamp(GammaRamp *gammaRamp, bool calibrate) override;
+		void getGammaRamp(GammaRamp *gammaRamp) override;
 
-		virtual void screenshot(void *destBuffer);
-		virtual bool getScanline(bool &inVerticalBlank, unsigned int &scanline);
+		void screenshot(void *destBuffer) override;
+		bool getScanline(bool &inVerticalBlank, unsigned int &scanline) override;
 
 	private:
 		void init(HWND bitmapWindow);

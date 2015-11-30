@@ -16,11 +16,11 @@ namespace sw
 
         ~FrameBufferAndroid();
 
-        virtual void flip(void *source, Format format) {blit(source, 0, 0, format);};
-        virtual void blit(void *source, const Rect *sourceRect, const Rect *destRect, Format format);
+        void flip(void *source, Format sourceFormat, size_t sourceStride) override {blit(source, 0, 0, sourceFormat, sourceStride);};
+		void blit(void *source, const Rect *sourceRect, const Rect *destRect, Format sourceFormat, size_t sourceStride) override;
 
-        virtual void *lock();
-        virtual void unlock();
+		void *lock() override;
+		void unlock() override;
 
         bool setSwapRectangle(int l, int t, int w, int h);
 

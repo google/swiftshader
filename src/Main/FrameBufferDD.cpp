@@ -247,9 +247,9 @@ namespace sw
 		updateBounds(windowHandle);
 	}
 
-	void FrameBufferDD::flip(void *source, Format format)
+	void FrameBufferDD::flip(void *source, Format sourceFormat, size_t sourceStride)
 	{
-		copy(source, format);
+		copy(source, sourceFormat, sourceStride);
 
 		if(!readySurfaces())
 		{
@@ -278,9 +278,9 @@ namespace sw
 		}
 	}
 
-	void FrameBufferDD::blit(void *source, const Rect *sourceRect, const Rect *destRect, Format format)
+	void FrameBufferDD::blit(void *source, const Rect *sourceRect, const Rect *destRect, Format sourceFormat, size_t sourceStride)
 	{
-		copy(source, format);
+		copy(source, sourceFormat, sourceStride);
 
 		if(!readySurfaces())
 		{
@@ -317,20 +317,20 @@ namespace sw
 		}
 	}
 
-	void FrameBufferDD::flip(HWND windowOverride, void *source, Format format)
+	void FrameBufferDD::flip(HWND windowOverride, void *source, Format sourceFormat, size_t sourceStride)
 	{
 		updateClipper(windowOverride);
 		updateBounds(windowOverride);
 
-		flip(source, format);
+		flip(source, sourceFormat, sourceStride);
 	}
 
-	void FrameBufferDD::blit(HWND windowOverride, void *source, const Rect *sourceRect, const Rect *destRect, Format format)
+	void FrameBufferDD::blit(HWND windowOverride, void *source, const Rect *sourceRect, const Rect *destRect, Format sourceFormat, size_t sourceStride)
 	{
 		updateClipper(windowOverride);
 		updateBounds(windowOverride);
 
-		blit(source, sourceRect, destRect, format);
+		blit(source, sourceRect, destRect, sourceFormat, sourceStride);
 	}
 
 	void FrameBufferDD::screenshot(void *destBuffer)

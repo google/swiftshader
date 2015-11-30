@@ -127,9 +127,9 @@ namespace sw
 		locked = 0;
 	}
 
-	void FrameBufferX11::blit(void *source, const Rect *sourceRect, const Rect *destRect, Format format)
+	void FrameBufferX11::blit(void *source, const Rect *sourceRect, const Rect *destRect, Format sourceFormat, size_t sourceStride)
 	{
-		copy(source, format);
+		copy(source, sourceFormat, sourceStride);
 
 		if(!mit_shm)
 		{
