@@ -3774,12 +3774,7 @@ GL_APICALL void GL_APIENTRY glInvalidateFramebuffer(GLenum target, GLsizei numAt
 	TRACE("(GLenum target = 0x%X, GLsizei numAttachments = %d, const GLenum *attachments = %p)",
 	      target, numAttachments, attachments);
 
-	if(numAttachments < 0)
-	{
-		return error(GL_INVALID_VALUE);
-	}
-
-	UNIMPLEMENTED();
+	glInvalidateSubFramebuffer(target, numAttachments, attachments, 0, 0, std::numeric_limits<GLsizei>::max(), std::numeric_limits<GLsizei>::max());
 }
 
 GL_APICALL void GL_APIENTRY glInvalidateSubFramebuffer(GLenum target, GLsizei numAttachments, const GLenum *attachments, GLint x, GLint y, GLsizei width, GLsizei height)
@@ -3787,12 +3782,66 @@ GL_APICALL void GL_APIENTRY glInvalidateSubFramebuffer(GLenum target, GLsizei nu
 	TRACE("(GLenum target = 0x%X, GLsizei numAttachments = %d, const GLenum *attachments = %p, GLint x = %d, GLint y = %d, GLsizei width = %d, GLsizei height = %d)",
 	      target, numAttachments, attachments, x, y, width, height);
 
-	if(numAttachments < 0 || width < 0 || height < 0)
-	{
-		return error(GL_INVALID_VALUE);
-	}
+	es2::Context *context = es2::getContext();
 
-	UNIMPLEMENTED();
+	if(context)
+	{
+		if(numAttachments < 0 || width < 0 || height < 0)
+		{
+			return error(GL_INVALID_VALUE);
+		}
+
+		es2::Framebuffer *framebuffer = nullptr;
+		switch(target)
+		{
+		case GL_DRAW_FRAMEBUFFER:
+		case GL_FRAMEBUFFER:
+			framebuffer = context->getDrawFramebuffer();
+		case GL_READ_FRAMEBUFFER:
+			framebuffer = context->getReadFramebuffer();
+			break;
+		default:
+			return error(GL_INVALID_ENUM);
+		}
+
+		if(framebuffer)
+		{
+			for(int i = 0; i < numAttachments; i++)
+			{
+				switch(attachments[i])
+				{
+				case GL_COLOR:
+				case GL_DEPTH:
+				case GL_STENCIL:
+					if(!framebuffer->isDefaultFramebuffer())
+					{
+						return error(GL_INVALID_ENUM);
+					}
+					break;
+				case GL_DEPTH_ATTACHMENT:
+				case GL_STENCIL_ATTACHMENT:
+				case GL_DEPTH_STENCIL_ATTACHMENT:
+					break;
+				default:
+					if(attachments[i] >= GL_COLOR_ATTACHMENT0 &&
+					   attachments[i] <= GL_COLOR_ATTACHMENT15)
+					{
+						if(attachments[i] - GL_COLOR_ATTACHMENT0 >= MAX_DRAW_BUFFERS)
+						{
+							return error(GL_INVALID_OPERATION);
+						}
+					}
+					else
+					{
+						return error(GL_INVALID_ENUM);
+					}
+					break;
+				}
+			}
+		}
+
+		// UNIMPLEMENTED();   // It is valid for this function to be treated as a no-op
+	}
 }
 
 GL_APICALL void GL_APIENTRY glTexStorage2D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height)

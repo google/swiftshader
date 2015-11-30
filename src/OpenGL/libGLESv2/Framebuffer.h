@@ -65,11 +65,13 @@ public:
 
     bool hasStencil();
 
-	virtual GLenum completeness();
+	GLenum completeness();
 	GLenum completeness(int &width, int &height, int &samples);
 
 	GLenum getImplementationColorReadFormat();
 	GLenum getImplementationColorReadType();
+
+	virtual bool isDefaultFramebuffer() const { return false; }
 
 protected:
     GLenum mColorbufferType[MAX_COLOR_ATTACHMENTS];
@@ -89,6 +91,8 @@ class DefaultFramebuffer : public Framebuffer
 {
 public:
     DefaultFramebuffer(Colorbuffer *colorbuffer, DepthStencilbuffer *depthStencil);
+
+	bool isDefaultFramebuffer() const override { return true; }
 };
 
 }
