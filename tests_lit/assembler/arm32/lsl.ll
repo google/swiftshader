@@ -20,60 +20,40 @@
 ; RUN: %p2i --filetype=iasm -i %s --target=arm32 --assemble --disassemble \
 ; RUN:   --args -O2 | FileCheck %s --check-prefix=DIS
 
-define internal i32 @_Z8testUdivhh(i32 %a, i32 %b) {
-
-; ASM-LABEL:_Z8testUdivhh:
-; DIS-LABEL:00000000 <_Z8testUdivhh>:
-; IASM-LABEL:_Z8testUdivhh:
+define internal i32 @ShlAmt(i32 %a) {
+; ASM-LABEL:ShlAmt:
+; DIS-LABEL:00000000 <ShlAmt>:
+; IASM-LABEL:ShlAmt:
 
 entry:
+; ASM-NEXT:.LShlAmt$entry:
+; IASM-NEXT:.LShlAmt$entry:
 
-; ASM-NEXT:.L_Z8testUdivhh$entry:
-; ASM-NEXT:     push    {lr}
-; DIS-NEXT:   0:        e52de004
-; IASM-NEXT:.L_Z8testUdivhh$entry:
-; IASM-NEXT:    .byte 0x4
-; IASM-NEXT:    .byte 0xe0
-; IASM-NEXT:    .byte 0x2d
-; IASM-NEXT:    .byte 0xe5
+  %shl = shl i32 %a, 23
 
-  %b.arg_trunc = trunc i32 %b to i8
-  %a.arg_trunc = trunc i32 %a to i8
-  %div3 = udiv i8 %a.arg_trunc, %b.arg_trunc
-
-; ASM-NEXT:     sub     sp, sp, #12
-; DIS-NEXT:   4:        e24dd00c
-; IASM-NEXT:    .byte 0xc
-; IASM-NEXT:    .byte 0xd0
-; IASM-NEXT:    .byte 0x4d
-; IASM-NEXT:    .byte 0xe2
-
-; ASM-NEXT:     lsls    r2, r1, #24
-; DIS-NEXT:   8:        e1b02c01
-; IASM-NEXT:    .byte 0x1
-; IASM-NEXT:    .byte 0x2c
-; IASM-NEXT:    .byte 0xb0
+; ASM-NEXT:     lsl     r0, r0, #23
+; DIS-NEXT:   0:        e1a00b80
+; IASM-NEXT:    .byte 0x80
+; IASM-NEXT:    .byte 0xb
+; IASM-NEXT:    .byte 0xa0
 ; IASM-NEXT:    .byte 0xe1
 
-  %div3.ret_ext = zext i8 %div3 to i32
-  ret i32 %div3.ret_ext
+  ret i32 %shl
 }
 
-define internal i32 @_Z7testShljj(i32 %a, i32 %b) {
-
-; ASM-LABEL:_Z7testShljj:
-; DIS-LABEL:00000030 <_Z7testShljj>:
-; IASM-LABEL:_Z7testShljj:
+define internal i32 @ShlReg(i32 %a, i32 %b) {
+; ASM-LABEL:ShlReg:
+; DIS-LABEL:00000010 <ShlReg>:
+; IASM-LABEL:ShlReg:
 
 entry:
-
-; ASM-NEXT:.L_Z7testShljj$entry:
-; IASM-NEXT:.L_Z7testShljj$entry:
+; ASM-NEXT:.LShlReg$entry:
+; IASM-NEXT:.LShlReg$entry:
 
   %shl = shl i32 %a, %b
 
 ; ASM-NEXT:     lsl     r0, r0, r1
-; DIS-NEXT:  30:        e1a00110
+; DIS-NEXT:  10:        e1a00110
 ; IASM-NEXT:    .byte 0x10
 ; IASM-NEXT:    .byte 0x1
 ; IASM-NEXT:    .byte 0xa0

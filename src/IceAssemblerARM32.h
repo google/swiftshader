@@ -109,7 +109,7 @@ public:
 
   MoveRelocatableFixup *createMoveFixup(bool IsMovW, const Constant *Value);
 
-  BlRelocatableFixup *createBlFixup(const ConstantRelocatable *Target);
+  BlRelocatableFixup *createBlFixup(const ConstantRelocatable *BlTarget);
 
   void alignFunction() override {
     const SizeT Align = 1 << getBundleAlignLog2Bytes();

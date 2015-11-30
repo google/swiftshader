@@ -1,4 +1,4 @@
-; Show that we know how to translate add.
+; Show that we know how to translate blx.
 
 ; NOTE: We use -O2 to get rid of memory stores.
 

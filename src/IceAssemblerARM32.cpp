@@ -367,17 +367,18 @@ size_t BlRelocatableFixup::emit(GlobalContext *Ctx,
     return InstARM32::InstSize;
   Ostream &Str = Ctx->getStrEmit();
   IValueT Inst = Asm.load<IValueT>(position());
-  Str << "\tbl\t" << symbol(Ctx) << "\t@ .word "
+  Str << "\t"
+      << "bl\t" << symbol(Ctx) << "\t@ .word "
       << llvm::format_hex_no_prefix(Inst, 8) << "\n";
   return InstARM32::InstSize;
 }
 
 BlRelocatableFixup *
-AssemblerARM32::createBlFixup(const ConstantRelocatable *Target) {
+AssemblerARM32::createBlFixup(const ConstantRelocatable *BlTarget) {
   BlRelocatableFixup *F =
       new (allocate<BlRelocatableFixup>()) BlRelocatableFixup();
   F->set_kind(llvm::ELF::R_ARM_CALL);
-  F->set_value(Target);
+  F->set_value(BlTarget);
   Buffer.installFixup(F);
   return F;
 }
@@ -464,7 +465,7 @@ void AssemblerARM32::emitType01(CondARM32::Cond Cond, IValueT Type,
   case NoChecks:
     break;
   case RdIsPcAndSetFlags:
-    if (((Rd == RegARM32::Encoded_Reg_pc) && SetFlags))
+    if ((Rd == RegARM32::Encoded_Reg_pc) && SetFlags)
       // Conditions of rule violated.
       return setNeedsTextFixup();
     break;
@@ -778,8 +779,8 @@ void AssemblerARM32::blx(const Operand *Target) {
     return setNeedsTextFixup();
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   constexpr CondARM32::Cond Cond = CondARM32::AL;
-  int32_t Encoding = (static_cast<int32_t>(Cond) << kConditionShift) | B24 |
-                     B21 | (0xfff << 8) | B5 | B4 | (Rm << kRmShift);
+  int32_t Encoding = (encodeCondition(Cond) << kConditionShift) | B24 | B21 |
+                     (0xfff << 8) | B5 | B4 | (Rm << kRmShift);
   emitInst(Encoding);
 }
 

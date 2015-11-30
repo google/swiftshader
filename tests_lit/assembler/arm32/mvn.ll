@@ -18,14 +18,14 @@
 ; RUN: %p2i --filetype=iasm -i %s --target=arm32 --assemble --disassemble \
 ; RUN:   --args -Om1 | FileCheck %s --check-prefix=DIS
 
-define internal void @mvmEx(i32 %a, i32 %b) {
-; ASM-LABEL:mvmEx:
-; DIS-LABEL:00000000 <mvmEx>:
-; IASM-LABEL:mvmEx:
+define internal void @mvnEx(i32 %a, i32 %b) {
+; ASM-LABEL:mvnEx:
+; DIS-LABEL:00000000 <mvnEx>:
+; IASM-LABEL:mvnEx:
 
 entry:
-; ASM-NEXT:.LmvmEx$entry:
-; IASM-NEXT:.LmvmEx$entry:
+; ASM-NEXT:.LmvnEx$entry:
+; IASM-NEXT:.LmvnEx$entry:
 
 ; ASM-NEXT:     sub     sp, sp, #24
 ; DIS-NEXT:   0:        e24dd018
