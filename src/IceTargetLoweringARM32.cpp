@@ -265,6 +265,313 @@ uint32_t TargetARM32::getCallStackArgumentsSizeBytes(const InstCall *Call) {
   return applyStackAlignment(OutArgsSizeBytes);
 }
 
+void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
+  constexpr bool NoTailCall = false;
+  constexpr bool IsTargetHelperCall = true;
+
+  switch (Instr->getKind()) {
+  default:
+    return;
+  case Inst::Arithmetic: {
+    Variable *Dest = Instr->getDest();
+    const Type DestTy = Dest->getType();
+    const InstArithmetic::OpKind Op =
+        llvm::cast<InstArithmetic>(Instr)->getOp();
+    switch (DestTy) {
+    default:
+      return;
+    case IceType_i64: {
+      // Technically, ARM has its own aeabi routines, but we can use the
+      // non-aeabi routine as well. LLVM uses __aeabi_ldivmod for div, but uses
+      // the more standard __moddi3 for rem.
+      Operand *TargetHelper = nullptr;
+      switch (Op) {
+      default:
+        return;
+      case InstArithmetic::Udiv:
+        TargetHelper = Ctx->getConstantExternSym(H_udiv_i64);
+        break;
+      case InstArithmetic::Sdiv:
+        TargetHelper = Ctx->getConstantExternSym(H_sdiv_i64);
+        break;
+      case InstArithmetic::Urem:
+        TargetHelper = Ctx->getConstantExternSym(H_urem_i64);
+        break;
+      case InstArithmetic::Srem:
+        TargetHelper = Ctx->getConstantExternSym(H_srem_i64);
+        break;
+      }
+      assert(TargetHelper != nullptr);
+      ARM32HelpersPreamble[TargetHelper] = &TargetARM32::preambleDivRem;
+      constexpr SizeT MaxArgs = 2;
+      auto *Call = InstCall::create(Func, MaxArgs, Dest, TargetHelper,
+                                    NoTailCall, IsTargetHelperCall);
+      Call->addArg(Instr->getSrc(0));
+      Call->addArg(Instr->getSrc(1));
+      Context.insert(Call);
+      Instr->setDeleted();
+      return;
+    }
+    case IceType_i32:
+    case IceType_i16:
+    case IceType_i8: {
+      const bool HasHWDiv = hasCPUFeature(TargetARM32Features::HWDivArm);
+      InstCast::OpKind CastKind;
+      Operand *TargetHelper;
+      switch (Op) {
+      default:
+        return;
+      case InstArithmetic::Udiv:
+        TargetHelper =
+            HasHWDiv ? nullptr : Ctx->getConstantExternSym(H_udiv_i32);
+        CastKind = InstCast::Zext;
+        break;
+      case InstArithmetic::Sdiv:
+        TargetHelper =
+            HasHWDiv ? nullptr : Ctx->getConstantExternSym(H_sdiv_i32);
+        CastKind = InstCast::Sext;
+        break;
+      case InstArithmetic::Urem:
+        TargetHelper =
+            HasHWDiv ? nullptr : Ctx->getConstantExternSym(H_urem_i32);
+        CastKind = InstCast::Zext;
+        break;
+      case InstArithmetic::Srem:
+        TargetHelper =
+            HasHWDiv ? nullptr : Ctx->getConstantExternSym(H_srem_i32);
+        CastKind = InstCast::Sext;
+        break;
+      }
+      if (TargetHelper == nullptr) {
+        // TargetHelper should only ever be nullptr when the processor does not
+        // have a hardware divider. If any other helpers are ever introduced,
+        // the following assert will have to be modified.
+        assert(HasHWDiv);
+        return;
+      }
+      Operand *Src0 = Instr->getSrc(0);
+      Operand *Src1 = Instr->getSrc(1);
+      if (DestTy != IceType_i32) {
+        // Src0 and Src1 have to be zero-, or signed-extended to i32. For Src0,
+        // we just insert a InstCast right before the call to the helper.
+        Variable *Src0_32 = Func->makeVariable(IceType_i32);
+        Context.insert(InstCast::create(Func, CastKind, Src0_32, Src0));
+        Src0 = Src0_32;
+
+        // For extending Src1, we will just insert an InstCast if Src1 is not a
+        // Constant. If it is, then we extend it here, and not during program
+        // runtime. This allows preambleDivRem to optimize-out the div-by-0
+        // check.
+        if (auto *C = llvm::dyn_cast<ConstantInteger32>(Src1)) {
+          const int32_t ShAmt = (DestTy == IceType_i16) ? 16 : 24;
+          int32_t NewC = C->getValue();
+          if (CastKind == InstCast::Zext) {
+            NewC &= ~(0x80000000l >> ShAmt);
+          } else {
+            NewC = (NewC << ShAmt) >> ShAmt;
+          }
+          Src1 = Ctx->getConstantInt32(NewC);
+        } else {
+          Variable *Src1_32 = Func->makeVariable(IceType_i32);
+          Context.insert(InstCast::create(Func, CastKind, Src1_32, Src1));
+          Src1 = Src1_32;
+        }
+      }
+      assert(TargetHelper != nullptr);
+      ARM32HelpersPreamble[TargetHelper] = &TargetARM32::preambleDivRem;
+      constexpr SizeT MaxArgs = 2;
+      auto *Call = InstCall::create(Func, MaxArgs, Dest, TargetHelper,
+                                    NoTailCall, IsTargetHelperCall);
+      assert(Src0->getType() == IceType_i32);
+      Call->addArg(Src0);
+      assert(Src1->getType() == IceType_i32);
+      Call->addArg(Src1);
+      Context.insert(Call);
+      Instr->setDeleted();
+      return;
+    }
+    case IceType_f64:
+    case IceType_f32: {
+      if (Op != InstArithmetic::Frem) {
+        return;
+      }
+      constexpr SizeT MaxArgs = 2;
+      Operand *TargetHelper = Ctx->getConstantExternSym(
+          DestTy == IceType_f32 ? H_frem_f32 : H_frem_f64);
+      auto *Call = InstCall::create(Func, MaxArgs, Dest, TargetHelper,
+                                    NoTailCall, IsTargetHelperCall);
+      Call->addArg(Instr->getSrc(0));
+      Call->addArg(Instr->getSrc(1));
+      Context.insert(Call);
+      Instr->setDeleted();
+      return;
+    }
+    }
+    llvm::report_fatal_error("Control flow should never have reached here.");
+  }
+  case Inst::Cast: {
+    Variable *Dest = Instr->getDest();
+    Operand *Src0 = Instr->getSrc(0);
+    const Type DestTy = Dest->getType();
+    const InstCast::OpKind CastKind =
+        llvm::cast<InstCast>(Instr)->getCastKind();
+    switch (CastKind) {
+    default:
+      return;
+    case InstCast::Fptosi:
+    case InstCast::Fptoui: {
+      if (DestTy != IceType_i64) {
+        return;
+      }
+      const bool DestIsSigned = CastKind == InstCast::Fptosi;
+      const bool Src0IsF32 = isFloat32Asserting32Or64(Src0->getType());
+      Operand *TargetHelper = Ctx->getConstantExternSym(
+          Src0IsF32 ? (DestIsSigned ? H_fptosi_f32_i64 : H_fptoui_f32_i64)
+                    : (DestIsSigned ? H_fptosi_f64_i64 : H_fptoui_f64_i64));
+      static constexpr SizeT MaxArgs = 1;
+      auto *Call = InstCall::create(Func, MaxArgs, Dest, TargetHelper,
+                                    NoTailCall, IsTargetHelperCall);
+      Call->addArg(Src0);
+      Context.insert(Call);
+      Instr->setDeleted();
+      return;
+    }
+    case InstCast::Sitofp:
+    case InstCast::Uitofp: {
+      if (Src0->getType() != IceType_i64) {
+        return;
+      }
+      const bool SourceIsSigned = CastKind == InstCast::Sitofp;
+      const bool DestIsF32 = isFloat32Asserting32Or64(Dest->getType());
+      Operand *TargetHelper = Ctx->getConstantExternSym(
+          DestIsF32 ? (SourceIsSigned ? H_sitofp_i64_f32 : H_uitofp_i64_f32)
+                    : (SourceIsSigned ? H_sitofp_i64_f64 : H_uitofp_i64_f64));
+      static constexpr SizeT MaxArgs = 1;
+      auto *Call = InstCall::create(Func, MaxArgs, Dest, TargetHelper,
+                                    NoTailCall, IsTargetHelperCall);
+      Call->addArg(Src0);
+      Context.insert(Call);
+      Instr->setDeleted();
+      return;
+    }
+    }
+    llvm::report_fatal_error("Control flow should never have reached here.");
+  }
+  case Inst::IntrinsicCall: {
+    Variable *Dest = Instr->getDest();
+    auto *IntrinsicCall = llvm::cast<InstIntrinsicCall>(Instr);
+    Intrinsics::IntrinsicID ID = IntrinsicCall->getIntrinsicInfo().ID;
+    switch (ID) {
+    default:
+      return;
+    case Intrinsics::Ctpop: {
+      Operand *Src0 = IntrinsicCall->getArg(0);
+      Operand *TargetHelper = Ctx->getConstantExternSym(
+          isInt32Asserting32Or64(Src0->getType()) ? H_call_ctpop_i32
+                                                  : H_call_ctpop_i64);
+      static constexpr SizeT MaxArgs = 1;
+      auto *Call = InstCall::create(Func, MaxArgs, Dest, TargetHelper,
+                                    NoTailCall, IsTargetHelperCall);
+      Call->addArg(Src0);
+      Context.insert(Call);
+      Instr->setDeleted();
+      if (Src0->getType() == IceType_i64) {
+        ARM32HelpersPostamble[TargetHelper] = &TargetARM32::postambleCtpop64;
+      }
+      return;
+    }
+    case Intrinsics::Longjmp: {
+      static constexpr SizeT MaxArgs = 2;
+      static constexpr Variable *NoDest = nullptr;
+      Operand *TargetHelper = Ctx->getConstantExternSym(H_call_longjmp);
+      auto *Call = InstCall::create(Func, MaxArgs, NoDest, TargetHelper,
+                                    NoTailCall, IsTargetHelperCall);
+      Call->addArg(IntrinsicCall->getArg(0));
+      Call->addArg(IntrinsicCall->getArg(1));
+      Context.insert(Call);
+      Instr->setDeleted();
+      return;
+    }
+    case Intrinsics::Memcpy: {
+      // In the future, we could potentially emit an inline memcpy/memset, etc.
+      // for intrinsic calls w/ a known length.
+      static constexpr SizeT MaxArgs = 3;
+      static constexpr Variable *NoDest = nullptr;
+      Operand *TargetHelper = Ctx->getConstantExternSym(H_call_memcpy);
+      auto *Call = InstCall::create(Func, MaxArgs, NoDest, TargetHelper,
+                                    NoTailCall, IsTargetHelperCall);
+      Call->addArg(IntrinsicCall->getArg(0));
+      Call->addArg(IntrinsicCall->getArg(1));
+      Call->addArg(IntrinsicCall->getArg(2));
+      Context.insert(Call);
+      Instr->setDeleted();
+      return;
+    }
+    case Intrinsics::Memmove: {
+      static constexpr SizeT MaxArgs = 3;
+      static constexpr Variable *NoDest = nullptr;
+      Operand *TargetHelper = Ctx->getConstantExternSym(H_call_memmove);
+      auto *Call = InstCall::create(Func, MaxArgs, NoDest, TargetHelper,
+                                    NoTailCall, IsTargetHelperCall);
+      Call->addArg(IntrinsicCall->getArg(0));
+      Call->addArg(IntrinsicCall->getArg(1));
+      Call->addArg(IntrinsicCall->getArg(2));
+      Context.insert(Call);
+      Instr->setDeleted();
+      return;
+    }
+    case Intrinsics::Memset: {
+      // The value operand needs to be extended to a stack slot size because the
+      // PNaCl ABI requires arguments to be at least 32 bits wide.
+      Operand *ValOp = IntrinsicCall->getArg(1);
+      assert(ValOp->getType() == IceType_i8);
+      Variable *ValExt = Func->makeVariable(stackSlotType());
+      Context.insert(InstCast::create(Func, InstCast::Zext, ValExt, ValOp));
+
+      // Technically, ARM has its own __aeabi_memset, but we can use plain
+      // memset too. The value and size argument need to be flipped if we ever
+      // decide to use __aeabi_memset.
+      static constexpr SizeT MaxArgs = 3;
+      static constexpr Variable *NoDest = nullptr;
+      Operand *TargetHelper = Ctx->getConstantExternSym(H_call_memset);
+      auto *Call = InstCall::create(Func, MaxArgs, NoDest, TargetHelper,
+                                    NoTailCall, IsTargetHelperCall);
+      Call->addArg(IntrinsicCall->getArg(0));
+      Call->addArg(ValExt);
+      Call->addArg(IntrinsicCall->getArg(2));
+      Context.insert(Call);
+      Instr->setDeleted();
+      return;
+    }
+    case Intrinsics::NaClReadTP: {
+      if (Ctx->getFlags().getUseSandboxing()) {
+        UnimplementedError(Func->getContext()->getFlags());
+        return;
+      }
+      static constexpr SizeT MaxArgs = 0;
+      Operand *TargetHelper = Ctx->getConstantExternSym(H_call_read_tp);
+      auto *Call = InstCall::create(Func, MaxArgs, Dest, TargetHelper,
+                                    NoTailCall, IsTargetHelperCall);
+      Context.insert(Call);
+      Instr->setDeleted();
+      return;
+    }
+    case Intrinsics::Setjmp: {
+      static constexpr SizeT MaxArgs = 1;
+      Operand *TargetHelper = Ctx->getConstantExternSym(H_call_setjmp);
+      auto *Call = InstCall::create(Func, MaxArgs, Dest, TargetHelper,
+                                    NoTailCall, IsTargetHelperCall);
+      Call->addArg(IntrinsicCall->getArg(0));
+      Context.insert(Call);
+      Instr->setDeleted();
+      return;
+    }
+    }
+    llvm::report_fatal_error("Control flow should never have reached here.");
+  }
+  }
+}
+
 void TargetARM32::findMaxStackOutArgsSize() {
   // MinNeededOutArgsBytes should be updated if the Target ever creates a
   // high-level InstCall that requires more stack bytes.
@@ -1206,7 +1513,7 @@ Operand *TargetARM32::loOperand(Operand *Operand) {
                                      Mem->getAddrMode());
     }
   }
-  llvm_unreachable("Unsupported operand type");
+  llvm::report_fatal_error("Unsupported operand type");
   return nullptr;
 }
 
@@ -1266,7 +1573,7 @@ Operand *TargetARM32::hiOperand(Operand *Operand) {
                                      Mem->getAddrMode());
     }
   }
-  llvm_unreachable("Unsupported operand type");
+  llvm::report_fatal_error("Unsupported operand type");
   return nullptr;
 }
 
@@ -1413,8 +1720,7 @@ void TargetARM32::div0Check(Type Ty, Operand *SrcLo, Operand *SrcHi) {
 
 void TargetARM32::lowerIDivRem(Variable *Dest, Variable *T, Variable *Src0R,
                                Operand *Src1, ExtInstr ExtFunc,
-                               DivInstr DivFunc, const char *DivHelperName,
-                               bool IsRemainder) {
+                               DivInstr DivFunc, bool IsRemainder) {
   div0Check(Dest->getType(), Src1, nullptr);
   Variable *Src1R = legalizeToReg(Src1);
   Variable *T0R = Src0R;
@@ -1434,13 +1740,8 @@ void TargetARM32::lowerIDivRem(Variable *Dest, Variable *T, Variable *Src0R,
     }
     _mov(Dest, T);
   } else {
-    constexpr SizeT MaxSrcs = 2;
-    InstCall *Call = makeHelperCall(DivHelperName, Dest, MaxSrcs);
-    Call->addArg(T0R);
-    Call->addArg(T1R);
-    lowerCall(Call);
+    llvm::report_fatal_error("div should have already been turned into a call");
   }
-  return;
 }
 
 TargetARM32::SafeBoolChain
@@ -1642,6 +1943,37 @@ public:
 };
 } // end of anonymous namespace
 
+void TargetARM32::preambleDivRem(const InstCall *Instr) {
+  Operand *Src1 = Instr->getArg(1);
+
+  switch (Src1->getType()) {
+  default:
+    llvm::report_fatal_error("Invalid type for idiv.");
+  case IceType_i64: {
+    if (auto *C = llvm::dyn_cast<ConstantInteger64>(Src1)) {
+      if (C->getValue() == 0) {
+        _trap();
+        return;
+      }
+    }
+    div0Check(IceType_i64, loOperand(Src1), hiOperand(Src1));
+    return;
+  }
+  case IceType_i32: {
+    // Src0 and Src1 have already been appropriately extended to an i32, so we
+    // don't check for i8 and i16.
+    if (auto *C = llvm::dyn_cast<ConstantInteger32>(Src1)) {
+      if (C->getValue() == 0) {
+        _trap();
+        return;
+      }
+    }
+    div0Check(IceType_i32, Src1, nullptr);
+    return;
+  }
+  }
+}
+
 void TargetARM32::lowerInt64Arithmetic(InstArithmetic::OpKind Op,
                                        Variable *Dest, Operand *Src0,
                                        Operand *Src1) {
@@ -1649,62 +1981,6 @@ void TargetARM32::lowerInt64Arithmetic(InstArithmetic::OpKind Op,
   Int32Operands SrcsHi(hiOperand(Src0), hiOperand(Src1));
   assert(SrcsLo.swappedOperands() == SrcsHi.swappedOperands());
   assert(SrcsLo.hasConstOperand() == SrcsHi.hasConstOperand());
-
-  // These helper-call-involved instructions are lowered in this separate
-  // switch. This is because we would otherwise assume that we need to
-  // legalize Src0 to Src0RLo and Src0Hi. However, those go unused with
-  // helper calls, and such unused/redundant instructions will fail liveness
-  // analysis under -Om1 setting.
-  switch (Op) {
-  default:
-    break;
-  case InstArithmetic::Udiv:
-  case InstArithmetic::Sdiv:
-  case InstArithmetic::Urem:
-  case InstArithmetic::Srem: {
-    // Check for divide by 0 (ARM normally doesn't trap, but we want it to
-    // trap for NaCl). Src1Lo and Src1Hi may have already been legalized to a
-    // register, which will hide a constant source operand. Instead, check
-    // the not-yet-legalized Src1 to optimize-out a divide by 0 check.
-    if (!SrcsLo.swappedOperands() && SrcsLo.hasConstOperand()) {
-      if (SrcsLo.getConstantValue() == 0 && SrcsHi.getConstantValue() == 0) {
-        _trap();
-        return;
-      }
-    } else {
-      Operand *Src1Lo = SrcsLo.unswappedSrc1R(this);
-      Operand *Src1Hi = SrcsHi.unswappedSrc1R(this);
-      div0Check(IceType_i64, Src1Lo, Src1Hi);
-    }
-    // Technically, ARM has its own aeabi routines, but we can use the
-    // non-aeabi routine as well. LLVM uses __aeabi_ldivmod for div, but uses
-    // the more standard __moddi3 for rem.
-    const char *HelperName = "";
-    switch (Op) {
-    default:
-      llvm::report_fatal_error("Should have only matched div ops.");
-      break;
-    case InstArithmetic::Udiv:
-      HelperName = H_udiv_i64;
-      break;
-    case InstArithmetic::Sdiv:
-      HelperName = H_sdiv_i64;
-      break;
-    case InstArithmetic::Urem:
-      HelperName = H_urem_i64;
-      break;
-    case InstArithmetic::Srem:
-      HelperName = H_srem_i64;
-      break;
-    }
-    constexpr SizeT MaxSrcs = 2;
-    InstCall *Call = makeHelperCall(HelperName, Dest, MaxSrcs);
-    Call->addArg(Src0);
-    Call->addArg(Src1);
-    lowerCall(Call);
-    return;
-  }
-  }
 
   Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
   Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
@@ -2230,40 +2506,35 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Inst) {
     constexpr bool NotRemainder = false;
     Variable *Src0R = legalizeToReg(Src0);
     lowerIDivRem(Dest, T, Src0R, Src1, &TargetARM32::_uxt, &TargetARM32::_udiv,
-                 H_udiv_i32, NotRemainder);
+                 NotRemainder);
     return;
   }
   case InstArithmetic::Sdiv: {
     constexpr bool NotRemainder = false;
     Variable *Src0R = legalizeToReg(Src0);
     lowerIDivRem(Dest, T, Src0R, Src1, &TargetARM32::_sxt, &TargetARM32::_sdiv,
-                 H_sdiv_i32, NotRemainder);
+                 NotRemainder);
     return;
   }
   case InstArithmetic::Urem: {
     constexpr bool IsRemainder = true;
     Variable *Src0R = legalizeToReg(Src0);
     lowerIDivRem(Dest, T, Src0R, Src1, &TargetARM32::_uxt, &TargetARM32::_udiv,
-                 H_urem_i32, IsRemainder);
+                 IsRemainder);
     return;
   }
   case InstArithmetic::Srem: {
     constexpr bool IsRemainder = true;
     Variable *Src0R = legalizeToReg(Src0);
     lowerIDivRem(Dest, T, Src0R, Src1, &TargetARM32::_sxt, &TargetARM32::_sdiv,
-                 H_srem_i32, IsRemainder);
+                 IsRemainder);
     return;
   }
   case InstArithmetic::Frem: {
-    constexpr SizeT MaxSrcs = 2;
-    Variable *Src0R = legalizeToReg(Src0);
-    Type Ty = DestTy;
-    InstCall *Call = makeHelperCall(
-        isFloat32Asserting32Or64(Ty) ? H_frem_f32 : H_frem_f64, Dest, MaxSrcs);
-    Call->addArg(Src0R);
-    Call->addArg(Src1);
-    lowerCall(Call);
-    return;
+    if (!isScalarFloatingType(DestTy)) {
+      llvm::report_fatal_error("Unexpected type when lowering frem.");
+    }
+    llvm::report_fatal_error("Frem should have already been lowered.");
   }
   case InstArithmetic::Fadd: {
     Variable *Src0R = legalizeToReg(Src0);
@@ -2574,7 +2845,7 @@ TargetARM32::ShortCircuitCondAndLabel TargetARM32::lowerInt1ForBranch(
 
   switch (Producer->getKind()) {
   default:
-    llvm_unreachable("Unexpected producer.");
+    llvm::report_fatal_error("Unexpected producer.");
   case Inst::Icmp: {
     return ShortCircuitCondAndLabel(
         lowerIcmpCond(llvm::cast<InstIcmp>(Producer)));
@@ -2596,7 +2867,7 @@ TargetARM32::ShortCircuitCondAndLabel TargetARM32::lowerInt1ForBranch(
     const auto *ArithProducer = llvm::cast<InstArithmetic>(Producer);
     switch (ArithProducer->getOp()) {
     default:
-      llvm_unreachable("Unhandled Arithmetic Producer.");
+      llvm::report_fatal_error("Unhandled Arithmetic Producer.");
     case InstArithmetic::And: {
       if (!(ShortCircuitable & SC_And)) {
         NewShortCircuitLabel = InstARM32Label::create(Func, this);
@@ -2682,6 +2953,13 @@ void TargetARM32::lowerBr(const InstBr *Instr) {
 }
 
 void TargetARM32::lowerCall(const InstCall *Instr) {
+  Operand *CallTarget = Instr->getCallTarget();
+  if (Instr->isTargetHelperCall()) {
+    auto TargetHelperPreamble = ARM32HelpersPreamble.find(CallTarget);
+    if (TargetHelperPreamble != ARM32HelpersPreamble.end()) {
+      (this->*TargetHelperPreamble->second)(Instr);
+    }
+  }
   MaybeLeafFunc = false;
   NeedsStackAlignment = true;
 
@@ -2771,7 +3049,7 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
   if (Dest) {
     switch (Dest->getType()) {
     case IceType_NUM:
-      llvm_unreachable("Invalid Call dest type");
+      llvm::report_fatal_error("Invalid Call dest type");
       break;
     case IceType_void:
       break;
@@ -2804,7 +3082,6 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
       break;
     }
   }
-  Operand *CallTarget = Instr->getCallTarget();
   // TODO(jvoung): Handle sandboxing. const bool NeedSandboxing =
   // Ctx->getFlags().getUseSandboxing();
 
@@ -2841,25 +3118,31 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
     Context.insert(FakeUse);
   }
 
-  if (!Dest)
-    return;
-
-  // Assign the result of the call to Dest.
-  if (ReturnReg) {
-    if (ReturnRegHi) {
-      auto *Dest64On32 = llvm::cast<Variable64On32>(Dest);
-      Variable *DestLo = Dest64On32->getLo();
-      Variable *DestHi = Dest64On32->getHi();
-      _mov(DestLo, ReturnReg);
-      _mov(DestHi, ReturnRegHi);
-    } else {
-      if (isFloatingType(Dest->getType()) || isVectorType(Dest->getType())) {
-        _mov(Dest, ReturnReg);
+  if (Dest != nullptr) {
+    // Assign the result of the call to Dest.
+    if (ReturnReg != nullptr) {
+      if (ReturnRegHi) {
+        auto *Dest64On32 = llvm::cast<Variable64On32>(Dest);
+        Variable *DestLo = Dest64On32->getLo();
+        Variable *DestHi = Dest64On32->getHi();
+        _mov(DestLo, ReturnReg);
+        _mov(DestHi, ReturnRegHi);
       } else {
-        assert(isIntegerType(Dest->getType()) &&
-               typeWidthInBytes(Dest->getType()) <= 4);
-        _mov(Dest, ReturnReg);
+        if (isFloatingType(Dest->getType()) || isVectorType(Dest->getType())) {
+          _mov(Dest, ReturnReg);
+        } else {
+          assert(isIntegerType(Dest->getType()) &&
+                 typeWidthInBytes(Dest->getType()) <= 4);
+          _mov(Dest, ReturnReg);
+        }
       }
+    }
+  }
+
+  if (Instr->isTargetHelperCall()) {
+    auto TargetHelpersPostamble = ARM32HelpersPostamble.find(CallTarget);
+    if (TargetHelpersPostamble != ARM32HelpersPostamble.end()) {
+      (this->*TargetHelpersPostamble->second)(Instr);
     }
   }
 }
@@ -3036,14 +3319,7 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
     const bool DestIsSigned = CastKind == InstCast::Fptosi;
     const bool Src0IsF32 = isFloat32Asserting32Or64(Src0->getType());
     if (llvm::isa<Variable64On32>(Dest)) {
-      const char *HelperName =
-          Src0IsF32 ? (DestIsSigned ? H_fptosi_f32_i64 : H_fptoui_f32_i64)
-                    : (DestIsSigned ? H_fptosi_f64_i64 : H_fptoui_f64_i64);
-      static constexpr SizeT MaxSrcs = 1;
-      InstCall *Call = makeHelperCall(HelperName, Dest, MaxSrcs);
-      Call->addArg(Src0);
-      lowerCall(Call);
-      break;
+      llvm::report_fatal_error("fp-to-i64 should have been pre-lowered.");
     }
     // fptosi:
     //     t1.fp = vcvt src0.fp
@@ -3081,14 +3357,7 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
     const bool SourceIsSigned = CastKind == InstCast::Sitofp;
     const bool DestIsF32 = isFloat32Asserting32Or64(Dest->getType());
     if (Src0->getType() == IceType_i64) {
-      const char *HelperName =
-          DestIsF32 ? (SourceIsSigned ? H_sitofp_i64_f32 : H_uitofp_i64_f32)
-                    : (SourceIsSigned ? H_sitofp_i64_f64 : H_uitofp_i64_f64);
-      static constexpr SizeT MaxSrcs = 1;
-      InstCall *Call = makeHelperCall(HelperName, Dest, MaxSrcs);
-      Call->addArg(Src0);
-      lowerCall(Call);
-      break;
+      llvm::report_fatal_error("i64-to-fp should have been pre-lowered.");
     }
     // sitofp:
     //     t1.i32 = sext src.int    @ sign-extends src0 if needed.
@@ -3774,6 +4043,23 @@ void TargetARM32::lowerAtomicRMW(Variable *Dest, uint32_t Operation,
   }
 }
 
+void TargetARM32::postambleCtpop64(const InstCall *Instr) {
+  Operand *Arg0 = Instr->getArg(0);
+  if (isInt32Asserting32Or64(Arg0->getType())) {
+    return;
+  }
+  // The popcount helpers always return 32-bit values, while the intrinsic's
+  // signature matches some 64-bit platform's native instructions and expect to
+  // fill a 64-bit reg. Thus, clear the upper bits of the dest just in case the
+  // user doesn't do that in the IR or doesn't toss the bits via truncate.
+  Variable *DestHi = llvm::cast<Variable>(hiOperand(Instr->getDest()));
+  Variable *T = makeReg(IceType_i32);
+  Operand *_0 =
+      legalize(Ctx->getConstantZero(IceType_i32), Legal_Reg | Legal_Flex);
+  _mov(T, _0);
+  _mov(DestHi, T);
+}
+
 void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   Variable *Dest = Instr->getDest();
   Type DestTy = (Dest != nullptr) ? Dest->getType() : IceType_void;
@@ -4090,26 +4376,7 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     return;
   }
   case Intrinsics::Ctpop: {
-    Operand *Val = Instr->getArg(0);
-    InstCall *Call = makeHelperCall(isInt32Asserting32Or64(Val->getType())
-                                        ? H_call_ctpop_i32
-                                        : H_call_ctpop_i64,
-                                    Dest, 1);
-    Call->addArg(Val);
-    lowerCall(Call);
-    // The popcount helpers always return 32-bit values, while the intrinsic's
-    // signature matches some 64-bit platform's native instructions and expect
-    // to fill a 64-bit reg. Thus, clear the upper bits of the dest just in
-    // case the user doesn't do that in the IR or doesn't toss the bits via
-    // truncate.
-    if (Val->getType() == IceType_i64) {
-      Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
-      Constant *Zero = Ctx->getConstantZero(IceType_i32);
-      Variable *T = makeReg(Zero->getType());
-      _mov(T, Zero);
-      _mov(DestHi, T);
-    }
-    return;
+    llvm::report_fatal_error("Ctpop should have been prelowered.");
   }
   case Intrinsics::Ctlz: {
     // The "is zero undef" parameter is ignored and we always return a
@@ -4166,61 +4433,22 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     return;
   }
   case Intrinsics::Longjmp: {
-    InstCall *Call = makeHelperCall(H_call_longjmp, nullptr, 2);
-    Call->addArg(Instr->getArg(0));
-    Call->addArg(Instr->getArg(1));
-    lowerCall(Call);
-    return;
+    llvm::report_fatal_error("longjmp should have been prelowered.");
   }
   case Intrinsics::Memcpy: {
-    // In the future, we could potentially emit an inline memcpy/memset, etc.
-    // for intrinsic calls w/ a known length.
-    InstCall *Call = makeHelperCall(H_call_memcpy, nullptr, 3);
-    Call->addArg(Instr->getArg(0));
-    Call->addArg(Instr->getArg(1));
-    Call->addArg(Instr->getArg(2));
-    lowerCall(Call);
-    return;
+    llvm::report_fatal_error("memcpy should have been prelowered.");
   }
   case Intrinsics::Memmove: {
-    InstCall *Call = makeHelperCall(H_call_memmove, nullptr, 3);
-    Call->addArg(Instr->getArg(0));
-    Call->addArg(Instr->getArg(1));
-    Call->addArg(Instr->getArg(2));
-    lowerCall(Call);
-    return;
+    llvm::report_fatal_error("memmove should have been prelowered.");
   }
   case Intrinsics::Memset: {
-    // The value operand needs to be extended to a stack slot size because the
-    // PNaCl ABI requires arguments to be at least 32 bits wide.
-    Operand *ValOp = Instr->getArg(1);
-    assert(ValOp->getType() == IceType_i8);
-    Variable *ValExt = Func->makeVariable(stackSlotType());
-    lowerCast(InstCast::create(Func, InstCast::Zext, ValExt, ValOp));
-    // Technically, ARM has their own __aeabi_memset, but we can use plain
-    // memset too. The value and size argument need to be flipped if we ever
-    // decide to use __aeabi_memset.
-    InstCall *Call = makeHelperCall(H_call_memset, nullptr, 3);
-    Call->addArg(Instr->getArg(0));
-    Call->addArg(ValExt);
-    Call->addArg(Instr->getArg(2));
-    lowerCall(Call);
-    return;
+    llvm::report_fatal_error("memmove should have been prelowered.");
   }
   case Intrinsics::NaClReadTP: {
-    if (Ctx->getFlags().getUseSandboxing()) {
-      UnimplementedError(Func->getContext()->getFlags());
-    } else {
-      InstCall *Call = makeHelperCall(H_call_read_tp, Dest, 0);
-      lowerCall(Call);
-    }
-    return;
+    llvm::report_fatal_error("nacl-read-tp should have been prelowered.");
   }
   case Intrinsics::Setjmp: {
-    InstCall *Call = makeHelperCall(H_call_setjmp, Dest, 1);
-    Call->addArg(Instr->getArg(0));
-    lowerCall(Call);
-    return;
+    llvm::report_fatal_error("setjmp should have been prelowered.");
   }
   case Intrinsics::Sqrt: {
     Variable *Src = legalizeToReg(Instr->getArg(0));
@@ -5116,7 +5344,7 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
     }
     return From;
   }
-  llvm_unreachable("Unhandled operand kind in legalize()");
+  llvm::report_fatal_error("Unhandled operand kind in legalize()");
 
   return From;
 }
@@ -5300,7 +5528,7 @@ void TargetARM32::lowerInt1ForSelect(Variable *Dest, Operand *Boolean,
   if (const Inst *Producer = BoolComputations.getProducerOf(Boolean)) {
     switch (Producer->getKind()) {
     default:
-      llvm_unreachable("Unexpected producer.");
+      llvm::report_fatal_error("Unexpected producer.");
     case Inst::Icmp: {
       Cond = lowerIcmpCond(llvm::cast<InstIcmp>(Producer));
       FlagsWereSet = true;
@@ -5384,7 +5612,7 @@ TargetARM32::SafeBoolChain TargetARM32::lowerInt1(Variable *Dest,
   if (const Inst *Producer = BoolComputations.getProducerOf(Boolean)) {
     switch (Producer->getKind()) {
     default:
-      llvm_unreachable("Unexpected producer.");
+      llvm::report_fatal_error("Unexpected producer.");
     case Inst::Icmp: {
       _mov(T, _0);
       CondWhenTrue Cond = lowerIcmpCond(llvm::cast<InstIcmp>(Producer));

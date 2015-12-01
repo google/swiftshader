@@ -237,7 +237,7 @@ protected:
   void lowerUnreachable(const InstUnreachable *Inst) override;
   void prelowerPhis() override;
   uint32_t getCallStackArgumentsSizeBytes(const InstCall *Instr) override;
-  void genTargetHelperCallFor(Inst *Instr) override { (void)Instr; }
+  void genTargetHelperCallFor(Inst *Instr) override;
   void doAddressOptLoad() override;
   void doAddressOptStore() override;
   void randomlyInsertNop(float Probability,
@@ -268,8 +268,7 @@ protected:
   using DivInstr = void (TargetARM32::*)(Variable *, Variable *, Variable *,
                                          CondARM32::Cond);
   void lowerIDivRem(Variable *Dest, Variable *T, Variable *Src0R, Operand *Src1,
-                    ExtInstr ExtFunc, DivInstr DivFunc,
-                    const char *DivHelperName, bool IsRemainder);
+                    ExtInstr ExtFunc, DivInstr DivFunc, bool IsRemainder);
 
   void lowerCLZ(Variable *Dest, Variable *ValLo, Variable *ValHi);
 
@@ -916,6 +915,13 @@ private:
 
   OperandARM32Mem *formAddressingMode(Type Ty, Cfg *Func, const Inst *LdSt,
                                       Operand *Base);
+
+  void postambleCtpop64(const InstCall *Instr);
+  void preambleDivRem(const InstCall *Instr);
+  std::unordered_map<Operand *, void (TargetARM32::*)(const InstCall *Inst)>
+      ARM32HelpersPreamble;
+  std::unordered_map<Operand *, void (TargetARM32::*)(const InstCall *Inst)>
+      ARM32HelpersPostamble;
 
   class BoolComputationTracker {
   public:
