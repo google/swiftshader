@@ -15,8 +15,6 @@
 
 #include "PNaClTranslator.h"
 
-#include "IceAPInt.h"
-#include "IceAPFloat.h"
 #include "IceCfg.h"
 #include "IceCfgNode.h"
 #include "IceClFlags.h"
@@ -166,6 +164,52 @@ void ExtendedType::dump(Ice::Ostream &Stream) const {
     break;
   }
 }
+
+// Models integer literals as a sequence of bits. Used to read integer values
+// from bitcode files. Based on llvm::APInt.
+class BitcodeInt {
+  BitcodeInt() = delete;
+  BitcodeInt(const BitcodeInt &) = delete;
+  BitcodeInt &operator=(const BitcodeInt &) = delete;
+
+public:
+  BitcodeInt(Ice::SizeT Bits, uint64_t Val) : BitWidth(Bits), Val(Val) {
+    assert(Bits && "bitwidth too small");
+    assert(Bits <= BITS_PER_WORD && "bitwidth too big");
+    clearUnusedBits();
+  }
+
+  int64_t getSExtValue() const {
+    return static_cast<int64_t>(Val << (BITS_PER_WORD - BitWidth)) >>
+           (BITS_PER_WORD - BitWidth);
+  }
+
+  template <typename IntType, typename FpType>
+  inline FpType convertToFp() const {
+    static_assert(sizeof(IntType) == sizeof(FpType),
+                  "IntType and FpType should be the same width");
+    assert(BitWidth == sizeof(IntType) * CHAR_BIT);
+    auto V = static_cast<IntType>(Val);
+    return reinterpret_cast<FpType &>(V);
+  }
+
+private:
+  /// Bits in the (internal) value.
+  static const Ice::SizeT BITS_PER_WORD = sizeof(uint64_t) * CHAR_BIT;
+
+  uint32_t BitWidth; /// The number of bits in the floating point number.
+  uint64_t Val;      /// The (64-bit) equivalent integer value.
+
+  /// Clear unused high order bits.
+  void clearUnusedBits() {
+    // If all bits are used, we want to leave the value alone.
+    if (BitWidth == BITS_PER_WORD)
+      return;
+
+    // Mask out the high bits.
+    Val &= ~static_cast<uint64_t>(0) >> (BITS_PER_WORD - BitWidth);
+  }
+};
 
 class BlockParserBaseClass;
 
@@ -2534,7 +2578,7 @@ void FunctionParser::ProcessRecord() {
         Error(StrBuf.str());
         return;
       }
-      Ice::APInt Value(BitWidth,
+      BitcodeInt Value(BitWidth,
                        NaClDecodeSignRotatedValue(Values[ValCaseIndex + 2]));
       if (isIRGenDisabled)
         continue;
@@ -2924,7 +2968,7 @@ void ConstantsParser::ProcessRecord() {
       return;
     }
     if (Ice::isScalarIntegerType(NextConstantType)) {
-      Ice::APInt Value(Ice::getScalarIntBitWidth(NextConstantType),
+      BitcodeInt Value(Ice::getScalarIntBitWidth(NextConstantType),
                        NaClDecodeSignRotatedValue(Values[0]));
       if (Ice::Constant *C = getContext()->getConstantInt(
               NextConstantType, Value.getSExtValue())) {
@@ -2951,14 +2995,14 @@ void ConstantsParser::ProcessRecord() {
     }
     switch (NextConstantType) {
     case Ice::IceType_f32: {
-      const Ice::APInt IntValue(32, static_cast<uint32_t>(Values[0]));
-      float FpValue = Ice::convertAPIntToFp<int32_t, float>(IntValue);
+      const BitcodeInt Value(32, static_cast<uint32_t>(Values[0]));
+      float FpValue = Value.convertToFp<int32_t, float>();
       FuncParser->setNextConstantID(getContext()->getConstantFloat(FpValue));
       return;
     }
     case Ice::IceType_f64: {
-      const Ice::APInt IntValue(64, Values[0]);
-      double FpValue = Ice::convertAPIntToFp<uint64_t, double>(IntValue);
+      const BitcodeInt Value(64, Values[0]);
+      double FpValue = Value.convertToFp<uint64_t, double>();
       FuncParser->setNextConstantID(getContext()->getConstantDouble(FpValue));
       return;
     }
