@@ -368,7 +368,7 @@ namespace sw
 
 	bool Sampler::hasVolumeTexture() const
 	{
-		return textureType == TEXTURE_3D;
+		return textureType == TEXTURE_3D || textureType == TEXTURE_2D_ARRAY;
 	}
 
 	const Texture &Sampler::getTextureData()

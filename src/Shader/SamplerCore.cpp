@@ -63,7 +63,7 @@ namespace sw
 		#endif
 
 		bool cubeTexture = state.textureType == TEXTURE_CUBE;
-		bool volumeTexture = state.textureType == TEXTURE_3D;
+		bool volumeTexture = state.textureType == TEXTURE_3D || state.textureType == TEXTURE_2D_ARRAY;
 
 		Float4 uuuu = u;
 		Float4 vvvv = v;
@@ -302,7 +302,7 @@ namespace sw
 		#endif
 
 		bool cubeTexture = state.textureType == TEXTURE_CUBE;
-		bool volumeTexture = state.textureType == TEXTURE_3D;
+		bool volumeTexture = state.textureType == TEXTURE_3D || state.textureType == TEXTURE_2D_ARRAY;
 
 		if(state.textureType == TEXTURE_NULL)
 		{
@@ -590,7 +590,7 @@ namespace sw
 
 	void SamplerCore::sampleFilter(Pointer<Byte> &texture, Vector4s &c, Float4 &u, Float4 &v, Float4 &w, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, Int face[4], bool lodProvided)
 	{
-		bool volumeTexture = state.textureType == TEXTURE_3D;
+		bool volumeTexture = state.textureType == TEXTURE_3D || state.textureType == TEXTURE_2D_ARRAY;
 
 		sampleAniso(texture, c, u, v, w, lod, anisotropy, uDelta, vDelta, face, false, lodProvided);
 
@@ -744,7 +744,7 @@ namespace sw
 
 	void SamplerCore::sampleQuad(Pointer<Byte> &texture, Vector4s &c, Float4 &u, Float4 &v, Float4 &w, Float &lod, Int face[4], bool secondLOD)
 	{
-		if(state.textureType != TEXTURE_3D)
+		if(state.textureType != TEXTURE_3D && state.textureType != TEXTURE_2D_ARRAY)
 		{
 			sampleQuad2D(texture, c, u, v, lod, face, secondLOD);
 		}
@@ -977,7 +977,7 @@ namespace sw
 
 		address(uuuu, u_, state.addressingModeU);
 		address(vvvv, v_, state.addressingModeV);
-		address(wwww, w_, state.addressingModeW);
+		addressW(wwww, w_, mipmap);
 
 		if(state.textureFilter <= FILTER_POINT)
 		{
@@ -1098,7 +1098,7 @@ namespace sw
 
 	void SamplerCore::sampleFloatFilter(Pointer<Byte> &texture, Vector4f &c, Float4 &u, Float4 &v, Float4 &w, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, Int face[4], bool lodProvided)
 	{
-		bool volumeTexture = state.textureType == TEXTURE_3D;
+		bool volumeTexture = state.textureType == TEXTURE_3D || state.textureType == TEXTURE_2D_ARRAY;
 
 		sampleFloatAniso(texture, c, u, v, w, lod, anisotropy, uDelta, vDelta, face, false, lodProvided);
 
@@ -1229,7 +1229,7 @@ namespace sw
 
 	void SamplerCore::sampleFloat(Pointer<Byte> &texture, Vector4f &c, Float4 &u, Float4 &v, Float4 &w, Float &lod, Int face[4], bool secondLOD)
 	{
-		if(state.textureType != TEXTURE_3D)
+		if(state.textureType != TEXTURE_3D && state.textureType != TEXTURE_2D_ARRAY)
 		{
 			sampleFloat2D(texture, c, u, v, w, lod, face, secondLOD);
 		}
@@ -1323,7 +1323,7 @@ namespace sw
 
 		address(uuuu, u, state.addressingModeU);
 		address(vvvv, v, state.addressingModeV);
-		address(wwww, w, state.addressingModeW);
+		addressW(wwww, w, mipmap);
 
 		if(state.textureFilter <= FILTER_POINT)
 		{
@@ -1625,22 +1625,6 @@ namespace sw
 			uuu2 = As<Short4>(UnpackHigh(uuu2, vvvv));
 			uuuu = As<Short4>(As<UInt2>(uuuu) >> *Pointer<Long1>(mipmap + OFFSET(Mipmap,uFrac)));
 			uuu2 = As<Short4>(As<UInt2>(uuu2) >> *Pointer<Long1>(mipmap + OFFSET(Mipmap,uFrac)));
-
-			if(state.textureType == TEXTURE_3D)
-			{
-				wwww = As<UShort4>(wwww) >> *Pointer<Long1>(mipmap + OFFSET(Mipmap,wFrac));
-				Short4 www2 = wwww;
-				wwww = As<Short4>(UnpackLow(wwww, wwww));
-				www2 = As<Short4>(UnpackHigh(www2, www2));
-				wwww = As<Short4>(As<UInt2>(wwww) >> 16);
-				www2 = As<Short4>(As<UInt2>(www2) >> 16);
-				wwww = As<Short4>(As<Int2>(wwww) << *Pointer<Long1>(mipmap + OFFSET(Mipmap,uInt)));
-				www2 = As<Short4>(As<Int2>(www2) << *Pointer<Long1>(mipmap + OFFSET(Mipmap,uInt)));
-				wwww = As<Short4>(As<Int2>(wwww) << *Pointer<Long1>(mipmap + OFFSET(Mipmap,vInt)));   // FIXME: Combine uInt and vInt shift
-				www2 = As<Short4>(As<Int2>(www2) << *Pointer<Long1>(mipmap + OFFSET(Mipmap,vInt)));
-				uuuu = As<Short4>(As<Int2>(uuuu) + As<Int2>(wwww));
-				uuu2 = As<Short4>(As<Int2>(uuu2) + As<Int2>(www2));
-			}
 		}
 		else
 		{
@@ -1651,18 +1635,21 @@ namespace sw
 			uuu2 = As<Short4>(UnpackHigh(uuu2, vvvv));
 			uuuu = As<Short4>(MulAdd(uuuu, *Pointer<Short4>(mipmap + OFFSET(Mipmap,onePitchP))));
 			uuu2 = As<Short4>(MulAdd(uuu2, *Pointer<Short4>(mipmap + OFFSET(Mipmap,onePitchP))));
+		}
 
-			if(state.textureType == TEXTURE_3D)
+		if((state.textureType == TEXTURE_3D) || (state.textureType == TEXTURE_2D_ARRAY))
+		{
+			if(state.textureType != TEXTURE_2D_ARRAY)
 			{
-				wwww = MulHigh(As<UShort4>(wwww), *Pointer<UShort4>(mipmap + OFFSET(Mipmap,depth)));
-				Short4 www2 = wwww;
-				wwww = As<Short4>(UnpackLow(wwww, Short4(0x0000, 0x0000, 0x0000, 0x0000)));
-				www2 = As<Short4>(UnpackHigh(www2, Short4(0x0000, 0x0000, 0x0000, 0x0000)));
-				wwww = As<Short4>(MulAdd(wwww, *Pointer<Short4>(mipmap + OFFSET(Mipmap,sliceP))));
-				www2 = As<Short4>(MulAdd(www2, *Pointer<Short4>(mipmap + OFFSET(Mipmap,sliceP))));
-				uuuu = As<Short4>(As<Int2>(uuuu) + As<Int2>(wwww));
-				uuu2 = As<Short4>(As<Int2>(uuu2) + As<Int2>(www2));
+				wwww = MulHigh(As<UShort4>(wwww), *Pointer<UShort4>(mipmap + OFFSET(Mipmap, depth)));
 			}
+			Short4 www2 = wwww;
+			wwww = As<Short4>(UnpackLow(wwww, Short4(0x0000, 0x0000, 0x0000, 0x0000)));
+			www2 = As<Short4>(UnpackHigh(www2, Short4(0x0000, 0x0000, 0x0000, 0x0000)));
+			wwww = As<Short4>(MulAdd(wwww, *Pointer<Short4>(mipmap + OFFSET(Mipmap,sliceP))));
+			www2 = As<Short4>(MulAdd(www2, *Pointer<Short4>(mipmap + OFFSET(Mipmap,sliceP))));
+			uuuu = As<Short4>(As<Int2>(uuuu) + As<Int2>(wwww));
+			uuu2 = As<Short4>(As<Int2>(uuu2) + As<Int2>(www2));
 		}
 
 		index[0] = Extract(As<Int2>(uuuu), 0);
@@ -2068,6 +2055,18 @@ namespace sw
 		else   // Wrap (or border)
 		{
 			uuuu = Short4(Int4(uw * Float4(1 << 16)));
+		}
+	}
+
+	void SamplerCore::addressW(Short4 &wwww, Float4 &w, Pointer<Byte>& mipmap)
+	{
+		if(state.textureType == TEXTURE_2D_ARRAY)
+		{
+			wwww = Min(Max(Short4(RoundInt(w)), Short4(0)), *Pointer<Short4>(mipmap + OFFSET(Mipmap, depth)) - Short4(1));
+		}
+		else
+		{
+			address(wwww, w, state.addressingModeW);
 		}
 	}
 

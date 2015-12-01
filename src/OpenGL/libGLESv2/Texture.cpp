@@ -1725,8 +1725,10 @@ bool Texture3D::isMipmapComplete() const
 	GLsizei width = image[mBaseLevel]->getWidth();
 	GLsizei height = image[mBaseLevel]->getHeight();
 	GLsizei depth = image[mBaseLevel]->getDepth();
+	bool isTexture2DArray = getTarget() == GL_TEXTURE_2D_ARRAY;
 
-	int q = std::min(log2(std::max(std::max(width, height), depth)), mMaxLevel);
+	int q = isTexture2DArray ? std::min(log2(std::max(width, height)), mMaxLevel) :
+	        std::min(log2(std::max(std::max(width, height), depth)), mMaxLevel);
 
 	for(int level = mBaseLevel + 1; level <= q; level++)
 	{
@@ -1755,7 +1757,8 @@ bool Texture3D::isMipmapComplete() const
 			return false;
 		}
 
-		if(image[level]->getDepth() != std::max(1, depth >> level))
+		int levelDepth = isTexture2DArray ? depth : std::max(1, depth >> level);
+		if(image[level]->getDepth() != levelDepth)
 		{
 			return false;
 		}
@@ -1867,7 +1870,39 @@ GLenum Texture2DArray::getTarget() const
 
 void Texture2DArray::generateMipmaps()
 {
-	UNIMPLEMENTED();
+	int depth = image[0] ? image[0]->getDepth() : 0;
+	if(!depth)
+	{
+		return;   // FIXME: error?
+	}
+
+	unsigned int q = log2(std::max(image[0]->getWidth(), image[0]->getHeight()));
+
+	for(unsigned int i = 1; i <= q; i++)
+	{
+		if(image[i])
+		{
+			image[i]->unbind(this);
+		}
+
+		GLsizei w = std::max(image[0]->getWidth() >> i, 1);
+		GLsizei h = std::max(image[0]->getHeight() >> i, 1);
+		image[i] = new egl::Image(this, w, h, depth, image[0]->getFormat(), image[0]->getType());
+
+		if(!image[i])
+		{
+			return error(GL_OUT_OF_MEMORY);
+		}
+
+		GLsizei srcw = image[i - 1]->getWidth();
+		GLsizei srch = image[i - 1]->getHeight();
+		for(int z = 0; z < depth; ++z)
+		{
+			sw::SliceRect srcRect(0, 0, srcw, srch, z);
+			sw::SliceRect dstRect(0, 0, w, h, z);
+			getDevice()->stretchRect(image[i - 1], &srcRect, image[i], &dstRect, true);
+		}
+	}
 }
 
 TextureExternal::TextureExternal(GLuint name) : Texture2D(name)
