@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5bf40b02_5e3755ba",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1159,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-12-01T20:25:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5bf40b02_5e83d5e8",
+      "range": {
+        "startLine": 1158,
+        "startChar": 9,
+        "endLine": 1159,
+        "endChar": 30
+      },
+      "revId": "f052b191f95669fb8494e4a52b892d17966b5bfa",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5bf40b02_be7019ea",
         "filename": "src/Shader/VertexProgram.hpp",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2015-12-01T05:23:47Z",
       "side": 1,
       "message": "I don\u0027t think these can exist for vertex shaders, since there\u0027s no gradient to be computed.",
+      "range": {
+        "startLine": 86,
+        "startChar": 2,
+        "endLine": 87,
+        "endChar": 118
+      },
+      "revId": "f052b191f95669fb8494e4a52b892d17966b5bfa",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5bf40b02_fe5e21f5",
+        "filename": "src/Shader/VertexProgram.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-12-01T20:25:38Z",
+      "side": 1,
+      "message": "Yep, these exist for the vertex shader.",
+      "parentUuid": "5bf40b02_be7019ea",
       "range": {
         "startLine": 86,
         "startChar": 2,
