@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1bc533ce_0483d6bb",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3591,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-12-02T15:06:30Z",
+      "side": 0,
+      "message": "I\u0027d like to keep a comment that says that stencil buffers are assumed to use quad layout.",
+      "range": {
+        "startLine": 3591,
+        "startChar": 9,
+        "endLine": 3591,
+        "endChar": 23
+      },
+      "revId": "77dfab49323d39ec681165a837dba5a48d2c2d11",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
