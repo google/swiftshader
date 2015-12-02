@@ -1266,6 +1266,8 @@ void Context::bindDrawFramebuffer(GLuint framebuffer)
 
 void Context::bindRenderbuffer(GLuint renderbuffer)
 {
+	mResourceManager->checkRenderbufferAllocation(renderbuffer);
+
     mState.renderbuffer = getRenderbuffer(renderbuffer);
 }
 
