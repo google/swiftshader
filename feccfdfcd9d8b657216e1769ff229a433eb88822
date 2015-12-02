@@ -22,6 +22,30 @@
       "revId": "feccfdfcd9d8b657216e1769ff229a433eb88822",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1bc533ce_a44e4214",
+        "filename": "src/Main/Config.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-12-02T21:34:10Z",
+      "side": 1,
+      "message": "Change removed.",
+      "parentUuid": "1bc533ce_c4637ebf",
+      "range": {
+        "startLine": 79,
+        "startChar": 25,
+        "endLine": 79,
+        "endChar": 27
+      },
+      "revId": "feccfdfcd9d8b657216e1769ff229a433eb88822",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
