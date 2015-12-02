@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1bc533ce_846986a3",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 422,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-12-02T18:42:34Z",
+      "side": 1,
+      "message": "nit: Could use a small comment like \"Normalized integer formats\"",
+      "range": {
+        "startLine": 422,
+        "startChar": 6,
+        "endLine": 422,
+        "endChar": 14
+      },
+      "revId": "f4390b4b3bcf327adcd9def5b9b10f3f94758039",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
