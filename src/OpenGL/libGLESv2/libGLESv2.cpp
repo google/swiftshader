@@ -2134,6 +2134,18 @@ void FramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum renderbuff
 			return error(GL_INVALID_OPERATION);
 		}
 
+		// [OpenGL ES 2.0.25] Section 4.4.3 page 112
+		// [OpenGL ES 3.0.2] Section 4.4.2 page 201
+		// 'renderbuffer' must be either zero or the name of an existing renderbuffer object of
+		// type 'renderbuffertarget', otherwise an INVALID_OPERATION error is generated.
+		if(renderbuffer != 0)
+		{
+			if(!context->getRenderbuffer(renderbuffer))
+			{
+				return error(GL_INVALID_OPERATION);
+			}
+		}
+
 		egl::GLint clientVersion = context->getClientVersion();
 
 		switch(attachment)
@@ -2228,11 +2240,6 @@ void FramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GL
 				return error(GL_INVALID_OPERATION);
 			}
 
-			if(tex->isCompressed(textarget, level))
-			{
-				return error(GL_INVALID_OPERATION);
-			}
-
 			switch(textarget)
 			{
 			case GL_TEXTURE_2D:
@@ -2254,6 +2261,11 @@ void FramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GL
 				break;
 			default:
 				return error(GL_INVALID_ENUM);
+			}
+
+			if(tex->isCompressed(textarget, level))
+			{
+				return error(GL_INVALID_OPERATION);
 			}
 
 			if((level != 0) && (context->getClientVersion() < 3))
@@ -2909,7 +2921,7 @@ void GetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenu
 					}
 					// fall through
 				default:
-					return error(GL_INVALID_OPERATION);
+					return error(GL_INVALID_ENUM);
 				}
 			}
 
@@ -2930,7 +2942,7 @@ void GetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenu
 					}
 					// fall through
 				default:
-					return error(GL_INVALID_OPERATION);
+					return error(GL_INVALID_ENUM);
 				}
 			}
 
@@ -3053,118 +3065,155 @@ void GetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenu
 		}
 		else UNREACHABLE(attachmentType);
 
-		switch(pname)
+		if(attachmentObjectType != GL_NONE)
 		{
-		case GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE:
-			*params = attachmentObjectType;
-			break;
-		case GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME:
-			if(attachmentObjectType == GL_RENDERBUFFER || attachmentObjectType == GL_TEXTURE)
+			switch(pname)
 			{
-				*params = attachmentHandle;
-			}
-			else
-			{
-				return error(GL_INVALID_ENUM);
-			}
-			break;
-		case GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL:
-			if(attachmentObjectType == GL_TEXTURE)
-			{
-				*params = 0; // FramebufferTexture2D will not allow level to be set to anything else in GL ES 2.0
-			}
-			else
-			{
-				return error(GL_INVALID_ENUM);
-			}
-			break;
-		case GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE:
-			if(attachmentObjectType == GL_TEXTURE)
-			{
-				if(es2::IsCubemapTextureTarget(attachmentType))
+			case GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE:
+				*params = attachmentObjectType;
+				break;
+			case GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME:
+				if(attachmentObjectType == GL_RENDERBUFFER || attachmentObjectType == GL_TEXTURE)
 				{
-					*params = attachmentType;
+					*params = attachmentHandle;
 				}
 				else
 				{
-					*params = 0;
+					return error(GL_INVALID_ENUM);
 				}
-			}
-			else
-			{
+				break;
+			case GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL:
+				if(attachmentObjectType == GL_TEXTURE)
+				{
+					*params = 0; // FramebufferTexture2D will not allow level to be set to anything else in GL ES 2.0
+				}
+				else
+				{
+					return error(GL_INVALID_ENUM);
+				}
+				break;
+			case GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE:
+				if(attachmentObjectType == GL_TEXTURE)
+				{
+					if(es2::IsCubemapTextureTarget(attachmentType))
+					{
+						*params = attachmentType;
+					}
+					else
+					{
+						*params = 0;
+					}
+				}
+				else
+				{
+					return error(GL_INVALID_ENUM);
+				}
+				break;
+			case GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER:
+				if(clientVersion >= 3)
+				{
+					*params = attachmentLayer;
+				}
+				else return error(GL_INVALID_ENUM);
+				break;
+			case GL_FRAMEBUFFER_ATTACHMENT_RED_SIZE:
+				if(clientVersion >= 3)
+				{
+					*params = renderbuffer->getRedSize();
+				}
+				else return error(GL_INVALID_ENUM);
+				break;
+			case GL_FRAMEBUFFER_ATTACHMENT_GREEN_SIZE:
+				if(clientVersion >= 3)
+				{
+					*params = renderbuffer->getGreenSize();
+				}
+				else return error(GL_INVALID_ENUM);
+				break;
+			case GL_FRAMEBUFFER_ATTACHMENT_BLUE_SIZE:
+				if(clientVersion >= 3)
+				{
+					*params = renderbuffer->getBlueSize();
+				}
+				else return error(GL_INVALID_ENUM);
+				break;
+			case GL_FRAMEBUFFER_ATTACHMENT_ALPHA_SIZE:
+				if(clientVersion >= 3)
+				{
+					*params = renderbuffer->getAlphaSize();
+				}
+				else return error(GL_INVALID_ENUM);
+				break;
+			case GL_FRAMEBUFFER_ATTACHMENT_DEPTH_SIZE:
+				if(clientVersion >= 3)
+				{
+					*params = renderbuffer->getDepthSize();
+				}
+				else return error(GL_INVALID_ENUM);
+				break;
+			case GL_FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE:
+				if(clientVersion >= 3)
+				{
+					*params = renderbuffer->getStencilSize();
+				}
+				else return error(GL_INVALID_ENUM);
+				break;
+			case GL_FRAMEBUFFER_ATTACHMENT_COMPONENT_TYPE:
+				if(clientVersion >= 3)
+				{
+					if(attachment == GL_DEPTH_STENCIL_ATTACHMENT)
+					{
+						return error(GL_INVALID_OPERATION);
+					}
+
+					*params = sw2es::GetComponentType(renderbuffer->getInternalFormat(), attachment);
+				}
+				else return error(GL_INVALID_ENUM);
+				break;
+			case GL_FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING:
+				if(clientVersion >= 3)
+				{
+					*params = GL_LINEAR; // FIXME: GL_SRGB will also be possible, when sRGB is added
+				}
+				else return error(GL_INVALID_ENUM);
+				break;
+			default:
 				return error(GL_INVALID_ENUM);
 			}
-			break;
-		case GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER:
-			if(clientVersion >= 3)
+		}
+		else
+		{
+			// ES 2.0.25 spec pg 127 states that if the value of FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE
+			// is NONE, then querying any other pname will generate INVALID_ENUM.
+
+			// ES 3.0.2 spec pg 235 states that if the attachment type is none,
+			// GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME will return zero and be an
+			// INVALID_OPERATION for all other pnames
+
+			switch(pname)
 			{
-				*params = attachmentLayer;
-			}
-			else return error(GL_INVALID_ENUM);
-			break;
-		case GL_FRAMEBUFFER_ATTACHMENT_RED_SIZE:
-			if(clientVersion >= 3)
-			{
-				*params = renderbuffer->getRedSize();
-			}
-			else return error(GL_INVALID_ENUM);
-			break;
-		case GL_FRAMEBUFFER_ATTACHMENT_GREEN_SIZE:
-			if(clientVersion >= 3)
-			{
-				*params = renderbuffer->getGreenSize();
-			}
-			else return error(GL_INVALID_ENUM);
-			break;
-		case GL_FRAMEBUFFER_ATTACHMENT_BLUE_SIZE:
-			if(clientVersion >= 3)
-			{
-				*params = renderbuffer->getBlueSize();
-			}
-			else return error(GL_INVALID_ENUM);
-			break;
-		case GL_FRAMEBUFFER_ATTACHMENT_ALPHA_SIZE:
-			if(clientVersion >= 3)
-			{
-				*params = renderbuffer->getAlphaSize();
-			}
-			else return error(GL_INVALID_ENUM);
-			break;
-		case GL_FRAMEBUFFER_ATTACHMENT_DEPTH_SIZE:
-			if(clientVersion >= 3)
-			{
-				*params = renderbuffer->getDepthSize();
-			}
-			else return error(GL_INVALID_ENUM);
-			break;
-		case GL_FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE:
-			if(clientVersion >= 3)
-			{
-				*params = renderbuffer->getStencilSize();
-			}
-			else return error(GL_INVALID_ENUM);
-			break;
-		case GL_FRAMEBUFFER_ATTACHMENT_COMPONENT_TYPE:
-			if(clientVersion >= 3)
-			{
-				if(attachment == GL_DEPTH_STENCIL_ATTACHMENT)
+			case GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE:
+				*params = GL_NONE;
+				break;
+
+			case GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME:
+				if(clientVersion < 3)
+				{
+					return error(GL_INVALID_ENUM);
+				}
+				*params = 0;
+				break;
+
+			default:
+				if(clientVersion < 3)
+				{
+					return error(GL_INVALID_ENUM);
+				}
+				else
 				{
 					return error(GL_INVALID_OPERATION);
 				}
-
-				*params = sw2es::GetComponentType(renderbuffer->getInternalFormat(), attachment);
 			}
-			else return error(GL_INVALID_ENUM);
-			break;
-		case GL_FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING:
-			if(clientVersion >= 3)
-			{
-				*params = GL_LINEAR; // FIXME: GL_SRGB will also be possible, when sRGB is added
-			}
-			else return error(GL_INVALID_ENUM);
-			break;
-		default:
-			return error(GL_INVALID_ENUM);
 		}
 	}
 }
