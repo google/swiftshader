@@ -24,8 +24,13 @@ COMMON_CFLAGS := \
 	-msse2 \
 	-D__STDC_CONSTANT_MACROS \
 	-D__STDC_LIMIT_MACROS \
-	-std=c++11 \
-	-Xclang -fuse-init-array
+	-std=c++11
+
+ifneq (16,${PLATFORM_SDK_VERSION})
+COMMON_CFLAGS += -Xclang -fuse-init-array
+else
+COMMON_CFLAGS += -D__STDC_INT64__
+endif
 
 COMMON_SRC_FILES := \
 	preprocessor/Diagnostics.cpp \

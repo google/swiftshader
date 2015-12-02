@@ -1,10 +1,36 @@
 #include "FrameBufferAndroid.hpp"
 
 #include <cutils/log.h>
-#include <ui/Fence.h>
 
 namespace sw
 {
+	inline int dequeueBuffer(ANativeWindow* window, ANativeWindowBuffer** buffer)
+	{
+		#if ANDROID_PLATFORM_SDK_VERSION > 16
+			return native_window_dequeue_buffer_and_wait(window, buffer);
+		#else
+			return window->dequeueBuffer(window, buffer);
+		#endif
+	}
+
+	inline int queueBuffer(ANativeWindow* window, ANativeWindowBuffer* buffer, int fenceFd)
+	{
+		#if ANDROID_PLATFORM_SDK_VERSION > 16
+			return window->queueBuffer(window, buffer, fenceFd);
+		#else
+			return window->queueBuffer(window, buffer);
+		#endif
+	}
+
+	inline int cancelBuffer(ANativeWindow* window, ANativeWindowBuffer* buffer, int fenceFd)
+	{
+		#if ANDROID_PLATFORM_SDK_VERSION > 16
+			return window->cancelBuffer(window, buffer, fenceFd);
+		#else
+			return window->cancelBuffer(window, buffer);
+		#endif
+	}
+
     FrameBufferAndroid::FrameBufferAndroid(ANativeWindow* window, int width, int height)
 			: FrameBuffer(width, height, false, false),
 			  nativeWindow(window), buffer(0), gralloc(0)
@@ -22,7 +48,7 @@ namespace sw
         if (buffer)
         {
             // Probably doesn't have to cancel assuming a success queueing earlier
-            nativeWindow->cancelBuffer(nativeWindow, buffer, -1);
+            cancelBuffer(nativeWindow, buffer, -1);
             buffer = 0;
         }
         nativeWindow->common.decRef(&nativeWindow->common);
@@ -33,7 +59,7 @@ namespace sw
         copy(source, sourceFormat, sourceStride);
 		if (buffer)
 		{
-			nativeWindow->queueBuffer(nativeWindow, buffer, -1);
+			queueBuffer(nativeWindow, buffer, -1);
 			if (locked)
 			{
 				locked = 0;
@@ -45,16 +71,8 @@ namespace sw
 
     void* FrameBufferAndroid::lock()
     {
-        int fenceFd = -1;
-        if (nativeWindow->dequeueBuffer(nativeWindow, &buffer, &fenceFd) != android::NO_ERROR)
+        if (dequeueBuffer(nativeWindow, &buffer) != 0)
         {
-            return NULL;
-        }
-
-        android::sp<android::Fence> fence(new android::Fence(fenceFd));
-        if (fence->wait(android::Fence::TIMEOUT_NEVER) != android::NO_ERROR)
-        {
-            nativeWindow->cancelBuffer(nativeWindow, buffer, fenceFd);
             return NULL;
         }
 
@@ -63,8 +81,7 @@ namespace sw
         if (gralloc->lock(
 				gralloc, buffer->handle,
 				GRALLOC_USAGE_SW_READ_OFTEN | GRALLOC_USAGE_SW_WRITE_OFTEN,
-				0, 0, buffer->width, buffer->height, &locked)
-			!= android::NO_ERROR)
+				0, 0, buffer->width, buffer->height, &locked) != 0)
         {
             ALOGE("%s failed to lock buffer %p", __FUNCTION__, buffer);
             return NULL;
@@ -99,7 +116,7 @@ namespace sw
 			return;
 		}
 		locked = 0;
-        if (gralloc->unlock(gralloc, buffer->handle) != android::NO_ERROR)
+        if (gralloc->unlock(gralloc, buffer->handle) != 0)
 		{
 			ALOGE("%s: badness unlock failed", __FUNCTION__);
 		}

@@ -7,8 +7,13 @@ COMMON_CFLAGS := \
 	-DEGL_EGLEXT_PROTOTYPES \
 	-Wno-unused-parameter \
 	-Wno-implicit-exception-spec-mismatch \
-	-Wno-overloaded-virtual \
-	-Xclang -fuse-init-array
+	-Wno-overloaded-virtual
+
+ifneq (16,${PLATFORM_SDK_VERSION})
+COMMON_CFLAGS += -Xclang -fuse-init-array
+else
+COMMON_CFLAGS += -D__STDC_INT64__
+endif
 
 COMMON_SRC_FILES := \
 	Config.cpp \

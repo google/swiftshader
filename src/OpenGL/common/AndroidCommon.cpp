@@ -26,8 +26,6 @@ GLenum GLPixelFormatFromAndroid(int halFormat)
 		return GL_RGB565;
 	case HAL_PIXEL_FORMAT_YV12:
 		return SW_YV12_BT601;
-	case HAL_PIXEL_FORMAT_BLOB:
-	case HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED:
 	default:
 		ALOGE("%s badness unsupported HAL format=%x", __FUNCTION__, halFormat);
 	}
@@ -48,8 +46,6 @@ GLenum GLPixelTypeFromAndroid(int halFormat)
 		return GL_UNSIGNED_SHORT_5_6_5;
 	case HAL_PIXEL_FORMAT_YV12:
 		return GL_UNSIGNED_BYTE;
-	case HAL_PIXEL_FORMAT_BLOB:
-	case HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED:
 	default:
 		ALOGE("%s badness unsupported HAL format=%x", __FUNCTION__, halFormat);
 	}
