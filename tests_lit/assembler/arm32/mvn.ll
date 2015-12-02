@@ -69,7 +69,10 @@ entry:
 ; ASM-NEXT:     strb    r0, [sp, #12]
 ; ASM-NEXT:     # [sp, #12] = def.pseudo 
 ; DIS-NEXT:  14:        e5cd000c
-; IASM-NEXT:    strb    r0, [sp, #12]
+; IASM-NEXT:    .byte 0xc
+; IASM-NEXT:    .byte 0x0
+; IASM-NEXT:    .byte 0xcd
+; IASM-NEXT:    .byte 0xe5
 
   %a.arg_trunc = trunc i32 %a to i1
 
@@ -90,13 +93,19 @@ entry:
 ; ASM-NEXT:     strb    r0, [sp, #8]
 ; ASM-NEXT:     # [sp, #8] = def.pseudo 
 ; DIS-NEXT:  20:        e5cd0008
-; IASM-NEXT:    strb    r0, [sp, #8]
+; IASM-NEXT:    .byte 0x8
+; IASM-NEXT:    .byte 0x0
+; IASM-NEXT:    .byte 0xcd
+; IASM-NEXT:    .byte 0xe5
 
   %conv = zext i1 %a.arg_trunc to i32
 
 ; ASM-NEXT:     ldrb    r0, [sp, #8]
 ; DIS-NEXT:  24:        e5dd0008
-; IASM-NEXT:    ldrb    r0, [sp, #8]
+; IASM-NEXT:    .byte 0x8
+; IASM-NEXT:    .byte 0x0
+; IASM-NEXT:    .byte 0xdd
+; IASM-NEXT:    .byte 0xe5
 
 ; ASM-NEXT:     str     r0, [sp, #4]
 ; ASM-NEXT:     # [sp, #4] = def.pseudo 
@@ -117,7 +126,10 @@ entry:
 
 ; ASM-NEXT:     ldrb    r1, [sp, #12]
 ; DIS-NEXT:  30:        e5dd100c
-; IASM-NEXT:    ldrb    r1, [sp, #12]
+; IASM-NEXT:    .byte 0xc
+; IASM-NEXT:    .byte 0x10
+; IASM-NEXT:    .byte 0xdd
+; IASM-NEXT:    .byte 0xe5
 
 ; ASM-NEXT:     tst     r1, #1
 ; DIS-NEXT:  34:        e3110001

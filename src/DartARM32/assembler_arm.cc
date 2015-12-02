@@ -28,6 +28,8 @@ DECLARE_FLAG(bool, allow_absolute_addresses);
 DEFINE_FLAG(bool, print_stop_message, true, "Print stop message.");
 DECLARE_FLAG(bool, inline_alloc);
 
+#if 0
+// Moved to encodeImmRegOffsetEnc3 in IceAssemblerARM32.cpp
 uint32_t Address::encoding3() const {
   if (kind_ == Immediate) {
     uint32_t offset = encoding_ & kOffset12Mask;
@@ -38,7 +40,7 @@ uint32_t Address::encoding3() const {
   ASSERT(kind_ == IndexRegister);
   return encoding_;
 }
-
+#endif
 
 uint32_t Address::vencoding() const {
   ASSERT(kind_ == Immediate);
@@ -117,8 +119,8 @@ void Assembler::EmitMemOp(Condition cond,
                      ad.encoding();
   Emit(encoding);
 }
-#endif
 
+// Moved to AssemblerARM32::emitMemOpEnc3();
 void Assembler::EmitMemOpAddressMode3(Condition cond,
                                       int32_t mode,
                                       Register rd,
@@ -132,7 +134,6 @@ void Assembler::EmitMemOpAddressMode3(Condition cond,
   Emit(encoding);
 }
 
-#if 0
 // Moved to ARM32::AssemblerARM32::emitMuliMemOp()
 void Assembler::EmitMultiMemOp(Condition cond,
                                BlockAddressMode am,
@@ -191,9 +192,7 @@ void Assembler::EmitShiftRegister(Condition cond,
 void Assembler::and_(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), AND, 0, rn, rd, o);
 }
-#endif
 
-#if 0
 // Moved to ARM32::AssemberARM32::eor()
 void Assembler::eor(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), EOR, 0, rn, rd, o);
@@ -212,7 +211,6 @@ void Assembler::rsb(Register rd, Register rn, Operand o, Condition cond) {
 void Assembler::rsbs(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), RSB, 1, rn, rd, o);
 }
-
 
 #if 0
 // Moved to ARM32::AssemberARM32::add()
@@ -241,7 +239,6 @@ void Assembler::adcs(Register rd, Register rn, Operand o, Condition cond) {
 }
 #endif
 
-
 void Assembler::sbc(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), SBC, 0, rn, rd, o);
 }
@@ -266,7 +263,6 @@ void Assembler::tst(Register rn, Operand o, Condition cond) {
 void Assembler::teq(Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), TEQ, 1, rn, R0, o);
 }
-
 
 #if 0
 // Moved to ARM32::AssemblerARM32::cmp()
@@ -339,7 +335,7 @@ void Assembler::clz(Register rd, Register rm, Condition cond) {
 }
 
 
-#if
+#if 0
 // Moved to ARM32::AssemblerARM32::movw()
 void Assembler::movw(Register rd, uint16_t imm16, Condition cond) {
   ASSERT(cond != kNoCondition);
@@ -358,9 +354,7 @@ void Assembler::movt(Register rd, uint16_t imm16, Condition cond) {
                      static_cast<int32_t>(rd) << kRdShift | (imm16 & 0xfff);
   Emit(encoding);
 }
-#endif
 
-#if 0
 // Moved to ARM32::AssemblerARM32::emitMulOp()
 void Assembler::EmitMulOp(Condition cond, int32_t opcode,
                           Register rd, Register rn,
@@ -2610,7 +2604,6 @@ void Assembler::Lsl(Register rd, Register rm, Register rs, Condition cond) {
   mov(rd, Operand(rm, LSL, rs), cond);
 }
 #endif
-
 
 void Assembler::Lsr(Register rd, Register rm, const Operand& shift_imm,
                     Condition cond) {

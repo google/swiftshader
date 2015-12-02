@@ -191,13 +191,17 @@ enum DecodedResult {
   // p=1 if pre-indexed addressing, u=1 if offset positive, w=1 if writeback to
   // Rn should be used, and iiiiiiiiiiii defines the rotated Imm8 value.
   DecodedAsImmRegOffset,
+  // Value=00000000pu0w0nnnn0000iiii0000jjjj where nnnn=Rn, iiiijjjj=Imm8, p=1
+  // if pre-indexed addressing, u=1 if offset positive, and w=1 if writeback to
+  // Rn.
+  DecodedAsImmRegOffsetEnc3,
   // Value=0000000pu0w00nnnnttttiiiiiss0mmmm where nnnn is the base register Rn,
   // mmmm is the index register Rm, iiiii is the shift amount, ss is the shift
   // kind, p=1 if pre-indexed addressing, u=1 if offset positive, and w=1 if
   // writeback to Rn.
   DecodedAsShiftRotateImm5,
-  // Value=000000000000000000000iiiii0000000 iiii defines the Imm5 value to
-  // shift.
+  // Value=000000000000000000000iiiii0000000 where iiii defines the Imm5 value
+  // to shift.
   DecodedAsShiftImm5,
   // i.e. iiiiiss0mmmm where mmmm is the register to rotate, ss is the shift
   // kind, and iiiii is the shift amount.
@@ -272,9 +276,9 @@ DecodedResult decodeOperand(const Operand *Opnd, IValueT &Value) {
   return CantDecode;
 }
 
-IValueT decodeImmRegOffset(RegARM32::GPRRegister Reg, IOffsetT Offset,
+IValueT encodeImmRegOffset(IValueT Reg, IOffsetT Offset,
                            OperandARM32Mem::AddrMode Mode) {
-  IValueT Value = Mode | (encodeGPRRegister(Reg) << kRnShift);
+  IValueT Value = Mode | (Reg << kRnShift);
   if (Offset < 0) {
     Value = (Value ^ U) | -Offset; // Flip U to adjust sign.
   } else {
@@ -283,10 +287,33 @@ IValueT decodeImmRegOffset(RegARM32::GPRRegister Reg, IOffsetT Offset,
   return Value;
 }
 
+// Encodes immediate register offset using encoding 3.
+IValueT encodeImmRegOffsetEnc3(IValueT Rn, IOffsetT Imm8,
+                               OperandARM32Mem::AddrMode Mode) {
+  IValueT Value = Mode | (Rn << kRnShift);
+  if (Imm8 < 0) {
+    Imm8 = -Imm8;
+    Value = (Value ^ U);
+  }
+  assert(Imm8 < (1 << 8));
+  Value = Value | B22 | ((Imm8 & 0xf0) << 4) | (Imm8 & 0x0f);
+  return Value;
+}
+
+// Defines alternate layouts of instruction operands, should the (common)
+// default pattern not be used.
+enum OpEncoding {
+  // No alternate layout specified.
+  DefaultOpEncoding,
+  // Alternate encoding 3.
+  OpEncoding3
+};
+
 // Decodes memory address Opnd, and encodes that information into Value,
 // based on how ARM represents the address. Returns how the value was encoded.
 DecodedResult decodeAddress(const Operand *Opnd, IValueT &Value,
-                            const AssemblerARM32::TargetInfo &TInfo) {
+                            const AssemblerARM32::TargetInfo &TInfo,
+                            OpEncoding AddressEncoding = DefaultOpEncoding) {
   Value = 0; // Make sure initialized.
   if (const auto *Var = llvm::dyn_cast<Variable>(Opnd)) {
     // Should be a stack variable, with an offset.
@@ -298,8 +325,7 @@ DecodedResult decodeAddress(const Operand *Opnd, IValueT &Value,
     int32_t BaseRegNum = Var->getBaseRegNum();
     if (BaseRegNum == Variable::NoRegister)
       BaseRegNum = TInfo.FrameOrStackReg;
-    Value = decodeImmRegOffset(decodeGPRRegister(BaseRegNum), Offset,
-                               OperandARM32Mem::Offset);
+    Value = encodeImmRegOffset(BaseRegNum, Offset, OperandARM32Mem::Offset);
     return DecodedAsImmRegOffset;
   }
   if (const auto *Mem = llvm::dyn_cast<OperandARM32Mem>(Opnd)) {
@@ -318,9 +344,15 @@ DecodedResult decodeAddress(const Operand *Opnd, IValueT &Value,
     }
     // Decoded as immediate register offset.
     ConstantInteger32 *Offset = Mem->getOffset();
-    Value = decodeImmRegOffset(decodeGPRRegister(Rn), Offset->getValue(),
-                               Mem->getAddrMode());
-    return DecodedAsImmRegOffset;
+    switch (AddressEncoding) {
+    case DefaultOpEncoding:
+      Value = encodeImmRegOffset(Rn, Offset->getValue(), Mem->getAddrMode());
+      return DecodedAsImmRegOffset;
+    case OpEncoding3:
+      Value =
+          encodeImmRegOffsetEnc3(Rn, Offset->getValue(), Mem->getAddrMode());
+      return DecodedAsImmRegOffsetEnc3;
+    }
   }
   return CantDecode;
 }
@@ -607,6 +639,128 @@ void AssemblerARM32::emitMemOp(CondARM32::Cond Cond, IValueT InstType,
   emitInst(Encoding);
 }
 
+void AssemblerARM32::emitMemOp(CondARM32::Cond Cond, bool IsLoad, bool IsByte,
+                               IValueT Rt, const Operand *OpAddress,
+                               const TargetInfo &TInfo) {
+  IValueT Address;
+  switch (decodeAddress(OpAddress, Address, TInfo)) {
+  default:
+    return setNeedsTextFixup();
+  case DecodedAsImmRegOffset: {
+    // XXX{B} (immediate):
+    //   xxx{b}<c> <Rt>, [<Rn>{, #+/-<imm12>}]      ; p=1, w=0
+    //   xxx{b}<c> <Rt>, [<Rn>], #+/-<imm12>        ; p=1, w=1
+    //   xxx{b}<c> <Rt>, [<Rn>, #+/-<imm12>]!       ; p=0, w=1
+    //
+    // cccc010pubwlnnnnttttiiiiiiiiiiii where cccc=Cond, tttt=Rt, nnnn=Rn,
+    // iiiiiiiiiiii=imm12, b=IsByte, pu0w<<21 is a BlockAddr, l=IsLoad, and
+    // pu0w0nnnn0000iiiiiiiiiiii=Address.
+    RegARM32::GPRRegister Rn = getGPRReg(kRnShift, Address);
+
+    // Check if conditions of rules violated.
+    if (Rn == RegARM32::Encoded_Reg_pc)
+      return setNeedsTextFixup();
+    if (!isBitSet(P, Address) && isBitSet(W, Address))
+      return setNeedsTextFixup();
+    if (!IsByte && (Rn == RegARM32::Encoded_Reg_sp) && !isBitSet(P, Address) &&
+        isBitSet(U, Address) & !isBitSet(W, Address) &&
+        (mask(Address, kImm12Shift, kImmed12Bits) == 0x8 /* 000000000100 */))
+      return setNeedsTextFixup();
+
+    return emitMemOp(Cond, kInstTypeMemImmediate, IsLoad, IsByte, Rt, Address);
+  }
+  case DecodedAsShiftRotateImm5: {
+    // XXX{B} (register)
+    //   xxx{b}<c> <Rt>, [<Rn>, +/-<Rm>{, <shift>}]{!}
+    //   xxx{b}<c> <Rt>, [<Rn>], +/-<Rm>{, <shift>}
+    //
+    // cccc011pubwlnnnnttttiiiiiss0mmmm where cccc=Cond, tttt=Rt,
+    // b=IsByte, U=1 if +, pu0b is a BlockAddr, l=IsLoad, and
+    // pu0w0nnnn0000iiiiiss0mmmm=Address.
+    RegARM32::GPRRegister Rn = getGPRReg(kRnShift, Address);
+    RegARM32::GPRRegister Rm = getGPRReg(kRmShift, Address);
+
+    // Check if conditions of rules violated.
+    if (isBitSet(P, Address) && isBitSet(W, Address))
+      // Instruction XXXBT!
+      return setNeedsTextFixup();
+    if (IsByte &&
+        ((Rt == RegARM32::Encoded_Reg_pc) || (Rm == RegARM32::Encoded_Reg_pc)))
+      // Unpredictable.
+      return setNeedsTextFixup();
+    if (!IsByte && Rm == RegARM32::Encoded_Reg_pc)
+      // Unpredictable.
+      return setNeedsTextFixup();
+    if (isBitSet(W, Address) &&
+        ((Rn == RegARM32::Encoded_Reg_pc) || encodeGPRRegister(Rn) == Rt))
+      // Unpredictable
+      return setNeedsTextFixup();
+
+    return emitMemOp(Cond, kInstTypeRegisterShift, IsLoad, IsByte, Rt, Address);
+  }
+  }
+}
+
+void AssemblerARM32::emitMemOpEnc3(CondARM32::Cond Cond, IValueT Opcode,
+                                   IValueT Rt, const Operand *OpAddress,
+                                   const TargetInfo &TInfo) {
+  IValueT Address;
+  switch (decodeAddress(OpAddress, Address, TInfo, OpEncoding3)) {
+  default:
+    return setNeedsTextFixup();
+  case DecodedAsImmRegOffsetEnc3: {
+    // XXXH (immediate)
+    //   xxxh<c> <Rt>, [<Rn>{, #+-<Imm8>}]
+    //   xxxh<c> <Rt>, [<Rn>, #+/-<Imm8>]
+    //   xxxh<c> <Rt>, [<Rn>, #+/-<Imm8>]!
+    //
+    // cccc000pu0wxnnnnttttiiiiyyyyjjjj where cccc=Cond, nnnn=Rn, tttt=Rt,
+    // iiiijjjj=Imm8, pu0w<<21 is a BlockAddr, x000000000000yyyy0000=Opcode,
+    // and pu0w0nnnn0000iiii0000jjjj=Address.
+    if (!isGPRRegisterDefined(Rt) || !isConditionDefined(Cond))
+      return setNeedsTextFixup();
+    if (!isBitSet(P, Address) && isBitSet(W, Address))
+      return setNeedsTextFixup();
+    if ((Rt == RegARM32::Encoded_Reg_pc) ||
+        (isBitSet(W, Address) &&
+         (getGPRReg(kRnShift, Address) == decodeGPRRegister(Rt))))
+      return setNeedsTextFixup();
+    const IValueT Encoding = (encodeCondition(Cond) << kConditionShift) |
+                             Opcode | (Rt << kRdShift) | Address;
+    AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+    return emitInst(Encoding);
+  }
+  case DecodedAsShiftRotateImm5: {
+    // XXXH (register)
+    //   xxxh<c> <Rt>, [<Rn>, +/-<Rm>]{!}
+    //   xxxh<c> <Rt>, [<Rn>], +/-<Rm>
+    //
+    // cccc000pu0wxnnnntttt00001011mmmm where cccc=Cond, tttt=Rt, nnnn=Rn,
+    // mmmm=Rm, pu0w<<21 is a BlockAddr, x000000000000yyyy0000=Opcode, and
+    // pu0w0nnnn000000000000mmmm=Address.
+    if (!isGPRRegisterDefined(Rt) || !isConditionDefined(Cond))
+      return setNeedsTextFixup();
+    if (!isBitSet(P, Address) && isBitSet(W, Address))
+      return setNeedsTextFixup();
+    if (Rt == RegARM32::Encoded_Reg_pc)
+      return setNeedsTextFixup();
+    if (getGPRReg(kRmShift, Address) == RegARM32::Encoded_Reg_pc)
+      return setNeedsTextFixup();
+    const RegARM32::GPRRegister Rn = getGPRReg(kRnShift, Address);
+    if (isBitSet(W, Address) &&
+        ((Rn == RegARM32::Encoded_Reg_pc) || (encodeGPRRegister(Rn) == Rt)))
+      return setNeedsTextFixup();
+    if (mask(Address, kShiftImmShift, 5) != 0)
+      // For encoding 3, no shift is allowed.
+      return setNeedsTextFixup();
+    const IValueT Encoding = (encodeCondition(Cond) << kConditionShift) |
+                             Opcode | (Rt << kRdShift) | Address;
+    AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+    return emitInst(Encoding);
+  }
+  }
+}
+
 void AssemblerARM32::emitDivOp(CondARM32::Cond Cond, IValueT Opcode, IValueT Rd,
                                IValueT Rn, IValueT Rm) {
   if (!isGPRRegisterDefined(Rd) || !isGPRRegisterDefined(Rn) ||
@@ -840,75 +994,68 @@ void AssemblerARM32::ldr(const Operand *OpRt, const Operand *OpAddress,
   if (decodeOperand(OpRt, Rt) != DecodedAsRegister)
     return setNeedsTextFixup();
   const Type Ty = OpRt->getType();
-  if (!(Ty == IceType_i32 || Ty == IceType_i8)) // TODO(kschimpf) Expand?
-    return setNeedsTextFixup();
-  const bool IsByte = isByteSizedType(Ty);
-  IValueT Address;
-  switch (decodeAddress(OpAddress, Address, TInfo)) {
+  switch (typeWidthInBytesLog2(Ty)) {
+  case 3:
+  // LDRD is not implemented because target lowering handles i64 and double by
+  // using two (32-bit) load instructions. Note: Intenionally drop to default
+  // case.
   default:
-    return setNeedsTextFixup();
-  case DecodedAsImmRegOffset: {
-    // LDR (immediate) - ARM section A8.8.63, encoding A1:
-    //   ldr<c> <Rt>, [<Rn>{, #+/-<imm12>}]      ; p=1, w=0
-    //   ldr<c> <Rt>, [<Rn>], #+/-<imm12>        ; p=1, w=1
-    //   ldr<c> <Rt>, [<Rn>, #+/-<imm12>]!       ; p=0, w=1
+    llvm::report_fatal_error(std::string("Type ") + typeString(Ty) +
+                             " not implementable using ldr\n");
+  case 0: {
+    // Handles i1 and i8 loads.
     //
     // LDRB (immediate) - ARM section A8.8.68, encoding A1:
     //   ldrb<c> <Rt>, [<Rn>{, #+/-<imm12>}]     ; p=1, w=0
     //   ldrb<c> <Rt>, [<Rn>], #+/-<imm12>       ; p=1, w=1
     //   ldrb<c> <Rt>, [<Rn>, #+/-<imm12>]!      ; p=0, w=1
     //
-    // cccc010pubw1nnnnttttiiiiiiiiiiii where cccc=Cond, tttt=Rt, nnnn=Rn,
-    // iiiiiiiiiiii=imm12, b=1 if LDRB, u=1 if +, pu0w is a BlockAddr, and
+    // cccc010pu1w1nnnnttttiiiiiiiiiiii where cccc=Cond, tttt=Rt, nnnn=Rn,
+    // iiiiiiiiiiii=imm12, u=1 if +, pu0w is a BlockAddr, and
     // pu0w0nnnn0000iiiiiiiiiiii=Address.
-
-    RegARM32::GPRRegister Rn = getGPRReg(kRnShift, Address);
-
-    // Check if conditions of rules violated.
-    if (Rn == RegARM32::Encoded_Reg_pc)
-      return setNeedsTextFixup();
-    if (!isBitSet(P, Address) && isBitSet(W, Address))
-      return setNeedsTextFixup();
-    if (!IsByte && (Rn == RegARM32::Encoded_Reg_sp) && !isBitSet(P, Address) &&
-        isBitSet(U, Address) & !isBitSet(W, Address) &&
-        (mask(Address, kImm12Shift, kImmed12Bits) == 0x8 /* 000000000100 */))
-      return setNeedsTextFixup();
-
-    return emitMemOp(Cond, kInstTypeMemImmediate, IsLoad, IsByte, Rt, Address);
-  }
-  case DecodedAsShiftRotateImm5: {
-    // LDR (register) - ARM section A8.8.66, encoding A1:
-    //   ldr<c> <Rt>, [<Rn>, +/-<Rm>{, <shift>}]{!}
-    //   ldr<c> <Rt>, [<Rn>], +/-<Rm>{, <shift>}
     //
-    // LDRB (register) - ARM section A8.8.70, encoding A1:
+    // LDRB (register) - ARM section A8.8.66, encoding A1:
+    //   ldrb<c> <Rt>, [<Rn>, +/-<Rm>{, <shift>}]{!}
+    //   ldrb<c> <Rt>, [<Rn>], +/-<Rm>{, <shift>}
+    //
+    // cccc011pu1w1nnnnttttiiiiiss0mmmm where cccc=Cond, tttt=Rt, U=1 if +, pu0b
+    // is a BlockAddr, and pu0w0nnnn0000iiiiiss0mmmm=Address.
+    constexpr bool IsByte = true;
+    return emitMemOp(Cond, IsLoad, IsByte, Rt, OpAddress, TInfo);
+  }
+  case 1: {
+    // Handles i16 loads.
+    //
+    // LDRH (immediate) - ARM section A8.8.80, encoding A1:
+    //   ldrh<c> <Rt>, [<Rn>{, #+/-<Imm8>}]
+    //   ldrh<c> <Rt>, [<Rn>], #+/-<Imm8>
+    //   ldrh<c> <Rt>, [<Rn>, #+/-<Imm8>]!
+    //
+    // cccc000pu1w1nnnnttttiiii1011iiii where cccc=Cond, tttt=Rt, nnnn=Rn,
+    // iiiiiiii=Imm8, u=1 if +, pu0w is a BlockAddr, and
+    // pu0w0nnnn0000iiiiiiiiiiii=Address.
+    return emitMemOpEnc3(Cond, L | B7 | B5 | B4, Rt, OpAddress, TInfo);
+  }
+  case 2: {
+    // Note: Handles i32 and float loads. Target lowering handles i64 and
+    // double by using two (32 bit) load instructions.
+    //
+    // LDR (immediate) - ARM section A8.8.63, encoding A1:
+    //   ldr<c> <Rt>, [<Rn>{, #+/-<imm12>}]      ; p=1, w=0
+    //   ldr<c> <Rt>, [<Rn>], #+/-<imm12>        ; p=1, w=1
+    //   ldr<c> <Rt>, [<Rn>, #+/-<imm12>]!       ; p=0, w=1
+    //
+    // cccc010pu0w1nnnnttttiiiiiiiiiiii where cccc=Cond, tttt=Rt, nnnn=Rn,
+    // iiiiiiiiiiii=imm12, u=1 if +, pu0w is a BlockAddr, and
+    //
+    // LDR (register) - ARM section A8.8.70, encoding A1:
     //   ldrb<c> <Rt>, [<Rn>, +/-<Rm>{, <shift>}]{!}
     //   ldrb<c> <Rt>, [<Rn>], +-<Rm>{, <shift>}
     //
-    // cccc011pubw1nnnnttttiiiiiss0mmmm where cccc=Cond, tttt=Rt,
-    // b=1 if LDRB, U=1 if +, pu0b is a BlockAddr, and
-    // pu0w0nnnn0000iiiiiss0mmmm=Address.
-
-    RegARM32::GPRRegister Rn = getGPRReg(kRnShift, Address);
-    RegARM32::GPRRegister Rm = getGPRReg(kRmShift, Address);
-
-    // Check if conditions of rules violated.
-    if (isBitSet(P, Address) && isBitSet(W, Address))
-      // Instruction LDRBT!
-      return setNeedsTextFixup();
-    if (IsByte &&
-        ((Rt == RegARM32::Encoded_Reg_pc) || (Rm == RegARM32::Encoded_Reg_pc)))
-      // Unpredictable.
-      return setNeedsTextFixup();
-    if (!IsByte && Rm == RegARM32::Encoded_Reg_pc)
-      // Unpredictable.
-      return setNeedsTextFixup();
-    if (isBitSet(W, Address) &&
-        ((Rn == RegARM32::Encoded_Reg_pc) || encodeGPRRegister(Rn) == Rt))
-      // Unpredictable
-      return setNeedsTextFixup();
-
-    return emitMemOp(Cond, kInstTypeRegisterShift, IsLoad, IsByte, Rt, Address);
+    // cccc011pu0w1nnnnttttiiiiiss0mmmm where cccc=Cond, tttt=Rt, U=1 if +, pu0b
+    // is a BlockAddr, and pu0w0nnnn0000iiiiiss0mmmm=Address.
+    constexpr bool IsByte = false;
+    return emitMemOp(Cond, IsLoad, IsByte, Rt, OpAddress, TInfo);
   }
   }
 }
@@ -1127,38 +1274,61 @@ void AssemblerARM32::sdiv(const Operand *OpRd, const Operand *OpRn,
 
 void AssemblerARM32::str(const Operand *OpRt, const Operand *OpAddress,
                          CondARM32::Cond Cond, const TargetInfo &TInfo) {
+  constexpr bool IsLoad = false;
   IValueT Rt;
   if (decodeOperand(OpRt, Rt) != DecodedAsRegister)
     return setNeedsTextFixup();
-  IValueT Address;
-  if (decodeAddress(OpAddress, Address, TInfo) != DecodedAsImmRegOffset)
-    return setNeedsTextFixup();
-  // STR (immediate) - ARM section A8.8.204, encoding A1:
-  //   str<c> <Rt>, [<Rn>{, #+/-<imm12>}]      ; p=1, w=0
-  //   str<c> <Rt>, [<Rn>], #+/-<imm12>        ; p=1, w=1
-  //   str<c> <Rt>, [<Rn>, #+/-<imm12>]!       ; p=0, w=1
-  // STRB (immediate) - ARM section A8.8.207, encoding A1:
-  //   strb<c> <Rt>, [<Rn>{, #+/-<imm12>}]     ; p=1, w=0
-  //   strb<c> <Rt>, [<Rn>], #+/-<imm12>       ; p=1, w=1
-  //   strb<c> <Rt>, [<Rn>, #+/-<imm12>]!      ; p=0, w=1
-  //
-  // cccc010pubw0nnnnttttiiiiiiiiiiii where cccc=Cond, tttt=Rt, nnnn=Rn,
-  // iiiiiiiiiiii=imm12, b=1 if STRB, u=1 if +.
-  constexpr bool IsLoad = false;
   const Type Ty = OpRt->getType();
-  if (!(Ty == IceType_i32 || Ty == IceType_i8)) // TODO(kschimpf) Expand?
+  switch (typeWidthInBytesLog2(Ty)) {
+  case 3:
+  // STRD is not implemented because target lowering handles i64 and double by
+  // using two (32-bit) store instructions.  Note: Intenionally drop to
+  // default case.
+  default:
+    llvm::report_fatal_error(std::string("Type ") + typeString(Ty) +
+                             " not implementable using str\n");
+  case 0: {
+    // Handles i1 and i8 stores.
+    //
+    // STRB (immediate) - ARM section A8.8.207, encoding A1:
+    //   strb<c> <Rt>, [<Rn>{, #+/-<imm12>}]     ; p=1, w=0
+    //   strb<c> <Rt>, [<Rn>], #+/-<imm12>       ; p=1, w=1
+    //   strb<c> <Rt>, [<Rn>, #+/-<imm12>]!      ; p=0, w=1
+    //
+    // cccc010pu1w0nnnnttttiiiiiiiiiiii where cccc=Cond, tttt=Rt, nnnn=Rn,
+    // iiiiiiiiiiii=imm12, u=1 if +.
+    constexpr bool IsByte = true;
+    return emitMemOp(Cond, IsLoad, IsByte, Rt, OpAddress, TInfo);
+  }
+  case 1: {
+    // Handles i16 stores.
+    //
+    // STRH (immediate) - ARM section A8.*.217, encoding A1:
+    //   strh<c> <Rt>, [<Rn>{, #+/-<Imm8>}]
+    //   strh<c> <Rt>, [<Rn>], #+/-<Imm8>
+    //   strh<c> <Rt>, [<Rn>, #+/-<Imm8>]!
+    //
+    // cccc000pu1w0nnnnttttiiii1011iiii where cccc=Cond, tttt=Rt, nnnn=Rn,
+    // iiiiiiii=Imm8, u=1 if +, pu0w is a BlockAddr, and
+    // pu0w0nnnn0000iiiiiiiiiiii=Address.
+    return emitMemOpEnc3(Cond, B7 | B5 | B4, Rt, OpAddress, TInfo);
+  }
+  case 2: {
+    // Note: Handles i32 and float stores. Target lowering handles i64 and
+    // double by using two (32 bit) store instructions.
+    //
+    // STR (immediate) - ARM section A8.8.207, encoding A1:
+    //   str<c> <Rt>, [<Rn>{, #+/-<imm12>}]     ; p=1, w=0
+    //   str<c> <Rt>, [<Rn>], #+/-<imm12>       ; p=1, w=1
+    //   str<c> <Rt>, [<Rn>, #+/-<imm12>]!      ; p=0, w=1
+    //
+    // cccc010pu1w0nnnnttttiiiiiiiiiiii where cccc=Cond, tttt=Rt, nnnn=Rn,
+    // iiiiiiiiiiii=imm12, u=1 if +.
+    constexpr bool IsByte = false;
+    return emitMemOp(Cond, IsLoad, IsByte, Rt, OpAddress, TInfo);
     return setNeedsTextFixup();
-  const bool IsByte = isByteSizedType(Ty);
-  // Check for rule violations.
-  if ((getGPRReg(kRnShift, Address) == RegARM32::Encoded_Reg_pc))
-    return setNeedsTextFixup();
-  if (!isBitSet(P, Address) && isBitSet(W, Address))
-    return setNeedsTextFixup();
-  if (!IsByte && (getGPRReg(kRnShift, Address) == RegARM32::Encoded_Reg_sp) &&
-      isBitSet(P, Address) && !isBitSet(U, Address) && isBitSet(W, Address) &&
-      (mask(Address, kImm12Shift, kImmed12Bits) == 0x8 /* 000000000100 */))
-    return setNeedsTextFixup();
-  emitMemOp(Cond, kInstTypeMemImmediate, IsLoad, IsByte, Rt, Address);
+  }
+  }
 }
 
 void AssemblerARM32::orr(const Operand *OpRd, const Operand *OpRn,
@@ -1191,7 +1361,7 @@ void AssemblerARM32::pop(const Operand *OpRt, CondARM32::Cond Cond) {
   // Same as load instruction.
   constexpr bool IsLoad = true;
   constexpr bool IsByte = false;
-  IValueT Address = decodeImmRegOffset(RegARM32::Encoded_Reg_sp, kWordSize,
+  IValueT Address = encodeImmRegOffset(RegARM32::Encoded_Reg_sp, kWordSize,
                                        OperandARM32Mem::PostIndex);
   emitMemOp(Cond, kInstTypeMemImmediate, IsLoad, IsByte, Rt, Address);
 }
@@ -1218,7 +1388,7 @@ void AssemblerARM32::push(const Operand *OpRt, CondARM32::Cond Cond) {
   // Same as store instruction.
   constexpr bool isLoad = false;
   constexpr bool isByte = false;
-  IValueT Address = decodeImmRegOffset(RegARM32::Encoded_Reg_sp, -kWordSize,
+  IValueT Address = encodeImmRegOffset(RegARM32::Encoded_Reg_sp, -kWordSize,
                                        OperandARM32Mem::PreIndex);
   emitMemOp(Cond, kInstTypeMemImmediate, isLoad, isByte, Rt, Address);
 }

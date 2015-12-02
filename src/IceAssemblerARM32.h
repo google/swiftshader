@@ -337,12 +337,20 @@ private:
 
   void emitType05(CondARM32::Cond COnd, int32_t Offset, bool Link);
 
-  // Pattern ccccoooaabalnnnnttttaaaaaaaaaaaa where cccc=Cond, ooo=InstType,
-  // l=isLoad, b=isByte, and aaa0a0aaaa0000aaaaaaaaaaaa=Address. Note that
-  // Address is assumed to be defined by decodeAddress() in
-  // IceAssemblerARM32.cpp.
+  // Emit ccccoooaabalnnnnttttaaaaaaaaaaaa where cccc=Cond,
+  // ooo=InstType, l=isLoad, b=isByte, and
+  // aaa0a0aaaa0000aaaaaaaaaaaa=Address. Note that Address is assumed to be
+  // defined by decodeAddress() in IceAssemblerARM32.cpp.
   void emitMemOp(CondARM32::Cond Cond, IValueT InstType, bool IsLoad,
-                 bool IsByte, uint32_t Rt, uint32_t Address);
+                 bool IsByte, IValueT Rt, IValueT Address);
+
+  // Emit ldr/ldrb/str/strb instruction with given address.
+  void emitMemOp(CondARM32::Cond Cond, bool IsLoad, bool IsByte, IValueT Rt,
+                 const Operand *OpAddress, const TargetInfo &TInfo);
+
+  // Emit ldrh/ldrd/strh/strd instruction with given address using encoding 3.
+  void emitMemOpEnc3(CondARM32::Cond Cond, IValueT Opcode, IValueT Rt,
+                     const Operand *OpAddress, const TargetInfo &TInfo);
 
   // Pattern cccc100aaaalnnnnrrrrrrrrrrrrrrrr where cccc=Cond,
   // aaaa<<21=AddressMode, l=IsLoad, nnnn=BaseReg, and

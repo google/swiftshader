@@ -342,8 +342,11 @@ class Address : public ValueObject {
 
   uint32_t encoding() const { return encoding_; }
 
+#if 0
+// Moved to encodeImmRegOffsetEnc3 in IceAssemblerARM32.cpp
   // Encoding for addressing mode 3.
   uint32_t encoding3() const;
+#endif
 
   // Encoding for vfp load/store addressing.
   uint32_t vencoding() const;
@@ -1183,14 +1186,13 @@ class Assembler : public ValueObject {
                  bool byte,
                  Register rd,
                  Address ad);
-#endif
 
+  // Moved to AssemblerARM32::emitMemOpEnc3();
   void EmitMemOpAddressMode3(Condition cond,
                              int32_t mode,
                              Register rd,
                              Address ad);
 
-#if 0
   // Moved to ARM32::AssemblerARM32::emitMultiMemOp()
   void EmitMultiMemOp(Condition cond,
                       BlockAddressMode am,
