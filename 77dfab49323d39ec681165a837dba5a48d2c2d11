@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1bc533ce_c7ac20b1",
+        "filename": "src/Common/SharedLibrary.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-12-03T04:08:24Z",
+      "side": 0,
+      "message": "I\u0027ve found it useful to have this variable while debugging. Also, compared to just calling dlerror() it makes it a little clearer that this is retrieving the error (instead of producing one).\n\nI think the \u0027unused variable\u0027 warning is extremely benign. Compilers have been optimizing those out for decades. It\u0027s hardly useful information.",
+      "range": {
+        "startLine": 121,
+        "startChar": 15,
+        "endLine": 121,
+        "endChar": 21
+      },
+      "revId": "77dfab49323d39ec681165a837dba5a48d2c2d11",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1bc533ce_47b950ec",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2104,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-12-03T04:08:24Z",
+      "side": 0,
+      "message": "I\u0027m on the fence about this. If we ever decided to make it a signed integer, then the less than zero check makes sense. And the compiler is smart enough to eliminate the check when it\u0027s unsigned.\n\nOn the other hand, glBindTexture clearly takes an unsigned int texture name, so there\u0027s no reason for us to use a signed integer. That would simply be wrong. But it doesn\u0027t mean this check is wrong.",
+      "range": {
+        "startLine": 2104,
+        "startChar": 15,
+        "endLine": 2104,
+        "endChar": 63
+      },
+      "revId": "77dfab49323d39ec681165a837dba5a48d2c2d11",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1bc533ce_67bc4cde",
+        "filename": "src/OpenGL/libGLESv2/Context.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 698,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-12-03T04:08:24Z",
+      "side": 0,
+      "message": "I feel like preserving this is somewhat useful. I mean, eglCreateContext takes the config as a parameter, so Context taking it in the constructor and storing it feels almost essential. If nothing else it\u0027s a potentially useful bit of data during interactive debugging.",
+      "range": {
+        "startLine": 698,
+        "startChar": 4,
+        "endLine": 698,
+        "endChar": 37
+      },
+      "revId": "77dfab49323d39ec681165a837dba5a48d2c2d11",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1bc533ce_87cb4875",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 418,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-12-03T04:08:24Z",
+      "side": 0,
+      "message": "Should we be using this in some buffer related functions?",
+      "range": {
+        "startLine": 418,
+        "startChar": 12,
+        "endLine": 418,
+        "endChar": 32
+      },
+      "revId": "77dfab49323d39ec681165a837dba5a48d2c2d11",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1bc533ce_07af58a2",
+        "filename": "src/OpenGL/libEGL/Surface.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-12-03T04:08:24Z",
+      "side": 1,
+      "message": "Nice catch!\n\nI prefer \"this-\u003eswapBehavior \u003d swapBehavior\". It\u0027s very explicit and doesn\u0027t require finding new names for what we really want to be the same value.",
+      "range": {
+        "startLine": 147,
+        "startChar": 1,
+        "endLine": 147,
+        "endChar": 18
+      },
+      "revId": "6282a9de9e37072629801950d8e969da0148a322",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1bc533ce_a7c6446d",
+        "filename": "src/OpenGL/libGLESv2/Program.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-12-03T04:08:24Z",
+      "side": 1,
+      "message": "Yikes! Nice catch! It\u0027s surprising this doesn\u0027t seem to cause all kinds of issues.\n\nWe can probably name the argument \u0027size\u0027 though. No idea why it was named \u0027sizet\u0027.",
+      "range": {
+        "startLine": 151,
+        "startChar": 33,
+        "endLine": 151,
+        "endChar": 38
+      },
+      "revId": "6282a9de9e37072629801950d8e969da0148a322",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1bc533ce_67ea8cca",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1540,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-12-03T04:08:24Z",
+      "side": 1,
+      "message": "I think the parentheses belong around the ||\n\n\"GL_INVALID_VALUE is generated if texture is not zero and level is not a supported texture level for texture\"\n\"GL_INVALID_VALUE is generated if texture is not zero and layer is negative\"\n\nThis these are man page quotes. The ES3 spec is less clear.",
+      "range": {
+        "startLine": 1540,
+        "startChar": 21,
+        "endLine": 1540,
+        "endChar": 44
+      },
+      "revId": "6282a9de9e37072629801950d8e969da0148a322",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1bc533ce_871988c9",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2714,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-12-03T04:08:24Z",
+      "side": 1,
+      "message": "Let\u0027s make this a nested if.",
+      "range": {
+        "startLine": 2714,
+        "startChar": 2,
+        "endLine": 2714,
+        "endChar": 72
+      },
+      "revId": "6282a9de9e37072629801950d8e969da0148a322",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
