@@ -8,7 +8,8 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// \brief The file contains helpers for switch lowering.
+/// \brief Helpers for switch lowering.
+///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICESWITCHLOWERING_H

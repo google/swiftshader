@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares command line flags primarily used for non-minimal builds.
+/// \brief Declares command line flags primarily used for non-minimal builds.
 ///
 //===----------------------------------------------------------------------===//
 

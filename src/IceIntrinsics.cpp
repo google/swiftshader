@@ -8,8 +8,8 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file implements the Intrinsics utilities for matching and then
-/// dispatching by name.
+/// \brief Implements the Intrinsics utilities for matching and then dispatching
+/// by name.
 ///
 //===----------------------------------------------------------------------===//
 

@@ -8,8 +8,8 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares the TargetLoweringX86 template class, which implements
-/// the TargetLowering base interface for the x86 architecture.
+/// \brief Declares the TargetLoweringX86 template class, which implements the
+/// TargetLowering base interface for the x86 architecture.
 ///
 //===----------------------------------------------------------------------===//
 

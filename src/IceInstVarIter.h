@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file defines a common pattern for iterating over the variables of an
+/// \brief Defines a common pattern for iterating over the variables of an
 /// instruction.
 ///
 //===----------------------------------------------------------------------===//

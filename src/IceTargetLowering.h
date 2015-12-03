@@ -8,13 +8,15 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares the TargetLowering, LoweringContext, and
-/// TargetDataLowering classes. TargetLowering is an abstract class used to
-/// drive the translation/lowering process. LoweringContext maintains a context
-/// for lowering each instruction, offering conveniences such as iterating over
-/// non-deleted instructions. TargetDataLowering is an abstract class used to
-/// drive the lowering/emission of global initializers, external global
-/// declarations, and internal constant pools.
+/// \brief Declares the TargetLowering, LoweringContext, and TargetDataLowering
+/// classes.
+///
+/// TargetLowering is an abstract class used to drive the translation/lowering
+/// process. LoweringContext maintains a context for lowering each instruction,
+/// offering conveniences such as iterating over non-deleted instructions.
+/// TargetDataLowering is an abstract class used to drive the lowering/emission
+/// of global initializers, external global declarations, and internal constant
+/// pools.
 ///
 //===----------------------------------------------------------------------===//
 

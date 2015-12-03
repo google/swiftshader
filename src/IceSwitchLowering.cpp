@@ -8,8 +8,8 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file implements platform independent analysis of switch cases to
-/// improve the generated code.
+/// \brief Implements platform independent analysis of switch cases to improve
+/// the generated code.
 ///
 //===----------------------------------------------------------------------===//
 #include "IceSwitchLowering.h"

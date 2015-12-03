@@ -8,8 +8,8 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares the CfgNode class, which represents a single basic block
-/// as its instruction list, in-edge list, and out-edge list.
+/// \brief Declares the CfgNode class, which represents a single basic block as
+/// its instruction list, in-edge list, and out-edge list.
 ///
 //===----------------------------------------------------------------------===//
 

@@ -8,11 +8,12 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file defines a driver for translating PNaCl bitcode into native code.
-/// It can either directly parse the binary bitcode file, or use LLVM routines
-/// to parse a textual bitcode file into LLVM IR and then convert LLVM IR into
-/// ICE. In either case, the high-level ICE is then compiled down to native
-/// code, as either an ELF object file or a textual asm file.
+/// \brief Defines a driver for translating PNaCl bitcode into native code.
+///
+/// The driver can either directly parse the binary bitcode file, or use LLVM
+/// routines to parse a textual bitcode file into LLVM IR and then convert LLVM
+/// IR into ICE. In either case, the high-level ICE is then compiled down to
+/// native code, as either an ELF object file or a textual asm file.
 ///
 //===----------------------------------------------------------------------===//
 

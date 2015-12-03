@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file implements the TargetLoweringMIPS32 class, which consists almost
+/// \brief Implements the TargetLoweringMIPS32 class, which consists almost
 /// entirely of the lowering sequence for each high-level instruction.
 ///
 //===----------------------------------------------------------------------===//

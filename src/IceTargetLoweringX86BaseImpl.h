@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file implements the TargetLoweringX86Base class, which consists almost
+/// \brief Implements the TargetLoweringX86Base class, which consists almost
 /// entirely of the lowering sequence for each high-level instruction.
 ///
 //===----------------------------------------------------------------------===//

@@ -8,8 +8,8 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file implements the Operand class and its target-independent
-/// subclasses, primarily for the methods of the Variable class.
+/// \brief Implements the Operand class and its target-independent subclasses,
+/// primarily for the methods of the Variable class.
 ///
 //===----------------------------------------------------------------------===//
 

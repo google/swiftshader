@@ -8,9 +8,10 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares the Inst class and its target-independent
-/// subclasses, which represent the high-level Vanilla ICE instructions
-/// and map roughly 1:1 to LLVM instructions.
+/// \brief Declares the Inst class and its target-independent subclasses.
+///
+/// These represent the high-level Vanilla ICE instructions and map roughly 1:1
+/// to LLVM instructions.
 ///
 //===----------------------------------------------------------------------===//
 

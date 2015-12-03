@@ -8,9 +8,10 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file used to house all the X8632 instructions. Subzero has been
-/// modified to use templates for X86 instructions, so all those definitions are
-/// are in IceInstX86Base.h
+/// \brief Used to house all the X8632 instructions.
+///
+/// Subzero has been modified to use templates for X86 instructions, so all
+/// those definitions are are in IceInstX86Base.h
 ///
 /// When interacting with the X8632 target (which should only happen in the
 /// X8632 TargetLowering) clients have should use the Ice::X8632::Traits::Insts

@@ -8,12 +8,13 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares the Liveness and LivenessNode classes, which are used for
-/// liveness analysis. The node-specific information tracked for each Variable
-/// includes whether it is live on entry, whether it is live on exit, the
-/// instruction number that starts its live range, and the instruction number
-/// that ends its live range. At the Cfg level, the actual live intervals are
-/// recorded.
+/// \brief Declares the Liveness and LivenessNode classes, which are used for
+/// liveness analysis.
+///
+/// The node-specific information tracked for each Variable includes whether it
+/// is live on entry, whether it is live on exit, the instruction number that
+/// starts its live range, and the instruction number that ends its live range.
+/// At the Cfg level, the actual live intervals are recorded.
 ///
 //===----------------------------------------------------------------------===//
 

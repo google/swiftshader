@@ -8,8 +8,8 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares the Cfg class, which represents the control flow graph
-/// and the overall per-function compilation context.
+/// \brief Declares the Cfg class, which represents the control flow graph and
+/// the overall per-function compilation context.
 ///
 //===----------------------------------------------------------------------===//
 

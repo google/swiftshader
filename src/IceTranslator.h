@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares the general driver class for translating ICE to machine
+/// \brief Declares the general driver class for translating ICE to machine
 /// code.
 ///
 //===----------------------------------------------------------------------===//

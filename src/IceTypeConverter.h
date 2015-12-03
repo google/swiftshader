@@ -8,8 +8,8 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file defines how to convert LLVM types to ICE types, and ICE types to
-/// LLVM types.
+/// \brief Defines how to convert LLVM types to ICE types, and ICE types to LLVM
+/// types.
 ///
 //===----------------------------------------------------------------------===//
 

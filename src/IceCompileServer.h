@@ -8,8 +8,10 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares the compile server. Given a compiler implementation, it
-/// dispatches compile requests to the implementation.
+/// \brief Declares the compile server.
+///
+/// Given a compiler implementation, it dispatches compile requests to the
+/// implementation.
 ///
 //===----------------------------------------------------------------------===//
 

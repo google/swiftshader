@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares the registers and their encodings for x86-64.
+/// \brief Declares the registers and their encodings for x86-64.
 ///
 //===----------------------------------------------------------------------===//
 

@@ -8,8 +8,8 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// Interface for serializing bits for common ELF types (words, extended words,
-/// etc.), based on the ELF Class.
+/// \brief Interface for serializing bits for common ELF types (words, extended
+/// words, etc.), based on the ELF class.
 ///
 //===----------------------------------------------------------------------===//
 

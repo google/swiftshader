@@ -8,11 +8,11 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file defines X8632 specific data related to X8632 Instructions and
-/// Instruction traits. These are declared in the IceTargetLoweringX8632Traits.h
-/// header file.
+/// \brief Defines X8632 specific data related to X8632 Instructions and
+/// Instruction traits.
 ///
-/// This file also defines X8632 operand specific methods (dump and emit.)
+/// These are declared in the IceTargetLoweringX8632Traits.h header file. This
+/// file also defines X8632 operand specific methods (dump and emit.)
 ///
 //===----------------------------------------------------------------------===//
 #include "IceInstX8632.h"

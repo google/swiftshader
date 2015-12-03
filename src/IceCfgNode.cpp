@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file implements the CfgNode class, including the complexities of
+/// \brief Implements the CfgNode class, including the complexities of
 /// instruction insertion and in-edge calculation.
 ///
 //===----------------------------------------------------------------------===//

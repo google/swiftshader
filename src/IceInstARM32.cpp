@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file implements the InstARM32 and OperandARM32 classes, primarily the
+/// \brief Implements the InstARM32 and OperandARM32 classes, primarily the
 /// constructors and the dump()/emit() methods.
 ///
 //===----------------------------------------------------------------------===//

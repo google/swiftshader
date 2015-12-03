@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares the TargetLoweringX8632 class, which implements the
+/// \brief Declares the TargetLoweringX8632 class, which implements the
 /// TargetLowering interface for the x86-32 architecture.
 ///
 //===----------------------------------------------------------------------===//

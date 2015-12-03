@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file defines the browser-based compile server.
+/// \brief Defines the browser-based compile server.
 ///
 //===----------------------------------------------------------------------===//
 

@@ -8,8 +8,8 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares a few properties of the primitive types allowed in
-/// Subzero. Every Subzero source file is expected to include IceTypes.h.
+/// \brief Declares a few properties of the primitive types allowed in Subzero.
+/// Every Subzero source file is expected to include IceTypes.h.
 ///
 //===----------------------------------------------------------------------===//
 

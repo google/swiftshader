@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares command line flags controlling translation.
+/// \brief Declares command line flags controlling translation.
 ///
 //===----------------------------------------------------------------------===//
 

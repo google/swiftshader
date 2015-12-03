@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file implements the InstX86Base class and its descendants.
+/// \brief Implements the InstX86Base class and its descendants.
 ///
 //===----------------------------------------------------------------------===//
 

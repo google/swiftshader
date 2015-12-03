@@ -8,9 +8,10 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares the InstARM32 and OperandARM32 classes and their
-/// subclasses. This represents the machine instructions and operands used for
-/// ARM32 code selection.
+/// \brief Declares the InstARM32 and OperandARM32 classes and their subclasses.
+///
+/// This represents the machine instructions and operands used for ARM32 code
+/// selection.
 ///
 //===----------------------------------------------------------------------===//
 

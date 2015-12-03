@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares the TargetLoweringMIPS32 class, which implements the
+/// \brief Declares the TargetLoweringMIPS32 class, which implements the
 /// TargetLowering interface for the MIPS 32-bit architecture.
 ///
 //===----------------------------------------------------------------------===//

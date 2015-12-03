@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file defines aspects of the compilation that persist across multiple
+/// \brief Defines aspects of the compilation that persist across multiple
 /// functions.
 ///
 //===----------------------------------------------------------------------===//

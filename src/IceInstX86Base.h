@@ -8,10 +8,11 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file defines the InstX86Base template class, as well as the generic X86
-/// Instruction class hierarchy. Only X86 instructions common across all/most
-/// X86 targets should be defined here, with target-specific instructions
-/// declared in the target's traits.
+/// \brief This file defines the InstX86Base template class, as well as the
+/// generic X86 Instruction class hierarchy.
+///
+/// Only X86 instructions common across all/most X86 targets should be defined
+/// here, with target-specific instructions declared in the target's traits.
 ///
 //===----------------------------------------------------------------------===//
 

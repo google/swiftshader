@@ -7,8 +7,9 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// This file defines the REGLIST*() macros used in the IceInst*.def files.
-//
+/// \file
+/// \brief Defines the REGLIST*() macros used in the IceInst*.def files.
+///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICEINSTREGLIST_H

@@ -8,9 +8,11 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares the InstMIPS32 and OperandMIPS32 classes and their
-/// subclasses. This represents the machine instructions and operands used for
-/// MIPS32 code selection.
+/// \brief Declares the InstMIPS32 and OperandMIPS32 classes and their
+/// subclasses.
+///
+/// This represents the machine instructions and operands used for MIPS32 code
+/// selection.
 ///
 //===----------------------------------------------------------------------===//
 

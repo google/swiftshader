@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file implements the Inst class, primarily the various subclass
+/// \brief Implements the Inst class, primarily the various subclass
 /// constructors and dump routines.
 ///
 //===----------------------------------------------------------------------===//

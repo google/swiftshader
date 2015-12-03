@@ -8,7 +8,8 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares the Operand class and its target-independent subclasses.
+/// \brief Declares the Operand class and its target-independent subclasses.
+///
 /// The main classes are Variable, which represents an LLVM variable that is
 /// either register- or stack-allocated, and the Constant hierarchy, which
 /// represents integer, floating-point, and/or symbolic constants.

@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file defines a few attributes of Subzero primitive types.
+/// \brief Defines a few attributes of Subzero primitive types.
 ///
 //===----------------------------------------------------------------------===//
 

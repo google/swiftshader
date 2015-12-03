@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares the driver for translating bitcode to native code.
+/// \brief Declares the driver for translating bitcode to native code.
 ///
 //===----------------------------------------------------------------------===//
 

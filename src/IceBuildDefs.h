@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file defines constexpr functions to query various #define values.
+/// \brief Defines constexpr functions to query various #define values.
 ///
 //===----------------------------------------------------------------------===//
 

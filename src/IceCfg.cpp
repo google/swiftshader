@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file implements the Cfg class, including constant pool management.
+/// \brief Implements the Cfg class.
 ///
 //===----------------------------------------------------------------------===//
 

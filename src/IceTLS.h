@@ -8,9 +8,11 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file defines macros for working around the lack of support for
-/// thread_local in MacOS 10.6. It assumes std::thread is written in terms of
-/// pthread. Define ICE_THREAD_LOCAL_HACK to enable the pthread workarounds.
+/// \brief Defines macros for working around the lack of support for
+/// thread_local in MacOS 10.6.
+///
+/// This assumes std::thread is written in terms of pthread. Define
+/// ICE_THREAD_LOCAL_HACK to enable the pthread workarounds.
 ///
 //===----------------------------------------------------------------------===//
 

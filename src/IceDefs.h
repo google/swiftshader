@@ -8,8 +8,10 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares various useful types and classes that have widespread use
-/// across Subzero. Every Subzero source file is expected to include IceDefs.h.
+/// \brief Declares various useful types and classes that have widespread use
+/// across Subzero.
+///
+/// Every Subzero source file is expected to include IceDefs.h.
 ///
 //===----------------------------------------------------------------------===//
 

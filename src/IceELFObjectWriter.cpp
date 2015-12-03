@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file defines the writer for ELF relocatable object files.
+/// \brief Defines the writer for ELF relocatable object files.
 ///
 //===----------------------------------------------------------------------===//
 

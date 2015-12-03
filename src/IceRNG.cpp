@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file implements the random number generator.
+/// \brief Implements the random number generator.
 ///
 //===----------------------------------------------------------------------===//
 

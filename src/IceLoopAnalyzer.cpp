@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file implements the loop analysis on the CFG.
+/// \brief Implements the loop analysis on the CFG.
 ///
 //===----------------------------------------------------------------------===//
 #include "IceLoopAnalyzer.h"

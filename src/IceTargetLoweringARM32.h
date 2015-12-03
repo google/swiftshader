@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares the TargetLoweringARM32 class, which implements the
+/// \brief Declares the TargetLoweringARM32 class, which implements the
 /// TargetLowering interface for the ARM 32-bit architecture.
 ///
 //===----------------------------------------------------------------------===//

@@ -15,9 +15,11 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares the Assembler base class. Instructions are assembled by
-/// architecture-specific assemblers that derive from this base class. This base
-/// class manages buffers and fixups for emitting code, etc.
+/// \brief Declares the Assembler base class.
+///
+/// Instructions are assembled by architecture-specific assemblers that derive
+/// from this base class. This base class manages buffers and fixups for
+/// emitting code, etc.
 ///
 //===----------------------------------------------------------------------===//
 

@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file defines how ELF sections are represented.
+/// \brief Defines how ELF sections are represented.
 ///
 //===----------------------------------------------------------------------===//
 

@@ -8,9 +8,10 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file defines X8664 specific data related to X8664 Instructions and
-/// Instruction traits. These are declared in the IceTargetLoweringX8664Traits.h
-/// header file.
+/// \brief This file defines X8664 specific data related to X8664 Instructions
+/// and Instruction traits.
+///
+/// These are declared in the IceTargetLoweringX8664Traits.h header file.
 ///
 /// This file also defines X8664 operand specific methods (dump and emit.)
 ///

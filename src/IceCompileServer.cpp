@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file defines the basic commandline-based compile server.
+/// \brief Defines the basic commandline-based compile server.
 ///
 //===----------------------------------------------------------------------===//
 

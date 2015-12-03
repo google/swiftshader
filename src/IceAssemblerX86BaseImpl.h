@@ -14,8 +14,9 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// This file implements the AssemblerX86Base template class, which is the base
-// Assembler class for X86 assemblers.
+/// \file
+/// \brief Implements the AssemblerX86Base template class, which is the base
+/// Assembler class for X86 assemblers.
 //
 //===----------------------------------------------------------------------===//
 

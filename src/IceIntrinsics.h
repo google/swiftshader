@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares the kinds of intrinsics supported by PNaCl.
+/// \brief Declares the kinds of intrinsics supported by PNaCl.
 ///
 //===----------------------------------------------------------------------===//
 

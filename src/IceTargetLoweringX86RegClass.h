@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares the X86 register class extensions.
+/// \brief Declares the X86 register class extensions.
 ///
 //===----------------------------------------------------------------------===//
 

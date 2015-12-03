@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// Abstraction for a writer that is responsible for writing an ELF file.
+/// \brief Abstraction for a writer that is responsible for writing an ELF file.
 ///
 //===----------------------------------------------------------------------===//
 

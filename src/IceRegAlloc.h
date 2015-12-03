@@ -8,9 +8,10 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares the LinearScan data structure used during linear-scan
-/// register allocation, which holds the various work queues for the linear-scan
-/// algorithm.
+/// \brief Declares the LinearScan data structure used during linear-scan
+/// register allocation.
+///
+/// This holds the various work queues for the linear-scan algorithm.
 ///
 //===----------------------------------------------------------------------===//
 

@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file defines the entry point for translating PNaCl bitcode into native
+/// \brief Defines the entry point for translating PNaCl bitcode into native
 /// code.
 ///
 //===----------------------------------------------------------------------===//

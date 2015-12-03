@@ -8,8 +8,8 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file implements the AssemblerFixup class, a very basic
-/// target-independent representation of a fixup or relocation.
+/// \brief Implements the AssemblerFixup class, a very basic target-independent
+/// representation of a fixup or relocation.
 ///
 //===----------------------------------------------------------------------===//
 

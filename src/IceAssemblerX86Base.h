@@ -15,8 +15,9 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// This file defines the AssemblerX86 template class for x86, the base of all
-// X86 assemblers.
+/// \file
+/// \brief Defines the AssemblerX86 template class for x86, the base of all X86
+/// assemblers.
 //
 //===----------------------------------------------------------------------===//
 

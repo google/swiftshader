@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file implements the notion of function declarations, global variable
+/// \brief Implements the notion of function declarations, global variable
 /// declarations, and the corresponding variable initializers in Subzero.
 ///
 //===----------------------------------------------------------------------===//

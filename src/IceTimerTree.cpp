@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file defines the TimerTree class, which tracks flat and cumulative
+/// \brief Defines the TimerTree class, which tracks flat and cumulative
 /// execution time collection of call chains.
 ///
 //===----------------------------------------------------------------------===//

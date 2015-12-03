@@ -8,8 +8,8 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares the PNaCl bitcode file to ICE, to machine code
-/// translator.
+/// \brief Declares the interface for translation from PNaCl bitcode files to
+/// ICE to machine code.
 ///
 //===----------------------------------------------------------------------===//
 

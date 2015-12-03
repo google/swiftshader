@@ -8,10 +8,11 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file declares the representation of function declarations, global
-/// variable declarations, and the corresponding variable initializers in
-/// Subzero. Global variable initializers are represented as a sequence of
-/// simple initializers.
+/// \brief Declares the representation of function declarations, global variable
+/// declarations, and the corresponding variable initializers in Subzero.
+///
+/// Global variable initializers are represented as a sequence of simple
+/// initializers.
 ///
 //===----------------------------------------------------------------------===//
 

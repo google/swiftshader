@@ -8,9 +8,10 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file defines commandline flags parsing. This currently relies on
-/// llvm::cl to parse. In the future, the minimal build can have a simpler
-/// parser.
+/// \brief Defines commandline flags parsing.
+///
+/// This currently relies on llvm::cl to parse. In the future, the minimal build
+/// can have a simpler parser.
 ///
 //===----------------------------------------------------------------------===//
 

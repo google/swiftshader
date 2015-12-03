@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file implements the LinearScan class, which performs the linear-scan
+/// \brief Implements the LinearScan class, which performs the linear-scan
 /// register allocation after liveness analysis has been performed.
 ///
 //===----------------------------------------------------------------------===//

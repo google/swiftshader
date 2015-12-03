@@ -8,8 +8,8 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// (Note: x86 instructions are templates, and they are defined in
-///  src/IceInstX86Base.)
+/// \brief (Note: x86 instructions are templates, and they are defined in
+/// src/IceInstX86Base.)
 ///
 /// When interacting with the X8664 target (which should only happen in the
 /// X8664 TargetLowering) clients have should use the Ice::X8664::Traits::Insts

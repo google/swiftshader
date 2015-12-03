@@ -16,7 +16,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// This file implements the Assembler class for ARM32.
+/// \brief Declares the Assembler class for ARM32.
 ///
 /// Note: All references to ARM "section" documentation refers to the "ARM
 /// Architecture Reference Manual, ARMv7-A and ARMv7-R edition". See:
