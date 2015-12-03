@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1bc533ce_c74a6037",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 3258,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-12-03T19:27:42Z",
+      "side": 0,
+      "message": "1st mistake: This should have been \"(x1 \u0026 ~1) * 2\", otherwise, we can write too many bytes.",
+      "range": {
+        "startLine": 3258,
+        "startChar": 51,
+        "endLine": 3258,
+        "endChar": 69
+      },
+      "revId": "3e02f68f7367c96ee8650d254256e13ecaaa0f07",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1bc533ce_273094c4",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 3272,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-12-03T19:27:42Z",
+      "side": 0,
+      "message": "2nd mistake: This array index should be identical to the one being assigned to, so it should have been \"(x \u0026 ~1) * 2 + (x \u0026 1)\" instead of \"x\".",
+      "range": {
+        "startLine": 3272,
+        "startChar": 57,
+        "endLine": 3272,
+        "endChar": 58
+      },
+      "revId": "3e02f68f7367c96ee8650d254256e13ecaaa0f07",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
