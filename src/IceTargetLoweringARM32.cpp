@@ -681,10 +681,10 @@ void TargetARM32::translateO2() {
     return;
   Func->dump("After stack frame mapping");
 
-  legalizeStackSlots();
+  postLowerLegalization();
   if (Func->hasError())
     return;
-  Func->dump("After legalizeStackSlots");
+  Func->dump("After postLowerLegalization");
 
   Func->contractEmptyNodes();
   Func->reorderNodes();
@@ -746,10 +746,10 @@ void TargetARM32::translateOm1() {
     return;
   Func->dump("After stack frame mapping");
 
-  legalizeStackSlots();
+  postLowerLegalization();
   if (Func->hasError())
     return;
-  Func->dump("After legalizeStackSlots");
+  Func->dump("After postLowerLegalization");
 
   // Nop insertion
   if (Ctx->getFlags().shouldDoNopInsertion()) {
@@ -1336,55 +1336,101 @@ bool TargetARM32::isLegalMemOffset(Type Ty, int32_t Offset) const {
   return OperandARM32Mem::canHoldOffset(Ty, ZeroExt, Offset);
 }
 
-Variable *TargetARM32::newBaseRegister(int32_t Offset, Variable *OrigBaseReg) {
+Variable *TargetARM32::PostLoweringLegalizer::newBaseRegister(
+    Variable *Base, int32_t Offset, int32_t ScratchRegNum) {
   // Legalize will likely need a movw/movt combination, but if the top bits are
   // all 0 from negating the offset and subtracting, we could use that instead.
-  bool ShouldSub = (-Offset & 0xFFFF0000) == 0;
-  if (ShouldSub)
-    Offset = -Offset;
-  Operand *OffsetVal = legalize(Ctx->getConstantInt32(Offset),
-                                Legal_Reg | Legal_Flex, getReservedTmpReg());
-  Variable *ScratchReg = makeReg(IceType_i32, getReservedTmpReg());
-  if (ShouldSub)
-    _sub(ScratchReg, OrigBaseReg, OffsetVal);
-  else
-    _add(ScratchReg, OrigBaseReg, OffsetVal);
+  const bool ShouldSub = Offset != 0 && (-Offset & 0xFFFF0000) == 0;
+  Variable *ScratchReg = Target->makeReg(IceType_i32, ScratchRegNum);
+  if (ShouldSub) {
+    Operand *OffsetVal =
+        Target->legalize(Target->Ctx->getConstantInt32(-Offset),
+                         Legal_Reg | Legal_Flex, ScratchRegNum);
+    Target->_sub(ScratchReg, Base, OffsetVal);
+  } else {
+    Operand *OffsetVal =
+        Target->legalize(Target->Ctx->getConstantInt32(Offset),
+                         Legal_Reg | Legal_Flex, ScratchRegNum);
+    Target->_add(ScratchReg, Base, OffsetVal);
+  }
+
+  if (ScratchRegNum == Target->getReservedTmpReg()) {
+    const bool BaseIsStackOrFramePtr =
+        Base->getRegNum() == static_cast<int32_t>(Target->getFrameOrStackReg());
+    // There is currently no code path that would trigger this assertion, so we
+    // leave this assertion here in case it is ever violated. This is not a
+    // fatal error (thus the use of assert() and not llvm::report_fatal_error)
+    // as the program compiled by subzero will still work correctly.
+    assert(BaseIsStackOrFramePtr);
+    // Side-effect: updates TempBase to reflect the new Temporary.
+    if (BaseIsStackOrFramePtr) {
+      TempBaseReg = ScratchReg;
+      TempBaseOffset = Offset;
+    } else {
+      TempBaseReg = nullptr;
+      TempBaseOffset = 0;
+    }
+  }
+
   return ScratchReg;
 }
 
-OperandARM32Mem *TargetARM32::createMemOperand(Type Ty, int32_t Offset,
-                                               Variable *OrigBaseReg,
-                                               Variable **NewBaseReg,
-                                               int32_t *NewBaseOffset) {
-  assert(!OrigBaseReg->isRematerializable());
-  if (isLegalMemOffset(Ty, Offset)) {
+OperandARM32Mem *TargetARM32::PostLoweringLegalizer::createMemOperand(
+    Type Ty, Variable *Base, int32_t Offset, bool AllowOffsets) {
+  assert(!Base->isRematerializable());
+  if (AllowOffsets && Target->isLegalMemOffset(Ty, Offset)) {
     return OperandARM32Mem::create(
-        Func, Ty, OrigBaseReg,
-        llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(Offset)),
+        Target->Func, Ty, Base,
+        llvm::cast<ConstantInteger32>(Target->Ctx->getConstantInt32(Offset)),
         OperandARM32Mem::Offset);
   }
 
-  if (*NewBaseReg == nullptr) {
-    *NewBaseReg = newBaseRegister(Offset, OrigBaseReg);
-    *NewBaseOffset = Offset;
+  if (!AllowOffsets || TempBaseReg == nullptr) {
+    newBaseRegister(Base, Offset, Target->getReservedTmpReg());
   }
 
-  int32_t OffsetDiff = Offset - *NewBaseOffset;
-  if (!isLegalMemOffset(Ty, OffsetDiff)) {
-    *NewBaseReg = newBaseRegister(Offset, OrigBaseReg);
-    *NewBaseOffset = Offset;
+  int32_t OffsetDiff = Offset - TempBaseOffset;
+  assert(AllowOffsets || OffsetDiff == 0);
+
+  if (!Target->isLegalMemOffset(Ty, OffsetDiff)) {
+    newBaseRegister(Base, Offset, Target->getReservedTmpReg());
     OffsetDiff = 0;
   }
 
-  assert(!(*NewBaseReg)->isRematerializable());
+  assert(!TempBaseReg->isRematerializable());
   return OperandARM32Mem::create(
-      Func, Ty, *NewBaseReg,
-      llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(OffsetDiff)),
+      Target->Func, Ty, TempBaseReg,
+      llvm::cast<ConstantInteger32>(Target->Ctx->getConstantInt32(OffsetDiff)),
       OperandARM32Mem::Offset);
 }
 
-void TargetARM32::legalizeMov(InstARM32Mov *MovInstr, Variable *OrigBaseReg,
-                              Variable **NewBaseReg, int32_t *NewBaseOffset) {
+void TargetARM32::PostLoweringLegalizer::resetTempBaseIfClobberedBy(
+    const Inst *Instr) {
+  bool ClobbersTempBase = false;
+  if (TempBaseReg != nullptr) {
+    Variable *Dest = Instr->getDest();
+    if (llvm::isa<InstARM32Call>(Instr)) {
+      // The following assertion is an invariant, so we remove it from the if
+      // test. If the invariant is ever broken/invalidated/changed, remember
+      // to add it back to the if condition.
+      assert(TempBaseReg->getRegNum() == Target->getReservedTmpReg());
+      // The linker may need to clobber IP if the call is too far from PC. Thus,
+      // we assume IP will be overwritten.
+      ClobbersTempBase = true;
+    } else if (Dest != nullptr &&
+               Dest->getRegNum() == TempBaseReg->getRegNum()) {
+      // Register redefinition.
+      ClobbersTempBase = true;
+    }
+  }
+
+  if (ClobbersTempBase) {
+    TempBaseReg = nullptr;
+    TempBaseOffset = 0;
+  }
+}
+
+void TargetARM32::PostLoweringLegalizer::legalizeMov(InstARM32Mov *MovInstr) {
   Variable *Dest = MovInstr->getDest();
   assert(Dest != nullptr);
   Type DestTy = Dest->getType();
@@ -1405,31 +1451,33 @@ void TargetARM32::legalizeMov(InstARM32Mov *MovInstr, Variable *OrigBaseReg,
     assert(!SrcR->isRematerializable());
     const int32_t Offset = Dest->getStackOffset();
     // This is a _mov(Mem(), Variable), i.e., a store.
-    _str(SrcR, createMemOperand(DestTy, Offset, OrigBaseReg, NewBaseReg,
-                                NewBaseOffset),
-         MovInstr->getPredicate());
+    Target->_str(SrcR, createMemOperand(DestTy, StackOrFrameReg, Offset),
+                 MovInstr->getPredicate());
     // _str() does not have a Dest, so we add a fake-def(Dest).
-    Context.insert(InstFakeDef::create(Func, Dest));
+    Target->Context.insert(InstFakeDef::create(Target->Func, Dest));
     Legalized = true;
   } else if (auto *Var = llvm::dyn_cast<Variable>(Src)) {
     if (Var->isRematerializable()) {
-      // Rematerialization arithmetic.
+      // This is equivalent to an x86 _lea(RematOffset(%esp/%ebp), Variable).
+
+      // ExtraOffset is only needed for frame-pointer based frames as we have
+      // to account for spill storage.
       const int32_t ExtraOffset =
-          (static_cast<SizeT>(Var->getRegNum()) == getFrameReg())
-              ? getFrameFixedAllocaOffset()
+          (static_cast<SizeT>(Var->getRegNum()) == Target->getFrameReg())
+              ? Target->getFrameFixedAllocaOffset()
               : 0;
 
       const int32_t Offset = Var->getStackOffset() + ExtraOffset;
-      Operand *OffsetRF = legalize(Ctx->getConstantInt32(Offset),
-                                   Legal_Reg | Legal_Flex, Dest->getRegNum());
-      _add(Dest, Var, OffsetRF);
+      Variable *Base = Target->getPhysicalRegister(Var->getRegNum());
+      Variable *T = newBaseRegister(Base, Offset, Dest->getRegNum());
+      Target->_mov(Dest, T);
       Legalized = true;
     } else {
       if (!Var->hasReg()) {
+        // This is a _mov(Variable, Mem()), i.e., a load.
         const int32_t Offset = Var->getStackOffset();
-        _ldr(Dest, createMemOperand(DestTy, Offset, OrigBaseReg, NewBaseReg,
-                                    NewBaseOffset),
-             MovInstr->getPredicate());
+        Target->_ldr(Dest, createMemOperand(DestTy, StackOrFrameReg, Offset),
+                     MovInstr->getPredicate());
         Legalized = true;
       }
     }
@@ -1437,13 +1485,105 @@ void TargetARM32::legalizeMov(InstARM32Mov *MovInstr, Variable *OrigBaseReg,
 
   if (Legalized) {
     if (MovInstr->isDestRedefined()) {
-      _set_dest_redefined();
+      Target->_set_dest_redefined();
     }
     MovInstr->setDeleted();
   }
 }
 
-void TargetARM32::legalizeStackSlots() {
+// ARM32 address modes:
+//  ld/st i[8|16|32]: [reg], [reg +/- imm12], [pc +/- imm12],
+//                    [reg +/- reg << shamt5]
+//  ld/st f[32|64]  : [reg], [reg +/- imm8] , [pc +/- imm8]
+//  ld/st vectors   : [reg]
+//
+// For now, we don't handle address modes with Relocatables.
+namespace {
+// MemTraits contains per-type valid address mode information.
+#define X(tag, elementty, int_width, vec_width, sbits, ubits, rraddr, shaddr)  \
+  static_assert(!(shaddr) || rraddr, "Check ICETYPEARM32_TABLE::" #tag);
+ICETYPEARM32_TABLE
+#undef X
+
+static const struct {
+  int32_t ValidImmMask;
+  bool CanHaveImm;
+  bool CanHaveIndex;
+  bool CanHaveShiftedIndex;
+} MemTraits[] = {
+#define X(tag, elementty, int_width, vec_width, sbits, ubits, rraddr, shaddr)  \
+  { (1 << ubits) - 1, (ubits) > 0, rraddr, shaddr, }                           \
+  ,
+    ICETYPEARM32_TABLE
+#undef X
+};
+static constexpr SizeT MemTraitsSize = llvm::array_lengthof(MemTraits);
+} // end of anonymous namespace
+
+OperandARM32Mem *
+TargetARM32::PostLoweringLegalizer::legalizeMemOperand(OperandARM32Mem *Mem,
+                                                       bool AllowOffsets) {
+  assert(!Mem->isRegReg() || !Mem->getIndex()->isRematerializable());
+  assert(
+      Mem->isRegReg() ||
+      Target->isLegalMemOffset(Mem->getType(), Mem->getOffset()->getValue()));
+
+  bool Legalized = false;
+  Variable *Base = Mem->getBase();
+  int32_t Offset = Mem->isRegReg() ? 0 : Mem->getOffset()->getValue();
+  if (Base->isRematerializable()) {
+    const int32_t ExtraOffset =
+        (static_cast<SizeT>(Base->getRegNum()) == Target->getFrameReg())
+            ? Target->getFrameFixedAllocaOffset()
+            : 0;
+    Offset += Base->getStackOffset() + ExtraOffset;
+    Base = Target->getPhysicalRegister(Base->getRegNum());
+    assert(!Base->isRematerializable());
+    Legalized = true;
+  }
+
+  if (!Legalized) {
+    return nullptr;
+  }
+
+  if (!Mem->isRegReg()) {
+    return createMemOperand(Mem->getType(), Base, Offset, AllowOffsets);
+  }
+
+  assert(MemTraits[Mem->getType()].CanHaveIndex);
+
+  if (Offset != 0) {
+    if (TempBaseReg == nullptr) {
+      Base = newBaseRegister(Base, Offset, Target->getReservedTmpReg());
+    } else {
+      uint32_t Imm8, Rotate;
+      const int32_t OffsetDiff = Offset - TempBaseOffset;
+      if (OffsetDiff == 0) {
+        Base = TempBaseReg;
+      } else if (OperandARM32FlexImm::canHoldImm(OffsetDiff, &Rotate, &Imm8)) {
+        auto *OffsetDiffF = OperandARM32FlexImm::create(
+            Target->Func, IceType_i32, Imm8, Rotate);
+        Target->_add(TempBaseReg, TempBaseReg, OffsetDiffF);
+        TempBaseOffset += OffsetDiff;
+        Base = TempBaseReg;
+      } else if (OperandARM32FlexImm::canHoldImm(-OffsetDiff, &Rotate, &Imm8)) {
+        auto *OffsetDiffF = OperandARM32FlexImm::create(
+            Target->Func, IceType_i32, Imm8, Rotate);
+        Target->_sub(TempBaseReg, TempBaseReg, OffsetDiffF);
+        TempBaseOffset += OffsetDiff;
+        Base = TempBaseReg;
+      } else {
+        Base = newBaseRegister(Base, Offset, Target->getReservedTmpReg());
+      }
+    }
+  }
+
+  return OperandARM32Mem::create(Target->Func, Mem->getType(), Base,
+                                 Mem->getIndex(), Mem->getShiftOp(),
+                                 Mem->getShiftAmt(), Mem->getAddrMode());
+}
+
+void TargetARM32::postLowerLegalization() {
   // If a stack variable's frame offset doesn't fit, convert from:
   //   ldr X, OFF[SP]
   // to:
@@ -1453,9 +1593,8 @@ void TargetARM32::legalizeStackSlots() {
   //
   // This is safe because we have reserved TMP, and add for ARM does not
   // clobber the flags register.
-  Func->dump("Before legalizeStackSlots");
+  Func->dump("Before postLowerLegalization");
   assert(hasComputedFrame());
-  Variable *OrigBaseReg = getPhysicalRegister(getFrameOrStackReg());
   // Do a fairly naive greedy clustering for now. Pick the first stack slot
   // that's out of bounds and make a new base reg using the architecture's temp
   // register. If that works for the next slot, then great. Otherwise, create a
@@ -1467,24 +1606,53 @@ void TargetARM32::legalizeStackSlots() {
   // don't depend on this legalization.
   for (CfgNode *Node : Func->getNodes()) {
     Context.init(Node);
-    Variable *NewBaseReg = nullptr;
-    int32_t NewBaseOffset = 0;
+    // One legalizer per basic block, otherwise we would share the Temporary
+    // Base Register between basic blocks.
+    PostLoweringLegalizer Legalizer(this);
     while (!Context.atEnd()) {
       PostIncrLoweringContext PostIncrement(Context);
       Inst *CurInstr = Context.getCur();
-      Variable *Dest = CurInstr->getDest();
 
-      // Check if the previous NewBaseReg is clobbered, and reset if needed.
-      if ((Dest && NewBaseReg && Dest->hasReg() &&
-           Dest->getRegNum() == NewBaseReg->getBaseRegNum()) ||
-          llvm::isa<InstFakeKill>(CurInstr)) {
-        NewBaseReg = nullptr;
-        NewBaseOffset = 0;
-      }
+      // Check if the previous TempBaseReg is clobbered, and reset if needed.
+      Legalizer.resetTempBaseIfClobberedBy(CurInstr);
 
       if (auto *MovInstr = llvm::dyn_cast<InstARM32Mov>(CurInstr)) {
-        legalizeMov(MovInstr, OrigBaseReg, &NewBaseReg, &NewBaseOffset);
+        Legalizer.legalizeMov(MovInstr);
+      } else if (auto *LdrInstr = llvm::dyn_cast<InstARM32Ldr>(CurInstr)) {
+        if (OperandARM32Mem *LegalMem = Legalizer.legalizeMemOperand(
+                llvm::cast<OperandARM32Mem>(LdrInstr->getSrc(0)))) {
+          _ldr(CurInstr->getDest(), LegalMem, LdrInstr->getPredicate());
+          CurInstr->setDeleted();
+        }
+      } else if (auto *LdrexInstr = llvm::dyn_cast<InstARM32Ldrex>(CurInstr)) {
+        constexpr bool DisallowOffsetsBecauseLdrex = false;
+        if (OperandARM32Mem *LegalMem = Legalizer.legalizeMemOperand(
+                llvm::cast<OperandARM32Mem>(LdrexInstr->getSrc(0)),
+                DisallowOffsetsBecauseLdrex)) {
+          _ldrex(CurInstr->getDest(), LegalMem, LdrexInstr->getPredicate());
+          CurInstr->setDeleted();
+        }
+      } else if (auto *StrInstr = llvm::dyn_cast<InstARM32Str>(CurInstr)) {
+        if (OperandARM32Mem *LegalMem = Legalizer.legalizeMemOperand(
+                llvm::cast<OperandARM32Mem>(StrInstr->getSrc(1)))) {
+          _str(llvm::cast<Variable>(CurInstr->getSrc(0)), LegalMem,
+               StrInstr->getPredicate());
+          CurInstr->setDeleted();
+        }
+      } else if (auto *StrexInstr = llvm::dyn_cast<InstARM32Strex>(CurInstr)) {
+        constexpr bool DisallowOffsetsBecauseStrex = false;
+        if (OperandARM32Mem *LegalMem = Legalizer.legalizeMemOperand(
+                llvm::cast<OperandARM32Mem>(StrexInstr->getSrc(1)),
+                DisallowOffsetsBecauseStrex)) {
+          _strex(CurInstr->getDest(), llvm::cast<Variable>(CurInstr->getSrc(0)),
+                 LegalMem, StrexInstr->getPredicate());
+          CurInstr->setDeleted();
+        }
       }
+
+      // Sanity-check: the Legalizer will either have no Temp, or it will be
+      // bound to IP.
+      Legalizer.assertNoTempOrAssignedToIP();
     }
   }
 }
@@ -1502,15 +1670,14 @@ Operand *TargetARM32::loOperand(Operand *Operand) {
     // increment) in case of duplication.
     assert(Mem->getAddrMode() == OperandARM32Mem::Offset ||
            Mem->getAddrMode() == OperandARM32Mem::NegOffset);
-    Variable *BaseR = legalizeToReg(Mem->getBase());
     if (Mem->isRegReg()) {
       Variable *IndexR = legalizeToReg(Mem->getIndex());
-      return OperandARM32Mem::create(Func, IceType_i32, BaseR, IndexR,
+      return OperandARM32Mem::create(Func, IceType_i32, Mem->getBase(), IndexR,
                                      Mem->getShiftOp(), Mem->getShiftAmt(),
                                      Mem->getAddrMode());
     } else {
-      return OperandARM32Mem::create(Func, IceType_i32, BaseR, Mem->getOffset(),
-                                     Mem->getAddrMode());
+      return OperandARM32Mem::create(Func, IceType_i32, Mem->getBase(),
+                                     Mem->getOffset(), Mem->getAddrMode());
     }
   }
   llvm::report_fatal_error("Unsupported operand type");
@@ -4791,35 +4958,6 @@ bool matchOffsetBase(const VariablesMetadata *VMetadata, Variable **Base,
 }
 } // end of anonymous namespace
 
-// ARM32 address modes:
-//  ld/st i[8|16|32]: [reg], [reg +/- imm12], [pc +/- imm12],
-//                    [reg +/- reg << shamt5]
-//  ld/st f[32|64]  : [reg], [reg +/- imm8] , [pc +/- imm8]
-//  ld/st vectors   : [reg]
-//
-// For now, we don't handle address modes with Relocatables.
-namespace {
-// MemTraits contains per-type valid address mode information.
-#define X(tag, elementty, int_width, vec_width, sbits, ubits, rraddr, shaddr)  \
-  static_assert(!(shaddr) || rraddr, "Check ICETYPEARM32_TABLE::" #tag);
-ICETYPEARM32_TABLE
-#undef X
-
-static const struct {
-  int32_t ValidImmMask;
-  bool CanHaveImm;
-  bool CanHaveIndex;
-  bool CanHaveShiftedIndex;
-} MemTraits[] = {
-#define X(tag, elementty, int_width, vec_width, sbits, ubits, rraddr, shaddr)  \
-  { (1 << ubits) - 1, (ubits) > 0, rraddr, shaddr, }                           \
-  ,
-    ICETYPEARM32_TABLE
-#undef X
-};
-static constexpr SizeT MemTraitsSize = llvm::array_lengthof(MemTraits);
-} // end of anonymous namespace
-
 OperandARM32Mem *TargetARM32::formAddressingMode(Type Ty, Cfg *Func,
                                                  const Inst *LdSt,
                                                  Operand *Base) {
@@ -4955,17 +5093,15 @@ OperandARM32Mem *TargetARM32::formAddressingMode(Type Ty, Cfg *Func,
   assert(OffsetImm < 0 ? (ValidImmMask & -OffsetImm) == -OffsetImm
                        : (ValidImmMask & OffsetImm) == OffsetImm);
 
-  Variable *BaseR = makeReg(getPointerType());
-  Context.insert(InstAssign::create(Func, BaseR, BaseVar));
   if (OffsetReg != nullptr) {
     Variable *OffsetR = makeReg(getPointerType());
     Context.insert(InstAssign::create(Func, OffsetR, OffsetReg));
-    return OperandARM32Mem::create(Func, Ty, BaseR, OffsetR, ShiftKind,
+    return OperandARM32Mem::create(Func, Ty, BaseVar, OffsetR, ShiftKind,
                                    OffsetRegShamt);
   }
 
   return OperandARM32Mem::create(
-      Func, Ty, BaseR,
+      Func, Ty, BaseVar,
       llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(OffsetImm)));
 }
 
@@ -5189,7 +5325,8 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
     Variable *RegBase = nullptr;
     Variable *RegIndex = nullptr;
     assert(Base);
-    RegBase = legalizeToReg(Base);
+    RegBase = llvm::cast<Variable>(
+        legalize(Base, Legal_Reg | Legal_Rematerializable));
     assert(Ty < MemTraitsSize);
     if (Index) {
       assert(Offset == nullptr);
@@ -5324,6 +5461,10 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
 
   if (auto *Var = llvm::dyn_cast<Variable>(From)) {
     if (Var->isRematerializable()) {
+      if (Allowed & Legal_Rematerializable) {
+        return From;
+      }
+
       // TODO(jpp): We don't need to rematerialize Var if legalize() was invoked
       // for a Variable in a Mem operand.
       Variable *T = makeReg(Var->getType(), RegNum);
@@ -5386,9 +5527,10 @@ OperandARM32Mem *TargetARM32::formMemoryOperand(Operand *Operand, Type Ty) {
   // If we didn't do address mode optimization, then we only have a
   // base/offset to work with. ARM always requires a base register, so
   // just use that to hold the operand.
-  Variable *BaseR = legalizeToReg(Operand);
+  Variable *Base = llvm::cast<Variable>(
+      legalize(Operand, Legal_Reg | Legal_Rematerializable));
   return OperandARM32Mem::create(
-      Func, Ty, BaseR,
+      Func, Ty, Base,
       llvm::cast<ConstantInteger32>(Ctx->getConstantZero(IceType_i32)));
 }
 

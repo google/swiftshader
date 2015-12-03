@@ -90,7 +90,7 @@ public:
   SizeT getFrameOrStackReg() const override {
     return UsesFramePointer ? getFrameReg() : getStackReg();
   }
-  SizeT getReservedTmpReg() const { return RegARM32::Reg_ip; }
+  int32_t getReservedTmpReg() const { return RegARM32::Reg_ip; }
 
   size_t typeWidthInBytesOnStack(Type Ty) const override {
     // Round up to the next multiple of 4 bytes. In particular, i1, i8, and i16
@@ -141,12 +141,12 @@ public:
   }
 
   enum OperandLegalization {
-    Legal_None = 0,
     Legal_Reg = 1 << 0,  /// physical register, not stack location
     Legal_Flex = 1 << 1, /// A flexible operand2, which can hold rotated small
                          /// immediates, shifted registers, or modified fp imm.
     Legal_Mem = 1 << 2,  /// includes [r0, r1 lsl #2] as well as [sp, #12]
-    Legal_All = ~Legal_None
+    Legal_Rematerializable = 1 << 3,
+    Legal_All = ~Legal_Rematerializable,
   };
 
   using LegalMask = uint32_t;
@@ -816,35 +816,67 @@ protected:
   // method that the Parser could call.
   void findMaxStackOutArgsSize();
 
-  /// Run a pass through stack variables and ensure that the offsets are legal.
-  /// If the offset is not legal, use a new base register that accounts for the
-  /// offset, such that the addressing mode offset bits are now legal.
-  void legalizeStackSlots();
-  /// Returns true if the given Offset can be represented in a ldr/str.
+  /// Returns true if the given Offset can be represented in a Load/Store Mem
+  /// Operand.
   bool isLegalMemOffset(Type Ty, int32_t Offset) const;
-  // Creates a new Base register centered around
-  // [OrigBaseReg, +/- Offset].
-  Variable *newBaseRegister(int32_t Offset, Variable *OrigBaseReg);
-  /// Creates a new, legal OperandARM32Mem for accessing OrigBase + Offset. The
-  /// returned mem operand is a legal operand for accessing memory that is of
-  /// type Ty.
-  ///
-  /// If [OrigBaseReg, #Offset] is encodable, then the method returns a Mem
-  /// operand expressing it. Otherwise,
-  ///
-  /// if [*NewBaseReg, #Offset-*NewBaseOffset] is encodable, the method will
-  /// return that. Otherwise,
-  ///
-  /// a new base register ip=OrigBaseReg+Offset is created, and the method
-  /// returns [ip, #0].
-  OperandARM32Mem *createMemOperand(Type Ty, int32_t Offset,
-                                    Variable *OrigBaseReg,
-                                    Variable **NewBaseReg,
-                                    int32_t *NewBaseOffset);
-  /// Legalizes Mov if its Source (or Destination) is a spilled Variable. Moves
-  /// to memory become store instructions, and moves from memory, loads.
-  void legalizeMov(InstARM32Mov *Mov, Variable *OrigBaseReg,
-                   Variable **NewBaseReg, int32_t *NewBaseOffset);
+
+  void postLowerLegalization();
+
+  class PostLoweringLegalizer {
+    PostLoweringLegalizer() = delete;
+    PostLoweringLegalizer(const PostLoweringLegalizer &) = delete;
+    PostLoweringLegalizer &operator=(const PostLoweringLegalizer &) = delete;
+
+  public:
+    explicit PostLoweringLegalizer(TargetARM32 *Target)
+        : Target(Target), StackOrFrameReg(Target->getPhysicalRegister(
+                              Target->getFrameOrStackReg())) {}
+
+    void resetTempBaseIfClobberedBy(const Inst *Instr);
+
+    // Ensures that the TempBase register held by the this legalizer (if any) is
+    // assigned to IP.
+    void assertNoTempOrAssignedToIP() const {
+      assert(TempBaseReg == nullptr ||
+             TempBaseReg->getRegNum() == Target->getReservedTmpReg());
+    }
+
+    // Legalizes Mem. if Mem.Base is a Reamaterializable variable, Mem.Offset is
+    // fixed up.
+    OperandARM32Mem *legalizeMemOperand(OperandARM32Mem *Mem,
+                                        bool AllowOffsets = true);
+
+    /// Legalizes Mov if its Source (or Destination) is a spilled Variable, or
+    /// if its Source is a Rematerializable variable (this form is used in lieu
+    /// of lea, which is not available in ARM.)
+    ///
+    /// Moves to memory become store instructions, and moves from memory, loads.
+    void legalizeMov(InstARM32Mov *Mov);
+
+  private:
+    /// Creates a new Base register centered around [Base, +/- Offset].
+    Variable *newBaseRegister(Variable *Base, int32_t Offset,
+                              int32_t ScratchRegNum);
+
+    /// Creates a new, legal OperandARM32Mem for accessing Base + Offset.
+    /// The returned mem operand is a legal operand for accessing memory that is
+    /// of type Ty.
+    ///
+    /// If [Base, #Offset] is encodable, then the method returns a Mem operand
+    /// expressing it. Otherwise,
+    ///
+    /// if [TempBaseReg, #Offset-TempBaseOffset] is a valid memory operand, the
+    /// method will return that. Otherwise,
+    ///
+    /// a new base register ip=Base+Offset is created, and the method returns a
+    /// memory operand expressing [ip, #0].
+    OperandARM32Mem *createMemOperand(Type Ty, Variable *Base, int32_t Offset,
+                                      bool AllowOffsets = true);
+    TargetARM32 *const Target;
+    Variable *const StackOrFrameReg;
+    Variable *TempBaseReg = nullptr;
+    int32_t TempBaseOffset = 0;
+  };
 
   TargetARM32Features CPUFeatures;
   bool UsesFramePointer = false;

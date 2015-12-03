@@ -241,6 +241,9 @@ OperandARM32Mem::OperandARM32Mem(Cfg *Func, Type Ty, Variable *Base,
                                  uint16_t ShiftAmt, AddrMode Mode)
     : OperandARM32(kMem, Ty), Base(Base), ImmOffset(0), Index(Index),
       ShiftOp(ShiftOp), ShiftAmt(ShiftAmt), Mode(Mode) {
+  if (Index->isRematerializable()) {
+    llvm::report_fatal_error("Rematerializable Index Register is not allowed.");
+  }
   NumVars = 2;
   Vars = Func->allocateArrayOf<Variable *>(2);
   Vars[0] = Base;
@@ -257,6 +260,10 @@ bool OperandARM32Mem::canHoldOffset(Type Ty, bool SignExt, int32_t Offset) {
     return Offset == 0;
   // Note that encodings for offsets are sign-magnitude for ARM, so we check
   // with IsAbsoluteUint().
+  // Scalar fp, and vector types require an offset that is aligned to a multiple
+  // of 4.
+  if (isScalarFloatingType(Ty) || isVectorType(Ty))
+    return Utils::IsAligned(Offset, 4) && Utils::IsAbsoluteUint(Bits, Offset);
   return Utils::IsAbsoluteUint(Bits, Offset);
 }
 
