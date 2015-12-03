@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1bc533ce_44b66e17",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2379,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-12-03T02:59:50Z",
+      "side": 1,
+      "message": "nit: Let\u0027s move this after the closing bracket. It currently looks like a fall-through case. Same for the ones below.",
+      "range": {
+        "startLine": 2379,
+        "startChar": 4,
+        "endLine": 2379,
+        "endChar": 10
+      },
+      "revId": "c205c97d194f41ab1e2e29767a35f847f862618b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1bc533ce_c477fe1c",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1984,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-12-03T02:59:50Z",
+      "side": 1,
+      "message": "Division is really expensive. Note that this first divides it, and then address() multiplies it again to get integer coordinates. So it can be entirely eliminated when you move this into address().",
+      "range": {
+        "startLine": 1984,
+        "startChar": 14,
+        "endLine": 1984,
+        "endChar": 15
+      },
+      "revId": "c205c97d194f41ab1e2e29767a35f847f862618b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1bc533ce_847d0601",
+        "filename": "src/Shader/SamplerCore.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-12-03T02:59:50Z",
+      "side": 1,
+      "message": "This can just be part of address(). Create a new AddressingMode for it.\n\nOn a different note, I\u0027ve noticed that C++11 provides stronger guarantees of return value optimization. This would enable us to just return a Reactor variable \u0027by value\u0027 without invoking any copy constructor which would generate extra LLVM operations.",
+      "range": {
+        "startLine": 50,
+        "startChar": 2,
+        "endLine": 50,
+        "endChar": 68
+      },
+      "revId": "c205c97d194f41ab1e2e29767a35f847f862618b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
