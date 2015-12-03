@@ -3096,6 +3096,8 @@ namespace sw
 
 	void Surface::clearDepthBuffer(float depth, int x0, int y0, int width, int height)
 	{
+		if(width == 0 || height == 0) return;
+
 		// Not overlapping
 		if(x0 > internal.width) return;
 		if(y0 > internal.height) return;
@@ -3142,6 +3144,11 @@ namespace sw
 
 			float *buffer = (float*)lockInternal(0, 0, 0, lock, PUBLIC);
 
+			int oddX0 = (x0 & ~1) * 2 + (x0 & 1);
+			int oddX1 = (x1 & ~1) * 2;
+			int evenX0 = ((x0 + 1) & ~1) * 2;
+			int evenBytes = (oddX1 - evenX0) * sizeof(float);
+
 			for(int z = 0; z < internal.depth; z++)
 			{
 				for(int y = y0; y < y1; y++)
@@ -3152,11 +3159,11 @@ namespace sw
 					{
 						if((x0 & 1) != 0)
 						{
-							target[(x0 & ~1) * 2 + 1] = depth;
-							target[(x0 & ~1) * 2 + 3] = depth;
+							target[oddX0 + 0] = depth;
+							target[oddX0 + 2] = depth;
 						}
 
-					//	for(int x2 = ((x0 + 1) & ~1) * 2; x2 < x1 * 2; x2 += 4)
+					//	for(int x2 = evenX0; x2 < x1 * 2; x2 += 4)
 					//	{
 					//		target[x2 + 0] = depth;
 					//		target[x2 + 1] = depth;
@@ -3186,21 +3193,21 @@ namespace sw
 					//	qEnd:
 					//	}
 
-						memfill4(&target[((x0 + 1) & ~1) * 2], (int&)depth, 8 * ((x1 & ~1) - ((x0 + 1) & ~1)));
+						memfill4(&target[evenX0], (int&)depth, evenBytes);
 
 						if((x1 & 1) != 0)
 						{
-							target[(x1 & ~1) * 2 + 0] = depth;
-							target[(x1 & ~1) * 2 + 2] = depth;
+							target[oddX1 + 0] = depth;
+							target[oddX1 + 2] = depth;
 						}
 
 						y++;
 					}
 					else
 					{
-						for(int x = x0; x < x1; x++)
+						for(int x = x0, i = oddX0; x < x1; x++, i = (x & ~1) * 2 + (x & 1))
 						{
-							target[(x & ~1) * 2 + (x & 1)] = depth;
+							target[i] = depth;
 						}
 					}
 				}
@@ -3214,7 +3221,7 @@ namespace sw
 
 	void Surface::clearStencilBuffer(unsigned char s, unsigned char mask, int x0, int y0, int width, int height)
 	{
-		if(mask == 0) return;
+		if(mask == 0 || width == 0 || height == 0) return;
 
 		// Not overlapping
 		if(x0 > internal.width) return;
@@ -3232,6 +3239,11 @@ namespace sw
 
 		int x1 = x0 + width;
 		int y1 = y0 + height;
+
+		int oddX0 = (x0 & ~1) * 2 + (x0 & 1);
+		int oddX1 = (x1 & ~1) * 2;
+		int evenX0 = ((x0 + 1) & ~1) * 2;
+		int evenBytes = oddX1 - evenX0;
 
 		unsigned char maskedS = s & mask;
 		unsigned char invMask = ~mask;
@@ -3251,25 +3263,25 @@ namespace sw
 				{
 					if((x0 & 1) != 0)
 					{
-						target[(x0 & ~1) * 2 + 1] = fill;
-						target[(x0 & ~1) * 2 + 3] = fill;
+						target[oddX0 + 0] = fill;
+						target[oddX0 + 2] = fill;
 					}
 
-					memfill4(&target[((x0 + 1) & ~1) * 2], fill, ((x1 + 1) & ~1) * 2 - ((x0 + 1) & ~1) * 2);
+					memfill4(&target[evenX0], fill, evenBytes);
 
 					if((x1 & 1) != 0)
 					{
-						target[(x1 & ~1) * 2 + 0] = fill;
-						target[(x1 & ~1) * 2 + 2] = fill;
+						target[oddX1 + 0] = fill;
+						target[oddX1 + 2] = fill;
 					}
 
 					y++;
 				}
 				else
 				{
-					for(int x = x0; x < x1; x++)
+					for(int x = x0, i = oddX0; x < x1; x++, i = (x & ~1) * 2 + (x & 1))
 					{
-						target[(x & ~1) * 2 + (x & 1)] = maskedS | (target[x] & invMask);
+						target[i] = maskedS | (target[i] & invMask);
 					}
 				}
 			}
