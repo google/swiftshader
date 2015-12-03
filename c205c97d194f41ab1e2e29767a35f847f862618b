@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1bc533ce_079598ff",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2379,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-12-03T15:48:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1bc533ce_44b66e17",
+      "range": {
+        "startLine": 2379,
+        "startChar": 4,
+        "endLine": 2379,
+        "endChar": 10
+      },
+      "revId": "c205c97d194f41ab1e2e29767a35f847f862618b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1bc533ce_c477fe1c",
         "filename": "src/Shader/SamplerCore.cpp",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2015-12-03T02:59:50Z",
       "side": 1,
       "message": "Division is really expensive. Note that this first divides it, and then address() multiplies it again to get integer coordinates. So it can be entirely eliminated when you move this into address().",
+      "range": {
+        "startLine": 1984,
+        "startChar": 14,
+        "endLine": 1984,
+        "endChar": 15
+      },
+      "revId": "c205c97d194f41ab1e2e29767a35f847f862618b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1bc533ce_c7b260be",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1984,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-12-03T15:48:43Z",
+      "side": 1,
+      "message": "The problem is that, if you look at SamplerCore::sampleFloat3D(), the \"w\" value, which is the result of this division, is used in other calls to sampleTexel. Note that, inside sampleTexel, that value is only used as the \"z\" for what appears to be depth computation (is this correct?). We could always do the division there if required, when using a texture2darray.",
+      "parentUuid": "1bc533ce_c477fe1c",
       "range": {
         "startLine": 1984,
         "startChar": 14,
