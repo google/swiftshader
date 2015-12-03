@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1bc533ce_a7cc843e",
+        "filename": "src/Common/SharedLibrary.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-12-03T16:17:49Z",
+      "side": 0,
+      "message": "Change removed",
+      "parentUuid": "1bc533ce_c7ac20b1",
+      "range": {
+        "startLine": 121,
+        "startChar": 15,
+        "endLine": 121,
+        "endChar": 21
+      },
+      "revId": "77dfab49323d39ec681165a837dba5a48d2c2d11",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1bc533ce_47b950ec",
         "filename": "src/OpenGL/libGLESv2/Context.cpp",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2015-12-03T04:08:24Z",
       "side": 0,
       "message": "I\u0027m on the fence about this. If we ever decided to make it a signed integer, then the less than zero check makes sense. And the compiler is smart enough to eliminate the check when it\u0027s unsigned.\n\nOn the other hand, glBindTexture clearly takes an unsigned int texture name, so there\u0027s no reason for us to use a signed integer. That would simply be wrong. But it doesn\u0027t mean this check is wrong.",
+      "range": {
+        "startLine": 2104,
+        "startChar": 15,
+        "endLine": 2104,
+        "endChar": 63
+      },
+      "revId": "77dfab49323d39ec681165a837dba5a48d2c2d11",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1bc533ce_47b83091",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2104,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-12-03T16:17:49Z",
+      "side": 0,
+      "message": "Removed the change",
+      "parentUuid": "1bc533ce_47b950ec",
       "range": {
         "startLine": 2104,
         "startChar": 15,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "1bc533ce_67bbac8f",
+        "filename": "src/OpenGL/libGLESv2/Context.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 698,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-12-03T16:17:49Z",
+      "side": 0,
+      "message": "Removed the change",
+      "parentUuid": "1bc533ce_67bc4cde",
+      "range": {
+        "startLine": 698,
+        "startChar": 4,
+        "endLine": 698,
+        "endChar": 37
+      },
+      "revId": "77dfab49323d39ec681165a837dba5a48d2c2d11",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1bc533ce_87cb4875",
         "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
         "patchSetId": 1
@@ -82,6 +154,30 @@
       "writtenOn": "2015-12-03T04:08:24Z",
       "side": 0,
       "message": "Should we be using this in some buffer related functions?",
+      "range": {
+        "startLine": 418,
+        "startChar": 12,
+        "endLine": 418,
+        "endChar": 32
+      },
+      "revId": "77dfab49323d39ec681165a837dba5a48d2c2d11",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1bc533ce_27c1b403",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 418,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-12-03T16:17:49Z",
+      "side": 0,
+      "message": "This was replaced by Context::getBuffer()",
+      "parentUuid": "1bc533ce_87cb4875",
       "range": {
         "startLine": 418,
         "startChar": 12,
