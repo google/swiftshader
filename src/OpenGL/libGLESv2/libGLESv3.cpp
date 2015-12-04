@@ -1583,6 +1583,7 @@ GL_APICALL void GL_APIENTRY glFramebufferTextureLayer(GLenum target, GLenum atta
 	if(context)
 	{
 		Texture* textureObject = context->getTexture(texture);
+		GLenum textarget = GL_NONE;
 		if(texture != 0)
 		{
 			if(!textureObject)
@@ -1590,7 +1591,8 @@ GL_APICALL void GL_APIENTRY glFramebufferTextureLayer(GLenum target, GLenum atta
 				return error(GL_INVALID_VALUE);
 			}
 
-			switch(textureObject->getTarget())
+			textarget = textureObject->getTarget();
+			switch(textarget)
 			{
 			case GL_TEXTURE_3D:
 			case GL_TEXTURE_2D_ARRAY:
@@ -1603,7 +1605,7 @@ GL_APICALL void GL_APIENTRY glFramebufferTextureLayer(GLenum target, GLenum atta
 				return error(GL_INVALID_OPERATION);
 			}
 
-			if(textureObject->isCompressed(target, level))
+			if(textureObject->isCompressed(textarget, level))
 			{
 				return error(GL_INVALID_OPERATION);
 			}
@@ -1621,6 +1623,11 @@ GL_APICALL void GL_APIENTRY glFramebufferTextureLayer(GLenum target, GLenum atta
 			break;
 		default:
 			return error(GL_INVALID_ENUM);
+		}
+
+		if(!framebuffer)
+		{
+			return error(GL_INVALID_OPERATION);
 		}
 
 		switch(attachment)
@@ -1657,33 +1664,17 @@ GL_APICALL void GL_APIENTRY glFramebufferTextureLayer(GLenum target, GLenum atta
 		case GL_COLOR_ATTACHMENT29:
 		case GL_COLOR_ATTACHMENT30:
 		case GL_COLOR_ATTACHMENT31:
-			if(!framebuffer || framebuffer->getColorbufferName(attachment - GL_COLOR_ATTACHMENT0) == 0)
-			{
-				return error(GL_INVALID_OPERATION);
-			}
-			framebuffer->setColorbuffer(target, texture, attachment - GL_COLOR_ATTACHMENT0, layer, level);
+			framebuffer->setColorbuffer(textarget, texture, attachment - GL_COLOR_ATTACHMENT0, level, layer);
 			break;
 		case GL_DEPTH_ATTACHMENT:
-			if(!framebuffer || framebuffer->getDepthbufferName() == 0)
-			{
-				return error(GL_INVALID_OPERATION);
-			}
-			framebuffer->setDepthbuffer(target, texture, layer, level);
+			framebuffer->setDepthbuffer(textarget, texture, level, layer);
 			break;
 		case GL_STENCIL_ATTACHMENT:
-			if(!framebuffer || framebuffer->getStencilbufferName() == 0)
-			{
-				return error(GL_INVALID_OPERATION);
-			}
-			framebuffer->setStencilbuffer(target, texture, layer, level);
+			framebuffer->setStencilbuffer(textarget, texture, level, layer);
 			break;
 		case GL_DEPTH_STENCIL_ATTACHMENT:
-			if(!framebuffer || framebuffer->getDepthbufferName() == 0 || framebuffer->getStencilbufferName() == 0)
-			{
-				return error(GL_INVALID_OPERATION);
-			}
-			framebuffer->setDepthbuffer(target, texture, layer, level);
-			framebuffer->setStencilbuffer(target, texture, layer, level);
+			framebuffer->setDepthbuffer(textarget, texture, level, layer);
+			framebuffer->setStencilbuffer(textarget, texture, level, layer);
 			break;
 		default:
 			return error(GL_INVALID_ENUM);

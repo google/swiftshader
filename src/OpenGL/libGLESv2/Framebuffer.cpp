@@ -277,7 +277,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 				return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 			}
 
-			if(colorbuffer->getWidth() == 0 || colorbuffer->getHeight() == 0)
+			if(colorbuffer->getWidth() == 0 || colorbuffer->getHeight() == 0 || (colorbuffer->getDepth() <= colorbuffer->getLayer()))
 			{
 				return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 			}

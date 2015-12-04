@@ -47,6 +47,7 @@ public:
 
 	virtual GLsizei getWidth() const = 0;
 	virtual GLsizei getHeight() const = 0;
+	virtual GLsizei getDepth() const { return 1; }
 	virtual GLint getLayer() const { return 0; }
 	virtual GLenum getFormat() const = 0;
 	virtual sw::Format getInternalFormat() const = 0;
@@ -101,6 +102,7 @@ public:
 
 	virtual GLsizei getWidth() const;
 	virtual GLsizei getHeight() const;
+	virtual GLsizei getDepth() const;
 	virtual GLint getLayer() const { return mLayer; }
 	virtual GLenum getFormat() const;
 	virtual sw::Format getInternalFormat() const;
@@ -189,6 +191,7 @@ public:
 
 	GLsizei getWidth() const;
 	GLsizei getHeight() const;
+	GLsizei getDepth() const;
 	GLint getLayer() const;
 	GLenum getFormat() const;
 	sw::Format getInternalFormat() const;
