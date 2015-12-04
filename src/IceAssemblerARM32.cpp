@@ -86,7 +86,6 @@ static constexpr IValueT kRotateShift = 8;
 static constexpr IValueT kShiftImmShift = 7;
 static constexpr IValueT kShiftImmBits = 5;
 static constexpr IValueT kShiftShift = 5;
-
 static constexpr IValueT kImmed12Bits = 12;
 static constexpr IValueT kImm12Shift = 0;
 
@@ -113,33 +112,29 @@ static constexpr IOffsetT kPCReadOffset = 8;
 static constexpr int kBranchOffsetBits = 24;
 static constexpr IOffsetT kBranchOffsetMask = 0x00ffffff;
 
-inline IValueT encodeBool(bool B) { return B ? 1 : 0; }
+IValueT encodeBool(bool B) { return B ? 1 : 0; }
 
-inline IValueT encodeRotation(ARM32::AssemblerARM32::RotationValue Value) {
+IValueT encodeRotation(ARM32::AssemblerARM32::RotationValue Value) {
   return static_cast<IValueT>(Value);
 }
 
-inline IValueT encodeGPRRegister(RegARM32::GPRRegister Rn) {
+IValueT encodeGPRRegister(RegARM32::GPRRegister Rn) {
   return static_cast<IValueT>(Rn);
 }
 
-inline RegARM32::GPRRegister decodeGPRRegister(IValueT R) {
+RegARM32::GPRRegister decodeGPRRegister(IValueT R) {
   return static_cast<RegARM32::GPRRegister>(R);
 }
 
-inline bool isGPRRegisterDefined(RegARM32::GPRRegister R) {
-  return R != RegARM32::Encoded_Not_GPR;
-}
-
-inline bool isGPRRegisterDefined(IValueT R) {
+bool isGPRRegisterDefined(IValueT R) {
   return R != encodeGPRRegister(RegARM32::Encoded_Not_GPR);
 }
 
-inline bool isConditionDefined(CondARM32::Cond Cond) {
+bool isConditionDefined(CondARM32::Cond Cond) {
   return Cond != CondARM32::kNone;
 }
 
-inline IValueT encodeCondition(CondARM32::Cond Cond) {
+IValueT encodeCondition(CondARM32::Cond Cond) {
   return static_cast<IValueT>(Cond);
 }
 
@@ -157,23 +152,20 @@ IValueT encodeShift(OperandARM32::ShiftKind Shift) {
   case OperandARM32::RRX:
     return 3; // 0b11
   }
-
   llvm::report_fatal_error("Unknown Shift value");
   return 0;
 }
 
 // Returns the bits in the corresponding masked value.
-inline IValueT mask(IValueT Value, IValueT Shift, IValueT Bits) {
+IValueT mask(IValueT Value, IValueT Shift, IValueT Bits) {
   return (Value >> Shift) & ((1 << Bits) - 1);
 }
 
 // Extract out a Bit in Value.
-inline bool isBitSet(IValueT Bit, IValueT Value) {
-  return (Value & Bit) == Bit;
-}
+bool isBitSet(IValueT Bit, IValueT Value) { return (Value & Bit) == Bit; }
 
 // Returns the GPR register at given Shift in Value.
-inline RegARM32::GPRRegister getGPRReg(IValueT Shift, IValueT Value) {
+RegARM32::GPRRegister getGPRReg(IValueT Shift, IValueT Value) {
   return decodeGPRRegister((Value >> Shift) & 0xF);
 }
 
@@ -211,7 +203,7 @@ enum EncodedOperand {
 };
 
 // Sets Encoding to a rotated Imm8 encoding of Value, if possible.
-inline IValueT encodeRotatedImm8(IValueT RotateAmt, IValueT Immed8) {
+IValueT encodeRotatedImm8(IValueT RotateAmt, IValueT Immed8) {
   assert(RotateAmt < (1 << kRotateBits));
   assert(Immed8 < (1 << kImmed8Bits));
   return (RotateAmt << kRotateShift) | (Immed8 << kImmed8Shift);
@@ -363,6 +355,69 @@ bool canEncodeBranchOffset(IOffsetT Offset) {
          Utils::IsInt(kBranchOffsetBits, Offset >> 2);
 }
 
+IValueT encodeRegister(const Operand *OpReg, const char *RegName,
+                       const char *InstName) {
+  IValueT Reg = 0;
+  if (encodeOperand(OpReg, Reg) != EncodedAsRegister)
+    llvm::report_fatal_error(std::string(InstName) + ": Can't find register " +
+                             RegName);
+  return Reg;
+}
+
+void verifyRegDefined(IValueT Reg, const char *RegName, const char *InstName) {
+  if (BuildDefs::minimal())
+    return;
+  if (!isGPRRegisterDefined(Reg))
+    llvm::report_fatal_error(std::string(InstName) + ": Can't find " + RegName);
+}
+
+void verifyCondDefined(CondARM32::Cond Cond, const char *InstName) {
+  if (BuildDefs::minimal())
+    return;
+  if (!isConditionDefined(Cond))
+    llvm::report_fatal_error(std::string(InstName) + ": Condition not defined");
+}
+
+void verifyPOrNotW(IValueT Address, const char *InstName) {
+  if (BuildDefs::minimal())
+    return;
+  if (!isBitSet(P, Address) && isBitSet(W, Address))
+    llvm::report_fatal_error(std::string(InstName) +
+                             ": P=0 when W=1 not allowed");
+}
+
+void verifyRegsNotEq(IValueT Reg1, const char *Reg1Name, IValueT Reg2,
+                     const char *Reg2Name, const char *InstName) {
+  if (BuildDefs::minimal())
+    return;
+  if (Reg1 == Reg2)
+    llvm::report_fatal_error(std::string(InstName) + ": " + Reg1Name + "=" +
+                             Reg2Name + " not allowed");
+}
+
+void verifyRegNotPc(IValueT Reg, const char *RegName, const char *InstName) {
+  verifyRegsNotEq(Reg, RegName, RegARM32::Encoded_Reg_pc, "pc", InstName);
+}
+
+void verifyAddrRegNotPc(IValueT RegShift, IValueT Address, const char *RegName,
+                        const char *InstName) {
+  if (BuildDefs::minimal())
+    return;
+  if (getGPRReg(RegShift, Address) == RegARM32::Encoded_Reg_pc)
+    llvm::report_fatal_error(std::string(InstName) + ": " + RegName +
+                             "=pc not allowed");
+}
+
+void verifyRegNotPcWhenSetFlags(IValueT Reg, bool SetFlags,
+                                const char *InstName) {
+  if (BuildDefs::minimal())
+    return;
+  if (SetFlags && (Reg == RegARM32::Encoded_Reg_pc))
+    llvm::report_fatal_error(std::string(InstName) + ": " +
+                             RegARM32::RegNames[Reg] +
+                             "=pc not allowed when CC=1");
+}
+
 } // end of anonymous namespace
 
 namespace Ice {
@@ -490,51 +545,46 @@ void AssemblerARM32::emitTextInst(const std::string &Text, SizeT InstSize) {
   }
 }
 
-void AssemblerARM32::emitType01(CondARM32::Cond Cond, IValueT Type,
+void AssemblerARM32::emitType01(CondARM32::Cond Cond, IValueT InstType,
                                 IValueT Opcode, bool SetFlags, IValueT Rn,
                                 IValueT Rd, IValueT Imm12,
-                                EmitChecks RuleChecks) {
+                                EmitChecks RuleChecks, const char *InstName) {
   switch (RuleChecks) {
   case NoChecks:
     break;
   case RdIsPcAndSetFlags:
-    if ((Rd == RegARM32::Encoded_Reg_pc) && SetFlags)
-      // Conditions of rule violated.
-      return setNeedsTextFixup();
+    verifyRegNotPcWhenSetFlags(Rd, SetFlags, InstName);
     break;
   }
-
-  if (!isGPRRegisterDefined(Rd) || !isConditionDefined(Cond))
-    return setNeedsTextFixup();
+  verifyRegDefined(Rd, "Rd", InstName);
+  verifyCondDefined(Cond, InstName);
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   const IValueT Encoding = (encodeCondition(Cond) << kConditionShift) |
-                           (Type << kTypeShift) | (Opcode << kOpcodeShift) |
+                           (InstType << kTypeShift) | (Opcode << kOpcodeShift) |
                            (encodeBool(SetFlags) << kSShift) |
                            (Rn << kRnShift) | (Rd << kRdShift) | Imm12;
   emitInst(Encoding);
 }
 
-void AssemblerARM32::emitType01(IValueT Opcode, const Operand *OpRd,
-                                const Operand *OpRn, const Operand *OpSrc1,
-                                bool SetFlags, CondARM32::Cond Cond,
-                                EmitChecks RuleChecks) {
-  IValueT Rd;
-  if (encodeOperand(OpRd, Rd) != EncodedAsRegister)
-    return setNeedsTextFixup();
-  IValueT Rn;
-  if (encodeOperand(OpRn, Rn) != EncodedAsRegister)
-    return setNeedsTextFixup();
-  emitType01(Opcode, Rd, Rn, OpSrc1, SetFlags, Cond, RuleChecks);
+void AssemblerARM32::emitType01(CondARM32::Cond Cond, IValueT Opcode,
+                                const Operand *OpRd, const Operand *OpRn,
+                                const Operand *OpSrc1, bool SetFlags,
+                                EmitChecks RuleChecks, const char *InstName) {
+  IValueT Rd = encodeRegister(OpRd, "Rd", InstName);
+  IValueT Rn = encodeRegister(OpRn, "Rn", InstName);
+  emitType01(Cond, Opcode, Rd, Rn, OpSrc1, SetFlags, RuleChecks, InstName);
 }
 
-void AssemblerARM32::emitType01(IValueT Opcode, IValueT Rd, IValueT Rn,
-                                const Operand *OpSrc1, bool SetFlags,
-                                CondARM32::Cond Cond, EmitChecks RuleChecks) {
+void AssemblerARM32::emitType01(CondARM32::Cond Cond, IValueT Opcode,
+                                IValueT Rd, IValueT Rn, const Operand *OpSrc1,
+                                bool SetFlags, EmitChecks RuleChecks,
+                                const char *InstName) {
 
   IValueT Src1Value;
   // TODO(kschimpf) Other possible decodings of data operations.
   switch (encodeOperand(OpSrc1, Src1Value)) {
   default:
+    // TODO(kschimpf): Figure out what additional cases need to be handled.
     return setNeedsTextFixup();
   case EncodedAsRegister: {
     // XXX (register)
@@ -545,13 +595,13 @@ void AssemblerARM32::emitType01(IValueT Opcode, IValueT Rd, IValueT Rn,
     constexpr IValueT Imm5 = 0;
     Src1Value = encodeShiftRotateImm5(Src1Value, OperandARM32::kNoShift, Imm5);
     emitType01(Cond, kInstTypeDataRegister, Opcode, SetFlags, Rn, Rd, Src1Value,
-               RuleChecks);
+               RuleChecks, InstName);
     return;
   }
   case EncodedAsShiftedRegister: {
     // Form is defined in case EncodedAsRegister. (i.e. XXX (register)).
     emitType01(Cond, kInstTypeDataRegister, Opcode, SetFlags, Rn, Rd, Src1Value,
-               RuleChecks);
+               RuleChecks, InstName);
     return;
   }
   case EncodedAsConstI32: {
@@ -559,7 +609,8 @@ void AssemblerARM32::emitType01(IValueT Opcode, IValueT Rd, IValueT Rn,
     IValueT RotateAmt;
     IValueT Imm8;
     if (!OperandARM32FlexImm::canHoldImm(Src1Value, &RotateAmt, &Imm8))
-      return setNeedsTextFixup();
+      llvm::report_fatal_error(std::string(InstName) +
+                               ": Immediate rotated constant not valid");
     Src1Value = encodeRotatedImm8(RotateAmt, Imm8);
     // Intentionally fall to next case!
   }
@@ -570,19 +621,18 @@ void AssemblerARM32::emitType01(IValueT Opcode, IValueT Rd, IValueT Rn,
     // cccc0010100snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
     // s=SetFlags and iiiiiiiiiiii=Src1Value defining RotatedImm8.
     emitType01(Cond, kInstTypeDataImmediate, Opcode, SetFlags, Rn, Rd,
-               Src1Value, RuleChecks);
+               Src1Value, RuleChecks, InstName);
     return;
   }
   }
 }
 
 void AssemblerARM32::emitType05(CondARM32::Cond Cond, IOffsetT Offset,
-                                bool Link) {
+                                bool Link, const char *InstName) {
   // cccc101liiiiiiiiiiiiiiiiiiiiiiii where cccc=Cond, l=Link, and
   // iiiiiiiiiiiiiiiiiiiiiiii=
   // EncodedBranchOffset(cccc101l000000000000000000000000, Offset);
-  if (!isConditionDefined(Cond))
-    return setNeedsTextFixup();
+  verifyCondDefined(Cond, InstName);
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   IValueT Encoding = static_cast<int32_t>(Cond) << kConditionShift |
                      5 << kTypeShift | (Link ? 1 : 0) << kLinkShift;
@@ -592,21 +642,22 @@ void AssemblerARM32::emitType05(CondARM32::Cond Cond, IOffsetT Offset,
 
 void AssemblerARM32::emitBranch(Label *L, CondARM32::Cond Cond, bool Link) {
   // TODO(kschimpf): Handle far jumps.
+  constexpr const char *BranchName = "b";
   if (L->isBound()) {
     const int32_t Dest = L->getPosition() - Buffer.size();
-    emitType05(Cond, Dest, Link);
+    emitType05(Cond, Dest, Link, BranchName);
     return;
   }
   const IOffsetT Position = Buffer.size();
   // Use the offset field of the branch instruction for linking the sites.
-  emitType05(Cond, L->getEncodedPosition(), Link);
+  emitType05(Cond, L->getEncodedPosition(), Link, BranchName);
   if (!needsTextFixup())
     L->linkTo(Position);
 }
 
-void AssemblerARM32::emitCompareOp(IValueT Opcode, const Operand *OpRn,
-                                   const Operand *OpSrc1,
-                                   CondARM32::Cond Cond) {
+void AssemblerARM32::emitCompareOp(CondARM32::Cond Cond, IValueT Opcode,
+                                   const Operand *OpRn, const Operand *OpSrc1,
+                                   const char *InstName) {
   // XXX (register)
   //   XXX<c> <Rn>, <Rm>{, <shift>}
   //
@@ -622,17 +673,15 @@ void AssemblerARM32::emitCompareOp(IValueT Opcode, const Operand *OpRn,
   // defining RotatedImm8.
   constexpr bool SetFlags = true;
   constexpr IValueT Rd = RegARM32::Encoded_Reg_r0;
-  IValueT Rn;
-  if (encodeOperand(OpRn, Rn) != EncodedAsRegister)
-    return setNeedsTextFixup();
-  emitType01(Opcode, Rd, Rn, OpSrc1, SetFlags, Cond, NoChecks);
+  IValueT Rn = encodeRegister(OpRn, "Rn", InstName);
+  emitType01(Cond, Opcode, Rd, Rn, OpSrc1, SetFlags, NoChecks, InstName);
 }
 
 void AssemblerARM32::emitMemOp(CondARM32::Cond Cond, IValueT InstType,
                                bool IsLoad, bool IsByte, IValueT Rt,
-                               IValueT Address) {
-  if (!isGPRRegisterDefined(Rt) || !isConditionDefined(Cond))
-    return setNeedsTextFixup();
+                               IValueT Address, const char *InstName) {
+  verifyRegDefined(Rt, "Rt", InstName);
+  verifyCondDefined(Cond, InstName);
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   const IValueT Encoding = (encodeCondition(Cond) << kConditionShift) |
                            (InstType << kTypeShift) | (IsLoad ? L : 0) |
@@ -642,11 +691,12 @@ void AssemblerARM32::emitMemOp(CondARM32::Cond Cond, IValueT InstType,
 
 void AssemblerARM32::emitMemOp(CondARM32::Cond Cond, bool IsLoad, bool IsByte,
                                IValueT Rt, const Operand *OpAddress,
-                               const TargetInfo &TInfo) {
+                               const TargetInfo &TInfo, const char *InstName) {
   IValueT Address;
   switch (encodeAddress(OpAddress, Address, TInfo)) {
   default:
-    return setNeedsTextFixup();
+    llvm::report_fatal_error(std::string(InstName) +
+                             ": Memory address not understood");
   case EncodedAsImmRegOffset: {
     // XXX{B} (immediate):
     //   xxx{b}<c> <Rt>, [<Rn>{, #+/-<imm12>}]      ; p=1, w=0
@@ -659,16 +709,16 @@ void AssemblerARM32::emitMemOp(CondARM32::Cond Cond, bool IsLoad, bool IsByte,
     RegARM32::GPRRegister Rn = getGPRReg(kRnShift, Address);
 
     // Check if conditions of rules violated.
-    if (Rn == RegARM32::Encoded_Reg_pc)
-      return setNeedsTextFixup();
-    if (!isBitSet(P, Address) && isBitSet(W, Address))
-      return setNeedsTextFixup();
+    verifyRegNotPc(Rn, "Rn", InstName);
+    verifyPOrNotW(Address, InstName);
     if (!IsByte && (Rn == RegARM32::Encoded_Reg_sp) && !isBitSet(P, Address) &&
-        isBitSet(U, Address) & !isBitSet(W, Address) &&
+        isBitSet(U, Address) && !isBitSet(W, Address) &&
         (mask(Address, kImm12Shift, kImmed12Bits) == 0x8 /* 000000000100 */))
-      return setNeedsTextFixup();
+      llvm::report_fatal_error(std::string(InstName) +
+                               ": Use push/pop instead");
 
-    return emitMemOp(Cond, kInstTypeMemImmediate, IsLoad, IsByte, Rt, Address);
+    return emitMemOp(Cond, kInstTypeMemImmediate, IsLoad, IsByte, Rt, Address,
+                     InstName);
   }
   case EncodedAsShiftRotateImm5: {
     // XXX{B} (register)
@@ -682,33 +732,29 @@ void AssemblerARM32::emitMemOp(CondARM32::Cond Cond, bool IsLoad, bool IsByte,
     RegARM32::GPRRegister Rm = getGPRReg(kRmShift, Address);
 
     // Check if conditions of rules violated.
-    if (isBitSet(P, Address) && isBitSet(W, Address))
-      // Instruction XXXBT!
-      return setNeedsTextFixup();
-    if (IsByte &&
-        ((Rt == RegARM32::Encoded_Reg_pc) || (Rm == RegARM32::Encoded_Reg_pc)))
-      // Unpredictable.
-      return setNeedsTextFixup();
-    if (!IsByte && Rm == RegARM32::Encoded_Reg_pc)
-      // Unpredictable.
-      return setNeedsTextFixup();
-    if (isBitSet(W, Address) &&
-        ((Rn == RegARM32::Encoded_Reg_pc) || encodeGPRRegister(Rn) == Rt))
-      // Unpredictable
-      return setNeedsTextFixup();
-
-    return emitMemOp(Cond, kInstTypeRegisterShift, IsLoad, IsByte, Rt, Address);
+    verifyPOrNotW(Address, InstName);
+    verifyRegNotPc(Rm, "Rm", InstName);
+    if (IsByte)
+      verifyRegNotPc(Rt, "Rt", InstName);
+    if (isBitSet(W, Address)) {
+      verifyRegNotPc(Rn, "Rn", InstName);
+      verifyRegsNotEq(Rn, "Rn", Rt, "Rt", InstName);
+    }
+    return emitMemOp(Cond, kInstTypeRegisterShift, IsLoad, IsByte, Rt, Address,
+                     InstName);
   }
   }
 }
 
 void AssemblerARM32::emitMemOpEnc3(CondARM32::Cond Cond, IValueT Opcode,
                                    IValueT Rt, const Operand *OpAddress,
-                                   const TargetInfo &TInfo) {
+                                   const TargetInfo &TInfo,
+                                   const char *InstName) {
   IValueT Address;
   switch (encodeAddress(OpAddress, Address, TInfo, OpEncoding3)) {
   default:
-    return setNeedsTextFixup();
+    llvm::report_fatal_error(std::string(InstName) +
+                             ": Memory address not understood");
   case EncodedAsImmRegOffsetEnc3: {
     // XXXH (immediate)
     //   xxxh<c> <Rt>, [<Rn>{, #+-<Imm8>}]
@@ -718,14 +764,12 @@ void AssemblerARM32::emitMemOpEnc3(CondARM32::Cond Cond, IValueT Opcode,
     // cccc000pu0wxnnnnttttiiiiyyyyjjjj where cccc=Cond, nnnn=Rn, tttt=Rt,
     // iiiijjjj=Imm8, pu0w<<21 is a BlockAddr, x000000000000yyyy0000=Opcode,
     // and pu0w0nnnn0000iiii0000jjjj=Address.
-    if (!isGPRRegisterDefined(Rt) || !isConditionDefined(Cond))
-      return setNeedsTextFixup();
-    if (!isBitSet(P, Address) && isBitSet(W, Address))
-      return setNeedsTextFixup();
-    if ((Rt == RegARM32::Encoded_Reg_pc) ||
-        (isBitSet(W, Address) &&
-         (getGPRReg(kRnShift, Address) == decodeGPRRegister(Rt))))
-      return setNeedsTextFixup();
+    verifyRegDefined(Rt, "Rt", InstName);
+    verifyCondDefined(Cond, InstName);
+    verifyPOrNotW(Address, InstName);
+    verifyRegNotPc(Rt, "Rt", InstName);
+    if (isBitSet(W, Address))
+      verifyRegsNotEq(getGPRReg(kRnShift, Address), "Rn", Rt, "Rt", InstName);
     const IValueT Encoding = (encodeCondition(Cond) << kConditionShift) |
                              Opcode | (Rt << kRdShift) | Address;
     AssemblerBuffer::EnsureCapacity ensured(&Buffer);
@@ -739,21 +783,20 @@ void AssemblerARM32::emitMemOpEnc3(CondARM32::Cond Cond, IValueT Opcode,
     // cccc000pu0wxnnnntttt00001011mmmm where cccc=Cond, tttt=Rt, nnnn=Rn,
     // mmmm=Rm, pu0w<<21 is a BlockAddr, x000000000000yyyy0000=Opcode, and
     // pu0w0nnnn000000000000mmmm=Address.
-    if (!isGPRRegisterDefined(Rt) || !isConditionDefined(Cond))
-      return setNeedsTextFixup();
-    if (!isBitSet(P, Address) && isBitSet(W, Address))
-      return setNeedsTextFixup();
-    if (Rt == RegARM32::Encoded_Reg_pc)
-      return setNeedsTextFixup();
-    if (getGPRReg(kRmShift, Address) == RegARM32::Encoded_Reg_pc)
-      return setNeedsTextFixup();
+    verifyRegDefined(Rt, "Rt", InstName);
+    verifyCondDefined(Cond, InstName);
+    verifyPOrNotW(Address, InstName);
+    verifyRegNotPc(Rt, "Rt", InstName);
+    verifyAddrRegNotPc(kRmShift, Address, "Rm", InstName);
     const RegARM32::GPRRegister Rn = getGPRReg(kRnShift, Address);
-    if (isBitSet(W, Address) &&
-        ((Rn == RegARM32::Encoded_Reg_pc) || (encodeGPRRegister(Rn) == Rt)))
-      return setNeedsTextFixup();
+    if (isBitSet(W, Address)) {
+      verifyRegNotPc(Rn, "Rn", InstName);
+      verifyRegsNotEq(Rn, "Rn", Rt, "Rt", InstName);
+    }
     if (mask(Address, kShiftImmShift, 5) != 0)
       // For encoding 3, no shift is allowed.
-      return setNeedsTextFixup();
+      llvm::report_fatal_error(std::string(InstName) +
+                               ": Shift constant not allowed");
     const IValueT Encoding = (encodeCondition(Cond) << kConditionShift) |
                              Opcode | (Rt << kRdShift) | Address;
     AssemblerBuffer::EnsureCapacity ensured(&Buffer);
@@ -763,10 +806,11 @@ void AssemblerARM32::emitMemOpEnc3(CondARM32::Cond Cond, IValueT Opcode,
 }
 
 void AssemblerARM32::emitDivOp(CondARM32::Cond Cond, IValueT Opcode, IValueT Rd,
-                               IValueT Rn, IValueT Rm) {
-  if (!isGPRRegisterDefined(Rd) || !isGPRRegisterDefined(Rn) ||
-      !isGPRRegisterDefined(Rm) || !isConditionDefined(Cond))
-    return setNeedsTextFixup();
+                               IValueT Rn, IValueT Rm, const char *InstName) {
+  verifyRegDefined(Rd, "Rd", InstName);
+  verifyRegDefined(Rn, "Rn", InstName);
+  verifyRegDefined(Rm, "Rm", InstName);
+  verifyCondDefined(Cond, InstName);
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   const IValueT Encoding = Opcode | (encodeCondition(Cond) << kConditionShift) |
                            (Rn << kDivRnShift) | (Rd << kDivRdShift) | B26 |
@@ -777,11 +821,12 @@ void AssemblerARM32::emitDivOp(CondARM32::Cond Cond, IValueT Opcode, IValueT Rd,
 
 void AssemblerARM32::emitMulOp(CondARM32::Cond Cond, IValueT Opcode, IValueT Rd,
                                IValueT Rn, IValueT Rm, IValueT Rs,
-                               bool SetFlags) {
-  if (!isGPRRegisterDefined(Rd) || !isGPRRegisterDefined(Rn) ||
-      !isGPRRegisterDefined(Rm) || !isGPRRegisterDefined(Rs) ||
-      !isConditionDefined(Cond))
-    return setNeedsTextFixup();
+                               bool SetFlags, const char *InstName) {
+  verifyRegDefined(Rd, "Rd", InstName);
+  verifyRegDefined(Rn, "Rn", InstName);
+  verifyRegDefined(Rm, "Rm", InstName);
+  verifyRegDefined(Rs, "Rs", InstName);
+  verifyCondDefined(Cond, InstName);
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   IValueT Encoding = Opcode | (encodeCondition(Cond) << kConditionShift) |
                      (encodeBool(SetFlags) << kSShift) | (Rn << kRnShift) |
@@ -791,10 +836,13 @@ void AssemblerARM32::emitMulOp(CondARM32::Cond Cond, IValueT Opcode, IValueT Rd,
 }
 
 void AssemblerARM32::emitUxt(CondARM32::Cond Cond, IValueT Opcode, IValueT Rd,
-                             IValueT Rn, IValueT Rm, RotationValue Rotation) {
+                             IValueT Rn, IValueT Rm, RotationValue Rotation,
+                             const char *InstName) {
+  verifyCondDefined(Cond, InstName);
   IValueT Rot = encodeRotation(Rotation);
-  if (!isConditionDefined(Cond) || !Utils::IsUint(2, Rot))
-    return setNeedsTextFixup();
+  if (!Utils::IsUint(2, Rot))
+    llvm::report_fatal_error(std::string(InstName) +
+                             ": Illegal rotation value");
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   IValueT Encoding = (encodeCondition(Cond) << kConditionShift) | Opcode |
                      (Rn << kRnShift) | (Rd << kRdShift) |
@@ -804,11 +852,14 @@ void AssemblerARM32::emitUxt(CondARM32::Cond Cond, IValueT Opcode, IValueT Rd,
 
 void AssemblerARM32::emitMultiMemOp(CondARM32::Cond Cond,
                                     BlockAddressMode AddressMode, bool IsLoad,
-                                    IValueT BaseReg, IValueT Registers) {
+                                    IValueT BaseReg, IValueT Registers,
+                                    const char *InstName) {
   constexpr IValueT NumGPRegisters = 16;
-  if (!isConditionDefined(Cond) || !isGPRRegisterDefined(BaseReg) ||
-      Registers >= (1 << NumGPRegisters))
-    return setNeedsTextFixup();
+  verifyCondDefined(Cond, InstName);
+  verifyRegDefined(BaseReg, "base", InstName);
+  if (Registers >= (1 << NumGPRegisters))
+    llvm::report_fatal_error(std::string(InstName) +
+                             ": Register set too large");
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   IValueT Encoding = (encodeCondition(Cond) << kConditionShift) | B27 |
                      AddressMode | (IsLoad ? L : 0) | (BaseReg << kRnShift) |
@@ -830,8 +881,10 @@ void AssemblerARM32::adc(const Operand *OpRd, const Operand *OpRn,
   //
   // cccc0010101snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
   // s=SetFlags and iiiiiiiiiiii=Src1Value defining RotatedImm8.
-  constexpr IValueT Adc = B2 | B0; // 0101
-  emitType01(Adc, OpRd, OpRn, OpSrc1, SetFlags, Cond, RdIsPcAndSetFlags);
+  constexpr const char *AdcName = "adc";
+  constexpr IValueT AdcOpcode = B2 | B0; // 0101
+  emitType01(Cond, AdcOpcode, OpRd, OpRn, OpSrc1, SetFlags, RdIsPcAndSetFlags,
+             AdcName);
 }
 
 void AssemblerARM32::add(const Operand *OpRd, const Operand *OpRn,
@@ -852,8 +905,10 @@ void AssemblerARM32::add(const Operand *OpRd, const Operand *OpRn,
   //
   // cccc0010100snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
   // s=SetFlags and iiiiiiiiiiii=Src1Value defining RotatedImm8.
+  constexpr const char *AddName = "add";
   constexpr IValueT Add = B2; // 0100
-  emitType01(Add, OpRd, OpRn, OpSrc1, SetFlags, Cond, RdIsPcAndSetFlags);
+  emitType01(Cond, Add, OpRd, OpRn, OpSrc1, SetFlags, RdIsPcAndSetFlags,
+             AddName);
 }
 
 void AssemblerARM32::and_(const Operand *OpRd, const Operand *OpRn,
@@ -870,8 +925,10 @@ void AssemblerARM32::and_(const Operand *OpRd, const Operand *OpRn,
   //
   // cccc0010100snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
   // s=SetFlags and iiiiiiiiiiii=Src1Value defining RotatedImm8.
+  constexpr const char *AndName = "and";
   constexpr IValueT And = 0; // 0000
-  emitType01(And, OpRd, OpRn, OpSrc1, SetFlags, Cond, RdIsPcAndSetFlags);
+  emitType01(Cond, And, OpRd, OpRn, OpSrc1, SetFlags, RdIsPcAndSetFlags,
+             AndName);
 }
 
 void AssemblerARM32::b(Label *L, CondARM32::Cond Cond) {
@@ -903,8 +960,10 @@ void AssemblerARM32::bic(const Operand *OpRd, const Operand *OpRn,
   //
   // cccc0011110snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rn, nnnn=Rn,
   // s=SetFlags, and iiiiiiiiiiii=Src1Value defining RotatedImm8.
-  IValueT Opcode = B3 | B2 | B1; // i.e. 1110
-  emitType01(Opcode, OpRd, OpRn, OpSrc1, SetFlags, Cond, RdIsPcAndSetFlags);
+  constexpr const char *BicName = "bic";
+  constexpr IValueT BicOpcode = B3 | B2 | B1; // i.e. 1110
+  emitType01(Cond, BicOpcode, OpRd, OpRn, OpSrc1, SetFlags, RdIsPcAndSetFlags,
+             BicName);
 }
 
 void AssemblerARM32::bl(const ConstantRelocatable *Target) {
@@ -914,24 +973,22 @@ void AssemblerARM32::bl(const ConstantRelocatable *Target) {
   // cccc1011iiiiiiiiiiiiiiiiiiiiiiii where cccc=Cond (not currently allowed)
   // and iiiiiiiiiiiiiiiiiiiiiiii is the (encoded) Target to branch to.
   emitFixup(createBlFixup(Target));
+  constexpr const char *BlName = "bl";
   constexpr CondARM32::Cond Cond = CondARM32::AL;
   constexpr IValueT Immed = 0;
   constexpr bool Link = true;
-  emitType05(Cond, Immed, Link);
+  emitType05(Cond, Immed, Link, BlName);
 }
 
 void AssemblerARM32::blx(const Operand *Target) {
-  IValueT Rm;
-  if (encodeOperand(Target, Rm) != EncodedAsRegister)
-    return setNeedsTextFixup();
   // BLX (register) - ARM section A8.8.26, encoding A1:
   //   blx<c> <Rm>
   //
   // cccc000100101111111111110011mmmm where cccc=Cond (not currently allowed)
   // and mmmm=Rm.
-  if (Rm == RegARM32::Encoded_Reg_pc)
-    // Unpredictable.
-    return setNeedsTextFixup();
+  constexpr const char *BlxName = "Blx";
+  IValueT Rm = encodeRegister(Target, "Rm", BlxName);
+  verifyRegNotPc(Rm, "Rm", BlxName);
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   constexpr CondARM32::Cond Cond = CondARM32::AL;
   int32_t Encoding = (encodeCondition(Cond) << kConditionShift) | B24 | B21 |
@@ -944,8 +1001,9 @@ void AssemblerARM32::bx(RegARM32::GPRRegister Rm, CondARM32::Cond Cond) {
   //   bx<c> <Rm>
   //
   // cccc000100101111111111110001mmmm where mmmm=rm and cccc=Cond.
-  if (!(isGPRRegisterDefined(Rm) && isConditionDefined(Cond)))
-    return setNeedsTextFixup();
+  constexpr const char *BxName = "bx";
+  verifyCondDefined(Cond, BxName);
+  verifyRegDefined(Rm, "Rm", BxName);
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   const IValueT Encoding = (encodeCondition(Cond) << kConditionShift) | B24 |
                            B21 | (0xfff << 8) | B4 |
@@ -966,8 +1024,9 @@ void AssemblerARM32::cmp(const Operand *OpRn, const Operand *OpSrc1,
   //
   // cccc00110101nnnn0000iiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
   // s=SetFlags and iiiiiiiiiiii=Src1Value defining RotatedImm8.
-  constexpr IValueT Opcode = B3 | B1; // ie. 1010
-  emitCompareOp(Opcode, OpRn, OpSrc1, Cond);
+  constexpr const char *CmpName = "cmp";
+  constexpr IValueT CmpOpcode = B3 | B1; // ie. 1010
+  emitCompareOp(Cond, CmpOpcode, OpRn, OpSrc1, CmpName);
 }
 
 void AssemblerARM32::eor(const Operand *OpRd, const Operand *OpRn,
@@ -984,16 +1043,17 @@ void AssemblerARM32::eor(const Operand *OpRd, const Operand *OpRn,
   //
   // cccc0010001snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
   // s=SetFlags and iiiiiiiiiiii=Src1Value defining RotatedImm8.
-  constexpr IValueT Eor = B0; // 0001
-  emitType01(Eor, OpRd, OpRn, OpSrc1, SetFlags, Cond, RdIsPcAndSetFlags);
+  constexpr const char *EorName = "eor";
+  constexpr IValueT EorOpcode = B0; // 0001
+  emitType01(Cond, EorOpcode, OpRd, OpRn, OpSrc1, SetFlags, RdIsPcAndSetFlags,
+             EorName);
 }
 
 void AssemblerARM32::ldr(const Operand *OpRt, const Operand *OpAddress,
                          CondARM32::Cond Cond, const TargetInfo &TInfo) {
+  constexpr const char *LdrName = "ldr";
   constexpr bool IsLoad = true;
-  IValueT Rt;
-  if (encodeOperand(OpRt, Rt) != EncodedAsRegister)
-    return setNeedsTextFixup();
+  IValueT Rt = encodeRegister(OpRt, "Rt", LdrName);
   const Type Ty = OpRt->getType();
   switch (typeWidthInBytesLog2(Ty)) {
   case 3:
@@ -1001,8 +1061,8 @@ void AssemblerARM32::ldr(const Operand *OpRt, const Operand *OpAddress,
   // using two (32-bit) load instructions. Note: Intenionally drop to default
   // case.
   default:
-    llvm::report_fatal_error(std::string("Type ") + typeString(Ty) +
-                             " not implementable using ldr\n");
+    llvm::report_fatal_error(std::string("ldr : Type ") + typeString(Ty) +
+                             " not implementable\n");
   case 0: {
     // Handles i1 and i8 loads.
     //
@@ -1022,7 +1082,7 @@ void AssemblerARM32::ldr(const Operand *OpRt, const Operand *OpAddress,
     // cccc011pu1w1nnnnttttiiiiiss0mmmm where cccc=Cond, tttt=Rt, U=1 if +, pu0b
     // is a BlockAddr, and pu0w0nnnn0000iiiiiss0mmmm=Address.
     constexpr bool IsByte = true;
-    return emitMemOp(Cond, IsLoad, IsByte, Rt, OpAddress, TInfo);
+    return emitMemOp(Cond, IsLoad, IsByte, Rt, OpAddress, TInfo, LdrName);
   }
   case 1: {
     // Handles i16 loads.
@@ -1035,7 +1095,8 @@ void AssemblerARM32::ldr(const Operand *OpRt, const Operand *OpAddress,
     // cccc000pu1w1nnnnttttiiii1011iiii where cccc=Cond, tttt=Rt, nnnn=Rn,
     // iiiiiiii=Imm8, u=1 if +, pu0w is a BlockAddr, and
     // pu0w0nnnn0000iiiiiiiiiiii=Address.
-    return emitMemOpEnc3(Cond, L | B7 | B5 | B4, Rt, OpAddress, TInfo);
+    constexpr const char *Ldrh = "ldrh";
+    return emitMemOpEnc3(Cond, L | B7 | B5 | B4, Rt, OpAddress, TInfo, Ldrh);
   }
   case 2: {
     // Note: Handles i32 and float loads. Target lowering handles i64 and
@@ -1056,7 +1117,7 @@ void AssemblerARM32::ldr(const Operand *OpRt, const Operand *OpAddress,
     // cccc011pu0w1nnnnttttiiiiiss0mmmm where cccc=Cond, tttt=Rt, U=1 if +, pu0b
     // is a BlockAddr, and pu0w0nnnn0000iiiiiss0mmmm=Address.
     constexpr bool IsByte = false;
-    return emitMemOp(Cond, IsLoad, IsByte, Rt, OpAddress, TInfo);
+    return emitMemOp(Cond, IsLoad, IsByte, Rt, OpAddress, TInfo, LdrName);
   }
   }
 }
@@ -1064,27 +1125,25 @@ void AssemblerARM32::ldr(const Operand *OpRt, const Operand *OpAddress,
 void AssemblerARM32::lsl(const Operand *OpRd, const Operand *OpRm,
                          const Operand *OpSrc1, bool SetFlags,
                          CondARM32::Cond Cond) {
-  constexpr IValueT Lsl = B3 | B2 | B0; // 1101
-  constexpr IValueT Rn = 0;             // Rn field is not used.
-  IValueT Rd;
-  if (encodeOperand(OpRd, Rd) != EncodedAsRegister)
-    return setNeedsTextFixup();
-  IValueT Rm;
-  if (encodeOperand(OpRm, Rm) != EncodedAsRegister)
-    return setNeedsTextFixup();
+  constexpr const char *LslName = "lsl";
+  IValueT Rd = encodeRegister(OpRd, "Rd", LslName);
+  IValueT Rm = encodeRegister(OpRm, "Rm", LslName);
   IValueT Value;
   switch (encodeOperand(OpSrc1, Value)) {
   default:
-    return setNeedsTextFixup();
+    llvm::report_fatal_error(std::string(LslName) +
+                             ": Last operand not understood");
   case EncodedAsShiftImm5: {
     // LSL (immediate) - ARM section A8.8.94, encoding A1:
     //   lsl{s}<c> <Rd>, <Rm>, #imm5
     //
     // cccc0001101s0000ddddiiiii000mmmm where cccc=Cond, s=SetFlags, dddd=Rd,
     // iiiii=imm5, and mmmm=Rm.
+    constexpr IValueT LslOpcode = B3 | B2 | B0; // 1101
+    constexpr IValueT Rn = 0;                   // Rn field is not used.
     Value = Value | (Rm << kRmShift);
-    emitType01(Cond, kInstTypeDataRegShift, Lsl, SetFlags, Rn, Rd, Value,
-               RdIsPcAndSetFlags);
+    emitType01(Cond, kInstTypeDataRegShift, LslOpcode, SetFlags, Rn, Rd, Value,
+               RdIsPcAndSetFlags, LslName);
     return;
   }
   case EncodedAsRegister: {
@@ -1093,14 +1152,15 @@ void AssemblerARM32::lsl(const Operand *OpRd, const Operand *OpRm,
     //
     // cccc0001101s0000ddddssss0001mmmm where cccc=Cond, s=SetFlags, dddd=Rd,
     // mmmm=Rm, and ssss=Rs.
-    IValueT Rs;
-    if (encodeOperand(OpSrc1, Rs) != EncodedAsRegister)
-      return setNeedsTextFixup();
-    if ((Rd == RegARM32::Encoded_Reg_pc) || (Rm == RegARM32::Encoded_Reg_pc) ||
-        (Rs == RegARM32::Encoded_Reg_pc))
-      setNeedsTextFixup();
-    emitType01(Cond, kInstTypeDataRegShift, Lsl, SetFlags, Rn, Rd,
-               encodeShiftRotateReg(Rm, OperandARM32::kNoShift, Rs), NoChecks);
+    constexpr IValueT LslOpcode = B3 | B2 | B0; // 1101
+    constexpr IValueT Rn = 0;                   // Rn field is not used.
+    IValueT Rs = encodeRegister(OpSrc1, "Rs", LslName);
+    verifyRegNotPc(Rd, "Rd", LslName);
+    verifyRegNotPc(Rm, "Rm", LslName);
+    verifyRegNotPc(Rs, "Rs", LslName);
+    emitType01(Cond, kInstTypeDataRegShift, LslOpcode, SetFlags, Rn, Rd,
+               encodeShiftRotateReg(Rm, OperandARM32::kNoShift, Rs), NoChecks,
+               LslName);
     return;
   }
   }
@@ -1120,19 +1180,21 @@ void AssemblerARM32::mov(const Operand *OpRd, const Operand *OpSrc,
   // cccc0011101s0000ddddiiiiiiiiiiii where cccc=Cond, s=SetFlags, dddd=Rd,
   // and iiiiiiiiiiii=RotatedImm8=Src.  Note: We don't use movs in this
   // assembler.
-  IValueT Rd;
-  if (encodeOperand(OpRd, Rd) != EncodedAsRegister)
-    return setNeedsTextFixup();
+  constexpr const char *MovName = "mov";
+  IValueT Rd = encodeRegister(OpRd, "Rd", MovName);
   constexpr bool SetFlags = false;
   constexpr IValueT Rn = 0;
-  constexpr IValueT Mov = B3 | B2 | B0; // 1101.
-  emitType01(Mov, Rd, Rn, OpSrc, SetFlags, Cond, RdIsPcAndSetFlags);
+  constexpr IValueT MovOpcode = B3 | B2 | B0; // 1101.
+  emitType01(Cond, MovOpcode, Rd, Rn, OpSrc, SetFlags, RdIsPcAndSetFlags,
+             MovName);
 }
 
 void AssemblerARM32::emitMovw(IValueT Opcode, IValueT Rd, IValueT Imm16,
                               bool SetFlags, CondARM32::Cond Cond) {
-  if (!isConditionDefined(Cond) || !Utils::IsAbsoluteUint(16, Imm16))
-    return setNeedsTextFixup();
+  constexpr const char *MovwName = "movw";
+  verifyCondDefined(Cond, MovwName);
+  if (!Utils::IsAbsoluteUint(16, Imm16))
+    llvm::report_fatal_error(std::string(MovwName) + ": Not I16 constant");
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   const IValueT Encoding = encodeCondition(Cond) << kConditionShift | Opcode |
                            (encodeBool(SetFlags) << kSShift) |
@@ -1143,18 +1205,15 @@ void AssemblerARM32::emitMovw(IValueT Opcode, IValueT Rd, IValueT Imm16,
 
 void AssemblerARM32::movw(const Operand *OpRd, const Operand *OpSrc,
                           CondARM32::Cond Cond) {
-  IValueT Rd;
-  if (encodeOperand(OpRd, Rd) != EncodedAsRegister)
-    return setNeedsTextFixup();
+  constexpr const char *MovwName = "movw";
+  IValueT Rd = encodeRegister(OpRd, "Rd", MovwName);
   if (const auto *Src = llvm::dyn_cast<ConstantRelocatable>(OpSrc)) {
     // MOVW (immediate) - ARM section A8.8.102, encoding A2:
     //  movw<c> <Rd>, #<imm16>
     //
     // cccc00110000iiiiddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, and
     // iiiiiiiiiiiiiiii=imm16.
-    if (!isConditionDefined(Cond))
-      // Conditions of rule violated.
-      return setNeedsTextFixup();
+    verifyCondDefined(Cond, MovwName);
     // Use 0 for the lower 16 bits of the relocatable, and add a fixup to
     // install the correct bits.
     constexpr bool IsMovW = true;
@@ -1166,7 +1225,8 @@ void AssemblerARM32::movw(const Operand *OpRd, const Operand *OpSrc,
   }
   IValueT ConstVal;
   if (encodeOperand(OpSrc, ConstVal) != EncodedAsConstI32)
-    return setNeedsTextFixup();
+    llvm::report_fatal_error(std::string(MovwName) + ": Constant not i32");
+
   // TODO(kschimpf): Determine if we want to handle rotated immediate 8 values
   // to handle cases where the constant is greater than 16 bits (encoding A1
   // below).  For now, handle using encoding A2.
@@ -1183,20 +1243,18 @@ void AssemblerARM32::movw(const Operand *OpRd, const Operand *OpSrc,
 
 void AssemblerARM32::movt(const Operand *OpRd, const Operand *OpSrc,
                           CondARM32::Cond Cond) {
-  IValueT Rd;
-  if (encodeOperand(OpRd, Rd) != EncodedAsRegister)
-    return setNeedsTextFixup();
-  auto *Src = llvm::dyn_cast<ConstantRelocatable>(OpSrc);
-  if (Src == nullptr)
-    return setNeedsTextFixup();
   // MOVT - ARM section A8.8.102, encoding A2:
   //  movt<c> <Rd>, #<imm16>
   //
   // cccc00110100iiiiddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, and
   // iiiiiiiiiiiiiiii=imm16.
-  if (!isConditionDefined(Cond))
-    // Conditions of rule violated.
+  constexpr const char *MovtName = "movt";
+  IValueT Rd = encodeRegister(OpRd, "Rd", MovtName);
+  auto *Src = llvm::dyn_cast<ConstantRelocatable>(OpSrc);
+  if (!Src)
+    // TODO(kschimpf) Figure out what else can appear here.
     return setNeedsTextFixup();
+  verifyCondDefined(Cond, MovtName);
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   // Use 0 for the lower 16 bits of the relocatable, and add a fixup to
   // install the correct bits.
@@ -1222,13 +1280,13 @@ void AssemblerARM32::mvn(const Operand *OpRd, const Operand *OpSrc,
   //
   // cccc0001111s0000ddddiiiiitt0mmmm where cccc=Cond, s=SetFlags=0, dddd=Rd,
   // mmmm=Rm, iiii defines shift constant, and tt=ShiftKind.
-  IValueT Rd;
-  if (encodeOperand(OpRd, Rd) != EncodedAsRegister)
-    return setNeedsTextFixup();
+  constexpr const char *MvnName = "mvn";
+  IValueT Rd = encodeRegister(OpRd, "Rd", MvnName);
   constexpr IValueT MvnOpcode = B3 | B2 | B1 | B0; // i.e. 1111
   constexpr IValueT Rn = 0;
   constexpr bool SetFlags = false;
-  emitType01(MvnOpcode, Rd, Rn, OpSrc, SetFlags, Cond, RdIsPcAndSetFlags);
+  emitType01(Cond, MvnOpcode, Rd, Rn, OpSrc, SetFlags, RdIsPcAndSetFlags,
+             MvnName);
 }
 
 void AssemblerARM32::sbc(const Operand *OpRd, const Operand *OpRn,
@@ -1245,8 +1303,10 @@ void AssemblerARM32::sbc(const Operand *OpRd, const Operand *OpRn,
   //
   // cccc0010110snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
   // s=SetFlags and iiiiiiiiiiii=Src1Value defining RotatedImm8.
-  constexpr IValueT Sbc = B2 | B1; // 0110
-  emitType01(Sbc, OpRd, OpRn, OpSrc1, SetFlags, Cond, RdIsPcAndSetFlags);
+  constexpr const char *SbcName = "sbc";
+  constexpr IValueT SbcOpcode = B2 | B1; // 0110
+  emitType01(Cond, SbcOpcode, OpRd, OpRn, OpSrc1, SetFlags, RdIsPcAndSetFlags,
+             SbcName);
 }
 
 void AssemblerARM32::sdiv(const Operand *OpRd, const Operand *OpRn,
@@ -1256,29 +1316,23 @@ void AssemblerARM32::sdiv(const Operand *OpRd, const Operand *OpRn,
   //
   // cccc01110001dddd1111mmmm0001nnnn where cccc=Cond, dddd=Rd, nnnn=Rn, and
   // mmmm=Rm.
-  IValueT Rd;
-  if (encodeOperand(OpRd, Rd) != EncodedAsRegister)
-    return setNeedsTextFixup();
-  IValueT Rn;
-  if (encodeOperand(OpRn, Rn) != EncodedAsRegister)
-    return setNeedsTextFixup();
-  IValueT Rm;
-  if (encodeOperand(OpSrc1, Rm) != EncodedAsRegister)
-    return setNeedsTextFixup();
-  if (Rd == RegARM32::Encoded_Reg_pc || Rn == RegARM32::Encoded_Reg_pc ||
-      Rm == RegARM32::Encoded_Reg_pc)
-    llvm::report_fatal_error("Sdiv instruction unpredictable on pc");
+  constexpr const char *SdivName = "sdiv";
+  IValueT Rd = encodeRegister(OpRd, "Rd", SdivName);
+  IValueT Rn = encodeRegister(OpRn, "Rn", SdivName);
+  IValueT Rm = encodeRegister(OpSrc1, "Rm", SdivName);
+  verifyRegNotPc(Rd, "Rd", SdivName);
+  verifyRegNotPc(Rn, "Rn", SdivName);
+  verifyRegNotPc(Rm, "Rm", SdivName);
   // Assembler registers rd, rn, rm are encoded as rn, rm, rs.
-  constexpr IValueT Opcode = 0;
-  emitDivOp(Cond, Opcode, Rd, Rn, Rm);
+  constexpr IValueT SdivOpcode = 0;
+  emitDivOp(Cond, SdivOpcode, Rd, Rn, Rm, SdivName);
 }
 
 void AssemblerARM32::str(const Operand *OpRt, const Operand *OpAddress,
                          CondARM32::Cond Cond, const TargetInfo &TInfo) {
+  constexpr const char *StrName = "str";
   constexpr bool IsLoad = false;
-  IValueT Rt;
-  if (encodeOperand(OpRt, Rt) != EncodedAsRegister)
-    return setNeedsTextFixup();
+  IValueT Rt = encodeRegister(OpRt, "Rt", StrName);
   const Type Ty = OpRt->getType();
   switch (typeWidthInBytesLog2(Ty)) {
   case 3:
@@ -1286,8 +1340,8 @@ void AssemblerARM32::str(const Operand *OpRt, const Operand *OpAddress,
   // using two (32-bit) store instructions.  Note: Intenionally drop to
   // default case.
   default:
-    llvm::report_fatal_error(std::string("Type ") + typeString(Ty) +
-                             " not implementable using str\n");
+    llvm::report_fatal_error(std::string(StrName) + ": Type " + typeString(Ty) +
+                             " not implemented");
   case 0: {
     // Handles i1 and i8 stores.
     //
@@ -1299,7 +1353,7 @@ void AssemblerARM32::str(const Operand *OpRt, const Operand *OpAddress,
     // cccc010pu1w0nnnnttttiiiiiiiiiiii where cccc=Cond, tttt=Rt, nnnn=Rn,
     // iiiiiiiiiiii=imm12, u=1 if +.
     constexpr bool IsByte = true;
-    return emitMemOp(Cond, IsLoad, IsByte, Rt, OpAddress, TInfo);
+    return emitMemOp(Cond, IsLoad, IsByte, Rt, OpAddress, TInfo, StrName);
   }
   case 1: {
     // Handles i16 stores.
@@ -1312,7 +1366,8 @@ void AssemblerARM32::str(const Operand *OpRt, const Operand *OpAddress,
     // cccc000pu1w0nnnnttttiiii1011iiii where cccc=Cond, tttt=Rt, nnnn=Rn,
     // iiiiiiii=Imm8, u=1 if +, pu0w is a BlockAddr, and
     // pu0w0nnnn0000iiiiiiiiiiii=Address.
-    return emitMemOpEnc3(Cond, B7 | B5 | B4, Rt, OpAddress, TInfo);
+    constexpr const char *Strh = "strh";
+    return emitMemOpEnc3(Cond, B7 | B5 | B4, Rt, OpAddress, TInfo, Strh);
   }
   case 2: {
     // Note: Handles i32 and float stores. Target lowering handles i64 and
@@ -1326,7 +1381,7 @@ void AssemblerARM32::str(const Operand *OpRt, const Operand *OpAddress,
     // cccc010pu1w0nnnnttttiiiiiiiiiiii where cccc=Cond, tttt=Rt, nnnn=Rn,
     // iiiiiiiiiiii=imm12, u=1 if +.
     constexpr bool IsByte = false;
-    return emitMemOp(Cond, IsLoad, IsByte, Rt, OpAddress, TInfo);
+    return emitMemOp(Cond, IsLoad, IsByte, Rt, OpAddress, TInfo, StrName);
     return setNeedsTextFixup();
   }
   }
@@ -1346,8 +1401,10 @@ void AssemblerARM32::orr(const Operand *OpRd, const Operand *OpRn,
   //
   // cccc0001100snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
   // s=SetFlags and iiiiiiiiiiii=Src1Value defining RotatedImm8.
-  constexpr IValueT Orr = B3 | B2; // i.e. 1100
-  emitType01(Orr, OpRd, OpRn, OpSrc1, SetFlags, Cond, RdIsPcAndSetFlags);
+  constexpr const char *OrrName = "orr";
+  constexpr IValueT OrrOpcode = B3 | B2; // i.e. 1100
+  emitType01(Cond, OrrOpcode, OpRd, OpRn, OpSrc1, SetFlags, RdIsPcAndSetFlags,
+             OrrName);
 }
 
 void AssemblerARM32::pop(const Operand *OpRt, CondARM32::Cond Cond) {
@@ -1355,16 +1412,15 @@ void AssemblerARM32::pop(const Operand *OpRt, CondARM32::Cond Cond) {
   //   pop<c> {Rt}
   //
   // cccc010010011101dddd000000000100 where dddd=Rt and cccc=Cond.
-  IValueT Rt;
-  if (encodeOperand(OpRt, Rt) != EncodedAsRegister)
-    return setNeedsTextFixup();
-  assert(Rt != RegARM32::Encoded_Reg_sp);
+  constexpr const char *Pop = "pop";
+  IValueT Rt = encodeRegister(OpRt, "Rt", Pop);
+  verifyRegsNotEq(Rt, "Rt", RegARM32::Encoded_Reg_sp, "sp", Pop);
   // Same as load instruction.
   constexpr bool IsLoad = true;
   constexpr bool IsByte = false;
   IValueT Address = encodeImmRegOffset(RegARM32::Encoded_Reg_sp, kWordSize,
                                        OperandARM32Mem::PostIndex);
-  emitMemOp(Cond, kInstTypeMemImmediate, IsLoad, IsByte, Rt, Address);
+  emitMemOp(Cond, kInstTypeMemImmediate, IsLoad, IsByte, Rt, Address, Pop);
 }
 
 void AssemblerARM32::popList(const IValueT Registers, CondARM32::Cond Cond) {
@@ -1373,8 +1429,10 @@ void AssemblerARM32::popList(const IValueT Registers, CondARM32::Cond Cond) {
   //
   // cccc100010111101rrrrrrrrrrrrrrrr where cccc=Cond and
   // rrrrrrrrrrrrrrrr=Registers (one bit for each GP register).
+  constexpr const char *PopListName = "pop {}";
   constexpr bool IsLoad = true;
-  emitMultiMemOp(Cond, IA_W, IsLoad, RegARM32::Encoded_Reg_sp, Registers);
+  emitMultiMemOp(Cond, IA_W, IsLoad, RegARM32::Encoded_Reg_sp, Registers,
+                 PopListName);
 }
 
 void AssemblerARM32::push(const Operand *OpRt, CondARM32::Cond Cond) {
@@ -1382,16 +1440,15 @@ void AssemblerARM32::push(const Operand *OpRt, CondARM32::Cond Cond) {
   //   push<c> {Rt}
   //
   // cccc010100101101dddd000000000100 where dddd=Rt and cccc=Cond.
-  IValueT Rt;
-  if (encodeOperand(OpRt, Rt) != EncodedAsRegister)
-    return setNeedsTextFixup();
-  assert(Rt != RegARM32::Encoded_Reg_sp);
+  constexpr const char *Push = "push";
+  IValueT Rt = encodeRegister(OpRt, "Rt", Push);
+  verifyRegsNotEq(Rt, "Rt", RegARM32::Encoded_Reg_sp, "sp", Push);
   // Same as store instruction.
   constexpr bool isLoad = false;
   constexpr bool isByte = false;
   IValueT Address = encodeImmRegOffset(RegARM32::Encoded_Reg_sp, -kWordSize,
                                        OperandARM32Mem::PreIndex);
-  emitMemOp(Cond, kInstTypeMemImmediate, isLoad, isByte, Rt, Address);
+  emitMemOp(Cond, kInstTypeMemImmediate, isLoad, isByte, Rt, Address, Push);
 }
 
 void AssemblerARM32::pushList(const IValueT Registers, CondARM32::Cond Cond) {
@@ -1400,62 +1457,54 @@ void AssemblerARM32::pushList(const IValueT Registers, CondARM32::Cond Cond) {
   //
   // cccc100100101101rrrrrrrrrrrrrrrr where cccc=Cond and
   // rrrrrrrrrrrrrrrr=Registers (one bit for each GP register).
+  constexpr const char *PushListName = "push {}";
   constexpr bool IsLoad = false;
-  emitMultiMemOp(Cond, DB_W, IsLoad, RegARM32::Encoded_Reg_sp, Registers);
+  emitMultiMemOp(Cond, DB_W, IsLoad, RegARM32::Encoded_Reg_sp, Registers,
+                 PushListName);
 }
 
 void AssemblerARM32::mla(const Operand *OpRd, const Operand *OpRn,
                          const Operand *OpRm, const Operand *OpRa,
                          CondARM32::Cond Cond) {
-  IValueT Rd;
-  if (encodeOperand(OpRd, Rd) != EncodedAsRegister)
-    return setNeedsTextFixup();
-  IValueT Rn;
-  if (encodeOperand(OpRn, Rn) != EncodedAsRegister)
-    return setNeedsTextFixup();
-  IValueT Rm;
-  if (encodeOperand(OpRm, Rm) != EncodedAsRegister)
-    return setNeedsTextFixup();
-  IValueT Ra;
-  if (encodeOperand(OpRa, Ra) != EncodedAsRegister)
-    return setNeedsTextFixup();
   // MLA - ARM section A8.8.114, encoding A1.
   //   mla{s}<c> <Rd>, <Rn>, <Rm>, <Ra>
   //
   // cccc0000001sddddaaaammmm1001nnnn where cccc=Cond, s=SetFlags, dddd=Rd,
   // aaaa=Ra, mmmm=Rm, and nnnn=Rn.
-  if (Rd == RegARM32::Encoded_Reg_pc || Rn == RegARM32::Encoded_Reg_pc ||
-      Rm == RegARM32::Encoded_Reg_pc || Ra == RegARM32::Encoded_Reg_pc)
-    llvm::report_fatal_error("Mul instruction unpredictable on pc");
+  constexpr const char *MlaName = "mla";
+  IValueT Rd = encodeRegister(OpRd, "Rd", MlaName);
+  IValueT Rn = encodeRegister(OpRn, "Rn", MlaName);
+  IValueT Rm = encodeRegister(OpRm, "Rm", MlaName);
+  IValueT Ra = encodeRegister(OpRa, "Ra", MlaName);
+  verifyRegNotPc(Rd, "Rd", MlaName);
+  verifyRegNotPc(Rn, "Rn", MlaName);
+  verifyRegNotPc(Rm, "Rm", MlaName);
+  verifyRegNotPc(Ra, "Ra", MlaName);
   constexpr IValueT MlaOpcode = B21;
   constexpr bool SetFlags = false;
   // Assembler registers rd, rn, rm, ra are encoded as rn, rm, rs, rd.
-  emitMulOp(Cond, MlaOpcode, Ra, Rd, Rn, Rm, SetFlags);
+  emitMulOp(Cond, MlaOpcode, Ra, Rd, Rn, Rm, SetFlags, MlaName);
 }
 
 void AssemblerARM32::mul(const Operand *OpRd, const Operand *OpRn,
                          const Operand *OpSrc1, bool SetFlags,
                          CondARM32::Cond Cond) {
-  IValueT Rd;
-  if (encodeOperand(OpRd, Rd) != EncodedAsRegister)
-    return setNeedsTextFixup();
-  IValueT Rn;
-  if (encodeOperand(OpRn, Rn) != EncodedAsRegister)
-    return setNeedsTextFixup();
-  IValueT Rm;
-  if (encodeOperand(OpSrc1, Rm) != EncodedAsRegister)
-    return setNeedsTextFixup();
   // MUL - ARM section A8.8.114, encoding A1.
   //   mul{s}<c> <Rd>, <Rn>, <Rm>
   //
   // cccc0000000sdddd0000mmmm1001nnnn where cccc=Cond, dddd=Rd, nnnn=Rn,
   // mmmm=Rm, and s=SetFlags.
-  if (Rd == RegARM32::Encoded_Reg_pc || Rn == RegARM32::Encoded_Reg_pc ||
-      Rm == RegARM32::Encoded_Reg_pc)
-    llvm::report_fatal_error("Mul instruction unpredictable on pc");
+  constexpr const char *MulName = "mul";
+  IValueT Rd = encodeRegister(OpRd, "Rd", MulName);
+  IValueT Rn = encodeRegister(OpRn, "Rn", MulName);
+  IValueT Rm = encodeRegister(OpSrc1, "Rm", MulName);
+  verifyRegNotPc(Rd, "Rd", MulName);
+  verifyRegNotPc(Rn, "Rn", MulName);
+  verifyRegNotPc(Rm, "Rm", MulName);
   // Assembler registers rd, rn, rm are encoded as rn, rm, rs.
   constexpr IValueT MulOpcode = 0;
-  emitMulOp(Cond, MulOpcode, RegARM32::Encoded_Reg_r0, Rd, Rn, Rm, SetFlags);
+  emitMulOp(Cond, MulOpcode, RegARM32::Encoded_Reg_r0, Rd, Rn, Rm, SetFlags,
+            MulName);
 }
 
 void AssemblerARM32::udiv(const Operand *OpRd, const Operand *OpRn,
@@ -1465,21 +1514,16 @@ void AssemblerARM32::udiv(const Operand *OpRd, const Operand *OpRn,
   //
   // cccc01110011dddd1111mmmm0001nnnn where cccc=Cond, dddd=Rd, nnnn=Rn, and
   // mmmm=Rm.
-  IValueT Rd;
-  if (encodeOperand(OpRd, Rd) != EncodedAsRegister)
-    return setNeedsTextFixup();
-  IValueT Rn;
-  if (encodeOperand(OpRn, Rn) != EncodedAsRegister)
-    return setNeedsTextFixup();
-  IValueT Rm;
-  if (encodeOperand(OpSrc1, Rm) != EncodedAsRegister)
-    return setNeedsTextFixup();
-  if (Rd == RegARM32::Encoded_Reg_pc || Rn == RegARM32::Encoded_Reg_pc ||
-      Rm == RegARM32::Encoded_Reg_pc)
-    llvm::report_fatal_error("Udiv instruction unpredictable on pc");
+  constexpr const char *UdivName = "udiv";
+  IValueT Rd = encodeRegister(OpRd, "Rd", UdivName);
+  IValueT Rn = encodeRegister(OpRn, "Rn", UdivName);
+  IValueT Rm = encodeRegister(OpSrc1, "Rm", UdivName);
+  verifyRegNotPc(Rd, "Rd", UdivName);
+  verifyRegNotPc(Rn, "Rn", UdivName);
+  verifyRegNotPc(Rm, "Rm", UdivName);
   // Assembler registers rd, rn, rm are encoded as rn, rm, rs.
-  constexpr IValueT Opcode = B21;
-  emitDivOp(Cond, Opcode, Rd, Rn, Rm);
+  constexpr IValueT UdivOpcode = B21;
+  emitDivOp(Cond, UdivOpcode, Rd, Rn, Rm, UdivName);
 }
 
 void AssemblerARM32::sub(const Operand *OpRd, const Operand *OpRn,
@@ -1500,8 +1544,10 @@ void AssemblerARM32::sub(const Operand *OpRd, const Operand *OpRn,
   //
   // cccc0010010snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
   // s=SetFlags and iiiiiiiiiiii=Src1Value defining RotatedImm8
-  constexpr IValueT Sub = B1; // 0010
-  emitType01(Sub, OpRd, OpRn, OpSrc1, SetFlags, Cond, RdIsPcAndSetFlags);
+  constexpr const char *SubName = "sub";
+  constexpr IValueT SubOpcode = B1; // 0010
+  emitType01(Cond, SubOpcode, OpRd, OpRn, OpSrc1, SetFlags, RdIsPcAndSetFlags,
+             SubName);
 }
 
 void AssemblerARM32::tst(const Operand *OpRn, const Operand *OpSrc1,
@@ -1517,8 +1563,9 @@ void AssemblerARM32::tst(const Operand *OpRn, const Operand *OpSrc1,
   //
   // cccc00110001nnnn0000iiiiiiiiiiii where cccc=Cond, nnnn=Rn, and
   // iiiiiiiiiiii defines RotatedImm8.
-  constexpr IValueT Opcode = B3; // ie. 1000
-  emitCompareOp(Opcode, OpRn, OpSrc1, Cond);
+  constexpr const char *TstName = "tst";
+  constexpr IValueT TstOpcode = B3; // ie. 1000
+  emitCompareOp(Cond, TstOpcode, OpRn, OpSrc1, TstName);
 }
 
 void AssemblerARM32::umull(const Operand *OpRdLo, const Operand *OpRdHi,
@@ -1529,45 +1576,40 @@ void AssemblerARM32::umull(const Operand *OpRdLo, const Operand *OpRdHi,
   //
   // cccc0000100shhhhllllmmmm1001nnnn where hhhh=RdHi, llll=RdLo, nnnn=Rn,
   // mmmm=Rm, and s=SetFlags
-  IValueT RdLo;
-  IValueT RdHi;
-  IValueT Rn;
-  IValueT Rm;
-  if (encodeOperand(OpRdLo, RdLo) != EncodedAsRegister ||
-      encodeOperand(OpRdHi, RdHi) != EncodedAsRegister ||
-      encodeOperand(OpRn, Rn) != EncodedAsRegister ||
-      encodeOperand(OpRm, Rm) != EncodedAsRegister)
-    return setNeedsTextFixup();
-  if (RdHi == RegARM32::Encoded_Reg_pc || RdLo == RegARM32::Encoded_Reg_pc ||
-      Rn == RegARM32::Encoded_Reg_pc || Rm == RegARM32::Encoded_Reg_pc ||
-      RdHi == RdLo)
-    llvm::report_fatal_error("Umull instruction unpredictable on pc");
+  constexpr const char *UmullName = "umull";
+  IValueT RdLo = encodeRegister(OpRdLo, "RdLo", UmullName);
+  IValueT RdHi = encodeRegister(OpRdHi, "RdHi", UmullName);
+  IValueT Rn = encodeRegister(OpRn, "Rn", UmullName);
+  IValueT Rm = encodeRegister(OpRm, "Rm", UmullName);
+  verifyRegNotPc(RdLo, "RdLo", UmullName);
+  verifyRegNotPc(RdHi, "RdHi", UmullName);
+  verifyRegNotPc(Rn, "Rn", UmullName);
+  verifyRegNotPc(Rm, "Rm", UmullName);
+  verifyRegsNotEq(RdHi, "RdHi", RdLo, "RdLo", UmullName);
+  constexpr IValueT UmullOpcode = B23;
   constexpr bool SetFlags = false;
-  emitMulOp(Cond, B23, RdLo, RdHi, Rn, Rm, SetFlags);
+  emitMulOp(Cond, UmullOpcode, RdLo, RdHi, Rn, Rm, SetFlags, UmullName);
 }
 
 void AssemblerARM32::uxt(const Operand *OpRd, const Operand *OpSrc0,
                          CondARM32::Cond Cond) {
-  IValueT Rd;
-  if (encodeOperand(OpRd, Rd) != EncodedAsRegister)
-    return setNeedsTextFixup();
+  constexpr const char *UxtName = "uxt";
+  IValueT Rd = encodeRegister(OpRd, "Rd", UxtName);
+  IValueT Rm = encodeRegister(OpSrc0, "Rm", UxtName);
   // Note: For the moment, we assume no rotation is specified.
   RotationValue Rotation = kRotateNone;
   constexpr IValueT Rn = RegARM32::Encoded_Reg_pc;
-  IValueT Rm;
-  if (encodeOperand(OpSrc0, Rm) != EncodedAsRegister)
-    return setNeedsTextFixup();
   switch (typeWidthInBytes(OpSrc0->getType())) {
   default:
-    return setNeedsTextFixup();
+    llvm::report_fatal_error("Type of Rm not understood: uxt");
   case 1: {
     // UXTB - ARM section A8.8.274, encoding A1:
     //   uxtb<c> <Rd>, <Rm>{, <rotate>}
     //
     // cccc011011101111ddddrr000111mmmm where cccc=Cond, dddd=Rd, mmmm=Rm, and
     // rr defined (RotationValue) rotate.
-    constexpr IValueT Opcode = B26 | B25 | B23 | B22 | B21;
-    emitUxt(Cond, Opcode, Rd, Rn, Rm, Rotation);
+    constexpr IValueT UxtOpcode = B26 | B25 | B23 | B22 | B21;
+    emitUxt(Cond, UxtOpcode, Rd, Rn, Rm, Rotation, UxtName);
     return;
   }
   case 2: {
@@ -1576,8 +1618,8 @@ void AssemblerARM32::uxt(const Operand *OpRd, const Operand *OpSrc0,
     //
     // cccc01101111nnnnddddrr000111mmmm where cccc=Cond, dddd=Rd, mmmm=Rm, and
     // rr defined (RotationValue) rotate.
-    constexpr IValueT Opcode = B26 | B25 | B23 | B22 | B21 | B20;
-    emitUxt(Cond, Opcode, Rd, Rn, Rm, Rotation);
+    constexpr IValueT UxtOpcode = B26 | B25 | B23 | B22 | B21 | B20;
+    emitUxt(Cond, UxtOpcode, Rd, Rn, Rm, Rotation, UxtName);
     return;
   }
   }

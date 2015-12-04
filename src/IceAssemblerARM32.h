@@ -316,69 +316,74 @@ private:
   // List of possible checks to apply when calling emitType01() (below).
   enum EmitChecks { NoChecks, RdIsPcAndSetFlags };
 
-  // Pattern cccctttoooosnnnnddddiiiiiiiiiiii where cccc=Cond, ttt=Type,
+  // Pattern cccctttoooosnnnnddddiiiiiiiiiiii where cccc=Cond, ttt=InstType,
   // s=SetFlags, oooo=Opcode, nnnn=Rn, dddd=Rd, iiiiiiiiiiii=imm12 (See ARM
   // section A5.2.3).
-  void emitType01(CondARM32::Cond Cond, IValueT Type, IValueT Opcode,
+  void emitType01(CondARM32::Cond Cond, IValueT InstType, IValueT Opcode,
                   bool SetFlags, IValueT Rn, IValueT Rd, IValueT imm12,
-                  EmitChecks RuleChecks);
+                  EmitChecks RuleChecks, const char *InstName);
 
   // Converts appropriate representation on a data operation, and then calls
   // emitType01 above.
-  void emitType01(IValueT Opcode, const Operand *OpRd, const Operand *OpRn,
-                  const Operand *OpSrc1, bool SetFlags, CondARM32::Cond Cond,
-                  EmitChecks RuleChecks);
+  void emitType01(CondARM32::Cond Cond, IValueT Opcode, const Operand *OpRd,
+                  const Operand *OpRn, const Operand *OpSrc1, bool SetFlags,
+                  EmitChecks RuleChecks, const char *InstName);
 
   // Same as above, but the value for Rd and Rn have already been converted
   // into instruction values.
-  void emitType01(IValueT Opcode, IValueT OpRd, IValueT OpRn,
-                  const Operand *OpSrc1, bool SetFlags, CondARM32::Cond Cond,
-                  EmitChecks RuleChecks);
+  void emitType01(CondARM32::Cond Cond, IValueT Opcode, IValueT OpRd,
+                  IValueT OpRn, const Operand *OpSrc1, bool SetFlags,
+                  EmitChecks RuleChecks, const char *InstName);
 
-  void emitType05(CondARM32::Cond COnd, int32_t Offset, bool Link);
+  void emitType05(CondARM32::Cond Cond, int32_t Offset, bool Link,
+                  const char *InstName);
 
   // Emit ccccoooaabalnnnnttttaaaaaaaaaaaa where cccc=Cond,
   // ooo=InstType, l=isLoad, b=isByte, and
   // aaa0a0aaaa0000aaaaaaaaaaaa=Address. Note that Address is assumed to be
   // defined by decodeAddress() in IceAssemblerARM32.cpp.
   void emitMemOp(CondARM32::Cond Cond, IValueT InstType, bool IsLoad,
-                 bool IsByte, IValueT Rt, IValueT Address);
+                 bool IsByte, IValueT Rt, IValueT Address,
+                 const char *InstName);
 
   // Emit ldr/ldrb/str/strb instruction with given address.
   void emitMemOp(CondARM32::Cond Cond, bool IsLoad, bool IsByte, IValueT Rt,
-                 const Operand *OpAddress, const TargetInfo &TInfo);
+                 const Operand *OpAddress, const TargetInfo &TInfo,
+                 const char *InstName);
 
   // Emit ldrh/ldrd/strh/strd instruction with given address using encoding 3.
   void emitMemOpEnc3(CondARM32::Cond Cond, IValueT Opcode, IValueT Rt,
-                     const Operand *OpAddress, const TargetInfo &TInfo);
+                     const Operand *OpAddress, const TargetInfo &TInfo,
+                     const char *InstName);
 
   // Pattern cccc100aaaalnnnnrrrrrrrrrrrrrrrr where cccc=Cond,
   // aaaa<<21=AddressMode, l=IsLoad, nnnn=BaseReg, and
   // rrrrrrrrrrrrrrrr is bitset of Registers.
   void emitMultiMemOp(CondARM32::Cond Cond, BlockAddressMode AddressMode,
-                      bool IsLoad, IValueT BaseReg, IValueT Registers);
+                      bool IsLoad, IValueT BaseReg, IValueT Registers,
+                      const char *InstName);
 
   // Pattern cccc011100x1dddd1111mmmm0001nnn where cccc=Cond,
   // x=Opcode, dddd=Rd, nnnn=Rn, mmmm=Rm.
   void emitDivOp(CondARM32::Cond Cond, IValueT Opcode, IValueT Rd, IValueT Rn,
-                 IValueT Rm);
+                 IValueT Rm, const char *InstName);
 
   // Pattern ccccxxxxxxxfnnnnddddssss1001mmmm where cccc=Cond, dddd=Rd, nnnn=Rn,
   // mmmm=Rm, ssss=Rs, f=SetFlags and xxxxxxx=Opcode.
   void emitMulOp(CondARM32::Cond Cond, IValueT Opcode, IValueT Rd, IValueT Rn,
-                 IValueT Rm, IValueT Rs, bool SetFlags);
+                 IValueT Rm, IValueT Rs, bool SetFlags, const char *InstName);
 
   // Implements various forms of Unsigned extend value, using pattern
   // ccccxxxxxxxxnnnnddddrr000111mmmm where cccc=Cond, xxxxxxxx<<20=Opcode,
   // nnnn=Rn, dddd=Rd, rr=Rotation, and mmmm=Rm.
   void emitUxt(CondARM32::Cond, IValueT Opcode, IValueT Rd, IValueT Rn,
-               IValueT Rm, RotationValue Rotation);
+               IValueT Rm, RotationValue Rotation, const char *InstName);
 
   // Pattern cccctttxxxxnnnn0000iiiiiiiiiiii where cccc=Cond, nnnn=Rn,
   // ttt=Instruction type (derived from OpSrc1), iiiiiiiiiiii is derived from
   // OpSrc1, and xxxx=Opcode.
-  void emitCompareOp(IValueT Opcode, const Operand *OpRn, const Operand *OpSrc1,
-                     CondARM32::Cond Cond);
+  void emitCompareOp(CondARM32::Cond Cond, IValueT Opcode, const Operand *OpRn,
+                     const Operand *OpSrc1, const char *CmpName);
 
   void emitBranch(Label *L, CondARM32::Cond, bool Link);
 
