@@ -4800,7 +4800,6 @@ void RenderbufferStorageMultisampleANGLE(GLenum target, GLsizei samples, GLenum 
 		egl::GLint clientVersion = context->getClientVersion();
 		switch(internalformat)
 		{
-		case GL_DEPTH_COMPONENT24:
 		case GL_DEPTH_COMPONENT32F:
 			if(clientVersion < 3)
 			{
@@ -4808,6 +4807,8 @@ void RenderbufferStorageMultisampleANGLE(GLenum target, GLsizei samples, GLenum 
 			}
 			// fall through
 		case GL_DEPTH_COMPONENT16:
+		case GL_DEPTH_COMPONENT24:
+		case GL_DEPTH_COMPONENT32_OES:
 			context->setRenderbufferStorage(new es2::Depthbuffer(width, height, samples));
 			break;
 		case GL_R8:
@@ -4857,7 +4858,6 @@ void RenderbufferStorageMultisampleANGLE(GLenum target, GLsizei samples, GLenum 
 			context->setRenderbufferStorage(new es2::Stencilbuffer(width, height, samples));
 			break;
 		case GL_DEPTH32F_STENCIL8:
-		case GL_DEPTH_COMPONENT32_OES:
 			if(clientVersion < 3)
 			{
 				return error(GL_INVALID_ENUM);
@@ -5817,6 +5817,7 @@ void TexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width,
 				}
 				break;
 			case GL_DEPTH_COMPONENT24:
+			case GL_DEPTH_COMPONENT32_OES:
 				switch(type)
 				{
 				case GL_UNSIGNED_INT:
@@ -7492,6 +7493,81 @@ void EGLImageTargetRenderbufferStorageOES(GLenum target, GLeglImageOES image)
 	UNIMPLEMENTED();
 }
 
+GLboolean IsRenderbufferOES(GLuint renderbuffer)
+{
+	return IsRenderbuffer(renderbuffer);
+}
+
+void BindRenderbufferOES(GLenum target, GLuint renderbuffer)
+{
+	BindRenderbuffer(target, renderbuffer);
+}
+
+void DeleteRenderbuffersOES(GLsizei n, const GLuint* renderbuffers)
+{
+	DeleteRenderbuffers(n, renderbuffers);
+}
+
+void GenRenderbuffersOES(GLsizei n, GLuint* renderbuffers)
+{
+	GenRenderbuffers(n, renderbuffers);
+}
+
+void RenderbufferStorageOES(GLenum target, GLenum internalformat, GLsizei width, GLsizei height)
+{
+	RenderbufferStorage(target, internalformat, width, height);
+}
+
+void GetRenderbufferParameterivOES(GLenum target, GLenum pname, GLint* params)
+{
+	GetRenderbufferParameteriv(target, pname, params);
+}
+
+GLboolean IsFramebufferOES(GLuint framebuffer)
+{
+	return IsFramebuffer(framebuffer);
+}
+
+void BindFramebufferOES(GLenum target, GLuint framebuffer)
+{
+	BindFramebuffer(target, framebuffer);
+}
+
+void DeleteFramebuffersOES(GLsizei n, const GLuint* framebuffers)
+{
+	DeleteFramebuffers(n, framebuffers);
+}
+
+void GenFramebuffersOES(GLsizei n, GLuint* framebuffers)
+{
+	GenFramebuffers(n, framebuffers);
+}
+
+GLenum CheckFramebufferStatusOES(GLenum target)
+{
+	return CheckFramebufferStatus(target);
+}
+
+void FramebufferRenderbufferOES(GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer)
+{
+	FramebufferRenderbuffer(target, attachment, renderbuffertarget, renderbuffer);
+}
+
+void FramebufferTexture2DOES(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level)
+{
+	FramebufferTexture2D(target, attachment, textarget, texture, level);
+}
+
+void GetFramebufferAttachmentParameterivOES(GLenum target, GLenum attachment, GLenum pname, GLint* params)
+{
+	GetFramebufferAttachmentParameteriv(target, attachment, pname, params);
+}
+
+void GenerateMipmapOES(GLenum target)
+{
+	GenerateMipmap(target);
+}
+
 }
 
 extern "C" __eglMustCastToProperFunctionPointerType es2GetProcAddress(const char *procname)
@@ -7536,6 +7612,21 @@ extern "C" __eglMustCastToProperFunctionPointerType es2GetProcAddress(const char
 		EXTENSION(glDrawArraysInstancedANGLE),
 		EXTENSION(glDrawElementsInstancedANGLE),
 		EXTENSION(glVertexAttribDivisorANGLE),
+		EXTENSION(glIsRenderbufferOES),
+		EXTENSION(glBindRenderbufferOES),
+		EXTENSION(glDeleteRenderbuffersOES),
+		EXTENSION(glGenRenderbuffersOES),
+		EXTENSION(glRenderbufferStorageOES),
+		EXTENSION(glGetRenderbufferParameterivOES),
+		EXTENSION(glIsFramebufferOES),
+		EXTENSION(glBindFramebufferOES),
+		EXTENSION(glDeleteFramebuffersOES),
+		EXTENSION(glGenFramebuffersOES),
+		EXTENSION(glCheckFramebufferStatusOES),
+		EXTENSION(glFramebufferRenderbufferOES),
+		EXTENSION(glFramebufferTexture2DOES),
+		EXTENSION(glGetFramebufferAttachmentParameterivOES),
+		EXTENSION(glGenerateMipmapOES),
 
 		#undef EXTENSION
 	};

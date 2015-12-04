@@ -4238,12 +4238,15 @@ const GLubyte* Context::getExtensions(GLuint index, GLuint* numExt) const
 	// Vendor extensions
 	static const GLubyte* extensions[] = {
 		(const GLubyte*)"GL_OES_compressed_ETC1_RGB8_texture",
+		(const GLubyte*)"GL_OES_depth24",
+		(const GLubyte*)"GL_OES_depth32",
 		(const GLubyte*)"GL_OES_depth_texture",
 		(const GLubyte*)"GL_OES_depth_texture_cube_map",
 		(const GLubyte*)"GL_OES_EGL_image",
 		(const GLubyte*)"GL_OES_EGL_image_external",
 		(const GLubyte*)"GL_OES_EGL_sync",
 		(const GLubyte*)"GL_OES_element_index_uint",
+		(const GLubyte*)"GL_OES_framebuffer_object",
 		(const GLubyte*)"GL_OES_packed_depth_stencil",
 		(const GLubyte*)"GL_OES_rgb8_rgba8",
 		(const GLubyte*)"GL_OES_standard_derivatives",
@@ -4254,6 +4257,7 @@ const GLubyte* Context::getExtensions(GLuint index, GLuint* numExt) const
 		(const GLubyte*)"GL_OES_texture_npot",
 		(const GLubyte*)"GL_OES_texture_3D",
 		(const GLubyte*)"GL_EXT_blend_minmax",
+		(const GLubyte*)"GL_EXT_color_buffer_half_float",
 		(const GLubyte*)"GL_EXT_occlusion_query_boolean",
 		(const GLubyte*)"GL_EXT_read_format_bgra",
 #if (S3TC_SUPPORT)

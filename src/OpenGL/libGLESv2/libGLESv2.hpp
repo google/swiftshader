@@ -209,6 +209,21 @@ public:
 	void (*glFramebufferTexture3DOES)(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint zoffset);
 	void (*glEGLImageTargetTexture2DOES)(GLenum target, GLeglImageOES image);
 	void (*glEGLImageTargetRenderbufferStorageOES)(GLenum target, GLeglImageOES image);
+	GLboolean (*glIsRenderbufferOES)(GLuint renderbuffer);
+	void (*glBindRenderbufferOES)(GLenum target, GLuint renderbuffer);
+	void (*glDeleteRenderbuffersOES)(GLsizei n, const GLuint* renderbuffers);
+	void (*glGenRenderbuffersOES)(GLsizei n, GLuint* renderbuffers);
+	void (*glRenderbufferStorageOES)(GLenum target, GLenum internalformat, GLsizei width, GLsizei height);
+	void (*glGetRenderbufferParameterivOES)(GLenum target, GLenum pname, GLint* params);
+	GLboolean (*glIsFramebufferOES)(GLuint framebuffer);
+	void (*glBindFramebufferOES)(GLenum target, GLuint framebuffer);
+	void (*glDeleteFramebuffersOES)(GLsizei n, const GLuint* framebuffers);
+	void (*glGenFramebuffersOES)(GLsizei n, GLuint* framebuffers);
+	GLenum (*glCheckFramebufferStatusOES)(GLenum target);
+	void (*glFramebufferRenderbufferOES)(GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer);
+	void (*glFramebufferTexture2DOES)(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
+	void (*glGetFramebufferAttachmentParameterivOES)(GLenum target, GLenum attachment, GLenum pname, GLint* params);
+	void (*glGenerateMipmapOES)(GLenum target);
 
 	egl::Context *(*es2CreateContext)(const egl::Config *config, const egl::Context *shareContext, int clientVersion);
 	__eglMustCastToProperFunctionPointerType (*es2GetProcAddress)(const char *procname);

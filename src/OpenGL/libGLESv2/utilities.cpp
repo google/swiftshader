@@ -440,7 +440,13 @@ namespace es2
 	bool IsDepthTexture(GLenum format)
 	{
 		return format == GL_DEPTH_COMPONENT ||
-		       format == GL_DEPTH_STENCIL_OES;
+		       format == GL_DEPTH_STENCIL_OES ||
+		       format == GL_DEPTH_COMPONENT16 ||
+		       format == GL_DEPTH_COMPONENT24 ||
+		       format == GL_DEPTH_COMPONENT32_OES ||
+		       format == GL_DEPTH_COMPONENT32F ||
+		       format == GL_DEPTH24_STENCIL8 ||
+		       format == GL_DEPTH32F_STENCIL8;
 	}
 
 	bool IsStencilTexture(GLenum format)

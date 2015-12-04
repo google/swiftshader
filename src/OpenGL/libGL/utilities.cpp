@@ -858,8 +858,9 @@ namespace sw2es
 		switch(format)
 		{
 		case sw::FORMAT_D16:
-		case sw::FORMAT_D32:
 			return GL_DEPTH_COMPONENT16;
+		case sw::FORMAT_D32:
+			return GL_DEPTH_COMPONENT32;
         case sw::FORMAT_D24X8:
             return GL_DEPTH_COMPONENT24;
 		case sw::FORMAT_D24S8:

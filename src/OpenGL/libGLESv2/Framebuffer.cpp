@@ -476,6 +476,7 @@ GLenum Framebuffer::getImplementationColorReadFormat()
 		case sw::FORMAT_X16B16G16R16UI:
 		case sw::FORMAT_X32B32G32R32I:
 		case sw::FORMAT_X32B32G32R32UI:return GL_RGB_INTEGER;
+		case sw::FORMAT_B16G16R16F:
 		case sw::FORMAT_X8B8G8R8I_SNORM:
 		case sw::FORMAT_X8B8G8R8:
 		case sw::FORMAT_X8R8G8B8:
