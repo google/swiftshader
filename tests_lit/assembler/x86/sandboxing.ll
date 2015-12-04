@@ -3,9 +3,9 @@
 ; we try to limit to a few instructions with well known sizes and
 ; minimal use of registers and stack slots in the lowering sequence.
 
-; RUN: %p2i -i %s --sandbox --filetype=obj --disassemble --args -Om1 \
+; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 \
 ; RUN:   -allow-externally-defined-symbols \
-; RUN:   -ffunction-sections | FileCheck %s
+; RUN:   -ffunction-sections -sandbox | FileCheck %s
 
 declare void @call_target()
 @global_byte = internal global [1 x i8] zeroinitializer

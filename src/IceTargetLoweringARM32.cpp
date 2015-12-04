@@ -161,8 +161,7 @@ TargetARM32Features::TargetARM32Features(const ClFlags &Flags) {
 }
 
 TargetARM32::TargetARM32(Cfg *Func)
-    : TargetLowering(Func), NeedSandboxing(Ctx->getFlags().getUseSandboxing()),
-      CPUFeatures(Func->getContext()->getFlags()) {}
+    : TargetLowering(Func), CPUFeatures(Func->getContext()->getFlags()) {}
 
 void TargetARM32::staticInit() {
   // Limit this size (or do all bitsets need to be the same width)???
@@ -545,7 +544,8 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
       return;
     }
     case Intrinsics::NaClReadTP: {
-      if (NeedSandboxing) {
+      if (Ctx->getFlags().getUseSandboxing()) {
+        UnimplementedError(Func->getContext()->getFlags());
         return;
       }
       static constexpr SizeT MaxArgs = 0;
@@ -1120,10 +1120,6 @@ void TargetARM32::addProlog(CfgNode *Node) {
       continue;
     }
     if (CalleeSaves[i] && RegsUsed[i]) {
-      if (NeedSandboxing && i == RegARM32::Reg_r9) {
-        // r9 is never updated in sandboxed code.
-        continue;
-      }
       ++NumCallee;
       Variable *PhysicalRegister = getPhysicalRegister(i);
       PreservedRegsSizeBytes +=
@@ -1177,9 +1173,10 @@ void TargetARM32::addProlog(CfgNode *Node) {
     // Use the scratch register if needed to legalize the immediate.
     Operand *SubAmount = legalize(Ctx->getConstantInt32(SpillAreaSizeBytes),
                                   Legal_Reg | Legal_Flex, getReservedTmpReg());
-    AutoSandboxer(this).sub_sp(SubAmount);
+    Variable *SP = getPhysicalRegister(RegARM32::Reg_sp);
+    _sub(SP, SP, SubAmount);
     if (FixedAllocaAlignBytes > ARM32_STACK_ALIGNMENT_BYTES) {
-      AutoSandboxer(this).align_sp(FixedAllocaAlignBytes);
+      alignRegisterPow2(SP, FixedAllocaAlignBytes);
     }
   }
 
@@ -1273,7 +1270,7 @@ void TargetARM32::addEpilog(CfgNode *Node) {
     // use of SP before the assignment of SP=FP keeps previous SP adjustments
     // from being dead-code eliminated.
     Context.insert(InstFakeUse::create(Func, SP));
-    AutoSandboxer(this).reset_sp(FP);
+    _mov(SP, FP);
   } else {
     // add SP, SpillAreaSizeBytes
     if (SpillAreaSizeBytes) {
@@ -1281,7 +1278,7 @@ void TargetARM32::addEpilog(CfgNode *Node) {
       Operand *AddAmount =
           legalize(Ctx->getConstantInt32(SpillAreaSizeBytes),
                    Legal_Reg | Legal_Flex, getReservedTmpReg());
-      AutoSandboxer(this).add_sp(AddAmount);
+      _add(SP, SP, AddAmount);
     }
   }
 
@@ -1305,9 +1302,6 @@ void TargetARM32::addEpilog(CfgNode *Node) {
     }
 
     if (CalleeSaves[i] && RegsUsed[i]) {
-      if (NeedSandboxing && i == RegARM32::Reg_r9) {
-        continue;
-      }
       GPRsToRestore.push_back(getPhysicalRegister(i));
     }
   }
@@ -1324,13 +1318,16 @@ void TargetARM32::addEpilog(CfgNode *Node) {
   // bundle_unlock
   // This isn't just aligning to the getBundleAlignLog2Bytes(). It needs to
   // restrict to the lower 1GB as well.
-  Variable *LR = getPhysicalRegister(RegARM32::Reg_lr);
+  Operand *RetMask =
+      legalize(Ctx->getConstantInt32(0xc000000f), Legal_Reg | Legal_Flex);
+  Variable *LR = makeReg(IceType_i32, RegARM32::Reg_lr);
   Variable *RetValue = nullptr;
   if (RI->getSrcSize())
     RetValue = llvm::cast<Variable>(RI->getSrc(0));
-
-  AutoSandboxer(this).ret(LR, RetValue);
-
+  _bundle_lock();
+  _bic(LR, LR, RetMask);
+  _ret(LR, RetValue);
+  _bundle_unlock();
   RI->setDeleted();
 }
 
@@ -1381,7 +1378,7 @@ Variable *TargetARM32::PostLoweringLegalizer::newBaseRegister(
 OperandARM32Mem *TargetARM32::PostLoweringLegalizer::createMemOperand(
     Type Ty, Variable *Base, int32_t Offset, bool AllowOffsets) {
   assert(!Base->isRematerializable());
-  if (Offset == 0 || (AllowOffsets && Target->isLegalMemOffset(Ty, Offset))) {
+  if (AllowOffsets && Target->isLegalMemOffset(Ty, Offset)) {
     return OperandARM32Mem::create(
         Target->Func, Ty, Base,
         llvm::cast<ConstantInteger32>(Target->Ctx->getConstantInt32(Offset)),
@@ -1454,9 +1451,8 @@ void TargetARM32::PostLoweringLegalizer::legalizeMov(InstARM32Mov *MovInstr) {
     assert(!SrcR->isRematerializable());
     const int32_t Offset = Dest->getStackOffset();
     // This is a _mov(Mem(), Variable), i.e., a store.
-    TargetARM32::AutoSandboxer(Target)
-        .str(SrcR, createMemOperand(DestTy, StackOrFrameReg, Offset),
-             MovInstr->getPredicate());
+    Target->_str(SrcR, createMemOperand(DestTy, StackOrFrameReg, Offset),
+                 MovInstr->getPredicate());
     // _str() does not have a Dest, so we add a fake-def(Dest).
     Target->Context.insert(InstFakeDef::create(Target->Func, Dest));
     Legalized = true;
@@ -1480,9 +1476,8 @@ void TargetARM32::PostLoweringLegalizer::legalizeMov(InstARM32Mov *MovInstr) {
       if (!Var->hasReg()) {
         // This is a _mov(Variable, Mem()), i.e., a load.
         const int32_t Offset = Var->getStackOffset();
-        TargetARM32::AutoSandboxer(Target)
-            .ldr(Dest, createMemOperand(DestTy, StackOrFrameReg, Offset),
-                 MovInstr->getPredicate());
+        Target->_ldr(Dest, createMemOperand(DestTy, StackOrFrameReg, Offset),
+                     MovInstr->getPredicate());
         Legalized = true;
       }
     }
@@ -1547,15 +1542,7 @@ TargetARM32::PostLoweringLegalizer::legalizeMemOperand(OperandARM32Mem *Mem,
     Legalized = true;
   }
 
-  if (!Legalized && !Target->NeedSandboxing) {
-    return nullptr;
-  }
-
-  if (Target->NeedSandboxing && Base->getRegNum() == RegARM32::Reg_r9) {
-    if (Legalized) {
-      llvm::report_fatal_error("r9-based mem operand should not need to be "
-                               "legalized.");
-    }
+  if (!Legalized) {
     return nullptr;
   }
 
@@ -1563,7 +1550,6 @@ TargetARM32::PostLoweringLegalizer::legalizeMemOperand(OperandARM32Mem *Mem,
     return createMemOperand(Mem->getType(), Base, Offset, AllowOffsets);
   }
 
-  assert(!Target->NeedSandboxing);
   assert(MemTraits[Mem->getType()].CanHaveIndex);
 
   if (Offset != 0) {
@@ -1635,8 +1621,7 @@ void TargetARM32::postLowerLegalization() {
       } else if (auto *LdrInstr = llvm::dyn_cast<InstARM32Ldr>(CurInstr)) {
         if (OperandARM32Mem *LegalMem = Legalizer.legalizeMemOperand(
                 llvm::cast<OperandARM32Mem>(LdrInstr->getSrc(0)))) {
-          AutoSandboxer(this)
-              .ldr(CurInstr->getDest(), LegalMem, LdrInstr->getPredicate());
+          _ldr(CurInstr->getDest(), LegalMem, LdrInstr->getPredicate());
           CurInstr->setDeleted();
         }
       } else if (auto *LdrexInstr = llvm::dyn_cast<InstARM32Ldrex>(CurInstr)) {
@@ -1644,16 +1629,14 @@ void TargetARM32::postLowerLegalization() {
         if (OperandARM32Mem *LegalMem = Legalizer.legalizeMemOperand(
                 llvm::cast<OperandARM32Mem>(LdrexInstr->getSrc(0)),
                 DisallowOffsetsBecauseLdrex)) {
-          AutoSandboxer(this)
-              .ldrex(CurInstr->getDest(), LegalMem, LdrexInstr->getPredicate());
+          _ldrex(CurInstr->getDest(), LegalMem, LdrexInstr->getPredicate());
           CurInstr->setDeleted();
         }
       } else if (auto *StrInstr = llvm::dyn_cast<InstARM32Str>(CurInstr)) {
-        AutoSandboxer Bundle(this);
         if (OperandARM32Mem *LegalMem = Legalizer.legalizeMemOperand(
                 llvm::cast<OperandARM32Mem>(StrInstr->getSrc(1)))) {
-          AutoSandboxer(this).str(llvm::cast<Variable>(CurInstr->getSrc(0)),
-                                  LegalMem, StrInstr->getPredicate());
+          _str(llvm::cast<Variable>(CurInstr->getSrc(0)), LegalMem,
+               StrInstr->getPredicate());
           CurInstr->setDeleted();
         }
       } else if (auto *StrexInstr = llvm::dyn_cast<InstARM32Strex>(CurInstr)) {
@@ -1661,9 +1644,8 @@ void TargetARM32::postLowerLegalization() {
         if (OperandARM32Mem *LegalMem = Legalizer.legalizeMemOperand(
                 llvm::cast<OperandARM32Mem>(StrexInstr->getSrc(1)),
                 DisallowOffsetsBecauseStrex)) {
-          AutoSandboxer(this).strex(CurInstr->getDest(),
-                                    llvm::cast<Variable>(CurInstr->getSrc(0)),
-                                    LegalMem, StrexInstr->getPredicate());
+          _strex(CurInstr->getDest(), llvm::cast<Variable>(CurInstr->getSrc(0)),
+                 LegalMem, StrexInstr->getPredicate());
           CurInstr->setDeleted();
         }
       }
@@ -1821,7 +1803,7 @@ void TargetARM32::lowerAlloca(const InstAlloca *Inst) {
 
   Variable *SP = getPhysicalRegister(RegARM32::Reg_sp);
   if (OverAligned) {
-    AutoSandboxer(this).align_sp(Alignment);
+    alignRegisterPow2(SP, Alignment);
   }
 
   Variable *Dest = Inst->getDest();
@@ -1846,7 +1828,7 @@ void TargetARM32::lowerAlloca(const InstAlloca *Inst) {
     // in Dest.
     Operand *SubAmountRF =
         legalize(Ctx->getConstantInt32(Value), Legal_Reg | Legal_Flex);
-    AutoSandboxer(this).sub_sp(SubAmountRF);
+    _sub(SP, SP, SubAmountRF);
   } else {
     // Non-constant sizes need to be adjusted to the next highest multiple of
     // the required alignment at runtime.
@@ -1856,7 +1838,7 @@ void TargetARM32::lowerAlloca(const InstAlloca *Inst) {
     Operand *AddAmount = legalize(Ctx->getConstantInt32(Alignment - 1));
     _add(T, T, AddAmount);
     alignRegisterPow2(T, Alignment);
-    AutoSandboxer(this).sub_sp(T);
+    _sub(SP, SP, T);
   }
 
   // Adds back a few bytes to SP to account for the out args area.
@@ -3267,6 +3249,8 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
       break;
     }
   }
+  // TODO(jvoung): Handle sandboxing. const bool NeedSandboxing =
+  // Ctx->getFlags().getUseSandboxing();
 
   // Allow ConstantRelocatable to be left alone as a direct call, but force
   // other constants like ConstantInteger32 to be in a register and make it an
@@ -3287,10 +3271,8 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
     // the call.
     Context.insert(InstFakeUse::create(Func, Reg));
   }
-
-  InstARM32Call *NewCall = AutoSandboxer(this, InstBundleLock::Opt_AlignToEnd)
-                               .bl(ReturnReg, CallTarget);
-
+  Inst *NewCall = InstARM32Call::create(Func, ReturnReg, CallTarget);
+  Context.insert(NewCall);
   if (ReturnRegHi)
     Context.insert(InstFakeDef::create(Func, ReturnRegHi));
 
@@ -4630,14 +4612,7 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     llvm::report_fatal_error("memmove should have been prelowered.");
   }
   case Intrinsics::NaClReadTP: {
-    if (!NeedSandboxing) {
-      llvm::report_fatal_error("nacl-read-tp should have been prelowered.");
-    }
-    Variable *TP = legalizeToReg(OperandARM32Mem::create(
-        Func, getPointerType(), getPhysicalRegister(RegARM32::Reg_r9),
-        llvm::cast<ConstantInteger32>(Ctx->getConstantZero(IceType_i32))));
-    _mov(Dest, TP);
-    return;
+    llvm::report_fatal_error("nacl-read-tp should have been prelowered.");
   }
   case Intrinsics::Setjmp: {
     llvm::report_fatal_error("setjmp should have been prelowered.");
@@ -4655,8 +4630,9 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     return;
   }
   case Intrinsics::Stackrestore: {
-    Variable *Val = legalizeToReg(Instr->getArg(0));
-    AutoSandboxer(this).reset_sp(Val);
+    Variable *SP = getPhysicalRegister(RegARM32::Reg_sp);
+    Operand *Val = legalize(Instr->getArg(0), Legal_Reg | Legal_Flex);
+    _mov_redefined(SP, Val);
     return;
   }
   case Intrinsics::Trap:
@@ -5011,9 +4987,8 @@ OperandARM32Mem *TargetARM32::formAddressingMode(Type Ty, Cfg *Func,
   (void)MemTraitsSize;
   assert(Ty < MemTraitsSize);
   auto *TypeTraits = &MemTraits[Ty];
-  const bool CanHaveIndex = !NeedSandboxing && TypeTraits->CanHaveIndex;
-  const bool CanHaveShiftedIndex =
-      !NeedSandboxing && TypeTraits->CanHaveShiftedIndex;
+  const bool CanHaveIndex = TypeTraits->CanHaveIndex;
+  const bool CanHaveShiftedIndex = TypeTraits->CanHaveShiftedIndex;
   const bool CanHaveImm = TypeTraits->CanHaveImm;
   const int32_t ValidImmMask = TypeTraits->ValidImmMask;
   (void)ValidImmMask;
@@ -5185,7 +5160,6 @@ void TargetARM32::lowerRet(const InstRet *Inst) {
   // frame removal instructions. addEpilog is responsible for restoring the
   // "lr" register as needed prior to this ret instruction.
   _ret(getPhysicalRegister(RegARM32::Reg_lr), Reg);
-
   // Add a fake use of sp to make sure sp stays alive for the entire function.
   // Otherwise post-call sp adjustments get dead-code eliminated.
   // TODO: Are there more places where the fake use should be inserted? E.g.

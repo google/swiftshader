@@ -11,16 +11,14 @@ import tempfile
 from utils import shellcmd
 
 
-def TargetAssemblerFlags(target, sandboxed):
+def TargetAssemblerFlags(target):
   # TODO(stichnot): -triple=i686-nacl should be used for a
   # sandboxing test.  This means there should be an args.sandbox
   # argument that also gets passed through to pnacl-sz.
   # TODO(reed kotler). Need to find out exactly we need to
   # add here for Mips32.
-  flags = { 'x8632': ['-triple=%s' % ('i686' if not sandboxed else 'i686-nacl')],
-            'arm32': ['-triple=%s' % (
-                          'armv7a' if not sandboxed else 'armv7a-nacl'),
-                      '-mcpu=cortex-a9', '-mattr=+neon'],
+  flags = { 'x8632': ['-triple=i686'],
+            'arm32': ['-triple=armv7a', '-mcpu=cortex-a9', '-mattr=+neon'],
             'mips32': ['-triple=mipsel' ] }
   return flags[target]
 
@@ -91,8 +89,6 @@ def main():
     argparser.add_argument('--args', '-a', nargs=argparse.REMAINDER,
                            default=[],
                            help='Remaining arguments are passed to pnacl-sz')
-    argparser.add_argument('--sandbox', required=False, action='store_true',
-                           help='Sanboxes the generated code.')
 
     args = argparser.parse_args()
     pnacl_bin_path = args.pnacl_bin_path
@@ -125,8 +121,6 @@ def main():
       cmd += [os.path.join(pnacl_bin_path, 'not')]
     cmd += [args.pnacl_sz]
     cmd += ['--target', args.target]
-    if args.sandbox:
-      cmd += ['-sandbox']
     if args.insts:
       # If the tests are based on '-verbose inst' output, force
       # single-threaded translation because dump output does not get
@@ -153,7 +147,7 @@ def main():
       asm_temp.close()
     if args.assemble and args.filetype != 'obj':
       cmd += (['|', os.path.join(pnacl_bin_path, 'llvm-mc')] +
-              TargetAssemblerFlags(args.target, args.sandbox) +
+              TargetAssemblerFlags(args.target) +
               ['-filetype=obj', '-o', asm_temp.name])
     elif asm_temp:
       cmd += ['-o', asm_temp.name]

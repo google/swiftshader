@@ -162,18 +162,6 @@ public:
         llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(ShAmtImm & 0x1F)));
   }
 
-  OperandARM32FlexImm *indirectBranchBicMask() const {
-    constexpr uint32_t Imm8 = 0xFC; // 0xC000000F
-    constexpr uint32_t RotateAmt = 2;
-    return OperandARM32FlexImm::create(Func, IceType_i32, Imm8, RotateAmt);
-  }
-
-  OperandARM32FlexImm *memOpBicMask() const {
-    constexpr uint32_t Imm8 = 0x0C; // 0xC0000000
-    constexpr uint32_t RotateAmt = 2;
-    return OperandARM32FlexImm::create(Func, IceType_i32, Imm8, RotateAmt);
-  }
-
   GlobalContext *getCtx() const { return Ctx; }
 
 protected:
@@ -834,115 +822,6 @@ protected:
 
   void postLowerLegalization();
 
-  class AutoSandboxer {
-  public:
-    explicit AutoSandboxer(
-        TargetARM32 *Target,
-        InstBundleLock::Option BundleOption = InstBundleLock::Opt_None)
-        : Target(Target) {
-      if (Target->NeedSandboxing) {
-        Target->_bundle_lock(BundleOption);
-      }
-    }
-
-    void add_sp(Operand *AddAmount) {
-      Variable *SP = Target->getPhysicalRegister(RegARM32::Reg_sp);
-      Target->_add(SP, SP, AddAmount);
-      if (Target->NeedSandboxing) {
-        Target->_bic(SP, SP, Target->memOpBicMask());
-      }
-    }
-
-    void align_sp(size_t Alignment) {
-      Variable *SP = Target->getPhysicalRegister(RegARM32::Reg_sp);
-      Target->alignRegisterPow2(SP, Alignment);
-      if (Target->NeedSandboxing) {
-        Target->_bic(SP, SP, Target->memOpBicMask());
-      }
-    }
-
-    InstARM32Call *bl(Variable *ReturnReg, Operand *CallTarget) {
-      if (Target->NeedSandboxing) {
-        if (auto *CallTargetR = llvm::dyn_cast<Variable>(CallTarget)) {
-          Target->_bic(CallTargetR, CallTargetR,
-                       Target->indirectBranchBicMask());
-        }
-      }
-      auto *Call = InstARM32Call::create(Target->Func, ReturnReg, CallTarget);
-      Target->Context.insert(Call);
-      return Call;
-    }
-
-    void ldr(Variable *Dest, OperandARM32Mem *Mem, CondARM32::Cond Pred) {
-      if (Target->NeedSandboxing) {
-        assert(!Mem->isRegReg());
-        Variable *MemBase = Mem->getBase();
-        Target->_bic(MemBase, MemBase, Target->memOpBicMask(), Pred);
-      }
-      Target->_ldr(Dest, Mem, Pred);
-    }
-
-    void ldrex(Variable *Dest, OperandARM32Mem *Mem, CondARM32::Cond Pred) {
-      if (Target->NeedSandboxing) {
-        assert(!Mem->isRegReg());
-        Variable *MemBase = Mem->getBase();
-        Target->_bic(MemBase, MemBase, Target->memOpBicMask(), Pred);
-      }
-      Target->_ldrex(Dest, Mem, Pred);
-    }
-
-    void reset_sp(Variable *Src) {
-      Variable *SP = Target->getPhysicalRegister(RegARM32::Reg_sp);
-      Target->_mov_redefined(SP, Src);
-      if (Target->NeedSandboxing) {
-        Target->_bic(SP, SP, Target->memOpBicMask());
-      }
-    }
-
-    void ret(Variable *RetAddr, Variable *RetValue) {
-      if (Target->NeedSandboxing) {
-        Target->_bic(RetAddr, RetAddr, Target->indirectBranchBicMask());
-      }
-      Target->_ret(RetAddr, RetValue);
-    }
-
-    void str(Variable *Src, OperandARM32Mem *Mem, CondARM32::Cond Pred) {
-      if (Target->NeedSandboxing) {
-        assert(!Mem->isRegReg());
-        Variable *MemBase = Mem->getBase();
-        Target->_bic(MemBase, MemBase, Target->memOpBicMask(), Pred);
-      }
-      Target->_str(Src, Mem, Pred);
-    }
-
-    void strex(Variable *Dest, Variable *Src, OperandARM32Mem *Mem,
-               CondARM32::Cond Pred) {
-      if (Target->NeedSandboxing) {
-        assert(!Mem->isRegReg());
-        Variable *MemBase = Mem->getBase();
-        Target->_bic(MemBase, MemBase, Target->memOpBicMask(), Pred);
-      }
-      Target->_strex(Dest, Src, Mem, Pred);
-    }
-
-    void sub_sp(Operand *SubAmount) {
-      Variable *SP = Target->getPhysicalRegister(RegARM32::Reg_sp);
-      Target->_sub(SP, SP, SubAmount);
-      if (Target->NeedSandboxing) {
-        Target->_bic(SP, SP, Target->memOpBicMask());
-      }
-    }
-
-    ~AutoSandboxer() {
-      if (Target->NeedSandboxing) {
-        Target->_bundle_unlock();
-      }
-    }
-
-  private:
-    TargetARM32 *Target;
-  };
-
   class PostLoweringLegalizer {
     PostLoweringLegalizer() = delete;
     PostLoweringLegalizer(const PostLoweringLegalizer &) = delete;
@@ -999,7 +878,6 @@ protected:
     int32_t TempBaseOffset = 0;
   };
 
-  const bool NeedSandboxing;
   TargetARM32Features CPUFeatures;
   bool UsesFramePointer = false;
   bool NeedsStackAlignment = false;
