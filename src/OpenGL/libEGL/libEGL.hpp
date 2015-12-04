@@ -84,7 +84,11 @@ private:
 			#if defined(_WIN32)
 			const char *libEGL_lib[] = {"libEGL.dll", "libEGL_translator.dll"};
 			#elif defined(__ANDROID__)
+			#if defined(__LP64__)
+			const char *libEGL_lib[] = {"/vendor/lib64/egl/libEGL_swiftshader.so"};
+			#else
 			const char *libEGL_lib[] = {"/vendor/lib/egl/libEGL_swiftshader.so"};
+			#endif
 			#elif defined(__LP64__)
 			const char *libEGL_lib[] = {"lib64EGL_translator.so", "libEGL.so.1", "libEGL.so"};
 			#else

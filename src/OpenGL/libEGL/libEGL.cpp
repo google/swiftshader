@@ -886,19 +886,19 @@ EGLImageKHR CreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLCl
 		}
 	}
 
+	#if defined(__ANDROID__)
+		if(target == EGL_NATIVE_BUFFER_ANDROID)
+		{
+			return new AndroidNativeImage(reinterpret_cast<ANativeWindowBuffer*>(buffer));
+		}
+	#endif
+
 	GLuint name = reinterpret_cast<intptr_t>(buffer);
 
 	if(name == 0)
 	{
 		return error(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
 	}
-
-	#if defined(__ANDROID__)
-		if(target == EGL_NATIVE_BUFFER_ANDROID)
-		{
-			return new AndroidNativeImage(reinterpret_cast<ANativeWindowBuffer*>(name));
-		}
-	#endif
 
 	EGLenum validationResult = context->validateSharedImage(target, name, textureLevel);
 

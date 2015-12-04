@@ -243,7 +243,11 @@ private:
 			#if defined(_WIN32)
 			const char *libGLES_CM_lib[] = {"libGLES_CM.dll", "libGLES_CM_translator.dll"};
 			#elif defined(__ANDROID__)
+			#if defined(__LP64__)
+			const char *libGLES_CM_lib[] = {"/vendor/lib64/egl/libGLESv1_CM_swiftshader.so"};
+			#else
 			const char *libGLES_CM_lib[] = {"/vendor/lib/egl/libGLESv1_CM_swiftshader.so"};
+			#endif
 			#elif defined(__LP64__)
 			const char *libGLES_CM_lib[] = {"lib64GLES_CM_translator.so", "libGLES_CM.so.1", "libGLES_CM.so"};
 			#else
