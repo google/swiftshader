@@ -393,11 +393,11 @@ private:
   // Returns the offset encoded in the branch instruction Inst.
   static IOffsetT decodeBranchOffset(IValueT Inst);
 
-  // Implements movw, generating pattern ccccxxxxxxxsiiiiddddiiiiiiiiiiii where
-  // cccc=Cond, xxxxxxx<<21=Opcode, dddd=Rd, s=SetFlags, and
+  // Implements movw/movt, generating pattern ccccxxxxxxxsiiiiddddiiiiiiiiiiii
+  // where cccc=Cond, xxxxxxx<<21=Opcode, dddd=Rd, s=SetFlags, and
   // iiiiiiiiiiiiiiii=Imm16.
-  void emitMovw(IValueT Opcode, IValueT Rd, IValueT Imm16, bool SetFlags,
-                CondARM32::Cond Cond);
+  void emitMovwt(CondARM32::Cond Cond, bool IsMovw, const Operand *OpRd,
+                 const Operand *OpSrc, const char *MovName);
 };
 
 } // end of namespace ARM32

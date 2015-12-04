@@ -1,4 +1,4 @@
-; Show that we handle constants in a movw, when it isn't represented as
+; Show that we handle constants in movw and mvt, when it isn't represented as
 ; ConstantRelocatable (see mov-imm.ll for the ConstantRelocatable case).
 
 ; REQUIRES: allow_dump
@@ -118,5 +118,87 @@ entry:
 ; IASM-NEXT:    .byte 0xff
 ; IASM-NEXT:    .byte 0x2f
 ; IASM-NEXT:    .byte 0xe1
+
+}
+
+define internal void @saveMinus1(i32 %loc) {
+; ASM-LABEL:saveMinus1:
+; DIS-LABEL:00000030 <saveMinus1>:
+; IASM-LABEL:saveMinus1:
+
+entry:
+; ASM-NEXT:.LsaveMinus1$entry:
+; ASM-NEXT:     movw    ip, #4088
+; DIS-NEXT:  30:        e300cff8
+; IASM-NEXT:.LsaveMinus1$entry:
+
+; ASM-NEXT:     sub     sp, sp, ip
+; DIS-NEXT:  34:        e04dd00c
+; IASM-NEXT:	.byte 0xf8
+; IASM-NEXT:	.byte 0xcf
+; IASM-NEXT:	.byte 0x0
+; IASM-NEXT:	.byte 0xe3
+
+; ASM-NEXT:     str     r0, [sp, #4084]
+; ASM-NEXT:     # [sp, #4084] = def.pseudo 
+; DIS-NEXT:  38:        e58d0ff4
+; IASM-NEXT:	.byte 0xc
+; IASM-NEXT:	.byte 0xd0
+; IASM-NEXT:	.byte 0x4d
+; IASM-NEXT:	.byte 0xe0
+
+  %loc.asptr = inttoptr i32 %loc to i32*
+  store i32 -1, i32* %loc.asptr, align 1
+
+; ASM-NEXT:     ldr     r0, [sp, #4084]
+; DIS-NEXT:  3c:        e59d0ff4
+; IASM-NEXT:	.byte 0xf4
+; IASM-NEXT:	.byte 0xf
+; IASM-NEXT:	.byte 0x8d
+; IASM-NEXT:	.byte 0xe5
+
+; ASM-NEXT:     movw    r1, #65535
+; DIS-NEXT:  40:        e30f1fff
+; IASM-NEXT:	.byte 0xf4
+; IASM-NEXT:	.byte 0xf
+; IASM-NEXT:	.byte 0x9d
+; IASM-NEXT:	.byte 0xe5
+
+; ASM-NEXT:     movt    r1, #65535
+; DIS-NEXT:  44:        e34f1fff
+; IASM-NEXT:	.byte 0xff
+; IASM-NEXT:	.byte 0x1f
+; IASM-NEXT:	.byte 0xf
+; IASM-NEXT:	.byte 0xe3
+
+; ASM-NEXT:     str     r1, [r0]
+; DIS-NEXT:  48:        e5801000
+; IASM-NEXT:	.byte 0xff
+; IASM-NEXT:	.byte 0x1f
+; IASM-NEXT:	.byte 0x4f
+; IASM-NEXT:	.byte 0xe3
+
+  ret void
+
+; ASM-NEXT:     movw    ip, #4088
+; DIS-NEXT:  4c:        e300cff8
+; IASM-NEXT:	.byte 0x0
+; IASM-NEXT:	.byte 0x10
+; IASM-NEXT:	.byte 0x80
+; IASM-NEXT:	.byte 0xe5
+
+; ASM-NEXT:     add     sp, sp, ip
+; DIS-NEXT:  50:        e08dd00c
+; IASM-NEXT:	.byte 0xf8
+; IASM-NEXT:	.byte 0xcf
+; IASM-NEXT:	.byte 0x0
+; IASM-NEXT:	.byte 0xe3
+
+; ASM-NEXT:     bx      lr
+; DIS-NEXT:  54:        e12fff1e
+; IASM-NEXT:	.byte 0xc
+; IASM-NEXT:	.byte 0xd0
+; IASM-NEXT:	.byte 0x8d
+; IASM-NEXT:	.byte 0xe0
 
 }
