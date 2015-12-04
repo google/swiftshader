@@ -182,7 +182,7 @@ def main():
             ).format(root=nacl_root, sb='sb' if args.sandbox else 'native'))
     pure_c = os.path.splitext(args.driver)[1] == '.c'
 
-    # TargetX8664 is ilp32, but clang does not currently support such
+    # TargetX8664 is ilp32, but pnacl-clang does not currently support such
     # configuration. In order to run the crosstests we play nasty, dangerous
     # tricks with the stack pointer.
     needs_stack_hack = (args.target == 'x8664')
@@ -202,7 +202,7 @@ def main():
         bin=bindir, prefix='pnacl-' if args.sandbox else '',
         cc='clang' if pure_c else 'clang++')
     sb_native_args = (['-O0', '--pnacl-allow-native',
-                       '-arch', target_info.target,
+                       '-arch', target_info.compiler_arch,
                        '-Wn,-defsym=__Sz_AbsoluteZero=0']
                       if args.sandbox else
                       ['-g', '-target=' + triple,
