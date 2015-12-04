@@ -1477,23 +1477,24 @@ void AssemblerARM32::mul(const Operand *OpRd, const Operand *OpRn,
             MulName);
 }
 
-void AssemblerARM32::udiv(const Operand *OpRd, const Operand *OpRn,
-                          const Operand *OpSrc1, CondARM32::Cond Cond) {
-  // UDIV - ARM section A8.8.248, encoding A1.
-  //   udiv<c> <Rd>, <Rn>, <Rm>
+void AssemblerARM32::rsb(const Operand *OpRd, const Operand *OpRn,
+                         const Operand *OpSrc1, bool SetFlags,
+                         CondARM32::Cond Cond) {
+  // RSB (immediate) - ARM section A8.8.152, encoding A1.
+  //   rsb{s}<c> <Rd>, <Rn>, #<RotatedImm8>
   //
-  // cccc01110011dddd1111mmmm0001nnnn where cccc=Cond, dddd=Rd, nnnn=Rn, and
-  // mmmm=Rm.
-  constexpr const char *UdivName = "udiv";
-  IValueT Rd = encodeRegister(OpRd, "Rd", UdivName);
-  IValueT Rn = encodeRegister(OpRn, "Rn", UdivName);
-  IValueT Rm = encodeRegister(OpSrc1, "Rm", UdivName);
-  verifyRegNotPc(Rd, "Rd", UdivName);
-  verifyRegNotPc(Rn, "Rn", UdivName);
-  verifyRegNotPc(Rm, "Rm", UdivName);
-  // Assembler registers rd, rn, rm are encoded as rn, rm, rs.
-  constexpr IValueT UdivOpcode = B21;
-  emitDivOp(Cond, UdivOpcode, Rd, Rn, Rm, UdivName);
+  // cccc0010011snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
+  // s=setFlags and iiiiiiiiiiii defines the RotatedImm8 value.
+  //
+  // RSB (register) - ARM section A8.8.163, encoding A1.
+  //   rsb{s}<c> <Rd>, <Rn>, <Rm>{, <Shift>}
+  //
+  // cccc0000011snnnnddddiiiiitt0mmmm where cccc=Cond, dddd=Rd, nnnn=Rn,
+  // mmmm=Rm, iiiii=shift, tt==ShiftKind, and s=SetFlags.
+  constexpr const char *RsbName = "rsb";
+  constexpr IValueT RsbOpcode = B1 | B0; // 0011
+  emitType01(Cond, RsbOpcode, OpRd, OpRn, OpSrc1, SetFlags, RdIsPcAndSetFlags,
+             RsbName);
 }
 
 void AssemblerARM32::sub(const Operand *OpRd, const Operand *OpRn,
@@ -1505,7 +1506,7 @@ void AssemblerARM32::sub(const Operand *OpRd, const Operand *OpRn,
   //   sub{s}<c> <Rd>, sp, <Rm>{, <Shift>}
   //
   // cccc0000010snnnnddddiiiiitt0mmmm where cccc=Cond, dddd=Rd, nnnn=Rn,
-  // mmmm=Rm, iiiiii=shift, tt=ShiftKind, and s=SetFlags.
+  // mmmm=Rm, iiiii=shift, tt=ShiftKind, and s=SetFlags.
   //
   // Sub (Immediate) - ARM section A8.8.222, encoding A1:
   //    sub{s}<c> <Rd>, <Rn>, #<RotatedImm8>
@@ -1536,6 +1537,25 @@ void AssemblerARM32::tst(const Operand *OpRn, const Operand *OpSrc1,
   constexpr const char *TstName = "tst";
   constexpr IValueT TstOpcode = B3; // ie. 1000
   emitCompareOp(Cond, TstOpcode, OpRn, OpSrc1, TstName);
+}
+
+void AssemblerARM32::udiv(const Operand *OpRd, const Operand *OpRn,
+                          const Operand *OpSrc1, CondARM32::Cond Cond) {
+  // UDIV - ARM section A8.8.248, encoding A1.
+  //   udiv<c> <Rd>, <Rn>, <Rm>
+  //
+  // cccc01110011dddd1111mmmm0001nnnn where cccc=Cond, dddd=Rd, nnnn=Rn, and
+  // mmmm=Rm.
+  constexpr const char *UdivName = "udiv";
+  IValueT Rd = encodeRegister(OpRd, "Rd", UdivName);
+  IValueT Rn = encodeRegister(OpRn, "Rn", UdivName);
+  IValueT Rm = encodeRegister(OpSrc1, "Rm", UdivName);
+  verifyRegNotPc(Rd, "Rd", UdivName);
+  verifyRegNotPc(Rn, "Rn", UdivName);
+  verifyRegNotPc(Rm, "Rm", UdivName);
+  // Assembler registers rd, rn, rm are encoded as rn, rm, rs.
+  constexpr IValueT UdivOpcode = B21;
+  emitDivOp(Cond, UdivOpcode, Rd, Rn, Rm, UdivName);
 }
 
 void AssemblerARM32::umull(const Operand *OpRdLo, const Operand *OpRdHi,

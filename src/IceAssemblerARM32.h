@@ -249,6 +249,9 @@ public:
   // Note: Registers is a bitset, where bit n corresponds to register Rn.
   void pushList(const IValueT Registers, CondARM32::Cond Cond);
 
+  void rsb(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
+           bool SetFlags, CondARM32::Cond Cond);
+
   void sbc(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
            bool SetFlags, CondARM32::Cond Cond);
 

@@ -459,12 +459,11 @@ class Assembler : public ValueObject {
   // Moved to ARM32::AssemberARM32::sub()
   void sub(Register rd, Register rn, Operand o, Condition cond = AL);
   void subs(Register rd, Register rn, Operand o, Condition cond = AL);
-#endif
 
+  // Moved to ARM32::AssemberARM32::rsb()
   void rsb(Register rd, Register rn, Operand o, Condition cond = AL);
   void rsbs(Register rd, Register rn, Operand o, Condition cond = AL);
 
-#if 0
   // Moved to ARM32::AssemblerARM32::add()
   void add(Register rd, Register rn, Operand o, Condition cond = AL);
 

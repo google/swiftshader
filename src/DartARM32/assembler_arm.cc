@@ -202,17 +202,17 @@ void Assembler::eor(Register rd, Register rn, Operand o, Condition cond) {
 void Assembler::sub(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), SUB, 0, rn, rd, o);
 }
-#endif
 
+// Moved to ARM32::AssemberARM32::rsb()
 void Assembler::rsb(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), RSB, 0, rn, rd, o);
 }
 
+// Moved to ARM32::AssemberARM32::rsb()
 void Assembler::rsbs(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), RSB, 1, rn, rd, o);
 }
 
-#if 0
 // Moved to ARM32::AssemberARM32::add()
 void Assembler::add(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), ADD, 0, rn, rd, o);
