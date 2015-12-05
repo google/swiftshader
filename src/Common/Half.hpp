@@ -12,8 +12,6 @@
 #ifndef sw_Half_hpp
 #define sw_Half_hpp
 
-#include <iostream>
-
 namespace sw
 {
 	class half
