@@ -822,6 +822,131 @@ protected:
 
   void postLowerLegalization();
 
+  /// Sandboxer defines methods for ensuring that "dangerous" operations are
+  /// masked during sandboxed code emission. For regular, non-sandboxed code
+  /// emission, its methods are simple pass-through methods.
+  ///
+  /// The Sandboxer also emits BundleLock/BundleUnlock pseudo-instructions
+  /// in the constructor/destructor during sandboxed code emission. Therefore,
+  /// it is a bad idea to create an object of this type and "keep it around."
+  /// The recommended usage is:
+  ///
+  /// AutoSandboxing(this).<<operation>>(...);
+  ///
+  /// This usage ensures that no other instructions are inadvertently added to
+  /// the bundle.
+  class Sandboxer {
+    Sandboxer() = delete;
+    Sandboxer(const Sandboxer &) = delete;
+    Sandboxer &operator=(const Sandboxer &) = delete;
+
+  public:
+    explicit Sandboxer(
+        TargetARM32 *Target,
+        InstBundleLock::Option BundleOption = InstBundleLock::Opt_None);
+    ~Sandboxer();
+
+    /// Increments sp:
+    ///
+    ///   add sp, sp, AddAmount
+    ///   bic sp, sp, 0xc0000000
+    ///
+    /// (for the rationale, see the ARM 32-bit Sandbox Specification.)
+    void add_sp(Operand *AddAmount);
+
+    /// Emits code to align sp to the specified alignment:
+    ///
+    ///   bic/and sp, sp, Alignment
+    ///   bic, sp, sp, 0xc0000000
+    void align_sp(size_t Alignment);
+
+    /// Emits a call instruction. If CallTarget is a Variable, it emits
+    ///
+    ///   bic CallTarget, CallTarget, 0xc000000f
+    ///   bl CallTarget
+    ///
+    /// Otherwise, it emits
+    ///
+    ///   bl CallTarget
+    ///
+    /// Note: in sandboxed code calls are always emitted in addresses 12 mod 16.
+    InstARM32Call *bl(Variable *ReturnReg, Operand *CallTarget);
+
+    /// Emits a load:
+    ///
+    ///   bic rBase, rBase, 0xc0000000
+    ///   ldr rDest, [rBase, #Offset]
+    ///
+    /// Exception: if rBase is r9 or sp, then the load is emitted as:
+    ///
+    ///   ldr rDest, [rBase, #Offset]
+    ///
+    /// because the NaCl ARM 32-bit Sandbox Specification guarantees they are
+    /// always valid.
+    void ldr(Variable *Dest, OperandARM32Mem *Mem, CondARM32::Cond Pred);
+
+    /// Emits a load exclusive:
+    ///
+    ///   bic rBase, rBase, 0xc0000000
+    ///   ldrex rDest, [rBase]
+    ///
+    /// Exception: if rBase is r9 or sp, then the load is emitted as:
+    ///
+    ///   ldrex rDest, [rBase]
+    ///
+    /// because the NaCl ARM 32-bit Sandbox Specification guarantees they are
+    /// always valid.
+    void ldrex(Variable *Dest, OperandARM32Mem *Mem, CondARM32::Cond Pred);
+
+    /// Resets sp to Src:
+    ///
+    ///   mov sp, Src
+    ///   bic sp, sp, 0xc0000000
+    void reset_sp(Variable *Src);
+
+    /// Emits code to return from a function:
+    ///
+    ///   bic lr, lr, 0xc000000f
+    ///   bx lr
+    void ret(Variable *RetAddr, Variable *RetValue);
+
+    /// Emits a store:
+    ///
+    ///   bic rBase, rBase, 0xc0000000
+    ///   str rSrc, [rBase, #Offset]
+    ///
+    /// Exception: if rBase is r9 or sp, then the store is emitted as:
+    ///
+    ///   str rDest, [rBase, #Offset]
+    ///
+    /// because the NaCl ARM 32-bit Sandbox Specification guarantees they are
+    /// always valid.
+    void str(Variable *Src, OperandARM32Mem *Mem, CondARM32::Cond Pred);
+
+    /// Emits a store exclusive:
+    ///
+    ///   bic rBase, rBase, 0xc0000000
+    ///   strex rDest, rSrc, [rBase]
+    ///
+    /// Exception: if rBase is r9 or sp, then the store is emitted as:
+    ///
+    ///   strex rDest, rSrc, [rBase]
+    ///
+    /// because the NaCl ARM 32-bit Sandbox Specification guarantees they are
+    /// always valid.
+    void strex(Variable *Dest, Variable *Src, OperandARM32Mem *Mem,
+               CondARM32::Cond Pred);
+
+    /// Decrements sp:
+    ///
+    ///   sub sp, sp, SubAmount
+    ///   bic sp, sp, 0xc0000000
+    void sub_sp(Operand *SubAmount);
+
+  private:
+    TargetARM32 *Target;
+  };
+
   class PostLoweringLegalizer {
     PostLoweringLegalizer() = delete;
     PostLoweringLegalizer(const PostLoweringLegalizer &) = delete;
@@ -878,6 +1003,7 @@ protected:
     int32_t TempBaseOffset = 0;
   };
 
+  const bool NeedSandboxing;
   TargetARM32Features CPUFeatures;
   bool UsesFramePointer = false;
   bool NeedsStackAlignment = false;

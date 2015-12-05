@@ -318,10 +318,15 @@ def ProcessPexe(args, pexe, exe):
 
     # Run the linker regardless of hybrid mode.
     if args.sandbox:
-        assert args.target in ['x8632'], \
+        assert args.target in ('x8632', 'arm32'), \
             '-sandbox is not available for %s' % args.target
+        target_lib_dir = {
+          'arm32': 'arm',
+          'x8632': 'x86-32',
+        }[args.target]
         linklib = ('{root}/toolchain/linux_x86/pnacl_newlib_raw/translator/' +
-                   'x86-32/lib').format(root=nacl_root)
+                   '{target_dir}/lib').format(root=nacl_root,
+                                              target_dir=target_lib_dir)
         shellcmd((
             '{gold} -nostdlib --no-fix-cortex-a8 --eh-frame-hdr -z text ' +
             '--build-id --entry=__pnacl_start -static ' +
