@@ -45,9 +45,8 @@
 /// Write a value into the static thread_local field. Must be done within the
 /// context of its class.
 
-/// \todo TODO(stichnot)
-/// Limit this define to only the platforms that absolutely require it. And
-/// ideally, eventually remove this hack altogether.
+/// TODO(stichnot): Limit this define to only the platforms that absolutely
+/// require it. And ideally, eventually remove this hack altogether.
 ///
 
 ///
