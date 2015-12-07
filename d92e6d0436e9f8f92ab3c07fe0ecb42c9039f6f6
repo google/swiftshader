@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a0dcf4fd_b6b730f7",
+        "filename": "src/OpenGL/libGLESv2/Framebuffer.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 280,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-12-07T15:14:44Z",
+      "side": 1,
+      "message": "This feels a bit too abstract to me. It\u0027s really Framebuffer::completeness which defines what it means for the layer to valid. So I suggest adding a getDepth() method to colorbuffer and compare that to its layer in here.",
+      "range": {
+        "startLine": 280,
+        "startChar": 85,
+        "endLine": 280,
+        "endChar": 98
+      },
+      "revId": "d92e6d0436e9f8f92ab3c07fe0ecb42c9039f6f6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
