@@ -964,10 +964,12 @@ class Assembler : public ValueObject {
            Condition cond = AL);
   // Moved to ARM32::AssemblerARM32::lsl()
   void Lsl(Register rd, Register rm, Register rs, Condition cond = AL);
-#endif
+  // Moved to ARM32::AssemblerARM32::lsr()
   void Lsr(Register rd, Register rm, const Operand& shift_imm,
            Condition cond = AL);
+  // Moved to ARM32::AssemblerARM32::lsr()
   void Lsr(Register rd, Register rm, Register rs, Condition cond = AL);
+#endif
   void Asr(Register rd, Register rm, const Operand& shift_imm,
            Condition cond = AL);
   void Asr(Register rd, Register rm, Register rs, Condition cond = AL);

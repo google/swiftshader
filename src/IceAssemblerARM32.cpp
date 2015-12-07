@@ -1122,48 +1122,61 @@ void AssemblerARM32::ldr(const Operand *OpRt, const Operand *OpAddress,
   }
 }
 
+void AssemblerARM32::emitShift(const CondARM32::Cond Cond,
+                               const OperandARM32::ShiftKind Shift,
+                               const Operand *OpRd, const Operand *OpRm,
+                               const Operand *OpSrc1, const bool SetFlags,
+                               const char *InstName) {
+  constexpr IValueT ShiftOpcode = B3 | B2 | B0; // 1101
+  IValueT Rd = encodeRegister(OpRd, "Rd", InstName);
+  IValueT Rm = encodeRegister(OpRm, "Rm", InstName);
+  IValueT Value;
+  switch (encodeOperand(OpSrc1, Value)) {
+  default:
+    llvm::report_fatal_error(std::string(InstName) +
+                             ": Last operand not understood");
+  case EncodedAsShiftImm5: {
+    // XXX (immediate)
+    //   xxx{s}<c> <Rd>, <Rm>, #imm5
+    //
+    // cccc0001101s0000ddddiiiii000mmmm where cccc=Cond, s=SetFlags, dddd=Rd,
+    // iiiii=imm5, and mmmm=Rm.
+    constexpr IValueT Rn = 0; // Rn field is not used.
+    Value = Value | (Rm << kRmShift) | (Shift << kShiftShift);
+    emitType01(Cond, kInstTypeDataRegShift, ShiftOpcode, SetFlags, Rn, Rd,
+               Value, RdIsPcAndSetFlags, InstName);
+    return;
+  }
+  case EncodedAsRegister: {
+    // XXX (register)
+    //   xxx{S}<c> <Rd>, <Rm>, <Rs>
+    //
+    // cccc0001101s0000ddddssss0001mmmm where cccc=Cond, s=SetFlags, dddd=Rd,
+    // mmmm=Rm, and ssss=Rs.
+    constexpr IValueT Rn = 0; // Rn field is not used.
+    IValueT Rs = encodeRegister(OpSrc1, "Rs", InstName);
+    verifyRegNotPc(Rd, "Rd", InstName);
+    verifyRegNotPc(Rm, "Rm", InstName);
+    verifyRegNotPc(Rs, "Rs", InstName);
+    emitType01(Cond, kInstTypeDataRegShift, ShiftOpcode, SetFlags, Rn, Rd,
+               encodeShiftRotateReg(Rm, Shift, Rs), NoChecks, InstName);
+    return;
+  }
+  }
+}
+
 void AssemblerARM32::lsl(const Operand *OpRd, const Operand *OpRm,
                          const Operand *OpSrc1, bool SetFlags,
                          CondARM32::Cond Cond) {
   constexpr const char *LslName = "lsl";
-  IValueT Rd = encodeRegister(OpRd, "Rd", LslName);
-  IValueT Rm = encodeRegister(OpRm, "Rm", LslName);
-  IValueT Value;
-  switch (encodeOperand(OpSrc1, Value)) {
-  default:
-    llvm::report_fatal_error(std::string(LslName) +
-                             ": Last operand not understood");
-  case EncodedAsShiftImm5: {
-    // LSL (immediate) - ARM section A8.8.94, encoding A1:
-    //   lsl{s}<c> <Rd>, <Rm>, #imm5
-    //
-    // cccc0001101s0000ddddiiiii000mmmm where cccc=Cond, s=SetFlags, dddd=Rd,
-    // iiiii=imm5, and mmmm=Rm.
-    constexpr IValueT LslOpcode = B3 | B2 | B0; // 1101
-    constexpr IValueT Rn = 0;                   // Rn field is not used.
-    Value = Value | (Rm << kRmShift);
-    emitType01(Cond, kInstTypeDataRegShift, LslOpcode, SetFlags, Rn, Rd, Value,
-               RdIsPcAndSetFlags, LslName);
-    return;
-  }
-  case EncodedAsRegister: {
-    // LSL (register) - ARM section A8.8.95, encoding A1:
-    //   lsl{S}<c> <Rd>, <Rm>, <Rs>
-    //
-    // cccc0001101s0000ddddssss0001mmmm where cccc=Cond, s=SetFlags, dddd=Rd,
-    // mmmm=Rm, and ssss=Rs.
-    constexpr IValueT LslOpcode = B3 | B2 | B0; // 1101
-    constexpr IValueT Rn = 0;                   // Rn field is not used.
-    IValueT Rs = encodeRegister(OpSrc1, "Rs", LslName);
-    verifyRegNotPc(Rd, "Rd", LslName);
-    verifyRegNotPc(Rm, "Rm", LslName);
-    verifyRegNotPc(Rs, "Rs", LslName);
-    emitType01(Cond, kInstTypeDataRegShift, LslOpcode, SetFlags, Rn, Rd,
-               encodeShiftRotateReg(Rm, OperandARM32::kNoShift, Rs), NoChecks,
-               LslName);
-    return;
-  }
-  }
+  emitShift(Cond, OperandARM32::LSL, OpRd, OpRm, OpSrc1, SetFlags, LslName);
+}
+
+void AssemblerARM32::lsr(const Operand *OpRd, const Operand *OpRm,
+                         const Operand *OpSrc1, bool SetFlags,
+                         CondARM32::Cond Cond) {
+  constexpr const char *LsrName = "lsr";
+  emitShift(Cond, OperandARM32::LSR, OpRd, OpRm, OpSrc1, SetFlags, LsrName);
 }
 
 void AssemblerARM32::mov(const Operand *OpRd, const Operand *OpSrc,

@@ -222,6 +222,9 @@ public:
   void lsl(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
            bool SetFlags, CondARM32::Cond Cond);
 
+  void lsr(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
+           bool SetFlags, CondARM32::Cond Cond);
+
   void mov(const Operand *OpRd, const Operand *OpSrc, CondARM32::Cond Cond);
 
   void movw(const Operand *OpRd, const Operand *OpSrc, CondARM32::Cond Cond);
@@ -375,6 +378,14 @@ private:
   // mmmm=Rm, ssss=Rs, f=SetFlags and xxxxxxx=Opcode.
   void emitMulOp(CondARM32::Cond Cond, IValueT Opcode, IValueT Rd, IValueT Rn,
                  IValueT Rm, IValueT Rs, bool SetFlags, const char *InstName);
+
+  // Pattern cccc0001101s0000ddddxxxxxtt0mmmm where cccc=Cond, s=SetFlags,
+  // dddd=Rd, mmmm=Rm, tt=Shift, and xxxxx is defined by OpSrc1. OpSrc1 defines
+  // either xxxxx=Imm5, or xxxxx=ssss0 where ssss=Rs.
+  void emitShift(const CondARM32::Cond Cond,
+                 const OperandARM32::ShiftKind Shift, const Operand *OpRd,
+                 const Operand *OpRm, const Operand *OpSrc1,
+                 const bool SetFlags, const char *InstName);
 
   // Implements various forms of Unsigned extend value, using pattern
   // ccccxxxxxxxxnnnnddddrr000111mmmm where cccc=Cond, xxxxxxxx<<20=Opcode,
