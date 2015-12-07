@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a0dcf4fd_16be3cd2",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 4241,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-12-07T15:20:53Z",
+      "side": 1,
+      "message": "The spec says that the OES_framebuffer_object extension is also required. But it\u0027s a core part of ES 2.0. OES_framebuffer_object defines several OES entry functions.\n\nShannon, what\u0027s expected in this situation? Do we need to advertise OES_framebuffer_object and add aliases for the entry functions?",
+      "range": {
+        "startLine": 4241,
+        "startChar": 19,
+        "endLine": 4241,
+        "endChar": 33
+      },
+      "revId": "d8c91e1071c8b5e40ea6b1a4dc4f7e889a01af38",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
