@@ -41,12 +41,11 @@ namespace Ice {
 /// request immediately. When run in the browser, it blocks waiting for a
 /// request.
 class CompileServer {
-  CompileServer() = delete;
   CompileServer(const CompileServer &) = delete;
   CompileServer &operator=(const CompileServer &) = delete;
 
 public:
-  explicit CompileServer(Compiler &Comp) : Comp(Comp) {}
+  CompileServer() = default;
 
   virtual ~CompileServer() = default;
 
@@ -55,10 +54,15 @@ public:
   virtual ErrorCode &getErrorCode() { return LastError; }
   void transferErrorCode(ErrorCodes Code) { LastError.assign(Code); }
 
-protected:
-  Compiler &getCompiler() const { return Comp; }
+  int runAndReturnErrorCode() {
+    run();
+    return getErrorCode().value();
+  }
 
-  Compiler &Comp;
+protected:
+  Compiler &getCompiler() { return Comp; }
+
+  Compiler Comp;
   ErrorCode LastError;
 };
 
@@ -69,8 +73,7 @@ class CLCompileServer : public CompileServer {
   CLCompileServer &operator=(const CLCompileServer &) = delete;
 
 public:
-  CLCompileServer(Compiler &Comp, int argc, char **argv)
-      : CompileServer(Comp), argc(argc), argv(argv) {}
+  CLCompileServer(int argc, char **argv) : argc(argc), argv(argv) {}
 
   ~CLCompileServer() final = default;
 

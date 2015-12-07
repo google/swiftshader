@@ -35,6 +35,16 @@ constexpr bool asserts() {
 #endif // !NDEBUG
 }
 
+// PNACL_BROWSER_TRANSLATOR can be undefined, or defined to something non-zero
+// to indicate a browser-based translator.
+constexpr bool browser() {
+#if PNACL_BROWSER_TRANSLATOR
+  return true;
+#else  // !PNACL_BROWSER_TRANSLATOR
+  return false;
+#endif // !PNACL_BROWSER_TRANSLATOR
+}
+
 // ALLOW_EXTRA_VALIDATION can be undefined, or defined to something non-zero.
 constexpr bool extraValidation() {
 #if ALLOW_EXTRA_VALIDATION

@@ -37,14 +37,12 @@ namespace Ice {
 /// defaults that make sense in the browser case. The output file is specified
 /// via a posix FD, and input bytes are pushed to the server.
 class BrowserCompileServer : public CompileServer {
-  BrowserCompileServer() = delete;
   BrowserCompileServer(const BrowserCompileServer &) = delete;
   BrowserCompileServer &operator=(const BrowserCompileServer &) = delete;
   class StringStream;
 
 public:
-  explicit BrowserCompileServer(Compiler &Comp)
-      : CompileServer(Comp), InputStream(nullptr), HadError(false) {}
+  BrowserCompileServer() : HadError(false) {}
 
   ~BrowserCompileServer() final;
 

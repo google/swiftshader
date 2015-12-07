@@ -14,25 +14,17 @@
 //===----------------------------------------------------------------------===//
 
 #include "IceBrowserCompileServer.h"
-#include "IceCompiler.h"
+#include "IceBuildDefs.h"
 #include "IceCompileServer.h"
 
 int main(int argc, char **argv) {
   // Start file server and "wait" for compile request.
-  Ice::Compiler Comp;
-// Can only compile the BrowserCompileServer w/ the NaCl compiler.
-#if PNACL_BROWSER_TRANSLATOR
-  // There are no real commandline arguments in the browser case. They are
-  // supplied via IPC.
-  assert(argc == 1);
-  (void)argc;
-  (void)argv;
-  Ice::BrowserCompileServer Server(Comp);
-  Server.run();
-  return Server.getErrorCode().value();
-#else  // !PNACL_BROWSER_TRANSLATOR
-  Ice::CLCompileServer Server(Comp, argc, argv);
-  Server.run();
-  return Server.getErrorCode().value();
-#endif // !PNACL_BROWSER_TRANSLATOR
+  // Can only compile the BrowserCompileServer w/ the NaCl compiler.
+  if (Ice::BuildDefs::browser()) {
+    // There are no real commandline arguments in the browser case. They are
+    // supplied via IPC.
+    assert(argc == 1);
+    return Ice::BrowserCompileServer().runAndReturnErrorCode();
+  }
+  return Ice::CLCompileServer(argc, argv).runAndReturnErrorCode();
 }
