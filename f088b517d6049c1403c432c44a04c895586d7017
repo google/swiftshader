@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a0b8743e_90a1b4bd",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1646,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-12-08T22:17:12Z",
+      "side": 1,
+      "message": "This won\u0027t work for larger textures. uuuu and uuu2 are really two Int2 variables (hence all the As\u003cInt2\u003e() above), so we have four 32-bit indexes as output. Admittedly these variable names are terrible and there\u0027s probably an opportunity to use real Int2 variables.\n\nThe multiplication you\u0027re doing here is 4 x 16-bit, so it will easily overflow. You\u0027ll want something much more similar to the code above. That said, this is 11 instructions while the code below is 7 instructions. I think we can just use the version below, even for NPOT textures. And for array textures you\u0027d just skip the MulHigh.",
+      "range": {
+        "startLine": 1646,
+        "startChar": 4,
+        "endLine": 1646,
+        "endChar": 62
+      },
+      "revId": "f088b517d6049c1403c432c44a04c895586d7017",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
