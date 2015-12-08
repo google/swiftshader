@@ -101,7 +101,9 @@ public:
   }
 
 private:
-  void nearLinkTo(intptr_t position) {
+  void nearLinkTo(const Assembler &Asm, intptr_t position) {
+    if (Asm.getPreliminary())
+      return;
     assert(!isBound());
     UnresolvedNearPositions.push_back(position);
   }

@@ -32,6 +32,8 @@
 
 namespace Ice {
 
+class Assembler;
+
 /// A Label can be in one of three states:
 ///  - Unused.
 ///  - Linked, unplaced and tracking the position of branches to the label.
@@ -82,11 +84,7 @@ public:
     assert(isBound());
   }
 
-  void linkTo(intptr_t position) {
-    assert(!isBound());
-    Position = position + kWordSize;
-    assert(isLinked());
-  }
+  void linkTo(const Assembler &Asm, intptr_t position);
 
 protected:
   intptr_t Position = 0;

@@ -1286,12 +1286,6 @@ void InstARM32Pop::emitIAS(const Cfg *Func) const {
     // Note: Can only apply pop register if single register is not sp.
     assert((RegARM32::Encoded_Reg_sp != LastDest->getRegNum()) &&
            "Effects of pop register SP is undefined!");
-    // TODO(kschimpf) ARM sandbox does not allow the single register form of
-    // pop, and the popList form expects multiple registers. Convert this
-    // assert to a conditional check once it has been shown that popList
-    // works.
-    assert(!Func->getContext()->getFlags().getUseSandboxing() &&
-           "pop register not in ARM sandbox!");
     Asm->pop(LastDest, CondARM32::AL);
     break;
   default:
@@ -1392,12 +1386,6 @@ void InstARM32Push::emitIAS(const Cfg *Func) const {
     // Note: Can only apply push register if single register is not sp.
     assert((RegARM32::Encoded_Reg_sp != LastSrc->getRegNum()) &&
            "Effects of push register SP is undefined!");
-    // TODO(kschimpf) ARM sandbox does not allow the single register form of
-    // push, and the pushList form expects multiple registers. Convert this
-    // assert to a conditional check once it has been shown that pushList
-    // works.
-    assert(!Func->getContext()->getFlags().getUseSandboxing() &&
-           "push register not in ARM sandbox!");
     Asm->push(LastSrc, CondARM32::AL);
     break;
   }
@@ -1794,6 +1782,21 @@ void OperandARM32ShAmtImm::emit(const Cfg *Func) const { ShAmt->emit(Func); }
 
 void OperandARM32ShAmtImm::dump(const Cfg *, Ostream &Str) const {
   ShAmt->dump(Str);
+}
+
+OperandARM32FlexImm *OperandARM32FlexImm::create(Cfg *Func, Type Ty,
+                                                 uint32_t Imm,
+                                                 uint32_t RotateAmt) {
+  // The assembler wants the smallest rotation. Rotate if needed. Note: Imm is
+  // an 8-bit value.
+  assert(Utils::IsUint(8, Imm) &&
+         "Flex immediates can only be defined on 8-bit immediates");
+  while ((Imm & 0x03) == 0 && RotateAmt > 0) {
+    --RotateAmt;
+    Imm = Imm >> 2;
+  }
+  return new (Func->allocate<OperandARM32FlexImm>())
+      OperandARM32FlexImm(Func, Ty, Imm, RotateAmt);
 }
 
 void OperandARM32FlexImm::emit(const Cfg *Func) const {

@@ -135,10 +135,7 @@ public:
     return llvm::ArrayRef<uint8_t>(Padding, 4);
   }
 
-  void padWithNop(intptr_t Padding) override {
-    (void)Padding;
-    llvm_unreachable("Not yet implemented.");
-  }
+  void padWithNop(intptr_t Padding) override;
 
   Ice::Label *getCfgNodeLabel(SizeT NodeNumber) override {
     assert(NodeNumber < CfgNodeLabels.size());
@@ -243,6 +240,8 @@ public:
            bool SetFlags, CondARM32::Cond Cond);
 
   void mvn(const Operand *OpRd, const Operand *OpScc, CondARM32::Cond Cond);
+
+  void nop();
 
   void orr(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
            bool SetFlags, CondARM32::Cond Cond);

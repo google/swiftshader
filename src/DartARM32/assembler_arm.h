@@ -594,9 +594,10 @@ class Assembler : public ValueObject {
 
   // Miscellaneous instructions.
   void clrex();
+#if 0
+  // Moved to ARM32::AssemblerARM32::nop().
   void nop(Condition cond = AL);
 
-#if 0
   // Moved to ARM32::AssemblerARM32::bkpt()
   // Note that gdb sets breakpoints using the undefined instruction 0xe7f001f0.
   void bkpt(uint16_t imm16);

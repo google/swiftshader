@@ -35,6 +35,17 @@ static uintptr_t NewContents(Assembler &Assemblr, intptr_t Capacity) {
   return Result;
 }
 
+void Label::linkTo(const Assembler &Asm, intptr_t Pos) {
+  // We must not set the link until the position is absolutely known. This means
+  // not during the preliminary (sandboxing) pass, and not when the instruction
+  // needs a text fixup (hybrid iasm mode).
+  if (Asm.getPreliminary() || Asm.needsTextFixup())
+    return;
+  assert(!isBound());
+  Position = Pos + kWordSize;
+  assert(isLinked());
+}
+
 void AssemblerBuffer::installFixup(AssemblerFixup *F) {
   if (!Assemblr.getPreliminary())
     Fixups.push_back(F);

@@ -3404,17 +3404,15 @@ void AssemblerX86Base<Machine>::emitLabelLink(Label *Label) {
   assert(!Label->isBound());
   intptr_t Position = Buffer.size();
   emitInt32(Label->Position);
-  if (!getPreliminary())
-    Label->linkTo(Position);
+  Label->linkTo(*this, Position);
 }
 
 template <class Machine>
-void AssemblerX86Base<Machine>::emitNearLabelLink(Label *label) {
-  assert(!label->isBound());
-  intptr_t position = Buffer.size();
+void AssemblerX86Base<Machine>::emitNearLabelLink(Label *Label) {
+  assert(!Label->isBound());
+  intptr_t Position = Buffer.size();
   emitUint8(0);
-  if (!getPreliminary())
-    label->nearLinkTo(position);
+  Label->nearLinkTo(*this, Position);
 }
 
 template <class Machine>

@@ -460,6 +460,14 @@ size_t BlRelocatableFixup::emit(GlobalContext *Ctx,
   return InstARM32::InstSize;
 }
 
+void AssemblerARM32::padWithNop(intptr_t Padding) {
+  constexpr intptr_t InstWidth = sizeof(IValueT);
+  assert(Padding % InstWidth == 0 &&
+         "Padding not multiple of instruction size");
+  for (intptr_t i = 0; i < Padding; i += InstWidth)
+    nop();
+}
+
 BlRelocatableFixup *
 AssemblerARM32::createBlFixup(const ConstantRelocatable *BlTarget) {
   BlRelocatableFixup *F =
@@ -651,8 +659,7 @@ void AssemblerARM32::emitBranch(Label *L, CondARM32::Cond Cond, bool Link) {
   const IOffsetT Position = Buffer.size();
   // Use the offset field of the branch instruction for linking the sites.
   emitType05(Cond, L->getEncodedPosition(), Link, BranchName);
-  if (!needsTextFixup())
-    L->linkTo(Position);
+  L->linkTo(*this, Position);
 }
 
 void AssemblerARM32::emitCompareOp(CondARM32::Cond Cond, IValueT Opcode,
@@ -717,8 +724,9 @@ void AssemblerARM32::emitMemOp(CondARM32::Cond Cond, bool IsLoad, bool IsByte,
       llvm::report_fatal_error(std::string(InstName) +
                                ": Use push/pop instead");
 
-    return emitMemOp(Cond, kInstTypeMemImmediate, IsLoad, IsByte, Rt, Address,
-                     InstName);
+    emitMemOp(Cond, kInstTypeMemImmediate, IsLoad, IsByte, Rt, Address,
+              InstName);
+    return;
   }
   case EncodedAsShiftRotateImm5: {
     // XXX{B} (register)
@@ -740,8 +748,9 @@ void AssemblerARM32::emitMemOp(CondARM32::Cond Cond, bool IsLoad, bool IsByte,
       verifyRegNotPc(Rn, "Rn", InstName);
       verifyRegsNotEq(Rn, "Rn", Rt, "Rt", InstName);
     }
-    return emitMemOp(Cond, kInstTypeRegisterShift, IsLoad, IsByte, Rt, Address,
-                     InstName);
+    emitMemOp(Cond, kInstTypeRegisterShift, IsLoad, IsByte, Rt, Address,
+              InstName);
+    return;
   }
   }
 }
@@ -773,7 +782,8 @@ void AssemblerARM32::emitMemOpEnc3(CondARM32::Cond Cond, IValueT Opcode,
     const IValueT Encoding = (encodeCondition(Cond) << kConditionShift) |
                              Opcode | (Rt << kRdShift) | Address;
     AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-    return emitInst(Encoding);
+    emitInst(Encoding);
+    return;
   }
   case EncodedAsShiftRotateImm5: {
     // XXXH (register)
@@ -800,7 +810,8 @@ void AssemblerARM32::emitMemOpEnc3(CondARM32::Cond Cond, IValueT Opcode,
     const IValueT Encoding = (encodeCondition(Cond) << kConditionShift) |
                              Opcode | (Rt << kRdShift) | Address;
     AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-    return emitInst(Encoding);
+    emitInst(Encoding);
+    return;
   }
   }
 }
@@ -1130,7 +1141,8 @@ void AssemblerARM32::ldr(const Operand *OpRt, const Operand *OpAddress,
     // cccc011pu1w1nnnnttttiiiiiss0mmmm where cccc=Cond, tttt=Rt, U=1 if +, pu0b
     // is a BlockAddr, and pu0w0nnnn0000iiiiiss0mmmm=Address.
     constexpr bool IsByte = true;
-    return emitMemOp(Cond, IsLoad, IsByte, Rt, OpAddress, TInfo, LdrName);
+    emitMemOp(Cond, IsLoad, IsByte, Rt, OpAddress, TInfo, LdrName);
+    return;
   }
   case 1: {
     // Handles i16 loads.
@@ -1144,7 +1156,8 @@ void AssemblerARM32::ldr(const Operand *OpRt, const Operand *OpAddress,
     // iiiiiiii=Imm8, u=1 if +, pu0w is a BlockAddr, and
     // pu0w0nnnn0000iiiiiiiiiiii=Address.
     constexpr const char *Ldrh = "ldrh";
-    return emitMemOpEnc3(Cond, L | B7 | B5 | B4, Rt, OpAddress, TInfo, Ldrh);
+    emitMemOpEnc3(Cond, L | B7 | B5 | B4, Rt, OpAddress, TInfo, Ldrh);
+    return;
   }
   case 2: {
     // Note: Handles i32 and float loads. Target lowering handles i64 and
@@ -1165,7 +1178,8 @@ void AssemblerARM32::ldr(const Operand *OpRt, const Operand *OpAddress,
     // cccc011pu0w1nnnnttttiiiiiss0mmmm where cccc=Cond, tttt=Rt, U=1 if +, pu0b
     // is a BlockAddr, and pu0w0nnnn0000iiiiiss0mmmm=Address.
     constexpr bool IsByte = false;
-    return emitMemOp(Cond, IsLoad, IsByte, Rt, OpAddress, TInfo, LdrName);
+    emitMemOp(Cond, IsLoad, IsByte, Rt, OpAddress, TInfo, LdrName);
+    return;
   }
   }
 }
@@ -1327,6 +1341,18 @@ void AssemblerARM32::mvn(const Operand *OpRd, const Operand *OpSrc,
              MvnName);
 }
 
+void AssemblerARM32::nop() {
+  // NOP - Section A8.8.119, encoding A1:
+  //  nop<c>
+  //
+  // cccc0011001000001111000000000000 where cccc=Cond.
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  constexpr CondARM32::Cond Cond = CondARM32::AL;
+  const IValueT Encoding = (encodeCondition(Cond) << kConditionShift) | B25 |
+                           B24 | B21 | B15 | B14 | B13 | B12;
+  emitInst(Encoding);
+}
+
 void AssemblerARM32::sbc(const Operand *OpRd, const Operand *OpRn,
                          const Operand *OpSrc1, bool SetFlags,
                          CondARM32::Cond Cond) {
@@ -1391,7 +1417,8 @@ void AssemblerARM32::str(const Operand *OpRt, const Operand *OpAddress,
     // cccc010pu1w0nnnnttttiiiiiiiiiiii where cccc=Cond, tttt=Rt, nnnn=Rn,
     // iiiiiiiiiiii=imm12, u=1 if +.
     constexpr bool IsByte = true;
-    return emitMemOp(Cond, IsLoad, IsByte, Rt, OpAddress, TInfo, StrName);
+    emitMemOp(Cond, IsLoad, IsByte, Rt, OpAddress, TInfo, StrName);
+    return;
   }
   case 1: {
     // Handles i16 stores.
@@ -1405,7 +1432,8 @@ void AssemblerARM32::str(const Operand *OpRt, const Operand *OpAddress,
     // iiiiiiii=Imm8, u=1 if +, pu0w is a BlockAddr, and
     // pu0w0nnnn0000iiiiiiiiiiii=Address.
     constexpr const char *Strh = "strh";
-    return emitMemOpEnc3(Cond, B7 | B5 | B4, Rt, OpAddress, TInfo, Strh);
+    emitMemOpEnc3(Cond, B7 | B5 | B4, Rt, OpAddress, TInfo, Strh);
+    return;
   }
   case 2: {
     // Note: Handles i32 and float stores. Target lowering handles i64 and
@@ -1419,8 +1447,8 @@ void AssemblerARM32::str(const Operand *OpRt, const Operand *OpAddress,
     // cccc010pu1w0nnnnttttiiiiiiiiiiii where cccc=Cond, tttt=Rt, nnnn=Rn,
     // iiiiiiiiiiii=imm12, u=1 if +.
     constexpr bool IsByte = false;
-    return emitMemOp(Cond, IsLoad, IsByte, Rt, OpAddress, TInfo, StrName);
-    return setNeedsTextFixup();
+    emitMemOp(Cond, IsLoad, IsByte, Rt, OpAddress, TInfo, StrName);
+    return;
   }
   }
 }

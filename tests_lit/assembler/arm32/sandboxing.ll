@@ -3,7 +3,7 @@
 ; instructions with well known sizes and minimal use of registers and stack
 ; slots in the lowering sequence.
 
-; REQUIRES: allow_dump, target_arm32
+; REQUIRES: allow_dump, target_ARM32
 ; RUN: %p2i -i %s --sandbox --filetype=asm --target=arm32 --assemble \
 ; RUN:   --disassemble --args -Om1 -allow-externally-defined-symbols \
 ; RUN:   -ffunction-sections  | FileCheck %s

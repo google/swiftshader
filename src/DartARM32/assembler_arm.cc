@@ -600,13 +600,15 @@ void Assembler::clrex() {
   Emit(encoding);
 }
 
-
+#if 0
+// Moved to ARM32::AssemblerARM32::nop().
 void Assembler::nop(Condition cond) {
   ASSERT(cond != kNoCondition);
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) |
                      B25 | B24 | B21 | (0xf << 12);
   Emit(encoding);
 }
+#endif
 
 
 void Assembler::vmovsr(SRegister sn, Register rt, Condition cond) {

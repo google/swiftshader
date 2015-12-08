@@ -211,10 +211,7 @@ class OperandARM32FlexImm : public OperandARM32Flex {
 public:
   /// Immed_8 rotated by an even number of bits (2 * RotateAmt).
   static OperandARM32FlexImm *create(Cfg *Func, Type Ty, uint32_t Imm,
-                                     uint32_t RotateAmt) {
-    return new (Func->allocate<OperandARM32FlexImm>())
-        OperandARM32FlexImm(Func, Ty, Imm, RotateAmt);
-  }
+                                     uint32_t RotateAmt);
 
   void emit(const Cfg *Func) const override;
   using OperandARM32::dump;
