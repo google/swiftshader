@@ -42,7 +42,6 @@ COMMON_SRC_FILES := \
 
 COMMON_C_INCLUDES := \
 	bionic \
-	$(GCE_STLPORT_INCLUDES) \
 	$(LOCAL_PATH)/../include \
 	$(LOCAL_PATH)/../ \
 	$(LOCAL_PATH)/../../ \
@@ -64,8 +63,13 @@ COMMON_SHARED_LIBRARIES := \
 	libcutils \
 	libhardware \
 	libui \
-	libutils \
-	$(GCE_STLPORT_LIBS)
+	libutils
+
+# Marshmallow does not have stlport, but comes with libc++ by default
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23 && echo PreMarshmallow),PreMarshmallow)
+COMMON_SHARED_LIBRARIES += libstlport
+COMMON_C_INCLUDES += external/stlport/stlport
+endif
 
 COMMON_LDFLAGS := \
 	-Wl,--gc-sections \

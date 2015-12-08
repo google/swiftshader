@@ -417,9 +417,13 @@ LOCAL_CFLAGS += -std=c++11
 
 LOCAL_C_INCLUDES += \
 	bionic \
-	$(GCE_STLPORT_INCLUDES) \
 	$(LOCAL_PATH)/include-android \
 	$(LOCAL_PATH)/include \
 	$(LOCAL_PATH)/lib/Target/X86 \
+
+# Marshmallow does not have stlport, but comes with libc++ by default
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23 && echo PreMarshmallow),PreMarshmallow)
+LOCAL_C_INCLUDES += external/stlport/stlport
+endif
 
 include $(BUILD_STATIC_LIBRARY)
