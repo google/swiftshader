@@ -314,7 +314,16 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 
 			width = colorbuffer->getWidth();
 			height = colorbuffer->getHeight();
-			samples = colorbuffer->getSamples();
+
+			if(samples == -1)
+			{
+				samples = colorbuffer->getSamples();
+			}
+			else if(samples != colorbuffer->getSamples())
+			{
+				return GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE_ANGLE;
+			}
+
 		}
 	}
 
