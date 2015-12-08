@@ -1195,6 +1195,13 @@ void AssemblerARM32::emitShift(const CondARM32::Cond Cond,
   }
 }
 
+void AssemblerARM32::asr(const Operand *OpRd, const Operand *OpRm,
+                         const Operand *OpSrc1, bool SetFlags,
+                         CondARM32::Cond Cond) {
+  constexpr const char *AsrName = "asr";
+  emitShift(Cond, OperandARM32::ASR, OpRd, OpRm, OpSrc1, SetFlags, AsrName);
+}
+
 void AssemblerARM32::lsl(const Operand *OpRd, const Operand *OpRm,
                          const Operand *OpSrc1, bool SetFlags,
                          CondARM32::Cond Cond) {

@@ -2620,9 +2620,8 @@ void Assembler::Lsr(Register rd, Register rm, const Operand& shift_imm,
 void Assembler::Lsr(Register rd, Register rm, Register rs, Condition cond) {
   mov(rd, Operand(rm, LSR, rs), cond);
 }
-#endif
 
-
+// Moved to ARM32::AssemblerARM32::asr()
 void Assembler::Asr(Register rd, Register rm, const Operand& shift_imm,
                     Condition cond) {
   ASSERT(shift_imm.type() == 1);
@@ -2633,7 +2632,7 @@ void Assembler::Asr(Register rd, Register rm, const Operand& shift_imm,
   }
   mov(rd, Operand(rm, ASR, shift), cond);
 }
-
+#endif
 
 void Assembler::Asrs(Register rd, Register rm, const Operand& shift_imm,
                      Condition cond) {
@@ -2646,11 +2645,12 @@ void Assembler::Asrs(Register rd, Register rm, const Operand& shift_imm,
   movs(rd, Operand(rm, ASR, shift), cond);
 }
 
-
+#if 0
+// Moved to ARM32::AssemblerARM32::asr()
 void Assembler::Asr(Register rd, Register rm, Register rs, Condition cond) {
   mov(rd, Operand(rm, ASR, rs), cond);
 }
-
+#endif
 
 void Assembler::Ror(Register rd, Register rm, const Operand& shift_imm,
                     Condition cond) {
