@@ -22,6 +22,30 @@
       "revId": "d8c91e1071c8b5e40ea6b1a4dc4f7e889a01af38",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a0dcf4fd_f6dff824",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 4241,
+      "author": {
+        "id": 5190
+      },
+      "writtenOn": "2015-12-08T17:50:27Z",
+      "side": 1,
+      "message": "I think technically, to follow the spec completely, you\u0027d need to expose OES_framebuffer object and all the function aliases. I don\u0027t have a sense for how likely apps are to assume that the presence of OES_depth24 means that OES_framebuffer_object is also supported, but the specification implies that they can. Some preliminary googling suggested that there are ES 2.0 implementations that do express support for both extensions.\n\nIt wouldn\u0027t offend my sensibilities if you omitted OES_framebuffer_object support, but there may exist applications which will behave badly in the absence of it.",
+      "parentUuid": "a0dcf4fd_16be3cd2",
+      "range": {
+        "startLine": 4241,
+        "startChar": 19,
+        "endLine": 4241,
+        "endChar": 33
+      },
+      "revId": "d8c91e1071c8b5e40ea6b1a4dc4f7e889a01af38",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
