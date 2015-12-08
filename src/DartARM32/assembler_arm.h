@@ -491,11 +491,10 @@ class Assembler : public ValueObject {
 #if 0
   // Moved to ARM32::AssemblerARM32::cmp()
   void cmp(Register rn, Operand o, Condition cond = AL);
-#endif
 
+  // Moved to ARM32::AssemblerARM32::cmn()
   void cmn(Register rn, Operand o, Condition cond = AL);
 
-#if 0
   // Moved to ARM32::IceAssemblerARM32::orr().
   void orr(Register rd, Register rn, Operand o, Condition cond = AL);
   void orrs(Register rd, Register rn, Operand o, Condition cond = AL);

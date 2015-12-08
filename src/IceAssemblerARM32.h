@@ -208,6 +208,8 @@ public:
 
   void bx(RegARM32::GPRRegister Rm, CondARM32::Cond Cond = CondARM32::AL);
 
+  void cmn(const Operand *OpRn, const Operand *OpSrc1, CondARM32::Cond Cond);
+
   void cmp(const Operand *OpRn, const Operand *OpSrc1, CondARM32::Cond Cond);
 
   void eor(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,

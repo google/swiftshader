@@ -653,6 +653,14 @@ void InstARM32CmpLike<K>::emitIAS(const Cfg *Func) const {
   emitUsingTextFixup(Func);
 }
 
+template <> void InstARM32Cmn::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 2);
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  Asm->cmn(getSrc(0), getSrc(1), getPredicate());
+  if (Asm->needsTextFixup())
+    emitUsingTextFixup(Func);
+}
+
 template <> void InstARM32Cmp::emitIAS(const Cfg *Func) const {
   assert(getSrcSize() == 2);
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();

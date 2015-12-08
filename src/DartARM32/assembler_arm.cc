@@ -269,14 +269,12 @@ void Assembler::teq(Register rn, Operand o, Condition cond) {
 void Assembler::cmp(Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), CMP, 1, rn, R0, o);
 }
-#endif
 
-
+// Moved to ARM32::AssemblerARM32::cmn()
 void Assembler::cmn(Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), CMN, 1, rn, R0, o);
 }
 
-#if 0
 // Moved to ARM32::AssemberARM32::orr()
 void Assembler::orr(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), ORR, 0, rn, rd, o);

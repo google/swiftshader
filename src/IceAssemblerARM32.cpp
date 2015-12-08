@@ -1041,6 +1041,24 @@ void AssemblerARM32::bx(RegARM32::GPRRegister Rm, CondARM32::Cond Cond) {
   emitInst(Encoding);
 }
 
+void AssemblerARM32::cmn(const Operand *OpRn, const Operand *OpSrc1,
+                         CondARM32::Cond Cond) {
+  // CMN (immediate) - ARM section A8.8.34, encoding A1:
+  //   cmn<c> <Rn>, #<RotatedImm8>
+  //
+  // cccc00110111nnnn0000iiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
+  // s=SetFlags and iiiiiiiiiiii=Src1Value defining RotatedImm8.
+  //
+  // CMN (register) - ARM section A8.8.35, encodeing A1:
+  //   cmn<c> <Rn>, <Rm>{, <shift>}
+  //
+  // cccc00010111nnnn0000iiiiitt0mmmm where cccc=Cond, nnnn=Rn, mmmm=Rm,
+  // iiiii=Shift, and tt=ShiftKind.
+  constexpr const char *CmnName = "cmn";
+  constexpr IValueT CmnOpcode = B3 | B1 | B0; // ie. 1011
+  emitCompareOp(Cond, CmnOpcode, OpRn, OpSrc1, CmnName);
+}
+
 void AssemblerARM32::cmp(const Operand *OpRn, const Operand *OpSrc1,
                          CondARM32::Cond Cond) {
   // CMP (register) - ARM section A8.8.38, encoding A1:
