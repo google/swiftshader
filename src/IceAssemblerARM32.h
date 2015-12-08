@@ -273,6 +273,9 @@ public:
   void sub(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
            bool SetFlags, CondARM32::Cond Cond);
 
+  // Implements sxtb/sxth depending on type of OpSrc0.
+  void sxt(const Operand *OpRd, const Operand *OpSrc0, CondARM32::Cond Cond);
+
   void tst(const Operand *OpRn, const Operand *OpSrc1, CondARM32::Cond Cond);
 
   void udiv(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
@@ -387,11 +390,11 @@ private:
                  const Operand *OpRm, const Operand *OpSrc1,
                  const bool SetFlags, const char *InstName);
 
-  // Implements various forms of Unsigned extend value, using pattern
+  // Implements various forms of signed/unsigned extend value, using pattern
   // ccccxxxxxxxxnnnnddddrr000111mmmm where cccc=Cond, xxxxxxxx<<20=Opcode,
   // nnnn=Rn, dddd=Rd, rr=Rotation, and mmmm=Rm.
-  void emitUxt(CondARM32::Cond, IValueT Opcode, IValueT Rd, IValueT Rn,
-               IValueT Rm, RotationValue Rotation, const char *InstName);
+  void emitSignExtend(CondARM32::Cond, IValueT Opcode, const Operand *OpRd,
+                      const Operand *OpSrc0, const char *InstName);
 
   // Pattern cccctttxxxxnnnn0000iiiiiiiiiiii where cccc=Cond, nnnn=Rn,
   // ttt=Instruction type (derived from OpSrc1), iiiiiiiiiiii is derived from

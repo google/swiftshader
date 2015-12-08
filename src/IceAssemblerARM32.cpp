@@ -835,21 +835,6 @@ void AssemblerARM32::emitMulOp(CondARM32::Cond Cond, IValueT Opcode, IValueT Rd,
   emitInst(Encoding);
 }
 
-void AssemblerARM32::emitUxt(CondARM32::Cond Cond, IValueT Opcode, IValueT Rd,
-                             IValueT Rn, IValueT Rm, RotationValue Rotation,
-                             const char *InstName) {
-  verifyCondDefined(Cond, InstName);
-  IValueT Rot = encodeRotation(Rotation);
-  if (!Utils::IsUint(2, Rot))
-    llvm::report_fatal_error(std::string(InstName) +
-                             ": Illegal rotation value");
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  IValueT Encoding = (encodeCondition(Cond) << kConditionShift) | Opcode |
-                     (Rn << kRnShift) | (Rd << kRdShift) |
-                     (Rot << kRotationShift) | B6 | B5 | B4 | (Rm << kRmShift);
-  emitInst(Encoding);
-}
-
 void AssemblerARM32::emitMultiMemOp(CondARM32::Cond Cond,
                                     BlockAddressMode AddressMode, bool IsLoad,
                                     IValueT BaseReg, IValueT Registers,
@@ -864,6 +849,51 @@ void AssemblerARM32::emitMultiMemOp(CondARM32::Cond Cond,
   IValueT Encoding = (encodeCondition(Cond) << kConditionShift) | B27 |
                      AddressMode | (IsLoad ? L : 0) | (BaseReg << kRnShift) |
                      Registers;
+  emitInst(Encoding);
+}
+
+void AssemblerARM32::emitSignExtend(CondARM32::Cond Cond, IValueT Opcode,
+                                    const Operand *OpRd, const Operand *OpSrc0,
+                                    const char *InstName) {
+  IValueT Rd = encodeRegister(OpRd, "Rd", InstName);
+  IValueT Rm = encodeRegister(OpSrc0, "Rm", InstName);
+  // Note: For the moment, we assume no rotation is specified.
+  RotationValue Rotation = kRotateNone;
+  constexpr IValueT Rn = RegARM32::Encoded_Reg_pc;
+  switch (typeWidthInBytes(OpSrc0->getType())) {
+  default:
+    llvm::report_fatal_error(std::string(InstName) +
+                             ": Type of Rm not understood");
+    break;
+  case 1: {
+    // SXTB/UXTB - Arm sections A8.8.233 and A8.8.274, encoding A1:
+    //   sxtb<c> <Rd>, <Rm>{, <rotate>}
+    //   uxtb<c> <Rd>, <Rm>{, <rotate>}
+    //
+    // ccccxxxxxxxx1111ddddrr000111mmmm where cccc=Cond, xxxxxxxx<<20=Opcode,
+    // dddd=Rd, mmmm=Rm, and rr defined (RotationValue) rotate.
+    break;
+  }
+  case 2: {
+    // SXTH/UXTH - ARM sections A8.8.235 and A8.8.276, encoding A1:
+    //   uxth<c> <Rd>< <Rm>{, <rotate>}
+    //
+    // cccc01101111nnnnddddrr000111mmmm where cccc=Cond, dddd=Rd, mmmm=Rm, and
+    // rr defined (RotationValue) rotate.
+    Opcode |= B20;
+    break;
+  }
+  }
+
+  verifyCondDefined(Cond, InstName);
+  IValueT Rot = encodeRotation(Rotation);
+  if (!Utils::IsUint(2, Rot))
+    llvm::report_fatal_error(std::string(InstName) +
+                             ": Illegal rotation value");
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  IValueT Encoding = (encodeCondition(Cond) << kConditionShift) | Opcode |
+                     (Rn << kRnShift) | (Rd << kRdShift) |
+                     (Rot << kRotationShift) | B6 | B5 | B4 | (Rm << kRmShift);
   emitInst(Encoding);
 }
 
@@ -1510,6 +1540,13 @@ void AssemblerARM32::rsb(const Operand *OpRd, const Operand *OpRn,
              RsbName);
 }
 
+void AssemblerARM32::sxt(const Operand *OpRd, const Operand *OpSrc0,
+                         CondARM32::Cond Cond) {
+  constexpr const char *SxtName = "sxt";
+  constexpr IValueT SxtOpcode = B26 | B25 | B23 | B21;
+  emitSignExtend(Cond, SxtOpcode, OpRd, OpSrc0, SxtName);
+}
+
 void AssemblerARM32::sub(const Operand *OpRd, const Operand *OpRn,
                          const Operand *OpSrc1, bool SetFlags,
                          CondARM32::Cond Cond) {
@@ -1597,35 +1634,8 @@ void AssemblerARM32::umull(const Operand *OpRdLo, const Operand *OpRdHi,
 void AssemblerARM32::uxt(const Operand *OpRd, const Operand *OpSrc0,
                          CondARM32::Cond Cond) {
   constexpr const char *UxtName = "uxt";
-  IValueT Rd = encodeRegister(OpRd, "Rd", UxtName);
-  IValueT Rm = encodeRegister(OpSrc0, "Rm", UxtName);
-  // Note: For the moment, we assume no rotation is specified.
-  RotationValue Rotation = kRotateNone;
-  constexpr IValueT Rn = RegARM32::Encoded_Reg_pc;
-  switch (typeWidthInBytes(OpSrc0->getType())) {
-  default:
-    llvm::report_fatal_error("Type of Rm not understood: uxt");
-  case 1: {
-    // UXTB - ARM section A8.8.274, encoding A1:
-    //   uxtb<c> <Rd>, <Rm>{, <rotate>}
-    //
-    // cccc011011101111ddddrr000111mmmm where cccc=Cond, dddd=Rd, mmmm=Rm, and
-    // rr defined (RotationValue) rotate.
-    constexpr IValueT UxtOpcode = B26 | B25 | B23 | B22 | B21;
-    emitUxt(Cond, UxtOpcode, Rd, Rn, Rm, Rotation, UxtName);
-    return;
-  }
-  case 2: {
-    // UXTH - ARM section A8.8.276, encoding A1:
-    //   uxth<c> <Rd>< <Rm>{, <rotate>}
-    //
-    // cccc01101111nnnnddddrr000111mmmm where cccc=Cond, dddd=Rd, mmmm=Rm, and
-    // rr defined (RotationValue) rotate.
-    constexpr IValueT UxtOpcode = B26 | B25 | B23 | B22 | B21 | B20;
-    emitUxt(Cond, UxtOpcode, Rd, Rn, Rm, Rotation, UxtName);
-    return;
-  }
-  }
+  constexpr IValueT UxtOpcode = B26 | B25 | B23 | B22 | B21;
+  emitSignExtend(Cond, UxtOpcode, OpRd, OpSrc0, UxtName);
 }
 
 } // end of namespace ARM32
