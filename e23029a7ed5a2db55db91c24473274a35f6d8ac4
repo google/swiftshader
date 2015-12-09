@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "25a2d663_fcacc9b0",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 1627,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-12-09T16:27:14Z",
+      "side": 0,
+      "message": "I actually meant to keep this NPOT code for the 2D index calculation. It\u0027s slightly faster, and the 2D case is critically important. But don\u0027t specialize for NPOT for the additional 3D offset. That code doesn\u0027t seem faster anyway (11 vs. 7 operations), and is used far less frequently. Sorry for the confusion.",
+      "range": {
+        "startLine": 1622,
+        "startChar": 3,
+        "endLine": 1627,
+        "endChar": 88
+      },
+      "revId": "e23029a7ed5a2db55db91c24473274a35f6d8ac4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
