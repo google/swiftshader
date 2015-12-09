@@ -130,5 +130,5 @@ sw.default:
   ret i32 20
 }
 ; ARM32-LABEL: testSwitchUndef64
-; ARM32: movw {{.*}}, #0
-; ARM32: movw {{.*}}, #0
+; ARM32: mov {{.*}}, #0
+; ARM32: mov {{.*}}, #0

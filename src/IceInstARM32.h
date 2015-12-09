@@ -415,6 +415,8 @@ public:
     Vcvt,
     Vdiv,
     Veor,
+    Vmla,
+    Vmls,
     Vmrs,
     Vmul,
     Vsqrt,
@@ -436,6 +438,8 @@ public:
   /// Shared emit routines for common forms of instructions.
   static void emitThreeAddrFP(const char *Opcode, const InstARM32 *Inst,
                               const Cfg *Func);
+  static void emitFourAddrFP(const char *Opcode, const InstARM32 *Inst,
+                             const Cfg *Func);
 
   void dump(const Cfg *Func) const override;
 
@@ -708,7 +712,7 @@ private:
 /// Instructions of the form x := y op z, for vector/FP. We leave these as
 /// unconditional: "ARM deprecates the conditional execution of any instruction
 /// encoding provided by the Advanced SIMD Extension that is not also provided
-/// by the Floating-point (VFP) extension". They do not set flags.
+/// by the floating-point (VFP) extension". They do not set flags.
 template <InstARM32::InstKindARM32 K>
 class InstARM32ThreeAddrFP : public InstARM32 {
   InstARM32ThreeAddrFP() = delete;
@@ -796,6 +800,54 @@ private:
   static const char *Opcode;
 };
 
+/// Instructions of the form x := x op1 (y op2 z). E.g., multiply accumulate.
+/// We leave these as unconditional: "ARM deprecates the conditional execution
+/// of any instruction encoding provided by the Advanced SIMD Extension that is
+/// not also provided by the floating-point (VFP) extension". They do not set
+/// flags.
+template <InstARM32::InstKindARM32 K>
+class InstARM32FourAddrFP : public InstARM32 {
+  InstARM32FourAddrFP() = delete;
+  InstARM32FourAddrFP(const InstARM32FourAddrFP &) = delete;
+  InstARM32FourAddrFP &operator=(const InstARM32FourAddrFP &) = delete;
+
+public:
+  // Every operand must be a register.
+  static InstARM32FourAddrFP *create(Cfg *Func, Variable *Dest, Variable *Src0,
+                                     Variable *Src1) {
+    return new (Func->allocate<InstARM32FourAddrFP>())
+        InstARM32FourAddrFP(Func, Dest, Src0, Src1);
+  }
+  void emit(const Cfg *Func) const override {
+    if (!BuildDefs::dump())
+      return;
+    emitFourAddrFP(Opcode, this, Func);
+  }
+  void emitIAS(const Cfg *Func) const override { emitUsingTextFixup(Func); }
+  void dump(const Cfg *Func) const override {
+    if (!BuildDefs::dump())
+      return;
+    Ostream &Str = Func->getContext()->getStrDump();
+    dumpDest(Func);
+    Str << " = ";
+    Str << Opcode << "." << getDest()->getType() << " ";
+    dumpDest(Func);
+    Str << ", ";
+    dumpSources(Func);
+  }
+  static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
+
+private:
+  InstARM32FourAddrFP(Cfg *Func, Variable *Dest, Variable *Src0, Variable *Src1)
+      : InstARM32(Func, K, 3, Dest) {
+    addSource(Dest);
+    addSource(Src0);
+    addSource(Src1);
+  }
+
+  static const char *Opcode;
+};
+
 /// Instructions of the form x cmpop y (setting flags).
 template <InstARM32::InstKindARM32 K>
 class InstARM32CmpLike : public InstARM32Pred {
@@ -855,8 +907,10 @@ using InstARM32Sub = InstARM32ThreeAddrGPR<InstARM32::Sub>;
 using InstARM32Udiv = InstARM32ThreeAddrGPR<InstARM32::Udiv>;
 using InstARM32Vadd = InstARM32ThreeAddrFP<InstARM32::Vadd>;
 using InstARM32Vdiv = InstARM32ThreeAddrFP<InstARM32::Vdiv>;
-using InstARM32Vmul = InstARM32ThreeAddrFP<InstARM32::Vmul>;
 using InstARM32Veor = InstARM32ThreeAddrFP<InstARM32::Veor>;
+using InstARM32Vmla = InstARM32FourAddrFP<InstARM32::Vmla>;
+using InstARM32Vmls = InstARM32FourAddrFP<InstARM32::Vmls>;
+using InstARM32Vmul = InstARM32ThreeAddrFP<InstARM32::Vmul>;
 using InstARM32Vsub = InstARM32ThreeAddrFP<InstARM32::Vsub>;
 using InstARM32Ldr = InstARM32LoadBase<InstARM32::Ldr>;
 using InstARM32Ldrex = InstARM32LoadBase<InstARM32::Ldrex>;
@@ -1001,8 +1055,8 @@ private:
   InstARM32Call(Cfg *Func, Variable *Dest, Operand *CallTarget);
 };
 
-/// Pop into a list of GPRs. Technically this can be predicated, but we don't
-/// need that functionality.
+/// Pops a list of registers. It may be a list of GPRs, or a list of VFP "s"
+/// regs, but not both. In any case, the list must be sorted.
 class InstARM32Pop : public InstARM32 {
   InstARM32Pop() = delete;
   InstARM32Pop(const InstARM32Pop &) = delete;
@@ -1023,8 +1077,8 @@ private:
   VarList Dests;
 };
 
-/// Push a list of GPRs. Technically this can be predicated, but we don't need
-/// that functionality.
+/// Pushes a list of registers. Just like Pop (see above), the list may be of
+/// GPRs, or VFP "s" registers, but not both.
 class InstARM32Push : public InstARM32 {
   InstARM32Push() = delete;
   InstARM32Push(const InstARM32Push &) = delete;

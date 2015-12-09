@@ -358,7 +358,7 @@ entry:
 ; CHECK: cvtsi2sd {{.*[^1]}}
 ; CHECK: fld
 ; ARM32-LABEL: signed32ToDoubleConst
-; ARM32-DAG: movw [[CONST:r[0-9]+]], #123
+; ARM32-DAG: mov [[CONST:r[0-9]+]], #123
 ; ARM32-DAG: vmov [[SRC:s[0-9]+]], [[CONST]]
 ; ARM32-DAG: vcvt.f64.s32 {{d[0-9]+}}, [[SRC]]
 

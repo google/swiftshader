@@ -9,7 +9,9 @@
 ; RUN:   -ffunction-sections  | FileCheck %s
 
 declare void @call_target()
-declare void @call_target1(i32 %arg)
+declare void @call_target1(i32 %arg0)
+declare void @call_target2(i32 %arg0, i32 %arg1)
+declare void @call_target3(i32 %arg0, i32 %arg1, i32 %arg2)
 @global_short = internal global [2 x i8] zeroinitializer
 
 ; A direct call sequence uses the right mask and register-call sequence.
@@ -60,7 +62,7 @@ entry:
 ; CHECK-LABEL: bundle_lock_without_padding
 ; CHECK: 0: {{.*}} movw
 ; CHECK-NEXT: movt
-; CHECK-NEXT: movw
+; CHECK-NEXT: mov
 ; CHECK-NEXT: nop
 ; CHECK-NEXT: bic [[REG:r[0-9]+]], {{.*}} 0xc0000000
 ; CHECK-NEXT: strh {{.*}}, {{[[]}}[[REG]]
@@ -91,18 +93,16 @@ define internal void @bundle_lock_align_to_end_padding_0() {
 entry:
   call void @call_target()
   ; bundle boundary
-  store i16 0, i16* undef, align 1
-  call void @call_target()
+  call void @call_target3(i32 1, i32 2, i32 3)
   ; bundle boundary
   ret void
 }
 ; CHECK-LABEL: bundle_lock_align_to_end_padding_0
 ; CHECK: c: {{.*}} bl {{.*}} call_target
-; CHECK-NEXT: movw
-; CHECK-NEXT: movw
-; CHECK-NEXT: bic [[REG:r[0-9]+]]
-; CHECK-NEXT: strh {{.*}}, {{[[]}}[[REG]]
-; CHECK: {{[0-9]+}}c: {{.*}} bl {{.*}} call_target
+; CHECK-NEXT: mov
+; CHECK-NEXT: mov
+; CHECK-NEXT: mov
+; CHECK-NEXT: {{[0-9]+}}c: {{.*}} bl {{.*}} call_target3
 ; CHECK-NEXT: add sp
 ; CHECK-NEXT: bic sp, {{.*}} 0xc0000000
 ; CHECK-NEXT: pop
@@ -114,41 +114,29 @@ define internal void @bundle_lock_align_to_end_padding_1() {
 entry:
   call void @call_target()
   ; bundle boundary
-  store i32 65536, i32* undef, align 1
-  ; bundle boundary
-  call void @call_target()
+  call void @call_target2(i32 1, i32 2)
   ; bundle boundary
   ret void
 }
 ; CHECK-LABEL: bundle_lock_align_to_end_padding_1
 ; CHECK: {{[0-9]*}}c: {{.*}} bl {{.*}} call_target
-; CHECK-NEXT: movw [[BASE:r[0-9]+]]
-; CHECK-NEXT: movw [[REG:r[0-9]+]], #0
-; CHECK-NEXT: movt [[REG]], #1
+; CHECK-NEXT: mov
+; CHECK-NEXT: mov
 ; CHECK-NEXT: nop
-; CHECK-NEXT: bic [[BASE]], [[BASE]], {{.*}} 0xc0000000
-; CHECK-NEXT: str [[REG]], {{[[]}}[[BASE]]
-; CHECK-NEXT: nop
-; CHECK-NEXT: bl {{.*}} call_target
+; CHECK-NEXT: bl {{.*}} call_target2
 ; CHECK: {{[0-9]+}}0: {{.*}} bic lr, lr, {{.*}} 0xc000000f
 ; CHECK-NEXT: {{.*}} bx lr
 
 ; Bundle lock align_to_end with two bunches of padding.
-define internal void @bundle_lock_align_to_end_padding_2(i32 %target) {
+define internal void @bundle_lock_align_to_end_padding_2() {
 entry:
-  call void @call_target1(i32 1)
+  call void @call_target2(i32 1, i32 2)
   ; bundle boundary
-  %__1 = inttoptr i32 %target to void (i32, i32, i32)*
-  call void %__1(i32 2, i32 3, i32 4)
   ret void
 }
 ; CHECK-LABEL: bundle_lock_align_to_end_padding_2
-; CHECK: {{[0-9]+}}0:
+; CHECK: mov
+; CHECK-NEXT: mov
 ; CHECK-NEXT: nop
 ; CHECK-NEXT: nop
-; CHECK-NEXT: bl {{.*}} call_target
-; CHECK: {{[0-9]+}}c: {{.*}} movw r2, #4
-; CHECK-NEXT: nop
-; CHECK-NEXT: nop
-; CHECK-NEXT: bic [[REG:r[0-9]+]], [[REG]], {{.*}} 0xc000000f
-; CHECK-NEXT: {{.*}} blx [[REG]]
+; CHECK-NEXT: bl {{.*}} call_target2

@@ -185,6 +185,22 @@ void InstARM32::emitThreeAddrFP(const char *Opcode, const InstARM32 *Inst,
   Inst->getSrc(1)->emit(Func);
 }
 
+void InstARM32::emitFourAddrFP(const char *Opcode, const InstARM32 *Inst,
+                               const Cfg *Func) {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(Inst->getSrcSize() == 3);
+  assert(Inst->getSrc(0) == Inst->getDest());
+  Str << "\t" << Opcode << getVecWidthString(Inst->getDest()->getType())
+      << "\t";
+  Inst->getDest()->emit(Func);
+  Str << ", ";
+  Inst->getSrc(1)->emit(Func);
+  Str << ", ";
+  Inst->getSrc(2)->emit(Func);
+}
+
 void InstARM32Pred::emitFourAddr(const char *Opcode, const InstARM32Pred *Inst,
                                  const Cfg *Func) {
   if (!BuildDefs::dump())
@@ -571,18 +587,43 @@ IceString InstARM32Label::getName(const Cfg *Func) const {
   return ".L" + Func->getFunctionName() + "$local$__" + std::to_string(Number);
 }
 
+namespace {
+// Requirements for Push/Pop:
+//  1) All the Variables have the same type;
+//  2) All the variables have registers assigned to them.
+void validatePushOrPopRegisterListOrDie(const VarList &RegList) {
+  Type PreviousTy = IceType_void;
+  for (Variable *Reg : RegList) {
+    if (PreviousTy != IceType_void && Reg->getType() != PreviousTy) {
+      llvm::report_fatal_error("Type mismatch when popping/pushing "
+                               "registers.");
+    }
+
+    if (!Reg->hasReg()) {
+      llvm::report_fatal_error("Push/pop operand does not have a register "
+                               "assigned to it.");
+    }
+
+    PreviousTy = Reg->getType();
+  }
+}
+} // end of anonymous namespace
+
 InstARM32Pop::InstARM32Pop(Cfg *Func, const VarList &Dests)
     : InstARM32(Func, InstARM32::Pop, 0, nullptr), Dests(Dests) {
   // Track modifications to Dests separately via FakeDefs. Also, a pop
   // instruction affects the stack pointer and so it should not be allowed to
   // be automatically dead-code eliminated. This is automatic since we leave
   // the Dest as nullptr.
+  validatePushOrPopRegisterListOrDie(Dests);
 }
 
 InstARM32Push::InstARM32Push(Cfg *Func, const VarList &Srcs)
     : InstARM32(Func, InstARM32::Push, Srcs.size(), nullptr) {
-  for (Variable *Source : Srcs)
+  validatePushOrPopRegisterListOrDie(Srcs);
+  for (Variable *Source : Srcs) {
     addSource(Source);
+  }
 }
 
 InstARM32Ret::InstARM32Ret(Cfg *Func, Variable *LR, Variable *Source)
@@ -736,8 +777,10 @@ template <> const char *InstARM32Udiv::Opcode = "udiv";
 // FP
 template <> const char *InstARM32Vadd::Opcode = "vadd";
 template <> const char *InstARM32Vdiv::Opcode = "vdiv";
-template <> const char *InstARM32Vmul::Opcode = "vmul";
 template <> const char *InstARM32Veor::Opcode = "veor";
+template <> const char *InstARM32Vmla::Opcode = "vmla";
+template <> const char *InstARM32Vmls::Opcode = "vmls";
+template <> const char *InstARM32Vmul::Opcode = "vmul";
 template <> const char *InstARM32Vsub::Opcode = "vsub";
 // Four-addr ops
 template <> const char *InstARM32Mla::Opcode = "mla";
@@ -1216,51 +1259,74 @@ template <> void InstARM32Uxt::emitIAS(const Cfg *Func) const {
     emitUsingTextFixup(Func);
 }
 
+namespace {
+
+bool isAssignedConsecutiveRegisters(Variable *Before, Variable *After) {
+  assert(Before->hasReg());
+  assert(After->hasReg());
+  return Before->getRegNum() + 1 == After->getRegNum();
+}
+
+} // end of anonymous namespace
+
 void InstARM32Pop::emit(const Cfg *Func) const {
-  // TODO(jpp): Improve FP register save/restore.
   if (!BuildDefs::dump())
     return;
-  SizeT IntegerCount = 0;
-  for (const Operand *Op : Dests) {
-    if (isScalarIntegerType(Op->getType())) {
-      ++IntegerCount;
-    }
-  }
-  Ostream &Str = Func->getContext()->getStrEmit();
-  bool NeedNewline = false;
-  if (IntegerCount != 0) {
-    Str << "\t"
-        << "pop"
-        << "\t{";
-    bool PrintComma = false;
-    for (const Operand *Op : Dests) {
-      if (isScalarIntegerType(Op->getType())) {
-        if (PrintComma)
-          Str << ", ";
-        Op->emit(Func);
-        PrintComma = true;
-      }
-    }
-    Str << "}";
-    NeedNewline = true;
+
+  const SizeT DestSize = Dests.size();
+  if (DestSize == 0) {
+    assert(false && "Empty pop list");
+    return;
   }
 
-  for (const Operand *Op : Dests) {
-    if (isScalarIntegerType(Op->getType()))
-      continue;
-    if (NeedNewline) {
-      Str << "\n";
-      startNextInst(Func);
-      NeedNewline = false;
-    }
+  Ostream &Str = Func->getContext()->getStrEmit();
+
+  Variable *Reg = Dests[0];
+  if (isScalarIntegerType(Reg->getType())) {
+    // GPR push.
     Str << "\t"
-        << "vpop"
-        << "\t{";
-    Op->emit(Func);
+           "pop"
+           "\t{";
+    Reg->emit(Func);
+    for (SizeT i = 1; i < DestSize; ++i) {
+      Str << ", ";
+      Reg = Dests[i];
+      Reg->emit(Func);
+    }
     Str << "}";
-    NeedNewline = true;
+    return;
   }
-  assert(NeedNewline); // caller will add the newline
+
+  // VFP "s" reg push.
+  SizeT End = DestSize - 1;
+  SizeT Start = DestSize - 1;
+  Reg = Dests[DestSize - 1];
+  Str << "\t"
+         "vpop"
+         "\t{";
+  for (SizeT i = 2; i <= DestSize; ++i) {
+    Variable *PreviousReg = Dests[DestSize - i];
+    if (!isAssignedConsecutiveRegisters(PreviousReg, Reg)) {
+      Dests[Start]->emit(Func);
+      for (SizeT j = Start + 1; j <= End; ++j) {
+        Str << ", ";
+        Dests[j]->emit(Func);
+      }
+      startNextInst(Func);
+      Str << "}\n\t"
+             "vpop"
+             "\t{";
+      End = DestSize - i;
+    }
+    Reg = PreviousReg;
+    Start = DestSize - i;
+  }
+  Dests[Start]->emit(Func);
+  for (SizeT j = Start + 1; j <= End; ++j) {
+    Str << ", ";
+    Dests[j]->emit(Func);
+  }
+  Str << "}";
 }
 
 void InstARM32Pop::emitIAS(const Cfg *Func) const {
@@ -1310,56 +1376,55 @@ void InstARM32Pop::dump(const Cfg *Func) const {
 }
 
 void InstARM32Push::emit(const Cfg *Func) const {
-  // TODO(jpp): Improve FP register save/restore.
   if (!BuildDefs::dump())
     return;
-  SizeT IntegerCount = 0;
-  for (SizeT i = 0; i < getSrcSize(); ++i) {
-    if (isScalarIntegerType(getSrc(i)->getType())) {
-      ++IntegerCount;
-    }
+
+  // Push can't be emitted if there are no registers to save. This should never
+  // happen, but if it does, we don't need to bring Subzero down -- we just skip
+  // emitting the push instruction (and maybe emit a nop?) The assert() is here
+  // so that we can detect this error during development.
+  const SizeT SrcSize = getSrcSize();
+  if (SrcSize == 0) {
+    assert(false && "Empty push list");
+    return;
   }
+
   Ostream &Str = Func->getContext()->getStrEmit();
-  bool NeedNewline = false;
-  for (SizeT i = getSrcSize(); i > 0; --i) {
-    Operand *Op = getSrc(i - 1);
-    if (isScalarIntegerType(Op->getType()))
-      continue;
-    if (NeedNewline) {
-      Str << "\n";
-      startNextInst(Func);
-      NeedNewline = false;
-    }
+
+  Variable *Reg = llvm::cast<Variable>(getSrc(0));
+  if (isScalarIntegerType(Reg->getType())) {
+    // GPR push.
     Str << "\t"
-        << "vpush"
-        << "\t{";
-    Op->emit(Func);
-    Str << "}";
-    NeedNewline = true;
-  }
-  if (IntegerCount != 0) {
-    if (NeedNewline) {
-      Str << "\n";
-      startNextInst(Func);
-      NeedNewline = false;
-    }
-    Str << "\t"
-        << "push"
-        << "\t{";
-    bool PrintComma = false;
-    for (SizeT i = 0; i < getSrcSize(); ++i) {
-      Operand *Op = getSrc(i);
-      if (isScalarIntegerType(Op->getType())) {
-        if (PrintComma)
-          Str << ", ";
-        Op->emit(Func);
-        PrintComma = true;
-      }
+           "push"
+           "\t{";
+    Reg->emit(Func);
+    for (SizeT i = 1; i < SrcSize; ++i) {
+      Str << ", ";
+      getSrc(i)->emit(Func);
     }
     Str << "}";
-    NeedNewline = true;
+    return;
   }
-  assert(NeedNewline); // caller will add the newline
+
+  // VFP "s" reg push.
+  Str << "\t"
+         "vpush"
+         "\t{";
+  Reg->emit(Func);
+  for (SizeT i = 1; i < SrcSize; ++i) {
+    Variable *NextReg = llvm::cast<Variable>(getSrc(i));
+    if (isAssignedConsecutiveRegisters(Reg, NextReg)) {
+      Str << ", ";
+    } else {
+      startNextInst(Func);
+      Str << "}\n\t"
+             "vpush"
+             "\t{";
+    }
+    Reg = NextReg;
+    Reg->emit(Func);
+  }
+  Str << "}";
 }
 
 void InstARM32Push::emitIAS(const Cfg *Func) const {
@@ -1925,8 +1990,10 @@ template class InstARM32ThreeAddrGPR<InstARM32::Udiv>;
 
 template class InstARM32ThreeAddrFP<InstARM32::Vadd>;
 template class InstARM32ThreeAddrFP<InstARM32::Vdiv>;
-template class InstARM32ThreeAddrFP<InstARM32::Vmul>;
 template class InstARM32ThreeAddrFP<InstARM32::Veor>;
+template class InstARM32ThreeAddrFP<InstARM32::Vmul>;
+template class InstARM32ThreeAddrFP<InstARM32::Vmla>;
+template class InstARM32ThreeAddrFP<InstARM32::Vmls>;
 template class InstARM32ThreeAddrFP<InstARM32::Vsub>;
 
 template class InstARM32LoadBase<InstARM32::Ldr>;

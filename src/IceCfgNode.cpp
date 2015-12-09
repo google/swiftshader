@@ -981,7 +981,7 @@ bool emitLiveRangesEnded(Ostream &Str, const Cfg *Func, const Inst *Instr,
       if (Printed)
         Str << ",";
       else
-        Str << " \t# END=";
+        Str << " \t@ END=";
       Var->emit(Func);
       Printed = true;
     }

@@ -89,17 +89,17 @@ entry:
 
 ; ARM32-LABEL: pass64BitArg
 ; ARM32:      str     {{.*}}, [sp]
-; ARM32:      movw    r2, #123
+; ARM32:      mov     r2, #123
 ; ARM32:      bl      {{.*}} ignore64BitArgNoInline
 ; ARM32:      str     {{.*}}, [sp]
 ; ARM32:      {{mov|ldr}} r0
 ; ARM32:      {{mov|ldr}} r1
-; ARM32:      movw    r2, #123
+; ARM32:      mov     r2, #123
 ; ARM32:      bl      {{.*}} ignore64BitArgNoInline
 ; ARM32:      str     {{.*}}, [sp]
 ; ARM32:      {{mov|ldr}} r0
 ; ARM32:      {{mov|ldr}} r1
-; ARM32:      movw    r2, #123
+; ARM32:      mov     r2, #123
 ; ARM32:      bl      {{.*}} ignore64BitArgNoInline
 
 
@@ -142,7 +142,7 @@ entry:
 ; ARM32:      str     [[REG2]], [sp]
 ; ARM32:      {{mov|ldr}} r0
 ; ARM32:      {{mov|ldr}} r1
-; ARM32:      movw    r2, #123
+; ARM32:      mov     r2, #123
 ; ARM32:      bl      {{.*}} ignore64BitArgNoInline
 
 define internal i32 @pass64BitUndefArg() {
@@ -162,9 +162,9 @@ entry:
 ; OPTM1: call {{.*}} R_{{.*}} ignore64BitArgNoInline
 ; ARM32-LABEL: pass64BitUndefArg
 ; ARM32: sub sp
-; ARM32: movw {{.*}}, #0
+; ARM32: mov {{.*}}, #0
 ; ARM32: str
-; ARM32: movw {{.*}}, #123
+; ARM32: mov {{.*}}, #123
 ; ARM32: bl {{.*}} ignore64BitArgNoInline
 
 define internal i64 @return64BitArg(i64 %padding, i64 %a) {

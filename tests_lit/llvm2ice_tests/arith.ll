@@ -117,7 +117,7 @@ entry:
 ; CHECK-LABEL: MulImm
 ; CHECK: imul e{{.*}},e{{.*}},0x63
 ; ARM32-LABEL: MulImm
-; ARM32-OPTM1: movw {{.*}}, #99
+; ARM32-OPTM1: mov {{.*}}, #99
 ; ARM32-OPTM1: mul r{{.*}}, r{{.*}}, r{{.*}}
 ; ARM32-OPT2: rsb [[T:r[0-9]+]], [[S:r[0-9]+]], [[S]], lsl #2
 ; ARM32-OPT2-DAG: add [[T]], [[T]], [[S]], lsl #7
@@ -141,8 +141,8 @@ entry:
 ; CHECK-NOT: mul {{[0-9]+}}
 ;
 ; ARM32-LABEL: MulImm64
-; ARM32: movw {{.*}}, #99
-; ARM32: movw {{.*}}, #0
+; ARM32: mov {{.*}}, #99
+; ARM32: mov {{.*}}, #0
 ; ARM32: mul r
 ; ARM32: mla r
 ; ARM32: umull r

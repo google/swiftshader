@@ -60,9 +60,9 @@ public:
   static TargetARM32 *create(Cfg *Func) { return new TargetARM32(Func); }
 
   void initNodeForLowering(CfgNode *Node) override {
-    BoolComputations.forgetProducers();
-    BoolComputations.recordProducers(Node);
-    BoolComputations.dump(Func);
+    Computations.forgetProducers();
+    Computations.recordProducers(Node);
+    Computations.dump(Func);
   }
 
   void translateOm1() override;
@@ -798,6 +798,12 @@ protected:
   void _vmrs(CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert(InstARM32Vmrs::create(Func, Pred));
   }
+  void _vmla(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert(InstARM32Vmla::create(Func, Dest, Src0, Src1));
+  }
+  void _vmls(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert(InstARM32Vmls::create(Func, Dest, Src0, Src1));
+  }
   void _vmul(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert(InstARM32Vmul::create(Func, Dest, Src0, Src1));
   }
@@ -1019,6 +1025,8 @@ protected:
   static llvm::SmallBitVector ScratchRegs;
   llvm::SmallBitVector RegsUsed;
   VarList PhysicalRegisters[IceType_NUM];
+  VarList PreservedGPRs;
+  VarList PreservedSRegs;
 
   /// Helper class that understands the Calling Convention and register
   /// assignments. The first few integer type parameters can use r0-r3,
@@ -1081,10 +1089,10 @@ private:
   std::unordered_map<Operand *, void (TargetARM32::*)(const InstCall *Inst)>
       ARM32HelpersPostamble;
 
-  class BoolComputationTracker {
+  class ComputationTracker {
   public:
-    BoolComputationTracker() = default;
-    ~BoolComputationTracker() = default;
+    ComputationTracker() = default;
+    ~ComputationTracker() = default;
 
     void forgetProducers() { KnownComputations.clear(); }
     void recordProducers(CfgNode *Node);
@@ -1118,9 +1126,9 @@ private:
     }
 
   private:
-    class BoolComputationEntry {
+    class ComputationEntry {
     public:
-      explicit BoolComputationEntry(Inst *I) : Instr(I) {}
+      ComputationEntry(Inst *I, Type Ty) : Instr(I), ComputationType(Ty) {}
       Inst *const Instr;
       // Boolean folding is disabled for variables whose live range is multi
       // block. We conservatively initialize IsLiveOut to true, and set it to
@@ -1130,13 +1138,16 @@ private:
       // disabled.
       bool IsLiveOut = true;
       int32_t NumUses = 0;
+      Type ComputationType;
     };
 
-    using BoolComputationMap = std::unordered_map<SizeT, BoolComputationEntry>;
-    BoolComputationMap KnownComputations;
+    // ComputationMap maps a Variable number to a payload identifying which
+    // instruction defined it.
+    using ComputationMap = std::unordered_map<SizeT, ComputationEntry>;
+    ComputationMap KnownComputations;
   };
 
-  BoolComputationTracker BoolComputations;
+  ComputationTracker Computations;
 
   // AllowTemporaryWithNoReg indicates if TargetARM32::makeReg() can be invoked
   // without specifying a physical register. This is needed for creating unbound

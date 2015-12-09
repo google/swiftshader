@@ -303,8 +303,8 @@ define internal i64 @ret_64bits_shift_left0() {
 ; CHECK-NEXT: mov eax,0xff
 ; CHECK-NEXT: mov edx,0xff
 ; ARM32-LABEL: ret_64bits_shift_left0
-; ARM32-NEXT: movw r0, #255
-; ARM32-NEXT: movw r1, #255
+; ARM32-NEXT: mov r0, #255
+; ARM32-NEXT: mov r1, #255
 ; MIPS32-LABEL: ret_64bits_shift_left0
 ; MIPS32-NEXT: li	v0,255
 ; MIPS32-NEXT: li	v1,255

@@ -1329,7 +1329,7 @@ entry:
 ; CHECK-LABEL: test_atomic_is_lock_free
 ; CHECK: mov {{.*}},0x1
 ; ARM32-LABEL: test_atomic_is_lock_free
-; ARM32: movw {{.*}}, #1
+; ARM32: mov {{.*}}, #1
 
 define internal i32 @test_not_lock_free(i32 %iptr) {
 entry:
