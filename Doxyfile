@@ -849,15 +849,16 @@ IMAGE_PATH             =
 # or removed, the anchors will not be placed correctly.
 
 # This script transforms TODO strings into a @todo form.  It also transforms
-# "//" into "///" (but only when there are exactly 2 '/' characters in a row).
-# The first pattern matches "//" at the beginning of the line, and the second
-# pattern matches a mid-line "//".  The third pattern matches "TODO " or
-# "TODO(owner)" or "TODO:".  This should cover the usual TODO patterns, while
-# not falsely matching e.g. a call to a function whose name ends in "TODO".
+# "//" comments into doxygen "///" comments on every line, starting from a line
+# containing a commented TODO, and ending at the next line without a comment.
 
-INPUT_FILTER           = "sed -e 's?^//\([^/]\)?///\1?' \
-                              -e 's?\([^/]\)//\([^/]\)?\1///\2?' \
-                              -e 's/ \(TODO[ (:]\)/ @todo \1/g'"
+INPUT_FILTER           = "awk '                                                \
+  { HasComment = /\/\//; HasTripleSlash = /\/\/\//; HasTodo = / TODO[ (:]/; }  \
+  HasComment && HasTodo { InTodoBlock = 1; }                                   \
+  !HasComment { InTodoBlock = 0; }                                             \
+  InTodoBlock && !HasTripleSlash { sub(\"//\", \"///\"); }                     \
+  InTodoBlock { $0 = gensub(/ (TODO[ (:])/, \" @todo \\1\", \"g\", $0); }      \
+  { print; }'"
 
 # The FILTER_PATTERNS tag can be used to specify filters on a per file pattern
 # basis. Doxygen will compare the file name with each pattern and apply the
