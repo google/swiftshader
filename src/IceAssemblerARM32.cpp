@@ -45,6 +45,10 @@ static constexpr IValueT B12 = 1 << 12;
 static constexpr IValueT B13 = 1 << 13;
 static constexpr IValueT B14 = 1 << 14;
 static constexpr IValueT B15 = 1 << 15;
+static constexpr IValueT B16 = 1 << 16;
+static constexpr IValueT B17 = 1 << 17;
+static constexpr IValueT B18 = 1 << 18;
+static constexpr IValueT B19 = 1 << 19;
 static constexpr IValueT B20 = 1 << 20;
 static constexpr IValueT B21 = 1 << 21;
 static constexpr IValueT B22 = 1 << 22;
@@ -1086,6 +1090,20 @@ void AssemblerARM32::cmp(const Operand *OpRn, const Operand *OpSrc1,
   constexpr const char *CmpName = "cmp";
   constexpr IValueT CmpOpcode = B3 | B1; // ie. 1010
   emitCompareOp(Cond, CmpOpcode, OpRn, OpSrc1, CmpName);
+}
+
+void AssemblerARM32::dmb(IValueT Option) {
+  // DMB - ARM section A8.8.43, encoding A1:
+  //   dmb <option>
+  //
+  // 1111010101111111111100000101xxxx where xxxx=Option.
+  assert(Utils::IsUint(4, Option) && "Bad dmb option");
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  const IValueT Encoding =
+      (encodeCondition(CondARM32::kNone) << kConditionShift) | B26 | B24 | B22 |
+      B21 | B20 | B19 | B18 | B17 | B16 | B15 | B14 | B13 | B12 | B6 | B4 |
+      Option;
+  emitInst(Encoding);
 }
 
 void AssemblerARM32::eor(const Operand *OpRd, const Operand *OpRn,

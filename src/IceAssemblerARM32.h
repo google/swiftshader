@@ -209,6 +209,8 @@ public:
 
   void cmp(const Operand *OpRn, const Operand *OpSrc1, CondARM32::Cond Cond);
 
+  void dmb(IValueT Option); // Option is a 4-bit value.
+
   void eor(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
            bool SetFlags, CondARM32::Cond Cond);
 

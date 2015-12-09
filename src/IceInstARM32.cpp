@@ -1763,6 +1763,15 @@ void InstARM32Dmb::emit(const Cfg *Func) const {
          "sy";
 }
 
+void InstARM32Dmb::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 0);
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  constexpr ARM32::IValueT SyOption = 0xF; // i.e. 1111
+  Asm->dmb(SyOption);
+  if (Asm->needsTextFixup())
+    emitUsingTextFixup(Func);
+}
+
 void InstARM32Dmb::dump(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;

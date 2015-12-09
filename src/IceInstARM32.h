@@ -1360,6 +1360,7 @@ public:
     return new (Func->allocate<InstARM32Dmb>()) InstARM32Dmb(Func);
   }
   void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Dmb); }
 
