@@ -192,6 +192,8 @@ list(APPEND LLVM_LIST
 
 if(LINUX)
     set(LLVM_INCLUDE_DIR ${LLVM_DIR}/include-linux)
+elseif(APPLE)
+    set(LLVM_INCLUDE_DIR ${LLVM_DIR}/include-osx)
 endif()
 
 list(APPEND LLVM_INCLUDE_DIR
