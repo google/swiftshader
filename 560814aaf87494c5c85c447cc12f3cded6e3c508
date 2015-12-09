@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "25a2d663_7c1c39b5",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 1655,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-12-09T18:25:08Z",
+      "side": 1,
+      "message": "This still won\u0027t work properly. MulAdd() multiplies each 16-bit component of the first and second argument, then adds the pairwise results into two 32-bit integers. Note in the TEXTURE_3D case that wwww is unpacked into two Int2 vectors (wwww and www2) before MulAdd-ing each. We need the same thing here. The only difference should be that we don\u0027t need the MulHigh by the depth.\n\nThat said, I noticed that this is actually flawed when sliceP is larger than 65535. I think that on D3D9 volume textures are limited to 256^3 so that\u0027s fine, but array textures can obviously be much bigger than 256^2 and have just a few layers. Anyway, I\u0027ve filed a separate issue for that: b/26105892",
+      "range": {
+        "startLine": 1653,
+        "startChar": 3,
+        "endLine": 1655,
+        "endChar": 54
+      },
+      "revId": "560814aaf87494c5c85c447cc12f3cded6e3c508",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
