@@ -544,7 +544,7 @@ bool Display::isValidWindow(EGLNativeWindowType window)
 			return false;
 		}
 		return true;
-    #else
+    #elif defined(__linux__)
         if(platform == EGL_PLATFORM_X11_EXT)
         {
             XWindowAttributes windowAttributes;
@@ -552,6 +552,10 @@ bool Display::isValidWindow(EGLNativeWindowType window)
 
             return status == True;
         }
+    #elif defined(__APPLE__)
+        return true;
+    #else
+        #error "Display::isValidWindow unimplemented for this platform"
     #endif
 
     return false;
@@ -664,7 +668,7 @@ sw::Format Display::getDisplayFormat() const
 
 		// No framebuffer device found, or we're in user space
 		return sw::FORMAT_X8B8G8R8;
-    #else
+    #elif defined(__linux__)
         if(platform == EGL_PLATFORM_X11_EXT)
         {
             Screen *screen = libX11->XDefaultScreenOfDisplay((::Display*)nativeDisplay);
@@ -683,6 +687,10 @@ sw::Format Display::getDisplayFormat() const
             return sw::FORMAT_X8R8G8B8;
         }
         else UNREACHABLE(platform);
+    #elif defined(__APPLE__)
+        return sw::FORMAT_X8R8G8B8;
+    #else
+        #error "Display::isValidWindow unimplemented for this platform"
 	#endif
 
 	return sw::FORMAT_X8R8G8B8;

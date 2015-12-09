@@ -244,11 +244,15 @@ bool WindowSurface::initialize()
 		int height; window->query(window, NATIVE_WINDOW_HEIGHT, &height);
 
 		return reset(width, height);
-	#else
+	#elif defined(__linux__)
 		XWindowAttributes windowAttributes;
 		libX11->XGetWindowAttributes((::Display*)display->getNativeDisplay(), window, &windowAttributes);
 
 		return reset(windowAttributes.width, windowAttributes.height);
+	#elif defined(__APPLE__)
+		return true;
+	#else
+		#error "WindowSurface::initialize unimplemented for this platform"
 	#endif
 }
 
@@ -284,12 +288,18 @@ bool WindowSurface::checkForResize()
 	#elif defined(__ANDROID__)
 		int clientWidth;  window->query(window, NATIVE_WINDOW_WIDTH, &clientWidth);
 		int clientHeight; window->query(window, NATIVE_WINDOW_HEIGHT, &clientHeight);
-	#else
+	#elif defined(__linux__)
 		XWindowAttributes windowAttributes;
 		libX11->XGetWindowAttributes((::Display*)display->getNativeDisplay(), window, &windowAttributes);
 
 		int clientWidth = windowAttributes.width;
 		int clientHeight = windowAttributes.height;
+	#elif defined(__APPLE__)
+		int clientWidth = 0;
+		int clientHeight = 0;
+		return true;
+	#else
+		#error "WindowSurface::checkForResize unimplemented for this platform"
 	#endif
 
 	bool sizeDirty = (clientWidth != width) || (clientHeight != height);

@@ -119,8 +119,6 @@ namespace sw
 	{
 		#if defined(_WIN32)
 			Sleep(milliseconds);
-		#elif defined(__APPLE__)
-			nap(milliseconds);
 		#else
 			usleep(1000 * milliseconds);
 		#endif

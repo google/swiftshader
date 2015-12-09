@@ -74,7 +74,7 @@ macro(set_target_export_map TARGET DIR)
     endif()
     if(MSVC)
         set_target_properties(${TARGET} PROPERTIES LINK_FLAGS "/DEF:\"${DIR}/${TARGET}.def\"")
-    else()
+    elseif(LINUX)
         # Both hash-style are needed, because we want both gold and
         # GNU ld to be able to read our libraries (maybe?).
         # The version script only exports the API functions and
@@ -350,6 +350,14 @@ elseif(LINUX)
         ${SOURCE_DIR}/Main/FrameBufferX11.hpp
         ${SOURCE_DIR}/Main/libX11.cpp
         ${SOURCE_DIR}/Main/libX11.hpp
+    )
+    list(APPEND OPENGL_COMPILER_LIST
+        ${OPENGL_COMPILER_DIR}/ossource_posix.cpp
+    )
+elseif(APPLE)
+    list(APPEND SWIFTSHADER_LIST
+        ${SOURCE_DIR}/Main/FrameBufferOSX.mm
+        ${SOURCE_DIR}/Main/FrameBufferOSX.hpp
     )
     list(APPEND OPENGL_COMPILER_LIST
         ${OPENGL_COMPILER_DIR}/ossource_posix.cpp
