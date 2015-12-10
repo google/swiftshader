@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "25a2d663_3ca8f1b3",
+        "filename": "src/Renderer/Clipper.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-12-10T14:44:31Z",
+      "side": 0,
+      "message": "Doesn\u0027t appear to be needed at all. Let\u0027s remove it.",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 19
+      },
+      "revId": "5bdd14c3a6bc7b2574af3dddc7ee2f4c3c7cf31f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "25a2d663_1ca3b5dc",
+        "filename": "src/Renderer/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-12-10T14:44:31Z",
+      "side": 0,
+      "message": "Doesn\u0027t appear to be needed at all. Let\u0027s remove it.",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 23,
+        "endChar": 19
+      },
+      "revId": "5bdd14c3a6bc7b2574af3dddc7ee2f4c3c7cf31f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
