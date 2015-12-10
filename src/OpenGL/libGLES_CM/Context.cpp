@@ -2063,21 +2063,15 @@ void Context::applyTextures()
 
             GLenum wrapS = texture->getWrapS();
             GLenum wrapT = texture->getWrapT();
-            GLenum texFilter = texture->getMinFilter();
+            GLenum minFilter = texture->getMinFilter();
             GLenum magFilter = texture->getMagFilter();
 			GLfloat maxAnisotropy = texture->getMaxAnisotropy();
 
 			device->setAddressingModeU(sw::SAMPLER_PIXEL, unit, es2sw::ConvertTextureWrap(wrapS));
             device->setAddressingModeV(sw::SAMPLER_PIXEL, unit, es2sw::ConvertTextureWrap(wrapT));
 
-			sw::FilterType minFilter;
-			sw::MipmapType mipFilter;
-            es2sw::ConvertMinFilter(texFilter, &minFilter, &mipFilter, maxAnisotropy);
-		//	ASSERT(minFilter == es2sw::ConvertMagFilter(magFilter));
-
-			device->setTextureFilter(sw::SAMPLER_PIXEL, unit, minFilter);
-		//	device->setTextureFilter(sw::SAMPLER_PIXEL, unit, es2sw::ConvertMagFilter(magFilter));
-			device->setMipmapFilter(sw::SAMPLER_PIXEL, unit, mipFilter);
+			device->setTextureFilter(sw::SAMPLER_PIXEL, unit, es2sw::ConvertTextureFilter(minFilter, magFilter, maxAnisotropy));
+			device->setMipmapFilter(sw::SAMPLER_PIXEL, unit, es2sw::ConvertMipMapFilter(minFilter));
 			device->setMaxAnisotropy(sw::SAMPLER_PIXEL, unit, maxAnisotropy);
 
 			applyTexture(unit, texture);

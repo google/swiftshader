@@ -3078,7 +3078,7 @@ void Context::applyTextures(sw::SamplerType samplerType)
 
 			if(texture->isSamplerComplete())
             {
-				GLenum wrapS, wrapT, wrapR, texFilter, magFilter;
+				GLenum wrapS, wrapT, wrapR, minFilter, magFilter;
 
 				Sampler *samplerObject = mState.sampler[textureUnit];
 				if(samplerObject)
@@ -3086,7 +3086,7 @@ void Context::applyTextures(sw::SamplerType samplerType)
 					wrapS = samplerObject->getWrapS();
 					wrapT = samplerObject->getWrapT();
 					wrapR = samplerObject->getWrapR();
-					texFilter = samplerObject->getMinFilter();
+					minFilter = samplerObject->getMinFilter();
 					magFilter = samplerObject->getMagFilter();
 				}
 				else
@@ -3094,7 +3094,7 @@ void Context::applyTextures(sw::SamplerType samplerType)
 					wrapS = texture->getWrapS();
 					wrapT = texture->getWrapT();
 					wrapR = texture->getWrapR();
-					texFilter = texture->getMinFilter();
+					minFilter = texture->getMinFilter();
 					magFilter = texture->getMagFilter();
 				}
 				GLfloat maxAnisotropy = texture->getMaxAnisotropy();
@@ -3112,15 +3112,9 @@ void Context::applyTextures(sw::SamplerType samplerType)
 				device->setSwizzleB(samplerType, samplerIndex, es2sw::ConvertSwizzleType(swizzleB));
 				device->setSwizzleA(samplerType, samplerIndex, es2sw::ConvertSwizzleType(swizzleA));
 
-				sw::FilterType minFilter;
-				sw::MipmapType mipFilter;
-                es2sw::ConvertMinFilter(texFilter, &minFilter, &mipFilter, maxAnisotropy);
-			//	ASSERT(minFilter == es2sw::ConvertMagFilter(magFilter));
-
-				device->setTextureFilter(samplerType, samplerIndex, minFilter);
-			//	device->setTextureFilter(samplerType, samplerIndex, es2sw::ConvertMagFilter(magFilter));
-				device->setMipmapFilter(samplerType, samplerIndex, mipFilter);
-				device->setMaxAnisotropy(samplerType, samplerIndex, maxAnisotropy);                
+				device->setTextureFilter(samplerType, samplerIndex, es2sw::ConvertTextureFilter(minFilter, magFilter, maxAnisotropy));
+				device->setMipmapFilter(samplerType, samplerIndex, es2sw::ConvertMipMapFilter(minFilter));
+				device->setMaxAnisotropy(samplerType, samplerIndex, maxAnisotropy);
 
 				applyTexture(samplerType, samplerIndex, texture);
             }

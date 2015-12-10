@@ -2096,21 +2096,15 @@ void Context::applyTextures(sw::SamplerType samplerType)
             {
                 GLenum wrapS = texture->getWrapS();
                 GLenum wrapT = texture->getWrapT();
-                GLenum texFilter = texture->getMinFilter();
+                GLenum minFilter = texture->getMinFilter();
                 GLenum magFilter = texture->getMagFilter();
 				GLfloat maxAnisotropy = texture->getMaxAnisotropy();
 
 				device->setAddressingModeU(samplerType, samplerIndex, es2sw::ConvertTextureWrap(wrapS));
                 device->setAddressingModeV(samplerType, samplerIndex, es2sw::ConvertTextureWrap(wrapT));
 
-				sw::FilterType minFilter;
-				sw::MipmapType mipFilter;
-                es2sw::ConvertMinFilter(texFilter, &minFilter, &mipFilter, maxAnisotropy);
-			//	ASSERT(minFilter == es2sw::ConvertMagFilter(magFilter));
-
-				device->setTextureFilter(samplerType, samplerIndex, minFilter);
-			//	device->setTextureFilter(samplerType, samplerIndex, es2sw::ConvertMagFilter(magFilter));
-				device->setMipmapFilter(samplerType, samplerIndex, mipFilter);
+				device->setTextureFilter(samplerType, samplerIndex, es2sw::ConvertTextureFilter(minFilter, magFilter, maxAnisotropy));
+				device->setMipmapFilter(samplerType, samplerIndex, es2sw::ConvertMipMapFilter(minFilter));
 				device->setMaxAnisotropy(samplerType, samplerIndex, maxAnisotropy);
 
 				applyTexture(samplerType, samplerIndex, texture);

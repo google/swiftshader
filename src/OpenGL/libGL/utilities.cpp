@@ -591,55 +591,56 @@ namespace es2sw
 			   (alpha ? 0x00000008 : 0);
 	}
 
-	sw::FilterType ConvertMagFilter(GLenum magFilter)
+	sw::MipmapType ConvertMipMapFilter(GLenum minFilter)
 	{
+		switch(minFilter)
+		{
+		case GL_NEAREST:
+		case GL_LINEAR:
+			return sw::MIPMAP_NONE;
+			break;
+		case GL_NEAREST_MIPMAP_NEAREST:
+		case GL_LINEAR_MIPMAP_NEAREST:
+			return sw::MIPMAP_POINT;
+			break;
+		case GL_NEAREST_MIPMAP_LINEAR:
+		case GL_LINEAR_MIPMAP_LINEAR:
+			return sw::MIPMAP_LINEAR;
+			break;
+		default:
+			UNREACHABLE(minFilter);
+			return sw::MIPMAP_NONE;
+		}
+	}
+
+	sw::FilterType ConvertTextureFilter(GLenum minFilter, GLenum magFilter, float maxAnisotropy)
+	{
+		if(maxAnisotropy > 1.0f)
+		{
+			return sw::FILTER_ANISOTROPIC;
+		}
+
+		sw::FilterType magFilterType = sw::FILTER_POINT;
 		switch(magFilter)
 		{
-		case GL_NEAREST: return sw::FILTER_POINT;
-		case GL_LINEAR:  return sw::FILTER_LINEAR;
+		case GL_NEAREST: magFilterType = sw::FILTER_POINT;  break;
+		case GL_LINEAR:  magFilterType = sw::FILTER_LINEAR; break;
 		default: UNREACHABLE(magFilter);
 		}
 
-		return sw::FILTER_POINT;
-	}
-
-	void ConvertMinFilter(GLenum texFilter, sw::FilterType *minFilter, sw::MipmapType *mipFilter, float maxAnisotropy)
-	{
-		switch(texFilter)
+		switch(minFilter)
 		{
 		case GL_NEAREST:
-			*minFilter = sw::FILTER_POINT;
-			*mipFilter = sw::MIPMAP_NONE;
-			break;
-		case GL_LINEAR:
-			*minFilter = sw::FILTER_LINEAR;
-			*mipFilter = sw::MIPMAP_NONE;
-			break;
 		case GL_NEAREST_MIPMAP_NEAREST:
-			*minFilter = sw::FILTER_POINT;
-			*mipFilter = sw::MIPMAP_POINT;
-			break;
-		case GL_LINEAR_MIPMAP_NEAREST:
-			*minFilter = sw::FILTER_LINEAR;
-			*mipFilter = sw::MIPMAP_POINT;
-			break;
 		case GL_NEAREST_MIPMAP_LINEAR:
-			*minFilter = sw::FILTER_POINT;
-			*mipFilter = sw::MIPMAP_LINEAR;
-			break;
+			return (magFilterType == sw::FILTER_POINT) ? sw::FILTER_POINT : sw::FILTER_MIN_POINT_MAG_LINEAR;
+		case GL_LINEAR:
+		case GL_LINEAR_MIPMAP_NEAREST:
 		case GL_LINEAR_MIPMAP_LINEAR:
-			*minFilter = sw::FILTER_LINEAR;
-			*mipFilter = sw::MIPMAP_LINEAR;
-			break;
+			return (magFilterType == sw::FILTER_POINT) ? sw::FILTER_MIN_LINEAR_MAG_POINT : sw::FILTER_LINEAR;
 		default:
-			*minFilter = sw::FILTER_POINT;
-			*mipFilter = sw::MIPMAP_NONE;
-			UNREACHABLE(texFilter);
-		}
-
-		if(maxAnisotropy > 1.0f)
-		{
-			*minFilter = sw::FILTER_ANISOTROPIC;
+			UNREACHABLE(minFilter);
+			return (magFilterType == sw::FILTER_POINT) ? sw::FILTER_POINT : sw::FILTER_MIN_POINT_MAG_LINEAR;
 		}
 	}
 

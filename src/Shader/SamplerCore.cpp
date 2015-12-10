@@ -770,7 +770,7 @@ namespace sw
 		address(uuuu, u, state.addressingModeU);
 		address(vvvv, v, state.addressingModeV);
 
-		if(state.textureFilter == FILTER_POINT)
+		if(state.textureFilter == FILTER_POINT || state.textureFilter == FILTER_MIN_POINT_MAG_LINEAR)
 		{
 			sampleTexel(c, uuuu, vvvv, vvvv, mipmap, buffer);
 		}
@@ -979,7 +979,7 @@ namespace sw
 		address(vvvv, v_, state.addressingModeV);
 		addressW(wwww, w_, mipmap);
 
-		if(state.textureFilter <= FILTER_POINT)
+		if(state.textureFilter <= FILTER_POINT || state.textureFilter == FILTER_MIN_POINT_MAG_LINEAR)
 		{
 			sampleTexel(c_, uuuu, vvvv, wwww, mipmap, buffer);
 		}
@@ -1255,7 +1255,7 @@ namespace sw
 		address(uuuu, u, state.addressingModeU);
 		address(vvvv, v, state.addressingModeV);
 
-		if(state.textureFilter == FILTER_POINT)
+		if(state.textureFilter == FILTER_POINT || state.textureFilter == FILTER_MIN_POINT_MAG_LINEAR)
 		{
 			sampleTexel(c, uuuu, vvvv, vvvv, z, mipmap, buffer);
 		}
@@ -1325,7 +1325,7 @@ namespace sw
 		address(vvvv, v, state.addressingModeV);
 		addressW(wwww, w, mipmap);
 
-		if(state.textureFilter <= FILTER_POINT)
+		if(state.textureFilter <= FILTER_POINT || state.textureFilter == FILTER_MIN_POINT_MAG_LINEAR)
 		{
 			sampleTexel(c, uuuu, vvvv, wwww, w, mipmap, buffer);
 		}
