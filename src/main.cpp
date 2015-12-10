@@ -17,12 +17,16 @@
 #include "IceBuildDefs.h"
 #include "IceCompileServer.h"
 
+/// Depending on whether we are building the compiler for the browser or
+/// standalone, we will end up creating a Ice::BrowserCompileServer or
+/// Ice::CLCompileServer object. Method
+/// Ice::CompileServer::runAndReturnErrorCode is used for the invocation.
+/// There are no real commandline arguments in the browser case. They are
+/// supplied via IPC so argc, and argv are not used in that case.
+/// We can only compile the Ice::BrowserCompileServer object with the PNaCl
+/// compiler toolchain, when building Subzero as a sandboxed translator.
 int main(int argc, char **argv) {
-  // Start file server and "wait" for compile request.
-  // Can only compile the BrowserCompileServer w/ the NaCl compiler.
   if (Ice::BuildDefs::browser()) {
-    // There are no real commandline arguments in the browser case. They are
-    // supplied via IPC.
     assert(argc == 1);
     return Ice::BrowserCompileServer().runAndReturnErrorCode();
   }
