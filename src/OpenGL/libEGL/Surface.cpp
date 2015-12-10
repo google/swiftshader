@@ -31,6 +31,10 @@
 #include <tchar.h>
 #endif
 
+#if defined(__APPLE__)
+#include "OSXUtils.hpp"
+#endif
+
 #include <algorithm>
 
 namespace egl
@@ -250,7 +254,11 @@ bool WindowSurface::initialize()
 
 		return reset(windowAttributes.width, windowAttributes.height);
 	#elif defined(__APPLE__)
-		return true;
+		int width;
+		int height;
+		sw::OSX::GetNativeWindowSize(window, width, height);
+
+		return reset(width, height);
 	#else
 		#error "WindowSurface::initialize unimplemented for this platform"
 	#endif
@@ -295,8 +303,9 @@ bool WindowSurface::checkForResize()
 		int clientWidth = windowAttributes.width;
 		int clientHeight = windowAttributes.height;
 	#elif defined(__APPLE__)
-		int clientWidth = 0;
-		int clientHeight = 0;
+		int clientWidth;
+		int clientHeight;
+		sw::OSX::GetNativeWindowSize(window, clientWidth, clientHeight);
 		return true;
 	#else
 		#error "WindowSurface::checkForResize unimplemented for this platform"

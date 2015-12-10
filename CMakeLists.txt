@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0)
 
-project(SwiftShaders CXX)
+project(SwiftShader C CXX)
 
 set(CMAKE_BUILD_TYPE "Release" CACHE STRING "The type of build: Debug Release RelWithDebInfo." )
 
@@ -98,6 +98,7 @@ set(OPENGL_DIR ${SOURCE_DIR}/OpenGL)
 set(OPENGL_COMPILER_DIR ${OPENGL_DIR}/compiler)
 set(LLVM_DIR ${SOURCE_DIR}/LLVM)
 set(TESTS_DIR ${CMAKE_SOURCE_DIR}/tests)
+set(HELLO2_DIR ${TESTS_DIR}/third_party/PowerVR/Examples/Beginner/01_HelloAPI/OGLES2)
 
 ###########################################################
 # Compile flags
@@ -170,13 +171,12 @@ endif()
 ###########################################################
 
 # We want the code for all of LLVM except the code for non-X86 targets
-file(GLOB_RECURSE LLVM_LIST ${LLVM_DIR}/lib/*.cpp)
-file(GLOB_RECURSE LLVM_ALL_TARGET_LIST ${LLVM_DIR}/lib/Target/*.cpp)
-file(GLOB_RECURSE LLVM_X86_TARGET_LIST ${LLVM_DIR}/lib/Target/X86/*.cpp)
+file(GLOB_RECURSE LLVM_LIST ${LLVM_DIR}/lib/*.cpp ${LLVM_DIR}/lib/*.c)
+file(GLOB_RECURSE LLVM_ALL_TARGET_LIST ${LLVM_DIR}/lib/Target/*.cpp ${LLVM_DIR}/lib/Target/*.c)
+file(GLOB_RECURSE LLVM_X86_TARGET_LIST ${LLVM_DIR}/lib/Target/X86/*.cpp ${LLVM_DIR}/lib/Target/X86/*.c)
 
 list(REMOVE_ITEM LLVM_LIST ${LLVM_ALL_TARGET_LIST})
 list(APPEND LLVM_LIST ${LLVM_X86_TARGET_LIST})
-list(REMOVE_ITEM LLVM_LIST "${LLVM_DIR}/lib/Target/X86/X86MCInstLower.cpp")
 list(APPEND LLVM_LIST
     ${LLVM_DIR}/lib/Target/Mangler.cpp
     ${LLVM_DIR}/lib/Target/TargetData.cpp
@@ -200,10 +200,11 @@ list(APPEND LLVM_INCLUDE_DIR
     ${LLVM_DIR}/include
     ${LLVM_DIR}/lib/Target/X86
 )
-add_library(llvm STATIC ${LLVM_LIST})
+add_library(llvm SHARED ${LLVM_LIST})
 set_target_properties(llvm PROPERTIES
     POSITION_INDEPENDENT_CODE 1
     INCLUDE_DIRECTORIES "${LLVM_INCLUDE_DIR}"
+    COMPILE_DEFINITIONS "__STDC_CONSTANT_MACROS;__STDC_LIMIT_MACROS"
     FOLDER "LLVM"
 )
 
@@ -218,11 +219,11 @@ set(COMMON_INCLUDE_DIR
     ${SOURCE_DIR}/Reactor
     ${SOURCE_DIR}/Renderer
     ${SOURCE_DIR}/Shader
+    ${OPENGL_DIR}/include
     ${LLVM_INCLUDE_DIR}
 )
 set(OPENGL_INCLUDE_DIR
     ${OPENGL_DIR}
-    ${OPENGL_DIR}/include
     ${COMMON_INCLUDE_DIR}
 )
 
@@ -359,6 +360,10 @@ elseif(APPLE)
         ${SOURCE_DIR}/Main/FrameBufferOSX.mm
         ${SOURCE_DIR}/Main/FrameBufferOSX.hpp
     )
+    list(APPEND EGL_LIST
+        ${OPENGL_DIR}/libEGL/OSXUtils.mm
+        ${OPENGL_DIR}/libEGL/OSXUtils.hpp
+    )
     list(APPEND OPENGL_COMPILER_LIST
         ${OPENGL_COMPILER_DIR}/ossource_posix.cpp
     )
@@ -368,6 +373,10 @@ if(WIN32)
     set(OS_LIBS odbc32 odbccp32 WS2_32 dxguid)
 elseif(LINUX)
     set(OS_LIBS dl X11 Xext pthread)
+elseif(APPLE)
+    find_library(COCOA_FRAMEWORK Cocoa)
+    find_library(QUARTZ_FRAMEWORK Quartz)
+    set(OS_LIBS "${COCOA_FRAMEWORK}" "${QUARTZ_FRAMEWORK}")
 endif()
 
 ###########################################################
@@ -458,7 +467,21 @@ endif()
 # Extra programs
 ###########################################################
 
-if (LINUX)
-    add_executable(OGLES2HelloAPI tests/third_party/PowerVR/Examples/Beginner/01_HelloAPI/OGLES2/OGLES2HelloAPI_LinuxX11.cpp)
+if(LINUX)
+    add_executable(OGLES2HelloAPI HELLO2_DIR/OGLES2HelloAPI_LinuxX11.cpp)
     target_link_libraries(OGLES2HelloAPI dl X11 EGL GLESv2)
+elseif(APPLE)
+    add_executable(OGLES2HelloAPI MACOSX_BUNDLE
+        ${HELLO2_DIR}/OGLES2HelloAPI_OSX.mm
+        ${HELLO2_DIR}/Build/OSX/en.lproj/MainMenu.xib
+    )
+    set_target_properties(OGLES2HelloAPI PROPERTIES
+        INCLUDE_DIRECTORIES "${OPENGL_DIR}/include"
+        COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES"
+        MACOSX_BUNDLE_INFO_PLIST "${HELLO2_DIR}/Build/OSX/Info.plist"
+    )
+    target_link_libraries(OGLES2HelloAPI libEGL libGLESv2 ${OS_LIBS})
+    set_source_files_properties(${HELLO2_DIR}/Build/OSX/en.lproj/MainMenu.xib PROPERTIES
+        MACOSX_PACKAGE_LOCATION "Resources"
+    )
 endif()

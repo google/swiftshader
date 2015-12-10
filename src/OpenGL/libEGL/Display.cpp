@@ -32,6 +32,10 @@
 #include <fcntl.h>
 #endif
 
+#if defined(__APPLE__)
+#include "OSXUtils.hpp"
+#endif
+
 #include <algorithm>
 #include <vector>
 #include <map>
@@ -553,7 +557,7 @@ bool Display::isValidWindow(EGLNativeWindowType window)
             return status == True;
         }
     #elif defined(__APPLE__)
-        return true;
+        return sw::OSX::IsValidWindow(window);
     #else
         #error "Display::isValidWindow unimplemented for this platform"
     #endif
@@ -688,7 +692,7 @@ sw::Format Display::getDisplayFormat() const
         }
         else UNREACHABLE(platform);
     #elif defined(__APPLE__)
-        return sw::FORMAT_X8R8G8B8;
+        return sw::FORMAT_A8B8G8R8;
     #else
         #error "Display::isValidWindow unimplemented for this platform"
 	#endif

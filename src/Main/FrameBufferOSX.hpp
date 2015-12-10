@@ -3,6 +3,8 @@
 
 #include "Main/FrameBuffer.hpp"
 
+#import <Cocoa/Cocoa.h>
+
 @class CALayer;
 
 namespace sw
@@ -10,15 +12,23 @@ namespace sw
 	class FrameBufferOSX : public FrameBuffer
 	{
 	public:
-		FrameBufferOSX(CALayer *window, int width, int height) : FrameBuffer(width, height, false, false) {};
-
-		~FrameBufferOSX() override {};
+		FrameBufferOSX(CALayer *layer, int width, int height);
+		~FrameBufferOSX() override;
 
 		void flip(void *source, Format sourceFormat, size_t sourceStride) override;
-		void blit(void *source, const Rect *sourceRect, const Rect *destRect, Format sourceFormat, size_t sourceStride) override {};
+		void blit(void *source, const Rect *sourceRect, const Rect *destRect, Format sourceFormat, size_t sourceStride) override;
 
-		void *lock() override {return nullptr;};
-		void unlock() override {};
+		void *lock() override;
+		void unlock() override;
+
+	private:
+		int width;
+		int height;
+		CALayer *layer;
+		uint8_t *buffer;
+		CGDataProviderRef provider;
+		CGColorSpaceRef colorspace;
+		CGImageRef currentImage;
 	};
 }
 

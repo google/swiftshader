@@ -241,17 +241,31 @@ private:
 		if(!libGLES_CM)
 		{
 			#if defined(_WIN32)
-			const char *libGLES_CM_lib[] = {"libGLES_CM.dll", "libGLES_CM_translator.dll"};
+				#if defined(__LP64__)
+					const char *libGLES_CM_lib[] = {"libGLES_CM.dll", "libGLES_CM_translator.dll"};
+				#else
+					const char *libGLES_CM_lib[] = {"libGLES_CM.dll", "lib64GLES_CM_translator.dll"};
+				#endif
 			#elif defined(__ANDROID__)
-			#if defined(__LP64__)
-			const char *libGLES_CM_lib[] = {"/vendor/lib64/egl/libGLESv1_CM_swiftshader.so"};
+				#if defined(__LP64__)
+					const char *libGLES_CM_lib[] = {"/vendor/lib64/egl/libGLESv1_CM_swiftshader.so"};
+				#else
+					const char *libGLES_CM_lib[] = {"/vendor/lib/egl/libGLESv1_CM_swiftshader.so"};
+				#endif
+			#elif defined(__linux__)
+				#if defined(__LP64__)
+					const char *libGLES_CM_lib[] = {"lib64GLES_CM_translator.so", "libGLES_CM.so.1", "libGLES_CM.so"};
+				#else
+					const char *libGLES_CM_lib[] = {"libGLES_CM_translator.so", "libGLES_CM.so.1", "libGLES_CM.so"};
+				#endif
+			#elif defined(__APPLE__)
+				#if defined(__LP64__)
+					const char *libGLES_CM_lib[] = {"lib64GLES_CM_translator.dylib", "libGLES_CM.dylib"};
+				#else
+					const char *libGLES_CM_lib[] = {"libGLES_CM_translator.dylib", "libGLES_CM.dylib"};
+				#endif
 			#else
-			const char *libGLES_CM_lib[] = {"/vendor/lib/egl/libGLESv1_CM_swiftshader.so"};
-			#endif
-			#elif defined(__LP64__)
-			const char *libGLES_CM_lib[] = {"lib64GLES_CM_translator.so", "libGLES_CM.so.1", "libGLES_CM.so"};
-			#else
-			const char *libGLES_CM_lib[] = {"libGLES_CM_translator.so", "libGLES_CM.so.1", "libGLES_CM.so"};
+				#error "libGLES_CM::loadExports unimplemented for this platform"
 			#endif
 
 			libGLES_CM = loadLibrary(libGLES_CM_lib, "libGLES_CM_swiftshader");
