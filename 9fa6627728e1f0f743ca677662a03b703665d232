@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "25a2d663_3cceb136",
+        "filename": "src/LLVM/lib/Analysis/LazyValueInfo.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 992,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-12-10T14:44:42Z",
+      "side": 0,
+      "message": "Interestingly this code hasn\u0027t changed one bit in LLVM. Instead, people seem to just update their tool chain:\nhttps://trac.macports.org/ticket/43977\nhttps://github.com/digego/extempore/issues/127\n\nThat said, SwiftShader doesn\u0027t actually use this analysis pass, so the workaround is fine either way.",
+      "range": {
+        "startLine": 992,
+        "startChar": 4,
+        "endLine": 992,
+        "endChar": 78
+      },
+      "revId": "9fa6627728e1f0f743ca677662a03b703665d232",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
