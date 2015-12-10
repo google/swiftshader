@@ -8,7 +8,7 @@ import subprocess
 import sys
 import tempfile
 
-from utils import shellcmd
+from utils import FindBaseNaCl, shellcmd
 
 
 def TargetAssemblerFlags(target, sandboxed):
@@ -60,7 +60,10 @@ def main():
         '--pnacl-sz', required=False, default='./pnacl-sz', metavar='PNACL-SZ',
         help="Subzero translator 'pnacl-sz'")
     argparser.add_argument('--pnacl-bin-path', required=False,
-                           default=None, metavar='PNACL_BIN_PATH',
+                           default=(
+                             '{root}/toolchain/linux_x86/pnacl_newlib_raw/bin'
+                           ).format(root=FindBaseNaCl()),
+                           metavar='PNACL_BIN_PATH',
                            help='Path to LLVM & Binutils executables ' +
                                 '(e.g. for building PEXE files)')
     argparser.add_argument('--assemble', required=False,
