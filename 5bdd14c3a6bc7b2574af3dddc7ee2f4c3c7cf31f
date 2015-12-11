@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "a53a46f4_6072f2ed",
+        "filename": "src/Renderer/Clipper.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2015-12-11T19:01:54Z",
+      "side": 0,
+      "message": "Done",
+      "parentUuid": "25a2d663_3ca8f1b3",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 19
+      },
+      "revId": "5bdd14c3a6bc7b2574af3dddc7ee2f4c3c7cf31f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "25a2d663_1ca3b5dc",
         "filename": "src/Renderer/Context.cpp",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "a53a46f4_806d7610",
+        "filename": "src/Renderer/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2015-12-11T19:01:54Z",
+      "side": 0,
+      "message": "Done",
+      "parentUuid": "25a2d663_1ca3b5dc",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 23,
+        "endChar": 19
+      },
+      "revId": "5bdd14c3a6bc7b2574af3dddc7ee2f4c3c7cf31f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "25a2d663_5c929d7c",
         "filename": "src/Renderer/Renderer.cpp",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2015-12-10T14:58:42Z",
       "side": 0,
       "message": "Doesn\u0027t appear to be needed at all. Let\u0027s remove it.",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 19
+      },
+      "revId": "5bdd14c3a6bc7b2574af3dddc7ee2f4c3c7cf31f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a53a46f4_2078eacb",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2015-12-11T19:01:54Z",
+      "side": 0,
+      "message": "Done",
+      "parentUuid": "25a2d663_5c929d7c",
       "range": {
         "startLine": 31,
         "startChar": 0,
