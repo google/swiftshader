@@ -69,7 +69,7 @@ sw::FrameBufferWin *createFrameBufferWin(HWND windowHandle, int width, int heigh
 	return 0;
 }
 
-sw::FrameBuffer *createFrameBuffer(HDC display, HWND window, int width, int height)
+sw::FrameBuffer *createFrameBuffer(void *display, HWND window, int width, int height)
 {
 	return createFrameBufferWin(window, width, height, false, false);
 }

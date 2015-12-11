@@ -38,23 +38,11 @@
 
 namespace egl
 {
-typedef std::map<EGLNativeDisplayType, Display*> DisplayMap;
 
-// Protects the global displays map.
-sw::BackoffLock displays_lock;
-
-// The order of construction of globals is undefined in C++.
-// This function ensures that construction has completed before we attempt
-// to access displays.
-DisplayMap* getDisplays() {
-  static DisplayMap displays;
-  return &displays;
-}
-
-egl::Display *Display::getPlatformDisplay(EGLenum platform, EGLNativeDisplayType displayId)
+egl::Display *Display::getPlatformDisplay(EGLenum platform, void *nativeDisplay)
 {
     #ifndef __ANDROID__
-        if(platform == EGL_UNKNOWN)   // Default
+        if(platform == EGL_UNKNOWN)   // Default platform
         {
             #if defined(__unix__)
 				if(libX11)
@@ -68,14 +56,14 @@ egl::Display *Display::getPlatformDisplay(EGLenum platform, EGLNativeDisplayType
             #endif
         }
 
-        if(displayId == EGL_DEFAULT_DISPLAY)
+        if(!nativeDisplay)   // Default display
         {
             if(platform == EGL_PLATFORM_X11_EXT)
             {
                 #if defined(__unix__)
 					if(libX11->XOpenDisplay)
 					{
-						displayId = libX11->XOpenDisplay(NULL);
+						nativeDisplay = libX11->XOpenDisplay(NULL);
 					}
 					else
 					{
@@ -88,26 +76,29 @@ egl::Display *Display::getPlatformDisplay(EGLenum platform, EGLNativeDisplayType
         }
         else
         {
-            // FIXME: Check if displayId is a valid display device context for <platform>
+            // FIXME: Check if nativeDisplay is a valid display device context for <platform>
         }
     #endif
 
-    egl::Display *rval;
-    displays_lock.lock();
-    DisplayMap* displays = getDisplays();
-    if (displays->find(displayId) != displays->end())
-    {
-        rval = (*displays)[displayId];
-    } else {
-        rval = new egl::Display(platform, displayId);
+	static std::map<void*, Display*> displays;
+	static sw::BackoffLock displaysMutex;
 
-        (*displays)[displayId] = rval;
+	displaysMutex.lock();
+
+    egl::Display *display = displays[nativeDisplay];
+
+    if(!display)
+	{
+        display = new egl::Display(platform, nativeDisplay);
+        displays[nativeDisplay] = display;
     }
-    displays_lock.unlock();
-    return rval;
+
+    displaysMutex.unlock();
+
+    return display;
 }
 
-Display::Display(EGLenum platform, EGLNativeDisplayType displayId) : platform(platform), displayId(displayId)
+Display::Display(EGLenum platform, void *nativeDisplay) : platform(platform), nativeDisplay(nativeDisplay)
 {
     mMinSwapInterval = 1;
     mMaxSwapInterval = 1;
@@ -116,10 +107,6 @@ Display::Display(EGLenum platform, EGLNativeDisplayType displayId) : platform(pl
 Display::~Display()
 {
     terminate();
-
-    displays_lock.lock();
-    getDisplays()->erase(displayId);
-    displays_lock.unlock();
 }
 
 static void cpuid(int registers[4], int info)
@@ -561,7 +548,7 @@ bool Display::isValidWindow(EGLNativeWindowType window)
         if(platform == EGL_PLATFORM_X11_EXT)
         {
             XWindowAttributes windowAttributes;
-            Status status = libX11->XGetWindowAttributes(displayId, window, &windowAttributes);
+            Status status = libX11->XGetWindowAttributes((::Display*)nativeDisplay, window, &windowAttributes);
 
             return status == True;
         }
@@ -596,9 +583,9 @@ EGLint Display::getMaxSwapInterval() const
     return mMaxSwapInterval;
 }
 
-EGLNativeDisplayType Display::getNativeDisplay() const
+void *Display::getNativeDisplay() const
 {
-	return displayId;
+	return nativeDisplay;
 }
 
 sw::Format Display::getDisplayFormat() const
@@ -680,7 +667,7 @@ sw::Format Display::getDisplayFormat() const
     #else
         if(platform == EGL_PLATFORM_X11_EXT)
         {
-            Screen *screen = libX11->XDefaultScreenOfDisplay(displayId);
+            Screen *screen = libX11->XDefaultScreenOfDisplay((::Display*)nativeDisplay);
             unsigned int bpp = libX11->XPlanesOfScreen(screen);
 
             switch(bpp)

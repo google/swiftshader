@@ -28,9 +28,7 @@ namespace egl
 	class Display
 	{
 	public:
-		~Display();
-
-		static egl::Display *getPlatformDisplay(EGLenum platform, EGLNativeDisplayType displayId);
+		static egl::Display *getPlatformDisplay(EGLenum platform, void *nativeDisplay);
 
 		bool initialize();
 		void terminate();
@@ -55,20 +53,21 @@ namespace egl
 		EGLint getMinSwapInterval() const;
 		EGLint getMaxSwapInterval() const;
 
-		EGLNativeDisplayType getNativeDisplay() const;
+		void *getNativeDisplay() const;
 		const char *getExtensionString() const;
 
 	private:
-		Display(EGLenum platform, EGLNativeDisplayType displayId);
+		Display(EGLenum platform, void *nativeDisplay);
+		~Display();
 
 		sw::Format getDisplayFormat() const;
 
         const EGLenum platform;
-		const EGLNativeDisplayType displayId;
+		void *const nativeDisplay;
 
 		EGLint mMaxSwapInterval;
 		EGLint mMinSwapInterval;
-    
+
 		typedef std::set<Surface*> SurfaceSet;
 		SurfaceSet mSurfaceSet;
 

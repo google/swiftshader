@@ -246,7 +246,7 @@ bool WindowSurface::initialize()
 		return reset(width, height);
 	#else
 		XWindowAttributes windowAttributes;
-		libX11->XGetWindowAttributes(display->getNativeDisplay(), window, &windowAttributes);
+		libX11->XGetWindowAttributes((::Display*)display->getNativeDisplay(), window, &windowAttributes);
 
 		return reset(windowAttributes.width, windowAttributes.height);
 	#endif
@@ -286,7 +286,7 @@ bool WindowSurface::checkForResize()
 		int clientHeight; window->query(window, NATIVE_WINDOW_HEIGHT, &clientHeight);
 	#else
 		XWindowAttributes windowAttributes;
-		libX11->XGetWindowAttributes(display->getNativeDisplay(), window, &windowAttributes);
+		libX11->XGetWindowAttributes((::Display*)display->getNativeDisplay(), window, &windowAttributes);
 
 		int clientWidth = windowAttributes.width;
 		int clientHeight = windowAttributes.height;

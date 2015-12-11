@@ -108,7 +108,14 @@ EGLDisplay GetDisplay(EGLNativeDisplayType display_id)
 {
 	TRACE("(EGLNativeDisplayType display_id = %p)", display_id);
 
-	return egl::Display::getPlatformDisplay(EGL_UNKNOWN, display_id);
+	if(display_id == EGL_DEFAULT_DISPLAY)
+	{
+		return egl::Display::getPlatformDisplay(EGL_UNKNOWN, nullptr);
+	}
+	else
+	{
+		return egl::Display::getPlatformDisplay(EGL_UNKNOWN, reinterpret_cast<void*>((uintptr_t)display_id));
+	}
 }
 
 EGLBoolean Initialize(EGLDisplay dpy, EGLint *major, EGLint *minor)
@@ -948,7 +955,7 @@ EGLDisplay GetPlatformDisplayEXT(EGLenum platform, void *native_display, const E
 {
 	TRACE("(EGLenum platform = 0x%X, void *native_display = %p, const EGLint *attrib_list = %p)", platform, native_display, attrib_list);
 
-	return egl::Display::getPlatformDisplay(platform, (EGLNativeDisplayType)native_display);
+	return egl::Display::getPlatformDisplay(platform, native_display);
 }
 
 EGLSurface CreatePlatformWindowSurfaceEXT(EGLDisplay dpy, EGLConfig config, void *native_window, const EGLint *attrib_list)
