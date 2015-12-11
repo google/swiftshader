@@ -248,12 +248,12 @@ void Assembler::sbcs(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), SBC, 1, rn, rd, o);
 }
 
-
+#if 0
+// Moved to ARM32::AssemblerARM32::rsc()f
 void Assembler::rsc(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), RSC, 0, rn, rd, o);
 }
 
-#if 0
 // Moved to ARM32::AssemblerARM32::tst()
 void Assembler::tst(Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), TST, 1, rn, R0, o);

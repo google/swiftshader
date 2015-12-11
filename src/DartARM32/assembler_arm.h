@@ -473,15 +473,16 @@ class Assembler : public ValueObject {
   void adc(Register rd, Register rn, Operand o, Condition cond = AL);
 
   void adcs(Register rd, Register rn, Operand o, Condition cond = AL);
-#endif
 
+  // Moved to ARM32::AssemblerARM32::sbc()
   void sbc(Register rd, Register rn, Operand o, Condition cond = AL);
 
+  // Moved to ARM32::AssemblerARM32::sbc()
   void sbcs(Register rd, Register rn, Operand o, Condition cond = AL);
 
+  // Moved to ARM32::AssemblerARM32::rsc()
   void rsc(Register rd, Register rn, Operand o, Condition cond = AL);
 
-#if 0
   // Moved to ARM32::AssemblerARM32::tst();
   void tst(Register rn, Operand o, Condition cond = AL);
 #endif

@@ -1611,6 +1611,32 @@ void AssemblerARM32::rsb(const Operand *OpRd, const Operand *OpRn,
              RsbName);
 }
 
+void AssemblerARM32::rsc(const Operand *OpRd, const Operand *OpRn,
+                         const Operand *OpSrc1, bool SetFlags,
+                         CondARM32::Cond Cond) {
+  // RSC (immediate) - ARM section A8.8.155, encoding A1:
+  //   rsc{s}<c> <Rd>, <Rn>, #<RotatedImm8>
+  //
+  // cccc0010111snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
+  // mmmm=Rm, iiiii=shift, tt=ShiftKind, and s=SetFlags.
+  //
+  // RSC (register) - ARM section A8.8.156, encoding A1:
+  //   rsc{s}<c> <Rd>, <Rn>, <Rm>{, <shift>}
+  //
+  // cccc0000111snnnnddddiiiiitt0mmmm where cccc=Cond, dddd=Rd, nnnn=Rn,
+  // mmmm=Rm, iiiii=shift, tt=ShiftKind, and s=SetFlags.
+  //
+  // RSC (register-shifted register) - ARM section A8.8.157, encoding A1:
+  //   rsc{s}<c> <Rd>, <Rn>, <Rm>, <type> <Rs>
+  //
+  // cccc0000111fnnnnddddssss0tt1mmmm where cccc=Cond, dddd=Rd, nnnn=Rn,
+  // mmmm=Rm, ssss=Rs, tt defined <type>, and f=SetFlags.
+  constexpr const char *RscName = "rsc";
+  constexpr IValueT RscOpcode = B2 | B1 | B0; // i.e. 0111.
+  emitType01(Cond, RscOpcode, OpRd, OpRn, OpSrc1, SetFlags, RdIsPcAndSetFlags,
+             RscName);
+}
+
 void AssemblerARM32::sxt(const Operand *OpRd, const Operand *OpSrc0,
                          CondARM32::Cond Cond) {
   constexpr const char *SxtName = "sxt";
@@ -1631,7 +1657,7 @@ void AssemblerARM32::sub(const Operand *OpRd, const Operand *OpRn,
   //
   // Sub (Immediate) - ARM section A8.8.222, encoding A1:
   //    sub{s}<c> <Rd>, <Rn>, #<RotatedImm8>
-  // Sub (Sp minus immediate) - ARM section A8.*.225, encoding A1:
+  // Sub (Sp minus immediate) - ARM section A8.8.225, encoding A1:
   //    sub{s}<c> sp, <Rn>, #<RotatedImm8>
   //
   // cccc0010010snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
