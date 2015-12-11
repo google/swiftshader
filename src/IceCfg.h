@@ -132,7 +132,7 @@ public:
   // makeSpillVariable, and makeStackVariable.
   template <typename T = Variable> T *makeVariable(Type Ty) {
     SizeT Index = Variables.size();
-    T *Var = T::create(this, Ty, Index);
+    auto *Var = T::create(this, Ty, Index);
     Variables.push_back(Var);
     return Var;
   }

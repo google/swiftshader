@@ -94,7 +94,7 @@ void Inst::deleteIfDead() {
 bool Inst::isLastUse(const Operand *TestSrc) const {
   if (LiveRangesEnded == 0)
     return false; // early-exit optimization
-  if (const Variable *TestVar = llvm::dyn_cast<const Variable>(TestSrc)) {
+  if (auto *TestVar = llvm::dyn_cast<const Variable>(TestSrc)) {
     LREndedBits Mask = LiveRangesEnded;
     FOREACH_VAR_IN_INST(Var, *this) {
       if (Var == TestVar) {
@@ -366,7 +366,7 @@ void InstPhi::livenessPhiOperand(LivenessBV &Live, CfgNode *Target,
     return;
   for (SizeT I = 0; I < getSrcSize(); ++I) {
     if (Labels[I] == Target) {
-      if (Variable *Var = llvm::dyn_cast<Variable>(getSrc(I))) {
+      if (auto *Var = llvm::dyn_cast<Variable>(getSrc(I))) {
         SizeT SrcIndex = Liveness->getLiveIndex(Var->getIndex());
         if (!Live[SrcIndex]) {
           setLastUse(I);

@@ -41,7 +41,7 @@ IceString CfgNode::getName() const {
 // Validates that all Phis are added before all regular instructions.
 void CfgNode::appendInst(Inst *Inst) {
   ++InstCountEstimate;
-  if (InstPhi *Phi = llvm::dyn_cast<InstPhi>(Inst)) {
+  if (auto *Phi = llvm::dyn_cast<InstPhi>(Inst)) {
     if (!Insts.empty()) {
       Func->setError("Phi instruction added to the middle of a block");
       return;
@@ -204,7 +204,7 @@ void CfgNode::placePhiStores() {
   // the previous instruction is a compare instruction, then we move the
   // insertion point before the compare instruction so as not to interfere with
   // compare/branch fusing.
-  if (InstBr *Branch = llvm::dyn_cast<InstBr>(InsertionPoint)) {
+  if (auto *Branch = llvm::dyn_cast<InstBr>(InsertionPoint)) {
     if (!Branch->isUnconditional()) {
       if (InsertionPoint != Insts.begin()) {
         --InsertionPoint;
@@ -227,7 +227,7 @@ void CfgNode::placePhiStores() {
       assert(Operand);
       Variable *Dest = I.getDest();
       assert(Dest);
-      InstAssign *NewInst = InstAssign::create(Func, Dest, Operand);
+      auto *NewInst = InstAssign::create(Func, Dest, Operand);
       if (CmpInstDest == Operand)
         Insts.insert(SafeInsertionPoint, NewInst);
       else
@@ -1001,7 +1001,7 @@ void updateStats(Cfg *Func, const Inst *I) {
         Func->getContext()->statsUpdateFills();
     }
     for (SizeT S = 0; S < I->getSrcSize(); ++S) {
-      if (Variable *Src = llvm::dyn_cast<Variable>(I->getSrc(S))) {
+      if (auto *Src = llvm::dyn_cast<Variable>(I->getSrc(S))) {
         if (!Src->hasReg())
           Func->getContext()->statsUpdateSpills();
       }
@@ -1404,7 +1404,7 @@ void CfgNode::profileExecutionCount(VariableDeclaration *Var) {
   Constant *OrderAcquireRelease =
       Context->getConstantInt32(Intrinsics::MemoryOrderAcquireRelease);
 
-  InstIntrinsicCall *Inst = InstIntrinsicCall::create(
+  auto *Inst = InstIntrinsicCall::create(
       Func, 5, Func->makeVariable(IceType_i64), RMWI64Name, Info->Info);
   Inst->addArg(AtomicRMWOp);
   Inst->addArg(Counter);

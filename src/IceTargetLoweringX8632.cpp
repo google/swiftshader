@@ -675,7 +675,7 @@ void TargetX8632::addEpilog(CfgNode *Node) {
   _pop(T_ecx);
   lowerIndirectJump(T_ecx);
   if (RI->getSrcSize()) {
-    Variable *RetValue = llvm::cast<Variable>(RI->getSrc(0));
+    auto *RetValue = llvm::cast<Variable>(RI->getSrc(0));
     Context.insert(InstFakeUse::create(Func, RetValue));
   }
   RI->setDeleted();
@@ -797,7 +797,7 @@ void TargetDataX8632::emitConstantPool(GlobalContext *Ctx) {
   for (Constant *C : Pool) {
     if (!C->getShouldBePooled())
       continue;
-    typename T::IceType *Const = llvm::cast<typename T::IceType>(C);
+    auto *Const = llvm::cast<typename T::IceType>(C);
     typename T::IceType::PrimType Value = Const->getValue();
     // Use memcpy() to copy bits from Value into RawValue in a way that avoids
     // breaking strict-aliasing rules.

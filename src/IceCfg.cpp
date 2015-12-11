@@ -63,7 +63,7 @@ void Cfg::setError(const IceString &Message) {
 
 CfgNode *Cfg::makeNode() {
   SizeT LabelIndex = Nodes.size();
-  CfgNode *Node = CfgNode::create(this, LabelIndex);
+  auto *Node = CfgNode::create(this, LabelIndex);
   Nodes.push_back(Node);
   return Node;
 }
@@ -104,7 +104,7 @@ constexpr char BlockStatsGlobalPrefix[] = ".L$profiler$block_info$";
 
 VariableDeclaration *nodeNameDeclaration(GlobalContext *Ctx,
                                          const IceString &NodeAsmName) {
-  VariableDeclaration *Var = VariableDeclaration::create(Ctx);
+  auto *Var = VariableDeclaration::create(Ctx);
   Var->setName(BlockNameGlobalPrefix + NodeAsmName);
   Var->setIsConstant(true);
   Var->addInitializer(VariableDeclaration::DataInitializer::create(
@@ -117,7 +117,7 @@ VariableDeclaration *nodeNameDeclaration(GlobalContext *Ctx,
 VariableDeclaration *
 blockProfilingInfoDeclaration(GlobalContext *Ctx, const IceString &NodeAsmName,
                               VariableDeclaration *NodeNameDeclaration) {
-  VariableDeclaration *Var = VariableDeclaration::create(Ctx);
+  auto *Var = VariableDeclaration::create(Ctx);
   Var->setName(BlockStatsGlobalPrefix + NodeAsmName);
   const SizeT Int64ByteSize = typeWidthInBytes(IceType_i64);
   Var->addInitializer(
@@ -526,7 +526,7 @@ void Cfg::sortAndCombineAllocas(CfgVector<Inst *> &Allocas,
       auto *Alloca = llvm::cast<InstAlloca>(Allocas[i]);
       // Emit a fake definition of the rematerializable variable.
       Variable *Dest = Alloca->getDest();
-      InstFakeDef *Def = InstFakeDef::create(this, Dest);
+      auto *Def = InstFakeDef::create(this, Dest);
       if (BaseVariableType == BVT_StackPointer)
         Dest->setRematerializable(getTarget()->getStackReg(), Offsets[i]);
       else

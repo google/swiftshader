@@ -601,7 +601,7 @@ template <class Machine> void TargetX86Base<Machine>::findRMW() {
       Variable *Beacon = Func->makeVariable(IceType_i32);
       Beacon->setMustNotHaveReg();
       Store->setRmwBeacon(Beacon);
-      InstFakeDef *BeaconDef = InstFakeDef::create(Func, Beacon);
+      auto *BeaconDef = InstFakeDef::create(Func, Beacon);
       Node->getInsts().insert(I3, BeaconDef);
       auto *RMW = Traits::Insts::FakeRMW::create(
           Func, ArithSrcOther, Store->getAddr(), Beacon, Arith->getOp());
@@ -704,7 +704,7 @@ template <class Machine> void TargetX86Base<Machine>::doLoadOpt() {
           }
         } else if (auto *Cast = llvm::dyn_cast<InstCast>(Next)) {
           // The load dest can always be folded into a Cast instruction.
-          Variable *Src0 = llvm::dyn_cast<Variable>(Cast->getSrc(0));
+          auto *Src0 = llvm::dyn_cast<Variable>(Cast->getSrc(0));
           if (Src0 == LoadDest) {
             NewInst = InstCast::create(Func, Cast->getCastKind(),
                                        Cast->getDest(), LoadSrc);
@@ -846,7 +846,7 @@ void TargetX86Base<Machine>::finishArgumentLowering(Variable *Arg,
   InArgsSizeBytes += typeWidthInBytesOnStack(Ty);
   if (Arg->hasReg()) {
     assert(Ty != IceType_i64 || Traits::Is64Bit);
-    typename Traits::X86OperandMem *Mem = Traits::X86OperandMem::create(
+    auto *Mem = Traits::X86OperandMem::create(
         Func, Ty, FramePtr,
         Ctx->getConstantInt32(Arg->getStackOffset() + StackAdjBytes));
     if (isVectorType(Arg->getType())) {
@@ -1372,8 +1372,8 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       break;
     }
 
-    Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
-    Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+    auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
+    auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
     Operand *Src0Lo = loOperand(Src0);
     Operand *Src0Hi = hiOperand(Src0);
     Operand *Src1Lo = loOperand(Src1);
@@ -1891,8 +1891,8 @@ void TargetX86Base<Machine>::lowerAssign(const InstAssign *Inst) {
     Src0 = legalize(Src0);
     Operand *Src0Lo = loOperand(Src0);
     Operand *Src0Hi = hiOperand(Src0);
-    Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
-    Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+    auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
+    auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
     Variable *T_Lo = nullptr, *T_Hi = nullptr;
     _mov(T_Lo, Src0Lo);
     _mov(DestLo, T_Lo);
@@ -1995,8 +1995,8 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
     } else if (!Traits::Is64Bit && DestTy == IceType_i64) {
       // t1=movsx src; t2=t1; t2=sar t2, 31; dst.lo=t1; dst.hi=t2
       Constant *Shift = Ctx->getConstantInt32(31);
-      Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
-      Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+      auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
+      auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
       Variable *T_Lo = makeReg(DestLo->getType());
       if (Src0RM->getType() == IceType_i32) {
         _mov(T_Lo, Src0RM);
@@ -2052,8 +2052,8 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
     } else if (!Traits::Is64Bit && DestTy == IceType_i64) {
       // t1=movzx src; dst.lo=t1; dst.hi=0
       Constant *Zero = Ctx->getConstantZero(IceType_i32);
-      Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
-      Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+      auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
+      auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
       Variable *Tmp = makeReg(DestLo->getType());
       if (Src0RM->getType() == IceType_i32) {
         _mov(Tmp, Src0RM);
@@ -2256,7 +2256,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
   case InstCast::Bitcast: {
     Operand *Src0 = Inst->getSrc(0);
     if (DestTy == Src0->getType()) {
-      InstAssign *Assign = InstAssign::create(Func, Dest, Src0);
+      auto *Assign = InstAssign::create(Func, Dest, Src0);
       lowerAssign(Assign);
       return;
     }
@@ -2325,8 +2325,8 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
           SpillHi = hiOperand(Src0RM);
         }
 
-        Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
-        Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+        auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
+        auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
         Variable *T_Lo = makeReg(IceType_i32);
         Variable *T_Hi = makeReg(IceType_i32);
 
@@ -2367,9 +2367,9 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
         Spill->setMustNotHaveReg();
 
         Variable *T_Lo = nullptr, *T_Hi = nullptr;
-        typename Traits::VariableSplit *SpillLo = Traits::VariableSplit::create(
+        auto *SpillLo = Traits::VariableSplit::create(
             Func, Spill, Traits::VariableSplit::Low);
-        typename Traits::VariableSplit *SpillHi = Traits::VariableSplit::create(
+        auto *SpillHi = Traits::VariableSplit::create(
             Func, Spill, Traits::VariableSplit::High);
         _mov(T_Lo, loOperand(Src0));
         // Technically, the Spill is defined after the _store happens, but
@@ -2974,8 +2974,8 @@ void TargetX86Base<Machine>::lowerInsertElement(const InstInsertElement *Inst) {
     // Expand the element to the appropriate size for it to be inserted in the
     // vector.
     Variable *Expanded = Func->makeVariable(InVectorElementTy);
-    InstCast *Cast = InstCast::create(Func, InstCast::Zext, Expanded,
-                                      ElementToInsertNotLegalized);
+    auto *Cast = InstCast::create(Func, InstCast::Zext, Expanded,
+                                  ElementToInsertNotLegalized);
     lowerCast(Cast);
     ElementToInsertNotLegalized = Expanded;
   }
@@ -3129,7 +3129,7 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
     // size, this opens up DCE opportunities.
     Operand *ByteSize = Instr->getArg(0);
     Variable *Dest = Instr->getDest();
-    if (ConstantInteger32 *CI = llvm::dyn_cast<ConstantInteger32>(ByteSize)) {
+    if (auto *CI = llvm::dyn_cast<ConstantInteger32>(ByteSize)) {
       Constant *Result;
       switch (CI->getValue()) {
       default:
@@ -3174,7 +3174,7 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
             formMemoryOperand(Instr->getArg(0), IceType_f64);
         _movq(T, Addr);
         // Then cast the bits back out of the XMM register to the i64 Dest.
-        InstCast *Cast = InstCast::create(Func, InstCast::Bitcast, Dest, T);
+        auto *Cast = InstCast::create(Func, InstCast::Bitcast, Dest, T);
         lowerCast(Cast);
         // Make sure that the atomic load isn't elided when unused.
         Context.insert(InstFakeUse::create(Func, Dest64On32->getLo()));
@@ -3182,7 +3182,7 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
         return;
       }
     }
-    InstLoad *Load = InstLoad::create(Func, Dest, Instr->getArg(0));
+    auto *Load = InstLoad::create(Func, Dest, Instr->getArg(0));
     lowerLoad(Load);
     // Make sure the atomic load isn't elided when unused, by adding a FakeUse.
     // Since lowerLoad may fuse the load w/ an arithmetic instruction, insert
@@ -3219,7 +3219,7 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
       // into two), following what GCC does. Cast the bits from int -> to an
       // xmm register first.
       Variable *T = makeReg(IceType_f64);
-      InstCast *Cast = InstCast::create(Func, InstCast::Bitcast, T, Value);
+      auto *Cast = InstCast::create(Func, InstCast::Bitcast, T, Value);
       lowerCast(Cast);
       // Then store XMM w/ a movq.
       typename Traits::X86OperandMem *Addr =
@@ -3228,7 +3228,7 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
       _mfence();
       return;
     }
-    InstStore *Store = InstStore::create(Func, Value, Ptr);
+    auto *Store = InstStore::create(Func, Value, Ptr);
     lowerStore(Store);
     _mfence();
     return;
@@ -3242,8 +3242,8 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
       Val = legalizeUndef(Val);
       Variable *T_Lo = legalizeToReg(loOperand(Val));
       Variable *T_Hi = legalizeToReg(hiOperand(Val));
-      Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
-      Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+      auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
+      auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
       _bswap(T_Lo);
       _bswap(T_Hi);
       _mov(DestLo, T_Hi);
@@ -3298,7 +3298,7 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
     if (!Traits::Is64Bit) {
       assert(T == Dest);
       if (Val->getType() == IceType_i64) {
-        Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+        auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
         Constant *Zero = Ctx->getConstantZero(IceType_i32);
         _mov(DestHi, Zero);
       }
@@ -3467,8 +3467,8 @@ void TargetX86Base<Machine>::lowerAtomicCmpxchg(Variable *DestPrev,
     typename Traits::X86OperandMem *Addr = formMemoryOperand(Ptr, Ty);
     constexpr bool Locked = true;
     _cmpxchg8b(Addr, T_edx, T_eax, T_ecx, T_ebx, Locked);
-    Variable *DestLo = llvm::cast<Variable>(loOperand(DestPrev));
-    Variable *DestHi = llvm::cast<Variable>(hiOperand(DestPrev));
+    auto *DestLo = llvm::cast<Variable>(loOperand(DestPrev));
+    auto *DestHi = llvm::cast<Variable>(hiOperand(DestPrev));
     _mov(DestLo, T_eax);
     _mov(DestHi, T_edx);
     return;
@@ -3529,7 +3529,7 @@ bool TargetX86Base<Machine>::tryOptimizedCmpxchgCmpBr(Variable *Dest,
   // could be a backward branch for a loop. This placement of assignments is
   // determined by placePhiStores().
   std::vector<InstAssign *> PhiAssigns;
-  while (InstAssign *PhiAssign = llvm::dyn_cast<InstAssign>(NextInst)) {
+  while (auto *PhiAssign = llvm::dyn_cast<InstAssign>(NextInst)) {
     if (PhiAssign->getDest() == Dest)
       return false;
     PhiAssigns.push_back(PhiAssign);
@@ -3537,7 +3537,7 @@ bool TargetX86Base<Machine>::tryOptimizedCmpxchgCmpBr(Variable *Dest,
     if (!NextInst)
       return false;
   }
-  if (InstIcmp *NextCmp = llvm::dyn_cast<InstIcmp>(NextInst)) {
+  if (auto *NextCmp = llvm::dyn_cast<InstIcmp>(NextInst)) {
     if (!(NextCmp->getCondition() == InstIcmp::Eq &&
           ((NextCmp->getSrc(0) == Dest && NextCmp->getSrc(1) == Expected) ||
            (NextCmp->getSrc(1) == Dest && NextCmp->getSrc(0) == Expected)))) {
@@ -3546,7 +3546,7 @@ bool TargetX86Base<Machine>::tryOptimizedCmpxchgCmpBr(Variable *Dest,
     NextInst = Context.getNextInst(I);
     if (!NextInst)
       return false;
-    if (InstBr *NextBr = llvm::dyn_cast<InstBr>(NextInst)) {
+    if (auto *NextBr = llvm::dyn_cast<InstBr>(NextInst)) {
       if (!NextBr->isUnconditional() &&
           NextCmp->getDest() == NextBr->getCondition() &&
           NextBr->isLastUse(NextCmp->getDest())) {
@@ -3724,9 +3724,9 @@ void TargetX86Base<Machine>::expandAtomicRMWAsCmpxchg(LowerBinOp Op_Lo,
     if (!IsXchg8b) {
       // If Val is a variable, model the extended live range of Val through
       // the end of the loop, since it will be re-used by the loop.
-      if (Variable *ValVar = llvm::dyn_cast<Variable>(Val)) {
-        Variable *ValLo = llvm::cast<Variable>(loOperand(ValVar));
-        Variable *ValHi = llvm::cast<Variable>(hiOperand(ValVar));
+      if (auto *ValVar = llvm::dyn_cast<Variable>(Val)) {
+        auto *ValLo = llvm::cast<Variable>(loOperand(ValVar));
+        auto *ValHi = llvm::cast<Variable>(hiOperand(ValVar));
         Context.insert(InstFakeUse::create(Func, ValLo));
         Context.insert(InstFakeUse::create(Func, ValHi));
       }
@@ -3738,8 +3738,8 @@ void TargetX86Base<Machine>::expandAtomicRMWAsCmpxchg(LowerBinOp Op_Lo,
     // The address base (if any) is also reused in the loop.
     if (Variable *Base = Addr->getBase())
       Context.insert(InstFakeUse::create(Func, Base));
-    Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
-    Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+    auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
+    auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
     _mov(DestLo, T_eax);
     _mov(DestHi, T_edx);
     return;
@@ -3775,7 +3775,7 @@ void TargetX86Base<Machine>::expandAtomicRMWAsCmpxchg(LowerBinOp Op_Lo,
   _br(Traits::Cond::Br_ne, Label);
   // If Val is a variable, model the extended live range of Val through
   // the end of the loop, since it will be re-used by the loop.
-  if (Variable *ValVar = llvm::dyn_cast<Variable>(Val)) {
+  if (auto *ValVar = llvm::dyn_cast<Variable>(Val)) {
     Context.insert(InstFakeUse::create(Func, ValVar));
   }
   // The address base (if any) is also reused in the loop.
@@ -3845,8 +3845,8 @@ void TargetX86Base<Machine>::lowerCountZeros(bool Cttz, Type Ty, Variable *Dest,
     return;
   }
   _add(T_Dest, ThirtyTwo);
-  Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
-  Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+  auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
+  auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
   // Will be using "test" on this, so we need a registerized variable.
   Variable *SecondVar = legalizeToReg(SecondVal);
   Variable *T_Dest2 = makeReg(IceType_i32);
@@ -4567,7 +4567,7 @@ void TargetX86Base<Machine>::lowerLoad(const InstLoad *Load) {
   Type Ty = DestLoad->getType();
   Operand *Src0 = formMemoryOperand(Load->getSourceAddress(), Ty);
   doMockBoundsCheck(Src0);
-  InstAssign *Assign = InstAssign::create(Func, DestLoad, Src0);
+  auto *Assign = InstAssign::create(Func, DestLoad, Src0);
   lowerAssign(Assign);
 }
 
@@ -4733,7 +4733,7 @@ void TargetX86Base<Machine>::lowerSelect(const InstSelect *Inst) {
     SrcT = legalizeUndef(SrcT);
     SrcF = legalizeUndef(SrcF);
     // Set the low portion.
-    Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
+    auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
     Variable *TLo = nullptr;
     Operand *SrcFLo = legalize(loOperand(SrcF));
     _mov(TLo, SrcFLo);
@@ -4741,7 +4741,7 @@ void TargetX86Base<Machine>::lowerSelect(const InstSelect *Inst) {
     _cmov(TLo, SrcTLo, Cond);
     _mov(DestLo, TLo);
     // Set the high portion.
-    Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+    auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
     Variable *THi = nullptr;
     Operand *SrcFHi = legalize(hiOperand(SrcF));
     _mov(THi, SrcFHi);
@@ -4787,7 +4787,7 @@ void TargetX86Base<Machine>::lowerStore(const InstStore *Inst) {
 }
 
 template <class Machine> void TargetX86Base<Machine>::doAddressOptStore() {
-  InstStore *Inst = llvm::cast<InstStore>(Context.getCur());
+  auto *Inst = llvm::cast<InstStore>(Context.getCur());
   Operand *Data = Inst->getData();
   Operand *Addr = Inst->getAddr();
   Variable *Index = nullptr;
@@ -4813,7 +4813,7 @@ template <class Machine> void TargetX86Base<Machine>::doAddressOptStore() {
     }
     Addr = Traits::X86OperandMem::create(Func, Data->getType(), Base, OffsetOp,
                                          Index, Shift, SegmentReg);
-    InstStore *NewStore = InstStore::create(Func, Data, Addr);
+    auto *NewStore = InstStore::create(Func, Data, Addr);
     if (Inst->getDest())
       NewStore->setRmwBeacon(Inst->getRmwBeacon());
     Context.insert(NewStore);
@@ -5099,7 +5099,7 @@ void TargetX86Base<Machine>::scalarizeArithmetic(InstArithmetic::OpKind Kind,
 template <class Machine>
 void TargetX86Base<Machine>::eliminateNextVectorSextInstruction(
     Variable *SignExtendedResult) {
-  if (InstCast *NextCast =
+  if (auto *NextCast =
           llvm::dyn_cast_or_null<InstCast>(Context.getNextInst())) {
     if (NextCast->getCastKind() == InstCast::Sext &&
         NextCast->getSrc(0) == SignExtendedResult) {
@@ -5774,7 +5774,7 @@ Operand *TargetX86Base<Machine>::legalize(Operand *From, LegalMask Allowed,
 
     // If the operand is an 32 bit constant integer, we should check whether we
     // need to randomize it or pool it.
-    if (ConstantInteger32 *C = llvm::dyn_cast<ConstantInteger32>(Const)) {
+    if (auto *C = llvm::dyn_cast<ConstantInteger32>(Const)) {
       Operand *NewConst = randomizeOrPoolImmediate(C, RegNum);
       if (NewConst != Const) {
         return NewConst;
@@ -5899,8 +5899,8 @@ TargetX86Base<Machine>::formMemoryOperand(Operand *Opnd, Type Ty,
   // Traits::X86OperandMem, so in that case it wouldn't need another level of
   // transformation.
   if (!Mem) {
-    Variable *Base = llvm::dyn_cast<Variable>(Opnd);
-    Constant *Offset = llvm::dyn_cast<Constant>(Opnd);
+    auto *Base = llvm::dyn_cast<Variable>(Opnd);
+    auto *Offset = llvm::dyn_cast<Constant>(Opnd);
     assert(Base || Offset);
     if (Offset) {
       // During memory operand building, we do not blind or pool the constant
@@ -6048,7 +6048,7 @@ Operand *TargetX86Base<Machine>::randomizeOrPoolImmediate(Constant *Immediate,
       // chain. So we add RegNum argument here. Note we use 'lea' instruction
       // instead of 'xor' to avoid affecting the flags.
       Variable *Reg = makeReg(IceType_i32, RegNum);
-      ConstantInteger32 *Integer = llvm::cast<ConstantInteger32>(Immediate);
+      auto *Integer = llvm::cast<ConstantInteger32>(Immediate);
       uint32_t Value = Integer->getValue();
       uint32_t Cookie = Func->getConstantBlindingCookie();
       _mov(Reg, Ctx->getConstantInt(IceType_i32, Cookie + Value));
@@ -6111,7 +6111,7 @@ TargetX86Base<Machine>::randomizeOrPoolImmediate(
   if (MemOperand->getRandomized())
     return MemOperand;
 
-  if (Constant *C = llvm::dyn_cast_or_null<Constant>(MemOperand->getOffset())) {
+  if (auto *C = llvm::dyn_cast_or_null<Constant>(MemOperand->getOffset())) {
     if (C->shouldBeRandomizedOrPooled(Ctx)) {
       // The offset of this mem operand should be blinded or pooled
       Ctx->statsUpdateRPImms();

@@ -396,7 +396,7 @@ OperandARM32FlexReg::OperandARM32FlexReg(Cfg *Func, Type Ty, Variable *Reg,
     : OperandARM32Flex(kFlexReg, Ty), Reg(Reg), ShiftOp(ShiftOp),
       ShiftAmt(ShiftAmt) {
   NumVars = 1;
-  Variable *ShiftVar = llvm::dyn_cast_or_null<Variable>(ShiftAmt);
+  auto *ShiftVar = llvm::dyn_cast_or_null<Variable>(ShiftAmt);
   if (ShiftVar)
     ++NumVars;
   Vars = Func->allocateArrayOf<Variable *>(NumVars);
@@ -831,8 +831,8 @@ void InstARM32Mov::emitSingleDestMultiSource(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   Variable *Dest = getDest();
-  Variable *SrcLo = llvm::cast<Variable>(getSrc(0));
-  Variable *SrcHi = llvm::cast<Variable>(getSrc(1));
+  auto *SrcLo = llvm::cast<Variable>(getSrc(0));
+  auto *SrcHi = llvm::cast<Variable>(getSrc(1));
 
   assert(SrcHi->hasReg());
   assert(SrcLo->hasReg());
@@ -1207,7 +1207,7 @@ template <> void InstARM32Movw::emit(const Cfg *Func) const {
   Str << "\t" << Opcode << getPredicate() << "\t";
   getDest()->emit(Func);
   Str << ", ";
-  Constant *Src0 = llvm::cast<Constant>(getSrc(0));
+  auto *Src0 = llvm::cast<Constant>(getSrc(0));
   if (auto *CR = llvm::dyn_cast<ConstantRelocatable>(Src0)) {
     Str << "#:lower16:";
     CR->emitWithoutPrefix(Func->getTarget());
@@ -1230,7 +1230,7 @@ template <> void InstARM32Movt::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 2);
   Variable *Dest = getDest();
-  Constant *Src1 = llvm::cast<Constant>(getSrc(1));
+  auto *Src1 = llvm::cast<Constant>(getSrc(1));
   Str << "\t" << Opcode << getPredicate() << "\t";
   Dest->emit(Func);
   Str << ", ";
@@ -1406,7 +1406,7 @@ void InstARM32Push::emit(const Cfg *Func) const {
 
   Ostream &Str = Func->getContext()->getStrEmit();
 
-  Variable *Reg = llvm::cast<Variable>(getSrc(0));
+  auto *Reg = llvm::cast<Variable>(getSrc(0));
   if (isScalarIntegerType(Reg->getType())) {
     // GPR push.
     Str << "\t"
@@ -1427,7 +1427,7 @@ void InstARM32Push::emit(const Cfg *Func) const {
          "\t{";
   Reg->emit(Func);
   for (SizeT i = 1; i < SrcSize; ++i) {
-    Variable *NextReg = llvm::cast<Variable>(getSrc(i));
+    auto *NextReg = llvm::cast<Variable>(getSrc(i));
     if (isAssignedConsecutiveRegisters(Reg, NextReg)) {
       Str << ", ";
     } else {
@@ -1491,7 +1491,7 @@ void InstARM32Ret::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   assert(getSrcSize() > 0);
-  Variable *LR = llvm::cast<Variable>(getSrc(0));
+  auto *LR = llvm::cast<Variable>(getSrc(0));
   assert(LR->hasReg());
   assert(LR->getRegNum() == RegARM32::Reg_lr);
   Ostream &Str = Func->getContext()->getStrEmit();

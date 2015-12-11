@@ -762,7 +762,7 @@ uint32_t TargetARM32::getStackAlignment() const {
 }
 
 bool TargetARM32::doBranchOpt(Inst *I, const CfgNode *NextNode) {
-  if (InstARM32Br *Br = llvm::dyn_cast<InstARM32Br>(I)) {
+  if (auto *Br = llvm::dyn_cast<InstARM32Br>(I)) {
     return Br->optimizeBranch(NextNode);
   }
   return false;
@@ -1943,7 +1943,7 @@ void TargetARM32::div0Check(Type Ty, Operand *SrcLo, Operand *SrcHi) {
     Context.insert(InstFakeUse::create(Func, T));
   }
   }
-  InstARM32Label *Label = InstARM32Label::create(Func, this);
+  auto *Label = InstARM32Label::create(Func, this);
   _br(Label, CondARM32::NE);
   _trap();
   Context.insert(Label);
@@ -2213,8 +2213,8 @@ void TargetARM32::lowerInt64Arithmetic(InstArithmetic::OpKind Op,
   assert(SrcsLo.swappedOperands() == SrcsHi.swappedOperands());
   assert(SrcsLo.hasConstOperand() == SrcsHi.hasConstOperand());
 
-  Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
-  Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+  auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
+  auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
   Variable *T_Lo = makeReg(DestLo->getType());
   Variable *T_Hi = makeReg(DestHi->getType());
 
@@ -3436,8 +3436,8 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
     } else if (Dest->getType() == IceType_i64) {
       // t1=sxtb src; t2= mov t1 asr #31; dst.lo=t1; dst.hi=t2
       Constant *ShiftAmt = Ctx->getConstantInt32(31);
-      Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
-      Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+      auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
+      auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
       Variable *T_Lo = makeReg(DestLo->getType());
       if (Src0->getType() == IceType_i32) {
         Operand *Src0RF = legalize(Src0, Legal_Reg | Legal_Flex);
@@ -3485,8 +3485,8 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
       // t1=uxtb src; dst.lo=t1; dst.hi=0
       Operand *_0 =
           legalize(Ctx->getConstantZero(IceType_i32), Legal_Reg | Legal_Flex);
-      Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
-      Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+      auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
+      auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
       Variable *T_Lo = makeReg(DestLo->getType());
 
       switch (Src0->getType()) {
@@ -3654,7 +3654,7 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
   case InstCast::Bitcast: {
     Operand *Src0 = Inst->getSrc(0);
     if (Dest->getType() == Src0->getType()) {
-      InstAssign *Assign = InstAssign::create(Func, Dest, Src0);
+      auto *Assign = InstAssign::create(Func, Dest, Src0);
       lowerAssign(Assign);
       return;
     }
@@ -4028,8 +4028,8 @@ TargetARM32::lowerInt8AndInt16IcmpCond(InstIcmp::ICond Condition, Operand *Src0,
     _lsl(Src0R, legalizeToReg(Src0), ShAmtImm);
 
     Variable *Src1R = legalizeToReg(Src1);
-    OperandARM32FlexReg *Src1F = OperandARM32FlexReg::create(
-        Func, IceType_i32, Src1R, OperandARM32::LSL, ShAmtImm);
+    auto *Src1F = OperandARM32FlexReg::create(Func, IceType_i32, Src1R,
+                                              OperandARM32::LSL, ShAmtImm);
     _cmp(Src0R, Src1F);
     return CondWhenTrue(getIcmp32Mapping(Condition));
   }
@@ -4176,7 +4176,7 @@ void TargetARM32::lowerAtomicRMW(Variable *Dest, uint32_t Operation,
   Variable *TmpHiReg;
   Variable *TmpLoReg;
   Operand *_0 = Ctx->getConstantZero(IceType_i32);
-  InstARM32Label *Retry = InstARM32Label::create(Func, this);
+  auto *Retry = InstARM32Label::create(Func, this);
 
   if (DestTy == IceType_i64) {
     Variable64On32 *PtrContentsReg64 = makeI64RegPair();
@@ -4316,7 +4316,7 @@ void TargetARM32::postambleCtpop64(const InstCall *Instr) {
   // signature matches some 64-bit platform's native instructions and expect to
   // fill a 64-bit reg. Thus, clear the upper bits of the dest just in case the
   // user doesn't do that in the IR or doesn't toss the bits via truncate.
-  Variable *DestHi = llvm::cast<Variable>(hiOperand(Instr->getDest()));
+  auto *DestHi = llvm::cast<Variable>(hiOperand(Instr->getDest()));
   Variable *T = makeReg(IceType_i32);
   Operand *_0 =
       legalize(Ctx->getConstantZero(IceType_i32), Legal_Reg | Legal_Flex);
@@ -4418,7 +4418,7 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
       Variable *Success = makeReg(IceType_i32);
       OperandARM32Mem *Mem;
       Operand *_0 = Ctx->getConstantZero(IceType_i32);
-      InstARM32Label *Retry = InstARM32Label::create(Func, this);
+      auto *Retry = InstARM32Label::create(Func, this);
       Variable64On32 *NewReg = makeI64RegPair();
       ValueVar->initHiLo(Func);
       ValueVar->mustNotHaveReg();
@@ -4509,7 +4509,7 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     Variable *New, *NewReg;
     Variable *Success = makeReg(IceType_i32);
     Operand *_0 = Ctx->getConstantZero(IceType_i32);
-    InstARM32Label *Retry = InstARM32Label::create(Func, this);
+    auto *Retry = InstARM32Label::create(Func, this);
 
     if (DestTy == IceType_i64) {
       Variable64On32 *TmpReg64 = makeI64RegPair();
@@ -4620,8 +4620,8 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
       Variable *Val_Hi = legalizeToReg(hiOperand(Val));
       Variable *T_Lo = makeReg(IceType_i32);
       Variable *T_Hi = makeReg(IceType_i32);
-      Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
-      Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+      auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
+      auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
       _rev(T_Lo, Val_Lo);
       _rev(T_Hi, Val_Hi);
       _mov(DestLo, T_Hi);
@@ -4754,8 +4754,8 @@ void TargetARM32::lowerCLZ(Variable *Dest, Variable *ValLoR, Variable *ValHiR) {
   Variable *T = makeReg(IceType_i32);
   _clz(T, ValLoR);
   if (Ty == IceType_i64) {
-    Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
-    Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+    auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
+    auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
     Operand *Zero =
         legalize(Ctx->getConstantZero(IceType_i32), Legal_Reg | Legal_Flex);
     Operand *ThirtyTwo =
@@ -4787,7 +4787,7 @@ void TargetARM32::lowerLoad(const InstLoad *Load) {
 
   // TODO(jvoung): handled folding opportunities. Sign and zero extension can
   // be folded into a load.
-  InstAssign *Assign = InstAssign::create(Func, DestLoad, Src0);
+  auto *Assign = InstAssign::create(Func, DestLoad, Src0);
   lowerAssign(Assign);
 }
 
@@ -5624,7 +5624,7 @@ Operand *TargetARM32::legalizeUndef(Operand *From, int32_t RegNum) {
 }
 
 OperandARM32Mem *TargetARM32::formMemoryOperand(Operand *Operand, Type Ty) {
-  OperandARM32Mem *Mem = llvm::dyn_cast<OperandARM32Mem>(Operand);
+  auto *Mem = llvm::dyn_cast<OperandARM32Mem>(Operand);
   // It may be the case that address mode optimization already creates an
   // OperandARM32Mem, so in that case it wouldn't need another level of
   // transformation.
@@ -5634,7 +5634,7 @@ OperandARM32Mem *TargetARM32::formMemoryOperand(Operand *Operand, Type Ty) {
   // If we didn't do address mode optimization, then we only have a
   // base/offset to work with. ARM always requires a base register, so
   // just use that to hold the operand.
-  Variable *Base = llvm::cast<Variable>(
+  auto *Base = llvm::cast<Variable>(
       legalize(Operand, Legal_Reg | Legal_Rematerializable));
   return OperandARM32Mem::create(
       Func, Ty, Base,

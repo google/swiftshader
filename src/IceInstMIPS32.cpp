@@ -134,7 +134,7 @@ void InstMIPS32Ret::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   assert(getSrcSize() > 0);
-  Variable *RA = llvm::cast<Variable>(getSrc(0));
+  auto *RA = llvm::cast<Variable>(getSrc(0));
   assert(RA->hasReg());
   assert(RA->getRegNum() == RegMIPS32::Reg_RA);
   Ostream &Str = Func->getContext()->getStrEmit();
@@ -226,8 +226,8 @@ void InstMIPS32Mov::emitSingleDestMultiSource(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   Variable *Dest = getDest();
-  Variable *SrcLo = llvm::cast<Variable>(getSrc(0));
-  Variable *SrcHi = llvm::cast<Variable>(getSrc(1));
+  auto *SrcLo = llvm::cast<Variable>(getSrc(0));
+  auto *SrcHi = llvm::cast<Variable>(getSrc(1));
 
   assert(SrcHi->hasReg());
   assert(SrcLo->hasReg());

@@ -37,10 +37,10 @@ void prelowerPhis32Bit(TargetT *Target, CfgNode *Node, Cfg *Func) {
       continue;
     Variable *Dest = Phi->getDest();
     if (Dest->getType() == IceType_i64) {
-      Variable *DestLo = llvm::cast<Variable>(Target->loOperand(Dest));
-      Variable *DestHi = llvm::cast<Variable>(Target->hiOperand(Dest));
-      InstPhi *PhiLo = InstPhi::create(Func, Phi->getSrcSize(), DestLo);
-      InstPhi *PhiHi = InstPhi::create(Func, Phi->getSrcSize(), DestHi);
+      auto *DestLo = llvm::cast<Variable>(Target->loOperand(Dest));
+      auto *DestHi = llvm::cast<Variable>(Target->hiOperand(Dest));
+      auto *PhiLo = InstPhi::create(Func, Phi->getSrcSize(), DestLo);
+      auto *PhiHi = InstPhi::create(Func, Phi->getSrcSize(), DestHi);
       for (SizeT I = 0; I < Phi->getSrcSize(); ++I) {
         Operand *Src = Phi->getSrc(I);
         CfgNode *Label = Phi->getLabel(I);

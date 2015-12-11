@@ -329,7 +329,7 @@ void VariablesMetadata::addNode(CfgNode *Node) {
       Metadata[DestNum].markDef(Kind, &I, Node);
     }
     for (SizeT SrcNum = 0; SrcNum < I.getSrcSize(); ++SrcNum) {
-      if (const Variable *Var = llvm::dyn_cast<Variable>(I.getSrc(SrcNum))) {
+      if (auto *Var = llvm::dyn_cast<Variable>(I.getSrc(SrcNum))) {
         SizeT VarNum = Var->getIndex();
         assert(VarNum < Metadata.size());
         constexpr bool IsImplicit = false;

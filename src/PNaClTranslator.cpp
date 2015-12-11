@@ -984,7 +984,7 @@ void TypesParser::ProcessRecord() {
       Error("Function type can't define varargs");
     ExtendedType *Ty = Context->getTypeByIDForDefining(NextTypeId++);
     Ty->setAsFunctionType();
-    FuncSigExtendedType *FuncTy = cast<FuncSigExtendedType>(Ty);
+    auto *FuncTy = cast<FuncSigExtendedType>(Ty);
     FuncTy->setReturnType(Context->getSimpleTypeByID(Values[1]));
     for (size_t i = 2, e = Values.size(); i != e; ++i) {
       // Check that type void not used as argument type. Note: PNaCl
@@ -1530,7 +1530,7 @@ private:
     if (LocalIndex < LocalOperands.size()) {
       Ice::Operand *Op = LocalOperands[LocalIndex];
       if (Op != nullptr) {
-        if (Ice::Variable *Var = dyn_cast<Ice::Variable>(Op)) {
+        if (auto *Var = dyn_cast<Ice::Variable>(Op)) {
           if (Var->getType() == Ty) {
             ++NextLocalInstIndex;
             return Var;
@@ -3070,7 +3070,7 @@ void FunctionValuesymtabParser::setValueName(NaClBcIndexSize_t Index,
   if (isIRGenerationDisabled())
     return;
   Ice::Operand *Op = getFunctionParser()->getOperand(Index);
-  if (Ice::Variable *V = dyn_cast<Ice::Variable>(Op)) {
+  if (auto *V = dyn_cast<Ice::Variable>(Op)) {
     if (Ice::BuildDefs::dump()) {
       std::string Nm(Name.data(), Name.size());
       V->setName(getFunctionParser()->getFunc(), Nm);
@@ -3266,7 +3266,7 @@ void ModuleParser::ProcessRecord() {
       return;
     }
     bool IsProto = Values[2] == 1;
-    Ice::FunctionDeclaration *Func = Ice::FunctionDeclaration::create(
+    auto *Func = Ice::FunctionDeclaration::create(
         Context->getTranslator().getContext(), Signature, CallingConv, Linkage,
         IsProto);
     Context->setNextFunctionID(Func);

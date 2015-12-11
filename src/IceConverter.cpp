@@ -706,7 +706,7 @@ LLVM2ICEGlobalsConverter::convertGlobalsToIce(Module *Mod) {
     const GlobalVariable *GV = I;
 
     Ice::GlobalDeclaration *Var = getConverter().getGlobalDeclaration(GV);
-    Ice::VariableDeclaration *VarDecl = cast<Ice::VariableDeclaration>(Var);
+    auto *VarDecl = cast<Ice::VariableDeclaration>(Var);
     VariableDeclarations->push_back(VarDecl);
 
     if (!GV->hasInternalLinkage() && GV->hasInitializer()) {
@@ -864,7 +864,7 @@ void Converter::installGlobalDeclarations(Module *Mod) {
       Signature.appendArgType(
           Converter.convertToIceType(FuncType->getParamType(I)));
     }
-    FunctionDeclaration *IceFunc = FunctionDeclaration::create(
+    auto *IceFunc = FunctionDeclaration::create(
         Ctx, Signature, Func.getCallingConv(), Func.getLinkage(), Func.empty());
     IceFunc->setName(Func.getName());
     if (!IceFunc->verifyLinkageCorrect(Ctx)) {
@@ -883,7 +883,7 @@ void Converter::installGlobalDeclarations(Module *Mod) {
                                      E = Mod->global_end();
        I != E; ++I) {
     const GlobalVariable *GV = I;
-    VariableDeclaration *Var = VariableDeclaration::create(Ctx);
+    auto *Var = VariableDeclaration::create(Ctx);
     Var->setName(GV->getName());
     Var->setAlignment(GV->getAlignment());
     Var->setIsConstant(GV->isConstant());

@@ -783,7 +783,7 @@ void TargetDataX8664::emitConstantPool(GlobalContext *Ctx) {
   for (Constant *C : Pool) {
     if (!C->getShouldBePooled())
       continue;
-    typename T::IceType *Const = llvm::cast<typename T::IceType>(C);
+    auto *Const = llvm::cast<typename T::IceType>(C);
     typename T::IceType::PrimType Value = Const->getValue();
     // Use memcpy() to copy bits from Value into RawValue in a way that avoids
     // breaking strict-aliasing rules.

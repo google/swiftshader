@@ -531,8 +531,8 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Inst) {
   Operand *Src1 = legalizeUndef(Inst->getSrc(1));
   if (Dest->getType() == IceType_i64) {
     // TODO(reed kotler): fakedef needed for now until all cases are implemented
-    Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
-    Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+    auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
+    auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
     Context.insert(InstFakeDef::create(Func, DestLo));
     Context.insert(InstFakeDef::create(Func, DestHi));
     UnimplementedError(Func->getContext()->getFlags());
@@ -616,8 +616,8 @@ void TargetMIPS32::lowerAssign(const InstAssign *Inst) {
     Src0 = legalizeUndef(Src0);
     Operand *Src0Lo = legalize(loOperand(Src0), Legal_Reg);
     Operand *Src0Hi = legalize(hiOperand(Src0), Legal_Reg);
-    Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
-    Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+    auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
+    auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
     // Variable *T_Lo = nullptr, *T_Hi = nullptr;
     Variable *T_Lo = makeReg(IceType_i32);
     Variable *T_Hi = makeReg(IceType_i32);

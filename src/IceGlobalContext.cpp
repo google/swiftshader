@@ -130,7 +130,7 @@ public:
     auto Iter = Pool.find(Key);
     if (Iter != Pool.end())
       return Iter->second;
-    ValueType *Result = ValueType::create(Ctx, Ty, Key);
+    auto *Result = ValueType::create(Ctx, Ty, Key);
     Pool[Key] = Result;
     return Result;
   }
