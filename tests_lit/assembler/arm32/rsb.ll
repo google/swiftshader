@@ -1,5 +1,7 @@
 ; Show that we know how to translate rsb. Uses shl as example, because it
-; uses rsb for type i64
+; uses rsb for type i64.
+
+; Also shows an example of a register-shifted register (data) operation.
   
 ; REQUIRES: allow_dump
 
@@ -118,6 +120,21 @@ entry:
 ; IASM-NEXT:    .byte 0x30
 ; IASM-NEXT:    .byte 0x62
 ; IASM-NEXT:    .byte 0xe2
+
+; ASM-NEXT:    lsr     r3, r0, r3
+; DIS-NEXT:  30:        e1a03330
+; IASM-NEXT:    .byte 0x30
+; IASM-NEXT:    .byte 0x33
+; IASM-NEXT:    .byte 0xa0
+; IASM-NEXT:    .byte 0xe1
+
+; ***** Here is an example of a register-shifted register *****
+; ASM-NEXT:    orr     r1, r3, r1, lsl r2
+; DIS-NEXT:  34:        e1831211
+; IASM-NEXT:    .byte 0x11
+; IASM-NEXT:    .byte 0x12
+; IASM-NEXT:    .byte 0x83
+; IASM-NEXT:    .byte 0xe1
 
   ret i64 %result
 }

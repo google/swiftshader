@@ -203,9 +203,11 @@ enum EncodedOperand {
   // Value=000000000000000000000iiiii0000000 where iiii defines the Imm5 value
   // to shift.
   EncodedAsShiftImm5,
-  // i.e. iiiiiss0mmmm where mmmm is the register to rotate, ss is the shift
+  // Value=iiiiiss0mmmm where mmmm is the register to rotate, ss is the shift
   // kind, and iiiii is the shift amount.
   EncodedAsShiftedRegister,
+  // Value=ssss0tt1mmmm where mmmm=Rm, tt is an encoded ShiftKind, and ssss=Rms.
+  EncodedAsRegShiftReg,
   // Value is 32bit integer constant.
   EncodedAsConstI32
 };
@@ -257,15 +259,29 @@ EncodedOperand encodeOperand(const Operand *Opnd, IValueT &Value) {
   }
   if (const auto *FlexReg = llvm::dyn_cast<OperandARM32FlexReg>(Opnd)) {
     Operand *Amt = FlexReg->getShiftAmt();
-    if (const auto *Imm5 = llvm::dyn_cast<OperandARM32ShAmtImm>(Amt)) {
-      IValueT Rm;
-      if (encodeOperand(FlexReg->getReg(), Rm) != EncodedAsRegister)
+    IValueT Rm;
+    if (encodeOperand(FlexReg->getReg(), Rm) != EncodedAsRegister)
+      return CantEncode;
+    if (const auto *Var = llvm::dyn_cast<Variable>(Amt)) {
+      IValueT Rs;
+      if (encodeOperand(Var, Rs) != EncodedAsRegister)
         return CantEncode;
-      Value =
-          encodeShiftRotateImm5(Rm, FlexReg->getShiftOp(), Imm5->getShAmtImm());
-      return EncodedAsShiftedRegister;
+      Value = encodeShiftRotateReg(Rm, FlexReg->getShiftOp(), Rs);
+      return EncodedAsRegShiftReg;
     }
-    // TODO(kschimpf): Handle case where Amt is a register?
+    // If reached, the amount is a shifted amount by some 5-bit immediate.
+    uint32_t Imm5;
+    if (const auto *ShAmt = llvm::dyn_cast<OperandARM32ShAmtImm>(Amt)) {
+      Imm5 = ShAmt->getShAmtImm();
+    } else if (const auto *IntConst = llvm::dyn_cast<ConstantInteger32>(Amt)) {
+      int32_t Val = IntConst->getValue();
+      if (Val < 0)
+        return CantEncode;
+      Imm5 = static_cast<uint32_t>(Val);
+    } else
+      return CantEncode;
+    Value = encodeShiftRotateImm5(Rm, FlexReg->getShiftOp(), Imm5);
+    return EncodedAsShiftedRegister;
   }
   if (const auto *ShImm = llvm::dyn_cast<OperandARM32ShAmtImm>(Opnd)) {
     const IValueT Immed5 = ShImm->getShAmtImm();
@@ -595,19 +611,19 @@ void AssemblerARM32::emitType01(CondARM32::Cond Cond, IValueT Opcode,
                                 IValueT Rd, IValueT Rn, const Operand *OpSrc1,
                                 bool SetFlags, EmitChecks RuleChecks,
                                 const char *InstName) {
-
   IValueT Src1Value;
   // TODO(kschimpf) Other possible decodings of data operations.
   switch (encodeOperand(OpSrc1, Src1Value)) {
   default:
-    // TODO(kschimpf): Figure out what additional cases need to be handled.
-    return setNeedsTextFixup();
+    llvm::report_fatal_error(std::string(InstName) +
+                             ": Can't encode instruction");
+    return;
   case EncodedAsRegister: {
     // XXX (register)
     //   xxx{s}<c> <Rd>, <Rn>, <Rm>{, <shiff>}
     //
-    // cccc0000100snnnnddddiiiiitt0mmmm where cccc=Cond, dddd=Rd, nnnn=Rn,
-    // mmmm=Rm, iiiii=Shift, tt=ShiftKind, and s=SetFlags.
+    // cccc000xxxxsnnnnddddiiiiitt0mmmm where cccc=Cond, xxxx=Opcode, dddd=Rd,
+    // nnnn=Rn, mmmm=Rm, iiiii=Shift, tt=ShiftKind, and s=SetFlags.
     constexpr IValueT Imm5 = 0;
     Src1Value = encodeShiftRotateImm5(Src1Value, OperandARM32::kNoShift, Imm5);
     emitType01(Cond, kInstTypeDataRegister, Opcode, SetFlags, Rn, Rd, Src1Value,
@@ -634,10 +650,21 @@ void AssemblerARM32::emitType01(CondARM32::Cond Cond, IValueT Opcode,
     // XXX (Immediate)
     //   xxx{s}<c> <Rd>, <Rn>, #<RotatedImm8>
     //
-    // cccc0010100snnnnddddiiiiiiiiiiii where cccc=Cond, dddd=Rd, nnnn=Rn,
-    // s=SetFlags and iiiiiiiiiiii=Src1Value defining RotatedImm8.
+    // cccc001xxxxsnnnnddddiiiiiiiiiiii where cccc=Cond, xxxx=Opcode, dddd=Rd,
+    // nnnn=Rn, s=SetFlags and iiiiiiiiiiii=Src1Value defining RotatedImm8.
     emitType01(Cond, kInstTypeDataImmediate, Opcode, SetFlags, Rn, Rd,
                Src1Value, RuleChecks, InstName);
+    return;
+  }
+  case EncodedAsRegShiftReg: {
+    // XXX (register-shifted reg)
+    //   xxx{s}<c> <Rd>, <Rn>, <Rm>, <type> <Rs>
+    //
+    // cccc000xxxxfnnnnddddssss0tt1mmmm where cccc=Cond, xxxx=Opcode, dddd=Rd,
+    // nnnn=Rn, ssss=Rs, f=SetFlags, tt is encoding of type, and
+    // Src1Value=ssss01tt1mmmm.
+    emitType01(Cond, kInstTypeDataRegShift, Opcode, SetFlags, Rn, Rd, Src1Value,
+               RuleChecks, InstName);
     return;
   }
   }
