@@ -41,6 +41,10 @@ static constexpr IValueT B4 = 1 << 4;
 static constexpr IValueT B5 = 1 << 5;
 static constexpr IValueT B6 = 1 << 6;
 static constexpr IValueT B7 = 1 << 7;
+static constexpr IValueT B8 = 1 << 8;
+static constexpr IValueT B9 = 1 << 9;
+static constexpr IValueT B10 = 1 << 10;
+static constexpr IValueT B11 = 1 << 11;
 static constexpr IValueT B12 = 1 << 12;
 static constexpr IValueT B13 = 1 << 13;
 static constexpr IValueT B14 = 1 << 14;
@@ -1589,6 +1593,23 @@ void AssemblerARM32::mul(const Operand *OpRd, const Operand *OpRn,
   constexpr IValueT MulOpcode = 0;
   emitMulOp(Cond, MulOpcode, RegARM32::Encoded_Reg_r0, Rd, Rn, Rm, SetFlags,
             MulName);
+}
+
+void AssemblerARM32::rev(const Operand *OpRd, const Operand *OpSrc,
+                         CondARM32::Cond Cond) {
+  // REV - ARM section A8.8.145, encoding A1:
+  //   rev <Rd>, <Rm>
+  //
+  // cccc011010111111dddd11110011mmmm where cccc=Cond, dddd=Rn, and mmmm=Rm.
+  constexpr const char *RevName = "rev";
+  IValueT Rd = encodeRegister(OpRd, "Rd", RevName);
+  IValueT Rm = encodeRegister(OpSrc, "Rm", RevName);
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  constexpr IValueT Opcode = B26 | B25 | B23 | B21 | B20 | B19 | B18 | B17 |
+                             B16 | B11 | B10 | B9 | B8 | B5 | B4;
+  IValueT Encoding =
+      (Cond << kConditionShift) | Opcode | (Rd << kRdShift) | (Rm << kRmShift);
+  emitInst(Encoding);
 }
 
 void AssemblerARM32::rsb(const Operand *OpRd, const Operand *OpRn,
