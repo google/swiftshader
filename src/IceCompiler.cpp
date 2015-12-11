@@ -19,6 +19,7 @@
 
 #include "IceCompiler.h"
 
+#include "IceBuildDefs.h"
 #include "IceCfg.h"
 #include "IceClFlags.h"
 #include "IceClFlagsExtra.h"
@@ -51,7 +52,7 @@ struct {
     {"llvm_ir", BuildDefs::llvmIr()},
     {"llvm_ir_as_input", BuildDefs::llvmIrAsInput()},
     {"minimal_build", BuildDefs::minimal()},
-    {"browser_mode", PNACL_BROWSER_TRANSLATOR}};
+    {"browser_mode", BuildDefs::browser()}};
 
 // Validates values of build attributes. Prints them to Stream if Stream is
 // non-null.
@@ -133,7 +134,7 @@ void Compiler::run(const Ice::ClFlagsExtra &ExtraFlags, GlobalContext &Ctx,
     PTranslator->translate(IRFilename, std::move(MemObj));
     Translator.reset(PTranslator.release());
   } else if (BuildDefs::llvmIr()) {
-    if (PNACL_BROWSER_TRANSLATOR) {
+    if (BuildDefs::browser()) {
       Ctx.getStrError()
           << "non BuildOnRead is not supported w/ PNACL_BROWSER_TRANSLATOR\n";
       return Ctx.getErrorStatus()->assign(EC_Args);
