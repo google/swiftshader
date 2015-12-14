@@ -131,56 +131,46 @@ namespace sw
 		{
 		case FORMAT_L8:
 			c.xyz = Float(Int(*Pointer<Byte>(element)));
+			c.w = float(0xFF);
 			break;
 		case FORMAT_A8:
-			c.xyz = 0.0f;
 			c.w = Float(Int(*Pointer<Byte>(element)));
 			break;
 		case FORMAT_R8I:
-			c.yzw = 0.0f;
-			c.x = Float(Int(*Pointer<SByte>(element)));
-			break;
-		case FORMAT_R8UI:
-			c.yzw = 0.0f;
-			c.x = Float(Int(*Pointer<Byte>(element)));
-			break;
 		case FORMAT_R8I_SNORM:
-			c.yzw = 0.0f;
 			c.x = Float(Int(*Pointer<SByte>(element)));
+			c.w = float(0x7F);
 			break;
 		case FORMAT_R8:
-			c.yzw = 0.0f;
+		case FORMAT_R8UI:
 			c.x = Float(Int(*Pointer<Byte>(element)));
+			c.w = float(0xFF);
 			break;
 		case FORMAT_R16I:
-			c.yzw = 0.0f;
 			c.x = Float(Int(*Pointer<Short>(element)));
+			c.w = float(0x7FFF);
 			break;
 		case FORMAT_R16UI:
-			c.yzw = 0.0f;
 			c.x = Float(Int(*Pointer<UShort>(element)));
+			c.w = float(0xFFFF);
 			break;
 		case FORMAT_R32I:
-			c.yzw = 0.0f;
 			c.x = Float(Int(*Pointer<Int>(element)));
+			c.w = float(0x7FFFFFFF);
 			break;
 		case FORMAT_R32UI:
-			c.yzw = 0.0f;
 			c.x = Float(Int(*Pointer<UInt>(element)));
+			c.w = float(0xFFFFFFFF);
 			break;
 		case FORMAT_A8R8G8B8:
 			c = Float4(*Pointer<Byte4>(element)).zyxw;
 			break;
 		case FORMAT_A8B8G8R8I:
-			c = Float4(*Pointer<SByte4>(element));
-			break;
-		case FORMAT_A8B8G8R8UI:
-			c = Float4(*Pointer<Byte4>(element));
-			break;
 		case FORMAT_A8B8G8R8I_SNORM:
 			c = Float4(*Pointer<SByte4>(element));
 			break;
 		case FORMAT_A8B8G8R8:
+		case FORMAT_A8B8G8R8UI:
 			c = Float4(*Pointer<Byte4>(element));
 			break;
 		case FORMAT_X8R8G8B8:
@@ -191,25 +181,21 @@ namespace sw
 			c.z = Float(Int(*Pointer<Byte>(element + 0)));
 			c.y = Float(Int(*Pointer<Byte>(element + 1)));
 			c.x = Float(Int(*Pointer<Byte>(element + 2)));
+			c.w = float(0xFF);
 			break;
 		case FORMAT_B8G8R8:
 			c.x = Float(Int(*Pointer<Byte>(element + 0)));
 			c.y = Float(Int(*Pointer<Byte>(element + 1)));
 			c.z = Float(Int(*Pointer<Byte>(element + 2)));
-			break;
-		case FORMAT_X8B8G8R8I:
-			c = Float4(*Pointer<SByte4>(element));
-			c.w = float(0x7F);
-			break;
-		case FORMAT_X8B8G8R8UI:
-			c = Float4(*Pointer<Byte4>(element));
 			c.w = float(0xFF);
 			break;
+		case FORMAT_X8B8G8R8I:
 		case FORMAT_X8B8G8R8I_SNORM:
 			c = Float4(*Pointer<SByte4>(element));
 			c.w = float(0x7F);
 			break;
 		case FORMAT_X8B8G8R8:
+		case FORMAT_X8B8G8R8UI:
 			c = Float4(*Pointer<Byte4>(element));
 			c.w = float(0xFF);
 			break;
@@ -243,37 +229,37 @@ namespace sw
 			c.w = float(0xFFFFFFFF);
 			break;
 		case FORMAT_G8R8I:
-			c.x = Float(Int(*Pointer<SByte>(element + 0)));
-			c.y = Float(Int(*Pointer<SByte>(element + 1)));
-			break;
-		case FORMAT_G8R8UI:
-			c.x = Float(Int(*Pointer<Byte>(element + 0)));
-			c.y = Float(Int(*Pointer<Byte>(element + 1)));
-			break;
 		case FORMAT_G8R8I_SNORM:
 			c.x = Float(Int(*Pointer<SByte>(element + 0)));
 			c.y = Float(Int(*Pointer<SByte>(element + 1)));
+			c.w = float(0x7F);
 			break;
 		case FORMAT_G8R8:
+		case FORMAT_G8R8UI:
 			c.x = Float(Int(*Pointer<Byte>(element + 0)));
 			c.y = Float(Int(*Pointer<Byte>(element + 1)));
+			c.w = float(0xFF);
 			break;
 		case FORMAT_G16R16I:
 			c.x = Float(Int(*Pointer<Short>(element + 0)));
 			c.y = Float(Int(*Pointer<Short>(element + 2)));
+			c.w = float(0x7FFF);
 			break;
 		case FORMAT_G16R16:
 		case FORMAT_G16R16UI:
 			c.x = Float(Int(*Pointer<UShort>(element + 0)));
 			c.y = Float(Int(*Pointer<UShort>(element + 2)));
+			c.w = float(0xFFFF);
 			break;
 		case FORMAT_G32R32I:
 			c.x = Float(Int(*Pointer<Int>(element + 0)));
 			c.y = Float(Int(*Pointer<Int>(element + 4)));
+			c.w = float(0x7FFFFFFF);
 			break;
 		case FORMAT_G32R32UI:
 			c.x = Float(Int(*Pointer<UInt>(element + 0)));
 			c.y = Float(Int(*Pointer<UInt>(element + 4)));
+			c.w = float(0xFFFFFFFF);
 			break;
 		case FORMAT_A32B32G32R32F:
 			c = *Pointer<Float4>(element);
