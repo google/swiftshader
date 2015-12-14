@@ -222,10 +222,6 @@ public:
 
   const ClFlags &getFlags() const { return Flags; }
 
-  bool isIRGenerationDisabled() const {
-    return getFlags().getDisableIRGeneration();
-  }
-
   /// Allocate data of type T using the global allocator. We allow entities
   /// allocated from this global allocator to be either trivially or
   /// non-trivially destructible. We optimize the case when T is trivially

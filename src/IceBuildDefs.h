@@ -15,70 +15,66 @@
 #define SUBZERO_SRC_ICEBUILDDEFS_H
 
 namespace Ice {
-  /// \brief Defines constexpr functions that express various Subzero build
-  /// system defined values.
-  ///
-  /// These resulting constexpr functions allow code to in effect be
-  /// conditionally compiled without having to do this using the older C++
-  /// preprocessor solution.
+/// \brief Defines constexpr functions that express various Subzero build
+/// system defined values.
+///
+/// These resulting constexpr functions allow code to in effect be
+/// conditionally compiled without having to do this using the older C++
+/// preprocessor solution.
 
-  /** \verbatim
+/** \verbatim
 
-   For example whenever the value of FEATURE_SUPPORTED is needed, instead
-   of (except in these constexpr functions):
+ For example whenever the value of FEATURE_SUPPORTED is needed, instead
+ of (except in these constexpr functions):
 
-   #if FEATURE_SUPPORTED ...
-   ...
-   #endif
+ #if FEATURE_SUPPORTED ...
+ ...
+ #endif
 
-   We can have:
+ We can have:
 
-   namespace Ice {
-   namespace BuildDefs {
+ namespace Ice {
+ namespace BuildDefs {
 
-   // Use this form when FEATURE_SUPPORTED is guaranteed to be defined on the
-   // C++ compiler command line as 0 or 1.
-   constexpr bool hasFeature() { return FEATURE_SUPPORTED; }
+ // Use this form when FEATURE_SUPPORTED is guaranteed to be defined on the
+ // C++ compiler command line as 0 or 1.
+ constexpr bool hasFeature() { return FEATURE_SUPPORTED; }
 
-   or
+ or
 
-   // Use this form when FEATURE_SUPPORTED may not necessarily be defined on
-   // the C++ compiler command line.
-   constexpr bool hasFeature() {
-   #if FEATURE_SUPPORTED
-     return true;
-   #else // !FEATURE_SUPPORTED
-     return false;
-   #endif // !FEATURE_SUPPORTED
-   }
+ // Use this form when FEATURE_SUPPORTED may not necessarily be defined on
+ // the C++ compiler command line.
+ constexpr bool hasFeature() {
+ #if FEATURE_SUPPORTED
+   return true;
+ #else // !FEATURE_SUPPORTED
+   return false;
+ #endif // !FEATURE_SUPPORTED
+ }
 
-   ...} // end of namespace BuildDefs
-   } // end of namespace Ice
+ ...} // end of namespace BuildDefs
+ } // end of namespace Ice
 
 
-   And later in the code:
+ And later in the code:
 
-   if (Ice::BuildDefs::hasFeature() {
-      ...
-   }
+ if (Ice::BuildDefs::hasFeature() {
+    ...
+ }
 
-   \endverbatim
+ \endverbatim
 
-   Since hasFeature() returns a constexpr, an optimizing compiler will know to
-   keep or discard the above fragment. In addition, the code will always be
-   looked at by the compiler which eliminates the problem with defines in that
-   if you don't build that variant, you don't even know if the code would
-   compile unless you build with that variant.
+ Since hasFeature() returns a constexpr, an optimizing compiler will know to
+ keep or discard the above fragment. In addition, the code will always be
+ looked at by the compiler which eliminates the problem with defines in that
+ if you don't build that variant, you don't even know if the code would
+ compile unless you build with that variant.
 
-    **/
-
+  **/
 
 namespace BuildDefs {
 
 // The ALLOW_* etc. symbols must be #defined to zero or non-zero.
-/// Return true if ALLOW_DISABLE_IR_GEN is defined as a non-zero value
-constexpr bool disableIrGen() { return ALLOW_DISABLE_IR_GEN; }
-/// Return true if ALLOW_DUMP is defined as a non-zero value
 constexpr bool dump() { return ALLOW_DUMP; }
 /// Return true if ALLOW_LLVM_CL is defined as a non-zero value
 constexpr bool llvmCl() { return ALLOW_LLVM_CL; }

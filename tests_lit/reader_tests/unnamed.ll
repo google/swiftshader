@@ -12,9 +12,7 @@
 ; RUN:      -default-function-prefix=h -default-global-prefix=g \
 ; RUN:      | FileCheck --check-prefix=BAD %s
 
-; RUN: %if --need=allow_disable_ir_gen --command \
-; RUN:   %p2i -i %s --args -notranslate -timing -no-ir-gen \
-; RUN: | %if --need=allow_disable_ir_gen --command \
+; RUN:   %p2i -i %s --args -notranslate -timing | \
 ; RUN:   FileCheck --check-prefix=NOIR %s
 
 ; TODO(kschimpf) Check global variable declarations, once generated.

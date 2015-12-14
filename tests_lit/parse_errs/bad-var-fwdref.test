@@ -3,7 +3,7 @@
 ; REQUIRES: no_minimal_build
 
 ; RUN: not %pnacl_sz -bitcode-as-text %p/Inputs/bad-var-fwdref.tbc \
-; RUN:     -bitcode-format=pnacl -notranslate -no-ir-gen -build-on-read \
+; RUN:     -bitcode-format=pnacl -notranslate -build-on-read \
 ; RUN:     -allow-externally-defined-symbols 2>&1 \
 ; RUN:   | FileCheck %s
 

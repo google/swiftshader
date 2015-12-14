@@ -82,9 +82,7 @@ cl::opt<bool> DisableHybridAssembly(
 
 cl::opt<bool> DisableInternal("externalize",
                               cl::desc("Externalize all symbols"));
-// Note: Modifiable only if ALLOW_DISABLE_IR_GEN.
-cl::opt<bool> DisableIRGeneration("no-ir-gen",
-                                  cl::desc("Disable generating Subzero IR."));
+
 cl::opt<bool> DisableTranslation("notranslate",
                                  cl::desc("Disable Subzero translation"));
 
@@ -390,7 +388,6 @@ void ClFlags::resetClFlags(ClFlags &OutFlags) {
   OutFlags.DecorateAsm = false;
   OutFlags.DisableHybridAssembly = false;
   OutFlags.DisableInternal = false;
-  OutFlags.DisableIRGeneration = false;
   OutFlags.DisableTranslation = false;
   OutFlags.DumpStats = false;
   OutFlags.EnableBlockProfile = false;
@@ -434,9 +431,6 @@ void ClFlags::resetClFlags(ClFlags &OutFlags) {
 }
 
 void ClFlags::getParsedClFlags(ClFlags &OutFlags) {
-  if (::DisableIRGeneration)
-    ::DisableTranslation = true;
-
   Ice::VerboseMask VMask = Ice::IceV_None;
   // Don't generate verbose messages if routines to dump messages are not
   // available.
@@ -457,7 +451,6 @@ void ClFlags::getParsedClFlags(ClFlags &OutFlags) {
   OutFlags.setDisableHybridAssembly(::DisableHybridAssembly ||
                                     (::OutFileType != Ice::FT_Iasm));
   OutFlags.setDisableInternal(::DisableInternal);
-  OutFlags.setDisableIRGeneration(::DisableIRGeneration);
   OutFlags.setDisableTranslation(::DisableTranslation);
   OutFlags.setDumpStats(::DumpStats);
   OutFlags.setEnableBlockProfile(::EnableBlockProfile);

@@ -47,7 +47,6 @@ struct {
   int FlagValue;
 } ConditionalBuildAttributes[] = {
     {"dump", BuildDefs::dump()},
-    {"disable_ir_gen", BuildDefs::disableIrGen()},
     {"llvm_cl", BuildDefs::llvmCl()},
     {"llvm_ir", BuildDefs::llvmIr()},
     {"llvm_ir_as_input", BuildDefs::llvmIrAsInput()},
@@ -94,12 +93,6 @@ void Compiler::run(const Ice::ClFlagsExtra &ExtraFlags, GlobalContext &Ctx,
       ExtraFlags.getGenerateBuildAtts() ? &Ctx.getStrDump() : nullptr);
   if (ExtraFlags.getGenerateBuildAtts())
     return Ctx.getErrorStatus()->assign(EC_None);
-
-  if (!BuildDefs::disableIrGen() && Ctx.getFlags().getDisableIRGeneration()) {
-    Ctx.getStrError() << "Error: Build doesn't allow --no-ir-gen when not "
-                      << "ALLOW_DISABLE_IR_GEN!\n";
-    return Ctx.getErrorStatus()->assign(EC_Args);
-  }
 
   // The Minimal build (specifically, when dump()/emit() are not implemented)
   // allows only --filetype=obj. Check here to avoid cryptic error messages

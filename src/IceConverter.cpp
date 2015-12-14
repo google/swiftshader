@@ -89,8 +89,6 @@ public:
       : LLVM2ICEConverter(Converter), Func(nullptr) {}
 
   void convertFunction(const Function *F) {
-    if (Ctx->isIRGenerationDisabled())
-      return;
     Func = Ice::Cfg::create(Ctx, Converter.getNextSequenceNumber());
     Ice::Cfg::setCurrentCfg(Func.get());
 

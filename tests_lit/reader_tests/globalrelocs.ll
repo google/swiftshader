@@ -3,9 +3,7 @@
 ; RUN: %p2i -i %s --insts | FileCheck %s
 ; RUN: %l2i -i %s --insts | %ifl FileCheck %s
 ; RUN: %lc2i -i %s --insts | %iflc FileCheck %s
-; RUN: %if --need=allow_disable_ir_gen --command \
-; RUN:   %p2i -i %s --args -notranslate -timing -no-ir-gen \
-; RUN: | %if --need=allow_disable_ir_gen --command \
+; RUN:   %p2i -i %s --args -notranslate -timing | \
 ; RUN:   FileCheck --check-prefix=NOIR %s
 
 @bytes = internal global [7 x i8] c"abcdefg"

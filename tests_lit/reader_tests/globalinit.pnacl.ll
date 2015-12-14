@@ -6,10 +6,8 @@
 ; RUN: | %ifl FileCheck %s
 ; RUN: %lc2i -i %s --insts --args -allow-externally-defined-symbols \
 ; RUN: | %iflc FileCheck %s
-; RUN: %if --need=allow_disable_ir_gen --command \
-; RUN:   %p2i -i %s --args -notranslate -timing -no-ir-gen \
-; RUN:        -allow-externally-defined-symbols \
-; RUN: | %if --need=allow_disable_ir_gen --command \
+; RUN:   %p2i -i %s --args -notranslate -timing \
+; RUN:        -allow-externally-defined-symbols | \
 ; RUN:   FileCheck --check-prefix=NOIR %s
 
 @PrimitiveInit = internal global [4 x i8] c"\1B\00\00\00", align 4

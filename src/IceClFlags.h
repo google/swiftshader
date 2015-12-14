@@ -70,11 +70,6 @@ public:
   bool getDisableInternal() const { return DisableInternal; }
   void setDisableInternal(bool NewValue) { DisableInternal = NewValue; }
 
-  bool getDisableIRGeneration() const {
-    return BuildDefs::disableIrGen() && DisableIRGeneration;
-  }
-  void setDisableIRGeneration(bool NewValue) { DisableIRGeneration = NewValue; }
-
   bool getDisableTranslation() const { return DisableTranslation; }
   void setDisableTranslation(bool NewValue) { DisableTranslation = NewValue; }
 
@@ -260,7 +255,6 @@ private:
   bool DecorateAsm;
   bool DisableHybridAssembly;
   bool DisableInternal;
-  bool DisableIRGeneration;
   bool DisableTranslation;
   bool DumpStats;
   bool EnableBlockProfile;

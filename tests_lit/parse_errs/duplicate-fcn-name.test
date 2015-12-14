@@ -3,7 +3,7 @@
 ; REQUIRES: no_minimal_build
 
 ; RUN: not %pnacl_sz -bitcode-as-text %p/Inputs/duplicate-fcn-name.tbc \
-; RUN:     -bitcode-format=pnacl -notranslate -no-ir-gen -build-on-read 2>&1 \
+; RUN:     -bitcode-format=pnacl -notranslate -build-on-read 2>&1 \
 ; RUN:   | FileCheck %s
 
 ; CHECK: Module valuesymtab defines duplicate value name: 'f'

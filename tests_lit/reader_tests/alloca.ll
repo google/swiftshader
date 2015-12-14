@@ -1,9 +1,7 @@
 ; Test if we can read alloca instructions.
 
 ; RUN: %p2i -i %s --insts | FileCheck %s
-; RUN: %if --need=allow_disable_ir_gen --command \
-; RUN:   %p2i -i %s --args -notranslate -timing -no-ir-gen \
-; RUN: | %if --need=allow_disable_ir_gen --command \
+; RUN:   %p2i -i %s --args -notranslate -timing | \
 ; RUN:   FileCheck --check-prefix=NOIR %s
 
 ; Show examples where size is defined by a constant.

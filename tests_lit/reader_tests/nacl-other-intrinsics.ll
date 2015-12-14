@@ -2,10 +2,8 @@
 
 ; RUN: %p2i -i %s --insts --args -allow-externally-defined-symbols \
 ; RUN: | FileCheck %s
-; RUN: %if --need=allow_disable_ir_gen --command \
-; RUN:   %p2i -i %s --args -notranslate -timing -no-ir-gen \
-; RUN:        -allow-externally-defined-symbols \
-; RUN: | %if --need=allow_disable_ir_gen --command \
+; RUN:   %p2i -i %s --args -notranslate -timing \
+; RUN:        -allow-externally-defined-symbols | \
 ; RUN:   FileCheck --check-prefix=NOIR %s
 
 declare i8* @llvm.nacl.read.tp()
