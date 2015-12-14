@@ -20,7 +20,6 @@
 #include "Debug.hpp"
 
 #include <string.h>
-#include <malloc.h>
 
 namespace sw
 {

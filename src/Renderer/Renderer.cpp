@@ -28,8 +28,6 @@
 #include "Debug.hpp"
 #include "Reactor/Reactor.hpp"
 
-#include <malloc.h>
-
 #undef max
 
 bool disableServer = true;

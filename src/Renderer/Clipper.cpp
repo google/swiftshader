@@ -15,8 +15,6 @@
 #include "Renderer.hpp"
 #include "Debug.hpp"
 
-#include <malloc.h>
-
 namespace sw
 {
 	Clipper::Clipper()

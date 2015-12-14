@@ -19,7 +19,6 @@
 #else
 	#include <sys/time.h>
 	#include <x86intrin.h>
-	#include <features.h>
 #endif
 
 namespace sw
