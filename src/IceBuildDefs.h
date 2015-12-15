@@ -77,6 +77,9 @@ namespace BuildDefs {
 // The ALLOW_* etc. symbols must be #defined to zero or non-zero.
 constexpr bool dump() { return ALLOW_DUMP; }
 /// Return true if ALLOW_LLVM_CL is defined as a non-zero value
+// TODO(stichnot): this ALLOW_LLVM_CL is a TBD option which will
+// allow for replacement of llvm:cl command line processor with a
+// smaller footprint version for Subzero.
 constexpr bool llvmCl() { return ALLOW_LLVM_CL; }
 /// Return true if ALLOW_LLVM_IR is defined as a non-zero value
 constexpr bool llvmIr() { return ALLOW_LLVM_IR; }
