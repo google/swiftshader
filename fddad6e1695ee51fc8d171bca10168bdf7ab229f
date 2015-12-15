@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "25fc967c_52a874b4",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 3119,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-12-15T14:37:17Z",
+      "side": 1,
+      "message": "ES 1.1 should also have this change.",
+      "range": {
+        "startLine": 3119,
+        "startChar": 56,
+        "endLine": 3119,
+        "endChar": 65
+      },
+      "revId": "fddad6e1695ee51fc8d171bca10168bdf7ab229f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "25fc967c_d2daa462",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 3121,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-12-15T14:37:17Z",
+      "side": 1,
+      "message": "nit: let\u0027s remove this trailing whitespace while we\u0027re here.",
+      "range": {
+        "startLine": 3121,
+        "startChar": 71,
+        "endLine": 3121,
+        "endChar": 87
+      },
+      "revId": "fddad6e1695ee51fc8d171bca10168bdf7ab229f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "25fc967c_f2b6c014",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 956,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-12-15T14:37:17Z",
+      "side": 1,
+      "message": "nit: This would change if it was split into two functions, and I know ConvertMinFilter() already used pointers for return arguments (which was inherited from ANGLE), but I\u0027m of the opinion that if pointers cannot be null, references should be used instead. Else they have to be checked for null (i.e. when the return argument is optional).",
+      "range": {
+        "startLine": 956,
+        "startChar": 78,
+        "endLine": 956,
+        "endChar": 79
+      },
+      "revId": "fddad6e1695ee51fc8d171bca10168bdf7ab229f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "25fc967c_b2bc38f7",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 967,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-12-15T14:37:17Z",
+      "side": 1,
+      "message": "nit: extra indent",
+      "range": {
+        "startLine": 967,
+        "startChar": 0,
+        "endLine": 967,
+        "endChar": 1
+      },
+      "revId": "fddad6e1695ee51fc8d171bca10168bdf7ab229f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "25fc967c_92b93c07",
+        "filename": "src/OpenGL/libGLESv2/utilities.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-12-15T14:37:17Z",
+      "side": 1,
+      "message": "I think it might be more elegant to have two functions; one for the texture filter and one for the mipmap filter.",
+      "range": {
+        "startLine": 75,
+        "startChar": 1,
+        "endLine": 75,
+        "endChar": 142
+      },
+      "revId": "fddad6e1695ee51fc8d171bca10168bdf7ab229f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "25fc967c_d2b3c422",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 773,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-12-15T14:37:17Z",
+      "side": 1,
+      "message": "This is to keep the current behavior of using the minification filter to determine the overall filter.\n\n(not a review comment, just a statement)",
+      "range": {
+        "startLine": 773,
+        "startChar": 5,
+        "endLine": 773,
+        "endChar": 94
+      },
+      "revId": "fddad6e1695ee51fc8d171bca10168bdf7ab229f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
