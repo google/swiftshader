@@ -75,6 +75,7 @@ namespace Ice {
 namespace BuildDefs {
 
 // The ALLOW_* etc. symbols must be #defined to zero or non-zero.
+/// Return true if ALLOW_DUMP is defined as a non-zero value
 constexpr bool dump() { return ALLOW_DUMP; }
 /// Return true if ALLOW_LLVM_CL is defined as a non-zero value
 // TODO(stichnot): this ALLOW_LLVM_CL is a TBD option which will
