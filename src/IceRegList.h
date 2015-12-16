@@ -27,10 +27,10 @@
   { ns::Reg_##r0, ns::Reg_##r1, ns::Reg_##r2 }
 #define REGLIST4(ns, r0, r1, r2, r3)                                           \
   { ns::Reg_##r0, ns::Reg_##r1, ns::Reg_##r2, ns::Reg_##r3 }
-#define REGLIST6(ns, r0, r1, r2, r3, r4, r5)                                   \
+#define REGLIST7(ns, r0, r1, r2, r3, r4, r5, r6)                               \
   {                                                                            \
     ns::Reg_##r0, ns::Reg_##r1, ns::Reg_##r2, ns::Reg_##r3, ns::Reg_##r4,      \
-        ns::Reg_##r5                                                           \
+        ns::Reg_##r5, ns::Reg_##r6                                             \
   }
 
 #endif // SUBZERO_SRC_ICEINSTREGLIST_H

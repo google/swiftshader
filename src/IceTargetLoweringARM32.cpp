@@ -160,6 +160,53 @@ TargetARM32Features::TargetARM32Features(const ClFlags &Flags) {
   }
 }
 
+namespace {
+constexpr SizeT NumGPRArgs =
+#define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
+          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)              \
+  +(((cc_arg) > 0) ? 1 : 0)
+    REGARM32_GPR_TABLE
+#undef X
+    ;
+std::array<uint32_t, NumGPRArgs> GPRArgInitializer;
+
+constexpr SizeT NumI64Args =
+#define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
+          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)              \
+  +(((cc_arg) > 0) ? 1 : 0)
+    REGARM32_I64PAIR_TABLE
+#undef X
+    ;
+std::array<uint32_t, NumI64Args> I64ArgInitializer;
+
+constexpr SizeT NumFP32Args =
+#define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
+          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)              \
+  +(((cc_arg) > 0) ? 1 : 0)
+    REGARM32_FP32_TABLE
+#undef X
+    ;
+std::array<uint32_t, NumFP32Args> FP32ArgInitializer;
+
+constexpr SizeT NumFP64Args =
+#define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
+          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)              \
+  +(((cc_arg) > 0) ? 1 : 0)
+    REGARM32_FP64_TABLE
+#undef X
+    ;
+std::array<uint32_t, NumFP64Args> FP64ArgInitializer;
+
+constexpr SizeT NumVec128Args =
+#define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
+          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)              \
+  +(((cc_arg > 0)) ? 1 : 0)
+    REGARM32_VEC128_TABLE
+#undef X
+    ;
+std::array<uint32_t, NumVec128Args> Vec128ArgInitializer;
+} // end of anonymous namespace
+
 TargetARM32::TargetARM32(Cfg *Func)
     : TargetLowering(Func), NeedSandboxing(Ctx->getFlags().getUseSandboxing()),
       CPUFeatures(Func->getContext()->getFlags()) {}
@@ -173,8 +220,8 @@ void TargetARM32::staticInit() {
   llvm::SmallBitVector VectorRegisters(RegARM32::Reg_NUM);
   llvm::SmallBitVector InvalidRegisters(RegARM32::Reg_NUM);
   ScratchRegs.resize(RegARM32::Reg_NUM);
-#define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
-          isI64Pair, isFP32, isFP64, isVec128, alias_init)                     \
+#define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
+          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)              \
   IntegerRegisters[RegARM32::val] = isInt;                                     \
   I64PairRegisters[RegARM32::val] = isI64Pair;                                 \
   Float32Registers[RegARM32::val] = isFP32;                                    \
@@ -182,12 +229,24 @@ void TargetARM32::staticInit() {
   VectorRegisters[RegARM32::val] = isVec128;                                   \
   RegisterAliases[RegARM32::val].resize(RegARM32::Reg_NUM);                    \
   for (SizeT RegAlias : alias_init) {                                          \
-    assert(!RegisterAliases[RegARM32::val][RegAlias] &&                        \
+    assert((!RegisterAliases[RegARM32::val][RegAlias] ||                       \
+            RegAlias != RegARM32::val) &&                                      \
            "Duplicate alias for " #val);                                       \
     RegisterAliases[RegARM32::val].set(RegAlias);                              \
   }                                                                            \
   RegisterAliases[RegARM32::val].set(RegARM32::val);                           \
-  ScratchRegs[RegARM32::val] = scratch;
+  ScratchRegs[RegARM32::val] = scratch;                                        \
+  if ((isInt) && (cc_arg) > 0) {                                               \
+    GPRArgInitializer[(cc_arg)-1] = RegARM32::val;                             \
+  } else if ((isI64Pair) && (cc_arg) > 0) {                                    \
+    I64ArgInitializer[(cc_arg)-1] = RegARM32::val;                             \
+  } else if ((isFP32) && (cc_arg) > 0) {                                       \
+    FP32ArgInitializer[(cc_arg)-1] = RegARM32::val;                            \
+  } else if ((isFP64) && (cc_arg) > 0) {                                       \
+    FP64ArgInitializer[(cc_arg)-1] = RegARM32::val;                            \
+  } else if ((isVec128) && (cc_arg) > 0) {                                     \
+    Vec128ArgInitializer[(cc_arg)-1] = RegARM32::val;                          \
+  }
   REGARM32_TABLE;
 #undef X
   TypeToRegisterSet[IceType_void] = InvalidRegisters;
@@ -237,24 +296,17 @@ void copyRegAllocFromInfWeightVariable64On32(const VarList &Vars) {
 
 uint32_t TargetARM32::getCallStackArgumentsSizeBytes(const InstCall *Call) {
   TargetARM32::CallingConv CC;
+  int32_t DummyReg;
   size_t OutArgsSizeBytes = 0;
   for (SizeT i = 0, NumArgs = Call->getNumArgs(); i < NumArgs; ++i) {
     Operand *Arg = legalizeUndef(Call->getArg(i));
-    Type Ty = Arg->getType();
-    if (Ty == IceType_i64) {
-      std::pair<int32_t, int32_t> Regs;
-      if (CC.I64InRegs(&Regs)) {
-        continue;
-      }
-    } else if (isVectorType(Ty) || isFloatingType(Ty)) {
-      int32_t Reg;
-      if (CC.FPInReg(Ty, &Reg)) {
+    const Type Ty = Arg->getType();
+    if (isScalarIntegerType(Ty)) {
+      if (CC.argInGPR(Ty, &DummyReg)) {
         continue;
       }
     } else {
-      assert(Ty == IceType_i32);
-      int32_t Reg;
-      if (CC.I32InReg(&Reg)) {
+      if (CC.argInVFP(Ty, &DummyReg)) {
         continue;
       }
     }
@@ -769,8 +821,8 @@ bool TargetARM32::doBranchOpt(Inst *I, const CfgNode *NextNode) {
 }
 
 const char *RegARM32::RegNames[] = {
-#define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
-          isI64Pair, isFP32, isFP64, isVec128, alias_init)                     \
+#define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
+          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)              \
   name,
     REGARM32_TABLE
 #undef X
@@ -784,8 +836,8 @@ IceString TargetARM32::getRegName(SizeT RegNum, Type Ty) const {
 
 Variable *TargetARM32::getPhysicalRegister(SizeT RegNum, Type Ty) {
   static const Type DefaultType[] = {
-#define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
-          isI64Pair, isFP32, isFP64, isVec128, alias_init)                     \
+#define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
+          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)              \
   (isFP32)                                                                     \
       ? IceType_f32                                                            \
       : ((isFP64) ? IceType_f64 : ((isVec128 ? IceType_v4i32 : IceType_i32))),
@@ -848,118 +900,92 @@ void TargetARM32::emitVariable(const Variable *Var) const {
   Str << "]";
 }
 
-bool TargetARM32::CallingConv::I64InRegs(std::pair<int32_t, int32_t> *Regs) {
-  if (NumGPRRegsUsed >= ARM32_MAX_GPR_ARG)
-    return false;
-  int32_t RegLo, RegHi;
-  // Always start i64 registers at an even register, so this may end up padding
-  // away a register.
-  NumGPRRegsUsed = Utils::applyAlignment(NumGPRRegsUsed, 2);
-  RegLo = RegARM32::Reg_r0 + NumGPRRegsUsed;
-  ++NumGPRRegsUsed;
-  RegHi = RegARM32::Reg_r0 + NumGPRRegsUsed;
-  ++NumGPRRegsUsed;
-  // If this bumps us past the boundary, don't allocate to a register and leave
-  // any previously speculatively consumed registers as consumed.
-  if (NumGPRRegsUsed > ARM32_MAX_GPR_ARG)
-    return false;
-  Regs->first = RegLo;
-  Regs->second = RegHi;
-  return true;
-}
+TargetARM32::CallingConv::CallingConv()
+    : GPRegsUsed(RegARM32::Reg_NUM),
+      GPRArgs(GPRArgInitializer.rbegin(), GPRArgInitializer.rend()),
+      I64Args(I64ArgInitializer.rbegin(), I64ArgInitializer.rend()),
+      VFPRegsUsed(RegARM32::Reg_NUM),
+      FP32Args(FP32ArgInitializer.rbegin(), FP32ArgInitializer.rend()),
+      FP64Args(FP64ArgInitializer.rbegin(), FP64ArgInitializer.rend()),
+      Vec128Args(Vec128ArgInitializer.rbegin(), Vec128ArgInitializer.rend()) {}
 
-bool TargetARM32::CallingConv::I32InReg(int32_t *Reg) {
-  if (NumGPRRegsUsed >= ARM32_MAX_GPR_ARG)
-    return false;
-  *Reg = RegARM32::Reg_r0 + NumGPRRegsUsed;
-  ++NumGPRRegsUsed;
-  return true;
-}
+bool TargetARM32::CallingConv::argInGPR(Type Ty, int32_t *Reg) {
+  CfgVector<SizeT> *Source;
 
-// The calling convention helper class (TargetARM32::CallingConv) expects the
-// following registers to be declared in a certain order, so we have these
-// sanity checks to ensure nothing breaks unknowingly.
-// TODO(jpp): modify the CallingConv class so it does not rely on any register
-// declaration order.
-#define SANITY_CHECK_QS(_0, _1)                                                \
-  static_assert((RegARM32::Reg_##_1 + 1) == RegARM32::Reg_##_0,                \
-                "ARM32 " #_0 " and " #_1 " registers are declared "            \
-                "incorrectly.")
-SANITY_CHECK_QS(q0, q1);
-SANITY_CHECK_QS(q1, q2);
-SANITY_CHECK_QS(q2, q3);
-SANITY_CHECK_QS(q3, q4);
-#undef SANITY_CHECK_QS
-#define SANITY_CHECK_DS(_0, _1)                                                \
-  static_assert((RegARM32::Reg_##_1 + 1) == RegARM32::Reg_##_0,                \
-                "ARM32 " #_0 " and " #_1 " registers are declared "            \
-                "incorrectly.")
-SANITY_CHECK_DS(d0, d1);
-SANITY_CHECK_DS(d1, d2);
-SANITY_CHECK_DS(d2, d3);
-SANITY_CHECK_DS(d3, d4);
-SANITY_CHECK_DS(d4, d5);
-SANITY_CHECK_DS(d5, d6);
-SANITY_CHECK_DS(d6, d7);
-SANITY_CHECK_DS(d7, d8);
-#undef SANITY_CHECK_DS
-#define SANITY_CHECK_SS(_0, _1)                                                \
-  static_assert((RegARM32::Reg_##_0 + 1) == RegARM32::Reg_##_1,                \
-                "ARM32 " #_0 " and " #_1 " registers are declared "            \
-                "incorrectly.")
-SANITY_CHECK_SS(s0, s1);
-SANITY_CHECK_SS(s1, s2);
-SANITY_CHECK_SS(s2, s3);
-SANITY_CHECK_SS(s3, s4);
-SANITY_CHECK_SS(s4, s5);
-SANITY_CHECK_SS(s5, s6);
-SANITY_CHECK_SS(s6, s7);
-SANITY_CHECK_SS(s7, s8);
-SANITY_CHECK_SS(s8, s9);
-SANITY_CHECK_SS(s9, s10);
-SANITY_CHECK_SS(s10, s11);
-SANITY_CHECK_SS(s11, s12);
-SANITY_CHECK_SS(s12, s13);
-SANITY_CHECK_SS(s13, s14);
-SANITY_CHECK_SS(s14, s15);
-#undef SANITY_CHECK_SS
+  switch (Ty) {
+  default: {
+    assert(isScalarIntegerType(Ty));
+    Source = &GPRArgs;
+  } break;
+  case IceType_i64: {
+    Source = &I64Args;
+  } break;
+  }
 
-bool TargetARM32::CallingConv::FPInReg(Type Ty, int32_t *Reg) {
-  if (!VFPRegsFree.any()) {
+  discardUnavailableGPRsAndTheirAliases(Source);
+
+  if (Source->empty()) {
+    GPRegsUsed.set();
     return false;
   }
 
-  if (isVectorType(Ty)) {
-    // Q registers are declared in reverse order, so RegARM32::Reg_q0 >
-    // RegARM32::Reg_q1. Therefore, we need to subtract QRegStart from Reg_q0.
-    // Same thing goes for D registers.
-    int32_t QRegStart = (VFPRegsFree & ValidV128Regs).find_first();
-    if (QRegStart >= 0) {
-      VFPRegsFree.reset(QRegStart, QRegStart + 4);
-      *Reg = RegARM32::Reg_q0 - (QRegStart / 4);
-      return true;
-    }
-  } else if (Ty == IceType_f64) {
-    int32_t DRegStart = (VFPRegsFree & ValidF64Regs).find_first();
-    if (DRegStart >= 0) {
-      VFPRegsFree.reset(DRegStart, DRegStart + 2);
-      *Reg = RegARM32::Reg_d0 - (DRegStart / 2);
-      return true;
-    }
-  } else {
-    assert(Ty == IceType_f32);
-    int32_t SReg = VFPRegsFree.find_first();
-    assert(SReg >= 0);
-    VFPRegsFree.reset(SReg);
-    *Reg = RegARM32::Reg_s0 + SReg;
-    return true;
+  *Reg = Source->back();
+  // Note that we don't Source->pop_back() here. This is intentional. Notice how
+  // we mark all of Reg's aliases as Used. So, for the next argument,
+  // Source->back() is marked as unavailable, and it is thus implicitly popped
+  // from the stack.
+  GPRegsUsed |= RegisterAliases[*Reg];
+  return true;
+}
+
+// GPR are not packed when passing parameters. Thus, a function foo(i32, i64,
+// i32) will have the first argument in r0, the second in r1-r2, and the third
+// on the stack. To model this behavior, whenever we pop a register from Regs,
+// we remove all of its aliases from the pool of available GPRs. This has the
+// effect of computing the "closure" on the GPR registers.
+void TargetARM32::CallingConv::discardUnavailableGPRsAndTheirAliases(
+    CfgVector<SizeT> *Regs) {
+  while (!Regs->empty() && GPRegsUsed[Regs->back()]) {
+    GPRegsUsed |= RegisterAliases[Regs->back()];
+    Regs->pop_back();
+  }
+}
+
+bool TargetARM32::CallingConv::argInVFP(Type Ty, int32_t *Reg) {
+  CfgVector<SizeT> *Source;
+
+  switch (Ty) {
+  default: {
+    assert(isVectorType(Ty));
+    Source = &Vec128Args;
+  } break;
+  case IceType_f32: {
+    Source = &FP32Args;
+  } break;
+  case IceType_f64: {
+    Source = &FP64Args;
+  } break;
   }
 
-  // Parameter allocation failed. From now on, every fp register must be placed
-  // on the stack. We clear VFRegsFree in case there are any "holes" from S and
-  // D registers.
-  VFPRegsFree.clear();
-  return false;
+  discardUnavailableVFPRegs(Source);
+
+  if (Source->empty()) {
+    VFPRegsUsed.set();
+    return false;
+  }
+
+  *Reg = Source->back();
+  VFPRegsUsed |= RegisterAliases[*Reg];
+  return true;
+}
+
+// Arguments in VFP registers are not packed, so we don't mark the popped
+// registers' aliases as unavailable.
+void TargetARM32::CallingConv::discardUnavailableVFPRegs(
+    CfgVector<SizeT> *Regs) {
+  while (!Regs->empty() && VFPRegsUsed[Regs->back()]) {
+    Regs->pop_back();
+  }
 }
 
 void TargetARM32::lowerArguments() {
@@ -975,45 +1001,36 @@ void TargetARM32::lowerArguments() {
   for (SizeT I = 0, E = Args.size(); I < E; ++I) {
     Variable *Arg = Args[I];
     Type Ty = Arg->getType();
-    if (Ty == IceType_i64) {
-      std::pair<int32_t, int32_t> RegPair;
-      if (!CC.I64InRegs(&RegPair))
+    int RegNum;
+    if (isScalarIntegerType(Ty)) {
+      if (!CC.argInGPR(Ty, &RegNum)) {
         continue;
-      Variable *RegisterArg = Func->makeVariable(Ty);
-      auto *RegisterArg64On32 = llvm::cast<Variable64On32>(RegisterArg);
-      if (BuildDefs::dump())
-        RegisterArg64On32->setName(Func, "home_reg:" + Arg->getName(Func));
-      RegisterArg64On32->initHiLo(Func);
-      RegisterArg64On32->setIsArg();
-      RegisterArg64On32->getLo()->setRegNum(RegPair.first);
-      RegisterArg64On32->getHi()->setRegNum(RegPair.second);
-      Arg->setIsArg(false);
-
-      Args[I] = RegisterArg64On32;
-      Context.insert(InstAssign::create(Func, Arg, RegisterArg));
-      continue;
+      }
     } else {
-      int32_t RegNum;
-      if (isVectorType(Ty) || isFloatingType(Ty)) {
-        if (!CC.FPInReg(Ty, &RegNum))
-          continue;
-      } else {
-        assert(Ty == IceType_i32);
-        if (!CC.I32InReg(&RegNum))
-          continue;
+      if (!CC.argInVFP(Ty, &RegNum)) {
+        continue;
       }
-      Variable *RegisterArg = Func->makeVariable(Ty);
-      if (BuildDefs::dump()) {
-        RegisterArg->setName(Func, "home_reg:" + Arg->getName(Func));
-      }
-      RegisterArg->setRegNum(RegNum);
-      RegisterArg->setIsArg();
-      Arg->setIsArg(false);
-
-      Args[I] = RegisterArg;
-      Context.insert(InstAssign::create(Func, Arg, RegisterArg));
-      continue;
     }
+
+    Variable *RegisterArg = Func->makeVariable(Ty);
+    if (BuildDefs::dump()) {
+      RegisterArg->setName(Func, "home_reg:" + Arg->getName(Func));
+    }
+    RegisterArg->setIsArg();
+    Arg->setIsArg(false);
+    Args[I] = RegisterArg;
+    switch (Ty) {
+    default: { RegisterArg->setRegNum(RegNum); } break;
+    case IceType_i64: {
+      auto *RegisterArg64 = llvm::cast<Variable64On32>(RegisterArg);
+      RegisterArg64->initHiLo(Func);
+      RegisterArg64->getLo()->setRegNum(
+          RegARM32::getI64PairFirstGPRNum(RegNum));
+      RegisterArg64->getHi()->setRegNum(
+          RegARM32::getI64PairSecondGPRNum(RegNum));
+    } break;
+    }
+    Context.insert(InstAssign::create(Func, Arg, RegisterArg));
   }
 }
 
@@ -1270,22 +1287,20 @@ void TargetARM32::addProlog(CfgNode *Node) {
   size_t InArgsSizeBytes = 0;
   TargetARM32::CallingConv CC;
   for (Variable *Arg : Args) {
-    Type Ty = Arg->getType();
-    bool InRegs = false;
+    int32_t DummyReg;
+    const Type Ty = Arg->getType();
+
     // Skip arguments passed in registers.
-    if (isVectorType(Ty) || isFloatingType(Ty)) {
-      int32_t DummyReg;
-      InRegs = CC.FPInReg(Ty, &DummyReg);
-    } else if (Ty == IceType_i64) {
-      std::pair<int32_t, int32_t> DummyRegs;
-      InRegs = CC.I64InRegs(&DummyRegs);
+    if (isScalarIntegerType(Ty)) {
+      if (CC.argInGPR(Ty, &DummyReg)) {
+        continue;
+      }
     } else {
-      assert(Ty == IceType_i32);
-      int32_t DummyReg;
-      InRegs = CC.I32InReg(&DummyReg);
+      if (CC.argInVFP(Ty, &DummyReg)) {
+        continue;
+      }
     }
-    if (!InRegs)
-      finishArgumentLowering(Arg, FramePtr, BasicFrameOffset, &InArgsSizeBytes);
+    finishArgumentLowering(Arg, FramePtr, BasicFrameOffset, &InArgsSizeBytes);
   }
 
   // Fill in stack offsets for locals.
@@ -1812,8 +1827,8 @@ llvm::SmallBitVector TargetARM32::getRegisterSet(RegSetMask Include,
                                                  RegSetMask Exclude) const {
   llvm::SmallBitVector Registers(RegARM32::Reg_NUM);
 
-#define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
-          isI64Pair, isFP32, isFP64, isVec128, alias_init)                     \
+#define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
+          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)              \
   if (scratch && (Include & RegSet_CallerSave))                                \
     Registers[RegARM32::val] = true;                                           \
   if (preserved && (Include & RegSet_CalleeSave))                              \
@@ -3230,10 +3245,8 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
   // Assign arguments to registers and stack. Also reserve stack.
   TargetARM32::CallingConv CC;
   // Pair of Arg Operand -> GPR number assignments.
-  llvm::SmallVector<std::pair<Operand *, int32_t>,
-                    TargetARM32::CallingConv::ARM32_MAX_GPR_ARG> GPRArgs;
-  llvm::SmallVector<std::pair<Operand *, int32_t>,
-                    TargetARM32::CallingConv::ARM32_MAX_FP_REG_UNITS> FPArgs;
+  llvm::SmallVector<std::pair<Operand *, int32_t>, NumGPRArgs> GPRArgs;
+  llvm::SmallVector<std::pair<Operand *, int32_t>, NumFP32Args> FPArgs;
   // Pair of Arg Operand -> stack offset.
   llvm::SmallVector<std::pair<Operand *, int32_t>, 8> StackArgs;
   size_t ParameterAreaSizeBytes = 0;
@@ -3242,37 +3255,34 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
   // argument is passed.
   for (SizeT i = 0, NumArgs = Instr->getNumArgs(); i < NumArgs; ++i) {
     Operand *Arg = legalizeUndef(Instr->getArg(i));
-    Type Ty = Arg->getType();
-    bool InRegs = false;
-    if (Ty == IceType_i64) {
-      std::pair<int32_t, int32_t> Regs;
-      if (CC.I64InRegs(&Regs)) {
-        InRegs = true;
-        Operand *Lo = loOperand(Arg);
-        Operand *Hi = hiOperand(Arg);
-        GPRArgs.push_back(std::make_pair(Lo, Regs.first));
-        GPRArgs.push_back(std::make_pair(Hi, Regs.second));
-      }
-    } else if (isVectorType(Ty) || isFloatingType(Ty)) {
-      int32_t Reg;
-      if (CC.FPInReg(Ty, &Reg)) {
-        InRegs = true;
-        FPArgs.push_back(std::make_pair(Arg, Reg));
-      }
+    const Type Ty = Arg->getType();
+    bool InReg = false;
+    int32_t Reg;
+    if (isScalarIntegerType(Ty)) {
+      InReg = CC.argInGPR(Ty, &Reg);
     } else {
-      assert(Ty == IceType_i32);
-      int32_t Reg;
-      if (CC.I32InReg(&Reg)) {
-        InRegs = true;
-        GPRArgs.push_back(std::make_pair(Arg, Reg));
-      }
+      InReg = CC.argInVFP(Ty, &Reg);
     }
 
-    if (!InRegs) {
+    if (!InReg) {
       ParameterAreaSizeBytes =
           applyStackAlignmentTy(ParameterAreaSizeBytes, Ty);
       StackArgs.push_back(std::make_pair(Arg, ParameterAreaSizeBytes));
       ParameterAreaSizeBytes += typeWidthInBytesOnStack(Ty);
+      continue;
+    }
+
+    if (Ty == IceType_i64) {
+      Operand *Lo = loOperand(Arg);
+      Operand *Hi = hiOperand(Arg);
+      GPRArgs.push_back(
+          std::make_pair(Lo, RegARM32::getI64PairFirstGPRNum(Reg)));
+      GPRArgs.push_back(
+          std::make_pair(Hi, RegARM32::getI64PairSecondGPRNum(Reg)));
+    } else if (isScalarIntegerType(Ty)) {
+      GPRArgs.push_back(std::make_pair(Arg, Reg));
+    } else {
+      FPArgs.push_back(std::make_pair(Arg, Reg));
     }
   }
 

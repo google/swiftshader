@@ -323,6 +323,9 @@ $(SB_OBJDIR)/pnacl-sz.x86-32.nexe: $(SB_OBJS)
 	$(SB_TRANSLATE) -arch x86-32 $(PNACL_SZ_BASE).nonfinal.pexe -o $@ \
           --allow-llvm-bitcode-input
 
+src/IceRegistersARM32.def: pydir/gen_arm32_reg_tables.py
+	python $< > $@
+
 # TODO(stichnot): Be more precise than "*.h" here and elsewhere.
 $(OBJS): $(OBJDIR)/%.o: src/%.cpp src/*.h src/*.def
 	$(CXX) -c $(CXXFLAGS) $< -o $@

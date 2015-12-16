@@ -1046,34 +1046,30 @@ protected:
     CallingConv &operator=(const CallingConv &) = delete;
 
   public:
-    CallingConv()
-        : VFPRegsFree(ARM32_MAX_FP_REG_UNITS, true),
-          ValidF64Regs(ARM32_MAX_FP_REG_UNITS),
-          ValidV128Regs(ARM32_MAX_FP_REG_UNITS) {
-      for (uint32_t i = 0; i < ARM32_MAX_FP_REG_UNITS; ++i) {
-        if ((i % 2) == 0) {
-          ValidF64Regs[i] = true;
-        }
-        if ((i % 4) == 0) {
-          ValidV128Regs[i] = true;
-        }
-      }
-    }
+    CallingConv();
     ~CallingConv() = default;
 
-    bool I64InRegs(std::pair<int32_t, int32_t> *Regs);
-    bool I32InReg(int32_t *Reg);
-    bool FPInReg(Type Ty, int32_t *Reg);
+    /// argInGPR returns true if there is a GPR available for the requested
+    /// type, and false otherwise. If it returns true, Reg is set to the
+    /// appropriate register number. Note that, when Ty == IceType_i64, Reg will
+    /// be an I64 register pair.
+    bool argInGPR(Type Ty, int32_t *Reg);
 
-    static constexpr uint32_t ARM32_MAX_GPR_ARG = 4;
-    // TODO(jpp): comment.
-    static constexpr uint32_t ARM32_MAX_FP_REG_UNITS = 16;
+    /// argInVFP is to floating-point/vector types what argInGPR is for integer
+    /// types.
+    bool argInVFP(Type Ty, int32_t *Reg);
 
   private:
-    uint32_t NumGPRRegsUsed = 0;
-    llvm::SmallBitVector VFPRegsFree;
-    llvm::SmallBitVector ValidF64Regs;
-    llvm::SmallBitVector ValidV128Regs;
+    void discardUnavailableGPRsAndTheirAliases(CfgVector<SizeT> *Regs);
+    llvm::SmallBitVector GPRegsUsed;
+    CfgVector<SizeT> GPRArgs;
+    CfgVector<SizeT> I64Args;
+
+    void discardUnavailableVFPRegs(CfgVector<SizeT> *Regs);
+    llvm::SmallBitVector VFPRegsUsed;
+    CfgVector<SizeT> FP32Args;
+    CfgVector<SizeT> FP64Args;
+    CfgVector<SizeT> Vec128Args;
   };
 
 private:

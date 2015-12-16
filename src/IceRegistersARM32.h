@@ -27,8 +27,8 @@ public:
   /// An enum of every register. The enum value may not match the encoding used
   /// to binary encode register operands in instructions.
   enum AllRegisters {
-#define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
-          isI64Pair, isFP32, isFP64, isVec128, alias_init)                     \
+#define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
+          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)              \
   val,
     REGARM32_TABLE
 #undef X
@@ -41,8 +41,8 @@ public:
   /// An enum of GPR Registers. The enum value does match the encoding used to
   /// binary encode register operands in instructions.
   enum GPRRegister {
-#define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
-          isI64Pair, isFP32, isFP64, isVec128, alias_init)                     \
+#define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
+          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)              \
   Encoded_##val = encode,
     REGARM32_GPR_TABLE
 #undef X
@@ -52,8 +52,8 @@ public:
   /// An enum of FP32 S-Registers. The enum value does match the encoding used
   /// to binary encode register operands in instructions.
   enum SRegister {
-#define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
-          isI64Pair, isFP32, isFP64, isVec128, alias_init)                     \
+#define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
+          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)              \
   Encoded_##val = encode,
     REGARM32_FP32_TABLE
 #undef X
@@ -63,8 +63,8 @@ public:
   /// An enum of FP64 D-Registers. The enum value does match the encoding used
   /// to binary encode register operands in instructions.
   enum DRegister {
-#define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
-          isI64Pair, isFP32, isFP64, isVec128, alias_init)                     \
+#define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
+          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)              \
   Encoded_##val = encode,
     REGARM32_FP64_TABLE
 #undef X
@@ -74,8 +74,8 @@ public:
   /// An enum of 128-bit Q-Registers. The enum value does match the encoding
   /// used to binary encode register operands in instructions.
   enum QRegister {
-#define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
-          isI64Pair, isFP32, isFP64, isVec128, alias_init)                     \
+#define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
+          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)              \
   Encoded_##val = encode,
     REGARM32_VEC128_TABLE
 #undef X
@@ -92,6 +92,12 @@ public:
     assert(Reg_I64PAIR_First <= RegNum);
     assert(RegNum <= Reg_I64PAIR_Last);
     return GPRRegister(2 * (RegNum - Reg_I64PAIR_First + Reg_GPR_First));
+  }
+
+  static inline GPRRegister getI64PairSecondGPRNum(int32_t RegNum) {
+    assert(Reg_I64PAIR_First <= RegNum);
+    assert(RegNum <= Reg_I64PAIR_Last);
+    return GPRRegister(2 * (RegNum - Reg_I64PAIR_First + Reg_GPR_First) + 1);
   }
 
   static inline bool isI64RegisterPair(int32_t RegNum) {
