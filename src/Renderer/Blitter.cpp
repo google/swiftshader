@@ -602,82 +602,78 @@ namespace sw
 		switch(format)
 		{
 		case FORMAT_A8B8G8R8I:
-			Insert(c, Int(*Pointer<SByte>(element + 3)), 3);
+			c = Insert(c, Int(*Pointer<SByte>(element + 3)), 3);
 		case FORMAT_X8B8G8R8I:
-			Insert(c, Int(*Pointer<SByte>(element + 2)), 2);
+			c = Insert(c, Int(*Pointer<SByte>(element + 2)), 2);
 		case FORMAT_G8R8I:
-			Insert(c, Int(*Pointer<SByte>(element + 1)), 1);
+			c = Insert(c, Int(*Pointer<SByte>(element + 1)), 1);
 		case FORMAT_R8I:
-			Insert(c, Int(*Pointer<SByte>(element)), 0);
+			c = Insert(c, Int(*Pointer<SByte>(element)), 0);
 			if(format != FORMAT_A8B8G8R8I)
 			{
-				Insert(c, Int(0x7F), 3); // Set alpha
+				c = Insert(c, Int(0x7F), 3); // Set alpha
 			}
 			break;
 		case FORMAT_A8B8G8R8UI:
-			Insert(c, Int(*Pointer<Byte>(element + 3)), 3);
+			c = Insert(c, Int(*Pointer<Byte>(element + 3)), 3);
 		case FORMAT_X8B8G8R8UI:
-			Insert(c, Int(*Pointer<Byte>(element + 2)), 2);
+			c = Insert(c, Int(*Pointer<Byte>(element + 2)), 2);
 		case FORMAT_G8R8UI:
-			Insert(c, Int(*Pointer<Byte>(element + 1)), 1);
+			c = Insert(c, Int(*Pointer<Byte>(element + 1)), 1);
 		case FORMAT_R8UI:
-			Insert(c, Int(*Pointer<Byte>(element)), 0);
+			c = Insert(c, Int(*Pointer<Byte>(element)), 0);
 			if(format != FORMAT_A8B8G8R8UI)
 			{
-				Insert(c, Int(0xFF), 3); // Set alpha
+				c = Insert(c, Int(0xFF), 3); // Set alpha
 			}
 			break;
 		case FORMAT_A16B16G16R16I:
-			Insert(c, Int(*Pointer<Short>(element + 3)), 3);
+			c = Insert(c, Int(*Pointer<Short>(element + 6)), 3);
 		case FORMAT_X16B16G16R16I:
-			Insert(c, Int(*Pointer<Short>(element + 2)), 2);
+			c = Insert(c, Int(*Pointer<Short>(element + 4)), 2);
 		case FORMAT_G16R16I:
-			Insert(c, Int(*Pointer<Short>(element + 1)), 1);
+			c = Insert(c, Int(*Pointer<Short>(element + 2)), 1);
 		case FORMAT_R16I:
-			Insert(c, Int(*Pointer<Short>(element)), 0);
+			c = Insert(c, Int(*Pointer<Short>(element)), 0);
 			if(format != FORMAT_A16B16G16R16I)
 			{
-				Insert(c, Int(0x7FFF), 3); // Set alpha
+				c = Insert(c, Int(0x7FFF), 3); // Set alpha
 			}
 			break;
 		case FORMAT_A16B16G16R16UI:
-			Insert(c, Int(*Pointer<UShort>(element + 3)), 3);
+			c = Insert(c, Int(*Pointer<UShort>(element + 6)), 3);
 		case FORMAT_X16B16G16R16UI:
-			Insert(c, Int(*Pointer<UShort>(element + 2)), 2);
+			c = Insert(c, Int(*Pointer<UShort>(element + 4)), 2);
 		case FORMAT_G16R16UI:
-			Insert(c, Int(*Pointer<UShort>(element + 1)), 1);
+			c = Insert(c, Int(*Pointer<UShort>(element + 2)), 1);
 		case FORMAT_R16UI:
-			Insert(c, Int(*Pointer<UShort>(element)), 0);
+			c = Insert(c, Int(*Pointer<UShort>(element)), 0);
 			if(format != FORMAT_A16B16G16R16UI)
 			{
-				Insert(c, Int(0xFFFF), 3); // Set alpha
+				c = Insert(c, Int(0xFFFF), 3); // Set alpha
 			}
 			break;
 		case FORMAT_A32B32G32R32I:
-			Insert(c, Int(*Pointer<Int>(element + 3)), 3);
+			c = *Pointer<Int4>(element);
+			break;
 		case FORMAT_X32B32G32R32I:
-			Insert(c, Int(*Pointer<Int>(element + 2)), 2);
+			c = Insert(c, *Pointer<Int>(element + 8), 2);
 		case FORMAT_G32R32I:
-			Insert(c, Int(*Pointer<Int>(element + 1)), 1);
+			c = Insert(c, *Pointer<Int>(element + 4), 1);
 		case FORMAT_R32I:
-			Insert(c, Int(*Pointer<Int>(element)), 0);
-			if(format != FORMAT_A32B32G32R32I)
-			{
-				Insert(c, Int(0x7FFFFFFF), 3); // Set alpha
-			}
+			c = Insert(c, *Pointer<Int>(element), 0);
+			c = Insert(c, Int(0x7FFFFFFF), 3); // Set alpha
 			break;
 		case FORMAT_A32B32G32R32UI:
-			Insert(c, Int(*Pointer<UInt>(element + 3)), 3);
+			c = *Pointer<UInt4>(element);
+			break;
 		case FORMAT_X32B32G32R32UI:
-			Insert(c, Int(*Pointer<UInt>(element + 2)), 2);
+			c = Insert(c, Int(*Pointer<UInt>(element + 8)), 2);
 		case FORMAT_G32R32UI:
-			Insert(c, Int(*Pointer<UInt>(element + 1)), 1);
+			c = Insert(c, Int(*Pointer<UInt>(element + 4)), 1);
 		case FORMAT_R32UI:
-			Insert(c, Int(*Pointer<UInt>(element)), 0);
-			if(format != FORMAT_A32B32G32R32UI)
-			{
-				Insert(c, Int(UInt(0xFFFFFFFFU)), 3); // Set alpha
-			}
+			c = Insert(c, Int(*Pointer<UInt>(element)), 0);
+			c = Insert(c, Int(UInt(0xFFFFFFFFU)), 3); // Set alpha
 			break;
 		default:
 			return false;
