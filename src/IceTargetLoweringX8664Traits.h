@@ -832,6 +832,8 @@ template <> struct MachineTraits<TargetX8664> {
   static const struct TypeAttributesType {
     const char *CvtString;   // i (integer), s (single FP), d (double FP)
     const char *SdSsString;  // ss, sd, or <blank>
+    const char *PdPsString;  // ps, pd, or <blank>
+    const char *SpSdString;  // ss, sd, ps, pd, or <blank>
     const char *PackString;  // b, w, d, or <blank>
     const char *WidthString; // b, w, l, q, or <blank>
     const char *FldString;   // s, l, or <blank>

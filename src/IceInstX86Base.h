@@ -48,6 +48,8 @@ public:
     Addss,
     Adjuststack,
     And,
+    Andnps,
+    Andps,
     AndRMW,
     Blendvps,
     Br,
@@ -77,6 +79,8 @@ public:
     Lea,
     Load,
     Mfence,
+    Minss,
+    Maxss,
     Mov,
     Movd,
     Movp,
@@ -90,6 +94,7 @@ public:
     Neg,
     Nop,
     Or,
+    Orps,
     OrRMW,
     Padd,
     Pand,
@@ -135,6 +140,7 @@ public:
     Xadd,
     Xchg,
     Xor,
+    Xorps,
     XorRMW,
 
     /// Intel Architecture Code Analyzer markers. These are not executable so
@@ -1459,6 +1465,40 @@ private:
 };
 
 template <class Machine>
+class InstX86Andnps
+    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Andnps, true> {
+public:
+  static InstX86Andnps *create(Cfg *Func, Variable *Dest, Operand *Source) {
+    return new (Func->allocate<InstX86Andnps>())
+        InstX86Andnps(Func, Dest, Source);
+  }
+
+  void emit(const Cfg *Func) const override;
+
+private:
+  InstX86Andnps(Cfg *Func, Variable *Dest, Operand *Source)
+      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Andnps, true>(
+            Func, Dest, Source) {}
+};
+
+template <class Machine>
+class InstX86Andps
+    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Andps, true> {
+public:
+  static InstX86Andps *create(Cfg *Func, Variable *Dest, Operand *Source) {
+    return new (Func->allocate<InstX86Andps>())
+        InstX86Andps(Func, Dest, Source);
+  }
+
+  void emit(const Cfg *Func) const override;
+
+private:
+  InstX86Andps(Cfg *Func, Variable *Dest, Operand *Source)
+      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Andps, true>(
+            Func, Dest, Source) {}
+};
+
+template <class Machine>
 class InstX86AndRMW
     : public InstX86BaseBinopRMW<Machine, InstX86Base<Machine>::AndRMW> {
 public:
@@ -1508,6 +1548,40 @@ private:
 };
 
 template <class Machine>
+class InstX86Maxss
+    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Maxss, true> {
+public:
+  static InstX86Maxss *create(Cfg *Func, Variable *Dest, Operand *Source) {
+    return new (Func->allocate<InstX86Maxss>())
+        InstX86Maxss(Func, Dest, Source);
+  }
+
+  void emit(const Cfg *Func) const override;
+
+private:
+  InstX86Maxss(Cfg *Func, Variable *Dest, Operand *Source)
+      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Maxss, true>(
+            Func, Dest, Source) {}
+};
+
+template <class Machine>
+class InstX86Minss
+    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Minss, true> {
+public:
+  static InstX86Minss *create(Cfg *Func, Variable *Dest, Operand *Source) {
+    return new (Func->allocate<InstX86Minss>())
+        InstX86Minss(Func, Dest, Source);
+  }
+
+  void emit(const Cfg *Func) const override;
+
+private:
+  InstX86Minss(Cfg *Func, Variable *Dest, Operand *Source)
+      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Minss, true>(
+            Func, Dest, Source) {}
+};
+
+template <class Machine>
 class InstX86Or
     : public InstX86BaseBinopGPR<Machine, InstX86Base<Machine>::Or> {
 public:
@@ -1519,6 +1593,22 @@ private:
   InstX86Or(Cfg *Func, Variable *Dest, Operand *Source)
       : InstX86BaseBinopGPR<Machine, InstX86Base<Machine>::Or>(Func, Dest,
                                                                Source) {}
+};
+
+template <class Machine>
+class InstX86Orps
+    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Orps, true> {
+public:
+  static InstX86Orps *create(Cfg *Func, Variable *Dest, Operand *Source) {
+    return new (Func->allocate<InstX86Orps>()) InstX86Orps(Func, Dest, Source);
+  }
+
+  void emit(const Cfg *Func) const override;
+
+private:
+  InstX86Orps(Cfg *Func, Variable *Dest, Operand *Source)
+      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Orps, true>(
+            Func, Dest, Source) {}
 };
 
 template <class Machine>
@@ -1567,6 +1657,23 @@ private:
   InstX86Xor(Cfg *Func, Variable *Dest, Operand *Source)
       : InstX86BaseBinopGPR<Machine, InstX86Base<Machine>::Xor>(Func, Dest,
                                                                 Source) {}
+};
+
+template <class Machine>
+class InstX86Xorps
+    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Xorps, true> {
+public:
+  static InstX86Xorps *create(Cfg *Func, Variable *Dest, Operand *Source) {
+    return new (Func->allocate<InstX86Xorps>())
+        InstX86Xorps(Func, Dest, Source);
+  }
+
+  void emit(const Cfg *Func) const override;
+
+private:
+  InstX86Xorps(Cfg *Func, Variable *Dest, Operand *Source)
+      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Xorps, true>(
+            Func, Dest, Source) {}
 };
 
 template <class Machine>
@@ -2788,6 +2895,8 @@ template <class Machine> struct Insts {
   using Adc = InstX86Adc<Machine>;
   using AdcRMW = InstX86AdcRMW<Machine>;
   using Addss = InstX86Addss<Machine>;
+  using Andnps = InstX86Andnps<Machine>;
+  using Andps = InstX86Andps<Machine>;
   using Padd = InstX86Padd<Machine>;
   using Sub = InstX86Sub<Machine>;
   using SubRMW = InstX86SubRMW<Machine>;
@@ -2801,11 +2910,15 @@ template <class Machine> struct Insts {
   using Pand = InstX86Pand<Machine>;
   using Pandn = InstX86Pandn<Machine>;
   using Or = InstX86Or<Machine>;
+  using Orps = InstX86Orps<Machine>;
   using OrRMW = InstX86OrRMW<Machine>;
   using Por = InstX86Por<Machine>;
   using Xor = InstX86Xor<Machine>;
+  using Xorps = InstX86Xorps<Machine>;
   using XorRMW = InstX86XorRMW<Machine>;
   using Pxor = InstX86Pxor<Machine>;
+  using Maxss = InstX86Maxss<Machine>;
+  using Minss = InstX86Minss<Machine>;
   using Imul = InstX86Imul<Machine>;
   using ImulImm = InstX86ImulImm<Machine>;
   using Mulps = InstX86Mulps<Machine>;
@@ -2896,6 +3009,10 @@ template <class Machine> struct Insts {
   template <> const char *InstX86Adc<Machine>::Base::Opcode = "adc";           \
   template <> const char *InstX86AdcRMW<Machine>::Base::Opcode = "adc";        \
   template <> const char *InstX86Addss<Machine>::Base::Opcode = "addss";       \
+  template <> const char *InstX86Andnps<Machine>::Base::Opcode = "andn";       \
+  template <> const char *InstX86Andps<Machine>::Base::Opcode = "and";         \
+  template <> const char *InstX86Maxss<Machine>::Base::Opcode = "max";         \
+  template <> const char *InstX86Minss<Machine>::Base::Opcode = "min";         \
   template <> const char *InstX86Padd<Machine>::Base::Opcode = "padd";         \
   template <> const char *InstX86Sub<Machine>::Base::Opcode = "sub";           \
   template <> const char *InstX86SubRMW<Machine>::Base::Opcode = "sub";        \
@@ -2909,9 +3026,11 @@ template <class Machine> struct Insts {
   template <> const char *InstX86Pand<Machine>::Base::Opcode = "pand";         \
   template <> const char *InstX86Pandn<Machine>::Base::Opcode = "pandn";       \
   template <> const char *InstX86Or<Machine>::Base::Opcode = "or";             \
+  template <> const char *InstX86Orps<Machine>::Base::Opcode = "or";           \
   template <> const char *InstX86OrRMW<Machine>::Base::Opcode = "or";          \
   template <> const char *InstX86Por<Machine>::Base::Opcode = "por";           \
   template <> const char *InstX86Xor<Machine>::Base::Opcode = "xor";           \
+  template <> const char *InstX86Xorps<Machine>::Base::Opcode = "xor";         \
   template <> const char *InstX86XorRMW<Machine>::Base::Opcode = "xor";        \
   template <> const char *InstX86Pxor<Machine>::Base::Opcode = "pxor";         \
   template <> const char *InstX86Imul<Machine>::Base::Opcode = "imul";         \
@@ -2922,8 +3041,8 @@ template <class Machine> struct Insts {
   template <> const char *InstX86Pmuludq<Machine>::Base::Opcode = "pmuludq";   \
   template <> const char *InstX86Div<Machine>::Base::Opcode = "div";           \
   template <> const char *InstX86Divps<Machine>::Base::Opcode = "divps";       \
-  template <> const char *InstX86Idiv<Machine>::Base::Opcode = "idiv";         \
   template <> const char *InstX86Divss<Machine>::Base::Opcode = "divss";       \
+  template <> const char *InstX86Idiv<Machine>::Base::Opcode = "idiv";         \
   template <> const char *InstX86Rol<Machine>::Base::Opcode = "rol";           \
   template <> const char *InstX86Shl<Machine>::Base::Opcode = "shl";           \
   template <> const char *InstX86Psll<Machine>::Base::Opcode = "psll";         \
@@ -3194,6 +3313,36 @@ template <class Machine> struct Insts {
       InstX86Subps<Machine>::Base::Emitter = {                                 \
           &InstX86Base<Machine>::Traits::Assembler::subps,                     \
           &InstX86Base<Machine>::Traits::Assembler::subps};                    \
+  template <>                                                                  \
+  const InstX86Base<Machine>::Traits::Assembler::XmmEmitterRegOp               \
+      InstX86Andnps<Machine>::Base::Emitter = {                                \
+          &InstX86Base<Machine>::Traits::Assembler::andnps,                    \
+          &InstX86Base<Machine>::Traits::Assembler::andnps};                   \
+  template <>                                                                  \
+  const InstX86Base<Machine>::Traits::Assembler::XmmEmitterRegOp               \
+      InstX86Andps<Machine>::Base::Emitter = {                                 \
+          &InstX86Base<Machine>::Traits::Assembler::andps,                     \
+          &InstX86Base<Machine>::Traits::Assembler::andps};                    \
+  template <>                                                                  \
+  const InstX86Base<Machine>::Traits::Assembler::XmmEmitterRegOp               \
+      InstX86Maxss<Machine>::Base::Emitter = {                                 \
+          &InstX86Base<Machine>::Traits::Assembler::maxss,                     \
+          &InstX86Base<Machine>::Traits::Assembler::maxss};                    \
+  template <>                                                                  \
+  const InstX86Base<Machine>::Traits::Assembler::XmmEmitterRegOp               \
+      InstX86Minss<Machine>::Base::Emitter = {                                 \
+          &InstX86Base<Machine>::Traits::Assembler::minss,                     \
+          &InstX86Base<Machine>::Traits::Assembler::minss};                    \
+  template <>                                                                  \
+  const InstX86Base<Machine>::Traits::Assembler::XmmEmitterRegOp               \
+      InstX86Orps<Machine>::Base::Emitter = {                                  \
+          &InstX86Base<Machine>::Traits::Assembler::orps,                      \
+          &InstX86Base<Machine>::Traits::Assembler::orps};                     \
+  template <>                                                                  \
+  const InstX86Base<Machine>::Traits::Assembler::XmmEmitterRegOp               \
+      InstX86Xorps<Machine>::Base::Emitter = {                                 \
+          &InstX86Base<Machine>::Traits::Assembler::xorps,                     \
+          &InstX86Base<Machine>::Traits::Assembler::xorps};                    \
                                                                                \
   /* Binary XMM Shift ops */                                                   \
   template <>                                                                  \

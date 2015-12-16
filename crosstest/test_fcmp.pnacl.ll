@@ -321,6 +321,326 @@ entry:
 ; CHECK: fcmpTrueDouble:
 ; CHECK: mov {{.*}}, 1
 
+define i32 @fcmpSelectFalseFloat(float %a, float %b, i32 %c, i32 %d) {
+entry:
+  %cmp = fcmp false float %a, %b
+  %cmp.ret_ext = select i1 %cmp, i32 %c, i32 %d
+  ret i32 %cmp.ret_ext
+}
+; CHECK: fcmpSelectFalseFloat:
+; CHECK: mov {{.*}}, 0
+
+define i32 @fcmpSelectFalseDouble(double %a, double %b, i32 %c, i32 %d) {
+entry:
+  %cmp = fcmp false double %a, %b
+  %cmp.ret_ext = select i1 %cmp, i32 %c, i32 %d
+  ret i32 %cmp.ret_ext
+}
+; CHECK: fcmpSelectFalseDouble:
+; CHECK: mov {{.*}}, 0
+
+define i32 @fcmpSelectOeqFloat(float %a, float %b, i32 %c, i32 %d) {
+entry:
+  %cmp = fcmp oeq float %a, %b
+  %cmp.ret_ext = select i1 %cmp, i32 %c, i32 %d
+  ret i32 %cmp.ret_ext
+}
+; CHECK: fcmpSelectOeqFloat:
+; CHECK: ucomiss
+; CHECK: jne .
+; CHECK: jp .
+
+define i32 @fcmpSelectOeqDouble(double %a, double %b, i32 %c, i32 %d) {
+entry:
+  %cmp = fcmp oeq double %a, %b
+  %cmp.ret_ext = select i1 %cmp, i32 %c, i32 %d
+  ret i32 %cmp.ret_ext
+}
+; CHECK: fcmpSelectOeqDouble:
+; CHECK: ucomisd
+; CHECK: jne .
+; CHECK: jp .
+
+define i32 @fcmpSelectOgtFloat(float %a, float %b, i32 %c, i32 %d) {
+entry:
+  %cmp = fcmp ogt float %a, %b
+  %cmp.ret_ext = select i1 %cmp, i32 %c, i32 %d
+  ret i32 %cmp.ret_ext
+}
+; CHECK: fcmpSelectOgtFloat:
+; CHECK: ucomiss
+; CHECK: ja .
+
+define i32 @fcmpSelectOgtDouble(double %a, double %b, i32 %c, i32 %d) {
+entry:
+  %cmp = fcmp ogt double %a, %b
+  %cmp.ret_ext = select i1 %cmp, i32 %c, i32 %d
+  ret i32 %cmp.ret_ext
+}
+; CHECK: fcmpSelectOgtDouble:
+; CHECK: ucomisd
+; CHECK: ja .
+
+define i32 @fcmpSelectOgeFloat(float %a, float %b, i32 %c, i32 %d) {
+entry:
+  %cmp = fcmp oge float %a, %b
+  %cmp.ret_ext = select i1 %cmp, i32 %c, i32 %d
+  ret i32 %cmp.ret_ext
+}
+; CHECK: fcmpSelectOgeFloat:
+; CHECK: ucomiss
+; CHECK: jae .
+
+define i32 @fcmpSelectOgeDouble(double %a, double %b, i32 %c, i32 %d) {
+entry:
+  %cmp = fcmp oge double %a, %b
+  %cmp.ret_ext = select i1 %cmp, i32 %c, i32 %d
+  ret i32 %cmp.ret_ext
+}
+; CHECK: fcmpSelectOgeDouble:
+; CHECK: ucomisd
+; CHECK: jae .
+
+define i32 @fcmpSelectOltFloat(float %a, float %b, i32 %c, i32 %d) {
+entry:
+  %cmp = fcmp olt float %a, %b
+  %cmp.ret_ext = select i1 %cmp, i32 %c, i32 %d
+  ret i32 %cmp.ret_ext
+}
+; CHECK: fcmpSelectOltFloat:
+; CHECK: ucomiss
+; CHECK: ja .
+
+define i32 @fcmpSelectOltDouble(double %a, double %b, i32 %c, i32 %d) {
+entry:
+  %cmp = fcmp olt double %a, %b
+  %cmp.ret_ext = select i1 %cmp, i32 %c, i32 %d
+  ret i32 %cmp.ret_ext
+}
+; CHECK: fcmpSelectOltDouble:
+; CHECK: ucomisd
+; CHECK: ja .
+
+define i32 @fcmpSelectOleFloat(float %a, float %b, i32 %c, i32 %d) {
+entry:
+  %cmp = fcmp ole float %a, %b
+  %cmp.ret_ext = select i1 %cmp, i32 %c, i32 %d
+  ret i32 %cmp.ret_ext
+}
+; CHECK: fcmpSelectOleFloat:
+; CHECK: ucomiss
+; CHECK: jae .
+
+define i32 @fcmpSelectOleDouble(double %a, double %b, i32 %c, i32 %d) {
+entry:
+  %cmp = fcmp ole double %a, %b
+  %cmp.ret_ext = select i1 %cmp, i32 %c, i32 %d
+  ret i32 %cmp.ret_ext
+}
+; CHECK: fcmpSelectOleDouble:
+; CHECK: ucomisd
+; CHECK: jae .
+
+define i32 @fcmpSelectOneFloat(float %a, float %b, i32 %c, i32 %d) {
+entry:
+  %cmp = fcmp one float %a, %b
+  %cmp.ret_ext = select i1 %cmp, i32 %c, i32 %d
+  ret i32 %cmp.ret_ext
+}
+; CHECK: fcmpSelectOneFloat:
+; CHECK: ucomiss
+; CHECK: jne .
+
+define i32 @fcmpSelectOneDouble(double %a, double %b, i32 %c, i32 %d) {
+entry:
+  %cmp = fcmp one double %a, %b
+  %cmp.ret_ext = select i1 %cmp, i32 %c, i32 %d
+  ret i32 %cmp.ret_ext
+}
+; CHECK: fcmpSelectOneDouble:
+; CHECK: ucomisd
+; CHECK: jne .
+
+define i32 @fcmpSelectOrdFloat(float %a, float %b, i32 %c, i32 %d) {
+entry:
+  %cmp = fcmp ord float %a, %b
+  %cmp.ret_ext = select i1 %cmp, i32 %c, i32 %d
+  ret i32 %cmp.ret_ext
+}
+; CHECK: fcmpSelectOrdFloat:
+; CHECK: ucomiss
+; CHECK: jnp .
+
+define i32 @fcmpSelectOrdDouble(double %a, double %b, i32 %c, i32 %d) {
+entry:
+  %cmp = fcmp ord double %a, %b
+  %cmp.ret_ext = select i1 %cmp, i32 %c, i32 %d
+  ret i32 %cmp.ret_ext
+}
+; CHECK: fcmpSelectOrdDouble:
+; CHECK: ucomisd
+; CHECK: jnp .
+
+define i32 @fcmpSelectUeqFloat(float %a, float %b, i32 %c, i32 %d) {
+entry:
+  %cmp = fcmp ueq float %a, %b
+  %cmp.ret_ext = select i1 %cmp, i32 %c, i32 %d
+  ret i32 %cmp.ret_ext
+}
+; CHECK: fcmpSelectUeqFloat:
+; CHECK: ucomiss
+; CHECK: je .
+
+define i32 @fcmpSelectUeqDouble(double %a, double %b, i32 %c, i32 %d) {
+entry:
+  %cmp = fcmp ueq double %a, %b
+  %cmp.ret_ext = select i1 %cmp, i32 %c, i32 %d
+  ret i32 %cmp.ret_ext
+}
+; CHECK: fcmpSelectUeqDouble:
+; CHECK: ucomisd
+; CHECK: je .
+
+define i32 @fcmpSelectUgtFloat(float %a, float %b, i32 %c, i32 %d) {
+entry:
+  %cmp = fcmp ugt float %a, %b
+  %cmp.ret_ext = select i1 %cmp, i32 %c, i32 %d
+  ret i32 %cmp.ret_ext
+}
+; CHECK: fcmpSelectUgtFloat:
+; CHECK: ucomiss
+; CHECK: jb .
+
+define i32 @fcmpSelectUgtDouble(double %a, double %b, i32 %c, i32 %d) {
+entry:
+  %cmp = fcmp ugt double %a, %b
+  %cmp.ret_ext = select i1 %cmp, i32 %c, i32 %d
+  ret i32 %cmp.ret_ext
+}
+; CHECK: fcmpSelectUgtDouble:
+; CHECK: ucomisd
+; CHECK: jb .
+
+define i32 @fcmpSelectUgeFloat(float %a, float %b, i32 %c, i32 %d) {
+entry:
+  %cmp = fcmp uge float %a, %b
+  %cmp.ret_ext = select i1 %cmp, i32 %c, i32 %d
+  ret i32 %cmp.ret_ext
+}
+; CHECK: fcmpSelectUgeFloat:
+; CHECK: ucomiss
+; CHECK: jbe .
+
+define i32 @fcmpSelectUgeDouble(double %a, double %b, i32 %c, i32 %d) {
+entry:
+  %cmp = fcmp uge double %a, %b
+  %cmp.ret_ext = select i1 %cmp, i32 %c, i32 %d
+  ret i32 %cmp.ret_ext
+}
+; CHECK: fcmpSelectUgeDouble:
+; CHECK: ucomisd
+; CHECK: jbe .
+
+define i32 @fcmpSelectUltFloat(float %a, float %b, i32 %c, i32 %d) {
+entry:
+  %cmp = fcmp ult float %a, %b
+  %cmp.ret_ext = select i1 %cmp, i32 %c, i32 %d
+  ret i32 %cmp.ret_ext
+}
+; CHECK: fcmpSelectUltFloat:
+; CHECK: ucomiss
+; CHECK: jb .
+
+define i32 @fcmpSelectUltDouble(double %a, double %b, i32 %c, i32 %d) {
+entry:
+  %cmp = fcmp ult double %a, %b
+  %cmp.ret_ext = select i1 %cmp, i32 %c, i32 %d
+  ret i32 %cmp.ret_ext
+}
+; CHECK: fcmpSelectUltDouble:
+; CHECK: ucomisd
+; CHECK: jb .
+
+define i32 @fcmpSelectUleFloat(float %a, float %b, i32 %c, i32 %d) {
+entry:
+  %cmp = fcmp ule float %a, %b
+  %cmp.ret_ext = select i1 %cmp, i32 %c, i32 %d
+  ret i32 %cmp.ret_ext
+}
+; CHECK: fcmpSelectUleFloat:
+; CHECK: ucomiss
+; CHECK: jbe .
+
+define i32 @fcmpSelectUleDouble(double %a, double %b, i32 %c, i32 %d) {
+entry:
+  %cmp = fcmp ule double %a, %b
+  %cmp.ret_ext = select i1 %cmp, i32 %c, i32 %d
+  ret i32 %cmp.ret_ext
+}
+; CHECK: fcmpSelectUleDouble:
+; CHECK: ucomisd
+; CHECK: jbe .
+
+define i32 @fcmpSelectUneFloat(float %a, float %b, i32 %c, i32 %d) {
+entry:
+  %cmp = fcmp une float %a, %b
+  %cmp.ret_ext = select i1 %cmp, i32 %c, i32 %d
+  ret i32 %cmp.ret_ext
+}
+; CHECK: fcmpSelectUneFloat:
+; CHECK: ucomiss
+; CHECK: je .
+; CHECK: jnp .
+
+define i32 @fcmpSelectUneDouble(double %a, double %b, i32 %c, i32 %d) {
+entry:
+  %cmp = fcmp une double %a, %b
+  %cmp.ret_ext = select i1 %cmp, i32 %c, i32 %d
+  ret i32 %cmp.ret_ext
+}
+; CHECK: fcmpSelectUneDouble:
+; CHECK: ucomisd
+; CHECK: je .
+; CHECK: jnp .
+
+define i32 @fcmpSelectUnoFloat(float %a, float %b, i32 %c, i32 %d) {
+entry:
+  %cmp = fcmp uno float %a, %b
+  %cmp.ret_ext = select i1 %cmp, i32 %c, i32 %d
+  ret i32 %cmp.ret_ext
+}
+; CHECK: fcmpSelectUnoFloat:
+; CHECK: ucomiss
+; CHECK: jp .
+
+define i32 @fcmpSelectUnoDouble(double %a, double %b, i32 %c, i32 %d) {
+entry:
+  %cmp = fcmp uno double %a, %b
+  %cmp.ret_ext = select i1 %cmp, i32 %c, i32 %d
+  ret i32 %cmp.ret_ext
+}
+; CHECK: fcmpSelectUnoDouble:
+; CHECK: ucomisd
+; CHECK: jp .
+
+define i32 @fcmpSelectTrueFloat(float %a, float %b, i32 %c, i32 %d) {
+entry:
+  %cmp = fcmp true float %a, %b
+  %cmp.ret_ext = select i1 %cmp, i32 %c, i32 %d
+  ret i32 %cmp.ret_ext
+}
+; CHECK: fcmpSelectTrueFloat:
+; CHECK: mov {{.*}}, 1
+
+define i32 @fcmpSelectTrueDouble(double %a, double %b, i32 %c, i32 %d) {
+entry:
+  %cmp = fcmp true double %a, %b
+  %cmp.ret_ext = select i1 %cmp, i32 %c, i32 %d
+  ret i32 %cmp.ret_ext
+}
+; CHECK: fcmpSelectTrueDouble:
+; CHECK: mov {{.*}}, 1
+
 define <4 x i32> @fcmpFalseVector(<4 x float> %a, <4 x float> %b) {
 entry:
   %res.trunc = fcmp false <4 x float> %a, %b

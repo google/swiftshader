@@ -27,9 +27,15 @@
 #define X(cmp)                                                                 \
   extern "C" bool fcmp##cmp##Float(float a, float b);                          \
   extern "C" bool fcmp##cmp##Double(double a, double b);                       \
+  extern "C" int fcmpSelect##cmp##Float(float a, float b, int c, int d);       \
+  extern "C" int fcmpSelect##cmp##Double(double a, double b, int c, int d);    \
   extern "C" v4si32 fcmp##cmp##Vector(v4f32 a, v4f32 b);                       \
   extern "C" bool Subzero_fcmp##cmp##Float(float a, float b);                  \
   extern "C" bool Subzero_fcmp##cmp##Double(double a, double b);               \
+  extern "C" int Subzero_fcmpSelect##cmp##Float(float a, float b, int c,       \
+                                                int d);                        \
+  extern "C" int Subzero_fcmpSelect##cmp##Double(double a, double b, int c,    \
+                                                 int d);                       \
   extern "C" v4si32 Subzero_fcmp##cmp##Vector(v4f32 a, v4f32 b);
 FCMP_TABLE;
 #undef X
@@ -59,17 +65,25 @@ void initializeValues() {
 void testsScalar(size_t &TotalTests, size_t &Passes, size_t &Failures) {
   typedef bool (*FuncTypeFloat)(float, float);
   typedef bool (*FuncTypeDouble)(double, double);
+  typedef int (*FuncTypeFloatSelect)(float, float, int, int);
+  typedef int (*FuncTypeDoubleSelect)(double, double, int, int);
   static struct {
     const char *Name;
     FuncTypeFloat FuncFloatSz;
     FuncTypeFloat FuncFloatLlc;
     FuncTypeDouble FuncDoubleSz;
     FuncTypeDouble FuncDoubleLlc;
+    FuncTypeFloatSelect FuncFloatSelectSz;
+    FuncTypeFloatSelect FuncFloatSelectLlc;
+    FuncTypeDoubleSelect FuncDoubleSelectSz;
+    FuncTypeDoubleSelect FuncDoubleSelectLlc;
   } Funcs[] = {
 #define X(cmp)                                                                 \
   {                                                                            \
     "fcmp" STR(cmp), Subzero_fcmp##cmp##Float, fcmp##cmp##Float,               \
-        Subzero_fcmp##cmp##Double, fcmp##cmp##Double                           \
+        Subzero_fcmp##cmp##Double, fcmp##cmp##Double,                          \
+        Subzero_fcmpSelect##cmp##Float, fcmpSelect##cmp##Float,                \
+        Subzero_fcmpSelect##cmp##Double, fcmpSelect##cmp##Double               \
   }                                                                            \
   ,
       FCMP_TABLE
@@ -107,6 +121,34 @@ void testsScalar(size_t &TotalTests, size_t &Passes, size_t &Failures) {
         } else {
           ++Failures;
           std::cout << Funcs[f].Name << "Double(" << Value1Double << ", "
+                    << Value2Double << "): sz=" << ResultSz
+                    << " llc=" << ResultLlc << "\n";
+        }
+        ++TotalTests;
+        float Value1SelectFloat = Values[i];
+        float Value2SelectFloat = Values[j];
+        ResultSz = Funcs[f].FuncFloatSelectSz(Value1Float, Value2Float, 1, 2);
+        ResultLlc = Funcs[f].FuncFloatSelectLlc(Value1Float, Value2Float, 1, 2);
+        if (ResultSz == ResultLlc) {
+          ++Passes;
+        } else {
+          ++Failures;
+          std::cout << Funcs[f].Name << "SelectFloat(" << Value1Float << ", "
+                    << Value2Float << "): sz=" << ResultSz
+                    << " llc=" << ResultLlc << "\n";
+        }
+        ++TotalTests;
+        double Value1SelectDouble = Values[i];
+        double Value2SelectDouble = Values[j];
+        ResultSz =
+            Funcs[f].FuncDoubleSelectSz(Value1Double, Value2Double, 1, 2);
+        ResultLlc =
+            Funcs[f].FuncDoubleSelectLlc(Value1Double, Value2Double, 1, 2);
+        if (ResultSz == ResultLlc) {
+          ++Passes;
+        } else {
+          ++Failures;
+          std::cout << Funcs[f].Name << "SelectDouble(" << Value1Double << ", "
                     << Value2Double << "): sz=" << ResultSz
                     << " llc=" << ResultLlc << "\n";
         }

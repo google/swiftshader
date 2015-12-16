@@ -815,9 +815,10 @@ entry:
   ret float %cond
 }
 ; CHECK-LABEL: selectFloatVarVar
+; CHECK: movss
 ; CHECK: ucomiss
-; CHECK: seta
-; CHECK: fld
+; CHECK: ja
+; CHECK: movss
 ; ARM32-LABEL: selectFloatVarVar
 ; ARM32: vcmp.f32
 ; ARM32-OM1: vmovne.f32 s{{[0-9]+}}
@@ -831,9 +832,10 @@ entry:
   ret double %cond
 }
 ; CHECK-LABEL: selectDoubleVarVar
+; CHECK: movsd
 ; CHECK: ucomisd
-; CHECK: seta
-; CHECK: fld
+; CHECK: ja
+; CHECK: movsd
 ; ARM32-LABEL: selectDoubleVarVar
 ; ARM32: vcmp.f64
 ; ARM32-OM1: vmovne.f64 d{{[0-9]+}}

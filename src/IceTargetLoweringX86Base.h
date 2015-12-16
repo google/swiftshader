@@ -347,6 +347,12 @@ protected:
   void _and(Variable *Dest, Operand *Src0) {
     Context.insert(Traits::Insts::And::create(Func, Dest, Src0));
   }
+  void _andnps(Variable *Dest, Operand *Src0) {
+    Context.insert(Traits::Insts::Andnps::create(Func, Dest, Src0));
+  }
+  void _andps(Variable *Dest, Operand *Src0) {
+    Context.insert(Traits::Insts::Andps::create(Func, Dest, Src0));
+  }
   void _and_rmw(typename Traits::X86OperandMem *DestSrc0, Operand *Src1) {
     Context.insert(Traits::Insts::AndRMW::create(Func, DestSrc0, Src1));
   }
@@ -468,25 +474,30 @@ protected:
     Context.insert(Traits::Insts::Lea::create(Func, Dest, Src0));
   }
   void _mfence() { Context.insert(Traits::Insts::Mfence::create(Func)); }
+  /// Moves can be used to redefine registers, creating "partial kills" for
+  /// liveness.  Mark where moves are used in this way.
+  void _redefined(Inst *MovInst, bool IsRedefinition = true) {
+    if (IsRedefinition)
+      MovInst->setDestRedefined();
+  }
   /// If Dest=nullptr is passed in, then a new variable is created, marked as
   /// infinite register allocation weight, and returned through the in/out Dest
   /// argument.
-  void _mov(Variable *&Dest, Operand *Src0,
-            int32_t RegNum = Variable::NoRegister) {
+  Inst *_mov(Variable *&Dest, Operand *Src0,
+             int32_t RegNum = Variable::NoRegister) {
     if (Dest == nullptr)
       Dest = makeReg(Src0->getType(), RegNum);
-    Context.insert(Traits::Insts::Mov::create(Func, Dest, Src0));
-  }
-  void _mov_redefined(Variable *Dest, Operand *Src0) {
     Inst *NewInst = Traits::Insts::Mov::create(Func, Dest, Src0);
-    NewInst->setDestRedefined();
     Context.insert(NewInst);
+    return NewInst;
+  }
+  Inst *_movp(Variable *Dest, Operand *Src0) {
+    Inst *NewInst = Traits::Insts::Movp::create(Func, Dest, Src0);
+    Context.insert(NewInst);
+    return NewInst;
   }
   void _movd(Variable *Dest, Operand *Src0) {
     Context.insert(Traits::Insts::Movd::create(Func, Dest, Src0));
-  }
-  void _movp(Variable *Dest, Operand *Src0) {
-    Context.insert(Traits::Insts::Movp::create(Func, Dest, Src0));
   }
   void _movq(Variable *Dest, Operand *Src0) {
     Context.insert(Traits::Insts::Movq::create(Func, Dest, Src0));
@@ -499,6 +510,12 @@ protected:
   }
   void _movzx(Variable *Dest, Operand *Src0) {
     Context.insert(Traits::Insts::Movzx::create(Func, Dest, Src0));
+  }
+  void _maxss(Variable *Dest, Operand *Src0) {
+    Context.insert(Traits::Insts::Maxss::create(Func, Dest, Src0));
+  }
+  void _minss(Variable *Dest, Operand *Src0) {
+    Context.insert(Traits::Insts::Minss::create(Func, Dest, Src0));
   }
   void _mul(Variable *Dest, Variable *Src0, Operand *Src1) {
     Context.insert(Traits::Insts::Mul::create(Func, Dest, Src0, Src1));
@@ -517,6 +534,9 @@ protected:
   }
   void _or(Variable *Dest, Operand *Src0) {
     Context.insert(Traits::Insts::Or::create(Func, Dest, Src0));
+  }
+  void _orps(Variable *Dest, Operand *Src0) {
+    Context.insert(Traits::Insts::Orps::create(Func, Dest, Src0));
   }
   void _or_rmw(typename Traits::X86OperandMem *DestSrc0, Operand *Src1) {
     Context.insert(Traits::Insts::OrRMW::create(Func, DestSrc0, Src1));
@@ -663,6 +683,9 @@ protected:
   void _xor(Variable *Dest, Operand *Src0) {
     Context.insert(Traits::Insts::Xor::create(Func, Dest, Src0));
   }
+  void _xorps(Variable *Dest, Operand *Src0) {
+    Context.insert(Traits::Insts::Xorps::create(Func, Dest, Src0));
+  }
   void _xor_rmw(typename Traits::X86OperandMem *DestSrc0, Operand *Src1) {
     Context.insert(Traits::Insts::XorRMW::create(Func, DestSrc0, Src1));
   }
@@ -751,31 +774,49 @@ private:
   void lowerShift64(InstArithmetic::OpKind Op, Operand *Src0Lo, Operand *Src0Hi,
                     Operand *Src1Lo, Variable *DestLo, Variable *DestHi);
 
-  /// Emit the code for a combined operation and branch, or set the destination
-  /// variable of the operation if Br == nullptr.
-  void lowerIcmpAndBr(const InstIcmp *Icmp, const InstBr *Br);
-  void lowerFcmpAndBr(const InstFcmp *Fcmp, const InstBr *Br);
-  void lowerArithAndBr(const InstArithmetic *Arith, const InstBr *Br);
+  /// Emit the code for a combined operation and consumer instruction, or set
+  /// the destination variable of the operation if Consumer == nullptr.
+  void lowerIcmpAndConsumer(const InstIcmp *Icmp, const Inst *Consumer);
+  void lowerFcmpAndConsumer(const InstFcmp *Fcmp, const Inst *Consumer);
+  void lowerArithAndConsumer(const InstArithmetic *Arith, const Inst *Consumer);
 
-  /// Emit a setcc instruction if Br == nullptr; otherwise emit a branch.
-  void setccOrBr(typename Traits::Cond::BrCond Condition, Variable *Dest,
-                 const InstBr *Br);
+  /// Emit a setcc instruction if Consumer == nullptr; otherwise emit a
+  /// specialized version of Consumer.
+  void setccOrConsumer(typename Traits::Cond::BrCond Condition, Variable *Dest,
+                       const Inst *Consumer);
 
-  /// Emit a mov [1|0] instruction if Br == nullptr; otherwise emit a branch.
-  void movOrBr(bool IcmpResult, Variable *Dest, const InstBr *Br);
+  /// Emit a mov [1|0] instruction if Consumer == nullptr; otherwise emit a
+  /// specialized version of Consumer.
+  void movOrConsumer(bool IcmpResult, Variable *Dest, const Inst *Consumer);
+
+  /// Emit the code for instructions with a vector type.
+  void lowerIcmpVector(const InstIcmp *Icmp);
+  void lowerFcmpVector(const InstFcmp *Icmp);
+  void lowerSelectVector(const InstSelect *Inst);
+
+  /// Helpers for select lowering.
+  void lowerSelectMove(Variable *Dest, typename Traits::Cond::BrCond Cond,
+                       Operand *SrcT, Operand *SrcF);
+  void lowerSelectIntMove(Variable *Dest, typename Traits::Cond::BrCond Cond,
+                          Operand *SrcT, Operand *SrcF);
+  /// Generic helper to move an arbitrary type from Src to Dest.
+  void lowerMove(Variable *Dest, Operand *Src, bool IsRedefinition);
+
+  /// Optimizations for idiom recognition.
+  bool lowerOptimizeFcmpSelect(const InstFcmp *Fcmp, const InstSelect *Select);
 
   /// Complains loudly if invoked because the cpu can handle 64-bit types
   /// natively.
   template <typename T = Traits>
   typename std::enable_if<T::Is64Bit, void>::type lowerIcmp64(const InstIcmp *,
-                                                              const InstBr *) {
+                                                              const Inst *) {
     llvm::report_fatal_error(
         "Hey, yo! This is x86-64. Watcha doin'? (lowerIcmp64)");
   }
   /// x86lowerIcmp64 handles 64-bit icmp lowering.
   template <typename T = Traits>
   typename std::enable_if<!T::Is64Bit, void>::type
-  lowerIcmp64(const InstIcmp *Icmp, const InstBr *Br);
+  lowerIcmp64(const InstIcmp *Icmp, const Inst *Consumer);
 
   BoolFolding FoldingInfo;
 };

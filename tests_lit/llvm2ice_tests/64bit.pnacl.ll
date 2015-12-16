@@ -1650,13 +1650,15 @@ entry:
   ret i64 %cond
 }
 ; CHECK-LABEL: select64VarVar
+; CHECK: mov
+; CHECK: mov
 ; CHECK: cmp
 ; CHECK: jb
 ; CHECK: ja
 ; CHECK: cmp
 ; CHECK: jb
-; CHECK: cmp
-; CHECK: cmovne
+; CHECK: mov
+; CHECK: mov
 ;
 ; OPTM1-LABEL: select64VarVar
 ; OPTM1: cmp
@@ -1683,13 +1685,15 @@ entry:
   ret i64 %cond
 }
 ; CHECK-LABEL: select64VarConst
+; CHECK: mov
+; CHECK: mov
 ; CHECK: cmp
 ; CHECK: jb
 ; CHECK: ja
 ; CHECK: cmp
 ; CHECK: jb
-; CHECK: cmp
-; CHECK: cmovne
+; CHECK: mov
+; CHECK: mov
 ;
 ; OPTM1-LABEL: select64VarConst
 ; OPTM1: cmp
@@ -1720,13 +1724,15 @@ entry:
   ret i64 %cond
 }
 ; CHECK-LABEL: select64ConstVar
+; CHECK: mov
+; CHECK: mov
 ; CHECK: cmp
 ; CHECK: jb
 ; CHECK: ja
 ; CHECK: cmp
 ; CHECK: jb
-; CHECK: cmp
-; CHECK: cmove
+; CHECK: mov
+; CHECK: mov
 ;
 ; OPTM1-LABEL: select64ConstVar
 ; OPTM1: cmp

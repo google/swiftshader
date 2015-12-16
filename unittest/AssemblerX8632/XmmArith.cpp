@@ -390,7 +390,7 @@ TEST_F(AssemblerX8632Test, PArith) {
 }
 
 TEST_F(AssemblerX8632Test, ArithPS) {
-#define TestArithPSXmmXmm(Dst, Value0, Src, Value1, Inst, Op, Type)            \
+#define TestArithPSXmmXmm(FloatSize, Dst, Value0, Src, Value1, Inst, Op, Type) \
   do {                                                                         \
     static constexpr char TestString[] =                                       \
         "(" #Dst ", " #Value0 ", " #Src ", " #Value1 ", " #Inst ", " #Op       \
@@ -402,7 +402,7 @@ TEST_F(AssemblerX8632Test, ArithPS) {
                                                                                \
     __ movups(XmmRegister::Encoded_Reg_##Dst, dwordAddress(T0));               \
     __ movups(XmmRegister::Encoded_Reg_##Src, dwordAddress(T1));               \
-    __ Inst(IceType_f32, XmmRegister::Encoded_Reg_##Dst,                       \
+    __ Inst(IceType_f##FloatSize, XmmRegister::Encoded_Reg_##Dst,              \
             XmmRegister::Encoded_Reg_##Src);                                   \
                                                                                \
     AssembledTest test = assemble();                                           \
@@ -462,7 +462,7 @@ TEST_F(AssemblerX8632Test, ArithPS) {
     reset();                                                                   \
   } while (0)
 
-#define TestMinMaxPS(Dst, Value0, Src, Value1, Inst, Type)                     \
+#define TestMinMaxPS(FloatSize, Dst, Value0, Src, Value1, Inst, Type)          \
   do {                                                                         \
     static constexpr char TestString[] =                                       \
         "(" #Dst ", " #Value0 ", " #Src ", " #Value1 ", " #Inst ", " #Type     \
@@ -474,7 +474,8 @@ TEST_F(AssemblerX8632Test, ArithPS) {
                                                                                \
     __ movups(XmmRegister::Encoded_Reg_##Dst, dwordAddress(T0));               \
     __ movups(XmmRegister::Encoded_Reg_##Src, dwordAddress(T1));               \
-    __ Inst(XmmRegister::Encoded_Reg_##Dst, XmmRegister::Encoded_Reg_##Src);   \
+    __ Inst(IceType_f##FloatSize, XmmRegister::Encoded_Reg_##Dst,              \
+            XmmRegister::Encoded_Reg_##Src);                                   \
                                                                                \
     AssembledTest test = assemble();                                           \
     test.setDqwordTo(T0, V0);                                                  \
@@ -486,7 +487,7 @@ TEST_F(AssemblerX8632Test, ArithPS) {
     reset();                                                                   \
   } while (0)
 
-#define TestArithPSXmmAddr(Dst, Value0, Value1, Inst, Op, Type)                \
+#define TestArithPSXmmAddr(FloatSize, Dst, Value0, Value1, Inst, Op, Type)     \
   do {                                                                         \
     static constexpr char TestString[] =                                       \
         "(" #Dst ", " #Value0 ", Addr, " #Value1 ", " #Inst ", " #Op           \
@@ -497,7 +498,8 @@ TEST_F(AssemblerX8632Test, ArithPS) {
     const Dqword V1 Value1;                                                    \
                                                                                \
     __ movups(XmmRegister::Encoded_Reg_##Dst, dwordAddress(T0));               \
-    __ Inst(IceType_f32, XmmRegister::Encoded_Reg_##Dst, dwordAddress(T1));    \
+    __ Inst(IceType_f##FloatSize, XmmRegister::Encoded_Reg_##Dst,              \
+            dwordAddress(T1));                                                 \
                                                                                \
     AssembledTest test = assemble();                                           \
     test.setDqwordTo(T0, V0);                                                  \
@@ -511,48 +513,48 @@ TEST_F(AssemblerX8632Test, ArithPS) {
 
 #define TestArithPS(Dst, Src)                                                  \
   do {                                                                         \
-    TestArithPSXmmXmm(Dst, (1.0, 100.0, -1000.0, 20.0), Src,                   \
+    TestArithPSXmmXmm(32, Dst, (1.0, 100.0, -1000.0, 20.0), Src,               \
                       (0.55, 0.43, 0.23, 1.21), addps, +, float);              \
-    TestArithPSXmmAddr(Dst, (1.0, 100.0, -1000.0, 20.0),                       \
+    TestArithPSXmmAddr(32, Dst, (1.0, 100.0, -1000.0, 20.0),                   \
                        (0.55, 0.43, 0.23, 1.21), addps, +, float);             \
-    TestArithPSXmmXmm(Dst, (1.0, 100.0, -1000.0, 20.0), Src,                   \
+    TestArithPSXmmXmm(32, Dst, (1.0, 100.0, -1000.0, 20.0), Src,               \
                       (0.55, 0.43, 0.23, 1.21), subps, -, float);              \
-    TestArithPSXmmAddr(Dst, (1.0, 100.0, -1000.0, 20.0),                       \
+    TestArithPSXmmAddr(32, Dst, (1.0, 100.0, -1000.0, 20.0),                   \
                        (0.55, 0.43, 0.23, 1.21), subps, -, float);             \
-    TestArithPSXmmXmm(Dst, (1.0, 100.0, -1000.0, 20.0), Src,                   \
+    TestArithPSXmmXmm(32, Dst, (1.0, 100.0, -1000.0, 20.0), Src,               \
                       (0.55, 0.43, 0.23, 1.21), mulps, *, float);              \
-    TestArithPSXmmAddr(Dst, (1.0, 100.0, -1000.0, 20.0),                       \
+    TestArithPSXmmAddr(32, Dst, (1.0, 100.0, -1000.0, 20.0),                   \
                        (0.55, 0.43, 0.23, 1.21), mulps, *, float);             \
-    TestArithPSXmmXmm(Dst, (1.0, 100.0, -1000.0, 20.0), Src,                   \
+    TestArithPSXmmXmm(32, Dst, (1.0, 100.0, -1000.0, 20.0), Src,               \
                       (0.55, 0.43, 0.23, 1.21), divps, /, float);              \
-    TestArithPSXmmAddr(Dst, (1.0, 100.0, -1000.0, 20.0),                       \
+    TestArithPSXmmAddr(32, Dst, (1.0, 100.0, -1000.0, 20.0),                   \
                        (0.55, 0.43, 0.23, 1.21), divps, /, float);             \
-    TestArithPSXmmXmmUntyped(Dst, (1.0, 100.0, -1000.0, 20.0), Src,            \
-                             (0.55, 0.43, 0.23, 1.21), andps, &, float);       \
-    TestArithPSXmmAddrUntyped(Dst, (1.0, 100.0, -1000.0, 20.0),                \
-                              (0.55, 0.43, 0.23, 1.21), andps, &, float);      \
-    TestArithPSXmmXmmUntyped(Dst, (1.0, -1000.0), Src, (0.55, 1.21), andpd, &, \
-                             double);                                          \
-    TestArithPSXmmAddrUntyped(Dst, (1.0, -1000.0), (0.55, 1.21), andpd, &,     \
-                              double);                                         \
-    TestArithPSXmmXmmUntyped(Dst, (1.0, 100.0, -1000.0, 20.0), Src,            \
-                             (0.55, 0.43, 0.23, 1.21), orps, |, float);        \
-    TestArithPSXmmXmmUntyped(Dst, (1.0, -1000.0), Src, (0.55, 1.21), orpd, |,  \
-                             double);                                          \
-    TestMinMaxPS(Dst, (1.0, 100.0, -1000.0, 20.0), Src,                        \
+    TestArithPSXmmXmm(32, Dst, (1.0, 100.0, -1000.0, 20.0), Src,               \
+                      (0.55, 0.43, 0.23, 1.21), andps, &, float);              \
+    TestArithPSXmmAddr(32, Dst, (1.0, 100.0, -1000.0, 20.0),                   \
+                       (0.55, 0.43, 0.23, 1.21), andps, &, float);             \
+    TestArithPSXmmXmm(64, Dst, (1.0, -1000.0), Src, (0.55, 1.21), andps, &,    \
+                      double);                                                 \
+    TestArithPSXmmAddr(64, Dst, (1.0, -1000.0), (0.55, 1.21), andps, &,        \
+                       double);                                                \
+    TestArithPSXmmXmm(32, Dst, (1.0, 100.0, -1000.0, 20.0), Src,               \
+                      (0.55, 0.43, 0.23, 1.21), orps, |, float);               \
+    TestArithPSXmmXmm(64, Dst, (1.0, -1000.0), Src, (0.55, 1.21), orps, |,     \
+                      double);                                                 \
+    TestMinMaxPS(32, Dst, (1.0, 100.0, -1000.0, 20.0), Src,                    \
                  (0.55, 0.43, 0.23, 1.21), minps, float);                      \
-    TestMinMaxPS(Dst, (1.0, 100.0, -1000.0, 20.0), Src,                        \
+    TestMinMaxPS(32, Dst, (1.0, 100.0, -1000.0, 20.0), Src,                    \
                  (0.55, 0.43, 0.23, 1.21), maxps, float);                      \
-    TestMinMaxPS(Dst, (1.0, -1000.0), Src, (0.55, 1.21), minpd, double);       \
-    TestMinMaxPS(Dst, (1.0, -1000.0), Src, (0.55, 1.21), maxpd, double);       \
-    TestArithPSXmmXmmUntyped(Dst, (1.0, 100.0, -1000.0, 20.0), Src,            \
-                             (0.55, 0.43, 0.23, 1.21), xorps, ^, float);       \
-    TestArithPSXmmAddrUntyped(Dst, (1.0, 100.0, -1000.0, 20.0),                \
-                              (0.55, 0.43, 0.23, 1.21), xorps, ^, float);      \
-    TestArithPSXmmXmmUntyped(Dst, (1.0, -1000.0), Src, (0.55, 1.21), xorpd, ^, \
-                             double);                                          \
-    TestArithPSXmmAddrUntyped(Dst, (1.0, -1000.0), (0.55, 1.21), xorpd, ^,     \
-                              double);                                         \
+    TestMinMaxPS(64, Dst, (1.0, -1000.0), Src, (0.55, 1.21), minps, double);   \
+    TestMinMaxPS(64, Dst, (1.0, -1000.0), Src, (0.55, 1.21), maxps, double);   \
+    TestArithPSXmmXmm(32, Dst, (1.0, 100.0, -1000.0, 20.0), Src,               \
+                      (0.55, 0.43, 0.23, 1.21), xorps, ^, float);              \
+    TestArithPSXmmAddr(32, Dst, (1.0, 100.0, -1000.0, 20.0),                   \
+                       (0.55, 0.43, 0.23, 1.21), xorps, ^, float);             \
+    TestArithPSXmmXmm(64, Dst, (1.0, -1000.0), Src, (0.55, 1.21), xorps, ^,    \
+                      double);                                                 \
+    TestArithPSXmmAddr(64, Dst, (1.0, -1000.0), (0.55, 1.21), xorps, ^,        \
+                       double);                                                \
   } while (0)
 
 #if 0
@@ -675,53 +677,53 @@ TEST_F(AssemblerX8632Test, Blending) {
 }
 
 TEST_F(AssemblerX8632Test, Cmpps) {
-#define TestCmppsXmmXmm(Dst, Src, C, Op)                                       \
+#define TestCmppsXmmXmm(FloatSize, Dst, Value0, Src, Value1, C, Op, Type)      \
   do {                                                                         \
     static constexpr char TestString[] =                                       \
         "(" #Src ", " #Dst ", " #C ", " #Op ")";                               \
     const uint32_t T0 = allocateDqword();                                      \
-    const Dqword V0(-1.0, 1.0, 3.14, 1024.5);                                  \
+    const Dqword V0 Value0;                                                    \
     const uint32_t T1 = allocateDqword();                                      \
-    const Dqword V1(-1.0, 1.0, 3.14, 1024.5);                                  \
+    const Dqword V1 Value1;                                                    \
                                                                                \
     __ movups(XmmRegister::Encoded_Reg_##Dst, dwordAddress(T0));               \
     __ movups(XmmRegister::Encoded_Reg_##Src, dwordAddress(T1));               \
-    __ cmpps(XmmRegister::Encoded_Reg_##Dst, XmmRegister::Encoded_Reg_##Src,   \
-             Cond::Cmpps_##C);                                                 \
+    __ cmpps(IceType_f##FloatSize, XmmRegister::Encoded_Reg_##Dst,             \
+             XmmRegister::Encoded_Reg_##Src, Cond::Cmpps_##C);                 \
                                                                                \
     AssembledTest test = assemble();                                           \
     test.setDqwordTo(T0, V0);                                                  \
     test.setDqwordTo(T1, V1);                                                  \
     test.run();                                                                \
                                                                                \
-    ASSERT_EQ(packedAs<float>(V0) Op V1, test.Dst<Dqword>()) << TestString;    \
+    ASSERT_EQ(packedAs<Type>(V0) Op V1, test.Dst<Dqword>()) << TestString;     \
     ;                                                                          \
     reset();                                                                   \
   } while (0)
 
-#define TestCmppsXmmAddr(Dst, C, Op)                                           \
+#define TestCmppsXmmAddr(FloatSize, Dst, Value0, Value1, C, Op, Type)          \
   do {                                                                         \
     static constexpr char TestString[] = "(" #Dst ", Addr, " #C ", " #Op ")";  \
     const uint32_t T0 = allocateDqword();                                      \
-    const Dqword V0(-1.0, 1.0, 3.14, 1024.5);                                  \
+    const Dqword V0 Value0;                                                    \
     const uint32_t T1 = allocateDqword();                                      \
-    const Dqword V1(-1.0, 1.0, 3.14, 1024.5);                                  \
+    const Dqword V1 Value1;                                                    \
                                                                                \
     __ movups(XmmRegister::Encoded_Reg_##Dst, dwordAddress(T0));               \
-    __ cmpps(XmmRegister::Encoded_Reg_##Dst, dwordAddress(T1),                 \
-             Cond::Cmpps_##C);                                                 \
+    __ cmpps(IceType_f##FloatSize, XmmRegister::Encoded_Reg_##Dst,             \
+             dwordAddress(T1), Cond::Cmpps_##C);                               \
                                                                                \
     AssembledTest test = assemble();                                           \
     test.setDqwordTo(T0, V0);                                                  \
     test.setDqwordTo(T1, V1);                                                  \
     test.run();                                                                \
                                                                                \
-    ASSERT_EQ(packedAs<float>(V0) Op V1, test.Dst<Dqword>()) << TestString;    \
+    ASSERT_EQ(packedAs<Type>(V0) Op V1, test.Dst<Dqword>()) << TestString;     \
     ;                                                                          \
     reset();                                                                   \
   } while (0)
 
-#define TestCmppsOrdUnordXmmXmm(Dst, Src, C)                                   \
+#define TestCmppsOrdUnordXmmXmm(FloatSize, Dst, Value0, Src, Value1, C, Type)  \
   do {                                                                         \
     static constexpr char TestString[] = "(" #Src ", " #Dst ", " #C ")";       \
     const uint32_t T0 = allocateDqword();                                      \
@@ -733,20 +735,20 @@ TEST_F(AssemblerX8632Test, Cmpps) {
                                                                                \
     __ movups(XmmRegister::Encoded_Reg_##Dst, dwordAddress(T0));               \
     __ movups(XmmRegister::Encoded_Reg_##Src, dwordAddress(T1));               \
-    __ cmpps(XmmRegister::Encoded_Reg_##Dst, XmmRegister::Encoded_Reg_##Src,   \
-             Cond::Cmpps_##C);                                                 \
+    __ cmpps(IceType_f##FloatSize, XmmRegister::Encoded_Reg_##Dst,             \
+             XmmRegister::Encoded_Reg_##Src, Cond::Cmpps_##C);                 \
                                                                                \
     AssembledTest test = assemble();                                           \
     test.setDqwordTo(T0, V0);                                                  \
     test.setDqwordTo(T1, V1);                                                  \
     test.run();                                                                \
                                                                                \
-    ASSERT_EQ(packedAs<float>(V0).C(V1), test.Dst<Dqword>()) << TestString;    \
+    ASSERT_EQ(packedAs<Type>(V0).C(V1), test.Dst<Dqword>()) << TestString;     \
     ;                                                                          \
     reset();                                                                   \
   } while (0)
 
-#define TestCmppsOrdUnordXmmAddr(Dst, C)                                       \
+#define TestCmppsOrdUnordXmmAddr(FloatSize, Dst, Value0, Value1, C, Type)      \
   do {                                                                         \
     static constexpr char TestString[] = "(" #Dst ", " #C ")";                 \
     const uint32_t T0 = allocateDqword();                                      \
@@ -757,47 +759,83 @@ TEST_F(AssemblerX8632Test, Cmpps) {
                     std::numeric_limits<float>::quiet_NaN());                  \
                                                                                \
     __ movups(XmmRegister::Encoded_Reg_##Dst, dwordAddress(T0));               \
-    __ cmpps(XmmRegister::Encoded_Reg_##Dst, dwordAddress(T1),                 \
-             Cond::Cmpps_##C);                                                 \
+    __ cmpps(IceType_f##FloatSize, XmmRegister::Encoded_Reg_##Dst,             \
+             dwordAddress(T1), Cond::Cmpps_##C);                               \
                                                                                \
     AssembledTest test = assemble();                                           \
     test.setDqwordTo(T0, V0);                                                  \
     test.setDqwordTo(T1, V1);                                                  \
     test.run();                                                                \
                                                                                \
-    ASSERT_EQ(packedAs<float>(V0).C(V1), test.Dst<Dqword>()) << TestString;    \
+    ASSERT_EQ(packedAs<Type>(V0).C(V1), test.Dst<Dqword>()) << TestString;     \
     ;                                                                          \
     reset();                                                                   \
   } while (0)
 
-#define TestCmpps(Dst, Src)                                                    \
+#define TestCmpps(FloatSize, Dst, Value0, Src, Value1, Type)                   \
   do {                                                                         \
-    TestCmppsXmmXmm(Dst, Src, eq, == );                                        \
-    TestCmppsXmmAddr(Dst, eq, == );                                            \
-    TestCmppsXmmXmm(Dst, Src, eq, == );                                        \
-    TestCmppsXmmAddr(Dst, eq, == );                                            \
-    TestCmppsXmmXmm(Dst, Src, eq, == );                                        \
-    TestCmppsXmmAddr(Dst, eq, == );                                            \
-    TestCmppsOrdUnordXmmXmm(Dst, Src, unord);                                  \
-    TestCmppsOrdUnordXmmAddr(Dst, unord);                                      \
-    TestCmppsXmmXmm(Dst, Src, eq, == );                                        \
-    TestCmppsXmmAddr(Dst, eq, == );                                            \
-    TestCmppsXmmXmm(Dst, Src, eq, == );                                        \
-    TestCmppsXmmAddr(Dst, eq, == );                                            \
-    TestCmppsXmmXmm(Dst, Src, eq, == );                                        \
-    TestCmppsXmmAddr(Dst, eq, == );                                            \
-    TestCmppsOrdUnordXmmXmm(Dst, Src, unord);                                  \
-    TestCmppsOrdUnordXmmAddr(Dst, unord);                                      \
+    TestCmppsXmmXmm(FloatSize, Dst, Value0, Src, Value1, eq, ==, Type);        \
+    TestCmppsXmmAddr(FloatSize, Dst, Value0, Value1, eq, ==, Type);            \
+    TestCmppsXmmXmm(FloatSize, Dst, Value0, Src, Value1, eq, ==, Type);        \
+    TestCmppsXmmAddr(FloatSize, Dst, Value0, Value1, eq, ==, Type);            \
+    TestCmppsXmmXmm(FloatSize, Dst, Value0, Src, Value1, eq, ==, Type);        \
+    TestCmppsXmmAddr(FloatSize, Dst, Value0, Value1, eq, ==, Type);            \
+    TestCmppsOrdUnordXmmXmm(FloatSize, Dst, Value0, Src, Value1, unord, Type); \
+    TestCmppsOrdUnordXmmAddr(FloatSize, Dst, Value0, Value1, unord, Type);     \
+    TestCmppsXmmXmm(FloatSize, Dst, Value0, Src, Value1, eq, ==, Type);        \
+    TestCmppsXmmAddr(FloatSize, Dst, Value0, Value1, eq, ==, Type);            \
+    TestCmppsXmmXmm(FloatSize, Dst, Value0, Src, Value1, eq, ==, Type);        \
+    TestCmppsXmmAddr(FloatSize, Dst, Value0, Value1, eq, ==, Type);            \
+    TestCmppsXmmXmm(FloatSize, Dst, Value0, Src, Value1, eq, ==, Type);        \
+    TestCmppsXmmAddr(FloatSize, Dst, Value0, Value1, eq, ==, Type);            \
+    if (FloatSize == 32) {                                                     \
+      TestCmppsOrdUnordXmmXmm(                                                 \
+          32, Dst, (1.0, 1.0, std::numeric_limits<float>::quiet_NaN(),         \
+                    std::numeric_limits<float>::quiet_NaN()),                  \
+          Src, (1.0, std::numeric_limits<float>::quiet_NaN(), 1.0,             \
+                std::numeric_limits<float>::quiet_NaN()),                      \
+          unord, Type);                                                        \
+      TestCmppsOrdUnordXmmAddr(                                                \
+          32, Dst, (1.0, 1.0, std::numeric_limits<float>::quiet_NaN(),         \
+                    std::numeric_limits<float>::quiet_NaN()),                  \
+          (1.0, std::numeric_limits<float>::quiet_NaN(), 1.0,                  \
+           std::numeric_limits<float>::quiet_NaN()),                           \
+          unord, Type);                                                        \
+    } else {                                                                   \
+      TestCmppsOrdUnordXmmXmm(64, Dst,                                         \
+                              (1.0, std::numeric_limits<double>::quiet_NaN()), \
+                              Src, (std::numeric_limits<double>::quiet_NaN(),  \
+                                    std::numeric_limits<double>::quiet_NaN()), \
+                              unord, Type);                                    \
+      TestCmppsOrdUnordXmmXmm(64, Dst, (1.0, 1.0), Src,                        \
+                              (1.0, std::numeric_limits<double>::quiet_NaN()), \
+                              unord, Type);                                    \
+      TestCmppsOrdUnordXmmAddr(                                                \
+          64, Dst, (1.0, std::numeric_limits<double>::quiet_NaN()),            \
+          (std::numeric_limits<double>::quiet_NaN(),                           \
+           std::numeric_limits<double>::quiet_NaN()),                          \
+          unord, Type);                                                        \
+      TestCmppsOrdUnordXmmAddr(                                                \
+          64, Dst, (1.0, 1.0),                                                 \
+          (1.0, std::numeric_limits<double>::quiet_NaN()), unord, Type);       \
+    }                                                                          \
   } while (0)
 
-  TestCmpps(xmm0, xmm1);
-  TestCmpps(xmm1, xmm2);
-  TestCmpps(xmm2, xmm3);
-  TestCmpps(xmm3, xmm4);
-  TestCmpps(xmm4, xmm5);
-  TestCmpps(xmm5, xmm6);
-  TestCmpps(xmm6, xmm7);
-  TestCmpps(xmm7, xmm0);
+#define TestCmppsSize(FloatSize, Value0, Value1, Type)                         \
+  do {                                                                         \
+    TestCmpps(FloatSize, xmm0, Value0, xmm1, Value1, Type);                    \
+    TestCmpps(FloatSize, xmm1, Value0, xmm2, Value1, Type);                    \
+    TestCmpps(FloatSize, xmm2, Value0, xmm3, Value1, Type);                    \
+    TestCmpps(FloatSize, xmm3, Value0, xmm4, Value1, Type);                    \
+    TestCmpps(FloatSize, xmm4, Value0, xmm5, Value1, Type);                    \
+    TestCmpps(FloatSize, xmm5, Value0, xmm6, Value1, Type);                    \
+    TestCmpps(FloatSize, xmm6, Value0, xmm7, Value1, Type);                    \
+    TestCmpps(FloatSize, xmm7, Value0, xmm0, Value1, Type);                    \
+  } while (0)
+
+  TestCmppsSize(32, (-1.0, 1.0, 3.14, 1024.5), (-1.0, 1.0, 3.14, 1024.5),
+                float);
+  TestCmppsSize(64, (1.0, -1000.0), (0.55, 1.21), double);
 
 #undef TestCmpps
 #undef TestCmppsOrdUnordXmmAddr

@@ -50,8 +50,8 @@ const MachineTraits<TargetX8632>::InstCmppsAttributesType
 
 const MachineTraits<TargetX8632>::TypeAttributesType
     MachineTraits<TargetX8632>::TypeAttributes[] = {
-#define X(tag, elementty, cvt, sdss, pack, width, fld)                         \
-  { cvt, sdss, pack, width, fld }                                              \
+#define X(tag, elementty, cvt, sdss, pdps, spsd, pack, width, fld)             \
+  { cvt, sdss, pdps, spsd, pack, width, fld }                                  \
   ,
         ICETYPEX8632_TABLE
 #undef X

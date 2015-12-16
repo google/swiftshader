@@ -1105,6 +1105,84 @@ void InstX86Mulss<Machine>::emit(const Cfg *Func) const {
 }
 
 template <class Machine>
+void InstX86Andnps<Machine>::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+
+  char buf[30];
+  snprintf(
+      buf, llvm::array_lengthof(buf), "%s%s", this->Opcode,
+      InstX86Base<Machine>::Traits::TypeAttributes[this->getDest()->getType()]
+          .PdPsString);
+  this->emitTwoAddress(buf, this, Func);
+}
+
+template <class Machine>
+void InstX86Andps<Machine>::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+
+  char buf[30];
+  snprintf(
+      buf, llvm::array_lengthof(buf), "%s%s", this->Opcode,
+      InstX86Base<Machine>::Traits::TypeAttributes[this->getDest()->getType()]
+          .PdPsString);
+  this->emitTwoAddress(buf, this, Func);
+}
+
+template <class Machine>
+void InstX86Maxss<Machine>::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+
+  char buf[30];
+  snprintf(
+      buf, llvm::array_lengthof(buf), "%s%s", this->Opcode,
+      InstX86Base<Machine>::Traits::TypeAttributes[this->getDest()->getType()]
+          .SdSsString);
+  this->emitTwoAddress(buf, this, Func);
+}
+
+template <class Machine>
+void InstX86Minss<Machine>::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+
+  char buf[30];
+  snprintf(
+      buf, llvm::array_lengthof(buf), "%s%s", this->Opcode,
+      InstX86Base<Machine>::Traits::TypeAttributes[this->getDest()->getType()]
+          .SdSsString);
+  this->emitTwoAddress(buf, this, Func);
+}
+
+template <class Machine>
+void InstX86Orps<Machine>::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+
+  char buf[30];
+  snprintf(
+      buf, llvm::array_lengthof(buf), "%s%s", this->Opcode,
+      InstX86Base<Machine>::Traits::TypeAttributes[this->getDest()->getType()]
+          .PdPsString);
+  this->emitTwoAddress(buf, this, Func);
+}
+
+template <class Machine>
+void InstX86Xorps<Machine>::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+
+  char buf[30];
+  snprintf(
+      buf, llvm::array_lengthof(buf), "%s%s", this->Opcode,
+      InstX86Base<Machine>::Traits::TypeAttributes[this->getDest()->getType()]
+          .PdPsString);
+  this->emitTwoAddress(buf, this, Func);
+}
+
+template <class Machine>
 void InstX86Pmuludq<Machine>::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
@@ -1624,10 +1702,11 @@ void InstX86Cmpps<Machine>::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 2);
   assert(Condition < InstX86Base<Machine>::Traits::Cond::Cmpps_Invalid);
+  Type DestTy = this->Dest->getType();
   Str << "\t";
   Str << "cmp"
       << InstX86Base<Machine>::Traits::InstCmppsAttributes[Condition].EmitString
-      << "ps"
+      << InstX86Base<Machine>::Traits::TypeAttributes[DestTy].PdPsString
       << "\t";
   this->getSrc(1)->emit(Func);
   Str << ", ";
@@ -1646,14 +1725,16 @@ void InstX86Cmpps<Machine>::emitIAS(const Cfg *Func) const {
   auto *Target = InstX86Base<Machine>::getTarget(Func);
   const auto *SrcVar = llvm::cast<Variable>(this->getSrc(1));
   if (SrcVar->hasReg()) {
-    Asm->cmpps(InstX86Base<Machine>::Traits::getEncodedXmm(
+    Asm->cmpps(this->getDest()->getType(),
+               InstX86Base<Machine>::Traits::getEncodedXmm(
                    this->getDest()->getRegNum()),
                InstX86Base<Machine>::Traits::getEncodedXmm(SrcVar->getRegNum()),
                Condition);
   } else {
     typename InstX86Base<Machine>::Traits::Address SrcStackAddr =
         Target->stackVarToAsmOperand(SrcVar);
-    Asm->cmpps(InstX86Base<Machine>::Traits::getEncodedXmm(
+    Asm->cmpps(this->getDest()->getType(),
+               InstX86Base<Machine>::Traits::getEncodedXmm(
                    this->getDest()->getRegNum()),
                SrcStackAddr, Condition);
   }

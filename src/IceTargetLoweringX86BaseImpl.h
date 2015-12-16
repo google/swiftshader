@@ -99,6 +99,8 @@ public:
   static BoolFoldingProducerKind getProducerKind(const Inst *Instr);
   static BoolFoldingConsumerKind getConsumerKind(const Inst *Instr);
   static bool hasComplexLowering(const Inst *Instr);
+  static bool isValidFolding(BoolFoldingProducerKind ProducerKind,
+                             BoolFoldingConsumerKind ConsumerKind);
   void init(CfgNode *Node);
   const Inst *getProducerFor(const Operand *Opnd) const;
   void dump(const Cfg *Func) const;
@@ -193,6 +195,22 @@ bool BoolFolding<MachineTraits>::hasComplexLowering(const Inst *Instr) {
 }
 
 template <class MachineTraits>
+bool BoolFolding<MachineTraits>::isValidFolding(
+    typename BoolFolding<MachineTraits>::BoolFoldingProducerKind ProducerKind,
+    typename BoolFolding<MachineTraits>::BoolFoldingConsumerKind ConsumerKind) {
+  switch (ProducerKind) {
+  default:
+    return false;
+  case PK_Icmp32:
+  case PK_Icmp64:
+  case PK_Fcmp:
+    return (ConsumerKind == CK_Br) || (ConsumerKind == CK_Select);
+  case PK_Arith:
+    return ConsumerKind == CK_Br;
+  }
+}
+
+template <class MachineTraits>
 void BoolFolding<MachineTraits>::init(CfgNode *Node) {
   Producers.clear();
   for (Inst &Instr : Node->getInsts()) {
@@ -207,23 +225,34 @@ void BoolFolding<MachineTraits>::init(CfgNode *Node) {
     // Check each src variable against the map.
     FOREACH_VAR_IN_INST(Var, Instr) {
       SizeT VarNum = Var->getIndex();
-      if (containsValid(VarNum)) {
-        if (IndexOfVarOperandInInst(Var) !=
-                0 // All valid consumers use Var as the first source operand
-            ||
-            getConsumerKind(&Instr) == CK_None // must be white-listed
-            ||
-            (getConsumerKind(&Instr) != CK_Br && // Icmp64 only folds in branch
-             getProducerKind(Producers[VarNum].Instr) != PK_Icmp32) ||
-            (Producers[VarNum].IsComplex && // complex can't be multi-use
-             Producers[VarNum].NumUses > 0)) {
-          setInvalid(VarNum);
-          continue;
-        }
-        ++Producers[VarNum].NumUses;
-        if (Instr.isLastUse(Var)) {
-          Producers[VarNum].IsLiveOut = false;
-        }
+      if (!containsValid(VarNum))
+        continue;
+      // All valid consumers use Var as the first source operand
+      if (IndexOfVarOperandInInst(Var) != 0) {
+        setInvalid(VarNum);
+        continue;
+      }
+      // Consumer instructions must be white-listed
+      typename BoolFolding<MachineTraits>::BoolFoldingConsumerKind
+          ConsumerKind = getConsumerKind(&Instr);
+      if (ConsumerKind == CK_None) {
+        setInvalid(VarNum);
+        continue;
+      }
+      typename BoolFolding<MachineTraits>::BoolFoldingProducerKind
+          ProducerKind = getProducerKind(Producers[VarNum].Instr);
+      if (!isValidFolding(ProducerKind, ConsumerKind)) {
+        setInvalid(VarNum);
+        continue;
+      }
+      // Avoid creating multiple copies of complex producer instructions.
+      if (Producers[VarNum].IsComplex && Producers[VarNum].NumUses > 0) {
+        setInvalid(VarNum);
+        continue;
+      }
+      ++Producers[VarNum].NumUses;
+      if (Instr.isLastUse(Var)) {
+        Producers[VarNum].IsLiveOut = false;
       }
     }
   }
@@ -1271,9 +1300,9 @@ void TargetX86Base<Machine>::lowerShift64(InstArithmetic::OpKind Op,
       _test(T_1, BitTest);
       _br(Traits::Cond::Br_e, Label);
       // T_2 and T_3 are being assigned again because of the intra-block control
-      // flow, so we need the _mov_redefined variant to avoid liveness problems.
-      _mov_redefined(T_3, T_2);
-      _mov_redefined(T_2, Zero);
+      // flow, so we need to use _redefined to avoid liveness problems.
+      _redefined(_mov(T_3, T_2));
+      _redefined(_mov(T_2, Zero));
     } break;
     case InstArithmetic::Lshr: {
       // a=b>>c (unsigned) ==>
@@ -1289,9 +1318,9 @@ void TargetX86Base<Machine>::lowerShift64(InstArithmetic::OpKind Op,
       _test(T_1, BitTest);
       _br(Traits::Cond::Br_e, Label);
       // T_2 and T_3 are being assigned again because of the intra-block control
-      // flow, so we need the _mov_redefined variant to avoid liveness problems.
-      _mov_redefined(T_2, T_3);
-      _mov_redefined(T_3, Zero);
+      // flow, so we need to use _redefined to avoid liveness problems.
+      _redefined(_mov(T_2, T_3));
+      _redefined(_mov(T_3, Zero));
     } break;
     case InstArithmetic::Ashr: {
       // a=b>>c (signed) ==>
@@ -1308,10 +1337,10 @@ void TargetX86Base<Machine>::lowerShift64(InstArithmetic::OpKind Op,
       _test(T_1, BitTest);
       _br(Traits::Cond::Br_e, Label);
       // T_2 and T_3 are being assigned again because of the intra-block control
-      // flow, so T_2 needs the _mov_redefined variant to avoid liveness
-      // problems. T_3 doesn't need special treatment because it is reassigned
-      // via _sar instead of _mov.
-      _mov_redefined(T_2, T_3);
+      // flow, so T_2 needs to use _redefined to avoid liveness problems. T_3
+      // doesn't need special treatment because it is reassigned via _sar
+      // instead of _mov.
+      _redefined(_mov(T_2, T_3));
       _sar(T_3, SignExtend);
     } break;
     }
@@ -1885,63 +1914,36 @@ void TargetX86Base<Machine>::lowerAssign(const InstAssign *Inst) {
     Context.insert(InstFakeDef::create(Func, Dest));
     return;
   }
-  Operand *Src0 = Inst->getSrc(0);
-  assert(Dest->getType() == Src0->getType());
-  if (!Traits::Is64Bit && Dest->getType() == IceType_i64) {
-    Src0 = legalize(Src0);
-    Operand *Src0Lo = loOperand(Src0);
-    Operand *Src0Hi = hiOperand(Src0);
-    auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
-    auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
-    Variable *T_Lo = nullptr, *T_Hi = nullptr;
-    _mov(T_Lo, Src0Lo);
-    _mov(DestLo, T_Lo);
-    _mov(T_Hi, Src0Hi);
-    _mov(DestHi, T_Hi);
-  } else {
-    Operand *Src0Legal;
-    if (Dest->hasReg()) {
-      // If Dest already has a physical register, then only basic legalization
-      // is needed, as the source operand can be a register, immediate, or
-      // memory.
-      Src0Legal = legalize(Src0, Legal_Reg, Dest->getRegNum());
-    } else {
-      // If Dest could be a stack operand, then RI must be a physical register
-      // or a scalar integer immediate.
-      Src0Legal = legalize(Src0, Legal_Reg | Legal_Imm);
-    }
-    if (isVectorType(Dest->getType()))
-      _movp(Dest, Src0Legal);
-    else
-      _mov(Dest, Src0Legal);
-  }
+  Operand *Src = Inst->getSrc(0);
+  assert(Dest->getType() == Src->getType());
+  lowerMove(Dest, Src, false);
 }
 
 template <class Machine>
-void TargetX86Base<Machine>::lowerBr(const InstBr *Inst) {
-  if (Inst->isUnconditional()) {
-    _br(Inst->getTargetUnconditional());
+void TargetX86Base<Machine>::lowerBr(const InstBr *Br) {
+  if (Br->isUnconditional()) {
+    _br(Br->getTargetUnconditional());
     return;
   }
-  Operand *Cond = Inst->getCondition();
+  Operand *Cond = Br->getCondition();
 
   // Handle folding opportunities.
-  if (const class Inst *Producer = FoldingInfo.getProducerFor(Cond)) {
+  if (const Inst *Producer = FoldingInfo.getProducerFor(Cond)) {
     assert(Producer->isDeleted());
     switch (BoolFolding::getProducerKind(Producer)) {
     default:
       break;
     case BoolFolding::PK_Icmp32:
     case BoolFolding::PK_Icmp64: {
-      lowerIcmpAndBr(llvm::dyn_cast<InstIcmp>(Producer), Inst);
+      lowerIcmpAndConsumer(llvm::dyn_cast<InstIcmp>(Producer), Br);
       return;
     }
     case BoolFolding::PK_Fcmp: {
-      lowerFcmpAndBr(llvm::dyn_cast<InstFcmp>(Producer), Inst);
+      lowerFcmpAndConsumer(llvm::dyn_cast<InstFcmp>(Producer), Br);
       return;
     }
     case BoolFolding::PK_Arith: {
-      lowerArithAndBr(llvm::dyn_cast<InstArithmetic>(Producer), Inst);
+      lowerArithAndConsumer(llvm::dyn_cast<InstArithmetic>(Producer), Br);
       return;
     }
     }
@@ -1949,7 +1951,7 @@ void TargetX86Base<Machine>::lowerBr(const InstBr *Inst) {
   Operand *Src0 = legalize(Cond, Legal_Reg | Legal_Mem);
   Constant *Zero = Ctx->getConstantZero(IceType_i32);
   _cmp(Src0, Zero);
-  _br(Traits::Cond::Br_ne, Inst->getTargetTrue(), Inst->getTargetFalse());
+  _br(Traits::Cond::Br_ne, Br->getTargetTrue(), Br->getTargetFalse());
 }
 
 template <class Machine>
@@ -2483,76 +2485,32 @@ void TargetX86Base<Machine>::lowerExtractElement(
 }
 
 template <class Machine>
-void TargetX86Base<Machine>::lowerFcmp(const InstFcmp *Inst) {
-  constexpr InstBr *Br = nullptr;
-  lowerFcmpAndBr(Inst, Br);
+void TargetX86Base<Machine>::lowerFcmp(const InstFcmp *Fcmp) {
+  Variable *Dest = Fcmp->getDest();
+
+  if (isVectorType(Dest->getType())) {
+    lowerFcmpVector(Fcmp);
+  } else {
+    constexpr Inst *Consumer = nullptr;
+    lowerFcmpAndConsumer(Fcmp, Consumer);
+  }
 }
 
 template <class Machine>
-void TargetX86Base<Machine>::lowerFcmpAndBr(const InstFcmp *Inst,
-                                            const InstBr *Br) {
-  Operand *Src0 = Inst->getSrc(0);
-  Operand *Src1 = Inst->getSrc(1);
-  Variable *Dest = Inst->getDest();
+void TargetX86Base<Machine>::lowerFcmpAndConsumer(const InstFcmp *Fcmp,
+                                                  const Inst *Consumer) {
+  Operand *Src0 = Fcmp->getSrc(0);
+  Operand *Src1 = Fcmp->getSrc(1);
+  Variable *Dest = Fcmp->getDest();
 
-  if (isVectorType(Dest->getType())) {
-    if (Br)
-      llvm::report_fatal_error("vector compare/branch cannot be folded");
-    InstFcmp::FCond Condition = Inst->getCondition();
-    size_t Index = static_cast<size_t>(Condition);
-    assert(Index < Traits::TableFcmpSize);
+  if (isVectorType(Dest->getType()))
+    llvm::report_fatal_error("Vector compare/branch cannot be folded");
 
-    if (Traits::TableFcmp[Index].SwapVectorOperands)
-      std::swap(Src0, Src1);
-
-    Variable *T = nullptr;
-
-    if (Condition == InstFcmp::True) {
-      // makeVectorOfOnes() requires an integer vector type.
-      T = makeVectorOfMinusOnes(IceType_v4i32);
-    } else if (Condition == InstFcmp::False) {
-      T = makeVectorOfZeros(Dest->getType());
-    } else {
-      Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
-      Operand *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
-      if (llvm::isa<typename Traits::X86OperandMem>(Src1RM))
-        Src1RM = legalizeToReg(Src1RM);
-
-      switch (Condition) {
-      default: {
-        typename Traits::Cond::CmppsCond Predicate =
-            Traits::TableFcmp[Index].Predicate;
-        assert(Predicate != Traits::Cond::Cmpps_Invalid);
-        T = makeReg(Src0RM->getType());
-        _movp(T, Src0RM);
-        _cmpps(T, Src1RM, Predicate);
-      } break;
-      case InstFcmp::One: {
-        // Check both unequal and ordered.
-        T = makeReg(Src0RM->getType());
-        Variable *T2 = makeReg(Src0RM->getType());
-        _movp(T, Src0RM);
-        _cmpps(T, Src1RM, Traits::Cond::Cmpps_neq);
-        _movp(T2, Src0RM);
-        _cmpps(T2, Src1RM, Traits::Cond::Cmpps_ord);
-        _pand(T, T2);
-      } break;
-      case InstFcmp::Ueq: {
-        // Check both equal or unordered.
-        T = makeReg(Src0RM->getType());
-        Variable *T2 = makeReg(Src0RM->getType());
-        _movp(T, Src0RM);
-        _cmpps(T, Src1RM, Traits::Cond::Cmpps_eq);
-        _movp(T2, Src0RM);
-        _cmpps(T2, Src1RM, Traits::Cond::Cmpps_unord);
-        _por(T, T2);
-      } break;
-      }
+  if (Consumer != nullptr) {
+    if (auto *Select = llvm::dyn_cast<InstSelect>(Consumer)) {
+      if (lowerOptimizeFcmpSelect(Fcmp, Select))
+        return;
     }
-
-    _movp(Dest, T);
-    eliminateNextVectorSextInstruction(Dest);
-    return;
   }
 
   // Lowering a = fcmp cond, b, c
@@ -2568,7 +2526,7 @@ void TargetX86Base<Machine>::lowerFcmpAndBr(const InstFcmp *Inst,
   // setcc lowering when C1 != Br_None && C2 == Br_None:
   //   ucomiss b, c       /* but swap b,c order if SwapOperands==true */
   //   setcc a, C1
-  InstFcmp::FCond Condition = Inst->getCondition();
+  InstFcmp::FCond Condition = Fcmp->getCondition();
   size_t Index = static_cast<size_t>(Condition);
   assert(Index < Traits::TableFcmpSize);
   if (Traits::TableFcmp[Index].SwapScalarOperands)
@@ -2583,12 +2541,12 @@ void TargetX86Base<Machine>::lowerFcmpAndBr(const InstFcmp *Inst,
     _ucomiss(T, Src1RM);
     if (!HasC2) {
       assert(Traits::TableFcmp[Index].Default);
-      setccOrBr(Traits::TableFcmp[Index].C1, Dest, Br);
+      setccOrConsumer(Traits::TableFcmp[Index].C1, Dest, Consumer);
       return;
     }
   }
   int32_t IntDefault = Traits::TableFcmp[Index].Default;
-  if (Br == nullptr) {
+  if (Consumer == nullptr) {
     Constant *Default = Ctx->getConstantInt(Dest->getType(), IntDefault);
     _mov(Dest, Default);
     if (HasC1) {
@@ -2599,10 +2557,12 @@ void TargetX86Base<Machine>::lowerFcmpAndBr(const InstFcmp *Inst,
         _br(Traits::TableFcmp[Index].C2, Label);
       }
       Constant *NonDefault = Ctx->getConstantInt(Dest->getType(), !IntDefault);
-      _mov_redefined(Dest, NonDefault);
+      _redefined(_mov(Dest, NonDefault));
       Context.insert(Label);
     }
-  } else {
+    return;
+  }
+  if (const auto *Br = llvm::dyn_cast<InstBr>(Consumer)) {
     CfgNode *TrueSucc = Br->getTargetTrue();
     CfgNode *FalseSucc = Br->getTargetFalse();
     if (IntDefault != 0)
@@ -2616,7 +2576,95 @@ void TargetX86Base<Machine>::lowerFcmpAndBr(const InstFcmp *Inst,
       return;
     }
     _br(FalseSucc);
+    return;
   }
+  if (auto *Select = llvm::dyn_cast<InstSelect>(Consumer)) {
+    Operand *SrcT = Select->getTrueOperand();
+    Operand *SrcF = Select->getFalseOperand();
+    Variable *SelectDest = Select->getDest();
+    if (IntDefault != 0)
+      std::swap(SrcT, SrcF);
+    lowerMove(SelectDest, SrcF, false);
+    if (HasC1) {
+      typename Traits::Insts::Label *Label =
+          Traits::Insts::Label::create(Func, this);
+      _br(Traits::TableFcmp[Index].C1, Label);
+      if (HasC2) {
+        _br(Traits::TableFcmp[Index].C2, Label);
+      }
+      static constexpr bool IsRedefinition = true;
+      lowerMove(SelectDest, SrcT, IsRedefinition);
+      Context.insert(Label);
+    }
+    return;
+  }
+  llvm::report_fatal_error("Unexpected consumer type");
+}
+
+template <class Machine>
+void TargetX86Base<Machine>::lowerFcmpVector(const InstFcmp *Fcmp) {
+  Operand *Src0 = Fcmp->getSrc(0);
+  Operand *Src1 = Fcmp->getSrc(1);
+  Variable *Dest = Fcmp->getDest();
+
+  if (!isVectorType(Dest->getType()))
+    llvm::report_fatal_error("Expected vector compare");
+
+  InstFcmp::FCond Condition = Fcmp->getCondition();
+  size_t Index = static_cast<size_t>(Condition);
+  assert(Index < Traits::TableFcmpSize);
+
+  if (Traits::TableFcmp[Index].SwapVectorOperands)
+    std::swap(Src0, Src1);
+
+  Variable *T = nullptr;
+
+  if (Condition == InstFcmp::True) {
+    // makeVectorOfOnes() requires an integer vector type.
+    T = makeVectorOfMinusOnes(IceType_v4i32);
+  } else if (Condition == InstFcmp::False) {
+    T = makeVectorOfZeros(Dest->getType());
+  } else {
+    Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
+    Operand *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
+    if (llvm::isa<typename Traits::X86OperandMem>(Src1RM))
+      Src1RM = legalizeToReg(Src1RM);
+
+    switch (Condition) {
+    default: {
+      typename Traits::Cond::CmppsCond Predicate =
+          Traits::TableFcmp[Index].Predicate;
+      assert(Predicate != Traits::Cond::Cmpps_Invalid);
+      T = makeReg(Src0RM->getType());
+      _movp(T, Src0RM);
+      _cmpps(T, Src1RM, Predicate);
+    } break;
+    case InstFcmp::One: {
+      // Check both unequal and ordered.
+      T = makeReg(Src0RM->getType());
+      Variable *T2 = makeReg(Src0RM->getType());
+      _movp(T, Src0RM);
+      _cmpps(T, Src1RM, Traits::Cond::Cmpps_neq);
+      _movp(T2, Src0RM);
+      _cmpps(T2, Src1RM, Traits::Cond::Cmpps_ord);
+      _pand(T, T2);
+    } break;
+    case InstFcmp::Ueq: {
+      // Check both equal or unordered.
+      T = makeReg(Src0RM->getType());
+      Variable *T2 = makeReg(Src0RM->getType());
+      _movp(T, Src0RM);
+      _cmpps(T, Src1RM, Traits::Cond::Cmpps_eq);
+      _movp(T2, Src0RM);
+      _cmpps(T2, Src1RM, Traits::Cond::Cmpps_unord);
+      _por(T, T2);
+    } break;
+    }
+  }
+
+  assert(T != nullptr);
+  _movp(Dest, T);
+  eliminateNextVectorSextInstruction(Dest);
 }
 
 inline bool isZero(const Operand *Opnd) {
@@ -2628,131 +2676,17 @@ inline bool isZero(const Operand *Opnd) {
 }
 
 template <class Machine>
-void TargetX86Base<Machine>::lowerIcmp(const InstIcmp *Inst) {
-  constexpr InstBr *Br = nullptr;
-  lowerIcmpAndBr(Inst, Br);
-}
-
-template <class Machine>
-void TargetX86Base<Machine>::lowerIcmpAndBr(const InstIcmp *Icmp,
-                                            const InstBr *Br) {
+void TargetX86Base<Machine>::lowerIcmpAndConsumer(const InstIcmp *Icmp,
+                                                  const Inst *Consumer) {
   Operand *Src0 = legalize(Icmp->getSrc(0));
   Operand *Src1 = legalize(Icmp->getSrc(1));
   Variable *Dest = Icmp->getDest();
 
-  if (isVectorType(Dest->getType())) {
-    if (Br)
-      llvm::report_fatal_error("vector compare/branch cannot be folded");
-    Type Ty = Src0->getType();
-    // Promote i1 vectors to 128 bit integer vector types.
-    if (typeElementType(Ty) == IceType_i1) {
-      Type NewTy = IceType_NUM;
-      switch (Ty) {
-      default:
-        llvm_unreachable("unexpected type");
-        break;
-      case IceType_v4i1:
-        NewTy = IceType_v4i32;
-        break;
-      case IceType_v8i1:
-        NewTy = IceType_v8i16;
-        break;
-      case IceType_v16i1:
-        NewTy = IceType_v16i8;
-        break;
-      }
-      Variable *NewSrc0 = Func->makeVariable(NewTy);
-      Variable *NewSrc1 = Func->makeVariable(NewTy);
-      lowerCast(InstCast::create(Func, InstCast::Sext, NewSrc0, Src0));
-      lowerCast(InstCast::create(Func, InstCast::Sext, NewSrc1, Src1));
-      Src0 = NewSrc0;
-      Src1 = NewSrc1;
-      Ty = NewTy;
-    }
-
-    InstIcmp::ICond Condition = Icmp->getCondition();
-
-    Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
-    Operand *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
-
-    // SSE2 only has signed comparison operations. Transform unsigned inputs in
-    // a manner that allows for the use of signed comparison operations by
-    // flipping the high order bits.
-    if (Condition == InstIcmp::Ugt || Condition == InstIcmp::Uge ||
-        Condition == InstIcmp::Ult || Condition == InstIcmp::Ule) {
-      Variable *T0 = makeReg(Ty);
-      Variable *T1 = makeReg(Ty);
-      Variable *HighOrderBits = makeVectorOfHighOrderBits(Ty);
-      _movp(T0, Src0RM);
-      _pxor(T0, HighOrderBits);
-      _movp(T1, Src1RM);
-      _pxor(T1, HighOrderBits);
-      Src0RM = T0;
-      Src1RM = T1;
-    }
-
-    Variable *T = makeReg(Ty);
-    switch (Condition) {
-    default:
-      llvm_unreachable("unexpected condition");
-      break;
-    case InstIcmp::Eq: {
-      if (llvm::isa<typename Traits::X86OperandMem>(Src1RM))
-        Src1RM = legalizeToReg(Src1RM);
-      _movp(T, Src0RM);
-      _pcmpeq(T, Src1RM);
-    } break;
-    case InstIcmp::Ne: {
-      if (llvm::isa<typename Traits::X86OperandMem>(Src1RM))
-        Src1RM = legalizeToReg(Src1RM);
-      _movp(T, Src0RM);
-      _pcmpeq(T, Src1RM);
-      Variable *MinusOne = makeVectorOfMinusOnes(Ty);
-      _pxor(T, MinusOne);
-    } break;
-    case InstIcmp::Ugt:
-    case InstIcmp::Sgt: {
-      if (llvm::isa<typename Traits::X86OperandMem>(Src1RM))
-        Src1RM = legalizeToReg(Src1RM);
-      _movp(T, Src0RM);
-      _pcmpgt(T, Src1RM);
-    } break;
-    case InstIcmp::Uge:
-    case InstIcmp::Sge: {
-      // !(Src1RM > Src0RM)
-      if (llvm::isa<typename Traits::X86OperandMem>(Src0RM))
-        Src0RM = legalizeToReg(Src0RM);
-      _movp(T, Src1RM);
-      _pcmpgt(T, Src0RM);
-      Variable *MinusOne = makeVectorOfMinusOnes(Ty);
-      _pxor(T, MinusOne);
-    } break;
-    case InstIcmp::Ult:
-    case InstIcmp::Slt: {
-      if (llvm::isa<typename Traits::X86OperandMem>(Src0RM))
-        Src0RM = legalizeToReg(Src0RM);
-      _movp(T, Src1RM);
-      _pcmpgt(T, Src0RM);
-    } break;
-    case InstIcmp::Ule:
-    case InstIcmp::Sle: {
-      // !(Src0RM > Src1RM)
-      if (llvm::isa<typename Traits::X86OperandMem>(Src1RM))
-        Src1RM = legalizeToReg(Src1RM);
-      _movp(T, Src0RM);
-      _pcmpgt(T, Src1RM);
-      Variable *MinusOne = makeVectorOfMinusOnes(Ty);
-      _pxor(T, MinusOne);
-    } break;
-    }
-
-    _movp(Dest, T);
-    eliminateNextVectorSextInstruction(Dest);
-    return;
-  }
+  if (isVectorType(Dest->getType()))
+    llvm::report_fatal_error("Vector compare/branch cannot be folded");
 
   if (!Traits::Is64Bit && Src0->getType() == IceType_i64) {
-    lowerIcmp64(Icmp, Br);
+    lowerIcmp64(Icmp, Consumer);
     return;
   }
 
@@ -2762,22 +2696,140 @@ void TargetX86Base<Machine>::lowerIcmpAndBr(const InstIcmp *Icmp,
     default:
       break;
     case InstIcmp::Uge:
-      movOrBr(true, Dest, Br);
+      movOrConsumer(true, Dest, Consumer);
       return;
     case InstIcmp::Ult:
-      movOrBr(false, Dest, Br);
+      movOrConsumer(false, Dest, Consumer);
       return;
     }
   }
   Operand *Src0RM = legalizeSrc0ForCmp(Src0, Src1);
   _cmp(Src0RM, Src1);
-  setccOrBr(Traits::getIcmp32Mapping(Icmp->getCondition()), Dest, Br);
+  setccOrConsumer(Traits::getIcmp32Mapping(Icmp->getCondition()), Dest,
+                  Consumer);
+}
+
+template <class Machine>
+void TargetX86Base<Machine>::lowerIcmpVector(const InstIcmp *Icmp) {
+  Operand *Src0 = legalize(Icmp->getSrc(0));
+  Operand *Src1 = legalize(Icmp->getSrc(1));
+  Variable *Dest = Icmp->getDest();
+
+  if (!isVectorType(Dest->getType()))
+    llvm::report_fatal_error("Expected a vector compare");
+
+  Type Ty = Src0->getType();
+  // Promote i1 vectors to 128 bit integer vector types.
+  if (typeElementType(Ty) == IceType_i1) {
+    Type NewTy = IceType_NUM;
+    switch (Ty) {
+    default:
+      llvm::report_fatal_error("unexpected type");
+      break;
+    case IceType_v4i1:
+      NewTy = IceType_v4i32;
+      break;
+    case IceType_v8i1:
+      NewTy = IceType_v8i16;
+      break;
+    case IceType_v16i1:
+      NewTy = IceType_v16i8;
+      break;
+    }
+    Variable *NewSrc0 = Func->makeVariable(NewTy);
+    Variable *NewSrc1 = Func->makeVariable(NewTy);
+    lowerCast(InstCast::create(Func, InstCast::Sext, NewSrc0, Src0));
+    lowerCast(InstCast::create(Func, InstCast::Sext, NewSrc1, Src1));
+    Src0 = NewSrc0;
+    Src1 = NewSrc1;
+    Ty = NewTy;
+  }
+
+  InstIcmp::ICond Condition = Icmp->getCondition();
+
+  Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
+  Operand *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
+
+  // SSE2 only has signed comparison operations. Transform unsigned inputs in
+  // a manner that allows for the use of signed comparison operations by
+  // flipping the high order bits.
+  if (Condition == InstIcmp::Ugt || Condition == InstIcmp::Uge ||
+      Condition == InstIcmp::Ult || Condition == InstIcmp::Ule) {
+    Variable *T0 = makeReg(Ty);
+    Variable *T1 = makeReg(Ty);
+    Variable *HighOrderBits = makeVectorOfHighOrderBits(Ty);
+    _movp(T0, Src0RM);
+    _pxor(T0, HighOrderBits);
+    _movp(T1, Src1RM);
+    _pxor(T1, HighOrderBits);
+    Src0RM = T0;
+    Src1RM = T1;
+  }
+
+  Variable *T = makeReg(Ty);
+  switch (Condition) {
+  default:
+    llvm_unreachable("unexpected condition");
+    break;
+  case InstIcmp::Eq: {
+    if (llvm::isa<typename Traits::X86OperandMem>(Src1RM))
+      Src1RM = legalizeToReg(Src1RM);
+    _movp(T, Src0RM);
+    _pcmpeq(T, Src1RM);
+  } break;
+  case InstIcmp::Ne: {
+    if (llvm::isa<typename Traits::X86OperandMem>(Src1RM))
+      Src1RM = legalizeToReg(Src1RM);
+    _movp(T, Src0RM);
+    _pcmpeq(T, Src1RM);
+    Variable *MinusOne = makeVectorOfMinusOnes(Ty);
+    _pxor(T, MinusOne);
+  } break;
+  case InstIcmp::Ugt:
+  case InstIcmp::Sgt: {
+    if (llvm::isa<typename Traits::X86OperandMem>(Src1RM))
+      Src1RM = legalizeToReg(Src1RM);
+    _movp(T, Src0RM);
+    _pcmpgt(T, Src1RM);
+  } break;
+  case InstIcmp::Uge:
+  case InstIcmp::Sge: {
+    // !(Src1RM > Src0RM)
+    if (llvm::isa<typename Traits::X86OperandMem>(Src0RM))
+      Src0RM = legalizeToReg(Src0RM);
+    _movp(T, Src1RM);
+    _pcmpgt(T, Src0RM);
+    Variable *MinusOne = makeVectorOfMinusOnes(Ty);
+    _pxor(T, MinusOne);
+  } break;
+  case InstIcmp::Ult:
+  case InstIcmp::Slt: {
+    if (llvm::isa<typename Traits::X86OperandMem>(Src0RM))
+      Src0RM = legalizeToReg(Src0RM);
+    _movp(T, Src1RM);
+    _pcmpgt(T, Src0RM);
+  } break;
+  case InstIcmp::Ule:
+  case InstIcmp::Sle: {
+    // !(Src0RM > Src1RM)
+    if (llvm::isa<typename Traits::X86OperandMem>(Src1RM))
+      Src1RM = legalizeToReg(Src1RM);
+    _movp(T, Src0RM);
+    _pcmpgt(T, Src1RM);
+    Variable *MinusOne = makeVectorOfMinusOnes(Ty);
+    _pxor(T, MinusOne);
+  } break;
+  }
+
+  _movp(Dest, T);
+  eliminateNextVectorSextInstruction(Dest);
 }
 
 template <typename Machine>
 template <typename T>
 typename std::enable_if<!T::Is64Bit, void>::type
-TargetX86Base<Machine>::lowerIcmp64(const InstIcmp *Icmp, const InstBr *Br) {
+TargetX86Base<Machine>::lowerIcmp64(const InstIcmp *Icmp,
+                                    const Inst *Consumer) {
   // a=icmp cond, b, c ==> cmp b,c; a=1; br cond,L1; FakeUse(a); a=0; L1:
   Operand *Src0 = legalize(Icmp->getSrc(0));
   Operand *Src1 = legalize(Icmp->getSrc(1));
@@ -2835,7 +2887,7 @@ TargetX86Base<Machine>::lowerIcmp64(const InstIcmp *Icmp, const InstBr *Br) {
       _mov(Temp, Src0HiRM);
       _or(Temp, Src0LoRM);
       Context.insert(InstFakeUse::create(Func, Temp));
-      setccOrBr(Traits::Cond::Br_e, Dest, Br);
+      setccOrConsumer(Traits::Cond::Br_e, Dest, Consumer);
       return;
     case InstIcmp::Ne:
     case InstIcmp::Ugt:
@@ -2844,23 +2896,23 @@ TargetX86Base<Machine>::lowerIcmp64(const InstIcmp *Icmp, const InstBr *Br) {
       _mov(Temp, Src0HiRM);
       _or(Temp, Src0LoRM);
       Context.insert(InstFakeUse::create(Func, Temp));
-      setccOrBr(Traits::Cond::Br_ne, Dest, Br);
+      setccOrConsumer(Traits::Cond::Br_ne, Dest, Consumer);
       return;
     case InstIcmp::Uge:
-      movOrBr(true, Dest, Br);
+      movOrConsumer(true, Dest, Consumer);
       return;
     case InstIcmp::Ult:
-      movOrBr(false, Dest, Br);
+      movOrConsumer(false, Dest, Consumer);
       return;
     case InstIcmp::Sgt:
       break;
     case InstIcmp::Sge:
       _test(Src0HiRM, SignMask);
-      setccOrBr(Traits::Cond::Br_e, Dest, Br);
+      setccOrConsumer(Traits::Cond::Br_e, Dest, Consumer);
       return;
     case InstIcmp::Slt:
       _test(Src0HiRM, SignMask);
-      setccOrBr(Traits::Cond::Br_ne, Dest, Br);
+      setccOrConsumer(Traits::Cond::Br_ne, Dest, Consumer);
       return;
     case InstIcmp::Sle:
       break;
@@ -2869,7 +2921,7 @@ TargetX86Base<Machine>::lowerIcmp64(const InstIcmp *Icmp, const InstBr *Br) {
   // Handle general compares.
   Operand *Src1LoRI = legalize(loOperand(Src1), Legal_Reg | Legal_Imm);
   Operand *Src1HiRI = legalize(hiOperand(Src1), Legal_Reg | Legal_Imm);
-  if (Br == nullptr) {
+  if (Consumer == nullptr) {
     Constant *Zero = Ctx->getConstantInt(Dest->getType(), 0);
     Constant *One = Ctx->getConstantInt(Dest->getType(), 1);
     typename Traits::Insts::Label *LabelFalse =
@@ -2885,9 +2937,11 @@ TargetX86Base<Machine>::lowerIcmp64(const InstIcmp *Icmp, const InstBr *Br) {
     _cmp(Src0LoRM, Src1LoRI);
     _br(Traits::TableIcmp64[Index].C3, LabelTrue);
     Context.insert(LabelFalse);
-    _mov_redefined(Dest, Zero);
+    _redefined(_mov(Dest, Zero));
     Context.insert(LabelTrue);
-  } else {
+    return;
+  }
+  if (const auto *Br = llvm::dyn_cast<InstBr>(Consumer)) {
     _cmp(Src0HiRM, Src1HiRI);
     if (Traits::TableIcmp64[Index].C1 != Traits::Cond::Br_None)
       _br(Traits::TableIcmp64[Index].C1, Br->getTargetTrue());
@@ -2896,37 +2950,88 @@ TargetX86Base<Machine>::lowerIcmp64(const InstIcmp *Icmp, const InstBr *Br) {
     _cmp(Src0LoRM, Src1LoRI);
     _br(Traits::TableIcmp64[Index].C3, Br->getTargetTrue(),
         Br->getTargetFalse());
+    return;
   }
+  if (auto *Select = llvm::dyn_cast<InstSelect>(Consumer)) {
+    Operand *SrcT = Select->getTrueOperand();
+    Operand *SrcF = Select->getFalseOperand();
+    Variable *SelectDest = Select->getDest();
+    typename Traits::Insts::Label *LabelFalse =
+        Traits::Insts::Label::create(Func, this);
+    typename Traits::Insts::Label *LabelTrue =
+        Traits::Insts::Label::create(Func, this);
+    lowerMove(SelectDest, SrcT, false);
+    _cmp(Src0HiRM, Src1HiRI);
+    if (Traits::TableIcmp64[Index].C1 != Traits::Cond::Br_None)
+      _br(Traits::TableIcmp64[Index].C1, LabelTrue);
+    if (Traits::TableIcmp64[Index].C2 != Traits::Cond::Br_None)
+      _br(Traits::TableIcmp64[Index].C2, LabelFalse);
+    _cmp(Src0LoRM, Src1LoRI);
+    _br(Traits::TableIcmp64[Index].C3, LabelTrue);
+    Context.insert(LabelFalse);
+    static constexpr bool IsRedefinition = true;
+    lowerMove(SelectDest, SrcF, IsRedefinition);
+    Context.insert(LabelTrue);
+    return;
+  }
+  llvm::report_fatal_error("Unexpected consumer type");
 }
 
 template <class Machine>
-void TargetX86Base<Machine>::setccOrBr(typename Traits::Cond::BrCond Condition,
-                                       Variable *Dest, const InstBr *Br) {
-  if (Br == nullptr) {
+void TargetX86Base<Machine>::setccOrConsumer(
+    typename Traits::Cond::BrCond Condition, Variable *Dest,
+    const Inst *Consumer) {
+  if (Consumer == nullptr) {
     _setcc(Dest, Condition);
-  } else {
-    _br(Condition, Br->getTargetTrue(), Br->getTargetFalse());
+    return;
   }
+  if (const auto *Br = llvm::dyn_cast<InstBr>(Consumer)) {
+    _br(Condition, Br->getTargetTrue(), Br->getTargetFalse());
+    return;
+  }
+  if (const auto *Select = llvm::dyn_cast<InstSelect>(Consumer)) {
+    Operand *SrcT = Select->getTrueOperand();
+    Operand *SrcF = Select->getFalseOperand();
+    Variable *SelectDest = Select->getDest();
+    lowerSelectMove(SelectDest, Condition, SrcT, SrcF);
+    return;
+  }
+  llvm::report_fatal_error("Unexpected consumer type");
 }
 
 template <class Machine>
-void TargetX86Base<Machine>::movOrBr(bool IcmpResult, Variable *Dest,
-                                     const InstBr *Br) {
-  if (Br == nullptr) {
+void TargetX86Base<Machine>::movOrConsumer(bool IcmpResult, Variable *Dest,
+                                           const Inst *Consumer) {
+  if (Consumer == nullptr) {
     _mov(Dest, Ctx->getConstantInt(Dest->getType(), (IcmpResult ? 1 : 0)));
-  } else {
+    return;
+  }
+  if (const auto *Br = llvm::dyn_cast<InstBr>(Consumer)) {
     // TODO(sehr,stichnot): This could be done with a single unconditional
     // branch instruction, but subzero doesn't know how to handle the resulting
     // control flow graph changes now.  Make it do so to eliminate mov and cmp.
     _mov(Dest, Ctx->getConstantInt(Dest->getType(), (IcmpResult ? 1 : 0)));
     _cmp(Dest, Ctx->getConstantInt(Dest->getType(), 0));
     _br(Traits::Cond::Br_ne, Br->getTargetTrue(), Br->getTargetFalse());
+    return;
   }
+  if (const auto *Select = llvm::dyn_cast<InstSelect>(Consumer)) {
+    Operand *Src = nullptr;
+    if (IcmpResult) {
+      Src = legalize(Select->getTrueOperand(), Legal_Reg | Legal_Imm);
+    } else {
+      Src = legalize(Select->getFalseOperand(), Legal_Reg | Legal_Imm);
+    }
+    Variable *SelectDest = Select->getDest();
+    lowerMove(SelectDest, Src, false);
+    return;
+  }
+  llvm::report_fatal_error("Unexpected consumer type");
 }
 
 template <class Machine>
-void TargetX86Base<Machine>::lowerArithAndBr(const InstArithmetic *Arith,
-                                             const InstBr *Br) {
+void TargetX86Base<Machine>::lowerArithAndConsumer(const InstArithmetic *Arith,
+                                                   const Inst *Consumer) {
   Variable *T = nullptr;
   Operand *Src0 = legalize(Arith->getSrc(0));
   Operand *Src1 = legalize(Arith->getSrc(1));
@@ -2950,9 +3055,17 @@ void TargetX86Base<Machine>::lowerArithAndBr(const InstArithmetic *Arith,
     _or(T, Src1);
     break;
   }
-  Context.insert(InstFakeUse::create(Func, T));
-  Context.insert(InstFakeDef::create(Func, Dest));
-  _br(Traits::Cond::Br_ne, Br->getTargetTrue(), Br->getTargetFalse());
+
+  if (Consumer == nullptr) {
+    llvm::report_fatal_error("Expected a consumer instruction");
+  }
+  if (const auto *Br = llvm::dyn_cast<InstBr>(Consumer)) {
+    Context.insert(InstFakeUse::create(Func, T));
+    Context.insert(InstFakeDef::create(Func, Dest));
+    _br(Traits::Cond::Br_ne, Br->getTargetTrue(), Br->getTargetFalse());
+    return;
+  }
+  llvm::report_fatal_error("Unexpected consumer type");
 }
 
 template <class Machine>
@@ -3435,7 +3548,7 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
   case Intrinsics::Stackrestore: {
     Variable *esp =
         Func->getTarget()->getPhysicalRegister(Traits::RegisterSet::Reg_esp);
-    _mov_redefined(esp, Instr->getArg(0));
+    _redefined(_mov(esp, Instr->getArg(0)));
     return;
   }
   case Intrinsics::Trap:
@@ -4617,96 +4730,47 @@ void TargetX86Base<Machine>::lowerPhi(const InstPhi * /*Inst*/) {
 }
 
 template <class Machine>
-void TargetX86Base<Machine>::lowerSelect(const InstSelect *Inst) {
-  Variable *Dest = Inst->getDest();
-  Type DestTy = Dest->getType();
-  Operand *SrcT = Inst->getTrueOperand();
-  Operand *SrcF = Inst->getFalseOperand();
-  Operand *Condition = Inst->getCondition();
+void TargetX86Base<Machine>::lowerSelect(const InstSelect *Select) {
+  Variable *Dest = Select->getDest();
 
-  if (isVectorType(DestTy)) {
-    Type SrcTy = SrcT->getType();
-    Variable *T = makeReg(SrcTy);
-    Operand *SrcTRM = legalize(SrcT, Legal_Reg | Legal_Mem);
-    Operand *SrcFRM = legalize(SrcF, Legal_Reg | Legal_Mem);
-    if (InstructionSet >= Traits::SSE4_1) {
-      // TODO(wala): If the condition operand is a constant, use blendps or
-      // pblendw.
-      //
-      // Use blendvps or pblendvb to implement select.
-      if (SrcTy == IceType_v4i1 || SrcTy == IceType_v4i32 ||
-          SrcTy == IceType_v4f32) {
-        Operand *ConditionRM = legalize(Condition, Legal_Reg | Legal_Mem);
-        Variable *xmm0 = makeReg(IceType_v4i32, Traits::RegisterSet::Reg_xmm0);
-        _movp(xmm0, ConditionRM);
-        _psll(xmm0, Ctx->getConstantInt8(31));
-        _movp(T, SrcFRM);
-        _blendvps(T, SrcTRM, xmm0);
-        _movp(Dest, T);
-      } else {
-        assert(typeNumElements(SrcTy) == 8 || typeNumElements(SrcTy) == 16);
-        Type SignExtTy = Condition->getType() == IceType_v8i1 ? IceType_v8i16
-                                                              : IceType_v16i8;
-        Variable *xmm0 = makeReg(SignExtTy, Traits::RegisterSet::Reg_xmm0);
-        lowerCast(InstCast::create(Func, InstCast::Sext, xmm0, Condition));
-        _movp(T, SrcFRM);
-        _pblendvb(T, SrcTRM, xmm0);
-        _movp(Dest, T);
-      }
-      return;
-    }
-    // Lower select without Traits::SSE4.1:
-    // a=d?b:c ==>
-    //   if elementtype(d) != i1:
-    //      d=sext(d);
-    //   a=(b&d)|(c&~d);
-    Variable *T2 = makeReg(SrcTy);
-    // Sign extend the condition operand if applicable.
-    if (SrcTy == IceType_v4f32) {
-      // The sext operation takes only integer arguments.
-      Variable *T3 = Func->makeVariable(IceType_v4i32);
-      lowerCast(InstCast::create(Func, InstCast::Sext, T3, Condition));
-      _movp(T, T3);
-    } else if (typeElementType(SrcTy) != IceType_i1) {
-      lowerCast(InstCast::create(Func, InstCast::Sext, T, Condition));
-    } else {
-      Operand *ConditionRM = legalize(Condition, Legal_Reg | Legal_Mem);
-      _movp(T, ConditionRM);
-    }
-    _movp(T2, T);
-    _pand(T, SrcTRM);
-    _pandn(T2, SrcFRM);
-    _por(T, T2);
-    _movp(Dest, T);
-
+  if (isVectorType(Dest->getType())) {
+    lowerSelectVector(Select);
     return;
   }
 
-  typename Traits::Cond::BrCond Cond = Traits::Cond::Br_ne;
-  Operand *CmpOpnd0 = nullptr;
-  Operand *CmpOpnd1 = nullptr;
+  Operand *Condition = Select->getCondition();
   // Handle folding opportunities.
-  if (const class Inst *Producer = FoldingInfo.getProducerFor(Condition)) {
+  if (const Inst *Producer = FoldingInfo.getProducerFor(Condition)) {
     assert(Producer->isDeleted());
     switch (BoolFolding::getProducerKind(Producer)) {
     default:
       break;
-    case BoolFolding::PK_Icmp32: {
-      auto *Cmp = llvm::dyn_cast<InstIcmp>(Producer);
-      Cond = Traits::getIcmp32Mapping(Cmp->getCondition());
-      CmpOpnd1 = legalize(Producer->getSrc(1));
-      CmpOpnd0 = legalizeSrc0ForCmp(Producer->getSrc(0), CmpOpnd1);
-    } break;
+    case BoolFolding::PK_Icmp32:
+    case BoolFolding::PK_Icmp64: {
+      lowerIcmpAndConsumer(llvm::dyn_cast<InstIcmp>(Producer), Select);
+      return;
+    }
+    case BoolFolding::PK_Fcmp: {
+      lowerFcmpAndConsumer(llvm::dyn_cast<InstFcmp>(Producer), Select);
+      return;
+    }
     }
   }
-  if (CmpOpnd0 == nullptr) {
-    CmpOpnd0 = legalize(Condition, Legal_Reg | Legal_Mem);
-    CmpOpnd1 = Ctx->getConstantZero(IceType_i32);
-  }
-  assert(CmpOpnd0);
-  assert(CmpOpnd1);
 
-  _cmp(CmpOpnd0, CmpOpnd1);
+  Operand *CmpResult = legalize(Condition, Legal_Reg | Legal_Mem);
+  Operand *Zero = Ctx->getConstantZero(IceType_i32);
+  _cmp(CmpResult, Zero);
+  Operand *SrcT = Select->getTrueOperand();
+  Operand *SrcF = Select->getFalseOperand();
+  const typename Traits::Cond::BrCond Cond = Traits::Cond::Br_ne;
+  lowerSelectMove(Dest, Cond, SrcT, SrcF);
+}
+
+template <class Machine>
+void TargetX86Base<Machine>::lowerSelectMove(Variable *Dest,
+                                             typename Traits::Cond::BrCond Cond,
+                                             Operand *SrcT, Operand *SrcF) {
+  Type DestTy = Dest->getType();
   if (typeWidthInBytes(DestTy) == 1 || isFloatingType(DestTy)) {
     // The cmov instruction doesn't allow 8-bit or FP operands, so we need
     // explicit control flow.
@@ -4717,7 +4781,7 @@ void TargetX86Base<Machine>::lowerSelect(const InstSelect *Inst) {
     _mov(Dest, SrcT);
     _br(Cond, Label);
     SrcF = legalize(SrcF, Legal_Reg | Legal_Imm);
-    _mov_redefined(Dest, SrcF);
+    _redefined(_mov(Dest, SrcF));
     Context.insert(Label);
     return;
   }
@@ -4733,32 +4797,173 @@ void TargetX86Base<Machine>::lowerSelect(const InstSelect *Inst) {
     SrcT = legalizeUndef(SrcT);
     SrcF = legalizeUndef(SrcF);
     // Set the low portion.
-    auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
-    Variable *TLo = nullptr;
-    Operand *SrcFLo = legalize(loOperand(SrcF));
-    _mov(TLo, SrcFLo);
-    Operand *SrcTLo = legalize(loOperand(SrcT), Legal_Reg | Legal_Mem);
-    _cmov(TLo, SrcTLo, Cond);
-    _mov(DestLo, TLo);
+    Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
+    lowerSelectIntMove(DestLo, Cond, loOperand(SrcT), loOperand(SrcF));
     // Set the high portion.
-    auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
-    Variable *THi = nullptr;
-    Operand *SrcFHi = legalize(hiOperand(SrcF));
-    _mov(THi, SrcFHi);
-    Operand *SrcTHi = legalize(hiOperand(SrcT), Legal_Reg | Legal_Mem);
-    _cmov(THi, SrcTHi, Cond);
-    _mov(DestHi, THi);
+    Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+    lowerSelectIntMove(DestHi, Cond, hiOperand(SrcT), hiOperand(SrcF));
     return;
   }
 
   assert(DestTy == IceType_i16 || DestTy == IceType_i32 ||
          (Traits::Is64Bit && DestTy == IceType_i64));
+  lowerSelectIntMove(Dest, Cond, SrcT, SrcF);
+}
+
+template <class Machine>
+void TargetX86Base<Machine>::lowerSelectIntMove(
+    Variable *Dest, typename Traits::Cond::BrCond Cond, Operand *SrcT,
+    Operand *SrcF) {
   Variable *T = nullptr;
   SrcF = legalize(SrcF);
   _mov(T, SrcF);
   SrcT = legalize(SrcT, Legal_Reg | Legal_Mem);
   _cmov(T, SrcT, Cond);
   _mov(Dest, T);
+}
+
+template <class Machine>
+void TargetX86Base<Machine>::lowerMove(Variable *Dest, Operand *Src,
+                                       bool IsRedefinition) {
+  assert(Dest->getType() == Src->getType());
+  assert(!Dest->isRematerializable());
+  if (!Traits::Is64Bit && Dest->getType() == IceType_i64) {
+    Src = legalize(Src);
+    Operand *SrcLo = loOperand(Src);
+    Operand *SrcHi = hiOperand(Src);
+    Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
+    Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+    Variable *T_Lo = nullptr, *T_Hi = nullptr;
+    _mov(T_Lo, SrcLo);
+    _redefined(_mov(DestLo, T_Lo), IsRedefinition);
+    _mov(T_Hi, SrcHi);
+    _redefined(_mov(DestHi, T_Hi), IsRedefinition);
+  } else {
+    Operand *SrcLegal;
+    if (Dest->hasReg()) {
+      // If Dest already has a physical register, then only basic legalization
+      // is needed, as the source operand can be a register, immediate, or
+      // memory.
+      SrcLegal = legalize(Src, Legal_Reg, Dest->getRegNum());
+    } else {
+      // If Dest could be a stack operand, then RI must be a physical register
+      // or a scalar integer immediate.
+      SrcLegal = legalize(Src, Legal_Reg | Legal_Imm);
+    }
+    if (isVectorType(Dest->getType())) {
+      _redefined(_movp(Dest, SrcLegal), IsRedefinition);
+    } else {
+      _redefined(_mov(Dest, SrcLegal), IsRedefinition);
+    }
+  }
+}
+
+template <class Machine>
+bool TargetX86Base<Machine>::lowerOptimizeFcmpSelect(const InstFcmp *Fcmp,
+                                                     const InstSelect *Select) {
+  Operand *CmpSrc0 = Fcmp->getSrc(0);
+  Operand *CmpSrc1 = Fcmp->getSrc(1);
+  Operand *SelectSrcT = Select->getTrueOperand();
+  Operand *SelectSrcF = Select->getFalseOperand();
+
+  if (CmpSrc0->getType() != SelectSrcT->getType())
+    return false;
+
+  // TODO(sehr, stichnot): fcmp/select patterns (e,g., minsd/maxss) go here.
+  InstFcmp::FCond Condition = Fcmp->getCondition();
+  switch (Condition) {
+  default:
+    return false;
+  case InstFcmp::True:
+  case InstFcmp::False:
+  case InstFcmp::Ogt:
+  case InstFcmp::Olt:
+    (void)CmpSrc0;
+    (void)CmpSrc1;
+    (void)SelectSrcT;
+    (void)SelectSrcF;
+    break;
+  }
+  return false;
+}
+
+template <class Machine>
+void TargetX86Base<Machine>::lowerIcmp(const InstIcmp *Icmp) {
+  Variable *Dest = Icmp->getDest();
+  if (isVectorType(Dest->getType())) {
+    lowerIcmpVector(Icmp);
+  } else {
+    constexpr Inst *Consumer = nullptr;
+    lowerIcmpAndConsumer(Icmp, Consumer);
+  }
+}
+
+template <class Machine>
+void TargetX86Base<Machine>::lowerSelectVector(const InstSelect *Inst) {
+  Variable *Dest = Inst->getDest();
+  Type DestTy = Dest->getType();
+  Operand *SrcT = Inst->getTrueOperand();
+  Operand *SrcF = Inst->getFalseOperand();
+  Operand *Condition = Inst->getCondition();
+
+  if (!isVectorType(DestTy))
+    llvm::report_fatal_error("Expected a vector select");
+
+  Type SrcTy = SrcT->getType();
+  Variable *T = makeReg(SrcTy);
+  Operand *SrcTRM = legalize(SrcT, Legal_Reg | Legal_Mem);
+  Operand *SrcFRM = legalize(SrcF, Legal_Reg | Legal_Mem);
+  if (InstructionSet >= Traits::SSE4_1) {
+    // TODO(wala): If the condition operand is a constant, use blendps or
+    // pblendw.
+    //
+    // Use blendvps or pblendvb to implement select.
+    if (SrcTy == IceType_v4i1 || SrcTy == IceType_v4i32 ||
+        SrcTy == IceType_v4f32) {
+      Operand *ConditionRM = legalize(Condition, Legal_Reg | Legal_Mem);
+      Variable *xmm0 = makeReg(IceType_v4i32, Traits::RegisterSet::Reg_xmm0);
+      _movp(xmm0, ConditionRM);
+      _psll(xmm0, Ctx->getConstantInt8(31));
+      _movp(T, SrcFRM);
+      _blendvps(T, SrcTRM, xmm0);
+      _movp(Dest, T);
+    } else {
+      assert(typeNumElements(SrcTy) == 8 || typeNumElements(SrcTy) == 16);
+      Type SignExtTy =
+          Condition->getType() == IceType_v8i1 ? IceType_v8i16 : IceType_v16i8;
+      Variable *xmm0 = makeReg(SignExtTy, Traits::RegisterSet::Reg_xmm0);
+      lowerCast(InstCast::create(Func, InstCast::Sext, xmm0, Condition));
+      _movp(T, SrcFRM);
+      _pblendvb(T, SrcTRM, xmm0);
+      _movp(Dest, T);
+    }
+    return;
+  }
+  // Lower select without Traits::SSE4.1:
+  // a=d?b:c ==>
+  //   if elementtype(d) != i1:
+  //      d=sext(d);
+  //   a=(b&d)|(c&~d);
+  Variable *T2 = makeReg(SrcTy);
+  // Sign extend the condition operand if applicable.
+  if (SrcTy == IceType_v4f32) {
+    // The sext operation takes only integer arguments.
+    Variable *T3 = Func->makeVariable(IceType_v4i32);
+    lowerCast(InstCast::create(Func, InstCast::Sext, T3, Condition));
+    _movp(T, T3);
+  } else if (typeElementType(SrcTy) != IceType_i1) {
+    lowerCast(InstCast::create(Func, InstCast::Sext, T, Condition));
+  } else {
+    Operand *ConditionRM = legalize(Condition, Legal_Reg | Legal_Mem);
+    _movp(T, ConditionRM);
+  }
+  _movp(T2, T);
+  _pand(T, SrcTRM);
+  _pandn(T2, SrcFRM);
+  _por(T, T2);
+  _movp(Dest, T);
+
+  return;
 }
 
 template <class Machine>
@@ -5520,8 +5725,7 @@ Variable *TargetX86Base<Machine>::makeZeroedRegister(Type Ty, int32_t RegNum) {
   case IceType_f32:
   case IceType_f64:
     Context.insert(InstFakeDef::create(Func, Reg));
-    // TODO(stichnot): Use xorps/xorpd instead of pxor.
-    _pxor(Reg, Reg);
+    _xorps(Reg, Reg);
     break;
   default:
     // All vector types use the same pxor instruction.

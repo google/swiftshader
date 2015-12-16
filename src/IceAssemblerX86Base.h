@@ -447,15 +447,34 @@ public:
              typename Traits::XmmRegister src);
   void mulps(Type Ty, typename Traits::XmmRegister dst,
              const typename Traits::Address &src);
-  void minps(typename Traits::XmmRegister dst,
-             typename Traits::XmmRegister src);
-  void maxps(typename Traits::XmmRegister dst,
-             typename Traits::XmmRegister src);
-  void andps(typename Traits::XmmRegister dst,
-             typename Traits::XmmRegister src);
-  void andps(typename Traits::XmmRegister dst,
+  void minps(Type Ty, typename Traits::XmmRegister dst,
              const typename Traits::Address &src);
-  void orps(typename Traits::XmmRegister dst, typename Traits::XmmRegister src);
+  void minps(Type Ty, typename Traits::XmmRegister dst,
+             typename Traits::XmmRegister src);
+  void minss(Type Ty, typename Traits::XmmRegister dst,
+             const typename Traits::Address &src);
+  void minss(Type Ty, typename Traits::XmmRegister dst,
+             typename Traits::XmmRegister src);
+  void maxps(Type Ty, typename Traits::XmmRegister dst,
+             const typename Traits::Address &src);
+  void maxps(Type Ty, typename Traits::XmmRegister dst,
+             typename Traits::XmmRegister src);
+  void maxss(Type Ty, typename Traits::XmmRegister dst,
+             const typename Traits::Address &src);
+  void maxss(Type Ty, typename Traits::XmmRegister dst,
+             typename Traits::XmmRegister src);
+  void andnps(Type Ty, typename Traits::XmmRegister dst,
+              const typename Traits::Address &src);
+  void andnps(Type Ty, typename Traits::XmmRegister dst,
+              typename Traits::XmmRegister src);
+  void andps(Type Ty, typename Traits::XmmRegister dst,
+             const typename Traits::Address &src);
+  void andps(Type Ty, typename Traits::XmmRegister dst,
+             typename Traits::XmmRegister src);
+  void orps(Type Ty, typename Traits::XmmRegister dst,
+            const typename Traits::Address &src);
+  void orps(Type Ty, typename Traits::XmmRegister dst,
+            typename Traits::XmmRegister src);
 
   void blendvps(Type Ty, typename Traits::XmmRegister dst,
                 typename Traits::XmmRegister src);
@@ -466,9 +485,10 @@ public:
   void pblendvb(Type Ty, typename Traits::XmmRegister dst,
                 const typename Traits::Address &src);
 
-  void cmpps(typename Traits::XmmRegister dst, typename Traits::XmmRegister src,
+  void cmpps(Type Ty, typename Traits::XmmRegister dst,
+             typename Traits::XmmRegister src,
              typename Traits::Cond::CmppsCond CmpCondition);
-  void cmpps(typename Traits::XmmRegister dst,
+  void cmpps(Type Ty, typename Traits::XmmRegister dst,
              const typename Traits::Address &src,
              typename Traits::Cond::CmppsCond CmpCondition);
 
@@ -492,10 +512,6 @@ public:
   void set1ps(typename Traits::XmmRegister dst,
               typename Traits::GPRRegister tmp, const Immediate &imm);
 
-  void minpd(typename Traits::XmmRegister dst,
-             typename Traits::XmmRegister src);
-  void maxpd(typename Traits::XmmRegister dst,
-             typename Traits::XmmRegister src);
   void sqrtpd(typename Traits::XmmRegister dst);
 
   void pshufd(Type Ty, typename Traits::XmmRegister dst,
@@ -547,21 +563,10 @@ public:
   void sqrtss(Type Ty, typename Traits::XmmRegister dst,
               typename Traits::XmmRegister src);
 
-  void xorpd(typename Traits::XmmRegister dst,
+  void xorps(Type Ty, typename Traits::XmmRegister dst,
              const typename Traits::Address &src);
-  void xorpd(typename Traits::XmmRegister dst,
+  void xorps(Type Ty, typename Traits::XmmRegister dst,
              typename Traits::XmmRegister src);
-  void xorps(typename Traits::XmmRegister dst,
-             const typename Traits::Address &src);
-  void xorps(typename Traits::XmmRegister dst,
-             typename Traits::XmmRegister src);
-
-  void andpd(typename Traits::XmmRegister dst,
-             const typename Traits::Address &src);
-  void andpd(typename Traits::XmmRegister dst,
-             typename Traits::XmmRegister src);
-
-  void orpd(typename Traits::XmmRegister dst, typename Traits::XmmRegister src);
 
   void insertps(Type Ty, typename Traits::XmmRegister dst,
                 typename Traits::XmmRegister src, const Immediate &imm);

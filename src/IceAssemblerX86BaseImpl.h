@@ -1161,9 +1161,11 @@ void AssemblerX86Base<Machine>::mulps(Type /* Ty */,
 }
 
 template <class Machine>
-void AssemblerX86Base<Machine>::minps(typename Traits::XmmRegister dst,
+void AssemblerX86Base<Machine>::minps(Type Ty, typename Traits::XmmRegister dst,
                                       typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  if (!isFloat32Asserting32Or64(Ty))
+    emitUint8(0x66);
   emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x5D);
@@ -1171,9 +1173,45 @@ void AssemblerX86Base<Machine>::minps(typename Traits::XmmRegister dst,
 }
 
 template <class Machine>
-void AssemblerX86Base<Machine>::maxps(typename Traits::XmmRegister dst,
+void AssemblerX86Base<Machine>::minps(Type Ty, typename Traits::XmmRegister dst,
+                                      const typename Traits::Address &src) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  if (!isFloat32Asserting32Or64(Ty))
+    emitUint8(0x66);
+  emitRex(RexTypeIrrelevant, src, dst);
+  emitUint8(0x0F);
+  emitUint8(0x5D);
+  emitOperand(gprEncoding(dst), src);
+}
+
+template <class Machine>
+void AssemblerX86Base<Machine>::minss(Type Ty, typename Traits::XmmRegister dst,
                                       typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
+  emitRexRB(RexTypeIrrelevant, dst, src);
+  emitUint8(0x0F);
+  emitUint8(0x5D);
+  emitXmmRegisterOperand(dst, src);
+}
+
+template <class Machine>
+void AssemblerX86Base<Machine>::minss(Type Ty, typename Traits::XmmRegister dst,
+                                      const typename Traits::Address &src) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
+  emitRex(RexTypeIrrelevant, src, dst);
+  emitUint8(0x0F);
+  emitUint8(0x5D);
+  emitOperand(gprEncoding(dst), src);
+}
+
+template <class Machine>
+void AssemblerX86Base<Machine>::maxps(Type Ty, typename Traits::XmmRegister dst,
+                                      typename Traits::XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  if (!isFloat32Asserting32Or64(Ty))
+    emitUint8(0x66);
   emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x5F);
@@ -1181,9 +1219,71 @@ void AssemblerX86Base<Machine>::maxps(typename Traits::XmmRegister dst,
 }
 
 template <class Machine>
-void AssemblerX86Base<Machine>::andps(typename Traits::XmmRegister dst,
+void AssemblerX86Base<Machine>::maxps(Type Ty, typename Traits::XmmRegister dst,
+                                      const typename Traits::Address &src) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  if (!isFloat32Asserting32Or64(Ty))
+    emitUint8(0x66);
+  emitRex(RexTypeIrrelevant, src, dst);
+  emitUint8(0x0F);
+  emitUint8(0x5F);
+  emitOperand(gprEncoding(dst), src);
+}
+
+template <class Machine>
+void AssemblerX86Base<Machine>::maxss(Type Ty, typename Traits::XmmRegister dst,
                                       typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
+  emitRexRB(RexTypeIrrelevant, dst, src);
+  emitUint8(0x0F);
+  emitUint8(0x5F);
+  emitXmmRegisterOperand(dst, src);
+}
+
+template <class Machine>
+void AssemblerX86Base<Machine>::maxss(Type Ty, typename Traits::XmmRegister dst,
+                                      const typename Traits::Address &src) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
+  emitRex(RexTypeIrrelevant, src, dst);
+  emitUint8(0x0F);
+  emitUint8(0x5F);
+  emitOperand(gprEncoding(dst), src);
+}
+
+template <class Machine>
+void AssemblerX86Base<Machine>::andnps(Type Ty,
+                                       typename Traits::XmmRegister dst,
+                                       typename Traits::XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  if (!isFloat32Asserting32Or64(Ty))
+    emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
+  emitUint8(0x0F);
+  emitUint8(0x55);
+  emitXmmRegisterOperand(dst, src);
+}
+
+template <class Machine>
+void AssemblerX86Base<Machine>::andnps(Type Ty,
+                                       typename Traits::XmmRegister dst,
+                                       const typename Traits::Address &src) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  if (!isFloat32Asserting32Or64(Ty))
+    emitUint8(0x66);
+  emitRex(RexTypeIrrelevant, src, dst);
+  emitUint8(0x0F);
+  emitUint8(0x55);
+  emitOperand(gprEncoding(dst), src);
+}
+
+template <class Machine>
+void AssemblerX86Base<Machine>::andps(Type Ty, typename Traits::XmmRegister dst,
+                                      typename Traits::XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  if (!isFloat32Asserting32Or64(Ty))
+    emitUint8(0x66);
   emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x54);
@@ -1191,9 +1291,11 @@ void AssemblerX86Base<Machine>::andps(typename Traits::XmmRegister dst,
 }
 
 template <class Machine>
-void AssemblerX86Base<Machine>::andps(typename Traits::XmmRegister dst,
+void AssemblerX86Base<Machine>::andps(Type Ty, typename Traits::XmmRegister dst,
                                       const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  if (!isFloat32Asserting32Or64(Ty))
+    emitUint8(0x66);
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x54);
@@ -1201,13 +1303,27 @@ void AssemblerX86Base<Machine>::andps(typename Traits::XmmRegister dst,
 }
 
 template <class Machine>
-void AssemblerX86Base<Machine>::orps(typename Traits::XmmRegister dst,
+void AssemblerX86Base<Machine>::orps(Type Ty, typename Traits::XmmRegister dst,
                                      typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  if (!isFloat32Asserting32Or64(Ty))
+    emitUint8(0x66);
   emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x56);
   emitXmmRegisterOperand(dst, src);
+}
+
+template <class Machine>
+void AssemblerX86Base<Machine>::orps(Type Ty, typename Traits::XmmRegister dst,
+                                     const typename Traits::Address &src) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  if (!isFloat32Asserting32Or64(Ty))
+    emitUint8(0x66);
+  emitRex(RexTypeIrrelevant, src, dst);
+  emitUint8(0x0F);
+  emitUint8(0x56);
+  emitOperand(gprEncoding(dst), src);
 }
 
 template <class Machine>
@@ -1264,9 +1380,11 @@ void AssemblerX86Base<Machine>::pblendvb(Type /* Ty */,
 
 template <class Machine>
 void AssemblerX86Base<Machine>::cmpps(
-    typename Traits::XmmRegister dst, typename Traits::XmmRegister src,
+    Type Ty, typename Traits::XmmRegister dst, typename Traits::XmmRegister src,
     typename Traits::Cond::CmppsCond CmpCondition) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  if (Ty == IceType_f64)
+    emitUint8(0x66);
   emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0xC2);
@@ -1276,9 +1394,12 @@ void AssemblerX86Base<Machine>::cmpps(
 
 template <class Machine>
 void AssemblerX86Base<Machine>::cmpps(
-    typename Traits::XmmRegister dst, const typename Traits::Address &src,
+    Type Ty, typename Traits::XmmRegister dst,
+    const typename Traits::Address &src,
     typename Traits::Cond::CmppsCond CmpCondition) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  if (Ty == IceType_f64)
+    emitUint8(0x66);
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0xC2);
@@ -1443,28 +1564,6 @@ void AssemblerX86Base<Machine>::shufps(Type /* Ty */,
   emitOperand(gprEncoding(dst), src);
   assert(imm.is_uint8());
   emitUint8(imm.value());
-}
-
-template <class Machine>
-void AssemblerX86Base<Machine>::minpd(typename Traits::XmmRegister dst,
-                                      typename Traits::XmmRegister src) {
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitUint8(0x66);
-  emitRexRB(RexTypeIrrelevant, dst, src);
-  emitUint8(0x0F);
-  emitUint8(0x5D);
-  emitXmmRegisterOperand(dst, src);
-}
-
-template <class Machine>
-void AssemblerX86Base<Machine>::maxpd(typename Traits::XmmRegister dst,
-                                      typename Traits::XmmRegister src) {
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitUint8(0x66);
-  emitRexRB(RexTypeIrrelevant, dst, src);
-  emitUint8(0x0F);
-  emitUint8(0x5F);
-  emitXmmRegisterOperand(dst, src);
 }
 
 template <class Machine>
@@ -1670,10 +1769,11 @@ void AssemblerX86Base<Machine>::sqrtss(Type Ty,
 }
 
 template <class Machine>
-void AssemblerX86Base<Machine>::xorpd(typename Traits::XmmRegister dst,
+void AssemblerX86Base<Machine>::xorps(Type Ty, typename Traits::XmmRegister dst,
                                       const typename Traits::Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitUint8(0x66);
+  if (!isFloat32Asserting32Or64(Ty))
+    emitUint8(0x66);
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x57);
@@ -1681,66 +1781,14 @@ void AssemblerX86Base<Machine>::xorpd(typename Traits::XmmRegister dst,
 }
 
 template <class Machine>
-void AssemblerX86Base<Machine>::xorpd(typename Traits::XmmRegister dst,
+void AssemblerX86Base<Machine>::xorps(Type Ty, typename Traits::XmmRegister dst,
                                       typename Traits::XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitUint8(0x66);
+  if (!isFloat32Asserting32Or64(Ty))
+    emitUint8(0x66);
   emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x57);
-  emitXmmRegisterOperand(dst, src);
-}
-
-template <class Machine>
-void AssemblerX86Base<Machine>::orpd(typename Traits::XmmRegister dst,
-                                     typename Traits::XmmRegister src) {
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitUint8(0x66);
-  emitRexRB(RexTypeIrrelevant, dst, src);
-  emitUint8(0x0F);
-  emitUint8(0x56);
-  emitXmmRegisterOperand(dst, src);
-}
-
-template <class Machine>
-void AssemblerX86Base<Machine>::xorps(typename Traits::XmmRegister dst,
-                                      const typename Traits::Address &src) {
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitRex(RexTypeIrrelevant, src, dst);
-  emitUint8(0x0F);
-  emitUint8(0x57);
-  emitOperand(gprEncoding(dst), src);
-}
-
-template <class Machine>
-void AssemblerX86Base<Machine>::xorps(typename Traits::XmmRegister dst,
-                                      typename Traits::XmmRegister src) {
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitRexRB(RexTypeIrrelevant, dst, src);
-  emitUint8(0x0F);
-  emitUint8(0x57);
-  emitXmmRegisterOperand(dst, src);
-}
-
-template <class Machine>
-void AssemblerX86Base<Machine>::andpd(typename Traits::XmmRegister dst,
-                                      const typename Traits::Address &src) {
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitUint8(0x66);
-  emitRex(RexTypeIrrelevant, src, dst);
-  emitUint8(0x0F);
-  emitUint8(0x54);
-  emitOperand(gprEncoding(dst), src);
-}
-
-template <class Machine>
-void AssemblerX86Base<Machine>::andpd(typename Traits::XmmRegister dst,
-                                      typename Traits::XmmRegister src) {
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitUint8(0x66);
-  emitRexRB(RexTypeIrrelevant, dst, src);
-  emitUint8(0x0F);
-  emitUint8(0x54);
   emitXmmRegisterOperand(dst, src);
 }
 
