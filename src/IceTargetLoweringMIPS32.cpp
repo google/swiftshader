@@ -1072,8 +1072,10 @@ TargetHeaderMIPS32::TargetHeaderMIPS32(GlobalContext *Ctx)
 void TargetHeaderMIPS32::lower() {
   OstreamLocker L(Ctx);
   Ostream &Str = Ctx->getStrEmit();
-  Str << "\t.set\tnomicromips\n";
-  Str << "\t.set\tnomips16\n";
+  Str << "\t.set\t"
+      << "nomicromips\n";
+  Str << "\t.set\t"
+      << "nomips16\n";
 }
 
 llvm::SmallBitVector TargetMIPS32::TypeToRegisterSet[IceType_NUM];

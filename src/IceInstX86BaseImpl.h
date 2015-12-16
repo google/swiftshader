@@ -436,7 +436,8 @@ template <class Machine> void InstX86Br<Machine>::emit(const Cfg *Func) const {
     } else {
       Str << "\t" << getTargetTrue()->getAsmName();
       if (getTargetFalse()) {
-        Str << "\n\tjmp\t" << getTargetFalse()->getAsmName();
+        Str << "\n\t"
+               "jmp\t" << getTargetFalse()->getAsmName();
       }
     }
   }
@@ -503,7 +504,8 @@ template <class Machine> void InstX86Jmp<Machine>::emit(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 1);
-  Str << "\tjmp\t*";
+  Str << "\t"
+         "jmp\t*";
   getJmpTarget()->emit(Func);
 }
 
@@ -560,7 +562,8 @@ void InstX86Call<Machine>::emit(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 1);
-  Str << "\tcall\t";
+  Str << "\t"
+         "call\t";
   Operand *CallTarget = getCallTarget();
   auto *Target = InstX86Base<Machine>::getTarget(Func);
   if (const auto *CI = llvm::dyn_cast<ConstantInteger32>(CallTarget)) {
@@ -997,7 +1000,8 @@ void InstX86Sqrtss<Machine>::emit(const Cfg *Func) const {
   assert(this->getSrcSize() == 1);
   Type Ty = this->getSrc(0)->getType();
   assert(isScalarFloatingType(Ty));
-  Str << "\tsqrt" << InstX86Base<Machine>::Traits::TypeAttributes[Ty].SdSsString
+  Str << "\t"
+         "sqrt" << InstX86Base<Machine>::Traits::TypeAttributes[Ty].SdSsString
       << "\t";
   this->getSrc(0)->emit(Func);
   Str << ", ";
@@ -1326,10 +1330,12 @@ void InstX86Imul<Machine>::emit(const Cfg *Func) const {
     (void)Src0Var;
     assert(Src0Var->getRegNum() ==
            InstX86Base<Machine>::Traits::RegisterSet::Reg_al);
-    Str << "\timulb\t";
+    Str << "\t"
+           "imulb\t";
     this->getSrc(1)->emit(Func);
   } else if (llvm::isa<Constant>(this->getSrc(1))) {
-    Str << "\timul" << this->getWidthString(Dest->getType()) << "\t";
+    Str << "\t"
+           "imul" << this->getWidthString(Dest->getType()) << "\t";
     this->getSrc(1)->emit(Func);
     Str << ", ";
     this->getSrc(0)->emit(Func);
@@ -1379,7 +1385,8 @@ void InstX86ImulImm<Machine>::emit(const Cfg *Func) const {
   Variable *Dest = this->getDest();
   assert(Dest->getType() == IceType_i16 || Dest->getType() == IceType_i32);
   assert(llvm::isa<Constant>(this->getSrc(1)));
-  Str << "\timul" << this->getWidthString(Dest->getType()) << "\t";
+  Str << "\t"
+         "imul" << this->getWidthString(Dest->getType()) << "\t";
   this->getSrc(1)->emit(Func);
   Str << ", ";
   this->getSrc(0)->emit(Func);
@@ -1449,24 +1456,24 @@ void InstX86Cbwdq<Machine>::emit(const Cfg *Func) const {
     assert(DestReg == InstX86Base<Machine>::Traits::RegisterSet::Reg_ax ||
            DestReg == InstX86Base<Machine>::Traits::RegisterSet::Reg_ah);
     Str << "\t"
-        << "cbtw";
+           "cbtw";
     break;
   case IceType_i16:
     assert(SrcReg == InstX86Base<Machine>::Traits::RegisterSet::Reg_ax);
     assert(DestReg == InstX86Base<Machine>::Traits::RegisterSet::Reg_dx);
     Str << "\t"
-        << "cwtd";
+           "cwtd";
     break;
   case IceType_i32:
     assert(SrcReg == InstX86Base<Machine>::Traits::RegisterSet::Reg_eax);
     assert(DestReg == InstX86Base<Machine>::Traits::RegisterSet::Reg_edx);
     Str << "\t"
-        << "cltd";
+           "cltd";
     break;
   case IceType_i64:
     assert(DestReg == InstX86Base<Machine>::Traits::RegisterSet::Reg_edx);
     Str << "\t"
-        << "cdto";
+           "cdto";
     break;
   }
 }
@@ -1519,7 +1526,8 @@ template <class Machine> void InstX86Mul<Machine>::emit(const Cfg *Func) const {
   assert(
       this->getDest()->getRegNum() ==
       InstX86Base<Machine>::Traits::RegisterSet::Reg_eax); // TODO: allow edx?
-  Str << "\tmul" << this->getWidthString(this->getDest()->getType()) << "\t";
+  Str << "\t"
+         "mul" << this->getWidthString(this->getDest()->getType()) << "\t";
   this->getSrc(1)->emit(Func);
 }
 
@@ -1557,7 +1565,8 @@ void InstX86Shld<Machine>::emit(const Cfg *Func) const {
   Variable *Dest = this->getDest();
   assert(this->getSrcSize() == 3);
   assert(Dest == this->getSrc(0));
-  Str << "\tshld" << this->getWidthString(Dest->getType()) << "\t";
+  Str << "\t"
+         "shld" << this->getWidthString(Dest->getType()) << "\t";
   this->getSrc(2)->emit(Func);
   Str << ", ";
   this->getSrc(1)->emit(Func);
@@ -1597,7 +1606,8 @@ void InstX86Shrd<Machine>::emit(const Cfg *Func) const {
   Variable *Dest = this->getDest();
   assert(this->getSrcSize() == 3);
   assert(Dest == this->getSrc(0));
-  Str << "\tshrd" << this->getWidthString(Dest->getType()) << "\t";
+  Str << "\t"
+         "shrd" << this->getWidthString(Dest->getType()) << "\t";
   this->getSrc(2)->emit(Func);
   Str << ", ";
   this->getSrc(1)->emit(Func);
@@ -1703,8 +1713,8 @@ void InstX86Cmpps<Machine>::emit(const Cfg *Func) const {
   assert(this->getSrcSize() == 2);
   assert(Condition < InstX86Base<Machine>::Traits::Cond::Cmpps_Invalid);
   Type DestTy = this->Dest->getType();
-  Str << "\t";
-  Str << "cmp"
+  Str << "\t"
+         "cmp"
       << InstX86Base<Machine>::Traits::InstCmppsAttributes[Condition].EmitString
       << InstX86Base<Machine>::Traits::TypeAttributes[DestTy].PdPsString
       << "\t";
@@ -1750,7 +1760,7 @@ void InstX86Cmpps<Machine>::dump(const Cfg *Func) const {
   Str << " = cmp"
       << InstX86Base<Machine>::Traits::InstCmppsAttributes[Condition].EmitString
       << "ps"
-      << "\t";
+         "\t";
   this->dumpSources(Func);
 }
 
@@ -1761,10 +1771,11 @@ void InstX86Cmpxchg<Machine>::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 3);
   if (this->Locked) {
-    Str << "\tlock";
+    Str << "\t"
+           "lock";
   }
-  Str << "\tcmpxchg" << this->getWidthString(this->getSrc(0)->getType())
-      << "\t";
+  Str << "\t"
+         "cmpxchg" << this->getWidthString(this->getSrc(0)->getType()) << "\t";
   this->getSrc(2)->emit(Func);
   Str << ", ";
   this->getSrc(0)->emit(Func);
@@ -1810,9 +1821,11 @@ void InstX86Cmpxchg8b<Machine>::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 5);
   if (this->Locked) {
-    Str << "\tlock";
+    Str << "\t"
+           "lock";
   }
-  Str << "\tcmpxchg8b\t";
+  Str << "\t"
+         "cmpxchg8b\t";
   this->getSrc(0)->emit(Func);
 }
 
@@ -1849,7 +1862,8 @@ template <class Machine> void InstX86Cvt<Machine>::emit(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 1);
-  Str << "\tcvt";
+  Str << "\t"
+         "cvt";
   if (isTruncating())
     Str << "t";
   Str << InstX86Base<Machine>::Traits::TypeAttributes[this->getSrc(0)
@@ -1974,7 +1988,8 @@ void InstX86Icmp<Machine>::emit(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 2);
-  Str << "\tcmp" << this->getWidthString(this->getSrc(0)->getType()) << "\t";
+  Str << "\t"
+         "cmp" << this->getWidthString(this->getSrc(0)->getType()) << "\t";
   this->getSrc(1)->emit(Func);
   Str << ", ";
   this->getSrc(0)->emit(Func);
@@ -2018,7 +2033,8 @@ void InstX86Ucomiss<Machine>::emit(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 2);
-  Str << "\tucomi"
+  Str << "\t"
+         "ucomi"
       << InstX86Base<Machine>::Traits::TypeAttributes[this->getSrc(0)
                                                           ->getType()]
              .SdSsString << "\t";
@@ -2055,7 +2071,8 @@ template <class Machine> void InstX86UD2<Machine>::emit(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 0);
-  Str << "\tud2";
+  Str << "\t"
+         "ud2";
 }
 
 template <class Machine>
@@ -2078,7 +2095,8 @@ void InstX86Test<Machine>::emit(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 2);
-  Str << "\ttest" << this->getWidthString(this->getSrc(0)->getType()) << "\t";
+  Str << "\t"
+         "test" << this->getWidthString(this->getSrc(0)->getType()) << "\t";
   this->getSrc(1)->emit(Func);
   Str << ", ";
   this->getSrc(0)->emit(Func);
@@ -2122,7 +2140,8 @@ void InstX86Mfence<Machine>::emit(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 0);
-  Str << "\tmfence";
+  Str << "\t"
+         "mfence";
 }
 
 template <class Machine>
@@ -2147,7 +2166,8 @@ void InstX86Store<Machine>::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 2);
   Type Ty = this->getSrc(0)->getType();
-  Str << "\tmov" << this->getWidthString(Ty)
+  Str << "\t"
+         "mov" << this->getWidthString(Ty)
       << InstX86Base<Machine>::Traits::TypeAttributes[Ty].SdSsString << "\t";
   this->getSrc(0)->emit(Func);
   Str << ", ";
@@ -2211,7 +2231,8 @@ void InstX86StoreP<Machine>::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 2);
   assert(isVectorType(this->getSrc(1)->getType()));
-  Str << "\tmovups\t";
+  Str << "\t"
+         "movups\t";
   this->getSrc(0)->emit(Func);
   Str << ", ";
   this->getSrc(1)->emit(Func);
@@ -2254,7 +2275,8 @@ void InstX86StoreQ<Machine>::emit(const Cfg *Func) const {
   assert(this->getSrc(1)->getType() == IceType_i64 ||
          this->getSrc(1)->getType() == IceType_f64 ||
          isVectorType(this->getSrc(1)->getType()));
-  Str << "\tmovq\t";
+  Str << "\t"
+         "movq\t";
   this->getSrc(0)->emit(Func);
   Str << ", ";
   this->getSrc(1)->emit(Func);
@@ -2294,7 +2316,8 @@ template <class Machine> void InstX86Lea<Machine>::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 1);
   assert(this->getDest()->hasReg());
-  Str << "\tleal\t";
+  Str << "\t"
+         "leal\t";
   Operand *Src0 = this->getSrc(0);
   if (const auto *Src0Var = llvm::dyn_cast<Variable>(Src0)) {
     Type Ty = Src0Var->getType();
@@ -2323,13 +2346,14 @@ template <class Machine> void InstX86Mov<Machine>::emit(const Cfg *Func) const {
   Type DestTy = this->getDest()->getType();
   if (InstX86Base<Machine>::Traits::Is64Bit && DestTy == IceType_i64 &&
       isIntegerConstant(Src)) {
-    Str << "\tmovabs\t";
+    Str << "\t"
+           "movabs\t";
   } else {
-    Str << "\tmov"
-        << (!isScalarFloatingType(DestTy)
-                ? this->getWidthString(DestTy)
-                : InstX86Base<Machine>::Traits::TypeAttributes[DestTy]
-                      .SdSsString) << "\t";
+    Str << "\t"
+           "mov" << (!isScalarFloatingType(DestTy)
+                         ? this->getWidthString(DestTy)
+                         : InstX86Base<Machine>::Traits::TypeAttributes[DestTy]
+                               .SdSsString) << "\t";
   }
   // For an integer truncation operation, src is wider than dest. In this case,
   // we use a mov instruction whose data width matches the narrower dest.
@@ -2499,7 +2523,8 @@ void InstX86Movp<Machine>::emit(const Cfg *Func) const {
   // depending on the data type and alignment of the operands.
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 1);
-  Str << "\tmovups\t";
+  Str << "\t"
+         "movups\t";
   this->getSrc(0)->emit(Func);
   Str << ", ";
   this->getDest()->emit(Func);
@@ -2527,7 +2552,8 @@ void InstX86Movq<Machine>::emit(const Cfg *Func) const {
   assert(this->getSrcSize() == 1);
   assert(this->getDest()->getType() == IceType_i64 ||
          this->getDest()->getType() == IceType_f64);
-  Str << "\tmovq\t";
+  Str << "\t"
+         "movq\t";
   this->getSrc(0)->emit(Func);
   Str << ", ";
   this->getDest()->emit(Func);
@@ -2596,7 +2622,8 @@ template <class Machine> void InstX86Nop<Machine>::emit(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   // TODO: Emit the right code for each variant.
-  Str << "\tnop\t# variant = " << Variant;
+  Str << "\t"
+         "nop\t# variant = " << Variant;
 }
 
 template <class Machine>
@@ -2625,15 +2652,18 @@ template <class Machine> void InstX86Fld<Machine>::emit(const Cfg *Func) const {
     // This is a physical xmm register, so we need to spill it to a temporary
     // stack slot.  Function prolog emission guarantees that there is sufficient
     // space to do this.
-    Str << "\tmov"
-        << InstX86Base<Machine>::Traits::TypeAttributes[Ty].SdSsString << "\t";
+    Str << "\t"
+           "mov" << InstX86Base<Machine>::Traits::TypeAttributes[Ty].SdSsString
+        << "\t";
     Var->emit(Func);
-    Str << ", (%esp)\n";
-    Str << "\tfld" << this->getFldString(Ty) << "\t"
-        << "(%esp)";
+    Str << ", (%esp)\n"
+           "\t"
+           "fld" << this->getFldString(Ty) << "\t"
+                                              "(%esp)";
     return;
   }
-  Str << "\tfld" << this->getFldString(Ty) << "\t";
+  Str << "\t"
+         "fld" << this->getFldString(Ty) << "\t";
   this->getSrc(0)->emit(Func);
 }
 
@@ -2692,23 +2722,28 @@ void InstX86Fstp<Machine>::emit(const Cfg *Func) const {
   // "partially" delete the fstp if the Dest is unused. Even if Dest is unused,
   // the fstp should be kept for the SideEffects of popping the stack.
   if (!this->getDest()) {
-    Str << "\tfstp\tst(0)";
+    Str << "\t"
+           "fstp\t"
+           "st(0)";
     return;
   }
   Type Ty = this->getDest()->getType();
   if (!this->getDest()->hasReg()) {
-    Str << "\tfstp" << this->getFldString(Ty) << "\t";
+    Str << "\t"
+           "fstp" << this->getFldString(Ty) << "\t";
     this->getDest()->emit(Func);
     return;
   }
   // Dest is a physical (xmm) register, so st(0) needs to go through memory.
   // Hack this by using caller-reserved memory at the top of stack, spilling
   // st(0) there, and loading it into the xmm register.
-  Str << "\tfstp" << this->getFldString(Ty) << "\t"
-      << "(%esp)\n";
-  Str << "\tmov" << InstX86Base<Machine>::Traits::TypeAttributes[Ty].SdSsString
+  Str << "\t"
+         "fstp" << this->getFldString(Ty) << "\t"
+                                             "(%esp)\n";
+  Str << "\t"
+         "mov" << InstX86Base<Machine>::Traits::TypeAttributes[Ty].SdSsString
       << "\t"
-      << "(%esp), ";
+         "(%esp), ";
   this->getDest()->emit(Func);
 }
 
@@ -2953,7 +2988,8 @@ template <class Machine> void InstX86Pop<Machine>::emit(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 0);
-  Str << "\tpop\t";
+  Str << "\t"
+         "pop\t";
   this->getDest()->emit(Func);
 }
 
@@ -2988,7 +3024,8 @@ void InstX86Push<Machine>::emit(const Cfg *Func) const {
   // Push is currently only used for saving GPRs.
   const auto *Var = llvm::cast<Variable>(this->getSrc(0));
   assert(Var->hasReg());
-  Str << "\tpush\t";
+  Str << "\t"
+         "push\t";
   Var->emit(Func);
 }
 
@@ -3060,7 +3097,8 @@ template <class Machine> void InstX86Ret<Machine>::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
-  Str << "\tret";
+  Str << "\t"
+         "ret";
 }
 
 template <class Machine>
@@ -3085,7 +3123,8 @@ void InstX86Setcc<Machine>::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
-  Str << "\tset"
+  Str << "\t"
+         "set"
       << InstX86Base<Machine>::Traits::InstBrAttributes[Condition].DisplayString
       << "\t";
   this->Dest->emit(Func);
@@ -3124,9 +3163,11 @@ void InstX86Xadd<Machine>::emit(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   if (this->Locked) {
-    Str << "\tlock";
+    Str << "\t"
+           "lock";
   }
-  Str << "\txadd" << this->getWidthString(this->getSrc(0)->getType()) << "\t";
+  Str << "\t"
+         "xadd" << this->getWidthString(this->getSrc(0)->getType()) << "\t";
   this->getSrc(1)->emit(Func);
   Str << ", ";
   this->getSrc(0)->emit(Func);
@@ -3171,7 +3212,8 @@ void InstX86Xchg<Machine>::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
-  Str << "\txchg" << this->getWidthString(this->getSrc(0)->getType()) << "\t";
+  Str << "\t"
+         "xchg" << this->getWidthString(this->getSrc(0)->getType()) << "\t";
   this->getSrc(1)->emit(Func);
   Str << ", ";
   this->getSrc(0)->emit(Func);
@@ -3223,9 +3265,10 @@ void InstX86IacaStart<Machine>::emit(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << "\t# IACA_START\n"
-      << "\t.byte 0x0F, 0x0B\n"
-      << "\tmovl\t$111, %ebx\n"
-      << "\t.byte 0x64, 0x67, 0x90";
+         "\t.byte 0x0F, 0x0B\n"
+         "\t"
+         "movl\t$111, %ebx\n"
+         "\t.byte 0x64, 0x67, 0x90";
 }
 
 template <class Machine>
@@ -3249,9 +3292,10 @@ void InstX86IacaEnd<Machine>::emit(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << "\t# IACA_END\n"
-      << "\tmovl\t$222, %ebx\n"
-      << "\t.byte 0x64, 0x67, 0x90\n"
-      << "\t.byte 0x0F, 0x0B";
+         "\t"
+         "movl\t$222, %ebx\n"
+         "\t.byte 0x64, 0x67, 0x90\n"
+         "\t.byte 0x0F, 0x0B";
 }
 
 template <class Machine>

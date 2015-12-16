@@ -854,7 +854,8 @@ void InstBundleLock::emit(const Cfg *Func) const {
   case Opt_None:
     break;
   case Opt_AlignToEnd:
-    Str << "\talign_to_end";
+    Str << "\t"
+           "align_to_end";
     break;
   }
   Str << "\n";

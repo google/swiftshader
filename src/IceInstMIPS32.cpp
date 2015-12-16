@@ -139,8 +139,8 @@ void InstMIPS32Ret::emit(const Cfg *Func) const {
   assert(RA->getRegNum() == RegMIPS32::Reg_RA);
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << "\t"
-      << "jr"
-      << "\t";
+         "jr"
+         "\t";
   RA->emit(Func);
 }
 
@@ -258,8 +258,8 @@ void InstMIPS32Mov::emitSingleDestSingleSource(const Cfg *Func) const {
       Str << "lw";
   } else {
     if (S && S->hasReg()) {
-      Str << "sw";
-      Str << "\t";
+      Str << "sw"
+             "\t";
       getSrc(0)->emit(Func);
       Str << ", ";
       getDest()->emit(Func);

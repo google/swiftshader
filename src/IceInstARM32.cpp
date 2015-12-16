@@ -818,7 +818,7 @@ void InstARM32Mov::emitMultiDestSingleSource(const Cfg *Func) const {
   assert(llvm::isa<Variable>(Src) && Src->hasReg());
 
   Str << "\t"
-      << "vmov" << getPredicate() << "\t";
+         "vmov" << getPredicate() << "\t";
   DestLo->emit(Func);
   Str << ", ";
   DestHi->emit(Func);
@@ -840,7 +840,7 @@ void InstARM32Mov::emitSingleDestMultiSource(const Cfg *Func) const {
   assert(getSrcSize() == 2);
 
   Str << "\t"
-      << "vmov" << getPredicate() << "\t";
+         "vmov" << getPredicate() << "\t";
   Dest->emit(Func);
   Str << ", ";
   SrcLo->emit(Func);
@@ -981,7 +981,7 @@ void InstARM32Br::emit(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << "\t"
-      << "b" << getPredicate() << "\t";
+         "b" << getPredicate() << "\t";
   if (Label) {
     Str << Label->getName(Func);
   } else {
@@ -1052,13 +1052,13 @@ void InstARM32Call::emit(const Cfg *Func) const {
     // Calls only have 24-bits, but the linker should insert veneers to extend
     // the range if needed.
     Str << "\t"
-        << "bl"
-        << "\t";
+           "bl"
+           "\t";
     CallTarget->emitWithoutPrefix(Func->getTarget());
   } else {
     Str << "\t"
-        << "blx"
-        << "\t";
+           "blx"
+           "\t";
     getCallTarget()->emit(Func);
   }
 }
@@ -1496,8 +1496,8 @@ void InstARM32Ret::emit(const Cfg *Func) const {
   assert(LR->getRegNum() == RegARM32::Reg_lr);
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << "\t"
-      << "bx"
-      << "\t";
+         "bx"
+         "\t";
   LR->emit(Func);
 }
 
@@ -1625,7 +1625,7 @@ void InstARM32Umull::emit(const Cfg *Func) const {
   assert(getSrcSize() == 2);
   assert(getDest()->hasReg());
   Str << "\t"
-      << "umull" << getPredicate() << "\t";
+         "umull" << getPredicate() << "\t";
   getDest()->emit(Func);
   Str << ", ";
   DestHi->emit(Func);
@@ -1689,7 +1689,7 @@ void InstARM32Vcvt::emit(const Cfg *Func) const {
   assert(getSrcSize() == 1);
   assert(getDest()->hasReg());
   Str << "\t"
-      << "vcvt" << getPredicate() << vcvtVariantSuffix(Variant) << "\t";
+         "vcvt" << getPredicate() << vcvtVariantSuffix(Variant) << "\t";
   getDest()->emit(Func);
   Str << ", ";
   getSrc(0)->emit(Func);
@@ -1790,7 +1790,8 @@ void InstARM32Dmb::emitIAS(const Cfg *Func) const {
 void InstARM32Dmb::dump(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
-  Func->getContext()->getStrDump() << "dmb\tsy";
+  Func->getContext()->getStrDump() << "dmb\t"
+                                      "sy";
 }
 
 void OperandARM32Mem::emit(const Cfg *Func) const {
