@@ -65,7 +65,7 @@ class Reg(object):
       Encode=self.Encode, Features=self.Features)
 
   def IsAnAliasOf(self, Other):
-    return self.Name in self.Features.Aliases().Aliases
+    return Other.Name in self.Features.Aliases().Aliases
 
 # Note: The following tables break the usual 80-col on purpose -- it is easier
 # to read the register tables if each register entry is contained on a single
@@ -130,7 +130,7 @@ FP32 = [
   Reg('s28', 28, IsPreserved=1,           IsFP32=1, Aliases='s28, d14, q7'),
   Reg('s29', 29, IsPreserved=1,           IsFP32=1, Aliases='s29, d14, q7'),
   Reg('s30', 30, IsPreserved=1,           IsFP32=1, Aliases='s30, d15, q7'),
-  Reg('s31', 31, IsPreserved=1,           IsFP32=1, Aliases='s31, d14, q7'),
+  Reg('s31', 31, IsPreserved=1,           IsFP32=1, Aliases='s31, d15, q7'),
 ]
 
 FP64 = [
@@ -145,10 +145,10 @@ FP64 = [
   Reg( 'd8',  8, IsPreserved=1,          IsFP64=1, Aliases= 'd8,  q4, s16, s17'),
   Reg( 'd9',  9, IsPreserved=1,          IsFP64=1, Aliases= 'd9,  q4, s18, s19'),
   Reg('d10', 10, IsPreserved=1,          IsFP64=1, Aliases='d10,  q5, s20, s21'),
-  Reg('d11', 11, IsPreserved=1,          IsFP64=1, Aliases='d11,  q5, s22, s24'),
+  Reg('d11', 11, IsPreserved=1,          IsFP64=1, Aliases='d11,  q5, s22, s23'),
   Reg('d12', 12, IsPreserved=1,          IsFP64=1, Aliases='d12,  q6, s24, s25'),
   Reg('d13', 13, IsPreserved=1,          IsFP64=1, Aliases='d13,  q6, s26, s27'),
-  Reg('d14', 14, IsPreserved=1,          IsFP64=1, Aliases='d14,  q7, s28, s28'),
+  Reg('d14', 14, IsPreserved=1,          IsFP64=1, Aliases='d14,  q7, s28, s29'),
   Reg('d15', 15, IsPreserved=1,          IsFP64=1, Aliases='d15,  q7, s30, s31'),
   Reg('d16', 16,   IsScratch=1,          IsFP64=1, Aliases='d16,  q8'),
   Reg('d17', 17,   IsScratch=1,          IsFP64=1, Aliases='d17,  q8'),
@@ -202,7 +202,6 @@ for _, RegClass in RegClasses:
 for _, RegClass in RegClasses:
   for Reg in RegClass:
     for Alias in AllRegs[Reg.Name].Features.Aliases().Aliases:
-      assert AllRegs[Alias].IsAnAliasOf(Reg), '%s VS %s' % (Reg, AllRegs[Alias])
       assert AllRegs[Alias].IsAnAliasOf(Reg), '%s VS %s' % (Reg, AllRegs[Alias])
       assert (AllRegs[Alias].Features.LivesInGPR() ==
                  Reg.Features.LivesInGPR()), '%s VS %s' % (Reg, AllRegs[Alias])
