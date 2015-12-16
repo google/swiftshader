@@ -110,24 +110,24 @@ entry:
   ret <4 x i32> %res
 
 ; NOPINSERTION-LABEL: func1
-; NOPINSERTION: nop # variant = 1
+; NOPINSERTION: nop /* variant = 1 */
 ; NOPINSERTION: subl $60, %esp
-; NOPINSERTION: nop # variant = 3
+; NOPINSERTION: nop /* variant = 3 */
 ; NOPINSERTION: movups %xmm0, 32(%esp)
 ; NOPINSERTION: movups %xmm1, 16(%esp)
 ; NOPINSERTION: movups 32(%esp), %xmm0
-; NOPINSERTION: nop # variant = 1
+; NOPINSERTION: nop /* variant = 1 */
 ; NOPINSERTION: pshufd $49, 32(%esp), %xmm1
-; NOPINSERTION: nop # variant = 4
+; NOPINSERTION: nop /* variant = 4 */
 ; NOPINSERTION: pshufd $49, 16(%esp), %xmm2
-; NOPINSERTION: nop # variant = 1
+; NOPINSERTION: nop /* variant = 1 */
 ; NOPINSERTION: pmuludq 16(%esp), %xmm0
 ; NOPINSERTION: pmuludq %xmm2, %xmm1
-; NOPINSERTION: nop # variant = 0
+; NOPINSERTION: nop /* variant = 0 */
 ; NOPINSERTION: shufps $136, %xmm1, %xmm0
-; NOPINSERTION: nop # variant = 3
+; NOPINSERTION: nop /* variant = 3 */
 ; NOPINSERTION: pshufd $216, %xmm0, %xmm0
-; NOPINSERTION: nop # variant = 1
+; NOPINSERTION: nop /* variant = 1 */
 ; NOPINSERTION: movups %xmm0, (%esp)
 ; NOPINSERTION: movups (%esp), %xmm0
 ; NOPINSERTION: addl $60, %esp

@@ -6328,7 +6328,7 @@ void emitConstant(
   Str << ":\n\t" << Traits::AsmTag << "\t0x";
   T Value = Const->getValue();
   Str.write_hex(Traits::bitcastToUint64(Value));
-  Str << "\t@" << Traits::TypeName << " " << Value << "\n";
+  Str << "\t/* " << Traits::TypeName << " " << Value << " */\n";
 }
 
 template <typename T> void emitConstantPool(GlobalContext *Ctx) {

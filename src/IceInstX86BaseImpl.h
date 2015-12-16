@@ -2623,7 +2623,7 @@ template <class Machine> void InstX86Nop<Machine>::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   // TODO: Emit the right code for each variant.
   Str << "\t"
-         "nop\t# variant = " << Variant;
+         "nop\t/* variant = " << Variant << " */";
 }
 
 template <class Machine>

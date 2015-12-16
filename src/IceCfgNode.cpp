@@ -917,10 +917,10 @@ void emitRegisterUsage(Ostream &Str, const Cfg *Func, const CfgNode *Node,
   const int32_t FrameOrStackReg = Func->getTarget()->getFrameOrStackReg();
   if (IsLiveIn) {
     Live = &Liveness->getLiveIn(Node);
-    Str << "\t\t\t\t# LiveIn=";
+    Str << "\t\t\t\t/* LiveIn=";
   } else {
     Live = &Liveness->getLiveOut(Node);
-    Str << "\t\t\t\t# LiveOut=";
+    Str << "\t\t\t\t/* LiveOut=";
   }
   if (!Live->empty()) {
     CfgVector<Variable *> LiveRegs;
@@ -951,7 +951,7 @@ void emitRegisterUsage(Ostream &Str, const Cfg *Func, const CfgNode *Node,
       Var->emit(Func);
     }
   }
-  Str << "\n";
+  Str << " */\n";
 }
 
 /// Returns true if some text was emitted - in which case the caller definitely
@@ -981,11 +981,13 @@ bool emitLiveRangesEnded(Ostream &Str, const Cfg *Func, const Inst *Instr,
       if (Printed)
         Str << ",";
       else
-        Str << " \t@ END=";
+        Str << " \t/* END=";
       Var->emit(Func);
       Printed = true;
     }
   }
+  if (Printed)
+    Str << " */";
   return Printed;
 }
 
@@ -1029,7 +1031,7 @@ void CfgNode::emit(Cfg *Func) const {
     constexpr bool IsLiveIn = true;
     emitRegisterUsage(Str, Func, this, IsLiveIn, LiveRegCount);
     if (getInEdges().size()) {
-      Str << "\t\t\t\t# preds=";
+      Str << "\t\t\t\t/* preds=";
       bool First = true;
       for (CfgNode *I : getInEdges()) {
         if (!First)
@@ -1037,10 +1039,10 @@ void CfgNode::emit(Cfg *Func) const {
         First = false;
         Str << "$" << I->getName();
       }
-      Str << "\n";
+      Str << " */\n";
     }
     if (getLoopNestDepth()) {
-      Str << "\t\t\t\t# loop depth=" << getLoopNestDepth() << "\n";
+      Str << "\t\t\t\t/* loop depth=" << getLoopNestDepth() << " */\n";
     }
   }
 
