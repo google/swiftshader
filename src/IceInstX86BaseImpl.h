@@ -622,19 +622,19 @@ void InstX86Call<Machine>::dump(const Cfg *Func) const {
 // The this->Opcode parameter needs to be char* and not IceString because of
 // template issues.
 template <class Machine>
-void InstX86Base<Machine>::emitTwoAddress(const char *Opcode, const Inst *Inst,
-                                          const Cfg *Func) {
+void InstX86Base<Machine>::emitTwoAddress(const Cfg *Func, const char *Opcode,
+                                          const char *Suffix) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
-  assert(Inst->getSrcSize() == 2);
-  Operand *Dest = Inst->getDest();
+  assert(getSrcSize() == 2);
+  Operand *Dest = getDest();
   if (Dest == nullptr)
-    Dest = Inst->getSrc(0);
-  assert(Dest == Inst->getSrc(0));
-  Operand *Src1 = Inst->getSrc(1);
-  Str << "\t" << Opcode << InstX86Base<Machine>::getWidthString(Dest->getType())
-      << "\t";
+    Dest = getSrc(0);
+  assert(Dest == getSrc(0));
+  Operand *Src1 = getSrc(1);
+  Str << "\t" << Opcode << Suffix
+      << InstX86Base<Machine>::getWidthString(Dest->getType()) << "\t";
   Src1->emit(Func);
   Str << ", ";
   Dest->emit(Func);
@@ -1008,205 +1008,6 @@ void InstX86Sqrtss<Machine>::emit(const Cfg *Func) const {
   this->getDest()->emit(Func);
 }
 
-template <class Machine>
-void InstX86Addss<Machine>::emit(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-  char buf[30];
-  snprintf(
-      buf, llvm::array_lengthof(buf), "add%s",
-      InstX86Base<Machine>::Traits::TypeAttributes[this->getDest()->getType()]
-          .SdSsString);
-  this->emitTwoAddress(buf, this, Func);
-}
-
-template <class Machine>
-void InstX86Padd<Machine>::emit(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-  char buf[30];
-  snprintf(
-      buf, llvm::array_lengthof(buf), "padd%s",
-      InstX86Base<Machine>::Traits::TypeAttributes[this->getDest()->getType()]
-          .PackString);
-  this->emitTwoAddress(buf, this, Func);
-}
-
-template <class Machine>
-void InstX86Pmull<Machine>::emit(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-  char buf[30];
-  bool TypesAreValid = this->getDest()->getType() == IceType_v4i32 ||
-                       this->getDest()->getType() == IceType_v8i16;
-  auto *Target = InstX86Base<Machine>::getTarget(Func);
-  bool InstructionSetIsValid =
-      this->getDest()->getType() == IceType_v8i16 ||
-      Target->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1;
-  (void)TypesAreValid;
-  (void)InstructionSetIsValid;
-  assert(TypesAreValid);
-  assert(InstructionSetIsValid);
-  snprintf(
-      buf, llvm::array_lengthof(buf), "pmull%s",
-      InstX86Base<Machine>::Traits::TypeAttributes[this->getDest()->getType()]
-          .PackString);
-  this->emitTwoAddress(buf, this, Func);
-}
-
-template <class Machine>
-void InstX86Pmull<Machine>::emitIAS(const Cfg *Func) const {
-  Type Ty = this->getDest()->getType();
-  bool TypesAreValid = Ty == IceType_v4i32 || Ty == IceType_v8i16;
-  auto *Target = InstX86Base<Machine>::getTarget(Func);
-  bool InstructionSetIsValid =
-      Ty == IceType_v8i16 ||
-      Target->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1;
-  (void)TypesAreValid;
-  (void)InstructionSetIsValid;
-  assert(TypesAreValid);
-  assert(InstructionSetIsValid);
-  assert(this->getSrcSize() == 2);
-  Type ElementTy = typeElementType(Ty);
-  emitIASRegOpTyXMM<Machine>(Func, ElementTy, this->getDest(), this->getSrc(1),
-                             this->Emitter);
-}
-
-template <class Machine>
-void InstX86Subss<Machine>::emit(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-  char buf[30];
-  snprintf(
-      buf, llvm::array_lengthof(buf), "sub%s",
-      InstX86Base<Machine>::Traits::TypeAttributes[this->getDest()->getType()]
-          .SdSsString);
-  this->emitTwoAddress(buf, this, Func);
-}
-
-template <class Machine>
-void InstX86Psub<Machine>::emit(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-  char buf[30];
-  snprintf(
-      buf, llvm::array_lengthof(buf), "psub%s",
-      InstX86Base<Machine>::Traits::TypeAttributes[this->getDest()->getType()]
-          .PackString);
-  this->emitTwoAddress(buf, this, Func);
-}
-
-template <class Machine>
-void InstX86Mulss<Machine>::emit(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-  char buf[30];
-  snprintf(
-      buf, llvm::array_lengthof(buf), "mul%s",
-      InstX86Base<Machine>::Traits::TypeAttributes[this->getDest()->getType()]
-          .SdSsString);
-  this->emitTwoAddress(buf, this, Func);
-}
-
-template <class Machine>
-void InstX86Andnps<Machine>::emit(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-
-  char buf[30];
-  snprintf(
-      buf, llvm::array_lengthof(buf), "%s%s", this->Opcode,
-      InstX86Base<Machine>::Traits::TypeAttributes[this->getDest()->getType()]
-          .PdPsString);
-  this->emitTwoAddress(buf, this, Func);
-}
-
-template <class Machine>
-void InstX86Andps<Machine>::emit(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-
-  char buf[30];
-  snprintf(
-      buf, llvm::array_lengthof(buf), "%s%s", this->Opcode,
-      InstX86Base<Machine>::Traits::TypeAttributes[this->getDest()->getType()]
-          .PdPsString);
-  this->emitTwoAddress(buf, this, Func);
-}
-
-template <class Machine>
-void InstX86Maxss<Machine>::emit(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-
-  char buf[30];
-  snprintf(
-      buf, llvm::array_lengthof(buf), "%s%s", this->Opcode,
-      InstX86Base<Machine>::Traits::TypeAttributes[this->getDest()->getType()]
-          .SdSsString);
-  this->emitTwoAddress(buf, this, Func);
-}
-
-template <class Machine>
-void InstX86Minss<Machine>::emit(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-
-  char buf[30];
-  snprintf(
-      buf, llvm::array_lengthof(buf), "%s%s", this->Opcode,
-      InstX86Base<Machine>::Traits::TypeAttributes[this->getDest()->getType()]
-          .SdSsString);
-  this->emitTwoAddress(buf, this, Func);
-}
-
-template <class Machine>
-void InstX86Orps<Machine>::emit(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-
-  char buf[30];
-  snprintf(
-      buf, llvm::array_lengthof(buf), "%s%s", this->Opcode,
-      InstX86Base<Machine>::Traits::TypeAttributes[this->getDest()->getType()]
-          .PdPsString);
-  this->emitTwoAddress(buf, this, Func);
-}
-
-template <class Machine>
-void InstX86Xorps<Machine>::emit(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-
-  char buf[30];
-  snprintf(
-      buf, llvm::array_lengthof(buf), "%s%s", this->Opcode,
-      InstX86Base<Machine>::Traits::TypeAttributes[this->getDest()->getType()]
-          .PdPsString);
-  this->emitTwoAddress(buf, this, Func);
-}
-
-template <class Machine>
-void InstX86Pmuludq<Machine>::emit(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-  assert(this->getSrc(0)->getType() == IceType_v4i32 &&
-         this->getSrc(1)->getType() == IceType_v4i32);
-  this->emitTwoAddress(this->Opcode, this, Func);
-}
-
-template <class Machine>
-void InstX86Divss<Machine>::emit(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-  char buf[30];
-  snprintf(
-      buf, llvm::array_lengthof(buf), "div%s",
-      InstX86Base<Machine>::Traits::TypeAttributes[this->getDest()->getType()]
-          .SdSsString);
-  this->emitTwoAddress(buf, this, Func);
-}
-
 template <class Machine> void InstX86Div<Machine>::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
@@ -1283,15 +1084,11 @@ template <class Machine>
 void InstX86Blendvps<Machine>::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
-  assert(InstX86Base<Machine>::getTarget(Func)->getInstructionSet() >=
-         InstX86Base<Machine>::Traits::SSE4_1);
   emitVariableBlendInst<Machine>(this->Opcode, this, Func);
 }
 
 template <class Machine>
 void InstX86Blendvps<Machine>::emitIAS(const Cfg *Func) const {
-  assert(InstX86Base<Machine>::getTarget(Func)->getInstructionSet() >=
-         InstX86Base<Machine>::Traits::SSE4_1);
   static const typename InstX86Base<Machine>::Traits::Assembler::XmmEmitterRegOp
       Emitter = {&InstX86Base<Machine>::Traits::Assembler::blendvps,
                  &InstX86Base<Machine>::Traits::Assembler::blendvps};
@@ -1302,15 +1099,11 @@ template <class Machine>
 void InstX86Pblendvb<Machine>::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
-  assert(InstX86Base<Machine>::getTarget(Func)->getInstructionSet() >=
-         InstX86Base<Machine>::Traits::SSE4_1);
   emitVariableBlendInst<Machine>(this->Opcode, this, Func);
 }
 
 template <class Machine>
 void InstX86Pblendvb<Machine>::emitIAS(const Cfg *Func) const {
-  assert(InstX86Base<Machine>::getTarget(Func)->getInstructionSet() >=
-         InstX86Base<Machine>::Traits::SSE4_1);
   static const typename InstX86Base<Machine>::Traits::Assembler::XmmEmitterRegOp
       Emitter = {&InstX86Base<Machine>::Traits::Assembler::pblendvb,
                  &InstX86Base<Machine>::Traits::Assembler::pblendvb};
@@ -1342,7 +1135,7 @@ void InstX86Imul<Machine>::emit(const Cfg *Func) const {
     Str << ", ";
     Dest->emit(Func);
   } else {
-    this->emitTwoAddress("imul", this, Func);
+    this->emitTwoAddress(Func, this->Opcode);
   }
 }
 
@@ -2791,40 +2584,12 @@ void InstX86Fstp<Machine>::dump(const Cfg *Func) const {
 }
 
 template <class Machine>
-void InstX86Pcmpeq<Machine>::emit(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-  char buf[30];
-  snprintf(
-      buf, llvm::array_lengthof(buf), "pcmpeq%s",
-      InstX86Base<Machine>::Traits::TypeAttributes[this->getDest()->getType()]
-          .PackString);
-  this->emitTwoAddress(buf, this, Func);
-}
-
-template <class Machine>
-void InstX86Pcmpgt<Machine>::emit(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-  char buf[30];
-  snprintf(
-      buf, llvm::array_lengthof(buf), "pcmpgt%s",
-      InstX86Base<Machine>::Traits::TypeAttributes[this->getDest()->getType()]
-          .PackString);
-  this->emitTwoAddress(buf, this, Func);
-}
-
-template <class Machine>
 void InstX86Pextr<Machine>::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 2);
   // pextrb and pextrd are SSE4.1 instructions.
-  assert(this->getSrc(0)->getType() == IceType_v8i16 ||
-         this->getSrc(0)->getType() == IceType_v8i1 ||
-         InstX86Base<Machine>::getTarget(Func)->getInstructionSet() >=
-             InstX86Base<Machine>::Traits::SSE4_1);
   Str << "\t" << this->Opcode
       << InstX86Base<Machine>::Traits::TypeAttributes[this->getSrc(0)
                                                           ->getType()]
@@ -2848,9 +2613,6 @@ void InstX86Pextr<Machine>::emitIAS(const Cfg *Func) const {
   const Variable *Dest = this->getDest();
   Type DispatchTy = InstX86Base<Machine>::Traits::getInVectorElementType(
       this->getSrc(0)->getType());
-  assert(DispatchTy == IceType_i16 ||
-         InstX86Base<Machine>::getTarget(Func)->getInstructionSet() >=
-             InstX86Base<Machine>::Traits::SSE4_1);
   // pextrw must take a register dest. There is an SSE4.1 version that takes a
   // memory dest, but we aren't using it. For uniformity, just restrict them
   // all to have a register dest for now.
@@ -2876,11 +2638,6 @@ void InstX86Pinsr<Machine>::emit(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 3);
-  // pinsrb and pinsrd are SSE4.1 instructions.
-  assert(this->getDest()->getType() == IceType_v8i16 ||
-         this->getDest()->getType() == IceType_v8i1 ||
-         InstX86Base<Machine>::getTarget(Func)->getInstructionSet() >=
-             InstX86Base<Machine>::Traits::SSE4_1);
   Str << "\t" << this->Opcode
       << InstX86Base<
              Machine>::Traits::TypeAttributes[this->getDest()->getType()]
@@ -2912,9 +2669,6 @@ void InstX86Pinsr<Machine>::emitIAS(const Cfg *Func) const {
   // pinsrb and pinsrd are SSE4.1 instructions.
   const Operand *Src0 = this->getSrc(1);
   Type DispatchTy = Src0->getType();
-  assert(DispatchTy == IceType_i16 ||
-         InstX86Base<Machine>::getTarget(Func)->getInstructionSet() >=
-             InstX86Base<Machine>::Traits::SSE4_1);
   // If src1 is a register, it should always be r32 (this should fall out from
   // the encodings for ByteRegs overlapping the encodings for r32), but we have
   // to make sure the register allocator didn't choose an 8-bit high register
@@ -3047,50 +2801,6 @@ void InstX86Push<Machine>::dump(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "push." << this->getSrc(0)->getType() << " ";
   this->dumpSources(Func);
-}
-
-template <class Machine>
-void InstX86Psll<Machine>::emit(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-  assert(this->getDest()->getType() == IceType_v8i16 ||
-         this->getDest()->getType() == IceType_v8i1 ||
-         this->getDest()->getType() == IceType_v4i32 ||
-         this->getDest()->getType() == IceType_v4i1);
-  char buf[30];
-  snprintf(
-      buf, llvm::array_lengthof(buf), "psll%s",
-      InstX86Base<Machine>::Traits::TypeAttributes[this->getDest()->getType()]
-          .PackString);
-  this->emitTwoAddress(buf, this, Func);
-}
-
-template <class Machine>
-void InstX86Psra<Machine>::emit(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-  assert(this->getDest()->getType() == IceType_v8i16 ||
-         this->getDest()->getType() == IceType_v8i1 ||
-         this->getDest()->getType() == IceType_v4i32 ||
-         this->getDest()->getType() == IceType_v4i1);
-  char buf[30];
-  snprintf(
-      buf, llvm::array_lengthof(buf), "psra%s",
-      InstX86Base<Machine>::Traits::TypeAttributes[this->getDest()->getType()]
-          .PackString);
-  this->emitTwoAddress(buf, this, Func);
-}
-
-template <class Machine>
-void InstX86Psrl<Machine>::emit(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-  char buf[30];
-  snprintf(
-      buf, llvm::array_lengthof(buf), "psrl%s",
-      InstX86Base<Machine>::Traits::TypeAttributes[this->getDest()->getType()]
-          .PackString);
-  this->emitTwoAddress(buf, this, Func);
 }
 
 template <class Machine> void InstX86Ret<Machine>::emit(const Cfg *Func) const {

@@ -149,6 +149,8 @@ public:
     IacaEnd
   };
 
+  enum SseSuffix { None, Packed, Scalar, Integral };
+
   static const char *getWidthString(Type Ty);
   static const char *getFldString(Type Ty);
   static typename Traits::Cond::BrCond
@@ -156,8 +158,8 @@ public:
   void dump(const Cfg *Func) const override;
 
   // Shared emit routines for common forms of instructions.
-  static void emitTwoAddress(const char *Opcode, const Inst *Inst,
-                             const Cfg *Func);
+  void emitTwoAddress(const Cfg *Func, const char *Opcode,
+                      const char *Suffix = "") const;
 
   static void
   emitIASGPRShift(const Cfg *Func, Type Ty, const Variable *Var,
@@ -628,7 +630,7 @@ public:
   void emit(const Cfg *Func) const override {
     if (!BuildDefs::dump())
       return;
-    this->emitTwoAddress(Opcode, this, Func);
+    this->emitTwoAddress(Func, Opcode);
   }
   void emitIAS(const Cfg *Func) const override {
     Type Ty = this->getDest()->getType();
@@ -671,7 +673,7 @@ public:
   void emit(const Cfg *Func) const override {
     if (!BuildDefs::dump())
       return;
-    this->emitTwoAddress(Opcode, this, Func);
+    this->emitTwoAddress(Func, Opcode);
   }
   void emitIAS(const Cfg *Func) const override {
     Type Ty = this->getDest()->getType();
@@ -715,7 +717,7 @@ public:
   void emit(const Cfg *Func) const override {
     if (!BuildDefs::dump())
       return;
-    this->emitTwoAddress(Opcode, this, Func);
+    this->emitTwoAddress(Func, Opcode);
   }
   void emitIAS(const Cfg *Func) const override {
     Type Ty = this->getSrc(0)->getType();
@@ -749,20 +751,43 @@ protected:
 };
 
 template <class Machine, typename InstX86Base<Machine>::InstKindX86 K,
-          bool NeedsElementType>
+          bool NeedsElementType,
+          typename InstX86Base<Machine>::SseSuffix Suffix>
 class InstX86BaseBinopXmm : public InstX86Base<Machine> {
   InstX86BaseBinopXmm() = delete;
   InstX86BaseBinopXmm(const InstX86BaseBinopXmm &) = delete;
   InstX86BaseBinopXmm &operator=(const InstX86BaseBinopXmm &) = delete;
 
 public:
-  using Base = InstX86BaseBinopXmm<Machine, K, NeedsElementType>;
+  using Base = InstX86BaseBinopXmm<Machine, K, NeedsElementType, Suffix>;
 
   void emit(const Cfg *Func) const override {
     if (!BuildDefs::dump())
       return;
     this->validateVectorAddrMode();
-    this->emitTwoAddress(Opcode, this, Func);
+    switch (Suffix) {
+    case InstX86Base<Machine>::SseSuffix::None:
+      this->emitTwoAddress(Func, Opcode);
+      break;
+    case InstX86Base<Machine>::SseSuffix::Packed: {
+      const Type DestTy = this->getDest()->getType();
+      this->emitTwoAddress(
+          Func, this->Opcode,
+          InstX86Base<Machine>::Traits::TypeAttributes[DestTy].PdPsString);
+    } break;
+    case InstX86Base<Machine>::SseSuffix::Scalar: {
+      const Type DestTy = this->getDest()->getType();
+      this->emitTwoAddress(
+          Func, this->Opcode,
+          InstX86Base<Machine>::Traits::TypeAttributes[DestTy].SdSsString);
+    } break;
+    case InstX86Base<Machine>::SseSuffix::Integral: {
+      const Type DestTy = this->getDest()->getType();
+      this->emitTwoAddress(
+          Func, this->Opcode,
+          InstX86Base<Machine>::Traits::TypeAttributes[DestTy].PackString);
+    } break;
+    }
   }
   void emitIAS(const Cfg *Func) const override {
     this->validateVectorAddrMode();
@@ -818,7 +843,11 @@ public:
     if (!BuildDefs::dump())
       return;
     this->validateVectorAddrMode();
-    this->emitTwoAddress(Opcode, this, Func);
+    // Shift operations are always integral, and hence always need a suffix.
+    const Type DestTy = this->getDest()->getType();
+    this->emitTwoAddress(
+        Func, this->Opcode,
+        InstX86Base<Machine>::Traits::TypeAttributes[DestTy].PackString);
   }
   void emitIAS(const Cfg *Func) const override {
     this->validateVectorAddrMode();
@@ -1254,7 +1283,8 @@ private:
 
 template <class Machine>
 class InstX86Addps
-    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Addps, true> {
+    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Addps, true,
+                                 InstX86Base<Machine>::SseSuffix::Packed> {
 public:
   static InstX86Addps *create(Cfg *Func, Variable *Dest, Operand *Source) {
     return new (Func->allocate<InstX86Addps>())
@@ -1263,8 +1293,9 @@ public:
 
 private:
   InstX86Addps(Cfg *Func, Variable *Dest, Operand *Source)
-      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Addps, true>(
-            Func, Dest, Source) {}
+      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Addps, true,
+                            InstX86Base<Machine>::SseSuffix::Packed>(Func, Dest,
+                                                                     Source) {}
 };
 
 template <class Machine>
@@ -1303,34 +1334,34 @@ private:
 
 template <class Machine>
 class InstX86Addss
-    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Addss, false> {
+    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Addss, false,
+                                 InstX86Base<Machine>::SseSuffix::Scalar> {
 public:
   static InstX86Addss *create(Cfg *Func, Variable *Dest, Operand *Source) {
     return new (Func->allocate<InstX86Addss>())
         InstX86Addss(Func, Dest, Source);
   }
 
-  void emit(const Cfg *Func) const override;
-
 private:
   InstX86Addss(Cfg *Func, Variable *Dest, Operand *Source)
-      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Addss, false>(
-            Func, Dest, Source) {}
+      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Addss, false,
+                            InstX86Base<Machine>::SseSuffix::Scalar>(Func, Dest,
+                                                                     Source) {}
 };
 
 template <class Machine>
 class InstX86Padd
-    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Padd, true> {
+    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Padd, true,
+                                 InstX86Base<Machine>::SseSuffix::Integral> {
 public:
   static InstX86Padd *create(Cfg *Func, Variable *Dest, Operand *Source) {
     return new (Func->allocate<InstX86Padd>()) InstX86Padd(Func, Dest, Source);
   }
 
-  void emit(const Cfg *Func) const override;
-
 private:
   InstX86Padd(Cfg *Func, Variable *Dest, Operand *Source)
-      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Padd, true>(
+      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Padd, true,
+                            InstX86Base<Machine>::SseSuffix::Integral>(
             Func, Dest, Source) {}
 };
 
@@ -1370,7 +1401,8 @@ private:
 
 template <class Machine>
 class InstX86Subps
-    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Subps, true> {
+    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Subps, true,
+                                 InstX86Base<Machine>::SseSuffix::Packed> {
 public:
   static InstX86Subps *create(Cfg *Func, Variable *Dest, Operand *Source) {
     return new (Func->allocate<InstX86Subps>())
@@ -1379,25 +1411,26 @@ public:
 
 private:
   InstX86Subps(Cfg *Func, Variable *Dest, Operand *Source)
-      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Subps, true>(
-            Func, Dest, Source) {}
+      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Subps, true,
+                            InstX86Base<Machine>::SseSuffix::Packed>(Func, Dest,
+                                                                     Source) {}
 };
 
 template <class Machine>
 class InstX86Subss
-    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Subss, false> {
+    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Subss, false,
+                                 InstX86Base<Machine>::SseSuffix::Scalar> {
 public:
   static InstX86Subss *create(Cfg *Func, Variable *Dest, Operand *Source) {
     return new (Func->allocate<InstX86Subss>())
         InstX86Subss(Func, Dest, Source);
   }
 
-  void emit(const Cfg *Func) const override;
-
 private:
   InstX86Subss(Cfg *Func, Variable *Dest, Operand *Source)
-      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Subss, false>(
-            Func, Dest, Source) {}
+      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Subss, false,
+                            InstX86Base<Machine>::SseSuffix::Scalar>(Func, Dest,
+                                                                     Source) {}
 };
 
 template <class Machine>
@@ -1436,17 +1469,17 @@ private:
 
 template <class Machine>
 class InstX86Psub
-    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Psub, true> {
+    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Psub, true,
+                                 InstX86Base<Machine>::SseSuffix::Integral> {
 public:
   static InstX86Psub *create(Cfg *Func, Variable *Dest, Operand *Source) {
     return new (Func->allocate<InstX86Psub>()) InstX86Psub(Func, Dest, Source);
   }
 
-  void emit(const Cfg *Func) const override;
-
 private:
   InstX86Psub(Cfg *Func, Variable *Dest, Operand *Source)
-      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Psub, true>(
+      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Psub, true,
+                            InstX86Base<Machine>::SseSuffix::Integral>(
             Func, Dest, Source) {}
 };
 
@@ -1466,36 +1499,36 @@ private:
 
 template <class Machine>
 class InstX86Andnps
-    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Andnps, true> {
+    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Andnps, true,
+                                 InstX86Base<Machine>::SseSuffix::Packed> {
 public:
   static InstX86Andnps *create(Cfg *Func, Variable *Dest, Operand *Source) {
     return new (Func->allocate<InstX86Andnps>())
         InstX86Andnps(Func, Dest, Source);
   }
 
-  void emit(const Cfg *Func) const override;
-
 private:
   InstX86Andnps(Cfg *Func, Variable *Dest, Operand *Source)
-      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Andnps, true>(
-            Func, Dest, Source) {}
+      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Andnps, true,
+                            InstX86Base<Machine>::SseSuffix::Packed>(Func, Dest,
+                                                                     Source) {}
 };
 
 template <class Machine>
 class InstX86Andps
-    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Andps, true> {
+    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Andps, true,
+                                 InstX86Base<Machine>::SseSuffix::Packed> {
 public:
   static InstX86Andps *create(Cfg *Func, Variable *Dest, Operand *Source) {
     return new (Func->allocate<InstX86Andps>())
         InstX86Andps(Func, Dest, Source);
   }
 
-  void emit(const Cfg *Func) const override;
-
 private:
   InstX86Andps(Cfg *Func, Variable *Dest, Operand *Source)
-      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Andps, true>(
-            Func, Dest, Source) {}
+      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Andps, true,
+                            InstX86Base<Machine>::SseSuffix::Packed>(Func, Dest,
+                                                                     Source) {}
 };
 
 template <class Machine>
@@ -1520,7 +1553,8 @@ private:
 
 template <class Machine>
 class InstX86Pand
-    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Pand, false> {
+    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Pand, false,
+                                 InstX86Base<Machine>::SseSuffix::None> {
 public:
   static InstX86Pand *create(Cfg *Func, Variable *Dest, Operand *Source) {
     return new (Func->allocate<InstX86Pand>()) InstX86Pand(Func, Dest, Source);
@@ -1528,13 +1562,15 @@ public:
 
 private:
   InstX86Pand(Cfg *Func, Variable *Dest, Operand *Source)
-      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Pand, false>(
-            Func, Dest, Source) {}
+      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Pand, false,
+                            InstX86Base<Machine>::SseSuffix::None>(Func, Dest,
+                                                                   Source) {}
 };
 
 template <class Machine>
 class InstX86Pandn
-    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Pandn, false> {
+    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Pandn, false,
+                                 InstX86Base<Machine>::SseSuffix::None> {
 public:
   static InstX86Pandn *create(Cfg *Func, Variable *Dest, Operand *Source) {
     return new (Func->allocate<InstX86Pandn>())
@@ -1543,42 +1579,43 @@ public:
 
 private:
   InstX86Pandn(Cfg *Func, Variable *Dest, Operand *Source)
-      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Pandn, false>(
-            Func, Dest, Source) {}
+      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Pandn, false,
+                            InstX86Base<Machine>::SseSuffix::None>(Func, Dest,
+                                                                   Source) {}
 };
 
 template <class Machine>
 class InstX86Maxss
-    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Maxss, true> {
+    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Maxss, true,
+                                 InstX86Base<Machine>::SseSuffix::Scalar> {
 public:
   static InstX86Maxss *create(Cfg *Func, Variable *Dest, Operand *Source) {
     return new (Func->allocate<InstX86Maxss>())
         InstX86Maxss(Func, Dest, Source);
   }
 
-  void emit(const Cfg *Func) const override;
-
 private:
   InstX86Maxss(Cfg *Func, Variable *Dest, Operand *Source)
-      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Maxss, true>(
-            Func, Dest, Source) {}
+      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Maxss, true,
+                            InstX86Base<Machine>::SseSuffix::Scalar>(Func, Dest,
+                                                                     Source) {}
 };
 
 template <class Machine>
 class InstX86Minss
-    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Minss, true> {
+    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Minss, true,
+                                 InstX86Base<Machine>::SseSuffix::Scalar> {
 public:
   static InstX86Minss *create(Cfg *Func, Variable *Dest, Operand *Source) {
     return new (Func->allocate<InstX86Minss>())
         InstX86Minss(Func, Dest, Source);
   }
 
-  void emit(const Cfg *Func) const override;
-
 private:
   InstX86Minss(Cfg *Func, Variable *Dest, Operand *Source)
-      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Minss, true>(
-            Func, Dest, Source) {}
+      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Minss, true,
+                            InstX86Base<Machine>::SseSuffix::Scalar>(Func, Dest,
+                                                                     Source) {}
 };
 
 template <class Machine>
@@ -1597,18 +1634,18 @@ private:
 
 template <class Machine>
 class InstX86Orps
-    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Orps, true> {
+    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Orps, true,
+                                 InstX86Base<Machine>::SseSuffix::Packed> {
 public:
   static InstX86Orps *create(Cfg *Func, Variable *Dest, Operand *Source) {
     return new (Func->allocate<InstX86Orps>()) InstX86Orps(Func, Dest, Source);
   }
 
-  void emit(const Cfg *Func) const override;
-
 private:
   InstX86Orps(Cfg *Func, Variable *Dest, Operand *Source)
-      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Orps, true>(
-            Func, Dest, Source) {}
+      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Orps, true,
+                            InstX86Base<Machine>::SseSuffix::Packed>(Func, Dest,
+                                                                     Source) {}
 };
 
 template <class Machine>
@@ -1633,7 +1670,8 @@ private:
 
 template <class Machine>
 class InstX86Por
-    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Por, false> {
+    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Por, false,
+                                 InstX86Base<Machine>::SseSuffix::None> {
 public:
   static InstX86Por *create(Cfg *Func, Variable *Dest, Operand *Source) {
     return new (Func->allocate<InstX86Por>()) InstX86Por(Func, Dest, Source);
@@ -1641,8 +1679,9 @@ public:
 
 private:
   InstX86Por(Cfg *Func, Variable *Dest, Operand *Source)
-      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Por, false>(
-            Func, Dest, Source) {}
+      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Por, false,
+                            InstX86Base<Machine>::SseSuffix::None>(Func, Dest,
+                                                                   Source) {}
 };
 
 template <class Machine>
@@ -1661,19 +1700,19 @@ private:
 
 template <class Machine>
 class InstX86Xorps
-    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Xorps, true> {
+    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Xorps, true,
+                                 InstX86Base<Machine>::SseSuffix::Packed> {
 public:
   static InstX86Xorps *create(Cfg *Func, Variable *Dest, Operand *Source) {
     return new (Func->allocate<InstX86Xorps>())
         InstX86Xorps(Func, Dest, Source);
   }
 
-  void emit(const Cfg *Func) const override;
-
 private:
   InstX86Xorps(Cfg *Func, Variable *Dest, Operand *Source)
-      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Xorps, true>(
-            Func, Dest, Source) {}
+      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Xorps, true,
+                            InstX86Base<Machine>::SseSuffix::Packed>(Func, Dest,
+                                                                     Source) {}
 };
 
 template <class Machine>
@@ -1698,7 +1737,8 @@ private:
 
 template <class Machine>
 class InstX86Pxor
-    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Pxor, false> {
+    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Pxor, false,
+                                 InstX86Base<Machine>::SseSuffix::None> {
 public:
   static InstX86Pxor *create(Cfg *Func, Variable *Dest, Operand *Source) {
     return new (Func->allocate<InstX86Pxor>()) InstX86Pxor(Func, Dest, Source);
@@ -1706,8 +1746,9 @@ public:
 
 private:
   InstX86Pxor(Cfg *Func, Variable *Dest, Operand *Source)
-      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Pxor, false>(
-            Func, Dest, Source) {}
+      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Pxor, false,
+                            InstX86Base<Machine>::SseSuffix::None>(Func, Dest,
+                                                                   Source) {}
 };
 
 template <class Machine>
@@ -1748,7 +1789,8 @@ private:
 
 template <class Machine>
 class InstX86Mulps
-    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Mulps, true> {
+    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Mulps, true,
+                                 InstX86Base<Machine>::SseSuffix::Packed> {
 public:
   static InstX86Mulps *create(Cfg *Func, Variable *Dest, Operand *Source) {
     return new (Func->allocate<InstX86Mulps>())
@@ -1757,66 +1799,78 @@ public:
 
 private:
   InstX86Mulps(Cfg *Func, Variable *Dest, Operand *Source)
-      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Mulps, true>(
-            Func, Dest, Source) {}
+      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Mulps, true,
+                            InstX86Base<Machine>::SseSuffix::Packed>(Func, Dest,
+                                                                     Source) {}
 };
 
 template <class Machine>
 class InstX86Mulss
-    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Mulss, false> {
+    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Mulss, false,
+                                 InstX86Base<Machine>::SseSuffix::Scalar> {
 public:
   static InstX86Mulss *create(Cfg *Func, Variable *Dest, Operand *Source) {
     return new (Func->allocate<InstX86Mulss>())
         InstX86Mulss(Func, Dest, Source);
   }
 
-  void emit(const Cfg *Func) const override;
-
 private:
   InstX86Mulss(Cfg *Func, Variable *Dest, Operand *Source)
-      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Mulss, false>(
-            Func, Dest, Source) {}
+      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Mulss, false,
+                            InstX86Base<Machine>::SseSuffix::Scalar>(Func, Dest,
+                                                                     Source) {}
 };
 
 template <class Machine>
 class InstX86Pmull
-    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Pmull, true> {
+    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Pmull, true,
+                                 InstX86Base<Machine>::SseSuffix::Integral> {
 public:
   static InstX86Pmull *create(Cfg *Func, Variable *Dest, Operand *Source) {
+    bool TypesAreValid =
+        Dest->getType() == IceType_v4i32 || Dest->getType() == IceType_v8i16;
+    auto *Target = InstX86Base<Machine>::getTarget(Func);
+    bool InstructionSetIsValid =
+        Dest->getType() == IceType_v8i16 ||
+        Target->getInstructionSet() >= InstX86Base<Machine>::Traits::SSE4_1;
+    (void)TypesAreValid;
+    (void)InstructionSetIsValid;
+    assert(TypesAreValid);
+    assert(InstructionSetIsValid);
     return new (Func->allocate<InstX86Pmull>())
         InstX86Pmull(Func, Dest, Source);
   }
 
-  void emit(const Cfg *Func) const override;
-  void emitIAS(const Cfg *Func) const override;
-
 private:
   InstX86Pmull(Cfg *Func, Variable *Dest, Operand *Source)
-      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Pmull, true>(
+      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Pmull, true,
+                            InstX86Base<Machine>::SseSuffix::Integral>(
             Func, Dest, Source) {}
 };
 
 template <class Machine>
 class InstX86Pmuludq
-    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Pmuludq,
-                                 false> {
+    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Pmuludq, false,
+                                 InstX86Base<Machine>::SseSuffix::None> {
 public:
   static InstX86Pmuludq *create(Cfg *Func, Variable *Dest, Operand *Source) {
+    assert(Dest->getType() == IceType_v4i32 &&
+           Source->getType() == IceType_v4i32);
     return new (Func->allocate<InstX86Pmuludq>())
         InstX86Pmuludq(Func, Dest, Source);
   }
 
-  void emit(const Cfg *Func) const override;
-
 private:
   InstX86Pmuludq(Cfg *Func, Variable *Dest, Operand *Source)
-      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Pmuludq, false>(
-            Func, Dest, Source) {}
+      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Pmuludq, false,
+                            InstX86Base<Machine>::SseSuffix::None>(Func, Dest,
+                                                                   Source) {}
 };
 
 template <class Machine>
 class InstX86Divps
-    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Divps, true> {
+    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Divps, true,
+                                 InstX86Base<Machine>::SseSuffix::Packed> {
 public:
   static InstX86Divps *create(Cfg *Func, Variable *Dest, Operand *Source) {
     return new (Func->allocate<InstX86Divps>())
@@ -1825,25 +1879,26 @@ public:
 
 private:
   InstX86Divps(Cfg *Func, Variable *Dest, Operand *Source)
-      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Divps, true>(
-            Func, Dest, Source) {}
+      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Divps, true,
+                            InstX86Base<Machine>::SseSuffix::Packed>(Func, Dest,
+                                                                     Source) {}
 };
 
 template <class Machine>
 class InstX86Divss
-    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Divss, false> {
+    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Divss, false,
+                                 InstX86Base<Machine>::SseSuffix::Scalar> {
 public:
   static InstX86Divss *create(Cfg *Func, Variable *Dest, Operand *Source) {
     return new (Func->allocate<InstX86Divss>())
         InstX86Divss(Func, Dest, Source);
   }
 
-  void emit(const Cfg *Func) const override;
-
 private:
   InstX86Divss(Cfg *Func, Variable *Dest, Operand *Source)
-      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Divss, false>(
-            Func, Dest, Source) {}
+      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Divss, false,
+                            InstX86Base<Machine>::SseSuffix::Scalar>(Func, Dest,
+                                                                     Source) {}
 };
 
 template <class Machine>
@@ -1879,10 +1934,11 @@ class InstX86Psll
     : public InstX86BaseBinopXmmShift<Machine, InstX86Base<Machine>::Psll> {
 public:
   static InstX86Psll *create(Cfg *Func, Variable *Dest, Operand *Source) {
+    assert(Dest->getType() == IceType_v8i16 ||
+           Dest->getType() == IceType_v8i1 ||
+           Dest->getType() == IceType_v4i32 || Dest->getType() == IceType_v4i1);
     return new (Func->allocate<InstX86Psll>()) InstX86Psll(Func, Dest, Source);
   }
-
-  void emit(const Cfg *Func) const override;
 
 private:
   InstX86Psll(Cfg *Func, Variable *Dest, Operand *Source)
@@ -1898,8 +1954,6 @@ public:
   static InstX86Psrl *create(Cfg *Func, Variable *Dest, Operand *Source) {
     return new (Func->allocate<InstX86Psrl>()) InstX86Psrl(Func, Dest, Source);
   }
-
-  void emit(const Cfg *Func) const override;
 
 private:
   InstX86Psrl(Cfg *Func, Variable *Dest, Operand *Source)
@@ -1940,10 +1994,11 @@ class InstX86Psra
     : public InstX86BaseBinopXmmShift<Machine, InstX86Base<Machine>::Psra> {
 public:
   static InstX86Psra *create(Cfg *Func, Variable *Dest, Operand *Source) {
+    assert(Dest->getType() == IceType_v8i16 ||
+           Dest->getType() == IceType_v8i1 ||
+           Dest->getType() == IceType_v4i32 || Dest->getType() == IceType_v4i1);
     return new (Func->allocate<InstX86Psra>()) InstX86Psra(Func, Dest, Source);
   }
-
-  void emit(const Cfg *Func) const override;
 
 private:
   InstX86Psra(Cfg *Func, Variable *Dest, Operand *Source)
@@ -1953,35 +2008,35 @@ private:
 
 template <class Machine>
 class InstX86Pcmpeq
-    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Pcmpeq, true> {
+    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Pcmpeq, true,
+                                 InstX86Base<Machine>::SseSuffix::Integral> {
 public:
   static InstX86Pcmpeq *create(Cfg *Func, Variable *Dest, Operand *Source) {
     return new (Func->allocate<InstX86Pcmpeq>())
         InstX86Pcmpeq(Func, Dest, Source);
   }
 
-  void emit(const Cfg *Func) const override;
-
 private:
   InstX86Pcmpeq(Cfg *Func, Variable *Dest, Operand *Source)
-      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Pcmpeq, true>(
+      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Pcmpeq, true,
+                            InstX86Base<Machine>::SseSuffix::Integral>(
             Func, Dest, Source) {}
 };
 
 template <class Machine>
 class InstX86Pcmpgt
-    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Pcmpgt, true> {
+    : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Pcmpgt, true,
+                                 InstX86Base<Machine>::SseSuffix::Integral> {
 public:
   static InstX86Pcmpgt *create(Cfg *Func, Variable *Dest, Operand *Source) {
     return new (Func->allocate<InstX86Pcmpgt>())
         InstX86Pcmpgt(Func, Dest, Source);
   }
 
-  void emit(const Cfg *Func) const override;
-
 private:
   InstX86Pcmpgt(Cfg *Func, Variable *Dest, Operand *Source)
-      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Pcmpgt, true>(
+      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::Pcmpgt, true,
+                            InstX86Base<Machine>::SseSuffix::Integral>(
             Func, Dest, Source) {}
 };
 
@@ -1994,7 +2049,7 @@ private:
 template <class Machine>
 class InstX86MovssRegs
     : public InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::MovssRegs,
-                                 false> {
+                                 false, InstX86Base<Machine>::SseSuffix::None> {
 public:
   static InstX86MovssRegs *create(Cfg *Func, Variable *Dest, Operand *Source) {
     return new (Func->allocate<InstX86MovssRegs>())
@@ -2005,8 +2060,9 @@ public:
 
 private:
   InstX86MovssRegs(Cfg *Func, Variable *Dest, Operand *Source)
-      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::MovssRegs, false>(
-            Func, Dest, Source) {}
+      : InstX86BaseBinopXmm<Machine, InstX86Base<Machine>::MovssRegs, false,
+                            InstX86Base<Machine>::SseSuffix::None>(Func, Dest,
+                                                                   Source) {}
 };
 
 template <class Machine>
@@ -2071,6 +2127,11 @@ class InstX86Pinsr
 public:
   static InstX86Pinsr *create(Cfg *Func, Variable *Dest, Operand *Source1,
                               Operand *Source2) {
+    // pinsrb and pinsrd are SSE4.1 instructions.
+    assert(Dest->getType() == IceType_v8i16 ||
+           Dest->getType() == IceType_v8i1 ||
+           InstX86Base<Machine>::getTarget(Func)->getInstructionSet() >=
+               InstX86Base<Machine>::Traits::SSE4_1);
     return new (Func->allocate<InstX86Pinsr>())
         InstX86Pinsr(Func, Dest, Source1, Source2);
   }
@@ -2108,6 +2169,8 @@ class InstX86Blendvps
 public:
   static InstX86Blendvps *create(Cfg *Func, Variable *Dest, Operand *Source1,
                                  Operand *Source2) {
+    assert(InstX86Base<Machine>::getTarget(Func)->getInstructionSet() >=
+           InstX86Base<Machine>::Traits::SSE4_1);
     return new (Func->allocate<InstX86Blendvps>())
         InstX86Blendvps(Func, Dest, Source1, Source2);
   }
@@ -2127,6 +2190,8 @@ class InstX86Pblendvb
 public:
   static InstX86Pblendvb *create(Cfg *Func, Variable *Dest, Operand *Source1,
                                  Operand *Source2) {
+    assert(InstX86Base<Machine>::getTarget(Func)->getInstructionSet() >=
+           InstX86Base<Machine>::Traits::SSE4_1);
     return new (Func->allocate<InstX86Pblendvb>())
         InstX86Pblendvb(Func, Dest, Source1, Source2);
   }
@@ -2146,6 +2211,10 @@ class InstX86Pextr
 public:
   static InstX86Pextr *create(Cfg *Func, Variable *Dest, Operand *Source0,
                               Operand *Source1) {
+    assert(Source0->getType() == IceType_v8i16 ||
+           Source0->getType() == IceType_v8i1 ||
+           InstX86Base<Machine>::getTarget(Func)->getInstructionSet() >=
+               InstX86Base<Machine>::Traits::SSE4_1);
     return new (Func->allocate<InstX86Pextr>())
         InstX86Pextr(Func, Dest, Source0, Source1);
   }
