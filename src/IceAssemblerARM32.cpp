@@ -1873,6 +1873,27 @@ void AssemblerARM32::sub(const Operand *OpRd, const Operand *OpRn,
              SubName);
 }
 
+namespace {
+
+// Use a particular UDF encoding -- TRAPNaCl in LLVM: 0xE7FEDEF0
+// http://llvm.org/viewvc/llvm-project?view=revision&revision=173943
+const uint8_t TrapBytesRaw[] = {0xE7, 0xFE, 0xDE, 0xF0};
+
+const auto TrapBytes =
+    llvm::ArrayRef<uint8_t>(TrapBytesRaw, llvm::array_lengthof(TrapBytesRaw));
+
+} // end of anonymous namespace
+
+llvm::ArrayRef<uint8_t> AssemblerARM32::getNonExecBundlePadding() const {
+  return TrapBytes;
+}
+
+void AssemblerARM32::trap() {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  for (const uint8_t &Byte : reverse_range(TrapBytes))
+    Buffer.emit<uint8_t>(Byte);
+}
+
 void AssemblerARM32::tst(const Operand *OpRn, const Operand *OpSrc1,
                          CondARM32::Cond Cond) {
   // TST (register) - ARM section A8.8.241, encoding A1:

@@ -114,12 +114,10 @@ public:
   void alignFunction() override {
     const SizeT Align = 1 << getBundleAlignLog2Bytes();
     SizeT BytesNeeded = Utils::OffsetToAlignment(Buffer.getPosition(), Align);
-    constexpr IValueT UndefinedInst = 0xe7fedef0; // udf #60896
     constexpr SizeT InstSize = sizeof(IValueT);
     assert(BytesNeeded % InstARM32::InstSize == 0);
     while (BytesNeeded > 0) {
-      AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-      emitInst(UndefinedInst);
+      trap();
       BytesNeeded -= InstSize;
     }
   }
@@ -128,12 +126,7 @@ public:
 
   const char *getAlignDirective() const override { return ".p2alignl"; }
 
-  llvm::ArrayRef<uint8_t> getNonExecBundlePadding() const override {
-    // Use a particular UDF encoding -- TRAPNaCl in LLVM: 0xE7FEDEF0
-    // http://llvm.org/viewvc/llvm-project?view=revision&revision=173943
-    static const uint8_t Padding[] = {0xE7, 0xFE, 0xDE, 0xF0};
-    return llvm::ArrayRef<uint8_t>(Padding, 4);
-  }
+  llvm::ArrayRef<uint8_t> getNonExecBundlePadding() const override;
 
   void padWithNop(intptr_t Padding) override;
 
@@ -306,6 +299,8 @@ public:
 
   // Implements sxtb/sxth depending on type of OpSrc0.
   void sxt(const Operand *OpRd, const Operand *OpSrc0, CondARM32::Cond Cond);
+
+  void trap();
 
   void tst(const Operand *OpRn, const Operand *OpSrc1, CondARM32::Cond Cond);
 
