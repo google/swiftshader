@@ -555,9 +555,8 @@ void Assembler::stm(BlockAddressMode am, Register base, RegList regs,
   ASSERT(regs != 0);
   EmitMultiMemOp(cond, am, false, base, regs);
 }
-#endif
 
-
+// Moved to ARM::AssemblerARM32::ldrex();
 void Assembler::ldrex(Register rt, Register rn, Condition cond) {
   ASSERT(TargetCPUFeatures::arm_version() != ARMv5TE);
   ASSERT(rn != kNoRegister);
@@ -573,7 +572,7 @@ void Assembler::ldrex(Register rt, Register rn, Condition cond) {
   Emit(encoding);
 }
 
-
+// Moved to ARM::AssemblerARM32::strex();
 void Assembler::strex(Register rd, Register rt, Register rn, Condition cond) {
   ASSERT(TargetCPUFeatures::arm_version() != ARMv5TE);
   ASSERT(rn != kNoRegister);
@@ -589,7 +588,7 @@ void Assembler::strex(Register rd, Register rt, Register rn, Condition cond) {
                      (static_cast<int32_t>(rt) << kStrExRtShift);
   Emit(encoding);
 }
-
+#endif
 
 void Assembler::clrex() {
   ASSERT(TargetCPUFeatures::arm_version() != ARMv5TE);

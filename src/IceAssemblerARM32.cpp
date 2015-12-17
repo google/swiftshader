@@ -100,6 +100,9 @@ static constexpr IValueT kImm12Shift = 0;
 // Rotation instructions (uxtb etc.).
 static constexpr IValueT kRotationShift = 10;
 
+// MemEx instructions.
+static constexpr IValueT kMemExOpcodeShift = 20;
+
 // Div instruction register field encodings.
 static constexpr IValueT kDivRdShift = 16;
 static constexpr IValueT kDivRmShift = 8;
@@ -177,6 +180,25 @@ RegARM32::GPRRegister getGPRReg(IValueT Shift, IValueT Value) {
   return decodeGPRRegister((Value >> Shift) & 0xF);
 }
 
+// Defines alternate layouts of instruction operands, should the (common)
+// default pattern not be used.
+enum OpEncoding {
+  // No alternate layout specified.
+  DefaultOpEncoding,
+  // Alternate encoding 3 for memory operands (like in strb, strh, ldrb, and
+  // ldrh.
+  OpEncoding3,
+  // Alternate encoding for memory operands for ldrex and strex, which only
+  // actually expect a register.
+  OpEncodingMemEx
+};
+
+IValueT getEncodedGPRegNum(const Variable *Var) {
+  int32_t Reg = Var->getRegNum();
+  return llvm::isa<Variable64On32>(Var) ? RegARM32::getI64PairFirstGPRNum(Reg)
+                                        : RegARM32::getEncodedGPR(Reg);
+}
+
 // The way an operand is encoded into a sequence of bits in functions
 // encodeOperand and encodeAddress below.
 enum EncodedOperand {
@@ -187,14 +209,25 @@ enum EncodedOperand {
   // Value=rrrriiiiiiii where rrrr is the rotation, and iiiiiiii is the imm8
   // value.
   EncodedAsRotatedImm8,
+  // EncodedAsImmRegOffset is a memory operand that can take three forms, based
+  // on OpEncoding:
+  //
+  // ***** DefaultOpEncoding *****
+  //
   // Value=0000000pu0w0nnnn0000iiiiiiiiiiii where nnnn is the base register Rn,
   // p=1 if pre-indexed addressing, u=1 if offset positive, w=1 if writeback to
   // Rn should be used, and iiiiiiiiiiii defines the rotated Imm8 value.
-  EncodedAsImmRegOffset,
+  //
+  // ***** OpEncoding3 *****
+  //
   // Value=00000000pu0w0nnnn0000iiii0000jjjj where nnnn=Rn, iiiijjjj=Imm8, p=1
   // if pre-indexed addressing, u=1 if offset positive, and w=1 if writeback to
   // Rn.
-  EncodedAsImmRegOffsetEnc3,
+  //
+  // ***** OpEncodingMemEx *****
+  //
+  // Value=000000000000nnnn0000000000000000 where nnnn=Rn.
+  EncodedAsImmRegOffset,
   // Value=0000000pu0w00nnnnttttiiiiiss0mmmm where nnnn is the base register Rn,
   // mmmm is the index register Rm, iiiii is the shift amount, ss is the shift
   // kind, p=1 if pre-indexed addressing, u=1 if offset positive, and w=1 if
@@ -240,7 +273,7 @@ EncodedOperand encodeOperand(const Operand *Opnd, IValueT &Value) {
   Value = 0; // Make sure initialized.
   if (const auto *Var = llvm::dyn_cast<Variable>(Opnd)) {
     if (Var->hasReg()) {
-      Value = Var->getRegNum();
+      Value = getEncodedGPRegNum(Var);
       return EncodedAsRegister;
     }
     return CantEncode;
@@ -316,14 +349,19 @@ IValueT encodeImmRegOffsetEnc3(IValueT Rn, IOffsetT Imm8,
   return Value;
 }
 
-// Defines alternate layouts of instruction operands, should the (common)
-// default pattern not be used.
-enum OpEncoding {
-  // No alternate layout specified.
-  DefaultOpEncoding,
-  // Alternate encoding 3.
-  OpEncoding3
-};
+IValueT encodeImmRegOffset(OpEncoding AddressEncoding, IValueT Reg,
+                           IOffsetT Offset, OperandARM32Mem::AddrMode Mode) {
+  switch (AddressEncoding) {
+  case DefaultOpEncoding:
+    return encodeImmRegOffset(Reg, Offset, Mode);
+  case OpEncoding3:
+    return encodeImmRegOffsetEnc3(Reg, Offset, Mode);
+  case OpEncodingMemEx:
+    assert(Offset == 0);
+    assert(Mode == OperandARM32Mem::Offset);
+    return Reg << kRnShift;
+  }
+}
 
 // Encodes memory address Opnd, and encodes that information into Value, based
 // on how ARM represents the address. Returns how the value was encoded.
@@ -341,34 +379,29 @@ EncodedOperand encodeAddress(const Operand *Opnd, IValueT &Value,
     int32_t BaseRegNum = Var->getBaseRegNum();
     if (BaseRegNum == Variable::NoRegister)
       BaseRegNum = TInfo.FrameOrStackReg;
-    Value = encodeImmRegOffset(BaseRegNum, Offset, OperandARM32Mem::Offset);
+    Value = encodeImmRegOffset(AddressEncoding, BaseRegNum, Offset,
+                               OperandARM32Mem::Offset);
     return EncodedAsImmRegOffset;
   }
   if (const auto *Mem = llvm::dyn_cast<OperandARM32Mem>(Opnd)) {
     Variable *Var = Mem->getBase();
     if (!Var->hasReg())
       return CantEncode;
-    IValueT Rn = Var->getRegNum();
+    IValueT Rn = getEncodedGPRegNum(Var);
     if (Mem->isRegReg()) {
       const Variable *Index = Mem->getIndex();
       if (Var == nullptr)
         return CantEncode;
       Value = (Rn << kRnShift) | Mem->getAddrMode() |
-              encodeShiftRotateImm5(Index->getRegNum(), Mem->getShiftOp(),
-                                    Mem->getShiftAmt());
+              encodeShiftRotateImm5(getEncodedGPRegNum(Index),
+                                    Mem->getShiftOp(), Mem->getShiftAmt());
       return EncodedAsShiftRotateImm5;
     }
     // Encoded as immediate register offset.
     ConstantInteger32 *Offset = Mem->getOffset();
-    switch (AddressEncoding) {
-    case DefaultOpEncoding:
-      Value = encodeImmRegOffset(Rn, Offset->getValue(), Mem->getAddrMode());
-      return EncodedAsImmRegOffset;
-    case OpEncoding3:
-      Value =
-          encodeImmRegOffsetEnc3(Rn, Offset->getValue(), Mem->getAddrMode());
-      return EncodedAsImmRegOffsetEnc3;
-    }
+    Value = encodeImmRegOffset(AddressEncoding, Rn, Offset->getValue(),
+                               Mem->getAddrMode());
+    return EncodedAsImmRegOffset;
   }
   return CantEncode;
 }
@@ -800,7 +833,7 @@ void AssemblerARM32::emitMemOpEnc3(CondARM32::Cond Cond, IValueT Opcode,
   default:
     llvm::report_fatal_error(std::string(InstName) +
                              ": Memory address not understood");
-  case EncodedAsImmRegOffsetEnc3: {
+  case EncodedAsImmRegOffset: {
     // XXXH (immediate)
     //   xxxh<c> <Rt>, [<Rn>{, #+-<Imm8>}]
     //   xxxh<c> <Rt>, [<Rn>, #+/-<Imm8>]
@@ -907,12 +940,14 @@ void AssemblerARM32::emitSignExtend(CondARM32::Cond Cond, IValueT Opcode,
   // Note: For the moment, we assume no rotation is specified.
   RotationValue Rotation = kRotateNone;
   constexpr IValueT Rn = RegARM32::Encoded_Reg_pc;
-  switch (typeWidthInBytes(OpSrc0->getType())) {
+  const Type Ty = OpSrc0->getType();
+  switch (Ty) {
   default:
-    llvm::report_fatal_error(std::string(InstName) +
-                             ": Type of Rm not understood");
+    llvm::report_fatal_error(std::string(InstName) + ": Type " +
+                             typeString(Ty) + " not allowed");
     break;
-  case 1: {
+  case IceType_i1:
+  case IceType_i8: {
     // SXTB/UXTB - Arm sections A8.8.233 and A8.8.274, encoding A1:
     //   sxtb<c> <Rd>, <Rm>{, <rotate>}
     //   uxtb<c> <Rd>, <Rm>{, <rotate>}
@@ -921,7 +956,7 @@ void AssemblerARM32::emitSignExtend(CondARM32::Cond Cond, IValueT Opcode,
     // dddd=Rd, mmmm=Rm, and rr defined (RotationValue) rotate.
     break;
   }
-  case 2: {
+  case IceType_i16: {
     // SXTH/UXTH - ARM sections A8.8.235 and A8.8.276, encoding A1:
     //   uxth<c> <Rd>< <Rm>{, <rotate>}
     //
@@ -1188,17 +1223,18 @@ void AssemblerARM32::ldr(const Operand *OpRt, const Operand *OpAddress,
   constexpr bool IsLoad = true;
   IValueT Rt = encodeRegister(OpRt, "Rt", LdrName);
   const Type Ty = OpRt->getType();
-  switch (typeWidthInBytesLog2(Ty)) {
-  case 3:
-  // LDRD is not implemented because target lowering handles i64 and double by
-  // using two (32-bit) load instructions. Note: Intenionally drop to default
-  // case.
+  switch (Ty) {
+  case IceType_i64:
+    // LDRD is not implemented because target lowering handles i64 and double by
+    // using two (32-bit) load instructions. Note: Intentionally drop to default
+    // case.
+    llvm::report_fatal_error(std::string("ldr : Type ") + typeString(Ty) +
+                             " not implemented");
   default:
     llvm::report_fatal_error(std::string("ldr : Type ") + typeString(Ty) +
-                             " not implementable\n");
-  case 0: {
-    // Handles i1 and i8 loads.
-    //
+                             " not allowed");
+  case IceType_i1:
+  case IceType_i8: {
     // LDRB (immediate) - ARM section A8.8.68, encoding A1:
     //   ldrb<c> <Rt>, [<Rn>{, #+/-<imm12>}]     ; p=1, w=0
     //   ldrb<c> <Rt>, [<Rn>], #+/-<imm12>       ; p=1, w=1
@@ -1218,9 +1254,7 @@ void AssemblerARM32::ldr(const Operand *OpRt, const Operand *OpAddress,
     emitMemOp(Cond, IsLoad, IsByte, Rt, OpAddress, TInfo, LdrName);
     return;
   }
-  case 1: {
-    // Handles i16 loads.
-    //
+  case IceType_i16: {
     // LDRH (immediate) - ARM section A8.8.80, encoding A1:
     //   ldrh<c> <Rt>, [<Rn>{, #+/-<Imm8>}]
     //   ldrh<c> <Rt>, [<Rn>], #+/-<Imm8>
@@ -1233,10 +1267,7 @@ void AssemblerARM32::ldr(const Operand *OpRt, const Operand *OpAddress,
     emitMemOpEnc3(Cond, L | B7 | B5 | B4, Rt, OpAddress, TInfo, Ldrh);
     return;
   }
-  case 2: {
-    // Note: Handles i32 and float loads. Target lowering handles i64 and
-    // double by using two (32 bit) load instructions.
-    //
+  case IceType_i32: {
     // LDR (immediate) - ARM section A8.8.63, encoding A1:
     //   ldr<c> <Rt>, [<Rn>{, #+/-<imm12>}]      ; p=1, w=0
     //   ldr<c> <Rt>, [<Rn>], #+/-<imm12>        ; p=1, w=1
@@ -1256,6 +1287,74 @@ void AssemblerARM32::ldr(const Operand *OpRt, const Operand *OpAddress,
     return;
   }
   }
+}
+
+void AssemblerARM32::emitMemExOp(CondARM32::Cond Cond, Type Ty, bool IsLoad,
+                                 const Operand *OpRd, IValueT Rt,
+                                 const Operand *OpAddress,
+                                 const TargetInfo &TInfo,
+                                 const char *InstName) {
+  IValueT Rd = encodeRegister(OpRd, "Rd", InstName);
+  IValueT MemExOpcode = IsLoad ? B0 : 0;
+  switch (Ty) {
+  default:
+    llvm::report_fatal_error(std::string(InstName) + ": Type " +
+                             typeString(Ty) + " not allowed");
+  case IceType_i1:
+  case IceType_i8:
+    MemExOpcode |= B2;
+    break;
+  case IceType_i16:
+    MemExOpcode |= B2 | B1;
+    break;
+  case IceType_i32:
+    break;
+  case IceType_i64:
+    MemExOpcode |= B1;
+  }
+  IValueT AddressRn;
+  if (encodeAddress(OpAddress, AddressRn, TInfo, OpEncodingMemEx) !=
+      EncodedAsImmRegOffset)
+    llvm::report_fatal_error(std::string(InstName) +
+                             ": Can't extract Rn from address");
+  assert(Utils::IsAbsoluteUint(3, MemExOpcode));
+  verifyRegDefined(Rd, "Rd", InstName);
+  verifyRegDefined(Rt, "Rt", InstName);
+  verifyCondDefined(Cond, InstName);
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  IValueT Encoding = (Cond << kConditionShift) | B24 | B23 | B11 | B10 | B9 |
+                     B8 | B7 | B4 | (MemExOpcode << kMemExOpcodeShift) |
+                     AddressRn | (Rd << kRdShift) | (Rt << kRmShift);
+  emitInst(Encoding);
+  return;
+}
+
+void AssemblerARM32::ldrex(const Operand *OpRt, const Operand *OpAddress,
+                           CondARM32::Cond Cond, const TargetInfo &TInfo) {
+  // LDREXB - ARM section A8.8.76, encoding A1:
+  //   ldrexb<c> <Rt>, [<Rn>]
+  //
+  // cccc00011101nnnntttt111110011111 where cccc=Cond, tttt=Rt, and nnnn=Rn.
+  //
+  // LDREXH - ARM section A8.8.78, encoding A1:
+  //   ldrexh<c> <Rt>, [<Rn>]
+  //
+  // cccc00011111nnnntttt111110011111 where cccc=Cond, tttt=Rt, and nnnn=Rn.
+  //
+  // LDREX - ARM section A8.8.75, encoding A1:
+  //   ldrex<c> <Rt>, [<Rn>]
+  //
+  // cccc00011001nnnntttt111110011111 where cccc=Cond, tttt=Rt, and nnnn=Rn.
+  //
+  // LDREXD - ARM section A8.
+  //   ldrexd<c> <Rt>, [<Rn>]
+  //
+  // cccc00011001nnnntttt111110011111 where cccc=Cond, tttt=Rt, and nnnn=Rn.
+  constexpr const char *LdrexName = "ldrex";
+  const Type Ty = OpRt->getType();
+  constexpr bool IsLoad = true;
+  constexpr IValueT Rm = RegARM32::Encoded_Reg_pc;
+  emitMemExOp(Cond, Ty, IsLoad, OpRt, Rm, OpAddress, TInfo, LdrexName);
 }
 
 void AssemblerARM32::emitShift(const CondARM32::Cond Cond,
@@ -1472,17 +1571,18 @@ void AssemblerARM32::str(const Operand *OpRt, const Operand *OpAddress,
   constexpr bool IsLoad = false;
   IValueT Rt = encodeRegister(OpRt, "Rt", StrName);
   const Type Ty = OpRt->getType();
-  switch (typeWidthInBytesLog2(Ty)) {
-  case 3:
-  // STRD is not implemented because target lowering handles i64 and double by
-  // using two (32-bit) store instructions.  Note: Intenionally drop to
-  // default case.
-  default:
+  switch (Ty) {
+  case IceType_i64:
+    // STRD is not implemented because target lowering handles i64 and double by
+    // using two (32-bit) store instructions.  Note: Intentionally drop to
+    // default case.
     llvm::report_fatal_error(std::string(StrName) + ": Type " + typeString(Ty) +
                              " not implemented");
-  case 0: {
-    // Handles i1 and i8 stores.
-    //
+  default:
+    llvm::report_fatal_error(std::string(StrName) + ": Type " + typeString(Ty) +
+                             " not allowed");
+  case IceType_i1:
+  case IceType_i8: {
     // STRB (immediate) - ARM section A8.8.207, encoding A1:
     //   strb<c> <Rt>, [<Rn>{, #+/-<imm12>}]     ; p=1, w=0
     //   strb<c> <Rt>, [<Rn>], #+/-<imm12>       ; p=1, w=1
@@ -1494,9 +1594,7 @@ void AssemblerARM32::str(const Operand *OpRt, const Operand *OpAddress,
     emitMemOp(Cond, IsLoad, IsByte, Rt, OpAddress, TInfo, StrName);
     return;
   }
-  case 1: {
-    // Handles i16 stores.
-    //
+  case IceType_i16: {
     // STRH (immediate) - ARM section A8.*.217, encoding A1:
     //   strh<c> <Rt>, [<Rn>{, #+/-<Imm8>}]
     //   strh<c> <Rt>, [<Rn>], #+/-<Imm8>
@@ -1509,7 +1607,7 @@ void AssemblerARM32::str(const Operand *OpRt, const Operand *OpAddress,
     emitMemOpEnc3(Cond, B7 | B5 | B4, Rt, OpAddress, TInfo, Strh);
     return;
   }
-  case 2: {
+  case IceType_i32: {
     // Note: Handles i32 and float stores. Target lowering handles i64 and
     // double by using two (32 bit) store instructions.
     //
@@ -1525,6 +1623,40 @@ void AssemblerARM32::str(const Operand *OpRt, const Operand *OpAddress,
     return;
   }
   }
+}
+
+void AssemblerARM32::strex(const Operand *OpRd, const Operand *OpRt,
+                           const Operand *OpAddress, CondARM32::Cond Cond,
+                           const TargetInfo &TInfo) {
+  // STREXB - ARM section A8.8.213, encoding A1:
+  //   strexb<c> <Rd>, <Rt>, [<Rn>]
+  //
+  // cccc00011100nnnndddd11111001tttt where cccc=Cond, dddd=Rd, tttt=Rt, and
+  // nnnn=Rn.
+  //
+  // STREXH - ARM section A8.8.215, encoding A1:
+  //   strexh<c> <Rd>, <Rt>, [<Rn>]
+  //
+  // cccc00011110nnnndddd11111001tttt where cccc=Cond, dddd=Rd, tttt=Rt, and
+  // nnnn=Rn.
+  //
+  // STREX - ARM section A8.8.212, encoding A1:
+  //   strex<c> <Rd>, <Rt>, [<Rn>]
+  //
+  // cccc00011000nnnndddd11111001tttt where cccc=Cond, dddd=Rd, tttt=Rt, and
+  // nnnn=Rn.
+  //
+  // STREXD - ARM section A8.8.214, encoding A1:
+  //   strexd<c> <Rd>, <Rt>, [<Rn>]
+  //
+  // cccc00011010nnnndddd11111001tttt where cccc=Cond, dddd=Rd, tttt=Rt, and
+  // nnnn=Rn.
+  constexpr const char *StrexName = "strex";
+  // Note: Rt uses Rm shift in encoding.
+  IValueT Rt = encodeRegister(OpRt, "Rt", StrexName);
+  const Type Ty = OpRt->getType();
+  constexpr bool IsLoad = true;
+  emitMemExOp(Cond, Ty, !IsLoad, OpRd, Rt, OpAddress, TInfo, StrexName);
 }
 
 void AssemblerARM32::orr(const Operand *OpRd, const Operand *OpRn,

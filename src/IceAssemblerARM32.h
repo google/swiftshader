@@ -225,6 +225,15 @@ public:
     ldr(OpRt, OpAddress, Cond, TInfo);
   }
 
+  void ldrex(const Operand *OpRt, const Operand *OpAddress,
+             CondARM32::Cond Cond, const TargetInfo &TInfo);
+
+  void ldrex(const Operand *OpRt, const Operand *OpAddress,
+             CondARM32::Cond Cond, const TargetLowering *Lowering) {
+    const TargetInfo TInfo(Lowering);
+    ldrex(OpRt, OpAddress, Cond, TInfo);
+  }
+
   void lsl(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
            bool SetFlags, CondARM32::Cond Cond);
 
@@ -281,6 +290,15 @@ public:
            const TargetLowering *Lowering) {
     const TargetInfo TInfo(Lowering);
     str(OpRt, OpAddress, Cond, TInfo);
+  }
+
+  void strex(const Operand *OpRd, const Operand *OpRt, const Operand *OpAddress,
+             CondARM32::Cond Cond, const TargetInfo &TInfo);
+
+  void strex(const Operand *OpRd, const Operand *OpRt, const Operand *OpAddress,
+             CondARM32::Cond Cond, const TargetLowering *Lowering) {
+    const TargetInfo TInfo(Lowering);
+    strex(OpRd, OpRt, OpAddress, Cond, TInfo);
   }
 
   void sub(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
@@ -377,6 +395,12 @@ private:
   void emitMemOpEnc3(CondARM32::Cond Cond, IValueT Opcode, IValueT Rt,
                      const Operand *OpAddress, const TargetInfo &TInfo,
                      const char *InstName);
+
+  // Emit cccc00011xxlnnnndddd11111001tttt where cccc=Cond, xx encodes type
+  // size, l=IsLoad, nnnn=Rn (as defined by OpAddress), and tttt=Rt.
+  void emitMemExOp(CondARM32::Cond, Type Ty, bool IsLoad, const Operand *OpRd,
+                   IValueT Rt, const Operand *OpAddress,
+                   const TargetInfo &TInfo, const char *InstName);
 
   // Pattern cccc100aaaalnnnnrrrrrrrrrrrrrrrr where cccc=Cond,
   // aaaa<<21=AddressMode, l=IsLoad, nnnn=BaseReg, and

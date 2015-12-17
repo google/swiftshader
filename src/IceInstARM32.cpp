@@ -1181,6 +1181,17 @@ template <> void InstARM32Ldrex::emit(const Cfg *Func) const {
   getSrc(0)->emit(Func);
 }
 
+template <> void InstARM32Ldrex::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 1);
+  assert(getDest()->hasReg());
+  Variable *Dest = getDest();
+  assert(isScalarIntegerType(Dest->getType()));
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  Asm->ldrex(Dest, getSrc(0), getPredicate(), Func->getTarget());
+  if (Asm->needsTextFixup())
+    emitUsingTextFixup(Func);
+}
+
 template <InstARM32::InstKindARM32 K>
 void InstARM32TwoAddrGPR<K>::emitIAS(const Cfg *Func) const {
   emitUsingTextFixup(Func);
@@ -1588,6 +1599,16 @@ void InstARM32Strex::emit(const Cfg *Func) const {
   Dest->emit(Func);
   Str << ", ";
   emitSources(Func);
+}
+
+void InstARM32Strex::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 2);
+  const Operand *Src0 = getSrc(0);
+  assert(isScalarIntegerType(Src0->getType()));
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  Asm->strex(Dest, Src0, getSrc(1), getPredicate(), Func->getTarget());
+  if (Asm->needsTextFixup())
+    emitUsingTextFixup(Func);
 }
 
 void InstARM32Strex::dump(const Cfg *Func) const {

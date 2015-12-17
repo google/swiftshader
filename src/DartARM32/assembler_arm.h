@@ -588,10 +588,12 @@ class Assembler : public ValueObject {
   // (and doesn't implement ARM STM instruction).
   void stm(BlockAddressMode am, Register base,
            RegList regs, Condition cond = AL);
-#endif
 
+  // Moved to ARM::AssemblerARM32::ldrex();
   void ldrex(Register rd, Register rn, Condition cond = AL);
+  // Moved to ARM::AssemblerARM32::strex();
   void strex(Register rd, Register rt, Register rn, Condition cond = AL);
+#endif
 
   // Miscellaneous instructions.
   void clrex();
