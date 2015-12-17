@@ -2649,6 +2649,7 @@ namespace sw
 		case FORMAT_A8B8G8R8:
 		case FORMAT_G8R8I:
 		case FORMAT_G8R8:
+		case FORMAT_A2B10G10R10:
 		case FORMAT_R8I_SNORM:
 		case FORMAT_G8R8I_SNORM:
 		case FORMAT_X8B8G8R8I_SNORM:
@@ -2720,6 +2721,7 @@ namespace sw
 		case FORMAT_A8R8G8B8:
 		case FORMAT_A8B8G8R8:
 		case FORMAT_G8R8:
+		case FORMAT_A2B10G10R10:
 		case FORMAT_R16UI:
 		case FORMAT_G16R16:
 		case FORMAT_G16R16UI:
@@ -2943,6 +2945,7 @@ namespace sw
 		case FORMAT_G8R8UI:         return 2;
 		case FORMAT_X8B8G8R8UI:     return 3;
 		case FORMAT_A8B8G8R8UI:     return 4;
+		case FORMAT_A2B10G10R10:    return 4;
 		case FORMAT_G16R16I:        return 2;
 		case FORMAT_G16R16UI:       return 2;
 		case FORMAT_G16R16:         return 2;
@@ -3461,14 +3464,14 @@ namespace sw
 			return FORMAT_R32I;
 		case FORMAT_R32UI:
 			return FORMAT_R32UI;
-		case FORMAT_A2R10G10B10:
-		case FORMAT_A2B10G10R10:
 		case FORMAT_X16B16G16R16I:
 		case FORMAT_A16B16G16R16I:
 			return FORMAT_A16B16G16R16I;
 		case FORMAT_X16B16G16R16UI:
 		case FORMAT_A16B16G16R16UI:
 			return FORMAT_A16B16G16R16UI;
+		case FORMAT_A2R10G10B10:
+		case FORMAT_A2B10G10R10:
 		case FORMAT_A16B16G16R16:
 			return FORMAT_A16B16G16R16;
 		case FORMAT_X32B32G32R32I:

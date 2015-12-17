@@ -276,6 +276,12 @@ namespace sw
 			c.y = Float(Int((*Pointer<UShort>(element) & UShort(0x07E0)) >> UShort(5)));
 			c.z = Float(Int(*Pointer<UShort>(element) & UShort(0x001F)));
 			break;
+		case FORMAT_A2B10G10R10:
+			c.x = Float(Int((*Pointer<UInt>(element) & UInt(0x000003FF))));
+			c.y = Float(Int((*Pointer<UInt>(element) & UInt(0x000FFC00)) >> 10));
+			c.z = Float(Int((*Pointer<UInt>(element) & UInt(0x3FF00000)) >> 20));
+			c.w = Float(Int((*Pointer<UInt>(element) & UInt(0xC0000000)) >> 30));
+			break;
 		default:
 			return false;
 		}
@@ -589,6 +595,28 @@ namespace sw
 				                                   (RoundInt(Float(c.x)) << Int(11))) & UShort(mask));
 			}
 			break;
+		case FORMAT_A2B10G10R10:
+			if(writeRGBA)
+			{
+				*Pointer<UInt>(element) = UInt(RoundInt(Float(c.x)) |
+				                              (RoundInt(Float(c.y)) << 10) |
+				                              (RoundInt(Float(c.z)) << 20) |
+				                              (RoundInt(Float(c.w)) << 30));
+			}
+			else
+			{
+				unsigned int mask = (writeA ? 0xC0000000 : 0x0000) |
+				                    (writeB ? 0x3FF00000 : 0x0000) |
+				                    (writeG ? 0x000FFC00 : 0x0000) |
+				                    (writeR ? 0x000003FF : 0x0000);
+				unsigned int unmask = ~mask;
+				*Pointer<UInt>(element) = (*Pointer<UInt>(element) & UInt(unmask)) |
+				                            (UInt(RoundInt(Float(c.x)) |
+				                                  (RoundInt(Float(c.y)) << 10) |
+				                                  (RoundInt(Float(c.z)) << 20) |
+				                                  (RoundInt(Float(c.w)) << 30)) & UInt(mask));
+			}
+			break;
 		default:
 			return false;
 		}
@@ -839,6 +867,9 @@ namespace sw
 		case FORMAT_A8B8G8R8I_SNORM:
 			scale = vector(0x7F, 0x7F, 0x7F, 0x7F);
 			break;
+		case FORMAT_A16B16G16R16:
+			scale = vector(0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF);
+			break;
 		case FORMAT_R8I:
 		case FORMAT_R8UI:
 		case FORMAT_G8R8I:
@@ -854,7 +885,6 @@ namespace sw
 		case FORMAT_G16R16UI:
 		case FORMAT_X16B16G16R16I:
 		case FORMAT_X16B16G16R16UI:
-		case FORMAT_A16B16G16R16:
 		case FORMAT_A16B16G16R16I:
 		case FORMAT_A16B16G16R16UI:
 		case FORMAT_R32I:
@@ -872,6 +902,9 @@ namespace sw
 			break;
 		case FORMAT_R5G6B5:
 			scale = vector(0x1F, 0x3F, 0x1F, 1.0f);
+			break;
+		case FORMAT_A2B10G10R10:
+			scale = vector(0x3FF, 0x3FF, 0x3FF, 0x03);
 			break;
 		default:
 			return false;
