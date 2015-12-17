@@ -388,7 +388,7 @@ void TargetMIPS32::lowerArguments() {
       RegisterArg64On32->getHi()->setRegNum(RegHi);
       Arg->setIsArg(false);
       Args[I] = RegisterArg64On32;
-      Context.insert(InstAssign::create(Func, Arg, RegisterArg));
+      Context.insert<InstAssign>(Arg, RegisterArg);
       continue;
     } else {
       assert(Ty == IceType_i32);
@@ -404,7 +404,7 @@ void TargetMIPS32::lowerArguments() {
       RegisterArg->setIsArg();
       Arg->setIsArg(false);
       Args[I] = RegisterArg;
-      Context.insert(InstAssign::create(Func, Arg, RegisterArg));
+      Context.insert<InstAssign>(Arg, RegisterArg);
     }
   }
 }
@@ -533,13 +533,13 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Inst) {
     // TODO(reed kotler): fakedef needed for now until all cases are implemented
     auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
     auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
-    Context.insert(InstFakeDef::create(Func, DestLo));
-    Context.insert(InstFakeDef::create(Func, DestHi));
+    Context.insert<InstFakeDef>(DestLo);
+    Context.insert<InstFakeDef>(DestHi);
     UnimplementedError(Func->getContext()->getFlags());
     return;
   }
   if (isVectorType(Dest->getType())) {
-    Context.insert(InstFakeDef::create(Func, Dest));
+    Context.insert<InstFakeDef>(Dest);
     UnimplementedError(Func->getContext()->getFlags());
     return;
   }
@@ -602,9 +602,9 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Inst) {
   }
   // TODO(reed kotler):
   // fakedef and fakeuse needed for now until all cases are implemented
-  Context.insert(InstFakeUse::create(Func, Src0R));
-  Context.insert(InstFakeUse::create(Func, Src1R));
-  Context.insert(InstFakeDef::create(Func, Dest));
+  Context.insert<InstFakeUse>(Src0R);
+  Context.insert<InstFakeUse>(Src1R);
+  Context.insert<InstFakeDef>(Dest);
   UnimplementedError(Func->getContext()->getFlags());
 }
 
@@ -888,7 +888,7 @@ void TargetMIPS32::lowerRet(const InstRet *Inst) {
       Variable *R0 = legalizeToReg(loOperand(Src0), RegMIPS32::Reg_V0);
       Variable *R1 = legalizeToReg(hiOperand(Src0), RegMIPS32::Reg_V1);
       Reg = R0;
-      Context.insert(InstFakeUse::create(Func, R1));
+      Context.insert<InstFakeUse>(R1);
       break;
     }
 
@@ -1022,7 +1022,7 @@ Operand *TargetMIPS32::legalize(Operand *From, LegalMask Allowed,
     (void)C;
     // TODO(reed kotler): complete this case for proper implementation
     Variable *Reg = makeReg(Ty, RegNum);
-    Context.insert(InstFakeDef::create(Func, Reg));
+    Context.insert<InstFakeDef>(Reg);
     return Reg;
   } else if (auto *C32 = llvm::dyn_cast<ConstantInteger32>(From)) {
     uint32_t Value = static_cast<uint32_t>(C32->getValue());

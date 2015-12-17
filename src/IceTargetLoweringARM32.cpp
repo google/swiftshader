@@ -357,11 +357,10 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
       assert(TargetHelper != nullptr);
       ARM32HelpersPreamble[TargetHelper] = &TargetARM32::preambleDivRem;
       constexpr SizeT MaxArgs = 2;
-      auto *Call = InstCall::create(Func, MaxArgs, Dest, TargetHelper,
-                                    NoTailCall, IsTargetHelperCall);
+      auto *Call = Context.insert<InstCall>(MaxArgs, Dest, TargetHelper,
+                                            NoTailCall, IsTargetHelperCall);
       Call->addArg(Instr->getSrc(0));
       Call->addArg(Instr->getSrc(1));
-      Context.insert(Call);
       Instr->setDeleted();
       return;
     }
@@ -408,7 +407,7 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
         // Src0 and Src1 have to be zero-, or signed-extended to i32. For Src0,
         // we just insert a InstCast right before the call to the helper.
         Variable *Src0_32 = Func->makeVariable(IceType_i32);
-        Context.insert(InstCast::create(Func, CastKind, Src0_32, Src0));
+        Context.insert<InstCast>(CastKind, Src0_32, Src0);
         Src0 = Src0_32;
 
         // For extending Src1, we will just insert an InstCast if Src1 is not a
@@ -426,20 +425,19 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
           Src1 = Ctx->getConstantInt32(NewC);
         } else {
           Variable *Src1_32 = Func->makeVariable(IceType_i32);
-          Context.insert(InstCast::create(Func, CastKind, Src1_32, Src1));
+          Context.insert<InstCast>(CastKind, Src1_32, Src1);
           Src1 = Src1_32;
         }
       }
       assert(TargetHelper != nullptr);
       ARM32HelpersPreamble[TargetHelper] = &TargetARM32::preambleDivRem;
       constexpr SizeT MaxArgs = 2;
-      auto *Call = InstCall::create(Func, MaxArgs, Dest, TargetHelper,
-                                    NoTailCall, IsTargetHelperCall);
+      auto *Call = Context.insert<InstCall>(MaxArgs, Dest, TargetHelper,
+                                            NoTailCall, IsTargetHelperCall);
       assert(Src0->getType() == IceType_i32);
       Call->addArg(Src0);
       assert(Src1->getType() == IceType_i32);
       Call->addArg(Src1);
-      Context.insert(Call);
       Instr->setDeleted();
       return;
     }
@@ -451,11 +449,10 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
       constexpr SizeT MaxArgs = 2;
       Operand *TargetHelper = Ctx->getConstantExternSym(
           DestTy == IceType_f32 ? H_frem_f32 : H_frem_f64);
-      auto *Call = InstCall::create(Func, MaxArgs, Dest, TargetHelper,
-                                    NoTailCall, IsTargetHelperCall);
+      auto *Call = Context.insert<InstCall>(MaxArgs, Dest, TargetHelper,
+                                            NoTailCall, IsTargetHelperCall);
       Call->addArg(Instr->getSrc(0));
       Call->addArg(Instr->getSrc(1));
-      Context.insert(Call);
       Instr->setDeleted();
       return;
     }
@@ -482,10 +479,9 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
           Src0IsF32 ? (DestIsSigned ? H_fptosi_f32_i64 : H_fptoui_f32_i64)
                     : (DestIsSigned ? H_fptosi_f64_i64 : H_fptoui_f64_i64));
       static constexpr SizeT MaxArgs = 1;
-      auto *Call = InstCall::create(Func, MaxArgs, Dest, TargetHelper,
-                                    NoTailCall, IsTargetHelperCall);
+      auto *Call = Context.insert<InstCall>(MaxArgs, Dest, TargetHelper,
+                                            NoTailCall, IsTargetHelperCall);
       Call->addArg(Src0);
-      Context.insert(Call);
       Instr->setDeleted();
       return;
     }
@@ -500,10 +496,9 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
           DestIsF32 ? (SourceIsSigned ? H_sitofp_i64_f32 : H_uitofp_i64_f32)
                     : (SourceIsSigned ? H_sitofp_i64_f64 : H_uitofp_i64_f64));
       static constexpr SizeT MaxArgs = 1;
-      auto *Call = InstCall::create(Func, MaxArgs, Dest, TargetHelper,
-                                    NoTailCall, IsTargetHelperCall);
+      auto *Call = Context.insert<InstCall>(MaxArgs, Dest, TargetHelper,
+                                            NoTailCall, IsTargetHelperCall);
       Call->addArg(Src0);
-      Context.insert(Call);
       Instr->setDeleted();
       return;
     }
@@ -523,10 +518,9 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
           isInt32Asserting32Or64(Src0->getType()) ? H_call_ctpop_i32
                                                   : H_call_ctpop_i64);
       static constexpr SizeT MaxArgs = 1;
-      auto *Call = InstCall::create(Func, MaxArgs, Dest, TargetHelper,
-                                    NoTailCall, IsTargetHelperCall);
+      auto *Call = Context.insert<InstCall>(MaxArgs, Dest, TargetHelper,
+                                            NoTailCall, IsTargetHelperCall);
       Call->addArg(Src0);
-      Context.insert(Call);
       Instr->setDeleted();
       if (Src0->getType() == IceType_i64) {
         ARM32HelpersPostamble[TargetHelper] = &TargetARM32::postambleCtpop64;
@@ -537,11 +531,10 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
       static constexpr SizeT MaxArgs = 2;
       static constexpr Variable *NoDest = nullptr;
       Operand *TargetHelper = Ctx->getConstantExternSym(H_call_longjmp);
-      auto *Call = InstCall::create(Func, MaxArgs, NoDest, TargetHelper,
-                                    NoTailCall, IsTargetHelperCall);
+      auto *Call = Context.insert<InstCall>(MaxArgs, NoDest, TargetHelper,
+                                            NoTailCall, IsTargetHelperCall);
       Call->addArg(IntrinsicCall->getArg(0));
       Call->addArg(IntrinsicCall->getArg(1));
-      Context.insert(Call);
       Instr->setDeleted();
       return;
     }
@@ -551,12 +544,11 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
       static constexpr SizeT MaxArgs = 3;
       static constexpr Variable *NoDest = nullptr;
       Operand *TargetHelper = Ctx->getConstantExternSym(H_call_memcpy);
-      auto *Call = InstCall::create(Func, MaxArgs, NoDest, TargetHelper,
-                                    NoTailCall, IsTargetHelperCall);
+      auto *Call = Context.insert<InstCall>(MaxArgs, NoDest, TargetHelper,
+                                            NoTailCall, IsTargetHelperCall);
       Call->addArg(IntrinsicCall->getArg(0));
       Call->addArg(IntrinsicCall->getArg(1));
       Call->addArg(IntrinsicCall->getArg(2));
-      Context.insert(Call);
       Instr->setDeleted();
       return;
     }
@@ -564,12 +556,11 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
       static constexpr SizeT MaxArgs = 3;
       static constexpr Variable *NoDest = nullptr;
       Operand *TargetHelper = Ctx->getConstantExternSym(H_call_memmove);
-      auto *Call = InstCall::create(Func, MaxArgs, NoDest, TargetHelper,
-                                    NoTailCall, IsTargetHelperCall);
+      auto *Call = Context.insert<InstCall>(MaxArgs, NoDest, TargetHelper,
+                                            NoTailCall, IsTargetHelperCall);
       Call->addArg(IntrinsicCall->getArg(0));
       Call->addArg(IntrinsicCall->getArg(1));
       Call->addArg(IntrinsicCall->getArg(2));
-      Context.insert(Call);
       Instr->setDeleted();
       return;
     }
@@ -579,7 +570,7 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
       Operand *ValOp = IntrinsicCall->getArg(1);
       assert(ValOp->getType() == IceType_i8);
       Variable *ValExt = Func->makeVariable(stackSlotType());
-      Context.insert(InstCast::create(Func, InstCast::Zext, ValExt, ValOp));
+      Context.insert<InstCast>(InstCast::Zext, ValExt, ValOp);
 
       // Technically, ARM has its own __aeabi_memset, but we can use plain
       // memset too. The value and size argument need to be flipped if we ever
@@ -587,12 +578,11 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
       static constexpr SizeT MaxArgs = 3;
       static constexpr Variable *NoDest = nullptr;
       Operand *TargetHelper = Ctx->getConstantExternSym(H_call_memset);
-      auto *Call = InstCall::create(Func, MaxArgs, NoDest, TargetHelper,
-                                    NoTailCall, IsTargetHelperCall);
+      auto *Call = Context.insert<InstCall>(MaxArgs, NoDest, TargetHelper,
+                                            NoTailCall, IsTargetHelperCall);
       Call->addArg(IntrinsicCall->getArg(0));
       Call->addArg(ValExt);
       Call->addArg(IntrinsicCall->getArg(2));
-      Context.insert(Call);
       Instr->setDeleted();
       return;
     }
@@ -602,19 +592,17 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
       }
       static constexpr SizeT MaxArgs = 0;
       Operand *TargetHelper = Ctx->getConstantExternSym(H_call_read_tp);
-      auto *Call = InstCall::create(Func, MaxArgs, Dest, TargetHelper,
-                                    NoTailCall, IsTargetHelperCall);
-      Context.insert(Call);
+      Context.insert<InstCall>(MaxArgs, Dest, TargetHelper, NoTailCall,
+                               IsTargetHelperCall);
       Instr->setDeleted();
       return;
     }
     case Intrinsics::Setjmp: {
       static constexpr SizeT MaxArgs = 1;
       Operand *TargetHelper = Ctx->getConstantExternSym(H_call_setjmp);
-      auto *Call = InstCall::create(Func, MaxArgs, Dest, TargetHelper,
-                                    NoTailCall, IsTargetHelperCall);
+      auto *Call = Context.insert<InstCall>(MaxArgs, Dest, TargetHelper,
+                                            NoTailCall, IsTargetHelperCall);
       Call->addArg(IntrinsicCall->getArg(0));
-      Context.insert(Call);
       Instr->setDeleted();
       return;
     }
@@ -1030,7 +1018,7 @@ void TargetARM32::lowerArguments() {
           RegARM32::getI64PairSecondGPRNum(RegNum));
     } break;
     }
-    Context.insert(InstAssign::create(Func, Arg, RegisterArg));
+    Context.insert<InstAssign>(Arg, RegisterArg);
   }
 }
 
@@ -1231,7 +1219,7 @@ void TargetARM32::addProlog(CfgNode *Node) {
     Variable *SP = getPhysicalRegister(RegARM32::Reg_sp);
     _mov(FP, SP);
     // Keep FP live for late-stage liveness analysis (e.g. asm-verbose mode).
-    Context.insert(InstFakeUse::create(Func, FP));
+    Context.insert<InstFakeUse>(FP);
   }
 
   // Align the variables area. SpillAreaPaddingBytes is the size of the region
@@ -1360,7 +1348,7 @@ void TargetARM32::addEpilog(CfgNode *Node) {
     // For late-stage liveness analysis (e.g. asm-verbose mode), adding a fake
     // use of SP before the assignment of SP=FP keeps previous SP adjustments
     // from being dead-code eliminated.
-    Context.insert(InstFakeUse::create(Func, SP));
+    Context.insert<InstFakeUse>(SP);
     Sandboxer(this).reset_sp(FP);
   } else {
     // add SP, SpillAreaSizeBytes
@@ -1524,7 +1512,7 @@ void TargetARM32::PostLoweringLegalizer::legalizeMov(InstARM32Mov *MovInstr) {
         .str(SrcR, createMemOperand(DestTy, StackOrFrameReg, Offset),
              MovInstr->getPredicate());
     // _str() does not have a Dest, so we add a fake-def(Dest).
-    Target->Context.insert(InstFakeDef::create(Target->Func, Dest));
+    Target->Context.insert<InstFakeDef>(Dest);
     Legalized = true;
   } else if (auto *Var = llvm::dyn_cast<Variable>(Src)) {
     if (Var->isRematerializable()) {
@@ -1899,7 +1887,7 @@ void TargetARM32::lowerAlloca(const InstAlloca *Inst) {
       // value to Dest, as Dest is rematerializable.
       assert(Dest->isRematerializable());
       FixedAllocaSizeBytes += Value;
-      Context.insert(InstFakeDef::create(Func, Dest));
+      Context.insert<InstFakeDef>(Dest);
       return;
     }
 
@@ -1944,7 +1932,7 @@ void TargetARM32::div0Check(Type Ty, Operand *SrcLo, Operand *SrcHi) {
     Operand *ShAmtImm = shAmtImm(32 - getScalarIntBitWidth(Ty));
     Variable *T = makeReg(IceType_i32);
     _lsls(T, SrcLoReg, ShAmtImm);
-    Context.insert(InstFakeUse::create(Func, T));
+    Context.insert<InstFakeUse>(T);
   } break;
   case IceType_i32: {
     _tst(SrcLoReg, SrcLoReg);
@@ -1955,7 +1943,7 @@ void TargetARM32::div0Check(Type Ty, Operand *SrcLo, Operand *SrcHi) {
     _orrs(T, SrcLoReg, legalize(SrcHi, Legal_Reg | Legal_Flex));
     // T isn't going to be used, but we need the side-effect of setting flags
     // from this operation.
-    Context.insert(InstFakeUse::create(Func, T));
+    Context.insert<InstFakeUse>(T);
   }
   }
   auto *Label = InstARM32Label::create(Func, this);
@@ -2711,7 +2699,7 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Instr) {
   Variable *Dest = Instr->getDest();
 
   if (Dest->isRematerializable()) {
-    Context.insert(InstFakeDef::create(Func, Dest));
+    Context.insert<InstFakeDef>(Dest);
     return;
   }
 
@@ -2731,7 +2719,7 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Instr) {
   if (isVectorType(DestTy)) {
     // Add a fake def to keep liveness consistent in the meantime.
     Variable *T = makeReg(DestTy);
-    Context.insert(InstFakeDef::create(Func, T));
+    Context.insert<InstFakeDef>(T);
     _mov(Dest, T);
     UnimplementedError(Func->getContext()->getFlags());
     return;
@@ -3063,7 +3051,7 @@ void TargetARM32::lowerAssign(const InstAssign *Inst) {
   Variable *Dest = Inst->getDest();
 
   if (Dest->isRematerializable()) {
-    Context.insert(InstFakeDef::create(Func, Dest));
+    Context.insert<InstFakeDef>(Dest);
     return;
   }
 
@@ -3367,29 +3355,28 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
   // Copy arguments to be passed in registers to the appropriate registers.
   for (auto &FPArg : FPArgs) {
     Variable *Reg = legalizeToReg(FPArg.first, FPArg.second);
-    Context.insert(InstFakeUse::create(Func, Reg));
+    Context.insert<InstFakeUse>(Reg);
   }
   for (auto &GPRArg : GPRArgs) {
     Variable *Reg = legalizeToReg(GPRArg.first, GPRArg.second);
     // Generate a FakeUse of register arguments so that they do not get dead
     // code eliminated as a result of the FakeKill of scratch registers after
     // the call.
-    Context.insert(InstFakeUse::create(Func, Reg));
+    Context.insert<InstFakeUse>(Reg);
   }
 
   InstARM32Call *NewCall =
       Sandboxer(this, InstBundleLock::Opt_AlignToEnd).bl(ReturnReg, CallTarget);
 
   if (ReturnRegHi)
-    Context.insert(InstFakeDef::create(Func, ReturnRegHi));
+    Context.insert<InstFakeDef>(ReturnRegHi);
 
   // Insert a register-kill pseudo instruction.
-  Context.insert(InstFakeKill::create(Func, NewCall));
+  Context.insert<InstFakeKill>(NewCall);
 
   // Generate a FakeUse to keep the call live if necessary.
   if (Instr->hasSideEffects() && ReturnReg) {
-    Inst *FakeUse = InstFakeUse::create(Func, ReturnReg);
-    Context.insert(FakeUse);
+    Context.insert<InstFakeUse>(ReturnReg);
   }
 
   if (Dest != nullptr) {
@@ -3440,7 +3427,7 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
   case InstCast::Sext: {
     if (isVectorType(Dest->getType())) {
       Variable *T = makeReg(Dest->getType());
-      Context.insert(InstFakeDef::create(Func, T, legalizeToReg(Src0)));
+      Context.insert<InstFakeDef>(T, legalizeToReg(Src0));
       _mov(Dest, T);
       UnimplementedError(Func->getContext()->getFlags());
     } else if (Dest->getType() == IceType_i64) {
@@ -3488,7 +3475,7 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
   case InstCast::Zext: {
     if (isVectorType(Dest->getType())) {
       Variable *T = makeReg(Dest->getType());
-      Context.insert(InstFakeDef::create(Func, T, legalizeToReg(Src0)));
+      Context.insert<InstFakeDef>(T, legalizeToReg(Src0));
       _mov(Dest, T);
       UnimplementedError(Func->getContext()->getFlags());
     } else if (Dest->getType() == IceType_i64) {
@@ -3544,7 +3531,7 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
   case InstCast::Trunc: {
     if (isVectorType(Dest->getType())) {
       Variable *T = makeReg(Dest->getType());
-      Context.insert(InstFakeDef::create(Func, T, legalizeToReg(Src0)));
+      Context.insert<InstFakeDef>(T, legalizeToReg(Src0));
       _mov(Dest, T);
       UnimplementedError(Func->getContext()->getFlags());
     } else {
@@ -3567,7 +3554,7 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
     const bool IsTrunc = CastKind == InstCast::Fptrunc;
     if (isVectorType(Dest->getType())) {
       Variable *T = makeReg(Dest->getType());
-      Context.insert(InstFakeDef::create(Func, T, legalizeToReg(Src0)));
+      Context.insert<InstFakeDef>(T, legalizeToReg(Src0));
       _mov(Dest, T);
       UnimplementedError(Func->getContext()->getFlags());
       break;
@@ -3584,7 +3571,7 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
   case InstCast::Fptoui: {
     if (isVectorType(Dest->getType())) {
       Variable *T = makeReg(Dest->getType());
-      Context.insert(InstFakeDef::create(Func, T, legalizeToReg(Src0)));
+      Context.insert<InstFakeDef>(T, legalizeToReg(Src0));
       _mov(Dest, T);
       UnimplementedError(Func->getContext()->getFlags());
       break;
@@ -3623,7 +3610,7 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
   case InstCast::Uitofp: {
     if (isVectorType(Dest->getType())) {
       Variable *T = makeReg(Dest->getType());
-      Context.insert(InstFakeDef::create(Func, T, legalizeToReg(Src0)));
+      Context.insert<InstFakeDef>(T, legalizeToReg(Src0));
       _mov(Dest, T);
       UnimplementedError(Func->getContext()->getFlags());
       break;
@@ -3700,8 +3687,8 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
       configureBitcastTemporary(T);
       Variable *Src0R = legalizeToReg(Src0);
       _mov(T, Src0R);
-      Context.insert(InstFakeUse::create(Func, T->getHi()));
-      Context.insert(InstFakeUse::create(Func, T->getLo()));
+      Context.insert<InstFakeUse>(T->getHi());
+      Context.insert<InstFakeUse>(T->getLo());
       lowerAssign(InstAssign::create(Func, Dest, T));
       break;
     }
@@ -3729,7 +3716,7 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
     case IceType_v4i32: {
       // avoid liveness errors
       Variable *T = makeReg(DestType);
-      Context.insert(InstFakeDef::create(Func, T, legalizeToReg(Src0)));
+      Context.insert<InstFakeDef>(T, legalizeToReg(Src0));
       _mov(Dest, T);
       UnimplementedError(Func->getContext()->getFlags());
       break;
@@ -3744,7 +3731,7 @@ void TargetARM32::lowerExtractElement(const InstExtractElement *Inst) {
   Variable *Dest = Inst->getDest();
   Type DestType = Dest->getType();
   Variable *T = makeReg(DestType);
-  Context.insert(InstFakeDef::create(Func, T));
+  Context.insert<InstFakeDef>(T);
   _mov(Dest, T);
   UnimplementedError(Func->getContext()->getFlags());
 }
@@ -3826,7 +3813,7 @@ void TargetARM32::lowerFcmp(const InstFcmp *Instr) {
   Variable *Dest = Instr->getDest();
   if (isVectorType(Dest->getType())) {
     Variable *T = makeReg(Dest->getType());
-    Context.insert(InstFakeDef::create(Func, T));
+    Context.insert<InstFakeDef>(T);
     _mov(Dest, T);
     UnimplementedError(Func->getContext()->getFlags());
     return;
@@ -3884,7 +3871,7 @@ TargetARM32::lowerInt64IcmpCond(InstIcmp::ICond Condition, Operand *Src0,
       Variable *Src0LoR = SrcsLo.src0R(this);
       Variable *Src0HiR = SrcsHi.src0R(this);
       _orrs(T, Src0LoR, Src0HiR);
-      Context.insert(InstFakeUse::create(Func, T));
+      Context.insert<InstFakeUse>(T);
       return CondWhenTrue(TableIcmp64[Index].C1);
     }
 
@@ -3899,29 +3886,29 @@ TargetARM32::lowerInt64IcmpCond(InstIcmp::ICond Condition, Operand *Src0,
       if (TableIcmp64[Index].IsSigned) {
         Variable *T = makeReg(IceType_i32);
         _rsbs(T, Src0RLo, Src1RFLo);
-        Context.insert(InstFakeUse::create(Func, T));
+        Context.insert<InstFakeUse>(T);
 
         T = makeReg(IceType_i32);
         _rscs(T, Src0RHi, Src1RFHi);
         // We need to add a FakeUse here because liveness gets mad at us (Def
         // without Use.) Note that flag-setting instructions are considered to
         // have side effects and, therefore, are not DCE'ed.
-        Context.insert(InstFakeUse::create(Func, T));
+        Context.insert<InstFakeUse>(T);
       } else {
         Variable *T = makeReg(IceType_i32);
         _rsbs(T, Src0RHi, Src1RFHi);
-        Context.insert(InstFakeUse::create(Func, T));
+        Context.insert<InstFakeUse>(T);
 
         T = makeReg(IceType_i32);
         _rsbs(T, Src0RLo, Src1RFLo, CondARM32::EQ);
-        Context.insert(InstFakeUse::create(Func, T));
+        Context.insert<InstFakeUse>(T);
       }
     } else {
       if (TableIcmp64[Index].IsSigned) {
         _cmp(Src0RLo, Src1RFLo);
         Variable *T = makeReg(IceType_i32);
         _sbcs(T, Src0RHi, Src1RFHi);
-        Context.insert(InstFakeUse::create(Func, T));
+        Context.insert<InstFakeUse>(T);
       } else {
         _cmp(Src0RHi, Src1RFHi);
         _cmp(Src0RLo, Src1RFLo, CondARM32::EQ);
@@ -3980,7 +3967,7 @@ TargetARM32::lowerInt64IcmpCond(InstIcmp::ICond Condition, Operand *Src0,
     _sbcs(ScratchReg, Src0RHi, Src1RFHi);
     // ScratchReg isn't going to be used, but we need the side-effect of
     // setting flags from this operation.
-    Context.insert(InstFakeUse::create(Func, ScratchReg));
+    Context.insert<InstFakeUse>(ScratchReg);
   } else {
     _cmp(Src0RHi, Src1RFHi);
     _cmp(Src0RLo, Src1RFLo, CondARM32::EQ);
@@ -4020,7 +4007,7 @@ TargetARM32::lowerInt32IcmpCond(InstIcmp::ICond Condition, Operand *Src0,
   } else {
     Variable *T = makeReg(IceType_i32);
     _rsbs(T, Src0R, Src1RF);
-    Context.insert(InstFakeUse::create(Func, T));
+    Context.insert<InstFakeUse>(T);
   }
   return CondWhenTrue(getIcmp32Mapping(Condition));
 }
@@ -4049,7 +4036,7 @@ TargetARM32::lowerInt8AndInt16IcmpCond(InstIcmp::ICond Condition, Operand *Src0,
     Operand *ShAmtImm = shAmtImm(ShAmt);
     Variable *T = makeReg(IceType_i32);
     _lsls(T, Srcs.src0R(this), ShAmtImm);
-    Context.insert(InstFakeUse::create(Func, T));
+    Context.insert<InstFakeUse>(T);
     return CondWhenTrue(getIcmp32Mapping(Condition));
   }
 
@@ -4065,7 +4052,7 @@ TargetARM32::lowerInt8AndInt16IcmpCond(InstIcmp::ICond Condition, Operand *Src0,
   } else {
     Variable *T = makeReg(IceType_i32);
     _rsbs(T, ConstR, NonConstF);
-    Context.insert(InstFakeUse::create(Func, T));
+    Context.insert<InstFakeUse>(T);
   }
   return CondWhenTrue(getIcmp32Mapping(Condition));
 }
@@ -4125,7 +4112,7 @@ void TargetARM32::lowerIcmp(const InstIcmp *Inst) {
 
   if (isVectorType(Dest->getType())) {
     Variable *T = makeReg(Dest->getType());
-    Context.insert(InstFakeDef::create(Func, T));
+    Context.insert<InstFakeDef>(T);
     _mov(Dest, T);
     UnimplementedError(Func->getContext()->getFlags());
     return;
@@ -4219,7 +4206,7 @@ void TargetARM32::lowerAtomicRMW(Variable *Dest, uint32_t Operation,
   }
 
   if (DestTy == IceType_i64) {
-    Context.insert(InstFakeDef::create(Func, Value));
+    Context.insert<InstFakeDef>(Value);
   }
   lowerAssign(InstAssign::create(Func, Value, Val));
 
@@ -4230,7 +4217,7 @@ void TargetARM32::lowerAtomicRMW(Variable *Dest, uint32_t Operation,
   Context.insert(Retry);
   Mem = formMemoryOperand(PtrVar, DestTy);
   if (DestTy == IceType_i64) {
-    Context.insert(InstFakeDef::create(Func, ValueReg, Value));
+    Context.insert<InstFakeDef>(ValueReg, Value);
   }
   lowerAssign(InstAssign::create(Func, ValueReg, Value));
   if (DestTy == IceType_i8 || DestTy == IceType_i16) {
@@ -4239,7 +4226,7 @@ void TargetARM32::lowerAtomicRMW(Variable *Dest, uint32_t Operation,
   _ldrex(PtrContentsReg, Mem);
 
   if (DestTy == IceType_i64) {
-    Context.insert(InstFakeDef::create(Func, TmpReg, ValueReg));
+    Context.insert<InstFakeDef>(TmpReg, ValueReg);
   }
   switch (Operation) {
   default:
@@ -4293,12 +4280,12 @@ void TargetARM32::lowerAtomicRMW(Variable *Dest, uint32_t Operation,
   // The following fake-uses ensure that Subzero will not clobber them in the
   // load-linked/store-conditional loop above. We might have to spill them, but
   // spilling is preferable over incorrect behavior.
-  Context.insert(InstFakeUse::create(Func, PtrVar));
+  Context.insert<InstFakeUse>(PtrVar);
   if (auto *Value64 = llvm::dyn_cast<Variable64On32>(Value)) {
-    Context.insert(InstFakeUse::create(Func, Value64->getHi()));
-    Context.insert(InstFakeUse::create(Func, Value64->getLo()));
+    Context.insert<InstFakeUse>(Value64->getHi());
+    Context.insert<InstFakeUse>(Value64->getLo());
   } else {
-    Context.insert(InstFakeUse::create(Func, Value));
+    Context.insert<InstFakeUse>(Value);
   }
   _dmb();
   if (DestTy == IceType_i8 || DestTy == IceType_i16) {
@@ -4306,14 +4293,14 @@ void TargetARM32::lowerAtomicRMW(Variable *Dest, uint32_t Operation,
   }
 
   if (DestTy == IceType_i64) {
-    Context.insert(InstFakeUse::create(Func, PtrContentsReg));
+    Context.insert<InstFakeUse>(PtrContentsReg);
   }
   lowerAssign(InstAssign::create(Func, Dest, PtrContentsReg));
   if (auto *Dest64 = llvm::dyn_cast<Variable64On32>(Dest)) {
-    Context.insert(InstFakeUse::create(Func, Dest64->getLo()));
-    Context.insert(InstFakeUse::create(Func, Dest64->getHi()));
+    Context.insert<InstFakeUse>(Dest64->getLo());
+    Context.insert<InstFakeUse>(Dest64->getHi());
   } else {
-    Context.insert(InstFakeUse::create(Func, Dest));
+    Context.insert<InstFakeUse>(Dest);
   }
 }
 
@@ -4391,8 +4378,7 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     // Make sure the atomic load isn't elided when unused, by adding a FakeUse.
     // Since lowerLoad may fuse the load w/ an arithmetic instruction, insert
     // the FakeUse on the last-inserted instruction's dest.
-    Context.insert(
-        InstFakeUse::create(Func, Context.getLastInserted()->getDest()));
+    Context.insert<InstFakeUse>(Context.getLastInserted()->getDest());
     return;
   }
   case Intrinsics::AtomicStore: {
@@ -4438,21 +4424,20 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
       lowerAssign(InstAssign::create(Func, AddrVar, Addr));
 
       Context.insert(Retry);
-      Context.insert(InstFakeDef::create(Func, NewReg));
+      Context.insert<InstFakeDef>(NewReg);
       lowerAssign(InstAssign::create(Func, NewReg, ValueVar));
       Mem = formMemoryOperand(AddrVar, IceType_i64);
       _ldrex(Tmp, Mem);
       // This fake-use both prevents the ldrex from being dead-code eliminated,
       // while also keeping liveness happy about all defs being used.
-      Context.insert(
-          InstFakeUse::create(Func, Context.getLastInserted()->getDest()));
+      Context.insert<InstFakeUse>(Context.getLastInserted()->getDest());
       _strex(Success, NewReg, Mem);
       _cmp(Success, _0);
       _br(Retry, CondARM32::NE);
 
-      Context.insert(InstFakeUse::create(Func, ValueVar->getLo()));
-      Context.insert(InstFakeUse::create(Func, ValueVar->getHi()));
-      Context.insert(InstFakeUse::create(Func, AddrVar));
+      Context.insert<InstFakeUse>(ValueVar->getLo());
+      Context.insert<InstFakeUse>(ValueVar->getHi());
+      Context.insert<InstFakeUse>(AddrVar);
       _dmb();
       return;
     }
@@ -4550,35 +4535,34 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
 
     Mem = formMemoryOperand(Instr->getArg(0), DestTy);
     if (DestTy == IceType_i64) {
-      Context.insert(InstFakeDef::create(Func, Expected));
+      Context.insert<InstFakeDef>(Expected);
     }
     lowerAssign(InstAssign::create(Func, Expected, Instr->getArg(1)));
     if (DestTy == IceType_i64) {
-      Context.insert(InstFakeDef::create(Func, New));
+      Context.insert<InstFakeDef>(New);
     }
     lowerAssign(InstAssign::create(Func, New, Instr->getArg(2)));
     _dmb();
 
     Context.insert(Retry);
     if (DestTy == IceType_i64) {
-      Context.insert(InstFakeDef::create(Func, ExpectedReg, Expected));
+      Context.insert<InstFakeDef>(ExpectedReg, Expected);
     }
     lowerAssign(InstAssign::create(Func, ExpectedReg, Expected));
     if (DestTy == IceType_i64) {
-      Context.insert(InstFakeDef::create(Func, NewReg, New));
+      Context.insert<InstFakeDef>(NewReg, New);
     }
     lowerAssign(InstAssign::create(Func, NewReg, New));
 
     _ldrex(TmpReg, Mem);
-    Context.insert(
-        InstFakeUse::create(Func, Context.getLastInserted()->getDest()));
+    Context.insert<InstFakeUse>(Context.getLastInserted()->getDest());
     if (DestTy == IceType_i64) {
       auto *TmpReg64 = llvm::cast<Variable64On32>(TmpReg);
       auto *ExpectedReg64 = llvm::cast<Variable64On32>(ExpectedReg);
       // lowerAssign above has added fake-defs for TmpReg and ExpectedReg. Let's
       // keep liveness happy, shall we?
-      Context.insert(InstFakeUse::create(Func, TmpReg));
-      Context.insert(InstFakeUse::create(Func, ExpectedReg));
+      Context.insert<InstFakeUse>(TmpReg);
+      Context.insert<InstFakeUse>(ExpectedReg);
       _cmp(TmpReg64->getHi(), ExpectedReg64->getHi());
       _cmp(TmpReg64->getLo(), ExpectedReg64->getLo(), CondARM32::EQ);
     } else {
@@ -4590,9 +4574,8 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
       auto *Expected64 = llvm::cast<Variable64On32>(Expected);
       _mov_redefined(Expected64->getHi(), TmpReg64->getHi(), CondARM32::NE);
       _mov_redefined(Expected64->getLo(), TmpReg64->getLo(), CondARM32::NE);
-      auto *FakeDef = InstFakeDef::create(Func, Expected, TmpReg);
-      Context.insert(FakeDef);
-      FakeDef->setDestRedefined();
+      Context.insert<InstFakeDef>(Expected, TmpReg);
+      _set_dest_redefined();
     } else {
       _mov_redefined(Expected, TmpReg, CondARM32::NE);
     }
@@ -4600,12 +4583,12 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     _br(Retry, CondARM32::NE);
     _dmb();
     lowerAssign(InstAssign::create(Func, Dest, Expected));
-    Context.insert(InstFakeUse::create(Func, Expected));
+    Context.insert<InstFakeUse>(Expected);
     if (auto *New64 = llvm::dyn_cast<Variable64On32>(New)) {
-      Context.insert(InstFakeUse::create(Func, New64->getLo()));
-      Context.insert(InstFakeUse::create(Func, New64->getHi()));
+      Context.insert<InstFakeUse>(New64->getLo());
+      Context.insert<InstFakeUse>(New64->getHi());
     } else {
-      Context.insert(InstFakeUse::create(Func, New));
+      Context.insert<InstFakeUse>(New);
     }
     return;
   }
@@ -4697,7 +4680,7 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     Variable *T = makeReg(DestTy);
     if (isVectorType(DestTy)) {
       // Add a fake def to keep liveness consistent in the meantime.
-      Context.insert(InstFakeDef::create(Func, T));
+      Context.insert<InstFakeDef>(T);
       _mov(Dest, T);
       UnimplementedError(Func->getContext()->getFlags());
       return;
@@ -5162,8 +5145,7 @@ OperandARM32Mem *TargetARM32::formAddressingMode(Type Ty, Cfg *Func,
     //
     const Type PointerType = getPointerType();
     BaseVar = makeReg(PointerType);
-    Context.insert(
-        InstAssign::create(Func, BaseVar, Ctx->getConstantInt32(OffsetImm)));
+    Context.insert<InstAssign>(BaseVar, Ctx->getConstantInt32(OffsetImm));
     OffsetImm = 0;
   } else if (OffsetImm != 0) {
     // ARM Ldr/Str instructions have limited range immediates. The formation
@@ -5194,8 +5176,8 @@ OperandARM32Mem *TargetARM32::formAddressingMode(Type Ty, Cfg *Func,
       //      use of [T, Offset {, LSL amount}]
       const Type PointerType = getPointerType();
       Variable *T = makeReg(PointerType);
-      Context.insert(InstArithmetic::create(
-          Func, Op, T, BaseVar, Ctx->getConstantInt32(PositiveOffset)));
+      Context.insert<InstArithmetic>(Op, T, BaseVar,
+                                     Ctx->getConstantInt32(PositiveOffset));
       BaseVar = T;
       OffsetImm = 0;
     }
@@ -5209,7 +5191,7 @@ OperandARM32Mem *TargetARM32::formAddressingMode(Type Ty, Cfg *Func,
 
   if (OffsetReg != nullptr) {
     Variable *OffsetR = makeReg(getPointerType());
-    Context.insert(InstAssign::create(Func, OffsetR, OffsetReg));
+    Context.insert<InstAssign>(OffsetR, OffsetReg);
     return OperandARM32Mem::create(Func, Ty, BaseVar, OffsetR, ShiftKind,
                                    OffsetRegShamt);
   }
@@ -5227,7 +5209,7 @@ void TargetARM32::doAddressOptLoad() {
   if (OperandARM32Mem *Mem =
           formAddressingMode(Dest->getType(), Func, Instr, Addr)) {
     Instr->setDeleted();
-    Context.insert(InstLoad::create(Func, Dest, Mem));
+    Context.insert<InstLoad>(Dest, Mem);
   }
 }
 
@@ -5253,7 +5235,7 @@ void TargetARM32::lowerRet(const InstRet *Inst) {
       Variable *R0 = legalizeToReg(loOperand(Src0), RegARM32::Reg_r0);
       Variable *R1 = legalizeToReg(hiOperand(Src0), RegARM32::Reg_r1);
       Reg = R0;
-      Context.insert(InstFakeUse::create(Func, R1));
+      Context.insert<InstFakeUse>(R1);
     } else if (Ty == IceType_f32) {
       Variable *S0 = legalizeToReg(Src0, RegARM32::Reg_s0);
       Reg = S0;
@@ -5280,7 +5262,7 @@ void TargetARM32::lowerRet(const InstRet *Inst) {
   // TODO: Are there more places where the fake use should be inserted? E.g.
   // "void f(int n){while(1) g(n);}" may not have a ret instruction.
   Variable *SP = getPhysicalRegister(RegARM32::Reg_sp);
-  Context.insert(InstFakeUse::create(Func, SP));
+  Context.insert<InstFakeUse>(SP);
 }
 
 void TargetARM32::lowerSelect(const InstSelect *Inst) {
@@ -5292,7 +5274,7 @@ void TargetARM32::lowerSelect(const InstSelect *Inst) {
 
   if (isVectorType(DestTy)) {
     Variable *T = makeReg(DestTy);
-    Context.insert(InstFakeDef::create(Func, T));
+    Context.insert<InstFakeDef>(T);
     _mov(Dest, T);
     UnimplementedError(Func->getContext()->getFlags());
     return;
@@ -5327,7 +5309,7 @@ void TargetARM32::doAddressOptStore() {
   if (OperandARM32Mem *Mem =
           formAddressingMode(Src->getType(), Func, Instr, Addr)) {
     Instr->setDeleted();
-    Context.insert(InstStore::create(Func, Src, Mem));
+    Context.insert<InstStore>(Src, Mem);
   }
 }
 
@@ -5385,7 +5367,7 @@ void TargetARM32::prelowerPhis() {
 
 Variable *TargetARM32::makeVectorOfZeros(Type Ty, int32_t RegNum) {
   Variable *Reg = makeReg(Ty, RegNum);
-  Context.insert(InstFakeDef::create(Func, Reg));
+  Context.insert<InstFakeDef>(Reg);
   UnimplementedError(Func->getContext()->getFlags());
   return Reg;
 }
@@ -5559,7 +5541,7 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
         // Use T = T ^ T to load a 64-bit fp zero. This does not work for f32
         // because ARM does not have a veor instruction with S registers.
         Variable *T = makeReg(IceType_f64, RegNum);
-        Context.insert(InstFakeDef::create(Func, T));
+        Context.insert<InstFakeDef>(T);
         _veor(T, T, T);
         return T;
       }
@@ -6187,9 +6169,7 @@ InstARM32Call *TargetARM32::Sandboxer::bl(Variable *ReturnReg,
                    indirectBranchBicMask(Target->Func));
     }
   }
-  auto *Call = InstARM32Call::create(Target->Func, ReturnReg, CallTarget);
-  Target->Context.insert(Call);
-  return Call;
+  return Target->Context.insert<InstARM32Call>(ReturnReg, CallTarget);
 }
 
 void TargetARM32::Sandboxer::ldr(Variable *Dest, OperandARM32Mem *Mem,

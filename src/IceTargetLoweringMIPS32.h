@@ -116,60 +116,59 @@ public:
   // minimal syntactic overhead, so that the lowering code can look as close to
   // assembly as practical.
   void _add(Variable *Dest, Variable *Src0, Variable *Src1) {
-    Context.insert(InstMIPS32Add::create(Func, Dest, Src0, Src1));
+    Context.insert<InstMIPS32Add>(Dest, Src0, Src1);
   }
 
   void _and(Variable *Dest, Variable *Src0, Variable *Src1) {
-    Context.insert(InstMIPS32And::create(Func, Dest, Src0, Src1));
+    Context.insert<InstMIPS32And>(Dest, Src0, Src1);
   }
 
   void _ret(Variable *RA, Variable *Src0 = nullptr) {
-    Context.insert(InstMIPS32Ret::create(Func, RA, Src0));
+    Context.insert<InstMIPS32Ret>(RA, Src0);
   }
 
   void _addiu(Variable *Dest, Variable *Src, uint32_t Imm) {
-    Context.insert(InstMIPS32Addiu::create(Func, Dest, Src, Imm));
+    Context.insert<InstMIPS32Addiu>(Dest, Src, Imm);
   }
 
   void _lui(Variable *Dest, uint32_t Imm) {
-    Context.insert(InstMIPS32Lui::create(Func, Dest, Imm));
+    Context.insert<InstMIPS32Lui>(Dest, Imm);
   }
 
   void _mov(Variable *Dest, Operand *Src0) {
     assert(Dest != nullptr);
     // Variable* Src0_ = llvm::dyn_cast<Variable>(Src0);
     if (llvm::isa<ConstantRelocatable>(Src0)) {
-      Context.insert(InstMIPS32La::create(Func, Dest, Src0));
+      Context.insert<InstMIPS32La>(Dest, Src0);
     } else {
-      auto *Instr = InstMIPS32Mov::create(Func, Dest, Src0);
-      Context.insert(Instr);
+      auto *Instr = Context.insert<InstMIPS32Mov>(Dest, Src0);
       if (Instr->isMultiDest()) {
         // If Instr is multi-dest, then Dest must be a Variable64On32. We add a
         // fake-def for Instr.DestHi here.
         assert(llvm::isa<Variable64On32>(Dest));
-        Context.insert(InstFakeDef::create(Func, Instr->getDestHi()));
+        Context.insert<InstFakeDef>(Instr->getDestHi());
       }
     }
   }
 
   void _mul(Variable *Dest, Variable *Src0, Variable *Src1) {
-    Context.insert(InstMIPS32Mul::create(Func, Dest, Src0, Src1));
+    Context.insert<InstMIPS32Mul>(Dest, Src0, Src1);
   }
 
   void _or(Variable *Dest, Variable *Src0, Variable *Src1) {
-    Context.insert(InstMIPS32Or::create(Func, Dest, Src0, Src1));
+    Context.insert<InstMIPS32Or>(Dest, Src0, Src1);
   }
 
   void _ori(Variable *Dest, Variable *Src, uint32_t Imm) {
-    Context.insert(InstMIPS32Ori::create(Func, Dest, Src, Imm));
+    Context.insert<InstMIPS32Ori>(Dest, Src, Imm);
   }
 
   void _sub(Variable *Dest, Variable *Src0, Variable *Src1) {
-    Context.insert(InstMIPS32Sub::create(Func, Dest, Src0, Src1));
+    Context.insert<InstMIPS32Sub>(Dest, Src0, Src1);
   }
 
   void _xor(Variable *Dest, Variable *Src0, Variable *Src1) {
-    Context.insert(InstMIPS32Xor::create(Func, Dest, Src0, Src1));
+    Context.insert<InstMIPS32Xor>(Dest, Src0, Src1);
   }
 
   void lowerArguments() override;

@@ -1016,7 +1016,7 @@ void TargetX86Base<Machine>::lowerAlloca(const InstAlloca *Inst) {
       // value to Dest, as Dest is rematerializable.
       assert(Dest->isRematerializable());
       FixedAllocaSizeBytes += Value;
-      Context.insert(InstFakeDef::create(Func, Dest));
+      Context.insert<InstFakeDef>(Dest);
     } else {
       _sub(esp, Ctx->getConstantInt32(Value));
     }
@@ -1358,7 +1358,7 @@ template <class Machine>
 void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
   Variable *Dest = Inst->getDest();
   if (Dest->isRematerializable()) {
-    Context.insert(InstFakeDef::create(Func, Dest));
+    Context.insert<InstFakeDef>(Dest);
     return;
   }
   Type Ty = Dest->getType();
@@ -1476,7 +1476,7 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       _mul(T_4Lo, T_3, Src1Lo);
       // The mul instruction produces two dest variables, edx:eax. We create a
       // fake definition of edx to account for this.
-      Context.insert(InstFakeDef::create(Func, T_4Hi, T_4Lo));
+      Context.insert<InstFakeDef>(T_4Hi, T_4Lo);
       _mov(DestLo, T_4Lo);
       _add(T_4Hi, T_1);
       _add(T_4Hi, T_2);
@@ -1911,7 +1911,7 @@ template <class Machine>
 void TargetX86Base<Machine>::lowerAssign(const InstAssign *Inst) {
   Variable *Dest = Inst->getDest();
   if (Dest->isRematerializable()) {
-    Context.insert(InstFakeDef::create(Func, Dest));
+    Context.insert<InstFakeDef>(Dest);
     return;
   }
   Operand *Src = Inst->getSrc(0);
@@ -2377,7 +2377,7 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
         // Technically, the Spill is defined after the _store happens, but
         // SpillLo is considered a "use" of Spill so define Spill before it is
         // used.
-        Context.insert(InstFakeDef::create(Func, Spill));
+        Context.insert<InstFakeDef>(Spill);
         _store(T_Lo, SpillLo);
         _mov(T_Hi, hiOperand(Src0));
         _store(T_Hi, SpillHi);
@@ -2450,7 +2450,7 @@ void TargetX86Base<Machine>::lowerExtractElement(
       // used here.
       // _movss is a binary instruction, so the FakeDef is needed to keep the
       // live range analysis consistent.
-      Context.insert(InstFakeDef::create(Func, ExtractedElementR));
+      Context.insert<InstFakeDef>(ExtractedElementR);
       _movss(ExtractedElementR, T);
     }
   } else {
@@ -2886,7 +2886,7 @@ TargetX86Base<Machine>::lowerIcmp64(const InstIcmp *Icmp,
       // sometimes avoid a move before the OR.
       _mov(Temp, Src0HiRM);
       _or(Temp, Src0LoRM);
-      Context.insert(InstFakeUse::create(Func, Temp));
+      Context.insert<InstFakeUse>(Temp);
       setccOrConsumer(Traits::Cond::Br_e, Dest, Consumer);
       return;
     case InstIcmp::Ne:
@@ -2895,7 +2895,7 @@ TargetX86Base<Machine>::lowerIcmp64(const InstIcmp *Icmp,
       // sometimes avoid a move before the OR.
       _mov(Temp, Src0HiRM);
       _or(Temp, Src0LoRM);
-      Context.insert(InstFakeUse::create(Func, Temp));
+      Context.insert<InstFakeUse>(Temp);
       setccOrConsumer(Traits::Cond::Br_ne, Dest, Consumer);
       return;
     case InstIcmp::Uge:
@@ -3060,8 +3060,8 @@ void TargetX86Base<Machine>::lowerArithAndConsumer(const InstArithmetic *Arith,
     llvm::report_fatal_error("Expected a consumer instruction");
   }
   if (const auto *Br = llvm::dyn_cast<InstBr>(Consumer)) {
-    Context.insert(InstFakeUse::create(Func, T));
-    Context.insert(InstFakeDef::create(Func, Dest));
+    Context.insert<InstFakeUse>(T);
+    Context.insert<InstFakeDef>(Dest);
     _br(Traits::Cond::Br_ne, Br->getTargetTrue(), Br->getTargetFalse());
     return;
   }
@@ -3290,8 +3290,8 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
         auto *Cast = InstCast::create(Func, InstCast::Bitcast, Dest, T);
         lowerCast(Cast);
         // Make sure that the atomic load isn't elided when unused.
-        Context.insert(InstFakeUse::create(Func, Dest64On32->getLo()));
-        Context.insert(InstFakeUse::create(Func, Dest64On32->getHi()));
+        Context.insert<InstFakeUse>(Dest64On32->getLo());
+        Context.insert<InstFakeUse>(Dest64On32->getHi());
         return;
       }
     }
@@ -3300,8 +3300,7 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
     // Make sure the atomic load isn't elided when unused, by adding a FakeUse.
     // Since lowerLoad may fuse the load w/ an arithmetic instruction, insert
     // the FakeUse on the last-inserted instruction's dest.
-    Context.insert(
-        InstFakeUse::create(Func, Context.getLastInserted()->getDest()));
+    Context.insert<InstFakeUse>(Context.getLastInserted()->getDest());
     return;
   }
   case Intrinsics::AtomicRMW:
@@ -3840,17 +3839,17 @@ void TargetX86Base<Machine>::expandAtomicRMWAsCmpxchg(LowerBinOp Op_Lo,
       if (auto *ValVar = llvm::dyn_cast<Variable>(Val)) {
         auto *ValLo = llvm::cast<Variable>(loOperand(ValVar));
         auto *ValHi = llvm::cast<Variable>(hiOperand(ValVar));
-        Context.insert(InstFakeUse::create(Func, ValLo));
-        Context.insert(InstFakeUse::create(Func, ValHi));
+        Context.insert<InstFakeUse>(ValLo);
+        Context.insert<InstFakeUse>(ValHi);
       }
     } else {
       // For xchg, the loop is slightly smaller and ebx/ecx are used.
-      Context.insert(InstFakeUse::create(Func, T_ebx));
-      Context.insert(InstFakeUse::create(Func, T_ecx));
+      Context.insert<InstFakeUse>(T_ebx);
+      Context.insert<InstFakeUse>(T_ecx);
     }
     // The address base (if any) is also reused in the loop.
     if (Variable *Base = Addr->getBase())
-      Context.insert(InstFakeUse::create(Func, Base));
+      Context.insert<InstFakeUse>(Base);
     auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
     auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
     _mov(DestLo, T_eax);
@@ -3875,9 +3874,7 @@ void TargetX86Base<Machine>::expandAtomicRMWAsCmpxchg(LowerBinOp Op_Lo,
   }
   Variable *T_eax = makeReg(Ty, Eax);
   _mov(T_eax, Addr);
-  typename Traits::Insts::Label *Label =
-      Traits::Insts::Label::create(Func, this);
-  Context.insert(Label);
+  auto *Label = Context.insert<typename Traits::Insts::Label>(this);
   // We want to pick a different register for T than Eax, so don't use
   // _mov(T == nullptr, T_eax).
   Variable *T = makeReg(Ty);
@@ -3889,11 +3886,11 @@ void TargetX86Base<Machine>::expandAtomicRMWAsCmpxchg(LowerBinOp Op_Lo,
   // If Val is a variable, model the extended live range of Val through
   // the end of the loop, since it will be re-used by the loop.
   if (auto *ValVar = llvm::dyn_cast<Variable>(Val)) {
-    Context.insert(InstFakeUse::create(Func, ValVar));
+    Context.insert<InstFakeUse>(ValVar);
   }
   // The address base (if any) is also reused in the loop.
   if (Variable *Base = Addr->getBase())
-    Context.insert(InstFakeUse::create(Func, Base));
+    Context.insert<InstFakeUse>(Base);
   _mov(Dest, T_eax);
 }
 
@@ -4660,8 +4657,7 @@ void TargetX86Base<Machine>::doMockBoundsCheck(Operand *Opnd) {
   if (Var->getRegNum() == Traits::RegisterSet::Reg_esp)
     return;
 
-  typename Traits::Insts::Label *Label =
-      Traits::Insts::Label::create(Func, this);
+  auto *Label = Traits::Insts::Label::create(Func, this);
   _cmp(Opnd, Ctx->getConstantZero(IceType_i32));
   _br(Traits::Cond::Br_e, Label);
   _cmp(Opnd, Ctx->getConstantInt32(1));
@@ -4711,7 +4707,7 @@ template <class Machine> void TargetX86Base<Machine>::doAddressOptLoad() {
     }
     Addr = Traits::X86OperandMem::create(Func, Dest->getType(), Base, OffsetOp,
                                          Index, Shift, SegmentReg);
-    Context.insert(InstLoad::create(Func, Dest, Addr));
+    Context.insert<InstLoad>(Dest, Addr);
   }
 }
 
@@ -4775,8 +4771,7 @@ void TargetX86Base<Machine>::lowerSelectMove(Variable *Dest,
     // The cmov instruction doesn't allow 8-bit or FP operands, so we need
     // explicit control flow.
     // d=cmp e,f; a=d?b:c ==> cmp e,f; a=b; jne L1; a=c; L1:
-    typename Traits::Insts::Label *Label =
-        Traits::Insts::Label::create(Func, this);
+    auto *Label = Traits::Insts::Label::create(Func, this);
     SrcT = legalize(SrcT, Legal_Reg | Legal_Imm);
     _mov(Dest, SrcT);
     _br(Cond, Label);
@@ -5018,10 +5013,9 @@ template <class Machine> void TargetX86Base<Machine>::doAddressOptStore() {
     }
     Addr = Traits::X86OperandMem::create(Func, Data->getType(), Base, OffsetOp,
                                          Index, Shift, SegmentReg);
-    auto *NewStore = InstStore::create(Func, Data, Addr);
+    auto *NewStore = Context.insert<InstStore>(Data, Addr);
     if (Inst->getDest())
       NewStore->setRmwBeacon(Inst->getRmwBeacon());
-    Context.insert(NewStore);
   }
 }
 
@@ -5273,24 +5267,23 @@ void TargetX86Base<Machine>::scalarizeArithmetic(InstArithmetic::OpKind Kind,
 
     // Extract the next two inputs.
     Variable *Op0 = Func->makeVariable(ElementTy);
-    Context.insert(InstExtractElement::create(Func, Op0, Src0, Index));
+    Context.insert<InstExtractElement>(Op0, Src0, Index);
     Variable *Op1 = Func->makeVariable(ElementTy);
-    Context.insert(InstExtractElement::create(Func, Op1, Src1, Index));
+    Context.insert<InstExtractElement>(Op1, Src1, Index);
 
     // Perform the arithmetic as a scalar operation.
     Variable *Res = Func->makeVariable(ElementTy);
-    auto *Arith = InstArithmetic::create(Func, Kind, Res, Op0, Op1);
-    Context.insert(Arith);
+    auto *Arith = Context.insert<InstArithmetic>(Kind, Res, Op0, Op1);
     // We might have created an operation that needed a helper call.
     genTargetHelperCallFor(Arith);
 
     // Insert the result into position.
     Variable *DestT = Func->makeVariable(Ty);
-    Context.insert(InstInsertElement::create(Func, DestT, T, Res, Index));
+    Context.insert<InstInsertElement>(DestT, T, Res, Index);
     T = DestT;
   }
 
-  Context.insert(InstAssign::create(Func, Dest, T));
+  Context.insert<InstAssign>(Dest, T);
 }
 
 /// The following pattern occurs often in lowered C and C++ code:
@@ -5581,7 +5574,7 @@ void TargetX86Base<Machine>::genTargetHelperCallFor(Inst *Instr) {
         HelperName = H_bitcast_i8_8xi1;
         Variable *Src0AsI32 = Func->makeVariable(stackSlotType());
         // Arguments to functions are required to be at least 32 bits wide.
-        Context.insert(InstCast::create(Func, InstCast::Zext, Src0AsI32, Src0));
+        Context.insert<InstCast>(InstCast::Zext, Src0AsI32, Src0);
         Src0 = Src0AsI32;
       } break;
       case IceType_v16i1: {
@@ -5589,7 +5582,7 @@ void TargetX86Base<Machine>::genTargetHelperCallFor(Inst *Instr) {
         HelperName = H_bitcast_i16_16xi1;
         Variable *Src0AsI32 = Func->makeVariable(stackSlotType());
         // Arguments to functions are required to be at least 32 bits wide.
-        Context.insert(InstCast::create(Func, InstCast::Zext, Src0AsI32, Src0));
+        Context.insert<InstCast>(InstCast::Zext, Src0AsI32, Src0);
         Src0 = Src0AsI32;
       } break;
       }
@@ -5724,13 +5717,13 @@ Variable *TargetX86Base<Machine>::makeZeroedRegister(Type Ty, int32_t RegNum) {
     break;
   case IceType_f32:
   case IceType_f64:
-    Context.insert(InstFakeDef::create(Func, Reg));
+    Context.insert<InstFakeDef>(Reg);
     _xorps(Reg, Reg);
     break;
   default:
     // All vector types use the same pxor instruction.
     assert(isVectorType(Ty));
-    Context.insert(InstFakeDef::create(Func, Reg));
+    Context.insert<InstFakeDef>(Reg);
     _pxor(Reg, Reg);
     break;
   }
@@ -5754,7 +5747,7 @@ Variable *TargetX86Base<Machine>::makeVectorOfMinusOnes(Type Ty,
                                                         int32_t RegNum) {
   Variable *MinusOnes = makeReg(Ty, RegNum);
   // Insert a FakeDef so the live range of MinusOnes is not overestimated.
-  Context.insert(InstFakeDef::create(Func, MinusOnes));
+  Context.insert<InstFakeDef>(MinusOnes);
   _pcmpeq(MinusOnes, MinusOnes);
   return MinusOnes;
 }
@@ -6064,7 +6057,7 @@ Operand *TargetX86Base<Machine>::legalizeUndef(Operand *From, int32_t RegNum) {
     //
     // If in the future the implementation is changed to lower undef values to
     // uninitialized registers, a FakeDef will be needed:
-    //     Context.insert(InstFakeDef::create(Func, Reg));
+    //     Context.insert<InstFakeDef>(Reg);
     // This is in order to ensure that the live range of Reg is not
     // overestimated.  If the constant being lowered is a 64 bit value, then
     // the result should be split and the lo and hi components will need to go

@@ -277,60 +277,56 @@ protected:
   // assembly as practical.
   void _add(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Add::create(Func, Dest, Src0, Src1, Pred));
+    Context.insert<InstARM32Add>(Dest, Src0, Src1, Pred);
   }
   void _adds(Variable *Dest, Variable *Src0, Operand *Src1,
              CondARM32::Cond Pred = CondARM32::AL) {
     constexpr bool SetFlags = true;
-    Context.insert(
-        InstARM32Add::create(Func, Dest, Src0, Src1, Pred, SetFlags));
+    Context.insert<InstARM32Add>(Dest, Src0, Src1, Pred, SetFlags);
   }
   void _adc(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Adc::create(Func, Dest, Src0, Src1, Pred));
+    Context.insert<InstARM32Adc>(Dest, Src0, Src1, Pred);
   }
   void _and(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32And::create(Func, Dest, Src0, Src1, Pred));
+    Context.insert<InstARM32And>(Dest, Src0, Src1, Pred);
   }
   void _asr(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Asr::create(Func, Dest, Src0, Src1, Pred));
+    Context.insert<InstARM32Asr>(Dest, Src0, Src1, Pred);
   }
   void _bic(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Bic::create(Func, Dest, Src0, Src1, Pred));
+    Context.insert<InstARM32Bic>(Dest, Src0, Src1, Pred);
   }
   void _br(CfgNode *TargetTrue, CfgNode *TargetFalse,
            CondARM32::Cond Condition) {
-    Context.insert(
-        InstARM32Br::create(Func, TargetTrue, TargetFalse, Condition));
+    Context.insert<InstARM32Br>(TargetTrue, TargetFalse, Condition);
   }
-  void _br(CfgNode *Target) {
-    Context.insert(InstARM32Br::create(Func, Target));
-  }
+  void _br(CfgNode *Target) { Context.insert<InstARM32Br>(Target); }
   void _br(CfgNode *Target, CondARM32::Cond Condition) {
-    Context.insert(InstARM32Br::create(Func, Target, Condition));
+    Context.insert<InstARM32Br>(Target, Condition);
   }
   void _br(InstARM32Label *Label, CondARM32::Cond Condition) {
-    Context.insert(InstARM32Br::create(Func, Label, Condition));
+    Context.insert<InstARM32Br>(Label, Condition);
   }
   void _cmn(Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Cmn::create(Func, Src0, Src1, Pred));
+    Context.insert<InstARM32Cmn>(Src0, Src1, Pred);
   }
   void _cmp(Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Cmp::create(Func, Src0, Src1, Pred));
+    Context.insert<InstARM32Cmp>(Src0, Src1, Pred);
   }
   void _clz(Variable *Dest, Variable *Src0,
             CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Clz::create(Func, Dest, Src0, Pred));
+    Context.insert<InstARM32Clz>(Dest, Src0, Pred);
   }
-  void _dmb() { Context.insert(InstARM32Dmb::create(Func)); }
+  void _dmb() { Context.insert<InstARM32Dmb>(); }
   void _eor(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Eor::create(Func, Dest, Src0, Src1, Pred));
+    Context.insert<InstARM32Eor>(Dest, Src0, Src1, Pred);
   }
   /// _ldr, for all your memory to Variable data moves. It handles all types
   /// (integer, floating point, and vectors.) Addr needs to be valid for Dest's
@@ -338,37 +334,36 @@ protected:
   /// loads.)
   void _ldr(Variable *Dest, OperandARM32Mem *Addr,
             CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Ldr::create(Func, Dest, Addr, Pred));
+    Context.insert<InstARM32Ldr>(Dest, Addr, Pred);
   }
   void _ldrex(Variable *Dest, OperandARM32Mem *Addr,
               CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Ldrex::create(Func, Dest, Addr, Pred));
+    Context.insert<InstARM32Ldrex>(Dest, Addr, Pred);
     if (auto *Dest64 = llvm::dyn_cast<Variable64On32>(Dest)) {
-      Context.insert(InstFakeDef::create(Func, Dest64->getLo(), Dest));
-      Context.insert(InstFakeDef::create(Func, Dest64->getHi(), Dest));
+      Context.insert<InstFakeDef>(Dest64->getLo(), Dest);
+      Context.insert<InstFakeDef>(Dest64->getHi(), Dest);
     }
   }
   void _lsl(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Lsl::create(Func, Dest, Src0, Src1, Pred));
+    Context.insert<InstARM32Lsl>(Dest, Src0, Src1, Pred);
   }
   void _lsls(Variable *Dest, Variable *Src0, Operand *Src1,
              CondARM32::Cond Pred = CondARM32::AL) {
     constexpr bool SetFlags = true;
-    Context.insert(
-        InstARM32Lsl::create(Func, Dest, Src0, Src1, Pred, SetFlags));
+    Context.insert<InstARM32Lsl>(Dest, Src0, Src1, Pred, SetFlags);
   }
   void _lsr(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Lsr::create(Func, Dest, Src0, Src1, Pred));
+    Context.insert<InstARM32Lsr>(Dest, Src0, Src1, Pred);
   }
   void _mla(Variable *Dest, Variable *Src0, Variable *Src1, Variable *Acc,
             CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Mla::create(Func, Dest, Src0, Src1, Acc, Pred));
+    Context.insert<InstARM32Mla>(Dest, Src0, Src1, Acc, Pred);
   }
   void _mls(Variable *Dest, Variable *Src0, Variable *Src1, Variable *Acc,
             CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Mls::create(Func, Dest, Src0, Src1, Acc, Pred));
+    Context.insert<InstARM32Mls>(Dest, Src0, Src1, Acc, Pred);
   }
   /// _mov, for all your Variable to Variable data movement needs. It handles
   /// all types (integer, floating point, and vectors), as well as moves between
@@ -382,27 +377,25 @@ protected:
     // is nullptr.
     assert(Dest != nullptr);
     assert(!llvm::isa<OperandARM32Mem>(Src0));
-    auto *Instr = InstARM32Mov::create(Func, Dest, Src0, Pred);
+    auto *Instr = Context.insert<InstARM32Mov>(Dest, Src0, Pred);
 
-    Context.insert(Instr);
     if (Instr->isMultiDest()) {
       // If Instr is multi-dest, then Dest must be a Variable64On32. We add a
       // fake-def for Instr.DestHi here.
       assert(llvm::isa<Variable64On32>(Dest));
-      Context.insert(InstFakeDef::create(Func, Instr->getDestHi()));
+      Context.insert<InstFakeDef>(Instr->getDestHi());
     }
   }
 
   void _mov_redefined(Variable *Dest, Operand *Src0,
                       CondARM32::Cond Pred = CondARM32::AL) {
-    auto *Instr = InstARM32Mov::create(Func, Dest, Src0, Pred);
+    auto *Instr = Context.insert<InstARM32Mov>(Dest, Src0, Pred);
     Instr->setDestRedefined();
-    Context.insert(Instr);
     if (Instr->isMultiDest()) {
       // If Instr is multi-dest, then Dest must be a Variable64On32. We add a
       // fake-def for Instr.DestHi here.
       assert(llvm::isa<Variable64On32>(Dest));
-      Context.insert(InstFakeDef::create(Func, Instr->getDestHi()));
+      Context.insert<InstFakeDef>(Instr->getDestHi());
     }
   }
 
@@ -637,182 +630,173 @@ protected:
   /// an upper16 relocation).
   void _movt(Variable *Dest, Operand *Src0,
              CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Movt::create(Func, Dest, Src0, Pred));
+    Context.insert<InstARM32Movt>(Dest, Src0, Pred);
   }
   void _movw(Variable *Dest, Operand *Src0,
              CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Movw::create(Func, Dest, Src0, Pred));
+    Context.insert<InstARM32Movw>(Dest, Src0, Pred);
   }
   void _mul(Variable *Dest, Variable *Src0, Variable *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Mul::create(Func, Dest, Src0, Src1, Pred));
+    Context.insert<InstARM32Mul>(Dest, Src0, Src1, Pred);
   }
   void _mvn(Variable *Dest, Operand *Src0,
             CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Mvn::create(Func, Dest, Src0, Pred));
+    Context.insert<InstARM32Mvn>(Dest, Src0, Pred);
   }
   void _orr(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Orr::create(Func, Dest, Src0, Src1, Pred));
+    Context.insert<InstARM32Orr>(Dest, Src0, Src1, Pred);
   }
   void _orrs(Variable *Dest, Variable *Src0, Operand *Src1,
              CondARM32::Cond Pred = CondARM32::AL) {
     constexpr bool SetFlags = true;
-    Context.insert(
-        InstARM32Orr::create(Func, Dest, Src0, Src1, Pred, SetFlags));
+    Context.insert<InstARM32Orr>(Dest, Src0, Src1, Pred, SetFlags);
   }
-  void _push(const VarList &Sources) {
-    Context.insert(InstARM32Push::create(Func, Sources));
-  }
+  void _push(const VarList &Sources) { Context.insert<InstARM32Push>(Sources); }
   void _pop(const VarList &Dests) {
-    Context.insert(InstARM32Pop::create(Func, Dests));
+    Context.insert<InstARM32Pop>(Dests);
     // Mark dests as modified.
     for (Variable *Dest : Dests)
-      Context.insert(InstFakeDef::create(Func, Dest));
+      Context.insert<InstFakeDef>(Dest);
   }
   void _rbit(Variable *Dest, Variable *Src0,
              CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Rbit::create(Func, Dest, Src0, Pred));
+    Context.insert<InstARM32Rbit>(Dest, Src0, Pred);
   }
   void _rev(Variable *Dest, Variable *Src0,
             CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Rev::create(Func, Dest, Src0, Pred));
+    Context.insert<InstARM32Rev>(Dest, Src0, Pred);
   }
   void _ret(Variable *LR, Variable *Src0 = nullptr) {
-    Context.insert(InstARM32Ret::create(Func, LR, Src0));
+    Context.insert<InstARM32Ret>(LR, Src0);
   }
   void _rscs(Variable *Dest, Variable *Src0, Operand *Src1,
              CondARM32::Cond Pred = CondARM32::AL) {
     constexpr bool SetFlags = true;
-    Context.insert(
-        InstARM32Rsc::create(Func, Dest, Src0, Src1, Pred, SetFlags));
+    Context.insert<InstARM32Rsc>(Dest, Src0, Src1, Pred, SetFlags);
   }
   void _rsc(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Rsc::create(Func, Dest, Src0, Src1, Pred));
+    Context.insert<InstARM32Rsc>(Dest, Src0, Src1, Pred);
   }
   void _rsbs(Variable *Dest, Variable *Src0, Operand *Src1,
              CondARM32::Cond Pred = CondARM32::AL) {
     constexpr bool SetFlags = true;
-    Context.insert(
-        InstARM32Rsb::create(Func, Dest, Src0, Src1, Pred, SetFlags));
+    Context.insert<InstARM32Rsb>(Dest, Src0, Src1, Pred, SetFlags);
   }
   void _rsb(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Rsb::create(Func, Dest, Src0, Src1, Pred));
+    Context.insert<InstARM32Rsb>(Dest, Src0, Src1, Pred);
   }
   void _sbc(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Sbc::create(Func, Dest, Src0, Src1, Pred));
+    Context.insert<InstARM32Sbc>(Dest, Src0, Src1, Pred);
   }
   void _sbcs(Variable *Dest, Variable *Src0, Operand *Src1,
              CondARM32::Cond Pred = CondARM32::AL) {
     constexpr bool SetFlags = true;
-    Context.insert(
-        InstARM32Sbc::create(Func, Dest, Src0, Src1, Pred, SetFlags));
+    Context.insert<InstARM32Sbc>(Dest, Src0, Src1, Pred, SetFlags);
   }
   void _sdiv(Variable *Dest, Variable *Src0, Variable *Src1,
              CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Sdiv::create(Func, Dest, Src0, Src1, Pred));
+    Context.insert<InstARM32Sdiv>(Dest, Src0, Src1, Pred);
   }
   /// _str, for all your Variable to memory transfers. Addr has the same
   /// restrictions that it does in _ldr.
   void _str(Variable *Value, OperandARM32Mem *Addr,
             CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Str::create(Func, Value, Addr, Pred));
+    Context.insert<InstARM32Str>(Value, Addr, Pred);
   }
   void _strex(Variable *Dest, Variable *Value, OperandARM32Mem *Addr,
               CondARM32::Cond Pred = CondARM32::AL) {
     // strex requires Dest to be a register other than Value or Addr. This
     // restriction is cleanly represented by adding an "early" definition of
     // Dest (or a latter use of all the sources.)
-    Context.insert(InstFakeDef::create(Func, Dest));
+    Context.insert<InstFakeDef>(Dest);
     if (auto *Value64 = llvm::dyn_cast<Variable64On32>(Value)) {
-      Context.insert(InstFakeUse::create(Func, Value64->getLo()));
-      Context.insert(InstFakeUse::create(Func, Value64->getHi()));
+      Context.insert<InstFakeUse>(Value64->getLo());
+      Context.insert<InstFakeUse>(Value64->getHi());
     }
-    auto *Instr = InstARM32Strex::create(Func, Dest, Value, Addr, Pred);
-    Context.insert(Instr);
+    auto *Instr = Context.insert<InstARM32Strex>(Dest, Value, Addr, Pred);
     Instr->setDestRedefined();
   }
   void _sub(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Sub::create(Func, Dest, Src0, Src1, Pred));
+    Context.insert<InstARM32Sub>(Dest, Src0, Src1, Pred);
   }
   void _subs(Variable *Dest, Variable *Src0, Operand *Src1,
              CondARM32::Cond Pred = CondARM32::AL) {
     constexpr bool SetFlags = true;
-    Context.insert(
-        InstARM32Sub::create(Func, Dest, Src0, Src1, Pred, SetFlags));
+    Context.insert<InstARM32Sub>(Dest, Src0, Src1, Pred, SetFlags);
   }
   void _sxt(Variable *Dest, Variable *Src0,
             CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Sxt::create(Func, Dest, Src0, Pred));
+    Context.insert<InstARM32Sxt>(Dest, Src0, Pred);
   }
   void _tst(Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Tst::create(Func, Src0, Src1, Pred));
+    Context.insert<InstARM32Tst>(Src0, Src1, Pred);
   }
-  void _trap() { Context.insert(InstARM32Trap::create(Func)); }
+  void _trap() { Context.insert<InstARM32Trap>(); }
   void _udiv(Variable *Dest, Variable *Src0, Variable *Src1,
              CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Udiv::create(Func, Dest, Src0, Src1, Pred));
+    Context.insert<InstARM32Udiv>(Dest, Src0, Src1, Pred);
   }
   void _umull(Variable *DestLo, Variable *DestHi, Variable *Src0,
               Variable *Src1, CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(
-        InstARM32Umull::create(Func, DestLo, DestHi, Src0, Src1, Pred));
+    Context.insert<InstARM32Umull>(DestLo, DestHi, Src0, Src1, Pred);
     // Model the modification to the second dest as a fake def. Note that the
     // def is not predicated.
-    Context.insert(InstFakeDef::create(Func, DestHi, DestLo));
+    Context.insert<InstFakeDef>(DestHi, DestLo);
   }
   void _uxt(Variable *Dest, Variable *Src0,
             CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Uxt::create(Func, Dest, Src0, Pred));
+    Context.insert<InstARM32Uxt>(Dest, Src0, Pred);
   }
   void _vabs(Variable *Dest, Variable *Src,
              CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Vabs::create(Func, Dest, Src, Pred));
+    Context.insert<InstARM32Vabs>(Dest, Src, Pred);
   }
   void _vadd(Variable *Dest, Variable *Src0, Variable *Src1) {
-    Context.insert(InstARM32Vadd::create(Func, Dest, Src0, Src1));
+    Context.insert<InstARM32Vadd>(Dest, Src0, Src1);
   }
   void _vcvt(Variable *Dest, Variable *Src, InstARM32Vcvt::VcvtVariant Variant,
              CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Vcvt::create(Func, Dest, Src, Variant, Pred));
+    Context.insert<InstARM32Vcvt>(Dest, Src, Variant, Pred);
   }
   void _vdiv(Variable *Dest, Variable *Src0, Variable *Src1) {
-    Context.insert(InstARM32Vdiv::create(Func, Dest, Src0, Src1));
+    Context.insert<InstARM32Vdiv>(Dest, Src0, Src1);
   }
   void _vcmp(Variable *Src0, Variable *Src1,
              CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Vcmp::create(Func, Src0, Src1, Pred));
+    Context.insert<InstARM32Vcmp>(Src0, Src1, Pred);
   }
   void _vcmp(Variable *Src0, OperandARM32FlexFpZero *FpZero,
              CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Vcmp::create(Func, Src0, FpZero, Pred));
+    Context.insert<InstARM32Vcmp>(Src0, FpZero, Pred);
   }
   void _veor(Variable *Dest, Variable *Src0, Variable *Src1) {
-    Context.insert(InstARM32Veor::create(Func, Dest, Src0, Src1));
+    Context.insert<InstARM32Veor>(Dest, Src0, Src1);
   }
   void _vmrs(CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Vmrs::create(Func, Pred));
+    Context.insert<InstARM32Vmrs>(Pred);
   }
   void _vmla(Variable *Dest, Variable *Src0, Variable *Src1) {
-    Context.insert(InstARM32Vmla::create(Func, Dest, Src0, Src1));
+    Context.insert<InstARM32Vmla>(Dest, Src0, Src1);
   }
   void _vmls(Variable *Dest, Variable *Src0, Variable *Src1) {
-    Context.insert(InstARM32Vmls::create(Func, Dest, Src0, Src1));
+    Context.insert<InstARM32Vmls>(Dest, Src0, Src1);
   }
   void _vmul(Variable *Dest, Variable *Src0, Variable *Src1) {
-    Context.insert(InstARM32Vmul::create(Func, Dest, Src0, Src1));
+    Context.insert<InstARM32Vmul>(Dest, Src0, Src1);
   }
   void _vsqrt(Variable *Dest, Variable *Src,
               CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert(InstARM32Vsqrt::create(Func, Dest, Src, Pred));
+    Context.insert<InstARM32Vsqrt>(Dest, Src, Pred);
   }
   void _vsub(Variable *Dest, Variable *Src0, Variable *Src1) {
-    Context.insert(InstARM32Vsub::create(Func, Dest, Src0, Src1));
+    Context.insert<InstARM32Vsub>(Dest, Src0, Src1);
   }
 
   // Iterates over the CFG and determines the maximum outgoing stack arguments

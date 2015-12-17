@@ -226,12 +226,12 @@ void TargetX8664::lowerCall(const InstCall *Instr) {
     // Generate a FakeUse of register arguments so that they do not get dead
     // code eliminated as a result of the FakeKill of scratch registers after
     // the call.
-    Context.insert(InstFakeUse::create(Func, Reg));
+    Context.insert<InstFakeUse>(Reg);
   }
 
   for (SizeT i = 0, NumGprArgs = GprArgs.size(); i < NumGprArgs; ++i) {
     Variable *Reg = legalizeToReg(GprArgs[i], getRegisterForGprArgNum(i));
-    Context.insert(InstFakeUse::create(Func, Reg));
+    Context.insert<InstFakeUse>(Reg);
   }
 
   // Generate the call instruction. Assign its result to a temporary with high
@@ -271,8 +271,7 @@ void TargetX8664::lowerCall(const InstCall *Instr) {
   if (NeedSandboxing) {
     llvm_unreachable("X86-64 Sandboxing codegen not implemented.");
   }
-  Inst *NewCall = Traits::Insts::Call::create(Func, ReturnReg, CallTarget);
-  Context.insert(NewCall);
+  auto *NewCall = Context.insert<Traits::Insts::Call>(ReturnReg, CallTarget);
   if (NeedSandboxing) {
     llvm_unreachable("X86-64 Sandboxing codegen not implemented.");
   }
@@ -286,12 +285,11 @@ void TargetX8664::lowerCall(const InstCall *Instr) {
   }
 
   // Insert a register-kill pseudo instruction.
-  Context.insert(InstFakeKill::create(Func, NewCall));
+  Context.insert<InstFakeKill>(NewCall);
 
   // Generate a FakeUse to keep the call live if necessary.
   if (Instr->hasSideEffects() && ReturnReg) {
-    Inst *FakeUse = InstFakeUse::create(Func, ReturnReg);
-    Context.insert(FakeUse);
+    Context.insert<InstFakeUse>(ReturnReg);
   }
 
   if (!Dest)
@@ -356,7 +354,7 @@ void TargetX8664::lowerArguments() {
     Arg->setIsArg(false);
 
     Args[i] = RegisterArg;
-    Context.insert(InstAssign::create(Func, Arg, RegisterArg));
+    Context.insert<InstAssign>(Arg, RegisterArg);
   }
 }
 
@@ -486,7 +484,7 @@ void TargetX8664::addProlog(CfgNode *Node) {
     _push(ebp);
     _mov(ebp, esp);
     // Keep ebp live for late-stage liveness analysis (e.g. asm-verbose mode).
-    Context.insert(InstFakeUse::create(Func, ebp));
+    Context.insert<InstFakeUse>(ebp);
   }
 
   // Align the variables area. SpillAreaPaddingBytes is the size of the region
@@ -645,7 +643,7 @@ void TargetX8664::addEpilog(CfgNode *Node) {
     // For late-stage liveness analysis (e.g. asm-verbose mode), adding a fake
     // use of esp before the assignment of esp=ebp keeps previous esp
     // adjustments from being dead-code eliminated.
-    Context.insert(InstFakeUse::create(Func, esp));
+    Context.insert<InstFakeUse>(esp);
     _mov(esp, ebp);
     _pop(ebp);
   } else {

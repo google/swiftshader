@@ -190,7 +190,7 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
     // Generate a FakeUse of register arguments so that they do not get dead
     // code eliminated as a result of the FakeKill of scratch registers after
     // the call.
-    Context.insert(InstFakeUse::create(Func, Reg));
+    Context.insert<InstFakeUse>(Reg);
   }
   // Generate the call instruction. Assign its result to a temporary with high
   // register allocation weight.
@@ -244,15 +244,14 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
       CallTarget = CallTargetVar;
     }
   }
-  Inst *NewCall = Traits::Insts::Call::create(Func, ReturnReg, CallTarget);
-  Context.insert(NewCall);
+  auto *NewCall = Context.insert<Traits::Insts::Call>(ReturnReg, CallTarget);
   if (NeedSandboxing)
     _bundle_unlock();
   if (ReturnRegHi)
-    Context.insert(InstFakeDef::create(Func, ReturnRegHi));
+    Context.insert<InstFakeDef>(ReturnRegHi);
 
   // Insert a register-kill pseudo instruction.
-  Context.insert(InstFakeKill::create(Func, NewCall));
+  Context.insert<InstFakeKill>(NewCall);
 
   if (Dest != nullptr && isScalarFloatingType(Dest->getType())) {
     // Special treatment for an FP function which returns its result in st(0).
@@ -262,13 +261,12 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
     _fstp(Dest);
     // Create a fake use of Dest in case it actually isn't used, because st(0)
     // still needs to be popped.
-    Context.insert(InstFakeUse::create(Func, Dest));
+    Context.insert<InstFakeUse>(Dest);
   }
 
   // Generate a FakeUse to keep the call live if necessary.
   if (Instr->hasSideEffects() && ReturnReg) {
-    Inst *FakeUse = InstFakeUse::create(Func, ReturnReg);
-    Context.insert(FakeUse);
+    Context.insert<InstFakeUse>(ReturnReg);
   }
 
   if (!Dest)
@@ -324,7 +322,7 @@ void TargetX8632::lowerArguments() {
     Arg->setIsArg(false);
 
     Args[I] = RegisterArg;
-    Context.insert(InstAssign::create(Func, Arg, RegisterArg));
+    Context.insert<InstAssign>(Arg, RegisterArg);
   }
 }
 
@@ -339,7 +337,7 @@ void TargetX8632::lowerRet(const InstRet *Inst) {
       Variable *edx =
           legalizeToReg(hiOperand(Src0), Traits::RegisterSet::Reg_edx);
       Reg = eax;
-      Context.insert(InstFakeUse::create(Func, edx));
+      Context.insert<InstFakeUse>(edx);
     } else if (isScalarFloatingType(Src0->getType())) {
       _fld(Src0);
     } else if (isVectorType(Src0->getType())) {
@@ -469,7 +467,7 @@ void TargetX8632::addProlog(CfgNode *Node) {
     _push(ebp);
     _mov(ebp, esp);
     // Keep ebp live for late-stage liveness analysis (e.g. asm-verbose mode).
-    Context.insert(InstFakeUse::create(Func, ebp));
+    Context.insert<InstFakeUse>(ebp);
   }
 
   // Align the variables area. SpillAreaPaddingBytes is the size of the region
@@ -633,7 +631,7 @@ void TargetX8632::addEpilog(CfgNode *Node) {
     // For late-stage liveness analysis (e.g. asm-verbose mode), adding a fake
     // use of esp before the assignment of esp=ebp keeps previous esp
     // adjustments from being dead-code eliminated.
-    Context.insert(InstFakeUse::create(Func, esp));
+    Context.insert<InstFakeUse>(esp);
     _mov(esp, ebp);
     _pop(ebp);
   } else {
@@ -676,7 +674,7 @@ void TargetX8632::addEpilog(CfgNode *Node) {
   lowerIndirectJump(T_ecx);
   if (RI->getSrcSize()) {
     auto *RetValue = llvm::cast<Variable>(RI->getSrc(0));
-    Context.insert(InstFakeUse::create(Func, RetValue));
+    Context.insert<InstFakeUse>(RetValue);
   }
   RI->setDeleted();
 }

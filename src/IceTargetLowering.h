@@ -23,10 +23,13 @@
 #ifndef SUBZERO_SRC_ICETARGETLOWERING_H
 #define SUBZERO_SRC_ICETARGETLOWERING_H
 
+#include "IceCfgNode.h"
 #include "IceDefs.h"
 #include "IceInst.h" // for the names of the Inst subtypes
 #include "IceOperand.h"
 #include "IceTypes.h"
+
+#include <utility>
 
 namespace Ice {
 
@@ -72,6 +75,11 @@ public:
   InstList::iterator getNext() const { return Next; }
   InstList::iterator getEnd() const { return End; }
   void insert(Inst *Inst);
+  template <typename Inst, typename... Args> Inst *insert(Args &&... A) {
+    auto *New = Inst::create(Node->getCfg(), std::forward<Args>(A)...);
+    insert(New);
+    return New;
+  }
   Inst *getLastInserted() const;
   void advanceCur() { Cur = Next; }
   void advanceNext() { advanceForward(Next); }
@@ -370,9 +378,9 @@ protected:
 
   void
   _bundle_lock(InstBundleLock::Option BundleOption = InstBundleLock::Opt_None) {
-    Context.insert(InstBundleLock::create(Func, BundleOption));
+    Context.insert<InstBundleLock>(BundleOption);
   }
-  void _bundle_unlock() { Context.insert(InstBundleUnlock::create(Func)); }
+  void _bundle_unlock() { Context.insert<InstBundleUnlock>(); }
   void _set_dest_redefined() { Context.getLastInserted()->setDestRedefined(); }
 
   bool shouldOptimizeMemIntrins();
