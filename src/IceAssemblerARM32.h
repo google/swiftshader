@@ -205,6 +205,8 @@ public:
 
   void bx(RegARM32::GPRRegister Rm, CondARM32::Cond Cond = CondARM32::AL);
 
+  void clz(const Operand *OpRd, const Operand *OpSrc, CondARM32::Cond Cond);
+
   void cmn(const Operand *OpRn, const Operand *OpSrc1, CondARM32::Cond Cond);
 
   void cmp(const Operand *OpRn, const Operand *OpSrc1, CondARM32::Cond Cond);

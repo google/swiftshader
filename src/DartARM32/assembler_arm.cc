@@ -317,8 +317,8 @@ void Assembler::mvn(Register rd, Operand o, Condition cond) {
 void Assembler::mvns(Register rd, Operand o, Condition cond) {
   EmitType01(cond, o.type(), MVN, 1, R0, rd, o);
 }
-#endif
 
+// Moved to ARM32::AssemblerARM32::clz()
 void Assembler::clz(Register rd, Register rm, Condition cond) {
   ASSERT(rd != kNoRegister);
   ASSERT(rm != kNoRegister);
@@ -332,8 +332,6 @@ void Assembler::clz(Register rd, Register rm, Condition cond) {
   Emit(encoding);
 }
 
-
-#if 0
 // Moved to ARM32::AssemblerARM32::movw()
 void Assembler::movw(Register rd, uint16_t imm16, Condition cond) {
   ASSERT(cond != kNoCondition);

@@ -513,13 +513,13 @@ class Assembler : public ValueObject {
   // Moved to ARM32::IceAssemblerARM32::mvn()
   void mvn(Register rd, Operand o, Condition cond = AL);
   void mvns(Register rd, Operand o, Condition cond = AL);
-#endif
 
   // Miscellaneous data-processing instructions.
+  // Moved to ARM32::AssemblerARM32::clz()
   void clz(Register rd, Register rm, Condition cond = AL);
 
   // Multiply instructions.
-#if 0
+
   // Moved to ARM32::AssemblerARM32::mul()
   void mul(Register rd, Register rn, Register rm, Condition cond = AL);
   void muls(Register rd, Register rn, Register rm, Condition cond = AL);

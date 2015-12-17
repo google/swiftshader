@@ -1088,6 +1088,30 @@ void AssemblerARM32::bx(RegARM32::GPRRegister Rm, CondARM32::Cond Cond) {
   emitInst(Encoding);
 }
 
+void AssemblerARM32::clz(const Operand *OpRd, const Operand *OpSrc,
+                         CondARM32::Cond Cond) {
+  // CLZ - ARM section A8.8.33, encoding A1:
+  //   clz<c> <Rd> <Rm>
+  //
+  // cccc000101101111dddd11110001mmmm where cccc=Cond, dddd=Rd, and mmmm=Rm.
+  constexpr const char *ClzName = "clz";
+  constexpr const char *RdName = "Rd";
+  constexpr const char *RmName = "Rm";
+  IValueT Rd = encodeRegister(OpRd, RdName, ClzName);
+  verifyRegDefined(Rd, RdName, ClzName);
+  verifyRegNotPc(Rd, RdName, ClzName);
+  IValueT Rm = encodeRegister(OpSrc, RmName, ClzName);
+  verifyRegDefined(Rm, RmName, ClzName);
+  verifyRegNotPc(Rm, RmName, ClzName);
+  verifyCondDefined(Cond, ClzName);
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  constexpr IValueT PredefinedBits =
+      B24 | B22 | B21 | (0xF << 16) | (0xf << 8) | B4;
+  const IValueT Encoding = PredefinedBits | (Cond << kConditionShift) |
+                           (Rd << kRdShift) | (Rm << kRmShift);
+  emitInst(Encoding);
+}
+
 void AssemblerARM32::cmn(const Operand *OpRn, const Operand *OpSrc1,
                          CondARM32::Cond Cond) {
   // CMN (immediate) - ARM section A8.8.34, encoding A1:
