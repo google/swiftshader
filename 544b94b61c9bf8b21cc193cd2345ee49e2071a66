@@ -70,6 +70,30 @@
       "revId": "544b94b61c9bf8b21cc193cd2345ee49e2071a66",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2aa2a363_3c5d512e",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 295,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-12-18T20:58:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2aa2a363_dcbb0d8c",
+      "range": {
+        "startLine": 295,
+        "startChar": 67,
+        "endLine": 295,
+        "endChar": 75
+      },
+      "revId": "544b94b61c9bf8b21cc193cd2345ee49e2071a66",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
