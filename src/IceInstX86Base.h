@@ -3074,10 +3074,10 @@ template <class Machine> struct Insts {
   /* Binary ops */                                                             \
   template <> const char *InstX86Add<Machine>::Base::Opcode = "add";           \
   template <> const char *InstX86AddRMW<Machine>::Base::Opcode = "add";        \
-  template <> const char *InstX86Addps<Machine>::Base::Opcode = "addps";       \
+  template <> const char *InstX86Addps<Machine>::Base::Opcode = "add";         \
   template <> const char *InstX86Adc<Machine>::Base::Opcode = "adc";           \
   template <> const char *InstX86AdcRMW<Machine>::Base::Opcode = "adc";        \
-  template <> const char *InstX86Addss<Machine>::Base::Opcode = "addss";       \
+  template <> const char *InstX86Addss<Machine>::Base::Opcode = "add";         \
   template <> const char *InstX86Andnps<Machine>::Base::Opcode = "andn";       \
   template <> const char *InstX86Andps<Machine>::Base::Opcode = "and";         \
   template <> const char *InstX86Maxss<Machine>::Base::Opcode = "max";         \
@@ -3085,8 +3085,8 @@ template <class Machine> struct Insts {
   template <> const char *InstX86Padd<Machine>::Base::Opcode = "padd";         \
   template <> const char *InstX86Sub<Machine>::Base::Opcode = "sub";           \
   template <> const char *InstX86SubRMW<Machine>::Base::Opcode = "sub";        \
-  template <> const char *InstX86Subps<Machine>::Base::Opcode = "subps";       \
-  template <> const char *InstX86Subss<Machine>::Base::Opcode = "subss";       \
+  template <> const char *InstX86Subps<Machine>::Base::Opcode = "sub";         \
+  template <> const char *InstX86Subss<Machine>::Base::Opcode = "sub";         \
   template <> const char *InstX86Sbb<Machine>::Base::Opcode = "sbb";           \
   template <> const char *InstX86SbbRMW<Machine>::Base::Opcode = "sbb";        \
   template <> const char *InstX86Psub<Machine>::Base::Opcode = "psub";         \
@@ -3104,13 +3104,13 @@ template <class Machine> struct Insts {
   template <> const char *InstX86Pxor<Machine>::Base::Opcode = "pxor";         \
   template <> const char *InstX86Imul<Machine>::Base::Opcode = "imul";         \
   template <> const char *InstX86ImulImm<Machine>::Base::Opcode = "imul";      \
-  template <> const char *InstX86Mulps<Machine>::Base::Opcode = "mulps";       \
-  template <> const char *InstX86Mulss<Machine>::Base::Opcode = "mulss";       \
+  template <> const char *InstX86Mulps<Machine>::Base::Opcode = "mul";         \
+  template <> const char *InstX86Mulss<Machine>::Base::Opcode = "mul";         \
   template <> const char *InstX86Pmull<Machine>::Base::Opcode = "pmull";       \
   template <> const char *InstX86Pmuludq<Machine>::Base::Opcode = "pmuludq";   \
   template <> const char *InstX86Div<Machine>::Base::Opcode = "div";           \
-  template <> const char *InstX86Divps<Machine>::Base::Opcode = "divps";       \
-  template <> const char *InstX86Divss<Machine>::Base::Opcode = "divss";       \
+  template <> const char *InstX86Divps<Machine>::Base::Opcode = "div";         \
+  template <> const char *InstX86Divss<Machine>::Base::Opcode = "div";         \
   template <> const char *InstX86Idiv<Machine>::Base::Opcode = "idiv";         \
   template <> const char *InstX86Rol<Machine>::Base::Opcode = "rol";           \
   template <> const char *InstX86Shl<Machine>::Base::Opcode = "shl";           \
