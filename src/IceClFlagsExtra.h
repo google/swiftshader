@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// \brief Declares command line flags primarily used for non-minimal builds.
+/// \brief Defines class Ice::ClFlagsExtra
 ///
 //===----------------------------------------------------------------------===//
 
@@ -25,6 +25,7 @@
 
 namespace Ice {
 
+///  Declares command line flags primarily used for non-minimal builds.
 class ClFlagsExtra {
   ClFlagsExtra(const ClFlagsExtra &) = delete;
   ClFlagsExtra &operator=(const ClFlagsExtra &) = delete;
