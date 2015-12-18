@@ -69,6 +69,30 @@
       "revId": "d642e4832fe36cdafa7a020f3dfbbac3713b59d0",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2aa2a363_5c261df8",
+        "filename": "src/OpenGL/libGLESv2/Texture.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 436,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-12-18T16:06:20Z",
+      "side": 1,
+      "message": "Done. Moved all GetSizedInternalFormat calls to the setImage/subImage call sites.",
+      "parentUuid": "65904ecb_81b79cf7",
+      "range": {
+        "startLine": 436,
+        "startChar": 1,
+        "endLine": 436,
+        "endChar": 47
+      },
+      "revId": "d642e4832fe36cdafa7a020f3dfbbac3713b59d0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
