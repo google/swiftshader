@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "2aa2a363_5cc85d2e",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 3119,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-12-18T20:17:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "25fc967c_52a874b4",
+      "range": {
+        "startLine": 3119,
+        "startChar": 56,
+        "endLine": 3119,
+        "endChar": 65
+      },
+      "revId": "fddad6e1695ee51fc8d171bca10168bdf7ab229f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "25fc967c_d2daa462",
         "filename": "src/OpenGL/libGLESv2/Context.cpp",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2015-12-15T14:37:17Z",
       "side": 1,
       "message": "nit: let\u0027s remove this trailing whitespace while we\u0027re here.",
+      "range": {
+        "startLine": 3121,
+        "startChar": 71,
+        "endLine": 3121,
+        "endChar": 87
+      },
+      "revId": "fddad6e1695ee51fc8d171bca10168bdf7ab229f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2aa2a363_7ccd193d",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 3121,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-12-18T20:17:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "25fc967c_d2daa462",
       "range": {
         "startLine": 3121,
         "startChar": 71,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "2aa2a363_1cc2d50c",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 956,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-12-18T20:17:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "25fc967c_f2b6c014",
+      "range": {
+        "startLine": 956,
+        "startChar": 78,
+        "endLine": 956,
+        "endChar": 79
+      },
+      "revId": "fddad6e1695ee51fc8d171bca10168bdf7ab229f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "25fc967c_b2bc38f7",
         "filename": "src/OpenGL/libGLESv2/utilities.cpp",
         "patchSetId": 2
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "2aa2a363_3cc7911d",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 967,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-12-18T20:17:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "25fc967c_b2bc38f7",
+      "range": {
+        "startLine": 967,
+        "startChar": 0,
+        "endLine": 967,
+        "endChar": 1
+      },
+      "revId": "fddad6e1695ee51fc8d171bca10168bdf7ab229f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "25fc967c_92b93c07",
         "filename": "src/OpenGL/libGLESv2/utilities.h",
         "patchSetId": 2
@@ -105,6 +201,30 @@
       "writtenOn": "2015-12-15T14:37:17Z",
       "side": 1,
       "message": "I think it might be more elegant to have two functions; one for the texture filter and one for the mipmap filter.",
+      "range": {
+        "startLine": 75,
+        "startChar": 1,
+        "endLine": 75,
+        "endChar": 142
+      },
+      "revId": "fddad6e1695ee51fc8d171bca10168bdf7ab229f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2aa2a363_bc9ba135",
+        "filename": "src/OpenGL/libGLESv2/utilities.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2015-12-18T20:17:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "25fc967c_92b93c07",
       "range": {
         "startLine": 75,
         "startChar": 1,
