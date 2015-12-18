@@ -318,6 +318,12 @@ public:
   // Implements uxtb/uxth depending on type of OpSrc0.
   void uxt(const Operand *OpRd, const Operand *OpSrc0, CondARM32::Cond Cond);
 
+  void vpop(const Variable *OpBaseReg, SizeT NumConsecRegs,
+            CondARM32::Cond Cond);
+
+  void vpush(const Variable *OpBaseReg, SizeT NumConsecRegs,
+             CondARM32::Cond Cond);
+
   static bool classof(const Assembler *Asm) {
     return Asm->getKind() == Asm_ARM32;
   }
@@ -413,6 +419,12 @@ private:
   void emitMultiMemOp(CondARM32::Cond Cond, BlockAddressMode AddressMode,
                       bool IsLoad, IValueT BaseReg, IValueT Registers,
                       const char *InstName);
+
+  // Pattern ccccxxxxxDxxxxxxddddxxxxiiiiiiii where cccc=Cond, ddddD=BaseReg,
+  // iiiiiiii=NumConsecRegs, and xxxxx0xxxxxx0000xxxx00000000=Opcode.
+  void emitVStackOp(CondARM32::Cond Cond, IValueT Opcode,
+                    const Variable *OpBaseReg, SizeT NumConsecRegs,
+                    const char *InstName);
 
   // Pattern cccc011100x1dddd1111mmmm0001nnn where cccc=Cond,
   // x=Opcode, dddd=Rd, nnnn=Rn, mmmm=Rm.

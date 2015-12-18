@@ -1320,7 +1320,9 @@ class Assembler : public ValueObject {
 #if 0
   // Added the following missing operations:
   //
-  // ARM32::AssemblerARM::uxt() (uxtb and uxth).
+  // ARM32::AssemblerARM32::uxt() (uxtb and uxth).
+  // ARM32::AssemblerARM32::vpop()
+  // ARM32::AssemblerARM32::vpush()
   // ARM32::AssemblerARM:rbit().
 #endif
 

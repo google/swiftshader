@@ -104,6 +104,14 @@ public:
     return Reg_I64PAIR_First <= RegNum && RegNum <= Reg_I64PAIR_Last;
   }
 
+  static inline bool isEncodedSReg(int32_t RegNum) {
+    return Reg_SREG_First <= RegNum && RegNum <= Reg_SREG_Last;
+  }
+
+  static inline SizeT getNumSRegs() {
+    return Reg_SREG_Last + 1 - Reg_SREG_First;
+  }
+
   static inline SRegister getEncodedSReg(int32_t RegNum) {
     assert(Reg_SREG_First <= RegNum);
     assert(RegNum <= Reg_SREG_Last);

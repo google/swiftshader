@@ -115,6 +115,9 @@ static constexpr IValueT kInstTypeDataImmediate = 1; // i.e. 001
 static constexpr IValueT kInstTypeMemImmediate = 2;  // i.e. 010
 static constexpr IValueT kInstTypeRegisterShift = 3; // i.e. 011
 
+// Limit on number of registers in a vpush/vpop.
+static constexpr SizeT VpushVpopMaxConsecRegs = 16;
+
 // Offset modifier to current PC for next instruction.  The offset is off by 8
 // due to the way the ARM CPUs read PC.
 static constexpr IOffsetT kPCReadOffset = 8;
@@ -197,6 +200,12 @@ IValueT getEncodedGPRegNum(const Variable *Var) {
   int32_t Reg = Var->getRegNum();
   return llvm::isa<Variable64On32>(Var) ? RegARM32::getI64PairFirstGPRNum(Reg)
                                         : RegARM32::getEncodedGPR(Reg);
+}
+
+IValueT getEncodedSRegNum(const Variable *Var) {
+  assert(Var->hasReg());
+  assert(RegARM32::isEncodedSReg(Var->getRegNum()));
+  return RegARM32::getEncodedSReg(Var->getRegNum());
 }
 
 // The way an operand is encoded into a sequence of bits in functions
@@ -1995,6 +2004,55 @@ void AssemblerARM32::uxt(const Operand *OpRd, const Operand *OpSrc0,
   constexpr const char *UxtName = "uxt";
   constexpr IValueT UxtOpcode = B26 | B25 | B23 | B22 | B21;
   emitSignExtend(Cond, UxtOpcode, OpRd, OpSrc0, UxtName);
+}
+
+void AssemblerARM32::emitVStackOp(CondARM32::Cond Cond, IValueT Opcode,
+                                  const Variable *OpBaseReg,
+                                  SizeT NumConsecRegs, const char *InstName) {
+
+  const IValueT BaseReg = getEncodedSRegNum(OpBaseReg);
+  const IValueT DLastBit = mask(BaseReg, 0, 1); // Last bit of base register.
+  const IValueT Rd = mask(BaseReg, 1, 4);       // Top 4 bits of base register.
+  assert(0 < NumConsecRegs);
+  assert(NumConsecRegs <= VpushVpopMaxConsecRegs);
+  assert((BaseReg + NumConsecRegs) <= RegARM32::getNumSRegs());
+  verifyCondDefined(Cond, InstName);
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  const IValueT Encoding = Opcode | (Cond << kConditionShift) | DLastBit |
+                           (Rd << kRdShift) | NumConsecRegs;
+  emitInst(Encoding);
+}
+
+void AssemblerARM32::vpop(const Variable *OpBaseReg, SizeT NumConsecRegs,
+                          CondARM32::Cond Cond) {
+  // Note: Current implementation assumes that OpBaseReg is defined using S
+  // registers. It doesn't implement the D register form.
+  //
+  // VPOP - ARM section A8.8.367, encoding A2:
+  //  vpop<c> <RegList>
+  //
+  // cccc11001D111101dddd1010iiiiiiii where cccc=Cond, ddddD=BaseReg, and
+  // iiiiiiii=NumConsecRegs.
+  constexpr const char *VpopName = "vpop";
+  constexpr IValueT VpopOpcode =
+      B27 | B26 | B23 | B21 | B20 | B19 | B18 | B16 | B11 | B9;
+  emitVStackOp(Cond, VpopOpcode, OpBaseReg, NumConsecRegs, VpopName);
+}
+
+void AssemblerARM32::vpush(const Variable *OpBaseReg, SizeT NumConsecRegs,
+                           CondARM32::Cond Cond) {
+  // Note: Current implementation assumes that OpBaseReg is defined using S
+  // registers. It doesn't implement the D register form.
+  //
+  // VPUSH - ARM section A8.8.368, encoding A2:
+  //   vpush<c> <RegList>
+  //
+  // cccc11010D101101dddd1010iiiiiiii where cccc=Cond, ddddD=BaseReg, and
+  // iiiiiiii=NumConsecRegs.
+  constexpr const char *VpushName = "vpush";
+  constexpr IValueT VpushOpcode =
+      B27 | B26 | B24 | B21 | B19 | B18 | B16 | B11 | B9;
+  emitVStackOp(Cond, VpushOpcode, OpBaseReg, NumConsecRegs, VpushName);
 }
 
 } // end of namespace ARM32
