@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2aa2a363_dc39cd15",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 1050,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2015-12-18T16:32:00Z",
+      "side": 1,
+      "message": "I noticed that overall we\u0027re a bit inconsistent about whether Validate* functions set the errors themselves or not. No need to try to make it consistent right now, but it\u0027s something we should clean up at some point. Filed b/26260576 for that.\n\nnit: Since ValidateSubImageParams can return errors other than a format mismatch, these variables should probably just be named \"error\" instead.",
+      "range": {
+        "startLine": 1050,
+        "startChar": 10,
+        "endLine": 1050,
+        "endChar": 21
+      },
+      "revId": "867ea1978bd0693fcecc8c221f657811ee48bca2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
