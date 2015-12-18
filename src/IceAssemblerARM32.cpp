@@ -2014,6 +2014,7 @@ void AssemblerARM32::emitVStackOp(CondARM32::Cond Cond, IValueT Opcode,
   const IValueT DLastBit = mask(BaseReg, 0, 1); // Last bit of base register.
   const IValueT Rd = mask(BaseReg, 1, 4);       // Top 4 bits of base register.
   assert(0 < NumConsecRegs);
+  (void)VpushVpopMaxConsecRegs;
   assert(NumConsecRegs <= VpushVpopMaxConsecRegs);
   assert((BaseReg + NumConsecRegs) <= RegARM32::getNumSRegs());
   verifyCondDefined(Cond, InstName);
