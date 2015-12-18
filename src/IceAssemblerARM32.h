@@ -242,6 +242,9 @@ public:
   void mla(const Operand *OpRd, const Operand *OpRn, const Operand *OpRm,
            const Operand *OpRa, CondARM32::Cond Cond);
 
+  void mls(const Operand *OpRd, const Operand *OpRn, const Operand *OpRm,
+           const Operand *OpRa, CondARM32::Cond Cond);
+
   void mul(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
            bool SetFlags, CondARM32::Cond Cond);
 

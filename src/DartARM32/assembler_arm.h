@@ -140,9 +140,7 @@ class Operand : public ValueObject {
     type_ = 1;
     encoding_ = immediate;
   }
-#endif
 
-#if 0
   // Moved to decodeOperand() and encodeRotatedImm8() in IceAssemblerARM32.cpp
   // Data-processing operands - Rotated immediate.
   Operand(uint32_t rotate, uint32_t immed8) {
@@ -450,9 +448,7 @@ class Assembler : public ValueObject {
   // Moved to ARM32::AssemblerARM32::and_()
   // Data-processing instructions.
   void and_(Register rd, Register rn, Operand o, Condition cond = AL);
-#endif
 
-#if 0
   // Moved to ARM32::AssemblerARM32::eor()
   void eor(Register rd, Register rn, Operand o, Condition cond = AL);
 
@@ -503,9 +499,7 @@ class Assembler : public ValueObject {
   // Moved to ARM32::IceAssemblerARM32::mov()
   void mov(Register rd, Operand o, Condition cond = AL);
   void movs(Register rd, Operand o, Condition cond = AL);
-#endif
 
-#if 0
   // Moved to ARM32::IceAssemblerARM32::bic()
   void bic(Register rd, Register rn, Operand o, Condition cond = AL);
   void bics(Register rd, Register rn, Operand o, Condition cond = AL);
@@ -527,11 +521,14 @@ class Assembler : public ValueObject {
   // Moved to ARM32::AssemblerARM32::mla()
   void mla(Register rd, Register rn, Register rm, Register ra,
            Condition cond = AL);
-#endif
+  // Moved to ARM32::AssemblerARM32::mls()
   void mls(Register rd, Register rn, Register rm, Register ra,
            Condition cond = AL);
+#endif
+
   void smull(Register rd_lo, Register rd_hi, Register rn, Register rm,
              Condition cond = AL);
+
 #if 0
   // Moved to ARM32::AssemblerARM32::umull();
   void umull(Register rd_lo, Register rd_hi, Register rn, Register rm,
@@ -564,10 +561,12 @@ class Assembler : public ValueObject {
   void ldrb(Register rd, Address ad, Condition cond = AL);
   // Moved to ARM32::AssemblerARM32::str()
   void strb(Register rd, Address ad, Condition cond = AL);
-#endif
 
+  // Moved to ARM32::AssemblerARM32::ldr()
   void ldrh(Register rd, Address ad, Condition cond = AL);
+  // Moved to ARM32::AssemblerARM32::str()
   void strh(Register rd, Address ad, Condition cond = AL);
+#endif
 
   void ldrsb(Register rd, Address ad, Condition cond = AL);
   void ldrsh(Register rd, Address ad, Condition cond = AL);
@@ -597,6 +596,7 @@ class Assembler : public ValueObject {
 
   // Miscellaneous instructions.
   void clrex();
+
 #if 0
   // Moved to ARM32::AssemblerARM32::nop().
   void nop(Condition cond = AL);

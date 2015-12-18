@@ -1753,9 +1753,27 @@ void AssemblerARM32::mla(const Operand *OpRd, const Operand *OpRn,
   verifyRegNotPc(Rm, "Rm", MlaName);
   verifyRegNotPc(Ra, "Ra", MlaName);
   constexpr IValueT MlaOpcode = B21;
-  constexpr bool SetFlags = false;
+  constexpr bool SetFlags = true;
   // Assembler registers rd, rn, rm, ra are encoded as rn, rm, rs, rd.
-  emitMulOp(Cond, MlaOpcode, Ra, Rd, Rn, Rm, SetFlags, MlaName);
+  emitMulOp(Cond, MlaOpcode, Ra, Rd, Rn, Rm, !SetFlags, MlaName);
+}
+
+void AssemblerARM32::mls(const Operand *OpRd, const Operand *OpRn,
+                         const Operand *OpRm, const Operand *OpRa,
+                         CondARM32::Cond Cond) {
+  constexpr const char *MlsName = "mls";
+  IValueT Rd = encodeRegister(OpRd, "Rd", MlsName);
+  IValueT Rn = encodeRegister(OpRn, "Rn", MlsName);
+  IValueT Rm = encodeRegister(OpRm, "Rm", MlsName);
+  IValueT Ra = encodeRegister(OpRa, "Ra", MlsName);
+  verifyRegNotPc(Rd, "Rd", MlsName);
+  verifyRegNotPc(Rn, "Rn", MlsName);
+  verifyRegNotPc(Rm, "Rm", MlsName);
+  verifyRegNotPc(Ra, "Ra", MlsName);
+  constexpr IValueT MlsOpcode = B22 | B21;
+  constexpr bool SetFlags = true;
+  // Assembler registers rd, rn, rm, ra are encoded as rn, rm, rs, rd.
+  emitMulOp(Cond, MlsOpcode, Ra, Rd, Rn, Rm, !SetFlags, MlsName);
 }
 
 void AssemblerARM32::mul(const Operand *OpRd, const Operand *OpRn,
