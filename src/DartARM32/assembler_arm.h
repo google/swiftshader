@@ -1321,6 +1321,7 @@ class Assembler : public ValueObject {
   // Added the following missing operations:
   //
   // ARM32::AssemblerARM::uxt() (uxtb and uxth).
+  // ARM32::AssemblerARM:rbit().
 #endif
 
   DISALLOW_ALLOCATION();

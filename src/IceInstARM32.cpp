@@ -1210,6 +1210,14 @@ void InstARM32UnaryopGPR<K, Nws>::emitIAS(const Cfg *Func) const {
   emitUsingTextFixup(Func);
 }
 
+template <> void InstARM32Rbit::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 1);
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  Asm->rbit(getDest(), getSrc(0), getPredicate());
+  if (Asm->needsTextFixup())
+    emitUsingTextFixup(Func);
+}
+
 template <> void InstARM32Rev::emitIAS(const Cfg *Func) const {
   assert(getSrcSize() == 1);
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();

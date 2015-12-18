@@ -265,7 +265,9 @@ public:
   // Note: Registers is a bitset, where bit n corresponds to register Rn.
   void pushList(const IValueT Registers, CondARM32::Cond Cond);
 
-  void rev(const Operand *OpRd, const Operand *OpSrc, CondARM32::Cond Cond);
+  void rbit(const Operand *OpRd, const Operand *OpRm, CondARM32::Cond Cond);
+
+  void rev(const Operand *OpRd, const Operand *OpRm, CondARM32::Cond Cond);
 
   void rsb(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
            bool SetFlags, CondARM32::Cond Cond);
@@ -383,6 +385,11 @@ private:
   void emitMemOp(CondARM32::Cond Cond, IValueT InstType, bool IsLoad,
                  bool IsByte, IValueT Rt, IValueT Address,
                  const char *InstName);
+
+  // Emit ccccxxxxxxxxxxxxddddxxxxxxxxmmmm where cccc=Cond,
+  // xxxxxxxxxxxx0000xxxxxxxx0000=Opcode, dddd=Rd, and mmmm=Rm.
+  void emitRdRm(CondARM32::Cond Cond, IValueT Opcode, const Operand *OpRd,
+                const Operand *OpRm, const char *InstName);
 
   // Emit ldr/ldrb/str/strb instruction with given address.
   void emitMemOp(CondARM32::Cond Cond, bool IsLoad, bool IsByte, IValueT Rt,

@@ -1797,21 +1797,39 @@ void AssemblerARM32::mul(const Operand *OpRd, const Operand *OpRn,
             MulName);
 }
 
-void AssemblerARM32::rev(const Operand *OpRd, const Operand *OpSrc,
-                         CondARM32::Cond Cond) {
-  // REV - ARM section A8.8.145, encoding A1:
-  //   rev <Rd>, <Rm>
-  //
-  // cccc011010111111dddd11110011mmmm where cccc=Cond, dddd=Rn, and mmmm=Rm.
-  constexpr const char *RevName = "rev";
-  IValueT Rd = encodeRegister(OpRd, "Rd", RevName);
-  IValueT Rm = encodeRegister(OpSrc, "Rm", RevName);
+void AssemblerARM32::emitRdRm(CondARM32::Cond Cond, IValueT Opcode,
+                              const Operand *OpRd, const Operand *OpRm,
+                              const char *InstName) {
+  IValueT Rd = encodeRegister(OpRd, "Rd", InstName);
+  IValueT Rm = encodeRegister(OpRm, "Rm", InstName);
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  constexpr IValueT Opcode = B26 | B25 | B23 | B21 | B20 | B19 | B18 | B17 |
-                             B16 | B11 | B10 | B9 | B8 | B5 | B4;
   IValueT Encoding =
       (Cond << kConditionShift) | Opcode | (Rd << kRdShift) | (Rm << kRmShift);
   emitInst(Encoding);
+}
+
+void AssemblerARM32::rbit(const Operand *OpRd, const Operand *OpRm,
+                          CondARM32::Cond Cond) {
+  // RBIT - ARM section A8.8.144, encoding A1:
+  //   rbit<c> <Rd>, <Rm>
+  //
+  // cccc011011111111dddd11110011mmmm where cccc=Cond, dddd=Rn, and mmmm=Rm.
+  constexpr const char *RbitName = "rev";
+  constexpr IValueT RbitOpcode = B26 | B25 | B23 | B22 | B21 | B20 | B19 | B18 |
+                                 B17 | B16 | B11 | B10 | B9 | B8 | B5 | B4;
+  emitRdRm(Cond, RbitOpcode, OpRd, OpRm, RbitName);
+}
+
+void AssemblerARM32::rev(const Operand *OpRd, const Operand *OpRm,
+                         CondARM32::Cond Cond) {
+  // REV - ARM section A8.8.145, encoding A1:
+  //   rev<c> <Rd>, <Rm>
+  //
+  // cccc011010111111dddd11110011mmmm where cccc=Cond, dddd=Rn, and mmmm=Rm.
+  constexpr const char *RevName = "rev";
+  constexpr IValueT RevOpcode = B26 | B25 | B23 | B21 | B20 | B19 | B18 | B17 |
+                                B16 | B11 | B10 | B9 | B8 | B5 | B4;
+  emitRdRm(Cond, RevOpcode, OpRd, OpRm, RevName);
 }
 
 void AssemblerARM32::rsb(const Operand *OpRd, const Operand *OpRn,
