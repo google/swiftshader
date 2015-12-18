@@ -367,7 +367,6 @@ public:
     k__Start = Inst::Target,
     Adc,
     Add,
-    Adjuststack,
     And,
     Asr,
     Bic,

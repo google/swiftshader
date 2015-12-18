@@ -46,7 +46,6 @@ public:
     AddRMW,
     Addps,
     Addss,
-    Adjuststack,
     And,
     Andnps,
     Andps,
