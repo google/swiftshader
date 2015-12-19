@@ -21,14 +21,14 @@ namespace OSX
 		if([object isKindOfClass:[NSView class]])
 		{
 			NSView *view = reinterpret_cast<NSView*>(object);
-			width = [view bounds].size.width;
-			height = [view bounds].size.height;
+			width = [view convertRectToBacking:[view bounds]].size.width;
+			height = [view convertRectToBacking:[view bounds]].size.height;
 		}
 		else if([object isKindOfClass:[CALayer class]])
 		{
 			CALayer *layer = reinterpret_cast<CALayer*>(object);
-			width = CGRectGetWidth([layer frame]);
-			height = CGRectGetHeight([layer frame]);
+			width = [layer bounds].size.width * layer.contentsScale;
+			height = [layer bounds].size.height * layer.contentsScale;
 		}
 		else UNREACHABLE(0);
 	}
