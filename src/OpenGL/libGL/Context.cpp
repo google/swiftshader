@@ -37,9 +37,6 @@
 #include <GL/GL.h>
 #include <GL/glext.h>
 
-#undef near
-#undef far
-
 namespace gl
 {
 Context::Context(const Context *shareContext)

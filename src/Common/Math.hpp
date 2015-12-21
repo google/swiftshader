@@ -14,17 +14,14 @@
 
 #include "Types.hpp"
 
-#include <math.h>
+#include <cmath>
 #if defined(_MSC_VER)
 	#include <intrin.h>
 #endif
 
 namespace sw
 {
-	inline float abs(float x)
-	{
-		return fabsf(x);
-	}
+	using std::abs;
 
 	#undef min
 	#undef max

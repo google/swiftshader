@@ -15,8 +15,7 @@
 #define LIBGL_MATHUTIL_H_
 
 #include "common/debug.h"
-
-#include <math.h>
+#include "Common/Math.hpp"
 
 namespace gl
 {

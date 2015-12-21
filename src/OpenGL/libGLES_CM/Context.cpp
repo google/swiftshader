@@ -30,10 +30,7 @@
 
 #include <EGL/eglext.h>
 
-#include <algorithm>
-
-#undef near
-#undef far
+using std::abs;
 
 namespace es1
 {
@@ -1942,7 +1939,7 @@ void Context::applyState(GLenum drawMode)
 		else   // Directional light
 		{
 			// Hack: set the position far way
-			float max = std::max(std::max(abs(light[i].position.x), abs(light[i].position.y)), abs(light[i].position.z));
+			float max = sw::max(abs(light[i].position.x), abs(light[i].position.y), abs(light[i].position.z));
 			device->setLightPosition(i, sw::Point(1e10f * (light[i].position.x / max), 1e10f * (light[i].position.y / max), 1e10f * (light[i].position.z / max)));
 		}
 	}

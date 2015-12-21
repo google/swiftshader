@@ -37,9 +37,6 @@
 
 #include <EGL/eglext.h>
 
-#undef near
-#undef far
-
 namespace es2
 {
 Context::Context(const egl::Config *config, const Context *shareContext, EGLint clientVersion)

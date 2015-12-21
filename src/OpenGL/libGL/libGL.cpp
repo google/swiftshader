@@ -33,6 +33,8 @@
 
 #include <limits>
 
+using std::abs;
+
 static bool validImageSize(GLint level, GLsizei width, GLsizei height)
 {
 	if(level < 0 || level >= gl::IMPLEMENTATION_MAX_TEXTURE_LEVELS || width < 0 || height < 0)
@@ -6560,7 +6562,7 @@ void APIENTRY glLightfv(GLenum light, GLenum pname, const GLfloat *params)
 			if(params[3] == 0.0f)   // Directional light
 			{
 				// Create a very far out point light
-				float max = std::max(std::max(abs(params[0]), abs(params[1])), abs(params[2]));
+				float max = sw::max(abs(params[0]), abs(params[1]), abs(params[2]));
 				device->setLightPosition(light - GL_LIGHT0, sw::Point(params[0] / max * 1e10f, params[1] / max * 1e10f, params[2] / max * 1e10f));
 			}
 			else
