@@ -44,7 +44,7 @@ namespace {
 
 struct {
   const char *FlagName;
-  int FlagValue;
+  bool FlagValue;
 } ConditionalBuildAttributes[] = {
     {"dump", BuildDefs::dump()},
     {"llvm_cl", BuildDefs::llvmCl()},
@@ -53,35 +53,18 @@ struct {
     {"minimal_build", BuildDefs::minimal()},
     {"browser_mode", BuildDefs::browser()}};
 
-// Validates values of build attributes. Prints them to Stream if Stream is
-// non-null.
-void validateAndGenerateBuildAttributes(Ostream *Stream) {
-  // List the supported targets.
-  if (Stream) {
+/// Dumps values of build attributes to Stream if Stream is non-null.
+void dumpBuildAttributes(Ostream *Stream) {
+  if (Stream == nullptr)
+    return;
+// List the supported targets.
 #define SUBZERO_TARGET(TARGET) *Stream << "target_" #TARGET << "\n";
 #include "llvm/Config/SZTargets.def"
-  }
-
+  const char *Prefix[2] = {"no", "allow"};
   for (size_t i = 0; i < llvm::array_lengthof(ConditionalBuildAttributes);
        ++i) {
-    switch (ConditionalBuildAttributes[i].FlagValue) {
-    case 0:
-      if (Stream)
-        *Stream << "no_" << ConditionalBuildAttributes[i].FlagName << "\n";
-      break;
-    case 1:
-      if (Stream)
-        *Stream << "allow_" << ConditionalBuildAttributes[i].FlagName << "\n";
-      break;
-    default: {
-      std::string Buffer;
-      llvm::raw_string_ostream StrBuf(Buffer);
-      StrBuf << "Flag " << ConditionalBuildAttributes[i].FlagName
-             << " must be defined as 0/1. Found: "
-             << ConditionalBuildAttributes[i].FlagValue;
-      llvm::report_fatal_error(StrBuf.str());
-    }
-    }
+    const auto &A = ConditionalBuildAttributes[i];
+    *Stream << Prefix[A.FlagValue] << "_" << A.FlagName << "\n";
   }
 }
 
@@ -89,8 +72,8 @@ void validateAndGenerateBuildAttributes(Ostream *Stream) {
 
 void Compiler::run(const Ice::ClFlagsExtra &ExtraFlags, GlobalContext &Ctx,
                    std::unique_ptr<llvm::DataStreamer> &&InputStream) {
-  validateAndGenerateBuildAttributes(
-      ExtraFlags.getGenerateBuildAtts() ? &Ctx.getStrDump() : nullptr);
+  dumpBuildAttributes(ExtraFlags.getGenerateBuildAtts() ? &Ctx.getStrDump()
+                                                        : nullptr);
   if (ExtraFlags.getGenerateBuildAtts())
     return Ctx.getErrorStatus()->assign(EC_None);
 
