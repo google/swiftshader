@@ -918,6 +918,14 @@ private:
 
   Label *getOrCreateLabel(SizeT Number, LabelVector &Labels);
 
+  void emitAddrSizeOverridePrefix() {
+    if (!Traits::Is64Bit) {
+      return;
+    }
+    static constexpr uint8_t AddrSizeOverridePrefix = 0x67;
+    emitUint8(AddrSizeOverridePrefix);
+  }
+
   // The arith_int() methods factor out the commonality between the encodings
   // of add(), Or(), adc(), sbb(), And(), sub(), Xor(), and cmp(). The Tag
   // parameter is statically asserted to be less than 8.
@@ -965,8 +973,17 @@ private:
         std::is_same<typename std::decay<RegType>::type,
                      typename Traits::GPRRegister>::value;
 
+    // At this point in the assembler, we have encoded regs, so it is not
+    // possible to distinguish between the "new" low byte registers introduced
+    // in x86-64 and the legacy [abcd]h registers. Because x86, we may still see
+    // ah (div) in the assembler, so we whitelist it here.
+    //
+    // The "local" uint32_t Encoded_Reg_ah is needed because RegType is an enum
+    // that is not necessarily the same type of
+    // Traits::RegisterSet::Encoded_Reg_ah.
+    constexpr uint32_t Encoded_Reg_ah = Traits::RegisterSet::Encoded_Reg_ah;
     return IsGPR && (Reg & 0x04) != 0 && (Reg & 0x08) == 0 &&
-           isByteSizedType(Ty);
+           isByteSizedType(Ty) && (Reg != Encoded_Reg_ah);
   }
 
   // assembleAndEmitRex is used for determining which (if any) rex prefix

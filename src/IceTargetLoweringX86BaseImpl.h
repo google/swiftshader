@@ -187,7 +187,7 @@ bool BoolFolding<MachineTraits>::hasComplexLowering(const Inst *Instr) {
   default:
     return false;
   case PK_Icmp64:
-    return true;
+    return !MachineTraits::Is64Bit;
   case PK_Fcmp:
     return MachineTraits::TableFcmp[llvm::cast<InstFcmp>(Instr)->getCondition()]
                .C2 != MachineTraits::Cond::Br_None;
@@ -765,10 +765,6 @@ bool TargetX86Base<Machine>::doBranchOpt(Inst *I, const CfgNode *NextNode) {
 
 template <class Machine>
 Variable *TargetX86Base<Machine>::getPhysicalRegister(SizeT RegNum, Type Ty) {
-  // Special case: never allow partial reads/writes to/from %rBP and %rSP.
-  if (RegNum == Traits::RegisterSet::Reg_esp ||
-      RegNum == Traits::RegisterSet::Reg_ebp)
-    Ty = Traits::WordType;
   if (Ty == IceType_void)
     Ty = IceType_i32;
   if (PhysicalRegisters[Ty].empty())
@@ -998,7 +994,7 @@ void TargetX86Base<Machine>::lowerAlloca(const InstAlloca *Inst) {
   if (UseFramePointer)
     setHasFramePointer();
 
-  Variable *esp = getPhysicalRegister(Traits::RegisterSet::Reg_esp);
+  Variable *esp = getPhysicalRegister(getStackReg());
   if (OverAligned) {
     _and(esp, Ctx->getConstantInt32(-Alignment));
   }
@@ -1713,13 +1709,17 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
     // div and idiv are the few arithmetic operators that do not allow
     // immediates as the operand.
     Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
-    uint32_t Eax = Traits::RegisterSet::Reg_eax;
-    uint32_t Edx = Traits::RegisterSet::Reg_edx;
+    uint32_t Eax;
+    uint32_t Edx;
     switch (Ty) {
     default:
-      llvm_unreachable("Bad type for udiv");
-    // fallthrough
+      llvm::report_fatal_error("Bad type for udiv");
+    case IceType_i64:
+      Eax = Traits::getRaxOrDie();
+      Edx = Traits::getRdxOrDie();
     case IceType_i32:
+      Eax = Traits::RegisterSet::Reg_eax;
+      Edx = Traits::RegisterSet::Reg_edx;
       break;
     case IceType_i16:
       Eax = Traits::RegisterSet::Reg_ax;
@@ -1773,8 +1773,11 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
     Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
     switch (Ty) {
     default:
-      llvm_unreachable("Bad type for sdiv");
-    // fallthrough
+      llvm::report_fatal_error("Bad type for sdiv");
+    case IceType_i64:
+      T_edx = makeReg(Ty, Traits::getRdxOrDie());
+      _mov(T, Src0, Traits::getRaxOrDie());
+      break;
     case IceType_i32:
       T_edx = makeReg(Ty, Traits::RegisterSet::Reg_edx);
       _mov(T, Src0, Traits::RegisterSet::Reg_eax);
@@ -1794,13 +1797,18 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
     break;
   case InstArithmetic::Urem: {
     Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
-    uint32_t Eax = Traits::RegisterSet::Reg_eax;
-    uint32_t Edx = Traits::RegisterSet::Reg_edx;
+    uint32_t Eax;
+    uint32_t Edx;
     switch (Ty) {
     default:
-      llvm_unreachable("Bad type for urem");
-    // fallthrough
+      llvm::report_fatal_error("Bad type for urem");
+    case IceType_i64:
+      Eax = Traits::getRaxOrDie();
+      Edx = Traits::getRdxOrDie();
+      break;
     case IceType_i32:
+      Eax = Traits::RegisterSet::Reg_eax;
+      Edx = Traits::RegisterSet::Reg_edx;
       break;
     case IceType_i16:
       Eax = Traits::RegisterSet::Reg_ax;
@@ -1858,13 +1866,18 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       }
     }
     Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
-    uint32_t Eax = Traits::RegisterSet::Reg_eax;
-    uint32_t Edx = Traits::RegisterSet::Reg_edx;
+    uint32_t Eax;
+    uint32_t Edx;
     switch (Ty) {
     default:
-      llvm_unreachable("Bad type for srem");
-    // fallthrough
+      llvm::report_fatal_error("Bad type for srem");
+    case IceType_i64:
+      Eax = Traits::getRaxOrDie();
+      Edx = Traits::getRdxOrDie();
+      break;
     case IceType_i32:
+      Eax = Traits::RegisterSet::Reg_eax;
+      Edx = Traits::RegisterSet::Reg_edx;
       break;
     case IceType_i16:
       Eax = Traits::RegisterSet::Reg_ax;
@@ -3538,15 +3551,13 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
     return;
   }
   case Intrinsics::Stacksave: {
-    Variable *esp =
-        Func->getTarget()->getPhysicalRegister(Traits::RegisterSet::Reg_esp);
+    Variable *esp = Func->getTarget()->getPhysicalRegister(getStackReg());
     Variable *Dest = Instr->getDest();
     _mov(Dest, esp);
     return;
   }
   case Intrinsics::Stackrestore: {
-    Variable *esp =
-        Func->getTarget()->getPhysicalRegister(Traits::RegisterSet::Reg_esp);
+    Variable *esp = Func->getTarget()->getPhysicalRegister(getStackReg());
     _redefined(_mov(esp, Instr->getArg(0)));
     return;
   }
@@ -3588,8 +3599,10 @@ void TargetX86Base<Machine>::lowerAtomicCmpxchg(Variable *DestPrev,
   int32_t Eax;
   switch (Ty) {
   default:
-    llvm_unreachable("Bad type for cmpxchg");
-  // fallthrough
+    llvm::report_fatal_error("Bad type for cmpxchg");
+  case IceType_i64:
+    Eax = Traits::getRaxOrDie();
+    break;
   case IceType_i32:
     Eax = Traits::RegisterSet::Reg_eax;
     break;
@@ -3860,8 +3873,10 @@ void TargetX86Base<Machine>::expandAtomicRMWAsCmpxchg(LowerBinOp Op_Lo,
   int32_t Eax;
   switch (Ty) {
   default:
-    llvm_unreachable("Bad type for atomicRMW");
-  // fallthrough
+    llvm::report_fatal_error("Bad type for atomicRMW");
+  case IceType_i64:
+    Eax = Traits::getRaxOrDie();
+    break;
   case IceType_i32:
     Eax = Traits::RegisterSet::Reg_eax;
     break;
@@ -3930,31 +3945,32 @@ void TargetX86Base<Machine>::lowerCountZeros(bool Cttz, Type Ty, Variable *Dest,
   // Cttz, is similar, but uses bsf instead, and doesn't require the xor
   // bit position conversion, and the speculation is reversed.
   assert(Ty == IceType_i32 || Ty == IceType_i64);
-  Variable *T = makeReg(IceType_i32);
+  const Type DestTy = Traits::Is64Bit ? Dest->getType() : IceType_i32;
+  Variable *T = makeReg(DestTy);
   Operand *FirstValRM = legalize(FirstVal, Legal_Mem | Legal_Reg);
   if (Cttz) {
     _bsf(T, FirstValRM);
   } else {
     _bsr(T, FirstValRM);
   }
-  Variable *T_Dest = makeReg(IceType_i32);
-  Constant *ThirtyTwo = Ctx->getConstantInt32(32);
-  Constant *ThirtyOne = Ctx->getConstantInt32(31);
+  Variable *T_Dest = makeReg(DestTy);
+  Constant *_31 = Ctx->getConstantInt32(31);
+  Constant *_32 = Ctx->getConstantInt(DestTy, 32);
   if (Cttz) {
-    _mov(T_Dest, ThirtyTwo);
+    _mov(T_Dest, _32);
   } else {
-    Constant *SixtyThree = Ctx->getConstantInt32(63);
-    _mov(T_Dest, SixtyThree);
+    Constant *_63 = Ctx->getConstantInt(DestTy, 63);
+    _mov(T_Dest, _63);
   }
   _cmov(T_Dest, T, Traits::Cond::Br_ne);
   if (!Cttz) {
-    _xor(T_Dest, ThirtyOne);
+    _xor(T_Dest, _31);
   }
   if (Traits::Is64Bit || Ty == IceType_i32) {
     _mov(Dest, T_Dest);
     return;
   }
-  _add(T_Dest, ThirtyTwo);
+  _add(T_Dest, _32);
   auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
   auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
   // Will be using "test" on this, so we need a registerized variable.
@@ -3964,7 +3980,7 @@ void TargetX86Base<Machine>::lowerCountZeros(bool Cttz, Type Ty, Variable *Dest,
     _bsf(T_Dest2, SecondVar);
   } else {
     _bsr(T_Dest2, SecondVar);
-    _xor(T_Dest2, ThirtyOne);
+    _xor(T_Dest2, _31);
   }
   _test(SecondVar, SecondVar);
   _cmov(T_Dest2, T_Dest, Traits::Cond::Br_e);
@@ -4178,6 +4194,7 @@ void TargetX86Base<Machine>::lowerMemset(Operand *Dest, Operand *Val,
         assert(VecReg != nullptr);
         _storeq(VecReg, Mem);
       } else {
+        assert(Ty != IceType_i64);
         _store(Ctx->getConstantInt(Ty, SpreadValue), Mem);
       }
     };
@@ -6135,8 +6152,7 @@ Variable *TargetX86Base<Machine>::makeReg(Type Type, int32_t RegNum) {
 
 template <class Machine>
 const Type TargetX86Base<Machine>::TypeForSize[] = {
-    IceType_i8, IceType_i16, IceType_i32,
-    (Traits::Is64Bit ? IceType_i64 : IceType_f64), IceType_v16i8};
+    IceType_i8, IceType_i16, IceType_i32, IceType_f64, IceType_v16i8};
 template <class Machine>
 Type TargetX86Base<Machine>::largestTypeInSize(uint32_t Size,
                                                uint32_t MaxSize) {

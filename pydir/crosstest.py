@@ -135,6 +135,7 @@ def main():
         asm_sz = os.path.join(args.dir, base_sz + '.sz.s')
         obj_sz = os.path.join(args.dir, base_sz + '.sz.o')
         obj_llc = os.path.join(args.dir, base_sz + '.llc.o')
+
         shellcmd(['{path}/pnacl-sz'.format(path=os.path.dirname(mypath)),
                   ] + args.sz_args + [
                   '-O' + args.optlevel,
@@ -153,6 +154,7 @@ def main():
                       '-filetype=obj',
                       '-o=' + obj_sz,
                       asm_sz])
+
         # Each separately translated Subzero object file contains its own
         # definition of the __Sz_block_profile_info profiling symbol.  Avoid
         # linker errors (multiply defined symbol) by making all copies weak.
@@ -182,10 +184,8 @@ def main():
             ).format(root=nacl_root, sb='sb' if args.sandbox else 'native'))
     pure_c = os.path.splitext(args.driver)[1] == '.c'
 
-    # TargetX8664 is ilp32, but pnacl-clang does not currently support such
-    # configuration. In order to run the crosstests we play nasty, dangerous
-    # tricks with the stack pointer.
-    needs_stack_hack = (args.target == 'x8664')
+    # TODO(jpp): clean up stack hack related code.
+    needs_stack_hack = False
     target_params = []
     if needs_stack_hack:
       shellcmd('{bin}/clang -g -o stack_hack.x8664.{key}.o -c '

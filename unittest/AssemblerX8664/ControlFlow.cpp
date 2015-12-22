@@ -160,6 +160,7 @@ TEST_F(AssemblerX8664Test, CallAddr) {
   do {                                                                         \
     const uint32_t T0 = allocateQword();                                       \
     const uint64_t V0 = 0xA0C0FFEEBEEFFEEFull;                                 \
+    const uint32_t T1 = allocateDword();                                       \
     __ call(Immediate(16));                                                    \
     int CallTargetAddr = codeBytesSize() + 12;                                 \
     __ mov(IceType_i8, Encoded_GPR_##Dst##l(), Immediate(0xf4));               \
@@ -168,9 +169,9 @@ TEST_F(AssemblerX8664Test, CallAddr) {
       __ hlt();                                                                \
     }                                                                          \
     __ mov(IceType_i64, Encoded_GPR_##Dst##q(), dwordAddress(T0));             \
-    __ mov(IceType_i64, Encoded_GPR_##Src##q(), Encoded_GPR_rsp());            \
-    __ call(Address(Encoded_GPR_##Src##q(), 0, AssemblerFixup::NoFixup));      \
     __ popl(Encoded_GPR_##Src##q());                                           \
+    __ mov(IceType_i32, dwordAddress(T1), Encoded_GPR_##Src##d());             \
+    __ call(dwordAddress(T1));                                                 \
                                                                                \
     AssembledTest test = assemble();                                           \
     test.setQwordTo(T0, V0);                                                   \

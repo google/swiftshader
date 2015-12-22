@@ -990,10 +990,10 @@ public:
         //   mov cl, ecx ==> redundant
         //   mov ch, ecx ==> not redundant due to different encodings
         //   mov ch, ebp ==> not redundant due to different base registers
-        // TODO(stichnot): Don't consider "mov eax, eax" to be redundant when
-        // used in 64-bit mode to clear the upper half of rax.
-        int32_t SrcReg = SrcVar->getRegNum();
-        int32_t DestReg = this->Dest->getRegNum();
+        //   mov ecx, ecx ==> redundant, and dangerous in x86-64. i64 zexting
+        //                    is handled by Inst86Zext.
+        const int32_t SrcReg = SrcVar->getRegNum();
+        const int32_t DestReg = this->Dest->getRegNum();
         return (InstX86Base<Machine>::Traits::getEncoding(SrcReg) ==
                 InstX86Base<Machine>::Traits::getEncoding(DestReg)) &&
                (InstX86Base<Machine>::Traits::getBaseReg(SrcReg) ==
@@ -1197,6 +1197,9 @@ class InstX86Mov
     : public InstX86BaseMovlike<Machine, InstX86Base<Machine>::Mov> {
 public:
   static InstX86Mov *create(Cfg *Func, Variable *Dest, Operand *Source) {
+    assert(!isScalarIntegerType(Dest->getType()) ||
+           (typeWidthInBytes(Dest->getType()) <=
+            typeWidthInBytes(Source->getType())));
     return new (Func->allocate<InstX86Mov>()) InstX86Mov(Func, Dest, Source);
   }
 

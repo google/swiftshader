@@ -701,7 +701,7 @@ protected:
       EXPECT_LT(MySize, MaxCodeSize);
       assert(MySize < MaximumCodeSize);
       ExecutableData = mmap(nullptr, Size, PROT_WRITE | PROT_READ | PROT_EXEC,
-                            MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+                            MAP_PRIVATE | MAP_ANONYMOUS | MAP_32BIT, -1, 0);
       EXPECT_NE(MAP_FAILED, ExecutableData) << strerror(errno);
       assert(MAP_FAILED != ExecutableData);
       std::memcpy(ExecutableData, Data, MySize);

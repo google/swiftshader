@@ -329,15 +329,18 @@ TEST_F(AssemblerX8664LowLevelTest, LeaAbsolute) {
     static constexpr char TestString[] = "(" #Dst ", " #Value ")";             \
     __ lea(IceType_i32, GPRRegister::Encoded_Reg_##Dst,                        \
            Address(Value, AssemblerFixup::NoFixup));                           \
-    static constexpr uint32_t ByteCount = 6;                                   \
+    static constexpr uint32_t ByteCount = 8;                                   \
     ASSERT_EQ(ByteCount, codeBytesSize()) << TestString;                       \
     static constexpr uint8_t Opcode = 0x8D;                                    \
     static constexpr uint8_t ModRM =                                           \
-        /*mod=*/0x00 | /*reg*/ (GPRRegister::Encoded_Reg_##Dst << 3) |         \
-        /*rm*/ GPRRegister::Encoded_Reg_ebp;                                   \
+        /*mod*/ 0x00 | /*reg*/ (GPRRegister::Encoded_Reg_##Dst << 3) |         \
+        /*rm*/ GPRRegister::Encoded_Reg_esp;                                   \
+    static constexpr uint8_t SIB =                                             \
+        /*Scale*/ 0x00 | /*Index*/ (GPRRegister::Encoded_Reg_esp << 3) |       \
+        /*base*/ GPRRegister::Encoded_Reg_ebp;                                 \
     ASSERT_TRUE(verifyBytes<ByteCount>(                                        \
-        codeBytes(), Opcode, ModRM, (Value)&0xFF, (Value >> 8) & 0xFF,         \
-        (Value >> 16) & 0xFF, (Value >> 24) & 0xFF));                          \
+        codeBytes(), 0x67, Opcode, ModRM, SIB, (Value)&0xFF,                   \
+        (Value >> 8) & 0xFF, (Value >> 16) & 0xFF, (Value >> 24) & 0xFF));     \
     reset();                                                                   \
   } while (0)
 

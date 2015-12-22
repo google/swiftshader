@@ -198,8 +198,10 @@ InstX86Cmpxchg<Machine>::InstX86Cmpxchg(Cfg *Func, Operand *DestOrAddr,
     : InstX86BaseLockable<Machine>(Func, InstX86Base<Machine>::Cmpxchg, 3,
                                    llvm::dyn_cast<Variable>(DestOrAddr),
                                    Locked) {
-  assert(InstX86Base<Machine>::Traits::getBaseReg(Eax->getRegNum()) ==
-         InstX86Base<Machine>::Traits::RegisterSet::Reg_eax);
+  constexpr uint16_t Encoded_rAX = 0;
+  (void)Encoded_rAX;
+  assert(InstX86Base<Machine>::Traits::getEncodedGPR(Eax->getRegNum()) ==
+         Encoded_rAX);
   this->addSource(DestOrAddr);
   this->addSource(Eax);
   this->addSource(Desired);
@@ -1302,7 +1304,9 @@ void InstX86Cbwdq<Machine>::emitIAS(const Cfg *Func) const {
     Asm->cdq();
     break;
   case IceType_i64:
-    assert(DestReg == InstX86Base<Machine>::Traits::RegisterSet::Reg_edx);
+    assert(InstX86Base<Machine>::Traits::Is64Bit);
+    assert(SrcReg == InstX86Base<Machine>::Traits::getRaxOrDie());
+    assert(DestReg == InstX86Base<Machine>::Traits::getRdxOrDie());
     Asm->cqo();
     break;
   }
@@ -2261,49 +2265,58 @@ void InstX86Movd<Machine>::emitIAS(const Cfg *Func) const {
       Func->getAssembler<typename InstX86Base<Machine>::Traits::Assembler>();
   assert(this->getSrcSize() == 1);
   const Variable *Dest = this->getDest();
-  const auto *SrcVar = llvm::cast<Variable>(this->getSrc(0));
   auto *Target = InstX86Base<Machine>::getTarget(Func);
   // For insert/extract element (one of Src/Dest is an Xmm vector and the other
   // is an int type).
-  if (SrcVar->getType() == IceType_i32 ||
-      (InstX86Base<Machine>::Traits::Is64Bit &&
-       SrcVar->getType() == IceType_i64)) {
-    assert(isVectorType(Dest->getType()) ||
-           (isScalarFloatingType(Dest->getType()) &&
-            typeWidthInBytes(SrcVar->getType()) ==
-                typeWidthInBytes(Dest->getType())));
+  if (const auto *SrcVar = llvm::dyn_cast<Variable>(this->getSrc(0))) {
+    if (SrcVar->getType() == IceType_i32 ||
+        (InstX86Base<Machine>::Traits::Is64Bit &&
+         SrcVar->getType() == IceType_i64)) {
+      assert(isVectorType(Dest->getType()) ||
+             (isScalarFloatingType(Dest->getType()) &&
+              typeWidthInBytes(SrcVar->getType()) ==
+                  typeWidthInBytes(Dest->getType())));
+      assert(Dest->hasReg());
+      typename InstX86Base<Machine>::Traits::RegisterSet::XmmRegister DestReg =
+          InstX86Base<Machine>::Traits::getEncodedXmm(Dest->getRegNum());
+      if (SrcVar->hasReg()) {
+        Asm->movd(
+            SrcVar->getType(), DestReg,
+            InstX86Base<Machine>::Traits::getEncodedGPR(SrcVar->getRegNum()));
+      } else {
+        typename InstX86Base<Machine>::Traits::Address StackAddr(
+            Target->stackVarToAsmOperand(SrcVar));
+        Asm->movd(SrcVar->getType(), DestReg, StackAddr);
+      }
+    } else {
+      assert(isVectorType(SrcVar->getType()) ||
+             (isScalarFloatingType(SrcVar->getType()) &&
+              typeWidthInBytes(SrcVar->getType()) ==
+                  typeWidthInBytes(Dest->getType())));
+      assert(SrcVar->hasReg());
+      assert(Dest->getType() == IceType_i32 ||
+             (InstX86Base<Machine>::Traits::Is64Bit &&
+              Dest->getType() == IceType_i64));
+      typename InstX86Base<Machine>::Traits::RegisterSet::XmmRegister SrcReg =
+          InstX86Base<Machine>::Traits::getEncodedXmm(SrcVar->getRegNum());
+      if (Dest->hasReg()) {
+        Asm->movd(Dest->getType(), InstX86Base<Machine>::Traits::getEncodedGPR(
+                                       Dest->getRegNum()),
+                  SrcReg);
+      } else {
+        typename InstX86Base<Machine>::Traits::Address StackAddr(
+            Target->stackVarToAsmOperand(Dest));
+        Asm->movd(Dest->getType(), StackAddr, SrcReg);
+      }
+    }
+  } else {
     assert(Dest->hasReg());
     typename InstX86Base<Machine>::Traits::RegisterSet::XmmRegister DestReg =
         InstX86Base<Machine>::Traits::getEncodedXmm(Dest->getRegNum());
-    if (SrcVar->hasReg()) {
-      Asm->movd(
-          SrcVar->getType(), DestReg,
-          InstX86Base<Machine>::Traits::getEncodedGPR(SrcVar->getRegNum()));
-    } else {
-      typename InstX86Base<Machine>::Traits::Address StackAddr(
-          Target->stackVarToAsmOperand(SrcVar));
-      Asm->movd(SrcVar->getType(), DestReg, StackAddr);
-    }
-  } else {
-    assert(isVectorType(SrcVar->getType()) ||
-           (isScalarFloatingType(SrcVar->getType()) &&
-            typeWidthInBytes(SrcVar->getType()) ==
-                typeWidthInBytes(Dest->getType())));
-    assert(SrcVar->hasReg());
-    assert(Dest->getType() == IceType_i32 ||
-           (InstX86Base<Machine>::Traits::Is64Bit &&
-            Dest->getType() == IceType_i64));
-    typename InstX86Base<Machine>::Traits::RegisterSet::XmmRegister SrcReg =
-        InstX86Base<Machine>::Traits::getEncodedXmm(SrcVar->getRegNum());
-    if (Dest->hasReg()) {
-      Asm->movd(Dest->getType(),
-                InstX86Base<Machine>::Traits::getEncodedGPR(Dest->getRegNum()),
-                SrcReg);
-    } else {
-      typename InstX86Base<Machine>::Traits::Address StackAddr(
-          Target->stackVarToAsmOperand(Dest));
-      Asm->movd(Dest->getType(), StackAddr, SrcReg);
-    }
+    auto *Mem =
+        llvm::cast<typename InstX86Base<Machine>::Traits::X86OperandMem>(
+            this->getSrc(0));
+    Asm->movd(Mem->getType(), DestReg, Mem->toAsmAddress(Asm, Target));
   }
 }
 

@@ -88,8 +88,8 @@ public:
 
   bool hasFramePointer() const override { return IsEbpBasedFrame; }
   void setHasFramePointer() override { IsEbpBasedFrame = true; }
-  SizeT getStackReg() const override { return Traits::RegisterSet::Reg_esp; }
-  SizeT getFrameReg() const override { return Traits::RegisterSet::Reg_ebp; }
+  SizeT getStackReg() const override { return Traits::StackPtr; }
+  SizeT getFrameReg() const override { return Traits::FramePtr; }
   SizeT getFrameOrStackReg() const override {
     return IsEbpBasedFrame ? getFrameReg() : getStackReg();
   }

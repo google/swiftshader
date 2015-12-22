@@ -63,7 +63,8 @@ def main():
         os.chdir('{root}/tests/spec2k'.format(root=FindBaseNaCl()))
         setup = 'SetupGcc' + {
             'arm32': 'Arm',
-            'x8632': 'X8632'}[args.target] + 'Opt'
+            'x8632': 'X8632',
+            'x8664': 'X8664'}[args.target] + 'Opt'
         shellcmd(['./run_all.sh',
                   'RunTimedBenchmarks',
                   setup,

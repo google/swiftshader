@@ -89,19 +89,50 @@ MachineTraits<TargetX8664>::X86OperandMem::X86OperandMem(Cfg *Func, Type Ty,
   }
 }
 
+namespace {
+static int32_t getRematerializableOffset(Variable *Var,
+                                         const Ice::TargetX8664 *Target) {
+  int32_t Disp = Var->getStackOffset();
+  SizeT RegNum = static_cast<SizeT>(Var->getRegNum());
+  if (RegNum == Target->getFrameReg()) {
+    Disp += Target->getFrameFixedAllocaOffset();
+  } else if (RegNum != Target->getStackReg()) {
+    llvm::report_fatal_error("Unexpected rematerializable register type");
+  }
+  return Disp;
+}
+} // end of anonymous namespace
+
 void MachineTraits<TargetX8664>::X86OperandMem::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
+  const auto *Target = static_cast<const Ice::TargetX8664 *>(Func->getTarget());
+  // If the base is rematerializable, we need to replace it with the correct
+  // physical register (stack or base pointer), and update the Offset.
+  int32_t Disp = 0;
+  if (getBase() && getBase()->isRematerializable()) {
+    Disp += getRematerializableOffset(getBase(), Target);
+  }
+  // The index should never be rematerializable.  But if we ever allow it, then
+  // we should make sure the rematerialization offset is shifted by the Shift
+  // value.
+  if (getIndex())
+    assert(!getIndex()->isRematerializable());
   Ostream &Str = Func->getContext()->getStrEmit();
   // Emit as Offset(Base,Index,1<<Shift). Offset is emitted without the leading
   // '$'. Omit the (Base,Index,1<<Shift) part if Base==nullptr.
-  if (!Offset) {
+  if (getOffset() == nullptr && Disp == 0) {
     // No offset, emit nothing.
+  } else if (getOffset() == nullptr && Disp != 0) {
+    Str << Disp;
   } else if (const auto *CI = llvm::dyn_cast<ConstantInteger32>(Offset)) {
-    if (Base == nullptr || CI->getValue())
+    if (Base == nullptr || CI->getValue() || Disp != 0)
       // Emit a non-zero offset without a leading '$'.
-      Str << CI->getValue();
+      Str << CI->getValue() + Disp;
   } else if (const auto *CR = llvm::dyn_cast<ConstantRelocatable>(Offset)) {
+    // TODO(sehr): ConstantRelocatable still needs updating for
+    // rematerializable base/index and Disp.
+    assert(Disp == 0);
     CR->emitWithoutPrefix(Func->getTarget());
   } else {
     llvm_unreachable("Invalid offset type for x86 mem operand");
@@ -127,6 +158,11 @@ void MachineTraits<TargetX8664>::X86OperandMem::dump(const Cfg *Func,
     return;
   bool Dumped = false;
   Str << "[";
+  int32_t Disp = 0;
+  const auto *Target = static_cast<const Ice::TargetX8664 *>(Func->getTarget());
+  if (getBase() && getBase()->isRematerializable()) {
+    Disp += getRematerializableOffset(getBase(), Target);
+  }
   if (Base) {
     if (Func)
       Base->dump(Func);
@@ -143,6 +179,12 @@ void MachineTraits<TargetX8664>::X86OperandMem::dump(const Cfg *Func,
       Index->dump(Func);
     else
       Index->dump(Str);
+    Dumped = true;
+  }
+  if (Disp) {
+    if (Disp > 0)
+      Str << "+";
+    Str << Disp;
     Dumped = true;
   }
   // Pretty-print the Offset.
@@ -172,23 +214,23 @@ void MachineTraits<TargetX8664>::X86OperandMem::dump(const Cfg *Func,
 MachineTraits<TargetX8664>::Address
 MachineTraits<TargetX8664>::X86OperandMem::toAsmAddress(
     MachineTraits<TargetX8664>::Assembler *Asm,
-    const Ice::TargetLowering *Target) const {
-  // TODO(sehr): handle rematerializable base/index.
-  (void)Target;
-  if (getBase())
-    assert(!getBase()->isRematerializable());
+    const Ice::TargetLowering *TargetLowering) const {
+  const auto *Target = static_cast<const Ice::TargetX8664 *>(TargetLowering);
+  int32_t Disp = 0;
+  if (getBase() && getBase()->isRematerializable()) {
+    Disp += getRematerializableOffset(getBase(), Target);
+  }
   if (getIndex())
     assert(!getIndex()->isRematerializable());
-  int32_t Disp = 0;
   AssemblerFixup *Fixup = nullptr;
   // Determine the offset (is it relocatable?)
-  if (getOffset()) {
+  if (getOffset() != nullptr) {
     if (const auto *CI = llvm::dyn_cast<ConstantInteger32>(getOffset())) {
-      Disp = static_cast<int32_t>(CI->getValue());
+      Disp += static_cast<int32_t>(CI->getValue());
     } else if (const auto CR =
                    llvm::dyn_cast<ConstantRelocatable>(getOffset())) {
-      Disp = CR->getOffset() - 4;
-      Fixup = Asm->createFixup(PcRelFixup, CR);
+      Disp += CR->getOffset();
+      Fixup = Asm->createFixup(RelFixup, CR);
     } else {
       llvm_unreachable("Unexpected offset type");
     }

@@ -89,7 +89,7 @@ def AddOptionalArgs(argparser):
                            dest='enable_block_profile', action='store_true',
                            help='Enable basic block profiling.')
     argparser.add_argument('--target', default='x8632', dest='target',
-                           choices=['arm32', 'x8632'],
+                           choices=['arm32', 'x8632', 'x8664'],
                            help='Generate code for specified target.')
     argparser.add_argument('--verbose', '-v', dest='verbose',
                            action='store_true',
@@ -190,6 +190,7 @@ def ProcessPexe(args, pexe, exe):
         arch = {
           'arm32': 'armv7' if args.sandbox else 'arm-nonsfi',
           'x8632': 'x86-32' if args.sandbox else 'x86-32-linux',
+          'x8664': 'x86-64' if args.sandbox else 'x86-64-linux',
         }[args.target]
 
         # Only run pnacl-translate in hybrid mode.
@@ -240,6 +241,7 @@ def ProcessPexe(args, pexe, exe):
             triple = {
               'arm32': 'arm-nacl' if args.sandbox else 'arm',
               'x8632': 'i686-nacl' if args.sandbox else 'i686',
+              'x8664': 'x86_64-nacl' if args.sandbox else 'x86_64-linux-gnux32',
             }[args.target]
 
             shellcmd((
@@ -295,10 +297,12 @@ def ProcessPexe(args, pexe, exe):
         ld = {
           'arm32': 'arm-linux-gnueabihf-ld',
           'x8632': 'ld',
+          'x8664': 'ld',
         }[args.target]
         emulation = {
           'arm32': 'armelf_linux_eabi',
           'x8632': 'elf_i386',
+          'x8664': 'elf32_x86_64',
         }[args.target]
         shellcmd((
             '{ld} -r -m {emulation} -o {partial} {sz} {llc}'
@@ -345,17 +349,21 @@ def ProcessPexe(args, pexe, exe):
         linker = {
           'arm32': '/usr/bin/arm-linux-gnueabihf-g++',
           'x8632': ('{root}/../third_party/llvm-build/Release+Asserts/bin/clang'
+                   ).format(root=nacl_root),
+          'x8664': ('{root}/../third_party/llvm-build/Release+Asserts/bin/clang'
                    ).format(root=nacl_root)
         }[args.target]
 
         extra_linker_args = ' '.join({
           'arm32': ['-mcpu=cortex-a9'],
-          'x8632': ['-m32']
+          'x8632': ['-m32'],
+          'x8664': ['-mx32']
         }[args.target])
 
         lib_dir = {
           'arm32': 'arm-linux',
           'x8632': 'x86-32-linux',
+          'x8664': 'x86-64-linux',
         }[args.target]
 
         shellcmd((

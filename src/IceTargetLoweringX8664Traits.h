@@ -67,10 +67,12 @@ template <> struct MachineTraits<TargetX8664> {
   using Cond = ::Ice::CondX8664;
 
   using RegisterSet = ::Ice::RegX8664;
+  static const SizeT StackPtr = RegX8664::Reg_rsp;
+  static const SizeT FramePtr = RegX8664::Reg_rbp;
   static const GPRRegister Encoded_Reg_Accumulator = RegX8664::Encoded_Reg_eax;
   static const GPRRegister Encoded_Reg_Counter = RegX8664::Encoded_Reg_ecx;
   static const FixupKind PcRelFixup = llvm::ELF::R_X86_64_PC32;
-  static const FixupKind RelFixup = llvm::ELF::R_X86_64_32S;
+  static const FixupKind RelFixup = llvm::ELF::R_X86_64_32;
 
   class Operand {
   public:
@@ -255,7 +257,10 @@ template <> struct MachineTraits<TargetX8664> {
 
     /// Generate a RIP-relative address expression on x86-64.
     Address(RelocOffsetT Offset, AssemblerFixup *Fixup) {
-      SetModRM(0, RegX8664::Encoded_Reg_ebp);
+      SetModRM(0x0, RegX8664::Encoded_Reg_esp);
+
+      static constexpr ScaleFactor Scale = TIMES_1;
+      SetSIB(Scale, RegX8664::Encoded_Reg_esp, RegX8664::Encoded_Reg_ebp);
       // Use the Offset in the displacement for now. If we decide to process
       // fixups later, we'll need to patch up the emitted displacement.
       SetDisp32(Offset);
@@ -560,6 +565,10 @@ template <> struct MachineTraits<TargetX8664> {
       }
     }
   }
+
+  static int32_t getRaxOrDie() { return RegisterSet::Reg_rax; }
+
+  static int32_t getRdxOrDie() { return RegisterSet::Reg_rdx; }
 
   /// The maximum number of arguments to pass in XMM registers
   static const uint32_t X86_MAX_XMM_ARGS = 8;

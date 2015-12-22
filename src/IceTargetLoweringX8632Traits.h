@@ -68,6 +68,8 @@ template <> struct MachineTraits<TargetX8632> {
   using Cond = ::Ice::CondX86;
 
   using RegisterSet = ::Ice::RegX8632;
+  static const SizeT StackPtr = RegX8632::Reg_esp;
+  static const SizeT FramePtr = RegX8632::Reg_ebp;
   static const GPRRegister Encoded_Reg_Accumulator = RegX8632::Encoded_Reg_eax;
   static const GPRRegister Encoded_Reg_Counter = RegX8632::Encoded_Reg_ecx;
   static const FixupKind PcRelFixup = llvm::ELF::R_386_PC32;
@@ -575,6 +577,14 @@ template <> struct MachineTraits<TargetX8632> {
         Str << "}\n";
       }
     }
+  }
+
+  static int32_t getRaxOrDie() {
+    llvm::report_fatal_error("no rax in non-64-bit mode.");
+  }
+
+  static int32_t getRdxOrDie() {
+    llvm::report_fatal_error("no rdx in non-64-bit mode.");
   }
 
   /// The maximum number of arguments to pass in XMM registers

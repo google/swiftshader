@@ -29,9 +29,9 @@ X8632Target = TargetInfo(target='x8632',
 
 X8664Target = TargetInfo(target='x8664',
                          compiler_arch='x8664',
-                         triple='x86_64-none-linux',
+                         triple='x86_64-none-linux-gnux32',
                          llc_flags=['-mcpu=x86-64'],
-                         ld_emu='elf_x86_64_nacl',
+                         ld_emu='elf32_x86_64_nacl',
                          cross_headers=[])
 
 ARM32Target = TargetInfo(target='arm32',

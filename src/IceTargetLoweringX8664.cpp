@@ -193,7 +193,7 @@ void TargetX8664::lowerCall(const InstCall *Instr) {
         ParameterAreaSizeBytes =
             Traits::applyStackAlignment(ParameterAreaSizeBytes);
       }
-      Variable *esp = getPhysicalRegister(Traits::RegisterSet::Reg_esp);
+      Variable *esp = getPhysicalRegister(Traits::RegisterSet::Reg_rsp);
       Constant *Loc = Ctx->getConstantInt32(ParameterAreaSizeBytes);
       StackArgLocations.push_back(
           Traits::X86OperandMem::create(Func, Ty, esp, Loc));
@@ -274,14 +274,6 @@ void TargetX8664::lowerCall(const InstCall *Instr) {
   auto *NewCall = Context.insert<Traits::Insts::Call>(ReturnReg, CallTarget);
   if (NeedSandboxing) {
     llvm_unreachable("X86-64 Sandboxing codegen not implemented.");
-  }
-
-  // Add the appropriate offset to esp. The call instruction takes care of
-  // resetting the stack offset during emission.
-  if (ParameterAreaSizeBytes) {
-    Variable *Esp =
-        Func->getTarget()->getPhysicalRegister(Traits::RegisterSet::Reg_esp);
-    _add(Esp, Ctx->getConstantInt32(ParameterAreaSizeBytes));
   }
 
   // Insert a register-kill pseudo instruction.
@@ -465,12 +457,20 @@ void TargetX8664::addProlog(CfgNode *Node) {
   // Add push instructions for preserved registers.
   uint32_t NumCallee = 0;
   size_t PreservedRegsSizeBytes = 0;
+  llvm::SmallBitVector Pushed(CalleeSaves.size());
   for (SizeT i = 0; i < CalleeSaves.size(); ++i) {
-    if (CalleeSaves[i] && RegsUsed[i]) {
-      ++NumCallee;
-      PreservedRegsSizeBytes += typeWidthInBytes(IceType_i64);
-      _push(getPhysicalRegister(i));
-    }
+    const int32_t Canonical = Traits::getBaseReg(i);
+    assert(Canonical == Traits::getBaseReg(Canonical));
+    if (CalleeSaves[i] && RegsUsed[i])
+      Pushed[Canonical] = true;
+  }
+  for (SizeT i = 0; i < Pushed.size(); ++i) {
+    if (!Pushed[i])
+      continue;
+    assert(static_cast<int32_t>(i) == Traits::getBaseReg(i));
+    ++NumCallee;
+    PreservedRegsSizeBytes += typeWidthInBytes(IceType_i64);
+    _push(getPhysicalRegister(i, IceType_i64));
   }
   Ctx->statsUpdateRegistersSaved(NumCallee);
 
@@ -479,8 +479,8 @@ void TargetX8664::addProlog(CfgNode *Node) {
     assert((RegsUsed & getRegisterSet(RegSet_FramePointer, RegSet_None))
                .count() == 0);
     PreservedRegsSizeBytes += typeWidthInBytes(IceType_i64);
-    Variable *ebp = getPhysicalRegister(Traits::RegisterSet::Reg_ebp);
-    Variable *esp = getPhysicalRegister(Traits::RegisterSet::Reg_esp);
+    Variable *ebp = getPhysicalRegister(Traits::RegisterSet::Reg_rbp);
+    Variable *esp = getPhysicalRegister(Traits::RegisterSet::Reg_rsp);
     _push(ebp);
     _mov(ebp, esp);
     // Keep ebp live for late-stage liveness analysis (e.g. asm-verbose mode).
@@ -521,14 +521,14 @@ void TargetX8664::addProlog(CfgNode *Node) {
     SpillAreaSizeBytes += FixedAllocaSizeBytes;
   // Generate "sub esp, SpillAreaSizeBytes"
   if (SpillAreaSizeBytes) {
-    _sub(getPhysicalRegister(Traits::RegisterSet::Reg_esp),
+    _sub(getPhysicalRegister(getStackReg(), IceType_i64),
          Ctx->getConstantInt32(SpillAreaSizeBytes));
     // If the fixed allocas are aligned more than the stack frame, align the
     // stack pointer accordingly.
     if (PrologEmitsFixedAllocas &&
         FixedAllocaAlignBytes > Traits::X86_STACK_ALIGNMENT_BYTES) {
       assert(IsEbpBasedFrame);
-      _and(getPhysicalRegister(Traits::RegisterSet::Reg_esp),
+      _and(getPhysicalRegister(Traits::RegisterSet::Reg_rsp),
            Ctx->getConstantInt32(-FixedAllocaAlignBytes));
     }
   }
@@ -637,9 +637,9 @@ void TargetX8664::addEpilog(CfgNode *Node) {
   Context.init(Node);
   Context.setInsertPoint(InsertPoint);
 
-  Variable *esp = getPhysicalRegister(Traits::RegisterSet::Reg_esp);
+  Variable *esp = getPhysicalRegister(Traits::RegisterSet::Reg_rsp);
   if (IsEbpBasedFrame) {
-    Variable *ebp = getPhysicalRegister(Traits::RegisterSet::Reg_ebp);
+    Variable *ebp = getPhysicalRegister(Traits::RegisterSet::Reg_rbp);
     // For late-stage liveness analysis (e.g. asm-verbose mode), adding a fake
     // use of esp before the assignment of esp=ebp keeps previous esp
     // adjustments from being dead-code eliminated.
@@ -655,13 +655,19 @@ void TargetX8664::addEpilog(CfgNode *Node) {
   // Add pop instructions for preserved registers.
   llvm::SmallBitVector CalleeSaves =
       getRegisterSet(RegSet_CalleeSave, RegSet_None);
-  for (SizeT i = 0; i < CalleeSaves.size(); ++i) {
-    SizeT j = CalleeSaves.size() - i - 1;
-    if (j == Traits::RegisterSet::Reg_ebp && IsEbpBasedFrame)
+  llvm::SmallBitVector Popped(CalleeSaves.size());
+  for (int32_t i = CalleeSaves.size() - 1; i >= 0; --i) {
+    if (i == Traits::RegisterSet::Reg_rbp && IsEbpBasedFrame)
       continue;
-    if (CalleeSaves[j] && RegsUsed[j]) {
-      _pop(getPhysicalRegister(j));
-    }
+    const SizeT Canonical = Traits::getBaseReg(i);
+    if (CalleeSaves[i] && RegsUsed[i])
+      Popped[Canonical] = true;
+  }
+  for (int32_t i = Popped.size() - 1; i >= 0; --i) {
+    if (!Popped[i])
+      continue;
+    assert(i == Traits::getBaseReg(i));
+    _pop(getPhysicalRegister(i, IceType_i64));
   }
 
   if (Ctx->getFlags().getUseSandboxing()) {

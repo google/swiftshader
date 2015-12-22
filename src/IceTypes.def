@@ -22,7 +22,7 @@
 #define TARGETARCH_TABLE                                                       \
   /* enum value, printable string, is_elf64,   e_machine, e_flags */           \
   X(Target_X8632, "x86-32", false, EM_386,     0)                              \
-  X(Target_X8664, "x86-64", true,  EM_X86_64,  0)                              \
+  X(Target_X8664, "x86-64", false, EM_X86_64,  0)                              \
   X(Target_ARM32, "arm32",  false, EM_ARM,     EF_ARM_EABI_VER5)               \
   X(Target_ARM64, "arm64",  true,  EM_AARCH64, 0)                              \
   X(Target_MIPS32,"mips32", false, EM_MIPS,    0)                              \

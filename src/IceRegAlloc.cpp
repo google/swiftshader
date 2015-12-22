@@ -838,6 +838,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
     Iter.Cur = Unhandled.back();
     Unhandled.pop_back();
     dumpLiveRangeTrace("\nConsidering  ", Iter.Cur);
+    assert(Target->getRegistersForVariable(Iter.Cur).any());
     Iter.RegMask = RegMaskFull & Target->getRegistersForVariable(Iter.Cur);
     KillsRange.trim(Iter.Cur->getLiveRange().getStart());
 
