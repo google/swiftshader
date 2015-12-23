@@ -32,7 +32,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 # Detect system
 ###########################################################
 
-if (CMAKE_SYSTEM_NAME MATCHES "Linux")
+if(CMAKE_SYSTEM_NAME MATCHES "Linux")
     set(LINUX ON)
 elseif(WIN32)
 elseif(APPLE)
@@ -104,11 +104,11 @@ set(HELLO2_DIR ${TESTS_DIR}/third_party/PowerVR/Examples/Beginner/01_HelloAPI/OG
 # Compile flags
 ###########################################################
 
-macro( set_cpp_flag FLAG )
-    if( ${ARGC} GREATER 1 )
-        set( CMAKE_CXX_FLAGS_${ARGV1} "${CMAKE_CXX_FLAGS_${ARGV1}} ${FLAG}" )
+macro(set_cpp_flag FLAG)
+    if(${ARGC} GREATER 1)
+        set(CMAKE_CXX_FLAGS_${ARGV1} "${CMAKE_CXX_FLAGS_${ARGV1}} ${FLAG}")
     else()
-        set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAG}" )
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAG}")
     endif()
 endmacro()
 
@@ -166,7 +166,7 @@ endif()
 
 if( WIN32 )
     add_definitions(-DWINVER=0x501 -DNOMINMAX -DSTRICT)
-    set(CMAKE_FIND_LIBRARY_PREFIXES ${CMAKE_FIND_LIBRARY_PREFIXES} "" "lib" )
+    set(CMAKE_FIND_LIBRARY_PREFIXES ${CMAKE_FIND_LIBRARY_PREFIXES} "" "lib")
 endif()
 
 
@@ -756,6 +756,12 @@ set_target_properties(GLCompiler PROPERTIES
 )
 target_link_libraries(GLCompiler ${OS_LIBS})
 
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(LIB_PREFIX "lib64")
+else()
+    set(LIB_PREFIX "lib")
+endif()
+
 if(BUILD_EGL)
     add_library(libEGL SHARED ${EGL_LIST})
     set_target_properties(libEGL PROPERTIES
@@ -766,6 +772,12 @@ if(BUILD_EGL)
     )
     set_target_export_map(libEGL ${SOURCE_DIR}/OpenGL/libEGL)
     target_link_libraries(libEGL ${OS_LIBS})
+    add_custom_command(
+        TARGET libEGL
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:libEGL>/translator
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libEGL> $<TARGET_FILE_DIR:libEGL>/translator/${LIB_PREFIX}EGL_translator${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
 endif()
 
 if(BUILD_GL32)
@@ -790,6 +802,12 @@ if(BUILD_GLESv2)
     )
     set_target_export_map(libGLESv2 ${SOURCE_DIR}/OpenGL/libGLESv2)
     target_link_libraries(libGLESv2 SwiftShader Reactor GLCommon GLCompiler ${OS_LIBS})
+    add_custom_command(
+        TARGET libGLESv2
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:libGLESv2>/translator
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libGLESv2> $<TARGET_FILE_DIR:libGLESv2>/translator/${LIB_PREFIX}GLES_V2_translator${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
 endif()
 
 if(BUILD_GLES_CM)
@@ -802,6 +820,12 @@ if(BUILD_GLES_CM)
     )
     set_target_export_map(libGLES_CM ${SOURCE_DIR}/OpenGL/libGLES_CM)
     target_link_libraries(libGLES_CM SwiftShader Reactor GLCommon GLCompiler ${OS_LIBS})
+    add_custom_command(
+        TARGET libGLES_CM
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:libGLES_CM>/translator
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libGLES_CM> $<TARGET_FILE_DIR:libGLES_CM>/translator/${LIB_PREFIX}GLES_CM_translator${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
 endif()
 
 ###########################################################
