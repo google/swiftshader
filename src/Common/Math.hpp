@@ -125,6 +125,11 @@ namespace sw
 	!!(x & 0xFFFFFFFE) + \
 	!!(x & 0xFFFFFFFF))
 
+	inline float exp2(float x)
+	{
+		return exp2f(x);
+	}
+
 	inline int exp2(int x)
 	{
 		return 1 << x;
