@@ -782,12 +782,13 @@ Variable *TargetX86Base<Machine>::getPhysicalRegister(SizeT RegNum, Type Ty) {
     // Don't bother tracking the live range of a named physical register.
     Reg->setIgnoreLiveness();
   }
+  assert(Traits::getGprForType(Ty, RegNum) == static_cast<int32_t>(RegNum));
   return Reg;
 }
 
 template <class Machine>
-IceString TargetX86Base<Machine>::getRegName(SizeT RegNum, Type) const {
-  return Traits::getRegName(RegNum);
+IceString TargetX86Base<Machine>::getRegName(SizeT RegNum, Type Ty) const {
+  return Traits::getRegName(Traits::getGprForType(Ty, RegNum));
 }
 
 template <class Machine>
@@ -994,7 +995,7 @@ void TargetX86Base<Machine>::lowerAlloca(const InstAlloca *Inst) {
   if (UseFramePointer)
     setHasFramePointer();
 
-  Variable *esp = getPhysicalRegister(getStackReg());
+  Variable *esp = getPhysicalRegister(getStackReg(), Traits::WordType);
   if (OverAligned) {
     _and(esp, Ctx->getConstantInt32(-Alignment));
   }
@@ -1019,8 +1020,12 @@ void TargetX86Base<Machine>::lowerAlloca(const InstAlloca *Inst) {
   } else {
     // Non-constant sizes need to be adjusted to the next highest multiple of
     // the required alignment at runtime.
-    Variable *T = makeReg(IceType_i32);
-    _mov(T, TotalSize);
+    Variable *T = makeReg(Traits::WordType);
+    if (Traits::Is64Bit && TotalSize->getType() != IceType_i64) {
+      _movzx(T, TotalSize);
+    } else {
+      _mov(T, TotalSize);
+    }
     _add(T, Ctx->getConstantInt32(Alignment - 1));
     _and(T, Ctx->getConstantInt32(-Alignment));
     _sub(esp, T);
@@ -1717,6 +1722,7 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
     case IceType_i64:
       Eax = Traits::getRaxOrDie();
       Edx = Traits::getRdxOrDie();
+      break;
     case IceType_i32:
       Eax = Traits::RegisterSet::Reg_eax;
       Edx = Traits::RegisterSet::Reg_edx;
@@ -1730,8 +1736,9 @@ void TargetX86Base<Machine>::lowerArithmetic(const InstArithmetic *Inst) {
       Edx = Traits::RegisterSet::Reg_ah;
       break;
     }
+    T_edx = makeReg(Ty, Edx);
     _mov(T, Src0, Eax);
-    _mov(T_edx, Ctx->getConstantZero(Ty), Edx);
+    _mov(T_edx, Ctx->getConstantZero(Ty));
     _div(T, Src1, T_edx);
     _mov(Dest, T);
   } break;
@@ -2309,8 +2316,6 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
     case IceType_i64: {
       assert(Src0->getType() == IceType_f64);
       if (Traits::Is64Bit) {
-        // Movd requires its fp argument (in this case, the bitcast source) to
-        // be an xmm register.
         Variable *Src0R = legalizeToReg(Src0);
         Variable *T = makeReg(IceType_i64);
         _movd(T, Src0R);
@@ -2356,8 +2361,6 @@ void TargetX86Base<Machine>::lowerCast(const InstCast *Inst) {
       if (Traits::Is64Bit) {
         Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
         Variable *T = makeReg(IceType_f64);
-        // Movd requires its fp argument (in this case, the bitcast
-        // destination) to be an xmm register.
         _movd(T, Src0RM);
         _mov(Dest, T);
       } else {
@@ -3551,14 +3554,18 @@ void TargetX86Base<Machine>::lowerIntrinsicCall(
     return;
   }
   case Intrinsics::Stacksave: {
-    Variable *esp = Func->getTarget()->getPhysicalRegister(getStackReg());
+    Variable *esp =
+        Func->getTarget()->getPhysicalRegister(getStackReg(), Traits::WordType);
     Variable *Dest = Instr->getDest();
     _mov(Dest, esp);
     return;
   }
   case Intrinsics::Stackrestore: {
-    Variable *esp = Func->getTarget()->getPhysicalRegister(getStackReg());
-    _redefined(_mov(esp, Instr->getArg(0)));
+    Operand *Src = Instr->getArg(0);
+    const Type SrcTy = Src->getType();
+    Variable *esp = Func->getTarget()->getPhysicalRegister(
+        Traits::getGprForType(SrcTy, getStackReg()), SrcTy);
+    _redefined(_mov(esp, Src));
     return;
   }
   case Intrinsics::Trap:
@@ -4261,15 +4268,20 @@ void TargetX86Base<Machine>::lowerMemset(Operand *Dest, Operand *Val,
 }
 
 template <class Machine>
-void TargetX86Base<Machine>::lowerIndirectJump(Variable *Target) {
+void TargetX86Base<Machine>::lowerIndirectJump(Variable *JumpTarget) {
   const bool NeedSandboxing = Ctx->getFlags().getUseSandboxing();
+  if (Traits::Is64Bit) {
+    Variable *T = makeReg(IceType_i64);
+    _movzx(T, JumpTarget);
+    JumpTarget = T;
+  }
   if (NeedSandboxing) {
     _bundle_lock();
     const SizeT BundleSize =
         1 << Func->getAssembler<>()->getBundleAlignLog2Bytes();
-    _and(Target, Ctx->getConstantInt32(~(BundleSize - 1)));
+    _and(JumpTarget, Ctx->getConstantInt32(~(BundleSize - 1)));
   }
-  _jmp(Target);
+  _jmp(JumpTarget);
   if (NeedSandboxing)
     _bundle_unlock();
 }
@@ -4671,7 +4683,7 @@ void TargetX86Base<Machine>::doMockBoundsCheck(Operand *Opnd) {
   // We use lowerStore() to copy out-args onto the stack.  This creates a memory
   // operand with the stack pointer as the base register.  Don't do bounds
   // checks on that.
-  if (Var->getRegNum() == Traits::RegisterSet::Reg_esp)
+  if (Var->getRegNum() == static_cast<int32_t>(getStackReg()))
     return;
 
   auto *Label = Traits::Insts::Label::create(Func, this);
@@ -5981,8 +5993,10 @@ Operand *TargetX86Base<Machine>::legalize(Operand *From, LegalMask Allowed,
     // register in x86-64.
     if (Traits::Is64Bit) {
       if (llvm::isa<ConstantInteger64>(Const)) {
-        Variable *V = copyToReg(Const, RegNum);
-        return V;
+        if (RegNum != Variable::NoRegister) {
+          assert(Traits::getGprForType(IceType_i64, RegNum) == RegNum);
+        }
+        return copyToReg(Const, RegNum);
       }
     }
 

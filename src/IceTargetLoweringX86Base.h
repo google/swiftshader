@@ -222,7 +222,7 @@ protected:
   void lowerMemset(Operand *Dest, Operand *Val, Operand *Count);
 
   /// Lower an indirect jump adding sandboxing when needed.
-  void lowerIndirectJump(Variable *Target);
+  void lowerIndirectJump(Variable *JumpTarget);
 
   /// Check the comparison is in [Min,Max]. The flags register will be modified
   /// with:
@@ -249,7 +249,8 @@ protected:
   /// Emit a fake use of esp to make sure esp stays alive for the entire
   /// function. Otherwise some esp adjustments get dead-code eliminated.
   void keepEspLiveAtExit() {
-    Variable *esp = Func->getTarget()->getPhysicalRegister(getStackReg());
+    Variable *esp =
+        Func->getTarget()->getPhysicalRegister(getStackReg(), Traits::WordType);
     Context.insert<InstFakeUse>(esp);
   }
 

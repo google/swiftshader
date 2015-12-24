@@ -118,20 +118,22 @@ getRegisterForXmmArgNum(uint32_t ArgNum) {
 }
 
 static inline TargetX8664::Traits::RegisterSet::AllRegisters
-getRegisterForGprArgNum(uint32_t ArgNum) {
+getRegisterForGprArgNum(Type Ty, uint32_t ArgNum) {
   assert(ArgNum < TargetX8664::Traits::X86_MAX_GPR_ARGS);
   static const TargetX8664::Traits::RegisterSet::AllRegisters GprForArgNum[] = {
-      TargetX8664::Traits::RegisterSet::Reg_edi,
-      TargetX8664::Traits::RegisterSet::Reg_esi,
-      TargetX8664::Traits::RegisterSet::Reg_edx,
-      TargetX8664::Traits::RegisterSet::Reg_ecx,
-      TargetX8664::Traits::RegisterSet::Reg_r8d,
-      TargetX8664::Traits::RegisterSet::Reg_r9d,
+      TargetX8664::Traits::RegisterSet::Reg_rdi,
+      TargetX8664::Traits::RegisterSet::Reg_rsi,
+      TargetX8664::Traits::RegisterSet::Reg_rdx,
+      TargetX8664::Traits::RegisterSet::Reg_rcx,
+      TargetX8664::Traits::RegisterSet::Reg_r8,
+      TargetX8664::Traits::RegisterSet::Reg_r9,
   };
   static_assert(llvm::array_lengthof(GprForArgNum) ==
                     TargetX8664::TargetX8664::Traits::X86_MAX_GPR_ARGS,
                 "Mismatch between MAX_GPR_ARGS and GprForArgNum.");
-  return GprForArgNum[ArgNum];
+  assert(Ty == IceType_i64 || Ty == IceType_i32);
+  return static_cast<TargetX8664::Traits::RegisterSet::AllRegisters>(
+      TargetX8664::Traits::getGprForType(Ty, GprForArgNum[ArgNum]));
 }
 
 // constexprMax returns a (constexpr) max(S0, S1), and it is used for defining
@@ -168,7 +170,7 @@ void TargetX8664::lowerCall(const InstCall *Instr) {
       llvm::SmallVector<Operand *, constexprMax(Traits::X86_MAX_XMM_ARGS,
                                                 Traits::X86_MAX_GPR_ARGS)>;
   OperandList XmmArgs;
-  OperandList GprArgs;
+  CfgVector<std::pair<const Type, Operand *>> GprArgs;
   OperandList StackArgs, StackArgLocations;
   int32_t ParameterAreaSizeBytes = 0;
 
@@ -186,14 +188,15 @@ void TargetX8664::lowerCall(const InstCall *Instr) {
       XmmArgs.push_back(Arg);
     } else if (isScalarIntegerType(Ty) &&
                GprArgs.size() < Traits::X86_MAX_GPR_ARGS) {
-      GprArgs.push_back(Arg);
+      GprArgs.emplace_back(Ty, Arg);
     } else {
       StackArgs.push_back(Arg);
       if (isVectorType(Arg->getType())) {
         ParameterAreaSizeBytes =
             Traits::applyStackAlignment(ParameterAreaSizeBytes);
       }
-      Variable *esp = getPhysicalRegister(Traits::RegisterSet::Reg_rsp);
+      Variable *esp =
+          getPhysicalRegister(Traits::RegisterSet::Reg_rsp, IceType_i64);
       Constant *Loc = Ctx->getConstantInt32(ParameterAreaSizeBytes);
       StackArgLocations.push_back(
           Traits::X86OperandMem::create(Func, Ty, esp, Loc));
@@ -230,7 +233,29 @@ void TargetX8664::lowerCall(const InstCall *Instr) {
   }
 
   for (SizeT i = 0, NumGprArgs = GprArgs.size(); i < NumGprArgs; ++i) {
-    Variable *Reg = legalizeToReg(GprArgs[i], getRegisterForGprArgNum(i));
+    const Type SignatureTy = GprArgs[i].first;
+    Operand *Arg = GprArgs[i].second;
+    Variable *Reg =
+        legalizeToReg(Arg, getRegisterForGprArgNum(Arg->getType(), i));
+    assert(SignatureTy == IceType_i64 || SignatureTy == IceType_i32);
+    if (SignatureTy != Arg->getType()) {
+      if (SignatureTy == IceType_i32) {
+        assert(Arg->getType() == IceType_i64);
+        Variable *T = makeReg(
+            IceType_i32, Traits::getGprForType(IceType_i32, Reg->getRegNum()));
+        _mov(T, Reg);
+        Reg = T;
+      } else {
+        // This branch has never been reached, so we leave the assert(false)
+        // here until we figure out how to exercise it.
+        assert(false);
+        assert(Arg->getType() == IceType_i32);
+        Variable *T = makeReg(
+            IceType_i64, Traits::getGprForType(IceType_i64, Reg->getRegNum()));
+        _movzx(T, Reg);
+        Reg = T;
+      }
+    }
     Context.insert<InstFakeUse>(Reg);
   }
 
@@ -248,9 +273,14 @@ void TargetX8664::lowerCall(const InstCall *Instr) {
     case IceType_i1:
     case IceType_i8:
     case IceType_i16:
+      // The bitcode should never return an i1, i8, or i16.
+      assert(false);
+    // Fallthrough intended.
     case IceType_i32:
-    case IceType_i64:
       ReturnReg = makeReg(Dest->getType(), Traits::RegisterSet::Reg_eax);
+      break;
+    case IceType_i64:
+      ReturnReg = makeReg(Dest->getType(), Traits::RegisterSet::Reg_rax);
       break;
     case IceType_f32:
     case IceType_f64:
@@ -267,6 +297,13 @@ void TargetX8664::lowerCall(const InstCall *Instr) {
   }
 
   Operand *CallTarget = legalize(Instr->getCallTarget(), Legal_Reg | Legal_Imm);
+  if (auto *CallTargetR = llvm::dyn_cast<Variable>(CallTarget)) {
+    // x86-64 in Subzero is ILP32. Therefore, CallTarget is i32, but the emitted
+    // call needs a i64 register (for textual asm.)
+    Variable *T = makeReg(IceType_i64);
+    _movzx(T, CallTargetR);
+    CallTarget = T;
+  }
   const bool NeedSandboxing = Ctx->getFlags().getUseSandboxing();
   if (NeedSandboxing) {
     llvm_unreachable("X86-64 Sandboxing codegen not implemented.");
@@ -330,7 +367,7 @@ void TargetX8664::lowerArguments() {
       if (NumGprArgs >= Traits::X86_MAX_GPR_ARGS) {
         continue;
       }
-      RegNum = getRegisterForGprArgNum(NumGprArgs);
+      RegNum = getRegisterForGprArgNum(Ty, NumGprArgs);
       ++NumGprArgs;
       RegisterArg = Func->makeVariable(Ty);
     }
@@ -359,7 +396,8 @@ void TargetX8664::lowerRet(const InstRet *Inst) {
       Reg = legalizeToReg(Src0, Traits::RegisterSet::Reg_xmm0);
     } else {
       assert(isScalarIntegerType(Src0->getType()));
-      _mov(Reg, Src0, Traits::RegisterSet::Reg_eax);
+      _mov(Reg, Src0, Traits::getGprForType(Src0->getType(),
+                                            Traits::RegisterSet::Reg_rax));
     }
   }
   // Add a ret instruction even if sandboxing is enabled, because addEpilog
@@ -479,8 +517,10 @@ void TargetX8664::addProlog(CfgNode *Node) {
     assert((RegsUsed & getRegisterSet(RegSet_FramePointer, RegSet_None))
                .count() == 0);
     PreservedRegsSizeBytes += typeWidthInBytes(IceType_i64);
-    Variable *ebp = getPhysicalRegister(Traits::RegisterSet::Reg_rbp);
-    Variable *esp = getPhysicalRegister(Traits::RegisterSet::Reg_rsp);
+    Variable *ebp =
+        getPhysicalRegister(Traits::RegisterSet::Reg_rbp, IceType_i64);
+    Variable *esp =
+        getPhysicalRegister(Traits::RegisterSet::Reg_rsp, IceType_i64);
     _push(ebp);
     _mov(ebp, esp);
     // Keep ebp live for late-stage liveness analysis (e.g. asm-verbose mode).
@@ -528,7 +568,7 @@ void TargetX8664::addProlog(CfgNode *Node) {
     if (PrologEmitsFixedAllocas &&
         FixedAllocaAlignBytes > Traits::X86_STACK_ALIGNMENT_BYTES) {
       assert(IsEbpBasedFrame);
-      _and(getPhysicalRegister(Traits::RegisterSet::Reg_rsp),
+      _and(getPhysicalRegister(Traits::RegisterSet::Reg_rsp, IceType_i64),
            Ctx->getConstantInt32(-FixedAllocaAlignBytes));
     }
   }
@@ -542,7 +582,8 @@ void TargetX8664::addProlog(CfgNode *Node) {
   // Fill in stack offsets for stack args, and copy args into registers for
   // those that were register-allocated. Args are pushed right to left, so
   // Arg[0] is closest to the stack/frame pointer.
-  Variable *FramePtr = getPhysicalRegister(getFrameOrStackReg());
+  Variable *FramePtr =
+      getPhysicalRegister(getFrameOrStackReg(), Traits::WordType);
   size_t BasicFrameOffset =
       PreservedRegsSizeBytes + Traits::X86_RET_IP_SIZE_BYTES;
   if (!IsEbpBasedFrame)
@@ -637,9 +678,11 @@ void TargetX8664::addEpilog(CfgNode *Node) {
   Context.init(Node);
   Context.setInsertPoint(InsertPoint);
 
-  Variable *esp = getPhysicalRegister(Traits::RegisterSet::Reg_rsp);
+  Variable *esp =
+      getPhysicalRegister(Traits::RegisterSet::Reg_rsp, IceType_i64);
   if (IsEbpBasedFrame) {
-    Variable *ebp = getPhysicalRegister(Traits::RegisterSet::Reg_rbp);
+    Variable *ebp =
+        getPhysicalRegister(Traits::RegisterSet::Reg_rbp, IceType_i64);
     // For late-stage liveness analysis (e.g. asm-verbose mode), adding a fake
     // use of esp before the assignment of esp=ebp keeps previous esp
     // adjustments from being dead-code eliminated.

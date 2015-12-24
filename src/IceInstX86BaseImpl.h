@@ -1266,9 +1266,11 @@ void InstX86Cbwdq<Machine>::emit(const Cfg *Func) const {
            "cltd";
     break;
   case IceType_i64:
-    assert(DestReg == InstX86Base<Machine>::Traits::RegisterSet::Reg_edx);
+    assert(InstX86Base<Machine>::Traits::Is64Bit);
+    assert(SrcReg == InstX86Base<Machine>::Traits::getRaxOrDie());
+    assert(DestReg == InstX86Base<Machine>::Traits::getRdxOrDie());
     Str << "\t"
-           "cdto";
+           "cqo";
     break;
   }
 }
@@ -2129,10 +2131,6 @@ template <class Machine> void InstX86Lea<Machine>::emit(const Cfg *Func) const {
   this->getDest()->emit(Func);
 }
 
-inline bool isIntegerConstant(const Operand *Op) {
-  return llvm::isa<ConstantInteger32>(Op) || llvm::isa<ConstantInteger64>(Op);
-}
-
 template <class Machine> void InstX86Mov<Machine>::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
@@ -2142,9 +2140,10 @@ template <class Machine> void InstX86Mov<Machine>::emit(const Cfg *Func) const {
   Type SrcTy = Src->getType();
   Type DestTy = this->getDest()->getType();
   if (InstX86Base<Machine>::Traits::Is64Bit && DestTy == IceType_i64 &&
-      isIntegerConstant(Src)) {
+      llvm::isa<ConstantInteger64>(Src)) {
     Str << "\t"
-           "movabs\t";
+           "movabs"
+           "\t";
   } else {
     Str << "\t"
            "mov" << (!isScalarFloatingType(DestTy)
@@ -2214,19 +2213,14 @@ void InstX86Mov<Machine>::emitIAS(const Cfg *Func) const {
       assert(isScalarIntegerType(DestTy));
       // Widen DestTy for truncation (see above note). We should only do this
       // when both Src and Dest are integer types.
-      if (InstX86Base<Machine>::Traits::Is64Bit && DestTy == IceType_i64 &&
-          isIntegerConstant(Src)) {
-        uint64_t Value = -1;
+      if (InstX86Base<Machine>::Traits::Is64Bit && DestTy == IceType_i64) {
         if (const auto *C64 = llvm::dyn_cast<ConstantInteger64>(Src)) {
-          Value = C64->getValue();
-        } else {
-          Value = llvm::cast<ConstantInteger32>(Src)->getValue();
+          Func->getAssembler<typename InstX86Base<Machine>::Traits::Assembler>()
+              ->movabs(InstX86Base<Machine>::Traits::getEncodedGPR(
+                           Dest->getRegNum()),
+                       C64->getValue());
+          return;
         }
-        Func->getAssembler<typename InstX86Base<Machine>::Traits::Assembler>()
-            ->movabs(
-                InstX86Base<Machine>::Traits::getEncodedGPR(Dest->getRegNum()),
-                Value);
-        return;
       }
       if (isScalarIntegerType(SrcTy)) {
         SrcTy = DestTy;
@@ -2257,6 +2251,30 @@ void InstX86Mov<Machine>::emitIAS(const Cfg *Func) const {
     }
     return;
   }
+}
+
+template <class Machine>
+void InstX86Movd<Machine>::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  assert(this->getSrcSize() == 1);
+  Variable *Dest = this->getDest();
+  Operand *Src = this->getSrc(0);
+
+  if (Dest->getType() == IceType_i64 || Src->getType() == IceType_i64) {
+    assert(Dest->getType() == IceType_f64 || Src->getType() == IceType_f64);
+    assert(Dest->getType() != Src->getType());
+    Ostream &Str = Func->getContext()->getStrEmit();
+    Str << "\t"
+           "movq"
+           "\t";
+    Src->emit(Func);
+    Str << ", ";
+    Dest->emit(Func);
+    return;
+  }
+
+  InstX86BaseUnaryopXmm<Machine, InstX86Base<Machine>::Movd>::emit(Func);
 }
 
 template <class Machine>
@@ -2359,7 +2377,8 @@ void InstX86Movq<Machine>::emit(const Cfg *Func) const {
   assert(this->getDest()->getType() == IceType_i64 ||
          this->getDest()->getType() == IceType_f64);
   Str << "\t"
-         "movq\t";
+         "movq"
+         "\t";
   this->getSrc(0)->emit(Func);
   Str << ", ";
   this->getDest()->emit(Func);
@@ -2409,6 +2428,33 @@ void InstX86Movsx<Machine>::emitIAS(const Cfg *Func) const {
   assert(typeWidthInBytes(Dest->getType()) > typeWidthInBytes(SrcTy));
   emitIASRegOpTyGPR<Machine, false, true>(Func, SrcTy, Dest, Src,
                                           this->Emitter);
+}
+
+template <class Machine>
+void InstX86Movzx<Machine>::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  if (InstX86Base<Machine>::Traits::Is64Bit) {
+    // There's no movzx %eXX, %rXX. To zero extend 32- to 64-bits, we emit a
+    // mov %eXX, %eXX. The processor will still do a movzx[bw]q.
+    assert(this->getSrcSize() == 1);
+    const Operand *Src = this->getSrc(0);
+    const Variable *Dest = this->Dest;
+    if (Src->getType() == IceType_i32 && Dest->getType() == IceType_i64) {
+      Ostream &Str = Func->getContext()->getStrEmit();
+      Str << "\t"
+             "mov"
+             "\t";
+      Src->emit(Func);
+      Str << ", ";
+      Dest->asType(IceType_i32, InstX86Base<Machine>::Traits::getGprForType(
+                                    IceType_i32, Dest->getRegNum()))
+          ->emit(Func);
+      Str << " /* movzx */";
+      return;
+    }
+  }
+  InstX86BaseUnaryopGPR<Machine, InstX86Base<Machine>::Movzx>::emit(Func);
 }
 
 template <class Machine>

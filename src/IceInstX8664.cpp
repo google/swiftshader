@@ -140,9 +140,21 @@ void MachineTraits<TargetX8664>::X86OperandMem::emit(const Cfg *Func) const {
 
   if (Base || Index) {
     Str << "(";
-    if (Base)
-      Base->emit(Func);
+    if (Base) {
+      const Variable *Base32 = Base;
+      if (Base->getType() != IceType_i32) {
+        // X86-64 is ILP32, but %rsp and %rbp are accessed as 64-bit registers.
+        // For filetype=asm, they need to be emitted as their 32-bit sibilings.
+        assert(Base->getType() == IceType_i64);
+        assert(Base->getRegNum() == RegX8664::Encoded_Reg_rsp ||
+               Base->getRegNum() == RegX8664::Encoded_Reg_rbp);
+        Base32 = Base->asType(IceType_i32, X8664::Traits::getGprForType(
+                                               IceType_i32, Base->getRegNum()));
+      }
+      Base32->emit(Func);
+    }
     if (Index) {
+      assert(Index->getType() == IceType_i32);
       Str << ",";
       Index->emit(Func);
       if (Shift)

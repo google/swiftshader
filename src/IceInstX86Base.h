@@ -1151,6 +1151,8 @@ public:
     return new (Func->allocate<InstX86Movzx>()) InstX86Movzx(Func, Dest, Src);
   }
 
+  void emit(const Cfg *Func) const override;
+
   void emitIAS(const Cfg *Func) const override;
 
 private:
@@ -1166,6 +1168,8 @@ public:
   static InstX86Movd *create(Cfg *Func, Variable *Dest, Operand *Src) {
     return new (Func->allocate<InstX86Movd>()) InstX86Movd(Func, Dest, Src);
   }
+
+  void emit(const Cfg *Func) const override;
 
   void emitIAS(const Cfg *Func) const override;
 
