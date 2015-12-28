@@ -119,8 +119,9 @@ namespace sw
 		updateState.width = width;
 		updateState.height = height;
 		updateState.destFormat = format;
+		updateState.destStride = stride;
 		updateState.sourceFormat = sourceFormat;
-		updateState.stride = topLeftOrigin ? (int)sourceStride : -(int)sourceStride;
+		updateState.sourceStride = topLeftOrigin ? (int)sourceStride : -(int)sourceStride;
 		updateState.cursorWidth = cursor.width;
 		updateState.cursorHeight = cursor.height;
 
@@ -169,11 +170,10 @@ namespace sw
 	{
 		const int width = state.width;
 		const int height = state.height;
-		const int width2 = (state.width + 1) & ~1;
 		const int dBytes = Surface::bytes(state.destFormat);
-		const int dStride = state.stride;
+		const int dStride = state.destStride;
 		const int sBytes = Surface::bytes(state.sourceFormat);
-		const int sStride = topLeftOrigin ? (sBytes * width2) : -(sBytes * width2);
+		const int sStride = state.sourceStride;
 
 		Function<Void(Pointer<Byte>, Pointer<Byte>, Pointer<Byte>)> function;
 		{

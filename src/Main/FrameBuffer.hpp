@@ -29,7 +29,8 @@ namespace sw
 		int height;
 		Format destFormat;
 		Format sourceFormat;
-		int stride;
+		int destStride;
+		int sourceStride;
 		int cursorWidth;
 		int cursorHeight;
 	};
