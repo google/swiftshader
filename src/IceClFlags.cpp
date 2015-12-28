@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// \brief Defines commandline flags parsing.
+/// \brief Defines commandline flags parsing of class Ice::ClFlags.
 ///
 /// This currently relies on llvm::cl to parse. In the future, the minimal build
 /// can have a simpler parser.
@@ -26,66 +26,81 @@
 
 namespace cl = llvm::cl;
 
-// Options which are captured in Ice::ClFlags and propagated.
+/// Options which are captured in Ice::ClFlags and propagated.
 
 namespace {
 
+/// Allow error recovery when reading PNaCl bitcode.
 cl::opt<bool> AllowErrorRecovery(
     "allow-pnacl-reader-error-recovery",
     cl::desc("Allow error recovery when reading PNaCl bitcode."),
     cl::init(false));
 
+/// Allow global symbols to be externally defined (other than _start and
+/// __pnacl_pso_root).
 cl::opt<bool> AllowExternDefinedSymbols(
     "allow-externally-defined-symbols",
     cl::desc("Allow global symbols to be externally defined (other than _start "
              "and __pnacl_pso_root)."),
     cl::init(false));
 
+/// Alias for --allow-externally-defined-symbols.
 cl::alias AllowExternDefinedSymbolsA(
     "allow-extern", cl::desc("Alias for --allow-externally-defined-symbols"),
     cl::NotHidden, cl::aliasopt(AllowExternDefinedSymbols));
 
+/// Allow IACA (Intel Architecture Code Analyzer) marks to be inserted. These
+/// binaries are not executable.
 cl::opt<bool> AllowIacaMarks(
     "allow-iaca-marks",
     cl::desc("Allow IACA (Intel Architecture Code Analyzer) marks to be "
              "inserted. These binaries are not executable."),
     cl::init(false));
 
-// This is currently needed by crosstest.py.
+/// Allow global variables to be uninitialized. This is currently needed by the
+/// cross tests.
 cl::opt<bool> AllowUninitializedGlobals(
     "allow-uninitialized-globals",
     cl::desc("Allow global variables to be uninitialized"));
 
+/// Emit (global) data into separate sections.
 cl::opt<bool>
     DataSections("fdata-sections",
                  cl::desc("Emit (global) data into separate sections"));
 
+/// Decorate textual asm output with register liveness info.
 cl::opt<bool> DecorateAsm(
     "asm-verbose",
     cl::desc("Decorate textual asm output with register liveness info"));
 
+/// Define default function prefix for naming unnamed functions.
 cl::opt<std::string>
     DefaultFunctionPrefix("default-function-prefix",
                           cl::desc("Define default function prefix for naming "
                                    "unnamed functions"),
                           cl::init("Function"));
 
+/// Define default global prefix for naming unnamed globals.
 cl::opt<std::string>
     DefaultGlobalPrefix("default-global-prefix",
                         cl::desc("Define default global prefix for naming "
                                  "unnamed globals"),
                         cl::init("Global"));
 
+/// Disable hybrid assembly when -filetype=iasm.
 cl::opt<bool> DisableHybridAssembly(
     "no-hybrid-asm", cl::desc("Disable hybrid assembly when -filetype=iasm"),
     cl::init(false));
 
+/// Externalize all symbols.
 cl::opt<bool> DisableInternal("externalize",
                               cl::desc("Externalize all symbols"));
 
+/// Disable Subzero translation.
 cl::opt<bool> DisableTranslation("notranslate",
                                  cl::desc("Disable Subzero translation"));
 
+/// Print statistics after translating each function.
 cl::opt<bool>
     DumpStats("szstats",
               cl::desc("Print statistics after translating each function"));
@@ -96,27 +111,33 @@ cl::opt<bool>
 // counts for blocks not in the original asm output.  Second, edge-split nodes
 // for advanced phi lowering are added too late, at which point it is not
 // practical to add profiling.
+
+/// Instrument basic blocks, and output profiling information to stdout at the
+/// end of program execution.
 cl::opt<bool> EnableBlockProfile(
     "enable-block-profile",
-    cl::desc("If true, instrument basic blocks, and output profiling "
+    cl::desc("Instrument basic blocks, and output profiling "
              "information to stdout at the end of program execution."),
     cl::init(false));
 
+/// Force optimization of memory intrinsics.
 cl::opt<bool>
     ForceMemIntrinOpt("fmem-intrin-opt",
                       cl::desc("Force optimization of memory intrinsics."));
 
+/// Emit functions into separate sections.
 cl::opt<bool>
     FunctionSections("ffunction-sections",
                      cl::desc("Emit functions into separate sections"));
 
+/// Mock bounds checking on loads/stores.
 cl::opt<bool> MockBoundsCheck("mock-bounds-check",
                               cl::desc("Mock bounds checking on loads/stores"));
 
-// Number of translation threads (in addition to the parser thread and the
-// emitter thread). The special case of 0 means purely sequential, i.e. parser,
-// translator, and emitter all within the same single thread. (This may need a
-// slight rework if we expand to multiple parser or emitter threads.)
+/// Number of translation threads (in addition to the parser thread and the
+/// emitter thread). The special case of 0 means purely sequential, i.e. parser,
+/// translator, and emitter all within the same single thread. (This may need a
+/// slight rework if we expand to multiple parser or emitter threads.)
 cl::opt<uint32_t> NumThreads(
     "threads",
     cl::desc("Number of translation threads (0 for purely sequential)"),
@@ -124,6 +145,7 @@ cl::opt<uint32_t> NumThreads(
     // std::thread::hardware_concurrency().
     cl::init(2));
 
+/// Optimization level Om1, O-1, O0, O0, O1, O2.
 cl::opt<Ice::OptLevel> OLevel(cl::desc("Optimization level"),
                               cl::init(Ice::Opt_m1), cl::value_desc("level"),
                               cl::values(clEnumValN(Ice::Opt_m1, "Om1", "-1"),
@@ -133,40 +155,47 @@ cl::opt<Ice::OptLevel> OLevel(cl::desc("Optimization level"),
                                          clEnumValN(Ice::Opt_2, "O2", "2"),
                                          clEnumValEnd));
 
+/// Enable edge splitting for Phi lowering.
 cl::opt<bool>
     EnablePhiEdgeSplit("phi-edge-split",
                        cl::desc("Enable edge splitting for Phi lowering"),
                        cl::init(true));
 
-// TODO(stichnot): See if we can easily use LLVM's -rng-seed option and
-// implementation. I expect the implementation is different and therefore the
-// tests would need to be changed.
+/// TODO(stichnot): See if we can easily use LLVM's -rng-seed option and
+/// implementation. I expect the implementation is different and therefore the
+/// tests would need to be changed.
 cl::opt<unsigned long long>
     RandomSeed("sz-seed", cl::desc("Seed the random number generator"),
                cl::init(1));
 
+/// Randomly insert NOPs.
 cl::opt<bool> ShouldDoNopInsertion("nop-insertion",
                                    cl::desc("Randomly insert NOPs"),
                                    cl::init(false));
 
+/// Randomize register allocation.
 cl::opt<bool>
     RandomizeRegisterAllocation("randomize-regalloc",
                                 cl::desc("Randomize register allocation"),
                                 cl::init(false));
 
+/// Repeat register allocation until convergence.
 cl::opt<bool>
     RepeatRegAlloc("regalloc-repeat",
                    cl::desc("Repeat register allocation until convergence"),
                    cl::init(true));
 
+/// Skip through unimplemented lowering code instead of aborting.
 cl::opt<bool> SkipUnimplemented(
     "skip-unimplemented",
     cl::desc("Skip through unimplemented lowering code instead of aborting."),
     cl::init(false));
 
+/// Enable breakdown timing of Subzero translation.
 cl::opt<bool> SubzeroTimingEnabled(
     "timing", cl::desc("Enable breakdown timing of Subzero translation"));
 
+/// Target architecture.
 cl::opt<Ice::TargetArch> TargetArch(
     "target", cl::desc("Target architecture:"), cl::init(Ice::Target_X8632),
     cl::values(
@@ -183,12 +212,14 @@ cl::opt<Ice::TargetArch> TargetArch(
         clEnumValN(Ice::Target_MIPS32, "mips32", "mips32 (same as mips)"),
         clEnumValEnd));
 
+/// Extra amount of stack to add to the frame in bytes (for testing).
 cl::opt<uint32_t> TestStackExtra(
     "test-stack-extra",
     cl::desc(
         "Extra amount of stack to add to the frame in bytes (for testing)."),
     cl::init(0));
 
+/// Target architecture attributes.
 cl::opt<Ice::TargetInstructionSet> TargetInstructionSet(
     "mattr", cl::desc("Target architecture attributes"),
     cl::init(Ice::BaseInstructionSet),
@@ -203,30 +234,38 @@ cl::opt<Ice::TargetInstructionSet> TargetInstructionSet(
                clEnumValN(Ice::ARM32InstructionSet_HWDivArm, "hwdiv-arm",
                           "Enable ARM integer divide instructions in ARM mode"),
                clEnumValEnd));
+
+/// Prepend a prefix to symbol names for testing.
 cl::opt<std::string>
     TestPrefix("prefix",
                cl::desc("Prepend a prefix to symbol names for testing"),
                cl::init(""), cl::value_desc("prefix"));
 
+/// Print total translation time for each function.
 cl::opt<bool> TimeEachFunction(
     "timing-funcs", cl::desc("Print total translation time for each function"));
 
+/// Break down timing for a specific function (use '*' for all).
 cl::opt<std::string> TimingFocusOn(
     "timing-focus",
     cl::desc("Break down timing for a specific function (use '*' for all)"),
     cl::init(""));
 
+/// Translate only the given function.
 cl::opt<std::string>
     TranslateOnly("translate-only",
                   cl::desc("Translate only the given function"), cl::init(""));
 
+/// Use sandboxing.
 cl::opt<bool> UseSandboxing("sandbox", cl::desc("Use sandboxing"));
 
+/// Override with -verbose=none except for the specified function.
 cl::opt<std::string> VerboseFocusOn(
     "verbose-focus",
     cl::desc("Override with -verbose=none except for the specified function"),
     cl::init(""));
 
+/// Output file type.
 cl::opt<Ice::FileType> OutFileType(
     "filetype", cl::desc("Output file type"), cl::init(Ice::FT_Iasm),
     cl::values(clEnumValN(Ice::FT_Elf, "obj", "Native ELF object ('.o') file"),
@@ -235,14 +274,17 @@ cl::opt<Ice::FileType> OutFileType(
                           "Low-level integrated assembly ('.s') file"),
                clEnumValEnd));
 
+/// Max number of nops to insert per instruction.
 cl::opt<int> MaxNopsPerInstruction(
     "max-nops-per-instruction",
     cl::desc("Max number of nops to insert per instruction"), cl::init(1));
 
+/// Nop insertion probability as percentage.
 cl::opt<int> NopProbabilityAsPercentage(
     "nop-insertion-percentage",
     cl::desc("Nop insertion probability as percentage"), cl::init(10));
 
+/// Verbose options (can be comma-separated).
 cl::list<Ice::VerboseItem> VerboseList(
     "verbose", cl::CommaSeparated,
     cl::desc("Verbose options (can be comma-separated):"),
@@ -271,19 +313,21 @@ cl::list<Ice::VerboseItem> VerboseList(
 
 // Options not captured in Ice::ClFlags and propagated.
 
+/// Exit with success status, even if errors found.
 cl::opt<bool> AlwaysExitSuccess(
     "exit-success", cl::desc("Exit with success status, even if errors found"),
     cl::init(false));
 
-// Note: While this flag isn't used in the minimal build, we keep this flag so
-// that tests can set this command-line flag without concern to the type of
-// build. We double check that this flag at runtime to make sure the
-// consistency is maintained.
+/// Note: While this flag isn't used in the minimal build, we keep this flag so
+/// that tests can set this command-line flag without concern to the type of
+/// build. We double check this flag at runtime to make sure the
+/// consistency is maintained.
 cl::opt<bool>
     BuildOnRead("build-on-read",
                 cl::desc("Build ICE instructions when reading bitcode"),
                 cl::init(true));
 
+/// Define format of input file.
 cl::opt<llvm::NaClFileFormat> InputFileFormat(
     "bitcode-format", cl::desc("Define format of input file:"),
     cl::values(clEnumValN(llvm::LLVMFormat, "llvm", "LLVM file (default)"),
@@ -291,15 +335,22 @@ cl::opt<llvm::NaClFileFormat> InputFileFormat(
                clEnumValEnd),
     cl::init(llvm::LLVMFormat));
 
+/// Generate list of build attributes associated with this executable.
 cl::opt<bool> GenerateBuildAtts(
     "build-atts", cl::desc("Generate list of build attributes associated with "
                            "this executable."),
     cl::init(false));
 
+/// <Input file>
 cl::opt<std::string> IRFilename(cl::Positional, cl::desc("<IR file>"),
                                 cl::init("-"));
+
+/// Set log filename.
 cl::opt<std::string> LogFilename("log", cl::desc("Set log filename"),
                                  cl::init("-"), cl::value_desc("filename"));
+
+/// Print out more descriptive PNaCl bitcode parse errors when building LLVM
+/// IR first.
 cl::opt<bool> LLVMVerboseErrors(
     "verbose-llvm-parse-errors",
     cl::desc("Print out more descriptive PNaCl bitcode parse errors when "
@@ -310,7 +361,7 @@ cl::opt<std::string> OutputFilename("o", cl::desc("Override output filename"),
 
 Ice::IceString AppName;
 
-// Define the command line options for immediates pooling and randomization
+/// Define the command line options for immediates pooling and randomization.
 cl::opt<Ice::RandomizeAndPoolImmediatesEnum> RandomizeAndPoolImmediatesOption(
     "randomize-pool-immediates",
     cl::desc("Randomize or pooling the representation of immediates"),
@@ -322,48 +373,46 @@ cl::opt<Ice::RandomizeAndPoolImmediatesEnum> RandomizeAndPoolImmediatesOption(
                clEnumValN(Ice::RPI_Pool, "pool",
                           "Turn on immediate constants pooling"),
                clEnumValEnd));
-// Command line option for x86 immediate integer randomization/pooling
-// threshold. Immediates whose representation are between:
-// -RandomizeAndPoolImmediatesThreshold/2 and
-// +RandomizeAndPoolImmediatesThreshold/2 will be randomized or pooled.
+/// Command line option for x86 immediate integer randomization/pooling
+/// threshold. Immediates whose representation are between:
+/// -RandomizeAndPoolImmediatesThreshold/2 and
+/// +RandomizeAndPoolImmediatesThreshold/2 will be randomized or pooled.
 cl::opt<uint32_t> RandomizeAndPoolImmediatesThreshold(
     "randomize-pool-threshold",
     cl::desc("The threshold for immediates randomization and pooling"),
     cl::init(0xffff));
 
-// Command line option for turning on basic block shuffling.
+/// Shuffle the layout of basic blocks in each functions.
 cl::opt<bool> ReorderBasicBlocks(
     "reorder-basic-blocks",
-    cl::desc("Shuffle the layout of basic blocks in each functions"),
+    cl::desc("Shuffle the layout of basic blocks in each function"),
     cl::init(false));
 
-// Command line option for turning on function layout reordering.
-cl::opt<bool> ReorderFunctions(
-    "reorder-functions",
-    cl::desc("Reorder the layout of functions in TEXT section"),
-    cl::init(false));
+/// Randomize function ordering.
+cl::opt<bool> ReorderFunctions("reorder-functions",
+                               cl::desc("Randomize function ordering"),
+                               cl::init(false));
 
-// Command line option for the shuffling window size for function reordering.
-// The default size is 8.
+/// The shuffling window size for function reordering. 1 or 0 means no effective
+/// shuffling. The default size is 8.
 cl::opt<uint32_t> ReorderFunctionsWindowSize(
     "reorder-functions-window-size",
     cl::desc("The shuffling window size for function reordering. 1 or 0 means "
              "no effective shuffling."),
     cl::init(8));
 
-// Command line option for turning on global variable layout reordering.
-cl::opt<bool> ReorderGlobalVariables(
-    "reorder-global-variables",
-    cl::desc("Reorder the layout of global variables in NON TEXT section"),
-    cl::init(false));
+/// Randomize global data ordering.
+cl::opt<bool> ReorderGlobalVariables("reorder-global-variables",
+                                     cl::desc("Randomize global data ordering"),
+                                     cl::init(false));
 
-// Command line option for turning on layout reordering in constant pools.
-cl::opt<bool> ReorderPooledConstants(
-    "reorder-pooled-constants",
-    cl::desc("Reorder the layout of constants in constant pools"),
-    cl::init(false));
+/// Randomize constant pool entry ordering.
+cl::opt<bool>
+    ReorderPooledConstants("reorder-pooled-constants",
+                           cl::desc("Randomize constant pool entry ordering"),
+                           cl::init(false));
 
-// Command line option for accepting textual bitcode.
+/// Command line option for accepting textual bitcode.
 cl::opt<bool> BitcodeAsText(
     "bitcode-as-text",
     cl::desc(
