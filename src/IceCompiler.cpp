@@ -36,6 +36,9 @@
 #include "llvm/IRReader/IRReader.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/StreamingMemoryObject.h"
+
+#include <regex>
+
 #pragma clang diagnostic pop
 
 namespace Ice {
@@ -54,29 +57,31 @@ struct {
     {"browser_mode", BuildDefs::browser()}};
 
 /// Dumps values of build attributes to Stream if Stream is non-null.
-void dumpBuildAttributes(Ostream *Stream) {
-  if (Stream == nullptr)
-    return;
+void dumpBuildAttributes(Ostream &Str) {
 // List the supported targets.
-#define SUBZERO_TARGET(TARGET) *Stream << "target_" #TARGET << "\n";
+#define SUBZERO_TARGET(TARGET) Str << "target_" #TARGET << "\n";
 #include "llvm/Config/SZTargets.def"
   const char *Prefix[2] = {"no", "allow"};
   for (size_t i = 0; i < llvm::array_lengthof(ConditionalBuildAttributes);
        ++i) {
     const auto &A = ConditionalBuildAttributes[i];
-    *Stream << Prefix[A.FlagValue] << "_" << A.FlagName << "\n";
+    Str << Prefix[A.FlagValue] << "_" << A.FlagName << "\n";
   }
+}
+bool llvmIRInput(const IceString &Filename) {
+  return BuildDefs::llvmIrAsInput() &&
+         std::regex_match(Filename, std::regex(".*\\.ll"));
 }
 
 } // end of anonymous namespace
 
 void Compiler::run(const Ice::ClFlagsExtra &ExtraFlags, GlobalContext &Ctx,
                    std::unique_ptr<llvm::DataStreamer> &&InputStream) {
-  dumpBuildAttributes(ExtraFlags.getGenerateBuildAtts() ? &Ctx.getStrDump()
-                                                        : nullptr);
-  if (ExtraFlags.getGenerateBuildAtts())
-    return Ctx.getErrorStatus()->assign(EC_None);
-
+  if (ExtraFlags.getGenerateBuildAtts()) {
+    dumpBuildAttributes(Ctx.getStrDump());
+    Ctx.getErrorStatus()->assign(EC_None);
+    return;
+  }
   // The Minimal build (specifically, when dump()/emit() are not implemented)
   // allows only --filetype=obj. Check here to avoid cryptic error messages
   // downstream.
@@ -85,17 +90,9 @@ void Compiler::run(const Ice::ClFlagsExtra &ExtraFlags, GlobalContext &Ctx,
     // llvm::Option.ArgStr and .ValueStr .
     Ctx.getStrError()
         << "Error: only --filetype=obj is supported in this build.\n";
-    return Ctx.getErrorStatus()->assign(EC_Args);
+    Ctx.getErrorStatus()->assign(EC_Args);
+    return;
   }
-
-  // Force -build-on-read=0 for .ll files.
-  const std::string LLSuffix = ".ll";
-  const IceString &IRFilename = ExtraFlags.getIRFilename();
-  bool BuildOnRead = ExtraFlags.getBuildOnRead();
-  if (BuildDefs::llvmIrAsInput() && IRFilename.length() >= LLSuffix.length() &&
-      IRFilename.compare(IRFilename.length() - LLSuffix.length(),
-                         LLSuffix.length(), LLSuffix) == 0)
-    BuildOnRead = false;
 
   TimerMarker T(Ice::TimerStack::TT_szmain, &Ctx);
 
@@ -103,6 +100,8 @@ void Compiler::run(const Ice::ClFlagsExtra &ExtraFlags, GlobalContext &Ctx,
   Ctx.startWorkerThreads();
 
   std::unique_ptr<Translator> Translator;
+  const IceString &IRFilename = ExtraFlags.getIRFilename();
+  bool BuildOnRead = ExtraFlags.getBuildOnRead() && !llvmIRInput(IRFilename);
   if (BuildOnRead) {
     std::unique_ptr<PNaClTranslator> PTranslator(new PNaClTranslator(&Ctx));
     std::unique_ptr<llvm::StreamingMemoryObject> MemObj(
@@ -113,7 +112,8 @@ void Compiler::run(const Ice::ClFlagsExtra &ExtraFlags, GlobalContext &Ctx,
     if (BuildDefs::browser()) {
       Ctx.getStrError()
           << "non BuildOnRead is not supported w/ PNACL_BROWSER_TRANSLATOR\n";
-      return Ctx.getErrorStatus()->assign(EC_Args);
+      Ctx.getErrorStatus()->assign(EC_Args);
+      return;
     }
     // Parse the input LLVM IR file into a module.
     llvm::SMDiagnostic Err;
@@ -127,7 +127,8 @@ void Compiler::run(const Ice::ClFlagsExtra &ExtraFlags, GlobalContext &Ctx,
                         llvm::getGlobalContext(), DiagnosticHandler);
     if (!Mod) {
       Err.print(ExtraFlags.getAppName().c_str(), llvm::errs());
-      return Ctx.getErrorStatus()->assign(EC_Bitcode);
+      Ctx.getErrorStatus()->assign(EC_Bitcode);
+      return;
     }
 
     std::unique_ptr<Converter> Converter(new class Converter(Mod.get(), &Ctx));
@@ -136,7 +137,8 @@ void Compiler::run(const Ice::ClFlagsExtra &ExtraFlags, GlobalContext &Ctx,
   } else {
     Ctx.getStrError() << "Error: Build doesn't allow LLVM IR, "
                       << "--build-on-read=0 not allowed\n";
-    return Ctx.getErrorStatus()->assign(EC_Args);
+    Ctx.getErrorStatus()->assign(EC_Args);
+    return;
   }
 
   Ctx.waitForWorkerThreads();
