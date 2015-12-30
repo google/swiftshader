@@ -16,6 +16,7 @@
 #ifndef SUBZERO_SRC_ICETARGETLOWERINGMIPS32_H
 #define SUBZERO_SRC_ICETARGETLOWERINGMIPS32_H
 
+#include "IceAssemblerMIPS32.h"
 #include "IceDefs.h"
 #include "IceInstMIPS32.h"
 #include "IceRegistersMIPS32.h"
@@ -29,9 +30,16 @@ class TargetMIPS32 : public TargetLowering {
   TargetMIPS32 &operator=(const TargetMIPS32 &) = delete;
 
 public:
+  ~TargetMIPS32() override = default;
+
   static void staticInit();
-  // TODO(jvoung): return a unique_ptr.
-  static TargetMIPS32 *create(Cfg *Func) { return new TargetMIPS32(Func); }
+  static std::unique_ptr<::Ice::TargetLowering> create(Cfg *Func) {
+    return makeUnique<TargetMIPS32>(Func);
+  }
+
+  std::unique_ptr<::Ice::Assembler> createAssembler() const override {
+    return makeUnique<MIPS32::AssemblerMIPS32>();
+  }
 
   void translateOm1() override;
   void translateO2() override;
@@ -257,7 +265,7 @@ protected:
   VarList PhysicalRegisters[IceType_NUM];
 
 private:
-  ~TargetMIPS32() override = default;
+  ENABLE_MAKE_UNIQUE;
 };
 
 class TargetDataMIPS32 final : public TargetDataLowering {

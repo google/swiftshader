@@ -138,19 +138,27 @@ private:
   LoweringContext &Context;
 };
 
+/// TargetLowering is the base class for all backends in Subzero. In addition to
+/// implementing the abstract methods in this class, each concrete target must
+/// also implement a named constructor in its own namespace. For instance, for
+/// X8632 we have:
+///
+///  namespace X8632 {
+///    void createTargetLowering(Cfg *Func);
+///  }
 class TargetLowering {
   TargetLowering() = delete;
   TargetLowering(const TargetLowering &) = delete;
   TargetLowering &operator=(const TargetLowering &) = delete;
 
 public:
-  // TODO(jvoung): return a unique_ptr like the other factory functions.
-  static TargetLowering *createLowering(TargetArch Target, Cfg *Func);
   static void staticInit(TargetArch Target);
-  // Each target must define a public static method:
-  //   static void staticInit();
-  static std::unique_ptr<Assembler> createAssembler(TargetArch Target,
-                                                    Cfg *Func);
+
+  static std::unique_ptr<TargetLowering> createLowering(TargetArch Target,
+                                                        Cfg *Func);
+
+  virtual std::unique_ptr<Assembler> createAssembler() const = 0;
+
   void translate() {
     switch (Ctx->getFlags().getOptLevel()) {
     case Opt_m1:

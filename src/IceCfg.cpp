@@ -42,8 +42,7 @@ Cfg::Cfg(GlobalContext *Ctx, uint32_t SequenceNumber)
       Target(TargetLowering::createLowering(Ctx->getFlags().getTargetArch(),
                                             this)),
       VMetadata(new VariablesMetadata(this)),
-      TargetAssembler(TargetLowering::createAssembler(
-          Ctx->getFlags().getTargetArch(), this)) {
+      TargetAssembler(Target->createAssembler()) {
   if (Ctx->getFlags().getRandomizeAndPoolImmediatesOption() == RPI_Randomize) {
     // If -randomize-pool-immediates=randomize, create a random number
     // generator to generate a cookie for constant blinding.

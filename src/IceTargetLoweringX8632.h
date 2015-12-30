@@ -36,9 +36,15 @@ class TargetX8632 final
                      const InstJumpTable *JumpTable) const override;
 
 public:
-  using X86InstructionSet = X8632::Traits::InstructionSet;
+  ~TargetX8632() = default;
 
-  static TargetX8632 *create(Cfg *Func) { return new TargetX8632(Func); }
+  static std::unique_ptr<::Ice::TargetLowering> create(Cfg *Func) {
+    return makeUnique<TargetX8632>(Func);
+  }
+
+  std::unique_ptr<::Ice::Assembler> createAssembler() const override {
+    return makeUnique<X8632::AssemblerX8632>();
+  }
 
 protected:
   void lowerCall(const InstCall *Instr) override;
@@ -48,6 +54,7 @@ protected:
   void addEpilog(CfgNode *Node) override;
 
 private:
+  ENABLE_MAKE_UNIQUE;
   friend class ::Ice::X86Internal::TargetX86Base<TargetX8632>;
 
   Operand *createNaClReadTPSrcOperand() {

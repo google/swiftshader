@@ -30,6 +30,24 @@
 #include "IceUtils.h"
 #include "llvm/Support/MathExtras.h"
 
+namespace MIPS32 {
+std::unique_ptr<::Ice::TargetLowering> createTargetLowering(::Ice::Cfg *Func) {
+  return ::Ice::TargetMIPS32::create(Func);
+}
+
+std::unique_ptr<::Ice::TargetDataLowering>
+createTargetDataLowering(::Ice::GlobalContext *Ctx) {
+  return ::Ice::TargetDataMIPS32::create(Ctx);
+}
+
+std::unique_ptr<::Ice::TargetHeaderLowering>
+createTargetHeaderLowering(::Ice::GlobalContext *Ctx) {
+  return ::Ice::TargetHeaderMIPS32::create(Ctx);
+}
+
+void staticInit() { ::Ice::TargetMIPS32::staticInit(); }
+} // end of namespace MIPS32
+
 namespace Ice {
 
 using llvm::isInt;

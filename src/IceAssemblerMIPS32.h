@@ -79,6 +79,9 @@ public:
   static bool classof(const Assembler *Asm) {
     return Asm->getKind() == Asm_MIPS32;
   }
+
+private:
+  ENABLE_MAKE_UNIQUE;
 };
 
 } // end of namespace MIPS32

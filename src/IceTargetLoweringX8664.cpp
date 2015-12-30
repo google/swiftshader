@@ -18,6 +18,24 @@
 #include "IceTargetLoweringX8664Traits.h"
 #include "IceTargetLoweringX86Base.h"
 
+namespace X8664 {
+std::unique_ptr<::Ice::TargetLowering> createTargetLowering(::Ice::Cfg *Func) {
+  return ::Ice::TargetX8664::create(Func);
+}
+
+std::unique_ptr<::Ice::TargetDataLowering>
+createTargetDataLowering(::Ice::GlobalContext *Ctx) {
+  return ::Ice::TargetDataX8664::create(Ctx);
+}
+
+std::unique_ptr<::Ice::TargetHeaderLowering>
+createTargetHeaderLowering(::Ice::GlobalContext *Ctx) {
+  return ::Ice::TargetHeaderX8664::create(Ctx);
+}
+
+void staticInit() { ::Ice::TargetX8664::staticInit(); }
+} // end of namespace X8664
+
 namespace Ice {
 
 //------------------------------------------------------------------------------

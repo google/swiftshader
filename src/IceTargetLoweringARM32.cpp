@@ -35,6 +35,24 @@
 #include <array>
 #include <utility>
 
+namespace ARM32 {
+std::unique_ptr<::Ice::TargetLowering> createTargetLowering(::Ice::Cfg *Func) {
+  return ::Ice::TargetARM32::create(Func);
+}
+
+std::unique_ptr<::Ice::TargetDataLowering>
+createTargetDataLowering(::Ice::GlobalContext *Ctx) {
+  return ::Ice::TargetDataARM32::create(Ctx);
+}
+
+std::unique_ptr<::Ice::TargetHeaderLowering>
+createTargetHeaderLowering(::Ice::GlobalContext *Ctx) {
+  return ::Ice::TargetHeaderARM32::create(Ctx);
+}
+
+void staticInit() { ::Ice::TargetARM32::staticInit(); }
+} // end of namespace ARM32
+
 namespace Ice {
 
 namespace {

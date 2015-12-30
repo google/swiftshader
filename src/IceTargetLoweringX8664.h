@@ -36,7 +36,15 @@ class TargetX8664 final
                      const InstJumpTable *JumpTable) const override;
 
 public:
-  static TargetX8664 *create(Cfg *Func) { return new TargetX8664(Func); }
+  ~TargetX8664() = default;
+
+  static std::unique_ptr<::Ice::TargetLowering> create(Cfg *Func) {
+    return makeUnique<TargetX8664>(Func);
+  }
+
+  std::unique_ptr<::Ice::Assembler> createAssembler() const override {
+    return makeUnique<X8664::AssemblerX8664>();
+  }
 
 protected:
   void lowerCall(const InstCall *Instr) override;
@@ -46,6 +54,7 @@ protected:
   void addEpilog(CfgNode *Node) override;
 
 private:
+  ENABLE_MAKE_UNIQUE;
   friend class ::Ice::X86Internal::TargetX86Base<TargetX8664>;
 
   explicit TargetX8664(Cfg *Func)
@@ -101,6 +110,7 @@ private:
 
   explicit TargetHeaderX8664(GlobalContext *Ctx) : TargetHeaderLowering(Ctx) {}
 };
+
 } // end of namespace Ice
 
 #endif // SUBZERO_SRC_ICETARGETLOWERINGX8664_H

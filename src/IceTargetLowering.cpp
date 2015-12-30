@@ -18,23 +18,43 @@
 
 #include "IceTargetLowering.h"
 
-#include "IceAssemblerARM32.h"
-#include "IceAssemblerMIPS32.h"
-#include "IceAssemblerX8632.h"
-#include "IceAssemblerX8664.h"
 #include "IceCfg.h" // setError()
 #include "IceCfgNode.h"
+#include "IceGlobalContext.h"
 #include "IceGlobalInits.h"
 #include "IceInstVarIter.h"
 #include "IceOperand.h"
 #include "IceRegAlloc.h"
-#include "IceTargetLoweringARM32.h"
-#include "IceTargetLoweringMIPS32.h"
-#include "IceTargetLoweringX8632.h"
-#include "IceTargetLoweringX8664.h"
+
+// We prevent target-specific implementation details from leaking outside their
+// implementations by forbidding #include of target-specific header files
+// anywhere outside their own files. To create target-specific objects
+// (TargetLowering, TargetDataLowering, and TargetHeaderLowering) we use the
+// following named constructors. For reference, each target Foo needs to
+// implement the following named constructors and initializer:
+//
+// namespace Foo {
+//   unique_ptr<Ice::TargetLowering> createTargetLowering(Ice::Cfg *);
+//   unique_ptr<Ice::TargetDataLowering>
+//       createTargetDataLowering(Ice::GlobalContext*);
+//   unique_ptr<Ice::TargetHeaderLowering>
+//       createTargetHeaderLowering(Ice::GlobalContext *);
+//   void staticInit();
+// }
+#define SUBZERO_TARGET(X)                                                      \
+  namespace X {                                                                \
+  std::unique_ptr<::Ice::TargetLowering>                                       \
+  createTargetLowering(::Ice::Cfg *Func);                                      \
+  std::unique_ptr<::Ice::TargetDataLowering>                                   \
+  createTargetDataLowering(::Ice::GlobalContext *Ctx);                         \
+  std::unique_ptr<::Ice::TargetHeaderLowering>                                 \
+  createTargetHeaderLowering(::Ice::GlobalContext *Ctx);                       \
+  void staticInit();                                                           \
+  } // end of namespace X
+#include "llvm/Config/SZTargets.def"
+#undef SUBZERO_TARGET
 
 namespace Ice {
-
 void LoweringContext::init(CfgNode *N) {
   Node = N;
   End = getNode()->getInsts().end();
@@ -96,14 +116,17 @@ Variable *LoweringContext::availabilityGet(Operand *Src) const {
   return nullptr;
 }
 
-TargetLowering *TargetLowering::createLowering(TargetArch Target, Cfg *Func) {
+std::unique_ptr<TargetLowering>
+TargetLowering::createLowering(TargetArch Target, Cfg *Func) {
+  switch (Target) {
+  default:
+    llvm::report_fatal_error("Unsupported target");
 #define SUBZERO_TARGET(X)                                                      \
-  if (Target == Target_##X)                                                    \
-    return Target##X::create(Func);
+  case Target_##X:                                                             \
+    return ::X::createTargetLowering(Func);
 #include "llvm/Config/SZTargets.def"
-
-  Func->setError("Unsupported target");
-  return nullptr;
+#undef SUBZERO_TARGET
+  }
 }
 
 void TargetLowering::staticInit(TargetArch Target) {
@@ -111,32 +134,22 @@ void TargetLowering::staticInit(TargetArch Target) {
   switch (Target) {
   default:
     llvm::report_fatal_error("Unsupported target");
-    break;
 #define SUBZERO_TARGET(X)                                                      \
   case Target_##X: {                                                           \
     static bool InitGuard##X = false;                                          \
-    if (InitGuard##X)                                                          \
+    if (InitGuard##X) {                                                        \
       return;                                                                  \
+    }                                                                          \
     InitGuard##X = true;                                                       \
-    Target##X::staticInit();                                                   \
-  } break;
+    ::X::staticInit();                                                         \
+  }
 #include "llvm/Config/SZTargets.def"
+#undef SUBZERO_TARGET
   }
 }
 
 TargetLowering::TargetLowering(Cfg *Func)
     : Func(Func), Ctx(Func->getContext()), Context() {}
-
-std::unique_ptr<Assembler> TargetLowering::createAssembler(TargetArch Target,
-                                                           Cfg *Func) {
-#define SUBZERO_TARGET(X)                                                      \
-  if (Target == Target_##X)                                                    \
-    return std::unique_ptr<Assembler>(new X::Assembler##X());
-#include "llvm/Config/SZTargets.def"
-
-  Func->setError("Unsupported target assembler");
-  return nullptr;
-}
 
 void TargetLowering::genTargetHelperCalls() {
   for (CfgNode *Node : Func->getNodes()) {
@@ -539,12 +552,15 @@ void TargetLowering::emit(const ConstantRelocatable *C) const {
 std::unique_ptr<TargetDataLowering>
 TargetDataLowering::createLowering(GlobalContext *Ctx) {
   TargetArch Target = Ctx->getFlags().getTargetArch();
+  switch (Target) {
+  default:
+    llvm::report_fatal_error("Unsupported target");
 #define SUBZERO_TARGET(X)                                                      \
-  if (Target == Target_##X)                                                    \
-    return TargetData##X::create(Ctx);
+  case Target_##X:                                                             \
+    return ::X::createTargetDataLowering(Ctx);
 #include "llvm/Config/SZTargets.def"
-
-  llvm::report_fatal_error("Unsupported target data lowering");
+#undef SUBZERO_TARGET
+  }
 }
 
 TargetDataLowering::~TargetDataLowering() = default;
@@ -661,12 +677,15 @@ void TargetDataLowering::emitGlobal(const VariableDeclaration &Var,
 std::unique_ptr<TargetHeaderLowering>
 TargetHeaderLowering::createLowering(GlobalContext *Ctx) {
   TargetArch Target = Ctx->getFlags().getTargetArch();
+  switch (Target) {
+  default:
+    llvm::report_fatal_error("Unsupported target");
 #define SUBZERO_TARGET(X)                                                      \
-  if (Target == Target_##X)                                                    \
-    return TargetHeader##X::create(Ctx);
+  case Target_##X:                                                             \
+    return ::X::createTargetHeaderLowering(Ctx);
 #include "llvm/Config/SZTargets.def"
-
-  llvm::report_fatal_error("Unsupported target header lowering");
+#undef SUBZERO_TARGET
+  }
 }
 
 TargetHeaderLowering::~TargetHeaderLowering() = default;

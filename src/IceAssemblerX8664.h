@@ -53,6 +53,9 @@ public:
   static bool classof(const Assembler *Asm) {
     return Asm->getKind() == Asm_X8664;
   }
+
+private:
+  ENABLE_MAKE_UNIQUE;
 };
 
 } // end of namespace X8664

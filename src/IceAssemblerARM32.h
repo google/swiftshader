@@ -331,6 +331,8 @@ public:
   void emitTextInst(const std::string &Text, SizeT InstSize);
 
 private:
+  ENABLE_MAKE_UNIQUE;
+
   // A vector of pool-allocated x86 labels for CFG nodes.
   using LabelVector = std::vector<Label *>;
   LabelVector CfgNodeLabels;

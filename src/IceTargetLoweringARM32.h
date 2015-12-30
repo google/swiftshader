@@ -16,6 +16,7 @@
 #ifndef SUBZERO_SRC_ICETARGETLOWERINGARM32_H
 #define SUBZERO_SRC_ICETARGETLOWERINGARM32_H
 
+#include "IceAssemblerARM32.h"
 #include "IceDefs.h"
 #include "IceInstARM32.h"
 #include "IceRegistersARM32.h"
@@ -55,9 +56,17 @@ class TargetARM32 : public TargetLowering {
   TargetARM32 &operator=(const TargetARM32 &) = delete;
 
 public:
+  ~TargetARM32() = default;
+
   static void staticInit();
   // TODO(jvoung): return a unique_ptr.
-  static TargetARM32 *create(Cfg *Func) { return new TargetARM32(Func); }
+  static std::unique_ptr<::Ice::TargetLowering> create(Cfg *Func) {
+    return makeUnique<TargetARM32>(Func);
+  }
+
+  std::unique_ptr<::Ice::Assembler> createAssembler() const override {
+    return makeUnique<ARM32::AssemblerARM32>();
+  }
 
   void initNodeForLowering(CfgNode *Node) override {
     Computations.forgetProducers();
@@ -1057,7 +1066,7 @@ protected:
   };
 
 private:
-  ~TargetARM32() override = default;
+  ENABLE_MAKE_UNIQUE;
 
   OperandARM32Mem *formAddressingMode(Type Ty, Cfg *Func, const Inst *LdSt,
                                       Operand *Base);
