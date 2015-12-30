@@ -19,6 +19,8 @@
 // indicates how many register aliases are being provided to the macro.  It
 // assumes the parameters are register names declared in the "ns"
 // namespace/class, but with the common "Reg_" prefix removed for brevity.
+#define NO_ALIASES()                                                           \
+  {}
 #define REGLIST1(ns, r0)                                                       \
   { ns::Reg_##r0 }
 #define REGLIST2(ns, r0, r1)                                                   \

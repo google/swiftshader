@@ -271,7 +271,7 @@ template <> struct MachineTraits<TargetX8632> {
   static constexpr Type WordType = IceType_i32;
 
   static IceString getRegName(int32_t RegNum) {
-    static const char *const RegNames[] = {
+    static const char *const RegNames[RegisterSet::Reg_NUM] = {
 #define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
           isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
           isTrunc8Rcvr, isAhRcvr, aliases)                                     \
@@ -285,7 +285,7 @@ template <> struct MachineTraits<TargetX8632> {
   }
 
   static GPRRegister getEncodedGPR(int32_t RegNum) {
-    static const GPRRegister GPRRegs[] = {
+    static const GPRRegister GPRRegs[RegisterSet::Reg_NUM] = {
 #define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
           isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
           isTrunc8Rcvr, isAhRcvr, aliases)                                     \
@@ -300,7 +300,7 @@ template <> struct MachineTraits<TargetX8632> {
   }
 
   static ByteRegister getEncodedByteReg(int32_t RegNum) {
-    static const ByteRegister ByteRegs[] = {
+    static const ByteRegister ByteRegs[RegisterSet::Reg_NUM] = {
 #define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
           isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
           isTrunc8Rcvr, isAhRcvr, aliases)                                     \
@@ -315,7 +315,7 @@ template <> struct MachineTraits<TargetX8632> {
   }
 
   static XmmRegister getEncodedXmm(int32_t RegNum) {
-    static const XmmRegister XmmRegs[] = {
+    static const XmmRegister XmmRegs[RegisterSet::Reg_NUM] = {
 #define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
           isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
           isTrunc8Rcvr, isAhRcvr, aliases)                                     \
@@ -330,7 +330,7 @@ template <> struct MachineTraits<TargetX8632> {
   }
 
   static uint32_t getEncoding(int32_t RegNum) {
-    static const uint32_t Encoding[] = {
+    static const uint32_t Encoding[RegisterSet::Reg_NUM] = {
 #define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
           isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
           isTrunc8Rcvr, isAhRcvr, aliases)                                     \
@@ -344,7 +344,7 @@ template <> struct MachineTraits<TargetX8632> {
   }
 
   static int32_t getBaseReg(int32_t RegNum) {
-    static const int32_t BaseRegs[] = {
+    static const int32_t BaseRegs[RegisterSet::Reg_NUM] = {
 #define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
           isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
           isTrunc8Rcvr, isAhRcvr, aliases)                                     \
@@ -400,6 +400,34 @@ template <> struct MachineTraits<TargetX8632> {
     return RegNum;
   }
 
+private:
+  /// SizeOf is used to obtain the size of an initializer list as a constexpr
+  /// expression. This is only needed until our C++ library is updated to
+  /// C++ 14 -- which defines constexpr members to std::initializer_list.
+  class SizeOf {
+    SizeOf(const SizeOf &) = delete;
+    SizeOf &operator=(const SizeOf &) = delete;
+
+  public:
+    constexpr SizeOf() : Size(0) {}
+    template <typename... T>
+    explicit constexpr SizeOf(T...)
+        : Size(__length<T...>::value) {}
+    constexpr SizeT size() const { return Size; }
+
+  private:
+    template <typename T, typename... U> struct __length {
+      static constexpr std::size_t value = 1 + __length<U...>::value;
+    };
+
+    template <typename T> struct __length<T> {
+      static constexpr std::size_t value = 1;
+    };
+
+    const std::size_t Size;
+  };
+
+public:
   static void initRegisterSet(
       std::array<llvm::SmallBitVector, RCX86_NUM> *TypeToRegisterSet,
       std::array<llvm::SmallBitVector, RegisterSet::Reg_NUM> *RegisterAliases,
@@ -416,29 +444,58 @@ template <> struct MachineTraits<TargetX8632> {
     llvm::SmallBitVector AhRcvrRegisters(RegisterSet::Reg_NUM);
     llvm::SmallBitVector InvalidRegisters(RegisterSet::Reg_NUM);
     ScratchRegs->resize(RegisterSet::Reg_NUM);
+
+    static constexpr struct {
+      uint16_t Val;
+      int Is64 : 1;
+      int Is32 : 1;
+      int Is16 : 1;
+      int Is8 : 1;
+      int IsXmm : 1;
+      int Is64To8 : 1;
+      int Is32To8 : 1;
+      int Is16To8 : 1;
+      int IsTrunc8Rcvr : 1;
+      int IsAhRcvr : 1;
+      int Scratch : 1;
+#define NUM_ALIASES_BITS 2
+      SizeT NumAliases : (NUM_ALIASES_BITS + 1);
+      uint16_t Aliases[1 << NUM_ALIASES_BITS];
+#undef NUM_ALIASES_BITS
+    } X8632RegTable[RegisterSet::Reg_NUM] = {
 #define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
           isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
           isTrunc8Rcvr, isAhRcvr, aliases)                                     \
-  (IntegerRegistersI32)[RegisterSet::val] = is32;                              \
-  (IntegerRegistersI16)[RegisterSet::val] = is16;                              \
-  (IntegerRegistersI8)[RegisterSet::val] = is8;                                \
-  (FloatRegisters)[RegisterSet::val] = isXmm;                                  \
-  (VectorRegisters)[RegisterSet::val] = isXmm;                                 \
-  (Trunc64To8Registers)[RegisterSet::val] = is64To8;                           \
-  (Trunc32To8Registers)[RegisterSet::val] = is32To8;                           \
-  (Trunc16To8Registers)[RegisterSet::val] = is16To8;                           \
-  (Trunc8RcvrRegisters)[RegisterSet::val] = isTrunc8Rcvr;                      \
-  (AhRcvrRegisters)[RegisterSet::val] = isAhRcvr;                              \
-  (*RegisterAliases)[RegisterSet::val].resize(RegisterSet::Reg_NUM);           \
-  for (SizeT RegAlias : aliases) {                                             \
-    assert(!(*RegisterAliases)[RegisterSet::val][RegAlias] &&                  \
-           "Duplicate alias for " #val);                                       \
-    (*RegisterAliases)[RegisterSet::val].set(RegAlias);                        \
+  {                                                                            \
+    RegisterSet::val, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8, \
+        isTrunc8Rcvr, isAhRcvr, scratch, (SizeOf aliases).size(), aliases,     \
   }                                                                            \
-  (*RegisterAliases)[RegisterSet::val].set(RegisterSet::val);                  \
-  (*ScratchRegs)[RegisterSet::val] = scratch;
-    REGX8632_TABLE;
+  ,
+        REGX8632_TABLE
 #undef X
+    };
+
+    for (SizeT ii = 0; ii < llvm::array_lengthof(X8632RegTable); ++ii) {
+      const auto &Entry = X8632RegTable[ii];
+      (IntegerRegistersI32)[Entry.Val] = Entry.Is32;
+      (IntegerRegistersI16)[Entry.Val] = Entry.Is16;
+      (IntegerRegistersI8)[Entry.Val] = Entry.Is8;
+      (FloatRegisters)[Entry.Val] = Entry.IsXmm;
+      (VectorRegisters)[Entry.Val] = Entry.IsXmm;
+      (Trunc64To8Registers)[Entry.Val] = Entry.Is64To8;
+      (Trunc32To8Registers)[Entry.Val] = Entry.Is32To8;
+      (Trunc16To8Registers)[Entry.Val] = Entry.Is16To8;
+      (Trunc8RcvrRegisters)[Entry.Val] = Entry.IsTrunc8Rcvr;
+      (AhRcvrRegisters)[Entry.Val] = Entry.IsAhRcvr;
+      (*RegisterAliases)[Entry.Val].resize(RegisterSet::Reg_NUM);
+      for (int J = 0; J < Entry.NumAliases; J++) {
+        SizeT Alias = Entry.Aliases[J];
+        assert(!(*RegisterAliases)[Entry.Val][Alias] && "Duplicate alias");
+        (*RegisterAliases)[Entry.Val].set(Alias);
+      }
+      (*RegisterAliases)[Entry.Val].set(Entry.Val);
+      (*ScratchRegs)[Entry.Val] = Entry.Scratch;
+    }
 
     (*TypeToRegisterSet)[RC_void] = InvalidRegisters;
     (*TypeToRegisterSet)[RC_i1] = IntegerRegistersI8;
