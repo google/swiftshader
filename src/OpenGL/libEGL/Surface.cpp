@@ -25,13 +25,9 @@
 
 #if defined(__unix__) && !defined(__ANDROID__)
 #include "Main/libX11.hpp"
-#endif
-
-#if defined(_WIN32)
+#elif defined(_WIN32)
 #include <tchar.h>
-#endif
-
-#if defined(__APPLE__)
+#elif defined(__APPLE__)
 #include "OSXUtils.hpp"
 #endif
 
@@ -238,30 +234,7 @@ bool WindowSurface::initialize()
 {
     ASSERT(!frameBuffer && !backBuffer && !depthStencil);
 
-	#if defined(_WIN32)
-		RECT windowRect;
-		GetClientRect(window, &windowRect);
-
-		return reset(windowRect.right - windowRect.left, windowRect.bottom - windowRect.top);
-	#elif defined(__ANDROID__)
-		int width;  window->query(window, NATIVE_WINDOW_WIDTH, &width);
-		int height; window->query(window, NATIVE_WINDOW_HEIGHT, &height);
-
-		return reset(width, height);
-	#elif defined(__linux__)
-		XWindowAttributes windowAttributes;
-		libX11->XGetWindowAttributes((::Display*)display->getNativeDisplay(), window, &windowAttributes);
-
-		return reset(windowAttributes.width, windowAttributes.height);
-	#elif defined(__APPLE__)
-		int width;
-		int height;
-		sw::OSX::GetNativeWindowSize(window, width, height);
-
-		return reset(width, height);
-	#else
-		#error "WindowSurface::initialize unimplemented for this platform"
-	#endif
+	return checkForResize();
 }
 
 void WindowSurface::swap()
@@ -291,41 +264,38 @@ bool WindowSurface::checkForResize()
 			return false;
 		}
 
-		int clientWidth = client.right - client.left;
-		int clientHeight = client.bottom - client.top;
+		int windowWidth = client.right - client.left;
+		int windowHeight = client.bottom - client.top;
 	#elif defined(__ANDROID__)
-		int clientWidth;  window->query(window, NATIVE_WINDOW_WIDTH, &clientWidth);
-		int clientHeight; window->query(window, NATIVE_WINDOW_HEIGHT, &clientHeight);
+		int windowWidth;  window->query(window, NATIVE_WINDOW_WIDTH, &windowWidth);
+		int windowHeight; window->query(window, NATIVE_WINDOW_HEIGHT, &windowHeight);
 	#elif defined(__linux__)
 		XWindowAttributes windowAttributes;
 		libX11->XGetWindowAttributes((::Display*)display->getNativeDisplay(), window, &windowAttributes);
 
-		int clientWidth = windowAttributes.width;
-		int clientHeight = windowAttributes.height;
+		int windowWidth = windowAttributes.width;
+		int windowHeight = windowAttributes.height;
 	#elif defined(__APPLE__)
-		int clientWidth;
-		int clientHeight;
-		sw::OSX::GetNativeWindowSize(window, clientWidth, clientHeight);
-		return true;
+		int windowWidth;
+		int windowHeight;
+		sw::OSX::GetNativeWindowSize(window, windowWidth, windowHeight);
 	#else
 		#error "WindowSurface::checkForResize unimplemented for this platform"
 	#endif
 
-	bool sizeDirty = (clientWidth != width) || (clientHeight != height);
-
-    if(sizeDirty)
+    if((windowWidth != width) || (windowHeight != height))
     {
-        reset(clientWidth, clientHeight);
+        bool success = reset(windowWidth, windowHeight);
 
-        if(static_cast<egl::Surface*>(getCurrentDrawSurface()) == this)
+        if(getCurrentDrawSurface() == this)
         {
-			static_cast<egl::Context*>(getCurrentContext())->makeCurrent(this);
+			getCurrentContext()->makeCurrent(this);
         }
 
-        return true;
+        return success;
     }
 
-    return false;
+    return true;   // Success
 }
 
 void WindowSurface::deleteResources()

@@ -21,18 +21,14 @@
 #include "common/debug.h"
 #include "Common/MutexLock.hpp"
 
-#if defined(__unix__) && !defined(__ANDROID__)
-#include "Main/libX11.hpp"
-#endif
-
 #ifdef __ANDROID__
 #include <system/window.h>
 #include <sys/ioctl.h>
 #include <linux/fb.h>
 #include <fcntl.h>
-#endif
-
-#if defined(__APPLE__)
+#elif defined(__unix__)
+#include "Main/libX11.hpp"
+#elif defined(__APPLE__)
 #include "OSXUtils.hpp"
 #endif
 
