@@ -80,7 +80,6 @@ COMMON_SRC_FILES += \
 	Shader/VertexShader.cpp \
 
 COMMON_SRC_FILES += \
-	OpenGL/common/AndroidCommon.cpp \
 	OpenGL/common/Image.cpp \
 	OpenGL/common/NameSpace.cpp \
 	OpenGL/common/Object.cpp \

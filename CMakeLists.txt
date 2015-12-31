@@ -631,10 +631,6 @@ file(GLOB_RECURSE OPENGL_COMMON_LIST
     ${OPENGL_DIR}/common/*.hpp
     ${OPENGL_DIR}/include/*.h
 )
-list(REMOVE_ITEM OPENGL_COMMON_LIST
-    ${OPENGL_DIR}/common/AndroidCommon.cpp
-    ${OPENGL_DIR}/common/AndroidCommon.hpp
-)
 
 file(GLOB_RECURSE GL32_LIST
     ${OPENGL_DIR}/libGL/*.cpp

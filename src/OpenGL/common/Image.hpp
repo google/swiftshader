@@ -5,12 +5,12 @@
 #include "Renderer/Surface.hpp"
 
 #include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
 
 #if defined(__ANDROID__)
 #include <hardware/gralloc.h>
 #include <system/window.h>
 #include "../../Common/GrallocAndroid.hpp"
-#include "../common/AndroidCommon.hpp"
 #include "../../Common/DebugAndroid.hpp"
 #define LOGLOCK(fmt, ...) // ALOGI(fmt " tid=%d", ##__VA_ARGS__, gettid())
 #else
@@ -169,6 +169,49 @@ protected:
 };
 
 #ifdef __ANDROID__
+
+static GLenum GLPixelFormatFromAndroid(int halFormat)
+{
+	switch(halFormat)
+	{
+	case HAL_PIXEL_FORMAT_RGBA_8888:
+		return GL_RGBA;
+	case HAL_PIXEL_FORMAT_RGBX_8888:
+		return GL_RGB;
+	case HAL_PIXEL_FORMAT_RGB_888:
+		return GL_RGB;
+	case HAL_PIXEL_FORMAT_BGRA_8888:
+		return GL_BGRA_EXT;
+	case HAL_PIXEL_FORMAT_RGB_565:
+		return GL_RGB565;
+	case HAL_PIXEL_FORMAT_YV12:
+		return SW_YV12_BT601;
+	default:
+		ALOGE("%s badness unsupported HAL format=%x", __FUNCTION__, halFormat);
+	}
+
+	return GL_RGBA;
+}
+
+static GLenum GLPixelTypeFromAndroid(int halFormat)
+{
+	switch(halFormat)
+	{
+	case HAL_PIXEL_FORMAT_RGBA_8888:
+	case HAL_PIXEL_FORMAT_RGBX_8888:
+	case HAL_PIXEL_FORMAT_RGB_888:
+	case HAL_PIXEL_FORMAT_BGRA_8888:
+		return GL_UNSIGNED_BYTE;
+	case HAL_PIXEL_FORMAT_RGB_565:
+		return GL_UNSIGNED_SHORT_5_6_5;
+	case HAL_PIXEL_FORMAT_YV12:
+		return GL_UNSIGNED_BYTE;
+	default:
+		ALOGE("%s badness unsupported HAL format=%x", __FUNCTION__, halFormat);
+	}
+
+	return GL_UNSIGNED_BYTE;
+}
 
 class AndroidNativeImage : public egl::Image
 {
