@@ -3303,7 +3303,7 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 	sw::Rect dstRect = { 0, 0, width, height };
 	rect.clip(0, 0, renderTarget->getWidth(), renderTarget->getHeight());
 
-	sw::Surface externalSurface(width, height, 1, egl::SelectInternalFormat(format, type), pixels, outputPitch, outputPitch * outputHeight);
+	sw::Surface externalSurface(width, height, 1, egl::ConvertFormatType(format, type), pixels, outputPitch, outputPitch * outputHeight);
 	sw::SliceRect sliceRect(rect);
 	sw::SliceRect dstSliceRect(dstRect);
 	device->blit(renderTarget, sliceRect, &externalSurface, dstSliceRect, false);

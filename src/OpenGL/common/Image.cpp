@@ -1058,8 +1058,7 @@ namespace egl
 		return (rawPitch + alignment - 1) & ~(alignment - 1);
 	}
 
-
-	GLsizei ComputeCompressedPitch(GLsizei width, GLenum format)
+	inline GLsizei ComputeCompressedPitch(GLsizei width, GLenum format)
 	{
 		return ComputeCompressedSize(width, 1, format);
 	}
