@@ -26,11 +26,11 @@ namespace sw
 
 		~FrameBufferGDI() override;
 
-		void flip(void *source, Format sourceFormat, size_t sourceStride) override;
-		void blit(void *source, const Rect *sourceRect, const Rect *destRect, Format sourceFormat, size_t sourceStride) override;
+		void flip(sw::Surface *source) override;
+		void blit(sw::Surface *source, const Rect *sourceRect, const Rect *destRect) override;
 
-		void flip(HWND windowOverride, void *source, Format sourceFormat, size_t sourceStride) override;
-		void blit(HWND windowOverride, void *source, const Rect *sourceRect, const Rect *destRect, Format sourceFormat, size_t sourceStride) override;
+		void flip(HWND windowOverride, sw::Surface *source) override;
+		void blit(HWND windowOverride, sw::Surface *source, const Rect *sourceRect, const Rect *destRect) override;
 
 		void *lock() override;
 		void unlock() override;
@@ -48,7 +48,7 @@ namespace sw
 		HDC windowContext;
 		HDC bitmapContext;
 		HWND bitmapWindow;
-		
+
 		HBITMAP bitmap;
 	};
 }

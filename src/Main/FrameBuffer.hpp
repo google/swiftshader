@@ -42,8 +42,8 @@ namespace sw
 
 		virtual ~FrameBuffer() = 0;
 
-		virtual void flip(void *source, Format sourceFormat, size_t sourceStride) = 0;
-		virtual void blit(void *source, const Rect *sourceRect, const Rect *destRect, Format sourceFormat, size_t sourceStride) = 0;
+		virtual void flip(sw::Surface *source) = 0;
+		virtual void blit(sw::Surface *source, const Rect *sourceRect, const Rect *destRect) = 0;
 
 		virtual void *lock() = 0;
 		virtual void unlock() = 0;
@@ -55,7 +55,7 @@ namespace sw
 		static Routine *copyRoutine(const BlitState &state);
 
 	protected:
-		void copy(void *source, Format sourceFormat, size_t sourceStride);
+		void copy(sw::Surface *source);
 
 		bool windowed;
 

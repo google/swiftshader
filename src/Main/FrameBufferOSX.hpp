@@ -29,8 +29,8 @@ namespace sw
 		FrameBufferOSX(CALayer *layer, int width, int height);
 		~FrameBufferOSX() override;
 
-		void flip(void *source, Format sourceFormat, size_t sourceStride) override;
-		void blit(void *source, const Rect *sourceRect, const Rect *destRect, Format sourceFormat, size_t sourceStride) override;
+		void flip(sw::Surface *source) override;
+		void blit(sw::Surface *source, const Rect *sourceRect, const Rect *destRect) override;
 
 		void *lock() override;
 		void unlock() override;

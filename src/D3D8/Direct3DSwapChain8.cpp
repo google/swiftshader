@@ -81,13 +81,9 @@ namespace D3D8
 			profiler.nextFrame();
 		#endif
 
-		void *source = backBuffer[0]->lockInternal(0, 0, 0, sw::LOCK_READONLY, sw::PUBLIC);   // FIXME: External
-		sw::Format format = backBuffer[0]->getInternalFormat();
-		int stride = backBuffer[0]->getInternalPitchB();
-
 		if(!sourceRect && !destRect)   // FIXME: More cases?
 		{
-			frameBuffer->flip(destWindowOverride, source, format, stride);
+			frameBuffer->flip(destWindowOverride, backBuffer[0]);
 		}
 		else   // TODO: Check for SWAPEFFECT_COPY
 		{
@@ -110,10 +106,8 @@ namespace D3D8
 				dRect.y1 = destRect->bottom;
 			}
 
-			frameBuffer->blit(destWindowOverride, source, sourceRect ? &sRect : nullptr, destRect ? &dRect : nullptr, format, stride);
+			frameBuffer->blit(destWindowOverride, backBuffer[0], sourceRect ? &sRect : nullptr, destRect ? &dRect : nullptr);
 		}
-
-		backBuffer[0]->unlockInternal();   // FIXME: External
 
 		return D3D_OK;
 	}
@@ -133,7 +127,7 @@ namespace D3D8
 		}
 
 		this->backBuffer[index]->AddRef();
-		*backBuffer = this->backBuffer[index]; 
+		*backBuffer = this->backBuffer[index];
 
 		return D3D_OK;
 	}
@@ -155,7 +149,7 @@ namespace D3D8
 		device->GetCreationParameters(&creationParameters);
 
 		HWND windowHandle = presentParameters->hDeviceWindow ? presentParameters->hDeviceWindow : creationParameters.hFocusWindow;
-			
+
 		int width = 0;
 		int height = 0;
 
@@ -222,7 +216,7 @@ namespace D3D8
 	{
 		return backBuffer[index]->lockInternal(0, 0, 0, sw::LOCK_READWRITE, sw::PUBLIC);   // FIXME: External
 	}
-	
+
 	void Direct3DSwapChain8::unlockBackBuffer(int index)
 	{
 		backBuffer[index]->unlockInternal();   // FIXME: External

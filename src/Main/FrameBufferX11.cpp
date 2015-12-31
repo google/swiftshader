@@ -130,9 +130,9 @@ namespace sw
 		framebuffer = nullptr;
 	}
 
-	void FrameBufferX11::blit(void *source, const Rect *sourceRect, const Rect *destRect, Format sourceFormat, size_t sourceStride)
+	void FrameBufferX11::blit(sw::Surface *source, const Rect *sourceRect, const Rect *destRect)
 	{
-		copy(source, sourceFormat, sourceStride);
+		copy(source);
 
 		if(!mit_shm)
 		{

@@ -45,14 +45,14 @@ namespace sw {
 		delete[] buffer;
 	}
 
-	void FrameBufferOSX::flip(void *source, Format sourceFormat, size_t sourceStride)
+	void FrameBufferOSX::flip(sw::Surface *source)
 	{
-		blit(source, nullptr, nullptr, sourceFormat, sourceStride);
+		blit(source, nullptr, nullptr);
 	}
 
-	void FrameBufferOSX::blit(void *source, const Rect *sourceRect, const Rect *destRect, Format sourceFormat, size_t sourceStride)
+	void FrameBufferOSX::blit(sw::Surface *source, const Rect *sourceRect, const Rect *destRect)
 	{
-		copy(source, sourceFormat, sourceStride);
+		copy(source);
 
 		int bytesPerRow = width * 4 * sizeof(uint8_t);
 		CGImageRef image = CGImageCreate(width, height, 8, 32, bytesPerRow, colorspace, kCGBitmapByteOrder32Big, provider, nullptr, false, kCGRenderingIntentDefault);

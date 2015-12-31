@@ -61,9 +61,9 @@ namespace sw
 		nativeWindow->common.decRef(&nativeWindow->common);
 	}
 
-	void FrameBufferAndroid::blit(void *source, const Rect *sourceRect, const Rect *destRect, Format sourceFormat, size_t sourceStride)
+	void FrameBufferAndroid::blit(sw::Surface *source, const Rect *sourceRect, const Rect *destRect)
 	{
-		copy(source, sourceFormat, sourceStride);
+		copy(source);
 
 		if(buffer)
 		{

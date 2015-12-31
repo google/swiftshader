@@ -103,7 +103,7 @@ namespace sw
 		cursor.positionY = y;
 	}
 
-	void FrameBuffer::copy(void *source, Format sourceFormat, size_t sourceStride)
+	void FrameBuffer::copy(sw::Surface *source)
 	{
 		if(!source)
 		{
@@ -115,23 +115,23 @@ namespace sw
 			return;
 		}
 
+		int sourceStride = source->getInternalPitchB();
+
 		updateState = {};
 		updateState.width = width;
 		updateState.height = height;
 		updateState.destFormat = format;
 		updateState.destStride = stride;
-		updateState.sourceFormat = sourceFormat;
-		updateState.sourceStride = topLeftOrigin ? (int)sourceStride : -(int)sourceStride;
+		updateState.sourceFormat = source->getInternalFormat();
+		updateState.sourceStride = topLeftOrigin ? sourceStride : -sourceStride;
 		updateState.cursorWidth = cursor.width;
 		updateState.cursorHeight = cursor.height;
 
-		if(topLeftOrigin)
+		renderbuffer = source->lockInternal(0, 0, 0, sw::LOCK_READONLY, sw::PUBLIC);
+
+		if(!topLeftOrigin)
 		{
-			renderbuffer = source;
-		}
-		else
-		{
-			renderbuffer = (byte*)source + (height - 1) * sourceStride;
+			renderbuffer = (byte*)renderbuffer + (height - 1) * sourceStride;
 		}
 
 		cursor.x = cursor.positionX - cursor.hotspotX;
@@ -147,6 +147,7 @@ namespace sw
 			copyLocked();
 		}
 
+		source->unlockInternal();
 		unlock();
 
 		profiler.nextFrame();   // Assumes every copy() is a full frame

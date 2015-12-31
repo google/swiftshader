@@ -71,14 +71,14 @@ namespace sw
 	{
 	}
 
-	void FrameBufferGDI::flip(void *source, Format sourceFormat, size_t sourceStride)
+	void FrameBufferGDI::flip(sw::Surface *source)
 	{
-		blit(source, 0, 0, sourceFormat, sourceStride);
+		blit(source, nullptr, nullptr);
 	}
 
-	void FrameBufferGDI::blit(void *source, const Rect *sourceRect, const Rect *destRect, Format sourceFormat, size_t sourceStride)
+	void FrameBufferGDI::blit(sw::Surface *source, const Rect *sourceRect, const Rect *destRect)
 	{
-		copy(source, sourceFormat, sourceStride);
+		copy(source);
 
 		int sourceLeft = sourceRect ? sourceRect->x0 : 0;
 		int sourceTop = sourceRect ? sourceRect->y0 : 0;
@@ -92,12 +92,12 @@ namespace sw
 		StretchBlt(windowContext, destLeft, destTop, destWidth, destHeight, bitmapContext, sourceLeft, sourceTop, sourceWidth, sourceHeight, SRCCOPY);
 	}
 
-	void FrameBufferGDI::flip(HWND windowOverride, void *source, Format sourceFormat, size_t sourceStride)
+	void FrameBufferGDI::flip(HWND windowOverride, sw::Surface *source)
 	{
-		blit(windowOverride, source, 0, 0, sourceFormat, sourceStride);
+		blit(windowOverride, source, nullptr, nullptr);
 	}
 
-	void FrameBufferGDI::blit(HWND windowOverride, void *source, const Rect *sourceRect, const Rect *destRect, Format sourceFormat, size_t sourceStride)
+	void FrameBufferGDI::blit(HWND windowOverride, sw::Surface *source, const Rect *sourceRect, const Rect *destRect)
 	{
 		if(windowed && windowOverride != 0 && windowOverride != bitmapWindow)
 		{
@@ -105,7 +105,7 @@ namespace sw
 			init(windowOverride);
 		}
 
-		blit(source, sourceRect, destRect, sourceFormat, sourceStride);
+		blit(source, sourceRect, destRect);
 	}
 
 	void FrameBufferGDI::setGammaRamp(GammaRamp *gammaRamp, bool calibrate)

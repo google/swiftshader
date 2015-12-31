@@ -42,9 +42,9 @@ namespace sw
 		framebuffer = nullptr;
 	}
 
-	void FrameBufferOzone::blit(void *source, const Rect *sourceRect, const Rect *destRect, Format sourceFormat, size_t sourceStride)
+	void FrameBufferOzone::blit(sw::Surface *source, const Rect *sourceRect, const Rect *destRect)
 	{
-		copy(source, sourceFormat, sourceStride);
+		copy(source);
 	}
 }
 
