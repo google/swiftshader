@@ -465,12 +465,12 @@ namespace es2
 		return static_cast<GLint>((static_cast<GLfloat>(0xFFFFFFFF) * value - 1.0f) * 0.5f);
 	}
 
-	bool IsCompressed(GLenum format, egl::GLint clientVersion)
+	bool IsCompressed(GLenum format, GLint clientVersion)
 	{
 		return ValidateCompressedFormat(format, clientVersion, true) == GL_NONE;
 	}
 
-	GLenum ValidateCompressedFormat(GLenum format, egl::GLint clientVersion, bool expectCompressedFormats)
+	GLenum ValidateCompressedFormat(GLenum format, GLint clientVersion, bool expectCompressedFormats)
 	{
 		switch(format)
 		{
@@ -597,7 +597,7 @@ namespace es2
 		return GL_NONE;
 	}
 
-	bool ValidReadPixelsFormatType(GLenum internalFormat, GLenum internalType, GLenum format, GLenum type, egl::GLint clientVersion)
+	bool ValidReadPixelsFormatType(GLenum internalFormat, GLenum internalType, GLenum format, GLenum type, GLint clientVersion)
 	{
 		switch(format)
 		{
@@ -703,7 +703,7 @@ namespace es2
 	}
 
 	// Verify that format/type are one of the combinations from table 3.4.
-	bool CheckTextureFormatType(GLenum format, GLenum type, egl::GLint clientVersion)
+	bool CheckTextureFormatType(GLenum format, GLenum type, GLint clientVersion)
 	{
 		switch(type)
 		{
@@ -823,7 +823,7 @@ namespace es2
 		}
 	}
 
-	bool IsColorRenderable(GLenum internalformat, egl::GLint clientVersion)
+	bool IsColorRenderable(GLenum internalformat, GLint clientVersion)
 	{
 		switch(internalformat)
 		{

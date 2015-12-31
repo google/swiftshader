@@ -40,20 +40,20 @@ namespace es2
 
 	GLint floatToInt(GLfloat value);
 
-	bool IsCompressed(GLenum format, egl::GLint clientVersion);
+	bool IsCompressed(GLenum format, GLint clientVersion);
 	GLenum GetSizedInternalFormat(GLenum internalFormat, GLenum type);
-	GLenum ValidateCompressedFormat(GLenum format, egl::GLint clientVersion, bool expectCompressedFormats);
+	GLenum ValidateCompressedFormat(GLenum format, GLint clientVersion, bool expectCompressedFormats);
 	GLenum ValidateSubImageParams(bool compressed, GLsizei width, GLsizei height, GLint xoffset, GLint yoffset, GLenum target, GLint level, GLenum sizedInternalFormat, Texture *texture);
 	GLenum ValidateSubImageParams(bool compressed, GLsizei width, GLsizei height, GLsizei depth, GLint xoffset, GLint yoffset, GLint zoffset, GLenum target, GLint level, GLenum sizedInternalFormat, Texture *texture);
-	bool ValidReadPixelsFormatType(GLenum internalFormat, GLenum internalType, GLenum format, GLenum type, egl::GLint clientVersion);
+	bool ValidReadPixelsFormatType(GLenum internalFormat, GLenum internalType, GLenum format, GLenum type, GLint clientVersion);
 	bool IsDepthTexture(GLenum format);
 	bool IsStencilTexture(GLenum format);
 	bool IsCubemapTextureTarget(GLenum target);
 	int CubeFaceIndex(GLenum cubeTarget);
 	bool IsTextureTarget(GLenum target);
-	bool CheckTextureFormatType(GLenum format, GLenum type, egl::GLint clientVersion);
+	bool CheckTextureFormatType(GLenum format, GLenum type, GLint clientVersion);
 
-	bool IsColorRenderable(GLenum internalformat, egl::GLint clientVersion);
+	bool IsColorRenderable(GLenum internalformat, GLint clientVersion);
 	bool IsDepthRenderable(GLenum internalformat);
 	bool IsStencilRenderable(GLenum internalformat);
 

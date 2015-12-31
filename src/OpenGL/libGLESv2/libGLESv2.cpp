@@ -341,7 +341,7 @@ void BindBuffer(GLenum target, GLuint buffer)
 
 	if(context)
 	{
-		egl::GLint clientVersion = egl::getClientVersion();
+		GLint clientVersion = egl::getClientVersion();
 
 		switch(target)
 		{
@@ -460,7 +460,7 @@ void BindTexture(GLenum target, GLuint texture)
 			return error(GL_INVALID_OPERATION);
 		}
 
-		egl::GLint clientVersion = context->getClientVersion();
+		GLint clientVersion = context->getClientVersion();
 
 		switch(target)
 		{
@@ -553,7 +553,7 @@ void BlendFuncSeparate(GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dst
 	TRACE("(GLenum srcRGB = 0x%X, GLenum dstRGB = 0x%X, GLenum srcAlpha = 0x%X, GLenum dstAlpha = 0x%X)",
 	      srcRGB, dstRGB, srcAlpha, dstAlpha);
 
-	egl::GLint clientVersion = egl::getClientVersion();
+	GLint clientVersion = egl::getClientVersion();
 
 	switch(srcRGB)
 	{
@@ -673,7 +673,7 @@ void BufferData(GLenum target, GLsizeiptr size, const GLvoid* data, GLenum usage
 		return error(GL_INVALID_VALUE);
 	}
 
-	egl::GLint clientVersion = egl::getClientVersion();
+	GLint clientVersion = egl::getClientVersion();
 
 	switch(usage)
 	{
@@ -2082,7 +2082,7 @@ void FramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum renderbuff
 			}
 		}
 
-		egl::GLint clientVersion = context->getClientVersion();
+		GLint clientVersion = context->getClientVersion();
 
 		switch(attachment)
 		{
@@ -2233,7 +2233,7 @@ void FramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GL
 			return error(GL_INVALID_OPERATION);
 		}
 
-		egl::GLint clientVersion = context->getClientVersion();
+		GLint clientVersion = context->getClientVersion();
 
 		switch(attachment)
 		{
@@ -2340,7 +2340,7 @@ void GenerateMipmap(GLenum target)
 	{
 		es2::Texture *texture = nullptr;
 
-		egl::GLint clientVersion = context->getClientVersion();
+		GLint clientVersion = context->getClientVersion();
 
 		switch(target)
 		{
@@ -2694,7 +2694,7 @@ void GetBufferParameteriv(GLenum target, GLenum pname, GLint* params)
 			return error(GL_INVALID_OPERATION);
 		}
 
-		egl::GLint clientVersion = context->getClientVersion();
+		GLint clientVersion = context->getClientVersion();
 
 		switch(pname)
 		{
@@ -2838,7 +2838,7 @@ void GetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenu
 			return error(GL_INVALID_ENUM);
 		}
 
-		egl::GLint clientVersion = context->getClientVersion();
+		GLint clientVersion = context->getClientVersion();
 
 		es2::Framebuffer *framebuffer = NULL;
 		if(target == GL_READ_FRAMEBUFFER_ANGLE)
@@ -3257,7 +3257,7 @@ void GetProgramiv(GLuint program, GLenum pname, GLint* params)
 			return error(GL_INVALID_VALUE);
 		}
 
-		egl::GLint clientVersion = egl::getClientVersion();
+		GLint clientVersion = egl::getClientVersion();
 
 		switch(pname)
 		{
@@ -3638,7 +3638,7 @@ void GetTexParameterfv(GLenum target, GLenum pname, GLfloat* params)
 	{
 		es2::Texture *texture;
 
-		egl::GLint clientVersion = context->getClientVersion();
+		GLint clientVersion = context->getClientVersion();
 
 		switch(target)
 		{
@@ -3784,7 +3784,7 @@ void GetTexParameteriv(GLenum target, GLenum pname, GLint* params)
 	{
 		es2::Texture *texture;
 
-		egl::GLint clientVersion = context->getClientVersion();
+		GLint clientVersion = context->getClientVersion();
 
 		switch(target)
 		{
@@ -4103,7 +4103,7 @@ void GetVertexAttribfv(GLuint index, GLenum pname, GLfloat* params)
 
 		const es2::VertexAttribute &attribState = context->getVertexAttribState(index);
 
-		egl::GLint clientVersion = context->getClientVersion();
+		GLint clientVersion = context->getClientVersion();
 
 		switch(pname)
 		{
@@ -4176,7 +4176,7 @@ void GetVertexAttribiv(GLuint index, GLenum pname, GLint* params)
 
 		const es2::VertexAttribute &attribState = context->getVertexAttribState(index);
 
-		egl::GLint clientVersion = context->getClientVersion();
+		GLint clientVersion = context->getClientVersion();
 
 		switch(pname)
 		{
@@ -4312,7 +4312,7 @@ GLboolean IsEnabled(GLenum cap)
 
 	if(context)
 	{
-		egl::GLint clientVersion = context->getClientVersion();
+		GLint clientVersion = context->getClientVersion();
 
 		switch(cap)
 		{
@@ -4536,7 +4536,7 @@ void PixelStorei(GLenum pname, GLint param)
 
 	if(context)
 	{
-		egl::GLint clientVersion = context->getClientVersion();
+		GLint clientVersion = context->getClientVersion();
 
 		switch(pname)
 		{
@@ -4740,7 +4740,7 @@ void RenderbufferStorageMultisampleANGLE(GLenum target, GLsizei samples, GLenum 
 			return error(GL_INVALID_OPERATION);
 		}
 
-		egl::GLint clientVersion = context->getClientVersion();
+		GLint clientVersion = context->getClientVersion();
 		switch(internalformat)
 		{
 		case GL_DEPTH_COMPONENT32F:
@@ -5118,7 +5118,7 @@ void TexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width,
 
 	if(context)
 	{
-		egl::GLint clientVersion = context->getClientVersion();
+		GLint clientVersion = context->getClientVersion();
 		if(clientVersion < 3)
 		{
 			if(internalformat != format)
@@ -5884,7 +5884,7 @@ void TexParameterf(GLenum target, GLenum pname, GLfloat param)
 	{
 		es2::Texture *texture;
 
-		egl::GLint clientVersion = context->getClientVersion();
+		GLint clientVersion = context->getClientVersion();
 
 		switch(target)
 		{
@@ -6039,7 +6039,7 @@ void TexParameteri(GLenum target, GLenum pname, GLint param)
 	{
 		es2::Texture *texture;
 
-		egl::GLint clientVersion = context->getClientVersion();
+		GLint clientVersion = context->getClientVersion();
 
 		switch(target)
 		{
@@ -6900,7 +6900,7 @@ void VertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normal
 		return error(GL_INVALID_VALUE);
 	}
 
-	egl::GLint clientVersion = egl::getClientVersion();
+	GLint clientVersion = egl::getClientVersion();
 
 	switch(type)
 	{
@@ -7352,7 +7352,7 @@ void FramebufferTexture3DOES(GLenum target, GLenum attachment, GLenum textarget,
 			return error(GL_INVALID_OPERATION);
 		}
 
-		egl::GLint clientVersion = context->getClientVersion();
+		GLint clientVersion = context->getClientVersion();
 
 		switch(attachment)
 		{
