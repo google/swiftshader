@@ -2522,7 +2522,7 @@ namespace sw
 		{
 			terminateThreads();
 
-			SwiftConfig::Configuration configuration = {0};
+			SwiftConfig::Configuration configuration = {};
 			swiftConfig->getConfiguration(configuration);
 
 			precacheVertex = !newConfiguration && configuration.precache;

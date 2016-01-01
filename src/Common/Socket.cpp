@@ -33,7 +33,7 @@ namespace sw
 			socket = -1;
 		#endif
 
-		addrinfo hints = {0};
+		addrinfo hints = {};
 		hints.ai_family = AF_INET;
 		hints.ai_socktype = SOCK_STREAM;
 		hints.ai_protocol = IPPROTO_TCP;
