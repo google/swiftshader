@@ -34,6 +34,7 @@ void AndroidEnterDebugger();
 		}																\
 	} while(0)
 
+#undef assert
 #define assert(E) ASSERT(E)
 
 #define ERR(format, ...)												\
