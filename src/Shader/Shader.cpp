@@ -1111,7 +1111,7 @@ namespace sw
 		majorVersion = (unsigned char)((token[0] & 0x0000FF00) >> 8);
 		shaderType = (ShaderType)((token[0] & 0xFFFF0000) >> 16);
 
-		int length;
+		int length = 0;
 
 		if(shaderType == SHADER_VERTEX)
 		{

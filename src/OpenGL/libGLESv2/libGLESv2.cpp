@@ -2989,7 +2989,7 @@ void GetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenu
 			return error(GL_INVALID_ENUM);
 		}
 
-		GLenum attachmentObjectType;   // Type category
+		GLenum attachmentObjectType = GL_NONE;   // Type category
 		if(attachmentType == GL_NONE || attachmentType == GL_RENDERBUFFER)
 		{
 			attachmentObjectType = attachmentType;

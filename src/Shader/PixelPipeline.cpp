@@ -1348,8 +1348,7 @@ namespace sw
 		case Shader::PARAMETER_TEXTURE:       reg = &r.ts[i]; break;
 		case Shader::PARAMETER_VOID:          return r.rs[0]; // Dummy
 		case Shader::PARAMETER_FLOAT4LITERAL: return r.rs[0]; // Dummy
-		default:
-			ASSERT(false);
+		default: ASSERT(false); return r.rs[0];
 		}
 
 		const Short4 &x = (*reg)[(src.swizzle >> 0) & 0x3];

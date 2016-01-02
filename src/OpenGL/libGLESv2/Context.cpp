@@ -1439,17 +1439,10 @@ void Context::endQuery(GLenum target)
 
     switch(target)
     {
-    case GL_ANY_SAMPLES_PASSED_EXT: 
-        qType = QUERY_ANY_SAMPLES_PASSED; 
-        break;
-    case GL_ANY_SAMPLES_PASSED_CONSERVATIVE_EXT: 
-        qType = QUERY_ANY_SAMPLES_PASSED_CONSERVATIVE; 
-        break;
-    case GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN:
-        qType = QUERY_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN;
-        break;
-    default: 
-        ASSERT(false);
+    case GL_ANY_SAMPLES_PASSED_EXT:                qType = QUERY_ANY_SAMPLES_PASSED;                    break;
+    case GL_ANY_SAMPLES_PASSED_CONSERVATIVE_EXT:   qType = QUERY_ANY_SAMPLES_PASSED_CONSERVATIVE;       break;
+    case GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN: qType = QUERY_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN; break;
+    default: UNREACHABLE(target); return;
     }
 
     Query *queryObject = mState.activeQuery[qType];
