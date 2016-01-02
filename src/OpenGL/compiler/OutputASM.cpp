@@ -193,7 +193,7 @@ namespace glsl
 		else UNREACHABLE(0);
 	}
 
-	OutputASM::OutputASM(TParseContext &context, Shader *shaderObject) : TIntermTraverser(true, true, true), mContext(context), shaderObject(shaderObject)
+	OutputASM::OutputASM(TParseContext &context, Shader *shaderObject) : TIntermTraverser(true, true, true), shaderObject(shaderObject), mContext(context)
 	{
 		shader = 0;
 		pixelShader = 0;

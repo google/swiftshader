@@ -40,7 +40,7 @@
 namespace es2
 {
 Context::Context(const egl::Config *config, const Context *shareContext, EGLint clientVersion)
-	: mConfig(config), clientVersion(clientVersion)
+	: clientVersion(clientVersion), mConfig(config)
 {
 	sw::Context *context = new sw::Context();
 	device = new es2::Device(context);

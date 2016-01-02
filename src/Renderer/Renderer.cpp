@@ -99,7 +99,7 @@ namespace sw
 		deallocate(data);
 	}
 
-	Renderer::Renderer(Context *context, Conventions conventions, bool exactColorRounding) : context(context), VertexProcessor(context), PixelProcessor(context), SetupProcessor(context), viewport()
+	Renderer::Renderer(Context *context, Conventions conventions, bool exactColorRounding) : VertexProcessor(context), PixelProcessor(context), SetupProcessor(context), context(context), viewport()
 	{
 		sw::halfIntegerCoordinates = conventions.halfIntegerCoordinates;
 		sw::symmetricNormalizedDepth = conventions.symmetricNormalizedDepth;
