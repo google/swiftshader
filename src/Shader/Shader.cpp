@@ -1734,7 +1734,7 @@ namespace sw
 		}
 	}
 
-	void Shader::markFunctionAnalysis(int functionLabel, Analysis flag)
+	void Shader::markFunctionAnalysis(unsigned int functionLabel, Analysis flag)
 	{
 		bool marker = false;
 		for(unsigned int i = 0; i < instruction.size(); i++)

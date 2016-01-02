@@ -93,8 +93,8 @@ namespace sw
 
 		Int4 enableMask(Registers &r, const Shader::Instruction *instruction);
 
-		Vector4f fetchRegisterF(Registers &r, const Src &src, int offset = 0);
-		Vector4f readConstant(Registers &r, const Src &src, int offset = 0);
+		Vector4f fetchRegisterF(Registers &r, const Src &src, unsigned int offset = 0);
+		Vector4f readConstant(Registers &r, const Src &src, unsigned int offset = 0);
 		Int relativeAddress(Registers &r, const Shader::Parameter &var);
 
 		Float4 linearToSRGB(const Float4 &x);

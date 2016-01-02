@@ -646,11 +646,10 @@ namespace sw
 		}
 	}
 
-	Vector4f VertexProgram::fetchRegisterF(Registers &r, const Src &src, int offset)
+	Vector4f VertexProgram::fetchRegisterF(Registers &r, const Src &src, unsigned int offset)
 	{
-		int i = src.index + offset;
-
 		Vector4f reg;
+		unsigned int i = src.index + offset;
 
 		switch(src.type)
 		{
@@ -762,11 +761,10 @@ namespace sw
 		return mod;
 	}
 
-	Vector4f VertexProgram::readConstant(Registers &r, const Src &src, int offset)
+	Vector4f VertexProgram::readConstant(Registers &r, const Src &src, unsigned int offset)
 	{
 		Vector4f c;
-
-		int i = src.index + offset;
+		unsigned int i = src.index + offset;
 
 		if(src.rel.type == Shader::PARAMETER_VOID)   // Not relative
 		{

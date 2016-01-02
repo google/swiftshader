@@ -62,20 +62,20 @@ unsigned int VertexDataManager::writeAttributeData(StreamingVertexBuffer *vertex
     int elementSize = attribute.typeSize();
     unsigned int streamOffset = 0;
 
-    char *output = NULL;
+    char *output = nullptr;
     
     if(vertexBuffer)
     {
         output = (char*)vertexBuffer->map(attribute, attribute.typeSize() * count, &streamOffset);
     }
 
-    if(output == NULL)
+    if(!output)
     {
         ERR("Failed to map vertex buffer.");
-        return -1;
+        return UINT_MAX;
     }
 
-    const char *input = NULL;
+    const char *input = nullptr;
 
     if(buffer)
     {
@@ -158,7 +158,7 @@ GLenum VertexDataManager::prepareVertexData(GLint start, GLsizei count, Translat
             {
                 unsigned int streamOffset = writeAttributeData(mStreamingBuffer, start, count, attribs[i]);
 
-				if(streamOffset == -1)
+				if(streamOffset == UINT_MAX)
 				{
 					return GL_OUT_OF_MEMORY;
 				}

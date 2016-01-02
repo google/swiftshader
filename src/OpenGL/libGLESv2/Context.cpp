@@ -4284,13 +4284,13 @@ const GLubyte* Context::getExtensions(GLuint index, GLuint* numExt) const
 		if((extensionsCat == nullptr) && (numExtensions > 0))
 		{
 			int totalLength = numExtensions; // 1 space between each extension name + terminating null
-			for(int i = 0; i < numExtensions; ++i)
+			for(unsigned int i = 0; i < numExtensions; i++)
 			{
 				totalLength += strlen(reinterpret_cast<const char*>(extensions[i]));
 			}
 			extensionsCat = new GLubyte[totalLength];
 			extensionsCat[0] = '\0';
-			for(int i = 0; i < numExtensions; ++i)
+			for(unsigned int i = 0; i < numExtensions; i++)
 			{
 				if(i != 0)
 				{

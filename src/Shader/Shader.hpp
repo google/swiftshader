@@ -609,7 +609,7 @@ namespace sw
 		void analyzeSamplers();
 		void analyzeCallSites();
 		void analyzeDynamicIndexing();
-		void markFunctionAnalysis(int functionLabel, Analysis flag);
+		void markFunctionAnalysis(unsigned int functionLabel, Analysis flag);
 
 		ShaderType shaderType;
 

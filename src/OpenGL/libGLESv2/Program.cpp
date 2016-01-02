@@ -1444,7 +1444,7 @@ namespace es2
 		{
 			const glsl::Uniform &uniform = activeUniforms[uniformIndex];
 
-			int blockIndex = -1;
+			unsigned int blockIndex = GL_INVALID_INDEX;
 			bool isRowMajorMatrix = false;
 			if(uniform.blockId >= 0)
 			{

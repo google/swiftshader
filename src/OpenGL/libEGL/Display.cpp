@@ -146,13 +146,13 @@ bool Display::initialize()
 	sw::Format currentDisplayFormat = getDisplayFormat();
     ConfigSet configSet;
 
-	for(int samplesIndex = 0; samplesIndex < sizeof(samples) / sizeof(int); samplesIndex++)
+	for(unsigned int samplesIndex = 0; samplesIndex < sizeof(samples) / sizeof(int); samplesIndex++)
     {
-		for(int formatIndex = 0; formatIndex < sizeof(renderTargetFormats) / sizeof(sw::Format); formatIndex++)
+		for(unsigned int formatIndex = 0; formatIndex < sizeof(renderTargetFormats) / sizeof(sw::Format); formatIndex++)
 		{
 			sw::Format renderTargetFormat = renderTargetFormats[formatIndex];
 
-			for(int depthStencilIndex = 0; depthStencilIndex < sizeof(depthStencilFormats) / sizeof(sw::Format); depthStencilIndex++)
+			for(unsigned int depthStencilIndex = 0; depthStencilIndex < sizeof(depthStencilFormats) / sizeof(sw::Format); depthStencilIndex++)
 			{
 				sw::Format depthStencilFormat = depthStencilFormats[depthStencilIndex];
 

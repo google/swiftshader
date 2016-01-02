@@ -739,10 +739,10 @@ namespace sw
 		return enable;
 	}
 
-	Vector4f PixelProgram::fetchRegisterF(Registers &r, const Src &src, int offset)
+	Vector4f PixelProgram::fetchRegisterF(Registers &r, const Src &src, unsigned int offset)
 	{
 		Vector4f reg;
-		int i = src.index + offset;
+		unsigned int i = src.index + offset;
 
 		switch(src.type)
 		{
@@ -874,11 +874,10 @@ namespace sw
 		return mod;
 	}
 
-	Vector4f PixelProgram::readConstant(Registers &r, const Src &src, int offset)
+	Vector4f PixelProgram::readConstant(Registers &r, const Src &src, unsigned int offset)
 	{
 		Vector4f c;
-
-		int i = src.index + offset;
+		unsigned int i = src.index + offset;
 
 		if(src.rel.type == Shader::PARAMETER_VOID)   // Not relative
 		{
@@ -1673,5 +1672,4 @@ namespace sw
 		// FIXME: Return from function if all instances left
 		// FIXME: Use enableLeave in other control-flow constructs
 	}
-
 }

@@ -35,7 +35,7 @@ namespace sw
 		unsigned int *state = (unsigned int*)this;
 		unsigned int hash = 0;
 
-		for(int i = 0; i < sizeof(States) / 4; i++)
+		for(unsigned int i = 0; i < sizeof(States) / 4; i++)
 		{
 			hash ^= state[i];
 		}

@@ -221,7 +221,7 @@ namespace sw
 
 		for(int q = 0; q < ss; q++)
 		{
-			int oldMultiSampleMask = context->multiSampleMask;
+			unsigned int oldMultiSampleMask = context->multiSampleMask;
 			context->multiSampleMask = (context->sampleMask >> (ms * q)) & ((unsigned)0xFFFFFFFF >> (32 - ms));
 
 			if(!context->multiSampleMask)

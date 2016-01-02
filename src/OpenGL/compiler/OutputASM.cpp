@@ -2320,7 +2320,7 @@ namespace glsl
 		return sw::Shader::PARAMETER_VOID;
 	}
 
-	int OutputASM::registerIndex(TIntermTyped *operand)
+	unsigned int OutputASM::registerIndex(TIntermTyped *operand)
 	{
 		if(isSamplerRegister(operand))
 		{
