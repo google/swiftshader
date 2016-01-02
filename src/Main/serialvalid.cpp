@@ -42,7 +42,7 @@ bool ValidateSerialNumber( const char* inSerialNumber, const char* checksum_key,
 	long long serial_number;
 
 	
-	sscanf( decrypted_serial, "%2s%10llx%4x", dummy_prefix, &serial_number, &actual_checksum);
+	sscanf( decrypted_serial, "%2s%10llx%4lx", dummy_prefix, &serial_number, &actual_checksum);
 	strcpy(working_buffer, checksum_key);
 	strcat(working_buffer, decrypted_serial);
 	working_buffer[strlen(checksum_key) + PREFIX_LENGTH + ROOT_LENGTH] = '\0';
