@@ -1578,6 +1578,8 @@ namespace sw
 					dirtyConstantsB = instruction[i]->dst.index + 1;
 				}
 				break;
+			default:
+				break;
 			}
 		}
 	}
@@ -1627,6 +1629,8 @@ namespace sw
 			case OPCODE_DEFB:
 			case OPCODE_DEFI:
 				containsDefine = true;
+			default:
+				break;
 			}
 		}
 
@@ -1798,6 +1802,8 @@ namespace sw
 					}
 				}
 				break;
+			default:
+				break;
 			}
 		}
 	}
@@ -1837,6 +1843,7 @@ namespace sw
 				case PARAMETER_TEMP:   dynamicallyIndexedTemporaries = true; break;
 				case PARAMETER_INPUT:  dynamicallyIndexedInput = true;       break;
 				case PARAMETER_OUTPUT: dynamicallyIndexedOutput = true;      break;
+				default: break;
 				}
 			}
 
@@ -1852,6 +1859,7 @@ namespace sw
 					case PARAMETER_TEMP:   dynamicallyIndexedTemporaries = true; break;
 					case PARAMETER_INPUT:  dynamicallyIndexedInput = true;       break;
 					case PARAMETER_OUTPUT: dynamicallyIndexedOutput = true;      break;
+					default: break;
 					}
 				}
 			}

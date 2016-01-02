@@ -716,6 +716,8 @@ namespace sw
 					case Shader::PARAMETER_TEXTURE:
 						semantic[2 + reg][0].centroid = centroid;
 						break;
+					default:
+						break;
 					}
 
 					this->centroid = this->centroid || centroid;

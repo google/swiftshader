@@ -1400,6 +1400,8 @@ namespace sw
 				current.z = current.z - As<Short4>(As<UShort4>(current.z) >> 8) + Short4(0x0080, 0x0080, 0x0080, 0x0080);
 				current.w = current.w - As<Short4>(As<UShort4>(current.w) >> 8) + Short4(0x0080, 0x0080, 0x0080, 0x0080);
 				break;
+			default:
+				break;
 			}
 		}
 
