@@ -220,7 +220,7 @@ namespace sw
 				}
 			}
 
-			bool interpolant[MAX_INPUT_VARYINGS][4] = {false};   // Interpolants in use
+			bool interpolant[MAX_INPUT_VARYINGS][4] = {{false}};   // Interpolants in use
 
 			for(unsigned int i = 0; i < instruction.size(); i++)
 			{
