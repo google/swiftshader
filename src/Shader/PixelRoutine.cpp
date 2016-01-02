@@ -1406,8 +1406,8 @@ namespace sw
 		}
 
 		int rgbaWriteMask = state.colorWriteActive(index);
-		int bgraWriteMask = rgbaWriteMask & 0x0000000A | (rgbaWriteMask & 0x00000001) << 2 | (rgbaWriteMask & 0x00000004) >> 2;
-		int brgaWriteMask = rgbaWriteMask & 0x00000008 | (rgbaWriteMask & 0x00000001) << 1 | (rgbaWriteMask & 0x00000002) << 1 | (rgbaWriteMask & 0x00000004) >> 2;
+		int bgraWriteMask = (rgbaWriteMask & 0x0000000A) | (rgbaWriteMask & 0x00000001) << 2 | (rgbaWriteMask & 0x00000004) >> 2;
+		int brgaWriteMask = (rgbaWriteMask & 0x00000008) | (rgbaWriteMask & 0x00000001) << 1 | (rgbaWriteMask & 0x00000002) << 1 | (rgbaWriteMask & 0x00000004) >> 2;
 
 		switch(state.targetFormat[index])
 		{

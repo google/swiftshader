@@ -3256,7 +3256,7 @@ void Context::setClipPlane(int index, const float plane[4])
 
 void Context::setClipPlaneEnabled(int index, bool enable)
 {
-	clipFlags = clipFlags & ~((int)!enable << index) | ((int)enable << index);
+	clipFlags = (clipFlags & ~((int)!enable << index)) | ((int)enable << index);
 	device->setClipFlags(clipFlags);
 }
 
