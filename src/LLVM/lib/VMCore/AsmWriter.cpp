@@ -2038,10 +2038,6 @@ void NamedMDNode::print(raw_ostream &ROS, AssemblyAnnotationWriter *AAW) const {
 }
 
 void Type::print(raw_ostream &OS) const {
-  if (this == 0) {
-    OS << "<null Type>";
-    return;
-  }
   TypePrinting TP;
   TP.print(const_cast<Type*>(this), OS);
 
@@ -2054,10 +2050,6 @@ void Type::print(raw_ostream &OS) const {
 }
 
 void Value::print(raw_ostream &ROS, AssemblyAnnotationWriter *AAW) const {
-  if (this == 0) {
-    ROS << "printing a <null> value\n";
-    return;
-  }
   formatted_raw_ostream OS(ROS);
   if (const Instruction *I = dyn_cast<Instruction>(this)) {
     const Function *F = I->getParent() ? I->getParent()->getParent() : 0;
