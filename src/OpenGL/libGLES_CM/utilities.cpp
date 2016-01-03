@@ -434,41 +434,53 @@ namespace es2sw
 		}
 	}
 
-	bool ConvertPrimitiveType(GLenum primitiveType, GLsizei elementCount,  es1::PrimitiveType &swPrimitiveType, int &primitiveCount)
+	bool ConvertPrimitiveType(GLenum primitiveType, GLsizei elementCount, GLenum elementType,  sw::DrawType &drawType, int &primitiveCount)
 	{
 		switch(primitiveType)
 		{
 		case GL_POINTS:
-			swPrimitiveType = es1::DRAW_POINTLIST;
+			drawType = sw::DRAW_POINTLIST;
 			primitiveCount = elementCount;
 			break;
 		case GL_LINES:
-			swPrimitiveType = es1::DRAW_LINELIST;
+			drawType = sw::DRAW_LINELIST;
 			primitiveCount = elementCount / 2;
 			break;
 		case GL_LINE_LOOP:
-			swPrimitiveType = es1::DRAW_LINELOOP;
+			drawType = sw::DRAW_LINELOOP;
 			primitiveCount = elementCount;
 			break;
 		case GL_LINE_STRIP:
-			swPrimitiveType = es1::DRAW_LINESTRIP;
+			drawType = sw::DRAW_LINESTRIP;
 			primitiveCount = elementCount - 1;
 			break;
 		case GL_TRIANGLES:
-			swPrimitiveType = es1::DRAW_TRIANGLELIST;
+			drawType = sw::DRAW_TRIANGLELIST;
 			primitiveCount = elementCount / 3;
 			break;
 		case GL_TRIANGLE_STRIP:
-			swPrimitiveType = es1::DRAW_TRIANGLESTRIP;
+			drawType = sw::DRAW_TRIANGLESTRIP;
 			primitiveCount = elementCount - 2;
 			break;
 		case GL_TRIANGLE_FAN:
-			swPrimitiveType = es1::DRAW_TRIANGLEFAN;
+			drawType = sw::DRAW_TRIANGLEFAN;
 			primitiveCount = elementCount - 2;
 			break;
 		default:
 			return false;
 		}
+
+		sw::DrawType elementSize;
+		switch(elementType)
+		{
+		case GL_NONE:           elementSize = sw::DRAW_NONINDEXED; break;
+		case GL_UNSIGNED_BYTE:  elementSize = sw::DRAW_INDEXED8;   break;
+		case GL_UNSIGNED_SHORT: elementSize = sw::DRAW_INDEXED16;  break;
+		case GL_UNSIGNED_INT:   elementSize = sw::DRAW_INDEXED32;  break;
+		default: return false;
+		}
+
+		drawType = sw::DrawType(drawType | elementSize);
 
 		return true;
 	}

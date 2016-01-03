@@ -189,7 +189,7 @@ Context::Context(const egl::Config *config, const Context *shareContext)
 	lightModelTwoSide = false;
 
 	matrixMode = GL_MODELVIEW;
-    
+
 	for(int i = 0; i < MAX_TEXTURE_UNITS; i++)
 	{
 		texture2Denabled[i] = false;
@@ -2044,7 +2044,7 @@ void Context::applyTextures()
 	for(int unit = 0; unit < MAX_TEXTURE_UNITS; unit++)
     {
         Texture *texture = nullptr;
-		
+
 		if(textureExternalEnabled[unit])
 		{
 			texture = getSamplerTexture(unit, TEXTURE_EXTERNAL);
@@ -2685,10 +2685,10 @@ void Context::clear(GLbitfield mask)
 
 void Context::drawArrays(GLenum mode, GLint first, GLsizei count)
 {
-    PrimitiveType primitiveType;
+    sw::DrawType primitiveType;
     int primitiveCount;
 
-    if(!es2sw::ConvertPrimitiveType(mode, count, primitiveType, primitiveCount))
+    if(!es2sw::ConvertPrimitiveType(mode, count, GL_NONE, primitiveType, primitiveCount))
         return error(GL_INVALID_ENUM);
 
     if(primitiveCount <= 0)
@@ -2724,10 +2724,10 @@ void Context::drawElements(GLenum mode, GLsizei count, GLenum type, const void *
         return error(GL_INVALID_OPERATION);
     }
 
-    PrimitiveType primitiveType;
+    sw::DrawType primitiveType;
     int primitiveCount;
 
-    if(!es2sw::ConvertPrimitiveType(mode, count, primitiveType, primitiveCount))
+    if(!es2sw::ConvertPrimitiveType(mode, count, type, primitiveType, primitiveCount))
         return error(GL_INVALID_ENUM);
 
     if(primitiveCount <= 0)
@@ -2760,7 +2760,7 @@ void Context::drawElements(GLenum mode, GLsizei count, GLenum type, const void *
 
     if(!cullSkipsDraw(mode))
     {
-		device->drawIndexedPrimitive(primitiveType, indexInfo.indexOffset, primitiveCount, IndexDataManager::typeSize(type));
+		device->drawIndexedPrimitive(primitiveType, indexInfo.indexOffset, primitiveCount);
     }
 }
 
