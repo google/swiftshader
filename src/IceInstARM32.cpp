@@ -24,6 +24,7 @@
 #include "IceTargetLoweringARM32.h"
 
 namespace Ice {
+namespace ARM32 {
 
 namespace {
 
@@ -2151,4 +2152,5 @@ template class InstARM32CmpLike<InstARM32::Cmn>;
 template class InstARM32CmpLike<InstARM32::Cmp>;
 template class InstARM32CmpLike<InstARM32::Tst>;
 
+} // end of namespace ARM32
 } // end of namespace Ice

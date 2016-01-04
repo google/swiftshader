@@ -21,13 +21,15 @@
 #include "IceGlobalContext.h"
 #include "IceInstX8664.h"
 #include "IceTargetLowering.h"
-#include "IceTargetLoweringX8664Traits.h"
+#define X86NAMESPACE X8664
 #include "IceTargetLoweringX86Base.h"
+#undef X86NAMESPACE
+#include "IceTargetLoweringX8664Traits.h"
 
 namespace Ice {
+namespace X8664 {
 
-class TargetX8664 final
-    : public ::Ice::X86Internal::TargetX86Base<TargetX8664> {
+class TargetX8664 final : public X8664::TargetX86Base<X8664::Traits> {
   TargetX8664() = delete;
   TargetX8664(const TargetX8664 &) = delete;
   TargetX8664 &operator=(const TargetX8664 &) = delete;
@@ -55,10 +57,10 @@ protected:
 
 private:
   ENABLE_MAKE_UNIQUE;
-  friend class ::Ice::X86Internal::TargetX86Base<TargetX8664>;
+  friend class X8664::TargetX86Base<X8664::Traits>;
 
   explicit TargetX8664(Cfg *Func)
-      : ::Ice::X86Internal::TargetX86Base<TargetX8664>(Func) {}
+      : ::Ice::X8664::TargetX86Base<X8664::Traits>(Func) {}
 
   Operand *createNaClReadTPSrcOperand() {
     Variable *TDB = makeReg(IceType_i32);
@@ -111,6 +113,7 @@ private:
   explicit TargetHeaderX8664(GlobalContext *Ctx) : TargetHeaderLowering(Ctx) {}
 };
 
+} // end of namespace X8664
 } // end of namespace Ice
 
 #endif // SUBZERO_SRC_ICETARGETLOWERINGX8664_H

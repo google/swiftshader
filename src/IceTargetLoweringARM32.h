@@ -25,6 +25,7 @@
 #include "llvm/ADT/SmallBitVector.h"
 
 namespace Ice {
+namespace ARM32 {
 
 // Class encapsulating ARM cpu features / instruction set.
 class TargetARM32Features {
@@ -1206,6 +1207,7 @@ private:
   TargetARM32Features CPUFeatures;
 };
 
+} // end of namespace ARM32
 } // end of namespace Ice
 
 #endif // SUBZERO_SRC_ICETARGETLOWERINGARM32_H

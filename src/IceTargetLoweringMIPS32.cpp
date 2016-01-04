@@ -32,23 +32,24 @@
 
 namespace MIPS32 {
 std::unique_ptr<::Ice::TargetLowering> createTargetLowering(::Ice::Cfg *Func) {
-  return ::Ice::TargetMIPS32::create(Func);
+  return ::Ice::MIPS32::TargetMIPS32::create(Func);
 }
 
 std::unique_ptr<::Ice::TargetDataLowering>
 createTargetDataLowering(::Ice::GlobalContext *Ctx) {
-  return ::Ice::TargetDataMIPS32::create(Ctx);
+  return ::Ice::MIPS32::TargetDataMIPS32::create(Ctx);
 }
 
 std::unique_ptr<::Ice::TargetHeaderLowering>
 createTargetHeaderLowering(::Ice::GlobalContext *Ctx) {
-  return ::Ice::TargetHeaderMIPS32::create(Ctx);
+  return ::Ice::MIPS32::TargetHeaderMIPS32::create(Ctx);
 }
 
-void staticInit() { ::Ice::TargetMIPS32::staticInit(); }
+void staticInit() { ::Ice::MIPS32::TargetMIPS32::staticInit(); }
 } // end of namespace MIPS32
 
 namespace Ice {
+namespace MIPS32 {
 
 using llvm::isInt;
 
@@ -1100,4 +1101,5 @@ llvm::SmallBitVector TargetMIPS32::TypeToRegisterSet[IceType_NUM];
 llvm::SmallBitVector TargetMIPS32::RegisterAliases[RegMIPS32::Reg_NUM];
 llvm::SmallBitVector TargetMIPS32::ScratchRegs;
 
+} // end of namespace MIPS32
 } // end of namespace Ice

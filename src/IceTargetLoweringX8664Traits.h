@@ -31,19 +31,16 @@
 
 namespace Ice {
 
+namespace X8664 {
+using namespace ::Ice::X86;
+
+template <class TraitsType> class AssemblerX86Base;
+template <class TraitsType> struct Insts;
+template <class TraitsType> class TargetX86Base;
+
 class TargetX8664;
 
-namespace X8664 {
-class AssemblerX8664;
-} // end of namespace X8664
-
-namespace X86Internal {
-
-template <class Machine> struct Insts;
-template <class Machine> struct MachineTraits;
-template <class Machine> class TargetX86Base;
-
-template <> struct MachineTraits<TargetX8664> {
+struct TargetX8664Traits {
   //----------------------------------------------------------------------------
   //     ______  ______  __    __
   //    /\  __ \/\  ___\/\ "-./  \
@@ -52,6 +49,9 @@ template <> struct MachineTraits<TargetX8664> {
   //      \/_/\/_/\/_____/\/_/  \/_/
   //
   //----------------------------------------------------------------------------
+  static constexpr ::Ice::Assembler::AssemblerKind AsmKind =
+      ::Ice::Assembler::Asm_X8632;
+
   static constexpr bool Is64Bit = true;
   static constexpr bool HasPopa = false;
   static constexpr bool HasPusha = false;
@@ -191,7 +191,7 @@ template <> struct MachineTraits<TargetX8664> {
              (rm() == reg); // Register codes match.
     }
 
-    template <class> friend class AssemblerX86Base;
+    friend class AssemblerX86Base<TargetX8664Traits>;
   };
 
   class Address : public Operand {
@@ -801,10 +801,12 @@ public:
   //      \/_/\/_/ \/_/\/_____/  \/_/
   //
   //----------------------------------------------------------------------------
-  using Insts = ::Ice::X86Internal::Insts<TargetX8664>;
+  using Traits = TargetX8664Traits;
+  using Insts = ::Ice::X8664::Insts<Traits>;
 
-  using TargetLowering = ::Ice::X86Internal::TargetX86Base<TargetX8664>;
-  using Assembler = X8664::AssemblerX8664;
+  using TargetLowering = ::Ice::X8664::TargetX86Base<Traits>;
+  using ConcreteTarget = ::Ice::X8664::TargetX8664;
+  using Assembler = ::Ice::X8664::AssemblerX86Base<Traits>;
 
   /// X86Operand extends the Operand hierarchy. Its subclasses are X86OperandMem
   /// and VariableSplit.
@@ -972,10 +974,7 @@ public:
   } TypeAttributes[];
 };
 
-} // end of namespace X86Internal
-
-namespace X8664 {
-using Traits = ::Ice::X86Internal::MachineTraits<TargetX8664>;
+using Traits = ::Ice::X8664::TargetX8664Traits;
 } // end of namespace X8664
 
 } // end of namespace Ice

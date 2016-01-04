@@ -21,7 +21,7 @@
 #include "IceTypes.h"
 
 namespace Ice {
-
+namespace MIPS32 {
 namespace RegMIPS32 {
 
 /// An enum of every register. The enum value may not match the encoding
@@ -63,6 +63,7 @@ static inline GPRRegister getEncodedGPR(int32_t RegNum) {
 // Extend enum RegClass with MIPS32-specific register classes (if any).
 enum RegClassMIPS32 : uint8_t { RCMIPS32_NUM = RC_Target };
 
+} // end of namespace MIPS32
 } // end of namespace Ice
 
 #endif // SUBZERO_SRC_ICEREGISTERSMIPS32_H

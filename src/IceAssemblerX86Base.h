@@ -32,102 +32,116 @@
 
 namespace Ice {
 
-namespace X86Internal {
+#ifndef X86NAMESPACE
+#error "You must define the X86 Target namespace."
+#endif
 
-template <class Machine> class AssemblerX86Base;
-template <class Machine> struct MachineTraits;
+namespace X86NAMESPACE {
 
-constexpr int MAX_NOP_SIZE = 8;
-
-class Immediate {
-  Immediate(const Immediate &) = delete;
-  Immediate &operator=(const Immediate &) = delete;
-
-public:
-  explicit Immediate(int32_t value) : value_(value) {}
-
-  Immediate(RelocOffsetT offset, AssemblerFixup *fixup)
-      : value_(offset), fixup_(fixup) {
-    // Use the Offset in the "value" for now. If we decide to process fixups,
-    // we'll need to patch that offset with the true value.
-  }
-
-  int32_t value() const { return value_; }
-  AssemblerFixup *fixup() const { return fixup_; }
-
-  bool is_int8() const {
-    // We currently only allow 32-bit fixups, and they usually have value = 0,
-    // so if fixup_ != nullptr, it shouldn't be classified as int8/16.
-    return fixup_ == nullptr && Utils::IsInt(8, value_);
-  }
-  bool is_uint8() const {
-    return fixup_ == nullptr && Utils::IsUint(8, value_);
-  }
-  bool is_uint16() const {
-    return fixup_ == nullptr && Utils::IsUint(16, value_);
-  }
-
-private:
-  const int32_t value_;
-  AssemblerFixup *fixup_ = nullptr;
-};
-
-/// X86 allows near and far jumps.
-class Label final : public Ice::Label {
-  Label(const Label &) = delete;
-  Label &operator=(const Label &) = delete;
-
-public:
-  Label() = default;
-  ~Label() = default;
-
-  void finalCheck() const override {
-    Ice::Label::finalCheck();
-    assert(!hasNear());
-  }
-
-  /// Returns the position of an earlier branch instruction which assumes that
-  /// this label is "near", and bumps iterator to the next near position.
-  intptr_t getNearPosition() {
-    assert(hasNear());
-    intptr_t Pos = UnresolvedNearPositions.back();
-    UnresolvedNearPositions.pop_back();
-    return Pos;
-  }
-
-  bool hasNear() const { return !UnresolvedNearPositions.empty(); }
-  bool isUnused() const override {
-    return Ice::Label::isUnused() && !hasNear();
-  }
-
-private:
-  void nearLinkTo(const Assembler &Asm, intptr_t position) {
-    if (Asm.getPreliminary())
-      return;
-    assert(!isBound());
-    UnresolvedNearPositions.push_back(position);
-  }
-
-  llvm::SmallVector<intptr_t, 20> UnresolvedNearPositions;
-
-  template <class> friend class AssemblerX86Base;
-};
-
-template <class Machine> class AssemblerX86Base : public Assembler {
+template <typename TraitsType>
+class AssemblerX86Base : public ::Ice::Assembler {
   AssemblerX86Base(const AssemblerX86Base &) = delete;
   AssemblerX86Base &operator=(const AssemblerX86Base &) = delete;
 
 protected:
-  AssemblerX86Base(AssemblerKind Kind, bool use_far_branches)
-      : Assembler(Kind) {
+  explicit AssemblerX86Base(bool use_far_branches = false)
+      : Assembler(Traits::AsmKind) {
     // This mode is only needed and implemented for MIPS and ARM.
     assert(!use_far_branches);
     (void)use_far_branches;
   }
 
 public:
-  using Traits = MachineTraits<Machine>;
+  using Traits = TraitsType;
+  using Address = typename Traits::Address;
+  using ByteRegister = typename Traits::ByteRegister;
+  using BrCond = typename Traits::Cond::BrCond;
+  using CmppsCond = typename Traits::Cond::CmppsCond;
+  using GPRRegister = typename Traits::GPRRegister;
+  using Operand = typename Traits::Operand;
+  using XmmRegister = typename Traits::XmmRegister;
 
+  static constexpr int MAX_NOP_SIZE = 8;
+
+  static bool classof(const Assembler *Asm) {
+    return Asm->getKind() == Traits::AsmKind;
+  }
+
+  class Immediate {
+    Immediate(const Immediate &) = delete;
+    Immediate &operator=(const Immediate &) = delete;
+
+  public:
+    explicit Immediate(int32_t value) : value_(value) {}
+
+    Immediate(RelocOffsetT offset, AssemblerFixup *fixup)
+        : value_(offset), fixup_(fixup) {
+      // Use the Offset in the "value" for now. If we decide to process fixups,
+      // we'll need to patch that offset with the true value.
+    }
+
+    int32_t value() const { return value_; }
+    AssemblerFixup *fixup() const { return fixup_; }
+
+    bool is_int8() const {
+      // We currently only allow 32-bit fixups, and they usually have value = 0,
+      // so if fixup_ != nullptr, it shouldn't be classified as int8/16.
+      return fixup_ == nullptr && Utils::IsInt(8, value_);
+    }
+    bool is_uint8() const {
+      return fixup_ == nullptr && Utils::IsUint(8, value_);
+    }
+    bool is_uint16() const {
+      return fixup_ == nullptr && Utils::IsUint(16, value_);
+    }
+
+  private:
+    const int32_t value_;
+    AssemblerFixup *fixup_ = nullptr;
+  };
+
+  /// X86 allows near and far jumps.
+  class Label final : public Ice::Label {
+    Label(const Label &) = delete;
+    Label &operator=(const Label &) = delete;
+
+  public:
+    Label() = default;
+    ~Label() = default;
+
+    void finalCheck() const override {
+      Ice::Label::finalCheck();
+      assert(!hasNear());
+    }
+
+    /// Returns the position of an earlier branch instruction which assumes that
+    /// this label is "near", and bumps iterator to the next near position.
+    intptr_t getNearPosition() {
+      assert(hasNear());
+      intptr_t Pos = UnresolvedNearPositions.back();
+      UnresolvedNearPositions.pop_back();
+      return Pos;
+    }
+
+    bool hasNear() const { return !UnresolvedNearPositions.empty(); }
+    bool isUnused() const override {
+      return Ice::Label::isUnused() && !hasNear();
+    }
+
+  private:
+    friend class AssemblerX86Base<TraitsType>;
+
+    void nearLinkTo(const Assembler &Asm, intptr_t position) {
+      if (Asm.getPreliminary())
+        return;
+      assert(!isBound());
+      UnresolvedNearPositions.push_back(position);
+    }
+
+    llvm::SmallVector<intptr_t, 20> UnresolvedNearPositions;
+  };
+
+public:
   ~AssemblerX86Base() override;
 
   static const bool kNearJump = true;
@@ -166,21 +180,19 @@ public:
   }
 
   // Operations to emit GPR instructions (and dispatch on operand type).
-  using TypedEmitGPR = void (AssemblerX86Base::*)(Type,
-                                                  typename Traits::GPRRegister);
-  using TypedEmitAddr =
-      void (AssemblerX86Base::*)(Type, const typename Traits::Address &);
+  using TypedEmitGPR = void (AssemblerX86Base::*)(Type, GPRRegister);
+  using TypedEmitAddr = void (AssemblerX86Base::*)(Type, const Address &);
   struct GPREmitterOneOp {
     TypedEmitGPR Reg;
     TypedEmitAddr Addr;
   };
 
-  using TypedEmitGPRGPR = void (AssemblerX86Base::*)(
-      Type, typename Traits::GPRRegister, typename Traits::GPRRegister);
-  using TypedEmitGPRAddr = void (AssemblerX86Base::*)(
-      Type, typename Traits::GPRRegister, const typename Traits::Address &);
-  using TypedEmitGPRImm = void (AssemblerX86Base::*)(
-      Type, typename Traits::GPRRegister, const Immediate &);
+  using TypedEmitGPRGPR = void (AssemblerX86Base::*)(Type, GPRRegister,
+                                                     GPRRegister);
+  using TypedEmitGPRAddr = void (AssemblerX86Base::*)(Type, GPRRegister,
+                                                      const Address &);
+  using TypedEmitGPRImm = void (AssemblerX86Base::*)(Type, GPRRegister,
+                                                     const Immediate &);
   struct GPREmitterRegOp {
     TypedEmitGPRGPR GPRGPR;
     TypedEmitGPRAddr GPRAddr;
@@ -188,15 +200,15 @@ public:
   };
 
   struct GPREmitterShiftOp {
-    // Technically, Addr/GPR and Addr/Imm are also allowed, but */Addr are not.
-    // In practice, we always normalize the Dest to a Register first.
+    // Technically, Addr/GPR and Addr/Imm are also allowed, but */Addr are
+    // not. In practice, we always normalize the Dest to a Register first.
     TypedEmitGPRGPR GPRGPR;
     TypedEmitGPRImm GPRImm;
   };
 
-  using TypedEmitGPRGPRImm = void (AssemblerX86Base::*)(
-      Type, typename Traits::GPRRegister, typename Traits::GPRRegister,
-      const Immediate &);
+  using TypedEmitGPRGPRImm = void (AssemblerX86Base::*)(Type, GPRRegister,
+                                                        GPRRegister,
+                                                        const Immediate &);
   struct GPREmitterShiftD {
     // Technically AddrGPR and AddrGPRImm are also allowed, but in practice we
     // always normalize Dest to a Register first.
@@ -204,39 +216,36 @@ public:
     TypedEmitGPRGPRImm GPRGPRImm;
   };
 
-  using TypedEmitAddrGPR = void (AssemblerX86Base::*)(
-      Type, const typename Traits::Address &, typename Traits::GPRRegister);
-  using TypedEmitAddrImm = void (AssemblerX86Base::*)(
-      Type, const typename Traits::Address &, const Immediate &);
+  using TypedEmitAddrGPR = void (AssemblerX86Base::*)(Type, const Address &,
+                                                      GPRRegister);
+  using TypedEmitAddrImm = void (AssemblerX86Base::*)(Type, const Address &,
+                                                      const Immediate &);
   struct GPREmitterAddrOp {
     TypedEmitAddrGPR AddrGPR;
     TypedEmitAddrImm AddrImm;
   };
 
   // Operations to emit XMM instructions (and dispatch on operand type).
-  using TypedEmitXmmXmm = void (AssemblerX86Base::*)(
-      Type, typename Traits::XmmRegister, typename Traits::XmmRegister);
-  using TypedEmitXmmAddr = void (AssemblerX86Base::*)(
-      Type, typename Traits::XmmRegister, const typename Traits::Address &);
+  using TypedEmitXmmXmm = void (AssemblerX86Base::*)(Type, XmmRegister,
+                                                     XmmRegister);
+  using TypedEmitXmmAddr = void (AssemblerX86Base::*)(Type, XmmRegister,
+                                                      const Address &);
   struct XmmEmitterRegOp {
     TypedEmitXmmXmm XmmXmm;
     TypedEmitXmmAddr XmmAddr;
   };
 
-  using EmitXmmXmm = void (AssemblerX86Base::*)(typename Traits::XmmRegister,
-                                                typename Traits::XmmRegister);
-  using EmitXmmAddr = void (AssemblerX86Base::*)(
-      typename Traits::XmmRegister, const typename Traits::Address &);
-  using EmitAddrXmm = void (AssemblerX86Base::*)(
-      const typename Traits::Address &, typename Traits::XmmRegister);
+  using EmitXmmXmm = void (AssemblerX86Base::*)(XmmRegister, XmmRegister);
+  using EmitXmmAddr = void (AssemblerX86Base::*)(XmmRegister, const Address &);
+  using EmitAddrXmm = void (AssemblerX86Base::*)(const Address &, XmmRegister);
   struct XmmEmitterMovOps {
     EmitXmmXmm XmmXmm;
     EmitXmmAddr XmmAddr;
     EmitAddrXmm AddrXmm;
   };
 
-  using TypedEmitXmmImm = void (AssemblerX86Base::*)(
-      Type, typename Traits::XmmRegister, const Immediate &);
+  using TypedEmitXmmImm = void (AssemblerX86Base::*)(Type, XmmRegister,
+                                                     const Immediate &);
 
   struct XmmEmitterShiftOp {
     TypedEmitXmmXmm XmmXmm;
@@ -248,8 +257,8 @@ public:
   template <typename DReg_t, typename SReg_t> struct CastEmitterRegOp {
     using TypedEmitRegs = void (AssemblerX86Base::*)(Type, DReg_t, Type,
                                                      SReg_t);
-    using TypedEmitAddr = void (AssemblerX86Base::*)(
-        Type, DReg_t, Type, const typename Traits::Address &);
+    using TypedEmitAddr = void (AssemblerX86Base::*)(Type, DReg_t, Type,
+                                                     const Address &);
 
     TypedEmitRegs RegReg;
     TypedEmitAddr RegAddr;
@@ -260,8 +269,9 @@ public:
   template <typename DReg_t, typename SReg_t> struct ThreeOpImmEmitter {
     using TypedEmitRegRegImm = void (AssemblerX86Base::*)(Type, DReg_t, SReg_t,
                                                           const Immediate &);
-    using TypedEmitRegAddrImm = void (AssemblerX86Base::*)(
-        Type, DReg_t, const typename Traits::Address &, const Immediate &);
+    using TypedEmitRegAddrImm = void (AssemblerX86Base::*)(Type, DReg_t,
+                                                           const Address &,
+                                                           const Immediate &);
 
     TypedEmitRegRegImm RegRegImm;
     TypedEmitRegAddrImm RegAddrImm;
@@ -270,17 +280,17 @@ public:
   /*
    * Emit Machine Instructions.
    */
-  void call(typename Traits::GPRRegister reg);
-  void call(const typename Traits::Address &address);
+  void call(GPRRegister reg);
+  void call(const Address &address);
   void call(const ConstantRelocatable *label); // not testable.
   void call(const Immediate &abs_address);
 
   static const intptr_t kCallExternalLabelSize = 5;
 
-  void pushl(typename Traits::GPRRegister reg);
+  void pushl(GPRRegister reg);
 
-  void popl(typename Traits::GPRRegister reg);
-  void popl(const typename Traits::Address &address);
+  void popl(GPRRegister reg);
+  void popl(const Address &address);
 
   template <typename T = Traits,
             typename = typename std::enable_if<T::HasPusha>::type>
@@ -289,309 +299,190 @@ public:
             typename = typename std::enable_if<T::HasPopa>::type>
   void popal();
 
-  void setcc(typename Traits::Cond::BrCond condition,
-             typename Traits::ByteRegister dst);
-  void setcc(typename Traits::Cond::BrCond condition,
-             const typename Traits::Address &address);
+  void setcc(BrCond condition, ByteRegister dst);
+  void setcc(BrCond condition, const Address &address);
 
-  void mov(Type Ty, typename Traits::GPRRegister dst, const Immediate &src);
-  void mov(Type Ty, typename Traits::GPRRegister dst,
-           typename Traits::GPRRegister src);
-  void mov(Type Ty, typename Traits::GPRRegister dst,
-           const typename Traits::Address &src);
-  void mov(Type Ty, const typename Traits::Address &dst,
-           typename Traits::GPRRegister src);
-  void mov(Type Ty, const typename Traits::Address &dst, const Immediate &imm);
+  void mov(Type Ty, GPRRegister dst, const Immediate &src);
+  void mov(Type Ty, GPRRegister dst, GPRRegister src);
+  void mov(Type Ty, GPRRegister dst, const Address &src);
+  void mov(Type Ty, const Address &dst, GPRRegister src);
+  void mov(Type Ty, const Address &dst, const Immediate &imm);
 
   template <typename T = Traits>
-  typename std::enable_if<T::Is64Bit, void>::type
-  movabs(const typename Traits::GPRRegister Dst, uint64_t Imm64);
+  typename std::enable_if<T::Is64Bit, void>::type movabs(const GPRRegister Dst,
+                                                         uint64_t Imm64);
   template <typename T = Traits>
-  typename std::enable_if<!T::Is64Bit, void>::type
-  movabs(const typename Traits::GPRRegister, uint64_t) {
+  typename std::enable_if<!T::Is64Bit, void>::type movabs(const GPRRegister,
+                                                          uint64_t) {
     llvm::report_fatal_error("movabs is only supported in 64-bit x86 targets.");
   }
 
-  void movzx(Type Ty, typename Traits::GPRRegister dst,
-             typename Traits::GPRRegister src);
-  void movzx(Type Ty, typename Traits::GPRRegister dst,
-             const typename Traits::Address &src);
-  void movsx(Type Ty, typename Traits::GPRRegister dst,
-             typename Traits::GPRRegister src);
-  void movsx(Type Ty, typename Traits::GPRRegister dst,
-             const typename Traits::Address &src);
+  void movzx(Type Ty, GPRRegister dst, GPRRegister src);
+  void movzx(Type Ty, GPRRegister dst, const Address &src);
+  void movsx(Type Ty, GPRRegister dst, GPRRegister src);
+  void movsx(Type Ty, GPRRegister dst, const Address &src);
 
-  void lea(Type Ty, typename Traits::GPRRegister dst,
-           const typename Traits::Address &src);
+  void lea(Type Ty, GPRRegister dst, const Address &src);
 
-  void cmov(Type Ty, typename Traits::Cond::BrCond cond,
-            typename Traits::GPRRegister dst, typename Traits::GPRRegister src);
-  void cmov(Type Ty, typename Traits::Cond::BrCond cond,
-            typename Traits::GPRRegister dst,
-            const typename Traits::Address &src);
+  void cmov(Type Ty, BrCond cond, GPRRegister dst, GPRRegister src);
+  void cmov(Type Ty, BrCond cond, GPRRegister dst, const Address &src);
 
   void rep_movsb();
 
-  void movss(Type Ty, typename Traits::XmmRegister dst,
-             const typename Traits::Address &src);
-  void movss(Type Ty, const typename Traits::Address &dst,
-             typename Traits::XmmRegister src);
-  void movss(Type Ty, typename Traits::XmmRegister dst,
-             typename Traits::XmmRegister src);
+  void movss(Type Ty, XmmRegister dst, const Address &src);
+  void movss(Type Ty, const Address &dst, XmmRegister src);
+  void movss(Type Ty, XmmRegister dst, XmmRegister src);
 
-  void movd(Type SrcTy, typename Traits::XmmRegister dst,
-            typename Traits::GPRRegister src);
-  void movd(Type SrcTy, typename Traits::XmmRegister dst,
-            const typename Traits::Address &src);
-  void movd(Type DestTy, typename Traits::GPRRegister dst,
-            typename Traits::XmmRegister src);
-  void movd(Type DestTy, const typename Traits::Address &dst,
-            typename Traits::XmmRegister src);
+  void movd(Type SrcTy, XmmRegister dst, GPRRegister src);
+  void movd(Type SrcTy, XmmRegister dst, const Address &src);
+  void movd(Type DestTy, GPRRegister dst, XmmRegister src);
+  void movd(Type DestTy, const Address &dst, XmmRegister src);
 
-  void movq(typename Traits::XmmRegister dst, typename Traits::XmmRegister src);
-  void movq(const typename Traits::Address &dst,
-            typename Traits::XmmRegister src);
-  void movq(typename Traits::XmmRegister dst,
-            const typename Traits::Address &src);
+  void movq(XmmRegister dst, XmmRegister src);
+  void movq(const Address &dst, XmmRegister src);
+  void movq(XmmRegister dst, const Address &src);
 
-  void addss(Type Ty, typename Traits::XmmRegister dst,
-             typename Traits::XmmRegister src);
-  void addss(Type Ty, typename Traits::XmmRegister dst,
-             const typename Traits::Address &src);
-  void subss(Type Ty, typename Traits::XmmRegister dst,
-             typename Traits::XmmRegister src);
-  void subss(Type Ty, typename Traits::XmmRegister dst,
-             const typename Traits::Address &src);
-  void mulss(Type Ty, typename Traits::XmmRegister dst,
-             typename Traits::XmmRegister src);
-  void mulss(Type Ty, typename Traits::XmmRegister dst,
-             const typename Traits::Address &src);
-  void divss(Type Ty, typename Traits::XmmRegister dst,
-             typename Traits::XmmRegister src);
-  void divss(Type Ty, typename Traits::XmmRegister dst,
-             const typename Traits::Address &src);
+  void addss(Type Ty, XmmRegister dst, XmmRegister src);
+  void addss(Type Ty, XmmRegister dst, const Address &src);
+  void subss(Type Ty, XmmRegister dst, XmmRegister src);
+  void subss(Type Ty, XmmRegister dst, const Address &src);
+  void mulss(Type Ty, XmmRegister dst, XmmRegister src);
+  void mulss(Type Ty, XmmRegister dst, const Address &src);
+  void divss(Type Ty, XmmRegister dst, XmmRegister src);
+  void divss(Type Ty, XmmRegister dst, const Address &src);
 
-  void movaps(typename Traits::XmmRegister dst,
-              typename Traits::XmmRegister src);
+  void movaps(XmmRegister dst, XmmRegister src);
 
-  void movups(typename Traits::XmmRegister dst,
-              typename Traits::XmmRegister src);
-  void movups(typename Traits::XmmRegister dst,
-              const typename Traits::Address &src);
-  void movups(const typename Traits::Address &dst,
-              typename Traits::XmmRegister src);
+  void movups(XmmRegister dst, XmmRegister src);
+  void movups(XmmRegister dst, const Address &src);
+  void movups(const Address &dst, XmmRegister src);
 
-  void padd(Type Ty, typename Traits::XmmRegister dst,
-            typename Traits::XmmRegister src);
-  void padd(Type Ty, typename Traits::XmmRegister dst,
-            const typename Traits::Address &src);
-  void pand(Type Ty, typename Traits::XmmRegister dst,
-            typename Traits::XmmRegister src);
-  void pand(Type Ty, typename Traits::XmmRegister dst,
-            const typename Traits::Address &src);
-  void pandn(Type Ty, typename Traits::XmmRegister dst,
-             typename Traits::XmmRegister src);
-  void pandn(Type Ty, typename Traits::XmmRegister dst,
-             const typename Traits::Address &src);
-  void pmull(Type Ty, typename Traits::XmmRegister dst,
-             typename Traits::XmmRegister src);
-  void pmull(Type Ty, typename Traits::XmmRegister dst,
-             const typename Traits::Address &src);
-  void pmuludq(Type Ty, typename Traits::XmmRegister dst,
-               typename Traits::XmmRegister src);
-  void pmuludq(Type Ty, typename Traits::XmmRegister dst,
-               const typename Traits::Address &src);
-  void por(Type Ty, typename Traits::XmmRegister dst,
-           typename Traits::XmmRegister src);
-  void por(Type Ty, typename Traits::XmmRegister dst,
-           const typename Traits::Address &src);
-  void psub(Type Ty, typename Traits::XmmRegister dst,
-            typename Traits::XmmRegister src);
-  void psub(Type Ty, typename Traits::XmmRegister dst,
-            const typename Traits::Address &src);
-  void pxor(Type Ty, typename Traits::XmmRegister dst,
-            typename Traits::XmmRegister src);
-  void pxor(Type Ty, typename Traits::XmmRegister dst,
-            const typename Traits::Address &src);
+  void padd(Type Ty, XmmRegister dst, XmmRegister src);
+  void padd(Type Ty, XmmRegister dst, const Address &src);
+  void pand(Type Ty, XmmRegister dst, XmmRegister src);
+  void pand(Type Ty, XmmRegister dst, const Address &src);
+  void pandn(Type Ty, XmmRegister dst, XmmRegister src);
+  void pandn(Type Ty, XmmRegister dst, const Address &src);
+  void pmull(Type Ty, XmmRegister dst, XmmRegister src);
+  void pmull(Type Ty, XmmRegister dst, const Address &src);
+  void pmuludq(Type Ty, XmmRegister dst, XmmRegister src);
+  void pmuludq(Type Ty, XmmRegister dst, const Address &src);
+  void por(Type Ty, XmmRegister dst, XmmRegister src);
+  void por(Type Ty, XmmRegister dst, const Address &src);
+  void psub(Type Ty, XmmRegister dst, XmmRegister src);
+  void psub(Type Ty, XmmRegister dst, const Address &src);
+  void pxor(Type Ty, XmmRegister dst, XmmRegister src);
+  void pxor(Type Ty, XmmRegister dst, const Address &src);
 
-  void psll(Type Ty, typename Traits::XmmRegister dst,
-            typename Traits::XmmRegister src);
-  void psll(Type Ty, typename Traits::XmmRegister dst,
-            const typename Traits::Address &src);
-  void psll(Type Ty, typename Traits::XmmRegister dst, const Immediate &src);
+  void psll(Type Ty, XmmRegister dst, XmmRegister src);
+  void psll(Type Ty, XmmRegister dst, const Address &src);
+  void psll(Type Ty, XmmRegister dst, const Immediate &src);
 
-  void psra(Type Ty, typename Traits::XmmRegister dst,
-            typename Traits::XmmRegister src);
-  void psra(Type Ty, typename Traits::XmmRegister dst,
-            const typename Traits::Address &src);
-  void psra(Type Ty, typename Traits::XmmRegister dst, const Immediate &src);
-  void psrl(Type Ty, typename Traits::XmmRegister dst,
-            typename Traits::XmmRegister src);
-  void psrl(Type Ty, typename Traits::XmmRegister dst,
-            const typename Traits::Address &src);
-  void psrl(Type Ty, typename Traits::XmmRegister dst, const Immediate &src);
+  void psra(Type Ty, XmmRegister dst, XmmRegister src);
+  void psra(Type Ty, XmmRegister dst, const Address &src);
+  void psra(Type Ty, XmmRegister dst, const Immediate &src);
+  void psrl(Type Ty, XmmRegister dst, XmmRegister src);
+  void psrl(Type Ty, XmmRegister dst, const Address &src);
+  void psrl(Type Ty, XmmRegister dst, const Immediate &src);
 
-  void addps(Type Ty, typename Traits::XmmRegister dst,
-             typename Traits::XmmRegister src);
-  void addps(Type Ty, typename Traits::XmmRegister dst,
-             const typename Traits::Address &src);
-  void subps(Type Ty, typename Traits::XmmRegister dst,
-             typename Traits::XmmRegister src);
-  void subps(Type Ty, typename Traits::XmmRegister dst,
-             const typename Traits::Address &src);
-  void divps(Type Ty, typename Traits::XmmRegister dst,
-             typename Traits::XmmRegister src);
-  void divps(Type Ty, typename Traits::XmmRegister dst,
-             const typename Traits::Address &src);
-  void mulps(Type Ty, typename Traits::XmmRegister dst,
-             typename Traits::XmmRegister src);
-  void mulps(Type Ty, typename Traits::XmmRegister dst,
-             const typename Traits::Address &src);
-  void minps(Type Ty, typename Traits::XmmRegister dst,
-             const typename Traits::Address &src);
-  void minps(Type Ty, typename Traits::XmmRegister dst,
-             typename Traits::XmmRegister src);
-  void minss(Type Ty, typename Traits::XmmRegister dst,
-             const typename Traits::Address &src);
-  void minss(Type Ty, typename Traits::XmmRegister dst,
-             typename Traits::XmmRegister src);
-  void maxps(Type Ty, typename Traits::XmmRegister dst,
-             const typename Traits::Address &src);
-  void maxps(Type Ty, typename Traits::XmmRegister dst,
-             typename Traits::XmmRegister src);
-  void maxss(Type Ty, typename Traits::XmmRegister dst,
-             const typename Traits::Address &src);
-  void maxss(Type Ty, typename Traits::XmmRegister dst,
-             typename Traits::XmmRegister src);
-  void andnps(Type Ty, typename Traits::XmmRegister dst,
-              const typename Traits::Address &src);
-  void andnps(Type Ty, typename Traits::XmmRegister dst,
-              typename Traits::XmmRegister src);
-  void andps(Type Ty, typename Traits::XmmRegister dst,
-             const typename Traits::Address &src);
-  void andps(Type Ty, typename Traits::XmmRegister dst,
-             typename Traits::XmmRegister src);
-  void orps(Type Ty, typename Traits::XmmRegister dst,
-            const typename Traits::Address &src);
-  void orps(Type Ty, typename Traits::XmmRegister dst,
-            typename Traits::XmmRegister src);
+  void addps(Type Ty, XmmRegister dst, XmmRegister src);
+  void addps(Type Ty, XmmRegister dst, const Address &src);
+  void subps(Type Ty, XmmRegister dst, XmmRegister src);
+  void subps(Type Ty, XmmRegister dst, const Address &src);
+  void divps(Type Ty, XmmRegister dst, XmmRegister src);
+  void divps(Type Ty, XmmRegister dst, const Address &src);
+  void mulps(Type Ty, XmmRegister dst, XmmRegister src);
+  void mulps(Type Ty, XmmRegister dst, const Address &src);
+  void minps(Type Ty, XmmRegister dst, const Address &src);
+  void minps(Type Ty, XmmRegister dst, XmmRegister src);
+  void minss(Type Ty, XmmRegister dst, const Address &src);
+  void minss(Type Ty, XmmRegister dst, XmmRegister src);
+  void maxps(Type Ty, XmmRegister dst, const Address &src);
+  void maxps(Type Ty, XmmRegister dst, XmmRegister src);
+  void maxss(Type Ty, XmmRegister dst, const Address &src);
+  void maxss(Type Ty, XmmRegister dst, XmmRegister src);
+  void andnps(Type Ty, XmmRegister dst, const Address &src);
+  void andnps(Type Ty, XmmRegister dst, XmmRegister src);
+  void andps(Type Ty, XmmRegister dst, const Address &src);
+  void andps(Type Ty, XmmRegister dst, XmmRegister src);
+  void orps(Type Ty, XmmRegister dst, const Address &src);
+  void orps(Type Ty, XmmRegister dst, XmmRegister src);
 
-  void blendvps(Type Ty, typename Traits::XmmRegister dst,
-                typename Traits::XmmRegister src);
-  void blendvps(Type Ty, typename Traits::XmmRegister dst,
-                const typename Traits::Address &src);
-  void pblendvb(Type Ty, typename Traits::XmmRegister dst,
-                typename Traits::XmmRegister src);
-  void pblendvb(Type Ty, typename Traits::XmmRegister dst,
-                const typename Traits::Address &src);
+  void blendvps(Type Ty, XmmRegister dst, XmmRegister src);
+  void blendvps(Type Ty, XmmRegister dst, const Address &src);
+  void pblendvb(Type Ty, XmmRegister dst, XmmRegister src);
+  void pblendvb(Type Ty, XmmRegister dst, const Address &src);
 
-  void cmpps(Type Ty, typename Traits::XmmRegister dst,
-             typename Traits::XmmRegister src,
-             typename Traits::Cond::CmppsCond CmpCondition);
-  void cmpps(Type Ty, typename Traits::XmmRegister dst,
-             const typename Traits::Address &src,
-             typename Traits::Cond::CmppsCond CmpCondition);
+  void cmpps(Type Ty, XmmRegister dst, XmmRegister src, CmppsCond CmpCondition);
+  void cmpps(Type Ty, XmmRegister dst, const Address &src,
+             CmppsCond CmpCondition);
 
-  void sqrtps(typename Traits::XmmRegister dst);
-  void rsqrtps(typename Traits::XmmRegister dst);
-  void reciprocalps(typename Traits::XmmRegister dst);
+  void sqrtps(XmmRegister dst);
+  void rsqrtps(XmmRegister dst);
+  void reciprocalps(XmmRegister dst);
 
-  void movhlps(typename Traits::XmmRegister dst,
-               typename Traits::XmmRegister src);
-  void movlhps(typename Traits::XmmRegister dst,
-               typename Traits::XmmRegister src);
-  void unpcklps(typename Traits::XmmRegister dst,
-                typename Traits::XmmRegister src);
-  void unpckhps(typename Traits::XmmRegister dst,
-                typename Traits::XmmRegister src);
-  void unpcklpd(typename Traits::XmmRegister dst,
-                typename Traits::XmmRegister src);
-  void unpckhpd(typename Traits::XmmRegister dst,
-                typename Traits::XmmRegister src);
+  void movhlps(XmmRegister dst, XmmRegister src);
+  void movlhps(XmmRegister dst, XmmRegister src);
+  void unpcklps(XmmRegister dst, XmmRegister src);
+  void unpckhps(XmmRegister dst, XmmRegister src);
+  void unpcklpd(XmmRegister dst, XmmRegister src);
+  void unpckhpd(XmmRegister dst, XmmRegister src);
 
-  void set1ps(typename Traits::XmmRegister dst,
-              typename Traits::GPRRegister tmp, const Immediate &imm);
+  void set1ps(XmmRegister dst, GPRRegister tmp, const Immediate &imm);
 
-  void sqrtpd(typename Traits::XmmRegister dst);
+  void sqrtpd(XmmRegister dst);
 
-  void pshufd(Type Ty, typename Traits::XmmRegister dst,
-              typename Traits::XmmRegister src, const Immediate &mask);
-  void pshufd(Type Ty, typename Traits::XmmRegister dst,
-              const typename Traits::Address &src, const Immediate &mask);
-  void shufps(Type Ty, typename Traits::XmmRegister dst,
-              typename Traits::XmmRegister src, const Immediate &mask);
-  void shufps(Type Ty, typename Traits::XmmRegister dst,
-              const typename Traits::Address &src, const Immediate &mask);
+  void pshufd(Type Ty, XmmRegister dst, XmmRegister src, const Immediate &mask);
+  void pshufd(Type Ty, XmmRegister dst, const Address &src,
+              const Immediate &mask);
+  void shufps(Type Ty, XmmRegister dst, XmmRegister src, const Immediate &mask);
+  void shufps(Type Ty, XmmRegister dst, const Address &src,
+              const Immediate &mask);
 
-  void cvtdq2ps(Type, typename Traits::XmmRegister dst,
-                typename Traits::XmmRegister src);
-  void cvtdq2ps(Type, typename Traits::XmmRegister dst,
-                const typename Traits::Address &src);
+  void cvtdq2ps(Type, XmmRegister dst, XmmRegister src);
+  void cvtdq2ps(Type, XmmRegister dst, const Address &src);
 
-  void cvttps2dq(Type, typename Traits::XmmRegister dst,
-                 typename Traits::XmmRegister src);
-  void cvttps2dq(Type, typename Traits::XmmRegister dst,
-                 const typename Traits::Address &src);
+  void cvttps2dq(Type, XmmRegister dst, XmmRegister src);
+  void cvttps2dq(Type, XmmRegister dst, const Address &src);
 
-  void cvtsi2ss(Type DestTy, typename Traits::XmmRegister dst, Type SrcTy,
-                typename Traits::GPRRegister src);
-  void cvtsi2ss(Type DestTy, typename Traits::XmmRegister dst, Type SrcTy,
-                const typename Traits::Address &src);
+  void cvtsi2ss(Type DestTy, XmmRegister dst, Type SrcTy, GPRRegister src);
+  void cvtsi2ss(Type DestTy, XmmRegister dst, Type SrcTy, const Address &src);
 
-  void cvtfloat2float(Type SrcTy, typename Traits::XmmRegister dst,
-                      typename Traits::XmmRegister src);
-  void cvtfloat2float(Type SrcTy, typename Traits::XmmRegister dst,
-                      const typename Traits::Address &src);
+  void cvtfloat2float(Type SrcTy, XmmRegister dst, XmmRegister src);
+  void cvtfloat2float(Type SrcTy, XmmRegister dst, const Address &src);
 
-  void cvttss2si(Type DestTy, typename Traits::GPRRegister dst, Type SrcTy,
-                 typename Traits::XmmRegister src);
-  void cvttss2si(Type DestTy, typename Traits::GPRRegister dst, Type SrcTy,
-                 const typename Traits::Address &src);
+  void cvttss2si(Type DestTy, GPRRegister dst, Type SrcTy, XmmRegister src);
+  void cvttss2si(Type DestTy, GPRRegister dst, Type SrcTy, const Address &src);
 
-  void ucomiss(Type Ty, typename Traits::XmmRegister a,
-               typename Traits::XmmRegister b);
-  void ucomiss(Type Ty, typename Traits::XmmRegister a,
-               const typename Traits::Address &b);
+  void ucomiss(Type Ty, XmmRegister a, XmmRegister b);
+  void ucomiss(Type Ty, XmmRegister a, const Address &b);
 
-  void movmskpd(typename Traits::GPRRegister dst,
-                typename Traits::XmmRegister src);
-  void movmskps(typename Traits::GPRRegister dst,
-                typename Traits::XmmRegister src);
+  void movmskpd(GPRRegister dst, XmmRegister src);
+  void movmskps(GPRRegister dst, XmmRegister src);
 
-  void sqrtss(Type Ty, typename Traits::XmmRegister dst,
-              const typename Traits::Address &src);
-  void sqrtss(Type Ty, typename Traits::XmmRegister dst,
-              typename Traits::XmmRegister src);
+  void sqrtss(Type Ty, XmmRegister dst, const Address &src);
+  void sqrtss(Type Ty, XmmRegister dst, XmmRegister src);
 
-  void xorps(Type Ty, typename Traits::XmmRegister dst,
-             const typename Traits::Address &src);
-  void xorps(Type Ty, typename Traits::XmmRegister dst,
-             typename Traits::XmmRegister src);
+  void xorps(Type Ty, XmmRegister dst, const Address &src);
+  void xorps(Type Ty, XmmRegister dst, XmmRegister src);
 
-  void insertps(Type Ty, typename Traits::XmmRegister dst,
-                typename Traits::XmmRegister src, const Immediate &imm);
-  void insertps(Type Ty, typename Traits::XmmRegister dst,
-                const typename Traits::Address &src, const Immediate &imm);
+  void insertps(Type Ty, XmmRegister dst, XmmRegister src,
+                const Immediate &imm);
+  void insertps(Type Ty, XmmRegister dst, const Address &src,
+                const Immediate &imm);
 
-  void pinsr(Type Ty, typename Traits::XmmRegister dst,
-             typename Traits::GPRRegister src, const Immediate &imm);
-  void pinsr(Type Ty, typename Traits::XmmRegister dst,
-             const typename Traits::Address &src, const Immediate &imm);
+  void pinsr(Type Ty, XmmRegister dst, GPRRegister src, const Immediate &imm);
+  void pinsr(Type Ty, XmmRegister dst, const Address &src,
+             const Immediate &imm);
 
-  void pextr(Type Ty, typename Traits::GPRRegister dst,
-             typename Traits::XmmRegister src, const Immediate &imm);
+  void pextr(Type Ty, GPRRegister dst, XmmRegister src, const Immediate &imm);
 
-  void pmovsxdq(typename Traits::XmmRegister dst,
-                typename Traits::XmmRegister src);
+  void pmovsxdq(XmmRegister dst, XmmRegister src);
 
-  void pcmpeq(Type Ty, typename Traits::XmmRegister dst,
-              typename Traits::XmmRegister src);
-  void pcmpeq(Type Ty, typename Traits::XmmRegister dst,
-              const typename Traits::Address &src);
-  void pcmpgt(Type Ty, typename Traits::XmmRegister dst,
-              typename Traits::XmmRegister src);
-  void pcmpgt(Type Ty, typename Traits::XmmRegister dst,
-              const typename Traits::Address &src);
+  void pcmpeq(Type Ty, XmmRegister dst, XmmRegister src);
+  void pcmpeq(Type Ty, XmmRegister dst, const Address &src);
+  void pcmpgt(Type Ty, XmmRegister dst, XmmRegister src);
+  void pcmpgt(Type Ty, XmmRegister dst, const Address &src);
 
   enum RoundingMode {
     kRoundToNearest = 0x0,
@@ -599,8 +490,7 @@ public:
     kRoundUp = 0x2,
     kRoundToZero = 0x3
   };
-  void roundsd(typename Traits::XmmRegister dst,
-               typename Traits::XmmRegister src, RoundingMode mode);
+  void roundsd(XmmRegister dst, XmmRegister src, RoundingMode mode);
 
   //----------------------------------------------------------------------------
   //
@@ -646,93 +536,58 @@ public:
   //
   //----------------------------------------------------------------------------
 
-  void cmp(Type Ty, typename Traits::GPRRegister reg0,
-           typename Traits::GPRRegister reg1);
-  void cmp(Type Ty, typename Traits::GPRRegister reg,
-           const typename Traits::Address &address);
-  void cmp(Type Ty, typename Traits::GPRRegister reg, const Immediate &imm);
-  void cmp(Type Ty, const typename Traits::Address &address,
-           typename Traits::GPRRegister reg);
-  void cmp(Type Ty, const typename Traits::Address &address,
-           const Immediate &imm);
+  void cmp(Type Ty, GPRRegister reg0, GPRRegister reg1);
+  void cmp(Type Ty, GPRRegister reg, const Address &address);
+  void cmp(Type Ty, GPRRegister reg, const Immediate &imm);
+  void cmp(Type Ty, const Address &address, GPRRegister reg);
+  void cmp(Type Ty, const Address &address, const Immediate &imm);
 
-  void test(Type Ty, typename Traits::GPRRegister reg0,
-            typename Traits::GPRRegister reg1);
-  void test(Type Ty, typename Traits::GPRRegister reg, const Immediate &imm);
-  void test(Type Ty, const typename Traits::Address &address,
-            typename Traits::GPRRegister reg);
-  void test(Type Ty, const typename Traits::Address &address,
-            const Immediate &imm);
+  void test(Type Ty, GPRRegister reg0, GPRRegister reg1);
+  void test(Type Ty, GPRRegister reg, const Immediate &imm);
+  void test(Type Ty, const Address &address, GPRRegister reg);
+  void test(Type Ty, const Address &address, const Immediate &imm);
 
-  void And(Type Ty, typename Traits::GPRRegister dst,
-           typename Traits::GPRRegister src);
-  void And(Type Ty, typename Traits::GPRRegister dst,
-           const typename Traits::Address &address);
-  void And(Type Ty, typename Traits::GPRRegister dst, const Immediate &imm);
-  void And(Type Ty, const typename Traits::Address &address,
-           typename Traits::GPRRegister reg);
-  void And(Type Ty, const typename Traits::Address &address,
-           const Immediate &imm);
+  void And(Type Ty, GPRRegister dst, GPRRegister src);
+  void And(Type Ty, GPRRegister dst, const Address &address);
+  void And(Type Ty, GPRRegister dst, const Immediate &imm);
+  void And(Type Ty, const Address &address, GPRRegister reg);
+  void And(Type Ty, const Address &address, const Immediate &imm);
 
-  void Or(Type Ty, typename Traits::GPRRegister dst,
-          typename Traits::GPRRegister src);
-  void Or(Type Ty, typename Traits::GPRRegister dst,
-          const typename Traits::Address &address);
-  void Or(Type Ty, typename Traits::GPRRegister dst, const Immediate &imm);
-  void Or(Type Ty, const typename Traits::Address &address,
-          typename Traits::GPRRegister reg);
-  void Or(Type Ty, const typename Traits::Address &address,
-          const Immediate &imm);
+  void Or(Type Ty, GPRRegister dst, GPRRegister src);
+  void Or(Type Ty, GPRRegister dst, const Address &address);
+  void Or(Type Ty, GPRRegister dst, const Immediate &imm);
+  void Or(Type Ty, const Address &address, GPRRegister reg);
+  void Or(Type Ty, const Address &address, const Immediate &imm);
 
-  void Xor(Type Ty, typename Traits::GPRRegister dst,
-           typename Traits::GPRRegister src);
-  void Xor(Type Ty, typename Traits::GPRRegister dst,
-           const typename Traits::Address &address);
-  void Xor(Type Ty, typename Traits::GPRRegister dst, const Immediate &imm);
-  void Xor(Type Ty, const typename Traits::Address &address,
-           typename Traits::GPRRegister reg);
-  void Xor(Type Ty, const typename Traits::Address &address,
-           const Immediate &imm);
+  void Xor(Type Ty, GPRRegister dst, GPRRegister src);
+  void Xor(Type Ty, GPRRegister dst, const Address &address);
+  void Xor(Type Ty, GPRRegister dst, const Immediate &imm);
+  void Xor(Type Ty, const Address &address, GPRRegister reg);
+  void Xor(Type Ty, const Address &address, const Immediate &imm);
 
-  void add(Type Ty, typename Traits::GPRRegister dst,
-           typename Traits::GPRRegister src);
-  void add(Type Ty, typename Traits::GPRRegister reg,
-           const typename Traits::Address &address);
-  void add(Type Ty, typename Traits::GPRRegister reg, const Immediate &imm);
-  void add(Type Ty, const typename Traits::Address &address,
-           typename Traits::GPRRegister reg);
-  void add(Type Ty, const typename Traits::Address &address,
-           const Immediate &imm);
+  void add(Type Ty, GPRRegister dst, GPRRegister src);
+  void add(Type Ty, GPRRegister reg, const Address &address);
+  void add(Type Ty, GPRRegister reg, const Immediate &imm);
+  void add(Type Ty, const Address &address, GPRRegister reg);
+  void add(Type Ty, const Address &address, const Immediate &imm);
 
-  void adc(Type Ty, typename Traits::GPRRegister dst,
-           typename Traits::GPRRegister src);
-  void adc(Type Ty, typename Traits::GPRRegister dst,
-           const typename Traits::Address &address);
-  void adc(Type Ty, typename Traits::GPRRegister reg, const Immediate &imm);
-  void adc(Type Ty, const typename Traits::Address &address,
-           typename Traits::GPRRegister reg);
-  void adc(Type Ty, const typename Traits::Address &address,
-           const Immediate &imm);
+  void adc(Type Ty, GPRRegister dst, GPRRegister src);
+  void adc(Type Ty, GPRRegister dst, const Address &address);
+  void adc(Type Ty, GPRRegister reg, const Immediate &imm);
+  void adc(Type Ty, const Address &address, GPRRegister reg);
+  void adc(Type Ty, const Address &address, const Immediate &imm);
 
-  void sub(Type Ty, typename Traits::GPRRegister dst,
-           typename Traits::GPRRegister src);
-  void sub(Type Ty, typename Traits::GPRRegister reg,
-           const typename Traits::Address &address);
-  void sub(Type Ty, typename Traits::GPRRegister reg, const Immediate &imm);
-  void sub(Type Ty, const typename Traits::Address &address,
-           typename Traits::GPRRegister reg);
-  void sub(Type Ty, const typename Traits::Address &address,
-           const Immediate &imm);
+  void sub(Type Ty, GPRRegister dst, GPRRegister src);
+  void sub(Type Ty, GPRRegister reg, const Address &address);
+  void sub(Type Ty, GPRRegister reg, const Immediate &imm);
+  void sub(Type Ty, const Address &address, GPRRegister reg);
+  void sub(Type Ty, const Address &address, const Immediate &imm);
 
-  void sbb(Type Ty, typename Traits::GPRRegister dst,
-           typename Traits::GPRRegister src);
-  void sbb(Type Ty, typename Traits::GPRRegister reg,
-           const typename Traits::Address &address);
-  void sbb(Type Ty, typename Traits::GPRRegister reg, const Immediate &imm);
-  void sbb(Type Ty, const typename Traits::Address &address,
-           typename Traits::GPRRegister reg);
-  void sbb(Type Ty, const typename Traits::Address &address,
-           const Immediate &imm);
+  void sbb(Type Ty, GPRRegister dst, GPRRegister src);
+  void sbb(Type Ty, GPRRegister reg, const Address &address);
+  void sbb(Type Ty, GPRRegister reg, const Immediate &imm);
+  void sbb(Type Ty, const Address &address, GPRRegister reg);
+  void sbb(Type Ty, const Address &address, const Immediate &imm);
 
   void cbw();
   void cwd();
@@ -744,93 +599,71 @@ public:
     llvm::report_fatal_error("CQO is only available in 64-bit x86 backends.");
   }
 
-  void div(Type Ty, typename Traits::GPRRegister reg);
-  void div(Type Ty, const typename Traits::Address &address);
+  void div(Type Ty, GPRRegister reg);
+  void div(Type Ty, const Address &address);
 
-  void idiv(Type Ty, typename Traits::GPRRegister reg);
-  void idiv(Type Ty, const typename Traits::Address &address);
+  void idiv(Type Ty, GPRRegister reg);
+  void idiv(Type Ty, const Address &address);
 
-  void imul(Type Ty, typename Traits::GPRRegister dst,
-            typename Traits::GPRRegister src);
-  void imul(Type Ty, typename Traits::GPRRegister reg, const Immediate &imm);
-  void imul(Type Ty, typename Traits::GPRRegister reg,
-            const typename Traits::Address &address);
+  void imul(Type Ty, GPRRegister dst, GPRRegister src);
+  void imul(Type Ty, GPRRegister reg, const Immediate &imm);
+  void imul(Type Ty, GPRRegister reg, const Address &address);
 
-  void imul(Type Ty, typename Traits::GPRRegister reg);
-  void imul(Type Ty, const typename Traits::Address &address);
+  void imul(Type Ty, GPRRegister reg);
+  void imul(Type Ty, const Address &address);
 
-  void imul(Type Ty, typename Traits::GPRRegister dst,
-            typename Traits::GPRRegister src, const Immediate &imm);
-  void imul(Type Ty, typename Traits::GPRRegister dst,
-            const typename Traits::Address &address, const Immediate &imm);
+  void imul(Type Ty, GPRRegister dst, GPRRegister src, const Immediate &imm);
+  void imul(Type Ty, GPRRegister dst, const Address &address,
+            const Immediate &imm);
 
-  void mul(Type Ty, typename Traits::GPRRegister reg);
-  void mul(Type Ty, const typename Traits::Address &address);
+  void mul(Type Ty, GPRRegister reg);
+  void mul(Type Ty, const Address &address);
 
   template <class T = Traits,
             typename = typename std::enable_if<!T::Is64Bit>::type>
-  void incl(typename Traits::GPRRegister reg);
-  void incl(const typename Traits::Address &address);
+  void incl(GPRRegister reg);
+  void incl(const Address &address);
 
   template <class T = Traits,
             typename = typename std::enable_if<!T::Is64Bit>::type>
-  void decl(typename Traits::GPRRegister reg);
-  void decl(const typename Traits::Address &address);
+  void decl(GPRRegister reg);
+  void decl(const Address &address);
 
-  void rol(Type Ty, typename Traits::GPRRegister reg, const Immediate &imm);
-  void rol(Type Ty, typename Traits::GPRRegister operand,
-           typename Traits::GPRRegister shifter);
-  void rol(Type Ty, const typename Traits::Address &operand,
-           typename Traits::GPRRegister shifter);
+  void rol(Type Ty, GPRRegister reg, const Immediate &imm);
+  void rol(Type Ty, GPRRegister operand, GPRRegister shifter);
+  void rol(Type Ty, const Address &operand, GPRRegister shifter);
 
-  void shl(Type Ty, typename Traits::GPRRegister reg, const Immediate &imm);
-  void shl(Type Ty, typename Traits::GPRRegister operand,
-           typename Traits::GPRRegister shifter);
-  void shl(Type Ty, const typename Traits::Address &operand,
-           typename Traits::GPRRegister shifter);
+  void shl(Type Ty, GPRRegister reg, const Immediate &imm);
+  void shl(Type Ty, GPRRegister operand, GPRRegister shifter);
+  void shl(Type Ty, const Address &operand, GPRRegister shifter);
 
-  void shr(Type Ty, typename Traits::GPRRegister reg, const Immediate &imm);
-  void shr(Type Ty, typename Traits::GPRRegister operand,
-           typename Traits::GPRRegister shifter);
-  void shr(Type Ty, const typename Traits::Address &operand,
-           typename Traits::GPRRegister shifter);
+  void shr(Type Ty, GPRRegister reg, const Immediate &imm);
+  void shr(Type Ty, GPRRegister operand, GPRRegister shifter);
+  void shr(Type Ty, const Address &operand, GPRRegister shifter);
 
-  void sar(Type Ty, typename Traits::GPRRegister reg, const Immediate &imm);
-  void sar(Type Ty, typename Traits::GPRRegister operand,
-           typename Traits::GPRRegister shifter);
-  void sar(Type Ty, const typename Traits::Address &address,
-           typename Traits::GPRRegister shifter);
+  void sar(Type Ty, GPRRegister reg, const Immediate &imm);
+  void sar(Type Ty, GPRRegister operand, GPRRegister shifter);
+  void sar(Type Ty, const Address &address, GPRRegister shifter);
 
-  void shld(Type Ty, typename Traits::GPRRegister dst,
-            typename Traits::GPRRegister src);
-  void shld(Type Ty, typename Traits::GPRRegister dst,
-            typename Traits::GPRRegister src, const Immediate &imm);
-  void shld(Type Ty, const typename Traits::Address &operand,
-            typename Traits::GPRRegister src);
-  void shrd(Type Ty, typename Traits::GPRRegister dst,
-            typename Traits::GPRRegister src);
-  void shrd(Type Ty, typename Traits::GPRRegister dst,
-            typename Traits::GPRRegister src, const Immediate &imm);
-  void shrd(Type Ty, const typename Traits::Address &dst,
-            typename Traits::GPRRegister src);
+  void shld(Type Ty, GPRRegister dst, GPRRegister src);
+  void shld(Type Ty, GPRRegister dst, GPRRegister src, const Immediate &imm);
+  void shld(Type Ty, const Address &operand, GPRRegister src);
+  void shrd(Type Ty, GPRRegister dst, GPRRegister src);
+  void shrd(Type Ty, GPRRegister dst, GPRRegister src, const Immediate &imm);
+  void shrd(Type Ty, const Address &dst, GPRRegister src);
 
-  void neg(Type Ty, typename Traits::GPRRegister reg);
-  void neg(Type Ty, const typename Traits::Address &addr);
-  void notl(typename Traits::GPRRegister reg);
+  void neg(Type Ty, GPRRegister reg);
+  void neg(Type Ty, const Address &addr);
+  void notl(GPRRegister reg);
 
-  void bsf(Type Ty, typename Traits::GPRRegister dst,
-           typename Traits::GPRRegister src);
-  void bsf(Type Ty, typename Traits::GPRRegister dst,
-           const typename Traits::Address &src);
-  void bsr(Type Ty, typename Traits::GPRRegister dst,
-           typename Traits::GPRRegister src);
-  void bsr(Type Ty, typename Traits::GPRRegister dst,
-           const typename Traits::Address &src);
+  void bsf(Type Ty, GPRRegister dst, GPRRegister src);
+  void bsf(Type Ty, GPRRegister dst, const Address &src);
+  void bsr(Type Ty, GPRRegister dst, GPRRegister src);
+  void bsr(Type Ty, GPRRegister dst, const Address &src);
 
-  void bswap(Type Ty, typename Traits::GPRRegister reg);
+  void bswap(Type Ty, GPRRegister reg);
 
-  void bt(typename Traits::GPRRegister base,
-          typename Traits::GPRRegister offset);
+  void bt(GPRRegister base, GPRRegister offset);
 
   void ret();
   void ret(const Immediate &imm);
@@ -842,27 +675,21 @@ public:
   void ud2();
 
   // j(Label) is fully tested.
-  void j(typename Traits::Cond::BrCond condition, Label *label,
-         bool near = kFarJump);
-  void j(typename Traits::Cond::BrCond condition,
-         const ConstantRelocatable *label); // not testable.
+  void j(BrCond condition, Label *label, bool near = kFarJump);
+  void j(BrCond condition, const ConstantRelocatable *label); // not testable.
 
-  void jmp(typename Traits::GPRRegister reg);
+  void jmp(GPRRegister reg);
   void jmp(Label *label, bool near = kFarJump);
   void jmp(const ConstantRelocatable *label); // not testable.
 
   void mfence();
 
   void lock();
-  void cmpxchg(Type Ty, const typename Traits::Address &address,
-               typename Traits::GPRRegister reg, bool Locked);
-  void cmpxchg8b(const typename Traits::Address &address, bool Locked);
-  void xadd(Type Ty, const typename Traits::Address &address,
-            typename Traits::GPRRegister reg, bool Locked);
-  void xchg(Type Ty, typename Traits::GPRRegister reg0,
-            typename Traits::GPRRegister reg1);
-  void xchg(Type Ty, const typename Traits::Address &address,
-            typename Traits::GPRRegister reg);
+  void cmpxchg(Type Ty, const Address &address, GPRRegister reg, bool Locked);
+  void cmpxchg8b(const Address &address, bool Locked);
+  void xadd(Type Ty, const Address &address, GPRRegister reg, bool Locked);
+  void xchg(Type Ty, GPRRegister reg0, GPRRegister reg1);
+  void xchg(Type Ty, const Address &address, GPRRegister reg);
 
   /// \name Intel Architecture Code Analyzer markers.
   /// @{
@@ -882,9 +709,11 @@ protected:
   inline void emitUint8(uint8_t value);
 
 private:
+  ENABLE_MAKE_UNIQUE;
+
   static constexpr Type RexTypeIrrelevant = IceType_i32;
   static constexpr Type RexTypeForceRexW = IceType_i64;
-  static constexpr typename Traits::GPRRegister RexRegIrrelevant =
+  static constexpr GPRRegister RexRegIrrelevant =
       Traits::GPRRegister::Encoded_Reg_eax;
 
   inline void emitInt16(int16_t value);
@@ -894,21 +723,19 @@ private:
   inline void emitXmmRegisterOperand(RegType reg, RmType rm);
   inline void emitOperandSizeOverride();
 
-  void emitOperand(int rm, const typename Traits::Operand &operand);
+  void emitOperand(int rm, const Operand &operand);
   void emitImmediate(Type ty, const Immediate &imm);
-  void emitComplexI8(int rm, const typename Traits::Operand &operand,
+  void emitComplexI8(int rm, const Operand &operand,
                      const Immediate &immediate);
-  void emitComplex(Type Ty, int rm, const typename Traits::Operand &operand,
+  void emitComplex(Type Ty, int rm, const Operand &operand,
                    const Immediate &immediate);
   void emitLabel(Label *label, intptr_t instruction_size);
   void emitLabelLink(Label *label);
   void emitNearLabelLink(Label *label);
 
-  void emitGenericShift(int rm, Type Ty, typename Traits::GPRRegister reg,
-                        const Immediate &imm);
-  void emitGenericShift(int rm, Type Ty,
-                        const typename Traits::Operand &operand,
-                        typename Traits::GPRRegister shifter);
+  void emitGenericShift(int rm, Type Ty, GPRRegister reg, const Immediate &imm);
+  void emitGenericShift(int rm, Type Ty, const Operand &operand,
+                        GPRRegister shifter);
 
   using LabelVector = std::vector<Label *>;
   // A vector of pool-allocated x86 labels for CFG nodes.
@@ -930,24 +757,19 @@ private:
   // of add(), Or(), adc(), sbb(), And(), sub(), Xor(), and cmp(). The Tag
   // parameter is statically asserted to be less than 8.
   template <uint32_t Tag>
-  void arith_int(Type Ty, typename Traits::GPRRegister reg,
-                 const Immediate &imm);
+  void arith_int(Type Ty, GPRRegister reg, const Immediate &imm);
 
   template <uint32_t Tag>
-  void arith_int(Type Ty, typename Traits::GPRRegister reg0,
-                 typename Traits::GPRRegister reg1);
+  void arith_int(Type Ty, GPRRegister reg0, GPRRegister reg1);
 
   template <uint32_t Tag>
-  void arith_int(Type Ty, typename Traits::GPRRegister reg,
-                 const typename Traits::Address &address);
+  void arith_int(Type Ty, GPRRegister reg, const Address &address);
 
   template <uint32_t Tag>
-  void arith_int(Type Ty, const typename Traits::Address &address,
-                 typename Traits::GPRRegister reg);
+  void arith_int(Type Ty, const Address &address, GPRRegister reg);
 
   template <uint32_t Tag>
-  void arith_int(Type Ty, const typename Traits::Address &address,
-                 const Immediate &imm);
+  void arith_int(Type Ty, const Address &address, const Immediate &imm);
 
   // gprEncoding returns Reg encoding for operand emission. For x86-64 we mask
   // out the 4th bit as it is encoded in the REX.[RXB] bits. No other bits are
@@ -955,8 +777,7 @@ private:
   template <typename RegType, typename T = Traits>
   typename std::enable_if<T::Is64Bit, typename T::GPRRegister>::type
   gprEncoding(const RegType Reg) {
-    return static_cast<typename Traits::GPRRegister>(static_cast<uint8_t>(Reg) &
-                                                     ~0x08);
+    return static_cast<GPRRegister>(static_cast<uint8_t>(Reg) & ~0x08);
   }
 
   template <typename RegType, typename T = Traits>
@@ -968,18 +789,16 @@ private:
   template <typename RegType>
   bool is8BitRegisterRequiringRex(const Type Ty, const RegType Reg) {
     static constexpr bool IsGPR =
-        std::is_same<typename std::decay<RegType>::type,
-                     typename Traits::ByteRegister>::value ||
-        std::is_same<typename std::decay<RegType>::type,
-                     typename Traits::GPRRegister>::value;
+        std::is_same<typename std::decay<RegType>::type, ByteRegister>::value ||
+        std::is_same<typename std::decay<RegType>::type, GPRRegister>::value;
 
     // At this point in the assembler, we have encoded regs, so it is not
     // possible to distinguish between the "new" low byte registers introduced
-    // in x86-64 and the legacy [abcd]h registers. Because x86, we may still see
-    // ah (div) in the assembler, so we whitelist it here.
+    // in x86-64 and the legacy [abcd]h registers. Because x86, we may still
+    // see ah (div) in the assembler, so we whitelist it here.
     //
-    // The "local" uint32_t Encoded_Reg_ah is needed because RegType is an enum
-    // that is not necessarily the same type of
+    // The "local" uint32_t Encoded_Reg_ah is needed because RegType is an
+    // enum that is not necessarily the same type of
     // Traits::RegisterSet::Encoded_Reg_ah.
     constexpr uint32_t Encoded_Reg_ah = Traits::RegisterSet::Encoded_Reg_ah;
     return IsGPR && (Reg & 0x04) != 0 && (Reg & 0x08) == 0 &&
@@ -988,9 +807,10 @@ private:
 
   // assembleAndEmitRex is used for determining which (if any) rex prefix
   // should be emitted for the current instruction. It allows different types
-  // for Reg and Rm because they could be of different types (e.g., in mov[sz]x
-  // instructions.) If Addr is not nullptr, then Rm is ignored, and Rex.B is
-  // determined by Addr instead. TyRm is still used to determine Addr's size.
+  // for Reg and Rm because they could be of different types (e.g., in
+  // mov[sz]x instructions.) If Addr is not nullptr, then Rm is ignored, and
+  // Rex.B is determined by Addr instead. TyRm is still used to determine
+  // Addr's size.
   template <typename RegType, typename RmType, typename T = Traits>
   typename std::enable_if<T::Is64Bit, void>::type
   assembleAndEmitRex(const Type TyReg, const RegType Reg, const Type TyRm,
@@ -1021,8 +841,8 @@ private:
   assembleAndEmitRex(const Type, const RegType, const Type, const RmType,
                      const typename T::Address * = nullptr) {}
 
-  // emitRexRB is used for emitting a Rex prefix instructions with two explicit
-  // register operands in its mod-rm byte.
+  // emitRexRB is used for emitting a Rex prefix instructions with two
+  // explicit register operands in its mod-rm byte.
   template <typename RegType, typename RmType>
   void emitRexRB(const Type Ty, const RegType Reg, const RmType Rm) {
     assembleAndEmitRex(Ty, Reg, Ty, Rm);
@@ -1044,53 +864,52 @@ private:
   // emitRex is used for emitting a Rex prefix for an address and a GPR. The
   // address may contain zero, one, or two registers.
   template <typename RegType>
-  void emitRex(const Type Ty, const typename Traits::Address &Addr,
-               const RegType Reg) {
+  void emitRex(const Type Ty, const Address &Addr, const RegType Reg) {
     assembleAndEmitRex(Ty, Reg, Ty, RexRegIrrelevant, &Addr);
   }
 
   template <typename RegType>
-  void emitRex(const Type AddrTy, const typename Traits::Address &Addr,
-               const Type TyReg, const RegType Reg) {
+  void emitRex(const Type AddrTy, const Address &Addr, const Type TyReg,
+               const RegType Reg) {
     assembleAndEmitRex(TyReg, Reg, AddrTy, RexRegIrrelevant, &Addr);
   }
 };
 
-template <class Machine>
-inline void AssemblerX86Base<Machine>::emitUint8(uint8_t value) {
+template <typename TraitsType>
+inline void AssemblerX86Base<TraitsType>::emitUint8(uint8_t value) {
   Buffer.emit<uint8_t>(value);
 }
 
-template <class Machine>
-inline void AssemblerX86Base<Machine>::emitInt16(int16_t value) {
+template <typename TraitsType>
+inline void AssemblerX86Base<TraitsType>::emitInt16(int16_t value) {
   Buffer.emit<int16_t>(value);
 }
 
-template <class Machine>
-inline void AssemblerX86Base<Machine>::emitInt32(int32_t value) {
+template <typename TraitsType>
+inline void AssemblerX86Base<TraitsType>::emitInt32(int32_t value) {
   Buffer.emit<int32_t>(value);
 }
 
-template <class Machine>
-inline void AssemblerX86Base<Machine>::emitRegisterOperand(int reg, int rm) {
+template <typename TraitsType>
+inline void AssemblerX86Base<TraitsType>::emitRegisterOperand(int reg, int rm) {
   assert(reg >= 0 && reg < 8);
   assert(rm >= 0 && rm < 8);
   Buffer.emit<uint8_t>(0xC0 + (reg << 3) + rm);
 }
 
-template <class Machine>
+template <typename TraitsType>
 template <typename RegType, typename RmType>
-inline void AssemblerX86Base<Machine>::emitXmmRegisterOperand(RegType reg,
-                                                              RmType rm) {
+inline void AssemblerX86Base<TraitsType>::emitXmmRegisterOperand(RegType reg,
+                                                                 RmType rm) {
   emitRegisterOperand(gprEncoding(reg), gprEncoding(rm));
 }
 
-template <class Machine>
-inline void AssemblerX86Base<Machine>::emitOperandSizeOverride() {
+template <typename TraitsType>
+inline void AssemblerX86Base<TraitsType>::emitOperandSizeOverride() {
   emitUint8(0x66);
 }
 
-} // end of namespace X86Internal
+} // end of namespace X86NAMESPACE
 
 } // end of namespace Ice
 

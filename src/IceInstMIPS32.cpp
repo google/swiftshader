@@ -23,6 +23,7 @@
 #include <limits>
 
 namespace Ice {
+namespace MIPS32 {
 
 bool OperandMIPS32Mem::canHoldOffset(Type Ty, bool SignExt, int32_t Offset) {
   (void)SignExt;
@@ -274,4 +275,5 @@ void InstMIPS32Mov::emitSingleDestSingleSource(const Cfg *Func) const {
   getSrc(0)->emit(Func);
 }
 
+} // end of namespace MIPS32
 } // end of namespace Ice

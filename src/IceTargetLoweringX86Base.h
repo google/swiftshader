@@ -27,12 +27,16 @@
 #include <type_traits>
 #include <utility>
 
+#ifndef X86NAMESPACE
+#error "You must define the X86 Target namespace."
+#endif
+
 namespace Ice {
-namespace X86Internal {
+namespace X86NAMESPACE {
 
-template <class MachineTraits> class BoolFolding;
+using namespace ::Ice::X86;
 
-template <class Machine> struct MachineTraits {};
+template <typename Traits> class BoolFolding;
 
 /// TargetX86Base is a template for all X86 Targets, and it relies on the CRT
 /// pattern for generating code, delegating to actual backends target-specific
@@ -44,18 +48,34 @@ template <class Machine> struct MachineTraits {};
 ///
 /// Note: Ideally, we should be able to
 ///
-///  static_assert(std::is_base_of<TargetX86Base<Machine>, Machine>::value);
+///  static_assert(std::is_base_of<TargetX86Base<TraitsType>,
+///  Machine>::value);
 ///
 /// but that does not work: the compiler does not know that Machine inherits
 /// from TargetX86Base at this point in translation.
-template <class Machine> class TargetX86Base : public TargetLowering {
+template <typename TraitsType> class TargetX86Base : public TargetLowering {
   TargetX86Base() = delete;
   TargetX86Base(const TargetX86Base &) = delete;
   TargetX86Base &operator=(const TargetX86Base &) = delete;
 
 public:
-  using Traits = MachineTraits<Machine>;
-  using BoolFolding = ::Ice::X86Internal::BoolFolding<Traits>;
+  using Traits = TraitsType;
+  using BoolFolding = BoolFolding<Traits>;
+  using ConcreteTarget = typename Traits::ConcreteTarget;
+  using InstructionSetEnum = typename Traits::InstructionSet;
+
+  using BrCond = typename Traits::Cond::BrCond;
+  using CmppsCond = typename Traits::Cond::CmppsCond;
+
+  using X86Address = typename Traits::Address;
+  using X86Operand = typename Traits::X86Operand;
+  using X86OperandMem = typename Traits::X86OperandMem;
+  using SegmentRegisters = typename Traits::X86OperandMem::SegmentRegisters;
+  using SpillVariable = typename Traits::SpillVariable;
+
+  using InstX86Br = typename Traits::Insts::Br;
+  using InstX86FakeRMW = typename Traits::Insts::FakeRMW;
+  using InstX86Label = typename Traits::Insts::Label;
 
   ~TargetX86Base() override = default;
 
@@ -156,11 +176,9 @@ public:
   void finishArgumentLowering(Variable *Arg, Variable *FramePtr,
                               size_t BasicFrameOffset, size_t StackAdjBytes,
                               size_t &InArgsSizeBytes);
-  typename Traits::Address stackVarToAsmOperand(const Variable *Var) const;
+  X86Address stackVarToAsmOperand(const Variable *Var) const;
 
-  typename Traits::InstructionSet getInstructionSet() const {
-    return InstructionSet;
-  }
+  InstructionSetEnum getInstructionSet() const { return InstructionSet; }
   Operand *legalizeUndef(Operand *From, int32_t RegNum = Variable::NoRegister);
 
 protected:
@@ -186,7 +204,7 @@ protected:
   void lowerSwitch(const InstSwitch *Inst) override;
   void lowerUnreachable(const InstUnreachable *Inst) override;
   void lowerOther(const Inst *Instr) override;
-  void lowerRMW(const typename Traits::Insts::FakeRMW *RMW);
+  void lowerRMW(const InstX86FakeRMW *RMW);
   void prelowerPhis() override;
   uint32_t getCallStackArgumentsSizeBytes(const std::vector<Type> &ArgTypes,
                                           Type ReturnType);
@@ -277,8 +295,8 @@ protected:
   /// Turn a pointer operand into a memory operand that can be used by a real
   /// load/store operation. Legalizes the operand as well. This is a nop if the
   /// operand is already a legal memory operand.
-  typename Traits::X86OperandMem *formMemoryOperand(Operand *Ptr, Type Ty,
-                                                    bool DoLegalize = true);
+  X86OperandMem *formMemoryOperand(Operand *Ptr, Type Ty,
+                                   bool DoLegalize = true);
 
   Variable *makeReg(Type Ty, int32_t RegNum = Variable::NoRegister);
   static Type stackSlotType();
@@ -316,8 +334,8 @@ protected:
   /// @}
 
   /// Return a memory operand corresponding to a stack allocated Variable.
-  typename Traits::X86OperandMem *
-  getMemoryOperandForStackSlot(Type Ty, Variable *Slot, uint32_t Offset = 0);
+  X86OperandMem *getMemoryOperandForStackSlot(Type Ty, Variable *Slot,
+                                              uint32_t Offset = 0);
 
   void
   makeRandomRegisterPermutation(llvm::SmallVectorImpl<int32_t> &Permutation,
@@ -330,13 +348,13 @@ protected:
   void _adc(Variable *Dest, Operand *Src0) {
     Context.insert<typename Traits::Insts::Adc>(Dest, Src0);
   }
-  void _adc_rmw(typename Traits::X86OperandMem *DestSrc0, Operand *Src1) {
+  void _adc_rmw(X86OperandMem *DestSrc0, Operand *Src1) {
     Context.insert<typename Traits::Insts::AdcRMW>(DestSrc0, Src1);
   }
   void _add(Variable *Dest, Operand *Src0) {
     Context.insert<typename Traits::Insts::Add>(Dest, Src0);
   }
-  void _add_rmw(typename Traits::X86OperandMem *DestSrc0, Operand *Src1) {
+  void _add_rmw(X86OperandMem *DestSrc0, Operand *Src1) {
     Context.insert<typename Traits::Insts::AddRMW>(DestSrc0, Src1);
   }
   void _addps(Variable *Dest, Operand *Src0) {
@@ -354,28 +372,25 @@ protected:
   void _andps(Variable *Dest, Operand *Src0) {
     Context.insert<typename Traits::Insts::Andps>(Dest, Src0);
   }
-  void _and_rmw(typename Traits::X86OperandMem *DestSrc0, Operand *Src1) {
+  void _and_rmw(X86OperandMem *DestSrc0, Operand *Src1) {
     Context.insert<typename Traits::Insts::AndRMW>(DestSrc0, Src1);
   }
   void _blendvps(Variable *Dest, Operand *Src0, Operand *Src1) {
     Context.insert<typename Traits::Insts::Blendvps>(Dest, Src0, Src1);
   }
-  void _br(typename Traits::Cond::BrCond Condition, CfgNode *TargetTrue,
-           CfgNode *TargetFalse) {
-    Context.insert<typename Traits::Insts::Br>(
-        TargetTrue, TargetFalse, Condition, Traits::Insts::Br::Far);
+  void _br(BrCond Condition, CfgNode *TargetTrue, CfgNode *TargetFalse) {
+    Context.insert<InstX86Br>(TargetTrue, TargetFalse, Condition,
+                              InstX86Br::Far);
   }
   void _br(CfgNode *Target) {
-    Context.insert<typename Traits::Insts::Br>(Target, Traits::Insts::Br::Far);
+    Context.insert<InstX86Br>(Target, InstX86Br::Far);
   }
-  void _br(typename Traits::Cond::BrCond Condition, CfgNode *Target) {
-    Context.insert<typename Traits::Insts::Br>(Target, Condition,
-                                               Traits::Insts::Br::Far);
+  void _br(BrCond Condition, CfgNode *Target) {
+    Context.insert<InstX86Br>(Target, Condition, InstX86Br::Far);
   }
-  void _br(typename Traits::Cond::BrCond Condition,
-           typename Traits::Insts::Label *Label,
-           typename Traits::Insts::Br::Mode Kind = Traits::Insts::Br::Near) {
-    Context.insert<typename Traits::Insts::Br>(Label, Condition, Kind);
+  void _br(BrCond Condition, InstX86Label *Label,
+           typename InstX86Br::Mode Kind = InstX86Br::Near) {
+    Context.insert<InstX86Br>(Label, Condition, Kind);
   }
   void _bsf(Variable *Dest, Operand *Src0) {
     Context.insert<typename Traits::Insts::Bsf>(Dest, Src0);
@@ -389,15 +404,13 @@ protected:
   void _cbwdq(Variable *Dest, Operand *Src0) {
     Context.insert<typename Traits::Insts::Cbwdq>(Dest, Src0);
   }
-  void _cmov(Variable *Dest, Operand *Src0,
-             typename Traits::Cond::BrCond Condition) {
+  void _cmov(Variable *Dest, Operand *Src0, BrCond Condition) {
     Context.insert<typename Traits::Insts::Cmov>(Dest, Src0, Condition);
   }
   void _cmp(Operand *Src0, Operand *Src1) {
     Context.insert<typename Traits::Insts::Icmp>(Src0, Src1);
   }
-  void _cmpps(Variable *Dest, Operand *Src0,
-              typename Traits::Cond::CmppsCond Condition) {
+  void _cmpps(Variable *Dest, Operand *Src0, CmppsCond Condition) {
     Context.insert<typename Traits::Insts::Cmpps>(Dest, Src0, Condition);
   }
   void _cmpxchg(Operand *DestOrAddr, Variable *Eax, Variable *Desired,
@@ -409,8 +422,8 @@ protected:
     _set_dest_redefined();
     Context.insert<InstFakeUse>(Eax);
   }
-  void _cmpxchg8b(typename Traits::X86OperandMem *Addr, Variable *Edx,
-                  Variable *Eax, Variable *Ecx, Variable *Ebx, bool Locked) {
+  void _cmpxchg8b(X86OperandMem *Addr, Variable *Edx, Variable *Eax,
+                  Variable *Ecx, Variable *Ebx, bool Locked) {
     Context.insert<typename Traits::Insts::Cmpxchg8b>(Addr, Edx, Eax, Ecx, Ebx,
                                                       Locked);
     // Mark edx, and eax as possibly modified by cmpxchg8b.
@@ -533,7 +546,7 @@ protected:
   void _orps(Variable *Dest, Operand *Src0) {
     Context.insert<typename Traits::Insts::Orps>(Dest, Src0);
   }
-  void _or_rmw(typename Traits::X86OperandMem *DestSrc0, Operand *Src1) {
+  void _or_rmw(X86OperandMem *DestSrc0, Operand *Src1) {
     Context.insert<typename Traits::Insts::OrRMW>(DestSrc0, Src1);
   }
   void _padd(Variable *Dest, Operand *Src0) {
@@ -605,10 +618,10 @@ protected:
   void _sbb(Variable *Dest, Operand *Src0) {
     Context.insert<typename Traits::Insts::Sbb>(Dest, Src0);
   }
-  void _sbb_rmw(typename Traits::X86OperandMem *DestSrc0, Operand *Src1) {
+  void _sbb_rmw(X86OperandMem *DestSrc0, Operand *Src1) {
     Context.insert<typename Traits::Insts::SbbRMW>(DestSrc0, Src1);
   }
-  void _setcc(Variable *Dest, typename Traits::Cond::BrCond Condition) {
+  void _setcc(Variable *Dest, BrCond Condition) {
     Context.insert<typename Traits::Insts::Setcc>(Dest, Condition);
   }
   void _shl(Variable *Dest, Operand *Src0) {
@@ -629,19 +642,19 @@ protected:
   void _sqrtss(Variable *Dest, Operand *Src0) {
     Context.insert<typename Traits::Insts::Sqrtss>(Dest, Src0);
   }
-  void _store(Operand *Value, typename Traits::X86Operand *Mem) {
+  void _store(Operand *Value, X86Operand *Mem) {
     Context.insert<typename Traits::Insts::Store>(Value, Mem);
   }
-  void _storep(Variable *Value, typename Traits::X86OperandMem *Mem) {
+  void _storep(Variable *Value, X86OperandMem *Mem) {
     Context.insert<typename Traits::Insts::StoreP>(Value, Mem);
   }
-  void _storeq(Variable *Value, typename Traits::X86OperandMem *Mem) {
+  void _storeq(Variable *Value, X86OperandMem *Mem) {
     Context.insert<typename Traits::Insts::StoreQ>(Value, Mem);
   }
   void _sub(Variable *Dest, Operand *Src0) {
     Context.insert<typename Traits::Insts::Sub>(Dest, Src0);
   }
-  void _sub_rmw(typename Traits::X86OperandMem *DestSrc0, Operand *Src1) {
+  void _sub_rmw(X86OperandMem *DestSrc0, Operand *Src1) {
     Context.insert<typename Traits::Insts::SubRMW>(DestSrc0, Src1);
   }
   void _subps(Variable *Dest, Operand *Src0) {
@@ -679,7 +692,7 @@ protected:
   void _xorps(Variable *Dest, Operand *Src0) {
     Context.insert<typename Traits::Insts::Xorps>(Dest, Src0);
   }
-  void _xor_rmw(typename Traits::X86OperandMem *DestSrc0, Operand *Src1) {
+  void _xor_rmw(X86OperandMem *DestSrc0, Operand *Src1) {
     Context.insert<typename Traits::Insts::XorRMW>(DestSrc0, Src1);
   }
 
@@ -717,8 +730,7 @@ protected:
   bool optimizeScalarMul(Variable *Dest, Operand *Src0, int32_t Src1);
   void findRMW();
 
-  typename Traits::InstructionSet InstructionSet =
-      Traits::InstructionSet::Begin;
+  InstructionSetEnum InstructionSet = Traits::InstructionSet::Begin;
   bool IsEbpBasedFrame = false;
   bool NeedsStackAlignment = false;
   size_t SpillAreaSizeBytes = 0;
@@ -736,8 +748,8 @@ protected:
   /// Randomize a given immediate operand
   Operand *randomizeOrPoolImmediate(Constant *Immediate,
                                     int32_t RegNum = Variable::NoRegister);
-  typename Traits::X86OperandMem *
-  randomizeOrPoolImmediate(typename Traits::X86OperandMem *MemOperand,
+  X86OperandMem *
+  randomizeOrPoolImmediate(X86OperandMem *MemOperand,
                            int32_t RegNum = Variable::NoRegister);
   bool RandomizationPoolingPaused = false;
 
@@ -755,13 +767,15 @@ private:
   /// Method **exactly** (i.e., no argument promotion is performed.)
   template <typename Ret, typename... Args>
   typename std::enable_if<!std::is_void<Ret>::value, Ret>::type
-  dispatchToConcrete(Ret (Machine::*Method)(Args...), Args &&... args) {
-    return (static_cast<Machine *>(this)->*Method)(std::forward<Args>(args)...);
+  dispatchToConcrete(Ret (ConcreteTarget::*Method)(Args...), Args &&... args) {
+    return (static_cast<ConcreteTarget *>(this)->*Method)(
+        std::forward<Args>(args)...);
   }
 
   template <typename... Args>
-  void dispatchToConcrete(void (Machine::*Method)(Args...), Args &&... args) {
-    (static_cast<Machine *>(this)->*Method)(std::forward<Args>(args)...);
+  void dispatchToConcrete(void (ConcreteTarget::*Method)(Args...),
+                          Args &&... args) {
+    (static_cast<ConcreteTarget *>(this)->*Method)(std::forward<Args>(args)...);
   }
 
   void lowerShift64(InstArithmetic::OpKind Op, Operand *Src0Lo, Operand *Src0Hi,
@@ -775,8 +789,7 @@ private:
 
   /// Emit a setcc instruction if Consumer == nullptr; otherwise emit a
   /// specialized version of Consumer.
-  void setccOrConsumer(typename Traits::Cond::BrCond Condition, Variable *Dest,
-                       const Inst *Consumer);
+  void setccOrConsumer(BrCond Condition, Variable *Dest, const Inst *Consumer);
 
   /// Emit a mov [1|0] instruction if Consumer == nullptr; otherwise emit a
   /// specialized version of Consumer.
@@ -788,10 +801,10 @@ private:
   void lowerSelectVector(const InstSelect *Inst);
 
   /// Helpers for select lowering.
-  void lowerSelectMove(Variable *Dest, typename Traits::Cond::BrCond Cond,
-                       Operand *SrcT, Operand *SrcF);
-  void lowerSelectIntMove(Variable *Dest, typename Traits::Cond::BrCond Cond,
-                          Operand *SrcT, Operand *SrcF);
+  void lowerSelectMove(Variable *Dest, BrCond Cond, Operand *SrcT,
+                       Operand *SrcF);
+  void lowerSelectIntMove(Variable *Dest, BrCond Cond, Operand *SrcT,
+                          Operand *SrcF);
   /// Generic helper to move an arbitrary type from Src to Dest.
   void lowerMove(Variable *Dest, Operand *Src, bool IsRedefinition);
 
@@ -813,7 +826,7 @@ private:
 
   BoolFolding FoldingInfo;
 };
-} // end of namespace X86Internal
+} // end of namespace X86NAMESPACE
 } // end of namespace Ice
 
 #include "IceTargetLoweringX86BaseImpl.h"

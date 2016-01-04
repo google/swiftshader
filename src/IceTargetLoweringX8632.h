@@ -18,16 +18,18 @@
 
 #include "IceAssemblerX8632.h"
 #include "IceDefs.h"
-#include "IceInstX8632.h"
 #include "IceRegistersX8632.h"
 #include "IceTargetLowering.h"
-#include "IceTargetLoweringX8632Traits.h"
+#include "IceInstX8632.h"
+#define X86NAMESPACE X8632
 #include "IceTargetLoweringX86Base.h"
+#undef X86NAMESPACE
+#include "IceTargetLoweringX8632Traits.h"
 
 namespace Ice {
+namespace X8632 {
 
-class TargetX8632 final
-    : public ::Ice::X86Internal::TargetX86Base<TargetX8632> {
+class TargetX8632 final : public ::Ice::X8632::TargetX86Base<X8632::Traits> {
   TargetX8632() = delete;
   TargetX8632(const TargetX8632 &) = delete;
   TargetX8632 &operator=(const TargetX8632 &) = delete;
@@ -55,7 +57,7 @@ protected:
 
 private:
   ENABLE_MAKE_UNIQUE;
-  friend class ::Ice::X86Internal::TargetX86Base<TargetX8632>;
+  friend class X8632::TargetX86Base<X8632::Traits>;
 
   Operand *createNaClReadTPSrcOperand() {
     Constant *Zero = Ctx->getConstantZero(IceType_i32);
@@ -108,6 +110,7 @@ private:
   ~TargetHeaderX8632() = default;
 };
 
+} // end of namespace X8632
 } // end of namespace Ice
 
 #endif // SUBZERO_SRC_ICETARGETLOWERINGX8632_H

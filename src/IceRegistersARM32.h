@@ -21,6 +21,7 @@
 #include "IceTypes.h"
 
 namespace Ice {
+namespace ARM32 {
 
 class RegARM32 {
 public:
@@ -136,6 +137,7 @@ public:
 // Extend enum RegClass with ARM32-specific register classes (if any).
 enum RegClassARM32 : uint8_t { RCARM32_NUM = RC_Target };
 
+} // end of namespace ARM32
 } // end of namespace Ice
 
 #endif // SUBZERO_SRC_ICEREGISTERSARM32_H

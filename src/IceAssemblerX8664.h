@@ -16,47 +16,24 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// \brief Implements the Assembler class for x86-64.
+/// \brief Instantiates the Assembler for X86-64.
 ///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICEASSEMBLERX8664_H
 #define SUBZERO_SRC_ICEASSEMBLERX8664_H
 
-#include "IceAssembler.h"
+#define X86NAMESPACE X8664
 #include "IceAssemblerX86Base.h"
-#include "IceDefs.h"
-#include "IceOperand.h"
+#undef X86NAMESPACE
 #include "IceTargetLoweringX8664Traits.h"
-#include "IceTypes.h"
-#include "IceUtils.h"
 
 namespace Ice {
-
-class TargetX8664;
-
 namespace X8664 {
 
-using Immediate = ::Ice::X86Internal::Immediate;
-using Label = ::Ice::X86Internal::Label;
-
-class AssemblerX8664 : public X86Internal::AssemblerX86Base<TargetX8664> {
-  AssemblerX8664(const AssemblerX8664 &) = delete;
-  AssemblerX8664 &operator=(const AssemblerX8664 &) = delete;
-
-public:
-  explicit AssemblerX8664(bool use_far_branches = false)
-      : X86Internal::AssemblerX86Base<TargetX8664>(Asm_X8664,
-                                                   use_far_branches) {}
-  ~AssemblerX8664() override = default;
-
-  static bool classof(const Assembler *Asm) {
-    return Asm->getKind() == Asm_X8664;
-  }
-
-private:
-  ENABLE_MAKE_UNIQUE;
-};
+using AssemblerX8664 = AssemblerX86Base<X8664::Traits>;
+using Label = AssemblerX8664::Label;
+using Immediate = AssemblerX8664::Immediate;
 
 } // end of namespace X8664
 } // end of namespace Ice

@@ -25,6 +25,7 @@
 #include "IceOperand.h"
 
 namespace Ice {
+namespace ARM32 {
 
 class TargetARM32;
 
@@ -1376,6 +1377,7 @@ template <> void InstARM32Ldr::emit(const Cfg *Func) const;
 template <> void InstARM32Movw::emit(const Cfg *Func) const;
 template <> void InstARM32Movt::emit(const Cfg *Func) const;
 
+} // end of namespace ARM32
 } // end of namespace Ice
 
 #endif // SUBZERO_SRC_ICEINSTARM32_H

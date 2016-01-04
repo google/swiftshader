@@ -28,10 +28,10 @@
 
 namespace Ice {
 
-namespace X86Internal {
+namespace X8632 {
 
-const MachineTraits<TargetX8632>::InstBrAttributesType
-    MachineTraits<TargetX8632>::InstBrAttributes[] = {
+const TargetX8632Traits::InstBrAttributesType
+    TargetX8632Traits::InstBrAttributes[] = {
 #define X(val, encode, opp, dump, emit)                                        \
   { X8632::Traits::Cond::opp, dump, emit }                                     \
   ,
@@ -39,8 +39,8 @@ const MachineTraits<TargetX8632>::InstBrAttributesType
 #undef X
 };
 
-const MachineTraits<TargetX8632>::InstCmppsAttributesType
-    MachineTraits<TargetX8632>::InstCmppsAttributes[] = {
+const TargetX8632Traits::InstCmppsAttributesType
+    TargetX8632Traits::InstCmppsAttributes[] = {
 #define X(val, emit)                                                           \
   { emit }                                                                     \
   ,
@@ -48,8 +48,8 @@ const MachineTraits<TargetX8632>::InstCmppsAttributesType
 #undef X
 };
 
-const MachineTraits<TargetX8632>::TypeAttributesType
-    MachineTraits<TargetX8632>::TypeAttributes[] = {
+const TargetX8632Traits::TypeAttributesType
+    TargetX8632Traits::TypeAttributes[] = {
 #define X(tag, elementty, cvt, sdss, pdps, spsd, pack, width, fld)             \
   { cvt, sdss, pdps, spsd, pack, width, fld }                                  \
   ,
@@ -57,27 +57,28 @@ const MachineTraits<TargetX8632>::TypeAttributesType
 #undef X
 };
 
-const char *MachineTraits<TargetX8632>::InstSegmentRegNames[] = {
+const char *TargetX8632Traits::InstSegmentRegNames[] = {
 #define X(val, name, prefix) name,
     SEG_REGX8632_TABLE
 #undef X
 };
 
-uint8_t MachineTraits<TargetX8632>::InstSegmentPrefixes[] = {
+uint8_t TargetX8632Traits::InstSegmentPrefixes[] = {
 #define X(val, name, prefix) prefix,
     SEG_REGX8632_TABLE
 #undef X
 };
 
-void MachineTraits<TargetX8632>::X86Operand::dump(const Cfg *,
-                                                  Ostream &Str) const {
+void TargetX8632Traits::X86Operand::dump(const Cfg *, Ostream &Str) const {
   if (BuildDefs::dump())
     Str << "<OperandX8632>";
 }
 
-MachineTraits<TargetX8632>::X86OperandMem::X86OperandMem(
-    Cfg *Func, Type Ty, Variable *Base, Constant *Offset, Variable *Index,
-    uint16_t Shift, SegmentRegisters SegmentReg)
+TargetX8632Traits::X86OperandMem::X86OperandMem(Cfg *Func, Type Ty,
+                                                Variable *Base,
+                                                Constant *Offset,
+                                                Variable *Index, uint16_t Shift,
+                                                SegmentRegisters SegmentReg)
     : X86Operand(kMem, Ty), Base(Base), Offset(Offset), Index(Index),
       Shift(Shift), SegmentReg(SegmentReg), Randomized(false) {
   assert(Shift <= 3);
@@ -99,8 +100,9 @@ MachineTraits<TargetX8632>::X86OperandMem::X86OperandMem(
 }
 
 namespace {
-static int32_t GetRematerializableOffset(Variable *Var,
-                                         const Ice::TargetX8632 *Target) {
+static int32_t
+GetRematerializableOffset(Variable *Var,
+                          const Ice::X8632::TargetX8632 *Target) {
   int32_t Disp = Var->getStackOffset();
   SizeT RegNum = static_cast<SizeT>(Var->getRegNum());
   if (RegNum == Target->getFrameReg()) {
@@ -112,10 +114,11 @@ static int32_t GetRematerializableOffset(Variable *Var,
 }
 } // end of anonymous namespace
 
-void MachineTraits<TargetX8632>::X86OperandMem::emit(const Cfg *Func) const {
+void TargetX8632Traits::X86OperandMem::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
-  const auto *Target = static_cast<const Ice::TargetX8632 *>(Func->getTarget());
+  const auto *Target =
+      static_cast<const ::Ice::X8632::TargetX8632 *>(Func->getTarget());
   // If the base is rematerializable, we need to replace it with the correct
   // physical register (esp or ebp), and update the Offset.
   int32_t Disp = 0;
@@ -166,8 +169,8 @@ void MachineTraits<TargetX8632>::X86OperandMem::emit(const Cfg *Func) const {
   }
 }
 
-void MachineTraits<TargetX8632>::X86OperandMem::dump(const Cfg *Func,
-                                                     Ostream &Str) const {
+void TargetX8632Traits::X86OperandMem::dump(const Cfg *Func,
+                                            Ostream &Str) const {
   if (!BuildDefs::dump())
     return;
   if (SegmentReg != DefaultSegment) {
@@ -177,7 +180,8 @@ void MachineTraits<TargetX8632>::X86OperandMem::dump(const Cfg *Func,
   bool Dumped = false;
   Str << "[";
   int32_t Disp = 0;
-  const auto *Target = static_cast<const Ice::TargetX8632 *>(Func->getTarget());
+  const auto *Target =
+      static_cast<const ::Ice::X8632::TargetX8632 *>(Func->getTarget());
   if (getBase() && getBase()->isRematerializable()) {
     Disp += GetRematerializableOffset(getBase(), Target);
   }
@@ -230,20 +234,20 @@ void MachineTraits<TargetX8632>::X86OperandMem::dump(const Cfg *Func,
   Str << "]";
 }
 
-void MachineTraits<TargetX8632>::X86OperandMem::emitSegmentOverride(
-    MachineTraits<TargetX8632>::Assembler *Asm) const {
+void TargetX8632Traits::X86OperandMem::emitSegmentOverride(
+    TargetX8632Traits::Assembler *Asm) const {
   if (SegmentReg != DefaultSegment) {
     assert(SegmentReg >= 0 && SegmentReg < SegReg_NUM);
     Asm->emitSegmentOverride(X8632::Traits::InstSegmentPrefixes[SegmentReg]);
   }
 }
 
-MachineTraits<TargetX8632>::Address
-MachineTraits<TargetX8632>::X86OperandMem::toAsmAddress(
-    MachineTraits<TargetX8632>::Assembler *Asm,
+TargetX8632Traits::Address TargetX8632Traits::X86OperandMem::toAsmAddress(
+    TargetX8632Traits::Assembler *Asm,
     const Ice::TargetLowering *TargetLowering) const {
   int32_t Disp = 0;
-  const auto *Target = static_cast<const Ice::TargetX8632 *>(TargetLowering);
+  const auto *Target =
+      static_cast<const ::Ice::X8632::TargetX8632 *>(TargetLowering);
   if (getBase() && getBase()->isRematerializable()) {
     Disp += GetRematerializableOffset(getBase(), Target);
   }
@@ -284,8 +288,8 @@ MachineTraits<TargetX8632>::X86OperandMem::toAsmAddress(
   }
 }
 
-MachineTraits<TargetX8632>::Address
-MachineTraits<TargetX8632>::VariableSplit::toAsmAddress(const Cfg *Func) const {
+TargetX8632Traits::Address
+TargetX8632Traits::VariableSplit::toAsmAddress(const Cfg *Func) const {
   assert(!Var->hasReg());
   const ::Ice::TargetLowering *Target = Func->getTarget();
   int32_t Offset = Var->getStackOffset() + getOffset();
@@ -293,7 +297,7 @@ MachineTraits<TargetX8632>::VariableSplit::toAsmAddress(const Cfg *Func) const {
                                 Offset, AssemblerFixup::NoFixup);
 }
 
-void MachineTraits<TargetX8632>::VariableSplit::emit(const Cfg *Func) const {
+void TargetX8632Traits::VariableSplit::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
@@ -307,8 +311,8 @@ void MachineTraits<TargetX8632>::VariableSplit::emit(const Cfg *Func) const {
   Str << "(%" << Target->getRegName(Target->getFrameOrStackReg(), Ty) << ")";
 }
 
-void MachineTraits<TargetX8632>::VariableSplit::dump(const Cfg *Func,
-                                                     Ostream &Str) const {
+void TargetX8632Traits::VariableSplit::dump(const Cfg *Func,
+                                            Ostream &Str) const {
   if (!BuildDefs::dump())
     return;
   switch (Part) {
@@ -327,7 +331,7 @@ void MachineTraits<TargetX8632>::VariableSplit::dump(const Cfg *Func,
   Str << ")";
 }
 
-} // namespace X86Internal
+} // namespace X8632
 } // end of namespace Ice
 
-X86INSTS_DEFINE_STATIC_DATA(TargetX8632)
+X86INSTS_DEFINE_STATIC_DATA(X8632, X8632::Traits)

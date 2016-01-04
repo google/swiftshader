@@ -30,19 +30,16 @@
 
 namespace Ice {
 
-class TargetX8632;
-
 namespace X8632 {
-class AssemblerX8632;
-} // end of namespace X8632
-
-namespace X86Internal {
+using namespace ::Ice::X86;
 
 template <class Machine> struct Insts;
-template <class Machine> struct MachineTraits;
 template <class Machine> class TargetX86Base;
+template <class Machine> class AssemblerX86Base;
 
-template <> struct MachineTraits<TargetX8632> {
+class TargetX8632;
+
+struct TargetX8632Traits {
   //----------------------------------------------------------------------------
   //     ______  ______  __    __
   //    /\  __ \/\  ___\/\ "-./  \
@@ -51,6 +48,9 @@ template <> struct MachineTraits<TargetX8632> {
   //      \/_/\/_/\/_____/\/_/  \/_/
   //
   //----------------------------------------------------------------------------
+  static constexpr ::Ice::Assembler::AssemblerKind AsmKind =
+      ::Ice::Assembler::Asm_X8632;
+
   static constexpr bool Is64Bit = false;
   static constexpr bool HasPopa = true;
   static constexpr bool HasPusha = true;
@@ -171,7 +171,7 @@ template <> struct MachineTraits<TargetX8632> {
              ((encoding_[0] & 0x07) == reg); // Register codes match.
     }
 
-    template <class> friend class AssemblerX86Base;
+    friend class AssemblerX86Base<TargetX8632Traits>;
   };
 
   class Address : public Operand {
@@ -752,10 +752,12 @@ public:
   //      \/_/\/_/ \/_/\/_____/  \/_/
   //
   //----------------------------------------------------------------------------
-  using Insts = ::Ice::X86Internal::Insts<TargetX8632>;
+  using Traits = TargetX8632Traits;
+  using Insts = ::Ice::X8632::Insts<Traits>;
 
-  using TargetLowering = ::Ice::X86Internal::TargetX86Base<TargetX8632>;
-  using Assembler = X8632::AssemblerX8632;
+  using TargetLowering = ::Ice::X8632::TargetX86Base<Traits>;
+  using ConcreteTarget = ::Ice::X8632::TargetX8632;
+  using Assembler = ::Ice::X8632::AssemblerX86Base<Traits>;
 
   /// X86Operand extends the Operand hierarchy. Its subclasses are X86OperandMem
   /// and VariableSplit.
@@ -932,10 +934,7 @@ public:
   static uint8_t InstSegmentPrefixes[];
 };
 
-} // end of namespace X86Internal
-
-namespace X8632 {
-using Traits = ::Ice::X86Internal::MachineTraits<TargetX8632>;
+using Traits = ::Ice::X8632::TargetX8632Traits;
 } // end of namespace X8632
 
 } // end of namespace Ice

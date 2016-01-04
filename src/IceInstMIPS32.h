@@ -25,6 +25,7 @@
 #include "IceOperand.h"
 
 namespace Ice {
+namespace MIPS32 {
 
 class TargetMIPS32;
 
@@ -395,6 +396,7 @@ private:
   Variable *DestHi = nullptr;
 };
 
+} // end of namespace MIPS32
 } // end of namespace Ice
 
 #endif // SUBZERO_SRC_ICEINSTMIPS32_H

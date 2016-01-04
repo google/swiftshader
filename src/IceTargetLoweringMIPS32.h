@@ -23,6 +23,7 @@
 #include "IceTargetLowering.h"
 
 namespace Ice {
+namespace MIPS32 {
 
 class TargetMIPS32 : public TargetLowering {
   TargetMIPS32() = delete;
@@ -310,6 +311,7 @@ private:
   ~TargetHeaderMIPS32() = default;
 };
 
+} // end of namespace MIPS32
 } // end of namespace Ice
 
 #endif // SUBZERO_SRC_ICETARGETLOWERINGMIPS32_H

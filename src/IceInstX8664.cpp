@@ -29,10 +29,10 @@
 
 namespace Ice {
 
-namespace X86Internal {
+namespace X8664 {
 
-const MachineTraits<TargetX8664>::InstBrAttributesType
-    MachineTraits<TargetX8664>::InstBrAttributes[] = {
+const TargetX8664Traits::InstBrAttributesType
+    TargetX8664Traits::InstBrAttributes[] = {
 #define X(val, encode, opp, dump, emit)                                        \
   { X8664::Traits::Cond::opp, dump, emit }                                     \
   ,
@@ -40,8 +40,8 @@ const MachineTraits<TargetX8664>::InstBrAttributesType
 #undef X
 };
 
-const MachineTraits<TargetX8664>::InstCmppsAttributesType
-    MachineTraits<TargetX8664>::InstCmppsAttributes[] = {
+const TargetX8664Traits::InstCmppsAttributesType
+    TargetX8664Traits::InstCmppsAttributes[] = {
 #define X(val, emit)                                                           \
   { emit }                                                                     \
   ,
@@ -49,8 +49,8 @@ const MachineTraits<TargetX8664>::InstCmppsAttributesType
 #undef X
 };
 
-const MachineTraits<TargetX8664>::TypeAttributesType
-    MachineTraits<TargetX8664>::TypeAttributes[] = {
+const TargetX8664Traits::TypeAttributesType
+    TargetX8664Traits::TypeAttributes[] = {
 #define X(tag, elementty, cvt, sdss, pdps, spsd, pack, width, fld)             \
   { cvt, sdss, pdps, spsd, pack, width, fld }                                  \
   ,
@@ -58,17 +58,15 @@ const MachineTraits<TargetX8664>::TypeAttributesType
 #undef X
 };
 
-void MachineTraits<TargetX8664>::X86Operand::dump(const Cfg *,
-                                                  Ostream &Str) const {
+void TargetX8664Traits::X86Operand::dump(const Cfg *, Ostream &Str) const {
   if (BuildDefs::dump())
     Str << "<OperandX8664>";
 }
 
-MachineTraits<TargetX8664>::X86OperandMem::X86OperandMem(Cfg *Func, Type Ty,
-                                                         Variable *Base,
-                                                         Constant *Offset,
-                                                         Variable *Index,
-                                                         uint16_t Shift)
+TargetX8664Traits::X86OperandMem::X86OperandMem(Cfg *Func, Type Ty,
+                                                Variable *Base,
+                                                Constant *Offset,
+                                                Variable *Index, uint16_t Shift)
     : X86Operand(kMem, Ty), Base(Base), Offset(Offset), Index(Index),
       Shift(Shift) {
   assert(Shift <= 3);
@@ -90,8 +88,9 @@ MachineTraits<TargetX8664>::X86OperandMem::X86OperandMem(Cfg *Func, Type Ty,
 }
 
 namespace {
-static int32_t getRematerializableOffset(Variable *Var,
-                                         const Ice::TargetX8664 *Target) {
+static int32_t
+getRematerializableOffset(Variable *Var,
+                          const ::Ice::X8664::TargetX8664 *Target) {
   int32_t Disp = Var->getStackOffset();
   SizeT RegNum = static_cast<SizeT>(Var->getRegNum());
   if (RegNum == Target->getFrameReg()) {
@@ -103,10 +102,11 @@ static int32_t getRematerializableOffset(Variable *Var,
 }
 } // end of anonymous namespace
 
-void MachineTraits<TargetX8664>::X86OperandMem::emit(const Cfg *Func) const {
+void TargetX8664Traits::X86OperandMem::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
-  const auto *Target = static_cast<const Ice::TargetX8664 *>(Func->getTarget());
+  const auto *Target =
+      static_cast<const ::Ice::X8664::TargetX8664 *>(Func->getTarget());
   // If the base is rematerializable, we need to replace it with the correct
   // physical register (stack or base pointer), and update the Offset.
   int32_t Disp = 0;
@@ -164,14 +164,15 @@ void MachineTraits<TargetX8664>::X86OperandMem::emit(const Cfg *Func) const {
   }
 }
 
-void MachineTraits<TargetX8664>::X86OperandMem::dump(const Cfg *Func,
-                                                     Ostream &Str) const {
+void TargetX8664Traits::X86OperandMem::dump(const Cfg *Func,
+                                            Ostream &Str) const {
   if (!BuildDefs::dump())
     return;
   bool Dumped = false;
   Str << "[";
   int32_t Disp = 0;
-  const auto *Target = static_cast<const Ice::TargetX8664 *>(Func->getTarget());
+  const auto *Target =
+      static_cast<const ::Ice::X8664::TargetX8664 *>(Func->getTarget());
   if (getBase() && getBase()->isRematerializable()) {
     Disp += getRematerializableOffset(getBase(), Target);
   }
@@ -223,11 +224,11 @@ void MachineTraits<TargetX8664>::X86OperandMem::dump(const Cfg *Func,
   Str << "]";
 }
 
-MachineTraits<TargetX8664>::Address
-MachineTraits<TargetX8664>::X86OperandMem::toAsmAddress(
-    MachineTraits<TargetX8664>::Assembler *Asm,
+TargetX8664Traits::Address TargetX8664Traits::X86OperandMem::toAsmAddress(
+    TargetX8664Traits::Assembler *Asm,
     const Ice::TargetLowering *TargetLowering) const {
-  const auto *Target = static_cast<const Ice::TargetX8664 *>(TargetLowering);
+  const auto *Target =
+      static_cast<const ::Ice::X8664::TargetX8664 *>(TargetLowering);
   int32_t Disp = 0;
   if (getBase() && getBase()->isRematerializable()) {
     Disp += getRematerializableOffset(getBase(), Target);
@@ -266,8 +267,8 @@ MachineTraits<TargetX8664>::X86OperandMem::toAsmAddress(
   }
 }
 
-MachineTraits<TargetX8664>::Address
-MachineTraits<TargetX8664>::VariableSplit::toAsmAddress(const Cfg *Func) const {
+TargetX8664Traits::Address
+TargetX8664Traits::VariableSplit::toAsmAddress(const Cfg *Func) const {
   assert(!Var->hasReg());
   const ::Ice::TargetLowering *Target = Func->getTarget();
   int32_t Offset = Var->getStackOffset() + getOffset();
@@ -275,7 +276,7 @@ MachineTraits<TargetX8664>::VariableSplit::toAsmAddress(const Cfg *Func) const {
                                 Offset, AssemblerFixup::NoFixup);
 }
 
-void MachineTraits<TargetX8664>::VariableSplit::emit(const Cfg *Func) const {
+void TargetX8664Traits::VariableSplit::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
@@ -289,8 +290,8 @@ void MachineTraits<TargetX8664>::VariableSplit::emit(const Cfg *Func) const {
   Str << "(%" << Target->getRegName(Target->getFrameOrStackReg(), Ty) << ")";
 }
 
-void MachineTraits<TargetX8664>::VariableSplit::dump(const Cfg *Func,
-                                                     Ostream &Str) const {
+void TargetX8664Traits::VariableSplit::dump(const Cfg *Func,
+                                            Ostream &Str) const {
   if (!BuildDefs::dump())
     return;
   switch (Part) {
@@ -309,7 +310,7 @@ void MachineTraits<TargetX8664>::VariableSplit::dump(const Cfg *Func,
   Str << ")";
 }
 
-} // namespace X86Internal
+} // namespace X8664
 } // end of namespace Ice
 
-X86INSTS_DEFINE_STATIC_DATA(TargetX8664)
+X86INSTS_DEFINE_STATIC_DATA(X8664, X8664::Traits)

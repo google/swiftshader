@@ -16,27 +16,27 @@
 #include "IceTargetLoweringX8664.h"
 
 #include "IceTargetLoweringX8664Traits.h"
-#include "IceTargetLoweringX86Base.h"
 
 namespace X8664 {
 std::unique_ptr<::Ice::TargetLowering> createTargetLowering(::Ice::Cfg *Func) {
-  return ::Ice::TargetX8664::create(Func);
+  return ::Ice::X8664::TargetX8664::create(Func);
 }
 
 std::unique_ptr<::Ice::TargetDataLowering>
 createTargetDataLowering(::Ice::GlobalContext *Ctx) {
-  return ::Ice::TargetDataX8664::create(Ctx);
+  return ::Ice::X8664::TargetDataX8664::create(Ctx);
 }
 
 std::unique_ptr<::Ice::TargetHeaderLowering>
 createTargetHeaderLowering(::Ice::GlobalContext *Ctx) {
-  return ::Ice::TargetHeaderX8664::create(Ctx);
+  return ::Ice::X8664::TargetHeaderX8664::create(Ctx);
 }
 
-void staticInit() { ::Ice::TargetX8664::staticInit(); }
+void staticInit() { ::Ice::X8664::TargetX8664::staticInit(); }
 } // end of namespace X8664
 
 namespace Ice {
+namespace X8664 {
 
 //------------------------------------------------------------------------------
 //      ______   ______     ______     __     ______   ______
@@ -46,51 +46,46 @@ namespace Ice {
 //         \/_/   \/_/ /_/   \/_/\/_/   \/_/     \/_/   \/_____/
 //
 //------------------------------------------------------------------------------
-namespace X86Internal {
-const MachineTraits<TargetX8664>::TableFcmpType
-    MachineTraits<TargetX8664>::TableFcmp[] = {
+const TargetX8664Traits::TableFcmpType TargetX8664Traits::TableFcmp[] = {
 #define X(val, dflt, swapS, C1, C2, swapV, pred)                               \
   {                                                                            \
     dflt, swapS, X8664::Traits::Cond::C1, X8664::Traits::Cond::C2, swapV,      \
         X8664::Traits::Cond::pred                                              \
   }                                                                            \
   ,
-        FCMPX8664_TABLE
+    FCMPX8664_TABLE
 #undef X
 };
 
-const size_t MachineTraits<TargetX8664>::TableFcmpSize =
-    llvm::array_lengthof(TableFcmp);
+const size_t TargetX8664Traits::TableFcmpSize = llvm::array_lengthof(TableFcmp);
 
-const MachineTraits<TargetX8664>::TableIcmp32Type
-    MachineTraits<TargetX8664>::TableIcmp32[] = {
+const TargetX8664Traits::TableIcmp32Type TargetX8664Traits::TableIcmp32[] = {
 #define X(val, C_32, C1_64, C2_64, C3_64)                                      \
   { X8664::Traits::Cond::C_32 }                                                \
   ,
-        ICMPX8664_TABLE
+    ICMPX8664_TABLE
 #undef X
 };
 
-const size_t MachineTraits<TargetX8664>::TableIcmp32Size =
+const size_t TargetX8664Traits::TableIcmp32Size =
     llvm::array_lengthof(TableIcmp32);
 
-const MachineTraits<TargetX8664>::TableIcmp64Type
-    MachineTraits<TargetX8664>::TableIcmp64[] = {
+const TargetX8664Traits::TableIcmp64Type TargetX8664Traits::TableIcmp64[] = {
 #define X(val, C_32, C1_64, C2_64, C3_64)                                      \
   {                                                                            \
     X8664::Traits::Cond::C1_64, X8664::Traits::Cond::C2_64,                    \
         X8664::Traits::Cond::C3_64                                             \
   }                                                                            \
   ,
-        ICMPX8664_TABLE
+    ICMPX8664_TABLE
 #undef X
 };
 
-const size_t MachineTraits<TargetX8664>::TableIcmp64Size =
+const size_t TargetX8664Traits::TableIcmp64Size =
     llvm::array_lengthof(TableIcmp64);
 
-const MachineTraits<TargetX8664>::TableTypeX8664AttributesType
-    MachineTraits<TargetX8664>::TableTypeX8664Attributes[] = {
+const TargetX8664Traits::TableTypeX8664AttributesType
+    TargetX8664Traits::TableTypeX8664Attributes[] = {
 #define X(tag, elementty, cvt, sdss, pdps, spsd, pack, width, fld)             \
   { IceType_##elementty }                                                      \
   ,
@@ -98,26 +93,24 @@ const MachineTraits<TargetX8664>::TableTypeX8664AttributesType
 #undef X
 };
 
-const size_t MachineTraits<TargetX8664>::TableTypeX8664AttributesSize =
+const size_t TargetX8664Traits::TableTypeX8664AttributesSize =
     llvm::array_lengthof(TableTypeX8664Attributes);
 
-const uint32_t MachineTraits<TargetX8664>::X86_STACK_ALIGNMENT_BYTES = 16;
-const char *MachineTraits<TargetX8664>::TargetName = "X8664";
+const uint32_t TargetX8664Traits::X86_STACK_ALIGNMENT_BYTES = 16;
+const char *TargetX8664Traits::TargetName = "X8664";
 
 template <>
 std::array<llvm::SmallBitVector, RCX86_NUM>
-    TargetX86Base<TargetX8664>::TypeToRegisterSet = {{}};
+    TargetX86Base<X8664::Traits>::TypeToRegisterSet = {{}};
 
 template <>
 std::array<llvm::SmallBitVector,
-           TargetX86Base<TargetX8664>::Traits::RegisterSet::Reg_NUM>
-    TargetX86Base<TargetX8664>::RegisterAliases = {{}};
+           TargetX86Base<X8664::Traits>::Traits::RegisterSet::Reg_NUM>
+    TargetX86Base<X8664::Traits>::RegisterAliases = {{}};
 
 template <>
 llvm::SmallBitVector
-    TargetX86Base<TargetX8664>::ScratchRegs = llvm::SmallBitVector();
-
-} // end of namespace X86Internal
+    TargetX86Base<X8664::Traits>::ScratchRegs = llvm::SmallBitVector();
 
 //------------------------------------------------------------------------------
 //     __      ______  __     __  ______  ______  __  __   __  ______
@@ -1050,4 +1043,5 @@ ICETYPE_TABLE
 } // end of namespace dummy3
 } // end of anonymous namespace
 
+} // end of namespace X8664
 } // end of namespace Ice

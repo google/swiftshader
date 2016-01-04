@@ -18,7 +18,7 @@
 #include "IceOperand.h" // RC_Target
 
 namespace Ice {
-namespace X86Internal {
+namespace X86 {
 
 // Extend enum RegClass with x86-specific register classes.
 enum RegClassX86 : uint8_t {
@@ -30,7 +30,7 @@ enum RegClassX86 : uint8_t {
   RCX86_NUM
 };
 
-} // end of namespace X86Internal
+} // end of namespace X86
 } // end of namespace Ice
 
 #endif // SUBZERO_SRC_ICETARGETLOWERINGX86REGCLASS_H

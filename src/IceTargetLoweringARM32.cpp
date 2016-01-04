@@ -37,23 +37,24 @@
 
 namespace ARM32 {
 std::unique_ptr<::Ice::TargetLowering> createTargetLowering(::Ice::Cfg *Func) {
-  return ::Ice::TargetARM32::create(Func);
+  return ::Ice::ARM32::TargetARM32::create(Func);
 }
 
 std::unique_ptr<::Ice::TargetDataLowering>
 createTargetDataLowering(::Ice::GlobalContext *Ctx) {
-  return ::Ice::TargetDataARM32::create(Ctx);
+  return ::Ice::ARM32::TargetDataARM32::create(Ctx);
 }
 
 std::unique_ptr<::Ice::TargetHeaderLowering>
 createTargetHeaderLowering(::Ice::GlobalContext *Ctx) {
-  return ::Ice::TargetHeaderARM32::create(Ctx);
+  return ::Ice::ARM32::TargetHeaderARM32::create(Ctx);
 }
 
-void staticInit() { ::Ice::TargetARM32::staticInit(); }
+void staticInit() { ::Ice::ARM32::TargetARM32::staticInit(); }
 } // end of namespace ARM32
 
 namespace Ice {
+namespace ARM32 {
 
 namespace {
 
@@ -6447,4 +6448,5 @@ llvm::SmallBitVector TargetARM32::TypeToRegisterSet[IceType_NUM];
 llvm::SmallBitVector TargetARM32::RegisterAliases[RegARM32::Reg_NUM];
 llvm::SmallBitVector TargetARM32::ScratchRegs;
 
+} // end of namespace ARM32
 } // end of namespace Ice

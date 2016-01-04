@@ -15,6 +15,7 @@
 #define ASSEMBLERX8632_TESTUTIL_H_
 
 #include "IceAssemblerX8632.h"
+#include "IceDefs.h"
 
 #include "gtest/gtest.h"
 
@@ -31,14 +32,14 @@ protected:
   using Cond = AssemblerX8632::Traits::Cond;
   using GPRRegister = AssemblerX8632::Traits::GPRRegister;
   using ByteRegister = AssemblerX8632::Traits::ByteRegister;
-  using Label = ::Ice::X86Internal::Label;
+  using Label = ::Ice::X8632::Label;
   using Traits = AssemblerX8632::Traits;
   using XmmRegister = AssemblerX8632::Traits::XmmRegister;
   using X87STRegister = AssemblerX8632::Traits::X87STRegister;
 
   AssemblerX8632TestBase() { reset(); }
 
-  void reset() { Assembler.reset(new AssemblerX8632()); }
+  void reset() { Assembler = makeUnique<AssemblerX8632>(); }
 
   AssemblerX8632 *assembler() const { return Assembler.get(); }
 

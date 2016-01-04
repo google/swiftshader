@@ -135,7 +135,7 @@ protected:
 
   AssemblerX8664TestBase() { reset(); }
 
-  void reset() { Assembler.reset(new AssemblerX8664()); }
+  void reset() { Assembler = makeUnique<AssemblerX8664>(); }
 
   AssemblerX8664 *assembler() const { return Assembler.get(); }
 

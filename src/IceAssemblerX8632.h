@@ -16,47 +16,24 @@
 //===----------------------------------------------------------------------===//
 ///
 /// \file
-/// \brief Implements the Assembler class for x86-32.
+/// \brief Instantiates the Assembler for X86-32.
 ///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICEASSEMBLERX8632_H
 #define SUBZERO_SRC_ICEASSEMBLERX8632_H
 
-#include "IceAssembler.h"
+#define X86NAMESPACE X8632
 #include "IceAssemblerX86Base.h"
-#include "IceDefs.h"
-#include "IceOperand.h"
+#undef X86NAMESPACE
 #include "IceTargetLoweringX8632Traits.h"
-#include "IceTypes.h"
-#include "IceUtils.h"
 
 namespace Ice {
-
-class TargetX8632;
-
 namespace X8632 {
 
-using Immediate = ::Ice::X86Internal::Immediate;
-using Label = ::Ice::X86Internal::Label;
-
-class AssemblerX8632 : public X86Internal::AssemblerX86Base<TargetX8632> {
-  AssemblerX8632(const AssemblerX8632 &) = delete;
-  AssemblerX8632 &operator=(const AssemblerX8632 &) = delete;
-
-public:
-  explicit AssemblerX8632(bool use_far_branches = false)
-      : X86Internal::AssemblerX86Base<TargetX8632>(Asm_X8632,
-                                                   use_far_branches) {}
-  ~AssemblerX8632() override = default;
-
-  static bool classof(const Assembler *Asm) {
-    return Asm->getKind() == Asm_X8632;
-  }
-
-private:
-  ENABLE_MAKE_UNIQUE;
-};
+using AssemblerX8632 = AssemblerX86Base<X8632::Traits>;
+using Label = AssemblerX8632::Label;
+using Immediate = AssemblerX8632::Immediate;
 
 } // end of namespace X8632
 } // end of namespace Ice
