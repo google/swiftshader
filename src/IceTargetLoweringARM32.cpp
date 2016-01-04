@@ -182,7 +182,7 @@ TargetARM32Features::TargetARM32Features(const ClFlags &Flags) {
 namespace {
 constexpr SizeT NumGPRArgs =
 #define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
-          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)              \
+          isGPR, isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)       \
   +(((cc_arg) > 0) ? 1 : 0)
     REGARM32_GPR_TABLE
 #undef X
@@ -191,7 +191,7 @@ std::array<uint32_t, NumGPRArgs> GPRArgInitializer;
 
 constexpr SizeT NumI64Args =
 #define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
-          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)              \
+          isGPR, isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)       \
   +(((cc_arg) > 0) ? 1 : 0)
     REGARM32_I64PAIR_TABLE
 #undef X
@@ -200,7 +200,7 @@ std::array<uint32_t, NumI64Args> I64ArgInitializer;
 
 constexpr SizeT NumFP32Args =
 #define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
-          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)              \
+          isGPR, isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)       \
   +(((cc_arg) > 0) ? 1 : 0)
     REGARM32_FP32_TABLE
 #undef X
@@ -209,7 +209,7 @@ std::array<uint32_t, NumFP32Args> FP32ArgInitializer;
 
 constexpr SizeT NumFP64Args =
 #define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
-          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)              \
+          isGPR, isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)       \
   +(((cc_arg) > 0) ? 1 : 0)
     REGARM32_FP64_TABLE
 #undef X
@@ -218,7 +218,7 @@ std::array<uint32_t, NumFP64Args> FP64ArgInitializer;
 
 constexpr SizeT NumVec128Args =
 #define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
-          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)              \
+          isGPR, isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)       \
   +(((cc_arg > 0)) ? 1 : 0)
     REGARM32_VEC128_TABLE
 #undef X
@@ -240,7 +240,7 @@ void TargetARM32::staticInit() {
   llvm::SmallBitVector InvalidRegisters(RegARM32::Reg_NUM);
   ScratchRegs.resize(RegARM32::Reg_NUM);
 #define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
-          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)              \
+          isGPR, isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)       \
   IntegerRegisters[RegARM32::val] = isInt;                                     \
   I64PairRegisters[RegARM32::val] = isI64Pair;                                 \
   Float32Registers[RegARM32::val] = isFP32;                                    \
@@ -829,7 +829,7 @@ bool TargetARM32::doBranchOpt(Inst *I, const CfgNode *NextNode) {
 
 const char *RegARM32::RegNames[] = {
 #define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
-          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)              \
+          isGPR, isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)       \
   name,
     REGARM32_TABLE
 #undef X
@@ -844,7 +844,7 @@ IceString TargetARM32::getRegName(SizeT RegNum, Type Ty) const {
 Variable *TargetARM32::getPhysicalRegister(SizeT RegNum, Type Ty) {
   static const Type DefaultType[] = {
 #define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
-          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)              \
+          isGPR, isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)       \
   (isFP32)                                                                     \
       ? IceType_f32                                                            \
       : ((isFP64) ? IceType_f64 : ((isVec128 ? IceType_v4i32 : IceType_i32))),
@@ -1835,7 +1835,7 @@ llvm::SmallBitVector TargetARM32::getRegisterSet(RegSetMask Include,
   llvm::SmallBitVector Registers(RegARM32::Reg_NUM);
 
 #define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
-          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)              \
+          isGPR, isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)       \
   if (scratch && (Include & RegSet_CallerSave))                                \
     Registers[RegARM32::val] = true;                                           \
   if (preserved && (Include & RegSet_CalleeSave))                              \

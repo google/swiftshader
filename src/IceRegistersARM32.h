@@ -29,7 +29,7 @@ public:
   /// to binary encode register operands in instructions.
   enum AllRegisters {
 #define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
-          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)              \
+          isGPR, isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)       \
   val,
     REGARM32_TABLE
 #undef X
@@ -43,7 +43,7 @@ public:
   /// binary encode register operands in instructions.
   enum GPRRegister {
 #define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
-          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)              \
+          isGPR, isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)       \
   Encoded_##val = encode,
     REGARM32_GPR_TABLE
 #undef X
@@ -54,7 +54,7 @@ public:
   /// to binary encode register operands in instructions.
   enum SRegister {
 #define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
-          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)              \
+          isGPR, isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)       \
   Encoded_##val = encode,
     REGARM32_FP32_TABLE
 #undef X
@@ -65,7 +65,7 @@ public:
   /// to binary encode register operands in instructions.
   enum DRegister {
 #define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
-          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)              \
+          isGPR, isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)       \
   Encoded_##val = encode,
     REGARM32_FP64_TABLE
 #undef X
@@ -76,7 +76,7 @@ public:
   /// used to binary encode register operands in instructions.
   enum QRegister {
 #define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
-          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)              \
+          isGPR, isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)       \
   Encoded_##val = encode,
     REGARM32_VEC128_TABLE
 #undef X

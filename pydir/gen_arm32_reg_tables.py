@@ -16,16 +16,17 @@ def _ArgumentNames(Method):
 
 class RegFeatures(object):
   def __init__(self, AsmStr=None, CCArg=0, IsScratch=0, IsPreserved=0,
-               IsStackPtr=0, IsFramePtr=0, IsInt=0, IsI64Pair=0, IsFP32=0,
-               IsFP64=0, IsVec128=0, Aliases=None):
+               IsStackPtr=0, IsFramePtr=0, IsGPR=0, IsInt=0, IsI64Pair=0,
+               IsFP32=0, IsFP64=0, IsVec128=0, Aliases=None):
+    assert (not IsInt) or IsGPR
+    assert (not IsI64Pair) or (not IsGPR)
     assert not (IsInt and IsI64Pair)
     assert not (IsFP32 and IsFP64)
     assert not (IsFP32 and IsVec128)
     assert not (IsFP64 and IsVec128)
-    assert not ((IsInt or IsI64Pair) and (IsFP32 or IsFP64 or IsVec128))
-    assert (not IsFramePtr) or IsInt
-    assert (not IsStackPtr) or not(
-                IsInt or IsI64Pair or IsFP32 or IsFP64 or IsVec128)
+    assert not ((IsGPR) and (IsFP32 or IsFP64 or IsVec128))
+    assert (not IsFramePtr) or IsGPR
+    assert (not IsStackPtr) or IsGPR
     assert not (IsScratch and IsPreserved)
     self.Features = [x for x in _ArgumentNames(self.__init__)]
     self.FeaturesDict = {}
@@ -71,22 +72,22 @@ class Reg(object):
 # to read the register tables if each register entry is contained on a single
 # line.
 GPRs = [
-  Reg( 'r0',  0,   IsScratch=1, CCArg=1, IsInt=1,               Aliases= 'r0,  r0r1'),
-  Reg( 'r1',  1,   IsScratch=1, CCArg=2, IsInt=1,               Aliases= 'r1,  r0r1'),
-  Reg( 'r2',  2,   IsScratch=1, CCArg=3, IsInt=1,               Aliases= 'r2,  r2r3'),
-  Reg( 'r3',  3,   IsScratch=1, CCArg=4, IsInt=1,               Aliases= 'r3,  r2r3'),
-  Reg( 'r4',  4, IsPreserved=1,          IsInt=1,               Aliases= 'r4,  r4r5'),
-  Reg( 'r5',  5, IsPreserved=1,          IsInt=1,               Aliases= 'r5,  r4r5'),
-  Reg( 'r6',  6, IsPreserved=1,          IsInt=1,               Aliases= 'r6,  r6r7'),
-  Reg( 'r7',  7, IsPreserved=1,          IsInt=1,               Aliases= 'r7,  r6r7'),
-  Reg( 'r8',  8, IsPreserved=1,          IsInt=1,               Aliases= 'r8,  r8r9'),
-  Reg( 'r9',  9, IsPreserved=1,          IsInt=0,               Aliases= 'r9,  r8r9'),
-  Reg('r10', 10, IsPreserved=1,          IsInt=1,               Aliases='r10, r10fp'),
-  Reg( 'fp', 11, IsPreserved=1,          IsInt=1, IsFramePtr=1, Aliases= 'fp, r10fp'),
-  Reg( 'ip', 12,   IsScratch=1,          IsInt=0,               Aliases= 'ip'),
-  Reg( 'sp', 13,   IsScratch=0,          IsInt=0, IsStackPtr=1, Aliases= 'sp'),
-  Reg( 'lr', 14,   IsScratch=0,          IsInt=0,               Aliases= 'lr'),
-  Reg( 'pc', 15,   IsScratch=0,          IsInt=0,               Aliases= 'pc'),
+  Reg( 'r0',  0,   IsScratch=1, CCArg=1, IsGPR = 1, IsInt=1,               Aliases= 'r0,  r0r1'),
+  Reg( 'r1',  1,   IsScratch=1, CCArg=2, IsGPR = 1, IsInt=1,               Aliases= 'r1,  r0r1'),
+  Reg( 'r2',  2,   IsScratch=1, CCArg=3, IsGPR = 1, IsInt=1,               Aliases= 'r2,  r2r3'),
+  Reg( 'r3',  3,   IsScratch=1, CCArg=4, IsGPR = 1, IsInt=1,               Aliases= 'r3,  r2r3'),
+  Reg( 'r4',  4, IsPreserved=1,          IsGPR = 1, IsInt=1,               Aliases= 'r4,  r4r5'),
+  Reg( 'r5',  5, IsPreserved=1,          IsGPR = 1, IsInt=1,               Aliases= 'r5,  r4r5'),
+  Reg( 'r6',  6, IsPreserved=1,          IsGPR = 1, IsInt=1,               Aliases= 'r6,  r6r7'),
+  Reg( 'r7',  7, IsPreserved=1,          IsGPR = 1, IsInt=1,               Aliases= 'r7,  r6r7'),
+  Reg( 'r8',  8, IsPreserved=1,          IsGPR = 1, IsInt=1,               Aliases= 'r8,  r8r9'),
+  Reg( 'r9',  9, IsPreserved=1,          IsGPR = 1, IsInt=0,               Aliases= 'r9,  r8r9'),
+  Reg('r10', 10, IsPreserved=1,          IsGPR = 1, IsInt=1,               Aliases='r10, r10fp'),
+  Reg( 'fp', 11, IsPreserved=1,          IsGPR = 1, IsInt=1, IsFramePtr=1, Aliases= 'fp, r10fp'),
+  Reg( 'ip', 12,   IsScratch=1,          IsGPR = 1, IsInt=0,               Aliases= 'ip'),
+  Reg( 'sp', 13,   IsScratch=0,          IsGPR = 1, IsInt=0, IsStackPtr=1, Aliases= 'sp'),
+  Reg( 'lr', 14,   IsScratch=0,          IsGPR = 1, IsInt=0,               Aliases= 'lr'),
+  Reg( 'pc', 15,   IsScratch=0,          IsGPR = 1, IsInt=0,               Aliases= 'pc'),
 ]
 
 I64Pairs = [

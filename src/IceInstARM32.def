@@ -35,7 +35,7 @@
 #include "IceRegistersARM32.def"
 // The register tables defined in IceRegistersARM32 use the following x-macro:
 //#define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,
-//          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)
+//          isGPR, isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)
 
 // We also provide a combined table, so that there is a namespace where all of
 // the registers are considered and have distinct numberings. This is in
@@ -43,14 +43,14 @@
 // numbers will be encoded in binaries and values can overlap.
 #define REGARM32_TABLE                                                         \
   /* val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,        \
-     isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init */                 \
+     isGPR, isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init */          \
   REGARM32_GPR_TABLE                                                           \
   REGARM32_I64PAIR_TABLE                                                       \
   REGARM32_FP32_TABLE                                                          \
   REGARM32_FP64_TABLE                                                          \
   REGARM32_VEC128_TABLE
 //#define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,
-//          isInt, isFP32, isFP64, isVec128, alias_init)
+//          isGPR, isInt, isFP32, isFP64, isVec128, alias_init)
 
 #define REGARM32_TABLE_BOUNDS                                                  \
   /* val, init */                                                              \
