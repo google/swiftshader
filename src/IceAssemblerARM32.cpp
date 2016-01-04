@@ -480,7 +480,7 @@ void verifyRegNotPcWhenSetFlags(IValueT Reg, bool SetFlags,
     return;
   if (SetFlags && (Reg == RegARM32::Encoded_Reg_pc))
     llvm::report_fatal_error(std::string(InstName) + ": " +
-                             RegARM32::RegNames[Reg] +
+                             RegARM32::getRegName(Reg) +
                              "=pc not allowed when CC=1");
 }
 
@@ -497,7 +497,7 @@ size_t MoveRelocatableFixup::emit(GlobalContext *Ctx,
   IValueT Inst = Asm.load<IValueT>(position());
   Str << "\t"
          "mov" << (kind() == llvm::ELF::R_ARM_MOVW_ABS_NC ? "w" : "t") << "\t"
-      << RegARM32::RegNames[(Inst >> kRdShift) & 0xF]
+      << RegARM32::getRegName((Inst >> kRdShift) & 0xF)
       << ", #:" << (kind() == llvm::ELF::R_ARM_MOVW_ABS_NC ? "lower" : "upper")
       << "16:" << symbol(Ctx) << "\t@ .word "
       << llvm::format_hex_no_prefix(Inst, 8) << "\n";

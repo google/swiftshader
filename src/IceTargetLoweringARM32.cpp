@@ -56,6 +56,9 @@ void staticInit() { ::Ice::ARM32::TargetARM32::staticInit(); }
 namespace Ice {
 namespace ARM32 {
 
+// Defines the RegARM32::Table table with register information.
+constexpr RegARM32::TableType RegARM32::Table[];
+
 namespace {
 
 // The following table summarizes the logic for lowering the icmp instruction
@@ -239,35 +242,35 @@ void TargetARM32::staticInit() {
   llvm::SmallBitVector VectorRegisters(RegARM32::Reg_NUM);
   llvm::SmallBitVector InvalidRegisters(RegARM32::Reg_NUM);
   ScratchRegs.resize(RegARM32::Reg_NUM);
-#define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
-          isGPR, isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)       \
-  IntegerRegisters[RegARM32::val] = isInt;                                     \
-  I64PairRegisters[RegARM32::val] = isI64Pair;                                 \
-  Float32Registers[RegARM32::val] = isFP32;                                    \
-  Float64Registers[RegARM32::val] = isFP64;                                    \
-  VectorRegisters[RegARM32::val] = isVec128;                                   \
-  RegisterAliases[RegARM32::val].resize(RegARM32::Reg_NUM);                    \
-  for (SizeT RegAlias : alias_init) {                                          \
-    assert((!RegisterAliases[RegARM32::val][RegAlias] ||                       \
-            RegAlias != RegARM32::val) &&                                      \
-           "Duplicate alias for " #val);                                       \
-    RegisterAliases[RegARM32::val].set(RegAlias);                              \
-  }                                                                            \
-  RegisterAliases[RegARM32::val].set(RegARM32::val);                           \
-  ScratchRegs[RegARM32::val] = scratch;                                        \
-  if ((isInt) && (cc_arg) > 0) {                                               \
-    GPRArgInitializer[(cc_arg)-1] = RegARM32::val;                             \
-  } else if ((isI64Pair) && (cc_arg) > 0) {                                    \
-    I64ArgInitializer[(cc_arg)-1] = RegARM32::val;                             \
-  } else if ((isFP32) && (cc_arg) > 0) {                                       \
-    FP32ArgInitializer[(cc_arg)-1] = RegARM32::val;                            \
-  } else if ((isFP64) && (cc_arg) > 0) {                                       \
-    FP64ArgInitializer[(cc_arg)-1] = RegARM32::val;                            \
-  } else if ((isVec128) && (cc_arg) > 0) {                                     \
-    Vec128ArgInitializer[(cc_arg)-1] = RegARM32::val;                          \
+  for (int i = 0; i < RegARM32::Reg_NUM; ++i) {
+    const auto &Entry = RegARM32::Table[i];
+    IntegerRegisters[i] = Entry.IsInt;
+    I64PairRegisters[i] = Entry.IsI64Pair;
+    Float32Registers[i] = Entry.IsFP32;
+    Float64Registers[i] = Entry.IsFP64;
+    VectorRegisters[i] = Entry.IsVec128;
+    ScratchRegs[i] = Entry.Scratch;
+    RegisterAliases[i].resize(RegARM32::Reg_NUM);
+    for (int j = 0; j < Entry.NumAliases; ++j) {
+      assert(i == j || !RegisterAliases[i][Entry.Aliases[j]]);
+      RegisterAliases[i].set(Entry.Aliases[j]);
+    }
+    assert(RegisterAliases[i][i]);
+    if (Entry.CCArg <= 0) {
+      continue;
+    }
+    if (Entry.IsGPR) {
+      GPRArgInitializer[Entry.CCArg - 1] = i;
+    } else if (Entry.IsI64Pair) {
+      I64ArgInitializer[Entry.CCArg - 1] = i;
+    } else if (Entry.IsFP32) {
+      FP32ArgInitializer[Entry.CCArg - 1] = i;
+    } else if (Entry.IsFP64) {
+      FP64ArgInitializer[Entry.CCArg - 1] = i;
+    } else if (Entry.IsVec128) {
+      Vec128ArgInitializer[Entry.CCArg - 1] = i;
+    }
   }
-  REGARM32_TABLE;
-#undef X
   TypeToRegisterSet[IceType_void] = InvalidRegisters;
   TypeToRegisterSet[IceType_i1] = IntegerRegisters;
   TypeToRegisterSet[IceType_i8] = IntegerRegisters;
@@ -827,18 +830,10 @@ bool TargetARM32::doBranchOpt(Inst *I, const CfgNode *NextNode) {
   return false;
 }
 
-const char *RegARM32::RegNames[] = {
-#define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
-          isGPR, isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)       \
-  name,
-    REGARM32_TABLE
-#undef X
-};
-
 IceString TargetARM32::getRegName(SizeT RegNum, Type Ty) const {
   assert(RegNum < RegARM32::Reg_NUM);
   (void)Ty;
-  return RegARM32::RegNames[RegNum];
+  return RegARM32::getRegName(RegNum);
 }
 
 Variable *TargetARM32::getPhysicalRegister(SizeT RegNum, Type Ty) {
@@ -1834,28 +1829,25 @@ llvm::SmallBitVector TargetARM32::getRegisterSet(RegSetMask Include,
                                                  RegSetMask Exclude) const {
   llvm::SmallBitVector Registers(RegARM32::Reg_NUM);
 
-#define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
-          isGPR, isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)       \
-  if (scratch && (Include & RegSet_CallerSave))                                \
-    Registers[RegARM32::val] = true;                                           \
-  if (preserved && (Include & RegSet_CalleeSave))                              \
-    Registers[RegARM32::val] = true;                                           \
-  if (stackptr && (Include & RegSet_StackPointer))                             \
-    Registers[RegARM32::val] = true;                                           \
-  if (frameptr && (Include & RegSet_FramePointer))                             \
-    Registers[RegARM32::val] = true;                                           \
-  if (scratch && (Exclude & RegSet_CallerSave))                                \
-    Registers[RegARM32::val] = false;                                          \
-  if (preserved && (Exclude & RegSet_CalleeSave))                              \
-    Registers[RegARM32::val] = false;                                          \
-  if (stackptr && (Exclude & RegSet_StackPointer))                             \
-    Registers[RegARM32::val] = false;                                          \
-  if (frameptr && (Exclude & RegSet_FramePointer))                             \
-    Registers[RegARM32::val] = false;
-
-  REGARM32_TABLE
-
-#undef X
+  for (int i = 0; i < RegARM32::Reg_NUM; ++i) {
+    const auto &Entry = RegARM32::Table[i];
+    if (Entry.Scratch && (Include & RegSet_CallerSave))
+      Registers[i] = true;
+    if (Entry.Preserved && (Include & RegSet_CalleeSave))
+      Registers[i] = true;
+    if (Entry.StackPtr && (Include & RegSet_StackPointer))
+      Registers[i] = true;
+    if (Entry.FramePtr && (Include & RegSet_FramePointer))
+      Registers[i] = true;
+    if (Entry.Scratch && (Exclude & RegSet_CallerSave))
+      Registers[i] = false;
+    if (Entry.Preserved && (Exclude & RegSet_CalleeSave))
+      Registers[i] = false;
+    if (Entry.StackPtr && (Exclude & RegSet_StackPointer))
+      Registers[i] = false;
+    if (Entry.FramePtr && (Exclude & RegSet_FramePointer))
+      Registers[i] = false;
+  }
 
   return Registers;
 }

@@ -23,7 +23,39 @@
 namespace Ice {
 namespace ARM32 {
 
+/// SizeOf is used to obtain the size of an initializer list as a constexpr
+/// expression. This is only needed until our C++ library is updated to
+/// C++ 14 -- which defines constexpr members to std::initializer_list.
+class SizeOf {
+  SizeOf(const SizeOf &) = delete;
+  SizeOf &operator=(const SizeOf &) = delete;
+
+public:
+  constexpr SizeOf() : Size(0) {}
+  template <typename... T>
+  explicit constexpr SizeOf(T...)
+      : Size(__length<T...>::value) {}
+  constexpr SizeT size() const { return Size; }
+
+private:
+  template <typename T, typename... U> struct __length {
+    static constexpr std::size_t value = 1 + __length<U...>::value;
+  };
+
+  template <typename T> struct __length<T> {
+    static constexpr std::size_t value = 1;
+  };
+
+  const std::size_t Size;
+};
+
 class RegARM32 {
+private:
+  RegARM32() = delete;
+  RegARM32(const RegARM32 &) = delete;
+  RegARM32 &operator=(const RegARM32 &) = delete;
+  ~RegARM32() = delete;
+
 public:
   /// An enum of every register. The enum value may not match the encoding used
   /// to binary encode register operands in instructions.
@@ -83,30 +115,61 @@ public:
         Encoded_Not_QReg = -1
   };
 
+  static constexpr struct TableType {
+    const char *Name;
+    int32_t Encoding : 10;
+    int32_t CCArg : 6;
+    int32_t Scratch : 1;
+    int32_t Preserved : 1;
+    int32_t StackPtr : 1;
+    int32_t FramePtr : 1;
+    int32_t IsGPR : 1;
+    int32_t IsInt : 1;
+    int32_t IsI64Pair : 1;
+    int32_t IsFP32 : 1;
+    int32_t IsFP64 : 1;
+    int32_t IsVec128 : 1;
+#define NUM_ALIASES_BITS 3
+    SizeT NumAliases : (NUM_ALIASES_BITS + 1);
+    uint16_t Aliases[1 << NUM_ALIASES_BITS];
+#undef NUM_ALIASES_BITS
+  } Table[Reg_NUM] = {
+#define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
+          isGPR, isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)       \
+  {                                                                            \
+    name, encode, cc_arg, scratch, preserved, stackptr, frameptr, isGPR,       \
+        isInt, isI64Pair, isFP32, isFP64, isVec128,                            \
+        (SizeOf alias_init).size(), alias_init                                 \
+  }                                                                            \
+  ,
+      REGARM32_TABLE
+#undef X
+  };
+
   static inline GPRRegister getEncodedGPR(int32_t RegNum) {
     assert(Reg_GPR_First <= RegNum);
     assert(RegNum <= Reg_GPR_Last);
-    return GPRRegister(RegNum - Reg_GPR_First);
+    return GPRRegister(Table[RegNum].Encoding);
   }
 
   static inline GPRRegister getI64PairFirstGPRNum(int32_t RegNum) {
     assert(Reg_I64PAIR_First <= RegNum);
     assert(RegNum <= Reg_I64PAIR_Last);
-    return GPRRegister(2 * (RegNum - Reg_I64PAIR_First + Reg_GPR_First));
+    return GPRRegister(Table[RegNum].Encoding);
   }
 
   static inline GPRRegister getI64PairSecondGPRNum(int32_t RegNum) {
     assert(Reg_I64PAIR_First <= RegNum);
     assert(RegNum <= Reg_I64PAIR_Last);
-    return GPRRegister(2 * (RegNum - Reg_I64PAIR_First + Reg_GPR_First) + 1);
+    return GPRRegister(Table[RegNum].Encoding + 1);
   }
 
   static inline bool isI64RegisterPair(int32_t RegNum) {
-    return Reg_I64PAIR_First <= RegNum && RegNum <= Reg_I64PAIR_Last;
+    return Table[RegNum].IsI64Pair;
   }
 
   static inline bool isEncodedSReg(int32_t RegNum) {
-    return Reg_SREG_First <= RegNum && RegNum <= Reg_SREG_Last;
+    return Table[RegNum].IsFP32;
   }
 
   static inline SizeT getNumSRegs() {
@@ -116,22 +179,25 @@ public:
   static inline SRegister getEncodedSReg(int32_t RegNum) {
     assert(Reg_SREG_First <= RegNum);
     assert(RegNum <= Reg_SREG_Last);
-    return SRegister(RegNum - Reg_SREG_First);
+    return SRegister(Table[RegNum].Encoding);
   }
 
   static inline DRegister getEncodedDReg(int32_t RegNum) {
     assert(Reg_DREG_First <= RegNum);
     assert(RegNum <= Reg_DREG_Last);
-    return DRegister(RegNum - Reg_DREG_First);
+    return DRegister(Table[RegNum].Encoding);
   }
 
   static inline QRegister getEncodedQReg(int32_t RegNum) {
     assert(Reg_QREG_First <= RegNum);
     assert(RegNum <= Reg_QREG_Last);
-    return QRegister(RegNum - Reg_QREG_First);
+    return QRegister(Table[RegNum].Encoding);
   }
 
-  static const char *RegNames[];
+  static inline IceString getRegName(SizeT RegNum) {
+    assert(RegNum < Reg_NUM);
+    return Table[RegNum].Name;
+  }
 };
 
 // Extend enum RegClass with ARM32-specific register classes (if any).
