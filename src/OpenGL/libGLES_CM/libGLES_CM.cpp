@@ -1895,7 +1895,7 @@ void GetBooleanv(GLenum pname, GLboolean* params)
 	{
 		if(!(context->getBooleanv(pname, params)))
 		{
-			unsigned int numParams = context->getQueryParameterNum(pname);
+			int numParams = context->getQueryParameterNum(pname);
 
 			if(numParams < 0)
 			{
@@ -1914,7 +1914,7 @@ void GetBooleanv(GLenum pname, GLboolean* params)
 
 				context->getFloatv(pname, floatParams);
 
-				for(unsigned int i = 0; i < numParams; ++i)
+				for(int i = 0; i < numParams; ++i)
 				{
 					if(floatParams[i] == 0.0f)
 						params[i] = GL_FALSE;
@@ -1931,7 +1931,7 @@ void GetBooleanv(GLenum pname, GLboolean* params)
 
 				context->getIntegerv(pname, intParams);
 
-				for(unsigned int i = 0; i < numParams; ++i)
+				for(int i = 0; i < numParams; ++i)
 				{
 					if(intParams[i] == 0)
 						params[i] = GL_FALSE;
@@ -2027,7 +2027,7 @@ void GetFloatv(GLenum pname, GLfloat* params)
 	{
 		if(!(context->getFloatv(pname, params)))
 		{
-			unsigned int numParams = context->getQueryParameterNum(pname);
+			int numParams = context->getQueryParameterNum(pname);
 
 			if(numParams < 0)
 			{
@@ -2046,7 +2046,7 @@ void GetFloatv(GLenum pname, GLfloat* params)
 
 				context->getBooleanv(pname, boolParams);
 
-				for(unsigned int i = 0; i < numParams; ++i)
+				for(int i = 0; i < numParams; ++i)
 				{
 					if(boolParams[i] == GL_FALSE)
 						params[i] = 0.0f;
@@ -2063,7 +2063,7 @@ void GetFloatv(GLenum pname, GLfloat* params)
 
 				context->getIntegerv(pname, intParams);
 
-				for(unsigned int i = 0; i < numParams; ++i)
+				for(int i = 0; i < numParams; ++i)
 				{
 					params[i] = (GLfloat)intParams[i];
 				}
@@ -2168,7 +2168,7 @@ void GetIntegerv(GLenum pname, GLint* params)
 	{
 		if(!(context->getIntegerv(pname, params)))
 		{
-			unsigned int numParams = context->getQueryParameterNum(pname);
+			int numParams = context->getQueryParameterNum(pname);
 
 			if(numParams < 0)
 			{
@@ -2187,7 +2187,7 @@ void GetIntegerv(GLenum pname, GLint* params)
 
 				context->getBooleanv(pname, boolParams);
 
-				for(unsigned int i = 0; i < numParams; ++i)
+				for(int i = 0; i < numParams; ++i)
 				{
 					if(boolParams[i] == GL_FALSE)
 						params[i] = 0;
@@ -2204,7 +2204,7 @@ void GetIntegerv(GLenum pname, GLint* params)
 
 				context->getFloatv(pname, floatParams);
 
-				for(unsigned int i = 0; i < numParams; ++i)
+				for(int i = 0; i < numParams; ++i)
 				{
 					if(pname == GL_DEPTH_RANGE || pname == GL_COLOR_CLEAR_VALUE || pname == GL_DEPTH_CLEAR_VALUE)
 					{
