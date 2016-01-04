@@ -127,7 +127,7 @@ void AssemblerX86Base<TraitsType>::call(const ConstantRelocatable *label) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   intptr_t call_start = Buffer.getPosition();
   emitUint8(0xE8);
-  emitFixup(this->createFixup(Traits::PcRelFixup, label));
+  emitFixup(this->createFixup(Traits::FK_PcRel, label));
   emitInt32(-4);
   assert((Buffer.getPosition() - call_start) == kCallExternalLabelSize);
   (void)call_start;
@@ -138,7 +138,7 @@ void AssemblerX86Base<TraitsType>::call(const Immediate &abs_address) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   intptr_t call_start = Buffer.getPosition();
   emitUint8(0xE8);
-  emitFixup(this->createFixup(Traits::PcRelFixup, AssemblerFixup::NullSymbol));
+  emitFixup(this->createFixup(Traits::FK_PcRel, AssemblerFixup::NullSymbol));
   emitInt32(abs_address.value() - 4);
   assert((Buffer.getPosition() - call_start) == kCallExternalLabelSize);
   (void)call_start;
@@ -3098,10 +3098,11 @@ void AssemblerX86Base<TraitsType>::j(BrCond condition, Label *label,
 template <typename TraitsType>
 void AssemblerX86Base<TraitsType>::j(BrCond condition,
                                      const ConstantRelocatable *label) {
+  llvm::report_fatal_error("Untested - please verify and then reenable.");
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x0F);
   emitUint8(0x80 + condition);
-  emitFixup(this->createFixup(Traits::PcRelFixup, label));
+  emitFixup(this->createFixup(Traits::FK_PcRel, label));
   emitInt32(-4);
 }
 
@@ -3139,9 +3140,10 @@ void AssemblerX86Base<TraitsType>::jmp(Label *label, bool near) {
 
 template <typename TraitsType>
 void AssemblerX86Base<TraitsType>::jmp(const ConstantRelocatable *label) {
+  llvm::report_fatal_error("Untested - please verify and then reenable.");
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0xE9);
-  emitFixup(this->createFixup(Traits::PcRelFixup, label));
+  emitFixup(this->createFixup(Traits::FK_PcRel, label));
   emitInt32(-4);
 }
 

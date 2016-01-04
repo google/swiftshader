@@ -16,6 +16,8 @@ def main():
     './run_all.sh RunBenchmarks SetupGccX8632Opt {train|ref} ...'
     -- or --
     './run_all.sh RunBenchmarks SetupPnaclX8632Opt {train|ref} ...'
+    -- or --
+    './run_all.sh RunBenchmarks SetupNonsfiX8632Opt {train|ref} ...'
     """
     nacl_root = FindBaseNaCl()
     # Use the same default ordering as spec2k/run_all.sh.
@@ -45,7 +47,9 @@ def main():
     run_all_target = target_map[args.target] # fail if target not listed above
 
     suffix = (
-        'pnacl.opt.{target}' if args.sandbox else 'gcc.opt.{target}').format(
+        'pnacl.opt.{target}' if args.sandbox else
+        'nonsfi.opt.{target}' if args.nonsfi else
+        'gcc.opt.{target}').format(
              target=run_all_target);
     for comp in args.comps:
         name = os.path.splitext(comp)[1] or comp
@@ -61,7 +65,9 @@ def main():
                                       suffix=suffix))
     if args.run:
         os.chdir('{root}/tests/spec2k'.format(root=FindBaseNaCl()))
-        setup = 'SetupGcc' + {
+        setup = 'Setup' + ('Pnacl' if args.sandbox else
+                           'Nonsfi' if args.nonsfi else
+                           'Gcc') + {
             'arm32': 'Arm',
             'x8632': 'X8632',
             'x8664': 'X8664'}[args.target] + 'Opt'

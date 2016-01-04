@@ -62,7 +62,7 @@ public:
   /// RelocationKind for any relocations.
   void writeDataSection(const VariableDeclarationList &Vars,
                         FixupKind RelocationKind,
-                        const IceString &SectionSuffix);
+                        const IceString &SectionSuffix, bool IsPIC);
 
   /// Copy data of a function's text section to file and note the offset of the
   /// symbol's definition in the symbol table. Copy the text fixups for use
@@ -77,7 +77,8 @@ public:
   template <typename ConstType> void writeConstantPool(Type Ty);
 
   /// Write a jump table and register fixups for the target addresses.
-  void writeJumpTable(const JumpTableData &JT, FixupKind RelocationKind);
+  void writeJumpTable(const JumpTableData &JT, FixupKind RelocationKind,
+                      bool IsPIC);
 
   /// Populate the symbol table with a list of external/undefined symbols.
   void setUndefinedSyms(const ConstantList &UndefSyms);
@@ -153,8 +154,8 @@ private:
   /// SectionType.
   void writeDataOfType(SectionType SectionType,
                        const VariableDeclarationList &Vars,
-                       FixupKind RelocationKind,
-                       const IceString &SectionSuffix);
+                       FixupKind RelocationKind, const IceString &SectionSuffix,
+                       bool IsPIC);
 
   /// Write the final relocation sections given the final symbol table. May also
   /// be able to seek around the file and resolve function calls that are for

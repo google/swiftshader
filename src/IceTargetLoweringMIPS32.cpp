@@ -45,7 +45,9 @@ createTargetHeaderLowering(::Ice::GlobalContext *Ctx) {
   return ::Ice::MIPS32::TargetHeaderMIPS32::create(Ctx);
 }
 
-void staticInit() { ::Ice::MIPS32::TargetMIPS32::staticInit(); }
+void staticInit(const ::Ice::ClFlags &Flags) {
+  ::Ice::MIPS32::TargetMIPS32::staticInit(Flags);
+}
 } // end of namespace MIPS32
 
 namespace Ice {
@@ -62,7 +64,8 @@ constexpr uint32_t MIPS32_MAX_GPR_ARG = 4;
 
 TargetMIPS32::TargetMIPS32(Cfg *Func) : TargetLowering(Func) {}
 
-void TargetMIPS32::staticInit() {
+void TargetMIPS32::staticInit(const ClFlags &Flags) {
+  (void)Flags;
   llvm::SmallBitVector IntegerRegisters(RegMIPS32::Reg_NUM);
   llvm::SmallBitVector I64PairRegisters(RegMIPS32::Reg_NUM);
   llvm::SmallBitVector Float32Registers(RegMIPS32::Reg_NUM);
@@ -980,10 +983,12 @@ TargetDataMIPS32::TargetDataMIPS32(GlobalContext *Ctx)
 
 void TargetDataMIPS32::lowerGlobals(const VariableDeclarationList &Vars,
                                     const IceString &SectionSuffix) {
+  const bool IsPIC = Ctx->getFlags().getUseNonsfi();
   switch (Ctx->getFlags().getOutFileType()) {
   case FT_Elf: {
     ELFObjectWriter *Writer = Ctx->getObjectWriter();
-    Writer->writeDataSection(Vars, llvm::ELF::R_MIPS_GLOB_DAT, SectionSuffix);
+    Writer->writeDataSection(Vars, llvm::ELF::R_MIPS_GLOB_DAT, SectionSuffix,
+                             IsPIC);
   } break;
   case FT_Asm:
   case FT_Iasm: {

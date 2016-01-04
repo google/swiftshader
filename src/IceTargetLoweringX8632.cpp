@@ -32,7 +32,9 @@ createTargetHeaderLowering(::Ice::GlobalContext *Ctx) {
   return ::Ice::X8632::TargetHeaderX8632::create(Ctx);
 }
 
-void staticInit() { ::Ice::X8632::TargetX8632::staticInit(); }
+void staticInit(const ::Ice::ClFlags &Flags) {
+  ::Ice::X8632::TargetX8632::staticInit(Flags);
+}
 } // end of namespace X8632
 
 namespace Ice {
@@ -111,6 +113,14 @@ std::array<llvm::SmallBitVector,
 template <>
 llvm::SmallBitVector
     TargetX86Base<X8632::Traits>::ScratchRegs = llvm::SmallBitVector();
+
+template <>
+FixupKind TargetX86Base<X8632::Traits>::PcRelFixup =
+    TargetX86Base<X8632::Traits>::Traits::FK_PcRel;
+
+template <>
+FixupKind TargetX86Base<X8632::Traits>::AbsFixup =
+    TargetX86Base<X8632::Traits>::Traits::FK_Abs;
 
 //------------------------------------------------------------------------------
 //     __      ______  __     __  ______  ______  __  __   __  ______
@@ -240,7 +250,8 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
       break;
     }
   }
-  Operand *CallTarget = legalize(Instr->getCallTarget());
+  Operand *CallTarget =
+      legalize(Instr->getCallTarget(), Legal_Reg | Legal_Imm | Legal_AddrAbs);
   const bool NeedSandboxing = Ctx->getFlags().getUseSandboxing();
   if (NeedSandboxing) {
     if (llvm::isa<Constant>(CallTarget)) {
@@ -555,6 +566,43 @@ void TargetX8632::addProlog(CfgNode *Node) {
   if (!IsEbpBasedFrame)
     BasicFrameOffset += SpillAreaSizeBytes;
 
+  // If there is a non-deleted InstX86GetIP instruction, we need to move it to
+  // the point after the stack frame has stabilized but before
+  // register-allocated in-args are copied into their home registers.  It would
+  // be slightly faster to search for the GetIP instruction before other prolog
+  // instructions are inserted, but it's more clear to do the whole
+  // transformation in a single place.
+  Traits::Insts::GetIP *GetIPInst = nullptr;
+  if (Ctx->getFlags().getUseNonsfi()) {
+    for (Inst &Instr : Node->getInsts()) {
+      if (auto *GetIP = llvm::dyn_cast<Traits::Insts::GetIP>(&Instr)) {
+        if (!Instr.isDeleted())
+          GetIPInst = GetIP;
+        break;
+      }
+    }
+  }
+  // Delete any existing InstX86GetIP instruction and reinsert it here.  Also,
+  // insert the call to the helper function and the spill to the stack, to
+  // simplify emission.
+  if (GetIPInst) {
+    GetIPInst->setDeleted();
+    Variable *Dest = GetIPInst->getDest();
+    Variable *CallDest =
+        Dest->hasReg() ? Dest
+                       : getPhysicalRegister(Traits::RegisterSet::Reg_eax);
+    // Call the getIP_<reg> helper.
+    IceString RegName = Traits::getRegName(CallDest->getRegNum());
+    Constant *CallTarget = Ctx->getConstantExternSym(H_getIP_prefix + RegName);
+    Context.insert<Traits::Insts::Call>(CallDest, CallTarget);
+    // Insert a new version of InstX86GetIP.
+    Context.insert<Traits::Insts::GetIP>(CallDest);
+    // Spill the register to its home stack location if necessary.
+    if (!Dest->hasReg()) {
+      _mov(Dest, CallDest);
+    }
+  }
+
   const VarList &Args = Func->getArgs();
   size_t InArgsSizeBytes = 0;
   unsigned NumXmmArgs = 0;
@@ -695,8 +743,10 @@ void TargetX8632::emitJumpTable(const Cfg *Func,
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Ctx->getStrEmit();
-  IceString MangledName = Ctx->mangleName(Func->getFunctionName());
-  Str << "\t.section\t.rodata." << MangledName
+  const bool UseNonsfi = Ctx->getFlags().getUseNonsfi();
+  const IceString MangledName = Ctx->mangleName(Func->getFunctionName());
+  const IceString Prefix = UseNonsfi ? ".data.rel.ro." : ".rodata.";
+  Str << "\t.section\t" << Prefix << MangledName
       << "$jumptable,\"a\",@progbits\n";
   Str << "\t.align\t" << typeWidthInBytes(getPointerType()) << "\n";
   Str << InstJumpTable::makeName(MangledName, JumpTable->getId()) << ":";
@@ -855,11 +905,12 @@ void TargetDataX8632::lowerConstants() {
 }
 
 void TargetDataX8632::lowerJumpTables() {
+  const bool IsPIC = Ctx->getFlags().getUseNonsfi();
   switch (Ctx->getFlags().getOutFileType()) {
   case FT_Elf: {
     ELFObjectWriter *Writer = Ctx->getObjectWriter();
     for (const JumpTableData &JT : Ctx->getJumpTables())
-      Writer->writeJumpTable(JT, TargetX8632::Traits::RelFixup);
+      Writer->writeJumpTable(JT, TargetX8632::Traits::FK_Abs, IsPIC);
   } break;
   case FT_Asm:
     // Already emitted from Cfg
@@ -868,8 +919,9 @@ void TargetDataX8632::lowerJumpTables() {
     if (!BuildDefs::dump())
       return;
     Ostream &Str = Ctx->getStrEmit();
+    const IceString Prefix = IsPIC ? ".data.rel.ro." : ".rodata.";
     for (const JumpTableData &JT : Ctx->getJumpTables()) {
-      Str << "\t.section\t.rodata." << JT.getFunctionName()
+      Str << "\t.section\t" << Prefix << JT.getFunctionName()
           << "$jumptable,\"a\",@progbits\n";
       Str << "\t.align\t" << typeWidthInBytes(getPointerType()) << "\n";
       Str << InstJumpTable::makeName(JT.getFunctionName(), JT.getId()) << ":";
@@ -885,11 +937,12 @@ void TargetDataX8632::lowerJumpTables() {
 
 void TargetDataX8632::lowerGlobals(const VariableDeclarationList &Vars,
                                    const IceString &SectionSuffix) {
+  const bool IsPIC = Ctx->getFlags().getUseNonsfi();
   switch (Ctx->getFlags().getOutFileType()) {
   case FT_Elf: {
     ELFObjectWriter *Writer = Ctx->getObjectWriter();
-    Writer->writeDataSection(Vars, TargetX8632::Traits::RelFixup,
-                             SectionSuffix);
+    Writer->writeDataSection(Vars, TargetX8632::Traits::FK_Abs, SectionSuffix,
+                             IsPIC);
   } break;
   case FT_Asm:
   case FT_Iasm: {

@@ -176,7 +176,7 @@ public:
   bool fixupIsPCRel(FixupKind Kind) const override {
     // Currently assuming this is the only PC-rel relocation type used.
     // TODO(jpp): Traits.PcRelTypes.count(Kind) != 0
-    return Kind == Traits::PcRelFixup;
+    return Kind == Traits::FK_PcRel;
   }
 
   // Operations to emit GPR instructions (and dispatch on operand type).

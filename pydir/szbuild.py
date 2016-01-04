@@ -6,8 +6,7 @@ import pipes
 import re
 import sys
 
-from utils import shellcmd
-from utils import FindBaseNaCl
+from utils import shellcmd, FindBaseNaCl, get_sfi_string
 
 def NewerThanOrNotThere(old_path, new_path):
     """Returns whether old_path is newer than new_path.
@@ -85,6 +84,8 @@ def AddOptionalArgs(argparser):
                            help='Output file type.  Default %(default)s.')
     argparser.add_argument('--sandbox', dest='sandbox', action='store_true',
                            help='Enable sandboxing in the translator')
+    argparser.add_argument('--nonsfi', dest='nonsfi', action='store_true',
+                           help='Enable Non-SFI in the translator')
     argparser.add_argument('--enable-block-profile',
                            dest='enable_block_profile', action='store_true',
                            help='Enable basic block profiling.')
@@ -100,6 +101,116 @@ def AddOptionalArgs(argparser):
                            default=[], help='Extra arguments for llc')
     argparser.add_argument('--no-sz', dest='nosz', action='store_true',
                            help='Run only post-Subzero build steps')
+
+def LinkSandbox(objs, exe, target, verbose=True):
+    assert target in ('x8632', 'arm32'), \
+        '-sandbox is not available for %s' % target
+    nacl_root = FindBaseNaCl()
+    gold = ('{root}/toolchain/linux_x86/pnacl_newlib_raw/bin/' +
+            'le32-nacl-ld.gold').format(root=nacl_root)
+    target_lib_dir = {
+      'arm32': 'arm',
+      'x8632': 'x86-32',
+    }[target]
+    linklib = ('{root}/toolchain/linux_x86/pnacl_newlib_raw/translator/' +
+               '{target_dir}/lib').format(root=nacl_root,
+                                          target_dir=target_lib_dir)
+    shellcmd([gold,
+              '-nostdlib',
+              '--no-fix-cortex-a8',
+              '--eh-frame-hdr',
+              '-z', 'text',
+              #'-z', 'noexecstack',
+              '--build-id',
+              '--entry=__pnacl_start',
+              '-static', #'-pie',
+              '{linklib}/crtbegin.o'.format(linklib=linklib)] +
+             objs +
+             [('{root}/toolchain_build/src/subzero/build/runtime/' +
+               'szrt_sb_{target}.o').format(root=nacl_root, target=target),
+              '{linklib}/libpnacl_irt_shim_dummy.a'.format(linklib=linklib),
+              '--start-group',
+              '{linklib}/libgcc.a'.format(linklib=linklib),
+              '{linklib}/libcrt_platform.a'.format(linklib=linklib),
+              '--end-group',
+              '{linklib}/crtend.o'.format(linklib=linklib),
+              '--undefined=_start',
+              '--defsym=__Sz_AbsoluteZero=0',
+              #'--defsym=_begin=0',
+              '-o', exe
+             ], echo=verbose)
+
+def LinkNonsfi(objs, exe, target, verbose=True):
+    nacl_root = FindBaseNaCl()
+    gold = ('{root}/toolchain/linux_x86/pnacl_newlib_raw/bin/' +
+            'le32-nacl-ld.gold').format(root=nacl_root)
+    target_lib_dir = {
+      'arm32': 'arm-nonsfi',
+      'x8632': 'x86-32-nonsfi',
+    }[target]
+    linklib = ('{root}/toolchain/linux_x86/pnacl_newlib_raw/translator/' +
+               '{target_dir}/lib').format(root=nacl_root,
+                                          target_dir=target_lib_dir)
+    shellcmd([gold,
+              '-nostdlib',
+              '--no-fix-cortex-a8',
+              '--eh-frame-hdr',
+              '-z', 'text',
+              '-z', 'noexecstack',
+              '--build-id',
+              '--entry=__pnacl_start',
+              '-pie',
+              '{linklib}/crtbegin.o'.format(linklib=linklib)] +
+             objs +
+             [('{root}/toolchain_build/src/subzero/build/runtime/' +
+               'szrt_nonsfi_{target}.o').format(root=nacl_root, target=target),
+              '{linklib}/libpnacl_irt_shim_dummy.a'.format(linklib=linklib),
+              '--start-group',
+              '{linklib}/libgcc.a'.format(linklib=linklib),
+              '{linklib}/libcrt_platform.a'.format(linklib=linklib),
+              '--end-group',
+              '{linklib}/crtend.o'.format(linklib=linklib),
+              '--undefined=_start',
+              '--defsym=__Sz_AbsoluteZero=0',
+              '--defsym=_begin=0',
+              '-o', exe
+             ], echo=verbose)
+
+def LinkNative(objs, exe, target, verbose=True):
+    nacl_root = FindBaseNaCl()
+    linker = {
+      'arm32': '/usr/bin/arm-linux-gnueabihf-g++',
+      'x8632': ('{root}/../third_party/llvm-build/Release+Asserts/bin/clang'
+               ).format(root=nacl_root),
+      'x8664': ('{root}/../third_party/llvm-build/Release+Asserts/bin/clang'
+               ).format(root=nacl_root)
+    }[target]
+
+    extra_linker_args = {
+      'arm32': ['-mcpu=cortex-a9'],
+      'x8632': ['-m32'],
+      'x8664': ['-mx32']
+    }[target]
+
+    lib_dir = {
+      'arm32': 'arm-linux',
+      'x8632': 'x86-32-linux',
+      'x8664': 'x86-64-linux',
+    }[target]
+
+    shellcmd([linker] +
+             extra_linker_args +
+             objs +
+             ['-o', exe,
+              ('{root}/toolchain/linux_x86/pnacl_newlib_raw/translator/' +
+               '{lib_dir}/lib/' +
+               '{{unsandboxed_irt,irt_random,irt_query_list}}.o').format(
+                   root=nacl_root, lib_dir=lib_dir),
+              ('{root}/toolchain_build/src/subzero/build/runtime/' +
+               'szrt_native_{target}.o').format(root=nacl_root, target=target),
+              '-lm', '-lpthread', '-lrt',
+              '-Wl,--defsym=__Sz_AbsoluteZero=0'
+             ], echo=verbose)
 
 def main():
     """Create a hybrid translation from Subzero and llc.
@@ -183,14 +294,15 @@ def ProcessPexe(args, pexe, exe):
     opt_level = args.optlevel
     opt_level_map = { 'm1':'0', '-1':'0', '0':'0', '1':'1', '2':'2' }
     hybrid = args.include or args.exclude
+    native = not args.sandbox and not args.nonsfi
 
     if hybrid and (args.force or
                    NewerThanOrNotThere(pexe, obj_llc) or
                    NewerThanOrNotThere(llcbin, obj_llc)):
         arch = {
-          'arm32': 'armv7' if args.sandbox else 'arm-nonsfi',
-          'x8632': 'x86-32' if args.sandbox else 'x86-32-linux',
-          'x8664': 'x86-64' if args.sandbox else 'x86-64-linux',
+          'arm32': 'arm' + get_sfi_string(args, 'v7', '-nonsfi', '-nonsfi'),
+          'x8632': 'x86-32' + get_sfi_string(args, '', '-nonsfi', '-linux'),
+          'x8664': 'x86-64' + get_sfi_string(args, '', '', '-linux')
         }[args.target]
 
         # Only run pnacl-translate in hybrid mode.
@@ -207,7 +319,7 @@ def ProcessPexe(args, pexe, exe):
                  args.llc_args +
                  [pexe],
                  echo=args.verbose)
-        if not args.sandbox:
+        if native:
             shellcmd((
                 '{objcopy} --redefine-sym _start=_user_start {obj}'
                 ).format(objcopy=objcopy, obj=obj_llc), echo=args.verbose)
@@ -231,6 +343,7 @@ def ProcessPexe(args, pexe, exe):
                        '-ffunction-sections',
                        '-fdata-sections'] if hybrid else []) +
                      (['-sandbox'] if args.sandbox else []) +
+                     (['-nonsfi'] if args.nonsfi else []) +
                      (['-enable-block-profile'] if
                           args.enable_block_profile and not args.sandbox
                           else []) +
@@ -239,9 +352,11 @@ def ProcessPexe(args, pexe, exe):
                      echo=args.verbose)
         if args.filetype != 'obj':
             triple = {
-              'arm32': 'arm-nacl' if args.sandbox else 'arm',
-              'x8632': 'i686-nacl' if args.sandbox else 'i686',
-              'x8664': 'x86_64-nacl' if args.sandbox else 'x86_64-linux-gnux32',
+              'arm32': 'arm' + get_sfi_string(args, '-nacl', '', ''),
+              'x8632': 'i686' + get_sfi_string(args, '-nacl', '', ''),
+              'x8664': 'x86_64' +
+                        get_sfi_string(args, '-nacl', '-linux-gnux32',
+                                       '-linux-gnux32'),
             }[args.target]
 
             shellcmd((
@@ -249,7 +364,7 @@ def ProcessPexe(args, pexe, exe):
                 ).format(base=path_addition, asm=asm_sz, obj=obj_sz,
                          triple=triple),
                      echo=args.verbose)
-        if not args.sandbox:
+        if native:
             shellcmd((
                 '{objcopy} --redefine-sym _start=_user_start {obj}'
                 ).format(objcopy=objcopy, obj=obj_sz), echo=args.verbose)
@@ -317,69 +432,17 @@ def ProcessPexe(args, pexe, exe):
             '{objcopy} --globalize-symbol={start} ' +
             '--globalize-symbol=__Sz_block_profile_info {partial}'
             ).format(objcopy=objcopy, partial=obj_partial,
-                     start='_start' if args.sandbox else '_user_start'),
+                     start=get_sfi_string(args, '_start', '_start',
+                                          '_user_start')),
                  echo=args.verbose)
 
     # Run the linker regardless of hybrid mode.
     if args.sandbox:
-        assert args.target in ('x8632', 'arm32'), \
-            '-sandbox is not available for %s' % args.target
-        target_lib_dir = {
-          'arm32': 'arm',
-          'x8632': 'x86-32',
-        }[args.target]
-        linklib = ('{root}/toolchain/linux_x86/pnacl_newlib_raw/translator/' +
-                   '{target_dir}/lib').format(root=nacl_root,
-                                              target_dir=target_lib_dir)
-        shellcmd((
-            '{gold} -nostdlib --no-fix-cortex-a8 --eh-frame-hdr -z text ' +
-            '--build-id --entry=__pnacl_start -static ' +
-            '{linklib}/crtbegin.o {partial} ' +
-            '{root}/toolchain_build/src/subzero/build/runtime/' +
-            'szrt_sb_{target}.o ' +
-            '{linklib}/libpnacl_irt_shim_dummy.a --start-group ' +
-            '{linklib}/libgcc.a {linklib}/libcrt_platform.a ' +
-            '--end-group {linklib}/crtend.o --undefined=_start ' +
-            '--defsym=__Sz_AbsoluteZero=0 ' +
-            '-o {exe}'
-            ).format(gold=gold, linklib=linklib, partial=obj_partial, exe=exe,
-                     root=nacl_root, target=args.target),
-                 echo=args.verbose)
+        LinkSandbox([obj_partial], exe, args.target, args.verbose)
+    elif args.nonsfi:
+        LinkNonsfi([obj_partial], exe, args.target, args.verbose)
     else:
-        linker = {
-          'arm32': '/usr/bin/arm-linux-gnueabihf-g++',
-          'x8632': ('{root}/../third_party/llvm-build/Release+Asserts/bin/clang'
-                   ).format(root=nacl_root),
-          'x8664': ('{root}/../third_party/llvm-build/Release+Asserts/bin/clang'
-                   ).format(root=nacl_root)
-        }[args.target]
-
-        extra_linker_args = ' '.join({
-          'arm32': ['-mcpu=cortex-a9'],
-          'x8632': ['-m32'],
-          'x8664': ['-mx32']
-        }[args.target])
-
-        lib_dir = {
-          'arm32': 'arm-linux',
-          'x8632': 'x86-32-linux',
-          'x8664': 'x86-64-linux',
-        }[args.target]
-
-        shellcmd((
-            '{ld} {ld_extra_args} {partial} -o {exe} ' +
-            # Keep the rest of this command line (except szrt_native_x8632.o) in
-            # sync with RunHostLD() in pnacl-translate.py.
-            '{root}/toolchain/linux_x86/pnacl_newlib_raw/translator/' +
-            '{lib_dir}/lib/' +
-            '{{unsandboxed_irt,irt_random,irt_query_list}}.o ' +
-            '{root}/toolchain_build/src/subzero/build/runtime/' +
-            'szrt_native_{target}.o -lpthread -lrt ' +
-            '-Wl,--defsym=__Sz_AbsoluteZero=0'
-            ).format(ld=linker, ld_extra_args=extra_linker_args,
-                     partial=obj_partial, exe=exe, root=nacl_root,
-                     target=args.target, lib_dir=lib_dir),
-                 echo=args.verbose)
+        LinkNative([obj_partial], exe, args.target, args.verbose)
 
     # Put the extra verbose printing at the end.
     if args.verbose and hybrid:

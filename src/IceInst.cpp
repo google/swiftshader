@@ -493,10 +493,11 @@ InstFakeDef::InstFakeDef(Cfg *Func, Variable *Dest, Variable *Src)
     addSource(Src);
 }
 
-InstFakeUse::InstFakeUse(Cfg *Func, Variable *Src)
-    : InstHighLevel(Func, Inst::FakeUse, 1, nullptr) {
+InstFakeUse::InstFakeUse(Cfg *Func, Variable *Src, uint32_t Weight)
+    : InstHighLevel(Func, Inst::FakeUse, Weight, nullptr) {
   assert(Src);
-  addSource(Src);
+  for (uint32_t i = 0; i < Weight; ++i)
+    addSource(Src);
 }
 
 InstFakeKill::InstFakeKill(Cfg *Func, const Inst *Linked)

@@ -256,6 +256,9 @@ cl::opt<std::string>
     TranslateOnly("translate-only",
                   cl::desc("Translate only the given function"), cl::init(""));
 
+/// Enable Non-SFI mode.
+cl::opt<bool> UseNonsfi("nonsfi", cl::desc("Enable Non-SFI mode"));
+
 /// Use sandboxing.
 cl::opt<bool> UseSandboxing("sandbox", cl::desc("Use sandboxing"));
 
@@ -455,6 +458,7 @@ void ClFlags::resetClFlags(ClFlags &OutFlags) {
   OutFlags.SkipUnimplemented = false;
   OutFlags.SubzeroTimingEnabled = false;
   OutFlags.TimeEachFunction = false;
+  OutFlags.UseNonsfi = false;
   OutFlags.UseSandboxing = false;
   // Enum and integer fields.
   OutFlags.Opt = Opt_m1;
@@ -531,6 +535,7 @@ void ClFlags::getParsedClFlags(ClFlags &OutFlags) {
   OutFlags.setTimeEachFunction(::TimeEachFunction);
   OutFlags.setTimingFocusOn(::TimingFocusOn);
   OutFlags.setTranslateOnly(::TranslateOnly);
+  OutFlags.setUseNonsfi(::UseNonsfi);
   OutFlags.setUseSandboxing(::UseSandboxing);
   OutFlags.setVerboseFocusOn(::VerboseFocusOn);
   OutFlags.setOutFileType(::OutFileType);

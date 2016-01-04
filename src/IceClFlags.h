@@ -181,6 +181,11 @@ public:
   /// Set ClFlags::TimeEachFunction to a new value
   void setTimeEachFunction(bool NewValue) { TimeEachFunction = NewValue; }
 
+  /// Get the value of ClFlags::UseNonsfi
+  bool getUseNonsfi() const { return UseNonsfi; }
+  /// Set ClFlags::UseNonsfi to a new value
+  void setUseNonsfi(bool NewValue) { UseNonsfi = NewValue; }
+
   /// Get the value of ClFlags::UseSandboxing
   bool getUseSandboxing() const { return UseSandboxing; }
   /// Set ClFlags::UseSandboxing to a new value
@@ -415,6 +420,8 @@ private:
   bool SubzeroTimingEnabled;
   /// see anonymous_namespace{IceClFlags.cpp}::TimeEachFunction
   bool TimeEachFunction;
+  /// see anonymous_namespace{IceClFlags.cpp}::UseNonsfi
+  bool UseNonsfi;
   /// see anonymous_namespace{IceClFlags.cpp}::UseSandboxing
   bool UseSandboxing;
   /// see anonymous_namespace{IceClFlags.cpp}::OLevel

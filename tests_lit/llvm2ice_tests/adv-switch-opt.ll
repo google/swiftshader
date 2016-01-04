@@ -32,9 +32,8 @@ sw.epilog:
 ; CHECK: sub [[IND:[^,]+]],0x5b
 ; CHECK-NEXT: cmp [[IND]],0x8
 ; CHECK-NEXT: ja
-; CHECK-NEXT: mov [[BASE:[^,]+]],0x0 {{[0-9a-f]+}}: R_386_32 .{{.*}}testJumpTable$jumptable
-; CHECK-NEXT: mov {{.*}},DWORD PTR {{\[}}[[BASE]]+[[IND]]*4]
-; CHECK-NEXT: jmp
+; CHECK-NEXT: mov [[TARGET:.*]],DWORD PTR {{\[}}[[IND]]*4+0x0] {{[0-9a-f]+}}: R_386_32 .{{.*}}testJumpTable$jumptable
+; CHECK-NEXT: jmp [[TARGET]]
 
 ; Continuous ranges which map to the same target should be grouped and
 ; efficiently tested.

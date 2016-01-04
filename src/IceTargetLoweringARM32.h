@@ -57,9 +57,7 @@ class TargetARM32 : public TargetLowering {
   TargetARM32 &operator=(const TargetARM32 &) = delete;
 
 public:
-  ~TargetARM32() = default;
-
-  static void staticInit();
+  static void staticInit(const ClFlags &Flags);
   // TODO(jvoung): return a unique_ptr.
   static std::unique_ptr<::Ice::TargetLowering> create(Cfg *Func) {
     return makeUnique<TargetARM32>(Func);
@@ -130,12 +128,12 @@ public:
 
   void emitVariable(const Variable *Var) const override;
 
-  const char *getConstantPrefix() const final { return "#"; }
   void emit(const ConstantUndef *C) const final;
   void emit(const ConstantInteger32 *C) const final;
   void emit(const ConstantInteger64 *C) const final;
   void emit(const ConstantFloat *C) const final;
   void emit(const ConstantDouble *C) const final;
+  void emit(const ConstantRelocatable *C) const final;
 
   void lowerArguments() override;
   void addProlog(CfgNode *Node) override;
@@ -156,12 +154,12 @@ public:
                          /// immediates, shifted registers, or modified fp imm.
     Legal_Mem = 1 << 2,  /// includes [r0, r1 lsl #2] as well as [sp, #12]
     Legal_Rematerializable = 1 << 3,
-    Legal_All = ~Legal_Rematerializable,
+    Legal_Default = ~Legal_Rematerializable,
   };
 
   using LegalMask = uint32_t;
   Operand *legalizeUndef(Operand *From, int32_t RegNum = Variable::NoRegister);
-  Operand *legalize(Operand *From, LegalMask Allowed = Legal_All,
+  Operand *legalize(Operand *From, LegalMask Allowed = Legal_Default,
                     int32_t RegNum = Variable::NoRegister);
   Variable *legalizeToReg(Operand *From, int32_t RegNum = Variable::NoRegister);
 

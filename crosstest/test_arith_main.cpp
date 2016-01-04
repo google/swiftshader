@@ -162,7 +162,7 @@ const static size_t MaxTestsPerFunc = 100000;
 
 template <typename TypeUnsignedLabel, typename TypeSignedLabel>
 void testsVecInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
-#ifndef ARM32
+#if !defined(ARM32) && !defined(NONSFI)
   // TODO(jpp): remove this once vector support is implemented.
   typedef typename Vectors<TypeUnsignedLabel>::Ty TypeUnsigned;
   typedef typename Vectors<TypeSignedLabel>::Ty TypeSigned;
@@ -204,7 +204,7 @@ void testsVecInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
     for (size_t i = 0; i < MaxTestsPerFunc; ++i) {
       // Initialize the test vectors.
       TypeUnsigned Value1, Value2;
-      for (size_t j = 0; j < NumElementsInType;) {
+      for (size_t j = 0; j < NumElementsInType; ++j) {
         ElementTypeUnsigned Element1 = Values[Index() % NumValues];
         ElementTypeUnsigned Element2 = Values[Index() % NumValues];
         if (Funcs[f].ExcludeDivExceptions &&
@@ -214,7 +214,6 @@ void testsVecInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
           Element2 &= CHAR_BIT * sizeof(ElementTypeUnsigned) - 1;
         Value1[j] = Element1;
         Value2[j] = Element2;
-        ++j;
       }
       // Perform the test.
       TypeUnsigned ResultSz, ResultLlc;
@@ -240,7 +239,7 @@ void testsVecInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
       }
     }
   }
-#endif // ARM32
+#endif // !ARM32 && !NONSFI
 }
 
 template <typename Type>
@@ -316,7 +315,7 @@ void testsFp(size_t &TotalTests, size_t &Passes, size_t &Failures) {
 }
 
 void testsVecFp(size_t &TotalTests, size_t &Passes, size_t &Failures) {
-#ifndef ARM32
+#if !defined(ARM32) && !defined(NONSFI)
   // TODO(jpp): remove this once vector support is implemented.
   static const float NegInf = -1.0 / 0.0;
   static const float PosInf = 1.0 / 0.0;
@@ -376,7 +375,7 @@ void testsVecFp(size_t &TotalTests, size_t &Passes, size_t &Failures) {
       }
     }
   }
-#endif // ARM32
+#endif // !ARM32 && !NONSFI
 }
 
 #ifdef X8664_STACK_HACK

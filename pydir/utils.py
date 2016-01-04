@@ -20,3 +20,12 @@ def FindBaseNaCl():
         return None
     last_index = len(path_list) - path_list[::-1].index(nacl)
     return os.sep.join(path_list[:last_index])
+
+def get_sfi_string(args, sb_ret, nonsfi_ret, native_ret):
+    """Return a value depending on args.sandbox and args.nonsfi."""
+    if args.sandbox:
+        assert(not args.nonsfi)
+        return sb_ret
+    if args.nonsfi:
+        return nonsfi_ret
+    return native_ret

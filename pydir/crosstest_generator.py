@@ -56,7 +56,7 @@ def main():
 
   # The rest of the attribute sets.
   targets = [ 'x8632', 'x8664', 'arm32' ]
-  sandboxing = [ 'native', 'sandbox' ]
+  sandboxing = [ 'native', 'sandbox', 'nonsfi' ]
   opt_levels = [ 'Om1', 'O2' ]
   arch_attrs = { 'x8632': [ 'sse2', 'sse4.1' ],
                  'x8664': [ 'sse2', 'sse4.1' ],
@@ -103,7 +103,10 @@ def main():
   argparser.add_argument('--lit', default=False, action='store_true',
                          help='Generate files for lit testing')
   argparser.add_argument('--toolchain-root', dest='toolchain_root',
-                           help='Path to toolchain binaries.')
+                         default=(
+                           '{root}/toolchain/linux_x86/pnacl_newlib_raw/bin'
+                         ).format(root=root),
+                         help='Path to toolchain binaries.')
   args = argparser.parse_args()
 
   # Run from the crosstest directory to make it easy to grab inputs.
@@ -156,6 +159,7 @@ def main():
                  '--mattr={attr}'.format(attr=attr),
                  '--prefix=Subzero_',
                  '--target={target}'.format(target=target),
+                 '--nonsfi={nsfi}'.format(nsfi='1' if sb=='nonsfi' else '0'),
                  '--sandbox={sb}'.format(sb='1' if sb=='sandbox' else '0'),
                  '--dir={dir}'.format(dir=args.dir),
                  '--output={exe}'.format(exe=exe),
@@ -169,6 +173,9 @@ def main():
               run_cmd = run_cmd_base
               if sb == 'sandbox':
                 run_cmd = '{root}/run.py -q '.format(root=root) + run_cmd
+              elif sb == 'nonsfi':
+                run_cmd = ('{root}/scons-out/opt-linux-x86-32/obj/src/nonsfi/' +
+                           'loader/nonsfi_loader ').format(root=root) + run_cmd
               else:
                 run_cmd = RunNativePrefix(args.toolchain_root, target, run_cmd)
               if args.lit:

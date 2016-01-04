@@ -79,8 +79,11 @@ public:
 
   ~TargetX86Base() override = default;
 
-  static void staticInit();
+  static void staticInit(const ClFlags &Flags);
   static TargetX86Base *create(Cfg *Func) { return new TargetX86Base(Func); }
+
+  static FixupKind getPcRelFixup() { return PcRelFixup; }
+  static FixupKind getAbsFixup() { return AbsFixup; }
 
   void translateOm1() override;
   void translateO2() override;
@@ -146,12 +149,12 @@ public:
 
   void emitVariable(const Variable *Var) const override;
 
-  const char *getConstantPrefix() const final { return "$"; }
-  void emit(const ConstantUndef *C) const final;
   void emit(const ConstantInteger32 *C) const final;
   void emit(const ConstantInteger64 *C) const final;
   void emit(const ConstantFloat *C) const final;
   void emit(const ConstantDouble *C) const final;
+  void emit(const ConstantUndef *C) const final;
+  void emit(const ConstantRelocatable *C) const final;
 
   void initNodeForLowering(CfgNode *Node) override;
 
@@ -284,10 +287,12 @@ protected:
     Legal_Imm = 1 << 1,
     Legal_Mem = 1 << 2, // includes [eax+4*ecx] as well as [esp+12]
     Legal_Rematerializable = 1 << 3,
-    Legal_All = ~Legal_Rematerializable
+    Legal_AddrAbs = 1 << 4, // ConstantRelocatable doesn't have to add GotVar
+    Legal_Default = ~(Legal_Rematerializable | Legal_AddrAbs)
+    // TODO(stichnot): Figure out whether this default works for x86-64.
   };
   using LegalMask = uint32_t;
-  Operand *legalize(Operand *From, LegalMask Allowed = Legal_All,
+  Operand *legalize(Operand *From, LegalMask Allowed = Legal_Default,
                     int32_t RegNum = Variable::NoRegister);
   Variable *legalizeToReg(Operand *From, int32_t RegNum = Variable::NoRegister);
   /// Legalize the first source operand for use in the cmp instruction.
@@ -744,6 +749,9 @@ protected:
   static llvm::SmallBitVector ScratchRegs;
   llvm::SmallBitVector RegsUsed;
   std::array<VarList, IceType_NUM> PhysicalRegisters;
+  // GotVar is a Variable that holds the GlobalOffsetTable address for Non-SFI
+  // mode.
+  Variable *GotVar = nullptr;
 
   /// Randomize a given immediate operand
   Operand *randomizeOrPoolImmediate(Constant *Immediate,
@@ -811,6 +819,10 @@ private:
   /// Optimizations for idiom recognition.
   bool lowerOptimizeFcmpSelect(const InstFcmp *Fcmp, const InstSelect *Select);
 
+  /// Emit code that initializes the value of the GotVar near the start of the
+  /// function.  (This code is emitted only in Non-SFI mode.)
+  void initGotVarIfNeeded();
+
   /// Complains loudly if invoked because the cpu can handle 64-bit types
   /// natively.
   template <typename T = Traits>
@@ -825,6 +837,9 @@ private:
   lowerIcmp64(const InstIcmp *Icmp, const Inst *Consumer);
 
   BoolFolding FoldingInfo;
+
+  static FixupKind PcRelFixup;
+  static FixupKind AbsFixup;
 };
 } // end of namespace X86NAMESPACE
 } // end of namespace Ice

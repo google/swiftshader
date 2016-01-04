@@ -72,8 +72,10 @@ struct TargetX8632Traits {
   static const SizeT FramePtr = RegX8632::Reg_ebp;
   static const GPRRegister Encoded_Reg_Accumulator = RegX8632::Encoded_Reg_eax;
   static const GPRRegister Encoded_Reg_Counter = RegX8632::Encoded_Reg_ecx;
-  static const FixupKind PcRelFixup = llvm::ELF::R_386_PC32;
-  static const FixupKind RelFixup = llvm::ELF::R_386_32;
+  static constexpr FixupKind FK_PcRel = llvm::ELF::R_386_PC32;
+  static constexpr FixupKind FK_Abs = llvm::ELF::R_386_32;
+  static constexpr FixupKind FK_Gotoff = llvm::ELF::R_386_GOTOFF;
+  static constexpr FixupKind FK_GotPC = llvm::ELF::R_386_GOTPC;
 
   class Operand {
   public:
@@ -796,9 +798,10 @@ public:
     static X86OperandMem *create(Cfg *Func, Type Ty, Variable *Base,
                                  Constant *Offset, Variable *Index = nullptr,
                                  uint16_t Shift = 0,
-                                 SegmentRegisters SegmentReg = DefaultSegment) {
-      return new (Func->allocate<X86OperandMem>())
-          X86OperandMem(Func, Ty, Base, Offset, Index, Shift, SegmentReg);
+                                 SegmentRegisters SegmentReg = DefaultSegment,
+                                 bool IsPIC = false) {
+      return new (Func->allocate<X86OperandMem>()) X86OperandMem(
+          Func, Ty, Base, Offset, Index, Shift, SegmentReg, IsPIC);
     }
     Variable *getBase() const { return Base; }
     Constant *getOffset() const { return Offset; }
@@ -806,6 +809,8 @@ public:
     uint16_t getShift() const { return Shift; }
     SegmentRegisters getSegmentRegister() const { return SegmentReg; }
     void emitSegmentOverride(Assembler *Asm) const;
+    void setIsPIC() { IsPIC = true; }
+    bool getIsPIC() const { return IsPIC; }
     Address toAsmAddress(Assembler *Asm,
                          const Ice::TargetLowering *Target) const;
 
@@ -823,17 +828,19 @@ public:
 
   private:
     X86OperandMem(Cfg *Func, Type Ty, Variable *Base, Constant *Offset,
-                  Variable *Index, uint16_t Shift, SegmentRegisters SegmentReg);
+                  Variable *Index, uint16_t Shift, SegmentRegisters SegmentReg,
+                  bool IsPIC);
 
     Variable *Base;
     Constant *Offset;
     Variable *Index;
     uint16_t Shift;
     SegmentRegisters SegmentReg : 16;
+    bool IsPIC;
     /// A flag to show if this memory operand is a randomized one. Randomized
     /// memory operands are generated in
     /// TargetX86Base::randomizeOrPoolImmediate()
-    bool Randomized;
+    bool Randomized = false;
   };
 
   /// VariableSplit is a way to treat an f64 memory location as a pair of i32

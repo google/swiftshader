@@ -29,7 +29,8 @@ RelocOffsetT AssemblerFixup::offset() const {
   return 0;
 }
 
-IceString AssemblerFixup::symbol(const GlobalContext *Ctx) const {
+IceString AssemblerFixup::symbol(const GlobalContext *Ctx,
+                                 const Assembler *Asm) const {
   std::string Buffer;
   llvm::raw_string_ostream Str(Buffer);
   const Constant *C = value_;
@@ -39,6 +40,9 @@ IceString AssemblerFixup::symbol(const GlobalContext *Ctx) const {
       Str << CR->getName();
     else
       Str << Ctx->mangleName(CR->getName());
+    if (Asm && !Asm->fixupIsPCRel(kind()) && Ctx->getFlags().getUseNonsfi()) {
+      Str << "@GOTOFF";
+    }
   } else {
     // NOTE: currently only float/doubles are put into constant pools. In the
     // future we may put integers as well.
@@ -57,7 +61,7 @@ size_t AssemblerFixup::emit(GlobalContext *Ctx, const Assembler &Asm) const {
   if (isNullSymbol())
     Str << "__Sz_AbsoluteZero";
   else
-    Str << symbol(Ctx);
+    Str << symbol(Ctx, &Asm);
   RelocOffsetT Offset = Asm.load<RelocOffsetT>(position());
   if (Offset)
     Str << " + " << Offset;

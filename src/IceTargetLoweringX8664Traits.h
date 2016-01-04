@@ -72,8 +72,10 @@ struct TargetX8664Traits {
   static const SizeT FramePtr = RegX8664::Reg_rbp;
   static const GPRRegister Encoded_Reg_Accumulator = RegX8664::Encoded_Reg_eax;
   static const GPRRegister Encoded_Reg_Counter = RegX8664::Encoded_Reg_ecx;
-  static const FixupKind PcRelFixup = llvm::ELF::R_X86_64_PC32;
-  static const FixupKind RelFixup = llvm::ELF::R_X86_64_32;
+  static constexpr FixupKind FK_PcRel = llvm::ELF::R_X86_64_PC32;
+  static constexpr FixupKind FK_Abs = llvm::ELF::R_X86_64_32;
+  static constexpr FixupKind FK_Gotoff = llvm::ELF::R_X86_64_GOTOFF64;
+  static constexpr FixupKind FK_GotPC = llvm::ELF::R_X86_64_GOTPC32;
 
   class Operand {
   public:
@@ -271,7 +273,7 @@ struct TargetX8664Traits {
 
     static Address ofConstPool(Assembler *Asm, const Constant *Imm) {
       // TODO(jpp): ???
-      AssemblerFixup *Fixup = Asm->createFixup(RelFixup, Imm);
+      AssemblerFixup *Fixup = Asm->createFixup(FK_Abs, Imm);
       const RelocOffsetT Offset = 4;
       return Address(Offset, Fixup);
     }
@@ -839,11 +841,12 @@ public:
     static X86OperandMem *
     create(Cfg *Func, Type Ty, Variable *Base, Constant *Offset,
            Variable *Index = nullptr, uint16_t Shift = 0,
-           SegmentRegisters SegmentRegister = DefaultSegment) {
+           SegmentRegisters SegmentRegister = DefaultSegment,
+           bool IsPIC = false) {
       assert(SegmentRegister == DefaultSegment);
       (void)SegmentRegister;
       return new (Func->allocate<X86OperandMem>())
-          X86OperandMem(Func, Ty, Base, Offset, Index, Shift);
+          X86OperandMem(Func, Ty, Base, Offset, Index, Shift, IsPIC);
     }
     Variable *getBase() const { return Base; }
     Constant *getOffset() const { return Offset; }
@@ -851,6 +854,8 @@ public:
     uint16_t getShift() const { return Shift; }
     SegmentRegisters getSegmentRegister() const { return DefaultSegment; }
     void emitSegmentOverride(Assembler *) const {}
+    void setIsPIC() { IsPIC = true; }
+    bool getIsPIC() const { return IsPIC; }
     Address toAsmAddress(Assembler *Asm,
                          const Ice::TargetLowering *Target) const;
 
@@ -868,12 +873,13 @@ public:
 
   private:
     X86OperandMem(Cfg *Func, Type Ty, Variable *Base, Constant *Offset,
-                  Variable *Index, uint16_t Shift);
+                  Variable *Index, uint16_t Shift, bool IsPIC);
 
     Variable *Base;
     Constant *Offset;
     Variable *Index;
     uint16_t Shift;
+    bool IsPIC;
     /// A flag to show if this memory operand is a randomized one. Randomized
     /// memory operands are generated in
     /// TargetX86Base::randomizeOrPoolImmediate()

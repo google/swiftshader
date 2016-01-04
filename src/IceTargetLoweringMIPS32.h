@@ -33,7 +33,7 @@ class TargetMIPS32 : public TargetLowering {
 public:
   ~TargetMIPS32() override = default;
 
-  static void staticInit();
+  static void staticInit(const ClFlags &Flags);
   static std::unique_ptr<::Ice::TargetLowering> create(Cfg *Func) {
     return makeUnique<TargetMIPS32>(Func);
   }
@@ -99,11 +99,6 @@ public:
 
   void emitVariable(const Variable *Var) const override;
 
-  const char *getConstantPrefix() const final { return ""; }
-  void emit(const ConstantUndef *C) const final {
-    (void)C;
-    llvm::report_fatal_error("Not yet implemented");
-  }
   void emit(const ConstantInteger32 *C) const final {
     (void)C;
     llvm::report_fatal_error("Not yet implemented");
@@ -117,6 +112,14 @@ public:
     llvm::report_fatal_error("Not yet implemented");
   }
   void emit(const ConstantDouble *C) const final {
+    (void)C;
+    llvm::report_fatal_error("Not yet implemented");
+  }
+  void emit(const ConstantUndef *C) const final {
+    (void)C;
+    llvm::report_fatal_error("Not yet implemented");
+  }
+  void emit(const ConstantRelocatable *C) const final {
     (void)C;
     llvm::report_fatal_error("Not yet implemented");
   }
@@ -193,10 +196,10 @@ public:
     Legal_Reg = 1 << 0, // physical register, not stack location
     Legal_Imm = 1 << 1,
     Legal_Mem = 1 << 2,
-    Legal_All = ~Legal_None
+    Legal_Default = ~Legal_None
   };
   typedef uint32_t LegalMask;
-  Operand *legalize(Operand *From, LegalMask Allowed = Legal_All,
+  Operand *legalize(Operand *From, LegalMask Allowed = Legal_Default,
                     int32_t RegNum = Variable::NoRegister);
 
   Variable *legalizeToVar(Operand *From, int32_t RegNum = Variable::NoRegister);

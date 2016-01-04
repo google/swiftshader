@@ -854,15 +854,18 @@ private:
 /// FakeUse instruction. This creates a fake use of a variable, to keep the
 /// instruction that produces that variable from being dead-code eliminated.
 /// This is useful in a variety of lowering situations. The FakeUse instruction
-/// has no dest, so it can itself never be dead-code eliminated.
+/// has no dest, so it can itself never be dead-code eliminated.  A weight can
+/// be provided to provide extra bias to the register allocator - for simplicity
+/// of implementation, weight=N is handled by holding N copies of the variable
+/// as source operands.
 class InstFakeUse : public InstHighLevel {
   InstFakeUse() = delete;
   InstFakeUse(const InstFakeUse &) = delete;
   InstFakeUse &operator=(const InstFakeUse &) = delete;
 
 public:
-  static InstFakeUse *create(Cfg *Func, Variable *Src) {
-    return new (Func->allocate<InstFakeUse>()) InstFakeUse(Func, Src);
+  static InstFakeUse *create(Cfg *Func, Variable *Src, uint32_t Weight = 1) {
+    return new (Func->allocate<InstFakeUse>()) InstFakeUse(Func, Src, Weight);
   }
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg * /* Func */) const override {}
@@ -870,7 +873,7 @@ public:
   static bool classof(const Inst *Inst) { return Inst->getKind() == FakeUse; }
 
 private:
-  InstFakeUse(Cfg *Func, Variable *Src);
+  InstFakeUse(Cfg *Func, Variable *Src, uint32_t Weight);
 };
 
 /// FakeKill instruction. This "kills" a set of variables by modeling a trivial

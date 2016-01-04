@@ -152,7 +152,9 @@ class TargetLowering {
   TargetLowering &operator=(const TargetLowering &) = delete;
 
 public:
-  static void staticInit(TargetArch Target);
+  static void staticInit(const ClFlags &Flags);
+  // Each target must define a public static method:
+  //   static void staticInit(const ClFlags &Flags);
 
   static std::unique_ptr<TargetLowering> createLowering(TargetArch Target,
                                                         Cfg *Func);
@@ -242,6 +244,8 @@ public:
   SizeT makeNextLabelNumber() { return NextLabelNumber++; }
   SizeT makeNextJumpTableNumber() { return NextJumpTableNumber++; }
   LoweringContext &getContext() { return Context; }
+  Cfg *getFunc() const { return Func; }
+  GlobalContext *getGlobalContext() const { return Ctx; }
 
   enum RegSet {
     RegSet_None = 0,
@@ -274,15 +278,15 @@ public:
 
   virtual void emitVariable(const Variable *Var) const = 0;
 
-  void emitWithoutPrefix(const ConstantRelocatable *CR) const;
-  void emit(const ConstantRelocatable *CR) const;
-  virtual const char *getConstantPrefix() const = 0;
+  void emitWithoutPrefix(const ConstantRelocatable *CR,
+                         const char *Suffix = "") const;
 
-  virtual void emit(const ConstantUndef *C) const = 0;
   virtual void emit(const ConstantInteger32 *C) const = 0;
   virtual void emit(const ConstantInteger64 *C) const = 0;
   virtual void emit(const ConstantFloat *C) const = 0;
   virtual void emit(const ConstantDouble *C) const = 0;
+  virtual void emit(const ConstantUndef *C) const = 0;
+  virtual void emit(const ConstantRelocatable *CR) const = 0;
 
   /// Performs target-specific argument lowering.
   virtual void lowerArguments() = 0;
@@ -423,6 +427,7 @@ protected:
   const static constexpr char *H_fptoui_f64_i64 = "__Sz_fptoui_f64_i64";
   const static constexpr char *H_frem_f32 = "fmodf";
   const static constexpr char *H_frem_f64 = "fmod";
+  const static constexpr char *H_getIP_prefix = "__Sz_getIP_";
   const static constexpr char *H_sdiv_i32 = "__divsi3";
   const static constexpr char *H_sdiv_i64 = "__divdi3";
   const static constexpr char *H_sitofp_i64_f32 = "__Sz_sitofp_i64_f32";

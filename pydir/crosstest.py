@@ -7,8 +7,8 @@ import sys
 import tempfile
 
 import targets
-from utils import shellcmd
-from utils import FindBaseNaCl
+from szbuild import LinkNonsfi
+from utils import shellcmd, FindBaseNaCl, get_sfi_string
 
 def main():
     """Builds a cross-test binary for comparing Subzero and llc translation.
@@ -74,6 +74,9 @@ def main():
     argparser.add_argument('--sandbox', required=False, default=0, type=int,
                            dest='sandbox',
                            help='Use sandboxing. Default "%(default)s".')
+    argparser.add_argument('--nonsfi', required=False, default=0, type=int,
+                           dest='nonsfi',
+                           help='Use Non-SFI mode. Default "%(default)s".')
     argparser.add_argument('--prefix', required=True,
                            metavar='SZ_PREFIX',
                            help='String prepended to Subzero symbol names')
@@ -84,12 +87,6 @@ def main():
                            metavar='OUTPUT_DIR',
                            help='Output directory for all files.' +
                                 ' Default "%(default)s".')
-    argparser.add_argument('--crosstest-bitcode', required=False,
-                           default=1, type=int,
-                           help='Compile non-subzero crosstest object file ' +
-                           'from the same bitcode as the subzero object. ' +
-                           'If 0, then compile it straight from source.' +
-                           ' Default %(default)d.')
     argparser.add_argument('--filetype', default='obj', dest='filetype',
                            choices=['obj', 'asm', 'iasm'],
                            help='Output file type.  Default %(default)s.')
@@ -105,15 +102,21 @@ def main():
     if args.sandbox:
         triple = targets.ConvertTripleToNaCl(triple)
     llc_flags = target_info.llc_flags + arch_llc_flags_extra[args.target]
+    if args.nonsfi:
+        llc_flags.extend(['-relocation-model=pic',
+                          '-malign-double',
+                          '-force-tls-non-pic',
+                          '-mtls-use-call'])
     mypath = os.path.abspath(os.path.dirname(sys.argv[0]))
 
+    # Construct a "unique key" for each test so that tests can be run in
+    # parallel without race conditions on temporary file creation.
+    key = '{sb}.O{opt}.{attr}.{target}'.format(
+        target=args.target,
+        sb=get_sfi_string(args, 'sb', 'nonsfi', 'nat'),
+        opt=args.optlevel, attr=args.attr)
     objs = []
     for arg in args.test:
-        # Construct a "unique key" for each test so that tests can be run in
-        # parallel without race conditions on temporary file creation.
-        key = '{target}.{sb}.O{opt}.{attr}'.format(
-            target=args.target, sb='sb' if args.sandbox else 'nat',
-            opt=args.optlevel, attr=args.attr)
         base, ext = os.path.splitext(arg)
         if ext == '.ll':
             bitcode = arg
@@ -123,12 +126,16 @@ def main():
             bitcode = os.path.join(args.dir, base + '.' + key + '.pnacl.ll')
             shellcmd(['{bin}/pnacl-clang'.format(bin=bindir),
                       ('-O2' if args.clang_opt else '-O0'),
+                      get_sfi_string(args, '', '-DNONSFI', ''),
                       ('-DARM32' if args.target == 'arm32' else ''), '-c', arg,
                       '-o', bitcode_nonfinal])
             shellcmd(['{bin}/pnacl-opt'.format(bin=bindir),
                       '-pnacl-abi-simplify-preopt',
                       '-pnacl-abi-simplify-postopt',
                       '-pnaclabi-allow-debug-metadata',
+                      '-strip-metadata',
+                      '-strip-module-flags',
+                      '-strip-debug',
                       bitcode_nonfinal, '-S', '-o', bitcode])
 
         base_sz = '{base}.{key}'.format(base=base, key=key)
@@ -142,6 +149,7 @@ def main():
                   '-mattr=' + args.attr,
                   '--target=' + args.target,
                   '--sandbox=' + str(args.sandbox),
+                  '--nonsfi=' + str(args.nonsfi),
                   '--prefix=' + args.prefix,
                   '-allow-uninitialized-globals',
                   '-externalize',
@@ -164,25 +172,32 @@ def main():
         # linked into the executable, but when PNaCl supports shared nexe
         # libraries, this would need to change.
         shellcmd(['{bin}/le32-nacl-objcopy'.format(bin=bindir),
-                  '--weaken-symbol=__Sz_block_profile_info', obj_sz])
+                  '--weaken-symbol=__Sz_block_profile_info',
+                  '--strip-symbol=nacl_tp_tdb_offset',
+                  '--strip-symbol=nacl_tp_tls_offset',
+                  obj_sz])
         objs.append(obj_sz)
-        if args.crosstest_bitcode:
-            shellcmd(['{bin}/pnacl-llc'.format(bin=bindir),
-                      '-mtriple=' + triple,
-                      '-externalize',
-                      '-filetype=obj',
-                      '-o=' + obj_llc,
-                      bitcode] + llc_flags)
-            objs.append(obj_llc)
-        else:
-            objs.append(arg)
+        shellcmd(['{bin}/pnacl-llc'.format(bin=bindir),
+                  '-mtriple=' + triple,
+                  '-externalize',
+                  '-filetype=obj',
+                  '-bitcode-format=llvm',
+                  '-o=' + obj_llc,
+                  bitcode] + llc_flags)
+        shellcmd(['{bin}/le32-nacl-objcopy'.format(bin=bindir),
+                  '--weaken-symbol=__Sz_block_profile_info',
+                  '--strip-symbol=nacl_tp_tdb_offset',
+                  '--strip-symbol=nacl_tp_tls_offset',
+                  obj_llc])
+        objs.append(obj_llc)
 
     # Add szrt_sb_${target}.o or szrt_native_${target}.o.
-    objs.append((
-            '{root}/toolchain_build/src/subzero/build/runtime/' +
-            'szrt_{sb}_' + args.target + '.o'
-            ).format(root=nacl_root, sb='sb' if args.sandbox else 'native'))
-    pure_c = os.path.splitext(args.driver)[1] == '.c'
+    if not args.nonsfi:
+        objs.append((
+                '{root}/toolchain_build/src/subzero/build/runtime/' +
+                'szrt_{sb}_' + args.target + '.o'
+                ).format(root=nacl_root,
+                         sb=get_sfi_string(args, 'sb', 'nonsfi', 'native')))
 
     # TODO(jpp): clean up stack hack related code.
     needs_stack_hack = False
@@ -196,21 +211,71 @@ def main():
     if args.target == 'arm32':
       target_params.append('-DARM32')
       target_params.append('-static')
+    if args.nonsfi:
+      target_params.append('-DNONSFI')
 
-    # Set compiler to clang, clang++, pnacl-clang, or pnacl-clang++.
+    pure_c = os.path.splitext(args.driver)[1] == '.c'
+    if not args.nonsfi:
+        # Set compiler to clang, clang++, pnacl-clang, or pnacl-clang++.
+        compiler = '{bin}/{prefix}{cc}'.format(
+            bin=bindir, prefix=get_sfi_string(args, 'pnacl-', '', ''),
+            cc='clang' if pure_c else 'clang++')
+        sb_native_args = (['-O0', '--pnacl-allow-native',
+                           '-arch', target_info.compiler_arch,
+                           '-Wn,-defsym=__Sz_AbsoluteZero=0']
+                          if args.sandbox else
+                          ['-g', '-target=' + triple,
+                           '-lm', '-lpthread',
+                           '-Wl,--defsym=__Sz_AbsoluteZero=0'] +
+                          target_info.cross_headers)
+        shellcmd([compiler] + target_params + [args.driver] + objs +
+                 ['-o', os.path.join(args.dir, args.output)] + sb_native_args)
+        return 0
+
+    base, ext = os.path.splitext(args.driver)
+    bitcode_nonfinal = os.path.join(args.dir, base + '.' + key + '.bc')
+    bitcode = os.path.join(args.dir, base + '.' + key + '.pnacl.ll')
+    asm_sz = os.path.join(args.dir, base + '.' + key + '.s')
+    obj_llc = os.path.join(args.dir, base + '.' + key + '.o')
     compiler = '{bin}/{prefix}{cc}'.format(
-        bin=bindir, prefix='pnacl-' if args.sandbox else '',
+        bin=bindir, prefix='pnacl-',
         cc='clang' if pure_c else 'clang++')
-    sb_native_args = (['-O0', '--pnacl-allow-native',
-                       '-arch', target_info.compiler_arch,
-                       '-Wn,-defsym=__Sz_AbsoluteZero=0']
-                      if args.sandbox else
-                      ['-g', '-target=' + triple,
-                       '-lm', '-lpthread',
-                       '-Wl,--defsym=__Sz_AbsoluteZero=0'] +
-                      target_info.cross_headers)
-    shellcmd([compiler] + target_params + [args.driver] + objs +
-             ['-o', os.path.join(args.dir, args.output)] + sb_native_args)
+    shellcmd([compiler,
+              args.driver,
+              '-DNONSFI' if args.nonsfi else '',
+              '-O2',
+              '-o', bitcode_nonfinal,
+              '-Wl,-r'
+             ])
+    shellcmd(['{bin}/pnacl-opt'.format(bin=bindir),
+              '-pnacl-abi-simplify-preopt',
+              '-pnacl-abi-simplify-postopt',
+              '-pnaclabi-allow-debug-metadata',
+              '-strip-metadata',
+              '-strip-module-flags',
+              '-strip-debug',
+              '-disable-opt',
+              bitcode_nonfinal, '-S', '-o', bitcode])
+    shellcmd(['{bin}/pnacl-llc'.format(bin=bindir),
+              '-mtriple=' + triple,
+              '-externalize',
+              '-filetype=obj',
+              '-O2',
+              '-bitcode-format=llvm',
+              '-o', obj_llc,
+              bitcode] + llc_flags)
+    if not args.sandbox and not args.nonsfi:
+        shellcmd(['{bin}/le32-nacl-objcopy'.format(bin=bindir),
+                  '--redefine-sym', '_start=_user_start',
+                  obj_llc
+                 ])
+    objs.append(obj_llc)
+    if args.nonsfi:
+        LinkNonsfi(objs, os.path.join(args.dir, args.output), args.target)
+    elif args.sandbox:
+        LinkSandbox(objs, os.path.join(args.dir, args.output), args.target)
+    else:
+        LinkNative(objs, os.path.join(args.dir, args.output), args.target)
 
 if __name__ == '__main__':
     main()

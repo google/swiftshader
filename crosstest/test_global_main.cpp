@@ -39,6 +39,11 @@ struct Data *ExternName4 = &SimpleData;
 double ExternName5 = 3.44e26;
 
 int main(int argc, char **argv) {
+  // Prevent pnacl-opt from deleting "unused" globals.
+  if (argc < 0) {
+    std::cout << &ExternName1 << &ExternName2 << &ExternName3 << &SimpleData
+              << &ExternName4 << ExternName5;
+  }
   size_t TotalTests = 0;
   size_t Passes = 0;
   size_t Failures = 0;

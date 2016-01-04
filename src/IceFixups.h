@@ -44,7 +44,7 @@ public:
   void set_kind(FixupKind Kind) { kind_ = Kind; }
 
   RelocOffsetT offset() const;
-  IceString symbol(const GlobalContext *Ctx) const;
+  IceString symbol(const GlobalContext *Ctx, const Assembler *Asm) const;
 
   static const Constant *NullSymbol;
   bool isNullSymbol() const { return value_ == NullSymbol; }

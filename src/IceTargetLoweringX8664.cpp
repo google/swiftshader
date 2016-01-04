@@ -32,7 +32,9 @@ createTargetHeaderLowering(::Ice::GlobalContext *Ctx) {
   return ::Ice::X8664::TargetHeaderX8664::create(Ctx);
 }
 
-void staticInit() { ::Ice::X8664::TargetX8664::staticInit(); }
+void staticInit(const ::Ice::ClFlags &Flags) {
+  ::Ice::X8664::TargetX8664::staticInit(Flags);
+}
 } // end of namespace X8664
 
 namespace Ice {
@@ -111,6 +113,14 @@ std::array<llvm::SmallBitVector,
 template <>
 llvm::SmallBitVector
     TargetX86Base<X8664::Traits>::ScratchRegs = llvm::SmallBitVector();
+
+template <>
+FixupKind TargetX86Base<X8664::Traits>::PcRelFixup =
+    TargetX86Base<X8664::Traits>::Traits::FK_PcRel;
+
+template <>
+FixupKind TargetX86Base<X8664::Traits>::AbsFixup =
+    TargetX86Base<X8664::Traits>::Traits::FK_Abs;
 
 //------------------------------------------------------------------------------
 //     __      ______  __     __  ______  ______  __  __   __  ______
@@ -348,7 +358,7 @@ void TargetX8664::lowerCall(const InstCall *Instr) {
 
 void TargetX8664::lowerArguments() {
   VarList &Args = Func->getArgs();
-  // The first eight vetcor typed arguments (as well as fp arguments) are
+  // The first eight vector typed arguments (as well as fp arguments) are
   // passed in %xmm0 through %xmm7 regardless of their position in the argument
   // list.
   unsigned NumXmmArgs = 0;
@@ -890,11 +900,12 @@ void TargetDataX8664::lowerConstants() {
 }
 
 void TargetDataX8664::lowerJumpTables() {
+  const bool IsPIC = Ctx->getFlags().getUseNonsfi();
   switch (Ctx->getFlags().getOutFileType()) {
   case FT_Elf: {
     ELFObjectWriter *Writer = Ctx->getObjectWriter();
     for (const JumpTableData &JumpTable : Ctx->getJumpTables())
-      Writer->writeJumpTable(JumpTable, TargetX8664::Traits::RelFixup);
+      Writer->writeJumpTable(JumpTable, TargetX8664::Traits::FK_Abs, IsPIC);
   } break;
   case FT_Asm:
     // Already emitted from Cfg
@@ -920,11 +931,12 @@ void TargetDataX8664::lowerJumpTables() {
 
 void TargetDataX8664::lowerGlobals(const VariableDeclarationList &Vars,
                                    const IceString &SectionSuffix) {
+  const bool IsPIC = Ctx->getFlags().getUseNonsfi();
   switch (Ctx->getFlags().getOutFileType()) {
   case FT_Elf: {
     ELFObjectWriter *Writer = Ctx->getObjectWriter();
-    Writer->writeDataSection(Vars, TargetX8664::Traits::RelFixup,
-                             SectionSuffix);
+    Writer->writeDataSection(Vars, TargetX8664::Traits::FK_Abs, SectionSuffix,
+                             IsPIC);
   } break;
   case FT_Asm:
   case FT_Iasm: {

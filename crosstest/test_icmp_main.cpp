@@ -197,7 +197,7 @@ const static size_t MaxTestsPerFunc = 100000;
 
 template <typename TypeUnsignedLabel, typename TypeSignedLabel>
 void testsVecInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
-#ifndef ARM32
+#if !defined(ARM32) && !defined(NONSFI)
   // TODO(jpp): remove this once vector support is implemented.
   typedef typename Vectors<TypeUnsignedLabel>::Ty TypeUnsigned;
   typedef typename Vectors<TypeSignedLabel>::Ty TypeSigned;
@@ -255,7 +255,7 @@ void testsVecInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
       }
     }
   }
-#endif // ARM32
+#endif // !ARM32 && !NONSFI
 }
 
 // Return true on wraparound
@@ -274,7 +274,7 @@ template <typename T> bool incrementI1Vector(typename Vectors<T>::Ty &Vect) {
 
 template <typename T>
 void testsVecI1(size_t &TotalTests, size_t &Passes, size_t &Failures) {
-#ifndef ARM32
+#if !defined(ARM32) && !defined(NONSFI)
   // TODO(jpp): remove this once vector support is implemented.
   typedef typename Vectors<T>::Ty Ty;
   typedef Ty (*FuncType)(Ty, Ty);
@@ -343,7 +343,7 @@ void testsVecI1(size_t &TotalTests, size_t &Passes, size_t &Failures) {
       }
     }
   }
-#endif // ARM32
+#endif // !ARM32 && !NONSFI
 }
 
 #ifdef X8664_STACK_HACK

@@ -323,13 +323,19 @@ TargetX86Base<TraitsType>::TargetX86Base(Cfg *Func)
   }
 }
 
-template <typename TraitsType> void TargetX86Base<TraitsType>::staticInit() {
+template <typename TraitsType>
+void TargetX86Base<TraitsType>::staticInit(const ClFlags &Flags) {
   Traits::initRegisterSet(&TypeToRegisterSet, &RegisterAliases, &ScratchRegs);
+  PcRelFixup = Traits::FK_PcRel;
+  AbsFixup = Flags.getUseNonsfi() ? Traits::FK_Gotoff : Traits::FK_Abs;
 }
 
 template <typename TraitsType> void TargetX86Base<TraitsType>::translateO2() {
   TimerMarker T(TimerStack::TT_O2, Func);
 
+  if (!Traits::Is64Bit && Func->getContext()->getFlags().getUseNonsfi()) {
+    GotVar = Func->makeVariable(IceType_i32);
+  }
   genTargetHelperCalls();
   Func->dump("After target helper call insertion");
 
@@ -398,6 +404,7 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::translateO2() {
   Func->genCode();
   if (Func->hasError())
     return;
+  initGotVarIfNeeded();
   Func->dump("After x86 codegen");
 
   // Register allocation. This requires instruction renumbering and full
@@ -456,6 +463,9 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::translateO2() {
 template <typename TraitsType> void TargetX86Base<TraitsType>::translateOm1() {
   TimerMarker T(TimerStack::TT_Om1, Func);
 
+  if (!Traits::Is64Bit && Func->getContext()->getFlags().getUseNonsfi()) {
+    GotVar = Func->makeVariable(IceType_i32);
+  }
   genTargetHelperCalls();
 
   // Do not merge Alloca instructions, and lay out the stack.
@@ -478,6 +488,7 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::translateOm1() {
   Func->genCode();
   if (Func->hasError())
     return;
+  initGotVarIfNeeded();
   Func->dump("After initial x8632 codegen");
 
   regAlloc(RAK_InfOnly);
@@ -803,7 +814,8 @@ void TargetX86Base<TraitsType>::emitVariable(const Variable *Var) const {
     return;
   }
   if (Var->mustHaveReg()) {
-    llvm_unreachable("Infinite-weight Variable has no register assigned");
+    llvm::report_fatal_error(
+        "Infinite-weight Variable has no register assigned");
   }
   const int32_t Offset = Var->getStackOffset();
   int32_t BaseRegNum = Var->getBaseRegNum();
@@ -829,9 +841,10 @@ template <typename TraitsType>
 typename TargetX86Base<TraitsType>::X86Address
 TargetX86Base<TraitsType>::stackVarToAsmOperand(const Variable *Var) const {
   if (Var->hasReg())
-    llvm_unreachable("Stack Variable has a register assigned");
+    llvm::report_fatal_error("Stack Variable has a register assigned");
   if (Var->mustHaveReg()) {
-    llvm_unreachable("Infinite-weight Variable has no register assigned");
+    llvm::report_fatal_error(
+        "Infinite-weight Variable has no register assigned");
   }
   int32_t Offset = Var->getStackOffset();
   int32_t BaseRegNum = Var->getBaseRegNum();
@@ -910,7 +923,7 @@ TargetX86Base<TraitsType>::loOperand(Operand *Operand) {
   if (auto *Mem = llvm::dyn_cast<X86OperandMem>(Operand)) {
     auto *MemOperand = X86OperandMem::create(
         Func, IceType_i32, Mem->getBase(), Mem->getOffset(), Mem->getIndex(),
-        Mem->getShift(), Mem->getSegmentRegister());
+        Mem->getShift(), Mem->getSegmentRegister(), Mem->getIsPIC());
     // Test if we should randomize or pool the offset, if so randomize it or
     // pool it then create mem operand with the blinded/pooled constant.
     // Otherwise, return the mem operand as ordinary mem operand.
@@ -950,7 +963,7 @@ TargetX86Base<TraitsType>::hiOperand(Operand *Operand) {
     }
     auto *MemOperand = X86OperandMem::create(
         Func, IceType_i32, Mem->getBase(), Offset, Mem->getIndex(),
-        Mem->getShift(), Mem->getSegmentRegister());
+        Mem->getShift(), Mem->getSegmentRegister(), Mem->getIsPIC());
     // Test if the Offset is an eligible i32 constants for randomization and
     // pooling. Blind/pool it if it is. Otherwise return as oridinary mem
     // operand.
@@ -965,6 +978,23 @@ llvm::SmallBitVector
 TargetX86Base<TraitsType>::getRegisterSet(RegSetMask Include,
                                           RegSetMask Exclude) const {
   return Traits::getRegisterSet(Include, Exclude);
+}
+
+template <typename TraitsType>
+void TargetX86Base<TraitsType>::initGotVarIfNeeded() {
+  if (!Func->getContext()->getFlags().getUseNonsfi())
+    return;
+  if (Traits::Is64Bit) {
+    // Probably no implementation is needed, but error to be safe for now.
+    llvm::report_fatal_error(
+        "Need to implement initGotVarIfNeeded() for 64-bit.");
+  }
+  // Insert the GotVar assignment as the very first lowered instruction.  Later,
+  // it will be moved into the right place - after the stack frame is set up but
+  // before in-args are copied into registers.
+  Context.init(Func->getEntryNode());
+  Context.setInsertPoint(Context.getCur());
+  Context.insert<typename Traits::Insts::GetIP>(GotVar);
 }
 
 template <typename TraitsType>
@@ -3984,6 +4014,11 @@ void TargetX86Base<TraitsType>::lowerCountZeros(bool Cttz, Type Ty,
 template <typename TraitsType>
 void TargetX86Base<TraitsType>::typedLoad(Type Ty, Variable *Dest,
                                           Variable *Base, Constant *Offset) {
+  // If Offset is a ConstantRelocatable in Non-SFI mode, we will need to
+  // legalize Mem properly.
+  if (Offset)
+    assert(!llvm::isa<ConstantRelocatable>(Offset));
+
   auto *Mem = X86OperandMem::create(Func, Ty, Base, Offset);
 
   if (isVectorType(Ty))
@@ -3997,6 +4032,11 @@ void TargetX86Base<TraitsType>::typedLoad(Type Ty, Variable *Dest,
 template <typename TraitsType>
 void TargetX86Base<TraitsType>::typedStore(Type Ty, Variable *Value,
                                            Variable *Base, Constant *Offset) {
+  // If Offset is a ConstantRelocatable in Non-SFI mode, we will need to
+  // legalize Mem properly.
+  if (Offset)
+    assert(!llvm::isa<ConstantRelocatable>(Offset));
+
   auto *Mem = X86OperandMem::create(Func, Ty, Base, Offset);
 
   if (isVectorType(Ty))
@@ -4306,9 +4346,9 @@ inline void dumpAddressOpt(const Cfg *Func,
       << ", Relocatable=" << Relocatable << "\n";
 }
 
-inline bool matchAssign(const VariablesMetadata *VMetadata, Variable *&Var,
-                        ConstantRelocatable *&Relocatable, int32_t &Offset,
-                        const Inst *&Reason) {
+inline bool matchAssign(const VariablesMetadata *VMetadata, Variable *GotVar,
+                        Variable *&Var, ConstantRelocatable *&Relocatable,
+                        int32_t &Offset, const Inst *&Reason) {
   // Var originates from Var=SrcVar ==> set Var:=SrcVar
   if (Var == nullptr)
     return false;
@@ -4335,7 +4375,7 @@ inline bool matchAssign(const VariablesMetadata *VMetadata, Variable *&Var,
         return true;
       } else if (auto *AddReloc = llvm::dyn_cast<ConstantRelocatable>(SrcOp)) {
         if (Relocatable == nullptr) {
-          Var = nullptr;
+          Var = GotVar;
           Relocatable = AddReloc;
           Reason = VarAssign;
           return true;
@@ -4454,7 +4494,9 @@ inline bool matchShiftedIndex(const VariablesMetadata *VMetadata,
   return false;
 }
 
-inline bool matchOffsetBase(const VariablesMetadata *VMetadata, Variable *&Base,
+inline bool matchOffsetBase(const VariablesMetadata *VMetadata,
+                            Variable *GotVar, Variable *&Base,
+                            Variable *&BaseOther,
                             ConstantRelocatable *&Relocatable, int32_t &Offset,
                             const Inst *&Reason) {
   // Base is Base=Var+Const || Base is Base=Const+Var ==>
@@ -4505,6 +4547,8 @@ inline bool matchOffsetBase(const VariablesMetadata *VMetadata, Variable *&Base,
       NewRelocatable = Reloc0;
     else if (Reloc1)
       NewRelocatable = Reloc1;
+    if ((Reloc0 || Reloc1) && BaseOther && GotVar)
+      return false;
     // Compute the updated constant offset.
     if (Const0) {
       int32_t MoreOffset = IsAdd ? Const0->getValue() : -Const0->getValue();
@@ -4520,6 +4564,10 @@ inline bool matchOffsetBase(const VariablesMetadata *VMetadata, Variable *&Base,
     }
     // Update the computed address parameters once we are sure optimization
     // is valid.
+    if ((Reloc0 || Reloc1) && GotVar) {
+      assert(BaseOther == nullptr);
+      BaseOther = GotVar;
+    }
     Base = NewBase;
     Offset = NewOffset;
     Relocatable = NewRelocatable;
@@ -4537,7 +4585,7 @@ inline bool matchOffsetBase(const VariablesMetadata *VMetadata, Variable *&Base,
 //   Base is a Variable,
 //   Index == nullptr,
 //   Shift == 0
-inline bool computeAddressOpt(Cfg *Func, const Inst *Instr,
+inline bool computeAddressOpt(Cfg *Func, const Inst *Instr, Variable *GotVar,
                               ConstantRelocatable *&Relocatable,
                               int32_t &Offset, Variable *&Base,
                               Variable *&Index, uint16_t &Shift) {
@@ -4568,7 +4616,7 @@ inline bool computeAddressOpt(Cfg *Func, const Inst *Instr,
       Reason = nullptr;
     }
     // Update Base and Index to follow through assignments to definitions.
-    if (matchAssign(VMetadata, Base, Relocatable, Offset, Reason)) {
+    if (matchAssign(VMetadata, GotVar, Base, Relocatable, Offset, Reason)) {
       // Assignments of Base from a Relocatable or ConstantInt32 can result
       // in Base becoming nullptr.  To avoid code duplication in this loop we
       // prefer that Base be non-nullptr if possible.
@@ -4576,7 +4624,7 @@ inline bool computeAddressOpt(Cfg *Func, const Inst *Instr,
         std::swap(Base, Index);
       continue;
     }
-    if (matchAssign(VMetadata, Index, Relocatable, Offset, Reason))
+    if (matchAssign(VMetadata, GotVar, Index, Relocatable, Offset, Reason))
       continue;
 
     if (!MockBounds) {
@@ -4605,10 +4653,11 @@ inline bool computeAddressOpt(Cfg *Func, const Inst *Instr,
     // Update Offset to reflect additions/subtractions with constants and
     // relocatables.
     // TODO: consider overflow issues with respect to Offset.
-    if (matchOffsetBase(VMetadata, Base, Relocatable, Offset, Reason))
+    if (matchOffsetBase(VMetadata, GotVar, Base, Index, Relocatable, Offset,
+                        Reason))
       continue;
-    if (Shift == 0 &&
-        matchOffsetBase(VMetadata, Index, Relocatable, Offset, Reason))
+    if (Shift == 0 && matchOffsetBase(VMetadata, GotVar, Index, Base,
+                                      Relocatable, Offset, Reason))
       continue;
     // TODO(sehr, stichnot): Handle updates of Index with Shift != 0.
     // Index is Index=Var+Const ==>
@@ -4619,6 +4668,12 @@ inline bool computeAddressOpt(Cfg *Func, const Inst *Instr,
     //   set Index=Var, Offset-=(Const<<Shift)
     break;
   } while (Reason);
+  // Undo any addition of GotVar.  It will be added back when the mem operand is
+  // legalized.
+  if (Base == GotVar)
+    Base = nullptr;
+  if (Index == GotVar)
+    Index = nullptr;
   return AddressWasOptimized;
 }
 
@@ -4683,10 +4738,9 @@ void TargetX86Base<TraitsType>::doMockBoundsCheck(Operand *Opnd) {
 template <typename TraitsType>
 void TargetX86Base<TraitsType>::lowerLoad(const InstLoad *Load) {
   // A Load instruction can be treated the same as an Assign instruction, after
-  // the source operand is transformed into an X86OperandMem operand.
-  // Note that the address mode optimization already creates an
-  // X86OperandMem operand, so it doesn't need another level of
-  // transformation.
+  // the source operand is transformed into an X86OperandMem operand.  Note that
+  // the address mode optimization already creates an X86OperandMem operand, so
+  // it doesn't need another level of transformation.
   Variable *DestLoad = Load->getDest();
   Type Ty = DestLoad->getType();
   Operand *Src0 = formMemoryOperand(Load->getSourceAddress(), Ty);
@@ -4708,9 +4762,10 @@ void TargetX86Base<TraitsType>::doAddressOptLoad() {
   // computeAddressOpt only works at the level of Variables and Constants, not
   // other X86OperandMem, so there should be no mention of segment
   // registers there either.
-  const SegmentRegisters SegmentReg = X86OperandMem::DefaultSegment;
+  constexpr auto SegmentReg = X86OperandMem::SegmentRegisters::DefaultSegment;
   auto *Base = llvm::dyn_cast<Variable>(Addr);
-  if (computeAddressOpt(Func, Inst, Relocatable, Offset, Base, Index, Shift)) {
+  if (computeAddressOpt(Func, Inst, GotVar, Relocatable, Offset, Base, Index,
+                        Shift)) {
     Inst->setDeleted();
     Constant *OffsetOp = nullptr;
     if (Relocatable == nullptr) {
@@ -4720,6 +4775,8 @@ void TargetX86Base<TraitsType>::doAddressOptLoad() {
                                      Relocatable->getName(),
                                      Relocatable->getSuppressMangling());
     }
+    // The new mem operand is created without IsPIC being set, because
+    // computeAddressOpt() doesn't include GotVar in its final result.
     Addr = X86OperandMem::create(Func, Dest->getType(), Base, OffsetOp, Index,
                                  Shift, SegmentReg);
     Context.insert<InstLoad>(Dest, Addr);
@@ -5011,8 +5068,9 @@ void TargetX86Base<TraitsType>::doAddressOptStore() {
   // computeAddressOpt only works at the level of Variables and Constants, not
   // other X86OperandMem, so there should be no mention of segment
   // registers there either.
-  const SegmentRegisters SegmentReg = X86OperandMem::DefaultSegment;
-  if (computeAddressOpt(Func, Inst, Relocatable, Offset, Base, Index, Shift)) {
+  constexpr auto SegmentReg = X86OperandMem::SegmentRegisters::DefaultSegment;
+  if (computeAddressOpt(Func, Inst, GotVar, Relocatable, Offset, Base, Index,
+                        Shift)) {
     Inst->setDeleted();
     Constant *OffsetOp = nullptr;
     if (Relocatable == nullptr) {
@@ -5022,6 +5080,8 @@ void TargetX86Base<TraitsType>::doAddressOptStore() {
                                      Relocatable->getName(),
                                      Relocatable->getSuppressMangling());
     }
+    // The new mem operand is created without IsPIC being set, because
+    // computeAddressOpt() doesn't include GotVar in its final result.
     Addr = X86OperandMem::create(Func, Data->getType(), Base, OffsetOp, Index,
                                  Shift, SegmentReg);
     auto *NewStore = Context.insert<InstStore>(Data, Addr);
@@ -5083,15 +5143,16 @@ void TargetX86Base<TraitsType>::lowerCaseCluster(const CaseCluster &Case,
 
     constexpr RelocOffsetT RelocOffset = 0;
     constexpr bool SuppressMangling = true;
+    const bool IsPIC = Ctx->getFlags().getUseNonsfi();
     IceString MangledName = Ctx->mangleName(Func->getFunctionName());
-    Constant *Base = Ctx->getConstantSym(
+    Variable *Base = IsPIC ? legalizeToReg(GotVar) : nullptr;
+    Constant *Offset = Ctx->getConstantSym(
         RelocOffset, InstJumpTable::makeName(MangledName, JumpTable->getId()),
         SuppressMangling);
-    Constant *Offset = nullptr;
     uint16_t Shift = typeWidthInBytesLog2(getPointerType());
-    // TODO(ascull): remove need for legalize by allowing null base in memop
+    constexpr auto Segment = X86OperandMem::SegmentRegisters::DefaultSegment;
     auto *TargetInMemory = X86OperandMem::create(
-        Func, getPointerType(), legalizeToReg(Base), Offset, Index, Shift);
+        Func, getPointerType(), Base, Offset, Index, Shift, Segment, IsPIC);
     Variable *Target = nullptr;
     _mov(Target, TargetInMemory);
     lowerIndirectJump(Target);
@@ -5417,8 +5478,31 @@ void TargetX86Base<TraitsType>::lowerOther(const Inst *Instr) {
 
 /// Turn an i64 Phi instruction into a pair of i32 Phi instructions, to preserve
 /// integrity of liveness analysis. Undef values are also turned into zeroes,
-/// since loOperand() and hiOperand() don't expect Undef input.
+/// since loOperand() and hiOperand() don't expect Undef input.  Also, in
+/// Non-SFI mode, add a FakeUse(GotVar) for every pooled constant operand.
 template <typename TraitsType> void TargetX86Base<TraitsType>::prelowerPhis() {
+  if (Ctx->getFlags().getUseNonsfi()) {
+    assert(GotVar);
+    CfgNode *Node = Context.getNode();
+    uint32_t GotVarUseCount = 0;
+    for (Inst &I : Node->getPhis()) {
+      auto *Phi = llvm::dyn_cast<InstPhi>(&I);
+      if (Phi->isDeleted())
+        continue;
+      for (SizeT I = 0; I < Phi->getSrcSize(); ++I) {
+        Operand *Src = Phi->getSrc(I);
+        // TODO(stichnot): This over-counts for +0.0, and under-counts for other
+        // kinds of pooling.
+        if (llvm::isa<ConstantRelocatable>(Src) ||
+            llvm::isa<ConstantFloat>(Src) || llvm::isa<ConstantDouble>(Src)) {
+          ++GotVarUseCount;
+        }
+      }
+    }
+    if (GotVarUseCount) {
+      Node->getInsts().push_front(InstFakeUse::create(Func, GotVar));
+    }
+  }
   if (Traits::Is64Bit) {
     // On x86-64 we don't need to prelower phis -- the architecture can handle
     // 64-bit integer natively.
@@ -5901,7 +5985,8 @@ Variable *TargetX86Base<TraitsType>::copyToReg(Operand *Src, int32_t RegNum) {
 template <typename TraitsType>
 Operand *TargetX86Base<TraitsType>::legalize(Operand *From, LegalMask Allowed,
                                              int32_t RegNum) {
-  Type Ty = From->getType();
+  const bool UseNonsfi = Func->getContext()->getFlags().getUseNonsfi();
+  const Type Ty = From->getType();
   // Assert that a physical register is allowed. To date, all calls to
   // legalize() allow a physical register. If a physical register needs to be
   // explicitly disallowed, then new code will need to be written to force a
@@ -5935,6 +6020,7 @@ Operand *TargetX86Base<TraitsType>::legalize(Operand *From, LegalMask Allowed,
     // Base and Index components are in physical registers.
     Variable *Base = Mem->getBase();
     Variable *Index = Mem->getIndex();
+    Constant *Offset = Mem->getOffset();
     Variable *RegBase = nullptr;
     Variable *RegIndex = nullptr;
     if (Base) {
@@ -5945,9 +6031,27 @@ Operand *TargetX86Base<TraitsType>::legalize(Operand *From, LegalMask Allowed,
       RegIndex = llvm::cast<Variable>(
           legalize(Index, Legal_Reg | Legal_Rematerializable));
     }
+    // For Non-SFI mode, if the Offset field is a ConstantRelocatable, we
+    // replace either Base or Index with a legalized GotVar.  At emission time,
+    // the ConstantRelocatable will be emitted with the @GOTOFF relocation.
+    bool NeedPIC = false;
+    if (UseNonsfi && !Mem->getIsPIC() && Offset &&
+        llvm::isa<ConstantRelocatable>(Offset)) {
+      assert(!(Allowed & Legal_AddrAbs));
+      NeedPIC = true;
+      if (RegBase == nullptr) {
+        RegBase = legalizeToReg(GotVar);
+      } else if (RegIndex == nullptr) {
+        RegIndex = legalizeToReg(GotVar);
+      } else {
+        llvm::report_fatal_error(
+            "Either Base or Index must be unused in Non-SFI mode");
+      }
+    }
     if (Base != RegBase || Index != RegIndex) {
-      Mem = X86OperandMem::create(Func, Ty, RegBase, Mem->getOffset(), RegIndex,
-                                  Mem->getShift(), Mem->getSegmentRegister());
+      Mem = X86OperandMem::create(Func, Ty, RegBase, Offset, RegIndex,
+                                  Mem->getShift(), Mem->getSegmentRegister(),
+                                  NeedPIC);
     }
 
     // For all Memory Operands, we do randomization/pooling here
@@ -5958,6 +6062,7 @@ Operand *TargetX86Base<TraitsType>::legalize(Operand *From, LegalMask Allowed,
     }
     return From;
   }
+
   if (auto *Const = llvm::dyn_cast<Constant>(From)) {
     if (llvm::isa<ConstantUndef>(Const)) {
       From = legalizeUndef(Const, RegNum);
@@ -5988,6 +6093,20 @@ Operand *TargetX86Base<TraitsType>::legalize(Operand *From, LegalMask Allowed,
       }
     }
 
+    // If the operand is a ConstantRelocatable, and Legal_AddrAbs is not
+    // specified, and UseNonsfi is indicated, we need to add GotVar.
+    if (auto *CR = llvm::dyn_cast<ConstantRelocatable>(Const)) {
+      if (UseNonsfi && !(Allowed & Legal_AddrAbs)) {
+        assert(Ty == IceType_i32);
+        Variable *RegBase = legalizeToReg(GotVar);
+        Variable *NewVar = makeReg(Ty, RegNum);
+        auto *Mem = Traits::X86OperandMem::create(Func, Ty, RegBase, CR);
+        Mem->setIsPIC();
+        _lea(NewVar, Mem);
+        From = NewVar;
+      }
+    }
+
     // Convert a scalar floating point constant into an explicit memory
     // operand.
     if (isScalarFloatingType(Ty)) {
@@ -5998,13 +6117,16 @@ Operand *TargetX86Base<TraitsType>::legalize(Operand *From, LegalMask Allowed,
         if (Utils::isPositiveZero(ConstDouble->getValue()))
           return makeZeroedRegister(Ty, RegNum);
       }
-      Variable *Base = nullptr;
+      Variable *Base = UseNonsfi ? legalizeToReg(GotVar) : nullptr;
       std::string Buffer;
       llvm::raw_string_ostream StrBuf(Buffer);
       llvm::cast<Constant>(From)->emitPoolLabel(StrBuf, Ctx);
       llvm::cast<Constant>(From)->setShouldBePooled(true);
       Constant *Offset = Ctx->getConstantSym(0, StrBuf.str(), true);
-      From = X86OperandMem::create(Func, Ty, Base, Offset);
+      auto *Mem = X86OperandMem::create(Func, Ty, Base, Offset);
+      if (UseNonsfi)
+        Mem->setIsPIC();
+      From = Mem;
     }
     bool NeedsReg = false;
     if (!(Allowed & Legal_Imm) && !isScalarFloatingType(Ty))
@@ -6018,6 +6140,7 @@ Operand *TargetX86Base<TraitsType>::legalize(Operand *From, LegalMask Allowed,
     }
     return From;
   }
+
   if (auto *Var = llvm::dyn_cast<Variable>(From)) {
     // Check if the variable is guaranteed a physical register. This can happen
     // either when the variable is pre-colored or when it is assigned infinite
@@ -6046,7 +6169,8 @@ Operand *TargetX86Base<TraitsType>::legalize(Operand *From, LegalMask Allowed,
     }
     return From;
   }
-  llvm_unreachable("Unhandled operand kind in legalize()");
+
+  llvm::report_fatal_error("Unhandled operand kind in legalize()");
   return From;
 }
 
@@ -6116,7 +6240,7 @@ TargetX86Base<TraitsType>::formMemoryOperand(Operand *Opnd, Type Ty,
       // offset, we will work on the whole memory operand later as one entity
       // later, this save one instruction. By turning blinding and pooling off,
       // we guarantee legalize(Offset) will return a Constant*.
-      {
+      if (!llvm::isa<ConstantRelocatable>(Offset)) {
         BoolFlagSaver B(RandomizationPoolingPaused, true);
 
         Offset = llvm::cast<Constant>(legalize(Offset));
@@ -6125,6 +6249,11 @@ TargetX86Base<TraitsType>::formMemoryOperand(Operand *Opnd, Type Ty,
       assert(llvm::isa<ConstantInteger32>(Offset) ||
              llvm::isa<ConstantRelocatable>(Offset));
     }
+    // Not completely sure whether it's OK to leave IsPIC unset when creating
+    // the mem operand.  If DoLegalize is true, it will definitely be applied
+    // during the legalize() call, but perhaps not during the
+    // randomizeOrPoolImmediate() call.  In any case, the emit routines will
+    // assert that PIC legalization has been applied.
     Mem = X86OperandMem::create(Func, Ty, Base, Offset);
   }
   // Do legalization, which contains randomization/pooling or do
@@ -6192,7 +6321,7 @@ void TargetX86Base<TraitsType>::emit(const ConstantInteger32 *C) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Ctx->getStrEmit();
-  Str << getConstantPrefix() << C->getValue();
+  Str << "$" << C->getValue();
 }
 
 template <typename TraitsType>
@@ -6203,7 +6332,7 @@ void TargetX86Base<TraitsType>::emit(const ConstantInteger64 *C) const {
     if (!BuildDefs::dump())
       return;
     Ostream &Str = Ctx->getStrEmit();
-    Str << getConstantPrefix() << C->getValue();
+    Str << "$" << C->getValue();
   }
 }
 
@@ -6226,6 +6355,16 @@ void TargetX86Base<TraitsType>::emit(const ConstantDouble *C) const {
 template <typename TraitsType>
 void TargetX86Base<TraitsType>::emit(const ConstantUndef *) const {
   llvm::report_fatal_error("undef value encountered by emitter.");
+}
+
+template <class Machine>
+void TargetX86Base<Machine>::emit(const ConstantRelocatable *C) const {
+  if (!BuildDefs::dump())
+    return;
+  assert(!Ctx->getFlags().getUseNonsfi());
+  Ostream &Str = Ctx->getStrEmit();
+  Str << "$";
+  emitWithoutPrefix(C);
 }
 
 /// Randomize or pool an Immediate.
@@ -6292,8 +6431,12 @@ TargetX86Base<TraitsType>::randomizeOrPoolImmediate(Constant *Immediate,
       constexpr bool SuppressMangling = true;
       Constant *Symbol =
           Ctx->getConstantSym(Offset, Label_stream.str(), SuppressMangling);
+      const bool UseNonsfi = Ctx->getFlags().getUseNonsfi();
+      Variable *Base = UseNonsfi ? legalizeToReg(GotVar) : nullptr;
       X86OperandMem *MemOperand =
-          X86OperandMem::create(Func, Immediate->getType(), nullptr, Symbol);
+          X86OperandMem::create(Func, Immediate->getType(), Base, Symbol);
+      if (UseNonsfi)
+        MemOperand->setIsPIC();
       _mov(Reg, MemOperand);
       return Reg;
     }
@@ -6385,8 +6528,12 @@ TargetX86Base<TraitsType>::randomizeOrPoolImmediate(X86OperandMem *MemOperand,
         constexpr bool SuppressMangling = true;
         Constant *Symbol = Ctx->getConstantSym(SymOffset, Label_stream.str(),
                                                SuppressMangling);
+        const bool UseNonsfi = Ctx->getFlags().getUseNonsfi();
+        Variable *Base = UseNonsfi ? legalizeToReg(GotVar) : nullptr;
         X86OperandMem *SymbolOperand = X86OperandMem::create(
-            Func, MemOperand->getOffset()->getType(), nullptr, Symbol);
+            Func, MemOperand->getOffset()->getType(), Base, Symbol);
+        if (UseNonsfi)
+          SymbolOperand->setIsPIC();
         _mov(RegTemp, SymbolOperand);
         // If we have a base variable here, we should add the lea instruction
         // to add the value of the base variable to RegTemp. If there is no

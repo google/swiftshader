@@ -39,7 +39,7 @@
 //       createTargetDataLowering(Ice::GlobalContext*);
 //   unique_ptr<Ice::TargetHeaderLowering>
 //       createTargetHeaderLowering(Ice::GlobalContext *);
-//   void staticInit();
+//   void staticInit(const ::Ice::ClFlags &Flags);
 // }
 #define SUBZERO_TARGET(X)                                                      \
   namespace X {                                                                \
@@ -49,7 +49,7 @@
   createTargetDataLowering(::Ice::GlobalContext *Ctx);                         \
   std::unique_ptr<::Ice::TargetHeaderLowering>                                 \
   createTargetHeaderLowering(::Ice::GlobalContext *Ctx);                       \
-  void staticInit();                                                           \
+  void staticInit(const ::Ice::ClFlags &Flags);                                \
   } // end of namespace X
 #include "llvm/Config/SZTargets.def"
 #undef SUBZERO_TARGET
@@ -129,7 +129,8 @@ TargetLowering::createLowering(TargetArch Target, Cfg *Func) {
   }
 }
 
-void TargetLowering::staticInit(TargetArch Target) {
+void TargetLowering::staticInit(const ClFlags &Flags) {
+  const TargetArch Target = Flags.getTargetArch();
   // Call the specified target's static initializer.
   switch (Target) {
   default:
@@ -141,8 +142,8 @@ void TargetLowering::staticInit(TargetArch Target) {
       return;                                                                  \
     }                                                                          \
     InitGuard##X = true;                                                       \
-    ::X::staticInit();                                                         \
-  }
+    ::X::staticInit(Flags);                                                    \
+  } break;
 #include "llvm/Config/SZTargets.def"
 #undef SUBZERO_TARGET
   }
@@ -525,7 +526,8 @@ bool TargetLowering::shouldOptimizeMemIntrins() {
          Ctx->getFlags().getForceMemIntrinOpt();
 }
 
-void TargetLowering::emitWithoutPrefix(const ConstantRelocatable *C) const {
+void TargetLowering::emitWithoutPrefix(const ConstantRelocatable *C,
+                                       const char *Suffix) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Ctx->getStrEmit();
@@ -533,20 +535,13 @@ void TargetLowering::emitWithoutPrefix(const ConstantRelocatable *C) const {
     Str << C->getName();
   else
     Str << Ctx->mangleName(C->getName());
+  Str << Suffix;
   RelocOffsetT Offset = C->getOffset();
   if (Offset) {
     if (Offset > 0)
       Str << "+";
     Str << Offset;
   }
-}
-
-void TargetLowering::emit(const ConstantRelocatable *C) const {
-  if (!BuildDefs::dump())
-    return;
-  Ostream &Str = Ctx->getStrEmit();
-  Str << getConstantPrefix();
-  emitWithoutPrefix(C);
 }
 
 std::unique_ptr<TargetDataLowering>
@@ -609,9 +604,12 @@ void TargetDataLowering::emitGlobal(const VariableDeclaration &Var,
   Str << "\t.type\t" << MangledName << ",%object\n";
 
   const bool UseDataSections = Ctx->getFlags().getDataSections();
+  const bool UseNonsfi = Ctx->getFlags().getUseNonsfi();
   const IceString Suffix =
       dataSectionSuffix(SectionSuffix, MangledName, UseDataSections);
-  if (IsConstant)
+  if (IsConstant && UseNonsfi)
+    Str << "\t.section\t.data.rel.ro" << Suffix << ",\"aw\",%progbits\n";
+  else if (IsConstant)
     Str << "\t.section\t.rodata" << Suffix << ",\"a\",%progbits\n";
   else if (HasNonzeroInitializer)
     Str << "\t.section\t.data" << Suffix << ",\"aw\",%progbits\n";

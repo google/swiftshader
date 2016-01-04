@@ -74,13 +74,11 @@ void TargetX8632Traits::X86Operand::dump(const Cfg *, Ostream &Str) const {
     Str << "<OperandX8632>";
 }
 
-TargetX8632Traits::X86OperandMem::X86OperandMem(Cfg *Func, Type Ty,
-                                                Variable *Base,
-                                                Constant *Offset,
-                                                Variable *Index, uint16_t Shift,
-                                                SegmentRegisters SegmentReg)
+TargetX8632Traits::X86OperandMem::X86OperandMem(
+    Cfg *Func, Type Ty, Variable *Base, Constant *Offset, Variable *Index,
+    uint16_t Shift, SegmentRegisters SegmentReg, bool IsPIC)
     : X86Operand(kMem, Ty), Base(Base), Offset(Offset), Index(Index),
-      Shift(Shift), SegmentReg(SegmentReg), Randomized(false) {
+      Shift(Shift), SegmentReg(SegmentReg), IsPIC(IsPIC) {
   assert(Shift <= 3);
   Vars = nullptr;
   NumVars = 0;
@@ -100,9 +98,9 @@ TargetX8632Traits::X86OperandMem::X86OperandMem(Cfg *Func, Type Ty,
 }
 
 namespace {
-static int32_t
-GetRematerializableOffset(Variable *Var,
-                          const Ice::X8632::TargetX8632 *Target) {
+
+int32_t GetRematerializableOffset(Variable *Var,
+                                  const Ice::X8632::TargetX8632 *Target) {
   int32_t Disp = Var->getStackOffset();
   SizeT RegNum = static_cast<SizeT>(Var->getRegNum());
   if (RegNum == Target->getFrameReg()) {
@@ -112,11 +110,29 @@ GetRematerializableOffset(Variable *Var,
   }
   return Disp;
 }
+
+void validateMemOperandPIC(const TargetX8632Traits::X86OperandMem *Mem,
+                           bool UseNonsfi) {
+  if (!BuildDefs::asserts())
+    return;
+  const bool HasCR =
+      Mem->getOffset() && llvm::isa<ConstantRelocatable>(Mem->getOffset());
+  (void)HasCR;
+  const bool IsPIC = Mem->getIsPIC();
+  (void)IsPIC;
+  if (UseNonsfi)
+    assert(HasCR == IsPIC);
+  else
+    assert(!IsPIC);
+}
+
 } // end of anonymous namespace
 
 void TargetX8632Traits::X86OperandMem::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
+  const bool UseNonsfi = Func->getContext()->getFlags().getUseNonsfi();
+  validateMemOperandPIC(this, UseNonsfi);
   const auto *Target =
       static_cast<const ::Ice::X8632::TargetX8632 *>(Func->getTarget());
   // If the base is rematerializable, we need to replace it with the correct
@@ -137,9 +153,9 @@ void TargetX8632Traits::X86OperandMem::emit(const Cfg *Func) const {
   }
   // Emit as Offset(Base,Index,1<<Shift). Offset is emitted without the leading
   // '$'. Omit the (Base,Index,1<<Shift) part if Base==nullptr.
-  if (getOffset() == 0 && Disp == 0) {
+  if (getOffset() == nullptr && Disp == 0) {
     // No offset, emit nothing.
-  } else if (getOffset() == 0 && Disp != 0) {
+  } else if (getOffset() == nullptr && Disp != 0) {
     Str << Disp;
   } else if (const auto *CI = llvm::dyn_cast<ConstantInteger32>(getOffset())) {
     if (getBase() == nullptr || CI->getValue() || Disp != 0)
@@ -150,7 +166,7 @@ void TargetX8632Traits::X86OperandMem::emit(const Cfg *Func) const {
     // TODO(sehr): ConstantRelocatable still needs updating for
     // rematerializable base/index and Disp.
     assert(Disp == 0);
-    CR->emitWithoutPrefix(Target);
+    CR->emitWithoutPrefix(Target, UseNonsfi ? "@GOTOFF" : "");
   } else {
     llvm_unreachable("Invalid offset type for x86 mem operand");
   }
@@ -245,9 +261,11 @@ void TargetX8632Traits::X86OperandMem::emitSegmentOverride(
 TargetX8632Traits::Address TargetX8632Traits::X86OperandMem::toAsmAddress(
     TargetX8632Traits::Assembler *Asm,
     const Ice::TargetLowering *TargetLowering) const {
-  int32_t Disp = 0;
   const auto *Target =
       static_cast<const ::Ice::X8632::TargetX8632 *>(TargetLowering);
+  const bool UseNonsfi = Target->getGlobalContext()->getFlags().getUseNonsfi();
+  validateMemOperandPIC(this, UseNonsfi);
+  int32_t Disp = 0;
   if (getBase() && getBase()->isRematerializable()) {
     Disp += GetRematerializableOffset(getBase(), Target);
   }
@@ -264,7 +282,7 @@ TargetX8632Traits::Address TargetX8632Traits::X86OperandMem::toAsmAddress(
     } else if (const auto CR =
                    llvm::dyn_cast<ConstantRelocatable>(getOffset())) {
       Disp += CR->getOffset();
-      Fixup = Asm->createFixup(RelFixup, CR);
+      Fixup = Asm->createFixup(Target->getAbsFixup(), CR);
     } else {
       llvm_unreachable("Unexpected offset type");
     }

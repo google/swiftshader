@@ -66,9 +66,10 @@ void TargetX8664Traits::X86Operand::dump(const Cfg *, Ostream &Str) const {
 TargetX8664Traits::X86OperandMem::X86OperandMem(Cfg *Func, Type Ty,
                                                 Variable *Base,
                                                 Constant *Offset,
-                                                Variable *Index, uint16_t Shift)
+                                                Variable *Index, uint16_t Shift,
+                                                bool IsPIC)
     : X86Operand(kMem, Ty), Base(Base), Offset(Offset), Index(Index),
-      Shift(Shift) {
+      Shift(Shift), IsPIC(IsPIC) {
   assert(Shift <= 3);
   Vars = nullptr;
   NumVars = 0;
@@ -133,7 +134,8 @@ void TargetX8664Traits::X86OperandMem::emit(const Cfg *Func) const {
     // TODO(sehr): ConstantRelocatable still needs updating for
     // rematerializable base/index and Disp.
     assert(Disp == 0);
-    CR->emitWithoutPrefix(Func->getTarget());
+    const bool UseNonsfi = Func->getContext()->getFlags().getUseNonsfi();
+    CR->emitWithoutPrefix(Func->getTarget(), UseNonsfi ? "@GOTOFF" : "");
   } else {
     llvm_unreachable("Invalid offset type for x86 mem operand");
   }
@@ -242,8 +244,8 @@ TargetX8664Traits::Address TargetX8664Traits::X86OperandMem::toAsmAddress(
       Disp += static_cast<int32_t>(CI->getValue());
     } else if (const auto CR =
                    llvm::dyn_cast<ConstantRelocatable>(getOffset())) {
-      Disp += CR->getOffset();
-      Fixup = Asm->createFixup(RelFixup, CR);
+      Disp = CR->getOffset();
+      Fixup = Asm->createFixup(FK_Abs, CR);
     } else {
       llvm_unreachable("Unexpected offset type");
     }

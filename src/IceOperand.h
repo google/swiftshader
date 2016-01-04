@@ -287,7 +287,8 @@ public:
   bool getSuppressMangling() const { return SuppressMangling; }
   using Constant::emit;
   void emit(TargetLowering *Target) const final;
-  void emitWithoutPrefix(const TargetLowering *Target) const;
+  void emitWithoutPrefix(const TargetLowering *Target,
+                         const char *Suffix = "") const;
   using Constant::dump;
   void dump(const Cfg *Func, Ostream &Str) const override;
 

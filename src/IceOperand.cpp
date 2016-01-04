@@ -487,9 +487,9 @@ void ConstantRelocatable::emit(TargetLowering *Target) const {
   Target->emit(this);
 }
 
-void ConstantRelocatable::emitWithoutPrefix(
-    const TargetLowering *Target) const {
-  Target->emitWithoutPrefix(this);
+void ConstantRelocatable::emitWithoutPrefix(const TargetLowering *Target,
+                                            const char *Suffix) const {
+  Target->emitWithoutPrefix(this, Suffix);
 }
 
 void ConstantRelocatable::dump(const Cfg *Func, Ostream &Str) const {

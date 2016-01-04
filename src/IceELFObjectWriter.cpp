@@ -285,7 +285,8 @@ void partitionGlobalsBySection(const VariableDeclarationList &Vars,
 
 void ELFObjectWriter::writeDataSection(const VariableDeclarationList &Vars,
                                        FixupKind RelocationKind,
-                                       const IceString &SectionSuffix) {
+                                       const IceString &SectionSuffix,
+                                       bool IsPIC) {
   assert(!SectionNumbersAssigned);
   VariableDeclarationList VarsBySection[ELFObjectWriter::NumSectionTypes];
   for (auto &SectionList : VarsBySection)
@@ -295,7 +296,7 @@ void ELFObjectWriter::writeDataSection(const VariableDeclarationList &Vars,
   size_t I = 0;
   for (auto &SectionList : VarsBySection) {
     writeDataOfType(static_cast<SectionType>(I++), SectionList, RelocationKind,
-                    SectionSuffix);
+                    SectionSuffix, IsPIC);
   }
 }
 
@@ -311,7 +312,8 @@ IceString MangleSectionName(const char Base[], const IceString &Suffix) {
 void ELFObjectWriter::writeDataOfType(SectionType ST,
                                       const VariableDeclarationList &Vars,
                                       FixupKind RelocationKind,
-                                      const IceString &SectionSuffix) {
+                                      const IceString &SectionSuffix,
+                                      bool IsPIC) {
   if (Vars.empty())
     return;
   ELFDataSection *Section;
@@ -326,8 +328,9 @@ void ELFObjectWriter::writeDataOfType(SectionType ST,
   // Lift this out, so it can be re-used if we do fdata-sections?
   switch (ST) {
   case ROData: {
-    const IceString SectionName = MangleSectionName(".rodata", SectionSuffix);
-    constexpr Elf64_Xword ShFlags = SHF_ALLOC;
+    const IceString SectionName =
+        MangleSectionName(IsPIC ? ".data.rel.ro" : ".rodata", SectionSuffix);
+    const Elf64_Xword ShFlags = SHF_ALLOC | (IsPIC ? SHF_WRITE : 0);
     Section = createSection<ELFDataSection>(SectionName, SHT_PROGBITS, ShFlags,
                                             ShAddralign, ShEntsize);
     Section->setFileOffset(alignFileOffset(ShAddralign));
@@ -557,14 +560,14 @@ void ELFObjectWriter::writeAllRelocationSections() {
 }
 
 void ELFObjectWriter::writeJumpTable(const JumpTableData &JT,
-                                     FixupKind RelocationKind) {
+                                     FixupKind RelocationKind, bool IsPIC) {
   ELFDataSection *Section;
   ELFRelocationSection *RelSection;
   const Elf64_Xword PointerSize = typeWidthInBytes(getPointerType());
   const Elf64_Xword ShAddralign = PointerSize;
   const Elf64_Xword ShEntsize = PointerSize;
-  const IceString SectionName =
-      MangleSectionName(".rodata", JT.getFunctionName() + "$jumptable");
+  const IceString SectionName = MangleSectionName(
+      IsPIC ? ".data.rel.ro" : ".rodata", JT.getFunctionName() + "$jumptable");
   Section = createSection<ELFDataSection>(SectionName, SHT_PROGBITS, SHF_ALLOC,
                                           ShAddralign, ShEntsize);
   Section->setFileOffset(alignFileOffset(ShAddralign));

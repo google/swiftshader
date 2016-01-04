@@ -271,7 +271,7 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit, Ostream *OsError,
   ProfileBlockInfoVarDecl->setSuppressMangling();
   ProfileBlockInfoVarDecl->setLinkage(llvm::GlobalValue::ExternalLinkage);
 
-  TargetLowering::staticInit(Flags.getTargetArch());
+  TargetLowering::staticInit(Flags);
 }
 
 void GlobalContext::translateFunctions() {

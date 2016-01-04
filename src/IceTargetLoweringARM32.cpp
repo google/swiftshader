@@ -50,7 +50,9 @@ createTargetHeaderLowering(::Ice::GlobalContext *Ctx) {
   return ::Ice::ARM32::TargetHeaderARM32::create(Ctx);
 }
 
-void staticInit() { ::Ice::ARM32::TargetARM32::staticInit(); }
+void staticInit(const ::Ice::ClFlags &Flags) {
+  ::Ice::ARM32::TargetARM32::staticInit(Flags);
+}
 } // end of namespace ARM32
 
 namespace Ice {
@@ -233,7 +235,8 @@ TargetARM32::TargetARM32(Cfg *Func)
     : TargetLowering(Func), NeedSandboxing(Ctx->getFlags().getUseSandboxing()),
       CPUFeatures(Func->getContext()->getFlags()) {}
 
-void TargetARM32::staticInit() {
+void TargetARM32::staticInit(const ClFlags &Flags) {
+  (void)Flags;
   // Limit this size (or do all bitsets need to be the same width)???
   llvm::SmallBitVector IntegerRegisters(RegARM32::Reg_NUM);
   llvm::SmallBitVector I64PairRegisters(RegARM32::Reg_NUM);
@@ -897,7 +900,7 @@ void TargetARM32::emitVariable(const Variable *Var) const {
   const Type VarTy = Var->getType();
   Str << "[" << getRegName(BaseRegNum, VarTy);
   if (Offset != 0) {
-    Str << ", " << getConstantPrefix() << Offset;
+    Str << ", #" << Offset;
   }
   Str << "]";
 }
@@ -5706,7 +5709,7 @@ void TargetARM32::emit(const ConstantInteger32 *C) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Ctx->getStrEmit();
-  Str << getConstantPrefix() << C->getValue();
+  Str << "#" << C->getValue();
 }
 
 void TargetARM32::emit(const ConstantInteger64 *) const {
@@ -5725,6 +5728,14 @@ void TargetARM32::emit(const ConstantDouble *C) const {
 
 void TargetARM32::emit(const ConstantUndef *) const {
   llvm::report_fatal_error("undef value encountered by emitter.");
+}
+
+void TargetARM32::emit(const ConstantRelocatable *C) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Ctx->getStrEmit();
+  Str << "#";
+  emitWithoutPrefix(C);
 }
 
 void TargetARM32::lowerInt1ForSelect(Variable *Dest, Operand *Boolean,
@@ -6251,10 +6262,12 @@ TargetDataARM32::TargetDataARM32(GlobalContext *Ctx)
 
 void TargetDataARM32::lowerGlobals(const VariableDeclarationList &Vars,
                                    const IceString &SectionSuffix) {
+  const bool IsPIC = Ctx->getFlags().getUseNonsfi();
   switch (Ctx->getFlags().getOutFileType()) {
   case FT_Elf: {
     ELFObjectWriter *Writer = Ctx->getObjectWriter();
-    Writer->writeDataSection(Vars, llvm::ELF::R_ARM_ABS32, SectionSuffix);
+    Writer->writeDataSection(Vars, llvm::ELF::R_ARM_ABS32, SectionSuffix,
+                             IsPIC);
   } break;
   case FT_Asm:
   case FT_Iasm: {

@@ -352,10 +352,12 @@ void ELFRelocationSection::writeData(const GlobalContext &Ctx, ELFStreamer &Str,
                                      const ELFSymbolTableSection *SymTab) {
   for (const AssemblerFixup &Fixup : Fixups) {
     const ELFSym *Symbol;
-    if (Fixup.isNullSymbol())
+    if (Fixup.isNullSymbol()) {
       Symbol = SymTab->getNullSymbol();
-    else
-      Symbol = SymTab->findSymbol(Fixup.symbol(&Ctx));
+    } else {
+      constexpr Assembler *Asm = nullptr;
+      Symbol = SymTab->findSymbol(Fixup.symbol(&Ctx, Asm));
+    }
     if (!Symbol)
       llvm::report_fatal_error("Missing symbol mentioned in reloc");
 
