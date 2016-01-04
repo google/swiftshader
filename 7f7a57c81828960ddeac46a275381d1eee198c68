@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6a449b88_845aaa05",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 846,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-04T15:39:52Z",
+      "side": 1,
+      "message": "Not used anywhere else.",
+      "range": {
+        "startLine": 846,
+        "startChar": 14,
+        "endLine": 846,
+        "endChar": 36
+      },
+      "revId": "7f7a57c81828960ddeac46a275381d1eee198c68",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6a449b88_a45086e3",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 850,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-04T15:39:52Z",
+      "side": 1,
+      "message": "Attributes may overlap or have gaps between them, so this isn\u0027t a good measure of the vertex size. Instead, look for the attribute with the largest offset + size.",
+      "range": {
+        "startLine": 850,
+        "startChar": 27,
+        "endLine": 850,
+        "endChar": 29
+      },
+      "revId": "7f7a57c81828960ddeac46a275381d1eee198c68",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6a449b88_249476ba",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1056,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-04T15:39:52Z",
+      "side": 1,
+      "message": "Modulo operations are quite expensive. Also, this can loop around in the \"middle\" of a triangle, thus constructing an entirely unintended triangle. Even if it creates the same triangles, that\u0027s probably not the most expected behavior. Since DRAW_TRIANGLELIST just linearly increments the index, we can know exactly when to stop rendering.",
+      "range": {
+        "startLine": 1054,
+        "startChar": 0,
+        "endLine": 1056,
+        "endChar": 37
+      },
+      "revId": "7f7a57c81828960ddeac46a275381d1eee198c68",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
