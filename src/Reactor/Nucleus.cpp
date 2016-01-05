@@ -3540,6 +3540,19 @@ namespace sw
 		storeValue(rhs.value);
 	}
 
+	Short8::Short8(RValue<Short4> lo, RValue<Short4> hi)
+	{
+		Value *loLong = Nucleus::createBitCast(lo.value, Long::getType());
+		Value *hiLong = Nucleus::createBitCast(hi.value, Long::getType());
+
+		Value *long2 = UndefValue::get(Long2::getType());
+		long2 = Nucleus::createInsertElement(long2, loLong, 0);
+		long2 = Nucleus::createInsertElement(long2, hiLong, 1);
+		Value *short8 = Nucleus::createBitCast(long2, Short8::getType());
+
+		storeValue(short8);
+	}
+
 	RValue<Short8> operator+(RValue<Short8> lhs, RValue<Short8> rhs)
 	{
 		return RValue<Short8>(Nucleus::createAdd(lhs.value, rhs.value));
@@ -3558,19 +3571,6 @@ namespace sw
 	RValue<Short8> operator>>(RValue<Short8> lhs, unsigned char rhs)
 	{
 		return x86::psraw(lhs, rhs);   // FIXME: Fallback required
-	}
-
-	RValue<Short8> Concatenate(RValue<Short4> lo, RValue<Short4> hi)
-	{
-		Value *loLong = Nucleus::createBitCast(lo.value, Long::getType());
-		Value *hiLong = Nucleus::createBitCast(hi.value, Long::getType());
-
-		Value *long2 = UndefValue::get(Long2::getType());
-		long2 = Nucleus::createInsertElement(long2, loLong, 0);
-		long2 = Nucleus::createInsertElement(long2, hiLong, 1);
-		Value *short8 = Nucleus::createBitCast(long2, Short8::getType());
-
-		return RValue<Short8>(short8);
 	}
 
 	RValue<Int4> MulAdd(RValue<Short8> x, RValue<Short8> y)
@@ -3610,6 +3610,19 @@ namespace sw
 	//	xyzw.parent = this;
 
 		storeValue(rhs.value);
+	}
+
+	UShort8::UShort8(RValue<UShort4> lo, RValue<UShort4> hi)
+	{
+		Value *loLong = Nucleus::createBitCast(lo.value, Long::getType());
+		Value *hiLong = Nucleus::createBitCast(hi.value, Long::getType());
+
+		Value *long2 = UndefValue::get(Long2::getType());
+		long2 = Nucleus::createInsertElement(long2, loLong, 0);
+		long2 = Nucleus::createInsertElement(long2, hiLong, 1);
+		Value *short8 = Nucleus::createBitCast(long2, Short8::getType());
+
+		storeValue(short8);
 	}
 
 	RValue<UShort8> UShort8::operator=(RValue<UShort8> rhs) const
@@ -3693,19 +3706,6 @@ namespace sw
 		Value *byte16 = Nucleus::createBitCast(x.value, Byte16::getType());
 		Value *shuffle = Nucleus::createShuffleVector(byte16, UndefValue::get(Byte16::getType()), Nucleus::createConstantVector(pshufb, 16));
 		Value *short8 = Nucleus::createBitCast(shuffle, UShort8::getType());
-
-		return RValue<UShort8>(short8);
-	}
-
-	RValue<UShort8> Concatenate(RValue<UShort4> lo, RValue<UShort4> hi)
-	{
-		Value *loLong = Nucleus::createBitCast(lo.value, Long::getType());
-		Value *hiLong = Nucleus::createBitCast(hi.value, Long::getType());
-
-		Value *long2 = UndefValue::get(Long2::getType());
-		long2 = Nucleus::createInsertElement(long2, loLong, 0);
-		long2 = Nucleus::createInsertElement(long2, hiLong, 1);
-		Value *short8 = Nucleus::createBitCast(long2, Short8::getType());
 
 		return RValue<UShort8>(short8);
 	}
@@ -4621,6 +4621,17 @@ namespace sw
 		storeValue(value);
 	}
 
+	Int2::Int2(RValue<Int> lo, RValue<Int> hi)
+	{
+		Constant *shuffle[2];
+		shuffle[0] = Nucleus::createConstantInt(0);
+		shuffle[1] = Nucleus::createConstantInt(1);
+
+		Value *packed = Nucleus::createShuffleVector(Nucleus::createBitCast(lo.value, VectorType::get(Int::getType(), 1)), Nucleus::createBitCast(hi.value, VectorType::get(Int::getType(), 1)), Nucleus::createConstantVector(shuffle, 2));
+
+		storeValue(Nucleus::createBitCast(packed, Int2::getType()));
+	}
+
 	RValue<Int2> Int2::operator=(RValue<Int2> rhs) const
 	{
 		storeValue(rhs.value);
@@ -4863,17 +4874,6 @@ namespace sw
 
 			return RValue<Long1>(Nucleus::createBitCast(packed, Long1::getType()));
 		}
-	}
-
-	RValue<Int2> Concatenate(RValue<Int> lo, RValue<Int> hi)
-	{
-		Constant *shuffle[2];
-		shuffle[0] = Nucleus::createConstantInt(0);
-		shuffle[1] = Nucleus::createConstantInt(1);
-
-		Value *packed = Nucleus::createShuffleVector(Nucleus::createBitCast(lo.value, VectorType::get(Int::getType(), 1)), Nucleus::createBitCast(hi.value, VectorType::get(Int::getType(), 1)), Nucleus::createConstantVector(shuffle, 2));
-
-		return RValue<Int2>(Nucleus::createBitCast(packed, Int2::getType()));
 	}
 
 	RValue<Int> Extract(RValue<Int2> val, int i)
@@ -5335,6 +5335,19 @@ namespace sw
 		storeValue(value);
 	}
 
+	Int4::Int4(RValue<Int2> lo, RValue<Int2> hi)
+	{
+		Value *loLong = Nucleus::createBitCast(lo.value, Long::getType());
+		Value *hiLong = Nucleus::createBitCast(hi.value, Long::getType());
+
+		Value *long2 = UndefValue::get(Long2::getType());
+		long2 = Nucleus::createInsertElement(long2, loLong, 0);
+		long2 = Nucleus::createInsertElement(long2, hiLong, 1);
+		Value *int4 = Nucleus::createBitCast(long2, Int4::getType());
+
+		storeValue(int4);
+	}
+
 	RValue<Int4> Int4::operator=(RValue<Int4> rhs) const
 	{
 		storeValue(rhs.value);
@@ -5549,19 +5562,6 @@ namespace sw
 		return x86::packssdw(x, y);
 	}
 
-	RValue<Int4> Concatenate(RValue<Int2> lo, RValue<Int2> hi)
-	{
-		Value *loLong = Nucleus::createBitCast(lo.value, Long::getType());
-		Value *hiLong = Nucleus::createBitCast(hi.value, Long::getType());
-
-		Value *long2 = UndefValue::get(Long2::getType());
-		long2 = Nucleus::createInsertElement(long2, loLong, 0);
-		long2 = Nucleus::createInsertElement(long2, hiLong, 1);
-		Value *int4 = Nucleus::createBitCast(long2, Int4::getType());
-
-		return RValue<Int4>(int4);
-	}
-
 	RValue<Int> Extract(RValue<Int4> x, int i)
 	{
 		return RValue<Int>(Nucleus::createExtractElement(x.value, i));
@@ -5678,6 +5678,19 @@ namespace sw
 
 		Value *value = rhs.loadValue();
 		storeValue(value);
+	}
+
+	UInt4::UInt4(RValue<UInt2> lo, RValue<UInt2> hi)
+	{
+		Value *loLong = Nucleus::createBitCast(lo.value, Long::getType());
+		Value *hiLong = Nucleus::createBitCast(hi.value, Long::getType());
+
+		Value *long2 = UndefValue::get(Long2::getType());
+		long2 = Nucleus::createInsertElement(long2, loLong, 0);
+		long2 = Nucleus::createInsertElement(long2, hiLong, 1);
+		Value *uint4 = Nucleus::createBitCast(long2, Int4::getType());
+
+		storeValue(uint4);
 	}
 
 	RValue<UInt4> UInt4::operator=(RValue<UInt4> rhs) const
@@ -5887,19 +5900,6 @@ namespace sw
 	RValue<UShort8> Pack(RValue<UInt4> x, RValue<UInt4> y)
 	{
 		return x86::packusdw(x, y);   // FIXME: Fallback required
-	}
-
-	RValue<UInt4> Concatenate(RValue<UInt2> lo, RValue<UInt2> hi)
-	{
-		Value *loLong = Nucleus::createBitCast(lo.value, Long::getType());
-		Value *hiLong = Nucleus::createBitCast(hi.value, Long::getType());
-
-		Value *long2 = UndefValue::get(Long2::getType());
-		long2 = Nucleus::createInsertElement(long2, loLong, 0);
-		long2 = Nucleus::createInsertElement(long2, hiLong, 1);
-		Value *uint4 = Nucleus::createBitCast(long2, Int4::getType());
-
-		return RValue<UInt4>(uint4);
 	}
 
 	Type *UInt4::getType()
@@ -6916,7 +6916,7 @@ namespace sw
 				Int2 lo = x86::cvtps2pi(val);
 				Int2 hi = x86::cvtps2pi(Swizzle(val, 0xEE));
 
-				return Concatenate(lo, hi);
+				return Int4(lo, hi);
 			}
 		}
 
@@ -7436,7 +7436,7 @@ namespace sw
 				Short4 lo = x86::packssdw(loX, hiX);
 				Short4 hi = x86::packssdw(loY, hiY);
 
-				return Concatenate(lo, hi);
+				return Short8(lo, hi);
 			}
 		}
 
@@ -7545,7 +7545,7 @@ namespace sw
 				lo = x86::pslld(lo, y);
 				hi = x86::pslld(hi, y);
 
-				return Concatenate(lo, hi);
+				return Int4(lo, hi);
 			}
 		}
 
@@ -7574,7 +7574,7 @@ namespace sw
 				lo = x86::psrad(lo, y);
 				hi = x86::psrad(hi, y);
 
-				return Concatenate(lo, hi);
+				return Int4(lo, hi);
 			}
 		}
 
@@ -7603,7 +7603,7 @@ namespace sw
 				lo = x86::psrld(lo, y);
 				hi = x86::psrld(hi, y);
 
-				return Concatenate(lo, hi);
+				return UInt4(lo, hi);
 			}
 		}
 

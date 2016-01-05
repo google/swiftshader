@@ -1058,6 +1058,7 @@ namespace sw
 		Short8(RValue<Short8> rhs);
 	//	Short8(const Short8 &rhs);
 	//	Short8(const Reference<Short8> &rhs);
+		Short8(RValue<Short4> lo, RValue<Short4> hi);
 
 	//	RValue<Short8> operator=(RValue<Short8> rhs) const;
 	//	RValue<Short8> operator=(const Short8 &rhs) const;
@@ -1102,7 +1103,6 @@ namespace sw
 //	RValue<Bool> operator!=(RValue<Short8> lhs, RValue<Short8> rhs);
 //	RValue<Bool> operator==(RValue<Short8> lhs, RValue<Short8> rhs);
 
-	RValue<Short8> Concatenate(RValue<Short4> lo, RValue<Short4> hi);
 	RValue<Short8> MulHigh(RValue<Short8> x, RValue<Short8> y);
 	RValue<Int4> MulAdd(RValue<Short8> x, RValue<Short8> y);
 
@@ -1114,6 +1114,7 @@ namespace sw
 		UShort8(RValue<UShort8> rhs);
 	//	UShort8(const UShort8 &rhs);
 	//	UShort8(const Reference<UShort8> &rhs);
+		UShort8(RValue<UShort4> lo, RValue<UShort4> hi);
 
 		RValue<UShort8> operator=(RValue<UShort8> rhs) const;
 		RValue<UShort8> operator=(const UShort8 &rhs) const;
@@ -1159,7 +1160,6 @@ namespace sw
 //	RValue<Bool> operator==(RValue<UShort8> lhs, RValue<UShort8> rhs);
 
     RValue<UShort8> Swizzle(RValue<UShort8> x, char select0, char select1, char select2, char select3, char select4, char select5, char select6, char select7);
-	RValue<UShort8> Concatenate(RValue<UShort4> lo, RValue<UShort4> hi);
     RValue<UShort8> MulHigh(RValue<UShort8> x, RValue<UShort8> y);
 
 	class Int : public Variable<Int>
@@ -1512,6 +1512,7 @@ namespace sw
 		Int2(RValue<Int2> rhs);
 		Int2(const Int2 &rhs);
 		Int2(const Reference<Int2> &rhs);
+		Int2(RValue<Int> lo, RValue<Int> hi);
 
 		RValue<Int2> operator=(RValue<Int2> rhs) const;
 		RValue<Int2> operator=(const Int2 &rhs) const;
@@ -1561,7 +1562,6 @@ namespace sw
 //	RValue<Int2> RoundInt(RValue<Float4> cast);
 	RValue<Long1> UnpackLow(RValue<Int2> x, RValue<Int2> y);
 	RValue<Long1> UnpackHigh(RValue<Int2> x, RValue<Int2> y);
-	RValue<Int2> Concatenate(RValue<Int> lo, RValue<Int> hi);
 	RValue<Int> Extract(RValue<Int2> val, int i);
 	RValue<Int2> Insert(RValue<Int2> val, RValue<Int> element, int i);
 
@@ -1639,6 +1639,7 @@ namespace sw
 		Int4(RValue<UInt4> rhs);
 		Int4(const UInt4 &rhs);
 		Int4(const Reference<UInt4> &rhs);
+		Int4(RValue<Int2> lo, RValue<Int2> hi);
 
 		RValue<Int4> operator=(RValue<Int4> rhs) const;
 		RValue<Int4> operator=(const Int4 &rhs) const;
@@ -1696,7 +1697,6 @@ namespace sw
 	RValue<Int4> Min(RValue<Int4> x, RValue<Int4> y);
 	RValue<Int4> RoundInt(RValue<Float4> cast);
 	RValue<Short8> Pack(RValue<Int4> x, RValue<Int4> y);
-	RValue<Int4> Concatenate(RValue<Int2> lo, RValue<Int2> hi);
 	RValue<Int> Extract(RValue<Int4> x, int i);
 	RValue<Int4> Insert(RValue<Int4> val, RValue<Int> element, int i);
 	RValue<Int> SignMask(RValue<Int4> x);
@@ -1719,6 +1719,7 @@ namespace sw
 		UInt4(RValue<Int4> rhs);
 		UInt4(const Int4 &rhs);
 		UInt4(const Reference<Int4> &rhs);
+		UInt4(RValue<UInt2> lo, RValue<UInt2> hi);
 
 		RValue<UInt4> operator=(RValue<UInt4> rhs) const;
 		RValue<UInt4> operator=(const UInt4 &rhs) const;
@@ -1776,7 +1777,6 @@ namespace sw
 	RValue<UInt4> Min(RValue<UInt4> x, RValue<UInt4> y);
 //	RValue<UInt4> RoundInt(RValue<Float4> cast);
 	RValue<UShort8> Pack(RValue<UInt4> x, RValue<UInt4> y);
-	RValue<UInt4> Concatenate(RValue<UInt2> lo, RValue<UInt2> hi);
 
 	template<int T>
 	class Swizzle2Float4
