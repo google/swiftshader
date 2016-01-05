@@ -101,7 +101,7 @@ Config::Config(sw::Format displayFormat, EGLint minInterval, EGLint maxInterval,
         mGreenSize = 8;
         mBlueSize = 8;
         mAlphaSize = 0;
-        mBindToTextureRGBA = EGL_TRUE;
+        mBindToTextureRGB = EGL_TRUE;
 		#ifdef __ANDROID__
 			mNativeVisualID = HAL_PIXEL_FORMAT_RGBX_8888;
 		#endif
