@@ -4623,13 +4623,23 @@ namespace sw
 
 	Int2::Int2(RValue<Int> lo, RValue<Int> hi)
 	{
-		Constant *shuffle[2];
-		shuffle[0] = Nucleus::createConstantInt(0);
-		shuffle[1] = Nucleus::createConstantInt(1);
-
-		Value *packed = Nucleus::createShuffleVector(Nucleus::createBitCast(lo.value, VectorType::get(Int::getType(), 1)), Nucleus::createBitCast(hi.value, VectorType::get(Int::getType(), 1)), Nucleus::createConstantVector(shuffle, 2));
-
-		storeValue(Nucleus::createBitCast(packed, Int2::getType()));
+		if(CPUID::supportsMMX2())
+		{
+			// movd mm0, lo
+			// movd mm1, hi
+			// punpckldq mm0, mm1
+			storeValue(As<Int2>(UnpackLow(As<Int2>(Long1(RValue<UInt>(lo))), As<Int2>(Long1(RValue<UInt>(hi))))).value);
+		}
+		else
+		{
+			Constant *shuffle[2];
+			shuffle[0] = Nucleus::createConstantInt(0);
+			shuffle[1] = Nucleus::createConstantInt(1);
+	
+			Value *packed = Nucleus::createShuffleVector(Nucleus::createBitCast(lo.value, VectorType::get(Int::getType(), 1)), Nucleus::createBitCast(hi.value, VectorType::get(Int::getType(), 1)), Nucleus::createConstantVector(shuffle, 2));
+	
+			storeValue(Nucleus::createBitCast(packed, Int2::getType()));
+		}
 	}
 
 	RValue<Int2> Int2::operator=(RValue<Int2> rhs) const

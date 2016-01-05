@@ -1013,14 +1013,14 @@ namespace sw
 		Short4 c01;
 		Short4 c23;
 		Pointer<Byte> buffer;
+		Pointer<Byte> buffer2;
 
 		switch(state.targetFormat[index])
 		{
 		case FORMAT_R5G6B5:
 			buffer = cBuffer + 2 * x;
-			c01 = As<Short4>(Insert(As<Int2>(c01), *Pointer<Int>(buffer), 0));
-			buffer += *Pointer<Int>(r.data + OFFSET(DrawData, colorPitchB[index]));
-			c01 = As<Short4>(Insert(As<Int2>(c01), *Pointer<Int>(buffer), 1));
+			buffer2 = buffer + *Pointer<Int>(r.data + OFFSET(DrawData, colorPitchB[index]));
+			c01 = As<Short4>(Int2(*Pointer<Int>(buffer), *Pointer<Int>(buffer2)));
 
 			pixel.x = c01 & Short4(0xF800u);
 			pixel.y = (c01 & Short4(0x07E0u)) << 5;
