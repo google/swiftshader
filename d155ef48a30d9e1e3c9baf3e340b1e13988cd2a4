@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6a03bb91_c6d742e6",
+        "filename": "src/Reactor/Nucleus.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 4187,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-05T16:37:01Z",
+      "side": 1,
+      "message": "FYI, this is now the fastest way to get a 32-bit value into a 2x32 vector.",
+      "range": {
+        "startLine": 4187,
+        "startChar": 1,
+        "endLine": 4187,
+        "endChar": 38
+      },
+      "revId": "d155ef48a30d9e1e3c9baf3e340b1e13988cd2a4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
