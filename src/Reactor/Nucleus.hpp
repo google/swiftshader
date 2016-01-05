@@ -1310,10 +1310,8 @@ namespace sw
 	//	explicit Long1(RValue<Short> cast);
 	//	explicit Long1(RValue<UShort> cast);
 	//	explicit Long1(RValue<Int> cast);
-	//	explicit Long1(RValue<UInt> cast);
+		explicit Long1(RValue<UInt> cast);
 	//	explicit Long1(RValue<Float> cast);
-
-		explicit Long1(const Reference<UInt> &cast);
 
 	//	Long1();
 	//	Long1(qword x);

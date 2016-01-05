@@ -1137,6 +1137,7 @@ X86TargetLowering::X86TargetLowering(X86TargetMachine &TM)
   // We have target-specific dag combine patterns for the following nodes:
   setTargetDAGCombine(ISD::VECTOR_SHUFFLE);
   setTargetDAGCombine(ISD::EXTRACT_VECTOR_ELT);
+  setTargetDAGCombine(ISD::BITCAST);
   setTargetDAGCombine(ISD::BUILD_VECTOR);
   setTargetDAGCombine(ISD::VSELECT);
   setTargetDAGCombine(ISD::SELECT);
@@ -12517,12 +12518,39 @@ static SDValue PerformShuffleCombine(SDNode *N, SelectionDAG &DAG,
   return EltsFromConsecutiveLoads(VT, Elts, dl, DAG);
 }
 
+/// \brief Detect bitcasts between i32 to x86mmx low word. Since MMX types are
+/// special and don't usually play with other vector types, it's better to
+/// handle them early to be sure we emit efficient code by avoiding
+/// store-load conversions.
+static SDValue PerformBITCASTCombine(SDNode *N, SelectionDAG &DAG) {
+  if (N->getValueType(0) != MVT::x86mmx ||
+      N->getOperand(0)->getOpcode() != ISD::BUILD_VECTOR ||
+      N->getOperand(0)->getValueType(0) != MVT::v2i32)
+    return SDValue();
+
+  SDValue V = N->getOperand(0);
+  ConstantSDNode *C = dyn_cast<ConstantSDNode>(V.getOperand(1));
+  if (C && C->getZExtValue() == 0 && V.getOperand(0).getValueType() == MVT::i32)
+    return DAG.getNode(X86ISD::MMX_MOVW2D, V.getOperand(0).getDebugLoc(),
+                       N->getValueType(0), V.getOperand(0));
+
+  return SDValue();
+}
+
 /// PerformEXTRACT_VECTOR_ELTCombine - Detect vector gather/scatter index
 /// generation and convert it from being a bunch of shuffles and extracts
 /// to a simple store and scalar loads to extract the elements.
 static SDValue PerformEXTRACT_VECTOR_ELTCombine(SDNode *N, SelectionDAG &DAG,
                                                 const TargetLowering &TLI) {
   SDValue InputVector = N->getOperand(0);
+  // Detect whether we are trying to convert from mmx to i32 and the bitcast
+  // from mmx to v2i32 has a single usage.
+  if (InputVector.getNode()->getOpcode() == llvm::ISD::BITCAST &&
+      InputVector.getNode()->getOperand(0).getValueType() == MVT::x86mmx &&
+      InputVector.hasOneUse() && N->getValueType(0) == MVT::i32)
+    return DAG.getNode(X86ISD::MMX_MOVD2W, InputVector.getDebugLoc(),
+                       N->getValueType(0),
+                       InputVector.getNode()->getOperand(0));
 
   // Only operate on vectors of 4 elements, where the alternative shuffling
   // gets to be more expensive.
@@ -14170,6 +14198,7 @@ SDValue X86TargetLowering::PerformDAGCombine(SDNode *N,
     return PerformEXTRACT_VECTOR_ELTCombine(N, DAG, *this);
   case ISD::VSELECT:
   case ISD::SELECT:         return PerformSELECTCombine(N, DAG, Subtarget);
+  case ISD::BITCAST:        return PerformBITCASTCombine(N, DAG);
   case X86ISD::CMOV:        return PerformCMOVCombine(N, DAG, DCI);
   case ISD::ADD:            return OptimizeConditionalInDecrement(N, DAG);
   case ISD::SUB:            return PerformSubCombine(N, DAG);

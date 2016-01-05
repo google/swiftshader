@@ -4184,13 +4184,12 @@ namespace sw
 		return Type::getInt64Ty(*Nucleus::getContext());
 	}
 
-	Long1::Long1(const Reference<UInt> &cast)
+	Long1::Long1(const RValue<UInt> cast)
 	{
-		Value *uint = cast.loadValue();
-		Value *int64 = Nucleus::createZExt(uint, Long::getType());
-		Value *long1 = Nucleus::createBitCast(int64, Long1::getType());
+		Value *undefCast = Nucleus::createInsertElement(UndefValue::get(VectorType::get(Int::getType(), 2)), cast.value, 0);
+		Value *zeroCast = Nucleus::createInsertElement(undefCast, Nucleus::createConstantInt(0), 1);
 
-		storeValue(long1);
+		storeValue(Nucleus::createBitCast(zeroCast, Long1::getType()));
 	}
 
 	Long1::Long1(RValue<Long1> rhs)

@@ -1132,6 +1132,42 @@ unsigned FastEmit_X86ISD_MEMBARRIER_r(MVT VT, MVT RetVT, unsigned Op0, bool Op0I
   }
 }
 
+// FastEmit functions for X86ISD::MMX_MOVD2W.
+
+unsigned FastEmit_X86ISD_MMX_MOVD2W_MVT_x86mmx_r(MVT RetVT, unsigned Op0, bool Op0IsKill) {
+  if (RetVT.SimpleTy != MVT::i32)
+    return 0;
+  if ((Subtarget->hasMMX())) {
+    return FastEmitInst_r(X86::MMX_MOVD64grr, X86::GR32RegisterClass, Op0, Op0IsKill);
+  }
+  return 0;
+}
+
+unsigned FastEmit_X86ISD_MMX_MOVD2W_r(MVT VT, MVT RetVT, unsigned Op0, bool Op0IsKill) {
+  switch (VT.SimpleTy) {
+  case MVT::x86mmx: return FastEmit_X86ISD_MMX_MOVD2W_MVT_x86mmx_r(RetVT, Op0, Op0IsKill);
+  default: return 0;
+  }
+}
+
+// FastEmit functions for X86ISD::MMX_MOVW2D.
+
+unsigned FastEmit_X86ISD_MMX_MOVW2D_MVT_i32_r(MVT RetVT, unsigned Op0, bool Op0IsKill) {
+  if (RetVT.SimpleTy != MVT::x86mmx)
+    return 0;
+  if ((Subtarget->hasMMX())) {
+    return FastEmitInst_r(X86::MMX_MOVD64rr, X86::VR64RegisterClass, Op0, Op0IsKill);
+  }
+  return 0;
+}
+
+unsigned FastEmit_X86ISD_MMX_MOVW2D_r(MVT VT, MVT RetVT, unsigned Op0, bool Op0IsKill) {
+  switch (VT.SimpleTy) {
+  case MVT::i32: return FastEmit_X86ISD_MMX_MOVW2D_MVT_i32_r(RetVT, Op0, Op0IsKill);
+  default: return 0;
+  }
+}
+
 // FastEmit functions for X86ISD::MOVDDUP.
 
 unsigned FastEmit_X86ISD_MOVDDUP_MVT_v4i64_r(MVT RetVT, unsigned Op0, bool Op0IsKill) {
@@ -1389,6 +1425,8 @@ unsigned FastEmit_r(MVT VT, MVT RetVT, unsigned Opcode, unsigned Op0, bool Op0Is
   case X86ISD::FRCP: return FastEmit_X86ISD_FRCP_r(VT, RetVT, Op0, Op0IsKill);
   case X86ISD::FRSQRT: return FastEmit_X86ISD_FRSQRT_r(VT, RetVT, Op0, Op0IsKill);
   case X86ISD::MEMBARRIER: return FastEmit_X86ISD_MEMBARRIER_r(VT, RetVT, Op0, Op0IsKill);
+  case X86ISD::MMX_MOVD2W: return FastEmit_X86ISD_MMX_MOVD2W_r(VT, RetVT, Op0, Op0IsKill);
+  case X86ISD::MMX_MOVW2D: return FastEmit_X86ISD_MMX_MOVW2D_r(VT, RetVT, Op0, Op0IsKill);
   case X86ISD::MOVDDUP: return FastEmit_X86ISD_MOVDDUP_r(VT, RetVT, Op0, Op0IsKill);
   case X86ISD::MOVDQ2Q: return FastEmit_X86ISD_MOVDQ2Q_r(VT, RetVT, Op0, Op0IsKill);
   case X86ISD::MOVQ2DQ: return FastEmit_X86ISD_MOVQ2DQ_r(VT, RetVT, Op0, Op0IsKill);
