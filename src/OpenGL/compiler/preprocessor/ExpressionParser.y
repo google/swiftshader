@@ -57,7 +57,7 @@ struct Context
 %}
 
 %pure-parser
-%name-prefix="pp"
+%name-prefix "pp"
 %parse-param {Context *context}
 %lex-param {Context *context}
 
