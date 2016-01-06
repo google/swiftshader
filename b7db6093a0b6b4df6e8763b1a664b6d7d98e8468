@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6a03bb91_e98e91aa",
+        "filename": "src/Main/FrameBuffer.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-06T18:53:21Z",
+      "side": 1,
+      "message": "Stride is in bytes, not pixels (this used to be \"width % 4\").",
+      "range": {
+        "startLine": 275,
+        "startChar": 49,
+        "endLine": 275,
+        "endChar": 61
+      },
+      "revId": "b7db6093a0b6b4df6e8763b1a664b6d7d98e8468",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
