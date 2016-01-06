@@ -22,6 +22,30 @@
       "revId": "1aad51209481df767724639a69b6d9374b4dd713",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6a03bb91_490b653f",
+        "filename": "src/Common/Math.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-06T15:57:27Z",
+      "side": 1,
+      "message": "Yes, other platforms have std::exp2 in cmath. This patch defines sw::exp2, so there\u0027s no conflict.",
+      "parentUuid": "6a03bb91_e9d211f8",
+      "range": {
+        "startLine": 128,
+        "startChar": 14,
+        "endLine": 128,
+        "endChar": 18
+      },
+      "revId": "1aad51209481df767724639a69b6d9374b4dd713",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
