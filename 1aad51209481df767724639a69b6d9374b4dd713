@@ -70,6 +70,30 @@
       "revId": "1aad51209481df767724639a69b6d9374b4dd713",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6a03bb91_6972a1ba",
+        "filename": "src/Common/Math.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-06T17:54:10Z",
+      "side": 1,
+      "message": "When calling exp2() in the sw namespace, you get sw::exp2() without ambiguity, unless you also have \"using std;\" within the sw namespace (instead of outside of it).\n\nI don\u0027t think this patch increases the chances of any build breakage. I mean, with or without sw::exp2(), calling exp2() outside of the sw namespace (either as std::exp2() or with a \"using std;\", will fail due to Android\u0027s non-conformance alone (it was fixed in Marshmallow though).\n\nRenaming the function doesn\u0027t gain us anything. You still have to remember to call that particular function, which is the same effort as ensuring you\u0027re calling sw::exp2() instead of relying on the existence of std::exp2().\n\nWe could just call exp2f(), but that\u0027s kinda anti-C++ and what I wanted to avoid in the first place. And again, there\u0027s a risk of calling exp2() in the sw namespace with a \"using std;\" (inside or outside of the sw namespace). At least when we define sw::exp2() half of that breakage risks is eliminated.\n\nLast but not least, breaking the Android build is fairly unlikely at this point due to having branches for both cloud and emulator. I don\u0027t roll those forward without a lot of testing.",
+      "parentUuid": "6a03bb91_e9a0d163",
+      "range": {
+        "startLine": 128,
+        "startChar": 14,
+        "endLine": 128,
+        "endChar": 18
+      },
+      "revId": "1aad51209481df767724639a69b6d9374b4dd713",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
