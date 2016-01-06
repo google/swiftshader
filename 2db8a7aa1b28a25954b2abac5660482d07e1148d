@@ -22,6 +22,30 @@
       "revId": "2db8a7aa1b28a25954b2abac5660482d07e1148d",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6a03bb91_491da552",
+        "filename": "src/Main/FrameBuffer.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-06T18:09:12Z",
+      "side": 1,
+      "message": "No, that\u0027s a fairly small change, but the reasoning behind these names is that these are the FrameBuffer\u0027s own width/height/stride.\n\nThe use of sourceStride/sourceFormat here is a bit unfortunate, because their only purpose is to pass the values from copy() to copyLocked(). The latter can be an asynchronous call triggered by an event, so there\u0027s no easy way to give it the values other than by passing the FrameBuffer object\u0027s pointer at thread construction, so we have access to member fields like these.\n\nThat said, I just realized that all of the BlitState is baked into the routine as constants. So it should be possible to move things around a bit to not require storing the source parameters as member fields. I\u0027ll update the CL.",
+      "parentUuid": "6a03bb91_4965a51b",
+      "range": {
+        "startLine": 64,
+        "startChar": 2,
+        "endLine": 66,
+        "endChar": 13
+      },
+      "revId": "2db8a7aa1b28a25954b2abac5660482d07e1148d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
