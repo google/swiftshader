@@ -23,7 +23,7 @@
 #include "common/debug.h"
 #include "Main/FrameBuffer.hpp"
 
-#if defined(__unix__) && !defined(__ANDROID__)
+#if defined(__linux__) && !defined(__ANDROID__)
 #include "Main/libX11.hpp"
 #elif defined(_WIN32)
 #include <tchar.h>

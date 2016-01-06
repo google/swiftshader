@@ -28,7 +28,7 @@ namespace egl
 	class Display
 	{
 	public:
-		static egl::Display *getPlatformDisplay(EGLenum platform, void *nativeDisplay);
+		static Display *get(EGLDisplay dpy);
 
 		bool initialize();
 		void terminate();
@@ -57,12 +57,11 @@ namespace egl
 		const char *getExtensionString() const;
 
 	private:
-		Display(EGLenum platform, void *nativeDisplay);
+		explicit Display(void *nativeDisplay);
 		~Display();
 
 		sw::Format getDisplayFormat() const;
 
-        const EGLenum platform;
 		void *const nativeDisplay;
 
 		EGLint mMaxSwapInterval;
