@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6a03bb91_4965a51b",
+        "filename": "src/Main/FrameBuffer.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-01-06T13:37:07Z",
+      "side": 1,
+      "message": "Would it require a large amount of changes to add the \"dest\" prefix here too?",
+      "range": {
+        "startLine": 64,
+        "startChar": 2,
+        "endLine": 66,
+        "endChar": 13
+      },
+      "revId": "2db8a7aa1b28a25954b2abac5660482d07e1148d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
