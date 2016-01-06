@@ -46,6 +46,30 @@
       "revId": "941f759e10582ad0ccee886fe74335152a6ec1e1",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6a03bb91_e6111e35",
+        "filename": "src/OpenGL/libEGL/Config.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-06T03:45:32Z",
+      "side": 1,
+      "message": "\"Implementations may choose not to support EGL_BIND_TO_TEXTURE_RGB for RGBA visuals\"\n\nI guess we choose not to then. :-P",
+      "parentUuid": "6a03bb91_66ff6e1a",
+      "range": {
+        "startLine": 106,
+        "startChar": 21,
+        "endLine": 106,
+        "endChar": 47
+      },
+      "revId": "941f759e10582ad0ccee886fe74335152a6ec1e1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
