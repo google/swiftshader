@@ -28,11 +28,13 @@
 // Subzero_ namespace, corresponding to the llc and Subzero translated
 // object files, respectively.
 #include "test_arith.h"
-#include "xdefs.h"
 
 namespace Subzero_ {
 #include "test_arith.h"
 }
+
+#include "insertelement.h"
+#include "xdefs.h"
 
 template <class T> bool inputsMayTriggerException(T Value1, T Value2) {
   // Avoid HW divide-by-zero exception.
@@ -162,7 +164,7 @@ const static size_t MaxTestsPerFunc = 100000;
 
 template <typename TypeUnsignedLabel, typename TypeSignedLabel>
 void testsVecInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
-#if !defined(ARM32) && !defined(NONSFI)
+#if !defined(ARM32)
   // TODO(jpp): remove this once vector support is implemented.
   typedef typename Vectors<TypeUnsignedLabel>::Ty TypeUnsigned;
   typedef typename Vectors<TypeSignedLabel>::Ty TypeSigned;
@@ -212,8 +214,8 @@ void testsVecInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
           continue;
         if (Funcs[f].MaskShiftOperations)
           Element2 &= CHAR_BIT * sizeof(ElementTypeUnsigned) - 1;
-        Value1[j] = Element1;
-        Value2[j] = Element2;
+        setElement(Value1, j, Element1);
+        setElement(Value2, j, Element2);
       }
       // Perform the test.
       TypeUnsigned ResultSz, ResultLlc;
@@ -239,7 +241,7 @@ void testsVecInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
       }
     }
   }
-#endif // !ARM32 && !NONSFI
+#endif // !ARM32
 }
 
 template <typename Type>
@@ -315,7 +317,7 @@ void testsFp(size_t &TotalTests, size_t &Passes, size_t &Failures) {
 }
 
 void testsVecFp(size_t &TotalTests, size_t &Passes, size_t &Failures) {
-#if !defined(ARM32) && !defined(NONSFI)
+#if !defined(ARM32)
   // TODO(jpp): remove this once vector support is implemented.
   static const float NegInf = -1.0 / 0.0;
   static const float PosInf = 1.0 / 0.0;
@@ -343,8 +345,8 @@ void testsVecFp(size_t &TotalTests, size_t &Passes, size_t &Failures) {
       // Initialize the test vectors.
       v4f32 Value1, Value2;
       for (size_t j = 0; j < NumElementsInType; ++j) {
-        Value1[j] = Values[Index() % NumValues];
-        Value2[j] = Values[Index() % NumValues];
+        setElement(Value1, j, Values[Index() % NumValues]);
+        setElement(Value2, j, Values[Index() % NumValues]);
       }
       // Perform the test.
       v4f32 ResultSz = Funcs[f].FuncSz(Value1, Value2);
@@ -375,7 +377,7 @@ void testsVecFp(size_t &TotalTests, size_t &Passes, size_t &Failures) {
       }
     }
   }
-#endif // !ARM32 && !NONSFI
+#endif // !ARM32
 }
 
 #ifdef X8664_STACK_HACK

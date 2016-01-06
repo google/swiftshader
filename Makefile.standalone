@@ -405,7 +405,7 @@ check-xtest: $(OBJDIR)/pnacl-sz make_symlink runtime
           -i x8632,native,sse2 \
           -i x8632,native,sse4.1,test_vector_ops \
           -i x8632,sandbox,sse4.1,Om1 \
-          -i x8632,nonsfi,sse2,O2 -e x8632,nonsfi,test_select \
+          -i x8632,nonsfi,sse2,O2 \
           -i x8664,native,sse2 \
           -i x8664,native,sse4.1,test_vector_ops \
           -e x8664,sandbox,sse4.1,Om1 \

@@ -25,6 +25,8 @@ namespace Subzero_ {
 #include "test_select.h"
 }
 
+#include "insertelement.h"
+
 static const size_t MaxTestsPerFunc = 100000;
 
 template <typename T, typename TI1>
@@ -43,9 +45,9 @@ void testSelect(size_t &TotalTests, size_t &Passes, size_t &Failures) {
     TyI1 Cond;
     Ty Value1, Value2;
     for (size_t j = 0; j < NumElements; ++j) {
-      Cond[j] = Index() % 2;
-      Value1[j] = Values[Index() % NumValues];
-      Value2[j] = Values[Index() % NumValues];
+      setElement(Cond, j, Index() % 2);
+      setElement(Value1, j, Values[Index() % NumValues]);
+      setElement(Value2, j, Values[Index() % NumValues]);
     }
     Ty ResultLlc = select(Cond, Value1, Value2);
     Ty ResultSz = Subzero_::select(Cond, Value1, Value2);
@@ -79,9 +81,9 @@ void testSelect<v4f32, v4i1>(size_t &TotalTests, size_t &Passes,
     v4si32 Cond;
     v4f32 Value1, Value2;
     for (size_t j = 0; j < NumElements; ++j) {
-      Cond[j] = Index() % 2;
-      Value1[j] = Values[Index() % NumValues];
-      Value2[j] = Values[Index() % NumValues];
+      setElement(Cond, j, Index() % 2);
+      setElement(Value1, j, Values[Index() % NumValues]);
+      setElement(Value2, j, Values[Index() % NumValues]);
     }
     v4f32 ResultLlc = select(Cond, Value1, Value2);
     v4f32 ResultSz = Subzero_::select(Cond, Value1, Value2);
@@ -109,9 +111,9 @@ void testSelectI1(size_t &TotalTests, size_t &Passes, size_t &Failures) {
     Ty Cond;
     Ty Value1, Value2;
     for (size_t j = 0; j < NumElements; ++j) {
-      Cond[j] = Index() % 2;
-      Value1[j] = Index() % 2;
-      Value2[j] = Index() % 2;
+      setElement(Cond, j, Index() % 2);
+      setElement(Value1, j, Index() % 2);
+      setElement(Value2, j, Index() % 2);
     }
     Ty ResultLlc = select_i1(Cond, Value1, Value2);
     Ty ResultSz = Subzero_::select_i1(Cond, Value1, Value2);

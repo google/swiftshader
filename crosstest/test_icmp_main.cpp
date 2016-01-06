@@ -28,6 +28,7 @@ namespace Subzero_ {
 #include "test_icmp.h"
 }
 
+#include "insertelement.h"
 #include "xdefs.h"
 
 volatile unsigned Values[] = {
@@ -197,10 +198,12 @@ const static size_t MaxTestsPerFunc = 100000;
 
 template <typename TypeUnsignedLabel, typename TypeSignedLabel>
 void testsVecInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
-#if !defined(ARM32) && !defined(NONSFI)
+#if !defined(ARM32)
   // TODO(jpp): remove this once vector support is implemented.
   typedef typename Vectors<TypeUnsignedLabel>::Ty TypeUnsigned;
   typedef typename Vectors<TypeSignedLabel>::Ty TypeSigned;
+  typedef typename Vectors<TypeUnsignedLabel>::ElementTy ElementTypeUnsigned;
+  typedef typename Vectors<TypeSignedLabel>::ElementTy ElementTypeSigned;
   typedef TypeUnsigned (*FuncTypeUnsigned)(TypeUnsigned, TypeUnsigned);
   typedef TypeSigned (*FuncTypeSigned)(TypeSigned, TypeSigned);
   static struct {
@@ -232,10 +235,9 @@ void testsVecInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
     for (size_t i = 0; i < MaxTestsPerFunc; ++i) {
       // Initialize the test vectors.
       TypeUnsigned Value1, Value2;
-      for (size_t j = 0; j < NumElementsInType;) {
-        Value1[j] = Values[Index() % NumValues];
-        Value2[j] = Values[Index() % NumValues];
-        ++j;
+      for (size_t j = 0; j < NumElementsInType; ++j) {
+        setElement(Value1, j, Values[Index() % NumValues]);
+        setElement(Value2, j, Values[Index() % NumValues]);
       }
       // Perform the test.
       TypeUnsigned ResultSz = Funcs[f].FuncSz(Value1, Value2);
@@ -255,11 +257,13 @@ void testsVecInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
       }
     }
   }
-#endif // !ARM32 && !NONSFI
+#endif // !ARM32
 }
 
 // Return true on wraparound
-template <typename T> bool incrementI1Vector(typename Vectors<T>::Ty &Vect) {
+template <typename T>
+bool __attribute__((noinline))
+incrementI1Vector(typename Vectors<T>::Ty &Vect) {
   size_t Pos = 0;
   const static size_t NumElements = Vectors<T>::NumElements;
   for (Pos = 0; Pos < NumElements; ++Pos) {
@@ -274,7 +278,7 @@ template <typename T> bool incrementI1Vector(typename Vectors<T>::Ty &Vect) {
 
 template <typename T>
 void testsVecI1(size_t &TotalTests, size_t &Passes, size_t &Failures) {
-#if !defined(ARM32) && !defined(NONSFI)
+#if !defined(ARM32)
   // TODO(jpp): remove this once vector support is implemented.
   typedef typename Vectors<T>::Ty Ty;
   typedef Ty (*FuncType)(Ty, Ty);
@@ -324,8 +328,8 @@ void testsVecI1(size_t &TotalTests, size_t &Passes, size_t &Failures) {
         Ty Value1, Value2;
         // Initialize the test vectors.
         for (size_t j = 0; j < NumElements; ++j) {
-          Value1[j] = Index() % 2;
-          Value2[j] = Index() % 2;
+          setElement(Value1, j, Index() % 2);
+          setElement(Value2, j, Index() % 2);
         }
         // Perform the test.
         Ty ResultSz = Funcs[f].FuncSz(Value1, Value2);
@@ -343,7 +347,7 @@ void testsVecI1(size_t &TotalTests, size_t &Passes, size_t &Failures) {
       }
     }
   }
-#endif // !ARM32 && !NONSFI
+#endif // !ARM32
 }
 
 #ifdef X8664_STACK_HACK

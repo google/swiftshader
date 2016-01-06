@@ -126,7 +126,6 @@ def main():
             bitcode = os.path.join(args.dir, base + '.' + key + '.pnacl.ll')
             shellcmd(['{bin}/pnacl-clang'.format(bin=bindir),
                       ('-O2' if args.clang_opt else '-O0'),
-                      get_sfi_string(args, '', '-DNONSFI', ''),
                       ('-DARM32' if args.target == 'arm32' else ''), '-c', arg,
                       '-o', bitcode_nonfinal])
             shellcmd(['{bin}/pnacl-opt'.format(bin=bindir),
@@ -211,8 +210,6 @@ def main():
     if args.target == 'arm32':
       target_params.append('-DARM32')
       target_params.append('-static')
-    if args.nonsfi:
-      target_params.append('-DNONSFI')
 
     pure_c = os.path.splitext(args.driver)[1] == '.c'
     if not args.nonsfi:
@@ -242,7 +239,6 @@ def main():
         cc='clang' if pure_c else 'clang++')
     shellcmd([compiler,
               args.driver,
-              '-DNONSFI' if args.nonsfi else '',
               '-O2',
               '-o', bitcode_nonfinal,
               '-Wl,-r'
