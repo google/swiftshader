@@ -272,7 +272,7 @@ namespace sw
 						case FORMAT_A8R8G8B8:
 							For(, x < width - 3, x += 4)
 							{
-								*Pointer<Int4>(d, 1) = *Pointer<Int4>(s, sStride % 4 ? 1 : 16);
+								*Pointer<Int4>(d, 1) = *Pointer<Int4>(s, sStride % 16 ? 1 : 16);
 
 								s += 4 * sBytes;
 								d += 4 * dBytes;
@@ -282,7 +282,7 @@ namespace sw
 						case FORMAT_A8B8G8R8:
 							For(, x < width - 3, x += 4)
 							{
-								Int4 bgra = *Pointer<Int4>(s, sStride % 4 ? 1 : 16);
+								Int4 bgra = *Pointer<Int4>(s, sStride % 16 ? 1 : 16);
 
 								*Pointer<Int4>(d, 1) = ((bgra & Int4(0x00FF0000)) >> 16) |
 								                       ((bgra & Int4(0x000000FF)) << 16) |
@@ -379,7 +379,7 @@ namespace sw
 						case FORMAT_A8B8G8R8:
 							For(, x < width - 3, x += 4)
 							{
-								*Pointer<Int4>(d, 1) = *Pointer<Int4>(s, sStride % 4 ? 1 : 16);
+								*Pointer<Int4>(d, 1) = *Pointer<Int4>(s, sStride % 16 ? 1 : 16);
 
 								s += 4 * sBytes;
 								d += 4 * dBytes;
@@ -389,7 +389,7 @@ namespace sw
 						case FORMAT_A8R8G8B8:
 							For(, x < width - 3, x += 4)
 							{
-								Int4 bgra = *Pointer<Int4>(s, sStride % 4 ? 1 : 16);
+								Int4 bgra = *Pointer<Int4>(s, sStride % 16 ? 1 : 16);
 
 								*Pointer<Int4>(d, 1) = ((bgra & Int4(0x00FF0000)) >> 16) |
 								                       ((bgra & Int4(0x000000FF)) << 16) |
