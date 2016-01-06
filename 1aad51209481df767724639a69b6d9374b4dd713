@@ -46,6 +46,30 @@
       "revId": "1aad51209481df767724639a69b6d9374b4dd713",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6a03bb91_e9a0d163",
+        "filename": "src/Common/Math.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-01-06T16:07:35Z",
+      "side": 1,
+      "message": "Well, it\u0027s not as much a conflict as an ambiguity about which function is getting called when calling exp2() within the sw namespace (without explicitly writing sw::exp2()). What I mean was that it could be confusing, but I guess it will always call this one over the one in cmath?\n\nIt seems like it would be easy to break the android build by calling exp2 outside of the sw namespace without noticing. I think it\u0027s only called in 2 locations currently. Maybe it could be renamed?",
+      "parentUuid": "6a03bb91_490b653f",
+      "range": {
+        "startLine": 128,
+        "startChar": 14,
+        "endLine": 128,
+        "endChar": 18
+      },
+      "revId": "1aad51209481df767724639a69b6d9374b4dd713",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
