@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6a03bb91_e9d211f8",
+        "filename": "src/Common/Math.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-01-06T13:40:53Z",
+      "side": 1,
+      "message": "Do non Android platforms have exp2 defined in cmath? What happens then?",
+      "range": {
+        "startLine": 128,
+        "startChar": 14,
+        "endLine": 128,
+        "endChar": 18
+      },
+      "revId": "1aad51209481df767724639a69b6d9374b4dd713",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
