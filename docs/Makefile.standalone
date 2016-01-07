@@ -1,0 +1,5 @@
+.PHONY: all
+
+all:
+	doxygen Doxyfile
+	@echo See file://`pwd`/../build/docs/html/index.html

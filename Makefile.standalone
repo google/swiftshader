@@ -510,11 +510,10 @@ bloat: make_symlink
 	@echo See Subzero size breakdown in bloat/pnacl-sz.bloat.html
 
 docs:
-	doxygen Doxyfile
-	@echo See file://`pwd`/docs/html/index.html
+	make -C docs -f Makefile.standalone
 
 clean:
 	rm -rf pnacl-sz *.o $(OBJDIR) $(SB_OBJDIR) build/pnacl-sz.bloat.json
 
 clean-all: clean
-	rm -rf build/ docs/html
+	rm -rf build/  crosstest/Output/
