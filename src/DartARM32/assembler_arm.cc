@@ -1026,18 +1026,19 @@ void Assembler::vmlsd(DRegister dd, DRegister dn, DRegister dm,
   EmitVFPddd(cond, B6, dd, dn, dm);
 }
 
-
+#if 0
+// Moved to Arm32::AssemblerARM32::vdivs()
 void Assembler::vdivs(SRegister sd, SRegister sn, SRegister sm,
                       Condition cond) {
   EmitVFPsss(cond, B23, sd, sn, sm);
 }
 
-
+// Moved to Arm32::AssemblerARM32::vdivd()
 void Assembler::vdivd(DRegister dd, DRegister dn, DRegister dm,
                       Condition cond) {
   EmitVFPddd(cond, B23, dd, dn, dm);
 }
-
+#endif
 
 void Assembler::vabss(SRegister sd, SRegister sm, Condition cond) {
   EmitVFPsss(cond, B23 | B21 | B20 | B7 | B6, sd, S0, sm);

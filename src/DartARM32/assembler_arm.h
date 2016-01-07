@@ -673,8 +673,12 @@ class Assembler : public ValueObject {
   void vmlad(DRegister dd, DRegister dn, DRegister dm, Condition cond = AL);
   void vmlss(SRegister sd, SRegister sn, SRegister sm, Condition cond = AL);
   void vmlsd(DRegister dd, DRegister dn, DRegister dm, Condition cond = AL);
+#if 0
+  // Moved to Arm32::AssemblerARM32::vdivs()
   void vdivs(SRegister sd, SRegister sn, SRegister sm, Condition cond = AL);
+  // Moved to Arm32::AssemblerARM32::vdivd()
   void vdivd(DRegister dd, DRegister dn, DRegister dm, Condition cond = AL);
+#endif
   void vminqs(QRegister qd, QRegister qn, QRegister qm);
   void vmaxqs(QRegister qd, QRegister qn, QRegister qm);
   void vrecpeqs(QRegister qd, QRegister qm);
