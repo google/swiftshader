@@ -2133,7 +2133,7 @@ namespace es2
 
 	bool Program::applyUniformMatrix4x2fv(GLint location, GLsizei count, const GLfloat *value)
 	{
-		float matrix[(MAX_UNIFORM_VECTORS + 2) / 3][3][4];
+		float matrix[(MAX_UNIFORM_VECTORS + 3) / 4][4][4];
 
 		for(int i = 0; i < count; i++)
 		{
@@ -2162,7 +2162,7 @@ namespace es2
 
 	bool Program::applyUniformMatrix4x3fv(GLint location, GLsizei count, const GLfloat *value)
 	{
-		float matrix[(MAX_UNIFORM_VECTORS + 2) / 3][3][4];
+		float matrix[(MAX_UNIFORM_VECTORS + 3) / 4][4][4];
 
 		for(int i = 0; i < count; i++)
 		{
