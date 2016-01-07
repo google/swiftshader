@@ -603,7 +603,7 @@ void ClipPlanex(GLenum plane, const GLfixed *equation)
 		(float)equation[2] / 0x10000,
 		(float)equation[3] / 0x10000,
 	};
-	
+
 	ClipPlanef(plane, equationf);
 }
 
@@ -4688,7 +4688,19 @@ void DrawTexxvOES(const GLfixed *coords)
 
 void DrawTexfOES(GLfloat x, GLfloat y, GLfloat z, GLfloat width, GLfloat height)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLfloat x = %f, GLfloat y = %f, GLfloat z = %f, GLfloat width = %f, GLfloat height = %f)", x, y, z, width, height);
+
+	if(width <= 0 || height <= 0)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	es1::Context *context = es1::getContext();
+
+	if(context)
+	{
+		context->drawTexture(x, y, z, width, height);
+	}
 }
 
 void DrawTexfvOES(const GLfloat *coords)
