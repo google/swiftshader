@@ -517,4 +517,4 @@ clean:
 	rm -rf pnacl-sz *.o $(OBJDIR) $(SB_OBJDIR) build/pnacl-sz.bloat.json
 
 clean-all: clean
-	rm -rf build/ docs/
+	rm -rf build/ docs/html

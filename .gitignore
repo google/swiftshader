@@ -10,5 +10,5 @@
 # Ignore specific patterns at the top-level directory
 /pnacl-sz
 /build/
-/docs/
+/docs/html/
 /crosstest/Output/
