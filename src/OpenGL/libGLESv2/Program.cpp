@@ -36,30 +36,17 @@ namespace es2
 		return buffer;
 	}
 
-	Uniform::BlockInfo::BlockInfo(const glsl::Uniform& uniform, int blockIndex, bool rowMajorLayout)
+	Uniform::BlockInfo::BlockInfo(const glsl::Uniform& uniform, int blockIndex)
 	{
 		static unsigned int registerSizeStd140 = 4; // std140 packing requires dword alignment
 
 		if(blockIndex >= 0)
 		{
 			index = blockIndex;
-			offset = uniform.offset * registerSizeStd140;
-			isRowMajorMatrix = rowMajorLayout;
-			int componentSize = UniformTypeSize(UniformComponentType(uniform.type));
-			int rowCount = VariableRowCount(uniform.type);
-			if(rowCount > 1)
-			{
-				int colCount = VariableColumnCount(uniform.type);
-				int matrixComponentCount = (isRowMajorMatrix ? colCount : rowCount);
-				matrixStride = (rowCount > 1) ? matrixComponentCount * componentSize : 0;
-				arrayStride = (uniform.arraySize > 0) ? matrixStride * (isRowMajorMatrix ? rowCount : colCount) : 0;
-			}
-			else
-			{
-				matrixStride = 0;
-				int componentCount = UniformComponentCount(uniform.type);
-				arrayStride = (uniform.arraySize > 0) ? componentSize * componentCount : 0;
-			}
+			offset = uniform.blockInfo.offset;
+			arrayStride = uniform.blockInfo.arrayStride;
+			matrixStride = uniform.blockInfo.matrixStride;
+			isRowMajorMatrix = uniform.blockInfo.isRowMajorMatrix;
 		}
 		else
 		{
@@ -1445,16 +1432,14 @@ namespace es2
 			const glsl::Uniform &uniform = activeUniforms[uniformIndex];
 
 			unsigned int blockIndex = GL_INVALID_INDEX;
-			bool isRowMajorMatrix = false;
 			if(uniform.blockId >= 0)
 			{
 				const glsl::ActiveUniformBlocks &activeUniformBlocks = shader->activeUniformBlocks;
 				ASSERT(static_cast<size_t>(uniform.blockId) < activeUniformBlocks.size());
-				blockIndex = getUniformBlockIndex(activeUniformBlocks[uniform.blockId].getName());
+				blockIndex = getUniformBlockIndex(activeUniformBlocks[uniform.blockId].name);
 				ASSERT(blockIndex != GL_INVALID_INDEX);
-				isRowMajorMatrix = activeUniformBlocks[uniform.blockId].isRowMajorLayout;
 			}
-			if(!defineUniform(shader->getType(), uniform.type, uniform.precision, uniform.name, uniform.arraySize, uniform.registerIndex, Uniform::BlockInfo(uniform, blockIndex, isRowMajorMatrix)))
+			if(!defineUniform(shader->getType(), uniform.type, uniform.precision, uniform.name, uniform.arraySize, uniform.registerIndex, Uniform::BlockInfo(uniform, blockIndex)))
 			{
 				return false;
 			}
@@ -1696,7 +1681,7 @@ namespace es2
 
 	bool Program::defineUniformBlock(const Shader *shader, const glsl::UniformBlock &block)
 	{
-		GLuint blockIndex = getUniformBlockIndex(block.getName());
+		GLuint blockIndex = getUniformBlockIndex(block.name);
 
 		if(blockIndex == GL_INVALID_INDEX)
 		{
@@ -1709,15 +1694,17 @@ namespace es2
 
 			if(block.arraySize > 0)
 			{
-				for(unsigned int i = 0; i < block.arraySize; ++i)
+				int regIndex = block.registerIndex;
+				int regInc = block.dataSize / (glsl::BlockLayoutEncoder::BytesPerComponent * glsl::BlockLayoutEncoder::ComponentsPerRegister);
+				for(unsigned int i = 0; i < block.arraySize; ++i, regIndex += regInc)
 				{
-					uniformBlocks.push_back(new UniformBlock(block.getName(), i, block.dataSize, memberUniformIndexes));
-					uniformBlocks[uniformBlocks.size() - 1]->setRegisterIndex(shader->getType(), block.registerIndex);
+					uniformBlocks.push_back(new UniformBlock(block.name, i, block.dataSize, memberUniformIndexes));
+					uniformBlocks[uniformBlocks.size() - 1]->setRegisterIndex(shader->getType(), regIndex);
 				}
 			}
 			else
 			{
-				uniformBlocks.push_back(new UniformBlock(block.getName(), GL_INVALID_INDEX, block.dataSize, memberUniformIndexes));
+				uniformBlocks.push_back(new UniformBlock(block.name, GL_INVALID_INDEX, block.dataSize, memberUniformIndexes));
 				uniformBlocks[uniformBlocks.size() - 1]->setRegisterIndex(shader->getType(), block.registerIndex);
 			}
 		}

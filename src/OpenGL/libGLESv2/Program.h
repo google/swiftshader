@@ -36,7 +36,7 @@ namespace es2
 	{
 		struct BlockInfo
 		{
-			BlockInfo(const glsl::Uniform& uniform, int blockIndex, bool rowMajorLayout);
+			BlockInfo(const glsl::Uniform& uniform, int blockIndex);
 
 			int index;
 			int offset;
