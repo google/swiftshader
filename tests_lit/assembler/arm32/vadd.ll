@@ -20,14 +20,14 @@
 ; RUN: %p2i --filetype=iasm -i %s --target=arm32 --assemble --disassemble \
 ; RUN:   --args -O2 | FileCheck %s --check-prefix=DIS
 
-define internal float @testVadd(float %v1, float %v2) {
-; ASM-LABEL: testVadd:
-; DIS-LABEL: 00000000 <testVadd>:
-; IASM-LABEL: testVadd:
+define internal float @testVaddFloat(float %v1, float %v2) {
+; ASM-LABEL: testVaddFloat:
+; DIS-LABEL: 00000000 <testVaddFloat>:
+; IASM-LABEL: testVaddFloat:
 
 entry:
-; ASM-NEXT: .LtestVadd$entry:
-; IASM-NEXT: .LtestVadd$entry:
+; ASM-NEXT: .LtestVaddFloat$entry:
+; IASM-NEXT: .LtestVaddFloat$entry:
 
   %res = fadd float %v1, %v2
 
@@ -39,4 +39,25 @@ entry:
 ; IASM-NEXT:    .byte 0xee
 
   ret float %res
+}
+
+define internal double @testVaddDouble(double %v1, double %v2) {
+; ASM-LABEL: testVaddDouble:
+; DIS-LABEL: 00000010 <testVaddDouble>:
+; IASM-LABEL: testVaddDouble:
+
+entry:
+; ASM-NEXT: .LtestVaddDouble$entry:
+; IASM-NEXT: .LtestVaddDouble$entry:
+
+  %res = fadd double %v1, %v2
+
+; ASM-NEXT:     vadd.f64        d0, d0, d1
+; DIS-NEXT:   10:       ee300b01
+; IASM-NEXT:    .byte 0x1
+; IASM-NEXT:    .byte 0xb
+; IASM-NEXT:    .byte 0x30
+; IASM-NEXT:    .byte 0xee
+
+  ret double %res
 }

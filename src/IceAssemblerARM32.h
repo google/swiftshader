@@ -330,6 +330,12 @@ public:
   void vpush(const Variable *OpBaseReg, SizeT NumConsecRegs,
              CondARM32::Cond Cond);
 
+  void vsubd(const Operand *OpDd, const Operand *OpDn, const Operand *OpDm,
+             CondARM32::Cond Cond);
+
+  void vsubs(const Operand *OpSd, const Operand *OpSn, const Operand *OpSm,
+             CondARM32::Cond Cond);
+
   static bool classof(const Assembler *Asm) {
     return Asm->getKind() == Asm_ARM32;
   }

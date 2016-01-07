@@ -2071,6 +2071,36 @@ void AssemblerARM32::vaddd(const Operand *OpDd, const Operand *OpDn,
   emitVFPddd(Cond, VadddOpcode, Dd, Dn, Dm);
 }
 
+void AssemblerARM32::vsubs(const Operand *OpSd, const Operand *OpSn,
+                           const Operand *OpSm, CondARM32::Cond Cond) {
+  // VSUB (floating-point) - ARM section A8.8.415, encoding A2:
+  //   vsub<c>.f32 <Sd>, <Sn>, <Sm>
+  //
+  // cccc11100D11nnnndddd101sN1M0mmmm where cccc=Cond, s=0, ddddD=Rd, nnnnN=Rn,
+  // and mmmmM=Rm.
+  constexpr const char *Vadds = "vsubs";
+  IValueT Sd = encodeSRegister(OpSd, "Sd", Vadds);
+  IValueT Sn = encodeSRegister(OpSn, "Sn", Vadds);
+  IValueT Sm = encodeSRegister(OpSm, "Sm", Vadds);
+  constexpr IValueT VaddsOpcode = B21 | B20 | B6;
+  emitVFPsss(Cond, VaddsOpcode, Sd, Sn, Sm);
+}
+
+void AssemblerARM32::vsubd(const Operand *OpDd, const Operand *OpDn,
+                           const Operand *OpDm, CondARM32::Cond Cond) {
+  // VSUB (floating-point) - ARM section A8.8.415, encoding A2:
+  //   vadd<c>.f64 <Dd>, <Dn>, <Dm>
+  //
+  // cccc11100D11nnnndddd101sN1M0mmmm where cccc=Cond, s=1, Ddddd=Rd, Nnnnn=Rn,
+  // and Mmmmm=Rm.
+  constexpr const char *Vaddd = "vsubd";
+  IValueT Dd = encodeDRegister(OpDd, "Dd", Vaddd);
+  IValueT Dn = encodeDRegister(OpDn, "Dn", Vaddd);
+  IValueT Dm = encodeDRegister(OpDm, "Dm", Vaddd);
+  constexpr IValueT VadddOpcode = B21 | B20 | B6;
+  emitVFPddd(Cond, VadddOpcode, Dd, Dn, Dm);
+}
+
 void AssemblerARM32::emitVStackOp(CondARM32::Cond Cond, IValueT Opcode,
                                   const Variable *OpBaseReg,
                                   SizeT NumConsecRegs) {

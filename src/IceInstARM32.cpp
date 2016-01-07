@@ -612,8 +612,25 @@ template <> void InstARM32Vadd::emitIAS(const Cfg *Func) const {
     Asm->vaddd(getDest(), getSrc(0), getSrc(1), CondARM32::AL);
     break;
   }
-  if (Asm->needsTextFixup())
-    emitUsingTextFixup(Func);
+  assert(!Asm->needsTextFixup());
+}
+
+template <> void InstARM32Vsub::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  const Variable *Dest = getDest();
+  switch (Dest->getType()) {
+  default:
+    // TODO(kschimpf) Figure if more cases are needed.
+    Asm->setNeedsTextFixup();
+    break;
+  case IceType_f32:
+    Asm->vsubs(getDest(), getSrc(0), getSrc(1), CondARM32::AL);
+    break;
+  case IceType_f64:
+    Asm->vsubd(getDest(), getSrc(0), getSrc(1), CondARM32::AL);
+    break;
+  }
+  assert(!Asm->needsTextFixup());
 }
 
 InstARM32Call::InstARM32Call(Cfg *Func, Variable *Dest, Operand *CallTarget)

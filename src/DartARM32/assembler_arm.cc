@@ -977,19 +977,19 @@ void Assembler::vaddd(DRegister dd, DRegister dn, DRegister dm,
                       Condition cond) {
   EmitVFPddd(cond, B21 | B20, dd, dn, dm);
 }
-#endif
 
+// Moved to Arm32::AssemblerARM32::vmuls()
 void Assembler::vsubs(SRegister sd, SRegister sn, SRegister sm,
                       Condition cond) {
   EmitVFPsss(cond, B21 | B20 | B6, sd, sn, sm);
 }
 
-
+// Moved to Arm32::AssemblerARM32::vmuld()
 void Assembler::vsubd(DRegister dd, DRegister dn, DRegister dm,
                       Condition cond) {
   EmitVFPddd(cond, B21 | B20 | B6, dd, dn, dm);
 }
-
+#endif
 
 void Assembler::vmuls(SRegister sd, SRegister sn, SRegister sm,
                       Condition cond) {
