@@ -880,7 +880,8 @@ void Assembler::vstmd(BlockAddressMode am, Register base,
   EmitMultiVDMemOp(cond, am, false, base, first, count);
 }
 
-
+#if 0
+// Moved to ARM32::AssemblerARM32::emitVFPsss
 void Assembler::EmitVFPsss(Condition cond, int32_t opcode,
                            SRegister sd, SRegister sn, SRegister sm) {
   ASSERT(TargetCPUFeatures::vfp_supported());
@@ -899,7 +900,7 @@ void Assembler::EmitVFPsss(Condition cond, int32_t opcode,
   Emit(encoding);
 }
 
-
+// Moved to ARM32::AssemblerARM32::emitVFPddd
 void Assembler::EmitVFPddd(Condition cond, int32_t opcode,
                            DRegister dd, DRegister dn, DRegister dm) {
   ASSERT(TargetCPUFeatures::vfp_supported());
@@ -917,7 +918,7 @@ void Assembler::EmitVFPddd(Condition cond, int32_t opcode,
                      (static_cast<int32_t>(dm) & 0xf);
   Emit(encoding);
 }
-
+#endif
 
 void Assembler::vmovs(SRegister sd, SRegister sm, Condition cond) {
   EmitVFPsss(cond, B23 | B21 | B20 | B6, sd, S0, sm);
@@ -964,18 +965,19 @@ bool Assembler::vmovd(DRegister dd, double d_imm, Condition cond) {
   return false;
 }
 
-
+#if 0
+// Moved to Arm32::AssemblerARM32::vadds()
 void Assembler::vadds(SRegister sd, SRegister sn, SRegister sm,
                       Condition cond) {
   EmitVFPsss(cond, B21 | B20, sd, sn, sm);
 }
 
-
+// Moved to Arm32::AssemblerARM32::vaddd()
 void Assembler::vaddd(DRegister dd, DRegister dn, DRegister dm,
                       Condition cond) {
   EmitVFPddd(cond, B21 | B20, dd, dn, dm);
 }
-
+#endif
 
 void Assembler::vsubs(SRegister sd, SRegister sn, SRegister sm,
                       Condition cond) {

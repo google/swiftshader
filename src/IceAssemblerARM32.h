@@ -318,6 +318,12 @@ public:
   // Implements uxtb/uxth depending on type of OpSrc0.
   void uxt(const Operand *OpRd, const Operand *OpSrc0, CondARM32::Cond Cond);
 
+  void vaddd(const Operand *OpDd, const Operand *OpDn, const Operand *OpDm,
+             CondARM32::Cond Cond);
+
+  void vadds(const Operand *OpSd, const Operand *OpSn, const Operand *OpSm,
+             CondARM32::Cond Cond);
+
   void vpop(const Variable *OpBaseReg, SizeT NumConsecRegs,
             CondARM32::Cond Cond);
 
@@ -383,16 +389,14 @@ private:
                   IValueT OpRn, const Operand *OpSrc1, bool SetFlags,
                   EmitChecks RuleChecks, const char *InstName);
 
-  void emitType05(CondARM32::Cond Cond, int32_t Offset, bool Link,
-                  const char *InstName);
+  void emitType05(CondARM32::Cond Cond, int32_t Offset, bool Link);
 
   // Emit ccccoooaabalnnnnttttaaaaaaaaaaaa where cccc=Cond,
   // ooo=InstType, l=isLoad, b=isByte, and
   // aaa0a0aaaa0000aaaaaaaaaaaa=Address. Note that Address is assumed to be
   // defined by decodeAddress() in IceAssemblerARM32.cpp.
   void emitMemOp(CondARM32::Cond Cond, IValueT InstType, bool IsLoad,
-                 bool IsByte, IValueT Rt, IValueT Address,
-                 const char *InstName);
+                 bool IsByte, IValueT Rt, IValueT Address);
 
   // Emit ccccxxxxxxxxxxxxddddxxxxxxxxmmmm where cccc=Cond,
   // xxxxxxxxxxxx0000xxxxxxxx0000=Opcode, dddd=Rd, and mmmm=Rm.
@@ -419,24 +423,22 @@ private:
   // aaaa<<21=AddressMode, l=IsLoad, nnnn=BaseReg, and
   // rrrrrrrrrrrrrrrr is bitset of Registers.
   void emitMultiMemOp(CondARM32::Cond Cond, BlockAddressMode AddressMode,
-                      bool IsLoad, IValueT BaseReg, IValueT Registers,
-                      const char *InstName);
+                      bool IsLoad, IValueT BaseReg, IValueT Registers);
 
   // Pattern ccccxxxxxDxxxxxxddddxxxxiiiiiiii where cccc=Cond, ddddD=BaseReg,
   // iiiiiiii=NumConsecRegs, and xxxxx0xxxxxx0000xxxx00000000=Opcode.
   void emitVStackOp(CondARM32::Cond Cond, IValueT Opcode,
-                    const Variable *OpBaseReg, SizeT NumConsecRegs,
-                    const char *InstName);
+                    const Variable *OpBaseReg, SizeT NumConsecRegs);
 
   // Pattern cccc011100x1dddd1111mmmm0001nnn where cccc=Cond,
   // x=Opcode, dddd=Rd, nnnn=Rn, mmmm=Rm.
   void emitDivOp(CondARM32::Cond Cond, IValueT Opcode, IValueT Rd, IValueT Rn,
-                 IValueT Rm, const char *InstName);
+                 IValueT Rm);
 
   // Pattern ccccxxxxxxxfnnnnddddssss1001mmmm where cccc=Cond, dddd=Rd, nnnn=Rn,
   // mmmm=Rm, ssss=Rs, f=SetFlags and xxxxxxx=Opcode.
   void emitMulOp(CondARM32::Cond Cond, IValueT Opcode, IValueT Rd, IValueT Rn,
-                 IValueT Rm, IValueT Rs, bool SetFlags, const char *InstName);
+                 IValueT Rm, IValueT Rs, bool SetFlags);
 
   // Pattern cccc0001101s0000ddddxxxxxtt0mmmm where cccc=Cond, s=SetFlags,
   // dddd=Rd, mmmm=Rm, tt=Shift, and xxxxx is defined by OpSrc1. OpSrc1 defines
@@ -471,6 +473,14 @@ private:
   // iiiiiiiiiiiiiiii=Imm16.
   void emitMovwt(CondARM32::Cond Cond, bool IsMovw, const Operand *OpRd,
                  const Operand *OpSrc, const char *MovName);
+
+  // Emit VFP instruction with 3 D registers.
+  void emitVFPddd(CondARM32::Cond Cond, IValueT Opcode, IValueT Dd, IValueT Dn,
+                  IValueT Dm);
+
+  // Emit VFP instruction with 3 S registers.
+  void emitVFPsss(CondARM32::Cond Cond, IValueT Opcode, IValueT Sd, IValueT Sn,
+                  IValueT Sm);
 };
 
 } // end of namespace ARM32

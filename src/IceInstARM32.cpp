@@ -226,6 +226,11 @@ void InstARM32FourAddrGPR<K>::emitIAS(const Cfg *Func) const {
   emitUsingTextFixup(Func);
 }
 
+template <InstARM32::InstKindARM32 K>
+void InstARM32ThreeAddrFP<K>::emitIAS(const Cfg *Func) const {
+  emitUsingTextFixup(Func);
+}
+
 template <> void InstARM32Mla::emitIAS(const Cfg *Func) const {
   assert(getSrcSize() == 3);
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
@@ -588,6 +593,25 @@ template <> void InstARM32Udiv::emitIAS(const Cfg *Func) const {
   assert(!SetFlags);
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Asm->udiv(getDest(), getSrc(0), getSrc(1), getPredicate());
+  if (Asm->needsTextFixup())
+    emitUsingTextFixup(Func);
+}
+
+template <> void InstARM32Vadd::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  const Variable *Dest = getDest();
+  switch (Dest->getType()) {
+  default:
+    // TODO(kschimpf) Figure if more cases are needed.
+    Asm->setNeedsTextFixup();
+    break;
+  case IceType_f32:
+    Asm->vadds(getDest(), getSrc(0), getSrc(1), CondARM32::AL);
+    break;
+  case IceType_f64:
+    Asm->vaddd(getDest(), getSrc(0), getSrc(1), CondARM32::AL);
+    break;
+  }
   if (Asm->needsTextFixup())
     emitUsingTextFixup(Func);
 }
@@ -1404,7 +1428,7 @@ void InstARM32Pop::emitIAS(const Cfg *Func) const {
     const Variable *LastDest = nullptr;
     for (const Variable *Var : Dests) {
       assert(Var->hasReg() && "pop only applies to registers");
-      int32_t Reg = RegARM32::getEncodedGPR(Var->getRegNum());
+      int32_t Reg = RegARM32::getEncodedGPReg(Var->getRegNum());
       LastDest = Var;
       GPRegisters |= (1 << Reg);
       ++IntegerCount;
@@ -1536,7 +1560,7 @@ void InstARM32Push::emitIAS(const Cfg *Func) const {
     const Variable *LastSrc = nullptr;
     for (SizeT Index = 0; Index < getSrcSize(); ++Index) {
       const auto *Var = llvm::cast<Variable>(getSrc(Index));
-      int32_t Reg = RegARM32::getEncodedGPR(Var->getRegNum());
+      int32_t Reg = RegARM32::getEncodedGPReg(Var->getRegNum());
       assert(Reg != RegARM32::Encoded_Not_GPR);
       LastSrc = Var;
       GPRegisters |= (1 << Reg);

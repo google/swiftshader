@@ -647,8 +647,12 @@ class Assembler : public ValueObject {
   void vstmd(BlockAddressMode am, Register base,
              DRegister first, intptr_t count, Condition cond = AL);
 
+#if 0
+  // Moved to Arm32::AssemblerARM32::vadds()
   void vadds(SRegister sd, SRegister sn, SRegister sm, Condition cond = AL);
+  // Moved to Arm32::AssemblerARM32::vaddd()
   void vaddd(DRegister dd, DRegister dn, DRegister dm, Condition cond = AL);
+#endif
   void vaddqi(OperandSize sz, QRegister qd, QRegister qn, QRegister qm);
   void vaddqs(QRegister qd, QRegister qn, QRegister qm);
   void vsubs(SRegister sd, SRegister sn, SRegister sm, Condition cond = AL);
@@ -1228,7 +1232,7 @@ class Assembler : public ValueObject {
                  Register rm,
                  Register rs);
 
-  // Moved to ARM32::AssemblerAR32::emitDivOp();
+  // Moved to ARM32::AssemblerARM32::emitDivOp();
   void EmitDivOp(Condition cond,
                  int32_t opcode,
                  Register rd,
@@ -1250,17 +1254,21 @@ class Assembler : public ValueObject {
                         DRegister start,
                         int32_t count);
 
+#if 0
+  // Moved to ARM32::AssemblerARM32::emitVFPsss
   void EmitVFPsss(Condition cond,
                   int32_t opcode,
                   SRegister sd,
                   SRegister sn,
                   SRegister sm);
 
+  // Moved to ARM32::AssemblerARM32::emitVFPddd
   void EmitVFPddd(Condition cond,
                   int32_t opcode,
                   DRegister dd,
                   DRegister dn,
                   DRegister dm);
+#endif
 
   void EmitVFPsd(Condition cond,
                  int32_t opcode,

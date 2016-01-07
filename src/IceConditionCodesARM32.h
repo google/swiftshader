@@ -33,6 +33,8 @@ public:
     ICEINSTARM32COND_TABLE
 #undef X
   };
+
+  static bool isDefined(Cond C) { return C != kNone; }
 };
 
 } // end of namespace Ice

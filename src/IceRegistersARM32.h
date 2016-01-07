@@ -146,56 +146,99 @@ public:
 #undef X
   };
 
-  static inline GPRRegister getEncodedGPR(int32_t RegNum) {
-    assert(Reg_GPR_First <= RegNum);
-    assert(RegNum <= Reg_GPR_Last);
+  static inline void assertRegisterDefined(int32_t RegNum) {
+    (void)RegNum;
+    assert(RegNum >= 0);
+    assert(RegNum < Reg_NUM);
+  }
+
+  static inline bool isGPRegister(int32_t RegNum) {
+    assertRegisterDefined(RegNum);
+    return Table[RegNum].IsGPR;
+  }
+
+  static constexpr inline SizeT getNumGPRegs() {
+    return 0
+#define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
+          isGPR, isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)       \
+  +(isGPR)
+        REGARM32_TABLE
+#undef X
+        ;
+  }
+
+  static inline GPRRegister getEncodedGPReg(int32_t RegNum) {
+    assert(isGPRegister(RegNum));
     return GPRRegister(Table[RegNum].Encoding);
   }
 
   static inline GPRRegister getI64PairFirstGPRNum(int32_t RegNum) {
-    assert(Reg_I64PAIR_First <= RegNum);
-    assert(RegNum <= Reg_I64PAIR_Last);
+    assert(isI64RegisterPair(RegNum));
     return GPRRegister(Table[RegNum].Encoding);
   }
 
   static inline GPRRegister getI64PairSecondGPRNum(int32_t RegNum) {
-    assert(Reg_I64PAIR_First <= RegNum);
-    assert(RegNum <= Reg_I64PAIR_Last);
+    assert(isI64RegisterPair(RegNum));
     return GPRRegister(Table[RegNum].Encoding + 1);
   }
 
   static inline bool isI64RegisterPair(int32_t RegNum) {
+    assertRegisterDefined(RegNum);
     return Table[RegNum].IsI64Pair;
   }
 
   static inline bool isEncodedSReg(int32_t RegNum) {
+    assertRegisterDefined(RegNum);
     return Table[RegNum].IsFP32;
   }
 
-  static inline SizeT getNumSRegs() {
-    return Reg_SREG_Last + 1 - Reg_SREG_First;
+  static constexpr inline SizeT getNumSRegs() {
+    return 0
+#define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
+          isGPR, isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)       \
+  +(isFP32)
+        REGARM32_TABLE
+#undef X
+        ;
   }
 
   static inline SRegister getEncodedSReg(int32_t RegNum) {
-    assert(Reg_SREG_First <= RegNum);
-    assert(RegNum <= Reg_SREG_Last);
+    assert(isEncodedSReg(RegNum));
     return SRegister(Table[RegNum].Encoding);
   }
 
+  static inline bool isEncodedDReg(int32_t RegNum) {
+    assertRegisterDefined(RegNum);
+    return Table[RegNum].IsFP64;
+  }
+
+  static constexpr inline SizeT getNumDRegs() {
+    return 0
+#define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
+          isGPR, isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)       \
+  +(isFP64)
+        REGARM32_TABLE
+#undef X
+        ;
+  }
+
   static inline DRegister getEncodedDReg(int32_t RegNum) {
-    assert(Reg_DREG_First <= RegNum);
-    assert(RegNum <= Reg_DREG_Last);
+    assert(isEncodedDReg(RegNum));
     return DRegister(Table[RegNum].Encoding);
   }
 
+  static inline bool isEncodedQReg(int32_t RegNum) {
+    assertRegisterDefined(RegNum);
+    return Table[RegNum].IsVec128;
+  }
+
   static inline QRegister getEncodedQReg(int32_t RegNum) {
-    assert(Reg_QREG_First <= RegNum);
-    assert(RegNum <= Reg_QREG_Last);
+    assert(isEncodedQReg(RegNum));
     return QRegister(Table[RegNum].Encoding);
   }
 
-  static inline IceString getRegName(SizeT RegNum) {
-    assert(RegNum < Reg_NUM);
+  static inline IceString getRegName(int32_t RegNum) {
+    assertRegisterDefined(RegNum);
     return Table[RegNum].Name;
   }
 };
