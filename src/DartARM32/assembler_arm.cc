@@ -991,6 +991,7 @@ void Assembler::vsubd(DRegister dd, DRegister dn, DRegister dm,
 }
 #endif
 
+#if 0
 void Assembler::vmuls(SRegister sd, SRegister sn, SRegister sm,
                       Condition cond) {
   EmitVFPsss(cond, B21, sd, sn, sm);
@@ -1001,7 +1002,7 @@ void Assembler::vmuld(DRegister dd, DRegister dn, DRegister dm,
                       Condition cond) {
   EmitVFPddd(cond, B21, dd, dn, dm);
 }
-
+#endif
 
 void Assembler::vmlas(SRegister sd, SRegister sn, SRegister sm,
                       Condition cond) {

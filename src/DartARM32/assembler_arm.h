@@ -663,8 +663,12 @@ class Assembler : public ValueObject {
 #endif
   void vsubqi(OperandSize sz, QRegister qd, QRegister qn, QRegister qm);
   void vsubqs(QRegister qd, QRegister qn, QRegister qm);
+#if 0
+  // Moved to Arm32::AssemblerARM32::vmuls()
   void vmuls(SRegister sd, SRegister sn, SRegister sm, Condition cond = AL);
+  // Moved to Arm32::AssemblerARM32::vmuld()
   void vmuld(DRegister dd, DRegister dn, DRegister dm, Condition cond = AL);
+#endif
   void vmulqi(OperandSize sz, QRegister qd, QRegister qn, QRegister qm);
   void vmulqs(QRegister qd, QRegister qn, QRegister qm);
   void vshlqi(OperandSize sz, QRegister qd, QRegister qm, QRegister qn);

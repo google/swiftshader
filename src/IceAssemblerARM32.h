@@ -330,6 +330,12 @@ public:
   void vdivs(const Operand *OpSd, const Operand *OpSn, const Operand *OpSm,
              CondARM32::Cond Cond);
 
+  void vmuld(const Operand *OpDd, const Operand *OpDn, const Operand *OpDm,
+             CondARM32::Cond Cond);
+
+  void vmuls(const Operand *OpSd, const Operand *OpSn, const Operand *OpSm,
+             CondARM32::Cond Cond);
+
   void vpop(const Variable *OpBaseReg, SizeT NumConsecRegs,
             CondARM32::Cond Cond);
 

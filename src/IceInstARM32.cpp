@@ -651,6 +651,24 @@ template <> void InstARM32Vsub::emitIAS(const Cfg *Func) const {
   assert(!Asm->needsTextFixup());
 }
 
+template <> void InstARM32Vmul::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  const Variable *Dest = getDest();
+  switch (Dest->getType()) {
+  default:
+    // TODO(kschimpf) Figure if more cases are needed.
+    Asm->setNeedsTextFixup();
+    break;
+  case IceType_f32:
+    Asm->vmuls(getDest(), getSrc(0), getSrc(1), CondARM32::AL);
+    break;
+  case IceType_f64:
+    Asm->vmuld(getDest(), getSrc(0), getSrc(1), CondARM32::AL);
+    break;
+  }
+  assert(!Asm->needsTextFixup());
+}
+
 InstARM32Call::InstARM32Call(Cfg *Func, Variable *Dest, Operand *CallTarget)
     : InstARM32(Func, InstARM32::Call, 1, Dest) {
   HasSideEffects = true;

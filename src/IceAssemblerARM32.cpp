@@ -2101,6 +2101,36 @@ void AssemblerARM32::vdivd(const Operand *OpDd, const Operand *OpDn,
   emitVFPddd(Cond, VdivdOpcode, Dd, Dn, Dm);
 }
 
+void AssemblerARM32::vmuls(const Operand *OpSd, const Operand *OpSn,
+                           const Operand *OpSm, CondARM32::Cond Cond) {
+  // VMUL (floating-point) - ARM section A8.8.351, encoding A2:
+  //   vmul<c>.f32 <Sd>, <Sn>, <Sm>
+  //
+  // cccc11100D10nnnndddd101sN0M0mmmm where cccc=Cond, s=0, ddddD=Rd, nnnnN=Rn,
+  // and mmmmM=Rm.
+  constexpr const char *Vmuls = "vmuls";
+  IValueT Sd = encodeSRegister(OpSd, "Sd", Vmuls);
+  IValueT Sn = encodeSRegister(OpSn, "Sn", Vmuls);
+  IValueT Sm = encodeSRegister(OpSm, "Sm", Vmuls);
+  constexpr IValueT VmulsOpcode = B21;
+  emitVFPsss(Cond, VmulsOpcode, Sd, Sn, Sm);
+}
+
+void AssemblerARM32::vmuld(const Operand *OpDd, const Operand *OpDn,
+                           const Operand *OpDm, CondARM32::Cond Cond) {
+  // VMUL (floating-point) - ARM section A8.8.351, encoding A2:
+  //   vmul<c>.f64 <Dd>, <Dn>, <Dm>
+  //
+  // cccc11100D10nnnndddd101sN0M0mmmm where cccc=Cond, s=1, Ddddd=Rd, Nnnnn=Rn,
+  // and Mmmmm=Rm.
+  constexpr const char *Vmuld = "vmuld";
+  IValueT Dd = encodeDRegister(OpDd, "Dd", Vmuld);
+  IValueT Dn = encodeDRegister(OpDn, "Dn", Vmuld);
+  IValueT Dm = encodeDRegister(OpDm, "Dm", Vmuld);
+  constexpr IValueT VmuldOpcode = B21;
+  emitVFPddd(Cond, VmuldOpcode, Dd, Dn, Dm);
+}
+
 void AssemblerARM32::vsubs(const Operand *OpSd, const Operand *OpSn,
                            const Operand *OpSm, CondARM32::Cond Cond) {
   // VSUB (floating-point) - ARM section A8.8.415, encoding A2:
