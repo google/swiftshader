@@ -390,7 +390,7 @@ EGLBoolean QuerySurface(EGLDisplay dpy, EGLSurface surface, EGLint attribute, EG
 	case EGL_LARGEST_PBUFFER:
 		if(eglSurface->isPBufferSurface())   // For a window or pixmap surface, the contents of *value are not modified.
 		{
-			*value = eglSurface->getLargestPBuffer();	
+			*value = eglSurface->getLargestPBuffer();
 		}
 		break;
 	case EGL_MIPMAP_TEXTURE:
@@ -904,7 +904,7 @@ EGLImageKHR CreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLCl
 				return error(EGL_BAD_ATTRIBUTE, EGL_NO_IMAGE_KHR);
 			}
 
-			return new AndroidNativeImage(nativeBuffer);
+			return success(new AndroidNativeImage(nativeBuffer));
 		}
 	#endif
 
@@ -1028,7 +1028,7 @@ EGLSyncKHR CreateSyncKHR(EGLDisplay dpy, EGLenum type, const EGLint *attrib_list
 		return error(EGL_BAD_MATCH, EGL_NO_SYNC_KHR);
 	}
 
-	return new FenceSync(context);
+	return success(new FenceSync(context));
 }
 
 EGLBoolean DestroySyncKHR(EGLDisplay dpy, EGLSyncKHR sync)
@@ -1045,7 +1045,7 @@ EGLBoolean DestroySyncKHR(EGLDisplay dpy, EGLSyncKHR sync)
 
 	delete eglSync;
 
-	return EGL_TRUE;
+	return success(EGL_TRUE);
 }
 
 EGLint ClientWaitSyncKHR(EGLDisplay dpy, EGLSyncKHR sync, EGLint flags, EGLTimeKHR timeout)
@@ -1068,7 +1068,7 @@ EGLint ClientWaitSyncKHR(EGLDisplay dpy, EGLSyncKHR sync, EGLint flags, EGLTimeK
 		eglSync->wait();
 	}
 
-	return EGL_CONDITION_SATISFIED_KHR;
+	return success(EGL_CONDITION_SATISFIED_KHR);
 }
 
 EGLBoolean GetSyncAttribKHR(EGLDisplay dpy, EGLSyncKHR sync, EGLint attribute, EGLint *value)
@@ -1088,14 +1088,14 @@ EGLBoolean GetSyncAttribKHR(EGLDisplay dpy, EGLSyncKHR sync, EGLint attribute, E
 	{
 	case EGL_SYNC_TYPE_KHR:
 		*value = EGL_SYNC_FENCE_KHR;
-		return EGL_TRUE;
+		return success(EGL_TRUE);
 	case EGL_SYNC_STATUS_KHR:
 		eglSync->wait();   // TODO: Don't block. Just poll based on sw::Query.
 		*value = eglSync->isSignaled() ? EGL_SIGNALED_KHR : EGL_UNSIGNALED_KHR;
-		return EGL_TRUE;
+		return success(EGL_TRUE);
 	case EGL_SYNC_CONDITION_KHR:
 		*value = EGL_SYNC_PRIOR_COMMANDS_COMPLETE_KHR;
-		return EGL_TRUE;
+		return success(EGL_TRUE);
 	default:
 		return error(EGL_BAD_ATTRIBUTE, EGL_FALSE);
 	}
@@ -1132,22 +1132,22 @@ __eglMustCastToProperFunctionPointerType GetProcAddress(const char *procname)
 	{
 		if(strcmp(procname, eglExtensions[ext].name) == 0)
 		{
-			return (__eglMustCastToProperFunctionPointerType)eglExtensions[ext].address;
+			return success((__eglMustCastToProperFunctionPointerType)eglExtensions[ext].address);
 		}
 	}
 
 	if(libGLESv2)
 	{
 		__eglMustCastToProperFunctionPointerType proc = libGLESv2->es2GetProcAddress(procname);
-		if(proc) return proc;
+		if(proc) return success(proc);
 	}
 
 	if(libGLES_CM)
 	{
 		__eglMustCastToProperFunctionPointerType proc =  libGLES_CM->es1GetProcAddress(procname);
-		if(proc) return proc;
+		if(proc) return success(proc);
 	}
 
-	return NULL;
+	return success((__eglMustCastToProperFunctionPointerType)NULL);
 }
 }
