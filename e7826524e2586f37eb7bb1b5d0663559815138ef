@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6a03bb91_4f01254c",
+        "filename": "src/OpenGL/compiler/ParseHelper.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 512,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-01-08T15:11:17Z",
+      "side": 1,
+      "message": "Maybe getArraySize should return a size_t instead.",
+      "range": {
+        "startLine": 512,
+        "startChar": 24,
+        "endLine": 512,
+        "endChar": 36
+      },
+      "revId": "e7826524e2586f37eb7bb1b5d0663559815138ef",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
