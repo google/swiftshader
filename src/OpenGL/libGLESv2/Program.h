@@ -225,6 +225,7 @@ namespace es2
 		bool areMatchingUniformBlocks(const glsl::UniformBlock &block1, const glsl::UniformBlock &block2, const Shader *shader1, const Shader *shader2);
 		bool defineUniform(GLenum shader, GLenum type, GLenum precision, const std::string &_name, unsigned int arraySize, int registerIndex, const Uniform::BlockInfo& blockInfo);
 		bool defineUniformBlock(const Shader *shader, const glsl::UniformBlock &block);
+		bool applyUniform(GLint location, float* data);
 		bool applyUniform1bv(GLint location, GLsizei count, const GLboolean *v);
 		bool applyUniform2bv(GLint location, GLsizei count, const GLboolean *v);
 		bool applyUniform3bv(GLint location, GLsizei count, const GLboolean *v);
