@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6a03bb91_0fe44df5",
+        "filename": "src/LLVM/include/llvm/CodeGen/MachineDominators.h",
+        "patchSetId": 4
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-01-08T13:34:44Z",
+      "side": 1,
+      "message": "Just curious: what\u0027s the warning here?",
+      "range": {
+        "startLine": 87,
+        "startChar": 0,
+        "endLine": 88,
+        "endChar": 17
+      },
+      "revId": "0e046f2b2272bbf9d46314990f7ca0179e66c049",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}

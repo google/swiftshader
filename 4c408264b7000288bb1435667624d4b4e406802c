@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6a03bb91_ef0fb17d",
+        "filename": "src/LLVM/lib/VMCore/AsmWriter.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 2041,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-01-08T13:34:44Z",
+      "side": 0,
+      "message": "Wow, can this happen?",
+      "range": {
+        "startLine": 2041,
+        "startChar": 2,
+        "endLine": 2041,
+        "endChar": 18
+      },
+      "revId": "4c408264b7000288bb1435667624d4b4e406802c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
