@@ -22,6 +22,30 @@
       "revId": "0e046f2b2272bbf9d46314990f7ca0179e66c049",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6a03bb91_6fe741cf",
+        "filename": "src/LLVM/include/llvm/CodeGen/MachineDominators.h",
+        "patchSetId": 4
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-08T17:43:28Z",
+      "side": 1,
+      "message": "Clang doesn\u0027t like having an empty loop body on the same line as the for. It suggests moving it to the next line or add braces to clarify that it\u0027s intentional.\n\nThe thing they\u0027re trying to avoid is code like:\n\nint i;\nfor(i \u003d 0; i \u003c employeeCount; i++);\n{\n    payEmployee[i] \u003d true;\n}\n\nOnly one employee would get paid. It\u0027s an easy mistake to make. Likewise, it\u0027s easy to misread code where you do intend to have an empty loop body but the semicolon is on the same line and there\u0027s code below it that could be mistaken for a loop body.\n\nI copy-pasted this change from a newer version of LLVM.",
+      "parentUuid": "6a03bb91_0fe44df5",
+      "range": {
+        "startLine": 87,
+        "startChar": 0,
+        "endLine": 88,
+        "endChar": 17
+      },
+      "revId": "0e046f2b2272bbf9d46314990f7ca0179e66c049",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }

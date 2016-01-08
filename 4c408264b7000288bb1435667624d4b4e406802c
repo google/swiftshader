@@ -22,6 +22,30 @@
       "revId": "4c408264b7000288bb1435667624d4b4e406802c",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6a03bb91_2ff1498a",
+        "filename": "src/LLVM/lib/VMCore/AsmWriter.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 2041,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-08T17:43:28Z",
+      "side": 0,
+      "message": "Yes and no. Compilers are allowed to assume that \"this\" will never be null and thus this code would have no effect. Some compilers might leave it in and thus you could call methods on null pointers, but that\u0027s really bad practice.\n\nThis code got removed in newer versions of LLVM. I don\u0027t have strict proof that anything wasn\u0027t relying on this behavior and some other null checks are required, but fortunately we don\u0027t actually use the AsmWriter\u0027s text output functionality so I feel very comfortable with this change.",
+      "parentUuid": "6a03bb91_ef0fb17d",
+      "range": {
+        "startLine": 2041,
+        "startChar": 2,
+        "endLine": 2041,
+        "endChar": 18
+      },
+      "revId": "4c408264b7000288bb1435667624d4b4e406802c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
