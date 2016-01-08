@@ -22,6 +22,30 @@
       "revId": "e7826524e2586f37eb7bb1b5d0663559815138ef",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6a03bb91_eff9f171",
+        "filename": "src/OpenGL/compiler/ParseHelper.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 512,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-08T17:52:11Z",
+      "side": 1,
+      "message": "I\u0027ve always considered using a 64-bit value for something that should really not even come close to the limit of a 32-bit value rather wasteful. That said, I should probably research that a bit because converting variables from 32-bit to 64-bit requires sign or zero bit extension operations which could be avoided by just using 64-bit everywhere.\n\nI also think \"int\" reads a lot nicer than \"size_t\", although all the casts that are needed kind of spoil the elegance too.\n\nSo yes, I\u0027ll give using size_t some serious consideration...",
+      "parentUuid": "6a03bb91_4f01254c",
+      "range": {
+        "startLine": 512,
+        "startChar": 24,
+        "endLine": 512,
+        "endChar": 36
+      },
+      "revId": "e7826524e2586f37eb7bb1b5d0663559815138ef",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
