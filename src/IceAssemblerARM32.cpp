@@ -2071,6 +2071,53 @@ void AssemblerARM32::vaddd(const Operand *OpDd, const Operand *OpDn,
   emitVFPddd(Cond, VadddOpcode, Dd, Dn, Dm);
 }
 
+void AssemblerARM32::emitVFPsd(CondARM32::Cond Cond, IValueT Opcode, IValueT Sd,
+                               IValueT Dm) {
+  assert(Sd < RegARM32::getNumSRegs());
+  assert(Dm < RegARM32::getNumDRegs());
+  assert(CondARM32::isDefined(Cond));
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  constexpr IValueT VFPOpcode = B27 | B26 | B25 | B11 | B9;
+  const IValueT Encoding =
+      Opcode | VFPOpcode | (encodeCondition(Cond) << kConditionShift) |
+      (getYInRegXXXXY(Sd) << 22) | (getXXXXInRegXXXXY(Sd) << 12) |
+      (getYInRegYXXXX(Dm) << 5) | getXXXXInRegYXXXX(Dm);
+  emitInst(Encoding);
+}
+
+void AssemblerARM32::vcvtsd(const Operand *OpSd, const Operand *OpDm,
+                            CondARM32::Cond Cond) {
+  constexpr const char *Vcvtsd = "vctsd";
+  IValueT Sd = encodeSRegister(OpSd, "Sd", Vcvtsd);
+  IValueT Dm = encodeDRegister(OpDm, "Dm", Vcvtsd);
+  constexpr IValueT VcvtsdOpcode =
+      B23 | B21 | B20 | B18 | B17 | B16 | B8 | B7 | B6;
+  emitVFPsd(Cond, VcvtsdOpcode, Sd, Dm);
+}
+
+void AssemblerARM32::emitVFPds(CondARM32::Cond Cond, IValueT Opcode, IValueT Dd,
+                               IValueT Sm) {
+  assert(Dd < RegARM32::getNumDRegs());
+  assert(Sm < RegARM32::getNumSRegs());
+  assert(CondARM32::isDefined(Cond));
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  constexpr IValueT VFPOpcode = B27 | B26 | B25 | B11 | B9;
+  const IValueT Encoding =
+      Opcode | VFPOpcode | (encodeCondition(Cond) << kConditionShift) |
+      (getYInRegYXXXX(Dd) << 22) | (getXXXXInRegYXXXX(Dd) << 12) |
+      (getYInRegXXXXY(Sm) << 5) | getXXXXInRegXXXXY(Sm);
+  emitInst(Encoding);
+}
+
+void AssemblerARM32::vcvtds(const Operand *OpDd, const Operand *OpSm,
+                            CondARM32::Cond Cond) {
+  constexpr const char *Vcvtds = "Vctds";
+  IValueT Dd = encodeDRegister(OpDd, "Dd", Vcvtds);
+  IValueT Sm = encodeSRegister(OpSm, "Sm", Vcvtds);
+  constexpr IValueT VcvtdsOpcode = B23 | B21 | B20 | B18 | B17 | B16 | B7 | B6;
+  emitVFPds(Cond, VcvtdsOpcode, Dd, Sm);
+}
+
 void AssemblerARM32::vdivs(const Operand *OpSd, const Operand *OpSn,
                            const Operand *OpSm, CondARM32::Cond Cond) {
   // VDIV (floating-point) - ARM section A8.8.283, encoding A2:

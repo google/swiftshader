@@ -1069,7 +1069,8 @@ void Assembler::vsqrtd(DRegister dd, DRegister dm, Condition cond) {
   EmitVFPddd(cond, B23 | B21 | B20 | B16 | B7 | B6, dd, D0, dm);
 }
 
-
+#if 0
+// Moved to ARM32::AssemblerARM32::emitVFPsd
 void Assembler::EmitVFPsd(Condition cond, int32_t opcode,
                           SRegister sd, DRegister dm) {
   ASSERT(TargetCPUFeatures::vfp_supported());
@@ -1085,7 +1086,7 @@ void Assembler::EmitVFPsd(Condition cond, int32_t opcode,
   Emit(encoding);
 }
 
-
+// Moved to ARM32::AssemblerARM32::emitVFPds
 void Assembler::EmitVFPds(Condition cond, int32_t opcode,
                           DRegister dd, SRegister sm) {
   ASSERT(TargetCPUFeatures::vfp_supported());
@@ -1101,15 +1102,16 @@ void Assembler::EmitVFPds(Condition cond, int32_t opcode,
   Emit(encoding);
 }
 
-
+// Moved to ARM32::AssemblerARM32::vcvtsd().
 void Assembler::vcvtsd(SRegister sd, DRegister dm, Condition cond) {
   EmitVFPsd(cond, B23 | B21 | B20 | B18 | B17 | B16 | B8 | B7 | B6, sd, dm);
 }
 
-
+// Moved to ARM32::AssemblerARM32::vcvtds().
 void Assembler::vcvtds(DRegister dd, SRegister sm, Condition cond) {
   EmitVFPds(cond, B23 | B21 | B20 | B18 | B17 | B16 | B7 | B6, dd, sm);
 }
+#endif
 
 
 void Assembler::vcvtis(SRegister sd, SRegister sm, Condition cond) {

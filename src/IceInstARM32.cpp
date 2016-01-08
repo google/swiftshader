@@ -1882,6 +1882,24 @@ void InstARM32Vcvt::emit(const Cfg *Func) const {
   getSrc(0)->emit(Func);
 }
 
+void InstARM32Vcvt::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  switch (Variant) {
+  case S2d:
+    Asm->vcvtds(getDest(), getSrc(0), getPredicate());
+    break;
+  case D2s:
+    Asm->vcvtsd(getDest(), getSrc(0), getPredicate());
+    break;
+  default:
+    // TODO(kschimpf): Fill in other variants.
+    Asm->setNeedsTextFixup();
+    break;
+  }
+  if (Asm->needsTextFixup())
+    emitUsingTextFixup(Func);
+}
+
 void InstARM32Vcvt::dump(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;

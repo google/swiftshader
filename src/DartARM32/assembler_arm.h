@@ -714,8 +714,12 @@ class Assembler : public ValueObject {
   void vsqrts(SRegister sd, SRegister sm, Condition cond = AL);
   void vsqrtd(DRegister dd, DRegister dm, Condition cond = AL);
 
+#if 0
+  // Moved to ARM32::AssemblerARM32::vcvtsd
   void vcvtsd(SRegister sd, DRegister dm, Condition cond = AL);
+  // Moved to ARM32::AssemblerARM32:vcvtds
   void vcvtds(DRegister dd, SRegister sm, Condition cond = AL);
+#endif
   void vcvtis(SRegister sd, SRegister sm, Condition cond = AL);
   void vcvtid(SRegister sd, DRegister dm, Condition cond = AL);
   void vcvtsi(SRegister sd, SRegister sm, Condition cond = AL);
@@ -1280,17 +1284,19 @@ class Assembler : public ValueObject {
                   DRegister dd,
                   DRegister dn,
                   DRegister dm);
-#endif
 
+  // Moved to ARM32::AssemblerARM32::emitVFPsd
   void EmitVFPsd(Condition cond,
                  int32_t opcode,
                  SRegister sd,
                  DRegister dm);
 
+  // Moved to ARM32::AssemblerARM32::emitVFPds
   void EmitVFPds(Condition cond,
                  int32_t opcode,
                  DRegister dd,
                  SRegister sm);
+#endif
 
   void EmitSIMDqqq(int32_t opcode, OperandSize sz,
                    QRegister qd, QRegister qn, QRegister qm);

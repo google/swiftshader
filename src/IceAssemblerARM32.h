@@ -324,6 +324,10 @@ public:
   void vadds(const Operand *OpSd, const Operand *OpSn, const Operand *OpSm,
              CondARM32::Cond Cond);
 
+  void vcvtsd(const Operand *OpSd, const Operand *OpDm, CondARM32::Cond Cond);
+
+  void vcvtds(const Operand *OpDd, const Operand *OpSm, CondARM32::Cond Cond);
+
   void vdivd(const Operand *OpDd, const Operand *OpDn, const Operand *OpDm,
              CondARM32::Cond Cond);
 
@@ -447,6 +451,14 @@ private:
   // iiiiiiii=NumConsecRegs, and xxxxx0xxxxxx0000xxxx00000000=Opcode.
   void emitVStackOp(CondARM32::Cond Cond, IValueT Opcode,
                     const Variable *OpBaseReg, SizeT NumConsecRegs);
+
+  // Pattern cccc111xxDxxxxxxdddd101xxxMxmmmm where cccc=Cond, ddddD=Sd,
+  // Mmmmm=Dm, and xx0xxxxxxdddd000xxx0x0000=Opcode.
+  void emitVFPsd(CondARM32::Cond Cond, IValueT Opcode, IValueT Sd, IValueT Dm);
+
+  // Pattern cccc111xxDxxxxxxdddd101xxxMxmmmm where cccc=Cond, Ddddd=Dd,
+  // mmmmM=Sm, and xx0xxxxxxdddd000xxx0x0000=Opcode.
+  void emitVFPds(CondARM32::Cond Cond, IValueT Opcode, IValueT Dd, IValueT Sm);
 
   // Pattern cccc011100x1dddd1111mmmm0001nnn where cccc=Cond,
   // x=Opcode, dddd=Rd, nnnn=Rn, mmmm=Rm.

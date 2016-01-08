@@ -1233,6 +1233,7 @@ public:
         InstARM32Vcvt(Func, Dest, Src, Variant, Predicate);
   }
   void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Vcvt); }
 
