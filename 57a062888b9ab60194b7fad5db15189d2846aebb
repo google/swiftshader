@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6a03bb91_6fdd0134",
+        "filename": "src/Renderer/Context.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-01-08T13:31:39Z",
+      "side": 1,
+      "message": "Nit: I think it would be clearer to use | rather than + since both sides of the + operation can\u0027t affect the same bits.",
+      "range": {
+        "startLine": 67,
+        "startChar": 0,
+        "endLine": 90,
+        "endChar": 68
+      },
+      "revId": "57a062888b9ab60194b7fad5db15189d2846aebb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
