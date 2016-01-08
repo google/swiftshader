@@ -320,7 +320,7 @@ namespace es2
 		default: UNREACHABLE(type);
 		}
 
-		if(logicalTextureUnit >= 0 && logicalTextureUnit < MAX_COMBINED_TEXTURE_IMAGE_UNITS)
+		if(logicalTextureUnit < MAX_COMBINED_TEXTURE_IMAGE_UNITS)
 		{
 			return logicalTextureUnit;
 		}

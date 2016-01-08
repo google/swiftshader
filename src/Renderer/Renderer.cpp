@@ -1388,6 +1388,7 @@ namespace sw
 			break;
 		default:
 			ASSERT(false);
+			return;
 		}
 
 		task->vertexCount = triangleCount * 3;

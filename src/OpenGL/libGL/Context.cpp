@@ -1508,7 +1508,7 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
         break;
     case GL_TEXTURE_BINDING_2D:
         {
-            if(mState.activeSampler < 0 || mState.activeSampler > MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
+            if(mState.activeSampler > MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
             {
                 error(GL_INVALID_OPERATION);
                 return false;
@@ -1519,7 +1519,7 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
         break;
     case GL_TEXTURE_BINDING_CUBE_MAP:
         {
-            if(mState.activeSampler < 0 || mState.activeSampler > MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
+            if(mState.activeSampler > MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
             {
                 error(GL_INVALID_OPERATION);
                 return false;

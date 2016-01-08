@@ -2105,7 +2105,7 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
         break;
     case GL_TEXTURE_BINDING_2D:
         {
-            if(mState.activeSampler < 0 || mState.activeSampler > MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
+            if(mState.activeSampler > MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
             {
                 error(GL_INVALID_OPERATION);
                 return false;
@@ -2116,7 +2116,7 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
         break;
     case GL_TEXTURE_BINDING_CUBE_MAP:
         {
-            if(mState.activeSampler < 0 || mState.activeSampler > MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
+            if(mState.activeSampler > MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
             {
                 error(GL_INVALID_OPERATION);
                 return false;
@@ -2127,7 +2127,7 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
         break;
     case GL_TEXTURE_BINDING_EXTERNAL_OES:
         {
-            if(mState.activeSampler < 0 || mState.activeSampler > MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
+            if(mState.activeSampler > MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
             {
                 error(GL_INVALID_OPERATION);
                 return false;
@@ -2139,7 +2139,7 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 	case GL_TEXTURE_BINDING_3D_OES:
 	case GL_TEXTURE_BINDING_2D_ARRAY: // GLES 3.0
 	    {
-			if(mState.activeSampler < 0 || mState.activeSampler > MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
+			if(mState.activeSampler > MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
 			{
 				error(GL_INVALID_OPERATION);
 				return false;
