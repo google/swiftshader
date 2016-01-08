@@ -22,6 +22,30 @@
       "revId": "57a062888b9ab60194b7fad5db15189d2846aebb",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6a03bb91_4f7ec5bd",
+        "filename": "src/Renderer/Context.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-08T16:45:59Z",
+      "side": 1,
+      "message": "If any bits overlap then we\u0027re screwed either way in identifying the correct operation.\n\nUsing OR to signify I want both these bits AND those bits has always seemed a bit iffy to me. Using PLUS doesn\u0027t suffer from potentially misreading it. That said, I\u0027d have to agree that it might trigger some people\u0027s sense that there might be something wrong here do to being more accustomed to seeing OR being used and wanting to check if the PLUS doesn\u0027t suffer from the overlap issue (despite OR being equally susceptible to that).\n\nThe one situation where it makes a vital difference is when composing things redundantly. For example INDEXEDPOINTS32 \u003d INDEXEDPOINTSLIST32 + INDEXED32 would be wrong.\n\nLong story short, I\u0027ll make the change. :-)",
+      "parentUuid": "6a03bb91_6fdd0134",
+      "range": {
+        "startLine": 67,
+        "startChar": 0,
+        "endLine": 90,
+        "endChar": 68
+      },
+      "revId": "57a062888b9ab60194b7fad5db15189d2846aebb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
