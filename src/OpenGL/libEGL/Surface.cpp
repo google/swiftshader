@@ -56,7 +56,7 @@ Surface::Surface(const Display *display, const Config *config) : display(display
 
 Surface::~Surface()
 {
-    deleteResources();
+    Surface::deleteResources();
 }
 
 bool Surface::initialize()
@@ -230,6 +230,11 @@ WindowSurface::WindowSurface(Display *display, const Config *config, EGLNativeWi
     frameBuffer = nullptr;
 }
 
+WindowSurface::~WindowSurface()
+{
+	WindowSurface::deleteResources();
+}
+
 bool WindowSurface::initialize()
 {
     ASSERT(!frameBuffer && !backBuffer && !depthStencil);
@@ -343,6 +348,11 @@ PBufferSurface::PBufferSurface(Display *display, const Config *config, EGLint wi
 	this->largestPBuffer = largestPBuffer;
 }
 
+PBufferSurface::~PBufferSurface()
+{
+	PBufferSurface::deleteResources();
+}
+
 void PBufferSurface::swap()
 {
 	// No effect
@@ -353,6 +363,10 @@ EGLNativeWindowType PBufferSurface::getWindowHandle() const
 	UNREACHABLE(-1);   // Should not be called. Only WindowSurface has a window handle.
 
     return 0;
+}
+
+void PBufferSurface::deleteResources()
+{
 }
 
 }

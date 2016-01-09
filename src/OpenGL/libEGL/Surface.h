@@ -33,7 +33,7 @@ class Surface : public gl::Object
 public:
 	virtual bool initialize();
     virtual void swap() = 0;
-    
+
     virtual egl::Image *getRenderTarget();
     virtual egl::Image *getDepthStencil();
 
@@ -73,7 +73,7 @@ protected:
 	Texture *texture;
 
 	bool reset(int backbufferWidth, int backbufferHeight);
-   
+
 	const Config *const config;    // EGL config surface was created with
 	EGLint height;                 // Height of surface
 	EGLint width;                  // Width of surface
@@ -97,6 +97,7 @@ class WindowSurface : public Surface
 {
 public:
 	WindowSurface(Display *display, const egl::Config *config, EGLNativeWindowType window);
+	~WindowSurface() override;
 
 	bool initialize() override;
 
@@ -118,11 +119,15 @@ class PBufferSurface : public Surface
 {
 public:
 	PBufferSurface(Display *display, const egl::Config *config, EGLint width, EGLint height, EGLenum textureFormat, EGLenum textureTarget, EGLBoolean largestPBuffer);
+	~PBufferSurface() override;
 
 	bool isPBufferSurface() const override { return true; }
 	void swap() override;
 
 	EGLNativeWindowType getWindowHandle() const override;
+
+private:
+	void deleteResources() override;
 };
 }
 

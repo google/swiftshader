@@ -30,6 +30,7 @@ namespace sw
 		struct Registers
 		{
 			Registers();
+			virtual ~Registers() {};
 
 			Pointer<Byte> constants;
 

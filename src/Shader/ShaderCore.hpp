@@ -75,7 +75,7 @@ namespace sw
 
 		Float4 &operator[](int i);
 		Vector4f &operator=(const Vector4f &rhs);
-		
+
 		Float4 x;
 		Float4 y;
 		Float4 z;
@@ -200,10 +200,20 @@ namespace sw
 
 		~RegisterArray()
 		{
-			delete[] x;
-			delete[] y;
-			delete[] z;
-			delete[] w;
+			if(dynamic)
+			{
+				delete x;
+				delete y;
+				delete z;
+				delete w;
+			}
+			else
+			{
+				delete[] x;
+				delete[] y;
+				delete[] z;
+				delete[] w;
+			}
 		}
 
 		Register operator[](int i)
