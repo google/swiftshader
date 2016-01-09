@@ -68,6 +68,7 @@
 			<Add directory="../../../../../Builds/Include" />
 		</Compiler>
 		<Linker>
+			<Add option="-Wl,--rpath -Wl,./" />
 			<Add library="X11" />
 			<Add library="EGL" />
 			<Add library="GLESv2" />
