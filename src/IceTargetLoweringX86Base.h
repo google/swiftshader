@@ -60,7 +60,6 @@ template <typename TraitsType> class TargetX86Base : public TargetLowering {
 
 public:
   using Traits = TraitsType;
-  using BoolFolding = BoolFolding<Traits>;
   using ConcreteTarget = typename Traits::ConcreteTarget;
   using InstructionSetEnum = typename Traits::InstructionSet;
 
@@ -836,7 +835,7 @@ private:
   typename std::enable_if<!T::Is64Bit, void>::type
   lowerIcmp64(const InstIcmp *Icmp, const Inst *Consumer);
 
-  BoolFolding FoldingInfo;
+  BoolFolding<Traits> FoldingInfo;
 
   static FixupKind PcRelFixup;
   static FixupKind AbsFixup;

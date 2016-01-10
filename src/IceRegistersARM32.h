@@ -117,18 +117,18 @@ public:
 
   static constexpr struct TableType {
     const char *Name;
-    int32_t Encoding : 10;
-    int32_t CCArg : 6;
-    int32_t Scratch : 1;
-    int32_t Preserved : 1;
-    int32_t StackPtr : 1;
-    int32_t FramePtr : 1;
-    int32_t IsGPR : 1;
-    int32_t IsInt : 1;
-    int32_t IsI64Pair : 1;
-    int32_t IsFP32 : 1;
-    int32_t IsFP64 : 1;
-    int32_t IsVec128 : 1;
+    unsigned Encoding : 10;
+    unsigned CCArg : 6;
+    unsigned Scratch : 1;
+    unsigned Preserved : 1;
+    unsigned StackPtr : 1;
+    unsigned FramePtr : 1;
+    unsigned IsGPR : 1;
+    unsigned IsInt : 1;
+    unsigned IsI64Pair : 1;
+    unsigned IsFP32 : 1;
+    unsigned IsFP64 : 1;
+    unsigned IsVec128 : 1;
 #define NUM_ALIASES_BITS 3
     SizeT NumAliases : (NUM_ALIASES_BITS + 1);
     uint16_t Aliases[1 << NUM_ALIASES_BITS];

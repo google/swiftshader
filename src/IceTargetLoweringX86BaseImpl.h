@@ -1974,19 +1974,19 @@ void TargetX86Base<TraitsType>::lowerBr(const InstBr *Br) {
   // Handle folding opportunities.
   if (const Inst *Producer = FoldingInfo.getProducerFor(Cond)) {
     assert(Producer->isDeleted());
-    switch (BoolFolding::getProducerKind(Producer)) {
+    switch (BoolFolding<Traits>::getProducerKind(Producer)) {
     default:
       break;
-    case BoolFolding::PK_Icmp32:
-    case BoolFolding::PK_Icmp64: {
+    case BoolFolding<Traits>::PK_Icmp32:
+    case BoolFolding<Traits>::PK_Icmp64: {
       lowerIcmpAndConsumer(llvm::dyn_cast<InstIcmp>(Producer), Br);
       return;
     }
-    case BoolFolding::PK_Fcmp: {
+    case BoolFolding<Traits>::PK_Fcmp: {
       lowerFcmpAndConsumer(llvm::dyn_cast<InstFcmp>(Producer), Br);
       return;
     }
-    case BoolFolding::PK_Arith: {
+    case BoolFolding<Traits>::PK_Arith: {
       lowerArithAndConsumer(llvm::dyn_cast<InstArithmetic>(Producer), Br);
       return;
     }
@@ -4810,15 +4810,15 @@ void TargetX86Base<TraitsType>::lowerSelect(const InstSelect *Select) {
   // Handle folding opportunities.
   if (const Inst *Producer = FoldingInfo.getProducerFor(Condition)) {
     assert(Producer->isDeleted());
-    switch (BoolFolding::getProducerKind(Producer)) {
+    switch (BoolFolding<Traits>::getProducerKind(Producer)) {
     default:
       break;
-    case BoolFolding::PK_Icmp32:
-    case BoolFolding::PK_Icmp64: {
+    case BoolFolding<Traits>::PK_Icmp32:
+    case BoolFolding<Traits>::PK_Icmp64: {
       lowerIcmpAndConsumer(llvm::dyn_cast<InstIcmp>(Producer), Select);
       return;
     }
-    case BoolFolding::PK_Fcmp: {
+    case BoolFolding<Traits>::PK_Fcmp: {
       lowerFcmpAndConsumer(llvm::dyn_cast<InstFcmp>(Producer), Select);
       return;
     }

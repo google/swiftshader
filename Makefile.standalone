@@ -94,17 +94,6 @@ else
   OBJDIR := $(OBJDIR)+Asserts
 endif
 
-# Use g++ to compile, to check for errors/warnings that clang++ might have
-# missed.  It's unlikely to link, unless LLVM was also built with g++, so the
-# compile_only target should be used.
-ifdef GPLUSPLUS
-  CXX = CCACHE_CPP2=yes $(CCACHE) g++
-  STDLIB_FLAGS =
-    LLVM_EXTRA_WARNINGS="-Wno-unknown-pragmas -Wno-unused-parameter \
-    -Wno-comment -Wno-enum-compare -Wno-strict-aliasing"
-  OBJDIR := $(OBJDIR)+Gplusplus
-endif
-
 ifdef UBSAN
   OBJDIR := $(OBJDIR)+UBSan
   CXX_EXTRA += -fsanitize=undefined -fno-sanitize=vptr \
@@ -191,6 +180,20 @@ SB_TRANSLATE := $(PNACL_BIN_PATH)/pnacl-translate
 
 # Extra warnings that LLVM's build system adds in addition to -Wall.
 LLVM_EXTRA_WARNINGS := -Wcovered-switch-default
+
+# Use g++ to compile, to check for errors/warnings that clang++ might have
+# missed.  It's unlikely to link, unless LLVM was also built with g++, so the
+# compile_only target should be used.  Note: This ifdef section is deliberately
+# placed here instead of with the other ifdef sections, so that its redefinition
+# of CXX/STDLIB_FLAGS/LLVM_EXTRA_WARNINGS follows their normal definitions.
+ifdef GPLUSPLUS
+  CXX := CCACHE_CPP2=yes $(CCACHE) g++
+  STDLIB_FLAGS :=
+  LLVM_EXTRA_WARNINGS := -Wno-unknown-pragmas -Wno-unused-parameter \
+                         -Wno-comment -Wno-enum-compare -Wno-strict-aliasing \
+                         -Wno-return-type
+  OBJDIR := $(OBJDIR)+Gplusplus
+endif
 
 BASE_CXXFLAGS := -std=gnu++11 -Wall -Wextra -Werror -fno-rtti \
   -fno-exceptions $(OPTLEVEL) $(ASSERTIONS) -g -pedantic \

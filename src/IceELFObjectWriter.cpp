@@ -330,7 +330,7 @@ void ELFObjectWriter::writeDataOfType(SectionType ST,
   case ROData: {
     const IceString SectionName =
         MangleSectionName(IsPIC ? ".data.rel.ro" : ".rodata", SectionSuffix);
-    const Elf64_Xword ShFlags = SHF_ALLOC | (IsPIC ? SHF_WRITE : 0);
+    const Elf64_Xword ShFlags = IsPIC ? (SHF_ALLOC | SHF_WRITE) : SHF_ALLOC;
     Section = createSection<ELFDataSection>(SectionName, SHT_PROGBITS, ShFlags,
                                             ShAddralign, ShEntsize);
     Section->setFileOffset(alignFileOffset(ShAddralign));

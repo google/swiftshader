@@ -449,17 +449,17 @@ public:
 
     static constexpr struct {
       uint16_t Val;
-      int Is64 : 1;
-      int Is32 : 1;
-      int Is16 : 1;
-      int Is8 : 1;
-      int IsXmm : 1;
-      int Is64To8 : 1;
-      int Is32To8 : 1;
-      int Is16To8 : 1;
-      int IsTrunc8Rcvr : 1;
-      int IsAhRcvr : 1;
-      int Scratch : 1;
+      unsigned Is64 : 1;
+      unsigned Is32 : 1;
+      unsigned Is16 : 1;
+      unsigned Is8 : 1;
+      unsigned IsXmm : 1;
+      unsigned Is64To8 : 1;
+      unsigned Is32To8 : 1;
+      unsigned Is16To8 : 1;
+      unsigned IsTrunc8Rcvr : 1;
+      unsigned IsAhRcvr : 1;
+      unsigned Scratch : 1;
 #define NUM_ALIASES_BITS 2
       SizeT NumAliases : (NUM_ALIASES_BITS + 1);
       uint16_t Aliases[1 << NUM_ALIASES_BITS];
