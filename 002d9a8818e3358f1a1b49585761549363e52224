@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c7ebc261_21c42eb7",
+        "filename": "src/OpenGL/libEGL/Surface.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 370,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-11T15:31:28Z",
+      "side": 1,
+      "message": "This isn\u0027t currently necessary since pbuffers can\u0027t be resized and thus deleteResources() doesn\u0027t get called, except in the PBufferSurface destructor but the Surface destructor also gets called due to inheritance.\n\nHowever, there\u0027s a high likelihood that I\u0027ll make PBufferSurface own its own backbuffer (WindowSurface would gets its backbuffer from the framebuffer). So it\u0027s prudent to not assume the destructor will always take care of this.",
+      "range": {
+        "startLine": 370,
+        "startChar": 1,
+        "endLine": 370,
+        "endChar": 28
+      },
+      "revId": "002d9a8818e3358f1a1b49585761549363e52224",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
