@@ -16,8 +16,11 @@ def FindBaseNaCl():
     """Find the base native_client/ directory."""
     nacl = 'native_client'
     path_list = os.getcwd().split(os.sep)
+    """Use the executable path if cwd does not contain 'native_client' """
+    path_list = path_list if nacl in path_list else sys.argv[0].split(os.sep)
     if nacl not in path_list:
-        return None
+        print "Script must be executed from within 'native_client' directory"
+        exit(1)
     last_index = len(path_list) - path_list[::-1].index(nacl)
     return os.sep.join(path_list[:last_index])
 
