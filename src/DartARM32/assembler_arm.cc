@@ -1153,26 +1153,27 @@ void Assembler::vcvtdu(DRegister dd, SRegister sm, Condition cond) {
   EmitVFPds(cond, B23 | B21 | B20 | B19 | B8 | B6, dd, sm);
 }
 
-
+#if 0
+// Moved to ARM23::AssemblerARM32::vcmps().
 void Assembler::vcmps(SRegister sd, SRegister sm, Condition cond) {
   EmitVFPsss(cond, B23 | B21 | B20 | B18 | B6, sd, S0, sm);
 }
 
-
+// Moved to ARM23::AssemblerARM32::vcmpd().
 void Assembler::vcmpd(DRegister dd, DRegister dm, Condition cond) {
   EmitVFPddd(cond, B23 | B21 | B20 | B18 | B6, dd, D0, dm);
 }
 
-
+// Moved to ARM23::AssemblerARM32::vcmpsz().
 void Assembler::vcmpsz(SRegister sd, Condition cond) {
   EmitVFPsss(cond, B23 | B21 | B20 | B18 | B16 | B6, sd, S0, S0);
 }
 
-
+// Moved to ARM23::AssemblerARM32::vcmpdz().
 void Assembler::vcmpdz(DRegister dd, Condition cond) {
   EmitVFPddd(cond, B23 | B21 | B20 | B18 | B16 | B6, dd, D0, D0);
 }
-
+#endif
 
 void Assembler::vmrs(Register rd, Condition cond) {
   ASSERT(TargetCPUFeatures::vfp_supported());

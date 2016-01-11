@@ -1010,7 +1010,7 @@ void AssemblerARM32::emitVFPddd(CondARM32::Cond Cond, IValueT Opcode,
   const IValueT Encoding =
       Opcode | VFPOpcode | (encodeCondition(Cond) << kConditionShift) |
       (getYInRegYXXXX(Dd) << 22) | (getXXXXInRegYXXXX(Dn) << 16) |
-      (getXXXXInRegYXXXX(Dn) << 12) | (getYInRegYXXXX(Dn) << 7) |
+      (getXXXXInRegYXXXX(Dd) << 12) | (getYInRegYXXXX(Dn) << 7) |
       (getYInRegYXXXX(Dm) << 5) | getXXXXInRegYXXXX(Dm);
   emitInst(Encoding);
 }
@@ -2069,6 +2069,44 @@ void AssemblerARM32::vaddd(const Operand *OpDd, const Operand *OpDn,
   IValueT Dm = encodeDRegister(OpDm, "Dm", Vaddd);
   constexpr IValueT VadddOpcode = B21 | B20;
   emitVFPddd(Cond, VadddOpcode, Dd, Dn, Dm);
+}
+
+void AssemblerARM32::vcmpd(const Operand *OpDd, const Operand *OpDm,
+                           CondARM32::Cond Cond) {
+  constexpr const char *Vcmpd = "vcmpd";
+  IValueT Dd = encodeDRegister(OpDd, "Dd", Vcmpd);
+  IValueT Dm = encodeDRegister(OpDm, "Dm", Vcmpd);
+  constexpr IValueT VcmpdOpcode = B23 | B21 | B20 | B18 | B6;
+  constexpr IValueT Dn = 0;
+  emitVFPddd(Cond, VcmpdOpcode, Dd, Dn, Dm);
+}
+
+void AssemblerARM32::vcmpdz(const Operand *OpDd, CondARM32::Cond Cond) {
+  constexpr const char *Vcmpdz = "vcmpdz";
+  IValueT Dd = encodeDRegister(OpDd, "Dd", Vcmpdz);
+  constexpr IValueT VcmpdzOpcode = B23 | B21 | B20 | B18 | B16 | B6;
+  constexpr IValueT Dn = 0;
+  constexpr IValueT Dm = 0;
+  emitVFPddd(Cond, VcmpdzOpcode, Dd, Dn, Dm);
+}
+
+void AssemblerARM32::vcmps(const Operand *OpSd, const Operand *OpSm,
+                           CondARM32::Cond Cond) {
+  constexpr const char *Vcmps = "vcmps";
+  IValueT Sd = encodeSRegister(OpSd, "Sd", Vcmps);
+  IValueT Sm = encodeSRegister(OpSm, "Sm", Vcmps);
+  constexpr IValueT VcmpsOpcode = B23 | B21 | B20 | B18 | B6;
+  constexpr IValueT Sn = 0;
+  emitVFPsss(Cond, VcmpsOpcode, Sd, Sn, Sm);
+}
+
+void AssemblerARM32::vcmpsz(const Operand *OpSd, CondARM32::Cond Cond) {
+  constexpr const char *Vcmpsz = "vcmps";
+  IValueT Sd = encodeSRegister(OpSd, "Sd", Vcmpsz);
+  constexpr IValueT VcmpszOpcode = B23 | B21 | B20 | B18 | B16 | B6;
+  constexpr IValueT Sn = 0;
+  constexpr IValueT Sm = 0;
+  emitVFPsss(Cond, VcmpszOpcode, Sd, Sn, Sm);
 }
 
 void AssemblerARM32::emitVFPsd(CondARM32::Cond Cond, IValueT Opcode, IValueT Sd,

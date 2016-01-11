@@ -1362,6 +1362,7 @@ public:
         InstARM32Vcmp(Func, Src0, Src1, Predicate);
   }
   void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Vcmp); }
 

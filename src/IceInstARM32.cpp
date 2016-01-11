@@ -1864,6 +1864,39 @@ void InstARM32Vcmp::emit(const Cfg *Func) const {
   getSrc(1)->emit(Func);
 }
 
+void InstARM32Vcmp::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 2);
+  const Operand *Src0 = getSrc(0);
+  const Type Ty = Src0->getType();
+  const Operand *Src1 = getSrc(1);
+  const CondARM32::Cond Cond = getPredicate();
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  if (llvm::isa<OperandARM32FlexFpZero>(Src1)) {
+    switch (Ty) {
+    case IceType_f32:
+      Asm->vcmpsz(Src0, Cond);
+      break;
+    case IceType_f64:
+      Asm->vcmpdz(Src0, Cond);
+      break;
+    default:
+      llvm::report_fatal_error("Vcvt on non floating value");
+    }
+  } else {
+    switch (Ty) {
+    case IceType_f32:
+      Asm->vcmps(Src0, Src1, Cond);
+      break;
+    case IceType_f64:
+      Asm->vcmpd(Src0, Src1, Cond);
+      break;
+    default:
+      llvm::report_fatal_error("Vcvt on non floating value");
+    }
+  }
+  assert(!Asm->needsTextFixup());
+}
+
 void InstARM32Vcmp::dump(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;

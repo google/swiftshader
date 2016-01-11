@@ -318,6 +318,16 @@ public:
   void vadds(const Operand *OpSd, const Operand *OpSn, const Operand *OpSm,
              CondARM32::Cond Cond);
 
+  void vcmpd(const Operand *OpDd, const Operand *OpDm, CondARM32::Cond cond);
+
+  // Second argument of compare is zero (+0.0).
+  void vcmpdz(const Operand *OpDd, CondARM32::Cond cond);
+
+  void vcmps(const Operand *OpSd, const Operand *OpSm, CondARM32::Cond cond);
+
+  // Second argument of compare is zero (+0.0).
+  void vcmpsz(const Operand *OpSd, CondARM32::Cond cond);
+
   void vcvtsd(const Operand *OpSd, const Operand *OpDm, CondARM32::Cond Cond);
 
   void vcvtds(const Operand *OpDd, const Operand *OpSm, CondARM32::Cond Cond);

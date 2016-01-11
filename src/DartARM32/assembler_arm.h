@@ -729,10 +729,17 @@ class Assembler : public ValueObject {
   void vcvtsu(SRegister sd, SRegister sm, Condition cond = AL);
   void vcvtdu(DRegister dd, SRegister sm, Condition cond = AL);
 
+#if 0
+  // Moved to ARM23::AssemblerARM32::vcmps().
   void vcmps(SRegister sd, SRegister sm, Condition cond = AL);
+  // Moved to ARM23::AssemblerARM32::vcmpd().
   void vcmpd(DRegister dd, DRegister dm, Condition cond = AL);
+  // Moved to ARM23::AssemblerARM32::vcmpsz().
   void vcmpsz(SRegister sd, Condition cond = AL);
+  // Moved to ARM23::AssemblerARM32::vcmpdz().
   void vcmpdz(DRegister dd, Condition cond = AL);
+#endif
+
   void vmrs(Register rd, Condition cond = AL);
   void vmstat(Condition cond = AL);
 
