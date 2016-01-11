@@ -4,6 +4,8 @@
 #ifndef SUBZERO_SRC_ICEREGISTERSARM32_DEF
 #define SUBZERO_SRC_ICEREGISTERSARM32_DEF
 
+
+//define X(AsmStr, CCArg, IsScratch, IsPreserved, IsStackPtr, IsFramePtr, IsGPR, IsInt, IsI64Pair, IsFP32, IsFP64, IsVec128, Aliases)
 #define REGARM32_GPR_TABLE \
   X(Reg_r0, 0, "r0", 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, REGLIST2(RegARM32, r0, r0r1)) \
   X(Reg_r1, 1, "r1", 2, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, REGLIST2(RegARM32, r1, r0r1)) \
@@ -22,6 +24,8 @@
   X(Reg_lr, 14, "lr", 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, REGLIST1(RegARM32, lr)) \
   X(Reg_pc, 15, "pc", 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, REGLIST1(RegARM32, pc)) 
 
+
+//define X(AsmStr, CCArg, IsScratch, IsPreserved, IsStackPtr, IsFramePtr, IsGPR, IsInt, IsI64Pair, IsFP32, IsFP64, IsVec128, Aliases)
 #define REGARM32_I64PAIR_TABLE \
   X(Reg_r0r1, 0, "r0, r1", 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, REGLIST3(RegARM32, r0r1, r0, r1)) \
   X(Reg_r2r3, 2, "r2, r3", 2, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, REGLIST3(RegARM32, r2r3, r2, r3)) \
@@ -30,6 +34,8 @@
   X(Reg_r8r9, 8, "r8, r9", 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, REGLIST3(RegARM32, r8r9, r8, r9)) \
   X(Reg_r10fp, 10, "r10, fp", 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, REGLIST3(RegARM32, r10fp, r10, fp)) 
 
+
+//define X(AsmStr, CCArg, IsScratch, IsPreserved, IsStackPtr, IsFramePtr, IsGPR, IsInt, IsI64Pair, IsFP32, IsFP64, IsVec128, Aliases)
 #define REGARM32_FP32_TABLE \
   X(Reg_s0, 0, "s0", 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, REGLIST3(RegARM32, s0, d0, q0)) \
   X(Reg_s1, 1, "s1", 2, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, REGLIST3(RegARM32, s1, d0, q0)) \
@@ -64,6 +70,8 @@
   X(Reg_s30, 30, "s30", 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, REGLIST3(RegARM32, s30, d15, q7)) \
   X(Reg_s31, 31, "s31", 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, REGLIST3(RegARM32, s31, d15, q7)) 
 
+
+//define X(AsmStr, CCArg, IsScratch, IsPreserved, IsStackPtr, IsFramePtr, IsGPR, IsInt, IsI64Pair, IsFP32, IsFP64, IsVec128, Aliases)
 #define REGARM32_FP64_TABLE \
   X(Reg_d31, 31, "d31", 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST2(RegARM32, d31, q15)) \
   X(Reg_d30, 30, "d30", 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST2(RegARM32, d30, q15)) \
@@ -98,6 +106,8 @@
   X(Reg_d1, 1, "d1", 2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST4(RegARM32, d1, q0, s2, s3)) \
   X(Reg_d0, 0, "d0", 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST4(RegARM32, d0, q0, s0, s1)) 
 
+
+//define X(AsmStr, CCArg, IsScratch, IsPreserved, IsStackPtr, IsFramePtr, IsGPR, IsInt, IsI64Pair, IsFP32, IsFP64, IsVec128, Aliases)
 #define REGARM32_VEC128_TABLE \
   X(Reg_q15, 15, "q15", 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, REGLIST3(RegARM32, q15, d30, d31)) \
   X(Reg_q14, 14, "q14", 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, REGLIST3(RegARM32, q14, d28, d29)) \
