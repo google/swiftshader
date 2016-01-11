@@ -705,8 +705,129 @@ void validatePushOrPopRegisterListOrDie(const VarList &RegList) {
 }
 } // end of anonymous namespace
 
+void InstARM32RegisterStackOp::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  emitUsingForm(Func, Emit_Text);
+}
+
+void InstARM32RegisterStackOp::emitIAS(const Cfg *Func) const {
+  emitUsingForm(Func, Emit_Binary);
+  assert(!Func->getAssembler<ARM32::AssemblerARM32>()->needsTextFixup());
+}
+
+void InstARM32RegisterStackOp::dump(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrDump();
+  Str << getDumpOpcode() << " ";
+  SizeT NumRegs = getNumStackRegs();
+  for (SizeT I = 0; I < NumRegs; ++I) {
+    if (I > 0)
+      Str << ", ";
+    getStackReg(I)->dump(Func);
+  }
+}
+
+void InstARM32RegisterStackOp::emitGPRsAsText(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  Str << "\t" << getGPROpcode() << "\t{";
+  getStackReg(0)->emit(Func);
+  const SizeT NumRegs = getNumStackRegs();
+  for (SizeT i = 1; i < NumRegs; ++i) {
+    Str << ", ";
+    getStackReg(i)->emit(Func);
+  }
+  Str << "}";
+}
+
+void InstARM32RegisterStackOp::emitSRegsAsText(const Cfg *Func,
+                                               const Variable *BaseReg,
+                                               SizeT RegCount) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  Str << "\t" << getSRegOpcode() << "\t{";
+  bool IsFirst = true;
+  int32_t Base = BaseReg->getRegNum();
+  for (SizeT i = 0; i < RegCount; ++i) {
+    if (IsFirst)
+      IsFirst = false;
+    else
+      Str << ", ";
+    Str << RegARM32::getSRegName(Base + i);
+  }
+  Str << "}";
+}
+
+namespace {
+
+bool isAssignedConsecutiveRegisters(const Variable *Before,
+                                    const Variable *After) {
+  assert(Before->hasReg());
+  assert(After->hasReg());
+  return Before->getRegNum() + 1 == After->getRegNum();
+}
+
+} // end of anonymous namespace
+
+void InstARM32RegisterStackOp::emitUsingForm(const Cfg *Func,
+                                             const EmitForm Form) const {
+  SizeT NumRegs = getNumStackRegs();
+  assert(NumRegs);
+
+  const auto *Reg = llvm::cast<Variable>(getStackReg(0));
+  if (isScalarIntegerType(Reg->getType())) {
+    // Pop GPR registers.
+    SizeT IntegerCount = 0;
+    ARM32::IValueT GPRegisters = 0;
+    const Variable *LastDest = nullptr;
+    for (SizeT i = 0; i < NumRegs; ++i) {
+      const Variable *Var = getStackReg(i);
+      assert(Var->hasReg() && "stack op only applies to registers");
+      int32_t Reg = RegARM32::getEncodedGPR(Var->getRegNum());
+      LastDest = Var;
+      GPRegisters |= (1 << Reg);
+      ++IntegerCount;
+    }
+    if (IntegerCount == 1) {
+      emitSingleGPR(Func, Form, LastDest);
+    } else {
+      emitMultipleGPRs(Func, Form, GPRegisters);
+    }
+  } else {
+    // Pop vector/floating point registers.
+    const Variable *BaseReg = nullptr;
+    SizeT RegCount = 0;
+    for (SizeT i = 0; i < NumRegs; ++i) {
+      const Variable *NextReg = getStackReg(i);
+      if (BaseReg == nullptr) {
+        BaseReg = NextReg;
+        RegCount = 1;
+      } else if (RegCount < VpushVpopMaxConsecRegs &&
+                 isAssignedConsecutiveRegisters(Reg, NextReg)) {
+        ++RegCount;
+      } else {
+        emitSRegs(Func, Form, BaseReg, RegCount);
+        if (Form == Emit_Text && BuildDefs::dump()) {
+          startNextInst(Func);
+          Func->getContext()->getStrEmit() << "\n";
+        }
+        BaseReg = NextReg;
+        RegCount = 1;
+      }
+      Reg = NextReg;
+    }
+    if (RegCount) {
+      emitSRegs(Func, Form, BaseReg, RegCount);
+    }
+  }
+}
+
 InstARM32Pop::InstARM32Pop(Cfg *Func, const VarList &Dests)
-    : InstARM32(Func, InstARM32::Pop, 0, nullptr), Dests(Dests) {
+    : InstARM32RegisterStackOp(Func, InstARM32::Pop, 0, nullptr), Dests(Dests) {
   // Track modifications to Dests separately via FakeDefs. Also, a pop
   // instruction affects the stack pointer and so it should not be allowed to
   // be automatically dead-code eliminated. This is automatic since we leave
@@ -715,7 +836,7 @@ InstARM32Pop::InstARM32Pop(Cfg *Func, const VarList &Dests)
 }
 
 InstARM32Push::InstARM32Push(Cfg *Func, const VarList &Srcs)
-    : InstARM32(Func, InstARM32::Push, Srcs.size(), nullptr) {
+    : InstARM32RegisterStackOp(Func, InstARM32::Push, Srcs.size(), nullptr) {
   validatePushOrPopRegisterListOrDie(Srcs);
   for (Variable *Source : Srcs) {
     addSource(Source);
@@ -1390,278 +1511,98 @@ template <> void InstARM32Uxt::emitIAS(const Cfg *Func) const {
     emitUsingTextFixup(Func);
 }
 
-namespace {
+const char *InstARM32Pop::getGPROpcode() const { return "pop"; }
 
-bool isAssignedConsecutiveRegisters(const Variable *Before,
-                                    const Variable *After) {
-  assert(Before->hasReg());
-  assert(After->hasReg());
-  return Before->getRegNum() + 1 == After->getRegNum();
-}
+const char *InstARM32Pop::getSRegOpcode() const { return "vpop"; }
 
-} // end of anonymous namespace
+Variable *InstARM32Pop::getStackReg(SizeT Index) const { return Dests[Index]; }
 
-void InstARM32Pop::emit(const Cfg *Func) const {
-  if (!BuildDefs::dump())
+SizeT InstARM32Pop::getNumStackRegs() const { return Dests.size(); }
+
+void InstARM32Pop::emitSingleGPR(const Cfg *Func, const EmitForm Form,
+                                 const Variable *Reg) const {
+  switch (Form) {
+  case Emit_Text:
+    emitGPRsAsText(Func);
     return;
-
-  const SizeT DestSize = Dests.size();
-  if (DestSize == 0) {
-    assert(false && "Empty pop list");
+  case Emit_Binary:
+    Func->getAssembler<ARM32::AssemblerARM32>()->pop(Reg, CondARM32::AL);
     return;
-  }
-
-  Ostream &Str = Func->getContext()->getStrEmit();
-
-  Variable *Reg = Dests[0];
-  if (isScalarIntegerType(Reg->getType())) {
-    // GPR push.
-    Str << "\t"
-           "pop"
-           "\t{";
-    Reg->emit(Func);
-    for (SizeT i = 1; i < DestSize; ++i) {
-      Str << ", ";
-      Reg = Dests[i];
-      Reg->emit(Func);
-    }
-    Str << "}";
-    return;
-  }
-
-  // VFP "s" reg push.
-  SizeT End = DestSize - 1;
-  SizeT Start = DestSize - 1;
-  Reg = Dests[DestSize - 1];
-  Str << "\t"
-         "vpop"
-         "\t{";
-  for (SizeT i = 2; i <= DestSize; ++i) {
-    Variable *PreviousReg = Dests[DestSize - i];
-    if (!isAssignedConsecutiveRegisters(PreviousReg, Reg)) {
-      Dests[Start]->emit(Func);
-      for (SizeT j = Start + 1; j <= End; ++j) {
-        Str << ", ";
-        Dests[j]->emit(Func);
-      }
-      startNextInst(Func);
-      Str << "}\n\t"
-             "vpop"
-             "\t{";
-      End = DestSize - i;
-    }
-    Reg = PreviousReg;
-    Start = DestSize - i;
-  }
-  Dests[Start]->emit(Func);
-  for (SizeT j = Start + 1; j <= End; ++j) {
-    Str << ", ";
-    Dests[j]->emit(Func);
-  }
-  Str << "}";
-}
-
-void InstARM32Pop::emitIAS(const Cfg *Func) const {
-  // Pop can't be emitted if there are no registers to load. This should never
-  // happen, but if it does, we don't need to bring Subzero down -- we just skip
-  // emitting the pop instruction (and maybe emit a nop?) The assert() is here
-  // so that we can detect this error during development.
-  const SizeT DestSize = Dests.size();
-  if (DestSize == 0) {
-    assert(false && "Empty pop list");
-    return;
-  }
-
-  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
-  const auto *Reg = llvm::cast<Variable>(Dests[0]);
-  if (isScalarIntegerType(Reg->getType())) {
-    // Pop GPR registers.
-    SizeT IntegerCount = 0;
-    ARM32::IValueT GPRegisters = 0;
-    const Variable *LastDest = nullptr;
-    for (const Variable *Var : Dests) {
-      assert(Var->hasReg() && "pop only applies to registers");
-      int32_t Reg = RegARM32::getEncodedGPReg(Var->getRegNum());
-      LastDest = Var;
-      GPRegisters |= (1 << Reg);
-      ++IntegerCount;
-    }
-    switch (IntegerCount) {
-    case 0:
-      return;
-    case 1:
-      // Note: Can only apply pop register if single register is not sp.
-      assert((RegARM32::Encoded_Reg_sp != LastDest->getRegNum()) &&
-             "Effects of pop register SP is undefined!");
-      Asm->pop(LastDest, CondARM32::AL);
-      break;
-    default:
-      Asm->popList(GPRegisters, CondARM32::AL);
-      break;
-    }
-  } else {
-    // Pop vector/floating point registers.
-    const Variable *BaseReg = nullptr;
-    SizeT RegCount = 0;
-    for (const Variable *NextReg : Dests) {
-      if (BaseReg == nullptr) {
-        BaseReg = NextReg;
-        RegCount = 1;
-      } else if (RegCount < VpushVpopMaxConsecRegs &&
-                 isAssignedConsecutiveRegisters(Reg, NextReg)) {
-        ++RegCount;
-      } else {
-        Asm->vpop(BaseReg, RegCount, CondARM32::AL);
-        BaseReg = NextReg;
-        RegCount = 1;
-      }
-      Reg = NextReg;
-    }
-    if (RegCount)
-      Asm->vpop(BaseReg, RegCount, CondARM32::AL);
-  }
-  if (Asm->needsTextFixup())
-    emitUsingTextFixup(Func);
-}
-
-void InstARM32Pop::dump(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-  Ostream &Str = Func->getContext()->getStrDump();
-  Str << "pop"
-      << " ";
-  for (SizeT I = 0; I < Dests.size(); ++I) {
-    if (I > 0)
-      Str << ", ";
-    Dests[I]->dump(Func);
   }
 }
 
-void InstARM32Push::emit(const Cfg *Func) const {
-  if (!BuildDefs::dump())
+void InstARM32Pop::emitMultipleGPRs(const Cfg *Func, const EmitForm Form,
+                                    IValueT Registers) const {
+  switch (Form) {
+  case Emit_Text:
+    emitGPRsAsText(Func);
     return;
-
-  // Push can't be emitted if there are no registers to save. This should never
-  // happen, but if it does, we don't need to bring Subzero down -- we just skip
-  // emitting the push instruction (and maybe emit a nop?) The assert() is here
-  // so that we can detect this error during development.
-  const SizeT SrcSize = getSrcSize();
-  if (SrcSize == 0) {
-    assert(false && "Empty push list");
+  case Emit_Binary:
+    Func->getAssembler<ARM32::AssemblerARM32>()->popList(Registers,
+                                                         CondARM32::AL);
     return;
   }
-
-  Ostream &Str = Func->getContext()->getStrEmit();
-
-  const auto *Reg = llvm::cast<Variable>(getSrc(0));
-  if (isScalarIntegerType(Reg->getType())) {
-    // GPR push.
-    Str << "\t"
-           "push"
-           "\t{";
-    Reg->emit(Func);
-    for (SizeT i = 1; i < SrcSize; ++i) {
-      Str << ", ";
-      getSrc(i)->emit(Func);
-    }
-    Str << "}";
-    return;
-  }
-
-  // VFP "s" reg push.
-  Str << "\t"
-         "vpush"
-         "\t{";
-  Reg->emit(Func);
-  SizeT RegCount = 1;
-  for (SizeT i = 1; i < SrcSize; ++i) {
-    const auto *NextReg = llvm::cast<Variable>(getSrc(i));
-    if (RegCount < VpushVpopMaxConsecRegs &&
-        isAssignedConsecutiveRegisters(Reg, NextReg)) {
-      ++RegCount;
-      Str << ", ";
-    } else {
-      startNextInst(Func);
-      RegCount = 1;
-      Str << "}\n\t"
-             "vpush"
-             "\t{";
-    }
-    Reg = NextReg;
-    Reg->emit(Func);
-  }
-  Str << "}";
 }
 
-void InstARM32Push::emitIAS(const Cfg *Func) const {
-  // Push can't be emitted if there are no registers to save. This should never
-  // happen, but if it does, we don't need to bring Subzero down -- we just skip
-  // emitting the push instruction (and maybe emit a nop?) The assert() is here
-  // so that we can detect this error during development.
-  const SizeT SrcSize = getSrcSize();
-  if (SrcSize == 0) {
-    assert(false && "Empty push list");
+void InstARM32Pop::emitSRegs(const Cfg *Func, const EmitForm Form,
+                             const Variable *BaseReg, SizeT RegCount) const {
+  switch (Form) {
+  case Emit_Text:
+    emitSRegsAsText(Func, BaseReg, RegCount);
+    return;
+  case Emit_Binary:
+    Func->getAssembler<ARM32::AssemblerARM32>()->vpop(BaseReg, RegCount,
+                                                      CondARM32::AL);
     return;
   }
-
-  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
-  const auto *Reg = llvm::cast<Variable>(getSrc(0));
-  if (isScalarIntegerType(Reg->getType())) {
-    // Push GPR registers.
-    SizeT IntegerCount = 0;
-    ARM32::IValueT GPRegisters = 0;
-    const Variable *LastSrc = nullptr;
-    for (SizeT Index = 0; Index < getSrcSize(); ++Index) {
-      const auto *Var = llvm::cast<Variable>(getSrc(Index));
-      int32_t Reg = RegARM32::getEncodedGPReg(Var->getRegNum());
-      assert(Reg != RegARM32::Encoded_Not_GPR);
-      LastSrc = Var;
-      GPRegisters |= (1 << Reg);
-      ++IntegerCount;
-    }
-    switch (IntegerCount) {
-    case 0:
-      return;
-    case 1: {
-      // Note: Can only apply push register if single register is not sp.
-      assert((RegARM32::Encoded_Reg_sp != LastSrc->getRegNum()) &&
-             "Effects of push register SP is undefined!");
-      Asm->push(LastSrc, CondARM32::AL);
-      break;
-    }
-    default:
-      Asm->pushList(GPRegisters, CondARM32::AL);
-      break;
-    }
-  } else {
-    // Push vector/Floating point registers.
-    const Variable *BaseReg = Reg;
-    SizeT RegCount = 1;
-    for (SizeT i = 1; i < SrcSize; ++i) {
-      const auto *NextReg = llvm::cast<Variable>(getSrc(i));
-      if (RegCount < VpushVpopMaxConsecRegs &&
-          isAssignedConsecutiveRegisters(Reg, NextReg)) {
-        ++RegCount;
-      } else {
-        Asm->vpush(BaseReg, RegCount, CondARM32::AL);
-        BaseReg = NextReg;
-        RegCount = 1;
-      }
-      Reg = NextReg;
-    }
-    Asm->vpush(BaseReg, RegCount, CondARM32::AL);
-  }
-  if (Asm->needsTextFixup())
-    emitUsingTextFixup(Func);
 }
 
-void InstARM32Push::dump(const Cfg *Func) const {
-  if (!BuildDefs::dump())
+const char *InstARM32Push::getGPROpcode() const { return "push"; }
+
+const char *InstARM32Push::getSRegOpcode() const { return "vpush"; }
+
+Variable *InstARM32Push::getStackReg(SizeT Index) const {
+  return llvm::cast<Variable>(getSrc(Index));
+}
+
+SizeT InstARM32Push::getNumStackRegs() const { return getSrcSize(); }
+
+void InstARM32Push::emitSingleGPR(const Cfg *Func, const EmitForm Form,
+                                  const Variable *Reg) const {
+  switch (Form) {
+  case Emit_Text:
+    emitGPRsAsText(Func);
     return;
-  Ostream &Str = Func->getContext()->getStrDump();
-  Str << "push"
-      << " ";
-  dumpSources(Func);
+  case Emit_Binary:
+    Func->getAssembler<ARM32::AssemblerARM32>()->push(Reg, CondARM32::AL);
+    return;
+  }
+}
+
+void InstARM32Push::emitMultipleGPRs(const Cfg *Func, const EmitForm Form,
+                                     IValueT Registers) const {
+  switch (Form) {
+  case Emit_Text:
+    emitGPRsAsText(Func);
+    return;
+  case Emit_Binary:
+    Func->getAssembler<ARM32::AssemblerARM32>()->pushList(Registers,
+                                                          CondARM32::AL);
+    return;
+  }
+}
+
+void InstARM32Push::emitSRegs(const Cfg *Func, const EmitForm Form,
+                              const Variable *BaseReg, SizeT RegCount) const {
+  switch (Form) {
+  case Emit_Text:
+    emitSRegsAsText(Func, BaseReg, RegCount);
+    return;
+  case Emit_Binary:
+    Func->getAssembler<ARM32::AssemblerARM32>()->vpush(BaseReg, RegCount,
+                                                       CondARM32::AL);
+    return;
+  }
 }
 
 void InstARM32Ret::emit(const Cfg *Func) const {

@@ -192,7 +192,7 @@ IValueT getEncodedGPRegNum(const Variable *Var) {
   assert(Var->hasReg());
   int32_t Reg = Var->getRegNum();
   return llvm::isa<Variable64On32>(Var) ? RegARM32::getI64PairFirstGPRNum(Reg)
-                                        : RegARM32::getEncodedGPReg(Reg);
+                                        : RegARM32::getEncodedGPR(Reg);
 }
 
 IValueT getEncodedSRegNum(const Variable *Var) {
@@ -1728,7 +1728,7 @@ void AssemblerARM32::orr(const Operand *OpRd, const Operand *OpRn,
              OrrName);
 }
 
-void AssemblerARM32::pop(const Operand *OpRt, CondARM32::Cond Cond) {
+void AssemblerARM32::pop(const Variable *OpRt, CondARM32::Cond Cond) {
   // POP - ARM section A8.8.132, encoding A2:
   //   pop<c> {Rt}
   //

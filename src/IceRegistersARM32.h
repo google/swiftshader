@@ -157,7 +157,7 @@ public:
     return Table[RegNum].IsGPR;
   }
 
-  static constexpr inline SizeT getNumGPRegs() {
+  static constexpr SizeT getNumGPRegs() {
     return 0
 #define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
           isGPR, isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)       \
@@ -167,9 +167,29 @@ public:
         ;
   }
 
-  static inline GPRRegister getEncodedGPReg(int32_t RegNum) {
+  static inline GPRRegister getEncodedGPR(int32_t RegNum) {
     assert(isGPRegister(RegNum));
     return GPRRegister(Table[RegNum].Encoding);
+  }
+
+  static constexpr SizeT getNumGPRs() {
+    return 0
+#define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
+          isGPR, isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)       \
+  +(isGPR)
+        REGARM32_TABLE
+#undef X
+        ;
+  }
+
+  static inline bool isGPR(SizeT RegNum) {
+    assertRegisterDefined(RegNum);
+    return Table[RegNum].IsGPR;
+  }
+
+  static inline IceString getGPRName(SizeT RegNum) {
+    assert(isGPR(RegNum));
+    return Table[RegNum].Name;
   }
 
   static inline GPRRegister getI64PairFirstGPRNum(int32_t RegNum) {
@@ -192,7 +212,7 @@ public:
     return Table[RegNum].IsFP32;
   }
 
-  static constexpr inline SizeT getNumSRegs() {
+  static constexpr SizeT getNumSRegs() {
     return 0
 #define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
           isGPR, isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)       \
@@ -200,6 +220,11 @@ public:
         REGARM32_TABLE
 #undef X
         ;
+  }
+
+  static inline IceString getSRegName(SizeT RegNum) {
+    assert(isEncodedSReg(RegNum));
+    return Table[RegNum].Name;
   }
 
   static inline SRegister getEncodedSReg(int32_t RegNum) {

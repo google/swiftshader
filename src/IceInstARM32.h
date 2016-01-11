@@ -27,6 +27,12 @@
 namespace Ice {
 namespace ARM32 {
 
+/// Encoding of an ARM 32-bit instruction.
+using IValueT = uint32_t;
+
+/// An Offset value (+/-) used in an ARM 32-bit instruction.
+using IOffsetT = int32_t;
+
 class TargetARM32;
 
 /// OperandARM32 extends the Operand hierarchy. Its subclasses are
@@ -364,6 +370,9 @@ class InstARM32 : public InstTarget {
   InstARM32 &operator=(const InstARM32 &) = delete;
 
 public:
+  // Defines form that assembly instruction should be synthesized.
+  enum EmitForm { Emit_Text, Emit_Binary };
+
   enum InstKindARM32 {
     k__Start = Inst::Target,
     Adc,
@@ -1056,9 +1065,41 @@ private:
   InstARM32Call(Cfg *Func, Variable *Dest, Operand *CallTarget);
 };
 
+class InstARM32RegisterStackOp : public InstARM32 {
+  InstARM32RegisterStackOp() = delete;
+  InstARM32RegisterStackOp(const InstARM32RegisterStackOp &) = delete;
+  InstARM32RegisterStackOp &
+  operator=(const InstARM32RegisterStackOp &) = delete;
+
+public:
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
+
+protected:
+  InstARM32RegisterStackOp(Cfg *Func, InstKindARM32 Kind, SizeT Maxsrcs,
+                           Variable *Dest)
+      : InstARM32(Func, Kind, Maxsrcs, Dest) {}
+  void emitUsingForm(const Cfg *Func, const EmitForm Form) const;
+  void emitGPRsAsText(const Cfg *Func) const;
+  void emitSRegsAsText(const Cfg *Func, const Variable *BaseReg,
+                       SizeT Regcount) const;
+  virtual const char *getDumpOpcode() const { return getGPROpcode(); }
+  virtual const char *getGPROpcode() const = 0;
+  virtual const char *getSRegOpcode() const = 0;
+  virtual Variable *getStackReg(SizeT Index) const = 0;
+  virtual SizeT getNumStackRegs() const = 0;
+  virtual void emitSingleGPR(const Cfg *Func, const EmitForm Form,
+                             const Variable *Reg) const = 0;
+  virtual void emitMultipleGPRs(const Cfg *Func, const EmitForm Form,
+                                IValueT Registers) const = 0;
+  virtual void emitSRegs(const Cfg *Func, const EmitForm Form,
+                         const Variable *BaseReg, SizeT RegCount) const = 0;
+};
+
 /// Pops a list of registers. It may be a list of GPRs, or a list of VFP "s"
 /// regs, but not both. In any case, the list must be sorted.
-class InstARM32Pop : public InstARM32 {
+class InstARM32Pop : public InstARM32RegisterStackOp {
   InstARM32Pop() = delete;
   InstARM32Pop(const InstARM32Pop &) = delete;
   InstARM32Pop &operator=(const InstARM32Pop &) = delete;
@@ -1067,20 +1108,27 @@ public:
   static InstARM32Pop *create(Cfg *Func, const VarList &Dests) {
     return new (Func->allocate<InstARM32Pop>()) InstARM32Pop(Func, Dests);
   }
-  void emit(const Cfg *Func) const override;
-  void emitIAS(const Cfg *Func) const override;
-  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Pop); }
 
 private:
   InstARM32Pop(Cfg *Func, const VarList &Dests);
+  virtual const char *getGPROpcode() const final;
+  virtual const char *getSRegOpcode() const final;
+  Variable *getStackReg(SizeT Index) const final;
+  SizeT getNumStackRegs() const final;
+  void emitSingleGPR(const Cfg *Func, const EmitForm Form,
+                     const Variable *Reg) const final;
+  void emitMultipleGPRs(const Cfg *Func, const EmitForm Form,
+                        IValueT Registers) const final;
+  void emitSRegs(const Cfg *Func, const EmitForm Form, const Variable *BaseReg,
+                 SizeT RegCount) const final;
 
   VarList Dests;
 };
 
 /// Pushes a list of registers. Just like Pop (see above), the list may be of
 /// GPRs, or VFP "s" registers, but not both.
-class InstARM32Push : public InstARM32 {
+class InstARM32Push : public InstARM32RegisterStackOp {
   InstARM32Push() = delete;
   InstARM32Push(const InstARM32Push &) = delete;
   InstARM32Push &operator=(const InstARM32Push &) = delete;
@@ -1089,13 +1137,20 @@ public:
   static InstARM32Push *create(Cfg *Func, const VarList &Srcs) {
     return new (Func->allocate<InstARM32Push>()) InstARM32Push(Func, Srcs);
   }
-  void emit(const Cfg *Func) const override;
-  void emitIAS(const Cfg *Func) const override;
-  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Push); }
 
 private:
   InstARM32Push(Cfg *Func, const VarList &Srcs);
+  const char *getGPROpcode() const final;
+  const char *getSRegOpcode() const final;
+  Variable *getStackReg(SizeT Index) const final;
+  SizeT getNumStackRegs() const final;
+  void emitSingleGPR(const Cfg *Func, const EmitForm Form,
+                     const Variable *Reg) const final;
+  void emitMultipleGPRs(const Cfg *Func, const EmitForm Form,
+                        IValueT Registers) const final;
+  void emitSRegs(const Cfg *Func, const EmitForm Form, const Variable *BaseReg,
+                 SizeT RegCount) const final;
 };
 
 /// Ret pseudo-instruction. This is actually a "bx" instruction with an "lr"

@@ -38,12 +38,6 @@
 namespace Ice {
 namespace ARM32 {
 
-/// Encoding of an ARM 32-bit instruction.
-using IValueT = uint32_t;
-
-/// An Offset value (+/-) used in an ARM 32-bit instruction.
-using IOffsetT = int32_t;
-
 /// Handles encoding of bottom/top 16 bits of an address using movw/movt.
 class MoveRelocatableFixup final : public AssemblerFixup {
   MoveRelocatableFixup &operator=(const MoveRelocatableFixup &) = delete;
@@ -255,7 +249,7 @@ public:
   void orr(const Operand *OpRd, const Operand *OpRn, const Operand *OpSrc1,
            bool SetFlags, CondARM32::Cond Cond);
 
-  void pop(const Operand *OpRt, CondARM32::Cond Cond);
+  void pop(const Variable *OpRt, CondARM32::Cond Cond);
 
   // Note: Registers is a bitset, where bit n corresponds to register Rn.
   void popList(const IValueT Registers, CondARM32::Cond Cond);
