@@ -367,6 +367,7 @@ EGLNativeWindowType PBufferSurface::getWindowHandle() const
 
 void PBufferSurface::deleteResources()
 {
+	Surface::deleteResources();
 }
 
 }

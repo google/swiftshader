@@ -3300,6 +3300,8 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 	sw::SliceRect sliceRect(rect);
 	sw::SliceRect dstSliceRect(dstRect);
 	device->blit(renderTarget, sliceRect, &externalSurface, dstSliceRect, false);
+
+	renderTarget->release();
 }
 
 void Context::clear(GLbitfield mask)
@@ -3358,6 +3360,8 @@ void Context::clearColorBuffer(GLint drawbuffer, void *value, sw::Format format)
 		{
 			device->clear(value, format, image, sliceRect, rgbaMask);
 		}
+
+		image->release();
 	}
 }
 
@@ -3385,6 +3389,8 @@ void Context::clearDepthBuffer(GLint drawbuffer, const GLfloat *value)
 
 		float depth = clamp01(value[0]);
 		image->clearDepthBuffer(depth, x0, y0, width, height);
+
+		image->release();
 	}
 }
 
@@ -3397,6 +3403,8 @@ void Context::clearStencilBuffer(GLint drawbuffer, const GLint *value)
 
 		unsigned char stencil = value[0] < 0 ? 0 : static_cast<unsigned char>(value[0] & 0x000000FF);
 		image->clearStencilBuffer(stencil, static_cast<unsigned char>(mState.stencilWritemask), x0, y0, width, height);
+
+		image->release();
 	}
 }
 
@@ -3416,6 +3424,8 @@ void Context::clearDepthStencilBuffer(GLint drawbuffer, GLfloat depth, GLint ste
 		{
 			image->clearDepthBuffer(clamp01(depth), x0, y0, width, height);
 		}
+
+		image->release();
 	}
 }
 
