@@ -2221,9 +2221,9 @@ template class InstARM32ThreeAddrGPR<InstARM32::Udiv>;
 template class InstARM32ThreeAddrFP<InstARM32::Vadd>;
 template class InstARM32ThreeAddrFP<InstARM32::Vdiv>;
 template class InstARM32ThreeAddrFP<InstARM32::Veor>;
+template class InstARM32FourAddrFP<InstARM32::Vmla>;
+template class InstARM32FourAddrFP<InstARM32::Vmls>;
 template class InstARM32ThreeAddrFP<InstARM32::Vmul>;
-template class InstARM32ThreeAddrFP<InstARM32::Vmla>;
-template class InstARM32ThreeAddrFP<InstARM32::Vmls>;
 template class InstARM32ThreeAddrFP<InstARM32::Vsub>;
 
 template class InstARM32LoadBase<InstARM32::Ldr>;
