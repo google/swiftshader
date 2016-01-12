@@ -2725,29 +2725,7 @@ namespace glsl
 		TIntermSymbol *varSymbol = variable->getAsSymbolNode();
 		TInterfaceBlock *varBlock = variable->getType().getAsInterfaceBlock();
 
-		if(varSymbol)
-		{
-			for(unsigned int i = 0; i < list.size(); i++)
-			{
-				if(list[i])
-				{
-					TIntermSymbol *listSymbol = list[i]->getAsSymbolNode();
-
-					if(listSymbol)
-					{
-						if(listSymbol->getId() == varSymbol->getId())
-						{
-							ASSERT(listSymbol->getSymbol() == varSymbol->getSymbol());
-							ASSERT(listSymbol->getType() == varSymbol->getType());
-							ASSERT(listSymbol->getQualifier() == varSymbol->getQualifier());
-
-							return i;
-						}
-					}
-				}
-			}
-		}
-		else if(varBlock)
+		if(varBlock)
 		{
 			for(unsigned int i = 0; i < list.size(); i++)
 			{
@@ -2763,6 +2741,28 @@ namespace glsl
 							ASSERT(listBlock->fields() == varBlock->fields());
 							ASSERT(listBlock->blockStorage() == varBlock->blockStorage());
 							ASSERT(listBlock->matrixPacking() == varBlock->matrixPacking());
+
+							return i;
+						}
+					}
+				}
+			}
+		}
+		else if(varSymbol)
+		{
+			for(unsigned int i = 0; i < list.size(); i++)
+			{
+				if(list[i])
+				{
+					TIntermSymbol *listSymbol = list[i]->getAsSymbolNode();
+
+					if(listSymbol)
+					{
+						if(listSymbol->getId() == varSymbol->getId())
+						{
+							ASSERT(listSymbol->getSymbol() == varSymbol->getSymbol());
+							ASSERT(listSymbol->getType() == varSymbol->getType());
+							ASSERT(listSymbol->getQualifier() == varSymbol->getQualifier());
 
 							return i;
 						}
