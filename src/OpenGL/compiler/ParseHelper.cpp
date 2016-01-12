@@ -2339,7 +2339,7 @@ TIntermTyped *TParseContext::addIndexExpression(TIntermTyped *baseExpression, co
 		}
 		else if(baseType.isInterfaceBlock())
 		{
-			TType copyOfType(baseType.getInterfaceBlock(), baseType.getQualifier(), baseType.getLayoutQualifier(), 0);
+			TType copyOfType(baseType.getInterfaceBlock(), EvqTemporary, baseType.getLayoutQualifier(), 0);
 			indexedExpression->setType(copyOfType);
 		}
 		else
