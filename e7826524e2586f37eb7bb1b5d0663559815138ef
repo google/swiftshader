@@ -46,6 +46,30 @@
       "revId": "e7826524e2586f37eb7bb1b5d0663559815138ef",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a73a4ef4_c02bfe50",
+        "filename": "src/OpenGL/compiler/ParseHelper.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 512,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-12T16:21:58Z",
+      "side": 1,
+      "message": "I started changing some ints to size_t, but it quickly led to a chain reaction of changes everywhere. I\u0027m not entirely comfortable making such a big change at once just to get rid of some warnings. size_t is unsigned, so if we currently use negative values anywhere we could introduce a bug if not careful.\n\nAlso, I found out that ::size_t is only defined in cstddef.h, a C compatibility header. The C++ way is to use std::size_t, but that\u0027s 11 characters instead of 3, for very common variables. It starts looking ridiculous really fast when using std::size_t to iterate over the elements of a 4x4 matrix.\n\nI still think there are some appropriate places to be using size_t, but I think those changes should be done in small follow-up patches. This one is just meant to get rid of the warnings by explicitly doing the operations that were already implicitly taking place.",
+      "parentUuid": "6a03bb91_eff9f171",
+      "range": {
+        "startLine": 512,
+        "startChar": 24,
+        "endLine": 512,
+        "endChar": 36
+      },
+      "revId": "e7826524e2586f37eb7bb1b5d0663559815138ef",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
