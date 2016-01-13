@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a73a4ef4_6385dcc3",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2973,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-13T15:31:45Z",
+      "side": 1,
+      "message": "Several of these files appear to have some alignment issues.",
+      "range": {
+        "startLine": 2972,
+        "startChar": 3,
+        "endLine": 2973,
+        "endChar": 45
+      },
+      "revId": "26b2d5fbb478a7da53d924dd87fdb713c707e71d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
