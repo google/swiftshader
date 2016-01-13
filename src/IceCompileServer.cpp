@@ -127,6 +127,30 @@ void reportFatalErrorThenExitSuccess(void *UserData, const std::string &Reason,
   exit(0);
 }
 
+struct {
+  const char *FlagName;
+  bool FlagValue;
+} ConditionalBuildAttributes[] = {
+    {"dump", BuildDefs::dump()},
+    {"llvm_cl", BuildDefs::llvmCl()},
+    {"llvm_ir", BuildDefs::llvmIr()},
+    {"llvm_ir_as_input", BuildDefs::llvmIrAsInput()},
+    {"minimal_build", BuildDefs::minimal()},
+    {"browser_mode", BuildDefs::browser()}};
+
+/// Dumps values of build attributes to Stream if Stream is non-null.
+void dumpBuildAttributes(Ostream &Str) {
+// List the supported targets.
+#define SUBZERO_TARGET(TARGET) Str << "target_" #TARGET << "\n";
+#include "llvm/Config/SZTargets.def"
+  const char *Prefix[2] = {"no", "allow"};
+  for (size_t i = 0; i < llvm::array_lengthof(ConditionalBuildAttributes);
+       ++i) {
+    const auto &A = ConditionalBuildAttributes[i];
+    Str << Prefix[A.FlagValue] << "_" << A.FlagName << "\n";
+  }
+}
+
 } // end of anonymous namespace
 
 void CLCompileServer::run() {
@@ -196,6 +220,11 @@ void CLCompileServer::run() {
                            llvm::SourceMgr::DK_Error, StrError);
     Err.print(ExtraFlags.getAppName().c_str(), *Ls);
     return transferErrorCode(getReturnValue(ExtraFlags, Ice::EC_Bitcode));
+  }
+
+  if (ExtraFlags.getGenerateBuildAtts()) {
+    dumpBuildAttributes(*Os.get());
+    return transferErrorCode(getReturnValue(ExtraFlags, Ice::EC_None));
   }
 
   Ctx.reset(

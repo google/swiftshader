@@ -50,29 +50,6 @@ namespace Ice {
 
 namespace {
 
-struct {
-  const char *FlagName;
-  bool FlagValue;
-} ConditionalBuildAttributes[] = {
-    {"dump", BuildDefs::dump()},
-    {"llvm_cl", BuildDefs::llvmCl()},
-    {"llvm_ir", BuildDefs::llvmIr()},
-    {"llvm_ir_as_input", BuildDefs::llvmIrAsInput()},
-    {"minimal_build", BuildDefs::minimal()},
-    {"browser_mode", BuildDefs::browser()}};
-
-/// Dumps values of build attributes to Stream if Stream is non-null.
-void dumpBuildAttributes(Ostream &Str) {
-// List the supported targets.
-#define SUBZERO_TARGET(TARGET) Str << "target_" #TARGET << "\n";
-#include "llvm/Config/SZTargets.def"
-  const char *Prefix[2] = {"no", "allow"};
-  for (size_t i = 0; i < llvm::array_lengthof(ConditionalBuildAttributes);
-       ++i) {
-    const auto &A = ConditionalBuildAttributes[i];
-    Str << Prefix[A.FlagValue] << "_" << A.FlagName << "\n";
-  }
-}
 bool llvmIRInput(const IceString &Filename) {
   return BuildDefs::llvmIrAsInput() &&
          std::regex_match(Filename, std::regex(".*\\.ll"));
@@ -82,11 +59,6 @@ bool llvmIRInput(const IceString &Filename) {
 
 void Compiler::run(const Ice::ClFlagsExtra &ExtraFlags, GlobalContext &Ctx,
                    std::unique_ptr<llvm::DataStreamer> &&InputStream) {
-  if (ExtraFlags.getGenerateBuildAtts()) {
-    dumpBuildAttributes(Ctx.getStrDump());
-    Ctx.getErrorStatus()->assign(EC_None);
-    return;
-  }
   // The Minimal build (specifically, when dump()/emit() are not implemented)
   // allows only --filetype=obj. Check here to avoid cryptic error messages
   // downstream.
@@ -106,7 +78,8 @@ void Compiler::run(const Ice::ClFlagsExtra &ExtraFlags, GlobalContext &Ctx,
 
   std::unique_ptr<Translator> Translator;
   const IceString &IRFilename = ExtraFlags.getIRFilename();
-  bool BuildOnRead = ExtraFlags.getBuildOnRead() && !llvmIRInput(IRFilename);
+  const bool BuildOnRead =
+      ExtraFlags.getBuildOnRead() && !llvmIRInput(IRFilename);
   if (BuildOnRead) {
     std::unique_ptr<PNaClTranslator> PTranslator(new PNaClTranslator(&Ctx));
     std::unique_ptr<llvm::StreamingMemoryObject> MemObj(
