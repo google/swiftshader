@@ -412,13 +412,13 @@ void TargetX8664::lowerRet(const InstRet *Inst) {
   Variable *Reg = nullptr;
   if (Inst->hasRetValue()) {
     Operand *Src0 = legalize(Inst->getRetValue());
-    if (isVectorType(Src0->getType()) ||
-        isScalarFloatingType(Src0->getType())) {
+    const Type Src0Ty = Src0->getType();
+    if (isVectorType(Src0Ty) || isScalarFloatingType(Src0Ty)) {
       Reg = legalizeToReg(Src0, Traits::RegisterSet::Reg_xmm0);
     } else {
-      assert(isScalarIntegerType(Src0->getType()));
-      _mov(Reg, Src0, Traits::getGprForType(Src0->getType(),
-                                            Traits::RegisterSet::Reg_rax));
+      assert(Src0Ty == IceType_i32 || Src0Ty == IceType_i64);
+      _mov(Reg, Src0,
+           Traits::getGprForType(Src0Ty, Traits::RegisterSet::Reg_rax));
     }
   }
   // Add a ret instruction even if sandboxing is enabled, because addEpilog

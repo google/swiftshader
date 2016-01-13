@@ -904,8 +904,8 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
       Ostream &Str = Ctx->getStrDump();
       for (SizeT i = 0; i < Iter.RegMask.size(); ++i) {
         if (Iter.RegMask[i]) {
-          Str << Target->getRegName(i, IceType_i32) << "(U=" << RegUses[i]
-              << ",F=" << Iter.Free[i]
+          Str << Target->getRegName(i, Iter.Cur->getType())
+              << "(U=" << RegUses[i] << ",F=" << Iter.Free[i]
               << ",P=" << Iter.PrecoloredUnhandledMask[i] << ") ";
         }
       }

@@ -1,13 +1,13 @@
 ; This tests the NaCl intrinsics memset, memcpy and memmove.
 
 ; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
-; RUN:   --target x8632 -i %s --args -O2 -sandbox \
+; RUN:   --target x8632 --sandbox -i %s --args -O2 \
 ; RUN:   | %if --need=target_X8632 --command FileCheck %s
 ; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
-; RUN:   --target x8632 -i %s --args -Om1 --fmem-intrin-opt -sandbox \
+; RUN:   --target x8632 --sandbox -i %s --args -Om1 --fmem-intrin-opt \
 ; RUN:   | %if --need=target_X8632 --command FileCheck %s
 ; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
-; RUN:   --target x8632 -i %s --args -Om1 -sandbox \
+; RUN:   --target x8632 --sandbox -i %s --args -Om1 \
 ; RUN:   | %if --need=target_X8632 --command FileCheck --check-prefix OM1 %s
 
 ; RUN: %if --need=target_ARM32 --need=allow_dump \

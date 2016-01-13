@@ -26,16 +26,18 @@ entry:
   ret <4 x i32> %0
 }
 
-define i8 @__Sz_bitcast_8xi1_i8(<8 x i1> %a) {
+define i32 @__Sz_bitcast_8xi1_i8(<8 x i1> %a) {
 entry:
   %0 = bitcast <8 x i1> %a to i8
-  ret i8 %0
+  %ret = zext i8 %0 to i32
+  ret i32 %ret
 }
 
-define i16 @__Sz_bitcast_16xi1_i16(<16 x i1> %a) {
+define i32 @__Sz_bitcast_16xi1_i16(<16 x i1> %a) {
 entry:
   %0 = bitcast <16 x i1> %a to i16
-  ret i16 %0
+  %ret = zext i16 %0 to i32
+  ret i32 %ret
 }
 
 define <8 x i1> @__Sz_bitcast_i8_8xi1(i8 %a) {

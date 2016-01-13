@@ -219,16 +219,17 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
   Variable *ReturnReg = nullptr;
   Variable *ReturnRegHi = nullptr;
   if (Dest) {
-    switch (Dest->getType()) {
+    const Type DestTy = Dest->getType();
+    switch (DestTy) {
     case IceType_NUM:
     case IceType_void:
-      llvm::report_fatal_error("Invalid Call dest type");
-      break;
     case IceType_i1:
     case IceType_i8:
     case IceType_i16:
+      llvm::report_fatal_error("Invalid Call dest type");
+      break;
     case IceType_i32:
-      ReturnReg = makeReg(Dest->getType(), Traits::RegisterSet::Reg_eax);
+      ReturnReg = makeReg(DestTy, Traits::RegisterSet::Reg_eax);
       break;
     case IceType_i64:
       ReturnReg = makeReg(IceType_i32, Traits::RegisterSet::Reg_eax);
@@ -246,7 +247,7 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
     case IceType_v8i16:
     case IceType_v4i32:
     case IceType_v4f32:
-      ReturnReg = makeReg(Dest->getType(), Traits::RegisterSet::Reg_xmm0);
+      ReturnReg = makeReg(DestTy, Traits::RegisterSet::Reg_xmm0);
       break;
     }
   }
@@ -303,10 +304,11 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
       _mov(DestLo, ReturnReg);
       _mov(DestHi, ReturnRegHi);
     } else {
-      assert(Dest->getType() == IceType_i32 || Dest->getType() == IceType_i16 ||
-             Dest->getType() == IceType_i8 || Dest->getType() == IceType_i1 ||
-             isVectorType(Dest->getType()));
-      if (isVectorType(Dest->getType())) {
+      const Type DestTy = Dest->getType();
+      assert(DestTy == IceType_i32 || DestTy == IceType_i16 ||
+             DestTy == IceType_i8 || DestTy == IceType_i1 ||
+             isVectorType(DestTy));
+      if (isVectorType(DestTy)) {
         _movp(Dest, ReturnReg);
       } else {
         _mov(Dest, ReturnReg);
@@ -352,19 +354,21 @@ void TargetX8632::lowerRet(const InstRet *Inst) {
   Variable *Reg = nullptr;
   if (Inst->hasRetValue()) {
     Operand *Src0 = legalize(Inst->getRetValue());
+    const Type Src0Ty = Src0->getType();
     // TODO(jpp): this is not needed.
-    if (Src0->getType() == IceType_i64) {
+    if (Src0Ty == IceType_i64) {
       Variable *eax =
           legalizeToReg(loOperand(Src0), Traits::RegisterSet::Reg_eax);
       Variable *edx =
           legalizeToReg(hiOperand(Src0), Traits::RegisterSet::Reg_edx);
       Reg = eax;
       Context.insert<InstFakeUse>(edx);
-    } else if (isScalarFloatingType(Src0->getType())) {
+    } else if (isScalarFloatingType(Src0Ty)) {
       _fld(Src0);
-    } else if (isVectorType(Src0->getType())) {
+    } else if (isVectorType(Src0Ty)) {
       Reg = legalizeToReg(Src0, Traits::RegisterSet::Reg_xmm0);
     } else {
+      assert(Src0Ty == IceType_i32);
       _mov(Reg, Src0, Traits::RegisterSet::Reg_eax);
     }
   }

@@ -43,25 +43,29 @@ define internal i32 @mul_i32_arg_m45(i32 %arg) {
 ; CHECK-DAG: lea [[REG]],{{\[}}[[REG]]+[[REG]]*4]
 ; CHECK: neg [[REG]]
 
-define internal i16 @mul_i16_arg_18(i16 %arg) {
-  %result = mul i16 %arg, 18
-  ret i16 %result
+define internal i32 @mul_i16_arg_18(i32 %arg) {
+  %arg.16 = trunc i32 %arg to i16
+  %result = mul i16 %arg.16, 18
+  %result.i32 = zext i16 %result to i32
+  ret i32 %result.i32
 }
-; Disassembly will look like "lea ax,[eax+eax*8]".
 ; CHECK-LABEL: mul_i16_arg_18
-; CHECK-DAG: lea [[REG:..]],{{\[}}e[[REG]]+e[[REG]]*8]
-; CHECK-DAG: shl [[REG]],1
+; CHECK: imul
 
-define internal i8 @mul_i8_arg_16(i8 %arg) {
-  %result = mul i8 %arg, 16
-  ret i8 %result
+define internal i32 @mul_i8_arg_16(i32 %arg) {
+  %arg.8 = trunc i32 %arg to i8
+  %result = mul i8 %arg.8, 16
+  %result.i32 = zext i8 %result to i32
+  ret i32 %result.i32
 }
 ; CHECK-LABEL: mul_i8_arg_16
 ; CHECK: shl {{.*}},0x4
 
-define internal i8 @mul_i8_arg_18(i8 %arg) {
-  %result = mul i8 %arg, 18
-  ret i8 %result
+define internal i32 @mul_i8_arg_18(i32 %arg) {
+  %arg.8 = trunc i32 %arg to i8
+  %result = mul i8 %arg.8, 18
+  %result.i32 = zext i8 %result to i32
+  ret i32 %result.i32
 }
 ; CHECK-LABEL: mul_i8_arg_18
 ; CHECK: imul

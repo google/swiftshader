@@ -1,11 +1,11 @@
 ; This tests the NaCl intrinsics not related to atomic operations.
 
 ; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
-; RUN:   --target x8632 -i %s --args -O2 -sandbox \
+; RUN:   --target x8632 --sandbox -i %s --args -O2 \
 ; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_X8632 --command FileCheck %s
 ; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
-; RUN:   --target x8632 -i %s --args -Om1 -sandbox \
+; RUN:   --target x8632 --sandbox -i %s --args -Om1 \
 ; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_X8632 --command FileCheck %s
 
@@ -13,7 +13,7 @@
 ; share the same "CHECK" prefix). This separate run helps check that
 ; some code is optimized out.
 ; RUN: %if --need=target_X8632 --command %p2i --filetype=obj --disassemble \
-; RUN:   --target x8632 -i %s --args -O2 -sandbox \
+; RUN:   --target x8632 --sandbox -i %s --args -O2 \
 ; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_X8632 \
 ; RUN:   --command FileCheck --check-prefix=CHECKO2REM %s
@@ -62,9 +62,9 @@ entry:
   ret i32 %__1
 }
 ; CHECK-LABEL: test_nacl_read_tp
-; CHECK: mov e{{.*}},DWORD PTR gs:0x0
+; CHECK: mov e{{.*}},{{(DWORD PTR )?}}gs:0x0
 ; CHECKO2REM-LABEL: test_nacl_read_tp
-; CHECKO2REM: mov e{{.*}},DWORD PTR gs:0x0
+; CHECKO2REM: mov e{{.*}},{{(DWORD PTR )?}}gs:0x0
 ; CHECKO2UNSANDBOXEDREM-LABEL: test_nacl_read_tp
 ; CHECKO2UNSANDBOXEDREM: call {{.*}} R_{{.*}} __nacl_read_tp
 
@@ -86,11 +86,11 @@ entry:
   ret i32 %v
 }
 ; CHECK-LABEL: test_nacl_read_tp_more_addressing
-; CHECK: mov e{{.*}},DWORD PTR gs:0x0
-; CHECK: mov e{{.*}},DWORD PTR gs:0x0
+; CHECK: mov e{{.*}},{{(DWORD PTR )?}}gs:0x0
+; CHECK: mov e{{.*}},{{(DWORD PTR )?}}gs:0x0
 ; CHECKO2REM-LABEL: test_nacl_read_tp_more_addressing
-; CHECKO2REM: mov e{{.*}},DWORD PTR gs:0x0
-; CHECKO2REM: mov e{{.*}},DWORD PTR gs:0x0
+; CHECKO2REM: mov e{{.*}},{{(DWORD PTR )?}}gs:0x0
+; CHECKO2REM: mov e{{.*}},{{(DWORD PTR )?}}gs:0x0
 ; CHECKO2UNSANDBOXEDREM-LABEL: test_nacl_read_tp_more_addressing
 ; CHECKO2UNSANDBOXEDREM: call {{.*}} R_{{.*}} __nacl_read_tp
 ; CHECKO2UNSANDBOXEDREM: call {{.*}} R_{{.*}} __nacl_read_tp

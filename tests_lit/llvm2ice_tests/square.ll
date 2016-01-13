@@ -33,18 +33,22 @@ entry:
 ; CHECK-LABEL: Square_i32
 ; CHECK: imul [[REG:e..]],[[REG]]
 
-define internal i16 @Square_i16(i16 %a) {
+define internal i32 @Square_i16(i32 %a) {
 entry:
-  %result = mul i16 %a, %a
-  ret i16 %result
+  %a.16 = trunc i32 %a to i16
+  %result = mul i16 %a.16, %a.16
+  %result.i32 = sext i16 %result to i32
+  ret i32 %result.i32
 }
 ; CHECK-LABEL: Square_i16
 ; CHECK: imul [[REG:..]],[[REG]]
 
-define internal i8 @Square_i8(i8 %a) {
+define internal i32 @Square_i8(i32 %a) {
 entry:
-  %result = mul i8 %a, %a
-  ret i8 %result
+  %a.8 = trunc i32 %a to i8
+  %result = mul i8 %a.8, %a.8
+  %result.i32 = sext i8 %result to i32
+  ret i32 %result.i32
 }
 ; CHECK-LABEL: Square_i8
 ; CHECK: imul al

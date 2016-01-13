@@ -2,9 +2,9 @@
 
 ; REQUIRES: allow_dump
 
-; Single threaded so that the dumps used for checking happen in order
+; Single threaded so that the dumps used for checking happen in order.
 ; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 --verbose=loop \
-; RUN: --threads=0 | FileCheck %s
+; RUN:     -log=%t --threads=0 && FileCheck %s < %t
 
 define internal void @test_single_loop(i32 %a32) {
 entry:

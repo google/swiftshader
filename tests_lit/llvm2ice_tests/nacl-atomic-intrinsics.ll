@@ -46,10 +46,10 @@ declare void @llvm.nacl.atomic.fence(i32)
 declare void @llvm.nacl.atomic.fence.all()
 declare i1 @llvm.nacl.atomic.is.lock.free(i32, i8*)
 
-@Global8 = internal global [1 x i8] zeroinitializer, align 1
-@Global16 = internal global [2 x i8] zeroinitializer, align 2
-@Global32 = internal global [4 x i8] zeroinitializer, align 4
-@Global64 = internal global [8 x i8] zeroinitializer, align 8
+@SzGlobal8 = internal global [1 x i8] zeroinitializer, align 1
+@SzGlobal16 = internal global [2 x i8] zeroinitializer, align 2
+@SzGlobal32 = internal global [4 x i8] zeroinitializer, align 4
+@SzGlobal64 = internal global [8 x i8] zeroinitializer, align 8
 
 ; NOTE: The LLC equivalent for 16-bit atomic operations are expanded
 ; as 32-bit operations. For Subzero, assume that real 16-bit operations
@@ -350,7 +350,7 @@ entry:
 ; Same test as above, but with a global address to test FakeUse issues.
 define internal i64 @test_atomic_rmw_add_64_global(i64 %v) {
 entry:
-  %ptr = bitcast [8 x i8]* @Global64 to i64*
+  %ptr = bitcast [8 x i8]* @SzGlobal64 to i64*
   %a = call i64 @llvm.nacl.atomic.rmw.i64(i32 1, i64* %ptr, i64 %v, i32 6)
   ret i64 %a
 }
@@ -595,15 +595,15 @@ entry:
 define internal i32 @test_atomic_rmw_or_8_global(i32 %v) {
 entry:
   %trunc = trunc i32 %v to i8
-  %ptr = bitcast [1 x i8]* @Global8 to i8*
+  %ptr = bitcast [1 x i8]* @SzGlobal8 to i8*
   %a = call i8 @llvm.nacl.atomic.rmw.i8(i32 3, i8* %ptr, i8 %trunc, i32 6)
   %a_ext = zext i8 %a to i32
   ret i32 %a_ext
 }
 ; CHECK-LABEL: test_atomic_rmw_or_8_global
 ; ARM32-LABEL: test_atomic_rmw_or_8_global
-; ARM32: movw [[PTR:r[0-9]+]], #:lower16:Global8
-; ARM32: movt [[PTR]], #:upper16:Global8
+; ARM32: movw [[PTR:r[0-9]+]], #:lower16:SzGlobal8
+; ARM32: movt [[PTR]], #:upper16:SzGlobal8
 ; ARM32: dmb
 ; ARM32: ldrexb r{{[0-9]+}}, {{[[]}}[[PTR]]{{[]]}}
 ; ARM32: orr
@@ -636,15 +636,15 @@ entry:
 define internal i32 @test_atomic_rmw_or_16_global(i32 %v) {
 entry:
   %trunc = trunc i32 %v to i16
-  %ptr = bitcast [2 x i8]* @Global16 to i16*
+  %ptr = bitcast [2 x i8]* @SzGlobal16 to i16*
   %a = call i16 @llvm.nacl.atomic.rmw.i16(i32 3, i16* %ptr, i16 %trunc, i32 6)
   %a_ext = zext i16 %a to i32
   ret i32 %a_ext
 }
 ; CHECK-LABEL: test_atomic_rmw_or_16_global
 ; ARM32-LABEL: test_atomic_rmw_or_16_global
-; ARM32: movw [[PTR:r[0-9]+]], #:lower16:Global16
-; ARM32: movt [[PTR]], #:upper16:Global16
+; ARM32: movw [[PTR:r[0-9]+]], #:lower16:SzGlobal16
+; ARM32: movt [[PTR]], #:upper16:SzGlobal16
 ; ARM32: dmb
 ; ARM32: ldrexh r{{[0-9]+}}, {{[[]}}[[PTR]]{{[]]}}
 ; ARM32: orr
@@ -674,14 +674,14 @@ entry:
 ; Same test as above, but with a global address to test FakeUse issues.
 define internal i32 @test_atomic_rmw_or_32_global(i32 %v) {
 entry:
-  %ptr = bitcast [4 x i8]* @Global32 to i32*
+  %ptr = bitcast [4 x i8]* @SzGlobal32 to i32*
   %a = call i32 @llvm.nacl.atomic.rmw.i32(i32 3, i32* %ptr, i32 %v, i32 6)
   ret i32 %a
 }
 ; CHECK-LABEL: test_atomic_rmw_or_32_global
 ; ARM32-LABEL: test_atomic_rmw_or_32_global
-; ARM32: movw [[PTR:r[0-9]+]], #:lower16:Global32
-; ARM32: movt [[PTR]], #:upper16:Global32
+; ARM32: movw [[PTR:r[0-9]+]], #:lower16:SzGlobal32
+; ARM32: movt [[PTR]], #:upper16:SzGlobal32
 ; ARM32: dmb
 ; ARM32: ldrex r{{[0-9]+}}, {{[[]}}[[PTR]]{{[]]}}
 ; ARM32: orr
@@ -1393,7 +1393,7 @@ entry:
   br label %body
 body:
   %i = phi i32 [ 1, %entry ], [ %i_plus_1, %body ]
-  %g = bitcast [4 x i8]* @Global32 to i32*
+  %g = bitcast [4 x i8]* @SzGlobal32 to i32*
   %unused = call i32 @llvm.nacl.atomic.rmw.i32(i32 1, i32* %g, i32 %i, i32 6)
   %i_plus_1 = add i32 %i, 1
   %cmp = icmp eq i32 %i_plus_1, 1001
@@ -1414,7 +1414,7 @@ entry:
   br label %body
 body:
   %i = phi i32 [ 1, %entry ], [ %i_plus_1, %body ]
-  %g = bitcast [4 x i8]* @Global32 to i32*
+  %g = bitcast [4 x i8]* @SzGlobal32 to i32*
   %unused = call i32 @llvm.nacl.atomic.rmw.i32(i32 6, i32* %g, i32 %i, i32 6)
   %i_plus_1 = add i32 %i, 1
   %cmp = icmp eq i32 %i_plus_1, 1001
@@ -1435,7 +1435,7 @@ entry:
   br label %body
 body:
   %i = phi i32 [ 1, %entry ], [ %i_plus_1, %body ]
-  %g = bitcast [4 x i8]* @Global32 to i32*
+  %g = bitcast [4 x i8]* @SzGlobal32 to i32*
   %unused = call i32 @llvm.nacl.atomic.cmpxchg.i32(i32* %g, i32 %i, i32 %i, i32 6, i32 6)
   %i_plus_1 = add i32 %i, 1
   %cmp = icmp eq i32 %i_plus_1, 1001
@@ -1456,7 +1456,7 @@ entry:
   br label %body
 body:
   %i = phi i32 [ 1, %entry ], [ %i_plus_1, %body ]
-  %g = bitcast [8 x i8]* @Global64 to i64*
+  %g = bitcast [8 x i8]* @SzGlobal64 to i64*
   %i_64 = zext i32 %i to i64
   %unused = call i64 @llvm.nacl.atomic.cmpxchg.i64(i64* %g, i64 %i_64, i64 %i_64, i32 6, i32 6)
   %i_plus_1 = add i32 %i, 1

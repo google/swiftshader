@@ -17,8 +17,8 @@ entry:
   %result = add i32 %addr_lo.load, %addr_hi.load
   ret i32 %result
 ; CHECK-LABEL: load_global_direct
-; CHECK-NEXT: mov eax,DWORD PTR ds:0x0{{.*}}bytes
-; CHECK-NEXT: add eax,DWORD PTR ds:0x4{{.*}}bytes
+; CHECK-NEXT: mov eax,{{(DWORD PTR )?}}ds:0x0{{.*}}{{bytes|.bss}}
+; CHECK-NEXT: add eax,DWORD PTR ds:0x4{{.*}}{{bytes|.bss}}
 }
 
 define internal i32 @load_global_indexed(i32 %arg) {

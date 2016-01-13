@@ -1,6 +1,8 @@
 ; RUN: %p2i -i %s --filetype=obj --assemble --disassemble --args -O2 -nonsfi=1 \
+; RUN:   --ffunction-sections \
 ; RUN:   | FileCheck --check-prefix=NONSFI %s
 ; RUN: %p2i -i %s --filetype=obj --assemble --disassemble --args -O2 -nonsfi=0 \
+; RUN:   --ffunction-sections \
 ; RUN:   | FileCheck --check-prefix=DEFAULT %s
 
 @G1 = internal global [4 x i8] zeroinitializer, align 4
@@ -8,12 +10,14 @@
 
 define internal void @testCallRegular() {
 entry:
-  call void @testCallRegular()
+  ; Make a call to a *different* function, plus use -ffunction-sections, to
+  ; force an appropriately-named relocation.
+  call i32 @testLoadBasic()
   ret void
 }
 ; Expect a simple direct call to testCallRegular.
 ; NONSFI-LABEL: testCallRegular
-; NONSFI: call {{.*}} R_386_PC32 testCallRegular
+; NONSFI: call {{.*}} R_386_PC32 {{.*}}testLoadBasic
 ; DEFAULT-LABEL: testCallRegular
 
 define internal double @testCallBuiltin(double %val) {
@@ -34,7 +38,7 @@ entry:
 }
 ; Expect a load with a R_386_GOTOFF relocation.
 ; NONSFI-LABEL: testLoadBasic
-; NONSFI: mov {{.*}} R_386_GOTOFF G1
+; NONSFI: mov {{.*}} R_386_GOTOFF {{G1|.bss}}
 ; DEFAULT-LABEL: testLoadBasic
 
 define internal i32 @testLoadFixedOffset() {
@@ -47,7 +51,7 @@ entry:
 }
 ; Expect a load with a R_386_GOTOFF relocation plus an immediate offset.
 ; NONSFI-LABEL: testLoadFixedOffset
-; NONSFI: mov {{.*}}+0x4] {{.*}} R_386_GOTOFF G1
+; NONSFI: mov {{.*}}+0x4] {{.*}} R_386_GOTOFF {{G1|.bss}}
 ; DEFAULT-LABEL: testLoadFixedOffset
 
 define internal i32 @testLoadIndexed(i32 %idx) {
@@ -63,7 +67,7 @@ entry:
 ; Expect a load with a R_386_GOTOFF relocation plus an immediate offset, plus a
 ; scaled index register.
 ; NONSFI-LABEL: testLoadIndexed
-; NONSFI: mov {{.*}}*4+0xc] {{.*}} R_386_GOTOFF G1
+; NONSFI: mov {{.*}}*4+0xc] {{.*}} R_386_GOTOFF {{G1|.bss}}
 ; DEFAULT-LABEL: testLoadIndexed
 
 define internal i32 @testLoadIndexedBase(i32 %base, i32 %idx) {
@@ -80,11 +84,11 @@ entry:
 ; Expect a load with a R_386_GOTOFF relocation plus an immediate offset, but
 ; without the scaled index.
 ; NONSFI-LABEL: testLoadIndexedBase
-; NONSFI: mov {{.*}}*1+0xc] {{.*}} R_386_GOTOFF G1
+; NONSFI: mov {{.*}}*1+0xc] {{.*}} R_386_GOTOFF {{G1|.bss}}
 ; By contrast, without -nonsfi, expect a load with a *R_386_32* relocation plus
 ; an immediate offset, and *with* the scaled index.
 ; DEFAULT-LABEL: testLoadIndexedBase
-; DEFAULT: mov {{.*}},DWORD PTR [{{.*}}+{{.*}}*4+0xc] {{.*}} R_386_32 G1
+; DEFAULT: mov {{.*}},DWORD PTR [{{.*}}+{{.*}}*4+0xc] {{.*}} R_386_32 {{G1|.bss}}
 
 define internal i32 @testLoadOpt() {
 entry:
@@ -97,8 +101,8 @@ entry:
 }
 ; Expect a load-folding optimization with a R_386_GOTOFF relocation.
 ; NONSFI-LABEL: testLoadOpt
-; NONSFI: mov [[REG:e..]],{{.*}}+0x0] {{.*}} R_386_GOTOFF G1
-; NONSFI-NEXT: add [[REG]],{{.*}}+0x0] {{.*}} R_386_GOTOFF G2
+; NONSFI: mov [[REG:e..]],{{.*}}+0x0] {{.*}} R_386_GOTOFF {{G1|.bss}}
+; NONSFI-NEXT: add [[REG]],{{.*}}+0x{{0|4}}] {{.*}} R_386_GOTOFF {{G2|.bss}}
 ; DEFAULT-LABEL: testLoadOpt
 
 define internal void @testRMW() {
@@ -111,5 +115,5 @@ entry:
 }
 ; Expect an RMW optimization with a R_386_GOTOFF relocation.
 ; NONSFI-LABEL: testRMW
-; NONSFI: add DWORD PTR {{.*}}+0x0],0x4d2 {{.*}} R_386_GOTOFF G1
+; NONSFI: add DWORD PTR {{.*}}+0x0],0x4d2 {{.*}} R_386_GOTOFF {{G1|.bss}}
 ; DEFAULT-LABEL: testRMW

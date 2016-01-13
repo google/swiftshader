@@ -367,8 +367,19 @@ struct TargetX8632Traits {
     assert(RegNum != Variable::NoRegister);
     // TODO(stichnot): Rewrite this as a table lookup from a table computed in a
     // TargetLowering static initializer.
+    // [abcd]h registers are not convertible to their ?l, ?x, and e?x versions.
+    switch (RegNum) {
+    default:
+      break;
+    case RegisterSet::Reg_ah:
+    case RegisterSet::Reg_bh:
+    case RegisterSet::Reg_ch:
+    case RegisterSet::Reg_dh:
+      assert(isByteSizedType(Ty));
+      return RegNum;
+    }
     RegNum = getBaseReg(RegNum);
-    if (Ty == IceType_i8 || Ty == IceType_i1) {
+    if (isByteSizedType(Ty)) {
       switch (RegNum) {
       default:
         assert(0);

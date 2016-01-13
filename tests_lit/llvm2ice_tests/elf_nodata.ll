@@ -1,7 +1,7 @@
 ; Tests that we generate an ELF container correctly when there
 ; is no data section.
 
-; RUN: %p2i -i %s --filetype=obj --args -O2 -o %t \
+; RUN: %p2i -i %s --filetype=obj --output %t --args -O2 \
 ; RUN:   && llvm-readobj -file-headers -sections -section-data \
 ; RUN:       -relocations -symbols %t | FileCheck %s
 

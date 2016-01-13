@@ -1,6 +1,6 @@
 ; Tests filetype=obj with -ffunction-sections.
 
-; RUN: %p2i -i %s --filetype=obj --args -O2 -o %t -ffunction-sections && \
+; RUN: %p2i -i %s --filetype=obj --output %t --args -O2 -ffunction-sections && \
 ; RUN:   llvm-readobj -file-headers -sections -section-data \
 ; RUN:     -relocations -symbols %t | FileCheck %s
 

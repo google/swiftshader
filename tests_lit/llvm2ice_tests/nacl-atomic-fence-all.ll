@@ -43,14 +43,14 @@ entry:
 ; CHECK: mov DWORD PTR {{.*}},0x3e7
 ;    atomic store (w/ its own mfence)
 ; The load + sub are optimized into one everywhere.
-; CHECK: sub {{.*}},DWORD PTR {{.*}}g32_a
-; CHECK: mov DWORD PTR
+; CHECK: sub {{.*}},DWORD PTR {{.*}}{{(g32_a)|(.bss)}}
+; CHECK: mov {{(DWORD PTR)?}}
 ; CHECK: mfence
-; CHECK: sub {{.*}},DWORD PTR {{.*}}g32_b
-; CHECK: mov DWORD PTR
-; CHECK: sub {{.*}},DWORD PTR {{.*}}g32_c
+; CHECK: sub {{.*}},DWORD PTR {{.*}}{{(g32_b)|(.bss)}}
+; CHECK: mov {{(DWORD PTR)?}}
+; CHECK: sub {{.*}},DWORD PTR {{.*}}{{(g32_c)|(.bss)}}
 ; CHECK: mfence
-; CHECK: mov DWORD PTR
+; CHECK: mov {{(DWORD PTR)?}}
 
 ; Test with the fence moved up a bit.
 define internal i32 @test_fused_load_sub_b() {
@@ -81,16 +81,16 @@ entry:
 ;    alloca store
 ; CHECK: mov DWORD PTR {{.*}},0x3e7
 ;    atomic store (w/ its own mfence)
-; CHECK: sub {{.*}},DWORD PTR {{.*}}g32_a
-; CHECK: mov DWORD PTR
+; CHECK: sub {{.*}},DWORD PTR {{.*}}{{(g32_a)|(.bss)}}
+; CHECK: mov {{(DWORD PTR)?}}
 ; CHECK: mfence
-; CHECK: sub {{.*}},DWORD PTR {{.*}}g32_b
-; CHECK: mov DWORD PTR
+; CHECK: sub {{.*}},DWORD PTR {{.*}}{{(g32_b)|(.bss)}}
+; CHECK: mov {{(DWORD PTR)?}}
 ; CHECK: mfence
 ; Load + sub can still be optimized into one instruction
 ; because it is not separated by a fence.
-; CHECK: sub {{.*}},DWORD PTR {{.*}}g32_c
-; CHECK: mov DWORD PTR
+; CHECK: sub {{.*}},DWORD PTR {{.*}}{{(g32_c)|(.bss)}}
+; CHECK: mov {{(DWORD PTR)?}}
 
 ; Test with the fence splitting a load/sub.
 define internal i32 @test_fused_load_sub_c() {
@@ -121,19 +121,19 @@ entry:
 ;    alloca store
 ; CHECK: mov DWORD PTR {{.*}},0x3e7
 ;    atomic store (w/ its own mfence)
-; CHECK: sub {{.*}},DWORD PTR {{.*}}g32_a
-; CHECK: mov DWORD PTR
+; CHECK: sub {{.*}},DWORD PTR {{.*}}{{(g32_a)|(.bss)}}
+; CHECK: mov {{(DWORD PTR)?}}
 ; CHECK: mfence
 ; This load + sub are no longer optimized into one,
 ; though perhaps it should be legal as long as
 ; the load stays on the same side of the fence.
-; CHECK: mov {{.*}},DWORD PTR {{.*}}g32_b
+; CHECK: mov {{.*}},{{(DWORD PTR )?}}{{.*}}{{(g32_b)|(.bss)}}
 ; CHECK: mfence
 ; CHECK: mov {{.*}},0x1
 ; CHECK: sub
-; CHECK: mov DWORD PTR
-; CHECK: sub {{.*}},DWORD PTR {{.*}}g32_c
-; CHECK: mov DWORD PTR
+; CHECK: mov {{(DWORD PTR)?}}
+; CHECK: sub {{.*}},DWORD PTR {{.*}}{{(g32_c)|(.bss)}}
+; CHECK: mov {{(DWORD PTR)?}}
 
 
 ; Test where a bunch of i8 loads could have been fused into one
@@ -171,7 +171,7 @@ entry:
   ret i32 %b1234
 }
 ; CHECK-LABEL: could_have_fused_loads
-; CHECK: mov {{.*}},BYTE PTR
+; CHECK: mov {{.*}},{{(BYTE PTR)?}}
 ; CHECK: mov {{.*}},BYTE PTR
 ; CHECK: mov {{.*}},BYTE PTR
 ; CHECK: mfence
@@ -195,8 +195,8 @@ branch2:
 }
 ; CHECK-LABEL: could_have_hoisted_loads
 ; CHECK: jne {{.*}}
-; CHECK: mov {{.*}},DWORD PTR {{.*}}g32_d
+; CHECK: mov {{.*}},{{(DWORD PTR )?}}{{.*}}{{(g32_d)|(.bss)}}
 ; CHECK: ret
 ; CHECK: mfence
-; CHECK: mov {{.*}},DWORD PTR {{.*}}g32_d
+; CHECK: mov {{.*}},{{(DWORD PTR )?}}{{.*}}{{(g32_d)|(.bss)}}
 ; CHECK: ret

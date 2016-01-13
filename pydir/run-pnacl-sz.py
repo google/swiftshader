@@ -40,6 +40,8 @@ def main():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     argparser.add_argument('--input', '-i', required=True,
                            help='LLVM source file to compile')
+    argparser.add_argument('--output', '-o', required=False,
+                           help='Output file to write')
     argparser.add_argument('--insts', required=False,
                            action='store_true',
                            help='Stop after translating to ' +
@@ -77,10 +79,12 @@ def main():
                            help='Add a disassembler flag')
     argparser.add_argument('--filetype', default='iasm', dest='filetype',
                            choices=['obj', 'asm', 'iasm'],
-                           help='Output file type.  Default %(default)s.')
+                           help='Output file type.  Default %(default)s')
+    argparser.add_argument('--forceasm', required=False, action='store_true',
+                           help='Force --filetype=asm')
     argparser.add_argument('--target', default='x8632', dest='target',
                            choices=['x8632','arm32','mips32'],
-                           help='Target architecture.  Default %(default)s.')
+                           help='Target architecture.  Default %(default)s')
     argparser.add_argument('--echo-cmd', required=False,
                            action='store_true',
                            help='Trace command that generates ICE instructions')
@@ -92,7 +96,7 @@ def main():
                            default=[],
                            help='Remaining arguments are passed to pnacl-sz')
     argparser.add_argument('--sandbox', required=False, action='store_true',
-                           help='Sandboxes the generated code.')
+                           help='Sandboxes the generated code')
 
     args = argparser.parse_args()
     pnacl_bin_path = args.pnacl_bin_path
@@ -110,6 +114,16 @@ def main():
 
     if args.llvm and args.tbc:
       raise RuntimeError("Can't specify both '--tbc' and '--llvm'")
+
+    if args.forceasm:
+      if args.filetype == 'asm':
+        pass
+      elif args.filetype == 'iasm':
+        # TODO(sehr) implement forceasm for iasm.
+        pass
+      elif args.filetype == 'obj':
+        args.filetype = 'asm'
+        args.assemble = True
 
     cmd = []
     if args.tbc:
@@ -141,34 +155,54 @@ def main():
     else:
       cmd += ['--build-on-read=1']
     cmd += ['--filetype=' + args.filetype]
+    script_name = os.path.basename(sys.argv[0])
+    for _, arg in enumerate(args.args):
+      # Redirecting the output file needs to be done through the script
+      # because forceasm may introduce a new temporary file between pnacl-sz
+      # and llvm-mc.  Similar issues could occur when setting filetype, target,
+      # or sandbox through --args.  Filter and report an error.
+      if re.search('^-?-(o|output|filetype|target|sandbox)(=.+)?$', arg):
+        preferred_option = '--output' if re.search('^-?-o(=.+)?$', arg) else arg
+        print 'Option should be set using:'
+        print '    %s ... %s ... --args' % (script_name, preferred_option)
+        print 'rather than:'
+        print '    %s ... --args %s ...' % (script_name, arg)
+        exit(1)
+    asm_temp = None
+    output_file_name = None
+    keep_output_file = False
+    if args.output:
+      output_file_name = args.output
+      keep_output_file = True
     cmd += args.args
     if args.llvm_source:
       cmd += [llfile]
-    asm_temp = None
     if args.assemble or args.disassemble:
-      # On windows we may need to close the file first before it can be
-      # re-opened by the other tools, so don't do delete-on-close,
-      # and instead manually delete.
-      asm_temp = tempfile.NamedTemporaryFile(delete=False)
-      asm_temp.close()
+      if not output_file_name:
+        # On windows we may need to close the file first before it can be
+        # re-opened by the other tools, so don't do delete-on-close,
+        # and instead manually delete.
+        asm_temp = tempfile.NamedTemporaryFile(delete=False)
+        asm_temp.close()
+        output_file_name = asm_temp.name
     if args.assemble and args.filetype != 'obj':
       cmd += (['|', os.path.join(pnacl_bin_path, 'llvm-mc')] +
               TargetAssemblerFlags(args.target, args.sandbox) +
-              ['-filetype=obj', '-o', asm_temp.name])
-    elif asm_temp:
-      cmd += ['-o', asm_temp.name]
+              ['-filetype=obj', '-o', output_file_name])
+    elif output_file_name:
+      cmd += ['-o', output_file_name]
     if args.disassemble:
       # Show wide instruction encodings, diassemble, and show relocs.
       cmd += (['&&', os.path.join(pnacl_bin_path, 'le32-nacl-objdump')] +
               args.dis_flags +
               ['-w', '-d', '-r'] + TargetDisassemblerFlags(args.target) +
-              [asm_temp.name])
+              [output_file_name])
 
     stdout_result = shellcmd(cmd, echo=args.echo_cmd)
     if not args.echo_cmd:
       sys.stdout.write(stdout_result)
-    if asm_temp:
-      os.remove(asm_temp.name)
+    if asm_temp and not keep_output_file:
+      os.remove(output_file_name)
 
 if __name__ == '__main__':
     main()

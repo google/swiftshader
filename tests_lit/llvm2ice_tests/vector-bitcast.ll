@@ -150,10 +150,11 @@ entry:
 ; CHECK-NEXT: ret
 }
 
-define internal i8 @test_bitcast_v8i1_to_i8(<8 x i1> %arg) {
+define internal i32 @test_bitcast_v8i1_to_i8(<8 x i1> %arg) {
 entry:
   %res = bitcast <8 x i1> %arg to i8
-  ret i8 %res
+  %res.i32 = zext i8 %res to i32
+  ret i32 %res.i32
 
 ; CHECK-LABEL: test_bitcast_v8i1_to_i8
 ; CHECK: call {{.*}} R_{{.*}} __Sz_bitcast_8xi1_i8
@@ -162,10 +163,11 @@ entry:
 ; OPMT1: call -4
 }
 
-define internal i16 @test_bitcast_v16i1_to_i16(<16 x i1> %arg) {
+define internal i32 @test_bitcast_v16i1_to_i16(<16 x i1> %arg) {
 entry:
   %res = bitcast <16 x i1> %arg to i16
-  ret i16 %res
+  %res.i32 = zext i16 %res to i32
+  ret i32 %res.i32
 
 ; CHECK-LABEL: test_bitcast_v16i1_to_i16
 ; CHECK: call {{.*}} R_{{.*}} __Sz_bitcast_16xi1_i16

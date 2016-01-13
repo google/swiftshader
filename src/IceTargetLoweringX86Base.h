@@ -565,8 +565,10 @@ protected:
   void _pblendvb(Variable *Dest, Operand *Src0, Operand *Src1) {
     Context.insert<typename Traits::Insts::Pblendvb>(Dest, Src0, Src1);
   }
-  void _pcmpeq(Variable *Dest, Operand *Src0) {
-    Context.insert<typename Traits::Insts::Pcmpeq>(Dest, Src0);
+  void _pcmpeq(Variable *Dest, Operand *Src0,
+               Type ArithmeticTypeOverride = IceType_void) {
+    Context.insert<typename Traits::Insts::Pcmpeq>(Dest, Src0,
+                                                   ArithmeticTypeOverride);
   }
   void _pcmpgt(Variable *Dest, Operand *Src0) {
     Context.insert<typename Traits::Insts::Pcmpgt>(Dest, Src0);

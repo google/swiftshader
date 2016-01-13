@@ -33,7 +33,7 @@ entry:
 ; BLINDINGOM1-NEXT: lea [[REG]],{{[[]}}[[REG]]-0x669c41aa{{[]]}}
 
 ; POOLING-LABEL: add_arg_plus_200000
-; POOLING: mov e{{[a-z]*}},DWORD PTR ds:0x0 {{[0-9a-f]*}}: R_386_32 .L$i32$00030d40
+; POOLING: mov e{{[a-z]*}},{{(DWORD PTR )?}}ds:0x0 {{[0-9a-f]*}}: R_386_32 .L$i32$00030d40
 }
 
 define internal float @load_arg_plus_200000(float* %arg) {
@@ -50,7 +50,7 @@ entry:
 ; BLINDINGOM1: lea [[REG:e[a-z]*]],{{[[]}}{{e[a-z]*}}-0x69ea41a7{{[]]}}
 
 ; POOLING-LABEL: load_arg_plus_200000
-; POOLING: mov e{{[a-z]*}},DWORD PTR ds:0x0 {{[0-9a-f]*}}: R_386_32 .L$i32$00030d40
+; POOLING: mov e{{[a-z]*}},{{(DWORD PTR )?}}ds:0x0 {{[0-9a-f]*}}: R_386_32 .L$i32$00030d40
 }
 
 define internal i64 @add_arg_plus_64bits(i32 %arg) {
@@ -70,7 +70,7 @@ entry:
 ; BLINDINGOM1-NEXT: lea [[RLO]],{{[[]}}[[RLO]]-0x6d3841a8{{[]]}}
 
 ; POOLING-LABEL: add_arg_plus_64bits
-; POOLING: mov e{{[a-z]*}},DWORD PTR ds:0x0 {{[0-9a-f]*}}: R_386_32 .L$i32$f46b0400
+; POOLING: mov e{{[a-z]*}},{{(DWORD PTR )?}}ds:0x0 {{[0-9a-f]*}}: R_386_32 .L$i32$f46b0400
 }
 
 define internal i64 @load_arg_plus_64bits(i64* %arg) {
@@ -90,7 +90,7 @@ entry:
 ; BLINDINGOM1-NEXT: lea e{{[a-z]*}},{{[[]}}e{{[a-z]*}}-0x708641a9{{[]]}}
 
 ; POOLING-LABEL: load_arg_plus_64bits
-; POOLING: mov e{{[a-z]x}},DWORD PTR ds:0x0 {{[0-9a-f]*}}: R_386_32 .L$i32$00000004
+; POOLING: mov e{{[a-z]x}},{{(DWORD PTR )?}}ds:0x0 {{[0-9a-f]*}}: R_386_32 .L$i32$00000004
 }
 
 define internal i32 @add_const_8bits(i32 %a) {
@@ -109,7 +109,7 @@ entry:
 ; BLINDINGOM1-NEXT: e{{[a-z]*}},{{[[]}}e{{[a-z]*}}-0x73d441aa{{[]]}}
 
 ; POOLING-LABEL: add_const_8bits
-; POOLING: mov {{[a-z]l}},BYTE PTR ds:0x0 {{[0-9a-f]*}}: R_386_32 .L$i8$0000007b
+; POOLING: mov {{[a-z]l}},{{(BYTE PTR )?}}ds:0x0 {{[0-9a-f]*}}: R_386_32 .L$i8$0000007b
 }
 
 define internal i32 @add_const_16bits(i32 %a) {
@@ -128,6 +128,6 @@ entry:
 ; BLINDINGOM1-NEXT: e{{[a-z]*}},{{[[]}}e{{[a-z]*}}-0x772241a7{{[]]}}
 
 ; POOLING-LABEL: add_const_16bits
-; POOLING: mov {{[a-z]x}},WORD PTR ds:0x0 {{[0-9a-f]*}}: R_386_32 .L$i16$00007ffe
+; POOLING: mov {{[a-z]x}},{{(WORD PTR )?}}ds:0x0 {{[0-9a-f]*}}: R_386_32 .L$i16$00007ffe
 
 }

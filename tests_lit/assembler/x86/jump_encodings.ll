@@ -140,15 +140,16 @@ next3:
   call void @llvm.nacl.atomic.store.i32(i32 %val, i32* %ptr, i32 6)
   br label %next1
 }
-; Forward branches for non-local labels currently use the fully relaxed
-; form to avoid needing a relaxation pass.
+; Note: forward branches for non-local labels in Subzero currently use the fully
+; relaxed form (4-byte offset) to avoid needing a relaxation pass.  When we use
+; llvm-mc, it performs the relaxation pass and uses a 1-byte offset.
 ; CHECK-LABEL: test_near_forward
-; CHECK:       8: {{.*}}            cmp
-; CHECK-NEXT:  b: 0f 82 05 00 00 00 jb 16
-; CHECK-NEXT: 11: {{.*}}            mov DWORD PTR
-; CHECK-NEXT: 13: {{.*}}            mfence
-; CHECK-NEXT: 16: {{.*}}            mov DWORD PTR
-; CHECK:      1b: eb eb             jmp 8
+; CHECK:      [[BACKLABEL:[0-9a-f]+]]: {{.*}} cmp
+; CHECK-NEXT: {{.*}} jb [[FORWARDLABEL:[0-9a-f]+]]
+; CHECK-NEXT: {{.*}} mov DWORD PTR
+; CHECK-NEXT: {{.*}} mfence
+; CHECK-NEXT: [[FORWARDLABEL]]: {{.*}} mov DWORD PTR
+; CHECK:      {{.*}} jmp [[BACKLABEL]]
 
 
 ; Unlike forward branches to cfg nodes, "local" forward branches

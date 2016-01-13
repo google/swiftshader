@@ -14,7 +14,7 @@
 ; RUN: %p2i -i %s --filetype=asm -a -sz-seed=1 -nop-insertion \
 ; RUN:    -nop-insertion-percentage=50 -max-nops-per-instruction=2 \
 ; RUN:    | FileCheck %s --check-prefix=MAXNOPS2
-; RUN: %p2i -i %s --filetype=asm -a -sz-seed=1 -nop-insertion -sandbox\
+; RUN: %p2i -i %s --filetype=asm --sandbox -a -sz-seed=1 -nop-insertion \
 ; RUN:    -nop-insertion-percentage=50 -max-nops-per-instruction=1 \
 ; RUN:    | FileCheck %s --check-prefix=SANDBOX50
 

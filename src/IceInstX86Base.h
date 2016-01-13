@@ -823,26 +823,24 @@ template <typename TraitsType> struct InstImpl {
       if (!BuildDefs::dump())
         return;
       this->validateVectorAddrMode();
+      const Type DestTy = ArithmeticTypeOverride == IceType_void
+                              ? this->getDest()->getType()
+                              : ArithmeticTypeOverride;
+      const char *SuffixString = "";
       switch (Suffix) {
       case InstX86Base::SseSuffix::None:
-        this->emitTwoAddress(Func, Opcode);
         break;
-      case InstX86Base::SseSuffix::Packed: {
-        const Type DestTy = this->getDest()->getType();
-        this->emitTwoAddress(Func, this->Opcode,
-                             Traits::TypeAttributes[DestTy].PdPsString);
-      } break;
-      case InstX86Base::SseSuffix::Scalar: {
-        const Type DestTy = this->getDest()->getType();
-        this->emitTwoAddress(Func, this->Opcode,
-                             Traits::TypeAttributes[DestTy].SdSsString);
-      } break;
-      case InstX86Base::SseSuffix::Integral: {
-        const Type DestTy = this->getDest()->getType();
-        this->emitTwoAddress(Func, this->Opcode,
-                             Traits::TypeAttributes[DestTy].PackString);
-      } break;
+      case InstX86Base::SseSuffix::Packed:
+        SuffixString = Traits::TypeAttributes[DestTy].PdPsString;
+        break;
+      case InstX86Base::SseSuffix::Scalar:
+        SuffixString = Traits::TypeAttributes[DestTy].SdSsString;
+        break;
+      case InstX86Base::SseSuffix::Integral:
+        SuffixString = Traits::TypeAttributes[DestTy].PackString;
+        break;
       }
+      this->emitTwoAddress(Func, Opcode, SuffixString);
     }
     void emitIAS(const Cfg *Func) const override {
       this->validateVectorAddrMode();
@@ -865,12 +863,15 @@ template <typename TraitsType> struct InstImpl {
     }
 
   protected:
-    InstX86BaseBinopXmm(Cfg *Func, Variable *Dest, Operand *Source)
-        : InstX86Base(Func, K, 2, Dest) {
+    InstX86BaseBinopXmm(Cfg *Func, Variable *Dest, Operand *Source,
+                        Type ArithmeticTypeOverride = IceType_void)
+        : InstX86Base(Func, K, 2, Dest),
+          ArithmeticTypeOverride(ArithmeticTypeOverride) {
       this->addSource(Dest);
       this->addSource(Source);
     }
 
+    const Type ArithmeticTypeOverride;
     static const char *Opcode;
     static const XmmEmitterRegOp Emitter;
   };
@@ -1914,16 +1915,25 @@ template <typename TraitsType> struct InstImpl {
       : public InstX86BaseBinopXmm<InstX86Base::Pcmpeq, true,
                                    InstX86Base::SseSuffix::Integral> {
   public:
-    static InstX86Pcmpeq *create(Cfg *Func, Variable *Dest, Operand *Source) {
+    static InstX86Pcmpeq *create(Cfg *Func, Variable *Dest, Operand *Source,
+                                 Type ArithmeticTypeOverride = IceType_void) {
+      const Type Ty = ArithmeticTypeOverride == IceType_void
+                          ? Dest->getType()
+                          : ArithmeticTypeOverride;
+      (void)Ty;
+      assert((Ty != IceType_f64 && Ty != IceType_i64) ||
+             InstX86Base::getTarget(Func)->getInstructionSet() >=
+                 Traits::SSE4_1);
       return new (Func->allocate<InstX86Pcmpeq>())
-          InstX86Pcmpeq(Func, Dest, Source);
+          InstX86Pcmpeq(Func, Dest, Source, ArithmeticTypeOverride);
     }
 
   private:
-    InstX86Pcmpeq(Cfg *Func, Variable *Dest, Operand *Source)
+    InstX86Pcmpeq(Cfg *Func, Variable *Dest, Operand *Source,
+                  Type ArithmeticTypeOverride)
         : InstX86BaseBinopXmm<InstX86Base::Pcmpeq, true,
-                              InstX86Base::SseSuffix::Integral>(Func, Dest,
-                                                                Source) {}
+                              InstX86Base::SseSuffix::Integral>(
+              Func, Dest, Source, ArithmeticTypeOverride) {}
   };
 
   class InstX86Pcmpgt
@@ -1931,6 +1941,9 @@ template <typename TraitsType> struct InstImpl {
                                    InstX86Base::SseSuffix::Integral> {
   public:
     static InstX86Pcmpgt *create(Cfg *Func, Variable *Dest, Operand *Source) {
+      assert(Dest->getType() != IceType_f64 ||
+             InstX86Base::getTarget(Func)->getInstructionSet() >=
+                 Traits::SSE4_1);
       return new (Func->allocate<InstX86Pcmpgt>())
           InstX86Pcmpgt(Func, Dest, Source);
     }

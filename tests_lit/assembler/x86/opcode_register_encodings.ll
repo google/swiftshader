@@ -2,8 +2,8 @@
 ; those for pmull vary more wildly depending on operand size (rather than
 ; follow a usual pattern).
 
-; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 -mattr=sse4.1 \
-; RUN:  -sandbox | FileCheck %s
+; RUN: %p2i --filetype=obj --disassemble --sandbox -i %s --args -O2 \
+; RUN:  -mattr=sse4.1 | FileCheck %s
 
 define internal <8 x i16> @test_mul_v8i16(<8 x i16> %arg0, <8 x i16> %arg1) {
 entry:
@@ -161,7 +161,7 @@ entry:
   ret i32 %v
 }
 ; CHECK-LABEL: test_nacl_read_tp_more_addressing
-; CHECK: 65 8b 05 00 00 00 00  mov eax,DWORD PTR gs:0x0
+; CHECK: mov eax,{{(DWORD PTR )?}}gs:0x0
 ; CHECK: 8b 04 00              mov eax,DWORD PTR [eax+eax*1]
 ; CHECK: 65 8b 0d 00 00 00 00  mov ecx,DWORD PTR gs:0x0
 ; CHECK: 89 51 80              mov DWORD PTR [ecx-0x80],edx

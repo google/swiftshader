@@ -48,15 +48,15 @@ entry:
   ret void
 }
 ; CHECK-LABEL: from_int8
-; CHECK: mov {{.*}},BYTE PTR
-; CHECK: movsx e{{.*}},{{[a-d]l|BYTE PTR}}
-; CHECK: mov WORD PTR
+; CHECK: mov {{.*}},{{(BYTE PTR)?}}
+; CHECK: movsx {{.*}},{{[a-d]l|BYTE PTR}}
+; CHECK: mov {{(WORD PTR)?}}
 ; CHECK: movsx
-; CHECK: mov DWORD PTR
+; CHECK: mov {{(DWORD PTR)?}}
 ; CHECK: movsx
 ; CHECK: sar {{.*}},0x1f
-; CHECK-DAG: ds:0x0,{{.*}}i64v
-; CHECK-DAG: ds:0x4,{{.*}}i64v
+; CHECK-DAG: ds:0x{{.}},{{.*}}{{i64v|.bss}}
+; CHECK-DAG: ds:0x{{.}},{{.*}}{{i64v|.bss}}
 
 ; ARM32-LABEL: from_int8
 ; ARM32: movw {{.*}}i8v
@@ -89,13 +89,13 @@ entry:
   ret void
 }
 ; CHECK-LABEL: from_int16
-; CHECK: mov {{.*}},WORD PTR
-; CHECK: 0x0 {{.*}}i16v
+; CHECK: mov {{.*}},{{(WORD PTR)?}}
+; CHECK: 0x{{.}} {{.*}}{{i16v|.bss}}
 ; CHECK: movsx e{{.*}},{{.*x|[ds]i|bp|WORD PTR}}
-; CHECK: 0x0,{{.*}}i32v
+; CHECK: 0x{{.}},{{.*}}{{i32v|.bss}}
 ; CHECK: movsx e{{.*}},{{.*x|[ds]i|bp|WORD PTR}}
 ; CHECK: sar {{.*}},0x1f
-; CHECK: 0x0,{{.*}}i64v
+; CHECK: 0x{{.}},{{.*}}{{i64v|.bss}}
 
 ; ARM32-LABEL: from_int16
 ; ARM32: movw {{.*}}i16v
@@ -126,11 +126,11 @@ entry:
   ret void
 }
 ; CHECK-LABEL: from_int32
-; CHECK: 0x0 {{.*}} i32v
-; CHECK: 0x0,{{.*}} i8v
-; CHECK: 0x0,{{.*}} i16v
+; CHECK: 0x{{.}} {{.*}} {{i32v|.bss}}
+; CHECK: 0x{{.}},{{.*}} {{i8v|.bss}}
+; CHECK: 0x{{.}},{{.*}} {{i16v|.bss}}
 ; CHECK: sar {{.*}},0x1f
-; CHECK: 0x0,{{.*}} i64v
+; CHECK: 0x{{.}},{{.*}} {{i64v|.bss}}
 
 ; ARM32-LABEL: from_int32
 ; ARM32: movw {{.*}}i32v
@@ -159,10 +159,10 @@ entry:
   ret void
 }
 ; CHECK-LABEL: from_int64
-; CHECK: 0x0 {{.*}} i64v
-; CHECK: 0x0,{{.*}} i8v
-; CHECK: 0x0,{{.*}} i16v
-; CHECK: 0x0,{{.*}} i32v
+; CHECK: 0x{{.}} {{.*}} {{i64v|.bss}}
+; CHECK: 0x{{.}},{{.*}} {{i8v|.bss}}
+; CHECK: 0x{{.}},{{.*}} {{i16v|.bss}}
+; CHECK: 0x{{.}},{{.*}} {{i32v|.bss}}
 
 ; ARM32-LABEL: from_int64
 ; ARM32: movw {{.*}}i64v
@@ -190,14 +190,14 @@ entry:
   ret void
 }
 ; CHECK-LABEL: from_uint8
-; CHECK: 0x0 {{.*}} u8v
-; CHECK: movzx e{{.*}},{{[a-d]l|BYTE PTR}}
-; CHECK: 0x0,{{.*}} i16v
+; CHECK: 0x{{.*}} {{.*}} {{u8v|.bss}}
+; CHECK: movzx {{.*}},{{[a-d]l|BYTE PTR}}
+; CHECK: 0x{{.}},{{.*}} {{i16v|.bss}}
 ; CHECK: movzx
-; CHECK: 0x0,{{.*}} i32v
+; CHECK: 0x{{.}},{{.*}} {{i32v|.bss}}
 ; CHECK: movzx
 ; CHECK: mov {{.*}},0x0
-; CHECK: 0x0,{{.*}} i64v
+; CHECK: 0x{{.}},{{.*}} {{i64v|.bss}}
 
 ; ARM32-LABEL: from_uint8
 ; ARM32: movw {{.*}}u8v
@@ -229,13 +229,13 @@ entry:
   ret void
 }
 ; CHECK-LABEL: from_uint16
-; CHECK: 0x0 {{.*}} u16v
-; CHECK: 0x0,{{.*}} i8v
+; CHECK: 0x{{.*}} {{.*}} {{u16v|.bss}}
+; CHECK: 0x{{.}},{{.*}} {{i8v|.bss}}
 ; CHECK: movzx e{{.*}},{{.*x|[ds]i|bp|WORD PTR}}
-; CHECK: 0x0,{{.*}} i32v
+; CHECK: 0x{{.}},{{.*}} {{i32v|.bss}}
 ; CHECK: movzx e{{.*}},{{.*x|[ds]i|bp|WORD PTR}}
 ; CHECK: mov {{.*}},0x0
-; CHECK: 0x0,{{.*}} i64v
+; CHECK: 0x{{.}},{{.*}} {{i64v|.bss}}
 
 ; ARM32-LABEL: from_uint16
 ; ARM32: movw {{.*}}u16v
@@ -266,11 +266,11 @@ entry:
   ret void
 }
 ; CHECK-LABEL: from_uint32
-; CHECK: 0x0 {{.*}} u32v
-; CHECK: 0x0,{{.*}} i8v
-; CHECK: 0x0,{{.*}} i16v
+; CHECK: 0x{{.*}} {{.*}} {{u32v|.bss}}
+; CHECK: 0x{{.}},{{.*}} {{i8v|.bss}}
+; CHECK: 0x{{.}},{{.*}} {{i16v|.bss}}
 ; CHECK: mov {{.*}},0x0
-; CHECK: 0x0,{{.*}} i64v
+; CHECK: 0x{{.}},{{.*}} {{i64v|.bss}}
 
 ; ARM32-LABEL: from_uint32
 ; ARM32: movw {{.*}}u32v
@@ -299,10 +299,10 @@ entry:
   ret void
 }
 ; CHECK-LABEL: from_uint64
-; CHECK: 0x0 {{.*}} u64v
-; CHECK: 0x0,{{.*}} i8v
-; CHECK: 0x0,{{.*}} i16v
-; CHECK: 0x0,{{.*}} i32v
+; CHECK: 0x{{.*}} {{.*}} {{u64v|.bss}}
+; CHECK: 0x{{.}},{{.*}} {{i8v|.bss}}
+; CHECK: 0x{{.}},{{.*}} {{i16v|.bss}}
+; CHECK: 0x{{.}},{{.*}} {{i32v|.bss}}
 
 ; ARM32-LABEL: from_uint64
 ; ARM32: movw {{.*}}u64v

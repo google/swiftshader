@@ -1135,8 +1135,8 @@ bool TargetX86Base<TraitsType>::optimizeScalarMul(Variable *Dest, Operand *Src0,
       return false;
     }
   }
-  // Lea optimization only works for i16 and i32 types, not i8.
-  if (Ty != IceType_i16 && Ty != IceType_i32 && (Count3 || Count5 || Count9))
+  // Lea optimization only works for i32 type, not i1/i8/i16/i64.
+  if (Ty != IceType_i32 && (Count3 || Count5 || Count9))
     return false;
   // Limit the number of lea/shl operations for a single multiply, to a
   // somewhat arbitrary choice of 3.
@@ -5590,6 +5590,7 @@ void TargetX86Base<TraitsType>::genTargetHelperCallFor(Inst *Instr) {
     Variable *Dest = Cast->getDest();
     const Type DestTy = Dest->getType();
     const char *HelperName = nullptr;
+    Variable *CallDest = Dest;
     switch (CastKind) {
     default:
       return;
@@ -5655,10 +5656,12 @@ void TargetX86Base<TraitsType>::genTargetHelperCallFor(Inst *Instr) {
       case IceType_i8:
         assert(Src0->getType() == IceType_v8i1);
         HelperName = H_bitcast_8xi1_i8;
+        CallDest = Func->makeVariable(IceType_i32);
         break;
       case IceType_i16:
         assert(Src0->getType() == IceType_v16i1);
         HelperName = H_bitcast_16xi1_i16;
+        CallDest = Func->makeVariable(IceType_i32);
         break;
       case IceType_v8i1: {
         assert(Src0->getType() == IceType_i8);
@@ -5680,10 +5683,14 @@ void TargetX86Base<TraitsType>::genTargetHelperCallFor(Inst *Instr) {
     } break;
     }
     constexpr SizeT MaxSrcs = 1;
-    InstCall *Call = makeHelperCall(HelperName, Dest, MaxSrcs);
+    InstCall *Call = makeHelperCall(HelperName, CallDest, MaxSrcs);
     Call->addArg(Src0);
     StackArgumentsSize = getCallStackArgumentsSizeBytes(Call);
     Context.insert(Call);
+    // The PNaCl ABI disallows i8/i16 return types, so truncate the helper call
+    // result to the appropriate type as necessary.
+    if (CallDest->getType() != Dest->getType())
+      Context.insert<InstCast>(InstCast::Trunc, Dest, CallDest);
     Cast->setDeleted();
   } else if (auto *Intrinsic = llvm::dyn_cast<InstIntrinsicCall>(Instr)) {
     std::vector<Type> ArgTypes;
@@ -5841,7 +5848,14 @@ Variable *TargetX86Base<TraitsType>::makeVectorOfMinusOnes(Type Ty,
   Variable *MinusOnes = makeReg(Ty, RegNum);
   // Insert a FakeDef so the live range of MinusOnes is not overestimated.
   Context.insert<InstFakeDef>(MinusOnes);
-  _pcmpeq(MinusOnes, MinusOnes);
+  if (Ty == IceType_f64)
+    // Making a vector of minus ones of type f64 is currently only used for the
+    // fabs intrinsic.  To use the f64 type to create this mask with pcmpeqq
+    // requires SSE 4.1.  Since we're just creating a mask, pcmpeqd does the
+    // same job and only requires SSE2.
+    _pcmpeq(MinusOnes, MinusOnes, IceType_f32);
+  else
+    _pcmpeq(MinusOnes, MinusOnes);
   return MinusOnes;
 }
 

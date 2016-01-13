@@ -3,7 +3,7 @@
 
 ; For the integrated ELF writer, we can't pipe the output because we need
 ; to seek backward and patch up the file headers. So, use a temporary file.
-; RUN: %p2i -i %s --filetype=obj --args -O2 --verbose none -o %t \
+; RUN: %p2i -i %s --filetype=obj --output %t --args -O2 --verbose none \
 ; RUN:   -allow-externally-defined-symbols \
 ; RUN:   && llvm-readobj -file-headers -sections -section-data \
 ; RUN:       -relocations -symbols %t | FileCheck %s
@@ -17,7 +17,7 @@
 ; RUN:   | %if --need=allow_dump --command FileCheck %s
 
 ; Add a run that shows relocations in code inline.
-; RUN: %p2i -i %s --filetype=obj --args -O2 --verbose none -o %t \
+; RUN: %p2i -i %s --filetype=obj --output %t --args -O2 --verbose none \
 ; RUN:   -allow-externally-defined-symbols \
 ; RUN:   && le32-nacl-objdump -w -d -r -Mintel %t \
 ; RUN:   | FileCheck --check-prefix=TEXT-RELOCS %s
@@ -82,7 +82,7 @@ entry:
   ret void
 }
 ; TEXT-RELOCS-LABEL: test_memcpy
-; TEXT-RELOCS: mov {{.*}} R_386_32 bytes
+; TEXT-RELOCS: mov {{.*}} R_386_32 {{bytes|.data}}
 
 define internal void @test_memset(i32 %iptr_dst, i32 %wide_val, i32 %len) {
 entry:
@@ -113,14 +113,14 @@ define internal i32 @test_ret_fp() {
   ret i32 %r
 }
 ; TEXT-RELOCS-LABEL: test_ret_fp
-; TEXT-RELOCS-NEXT: mov {{.*}} R_386_32 returnFloatConst
+; TEXT-RELOCS-NEXT: mov {{.*}} R_386_32 {{returnFloatConst|.text}}
 
 define internal i32 @test_ret_global_pointer() {
   %r = ptrtoint [7 x i8]* @bytes to i32
   ret i32 %r
 }
 ; TEXT-RELOCS-LABEL: test_ret_global_pointer
-; TEXT-RELOCS-NEXT: mov {{.*}} R_386_32 bytes
+; TEXT-RELOCS-NEXT: mov {{.*}} R_386_32 {{bytes|.data}}
 
 ; Test defining a non-internal function.
 define void @_start(i32) {

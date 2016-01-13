@@ -169,7 +169,7 @@ entry:
 ; match the trunc instruction
 ; CHECK: and {{.*}},0x1
 ; match the sext i1 instruction
-; CHECK: movzx e[[REG:.*]],{{[a-d]l|BYTE PTR}}
+; CHECK: movzx {{e*}}[[REG:.*]],{{[a-d]l|BYTE PTR}}
 ; CHECK-NEXT: shl [[REG]],0xf
 ; CHECK-NEXT: sar [[REG]],0xf
 

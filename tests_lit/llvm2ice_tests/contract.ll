@@ -15,4 +15,3 @@ label2:
 
 ; CHECK-LABEL: SimpleBranch
 ; CHECK-NEXT: jmp 0 <SimpleBranch>
-; CHECK-NEXT: hlt

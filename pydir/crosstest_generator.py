@@ -107,6 +107,8 @@ def main():
                            '{root}/toolchain/linux_x86/pnacl_newlib_raw/bin'
                          ).format(root=root),
                          help='Path to toolchain binaries.')
+  argparser.add_argument('--filetype', default=None, dest='filetype',
+                         help='File type override, one of {asm, iasm, obj}.')
   args = argparser.parse_args()
 
   # Run from the crosstest directory to make it easy to grab inputs.
@@ -152,6 +154,8 @@ def main():
                 attr=attr)
               extra = (tests.get(test, 'flags').split(' ')
                        if tests.has_option(test, 'flags') else [])
+              if args.filetype:
+                extra += ['--filetype={ftype}'.format(ftype=args.filetype)]
               # Generate the compile command.
               cmp_cmd = (
                 ['{path}/crosstest.py'.format(path=pypath),

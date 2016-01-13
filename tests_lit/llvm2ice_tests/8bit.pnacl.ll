@@ -353,7 +353,7 @@ entry:
   ret i32 %ret_ext
 }
 ; CHECK-LABEL: load_i8_global
-; CHECK: mov {{[a-d]l}},BYTE PTR
+; CHECK: mov {{[a-d]l}},{{(BYTE PTR)?}}
 
 define void @store_i8(i32 %addr_arg, i32 %val) {
 entry:
