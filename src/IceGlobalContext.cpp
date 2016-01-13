@@ -26,10 +26,16 @@
 #include "IceTimerTree.h"
 #include "IceTypes.h"
 
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-parameter"
+#endif // __clang__
+
 #include "llvm/Support/Timer.h"
+
+#ifdef __clang__
 #pragma clang diagnostic pop
+#endif // __clang__
 
 #include <algorithm> // max()
 #include <cctype>    // isdigit(), isupper()

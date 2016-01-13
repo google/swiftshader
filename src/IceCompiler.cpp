@@ -27,8 +27,11 @@
 #include "IceELFObjectWriter.h"
 #include "PNaClTranslator.h"
 
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-parameter"
+#endif // __clang__
+
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/Bitcode/NaCl/NaClReaderWriter.h"
 #include "llvm/IR/LLVMContext.h"
@@ -37,9 +40,11 @@
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/StreamingMemoryObject.h"
 
-#include <regex>
-
+#ifdef __clang__
 #pragma clang diagnostic pop
+#endif // __clang__
+
+#include <regex>
 
 namespace Ice {
 

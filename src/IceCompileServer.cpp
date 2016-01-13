@@ -19,15 +19,21 @@
 #include "IceELFStreamer.h"
 #include "IceGlobalContext.h"
 
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-parameter"
+#endif // __clang__
+
 #include "llvm/Bitcode/NaCl/NaClBitcodeMungeUtils.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/raw_os_ostream.h"
 #include "llvm/Support/Signals.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/StreamingMemoryObject.h"
+
+#ifdef __clang__
 #pragma clang diagnostic pop
+#endif // __clang__
 
 #include <cstdio>
 #include <fstream>

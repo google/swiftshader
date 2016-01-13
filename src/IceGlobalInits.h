@@ -23,13 +23,19 @@
 #include "IceGlobalContext.h"
 #include "IceTypes.h"
 
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-parameter"
 #pragma clang diagnostic ignored "-Wredundant-move"
+#endif // __clang__
+
 #include "llvm/Bitcode/NaCl/NaClBitcodeParser.h" // for NaClBitcodeRecord.
 #include "llvm/IR/CallingConv.h"
 #include "llvm/IR/GlobalValue.h" // for GlobalValue::LinkageTypes.
+
+#ifdef __clang__
 #pragma clang diagnostic pop
+#endif // __clang__
 
 #include <memory>
 #include <utility>

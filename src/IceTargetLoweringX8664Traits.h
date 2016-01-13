@@ -132,7 +132,10 @@ struct TargetX8664Traits {
 
     int32_t disp32() const {
       assert(length_ >= 5);
-      return bit_copy<int32_t>(encoding_[length_ - 4]);
+      // TODO(stichnot): This method is not currently used.  Delete it along
+      // with other unused methods, or use a safe version of bitCopy().
+      llvm::report_fatal_error("Unexpected call to disp32()");
+      // return Utils::bitCopy<int32_t>(encoding_[length_ - 4]);
     }
 
     AssemblerFixup *fixup() const { return fixup_; }

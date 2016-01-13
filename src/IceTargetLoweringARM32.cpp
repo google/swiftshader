@@ -2623,6 +2623,7 @@ public:
     case AO_Sub:
       return false;
     }
+    llvm_unreachable("(silence g++ warning)");
   }
 
   uint32_t shAmt() const { return ShAmt; }
@@ -3767,11 +3768,11 @@ enum {
       _fcmp_hl_NUM
 };
 
-static_assert(_fcmp_hl_NUM == _fcmp_ll_NUM,
+static_assert((uint32_t)_fcmp_hl_NUM == (uint32_t)_fcmp_ll_NUM,
               "Inconsistency between high-level and low-level fcmp tags.");
 #define X(tag, str)                                                            \
   static_assert(                                                               \
-      _fcmp_hl_##tag == _fcmp_ll_##tag,                                        \
+      (uint32_t)_fcmp_hl_##tag == (uint32_t)_fcmp_ll_##tag,                    \
       "Inconsistency between high-level and low-level fcmp tag " #tag);
 ICEINSTFCMP_TABLE
 #undef X
@@ -6302,7 +6303,7 @@ template <> struct ConstantPoolEmitterTraits<float> {
   static uint64_t bitcastToUint64(float Value) {
     static_assert(sizeof(Value) == sizeof(uint32_t),
                   "Float should be 4 bytes.");
-    uint32_t IntValue = *reinterpret_cast<uint32_t *>(&Value);
+    const uint32_t IntValue = Utils::bitCopy<uint32_t>(Value);
     return static_cast<uint64_t>(IntValue);
   }
 };
@@ -6317,7 +6318,7 @@ template <> struct ConstantPoolEmitterTraits<double> {
   static uint64_t bitcastToUint64(double Value) {
     static_assert(sizeof(double) == sizeof(uint64_t),
                   "Double should be 8 bytes.");
-    return *reinterpret_cast<uint64_t *>(&Value);
+    return Utils::bitCopy<uint64_t>(Value);
   }
 };
 const char ConstantPoolEmitterTraits<double>::AsmTag[] = ".quad";

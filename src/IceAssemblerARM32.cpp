@@ -387,6 +387,7 @@ IValueT encodeImmRegOffset(OpEncoding AddressEncoding, IValueT Reg,
     assert(Mode == OperandARM32Mem::Offset);
     return Reg << kRnShift;
   }
+  llvm_unreachable("(silence g++ warning)");
 }
 
 // Encodes memory address Opnd, and encodes that information into Value, based

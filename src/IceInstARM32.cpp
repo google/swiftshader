@@ -347,7 +347,7 @@ bool OperandARM32FlexFpImm::canHoldImm(Operand *C, uint32_t *ModifiedImm) {
     static_assert(AllowedBits == 0xFFF80000u,
                   "Invalid mask for f32 modified immediates.");
     const float F32 = llvm::cast<ConstantFloat>(C)->getValue();
-    const uint32_t I32 = *reinterpret_cast<const uint32_t *>(&F32);
+    const uint32_t I32 = Utils::bitCopy<uint32_t>(F32);
     if (I32 & ~AllowedBits) {
       // constant has disallowed bits.
       return false;
@@ -376,7 +376,7 @@ bool OperandARM32FlexFpImm::canHoldImm(Operand *C, uint32_t *ModifiedImm) {
     static_assert(AllowedBits == 0xFFFF0000u,
                   "Invalid mask for f64 modified immediates.");
     const double F64 = llvm::cast<ConstantDouble>(C)->getValue();
-    const uint64_t I64 = *reinterpret_cast<const uint64_t *>(&F64);
+    const uint64_t I64 = Utils::bitCopy<uint64_t>(F64);
     if (I64 & 0xFFFFFFFFu) {
       // constant has disallowed bits.
       return false;
@@ -2100,7 +2100,7 @@ float materializeFloatImmediate(uint32_t ModifiedImm) {
   const uint32_t Ret = ((ModifiedImm & a) ? 0x80000000 : 0) |
                        ((ModifiedImm & b) ? 0x3E000000 : 0x40000000) |
                        ((ModifiedImm & cdefgh) << 19);
-  return *reinterpret_cast<const float *>(&Ret);
+  return Utils::bitCopy<float>(Ret);
 }
 
 } // end of anonymous namespace

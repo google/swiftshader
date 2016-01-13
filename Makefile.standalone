@@ -189,9 +189,14 @@ LLVM_EXTRA_WARNINGS := -Wcovered-switch-default
 ifdef GPLUSPLUS
   CXX := CCACHE_CPP2=yes $(CCACHE) g++
   STDLIB_FLAGS :=
-  LLVM_EXTRA_WARNINGS := -Wno-unknown-pragmas -Wno-unused-parameter \
-                         -Wno-comment -Wno-enum-compare -Wno-strict-aliasing \
-                         -Wno-return-type
+  LLVM_EXTRA_WARNINGS := \
+    -Wcast-qual \
+    -Wno-comment \
+    -Wno-long-long \
+    -Wno-maybe-uninitialized \
+    -Wno-missing-field-initializers \
+    -Wno-unused-parameter \
+    -Wwrite-strings
   OBJDIR := $(OBJDIR)+Gplusplus
 endif
 

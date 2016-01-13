@@ -23,8 +23,11 @@
 #include "IceInst.h"
 #include "IceOperand.h"
 
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-parameter"
+#endif // __clang__
+
 #include "llvm/ADT/Hashing.h"
 #include "llvm/ADT/SmallString.h"
 #include "llvm/Bitcode/NaCl/NaClBitcodeDecoders.h"
@@ -35,8 +38,12 @@
 #include "llvm/Support/Format.h"
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/raw_ostream.h"
-#include <unordered_set>
+
+#ifdef __clang__
 #pragma clang diagnostic pop
+#endif // __clang__
+
+#include <unordered_set>
 
 // Define a hash function for SmallString's, so that it can be used in hash
 // tables.
@@ -190,7 +197,7 @@ public:
                   "IntType and FpType should be the same width");
     assert(BitWidth == sizeof(IntType) * CHAR_BIT);
     auto V = static_cast<IntType>(Val);
-    return reinterpret_cast<FpType &>(V);
+    return Ice::Utils::bitCopy<FpType>(V);
   }
 
 private:

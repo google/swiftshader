@@ -526,6 +526,7 @@ void CfgNode::advancedPhiLowering() {
           }
         }
         assert(Found);
+        (void)Found;
       }
       // Now that a cycle (if any) has been broken, create the actual
       // assignment.

@@ -26,8 +26,11 @@
 #include "IceTypes.h"
 #include "IceTypeConverter.h"
 
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-parameter"
+#endif // __clang__
+
 #include "llvm/IR/Constant.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DataLayout.h"
@@ -35,7 +38,10 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
+
+#ifdef __clang__
 #pragma clang diagnostic pop
+#endif // __clang__
 
 // TODO(kschimpf): Remove two namespaces being visible at once.
 using namespace llvm;
