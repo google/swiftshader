@@ -27,31 +27,22 @@ namespace sw
 
 		virtual ~QuadRasterizer();
 
-		struct Registers
-		{
-			Registers();
-			virtual ~Registers() {};
+		Pointer<Byte> constants;
+		Pointer<Byte> primitive;
+		Pointer<Byte> data;
 
-			Pointer<Byte> constants;
+		Float4 Dz[4];
+		Float4 Dw;
+		Float4 Dv[10][4];
+		Float4 Df;
 
-			Pointer<Byte> primitive;
-			Int cluster;
-			Pointer<Byte> data;
-
-			Float4 Dz[4];
-			Float4 Dw;
-			Float4 Dv[10][4];
-			Float4 Df;
-
-			UInt occlusion;
+		UInt occlusion;
 
 #if PERF_PROFILE
-			Long cycles[PERF_TIMERS];
+		Long cycles[PERF_TIMERS];
 #endif
-		};
 
-		virtual void quad(Registers &r, Pointer<Byte> cBuffer[4], Pointer<Byte> &zBuffer, Pointer<Byte> &sBuffer, Int cMask[4], Int &x, Int &y) = 0;
-		virtual Registers* createRegisters(const PixelShader *shader) = 0;
+		virtual void quad(Pointer<Byte> cBuffer[4], Pointer<Byte> &zBuffer, Pointer<Byte> &sBuffer, Int cMask[4], Int &x, Int &y) = 0;
 
 		bool interpolateZ() const;
 		bool interpolateW() const;
@@ -62,7 +53,7 @@ namespace sw
 	private:
 		void generate();
 
-		void rasterize(Registers &r, Int &yMin, Int &yMax);
+		void rasterize(Int &yMin, Int &yMax);
 	};
 }
 

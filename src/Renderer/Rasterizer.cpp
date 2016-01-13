@@ -20,9 +20,4 @@ namespace sw
 	Rasterizer::~Rasterizer()
 	{
 	}
-
-	Routine *Rasterizer::getRoutine()
-	{
-		return routine;
-	}
 }

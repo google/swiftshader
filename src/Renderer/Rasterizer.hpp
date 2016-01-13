@@ -19,7 +19,7 @@
 
 namespace sw
 {
-	class Rasterizer
+	class Rasterizer : public Function<Void(Pointer<Byte>, Int, Int, Pointer<Byte>)>
 	{
 	public:
 		Rasterizer(const PixelProcessor::State &state);
@@ -27,11 +27,8 @@ namespace sw
 		virtual ~Rasterizer();
 
 		virtual void generate() = 0;
-		Routine *getRoutine();
 
 	protected:
-		Routine *routine;
-
 		const PixelProcessor::State &state;
 	};
 }
