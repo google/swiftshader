@@ -120,7 +120,7 @@ namespace sw
 
 		struct VS
 		{
-			float4 c[256 + 1];   // One extra for indices out of range, c[256] = {0, 0, 0, 0}
+			float4 c[VERTEX_UNIFORM_VECTORS + 1];   // One extra for indices out of range, c[VERTEX_UNIFORM_VECTORS] = {0, 0, 0, 0}
 			int4 i[16];
 			bool b[16];
 		};

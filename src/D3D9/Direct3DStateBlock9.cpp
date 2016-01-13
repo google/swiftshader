@@ -248,7 +248,7 @@ namespace D3D9
 			device->SetViewport(&viewport);
 		}
 
-		for(int i = 0; i < 224; i++)
+		for(int i = 0; i < FRAGMENT_UNIFORM_VECTORS; i++)
 		{
 			if(*(int*)pixelShaderConstantF[i] != 0x80000000)
 			{
@@ -272,7 +272,7 @@ namespace D3D9
 			}
 		}
 
-		for(int i = 0; i < 256; i++)
+		for(int i = 0; i < VERTEX_UNIFORM_VECTORS; i++)
 		{
 			if(*(int*)vertexShaderConstantF[i] != 0x80000000)
 			{
@@ -525,7 +525,7 @@ namespace D3D9
 			device->GetViewport(&viewport);
 		}
 
-		for(int i = 0; i < 224; i++)
+		for(int i = 0; i < FRAGMENT_UNIFORM_VECTORS; i++)
 		{
 			if(*(int*)pixelShaderConstantF[i] != 0x80000000)
 			{
@@ -549,7 +549,7 @@ namespace D3D9
 			}
 		}
 
-		for(int i = 0; i < 256; i++)
+		for(int i = 0; i < VERTEX_UNIFORM_VECTORS; i++)
 		{
 			if(*(int*)vertexShaderConstantF[i] != 0x80000000)
 			{
@@ -872,7 +872,7 @@ namespace D3D9
 
 		viewportCaptured = false;
 
-		for(int i = 0; i < 224; i++)
+		for(int i = 0; i < FRAGMENT_UNIFORM_VECTORS; i++)
 		{
 			(int&)pixelShaderConstantF[i][0] = 0x80000000;
 			(int&)pixelShaderConstantF[i][1] = 0x80000000;
@@ -880,7 +880,7 @@ namespace D3D9
 			(int&)pixelShaderConstantF[i][3] = 0x80000000;
 		}
 
-		for(int i = 0; i < 256; i++)
+		for(int i = 0; i < VERTEX_UNIFORM_VECTORS; i++)
 		{
 			(int&)vertexShaderConstantF[i][0] = 0x80000000;
 			(int&)vertexShaderConstantF[i][1] = 0x80000000;
@@ -1213,7 +1213,7 @@ namespace D3D9
 			vertexShader->Release();
 		}
 
-		device->GetVertexShaderConstantF(0, vertexShaderConstantF[0], 256);
+		device->GetVertexShaderConstantF(0, vertexShaderConstantF[0], VERTEX_UNIFORM_VECTORS);
 		device->GetVertexShaderConstantI(0, vertexShaderConstantI[0], 16);
 		device->GetVertexShaderConstantB(0, vertexShaderConstantB, 16);		
 	}

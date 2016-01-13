@@ -837,7 +837,7 @@ namespace sw
 
 				Int4 index = Int4(i) + As<Int4>(a) * Int4(src.rel.scale);
 
-				index = Min(As<UInt4>(index), UInt4(256));   // Clamp to constant register range, c[256] = {0, 0, 0, 0}
+				index = Min(As<UInt4>(index), UInt4(VERTEX_UNIFORM_VECTORS));   // Clamp to constant register range, c[VERTEX_UNIFORM_VECTORS] = {0, 0, 0, 0}
 				
 				Int index0 = Extract(index, 0);
 				Int index1 = Extract(index, 1);

@@ -126,7 +126,7 @@ namespace sw
 
 	void VertexProcessor::setFloatConstant(unsigned int index, const float value[4])
 	{
-		if(index < 256)
+		if(index < VERTEX_UNIFORM_VECTORS)
 		{
 			c[index][0] = value[0];
 			c[index][1] = value[1];
