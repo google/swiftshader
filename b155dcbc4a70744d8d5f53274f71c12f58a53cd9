@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "07f87ad1_63bd227f",
+        "filename": "src/OpenGL/libGL/VertexDataManager.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-14T16:13:22Z",
+      "side": 1,
+      "message": "I think I changed this from UINT_MAX to -1 and back to UINT_MAX. I hope using ~0 settles it, although it\u0027s not immediately obvious that it\u0027s the largest possible unsigned value.",
+      "range": {
+        "startLine": 74,
+        "startChar": 15,
+        "endLine": 74,
+        "endChar": 17
+      },
+      "revId": "b155dcbc4a70744d8d5f53274f71c12f58a53cd9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
