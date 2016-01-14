@@ -53,16 +53,16 @@ namespace sw
 				Long pixelTime = Ticks();
 			#endif
 
-			Pointer<Byte> primitive(function.arg(0));
-			Int count(function.arg(1));
-			Int cluster(function.arg(2));
-			Pointer<Byte> data(function.arg(3));
+			Pointer<Byte> primitive(function.Arg<0>());
+			Int count(function.Arg<1>());
+			Int cluster(function.Arg<2>());
+			Pointer<Byte> data(function.Arg<3>());
 
 			Registers& r = *createRegisters(shader);
 			r.constants = *Pointer<Pointer<Byte> >(data + OFFSET(DrawData,constants));
 			r.cluster = cluster;
 			r.data = data;
-			
+
 			Do
 			{
 				r.primitive = primitive;
@@ -134,20 +134,20 @@ namespace sw
 		}
 
 		Int y = yMin;
-		
+
 		Do
 		{
 			Int x0a = Int(*Pointer<Short>(r.primitive + OFFSET(Primitive,outline->left) + (y + 0) * sizeof(Primitive::Span)));
 			Int x0b = Int(*Pointer<Short>(r.primitive + OFFSET(Primitive,outline->left) + (y + 1) * sizeof(Primitive::Span)));
 			Int x0 = Min(x0a, x0b);
-			
+
 			for(unsigned int q = 1; q < state.multiSample; q++)
 			{
 				x0a = Int(*Pointer<Short>(r.primitive + q * sizeof(Primitive) + OFFSET(Primitive,outline->left) + (y + 0) * sizeof(Primitive::Span)));
 				x0b = Int(*Pointer<Short>(r.primitive + q * sizeof(Primitive) + OFFSET(Primitive,outline->left) + (y + 1) * sizeof(Primitive::Span)));
 				x0 = Min(x0, Min(x0a, x0b));
 			}
-			
+
 			x0 &= 0xFFFFFFFE;
 
 			Int x1a = Int(*Pointer<Short>(r.primitive + OFFSET(Primitive,outline->right) + (y + 0) * sizeof(Primitive::Span)));
@@ -193,7 +193,7 @@ namespace sw
 						pitch = *Pointer<Int>(r.data + OFFSET(DrawData,depthPitchB));
 					}
 					else
-					{	
+					{
 						buffer = zBuffer + 8 * x0;
 					}
 
@@ -202,7 +202,7 @@ namespace sw
 						Float4 z = interpolate(xxxx, r.Dz[0], z, r.primitive + OFFSET(Primitive,z), false, false);
 
 						Float4 zValue;
-						
+
 						if(!state.quadLayoutDepthBuffer)
 						{
 							// FIXME: Properly optimizes?

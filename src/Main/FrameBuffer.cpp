@@ -236,8 +236,8 @@ namespace sw
 
 		Function<Void(Pointer<Byte>, Pointer<Byte>)> function;
 		{
-			Pointer<Byte> dst(function.arg(0));
-			Pointer<Byte> src(function.arg(1));
+			Pointer<Byte> dst(function.Arg<0>());
+			Pointer<Byte> src(function.Arg<1>());
 
 			For(Int y = 0, y < height, y++)
 			{
