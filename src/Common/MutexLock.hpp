@@ -112,10 +112,14 @@ namespace sw
 		}
 
 	private:
-		// Ensure that the mutex variable is on its own 64-byte cache line to avoid false sharing
-		volatile int a[16];
-		volatile int mutex;
-		volatile int b[15];
+		struct
+		{
+			// Ensure that the mutex variable is on its own 64-byte cache line to avoid false sharing
+			// Padding must be public to avoid compiler warnings
+			volatile int padding1[16];
+			volatile int mutex;
+			volatile int padding2[15];
+		};
 	};
 }
 
