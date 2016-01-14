@@ -22,6 +22,30 @@
       "revId": "b155dcbc4a70744d8d5f53274f71c12f58a53cd9",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "07f87ad1_83849ec8",
+        "filename": "src/OpenGL/libGL/VertexDataManager.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-01-14T16:16:06Z",
+      "side": 1,
+      "message": "I think GL_INVALID_INDEX would also work (not necessarily using GL_INVALID_INDEX directly, but the 0xFFFFFFFFu value)",
+      "parentUuid": "07f87ad1_63bd227f",
+      "range": {
+        "startLine": 74,
+        "startChar": 15,
+        "endLine": 74,
+        "endChar": 17
+      },
+      "revId": "b155dcbc4a70744d8d5f53274f71c12f58a53cd9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
