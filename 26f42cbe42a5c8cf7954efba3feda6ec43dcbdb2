@@ -22,6 +22,30 @@
       "revId": "26f42cbe42a5c8cf7954efba3feda6ec43dcbdb2",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "07f87ad1_638082e3",
+        "filename": "src/Reactor/Nucleus.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 2930,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-14T14:17:01Z",
+      "side": 1,
+      "message": "C++11 supports variadic template arguments (i.e. types). It just expands them into a list when applying the ellipsis.\n\nBut you can also create expressions with them (do any supported operation on their type) and *then* use the ellipsis to expand. Note that this is still just the compiler rewriting it as a (comma separated) list. It\u0027s not an array yet. The braces turn it into a good old \"member initializer list\" for the array on the left.\n\nMore recent compilers also support this:\nstd::vector\u003cllvm::Types*\u003e arguments \u003d {Arguments::getType()...};\n\nWhich doesn\u0027t need the explicit loop we\u0027re using below. But this relies on the right hand side to be recognized as an std::initializer_list, which is recognized by STL containers for initialization. Apparently the Jelly Bean toolchain isn\u0027t fully C++11. Using an explicitly typed array on the left makes the compiler not have to guess anything and just use it as a regular member initializer list. They\u0027re two different things with the same syntax.\n\nA fully compliant compiler would also support this:\nauto expand \u003d { (arguments.push_back(Arguments::getType()), 0)... };\n\nHere you\u0027re not even using the left hand side. The expression in parenthesis gets expanded for each argument type, and contains a push_back() which itself doesn\u0027t return anything, but the \", 0\" turns it into an expression. The potential advantage is that there\u0027s no need to construct a new STL container from the initializer_list.",
+      "parentUuid": "07f87ad1_c390563a",
+      "range": {
+        "startLine": 2930,
+        "startChar": 25,
+        "endLine": 2930,
+        "endChar": 48
+      },
+      "revId": "26f42cbe42a5c8cf7954efba3feda6ec43dcbdb2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
