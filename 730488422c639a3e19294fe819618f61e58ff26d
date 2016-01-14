@@ -22,6 +22,30 @@
       "revId": "730488422c639a3e19294fe819618f61e58ff26d",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "07f87ad1_e3fa3264",
+        "filename": "src/Reactor/Nucleus.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 6768,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-14T15:53:36Z",
+      "side": 1,
+      "message": "C++11 must support this without mistaking it for a shift operator. From a purely style point of view I think the space made it look more like a larger-than in the middle of a statement. Also, a real shift operator would have spaces on both sides. So I don\u0027t think there\u0027s a risk of having more confusion than before.",
+      "parentUuid": "07f87ad1_c3d616ec",
+      "range": {
+        "startLine": 6768,
+        "startChar": 20,
+        "endLine": 6768,
+        "endChar": 22
+      },
+      "revId": "730488422c639a3e19294fe819618f61e58ff26d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
