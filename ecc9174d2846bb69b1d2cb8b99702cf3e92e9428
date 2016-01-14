@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "07f87ad1_a3a9da4d",
+        "filename": "src/Renderer/Renderer.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-14T16:01:04Z",
+      "side": 1,
+      "message": "See https://swiftshader.googlesource.com/SwiftShader/+/773b67af231c0d3a154270d26b49aa3b1a7c4ee5/src/Shader/VertexProgram.cpp#840",
+      "range": {
+        "startLine": 123,
+        "startChar": 84,
+        "endLine": 123,
+        "endChar": 87
+      },
+      "revId": "ecc9174d2846bb69b1d2cb8b99702cf3e92e9428",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
