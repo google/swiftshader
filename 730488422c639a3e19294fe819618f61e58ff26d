@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "07f87ad1_c3d616ec",
+        "filename": "src/Reactor/Nucleus.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 6768,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-01-14T15:34:14Z",
+      "side": 1,
+      "message": "It\u0027s no longer good practice to add a space here to avoid confusion with the \u003e\u003e operator?",
+      "range": {
+        "startLine": 6768,
+        "startChar": 20,
+        "endLine": 6768,
+        "endChar": 22
+      },
+      "revId": "730488422c639a3e19294fe819618f61e58ff26d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
