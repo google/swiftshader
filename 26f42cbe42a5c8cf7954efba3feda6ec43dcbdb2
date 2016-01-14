@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "07f87ad1_c390563a",
+        "filename": "src/Reactor/Nucleus.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 2930,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-01-14T13:23:16Z",
+      "side": 1,
+      "message": "Woah, what is this C++ feature? You can make a (static) function call on a list of classes to return an array? I\u0027m just curious here.",
+      "range": {
+        "startLine": 2930,
+        "startChar": 25,
+        "endLine": 2930,
+        "endChar": 48
+      },
+      "revId": "26f42cbe42a5c8cf7954efba3feda6ec43dcbdb2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
