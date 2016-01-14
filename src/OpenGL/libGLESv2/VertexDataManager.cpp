@@ -62,7 +62,7 @@ unsigned int VertexDataManager::writeAttributeData(StreamingVertexBuffer *vertex
     unsigned int streamOffset = 0;
 
     char *output = nullptr;
-    
+
     if(vertexBuffer)
     {
         output = (char*)vertexBuffer->map(attribute, attribute.typeSize() * count, &streamOffset);
@@ -71,7 +71,7 @@ unsigned int VertexDataManager::writeAttributeData(StreamingVertexBuffer *vertex
     if(!output)
     {
         ERR("Failed to map vertex buffer.");
-        return UINT_MAX;
+        return ~0u;
     }
 
     const char *input = nullptr;
@@ -135,7 +135,7 @@ GLenum VertexDataManager::prepareVertexData(GLint start, GLsizei count, Translat
     }
 
     mStreamingBuffer->reserveRequiredSpace();
-    
+
     // Perform the vertex data translations
     for(int i = 0; i < MAX_VERTEX_ATTRIBS; i++)
     {
@@ -171,7 +171,7 @@ GLenum VertexDataManager::prepareVertexData(GLint start, GLsizei count, Translat
                 {
                     unsigned int streamOffset = writeAttributeData(mStreamingBuffer, firstVertexIndex, isInstanced ? 1 : count, attrib);
 
-					if(streamOffset == UINT_MAX)
+					if(streamOffset == ~0u)
 					{
 						return GL_OUT_OF_MEMORY;
 					}
@@ -256,7 +256,7 @@ ConstantVertexBuffer::ConstantVertexBuffer(float x, float y, float z, float w) :
     if(mVertexBuffer)
     {
 		float *vector = (float*)mVertexBuffer->lock(sw::PUBLIC);
-     
+
         vector[0] = x;
         vector[1] = y;
         vector[2] = z;

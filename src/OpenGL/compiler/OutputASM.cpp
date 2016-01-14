@@ -466,7 +466,7 @@ namespace glsl
 		const TType &leftType = left->getType();
 		const TType &rightType = right->getType();
 		const TType &resultType = node->getType();
-		
+
 		switch(node->getOp())
 		{
 		case EOpAssign:
@@ -1218,7 +1218,7 @@ namespace glsl
 					{
 						TIntermTyped *argument = arguments[i]->getAsTyped();
 						TIntermTyped *out = arg[i]->getAsTyped();
-								
+
 						if(argument->getQualifier() == EvqOut ||
 						   argument->getQualifier() == EvqInOut)
 						{
@@ -1284,7 +1284,7 @@ namespace glsl
 								Instruction *bias = emit(sw::Shader::OPCODE_MOV, &proj, arg[textureFunction.offset ? 3 : 2]);
 								bias->dst.mask = 0x8;
 
-								Instruction *tex = emit(textureFunction.offset ? sw::Shader::OPCODE_TEXOFFSET : sw::Shader::OPCODE_TEX, 
+								Instruction *tex = emit(textureFunction.offset ? sw::Shader::OPCODE_TEXOFFSET : sw::Shader::OPCODE_TEX,
 								                        result, &proj, arg[0], offset); // FIXME: Implement an efficient TEXLDB instruction
 								tex->bias = true;
 							}
@@ -1725,7 +1725,7 @@ namespace glsl
 		TIntermTyped *condition = node->getCondition();
 		TIntermTyped *expression = node->getExpression();
 		TIntermNode *body = node->getBody();
-		
+
 		if(node->getType() == ELoopDoWhile)
 		{
 			Temporary iterate(this);
@@ -1997,7 +1997,7 @@ namespace glsl
 		{
 			return registers * type.registerSize();
 		}
-		
+
 		UNREACHABLE(0);
 		return 0;
 	}
@@ -2029,7 +2029,7 @@ namespace glsl
 			for(TFieldList::const_iterator field = fields.begin(); field != fields.end(); field++)
 			{
 				const TType &fieldType = *((*field)->type());
-				
+
 				if(fieldType.totalRegisterCount() <= registers)
 				{
 					registers -= fieldType.totalRegisterCount();
@@ -2045,7 +2045,7 @@ namespace glsl
 		{
 			return registerSize(type, 0);
 		}
-		
+
 		UNREACHABLE(0);
 		return 0;
 	}
@@ -2166,7 +2166,7 @@ namespace glsl
 		if(binary && binary->getOp() == EOpIndexIndirect && dst->isScalar())
 		{
 			Instruction *insert = new Instruction(sw::Shader::OPCODE_INSERT);
-			
+
 			Temporary address(this);
 			lvalue(insert->dst, address, dst);
 
@@ -2183,7 +2183,7 @@ namespace glsl
 			for(int offset = 0; offset < dst->totalRegisterCount(); offset++)
 			{
 				Instruction *mov = new Instruction(sw::Shader::OPCODE_MOV);
-			
+
 				Temporary address(this);
 				int swizzle = lvalue(mov->dst, address, dst);
 				mov->dst.index += offset;
@@ -2223,7 +2223,7 @@ namespace glsl
 					if(left->isRegister())
 					{
 						int leftMask = dst.mask;
-						
+
 						dst.mask = 1;
 						while((leftMask & dst.mask) == 0)
 						{
@@ -2232,7 +2232,7 @@ namespace glsl
 
 						int element = swizzleElement(leftSwizzle, rightIndex);
 						dst.mask = 1 << element;
-						
+
 						return element;
 					}
 					else if(left->isArray() || left->isMatrix())
@@ -2346,7 +2346,7 @@ namespace glsl
 						rightMask = rightMask | (1 << element);
 						swizzle = swizzle | swizzleElement(leftSwizzle, i) << (element * 2);
 					}
-					
+
 					dst.mask = leftMask & rightMask;
 
 					return swizzle;
@@ -2399,7 +2399,7 @@ namespace glsl
 		case EvqVertexOut:           return sw::Shader::PARAMETER_OUTPUT;
 		case EvqFragmentIn:          return sw::Shader::PARAMETER_INPUT;
 		case EvqInvariantVaryingIn:  return sw::Shader::PARAMETER_INPUT;    // FIXME: Guarantee invariance at the backend
-		case EvqInvariantVaryingOut: return sw::Shader::PARAMETER_OUTPUT;   // FIXME: Guarantee invariance at the backend 
+		case EvqInvariantVaryingOut: return sw::Shader::PARAMETER_OUTPUT;   // FIXME: Guarantee invariance at the backend
 		case EvqSmooth:              return sw::Shader::PARAMETER_OUTPUT;
 		case EvqFlat:                return sw::Shader::PARAMETER_OUTPUT;
 		case EvqCentroidOut:         return sw::Shader::PARAMETER_OUTPUT;
@@ -2600,7 +2600,7 @@ namespace glsl
 
 		return 0;
 	}
-	
+
 	int OutputASM::temporaryRegister(TIntermTyped *temporary)
 	{
 		return allocate(temporaries, temporary);
@@ -2689,7 +2689,7 @@ namespace glsl
 			const TType &type = varying->getType();
 			const char *name = varying->getAsSymbolNode()->getSymbol().c_str();
 			VaryingList &activeVaryings = shaderObject->varyings;
-			
+
 			// Check if this varying has been declared before without having a register assigned
 			for(VaryingList::iterator v = activeVaryings.begin(); v != activeVaryings.end(); v++)
 			{
@@ -2704,7 +2704,7 @@ namespace glsl
 					return;
 				}
 			}
-			
+
 			activeVaryings.push_back(glsl::Varying(glVariableType(type), name, varying->getArraySize(), reg, 0));
 		}
 	}
@@ -3227,7 +3227,7 @@ namespace glsl
 		return matrix->getSecondarySize();
 	}
 
-	// Returns ~0 if no loop count could be determined
+	// Returns ~0u if no loop count could be determined
 	unsigned int OutputASM::loopCount(TIntermLoop *node)
 	{
 		// Parse loops of the form:
@@ -3353,16 +3353,16 @@ namespace glsl
 			else UNIMPLEMENTED();   // Falls through
 		}
 
-		return ~0;
+		return ~0u;
 	}
 
 	bool DetectLoopDiscontinuity::traverse(TIntermNode *node)
 	{
 		loopDepth = 0;
 		loopDiscontinuity = false;
-		
+
 		node->traverse(this);
-		
+
 		return loopDiscontinuity;
 	}
 
@@ -3391,7 +3391,7 @@ namespace glsl
 		{
 			return true;
 		}
-	
+
 		switch(node->getFlowOp())
 		{
 		case EOpKill:
