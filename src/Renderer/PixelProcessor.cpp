@@ -1095,7 +1095,7 @@ namespace sw
 		if(!routine)
 		{
 			const bool integerPipeline = (context->pixelShaderVersion() <= 0x0104);
-			Rasterizer *generator = nullptr;
+			QuadRasterizer *generator = nullptr;
 
 			if(integerPipeline)
 			{

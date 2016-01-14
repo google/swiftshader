@@ -55,7 +55,6 @@ COMMON_SRC_FILES += \
 	Renderer/Plane.cpp \
 	Renderer/Point.cpp \
 	Renderer/QuadRasterizer.cpp \
-	Renderer/Rasterizer.cpp \
 	Renderer/Renderer.cpp \
 	Renderer/Sampler.cpp \
 	Renderer/SetupProcessor.cpp \

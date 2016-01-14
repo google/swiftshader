@@ -22,14 +22,15 @@ namespace sw
 {
 	class QuadRasterizer : public Rasterizer
 	{
-	protected:
+	public:
 		QuadRasterizer(const PixelProcessor::State &state, const PixelShader *shader);
-
 		virtual ~QuadRasterizer();
 
+		void generate();
+
+	protected:
+
 		Pointer<Byte> constants;
-		Pointer<Byte> primitive;
-		Pointer<Byte> data;
 
 		Float4 Dz[4];
 		Float4 Dw;
@@ -48,11 +49,10 @@ namespace sw
 		bool interpolateW() const;
 		Float4 interpolate(Float4 &x, Float4 &D, Float4 &rhw, Pointer<Byte> planeEquation, bool flat, bool perspective);
 
+		const PixelProcessor::State &state;
 		const PixelShader *const shader;
 
 	private:
-		void generate();
-
 		void rasterize(Int &yMin, Int &yMax);
 	};
 }
