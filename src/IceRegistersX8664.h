@@ -27,8 +27,8 @@ public:
   /// to binary encode register operands in instructions.
   enum AllRegisters {
 #define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
-          isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
-          isTrunc8Rcvr, isAhRcvr, aliases)                                     \
+          sboxres, isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8,      \
+          is16To8, isTrunc8Rcvr, isAhRcvr, aliases)                            \
   val,
     REGX8664_TABLE
 #undef X
@@ -39,8 +39,8 @@ public:
   /// binary encode register operands in instructions.
   enum GPRRegister {
 #define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
-          isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
-          isTrunc8Rcvr, isAhRcvr, aliases)                                     \
+          sboxres, isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8,      \
+          is16To8, isTrunc8Rcvr, isAhRcvr, aliases)                            \
   Encoded_##val = encode,
     REGX8664_GPR_TABLE
 #undef X
@@ -51,8 +51,8 @@ public:
   /// binary encode register operands in instructions.
   enum XmmRegister {
 #define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
-          isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
-          isTrunc8Rcvr, isAhRcvr, aliases)                                     \
+          sboxres, isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8,      \
+          is16To8, isTrunc8Rcvr, isAhRcvr, aliases)                            \
   Encoded_##val = encode,
     REGX8664_XMM_TABLE
 #undef X
@@ -63,8 +63,8 @@ public:
   /// binary encode register operands in instructions.
   enum ByteRegister {
 #define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
-          isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
-          isTrunc8Rcvr, isAhRcvr, aliases)                                     \
+          sboxres, isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8,      \
+          is16To8, isTrunc8Rcvr, isAhRcvr, aliases)                            \
   Encoded_8_##val = encode,
     REGX8664_BYTEREG_TABLE
 #undef X

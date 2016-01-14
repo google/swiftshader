@@ -304,8 +304,8 @@ struct TargetX8664Traits {
   static IceString getRegName(int32_t RegNum) {
     static const char *const RegNames[RegisterSet::Reg_NUM] = {
 #define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
-          isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
-          isTrunc8Rcvr, isAhRcvr, aliases)                                     \
+          sboxres, isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8,      \
+          is16To8, isTrunc8Rcvr, isAhRcvr, aliases)                            \
   name,
         REGX8664_TABLE
 #undef X
@@ -318,8 +318,8 @@ struct TargetX8664Traits {
   static GPRRegister getEncodedGPR(int32_t RegNum) {
     static const GPRRegister GPRRegs[RegisterSet::Reg_NUM] = {
 #define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
-          isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
-          isTrunc8Rcvr, isAhRcvr, aliases)                                     \
+          sboxres, isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8,      \
+          is16To8, isTrunc8Rcvr, isAhRcvr, aliases)                            \
   GPRRegister(isGPR ? encode : GPRRegister::Encoded_Not_GPR),
         REGX8664_TABLE
 #undef X
@@ -333,8 +333,8 @@ struct TargetX8664Traits {
   static ByteRegister getEncodedByteReg(int32_t RegNum) {
     static const ByteRegister ByteRegs[RegisterSet::Reg_NUM] = {
 #define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
-          isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
-          isTrunc8Rcvr, isAhRcvr, aliases)                                     \
+          sboxres, isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8,      \
+          is16To8, isTrunc8Rcvr, isAhRcvr, aliases)                            \
   ByteRegister(is8 ? encode : ByteRegister::Encoded_Not_ByteReg),
         REGX8664_TABLE
 #undef X
@@ -348,8 +348,8 @@ struct TargetX8664Traits {
   static XmmRegister getEncodedXmm(int32_t RegNum) {
     static const XmmRegister XmmRegs[RegisterSet::Reg_NUM] = {
 #define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
-          isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
-          isTrunc8Rcvr, isAhRcvr, aliases)                                     \
+          sboxres, isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8,      \
+          is16To8, isTrunc8Rcvr, isAhRcvr, aliases)                            \
   XmmRegister(isXmm ? encode : XmmRegister::Encoded_Not_Xmm),
         REGX8664_TABLE
 #undef X
@@ -363,8 +363,8 @@ struct TargetX8664Traits {
   static uint32_t getEncoding(int32_t RegNum) {
     static const uint32_t Encoding[RegisterSet::Reg_NUM] = {
 #define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
-          isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
-          isTrunc8Rcvr, isAhRcvr, aliases)                                     \
+          sboxres, isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8,      \
+          is16To8, isTrunc8Rcvr, isAhRcvr, aliases)                            \
   encode,
         REGX8664_TABLE
 #undef X
@@ -377,9 +377,9 @@ struct TargetX8664Traits {
   static inline int32_t getBaseReg(int32_t RegNum) {
     static const int32_t BaseRegs[RegisterSet::Reg_NUM] = {
 #define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
-          isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
-          isTrunc8Rcvr, isAhRcvr, aliases)                                     \
-  RegisterSet::base,
+          sboxres, isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8,      \
+          is16To8, isTrunc8Rcvr, isAhRcvr, aliases)                            \
+  encode,
         REGX8664_TABLE
 #undef X
     };
@@ -431,18 +431,23 @@ public:
     default:
       llvm::report_fatal_error("Unknown register.");
 #define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
-          isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
-          isTrunc8Rcvr, isAhRcvr, aliases)                                     \
+          sboxres, isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8,      \
+          is16To8, isTrunc8Rcvr, isAhRcvr, aliases)                            \
   case RegisterSet::val: {                                                     \
-    assert(isGPR);                                                             \
+    if (!isGPR)                                                                \
+      return RegisterSet::val;                                                 \
     assert((is64) || (is32) || (is16) || (is8) ||                              \
-           getBaseReg(RegisterSet::val) == RegisterSet::Reg_rsp);              \
+           getBaseReg(RegisterSet::val) == RegisterSet::Reg_rsp ||             \
+           getBaseReg(RegisterSet::val) == RegisterSet::Reg_rbp);              \
     constexpr int32_t FirstGprWithRegNumSize =                                 \
-        ((is64) || RegisterSet::val == RegisterSet::Reg_rsp)                   \
+        ((is64) || RegisterSet::val == RegisterSet::Reg_rsp ||                 \
+         RegisterSet::val == RegisterSet::Reg_rbp)                             \
             ? RegisterSet::Reg_rax                                             \
-            : (((is32) || RegisterSet::val == RegisterSet::Reg_esp)            \
+            : (((is32) || RegisterSet::val == RegisterSet::Reg_esp ||          \
+                RegisterSet::val == RegisterSet::Reg_ebp)                      \
                    ? RegisterSet::Reg_eax                                      \
-                   : (((is16) || RegisterSet::val == RegisterSet::Reg_sp)      \
+                   : (((is16) || RegisterSet::val == RegisterSet::Reg_sp ||    \
+                       RegisterSet::val == RegisterSet::Reg_bp)                \
                           ? RegisterSet::Reg_ax                                \
                           : RegisterSet::Reg_al));                             \
     const int32_t NewRegNum =                                                  \
@@ -468,15 +473,15 @@ private:
     constexpr SizeOf() : Size(0) {}
     template <typename... T>
     explicit constexpr SizeOf(T...)
-        : Size(__length<T...>::value) {}
+        : Size(length<T...>::value) {}
     constexpr SizeT size() const { return Size; }
 
   private:
-    template <typename T, typename... U> struct __length {
-      static constexpr std::size_t value = 1 + __length<U...>::value;
+    template <typename T, typename... U> struct length {
+      static constexpr std::size_t value = 1 + length<U...>::value;
     };
 
-    template <typename T> struct __length<T> {
+    template <typename T> struct length<T> {
       static constexpr std::size_t value = 1;
     };
 
@@ -485,6 +490,7 @@ private:
 
 public:
   static void initRegisterSet(
+      const ::Ice::ClFlags &Flags,
       std::array<llvm::SmallBitVector, RCX86_NUM> *TypeToRegisterSet,
       std::array<llvm::SmallBitVector, RegisterSet::Reg_NUM> *RegisterAliases,
       llvm::SmallBitVector *ScratchRegs) {
@@ -504,6 +510,7 @@ public:
 
     static constexpr struct {
       uint16_t Val;
+      unsigned IsReservedWhenSandboxing : 1;
       unsigned Is64 : 1;
       unsigned Is32 : 1;
       unsigned Is16 : 1;
@@ -521,19 +528,37 @@ public:
 #undef NUM_ALIASES_BITS
     } X8664RegTable[RegisterSet::Reg_NUM] = {
 #define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
-          isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
-          isTrunc8Rcvr, isAhRcvr, aliases)                                     \
+          sboxres, isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8,      \
+          is16To8, isTrunc8Rcvr, isAhRcvr, aliases)                            \
   {                                                                            \
-    RegisterSet::val, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8, \
-        isTrunc8Rcvr, isAhRcvr, scratch, (SizeOf aliases).size(), aliases,     \
+    RegisterSet::val, sboxres, is64, is32, is16, is8, isXmm, is64To8, is32To8, \
+        is16To8, isTrunc8Rcvr, isAhRcvr, scratch, (SizeOf aliases).size(),     \
+        aliases,                                                               \
   }                                                                            \
   ,
         REGX8664_TABLE
 #undef X
     };
 
+    const bool NeedSandboxing = Flags.getUseSandboxing();
     for (SizeT ii = 0; ii < llvm::array_lengthof(X8664RegTable); ++ii) {
       const auto &Entry = X8664RegTable[ii];
+      // Even though the register is disabled for register allocation, it might
+      // still be used by the Target Lowering (e.g., base pointer), so the
+      // register alias table still needs to be defined.
+      (*RegisterAliases)[Entry.Val].resize(RegisterSet::Reg_NUM);
+      for (int J = 0; J < Entry.NumAliases; ++J) {
+        SizeT Alias = Entry.Aliases[J];
+        assert(!(*RegisterAliases)[Entry.Val][Alias] && "Duplicate alias");
+        (*RegisterAliases)[Entry.Val].set(Alias);
+      }
+
+      (*RegisterAliases)[Entry.Val].set(Entry.Val);
+      const bool DisabledRegister =
+          NeedSandboxing && Entry.IsReservedWhenSandboxing;
+      if (DisabledRegister) {
+        continue;
+      }
       (IntegerRegistersI64)[Entry.Val] = Entry.Is64;
       (IntegerRegistersI32)[Entry.Val] = Entry.Is32;
       (IntegerRegistersI16)[Entry.Val] = Entry.Is16;
@@ -545,13 +570,6 @@ public:
       (Trunc16To8Registers)[Entry.Val] = Entry.Is16To8;
       (Trunc8RcvrRegisters)[Entry.Val] = Entry.IsTrunc8Rcvr;
       (AhRcvrRegisters)[Entry.Val] = Entry.IsAhRcvr;
-      (*RegisterAliases)[Entry.Val].resize(RegisterSet::Reg_NUM);
-      for (int J = 0; J < Entry.NumAliases; ++J) {
-        SizeT Alias = Entry.Aliases[J];
-        assert(!(*RegisterAliases)[Entry.Val][Alias] && "Duplicate alias");
-        (*RegisterAliases)[Entry.Val].set(Alias);
-      }
-      (*RegisterAliases)[Entry.Val].set(Entry.Val);
       (*ScratchRegs)[Entry.Val] = Entry.Scratch;
     }
 
@@ -578,29 +596,33 @@ public:
   }
 
   static llvm::SmallBitVector
-  getRegisterSet(TargetLowering::RegSetMask Include,
+  getRegisterSet(const ::Ice::ClFlags &Flags,
+                 TargetLowering::RegSetMask Include,
                  TargetLowering::RegSetMask Exclude) {
     llvm::SmallBitVector Registers(RegisterSet::Reg_NUM);
 
+    const bool NeedSandboxing = Flags.getUseSandboxing();
 #define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
-          isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
-          isTrunc8Rcvr, isAhRcvr, aliases)                                     \
-  if (scratch && (Include & ::Ice::TargetLowering::RegSet_CallerSave))         \
-    Registers[RegisterSet::val] = true;                                        \
-  if (preserved && (Include & ::Ice::TargetLowering::RegSet_CalleeSave))       \
-    Registers[RegisterSet::val] = true;                                        \
-  if (stackptr && (Include & ::Ice::TargetLowering::RegSet_StackPointer))      \
-    Registers[RegisterSet::val] = true;                                        \
-  if (frameptr && (Include & ::Ice::TargetLowering::RegSet_FramePointer))      \
-    Registers[RegisterSet::val] = true;                                        \
-  if (scratch && (Exclude & ::Ice::TargetLowering::RegSet_CallerSave))         \
-    Registers[RegisterSet::val] = false;                                       \
-  if (preserved && (Exclude & ::Ice::TargetLowering::RegSet_CalleeSave))       \
-    Registers[RegisterSet::val] = false;                                       \
-  if (stackptr && (Exclude & ::Ice::TargetLowering::RegSet_StackPointer))      \
-    Registers[RegisterSet::val] = false;                                       \
-  if (frameptr && (Exclude & ::Ice::TargetLowering::RegSet_FramePointer))      \
-    Registers[RegisterSet::val] = false;
+          sboxres, isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8,      \
+          is16To8, isTrunc8Rcvr, isAhRcvr, aliases)                            \
+  if (!NeedSandboxing || !(sboxres)) {                                         \
+    if (scratch && (Include & ::Ice::TargetLowering::RegSet_CallerSave))       \
+      Registers[RegisterSet::val] = true;                                      \
+    if (preserved && (Include & ::Ice::TargetLowering::RegSet_CalleeSave))     \
+      Registers[RegisterSet::val] = true;                                      \
+    if (stackptr && (Include & ::Ice::TargetLowering::RegSet_StackPointer))    \
+      Registers[RegisterSet::val] = true;                                      \
+    if (frameptr && (Include & ::Ice::TargetLowering::RegSet_FramePointer))    \
+      Registers[RegisterSet::val] = true;                                      \
+    if (scratch && (Exclude & ::Ice::TargetLowering::RegSet_CallerSave))       \
+      Registers[RegisterSet::val] = false;                                     \
+    if (preserved && (Exclude & ::Ice::TargetLowering::RegSet_CalleeSave))     \
+      Registers[RegisterSet::val] = false;                                     \
+    if (stackptr && (Exclude & ::Ice::TargetLowering::RegSet_StackPointer))    \
+      Registers[RegisterSet::val] = false;                                     \
+    if (frameptr && (Exclude & ::Ice::TargetLowering::RegSet_FramePointer))    \
+      Registers[RegisterSet::val] = false;                                     \
+  }
 
     REGX8664_TABLE
 
@@ -630,8 +652,8 @@ public:
 // properties as well as whether the registers should be explicitly excluded
 // from shuffling.
 #define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
-          isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
-          isTrunc8Rcvr, isAhRcvr, aliases)                                     \
+          sboxres, isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8,      \
+          is16To8, isTrunc8Rcvr, isAhRcvr, aliases)                            \
   if (ExcludeRegisters[RegisterSet::val]) {                                    \
     /* val stays the same in the resulting permutation. */                     \
     Permutation[RegisterSet::val] = RegisterSet::val;                          \
@@ -845,11 +867,18 @@ public:
     create(Cfg *Func, Type Ty, Variable *Base, Constant *Offset,
            Variable *Index = nullptr, uint16_t Shift = 0,
            SegmentRegisters SegmentRegister = DefaultSegment,
-           bool IsPIC = false) {
+           bool IsRebased = false) {
       assert(SegmentRegister == DefaultSegment);
       (void)SegmentRegister;
       return new (Func->allocate<X86OperandMem>())
-          X86OperandMem(Func, Ty, Base, Offset, Index, Shift, IsPIC);
+          X86OperandMem(Func, Ty, Base, Offset, Index, Shift, IsRebased);
+    }
+    static X86OperandMem *create(Cfg *Func, Type Ty, Variable *Base,
+                                 Constant *Offset, bool IsRebased) {
+      constexpr Variable *NoIndex = nullptr;
+      constexpr uint16_t NoShift = 0;
+      return new (Func->allocate<X86OperandMem>())
+          X86OperandMem(Func, Ty, Base, Offset, NoIndex, NoShift, IsRebased);
     }
     Variable *getBase() const { return Base; }
     Constant *getOffset() const { return Offset; }
@@ -857,10 +886,9 @@ public:
     uint16_t getShift() const { return Shift; }
     SegmentRegisters getSegmentRegister() const { return DefaultSegment; }
     void emitSegmentOverride(Assembler *) const {}
-    void setIsPIC() { IsPIC = true; }
-    bool getIsPIC() const { return IsPIC; }
-    Address toAsmAddress(Assembler *Asm,
-                         const Ice::TargetLowering *Target) const;
+    bool getIsRebased() const { return IsRebased; }
+    Address toAsmAddress(Assembler *Asm, const Ice::TargetLowering *Target,
+                         bool IsLeaAddr = false) const;
 
     void emit(const Cfg *Func) const override;
     using X86Operand::dump;
@@ -876,13 +904,13 @@ public:
 
   private:
     X86OperandMem(Cfg *Func, Type Ty, Variable *Base, Constant *Offset,
-                  Variable *Index, uint16_t Shift, bool IsPIC);
+                  Variable *Index, uint16_t Shift, bool IsRebased);
 
-    Variable *Base;
-    Constant *Offset;
-    Variable *Index;
-    uint16_t Shift;
-    bool IsPIC;
+    Variable *const Base;
+    Constant *const Offset;
+    Variable *const Index;
+    const uint16_t Shift;
+    const bool IsRebased;
     /// A flag to show if this memory operand is a randomized one. Randomized
     /// memory operands are generated in
     /// TargetX86Base::randomizeOrPoolImmediate()

@@ -49,6 +49,15 @@ public:
   }
 
 protected:
+  void _add_sp(Operand *Adjustment);
+  void _mov_sp(Operand *NewValue);
+  Traits::X86OperandMem *_sandbox_mem_reference(X86OperandMem *) {
+    llvm::report_fatal_error("sandbox mem reference for x86-32.");
+  }
+  void _sub_sp(Operand *Adjustment);
+
+  void initSandbox() {}
+  void lowerIndirectJump(Variable *JumpTarget);
   void lowerCall(const InstCall *Instr) override;
   void lowerArguments() override;
   void lowerRet(const InstRet *Inst) override;

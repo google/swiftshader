@@ -3,9 +3,14 @@
 ; we try to limit to a few instructions with well known sizes and
 ; minimal use of registers and stack slots in the lowering sequence.
 
+; XFAIL: filtype=asm
 ; RUN: %p2i -i %s --sandbox --filetype=obj --disassemble --args -Om1 \
 ; RUN:   -allow-externally-defined-symbols \
 ; RUN:   -ffunction-sections | FileCheck %s
+
+; RUN: %p2i -i %s --sandbox --filetype=obj --disassemble --target=x8664 \
+; RUN:   --args -Om1 -allow-externally-defined-symbols  \
+; RUN:   -ffunction-sections | FileCheck %s --check-prefix X8664
 
 declare void @call_target()
 @global_byte = internal global [1 x i8] zeroinitializer
@@ -22,6 +27,10 @@ entry:
 ; CHECK: nop
 ; CHECK: 1b: {{.*}} call 1c
 ; CHECK-NEXT: 20:
+; X8664-LABEL: test_direct_call
+; X8664: push {{.*}}$local$__0
+; X8664: jmp {{.*}} call_target
+; X8664: {{0+}}20 <{{.*}}$local$__0>:
 
 ; An indirect call sequence uses the right mask and register-call sequence.
 define internal void @test_indirect_call(i32 %target) {
@@ -36,8 +45,14 @@ entry:
 ; CHECK: 1b: {{.*}} and [[REG]],0xffffffe0
 ; CHECK-NEXT: call [[REG]]
 ; CHECk-NEXT: 20:
+; X8664-LABEL: test_indirect_call
+; X8664: push {{.*}}$local$__0
+; X8664: {{.*}} and e[[REG:..]],0xffffffe0
+; X8664: add r[[REG]],r15
+; X8664: jmp r[[REG]]
+; X8664: {{0+}}20 <{{.*}}$local$__0>:
 
-; A return sequences uses the right pop / mask / jmp sequence.
+; A return sequence uses the right pop / mask / jmp sequence.
 define internal void @test_ret() {
 entry:
   ret void
@@ -46,6 +61,11 @@ entry:
 ; CHECK: pop ecx
 ; CHECK-NEXT: and ecx,0xffffffe0
 ; CHECK-NEXT: jmp ecx
+; X8664-LABEL: test_ret
+; X8664: pop rcx
+; X8664: and ecx,0xffffffe0
+; X8664: add rcx,r15
+; X8664: jmp rcx
 
 ; A perfectly packed bundle should not have nops at the end.
 define internal void @packed_bundle() {
@@ -238,6 +258,63 @@ entry:
 ; CHECK: 40: {{.*}} nop
 ; CHECK: 5b: {{.*}} and [[REG]],0xffffffe0
 ; CHECK-NEXT: 5e: {{.*}} call [[REG]]
+
+; Tests the pad_to_end bundle alignment with no padding bytes needed.
+define internal void @bundle_lock_pad_to_end_padding_0(i32 %arg0, i32 %arg1,
+                                                       i32 %arg3, i32 %arg4,
+                                                       i32 %arg5, i32 %arg6) {
+  call void @call_target()
+  ; bundle boundary
+  %x = add i32 %arg5, %arg6  ; 12 bytes
+  %y = trunc i32 %x to i16   ; 10 bytes
+  call void @call_target()   ; 10 bytes
+  ; bundle boundary
+  ret void
+}
+; X8664-LABEL: bundle_lock_pad_to_end_padding_0$local$__0
+; X8664: 56: {{.*}} push {{.*}}$local$__1
+; X8664: 5b: {{.*}} jmp {{.*}} call_target
+; X8664: 60: {{.*}} add
+
+; Tests the pad_to_end bundle alignment with 11 padding bytes needed, and some
+; instructions before the call.
+define internal void @bundle_lock_pad_to_end_padding_11(i32 %arg0, i32 %arg1,
+                                                        i32 %arg3, i32 %arg4,
+                                                        i32 %arg5, i32 %arg6) {
+  call void @call_target()
+  ; bundle boundary
+  %x = add i32 %arg5, %arg6  ; 11 bytes
+  call void @call_target()   ; 10 bytes
+                             ; 11 bytes of nop
+  ; bundle boundary
+  ret void
+}
+; X8664-LABEL: bundle_lock_pad_to_end_padding_11$local$__0
+; X8664: 4b: {{.*}} push {{.*}}$local$__1
+; X8664: 50: {{.*}} jmp {{.*}} call_target
+; X8664: 55: {{.*}} nop
+; X8664: 5d: {{.*}} nop
+; X8664: 60: {{.*}} add
+
+; Tests the pad_to_end bundle alignment with 22 padding bytes needed, and no
+; instructions before the call.
+define internal void @bundle_lock_pad_to_end_padding_22(i32 %arg0, i32 %arg1,
+                                                        i32 %arg3, i32 %arg4,
+                                                        i32 %arg5, i32 %arg6) {
+  call void @call_target()
+  ; bundle boundary
+  call void @call_target()   ; 10 bytes
+                             ; 22 bytes of nop
+  ; bundle boundary
+  ret void
+}
+; X8664-LABEL: bundle_lock_pad_to_end_padding_22$local$__0
+; X8664: 40: {{.*}} push {{.*}}$local$__1
+; X8664: 45: {{.*}} jmp {{.*}} call_target
+; X8664: 4a: {{.*}} nop
+; X8664: 52: {{.*}} nop
+; X8664: 5a: {{.*}} nop
+; X8664: 60: {{.*}} add
 
 ; Stack adjustment state during an argument push sequence gets
 ; properly checkpointed and restored during the two passes, as

@@ -782,7 +782,7 @@ class InstBundleLock : public InstHighLevel {
   InstBundleLock &operator=(const InstBundleLock &) = delete;
 
 public:
-  enum Option { Opt_None, Opt_AlignToEnd };
+  enum Option { Opt_None, Opt_AlignToEnd, Opt_PadToEnd };
   static InstBundleLock *create(Cfg *Func, Option BundleOption) {
     return new (Func->allocate<InstBundleLock>())
         InstBundleLock(Func, BundleOption);

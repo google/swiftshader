@@ -858,6 +858,10 @@ void InstBundleLock::emit(const Cfg *Func) const {
     Str << "\t"
            "align_to_end";
     break;
+  case Opt_PadToEnd:
+    Str << "\t"
+           "align_to_end /* pad_to_end */";
+    break;
   }
   Str << "\n";
 }
@@ -872,6 +876,9 @@ void InstBundleLock::dump(const Cfg *Func) const {
     break;
   case Opt_AlignToEnd:
     Str << " align_to_end";
+    break;
+  case Opt_PadToEnd:
+    Str << " pad_to_end";
     break;
   }
 }

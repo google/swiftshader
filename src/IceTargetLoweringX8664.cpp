@@ -12,9 +12,9 @@
 /// entirely of the lowering sequence for each high-level instruction.
 ///
 //===----------------------------------------------------------------------===//
-
 #include "IceTargetLoweringX8664.h"
 
+#include "IceDefs.h"
 #include "IceTargetLoweringX8664Traits.h"
 
 namespace X8664 {
@@ -130,6 +130,270 @@ FixupKind TargetX86Base<X8664::Traits>::AbsFixup =
 //      \/_____/\/_____/\/_/   \/_/\/_____/\/_/ /_/\/_/\/_/ \/_/\/_____/
 //
 //------------------------------------------------------------------------------
+void TargetX8664::_add_sp(Operand *Adjustment) {
+  Variable *rsp =
+      getPhysicalRegister(Traits::RegisterSet::Reg_rsp, IceType_i64);
+  if (!NeedSandboxing) {
+    _add(rsp, Adjustment);
+    return;
+  }
+
+  Variable *esp =
+      getPhysicalRegister(Traits::RegisterSet::Reg_esp, IceType_i32);
+  Variable *r15 =
+      getPhysicalRegister(Traits::RegisterSet::Reg_r15, IceType_i64);
+
+  // When incrementing rsp, NaCl sandboxing requires the following sequence
+  //
+  // .bundle_start
+  // add Adjustment, %esp
+  // add %r15, %rsp
+  // .bundle_end
+  //
+  // In Subzero, even though rsp and esp alias each other, defining one does not
+  // define the other. Therefore, we must emit
+  //
+  // .bundle_start
+  // %esp = fake-def %rsp
+  // add Adjustment, %esp
+  // %rsp = fake-def %esp
+  // add %r15, %rsp
+  // .bundle_end
+  //
+  // The fake-defs ensure that the
+  //
+  // add Adjustment, %esp
+  //
+  // instruction is not DCE'd.
+  _bundle_lock();
+  _redefined(Context.insert<InstFakeDef>(esp, rsp));
+  _add(esp, Adjustment);
+  _redefined(Context.insert<InstFakeDef>(rsp, esp));
+  _add(rsp, r15);
+  _bundle_unlock();
+}
+
+void TargetX8664::_mov_sp(Operand *NewValue) {
+  assert(NewValue->getType() == IceType_i32);
+
+  Variable *esp = getPhysicalRegister(Traits::RegisterSet::Reg_esp);
+  Variable *rsp =
+      getPhysicalRegister(Traits::RegisterSet::Reg_rsp, IceType_i64);
+
+  if (NeedSandboxing) {
+    _bundle_lock();
+  }
+
+  _redefined(Context.insert<InstFakeDef>(esp, rsp));
+  _redefined(_mov(esp, NewValue));
+  _redefined(Context.insert<InstFakeDef>(rsp, esp));
+
+  if (!NeedSandboxing) {
+    return;
+  }
+
+  Variable *r15 =
+      getPhysicalRegister(Traits::RegisterSet::Reg_r15, IceType_i64);
+  _add(rsp, r15);
+  _bundle_unlock();
+}
+
+void TargetX8664::_push_rbp() {
+  assert(NeedSandboxing);
+
+  Constant *_0 = Ctx->getConstantZero(IceType_i32);
+  Variable *ebp =
+      getPhysicalRegister(Traits::RegisterSet::Reg_ebp, IceType_i32);
+  Variable *rsp =
+      getPhysicalRegister(Traits::RegisterSet::Reg_rsp, IceType_i64);
+  auto *TopOfStack = llvm::cast<X86OperandMem>(
+      legalize(X86OperandMem::create(Func, IceType_i32, rsp, _0),
+               Legal_Reg | Legal_Mem));
+
+  // Emits a sequence:
+  //
+  //   .bundle_start
+  //   push 0
+  //   mov %ebp, %(rsp)
+  //   .bundle_end
+  //
+  // to avoid leaking the upper 32-bits (i.e., the sandbox address.)
+  _bundle_lock();
+  _push(_0);
+  Context.insert<typename Traits::Insts::Store>(ebp, TopOfStack);
+  _bundle_unlock();
+}
+
+Traits::X86OperandMem *TargetX8664::_sandbox_mem_reference(X86OperandMem *Mem) {
+  // In x86_64-nacl, all memory references are relative to %r15 (i.e., %rzp.)
+  // NaCl sandboxing also requires that any registers that are not %rsp and
+  // %rbp to be 'truncated' to 32-bit before memory access.
+  assert(NeedSandboxing);
+  Variable *Base = Mem->getBase();
+  Variable *Index = Mem->getIndex();
+  uint16_t Shift = 0;
+  Variable *r15 =
+      getPhysicalRegister(Traits::RegisterSet::Reg_r15, IceType_i64);
+  Constant *Offset = Mem->getOffset();
+  Variable *T = nullptr;
+
+  if (Mem->getIsRebased()) {
+    // If Mem.IsRebased, then we don't need to update Mem to contain a reference
+    // to %r15, but we still need to truncate Mem.Index (if any) to 32-bit.
+    assert(r15 == Base);
+    T = Index;
+    Shift = Mem->getShift();
+  } else if (Base != nullptr && Index != nullptr) {
+    // Another approach could be to emit an
+    //
+    //   lea Mem, %T
+    //
+    // And then update Mem.Base = r15, Mem.Index = T, Mem.Shift = 0
+    llvm::report_fatal_error("memory reference contains base and index.");
+  } else if (Base != nullptr) {
+    T = Base;
+  } else if (Index != nullptr) {
+    T = Index;
+    Shift = Mem->getShift();
+  }
+
+  // NeedsLea is a flags indicating whether Mem needs to be materialized to a
+  // GPR prior to being used. A LEA is needed if Mem.Offset is a constant
+  // relocatable, or if Mem.Offset is negative. In both these cases, the LEA is
+  // needed to ensure the sandboxed memory operand will only use the lower
+  // 32-bits of T+Offset.
+  bool NeedsLea = false;
+  if (const auto *Offset = Mem->getOffset()) {
+    if (llvm::isa<ConstantRelocatable>(Offset)) {
+      NeedsLea = true;
+    } else if (const auto *Imm = llvm::cast<ConstantInteger32>(Offset)) {
+      NeedsLea = Imm->getValue() < 0;
+    }
+  }
+
+  int32_t RegNum = Variable::NoRegister;
+  int32_t RegNum32 = Variable::NoRegister;
+  if (T != nullptr) {
+    if (T->hasReg()) {
+      RegNum = Traits::getGprForType(IceType_i64, T->getRegNum());
+      RegNum32 = Traits::getGprForType(IceType_i32, RegNum);
+      switch (RegNum) {
+      case Traits::RegisterSet::Reg_rsp:
+      case Traits::RegisterSet::Reg_rbp:
+        // Memory operands referencing rsp/rbp do not need to be sandboxed.
+        return Mem;
+      }
+    }
+
+    switch (T->getType()) {
+    default:
+    case IceType_i64:
+      // Even though "default:" would also catch T.Type == IceType_i64, an
+      // explicit 'case IceType_i64' shows that memory operands are always
+      // supposed to be 32-bits.
+      llvm::report_fatal_error("Mem pointer should be 32-bit.");
+    case IceType_i32: {
+      Variable *T64 = makeReg(IceType_i64, RegNum);
+      auto *Movzx = _movzx(T64, T);
+      if (!NeedsLea) {
+        // This movzx is only needed when Mem does not need to be lea'd into a
+        // temporary. If an lea is going to be emitted, then eliding this movzx
+        // is safe because the emitted lea will write a 32-bit result --
+        // implicitly zero-extended to 64-bit.
+        Movzx->setMustKeep();
+      }
+      T = T64;
+    } break;
+    }
+  }
+
+  if (NeedsLea) {
+    Variable *NewT = makeReg(IceType_i32, RegNum32);
+    Variable *Base = T;
+    Variable *Index = T;
+    static constexpr bool NotRebased = false;
+    if (Shift == 0) {
+      Index = nullptr;
+    } else {
+      Base = nullptr;
+    }
+    _lea(NewT, Traits::X86OperandMem::create(
+                   Func, Mem->getType(), Base, Offset, Index, Shift,
+                   Traits::X86OperandMem::DefaultSegment, NotRebased));
+
+    T = makeReg(IceType_i64, RegNum);
+    _movzx(T, NewT);
+    Shift = 0;
+    Offset = nullptr;
+  }
+
+  static constexpr bool IsRebased = true;
+  return Traits::X86OperandMem::create(
+      Func, Mem->getType(), r15, Offset, T, Shift,
+      Traits::X86OperandMem::DefaultSegment, IsRebased);
+}
+
+void TargetX8664::_sub_sp(Operand *Adjustment) {
+  Variable *rsp =
+      getPhysicalRegister(Traits::RegisterSet::Reg_rsp, IceType_i64);
+  if (!NeedSandboxing) {
+    _sub(rsp, Adjustment);
+    return;
+  }
+
+  Variable *esp =
+      getPhysicalRegister(Traits::RegisterSet::Reg_esp, IceType_i32);
+  Variable *r15 =
+      getPhysicalRegister(Traits::RegisterSet::Reg_r15, IceType_i64);
+
+  // .bundle_start
+  // sub Adjustment, %esp
+  // add %r15, %rsp
+  // .bundle_end
+  _bundle_lock();
+  _redefined(Context.insert<InstFakeDef>(esp, rsp));
+  _sub(esp, Adjustment);
+  _redefined(Context.insert<InstFakeDef>(rsp, esp));
+  _add(rsp, r15);
+  _bundle_unlock();
+}
+
+void TargetX8664::initSandbox() {
+  assert(NeedSandboxing);
+  Context.init(Func->getEntryNode());
+  Context.setInsertPoint(Context.getCur());
+  Variable *r15 =
+      getPhysicalRegister(Traits::RegisterSet::Reg_r15, IceType_i64);
+  Context.insert<InstFakeDef>(r15);
+  Context.insert<InstFakeUse>(r15);
+}
+
+void TargetX8664::lowerIndirectJump(Variable *JumpTarget) {
+  if (!NeedSandboxing) {
+    Variable *T = makeReg(IceType_i64);
+    _movzx(T, JumpTarget);
+    JumpTarget = T;
+  } else {
+    Variable *T = makeReg(IceType_i32);
+    Variable *T64 = makeReg(IceType_i64);
+    Variable *r15 =
+        getPhysicalRegister(Traits::RegisterSet::Reg_r15, IceType_i64);
+
+    _mov(T, JumpTarget);
+    _bundle_lock();
+    const SizeT BundleSize =
+        1 << Func->getAssembler<>()->getBundleAlignLog2Bytes();
+    _and(T, Ctx->getConstantInt32(~(BundleSize - 1)));
+    _movzx(T64, T);
+    _add(T64, r15);
+    JumpTarget = T64;
+  }
+
+  _jmp(JumpTarget);
+  if (NeedSandboxing)
+    _bundle_unlock();
+}
+
 namespace {
 static inline TargetX8664::Traits::RegisterSet::AllRegisters
 getRegisterForXmmArgNum(uint32_t ArgNum) {
@@ -317,21 +581,53 @@ void TargetX8664::lowerCall(const InstCall *Instr) {
     }
   }
 
-  Operand *CallTarget = legalize(Instr->getCallTarget(), Legal_Reg | Legal_Imm);
-  if (auto *CallTargetR = llvm::dyn_cast<Variable>(CallTarget)) {
-    // x86-64 in Subzero is ILP32. Therefore, CallTarget is i32, but the emitted
-    // call needs a i64 register (for textual asm.)
-    Variable *T = makeReg(IceType_i64);
-    _movzx(T, CallTargetR);
-    CallTarget = T;
-  }
-  const bool NeedSandboxing = Ctx->getFlags().getUseSandboxing();
-  if (NeedSandboxing) {
-    llvm_unreachable("X86-64 Sandboxing codegen not implemented.");
-  }
-  auto *NewCall = Context.insert<Traits::Insts::Call>(ReturnReg, CallTarget);
-  if (NeedSandboxing) {
-    llvm_unreachable("X86-64 Sandboxing codegen not implemented.");
+  InstX86Label *ReturnAddress = nullptr;
+  Operand *CallTarget =
+      legalize(Instr->getCallTarget(), Legal_Reg | Legal_Imm | Legal_AddrAbs);
+  auto *CallTargetR = llvm::dyn_cast<Variable>(CallTarget);
+  Inst *NewCall = nullptr;
+  if (!NeedSandboxing) {
+    if (CallTargetR != nullptr) {
+      // x86-64 in Subzero is ILP32. Therefore, CallTarget is i32, but the
+      // emitted call needs a i64 register (for textual asm.)
+      Variable *T = makeReg(IceType_i64);
+      _movzx(T, CallTargetR);
+      CallTarget = T;
+    }
+    NewCall = Context.insert<Traits::Insts::Call>(ReturnReg, CallTarget);
+  } else {
+    ReturnAddress = InstX86Label::create(Func, this);
+    ReturnAddress->setIsReturnLocation(true);
+    constexpr bool SuppressMangling = true;
+    if (CallTargetR == nullptr) {
+      _bundle_lock(InstBundleLock::Opt_PadToEnd);
+      _push(Ctx->getConstantSym(0, ReturnAddress->getName(Func),
+                                SuppressMangling));
+    } else {
+      Variable *T = makeReg(IceType_i32);
+      Variable *T64 = makeReg(IceType_i64);
+      Variable *r15 =
+          getPhysicalRegister(Traits::RegisterSet::Reg_r15, IceType_i64);
+
+      _mov(T, CallTargetR);
+      _bundle_lock(InstBundleLock::Opt_PadToEnd);
+      _push(Ctx->getConstantSym(0, ReturnAddress->getName(Func),
+                                SuppressMangling));
+      const SizeT BundleSize =
+          1 << Func->getAssembler<>()->getBundleAlignLog2Bytes();
+      _and(T, Ctx->getConstantInt32(~(BundleSize - 1)));
+      _movzx(T64, T);
+      _add(T64, r15);
+      CallTarget = T64;
+    }
+
+    NewCall = Context.insert<Traits::Insts::Jmp>(CallTarget);
+    _bundle_unlock();
+    if (ReturnReg != nullptr) {
+      Context.insert<InstFakeDef>(ReturnReg);
+    }
+
+    Context.insert(ReturnAddress);
   }
 
   // Insert a register-kill pseudo instruction.
@@ -523,13 +819,26 @@ void TargetX8664::addProlog(CfgNode *Node) {
     if (CalleeSaves[i] && RegsUsed[i])
       Pushed[Canonical] = true;
   }
+
+  Variable *rbp =
+      getPhysicalRegister(Traits::RegisterSet::Reg_rbp, IceType_i64);
+  Variable *ebp =
+      getPhysicalRegister(Traits::RegisterSet::Reg_ebp, IceType_i32);
+  Variable *rsp =
+      getPhysicalRegister(Traits::RegisterSet::Reg_rsp, IceType_i64);
+
   for (SizeT i = 0; i < Pushed.size(); ++i) {
     if (!Pushed[i])
       continue;
     assert(static_cast<int32_t>(i) == Traits::getBaseReg(i));
     ++NumCallee;
     PreservedRegsSizeBytes += typeWidthInBytes(IceType_i64);
-    _push(getPhysicalRegister(i, IceType_i64));
+    Variable *Src = getPhysicalRegister(i, IceType_i64);
+    if (Src != rbp || !NeedSandboxing) {
+      _push(getPhysicalRegister(i, IceType_i64));
+    } else {
+      _push_rbp();
+    }
   }
   Ctx->statsUpdateRegistersSaved(NumCallee);
 
@@ -538,14 +847,27 @@ void TargetX8664::addProlog(CfgNode *Node) {
     assert((RegsUsed & getRegisterSet(RegSet_FramePointer, RegSet_None))
                .count() == 0);
     PreservedRegsSizeBytes += typeWidthInBytes(IceType_i64);
-    Variable *ebp =
-        getPhysicalRegister(Traits::RegisterSet::Reg_rbp, IceType_i64);
     Variable *esp =
-        getPhysicalRegister(Traits::RegisterSet::Reg_rsp, IceType_i64);
-    _push(ebp);
-    _mov(ebp, esp);
+        getPhysicalRegister(Traits::RegisterSet::Reg_esp, IceType_i32);
+    Variable *r15 =
+        getPhysicalRegister(Traits::RegisterSet::Reg_r15, IceType_i64);
+
+    if (!NeedSandboxing) {
+      _push(rbp);
+      _mov(rbp, rsp);
+    } else {
+      _push_rbp();
+
+      _bundle_lock();
+      _redefined(Context.insert<InstFakeDef>(ebp, rbp));
+      _redefined(Context.insert<InstFakeDef>(esp, rsp));
+      _mov(ebp, esp);
+      _redefined(Context.insert<InstFakeDef>(rsp, esp));
+      _add(rbp, r15);
+      _bundle_unlock();
+    }
     // Keep ebp live for late-stage liveness analysis (e.g. asm-verbose mode).
-    Context.insert<InstFakeUse>(ebp);
+    Context.insert<InstFakeUse>(rbp);
   }
 
   // Align the variables area. SpillAreaPaddingBytes is the size of the region
@@ -582,8 +904,12 @@ void TargetX8664::addProlog(CfgNode *Node) {
     SpillAreaSizeBytes += FixedAllocaSizeBytes;
   // Generate "sub esp, SpillAreaSizeBytes"
   if (SpillAreaSizeBytes) {
-    _sub(getPhysicalRegister(getStackReg(), IceType_i64),
-         Ctx->getConstantInt32(SpillAreaSizeBytes));
+    if (NeedSandboxing) {
+      _sub_sp(Ctx->getConstantInt32(SpillAreaSizeBytes));
+    } else {
+      _sub(getPhysicalRegister(getStackReg(), IceType_i64),
+           Ctx->getConstantInt32(SpillAreaSizeBytes));
+    }
     // If the fixed allocas are aligned more than the stack frame, align the
     // stack pointer accordingly.
     if (PrologEmitsFixedAllocas &&
@@ -699,21 +1025,45 @@ void TargetX8664::addEpilog(CfgNode *Node) {
   Context.init(Node);
   Context.setInsertPoint(InsertPoint);
 
-  Variable *esp =
+  Variable *rsp =
       getPhysicalRegister(Traits::RegisterSet::Reg_rsp, IceType_i64);
-  if (IsEbpBasedFrame) {
-    Variable *ebp =
-        getPhysicalRegister(Traits::RegisterSet::Reg_rbp, IceType_i64);
-    // For late-stage liveness analysis (e.g. asm-verbose mode), adding a fake
-    // use of esp before the assignment of esp=ebp keeps previous esp
-    // adjustments from being dead-code eliminated.
-    Context.insert<InstFakeUse>(esp);
-    _mov(esp, ebp);
-    _pop(ebp);
+
+  if (!IsEbpBasedFrame) {
+    // add rsp, SpillAreaSizeBytes
+    if (SpillAreaSizeBytes != 0) {
+      _add_sp(Ctx->getConstantInt32(SpillAreaSizeBytes));
+    }
   } else {
-    // add esp, SpillAreaSizeBytes
-    if (SpillAreaSizeBytes)
-      _add(esp, Ctx->getConstantInt32(SpillAreaSizeBytes));
+    Variable *rbp =
+        getPhysicalRegister(Traits::RegisterSet::Reg_rbp, IceType_i64);
+    Variable *ebp =
+        getPhysicalRegister(Traits::RegisterSet::Reg_ebp, IceType_i32);
+    // For late-stage liveness analysis (e.g. asm-verbose mode), adding a fake
+    // use of rsp before the assignment of rsp=rbp keeps previous rsp
+    // adjustments from being dead-code eliminated.
+    Context.insert<InstFakeUse>(rsp);
+    if (!NeedSandboxing) {
+      _mov(rsp, rbp);
+      _pop(rbp);
+    } else {
+      _mov_sp(ebp);
+
+      Variable *r15 =
+          getPhysicalRegister(Traits::RegisterSet::Reg_r15, IceType_i64);
+      Variable *rcx =
+          getPhysicalRegister(Traits::RegisterSet::Reg_rcx, IceType_i64);
+      Variable *ecx =
+          getPhysicalRegister(Traits::RegisterSet::Reg_ecx, IceType_i32);
+
+      _pop(rcx);
+      Context.insert<InstFakeDef>(ecx, rcx);
+      _bundle_lock();
+      _mov(ebp, ecx);
+
+      _redefined(Context.insert<InstFakeDef>(rbp, ebp));
+      _add(rbp, r15);
+      _bundle_unlock();
+    }
   }
 
   // Add pop instructions for preserved registers.
@@ -734,9 +1084,34 @@ void TargetX8664::addEpilog(CfgNode *Node) {
     _pop(getPhysicalRegister(i, IceType_i64));
   }
 
-  if (Ctx->getFlags().getUseSandboxing()) {
-    llvm_unreachable("X86-64 Sandboxing codegen not implemented.");
+  if (!NeedSandboxing) {
+    return;
   }
+
+  Variable *T_rcx = makeReg(IceType_i64, Traits::RegisterSet::Reg_rcx);
+  Variable *T_ecx = makeReg(IceType_i32, Traits::RegisterSet::Reg_ecx);
+  _pop(T_rcx);
+  _mov(T_ecx, T_rcx);
+
+  // lowerIndirectJump(T_ecx);
+  Variable *r15 =
+      getPhysicalRegister(Traits::RegisterSet::Reg_r15, IceType_i64);
+
+  _bundle_lock();
+  const SizeT BundleSize = 1
+                           << Func->getAssembler<>()->getBundleAlignLog2Bytes();
+  _and(T_ecx, Ctx->getConstantInt32(~(BundleSize - 1)));
+  Context.insert<InstFakeDef>(T_rcx, T_ecx);
+  _add(T_rcx, r15);
+
+  _jmp(T_rcx);
+  _bundle_unlock();
+
+  if (RI->getSrcSize()) {
+    auto *RetValue = llvm::cast<Variable>(RI->getSrc(0));
+    Context.insert<InstFakeUse>(RetValue);
+  }
+  RI->setDeleted();
 }
 
 void TargetX8664::emitJumpTable(const Cfg *Func,

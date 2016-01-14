@@ -15,6 +15,8 @@ def TargetAssemblerFlags(target, sandboxed):
   # TODO(reed kotler). Need to find out exactly we need to
   # add here for Mips32.
   flags = { 'x8632': ['-triple=%s' % ('i686-nacl' if sandboxed else 'i686')],
+            'x8664': ['-triple=%s' % (
+                          'x86_64-nacl' if sandboxed else 'x86_64')],
             'arm32': ['-triple=%s' % (
                           'armv7a-nacl' if sandboxed else 'armv7a'),
                       '-mcpu=cortex-a9', '-mattr=+neon'],
@@ -24,6 +26,7 @@ def TargetAssemblerFlags(target, sandboxed):
 
 def TargetDisassemblerFlags(target):
   flags = { 'x8632': ['-Mintel'],
+            'x8664': ['-Mintel'],
             'arm32': [],
             'mips32':[] }
   return flags[target]
@@ -83,7 +86,7 @@ def main():
     argparser.add_argument('--forceasm', required=False, action='store_true',
                            help='Force --filetype=asm')
     argparser.add_argument('--target', default='x8632', dest='target',
-                           choices=['x8632','arm32','mips32'],
+                           choices=['x8632','x8664','arm32','mips32'],
                            help='Target architecture.  Default %(default)s')
     argparser.add_argument('--echo-cmd', required=False,
                            action='store_true',

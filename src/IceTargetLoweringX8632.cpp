@@ -130,6 +130,33 @@ FixupKind TargetX86Base<X8632::Traits>::AbsFixup =
 //      \/_____/\/_____/\/_/   \/_/\/_____/\/_/ /_/\/_/\/_/ \/_/\/_____/
 //
 //------------------------------------------------------------------------------
+void TargetX8632::_add_sp(Operand *Adjustment) {
+  Variable *esp = getPhysicalRegister(Traits::RegisterSet::Reg_esp);
+  _add(esp, Adjustment);
+}
+
+void TargetX8632::_mov_sp(Operand *NewValue) {
+  Variable *esp = getPhysicalRegister(Traits::RegisterSet::Reg_esp);
+  _redefined(_mov(esp, NewValue));
+}
+
+void TargetX8632::_sub_sp(Operand *Adjustment) {
+  Variable *esp = getPhysicalRegister(Traits::RegisterSet::Reg_esp);
+  _sub(esp, Adjustment);
+}
+
+void TargetX8632::lowerIndirectJump(Variable *JumpTarget) {
+  if (NeedSandboxing) {
+    _bundle_lock();
+    const SizeT BundleSize =
+        1 << Func->getAssembler<>()->getBundleAlignLog2Bytes();
+    _and(JumpTarget, Ctx->getConstantInt32(~(BundleSize - 1)));
+  }
+  _jmp(JumpTarget);
+  if (NeedSandboxing)
+    _bundle_unlock();
+}
+
 void TargetX8632::lowerCall(const InstCall *Instr) {
   // x86-32 calling convention:
   //
@@ -253,7 +280,6 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
   }
   Operand *CallTarget =
       legalize(Instr->getCallTarget(), Legal_Reg | Legal_Imm | Legal_AddrAbs);
-  const bool NeedSandboxing = Ctx->getFlags().getUseSandboxing();
   if (NeedSandboxing) {
     if (llvm::isa<Constant>(CallTarget)) {
       _bundle_lock(InstBundleLock::Opt_AlignToEnd);
@@ -723,7 +749,7 @@ void TargetX8632::addEpilog(CfgNode *Node) {
     }
   }
 
-  if (!Ctx->getFlags().getUseSandboxing())
+  if (!NeedSandboxing)
     return;
   // Change the original ret instruction into a sandboxed return sequence.
   // t:ecx = pop

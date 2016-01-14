@@ -30,11 +30,11 @@ namespace Ice {
 
 namespace {
 
-struct {
+constexpr struct {
   bool IsELF64;
   uint16_t ELFMachine;
   uint32_t ELFFlags;
-} ELFTargetInfo[] = {
+} ELFTargetInfo[TargetArch_NUM] = {
 #define X(tag, str, is_elf64, e_machine, e_flags)                              \
   { is_elf64, e_machine, e_flags }                                             \
   ,
@@ -42,11 +42,19 @@ struct {
 #undef X
 };
 
-bool isELF64(TargetArch Arch) {
-  if (Arch < TargetArch_NUM)
-    return ELFTargetInfo[Arch].IsELF64;
-  llvm_unreachable("Invalid target arch for isELF64");
-  return false;
+bool isELF64(const ClFlags &Flags) {
+  const TargetArch Arch = Flags.getTargetArch();
+  if (Arch >= TargetArch_NUM) {
+    llvm_unreachable("Invalid target arch for isELF64");
+    return false;
+  }
+
+  if (!Flags.getUseSandboxing()) {
+    // Unsandboxed code is always ELF32 (pexes are ILP32.)
+    return false;
+  }
+
+  return ELFTargetInfo[Arch].IsELF64;
 }
 
 uint16_t getELFMachine(TargetArch Arch) {
@@ -66,7 +74,7 @@ uint32_t getELFFlags(TargetArch Arch) {
 } // end of anonymous namespace
 
 ELFObjectWriter::ELFObjectWriter(GlobalContext &Ctx, ELFStreamer &Out)
-    : Ctx(Ctx), Str(Out), ELF64(isELF64(Ctx.getFlags().getTargetArch())) {
+    : Ctx(Ctx), Str(Out), ELF64(isELF64(Ctx.getFlags())) {
   // Create the special bookkeeping sections now.
   const IceString NullSectionName("");
   NullSection = new (Ctx.allocate<ELFSection>())
@@ -231,10 +239,10 @@ void ELFObjectWriter::writeFunctionCode(const IceString &FuncName,
     Section = TextSections[0];
     RelSection = RelTextSections[0];
   }
-  RelocOffsetT OffsetInSection = Section->getCurrentSize();
+  const RelocOffsetT OffsetInSection = Section->getCurrentSize();
   // Function symbols are set to 0 size in the symbol table, in contrast to
   // data symbols which have a proper size.
-  SizeT SymbolSize = 0;
+  constexpr SizeT SymbolSize = 0;
   Section->appendData(Str, Asm->getBufferView());
   uint8_t SymbolType;
   uint8_t SymbolBinding;
@@ -248,6 +256,15 @@ void ELFObjectWriter::writeFunctionCode(const IceString &FuncName,
   SymTab->createDefinedSym(FuncName, SymbolType, SymbolBinding, Section,
                            OffsetInSection, SymbolSize);
   StrTab->add(FuncName);
+  for (const auto &InternalReloc : Asm->getInternalRelocations()) {
+    const IceString &RelocName = InternalReloc.first;
+    constexpr uint8_t RelocSymbolType = STT_NOTYPE;
+    constexpr uint8_t RelocSymbolBinding = STB_LOCAL;
+    const SizeT RelocOffsetInSection = OffsetInSection + InternalReloc.second;
+    SymTab->createDefinedSym(RelocName, RelocSymbolType, RelocSymbolBinding,
+                             Section, RelocOffsetInSection, SymbolSize);
+    StrTab->add(RelocName);
+  }
 
   // Copy the fixup information from per-function Assembler memory to the
   // object writer's memory, for writing later.

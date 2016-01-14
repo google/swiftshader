@@ -45,10 +45,21 @@ public:
   }
 
   std::unique_ptr<::Ice::Assembler> createAssembler() const override {
-    return makeUnique<X8664::AssemblerX8664>();
+    const bool EmitAddrSizeOverridePrefix = !NeedSandboxing;
+    return makeUnique<X8664::AssemblerX8664>(EmitAddrSizeOverridePrefix);
   }
 
+  bool needSandboxing() const { return NeedSandboxing; }
+
 protected:
+  void _add_sp(Operand *Adjustment);
+  void _mov_sp(Operand *NewValue);
+  void _push_rbp();
+  Traits::X86OperandMem *_sandbox_mem_reference(X86OperandMem *Mem);
+  void _sub_sp(Operand *Adjustment);
+
+  void initSandbox();
+  void lowerIndirectJump(Variable *JumpTarget);
   void lowerCall(const InstCall *Instr) override;
   void lowerArguments() override;
   void lowerRet(const InstRet *Inst) override;

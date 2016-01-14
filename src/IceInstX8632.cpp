@@ -76,9 +76,9 @@ void TargetX8632Traits::X86Operand::dump(const Cfg *, Ostream &Str) const {
 
 TargetX8632Traits::X86OperandMem::X86OperandMem(
     Cfg *Func, Type Ty, Variable *Base, Constant *Offset, Variable *Index,
-    uint16_t Shift, SegmentRegisters SegmentReg, bool IsPIC)
+    uint16_t Shift, SegmentRegisters SegmentReg, bool IsRebased)
     : X86Operand(kMem, Ty), Base(Base), Offset(Offset), Index(Index),
-      Shift(Shift), SegmentReg(SegmentReg), IsPIC(IsPIC) {
+      Shift(Shift), SegmentReg(SegmentReg), IsRebased(IsRebased) {
   assert(Shift <= 3);
   Vars = nullptr;
   NumVars = 0;
@@ -118,12 +118,12 @@ void validateMemOperandPIC(const TargetX8632Traits::X86OperandMem *Mem,
   const bool HasCR =
       Mem->getOffset() && llvm::isa<ConstantRelocatable>(Mem->getOffset());
   (void)HasCR;
-  const bool IsPIC = Mem->getIsPIC();
-  (void)IsPIC;
+  const bool IsRebased = Mem->getIsRebased();
+  (void)IsRebased;
   if (UseNonsfi)
-    assert(HasCR == IsPIC);
+    assert(HasCR == IsRebased);
   else
-    assert(!IsPIC);
+    assert(!IsRebased);
 }
 
 } // end of anonymous namespace
@@ -260,7 +260,7 @@ void TargetX8632Traits::X86OperandMem::emitSegmentOverride(
 
 TargetX8632Traits::Address TargetX8632Traits::X86OperandMem::toAsmAddress(
     TargetX8632Traits::Assembler *Asm,
-    const Ice::TargetLowering *TargetLowering) const {
+    const Ice::TargetLowering *TargetLowering, bool /*IsLeaAddr*/) const {
   const auto *Target =
       static_cast<const ::Ice::X8632::TargetX8632 *>(TargetLowering);
   const bool UseNonsfi = Target->getGlobalContext()->getFlags().getUseNonsfi();

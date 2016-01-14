@@ -324,10 +324,14 @@ InstImpl<TraitsType>::InstX86Pop::InstX86Pop(Cfg *Func, Variable *Dest)
 }
 
 template <typename TraitsType>
-InstImpl<TraitsType>::InstX86Push::InstX86Push(Cfg *Func, Variable *Source)
+InstImpl<TraitsType>::InstX86Push::InstX86Push(Cfg *Func, Operand *Source)
     : InstX86Base(Func, InstX86Base::Push, 1, nullptr) {
   this->addSource(Source);
 }
+
+template <typename TraitsType>
+InstImpl<TraitsType>::InstX86Push::InstX86Push(Cfg *Func, InstX86Label *L)
+    : InstX86Base(Func, InstX86Base::Push, 0, nullptr), Label(L) {}
 
 template <typename TraitsType>
 InstImpl<TraitsType>::InstX86Ret::InstX86Ret(Cfg *Func, Variable *Source)
@@ -455,6 +459,9 @@ void InstImpl<TraitsType>::InstX86Label::emit(const Cfg *Func) const {
 template <typename TraitsType>
 void InstImpl<TraitsType>::InstX86Label::emitIAS(const Cfg *Func) const {
   Assembler *Asm = Func->getAssembler<Assembler>();
+  if (IsReturnLocation) {
+    Asm->addRelocationAtCurrentPosition(getName(Func));
+  }
   Asm->bindLocalLabel(Number);
 }
 
@@ -552,8 +559,18 @@ void InstImpl<TraitsType>::InstX86Jmp::emit(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 1);
+  const Operand *Src = this->getSrc(0);
+  if (Traits::Is64Bit) {
+    if (const auto *CR = llvm::dyn_cast<ConstantRelocatable>(Src)) {
+      Str << "\t"
+             "jmp"
+             "\t" << CR->getName();
+      return;
+    }
+  }
   Str << "\t"
-         "jmp\t*";
+         "jmp"
+         "\t*";
   getJmpTarget()->emit(Func);
 }
 
@@ -707,8 +724,8 @@ void InstImpl<TraitsType>::emitIASOpTyGPR(const Cfg *Func, Type Ty,
 
 template <typename TraitsType>
 template <bool VarCanBeByte, bool SrcCanBeByte>
-void InstImpl<TraitsType>::emitIASRegOpTyGPR(const Cfg *Func, Type Ty,
-                                             const Variable *Var,
+void InstImpl<TraitsType>::emitIASRegOpTyGPR(const Cfg *Func, bool IsLea,
+                                             Type Ty, const Variable *Var,
                                              const Operand *Src,
                                              const GPREmitterRegOp &Emitter) {
   auto *Target = InstX86Base::getTarget(Func);
@@ -729,7 +746,8 @@ void InstImpl<TraitsType>::emitIASRegOpTyGPR(const Cfg *Func, Type Ty,
     }
   } else if (const auto *Mem = llvm::dyn_cast<X86OperandMem>(Src)) {
     Mem->emitSegmentOverride(Asm);
-    (Asm->*(Emitter.GPRAddr))(Ty, VarReg, Mem->toAsmAddress(Asm, Target));
+    (Asm->*(Emitter.GPRAddr))(Ty, VarReg,
+                              Mem->toAsmAddress(Asm, Target, IsLea));
   } else if (const auto *Imm = llvm::dyn_cast<ConstantInteger32>(Src)) {
     (Asm->*(Emitter.GPRImm))(Ty, VarReg, AssemblerImmediate(Imm->getValue()));
   } else if (const auto *Reloc = llvm::dyn_cast<ConstantRelocatable>(Src)) {
@@ -1136,7 +1154,8 @@ void InstImpl<TraitsType>::InstX86Imul::emitIAS(const Cfg *Func) const {
     assert(Var == this->getSrc(0));
     static const GPREmitterRegOp Emitter = {&Assembler::imul, &Assembler::imul,
                                             &Assembler::imul};
-    emitIASRegOpTyGPR(Func, Ty, Var, Src, Emitter);
+    constexpr bool NotLea = false;
+    emitIASRegOpTyGPR(Func, NotLea, Ty, Var, Src, Emitter);
   }
 }
 
@@ -1695,7 +1714,8 @@ void InstImpl<TraitsType>::InstX86Icmp::emitIAS(const Cfg *Func) const {
                                                &Assembler::cmp};
   if (const auto *SrcVar0 = llvm::dyn_cast<Variable>(Src0)) {
     if (SrcVar0->hasReg()) {
-      emitIASRegOpTyGPR(Func, Ty, SrcVar0, Src1, RegEmitter);
+      constexpr bool NotLea = false;
+      emitIASRegOpTyGPR(Func, NotLea, Ty, SrcVar0, Src1, RegEmitter);
       return;
     }
   }
@@ -1797,7 +1817,8 @@ void InstImpl<TraitsType>::InstX86Test::emitIAS(const Cfg *Func) const {
                                                &Assembler::test};
   if (const auto *SrcVar0 = llvm::dyn_cast<Variable>(Src0)) {
     if (SrcVar0->hasReg()) {
-      emitIASRegOpTyGPR(Func, Ty, SrcVar0, Src1, RegEmitter);
+      constexpr bool NotLea = false;
+      emitIASRegOpTyGPR(Func, NotLea, Ty, SrcVar0, Src1, RegEmitter);
       return;
     }
   }
@@ -1980,7 +2001,7 @@ void InstImpl<TraitsType>::InstX86Lea::emit(const Cfg *Func) const {
   assert(this->getSrcSize() == 1);
   assert(this->getDest()->hasReg());
   Str << "\t"
-         "leal\t";
+         "lea" << this->getWidthString(this->getDest()->getType()) << "\t";
   Operand *Src0 = this->getSrc(0);
   if (const auto *Src0Var = llvm::dyn_cast<Variable>(Src0)) {
     Type Ty = Src0Var->getType();
@@ -2080,7 +2101,8 @@ void InstImpl<TraitsType>::InstX86Mov::emitIAS(const Cfg *Func) const {
       if (isScalarIntegerType(SrcTy)) {
         SrcTy = DestTy;
       }
-      emitIASRegOpTyGPR(Func, DestTy, Dest, Src, GPRRegEmitter);
+      constexpr bool NotLea = false;
+      emitIASRegOpTyGPR(Func, NotLea, DestTy, Dest, Src, GPRRegEmitter);
       return;
     }
   } else {
@@ -2257,7 +2279,32 @@ void InstImpl<TraitsType>::InstX86Movsx::emitIAS(const Cfg *Func) const {
   Type SrcTy = Src->getType();
   assert(typeWidthInBytes(Dest->getType()) > 1);
   assert(typeWidthInBytes(Dest->getType()) > typeWidthInBytes(SrcTy));
-  emitIASRegOpTyGPR<false, true>(Func, SrcTy, Dest, Src, this->Emitter);
+  constexpr bool NotLea = false;
+  emitIASRegOpTyGPR<false, true>(Func, NotLea, SrcTy, Dest, Src, this->Emitter);
+}
+
+template <typename TraitsType>
+bool InstImpl<TraitsType>::InstX86Movzx::mayBeElided(
+    const Variable *Dest, const Operand *SrcOpnd) const {
+  assert(Traits::Is64Bit);
+  const auto *Src = llvm::dyn_cast<Variable>(SrcOpnd);
+
+  // Src is not a Variable, so it does not have a register. Movzx can't be
+  // elided.
+  if (Src == nullptr)
+    return false;
+
+  // Movzx to/from memory can't be elided.
+  if (!Src->hasReg() || !Dest->hasReg())
+    return false;
+
+  // Reg/reg move with different source and dest can't be elided.
+  if (Traits::getEncodedGPR(Src->getRegNum()) !=
+      Traits::getEncodedGPR(Dest->getRegNum()))
+    return false;
+
+  // A must-keep movzx 32- to 64-bit is sometimes needed in x86-64 sandboxing.
+  return !MustKeep;
 }
 
 template <typename TraitsType>
@@ -2272,15 +2319,19 @@ void InstImpl<TraitsType>::InstX86Movzx::emit(const Cfg *Func) const {
     const Variable *Dest = this->Dest;
     if (Src->getType() == IceType_i32 && Dest->getType() == IceType_i64) {
       Ostream &Str = Func->getContext()->getStrEmit();
-      Str << "\t"
-             "mov"
-             "\t";
-      Src->emit(Func);
-      Str << ", ";
-      Dest->asType(IceType_i32,
-                   Traits::getGprForType(IceType_i32, Dest->getRegNum()))
-          ->emit(Func);
-      Str << " /* movzx */";
+      if (mayBeElided(Dest, Src)) {
+        Str << "\t/* elided movzx */";
+      } else {
+        Str << "\t"
+               "mov"
+               "\t";
+        Src->emit(Func);
+        Str << ", ";
+        Dest->asType(IceType_i32,
+                     Traits::getGprForType(IceType_i32, Dest->getRegNum()))
+            ->emit(Func);
+        Str << " /* movzx */";
+      }
       return;
     }
   }
@@ -2295,7 +2346,14 @@ void InstImpl<TraitsType>::InstX86Movzx::emitIAS(const Cfg *Func) const {
   Type SrcTy = Src->getType();
   assert(typeWidthInBytes(Dest->getType()) > 1);
   assert(typeWidthInBytes(Dest->getType()) > typeWidthInBytes(SrcTy));
-  emitIASRegOpTyGPR<false, true>(Func, SrcTy, Dest, Src, this->Emitter);
+  if (Traits::Is64Bit) {
+    if (Src->getType() == IceType_i32 && Dest->getType() == IceType_i64 &&
+        mayBeElided(Dest, Src)) {
+      return;
+    }
+  }
+  constexpr bool NotLea = false;
+  emitIASRegOpTyGPR<false, true>(Func, NotLea, SrcTy, Dest, Src, this->Emitter);
 }
 
 template <typename TraitsType>
@@ -2617,23 +2675,30 @@ void InstImpl<TraitsType>::InstX86Push::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
-  assert(this->getSrcSize() == 1);
-  // Push is currently only used for saving GPRs.
-  const auto *Var = llvm::cast<Variable>(this->getSrc(0));
-  assert(Var->hasReg());
   Str << "\t"
-         "push\t";
-  Var->emit(Func);
+         "push"
+         "\t";
+  assert(this->getSrcSize() == 1);
+  const Operand *Src = this->getSrc(0);
+  Src->emit(Func);
 }
 
 template <typename TraitsType>
 void InstImpl<TraitsType>::InstX86Push::emitIAS(const Cfg *Func) const {
-  assert(this->getSrcSize() == 1);
-  // Push is currently only used for saving GPRs.
-  const auto *Var = llvm::cast<Variable>(this->getSrc(0));
-  assert(Var->hasReg());
   Assembler *Asm = Func->getAssembler<Assembler>();
-  Asm->pushl(Traits::getEncodedGPR(Var->getRegNum()));
+
+  assert(this->getSrcSize() == 1);
+  const Operand *Src = this->getSrc(0);
+
+  if (const auto *Var = llvm::dyn_cast<Variable>(Src)) {
+    Asm->pushl(Traits::getEncodedGPR(Var->getRegNum()));
+  } else if (const auto *Const32 = llvm::dyn_cast<ConstantInteger32>(Src)) {
+    Asm->pushl(AssemblerImmediate(Const32->getValue()));
+  } else if (auto *CR = llvm::dyn_cast<ConstantRelocatable>(Src)) {
+    Asm->pushl(CR);
+  } else {
+    llvm_unreachable("Unexpected operand type");
+  }
 }
 
 template <typename TraitsType>

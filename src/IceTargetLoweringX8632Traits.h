@@ -445,6 +445,7 @@ private:
 
 public:
   static void initRegisterSet(
+      const ::Ice::ClFlags & /*Flags*/,
       std::array<llvm::SmallBitVector, RCX86_NUM> *TypeToRegisterSet,
       std::array<llvm::SmallBitVector, RegisterSet::Reg_NUM> *RegisterAliases,
       llvm::SmallBitVector *ScratchRegs) {
@@ -536,7 +537,8 @@ public:
   }
 
   static llvm::SmallBitVector
-  getRegisterSet(TargetLowering::RegSetMask Include,
+  getRegisterSet(const ::Ice::ClFlags & /*Flags*/,
+                 TargetLowering::RegSetMask Include,
                  TargetLowering::RegSetMask Exclude) {
     llvm::SmallBitVector Registers(RegisterSet::Reg_NUM);
 
@@ -813,9 +815,16 @@ public:
                                  Constant *Offset, Variable *Index = nullptr,
                                  uint16_t Shift = 0,
                                  SegmentRegisters SegmentReg = DefaultSegment,
-                                 bool IsPIC = false) {
+                                 bool IsRebased = false) {
       return new (Func->allocate<X86OperandMem>()) X86OperandMem(
-          Func, Ty, Base, Offset, Index, Shift, SegmentReg, IsPIC);
+          Func, Ty, Base, Offset, Index, Shift, SegmentReg, IsRebased);
+    }
+    static X86OperandMem *create(Cfg *Func, Type Ty, Variable *Base,
+                                 Constant *Offset, bool IsRebased) {
+      constexpr Variable *NoIndex = nullptr;
+      constexpr uint16_t NoShift = 0;
+      return new (Func->allocate<X86OperandMem>()) X86OperandMem(
+          Func, Ty, Base, Offset, NoIndex, NoShift, DefaultSegment, IsRebased);
     }
     Variable *getBase() const { return Base; }
     Constant *getOffset() const { return Offset; }
@@ -823,10 +832,9 @@ public:
     uint16_t getShift() const { return Shift; }
     SegmentRegisters getSegmentRegister() const { return SegmentReg; }
     void emitSegmentOverride(Assembler *Asm) const;
-    void setIsPIC() { IsPIC = true; }
-    bool getIsPIC() const { return IsPIC; }
-    Address toAsmAddress(Assembler *Asm,
-                         const Ice::TargetLowering *Target) const;
+    bool getIsRebased() const { return IsRebased; }
+    Address toAsmAddress(Assembler *Asm, const Ice::TargetLowering *Target,
+                         bool LeaAddr = false) const;
 
     void emit(const Cfg *Func) const override;
     using X86Operand::dump;
@@ -843,14 +851,14 @@ public:
   private:
     X86OperandMem(Cfg *Func, Type Ty, Variable *Base, Constant *Offset,
                   Variable *Index, uint16_t Shift, SegmentRegisters SegmentReg,
-                  bool IsPIC);
+                  bool IsRebased);
 
-    Variable *Base;
-    Constant *Offset;
-    Variable *Index;
-    uint16_t Shift;
-    SegmentRegisters SegmentReg : 16;
-    bool IsPIC;
+    Variable *const Base;
+    Constant *const Offset;
+    Variable *const Index;
+    const uint16_t Shift;
+    const SegmentRegisters SegmentReg : 16;
+    const bool IsRebased;
     /// A flag to show if this memory operand is a randomized one. Randomized
     /// memory operands are generated in
     /// TargetX86Base::randomizeOrPoolImmediate()

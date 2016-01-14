@@ -67,9 +67,9 @@ TargetX8664Traits::X86OperandMem::X86OperandMem(Cfg *Func, Type Ty,
                                                 Variable *Base,
                                                 Constant *Offset,
                                                 Variable *Index, uint16_t Shift,
-                                                bool IsPIC)
+                                                bool IsRebased)
     : X86Operand(kMem, Ty), Base(Base), Offset(Offset), Index(Index),
-      Shift(Shift), IsPIC(IsPIC) {
+      Shift(Shift), IsRebased(IsRebased) {
   assert(Shift <= 3);
   Vars = nullptr;
   NumVars = 0;
@@ -110,6 +110,7 @@ void TargetX8664Traits::X86OperandMem::emit(const Cfg *Func) const {
       static_cast<const ::Ice::X8664::TargetX8664 *>(Func->getTarget());
   // If the base is rematerializable, we need to replace it with the correct
   // physical register (stack or base pointer), and update the Offset.
+  const bool NeedSandboxing = Target->needSandboxing();
   int32_t Disp = 0;
   if (getBase() && getBase()->isRematerializable()) {
     Disp += getRematerializableOffset(getBase(), Target);
@@ -140,30 +141,40 @@ void TargetX8664Traits::X86OperandMem::emit(const Cfg *Func) const {
     llvm_unreachable("Invalid offset type for x86 mem operand");
   }
 
-  if (Base || Index) {
-    Str << "(";
-    if (Base) {
-      const Variable *Base32 = Base;
-      if (Base->getType() != IceType_i32) {
+  if (Base == nullptr && Index == nullptr) {
+    return;
+  }
+
+  Str << "(";
+  if (Base != nullptr) {
+    const Variable *B = Base;
+    if (!NeedSandboxing) {
+      // TODO(jpp): stop abusing the operand's type to identify LEAs.
+      const Type MemType = getType();
+      if (Base->getType() != IceType_i32 && MemType != IceType_void) {
         // X86-64 is ILP32, but %rsp and %rbp are accessed as 64-bit registers.
         // For filetype=asm, they need to be emitted as their 32-bit sibilings.
         assert(Base->getType() == IceType_i64);
         assert(Base->getRegNum() == RegX8664::Encoded_Reg_rsp ||
-               Base->getRegNum() == RegX8664::Encoded_Reg_rbp);
-        Base32 = Base->asType(IceType_i32, X8664::Traits::getGprForType(
-                                               IceType_i32, Base->getRegNum()));
+               Base->getRegNum() == RegX8664::Encoded_Reg_rbp ||
+               getType() == IceType_void);
+        B = B->asType(IceType_i32, X8664::Traits::getGprForType(
+                                       IceType_i32, Base->getRegNum()));
       }
-      Base32->emit(Func);
     }
-    if (Index) {
-      assert(Index->getType() == IceType_i32);
-      Str << ",";
-      Index->emit(Func);
-      if (Shift)
-        Str << "," << (1u << Shift);
-    }
-    Str << ")";
+
+    B->emit(Func);
   }
+
+  if (Index != nullptr) {
+    Variable *I = Index;
+    Str << ",";
+    I->emit(Func);
+    if (Shift)
+      Str << "," << (1u << Shift);
+  }
+
+  Str << ")";
 }
 
 void TargetX8664Traits::X86OperandMem::dump(const Cfg *Func,
@@ -228,15 +239,18 @@ void TargetX8664Traits::X86OperandMem::dump(const Cfg *Func,
 
 TargetX8664Traits::Address TargetX8664Traits::X86OperandMem::toAsmAddress(
     TargetX8664Traits::Assembler *Asm,
-    const Ice::TargetLowering *TargetLowering) const {
+    const Ice::TargetLowering *TargetLowering, bool IsLeaAddr) const {
+  (void)IsLeaAddr;
   const auto *Target =
       static_cast<const ::Ice::X8664::TargetX8664 *>(TargetLowering);
   int32_t Disp = 0;
   if (getBase() && getBase()->isRematerializable()) {
     Disp += getRematerializableOffset(getBase(), Target);
   }
-  if (getIndex())
+  if (getIndex() != nullptr) {
     assert(!getIndex()->isRematerializable());
+  }
+
   AssemblerFixup *Fixup = nullptr;
   // Determine the offset (is it relocatable?)
   if (getOffset() != nullptr) {
@@ -253,20 +267,28 @@ TargetX8664Traits::Address TargetX8664Traits::X86OperandMem::toAsmAddress(
 
   // Now convert to the various possible forms.
   if (getBase() && getIndex()) {
+    const bool NeedSandboxing = Target->needSandboxing();
+    (void)NeedSandboxing;
+    assert(!NeedSandboxing || IsLeaAddr ||
+           (getBase()->getRegNum() == Traits::RegisterSet::Reg_r15));
     return X8664::Traits::Address(getEncodedGPR(getBase()->getRegNum()),
                                   getEncodedGPR(getIndex()->getRegNum()),
                                   X8664::Traits::ScaleFactor(getShift()), Disp,
                                   Fixup);
-  } else if (getBase()) {
+  }
+
+  if (getBase()) {
     return X8664::Traits::Address(getEncodedGPR(getBase()->getRegNum()), Disp,
                                   Fixup);
-  } else if (getIndex()) {
+  }
+
+  if (getIndex()) {
     return X8664::Traits::Address(getEncodedGPR(getIndex()->getRegNum()),
                                   X8664::Traits::ScaleFactor(getShift()), Disp,
                                   Fixup);
-  } else {
-    return X8664::Traits::Address(Disp, Fixup);
   }
+
+  return X8664::Traits::Address(Disp, Fixup);
 }
 
 TargetX8664Traits::Address

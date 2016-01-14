@@ -356,17 +356,24 @@ void ELFRelocationSection::writeData(const GlobalContext &Ctx, ELFStreamer &Str,
       Symbol = SymTab->getNullSymbol();
     } else {
       constexpr Assembler *Asm = nullptr;
-      Symbol = SymTab->findSymbol(Fixup.symbol(&Ctx, Asm));
+      IceString Name = Fixup.symbol(&Ctx, Asm);
+      Symbol = SymTab->findSymbol(Name);
+      if (!Symbol)
+        llvm::report_fatal_error(Name + ": Missing symbol mentioned in reloc");
     }
-    if (!Symbol)
-      llvm::report_fatal_error("Missing symbol mentioned in reloc");
 
     if (IsELF64) {
-      // TODO(jpp): check that Fixup.offset() is correct even for pc-rel.
       Elf64_Rela Rela;
       Rela.r_offset = Fixup.position();
       Rela.setSymbolAndType(Symbol->getNumber(), Fixup.kind());
       Rela.r_addend = Fixup.offset();
+      if (Fixup.kind() == llvm::ELF::R_X86_64_PC32) {
+        // In ELF64, PC-relative relocations' addends need to account for the
+        // immediate size. For now, this is always 4 (because x86-64 sandboxed
+        // is the only ELF64 target currently implemented.)
+        constexpr int32_t RelocImmediateSize = 4;
+        Rela.r_addend -= RelocImmediateSize;
+      }
       Str.writeAddrOrOffset<IsELF64>(Rela.r_offset);
       Str.writeELFXword<IsELF64>(Rela.r_info);
       Str.writeELFXword<IsELF64>(Rela.r_addend);

@@ -12,6 +12,18 @@
 ; RUN:   --target x8632 -i %s --args -Om1 \
 ; RUN:   | %if --need=target_X8632 --command FileCheck --check-prefix=OPTM1 %s
 
+; RUN: %if --need=target_X8664 --command %p2i --filetype=obj --disassemble \
+; RUN:   --target x8664 -i %s --args -O2 \
+; RUN:   | %if --need=target_X8664 --command FileCheck --check-prefix X8664 %s
+; RUN: %if --need=allow_dump --need=target_X8664 --command %p2i --filetype=asm \
+; RUN:     --assemble --disassemble --target x8664 -i %s --args -O2 \
+; RUN:   | %if --need=allow_dump --need=target_X8664 \
+; RUN:     --command FileCheck --check-prefix=X8664 %s
+; RUN: %if --need=target_X8664 --command %p2i --filetype=obj --disassemble \
+; RUN:   --target x8664 -i %s --args -Om1 \
+; RUN:   | %if --need=target_X8664 \
+; RUN:     --command FileCheck --check-prefix=X8664-OPTM1 %s
+
 ; TODO(jvoung): Stop skipping unimplemented parts (via --skip-unimplemented)
 ; once enough infrastructure is in. Also, switch to --filetype=obj
 ; when possible.
@@ -55,6 +67,29 @@ entry:
 ; OPTM1: call [[TARGET]]
 ; OPTM1: call [[TARGET]]
 ;
+; X8664-LABEL: CallIndirect
+; Use the first call as a barrier so we skip the movs in the function prolog.
+; X8664: call r{{..}}
+; X8664: mov e[[REG:..]],
+; X8664-NEXT: call r[[REG]]
+; X8664: mov e[[REG:..]],
+; X8664-NEXT: call r[[REG]]
+; X8664: mov e[[REG:..]],
+; X8664-NEXT: call r[[REG]]
+; X8664: call r{{..}}
+;
+; X8664-OPTM1-LABEL: CallIndirect
+; X8664-OPTM1: mov e[[REG:..]],DWORD PTR
+; X8664-OPTM1: call r[[REG]]
+; X8664-OPTM1: mov e[[REG:..]],DWORD PTR
+; X8664-OPTM1: call r[[REG]]
+; X8664-OPTM1: mov e[[REG:..]],DWORD PTR
+; X8664-OPTM1: call r[[REG]]
+; X8664-OPTM1: mov e[[REG:..]],DWORD PTR
+; X8664-OPTM1: call r[[REG]]
+; X8664-OPTM1: mov e[[REG:..]],DWORD PTR
+; X8664-OPTM1: call r[[REG]]
+;
 ; ARM32-LABEL: CallIndirect
 ; ARM32: blx [[REGISTER:r.*]]
 ; ARM32: blx [[REGISTER]]
@@ -90,6 +125,24 @@ entry:
 ; OPTM1: call [[TARGET]]
 ; OPTM1: call [[TARGET]]
 ;
+; X8664-LABEL: CallIndirectGlobal
+; X8664: call r[[REG]]
+; X8664: mov e[[REG:..]]
+; X8664-NEXT: call r[[REG]]
+; X8664: mov e[[REG:..]]
+; X8664-NEXT: call r[[REG]]
+; X8664: call r{{..}}
+;
+; X8664-OPTM1-LABEL: CallIndirectGlobal
+; X8664-OPTM1: mov e[[REG:..]],DWORD PTR
+; X8664-OPTM1: call r[[REG]]
+; X8664-OPTM1: mov e[[REG:..]],DWORD PTR
+; X8664-OPTM1: call r[[REG]]
+; X8664-OPTM1: mov e[[REG:..]],DWORD PTR
+; X8664-OPTM1: call r[[REG]]
+; X8664-OPTM1: mov e[[REG:..]],DWORD PTR
+; X8664-OPTM1: call r[[REG]]
+;
 ; ARM32-LABEL: CallIndirectGlobal
 ; ARM32: blx {{r.*}}
 ; ARM32: blx [[REGISTER:r[0-9]*]]
@@ -117,6 +170,16 @@ entry:
 ; OPTM1: e8 bc 03 01 00 call {{[0-9a-f]+}} {{.*}} R_386_PC32 *ABS*
 ; OPTM1: e8 bc 03 01 00 call {{[0-9a-f]+}} {{.*}} R_386_PC32 *ABS*
 ; OPTM1: e8 bc 03 01 00 call {{[0-9a-f]+}} {{.*}} R_386_PC32 *ABS*
+;
+; X8664-LABEL: CallConst
+; TODO(jpp): fix absolute call emission.
+; These are broken: the emitted code should be
+;    e8 00 00 00 00 call {{.*}} *ABS*+0x103bc
+;
+; X8664-OPTM1-LABEL: CallConst
+; TODO(jpp): fix absolute call emission.
+; These are broken: the emitted code should be
+;    e8 00 00 00 00 call {{.*}} *ABS*+0x103bc
 ;
 ; ARM32-LABEL: CallConst
 ; ARM32: movw [[REGISTER:r.*]], #960

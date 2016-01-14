@@ -237,6 +237,9 @@ class Assembler {
   Assembler &operator=(const Assembler &) = delete;
 
 public:
+  using InternalRelocationList =
+      std::vector<std::pair<const IceString, const SizeT>>;
+
   enum AssemblerKind {
     Asm_ARM32,
     Asm_MIPS32,
@@ -323,12 +326,23 @@ public:
 
   AssemblerKind getKind() const { return Kind; }
 
+  void addRelocationAtCurrentPosition(const IceString &RelocName) {
+    if (!getPreliminary()) {
+      InternalRelocs.emplace_back(RelocName, getBufferSize());
+    }
+  }
+
+  const InternalRelocationList &getInternalRelocations() const {
+    return InternalRelocs;
+  }
+
 protected:
   explicit Assembler(AssemblerKind Kind)
       : Kind(Kind), Allocator(), Buffer(*this) {}
 
 private:
   const AssemblerKind Kind;
+  InternalRelocationList InternalRelocs;
 
   ArenaAllocator<32 * 1024> Allocator;
   /// FunctionName and IsInternal are transferred from the original Cfg object,

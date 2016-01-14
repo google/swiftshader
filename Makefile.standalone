@@ -134,10 +134,15 @@ ifdef FORCEASM
   # resulting nexe.  So we just disable those tests for now.
   FORCEASM_XTEST_EXCLUDES = -e x8632,sandbox,test_sync_atomic
   FORCEASM_LIT_PARAM = --param=FORCEASM
+  # x86 sandboxing lit tests are disabled because llvm-mc uses different
+  # relocations for pushing return addresses onto the stack.
+  # TODO(jpp): fix this.
+  FORCEASM_LIT_TEST_EXCLUDES = --filter='^(?!.*/x86/sandboxing.ll).*'
 else
   FORCEASM_FLAG =
   FORCEASM_XTEST_EXCLUDES =
   FORCEASM_LIT_PARAM =
+  FORCEASM_LIT_TEST_EXCLUDES =
 endif
 
 SB_OBJDIR := $(OBJDIR)+Sandboxed
@@ -410,7 +415,8 @@ runtime.is.built: $(RT_SRC) pydir/build-runtime.py
 
 check-lit: $(OBJDIR)/pnacl-sz make_symlink
 	PNACL_BIN_PATH=$(PNACL_BIN_PATH) \
-	$(LLVM_SRC_PATH)/utils/lit/lit.py -sv tests_lit $(FORCEASM_LIT_PARAM)
+	$(LLVM_SRC_PATH)/utils/lit/lit.py -sv tests_lit \
+            $(FORCEASM_LIT_TEST_EXCLUDES) $(FORCEASM_LIT_PARAM)
 
 ifdef MINIMAL
 check-xtest: $(OBJDIR)/pnacl-sz make_symlink runtime
@@ -419,8 +425,6 @@ else
 check-xtest: $(OBJDIR)/pnacl-sz make_symlink runtime
        # Do all native/sse2 tests, but only test_vector_ops for native/sse4.1.
        # For (slow) sandboxed tests, limit to Om1/sse4.1.
-       # TODO(jpp): implement x8664 sandbox, then enable xtests.
-       # TODO(jpp): reenable the x86-64 tests.
 	./pydir/crosstest_generator.py -v --lit \
           --toolchain-root $(TOOLCHAIN_ROOT) \
           $(FORCEASM_FLAG) \
@@ -431,7 +435,7 @@ check-xtest: $(OBJDIR)/pnacl-sz make_symlink runtime
           -i x8632,nonsfi,sse2,O2 \
           -i x8664,native,sse2 \
           -i x8664,native,sse4.1,test_vector_ops \
-          -e x8664,sandbox,sse4.1,Om1 \
+          -i x8664,sandbox,sse4.1,Om1 \
           -i arm32,neon \
           -e arm32,nonsfi \
           -e arm32,neon,test_vector_ops \

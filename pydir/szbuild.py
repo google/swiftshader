@@ -103,7 +103,7 @@ def AddOptionalArgs(argparser):
                            help='Run only post-Subzero build steps')
 
 def LinkSandbox(objs, exe, target, verbose=True):
-    assert target in ('x8632', 'arm32'), \
+    assert target in ('x8632', 'x8664', 'arm32'), \
         '-sandbox is not available for %s' % target
     nacl_root = FindBaseNaCl()
     gold = ('{root}/toolchain/linux_x86/pnacl_newlib_raw/bin/' +
@@ -111,6 +111,7 @@ def LinkSandbox(objs, exe, target, verbose=True):
     target_lib_dir = {
       'arm32': 'arm',
       'x8632': 'x86-32',
+      'x8664': 'x86-64',
     }[target]
     linklib = ('{root}/toolchain/linux_x86/pnacl_newlib_raw/translator/' +
                '{target_dir}/lib').format(root=nacl_root,
@@ -417,7 +418,7 @@ def ProcessPexe(args, pexe, exe):
         emulation = {
           'arm32': 'armelf_linux_eabi',
           'x8632': 'elf_i386',
-          'x8664': 'elf32_x86_64',
+          'x8664': 'elf32_x86_64' if not args.sandbox else 'elf_x86_64',
         }[args.target]
         shellcmd((
             '{ld} -r -m {emulation} -o {partial} {sz} {llc}'

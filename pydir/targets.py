@@ -44,4 +44,4 @@ ARM32Target = TargetInfo(target='arm32',
                          cross_headers=['-isystem', FindARMCrossInclude()])
 
 def ConvertTripleToNaCl(nonsfi_triple):
-  return nonsfi_triple.replace('linux', 'nacl')
+  return nonsfi_triple[:nonsfi_triple.find('-linux')] + '-nacl'

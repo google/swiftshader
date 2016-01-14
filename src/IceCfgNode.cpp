@@ -1107,6 +1107,11 @@ public:
     return llvm::cast<InstBundleLock>(getBundleLockStart())->getOption() ==
            InstBundleLock::Opt_AlignToEnd;
   }
+  bool isPadToEnd() const {
+    assert(isInBundleLockRegion());
+    return llvm::cast<InstBundleLock>(getBundleLockStart())->getOption() ==
+           InstBundleLock::Opt_PadToEnd;
+  }
   // Check whether the entire bundle_lock region falls within the same bundle.
   bool isSameBundle() const {
     assert(isInBundleLockRegion());
@@ -1172,7 +1177,17 @@ public:
       }
     }
   }
-  // Update bookkeeping when rolling back for the second pass.
+  // If pad_to_end is specified, add padding such that the first instruction
+  // after the instruction sequence starts at a bundle boundary.
+  void padForPadToEnd() {
+    assert(isInBundleLockRegion());
+    if (isPadToEnd()) {
+      if (intptr_t Offset = getPostAlignment()) {
+        Asm->padWithNop(BundleSize - Offset);
+        SizeSnapshotPre = Asm->getBufferSize();
+      }
+    }
+  } // Update bookkeeping when rolling back for the second pass.
   void rollback() {
     assert(isInBundleLockRegion());
     Asm->setBufferSize(SizeSnapshotPre);
@@ -1261,6 +1276,7 @@ void CfgNode::emitIAS(Cfg *Func) const {
         // If align_to_end is specified, make sure the next instruction begins
         // the bundle.
         assert(!Helper.isAlignToEnd() || Helper.getPostAlignment() == 0);
+        Helper.padForPadToEnd();
         Helper.leaveBundleLockRegion();
         Retrying = false;
       } else {

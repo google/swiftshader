@@ -337,11 +337,13 @@ template <typename TraitsType> struct InstImpl {
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;
     void dump(const Cfg *Func) const override;
+    void setIsReturnLocation(bool Value) { IsReturnLocation = Value; }
 
   private:
     InstX86Label(Cfg *Func, TargetLowering *Target);
 
     SizeT Number; // used for unique label generation.
+    bool IsReturnLocation = false;
   };
 
   /// Conditional and unconditional branch instruction.
@@ -528,8 +530,8 @@ template <typename TraitsType> struct InstImpl {
   /// Emit a two-operand (GPR) instruction, where the dest operand is a Variable
   /// that's guaranteed to be a register.
   template <bool VarCanBeByte = true, bool SrcCanBeByte = true>
-  static void emitIASRegOpTyGPR(const Cfg *Func, Type Ty, const Variable *Dst,
-                                const Operand *Src,
+  static void emitIASRegOpTyGPR(const Cfg *Func, bool IsLea, Type Ty,
+                                const Variable *Dst, const Operand *Src,
                                 const GPREmitterRegOp &Emitter);
 
   /// Instructions of the form x := op(x).
@@ -613,7 +615,8 @@ template <typename TraitsType> struct InstImpl {
       const Variable *Var = this->getDest();
       Type Ty = Var->getType();
       const Operand *Src = this->getSrc(0);
-      emitIASRegOpTyGPR(Func, Ty, Var, Src, Emitter);
+      constexpr bool IsLea = K == InstX86Base::Lea;
+      emitIASRegOpTyGPR(Func, IsLea, Ty, Var, Src, Emitter);
     }
     void dump(const Cfg *Func) const override {
       if (!BuildDefs::dump())
@@ -743,7 +746,10 @@ template <typename TraitsType> struct InstImpl {
     void emitIAS(const Cfg *Func) const override {
       Type Ty = this->getDest()->getType();
       assert(this->getSrcSize() == 2);
-      emitIASRegOpTyGPR(Func, Ty, this->getDest(), this->getSrc(1), Emitter);
+      constexpr bool ThisIsLEA = K == InstX86Base::Lea;
+      static_assert(!ThisIsLEA, "Lea should be a unaryop.");
+      emitIASRegOpTyGPR(Func, !ThisIsLEA, Ty, this->getDest(), this->getSrc(1),
+                        Emitter);
     }
     void dump(const Cfg *Func) const override {
       if (!BuildDefs::dump())
@@ -1177,9 +1183,15 @@ template <typename TraitsType> struct InstImpl {
 
     void emitIAS(const Cfg *Func) const override;
 
+    void setMustKeep() { MustKeep = true; }
+
   private:
+    bool MustKeep = false;
+
     InstX86Movzx(Cfg *Func, Variable *Dest, Operand *Src)
         : InstX86BaseUnaryopGPR<InstX86Base::Movzx>(Func, Dest, Src) {}
+
+    bool mayBeElided(const Variable *Dest, const Operand *Src) const;
   };
 
   class InstX86Movd : public InstX86BaseUnaryopXmm<InstX86Base::Movd> {
@@ -2638,7 +2650,10 @@ template <typename TraitsType> struct InstImpl {
     InstX86Push &operator=(const InstX86Push &) = delete;
 
   public:
-    static InstX86Push *create(Cfg *Func, Variable *Source) {
+    static InstX86Push *create(Cfg *Func, InstX86Label *Label) {
+      return new (Func->allocate<InstX86Push>()) InstX86Push(Func, Label);
+    }
+    static InstX86Push *create(Cfg *Func, Operand *Source) {
       return new (Func->allocate<InstX86Push>()) InstX86Push(Func, Source);
     }
     void emit(const Cfg *Func) const override;
@@ -2649,7 +2664,10 @@ template <typename TraitsType> struct InstImpl {
     }
 
   private:
-    InstX86Push(Cfg *Func, Variable *Source);
+    InstX86Label *Label = nullptr;
+
+    InstX86Push(Cfg *Func, Operand *Source);
+    InstX86Push(Cfg *Func, InstX86Label *Label);
   };
 
   /// Ret instruction. Currently only supports the "ret" version that does not

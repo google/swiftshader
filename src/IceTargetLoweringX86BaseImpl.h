@@ -308,7 +308,7 @@ void TargetX86Base<TraitsType>::initNodeForLowering(CfgNode *Node) {
 
 template <typename TraitsType>
 TargetX86Base<TraitsType>::TargetX86Base(Cfg *Func)
-    : TargetLowering(Func) {
+    : TargetLowering(Func), NeedSandboxing(Ctx->getFlags().getUseSandboxing()) {
   static_assert(
       (Traits::InstructionSet::End - Traits::InstructionSet::Begin) ==
           (TargetInstructionSet::X86InstructionSet_End -
@@ -325,7 +325,8 @@ TargetX86Base<TraitsType>::TargetX86Base(Cfg *Func)
 
 template <typename TraitsType>
 void TargetX86Base<TraitsType>::staticInit(const ClFlags &Flags) {
-  Traits::initRegisterSet(&TypeToRegisterSet, &RegisterAliases, &ScratchRegs);
+  Traits::initRegisterSet(Flags, &TypeToRegisterSet, &RegisterAliases,
+                          &ScratchRegs);
   PcRelFixup = Traits::FK_PcRel;
   AbsFixup = Flags.getUseNonsfi() ? Traits::FK_Gotoff : Traits::FK_Abs;
 }
@@ -336,6 +337,11 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::translateO2() {
   if (!Traits::Is64Bit && Func->getContext()->getFlags().getUseNonsfi()) {
     GotVar = Func->makeVariable(IceType_i32);
   }
+
+  if (NeedSandboxing) {
+    initSandbox();
+  }
+
   genTargetHelperCalls();
   Func->dump("After target helper call insertion");
 
@@ -456,8 +462,9 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::translateO2() {
   Func->doNopInsertion();
 
   // Mark nodes that require sandbox alignment
-  if (Ctx->getFlags().getUseSandboxing())
+  if (NeedSandboxing) {
     Func->markNodesForSandboxing();
+  }
 }
 
 template <typename TraitsType> void TargetX86Base<TraitsType>::translateOm1() {
@@ -466,6 +473,11 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::translateOm1() {
   if (!Traits::Is64Bit && Func->getContext()->getFlags().getUseNonsfi()) {
     GotVar = Func->makeVariable(IceType_i32);
   }
+
+  if (NeedSandboxing) {
+    initSandbox();
+  }
+
   genTargetHelperCalls();
 
   // Do not merge Alloca instructions, and lay out the stack.
@@ -508,7 +520,7 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::translateOm1() {
   Func->doNopInsertion();
 
   // Mark nodes that require sandbox alignment
-  if (Ctx->getFlags().getUseSandboxing())
+  if (NeedSandboxing)
     Func->markNodesForSandboxing();
 }
 
@@ -810,7 +822,11 @@ void TargetX86Base<TraitsType>::emitVariable(const Variable *Var) const {
     return;
   Ostream &Str = Ctx->getStrEmit();
   if (Var->hasReg()) {
-    Str << "%" << getRegName(Var->getRegNum(), Var->getType());
+    const bool Is64BitSandboxing = Traits::Is64Bit && NeedSandboxing;
+    const Type VarType = (Var->isRematerializable() && Is64BitSandboxing)
+                             ? IceType_i64
+                             : Var->getType();
+    Str << "%" << getRegName(Var->getRegNum(), VarType);
     return;
   }
   if (Var->mustHaveReg()) {
@@ -923,7 +939,7 @@ TargetX86Base<TraitsType>::loOperand(Operand *Operand) {
   if (auto *Mem = llvm::dyn_cast<X86OperandMem>(Operand)) {
     auto *MemOperand = X86OperandMem::create(
         Func, IceType_i32, Mem->getBase(), Mem->getOffset(), Mem->getIndex(),
-        Mem->getShift(), Mem->getSegmentRegister(), Mem->getIsPIC());
+        Mem->getShift(), Mem->getSegmentRegister(), Mem->getIsRebased());
     // Test if we should randomize or pool the offset, if so randomize it or
     // pool it then create mem operand with the blinded/pooled constant.
     // Otherwise, return the mem operand as ordinary mem operand.
@@ -963,7 +979,7 @@ TargetX86Base<TraitsType>::hiOperand(Operand *Operand) {
     }
     auto *MemOperand = X86OperandMem::create(
         Func, IceType_i32, Mem->getBase(), Offset, Mem->getIndex(),
-        Mem->getShift(), Mem->getSegmentRegister(), Mem->getIsPIC());
+        Mem->getShift(), Mem->getSegmentRegister(), Mem->getIsRebased());
     // Test if the Offset is an eligible i32 constants for randomization and
     // pooling. Blind/pool it if it is. Otherwise return as oridinary mem
     // operand.
@@ -977,7 +993,7 @@ template <typename TraitsType>
 llvm::SmallBitVector
 TargetX86Base<TraitsType>::getRegisterSet(RegSetMask Include,
                                           RegSetMask Exclude) const {
-  return Traits::getRegisterSet(Include, Exclude);
+  return Traits::getRegisterSet(Ctx->getFlags(), Include, Exclude);
 }
 
 template <typename TraitsType>
@@ -1037,35 +1053,38 @@ void TargetX86Base<TraitsType>::lowerAlloca(const InstAlloca *Inst) {
           llvm::dyn_cast<ConstantInteger32>(TotalSize)) {
     const uint32_t Value =
         Utils::applyAlignment(ConstantTotalSize->getValue(), Alignment);
-    if (!UseFramePointer) {
+    if (UseFramePointer) {
+      _sub_sp(Ctx->getConstantInt32(Value));
+    } else {
       // If we don't need a Frame Pointer, this alloca has a known offset to the
       // stack pointer. We don't need adjust the stack pointer, nor assign any
       // value to Dest, as Dest is rematerializable.
       assert(Dest->isRematerializable());
       FixedAllocaSizeBytes += Value;
       Context.insert<InstFakeDef>(Dest);
-    } else {
-      _sub(esp, Ctx->getConstantInt32(Value));
     }
   } else {
     // Non-constant sizes need to be adjusted to the next highest multiple of
     // the required alignment at runtime.
-    Variable *T = makeReg(Traits::WordType);
-    if (Traits::Is64Bit && TotalSize->getType() != IceType_i64) {
+    Variable *T = nullptr;
+    if (Traits::Is64Bit && TotalSize->getType() != IceType_i64 &&
+        !NeedSandboxing) {
+      T = makeReg(IceType_i64);
       _movzx(T, TotalSize);
     } else {
+      T = makeReg(IceType_i32);
       _mov(T, TotalSize);
     }
     _add(T, Ctx->getConstantInt32(Alignment - 1));
     _and(T, Ctx->getConstantInt32(-Alignment));
-    _sub(esp, T);
+    _sub_sp(T);
   }
   // Add enough to the returned address to account for the out args area.
   uint32_t OutArgsSize = maxOutArgsSizeBytes();
   if (OutArgsSize > 0) {
     Variable *T = makeReg(IceType_i32);
     auto *CalculateOperand = X86OperandMem::create(
-        Func, IceType_i32, esp, Ctx->getConstantInt(IceType_i32, OutArgsSize));
+        Func, IceType_void, esp, Ctx->getConstantInt(IceType_i32, OutArgsSize));
     _lea(T, CalculateOperand);
     _mov(Dest, T);
   } else {
@@ -1086,8 +1105,8 @@ bool TargetX86Base<TraitsType>::optimizeScalarMul(Variable *Dest, Operand *Src0,
   if (Ctx->getFlags().getOptLevel() < Opt_1)
     return false;
   Type Ty = Dest->getType();
-  Variable *T = nullptr;
   if (Src1 == -1) {
+    Variable *T = nullptr;
     _mov(T, Src0);
     _neg(T);
     _mov(Dest, T);
@@ -1098,6 +1117,7 @@ bool TargetX86Base<TraitsType>::optimizeScalarMul(Variable *Dest, Operand *Src0,
     return true;
   }
   if (Src1 == 1) {
+    Variable *T = nullptr;
     _mov(T, Src0);
     _mov(Dest, T);
     return true;
@@ -1135,15 +1155,21 @@ bool TargetX86Base<TraitsType>::optimizeScalarMul(Variable *Dest, Operand *Src0,
       return false;
     }
   }
-  // Lea optimization only works for i32 type, not i1/i8/i16/i64.
-  if (Ty != IceType_i32 && (Count3 || Count5 || Count9))
+  // Lea optimization only works for i16 and i32 types, not i8.
+  if (Ty != IceType_i32 && !(Traits::Is64Bit && Ty == IceType_i64) &&
+      (Count3 || Count5 || Count9))
     return false;
   // Limit the number of lea/shl operations for a single multiply, to a
   // somewhat arbitrary choice of 3.
   constexpr uint32_t MaxOpsForOptimizedMul = 3;
   if (CountOps > MaxOpsForOptimizedMul)
     return false;
-  _mov(T, Src0);
+  Variable *T = makeReg(Traits::WordType);
+  if (typeWidthInBytes(Src0->getType()) < typeWidthInBytes(T->getType())) {
+    _movzx(T, Src0);
+  } else {
+    _mov(T, Src0);
+  }
   Constant *Zero = Ctx->getConstantZero(IceType_i32);
   for (uint32_t i = 0; i < Count9; ++i) {
     constexpr uint16_t Shift = 3; // log2(9-1)
@@ -3543,7 +3569,7 @@ void TargetX86Base<TraitsType>::lowerIntrinsicCall(
     return;
   }
   case Intrinsics::NaClReadTP: {
-    if (Ctx->getFlags().getUseSandboxing()) {
+    if (NeedSandboxing) {
       Operand *Src =
           dispatchToConcrete(&ConcreteTarget::createNaClReadTPSrcOperand);
       Variable *Dest = Instr->getDest();
@@ -3571,20 +3597,26 @@ void TargetX86Base<TraitsType>::lowerIntrinsicCall(
     return;
   }
   case Intrinsics::Stacksave: {
-    Variable *esp =
-        Func->getTarget()->getPhysicalRegister(getStackReg(), Traits::WordType);
+    if (!Traits::Is64Bit || !NeedSandboxing) {
+      Variable *esp = Func->getTarget()->getPhysicalRegister(getStackReg(),
+                                                             Traits::WordType);
+      Variable *Dest = Instr->getDest();
+      _mov(Dest, esp);
+      return;
+    }
+    Variable *esp = Func->getTarget()->getPhysicalRegister(
+        Traits::RegisterSet::Reg_esp, IceType_i32);
     Variable *Dest = Instr->getDest();
     _mov(Dest, esp);
+
     return;
   }
   case Intrinsics::Stackrestore: {
     Operand *Src = Instr->getArg(0);
-    const Type SrcTy = Src->getType();
-    Variable *esp = Func->getTarget()->getPhysicalRegister(
-        Traits::getGprForType(SrcTy, getStackReg()), SrcTy);
-    _redefined(_mov(esp, Src));
+    _mov_sp(Src);
     return;
   }
+
   case Intrinsics::Trap:
     _ud2();
     return;
@@ -4293,25 +4325,6 @@ void TargetX86Base<TraitsType>::lowerMemset(Operand *Dest, Operand *Val,
   lowerCall(Call);
 }
 
-template <typename TraitsType>
-void TargetX86Base<TraitsType>::lowerIndirectJump(Variable *JumpTarget) {
-  const bool NeedSandboxing = Ctx->getFlags().getUseSandboxing();
-  if (Traits::Is64Bit) {
-    Variable *T = makeReg(IceType_i64);
-    _movzx(T, JumpTarget);
-    JumpTarget = T;
-  }
-  if (NeedSandboxing) {
-    _bundle_lock();
-    const SizeT BundleSize =
-        1 << Func->getAssembler<>()->getBundleAlignLog2Bytes();
-    _and(JumpTarget, Ctx->getConstantInt32(~(BundleSize - 1)));
-  }
-  _jmp(JumpTarget);
-  if (NeedSandboxing)
-    _bundle_unlock();
-}
-
 inline bool isAdd(const Inst *Inst) {
   if (auto *Arith = llvm::dyn_cast_or_null<const InstArithmetic>(Inst)) {
     return (Arith->getOp() == InstArithmetic::Add);
@@ -4551,13 +4564,15 @@ inline bool matchOffsetBase(const VariablesMetadata *VMetadata,
       return false;
     // Compute the updated constant offset.
     if (Const0) {
-      int32_t MoreOffset = IsAdd ? Const0->getValue() : -Const0->getValue();
+      const int32_t MoreOffset =
+          IsAdd ? Const0->getValue() : -Const0->getValue();
       if (Utils::WouldOverflowAdd(NewOffset, MoreOffset))
         return false;
       NewOffset += MoreOffset;
     }
     if (Const1) {
-      int32_t MoreOffset = IsAdd ? Const1->getValue() : -Const1->getValue();
+      const int32_t MoreOffset =
+          IsAdd ? Const1->getValue() : -Const1->getValue();
       if (Utils::WouldOverflowAdd(NewOffset, MoreOffset))
         return false;
       NewOffset += MoreOffset;
@@ -4586,6 +4601,7 @@ inline bool matchOffsetBase(const VariablesMetadata *VMetadata,
 //   Index == nullptr,
 //   Shift == 0
 inline bool computeAddressOpt(Cfg *Func, const Inst *Instr, Variable *GotVar,
+                              bool ReserveSlot,
                               ConstantRelocatable *&Relocatable,
                               int32_t &Offset, Variable *&Base,
                               Variable *&Index, uint16_t &Shift) {
@@ -4610,6 +4626,7 @@ inline bool computeAddressOpt(Cfg *Func, const Inst *Instr, Variable *GotVar,
   const VariablesMetadata *VMetadata = Func->getVMetadata();
   const Inst *Reason = nullptr;
   do {
+    assert(!ReserveSlot || Base == nullptr || Index == nullptr);
     if (Reason) {
       dumpAddressOpt(Func, Relocatable, Offset, Base, Index, Shift, Reason);
       AddressWasOptimized = true;
@@ -4631,7 +4648,8 @@ inline bool computeAddressOpt(Cfg *Func, const Inst *Instr, Variable *GotVar,
       // Transition from:
       //   <Relocatable + Offset>(Base) to
       //   <Relocatable + Offset>(Base, Index)
-      if (matchCombinedBaseIndex(VMetadata, Base, Index, Shift, Reason))
+      if (!ReserveSlot &&
+          matchCombinedBaseIndex(VMetadata, Base, Index, Shift, Reason))
         continue;
       // Recognize multiply/shift and update Shift amount.
       // Index becomes Index=Var<<Const && Const+Shift<=3 ==>
@@ -4764,8 +4782,9 @@ void TargetX86Base<TraitsType>::doAddressOptLoad() {
   // registers there either.
   constexpr auto SegmentReg = X86OperandMem::SegmentRegisters::DefaultSegment;
   auto *Base = llvm::dyn_cast<Variable>(Addr);
-  if (computeAddressOpt(Func, Inst, GotVar, Relocatable, Offset, Base, Index,
-                        Shift)) {
+  const bool ReserveSlot = Traits::Is64Bit && NeedSandboxing;
+  if (computeAddressOpt(Func, Inst, GotVar, ReserveSlot, Relocatable, Offset,
+                        Base, Index, Shift)) {
     Inst->setDeleted();
     Constant *OffsetOp = nullptr;
     if (Relocatable == nullptr) {
@@ -4775,7 +4794,7 @@ void TargetX86Base<TraitsType>::doAddressOptLoad() {
                                      Relocatable->getName(),
                                      Relocatable->getSuppressMangling());
     }
-    // The new mem operand is created without IsPIC being set, because
+    // The new mem operand is created without IsRebased being set, because
     // computeAddressOpt() doesn't include GotVar in its final result.
     Addr = X86OperandMem::create(Func, Dest->getType(), Base, OffsetOp, Index,
                                  Shift, SegmentReg);
@@ -5069,8 +5088,9 @@ void TargetX86Base<TraitsType>::doAddressOptStore() {
   // other X86OperandMem, so there should be no mention of segment
   // registers there either.
   constexpr auto SegmentReg = X86OperandMem::SegmentRegisters::DefaultSegment;
-  if (computeAddressOpt(Func, Inst, GotVar, Relocatable, Offset, Base, Index,
-                        Shift)) {
+  const bool ReserveSlot = Traits::Is64Bit && NeedSandboxing;
+  if (computeAddressOpt(Func, Inst, GotVar, ReserveSlot, Relocatable, Offset,
+                        Base, Index, Shift)) {
     Inst->setDeleted();
     Constant *OffsetOp = nullptr;
     if (Relocatable == nullptr) {
@@ -5080,7 +5100,7 @@ void TargetX86Base<TraitsType>::doAddressOptStore() {
                                      Relocatable->getName(),
                                      Relocatable->getSuppressMangling());
     }
-    // The new mem operand is created without IsPIC being set, because
+    // The new mem operand is created without IsRebased being set, because
     // computeAddressOpt() doesn't include GotVar in its final result.
     Addr = X86OperandMem::create(Func, Data->getType(), Base, OffsetOp, Index,
                                  Shift, SegmentReg);
@@ -5134,8 +5154,9 @@ void TargetX86Base<TraitsType>::lowerCaseCluster(const CaseCluster &Case,
 
     // Make sure the index is a register of the same width as the base
     Variable *Index;
-    if (RangeIndex->getType() != getPointerType()) {
-      Index = makeReg(getPointerType());
+    const Type PointerType = getPointerType();
+    if (RangeIndex->getType() != PointerType) {
+      Index = makeReg(PointerType);
       _movzx(Index, RangeIndex);
     } else {
       Index = legalizeToReg(RangeIndex);
@@ -5143,18 +5164,24 @@ void TargetX86Base<TraitsType>::lowerCaseCluster(const CaseCluster &Case,
 
     constexpr RelocOffsetT RelocOffset = 0;
     constexpr bool SuppressMangling = true;
-    const bool IsPIC = Ctx->getFlags().getUseNonsfi();
+    const bool IsRebased = Ctx->getFlags().getUseNonsfi();
     IceString MangledName = Ctx->mangleName(Func->getFunctionName());
-    Variable *Base = IsPIC ? legalizeToReg(GotVar) : nullptr;
+    Variable *Base = IsRebased ? legalizeToReg(GotVar) : nullptr;
     Constant *Offset = Ctx->getConstantSym(
         RelocOffset, InstJumpTable::makeName(MangledName, JumpTable->getId()),
         SuppressMangling);
-    uint16_t Shift = typeWidthInBytesLog2(getPointerType());
+    uint16_t Shift = typeWidthInBytesLog2(PointerType);
     constexpr auto Segment = X86OperandMem::SegmentRegisters::DefaultSegment;
-    auto *TargetInMemory = X86OperandMem::create(
-        Func, getPointerType(), Base, Offset, Index, Shift, Segment, IsPIC);
+
     Variable *Target = nullptr;
+    if (Traits::Is64Bit && NeedSandboxing) {
+      assert(Base == nullptr);
+      assert(Index != nullptr && Index->getType() == IceType_i32);
+    }
+    auto *TargetInMemory = X86OperandMem::create(
+        Func, PointerType, Base, Offset, Index, Shift, Segment, IsRebased);
     _mov(Target, TargetInMemory);
+
     lowerIndirectJump(Target);
 
     if (DefaultTarget == nullptr)
@@ -6037,22 +6064,25 @@ Operand *TargetX86Base<TraitsType>::legalize(Operand *From, LegalMask Allowed,
     Constant *Offset = Mem->getOffset();
     Variable *RegBase = nullptr;
     Variable *RegIndex = nullptr;
+    uint16_t Shift = Mem->getShift();
     if (Base) {
       RegBase = llvm::cast<Variable>(
           legalize(Base, Legal_Reg | Legal_Rematerializable));
     }
     if (Index) {
+      // TODO(jpp): perhaps we should only allow Legal_Reg if
+      // Base->isRematerializable.
       RegIndex = llvm::cast<Variable>(
           legalize(Index, Legal_Reg | Legal_Rematerializable));
     }
     // For Non-SFI mode, if the Offset field is a ConstantRelocatable, we
     // replace either Base or Index with a legalized GotVar.  At emission time,
     // the ConstantRelocatable will be emitted with the @GOTOFF relocation.
-    bool NeedPIC = false;
-    if (UseNonsfi && !Mem->getIsPIC() && Offset &&
+    bool IsRebased = false;
+    if (UseNonsfi && !Mem->getIsRebased() && Offset &&
         llvm::isa<ConstantRelocatable>(Offset)) {
       assert(!(Allowed & Legal_AddrAbs));
-      NeedPIC = true;
+      IsRebased = true;
       if (RegBase == nullptr) {
         RegBase = legalizeToReg(GotVar);
       } else if (RegIndex == nullptr) {
@@ -6063,9 +6093,8 @@ Operand *TargetX86Base<TraitsType>::legalize(Operand *From, LegalMask Allowed,
       }
     }
     if (Base != RegBase || Index != RegIndex) {
-      Mem = X86OperandMem::create(Func, Ty, RegBase, Offset, RegIndex,
-                                  Mem->getShift(), Mem->getSegmentRegister(),
-                                  NeedPIC);
+      Mem = X86OperandMem::create(Func, Ty, RegBase, Offset, RegIndex, Shift,
+                                  Mem->getSegmentRegister(), IsRebased);
     }
 
     // For all Memory Operands, we do randomization/pooling here
@@ -6114,8 +6143,9 @@ Operand *TargetX86Base<TraitsType>::legalize(Operand *From, LegalMask Allowed,
         assert(Ty == IceType_i32);
         Variable *RegBase = legalizeToReg(GotVar);
         Variable *NewVar = makeReg(Ty, RegNum);
-        auto *Mem = Traits::X86OperandMem::create(Func, Ty, RegBase, CR);
-        Mem->setIsPIC();
+        static constexpr bool IsRebased = true;
+        auto *Mem =
+            Traits::X86OperandMem::create(Func, Ty, RegBase, CR, IsRebased);
         _lea(NewVar, Mem);
         From = NewVar;
       }
@@ -6137,9 +6167,8 @@ Operand *TargetX86Base<TraitsType>::legalize(Operand *From, LegalMask Allowed,
       llvm::cast<Constant>(From)->emitPoolLabel(StrBuf, Ctx);
       llvm::cast<Constant>(From)->setShouldBePooled(true);
       Constant *Offset = Ctx->getConstantSym(0, StrBuf.str(), true);
-      auto *Mem = X86OperandMem::create(Func, Ty, Base, Offset);
-      if (UseNonsfi)
-        Mem->setIsPIC();
+      const bool IsRebased = Base != nullptr;
+      auto *Mem = X86OperandMem::create(Func, Ty, Base, Offset, IsRebased);
       From = Mem;
     }
     bool NeedsReg = false;
@@ -6263,9 +6292,9 @@ TargetX86Base<TraitsType>::formMemoryOperand(Operand *Opnd, Type Ty,
       assert(llvm::isa<ConstantInteger32>(Offset) ||
              llvm::isa<ConstantRelocatable>(Offset));
     }
-    // Not completely sure whether it's OK to leave IsPIC unset when creating
-    // the mem operand.  If DoLegalize is true, it will definitely be applied
-    // during the legalize() call, but perhaps not during the
+    // Not completely sure whether it's OK to leave IsRebased unset when
+    // creating the mem operand.  If DoLegalize is true, it will definitely be
+    // applied during the legalize() call, but perhaps not during the
     // randomizeOrPoolImmediate() call.  In any case, the emit routines will
     // assert that PIC legalization has been applied.
     Mem = X86OperandMem::create(Func, Ty, Base, Offset);
@@ -6393,71 +6422,80 @@ TargetX86Base<TraitsType>::randomizeOrPoolImmediate(Constant *Immediate,
     // Immediates randomization/pooling off or paused
     return Immediate;
   }
-  if (Immediate->shouldBeRandomizedOrPooled(Ctx)) {
-    Ctx->statsUpdateRPImms();
-    if (Ctx->getFlags().getRandomizeAndPoolImmediatesOption() ==
-        RPI_Randomize) {
-      // blind the constant
-      // FROM:
-      //  imm
-      // TO:
-      //  insert: mov imm+cookie, Reg
-      //  insert: lea -cookie[Reg], Reg
-      //  => Reg
-      // If we have already assigned a phy register, we must come from
-      // advancedPhiLowering()=>lowerAssign(). In this case we should reuse the
-      // assigned register as this assignment is that start of its use-def
-      // chain. So we add RegNum argument here. Note we use 'lea' instruction
-      // instead of 'xor' to avoid affecting the flags.
-      Variable *Reg = makeReg(IceType_i32, RegNum);
-      auto *Integer = llvm::cast<ConstantInteger32>(Immediate);
-      uint32_t Value = Integer->getValue();
-      uint32_t Cookie = Func->getConstantBlindingCookie();
-      _mov(Reg, Ctx->getConstantInt(IceType_i32, Cookie + Value));
-      Constant *Offset = Ctx->getConstantInt(IceType_i32, 0 - Cookie);
-      _lea(Reg,
-           X86OperandMem::create(Func, IceType_i32, Reg, Offset, nullptr, 0));
-      if (Immediate->getType() != IceType_i32) {
-        Variable *TruncReg = makeReg(Immediate->getType(), RegNum);
-        _mov(TruncReg, Reg);
-        return TruncReg;
-      }
-      return Reg;
-    }
-    if (Ctx->getFlags().getRandomizeAndPoolImmediatesOption() == RPI_Pool) {
-      // pool the constant
-      // FROM:
-      //  imm
-      // TO:
-      //  insert: mov $label, Reg
-      //  => Reg
-      assert(Ctx->getFlags().getRandomizeAndPoolImmediatesOption() == RPI_Pool);
-      Immediate->setShouldBePooled(true);
-      // if we have already assigned a phy register, we must come from
-      // advancedPhiLowering()=>lowerAssign(). In this case we should reuse the
-      // assigned register as this assignment is that start of its use-def
-      // chain. So we add RegNum argument here.
-      Variable *Reg = makeReg(Immediate->getType(), RegNum);
-      IceString Label;
-      llvm::raw_string_ostream Label_stream(Label);
-      Immediate->emitPoolLabel(Label_stream, Ctx);
-      constexpr RelocOffsetT Offset = 0;
-      constexpr bool SuppressMangling = true;
-      Constant *Symbol =
-          Ctx->getConstantSym(Offset, Label_stream.str(), SuppressMangling);
-      const bool UseNonsfi = Ctx->getFlags().getUseNonsfi();
-      Variable *Base = UseNonsfi ? legalizeToReg(GotVar) : nullptr;
-      X86OperandMem *MemOperand =
-          X86OperandMem::create(Func, Immediate->getType(), Base, Symbol);
-      if (UseNonsfi)
-        MemOperand->setIsPIC();
-      _mov(Reg, MemOperand);
-      return Reg;
-    }
-    assert("Unsupported -randomize-pool-immediates option" && false);
+
+  if (Traits::Is64Bit && NeedSandboxing) {
+    // Immediate randomization/pooling is currently disabled for x86-64
+    // sandboxing for it could generate invalid memory operands.
+    assert(false &&
+           "Constant pooling/randomization is disabled for x8664 sandbox.");
+    return Immediate;
   }
-  // the constant Immediate is not eligible for blinding/pooling
-  return Immediate;
+
+  if (!Immediate->shouldBeRandomizedOrPooled(Ctx)) {
+    // the constant Immediate is not eligible for blinding/pooling
+    return Immediate;
+  }
+  Ctx->statsUpdateRPImms();
+  switch (Ctx->getFlags().getRandomizeAndPoolImmediatesOption()) {
+  default:
+    llvm::report_fatal_error("Unsupported -randomize-pool-immediates option");
+  case RPI_Randomize: {
+    // blind the constant
+    // FROM:
+    //  imm
+    // TO:
+    //  insert: mov imm+cookie, Reg
+    //  insert: lea -cookie[Reg], Reg
+    //  => Reg
+    // If we have already assigned a phy register, we must come from
+    // advancedPhiLowering()=>lowerAssign(). In this case we should reuse the
+    // assigned register as this assignment is that start of its use-def
+    // chain. So we add RegNum argument here. Note we use 'lea' instruction
+    // instead of 'xor' to avoid affecting the flags.
+    Variable *Reg = makeReg(IceType_i32, RegNum);
+    auto *Integer = llvm::cast<ConstantInteger32>(Immediate);
+    uint32_t Value = Integer->getValue();
+    uint32_t Cookie = Func->getConstantBlindingCookie();
+    _mov(Reg, Ctx->getConstantInt(IceType_i32, Cookie + Value));
+    Constant *Offset = Ctx->getConstantInt(IceType_i32, 0 - Cookie);
+    _lea(Reg, X86OperandMem::create(Func, IceType_i32, Reg, Offset));
+    if (Immediate->getType() == IceType_i32) {
+      return Reg;
+    }
+    Variable *TruncReg = makeReg(Immediate->getType(), RegNum);
+    _mov(TruncReg, Reg);
+    return TruncReg;
+  }
+  case RPI_Pool: {
+    // pool the constant
+    // FROM:
+    //  imm
+    // TO:
+    //  insert: mov $label, Reg
+    //  => Reg
+    assert(Ctx->getFlags().getRandomizeAndPoolImmediatesOption() == RPI_Pool);
+    Immediate->setShouldBePooled(true);
+    // if we have already assigned a phy register, we must come from
+    // advancedPhiLowering()=>lowerAssign(). In this case we should reuse the
+    // assigned register as this assignment is that start of its use-def
+    // chain. So we add RegNum argument here.
+    Variable *Reg = makeReg(Immediate->getType(), RegNum);
+    IceString Label;
+    llvm::raw_string_ostream Label_stream(Label);
+    Immediate->emitPoolLabel(Label_stream, Ctx);
+    constexpr RelocOffsetT Offset = 0;
+    constexpr bool SuppressMangling = true;
+    Constant *Symbol =
+        Ctx->getConstantSym(Offset, Label_stream.str(), SuppressMangling);
+    const bool UseNonsfi = Ctx->getFlags().getUseNonsfi();
+    Variable *Base = UseNonsfi ? legalizeToReg(GotVar) : nullptr;
+    const bool IsRebased = Base != nullptr;
+    X86OperandMem *MemOperand = X86OperandMem::create(
+        Func, Immediate->getType(), Base, Symbol, IsRebased);
+    _mov(Reg, MemOperand);
+    return Reg;
+  }
+  }
 }
 
 template <typename TraitsType>
@@ -6471,107 +6509,116 @@ TargetX86Base<TraitsType>::randomizeOrPoolImmediate(X86OperandMem *MemOperand,
     return MemOperand;
   }
 
+  if (Traits::Is64Bit && NeedSandboxing) {
+    // Immediate randomization/pooling is currently disabled for x86-64
+    // sandboxing for it could generate invalid memory operands.
+    assert(false &&
+           "Constant pooling/randomization is disabled for x8664 sandbox.");
+    return MemOperand;
+  }
+
   // If this memory operand is already a randomized one, we do not randomize it
   // again.
   if (MemOperand->getRandomized())
     return MemOperand;
 
-  if (auto *C = llvm::dyn_cast_or_null<Constant>(MemOperand->getOffset())) {
-    if (C->shouldBeRandomizedOrPooled(Ctx)) {
-      // The offset of this mem operand should be blinded or pooled
-      Ctx->statsUpdateRPImms();
-      if (Ctx->getFlags().getRandomizeAndPoolImmediatesOption() ==
-          RPI_Randomize) {
-        // blind the constant offset
-        // FROM:
-        //  offset[base, index, shift]
-        // TO:
-        //  insert: lea offset+cookie[base], RegTemp
-        //  => -cookie[RegTemp, index, shift]
-        uint32_t Value =
-            llvm::dyn_cast<ConstantInteger32>(MemOperand->getOffset())
-                ->getValue();
-        uint32_t Cookie = Func->getConstantBlindingCookie();
-        Constant *Mask1 = Ctx->getConstantInt(
-            MemOperand->getOffset()->getType(), Cookie + Value);
-        Constant *Mask2 =
-            Ctx->getConstantInt(MemOperand->getOffset()->getType(), 0 - Cookie);
+  auto *C = llvm::dyn_cast_or_null<Constant>(MemOperand->getOffset());
 
-        X86OperandMem *TempMemOperand = X86OperandMem::create(
-            Func, MemOperand->getType(), MemOperand->getBase(), Mask1);
-        // If we have already assigned a physical register, we must come from
-        // advancedPhiLowering()=>lowerAssign(). In this case we should reuse
-        // the assigned register as this assignment is that start of its
-        // use-def chain. So we add RegNum argument here.
-        Variable *RegTemp = makeReg(MemOperand->getOffset()->getType(), RegNum);
-        _lea(RegTemp, TempMemOperand);
-
-        X86OperandMem *NewMemOperand = X86OperandMem::create(
-            Func, MemOperand->getType(), RegTemp, Mask2, MemOperand->getIndex(),
-            MemOperand->getShift(), MemOperand->getSegmentRegister());
-
-        // Label this memory operand as randomized, so we won't randomize it
-        // again in case we call legalize() multiple times on this memory
-        // operand.
-        NewMemOperand->setRandomized(true);
-        return NewMemOperand;
-      }
-      if (Ctx->getFlags().getRandomizeAndPoolImmediatesOption() == RPI_Pool) {
-        // pool the constant offset
-        // FROM:
-        //  offset[base, index, shift]
-        // TO:
-        //  insert: mov $label, RegTemp
-        //  insert: lea [base, RegTemp], RegTemp
-        //  =>[RegTemp, index, shift]
-        assert(Ctx->getFlags().getRandomizeAndPoolImmediatesOption() ==
-               RPI_Pool);
-        // Memory operand should never exist as source operands in phi lowering
-        // assignments, so there is no need to reuse any registers here. For
-        // phi lowering, we should not ask for new physical registers in
-        // general. However, if we do meet Memory Operand during phi lowering,
-        // we should not blind or pool the immediates for now.
-        if (RegNum != Variable::NoRegister)
-          return MemOperand;
-        Variable *RegTemp = makeReg(IceType_i32);
-        IceString Label;
-        llvm::raw_string_ostream Label_stream(Label);
-        MemOperand->getOffset()->emitPoolLabel(Label_stream, Ctx);
-        MemOperand->getOffset()->setShouldBePooled(true);
-        constexpr RelocOffsetT SymOffset = 0;
-        constexpr bool SuppressMangling = true;
-        Constant *Symbol = Ctx->getConstantSym(SymOffset, Label_stream.str(),
-                                               SuppressMangling);
-        const bool UseNonsfi = Ctx->getFlags().getUseNonsfi();
-        Variable *Base = UseNonsfi ? legalizeToReg(GotVar) : nullptr;
-        X86OperandMem *SymbolOperand = X86OperandMem::create(
-            Func, MemOperand->getOffset()->getType(), Base, Symbol);
-        if (UseNonsfi)
-          SymbolOperand->setIsPIC();
-        _mov(RegTemp, SymbolOperand);
-        // If we have a base variable here, we should add the lea instruction
-        // to add the value of the base variable to RegTemp. If there is no
-        // base variable, we won't need this lea instruction.
-        if (MemOperand->getBase()) {
-          X86OperandMem *CalculateOperand = X86OperandMem::create(
-              Func, MemOperand->getType(), MemOperand->getBase(), nullptr,
-              RegTemp, 0, MemOperand->getSegmentRegister());
-          _lea(RegTemp, CalculateOperand);
-        }
-        X86OperandMem *NewMemOperand = X86OperandMem::create(
-            Func, MemOperand->getType(), RegTemp, nullptr,
-            MemOperand->getIndex(), MemOperand->getShift(),
-            MemOperand->getSegmentRegister());
-        return NewMemOperand;
-      }
-      assert("Unsupported -randomize-pool-immediates option" && false);
-    }
+  if (C == nullptr) {
+    return MemOperand;
   }
-  // the offset is not eligible for blinding or pooling, return the original
-  // mem operand
-  return MemOperand;
-}
 
+  if (!C->shouldBeRandomizedOrPooled(Ctx)) {
+    return MemOperand;
+  }
+
+  // The offset of this mem operand should be blinded or pooled
+  Ctx->statsUpdateRPImms();
+  switch (Ctx->getFlags().getRandomizeAndPoolImmediatesOption()) {
+  default:
+    llvm::report_fatal_error("Unsupported -randomize-pool-immediates option");
+  case RPI_Randomize: {
+    // blind the constant offset
+    // FROM:
+    //  offset[base, index, shift]
+    // TO:
+    //  insert: lea offset+cookie[base], RegTemp
+    //  => -cookie[RegTemp, index, shift]
+    uint32_t Value =
+        llvm::dyn_cast<ConstantInteger32>(MemOperand->getOffset())->getValue();
+    uint32_t Cookie = Func->getConstantBlindingCookie();
+    Constant *Mask1 =
+        Ctx->getConstantInt(MemOperand->getOffset()->getType(), Cookie + Value);
+    Constant *Mask2 =
+        Ctx->getConstantInt(MemOperand->getOffset()->getType(), 0 - Cookie);
+
+    X86OperandMem *TempMemOperand = X86OperandMem::create(
+        Func, MemOperand->getType(), MemOperand->getBase(), Mask1);
+    // If we have already assigned a physical register, we must come from
+    // advancedPhiLowering()=>lowerAssign(). In this case we should reuse
+    // the assigned register as this assignment is that start of its
+    // use-def chain. So we add RegNum argument here.
+    Variable *RegTemp = makeReg(MemOperand->getOffset()->getType(), RegNum);
+    _lea(RegTemp, TempMemOperand);
+
+    X86OperandMem *NewMemOperand = X86OperandMem::create(
+        Func, MemOperand->getType(), RegTemp, Mask2, MemOperand->getIndex(),
+        MemOperand->getShift(), MemOperand->getSegmentRegister(),
+        MemOperand->getIsRebased());
+
+    // Label this memory operand as randomized, so we won't randomize it
+    // again in case we call legalize() multiple times on this memory
+    // operand.
+    NewMemOperand->setRandomized(true);
+    return NewMemOperand;
+  }
+  case RPI_Pool: {
+    // pool the constant offset
+    // FROM:
+    //  offset[base, index, shift]
+    // TO:
+    //  insert: mov $label, RegTemp
+    //  insert: lea [base, RegTemp], RegTemp
+    //  =>[RegTemp, index, shift]
+
+    // Memory operand should never exist as source operands in phi lowering
+    // assignments, so there is no need to reuse any registers here. For
+    // phi lowering, we should not ask for new physical registers in
+    // general. However, if we do meet Memory Operand during phi lowering,
+    // we should not blind or pool the immediates for now.
+    if (RegNum != Variable::NoRegister)
+      return MemOperand;
+    Variable *RegTemp = makeReg(IceType_i32);
+    IceString Label;
+    llvm::raw_string_ostream Label_stream(Label);
+    MemOperand->getOffset()->emitPoolLabel(Label_stream, Ctx);
+    MemOperand->getOffset()->setShouldBePooled(true);
+    constexpr RelocOffsetT SymOffset = 0;
+    constexpr bool SuppressMangling = true;
+    Constant *Symbol =
+        Ctx->getConstantSym(SymOffset, Label_stream.str(), SuppressMangling);
+    const bool UseNonsfi = Ctx->getFlags().getUseNonsfi();
+    Variable *Base = UseNonsfi ? legalizeToReg(GotVar) : nullptr;
+    const bool IsRebased = Base != nullptr;
+    X86OperandMem *SymbolOperand = X86OperandMem::create(
+        Func, MemOperand->getOffset()->getType(), Base, Symbol, IsRebased);
+    _mov(RegTemp, SymbolOperand);
+    // If we have a base variable here, we should add the lea instruction
+    // to add the value of the base variable to RegTemp. If there is no
+    // base variable, we won't need this lea instruction.
+    if (MemOperand->getBase()) {
+      X86OperandMem *CalculateOperand = X86OperandMem::create(
+          Func, MemOperand->getType(), MemOperand->getBase(), nullptr, RegTemp,
+          0, MemOperand->getSegmentRegister());
+      _lea(RegTemp, CalculateOperand);
+    }
+    X86OperandMem *NewMemOperand = X86OperandMem::create(
+        Func, MemOperand->getType(), RegTemp, nullptr, MemOperand->getIndex(),
+        MemOperand->getShift(), MemOperand->getSegmentRegister());
+    return NewMemOperand;
+  }
+  }
+}
 } // end of namespace X86NAMESPACE
 } // end of namespace Ice
 

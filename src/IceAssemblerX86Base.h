@@ -44,11 +44,10 @@ class AssemblerX86Base : public ::Ice::Assembler {
   AssemblerX86Base &operator=(const AssemblerX86Base &) = delete;
 
 protected:
-  explicit AssemblerX86Base(bool use_far_branches = false)
-      : Assembler(Traits::AsmKind) {
-    // This mode is only needed and implemented for MIPS and ARM.
-    assert(!use_far_branches);
-    (void)use_far_branches;
+  explicit AssemblerX86Base(bool EmitAddrSizeOverridePrefix = Traits::Is64Bit)
+      : Assembler(Traits::AsmKind),
+        EmitAddrSizeOverridePrefix(EmitAddrSizeOverridePrefix) {
+    assert(Traits::Is64Bit || !EmitAddrSizeOverridePrefix);
   }
 
 public:
@@ -288,6 +287,8 @@ public:
   static const intptr_t kCallExternalLabelSize = 5;
 
   void pushl(GPRRegister reg);
+  void pushl(const Immediate &Imm);
+  void pushl(const ConstantRelocatable *Label);
 
   void popl(GPRRegister reg);
   void popl(const Address &address);
@@ -711,6 +712,11 @@ protected:
 private:
   ENABLE_MAKE_UNIQUE;
 
+  // EmidAddrSizeOverridePrefix directs the emission of the 0x67 prefix to
+  // force 32-bit registers when accessing memory. This is only used in native
+  // 64-bit.
+  const bool EmitAddrSizeOverridePrefix;
+
   static constexpr Type RexTypeIrrelevant = IceType_i32;
   static constexpr Type RexTypeForceRexW = IceType_i64;
   static constexpr GPRRegister RexRegIrrelevant =
@@ -746,7 +752,7 @@ private:
   Label *getOrCreateLabel(SizeT Number, LabelVector &Labels);
 
   void emitAddrSizeOverridePrefix() {
-    if (!Traits::Is64Bit) {
+    if (!Traits::Is64Bit || !EmitAddrSizeOverridePrefix) {
       return;
     }
     static constexpr uint8_t AddrSizeOverridePrefix = 0x67;

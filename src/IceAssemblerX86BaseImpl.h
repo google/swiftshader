@@ -152,6 +152,25 @@ void AssemblerX86Base<TraitsType>::pushl(GPRRegister reg) {
 }
 
 template <typename TraitsType>
+void AssemblerX86Base<TraitsType>::pushl(const Immediate &Imm) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitUint8(0x68);
+  emitInt32(Imm.value());
+}
+
+template <typename TraitsType>
+void AssemblerX86Base<TraitsType>::pushl(const ConstantRelocatable *Label) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitUint8(0x68);
+  emitFixup(this->createFixup(Traits::FK_Abs, Label));
+  // In x86-32, the emitted value is an addend to the relocation. Therefore, we
+  // must emit a 0 (because we're pushing an absolute relocation.)
+  // In x86-64, the emitted value does not matter (the addend lives in the
+  // relocation record as an extra field.)
+  emitInt32(0);
+}
+
+template <typename TraitsType>
 void AssemblerX86Base<TraitsType>::popl(GPRRegister reg) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   // Any type that would not force a REX prefix to be emitted can be provided
@@ -382,7 +401,8 @@ template <typename TraitsType>
 void AssemblerX86Base<TraitsType>::lea(Type Ty, GPRRegister dst,
                                        const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  assert(Ty == IceType_i16 || Ty == IceType_i32);
+  assert(Ty == IceType_i16 || Ty == IceType_i32 ||
+         (Traits::Is64Bit && Ty == IceType_i64));
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
   emitAddrSizeOverridePrefix();
@@ -3140,7 +3160,6 @@ void AssemblerX86Base<TraitsType>::jmp(Label *label, bool near) {
 
 template <typename TraitsType>
 void AssemblerX86Base<TraitsType>::jmp(const ConstantRelocatable *label) {
-  llvm::report_fatal_error("Untested - please verify and then reenable.");
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0xE9);
   emitFixup(this->createFixup(Traits::FK_PcRel, label));
@@ -3307,22 +3326,23 @@ void AssemblerX86Base<TraitsType>::align(intptr_t alignment, intptr_t offset) {
 }
 
 template <typename TraitsType>
-void AssemblerX86Base<TraitsType>::bind(Label *label) {
-  intptr_t bound = Buffer.size();
-  assert(!label->isBound()); // Labels can only be bound once.
-  while (label->isLinked()) {
-    intptr_t position = label->getLinkPosition();
-    intptr_t next = Buffer.load<int32_t>(position);
-    Buffer.store<int32_t>(position, bound - (position + 4));
-    label->Position = next;
+void AssemblerX86Base<TraitsType>::bind(Label *L) {
+  const intptr_t Bound = Buffer.size();
+  assert(!L->isBound()); // Labels can only be bound once.
+  while (L->isLinked()) {
+    const intptr_t Position = L->getLinkPosition();
+    const intptr_t Next = Buffer.load<int32_t>(Position);
+    const intptr_t Offset = Bound - (Position + 4);
+    Buffer.store<int32_t>(Position, Offset);
+    L->Position = Next;
   }
-  while (label->hasNear()) {
-    intptr_t position = label->getNearPosition();
-    intptr_t offset = bound - (position + 1);
-    assert(Utils::IsInt(8, offset));
-    Buffer.store<int8_t>(position, offset);
+  while (L->hasNear()) {
+    intptr_t Position = L->getNearPosition();
+    const intptr_t Offset = Bound - (Position + 1);
+    assert(Utils::IsInt(8, Offset));
+    Buffer.store<int8_t>(Position, Offset);
   }
-  label->bindTo(bound);
+  L->bindTo(Bound);
 }
 
 template <typename TraitsType>
