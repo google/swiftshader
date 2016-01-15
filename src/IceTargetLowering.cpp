@@ -39,7 +39,7 @@
 //       createTargetDataLowering(Ice::GlobalContext*);
 //   unique_ptr<Ice::TargetHeaderLowering>
 //       createTargetHeaderLowering(Ice::GlobalContext *);
-//   void staticInit(const ::Ice::ClFlags &Flags);
+//   void staticInit(::Ice::GlobalContext *);
 // }
 #define SUBZERO_TARGET(X)                                                      \
   namespace X {                                                                \
@@ -49,7 +49,7 @@
   createTargetDataLowering(::Ice::GlobalContext *Ctx);                         \
   std::unique_ptr<::Ice::TargetHeaderLowering>                                 \
   createTargetHeaderLowering(::Ice::GlobalContext *Ctx);                       \
-  void staticInit(const ::Ice::ClFlags &Flags);                                \
+  void staticInit(::Ice::GlobalContext *Ctx);                                  \
   } // end of namespace X
 #include "llvm/Config/SZTargets.def"
 #undef SUBZERO_TARGET
@@ -116,6 +116,102 @@ Variable *LoweringContext::availabilityGet(Operand *Src) const {
   return nullptr;
 }
 
+namespace {
+
+void printRegisterSet(Ostream &Str, const llvm::SmallBitVector &Bitset,
+                      std::function<IceString(int32_t)> getRegName,
+                      const IceString &LineIndentString) {
+  constexpr size_t RegistersPerLine = 16;
+  size_t Count = 0;
+  for (int i = Bitset.find_first(); i != -1; i = Bitset.find_next(i)) {
+    if (Count == 0) {
+      Str << LineIndentString;
+    } else {
+      Str << ",";
+    }
+    if (Count > 0 && Count % RegistersPerLine == 0)
+      Str << "\n" << LineIndentString;
+    ++Count;
+    Str << getRegName(i);
+  }
+  if (Count)
+    Str << "\n";
+}
+
+} // end of anonymous namespace
+
+void TargetLowering::filterTypeToRegisterSet(
+    GlobalContext *Ctx, int32_t NumRegs,
+    llvm::SmallBitVector TypeToRegisterSet[], size_t TypeToRegisterSetSize,
+    std::function<IceString(int32_t)> getRegName) {
+  llvm::SmallBitVector ExcludeBitSet(NumRegs);
+  std::vector<llvm::SmallBitVector> UseSet(TypeToRegisterSetSize,
+                                           ExcludeBitSet);
+  ExcludeBitSet.flip();
+
+  std::unordered_map<IceString, int32_t> RegNameToIndex;
+  for (int32_t RegIndex = 0; RegIndex < NumRegs; ++RegIndex)
+    RegNameToIndex[getRegName(RegIndex)] = RegIndex;
+
+  ClFlags::StringVector BadRegNames;
+  for (const IceString &RegName : Ctx->getFlags().getUseRestrictedRegisters()) {
+    if (!RegNameToIndex.count(RegName)) {
+      BadRegNames.push_back(RegName);
+      continue;
+    }
+    const int32_t RegIndex = RegNameToIndex[RegName];
+    for (SizeT TypeIndex = 0; TypeIndex < TypeToRegisterSetSize; ++TypeIndex)
+      UseSet[TypeIndex][RegIndex] = TypeToRegisterSet[TypeIndex][RegIndex];
+  }
+
+  for (const IceString &RegName : Ctx->getFlags().getExcludedRegisters()) {
+    if (!RegNameToIndex.count(RegName)) {
+      BadRegNames.push_back(RegName);
+      continue;
+    }
+    ExcludeBitSet[RegNameToIndex[RegName]] = false;
+  }
+
+  if (!BadRegNames.empty()) {
+    std::string Buffer;
+    llvm::raw_string_ostream StrBuf(Buffer);
+    StrBuf << "Unrecognized use/exclude registers:";
+    for (const auto &RegName : BadRegNames)
+      StrBuf << " " << RegName;
+    llvm::report_fatal_error(StrBuf.str());
+  }
+
+  // Apply filters.
+  for (size_t TypeIndex = 0; TypeIndex < TypeToRegisterSetSize; ++TypeIndex) {
+    llvm::SmallBitVector *TypeBitSet = &TypeToRegisterSet[TypeIndex];
+    llvm::SmallBitVector *UseBitSet = &UseSet[TypeIndex];
+    if (UseBitSet->any())
+      *TypeBitSet = *UseBitSet;
+    *TypeBitSet &= ExcludeBitSet;
+  }
+
+  // Display filtered register sets, if requested.
+  if (BuildDefs::dump() && NumRegs &&
+      (Ctx->getFlags().getVerbose() & IceV_AvailableRegs)) {
+    Ostream &Str = Ctx->getStrDump();
+    const IceString Indent = "  ";
+    const IceString IndentTwice = Indent + Indent;
+    Str << "Registers available for register allocation:\n";
+    for (size_t TypeIndex = 0; TypeIndex < TypeToRegisterSetSize; ++TypeIndex) {
+      Str << Indent;
+      if (TypeIndex < IceType_NUM) {
+        Str << typeString(static_cast<Type>(TypeIndex));
+      } else {
+        Str << "other[" << TypeIndex << "]";
+      }
+      Str << ":\n";
+      printRegisterSet(Str, TypeToRegisterSet[TypeIndex], getRegName,
+                       IndentTwice);
+    }
+    Str << "\n";
+  }
+}
+
 std::unique_ptr<TargetLowering>
 TargetLowering::createLowering(TargetArch Target, Cfg *Func) {
   switch (Target) {
@@ -129,8 +225,8 @@ TargetLowering::createLowering(TargetArch Target, Cfg *Func) {
   }
 }
 
-void TargetLowering::staticInit(const ClFlags &Flags) {
-  const TargetArch Target = Flags.getTargetArch();
+void TargetLowering::staticInit(GlobalContext *Ctx) {
+  const TargetArch Target = Ctx->getFlags().getTargetArch();
   // Call the specified target's static initializer.
   switch (Target) {
   default:
@@ -142,7 +238,7 @@ void TargetLowering::staticInit(const ClFlags &Flags) {
       return;                                                                  \
     }                                                                          \
     InitGuard##X = true;                                                       \
-    ::X::staticInit(Flags);                                                    \
+    ::X::staticInit(Ctx);                                                      \
   } break;
 #include "llvm/Config/SZTargets.def"
 #undef SUBZERO_TARGET

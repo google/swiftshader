@@ -78,7 +78,7 @@ public:
 
   ~TargetX86Base() override = default;
 
-  static void staticInit(const ClFlags &Flags);
+  static void staticInit(GlobalContext *Ctx);
   static TargetX86Base *create(Cfg *Func) { return new TargetX86Base(Func); }
 
   static FixupKind getPcRelFixup() { return PcRelFixup; }

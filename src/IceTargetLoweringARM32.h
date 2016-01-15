@@ -57,7 +57,7 @@ class TargetARM32 : public TargetLowering {
   TargetARM32 &operator=(const TargetARM32 &) = delete;
 
 public:
-  static void staticInit(const ClFlags &Flags);
+  static void staticInit(GlobalContext *Ctx);
   // TODO(jvoung): return a unique_ptr.
   static std::unique_ptr<::Ice::TargetLowering> create(Cfg *Func) {
     return makeUnique<TargetARM32>(Func);

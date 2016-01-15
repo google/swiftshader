@@ -28,6 +28,8 @@ class ClFlags {
   ClFlags &operator=(const ClFlags &) = delete;
 
 public:
+  using StringVector = std::vector<IceString>;
+
   /// User defined constructor.
   ClFlags() { resetClFlags(*this); }
 
@@ -115,6 +117,16 @@ public:
   /// Set ClFlags::EnableBlockProfile to a new value
   void setEnableBlockProfile(bool NewValue) { EnableBlockProfile = NewValue; }
 
+  /// Get the restricted list of registers to use, for corresponding register
+  /// classes, in register allocation.
+  const StringVector &getUseRestrictedRegisters() const {
+    return UseRestrictedRegisters;
+  }
+  void clearUseRestrictedRegisters() { UseRestrictedRegisters.clear(); }
+  void setUseRestrictedRegisters(const StringVector &Registers) {
+    UseRestrictedRegisters = Registers;
+  }
+
   /// Get the value of ClFlags::ForceMemIntrinOpt
   bool getForceMemIntrinOpt() const { return ForceMemIntrinOpt; }
   /// Set ClFlags::ForceMemIntrinOpt to a new value
@@ -185,6 +197,13 @@ public:
   bool getUseNonsfi() const { return UseNonsfi; }
   /// Set ClFlags::UseNonsfi to a new value
   void setUseNonsfi(bool NewValue) { UseNonsfi = NewValue; }
+
+  /// Get the list of registers exluded in register allocation.
+  const StringVector &getExcludedRegisters() const { return ExcludedRegisters; }
+  void clearExcludedRegisters() { ExcludedRegisters.clear(); }
+  void setExcludedRegisters(const StringVector &Registers) {
+    ExcludedRegisters = Registers;
+  }
 
   /// Get the value of ClFlags::UseSandboxing
   bool getUseSandboxing() const { return UseSandboxing; }
@@ -390,6 +409,8 @@ private:
   bool DumpStats;
   /// see anonymous_namespace{IceClFlags.cpp}::EnableBlockProfile
   bool EnableBlockProfile;
+  /// see anonymous_namespace{IceClFlags.cpp}::ExcludedRegisters;
+  StringVector ExcludedRegisters;
   /// see anonymous_namespace{IceClFlags.cpp}::ForceMemIntrinOpt
   bool ForceMemIntrinOpt;
   /// see anonymous_namespace{IceClFlags.cpp}::FunctionSections
@@ -422,6 +443,8 @@ private:
   bool TimeEachFunction;
   /// see anonymous_namespace{IceClFlags.cpp}::UseNonsfi
   bool UseNonsfi;
+  /// see anonymous_namespace{IceClFlags.cpp}::UseRegistrictedRegisters;
+  StringVector UseRestrictedRegisters;
   /// see anonymous_namespace{IceClFlags.cpp}::UseSandboxing
   bool UseSandboxing;
   /// see anonymous_namespace{IceClFlags.cpp}::OLevel

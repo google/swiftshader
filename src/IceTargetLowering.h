@@ -152,9 +152,9 @@ class TargetLowering {
   TargetLowering &operator=(const TargetLowering &) = delete;
 
 public:
-  static void staticInit(const ClFlags &Flags);
+  static void staticInit(GlobalContext *Ctx);
   // Each target must define a public static method:
-  //   static void staticInit(const ClFlags &Flags);
+  //   static void staticInit(GlobalContext *Ctx);
 
   static std::unique_ptr<TargetLowering> createLowering(TargetArch Target,
                                                         Cfg *Func);
@@ -299,6 +299,12 @@ public:
 
 protected:
   explicit TargetLowering(Cfg *Func);
+  // Applies command line filters to TypeToRegisterSet array.
+  static void
+  filterTypeToRegisterSet(GlobalContext *Ctx, int32_t NumRegs,
+                          llvm::SmallBitVector TypeToRegisterSet[],
+                          size_t TypeToRegisterSetSize,
+                          std::function<IceString(int32_t)> getRegName);
   virtual void lowerAlloca(const InstAlloca *Inst) = 0;
   virtual void lowerArithmetic(const InstArithmetic *Inst) = 0;
   virtual void lowerAssign(const InstAssign *Inst) = 0;

@@ -324,11 +324,15 @@ TargetX86Base<TraitsType>::TargetX86Base(Cfg *Func)
 }
 
 template <typename TraitsType>
-void TargetX86Base<TraitsType>::staticInit(const ClFlags &Flags) {
-  Traits::initRegisterSet(Flags, &TypeToRegisterSet, &RegisterAliases,
+void TargetX86Base<TraitsType>::staticInit(GlobalContext *Ctx) {
+  Traits::initRegisterSet(Ctx->getFlags(), &TypeToRegisterSet, &RegisterAliases,
                           &ScratchRegs);
+  filterTypeToRegisterSet(Ctx, Traits::RegisterSet::Reg_NUM,
+                          TypeToRegisterSet.data(), TypeToRegisterSet.size(),
+                          Traits::getRegName);
   PcRelFixup = Traits::FK_PcRel;
-  AbsFixup = Flags.getUseNonsfi() ? Traits::FK_Gotoff : Traits::FK_Abs;
+  AbsFixup =
+      Ctx->getFlags().getUseNonsfi() ? Traits::FK_Gotoff : Traits::FK_Abs;
 }
 
 template <typename TraitsType> void TargetX86Base<TraitsType>::translateO2() {

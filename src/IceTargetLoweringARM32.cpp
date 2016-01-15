@@ -50,8 +50,8 @@ createTargetHeaderLowering(::Ice::GlobalContext *Ctx) {
   return ::Ice::ARM32::TargetHeaderARM32::create(Ctx);
 }
 
-void staticInit(const ::Ice::ClFlags &Flags) {
-  ::Ice::ARM32::TargetARM32::staticInit(Flags);
+void staticInit(::Ice::GlobalContext *Ctx) {
+  ::Ice::ARM32::TargetARM32::staticInit(Ctx);
 }
 
 } // end of namespace ARM32
@@ -277,8 +277,8 @@ TargetARM32::TargetARM32(Cfg *Func)
     : TargetLowering(Func), NeedSandboxing(Ctx->getFlags().getUseSandboxing()),
       CPUFeatures(Func->getContext()->getFlags()) {}
 
-void TargetARM32::staticInit(const ClFlags &Flags) {
-  (void)Flags;
+void TargetARM32::staticInit(GlobalContext *Ctx) {
+
   // Limit this size (or do all bitsets need to be the same width)???
   llvm::SmallBitVector IntegerRegisters(RegARM32::Reg_NUM);
   llvm::SmallBitVector I64PairRegisters(RegARM32::Reg_NUM);
@@ -331,6 +331,20 @@ void TargetARM32::staticInit(const ClFlags &Flags) {
   TypeToRegisterSet[IceType_v8i16] = VectorRegisters;
   TypeToRegisterSet[IceType_v4i32] = VectorRegisters;
   TypeToRegisterSet[IceType_v4f32] = VectorRegisters;
+
+  filterTypeToRegisterSet(
+      Ctx, RegARM32::Reg_NUM, TypeToRegisterSet, RegARM32::RCARM32_NUM,
+      [](int32_t RegNum) -> IceString {
+        IceString Name = RegARM32::getRegName(RegNum);
+        constexpr const char RegSeparator[] = ", ";
+        constexpr size_t RegSeparatorWidth =
+            llvm::array_lengthof(RegSeparator) - 1;
+        for (size_t Pos = Name.find(RegSeparator); Pos != std::string::npos;
+             Pos = Name.find(RegSeparator)) {
+          Name.replace(Pos, RegSeparatorWidth, ":");
+        }
+        return Name;
+      });
 }
 
 namespace {
@@ -1874,7 +1888,7 @@ llvm::SmallBitVector TargetARM32::getRegisterSet(RegSetMask Include,
                                                  RegSetMask Exclude) const {
   llvm::SmallBitVector Registers(RegARM32::Reg_NUM);
 
-  for (int i = 0; i < RegARM32::Reg_NUM; ++i) {
+  for (int32_t i = 0; i < RegARM32::Reg_NUM; ++i) {
     const auto &Entry = RegARM32::RegTable[i];
     if (Entry.Scratch && (Include & RegSet_CallerSave))
       Registers[i] = true;

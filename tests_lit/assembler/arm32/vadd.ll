@@ -1,24 +1,31 @@
 ; Show that we know how to translate vadd.
 
-; NOTE: We use -O2 to get rid of memory stores.
+; NOTE: Restricts S and D registers to ones that will better test S/D
+; register encodings.
 
 ; REQUIRES: allow_dump
 
 ; Compile using standalone assembler.
-; RUN: %p2i --filetype=asm -i %s --target=arm32 --args -O2 \
+; RUN: %p2i --filetype=asm -i %s --target=arm32 --args -Om1 \
+; RUN:   -reg-use s20,s22,d20,d22 \
 ; RUN:   | FileCheck %s --check-prefix=ASM
 
 ; Show bytes in assembled standalone code.
 ; RUN: %p2i --filetype=asm -i %s --target=arm32 --assemble --disassemble \
-; RUN:   --args -O2 | FileCheck %s --check-prefix=DIS
+; RUN:   --args -Om1 \
+; RUN:   -reg-use s20,s22,d20,d22 \
+; RUN:   | FileCheck %s --check-prefix=DIS
 
 ; Compile using integrated assembler.
-; RUN: %p2i --filetype=iasm -i %s --target=arm32 --args -O2 \
+; RUN: %p2i --filetype=iasm -i %s --target=arm32 --args -Om1 \
+; RUN:   -reg-use s20,s22,d20,d22 \
 ; RUN:   | FileCheck %s --check-prefix=IASM
 
 ; Show bytes in assembled integrated code.
 ; RUN: %p2i --filetype=iasm -i %s --target=arm32 --assemble --disassemble \
-; RUN:   --args -O2 | FileCheck %s --check-prefix=DIS
+; RUN:   --args -Om1 \
+; RUN:   -reg-use s20,s22,d20,d22 \
+; RUN:   | FileCheck %s --check-prefix=DIS
 
 define internal float @testVaddFloat(float %v1, float %v2) {
 ; ASM-LABEL: testVaddFloat:
@@ -26,38 +33,26 @@ define internal float @testVaddFloat(float %v1, float %v2) {
 ; IASM-LABEL: testVaddFloat:
 
 entry:
-; ASM-NEXT: .LtestVaddFloat$entry:
-; IASM-NEXT: .LtestVaddFloat$entry:
-
   %res = fadd float %v1, %v2
 
-; ASM-NEXT:     vadd.f32        s0, s0, s1
-; DIS-NEXT:    0:       ee300a20
-; IASM-NEXT:    .byte 0x20
-; IASM-NEXT:    .byte 0xa
-; IASM-NEXT:    .byte 0x30
-; IASM-NEXT:    .byte 0xee
+; ASM:     vadd.f32        s20, s20, s22
+; DIS:   1c:       ee3aaa0b
+; IASM-NOT:     vadd
 
   ret float %res
 }
 
 define internal double @testVaddDouble(double %v1, double %v2) {
 ; ASM-LABEL: testVaddDouble:
-; DIS-LABEL: 00000010 <testVaddDouble>:
-; IASM-LABEL: testVaddDouble:
+; DIS-LABEL: 00000040 <testVaddDouble>:
+; IASM-LABEL: .LtestVaddDouble$entry:
 
 entry:
-; ASM-NEXT: .LtestVaddDouble$entry:
-; IASM-NEXT: .LtestVaddDouble$entry:
-
   %res = fadd double %v1, %v2
 
-; ASM-NEXT:     vadd.f64        d0, d0, d1
-; DIS-NEXT:   10:       ee300b01
-; IASM-NEXT:    .byte 0x1
-; IASM-NEXT:    .byte 0xb
-; IASM-NEXT:    .byte 0x30
-; IASM-NEXT:    .byte 0xee
+; ASM:        vadd.f64        d22, d22, d20
+; DIS:      54:       ee766ba4
+; IASM-NOT:   vadd
 
   ret double %res
 }

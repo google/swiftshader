@@ -58,6 +58,8 @@ static inline GPRRegister getEncodedGPR(int32_t RegNum) {
   return GPRRegister(RegNum - Reg_GPR_First);
 }
 
+const char *getRegName(int32_t RegNum);
+
 } // end of namespace RegMIPS32
 
 // Extend enum RegClass with MIPS32-specific register classes (if any).

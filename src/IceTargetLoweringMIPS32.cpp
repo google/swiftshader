@@ -45,8 +45,8 @@ createTargetHeaderLowering(::Ice::GlobalContext *Ctx) {
   return ::Ice::MIPS32::TargetHeaderMIPS32::create(Ctx);
 }
 
-void staticInit(const ::Ice::ClFlags &Flags) {
-  ::Ice::MIPS32::TargetMIPS32::staticInit(Flags);
+void staticInit(::Ice::GlobalContext *Ctx) {
+  ::Ice::MIPS32::TargetMIPS32::staticInit(Ctx);
 }
 } // end of namespace MIPS32
 
@@ -64,8 +64,8 @@ constexpr uint32_t MIPS32_MAX_GPR_ARG = 4;
 
 TargetMIPS32::TargetMIPS32(Cfg *Func) : TargetLowering(Func) {}
 
-void TargetMIPS32::staticInit(const ClFlags &Flags) {
-  (void)Flags;
+void TargetMIPS32::staticInit(GlobalContext *Ctx) {
+  (void)Ctx;
   llvm::SmallBitVector IntegerRegisters(RegMIPS32::Reg_NUM);
   llvm::SmallBitVector I64PairRegisters(RegMIPS32::Reg_NUM);
   llvm::SmallBitVector Float32Registers(RegMIPS32::Reg_NUM);
@@ -106,6 +106,11 @@ void TargetMIPS32::staticInit(const ClFlags &Flags) {
   TypeToRegisterSet[IceType_v8i16] = VectorRegisters;
   TypeToRegisterSet[IceType_v4i32] = VectorRegisters;
   TypeToRegisterSet[IceType_v4f32] = VectorRegisters;
+
+  filterTypeToRegisterSet(Ctx, RegMIPS32::Reg_NUM, TypeToRegisterSet,
+                          RCMIPS32_NUM, [](int32_t RegNum) -> IceString {
+                            return RegMIPS32::getRegName(RegNum);
+                          });
 }
 
 void TargetMIPS32::translateO2() {
@@ -262,17 +267,26 @@ bool TargetMIPS32::doBranchOpt(Inst *I, const CfgNode *NextNode) {
   return false;
 }
 
-IceString TargetMIPS32::getRegName(SizeT RegNum, Type Ty) const {
-  assert(RegNum < RegMIPS32::Reg_NUM);
-  (void)Ty;
-  static const char *RegNames[] = {
+namespace {
+
+const char *RegNames[RegMIPS32::Reg_NUM] = {
 #define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
           isI64Pair, isFP32, isFP64, isVec128, alias_init)                     \
   name,
-      REGMIPS32_TABLE
+    REGMIPS32_TABLE
 #undef X
-  };
+};
+
+} // end of anonymous namespace
+
+const char *RegMIPS32::getRegName(int32_t RegNum) {
+  assert(RegNum < RegMIPS32::Reg_NUM);
   return RegNames[RegNum];
+}
+
+IceString TargetMIPS32::getRegName(SizeT RegNum, Type Ty) const {
+  (void)Ty;
+  return RegMIPS32::getRegName(RegNum);
 }
 
 Variable *TargetMIPS32::getPhysicalRegister(SizeT RegNum, Type Ty) {

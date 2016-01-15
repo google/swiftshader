@@ -293,6 +293,17 @@ cl::opt<int> NopProbabilityAsPercentage(
     "nop-insertion-percentage",
     cl::desc("Nop insertion probability as percentage"), cl::init(10));
 
+/// Restricts registers in corresponding register classes to specified list.
+cl::list<std::string> UseRestrictedRegisters(
+    "reg-use", cl::CommaSeparated,
+    cl::desc(
+        "Only use specified registers for corresponding register classes"));
+
+/// List of excluded registers.
+cl::list<std::string>
+    ExcludedRegisters("reg-exclude", cl::CommaSeparated,
+                      cl::desc("Don't use specified registers"));
+
 /// Verbose options (can be comma-separated).
 cl::list<Ice::VerboseItem> VerboseList(
     "verbose", cl::CommaSeparated,
@@ -315,6 +326,8 @@ cl::list<Ice::VerboseItem> VerboseList(
         clEnumValN(Ice::IceV_Loop, "loop", "Loop nest depth analysis"),
         clEnumValN(Ice::IceV_Status, "status",
                    "Print the name of the function being translated"),
+        clEnumValN(Ice::IceV_AvailableRegs, "registers",
+                   "Show available registers for register allocation"),
         clEnumValN(Ice::IceV_All, "all", "Use all verbose options"),
         clEnumValN(Ice::IceV_Most, "most",
                    "Use all verbose options except 'regalloc'"),
@@ -487,6 +500,9 @@ void ClFlags::resetClFlags(ClFlags &OutFlags) {
   // size_t and 64-bit fields.
   OutFlags.NumTranslationThreads = 0;
   OutFlags.RandomSeed = 0;
+  // Unordered set fields.
+  OutFlags.clearExcludedRegisters();
+  OutFlags.clearUseRestrictedRegisters();
 }
 
 void ClFlags::getParsedClFlags(ClFlags &OutFlags) {
@@ -513,6 +529,7 @@ void ClFlags::getParsedClFlags(ClFlags &OutFlags) {
   OutFlags.setDisableTranslation(::DisableTranslation);
   OutFlags.setDumpStats(::DumpStats);
   OutFlags.setEnableBlockProfile(::EnableBlockProfile);
+  OutFlags.setExcludedRegisters(::ExcludedRegisters);
   OutFlags.setForceMemIntrinOpt(::ForceMemIntrinOpt);
   OutFlags.setFunctionSections(::FunctionSections);
   OutFlags.setNumTranslationThreads(::NumThreads);
@@ -542,6 +559,7 @@ void ClFlags::getParsedClFlags(ClFlags &OutFlags) {
   OutFlags.setTimingFocusOn(::TimingFocusOn);
   OutFlags.setTranslateOnly(::TranslateOnly);
   OutFlags.setUseNonsfi(::UseNonsfi);
+  OutFlags.setUseRestrictedRegisters(::UseRestrictedRegisters);
   OutFlags.setUseSandboxing(::UseSandboxing);
   OutFlags.setVerboseFocusOn(::VerboseFocusOn);
   OutFlags.setOutFileType(::OutFileType);

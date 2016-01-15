@@ -32,8 +32,8 @@ createTargetHeaderLowering(::Ice::GlobalContext *Ctx) {
   return ::Ice::X8664::TargetHeaderX8664::create(Ctx);
 }
 
-void staticInit(const ::Ice::ClFlags &Flags) {
-  ::Ice::X8664::TargetX8664::staticInit(Flags);
+void staticInit(::Ice::GlobalContext *Ctx) {
+  ::Ice::X8664::TargetX8664::staticInit(Ctx);
 }
 } // end of namespace X8664
 

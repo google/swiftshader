@@ -51,7 +51,7 @@ public:
   uint32_t getSequenceNumber() const { return SequenceNumber; }
 
   static constexpr VerboseMask defaultVerboseMask() {
-    return IceV_All & ~IceV_Status;
+    return IceV_All & ~IceV_Status & ~IceV_AvailableRegs;
   }
   /// Returns true if any of the specified options in the verbose mask are set.
   /// If the argument is omitted, it checks if any verbose options at all are

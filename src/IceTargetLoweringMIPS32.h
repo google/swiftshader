@@ -33,7 +33,7 @@ class TargetMIPS32 : public TargetLowering {
 public:
   ~TargetMIPS32() override = default;
 
-  static void staticInit(const ClFlags &Flags);
+  static void staticInit(GlobalContext *Ctx);
   static std::unique_ptr<::Ice::TargetLowering> create(Cfg *Func) {
     return makeUnique<TargetMIPS32>(Func);
   }
