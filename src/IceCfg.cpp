@@ -257,6 +257,14 @@ void Cfg::renumberInstructions() {
   NextInstNumber = Inst::NumberInitial;
   for (CfgNode *Node : Nodes)
     Node->renumberInstructions();
+  // Make sure the entry node is the first node and therefore got the lowest
+  // instruction numbers, to facilitate live range computation of function
+  // arguments.  We want to model function arguments as being live on entry to
+  // the function, otherwise an argument whose only use is in the first
+  // instruction will be assigned a trivial live range and the register
+  // allocator will not recognize its live range as overlapping another
+  // variable's live range.
+  assert(Nodes.empty() || (*Nodes.begin() == getEntryNode()));
 }
 
 // placePhiLoads() must be called before placePhiStores().
@@ -839,14 +847,19 @@ void Cfg::liveness(LivenessMode Mode) {
       // instruction of the method is "r=arg1+arg2", both args may be assigned
       // the same register. This is accomplished by extending the entry block's
       // instruction range from [2,n) to [1,n) which will transform the
-      // problematic [2,2) live ranges into [1,2).
+      // problematic [2,2) live ranges into [1,2).  This extension works because
+      // the entry node is guaranteed to have the lowest instruction numbers.
       if (Node == getEntryNode()) {
-        // TODO(stichnot): Make it a strict requirement that the entry node
-        // gets the lowest instruction numbers, so that extending the live
-        // range for in-args is guaranteed to work.
         FirstInstNum = Inst::NumberExtended;
+        // Just in case the entry node somehow contains no instructions...
+        if (LastInstNum == Inst::NumberSentinel)
+          LastInstNum = FirstInstNum;
       }
-      Node->livenessAddIntervals(getLiveness(), FirstInstNum, LastInstNum);
+      // If this node somehow contains no instructions, don't bother trying to
+      // add liveness intervals for it, because variables that are live-in and
+      // live-out will have a bogus interval added.
+      if (FirstInstNum != Inst::NumberSentinel)
+        Node->livenessAddIntervals(getLiveness(), FirstInstNum, LastInstNum);
     }
   }
 }

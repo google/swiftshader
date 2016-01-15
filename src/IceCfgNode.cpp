@@ -852,9 +852,15 @@ void CfgNode::contractIfEmpty() {
     else if (!I.isRedundantAssign())
       return;
   }
+  // Make sure there is actually a successor to repoint in-edges to.
+  if (OutEdges.empty())
+    return;
   assert(OutEdges.size() == 1);
   // Don't try to delete a self-loop.
   if (OutEdges[0] == this)
+    return;
+  // Make sure the node actually contains (ends with) an unconditional branch.
+  if (Branch == nullptr)
     return;
 
   Branch->setDeleted();
