@@ -27,11 +27,11 @@ namespace sw
 		virtual ~VertexPipeline();
 
 	private:
-		void pipeline(Registers &r);
-		void processTextureCoordinate(Registers &r, int stage, Vector4f &normal, Vector4f &position);
-		void processPointSize(Registers &r);
+		void pipeline() override;
+		void processTextureCoordinate(int stage, Vector4f &normal, Vector4f &position);
+		void processPointSize();
 
-		Vector4f transformBlend(Registers &r, const Register &src, const Pointer<Byte> &matrix, bool homogenous);
+		Vector4f transformBlend(const Register &src, const Pointer<Byte> &matrix, bool homogenous);
 		Vector4f transform(const Register &src, const Pointer<Byte> &matrix, bool homogenous);
 		Vector4f transform(const Register &src, const Pointer<Byte> &matrix, UInt index[4], bool homogenous);
 		Vector4f normalize(Vector4f &src);

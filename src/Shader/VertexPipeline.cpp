@@ -34,7 +34,7 @@ namespace sw
 	{
 	}
 
-	Vector4f VertexPipeline::transformBlend(Registers &r, const Register &src, const Pointer<Byte> &matrix, bool homogeneous)
+	Vector4f VertexPipeline::transformBlend(const Register &src, const Pointer<Byte> &matrix, bool homogeneous)
 	{
 		Vector4f dst;
 
@@ -55,7 +55,7 @@ namespace sw
 				{
 					Float4 B = r.v[BlendIndices].x;
 					UInt indices;
-					
+
 					switch(i)
 					{
 					case 0: indices = As<UInt>(Float(B.x)); break;
@@ -155,14 +155,14 @@ namespace sw
 		return dst;
 	}
 
-	void VertexPipeline::pipeline(Registers &r)
+	void VertexPipeline::pipeline()
 	{
 		Vector4f position;
 		Vector4f normal;
 
 		if(!state.preTransformed)
 		{
-			position = transformBlend(r, r.v[Position], Pointer<Byte>(r.data + OFFSET(DrawData,ff.transformT)), true);
+			position = transformBlend(r.v[Position], Pointer<Byte>(r.data + OFFSET(DrawData,ff.transformT)), true);
 		}
 		else
 		{
@@ -174,11 +174,11 @@ namespace sw
 		r.o[Pos].z = position.z;
 		r.o[Pos].w = position.w;
 
-		Vector4f vertexPosition = transformBlend(r, r.v[Position], Pointer<Byte>(r.data + OFFSET(DrawData,ff.cameraTransformT)), true);
+		Vector4f vertexPosition = transformBlend(r.v[Position], Pointer<Byte>(r.data + OFFSET(DrawData,ff.cameraTransformT)), true);
 
 		if(state.vertexNormalActive)
 		{
-			normal = transformBlend(r, r.v[Normal], Pointer<Byte>(r.data + OFFSET(DrawData,ff.normalTransformT)), false);
+			normal = transformBlend(r.v[Normal], Pointer<Byte>(r.data + OFFSET(DrawData,ff.normalTransformT)), false);
 
 			if(state.normalizeNormals)
 			{
@@ -532,13 +532,13 @@ namespace sw
 
 		for(int stage = 0; stage < 8; stage++)
 		{
-			processTextureCoordinate(r, stage, normal, position);
+			processTextureCoordinate(stage, normal, position);
 		}
 
-		processPointSize(r);
+		processPointSize();
 	}
 
-	void VertexPipeline::processTextureCoordinate(Registers &r, int stage, Vector4f &normal, Vector4f &position)
+	void VertexPipeline::processTextureCoordinate(int stage, Vector4f &normal, Vector4f &position)
 	{
 		if(state.output[T0 + stage].write)
 		{
@@ -605,7 +605,7 @@ namespace sw
 					}
 
 					Nc.w = Float4(1.0f);
-					
+
 					r.o[T0 + stage].x = Nc.x;
 					r.o[T0 + stage].y = Nc.y;
 					r.o[T0 + stage].z = Nc.z;
@@ -614,10 +614,10 @@ namespace sw
 				break;
 			case TEXGEN_POSITION:
 				{
-					Vector4f Pn = transformBlend(r, r.v[Position], Pointer<Byte>(r.data + OFFSET(DrawData,ff.cameraTransformT)), true);   // Position in camera space
+					Vector4f Pn = transformBlend(r.v[Position], Pointer<Byte>(r.data + OFFSET(DrawData,ff.cameraTransformT)), true);   // Position in camera space
 
 					Pn.w = Float4(1.0f);
-					
+
 					r.o[T0 + stage].x = Pn.x;
 					r.o[T0 + stage].y = Pn.y;
 					r.o[T0 + stage].z = Pn.z;
@@ -639,7 +639,7 @@ namespace sw
 							Vector4f Ec;   // Eye vector in camera space
 							Vector4f N2;
 
-							Ec = transformBlend(r, r.v[Position], Pointer<Byte>(r.data + OFFSET(DrawData,ff.cameraTransformT)), true);
+							Ec = transformBlend(r.v[Position], Pointer<Byte>(r.data + OFFSET(DrawData,ff.cameraTransformT)), true);
 							Ec = normalize(Ec);
 
 							// R = E - 2 * N * (E . N)
@@ -690,12 +690,12 @@ namespace sw
 							Vector4f Ec;   // Eye vector in camera space
 							Vector4f N2;
 
-							Ec = transformBlend(r, r.v[Position], Pointer<Byte>(r.data + OFFSET(DrawData,ff.cameraTransformT)), true);
+							Ec = transformBlend(r.v[Position], Pointer<Byte>(r.data + OFFSET(DrawData,ff.cameraTransformT)), true);
 							Ec = normalize(Ec);
 
 							// R = E - 2 * N * (E . N)
 							Float4 dot = Float4(2.0f) * dot3(Ec, Nc);
-							
+
 							R.x = Ec.x - Nc.x * dot;
 							R.y = Ec.y - Nc.y * dot;
 							R.z = Ec.z - Nc.z * dot;
@@ -792,7 +792,7 @@ namespace sw
 		}
 	}
 
-	void VertexPipeline::processPointSize(Registers &r)
+	void VertexPipeline::processPointSize()
 	{
 		if(!state.pointSizeActive)
 		{
@@ -810,7 +810,7 @@ namespace sw
 
 		if(state.pointScaleActive && !state.preTransformed)
 		{
-			Vector4f p = transformBlend(r, r.v[Position], Pointer<Byte>(r.data + OFFSET(DrawData,ff.cameraTransformT)), true);
+			Vector4f p = transformBlend(r.v[Position], Pointer<Byte>(r.data + OFFSET(DrawData,ff.cameraTransformT)), true);
 
 			Float4 d = Sqrt(dot3(p, p));   // FIXME: length(p);
 
@@ -923,7 +923,7 @@ namespace sw
 		Vector4f dst;
 
 		Float4 rcpLength = RcpSqrt_pp(dot3(src, src));
-		
+
 		dst.x = src.x * rcpLength;
 		dst.y = src.y * rcpLength;
 		dst.z = src.z * rcpLength;
@@ -934,11 +934,11 @@ namespace sw
 	Float4 VertexPipeline::power(Float4 &src0, Float4 &src1)
 	{
 		Float4 dst = src0;
-				
+
 		dst = dst * dst;
 		dst = dst * dst;
 		dst = Float4(As<Int4>(dst) - As<Int4>(Float4(1.0f)));
-				
+
 		dst *= src1;
 
 		dst = As<Float4>(Int4(dst) + As<Int4>(Float4(1.0f)));

@@ -85,15 +85,15 @@ namespace sw
 		const VertexShader *const shader;
 
 	private:
-		virtual void pipeline(Registers &r) = 0;
+		virtual void pipeline() = 0;
 
 		typedef VertexProcessor::State::Input Stream;
 
-		Vector4f readStream(Registers &r, Pointer<Byte> &buffer, UInt &stride, const Stream &stream, const UInt &index);
-		void readInput(Registers &r, UInt &index);
-		void computeClipFlags(Registers &r);
-		void postTransform(Registers &r);
-		void writeCache(Pointer<Byte> &cacheLine, Registers &r);
+		Vector4f readStream(Pointer<Byte> &buffer, UInt &stride, const Stream &stream, const UInt &index);
+		void readInput(UInt &index);
+		void computeClipFlags();
+		void postTransform();
+		void writeCache(Pointer<Byte> &cacheLine);
 		void writeVertex(Pointer<Byte> &vertex, Pointer<Byte> &cacheLine);
 	};
 }

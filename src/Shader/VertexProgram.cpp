@@ -42,7 +42,7 @@ namespace sw
 		}
 	}
 
-	void VertexProgram::pipeline(Registers &r)
+	void VertexProgram::pipeline()
 	{
 		for(int i = 0; i < VERTEX_TEXTURE_IMAGE_UNITS; i++)
 		{
@@ -51,15 +51,15 @@ namespace sw
 
 		if(!state.preTransformed)
 		{
-			program(r);
+			program();
 		}
 		else
 		{
-			passThrough(r);
+			passThrough();
 		}
 	}
 
-	void VertexProgram::program(Registers &r)
+	void VertexProgram::program()
 	{
 	//	shader->print("VertexShader-%0.8X.txt", state.shaderID);
 
@@ -87,7 +87,7 @@ namespace sw
 				callRetBlock[dst.label].push_back(Nucleus::createBasicBlock());
 			}
 		}
-	
+
 		for(size_t i = 0; i < shader->getLength(); i++)
 		{
 			const Shader::Instruction *instruction = shader->getInstruction(i);
@@ -117,187 +117,187 @@ namespace sw
 			Vector4f s3;
 			Vector4f s4;
 
-			if(src0.type != Shader::PARAMETER_VOID) s0 = fetchRegisterF(r, src0);
-			if(src1.type != Shader::PARAMETER_VOID) s1 = fetchRegisterF(r, src1);
-			if(src2.type != Shader::PARAMETER_VOID) s2 = fetchRegisterF(r, src2);
-			if(src3.type != Shader::PARAMETER_VOID) s3 = fetchRegisterF(r, src3);
-			if(src4.type != Shader::PARAMETER_VOID) s4 = fetchRegisterF(r, src4);
+			if(src0.type != Shader::PARAMETER_VOID) s0 = fetchRegisterF(src0);
+			if(src1.type != Shader::PARAMETER_VOID) s1 = fetchRegisterF(src1);
+			if(src2.type != Shader::PARAMETER_VOID) s2 = fetchRegisterF(src2);
+			if(src3.type != Shader::PARAMETER_VOID) s3 = fetchRegisterF(src3);
+			if(src4.type != Shader::PARAMETER_VOID) s4 = fetchRegisterF(src4);
 
 			switch(opcode)
 			{
-			case Shader::OPCODE_VS_1_0:										break;
-			case Shader::OPCODE_VS_1_1:										break;
-			case Shader::OPCODE_VS_2_0:										break;
-			case Shader::OPCODE_VS_2_x:										break;
-			case Shader::OPCODE_VS_2_sw:									break;
-			case Shader::OPCODE_VS_3_0:										break;
-			case Shader::OPCODE_VS_3_sw:									break;
-			case Shader::OPCODE_DCL:										break;
-			case Shader::OPCODE_DEF:										break;
-			case Shader::OPCODE_DEFI:										break;
-			case Shader::OPCODE_DEFB:										break;
-			case Shader::OPCODE_NOP:										break;
-			case Shader::OPCODE_ABS:		abs(d, s0);						break;
-			case Shader::OPCODE_ADD:		add(d, s0, s1);					break;
+			case Shader::OPCODE_VS_1_0:                                     break;
+			case Shader::OPCODE_VS_1_1:                                     break;
+			case Shader::OPCODE_VS_2_0:                                     break;
+			case Shader::OPCODE_VS_2_x:                                     break;
+			case Shader::OPCODE_VS_2_sw:                                    break;
+			case Shader::OPCODE_VS_3_0:                                     break;
+			case Shader::OPCODE_VS_3_sw:                                    break;
+			case Shader::OPCODE_DCL:                                        break;
+			case Shader::OPCODE_DEF:                                        break;
+			case Shader::OPCODE_DEFI:                                       break;
+			case Shader::OPCODE_DEFB:                                       break;
+			case Shader::OPCODE_NOP:                                        break;
+			case Shader::OPCODE_ABS:        abs(d, s0);                     break;
+			case Shader::OPCODE_ADD:        add(d, s0, s1);                 break;
 			case Shader::OPCODE_IADD:       iadd(d, s0, s1);                break;
-			case Shader::OPCODE_CRS:		crs(d, s0, s1);					break;
-			case Shader::OPCODE_FORWARD1:	forward1(d, s0, s1, s2);		break;
-			case Shader::OPCODE_FORWARD2:	forward2(d, s0, s1, s2);		break;
-			case Shader::OPCODE_FORWARD3:	forward3(d, s0, s1, s2);		break;
-			case Shader::OPCODE_FORWARD4:	forward4(d, s0, s1, s2);		break;
-			case Shader::OPCODE_REFLECT1:	reflect1(d, s0, s1);			break;
-			case Shader::OPCODE_REFLECT2:	reflect2(d, s0, s1);			break;
-			case Shader::OPCODE_REFLECT3:	reflect3(d, s0, s1);			break;
-			case Shader::OPCODE_REFLECT4:	reflect4(d, s0, s1);			break;
-			case Shader::OPCODE_REFRACT1:	refract1(d, s0, s1, s2.x);		break;
-			case Shader::OPCODE_REFRACT2:	refract2(d, s0, s1, s2.x);		break;
-			case Shader::OPCODE_REFRACT3:	refract3(d, s0, s1, s2.x);		break;
-			case Shader::OPCODE_REFRACT4:	refract4(d, s0, s1, s2.x);		break;
-			case Shader::OPCODE_DP1:		dp1(d, s0, s1);					break;
-			case Shader::OPCODE_DP2:		dp2(d, s0, s1);					break;
-			case Shader::OPCODE_DP3:		dp3(d, s0, s1);					break;
-			case Shader::OPCODE_DP4:		dp4(d, s0, s1);					break;
+			case Shader::OPCODE_CRS:        crs(d, s0, s1);                 break;
+			case Shader::OPCODE_FORWARD1:   forward1(d, s0, s1, s2);        break;
+			case Shader::OPCODE_FORWARD2:   forward2(d, s0, s1, s2);        break;
+			case Shader::OPCODE_FORWARD3:   forward3(d, s0, s1, s2);        break;
+			case Shader::OPCODE_FORWARD4:   forward4(d, s0, s1, s2);        break;
+			case Shader::OPCODE_REFLECT1:   reflect1(d, s0, s1);            break;
+			case Shader::OPCODE_REFLECT2:   reflect2(d, s0, s1);            break;
+			case Shader::OPCODE_REFLECT3:   reflect3(d, s0, s1);            break;
+			case Shader::OPCODE_REFLECT4:   reflect4(d, s0, s1);            break;
+			case Shader::OPCODE_REFRACT1:   refract1(d, s0, s1, s2.x);      break;
+			case Shader::OPCODE_REFRACT2:   refract2(d, s0, s1, s2.x);      break;
+			case Shader::OPCODE_REFRACT3:   refract3(d, s0, s1, s2.x);      break;
+			case Shader::OPCODE_REFRACT4:   refract4(d, s0, s1, s2.x);      break;
+			case Shader::OPCODE_DP1:        dp1(d, s0, s1);                 break;
+			case Shader::OPCODE_DP2:        dp2(d, s0, s1);                 break;
+			case Shader::OPCODE_DP3:        dp3(d, s0, s1);                 break;
+			case Shader::OPCODE_DP4:        dp4(d, s0, s1);                 break;
 			case Shader::OPCODE_DET2:       det2(d, s0, s1);                break;
 			case Shader::OPCODE_DET3:       det3(d, s0, s1, s2);            break;
 			case Shader::OPCODE_DET4:       det4(d, s0, s1, s2, s3);        break;
-			case Shader::OPCODE_ATT:		att(d, s0, s1);					break;
-			case Shader::OPCODE_EXP2X:		exp2x(d, s0, pp);				break;
-			case Shader::OPCODE_EXP2:		exp2(d, s0, pp);				break;
-			case Shader::OPCODE_EXPP:		expp(d, s0, version);			break;
-			case Shader::OPCODE_EXP:		exp(d, s0, pp);					break;
-			case Shader::OPCODE_FRC:		frc(d, s0);						break;
+			case Shader::OPCODE_ATT:        att(d, s0, s1);                 break;
+			case Shader::OPCODE_EXP2X:      exp2x(d, s0, pp);               break;
+			case Shader::OPCODE_EXP2:       exp2(d, s0, pp);                break;
+			case Shader::OPCODE_EXPP:       expp(d, s0, version);           break;
+			case Shader::OPCODE_EXP:        exp(d, s0, pp);                 break;
+			case Shader::OPCODE_FRC:        frc(d, s0);                     break;
 			case Shader::OPCODE_TRUNC:      trunc(d, s0);                   break;
 			case Shader::OPCODE_FLOOR:      floor(d, s0);                   break;
 			case Shader::OPCODE_ROUND:      round(d, s0);                   break;
-			case Shader::OPCODE_ROUNDEVEN:	roundEven(d, s0);               break;
+			case Shader::OPCODE_ROUNDEVEN:  roundEven(d, s0);               break;
 			case Shader::OPCODE_CEIL:       ceil(d, s0);                    break;
-			case Shader::OPCODE_LIT:		lit(d, s0);						break;
-			case Shader::OPCODE_LOG2X:		log2x(d, s0, pp);				break;
-			case Shader::OPCODE_LOG2:		log2(d, s0, pp);				break;
-			case Shader::OPCODE_LOGP:		logp(d, s0, version);			break;
-			case Shader::OPCODE_LOG:		log(d, s0, pp);					break;
-			case Shader::OPCODE_LRP:		lrp(d, s0, s1, s2);				break;
-			case Shader::OPCODE_STEP:		step(d, s0, s1);				break;
-			case Shader::OPCODE_SMOOTH:		smooth(d, s0, s1, s2);			break;
+			case Shader::OPCODE_LIT:        lit(d, s0);                     break;
+			case Shader::OPCODE_LOG2X:      log2x(d, s0, pp);               break;
+			case Shader::OPCODE_LOG2:       log2(d, s0, pp);                break;
+			case Shader::OPCODE_LOGP:       logp(d, s0, version);           break;
+			case Shader::OPCODE_LOG:        log(d, s0, pp);                 break;
+			case Shader::OPCODE_LRP:        lrp(d, s0, s1, s2);             break;
+			case Shader::OPCODE_STEP:       step(d, s0, s1);                break;
+			case Shader::OPCODE_SMOOTH:     smooth(d, s0, s1, s2);          break;
 			case Shader::OPCODE_FLOATBITSTOINT:
 			case Shader::OPCODE_FLOATBITSTOUINT:
 			case Shader::OPCODE_INTBITSTOFLOAT:
 			case Shader::OPCODE_UINTBITSTOFLOAT: d = s0;                    break;
-			case Shader::OPCODE_M3X2:		M3X2(r, d, s0, src1);			break;
-			case Shader::OPCODE_M3X3:		M3X3(r, d, s0, src1);			break;
-			case Shader::OPCODE_M3X4:		M3X4(r, d, s0, src1);			break;
-			case Shader::OPCODE_M4X3:		M4X3(r, d, s0, src1);			break;
-			case Shader::OPCODE_M4X4:		M4X4(r, d, s0, src1);			break;
-			case Shader::OPCODE_MAD:		mad(d, s0, s1, s2);				break;
-			case Shader::OPCODE_IMAD:		imad(d, s0, s1, s2);			break;
-			case Shader::OPCODE_MAX:		max(d, s0, s1);					break;
+			case Shader::OPCODE_M3X2:       M3X2(d, s0, src1);              break;
+			case Shader::OPCODE_M3X3:       M3X3(d, s0, src1);              break;
+			case Shader::OPCODE_M3X4:       M3X4(d, s0, src1);              break;
+			case Shader::OPCODE_M4X3:       M4X3(d, s0, src1);              break;
+			case Shader::OPCODE_M4X4:       M4X4(d, s0, src1);              break;
+			case Shader::OPCODE_MAD:        mad(d, s0, s1, s2);             break;
+			case Shader::OPCODE_IMAD:       imad(d, s0, s1, s2);            break;
+			case Shader::OPCODE_MAX:        max(d, s0, s1);                 break;
 			case Shader::OPCODE_IMAX:       imax(d, s0, s1);                break;
 			case Shader::OPCODE_UMAX:       umax(d, s0, s1);                break;
-			case Shader::OPCODE_MIN:		min(d, s0, s1);					break;
+			case Shader::OPCODE_MIN:        min(d, s0, s1);                 break;
 			case Shader::OPCODE_IMIN:       imin(d, s0, s1);                break;
 			case Shader::OPCODE_UMIN:       umin(d, s0, s1);                break;
-			case Shader::OPCODE_MOV:		mov(d, s0, integer);			break;
+			case Shader::OPCODE_MOV:        mov(d, s0, integer);            break;
 			case Shader::OPCODE_MOVA:       mov(d, s0, true);               break;
 			case Shader::OPCODE_NEG:        neg(d, s0);                     break;
 			case Shader::OPCODE_INEG:       ineg(d, s0);                    break;
-			case Shader::OPCODE_F2B:		f2b(d, s0);						break;
-			case Shader::OPCODE_B2F:		b2f(d, s0);						break;
+			case Shader::OPCODE_F2B:        f2b(d, s0);                     break;
+			case Shader::OPCODE_B2F:        b2f(d, s0);                     break;
 			case Shader::OPCODE_F2I:        f2i(d, s0);                     break;
 			case Shader::OPCODE_I2F:        i2f(d, s0);                     break;
 			case Shader::OPCODE_F2U:        f2u(d, s0);                     break;
 			case Shader::OPCODE_U2F:        u2f(d, s0);                     break;
 			case Shader::OPCODE_I2B:        i2b(d, s0);                     break;
 			case Shader::OPCODE_B2I:        b2i(d, s0);                     break;
-			case Shader::OPCODE_MUL:		mul(d, s0, s1);					break;
+			case Shader::OPCODE_MUL:        mul(d, s0, s1);                 break;
 			case Shader::OPCODE_IMUL:       imul(d, s0, s1);                break;
-			case Shader::OPCODE_NRM2:		nrm2(d, s0, pp);				break;
-			case Shader::OPCODE_NRM3:		nrm3(d, s0, pp);				break;
-			case Shader::OPCODE_NRM4:		nrm4(d, s0, pp);				break;
-			case Shader::OPCODE_POWX:		powx(d, s0, s1, pp);			break;
-			case Shader::OPCODE_POW:		pow(d, s0, s1, pp);				break;
-			case Shader::OPCODE_RCPX:		rcpx(d, s0, pp);				break;
-			case Shader::OPCODE_DIV:		div(d, s0, s1);					break;
+			case Shader::OPCODE_NRM2:       nrm2(d, s0, pp);                break;
+			case Shader::OPCODE_NRM3:       nrm3(d, s0, pp);                break;
+			case Shader::OPCODE_NRM4:       nrm4(d, s0, pp);                break;
+			case Shader::OPCODE_POWX:       powx(d, s0, s1, pp);            break;
+			case Shader::OPCODE_POW:        pow(d, s0, s1, pp);             break;
+			case Shader::OPCODE_RCPX:       rcpx(d, s0, pp);                break;
+			case Shader::OPCODE_DIV:        div(d, s0, s1);                 break;
 			case Shader::OPCODE_IDIV:       idiv(d, s0, s1);                break;
 			case Shader::OPCODE_UDIV:       udiv(d, s0, s1);                break;
-			case Shader::OPCODE_MOD:		mod(d, s0, s1);					break;
+			case Shader::OPCODE_MOD:        mod(d, s0, s1);                 break;
 			case Shader::OPCODE_IMOD:       imod(d, s0, s1);                break;
 			case Shader::OPCODE_UMOD:       umod(d, s0, s1);                break;
 			case Shader::OPCODE_SHL:        shl(d, s0, s1);                 break;
-			case Shader::OPCODE_ISHR:       ishr(d, s0, s1);                 break;
-			case Shader::OPCODE_USHR:       ushr(d, s0, s1);                 break;
-			case Shader::OPCODE_RSQX:		rsqx(d, s0, pp);				break;
-			case Shader::OPCODE_SQRT:		sqrt(d, s0, pp);				break;
-			case Shader::OPCODE_RSQ:		rsq(d, s0, pp);					break;
-			case Shader::OPCODE_LEN2:		len2(d.x, s0, pp);				break;
-			case Shader::OPCODE_LEN3:		len3(d.x, s0, pp);				break;
-			case Shader::OPCODE_LEN4:		len4(d.x, s0, pp);				break;
-			case Shader::OPCODE_DIST1:		dist1(d.x, s0, s1, pp);			break;
-			case Shader::OPCODE_DIST2:		dist2(d.x, s0, s1, pp);			break;
-			case Shader::OPCODE_DIST3:		dist3(d.x, s0, s1, pp);			break;
-			case Shader::OPCODE_DIST4:		dist4(d.x, s0, s1, pp);			break;
-			case Shader::OPCODE_SGE:		step(d, s1, s0);				break;
-			case Shader::OPCODE_SGN:		sgn(d, s0);						break;
-			case Shader::OPCODE_SINCOS:		sincos(d, s0, pp);				break;
-			case Shader::OPCODE_COS:		cos(d, s0, pp);					break;
-			case Shader::OPCODE_SIN:		sin(d, s0, pp);					break;
-			case Shader::OPCODE_TAN:		tan(d, s0);						break;
-			case Shader::OPCODE_ACOS:		acos(d, s0);					break;
-			case Shader::OPCODE_ASIN:		asin(d, s0);					break;
-			case Shader::OPCODE_ATAN:		atan(d, s0);					break;
-			case Shader::OPCODE_ATAN2:		atan2(d, s0, s1);				break;
-			case Shader::OPCODE_COSH:		cosh(d, s0, pp);				break;
-			case Shader::OPCODE_SINH:		sinh(d, s0, pp);				break;
-			case Shader::OPCODE_TANH:		tanh(d, s0, pp);				break;
-			case Shader::OPCODE_ACOSH:		acosh(d, s0, pp);				break;
-			case Shader::OPCODE_ASINH:		asinh(d, s0, pp);				break;
-			case Shader::OPCODE_ATANH:		atanh(d, s0, pp);				break;
-			case Shader::OPCODE_SLT:		slt(d, s0, s1);					break;
-			case Shader::OPCODE_SUB:		sub(d, s0, s1);					break;
+			case Shader::OPCODE_ISHR:       ishr(d, s0, s1);                break;
+			case Shader::OPCODE_USHR:       ushr(d, s0, s1);                break;
+			case Shader::OPCODE_RSQX:       rsqx(d, s0, pp);                break;
+			case Shader::OPCODE_SQRT:       sqrt(d, s0, pp);                break;
+			case Shader::OPCODE_RSQ:        rsq(d, s0, pp);                 break;
+			case Shader::OPCODE_LEN2:       len2(d.x, s0, pp);              break;
+			case Shader::OPCODE_LEN3:       len3(d.x, s0, pp);              break;
+			case Shader::OPCODE_LEN4:       len4(d.x, s0, pp);              break;
+			case Shader::OPCODE_DIST1:      dist1(d.x, s0, s1, pp);         break;
+			case Shader::OPCODE_DIST2:      dist2(d.x, s0, s1, pp);         break;
+			case Shader::OPCODE_DIST3:      dist3(d.x, s0, s1, pp);         break;
+			case Shader::OPCODE_DIST4:      dist4(d.x, s0, s1, pp);         break;
+			case Shader::OPCODE_SGE:        step(d, s1, s0);                break;
+			case Shader::OPCODE_SGN:        sgn(d, s0);                     break;
+			case Shader::OPCODE_SINCOS:     sincos(d, s0, pp);              break;
+			case Shader::OPCODE_COS:        cos(d, s0, pp);                 break;
+			case Shader::OPCODE_SIN:        sin(d, s0, pp);                 break;
+			case Shader::OPCODE_TAN:        tan(d, s0);                     break;
+			case Shader::OPCODE_ACOS:       acos(d, s0);                    break;
+			case Shader::OPCODE_ASIN:       asin(d, s0);                    break;
+			case Shader::OPCODE_ATAN:       atan(d, s0);                    break;
+			case Shader::OPCODE_ATAN2:      atan2(d, s0, s1);               break;
+			case Shader::OPCODE_COSH:       cosh(d, s0, pp);                break;
+			case Shader::OPCODE_SINH:       sinh(d, s0, pp);                break;
+			case Shader::OPCODE_TANH:       tanh(d, s0, pp);                break;
+			case Shader::OPCODE_ACOSH:      acosh(d, s0, pp);               break;
+			case Shader::OPCODE_ASINH:      asinh(d, s0, pp);               break;
+			case Shader::OPCODE_ATANH:      atanh(d, s0, pp);               break;
+			case Shader::OPCODE_SLT:        slt(d, s0, s1);                 break;
+			case Shader::OPCODE_SUB:        sub(d, s0, s1);                 break;
 			case Shader::OPCODE_ISUB:       isub(d, s0, s1);                break;
-			case Shader::OPCODE_BREAK:		BREAK(r);						break;
-			case Shader::OPCODE_BREAKC:		BREAKC(r, s0, s1, control);		break;
-			case Shader::OPCODE_BREAKP:		BREAKP(r, src0);				break;
-			case Shader::OPCODE_CONTINUE:	CONTINUE(r);					break;
-			case Shader::OPCODE_TEST:		TEST();							break;
-			case Shader::OPCODE_CALL:		CALL(r, dst.label, dst.callSite);         break;
-			case Shader::OPCODE_CALLNZ:		CALLNZ(r, dst.label, dst.callSite, src0); break;
-			case Shader::OPCODE_ELSE:		ELSE(r);						break;
-			case Shader::OPCODE_ENDIF:		ENDIF(r);						break;
-			case Shader::OPCODE_ENDLOOP:	ENDLOOP(r);						break;
-			case Shader::OPCODE_ENDREP:		ENDREP(r);						break;
-			case Shader::OPCODE_ENDWHILE:	ENDWHILE(r);					break;
-			case Shader::OPCODE_IF:			IF(r, src0);					break;
-			case Shader::OPCODE_IFC:		IFC(r, s0, s1, control);		break;
-			case Shader::OPCODE_LABEL:		LABEL(dst.index);				break;
-			case Shader::OPCODE_LOOP:		LOOP(r, src1);					break;
-			case Shader::OPCODE_REP:		REP(r, src0);					break;
-			case Shader::OPCODE_WHILE:		WHILE(r, src0);					break;
-			case Shader::OPCODE_RET:		RET(r);							break;
-			case Shader::OPCODE_LEAVE:		LEAVE(r);						break;
-			case Shader::OPCODE_CMP:		cmp(d, s0, s1, control);		break;
-			case Shader::OPCODE_ICMP:		icmp(d, s0, s1, control);		break;
+			case Shader::OPCODE_BREAK:      BREAK();                        break;
+			case Shader::OPCODE_BREAKC:     BREAKC(s0, s1, control);        break;
+			case Shader::OPCODE_BREAKP:     BREAKP(src0);                   break;
+			case Shader::OPCODE_CONTINUE:   CONTINUE();                     break;
+			case Shader::OPCODE_TEST:       TEST();                         break;
+			case Shader::OPCODE_CALL:       CALL(dst.label, dst.callSite);  break;
+			case Shader::OPCODE_CALLNZ:     CALLNZ(dst.label, dst.callSite, src0); break;
+			case Shader::OPCODE_ELSE:       ELSE();                         break;
+			case Shader::OPCODE_ENDIF:      ENDIF();                        break;
+			case Shader::OPCODE_ENDLOOP:    ENDLOOP();                      break;
+			case Shader::OPCODE_ENDREP:     ENDREP();                       break;
+			case Shader::OPCODE_ENDWHILE:   ENDWHILE();                     break;
+			case Shader::OPCODE_IF:         IF(src0);                       break;
+			case Shader::OPCODE_IFC:        IFC(s0, s1, control);           break;
+			case Shader::OPCODE_LABEL:      LABEL(dst.index);               break;
+			case Shader::OPCODE_LOOP:       LOOP(src1);                     break;
+			case Shader::OPCODE_REP:        REP(src0);                      break;
+			case Shader::OPCODE_WHILE:      WHILE(src0);                    break;
+			case Shader::OPCODE_RET:        RET();                          break;
+			case Shader::OPCODE_LEAVE:      LEAVE();                        break;
+			case Shader::OPCODE_CMP:        cmp(d, s0, s1, control);        break;
+			case Shader::OPCODE_ICMP:       icmp(d, s0, s1, control);       break;
 			case Shader::OPCODE_UCMP:       ucmp(d, s0, s1, control);       break;
-			case Shader::OPCODE_SELECT:		select(d, s0, s1, s2);			break;
-			case Shader::OPCODE_EXTRACT:	extract(d.x, s0, s1.x);			break;
-			case Shader::OPCODE_INSERT:		insert(d, s0, s1.x, s2.x);		break;
-			case Shader::OPCODE_ALL:		all(d.x, s0);					break;
-			case Shader::OPCODE_ANY:		any(d.x, s0);					break;
-			case Shader::OPCODE_NOT:		not(d, s0);						break;
+			case Shader::OPCODE_SELECT:     select(d, s0, s1, s2);          break;
+			case Shader::OPCODE_EXTRACT:    extract(d.x, s0, s1.x);         break;
+			case Shader::OPCODE_INSERT:     insert(d, s0, s1.x, s2.x);      break;
+			case Shader::OPCODE_ALL:        all(d.x, s0);                   break;
+			case Shader::OPCODE_ANY:        any(d.x, s0);                   break;
+			case Shader::OPCODE_NOT:        not(d, s0);                     break;
 			case Shader::OPCODE_OR:         or(d, s0, s1);                  break;
 			case Shader::OPCODE_XOR:        xor(d, s0, s1);                 break;
 			case Shader::OPCODE_AND:        and(d, s0, s1);                 break;
 			case Shader::OPCODE_EQ:         equal(d, s0, s1);               break;
 			case Shader::OPCODE_NE:         notEqual(d, s0, s1);            break;
-			case Shader::OPCODE_TEXLDL:		TEXLDL(r, d, s0, src1);			break;
-			case Shader::OPCODE_TEX:		TEX(r, d, s0, src1);			break;
-			case Shader::OPCODE_TEXOFFSET:  TEXOFFSET(r, d, s0, src1, s2, s3);        break;
-			case Shader::OPCODE_TEXLDLOFFSET: TEXLDL(r, d, s0, src1, s2);	break;
-			case Shader::OPCODE_TEXELFETCH: TEXELFETCH(r, d, s0, src1, s2);           break;
-			case Shader::OPCODE_TEXELFETCHOFFSET: TEXELFETCH(r, d, s0, src1, s2, s3); break;
-			case Shader::OPCODE_TEXGRAD:    TEXGRAD(r, d, s0, src1, s2, s3);          break;
-			case Shader::OPCODE_TEXGRADOFFSET: TEXGRAD(r, d, s0, src1, s2, s3, s4);   break;
-			case Shader::OPCODE_TEXSIZE:	TEXSIZE(r, d, s0.x, src1);		break;
-			case Shader::OPCODE_END:										break;
+			case Shader::OPCODE_TEXLDL:     TEXLDL(d, s0, src1);            break;
+			case Shader::OPCODE_TEX:        TEX(d, s0, src1);               break;
+			case Shader::OPCODE_TEXOFFSET:  TEXOFFSET(d, s0, src1, s2, s3); break;
+			case Shader::OPCODE_TEXLDLOFFSET: TEXLDL(d, s0, src1, s2);      break;
+			case Shader::OPCODE_TEXELFETCH: TEXELFETCH(d, s0, src1, s2);    break;
+			case Shader::OPCODE_TEXELFETCHOFFSET: TEXELFETCH(d, s0, src1, s2, s3); break;
+			case Shader::OPCODE_TEXGRAD:    TEXGRAD(d, s0, src1, s2, s3);   break;
+			case Shader::OPCODE_TEXGRADOFFSET: TEXGRAD(d, s0, src1, s2, s3, s4); break;
+			case Shader::OPCODE_TEXSIZE:    TEXSIZE(d, s0.x, src1);         break;
+			case Shader::OPCODE_END:                                        break;
 			default:
 				ASSERT(false);
 			}
@@ -338,7 +338,7 @@ namespace sw
 
 					switch(dst.type)
 					{
-					case Shader::PARAMETER_VOID:																		break;
+					case Shader::PARAMETER_VOID: break;
 					case Shader::PARAMETER_TEMP:
 						if(dst.rel.type == Shader::PARAMETER_VOID)
 						{
@@ -349,7 +349,7 @@ namespace sw
 						}
 						else
 						{
-							Int a = relativeAddress(r, dst);
+							Int a = relativeAddress(dst);
 
 							if(dst.x) pDst.x = r.r[dst.index + a].x;
 							if(dst.y) pDst.y = r.r[dst.index + a].y;
@@ -357,7 +357,7 @@ namespace sw
 							if(dst.w) pDst.w = r.r[dst.index + a].w;
 						}
 						break;
-					case Shader::PARAMETER_ADDR:		pDst = r.a0;													break;
+					case Shader::PARAMETER_ADDR: pDst = r.a0; break;
 					case Shader::PARAMETER_RASTOUT:
 						switch(dst.index)
 						{
@@ -412,7 +412,7 @@ namespace sw
 							}
 							else
 							{
-								Int a = relativeAddress(r, dst);
+								Int a = relativeAddress(dst);
 
 								if(dst.x) pDst.x = r.o[dst.index + a].x;
 								if(dst.y) pDst.y = r.o[dst.index + a].y;
@@ -421,14 +421,14 @@ namespace sw
 							}
 						}
 						break;
-					case Shader::PARAMETER_LABEL:																		break;
-					case Shader::PARAMETER_PREDICATE:	pDst = r.p0;													break;
-					case Shader::PARAMETER_INPUT:																		break;
+					case Shader::PARAMETER_LABEL:                  break;
+					case Shader::PARAMETER_PREDICATE: pDst = r.p0; break;
+					case Shader::PARAMETER_INPUT:                  break;
 					default:
 						ASSERT(false);
 					}
 
-					Int4 enable = enableMask(r, instruction);
+					Int4 enable = enableMask(instruction);
 
 					Int4 xEnable = enable;
 					Int4 yEnable = enable;
@@ -485,7 +485,7 @@ namespace sw
 					}
 					else
 					{
-						Int a = relativeAddress(r, dst);
+						Int a = relativeAddress(dst);
 
 						if(dst.x) r.r[dst.index + a].x = d.x;
 						if(dst.y) r.r[dst.index + a].y = d.y;
@@ -511,13 +511,13 @@ namespace sw
 					case 1:
 						r.o[Fog].x = d.x;
 						break;
-					case 2:		
+					case 2:
 						r.o[Pts].y = d.x;
 						break;
 					default:	ASSERT(false);
 					}
 					break;
-				case Shader::PARAMETER_ATTROUT:	
+				case Shader::PARAMETER_ATTROUT:
 					if(dst.x) r.o[D0 + dst.index].x = d.x;
 					if(dst.y) r.o[D0 + dst.index].y = d.y;
 					if(dst.z) r.o[D0 + dst.index].z = d.z;
@@ -552,7 +552,7 @@ namespace sw
 						}
 						else
 						{
-							Int a = relativeAddress(r, dst);
+							Int a = relativeAddress(dst);
 
 							if(dst.x) r.o[dst.index + a].x = d.x;
 							if(dst.y) r.o[dst.index + a].y = d.y;
@@ -561,9 +561,9 @@ namespace sw
 						}
 					}
 					break;
-				case Shader::PARAMETER_LABEL:																		break;
-				case Shader::PARAMETER_PREDICATE:	r.p0 = d;														break;
-				case Shader::PARAMETER_INPUT:																		break;
+				case Shader::PARAMETER_LABEL:               break;
+				case Shader::PARAMETER_PREDICATE: r.p0 = d; break;
+				case Shader::PARAMETER_INPUT:               break;
 				default:
 					ASSERT(false);
 				}
@@ -576,7 +576,7 @@ namespace sw
 		}
 	}
 
-	void VertexProgram::passThrough(Registers &r)
+	void VertexProgram::passThrough()
 	{
 		if(shader)
 		{
@@ -644,7 +644,7 @@ namespace sw
 		}
 	}
 
-	Vector4f VertexProgram::fetchRegisterF(Registers &r, const Src &src, unsigned int offset)
+	Vector4f VertexProgram::fetchRegisterF(const Src &src, unsigned int offset)
 	{
 		Vector4f reg;
 		unsigned int i = src.index + offset;
@@ -658,11 +658,11 @@ namespace sw
 			}
 			else
 			{
-				reg = r.r[i + relativeAddress(r, src)];
+				reg = r.r[i + relativeAddress(src)];
 			}
 			break;
 		case Shader::PARAMETER_CONST:
-			reg = readConstant(r, src, offset);
+			reg = readConstant(src, offset);
 			break;
 		case Shader::PARAMETER_INPUT:
             if(src.rel.type == Shader::PARAMETER_VOID)
@@ -671,7 +671,7 @@ namespace sw
 			}
 			else
 			{
-				reg = r.v[i + relativeAddress(r, src)];
+				reg = r.v[i + relativeAddress(src)];
 			}
             break;
 		case Shader::PARAMETER_VOID:			return r.r[0];   // Dummy
@@ -703,7 +703,7 @@ namespace sw
 			}
 			else
 			{
-				reg = r.o[i + relativeAddress(r, src)];
+				reg = r.o[i + relativeAddress(src)];
 			}
 			break;
 		case Shader::PARAMETER_MISCTYPE:
@@ -759,7 +759,7 @@ namespace sw
 		return mod;
 	}
 
-	Vector4f VertexProgram::readConstant(Registers &r, const Src &src, unsigned int offset)
+	Vector4f VertexProgram::readConstant(const Src &src, unsigned int offset)
 	{
 		Vector4f c;
 		unsigned int i = src.index + offset;
@@ -809,8 +809,8 @@ namespace sw
 		{
 			if(src.rel.deterministic)
 			{
-				Int a = relativeAddress(r, src);
-			
+				Int a = relativeAddress(src);
+
 				c.x = c.y = c.z = c.w = *Pointer<Float4>(r.data + OFFSET(DrawData,vs.c[i]) + a * 16);
 
 				c.x = c.x.xxxx;
@@ -836,7 +836,7 @@ namespace sw
 				Int4 index = Int4(i) + As<Int4>(a) * Int4(src.rel.scale);
 
 				index = Min(As<UInt4>(index), UInt4(VERTEX_UNIFORM_VECTORS));   // Clamp to constant register range, c[VERTEX_UNIFORM_VECTORS] = {0, 0, 0, 0}
-				
+
 				Int index0 = Extract(index, 0);
 				Int index1 = Extract(index, 1);
 				Int index2 = Extract(index, 2);
@@ -854,7 +854,7 @@ namespace sw
 		return c;
 	}
 
-	Int VertexProgram::relativeAddress(Registers &r, const Shader::Parameter &var)
+	Int VertexProgram::relativeAddress(const Shader::Parameter &var)
 	{
 		ASSERT(var.rel.deterministic);
 
@@ -881,10 +881,10 @@ namespace sw
 		return 0;
 	}
 
-	Int4 VertexProgram::enableMask(Registers &r, const Shader::Instruction *instruction)
+	Int4 VertexProgram::enableMask(const Shader::Instruction *instruction)
 	{
 		Int4 enable = instruction->analysisBranch ? Int4(r.enableStack[r.enableIndex]) : Int4(0xFFFFFFFF);
-		
+
 		if(!whileTest)
 		{
 			if(shader->containsBreakInstruction() && instruction->analysisBreak)
@@ -906,32 +906,32 @@ namespace sw
 		return enable;
 	}
 
-	void VertexProgram::M3X2(Registers &r, Vector4f &dst, Vector4f &src0, Src &src1)
+	void VertexProgram::M3X2(Vector4f &dst, Vector4f &src0, Src &src1)
 	{
-		Vector4f row0 = fetchRegisterF(r, src1, 0);
-		Vector4f row1 = fetchRegisterF(r, src1, 1);
+		Vector4f row0 = fetchRegisterF(src1, 0);
+		Vector4f row1 = fetchRegisterF(src1, 1);
 
 		dst.x = dot3(src0, row0);
 		dst.y = dot3(src0, row1);
 	}
 
-	void VertexProgram::M3X3(Registers &r, Vector4f &dst, Vector4f &src0, Src &src1)
+	void VertexProgram::M3X3(Vector4f &dst, Vector4f &src0, Src &src1)
 	{
-		Vector4f row0 = fetchRegisterF(r, src1, 0);
-		Vector4f row1 = fetchRegisterF(r, src1, 1);
-		Vector4f row2 = fetchRegisterF(r, src1, 2);
+		Vector4f row0 = fetchRegisterF(src1, 0);
+		Vector4f row1 = fetchRegisterF(src1, 1);
+		Vector4f row2 = fetchRegisterF(src1, 2);
 
 		dst.x = dot3(src0, row0);
 		dst.y = dot3(src0, row1);
 		dst.z = dot3(src0, row2);
 	}
 
-	void VertexProgram::M3X4(Registers &r, Vector4f &dst, Vector4f &src0, Src &src1)
+	void VertexProgram::M3X4(Vector4f &dst, Vector4f &src0, Src &src1)
 	{
-		Vector4f row0 = fetchRegisterF(r, src1, 0);
-		Vector4f row1 = fetchRegisterF(r, src1, 1);
-		Vector4f row2 = fetchRegisterF(r, src1, 2);
-		Vector4f row3 = fetchRegisterF(r, src1, 3);
+		Vector4f row0 = fetchRegisterF(src1, 0);
+		Vector4f row1 = fetchRegisterF(src1, 1);
+		Vector4f row2 = fetchRegisterF(src1, 2);
+		Vector4f row3 = fetchRegisterF(src1, 3);
 
 		dst.x = dot3(src0, row0);
 		dst.y = dot3(src0, row1);
@@ -939,23 +939,23 @@ namespace sw
 		dst.w = dot3(src0, row3);
 	}
 
-	void VertexProgram::M4X3(Registers &r, Vector4f &dst, Vector4f &src0, Src &src1)
+	void VertexProgram::M4X3(Vector4f &dst, Vector4f &src0, Src &src1)
 	{
-		Vector4f row0 = fetchRegisterF(r, src1, 0);
-		Vector4f row1 = fetchRegisterF(r, src1, 1);
-		Vector4f row2 = fetchRegisterF(r, src1, 2);
+		Vector4f row0 = fetchRegisterF(src1, 0);
+		Vector4f row1 = fetchRegisterF(src1, 1);
+		Vector4f row2 = fetchRegisterF(src1, 2);
 
 		dst.x = dot4(src0, row0);
 		dst.y = dot4(src0, row1);
 		dst.z = dot4(src0, row2);
 	}
 
-	void VertexProgram::M4X4(Registers &r, Vector4f &dst, Vector4f &src0, Src &src1)
+	void VertexProgram::M4X4(Vector4f &dst, Vector4f &src0, Src &src1)
 	{
-		Vector4f row0 = fetchRegisterF(r, src1, 0);
-		Vector4f row1 = fetchRegisterF(r, src1, 1);
-		Vector4f row2 = fetchRegisterF(r, src1, 2);
-		Vector4f row3 = fetchRegisterF(r, src1, 3);
+		Vector4f row0 = fetchRegisterF(src1, 0);
+		Vector4f row1 = fetchRegisterF(src1, 1);
+		Vector4f row2 = fetchRegisterF(src1, 2);
+		Vector4f row3 = fetchRegisterF(src1, 3);
 
 		dst.x = dot4(src0, row0);
 		dst.y = dot4(src0, row1);
@@ -963,7 +963,7 @@ namespace sw
 		dst.w = dot4(src0, row3);
 	}
 
-	void VertexProgram::BREAK(Registers &r)
+	void VertexProgram::BREAK()
 	{
 		llvm::BasicBlock *deadBlock = Nucleus::createBasicBlock();
 		llvm::BasicBlock *endBlock = loopRepEndBlock[loopRepDepth - 1];
@@ -986,7 +986,7 @@ namespace sw
 		r.enableIndex = r.enableIndex + breakDepth;
 	}
 
-	void VertexProgram::BREAKC(Registers &r, Vector4f &src0, Vector4f &src1, Control control)
+	void VertexProgram::BREAKC(Vector4f &src0, Vector4f &src1, Control control)
 	{
 		Int4 condition;
 
@@ -1002,10 +1002,10 @@ namespace sw
 			ASSERT(false);
 		}
 
-		BREAK(r, condition);
+		BREAK(condition);
 	}
 
-	void VertexProgram::BREAKP(Registers &r, const Src &predicateRegister)   // FIXME: Factor out parts common with BREAKC
+	void VertexProgram::BREAKP(const Src &predicateRegister)   // FIXME: Factor out parts common with BREAKC
 	{
 		Int4 condition = As<Int4>(r.p0[predicateRegister.swizzle & 0x3]);
 
@@ -1014,10 +1014,10 @@ namespace sw
 			condition = ~condition;
 		}
 
-		BREAK(r, condition);
+		BREAK(condition);
 	}
 
-	void VertexProgram::BREAK(Registers &r, Int4 &condition)
+	void VertexProgram::BREAK(Int4 &condition)
 	{
 		condition &= r.enableStack[r.enableIndex];
 
@@ -1034,7 +1034,7 @@ namespace sw
 		r.enableIndex = r.enableIndex + breakDepth;
 	}
 
-	void VertexProgram::CONTINUE(Registers &r)
+	void VertexProgram::CONTINUE()
 	{
 		r.enableContinue = r.enableContinue & ~r.enableStack[r.enableIndex];
 	}
@@ -1044,7 +1044,7 @@ namespace sw
 		whileTest = true;
 	}
 
-	void VertexProgram::CALL(Registers &r, int labelIndex, int callSiteIndex)
+	void VertexProgram::CALL(int labelIndex, int callSiteIndex)
 	{
 		if(!labelBlock[labelIndex])
 		{
@@ -1064,26 +1064,26 @@ namespace sw
 		r.enableLeave = restoreLeave;
 	}
 
-	void VertexProgram::CALLNZ(Registers &r, int labelIndex, int callSiteIndex, const Src &src)
+	void VertexProgram::CALLNZ(int labelIndex, int callSiteIndex, const Src &src)
 	{
 		if(src.type == Shader::PARAMETER_CONSTBOOL)
 		{
-			CALLNZb(r, labelIndex, callSiteIndex, src);
+			CALLNZb(labelIndex, callSiteIndex, src);
 		}
 		else if(src.type == Shader::PARAMETER_PREDICATE)
 		{
-			CALLNZp(r, labelIndex, callSiteIndex, src);
+			CALLNZp(labelIndex, callSiteIndex, src);
 		}
 		else ASSERT(false);
 	}
 
-	void VertexProgram::CALLNZb(Registers &r, int labelIndex, int callSiteIndex, const Src &boolRegister)
+	void VertexProgram::CALLNZb(int labelIndex, int callSiteIndex, const Src &boolRegister)
 	{
 		Bool condition = (*Pointer<Byte>(r.data + OFFSET(DrawData,vs.b[boolRegister.index])) != Byte(0));   // FIXME
-		
+
 		if(boolRegister.modifier == Shader::MODIFIER_NOT)
 		{
-			condition = !condition;	
+			condition = !condition;
 		}
 
 		if(!labelBlock[labelIndex])
@@ -1104,7 +1104,7 @@ namespace sw
 		r.enableLeave = restoreLeave;
 	}
 
-	void VertexProgram::CALLNZp(Registers &r, int labelIndex, int callSiteIndex, const Src &predicateRegister)
+	void VertexProgram::CALLNZp(int labelIndex, int callSiteIndex, const Src &predicateRegister)
 	{
 		Int4 condition = As<Int4>(r.p0[predicateRegister.swizzle & 0x3]);
 
@@ -1137,7 +1137,7 @@ namespace sw
 		r.enableLeave = restoreLeave;
 	}
 
-	void VertexProgram::ELSE(Registers &r)
+	void VertexProgram::ELSE()
 	{
 		ifDepth--;
 
@@ -1164,7 +1164,7 @@ namespace sw
 		ifDepth++;
 	}
 
-	void VertexProgram::ENDIF(Registers &r)
+	void VertexProgram::ENDIF()
 	{
 		ifDepth--;
 
@@ -1180,7 +1180,7 @@ namespace sw
 		}
 	}
 
-	void VertexProgram::ENDLOOP(Registers &r)
+	void VertexProgram::ENDLOOP()
 	{
 		loopRepDepth--;
 
@@ -1196,7 +1196,7 @@ namespace sw
 		r.enableBreak = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
 	}
 
-	void VertexProgram::ENDREP(Registers &r)
+	void VertexProgram::ENDREP()
 	{
 		loopRepDepth--;
 
@@ -1210,7 +1210,7 @@ namespace sw
 		r.enableBreak = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
 	}
 
-	void VertexProgram::ENDWHILE(Registers &r)
+	void VertexProgram::ENDWHILE()
 	{
 		loopRepDepth--;
 
@@ -1225,24 +1225,24 @@ namespace sw
 		whileTest = false;
 	}
 
-	void VertexProgram::IF(Registers &r, const Src &src)
+	void VertexProgram::IF(const Src &src)
 	{
 		if(src.type == Shader::PARAMETER_CONSTBOOL)
 		{
-			IFb(r, src);
+			IFb(src);
 		}
 		else if(src.type == Shader::PARAMETER_PREDICATE)
 		{
-			IFp(r, src);
+			IFp(src);
 		}
 		else
 		{
-			Int4 condition = As<Int4>(fetchRegisterF(r, src).x);
-			IF(r, condition);
+			Int4 condition = As<Int4>(fetchRegisterF(src).x);
+			IF(condition);
 		}
 	}
 
-	void VertexProgram::IFb(Registers &r, const Src &boolRegister)
+	void VertexProgram::IFb(const Src &boolRegister)
 	{
 		ASSERT(ifDepth < 24 + 4);
 
@@ -1264,7 +1264,7 @@ namespace sw
 		ifDepth++;
 	}
 
-	void VertexProgram::IFp(Registers &r, const Src &predicateRegister)
+	void VertexProgram::IFp(const Src &predicateRegister)
 	{
 		Int4 condition = As<Int4>(r.p0[predicateRegister.swizzle & 0x3]);
 
@@ -1273,10 +1273,10 @@ namespace sw
 			condition = ~condition;
 		}
 
-		IF(r, condition);
+		IF(condition);
 	}
 
-	void VertexProgram::IFC(Registers &r, Vector4f &src0, Vector4f &src1, Control control)
+	void VertexProgram::IFC(Vector4f &src0, Vector4f &src1, Control control)
 	{
 		Int4 condition;
 
@@ -1292,10 +1292,10 @@ namespace sw
 			ASSERT(false);
 		}
 
-		IF(r, condition);
+		IF(condition);
 	}
 
-	void VertexProgram::IF(Registers &r, Int4 &condition)
+	void VertexProgram::IF(Int4 &condition)
 	{
 		condition &= r.enableStack[r.enableIndex];
 
@@ -1327,7 +1327,7 @@ namespace sw
 		currentLabel = labelIndex;
 	}
 
-	void VertexProgram::LOOP(Registers &r, const Src &integerRegister)
+	void VertexProgram::LOOP(const Src &integerRegister)
 	{
 		r.loopDepth++;
 
@@ -1356,12 +1356,12 @@ namespace sw
 		Nucleus::setInsertBlock(loopBlock);
 
 		r.iteration[r.loopDepth] = r.iteration[r.loopDepth] - 1;   // FIXME: --
-		
+
 		loopRepDepth++;
 		breakDepth = 0;
 	}
 
-	void VertexProgram::REP(Registers &r, const Src &integerRegister)
+	void VertexProgram::REP(const Src &integerRegister)
 	{
 		r.loopDepth++;
 
@@ -1388,14 +1388,14 @@ namespace sw
 		breakDepth = 0;
 	}
 
-	void VertexProgram::WHILE(Registers &r, const Src &temporaryRegister)
+	void VertexProgram::WHILE(const Src &temporaryRegister)
 	{
 		r.enableIndex++;
 
 		llvm::BasicBlock *loopBlock = Nucleus::createBasicBlock();
 		llvm::BasicBlock *testBlock = Nucleus::createBasicBlock();
 		llvm::BasicBlock *endBlock = Nucleus::createBasicBlock();
-		
+
 		loopRepTestBlock[loopRepDepth] = testBlock;
 		loopRepEndBlock[loopRepDepth] = endBlock;
 
@@ -1407,24 +1407,24 @@ namespace sw
 		Nucleus::setInsertBlock(testBlock);
 		r.enableContinue = restoreContinue;
 
-		const Vector4f &src = fetchRegisterF(r, temporaryRegister);
+		const Vector4f &src = fetchRegisterF(temporaryRegister);
 		Int4 condition = As<Int4>(src.x);
 		condition &= r.enableStack[r.enableIndex - 1];
 		r.enableStack[r.enableIndex] = condition;
 
 		Bool notAllFalse = SignMask(condition) != 0;
 		branch(notAllFalse, loopBlock, endBlock);
-		
+
 		Nucleus::setInsertBlock(endBlock);
 		r.enableBreak = restoreBreak;
-		
+
 		Nucleus::setInsertBlock(loopBlock);
 
 		loopRepDepth++;
 		breakDepth = 0;
 	}
 
-	void VertexProgram::RET(Registers &r)
+	void VertexProgram::RET()
 	{
 		if(currentLabel == -1)
 		{
@@ -1439,7 +1439,7 @@ namespace sw
 			{
 				// FIXME: Encapsulate
 				UInt index = r.callStack[--r.stackIndex];
- 
+
 				llvm::Value *value = index.loadValue();
 				llvm::Value *switchInst = Nucleus::createSwitch(value, unreachableBlock, (int)callRetBlock[currentLabel].size());
 
@@ -1462,7 +1462,7 @@ namespace sw
 		}
 	}
 
-	void VertexProgram::LEAVE(Registers &r)
+	void VertexProgram::LEAVE()
 	{
 		r.enableLeave = r.enableLeave & ~r.enableStack[r.enableIndex];
 
@@ -1470,10 +1470,10 @@ namespace sw
 		// FIXME: Use enableLeave in other control-flow constructs
 	}
 
-	void VertexProgram::TEXLDL(Registers &r, Vector4f &dst, Vector4f &src0, const Src &src1)
+	void VertexProgram::TEXLDL(Vector4f &dst, Vector4f &src0, const Src &src1)
 	{
 		Vector4f tmp;
-		sampleTexture(r, tmp, src1, src0.x, src0.y, src0.z, src0.w);
+		sampleTexture(tmp, src1, src0.x, src0.y, src0.z, src0.w);
 
 		dst.x = tmp[(src1.swizzle >> 0) & 0x3];
 		dst.y = tmp[(src1.swizzle >> 2) & 0x3];
@@ -1481,11 +1481,11 @@ namespace sw
 		dst.w = tmp[(src1.swizzle >> 6) & 0x3];
 	}
 
-	void VertexProgram::TEX(Registers &r, Vector4f &dst, Vector4f &src0, const Src &src1)
+	void VertexProgram::TEX(Vector4f &dst, Vector4f &src0, const Src &src1)
 	{
 		Float4 lod = Float4(0.0f);
 		Vector4f tmp;
-		sampleTexture(r, tmp, src1, src0.x, src0.y, src0.z, lod);
+		sampleTexture(tmp, src1, src0.x, src0.y, src0.z, lod);
 
 		dst.x = tmp[(src1.swizzle >> 0) & 0x3];
 		dst.y = tmp[(src1.swizzle >> 2) & 0x3];
@@ -1493,37 +1493,37 @@ namespace sw
 		dst.w = tmp[(src1.swizzle >> 6) & 0x3];
 	}
 
-	void VertexProgram::TEXOFFSET(Registers &r, Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2, Vector4f &src3)
+	void VertexProgram::TEXOFFSET(Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2, Vector4f &src3)
 	{
 		UNIMPLEMENTED();
 	}
 
-	void VertexProgram::TEXLDL(Registers &r, Vector4f &dst, Vector4f &src, const Src&, Vector4f &offset)
+	void VertexProgram::TEXLDL(Vector4f &dst, Vector4f &src, const Src&, Vector4f &offset)
 	{
 		UNIMPLEMENTED();
 	}
 
-	void VertexProgram::TEXELFETCH(Registers &r, Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2)
+	void VertexProgram::TEXELFETCH(Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2)
 	{
 		UNIMPLEMENTED();
 	}
 
-	void VertexProgram::TEXELFETCH(Registers &r, Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2, Vector4f &offset)
+	void VertexProgram::TEXELFETCH(Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2, Vector4f &offset)
 	{
 		UNIMPLEMENTED();
 	}
 
-	void VertexProgram::TEXGRAD(Registers &r, Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2, Vector4f &src3)
+	void VertexProgram::TEXGRAD(Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2, Vector4f &src3)
 	{
 		UNIMPLEMENTED();
 	}
 
-	void VertexProgram::TEXGRAD(Registers &r, Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2, Vector4f &src3, Vector4f &offset)
+	void VertexProgram::TEXGRAD(Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2, Vector4f &src3, Vector4f &offset)
 	{
 		UNIMPLEMENTED();
 	}
 
-	void VertexProgram::TEXSIZE(Registers &r, Vector4f &dst, Float4 &lod, const Src &src1)
+	void VertexProgram::TEXSIZE(Vector4f &dst, Float4 &lod, const Src &src1)
 	{
 		Pointer<Byte> textureMipmap = r.data + OFFSET(DrawData, mipmap[16]) + src1.index * sizeof(Texture) + OFFSET(Texture, mipmap);
 		for(int i = 0; i < 4; ++i)
@@ -1535,16 +1535,16 @@ namespace sw
 		}
 	}
 
-	void VertexProgram::sampleTexture(Registers &r, Vector4f &c, const Src &s, Float4 &u, Float4 &v, Float4 &w, Float4 &q)
+	void VertexProgram::sampleTexture(Vector4f &c, const Src &s, Float4 &u, Float4 &v, Float4 &w, Float4 &q)
 	{
 		if(s.type == Shader::PARAMETER_SAMPLER && s.rel.type == Shader::PARAMETER_VOID)
 		{
 			Pointer<Byte> texture = r.data + OFFSET(DrawData,mipmap[16]) + s.index * sizeof(Texture);
-			sampler[s.index]->sampleTexture(texture, c, u, v, w, q, r.a0, r.a0, false, false, true);	
+			sampler[s.index]->sampleTexture(texture, c, u, v, w, q, r.a0, r.a0, false, false, true);
 		}
 		else
 		{
-			Int index = As<Int>(Float(fetchRegisterF(r, s).x.x));
+			Int index = As<Int>(Float(fetchRegisterF(s).x.x));
 
 			for(int i = 0; i < 16; i++)
 			{

@@ -63,13 +63,13 @@ namespace sw
 			{
 				*Pointer<UInt>(tagCache + tagIndex) = indexQ;
 
-				readInput(r, indexQ);
-				pipeline(r);
-				postTransform(r);
-				computeClipFlags(r);
+				readInput(indexQ);
+				pipeline();
+				postTransform();
+				computeClipFlags();
 
 				Pointer<Byte> cacheLine0 = vertexCache + tagIndex * UInt((int)sizeof(Vertex));
-				writeCache(cacheLine0, r);
+				writeCache(cacheLine0);
 			}
 
 			UInt cacheIndex = index & 0x0000003F;
@@ -85,18 +85,18 @@ namespace sw
 		Return();
 	}
 
-	void VertexRoutine::readInput(Registers &r, UInt &index)
+	void VertexRoutine::readInput(UInt &index)
 	{
 		for(int i = 0; i < VERTEX_ATTRIBUTES; i++)
 		{
 			Pointer<Byte> input = *Pointer<Pointer<Byte> >(r.data + OFFSET(DrawData,input) + sizeof(void*) * i);
 			UInt stride = *Pointer<UInt>(r.data + OFFSET(DrawData,stride) + sizeof(unsigned int) * i);
 
-			r.v[i] = readStream(r, input, stride, state.input[i], index);
+			r.v[i] = readStream(input, stride, state.input[i], index);
 		}
 	}
 
-	void VertexRoutine::computeClipFlags(Registers &r)
+	void VertexRoutine::computeClipFlags()
 	{
 		int pos = state.positionRegister;
 
@@ -136,7 +136,7 @@ namespace sw
 		}
 	}
 
-	Vector4f VertexRoutine::readStream(Registers &r, Pointer<Byte> &buffer, UInt &stride, const Stream &stream, const UInt &index)
+	Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const Stream &stream, const UInt &index)
 	{
 		const bool texldl = state.shaderContainsTexldl;
 
@@ -444,7 +444,7 @@ namespace sw
 		return v;
 	}
 
-	void VertexRoutine::postTransform(Registers &r)
+	void VertexRoutine::postTransform()
 	{
 		int pos = state.positionRegister;
 
@@ -482,7 +482,7 @@ namespace sw
 		}
 	}
 
-	void VertexRoutine::writeCache(Pointer<Byte> &cacheLine, Registers &r)
+	void VertexRoutine::writeCache(Pointer<Byte> &cacheLine)
 	{
 		Vector4f v;
 
