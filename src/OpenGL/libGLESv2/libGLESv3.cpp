@@ -1741,9 +1741,14 @@ GL_APICALL void GL_APIENTRY glBindVertexArray(GLuint array)
 
 	es2::Context *context = es2::getContext();
 
-	if(context && !context->bindVertexArray(array))
+	if(context)
 	{
-		return error(GL_INVALID_OPERATION);
+		if(!context->getVertexArray(array))
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		context->bindVertexArray(array);
 	}
 }
 
