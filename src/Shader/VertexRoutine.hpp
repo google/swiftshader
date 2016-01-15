@@ -19,8 +19,27 @@
 
 namespace sw
 {
-	class VertexRoutine : public Function<Void(Pointer<Byte>, Pointer<Byte>, Pointer<Byte>, Pointer<Byte>)>
+	class VertexRoutinePrototype : public Function<Void(Pointer<Byte>, Pointer<Byte>, Pointer<Byte>, Pointer<Byte>)>
 	{
+	public:
+		VertexRoutinePrototype() : vertex(Arg<0>()), batch(Arg<1>()), task(Arg<2>()), data(Arg<3>()) {}
+		virtual ~VertexRoutinePrototype() {};
+
+	protected:
+		const Pointer<Byte> vertex;
+		const Pointer<Byte> batch;
+		const Pointer<Byte> task;
+		const Pointer<Byte> data;
+	};
+
+	class VertexRoutine : public VertexRoutinePrototype
+	{
+	public:
+		VertexRoutine(const VertexProcessor::State &state, const VertexShader *shader);
+		virtual ~VertexRoutine();
+
+		void generate();
+
 	protected:
 		struct Registers
 		{
@@ -73,14 +92,6 @@ namespace sw
 
 		Registers r;
 
-	public:
-		VertexRoutine(const VertexProcessor::State &state, const VertexShader *shader);
-
-		virtual ~VertexRoutine();
-
-		void generate();
-
-	protected:
 		const VertexProcessor::State &state;
 		const VertexShader *const shader;
 
@@ -94,7 +105,7 @@ namespace sw
 		void computeClipFlags();
 		void postTransform();
 		void writeCache(Pointer<Byte> &cacheLine);
-		void writeVertex(Pointer<Byte> &vertex, Pointer<Byte> &cacheLine);
+		void writeVertex(const Pointer<Byte> &vertex, Pointer<Byte> &cacheLine);
 	};
 }
 

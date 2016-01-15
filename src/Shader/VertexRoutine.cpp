@@ -33,11 +33,6 @@ namespace sw
 
 	void VertexRoutine::generate()
 	{
-		Pointer<Byte> vertex(Arg<0>());
-		Pointer<Byte> batch(Arg<1>());
-		Pointer<Byte> task(Arg<2>());
-		Pointer<Byte> data(Arg<3>());
-
 		const bool texldl = state.shaderContainsTexldl;
 
 		Pointer<Byte> cache = task + OFFSET(VertexTask,vertexCache);
@@ -47,7 +42,7 @@ namespace sw
 		UInt vertexCount = *Pointer<UInt>(task + OFFSET(VertexTask,vertexCount));
 
 		r.data = data;
-		r.constants = *Pointer<Pointer<Byte> >(data + OFFSET(DrawData,constants));
+		r.constants = *Pointer<Pointer<Byte>>(data + OFFSET(DrawData,constants));
 		if(shader && shader->instanceIdDeclared)
 		{
 			r.instanceID = *Pointer<Int>(data + OFFSET(DrawData, instanceID));
@@ -89,7 +84,7 @@ namespace sw
 	{
 		for(int i = 0; i < VERTEX_ATTRIBUTES; i++)
 		{
-			Pointer<Byte> input = *Pointer<Pointer<Byte> >(r.data + OFFSET(DrawData,input) + sizeof(void*) * i);
+			Pointer<Byte> input = *Pointer<Pointer<Byte>>(r.data + OFFSET(DrawData,input) + sizeof(void*) * i);
 			UInt stride = *Pointer<UInt>(r.data + OFFSET(DrawData,stride) + sizeof(unsigned int) * i);
 
 			r.v[i] = readStream(input, stride, state.input[i], index);
@@ -573,7 +568,7 @@ namespace sw
 		*Pointer<Float4>(cacheLine + OFFSET(Vertex,X) + sizeof(Vertex) * 3, 16) = v.w;
 	}
 
-	void VertexRoutine::writeVertex(Pointer<Byte> &vertex, Pointer<Byte> &cache)
+	void VertexRoutine::writeVertex(const Pointer<Byte> &vertex, Pointer<Byte> &cache)
 	{
 		for(int i = 0; i < 12; i++)
 		{
