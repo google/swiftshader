@@ -6,12 +6,15 @@
 ; RUN: %p2i --expect-fail -i %s --insts --args \
 ; RUN:      -allow-externally-defined-symbols | FileCheck %s
 
-declare i1 @f();
+declare i32 @f();
 
-define void @Test() {
+declare i64 @g();
+
+define void @Test(i32 %ifcn) {
 entry:
-  %v = call i1 @f()
-; CHECK: Return type of f is invalid: i1
+  %fcn =  inttoptr i32 %ifcn to i1()*
+  %v = call i1 %fcn()
+; CHECK: Return type of function is invalid: i1
   ret void
 }
 

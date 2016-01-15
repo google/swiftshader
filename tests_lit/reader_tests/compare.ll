@@ -4,7 +4,7 @@
 ; RUN:   %p2i -i %s --args -notranslate -timing | \
 ; RUN:   FileCheck --check-prefix=NOIR %s
 
-define internal i1 @IcmpI1(i32 %p1, i32 %p2) {
+define internal void @IcmpI1(i32 %p1, i32 %p2) {
 entry:
   %a1 = trunc i32 %p1 to i1
   %a2 = trunc i32 %p2 to i1
@@ -18,10 +18,10 @@ entry:
   %vsge = icmp sge i1 %a1, %a2
   %vslt = icmp slt i1 %a1, %a2
   %vsle = icmp sle i1 %a1, %a2
-  ret i1 %veq
+  ret void
 }
 
-; CHECK:      define internal i1 @IcmpI1(i32 %p1, i32 %p2) {
+; CHECK:      define internal void @IcmpI1(i32 %p1, i32 %p2) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %a1 = trunc i32 %p1 to i1
 ; CHECK-NEXT:   %a2 = trunc i32 %p2 to i1
@@ -35,10 +35,10 @@ entry:
 ; CHECK-NEXT:   %vsge = icmp sge i1 %a1, %a2
 ; CHECK-NEXT:   %vslt = icmp slt i1 %a1, %a2
 ; CHECK-NEXT:   %vsle = icmp sle i1 %a1, %a2
-; CHECK-NEXT:   ret i1 %veq
+; CHECK-NEXT:   ret void
 ; CHECK-NEXT: }
 
-define internal i1 @IcmpI8(i32 %p1, i32 %p2) {
+define internal void @IcmpI8(i32 %p1, i32 %p2) {
 entry:
   %a1 = trunc i32 %p1 to i8
   %a2 = trunc i32 %p2 to i8
@@ -52,10 +52,10 @@ entry:
   %vsge = icmp sge i8 %a1, %a2
   %vslt = icmp slt i8 %a1, %a2
   %vsle = icmp sle i8 %a1, %a2
-  ret i1 %veq
+  ret void
 }
 
-; CHECK-NEXT: define internal i1 @IcmpI8(i32 %p1, i32 %p2) {
+; CHECK-NEXT: define internal void @IcmpI8(i32 %p1, i32 %p2) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %a1 = trunc i32 %p1 to i8
 ; CHECK-NEXT:   %a2 = trunc i32 %p2 to i8
@@ -69,10 +69,10 @@ entry:
 ; CHECK-NEXT:   %vsge = icmp sge i8 %a1, %a2
 ; CHECK-NEXT:   %vslt = icmp slt i8 %a1, %a2
 ; CHECK-NEXT:   %vsle = icmp sle i8 %a1, %a2
-; CHECK-NEXT:   ret i1 %veq
+; CHECK-NEXT:   ret void
 ; CHECK-NEXT: }
 
-define internal i1 @IcmpI16(i32 %p1, i32 %p2) {
+define internal void @IcmpI16(i32 %p1, i32 %p2) {
 entry:
   %a1 = trunc i32 %p1 to i16
   %a2 = trunc i32 %p2 to i16
@@ -86,10 +86,10 @@ entry:
   %vsge = icmp sge i16 %a1, %a2
   %vslt = icmp slt i16 %a1, %a2
   %vsle = icmp sle i16 %a1, %a2
-  ret i1 %veq
+  ret void
 }
 
-; CHECK-NEXT: define internal i1 @IcmpI16(i32 %p1, i32 %p2) {
+; CHECK-NEXT: define internal void @IcmpI16(i32 %p1, i32 %p2) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %a1 = trunc i32 %p1 to i16
 ; CHECK-NEXT:   %a2 = trunc i32 %p2 to i16
@@ -103,10 +103,10 @@ entry:
 ; CHECK-NEXT:   %vsge = icmp sge i16 %a1, %a2
 ; CHECK-NEXT:   %vslt = icmp slt i16 %a1, %a2
 ; CHECK-NEXT:   %vsle = icmp sle i16 %a1, %a2
-; CHECK-NEXT:   ret i1 %veq
+; CHECK-NEXT:   ret void
 ; CHECK-NEXT: }
 
-define internal i1 @IcmpI32(i32 %a1, i32 %a2) {
+define internal void @IcmpI32(i32 %a1, i32 %a2) {
 entry:
   %veq = icmp eq i32 %a1, %a2
   %vne = icmp ne i32 %a1, %a2
@@ -118,10 +118,10 @@ entry:
   %vsge = icmp sge i32 %a1, %a2
   %vslt = icmp slt i32 %a1, %a2
   %vsle = icmp sle i32 %a1, %a2
-  ret i1 %veq
+  ret void
 }
 
-; CHECK-NEXT: define internal i1 @IcmpI32(i32 %a1, i32 %a2) {
+; CHECK-NEXT: define internal void @IcmpI32(i32 %a1, i32 %a2) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %veq = icmp eq i32 %a1, %a2
 ; CHECK-NEXT:   %vne = icmp ne i32 %a1, %a2
@@ -133,10 +133,10 @@ entry:
 ; CHECK-NEXT:   %vsge = icmp sge i32 %a1, %a2
 ; CHECK-NEXT:   %vslt = icmp slt i32 %a1, %a2
 ; CHECK-NEXT:   %vsle = icmp sle i32 %a1, %a2
-; CHECK-NEXT:   ret i1 %veq
+; CHECK-NEXT:   ret void
 ; CHECK-NEXT: }
 
-define internal i1 @IcmpI64(i64 %a1, i64 %a2) {
+define internal void @IcmpI64(i64 %a1, i64 %a2) {
 entry:
   %veq = icmp eq i64 %a1, %a2
   %vne = icmp ne i64 %a1, %a2
@@ -148,10 +148,10 @@ entry:
   %vsge = icmp sge i64 %a1, %a2
   %vslt = icmp slt i64 %a1, %a2
   %vsle = icmp sle i64 %a1, %a2
-  ret i1 %veq
+  ret void
 }
 
-; CHECK-NEXT: define internal i1 @IcmpI64(i64 %a1, i64 %a2) {
+; CHECK-NEXT: define internal void @IcmpI64(i64 %a1, i64 %a2) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %veq = icmp eq i64 %a1, %a2
 ; CHECK-NEXT:   %vne = icmp ne i64 %a1, %a2
@@ -163,7 +163,7 @@ entry:
 ; CHECK-NEXT:   %vsge = icmp sge i64 %a1, %a2
 ; CHECK-NEXT:   %vslt = icmp slt i64 %a1, %a2
 ; CHECK-NEXT:   %vsle = icmp sle i64 %a1, %a2
-; CHECK-NEXT:   ret i1 %veq
+; CHECK-NEXT:   ret void
 ; CHECK-NEXT: }
 
 define internal <4 x i1> @IcmpV4xI1(<4 x i1> %a1, <4 x i1> %a2) {
@@ -346,7 +346,7 @@ entry:
 ; CHECK-NEXT:   ret <4 x i1> %veq
 ; CHECK-NEXT: }
 
-define internal i1 @FcmpFloat(float %a1, float %a2) {
+define internal void @FcmpFloat(float %a1, float %a2) {
 entry:
   %vfalse = fcmp false float %a1, %a2
   %voeq = fcmp oeq float %a1, %a2
@@ -364,10 +364,10 @@ entry:
   %vune = fcmp une float %a1, %a2
   %vuno = fcmp uno float %a1, %a2
   %vtrue = fcmp true float %a1, %a2
-  ret i1 %voeq
+  ret void
 }
 
-; CHECK-NEXT: define internal i1 @FcmpFloat(float %a1, float %a2) {
+; CHECK-NEXT: define internal void @FcmpFloat(float %a1, float %a2) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %vfalse = fcmp false float %a1, %a2
 ; CHECK-NEXT:   %voeq = fcmp oeq float %a1, %a2
@@ -385,10 +385,10 @@ entry:
 ; CHECK-NEXT:   %vune = fcmp une float %a1, %a2
 ; CHECK-NEXT:   %vuno = fcmp uno float %a1, %a2
 ; CHECK-NEXT:   %vtrue = fcmp true float %a1, %a2
-; CHECK-NEXT:   ret i1 %voeq
+; CHECK-NEXT:   ret void
 ; CHECK-NEXT: }
 
-define internal i1 @FcmpDouble(double %a1, double %a2) {
+define internal void @FcmpDouble(double %a1, double %a2) {
 entry:
   %vfalse = fcmp false double %a1, %a2
   %voeq = fcmp oeq double %a1, %a2
@@ -406,10 +406,10 @@ entry:
   %vune = fcmp une double %a1, %a2
   %vuno = fcmp uno double %a1, %a2
   %vtrue = fcmp true double %a1, %a2
-  ret i1 %voeq
+  ret void
 }
 
-; CHECK-NEXT: define internal i1 @FcmpDouble(double %a1, double %a2) {
+; CHECK-NEXT: define internal void @FcmpDouble(double %a1, double %a2) {
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT:   %vfalse = fcmp false double %a1, %a2
 ; CHECK-NEXT:   %voeq = fcmp oeq double %a1, %a2
@@ -427,7 +427,7 @@ entry:
 ; CHECK-NEXT:   %vune = fcmp une double %a1, %a2
 ; CHECK-NEXT:   %vuno = fcmp uno double %a1, %a2
 ; CHECK-NEXT:   %vtrue = fcmp true double %a1, %a2
-; CHECK-NEXT:   ret i1 %voeq
+; CHECK-NEXT:   ret void
 ; CHECK-NEXT: }
 
 define internal <4 x i1> @FcmpV4xFloat(<4 x float> %a1, <4 x float> %a2) {

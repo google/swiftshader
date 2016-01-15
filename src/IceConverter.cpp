@@ -880,6 +880,8 @@ void Converter::installGlobalDeclarations(Module *Mod) {
         StrBuf << "\n  Use flag -allow-externally-defined-symbols to override";
       report_fatal_error(StrBuf.str());
     }
+    if (!IceFunc->validateTypeSignature(Ctx))
+      report_fatal_error(IceFunc->getTypeSignatureError(Ctx));
     GlobalDeclarationMap[&Func] = IceFunc;
   }
   // Install global variable declarations.

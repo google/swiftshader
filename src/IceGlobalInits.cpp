@@ -60,6 +60,56 @@ void dumpCallingConv(Ice::Ostream &, llvm::CallingConv::ID CallingConv) {
 
 namespace Ice {
 
+const Intrinsics::FullIntrinsicInfo *
+FunctionDeclaration::getIntrinsicInfo(const GlobalContext *Ctx,
+                                      bool *IsIntrinsic) const {
+  *IsIntrinsic = false;
+  if (!hasName())
+    return nullptr;
+  bool BadIntrinsic;
+  const Intrinsics::FullIntrinsicInfo *Info =
+      Ctx->getIntrinsicsInfo().find(getName(), BadIntrinsic);
+  *IsIntrinsic = Info || BadIntrinsic;
+  return Info;
+}
+
+bool FunctionDeclaration::validateRegularTypeSignature() const {
+  for (SizeT i = 0; i < Signature.getNumArgs(); ++i) {
+    if (!isCallParameterType(Signature.getArgType(i)))
+      return false;
+  }
+  return isCallReturnType(Signature.getReturnType());
+}
+
+bool FunctionDeclaration::validateIntrinsicTypeSignature(
+    const Intrinsics::FullIntrinsicInfo *Info) const {
+  if (Signature.getNumArgs() != Info->getNumArgs())
+    return false;
+  for (SizeT i = 0; i < Signature.getNumArgs(); ++i) {
+    if (Signature.getArgType(i) != Info->getArgType(i))
+      return false;
+  }
+  return Signature.getReturnType() == Info->getReturnType();
+}
+
+IceString FunctionDeclaration::getTypeSignatureError(const GlobalContext *Ctx) {
+  std::string Buffer;
+  llvm::raw_string_ostream StrBuf(Buffer);
+  StrBuf << "Invalid";
+  bool IsIntrinsic;
+  const Intrinsics::FullIntrinsicInfo *Info =
+      getIntrinsicInfo(Ctx, &IsIntrinsic);
+  if (IsIntrinsic && Info == nullptr) {
+    StrBuf << " intrinsic name: " << getName();
+    return StrBuf.str();
+  }
+  StrBuf << " type signature for";
+  if (IsIntrinsic)
+    StrBuf << " intrinsic";
+  StrBuf << " " << getName() << ": " << getSignature();
+  return StrBuf.str();
+}
+
 void FunctionDeclaration::dumpType(Ostream &Stream) const {
   if (!Ice::BuildDefs::dump())
     return;

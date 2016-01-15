@@ -4,9 +4,10 @@
 ; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 | FileCheck %s
 ; RUN: %p2i --filetype=obj --disassemble -i %s --args -Om1 | FileCheck %s
 
-define internal i32 @Sdiv_const8_b(i8 %a) {
+define internal i32 @Sdiv_const8_b(i32 %a32) {
 ; CHECK-LABEL: Sdiv_const8_b
 entry:
+  %a = trunc i32 %a32 to i8
   %div = sdiv i8 %a, 12
 ; CHECK: mov {{.*}},0xc
 ; CHECK-NOT: idiv 0xc
@@ -14,9 +15,10 @@ entry:
   ret i32 %div_ext
 }
 
-define internal i32 @Sdiv_const16_b(i16 %a) {
+define internal i32 @Sdiv_const16_b(i32 %a32) {
 ; CHECK-LABEL: Sdiv_const16_b
 entry:
+  %a = trunc i32 %a32 to i16
   %div = sdiv i16 %a, 1234
 ; CHECK: mov {{.*}},0x4d2
 ; CHECK-NOT: idiv 0x4d2

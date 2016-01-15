@@ -8,7 +8,7 @@
 ; RUN:     -allow-externally-defined-symbols 2>&1 \
 ; RUN:   | FileCheck %s
 
-; CHECK: Argument 1 of llvm.nacl.setjmp expects i32. Found: double
+; CHECK: Invalid type signature for intrinsic llvm.nacl.setjmp: i32 (double)
 
 ; RUN: pnacl-bcfuzz -bitcode-as-text \
 ; RUN:     %p/Inputs/bad-intrinsic-arg.tbc -output - \

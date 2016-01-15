@@ -1,34 +1,11 @@
 ; Tests that we don't get fooled by a fake NaCl intrinsic.
 
-; TODO(kschimpf) Find way to run this through p2i. Note: Can't do this
-;                currently because run-pnacl-sz.py raises exception on error,
-;                and output is lost.
-; RUN: %if --need=allow_dump --command llvm-as < %s \
-; RUN:   | %if --need=allow_dump --command pnacl-freeze \
-; RUN        -allow-local-symbol-tables \
-; RUN:   | %if --need=allow_dump --command not %pnacl_sz -notranslate \
-; RUN:       -verbose=inst -build-on-read \
-; RUN:       -allow-pnacl-reader-error-recovery \
-; RUN:       -allow-local-symbol-tables \
-; RUN:       -filetype=obj -o /dev/null \
-; RUN:   | %if --need=allow_dump --command FileCheck %s
+; REQUIRES: allow_dump
 
-; RUN: %if --need=no_dump --command llvm-as < %s \
-; RUN:   | %if --need=no_dump --command pnacl-freeze \
-; RUN        -allow-local-symbol-tables \
-; RUN:   | %if --need=no_dump --command not %pnacl_sz -notranslate \
-; RUN:       -verbose=inst -build-on-read \
-; RUN:       -allow-pnacl-reader-error-recovery \
-; RUN:       -allow-local-symbol-tables \
-; RUN:       -filetype=obj -o /dev/null \
-; RUN:   | %if --need=no_dump --command FileCheck %s --check-prefix=MIN
+; RUN: %p2i --expect-fail -i %s --insts --args \
+; RUN:      -verbose=inst -allow-externally-defined-symbols \
+; RUN:   | FileCheck %s
 
 declare i32 @llvm.fake.i32(i32)
 
-define i32 @testFake(i32 %v) {
-  %r = call i32 @llvm.fake.i32(i32 %v)
-  ret i32 %r
-}
-
-; CHECK: Error({{.*}}): Invalid PNaCl intrinsic call to llvm.fake.i32
-; MIN: Error({{.*}}): Invalid function record: <34 0 3 1>
+; CHECK: Error({{.*}}): Invalid intrinsic name: llvm.fake.i32

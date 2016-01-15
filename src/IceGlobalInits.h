@@ -21,6 +21,7 @@
 
 #include "IceDefs.h"
 #include "IceGlobalContext.h"
+#include "IceIntrinsics.h"
 #include "IceTypes.h"
 
 #ifdef __clang__
@@ -156,6 +157,32 @@ public:
     return verifyLinkageDefault(Ctx);
   }
 
+  /// Validates that the type signature of the function is correct. Returns true
+  /// if valid.
+  bool validateTypeSignature(const GlobalContext *Ctx) const {
+    bool IsIntrinsic;
+    if (const Intrinsics::FullIntrinsicInfo *Info =
+            getIntrinsicInfo(Ctx, &IsIntrinsic))
+      return validateIntrinsicTypeSignature(Info);
+    return !IsIntrinsic && validateRegularTypeSignature();
+  }
+
+  /// Generates an error message describing why validateTypeSignature returns
+  /// false.
+  IceString getTypeSignatureError(const GlobalContext *Ctx);
+
+  /// Returns corresponding PNaCl intrisic information.
+  const Intrinsics::FullIntrinsicInfo *
+  getIntrinsicInfo(const GlobalContext *Ctx) const {
+    bool BadIntrinsic;
+    return getIntrinsicInfo(Ctx, &BadIntrinsic);
+  }
+
+  /// Same as above, except IsIntrinsic is true if the function is intrinsic
+  /// (even if not a PNaCl intrinsic).
+  const Intrinsics::FullIntrinsicInfo *
+  getIntrinsicInfo(const GlobalContext *Ctx, bool *IsIntrinsic) const;
+
 private:
   const Ice::FuncSigType Signature;
   llvm::CallingConv::ID CallingConv;
@@ -173,12 +200,15 @@ private:
   }
 
   bool isIntrinsicName(const GlobalContext *Ctx) const {
-    if (!hasName())
-      return false;
-    bool BadIntrinsic;
-    return Ctx->getIntrinsicsInfo().find(getName(), BadIntrinsic) &&
-           !BadIntrinsic;
+    bool IsIntrinsic;
+    getIntrinsicInfo(Ctx, &IsIntrinsic);
+    return IsIntrinsic;
   }
+
+  bool validateRegularTypeSignature() const;
+
+  bool validateIntrinsicTypeSignature(
+      const Intrinsics::FullIntrinsicInfo *Info) const;
 };
 
 /// Models a global variable declaration, and its initializers.

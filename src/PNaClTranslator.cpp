@@ -338,6 +338,8 @@ public:
     installFunctionNames();
   }
 
+  void verifyFunctionTypeSignatures();
+
   void createValueIDs() {
     assert(VariableDeclarations);
     ValueIDConstants.reserve(VariableDeclarations->size() +
@@ -635,6 +637,14 @@ Ice::Type TopLevelParser::convertToIceTypeError(Type *LLVMTy) {
   StrBuf << "Invalid LLVM type: " << *LLVMTy;
   Error(StrBuf.str());
   return Ice::IceType_void;
+}
+
+void TopLevelParser::verifyFunctionTypeSignatures() {
+  const Ice::GlobalContext *Ctx = getTranslator().getContext();
+  for (Ice::FunctionDeclaration *FuncDecl : FunctionDeclarations) {
+    if (!FuncDecl->validateTypeSignature(Ctx))
+      Error(FuncDecl->getTypeSignatureError(Ctx));
+  }
 }
 
 // Base class for parsing blocks within the bitcode file. Note: Because this is
@@ -2648,16 +2658,7 @@ void FunctionParser::ProcessRecord() {
       }
 
       // Check if this direct call is to an Intrinsic (starts with "llvm.")
-      bool BadIntrinsic;
-      IntrinsicInfo = getTranslator().getContext()->getIntrinsicsInfo().find(
-          Fcn->getName(), BadIntrinsic);
-      if (BadIntrinsic) {
-        std::string Buffer;
-        raw_string_ostream StrBuf(Buffer);
-        StrBuf << "Invalid PNaCl intrinsic call to " << Fcn->getName();
-        Error(StrBuf.str());
-        IntrinsicInfo = nullptr;
-      }
+      IntrinsicInfo = Fcn->getIntrinsicInfo(getTranslator().getContext());
       if (IntrinsicInfo && IntrinsicInfo->getNumArgs() != NumParams) {
         std::string Buffer;
         raw_string_ostream StrBuf(Buffer);
@@ -2712,16 +2713,14 @@ void FunctionParser::ProcessRecord() {
       if (Signature)
         verifyCallArgTypeMatches(Fcn, Index, OpType,
                                  Signature->getArgType(Index));
-      if (IntrinsicInfo) {
-        verifyCallArgTypeMatches(Fcn, Index, OpType,
-                                 IntrinsicInfo->getArgType(Index));
-      } else if (!isCallParameterType(OpType)) {
+      else if (!isCallParameterType(OpType)) {
         std::string Buffer;
         raw_string_ostream StrBuf(Buffer);
         StrBuf << "Argument " << *Op << " of " << printName(Fcn)
                << " has invalid type: " << Op->getType();
         Error(StrBuf.str());
         appendErrorInstruction(ReturnType);
+        return;
       }
     }
 
@@ -3007,6 +3006,7 @@ private:
     if (!GlobalDeclarationNamesAndInitializersInstalled) {
       Context->installGlobalNames();
       Context->createValueIDs();
+      Context->verifyFunctionTypeSignatures();
       std::unique_ptr<Ice::VariableDeclarationList> Globals =
           Context->getGlobalVariables();
       if (Globals)

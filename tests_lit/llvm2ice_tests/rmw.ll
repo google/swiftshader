@@ -40,8 +40,9 @@ entry:
 ; CHECK-LABEL: no_rmw_add_i32_var
 ; CHECK: add e{{ax|bx|cx|dx|bp|di|si}},DWORD PTR [e{{ax|bx|cx|dx|bp|di|si}}]
 
-define internal void @rmw_add_i16_var(i32 %addr_arg, i16 %var) {
+define internal void @rmw_add_i16_var(i32 %addr_arg, i32 %var32) {
 entry:
+  %var = trunc i32 %var32 to i16
   %addr = inttoptr i32 %addr_arg to i16*
   %val = load i16, i16* %addr, align 1
   %rmw = add i16 %val, %var
@@ -64,8 +65,9 @@ entry:
 ; CHECK-LABEL: rmw_add_i16_imm
 ; CHECK: add WORD PTR [e{{ax|bx|cx|dx|bp|di|si}}],0x13
 
-define internal void @rmw_add_i8_var(i32 %addr_arg, i8 %var) {
+define internal void @rmw_add_i8_var(i32 %addr_arg, i32 %var32) {
 entry:
+  %var = trunc i32 %var32 to i8
   %addr = inttoptr i32 %addr_arg to i8*
   %val = load i8, i8* %addr, align 1
   %rmw = add i8 %val, %var
