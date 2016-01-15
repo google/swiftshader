@@ -942,6 +942,7 @@ protected:
     void sub_sp(Operand *SubAmount);
 
   private:
+    AutoBundle Bundler;
     TargetARM32 *Target;
   };
 

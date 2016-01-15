@@ -1771,7 +1771,6 @@ void TargetARM32::postLowerLegalization() {
           CurInstr->setDeleted();
         }
       } else if (auto *StrInstr = llvm::dyn_cast<InstARM32Str>(CurInstr)) {
-        Sandboxer Bundle(this);
         if (OperandARM32Mem *LegalMem = Legalizer.legalizeMemOperand(
                 llvm::cast<OperandARM32Mem>(StrInstr->getSrc(1)))) {
           Sandboxer(this).str(llvm::cast<Variable>(CurInstr->getSrc(0)),
@@ -6193,17 +6192,9 @@ void TargetARM32::ComputationTracker::recordProducers(CfgNode *Node) {
 
 TargetARM32::Sandboxer::Sandboxer(TargetARM32 *Target,
                                   InstBundleLock::Option BundleOption)
-    : Target(Target) {
-  if (Target->NeedSandboxing) {
-    Target->_bundle_lock(BundleOption);
-  }
-}
+    : Bundler(Target, BundleOption), Target(Target) {}
 
-TargetARM32::Sandboxer::~Sandboxer() {
-  if (Target->NeedSandboxing) {
-    Target->_bundle_unlock();
-  }
-}
+TargetARM32::Sandboxer::~Sandboxer() {}
 
 namespace {
 OperandARM32FlexImm *indirectBranchBicMask(Cfg *Func) {

@@ -165,12 +165,11 @@ void TargetX8664::_add_sp(Operand *Adjustment) {
   // add Adjustment, %esp
   //
   // instruction is not DCE'd.
-  _bundle_lock();
+  AutoBundle _(this);
   _redefined(Context.insert<InstFakeDef>(esp, rsp));
   _add(esp, Adjustment);
   _redefined(Context.insert<InstFakeDef>(rsp, esp));
   _add(rsp, r15);
-  _bundle_unlock();
 }
 
 void TargetX8664::_mov_sp(Operand *NewValue) {
@@ -180,9 +179,7 @@ void TargetX8664::_mov_sp(Operand *NewValue) {
   Variable *rsp =
       getPhysicalRegister(Traits::RegisterSet::Reg_rsp, IceType_i64);
 
-  if (NeedSandboxing) {
-    _bundle_lock();
-  }
+  AutoBundle _(this);
 
   _redefined(Context.insert<InstFakeDef>(esp, rsp));
   _redefined(_mov(esp, NewValue));
@@ -195,7 +192,6 @@ void TargetX8664::_mov_sp(Operand *NewValue) {
   Variable *r15 =
       getPhysicalRegister(Traits::RegisterSet::Reg_r15, IceType_i64);
   _add(rsp, r15);
-  _bundle_unlock();
 }
 
 void TargetX8664::_push_rbp() {
@@ -218,10 +214,9 @@ void TargetX8664::_push_rbp() {
   //   .bundle_end
   //
   // to avoid leaking the upper 32-bits (i.e., the sandbox address.)
-  _bundle_lock();
+  AutoBundle _(this);
   _push(_0);
   Context.insert<typename Traits::Insts::Store>(ebp, TopOfStack);
-  _bundle_unlock();
 }
 
 Traits::X86OperandMem *TargetX8664::_sandbox_mem_reference(X86OperandMem *Mem) {
@@ -350,12 +345,11 @@ void TargetX8664::_sub_sp(Operand *Adjustment) {
   // sub Adjustment, %esp
   // add %r15, %rsp
   // .bundle_end
-  _bundle_lock();
+  AutoBundle _(this);
   _redefined(Context.insert<InstFakeDef>(esp, rsp));
   _sub(esp, Adjustment);
   _redefined(Context.insert<InstFakeDef>(rsp, esp));
   _add(rsp, r15);
-  _bundle_unlock();
 }
 
 void TargetX8664::initSandbox() {
@@ -369,6 +363,8 @@ void TargetX8664::initSandbox() {
 }
 
 void TargetX8664::lowerIndirectJump(Variable *JumpTarget) {
+  std::unique_ptr<AutoBundle> Bundler;
+
   if (!NeedSandboxing) {
     Variable *T = makeReg(IceType_i64);
     _movzx(T, JumpTarget);
@@ -380,7 +376,7 @@ void TargetX8664::lowerIndirectJump(Variable *JumpTarget) {
         getPhysicalRegister(Traits::RegisterSet::Reg_r15, IceType_i64);
 
     _mov(T, JumpTarget);
-    _bundle_lock();
+    Bundler = makeUnique<AutoBundle>(this);
     const SizeT BundleSize =
         1 << Func->getAssembler<>()->getBundleAlignLog2Bytes();
     _and(T, Ctx->getConstantInt32(~(BundleSize - 1)));
@@ -390,8 +386,6 @@ void TargetX8664::lowerIndirectJump(Variable *JumpTarget) {
   }
 
   _jmp(JumpTarget);
-  if (NeedSandboxing)
-    _bundle_unlock();
 }
 
 namespace {
@@ -599,30 +593,32 @@ void TargetX8664::lowerCall(const InstCall *Instr) {
     ReturnAddress = InstX86Label::create(Func, this);
     ReturnAddress->setIsReturnLocation(true);
     constexpr bool SuppressMangling = true;
-    if (CallTargetR == nullptr) {
-      _bundle_lock(InstBundleLock::Opt_PadToEnd);
-      _push(Ctx->getConstantSym(0, ReturnAddress->getName(Func),
-                                SuppressMangling));
-    } else {
-      Variable *T = makeReg(IceType_i32);
-      Variable *T64 = makeReg(IceType_i64);
-      Variable *r15 =
-          getPhysicalRegister(Traits::RegisterSet::Reg_r15, IceType_i64);
+    /* AutoBundle scoping */ {
+      std::unique_ptr<AutoBundle> Bundler;
+      if (CallTargetR == nullptr) {
+        Bundler = makeUnique<AutoBundle>(this, InstBundleLock::Opt_PadToEnd);
+        _push(Ctx->getConstantSym(0, ReturnAddress->getName(Func),
+                                  SuppressMangling));
+      } else {
+        Variable *T = makeReg(IceType_i32);
+        Variable *T64 = makeReg(IceType_i64);
+        Variable *r15 =
+            getPhysicalRegister(Traits::RegisterSet::Reg_r15, IceType_i64);
 
-      _mov(T, CallTargetR);
-      _bundle_lock(InstBundleLock::Opt_PadToEnd);
-      _push(Ctx->getConstantSym(0, ReturnAddress->getName(Func),
-                                SuppressMangling));
-      const SizeT BundleSize =
-          1 << Func->getAssembler<>()->getBundleAlignLog2Bytes();
-      _and(T, Ctx->getConstantInt32(~(BundleSize - 1)));
-      _movzx(T64, T);
-      _add(T64, r15);
-      CallTarget = T64;
+        _mov(T, CallTargetR);
+        Bundler = makeUnique<AutoBundle>(this, InstBundleLock::Opt_PadToEnd);
+        _push(Ctx->getConstantSym(0, ReturnAddress->getName(Func),
+                                  SuppressMangling));
+        const SizeT BundleSize =
+            1 << Func->getAssembler<>()->getBundleAlignLog2Bytes();
+        _and(T, Ctx->getConstantInt32(~(BundleSize - 1)));
+        _movzx(T64, T);
+        _add(T64, r15);
+        CallTarget = T64;
+      }
+
+      NewCall = Context.insert<Traits::Insts::Jmp>(CallTarget);
     }
-
-    NewCall = Context.insert<Traits::Insts::Jmp>(CallTarget);
-    _bundle_unlock();
     if (ReturnReg != nullptr) {
       Context.insert<InstFakeDef>(ReturnReg);
     }
@@ -858,13 +854,12 @@ void TargetX8664::addProlog(CfgNode *Node) {
     } else {
       _push_rbp();
 
-      _bundle_lock();
+      AutoBundle _(this);
       _redefined(Context.insert<InstFakeDef>(ebp, rbp));
       _redefined(Context.insert<InstFakeDef>(esp, rsp));
       _mov(ebp, esp);
       _redefined(Context.insert<InstFakeDef>(rsp, esp));
       _add(rbp, r15);
-      _bundle_unlock();
     }
     // Keep ebp live for late-stage liveness analysis (e.g. asm-verbose mode).
     Context.insert<InstFakeUse>(rbp);
@@ -1057,12 +1052,11 @@ void TargetX8664::addEpilog(CfgNode *Node) {
 
       _pop(rcx);
       Context.insert<InstFakeDef>(ecx, rcx);
-      _bundle_lock();
+      AutoBundle _(this);
       _mov(ebp, ecx);
 
       _redefined(Context.insert<InstFakeDef>(rbp, ebp));
       _add(rbp, r15);
-      _bundle_unlock();
     }
   }
 
@@ -1097,15 +1091,16 @@ void TargetX8664::addEpilog(CfgNode *Node) {
   Variable *r15 =
       getPhysicalRegister(Traits::RegisterSet::Reg_r15, IceType_i64);
 
-  _bundle_lock();
-  const SizeT BundleSize = 1
-                           << Func->getAssembler<>()->getBundleAlignLog2Bytes();
-  _and(T_ecx, Ctx->getConstantInt32(~(BundleSize - 1)));
-  Context.insert<InstFakeDef>(T_rcx, T_ecx);
-  _add(T_rcx, r15);
+  /* AutoBundle scoping */ {
+    AutoBundle _(this);
+    const SizeT BundleSize =
+        1 << Func->getAssembler<>()->getBundleAlignLog2Bytes();
+    _and(T_ecx, Ctx->getConstantInt32(~(BundleSize - 1)));
+    Context.insert<InstFakeDef>(T_rcx, T_ecx);
+    _add(T_rcx, r15);
 
-  _jmp(T_rcx);
-  _bundle_unlock();
+    _jmp(T_rcx);
+  }
 
   if (RI->getSrcSize()) {
     auto *RetValue = llvm::cast<Variable>(RI->getSrc(0));

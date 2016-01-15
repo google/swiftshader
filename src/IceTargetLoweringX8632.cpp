@@ -146,15 +146,15 @@ void TargetX8632::_sub_sp(Operand *Adjustment) {
 }
 
 void TargetX8632::lowerIndirectJump(Variable *JumpTarget) {
+  AutoBundle _(this);
+
   if (NeedSandboxing) {
-    _bundle_lock();
     const SizeT BundleSize =
         1 << Func->getAssembler<>()->getBundleAlignLog2Bytes();
     _and(JumpTarget, Ctx->getConstantInt32(~(BundleSize - 1)));
   }
+
   _jmp(JumpTarget);
-  if (NeedSandboxing)
-    _bundle_unlock();
 }
 
 void TargetX8632::lowerCall(const InstCall *Instr) {
@@ -278,24 +278,29 @@ void TargetX8632::lowerCall(const InstCall *Instr) {
       break;
     }
   }
+
   Operand *CallTarget =
       legalize(Instr->getCallTarget(), Legal_Reg | Legal_Imm | Legal_AddrAbs);
-  if (NeedSandboxing) {
-    if (llvm::isa<Constant>(CallTarget)) {
-      _bundle_lock(InstBundleLock::Opt_AlignToEnd);
-    } else {
-      Variable *CallTargetVar = nullptr;
-      _mov(CallTargetVar, CallTarget);
-      _bundle_lock(InstBundleLock::Opt_AlignToEnd);
-      const SizeT BundleSize =
-          1 << Func->getAssembler<>()->getBundleAlignLog2Bytes();
-      _and(CallTargetVar, Ctx->getConstantInt32(~(BundleSize - 1)));
-      CallTarget = CallTargetVar;
+
+  Traits::Insts::Call *NewCall;
+  /* AutoBundle scoping */ {
+    std::unique_ptr<AutoBundle> Bundle;
+    if (NeedSandboxing) {
+      if (llvm::isa<Constant>(CallTarget)) {
+        Bundle = makeUnique<AutoBundle>(this, InstBundleLock::Opt_AlignToEnd);
+      } else {
+        Variable *CallTargetVar = nullptr;
+        _mov(CallTargetVar, CallTarget);
+        Bundle = makeUnique<AutoBundle>(this, InstBundleLock::Opt_AlignToEnd);
+        const SizeT BundleSize =
+            1 << Func->getAssembler<>()->getBundleAlignLog2Bytes();
+        _and(CallTargetVar, Ctx->getConstantInt32(~(BundleSize - 1)));
+        CallTarget = CallTargetVar;
+      }
     }
+    NewCall = Context.insert<Traits::Insts::Call>(ReturnReg, CallTarget);
   }
-  auto *NewCall = Context.insert<Traits::Insts::Call>(ReturnReg, CallTarget);
-  if (NeedSandboxing)
-    _bundle_unlock();
+
   if (ReturnRegHi)
     Context.insert<InstFakeDef>(ReturnRegHi);
 
@@ -749,8 +754,10 @@ void TargetX8632::addEpilog(CfgNode *Node) {
     }
   }
 
-  if (!NeedSandboxing)
+  if (!NeedSandboxing) {
     return;
+  }
+
   // Change the original ret instruction into a sandboxed return sequence.
   // t:ecx = pop
   // bundle_lock

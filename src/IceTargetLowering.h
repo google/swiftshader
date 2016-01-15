@@ -297,7 +297,43 @@ public:
 
   virtual ~TargetLowering() = default;
 
+private:
+  // This control variable is used by AutoBundle (RAII-style bundle
+  // locking/unlocking) to prevent nested bundles.
+  bool AutoBundling = false;
+
+  // _bundle_lock(), and _bundle_unlock(), were made private to force subtargets
+  // to use the AutoBundle helper.
+  void
+  _bundle_lock(InstBundleLock::Option BundleOption = InstBundleLock::Opt_None) {
+    Context.insert<InstBundleLock>(BundleOption);
+  }
+  void _bundle_unlock() { Context.insert<InstBundleUnlock>(); }
+
 protected:
+  /// AutoBundle provides RIAA-style bundling. Sub-targets are expected to use
+  /// it when emitting NaCl Bundles to ensure proper bundle_unlocking, and
+  /// prevent nested bundles.
+  ///
+  /// AutoBundle objects will emit a _bundle_lock during construction (but only
+  /// if sandboxed code generation was requested), and a bundle_unlock() during
+  /// destruction. By carefully scoping objects of this type, Subtargets can
+  /// ensure proper bundle emission.
+  class AutoBundle {
+    AutoBundle() = delete;
+    AutoBundle(const AutoBundle &) = delete;
+    AutoBundle &operator=(const AutoBundle &) = delete;
+
+  public:
+    explicit AutoBundle(TargetLowering *Target, InstBundleLock::Option Option =
+                                                    InstBundleLock::Opt_None);
+    ~AutoBundle();
+
+  private:
+    TargetLowering *const Target;
+    const bool NeedSandboxing;
+  };
+
   explicit TargetLowering(Cfg *Func);
   // Applies command line filters to TypeToRegisterSet array.
   static void
@@ -394,11 +430,6 @@ protected:
   InstCall *makeHelperCall(const IceString &Name, Variable *Dest,
                            SizeT MaxSrcs);
 
-  void
-  _bundle_lock(InstBundleLock::Option BundleOption = InstBundleLock::Opt_None) {
-    Context.insert<InstBundleLock>(BundleOption);
-  }
-  void _bundle_unlock() { Context.insert<InstBundleUnlock>(); }
   void _set_dest_redefined() { Context.getLastInserted()->setDestRedefined(); }
 
   bool shouldOptimizeMemIntrins();
