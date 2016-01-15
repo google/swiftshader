@@ -53,13 +53,55 @@ createTargetHeaderLowering(::Ice::GlobalContext *Ctx) {
 void staticInit(const ::Ice::ClFlags &Flags) {
   ::Ice::ARM32::TargetARM32::staticInit(Flags);
 }
+
 } // end of namespace ARM32
 
 namespace Ice {
 namespace ARM32 {
 
+namespace {
+
+/// SizeOf is used to obtain the size of an initializer list as a constexpr
+/// expression. This is only needed until our C++ library is updated to
+/// C++ 14 -- which defines constexpr members to std::initializer_list.
+class SizeOf {
+  SizeOf(const SizeOf &) = delete;
+  SizeOf &operator=(const SizeOf &) = delete;
+
+public:
+  constexpr SizeOf() : Size(0) {}
+  template <typename... T>
+  explicit constexpr SizeOf(T...)
+      : Size(__length<T...>::value) {}
+  constexpr SizeT size() const { return Size; }
+
+private:
+  template <typename T, typename... U> struct __length {
+    static constexpr std::size_t value = 1 + __length<U...>::value;
+  };
+
+  template <typename T> struct __length<T> {
+    static constexpr std::size_t value = 1;
+  };
+
+  const std::size_t Size;
+};
+
+} // end of anonymous namespace
+
 // Defines the RegARM32::Table table with register information.
-constexpr RegARM32::TableType RegARM32::Table[];
+RegARM32::RegTableType RegARM32::RegTable[RegARM32::Reg_NUM] = {
+#define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
+          isGPR, isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)       \
+  {                                                                            \
+    name, encode, cc_arg, scratch, preserved, stackptr, frameptr, isGPR,       \
+        isInt, isI64Pair, isFP32, isFP64, isVec128,                            \
+        (SizeOf alias_init).size(), alias_init                                 \
+  }                                                                            \
+  ,
+    REGARM32_TABLE
+#undef X
+};
 
 namespace {
 
@@ -246,7 +288,7 @@ void TargetARM32::staticInit(const ClFlags &Flags) {
   llvm::SmallBitVector InvalidRegisters(RegARM32::Reg_NUM);
   ScratchRegs.resize(RegARM32::Reg_NUM);
   for (int i = 0; i < RegARM32::Reg_NUM; ++i) {
-    const auto &Entry = RegARM32::Table[i];
+    const auto &Entry = RegARM32::RegTable[i];
     IntegerRegisters[i] = Entry.IsInt;
     I64PairRegisters[i] = Entry.IsI64Pair;
     Float32Registers[i] = Entry.IsFP32;
@@ -1833,7 +1875,7 @@ llvm::SmallBitVector TargetARM32::getRegisterSet(RegSetMask Include,
   llvm::SmallBitVector Registers(RegARM32::Reg_NUM);
 
   for (int i = 0; i < RegARM32::Reg_NUM; ++i) {
-    const auto &Entry = RegARM32::Table[i];
+    const auto &Entry = RegARM32::RegTable[i];
     if (Entry.Scratch && (Include & RegSet_CallerSave))
       Registers[i] = true;
     if (Entry.Preserved && (Include & RegSet_CalleeSave))

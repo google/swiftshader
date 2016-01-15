@@ -1012,7 +1012,7 @@ protected:
   bool PrologEmitsFixedAllocas = false;
   uint32_t MaxOutArgsSizeBytes = 0;
   // TODO(jpp): std::array instead of array.
-  static llvm::SmallBitVector TypeToRegisterSet[RCARM32_NUM];
+  static llvm::SmallBitVector TypeToRegisterSet[RegARM32::RCARM32_NUM];
   static llvm::SmallBitVector RegisterAliases[RegARM32::Reg_NUM];
   static llvm::SmallBitVector ScratchRegs;
   llvm::SmallBitVector RegsUsed;

@@ -757,7 +757,7 @@ void InstARM32RegisterStackOp::emitSRegsAsText(const Cfg *Func,
       IsFirst = false;
     else
       Str << ", ";
-    Str << RegARM32::getSRegName(Base + i);
+    Str << RegARM32::getRegName(Base + i);
   }
   Str << "}";
 }
