@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "07f87ad1_e6c480bc",
+        "filename": "src/Shader/VertexProgram.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-15T22:43:37Z",
+      "side": 1,
+      "message": "realign",
+      "range": {
+        "startLine": 186,
+        "startChar": 48,
+        "endLine": 186,
+        "endChar": 57
+      },
+      "revId": "57770df1cacd491c849055af2165f5645a08483a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
