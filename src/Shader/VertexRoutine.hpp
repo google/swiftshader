@@ -19,7 +19,7 @@
 
 namespace sw
 {
-	class VertexRoutine
+	class VertexRoutine : public Function<Void(Pointer<Byte>, Pointer<Byte>, Pointer<Byte>, Pointer<Byte>)>
 	{
 	protected:
 		struct Registers
@@ -31,7 +31,7 @@ namespace sw
 			{
 				loopDepth = -1;
 				enableStack[0] = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
-				
+
 				if(shader && shader->containsBreakInstruction())
 				{
 					enableBreak = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
@@ -71,31 +71,30 @@ namespace sw
 			Int instanceID;
 		};
 
+		Registers r;
+
 	public:
 		VertexRoutine(const VertexProcessor::State &state, const VertexShader *shader);
 
 		virtual ~VertexRoutine();
 
 		void generate();
-		Routine *getRoutine();
 
 	protected:
 		const VertexProcessor::State &state;
 		const VertexShader *const shader;
 
-	private:		
+	private:
 		virtual void pipeline(Registers &r) = 0;
 
 		typedef VertexProcessor::State::Input Stream;
-		
+
 		Vector4f readStream(Registers &r, Pointer<Byte> &buffer, UInt &stride, const Stream &stream, const UInt &index);
 		void readInput(Registers &r, UInt &index);
 		void computeClipFlags(Registers &r);
 		void postTransform(Registers &r);
 		void writeCache(Pointer<Byte> &cacheLine, Registers &r);
 		void writeVertex(Pointer<Byte> &vertex, Pointer<Byte> &cacheLine);
-
-		Routine *routine;
 	};
 }
 

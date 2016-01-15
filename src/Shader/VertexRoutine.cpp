@@ -23,9 +23,8 @@ namespace sw
 	extern bool halfIntegerCoordinates;     // Pixel centers are not at integer coordinates
 	extern bool symmetricNormalizedDepth;   // [-1, 1] instead of [0, 1]
 
-	VertexRoutine::VertexRoutine(const VertexProcessor::State &state, const VertexShader *shader) : state(state), shader(shader)
+	VertexRoutine::VertexRoutine(const VertexProcessor::State &state, const VertexShader *shader) : r(shader), state(state), shader(shader)
 	{
-		routine = 0;
 	}
 
 	VertexRoutine::~VertexRoutine()
@@ -34,67 +33,56 @@ namespace sw
 
 	void VertexRoutine::generate()
 	{
-		Function<Void(Pointer<Byte>, Pointer<Byte>, Pointer<Byte>, Pointer<Byte>)> function;
+		Pointer<Byte> vertex(Arg<0>());
+		Pointer<Byte> batch(Arg<1>());
+		Pointer<Byte> task(Arg<2>());
+		Pointer<Byte> data(Arg<3>());
+
+		const bool texldl = state.shaderContainsTexldl;
+
+		Pointer<Byte> cache = task + OFFSET(VertexTask,vertexCache);
+		Pointer<Byte> vertexCache = cache + OFFSET(VertexCache,vertex);
+		Pointer<Byte> tagCache = cache + OFFSET(VertexCache,tag);
+
+		UInt vertexCount = *Pointer<UInt>(task + OFFSET(VertexTask,vertexCount));
+
+		r.data = data;
+		r.constants = *Pointer<Pointer<Byte> >(data + OFFSET(DrawData,constants));
+		if(shader && shader->instanceIdDeclared)
 		{
-			Pointer<Byte> vertex(function.Arg<0>());
-			Pointer<Byte> batch(function.Arg<1>());
-			Pointer<Byte> task(function.Arg<2>());
-			Pointer<Byte> data(function.Arg<3>());
-
-			const bool texldl = state.shaderContainsTexldl;
-
-			Pointer<Byte> cache = task + OFFSET(VertexTask,vertexCache);
-			Pointer<Byte> vertexCache = cache + OFFSET(VertexCache,vertex);
-			Pointer<Byte> tagCache = cache + OFFSET(VertexCache,tag);
-
-			UInt vertexCount = *Pointer<UInt>(task + OFFSET(VertexTask,vertexCount));
-
-			Registers r(shader);
-			r.data = data;
-			r.constants = *Pointer<Pointer<Byte> >(data + OFFSET(DrawData,constants));
-			if(shader && shader->instanceIdDeclared)
-			{
-				r.instanceID = *Pointer<Int>(data + OFFSET(DrawData, instanceID));
-			}
-
-			Do
-			{
-				UInt index = *Pointer<UInt>(batch);
-				UInt tagIndex = index & 0x0000003C;
-				UInt indexQ = !texldl ? UInt(index & 0xFFFFFFFC) : index;   // FIXME: TEXLDL hack to have independent LODs, hurts performance.
-
-				If(*Pointer<UInt>(tagCache + tagIndex) != indexQ)
-				{
-					*Pointer<UInt>(tagCache + tagIndex) = indexQ;
-
-					readInput(r, indexQ);
-					pipeline(r);
-					postTransform(r);
-					computeClipFlags(r);
-
-					Pointer<Byte> cacheLine0 = vertexCache + tagIndex * UInt((int)sizeof(Vertex));
-					writeCache(cacheLine0, r);
-				}
-
-				UInt cacheIndex = index & 0x0000003F;
-				Pointer<Byte> cacheLine = vertexCache + cacheIndex * UInt((int)sizeof(Vertex));
-				writeVertex(vertex, cacheLine);
-
-				vertex += sizeof(Vertex);
-				batch += sizeof(unsigned int);
-				vertexCount--;
-			}
-			Until(vertexCount == 0)
-
-			Return();
+			r.instanceID = *Pointer<Int>(data + OFFSET(DrawData, instanceID));
 		}
 
-		routine = function(L"VertexRoutine_%0.8X", state.shaderID);
-	}
+		Do
+		{
+			UInt index = *Pointer<UInt>(batch);
+			UInt tagIndex = index & 0x0000003C;
+			UInt indexQ = !texldl ? UInt(index & 0xFFFFFFFC) : index;   // FIXME: TEXLDL hack to have independent LODs, hurts performance.
 
-	Routine *VertexRoutine::getRoutine()
-	{
-		return routine;
+			If(*Pointer<UInt>(tagCache + tagIndex) != indexQ)
+			{
+				*Pointer<UInt>(tagCache + tagIndex) = indexQ;
+
+				readInput(r, indexQ);
+				pipeline(r);
+				postTransform(r);
+				computeClipFlags(r);
+
+				Pointer<Byte> cacheLine0 = vertexCache + tagIndex * UInt((int)sizeof(Vertex));
+				writeCache(cacheLine0, r);
+			}
+
+			UInt cacheIndex = index & 0x0000003F;
+			Pointer<Byte> cacheLine = vertexCache + cacheIndex * UInt((int)sizeof(Vertex));
+			writeVertex(vertex, cacheLine);
+
+			vertex += sizeof(Vertex);
+			batch += sizeof(unsigned int);
+			vertexCount--;
+		}
+		Until(vertexCount == 0)
+
+		Return();
 	}
 
 	void VertexRoutine::readInput(Registers &r, UInt &index)
@@ -242,7 +230,7 @@ namespace sw
 				v.y = Float4(*Pointer<Short4>(source1));
 				v.z = Float4(*Pointer<Short4>(source2));
 				v.w = Float4(*Pointer<Short4>(source3));
-			
+
 				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
 
 				if(stream.normalized)
@@ -251,7 +239,7 @@ namespace sw
 					if(stream.count >= 2) v.y *= *Pointer<Float4>(r.constants + OFFSET(Constants,unscaleShort));
 					if(stream.count >= 3) v.z *= *Pointer<Float4>(r.constants + OFFSET(Constants,unscaleShort));
 					if(stream.count >= 4) v.w *= *Pointer<Float4>(r.constants + OFFSET(Constants,unscaleShort));
-				}			
+				}
 			}
 			break;
 		case STREAMTYPE_USHORT:
@@ -260,7 +248,7 @@ namespace sw
 				v.y = Float4(*Pointer<UShort4>(source1));
 				v.z = Float4(*Pointer<UShort4>(source2));
 				v.w = Float4(*Pointer<UShort4>(source3));
-			
+
 				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
 
 				if(stream.normalized)
@@ -277,7 +265,7 @@ namespace sw
 				// FIXME: Vectorize
 				{
 					Int x, y, z;
-					
+
 					x = y = z = *Pointer<Int>(source0);
 
 					v.x.x = Float(x & 0x000003FF);
@@ -287,7 +275,7 @@ namespace sw
 
 				{
 					Int x, y, z;
-					
+
 					x = y = z = *Pointer<Int>(source1);
 
 					v.y.x = Float(x & 0x000003FF);
@@ -297,7 +285,7 @@ namespace sw
 
 				{
 					Int x, y, z;
-					
+
 					x = y = z = *Pointer<Int>(source2);
 
 					v.z.x = Float(x & 0x000003FF);
@@ -307,7 +295,7 @@ namespace sw
 
 				{
 					Int x, y, z;
-					
+
 					x = y = z = *Pointer<Int>(source3);
 
 					v.w.x = Float(x & 0x000003FF);
@@ -326,7 +314,7 @@ namespace sw
 				// FIXME: Vectorize
 				{
 					Int x, y, z;
-					
+
 					x = y = z = *Pointer<Int>(source0);
 
 					v.x.x = Float((x << 22) & 0xFFC00000);
@@ -336,7 +324,7 @@ namespace sw
 
 				{
 					Int x, y, z;
-					
+
 					x = y = z = *Pointer<Int>(source1);
 
 					v.y.x = Float((x << 22) & 0xFFC00000);
@@ -346,7 +334,7 @@ namespace sw
 
 				{
 					Int x, y, z;
-					
+
 					x = y = z = *Pointer<Int>(source2);
 
 					v.z.x = Float((x << 22) & 0xFFC00000);
@@ -356,7 +344,7 @@ namespace sw
 
 				{
 					Int x, y, z;
-					
+
 					x = y = z = *Pointer<Int>(source3);
 
 					v.w.x = Float((x << 22) & 0xFFC00000);

@@ -73,7 +73,7 @@ namespace sw
 		P = 0;
 		PB = 0;
 		PBV = 0;
-		
+
 		for(int i = 0; i < 12; i++)
 		{
 			PBVM[i] = 0;
@@ -271,7 +271,7 @@ namespace sw
 	{
 		if(light < 8)
 		{
-			ff.attenuationConstant[light] = replicate(constant);			
+			ff.attenuationConstant[light] = replicate(constant);
 			ff.attenuationLinear[light] = replicate(linear);
 			ff.attenuationQuadratic[light] = replicate(quadratic);
 		}
@@ -707,7 +707,7 @@ namespace sw
 		{
 			PB = P * B;
 			PBV = PB * V;
-			
+
 			for(int i = 0; i < activeMatrices; i++)
 			{
 				PBVM[i] = PBV * M[i];
@@ -723,7 +723,7 @@ namespace sw
 		{
 			PB = P * B;
 			PBV = PB * V;
-			
+
 			for(int i = 0; i < activeMatrices; i++)
 			{
 				PBVM[i] = PBV * M[i];
@@ -737,7 +737,7 @@ namespace sw
 		if(updateViewMatrix)
 		{
 			PBV = PB * V;
-			
+
 			for(int i = 0; i < activeMatrices; i++)
 			{
 				PBVM[i] = PBV * M[i];
@@ -808,7 +808,7 @@ namespace sw
 		state.shaderContainsTexldl = context->vertexShader ? context->vertexShader->containsTexldl() : false;
 		state.positionRegister = context->vertexShader ? context->vertexShader->positionRegister : Pos;
 		state.pointSizeRegister = context->vertexShader ? context->vertexShader->pointSizeRegister : Pts;
-		
+
 		state.vertexBlendMatrixCount = context->vertexBlendMatrixCountActive();
 		state.indexedVertexBlendEnable = context->indexedVertexBlendActive();
 		state.vertexNormalActive = context->vertexNormalActive();
@@ -888,7 +888,7 @@ namespace sw
 			{
 				state.output[D0].write = 0xF;
 			}
-			
+
 			if(context->specularActive())
 			{
 				state.output[D1].write = 0xF;
@@ -968,7 +968,7 @@ namespace sw
 			}
 
 			generator->generate();
-			routine = generator->getRoutine();
+			routine = (*generator)(L"VertexRoutine_%0.8X", state.shaderID);
 			delete generator;
 
 			routineCache->add(state, routine);
