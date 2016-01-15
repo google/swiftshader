@@ -777,9 +777,10 @@ EGLDisplay GetCurrentDisplay(void)
 {
 	TRACE("()");
 
-	EGLDisplay dpy = egl::getCurrentDisplay();
+	egl::Display *display = egl::getCurrentDisplay();
 
-	return success(dpy);
+	// We don't return the actual object pointer. We only support the default display, represented by '1'
+	return success(display ? (EGLDisplay)1 : EGL_NO_DISPLAY);
 }
 
 EGLBoolean QueryContext(EGLDisplay dpy, EGLContext ctx, EGLint attribute, EGLint *value)
