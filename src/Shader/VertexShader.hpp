@@ -25,8 +25,8 @@ namespace sw
 		virtual ~VertexShader();
 
 		static int validate(const unsigned long *const token);   // Returns number of instructions if valid
-		bool containsTexldl() const;
-		
+		bool containsTextureSampling() const;
+
 		virtual void analyze();
 
 		int positionRegister;     // FIXME: Private
@@ -43,9 +43,9 @@ namespace sw
 	private:
 		void analyzeInput();
 		void analyzeOutput();
-		void analyzeTexldl();
+		void analyzeTextureSampling();
 
-		bool texldl;
+		bool textureSampling;
 	};
 }
 

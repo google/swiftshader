@@ -225,7 +225,7 @@ namespace sw
 			for(unsigned int i = 0; i < instruction.size(); i++)
 			{
 				if(instruction[i]->dst.type == Shader::PARAMETER_TEXTURE)
-				{	
+				{
 					int index = instruction[i]->dst.index + 2;
 					int mask = instruction[i]->dst.mask;
 
@@ -288,7 +288,7 @@ namespace sw
 						int index = instruction[i]->src[argument].index;
 						int swizzle = instruction[i]->src[argument].swizzle;
 						int mask = instruction[i]->dst.mask;
-						
+
 						if(instruction[i]->src[argument].type == Shader::PARAMETER_TEXTURE)
 						{
 							index += 2;

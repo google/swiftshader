@@ -1298,8 +1298,8 @@ namespace glsl
 
 							if(textureFunction.proj)
 							{
-									Instruction *div = emit(sw::Shader::OPCODE_DIV, &proj, arg[1], arg[1]);
-									div->dst.mask = 0x3;
+								Instruction *div = emit(sw::Shader::OPCODE_DIV, &proj, arg[1], arg[1]);
+								div->dst.mask = 0x3;
 
 								switch(t->getNominalSize())
 								{

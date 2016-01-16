@@ -46,10 +46,10 @@ namespace sw
 			uint64_t shaderID;
 
 			bool fixedFunction             : 1;
-			bool shaderContainsTexldl      : 1;
+			bool textureSampling           : 1;
 			unsigned int positionRegister  : 4;
 			unsigned int pointSizeRegister : 4;   // 0xF signifies no vertex point size
-				
+
 			unsigned int vertexBlendMatrixCount               : 3;
 			bool indexedVertexBlendEnable                     : 1;
 			bool vertexNormalActive                           : 1;
@@ -115,7 +115,7 @@ namespace sw
 				union
 				{
 					unsigned char clamp : 4;
-					
+
 					struct
 					{
 						unsigned char xClamp : 1;
@@ -145,7 +145,7 @@ namespace sw
 			float4 cameraTransformT[12][4];
 			float4 normalTransformT[12][4];
 			float4 textureTransform[8][4];
-			
+
 			float4 lightPosition[8];
 			float4 lightAmbient[8];
 			float4 lightSpecular[8];

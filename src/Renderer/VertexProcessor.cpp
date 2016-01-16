@@ -805,7 +805,7 @@ namespace sw
 		}
 
 		state.fixedFunction = !context->vertexShader && context->pixelShaderVersion() < 0x0300;
-		state.shaderContainsTexldl = context->vertexShader ? context->vertexShader->containsTexldl() : false;
+		state.textureSampling = context->vertexShader ? context->vertexShader->containsTextureSampling() : false;
 		state.positionRegister = context->vertexShader ? context->vertexShader->positionRegister : Pos;
 		state.pointSizeRegister = context->vertexShader ? context->vertexShader->pointSizeRegister : Pts;
 
