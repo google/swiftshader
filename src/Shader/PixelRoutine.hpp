@@ -21,8 +21,6 @@ namespace sw
 
 	class PixelRoutine : public sw::QuadRasterizer, public ShaderCore
 	{
-		friend class PixelProcessor;   // FIXME
-
 	public:
 		PixelRoutine(const PixelProcessor::State &state, const PixelShader *shader);
 

@@ -29,7 +29,6 @@ namespace sw
 		void generate();
 
 	protected:
-
 		Pointer<Byte> constants;
 
 		Float4 Dz[4];

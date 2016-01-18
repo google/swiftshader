@@ -24,8 +24,7 @@ namespace sw
 
 	class TextureStage
 	{
-		friend class Context;        // FIXME
-		friend class PixelRoutine;   // FIXME
+		friend class Context;   // FIXME
 
 	public:
 		enum StageOperation
@@ -170,7 +169,7 @@ namespace sw
 		bool writesCurrent() const;
 
 		int stage;
-		
+
 		StageOperation stageOperation;
 		SourceArgument firstArgument;
 		SourceArgument secondArgument;
