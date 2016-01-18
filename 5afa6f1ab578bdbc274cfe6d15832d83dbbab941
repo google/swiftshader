@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "0726ba4f_b39cb8e1",
+        "filename": "src/Shader/VertexProgram.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 425,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-18T19:50:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0726ba4f_d36054b5",
+      "range": {
+        "startLine": 425,
+        "startChar": 0,
+        "endLine": 425,
+        "endChar": 97
+      },
+      "revId": "5afa6f1ab578bdbc274cfe6d15832d83dbbab941",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0726ba4f_f36550c2",
         "filename": "src/Shader/VertexProgram.cpp",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2016-01-18T19:20:20Z",
       "side": 1,
       "message": "nit: unaligned",
+      "range": {
+        "startLine": 565,
+        "startChar": 0,
+        "endLine": 565,
+        "endChar": 94
+      },
+      "revId": "5afa6f1ab578bdbc274cfe6d15832d83dbbab941",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0726ba4f_53a20419",
+        "filename": "src/Shader/VertexProgram.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 565,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-18T19:50:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0726ba4f_f36550c2",
       "range": {
         "startLine": 565,
         "startChar": 0,
