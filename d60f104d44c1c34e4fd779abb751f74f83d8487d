@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0726ba4f_d337f4bb",
+        "filename": "src/Shader/VertexRoutine.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-18T19:01:45Z",
+      "side": 1,
+      "message": "Found out making these const doesn\u0027t actually force having to initialize them in the constructor initializer list as I had hoped for. And you can still assign a new value to them. So I\u0027m not sure if this causes confusion or if it\u0027s still a useful reminder that these are different than the other variables...\n\nFiled b/26617983 to look into that.",
+      "range": {
+        "startLine": 29,
+        "startChar": 2,
+        "endLine": 29,
+        "endChar": 7
+      },
+      "revId": "d60f104d44c1c34e4fd779abb751f74f83d8487d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
