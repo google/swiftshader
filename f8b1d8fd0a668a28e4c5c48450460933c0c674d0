@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0726ba4f_b3111834",
+        "filename": "src/Shader/VertexRoutine.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-18T18:47:20Z",
+      "side": 1,
+      "message": "...to here. Makes this change very minimal: registers are still accessed through r.*",
+      "range": {
+        "startLine": 74,
+        "startChar": 2,
+        "endLine": 74,
+        "endChar": 14
+      },
+      "revId": "f8b1d8fd0a668a28e4c5c48450460933c0c674d0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
