@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0726ba4f_93417c23",
+        "filename": "src/Shader/VertexPipeline.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 551,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-18T19:03:44Z",
+      "side": 1,
+      "message": "Finally found a use for rvalue references.",
+      "range": {
+        "startLine": 551,
+        "startChar": 5,
+        "endLine": 551,
+        "endChar": 43
+      },
+      "revId": "4edee397dcbd5be7f48a4f96c566a6920ab6bff9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
