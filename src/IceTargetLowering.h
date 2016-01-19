@@ -45,6 +45,21 @@ namespace Ice {
     }                                                                          \
   } while (0)
 
+// UnimplementedLoweringError is similar in style to UnimplementedError.  Given
+// a TargetLowering object pointer and an Inst pointer, it adds appropriate
+// FakeDef and FakeUse instructions to try maintain liveness consistency.
+#define UnimplementedLoweringError(Target, Instr)                              \
+  do {                                                                         \
+    if ((Target)->Ctx->getFlags().getSkipUnimplemented()) {                    \
+      (Target)->addFakeDefUses(Instr);                                         \
+    } else {                                                                   \
+      /* Use llvm_unreachable instead of report_fatal_error, which gives       \
+         better stack traces. */                                               \
+      llvm_unreachable("Not yet implemented");                                 \
+      abort();                                                                 \
+    }                                                                          \
+  } while (0)
+
 /// LoweringContext makes it easy to iterate through non-deleted instructions in
 /// a node, and insert new (lowered) instructions at the current point. Along
 /// with the instruction list container and associated iterators, it holds the
@@ -372,6 +387,12 @@ protected:
   /// This gives the target an opportunity to post-process the lowered expansion
   /// before returning.
   virtual void postLower() {}
+
+  /// When the SkipUnimplemented flag is set, addFakeDefUses() gets invoked by
+  /// the UnimplementedLoweringError macro to insert fake uses of all the
+  /// instruction variables and a fake def of the instruction dest, in order to
+  /// preserve integrity of liveness analysis.
+  void addFakeDefUses(const Inst *Instr);
 
   /// Find (non-SSA) instructions where the Dest variable appears in some source
   /// operand, and set the IsDestRedefined flag.  This keeps liveness analysis

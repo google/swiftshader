@@ -2787,11 +2787,7 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Instr) {
   }
 
   if (isVectorType(DestTy)) {
-    // Add a fake def to keep liveness consistent in the meantime.
-    Variable *T = makeReg(DestTy);
-    Context.insert<InstFakeDef>(T);
-    _mov(Dest, T);
-    UnimplementedError(Func->getContext()->getFlags());
+    UnimplementedLoweringError(this, Instr);
     return;
   }
 
@@ -3496,10 +3492,7 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
     return;
   case InstCast::Sext: {
     if (isVectorType(Dest->getType())) {
-      Variable *T = makeReg(Dest->getType());
-      Context.insert<InstFakeDef>(T, legalizeToReg(Src0));
-      _mov(Dest, T);
-      UnimplementedError(Func->getContext()->getFlags());
+      UnimplementedLoweringError(this, Inst);
     } else if (Dest->getType() == IceType_i64) {
       // t1=sxtb src; t2= mov t1 asr #31; dst.lo=t1; dst.hi=t2
       Constant *ShiftAmt = Ctx->getConstantInt32(31);
@@ -3544,10 +3537,7 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
   }
   case InstCast::Zext: {
     if (isVectorType(Dest->getType())) {
-      Variable *T = makeReg(Dest->getType());
-      Context.insert<InstFakeDef>(T, legalizeToReg(Src0));
-      _mov(Dest, T);
-      UnimplementedError(Func->getContext()->getFlags());
+      UnimplementedLoweringError(this, Inst);
     } else if (Dest->getType() == IceType_i64) {
       // t1=uxtb src; dst.lo=t1; dst.hi=0
       Operand *_0 =
@@ -3600,10 +3590,7 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
   }
   case InstCast::Trunc: {
     if (isVectorType(Dest->getType())) {
-      Variable *T = makeReg(Dest->getType());
-      Context.insert<InstFakeDef>(T, legalizeToReg(Src0));
-      _mov(Dest, T);
-      UnimplementedError(Func->getContext()->getFlags());
+      UnimplementedLoweringError(this, Inst);
     } else {
       if (Src0->getType() == IceType_i64)
         Src0 = loOperand(Src0);
@@ -3623,10 +3610,7 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
     // fpext: dest.f64 = fptrunc src0.fp32
     const bool IsTrunc = CastKind == InstCast::Fptrunc;
     if (isVectorType(Dest->getType())) {
-      Variable *T = makeReg(Dest->getType());
-      Context.insert<InstFakeDef>(T, legalizeToReg(Src0));
-      _mov(Dest, T);
-      UnimplementedError(Func->getContext()->getFlags());
+      UnimplementedLoweringError(this, Inst);
       break;
     }
     assert(Dest->getType() == (IsTrunc ? IceType_f32 : IceType_f64));
@@ -3640,10 +3624,7 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
   case InstCast::Fptosi:
   case InstCast::Fptoui: {
     if (isVectorType(Dest->getType())) {
-      Variable *T = makeReg(Dest->getType());
-      Context.insert<InstFakeDef>(T, legalizeToReg(Src0));
-      _mov(Dest, T);
-      UnimplementedError(Func->getContext()->getFlags());
+      UnimplementedLoweringError(this, Inst);
       break;
     }
 
@@ -3679,10 +3660,7 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
   case InstCast::Sitofp:
   case InstCast::Uitofp: {
     if (isVectorType(Dest->getType())) {
-      Variable *T = makeReg(Dest->getType());
-      Context.insert<InstFakeDef>(T, legalizeToReg(Src0));
-      _mov(Dest, T);
-      UnimplementedError(Func->getContext()->getFlags());
+      UnimplementedLoweringError(this, Inst);
       break;
     }
     const bool SourceIsSigned = CastKind == InstCast::Sitofp;
@@ -3731,13 +3709,13 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
     case IceType_void:
       llvm::report_fatal_error("Unexpected bitcast.");
     case IceType_i1:
-      UnimplementedError(Func->getContext()->getFlags());
+      UnimplementedLoweringError(this, Inst);
       break;
     case IceType_i8:
-      UnimplementedError(Func->getContext()->getFlags());
+      UnimplementedLoweringError(this, Inst);
       break;
     case IceType_i16:
-      UnimplementedError(Func->getContext()->getFlags());
+      UnimplementedLoweringError(this, Inst);
       break;
     case IceType_i32:
     case IceType_f32: {
@@ -3784,11 +3762,7 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
     case IceType_v16i8:
     case IceType_v4f32:
     case IceType_v4i32: {
-      // avoid liveness errors
-      Variable *T = makeReg(DestType);
-      Context.insert<InstFakeDef>(T, legalizeToReg(Src0));
-      _mov(Dest, T);
-      UnimplementedError(Func->getContext()->getFlags());
+      UnimplementedLoweringError(this, Inst);
       break;
     }
     }
@@ -3798,12 +3772,7 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
 }
 
 void TargetARM32::lowerExtractElement(const InstExtractElement *Inst) {
-  Variable *Dest = Inst->getDest();
-  Type DestType = Dest->getType();
-  Variable *T = makeReg(DestType);
-  Context.insert<InstFakeDef>(T);
-  _mov(Dest, T);
-  UnimplementedError(Func->getContext()->getFlags());
+  UnimplementedLoweringError(this, Inst);
 }
 
 namespace {
@@ -3882,10 +3851,7 @@ TargetARM32::CondWhenTrue TargetARM32::lowerFcmpCond(const InstFcmp *Instr) {
 void TargetARM32::lowerFcmp(const InstFcmp *Instr) {
   Variable *Dest = Instr->getDest();
   if (isVectorType(Dest->getType())) {
-    Variable *T = makeReg(Dest->getType());
-    Context.insert<InstFakeDef>(T);
-    _mov(Dest, T);
-    UnimplementedError(Func->getContext()->getFlags());
+    UnimplementedLoweringError(this, Instr);
     return;
   }
 
@@ -4181,10 +4147,7 @@ void TargetARM32::lowerIcmp(const InstIcmp *Inst) {
   Variable *Dest = Inst->getDest();
 
   if (isVectorType(Dest->getType())) {
-    Variable *T = makeReg(Dest->getType());
-    Context.insert<InstFakeDef>(T);
-    _mov(Dest, T);
-    UnimplementedError(Func->getContext()->getFlags());
+    UnimplementedLoweringError(this, Inst);
     return;
   }
 
@@ -4204,8 +4167,7 @@ void TargetARM32::lowerIcmp(const InstIcmp *Inst) {
 }
 
 void TargetARM32::lowerInsertElement(const InstInsertElement *Inst) {
-  (void)Inst;
-  UnimplementedError(Func->getContext()->getFlags());
+  UnimplementedLoweringError(this, Inst);
 }
 
 namespace {
@@ -4749,10 +4711,7 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     Type DestTy = Dest->getType();
     Variable *T = makeReg(DestTy);
     if (isVectorType(DestTy)) {
-      // Add a fake def to keep liveness consistent in the meantime.
-      Context.insert<InstFakeDef>(T);
-      _mov(Dest, T);
-      UnimplementedError(Func->getContext()->getFlags());
+      UnimplementedLoweringError(this, Instr);
       return;
     }
     _vabs(T, legalizeToReg(Instr->getArg(0)));
@@ -5343,10 +5302,7 @@ void TargetARM32::lowerSelect(const InstSelect *Inst) {
   Operand *Condition = Inst->getCondition();
 
   if (isVectorType(DestTy)) {
-    Variable *T = makeReg(DestTy);
-    Context.insert<InstFakeDef>(T);
-    _mov(Dest, T);
-    UnimplementedError(Func->getContext()->getFlags());
+    UnimplementedLoweringError(this, Inst);
     return;
   }
 

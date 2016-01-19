@@ -557,32 +557,49 @@ void TargetMIPS32::lowerAlloca(const InstAlloca *Inst) {
   // after the alloca. The stack alignment restriction can be relaxed in some
   // cases.
   NeedsStackAlignment = true;
-  (void)Inst;
-  UnimplementedError(Func->getContext()->getFlags());
+  UnimplementedLoweringError(this, Inst);
 }
 
 void TargetMIPS32::lowerArithmetic(const InstArithmetic *Inst) {
   Variable *Dest = Inst->getDest();
-  Operand *Src0 = legalizeUndef(Inst->getSrc(0));
-  Operand *Src1 = legalizeUndef(Inst->getSrc(1));
+  // We need to signal all the UnimplementedLoweringError errors before any
+  // legalization into new variables, otherwise Om1 register allocation may fail
+  // when it sees variables that are defined but not used.
   if (Dest->getType() == IceType_i64) {
-    // TODO(reed kotler): fakedef needed for now until all cases are implemented
-    auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
-    auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
-    Context.insert<InstFakeDef>(DestLo);
-    Context.insert<InstFakeDef>(DestHi);
-    UnimplementedError(Func->getContext()->getFlags());
+    UnimplementedLoweringError(this, Inst);
     return;
   }
   if (isVectorType(Dest->getType())) {
-    Context.insert<InstFakeDef>(Dest);
-    UnimplementedError(Func->getContext()->getFlags());
+    UnimplementedLoweringError(this, Inst);
     return;
   }
-  // Dest->getType() is non-i64 scalar
+  switch (Inst->getOp()) {
+  default:
+    break;
+  case InstArithmetic::Shl:
+  case InstArithmetic::Lshr:
+  case InstArithmetic::Ashr:
+  case InstArithmetic::Udiv:
+  case InstArithmetic::Sdiv:
+  case InstArithmetic::Urem:
+  case InstArithmetic::Srem:
+  case InstArithmetic::Fadd:
+  case InstArithmetic::Fsub:
+  case InstArithmetic::Fmul:
+  case InstArithmetic::Fdiv:
+  case InstArithmetic::Frem:
+    UnimplementedLoweringError(this, Inst);
+    return;
+  }
+
+  // At this point Dest->getType() is non-i64 scalar
+
   Variable *T = makeReg(Dest->getType());
+  Operand *Src0 = legalizeUndef(Inst->getSrc(0));
+  Operand *Src1 = legalizeUndef(Inst->getSrc(1));
   Variable *Src0R = legalizeToReg(Src0);
   Variable *Src1R = legalizeToReg(Src1);
+
   switch (Inst->getOp()) {
   case InstArithmetic::_num:
     break;
@@ -636,12 +653,6 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Inst) {
   case InstArithmetic::Frem:
     break;
   }
-  // TODO(reed kotler):
-  // fakedef and fakeuse needed for now until all cases are implemented
-  Context.insert<InstFakeUse>(Src0R);
-  Context.insert<InstFakeUse>(Src1R);
-  Context.insert<InstFakeDef>(Dest);
-  UnimplementedError(Func->getContext()->getFlags());
 }
 
 void TargetMIPS32::lowerAssign(const InstAssign *Inst) {
@@ -675,7 +686,7 @@ void TargetMIPS32::lowerAssign(const InstAssign *Inst) {
       SrcR = legalize(Src0, Legal_Reg);
     }
     if (isVectorType(Dest->getType())) {
-      UnimplementedError(Func->getContext()->getFlags());
+      UnimplementedLoweringError(this, Inst);
     } else {
       _mov(Dest, SrcR);
     }
@@ -683,13 +694,11 @@ void TargetMIPS32::lowerAssign(const InstAssign *Inst) {
 }
 
 void TargetMIPS32::lowerBr(const InstBr *Inst) {
-  (void)Inst;
-  UnimplementedError(Func->getContext()->getFlags());
+  UnimplementedLoweringError(this, Inst);
 }
 
 void TargetMIPS32::lowerCall(const InstCall *Inst) {
-  (void)Inst;
-  UnimplementedError(Func->getContext()->getFlags());
+  UnimplementedLoweringError(this, Inst);
 }
 
 void TargetMIPS32::lowerCast(const InstCast *Inst) {
@@ -699,112 +708,108 @@ void TargetMIPS32::lowerCast(const InstCast *Inst) {
     Func->setError("Cast type not supported");
     return;
   case InstCast::Sext: {
-    UnimplementedError(Func->getContext()->getFlags());
+    UnimplementedLoweringError(this, Inst);
     break;
   }
   case InstCast::Zext: {
-    UnimplementedError(Func->getContext()->getFlags());
+    UnimplementedLoweringError(this, Inst);
     break;
   }
   case InstCast::Trunc: {
-    UnimplementedError(Func->getContext()->getFlags());
+    UnimplementedLoweringError(this, Inst);
     break;
   }
   case InstCast::Fptrunc:
-    UnimplementedError(Func->getContext()->getFlags());
+    UnimplementedLoweringError(this, Inst);
     break;
   case InstCast::Fpext: {
-    UnimplementedError(Func->getContext()->getFlags());
+    UnimplementedLoweringError(this, Inst);
     break;
   }
   case InstCast::Fptosi:
-    UnimplementedError(Func->getContext()->getFlags());
+    UnimplementedLoweringError(this, Inst);
     break;
   case InstCast::Fptoui:
-    UnimplementedError(Func->getContext()->getFlags());
+    UnimplementedLoweringError(this, Inst);
     break;
   case InstCast::Sitofp:
-    UnimplementedError(Func->getContext()->getFlags());
+    UnimplementedLoweringError(this, Inst);
     break;
   case InstCast::Uitofp: {
-    UnimplementedError(Func->getContext()->getFlags());
+    UnimplementedLoweringError(this, Inst);
     break;
   }
   case InstCast::Bitcast: {
-    UnimplementedError(Func->getContext()->getFlags());
+    UnimplementedLoweringError(this, Inst);
     break;
   }
   }
 }
 
 void TargetMIPS32::lowerExtractElement(const InstExtractElement *Inst) {
-  (void)Inst;
-  UnimplementedError(Func->getContext()->getFlags());
+  UnimplementedLoweringError(this, Inst);
 }
 
 void TargetMIPS32::lowerFcmp(const InstFcmp *Inst) {
-  (void)Inst;
-  UnimplementedError(Func->getContext()->getFlags());
+  UnimplementedLoweringError(this, Inst);
 }
 
 void TargetMIPS32::lowerIcmp(const InstIcmp *Inst) {
-  (void)Inst;
-  UnimplementedError(Func->getContext()->getFlags());
+  UnimplementedLoweringError(this, Inst);
 }
 
 void TargetMIPS32::lowerInsertElement(const InstInsertElement *Inst) {
-  (void)Inst;
-  UnimplementedError(Func->getContext()->getFlags());
+  UnimplementedLoweringError(this, Inst);
 }
 
 void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   switch (Instr->getIntrinsicInfo().ID) {
   case Intrinsics::AtomicCmpxchg: {
-    UnimplementedError(Func->getContext()->getFlags());
+    UnimplementedLoweringError(this, Instr);
     return;
   }
   case Intrinsics::AtomicFence:
-    UnimplementedError(Func->getContext()->getFlags());
+    UnimplementedLoweringError(this, Instr);
     return;
   case Intrinsics::AtomicFenceAll:
     // NOTE: FenceAll should prevent and load/store from being moved across the
     // fence (both atomic and non-atomic). The InstMIPS32Mfence instruction is
     // currently marked coarsely as "HasSideEffects".
-    UnimplementedError(Func->getContext()->getFlags());
+    UnimplementedLoweringError(this, Instr);
     return;
   case Intrinsics::AtomicIsLockFree: {
-    UnimplementedError(Func->getContext()->getFlags());
+    UnimplementedLoweringError(this, Instr);
     return;
   }
   case Intrinsics::AtomicLoad: {
-    UnimplementedError(Func->getContext()->getFlags());
+    UnimplementedLoweringError(this, Instr);
     return;
   }
   case Intrinsics::AtomicRMW:
-    UnimplementedError(Func->getContext()->getFlags());
+    UnimplementedLoweringError(this, Instr);
     return;
   case Intrinsics::AtomicStore: {
-    UnimplementedError(Func->getContext()->getFlags());
+    UnimplementedLoweringError(this, Instr);
     return;
   }
   case Intrinsics::Bswap: {
-    UnimplementedError(Func->getContext()->getFlags());
+    UnimplementedLoweringError(this, Instr);
     return;
   }
   case Intrinsics::Ctpop: {
-    UnimplementedError(Func->getContext()->getFlags());
+    UnimplementedLoweringError(this, Instr);
     return;
   }
   case Intrinsics::Ctlz: {
-    UnimplementedError(Func->getContext()->getFlags());
+    UnimplementedLoweringError(this, Instr);
     return;
   }
   case Intrinsics::Cttz: {
-    UnimplementedError(Func->getContext()->getFlags());
+    UnimplementedLoweringError(this, Instr);
     return;
   }
   case Intrinsics::Fabs: {
-    UnimplementedError(Func->getContext()->getFlags());
+    UnimplementedLoweringError(this, Instr);
     return;
   }
   case Intrinsics::Longjmp: {
@@ -848,7 +853,7 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   }
   case Intrinsics::NaClReadTP: {
     if (Ctx->getFlags().getUseSandboxing()) {
-      UnimplementedError(Func->getContext()->getFlags());
+      UnimplementedLoweringError(this, Instr);
     } else {
       InstCall *Call = makeHelperCall(H_call_read_tp, Instr->getDest(), 0);
       lowerCall(Call);
@@ -862,19 +867,19 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     return;
   }
   case Intrinsics::Sqrt: {
-    UnimplementedError(Func->getContext()->getFlags());
+    UnimplementedLoweringError(this, Instr);
     return;
   }
   case Intrinsics::Stacksave: {
-    UnimplementedError(Func->getContext()->getFlags());
+    UnimplementedLoweringError(this, Instr);
     return;
   }
   case Intrinsics::Stackrestore: {
-    UnimplementedError(Func->getContext()->getFlags());
+    UnimplementedLoweringError(this, Instr);
     return;
   }
   case Intrinsics::Trap:
-    UnimplementedError(Func->getContext()->getFlags());
+    UnimplementedLoweringError(this, Instr);
     return;
   case Intrinsics::UnknownIntrinsic:
     Func->setError("Should not be lowering UnknownIntrinsic");
@@ -884,8 +889,7 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
 }
 
 void TargetMIPS32::lowerLoad(const InstLoad *Inst) {
-  (void)Inst;
-  UnimplementedError(Func->getContext()->getFlags());
+  UnimplementedLoweringError(this, Inst);
 }
 
 void TargetMIPS32::doAddressOptLoad() {
@@ -929,20 +933,18 @@ void TargetMIPS32::lowerRet(const InstRet *Inst) {
     }
 
     default:
-      UnimplementedError(Func->getContext()->getFlags());
+      UnimplementedLoweringError(this, Inst);
     }
   }
   _ret(getPhysicalRegister(RegMIPS32::Reg_RA), Reg);
 }
 
 void TargetMIPS32::lowerSelect(const InstSelect *Inst) {
-  (void)Inst;
-  UnimplementedError(Func->getContext()->getFlags());
+  UnimplementedLoweringError(this, Inst);
 }
 
 void TargetMIPS32::lowerStore(const InstStore *Inst) {
-  (void)Inst;
-  UnimplementedError(Func->getContext()->getFlags());
+  UnimplementedLoweringError(this, Inst);
 }
 
 void TargetMIPS32::doAddressOptStore() {
@@ -950,12 +952,11 @@ void TargetMIPS32::doAddressOptStore() {
 }
 
 void TargetMIPS32::lowerSwitch(const InstSwitch *Inst) {
-  (void)Inst;
-  UnimplementedError(Func->getContext()->getFlags());
+  UnimplementedLoweringError(this, Inst);
 }
 
-void TargetMIPS32::lowerUnreachable(const InstUnreachable * /*Inst*/) {
-  UnimplementedError(Func->getContext()->getFlags());
+void TargetMIPS32::lowerUnreachable(const InstUnreachable *Inst) {
+  UnimplementedLoweringError(this, Inst);
 }
 
 // Turn an i64 Phi instruction into a pair of i32 Phi instructions, to preserve

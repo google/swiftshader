@@ -459,6 +459,26 @@ void TargetLowering::markRedefinitions() {
   }
 }
 
+void TargetLowering::addFakeDefUses(const Inst *Instr) {
+  FOREACH_VAR_IN_INST(Var, *Instr) {
+    if (auto *Var64 = llvm::dyn_cast<Variable64On32>(Var)) {
+      Context.insert<InstFakeUse>(Var64->getLo());
+      Context.insert<InstFakeUse>(Var64->getHi());
+    } else {
+      Context.insert<InstFakeUse>(Var);
+    }
+  }
+  Variable *Dest = Instr->getDest();
+  if (Dest == nullptr)
+    return;
+  if (auto *Var64 = llvm::dyn_cast<Variable64On32>(Dest)) {
+    Context.insert<InstFakeDef>(Var64->getLo());
+    Context.insert<InstFakeDef>(Var64->getHi());
+  } else {
+    Context.insert<InstFakeDef>(Dest);
+  }
+}
+
 void TargetLowering::sortVarsByAlignment(VarList &Dest,
                                          const VarList &Source) const {
   Dest = Source;
