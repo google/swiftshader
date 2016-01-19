@@ -111,10 +111,6 @@ std::array<llvm::SmallBitVector,
     TargetX86Base<X8664::Traits>::RegisterAliases = {{}};
 
 template <>
-llvm::SmallBitVector
-    TargetX86Base<X8664::Traits>::ScratchRegs = llvm::SmallBitVector();
-
-template <>
 FixupKind TargetX86Base<X8664::Traits>::PcRelFixup =
     TargetX86Base<X8664::Traits>::Traits::FK_PcRel;
 

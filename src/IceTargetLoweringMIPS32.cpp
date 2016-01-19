@@ -72,7 +72,6 @@ void TargetMIPS32::staticInit(GlobalContext *Ctx) {
   llvm::SmallBitVector Float64Registers(RegMIPS32::Reg_NUM);
   llvm::SmallBitVector VectorRegisters(RegMIPS32::Reg_NUM);
   llvm::SmallBitVector InvalidRegisters(RegMIPS32::Reg_NUM);
-  ScratchRegs.resize(RegMIPS32::Reg_NUM);
 #define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
           isI64Pair, isFP32, isFP64, isVec128, alias_init)                     \
   IntegerRegisters[RegMIPS32::val] = isInt;                                    \
@@ -87,8 +86,7 @@ void TargetMIPS32::staticInit(GlobalContext *Ctx) {
     RegisterAliases[RegMIPS32::val].set(RegAlias);                             \
   }                                                                            \
   RegisterAliases[RegMIPS32::val].resize(RegMIPS32::Reg_NUM);                  \
-  assert(RegisterAliases[RegMIPS32::val][RegMIPS32::val]);                     \
-  ScratchRegs[RegMIPS32::val] = scratch;
+  assert(RegisterAliases[RegMIPS32::val][RegMIPS32::val]);
   REGMIPS32_TABLE;
 #undef X
   TypeToRegisterSet[IceType_void] = InvalidRegisters;
@@ -1119,7 +1117,6 @@ void TargetHeaderMIPS32::lower() {
 
 llvm::SmallBitVector TargetMIPS32::TypeToRegisterSet[IceType_NUM];
 llvm::SmallBitVector TargetMIPS32::RegisterAliases[RegMIPS32::Reg_NUM];
-llvm::SmallBitVector TargetMIPS32::ScratchRegs;
 
 } // end of namespace MIPS32
 } // end of namespace Ice

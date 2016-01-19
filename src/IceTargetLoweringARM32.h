@@ -1015,7 +1015,6 @@ protected:
   // TODO(jpp): std::array instead of array.
   static llvm::SmallBitVector TypeToRegisterSet[RegARM32::RCARM32_NUM];
   static llvm::SmallBitVector RegisterAliases[RegARM32::Reg_NUM];
-  static llvm::SmallBitVector ScratchRegs;
   llvm::SmallBitVector RegsUsed;
   VarList PhysicalRegisters[IceType_NUM];
   VarList PreservedGPRs;

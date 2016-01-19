@@ -902,7 +902,6 @@ protected:
   static std::array<llvm::SmallBitVector, RCX86_NUM> TypeToRegisterSet;
   static std::array<llvm::SmallBitVector, Traits::RegisterSet::Reg_NUM>
       RegisterAliases;
-  static llvm::SmallBitVector ScratchRegs;
   llvm::SmallBitVector RegsUsed;
   std::array<VarList, IceType_NUM> PhysicalRegisters;
   // GotVar is a Variable that holds the GlobalOffsetTable address for Non-SFI

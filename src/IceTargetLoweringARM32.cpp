@@ -286,7 +286,6 @@ void TargetARM32::staticInit(GlobalContext *Ctx) {
   llvm::SmallBitVector Float64Registers(RegARM32::Reg_NUM);
   llvm::SmallBitVector VectorRegisters(RegARM32::Reg_NUM);
   llvm::SmallBitVector InvalidRegisters(RegARM32::Reg_NUM);
-  ScratchRegs.resize(RegARM32::Reg_NUM);
   for (int i = 0; i < RegARM32::Reg_NUM; ++i) {
     const auto &Entry = RegARM32::RegTable[i];
     IntegerRegisters[i] = Entry.IsInt;
@@ -294,7 +293,6 @@ void TargetARM32::staticInit(GlobalContext *Ctx) {
     Float32Registers[i] = Entry.IsFP32;
     Float64Registers[i] = Entry.IsFP64;
     VectorRegisters[i] = Entry.IsVec128;
-    ScratchRegs[i] = Entry.Scratch;
     RegisterAliases[i].resize(RegARM32::Reg_NUM);
     for (int j = 0; j < Entry.NumAliases; ++j) {
       assert(i == j || !RegisterAliases[i][Entry.Aliases[j]]);
@@ -6455,7 +6453,6 @@ void TargetHeaderARM32::lower() {
 
 llvm::SmallBitVector TargetARM32::TypeToRegisterSet[IceType_NUM];
 llvm::SmallBitVector TargetARM32::RegisterAliases[RegARM32::Reg_NUM];
-llvm::SmallBitVector TargetARM32::ScratchRegs;
 
 } // end of namespace ARM32
 } // end of namespace Ice

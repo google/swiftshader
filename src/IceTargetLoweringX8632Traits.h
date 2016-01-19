@@ -447,8 +447,7 @@ public:
   static void initRegisterSet(
       const ::Ice::ClFlags & /*Flags*/,
       std::array<llvm::SmallBitVector, RCX86_NUM> *TypeToRegisterSet,
-      std::array<llvm::SmallBitVector, RegisterSet::Reg_NUM> *RegisterAliases,
-      llvm::SmallBitVector *ScratchRegs) {
+      std::array<llvm::SmallBitVector, RegisterSet::Reg_NUM> *RegisterAliases) {
     llvm::SmallBitVector IntegerRegistersI32(RegisterSet::Reg_NUM);
     llvm::SmallBitVector IntegerRegistersI16(RegisterSet::Reg_NUM);
     llvm::SmallBitVector IntegerRegistersI8(RegisterSet::Reg_NUM);
@@ -460,7 +459,6 @@ public:
     llvm::SmallBitVector Trunc8RcvrRegisters(RegisterSet::Reg_NUM);
     llvm::SmallBitVector AhRcvrRegisters(RegisterSet::Reg_NUM);
     llvm::SmallBitVector InvalidRegisters(RegisterSet::Reg_NUM);
-    ScratchRegs->resize(RegisterSet::Reg_NUM);
 
     static constexpr struct {
       uint16_t Val;
@@ -474,7 +472,6 @@ public:
       unsigned Is16To8 : 1;
       unsigned IsTrunc8Rcvr : 1;
       unsigned IsAhRcvr : 1;
-      unsigned Scratch : 1;
 #define NUM_ALIASES_BITS 2
       SizeT NumAliases : (NUM_ALIASES_BITS + 1);
       uint16_t Aliases[1 << NUM_ALIASES_BITS];
@@ -485,7 +482,7 @@ public:
           isTrunc8Rcvr, isAhRcvr, aliases)                                     \
   {                                                                            \
     RegisterSet::val, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8, \
-        isTrunc8Rcvr, isAhRcvr, scratch, (SizeOf aliases).size(), aliases,     \
+        isTrunc8Rcvr, isAhRcvr, (SizeOf aliases).size(), aliases,              \
   }                                                                            \
   ,
         REGX8632_TABLE
@@ -511,7 +508,6 @@ public:
         (*RegisterAliases)[Entry.Val].set(Alias);
       }
       (*RegisterAliases)[Entry.Val].set(Entry.Val);
-      (*ScratchRegs)[Entry.Val] = Entry.Scratch;
     }
 
     (*TypeToRegisterSet)[RC_void] = InvalidRegisters;

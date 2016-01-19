@@ -264,7 +264,6 @@ protected:
   bool NeedsStackAlignment = false;
   static llvm::SmallBitVector TypeToRegisterSet[RCMIPS32_NUM];
   static llvm::SmallBitVector RegisterAliases[RegMIPS32::Reg_NUM];
-  static llvm::SmallBitVector ScratchRegs;
   llvm::SmallBitVector RegsUsed;
   VarList PhysicalRegisters[IceType_NUM];
 

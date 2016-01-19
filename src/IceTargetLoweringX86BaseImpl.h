@@ -325,8 +325,8 @@ TargetX86Base<TraitsType>::TargetX86Base(Cfg *Func)
 
 template <typename TraitsType>
 void TargetX86Base<TraitsType>::staticInit(GlobalContext *Ctx) {
-  Traits::initRegisterSet(Ctx->getFlags(), &TypeToRegisterSet, &RegisterAliases,
-                          &ScratchRegs);
+  Traits::initRegisterSet(Ctx->getFlags(), &TypeToRegisterSet,
+                          &RegisterAliases);
   filterTypeToRegisterSet(Ctx, Traits::RegisterSet::Reg_NUM,
                           TypeToRegisterSet.data(), TypeToRegisterSet.size(),
                           Traits::getRegName);
