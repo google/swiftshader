@@ -70,8 +70,8 @@ entry:
 
   %cmp = fcmp olt double %v1, %v2
 
-; ASM:      vcmp.f64        d31, d30
-; DIS:   94:      eef4fb6e
+; ASM:      vcmp.f64        d0, d1
+; DIS:   94:      eeb40b41
 ; IASM-NOT: vcmp
 
   %res = zext i1 %cmp to i32
@@ -89,8 +89,8 @@ entry:
 
   %cmp = fcmp olt double %v, 0.0
 
-; ASM:      vcmp.f64        d31, #0.0
-; DIS:   cc:      eef5fb40
+; ASM:      vcmp.f64        d0, #0.0
+; DIS:   cc:      eeb50b40
 ; IASM-NOT: vcmp
 
   %res = zext i1 %cmp to i32

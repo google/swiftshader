@@ -50,8 +50,8 @@ define internal double @testVaddDouble(double %v1, double %v2) {
 entry:
   %res = fadd double %v1, %v2
 
-; ASM:        vadd.f64        d22, d22, d20
-; DIS:      54:       ee766ba4
+; ASM:        vadd.f64        d20, d20, d22
+; DIS:      54:       ee744ba6
 ; IASM-NOT:   vadd
 
   ret double %res

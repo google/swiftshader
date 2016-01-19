@@ -194,11 +194,9 @@ Vec128 = [
   Reg('q15', 15,   IsScratch=1,          IsVec128=1, Aliases='q15, d30, d31'),
 ]
 
-def _reverse(x):
-  return sorted(x, key=lambda x: x.Encode, reverse=True)
-
-RegClasses = [('GPR', GPRs), ('I64PAIR', I64Pairs), ('FP32', FP32),
-              ('FP64', _reverse(FP64)), ('VEC128', _reverse(Vec128))]
+# TODO(jpp): Fix the pop emission, then emit FP64/Vec128 reverted.
+RegClasses = [('GPR', GPRs),  ('I64PAIR', I64Pairs), ('FP32', FP32),
+              ('FP64', FP64), ('VEC128', Vec128)]
 
 AllRegs = {}
 for _, RegClass in RegClasses:

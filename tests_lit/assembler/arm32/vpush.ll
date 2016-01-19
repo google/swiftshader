@@ -31,10 +31,10 @@ entry:
 ; ASM-NEXT: .LtestVpushVpop$entry:
 ; IASM-NEXT: .LtestVpushVpop$entry:
 
-; ASM-NEXT:     vpush   {s28, s29, s30, s31}
-; DIS-NEXT:    0:       ed2dea04
+; ASM-NEXT:     vpush   {s16, s17, s18, s19}
+; DIS-NEXT:    0:       ed2d8a04
 ; IASM-NEXT:    .byte 0x4
-; IASM-NEXT:    .byte 0xea
+; IASM-NEXT:    .byte 0x8a
 ; IASM-NEXT:    .byte 0x2d
 ; IASM-NEXT:    .byte 0xed
 
@@ -52,13 +52,13 @@ entry:
 ; IASM-NEXT:    .byte 0x4d
 ; IASM-NEXT:    .byte 0xe2
 
-; ASM-NEXT:     vmov.f64        d15, d0
-; DIS-NEXT:    c:       eeb0fb40
-; IASM-NEXT:    vmov.f64        d15, d0
+; ASM-NEXT:     vmov.f64        d8, d0
+; DIS-NEXT:    c:       eeb08b40
+; IASM-NEXT:    vmov.f64        d8, d0
 
-; ASM-NEXT:     vmov.f64        d14, d1
-; DIS-NEXT:   10:       eeb0eb41
-; IASM-NEXT:    vmov.f64        d14, d1
+; ASM-NEXT:     vmov.f64        d9, d1
+; DIS-NEXT:   10:       eeb09b41
+; IASM-NEXT:    vmov.f64        d9, d1
 
   call void @foo()
 
@@ -68,16 +68,16 @@ entry:
 
   %res = fadd double %v1, %v2
 
-; ASM-NEXT:     vadd.f64        d15, d15, d14
-; DIS-NEXT:   18:       ee3ffb0e
-; IASM-NEXT:    .byte 0xe
-; IASM-NEXT:    .byte 0xfb
-; IASM-NEXT:    .byte 0x3f
+; ASM-NEXT:     vadd.f64        d8, d8, d9
+; DIS-NEXT:   18:       ee388b09
+; IASM-NEXT:    .byte 0x9
+; IASM-NEXT:    .byte 0x8b
+; IASM-NEXT:    .byte 0x38
 ; IASM-NEXT:    .byte 0xee
 
-; ASM-NEXT:     vmov.f64        d0, d15
-; DIS-NEXT:   1c:       eeb00b4f
-; IASM-NEXT:    vmov.f64        d0, d15
+; ASM-NEXT:     vmov.f64        d0, d8
+; DIS-NEXT:   1c:       eeb00b48
+; IASM-NEXT:    vmov.f64        d0, d8
 
   ret double %res
 
@@ -96,14 +96,14 @@ entry:
 ; IASM-NEXT:    .byte 0x9d
 ; IASM-NEXT:    .byte 0xe4
 
-; ASM-NEXT:     vpop    {s28, s29, s30, s31}
-; ASM-NEXT:     # s28 = def.pseudo 
-; ASM-NEXT:     # s29 = def.pseudo 
-; ASM-NEXT:     # s30 = def.pseudo 
-; ASM-NEXT:     # s31 = def.pseudo 
-; DIS-NEXT:   28:       ecbdea04
+; ASM-NEXT:     vpop    {s16, s17, s18, s19}
+; ASM-NEXT:     # s16 = def.pseudo 
+; ASM-NEXT:     # s17 = def.pseudo 
+; ASM-NEXT:     # s18 = def.pseudo 
+; ASM-NEXT:     # s19 = def.pseudo 
+; DIS-NEXT:   28:       ecbd8a04
 ; IASM-NEXT:    .byte 0x4
-; IASM-NEXT:    .byte 0xea
+; IASM-NEXT:    .byte 0x8a
 ; IASM-NEXT:    .byte 0xbd
 ; IASM-NEXT:    .byte 0xec
 

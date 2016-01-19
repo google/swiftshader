@@ -512,9 +512,10 @@ check-presubmit presubmit:
 # Build spec2k under -Om1/arm32.
 	+make -f Makefile.standalone \
           TARGET=arm32 SPECFLAGS='-Om1' SPECBUILDONLY=true check-spec
-# Run a few spec2k tests for arm32 using qemu.
+# Run a few spec2k tests for arm32 using qemu. Keep the list sorted in
+# roughly reverse order of runtime.
 	+make -f Makefile.standalone \
-          TARGET=arm32 ALLSPEC='176.gcc 181.mcf 254.gap' check-spec
+          TARGET=arm32 ALLSPEC='252.eon 254.gap 176.gcc 181.mcf' check-spec
 # Provide validation of user awesomeness!
 	echo Success
 

@@ -73,57 +73,57 @@
 
 //define X(AsmStr, CCArg, IsScratch, IsPreserved, IsStackPtr, IsFramePtr, IsGPR, IsInt, IsI64Pair, IsFP32, IsFP64, IsVec128, Aliases)
 #define REGARM32_FP64_TABLE \
-  X(Reg_d31, 31, "d31", 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST2(RegARM32, d31, q15)) \
-  X(Reg_d30, 30, "d30", 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST2(RegARM32, d30, q15)) \
-  X(Reg_d29, 29, "d29", 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST2(RegARM32, d29, q14)) \
-  X(Reg_d28, 28, "d28", 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST2(RegARM32, d28, q14)) \
-  X(Reg_d27, 27, "d27", 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST2(RegARM32, d27, q13)) \
-  X(Reg_d26, 26, "d26", 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST2(RegARM32, d26, q13)) \
-  X(Reg_d25, 25, "d25", 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST2(RegARM32, d25, q12)) \
-  X(Reg_d24, 24, "d24", 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST2(RegARM32, d24, q12)) \
-  X(Reg_d23, 23, "d23", 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST2(RegARM32, d23, q11)) \
-  X(Reg_d22, 22, "d22", 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST2(RegARM32, d22, q11)) \
-  X(Reg_d21, 21, "d21", 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST2(RegARM32, d21, q10)) \
-  X(Reg_d20, 20, "d20", 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST2(RegARM32, d20, q10)) \
-  X(Reg_d19, 19, "d19", 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST2(RegARM32, d19, q9)) \
-  X(Reg_d18, 18, "d18", 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST2(RegARM32, d18, q9)) \
-  X(Reg_d17, 17, "d17", 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST2(RegARM32, d17, q8)) \
-  X(Reg_d16, 16, "d16", 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST2(RegARM32, d16, q8)) \
-  X(Reg_d15, 15, "d15", 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST4(RegARM32, d15, q7, s30, s31)) \
-  X(Reg_d14, 14, "d14", 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST4(RegARM32, d14, q7, s28, s29)) \
-  X(Reg_d13, 13, "d13", 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST4(RegARM32, d13, q6, s26, s27)) \
-  X(Reg_d12, 12, "d12", 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST4(RegARM32, d12, q6, s24, s25)) \
-  X(Reg_d11, 11, "d11", 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST4(RegARM32, d11, q5, s22, s23)) \
-  X(Reg_d10, 10, "d10", 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST4(RegARM32, d10, q5, s20, s21)) \
-  X(Reg_d9, 9, "d9", 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST4(RegARM32, d9, q4, s18, s19)) \
-  X(Reg_d8, 8, "d8", 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST4(RegARM32, d8, q4, s16, s17)) \
-  X(Reg_d7, 7, "d7", 8, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST4(RegARM32, d7, q3, s14, s15)) \
-  X(Reg_d6, 6, "d6", 7, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST4(RegARM32, d6, q3, s12, s13)) \
-  X(Reg_d5, 5, "d5", 6, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST4(RegARM32, d5, q2, s10, s11)) \
-  X(Reg_d4, 4, "d4", 5, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST4(RegARM32, d4, q2, s8, s9)) \
-  X(Reg_d3, 3, "d3", 4, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST4(RegARM32, d3, q1, s6, s7)) \
-  X(Reg_d2, 2, "d2", 3, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST4(RegARM32, d2, q1, s4, s5)) \
+  X(Reg_d0, 0, "d0", 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST4(RegARM32, d0, q0, s0, s1)) \
   X(Reg_d1, 1, "d1", 2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST4(RegARM32, d1, q0, s2, s3)) \
-  X(Reg_d0, 0, "d0", 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST4(RegARM32, d0, q0, s0, s1)) 
+  X(Reg_d2, 2, "d2", 3, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST4(RegARM32, d2, q1, s4, s5)) \
+  X(Reg_d3, 3, "d3", 4, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST4(RegARM32, d3, q1, s6, s7)) \
+  X(Reg_d4, 4, "d4", 5, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST4(RegARM32, d4, q2, s8, s9)) \
+  X(Reg_d5, 5, "d5", 6, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST4(RegARM32, d5, q2, s10, s11)) \
+  X(Reg_d6, 6, "d6", 7, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST4(RegARM32, d6, q3, s12, s13)) \
+  X(Reg_d7, 7, "d7", 8, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST4(RegARM32, d7, q3, s14, s15)) \
+  X(Reg_d8, 8, "d8", 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST4(RegARM32, d8, q4, s16, s17)) \
+  X(Reg_d9, 9, "d9", 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST4(RegARM32, d9, q4, s18, s19)) \
+  X(Reg_d10, 10, "d10", 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST4(RegARM32, d10, q5, s20, s21)) \
+  X(Reg_d11, 11, "d11", 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST4(RegARM32, d11, q5, s22, s23)) \
+  X(Reg_d12, 12, "d12", 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST4(RegARM32, d12, q6, s24, s25)) \
+  X(Reg_d13, 13, "d13", 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST4(RegARM32, d13, q6, s26, s27)) \
+  X(Reg_d14, 14, "d14", 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST4(RegARM32, d14, q7, s28, s29)) \
+  X(Reg_d15, 15, "d15", 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST4(RegARM32, d15, q7, s30, s31)) \
+  X(Reg_d16, 16, "d16", 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST2(RegARM32, d16, q8)) \
+  X(Reg_d17, 17, "d17", 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST2(RegARM32, d17, q8)) \
+  X(Reg_d18, 18, "d18", 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST2(RegARM32, d18, q9)) \
+  X(Reg_d19, 19, "d19", 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST2(RegARM32, d19, q9)) \
+  X(Reg_d20, 20, "d20", 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST2(RegARM32, d20, q10)) \
+  X(Reg_d21, 21, "d21", 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST2(RegARM32, d21, q10)) \
+  X(Reg_d22, 22, "d22", 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST2(RegARM32, d22, q11)) \
+  X(Reg_d23, 23, "d23", 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST2(RegARM32, d23, q11)) \
+  X(Reg_d24, 24, "d24", 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST2(RegARM32, d24, q12)) \
+  X(Reg_d25, 25, "d25", 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST2(RegARM32, d25, q12)) \
+  X(Reg_d26, 26, "d26", 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST2(RegARM32, d26, q13)) \
+  X(Reg_d27, 27, "d27", 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST2(RegARM32, d27, q13)) \
+  X(Reg_d28, 28, "d28", 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST2(RegARM32, d28, q14)) \
+  X(Reg_d29, 29, "d29", 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST2(RegARM32, d29, q14)) \
+  X(Reg_d30, 30, "d30", 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST2(RegARM32, d30, q15)) \
+  X(Reg_d31, 31, "d31", 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, REGLIST2(RegARM32, d31, q15)) 
 
 
 //define X(AsmStr, CCArg, IsScratch, IsPreserved, IsStackPtr, IsFramePtr, IsGPR, IsInt, IsI64Pair, IsFP32, IsFP64, IsVec128, Aliases)
 #define REGARM32_VEC128_TABLE \
-  X(Reg_q15, 15, "q15", 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, REGLIST3(RegARM32, q15, d30, d31)) \
-  X(Reg_q14, 14, "q14", 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, REGLIST3(RegARM32, q14, d28, d29)) \
-  X(Reg_q13, 13, "q13", 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, REGLIST3(RegARM32, q13, d26, d27)) \
-  X(Reg_q12, 12, "q12", 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, REGLIST3(RegARM32, q12, d24, d25)) \
-  X(Reg_q11, 11, "q11", 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, REGLIST3(RegARM32, q11, d22, d23)) \
-  X(Reg_q10, 10, "q10", 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, REGLIST3(RegARM32, q10, d20, d21)) \
-  X(Reg_q9, 9, "q9", 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, REGLIST3(RegARM32, q9, d18, d19)) \
-  X(Reg_q8, 8, "q8", 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, REGLIST3(RegARM32, q8, d16, d17)) \
-  X(Reg_q7, 7, "q7", 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, REGLIST7(RegARM32, q7, d14, d15, s28, s29, s30, s31)) \
-  X(Reg_q6, 6, "q6", 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, REGLIST7(RegARM32, q6, d12, d13, s24, s25, s26, s27)) \
-  X(Reg_q5, 5, "q5", 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, REGLIST7(RegARM32, q5, d10, d11, s20, s21, s22, s23)) \
-  X(Reg_q4, 4, "q4", 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, REGLIST7(RegARM32, q4, d8, d9, s16, s17, s18, s19)) \
-  X(Reg_q3, 3, "q3", 4, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, REGLIST7(RegARM32, q3, d6, d7, s12, s13, s14, s15)) \
-  X(Reg_q2, 2, "q2", 3, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, REGLIST7(RegARM32, q2, d4, d5, s8, s9, s10, s11)) \
+  X(Reg_q0, 0, "q0", 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, REGLIST7(RegARM32, q0, d0, d1, s0, s1, s2, s3)) \
   X(Reg_q1, 1, "q1", 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, REGLIST7(RegARM32, q1, d2, d3, s4, s5, s6, s7)) \
-  X(Reg_q0, 0, "q0", 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, REGLIST7(RegARM32, q0, d0, d1, s0, s1, s2, s3)) 
+  X(Reg_q2, 2, "q2", 3, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, REGLIST7(RegARM32, q2, d4, d5, s8, s9, s10, s11)) \
+  X(Reg_q3, 3, "q3", 4, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, REGLIST7(RegARM32, q3, d6, d7, s12, s13, s14, s15)) \
+  X(Reg_q4, 4, "q4", 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, REGLIST7(RegARM32, q4, d8, d9, s16, s17, s18, s19)) \
+  X(Reg_q5, 5, "q5", 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, REGLIST7(RegARM32, q5, d10, d11, s20, s21, s22, s23)) \
+  X(Reg_q6, 6, "q6", 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, REGLIST7(RegARM32, q6, d12, d13, s24, s25, s26, s27)) \
+  X(Reg_q7, 7, "q7", 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, REGLIST7(RegARM32, q7, d14, d15, s28, s29, s30, s31)) \
+  X(Reg_q8, 8, "q8", 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, REGLIST3(RegARM32, q8, d16, d17)) \
+  X(Reg_q9, 9, "q9", 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, REGLIST3(RegARM32, q9, d18, d19)) \
+  X(Reg_q10, 10, "q10", 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, REGLIST3(RegARM32, q10, d20, d21)) \
+  X(Reg_q11, 11, "q11", 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, REGLIST3(RegARM32, q11, d22, d23)) \
+  X(Reg_q12, 12, "q12", 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, REGLIST3(RegARM32, q12, d24, d25)) \
+  X(Reg_q13, 13, "q13", 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, REGLIST3(RegARM32, q13, d26, d27)) \
+  X(Reg_q14, 14, "q14", 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, REGLIST3(RegARM32, q14, d28, d29)) \
+  X(Reg_q15, 15, "q15", 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, REGLIST3(RegARM32, q15, d30, d31)) 
 
 #endif // SUBZERO_SRC_ICEREGISTERSARM32_DEF
