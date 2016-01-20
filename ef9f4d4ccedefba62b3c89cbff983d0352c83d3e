@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "0726ba4f_f6c9bed1",
+        "filename": "src/Shader/VertexProgram.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 425,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-20T22:14:38Z",
+      "side": 1,
+      "message": "Fixed it elegantly by moving this to relativeAddress() in https://swiftshader-review.googlesource.com/4579. It belonged there anyway.",
+      "parentUuid": "0726ba4f_d637e2bb",
+      "range": {
+        "startLine": 425,
+        "startChar": 12,
+        "endLine": 425,
+        "endChar": 14
+      },
+      "revId": "ef9f4d4ccedefba62b3c89cbff983d0352c83d3e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0726ba4f_361e563e",
         "filename": "src/Shader/VertexProgram.cpp",
         "patchSetId": 6
