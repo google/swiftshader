@@ -68,10 +68,11 @@ struct TargetX8664Traits {
   using Cond = ::Ice::CondX8664;
 
   using RegisterSet = ::Ice::RegX8664;
-  static const SizeT StackPtr = RegX8664::Reg_rsp;
-  static const SizeT FramePtr = RegX8664::Reg_rbp;
-  static const GPRRegister Encoded_Reg_Accumulator = RegX8664::Encoded_Reg_eax;
-  static const GPRRegister Encoded_Reg_Counter = RegX8664::Encoded_Reg_ecx;
+  static constexpr SizeT StackPtr = RegX8664::Reg_rsp;
+  static constexpr SizeT FramePtr = RegX8664::Reg_rbp;
+  static constexpr GPRRegister Encoded_Reg_Accumulator =
+      RegX8664::Encoded_Reg_eax;
+  static constexpr GPRRegister Encoded_Reg_Counter = RegX8664::Encoded_Reg_ecx;
   static constexpr FixupKind FK_PcRel = llvm::ELF::R_X86_64_PC32;
   static constexpr FixupKind FK_Abs = llvm::ELF::R_X86_64_32;
   static constexpr FixupKind FK_Gotoff = llvm::ELF::R_X86_64_GOTOFF64;
@@ -715,21 +716,61 @@ public:
 
   static int32_t getRdxOrDie() { return RegisterSet::Reg_rdx; }
 
+  // x86-64 calling convention:
+  //
+  // * The first eight arguments of vector/fp type, regardless of their
+  // position relative to the other arguments in the argument list, are placed
+  // in registers %xmm0 - %xmm7.
+  //
+  // * The first six arguments of integer types, regardless of their position
+  // relative to the other arguments in the argument list, are placed in
+  // registers %rdi, %rsi, %rdx, %rcx, %r8, and %r9.
+  //
+  // This intends to match the section "Function Calling Sequence" of the
+  // document "System V Application Binary Interface."
+
   /// The maximum number of arguments to pass in XMM registers
-  static const uint32_t X86_MAX_XMM_ARGS = 8;
+  static constexpr uint32_t X86_MAX_XMM_ARGS = 8;
   /// The maximum number of arguments to pass in GPR registers
-  static const uint32_t X86_MAX_GPR_ARGS = 6;
+  static constexpr uint32_t X86_MAX_GPR_ARGS = 6;
+  /// Whether scalar floating point arguments are passed in XMM registers
+  static constexpr bool X86_PASS_SCALAR_FP_IN_XMM = true;
+  /// Get the register for a given argument slot in the XMM registers.
+  static int32_t getRegisterForXmmArgNum(uint32_t ArgNum) {
+    // TODO(sehr): Change to use the CCArg technique used in ARM32.
+    static_assert(RegisterSet::Reg_xmm0 + 1 == RegisterSet::Reg_xmm1,
+                  "Inconsistency between XMM register numbers and ordinals");
+    if (ArgNum >= X86_MAX_XMM_ARGS) {
+      return Variable::NoRegister;
+    }
+    return static_cast<int32_t>(RegisterSet::Reg_xmm0 + ArgNum);
+  }
+  /// Get the register for a given argument slot in the GPRs.
+  static int32_t getRegisterForGprArgNum(Type Ty, uint32_t ArgNum) {
+    if (ArgNum >= X86_MAX_GPR_ARGS) {
+      return Variable::NoRegister;
+    }
+    static const RegisterSet::AllRegisters GprForArgNum[] = {
+        RegisterSet::Reg_rdi, RegisterSet::Reg_rsi, RegisterSet::Reg_rdx,
+        RegisterSet::Reg_rcx, RegisterSet::Reg_r8,  RegisterSet::Reg_r9,
+    };
+    static_assert(llvm::array_lengthof(GprForArgNum) == X86_MAX_GPR_ARGS,
+                  "Mismatch between MAX_GPR_ARGS and GprForArgNum.");
+    assert(Ty == IceType_i64 || Ty == IceType_i32);
+    return static_cast<int32_t>(getGprForType(Ty, GprForArgNum[ArgNum]));
+  }
+
   /// The number of bits in a byte
-  static const uint32_t X86_CHAR_BIT = 8;
+  static constexpr uint32_t X86_CHAR_BIT = 8;
   /// Stack alignment. This is defined in IceTargetLoweringX8664.cpp because it
   /// is used as an argument to std::max(), and the default std::less<T> has an
   /// operator(T const&, T const&) which requires this member to have an
   /// address.
   static const uint32_t X86_STACK_ALIGNMENT_BYTES;
   /// Size of the return address on the stack
-  static const uint32_t X86_RET_IP_SIZE_BYTES = 8;
+  static constexpr uint32_t X86_RET_IP_SIZE_BYTES = 8;
   /// The number of different NOP instructions
-  static const uint32_t X86_NUM_NOP_VARIANTS = 5;
+  static constexpr uint32_t X86_NUM_NOP_VARIANTS = 5;
 
   /// \name Limits for unrolling memory intrinsics.
   /// @{

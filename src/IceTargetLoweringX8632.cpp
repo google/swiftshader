@@ -153,259 +153,46 @@ void TargetX8632::lowerIndirectJump(Variable *JumpTarget) {
   _jmp(JumpTarget);
 }
 
-void TargetX8632::lowerCall(const InstCall *Instr) {
-  // x86-32 calling convention:
-  //
-  // * At the point before the call, the stack must be aligned to 16 bytes.
-  //
-  // * The first four arguments of vector type, regardless of their position
-  // relative to the other arguments in the argument list, are placed in
-  // registers xmm0 - xmm3.
-  //
-  // * Other arguments are pushed onto the stack in right-to-left order, such
-  // that the left-most argument ends up on the top of the stack at the lowest
-  // memory address.
-  //
-  // * Stack arguments of vector type are aligned to start at the next highest
-  // multiple of 16 bytes. Other stack arguments are aligned to 4 bytes.
-  //
-  // This intends to match the section "IA-32 Function Calling Convention" of
-  // the document "OS X ABI Function Call Guide" by Apple.
-  NeedsStackAlignment = true;
-
-  OperandList XmmArgs;
-  OperandList StackArgs, StackArgLocations;
-  int32_t ParameterAreaSizeBytes = 0;
-
-  // Classify each argument operand according to the location where the
-  // argument is passed.
-  for (SizeT i = 0, NumArgs = Instr->getNumArgs(); i < NumArgs; ++i) {
-    Operand *Arg = Instr->getArg(i);
-    Type Ty = Arg->getType();
-    // The PNaCl ABI requires the width of arguments to be at least 32 bits.
-    assert(typeWidthInBytes(Ty) >= 4);
-    if (isVectorType(Ty) && XmmArgs.size() < Traits::X86_MAX_XMM_ARGS) {
-      XmmArgs.push_back(Arg);
+Inst *TargetX8632::emitCallToTarget(Operand *CallTarget, Variable *ReturnReg) {
+  std::unique_ptr<AutoBundle> Bundle;
+  if (NeedSandboxing) {
+    if (llvm::isa<Constant>(CallTarget)) {
+      Bundle = makeUnique<AutoBundle>(this, InstBundleLock::Opt_AlignToEnd);
     } else {
-      StackArgs.push_back(Arg);
-      if (isVectorType(Arg->getType())) {
-        ParameterAreaSizeBytes =
-            Traits::applyStackAlignment(ParameterAreaSizeBytes);
-      }
-      Variable *esp =
-          Func->getTarget()->getPhysicalRegister(Traits::RegisterSet::Reg_esp);
-      Constant *Loc = Ctx->getConstantInt32(ParameterAreaSizeBytes);
-      auto *Mem = Traits::X86OperandMem::create(Func, Ty, esp, Loc);
-      StackArgLocations.push_back(Mem);
-      ParameterAreaSizeBytes += typeWidthInBytesOnStack(Arg->getType());
+      Variable *CallTargetVar = nullptr;
+      _mov(CallTargetVar, CallTarget);
+      Bundle = makeUnique<AutoBundle>(this, InstBundleLock::Opt_AlignToEnd);
+      const SizeT BundleSize =
+          1 << Func->getAssembler<>()->getBundleAlignLog2Bytes();
+      _and(CallTargetVar, Ctx->getConstantInt32(~(BundleSize - 1)));
+      CallTarget = CallTargetVar;
     }
   }
-  // Ensure there is enough space for the fstp/movs for floating returns.
-  Variable *Dest = Instr->getDest();
-  if (Dest != nullptr && isScalarFloatingType(Dest->getType())) {
-    ParameterAreaSizeBytes =
-        std::max(static_cast<size_t>(ParameterAreaSizeBytes),
-                 typeWidthInBytesOnStack(Dest->getType()));
-  }
-
-  // Adjust the parameter area so that the stack is aligned. It is assumed that
-  // the stack is already aligned at the start of the calling sequence.
-  ParameterAreaSizeBytes = Traits::applyStackAlignment(ParameterAreaSizeBytes);
-  assert(static_cast<uint32_t>(ParameterAreaSizeBytes) <=
-         maxOutArgsSizeBytes());
-
-  // Copy arguments that are passed on the stack to the appropriate stack
-  // locations.
-  for (SizeT i = 0, e = StackArgs.size(); i < e; ++i) {
-    lowerStore(InstStore::create(Func, StackArgs[i], StackArgLocations[i]));
-  }
-
-  // Copy arguments to be passed in registers to the appropriate registers.
-  // TODO: Investigate the impact of lowering arguments passed in registers
-  // after lowering stack arguments as opposed to the other way around.
-  // Lowering register arguments after stack arguments may reduce register
-  // pressure. On the other hand, lowering register arguments first (before
-  // stack arguments) may result in more compact code, as the memory operand
-  // displacements may end up being smaller before any stack adjustment is
-  // done.
-  for (SizeT i = 0, NumXmmArgs = XmmArgs.size(); i < NumXmmArgs; ++i) {
-    Variable *Reg =
-        legalizeToReg(XmmArgs[i], Traits::RegisterSet::Reg_xmm0 + i);
-    // Generate a FakeUse of register arguments so that they do not get dead
-    // code eliminated as a result of the FakeKill of scratch registers after
-    // the call.
-    Context.insert<InstFakeUse>(Reg);
-  }
-  // Generate the call instruction. Assign its result to a temporary with high
-  // register allocation weight.
-  // ReturnReg doubles as ReturnRegLo as necessary.
-  Variable *ReturnReg = nullptr;
-  Variable *ReturnRegHi = nullptr;
-  if (Dest) {
-    const Type DestTy = Dest->getType();
-    switch (DestTy) {
-    case IceType_NUM:
-    case IceType_void:
-    case IceType_i1:
-    case IceType_i8:
-    case IceType_i16:
-      llvm::report_fatal_error("Invalid Call dest type");
-      break;
-    case IceType_i32:
-      ReturnReg = makeReg(DestTy, Traits::RegisterSet::Reg_eax);
-      break;
-    case IceType_i64:
-      ReturnReg = makeReg(IceType_i32, Traits::RegisterSet::Reg_eax);
-      ReturnRegHi = makeReg(IceType_i32, Traits::RegisterSet::Reg_edx);
-      break;
-    case IceType_f32:
-    case IceType_f64:
-      // Leave ReturnReg==ReturnRegHi==nullptr, and capture the result with the
-      // fstp instruction.
-      break;
-    case IceType_v4i1:
-    case IceType_v8i1:
-    case IceType_v16i1:
-    case IceType_v16i8:
-    case IceType_v8i16:
-    case IceType_v4i32:
-    case IceType_v4f32:
-      ReturnReg = makeReg(DestTy, Traits::RegisterSet::Reg_xmm0);
-      break;
-    }
-  }
-
-  Operand *CallTarget =
-      legalize(Instr->getCallTarget(), Legal_Reg | Legal_Imm | Legal_AddrAbs);
-
-  Traits::Insts::Call *NewCall;
-  /* AutoBundle scoping */ {
-    std::unique_ptr<AutoBundle> Bundle;
-    if (NeedSandboxing) {
-      if (llvm::isa<Constant>(CallTarget)) {
-        Bundle = makeUnique<AutoBundle>(this, InstBundleLock::Opt_AlignToEnd);
-      } else {
-        Variable *CallTargetVar = nullptr;
-        _mov(CallTargetVar, CallTarget);
-        Bundle = makeUnique<AutoBundle>(this, InstBundleLock::Opt_AlignToEnd);
-        const SizeT BundleSize =
-            1 << Func->getAssembler<>()->getBundleAlignLog2Bytes();
-        _and(CallTargetVar, Ctx->getConstantInt32(~(BundleSize - 1)));
-        CallTarget = CallTargetVar;
-      }
-    }
-    NewCall = Context.insert<Traits::Insts::Call>(ReturnReg, CallTarget);
-  }
-
-  if (ReturnRegHi)
-    Context.insert<InstFakeDef>(ReturnRegHi);
-
-  // Insert a register-kill pseudo instruction.
-  Context.insert<InstFakeKill>(NewCall);
-
-  if (Dest != nullptr && isScalarFloatingType(Dest->getType())) {
-    // Special treatment for an FP function which returns its result in st(0).
-    // If Dest ends up being a physical xmm register, the fstp emit code will
-    // route st(0) through the space reserved in the function argument area
-    // we allocated.
-    _fstp(Dest);
-    // Create a fake use of Dest in case it actually isn't used, because st(0)
-    // still needs to be popped.
-    Context.insert<InstFakeUse>(Dest);
-  }
-
-  // Generate a FakeUse to keep the call live if necessary.
-  if (Instr->hasSideEffects() && ReturnReg) {
-    Context.insert<InstFakeUse>(ReturnReg);
-  }
-
-  if (!Dest)
-    return;
-
-  // Assign the result of the call to Dest.
-  if (ReturnReg) {
-    if (ReturnRegHi) {
-      auto *Dest64On32 = llvm::cast<Variable64On32>(Dest);
-      Variable *DestLo = Dest64On32->getLo();
-      Variable *DestHi = Dest64On32->getHi();
-      _mov(DestLo, ReturnReg);
-      _mov(DestHi, ReturnRegHi);
-    } else {
-      const Type DestTy = Dest->getType();
-      assert(DestTy == IceType_i32 || DestTy == IceType_i16 ||
-             DestTy == IceType_i8 || DestTy == IceType_i1 ||
-             isVectorType(DestTy));
-      if (isVectorType(DestTy)) {
-        _movp(Dest, ReturnReg);
-      } else {
-        _mov(Dest, ReturnReg);
-      }
-    }
-  }
+  return Context.insert<Traits::Insts::Call>(ReturnReg, CallTarget);
 }
 
-void TargetX8632::lowerArguments() {
-  VarList &Args = Func->getArgs();
-  // The first four arguments of vector type, regardless of their position
-  // relative to the other arguments in the argument list, are passed in
-  // registers xmm0 - xmm3.
-  unsigned NumXmmArgs = 0;
-
-  Context.init(Func->getEntryNode());
-  Context.setInsertPoint(Context.getCur());
-
-  for (SizeT I = 0, E = Args.size();
-       I < E && NumXmmArgs < Traits::X86_MAX_XMM_ARGS; ++I) {
-    Variable *Arg = Args[I];
-    Type Ty = Arg->getType();
-    if (!isVectorType(Ty))
-      continue;
-    // Replace Arg in the argument list with the home register. Then generate
-    // an instruction in the prolog to copy the home register to the assigned
-    // location of Arg.
-    int32_t RegNum = Traits::RegisterSet::Reg_xmm0 + NumXmmArgs;
-    ++NumXmmArgs;
-    Variable *RegisterArg = Func->makeVariable(Ty);
-    if (BuildDefs::dump())
-      RegisterArg->setName(Func, "home_reg:" + Arg->getName(Func));
-    RegisterArg->setRegNum(RegNum);
-    RegisterArg->setIsArg();
-    Arg->setIsArg(false);
-
-    Args[I] = RegisterArg;
-    Context.insert<InstAssign>(Arg, RegisterArg);
-  }
-}
-
-void TargetX8632::lowerRet(const InstRet *Inst) {
-  Variable *Reg = nullptr;
-  if (Inst->hasRetValue()) {
-    Operand *Src0 = legalize(Inst->getRetValue());
-    const Type Src0Ty = Src0->getType();
-    // TODO(jpp): this is not needed.
-    if (Src0Ty == IceType_i64) {
+Variable *TargetX8632::moveReturnValueToRegister(Operand *Value,
+                                                 Type ReturnType) {
+  if (isVectorType(ReturnType)) {
+    return legalizeToReg(Value, Traits::RegisterSet::Reg_xmm0);
+  } else if (isScalarFloatingType(ReturnType)) {
+    _fld(Value);
+    return nullptr;
+  } else {
+    assert(ReturnType == IceType_i32 || ReturnType == IceType_i64);
+    if (ReturnType == IceType_i64) {
       Variable *eax =
-          legalizeToReg(loOperand(Src0), Traits::RegisterSet::Reg_eax);
+          legalizeToReg(loOperand(Value), Traits::RegisterSet::Reg_eax);
       Variable *edx =
-          legalizeToReg(hiOperand(Src0), Traits::RegisterSet::Reg_edx);
-      Reg = eax;
+          legalizeToReg(hiOperand(Value), Traits::RegisterSet::Reg_edx);
       Context.insert<InstFakeUse>(edx);
-    } else if (isScalarFloatingType(Src0Ty)) {
-      _fld(Src0);
-    } else if (isVectorType(Src0Ty)) {
-      Reg = legalizeToReg(Src0, Traits::RegisterSet::Reg_xmm0);
+      return eax;
     } else {
-      assert(Src0Ty == IceType_i32);
-      _mov(Reg, Src0, Traits::RegisterSet::Reg_eax);
+      Variable *Reg = nullptr;
+      _mov(Reg, Value, Traits::RegisterSet::Reg_eax);
+      return Reg;
     }
   }
-  // Add a ret instruction even if sandboxing is enabled, because addEpilog
-  // explicitly looks for a ret instruction as a marker for where to insert the
-  // frame removal instructions.
-  _ret(Reg);
-  // Add a fake use of esp to make sure esp stays alive for the entire
-  // function. Otherwise post-call esp adjustments get dead-code eliminated.
-  keepEspLiveAtExit();
 }
 
 void TargetX8632::addProlog(CfgNode *Node) {

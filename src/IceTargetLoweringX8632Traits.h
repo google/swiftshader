@@ -68,10 +68,11 @@ struct TargetX8632Traits {
   using Cond = ::Ice::CondX86;
 
   using RegisterSet = ::Ice::RegX8632;
-  static const SizeT StackPtr = RegX8632::Reg_esp;
-  static const SizeT FramePtr = RegX8632::Reg_ebp;
-  static const GPRRegister Encoded_Reg_Accumulator = RegX8632::Encoded_Reg_eax;
-  static const GPRRegister Encoded_Reg_Counter = RegX8632::Encoded_Reg_ecx;
+  static constexpr SizeT StackPtr = RegX8632::Reg_esp;
+  static constexpr SizeT FramePtr = RegX8632::Reg_ebp;
+  static constexpr GPRRegister Encoded_Reg_Accumulator =
+      RegX8632::Encoded_Reg_eax;
+  static constexpr GPRRegister Encoded_Reg_Counter = RegX8632::Encoded_Reg_ecx;
   static constexpr FixupKind FK_PcRel = llvm::ELF::R_386_PC32;
   static constexpr FixupKind FK_Abs = llvm::ELF::R_386_32;
   static constexpr FixupKind FK_Gotoff = llvm::ELF::R_386_GOTOFF;
@@ -658,21 +659,50 @@ public:
     llvm::report_fatal_error("no rdx in non-64-bit mode.");
   }
 
+  // x86-32 calling convention:
+  //
+  // * The first four arguments of vector type, regardless of their position
+  // relative to the other arguments in the argument list, are placed in
+  // registers xmm0 - xmm3.
+  //
+  // This intends to match the section "IA-32 Function Calling Convention" of
+  // the document "OS X ABI Function Call Guide" by Apple.
+
   /// The maximum number of arguments to pass in XMM registers
-  static const uint32_t X86_MAX_XMM_ARGS = 4;
+  static constexpr uint32_t X86_MAX_XMM_ARGS = 4;
   /// The maximum number of arguments to pass in GPR registers
-  static const uint32_t X86_MAX_GPR_ARGS = 0;
+  static constexpr uint32_t X86_MAX_GPR_ARGS = 0;
+  /// Whether scalar floating point arguments are passed in XMM registers
+  static constexpr bool X86_PASS_SCALAR_FP_IN_XMM = false;
+  /// Get the register for a given argument slot in the XMM registers.
+  static int32_t getRegisterForXmmArgNum(uint32_t ArgNum) {
+    // TODO(sehr): Change to use the CCArg technique used in ARM32.
+    static_assert(RegisterSet::Reg_xmm0 + 1 == RegisterSet::Reg_xmm1,
+                  "Inconsistency between XMM register numbers and ordinals");
+    if (ArgNum >= X86_MAX_XMM_ARGS) {
+      return Variable::NoRegister;
+    }
+    return static_cast<int32_t>(RegisterSet::Reg_xmm0 + ArgNum);
+  }
+  /// Get the register for a given argument slot in the GPRs.
+  static int32_t getRegisterForGprArgNum(Type Ty, uint32_t ArgNum) {
+    assert(Ty == IceType_i64 || Ty == IceType_i32);
+    (void)Ty;
+    (void)ArgNum;
+    return Variable::NoRegister;
+  }
+
   /// The number of bits in a byte
-  static const uint32_t X86_CHAR_BIT = 8;
+  static constexpr uint32_t X86_CHAR_BIT = 8;
   /// Stack alignment. This is defined in IceTargetLoweringX8632.cpp because it
   /// is used as an argument to std::max(), and the default std::less<T> has an
   /// operator(T const&, T const&) which requires this member to have an
   /// address.
   static const uint32_t X86_STACK_ALIGNMENT_BYTES;
   /// Size of the return address on the stack
-  static const uint32_t X86_RET_IP_SIZE_BYTES = 4;
+  static constexpr uint32_t X86_RET_IP_SIZE_BYTES = 4;
   /// The number of different NOP instructions
-  static const uint32_t X86_NUM_NOP_VARIANTS = 5;
+  static constexpr uint32_t X86_NUM_NOP_VARIANTS = 5;
 
   /// \name Limits for unrolling memory intrinsics.
   /// @{

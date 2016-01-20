@@ -384,209 +384,11 @@ void TargetX8664::lowerIndirectJump(Variable *JumpTarget) {
   _jmp(JumpTarget);
 }
 
-namespace {
-static inline TargetX8664::Traits::RegisterSet::AllRegisters
-getRegisterForXmmArgNum(uint32_t ArgNum) {
-  assert(ArgNum < TargetX8664::Traits::X86_MAX_XMM_ARGS);
-  return static_cast<TargetX8664::Traits::RegisterSet::AllRegisters>(
-      TargetX8664::Traits::RegisterSet::Reg_xmm0 + ArgNum);
-}
-
-static inline TargetX8664::Traits::RegisterSet::AllRegisters
-getRegisterForGprArgNum(Type Ty, uint32_t ArgNum) {
-  assert(ArgNum < TargetX8664::Traits::X86_MAX_GPR_ARGS);
-  static const TargetX8664::Traits::RegisterSet::AllRegisters GprForArgNum[] = {
-      TargetX8664::Traits::RegisterSet::Reg_rdi,
-      TargetX8664::Traits::RegisterSet::Reg_rsi,
-      TargetX8664::Traits::RegisterSet::Reg_rdx,
-      TargetX8664::Traits::RegisterSet::Reg_rcx,
-      TargetX8664::Traits::RegisterSet::Reg_r8,
-      TargetX8664::Traits::RegisterSet::Reg_r9,
-  };
-  static_assert(llvm::array_lengthof(GprForArgNum) ==
-                    TargetX8664::TargetX8664::Traits::X86_MAX_GPR_ARGS,
-                "Mismatch between MAX_GPR_ARGS and GprForArgNum.");
-  assert(Ty == IceType_i64 || Ty == IceType_i32);
-  return static_cast<TargetX8664::Traits::RegisterSet::AllRegisters>(
-      TargetX8664::Traits::getGprForType(Ty, GprForArgNum[ArgNum]));
-}
-
-// constexprMax returns a (constexpr) max(S0, S1), and it is used for defining
-// OperandList in lowerCall. std::max() is supposed to work, but it doesn't.
-constexpr SizeT constexprMax(SizeT S0, SizeT S1) { return S0 < S1 ? S1 : S0; }
-
-} // end of anonymous namespace
-
-void TargetX8664::lowerCall(const InstCall *Instr) {
-  // x86-64 calling convention:
-  //
-  // * At the point before the call, the stack must be aligned to 16 bytes.
-  //
-  // * The first eight arguments of vector/fp type, regardless of their
-  // position relative to the other arguments in the argument list, are placed
-  // in registers %xmm0 - %xmm7.
-  //
-  // * The first six arguments of integer types, regardless of their position
-  // relative to the other arguments in the argument list, are placed in
-  // registers %rdi, %rsi, %rdx, %rcx, %r8, and %r9.
-  //
-  // * Other arguments are pushed onto the stack in right-to-left order, such
-  // that the left-most argument ends up on the top of the stack at the lowest
-  // memory address.
-  //
-  // * Stack arguments of vector type are aligned to start at the next highest
-  // multiple of 16 bytes. Other stack arguments are aligned to 8 bytes.
-  //
-  // This intends to match the section "Function Calling Sequence" of the
-  // document "System V Application Binary Interface."
-  NeedsStackAlignment = true;
-
-  using OperandList =
-      llvm::SmallVector<Operand *, constexprMax(Traits::X86_MAX_XMM_ARGS,
-                                                Traits::X86_MAX_GPR_ARGS)>;
-  OperandList XmmArgs;
-  CfgVector<std::pair<const Type, Operand *>> GprArgs;
-  OperandList StackArgs, StackArgLocations;
-  int32_t ParameterAreaSizeBytes = 0;
-
-  // Classify each argument operand according to the location where the
-  // argument is passed.
-  for (SizeT i = 0, NumArgs = Instr->getNumArgs(); i < NumArgs; ++i) {
-    Operand *Arg = Instr->getArg(i);
-    Type Ty = Arg->getType();
-    // The PNaCl ABI requires the width of arguments to be at least 32 bits.
-    assert(typeWidthInBytes(Ty) >= 4);
-    if (isVectorType(Ty) && XmmArgs.size() < Traits::X86_MAX_XMM_ARGS) {
-      XmmArgs.push_back(Arg);
-    } else if (isScalarFloatingType(Ty) &&
-               XmmArgs.size() < Traits::X86_MAX_XMM_ARGS) {
-      XmmArgs.push_back(Arg);
-    } else if (isScalarIntegerType(Ty) &&
-               GprArgs.size() < Traits::X86_MAX_GPR_ARGS) {
-      GprArgs.emplace_back(Ty, Arg);
-    } else {
-      StackArgs.push_back(Arg);
-      if (isVectorType(Arg->getType())) {
-        ParameterAreaSizeBytes =
-            Traits::applyStackAlignment(ParameterAreaSizeBytes);
-      }
-      Variable *esp =
-          getPhysicalRegister(Traits::RegisterSet::Reg_rsp, IceType_i64);
-      Constant *Loc = Ctx->getConstantInt32(ParameterAreaSizeBytes);
-      StackArgLocations.push_back(
-          Traits::X86OperandMem::create(Func, Ty, esp, Loc));
-      ParameterAreaSizeBytes += typeWidthInBytesOnStack(Arg->getType());
-    }
-  }
-
-  // Adjust the parameter area so that the stack is aligned. It is assumed that
-  // the stack is already aligned at the start of the calling sequence.
-  ParameterAreaSizeBytes = Traits::applyStackAlignment(ParameterAreaSizeBytes);
-  assert(static_cast<uint32_t>(ParameterAreaSizeBytes) <=
-         maxOutArgsSizeBytes());
-
-  // Copy arguments that are passed on the stack to the appropriate stack
-  // locations.
-  for (SizeT i = 0, e = StackArgs.size(); i < e; ++i) {
-    lowerStore(InstStore::create(Func, StackArgs[i], StackArgLocations[i]));
-  }
-
-  // Copy arguments to be passed in registers to the appropriate registers.
-  // TODO: Investigate the impact of lowering arguments passed in registers
-  // after lowering stack arguments as opposed to the other way around.
-  // Lowering register arguments after stack arguments may reduce register
-  // pressure. On the other hand, lowering register arguments first (before
-  // stack arguments) may result in more compact code, as the memory operand
-  // displacements may end up being smaller before any stack adjustment is
-  // done.
-  for (SizeT i = 0, NumXmmArgs = XmmArgs.size(); i < NumXmmArgs; ++i) {
-    Variable *Reg = legalizeToReg(XmmArgs[i], getRegisterForXmmArgNum(i));
-    // Generate a FakeUse of register arguments so that they do not get dead
-    // code eliminated as a result of the FakeKill of scratch registers after
-    // the call.
-    Context.insert<InstFakeUse>(Reg);
-  }
-
-  for (SizeT i = 0, NumGprArgs = GprArgs.size(); i < NumGprArgs; ++i) {
-    const Type SignatureTy = GprArgs[i].first;
-    Operand *Arg = GprArgs[i].second;
-    Variable *Reg =
-        legalizeToReg(Arg, getRegisterForGprArgNum(Arg->getType(), i));
-    assert(SignatureTy == IceType_i64 || SignatureTy == IceType_i32);
-    if (SignatureTy != Arg->getType()) {
-      if (SignatureTy == IceType_i32) {
-        assert(Arg->getType() == IceType_i64);
-        Variable *T = makeReg(
-            IceType_i32, Traits::getGprForType(IceType_i32, Reg->getRegNum()));
-        _mov(T, Reg);
-        Reg = T;
-      } else {
-        // This branch has never been reached, so we leave the assert(false)
-        // here until we figure out how to exercise it.
-        assert(false);
-        assert(Arg->getType() == IceType_i32);
-        Variable *T = makeReg(
-            IceType_i64, Traits::getGprForType(IceType_i64, Reg->getRegNum()));
-        _movzx(T, Reg);
-        Reg = T;
-      }
-    }
-    Context.insert<InstFakeUse>(Reg);
-  }
-
-  // Generate the call instruction. Assign its result to a temporary with high
-  // register allocation weight.
-  Variable *Dest = Instr->getDest();
-  // ReturnReg doubles as ReturnRegLo as necessary.
-  Variable *ReturnReg = nullptr;
-  if (Dest) {
-    switch (Dest->getType()) {
-    case IceType_NUM:
-    case IceType_void:
-      llvm::report_fatal_error("Invalid Call dest type");
-      break;
-    case IceType_i1:
-    case IceType_i8:
-    case IceType_i16:
-      // The bitcode should never return an i1, i8, or i16.
-      assert(false);
-    // Fallthrough intended.
-    case IceType_i32:
-      ReturnReg = makeReg(Dest->getType(), Traits::RegisterSet::Reg_eax);
-      break;
-    case IceType_i64:
-      ReturnReg = makeReg(Dest->getType(), Traits::RegisterSet::Reg_rax);
-      break;
-    case IceType_f32:
-    case IceType_f64:
-    case IceType_v4i1:
-    case IceType_v8i1:
-    case IceType_v16i1:
-    case IceType_v16i8:
-    case IceType_v8i16:
-    case IceType_v4i32:
-    case IceType_v4f32:
-      ReturnReg = makeReg(Dest->getType(), Traits::RegisterSet::Reg_xmm0);
-      break;
-    }
-  }
-
-  InstX86Label *ReturnAddress = nullptr;
-  Operand *CallTarget =
-      legalize(Instr->getCallTarget(), Legal_Reg | Legal_Imm | Legal_AddrAbs);
-  auto *CallTargetR = llvm::dyn_cast<Variable>(CallTarget);
+Inst *TargetX8664::emitCallToTarget(Operand *CallTarget, Variable *ReturnReg) {
   Inst *NewCall = nullptr;
-  if (!NeedSandboxing) {
-    if (CallTargetR != nullptr) {
-      // x86-64 in Subzero is ILP32. Therefore, CallTarget is i32, but the
-      // emitted call needs a i64 register (for textual asm.)
-      Variable *T = makeReg(IceType_i64);
-      _movzx(T, CallTargetR);
-      CallTarget = T;
-    }
-    NewCall = Context.insert<Traits::Insts::Call>(ReturnReg, CallTarget);
-  } else {
-    ReturnAddress = InstX86Label::create(Func, this);
+  auto *CallTargetR = llvm::dyn_cast<Variable>(CallTarget);
+  if (NeedSandboxing) {
+    InstX86Label *ReturnAddress = InstX86Label::create(Func, this);
     ReturnAddress->setIsReturnLocation(true);
     constexpr bool SuppressMangling = true;
     /* AutoBundle scoping */ {
@@ -620,102 +422,30 @@ void TargetX8664::lowerCall(const InstCall *Instr) {
     }
 
     Context.insert(ReturnAddress);
-  }
-
-  // Insert a register-kill pseudo instruction.
-  Context.insert<InstFakeKill>(NewCall);
-
-  // Generate a FakeUse to keep the call live if necessary.
-  if (Instr->hasSideEffects() && ReturnReg) {
-    Context.insert<InstFakeUse>(ReturnReg);
-  }
-
-  if (!Dest)
-    return;
-
-  assert(ReturnReg && "x86-64 always returns value on registers.");
-
-  if (isVectorType(Dest->getType())) {
-    _movp(Dest, ReturnReg);
   } else {
-    assert(isScalarFloatingType(Dest->getType()) ||
-           isScalarIntegerType(Dest->getType()));
-    _mov(Dest, ReturnReg);
+    if (CallTargetR != nullptr) {
+      // x86-64 in Subzero is ILP32. Therefore, CallTarget is i32, but the
+      // emitted call needs a i64 register (for textual asm.)
+      Variable *T = makeReg(IceType_i64);
+      _movzx(T, CallTargetR);
+      CallTarget = T;
+    }
+    NewCall = Context.insert<Traits::Insts::Call>(ReturnReg, CallTarget);
   }
+  return NewCall;
 }
 
-void TargetX8664::lowerArguments() {
-  VarList &Args = Func->getArgs();
-  // The first eight vector typed arguments (as well as fp arguments) are
-  // passed in %xmm0 through %xmm7 regardless of their position in the argument
-  // list.
-  unsigned NumXmmArgs = 0;
-  // The first six integer typed arguments are passed in %rdi, %rsi, %rdx,
-  // %rcx, %r8, and %r9 regardless of their position in the argument list.
-  unsigned NumGprArgs = 0;
-
-  Context.init(Func->getEntryNode());
-  Context.setInsertPoint(Context.getCur());
-
-  for (SizeT i = 0, End = Args.size();
-       i < End && (NumXmmArgs < Traits::X86_MAX_XMM_ARGS ||
-                   NumGprArgs < Traits::X86_MAX_XMM_ARGS);
-       ++i) {
-    Variable *Arg = Args[i];
-    Type Ty = Arg->getType();
-    Variable *RegisterArg = nullptr;
-    int32_t RegNum = Variable::NoRegister;
-    if ((isVectorType(Ty) || isScalarFloatingType(Ty))) {
-      if (NumXmmArgs >= Traits::X86_MAX_XMM_ARGS) {
-        continue;
-      }
-      RegNum = getRegisterForXmmArgNum(NumXmmArgs);
-      ++NumXmmArgs;
-      RegisterArg = Func->makeVariable(Ty);
-    } else if (isScalarIntegerType(Ty)) {
-      if (NumGprArgs >= Traits::X86_MAX_GPR_ARGS) {
-        continue;
-      }
-      RegNum = getRegisterForGprArgNum(Ty, NumGprArgs);
-      ++NumGprArgs;
-      RegisterArg = Func->makeVariable(Ty);
-    }
-    assert(RegNum != Variable::NoRegister);
-    assert(RegisterArg != nullptr);
-    // Replace Arg in the argument list with the home register. Then generate
-    // an instruction in the prolog to copy the home register to the assigned
-    // location of Arg.
-    if (BuildDefs::dump())
-      RegisterArg->setName(Func, "home_reg:" + Arg->getName(Func));
-    RegisterArg->setRegNum(RegNum);
-    RegisterArg->setIsArg();
-    Arg->setIsArg(false);
-
-    Args[i] = RegisterArg;
-    Context.insert<InstAssign>(Arg, RegisterArg);
+Variable *TargetX8664::moveReturnValueToRegister(Operand *Value,
+                                                 Type ReturnType) {
+  if (isVectorType(ReturnType) || isScalarFloatingType(ReturnType)) {
+    return legalizeToReg(Value, Traits::RegisterSet::Reg_xmm0);
+  } else {
+    assert(ReturnType == IceType_i32 || ReturnType == IceType_i64);
+    Variable *Reg = nullptr;
+    _mov(Reg, Value,
+         Traits::getGprForType(ReturnType, Traits::RegisterSet::Reg_rax));
+    return Reg;
   }
-}
-
-void TargetX8664::lowerRet(const InstRet *Inst) {
-  Variable *Reg = nullptr;
-  if (Inst->hasRetValue()) {
-    Operand *Src0 = legalize(Inst->getRetValue());
-    const Type Src0Ty = Src0->getType();
-    if (isVectorType(Src0Ty) || isScalarFloatingType(Src0Ty)) {
-      Reg = legalizeToReg(Src0, Traits::RegisterSet::Reg_xmm0);
-    } else {
-      assert(Src0Ty == IceType_i32 || Src0Ty == IceType_i64);
-      _mov(Reg, Src0,
-           Traits::getGprForType(Src0Ty, Traits::RegisterSet::Reg_rax));
-    }
-  }
-  // Add a ret instruction even if sandboxing is enabled, because addEpilog
-  // explicitly looks for a ret instruction as a marker for where to insert the
-  // frame removal instructions.
-  _ret(Reg);
-  // Add a fake use of esp to make sure esp stays alive for the entire
-  // function. Otherwise post-call esp adjustments get dead-code eliminated.
-  keepEspLiveAtExit();
 }
 
 void TargetX8664::addProlog(CfgNode *Node) {

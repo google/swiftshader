@@ -58,9 +58,8 @@ protected:
 
   void initSandbox() {}
   void lowerIndirectJump(Variable *JumpTarget);
-  void lowerCall(const InstCall *Instr) override;
-  void lowerArguments() override;
-  void lowerRet(const InstRet *Inst) override;
+  Inst *emitCallToTarget(Operand *CallTarget, Variable *ReturnReg) override;
+  Variable *moveReturnValueToRegister(Operand *Value, Type ReturnType) override;
   void addProlog(CfgNode *Node) override;
   void addEpilog(CfgNode *Node) override;
 

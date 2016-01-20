@@ -197,9 +197,11 @@ protected:
   }
 
   void lowerAlloca(const InstAlloca *Inst) override;
+  void lowerArguments() override;
   void lowerArithmetic(const InstArithmetic *Inst) override;
   void lowerAssign(const InstAssign *Inst) override;
   void lowerBr(const InstBr *Inst) override;
+  void lowerCall(const InstCall *Inst) override;
   void lowerCast(const InstCast *Inst) override;
   void lowerExtractElement(const InstExtractElement *Inst) override;
   void lowerFcmp(const InstFcmp *Inst) override;
@@ -209,6 +211,7 @@ protected:
   void lowerInsertElement(const InstInsertElement *Inst) override;
   void lowerLoad(const InstLoad *Inst) override;
   void lowerPhi(const InstPhi *Inst) override;
+  void lowerRet(const InstRet *Inst) override;
   void lowerSelect(const InstSelect *Inst) override;
   void lowerStore(const InstStore *Inst) override;
   void lowerSwitch(const InstSwitch *Inst) override;
@@ -278,6 +281,13 @@ protected:
 
   void scalarizeArithmetic(InstArithmetic::OpKind K, Variable *Dest,
                            Operand *Src0, Operand *Src1);
+
+  /// Emit just the call instruction (without argument or return variable
+  /// processing), sandboxing if needed.
+  virtual Inst *emitCallToTarget(Operand *CallTarget, Variable *ReturnReg) = 0;
+  /// Materialize the moves needed to return a value of the specified type.
+  virtual Variable *moveReturnValueToRegister(Operand *Value,
+                                              Type ReturnType) = 0;
 
   /// Emit a fake use of esp to make sure esp stays alive for the entire
   /// function. Otherwise some esp adjustments get dead-code eliminated.

@@ -1096,6 +1096,67 @@ void TargetX86Base<TraitsType>::lowerAlloca(const InstAlloca *Inst) {
   }
 }
 
+template <typename TraitsType>
+void TargetX86Base<TraitsType>::lowerArguments() {
+  VarList &Args = Func->getArgs();
+  unsigned NumXmmArgs = 0;
+  bool XmmSlotsRemain = true;
+  unsigned NumGprArgs = 0;
+  bool GprSlotsRemain = true;
+
+  Context.init(Func->getEntryNode());
+  Context.setInsertPoint(Context.getCur());
+
+  for (SizeT i = 0, End = Args.size();
+       i < End && (XmmSlotsRemain || GprSlotsRemain); ++i) {
+    Variable *Arg = Args[i];
+    Type Ty = Arg->getType();
+    Variable *RegisterArg = nullptr;
+    int32_t RegNum = Variable::NoRegister;
+    if (isVectorType(Ty)) {
+      RegNum = Traits::getRegisterForXmmArgNum(NumXmmArgs);
+      if (RegNum == Variable::NoRegister) {
+        XmmSlotsRemain = false;
+        continue;
+      }
+      ++NumXmmArgs;
+      RegisterArg = Func->makeVariable(Ty);
+    } else if (isScalarFloatingType(Ty)) {
+      if (!Traits::X86_PASS_SCALAR_FP_IN_XMM) {
+        continue;
+      }
+      RegNum = Traits::getRegisterForXmmArgNum(NumXmmArgs);
+      if (RegNum == Variable::NoRegister) {
+        XmmSlotsRemain = false;
+        continue;
+      }
+      ++NumXmmArgs;
+      RegisterArg = Func->makeVariable(Ty);
+    } else if (isScalarIntegerType(Ty)) {
+      RegNum = Traits::getRegisterForGprArgNum(Ty, NumGprArgs);
+      if (RegNum == Variable::NoRegister) {
+        GprSlotsRemain = false;
+        continue;
+      }
+      ++NumGprArgs;
+      RegisterArg = Func->makeVariable(Ty);
+    }
+    assert(RegNum != Variable::NoRegister);
+    assert(RegisterArg != nullptr);
+    // Replace Arg in the argument list with the home register. Then generate
+    // an instruction in the prolog to copy the home register to the assigned
+    // location of Arg.
+    if (BuildDefs::dump())
+      RegisterArg->setName(Func, "home_reg:" + Arg->getName(Func));
+    RegisterArg->setRegNum(RegNum);
+    RegisterArg->setIsArg();
+    Arg->setIsArg(false);
+
+    Args[i] = RegisterArg;
+    Context.insert<InstAssign>(Arg, RegisterArg);
+  }
+}
+
 /// Strength-reduce scalar integer multiplication by a constant (for i32 or
 /// narrower) for certain constants. The lea instruction can be used to multiply
 /// by 3, 5, or 9, and the lsh instruction can be used to multiply by powers of
@@ -2026,6 +2087,204 @@ void TargetX86Base<TraitsType>::lowerBr(const InstBr *Br) {
   Constant *Zero = Ctx->getConstantZero(IceType_i32);
   _cmp(Src0, Zero);
   _br(Traits::Cond::Br_ne, Br->getTargetTrue(), Br->getTargetFalse());
+}
+
+// constexprMax returns a (constexpr) max(S0, S1), and it is used for defining
+// OperandList in lowerCall. std::max() is supposed to work, but it doesn't.
+inline constexpr SizeT constexprMax(SizeT S0, SizeT S1) {
+  return S0 < S1 ? S1 : S0;
+}
+
+template <typename TraitsType>
+void TargetX86Base<TraitsType>::lowerCall(const InstCall *Instr) {
+  // Common x86 calling convention lowering:
+  //
+  // * At the point before the call, the stack must be aligned to 16 bytes.
+  //
+  // * Non-register arguments are pushed onto the stack in right-to-left order,
+  // such that the left-most argument ends up on the top of the stack at the
+  // lowest memory address.
+  //
+  // * Stack arguments of vector type are aligned to start at the next highest
+  // multiple of 16 bytes. Other stack arguments are aligned to the next word
+  // size boundary (4 or 8 bytes, respectively).
+  NeedsStackAlignment = true;
+
+  using OperandList =
+      llvm::SmallVector<Operand *, constexprMax(Traits::X86_MAX_XMM_ARGS,
+                                                Traits::X86_MAX_GPR_ARGS)>;
+  OperandList XmmArgs;
+  CfgVector<std::pair<const Type, Operand *>> GprArgs;
+  OperandList StackArgs, StackArgLocations;
+  uint32_t ParameterAreaSizeBytes = 0;
+
+  // Classify each argument operand according to the location where the argument
+  // is passed.
+  for (SizeT i = 0, NumArgs = Instr->getNumArgs(); i < NumArgs; ++i) {
+    Operand *Arg = Instr->getArg(i);
+    const Type Ty = Arg->getType();
+    // The PNaCl ABI requires the width of arguments to be at least 32 bits.
+    assert(typeWidthInBytes(Ty) >= 4);
+    if (isVectorType(Ty) && (Traits::getRegisterForXmmArgNum(XmmArgs.size()) !=
+                             Variable::NoRegister)) {
+      XmmArgs.push_back(Arg);
+    } else if (isScalarFloatingType(Ty) && Traits::X86_PASS_SCALAR_FP_IN_XMM &&
+               (Traits::getRegisterForXmmArgNum(0) != Variable::NoRegister)) {
+      XmmArgs.push_back(Arg);
+    } else if (isScalarIntegerType(Ty) &&
+               (Traits::getRegisterForGprArgNum(Ty, GprArgs.size()) !=
+                Variable::NoRegister)) {
+      GprArgs.emplace_back(Ty, Arg);
+    } else {
+      // Place on stack.
+      StackArgs.push_back(Arg);
+      if (isVectorType(Arg->getType())) {
+        ParameterAreaSizeBytes =
+            Traits::applyStackAlignment(ParameterAreaSizeBytes);
+      }
+      Variable *esp = getPhysicalRegister(getStackReg(), Traits::WordType);
+      Constant *Loc = Ctx->getConstantInt32(ParameterAreaSizeBytes);
+      StackArgLocations.push_back(
+          Traits::X86OperandMem::create(Func, Ty, esp, Loc));
+      ParameterAreaSizeBytes += typeWidthInBytesOnStack(Arg->getType());
+    }
+  }
+  // Ensure there is enough space for the fstp/movs for floating returns.
+  Variable *Dest = Instr->getDest();
+  const Type DestTy = Dest ? Dest->getType() : IceType_void;
+  if (Traits::X86_PASS_SCALAR_FP_IN_XMM) {
+    if (isScalarFloatingType(DestTy)) {
+      ParameterAreaSizeBytes =
+          std::max(static_cast<size_t>(ParameterAreaSizeBytes),
+                   typeWidthInBytesOnStack(DestTy));
+    }
+  }
+  // Adjust the parameter area so that the stack is aligned. It is assumed that
+  // the stack is already aligned at the start of the calling sequence.
+  ParameterAreaSizeBytes = Traits::applyStackAlignment(ParameterAreaSizeBytes);
+  assert(ParameterAreaSizeBytes <= maxOutArgsSizeBytes());
+  // Copy arguments that are passed on the stack to the appropriate stack
+  // locations.
+  for (SizeT i = 0, NumStackArgs = StackArgs.size(); i < NumStackArgs; ++i) {
+    lowerStore(InstStore::create(Func, StackArgs[i], StackArgLocations[i]));
+  }
+  // Copy arguments to be passed in registers to the appropriate registers.
+  for (SizeT i = 0, NumXmmArgs = XmmArgs.size(); i < NumXmmArgs; ++i) {
+    Variable *Reg =
+        legalizeToReg(XmmArgs[i], Traits::getRegisterForXmmArgNum(i));
+    // Generate a FakeUse of register arguments so that they do not get dead
+    // code eliminated as a result of the FakeKill of scratch registers after
+    // the call.
+    Context.insert<InstFakeUse>(Reg);
+  }
+  // Materialize moves for arguments passed in GPRs.
+  for (SizeT i = 0, NumGprArgs = GprArgs.size(); i < NumGprArgs; ++i) {
+    const Type SignatureTy = GprArgs[i].first;
+    Operand *Arg = GprArgs[i].second;
+    Variable *Reg =
+        legalizeToReg(Arg, Traits::getRegisterForGprArgNum(Arg->getType(), i));
+    assert(SignatureTy == IceType_i64 || SignatureTy == IceType_i32);
+    assert(SignatureTy == Arg->getType());
+    (void)SignatureTy;
+    Context.insert<InstFakeUse>(Reg);
+  }
+  // Generate the call instruction. Assign its result to a temporary with high
+  // register allocation weight.
+  // ReturnReg doubles as ReturnRegLo as necessary.
+  Variable *ReturnReg = nullptr;
+  Variable *ReturnRegHi = nullptr;
+  if (Dest) {
+    switch (DestTy) {
+    case IceType_NUM:
+    case IceType_void:
+    case IceType_i1:
+    case IceType_i8:
+    case IceType_i16:
+      llvm::report_fatal_error("Invalid Call dest type");
+      break;
+    case IceType_i32:
+      ReturnReg = makeReg(DestTy, Traits::RegisterSet::Reg_eax);
+      break;
+    case IceType_i64:
+      if (Traits::Is64Bit) {
+        ReturnReg = makeReg(
+            IceType_i64,
+            Traits::getGprForType(IceType_i64, Traits::RegisterSet::Reg_eax));
+      } else {
+        ReturnReg = makeReg(IceType_i32, Traits::RegisterSet::Reg_eax);
+        ReturnRegHi = makeReg(IceType_i32, Traits::RegisterSet::Reg_edx);
+      }
+      break;
+    case IceType_f32:
+    case IceType_f64:
+      if (!Traits::X86_PASS_SCALAR_FP_IN_XMM) {
+        // Leave ReturnReg==ReturnRegHi==nullptr, and capture the result with
+        // the fstp instruction.
+        break;
+      }
+    // Fallthrough intended.
+    case IceType_v4i1:
+    case IceType_v8i1:
+    case IceType_v16i1:
+    case IceType_v16i8:
+    case IceType_v8i16:
+    case IceType_v4i32:
+    case IceType_v4f32:
+      ReturnReg = makeReg(DestTy, Traits::RegisterSet::Reg_xmm0);
+      break;
+    }
+  }
+  // Emit the call to the function.
+  Operand *CallTarget =
+      legalize(Instr->getCallTarget(), Legal_Reg | Legal_Imm | Legal_AddrAbs);
+  Inst *NewCall = emitCallToTarget(CallTarget, ReturnReg);
+  // Keep the upper return register live on 32-bit platform.
+  if (ReturnRegHi)
+    Context.insert<InstFakeDef>(ReturnRegHi);
+  // Mark the call as killing all the caller-save registers.
+  Context.insert<InstFakeKill>(NewCall);
+  // Handle x86-32 floating point returns.
+  if (Dest != nullptr && isScalarFloatingType(Dest->getType()) &&
+      !Traits::X86_PASS_SCALAR_FP_IN_XMM) {
+    // Special treatment for an FP function which returns its result in st(0).
+    // If Dest ends up being a physical xmm register, the fstp emit code will
+    // route st(0) through the space reserved in the function argument area
+    // we allocated.
+    _fstp(Dest);
+    // Create a fake use of Dest in case it actually isn't used, because st(0)
+    // still needs to be popped.
+    Context.insert<InstFakeUse>(Dest);
+  }
+  // Generate a FakeUse to keep the call live if necessary.
+  if (Instr->hasSideEffects() && ReturnReg) {
+    Context.insert<InstFakeUse>(ReturnReg);
+  }
+  // Process the return value, if any.
+  if (Dest == nullptr)
+    return;
+  // Assign the result of the call to Dest.
+  if (isVectorType(DestTy)) {
+    assert(ReturnReg && "Vector type requires a return register");
+    _movp(Dest, ReturnReg);
+  } else if (isScalarFloatingType(DestTy)) {
+    if (Traits::X86_PASS_SCALAR_FP_IN_XMM) {
+      assert(ReturnReg && "FP type requires a return register");
+      _mov(Dest, ReturnReg);
+    }
+  } else {
+    assert(isScalarIntegerType(DestTy));
+    assert(ReturnReg && "Integer type requires a return register");
+    if (DestTy == IceType_i64 && !Traits::Is64Bit) {
+      assert(ReturnRegHi && "64-bit type requires two return registers");
+      auto *Dest64On32 = llvm::cast<Variable64On32>(Dest);
+      Variable *DestLo = Dest64On32->getLo();
+      Variable *DestHi = Dest64On32->getHi();
+      _mov(DestLo, ReturnReg);
+      _mov(DestHi, ReturnRegHi);
+    } else {
+      _mov(Dest, ReturnReg);
+    }
+  }
 }
 
 template <typename TraitsType>
@@ -4818,6 +5077,25 @@ void TargetX86Base<TraitsType>::randomlyInsertNop(float Probability,
 template <typename TraitsType>
 void TargetX86Base<TraitsType>::lowerPhi(const InstPhi * /*Inst*/) {
   Func->setError("Phi found in regular instruction list");
+}
+
+template <typename TraitsType>
+void TargetX86Base<TraitsType>::lowerRet(const InstRet *Inst) {
+  Variable *Reg = nullptr;
+  if (Inst->hasRetValue()) {
+    Operand *RetValue = legalize(Inst->getRetValue());
+    const Type ReturnType = RetValue->getType();
+    assert(isVectorType(ReturnType) || isScalarFloatingType(ReturnType) ||
+           (ReturnType == IceType_i32) || (ReturnType == IceType_i64));
+    Reg = moveReturnValueToRegister(RetValue, ReturnType);
+  }
+  // Add a ret instruction even if sandboxing is enabled, because addEpilog
+  // explicitly looks for a ret instruction as a marker for where to insert the
+  // frame removal instructions.
+  _ret(Reg);
+  // Add a fake use of esp to make sure esp stays alive for the entire
+  // function. Otherwise post-call esp adjustments get dead-code eliminated.
+  keepEspLiveAtExit();
 }
 
 template <typename TraitsType>
