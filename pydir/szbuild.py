@@ -61,8 +61,10 @@ def MatchSymbol(sym, re_include, re_exclude, default_match):
     return default_match
 
 def AddOptionalArgs(argparser):
-    argparser.add_argument('--force', dest='force', action='store_true',
-                           help='Force all re-translations of the pexe')
+    argparser.add_argument('--force', dest='force', type=int, choices=[0, 1],
+                           default=1,
+                           help='Force all re-translations of the pexe.' +
+                                ' Default %(default)s.')
     argparser.add_argument('--include', '-i', default=[], dest='include',
                            action='append',
                            help='Subzero symbols to include ' +
@@ -240,11 +242,11 @@ def main():
     If no --include or --exclude arguments are given, the executable is produced
     entirely using Subzero, without using llc or linker tricks.
 
-    This script uses file modification timestamps to determine whether llc and
-    Subzero re-translation are needed.  It checks timestamps of llc, pnacl-sz,
-    and the pexe against the translated object files to determine the minimal
-    work necessary.  The --force option suppresses those checks and
-    re-translates everything.
+    When using the --force=0 option, this script uses file modification
+    timestamps to determine whether llc and Subzero re-translation are needed.
+    It checks timestamps of llc, pnacl-sz, and the pexe against the translated
+    object files to determine the minimal work necessary.  The --force=1 option
+    (default) suppresses those checks and re-translates everything.
 
     This script expects various PNaCl and LLVM tools to be found within the
     native_client tree.  When changes are made to these tools, copy them this

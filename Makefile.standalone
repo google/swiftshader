@@ -473,7 +473,7 @@ endif
 SPECFLAGS :=
 SPECBUILDONLY := false
 %.spec2k: % $(OBJDIR)/pnacl-sz make_symlink runtime
-	./pydir/szbuild_spec2k.py -v --force \
+	./pydir/szbuild_spec2k.py -v \
           $(SPECFLAGS) --target=$(TARGETFLAG) $(SPEC) $<
 	$(SPECBUILDONLY) || ( cd ../../../tests/spec2k; \
 	 ./run_all.sh RunTimedBenchmarks $(SETUP) train $< )
