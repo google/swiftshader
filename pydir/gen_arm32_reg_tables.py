@@ -53,8 +53,9 @@ class RegFeatures(object):
     return any(self.FeaturesDict[FpFeature] for FpFeature in (
                    'IsFP32', 'IsFP64', 'IsVec128'))
 
-  def DefiningXMacro(self):
-    return 'define X({parameters})'.format(parameters=', '.join(self.Features))
+  def DefiningXMacro(self, OtherFeatures):
+    return 'define X({parameters})'.format(
+        parameters=', '.join(OtherFeatures + self.Features))
 
 class Reg(object):
   def __init__(self, Name, Encode, AsmStr=None, **Features):
@@ -72,7 +73,7 @@ class Reg(object):
     return Other.Name in self.Features.Aliases().Aliases
 
   def DefiningXMacro(self):
-    return self.Features.DefiningXMacro()
+    return self.Features.DefiningXMacro(['Tag', 'Encoding'])
 
 # Note: The following tables break the usual 80-col on purpose -- it is easier
 # to read the register tables if each register entry is contained on a single
