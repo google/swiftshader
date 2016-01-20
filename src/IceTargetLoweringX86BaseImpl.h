@@ -2152,7 +2152,7 @@ void TargetX86Base<TraitsType>::lowerCall(const InstCall *Instr) {
   // Ensure there is enough space for the fstp/movs for floating returns.
   Variable *Dest = Instr->getDest();
   const Type DestTy = Dest ? Dest->getType() : IceType_void;
-  if (Traits::X86_PASS_SCALAR_FP_IN_XMM) {
+  if (!Traits::X86_PASS_SCALAR_FP_IN_XMM) {
     if (isScalarFloatingType(DestTy)) {
       ParameterAreaSizeBytes =
           std::max(static_cast<size_t>(ParameterAreaSizeBytes),

@@ -497,12 +497,21 @@ check-presubmit presubmit:
 # Run lit tests, cross tests, unit tests, and spec2k/x86-32.
 	+make -f Makefile.standalone \
           check check-spec
+# Run spec2k/x86-64.
+	+make -f Makefile.standalone \
+          TARGET=x8664 check-spec
 # Build spec2k under -Om1/x86-32, to check for liveness errors.
 	+make -f Makefile.standalone \
           SPECFLAGS='-Om1' SPECBUILDONLY=true check-spec
+# Build spec2k under -Om1/x86-64, to check for liveness errors.
+	+make -f Makefile.standalone \
+          SPECFLAGS='-Om1' TARGET=x8664 SPECBUILDONLY=true check-spec
 # Run spec2k for x86-32 without advanced phi lowering.
 	+make -f Makefile.standalone \
           SPECFLAGS='--sz=--phi-edge-split=0' check-spec
+# Run spec2k for x86-64 without advanced phi lowering.
+	+make -f Makefile.standalone \
+          SPECFLAGS='--sz=--phi-edge-split=0' TARGET=x8664 check-spec
 # Run cross tests and lit tests to validate filetype=asm output.
 	+make -f Makefile.standalone \
           FORCEASM=1 check-xtest check-lit
