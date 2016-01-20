@@ -4849,10 +4849,12 @@ bool matchAssign(const VariablesMetadata *VMetadata, Variable **Var,
     return false;
 
   Operand *SrcOp = VarAssign->getSrc(0);
+  bool Optimized = false;
   if (auto *SrcVar = llvm::dyn_cast<Variable>(SrcOp)) {
     if (!VMetadata->isMultiDef(SrcVar) ||
         // TODO: ensure SrcVar stays single-BB
         false) {
+      Optimized = true;
       *Var = SrcVar;
     } else if (auto *Const = llvm::dyn_cast<ConstantInteger32>(SrcOp)) {
       int32_t MoreOffset = Const->getValue();
@@ -4861,13 +4863,15 @@ bool matchAssign(const VariablesMetadata *VMetadata, Variable **Var,
         return false;
       *Var = nullptr;
       *Offset += NewOffset;
+      Optimized = true;
     }
-
-    *Reason = VarAssign;
-    return true;
   }
 
-  return false;
+  if (Optimized) {
+    *Reason = VarAssign;
+  }
+
+  return Optimized;
 }
 
 bool isAddOrSub(const Inst *Inst, InstArithmetic::OpKind *Kind) {
