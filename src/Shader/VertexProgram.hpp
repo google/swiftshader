@@ -32,6 +32,28 @@ namespace sw
 		virtual ~VertexProgram();
 
 	private:
+		const VertexShader *const shader;
+
+		RegisterArray<4096> r;   // Temporary registers
+		Vector4f a0;
+		Array<Int, 4> aL;
+		Vector4f p0;
+
+		Array<Int, 4> increment;
+		Array<Int, 4> iteration;
+
+		Int loopDepth;
+		Int stackIndex;   // FIXME: Inc/decrement callStack
+		Array<UInt, 16> callStack;
+
+		Int enableIndex;
+		Array<Int4, 1 + 24> enableStack;
+		Int4 enableBreak;
+		Int4 enableContinue;
+		Int4 enableLeave;
+
+		Int instanceID;
+
 		typedef Shader::DestinationParameter Dst;
 		typedef Shader::SourceParameter Src;
 		typedef Shader::Control Control;
