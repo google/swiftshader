@@ -754,12 +754,6 @@ namespace sw
 				{
 					reg = v[i];
 				}
-				else if(src.rel.type == Shader::PARAMETER_LOOP)
-				{
-					Int aL = this->aL[loopDepth];
-
-					reg = v[i + aL];
-				}
 				else
 				{
 					Int a = relativeAddress(src);
@@ -946,6 +940,10 @@ namespace sw
 			RValue<Int4> c = *Pointer<Int4>(data + OFFSET(DrawData, ps.c[var.rel.index]));
 
 			return Extract(c, 0) * var.rel.scale;
+		}
+		else if(var.rel.type == Shader::PARAMETER_LOOP)
+		{
+			return aL[loopDepth];
 		}
 		else ASSERT(false);
 

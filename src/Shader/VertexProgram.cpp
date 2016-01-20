@@ -401,15 +401,6 @@ namespace sw
 								if(dst.z) pDst.z = r.o[dst.index].z;
 								if(dst.w) pDst.w = r.o[dst.index].w;
 							}
-							else if(dst.rel.type == Shader::PARAMETER_LOOP)
-							{
-								Int aL = r.aL[r.loopDepth];
-
-								if(dst.x) pDst.x = r.o[dst.index + aL].x;
-								if(dst.y) pDst.y = r.o[dst.index + aL].y;
-								if(dst.z) pDst.z = r.o[dst.index + aL].z;
-								if(dst.w) pDst.w = r.o[dst.index + aL].w;
-							}
 							else
 							{
 								Int a = relativeAddress(dst);
@@ -540,15 +531,6 @@ namespace sw
 							if(dst.y) r.o[dst.index].y = d.y;
 							if(dst.z) r.o[dst.index].z = d.z;
 							if(dst.w) r.o[dst.index].w = d.w;
-						}
-						else if(dst.rel.type == Shader::PARAMETER_LOOP)
-						{
-							Int aL = r.aL[r.loopDepth];
-
-							if(dst.x) r.o[dst.index + aL].x = d.x;
-							if(dst.y) r.o[dst.index + aL].y = d.y;
-							if(dst.z) r.o[dst.index + aL].z = d.z;
-							if(dst.w) r.o[dst.index + aL].w = d.w;
 						}
 						else
 						{
@@ -875,6 +857,10 @@ namespace sw
 			RValue<Int4> c = *Pointer<Int4>(r.data + OFFSET(DrawData, vs.c[var.rel.index]));
 
 			return Extract(c, 0) * var.rel.scale;
+		}
+		else if(var.rel.type == Shader::PARAMETER_LOOP)
+		{
+			return r.aL[r.loopDepth];
 		}
 		else ASSERT(false);
 
