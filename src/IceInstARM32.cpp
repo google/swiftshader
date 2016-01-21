@@ -1668,7 +1668,12 @@ void InstARM32Str::emitIAS(const Cfg *Func) const {
   assert(getSrcSize() == 2);
   Type Ty = getSrc(0)->getType();
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
-  if (isVectorType(Ty) || isScalarFloatingType(Ty))
+  if (isScalarFloatingType(Ty)) {
+    if (Ty == IceType_f32)
+      Asm->vstrs(getSrc(0), getSrc(1), getPredicate(), Func->getTarget());
+    else
+      Asm->vstrd(getSrc(0), getSrc(1), getPredicate(), Func->getTarget());
+  } else if (isVectorType(Ty))
     // TODO(kschimpf) Handle case.
     Asm->setNeedsTextFixup();
   else

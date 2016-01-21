@@ -368,6 +368,24 @@ public:
   void vpush(const Variable *OpBaseReg, SizeT NumConsecRegs,
              CondARM32::Cond Cond);
 
+  void vstrd(const Operand *OpDd, const Operand *OpAddress,
+             CondARM32::Cond Cond, const TargetInfo &TInfo);
+
+  void vstrd(const Operand *OpDd, const Operand *OpAddress,
+             CondARM32::Cond Cond, const TargetLowering *Lowering) {
+    const TargetInfo TInfo(Lowering);
+    vstrd(OpDd, OpAddress, Cond, TInfo);
+  }
+
+  void vstrs(const Operand *OpSd, const Operand *OpAddress,
+             CondARM32::Cond Cond, const TargetInfo &TInfo);
+
+  void vstrs(const Operand *OpSd, const Operand *OpAddress,
+             CondARM32::Cond Cond, const TargetLowering *Lowering) {
+    const TargetInfo TInfo(Lowering);
+    vstrs(OpSd, OpAddress, Cond, TInfo);
+  }
+
   void vsubd(const Operand *OpDd, const Operand *OpDn, const Operand *OpDm,
              CondARM32::Cond Cond);
 

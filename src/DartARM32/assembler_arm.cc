@@ -757,8 +757,8 @@ void Assembler::vldrs(SRegister sd, Address ad, Condition cond) {
                      B11 | B9 | ad.vencoding();
   Emit(encoding);
 }
-#endif
 
+// Moved to Arm32::AssemblerARM32::vstrs()
 void Assembler::vstrs(SRegister sd, Address ad, Condition cond) {
   ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(static_cast<Register>(ad.encoding_ & (0xf << kRnShift)) != PC);
@@ -772,8 +772,6 @@ void Assembler::vstrs(SRegister sd, Address ad, Condition cond) {
   Emit(encoding);
 }
 
-#if 0
-// Moved to ARM32::AssemblerARM32::vldrd()
 void Assembler::vldrd(DRegister dd, Address ad, Condition cond) {
   ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(dd != kNoDRegister);

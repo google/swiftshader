@@ -635,13 +635,15 @@ class Assembler : public ValueObject {
 #if 0
   // Moved to ARM32::AssemblerARM32::vldrs()
   void vldrs(SRegister sd, Address ad, Condition cond = AL);
-#endif
+  // Moved to Arm32::AssemblerARM32::vstrs()
   void vstrs(SRegister sd, Address ad, Condition cond = AL);
-#if 0
+#endif
   // Moved to ARM32::AssemblerARM32::vldrd()
   void vldrd(DRegister dd, Address ad, Condition cond = AL);
-#endif
+#if 0
+  // Moved to Arm32::AssemblerARM32::vstrd()
   void vstrd(DRegister dd, Address ad, Condition cond = AL);
+#endif
 
   void vldms(BlockAddressMode am, Register base,
              SRegister first, SRegister last, Condition cond = AL);

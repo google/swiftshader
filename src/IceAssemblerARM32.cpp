@@ -2262,6 +2262,47 @@ void AssemblerARM32::vmuld(const Operand *OpDd, const Operand *OpDn,
   emitVFPddd(Cond, VmuldOpcode, Dd, Dn, Dm);
 }
 
+void AssemblerARM32::vstrd(const Operand *OpDd, const Operand *OpAddress,
+                           CondARM32::Cond Cond, const TargetInfo &TInfo) {
+  // VSTR - ARM section A8.8.413, encoding A1:
+  //   vstr<c> <Dd>, [<Rn>{, #+/-<imm>}]
+  //
+  // cccc1101UD00nnnndddd1011iiiiiiii where cccc=Cond, nnnn=Rn, Ddddd=Rd,
+  // iiiiiiii=abs(Opcode), and U=1 if Opcode>=0,
+  constexpr const char *Vstrd = "vstrd";
+  IValueT Dd = encodeDRegister(OpDd, "Dd", Vstrd);
+  assert(CondARM32::isDefined(Cond));
+  IValueT Address;
+  if (encodeAddress(OpAddress, Address, TInfo) != EncodedAsImmRegOffset)
+    assert(false);
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  IValueT Encoding = B27 | B26 | B24 | B11 | B9 | B8 |
+                     (encodeCondition(Cond) << kConditionShift) |
+                     (getYInRegYXXXX(Dd) << 22) |
+                     (getXXXXInRegYXXXX(Dd) << 12) | Address;
+  emitInst(Encoding);
+}
+
+void AssemblerARM32::vstrs(const Operand *OpSd, const Operand *OpAddress,
+                           CondARM32::Cond Cond, const TargetInfo &TInfo) {
+  // VSTR - ARM section A8.8.413, encoding A2:
+  //   vstr<c> <Sd>, [<Rn>{, #+/-<imm>]]
+  //
+  // cccc1101UD01nnnndddd1010iiiiiiii where cccc=Cond, nnnn=Rn, ddddD=Sd,
+  // iiiiiiii=abs(Opcode), and U=1 if Opcode >= 0;
+  constexpr const char *Vstrs = "vstrs";
+  IValueT Sd = encodeSRegister(OpSd, "Sd", Vstrs);
+  assert(CondARM32::isDefined(Cond));
+  IValueT Address;
+  if (encodeAddress(OpAddress, Address, TInfo) != EncodedAsImmRegOffset)
+    assert(false);
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  IValueT Encoding =
+      B27 | B26 | B24 | B11 | B9 | (encodeCondition(Cond) << kConditionShift) |
+      (getYInRegXXXXY(Sd) << 22) | (getXXXXInRegXXXXY(Sd) << 12) | Address;
+  emitInst(Encoding);
+}
+
 void AssemblerARM32::vsubs(const Operand *OpSd, const Operand *OpSn,
                            const Operand *OpSm, CondARM32::Cond Cond) {
   // VSUB (floating-point) - ARM section A8.8.415, encoding A2:
