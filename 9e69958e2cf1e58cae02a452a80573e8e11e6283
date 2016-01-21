@@ -1,0 +1,418 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c73662c7_0973c9be",
+        "filename": "src/OpenGL/libGLESv2/Program.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1176,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-21T16:14:34Z",
+      "side": 1,
+      "message": "nit: This is slightly confusing with the \u0027name\u0027 of the buffer below also being called \"index\". Maybe call this \"bindingIndex\"? Same for above uses of \"bufferIndex\".",
+      "range": {
+        "startLine": 1176,
+        "startChar": 19,
+        "endLine": 1176,
+        "endChar": 30
+      },
+      "revId": "9e69958e2cf1e58cae02a452a80573e8e11e6283",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c73662c7_29708daf",
+        "filename": "src/OpenGL/libGLESv2/Program.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1181,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-21T16:14:34Z",
+      "side": 1,
+      "message": "bufferIndex / bindingIndex?",
+      "range": {
+        "startLine": 1181,
+        "startChar": 47,
+        "endLine": 1181,
+        "endChar": 52
+      },
+      "revId": "9e69958e2cf1e58cae02a452a80573e8e11e6283",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c73662c7_496dc1d2",
+        "filename": "src/OpenGL/libGLESv2/Program.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1186,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-21T16:14:34Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 1186,
+        "startChar": 46,
+        "endLine": 1186,
+        "endChar": 51
+      },
+      "revId": "9e69958e2cf1e58cae02a452a80573e8e11e6283",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c73662c7_696a85bd",
+        "filename": "src/Renderer/Context.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-21T16:14:34Z",
+      "side": 1,
+      "message": "nit: nullptr.",
+      "range": {
+        "startLine": 283,
+        "startChar": 75,
+        "endLine": 283,
+        "endChar": 76
+      },
+      "revId": "9e69958e2cf1e58cae02a452a80573e8e11e6283",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c73662c7_a948fd65",
+        "filename": "src/Renderer/PixelProcessor.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-21T16:14:34Z",
+      "side": 1,
+      "message": "nit: nullptr",
+      "range": {
+        "startLine": 148,
+        "startChar": 110,
+        "endLine": 148,
+        "endChar": 111
+      },
+      "revId": "9e69958e2cf1e58cae02a452a80573e8e11e6283",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c73662c7_c94d3175",
+        "filename": "src/Renderer/PixelProcessor.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-21T16:14:34Z",
+      "side": 1,
+      "message": "nit: nullptr",
+      "range": {
+        "startLine": 159,
+        "startChar": 33,
+        "endLine": 159,
+        "endChar": 34
+      },
+      "revId": "9e69958e2cf1e58cae02a452a80573e8e11e6283",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c73662c7_2935edcf",
+        "filename": "src/Renderer/VertexProcessor.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-21T16:14:34Z",
+      "side": 1,
+      "message": "This sets only one buffer, so it should probably be called setUniformBuffer.",
+      "range": {
+        "startLine": 160,
+        "startChar": 23,
+        "endLine": 160,
+        "endChar": 40
+      },
+      "revId": "9e69958e2cf1e58cae02a452a80573e8e11e6283",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c73662c7_49422143",
+        "filename": "src/Renderer/VertexProcessor.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-21T16:14:34Z",
+      "side": 1,
+      "message": "nullptr",
+      "range": {
+        "startLine": 169,
+        "startChar": 110,
+        "endLine": 169,
+        "endChar": 111
+      },
+      "revId": "9e69958e2cf1e58cae02a452a80573e8e11e6283",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c73662c7_693fe5ad",
+        "filename": "src/Renderer/VertexProcessor.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-21T16:14:34Z",
+      "side": 1,
+      "message": "nullptr",
+      "range": {
+        "startLine": 180,
+        "startChar": 33,
+        "endLine": 180,
+        "endChar": 34
+      },
+      "revId": "9e69958e2cf1e58cae02a452a80573e8e11e6283",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c73662c7_e92bd569",
+        "filename": "src/Shader/PixelProgram.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 867,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-21T16:14:34Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 867,
+        "startChar": 20,
+        "endLine": 867,
+        "endChar": 23
+      },
+      "revId": "9e69958e2cf1e58cae02a452a80573e8e11e6283",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c73662c7_c92611a5",
+        "filename": "src/Shader/PixelProgram.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 869,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-21T16:14:34Z",
+      "side": 1,
+      "message": "nit: Let\u0027s make this an if statement to make it easier to read and make changes later.",
+      "range": {
+        "startLine": 869,
+        "startChar": 29,
+        "endLine": 869,
+        "endChar": 30
+      },
+      "revId": "9e69958e2cf1e58cae02a452a80573e8e11e6283",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c73662c7_0921098b",
+        "filename": "src/Shader/PixelProgram.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 872,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-21T16:14:34Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 872,
+        "startChar": 20,
+        "endLine": 872,
+        "endChar": 23
+      },
+      "revId": "9e69958e2cf1e58cae02a452a80573e8e11e6283",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c73662c7_892c1987",
+        "filename": "src/Shader/PixelProgram.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-21T16:14:34Z",
+      "side": 1,
+      "message": "nit: can use \u003e\u003e\n\nJustification: https://swiftshader-review.googlesource.com/#/c/1970/4/src/Reactor/Nucleus.cpp@6768",
+      "range": {
+        "startLine": 91,
+        "startChar": 21,
+        "endLine": 91,
+        "endChar": 24
+      },
+      "revId": "9e69958e2cf1e58cae02a452a80573e8e11e6283",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c73662c7_89e97968",
+        "filename": "src/Shader/PixelProgram.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-21T16:14:34Z",
+      "side": 1,
+      "message": "It\u0027s slightly confusing that while this is called readUniform, it doesn\u0027t actually read it but returns the address to it. Perhaps call it uniformAddress?",
+      "range": {
+        "startLine": 91,
+        "startChar": 25,
+        "endLine": 91,
+        "endChar": 36
+      },
+      "revId": "9e69958e2cf1e58cae02a452a80573e8e11e6283",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c73662c7_a931dde1",
+        "filename": "src/Shader/PixelProgram.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-21T16:14:34Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 92,
+        "startChar": 21,
+        "endLine": 92,
+        "endChar": 24
+      },
+      "revId": "9e69958e2cf1e58cae02a452a80573e8e11e6283",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c73662c7_a9ee3d6b",
+        "filename": "src/Shader/VertexProgram.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 770,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-21T16:14:34Z",
+      "side": 1,
+      "message": "sames",
+      "range": {
+        "startLine": 762,
+        "startChar": 1,
+        "endLine": 770,
+        "endChar": 2
+      },
+      "revId": "9e69958e2cf1e58cae02a452a80573e8e11e6283",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c73662c7_491b015f",
+        "filename": "src/Shader/VertexProgram.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-21T16:14:34Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 46,
+        "startChar": 21,
+        "endLine": 46,
+        "endChar": 24
+      },
+      "revId": "9e69958e2cf1e58cae02a452a80573e8e11e6283",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c73662c7_6918c561",
+        "filename": "src/Shader/VertexProgram.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-21T16:14:34Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 47,
+        "startChar": 21,
+        "endLine": 47,
+        "endChar": 24
+      },
+      "revId": "9e69958e2cf1e58cae02a452a80573e8e11e6283",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
