@@ -744,7 +744,8 @@ void Assembler::vmovrrd(Register rt, Register rt2, DRegister dm,
   Emit(encoding);
 }
 
-
+#if 0
+// Moved to ARM32::AssemblerARM32::vldrs()
 void Assembler::vldrs(SRegister sd, Address ad, Condition cond) {
   ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(sd != kNoSRegister);
@@ -756,7 +757,7 @@ void Assembler::vldrs(SRegister sd, Address ad, Condition cond) {
                      B11 | B9 | ad.vencoding();
   Emit(encoding);
 }
-
+#endif
 
 void Assembler::vstrs(SRegister sd, Address ad, Condition cond) {
   ASSERT(TargetCPUFeatures::vfp_supported());
@@ -771,7 +772,8 @@ void Assembler::vstrs(SRegister sd, Address ad, Condition cond) {
   Emit(encoding);
 }
 
-
+#if 0
+// Moved to ARM32::AssemblerARM32::vldrd()
 void Assembler::vldrd(DRegister dd, Address ad, Condition cond) {
   ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(dd != kNoDRegister);
@@ -783,7 +785,7 @@ void Assembler::vldrd(DRegister dd, Address ad, Condition cond) {
                      B11 | B9 | B8 | ad.vencoding();
   Emit(encoding);
 }
-
+#endif
 
 void Assembler::vstrd(DRegister dd, Address ad, Condition cond) {
   ASSERT(TargetCPUFeatures::vfp_supported());

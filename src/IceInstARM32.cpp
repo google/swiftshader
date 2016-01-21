@@ -1366,7 +1366,12 @@ template <> void InstARM32Ldr::emitIAS(const Cfg *Func) const {
   Variable *Dest = getDest();
   Type DestTy = Dest->getType();
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
-  if (isVectorType(DestTy) || isScalarFloatingType(DestTy))
+  if (isScalarFloatingType(DestTy)) {
+    if (DestTy == IceType_f32)
+      Asm->vldrs(Dest, getSrc(0), getPredicate(), Func->getTarget());
+    else
+      Asm->vldrd(Dest, getSrc(0), getPredicate(), Func->getTarget());
+  } else if (isVectorType(DestTy))
     // TODO(kschimpf) Handle case.
     Asm->setNeedsTextFixup();
   else

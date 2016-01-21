@@ -338,6 +338,24 @@ public:
   void vdivs(const Operand *OpSd, const Operand *OpSn, const Operand *OpSm,
              CondARM32::Cond Cond);
 
+  void vldrd(const Operand *OpDd, const Operand *OpAddress,
+             CondARM32::Cond Cond, const TargetInfo &TInfo);
+
+  void vldrd(const Operand *OpDd, const Operand *OpAddress,
+             CondARM32::Cond Cond, const TargetLowering *Lowering) {
+    const TargetInfo TInfo(Lowering);
+    vldrd(OpDd, OpAddress, Cond, TInfo);
+  }
+
+  void vldrs(const Operand *OpSd, const Operand *OpAddress,
+             CondARM32::Cond Cond, const TargetInfo &TInfo);
+
+  void vldrs(const Operand *OpSd, const Operand *OpAddress,
+             CondARM32::Cond Cond, const TargetLowering *Lowering) {
+    const TargetInfo TInfo(Lowering);
+    vldrs(OpSd, OpAddress, Cond, TInfo);
+  }
+
   void vmuld(const Operand *OpDd, const Operand *OpDn, const Operand *OpDm,
              CondARM32::Cond Cond);
 

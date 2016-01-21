@@ -238,7 +238,8 @@ enum EncodedOperand {
   //
   // ***** OpEncodingMemEx *****
   //
-  // Value=000000000000nnnn0000000000000000 where nnnn=Rn.
+  // Value=00000000U000nnnn00000000xxxxxxxx where nnnn=Rn, xxxxxxxx=abs(Offset),
+  // and U=1 Offset>=0.
   EncodedAsImmRegOffset,
   // Value=0000000pu0w00nnnnttttiiiiiss0mmmm where nnnn is the base register Rn,
   // mmmm is the index register Rm, iiiii is the shift amount, ss is the shift
@@ -2185,6 +2186,50 @@ void AssemblerARM32::vdivd(const Operand *OpDd, const Operand *OpDn,
   IValueT Dm = encodeDRegister(OpDm, "Dm", Vdivd);
   constexpr IValueT VdivdOpcode = B23;
   emitVFPddd(Cond, VdivdOpcode, Dd, Dn, Dm);
+}
+
+void AssemblerARM32::vldrd(const Operand *OpDd, const Operand *OpAddress,
+                           CondARM32::Cond Cond, const TargetInfo &TInfo) {
+  // VLDR - ARM section A8.8.333, encoding A1.
+  //   vldr<c> <Dd>, [<Rn>{, #+/-<imm>}]
+  //
+  // cccc1101UD01nnnndddd1011iiiiiiii where cccc=Cond, nnnn=Rn, Ddddd=Rd,
+  // iiiiiiii=abs(Opcode), and U=1 if Opcode>=0,
+  constexpr const char *Vldrd = "vldrd";
+  IValueT Dd = encodeDRegister(OpDd, "Dd", Vldrd);
+  assert(CondARM32::isDefined(Cond));
+  IValueT Address;
+  EncodedOperand AddressEncoding = encodeAddress(OpAddress, Address, TInfo);
+  (void)AddressEncoding;
+  assert(AddressEncoding == EncodedAsImmRegOffset);
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  IValueT Encoding = B27 | B26 | B24 | B20 | B11 | B9 | B8 |
+                     (encodeCondition(Cond) << kConditionShift) |
+                     (getYInRegYXXXX(Dd) << 22) |
+                     (getXXXXInRegYXXXX(Dd) << 12) | Address;
+  emitInst(Encoding);
+}
+
+void AssemblerARM32::vldrs(const Operand *OpSd, const Operand *OpAddress,
+                           CondARM32::Cond Cond, const TargetInfo &TInfo) {
+  // VDLR - ARM section A8.8.333, encoding A2.
+  //   vldr<c> <Sd>, [<Rn>{, #+/-<imm>]]
+  //
+  // cccc1101UD01nnnndddd1010iiiiiiii where cccc=Cond, nnnn=Rn, ddddD=Sd,
+  // iiiiiiii=abs(Opcode), and U=1 if Opcode >= 0;
+  constexpr const char *Vldrs = "vldrs";
+  IValueT Sd = encodeSRegister(OpSd, "Sd", Vldrs);
+  assert(CondARM32::isDefined(Cond));
+  IValueT Address;
+  EncodedOperand AddressEncoding = encodeAddress(OpAddress, Address, TInfo);
+  (void)AddressEncoding;
+  assert(AddressEncoding == EncodedAsImmRegOffset);
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  IValueT Encoding = B27 | B26 | B24 | B20 | B11 | B9 |
+                     (encodeCondition(Cond) << kConditionShift) |
+                     (getYInRegXXXXY(Sd) << 22) |
+                     (getXXXXInRegXXXXY(Sd) << 12) | Address;
+  emitInst(Encoding);
 }
 
 void AssemblerARM32::vmuls(const Operand *OpSd, const Operand *OpSn,
