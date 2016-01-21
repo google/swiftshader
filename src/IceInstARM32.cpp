@@ -633,6 +633,14 @@ template <> void InstARM32Vdiv::emitIAS(const Cfg *Func) const {
   assert(!Asm->needsTextFixup());
 }
 
+template <> void InstARM32Veor::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  const Variable *Dest = getDest();
+  assert(Dest->getType() == IceType_f64);
+  Asm->veord(Dest, getSrc(0), getSrc(1));
+  assert(!Asm->needsTextFixup());
+}
+
 template <> void InstARM32Vsub::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   const Variable *Dest = getDest();

@@ -338,6 +338,8 @@ public:
   void vdivs(const Operand *OpSd, const Operand *OpSn, const Operand *OpSm,
              CondARM32::Cond Cond);
 
+  void veord(const Operand *OpDd, const Operand *OpDn, const Operand *OpDm);
+
   void vldrd(const Operand *OpDd, const Operand *OpAddress,
              CondARM32::Cond Cond, const TargetInfo &TInfo);
 

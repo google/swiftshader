@@ -2188,6 +2188,26 @@ void AssemblerARM32::vdivd(const Operand *OpDd, const Operand *OpDn,
   emitVFPddd(Cond, VdivdOpcode, Dd, Dn, Dm);
 }
 
+void AssemblerARM32::veord(const Operand *OpDd, const Operand *OpDn,
+                           const Operand *OpDm) {
+  // VEOR - ARM secdtion A8.8.315, encoding A1:
+  //   veor<c> <Dd>, <Dn>, <Dm>
+  //
+  // 111100110D00nnnndddd0001N0M1mmmm where Ddddd=Dd, Nnnnn=Dn, and Mmmmm=Dm.
+  constexpr const char *Veord = "veord";
+  IValueT Dd = encodeDRegister(OpDd, "Dd", Veord);
+  IValueT Dn = encodeDRegister(OpDn, "Dn", Veord);
+  IValueT Dm = encodeDRegister(OpDm, "Dm", Veord);
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  const IValueT Encoding =
+      B25 | B24 | B8 | B4 |
+      (encodeCondition(CondARM32::Cond::kNone) << kConditionShift) |
+      (getYInRegYXXXX(Dd) << 22) | (getXXXXInRegYXXXX(Dn) << 16) |
+      (getXXXXInRegYXXXX(Dd) << 12) | (getYInRegYXXXX(Dn) << 7) |
+      (getYInRegYXXXX(Dm) << 5) | getXXXXInRegYXXXX(Dm);
+  emitInst(Encoding);
+}
+
 void AssemblerARM32::vldrd(const Operand *OpDd, const Operand *OpAddress,
                            CondARM32::Cond Cond, const TargetInfo &TInfo) {
   // VLDR - ARM section A8.8.333, encoding A1.

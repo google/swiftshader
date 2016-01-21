@@ -1365,6 +1365,7 @@ class Assembler : public ValueObject {
   // ARM32::AssemblerARM32::vpop()
   // ARM32::AssemblerARM32::vpush()
   // ARM32::AssemblerARM:rbit().
+  // ARM32::AssemblerARM::veord()
 #endif
 
   DISALLOW_ALLOCATION();
