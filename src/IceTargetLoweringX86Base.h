@@ -177,9 +177,11 @@ public:
         "Hey, yo! This is x86-64. Watcha doin'? (hiOperand)");
   }
 
+  void addProlog(CfgNode *Node) override;
   void finishArgumentLowering(Variable *Arg, Variable *FramePtr,
                               size_t BasicFrameOffset, size_t StackAdjBytes,
                               size_t &InArgsSizeBytes);
+  void addEpilog(CfgNode *Node) override;
   X86Address stackVarToAsmOperand(const Variable *Var) const;
 
   InstructionSetEnum getInstructionSet() const { return InstructionSet; }
@@ -282,6 +284,13 @@ protected:
   void scalarizeArithmetic(InstArithmetic::OpKind K, Variable *Dest,
                            Operand *Src0, Operand *Src1);
 
+  void emitGetIP(CfgNode *Node) {
+    dispatchToConcrete(&Traits::ConcreteTarget::emitGetIP, std::move(Node));
+  }
+  /// Emit a sandboxed return sequence rather than a return.
+  void emitSandboxedReturn() {
+    dispatchToConcrete(&Traits::ConcreteTarget::emitSandboxedReturn);
+  }
   /// Emit just the call instruction (without argument or return variable
   /// processing), sandboxing if needed.
   virtual Inst *emitCallToTarget(Operand *CallTarget, Variable *ReturnReg) = 0;
@@ -588,6 +597,10 @@ protected:
   void _lea(Variable *Dest, Operand *Src0) {
     Context.insert<typename Traits::Insts::Lea>(Dest, Src0);
   }
+  void _link_bp() { dispatchToConcrete(&Traits::ConcreteTarget::_link_bp); }
+  void _push_reg(Variable *Reg) {
+    dispatchToConcrete(&Traits::ConcreteTarget::_push_reg, std::move(Reg));
+  }
   void _mfence() { Context.insert<typename Traits::Insts::Mfence>(); }
   /// Moves can be used to redefine registers, creating "partial kills" for
   /// liveness.  Mark where moves are used in this way.
@@ -836,6 +849,7 @@ protected:
     Context.insert<typename Traits::Insts::Ucomiss>(Src0, Src1);
   }
   void _ud2() { Context.insert<typename Traits::Insts::UD2>(); }
+  void _unlink_bp() { dispatchToConcrete(&Traits::ConcreteTarget::_unlink_bp); }
   void _xadd(Operand *Dest, Variable *Src, bool Locked) {
     AutoMemorySandboxer<> _(this, &Dest, &Src);
     Context.insert<typename Traits::Insts::Xadd>(Dest, Src, Locked);

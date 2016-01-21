@@ -57,13 +57,16 @@ protected:
   void _push_rbp();
   Traits::X86OperandMem *_sandbox_mem_reference(X86OperandMem *Mem);
   void _sub_sp(Operand *Adjustment);
+  void _link_bp();
+  void _unlink_bp();
+  void _push_reg(Variable *Reg);
 
   void initSandbox();
+  void emitSandboxedReturn();
   void lowerIndirectJump(Variable *JumpTarget);
+  void emitGetIP(CfgNode *Node);
   Inst *emitCallToTarget(Operand *CallTarget, Variable *ReturnReg) override;
   Variable *moveReturnValueToRegister(Operand *Value, Type ReturnType) override;
-  void addProlog(CfgNode *Node) override;
-  void addEpilog(CfgNode *Node) override;
 
 private:
   ENABLE_MAKE_UNIQUE;

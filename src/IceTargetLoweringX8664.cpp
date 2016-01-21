@@ -215,6 +215,84 @@ void TargetX8664::_push_rbp() {
   Context.insert<typename Traits::Insts::Store>(ebp, TopOfStack);
 }
 
+void TargetX8664::_link_bp() {
+  Variable *esp =
+      getPhysicalRegister(Traits::RegisterSet::Reg_esp, IceType_i32);
+  Variable *rsp =
+      getPhysicalRegister(Traits::RegisterSet::Reg_rsp, Traits::WordType);
+  Variable *ebp =
+      getPhysicalRegister(Traits::RegisterSet::Reg_ebp, IceType_i32);
+  Variable *rbp =
+      getPhysicalRegister(Traits::RegisterSet::Reg_rbp, Traits::WordType);
+  Variable *r15 =
+      getPhysicalRegister(Traits::RegisterSet::Reg_r15, Traits::WordType);
+
+  if (!NeedSandboxing) {
+    _push(rbp);
+    _mov(rbp, rsp);
+  } else {
+    _push_rbp();
+
+    AutoBundle _(this);
+    _redefined(Context.insert<InstFakeDef>(ebp, rbp));
+    _redefined(Context.insert<InstFakeDef>(esp, rsp));
+    _mov(ebp, esp);
+    _redefined(Context.insert<InstFakeDef>(rsp, esp));
+    _add(rbp, r15);
+  }
+  // Keep ebp live for late-stage liveness analysis (e.g. asm-verbose mode).
+  Context.insert<InstFakeUse>(rbp);
+}
+
+void TargetX8664::_unlink_bp() {
+  Variable *rsp =
+      getPhysicalRegister(Traits::RegisterSet::Reg_rsp, IceType_i64);
+  Variable *rbp =
+      getPhysicalRegister(Traits::RegisterSet::Reg_rbp, IceType_i64);
+  Variable *ebp =
+      getPhysicalRegister(Traits::RegisterSet::Reg_ebp, IceType_i32);
+  // For late-stage liveness analysis (e.g. asm-verbose mode), adding a fake
+  // use of rsp before the assignment of rsp=rbp keeps previous rsp
+  // adjustments from being dead-code eliminated.
+  Context.insert<InstFakeUse>(rsp);
+  if (!NeedSandboxing) {
+    _mov(rsp, rbp);
+    _pop(rbp);
+  } else {
+    _mov_sp(ebp);
+
+    Variable *r15 =
+        getPhysicalRegister(Traits::RegisterSet::Reg_r15, IceType_i64);
+    Variable *rcx =
+        getPhysicalRegister(Traits::RegisterSet::Reg_rcx, IceType_i64);
+    Variable *ecx =
+        getPhysicalRegister(Traits::RegisterSet::Reg_ecx, IceType_i32);
+
+    _pop(rcx);
+    Context.insert<InstFakeDef>(ecx, rcx);
+    AutoBundle _(this);
+    _mov(ebp, ecx);
+
+    _redefined(Context.insert<InstFakeDef>(rbp, ebp));
+    _add(rbp, r15);
+  }
+}
+
+void TargetX8664::_push_reg(Variable *Reg) {
+  Variable *rbp =
+      getPhysicalRegister(Traits::RegisterSet::Reg_rbp, Traits::WordType);
+  if (Reg != rbp || !NeedSandboxing) {
+    _push(Reg);
+  } else {
+    _push_rbp();
+  }
+}
+
+void TargetX8664::emitGetIP(CfgNode *Node) {
+  // No IP base register is needed on X86-64.
+  (void)Node;
+}
+
 Traits::X86OperandMem *TargetX8664::_sandbox_mem_reference(X86OperandMem *Mem) {
   // In x86_64-nacl, all memory references are relative to %r15 (i.e., %rzp.)
   // NaCl sandboxing also requires that any registers that are not %rsp and
@@ -326,7 +404,7 @@ Traits::X86OperandMem *TargetX8664::_sandbox_mem_reference(X86OperandMem *Mem) {
 
 void TargetX8664::_sub_sp(Operand *Adjustment) {
   Variable *rsp =
-      getPhysicalRegister(Traits::RegisterSet::Reg_rsp, IceType_i64);
+      getPhysicalRegister(Traits::RegisterSet::Reg_rsp, Traits::WordType);
   if (!NeedSandboxing) {
     _sub(rsp, Adjustment);
     return;
@@ -448,371 +526,11 @@ Variable *TargetX8664::moveReturnValueToRegister(Operand *Value,
   }
 }
 
-void TargetX8664::addProlog(CfgNode *Node) {
-  // Stack frame layout:
-  //
-  // +------------------------+
-  // | 1. return address      |
-  // +------------------------+
-  // | 2. preserved registers |
-  // +------------------------+
-  // | 3. padding             |
-  // +------------------------+
-  // | 4. global spill area   |
-  // +------------------------+
-  // | 5. padding             |
-  // +------------------------+
-  // | 6. local spill area    |
-  // +------------------------+
-  // | 7. padding             |
-  // +------------------------+
-  // | 8. allocas             |
-  // +------------------------+
-  // | 9. padding             |
-  // +------------------------+
-  // | 10. out args           |
-  // +------------------------+ <--- StackPointer
-  //
-  // The following variables record the size in bytes of the given areas:
-  //  * X86_RET_IP_SIZE_BYTES:  area 1
-  //  * PreservedRegsSizeBytes: area 2
-  //  * SpillAreaPaddingBytes:  area 3
-  //  * GlobalsSize:            area 4
-  //  * GlobalsAndSubsequentPaddingSize: areas 4 - 5
-  //  * LocalsSpillAreaSize:    area 6
-  //  * SpillAreaSizeBytes:     areas 3 - 10
-  //  * maxOutArgsSizeBytes():  area 10
-
-  // Determine stack frame offsets for each Variable without a register
-  // assignment. This can be done as one variable per stack slot. Or, do
-  // coalescing by running the register allocator again with an infinite set of
-  // registers (as a side effect, this gives variables a second chance at
-  // physical register assignment).
-  //
-  // A middle ground approach is to leverage sparsity and allocate one block of
-  // space on the frame for globals (variables with multi-block lifetime), and
-  // one block to share for locals (single-block lifetime).
-
-  Context.init(Node);
-  Context.setInsertPoint(Context.getCur());
-
-  llvm::SmallBitVector CalleeSaves =
-      getRegisterSet(RegSet_CalleeSave, RegSet_None);
-  RegsUsed = llvm::SmallBitVector(CalleeSaves.size());
-  VarList SortedSpilledVariables, VariablesLinkedToSpillSlots;
-  size_t GlobalsSize = 0;
-  // If there is a separate locals area, this represents that area. Otherwise
-  // it counts any variable not counted by GlobalsSize.
-  SpillAreaSizeBytes = 0;
-  // If there is a separate locals area, this specifies the alignment for it.
-  uint32_t LocalsSlotsAlignmentBytes = 0;
-  // The entire spill locations area gets aligned to largest natural alignment
-  // of the variables that have a spill slot.
-  uint32_t SpillAreaAlignmentBytes = 0;
-  // A spill slot linked to a variable with a stack slot should reuse that
-  // stack slot.
-  std::function<bool(Variable *)> TargetVarHook =
-      [&VariablesLinkedToSpillSlots](Variable *Var) {
-        if (auto *SpillVar =
-                llvm::dyn_cast<typename Traits::SpillVariable>(Var)) {
-          assert(Var->mustNotHaveReg());
-          if (SpillVar->getLinkedTo() && !SpillVar->getLinkedTo()->hasReg()) {
-            VariablesLinkedToSpillSlots.push_back(Var);
-            return true;
-          }
-        }
-        return false;
-      };
-
-  // Compute the list of spilled variables and bounds for GlobalsSize, etc.
-  getVarStackSlotParams(SortedSpilledVariables, RegsUsed, &GlobalsSize,
-                        &SpillAreaSizeBytes, &SpillAreaAlignmentBytes,
-                        &LocalsSlotsAlignmentBytes, TargetVarHook);
-  uint32_t LocalsSpillAreaSize = SpillAreaSizeBytes;
-  SpillAreaSizeBytes += GlobalsSize;
-
-  // Add push instructions for preserved registers.
-  uint32_t NumCallee = 0;
-  size_t PreservedRegsSizeBytes = 0;
-  llvm::SmallBitVector Pushed(CalleeSaves.size());
-  for (SizeT i = 0; i < CalleeSaves.size(); ++i) {
-    const int32_t Canonical = Traits::getBaseReg(i);
-    assert(Canonical == Traits::getBaseReg(Canonical));
-    if (CalleeSaves[i] && RegsUsed[i])
-      Pushed[Canonical] = true;
-  }
-
-  Variable *rbp =
-      getPhysicalRegister(Traits::RegisterSet::Reg_rbp, IceType_i64);
-  Variable *ebp =
-      getPhysicalRegister(Traits::RegisterSet::Reg_ebp, IceType_i32);
-  Variable *rsp =
-      getPhysicalRegister(Traits::RegisterSet::Reg_rsp, IceType_i64);
-
-  for (SizeT i = 0; i < Pushed.size(); ++i) {
-    if (!Pushed[i])
-      continue;
-    assert(static_cast<int32_t>(i) == Traits::getBaseReg(i));
-    ++NumCallee;
-    PreservedRegsSizeBytes += typeWidthInBytes(IceType_i64);
-    Variable *Src = getPhysicalRegister(i, IceType_i64);
-    if (Src != rbp || !NeedSandboxing) {
-      _push(getPhysicalRegister(i, IceType_i64));
-    } else {
-      _push_rbp();
-    }
-  }
-  Ctx->statsUpdateRegistersSaved(NumCallee);
-
-  // Generate "push ebp; mov ebp, esp"
-  if (IsEbpBasedFrame) {
-    assert((RegsUsed & getRegisterSet(RegSet_FramePointer, RegSet_None))
-               .count() == 0);
-    PreservedRegsSizeBytes += typeWidthInBytes(IceType_i64);
-    Variable *esp =
-        getPhysicalRegister(Traits::RegisterSet::Reg_esp, IceType_i32);
-    Variable *r15 =
-        getPhysicalRegister(Traits::RegisterSet::Reg_r15, IceType_i64);
-
-    if (!NeedSandboxing) {
-      _push(rbp);
-      _mov(rbp, rsp);
-    } else {
-      _push_rbp();
-
-      AutoBundle _(this);
-      _redefined(Context.insert<InstFakeDef>(ebp, rbp));
-      _redefined(Context.insert<InstFakeDef>(esp, rsp));
-      _mov(ebp, esp);
-      _redefined(Context.insert<InstFakeDef>(rsp, esp));
-      _add(rbp, r15);
-    }
-    // Keep ebp live for late-stage liveness analysis (e.g. asm-verbose mode).
-    Context.insert<InstFakeUse>(rbp);
-  }
-
-  // Align the variables area. SpillAreaPaddingBytes is the size of the region
-  // after the preserved registers and before the spill areas.
-  // LocalsSlotsPaddingBytes is the amount of padding between the globals and
-  // locals area if they are separate.
-  assert(SpillAreaAlignmentBytes <= Traits::X86_STACK_ALIGNMENT_BYTES);
-  assert(LocalsSlotsAlignmentBytes <= SpillAreaAlignmentBytes);
-  uint32_t SpillAreaPaddingBytes = 0;
-  uint32_t LocalsSlotsPaddingBytes = 0;
-  alignStackSpillAreas(Traits::X86_RET_IP_SIZE_BYTES + PreservedRegsSizeBytes,
-                       SpillAreaAlignmentBytes, GlobalsSize,
-                       LocalsSlotsAlignmentBytes, &SpillAreaPaddingBytes,
-                       &LocalsSlotsPaddingBytes);
-  SpillAreaSizeBytes += SpillAreaPaddingBytes + LocalsSlotsPaddingBytes;
-  uint32_t GlobalsAndSubsequentPaddingSize =
-      GlobalsSize + LocalsSlotsPaddingBytes;
-
-  // Align esp if necessary.
-  if (NeedsStackAlignment) {
-    uint32_t StackOffset =
-        Traits::X86_RET_IP_SIZE_BYTES + PreservedRegsSizeBytes;
-    uint32_t StackSize =
-        Traits::applyStackAlignment(StackOffset + SpillAreaSizeBytes);
-    StackSize = Traits::applyStackAlignment(StackSize + maxOutArgsSizeBytes());
-    SpillAreaSizeBytes = StackSize - StackOffset;
-  } else {
-    SpillAreaSizeBytes += maxOutArgsSizeBytes();
-  }
-
-  // Combine fixed allocations into SpillAreaSizeBytes if we are emitting the
-  // fixed allocations in the prolog.
-  if (PrologEmitsFixedAllocas)
-    SpillAreaSizeBytes += FixedAllocaSizeBytes;
-  // Generate "sub esp, SpillAreaSizeBytes"
-  if (SpillAreaSizeBytes) {
-    if (NeedSandboxing) {
-      _sub_sp(Ctx->getConstantInt32(SpillAreaSizeBytes));
-    } else {
-      _sub(getPhysicalRegister(getStackReg(), IceType_i64),
-           Ctx->getConstantInt32(SpillAreaSizeBytes));
-    }
-    // If the fixed allocas are aligned more than the stack frame, align the
-    // stack pointer accordingly.
-    if (PrologEmitsFixedAllocas &&
-        FixedAllocaAlignBytes > Traits::X86_STACK_ALIGNMENT_BYTES) {
-      assert(IsEbpBasedFrame);
-      _and(getPhysicalRegister(Traits::RegisterSet::Reg_rsp, IceType_i64),
-           Ctx->getConstantInt32(-FixedAllocaAlignBytes));
-    }
-  }
-
-  // Account for alloca instructions with known frame offsets.
-  if (!PrologEmitsFixedAllocas)
-    SpillAreaSizeBytes += FixedAllocaSizeBytes;
-
-  Ctx->statsUpdateFrameBytes(SpillAreaSizeBytes);
-
-  // Fill in stack offsets for stack args, and copy args into registers for
-  // those that were register-allocated. Args are pushed right to left, so
-  // Arg[0] is closest to the stack/frame pointer.
-  Variable *FramePtr =
-      getPhysicalRegister(getFrameOrStackReg(), Traits::WordType);
-  size_t BasicFrameOffset =
-      PreservedRegsSizeBytes + Traits::X86_RET_IP_SIZE_BYTES;
-  if (!IsEbpBasedFrame)
-    BasicFrameOffset += SpillAreaSizeBytes;
-
-  const VarList &Args = Func->getArgs();
-  size_t InArgsSizeBytes = 0;
-  unsigned NumXmmArgs = 0;
-  unsigned NumGPRArgs = 0;
-  for (Variable *Arg : Args) {
-    // Skip arguments passed in registers.
-    if (isVectorType(Arg->getType()) || isScalarFloatingType(Arg->getType())) {
-      if (NumXmmArgs < Traits::X86_MAX_XMM_ARGS) {
-        ++NumXmmArgs;
-        continue;
-      }
-    } else {
-      assert(isScalarIntegerType(Arg->getType()));
-      if (NumGPRArgs < Traits::X86_MAX_GPR_ARGS) {
-        ++NumGPRArgs;
-        continue;
-      }
-    }
-    // For esp-based frames, the esp value may not stabilize to its home value
-    // until after all the fixed-size alloca instructions have executed.  In
-    // this case, a stack adjustment is needed when accessing in-args in order
-    // to copy them into registers.
-    size_t StackAdjBytes = 0;
-    if (!IsEbpBasedFrame && !PrologEmitsFixedAllocas)
-      StackAdjBytes -= FixedAllocaSizeBytes;
-    finishArgumentLowering(Arg, FramePtr, BasicFrameOffset, StackAdjBytes,
-                           InArgsSizeBytes);
-  }
-
-  // Fill in stack offsets for locals.
-  assignVarStackSlots(SortedSpilledVariables, SpillAreaPaddingBytes,
-                      SpillAreaSizeBytes, GlobalsAndSubsequentPaddingSize,
-                      IsEbpBasedFrame);
-  // Assign stack offsets to variables that have been linked to spilled
-  // variables.
-  for (Variable *Var : VariablesLinkedToSpillSlots) {
-    Variable *Linked =
-        (llvm::cast<typename Traits::SpillVariable>(Var))->getLinkedTo();
-    Var->setStackOffset(Linked->getStackOffset());
-  }
-  this->HasComputedFrame = true;
-
-  if (BuildDefs::dump() && Func->isVerbose(IceV_Frame)) {
-    OstreamLocker L(Func->getContext());
-    Ostream &Str = Func->getContext()->getStrDump();
-
-    Str << "Stack layout:\n";
-    uint32_t EspAdjustmentPaddingSize =
-        SpillAreaSizeBytes - LocalsSpillAreaSize -
-        GlobalsAndSubsequentPaddingSize - SpillAreaPaddingBytes -
-        maxOutArgsSizeBytes();
-    Str << " in-args = " << InArgsSizeBytes << " bytes\n"
-        << " return address = " << Traits::X86_RET_IP_SIZE_BYTES << " bytes\n"
-        << " preserved registers = " << PreservedRegsSizeBytes << " bytes\n"
-        << " spill area padding = " << SpillAreaPaddingBytes << " bytes\n"
-        << " globals spill area = " << GlobalsSize << " bytes\n"
-        << " globals-locals spill areas intermediate padding = "
-        << GlobalsAndSubsequentPaddingSize - GlobalsSize << " bytes\n"
-        << " locals spill area = " << LocalsSpillAreaSize << " bytes\n"
-        << " esp alignment padding = " << EspAdjustmentPaddingSize
-        << " bytes\n";
-
-    Str << "Stack details:\n"
-        << " esp adjustment = " << SpillAreaSizeBytes << " bytes\n"
-        << " spill area alignment = " << SpillAreaAlignmentBytes << " bytes\n"
-        << " outgoing args size = " << maxOutArgsSizeBytes() << " bytes\n"
-        << " locals spill area alignment = " << LocalsSlotsAlignmentBytes
-        << " bytes\n"
-        << " is ebp based = " << IsEbpBasedFrame << "\n";
-  }
-}
-
-void TargetX8664::addEpilog(CfgNode *Node) {
-  InstList &Insts = Node->getInsts();
-  InstList::reverse_iterator RI, E;
-  for (RI = Insts.rbegin(), E = Insts.rend(); RI != E; ++RI) {
-    if (llvm::isa<typename Traits::Insts::Ret>(*RI))
-      break;
-  }
-  if (RI == E)
-    return;
-
-  // Convert the reverse_iterator position into its corresponding (forward)
-  // iterator position.
-  InstList::iterator InsertPoint = RI.base();
-  --InsertPoint;
-  Context.init(Node);
-  Context.setInsertPoint(InsertPoint);
-
-  Variable *rsp =
-      getPhysicalRegister(Traits::RegisterSet::Reg_rsp, IceType_i64);
-
-  if (!IsEbpBasedFrame) {
-    // add rsp, SpillAreaSizeBytes
-    if (SpillAreaSizeBytes != 0) {
-      _add_sp(Ctx->getConstantInt32(SpillAreaSizeBytes));
-    }
-  } else {
-    Variable *rbp =
-        getPhysicalRegister(Traits::RegisterSet::Reg_rbp, IceType_i64);
-    Variable *ebp =
-        getPhysicalRegister(Traits::RegisterSet::Reg_ebp, IceType_i32);
-    // For late-stage liveness analysis (e.g. asm-verbose mode), adding a fake
-    // use of rsp before the assignment of rsp=rbp keeps previous rsp
-    // adjustments from being dead-code eliminated.
-    Context.insert<InstFakeUse>(rsp);
-    if (!NeedSandboxing) {
-      _mov(rsp, rbp);
-      _pop(rbp);
-    } else {
-      _mov_sp(ebp);
-
-      Variable *r15 =
-          getPhysicalRegister(Traits::RegisterSet::Reg_r15, IceType_i64);
-      Variable *rcx =
-          getPhysicalRegister(Traits::RegisterSet::Reg_rcx, IceType_i64);
-      Variable *ecx =
-          getPhysicalRegister(Traits::RegisterSet::Reg_ecx, IceType_i32);
-
-      _pop(rcx);
-      Context.insert<InstFakeDef>(ecx, rcx);
-      AutoBundle _(this);
-      _mov(ebp, ecx);
-
-      _redefined(Context.insert<InstFakeDef>(rbp, ebp));
-      _add(rbp, r15);
-    }
-  }
-
-  // Add pop instructions for preserved registers.
-  llvm::SmallBitVector CalleeSaves =
-      getRegisterSet(RegSet_CalleeSave, RegSet_None);
-  llvm::SmallBitVector Popped(CalleeSaves.size());
-  for (int32_t i = CalleeSaves.size() - 1; i >= 0; --i) {
-    if (i == Traits::RegisterSet::Reg_rbp && IsEbpBasedFrame)
-      continue;
-    const SizeT Canonical = Traits::getBaseReg(i);
-    if (CalleeSaves[i] && RegsUsed[i])
-      Popped[Canonical] = true;
-  }
-  for (int32_t i = Popped.size() - 1; i >= 0; --i) {
-    if (!Popped[i])
-      continue;
-    assert(i == Traits::getBaseReg(i));
-    _pop(getPhysicalRegister(i, IceType_i64));
-  }
-
-  if (!NeedSandboxing) {
-    return;
-  }
-
+void TargetX8664::emitSandboxedReturn() {
   Variable *T_rcx = makeReg(IceType_i64, Traits::RegisterSet::Reg_rcx);
   Variable *T_ecx = makeReg(IceType_i32, Traits::RegisterSet::Reg_ecx);
   _pop(T_rcx);
   _mov(T_ecx, T_rcx);
-
   // lowerIndirectJump(T_ecx);
   Variable *r15 =
       getPhysicalRegister(Traits::RegisterSet::Reg_r15, IceType_i64);
@@ -827,12 +545,6 @@ void TargetX8664::addEpilog(CfgNode *Node) {
 
     _jmp(T_rcx);
   }
-
-  if (RI->getSrcSize()) {
-    auto *RetValue = llvm::cast<Variable>(RI->getSrc(0));
-    Context.insert<InstFakeUse>(RetValue);
-  }
-  RI->setDeleted();
 }
 
 void TargetX8664::emitJumpTable(const Cfg *Func,

@@ -141,6 +141,67 @@ void TargetX8632::_sub_sp(Operand *Adjustment) {
   _sub(esp, Adjustment);
 }
 
+void TargetX8632::_link_bp() {
+  Variable *ebp = getPhysicalRegister(Traits::RegisterSet::Reg_ebp);
+  Variable *esp = getPhysicalRegister(Traits::RegisterSet::Reg_esp);
+  _push(ebp);
+  _mov(ebp, esp);
+  // Keep ebp live for late-stage liveness analysis (e.g. asm-verbose mode).
+  Context.insert<InstFakeUse>(ebp);
+}
+
+void TargetX8632::_unlink_bp() {
+  Variable *esp = getPhysicalRegister(Traits::RegisterSet::Reg_esp);
+  Variable *ebp = getPhysicalRegister(Traits::RegisterSet::Reg_ebp);
+  // For late-stage liveness analysis (e.g. asm-verbose mode), adding a fake
+  // use of esp before the assignment of esp=ebp keeps previous esp
+  // adjustments from being dead-code eliminated.
+  Context.insert<InstFakeUse>(esp);
+  _mov(esp, ebp);
+  _pop(ebp);
+}
+
+void TargetX8632::_push_reg(Variable *Reg) { _push(Reg); }
+
+void TargetX8632::emitGetIP(CfgNode *Node) {
+  // If there is a non-deleted InstX86GetIP instruction, we need to move it to
+  // the point after the stack frame has stabilized but before
+  // register-allocated in-args are copied into their home registers.  It would
+  // be slightly faster to search for the GetIP instruction before other prolog
+  // instructions are inserted, but it's more clear to do the whole
+  // transformation in a single place.
+  Traits::Insts::GetIP *GetIPInst = nullptr;
+  if (Ctx->getFlags().getUseNonsfi()) {
+    for (Inst &Instr : Node->getInsts()) {
+      if (auto *GetIP = llvm::dyn_cast<Traits::Insts::GetIP>(&Instr)) {
+        if (!Instr.isDeleted())
+          GetIPInst = GetIP;
+        break;
+      }
+    }
+  }
+  // Delete any existing InstX86GetIP instruction and reinsert it here.  Also,
+  // insert the call to the helper function and the spill to the stack, to
+  // simplify emission.
+  if (GetIPInst) {
+    GetIPInst->setDeleted();
+    Variable *Dest = GetIPInst->getDest();
+    Variable *CallDest =
+        Dest->hasReg() ? Dest
+                       : getPhysicalRegister(Traits::RegisterSet::Reg_eax);
+    // Call the getIP_<reg> helper.
+    IceString RegName = Traits::getRegName(CallDest->getRegNum());
+    Constant *CallTarget = Ctx->getConstantExternSym(H_getIP_prefix + RegName);
+    Context.insert<Traits::Insts::Call>(CallDest, CallTarget);
+    // Insert a new version of InstX86GetIP.
+    Context.insert<Traits::Insts::GetIP>(CallDest);
+    // Spill the register to its home stack location if necessary.
+    if (!Dest->hasReg()) {
+      _mov(Dest, CallDest);
+    }
+  }
+}
+
 void TargetX8632::lowerIndirectJump(Variable *JumpTarget) {
   AutoBundle _(this);
 
@@ -195,352 +256,7 @@ Variable *TargetX8632::moveReturnValueToRegister(Operand *Value,
   }
 }
 
-void TargetX8632::addProlog(CfgNode *Node) {
-  // Stack frame layout:
-  //
-  // +------------------------+
-  // | 1. return address      |
-  // +------------------------+
-  // | 2. preserved registers |
-  // +------------------------+
-  // | 3. padding             |
-  // +------------------------+
-  // | 4. global spill area   |
-  // +------------------------+
-  // | 5. padding             |
-  // +------------------------+
-  // | 6. local spill area    |
-  // +------------------------+
-  // | 7. padding             |
-  // +------------------------+
-  // | 8. allocas             |
-  // +------------------------+
-  // | 9. padding             |
-  // +------------------------+
-  // | 10. out args           |
-  // +------------------------+ <--- StackPointer
-  //
-  // The following variables record the size in bytes of the given areas:
-  //  * X86_RET_IP_SIZE_BYTES:  area 1
-  //  * PreservedRegsSizeBytes: area 2
-  //  * SpillAreaPaddingBytes:  area 3
-  //  * GlobalsSize:            area 4
-  //  * GlobalsAndSubsequentPaddingSize: areas 4 - 5
-  //  * LocalsSpillAreaSize:    area 6
-  //  * SpillAreaSizeBytes:     areas 3 - 10
-  //  * maxOutArgsSizeBytes():  area 10
-
-  // Determine stack frame offsets for each Variable without a register
-  // assignment. This can be done as one variable per stack slot. Or, do
-  // coalescing by running the register allocator again with an infinite set of
-  // registers (as a side effect, this gives variables a second chance at
-  // physical register assignment).
-  //
-  // A middle ground approach is to leverage sparsity and allocate one block of
-  // space on the frame for globals (variables with multi-block lifetime), and
-  // one block to share for locals (single-block lifetime).
-
-  Context.init(Node);
-  Context.setInsertPoint(Context.getCur());
-
-  llvm::SmallBitVector CalleeSaves =
-      getRegisterSet(RegSet_CalleeSave, RegSet_None);
-  RegsUsed = llvm::SmallBitVector(CalleeSaves.size());
-  VarList SortedSpilledVariables, VariablesLinkedToSpillSlots;
-  size_t GlobalsSize = 0;
-  // If there is a separate locals area, this represents that area. Otherwise
-  // it counts any variable not counted by GlobalsSize.
-  SpillAreaSizeBytes = 0;
-  // If there is a separate locals area, this specifies the alignment for it.
-  uint32_t LocalsSlotsAlignmentBytes = 0;
-  // The entire spill locations area gets aligned to largest natural alignment
-  // of the variables that have a spill slot.
-  uint32_t SpillAreaAlignmentBytes = 0;
-  // A spill slot linked to a variable with a stack slot should reuse that
-  // stack slot.
-  std::function<bool(Variable *)> TargetVarHook =
-      [&VariablesLinkedToSpillSlots](Variable *Var) {
-        if (auto *SpillVar =
-                llvm::dyn_cast<typename Traits::SpillVariable>(Var)) {
-          assert(Var->mustNotHaveReg());
-          if (SpillVar->getLinkedTo() && !SpillVar->getLinkedTo()->hasReg()) {
-            VariablesLinkedToSpillSlots.push_back(Var);
-            return true;
-          }
-        }
-        return false;
-      };
-
-  // Compute the list of spilled variables and bounds for GlobalsSize, etc.
-  getVarStackSlotParams(SortedSpilledVariables, RegsUsed, &GlobalsSize,
-                        &SpillAreaSizeBytes, &SpillAreaAlignmentBytes,
-                        &LocalsSlotsAlignmentBytes, TargetVarHook);
-  uint32_t LocalsSpillAreaSize = SpillAreaSizeBytes;
-  SpillAreaSizeBytes += GlobalsSize;
-
-  // Add push instructions for preserved registers.
-  uint32_t NumCallee = 0;
-  size_t PreservedRegsSizeBytes = 0;
-  llvm::SmallBitVector Pushed(CalleeSaves.size());
-  for (SizeT i = 0; i < CalleeSaves.size(); ++i) {
-    SizeT Canonical = Traits::getBaseReg(i);
-    if (CalleeSaves[i] && RegsUsed[i]) {
-      Pushed[Canonical] = true;
-    }
-  }
-  for (SizeT i = 0; i < Pushed.size(); ++i) {
-    if (Pushed[i]) {
-      ++NumCallee;
-      PreservedRegsSizeBytes += typeWidthInBytes(IceType_i32);
-      _push(getPhysicalRegister(i));
-    }
-  }
-  Ctx->statsUpdateRegistersSaved(NumCallee);
-
-  // Generate "push ebp; mov ebp, esp"
-  if (IsEbpBasedFrame) {
-    assert((RegsUsed & getRegisterSet(RegSet_FramePointer, RegSet_None))
-               .count() == 0);
-    PreservedRegsSizeBytes += typeWidthInBytes(IceType_i32);
-    Variable *ebp = getPhysicalRegister(Traits::RegisterSet::Reg_ebp);
-    Variable *esp = getPhysicalRegister(Traits::RegisterSet::Reg_esp);
-    _push(ebp);
-    _mov(ebp, esp);
-    // Keep ebp live for late-stage liveness analysis (e.g. asm-verbose mode).
-    Context.insert<InstFakeUse>(ebp);
-  }
-
-  // Align the variables area. SpillAreaPaddingBytes is the size of the region
-  // after the preserved registers and before the spill areas.
-  // LocalsSlotsPaddingBytes is the amount of padding between the globals and
-  // locals area if they are separate.
-  assert(SpillAreaAlignmentBytes <= Traits::X86_STACK_ALIGNMENT_BYTES);
-  assert(LocalsSlotsAlignmentBytes <= SpillAreaAlignmentBytes);
-  uint32_t SpillAreaPaddingBytes = 0;
-  uint32_t LocalsSlotsPaddingBytes = 0;
-  alignStackSpillAreas(Traits::X86_RET_IP_SIZE_BYTES + PreservedRegsSizeBytes,
-                       SpillAreaAlignmentBytes, GlobalsSize,
-                       LocalsSlotsAlignmentBytes, &SpillAreaPaddingBytes,
-                       &LocalsSlotsPaddingBytes);
-  SpillAreaSizeBytes += SpillAreaPaddingBytes + LocalsSlotsPaddingBytes;
-  uint32_t GlobalsAndSubsequentPaddingSize =
-      GlobalsSize + LocalsSlotsPaddingBytes;
-
-  // Functions returning scalar floating point types may need to convert values
-  // from an in-register xmm value to the top of the x87 floating point stack.
-  // This is done by a movp[sd] and an fld[sd].  Ensure there is enough scratch
-  // space on the stack for this.
-  const Type ReturnType = Func->getReturnType();
-  if (isScalarFloatingType(ReturnType)) {
-    // Avoid misaligned double-precicion load/store.
-    NeedsStackAlignment = true;
-    SpillAreaSizeBytes =
-        std::max(typeWidthInBytesOnStack(ReturnType), SpillAreaSizeBytes);
-  }
-
-  // Align esp if necessary.
-  if (NeedsStackAlignment) {
-    uint32_t StackOffset =
-        Traits::X86_RET_IP_SIZE_BYTES + PreservedRegsSizeBytes;
-    uint32_t StackSize =
-        Traits::applyStackAlignment(StackOffset + SpillAreaSizeBytes);
-    StackSize = Traits::applyStackAlignment(StackSize + maxOutArgsSizeBytes());
-    SpillAreaSizeBytes = StackSize - StackOffset;
-  } else {
-    SpillAreaSizeBytes += maxOutArgsSizeBytes();
-  }
-
-  // Combine fixed allocations into SpillAreaSizeBytes if we are emitting the
-  // fixed allocations in the prolog.
-  if (PrologEmitsFixedAllocas)
-    SpillAreaSizeBytes += FixedAllocaSizeBytes;
-  if (SpillAreaSizeBytes) {
-    // Generate "sub esp, SpillAreaSizeBytes"
-    _sub(getPhysicalRegister(Traits::RegisterSet::Reg_esp),
-         Ctx->getConstantInt32(SpillAreaSizeBytes));
-    // If the fixed allocas are aligned more than the stack frame, align the
-    // stack pointer accordingly.
-    if (PrologEmitsFixedAllocas &&
-        FixedAllocaAlignBytes > Traits::X86_STACK_ALIGNMENT_BYTES) {
-      assert(IsEbpBasedFrame);
-      _and(getPhysicalRegister(Traits::RegisterSet::Reg_esp),
-           Ctx->getConstantInt32(-FixedAllocaAlignBytes));
-    }
-  }
-
-  // Account for known-frame-offset alloca instructions that were not already
-  // combined into the prolog.
-  if (!PrologEmitsFixedAllocas)
-    SpillAreaSizeBytes += FixedAllocaSizeBytes;
-
-  Ctx->statsUpdateFrameBytes(SpillAreaSizeBytes);
-
-  // Fill in stack offsets for stack args, and copy args into registers for
-  // those that were register-allocated. Args are pushed right to left, so
-  // Arg[0] is closest to the stack/frame pointer.
-  Variable *FramePtr = getPhysicalRegister(getFrameOrStackReg());
-  size_t BasicFrameOffset =
-      PreservedRegsSizeBytes + Traits::X86_RET_IP_SIZE_BYTES;
-  if (!IsEbpBasedFrame)
-    BasicFrameOffset += SpillAreaSizeBytes;
-
-  // If there is a non-deleted InstX86GetIP instruction, we need to move it to
-  // the point after the stack frame has stabilized but before
-  // register-allocated in-args are copied into their home registers.  It would
-  // be slightly faster to search for the GetIP instruction before other prolog
-  // instructions are inserted, but it's more clear to do the whole
-  // transformation in a single place.
-  Traits::Insts::GetIP *GetIPInst = nullptr;
-  if (Ctx->getFlags().getUseNonsfi()) {
-    for (Inst &Instr : Node->getInsts()) {
-      if (auto *GetIP = llvm::dyn_cast<Traits::Insts::GetIP>(&Instr)) {
-        if (!Instr.isDeleted())
-          GetIPInst = GetIP;
-        break;
-      }
-    }
-  }
-  // Delete any existing InstX86GetIP instruction and reinsert it here.  Also,
-  // insert the call to the helper function and the spill to the stack, to
-  // simplify emission.
-  if (GetIPInst) {
-    GetIPInst->setDeleted();
-    Variable *Dest = GetIPInst->getDest();
-    Variable *CallDest =
-        Dest->hasReg() ? Dest
-                       : getPhysicalRegister(Traits::RegisterSet::Reg_eax);
-    // Call the getIP_<reg> helper.
-    IceString RegName = Traits::getRegName(CallDest->getRegNum());
-    Constant *CallTarget = Ctx->getConstantExternSym(H_getIP_prefix + RegName);
-    Context.insert<Traits::Insts::Call>(CallDest, CallTarget);
-    // Insert a new version of InstX86GetIP.
-    Context.insert<Traits::Insts::GetIP>(CallDest);
-    // Spill the register to its home stack location if necessary.
-    if (!Dest->hasReg()) {
-      _mov(Dest, CallDest);
-    }
-  }
-
-  const VarList &Args = Func->getArgs();
-  size_t InArgsSizeBytes = 0;
-  unsigned NumXmmArgs = 0;
-  for (Variable *Arg : Args) {
-    // Skip arguments passed in registers.
-    if (isVectorType(Arg->getType()) && NumXmmArgs < Traits::X86_MAX_XMM_ARGS) {
-      ++NumXmmArgs;
-      continue;
-    }
-    // For esp-based frames where the allocas are done outside the prolog, the
-    // esp value may not stabilize to its home value until after all the
-    // fixed-size alloca instructions have executed.  In this case, a stack
-    // adjustment is needed when accessing in-args in order to copy them into
-    // registers.
-    size_t StackAdjBytes = 0;
-    if (!IsEbpBasedFrame && !PrologEmitsFixedAllocas)
-      StackAdjBytes -= FixedAllocaSizeBytes;
-    finishArgumentLowering(Arg, FramePtr, BasicFrameOffset, StackAdjBytes,
-                           InArgsSizeBytes);
-  }
-
-  // Fill in stack offsets for locals.
-  assignVarStackSlots(SortedSpilledVariables, SpillAreaPaddingBytes,
-                      SpillAreaSizeBytes, GlobalsAndSubsequentPaddingSize,
-                      IsEbpBasedFrame);
-  // Assign stack offsets to variables that have been linked to spilled
-  // variables.
-  for (Variable *Var : VariablesLinkedToSpillSlots) {
-    Variable *Linked =
-        (llvm::cast<typename Traits::SpillVariable>(Var))->getLinkedTo();
-    Var->setStackOffset(Linked->getStackOffset());
-  }
-  this->HasComputedFrame = true;
-
-  if (BuildDefs::dump() && Func->isVerbose(IceV_Frame)) {
-    OstreamLocker L(Func->getContext());
-    Ostream &Str = Func->getContext()->getStrDump();
-
-    Str << "Stack layout:\n";
-    uint32_t EspAdjustmentPaddingSize =
-        SpillAreaSizeBytes - LocalsSpillAreaSize -
-        GlobalsAndSubsequentPaddingSize - SpillAreaPaddingBytes -
-        maxOutArgsSizeBytes();
-    Str << " in-args = " << InArgsSizeBytes << " bytes\n"
-        << " return address = " << Traits::X86_RET_IP_SIZE_BYTES << " bytes\n"
-        << " preserved registers = " << PreservedRegsSizeBytes << " bytes\n"
-        << " spill area padding = " << SpillAreaPaddingBytes << " bytes\n"
-        << " globals spill area = " << GlobalsSize << " bytes\n"
-        << " globals-locals spill areas intermediate padding = "
-        << GlobalsAndSubsequentPaddingSize - GlobalsSize << " bytes\n"
-        << " locals spill area = " << LocalsSpillAreaSize << " bytes\n"
-        << " esp alignment padding = " << EspAdjustmentPaddingSize
-        << " bytes\n";
-
-    Str << "Stack details:\n"
-        << " esp adjustment = " << SpillAreaSizeBytes << " bytes\n"
-        << " spill area alignment = " << SpillAreaAlignmentBytes << " bytes\n"
-        << " outgoing args size = " << maxOutArgsSizeBytes() << " bytes\n"
-        << " locals spill area alignment = " << LocalsSlotsAlignmentBytes
-        << " bytes\n"
-        << " is ebp based = " << IsEbpBasedFrame << "\n";
-  }
-}
-
-void TargetX8632::addEpilog(CfgNode *Node) {
-  InstList &Insts = Node->getInsts();
-  InstList::reverse_iterator RI, E;
-  for (RI = Insts.rbegin(), E = Insts.rend(); RI != E; ++RI) {
-    if (llvm::isa<typename Traits::Insts::Ret>(*RI))
-      break;
-  }
-  if (RI == E)
-    return;
-
-  // Convert the reverse_iterator position into its corresponding (forward)
-  // iterator position.
-  InstList::iterator InsertPoint = RI.base();
-  --InsertPoint;
-  Context.init(Node);
-  Context.setInsertPoint(InsertPoint);
-
-  Variable *esp = getPhysicalRegister(Traits::RegisterSet::Reg_esp);
-  if (IsEbpBasedFrame) {
-    Variable *ebp = getPhysicalRegister(Traits::RegisterSet::Reg_ebp);
-    // For late-stage liveness analysis (e.g. asm-verbose mode), adding a fake
-    // use of esp before the assignment of esp=ebp keeps previous esp
-    // adjustments from being dead-code eliminated.
-    Context.insert<InstFakeUse>(esp);
-    _mov(esp, ebp);
-    _pop(ebp);
-  } else {
-    // add esp, SpillAreaSizeBytes
-    if (SpillAreaSizeBytes)
-      _add(esp, Ctx->getConstantInt32(SpillAreaSizeBytes));
-  }
-
-  // Add pop instructions for preserved registers.
-  llvm::SmallBitVector CalleeSaves =
-      getRegisterSet(RegSet_CalleeSave, RegSet_None);
-  llvm::SmallBitVector Popped(CalleeSaves.size());
-  for (SizeT i = 0; i < CalleeSaves.size(); ++i) {
-    SizeT Canonical = Traits::getBaseReg(i);
-    if (CalleeSaves[i] && RegsUsed[i]) {
-      Popped[Canonical] = true;
-    }
-  }
-  for (SizeT i = 0; i < Popped.size(); ++i) {
-    SizeT j = Popped.size() - i - 1;
-    SizeT Canonical = Traits::getBaseReg(j);
-    if (j == Traits::RegisterSet::Reg_ebp && IsEbpBasedFrame)
-      continue;
-    if (Popped[j]) {
-      _pop(getPhysicalRegister(Canonical));
-    }
-  }
-
-  if (!NeedSandboxing) {
-    return;
-  }
-
+void TargetX8632::emitSandboxedReturn() {
   // Change the original ret instruction into a sandboxed return sequence.
   // t:ecx = pop
   // bundle_lock
@@ -551,11 +267,6 @@ void TargetX8632::addEpilog(CfgNode *Node) {
   Variable *T_ecx = makeReg(IceType_i32, Traits::RegisterSet::Reg_ecx);
   _pop(T_ecx);
   lowerIndirectJump(T_ecx);
-  if (RI->getSrcSize()) {
-    auto *RetValue = llvm::cast<Variable>(RI->getSrc(0));
-    Context.insert<InstFakeUse>(RetValue);
-  }
-  RI->setDeleted();
 }
 
 void TargetX8632::emitJumpTable(const Cfg *Func,
