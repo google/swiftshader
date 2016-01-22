@@ -1863,19 +1863,35 @@ void InstARM32Vcvt::emitIAS(const Cfg *Func) const {
   case S2si:
     Asm->vcvtis(getDest(), getSrc(0), getPredicate());
     break;
+  case S2ui:
+    Asm->vcvtus(getDest(), getSrc(0), getPredicate());
+    break;
+  case Si2s:
+    Asm->vcvtsi(getDest(), getSrc(0), getPredicate());
+    break;
+  case Ui2s:
+    Asm->vcvtsu(getDest(), getSrc(0), getPredicate());
+    break;
+  case D2si:
+    Asm->vcvtid(getDest(), getSrc(0), getPredicate());
+    break;
+  case D2ui:
+    Asm->vcvtud(getDest(), getSrc(0), getPredicate());
+    break;
+  case Si2d:
+    Asm->vcvtdi(getDest(), getSrc(0), getPredicate());
+    break;
+  case Ui2d:
+    Asm->vcvtdu(getDest(), getSrc(0), getPredicate());
+    break;
   case S2d:
     Asm->vcvtds(getDest(), getSrc(0), getPredicate());
     break;
   case D2s:
     Asm->vcvtsd(getDest(), getSrc(0), getPredicate());
     break;
-  default:
-    // TODO(kschimpf): Fill in other variants.
-    Asm->setNeedsTextFixup();
-    break;
   }
-  if (Asm->needsTextFixup())
-    emitUsingTextFixup(Func);
+  assert(!Asm->needsTextFixup());
 }
 
 void InstARM32Vcvt::dump(const Cfg *Func) const {

@@ -723,22 +723,27 @@ class Assembler : public ValueObject {
   void vsqrtd(DRegister dd, DRegister dm, Condition cond = AL);
 
 #if 0
-  // Moved to ARM32::AssemblerARM32::vcvtsd
+  // Moved to ARM32::AssemblerARM32::vcvtsd().
   void vcvtsd(SRegister sd, DRegister dm, Condition cond = AL);
-  // Moved to ARM32::AssemblerARM32:vcvtds
+  // Moved to ARM32::AssemblerARM32:vcvtds().
   void vcvtds(DRegister dd, SRegister sm, Condition cond = AL);
   // Moved to ARM32::AssemblerARM32::vcvtis()
   void vcvtis(SRegister sd, SRegister sm, Condition cond = AL);
-#endif
+  // Moved to ARM32::AssemblerARM32::vcvtid()
   void vcvtid(SRegister sd, DRegister dm, Condition cond = AL);
+  // Moved to ARM32::AssemblerARM32::vcvtsi()
   void vcvtsi(SRegister sd, SRegister sm, Condition cond = AL);
+  // Moved to ARM32::AssemblerARM32::vcvtdi()
   void vcvtdi(DRegister dd, SRegister sm, Condition cond = AL);
+  // Moved to ARM32::AssemblerARM32::vcvtus().
   void vcvtus(SRegister sd, SRegister sm, Condition cond = AL);
+  // Moved to ARM32::AssemblerARM32::vcvtud().
   void vcvtud(SRegister sd, DRegister dm, Condition cond = AL);
+  // Moved to ARM32::AssemblerARM32::vcvtsu()
   void vcvtsu(SRegister sd, SRegister sm, Condition cond = AL);
+  // Moved to ARM32::AssemblerARM32::vcvtdu()
   void vcvtdu(DRegister dd, SRegister sm, Condition cond = AL);
 
-#if 0
   // Moved to ARM23::AssemblerARM32::vcmps().
   void vcmps(SRegister sd, SRegister sm, Condition cond = AL);
   // Moved to ARM23::AssemblerARM32::vcmpd().

@@ -333,7 +333,28 @@ public:
   // vcvt<c>.S32.F32
   void vcvtis(const Operand *OpSd, const Operand *OpSm, CondARM32::Cond Cond);
 
+  // vcvt<c>.S32.F64
+  void vcvtid(const Operand *OpSd, const Operand *OpDm, CondARM32::Cond Cond);
+
+  // vcvt<c>.F64.S32
+  void vcvtdi(const Operand *OpDd, const Operand *OpSm, CondARM32::Cond Cond);
+
+  // vcvt<c>.F64.U32
+  void vcvtdu(const Operand *OpDd, const Operand *OpSm, CondARM32::Cond Cond);
+
   void vcvtsd(const Operand *OpSd, const Operand *OpDm, CondARM32::Cond Cond);
+
+  // vcvt<c>.F32.S32
+  void vcvtsi(const Operand *OpSd, const Operand *OpSm, CondARM32::Cond Cond);
+
+  // vcvt<c>.F32.U32
+  void vcvtsu(const Operand *OpSd, const Operand *OpSm, CondARM32::Cond Cond);
+
+  // vcvt<c>.U32.F64
+  void vcvtud(const Operand *OpSd, const Operand *OpDm, CondARM32::Cond Cond);
+
+  // vcvt<c>.u32.f32
+  void vcvtus(const Operand *OpSd, const Operand *OpSm, CondARM32::Cond Cond);
 
   void vdivd(const Operand *OpDd, const Operand *OpDn, const Operand *OpDm,
              CondARM32::Cond Cond);

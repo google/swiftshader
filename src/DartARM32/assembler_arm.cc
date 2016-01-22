@@ -1122,37 +1122,37 @@ void Assembler::vcvtid(SRegister sd, DRegister dm, Condition cond) {
   EmitVFPsd(cond, B23 | B21 | B20 | B19 | B18 | B16 | B8 | B7 | B6, sd, dm);
 }
 
-
+#if 0
+// Moved to ARM32::AssemblerARM32::vcvtsi()
 void Assembler::vcvtsi(SRegister sd, SRegister sm, Condition cond) {
   EmitVFPsss(cond, B23 | B21 | B20 | B19 | B7 | B6, sd, S0, sm);
 }
 
-
+// Moved to ARM32::AssemblerARM32::vcvtdi()
 void Assembler::vcvtdi(DRegister dd, SRegister sm, Condition cond) {
   EmitVFPds(cond, B23 | B21 | B20 | B19 | B8 | B7 | B6, dd, sm);
 }
 
-
+// Moved to ARM32::AssemblerARM32::vcvtus().
 void Assembler::vcvtus(SRegister sd, SRegister sm, Condition cond) {
   EmitVFPsss(cond, B23 | B21 | B20 | B19 | B18 | B7 | B6, sd, S0, sm);
 }
 
-
+// Moved to ARM32::AssemblerARM32::vcvtud().
 void Assembler::vcvtud(SRegister sd, DRegister dm, Condition cond) {
   EmitVFPsd(cond, B23 | B21 | B20 | B19 | B18 | B8 | B7 | B6, sd, dm);
 }
 
-
+// Moved to ARM32::AssemblerARM32::vcvtsu()
 void Assembler::vcvtsu(SRegister sd, SRegister sm, Condition cond) {
   EmitVFPsss(cond, B23 | B21 | B20 | B19 | B6, sd, S0, sm);
 }
 
-
+// Moved to ARM32::AssemblerARM32::vcvtdu()
 void Assembler::vcvtdu(DRegister dd, SRegister sm, Condition cond) {
   EmitVFPds(cond, B23 | B21 | B20 | B19 | B8 | B6, dd, sm);
 }
 
-#if 0
 // Moved to ARM23::AssemblerARM32::vcmps().
 void Assembler::vcmps(SRegister sd, SRegister sm, Condition cond) {
   EmitVFPsss(cond, B23 | B21 | B20 | B18 | B6, sd, S0, sm);
