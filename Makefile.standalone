@@ -250,6 +250,7 @@ SRCS = \
   IceTargetLowering.cpp \
   IceTargetLoweringARM32.cpp \
   IceTargetLoweringMIPS32.cpp \
+  IceTargetLoweringX86.cpp \
   IceTargetLoweringX8632.cpp \
   IceTargetLoweringX8664.cpp \
   IceAssembler.cpp \

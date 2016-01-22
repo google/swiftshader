@@ -298,6 +298,10 @@ protected:
   virtual Variable *moveReturnValueToRegister(Operand *Value,
                                               Type ReturnType) = 0;
 
+  /// Emit a jump table to the constant pool.
+  void emitJumpTable(const Cfg *Func,
+                     const InstJumpTable *JumpTable) const override;
+
   /// Emit a fake use of esp to make sure esp stays alive for the entire
   /// function. Otherwise some esp adjustments get dead-code eliminated.
   void keepEspLiveAtExit() {
@@ -1020,6 +1024,51 @@ private:
   static FixupKind PcRelFixup;
   static FixupKind AbsFixup;
 };
+
+template <typename TraitsType>
+class TargetDataX86 final : public TargetDataLowering {
+  using Traits = TraitsType;
+  TargetDataX86() = delete;
+  TargetDataX86(const TargetDataX86 &) = delete;
+  TargetDataX86 &operator=(const TargetDataX86 &) = delete;
+
+public:
+  ~TargetDataX86() override = default;
+
+  static std::unique_ptr<TargetDataLowering> create(GlobalContext *Ctx) {
+    return makeUnique<TargetDataX86>(Ctx);
+  }
+
+  void lowerGlobals(const VariableDeclarationList &Vars,
+                    const IceString &SectionSuffix) override;
+  void lowerConstants() override;
+  void lowerJumpTables() override;
+
+private:
+  ENABLE_MAKE_UNIQUE;
+
+  explicit TargetDataX86(GlobalContext *Ctx) : TargetDataLowering(Ctx){};
+  template <typename T> static void emitConstantPool(GlobalContext *Ctx);
+};
+
+class TargetHeaderX86 : public TargetHeaderLowering {
+  TargetHeaderX86() = delete;
+  TargetHeaderX86(const TargetHeaderX86 &) = delete;
+  TargetHeaderX86 &operator=(const TargetHeaderX86 &) = delete;
+
+public:
+  ~TargetHeaderX86() = default;
+
+  static std::unique_ptr<TargetHeaderLowering> create(GlobalContext *Ctx) {
+    return makeUnique<TargetHeaderX86>(Ctx);
+  }
+
+private:
+  ENABLE_MAKE_UNIQUE;
+
+  explicit TargetHeaderX86(GlobalContext *Ctx) : TargetHeaderLowering(Ctx) {}
+};
+
 } // end of namespace X86NAMESPACE
 } // end of namespace Ice
 

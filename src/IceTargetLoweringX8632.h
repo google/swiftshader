@@ -34,9 +34,6 @@ class TargetX8632 final : public ::Ice::X8632::TargetX86Base<X8632::Traits> {
   TargetX8632(const TargetX8632 &) = delete;
   TargetX8632 &operator=(const TargetX8632 &) = delete;
 
-  void emitJumpTable(const Cfg *Func,
-                     const InstJumpTable *JumpTable) const override;
-
 public:
   ~TargetX8632() = default;
 
@@ -70,55 +67,14 @@ private:
   ENABLE_MAKE_UNIQUE;
   friend class X8632::TargetX86Base<X8632::Traits>;
 
+  explicit TargetX8632(Cfg *Func) : TargetX86Base(Func) {}
+
   Operand *createNaClReadTPSrcOperand() {
     Constant *Zero = Ctx->getConstantZero(IceType_i32);
     return Traits::X86OperandMem::create(Func, IceType_i32, nullptr, Zero,
                                          nullptr, 0,
                                          Traits::X86OperandMem::SegReg_GS);
   }
-
-  explicit TargetX8632(Cfg *Func) : TargetX86Base(Func) {}
-};
-
-class TargetDataX8632 final : public TargetDataLowering {
-  TargetDataX8632() = delete;
-  TargetDataX8632(const TargetDataX8632 &) = delete;
-  TargetDataX8632 &operator=(const TargetDataX8632 &) = delete;
-
-public:
-  ~TargetDataX8632() override = default;
-
-  static std::unique_ptr<TargetDataLowering> create(GlobalContext *Ctx) {
-    return makeUnique<TargetDataX8632>(Ctx);
-  }
-
-  void lowerGlobals(const VariableDeclarationList &Vars,
-                    const IceString &SectionSuffix) override;
-  void lowerConstants() override;
-  void lowerJumpTables() override;
-
-private:
-  ENABLE_MAKE_UNIQUE;
-
-  explicit TargetDataX8632(GlobalContext *Ctx);
-  template <typename T> static void emitConstantPool(GlobalContext *Ctx);
-};
-
-class TargetHeaderX8632 final : public TargetHeaderLowering {
-  TargetHeaderX8632() = delete;
-  TargetHeaderX8632(const TargetHeaderX8632 &) = delete;
-  TargetHeaderX8632 &operator=(const TargetHeaderX8632 &) = delete;
-
-public:
-  static std::unique_ptr<TargetHeaderLowering> create(GlobalContext *Ctx) {
-    return std::unique_ptr<TargetHeaderLowering>(new TargetHeaderX8632(Ctx));
-  }
-
-protected:
-  explicit TargetHeaderX8632(GlobalContext *Ctx);
-
-private:
-  ~TargetHeaderX8632() = default;
 };
 
 } // end of namespace X8632

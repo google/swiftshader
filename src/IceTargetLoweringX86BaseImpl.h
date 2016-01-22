@@ -33,6 +33,58 @@
 #include <stack>
 
 namespace Ice {
+namespace X86 {
+template <typename T> struct PoolTypeConverter {};
+
+template <> struct PoolTypeConverter<float> {
+  using PrimitiveIntType = uint32_t;
+  using IceType = ConstantFloat;
+  static const Type Ty = IceType_f32;
+  static const char *TypeName;
+  static const char *AsmTag;
+  static const char *PrintfString;
+};
+
+template <> struct PoolTypeConverter<double> {
+  using PrimitiveIntType = uint64_t;
+  using IceType = ConstantDouble;
+  static const Type Ty = IceType_f64;
+  static const char *TypeName;
+  static const char *AsmTag;
+  static const char *PrintfString;
+};
+
+// Add converter for int type constant pooling
+template <> struct PoolTypeConverter<uint32_t> {
+  using PrimitiveIntType = uint32_t;
+  using IceType = ConstantInteger32;
+  static const Type Ty = IceType_i32;
+  static const char *TypeName;
+  static const char *AsmTag;
+  static const char *PrintfString;
+};
+
+// Add converter for int type constant pooling
+template <> struct PoolTypeConverter<uint16_t> {
+  using PrimitiveIntType = uint32_t;
+  using IceType = ConstantInteger32;
+  static const Type Ty = IceType_i16;
+  static const char *TypeName;
+  static const char *AsmTag;
+  static const char *PrintfString;
+};
+
+// Add converter for int type constant pooling
+template <> struct PoolTypeConverter<uint8_t> {
+  using PrimitiveIntType = uint32_t;
+  using IceType = ConstantInteger32;
+  static const Type Ty = IceType_i8;
+  static const char *TypeName;
+  static const char *AsmTag;
+  static const char *PrintfString;
+};
+} // end of namespace X86
+
 namespace X86NAMESPACE {
 
 /// A helper class to ease the settings of RandomizationPoolingPause to disable
@@ -7227,6 +7279,156 @@ TargetX86Base<TraitsType>::randomizeOrPoolImmediate(X86OperandMem *MemOperand,
         MemOperand->getShift(), MemOperand->getSegmentRegister());
     return NewMemOperand;
   }
+  }
+}
+
+template <typename TraitsType>
+void TargetX86Base<TraitsType>::emitJumpTable(
+    const Cfg *Func, const InstJumpTable *JumpTable) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Ctx->getStrEmit();
+  const bool UseNonsfi = Ctx->getFlags().getUseNonsfi();
+  const IceString MangledName = Ctx->mangleName(Func->getFunctionName());
+  const IceString Prefix = UseNonsfi ? ".data.rel.ro." : ".rodata.";
+  Str << "\t.section\t" << Prefix << MangledName
+      << "$jumptable,\"a\",@progbits\n";
+  Str << "\t.align\t" << typeWidthInBytes(getPointerType()) << "\n";
+  Str << InstJumpTable::makeName(MangledName, JumpTable->getId()) << ":";
+
+  // On X86 ILP32 pointers are 32-bit hence the use of .long
+  for (SizeT I = 0; I < JumpTable->getNumTargets(); ++I)
+    Str << "\n\t.long\t" << JumpTable->getTarget(I)->getAsmName();
+  Str << "\n";
+}
+
+template <typename TraitsType>
+template <typename T>
+void TargetDataX86<TraitsType>::emitConstantPool(GlobalContext *Ctx) {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Ctx->getStrEmit();
+  Type Ty = T::Ty;
+  SizeT Align = typeAlignInBytes(Ty);
+  ConstantList Pool = Ctx->getConstantPool(Ty);
+
+  Str << "\t.section\t.rodata.cst" << Align << ",\"aM\",@progbits," << Align
+      << "\n";
+  Str << "\t.align\t" << Align << "\n";
+
+  // If reorder-pooled-constants option is set to true, we need to shuffle the
+  // constant pool before emitting it.
+  if (Ctx->getFlags().shouldReorderPooledConstants() && !Pool.empty()) {
+    // Use the constant's kind value as the salt for creating random number
+    // generator.
+    Operand::OperandKind K = (*Pool.begin())->getKind();
+    RandomNumberGenerator RNG(Ctx->getFlags().getRandomSeed(),
+                              RPE_PooledConstantReordering, K);
+    RandomShuffle(Pool.begin(), Pool.end(),
+                  [&RNG](uint64_t N) { return (uint32_t)RNG.next(N); });
+  }
+
+  for (Constant *C : Pool) {
+    if (!C->getShouldBePooled())
+      continue;
+    auto *Const = llvm::cast<typename T::IceType>(C);
+    typename T::IceType::PrimType Value = Const->getValue();
+    // Use memcpy() to copy bits from Value into RawValue in a way that avoids
+    // breaking strict-aliasing rules.
+    typename T::PrimitiveIntType RawValue;
+    memcpy(&RawValue, &Value, sizeof(Value));
+    char buf[30];
+    int CharsPrinted =
+        snprintf(buf, llvm::array_lengthof(buf), T::PrintfString, RawValue);
+    assert(CharsPrinted >= 0);
+    assert((size_t)CharsPrinted < llvm::array_lengthof(buf));
+    (void)CharsPrinted; // avoid warnings if asserts are disabled
+    Const->emitPoolLabel(Str, Ctx);
+    Str << ":\n\t" << T::AsmTag << "\t" << buf << "\t/* " << T::TypeName << " "
+        << Value << " */\n";
+  }
+}
+
+template <typename TraitsType>
+void TargetDataX86<TraitsType>::lowerConstants() {
+  if (Ctx->getFlags().getDisableTranslation())
+    return;
+  switch (Ctx->getFlags().getOutFileType()) {
+  case FT_Elf: {
+    ELFObjectWriter *Writer = Ctx->getObjectWriter();
+
+    Writer->writeConstantPool<ConstantInteger32>(IceType_i8);
+    Writer->writeConstantPool<ConstantInteger32>(IceType_i16);
+    Writer->writeConstantPool<ConstantInteger32>(IceType_i32);
+
+    Writer->writeConstantPool<ConstantFloat>(IceType_f32);
+    Writer->writeConstantPool<ConstantDouble>(IceType_f64);
+  } break;
+  case FT_Asm:
+  case FT_Iasm: {
+    OstreamLocker L(Ctx);
+
+    emitConstantPool<PoolTypeConverter<uint8_t>>(Ctx);
+    emitConstantPool<PoolTypeConverter<uint16_t>>(Ctx);
+    emitConstantPool<PoolTypeConverter<uint32_t>>(Ctx);
+
+    emitConstantPool<PoolTypeConverter<float>>(Ctx);
+    emitConstantPool<PoolTypeConverter<double>>(Ctx);
+  } break;
+  }
+}
+
+template <typename TraitsType>
+void TargetDataX86<TraitsType>::lowerJumpTables() {
+  const bool IsPIC = Ctx->getFlags().getUseNonsfi();
+  switch (Ctx->getFlags().getOutFileType()) {
+  case FT_Elf: {
+    ELFObjectWriter *Writer = Ctx->getObjectWriter();
+    for (const JumpTableData &JT : Ctx->getJumpTables())
+      Writer->writeJumpTable(JT, Traits::FK_Abs, IsPIC);
+  } break;
+  case FT_Asm:
+    // Already emitted from Cfg
+    break;
+  case FT_Iasm: {
+    if (!BuildDefs::dump())
+      return;
+    Ostream &Str = Ctx->getStrEmit();
+    const IceString Prefix = IsPIC ? ".data.rel.ro." : ".rodata.";
+    for (const JumpTableData &JT : Ctx->getJumpTables()) {
+      Str << "\t.section\t" << Prefix << JT.getFunctionName()
+          << "$jumptable,\"a\",@progbits\n";
+      Str << "\t.align\t" << typeWidthInBytes(getPointerType()) << "\n";
+      Str << InstJumpTable::makeName(JT.getFunctionName(), JT.getId()) << ":";
+
+      // On X8664 ILP32 pointers are 32-bit hence the use of .long
+      for (intptr_t TargetOffset : JT.getTargetOffsets())
+        Str << "\n\t.long\t" << JT.getFunctionName() << "+" << TargetOffset;
+      Str << "\n";
+    }
+  } break;
+  }
+}
+
+template <typename TraitsType>
+void TargetDataX86<TraitsType>::lowerGlobals(
+    const VariableDeclarationList &Vars, const IceString &SectionSuffix) {
+  const bool IsPIC = Ctx->getFlags().getUseNonsfi();
+  switch (Ctx->getFlags().getOutFileType()) {
+  case FT_Elf: {
+    ELFObjectWriter *Writer = Ctx->getObjectWriter();
+    Writer->writeDataSection(Vars, Traits::FK_Abs, SectionSuffix, IsPIC);
+  } break;
+  case FT_Asm:
+  case FT_Iasm: {
+    const IceString &TranslateOnly = Ctx->getFlags().getTranslateOnly();
+    OstreamLocker L(Ctx);
+    for (const VariableDeclaration *Var : Vars) {
+      if (GlobalContext::matchSymbolName(Var->getName(), TranslateOnly)) {
+        emitGlobal(*Var, SectionSuffix);
+      }
+    }
+  } break;
   }
 }
 } // end of namespace X86NAMESPACE
