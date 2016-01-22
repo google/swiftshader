@@ -356,14 +356,14 @@ EncodedOperand encodeOperand(const Operand *Opnd, IValueT &Value,
 }
 
 IValueT encodeImmRegOffset(IValueT Reg, IOffsetT Offset,
-                           OperandARM32Mem::AddrMode Mode) {
+                           OperandARM32Mem::AddrMode Mode,
+                           IValueT OffsetShift = 0) {
   IValueT Value = Mode | (Reg << kRnShift);
   if (Offset < 0) {
-    Value = (Value ^ U) | -Offset; // Flip U to adjust sign.
-  } else {
-    Value |= Offset;
+    Offset = -Offset;
+    Value ^= U; // Flip U to adjust sign.
   }
-  return Value;
+  return Value | (Offset >> OffsetShift);
 }
 
 // Encodes immediate register offset using encoding 3.
@@ -384,9 +384,11 @@ IValueT encodeImmRegOffset(OpEncoding AddressEncoding, IValueT Reg,
   switch (AddressEncoding) {
   case DefaultOpEncoding:
     return encodeImmRegOffset(Reg, Offset, Mode);
-  case ImmRegOffsetDiv4:
+  case ImmRegOffsetDiv4: {
     assert((Offset & 0x3) == 0);
-    return encodeImmRegOffset(Reg, Offset >> 2, Mode);
+    constexpr IValueT RightShift2 = 2;
+    return encodeImmRegOffset(Reg, Offset, Mode, RightShift2);
+  }
   case OpEncoding3:
     return encodeImmRegOffsetEnc3(Reg, Offset, Mode);
   case OpEncodingMemEx:
@@ -608,7 +610,6 @@ IValueT AssemblerARM32::encodeBranchOffset(IOffsetT Offset, IValueT Inst) {
 
   bool IsGoodOffset = canEncodeBranchOffset(Offset);
   assert(IsGoodOffset);
-  // Note: Following cast is for MINIMAL build.
   (void)IsGoodOffset;
 
   // Properly preserve only the bits supported in the instruction.
@@ -2242,9 +2243,8 @@ void AssemblerARM32::vldrd(const Operand *OpDd, const Operand *OpAddress,
   IValueT Address;
   EncodedOperand AddressEncoding =
       encodeAddress(OpAddress, Address, TInfo, ImmRegOffsetDiv4);
-  if (AddressEncoding != EncodedAsImmRegOffset)
-    // TODO(kschimpf) Fix this.
-    return setNeedsTextFixup();
+  (void)AddressEncoding;
+  assert(AddressEncoding == EncodedAsImmRegOffset);
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   IValueT Encoding = B27 | B26 | B24 | B20 | B11 | B9 | B8 |
                      (encodeCondition(Cond) << kConditionShift) |
@@ -2264,7 +2264,8 @@ void AssemblerARM32::vldrs(const Operand *OpSd, const Operand *OpAddress,
   IValueT Sd = encodeSRegister(OpSd, "Sd", Vldrs);
   assert(CondARM32::isDefined(Cond));
   IValueT Address;
-  EncodedOperand AddressEncoding = encodeAddress(OpAddress, Address, TInfo);
+  EncodedOperand AddressEncoding =
+      encodeAddress(OpAddress, Address, TInfo, ImmRegOffsetDiv4);
   (void)AddressEncoding;
   assert(AddressEncoding == EncodedAsImmRegOffset);
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
@@ -2318,9 +2319,8 @@ void AssemblerARM32::vstrd(const Operand *OpDd, const Operand *OpAddress,
   IValueT Address;
   IValueT AddressEncoding =
       encodeAddress(OpAddress, Address, TInfo, ImmRegOffsetDiv4);
-  if (AddressEncoding != EncodedAsImmRegOffset)
-    // TODO(kschimpf) Fix this.
-    return setNeedsTextFixup();
+  (void)AddressEncoding;
+  assert(AddressEncoding == EncodedAsImmRegOffset);
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   IValueT Encoding = B27 | B26 | B24 | B11 | B9 | B8 |
                      (encodeCondition(Cond) << kConditionShift) |
@@ -2340,8 +2340,10 @@ void AssemblerARM32::vstrs(const Operand *OpSd, const Operand *OpAddress,
   IValueT Sd = encodeSRegister(OpSd, "Sd", Vstrs);
   assert(CondARM32::isDefined(Cond));
   IValueT Address;
-  if (encodeAddress(OpAddress, Address, TInfo) != EncodedAsImmRegOffset)
-    assert(false);
+  IValueT AddressEncoding =
+      encodeAddress(OpAddress, Address, TInfo, ImmRegOffsetDiv4);
+  (void)AddressEncoding;
+  assert(AddressEncoding == EncodedAsImmRegOffset);
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   IValueT Encoding =
       B27 | B26 | B24 | B11 | B9 | (encodeCondition(Cond) << kConditionShift) |
