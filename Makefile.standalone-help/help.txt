@@ -1,0 +1,9 @@
+Targets:
+
+check-lit - run the lit tests
+check-xtest - run the cross tests
+
+ For more detailed help:
+
+ make -f Makefile.standalone help-<target> , e.g:
+ make -f Makefile.standalone help-check-lit

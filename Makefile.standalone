@@ -33,6 +33,14 @@ PNACL_TOOLCHAIN_ROOT ?= $(shell readlink -e $(TOOLCHAIN_ROOT)/pnacl_newlib_raw)
 # The location of PNaCl tools (e.g., binutils objdump, pnacl-clang++, etc.).
 PNACL_BIN_PATH ?= $(shell readlink -e $(PNACL_TOOLCHAIN_ROOT)/bin)
 
+# Allow tests to be overridden, e.g.:
+#   make -f Makefile.standalone check-lit \
+#     CHECK_LIT_TESTS="tests_lit/llvm2ice_tests/{alloc,arith}.ll"
+#   make -f Makefile.standalone check-xtest \
+#     CHECK_XTEST_TESTS=crosstest/Output/simple_loop_x8632_native_O2_sse2.xtest
+CHECK_LIT_TESTS ?= tests_lit
+CHECK_XTEST_TESTS ?= crosstest/Output
+
 # Hack to auto-detect autoconf versus cmake build of LLVM.  If the LLVM tools
 # were dynamically linked with something like libLLVM-3.7svn.so, it is an
 # autoconf build, otherwise it is a cmake build.  AUTOCONF is set to 0 for
@@ -334,7 +342,8 @@ make_symlink: $(OBJDIR)/pnacl-sz
 	@echo "Build Attributes:"
 	@$(SHOW_BUILD_ATTS)
 
-.PHONY: all compile_only make_symlink runtime bloat sb docs
+.PHONY: all compile_only make_symlink runtime bloat sb docs help \
+  help-check-lit help-check-xtest
 
 compile_only: $(OBJS)
 
@@ -415,7 +424,7 @@ runtime.is.built: $(RT_SRC) pydir/build-runtime.py
 
 check-lit: $(OBJDIR)/pnacl-sz make_symlink
 	PNACL_BIN_PATH=$(PNACL_BIN_PATH) \
-	$(LLVM_SRC_PATH)/utils/lit/lit.py -sv tests_lit \
+	$(LLVM_SRC_PATH)/utils/lit/lit.py -sv $(CHECK_LIT_TESTS) \
             $(FORCEASM_LIT_TEST_EXCLUDES) $(FORCEASM_LIT_PARAM)
 
 ifdef MINIMAL
@@ -441,7 +450,7 @@ check-xtest: $(OBJDIR)/pnacl-sz make_symlink runtime
           -e arm32,neon,test_vector_ops \
           -e arm32,neon,test_select
 	PNACL_BIN_PATH=$(PNACL_BIN_PATH) \
-	$(LLVM_SRC_PATH)/utils/lit/lit.py -sv crosstest/Output
+	$(LLVM_SRC_PATH)/utils/lit/lit.py -sv $(CHECK_XTEST_TESTS)
 endif
 
 check-unit: $(OBJDIR)/run_unittests
@@ -551,6 +560,15 @@ bloat: make_symlink
 
 docs:
 	make -C docs -f Makefile.standalone
+
+help:
+	@cat Makefile.standalone-help/help.txt
+
+help-check-lit:
+	@cat Makefile.standalone-help/check-lit.txt
+
+help-check-xtest:
+	@cat Makefile.standalone-help/check-xtest.txt
 
 clean:
 	rm -rf pnacl-sz *.o $(OBJDIR) $(SB_OBJDIR) build/pnacl-sz.bloat.json
