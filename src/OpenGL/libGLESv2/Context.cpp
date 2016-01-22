@@ -1293,12 +1293,7 @@ void Context::bindIndexedUniformBuffer(GLuint buffer, GLuint index, GLintptr off
 	mResourceManager->checkBufferAllocation(buffer);
 
 	Buffer* bufferObject = getBuffer(buffer);
-	if(bufferObject)
-	{
-		bufferObject->setOffset(offset);
-		bufferObject->setSize(size);
-	}
-	mState.uniformBuffers[index] = bufferObject;
+	mState.uniformBuffers[index].set(bufferObject, offset, size);
 }
 
 void Context::bindGenericTransformFeedbackBuffer(GLuint buffer)
@@ -1313,12 +1308,7 @@ void Context::bindIndexedTransformFeedbackBuffer(GLuint buffer, GLuint index, GL
 	mResourceManager->checkBufferAllocation(buffer);
 
 	Buffer* bufferObject = getBuffer(buffer);
-	if(bufferObject)
-	{
-		bufferObject->setOffset(offset);
-		bufferObject->setSize(size);
-	}
-	getTransformFeedback()->setBuffer(index, bufferObject);
+	getTransformFeedback()->setBuffer(index, bufferObject, offset, size);
 }
 
 bool Context::bindTransformFeedback(GLuint id)

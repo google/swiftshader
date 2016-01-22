@@ -14,6 +14,7 @@
 #ifndef LIBGLESV2_TRANSFORM_FEEDBACK_H_
 #define LIBGLESV2_TRANSFORM_FEEDBACK_H_
 
+#include "Buffer.h"
 #include "common/Object.hpp"
 #include "Renderer/Renderer.hpp"
 
@@ -21,7 +22,6 @@
 
 namespace es2
 {
-class Buffer;
 
 class TransformFeedback : public gl::NamedObject
 {
@@ -46,7 +46,7 @@ public:
 
 private:
 	gl::BindingPointer<Buffer> mGenericBuffer;
-	gl::BindingPointer<Buffer> mBuffer[MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS];
+	UniformBufferBinding mBuffer[MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS];
 
 	bool mActive;
 	bool mPaused;

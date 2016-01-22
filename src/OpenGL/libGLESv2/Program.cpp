@@ -284,7 +284,7 @@ namespace es2
 	int Program::getAttributeStream(int attributeIndex)
 	{
 		ASSERT(attributeIndex >= 0 && attributeIndex < MAX_VERTEX_ATTRIBS);
-    
+
 		return attributeStream[attributeIndex];
 	}
 
@@ -485,7 +485,7 @@ namespace es2
 		{
 			return false;   // Attempting to write an array to a non-array uniform is an INVALID_OPERATION
 		}
-	
+
 		count = std::min(size - (int)uniformIndex[location].element, count);
 
 		int index = numElements - 1;
@@ -672,7 +672,7 @@ namespace es2
 		{
 			return false;   // Attempting to write an array to a non-array uniform is an INVALID_OPERATION
 		}
-	
+
 		count = std::min(size - (int)uniformIndex[location].element, count);
 
 		if(targetUniform->type == GL_INT || targetUniform->type == GL_UNSIGNED_INT || IsSamplerUniform(targetUniform->type))
@@ -729,7 +729,7 @@ namespace es2
 		{
 			return false;   // Attempting to write an array to a non-array uniform is an INVALID_OPERATION
 		}
-	
+
 		count = std::min(size - (int)uniformIndex[location].element, count);
 
 		int index = numElements - 1;
@@ -791,7 +791,7 @@ namespace es2
 		{
 			return false;   // Attempting to write an array to a non-array uniform is an INVALID_OPERATION
 		}
-	
+
 		count = std::min(size - (int)uniformIndex[location].element, count);
 
 		if(targetUniform->type == GL_INT || targetUniform->type == GL_UNSIGNED_INT || IsSamplerUniform(targetUniform->type))
@@ -848,7 +848,7 @@ namespace es2
 		{
 			return false;   // Attempting to write an array to a non-array uniform is an INVALID_OPERATION
 		}
-	
+
 		count = std::min(size - (int)uniformIndex[location].element, count);
 
 		int index = numElements - 1;
@@ -1132,7 +1132,7 @@ namespace es2
 		}
 	}
 
-	void Program::applyUniformBuffers(gl::BindingPointer<Buffer>* uniformBuffers)
+	void Program::applyUniformBuffers(UniformBufferBinding* uniformBuffers)
 	{
 		GLint vertexUniformBuffers[IMPLEMENTATION_MAX_UNIFORM_BUFFER_BINDINGS];
 		GLint fragmentUniformBuffers[IMPLEMENTATION_MAX_UNIFORM_BUFFER_BINDINGS];
@@ -1175,9 +1175,9 @@ namespace es2
 		for(unsigned int bufferBindingIndex = 0; bufferBindingIndex < IMPLEMENTATION_MAX_UNIFORM_BUFFER_BINDINGS; ++bufferBindingIndex)
 		{
 			int index = vertexUniformBuffers[bufferBindingIndex];
-			device->VertexProcessor::setUniformBuffer(bufferBindingIndex, (index != -1) ? uniformBuffers[index]->getResource() : nullptr, 0);
+			device->VertexProcessor::setUniformBuffer(bufferBindingIndex, (index != -1) ? uniformBuffers[index].get()->getResource() : nullptr, (index != -1) ? uniformBuffers[index].getOffset() : 0);
 			index = fragmentUniformBuffers[bufferBindingIndex];
-			device->PixelProcessor::setUniformBuffer(bufferBindingIndex, (index != -1) ? uniformBuffers[index]->getResource() : nullptr, 0);
+			device->PixelProcessor::setUniformBuffer(bufferBindingIndex, (index != -1) ? uniformBuffers[index].get()->getResource() : nullptr, (index != -1) ? uniformBuffers[index].getOffset() : 0);
 		}
 	}
 
@@ -1256,7 +1256,7 @@ namespace es2
 							if(components >= 1) pixelBinary->semantic[in + i][0] = sw::Shader::Semantic();
 							if(components >= 2) pixelBinary->semantic[in + i][1] = sw::Shader::Semantic();
 							if(components >= 3) pixelBinary->semantic[in + i][2] = sw::Shader::Semantic();
-							if(components >= 4) pixelBinary->semantic[in + i][3] = sw::Shader::Semantic();					
+							if(components >= 4) pixelBinary->semantic[in + i][3] = sw::Shader::Semantic();
 						}
 					}
 
@@ -1316,7 +1316,7 @@ namespace es2
 
 		vertexBinary = new sw::VertexShader(vertexShader->getVertexShader());
 		pixelBinary = new sw::PixelShader(fragmentShader->getPixelShader());
-			
+
 		if(!linkVaryings())
 		{
 			return;
@@ -1467,7 +1467,7 @@ namespace es2
 		if(IsSamplerUniform(type))
 	    {
 			int index = registerIndex;
-			
+
 			do
 			{
 				if(shader == GL_VERTEX_SHADER)
@@ -1510,7 +1510,7 @@ namespace es2
 					if(index < MAX_TEXTURE_IMAGE_UNITS)
 					{
 						samplersPS[index].active = true;
-						
+
 						switch(type)
 						{
 						default:                      UNREACHABLE(type);
@@ -2307,7 +2307,7 @@ namespace es2
 		return linked;
 	}
 
-	bool Program::isValidated() const 
+	bool Program::isValidated() const
 	{
 		return validated;
 	}
@@ -2685,7 +2685,7 @@ namespace es2
 	{
 		resetInfoLog();
 
-		if(!isLinked()) 
+		if(!isLinked())
 		{
 			appendToInfoLog("Program has not been successfully linked.");
 			validated = false;
@@ -2722,7 +2722,7 @@ namespace es2
 			if(samplersPS[i].active)
 			{
 				unsigned int unit = samplersPS[i].logicalTextureUnit;
-            
+
 				if(unit >= MAX_COMBINED_TEXTURE_IMAGE_UNITS)
 				{
 					if(logErrors)
@@ -2757,7 +2757,7 @@ namespace es2
 			if(samplersVS[i].active)
 			{
 				unsigned int unit = samplersVS[i].logicalTextureUnit;
-            
+
 				if(unit >= MAX_COMBINED_TEXTURE_IMAGE_UNITS)
 				{
 					if(logErrors)

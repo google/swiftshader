@@ -44,7 +44,6 @@ struct TranslatedAttribute;
 struct TranslatedIndexData;
 
 class Device;
-class Buffer;
 class Shader;
 class Program;
 class Texture;
@@ -378,7 +377,7 @@ struct State
 	gl::BindingPointer<Buffer> pixelPackBuffer;
 	gl::BindingPointer<Buffer> pixelUnpackBuffer;
 	gl::BindingPointer<Buffer> genericUniformBuffer;
-	gl::BindingPointer<Buffer> uniformBuffers[MAX_UNIFORM_BUFFER_BINDINGS];
+	UniformBufferBinding uniformBuffers[MAX_UNIFORM_BUFFER_BINDINGS];
 
     GLuint readFramebuffer;
     GLuint drawFramebuffer;
