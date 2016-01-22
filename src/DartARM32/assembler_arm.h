@@ -727,8 +727,9 @@ class Assembler : public ValueObject {
   void vcvtsd(SRegister sd, DRegister dm, Condition cond = AL);
   // Moved to ARM32::AssemblerARM32:vcvtds
   void vcvtds(DRegister dd, SRegister sm, Condition cond = AL);
-#endif
+  // Moved to ARM32::AssemblerARM32::vcvtis()
   void vcvtis(SRegister sd, SRegister sm, Condition cond = AL);
+#endif
   void vcvtid(SRegister sd, DRegister dm, Condition cond = AL);
   void vcvtsi(SRegister sd, SRegister sm, Condition cond = AL);
   void vcvtdi(DRegister dd, SRegister sm, Condition cond = AL);

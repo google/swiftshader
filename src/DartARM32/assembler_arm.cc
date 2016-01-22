@@ -1111,13 +1111,12 @@ void Assembler::vcvtsd(SRegister sd, DRegister dm, Condition cond) {
 void Assembler::vcvtds(DRegister dd, SRegister sm, Condition cond) {
   EmitVFPds(cond, B23 | B21 | B20 | B18 | B17 | B16 | B7 | B6, dd, sm);
 }
-#endif
 
-
+// Moved to ARM32::AssemblerARM32::vcvtis()
 void Assembler::vcvtis(SRegister sd, SRegister sm, Condition cond) {
   EmitVFPsss(cond, B23 | B21 | B20 | B19 | B18 | B16 | B7 | B6, sd, S0, sm);
 }
-
+#endif
 
 void Assembler::vcvtid(SRegister sd, DRegister dm, Condition cond) {
   EmitVFPsd(cond, B23 | B21 | B20 | B19 | B18 | B16 | B8 | B7 | B6, sd, dm);

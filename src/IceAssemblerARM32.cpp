@@ -2133,12 +2133,27 @@ void AssemblerARM32::emitVFPsd(CondARM32::Cond Cond, IValueT Opcode, IValueT Sd,
 
 void AssemblerARM32::vcvtsd(const Operand *OpSd, const Operand *OpDm,
                             CondARM32::Cond Cond) {
-  constexpr const char *Vcvtsd = "vctsd";
+  constexpr const char *Vcvtsd = "vcvtsd";
   IValueT Sd = encodeSRegister(OpSd, "Sd", Vcvtsd);
   IValueT Dm = encodeDRegister(OpDm, "Dm", Vcvtsd);
   constexpr IValueT VcvtsdOpcode =
       B23 | B21 | B20 | B18 | B17 | B16 | B8 | B7 | B6;
   emitVFPsd(Cond, VcvtsdOpcode, Sd, Dm);
+}
+
+void AssemblerARM32::vcvtis(const Operand *OpSd, const Operand *OpSm,
+                            CondARM32::Cond Cond) {
+  // VCVT (between floating-point and integer, Floating-point)
+  //      - ARM Section A8.8.306, encoding A1:
+  //   vcvt<c>.s32.f32 <Sd>, <Sm>
+  //
+  // cccc11101D111101dddd10101M0mmmm where cccc=Cond, ddddD=Sd, and mmmmM=Sm.
+  constexpr const char *Vcvtis = "vcvtis";
+  IValueT Sd = encodeSRegister(OpSd, "Sd", Vcvtis);
+  IValueT Sm = encodeSRegister(OpSm, "Sm", Vcvtis);
+  constexpr IValueT VcvtsiOpcode = B23 | B21 | B20 | B19 | B18 | B16 | B7 | B6;
+  constexpr IValueT S0 = 0;
+  emitVFPsss(Cond, VcvtsiOpcode, Sd, S0, Sm);
 }
 
 void AssemblerARM32::emitVFPds(CondARM32::Cond Cond, IValueT Opcode, IValueT Dd,

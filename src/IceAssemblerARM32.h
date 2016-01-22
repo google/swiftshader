@@ -328,9 +328,12 @@ public:
   // Second argument of compare is zero (+0.0).
   void vcmpsz(const Operand *OpSd, CondARM32::Cond cond);
 
-  void vcvtsd(const Operand *OpSd, const Operand *OpDm, CondARM32::Cond Cond);
-
   void vcvtds(const Operand *OpDd, const Operand *OpSm, CondARM32::Cond Cond);
+
+  // vcvt<c>.S32.F32
+  void vcvtis(const Operand *OpSd, const Operand *OpSm, CondARM32::Cond Cond);
+
+  void vcvtsd(const Operand *OpSd, const Operand *OpDm, CondARM32::Cond Cond);
 
   void vdivd(const Operand *OpDd, const Operand *OpDn, const Operand *OpDm,
              CondARM32::Cond Cond);

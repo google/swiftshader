@@ -1860,6 +1860,9 @@ void InstARM32Vcvt::emit(const Cfg *Func) const {
 void InstARM32Vcvt::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   switch (Variant) {
+  case S2si:
+    Asm->vcvtis(getDest(), getSrc(0), getPredicate());
+    break;
   case S2d:
     Asm->vcvtds(getDest(), getSrc(0), getPredicate());
     break;
