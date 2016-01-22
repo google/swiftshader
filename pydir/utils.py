@@ -6,7 +6,10 @@ def shellcmd(command, echo=True):
     if not isinstance(command, str):
         command = ' '.join(command)
 
-    if echo: print '[cmd]', command
+    if echo:
+      print >> sys.stderr, '[cmd]'
+      print >> sys.stderr,  command
+      print >> sys.stderr
 
     stdout_result = subprocess.check_output(command, shell=True)
     if echo: sys.stdout.write(stdout_result)
