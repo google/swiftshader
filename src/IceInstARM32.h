@@ -1340,6 +1340,7 @@ private:
   void emitSingleDestSingleSource(const Cfg *Func) const;
 
   void emitIASSingleDestSingleSource(const Cfg *Func) const;
+  void emitIASCoreVFPMove(const Cfg *Func) const;
 
   Variable *DestHi = nullptr;
 };

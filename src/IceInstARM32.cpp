@@ -1124,6 +1124,30 @@ void InstARM32Mov::emitSingleDestSingleSource(const Cfg *Func) const {
   Src0->emit(Func);
 }
 
+void InstARM32Mov::emitIASCoreVFPMove(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  Operand *Src0 = getSrc(0);
+  if (!llvm::isa<Variable>(Src0))
+    // TODO(kschimpf) Handle moving constants into registers.
+    return Asm->setNeedsTextFixup();
+
+  // Move register to register.
+  Variable *Dest = getDest();
+  switch (Dest->getType()) {
+  default:
+    // TODO(kschimpf): Fill this out more.
+    return Asm->setNeedsTextFixup();
+  case IceType_f32:
+    switch (Src0->getType()) {
+    default:
+      // TODO(kschimpf): Fill this out more?
+      return Asm->setNeedsTextFixup();
+    case IceType_i32:
+      return Asm->vmovsr(Dest, Src0, getPredicate());
+    }
+  }
+}
+
 void InstARM32Mov::emitIASSingleDestSingleSource(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Variable *Dest = getDest();
@@ -1137,12 +1161,16 @@ void InstARM32Mov::emitIASSingleDestSingleSource(const Cfg *Func) const {
     llvm::report_fatal_error("mov can't load.");
   }
 
+  if (isMoveBetweenCoreAndVFPRegisters(Dest, Src0))
+    return emitIASCoreVFPMove(Func);
+
   const Type DestTy = Dest->getType();
-  const bool DestIsVector = isVectorType(DestTy);
-  const bool DestIsScalarFP = isScalarFloatingType(DestTy);
-  const bool CoreVFPMove = isMoveBetweenCoreAndVFPRegisters(Dest, Src0);
-  if (DestIsVector || DestIsScalarFP || CoreVFPMove)
+  if (isScalarFloatingType(DestTy))
     return Asm->setNeedsTextFixup();
+
+  if (isVectorType(DestTy))
+    return Asm->setNeedsTextFixup();
+
   return Asm->mov(Dest, Src0, getPredicate());
 }
 

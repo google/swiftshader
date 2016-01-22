@@ -199,6 +199,7 @@ IValueT getEncodedGPRegNum(const Variable *Var) {
 }
 
 IValueT getEncodedSRegNum(const Variable *Var) {
+  assert(Var->hasReg());
   return RegARM32::getEncodedSReg(Var->getRegNum());
 }
 
@@ -2375,6 +2376,27 @@ void AssemblerARM32::vldrs(const Operand *OpSd, const Operand *OpAddress,
                      (encodeCondition(Cond) << kConditionShift) |
                      (getYInRegXXXXY(Sd) << 22) |
                      (getXXXXInRegXXXXY(Sd) << 12) | Address;
+  emitInst(Encoding);
+}
+
+void AssemblerARM32::vmovsr(const Operand *OpSn, const Operand *OpRt,
+                            CondARM32::Cond Cond) {
+  // VMOV (between ARM core register and single-precision register)
+  //   ARM seciont A8.8.343, encoding A1.
+  //
+  //   vmov<c> <Sn>, <Rt>
+  //
+  // cccc1110000onnnntttt1010N0010000 where cccc=Cond, nnnnN = Sn, and tttt=Rt.
+  constexpr const char *Vmovsr = "vmovsr";
+  IValueT Sn = encodeSRegister(OpSn, "Sn", Vmovsr);
+  IValueT Rt = encodeGPRegister(OpRt, "Rt", Vmovsr);
+  assert(Sn < RegARM32::getNumSRegs());
+  assert(Rt < RegARM32::getNumGPRegs());
+  assert(CondARM32::isDefined(Cond));
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  IValueT Encoding = (encodeCondition(Cond) << kConditionShift) | B27 | B26 |
+                     B25 | B11 | B9 | B4 | (getXXXXInRegXXXXY(Sn) << 16) |
+                     (Rt << kRdShift) | (getYInRegXXXXY(Sn) << 7);
   emitInst(Encoding);
 }
 

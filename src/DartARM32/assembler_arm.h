@@ -617,7 +617,10 @@ class Assembler : public ValueObject {
   }
 
   // Floating point instructions (VFPv3-D16 and VFPv3-D32 profiles).
+#if 0
+  // Moved to ARM32::AssemblerARM32::vmovsr().
   void vmovsr(SRegister sn, Register rt, Condition cond = AL);
+#endif
   void vmovrs(Register rt, SRegister sn, Condition cond = AL);
   void vmovsrr(SRegister sm, Register rt, Register rt2, Condition cond = AL);
   void vmovrrs(Register rt, Register rt2, SRegister sm, Condition cond = AL);

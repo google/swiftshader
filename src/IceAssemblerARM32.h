@@ -382,6 +382,8 @@ public:
     vldrs(OpSd, OpAddress, Cond, TInfo);
   }
 
+  void vmovsr(const Operand *OpSn, const Operand *OpRt, CondARM32::Cond Cond);
+
   void vmuld(const Operand *OpDd, const Operand *OpDn, const Operand *OpDm,
              CondARM32::Cond Cond);
 
