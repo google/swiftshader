@@ -48,15 +48,15 @@ public:
 protected:
   void _add_sp(Operand *Adjustment);
   void _mov_sp(Operand *NewValue);
-  Traits::X86OperandMem *_sandbox_mem_reference(X86OperandMem *) {
-    llvm::report_fatal_error("sandbox mem reference for x86-32.");
-  }
+  Traits::X86OperandMem *_sandbox_mem_reference(X86OperandMem *Mem);
   void _sub_sp(Operand *Adjustment);
   void _link_bp();
   void _unlink_bp();
   void _push_reg(Variable *Reg);
 
-  void initSandbox() {}
+  void initRebasePtr();
+  void initSandbox();
+  bool legalizeOptAddrForSandbox(OptAddr *Addr);
   void emitSandboxedReturn();
   void lowerIndirectJump(Variable *JumpTarget);
   void emitGetIP(CfgNode *Node);

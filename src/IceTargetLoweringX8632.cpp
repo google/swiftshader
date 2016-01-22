@@ -137,6 +137,45 @@ void TargetX8632::_mov_sp(Operand *NewValue) {
   _redefined(_mov(esp, NewValue));
 }
 
+Traits::X86OperandMem *TargetX8632::_sandbox_mem_reference(X86OperandMem *Mem) {
+  switch (SandboxingType) {
+  case ST_None:
+  case ST_NaCl:
+    return Mem;
+  case ST_Nonsfi: {
+    if (Mem->getIsRebased()) {
+      return Mem;
+    }
+    // For Non-SFI mode, if the Offset field is a ConstantRelocatable, we
+    // replace either Base or Index with a legalized RebasePtr. At emission
+    // time, the ConstantRelocatable will be emitted with the @GOTOFF
+    // relocation.
+    if (llvm::dyn_cast_or_null<ConstantRelocatable>(Mem->getOffset()) ==
+        nullptr) {
+      return Mem;
+    }
+    Variable *T;
+    uint16_t Shift = 0;
+    if (Mem->getIndex() == nullptr) {
+      T = Mem->getBase();
+    } else if (Mem->getBase() == nullptr) {
+      T = Mem->getIndex();
+      Shift = Mem->getShift();
+    } else {
+      llvm::report_fatal_error(
+          "Either Base or Index must be unused in Non-SFI mode");
+    }
+    Variable *RebasePtrR = legalizeToReg(RebasePtr);
+    static constexpr bool IsRebased = true;
+    return Traits::X86OperandMem::create(
+        Func, Mem->getType(), RebasePtrR, Mem->getOffset(), T, Shift,
+        Traits::X86OperandMem::DefaultSegment, IsRebased);
+  }
+  }
+  llvm::report_fatal_error("Unhandled sandboxing type: " +
+                           std::to_string(SandboxingType));
+}
+
 void TargetX8632::_sub_sp(Operand *Adjustment) {
   Variable *esp = getPhysicalRegister(Traits::RegisterSet::Reg_esp);
   _sub(esp, Adjustment);
@@ -213,6 +252,47 @@ void TargetX8632::lowerIndirectJump(Variable *JumpTarget) {
   }
 
   _jmp(JumpTarget);
+}
+
+void TargetX8632::initRebasePtr() {
+  if (SandboxingType == ST_Nonsfi) {
+    RebasePtr = Func->makeVariable(IceType_i32);
+  }
+}
+
+void TargetX8632::initSandbox() {
+  if (SandboxingType != ST_Nonsfi) {
+    return;
+  }
+  // Insert the RebasePtr assignment as the very first lowered instruction.
+  // Later, it will be moved into the right place - after the stack frame is set
+  // up but before in-args are copied into registers.
+  Context.init(Func->getEntryNode());
+  Context.setInsertPoint(Context.getCur());
+  Context.insert<Traits::Insts::GetIP>(RebasePtr);
+}
+
+bool TargetX8632::legalizeOptAddrForSandbox(OptAddr *Addr) {
+  if (Addr->Relocatable == nullptr || SandboxingType != ST_Nonsfi) {
+    return true;
+  }
+
+  if (Addr->Base == RebasePtr || Addr->Index == RebasePtr) {
+    return true;
+  }
+
+  if (Addr->Base == nullptr) {
+    Addr->Base = RebasePtr;
+    return true;
+  }
+
+  if (Addr->Index == nullptr) {
+    Addr->Index = RebasePtr;
+    Addr->Shift = 0;
+    return true;
+  }
+
+  return false;
 }
 
 Inst *TargetX8632::emitCallToTarget(Operand *CallTarget, Variable *ReturnReg) {

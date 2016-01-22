@@ -360,7 +360,7 @@ void TargetX86Base<TraitsType>::initNodeForLowering(CfgNode *Node) {
 
 template <typename TraitsType>
 TargetX86Base<TraitsType>::TargetX86Base(Cfg *Func)
-    : TargetLowering(Func), NeedSandboxing(Ctx->getFlags().getUseSandboxing()) {
+    : TargetLowering(Func), NeedSandboxing(SandboxingType == ST_NaCl) {
   static_assert(
       (Traits::InstructionSet::End - Traits::InstructionSet::Begin) ==
           (TargetInstructionSet::X86InstructionSet_End -
@@ -390,12 +390,8 @@ void TargetX86Base<TraitsType>::staticInit(GlobalContext *Ctx) {
 template <typename TraitsType> void TargetX86Base<TraitsType>::translateO2() {
   TimerMarker T(TimerStack::TT_O2, Func);
 
-  if (!Traits::Is64Bit && Func->getContext()->getFlags().getUseNonsfi()) {
-    GotVar = Func->makeVariable(IceType_i32);
-  }
-
-  if (NeedSandboxing) {
-    initSandbox();
+  if (SandboxingType != ST_None) {
+    initRebasePtr();
   }
 
   genTargetHelperCalls();
@@ -466,7 +462,9 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::translateO2() {
   Func->genCode();
   if (Func->hasError())
     return;
-  initGotVarIfNeeded();
+  if (SandboxingType != ST_None) {
+    initSandbox();
+  }
   Func->dump("After x86 codegen");
 
   // Register allocation. This requires instruction renumbering and full
@@ -526,12 +524,8 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::translateO2() {
 template <typename TraitsType> void TargetX86Base<TraitsType>::translateOm1() {
   TimerMarker T(TimerStack::TT_Om1, Func);
 
-  if (!Traits::Is64Bit && Func->getContext()->getFlags().getUseNonsfi()) {
-    GotVar = Func->makeVariable(IceType_i32);
-  }
-
-  if (NeedSandboxing) {
-    initSandbox();
+  if (SandboxingType != ST_None) {
+    initRebasePtr();
   }
 
   genTargetHelperCalls();
@@ -556,7 +550,9 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::translateOm1() {
   Func->genCode();
   if (Func->hasError())
     return;
-  initGotVarIfNeeded();
+  if (SandboxingType != ST_None) {
+    initSandbox();
+  }
   Func->dump("After initial x8632 codegen");
 
   regAlloc(RAK_InfOnly);
@@ -1378,23 +1374,6 @@ llvm::SmallBitVector
 TargetX86Base<TraitsType>::getRegisterSet(RegSetMask Include,
                                           RegSetMask Exclude) const {
   return Traits::getRegisterSet(Ctx->getFlags(), Include, Exclude);
-}
-
-template <typename TraitsType>
-void TargetX86Base<TraitsType>::initGotVarIfNeeded() {
-  if (!Func->getContext()->getFlags().getUseNonsfi())
-    return;
-  if (Traits::Is64Bit) {
-    // Probably no implementation is needed, but error to be safe for now.
-    llvm::report_fatal_error(
-        "Need to implement initGotVarIfNeeded() for 64-bit.");
-  }
-  // Insert the GotVar assignment as the very first lowered instruction.  Later,
-  // it will be moved into the right place - after the stack frame is set up but
-  // before in-args are copied into registers.
-  Context.init(Func->getEntryNode());
-  Context.setInsertPoint(Context.getCur());
-  Context.insert<typename Traits::Insts::GetIP>(GotVar);
 }
 
 template <typename TraitsType>
@@ -4968,18 +4947,49 @@ void TargetX86Base<TraitsType>::lowerMemset(Operand *Dest, Operand *Val,
   lowerCall(Call);
 }
 
-inline bool isAdd(const Inst *Inst) {
-  if (auto *Arith = llvm::dyn_cast_or_null<const InstArithmetic>(Inst)) {
-    return (Arith->getOp() == InstArithmetic::Add);
-  }
-  return false;
-}
+class AddressOptimizer {
+  AddressOptimizer() = delete;
+  AddressOptimizer(const AddressOptimizer &) = delete;
+  AddressOptimizer &operator=(const AddressOptimizer &) = delete;
 
-inline void dumpAddressOpt(const Cfg *Func,
-                           const ConstantRelocatable *Relocatable,
-                           int32_t Offset, const Variable *Base,
-                           const Variable *Index, uint16_t Shift,
-                           const Inst *Reason) {
+public:
+  explicit AddressOptimizer(const Cfg *Func)
+      : Func(Func), VMetadata(Func->getVMetadata()) {}
+
+  inline void dumpAddressOpt(const ConstantRelocatable *const Relocatable,
+                             int32_t Offset, const Variable *Base,
+                             const Variable *Index, uint16_t Shift,
+                             const Inst *Reason) const;
+
+  inline const Inst *matchAssign(Variable **Var,
+                                 ConstantRelocatable **Relocatable,
+                                 int32_t *Offset);
+
+  inline const Inst *matchCombinedBaseIndex(Variable **Base, Variable **Index,
+                                            uint16_t *Shift);
+
+  inline const Inst *matchShiftedIndex(Variable **Index, uint16_t *Shift);
+
+  inline const Inst *matchOffsetBase(Variable **Base,
+                                     ConstantRelocatable **Relocatable,
+                                     int32_t *Offset);
+
+private:
+  const Cfg *const Func;
+  const VariablesMetadata *const VMetadata;
+
+  static bool isAdd(const Inst *Inst) {
+    if (auto *Arith = llvm::dyn_cast_or_null<const InstArithmetic>(Inst)) {
+      return (Arith->getOp() == InstArithmetic::Add);
+    }
+    return false;
+  }
+};
+
+void AddressOptimizer::dumpAddressOpt(
+    const ConstantRelocatable *const Relocatable, int32_t Offset,
+    const Variable *Base, const Variable *Index, uint16_t Shift,
+    const Inst *Reason) const {
   if (!BuildDefs::dump())
     return;
   if (!Func->isVerbose(IceV_AddrOpt))
@@ -5002,14 +5012,14 @@ inline void dumpAddressOpt(const Cfg *Func,
       << ", Relocatable=" << Relocatable << "\n";
 }
 
-inline bool matchAssign(const VariablesMetadata *VMetadata, Variable *GotVar,
-                        Variable *&Var, ConstantRelocatable *&Relocatable,
-                        int32_t &Offset, const Inst *&Reason) {
+const Inst *AddressOptimizer::matchAssign(Variable **Var,
+                                          ConstantRelocatable **Relocatable,
+                                          int32_t *Offset) {
   // Var originates from Var=SrcVar ==> set Var:=SrcVar
-  if (Var == nullptr)
-    return false;
-  if (const Inst *VarAssign = VMetadata->getSingleDefinition(Var)) {
-    assert(!VMetadata->isMultiDef(Var));
+  if (*Var == nullptr)
+    return nullptr;
+  if (const Inst *VarAssign = VMetadata->getSingleDefinition(*Var)) {
+    assert(!VMetadata->isMultiDef(*Var));
     if (llvm::isa<InstAssign>(VarAssign)) {
       Operand *SrcOp = VarAssign->getSrc(0);
       assert(SrcOp);
@@ -5017,88 +5027,86 @@ inline bool matchAssign(const VariablesMetadata *VMetadata, Variable *GotVar,
         if (!VMetadata->isMultiDef(SrcVar) &&
             // TODO: ensure SrcVar stays single-BB
             true) {
-          Var = SrcVar;
-          Reason = VarAssign;
-          return true;
+          *Var = SrcVar;
+          return VarAssign;
         }
       } else if (auto *Const = llvm::dyn_cast<ConstantInteger32>(SrcOp)) {
         int32_t MoreOffset = Const->getValue();
-        if (Utils::WouldOverflowAdd(Offset, MoreOffset))
-          return false;
-        Var = nullptr;
+        if (Utils::WouldOverflowAdd(*Offset, MoreOffset))
+          return nullptr;
+        *Var = nullptr;
         Offset += MoreOffset;
-        Reason = VarAssign;
-        return true;
+        return VarAssign;
       } else if (auto *AddReloc = llvm::dyn_cast<ConstantRelocatable>(SrcOp)) {
-        if (Relocatable == nullptr) {
-          Var = GotVar;
-          Relocatable = AddReloc;
-          Reason = VarAssign;
-          return true;
+        if (*Relocatable == nullptr) {
+          // It is always safe to fold a relocatable through assignment -- the
+          // assignment frees a slot in the address operand that can be used to
+          // hold the Sandbox Pointer -- if any.
+          *Var = nullptr;
+          *Relocatable = AddReloc;
+          return VarAssign;
         }
       }
     }
   }
-  return false;
+  return nullptr;
 }
 
-inline bool matchCombinedBaseIndex(const VariablesMetadata *VMetadata,
-                                   Variable *&Base, Variable *&Index,
-                                   uint16_t &Shift, const Inst *&Reason) {
+const Inst *AddressOptimizer::matchCombinedBaseIndex(Variable **Base,
+                                                     Variable **Index,
+                                                     uint16_t *Shift) {
   // Index==nullptr && Base is Base=Var1+Var2 ==>
   //   set Base=Var1, Index=Var2, Shift=0
-  if (Base == nullptr)
-    return false;
-  if (Index != nullptr)
-    return false;
-  auto *BaseInst = VMetadata->getSingleDefinition(Base);
+  if (*Base == nullptr)
+    return nullptr;
+  if (*Index != nullptr)
+    return nullptr;
+  auto *BaseInst = VMetadata->getSingleDefinition(*Base);
   if (BaseInst == nullptr)
-    return false;
-  assert(!VMetadata->isMultiDef(Base));
+    return nullptr;
+  assert(!VMetadata->isMultiDef(*Base));
   if (BaseInst->getSrcSize() < 2)
-    return false;
+    return nullptr;
   if (auto *Var1 = llvm::dyn_cast<Variable>(BaseInst->getSrc(0))) {
     if (VMetadata->isMultiDef(Var1))
-      return false;
+      return nullptr;
     if (auto *Var2 = llvm::dyn_cast<Variable>(BaseInst->getSrc(1))) {
       if (VMetadata->isMultiDef(Var2))
-        return false;
+        return nullptr;
       if (isAdd(BaseInst) &&
           // TODO: ensure Var1 and Var2 stay single-BB
           true) {
-        Base = Var1;
-        Index = Var2;
-        Shift = 0; // should already have been 0
-        Reason = BaseInst;
-        return true;
+        *Base = Var1;
+        *Index = Var2;
+        *Shift = 0; // should already have been 0
+        return BaseInst;
       }
     }
   }
-  return false;
+  return nullptr;
 }
 
-inline bool matchShiftedIndex(const VariablesMetadata *VMetadata,
-                              Variable *&Index, uint16_t &Shift,
-                              const Inst *&Reason) {
+const Inst *AddressOptimizer::matchShiftedIndex(Variable **Index,
+                                                uint16_t *Shift) {
   // Index is Index=Var*Const && log2(Const)+Shift<=3 ==>
   //   Index=Var, Shift+=log2(Const)
-  if (Index == nullptr)
-    return false;
-  auto *IndexInst = VMetadata->getSingleDefinition(Index);
+  if (*Index == nullptr)
+    return nullptr;
+  auto *IndexInst = VMetadata->getSingleDefinition(*Index);
   if (IndexInst == nullptr)
-    return false;
-  assert(!VMetadata->isMultiDef(Index));
+    return nullptr;
+  assert(!VMetadata->isMultiDef(*Index));
   if (IndexInst->getSrcSize() < 2)
-    return false;
+    return nullptr;
   if (auto *ArithInst = llvm::dyn_cast<InstArithmetic>(IndexInst)) {
     if (auto *Var = llvm::dyn_cast<Variable>(ArithInst->getSrc(0))) {
       if (auto *Const =
               llvm::dyn_cast<ConstantInteger32>(ArithInst->getSrc(1))) {
         if (VMetadata->isMultiDef(Var) || Const->getType() != IceType_i32)
-          return false;
+          return nullptr;
         switch (ArithInst->getOp()) {
         default:
-          return false;
+          return nullptr;
         case InstArithmetic::Mul: {
           uint32_t Mult = Const->getValue();
           uint32_t LogMult;
@@ -5116,13 +5124,12 @@ inline bool matchShiftedIndex(const VariablesMetadata *VMetadata,
             LogMult = 3;
             break;
           default:
-            return false;
+            return nullptr;
           }
-          if (Shift + LogMult <= 3) {
-            Index = Var;
-            Shift += LogMult;
-            Reason = IndexInst;
-            return true;
+          if (*Shift + LogMult <= 3) {
+            *Index = Var;
+            *Shift += LogMult;
+            return IndexInst;
           }
         }
         case InstArithmetic::Shl: {
@@ -5134,43 +5141,40 @@ inline bool matchShiftedIndex(const VariablesMetadata *VMetadata,
           case 3:
             break;
           default:
-            return false;
+            return nullptr;
           }
-          if (Shift + ShiftAmount <= 3) {
-            Index = Var;
-            Shift += ShiftAmount;
-            Reason = IndexInst;
-            return true;
+          if (*Shift + ShiftAmount <= 3) {
+            *Index = Var;
+            *Shift += ShiftAmount;
+            return IndexInst;
           }
         }
         }
       }
     }
   }
-  return false;
+  return nullptr;
 }
 
-inline bool matchOffsetBase(const VariablesMetadata *VMetadata,
-                            Variable *GotVar, Variable *&Base,
-                            Variable *&BaseOther,
-                            ConstantRelocatable *&Relocatable, int32_t &Offset,
-                            const Inst *&Reason) {
+const Inst *AddressOptimizer::matchOffsetBase(Variable **Base,
+                                              ConstantRelocatable **Relocatable,
+                                              int32_t *Offset) {
   // Base is Base=Var+Const || Base is Base=Const+Var ==>
   //   set Base=Var, Offset+=Const
   // Base is Base=Var-Const ==>
   //   set Base=Var, Offset-=Const
-  if (Base == nullptr) {
-    return false;
+  if (*Base == nullptr) {
+    return nullptr;
   }
-  const Inst *BaseInst = VMetadata->getSingleDefinition(Base);
+  const Inst *BaseInst = VMetadata->getSingleDefinition(*Base);
   if (BaseInst == nullptr) {
-    return false;
+    return nullptr;
   }
-  assert(!VMetadata->isMultiDef(Base));
+  assert(!VMetadata->isMultiDef(*Base));
   if (auto *ArithInst = llvm::dyn_cast<const InstArithmetic>(BaseInst)) {
     if (ArithInst->getOp() != InstArithmetic::Add &&
         ArithInst->getOp() != InstArithmetic::Sub)
-      return false;
+      return nullptr;
     bool IsAdd = ArithInst->getOp() == InstArithmetic::Add;
     Operand *Src0 = ArithInst->getSrc(0);
     Operand *Src1 = ArithInst->getSrc(1);
@@ -5181,74 +5185,55 @@ inline bool matchOffsetBase(const VariablesMetadata *VMetadata,
     auto *Reloc0 = llvm::dyn_cast<ConstantRelocatable>(Src0);
     auto *Reloc1 = llvm::dyn_cast<ConstantRelocatable>(Src1);
     Variable *NewBase = nullptr;
-    int32_t NewOffset = Offset;
-    ConstantRelocatable *NewRelocatable = Relocatable;
+    int32_t NewOffset = *Offset;
+    ConstantRelocatable *NewRelocatable = *Relocatable;
     if (Var0 && Var1)
       // TODO(sehr): merge base/index splitting into here.
-      return false;
+      return nullptr;
     if (!IsAdd && Var1)
-      return false;
+      return nullptr;
     if (Var0)
       NewBase = Var0;
     else if (Var1)
       NewBase = Var1;
     // Don't know how to add/subtract two relocatables.
-    if ((Relocatable && (Reloc0 || Reloc1)) || (Reloc0 && Reloc1))
-      return false;
+    if ((*Relocatable && (Reloc0 || Reloc1)) || (Reloc0 && Reloc1))
+      return nullptr;
     // Don't know how to subtract a relocatable.
     if (!IsAdd && Reloc1)
-      return false;
+      return nullptr;
     // Incorporate ConstantRelocatables.
     if (Reloc0)
       NewRelocatable = Reloc0;
     else if (Reloc1)
       NewRelocatable = Reloc1;
-    if ((Reloc0 || Reloc1) && BaseOther && GotVar)
-      return false;
     // Compute the updated constant offset.
     if (Const0) {
       const int32_t MoreOffset =
           IsAdd ? Const0->getValue() : -Const0->getValue();
       if (Utils::WouldOverflowAdd(NewOffset, MoreOffset))
-        return false;
+        return nullptr;
       NewOffset += MoreOffset;
     }
     if (Const1) {
       const int32_t MoreOffset =
           IsAdd ? Const1->getValue() : -Const1->getValue();
       if (Utils::WouldOverflowAdd(NewOffset, MoreOffset))
-        return false;
+        return nullptr;
       NewOffset += MoreOffset;
     }
-    // Update the computed address parameters once we are sure optimization
-    // is valid.
-    if ((Reloc0 || Reloc1) && GotVar) {
-      assert(BaseOther == nullptr);
-      BaseOther = GotVar;
-    }
-    Base = NewBase;
-    Offset = NewOffset;
-    Relocatable = NewRelocatable;
-    Reason = BaseInst;
-    return true;
+    *Base = NewBase;
+    *Offset = NewOffset;
+    *Relocatable = NewRelocatable;
+    return BaseInst;
   }
-  return false;
+  return nullptr;
 }
 
-// Builds information for a canonical address expresion:
-//   <Relocatable + Offset>(Base, Index, Shift)
-// On entry:
-//   Relocatable == null,
-//   Offset == 0,
-//   Base is a Variable,
-//   Index == nullptr,
-//   Shift == 0
-inline bool computeAddressOpt(Cfg *Func, const Inst *Instr, Variable *GotVar,
-                              bool ReserveSlot,
-                              ConstantRelocatable *&Relocatable,
-                              int32_t &Offset, Variable *&Base,
-                              Variable *&Index, uint16_t &Shift) {
-  bool AddressWasOptimized = false;
+template <typename TypeTraits>
+typename TargetX86Base<TypeTraits>::X86OperandMem *
+TargetX86Base<TypeTraits>::computeAddressOpt(const Inst *Instr, Type MemType,
+                                             Operand *Addr) {
   Func->resetCurrentNode();
   if (Func->isVerbose(IceV_AddrOpt)) {
     OstreamLocker L(Func->getContext());
@@ -5256,70 +5241,138 @@ inline bool computeAddressOpt(Cfg *Func, const Inst *Instr, Variable *GotVar,
     Str << "\nStarting computeAddressOpt for instruction:\n  ";
     Instr->dumpDecorated(Func);
   }
-  if (Base == nullptr)
-    return AddressWasOptimized;
+
+  OptAddr NewAddr;
+  NewAddr.Base = llvm::dyn_cast<Variable>(Addr);
+  if (NewAddr.Base == nullptr)
+    return nullptr;
+
   // If the Base has more than one use or is live across multiple blocks, then
   // don't go further. Alternatively (?), never consider a transformation that
   // would change a variable that is currently *not* live across basic block
   // boundaries into one that *is*.
-  if (Func->getVMetadata()->isMultiBlock(Base) /* || Base->getUseCount() > 1*/)
-    return AddressWasOptimized;
+  if (Func->getVMetadata()->isMultiBlock(
+          NewAddr.Base) /* || Base->getUseCount() > 1*/)
+    return nullptr;
 
+  AddressOptimizer AddrOpt(Func);
   const bool MockBounds = Func->getContext()->getFlags().getMockBoundsCheck();
-  const VariablesMetadata *VMetadata = Func->getVMetadata();
   const Inst *Reason = nullptr;
+  bool AddressWasOptimized = false;
+  // The following unnamed struct identifies the address mode formation steps
+  // that could potentially create an invalid memory operand (i.e., no free
+  // slots for RebasePtr.) We add all those variables to this struct so that we
+  // can use memset() to reset all members to false.
+  struct {
+    bool AssignBase = false;
+    bool AssignIndex = false;
+    bool OffsetFromBase = false;
+    bool OffsetFromIndex = false;
+    bool CombinedBaseIndex = false;
+  } Skip;
+  // This points to the boolean in Skip that represents the last folding
+  // performed. This is used to disable a pattern match that generated an
+  // invalid address. Without this, the algorithm would never finish.
+  bool *SkipLastFolding = nullptr;
+  // NewAddrCheckpoint is used to rollback the address being formed in case an
+  // invalid address is formed.
+  OptAddr NewAddrCheckpoint;
+  Reason = Instr;
   do {
-    assert(!ReserveSlot || Base == nullptr || Index == nullptr);
+    if (SandboxingType != ST_None) {
+      // When sandboxing, we defer the sandboxing of NewAddr to the Concrete
+      // Target. If our optimization was overly aggressive, then we simply undo
+      // what the previous iteration did, and set the previous pattern's skip
+      // bit to true.
+      if (!legalizeOptAddrForSandbox(&NewAddr)) {
+        *SkipLastFolding = true;
+        SkipLastFolding = nullptr;
+        NewAddr = NewAddrCheckpoint;
+        Reason = nullptr;
+      }
+    }
+
     if (Reason) {
-      dumpAddressOpt(Func, Relocatable, Offset, Base, Index, Shift, Reason);
+      AddrOpt.dumpAddressOpt(NewAddr.Relocatable, NewAddr.Offset, NewAddr.Base,
+                             NewAddr.Index, NewAddr.Shift, Reason);
       AddressWasOptimized = true;
       Reason = nullptr;
+      SkipLastFolding = nullptr;
+      memset(&Skip, 0, sizeof(Skip));
     }
+
+    NewAddrCheckpoint = NewAddr;
+
     // Update Base and Index to follow through assignments to definitions.
-    if (matchAssign(VMetadata, GotVar, Base, Relocatable, Offset, Reason)) {
+    if (!Skip.AssignBase &&
+        (Reason = AddrOpt.matchAssign(&NewAddr.Base, &NewAddr.Relocatable,
+                                      &NewAddr.Offset))) {
+      SkipLastFolding = &Skip.AssignBase;
       // Assignments of Base from a Relocatable or ConstantInt32 can result
       // in Base becoming nullptr.  To avoid code duplication in this loop we
       // prefer that Base be non-nullptr if possible.
-      if ((Base == nullptr) && (Index != nullptr) && Shift == 0)
-        std::swap(Base, Index);
+      if ((NewAddr.Base == nullptr) && (NewAddr.Index != nullptr) &&
+          NewAddr.Shift == 0) {
+        std::swap(NewAddr.Base, NewAddr.Index);
+      }
       continue;
     }
-    if (matchAssign(VMetadata, GotVar, Index, Relocatable, Offset, Reason))
+    if (!Skip.AssignBase &&
+        (Reason = AddrOpt.matchAssign(&NewAddr.Index, &NewAddr.Relocatable,
+                                      &NewAddr.Offset))) {
+      SkipLastFolding = &Skip.AssignIndex;
       continue;
+    }
 
     if (!MockBounds) {
       // Transition from:
       //   <Relocatable + Offset>(Base) to
       //   <Relocatable + Offset>(Base, Index)
-      if (!ReserveSlot &&
-          matchCombinedBaseIndex(VMetadata, Base, Index, Shift, Reason))
+      if (!Skip.CombinedBaseIndex &&
+          (Reason = AddrOpt.matchCombinedBaseIndex(
+               &NewAddr.Base, &NewAddr.Index, &NewAddr.Shift))) {
+        SkipLastFolding = &Skip.CombinedBaseIndex;
         continue;
+      }
+
       // Recognize multiply/shift and update Shift amount.
       // Index becomes Index=Var<<Const && Const+Shift<=3 ==>
       //   Index=Var, Shift+=Const
       // Index becomes Index=Const*Var && log2(Const)+Shift<=3 ==>
       //   Index=Var, Shift+=log2(Const)
-      if (matchShiftedIndex(VMetadata, Index, Shift, Reason))
+      if ((Reason =
+               AddrOpt.matchShiftedIndex(&NewAddr.Index, &NewAddr.Shift))) {
         continue;
+      }
+
       // If Shift is zero, the choice of Base and Index was purely arbitrary.
       // Recognize multiply/shift and set Shift amount.
       // Shift==0 && Base is Base=Var*Const && log2(Const)+Shift<=3 ==>
       //   swap(Index,Base)
       // Similar for Base=Const*Var and Base=Var<<Const
-      if (Shift == 0 && matchShiftedIndex(VMetadata, Base, Shift, Reason)) {
-        std::swap(Base, Index);
+      if (NewAddr.Shift == 0 &&
+          (Reason = AddrOpt.matchShiftedIndex(&NewAddr.Base, &NewAddr.Shift))) {
+        std::swap(NewAddr.Base, NewAddr.Index);
         continue;
       }
     }
+
     // Update Offset to reflect additions/subtractions with constants and
     // relocatables.
     // TODO: consider overflow issues with respect to Offset.
-    if (matchOffsetBase(VMetadata, GotVar, Base, Index, Relocatable, Offset,
-                        Reason))
+    if (!Skip.OffsetFromBase &&
+        (Reason = AddrOpt.matchOffsetBase(&NewAddr.Base, &NewAddr.Relocatable,
+                                          &NewAddr.Offset))) {
+      SkipLastFolding = &Skip.OffsetFromBase;
       continue;
-    if (Shift == 0 && matchOffsetBase(VMetadata, GotVar, Index, Base,
-                                      Relocatable, Offset, Reason))
+    }
+    if (NewAddr.Shift == 0 && !Skip.OffsetFromIndex &&
+        (Reason = AddrOpt.matchOffsetBase(&NewAddr.Index, &NewAddr.Relocatable,
+                                          &NewAddr.Offset))) {
+      SkipLastFolding = &Skip.OffsetFromIndex;
       continue;
+    }
+
     // TODO(sehr, stichnot): Handle updates of Index with Shift != 0.
     // Index is Index=Var+Const ==>
     //   set Index=Var, Offset+=(Const<<Shift)
@@ -5329,13 +5382,40 @@ inline bool computeAddressOpt(Cfg *Func, const Inst *Instr, Variable *GotVar,
     //   set Index=Var, Offset-=(Const<<Shift)
     break;
   } while (Reason);
-  // Undo any addition of GotVar.  It will be added back when the mem operand is
-  // legalized.
-  if (Base == GotVar)
-    Base = nullptr;
-  if (Index == GotVar)
-    Index = nullptr;
-  return AddressWasOptimized;
+
+  if (!AddressWasOptimized) {
+    return nullptr;
+  }
+
+  // Undo any addition of RebasePtr.  It will be added back when the mem
+  // operand is sandboxed.
+  if (NewAddr.Base == RebasePtr) {
+    NewAddr.Base = nullptr;
+  }
+
+  if (NewAddr.Index == RebasePtr) {
+    NewAddr.Index = nullptr;
+    NewAddr.Shift = 0;
+  }
+
+  Constant *OffsetOp = nullptr;
+  if (NewAddr.Relocatable == nullptr) {
+    OffsetOp = Ctx->getConstantInt32(NewAddr.Offset);
+  } else {
+    OffsetOp =
+        Ctx->getConstantSym(NewAddr.Relocatable->getOffset() + NewAddr.Offset,
+                            NewAddr.Relocatable->getName(),
+                            NewAddr.Relocatable->getSuppressMangling());
+  }
+  // Vanilla ICE load instructions should not use the segment registers, and
+  // computeAddressOpt only works at the level of Variables and Constants, not
+  // other X86OperandMem, so there should be no mention of segment
+  // registers there either.
+  static constexpr auto SegmentReg =
+      X86OperandMem::SegmentRegisters::DefaultSegment;
+
+  return X86OperandMem::create(Func, MemType, NewAddr.Base, OffsetOp,
+                               NewAddr.Index, NewAddr.Shift, SegmentReg);
 }
 
 /// Add a mock bounds check on the memory address before using it as a load or
@@ -5413,35 +5493,11 @@ void TargetX86Base<TraitsType>::lowerLoad(const InstLoad *Load) {
 template <typename TraitsType>
 void TargetX86Base<TraitsType>::doAddressOptLoad() {
   Inst *Inst = Context.getCur();
-  Variable *Dest = Inst->getDest();
   Operand *Addr = Inst->getSrc(0);
-  Variable *Index = nullptr;
-  ConstantRelocatable *Relocatable = nullptr;
-  uint16_t Shift = 0;
-  int32_t Offset = 0;
-  // Vanilla ICE load instructions should not use the segment registers, and
-  // computeAddressOpt only works at the level of Variables and Constants, not
-  // other X86OperandMem, so there should be no mention of segment
-  // registers there either.
-  constexpr auto SegmentReg = X86OperandMem::SegmentRegisters::DefaultSegment;
-  auto *Base = llvm::dyn_cast<Variable>(Addr);
-  const bool ReserveSlot = Traits::Is64Bit && NeedSandboxing;
-  if (computeAddressOpt(Func, Inst, GotVar, ReserveSlot, Relocatable, Offset,
-                        Base, Index, Shift)) {
+  Variable *Dest = Inst->getDest();
+  if (auto *OptAddr = computeAddressOpt(Inst, Dest->getType(), Addr)) {
     Inst->setDeleted();
-    Constant *OffsetOp = nullptr;
-    if (Relocatable == nullptr) {
-      OffsetOp = Ctx->getConstantInt32(Offset);
-    } else {
-      OffsetOp = Ctx->getConstantSym(Relocatable->getOffset() + Offset,
-                                     Relocatable->getName(),
-                                     Relocatable->getSuppressMangling());
-    }
-    // The new mem operand is created without IsRebased being set, because
-    // computeAddressOpt() doesn't include GotVar in its final result.
-    Addr = X86OperandMem::create(Func, Dest->getType(), Base, OffsetOp, Index,
-                                 Shift, SegmentReg);
-    Context.insert<InstLoad>(Dest, Addr);
+    Context.insert<InstLoad>(Dest, OptAddr);
   }
 }
 
@@ -5738,35 +5794,11 @@ void TargetX86Base<TraitsType>::lowerStore(const InstStore *Inst) {
 template <typename TraitsType>
 void TargetX86Base<TraitsType>::doAddressOptStore() {
   auto *Inst = llvm::cast<InstStore>(Context.getCur());
-  Operand *Data = Inst->getData();
   Operand *Addr = Inst->getAddr();
-  Variable *Index = nullptr;
-  ConstantRelocatable *Relocatable = nullptr;
-  uint16_t Shift = 0;
-  int32_t Offset = 0;
-  auto *Base = llvm::dyn_cast<Variable>(Addr);
-  // Vanilla ICE store instructions should not use the segment registers, and
-  // computeAddressOpt only works at the level of Variables and Constants, not
-  // other X86OperandMem, so there should be no mention of segment
-  // registers there either.
-  constexpr auto SegmentReg = X86OperandMem::SegmentRegisters::DefaultSegment;
-  const bool ReserveSlot = Traits::Is64Bit && NeedSandboxing;
-  if (computeAddressOpt(Func, Inst, GotVar, ReserveSlot, Relocatable, Offset,
-                        Base, Index, Shift)) {
+  Operand *Data = Inst->getData();
+  if (auto *OptAddr = computeAddressOpt(Inst, Data->getType(), Addr)) {
     Inst->setDeleted();
-    Constant *OffsetOp = nullptr;
-    if (Relocatable == nullptr) {
-      OffsetOp = Ctx->getConstantInt32(Offset);
-    } else {
-      OffsetOp = Ctx->getConstantSym(Relocatable->getOffset() + Offset,
-                                     Relocatable->getName(),
-                                     Relocatable->getSuppressMangling());
-    }
-    // The new mem operand is created without IsRebased being set, because
-    // computeAddressOpt() doesn't include GotVar in its final result.
-    Addr = X86OperandMem::create(Func, Data->getType(), Base, OffsetOp, Index,
-                                 Shift, SegmentReg);
-    auto *NewStore = Context.insert<InstStore>(Data, Addr);
+    auto *NewStore = Context.insert<InstStore>(Data, OptAddr);
     if (Inst->getDest())
       NewStore->setRmwBeacon(Inst->getRmwBeacon());
   }
@@ -5826,9 +5858,8 @@ void TargetX86Base<TraitsType>::lowerCaseCluster(const CaseCluster &Case,
 
     constexpr RelocOffsetT RelocOffset = 0;
     constexpr bool SuppressMangling = true;
-    const bool IsRebased = Ctx->getFlags().getUseNonsfi();
     IceString MangledName = Ctx->mangleName(Func->getFunctionName());
-    Variable *Base = IsRebased ? legalizeToReg(GotVar) : nullptr;
+    constexpr Variable *NoBase = nullptr;
     Constant *Offset = Ctx->getConstantSym(
         RelocOffset, InstJumpTable::makeName(MangledName, JumpTable->getId()),
         SuppressMangling);
@@ -5837,11 +5868,10 @@ void TargetX86Base<TraitsType>::lowerCaseCluster(const CaseCluster &Case,
 
     Variable *Target = nullptr;
     if (Traits::Is64Bit && NeedSandboxing) {
-      assert(Base == nullptr);
       assert(Index != nullptr && Index->getType() == IceType_i32);
     }
-    auto *TargetInMemory = X86OperandMem::create(
-        Func, PointerType, Base, Offset, Index, Shift, Segment, IsRebased);
+    auto *TargetInMemory = X86OperandMem::create(Func, PointerType, NoBase,
+                                                 Offset, Index, Shift, Segment);
     _mov(Target, TargetInMemory);
 
     lowerIndirectJump(Target);
@@ -6168,12 +6198,12 @@ void TargetX86Base<TraitsType>::lowerOther(const Inst *Instr) {
 /// Turn an i64 Phi instruction into a pair of i32 Phi instructions, to preserve
 /// integrity of liveness analysis. Undef values are also turned into zeroes,
 /// since loOperand() and hiOperand() don't expect Undef input.  Also, in
-/// Non-SFI mode, add a FakeUse(GotVar) for every pooled constant operand.
+/// Non-SFI mode, add a FakeUse(RebasePtr) for every pooled constant operand.
 template <typename TraitsType> void TargetX86Base<TraitsType>::prelowerPhis() {
   if (Ctx->getFlags().getUseNonsfi()) {
-    assert(GotVar);
+    assert(RebasePtr);
     CfgNode *Node = Context.getNode();
-    uint32_t GotVarUseCount = 0;
+    uint32_t RebasePtrUseCount = 0;
     for (Inst &I : Node->getPhis()) {
       auto *Phi = llvm::dyn_cast<InstPhi>(&I);
       if (Phi->isDeleted())
@@ -6184,12 +6214,12 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::prelowerPhis() {
         // kinds of pooling.
         if (llvm::isa<ConstantRelocatable>(Src) ||
             llvm::isa<ConstantFloat>(Src) || llvm::isa<ConstantDouble>(Src)) {
-          ++GotVarUseCount;
+          ++RebasePtrUseCount;
         }
       }
     }
-    if (GotVarUseCount) {
-      Node->getInsts().push_front(InstFakeUse::create(Func, GotVar));
+    if (RebasePtrUseCount) {
+      Node->getInsts().push_front(InstFakeUse::create(Func, RebasePtr));
     }
   }
   if (Traits::Is64Bit) {
@@ -6737,29 +6767,13 @@ Operand *TargetX86Base<TraitsType>::legalize(Operand *From, LegalMask Allowed,
       RegIndex = llvm::cast<Variable>(
           legalize(Index, Legal_Reg | Legal_Rematerializable));
     }
-    // For Non-SFI mode, if the Offset field is a ConstantRelocatable, we
-    // replace either Base or Index with a legalized GotVar.  At emission time,
-    // the ConstantRelocatable will be emitted with the @GOTOFF relocation.
-    bool IsRebased = false;
-    if (UseNonsfi && !Mem->getIsRebased() && Offset &&
-        llvm::isa<ConstantRelocatable>(Offset)) {
-      assert(!(Allowed & Legal_AddrAbs));
-      IsRebased = true;
-      if (RegBase == nullptr) {
-        RegBase = legalizeToReg(GotVar);
-      } else if (RegIndex == nullptr) {
-        RegIndex = legalizeToReg(GotVar);
-      } else {
-        llvm::report_fatal_error(
-            "Either Base or Index must be unused in Non-SFI mode");
-      }
-    }
+
     if (Base != RegBase || Index != RegIndex) {
       Mem = X86OperandMem::create(Func, Ty, RegBase, Offset, RegIndex, Shift,
-                                  Mem->getSegmentRegister(), IsRebased);
+                                  Mem->getSegmentRegister());
     }
 
-    // For all Memory Operands, we do randomization/pooling here
+    // For all Memory Operands, we do randomization/pooling here.
     From = randomizeOrPoolImmediate(Mem);
 
     if (!(Allowed & Legal_Mem)) {
@@ -6798,24 +6812,21 @@ Operand *TargetX86Base<TraitsType>::legalize(Operand *From, LegalMask Allowed,
       }
     }
 
-    // If the operand is a ConstantRelocatable, and Legal_AddrAbs is not
-    // specified, and UseNonsfi is indicated, we need to add GotVar.
     if (auto *CR = llvm::dyn_cast<ConstantRelocatable>(Const)) {
+      // If the operand is a ConstantRelocatable, and Legal_AddrAbs is not
+      // specified, and UseNonsfi is indicated, we need to add RebasePtr.
       if (UseNonsfi && !(Allowed & Legal_AddrAbs)) {
         assert(Ty == IceType_i32);
-        Variable *RegBase = legalizeToReg(GotVar);
         Variable *NewVar = makeReg(Ty, RegNum);
-        static constexpr bool IsRebased = true;
-        auto *Mem =
-            Traits::X86OperandMem::create(Func, Ty, RegBase, CR, IsRebased);
-        _lea(NewVar, Mem);
+        auto *Mem = Traits::X86OperandMem::create(Func, Ty, nullptr, CR);
+        // LEAs are not automatically sandboxed, thus we explicitly invoke
+        // _sandbox_mem_reference.
+        _lea(NewVar, _sandbox_mem_reference(Mem));
         From = NewVar;
       }
-    }
-
-    // Convert a scalar floating point constant into an explicit memory
-    // operand.
-    if (isScalarFloatingType(Ty)) {
+    } else if (isScalarFloatingType(Ty)) {
+      // Convert a scalar floating point constant into an explicit memory
+      // operand.
       if (auto *ConstFloat = llvm::dyn_cast<ConstantFloat>(Const)) {
         if (Utils::isPositiveZero(ConstFloat->getValue()))
           return makeZeroedRegister(Ty, RegNum);
@@ -6823,19 +6834,19 @@ Operand *TargetX86Base<TraitsType>::legalize(Operand *From, LegalMask Allowed,
         if (Utils::isPositiveZero(ConstDouble->getValue()))
           return makeZeroedRegister(Ty, RegNum);
       }
-      Variable *Base = UseNonsfi ? legalizeToReg(GotVar) : nullptr;
+
       std::string Buffer;
       llvm::raw_string_ostream StrBuf(Buffer);
       llvm::cast<Constant>(From)->emitPoolLabel(StrBuf, Ctx);
       llvm::cast<Constant>(From)->setShouldBePooled(true);
       Constant *Offset = Ctx->getConstantSym(0, StrBuf.str(), true);
-      const bool IsRebased = Base != nullptr;
-      auto *Mem = X86OperandMem::create(Func, Ty, Base, Offset, IsRebased);
+      auto *Mem = X86OperandMem::create(Func, Ty, nullptr, Offset);
       From = Mem;
     }
+
     bool NeedsReg = false;
     if (!(Allowed & Legal_Imm) && !isScalarFloatingType(Ty))
-      // Immediate specifically not allowed
+      // Immediate specifically not allowed.
       NeedsReg = true;
     if (!(Allowed & Legal_Mem) && isScalarFloatingType(Ty))
       // On x86, FP constants are lowered to mem operands.
@@ -6868,8 +6879,7 @@ Operand *TargetX86Base<TraitsType>::legalize(Operand *From, LegalMask Allowed,
       _lea(NewVar, Mem);
       From = NewVar;
     } else if ((!(Allowed & Legal_Mem) && !MustHaveRegister) ||
-               (RegNum != Variable::NoRegister && RegNum != Var->getRegNum()) ||
-               MustRematerialize) {
+               (RegNum != Variable::NoRegister && RegNum != Var->getRegNum())) {
       From = copyToReg(From, RegNum);
     }
     return From;
@@ -7149,11 +7159,9 @@ TargetX86Base<TraitsType>::randomizeOrPoolImmediate(Constant *Immediate,
     constexpr bool SuppressMangling = true;
     Constant *Symbol =
         Ctx->getConstantSym(Offset, Label_stream.str(), SuppressMangling);
-    const bool UseNonsfi = Ctx->getFlags().getUseNonsfi();
-    Variable *Base = UseNonsfi ? legalizeToReg(GotVar) : nullptr;
-    const bool IsRebased = Base != nullptr;
-    X86OperandMem *MemOperand = X86OperandMem::create(
-        Func, Immediate->getType(), Base, Symbol, IsRebased);
+    constexpr Variable *NoBase = nullptr;
+    X86OperandMem *MemOperand =
+        X86OperandMem::create(Func, Immediate->getType(), NoBase, Symbol);
     _mov(Reg, MemOperand);
     return Reg;
   }
@@ -7259,11 +7267,9 @@ TargetX86Base<TraitsType>::randomizeOrPoolImmediate(X86OperandMem *MemOperand,
     constexpr bool SuppressMangling = true;
     Constant *Symbol =
         Ctx->getConstantSym(SymOffset, Label_stream.str(), SuppressMangling);
-    const bool UseNonsfi = Ctx->getFlags().getUseNonsfi();
-    Variable *Base = UseNonsfi ? legalizeToReg(GotVar) : nullptr;
-    const bool IsRebased = Base != nullptr;
+    constexpr Variable *NoBase = nullptr;
     X86OperandMem *SymbolOperand = X86OperandMem::create(
-        Func, MemOperand->getOffset()->getType(), Base, Symbol, IsRebased);
+        Func, MemOperand->getOffset()->getType(), NoBase, Symbol);
     _mov(RegTemp, SymbolOperand);
     // If we have a base variable here, we should add the lea instruction
     // to add the value of the base variable to RegTemp. If there is no

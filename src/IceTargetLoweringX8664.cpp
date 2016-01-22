@@ -298,33 +298,48 @@ Traits::X86OperandMem *TargetX8664::_sandbox_mem_reference(X86OperandMem *Mem) {
   // In x86_64-nacl, all memory references are relative to %r15 (i.e., %rzp.)
   // NaCl sandboxing also requires that any registers that are not %rsp and
   // %rbp to be 'truncated' to 32-bit before memory access.
-  assert(NeedSandboxing);
+  if (SandboxingType == ST_None) {
+    return Mem;
+  }
+
+  if (SandboxingType == ST_Nonsfi) {
+    llvm::report_fatal_error(
+        "_sandbox_mem_reference not implemented for nonsfi");
+  }
+
   Variable *Base = Mem->getBase();
   Variable *Index = Mem->getIndex();
   uint16_t Shift = 0;
-  Variable *r15 =
+  Variable *ZeroReg =
       getPhysicalRegister(Traits::RegisterSet::Reg_r15, IceType_i64);
   Constant *Offset = Mem->getOffset();
   Variable *T = nullptr;
 
   if (Mem->getIsRebased()) {
     // If Mem.IsRebased, then we don't need to update Mem to contain a reference
-    // to %r15, but we still need to truncate Mem.Index (if any) to 32-bit.
-    assert(r15 == Base);
-    T = Index;
+    // to a valid base register (%r15, %rsp, or %rbp), but we still need to
+    // truncate Mem.Index (if any) to 32-bit.
+    assert(ZeroReg == Base || Base->isRematerializable());
+    T = makeReg(IceType_i32);
+    _mov(T, Index);
     Shift = Mem->getShift();
-  } else if (Base != nullptr && Index != nullptr) {
-    // Another approach could be to emit an
-    //
-    //   lea Mem, %T
-    //
-    // And then update Mem.Base = r15, Mem.Index = T, Mem.Shift = 0
-    llvm::report_fatal_error("memory reference contains base and index.");
-  } else if (Base != nullptr) {
-    T = Base;
-  } else if (Index != nullptr) {
-    T = Index;
-    Shift = Mem->getShift();
+  } else {
+    if (Base != nullptr) {
+      if (Base->isRematerializable()) {
+        ZeroReg = Base;
+      } else {
+        T = Base;
+      }
+    }
+
+    if (Index != nullptr) {
+      assert(!Index->isRematerializable());
+      if (T != nullptr) {
+        llvm::report_fatal_error("memory reference contains base and index.");
+      }
+      T = Index;
+      Shift = Mem->getShift();
+    }
   }
 
   // NeedsLea is a flags indicating whether Mem needs to be materialized to a
@@ -399,7 +414,7 @@ Traits::X86OperandMem *TargetX8664::_sandbox_mem_reference(X86OperandMem *Mem) {
 
   static constexpr bool IsRebased = true;
   return Traits::X86OperandMem::create(
-      Func, Mem->getType(), r15, Offset, T, Shift,
+      Func, Mem->getType(), ZeroReg, Offset, T, Shift,
       Traits::X86OperandMem::DefaultSegment, IsRebased);
 }
 
@@ -427,14 +442,68 @@ void TargetX8664::_sub_sp(Operand *Adjustment) {
   _add(rsp, r15);
 }
 
+void TargetX8664::initRebasePtr() {
+  switch (SandboxingType) {
+  case ST_Nonsfi:
+    // Probably no implementation is needed, but error to be safe for now.
+    llvm::report_fatal_error(
+        "initRebasePtr() is not yet implemented on x32-nonsfi.");
+  case ST_NaCl:
+    RebasePtr = getPhysicalRegister(Traits::RegisterSet::Reg_r15, IceType_i64);
+    break;
+  case ST_None:
+    // nothing.
+    break;
+  }
+}
+
 void TargetX8664::initSandbox() {
-  assert(NeedSandboxing);
+  assert(SandboxingType == ST_NaCl);
   Context.init(Func->getEntryNode());
   Context.setInsertPoint(Context.getCur());
   Variable *r15 =
       getPhysicalRegister(Traits::RegisterSet::Reg_r15, IceType_i64);
   Context.insert<InstFakeDef>(r15);
   Context.insert<InstFakeUse>(r15);
+}
+
+namespace {
+bool isRematerializable(const Variable *Var) {
+  return Var != nullptr && Var->isRematerializable();
+}
+} // end of anonymous namespace
+
+bool TargetX8664::legalizeOptAddrForSandbox(OptAddr *Addr) {
+  if (SandboxingType == ST_Nonsfi) {
+    llvm::report_fatal_error("Nonsfi not yet implemented for x8664.");
+  }
+
+  if (isRematerializable(Addr->Base)) {
+    if (Addr->Index == RebasePtr) {
+      Addr->Index = nullptr;
+      Addr->Shift = 0;
+    }
+    return true;
+  }
+
+  if (isRematerializable(Addr->Index)) {
+    if (Addr->Base == RebasePtr) {
+      Addr->Base = nullptr;
+    }
+    return true;
+  }
+
+  assert(Addr->Base != RebasePtr && Addr->Index != RebasePtr);
+
+  if (Addr->Base == nullptr) {
+    return true;
+  }
+
+  if (Addr->Index == nullptr) {
+    return true;
+  }
+
+  return false;
 }
 
 void TargetX8664::lowerIndirectJump(Variable *JumpTarget) {

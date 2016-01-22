@@ -274,7 +274,7 @@ std::array<uint32_t, NumVec128Args> Vec128ArgInitializer;
 } // end of anonymous namespace
 
 TargetARM32::TargetARM32(Cfg *Func)
-    : TargetLowering(Func), NeedSandboxing(Ctx->getFlags().getUseSandboxing()),
+    : TargetLowering(Func), NeedSandboxing(SandboxingType == ST_NaCl),
       CPUFeatures(Func->getContext()->getFlags()) {}
 
 void TargetARM32::staticInit(GlobalContext *Ctx) {

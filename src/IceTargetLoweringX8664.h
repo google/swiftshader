@@ -55,7 +55,9 @@ protected:
   void _unlink_bp();
   void _push_reg(Variable *Reg);
 
+  void initRebasePtr();
   void initSandbox();
+  bool legalizeOptAddrForSandbox(OptAddr *Addr);
   void emitSandboxedReturn();
   void lowerIndirectJump(Variable *JumpTarget);
   void emitGetIP(CfgNode *Node);

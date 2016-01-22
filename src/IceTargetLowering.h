@@ -455,6 +455,15 @@ protected:
 
   bool shouldOptimizeMemIntrins();
 
+  /// SandboxType enumerates all possible sandboxing strategies that
+  enum SandboxType {
+    ST_None,
+    ST_NaCl,
+    ST_Nonsfi,
+  };
+
+  static SandboxType determineSandboxTypeFromFlags(const ClFlags &Flags);
+
   Cfg *Func;
   GlobalContext *Ctx;
   bool HasComputedFrame = false;
@@ -462,6 +471,7 @@ protected:
   SizeT NextLabelNumber = 0;
   SizeT NextJumpTableNumber = 0;
   LoweringContext Context;
+  const SandboxType SandboxingType = ST_None;
 
   // Runtime helper function names
   const static constexpr char *H_bitcast_16xi1_i16 = "__Sz_bitcast_16xi1_i16";

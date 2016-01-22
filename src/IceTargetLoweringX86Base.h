@@ -194,7 +194,17 @@ protected:
 
   void postLower() override;
 
+  /// Initializes the RebasePtr member variable -- if so required by
+  /// SandboxingType for the concrete Target.
+  void initRebasePtr() {
+    assert(SandboxingType != ST_None);
+    dispatchToConcrete(&Traits::ConcreteTarget::initRebasePtr);
+  }
+
+  /// Emit code that initializes the value of the RebasePtr near the start of
+  /// the function -- if so required by SandboxingType for the concrete type.
   void initSandbox() {
+    assert(SandboxingType != ST_None);
     dispatchToConcrete(&Traits::ConcreteTarget::initSandbox);
   }
 
@@ -225,6 +235,25 @@ protected:
                                           Type ReturnType);
   uint32_t getCallStackArgumentsSizeBytes(const InstCall *Instr) override;
   void genTargetHelperCallFor(Inst *Instr) override;
+
+  /// OptAddr wraps all the possible operands that an x86 address might have.
+  struct OptAddr {
+    Variable *Base = nullptr;
+    Variable *Index = nullptr;
+    uint16_t Shift = 0;
+    int32_t Offset = 0;
+    ConstantRelocatable *Relocatable = nullptr;
+  };
+  /// Legalizes Addr w.r.t. SandboxingType. The exact type of legalization
+  /// varies for different <Target, SandboxingType> tuples.
+  bool legalizeOptAddrForSandbox(OptAddr *Addr) {
+    return dispatchToConcrete(
+        &Traits::ConcreteTarget::legalizeOptAddrForSandbox, std::move(Addr));
+  }
+  // Builds information for a canonical address expresion:
+  //   <Relocatable + Offset>(Base, Index, Shift)
+  X86OperandMem *computeAddressOpt(const Inst *Instr, Type MemType,
+                                   Operand *Addr);
   void doAddressOptLoad() override;
   void doAddressOptStore() override;
   void doMockBoundsCheck(Operand *Opnd) override;
@@ -322,7 +351,7 @@ protected:
     Legal_Imm = 1 << 1,
     Legal_Mem = 1 << 2, // includes [eax+4*ecx] as well as [esp+12]
     Legal_Rematerializable = 1 << 3,
-    Legal_AddrAbs = 1 << 4, // ConstantRelocatable doesn't have to add GotVar
+    Legal_AddrAbs = 1 << 4, // ConstantRelocatable doesn't have to add RebasePtr
     Legal_Default = ~(Legal_Rematerializable | Legal_AddrAbs)
     // TODO(stichnot): Figure out whether this default works for x86-64.
   };
@@ -410,11 +439,9 @@ protected:
 
     template <typename... T>
     AutoMemorySandboxer(typename Traits::TargetLowering *Target, T... Args)
-        : Target(Target),
-          MemOperand(
-              (!Traits::Is64Bit || !Target->Ctx->getFlags().getUseSandboxing())
-                  ? nullptr
-                  : findMemoryReference(Args...)) {
+        : Target(Target), MemOperand(Target->SandboxingType == ST_None
+                                         ? nullptr
+                                         : findMemoryReference(Args...)) {
       if (MemOperand != nullptr) {
         Bundler = makeUnique<AutoBundle>(Target, BundleLockOpt);
         *MemOperand = Target->_sandbox_mem_reference(*MemOperand);
@@ -932,9 +959,9 @@ protected:
       RegisterAliases;
   llvm::SmallBitVector RegsUsed;
   std::array<VarList, IceType_NUM> PhysicalRegisters;
-  // GotVar is a Variable that holds the GlobalOffsetTable address for Non-SFI
-  // mode.
-  Variable *GotVar = nullptr;
+  // RebasePtr is a Variable that holds the Rebasing pointer (if any) for the
+  // current sandboxing type.
+  Variable *RebasePtr = nullptr;
 
   /// Randomize a given immediate operand
   Operand *randomizeOrPoolImmediate(Constant *Immediate,
@@ -1001,10 +1028,6 @@ private:
 
   /// Optimizations for idiom recognition.
   bool lowerOptimizeFcmpSelect(const InstFcmp *Fcmp, const InstSelect *Select);
-
-  /// Emit code that initializes the value of the GotVar near the start of the
-  /// function.  (This code is emitted only in Non-SFI mode.)
-  void initGotVarIfNeeded();
 
   /// Complains loudly if invoked because the cpu can handle 64-bit types
   /// natively.

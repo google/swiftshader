@@ -270,7 +270,9 @@ TargetX8664Traits::Address TargetX8664Traits::X86OperandMem::toAsmAddress(
     const bool NeedSandboxing = Target->needSandboxing();
     (void)NeedSandboxing;
     assert(!NeedSandboxing || IsLeaAddr ||
-           (getBase()->getRegNum() == Traits::RegisterSet::Reg_r15));
+           (getBase()->getRegNum() == Traits::RegisterSet::Reg_r15) ||
+           (getBase()->getRegNum() == Traits::RegisterSet::Reg_rsp) ||
+           (getBase()->getRegNum() == Traits::RegisterSet::Reg_rbp));
     return X8664::Traits::Address(getEncodedGPR(getBase()->getRegNum()),
                                   getEncodedGPR(getIndex()->getRegNum()),
                                   X8664::Traits::ScaleFactor(getShift()), Disp,

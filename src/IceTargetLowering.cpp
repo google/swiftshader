@@ -245,8 +245,21 @@ void TargetLowering::staticInit(GlobalContext *Ctx) {
   }
 }
 
+TargetLowering::SandboxType
+TargetLowering::determineSandboxTypeFromFlags(const ClFlags &Flags) {
+  assert(!Flags.getUseSandboxing() || !Flags.getUseNonsfi());
+  if (Flags.getUseNonsfi()) {
+    return TargetLowering::ST_Nonsfi;
+  }
+  if (Flags.getUseSandboxing()) {
+    return TargetLowering::ST_NaCl;
+  }
+  return TargetLowering::ST_None;
+}
+
 TargetLowering::TargetLowering(Cfg *Func)
-    : Func(Func), Ctx(Func->getContext()), Context() {}
+    : Func(Func), Ctx(Func->getContext()),
+      SandboxingType(determineSandboxTypeFromFlags(Ctx->getFlags())) {}
 
 TargetLowering::AutoBundle::AutoBundle(TargetLowering *Target,
                                        InstBundleLock::Option Option)
