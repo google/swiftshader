@@ -180,6 +180,9 @@ RegARM32::GPRRegister getGPRReg(IValueT Shift, IValueT Value) {
 enum OpEncoding {
   // No alternate layout specified.
   DefaultOpEncoding,
+  // Alternate encoding for ImmRegOffset, where the offset is divided by 4
+  // before encoding.
+  ImmRegOffsetDiv4,
   // Alternate encoding 3 for memory operands (like in strb, strh, ldrb, and
   // ldrh.
   OpEncoding3,
@@ -381,6 +384,9 @@ IValueT encodeImmRegOffset(OpEncoding AddressEncoding, IValueT Reg,
   switch (AddressEncoding) {
   case DefaultOpEncoding:
     return encodeImmRegOffset(Reg, Offset, Mode);
+  case ImmRegOffsetDiv4:
+    assert((Offset & 0x3) == 0);
+    return encodeImmRegOffset(Reg, Offset >> 2, Mode);
   case OpEncoding3:
     return encodeImmRegOffsetEnc3(Reg, Offset, Mode);
   case OpEncodingMemEx:
@@ -2214,14 +2220,16 @@ void AssemblerARM32::vldrd(const Operand *OpDd, const Operand *OpAddress,
   //   vldr<c> <Dd>, [<Rn>{, #+/-<imm>}]
   //
   // cccc1101UD01nnnndddd1011iiiiiiii where cccc=Cond, nnnn=Rn, Ddddd=Rd,
-  // iiiiiiii=abs(Opcode), and U=1 if Opcode>=0,
+  // iiiiiiii=abs(Imm >> 2), and U=1 if Opcode>=0.
   constexpr const char *Vldrd = "vldrd";
   IValueT Dd = encodeDRegister(OpDd, "Dd", Vldrd);
   assert(CondARM32::isDefined(Cond));
   IValueT Address;
-  EncodedOperand AddressEncoding = encodeAddress(OpAddress, Address, TInfo);
-  (void)AddressEncoding;
-  assert(AddressEncoding == EncodedAsImmRegOffset);
+  EncodedOperand AddressEncoding =
+      encodeAddress(OpAddress, Address, TInfo, ImmRegOffsetDiv4);
+  if (AddressEncoding != EncodedAsImmRegOffset)
+    // TODO(kschimpf) Fix this.
+    return setNeedsTextFixup();
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   IValueT Encoding = B27 | B26 | B24 | B20 | B11 | B9 | B8 |
                      (encodeCondition(Cond) << kConditionShift) |
@@ -2285,16 +2293,19 @@ void AssemblerARM32::vmuld(const Operand *OpDd, const Operand *OpDn,
 void AssemblerARM32::vstrd(const Operand *OpDd, const Operand *OpAddress,
                            CondARM32::Cond Cond, const TargetInfo &TInfo) {
   // VSTR - ARM section A8.8.413, encoding A1:
-  //   vstr<c> <Dd>, [<Rn>{, #+/-<imm>}]
+  //   vstr<c> <Dd>, [<Rn>{, #+/-<Imm>}]
   //
   // cccc1101UD00nnnndddd1011iiiiiiii where cccc=Cond, nnnn=Rn, Ddddd=Rd,
-  // iiiiiiii=abs(Opcode), and U=1 if Opcode>=0,
+  // iiiiiiii=abs(Imm >> 2), and U=1 if Imm>=0.
   constexpr const char *Vstrd = "vstrd";
   IValueT Dd = encodeDRegister(OpDd, "Dd", Vstrd);
   assert(CondARM32::isDefined(Cond));
   IValueT Address;
-  if (encodeAddress(OpAddress, Address, TInfo) != EncodedAsImmRegOffset)
-    assert(false);
+  IValueT AddressEncoding =
+      encodeAddress(OpAddress, Address, TInfo, ImmRegOffsetDiv4);
+  if (AddressEncoding != EncodedAsImmRegOffset)
+    // TODO(kschimpf) Fix this.
+    return setNeedsTextFixup();
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   IValueT Encoding = B27 | B26 | B24 | B11 | B9 | B8 |
                      (encodeCondition(Cond) << kConditionShift) |

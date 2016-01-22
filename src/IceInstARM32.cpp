@@ -1372,13 +1372,21 @@ template <> void InstARM32Ldr::emit(const Cfg *Func) const {
 template <> void InstARM32Ldr::emitIAS(const Cfg *Func) const {
   assert(getSrcSize() == 1);
   Variable *Dest = getDest();
-  Type DestTy = Dest->getType();
+  const Type DestTy = Dest->getType();
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   if (isScalarFloatingType(DestTy)) {
-    if (DestTy == IceType_f32)
+    switch (DestTy) {
+    default:
+      // TODO(kschimpf) Does this happen?
+      Asm->setNeedsTextFixup();
+      break;
+    case IceType_f32:
       Asm->vldrs(Dest, getSrc(0), getPredicate(), Func->getTarget());
-    else
+      break;
+    case IceType_f64:
       Asm->vldrd(Dest, getSrc(0), getPredicate(), Func->getTarget());
+      break;
+    }
   } else if (isVectorType(DestTy))
     // TODO(kschimpf) Handle case.
     Asm->setNeedsTextFixup();
@@ -1677,10 +1685,18 @@ void InstARM32Str::emitIAS(const Cfg *Func) const {
   Type Ty = getSrc(0)->getType();
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   if (isScalarFloatingType(Ty)) {
-    if (Ty == IceType_f32)
+    switch (Ty) {
+    default:
+      // TODO(kschimpf) Does this happen?
+      Asm->setNeedsTextFixup();
+      break;
+    case IceType_f32:
       Asm->vstrs(getSrc(0), getSrc(1), getPredicate(), Func->getTarget());
-    else
+      break;
+    case IceType_f64:
       Asm->vstrd(getSrc(0), getSrc(1), getPredicate(), Func->getTarget());
+      break;
+    }
   } else if (isVectorType(Ty))
     // TODO(kschimpf) Handle case.
     Asm->setNeedsTextFixup();
