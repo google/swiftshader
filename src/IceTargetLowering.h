@@ -355,7 +355,8 @@ protected:
   filterTypeToRegisterSet(GlobalContext *Ctx, int32_t NumRegs,
                           llvm::SmallBitVector TypeToRegisterSet[],
                           size_t TypeToRegisterSetSize,
-                          std::function<IceString(int32_t)> getRegName);
+                          std::function<IceString(int32_t)> getRegName,
+                          std::function<IceString(RegClass)> getRegClassName);
   virtual void lowerAlloca(const InstAlloca *Inst) = 0;
   virtual void lowerArithmetic(const InstArithmetic *Inst) = 0;
   virtual void lowerAssign(const InstAssign *Inst) = 0;

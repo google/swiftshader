@@ -96,6 +96,25 @@ public:
   }
   Variable *getPhysicalRegister(SizeT RegNum, Type Ty = IceType_void) override;
   IceString getRegName(SizeT RegNum, Type Ty) const override;
+  static IceString getRegClassName(RegClass C) {
+    auto ClassNum = static_cast<RegClassX86>(C);
+    assert(ClassNum < RCX86_NUM);
+    switch (ClassNum) {
+    default:
+      assert(C < RC_Target);
+      return regClassString(C);
+    case RCX86_Is64To8:
+      return "i64to8"; // 64-bit GPR truncable to i8
+    case RCX86_Is32To8:
+      return "i32to8"; // 32-bit GPR truncable to i8
+    case RCX86_Is16To8:
+      return "i16to8"; // 16-bit GPR truncable to i8
+    case RCX86_IsTrunc8Rcvr:
+      return "i8from"; // 8-bit GPR truncable from wider GPRs
+    case RCX86_IsAhRcvr:
+      return "i8fromah"; // 8-bit GPR that ah can be assigned to
+    }
+  }
   llvm::SmallBitVector getRegisterSet(RegSetMask Include,
                                       RegSetMask Exclude) const override;
   const llvm::SmallBitVector &

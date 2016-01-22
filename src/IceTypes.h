@@ -22,11 +22,29 @@
 namespace Ice {
 
 enum Type {
-#define X(tag, sizeLog2, align, elts, elty, str) IceType_##tag,
+#define X(tag, sizeLog2, align, elts, elty, str, rcstr) IceType_##tag,
   ICETYPE_TABLE
 #undef X
       IceType_NUM
 };
+
+/// RegClass indicates the physical register class that a Variable may be
+/// register-allocated from.  By default, a variable's register class is
+/// directly associated with its type.  However, the target lowering may define
+/// additional target-specific register classes by extending the set of enum
+/// values.
+enum RegClass : uint8_t {
+// Define RC_void, RC_i1, RC_i8, etc.
+#define X(tag, sizeLog2, align, elts, elty, str, rcstr)                        \
+  RC_##tag = IceType_##tag,
+  ICETYPE_TABLE
+#undef X
+      RC_Target,
+  // Leave plenty of space for target-specific values.
+  RC_Max = std::numeric_limits<uint8_t>::max()
+};
+static_assert(RC_Target == static_cast<RegClass>(IceType_NUM),
+              "Expected RC_Target and IceType_NUM to be the same");
 
 enum TargetArch {
 #define X(tag, str, is_elf64, e_machine, e_flags) tag,
@@ -64,6 +82,7 @@ size_t typeAlignInBytes(Type Ty);
 size_t typeNumElements(Type Ty);
 Type typeElementType(Type Ty);
 const char *typeString(Type Ty);
+const char *regClassString(RegClass C);
 
 inline Type getPointerType() { return IceType_i32; }
 

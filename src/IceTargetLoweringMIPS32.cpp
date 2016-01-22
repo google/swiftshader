@@ -60,6 +60,17 @@ namespace {
 // The maximum number of arguments to pass in GPR registers.
 constexpr uint32_t MIPS32_MAX_GPR_ARG = 4;
 
+IceString getRegClassName(RegClass C) {
+  auto ClassNum = static_cast<RegClassMIPS32>(C);
+  assert(ClassNum < RCMIPS32_NUM);
+  switch (ClassNum) {
+  default:
+    assert(C < RC_Target);
+    return regClassString(C);
+    // Add handling of new register classes below.
+  }
+}
+
 } // end of anonymous namespace
 
 TargetMIPS32::TargetMIPS32(Cfg *Func) : TargetLowering(Func) {}
@@ -106,9 +117,8 @@ void TargetMIPS32::staticInit(GlobalContext *Ctx) {
   TypeToRegisterSet[IceType_v4f32] = VectorRegisters;
 
   filterTypeToRegisterSet(Ctx, RegMIPS32::Reg_NUM, TypeToRegisterSet,
-                          RCMIPS32_NUM, [](int32_t RegNum) -> IceString {
-                            return RegMIPS32::getRegName(RegNum);
-                          });
+                          llvm::array_lengthof(TypeToRegisterSet),
+                          RegMIPS32::getRegName, getRegClassName);
 }
 
 void TargetMIPS32::translateO2() {
@@ -1115,7 +1125,7 @@ void TargetHeaderMIPS32::lower() {
       << "nomips16\n";
 }
 
-llvm::SmallBitVector TargetMIPS32::TypeToRegisterSet[IceType_NUM];
+llvm::SmallBitVector TargetMIPS32::TypeToRegisterSet[RCMIPS32_NUM];
 llvm::SmallBitVector TargetMIPS32::RegisterAliases[RegMIPS32::Reg_NUM];
 
 } // end of namespace MIPS32

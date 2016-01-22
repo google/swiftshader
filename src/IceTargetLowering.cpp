@@ -138,39 +138,68 @@ void printRegisterSet(Ostream &Str, const llvm::SmallBitVector &Bitset,
     Str << "\n";
 }
 
+// Splits "<class>:<reg>" into "<class>" plus "<reg>".  If there is no <class>
+// component, the result is "" plus "<reg>".
+void splitToClassAndName(const IceString &RegName, IceString *SplitRegClass,
+                         IceString *SplitRegName) {
+  constexpr const char Separator[] = ":";
+  constexpr size_t SeparatorWidth = llvm::array_lengthof(Separator) - 1;
+  size_t Pos = RegName.find(Separator);
+  if (Pos == std::string::npos) {
+    *SplitRegClass = "";
+    *SplitRegName = RegName;
+  } else {
+    *SplitRegClass = RegName.substr(0, Pos);
+    *SplitRegName = RegName.substr(Pos + SeparatorWidth);
+  }
+}
+
 } // end of anonymous namespace
 
 void TargetLowering::filterTypeToRegisterSet(
     GlobalContext *Ctx, int32_t NumRegs,
     llvm::SmallBitVector TypeToRegisterSet[], size_t TypeToRegisterSetSize,
-    std::function<IceString(int32_t)> getRegName) {
-  llvm::SmallBitVector ExcludeBitSet(NumRegs);
+    std::function<IceString(int32_t)> getRegName,
+    std::function<IceString(RegClass)> getRegClassName) {
   std::vector<llvm::SmallBitVector> UseSet(TypeToRegisterSetSize,
-                                           ExcludeBitSet);
-  ExcludeBitSet.flip();
+                                           llvm::SmallBitVector(NumRegs));
+  std::vector<llvm::SmallBitVector> ExcludeSet(TypeToRegisterSetSize,
+                                               llvm::SmallBitVector(NumRegs));
 
   std::unordered_map<IceString, int32_t> RegNameToIndex;
   for (int32_t RegIndex = 0; RegIndex < NumRegs; ++RegIndex)
     RegNameToIndex[getRegName(RegIndex)] = RegIndex;
 
   ClFlags::StringVector BadRegNames;
-  for (const IceString &RegName : Ctx->getFlags().getUseRestrictedRegisters()) {
-    if (!RegNameToIndex.count(RegName)) {
-      BadRegNames.push_back(RegName);
-      continue;
-    }
-    const int32_t RegIndex = RegNameToIndex[RegName];
-    for (SizeT TypeIndex = 0; TypeIndex < TypeToRegisterSetSize; ++TypeIndex)
-      UseSet[TypeIndex][RegIndex] = TypeToRegisterSet[TypeIndex][RegIndex];
-  }
 
-  for (const IceString &RegName : Ctx->getFlags().getExcludedRegisters()) {
-    if (!RegNameToIndex.count(RegName)) {
-      BadRegNames.push_back(RegName);
-      continue;
+  // The processRegList function iterates across the RegNames vector.  Each
+  // entry in the vector is a string of the form "<reg>" or "<class>:<reg>".
+  // The register class and register number are computed, and the corresponding
+  // bit is set in RegSet[][].  If "<class>:" is missing, then the bit is set
+  // for all classes.
+  auto processRegList = [&](const ClFlags::StringVector &RegNames,
+                            std::vector<llvm::SmallBitVector> &RegSet) {
+    for (const IceString &RegClassAndName : RegNames) {
+      IceString RClass;
+      IceString RName;
+      splitToClassAndName(RegClassAndName, &RClass, &RName);
+      if (!RegNameToIndex.count(RName)) {
+        BadRegNames.push_back(RName);
+        continue;
+      }
+      const int32_t RegIndex = RegNameToIndex.at(RName);
+      for (SizeT TypeIndex = 0; TypeIndex < TypeToRegisterSetSize;
+           ++TypeIndex) {
+        if (RClass.empty() ||
+            RClass == getRegClassName(static_cast<RegClass>(TypeIndex))) {
+          RegSet[TypeIndex][RegIndex] = TypeToRegisterSet[TypeIndex][RegIndex];
+        }
+      }
     }
-    ExcludeBitSet[RegNameToIndex[RegName]] = false;
-  }
+  };
+
+  processRegList(Ctx->getFlags().getUseRestrictedRegisters(), UseSet);
+  processRegList(Ctx->getFlags().getExcludedRegisters(), ExcludeSet);
 
   if (!BadRegNames.empty()) {
     std::string Buffer;
@@ -185,9 +214,10 @@ void TargetLowering::filterTypeToRegisterSet(
   for (size_t TypeIndex = 0; TypeIndex < TypeToRegisterSetSize; ++TypeIndex) {
     llvm::SmallBitVector *TypeBitSet = &TypeToRegisterSet[TypeIndex];
     llvm::SmallBitVector *UseBitSet = &UseSet[TypeIndex];
+    llvm::SmallBitVector *ExcludeBitSet = &ExcludeSet[TypeIndex];
     if (UseBitSet->any())
       *TypeBitSet = *UseBitSet;
-    *TypeBitSet &= ExcludeBitSet;
+    (*TypeBitSet).reset(*ExcludeBitSet);
   }
 
   // Display filtered register sets, if requested.
@@ -198,13 +228,8 @@ void TargetLowering::filterTypeToRegisterSet(
     const IceString IndentTwice = Indent + Indent;
     Str << "Registers available for register allocation:\n";
     for (size_t TypeIndex = 0; TypeIndex < TypeToRegisterSetSize; ++TypeIndex) {
-      Str << Indent;
-      if (TypeIndex < IceType_NUM) {
-        Str << typeString(static_cast<Type>(TypeIndex));
-      } else {
-        Str << "other[" << TypeIndex << "]";
-      }
-      Str << ":\n";
+      Str << Indent << getRegClassName(static_cast<RegClass>(TypeIndex))
+          << ":\n";
       printRegisterSet(Str, TypeToRegisterSet[TypeIndex], getRegName,
                        IndentTwice);
     }

@@ -685,11 +685,14 @@ void LinearScan::handleNoFreeRegisters(IterationState &Iter) {
     // any register to it, and move it to the Handled state.
     Handled.push_back(Iter.Cur);
     if (Iter.Cur->mustHaveReg()) {
-      if (Kind == RAK_Phi)
+      if (Kind == RAK_Phi) {
         addSpillFill(Iter);
-      else
+      } else {
+        dumpLiveRangeTrace("Failing      ", Iter.Cur);
         Func->setError("Unable to find a physical register for an "
-                       "infinite-weight live range");
+                       "infinite-weight live range: " +
+                       Iter.Cur->getName(Func));
+      }
     }
   } else {
     // Evict all live ranges in Active that register number MinWeightIndex is

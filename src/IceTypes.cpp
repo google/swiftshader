@@ -30,7 +30,7 @@ const char *TargetArchName[] = {
 
 // Define a temporary set of enum values based on ICETYPE_TABLE
 enum {
-#define X(tag, sizeLog2, align, elts, elty, str) _table_tag_##tag,
+#define X(tag, sizeLog2, align, elts, elty, str, rcstr) _table_tag_##tag,
   ICETYPE_TABLE
 #undef X
       _enum_table_tag_Names
@@ -45,7 +45,7 @@ enum {
       _enum_props_table_tag_Names
 };
 // Assert that tags in ICETYPE_TABLE are also in ICETYPE_PROPS_TABLE.
-#define X(tag, sizeLog2, align, elts, elty, str)                               \
+#define X(tag, sizeLog2, align, elts, elty, str, rcstr)                        \
   static_assert(                                                               \
       (unsigned)_table_tag_##tag == (unsigned)_props_table_tag_##tag,          \
       "Inconsistency between ICETYPE_PROPS_TABLE and ICETYPE_TABLE");
@@ -64,7 +64,8 @@ ICETYPE_PROPS_TABLE
 
 // Define constants for each element size in ICETYPE_TABLE.
 enum {
-#define X(tag, sizeLog2, align, elts, elty, str) _table_elts_##tag = elts,
+#define X(tag, sizeLog2, align, elts, elty, str, rcstr)                        \
+  _table_elts_##tag = elts,
   ICETYPE_TABLE
 #undef X
       _enum_table_elts_Elements = 0
@@ -91,11 +92,12 @@ struct TypeAttributeFields {
   size_t TypeNumElements;
   Type TypeElementType;
   const char *DisplayString;
+  const char *RegClassString;
 };
 
 const struct TypeAttributeFields TypeAttributes[] = {
-#define X(tag, sizeLog2, align, elts, elty, str)                               \
-  { sizeLog2, align, elts, IceType_##elty, str }                               \
+#define X(tag, sizeLog2, align, elts, elty, str, rcstr)                        \
+  { sizeLog2, align, elts, IceType_##elty, str, rcstr }                        \
   ,
     ICETYPE_TABLE
 #undef X
@@ -277,6 +279,13 @@ const char *typeString(Type Ty) {
   if (Index < IceType_NUM)
     return TypeAttributes[Index].DisplayString;
   llvm_unreachable("Invalid type for typeString");
+  return "???";
+}
+
+const char *regClassString(RegClass C) {
+  if (static_cast<size_t>(C) < IceType_NUM)
+    return TypeAttributes[C].RegClassString;
+  llvm_unreachable("Invalid type for regClassString");
   return "???";
 }
 

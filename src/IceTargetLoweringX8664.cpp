@@ -699,7 +699,7 @@ enum _tmp_enum {
       _num
 };
 // Define a set of constants based on high-level table entries.
-#define X(tag, sizeLog2, align, elts, elty, str)                               \
+#define X(tag, sizeLog2, align, elts, elty, str, rcstr)                        \
   static const int _table1_##tag = IceType_##tag;
 ICETYPE_TABLE
 #undef X
@@ -713,7 +713,7 @@ ICETYPEX8664_TABLE
 #undef X
 // Repeat the static asserts with respect to the high-level table entries in
 // case the high-level table has extra entries.
-#define X(tag, sizeLog2, align, elts, elty, str)                               \
+#define X(tag, sizeLog2, align, elts, elty, str, rcstr)                        \
   static_assert(_table1_##tag == _table2_##tag,                                \
                 "Inconsistency between ICETYPEX8664_TABLE and ICETYPE_TABLE");
 ICETYPE_TABLE

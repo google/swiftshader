@@ -381,7 +381,7 @@ void TargetX86Base<TraitsType>::staticInit(GlobalContext *Ctx) {
                           &RegisterAliases);
   filterTypeToRegisterSet(Ctx, Traits::RegisterSet::Reg_NUM,
                           TypeToRegisterSet.data(), TypeToRegisterSet.size(),
-                          Traits::getRegName);
+                          Traits::getRegName, getRegClassName);
   PcRelFixup = Traits::FK_PcRel;
   AbsFixup =
       Ctx->getFlags().getUseNonsfi() ? Traits::FK_Gotoff : Traits::FK_Abs;

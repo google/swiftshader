@@ -516,7 +516,7 @@ public:
     (*TypeToRegisterSet)[RC_i8] = IntegerRegistersI8;
     (*TypeToRegisterSet)[RC_i16] = IntegerRegistersI16;
     (*TypeToRegisterSet)[RC_i32] = IntegerRegistersI32;
-    (*TypeToRegisterSet)[RC_i64] = IntegerRegistersI32;
+    (*TypeToRegisterSet)[RC_i64] = InvalidRegisters;
     (*TypeToRegisterSet)[RC_f32] = FloatRegisters;
     (*TypeToRegisterSet)[RC_f64] = FloatRegisters;
     (*TypeToRegisterSet)[RC_v4i1] = VectorRegisters;

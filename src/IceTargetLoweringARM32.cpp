@@ -271,6 +271,18 @@ constexpr SizeT NumVec128Args =
 #undef X
     ;
 std::array<uint32_t, NumVec128Args> Vec128ArgInitializer;
+
+IceString getRegClassName(RegClass C) {
+  auto ClassNum = static_cast<RegARM32::RegClassARM32>(C);
+  assert(ClassNum < RegARM32::RCARM32_NUM);
+  switch (ClassNum) {
+  default:
+    assert(C < RC_Target);
+    return regClassString(C);
+    // Add handling of new register classes below.
+  }
+}
+
 } // end of anonymous namespace
 
 TargetARM32::TargetARM32(Cfg *Func)
@@ -331,18 +343,19 @@ void TargetARM32::staticInit(GlobalContext *Ctx) {
   TypeToRegisterSet[IceType_v4f32] = VectorRegisters;
 
   filterTypeToRegisterSet(
-      Ctx, RegARM32::Reg_NUM, TypeToRegisterSet, RegARM32::RCARM32_NUM,
-      [](int32_t RegNum) -> IceString {
+      Ctx, RegARM32::Reg_NUM, TypeToRegisterSet,
+      llvm::array_lengthof(TypeToRegisterSet), [](int32_t RegNum) -> IceString {
+        // This function simply removes ", " from the register name.
         IceString Name = RegARM32::getRegName(RegNum);
         constexpr const char RegSeparator[] = ", ";
         constexpr size_t RegSeparatorWidth =
             llvm::array_lengthof(RegSeparator) - 1;
         for (size_t Pos = Name.find(RegSeparator); Pos != std::string::npos;
              Pos = Name.find(RegSeparator)) {
-          Name.replace(Pos, RegSeparatorWidth, ":");
+          Name.replace(Pos, RegSeparatorWidth, "");
         }
         return Name;
-      });
+      }, getRegClassName);
 }
 
 namespace {
@@ -6455,7 +6468,7 @@ void TargetHeaderARM32::lower() {
   Str << ".eabi_attribute 14, 3   @ Tag_ABI_PCS_R9_use: Not used\n";
 }
 
-llvm::SmallBitVector TargetARM32::TypeToRegisterSet[IceType_NUM];
+llvm::SmallBitVector TargetARM32::TypeToRegisterSet[RegARM32::RCARM32_NUM];
 llvm::SmallBitVector TargetARM32::RegisterAliases[RegARM32::Reg_NUM];
 
 } // end of namespace ARM32
