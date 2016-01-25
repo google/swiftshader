@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "344e8eac_3f2483ef",
+        "filename": "src/OpenGL/common/Object.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-25T15:58:00Z",
+      "side": 1,
+      "message": "This feels like an odd object that is more abstract than necessary. I think it would be clearer to have a UniformBuffer struct which consists of a BindingPointer\u003cBuffer\u003e and an offset and size. It also belongs more in Buffer.hpp than Object.hpp.",
+      "range": {
+        "startLine": 89,
+        "startChar": 6,
+        "endLine": 89,
+        "endChar": 26
+      },
+      "revId": "5fdc0b4d49894bcfea75810d5f3e02f943565deb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
