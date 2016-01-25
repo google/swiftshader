@@ -2382,7 +2382,7 @@ void AssemblerARM32::vldrs(const Operand *OpSd, const Operand *OpAddress,
 void AssemblerARM32::vmovsr(const Operand *OpSn, const Operand *OpRt,
                             CondARM32::Cond Cond) {
   // VMOV (between ARM core register and single-precision register)
-  //   ARM seciont A8.8.343, encoding A1.
+  //   ARM section A8.8.343, encoding A1.
   //
   //   vmov<c> <Sn>, <Rt>
   //
@@ -2397,6 +2397,20 @@ void AssemblerARM32::vmovsr(const Operand *OpSn, const Operand *OpRt,
   IValueT Encoding = (encodeCondition(Cond) << kConditionShift) | B27 | B26 |
                      B25 | B11 | B9 | B4 | (getXXXXInRegXXXXY(Sn) << 16) |
                      (Rt << kRdShift) | (getYInRegXXXXY(Sn) << 7);
+  emitInst(Encoding);
+}
+
+void AssemblerARM32::vmrsAPSR_nzcv(CondARM32::Cond Cond) {
+  // MVRS - ARM section A*.8.348, encoding A1:
+  //   vmrs<c> APSR_nzcv, FPSCR
+  //
+  // cccc111011110001tttt101000010000 where tttt=0x15 (i.e. when Rt=pc, use
+  // APSR_nzcv instead).
+  assert(CondARM32::isDefined(Cond));
+  IValueT Encoding = B27 | B26 | B25 | B23 | B22 | B21 | B20 | B16 | B15 | B14 |
+                     B13 | B12 | B11 | B9 | B4 |
+                     (encodeCondition(Cond) << kConditionShift);
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitInst(Encoding);
 }
 

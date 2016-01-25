@@ -384,6 +384,9 @@ public:
 
   void vmovsr(const Operand *OpSn, const Operand *OpRt, CondARM32::Cond Cond);
 
+  // Uses APSR_nzcv as register
+  void vmrsAPSR_nzcv(CondARM32::Cond Cond);
+
   void vmuld(const Operand *OpDd, const Operand *OpDn, const Operand *OpDm,
              CondARM32::Cond Cond);
 

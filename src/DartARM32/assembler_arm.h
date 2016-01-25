@@ -755,9 +755,10 @@ class Assembler : public ValueObject {
   void vcmpsz(SRegister sd, Condition cond = AL);
   // Moved to ARM23::AssemblerARM32::vcmpdz().
   void vcmpdz(DRegister dd, Condition cond = AL);
-#endif
 
+  // APSR_nzcv version moved to ARM32::AssemblerARM32::vmrsAPSR_nzcv()
   void vmrs(Register rd, Condition cond = AL);
+#endif
   void vmstat(Condition cond = AL);
 
   // Duplicates the operand of size sz at index idx from dm to all elements of

@@ -1998,6 +1998,12 @@ void InstARM32Vmrs::emit(const Cfg *Func) const {
                                      "FPSCR";
 }
 
+void InstARM32Vmrs::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  Asm->vmrsAPSR_nzcv(getPredicate());
+  assert(!Asm->needsTextFixup());
+}
+
 void InstARM32Vmrs::dump(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;

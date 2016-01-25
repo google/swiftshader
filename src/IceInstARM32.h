@@ -1383,6 +1383,7 @@ public:
     return new (Func->allocate<InstARM32Vmrs>()) InstARM32Vmrs(Func, Predicate);
   }
   void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Vmrs); }
 

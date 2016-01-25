@@ -1171,8 +1171,8 @@ void Assembler::vcmpsz(SRegister sd, Condition cond) {
 void Assembler::vcmpdz(DRegister dd, Condition cond) {
   EmitVFPddd(cond, B23 | B21 | B20 | B18 | B16 | B6, dd, D0, D0);
 }
-#endif
 
+// APSR_nzcv version moved to ARM32::AssemblerARM32::vmrsAPSR_nzcv()
 void Assembler::vmrs(Register rd, Condition cond) {
   ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(cond != kNoCondition);
@@ -1182,7 +1182,7 @@ void Assembler::vmrs(Register rd, Condition cond) {
                      B11 | B9 | B4;
   Emit(encoding);
 }
-
+#endif
 
 void Assembler::vmstat(Condition cond) {
   vmrs(APSR, cond);
