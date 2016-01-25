@@ -175,22 +175,6 @@ RegARM32::GPRRegister getGPRReg(IValueT Shift, IValueT Value) {
   return decodeGPRRegister((Value >> Shift) & 0xF);
 }
 
-// Defines alternate layouts of instruction operands, should the (common)
-// default pattern not be used.
-enum OpEncoding {
-  // No alternate layout specified.
-  DefaultOpEncoding,
-  // Alternate encoding for ImmRegOffset, where the offset is divided by 4
-  // before encoding.
-  ImmRegOffsetDiv4,
-  // Alternate encoding 3 for memory operands (like in strb, strh, ldrb, and
-  // ldrh.
-  OpEncoding3,
-  // Alternate encoding for memory operands for ldrex and strex, which only
-  // actually expect a register.
-  OpEncodingMemEx
-};
-
 IValueT getEncodedGPRegNum(const Variable *Var) {
   assert(Var->hasReg());
   int32_t Reg = Var->getRegNum();
@@ -215,49 +199,83 @@ IValueT getYInRegYXXXX(IValueT RegYXXXX) { return RegYXXXX >> 4; }
 
 IValueT getXXXXInRegYXXXX(IValueT RegYXXXX) { return RegYXXXX & 0x0f; }
 
+// Defines layouts of an operand representing a (register) memory address,
+// possibly modified by an immediate value.
+enum EncodedImmAddress {
+  // Address modified by a rotated immediate 8-bit value.
+  RotatedImm8Address,
+
+  // Alternate encoding for RotatedImm8Address, where the offset is divided by 4
+  // before encoding.
+  RotatedImm8Div4Address,
+
+  // Address modified by an immediate 12-bit value.
+  Imm12Address,
+
+  // Alternate encoding 3, for an address modified by a rotated immediate 8-bit
+  // value.
+  RotatedImm8Enc3Address,
+
+  // Encoding where no immediate offset is used.
+  NoImmOffsetAddress
+};
+
 // The way an operand is encoded into a sequence of bits in functions
 // encodeOperand and encodeAddress below.
 enum EncodedOperand {
   // Unable to encode, value left undefined.
   CantEncode = 0,
+
   // Value is register found.
   EncodedAsRegister,
+
   // Value=rrrriiiiiiii where rrrr is the rotation, and iiiiiiii is the imm8
   // value.
   EncodedAsRotatedImm8,
+
   // EncodedAsImmRegOffset is a memory operand that can take three forms, based
-  // on OpEncoding:
+  // on type EncodedImmAddress:
   //
-  // ***** DefaultOpEncoding *****
+  // ***** RotatedImm8Address *****
   //
   // Value=0000000pu0w0nnnn0000iiiiiiiiiiii where nnnn is the base register Rn,
   // p=1 if pre-indexed addressing, u=1 if offset positive, w=1 if writeback to
   // Rn should be used, and iiiiiiiiiiii defines the rotated Imm8 value.
   //
-  // ***** OpEncoding3 *****
+  // ***** RotatedImm8Div4Address *****
   //
   // Value=00000000pu0w0nnnn0000iiii0000jjjj where nnnn=Rn, iiiijjjj=Imm8, p=1
   // if pre-indexed addressing, u=1 if offset positive, and w=1 if writeback to
   // Rn.
   //
-  // ***** OpEncodingMemEx *****
+  // ***** Imm12Address *****
   //
-  // Value=00000000U000nnnn00000000xxxxxxxx where nnnn=Rn, xxxxxxxx=abs(Offset),
-  // and U=1 Offset>=0.
+  // Value=0000000pu0w0nnnn0000iiiiiiiiiiii where nnnn is the base register Rn,
+  // p=1 if pre-indexed addressing, u=1 if offset positive, w=1 if writeback to
+  // Rn should be used, and iiiiiiiiiiii defines the immediate 12-bit value.
+  //
+  // ***** NoImmOffsetAddress *****
+  //
+  // Value=000000001000nnnn0000000000000000 where nnnn=Rn.
   EncodedAsImmRegOffset,
+
   // Value=0000000pu0w00nnnnttttiiiiiss0mmmm where nnnn is the base register Rn,
   // mmmm is the index register Rm, iiiii is the shift amount, ss is the shift
   // kind, p=1 if pre-indexed addressing, u=1 if offset positive, and w=1 if
   // writeback to Rn.
   EncodedAsShiftRotateImm5,
+
   // Value=000000000000000000000iiiii0000000 where iiii defines the Imm5 value
   // to shift.
   EncodedAsShiftImm5,
+
   // Value=iiiiiss0mmmm where mmmm is the register to rotate, ss is the shift
   // kind, and iiiii is the shift amount.
   EncodedAsShiftedRegister,
+
   // Value=ssss0tt1mmmm where mmmm=Rm, tt is an encoded ShiftKind, and ssss=Rms.
   EncodedAsRegShiftReg,
+
   // Value is 32bit integer constant.
   EncodedAsConstI32
 };
@@ -357,13 +375,15 @@ EncodedOperand encodeOperand(const Operand *Opnd, IValueT &Value,
 }
 
 IValueT encodeImmRegOffset(IValueT Reg, IOffsetT Offset,
-                           OperandARM32Mem::AddrMode Mode,
-                           IValueT OffsetShift = 0) {
+                           OperandARM32Mem::AddrMode Mode, IOffsetT MaxOffset,
+                           IValueT OffsetShift) {
   IValueT Value = Mode | (Reg << kRnShift);
   if (Offset < 0) {
     Offset = -Offset;
     Value ^= U; // Flip U to adjust sign.
   }
+  assert(Offset <= MaxOffset);
+  (void)MaxOffset;
   return Value | (Offset >> OffsetShift);
 }
 
@@ -380,22 +400,32 @@ IValueT encodeImmRegOffsetEnc3(IValueT Rn, IOffsetT Imm8,
   return Value;
 }
 
-IValueT encodeImmRegOffset(OpEncoding AddressEncoding, IValueT Reg,
+IValueT encodeImmRegOffset(EncodedImmAddress ImmEncoding, IValueT Reg,
                            IOffsetT Offset, OperandARM32Mem::AddrMode Mode) {
-  switch (AddressEncoding) {
-  case DefaultOpEncoding:
-    return encodeImmRegOffset(Reg, Offset, Mode);
-  case ImmRegOffsetDiv4: {
-    assert((Offset & 0x3) == 0);
-    constexpr IValueT RightShift2 = 2;
-    return encodeImmRegOffset(Reg, Offset, Mode, RightShift2);
+  switch (ImmEncoding) {
+  case RotatedImm8Address: {
+    constexpr IOffsetT MaxOffset = (1 << 8) - 1;
+    constexpr IValueT NoRightShift = 0;
+    return encodeImmRegOffset(Reg, Offset, Mode, MaxOffset, NoRightShift);
   }
-  case OpEncoding3:
+  case RotatedImm8Div4Address: {
+    assert((Offset & 0x3) == 0);
+    constexpr IOffsetT MaxOffset = (1 << 8) - 1;
+    constexpr IValueT RightShift2 = 2;
+    return encodeImmRegOffset(Reg, Offset, Mode, MaxOffset, RightShift2);
+  }
+  case Imm12Address: {
+    constexpr IOffsetT MaxOffset = (1 << 12) - 1;
+    constexpr IValueT NoRightShift = 0;
+    return encodeImmRegOffset(Reg, Offset, Mode, MaxOffset, NoRightShift);
+  }
+  case RotatedImm8Enc3Address:
     return encodeImmRegOffsetEnc3(Reg, Offset, Mode);
-  case OpEncodingMemEx:
+  case NoImmOffsetAddress: {
     assert(Offset == 0);
     assert(Mode == OperandARM32Mem::Offset);
     return Reg << kRnShift;
+  }
   }
   llvm_unreachable("(silence g++ warning)");
 }
@@ -404,7 +434,7 @@ IValueT encodeImmRegOffset(OpEncoding AddressEncoding, IValueT Reg,
 // on how ARM represents the address. Returns how the value was encoded.
 EncodedOperand encodeAddress(const Operand *Opnd, IValueT &Value,
                              const AssemblerARM32::TargetInfo &TInfo,
-                             OpEncoding AddressEncoding = DefaultOpEncoding) {
+                             EncodedImmAddress ImmEncoding) {
   Value = 0; // Make sure initialized.
   if (const auto *Var = llvm::dyn_cast<Variable>(Opnd)) {
     // Should be a stack variable, with an offset.
@@ -416,7 +446,7 @@ EncodedOperand encodeAddress(const Operand *Opnd, IValueT &Value,
     int32_t BaseRegNum = Var->getBaseRegNum();
     if (BaseRegNum == Variable::NoRegister)
       BaseRegNum = TInfo.FrameOrStackReg;
-    Value = encodeImmRegOffset(AddressEncoding, BaseRegNum, Offset,
+    Value = encodeImmRegOffset(ImmEncoding, BaseRegNum, Offset,
                                OperandARM32Mem::Offset);
     return EncodedAsImmRegOffset;
   }
@@ -436,7 +466,7 @@ EncodedOperand encodeAddress(const Operand *Opnd, IValueT &Value,
     }
     // Encoded as immediate register offset.
     ConstantInteger32 *Offset = Mem->getOffset();
-    Value = encodeImmRegOffset(AddressEncoding, Rn, Offset->getValue(),
+    Value = encodeImmRegOffset(ImmEncoding, Rn, Offset->getValue(),
                                Mem->getAddrMode());
     return EncodedAsImmRegOffset;
   }
@@ -802,7 +832,7 @@ void AssemblerARM32::emitMemOp(CondARM32::Cond Cond, bool IsLoad, bool IsByte,
                                IValueT Rt, const Operand *OpAddress,
                                const TargetInfo &TInfo, const char *InstName) {
   IValueT Address;
-  switch (encodeAddress(OpAddress, Address, TInfo)) {
+  switch (encodeAddress(OpAddress, Address, TInfo, Imm12Address)) {
   default:
     llvm::report_fatal_error(std::string(InstName) +
                              ": Memory address not understood");
@@ -860,7 +890,7 @@ void AssemblerARM32::emitMemOpEnc3(CondARM32::Cond Cond, IValueT Opcode,
                                    const TargetInfo &TInfo,
                                    const char *InstName) {
   IValueT Address;
-  switch (encodeAddress(OpAddress, Address, TInfo, OpEncoding3)) {
+  switch (encodeAddress(OpAddress, Address, TInfo, RotatedImm8Enc3Address)) {
   default:
     llvm::report_fatal_error(std::string(InstName) +
                              ": Memory address not understood");
@@ -1356,7 +1386,7 @@ void AssemblerARM32::emitMemExOp(CondARM32::Cond Cond, Type Ty, bool IsLoad,
     MemExOpcode |= B1;
   }
   IValueT AddressRn;
-  if (encodeAddress(OpAddress, AddressRn, TInfo, OpEncodingMemEx) !=
+  if (encodeAddress(OpAddress, AddressRn, TInfo, NoImmOffsetAddress) !=
       EncodedAsImmRegOffset)
     llvm::report_fatal_error(std::string(InstName) +
                              ": Can't extract Rn from address");
@@ -1730,8 +1760,11 @@ void AssemblerARM32::pop(const Variable *OpRt, CondARM32::Cond Cond) {
   // Same as load instruction.
   constexpr bool IsLoad = true;
   constexpr bool IsByte = false;
-  IValueT Address = encodeImmRegOffset(RegARM32::Encoded_Reg_sp, kWordSize,
-                                       OperandARM32Mem::PostIndex);
+  constexpr IOffsetT MaxOffset = (1 << 8) - 1;
+  constexpr IValueT NoShiftRight = 0;
+  IValueT Address =
+      encodeImmRegOffset(RegARM32::Encoded_Reg_sp, kWordSize,
+                         OperandARM32Mem::PostIndex, MaxOffset, NoShiftRight);
   emitMemOp(Cond, kInstTypeMemImmediate, IsLoad, IsByte, Rt, Address);
 }
 
@@ -1756,8 +1789,11 @@ void AssemblerARM32::push(const Operand *OpRt, CondARM32::Cond Cond) {
   // Same as store instruction.
   constexpr bool isLoad = false;
   constexpr bool isByte = false;
-  IValueT Address = encodeImmRegOffset(RegARM32::Encoded_Reg_sp, -kWordSize,
-                                       OperandARM32Mem::PreIndex);
+  constexpr IOffsetT MaxOffset = (1 << 8) - 1;
+  constexpr IValueT NoShiftRight = 0;
+  IValueT Address =
+      encodeImmRegOffset(RegARM32::Encoded_Reg_sp, -kWordSize,
+                         OperandARM32Mem::PreIndex, MaxOffset, NoShiftRight);
   emitMemOp(Cond, kInstTypeMemImmediate, isLoad, isByte, Rt, Address);
 }
 
@@ -2322,7 +2358,7 @@ void AssemblerARM32::vldrd(const Operand *OpDd, const Operand *OpAddress,
   assert(CondARM32::isDefined(Cond));
   IValueT Address;
   EncodedOperand AddressEncoding =
-      encodeAddress(OpAddress, Address, TInfo, ImmRegOffsetDiv4);
+      encodeAddress(OpAddress, Address, TInfo, RotatedImm8Div4Address);
   (void)AddressEncoding;
   assert(AddressEncoding == EncodedAsImmRegOffset);
   IValueT Encoding = B27 | B26 | B24 | B20 | B11 | B9 | B8 |
@@ -2344,7 +2380,7 @@ void AssemblerARM32::vldrs(const Operand *OpSd, const Operand *OpAddress,
   assert(CondARM32::isDefined(Cond));
   IValueT Address;
   EncodedOperand AddressEncoding =
-      encodeAddress(OpAddress, Address, TInfo, ImmRegOffsetDiv4);
+      encodeAddress(OpAddress, Address, TInfo, RotatedImm8Div4Address);
   (void)AddressEncoding;
   assert(AddressEncoding == EncodedAsImmRegOffset);
   IValueT Encoding = B27 | B26 | B24 | B20 | B11 | B9 |
@@ -2429,7 +2465,7 @@ void AssemblerARM32::vstrd(const Operand *OpDd, const Operand *OpAddress,
   assert(CondARM32::isDefined(Cond));
   IValueT Address;
   IValueT AddressEncoding =
-      encodeAddress(OpAddress, Address, TInfo, ImmRegOffsetDiv4);
+      encodeAddress(OpAddress, Address, TInfo, RotatedImm8Div4Address);
   (void)AddressEncoding;
   assert(AddressEncoding == EncodedAsImmRegOffset);
   IValueT Encoding = B27 | B26 | B24 | B11 | B9 | B8 |
@@ -2451,7 +2487,7 @@ void AssemblerARM32::vstrs(const Operand *OpSd, const Operand *OpAddress,
   assert(CondARM32::isDefined(Cond));
   IValueT Address;
   IValueT AddressEncoding =
-      encodeAddress(OpAddress, Address, TInfo, ImmRegOffsetDiv4);
+      encodeAddress(OpAddress, Address, TInfo, RotatedImm8Div4Address);
   (void)AddressEncoding;
   assert(AddressEncoding == EncodedAsImmRegOffset);
   IValueT Encoding =
