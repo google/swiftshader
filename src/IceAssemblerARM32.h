@@ -458,7 +458,10 @@ private:
 
   void bindCfgNodeLabel(const CfgNode *Node) override;
 
-  void emitInst(IValueT Value) { Buffer.emit<IValueT>(Value); }
+  void emitInst(IValueT Value) {
+    AssemblerBuffer::EnsureCapacity _(&Buffer);
+    Buffer.emit<IValueT>(Value);
+  }
 
   // List of possible checks to apply when calling emitType01() (below).
   enum EmitChecks { NoChecks, RdIsPcAndSetFlags };

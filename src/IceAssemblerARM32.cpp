@@ -661,7 +661,6 @@ void AssemblerARM32::emitType01(CondARM32::Cond Cond, IValueT InstType,
   }
   assert(Rd < RegARM32::getNumGPRegs());
   assert(CondARM32::isDefined(Cond));
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   const IValueT Encoding = (encodeCondition(Cond) << kConditionShift) |
                            (InstType << kTypeShift) | (Opcode << kOpcodeShift) |
                            (encodeBool(SetFlags) << kSShift) |
@@ -747,7 +746,6 @@ void AssemblerARM32::emitType05(CondARM32::Cond Cond, IOffsetT Offset,
   // iiiiiiiiiiiiiiiiiiiiiiii=
   // EncodedBranchOffset(cccc101l000000000000000000000000, Offset);
   assert(CondARM32::isDefined(Cond));
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   IValueT Encoding = static_cast<int32_t>(Cond) << kConditionShift |
                      5 << kTypeShift | (Link ? 1 : 0) << kLinkShift;
   Encoding = encodeBranchOffset(Offset, Encoding);
@@ -794,7 +792,6 @@ void AssemblerARM32::emitMemOp(CondARM32::Cond Cond, IValueT InstType,
                                IValueT Address) {
   assert(Rt < RegARM32::getNumGPRegs());
   assert(CondARM32::isDefined(Cond));
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   const IValueT Encoding = (encodeCondition(Cond) << kConditionShift) |
                            (InstType << kTypeShift) | (IsLoad ? L : 0) |
                            (IsByte ? B : 0) | (Rt << kRdShift) | Address;
@@ -884,7 +881,6 @@ void AssemblerARM32::emitMemOpEnc3(CondARM32::Cond Cond, IValueT Opcode,
       verifyRegsNotEq(getGPRReg(kRnShift, Address), "Rn", Rt, "Rt", InstName);
     const IValueT Encoding = (encodeCondition(Cond) << kConditionShift) |
                              Opcode | (Rt << kRdShift) | Address;
-    AssemblerBuffer::EnsureCapacity ensured(&Buffer);
     emitInst(Encoding);
     return;
   }
@@ -912,7 +908,6 @@ void AssemblerARM32::emitMemOpEnc3(CondARM32::Cond Cond, IValueT Opcode,
                                ": Shift constant not allowed");
     const IValueT Encoding = (encodeCondition(Cond) << kConditionShift) |
                              Opcode | (Rt << kRdShift) | Address;
-    AssemblerBuffer::EnsureCapacity ensured(&Buffer);
     emitInst(Encoding);
     return;
   }
@@ -925,7 +920,6 @@ void AssemblerARM32::emitDivOp(CondARM32::Cond Cond, IValueT Opcode, IValueT Rd,
   assert(Rn < RegARM32::getNumGPRegs());
   assert(Rm < RegARM32::getNumGPRegs());
   assert(CondARM32::isDefined(Cond));
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   const IValueT Encoding = Opcode | (encodeCondition(Cond) << kConditionShift) |
                            (Rn << kDivRnShift) | (Rd << kDivRdShift) | B26 |
                            B25 | B24 | B20 | B15 | B14 | B13 | B12 | B4 |
@@ -941,7 +935,6 @@ void AssemblerARM32::emitMulOp(CondARM32::Cond Cond, IValueT Opcode, IValueT Rd,
   assert(Rm < RegARM32::getNumGPRegs());
   assert(Rs < RegARM32::getNumGPRegs());
   assert(CondARM32::isDefined(Cond));
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   IValueT Encoding = Opcode | (encodeCondition(Cond) << kConditionShift) |
                      (encodeBool(SetFlags) << kSShift) | (Rn << kRnShift) |
                      (Rd << kRdShift) | (Rs << kRsShift) | B7 | B4 |
@@ -955,7 +948,6 @@ void AssemblerARM32::emitMultiMemOp(CondARM32::Cond Cond,
   assert(CondARM32::isDefined(Cond));
   assert(BaseReg < RegARM32::getNumGPRegs());
   assert(Registers < (1 << RegARM32::getNumGPRegs()));
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   IValueT Encoding = (encodeCondition(Cond) << kConditionShift) | B27 |
                      AddressMode | (IsLoad ? L : 0) | (BaseReg << kRnShift) |
                      Registers;
@@ -1002,7 +994,6 @@ void AssemblerARM32::emitSignExtend(CondARM32::Cond Cond, IValueT Opcode,
   if (!Utils::IsUint(2, Rot))
     llvm::report_fatal_error(std::string(InstName) +
                              ": Illegal rotation value");
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   IValueT Encoding = (encodeCondition(Cond) << kConditionShift) | Opcode |
                      (Rn << kRnShift) | (Rd << kRdShift) |
                      (Rot << kRotationShift) | B6 | B5 | B4 | (Rm << kRmShift);
@@ -1015,7 +1006,6 @@ void AssemblerARM32::emitVFPddd(CondARM32::Cond Cond, IValueT Opcode,
   assert(Dn < RegARM32::getNumDRegs());
   assert(Dm < RegARM32::getNumDRegs());
   assert(CondARM32::isDefined(Cond));
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   constexpr IValueT VFPOpcode = B27 | B26 | B25 | B11 | B9 | B8;
   const IValueT Encoding =
       Opcode | VFPOpcode | (encodeCondition(Cond) << kConditionShift) |
@@ -1031,7 +1021,6 @@ void AssemblerARM32::emitVFPsss(CondARM32::Cond Cond, IValueT Opcode,
   assert(Sn < RegARM32::getNumSRegs());
   assert(Sm < RegARM32::getNumSRegs());
   assert(CondARM32::isDefined(Cond));
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   constexpr IValueT VFPOpcode = B27 | B26 | B25 | B11 | B9;
   const IValueT Encoding =
       Opcode | VFPOpcode | (encodeCondition(Cond) << kConditionShift) |
@@ -1114,7 +1103,6 @@ void AssemblerARM32::bkpt(uint16_t Imm16) {
   //   bkpt #<Imm16>
   //
   // cccc00010010iiiiiiiiiiii0111iiii where cccc=AL and iiiiiiiiiiiiiiii=Imm16
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   const IValueT Encoding = (CondARM32::AL << kConditionShift) | B24 | B21 |
                            ((Imm16 >> 4) << 8) | B6 | B5 | B4 | (Imm16 & 0xf);
   emitInst(Encoding);
@@ -1162,7 +1150,6 @@ void AssemblerARM32::blx(const Operand *Target) {
   constexpr const char *BlxName = "Blx";
   IValueT Rm = encodeGPRegister(Target, "Rm", BlxName);
   verifyRegNotPc(Rm, "Rm", BlxName);
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   constexpr CondARM32::Cond Cond = CondARM32::AL;
   int32_t Encoding = (encodeCondition(Cond) << kConditionShift) | B24 | B21 |
                      (0xfff << 8) | B5 | B4 | (Rm << kRmShift);
@@ -1175,7 +1162,6 @@ void AssemblerARM32::bx(RegARM32::GPRRegister Rm, CondARM32::Cond Cond) {
   //
   // cccc000100101111111111110001mmmm where mmmm=rm and cccc=Cond.
   assert(CondARM32::isDefined(Cond));
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   const IValueT Encoding = (encodeCondition(Cond) << kConditionShift) | B24 |
                            B21 | (0xfff << 8) | B4 |
                            (encodeGPRRegister(Rm) << kRmShift);
@@ -1198,7 +1184,6 @@ void AssemblerARM32::clz(const Operand *OpRd, const Operand *OpSrc,
   assert(Rm < RegARM32::getNumGPRegs());
   verifyRegNotPc(Rm, RmName, ClzName);
   assert(CondARM32::isDefined(Cond));
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   constexpr IValueT PredefinedBits =
       B24 | B22 | B21 | (0xF << 16) | (0xf << 8) | B4;
   const IValueT Encoding = PredefinedBits | (Cond << kConditionShift) |
@@ -1248,7 +1233,6 @@ void AssemblerARM32::dmb(IValueT Option) {
   //
   // 1111010101111111111100000101xxxx where xxxx=Option.
   assert(Utils::IsUint(4, Option) && "Bad dmb option");
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   const IValueT Encoding =
       (encodeCondition(CondARM32::kNone) << kConditionShift) | B26 | B24 | B22 |
       B21 | B20 | B19 | B18 | B17 | B16 | B15 | B14 | B13 | B12 | B6 | B4 |
@@ -1380,7 +1364,6 @@ void AssemblerARM32::emitMemExOp(CondARM32::Cond Cond, Type Ty, bool IsLoad,
   assert(Rd < RegARM32::getNumGPRegs());
   assert(Rt < RegARM32::getNumGPRegs());
   assert(CondARM32::isDefined(Cond));
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   IValueT Encoding = (Cond << kConditionShift) | B24 | B23 | B11 | B10 | B9 |
                      B8 | B7 | B4 | (MemExOpcode << kMemExOpcodeShift) |
                      AddressRn | (Rd << kRdShift) | (Rt << kRmShift);
@@ -1520,7 +1503,6 @@ void AssemblerARM32::emitMovwt(CondARM32::Cond Cond, bool IsMovW,
   assert(CondARM32::isDefined(Cond));
   if (!Utils::IsAbsoluteUint(16, Imm16))
     llvm::report_fatal_error(std::string(MovName) + ": Constant not i16");
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   const IValueT Encoding = encodeCondition(Cond) << kConditionShift | Opcode |
                            ((Imm16 >> 12) << 16) | Rd << kRdShift |
                            (Imm16 & 0xfff);
@@ -1578,7 +1560,6 @@ void AssemblerARM32::nop() {
   //  nop<c>
   //
   // cccc0011001000001111000000000000 where cccc=Cond.
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   constexpr CondARM32::Cond Cond = CondARM32::AL;
   const IValueT Encoding = (encodeCondition(Cond) << kConditionShift) | B25 |
                            B24 | B21 | B15 | B14 | B13 | B12;
@@ -1856,7 +1837,6 @@ void AssemblerARM32::emitRdRm(CondARM32::Cond Cond, IValueT Opcode,
                               const char *InstName) {
   IValueT Rd = encodeGPRegister(OpRd, "Rd", InstName);
   IValueT Rm = encodeGPRegister(OpRm, "Rm", InstName);
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   IValueT Encoding =
       (Cond << kConditionShift) | Opcode | (Rd << kRdShift) | (Rm << kRmShift);
   emitInst(Encoding);
@@ -2124,7 +2104,6 @@ void AssemblerARM32::emitVFPsd(CondARM32::Cond Cond, IValueT Opcode, IValueT Sd,
   assert(Sd < RegARM32::getNumSRegs());
   assert(Dm < RegARM32::getNumDRegs());
   assert(CondARM32::isDefined(Cond));
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   constexpr IValueT VFPOpcode = B27 | B26 | B25 | B11 | B9;
   const IValueT Encoding =
       Opcode | VFPOpcode | (encodeCondition(Cond) << kConditionShift) |
@@ -2265,7 +2244,6 @@ void AssemblerARM32::emitVFPds(CondARM32::Cond Cond, IValueT Opcode, IValueT Dd,
   assert(Dd < RegARM32::getNumDRegs());
   assert(Sm < RegARM32::getNumSRegs());
   assert(CondARM32::isDefined(Cond));
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   constexpr IValueT VFPOpcode = B27 | B26 | B25 | B11 | B9;
   const IValueT Encoding =
       Opcode | VFPOpcode | (encodeCondition(Cond) << kConditionShift) |
@@ -2323,7 +2301,6 @@ void AssemblerARM32::veord(const Operand *OpDd, const Operand *OpDn,
   IValueT Dd = encodeDRegister(OpDd, "Dd", Veord);
   IValueT Dn = encodeDRegister(OpDn, "Dn", Veord);
   IValueT Dm = encodeDRegister(OpDm, "Dm", Veord);
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   const IValueT Encoding =
       B25 | B24 | B8 | B4 |
       (encodeCondition(CondARM32::Cond::kNone) << kConditionShift) |
@@ -2348,7 +2325,6 @@ void AssemblerARM32::vldrd(const Operand *OpDd, const Operand *OpAddress,
       encodeAddress(OpAddress, Address, TInfo, ImmRegOffsetDiv4);
   (void)AddressEncoding;
   assert(AddressEncoding == EncodedAsImmRegOffset);
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   IValueT Encoding = B27 | B26 | B24 | B20 | B11 | B9 | B8 |
                      (encodeCondition(Cond) << kConditionShift) |
                      (getYInRegYXXXX(Dd) << 22) |
@@ -2371,7 +2347,6 @@ void AssemblerARM32::vldrs(const Operand *OpSd, const Operand *OpAddress,
       encodeAddress(OpAddress, Address, TInfo, ImmRegOffsetDiv4);
   (void)AddressEncoding;
   assert(AddressEncoding == EncodedAsImmRegOffset);
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   IValueT Encoding = B27 | B26 | B24 | B20 | B11 | B9 |
                      (encodeCondition(Cond) << kConditionShift) |
                      (getYInRegXXXXY(Sd) << 22) |
@@ -2393,7 +2368,6 @@ void AssemblerARM32::vmovsr(const Operand *OpSn, const Operand *OpRt,
   assert(Sn < RegARM32::getNumSRegs());
   assert(Rt < RegARM32::getNumGPRegs());
   assert(CondARM32::isDefined(Cond));
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   IValueT Encoding = (encodeCondition(Cond) << kConditionShift) | B27 | B26 |
                      B25 | B11 | B9 | B4 | (getXXXXInRegXXXXY(Sn) << 16) |
                      (Rt << kRdShift) | (getYInRegXXXXY(Sn) << 7);
@@ -2410,7 +2384,6 @@ void AssemblerARM32::vmrsAPSR_nzcv(CondARM32::Cond Cond) {
   IValueT Encoding = B27 | B26 | B25 | B23 | B22 | B21 | B20 | B16 | B15 | B14 |
                      B13 | B12 | B11 | B9 | B4 |
                      (encodeCondition(Cond) << kConditionShift);
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitInst(Encoding);
 }
 
@@ -2459,7 +2432,6 @@ void AssemblerARM32::vstrd(const Operand *OpDd, const Operand *OpAddress,
       encodeAddress(OpAddress, Address, TInfo, ImmRegOffsetDiv4);
   (void)AddressEncoding;
   assert(AddressEncoding == EncodedAsImmRegOffset);
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   IValueT Encoding = B27 | B26 | B24 | B11 | B9 | B8 |
                      (encodeCondition(Cond) << kConditionShift) |
                      (getYInRegYXXXX(Dd) << 22) |
@@ -2482,7 +2454,6 @@ void AssemblerARM32::vstrs(const Operand *OpSd, const Operand *OpAddress,
       encodeAddress(OpAddress, Address, TInfo, ImmRegOffsetDiv4);
   (void)AddressEncoding;
   assert(AddressEncoding == EncodedAsImmRegOffset);
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   IValueT Encoding =
       B27 | B26 | B24 | B11 | B9 | (encodeCondition(Cond) << kConditionShift) |
       (getYInRegXXXXY(Sd) << 22) | (getXXXXInRegXXXXY(Sd) << 12) | Address;
@@ -2530,7 +2501,6 @@ void AssemblerARM32::emitVStackOp(CondARM32::Cond Cond, IValueT Opcode,
   assert(NumConsecRegs <= VpushVpopMaxConsecRegs);
   assert((BaseReg + NumConsecRegs) <= RegARM32::getNumSRegs());
   assert(CondARM32::isDefined(Cond));
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   const IValueT Encoding = Opcode | (Cond << kConditionShift) | DLastBit |
                            (Rd << kRdShift) | NumConsecRegs;
   emitInst(Encoding);

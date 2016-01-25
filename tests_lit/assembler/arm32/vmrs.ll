@@ -30,7 +30,7 @@ entry:
   %test = fcmp olt float 0.0, 0.0
 
 ; ASM:  vmrs    APSR_nzcv, FPSCR
-; DIS:   18:    eef1fa10
+; DIS:   14:    eef1fa10
 ; IASM-NOT: vmrs
 
   %result = zext i1 %test to i32
