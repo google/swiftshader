@@ -928,7 +928,8 @@ void Assembler::vmovd(DRegister dd, DRegister dm, Condition cond) {
   EmitVFPddd(cond, B23 | B21 | B20 | B6, dd, D0, dm);
 }
 
-
+#if 0
+// Moved to Arm32::AssemblerARM32::vmovs()
 bool Assembler::vmovs(SRegister sd, float s_imm, Condition cond) {
   if (TargetCPUFeatures::arm_version() != ARMv7) {
     return false;
@@ -946,7 +947,7 @@ bool Assembler::vmovs(SRegister sd, float s_imm, Condition cond) {
   return false;
 }
 
-
+// Moved to Arm32::AssemblerARM32::vmovd()
 bool Assembler::vmovd(DRegister dd, double d_imm, Condition cond) {
   if (TargetCPUFeatures::arm_version() != ARMv7) {
     return false;
@@ -964,7 +965,6 @@ bool Assembler::vmovd(DRegister dd, double d_imm, Condition cond) {
   return false;
 }
 
-#if 0
 // Moved to Arm32::AssemblerARM32::vadds()
 void Assembler::vadds(SRegister sd, SRegister sn, SRegister sm,
                       Condition cond) {

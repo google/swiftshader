@@ -631,11 +631,13 @@ class Assembler : public ValueObject {
   void vmovd(DRegister dd, DRegister dm, Condition cond = AL);
   void vmovq(QRegister qd, QRegister qm);
 
+#if 0
   // Returns false if the immediate cannot be encoded.
+  // Moved to ARM32::AssemblerARM32::vmovs();
   bool vmovs(SRegister sd, float s_imm, Condition cond = AL);
+  // Moved to ARM32::AssemblerARM32::vmovs();
   bool vmovd(DRegister dd, double d_imm, Condition cond = AL);
 
-#if 0
   // Moved to ARM32::AssemblerARM32::vldrs()
   void vldrs(SRegister sd, Address ad, Condition cond = AL);
   // Moved to Arm32::AssemblerARM32::vstrs()

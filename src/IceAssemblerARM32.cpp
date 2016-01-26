@@ -2390,6 +2390,40 @@ void AssemblerARM32::vldrs(const Operand *OpSd, const Operand *OpAddress,
   emitInst(Encoding);
 }
 
+void AssemblerARM32::vmovd(const Operand *OpDd,
+                           const OperandARM32FlexFpImm *OpFpImm,
+                           CondARM32::Cond Cond) {
+  // VMOV (immediate) - ARM section A8.8.339, encoding A2:
+  //   vmov<c>.f64 <Dd>, #<imm>
+  //
+  // cccc11101D11xxxxdddd10110000yyyy where cccc=Cond, ddddD=Sn, xxxxyyyy=imm.
+  constexpr const char *Vmovd = "vmovd";
+  IValueT Dd = encodeSRegister(OpDd, "Dd", Vmovd);
+  IValueT Imm8 = OpFpImm->getModifiedImm();
+  assert(Imm8 < (1 << 8));
+  constexpr IValueT VmovsOpcode = B23 | B21 | B20 | B8;
+  IValueT OpcodePlusImm8 = VmovsOpcode | ((Imm8 >> 4) << 16) | (Imm8 & 0xf);
+  constexpr IValueT D0 = 0;
+  emitVFPddd(Cond, OpcodePlusImm8, Dd, D0, D0);
+}
+
+void AssemblerARM32::vmovs(const Operand *OpSd,
+                           const OperandARM32FlexFpImm *OpFpImm,
+                           CondARM32::Cond Cond) {
+  // VMOV (immediate) - ARM section A8.8.339, encoding A2:
+  //   vmov<c>.f32 <Sd>, #<imm>
+  //
+  // cccc11101D11xxxxdddd10100000yyyy where cccc=Cond, ddddD=Sn, xxxxyyyy=imm.
+  constexpr const char *Vmovs = "vmovs";
+  IValueT Sd = encodeSRegister(OpSd, "Sd", Vmovs);
+  IValueT Imm8 = OpFpImm->getModifiedImm();
+  assert(Imm8 < (1 << 8));
+  constexpr IValueT VmovsOpcode = B23 | B21 | B20;
+  IValueT OpcodePlusImm8 = VmovsOpcode | ((Imm8 >> 4) << 16) | (Imm8 & 0xf);
+  constexpr IValueT S0 = 0;
+  emitVFPsss(Cond, OpcodePlusImm8, Sd, S0, S0);
+}
+
 void AssemblerARM32::vmovsr(const Operand *OpSn, const Operand *OpRt,
                             CondARM32::Cond Cond) {
   // VMOV (between ARM core register and single-precision register)

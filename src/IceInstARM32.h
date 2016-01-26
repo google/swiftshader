@@ -266,10 +266,12 @@ public:
 
   static bool canHoldImm(Operand *C, uint32_t *ModifiedImm);
 
+  uint32_t getModifiedImm() const { return ModifiedImm; }
+
 private:
   OperandARM32FlexFpImm(Cfg *Func, Type Ty, uint32_t ModifiedImm);
 
-  uint32_t ModifiedImm;
+  const uint32_t ModifiedImm;
 };
 
 /// An operand for representing the 0.0 immediate in vcmp.
@@ -1340,6 +1342,7 @@ private:
   void emitSingleDestSingleSource(const Cfg *Func) const;
 
   void emitIASSingleDestSingleSource(const Cfg *Func) const;
+  void emitIASScalarVFPMove(const Cfg *Func) const;
   void emitIASCoreVFPMove(const Cfg *Func) const;
 
   Variable *DestHi = nullptr;

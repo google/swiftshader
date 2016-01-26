@@ -1125,6 +1125,32 @@ void InstARM32Mov::emitSingleDestSingleSource(const Cfg *Func) const {
   Src0->emit(Func);
 }
 
+void InstARM32Mov::emitIASScalarVFPMove(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  Operand *Src0 = getSrc(0);
+  Variable *Dest = getDest();
+  switch (Dest->getType()) {
+  default:
+    assert(false && "Do not know how to emit scalar FP move for type.");
+    return;
+  case IceType_f32:
+    if (const auto *FpImm = llvm::dyn_cast<OperandARM32FlexFpImm>(Src0)) {
+      Asm->vmovs(Dest, FpImm, getPredicate());
+      return;
+    }
+    break;
+  case IceType_f64:
+    if (const auto *FpImm = llvm::dyn_cast<OperandARM32FlexFpImm>(Src0)) {
+      Asm->vmovd(Dest, FpImm, getPredicate());
+      return;
+    }
+    break;
+  }
+  // TODO(kschimpf) Handle register to register move.
+  Asm->setNeedsTextFixup();
+  return;
+}
+
 void InstARM32Mov::emitIASCoreVFPMove(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Operand *Src0 = getSrc(0);
@@ -1150,7 +1176,6 @@ void InstARM32Mov::emitIASCoreVFPMove(const Cfg *Func) const {
 }
 
 void InstARM32Mov::emitIASSingleDestSingleSource(const Cfg *Func) const {
-  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Variable *Dest = getDest();
   Operand *Src0 = getSrc(0);
 
@@ -1167,8 +1192,9 @@ void InstARM32Mov::emitIASSingleDestSingleSource(const Cfg *Func) const {
 
   const Type DestTy = Dest->getType();
   if (isScalarFloatingType(DestTy))
-    return Asm->setNeedsTextFixup();
+    return emitIASScalarVFPMove(Func);
 
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   if (isVectorType(DestTy))
     return Asm->setNeedsTextFixup();
 

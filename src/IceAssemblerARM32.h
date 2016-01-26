@@ -382,6 +382,12 @@ public:
     vldrs(OpSd, OpAddress, Cond, TInfo);
   }
 
+  void vmovd(const Operand *OpDn, const OperandARM32FlexFpImm *OpFpImm,
+             CondARM32::Cond Cond);
+
+  void vmovs(const Operand *OpSn, const OperandARM32FlexFpImm *OpFpImm,
+             CondARM32::Cond Cond);
+
   void vmovsr(const Operand *OpSn, const Operand *OpRt, CondARM32::Cond Cond);
 
   // Uses APSR_nzcv as register
