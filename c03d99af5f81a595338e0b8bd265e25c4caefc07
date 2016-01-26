@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "54722221_a587be3a",
+        "filename": "src/Shader/VertexShader.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-26T20:22:11Z",
+      "side": 1,
+      "message": "This is the essential part of this change. We previously only detected TEXLDL. Instead of adding all the other ones, like I did in version 1 of this change but which could easily break again, I assume that every instruction which uses a sampler will likely be sampling a texture. Note that it\u0027s ok to have a few false positives.",
+      "range": {
+        "startLine": 271,
+        "startChar": 3,
+        "endLine": 271,
+        "endChar": 55
+      },
+      "revId": "c03d99af5f81a595338e0b8bd265e25c4caefc07",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
