@@ -2798,11 +2798,17 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Instr) {
   }
 
   if (isVectorType(DestTy)) {
-    UnimplementedLoweringError(this, Instr);
-    return;
+    switch (Instr->getOp()) {
+    default:
+      UnimplementedLoweringError(this, Instr);
+      return;
+    // Explicitly whitelist vector instructions we have implemented/enabled.
+    case InstArithmetic::Fadd:
+    case InstArithmetic::Add:
+      break;
+    }
   }
 
-  // DestTy is a non-i64 scalar.
   Variable *T = makeReg(DestTy);
 
   // * Handle div/rem separately. They require a non-legalized Src1 to inspect
@@ -2900,6 +2906,7 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Instr) {
     return;
   case InstArithmetic::Add: {
     if (const Inst *Src1Producer = Computations.getProducerOf(Src1)) {
+      assert(!isVectorType(DestTy));
       Variable *Src0R = legalizeToReg(Src0);
       Variable *Src1R = legalizeToReg(Src1Producer->getSrc(0));
       Variable *Src2R = legalizeToReg(Src1Producer->getSrc(1));
@@ -2911,6 +2918,7 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Instr) {
     if (Srcs.hasConstOperand()) {
       if (!Srcs.immediateIsFlexEncodable() &&
           Srcs.negatedImmediateIsFlexEncodable()) {
+        assert(!isVectorType(DestTy));
         Variable *Src0R = Srcs.src0R(this);
         Operand *Src1F = Srcs.negatedSrc1F(this);
         if (!Srcs.swappedOperands()) {
@@ -2923,8 +2931,13 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Instr) {
       }
     }
     Variable *Src0R = Srcs.src0R(this);
-    Operand *Src1RF = Srcs.src1RF(this);
-    _add(T, Src0R, Src1RF);
+    if (isVectorType(DestTy)) {
+      Variable *Src1R = legalizeToReg(Src1);
+      _vadd(T, Src0R, Src1R);
+    } else {
+      Operand *Src1RF = Srcs.src1RF(this);
+      _add(T, Src0R, Src1RF);
+    }
     _mov(Dest, T);
     return;
   }

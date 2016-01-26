@@ -603,16 +603,17 @@ template <> void InstARM32Vadd::emitIAS(const Cfg *Func) const {
   switch (Dest->getType()) {
   default:
     // TODO(kschimpf) Figure if more cases are needed.
-    Asm->setNeedsTextFixup();
+    emitUsingTextFixup(Func);
     break;
   case IceType_f32:
     Asm->vadds(getDest(), getSrc(0), getSrc(1), CondARM32::AL);
+    assert(!Asm->needsTextFixup());
     break;
   case IceType_f64:
     Asm->vaddd(getDest(), getSrc(0), getSrc(1), CondARM32::AL);
+    assert(!Asm->needsTextFixup());
     break;
   }
-  assert(!Asm->needsTextFixup());
 }
 
 template <> void InstARM32Vdiv::emitIAS(const Cfg *Func) const {
