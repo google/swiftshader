@@ -227,6 +227,11 @@ void InstARM32FourAddrGPR<K>::emitIAS(const Cfg *Func) const {
 }
 
 template <InstARM32::InstKindARM32 K>
+void InstARM32FourAddrFP<K>::emitIAS(const Cfg *Func) const {
+  emitUsingTextFixup(Func);
+}
+
+template <InstARM32::InstKindARM32 K>
 void InstARM32ThreeAddrFP<K>::emitIAS(const Cfg *Func) const {
   emitUsingTextFixup(Func);
 }
