@@ -642,6 +642,27 @@ template <> void InstARM32Veor::emitIAS(const Cfg *Func) const {
   assert(!Asm->needsTextFixup());
 }
 
+template <> void InstARM32Vmla::emitIAS(const Cfg *Func) const {
+  // Note: Dest == getSrc(0) for four address FP instructions.
+  assert(getSrcSize() == 3);
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  const Variable *Dest = getDest();
+  switch (Dest->getType()) {
+  default:
+    // TODO(kschimpf) Figure out how vector operations apply.
+    emitUsingTextFixup(Func);
+    break;
+  case IceType_f32:
+    Asm->vmlas(getDest(), getSrc(1), getSrc(2), CondARM32::AL);
+    assert(!Asm->needsTextFixup());
+    break;
+  case IceType_f64:
+    Asm->vmlad(getDest(), getSrc(1), getSrc(2), CondARM32::AL);
+    assert(!Asm->needsTextFixup());
+    break;
+  }
+}
+
 template <> void InstARM32Vsub::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   const Variable *Dest = getDest();

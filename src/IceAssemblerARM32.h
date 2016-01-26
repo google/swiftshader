@@ -390,6 +390,12 @@ public:
 
   void vmovsr(const Operand *OpSn, const Operand *OpRt, CondARM32::Cond Cond);
 
+  void vmlad(const Operand *OpDd, const Operand *OpDn, const Operand *OpDm,
+             CondARM32::Cond Cond);
+
+  void vmlas(const Operand *OpSd, const Operand *OpSn, const Operand *OpSm,
+             CondARM32::Cond Cond);
+
   // Uses APSR_nzcv as register
   void vmrsAPSR_nzcv(CondARM32::Cond Cond);
 
@@ -585,12 +591,20 @@ private:
                  const Operand *OpSrc, const char *MovName);
 
   // Emit VFP instruction with 3 D registers.
+  void emitVFPddd(CondARM32::Cond Cond, IValueT Opcode, const Operand *OpDd,
+                  const Operand *OpDn, const Operand *OpDm,
+                  const char *InstName);
+
   void emitVFPddd(CondARM32::Cond Cond, IValueT Opcode, IValueT Dd, IValueT Dn,
                   IValueT Dm);
 
   // Emit VFP instruction with 3 S registers.
   void emitVFPsss(CondARM32::Cond Cond, IValueT Opcode, IValueT Sd, IValueT Sn,
                   IValueT Sm);
+
+  void emitVFPsss(CondARM32::Cond Cond, IValueT Opcode, const Operand *OpSd,
+                  const Operand *OpSn, const Operand *OpSm,
+                  const char *InstName);
 };
 
 } // end of namespace ARM32

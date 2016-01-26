@@ -1045,6 +1045,15 @@ void AssemblerARM32::emitVFPddd(CondARM32::Cond Cond, IValueT Opcode,
   emitInst(Encoding);
 }
 
+void AssemblerARM32::emitVFPddd(CondARM32::Cond Cond, IValueT Opcode,
+                                const Operand *OpDd, const Operand *OpDn,
+                                const Operand *OpDm, const char *InstName) {
+  IValueT Dd = encodeDRegister(OpDd, "Dd", InstName);
+  IValueT Dn = encodeDRegister(OpDn, "Dn", InstName);
+  IValueT Dm = encodeDRegister(OpDm, "Dm", InstName);
+  emitVFPddd(Cond, Opcode, Dd, Dn, Dm);
+}
+
 void AssemblerARM32::emitVFPsss(CondARM32::Cond Cond, IValueT Opcode,
                                 IValueT Sd, IValueT Sn, IValueT Sm) {
   assert(Sd < RegARM32::getNumSRegs());
@@ -1058,6 +1067,15 @@ void AssemblerARM32::emitVFPsss(CondARM32::Cond Cond, IValueT Opcode,
       (getXXXXInRegXXXXY(Sd) << 12) | (getYInRegXXXXY(Sn) << 7) |
       (getYInRegXXXXY(Sm) << 5) | getXXXXInRegXXXXY(Sm);
   emitInst(Encoding);
+}
+
+void AssemblerARM32::emitVFPsss(CondARM32::Cond Cond, IValueT Opcode,
+                                const Operand *OpSd, const Operand *OpSn,
+                                const Operand *OpSm, const char *InstName) {
+  const IValueT Sd = encodeSRegister(OpSd, "Sd", InstName);
+  const IValueT Sn = encodeSRegister(OpSn, "Sn", InstName);
+  const IValueT Sm = encodeSRegister(OpSm, "Sm", InstName);
+  emitVFPsss(Cond, Opcode, Sd, Sn, Sm);
 }
 
 void AssemblerARM32::adc(const Operand *OpRd, const Operand *OpRn,
@@ -2075,11 +2093,8 @@ void AssemblerARM32::vadds(const Operand *OpSd, const Operand *OpSn,
   // cccc11100D11nnnndddd101sN0M0mmmm where cccc=Cond, s=0, ddddD=Rd, nnnnN=Rn,
   // and mmmmM=Rm.
   constexpr const char *Vadds = "vadds";
-  IValueT Sd = encodeSRegister(OpSd, "Sd", Vadds);
-  IValueT Sn = encodeSRegister(OpSn, "Sn", Vadds);
-  IValueT Sm = encodeSRegister(OpSm, "Sm", Vadds);
   constexpr IValueT VaddsOpcode = B21 | B20;
-  emitVFPsss(Cond, VaddsOpcode, Sd, Sn, Sm);
+  emitVFPsss(Cond, VaddsOpcode, OpSd, OpSn, OpSm, Vadds);
 }
 
 void AssemblerARM32::vaddd(const Operand *OpDd, const Operand *OpDn,
@@ -2090,11 +2105,8 @@ void AssemblerARM32::vaddd(const Operand *OpDd, const Operand *OpDn,
   // cccc11100D11nnnndddd101sN0M0mmmm where cccc=Cond, s=1, Ddddd=Rd, Nnnnn=Rn,
   // and Mmmmm=Rm.
   constexpr const char *Vaddd = "vaddd";
-  IValueT Dd = encodeDRegister(OpDd, "Dd", Vaddd);
-  IValueT Dn = encodeDRegister(OpDn, "Dn", Vaddd);
-  IValueT Dm = encodeDRegister(OpDm, "Dm", Vaddd);
   constexpr IValueT VadddOpcode = B21 | B20;
-  emitVFPddd(Cond, VadddOpcode, Dd, Dn, Dm);
+  emitVFPddd(Cond, VadddOpcode, OpDd, OpDn, OpDm, Vaddd);
 }
 
 void AssemblerARM32::vcmpd(const Operand *OpDd, const Operand *OpDm,
@@ -2305,11 +2317,8 @@ void AssemblerARM32::vdivs(const Operand *OpSd, const Operand *OpSn,
   // cccc11101D00nnnndddd101sN0M0mmmm where cccc=Cond, s=0, ddddD=Rd, nnnnN=Rn,
   // and mmmmM=Rm.
   constexpr const char *Vdivs = "vdivs";
-  IValueT Sd = encodeSRegister(OpSd, "Sd", Vdivs);
-  IValueT Sn = encodeSRegister(OpSn, "Sn", Vdivs);
-  IValueT Sm = encodeSRegister(OpSm, "Sm", Vdivs);
   constexpr IValueT VdivsOpcode = B23;
-  emitVFPsss(Cond, VdivsOpcode, Sd, Sn, Sm);
+  emitVFPsss(Cond, VdivsOpcode, OpSd, OpSn, OpSm, Vdivs);
 }
 
 void AssemblerARM32::vdivd(const Operand *OpDd, const Operand *OpDn,
@@ -2320,11 +2329,8 @@ void AssemblerARM32::vdivd(const Operand *OpDd, const Operand *OpDn,
   // cccc11101D00nnnndddd101sN0M0mmmm where cccc=Cond, s=1, Ddddd=Rd, Nnnnn=Rn,
   // and Mmmmm=Rm.
   constexpr const char *Vdivd = "vdivd";
-  IValueT Dd = encodeDRegister(OpDd, "Dd", Vdivd);
-  IValueT Dn = encodeDRegister(OpDn, "Dn", Vdivd);
-  IValueT Dm = encodeDRegister(OpDm, "Dm", Vdivd);
   constexpr IValueT VdivdOpcode = B23;
-  emitVFPddd(Cond, VdivdOpcode, Dd, Dn, Dm);
+  emitVFPddd(Cond, VdivdOpcode, OpDd, OpDn, OpDm, Vdivd);
 }
 
 void AssemblerARM32::veord(const Operand *OpDd, const Operand *OpDn,
@@ -2444,6 +2450,30 @@ void AssemblerARM32::vmovsr(const Operand *OpSn, const Operand *OpRt,
   emitInst(Encoding);
 }
 
+void AssemblerARM32::vmlad(const Operand *OpDd, const Operand *OpDn,
+                           const Operand *OpDm, CondARM32::Cond Cond) {
+  // VMLA, VMLS (floating-point), ARM section A8.8.337, encoding A2:
+  //   vmla<c>.f64 <Dd>, <Dn>, <Dm>
+  //
+  // cccc11100d00nnnndddd1011n0M0mmmm where cccc=Cond, Ddddd=Dd, Nnnnn=Dn, and
+  // Mmmmm=Dm
+  constexpr const char *Vmlad = "vmlad";
+  constexpr IValueT VmladOpcode = 0;
+  emitVFPddd(Cond, VmladOpcode, OpDd, OpDn, OpDm, Vmlad);
+}
+
+void AssemblerARM32::vmlas(const Operand *OpSd, const Operand *OpSn,
+                           const Operand *OpSm, CondARM32::Cond Cond) {
+  // VMLA, VMLS (floating-point), ARM section A8.8.337, encoding A2:
+  //   vmla<c>.f32 <Sd>, <Sn>, <Sm>
+  //
+  // cccc11100d00nnnndddd1010n0M0mmmm where cccc=Cond, ddddD=Sd, nnnnN=Sn, and
+  // mmmmM=Sm
+  constexpr const char *Vmlas = "vmlas";
+  constexpr IValueT VmlasOpcode = 0;
+  emitVFPsss(Cond, VmlasOpcode, OpSd, OpSn, OpSm, Vmlas);
+}
+
 void AssemblerARM32::vmrsAPSR_nzcv(CondARM32::Cond Cond) {
   // MVRS - ARM section A*.8.348, encoding A1:
   //   vmrs<c> APSR_nzcv, FPSCR
@@ -2465,11 +2495,8 @@ void AssemblerARM32::vmuls(const Operand *OpSd, const Operand *OpSn,
   // cccc11100D10nnnndddd101sN0M0mmmm where cccc=Cond, s=0, ddddD=Rd, nnnnN=Rn,
   // and mmmmM=Rm.
   constexpr const char *Vmuls = "vmuls";
-  IValueT Sd = encodeSRegister(OpSd, "Sd", Vmuls);
-  IValueT Sn = encodeSRegister(OpSn, "Sn", Vmuls);
-  IValueT Sm = encodeSRegister(OpSm, "Sm", Vmuls);
   constexpr IValueT VmulsOpcode = B21;
-  emitVFPsss(Cond, VmulsOpcode, Sd, Sn, Sm);
+  emitVFPsss(Cond, VmulsOpcode, OpSd, OpSn, OpSm, Vmuls);
 }
 
 void AssemblerARM32::vmuld(const Operand *OpDd, const Operand *OpDn,
@@ -2480,11 +2507,8 @@ void AssemblerARM32::vmuld(const Operand *OpDd, const Operand *OpDn,
   // cccc11100D10nnnndddd101sN0M0mmmm where cccc=Cond, s=1, Ddddd=Rd, Nnnnn=Rn,
   // and Mmmmm=Rm.
   constexpr const char *Vmuld = "vmuld";
-  IValueT Dd = encodeDRegister(OpDd, "Dd", Vmuld);
-  IValueT Dn = encodeDRegister(OpDn, "Dn", Vmuld);
-  IValueT Dm = encodeDRegister(OpDm, "Dm", Vmuld);
   constexpr IValueT VmuldOpcode = B21;
-  emitVFPddd(Cond, VmuldOpcode, Dd, Dn, Dm);
+  emitVFPddd(Cond, VmuldOpcode, OpDd, OpDn, OpDm, Vmuld);
 }
 
 void AssemblerARM32::vstrd(const Operand *OpDd, const Operand *OpAddress,
@@ -2538,11 +2562,8 @@ void AssemblerARM32::vsubs(const Operand *OpSd, const Operand *OpSn,
   // cccc11100D11nnnndddd101sN1M0mmmm where cccc=Cond, s=0, ddddD=Rd, nnnnN=Rn,
   // and mmmmM=Rm.
   constexpr const char *Vsubs = "vsubs";
-  IValueT Sd = encodeSRegister(OpSd, "Sd", Vsubs);
-  IValueT Sn = encodeSRegister(OpSn, "Sn", Vsubs);
-  IValueT Sm = encodeSRegister(OpSm, "Sm", Vsubs);
   constexpr IValueT VsubsOpcode = B21 | B20 | B6;
-  emitVFPsss(Cond, VsubsOpcode, Sd, Sn, Sm);
+  emitVFPsss(Cond, VsubsOpcode, OpSd, OpSn, OpSm, Vsubs);
 }
 
 void AssemblerARM32::vsubd(const Operand *OpDd, const Operand *OpDn,
@@ -2553,11 +2574,8 @@ void AssemblerARM32::vsubd(const Operand *OpDd, const Operand *OpDn,
   // cccc11100D11nnnndddd101sN1M0mmmm where cccc=Cond, s=1, Ddddd=Rd, Nnnnn=Rn,
   // and Mmmmm=Rm.
   constexpr const char *Vsubd = "vsubd";
-  IValueT Dd = encodeDRegister(OpDd, "Dd", Vsubd);
-  IValueT Dn = encodeDRegister(OpDn, "Dn", Vsubd);
-  IValueT Dm = encodeDRegister(OpDm, "Dm", Vsubd);
   constexpr IValueT VsubdOpcode = B21 | B20 | B6;
-  emitVFPddd(Cond, VsubdOpcode, Dd, Dn, Dm);
+  emitVFPddd(Cond, VsubdOpcode, OpDd, OpDn, OpDm, Vsubd);
 }
 
 void AssemblerARM32::emitVStackOp(CondARM32::Cond Cond, IValueT Opcode,

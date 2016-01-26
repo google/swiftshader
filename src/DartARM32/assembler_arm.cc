@@ -977,42 +977,42 @@ void Assembler::vaddd(DRegister dd, DRegister dn, DRegister dm,
   EmitVFPddd(cond, B21 | B20, dd, dn, dm);
 }
 
-// Moved to Arm32::AssemblerARM32::vmuls()
+// Moved to Arm32::AssemblerARM32::vsubs()
 void Assembler::vsubs(SRegister sd, SRegister sn, SRegister sm,
                       Condition cond) {
   EmitVFPsss(cond, B21 | B20 | B6, sd, sn, sm);
 }
 
-// Moved to Arm32::AssemblerARM32::vmuld()
+// Moved to Arm32::AssemblerARM32::vsubd()
 void Assembler::vsubd(DRegister dd, DRegister dn, DRegister dm,
                       Condition cond) {
   EmitVFPddd(cond, B21 | B20 | B6, dd, dn, dm);
 }
-#endif
 
-#if 0
+// Moved to Arm32::AssemblerARM32::vmuls()
 void Assembler::vmuls(SRegister sd, SRegister sn, SRegister sm,
                       Condition cond) {
   EmitVFPsss(cond, B21, sd, sn, sm);
 }
 
-
+// Moved to Arm32::AssemblerARM32::vmuld()
 void Assembler::vmuld(DRegister dd, DRegister dn, DRegister dm,
                       Condition cond) {
   EmitVFPddd(cond, B21, dd, dn, dm);
 }
-#endif
 
+// Moved to Arm32::AssemblerARM32::vmlas()
 void Assembler::vmlas(SRegister sd, SRegister sn, SRegister sm,
                       Condition cond) {
   EmitVFPsss(cond, 0, sd, sn, sm);
 }
 
-
+// Moved to Arm32::AssemblerARM32::vmlad()
 void Assembler::vmlad(DRegister dd, DRegister dn, DRegister dm,
                       Condition cond) {
   EmitVFPddd(cond, 0, dd, dn, dm);
 }
+#endif
 
 
 void Assembler::vmlss(SRegister sd, SRegister sn, SRegister sm,
