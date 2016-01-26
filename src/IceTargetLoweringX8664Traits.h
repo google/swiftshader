@@ -89,18 +89,15 @@ struct TargetX8664Traits {
       RexB = RexBase | (1 << 0),
     };
 
-    Operand(const Operand &other)
-        : fixup_(other.fixup_), rex_(other.rex_), length_(other.length_) {
-      memmove(&encoding_[0], &other.encoding_[0], other.length_);
-    }
+  protected:
+    // Needed by subclass Address.
+    Operand() = default;
 
-    Operand &operator=(const Operand &other) {
-      length_ = other.length_;
-      fixup_ = other.fixup_;
-      rex_ = other.rex_;
-      memmove(&encoding_[0], &other.encoding_[0], other.length_);
-      return *this;
-    }
+  public:
+    Operand(const Operand &) = default;
+    Operand(Operand &&) = default;
+    Operand &operator=(const Operand &) = default;
+    Operand &operator=(Operand &&) = default;
 
     uint8_t mod() const { return (encoding_at(0) >> 6) & 3; }
 
@@ -131,19 +128,9 @@ struct TargetX8664Traits {
       return static_cast<int8_t>(encoding_[length_ - 1]);
     }
 
-    int32_t disp32() const {
-      assert(length_ >= 5);
-      // TODO(stichnot): This method is not currently used.  Delete it along
-      // with other unused methods, or use a safe version of bitCopy().
-      llvm::report_fatal_error("Unexpected call to disp32()");
-      // return Utils::bitCopy<int32_t>(encoding_[length_ - 4]);
-    }
-
     AssemblerFixup *fixup() const { return fixup_; }
 
   protected:
-    Operand() : fixup_(nullptr), length_(0) {} // Needed by subclass Address.
-
     void SetModRM(int mod, GPRRegister rm) {
       assert((mod & ~3) == 0);
       encoding_[0] = (mod << 6) | (rm & 0x07);
@@ -175,10 +162,10 @@ struct TargetX8664Traits {
     void SetFixup(AssemblerFixup *fixup) { fixup_ = fixup; }
 
   private:
-    AssemblerFixup *fixup_;
+    AssemblerFixup *fixup_ = nullptr;
     uint8_t rex_ = 0;
     uint8_t encoding_[6];
-    uint8_t length_;
+    uint8_t length_ = 0;
 
     explicit Operand(GPRRegister reg) : fixup_(nullptr) { SetModRM(3, reg); }
 
@@ -201,31 +188,29 @@ struct TargetX8664Traits {
   };
 
   class Address : public Operand {
-    Address() = delete;
+    Address() = default;
 
   public:
-    Address(const Address &other) : Operand(other) {}
-
-    Address &operator=(const Address &other) {
-      Operand::operator=(other);
-      return *this;
-    }
+    Address(const Address &) = default;
+    Address(Address &&) = default;
+    Address &operator=(const Address &) = default;
+    Address &operator=(Address &&) = default;
 
     Address(GPRRegister Base, int32_t Disp, AssemblerFixup *Fixup) {
       if (Fixup == nullptr && Disp == 0 &&
-          (Base & 7) != RegX8664::Encoded_Reg_ebp) {
+          (Base & 7) != RegX8664::Encoded_Reg_rbp) {
         SetModRM(0, Base);
-        if ((Base & 7) == RegX8664::Encoded_Reg_esp)
-          SetSIB(TIMES_1, RegX8664::Encoded_Reg_esp, Base);
+        if ((Base & 7) == RegX8664::Encoded_Reg_rsp)
+          SetSIB(TIMES_1, RegX8664::Encoded_Reg_rsp, Base);
       } else if (Fixup == nullptr && Utils::IsInt(8, Disp)) {
         SetModRM(1, Base);
-        if ((Base & 7) == RegX8664::Encoded_Reg_esp)
-          SetSIB(TIMES_1, RegX8664::Encoded_Reg_esp, Base);
+        if ((Base & 7) == RegX8664::Encoded_Reg_rsp)
+          SetSIB(TIMES_1, RegX8664::Encoded_Reg_rsp, Base);
         SetDisp8(Disp);
       } else {
         SetModRM(2, Base);
-        if ((Base & 7) == RegX8664::Encoded_Reg_esp)
-          SetSIB(TIMES_1, RegX8664::Encoded_Reg_esp, Base);
+        if ((Base & 7) == RegX8664::Encoded_Reg_rsp)
+          SetSIB(TIMES_1, RegX8664::Encoded_Reg_rsp, Base);
         SetDisp32(Disp);
         if (Fixup)
           SetFixup(Fixup);
@@ -234,9 +219,9 @@ struct TargetX8664Traits {
 
     Address(GPRRegister Index, ScaleFactor Scale, int32_t Disp,
             AssemblerFixup *Fixup) {
-      assert(Index != RegX8664::Encoded_Reg_esp); // Illegal addressing mode.
-      SetModRM(0, RegX8664::Encoded_Reg_esp);
-      SetSIB(Scale, Index, RegX8664::Encoded_Reg_ebp);
+      assert(Index != RegX8664::Encoded_Reg_rsp); // Illegal addressing mode.
+      SetModRM(0, RegX8664::Encoded_Reg_rsp);
+      SetSIB(Scale, Index, RegX8664::Encoded_Reg_rbp);
       SetDisp32(Disp);
       if (Fixup)
         SetFixup(Fixup);
@@ -244,17 +229,17 @@ struct TargetX8664Traits {
 
     Address(GPRRegister Base, GPRRegister Index, ScaleFactor Scale,
             int32_t Disp, AssemblerFixup *Fixup) {
-      assert(Index != RegX8664::Encoded_Reg_esp); // Illegal addressing mode.
+      assert(Index != RegX8664::Encoded_Reg_rsp); // Illegal addressing mode.
       if (Fixup == nullptr && Disp == 0 &&
-          (Base & 7) != RegX8664::Encoded_Reg_ebp) {
-        SetModRM(0, RegX8664::Encoded_Reg_esp);
+          (Base & 7) != RegX8664::Encoded_Reg_rbp) {
+        SetModRM(0, RegX8664::Encoded_Reg_rsp);
         SetSIB(Scale, Index, Base);
       } else if (Fixup == nullptr && Utils::IsInt(8, Disp)) {
-        SetModRM(1, RegX8664::Encoded_Reg_esp);
+        SetModRM(1, RegX8664::Encoded_Reg_rsp);
         SetSIB(Scale, Index, Base);
         SetDisp8(Disp);
       } else {
-        SetModRM(2, RegX8664::Encoded_Reg_esp);
+        SetModRM(2, RegX8664::Encoded_Reg_rsp);
         SetSIB(Scale, Index, Base);
         SetDisp32(Disp);
         if (Fixup)
@@ -263,23 +248,37 @@ struct TargetX8664Traits {
     }
 
     /// Generate a RIP-relative address expression on x86-64.
-    Address(RelocOffsetT Offset, AssemblerFixup *Fixup) {
-      SetModRM(0x0, RegX8664::Encoded_Reg_esp);
+    static Address RipRelative(RelocOffsetT Offset, AssemblerFixup *Fixup) {
+      assert(Fixup != nullptr);
+      assert(Fixup->kind() == FK_PcRel);
+      Address NewAddress;
+      NewAddress.SetModRM(0x0, RegX8664::Encoded_Reg_rbp);
 
-      static constexpr ScaleFactor Scale = TIMES_1;
-      SetSIB(Scale, RegX8664::Encoded_Reg_esp, RegX8664::Encoded_Reg_ebp);
       // Use the Offset in the displacement for now. If we decide to process
       // fixups later, we'll need to patch up the emitted displacement.
-      SetDisp32(Offset);
+      NewAddress.SetDisp32(Offset);
       if (Fixup)
-        SetFixup(Fixup);
+        NewAddress.SetFixup(Fixup);
+
+      return NewAddress;
+    }
+
+    /// Generate an absolute address.
+    static Address Absolute(RelocOffsetT Addr) {
+      Address NewAddress;
+      NewAddress.SetModRM(0x0, RegX8664::Encoded_Reg_rsp);
+      static constexpr ScaleFactor NoScale = TIMES_1;
+      NewAddress.SetSIB(NoScale, RegX8664::Encoded_Reg_rsp,
+                        RegX8664::Encoded_Reg_rbp);
+      NewAddress.SetDisp32(Addr);
+      return NewAddress;
     }
 
     static Address ofConstPool(Assembler *Asm, const Constant *Imm) {
       // TODO(jpp): ???
       AssemblerFixup *Fixup = Asm->createFixup(FK_Abs, Imm);
       const RelocOffsetT Offset = 4;
-      return Address(Offset, Fixup);
+      return Address::RipRelative(Offset, Fixup);
     }
   };
 

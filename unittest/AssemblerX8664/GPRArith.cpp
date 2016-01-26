@@ -328,7 +328,7 @@ TEST_F(AssemblerX8664LowLevelTest, LeaAbsolute) {
   do {                                                                         \
     static constexpr char TestString[] = "(" #Dst ", " #Value ")";             \
     __ lea(IceType_i32, GPRRegister::Encoded_Reg_##Dst,                        \
-           Address(Value, AssemblerFixup::NoFixup));                           \
+           Address::Absolute(Value));                                          \
     static constexpr uint32_t ByteCount = 8;                                   \
     ASSERT_EQ(ByteCount, codeBytesSize()) << TestString;                       \
     static constexpr uint8_t Opcode = 0x8D;                                    \

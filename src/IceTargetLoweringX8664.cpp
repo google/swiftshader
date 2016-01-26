@@ -294,10 +294,31 @@ void TargetX8664::emitGetIP(CfgNode *Node) {
   (void)Node;
 }
 
+namespace {
+bool isAssignedToRspOrRbp(const Variable *Var) {
+  if (Var == nullptr) {
+    return false;
+  }
+
+  if (Var->isRematerializable()) {
+    return true;
+  }
+
+  if (!Var->hasReg()) {
+    return false;
+  }
+
+  const int32_t RegNum = Var->getRegNum();
+  if ((RegNum == Traits::RegisterSet::Reg_rsp) ||
+      (RegNum == Traits::RegisterSet::Reg_rbp)) {
+    return true;
+  }
+
+  return false;
+}
+} // end of anonymous namespace
+
 Traits::X86OperandMem *TargetX8664::_sandbox_mem_reference(X86OperandMem *Mem) {
-  // In x86_64-nacl, all memory references are relative to %r15 (i.e., %rzp.)
-  // NaCl sandboxing also requires that any registers that are not %rsp and
-  // %rbp to be 'truncated' to 32-bit before memory access.
   if (SandboxingType == ST_None) {
     return Mem;
   }
@@ -307,25 +328,49 @@ Traits::X86OperandMem *TargetX8664::_sandbox_mem_reference(X86OperandMem *Mem) {
         "_sandbox_mem_reference not implemented for nonsfi");
   }
 
+  // In x86_64-nacl, all memory references are relative to a base register
+  // (%r15, %rsp, %rbp, or %rip).
+
   Variable *Base = Mem->getBase();
   Variable *Index = Mem->getIndex();
   uint16_t Shift = 0;
-  Variable *ZeroReg =
-      getPhysicalRegister(Traits::RegisterSet::Reg_r15, IceType_i64);
+  Variable *ZeroReg = RebasePtr;
   Constant *Offset = Mem->getOffset();
   Variable *T = nullptr;
 
+  bool AbsoluteAddress = false;
+  if (Base == nullptr && Index == nullptr) {
+    if (const auto *CR = llvm::dyn_cast<ConstantRelocatable>(Offset)) {
+      if (CR->getName() != "") {
+        // Mem is RIP-relative. There's no need to rebase it.
+        return Mem;
+      }
+    }
+    // Offset is an absolute address, so we need to emit
+    //   Offset(%r15)
+    AbsoluteAddress = true;
+  }
+
   if (Mem->getIsRebased()) {
-    // If Mem.IsRebased, then we don't need to update Mem to contain a reference
-    // to a valid base register (%r15, %rsp, or %rbp), but we still need to
-    // truncate Mem.Index (if any) to 32-bit.
-    assert(ZeroReg == Base || Base->isRematerializable());
-    T = makeReg(IceType_i32);
-    _mov(T, Index);
-    Shift = Mem->getShift();
+    // If Mem.IsRebased, then we don't need to update Mem, as it's already been
+    // updated to contain a reference to one of %rsp, %rbp, or %r15.
+    // We don't return early because we still need to zero extend Index.
+    assert(ZeroReg == Base || AbsoluteAddress || isAssignedToRspOrRbp(Base));
+    if (!AbsoluteAddress) {
+      // If Mem is an absolute address, no need to update ZeroReg (which is
+      // already set to %r15.)
+      ZeroReg = Base;
+    }
+    if (Index != nullptr) {
+      T = makeReg(IceType_i32);
+      _mov(T, Index);
+      Shift = Mem->getShift();
+    }
   } else {
     if (Base != nullptr) {
-      if (Base->isRematerializable()) {
+      // If Base is a valid base pointer we don't need to use the RebasePtr. By
+      // doing this we might save us the need to zero extend the memory operand.
+      if (isAssignedToRspOrRbp(Base)) {
         ZeroReg = Base;
       } else {
         T = Base;
@@ -334,11 +379,23 @@ Traits::X86OperandMem *TargetX8664::_sandbox_mem_reference(X86OperandMem *Mem) {
 
     if (Index != nullptr) {
       assert(!Index->isRematerializable());
+      // If Index is not nullptr, it is mandatory that T is a nullptr.
+      // Otherwise, the lowering generated a memory operand with two registers.
+      // Note that Base might still be non-nullptr, but it must be a valid
+      // base register.
       if (T != nullptr) {
         llvm::report_fatal_error("memory reference contains base and index.");
       }
-      T = Index;
-      Shift = Mem->getShift();
+      // If the Index is not shifted, and it is a Valid Base, and the ZeroReg is
+      // still RebasePtr, then we do ZeroReg = Index, and hopefully prevent the
+      // need to zero-extend the memory operand (which may still happen -- see
+      // NeedLea below.)
+      if (Shift == 0 && isAssignedToRspOrRbp(Index) && ZeroReg == RebasePtr) {
+        ZeroReg = Index;
+      } else {
+        T = Index;
+        Shift = Mem->getShift();
+      }
     }
   }
 
@@ -348,11 +405,13 @@ Traits::X86OperandMem *TargetX8664::_sandbox_mem_reference(X86OperandMem *Mem) {
   // needed to ensure the sandboxed memory operand will only use the lower
   // 32-bits of T+Offset.
   bool NeedsLea = false;
-  if (const auto *Offset = Mem->getOffset()) {
-    if (llvm::isa<ConstantRelocatable>(Offset)) {
-      NeedsLea = true;
+  if (Offset != nullptr) {
+    if (const auto *CR = llvm::dyn_cast<ConstantRelocatable>(Offset)) {
+      NeedsLea = CR->getName() != "" || CR->getOffset() < 0;
     } else if (const auto *Imm = llvm::cast<ConstantInteger32>(Offset)) {
       NeedsLea = Imm->getValue() < 0;
+    } else {
+      llvm::report_fatal_error("Unexpected Offset type.");
     }
   }
 
@@ -362,21 +421,20 @@ Traits::X86OperandMem *TargetX8664::_sandbox_mem_reference(X86OperandMem *Mem) {
     if (T->hasReg()) {
       RegNum = Traits::getGprForType(IceType_i64, T->getRegNum());
       RegNum32 = Traits::getGprForType(IceType_i32, RegNum);
-      switch (RegNum) {
-      case Traits::RegisterSet::Reg_rsp:
-      case Traits::RegisterSet::Reg_rbp:
-        // Memory operands referencing rsp/rbp do not need to be sandboxed.
-        return Mem;
-      }
+      // At this point, if T was assigned to rsp/rbp, then we would have already
+      // made this the ZeroReg.
+      assert(RegNum != Traits::RegisterSet::Reg_rsp);
+      assert(RegNum != Traits::RegisterSet::Reg_rbp);
     }
 
     switch (T->getType()) {
     default:
+      llvm::report_fatal_error("Mem pointer should be a 32-bit GPR.");
     case IceType_i64:
       // Even though "default:" would also catch T.Type == IceType_i64, an
       // explicit 'case IceType_i64' shows that memory operands are always
       // supposed to be 32-bits.
-      llvm::report_fatal_error("Mem pointer should be 32-bit.");
+      llvm::report_fatal_error("Mem pointer should not be a 64-bit GPR.");
     case IceType_i32: {
       Variable *T64 = makeReg(IceType_i64, RegNum);
       auto *Movzx = _movzx(T64, T);

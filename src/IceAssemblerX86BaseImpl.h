@@ -299,11 +299,13 @@ void AssemblerX86Base<TraitsType>::mov(Type Ty, const Address &dst,
   emitRex(Ty, dst, RexRegIrrelevant);
   if (isByteSizedType(Ty)) {
     emitUint8(0xC6);
-    emitOperand(0, dst);
+    static constexpr RelocOffsetT OffsetFromNextInstruction = 1;
+    emitOperand(0, dst, OffsetFromNextInstruction);
     emitUint8(imm.value() & 0xFF);
   } else {
     emitUint8(0xC7);
-    emitOperand(0, dst);
+    const uint8_t OffsetFromNextInstruction = Ty == IceType_i16 ? 2 : 4;
+    emitOperand(0, dst, OffsetFromNextInstruction);
     emitImmediate(Ty, imm);
   }
 }
@@ -1429,7 +1431,8 @@ void AssemblerX86Base<TraitsType>::cmpps(Type Ty, XmmRegister dst,
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0xC2);
-  emitOperand(gprEncoding(dst), src);
+  static constexpr RelocOffsetT OffsetFromNextInstruction = 1;
+  emitOperand(gprEncoding(dst), src, OffsetFromNextInstruction);
   emitUint8(CmpCondition);
 }
 
@@ -1551,7 +1554,8 @@ void AssemblerX86Base<TraitsType>::pshufd(Type /* Ty */, XmmRegister dst,
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0x70);
-  emitOperand(gprEncoding(dst), src);
+  static constexpr RelocOffsetT OffsetFromNextInstruction = 1;
+  emitOperand(gprEncoding(dst), src, OffsetFromNextInstruction);
   assert(imm.is_uint8());
   emitUint8(imm.value());
 }
@@ -1578,7 +1582,8 @@ void AssemblerX86Base<TraitsType>::shufps(Type /* Ty */, XmmRegister dst,
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
   emitUint8(0xC6);
-  emitOperand(gprEncoding(dst), src);
+  static constexpr RelocOffsetT OffsetFromNextInstruction = 1;
+  emitOperand(gprEncoding(dst), src, OffsetFromNextInstruction);
   assert(imm.is_uint8());
   emitUint8(imm.value());
 }
@@ -1830,7 +1835,8 @@ void AssemblerX86Base<TraitsType>::insertps(Type Ty, XmmRegister dst,
   emitUint8(0x0F);
   emitUint8(0x3A);
   emitUint8(0x21);
-  emitOperand(gprEncoding(dst), src);
+  static constexpr RelocOffsetT OffsetFromNextInstruction = 1;
+  emitOperand(gprEncoding(dst), src, OffsetFromNextInstruction);
   emitUint8(imm.value());
 }
 
@@ -1869,7 +1875,8 @@ void AssemblerX86Base<TraitsType>::pinsr(Type Ty, XmmRegister dst,
     emitUint8(0x3A);
     emitUint8(isByteSizedType(Ty) ? 0x20 : 0x22);
   }
-  emitOperand(gprEncoding(dst), src);
+  static constexpr RelocOffsetT OffsetFromNextInstruction = 1;
+  emitOperand(gprEncoding(dst), src, OffsetFromNextInstruction);
   emitUint8(imm.value());
 }
 
@@ -2244,7 +2251,8 @@ void AssemblerX86Base<TraitsType>::test(Type Ty, const Address &addr,
     emitAddrSizeOverridePrefix();
     emitRex(Ty, addr, RexRegIrrelevant);
     emitUint8(0xF6);
-    emitOperand(0, addr);
+    static constexpr RelocOffsetT OffsetFromNextInstruction = 1;
+    emitOperand(0, addr, OffsetFromNextInstruction);
     emitUint8(immediate.value() & 0xFF);
   } else {
     if (Ty == IceType_i16)
@@ -2252,7 +2260,8 @@ void AssemblerX86Base<TraitsType>::test(Type Ty, const Address &addr,
     emitAddrSizeOverridePrefix();
     emitRex(Ty, addr, RexRegIrrelevant);
     emitUint8(0xF7);
-    emitOperand(0, addr);
+    const uint8_t OffsetFromNextInstruction = Ty == IceType_i16 ? 2 : 4;
+    emitOperand(0, addr, OffsetFromNextInstruction);
     emitImmediate(Ty, immediate);
   }
 }
@@ -2653,11 +2662,13 @@ void AssemblerX86Base<TraitsType>::imul(Type Ty, GPRRegister dst,
   emitRex(Ty, address, dst);
   if (imm.is_int8()) {
     emitUint8(0x6B);
-    emitOperand(gprEncoding(dst), address);
+    static constexpr RelocOffsetT OffsetFromNextInstruction = 1;
+    emitOperand(gprEncoding(dst), address, OffsetFromNextInstruction);
     emitUint8(imm.value() & 0xFF);
   } else {
     emitUint8(0x69);
-    emitOperand(gprEncoding(dst), address);
+    const uint8_t OffsetFromNextInstruction = Ty == IceType_i16 ? 2 : 4;
+    emitOperand(gprEncoding(dst), address, OffsetFromNextInstruction);
     emitImmediate(Ty, imm);
   }
 }
@@ -3346,7 +3357,8 @@ void AssemblerX86Base<TraitsType>::bind(Label *L) {
 }
 
 template <typename TraitsType>
-void AssemblerX86Base<TraitsType>::emitOperand(int rm, const Operand &operand) {
+void AssemblerX86Base<TraitsType>::emitOperand(int rm, const Operand &operand,
+                                               RelocOffsetT Addend) {
   assert(rm >= 0 && rm < 8);
   const intptr_t length = operand.length_;
   assert(length > 0);
@@ -3362,9 +3374,18 @@ void AssemblerX86Base<TraitsType>::emitOperand(int rm, const Operand &operand) {
     displacement_start = 2;
   }
   // Emit the displacement and the fixup that affects it, if any.
-  if (operand.fixup()) {
-    emitFixup(operand.fixup());
+  AssemblerFixup *Fixup = operand.fixup();
+  if (Fixup != nullptr) {
+    emitFixup(Fixup);
     assert(length - displacement_start == 4);
+    if (fixupIsPCRel(Fixup->kind())) {
+      Fixup->set_addend(-Addend);
+      int32_t Offset;
+      memmove(&Offset, &operand.encoding_[displacement_start], sizeof(Offset));
+      Offset -= Addend;
+      emitInt32(Offset);
+      return;
+    }
   }
   for (intptr_t i = displacement_start; i < length; i++) {
     emitUint8(operand.encoding_[i]);
@@ -3374,15 +3395,17 @@ void AssemblerX86Base<TraitsType>::emitOperand(int rm, const Operand &operand) {
 template <typename TraitsType>
 void AssemblerX86Base<TraitsType>::emitImmediate(Type Ty,
                                                  const Immediate &imm) {
+  auto *const Fixup = imm.fixup();
   if (Ty == IceType_i16) {
-    assert(!imm.fixup());
+    assert(Fixup == nullptr);
     emitInt16(imm.value());
-  } else {
-    if (imm.fixup()) {
-      emitFixup(imm.fixup());
-    }
-    emitInt32(imm.value());
+    return;
   }
+
+  if (Fixup != nullptr) {
+    emitFixup(Fixup);
+  }
+  emitInt32(imm.value());
 }
 
 template <typename TraitsType>
@@ -3397,7 +3420,8 @@ void AssemblerX86Base<TraitsType>::emitComplexI8(int rm, const Operand &operand,
   } else {
     // Use sign-extended 8-bit immediate.
     emitUint8(0x80);
-    emitOperand(rm, operand);
+    static constexpr RelocOffsetT OffsetFromNextInstruction = 1;
+    emitOperand(rm, operand, OffsetFromNextInstruction);
     emitUint8(immediate.value() & 0xFF);
   }
 }
@@ -3410,7 +3434,8 @@ void AssemblerX86Base<TraitsType>::emitComplex(Type Ty, int rm,
   if (immediate.is_int8()) {
     // Use sign-extended 8-bit immediate.
     emitUint8(0x83);
-    emitOperand(rm, operand);
+    static constexpr RelocOffsetT OffsetFromNextInstruction = 1;
+    emitOperand(rm, operand, OffsetFromNextInstruction);
     emitUint8(immediate.value() & 0xFF);
   } else if (operand.IsRegister(Traits::Encoded_Reg_Accumulator)) {
     // Use short form if the destination is eax.
@@ -3418,7 +3443,8 @@ void AssemblerX86Base<TraitsType>::emitComplex(Type Ty, int rm,
     emitImmediate(Ty, immediate);
   } else {
     emitUint8(0x81);
-    emitOperand(rm, operand);
+    const uint8_t OffsetFromNextInstruction = Ty == IceType_i16 ? 2 : 4;
+    emitOperand(rm, operand, OffsetFromNextInstruction);
     emitImmediate(Ty, immediate);
   }
 }
@@ -3468,7 +3494,8 @@ void AssemblerX86Base<TraitsType>::emitGenericShift(int rm, Type Ty,
     emitOperand(rm, Operand(reg));
   } else {
     emitUint8(isByteSizedArithType(Ty) ? 0xC0 : 0xC1);
-    emitOperand(rm, Operand(reg));
+    static constexpr RelocOffsetT OffsetFromNextInstruction = 1;
+    emitOperand(rm, Operand(reg), OffsetFromNextInstruction);
     emitUint8(imm.value() & 0xFF);
   }
 }

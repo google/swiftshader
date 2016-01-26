@@ -23,10 +23,10 @@ const Constant *AssemblerFixup::NullSymbol = nullptr;
 
 RelocOffsetT AssemblerFixup::offset() const {
   if (isNullSymbol())
-    return 0;
+    return addend_;
   if (const auto *CR = llvm::dyn_cast<ConstantRelocatable>(value_))
-    return CR->getOffset();
-  return 0;
+    return CR->getOffset() + addend_;
+  return addend_;
 }
 
 IceString AssemblerFixup::symbol(const GlobalContext *Ctx,

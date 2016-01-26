@@ -136,7 +136,17 @@ void TargetX8664Traits::X86OperandMem::emit(const Cfg *Func) const {
     // rematerializable base/index and Disp.
     assert(Disp == 0);
     const bool UseNonsfi = Func->getContext()->getFlags().getUseNonsfi();
-    CR->emitWithoutPrefix(Func->getTarget(), UseNonsfi ? "@GOTOFF" : "");
+    CR->emitWithoutPrefix(Target, UseNonsfi ? "@GOTOFF" : "");
+    assert(!UseNonsfi);
+    if (Base == nullptr && Index == nullptr) {
+      if (CR->getName() != "") { // rip-relative addressing.
+        if (NeedSandboxing) {
+          Str << "(%rip)";
+        } else {
+          Str << "(%eip)";
+        }
+      }
+    }
   } else {
     llvm_unreachable("Invalid offset type for x86 mem operand");
   }
@@ -256,10 +266,16 @@ TargetX8664Traits::Address TargetX8664Traits::X86OperandMem::toAsmAddress(
   if (getOffset() != nullptr) {
     if (const auto *CI = llvm::dyn_cast<ConstantInteger32>(getOffset())) {
       Disp += static_cast<int32_t>(CI->getValue());
-    } else if (const auto CR =
+    } else if (const auto *CR =
                    llvm::dyn_cast<ConstantRelocatable>(getOffset())) {
-      Disp = CR->getOffset();
-      Fixup = Asm->createFixup(FK_Abs, CR);
+      RelocOffsetT DispAdjustment = 0;
+      if (CR->getName() != "") {
+        const auto FixupKind =
+            (getBase() != nullptr || getIndex() != nullptr) ? FK_Abs : FK_PcRel;
+        DispAdjustment = FixupKind == FK_PcRel ? 4 : 0;
+        Fixup = Asm->createFixup(FixupKind, CR);
+      }
+      Disp = CR->getOffset() - DispAdjustment;
     } else {
       llvm_unreachable("Unexpected offset type");
     }
@@ -290,7 +306,15 @@ TargetX8664Traits::Address TargetX8664Traits::X86OperandMem::toAsmAddress(
                                   Fixup);
   }
 
-  return X8664::Traits::Address(Disp, Fixup);
+  if (Fixup == nullptr) {
+    // Absolute addresses are not allowed in Nexes -- they must be rebased
+    // w.r.t. %r15.
+    // Exception: LEAs are fine because they do not touch memory.
+    assert(!Target->needSandboxing() || IsLeaAddr);
+    return X8664::Traits::Address::Absolute(Disp);
+  }
+
+  return X8664::Traits::Address::RipRelative(Disp, Fixup);
 }
 
 TargetX8664Traits::Address

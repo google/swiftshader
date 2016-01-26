@@ -729,7 +729,7 @@ private:
   inline void emitXmmRegisterOperand(RegType reg, RmType rm);
   inline void emitOperandSizeOverride();
 
-  void emitOperand(int rm, const Operand &operand);
+  void emitOperand(int rm, const Operand &operand, RelocOffsetT Addend = 0);
   void emitImmediate(Type ty, const Immediate &imm);
   void emitComplexI8(int rm, const Operand &operand,
                      const Immediate &immediate);

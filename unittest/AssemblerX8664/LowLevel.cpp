@@ -186,8 +186,7 @@ TEST_F(AssemblerX8664LowLevelTest, Cmp) {
         "(" #Inst ", " #Dst ", " #Disp ", " #OpType ", " #ByteCountUntyped     \
         ",  " #__VA_ARGS__ ")";                                                \
     static constexpr uint8_t ByteCount = ByteCountUntyped;                     \
-    __ Inst(IceType_##OpType, Encoded_GPR_##Dst(),                             \
-            Address(Disp, AssemblerFixup::NoFixup));                           \
+    __ Inst(IceType_##OpType, Encoded_GPR_##Dst(), Address::Absolute(Disp));   \
     ASSERT_EQ(ByteCount, codeBytesSize()) << TestString;                       \
     ASSERT_TRUE(verifyBytes<ByteCount>(codeBytes(), __VA_ARGS__))              \
         << TestString;                                                         \

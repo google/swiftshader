@@ -25,7 +25,7 @@ using FixupKind = uint32_t;
 
 /// Assembler fixups are positions in generated code/data that hold relocation
 /// information that needs to be processed before finalizing the code/data.
-struct AssemblerFixup {
+class AssemblerFixup {
   AssemblerFixup &operator=(const AssemblerFixup &) = delete;
 
 public:
@@ -53,6 +53,8 @@ public:
 
   void set_value(const Constant *Value) { value_ = Value; }
 
+  void set_addend(RelocOffsetT Addend) { addend_ = Addend; }
+
   /// Emits fixup, then returns the number of bytes to skip.
   virtual size_t emit(GlobalContext *Ctx, const Assembler &Asm) const;
 
@@ -61,6 +63,9 @@ private:
   intptr_t position_ = 0;
   FixupKind kind_ = 0;
   const Constant *value_ = nullptr;
+  // An offset addend to the fixup offset (as returned by offset()), in case the
+  // assembler needs to adjust it.
+  RelocOffsetT addend_ = 0;
 };
 
 /// Extends a fixup to be textual. That is, it emits text instead of a sequence
