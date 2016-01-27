@@ -610,18 +610,19 @@ class Assembler : public ValueObject {
     return (AL << kConditionShift) | B24 | B21 |
            ((imm16 >> 4) << 8) | B6 | B5 | B4 | (imm16 & 0xf);
   }
-#endif
 
+  // Not ported. PNaCl doesn't allow breakpoint instructions.
   static uword GetBreakInstructionFiller() {
     return BkptEncoding(0);
   }
 
   // Floating point instructions (VFPv3-D16 and VFPv3-D32 profiles).
-#if 0
+
   // Moved to ARM32::AssemblerARM32::vmovsr().
   void vmovsr(SRegister sn, Register rt, Condition cond = AL);
-#endif
+  // Moved to ARM32::AssemblerARM32::vmovrs().
   void vmovrs(Register rt, SRegister sn, Condition cond = AL);
+#endif
   void vmovsrr(SRegister sm, Register rt, Register rt2, Condition cond = AL);
   void vmovrrs(Register rt, Register rt2, SRegister sm, Condition cond = AL);
   void vmovdrr(DRegister dm, Register rt, Register rt2, Condition cond = AL);

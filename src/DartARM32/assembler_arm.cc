@@ -620,8 +620,8 @@ void Assembler::vmovsr(SRegister sn, Register rt, Condition cond) {
                      ((static_cast<int32_t>(sn) & 1)*B7) | B4;
   Emit(encoding);
 }
-#endif
 
+// Moved to ARM32::AssemblerARM32::vmovrs().
 void Assembler::vmovrs(Register rt, SRegister sn, Condition cond) {
   ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(sn != kNoSRegister);
@@ -636,6 +636,7 @@ void Assembler::vmovrs(Register rt, SRegister sn, Condition cond) {
                      ((static_cast<int32_t>(sn) & 1)*B7) | B4;
   Emit(encoding);
 }
+#endif
 
 
 void Assembler::vmovsrr(SRegister sm, Register rt, Register rt2,

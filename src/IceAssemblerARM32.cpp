@@ -2427,6 +2427,24 @@ void AssemblerARM32::vmovdd(const Operand *OpDd, const Operand *OpDm,
   emitVFPddd(Cond, VmovddOpcode, Dd, D0, Dm);
 }
 
+void AssemblerARM32::vmovrs(const Operand *OpRt, const Operand *OpSn,
+                            CondARM32::Cond Cond) {
+  // VMOV (between ARM core register and single-precision register)
+  //   ARM section A8.8.343, encoding A1.
+  //
+  //   vmov<c> <Rt>, <Sn>
+  //
+  // cccc11100001nnnntttt1010N0010000 where cccc=Cond, nnnnN = Sn, and tttt=Rt.
+  constexpr const char *Vmovrs = "vmovrs";
+  IValueT Rt = encodeGPRegister(OpRt, "Rt", Vmovrs);
+  IValueT Sn = encodeSRegister(OpSn, "Sn", Vmovrs);
+  assert(CondARM32::isDefined(Cond));
+  IValueT Encoding = (encodeCondition(Cond) << kConditionShift) | B27 | B26 |
+                     B25 | B20 | B11 | B9 | B4 | (getXXXXInRegXXXXY(Sn) << 16) |
+                     (Rt << kRdShift) | (getYInRegXXXXY(Sn) << 7);
+  emitInst(Encoding);
+}
+
 void AssemblerARM32::vmovs(const Operand *OpSd,
                            const OperandARM32FlexFpImm *OpFpImm,
                            CondARM32::Cond Cond) {
@@ -2465,7 +2483,7 @@ void AssemblerARM32::vmovsr(const Operand *OpSn, const Operand *OpRt,
   //
   //   vmov<c> <Sn>, <Rt>
   //
-  // cccc1110000onnnntttt1010N0010000 where cccc=Cond, nnnnN = Sn, and tttt=Rt.
+  // cccc11100000nnnntttt1010N0010000 where cccc=Cond, nnnnN = Sn, and tttt=Rt.
   constexpr const char *Vmovsr = "vmovsr";
   IValueT Sn = encodeSRegister(OpSn, "Sn", Vmovsr);
   IValueT Rt = encodeGPRegister(OpRt, "Rt", Vmovsr);

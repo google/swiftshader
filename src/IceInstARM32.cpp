@@ -1209,15 +1209,30 @@ void InstARM32Mov::emitIASCoreVFPMove(const Cfg *Func) const {
 
   // Move register to register.
   Variable *Dest = getDest();
+  // TODO(kschimpf) Consider merging methods emitIAS.. methods into
+  // a single case statement.
   switch (Dest->getType()) {
   default:
     // TODO(kschimpf): Fill this out more.
     return Asm->setNeedsTextFixup();
+  case IceType_i1:
+  case IceType_i8:
+  case IceType_i16:
+  case IceType_i32:
+    assert(Src0->getType() == IceType_f32 && "Expected int to float move");
+    Asm->vmovrs(Dest, Src0, getPredicate());
+    return;
+  case IceType_i64:
+    assert(false && "i64 to float moves not handled here!");
+    return;
   case IceType_f32:
     switch (Src0->getType()) {
     default:
-      // TODO(kschimpf): Fill this out more?
-      return Asm->setNeedsTextFixup();
+      assert(false && "Expected float to int move");
+      return;
+    case IceType_i1:
+    case IceType_i8:
+    case IceType_i16:
     case IceType_i32:
       return Asm->vmovsr(Dest, Src0, getPredicate());
     }
