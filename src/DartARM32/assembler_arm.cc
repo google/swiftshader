@@ -917,16 +917,17 @@ void Assembler::EmitVFPddd(Condition cond, int32_t opcode,
                      (static_cast<int32_t>(dm) & 0xf);
   Emit(encoding);
 }
-#endif
 
+// Moved to Arm32::AssemblerARM32::vmovss()
 void Assembler::vmovs(SRegister sd, SRegister sm, Condition cond) {
   EmitVFPsss(cond, B23 | B21 | B20 | B6, sd, S0, sm);
 }
 
-
+// Moved to Arm32::AssemblerARM32::vmovdd()
 void Assembler::vmovd(DRegister dd, DRegister dm, Condition cond) {
   EmitVFPddd(cond, B23 | B21 | B20 | B6, dd, D0, dm);
 }
+#endif
 
 #if 0
 // Moved to Arm32::AssemblerARM32::vmovs()

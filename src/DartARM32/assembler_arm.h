@@ -627,8 +627,12 @@ class Assembler : public ValueObject {
   void vmovdrr(DRegister dm, Register rt, Register rt2, Condition cond = AL);
   void vmovrrd(Register rt, Register rt2, DRegister dm, Condition cond = AL);
   void vmovdr(DRegister dd, int i, Register rt, Condition cond = AL);
+#if 0
+  // Moved to ARM32::AssemblerARM32::vmovss().
   void vmovs(SRegister sd, SRegister sm, Condition cond = AL);
+  // Moved to ARM32::AssemblerARM32::vmovdd().
   void vmovd(DRegister dd, DRegister dm, Condition cond = AL);
+#endif
   void vmovq(QRegister qd, QRegister qm);
 
 #if 0

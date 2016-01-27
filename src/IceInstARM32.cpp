@@ -1165,19 +1165,29 @@ void InstARM32Mov::emitIASScalarVFPMove(const Cfg *Func) const {
   switch (Dest->getType()) {
   default:
     assert(false && "Do not know how to emit scalar FP move for type.");
-    return;
+    break;
   case IceType_f32:
-    if (const auto *FpImm = llvm::dyn_cast<OperandARM32FlexFpImm>(Src0)) {
+    if (llvm::isa<Variable>(Src0)) {
+      Asm->vmovss(Dest, Src0, getPredicate());
+      return;
+    } else if (const auto *FpImm =
+                   llvm::dyn_cast<OperandARM32FlexFpImm>(Src0)) {
       Asm->vmovs(Dest, FpImm, getPredicate());
       return;
     }
-    break;
+    assert(!Asm->needsTextFixup());
+    return;
   case IceType_f64:
-    if (const auto *FpImm = llvm::dyn_cast<OperandARM32FlexFpImm>(Src0)) {
+    if (llvm::isa<Variable>(Src0)) {
+      Asm->vmovdd(Dest, Src0, getPredicate());
+      return;
+    } else if (const auto *FpImm =
+                   llvm::dyn_cast<OperandARM32FlexFpImm>(Src0)) {
       Asm->vmovd(Dest, FpImm, getPredicate());
       return;
     }
-    break;
+    assert(!Asm->needsTextFixup());
+    return;
   }
   // TODO(kschimpf) Handle register to register move.
   Asm->setNeedsTextFixup();

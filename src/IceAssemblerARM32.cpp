@@ -2413,6 +2413,20 @@ void AssemblerARM32::vmovd(const Operand *OpDd,
   emitVFPddd(Cond, OpcodePlusImm8, Dd, D0, D0);
 }
 
+void AssemblerARM32::vmovdd(const Operand *OpDd, const Operand *OpDm,
+                            CondARM32::Cond Cond) {
+  // VMOV (register) - ARM section A8.8.340, encoding A2:
+  //   vmov<c>.f64 <Dd>, <Sm>
+  //
+  // cccc11101D110000dddd101101M0mmmm where cccc=Cond, Ddddd=Sd, and Mmmmm=Sm.
+  constexpr const char *Vmovdd = "Vmovdd";
+  IValueT Dd = encodeSRegister(OpDd, "Dd", Vmovdd);
+  IValueT Dm = encodeSRegister(OpDm, "Dm", Vmovdd);
+  constexpr IValueT VmovddOpcode = B23 | B21 | B20 | B6;
+  constexpr IValueT D0 = 0;
+  emitVFPddd(Cond, VmovddOpcode, Dd, D0, Dm);
+}
+
 void AssemblerARM32::vmovs(const Operand *OpSd,
                            const OperandARM32FlexFpImm *OpFpImm,
                            CondARM32::Cond Cond) {
@@ -2428,6 +2442,20 @@ void AssemblerARM32::vmovs(const Operand *OpSd,
   IValueT OpcodePlusImm8 = VmovsOpcode | ((Imm8 >> 4) << 16) | (Imm8 & 0xf);
   constexpr IValueT S0 = 0;
   emitVFPsss(Cond, OpcodePlusImm8, Sd, S0, S0);
+}
+
+void AssemblerARM32::vmovss(const Operand *OpSd, const Operand *OpSm,
+                            CondARM32::Cond Cond) {
+  // VMOV (register) - ARM section A8.8.340, encoding A2:
+  //   vmov<c>.f32 <Sd>, <Sm>
+  //
+  // cccc11101D110000dddd101001M0mmmm where cccc=Cond, ddddD=Sd, and mmmmM=Sm.
+  constexpr const char *Vmovss = "Vmovss";
+  IValueT Sd = encodeSRegister(OpSd, "Sd", Vmovss);
+  IValueT Sm = encodeSRegister(OpSm, "Sm", Vmovss);
+  constexpr IValueT VmovssOpcode = B23 | B21 | B20 | B6;
+  constexpr IValueT S0 = 0;
+  emitVFPsss(Cond, VmovssOpcode, Sd, S0, Sm);
 }
 
 void AssemblerARM32::vmovsr(const Operand *OpSn, const Operand *OpRt,
