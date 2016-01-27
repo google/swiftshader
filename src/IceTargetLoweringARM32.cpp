@@ -2805,6 +2805,8 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Instr) {
     // Explicitly whitelist vector instructions we have implemented/enabled.
     case InstArithmetic::Fadd:
     case InstArithmetic::Add:
+    case InstArithmetic::Fsub:
+    case InstArithmetic::Sub:
       break;
     }
   }
@@ -2974,6 +2976,7 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Instr) {
   }
   case InstArithmetic::Sub: {
     if (const Inst *Src1Producer = Computations.getProducerOf(Src1)) {
+      assert(!isVectorType(DestTy));
       Variable *Src0R = legalizeToReg(Src0);
       Variable *Src1R = legalizeToReg(Src1Producer->getSrc(0));
       Variable *Src2R = legalizeToReg(Src1Producer->getSrc(1));
@@ -2983,6 +2986,7 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Instr) {
     }
 
     if (Srcs.hasConstOperand()) {
+      assert(!isVectorType(DestTy));
       if (Srcs.immediateIsFlexEncodable()) {
         Variable *Src0R = Srcs.src0R(this);
         Operand *Src1RF = Srcs.src1RF(this);
@@ -3004,7 +3008,11 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Instr) {
     }
     Variable *Src0R = Srcs.unswappedSrc0R(this);
     Variable *Src1R = Srcs.unswappedSrc1R(this);
-    _sub(T, Src0R, Src1R);
+    if (isVectorType(DestTy)) {
+      _vsub(T, Src0R, Src1R);
+    } else {
+      _sub(T, Src0R, Src1R);
+    }
     _mov(Dest, T);
     return;
   }

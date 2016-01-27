@@ -674,16 +674,17 @@ template <> void InstARM32Vsub::emitIAS(const Cfg *Func) const {
   switch (Dest->getType()) {
   default:
     // TODO(kschimpf) Figure if more cases are needed.
-    Asm->setNeedsTextFixup();
+    emitUsingTextFixup(Func);
     break;
   case IceType_f32:
     Asm->vsubs(getDest(), getSrc(0), getSrc(1), CondARM32::AL);
+    assert(!Asm->needsTextFixup());
     break;
   case IceType_f64:
     Asm->vsubd(getDest(), getSrc(0), getSrc(1), CondARM32::AL);
+    assert(!Asm->needsTextFixup());
     break;
   }
-  assert(!Asm->needsTextFixup());
 }
 
 template <> void InstARM32Vmul::emitIAS(const Cfg *Func) const {

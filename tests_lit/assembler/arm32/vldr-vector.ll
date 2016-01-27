@@ -45,3 +45,29 @@ entry:
 
   ret <4 x i32> %ret
 }
+
+define internal <8 x i16> @testDeref8i16(<8 x i16> *%p) {
+; ASM-LABEL: testDeref8i16:
+; DIS-LABEL: 00000020 <testDeref8i16>:
+; IASM-LABEL: testDeref8i16:
+
+entry:
+  %ret = load <8 x i16>, <8 x i16>* %p, align 2
+; ASM:     vld1.64	q0, [r0]
+; DIS:   20:       f4200acf
+
+  ret <8 x i16> %ret
+}
+
+define internal <16 x i8> @testDeref16i8(<16 x i8> *%p) {
+; ASM-LABEL: testDeref16i8:
+; DIS-LABEL: 00000030 <testDeref16i8>:
+; IASM-LABEL: testDeref16i8:
+
+entry:
+  %ret = load <16 x i8>, <16 x i8>* %p, align 1
+; ASM:     vld1.64	q0, [r0]
+; DIS:   30:       f4200acf
+
+  ret <16 x i8> %ret
+}
