@@ -431,6 +431,7 @@ public:
     Vmls,
     Vmrs,
     Vmul,
+    Vorr,
     Vsqrt,
     Vsub
   };
@@ -925,6 +926,7 @@ using InstARM32Veor = InstARM32ThreeAddrFP<InstARM32::Veor>;
 using InstARM32Vmla = InstARM32FourAddrFP<InstARM32::Vmla>;
 using InstARM32Vmls = InstARM32FourAddrFP<InstARM32::Vmls>;
 using InstARM32Vmul = InstARM32ThreeAddrFP<InstARM32::Vmul>;
+using InstARM32Vorr = InstARM32ThreeAddrFP<InstARM32::Vorr>;
 using InstARM32Vsub = InstARM32ThreeAddrFP<InstARM32::Vsub>;
 using InstARM32Ldr = InstARM32LoadBase<InstARM32::Ldr>;
 using InstARM32Ldrex = InstARM32LoadBase<InstARM32::Ldrex>;

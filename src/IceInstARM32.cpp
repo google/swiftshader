@@ -673,6 +673,11 @@ template <> void InstARM32Vmla::emitIAS(const Cfg *Func) const {
   }
 }
 
+template <> void InstARM32Vorr::emitIAS(const Cfg *Func) const {
+  // TODO(kschimpf): add support for these instructions
+  emitUsingTextFixup(Func);
+}
+
 template <> void InstARM32Vsub::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   const Variable *Dest = getDest();
@@ -1040,6 +1045,7 @@ template <> const char *InstARM32Veor::Opcode = "veor";
 template <> const char *InstARM32Vmla::Opcode = "vmla";
 template <> const char *InstARM32Vmls::Opcode = "vmls";
 template <> const char *InstARM32Vmul::Opcode = "vmul";
+template <> const char *InstARM32Vorr::Opcode = "vorr";
 template <> const char *InstARM32Vsub::Opcode = "vsub";
 // Four-addr ops
 template <> const char *InstARM32Mla::Opcode = "mla";

@@ -802,6 +802,9 @@ protected:
   void _vmul(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert<InstARM32Vmul>(Dest, Src0, Src1);
   }
+  void _vorr(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert<InstARM32Vorr>(Dest, Src0, Src1);
+  }
   void _vsqrt(Variable *Dest, Variable *Src,
               CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert<InstARM32Vsqrt>(Dest, Src, Pred);

@@ -1,4 +1,4 @@
-; Show that we know how to translate vsub vector instructions.
+; Show that we know how to translate vand vector instructions.
 
 ; REQUIRES: allow_dump
 
