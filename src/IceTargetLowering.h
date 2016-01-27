@@ -55,7 +55,8 @@ namespace Ice {
     } else {                                                                   \
       /* Use llvm_unreachable instead of report_fatal_error, which gives       \
          better stack traces. */                                               \
-      llvm_unreachable("Not yet implemented");                                 \
+      llvm_unreachable(                                                        \
+          ("Not yet implemented: " + Instr->getInstName()).c_str());           \
       abort();                                                                 \
     }                                                                          \
   } while (0)

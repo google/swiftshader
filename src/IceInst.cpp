@@ -77,6 +77,45 @@ Inst::Inst(Cfg *Func, InstKind Kind, SizeT MaxSrcs, Variable *Dest)
     : Kind(Kind), Number(Func->newInstNumber()), Dest(Dest), MaxSrcs(MaxSrcs),
       Srcs(Func->allocateArrayOf<Operand *>(MaxSrcs)), LiveRangesEnded(0) {}
 
+IceString Inst::getInstName() const {
+  if (!BuildDefs::dump())
+    return "???";
+
+  switch (Kind) {
+#define X(InstrKind, name)                                                     \
+  case InstrKind:                                                              \
+    return name
+    X(Unreachable, "unreachable");
+    X(Alloca, "alloca");
+    X(Arithmetic, "arithmetic");
+    X(Br, "br");
+    X(Call, "call");
+    X(Cast, "cast");
+    X(ExtractElement, "extractelement");
+    X(Fcmp, "fcmp");
+    X(Icmp, "icmp");
+    X(IntrinsicCall, "intrinsiccall");
+    X(InsertElement, "insertelement");
+    X(Load, "load");
+    X(Phi, "phi");
+    X(Ret, "ret");
+    X(Select, "select");
+    X(Store, "store");
+    X(Switch, "switch");
+    X(Assign, "assign");
+    X(BundleLock, "bundlelock");
+    X(BundleUnlock, "bundleunlock");
+    X(FakeDef, "fakedef");
+    X(FakeUse, "fakeuse");
+    X(FakeKill, "fakekill");
+    X(JumpTable, "jumptable");
+#undef X
+  default:
+    assert(Kind >= Target);
+    return "target";
+  }
+}
+
 // Assign the instruction a new number.
 void Inst::renumber(Cfg *Func) {
   Number = isDeleted() ? NumberDeleted : Func->newInstNumber();
@@ -231,6 +270,13 @@ InstArithmetic::InstArithmetic(Cfg *Func, OpKind Op, Variable *Dest,
     : InstHighLevel(Func, Inst::Arithmetic, 2, Dest), Op(Op) {
   addSource(Source1);
   addSource(Source2);
+}
+
+IceString InstArithmetic::getInstName() const {
+  if (!BuildDefs::dump())
+    return "???";
+
+  return InstArithmeticAttributes[getOp()].DisplayString;
 }
 
 const char *InstArithmetic::getOpName(OpKind Op) {
@@ -558,7 +604,7 @@ void Inst::dump(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
-  Str << " =~ ";
+  Str << " =~ " << getInstName() << " ";
   dumpSources(Func);
 }
 
@@ -630,8 +676,7 @@ void InstArithmetic::dump(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
-  Str << " = " << InstArithmeticAttributes[getOp()].DisplayString << " "
-      << getDest()->getType() << " ";
+  Str << " = " << getInstName() << " " << getDest()->getType() << " ";
   dumpSources(Func);
 }
 

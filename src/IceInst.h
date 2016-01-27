@@ -76,6 +76,7 @@ public:
   };
   static_assert(Target <= Target_Max, "Must not be above max.");
   InstKind getKind() const { return Kind; }
+  virtual IceString getInstName() const;
 
   InstNumberT getNumber() const { return Number; }
   void renumber(Cfg *Func);
@@ -288,6 +289,9 @@ public:
         InstArithmetic(Func, Op, Dest, Source1, Source2);
   }
   OpKind getOp() const { return Op; }
+
+  virtual IceString getInstName() const override;
+
   static const char *getOpName(OpKind Op);
   bool isCommutative() const;
   void dump(const Cfg *Func) const override;
