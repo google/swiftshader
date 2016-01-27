@@ -682,6 +682,7 @@ public:
   void jmp(GPRRegister reg);
   void jmp(Label *label, bool near = kFarJump);
   void jmp(const ConstantRelocatable *label); // not testable.
+  void jmp(const Immediate &abs_address);
 
   void mfence();
 

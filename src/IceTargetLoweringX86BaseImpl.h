@@ -2488,7 +2488,8 @@ void TargetX86Base<TraitsType>::lowerCall(const InstCall *Instr) {
                              Variable::NoRegister)) {
       XmmArgs.push_back(Arg);
     } else if (isScalarFloatingType(Ty) && Traits::X86_PASS_SCALAR_FP_IN_XMM &&
-               (Traits::getRegisterForXmmArgNum(0) != Variable::NoRegister)) {
+               (Traits::getRegisterForXmmArgNum(XmmArgs.size()) !=
+                Variable::NoRegister)) {
       XmmArgs.push_back(Arg);
     } else if (isScalarIntegerType(Ty) &&
                (Traits::getRegisterForGprArgNum(Ty, GprArgs.size()) !=
@@ -4600,27 +4601,30 @@ void TargetX86Base<TraitsType>::lowerCountZeros(bool Cttz, Type Ty,
   //
   // Otherwise:
   //   bsr IF_NOT_ZERO, Val
-  //   mov T_DEST, 63
+  //   mov T_DEST, ((Ty == i32) ? 63 : 127)
   //   cmovne T_DEST, IF_NOT_ZERO
-  //   xor T_DEST, 31
+  //   xor T_DEST, ((Ty == i32) ? 31 : 63)
   //   mov DEST, T_DEST
   //
   // NOTE: T_DEST must be a register because cmov requires its dest to be a
   // register. Also, bsf and bsr require their dest to be a register.
   //
-  // The xor DEST, 31 converts a bit position to # of leading zeroes.
+  // The xor DEST, C(31|63) converts a bit position to # of leading zeroes.
   // E.g., for 000... 00001100, bsr will say that the most significant bit
   // set is at position 3, while the number of leading zeros is 28. Xor is
-  // like (31 - N) for N <= 31, and converts 63 to 32 (for the all-zeros case).
+  // like (M - N) for N <= M, and converts 63 to 32, and 127 to 64 (for the
+  // all-zeros case).
   //
-  // Similar for 64-bit, but start w/ speculating that the upper 32 bits
-  // are all zero, and compute the result for that case (checking the lower
-  // 32 bits). Then actually compute the result for the upper bits and
+  // X8632 only: Similar for 64-bit, but start w/ speculating that the upper 32
+  // bits are all zero, and compute the result for that case (checking the
+  // lower 32 bits). Then actually compute the result for the upper bits and
   // cmov in the result from the lower computation if the earlier speculation
   // was correct.
   //
   // Cttz, is similar, but uses bsf instead, and doesn't require the xor
   // bit position conversion, and the speculation is reversed.
+
+  // TODO(jpp): refactor this method.
   assert(Ty == IceType_i32 || Ty == IceType_i64);
   const Type DestTy = Traits::Is64Bit ? Dest->getType() : IceType_i32;
   Variable *T = makeReg(DestTy);
@@ -4633,15 +4637,32 @@ void TargetX86Base<TraitsType>::lowerCountZeros(bool Cttz, Type Ty,
   Variable *T_Dest = makeReg(DestTy);
   Constant *_31 = Ctx->getConstantInt32(31);
   Constant *_32 = Ctx->getConstantInt(DestTy, 32);
+  Constant *_63 = Ctx->getConstantInt(DestTy, 63);
+  Constant *_64 = Ctx->getConstantInt(DestTy, 64);
   if (Cttz) {
-    _mov(T_Dest, _32);
+    if (DestTy == IceType_i64) {
+      _mov(T_Dest, _64);
+    } else {
+      _mov(T_Dest, _32);
+    }
   } else {
-    Constant *_63 = Ctx->getConstantInt(DestTy, 63);
-    _mov(T_Dest, _63);
+    Constant *_127 = Ctx->getConstantInt(DestTy, 127);
+    if (DestTy == IceType_i64) {
+      _mov(T_Dest, _127);
+    } else {
+      _mov(T_Dest, _63);
+    }
   }
   _cmov(T_Dest, T, Traits::Cond::Br_ne);
   if (!Cttz) {
-    _xor(T_Dest, _31);
+    if (DestTy == IceType_i64) {
+      // Even though there's a _63 available at this point, that constant might
+      // not be an i32, which will cause the xor emission to fail.
+      Constant *_63 = Ctx->getConstantInt32(63);
+      _xor(T_Dest, _63);
+    } else {
+      _xor(T_Dest, _31);
+    }
   }
   if (Traits::Is64Bit || Ty == IceType_i32) {
     _mov(Dest, T_Dest);

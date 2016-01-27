@@ -3177,6 +3177,17 @@ void AssemblerX86Base<TraitsType>::jmp(const ConstantRelocatable *label) {
   emitInt32(-4);
 }
 
+template <typename TraitsType>
+void AssemblerX86Base<TraitsType>::jmp(const Immediate &abs_address) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitUint8(0xE9);
+  AssemblerFixup *Fixup =
+      this->createFixup(Traits::FK_PcRel, AssemblerFixup::NullSymbol);
+  Fixup->set_addend(abs_address.value());
+  emitFixup(Fixup);
+  emitInt32(abs_address.value() - 4);
+}
+
 template <typename TraitsType> void AssemblerX86Base<TraitsType>::mfence() {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x0F);

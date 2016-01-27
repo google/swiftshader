@@ -601,10 +601,7 @@ void InstImpl<TraitsType>::InstX86Jmp::emitIAS(const Cfg *Func) const {
     // NaCl trampoline calls refer to an address within the sandbox directly.
     // This is usually only needed for non-IRT builds and otherwise not very
     // portable or stable. Usually this is only done for "calls" and not jumps.
-    // TODO(jvoung): Support this when there is a lowering that actually
-    // triggers this case.
-    (void)Imm;
-    llvm::report_fatal_error("Unexpected jmp to absolute address");
+    Asm->jmp(AssemblerImmediate(Imm->getValue()));
   } else {
     llvm::report_fatal_error("Unexpected operand type");
   }
