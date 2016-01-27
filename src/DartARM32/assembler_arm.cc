@@ -928,9 +928,7 @@ void Assembler::vmovs(SRegister sd, SRegister sm, Condition cond) {
 void Assembler::vmovd(DRegister dd, DRegister dm, Condition cond) {
   EmitVFPddd(cond, B23 | B21 | B20 | B6, dd, D0, dm);
 }
-#endif
 
-#if 0
 // Moved to Arm32::AssemblerARM32::vmovs()
 bool Assembler::vmovs(SRegister sd, float s_imm, Condition cond) {
   if (TargetCPUFeatures::arm_version() != ARMv7) {

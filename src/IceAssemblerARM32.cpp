@@ -2413,7 +2413,7 @@ void AssemblerARM32::vmovd(const Operand *OpDd,
   emitVFPddd(Cond, OpcodePlusImm8, Dd, D0, D0);
 }
 
-void AssemblerARM32::vmovdd(const Operand *OpDd, const Operand *OpDm,
+void AssemblerARM32::vmovdd(const Operand *OpDd, const Variable *OpDm,
                             CondARM32::Cond Cond) {
   // VMOV (register) - ARM section A8.8.340, encoding A2:
   //   vmov<c>.f64 <Dd>, <Sm>
@@ -2462,7 +2462,7 @@ void AssemblerARM32::vmovs(const Operand *OpSd,
   emitVFPsss(Cond, OpcodePlusImm8, Sd, S0, S0);
 }
 
-void AssemblerARM32::vmovss(const Operand *OpSd, const Operand *OpSm,
+void AssemblerARM32::vmovss(const Operand *OpSd, const Variable *OpSm,
                             CondARM32::Cond Cond) {
   // VMOV (register) - ARM section A8.8.340, encoding A2:
   //   vmov<c>.f32 <Sd>, <Sm>

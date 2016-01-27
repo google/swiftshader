@@ -1073,7 +1073,7 @@ void InstARM32Mov::emitMultiDestSingleSource(const Cfg *Func) const {
 
   assert(DestHi->hasReg());
   assert(DestLo->hasReg());
-  assert(llvm::isa<Variable>(Src) && Src->hasReg());
+  assert(Src->hasReg());
 
   Str << "\t"
          "vmov" << getPredicate() << "\t";
@@ -1173,8 +1173,8 @@ void InstARM32Mov::emitIASScalarVFPMove(const Cfg *Func) const {
     assert(false && "Do not know how to emit scalar FP move for type.");
     break;
   case IceType_f32:
-    if (llvm::isa<Variable>(Src0)) {
-      Asm->vmovss(Dest, Src0, getPredicate());
+    if (const auto *Var = llvm::dyn_cast<Variable>(Src0)) {
+      Asm->vmovss(Dest, Var, getPredicate());
       return;
     } else if (const auto *FpImm =
                    llvm::dyn_cast<OperandARM32FlexFpImm>(Src0)) {
@@ -1184,8 +1184,8 @@ void InstARM32Mov::emitIASScalarVFPMove(const Cfg *Func) const {
     assert(!Asm->needsTextFixup());
     return;
   case IceType_f64:
-    if (llvm::isa<Variable>(Src0)) {
-      Asm->vmovdd(Dest, Src0, getPredicate());
+    if (const auto *Var = llvm::dyn_cast<Variable>(Src0)) {
+      Asm->vmovdd(Dest, Var, getPredicate());
       return;
     } else if (const auto *FpImm =
                    llvm::dyn_cast<OperandARM32FlexFpImm>(Src0)) {
