@@ -2807,6 +2807,7 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Instr) {
     case InstArithmetic::Add:
     case InstArithmetic::Fsub:
     case InstArithmetic::Sub:
+    case InstArithmetic::And:
       break;
     }
   }
@@ -2955,8 +2956,13 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Instr) {
       }
     }
     Variable *Src0R = Srcs.src0R(this);
-    Operand *Src1RF = Srcs.src1RF(this);
-    _and(T, Src0R, Src1RF);
+    if (isVectorType(DestTy)) {
+      Variable *Src1R = legalizeToReg(Src1);
+      _vand(T, Src0R, Src1R);
+    } else {
+      Operand *Src1RF = Srcs.src1RF(this);
+      _and(T, Src0R, Src1RF);
+    }
     _mov(Dest, T);
     return;
   }

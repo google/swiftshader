@@ -769,6 +769,9 @@ protected:
   void _vadd(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert<InstARM32Vadd>(Dest, Src0, Src1);
   }
+  void _vand(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert<InstARM32Vand>(Dest, Src0, Src1);
+  }
   void _vcvt(Variable *Dest, Variable *Src, InstARM32Vcvt::VcvtVariant Variant,
              CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert<InstARM32Vcvt>(Dest, Src, Variant, Pred);
