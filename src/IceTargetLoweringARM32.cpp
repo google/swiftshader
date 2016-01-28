@@ -2810,6 +2810,8 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Instr) {
     case InstArithmetic::And:
     case InstArithmetic::Or:
     case InstArithmetic::Xor:
+    case InstArithmetic::Fmul:
+    case InstArithmetic::Mul:
       break;
     }
   }
@@ -3116,7 +3118,11 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Instr) {
     }
     Variable *Src0R = Srcs.unswappedSrc0R(this);
     Variable *Src1R = Srcs.unswappedSrc1R(this);
-    _mul(T, Src0R, Src1R);
+    if (isVectorType(DestTy)) {
+      _vmul(T, Src0R, Src1R);
+    } else {
+      _mul(T, Src0R, Src1R);
+    }
     _mov(Dest, T);
     return;
   }
