@@ -143,7 +143,7 @@ struct Light
 class VertexAttribute
 {
 public:
-    VertexAttribute() : mType(GL_FLOAT), mSize(0), mNormalized(false), mStride(0), mPointer(NULL), mArrayEnabled(false)
+    VertexAttribute() : mType(GL_FLOAT), mSize(4), mNormalized(false), mStride(0), mPointer(NULL), mArrayEnabled(false)
     {
         mCurrentValue[0] = 0.0f;
         mCurrentValue[1] = 0.0f;
@@ -355,7 +355,7 @@ public:
 	void setLightAttenuationQuadratic(int index, float quadratic);
 	void setSpotLightExponent(int index, float exponent);
 	void setSpotLightCutoff(int index, float cutoff);
-	
+
 	void setGlobalAmbient(float red, float green, float blue, float alpha);
 	void setMaterialAmbient(float red, float green, float blue, float alpha);
 	void setMaterialDiffuse(float red, float green, float blue, float alpha);

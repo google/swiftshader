@@ -1374,6 +1374,7 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
 	case GL_POINT_SIZE_ARRAY_TYPE_OES:           *params = mState.vertexAttribute[sw::PointSize].mType;                                      break;
 	case GL_POINT_SIZE_ARRAY_STRIDE_OES:         *params = mState.vertexAttribute[sw::PointSize].mStride;                                    break;
 	case GL_POINT_SIZE_ARRAY_BUFFER_BINDING_OES: *params = mState.vertexAttribute[sw::PointSize].mBoundBuffer.name();                        break;
+	case GL_VERTEX_ARRAY_SIZE:                   *params = mState.vertexAttribute[sw::Position].mSize;                                       break;
 	case GL_VERTEX_ARRAY_TYPE:                   *params = mState.vertexAttribute[sw::Position].mType;                                       break;
 	case GL_VERTEX_ARRAY_STRIDE:                 *params = mState.vertexAttribute[sw::Position].mStride;                                     break;
 	case GL_VERTEX_ARRAY_BUFFER_BINDING:         *params = mState.vertexAttribute[sw::Position].mBoundBuffer.name();                         break;
@@ -1383,6 +1384,7 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
 	case GL_COLOR_ARRAY_TYPE:                    *params = mState.vertexAttribute[sw::Color0].mType;                                         break;
 	case GL_COLOR_ARRAY_STRIDE:                  *params = mState.vertexAttribute[sw::Color0].mStride;                                       break;
 	case GL_COLOR_ARRAY_BUFFER_BINDING:          *params = mState.vertexAttribute[sw::Color0].mBoundBuffer.name();                           break;
+	case GL_TEXTURE_COORD_ARRAY_SIZE:            *params = mState.vertexAttribute[sw::TexCoord0 + mState.activeSampler].mSize;               break;
 	case GL_TEXTURE_COORD_ARRAY_TYPE:            *params = mState.vertexAttribute[sw::TexCoord0 + mState.activeSampler].mType;               break;
 	case GL_TEXTURE_COORD_ARRAY_STRIDE:          *params = mState.vertexAttribute[sw::TexCoord0 + mState.activeSampler].mStride;             break;
 	case GL_TEXTURE_COORD_ARRAY_BUFFER_BINDING:  *params = mState.vertexAttribute[sw::TexCoord0 + mState.activeSampler].mBoundBuffer.name(); break;
