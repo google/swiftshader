@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "54722221_0b10a12c",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-01-28T18:44:46Z",
+      "side": 1,
+      "message": "I added this on the assumption that you might not want this to active all the time.",
+      "range": {
+        "startLine": 118,
+        "startChar": 25,
+        "endLine": 118,
+        "endChar": 45
+      },
+      "revId": "8f5767aa7b5c9f51edd57ead64ad0ad6187ee85a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
