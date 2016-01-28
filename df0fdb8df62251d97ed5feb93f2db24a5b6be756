@@ -22,6 +22,30 @@
       "revId": "df0fdb8df62251d97ed5feb93f2db24a5b6be756",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "34c3ee5c_c0566407",
+        "filename": "src/OpenGL/libGLES_CM/libGLES_CM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2256,
+      "author": {
+        "id": 5225
+      },
+      "writtenOn": "2016-01-28T17:57:38Z",
+      "side": 1,
+      "message": "just saw that\u0027s a void function too. little unfamiliar as i\u0027d usually do:\nerror(GL_INVALID_ENUM);\nreturn;\nin that case though the current one is one line shorter and is already the common style in SW.",
+      "parentUuid": "34c3ee5c_00869ccf",
+      "range": {
+        "startLine": 2256,
+        "startChar": 3,
+        "endLine": 2256,
+        "endChar": 9
+      },
+      "revId": "df0fdb8df62251d97ed5feb93f2db24a5b6be756",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
