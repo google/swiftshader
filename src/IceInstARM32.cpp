@@ -647,6 +647,11 @@ template <> void InstARM32Vdiv::emitIAS(const Cfg *Func) const {
 template <> void InstARM32Veor::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   const Variable *Dest = getDest();
+  if (isVectorType(Dest->getType())) {
+    // TODO(kschimpf): Add support for this case
+    emitUsingTextFixup(Func);
+    return;
+  }
   assert(Dest->getType() == IceType_f64);
   Asm->veord(Dest, getSrc(0), getSrc(1));
   assert(!Asm->needsTextFixup());
