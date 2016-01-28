@@ -2245,7 +2245,17 @@ void GetMaterialxv(GLenum face, GLenum pname, GLfixed *params)
 
 void GetPointerv(GLenum pname, GLvoid **params)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLenum pname = 0x%X, GLvoid **params = %p)", pname, params);
+
+	es1::Context *context = es1::getContext();
+
+	if(context)
+	{
+		if(!(context->getPointerv(pname, const_cast<const GLvoid**>(params))))
+		{
+			return error(GL_INVALID_ENUM);
+		}
+	}
 }
 
 const GLubyte* GetString(GLenum name)

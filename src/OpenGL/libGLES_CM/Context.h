@@ -475,6 +475,7 @@ public:
     bool getFloatv(GLenum pname, GLfloat *params);
     bool getIntegerv(GLenum pname, GLint *params);
     bool getBooleanv(GLenum pname, GLboolean *params);
+    bool getPointerv(GLenum pname, const GLvoid **params);
 
     int getQueryParameterNum(GLenum pname);
 	bool isQueryParameterInt(GLenum pname);

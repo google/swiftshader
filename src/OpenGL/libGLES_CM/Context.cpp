@@ -1381,6 +1381,7 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
 	case GL_NORMAL_ARRAY_TYPE:                   *params = mState.vertexAttribute[sw::Normal].mType;                                         break;
 	case GL_NORMAL_ARRAY_STRIDE:                 *params = mState.vertexAttribute[sw::Normal].mStride;                                       break;
 	case GL_NORMAL_ARRAY_BUFFER_BINDING:         *params = mState.vertexAttribute[sw::Normal].mBoundBuffer.name();                           break;
+	case GL_COLOR_ARRAY_SIZE:                    *params = mState.vertexAttribute[sw::Color0].mSize;                                         break;
 	case GL_COLOR_ARRAY_TYPE:                    *params = mState.vertexAttribute[sw::Color0].mType;                                         break;
 	case GL_COLOR_ARRAY_STRIDE:                  *params = mState.vertexAttribute[sw::Color0].mStride;                                       break;
 	case GL_COLOR_ARRAY_BUFFER_BINDING:          *params = mState.vertexAttribute[sw::Color0].mBoundBuffer.name();                           break;
@@ -1393,6 +1394,22 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
     }
 
     return true;
+}
+
+bool Context::getPointerv(GLenum pname, const GLvoid **params)
+{
+	switch(pname)
+	{
+	case GL_VERTEX_ARRAY_POINTER:         *params = mState.vertexAttribute[sw::Position].mPointer;                         break;
+	case GL_NORMAL_ARRAY_POINTER:         *params = mState.vertexAttribute[sw::Normal].mPointer;                           break;
+	case GL_COLOR_ARRAY_POINTER:          *params = mState.vertexAttribute[sw::Color0].mPointer;                           break;
+	case GL_POINT_SIZE_ARRAY_POINTER_OES: *params = mState.vertexAttribute[sw::PointSize].mPointer;                        break;
+	case GL_TEXTURE_COORD_ARRAY_POINTER:  *params = mState.vertexAttribute[sw::TexCoord0 + mState.activeSampler].mPointer; break;
+	default:
+		return false;
+	}
+
+	return true;
 }
 
 int Context::getQueryParameterNum(GLenum pname)
