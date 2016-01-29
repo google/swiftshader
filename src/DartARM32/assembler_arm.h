@@ -696,10 +696,10 @@ class Assembler : public ValueObject {
   void vmlas(SRegister sd, SRegister sn, SRegister sm, Condition cond = AL);
   // Moved to Arm32::AssemblerARM32::vmlad()
   void vmlad(DRegister dd, DRegister dn, DRegister dm, Condition cond = AL);
-#endif
+  // Moved to Arm32::AssemblerARM32::vmlss()
   void vmlss(SRegister sd, SRegister sn, SRegister sm, Condition cond = AL);
+  // Moved to Arm32::AssemblerARM32::vmlsd()
   void vmlsd(DRegister dd, DRegister dn, DRegister dm, Condition cond = AL);
-#if 0
   // Moved to Arm32::AssemblerARM32::vdivs()
   void vdivs(SRegister sd, SRegister sn, SRegister sm, Condition cond = AL);
   // Moved to Arm32::AssemblerARM32::vdivd()

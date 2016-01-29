@@ -402,6 +402,12 @@ public:
   void vmlas(const Operand *OpSd, const Operand *OpSn, const Operand *OpSm,
              CondARM32::Cond Cond);
 
+  void vmlsd(const Operand *OpDd, const Operand *OpDn, const Operand *OpDm,
+             CondARM32::Cond Cond);
+
+  void vmlss(const Operand *OpSd, const Operand *OpSn, const Operand *OpSm,
+             CondARM32::Cond Cond);
+
   // Uses APSR_nzcv as register
   void vmrsAPSR_nzcv(CondARM32::Cond Cond);
 

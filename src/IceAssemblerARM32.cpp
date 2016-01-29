@@ -2520,6 +2520,30 @@ void AssemblerARM32::vmlas(const Operand *OpSd, const Operand *OpSn,
   emitVFPsss(Cond, VmlasOpcode, OpSd, OpSn, OpSm, Vmlas);
 }
 
+void AssemblerARM32::vmlsd(const Operand *OpDd, const Operand *OpDn,
+                           const Operand *OpDm, CondARM32::Cond Cond) {
+  // VMLA, VMLS (floating-point), ARM section A8.8.337, encoding A2:
+  //   vmls<c>.f64 <Dd>, <Dn>, <Dm>
+  //
+  // cccc11100d00nnnndddd1011n1M0mmmm where cccc=Cond, Ddddd=Dd, Nnnnn=Dn, and
+  // Mmmmm=Dm
+  constexpr const char *Vmlad = "vmlad";
+  constexpr IValueT VmladOpcode = B6;
+  emitVFPddd(Cond, VmladOpcode, OpDd, OpDn, OpDm, Vmlad);
+}
+
+void AssemblerARM32::vmlss(const Operand *OpSd, const Operand *OpSn,
+                           const Operand *OpSm, CondARM32::Cond Cond) {
+  // VMLA, VMLS (floating-point), ARM section A8.8.337, encoding A2:
+  //   vmls<c>.f32 <Sd>, <Sn>, <Sm>
+  //
+  // cccc11100d00nnnndddd1010n1M0mmmm where cccc=Cond, ddddD=Sd, nnnnN=Sn, and
+  // mmmmM=Sm
+  constexpr const char *Vmlas = "vmlas";
+  constexpr IValueT VmlasOpcode = B6;
+  emitVFPsss(Cond, VmlasOpcode, OpSd, OpSn, OpSm, Vmlas);
+}
+
 void AssemblerARM32::vmrsAPSR_nzcv(CondARM32::Cond Cond) {
   // MVRS - ARM section A*.8.348, encoding A1:
   //   vmrs<c> APSR_nzcv, FPSCR
