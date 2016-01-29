@@ -116,6 +116,9 @@ void TargetMIPS32::staticInit(GlobalContext *Ctx) {
   TypeToRegisterSet[IceType_v4i32] = VectorRegisters;
   TypeToRegisterSet[IceType_v4f32] = VectorRegisters;
 
+  for (size_t i = 0; i < llvm::array_lengthof(TypeToRegisterSet); ++i)
+    TypeToRegisterSetUnfiltered[i] = TypeToRegisterSet[i];
+
   filterTypeToRegisterSet(Ctx, RegMIPS32::Reg_NUM, TypeToRegisterSet,
                           llvm::array_lengthof(TypeToRegisterSet),
                           RegMIPS32::getRegName, getRegClassName);
@@ -1126,6 +1129,7 @@ void TargetHeaderMIPS32::lower() {
 }
 
 llvm::SmallBitVector TargetMIPS32::TypeToRegisterSet[RCMIPS32_NUM];
+llvm::SmallBitVector TargetMIPS32::TypeToRegisterSetUnfiltered[RCMIPS32_NUM];
 llvm::SmallBitVector TargetMIPS32::RegisterAliases[RegMIPS32::Reg_NUM];
 
 } // end of namespace MIPS32

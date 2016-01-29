@@ -57,6 +57,12 @@ public:
     assert(RC < RC_Target);
     return TypeToRegisterSet[RC];
   }
+  const llvm::SmallBitVector &
+  getAllRegistersForVariable(const Variable *Var) const override {
+    RegClass RC = Var->getRegClass();
+    assert(RC < RC_Target);
+    return TypeToRegisterSetUnfiltered[RC];
+  }
   const llvm::SmallBitVector &getAliasesForRegister(SizeT Reg) const override {
     return RegisterAliases[Reg];
   }
@@ -263,6 +269,7 @@ protected:
   bool UsesFramePointer = false;
   bool NeedsStackAlignment = false;
   static llvm::SmallBitVector TypeToRegisterSet[RCMIPS32_NUM];
+  static llvm::SmallBitVector TypeToRegisterSetUnfiltered[RCMIPS32_NUM];
   static llvm::SmallBitVector RegisterAliases[RegMIPS32::Reg_NUM];
   llvm::SmallBitVector RegsUsed;
   VarList PhysicalRegisters[IceType_NUM];

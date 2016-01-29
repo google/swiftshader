@@ -64,7 +64,8 @@ public:
   /// \name Manage the name and return type of the function being translated.
   /// @{
   void setFunctionName(const IceString &Name) { FunctionName = Name; }
-  IceString getFunctionName() const { return FunctionName; }
+  const IceString &getFunctionName() const { return FunctionName; }
+  IceString getFunctionNameAndSize() const;
   void setReturnType(Type Ty) { ReturnType = Ty; }
   Type getReturnType() const { return ReturnType; }
   /// @}

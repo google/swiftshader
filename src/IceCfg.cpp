@@ -55,6 +55,30 @@ Cfg::Cfg(GlobalContext *Ctx, uint32_t SequenceNumber)
 
 Cfg::~Cfg() { assert(ICE_TLS_GET_FIELD(CurrentCfg) == nullptr); }
 
+/// Create a string like "foo(i=123:b=9)" indicating the function name, number
+/// of high-level instructions, and number of basic blocks.  This string is only
+/// used for dumping and other diagnostics, and the idea is that given a set of
+/// functions to debug a problem on, it's easy to find the smallest or simplest
+/// function to attack.  Note that the counts may change somewhat depending on
+/// what point it is called during the translation passes.
+IceString Cfg::getFunctionNameAndSize() const {
+  if (!BuildDefs::dump())
+    return getFunctionName();
+  SizeT NodeCount = 0;
+  SizeT InstCount = 0;
+  for (CfgNode *Node : getNodes()) {
+    ++NodeCount;
+    // Note: deleted instructions are *not* ignored.
+    InstCount += Node->getPhis().size();
+    for (Inst &I : Node->getInsts()) {
+      if (!llvm::isa<InstTarget>(&I))
+        ++InstCount;
+    }
+  }
+  return getFunctionName() + "(i=" + std::to_string(InstCount) + ":b=" +
+         std::to_string(NodeCount) + ")";
+}
+
 void Cfg::setError(const IceString &Message) {
   HasError = true;
   ErrorMessage = Message;
@@ -1075,7 +1099,9 @@ void Cfg::dump(const IceString &Message) {
       Str << Args[i]->getType() << " ";
       Args[i]->dump(this);
     }
-    Str << ") {\n";
+    // Append an extra copy of the function name here, in order to print its
+    // size stats but not mess up lit tests.
+    Str << ") { # " << getFunctionNameAndSize() << "\n";
   }
   resetCurrentNode();
   if (isVerbose(IceV_Liveness)) {

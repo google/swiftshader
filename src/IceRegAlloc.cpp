@@ -76,11 +76,25 @@ void dumpLiveRange(const Variable *Var, const Cfg *Func) {
   Str << "  Range=" << Var->getLiveRange();
 }
 
+int32_t findMinWeightIndex(
+    const llvm::SmallBitVector &RegMask,
+    const llvm::SmallVector<RegWeight, LinearScan::REGS_SIZE> &Weights) {
+  int32_t MinWeightIndex = RegMask.find_first();
+  assert(MinWeightIndex >= 0);
+  for (int32_t i = RegMask.find_next(MinWeightIndex); i != -1;
+       i = RegMask.find_next(i)) {
+    if (Weights[i] < Weights[MinWeightIndex])
+      MinWeightIndex = i;
+  }
+  return MinWeightIndex;
+}
+
 } // end of anonymous namespace
 
 LinearScan::LinearScan(Cfg *Func)
     : Func(Func), Ctx(Func->getContext()), Target(Func->getTarget()),
-      Verbose(BuildDefs::dump() && Func->isVerbose(IceV_LinearScan)) {}
+      Verbose(BuildDefs::dump() && Func->isVerbose(IceV_LinearScan)),
+      UseReserve(Ctx->getFlags().getRegAllocReserve()) {}
 
 // Prepare for full register allocation of all variables. We depend on liveness
 // analysis to have calculated live ranges.
@@ -545,8 +559,8 @@ void LinearScan::findRegisterPreference(IterationState &Iter) {
   }
 }
 
-// Remove registers from the Free[] list where an Inactive range overlaps with
-// the current range.
+// Remove registers from the Iter.Free[] list where an Inactive range overlaps
+// with the current range.
 void LinearScan::filterFreeWithInactiveRanges(IterationState &Iter) {
   for (const Variable *Item : Inactive) {
     if (!Item->rangeOverlaps(Iter.Cur))
@@ -555,10 +569,11 @@ void LinearScan::filterFreeWithInactiveRanges(IterationState &Iter) {
     // TODO(stichnot): Do this with bitvector ops, not a loop, for efficiency.
     for (int32_t RegAlias = Aliases.find_first(); RegAlias >= 0;
          RegAlias = Aliases.find_next(RegAlias)) {
-      // Don't assert(Free[RegNum]) because in theory (though probably never in
-      // practice) there could be two inactive variables that were marked with
-      // AllowOverlap.
+      // Don't assert(Iter.Free[RegNum]) because in theory (though probably
+      // never in practice) there could be two inactive variables that were
+      // marked with AllowOverlap.
       Iter.Free[RegAlias] = false;
+      Iter.FreeUnfiltered[RegAlias] = false;
       // Disable AllowOverlap if an Inactive variable, which is not Prefer,
       // shares Prefer's register, and has a definition within Cur's live range.
       if (Iter.AllowOverlap && Item != Iter.Prefer &&
@@ -570,11 +585,11 @@ void LinearScan::filterFreeWithInactiveRanges(IterationState &Iter) {
   }
 }
 
-// Remove registers from the Free[] list where an Unhandled pre-colored range
-// overlaps with the current range, and set those registers to infinite weight
-// so that they aren't candidates for eviction. Cur->rangeEndsBefore(Item) is an
-// early exit check that turns a guaranteed O(N^2) algorithm into expected
-// linear complexity.
+// Remove registers from the Iter.Free[] list where an Unhandled pre-colored
+// range overlaps with the current range, and set those registers to infinite
+// weight so that they aren't candidates for eviction.
+// Cur->rangeEndsBefore(Item) is an early exit check that turns a guaranteed
+// O(N^2) algorithm into expected linear complexity.
 void LinearScan::filterFreeWithPrecoloredRanges(IterationState &Iter) {
   // TODO(stichnot): Partition UnhandledPrecolored according to register class,
   // to restrict the number of overlap comparisons needed.
@@ -590,6 +605,7 @@ void LinearScan::filterFreeWithPrecoloredRanges(IterationState &Iter) {
          RegAlias = Aliases.find_next(RegAlias)) {
       Iter.Weights[RegAlias].setWeight(RegWeight::Inf);
       Iter.Free[RegAlias] = false;
+      Iter.FreeUnfiltered[RegAlias] = false;
       Iter.PrecoloredUnhandledMask[RegAlias] = true;
       // Disable Iter.AllowOverlap if the preferred register is one of these
       // pre-colored unhandled overlapping ranges.
@@ -630,10 +646,14 @@ void LinearScan::allocatePreferredRegister(IterationState &Iter) {
   Active.push_back(Iter.Cur);
 }
 
-void LinearScan::allocateFreeRegister(IterationState &Iter) {
-  int32_t RegNum = Iter.Free.find_first();
+void LinearScan::allocateFreeRegister(IterationState &Iter, bool Filtered) {
+  const int32_t RegNum =
+      Filtered ? Iter.Free.find_first() : Iter.FreeUnfiltered.find_first();
   Iter.Cur->setRegNumTmp(RegNum);
-  dumpLiveRangeTrace("Allocating   ", Iter.Cur);
+  if (Filtered)
+    dumpLiveRangeTrace("Allocating   ", Iter.Cur);
+  else
+    dumpLiveRangeTrace("Allocating X ", Iter.Cur);
   const llvm::SmallBitVector &Aliases = *RegAliases[RegNum];
   for (int32_t RegAlias = Aliases.find_first(); RegAlias >= 0;
        RegAlias = Aliases.find_next(RegAlias)) {
@@ -672,77 +692,97 @@ void LinearScan::handleNoFreeRegisters(IterationState &Iter) {
   }
 
   // All the weights are now calculated. Find the register with smallest weight.
-  int32_t MinWeightIndex = Iter.RegMask.find_first();
-  // MinWeightIndex must be valid because of the initial RegMask.any() test.
-  assert(MinWeightIndex >= 0);
-  for (SizeT i = MinWeightIndex + 1; i < Iter.Weights.size(); ++i) {
-    if (Iter.RegMask[i] && Iter.Weights[i] < Iter.Weights[MinWeightIndex])
-      MinWeightIndex = i;
-  }
+  int32_t MinWeightIndex = findMinWeightIndex(Iter.RegMask, Iter.Weights);
 
   if (Iter.Cur->getWeight(Func) <= Iter.Weights[MinWeightIndex]) {
-    // Cur doesn't have priority over any other live ranges, so don't allocate
-    // any register to it, and move it to the Handled state.
-    Handled.push_back(Iter.Cur);
-    if (Iter.Cur->mustHaveReg()) {
-      if (Kind == RAK_Phi) {
-        addSpillFill(Iter);
-      } else {
-        dumpLiveRangeTrace("Failing      ", Iter.Cur);
-        Func->setError("Unable to find a physical register for an "
-                       "infinite-weight live range: " +
-                       Iter.Cur->getName(Func));
+    if (!Iter.Cur->mustHaveReg()) {
+      // Iter.Cur doesn't have priority over any other live ranges, so don't
+      // allocate any register to it, and move it to the Handled state.
+      Handled.push_back(Iter.Cur);
+      return;
+    }
+    if (Kind == RAK_Phi) {
+      // Iter.Cur is infinite-weight but all physical registers are already
+      // taken, so we need to force one to be temporarily available.
+      addSpillFill(Iter);
+      Handled.push_back(Iter.Cur);
+      return;
+    }
+    // The remaining portion of the enclosing "if" block should only be
+    // reachable if we are manually limiting physical registers for testing.
+    if (UseReserve) {
+      if (Iter.FreeUnfiltered.any()) {
+        // There is some available physical register held in reserve, so use it.
+        constexpr bool NotFiltered = false;
+        allocateFreeRegister(Iter, NotFiltered);
+        // Iter.Cur is now on the Active list.
+        return;
       }
+      // At this point, we need to find some reserve register that is already
+      // assigned to a non-infinite-weight variable.  This could happen if some
+      // variable was previously assigned an alias of such a register.
+      MinWeightIndex = findMinWeightIndex(Iter.RegMaskUnfiltered, Iter.Weights);
     }
-  } else {
-    // Evict all live ranges in Active that register number MinWeightIndex is
-    // assigned to.
-    const llvm::SmallBitVector &Aliases = *RegAliases[MinWeightIndex];
-    for (SizeT I = Active.size(); I > 0; --I) {
-      const SizeT Index = I - 1;
-      Variable *Item = Active[Index];
-      int32_t RegNum = Item->getRegNumTmp();
-      if (Aliases[RegNum]) {
-        dumpLiveRangeTrace("Evicting A   ", Item);
-        const llvm::SmallBitVector &Aliases = *RegAliases[RegNum];
-        for (int32_t RegAlias = Aliases.find_first(); RegAlias >= 0;
-             RegAlias = Aliases.find_next(RegAlias)) {
-          --RegUses[RegAlias];
-          assert(RegUses[RegAlias] >= 0);
-        }
-        Item->setRegNumTmp(Variable::NoRegister);
-        moveItem(Active, Index, Handled);
-        Evicted.push_back(Item);
-      }
+    if (Iter.Cur->getWeight(Func) <= Iter.Weights[MinWeightIndex]) {
+      dumpLiveRangeTrace("Failing      ", Iter.Cur);
+      Func->setError("Unable to find a physical register for an "
+                     "infinite-weight live range "
+                     "(consider using -reg-reserve): " +
+                     Iter.Cur->getName(Func));
+      Handled.push_back(Iter.Cur);
+      return;
     }
-    // Do the same for Inactive.
-    for (SizeT I = Inactive.size(); I > 0; --I) {
-      const SizeT Index = I - 1;
-      Variable *Item = Inactive[Index];
-      // Note: The Item->rangeOverlaps(Cur) clause is not part of the
-      // description of AssignMemLoc() in the original paper. But there doesn't
-      // seem to be any need to evict an inactive live range that doesn't
-      // overlap with the live range currently being considered. It's especially
-      // bad if we would end up evicting an infinite-weight but
-      // currently-inactive live range. The most common situation for this would
-      // be a scratch register kill set for call instructions.
-      if (Aliases[Item->getRegNumTmp()] && Item->rangeOverlaps(Iter.Cur)) {
-        dumpLiveRangeTrace("Evicting I   ", Item);
-        Item->setRegNumTmp(Variable::NoRegister);
-        moveItem(Inactive, Index, Handled);
-        Evicted.push_back(Item);
-      }
-    }
-    // Assign the register to Cur.
-    Iter.Cur->setRegNumTmp(MinWeightIndex);
-    for (int32_t RegAlias = Aliases.find_first(); RegAlias >= 0;
-         RegAlias = Aliases.find_next(RegAlias)) {
-      assert(RegUses[RegAlias] >= 0);
-      ++RegUses[RegAlias];
-    }
-    Active.push_back(Iter.Cur);
-    dumpLiveRangeTrace("Allocating   ", Iter.Cur);
+    // At this point, MinWeightIndex points to a valid reserve register to
+    // reallocate to Iter.Cur, so drop into the eviction code.
   }
+
+  // Evict all live ranges in Active that register number MinWeightIndex is
+  // assigned to.
+  const llvm::SmallBitVector &Aliases = *RegAliases[MinWeightIndex];
+  for (SizeT I = Active.size(); I > 0; --I) {
+    const SizeT Index = I - 1;
+    Variable *Item = Active[Index];
+    int32_t RegNum = Item->getRegNumTmp();
+    if (Aliases[RegNum]) {
+      dumpLiveRangeTrace("Evicting A   ", Item);
+      const llvm::SmallBitVector &Aliases = *RegAliases[RegNum];
+      for (int32_t RegAlias = Aliases.find_first(); RegAlias >= 0;
+           RegAlias = Aliases.find_next(RegAlias)) {
+        --RegUses[RegAlias];
+        assert(RegUses[RegAlias] >= 0);
+      }
+      Item->setRegNumTmp(Variable::NoRegister);
+      moveItem(Active, Index, Handled);
+      Evicted.push_back(Item);
+    }
+  }
+  // Do the same for Inactive.
+  for (SizeT I = Inactive.size(); I > 0; --I) {
+    const SizeT Index = I - 1;
+    Variable *Item = Inactive[Index];
+    // Note: The Item->rangeOverlaps(Cur) clause is not part of the description
+    // of AssignMemLoc() in the original paper. But there doesn't seem to be any
+    // need to evict an inactive live range that doesn't overlap with the live
+    // range currently being considered. It's especially bad if we would end up
+    // evicting an infinite-weight but currently-inactive live range. The most
+    // common situation for this would be a scratch register kill set for call
+    // instructions.
+    if (Aliases[Item->getRegNumTmp()] && Item->rangeOverlaps(Iter.Cur)) {
+      dumpLiveRangeTrace("Evicting I   ", Item);
+      Item->setRegNumTmp(Variable::NoRegister);
+      moveItem(Inactive, Index, Handled);
+      Evicted.push_back(Item);
+    }
+  }
+  // Assign the register to Cur.
+  Iter.Cur->setRegNumTmp(MinWeightIndex);
+  for (int32_t RegAlias = Aliases.find_first(); RegAlias >= 0;
+       RegAlias = Aliases.find_next(RegAlias)) {
+    assert(RegUses[RegAlias] >= 0);
+    ++RegUses[RegAlias];
+  }
+  Active.push_back(Iter.Cur);
+  dumpLiveRangeTrace("Allocating   ", Iter.Cur);
 }
 
 void LinearScan::assignFinalRegisters(
@@ -843,6 +883,8 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
     dumpLiveRangeTrace("\nConsidering  ", Iter.Cur);
     assert(Target->getRegistersForVariable(Iter.Cur).any());
     Iter.RegMask = RegMaskFull & Target->getRegistersForVariable(Iter.Cur);
+    Iter.RegMaskUnfiltered =
+        RegMaskFull & Target->getAllRegistersForVariable(Iter.Cur);
     KillsRange.trim(Iter.Cur->getLiveRange().getStart());
 
     // Check for pre-colored ranges. If Cur is pre-colored, it definitely gets
@@ -857,11 +899,14 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
     handleActiveRangeExpiredOrInactive(Iter.Cur);
     handleInactiveRangeExpiredOrReactivated(Iter.Cur);
 
-    // Calculate available registers into Free[].
+    // Calculate available registers into Iter.Free[] and Iter.FreeUnfiltered[].
     Iter.Free = Iter.RegMask;
+    Iter.FreeUnfiltered = Iter.RegMaskUnfiltered;
     for (SizeT i = 0; i < Iter.RegMask.size(); ++i) {
-      if (RegUses[i] > 0)
+      if (RegUses[i] > 0) {
         Iter.Free[i] = false;
+        Iter.FreeUnfiltered[i] = false;
+      }
     }
 
     findRegisterPreference(Iter);
@@ -889,11 +934,12 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
 
     filterFreeWithPrecoloredRanges(Iter);
 
-    // Remove scratch registers from the Free[] list, and mark their Weights[]
-    // as infinite, if KillsRange overlaps Cur's live range.
+    // Remove scratch registers from the Iter.Free[] list, and mark their
+    // Iter.Weights[] as infinite, if KillsRange overlaps Cur's live range.
     constexpr bool UseTrimmed = true;
     if (Iter.Cur->getLiveRange().overlaps(KillsRange, UseTrimmed)) {
       Iter.Free.reset(KillsMask);
+      Iter.FreeUnfiltered.reset(KillsMask);
       for (int i = KillsMask.find_first(); i != -1;
            i = KillsMask.find_next(i)) {
         Iter.Weights[i].setWeight(RegWeight::Inf);
@@ -906,7 +952,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
     if (BuildDefs::dump() && Verbose) {
       Ostream &Str = Ctx->getStrDump();
       for (SizeT i = 0; i < Iter.RegMask.size(); ++i) {
-        if (Iter.RegMask[i]) {
+        if (Iter.RegMaskUnfiltered[i]) {
           Str << Target->getRegName(i, Iter.Cur->getType())
               << "(U=" << RegUses[i] << ",F=" << Iter.Free[i]
               << ",P=" << Iter.PrecoloredUnhandledMask[i] << ") ";
@@ -921,7 +967,8 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
       allocatePreferredRegister(Iter);
     } else if (Iter.Free.any()) {
       // Second choice: any free register.
-      allocateFreeRegister(Iter);
+      constexpr bool Filtered = true;
+      allocateFreeRegister(Iter, Filtered);
     } else {
       // Fallback: there are no free registers, so we look for the lowest-weight
       // register and see if Cur has higher weight.

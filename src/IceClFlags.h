@@ -169,6 +169,11 @@ public:
   /// Set ClFlags::RandomRegAlloc to a new value
   void setShouldRandomizeRegAlloc(bool NewValue) { RandomRegAlloc = NewValue; }
 
+  /// Get the value of ClFlags::RegAllocReserve
+  bool getRegAllocReserve() const { return RegAllocReserve; }
+  /// Set ClFlags::RegAllocReserve to a new value
+  void setRegAllocReserve(bool NewValue) { RegAllocReserve = NewValue; }
+
   /// Get the value of ClFlags::RepeatRegAlloc
   bool shouldRepeatRegAlloc() const { return RepeatRegAlloc; }
   /// Set ClFlags::RepeatRegAlloc to a new value
@@ -425,6 +430,8 @@ private:
   bool RandomNopInsertion;
   /// see anonymous_namespace{IceClFlags.cpp}::RandomizeRegisterAllocation
   bool RandomRegAlloc;
+  /// see anonymous_namespace{IceClFlags.cpp}::RegAllocReserve
+  bool RegAllocReserve;
   /// see anonymous_namespace{IceClFlags.cpp}::RepeatRegAlloc
   bool RepeatRegAlloc;
   /// see anonymous_namespace{IceClFlags.cpp}::ReorderBasicBlocks

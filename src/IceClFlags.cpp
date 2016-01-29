@@ -185,6 +185,13 @@ cl::opt<bool>
                                 cl::desc("Randomize register allocation"),
                                 cl::init(false));
 
+/// Allow failsafe access to registers that were restricted via -reg-use or
+/// -reg-exclude.
+cl::opt<bool>
+    RegAllocReserve("reg-reserve",
+                    cl::desc("Let register allocation use reserve registers"),
+                    cl::init(false));
+
 /// Repeat register allocation until convergence.
 cl::opt<bool>
     RepeatRegAlloc("regalloc-repeat",
@@ -545,6 +552,7 @@ void ClFlags::getParsedClFlags(ClFlags &OutFlags) {
   OutFlags.setShouldReorderBasicBlocks(::ReorderBasicBlocks);
   OutFlags.setShouldDoNopInsertion(::ShouldDoNopInsertion);
   OutFlags.setShouldRandomizeRegAlloc(::RandomizeRegisterAllocation);
+  OutFlags.setRegAllocReserve(::RegAllocReserve);
   OutFlags.setShouldRepeatRegAlloc(::RepeatRegAlloc);
   OutFlags.setShouldReorderFunctions(::ReorderFunctions);
   OutFlags.setShouldReorderGlobalVariables(::ReorderGlobalVariables);

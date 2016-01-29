@@ -61,7 +61,9 @@ private:
     int32_t PreferReg = Variable::NoRegister;
     bool AllowOverlap = false;
     llvm::SmallBitVector RegMask;
+    llvm::SmallBitVector RegMaskUnfiltered;
     llvm::SmallBitVector Free;
+    llvm::SmallBitVector FreeUnfiltered;
     llvm::SmallBitVector PrecoloredUnhandledMask; // Note: only used for dumping
     llvm::SmallVector<RegWeight, REGS_SIZE> Weights;
   };
@@ -98,7 +100,7 @@ private:
   void filterFreeWithPrecoloredRanges(IterationState &Iter);
   void allocatePrecoloredRegister(Variable *Cur);
   void allocatePreferredRegister(IterationState &Iter);
-  void allocateFreeRegister(IterationState &Iter);
+  void allocateFreeRegister(IterationState &Iter, bool Filtered);
   void handleNoFreeRegisters(IterationState &Iter);
   void assignFinalRegisters(const llvm::SmallBitVector &RegMaskFull,
                             const llvm::SmallBitVector &PreDefinedRegisters,
@@ -130,6 +132,7 @@ private:
   bool FindOverlap = false;
 
   const bool Verbose;
+  const bool UseReserve;
 };
 
 } // end of namespace Ice

@@ -379,6 +379,8 @@ template <typename TraitsType>
 void TargetX86Base<TraitsType>::staticInit(GlobalContext *Ctx) {
   Traits::initRegisterSet(Ctx->getFlags(), &TypeToRegisterSet,
                           &RegisterAliases);
+  for (size_t i = 0; i < TypeToRegisterSet.size(); ++i)
+    TypeToRegisterSetUnfiltered[i] = TypeToRegisterSet[i];
   filterTypeToRegisterSet(Ctx, Traits::RegisterSet::Reg_NUM,
                           TypeToRegisterSet.data(), TypeToRegisterSet.size(),
                           Traits::getRegName, getRegClassName);
@@ -1945,8 +1947,6 @@ void TargetX86Base<TraitsType>::lowerArithmetic(const InstArithmetic *Inst) {
       Src1Lo = legalize(Src1Lo, Legal_Reg | Legal_Mem);
       _mov(T_1, Src0Hi);
       _imul(T_1, Src1Lo);
-      _mov(T_2, Src1Hi);
-      _imul(T_2, Src0Lo);
       _mov(T_3, Src0Lo, Traits::RegisterSet::Reg_eax);
       _mul(T_4Lo, T_3, Src1Lo);
       // The mul instruction produces two dest variables, edx:eax. We create a
@@ -1954,6 +1954,8 @@ void TargetX86Base<TraitsType>::lowerArithmetic(const InstArithmetic *Inst) {
       Context.insert<InstFakeDef>(T_4Hi, T_4Lo);
       _mov(DestLo, T_4Lo);
       _add(T_4Hi, T_1);
+      _mov(T_2, Src1Hi);
+      _imul(T_2, Src0Lo);
       _add(T_4Hi, T_2);
       _mov(DestHi, T_4Hi);
     } break;
@@ -5801,8 +5803,8 @@ void TargetX86Base<TraitsType>::lowerStore(const InstStore *Inst) {
   if (!Traits::Is64Bit && Ty == IceType_i64) {
     Value = legalizeUndef(Value);
     Operand *ValueHi = legalize(hiOperand(Value), Legal_Reg | Legal_Imm);
-    Operand *ValueLo = legalize(loOperand(Value), Legal_Reg | Legal_Imm);
     _store(ValueHi, llvm::cast<X86OperandMem>(hiOperand(NewAddr)));
+    Operand *ValueLo = legalize(loOperand(Value), Legal_Reg | Legal_Imm);
     _store(ValueLo, llvm::cast<X86OperandMem>(loOperand(NewAddr)));
   } else if (isVectorType(Ty)) {
     _storep(legalizeToReg(Value), NewAddr);

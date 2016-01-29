@@ -88,6 +88,12 @@ public:
     assert(RC < RC_Target);
     return TypeToRegisterSet[RC];
   }
+  const llvm::SmallBitVector &
+  getAllRegistersForVariable(const Variable *Var) const override {
+    RegClass RC = Var->getRegClass();
+    assert(RC < RC_Target);
+    return TypeToRegisterSetUnfiltered[RC];
+  }
   const llvm::SmallBitVector &getAliasesForRegister(SizeT Reg) const override {
     return RegisterAliases[Reg];
   }
@@ -1020,6 +1026,8 @@ protected:
   uint32_t MaxOutArgsSizeBytes = 0;
   // TODO(jpp): std::array instead of array.
   static llvm::SmallBitVector TypeToRegisterSet[RegARM32::RCARM32_NUM];
+  static llvm::SmallBitVector
+      TypeToRegisterSetUnfiltered[RegARM32::RCARM32_NUM];
   static llvm::SmallBitVector RegisterAliases[RegARM32::Reg_NUM];
   llvm::SmallBitVector RegsUsed;
   VarList PhysicalRegisters[IceType_NUM];

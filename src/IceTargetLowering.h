@@ -275,8 +275,15 @@ public:
 
   virtual llvm::SmallBitVector getRegisterSet(RegSetMask Include,
                                               RegSetMask Exclude) const = 0;
+  /// Get the set of physical registers available for the specified Variable's
+  /// register class, applying register restrictions from the command line.
   virtual const llvm::SmallBitVector &
   getRegistersForVariable(const Variable *Var) const = 0;
+  /// Get the set of *all* physical registers available for the specified
+  /// Variable's register class, *not* applying register restrictions from the
+  /// command line.
+  virtual const llvm::SmallBitVector &
+  getAllRegistersForVariable(const Variable *Var) const = 0;
   virtual const llvm::SmallBitVector &getAliasesForRegister(SizeT) const = 0;
 
   void regAlloc(RegAllocKind Kind);

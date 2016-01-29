@@ -342,6 +342,9 @@ void TargetARM32::staticInit(GlobalContext *Ctx) {
   TypeToRegisterSet[IceType_v4i32] = VectorRegisters;
   TypeToRegisterSet[IceType_v4f32] = VectorRegisters;
 
+  for (size_t i = 0; i < llvm::array_lengthof(TypeToRegisterSet); ++i)
+    TypeToRegisterSetUnfiltered[i] = TypeToRegisterSet[i];
+
   filterTypeToRegisterSet(
       Ctx, RegARM32::Reg_NUM, TypeToRegisterSet,
       llvm::array_lengthof(TypeToRegisterSet), [](int32_t RegNum) -> IceString {
@@ -6514,6 +6517,8 @@ void TargetHeaderARM32::lower() {
 }
 
 llvm::SmallBitVector TargetARM32::TypeToRegisterSet[RegARM32::RCARM32_NUM];
+llvm::SmallBitVector
+    TargetARM32::TypeToRegisterSetUnfiltered[RegARM32::RCARM32_NUM];
 llvm::SmallBitVector TargetARM32::RegisterAliases[RegARM32::Reg_NUM];
 
 } // end of namespace ARM32

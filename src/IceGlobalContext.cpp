@@ -309,7 +309,8 @@ void GlobalContext::translateFunctions() {
       getErrorStatus()->assign(EC_Translation);
       OstreamLocker L(this);
       getStrError() << "ICE translation error: " << Func->getFunctionName()
-                    << ": " << Func->getError() << "\n";
+                    << ": " << Func->getError() << ": "
+                    << Func->getFunctionNameAndSize() << "\n";
       Item = new EmitterWorkItem(Func->getSequenceNumber());
     } else {
       Func->getAssembler<>()->setInternal(Func->getInternal());
@@ -320,7 +321,7 @@ void GlobalContext::translateFunctions() {
         // The Cfg has already emitted into the assembly buffer, so
         // stats have been fully collected into this thread's TLS.
         // Dump them before TLS is reset for the next Cfg.
-        dumpStats(Func->getFunctionName());
+        dumpStats(Func->getFunctionNameAndSize());
         Assembler *Asm = Func->releaseAssembler();
         // Copy relevant fields into Asm before Func is deleted.
         Asm->setFunctionName(Func->getFunctionName());
@@ -549,7 +550,7 @@ void GlobalContext::emitItems() {
         Cfg::setCurrentCfg(Func.get());
         Func->emit();
         Cfg::setCurrentCfg(nullptr);
-        dumpStats(Func->getFunctionName());
+        dumpStats(Func->getFunctionNameAndSize());
       } break;
       }
     }

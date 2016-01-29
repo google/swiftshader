@@ -125,7 +125,7 @@ entry:
 ; OPTM1-LABEL: pass64BitConstArg
 ; OPTM1:      sub     esp
 ; OPTM1:      mov     DWORD PTR [esp+0x4]
-; OPTM1-NEXT: mov     DWORD PTR [esp]
+; OPTM1:      mov     DWORD PTR [esp]
 ; OPTM1-NEXT: mov     DWORD PTR [esp+0x8],0x7b
 ; Bundle padding might be added (so not using -NEXT).
 ; OPTM1:      mov     DWORD PTR [esp+0x10],0xdeadbeef
@@ -277,16 +277,16 @@ entry:
 }
 ; CHECK-LABEL: mul64BitSigned
 ; CHECK: imul
-; CHECK: imul
 ; CHECK: mul
 ; CHECK: add
+; CHECK: imul
 ; CHECK: add
 ;
 ; OPTM1-LABEL: mul64BitSigned
 ; OPTM1: imul
-; OPTM1: imul
 ; OPTM1: mul
 ; OPTM1: add
+; OPTM1: imul
 ; OPTM1: add
 
 ; ARM32-LABEL: mul64BitSigned
@@ -302,16 +302,16 @@ entry:
 }
 ; CHECK-LABEL: mul64BitUnsigned
 ; CHECK: imul
-; CHECK: imul
 ; CHECK: mul
 ; CHECK: add
+; CHECK: imul
 ; CHECK: add
 ;
 ; OPTM1-LABEL: mul64BitUnsigned
 ; OPTM1: imul
-; OPTM1: imul
 ; OPTM1: mul
 ; OPTM1: add
+; OPTM1: imul
 ; OPTM1: add
 
 ; ARM32-LABEL: mul64BitUnsigned

@@ -124,6 +124,13 @@ public:
     return TypeToRegisterSet[RC];
   }
 
+  const llvm::SmallBitVector &
+  getAllRegistersForVariable(const Variable *Var) const override {
+    RegClass RC = Var->getRegClass();
+    assert(static_cast<RegClassX86>(RC) < RCX86_NUM);
+    return TypeToRegisterSetUnfiltered[RC];
+  }
+
   const llvm::SmallBitVector &getAliasesForRegister(SizeT Reg) const override {
     assert(Reg < Traits::RegisterSet::Reg_NUM);
     return RegisterAliases[Reg];
@@ -974,6 +981,8 @@ protected:
   bool PrologEmitsFixedAllocas = false;
   uint32_t MaxOutArgsSizeBytes = 0;
   static std::array<llvm::SmallBitVector, RCX86_NUM> TypeToRegisterSet;
+  static std::array<llvm::SmallBitVector, RCX86_NUM>
+      TypeToRegisterSetUnfiltered;
   static std::array<llvm::SmallBitVector, Traits::RegisterSet::Reg_NUM>
       RegisterAliases;
   llvm::SmallBitVector RegsUsed;

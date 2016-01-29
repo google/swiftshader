@@ -107,6 +107,10 @@ std::array<llvm::SmallBitVector, RCX86_NUM>
     TargetX86Base<X8632::Traits>::TypeToRegisterSet = {{}};
 
 template <>
+std::array<llvm::SmallBitVector, RCX86_NUM>
+    TargetX86Base<X8632::Traits>::TypeToRegisterSetUnfiltered = {{}};
+
+template <>
 std::array<llvm::SmallBitVector,
            TargetX86Base<X8632::Traits>::Traits::RegisterSet::Reg_NUM>
     TargetX86Base<X8632::Traits>::RegisterAliases = {{}};
