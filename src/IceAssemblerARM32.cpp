@@ -2427,6 +2427,56 @@ void AssemblerARM32::vmovdd(const Operand *OpDd, const Variable *OpDm,
   emitVFPddd(Cond, VmovddOpcode, Dd, D0, Dm);
 }
 
+void AssemblerARM32::vmovdrr(const Operand *OpDm, const Operand *OpRt,
+                             const Operand *OpRt2, CondARM32::Cond Cond) {
+  // VMOV (between two ARM core registers and a doubleword extension register).
+  // ARM section A8.8.345, encoding A1:
+  //   vmov<c> <Dm>, <Rt>, <Rt2>
+  //
+  // cccc11000100xxxxyyyy101100M1mmmm where cccc=Cond, xxxx=Rt, yyyy=Rt2, and
+  // Mmmmm=Dm.
+  constexpr const char *Vmovdrr = "vmovdrr";
+  IValueT Dm = encodeDRegister(OpDm, "Dm", Vmovdrr);
+  IValueT Rt = encodeGPRegister(OpRt, "Rt", Vmovdrr);
+  IValueT Rt2 = encodeGPRegister(OpRt2, "Rt", Vmovdrr);
+  assert(Rt != RegARM32::Encoded_Reg_sp);
+  assert(Rt != RegARM32::Encoded_Reg_pc);
+  assert(Rt2 != RegARM32::Encoded_Reg_sp);
+  assert(Rt2 != RegARM32::Encoded_Reg_pc);
+  assert(Rt != Rt2);
+  assert(CondARM32::isDefined(Cond));
+  IValueT Encoding = B27 | B26 | B22 | B11 | B9 | B8 | B4 |
+                     (encodeCondition(Cond) << kConditionShift) | (Rt2 << 16) |
+                     (Rt << 12) | (getYInRegYXXXX(Dm) << 5) |
+                     getXXXXInRegYXXXX(Dm);
+  emitInst(Encoding);
+}
+
+void AssemblerARM32::vmovrrd(const Operand *OpRt, const Operand *OpRt2,
+                             const Operand *OpDm, CondARM32::Cond Cond) {
+  // VMOV (between two ARM core registers and a doubleword extension register).
+  // ARM section A8.8.345, encoding A1:
+  //   vmov<c> <Rt>, <Rt2>, <Dm>
+  //
+  // cccc11000101xxxxyyyy101100M1mmmm where cccc=Cond, xxxx=Rt, yyyy=Rt2, and
+  // Mmmmm=Dm.
+  constexpr const char *Vmovrrd = "vmovrrd";
+  IValueT Rt = encodeGPRegister(OpRt, "Rt", Vmovrrd);
+  IValueT Rt2 = encodeGPRegister(OpRt2, "Rt", Vmovrrd);
+  IValueT Dm = encodeDRegister(OpDm, "Dm", Vmovrrd);
+  assert(Rt != RegARM32::Encoded_Reg_sp);
+  assert(Rt != RegARM32::Encoded_Reg_pc);
+  assert(Rt2 != RegARM32::Encoded_Reg_sp);
+  assert(Rt2 != RegARM32::Encoded_Reg_pc);
+  assert(Rt != Rt2);
+  assert(CondARM32::isDefined(Cond));
+  IValueT Encoding = B27 | B26 | B22 | B20 | B11 | B9 | B8 | B4 |
+                     (encodeCondition(Cond) << kConditionShift) | (Rt2 << 16) |
+                     (Rt << 12) | (getYInRegYXXXX(Dm) << 5) |
+                     getXXXXInRegYXXXX(Dm);
+  emitInst(Encoding);
+}
+
 void AssemblerARM32::vmovrs(const Operand *OpRt, const Operand *OpSn,
                             CondARM32::Cond Cond) {
   // VMOV (between ARM core register and single-precision register)

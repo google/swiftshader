@@ -1311,13 +1311,17 @@ void InstARM32Mov::emit(const Cfg *Func) const {
 }
 
 void InstARM32Mov::emitIAS(const Cfg *Func) const {
-  assert(!(isMultiDest() && isMultiSource()) && "Invalid vmov type.");
+  // TODO(kschimpf) Flatten this to a switch statement of dest type. That is,
+  // combine code of emitIASSingleDestSingleSource, emitIASCoreVFPMove,
+  // emitIASScalarVFPMove, emitDoubleToI64Move, and emitI64ToDoubleMove.
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
-  if (!(isMultiDest() || isMultiSource()))
-    // Must be single source/dest.
-    emitIASSingleDestSingleSource(Func);
+  assert(!(isMultiDest() && isMultiSource()) && "Invalid vmov type.");
+  if (isMultiDest())
+    Asm->vmovrrd(getDest(), getDestHi(), getSrc(0), getPredicate());
+  else if (isMultiSource())
+    Asm->vmovdrr(getDest(), getSrc(0), getSrc(1), getPredicate());
   else
-    Asm->setNeedsTextFixup();
+    emitIASSingleDestSingleSource(Func);
   if (Asm->needsTextFixup())
     emitUsingTextFixup(Func);
 }

@@ -387,6 +387,12 @@ public:
 
   void vmovdd(const Operand *OpDd, const Variable *OpDm, CondARM32::Cond Cond);
 
+  void vmovdrr(const Operand *OpDm, const Operand *OpRt, const Operand *OpRt2,
+               CondARM32::Cond Cond);
+
+  void vmovrrd(const Operand *OpRt, const Operand *OpRt2, const Operand *OpDm,
+               CondARM32::Cond Cond);
+
   void vmovrs(const Operand *OpRt, const Operand *OpSn, CondARM32::Cond Cond);
 
   void vmovs(const Operand *OpSn, const OperandARM32FlexFpImm *OpFpImm,

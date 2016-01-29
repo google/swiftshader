@@ -701,7 +701,8 @@ void Assembler::vmovdr(DRegister dn, int i, Register rt, Condition cond) {
   Emit(encoding);
 }
 
-
+#if 0
+// Moved to ARM32::AssemblerARM32::vmovdrr().
 void Assembler::vmovdrr(DRegister dm, Register rt, Register rt2,
                         Condition cond) {
   ASSERT(TargetCPUFeatures::vfp_supported());
@@ -722,7 +723,7 @@ void Assembler::vmovdrr(DRegister dm, Register rt, Register rt2,
   Emit(encoding);
 }
 
-
+// Moved to ARM32::AssemblerARM32::vmovrrd().
 void Assembler::vmovrrd(Register rt, Register rt2, DRegister dm,
                         Condition cond) {
   ASSERT(TargetCPUFeatures::vfp_supported());
@@ -744,7 +745,6 @@ void Assembler::vmovrrd(Register rt, Register rt2, DRegister dm,
   Emit(encoding);
 }
 
-#if 0
 // Moved to ARM32::AssemblerARM32::vldrs()
 void Assembler::vldrs(SRegister sd, Address ad, Condition cond) {
   ASSERT(TargetCPUFeatures::vfp_supported());
