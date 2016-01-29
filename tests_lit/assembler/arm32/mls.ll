@@ -82,7 +82,10 @@ entry:
 
 ; ASM-NEXT:     .long 0xe7fedef0
 ; DIS-NEXT:   1c:       e7fedef0
-; IASM-NEXT:    .long 0xe7fedef0
+; IASM-NEXT:    .byte 0xf0
+; IASM-NEXT:    .byte 0xde
+; IASM-NEXT:    .byte 0xfe
+; IASM-NEXT:    .byte 0xe7
 
 ; ASM-NEXT: .LtestMls$local$__0:
 ; IASM-NEXT: .LtestMls$local$__0:

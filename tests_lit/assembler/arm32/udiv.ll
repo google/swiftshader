@@ -55,7 +55,11 @@ define internal i32 @UdivTwoRegs(i32 %a, i32 %b) {
 ; IASM-NEXT:    .byte 0x0
 ; IASM-NEXT:    .byte 0x1a
 
-; IASM-NEXT:    .long 0xe7fedef0
+; IASM-NEXT:    .byte 0xf0
+; IASM-NEXT:    .byte 0xde
+; IASM-NEXT:    .byte 0xfe
+; IASM-NEXT:    .byte 0xe7
+
 ; IASM-NEXT:.LUdivTwoRegs$local$__0:
 ; IASM-NEXT:    .byte 0x10
 ; IASM-NEXT:    .byte 0xf1

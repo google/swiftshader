@@ -1948,6 +1948,12 @@ void InstARM32Trap::emit(const Cfg *Func) const {
   }
 }
 
+void InstARM32Trap::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  Asm->trap();
+  assert(!Asm->needsTextFixup());
+}
+
 void InstARM32Trap::dump(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
