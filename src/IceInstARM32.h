@@ -571,6 +571,7 @@ public:
       return;
     emitUnaryopFP(Opcode, this, Func);
   }
+  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override {
     if (!BuildDefs::dump())
       return;

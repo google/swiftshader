@@ -97,10 +97,6 @@ void InstARM32::emitUsingTextFixup(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   GlobalContext *Ctx = Func->getContext();
-  if (Ctx->getFlags().getDisableHybridAssembly()) {
-    UnimplementedError(Ctx->getFlags());
-    return;
-  }
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   std::string Buffer;
   llvm::raw_string_ostream StrBuf(Buffer);
@@ -113,6 +109,11 @@ void InstARM32::emitUsingTextFixup(const Cfg *Func) const {
   Asm->incEmitTextSize(InstSize);
   emit(Func);
   Ctx->setStrEmit(OldStr);
+  if (Ctx->getFlags().getDisableHybridAssembly()) {
+    llvm::errs() << "Can't assemble: " << StrBuf.str() << "\n";
+    UnimplementedError(Ctx->getFlags());
+    return;
+  }
   Asm->emitTextInst(StrBuf.str(), Asm->getEmitTextSize());
 }
 
@@ -1679,6 +1680,29 @@ template <> void InstARM32Uxt::emitIAS(const Cfg *Func) const {
   assert(getSrcSize() == 1);
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Asm->uxt(getDest(), getSrc(0), getPredicate());
+  if (Asm->needsTextFixup())
+    emitUsingTextFixup(Func);
+}
+
+template <InstARM32::InstKindARM32 K>
+void InstARM32UnaryopFP<K>::emitIAS(const Cfg *Func) const {
+  emitUsingTextFixup(Func);
+}
+
+template <> void InstARM32Vsqrt::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 1);
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  const Operand *Dest = getDest();
+  switch (Dest->getType()) {
+  case IceType_f32:
+    Asm->vsqrts(Dest, getSrc(0), getPredicate());
+    break;
+  case IceType_f64:
+    Asm->vsqrtd(Dest, getSrc(0), getPredicate());
+    break;
+  default:
+    llvm::report_fatal_error("Vqrt of non-floating type");
+  }
   if (Asm->needsTextFixup())
     emitUsingTextFixup(Func);
 }

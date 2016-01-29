@@ -737,10 +737,12 @@ class Assembler : public ValueObject {
   void vnegs(SRegister sd, SRegister sm, Condition cond = AL);
   void vnegd(DRegister dd, DRegister dm, Condition cond = AL);
   void vnegqs(QRegister qd, QRegister qm);
+#if 0
+  // Moved to ARM32::AssemblerARM32::vsqrts().
   void vsqrts(SRegister sd, SRegister sm, Condition cond = AL);
+  // Moved to ARM32::AssemblerARM32::vsqrts().
   void vsqrtd(DRegister dd, DRegister dm, Condition cond = AL);
 
-#if 0
   // Moved to ARM32::AssemblerARM32::vcvtsd().
   void vcvtsd(SRegister sd, DRegister dm, Condition cond = AL);
   // Moved to ARM32::AssemblerARM32:vcvtds().

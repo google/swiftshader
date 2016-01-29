@@ -2744,5 +2744,33 @@ void AssemblerARM32::vpush(const Variable *OpBaseReg, SizeT NumConsecRegs,
   emitVStackOp(Cond, VpushOpcode, OpBaseReg, NumConsecRegs);
 }
 
+void AssemblerARM32::vsqrtd(const Operand *OpDd, const Operand *OpDm,
+                            CondARM32::Cond Cond) {
+  // VSQRT - ARM section A8.8.401, encoding A1:
+  //   vsqrt<c>.f64 <Dd>, <Dm>
+  //
+  // cccc11101D110001dddd101111M0mmmm where cccc=Cond, Ddddd=Sd, and Mmmmm=Sm.
+  constexpr const char *Vsqrtd = "vsqrtd";
+  IValueT Dd = encodeDRegister(OpDd, "Dd", Vsqrtd);
+  IValueT Dm = encodeDRegister(OpDm, "Dm", Vsqrtd);
+  constexpr IValueT VsqrtdOpcode = B23 | B21 | B20 | B16 | B7 | B6;
+  constexpr IValueT D0 = 0;
+  emitVFPddd(Cond, VsqrtdOpcode, Dd, D0, Dm);
+}
+
+void AssemblerARM32::vsqrts(const Operand *OpSd, const Operand *OpSm,
+                            CondARM32::Cond Cond) {
+  // VSQRT - ARM section A8.8.401, encoding A1:
+  //   vsqrt<c>.f32 <Sd>, <Sm>
+  //
+  // cccc11101D110001dddd101011M0mmmm where cccc=Cond, ddddD=Sd, and mmmmM=Sm.
+  constexpr const char *Vsqrts = "vsqrts";
+  IValueT Sd = encodeSRegister(OpSd, "Sd", Vsqrts);
+  IValueT Sm = encodeSRegister(OpSm, "Sm", Vsqrts);
+  constexpr IValueT VsqrtsOpcode = B23 | B21 | B20 | B16 | B7 | B6;
+  constexpr IValueT S0 = 0;
+  emitVFPsss(Cond, VsqrtsOpcode, Sd, S0, Sm);
+}
+
 } // end of namespace ARM32
 } // end of namespace Ice

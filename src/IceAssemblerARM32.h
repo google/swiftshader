@@ -429,6 +429,10 @@ public:
   void vpush(const Variable *OpBaseReg, SizeT NumConsecRegs,
              CondARM32::Cond Cond);
 
+  void vsqrtd(const Operand *OpDd, const Operand *OpDm, CondARM32::Cond Cond);
+
+  void vsqrts(const Operand *OpSd, const Operand *OpSm, CondARM32::Cond Cond);
+
   void vstrd(const Operand *OpDd, const Operand *OpAddress,
              CondARM32::Cond Cond, const TargetInfo &TInfo);
 

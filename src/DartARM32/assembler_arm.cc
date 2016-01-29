@@ -1057,16 +1057,17 @@ void Assembler::vnegd(DRegister dd, DRegister dm, Condition cond) {
   EmitVFPddd(cond, B23 | B21 | B20 | B16 | B6, dd, D0, dm);
 }
 
-
+#if 0
+// Moved to ARM32::AssemblerARM32::vsqrts().
 void Assembler::vsqrts(SRegister sd, SRegister sm, Condition cond) {
   EmitVFPsss(cond, B23 | B21 | B20 | B16 | B7 | B6, sd, S0, sm);
 }
 
+// Moved to ARM32::AssemblerARM32::vsqrtd().
 void Assembler::vsqrtd(DRegister dd, DRegister dm, Condition cond) {
   EmitVFPddd(cond, B23 | B21 | B20 | B16 | B7 | B6, dd, D0, dm);
 }
 
-#if 0
 // Moved to ARM32::AssemblerARM32::emitVFPsd
 void Assembler::EmitVFPsd(Condition cond, int32_t opcode,
                           SRegister sd, DRegister dm) {
