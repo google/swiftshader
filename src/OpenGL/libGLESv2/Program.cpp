@@ -1710,7 +1710,13 @@ namespace es2
 		}
 		else
 		{
-			uniformBlocks[blockIndex]->setRegisterIndex(shader->getType(), block.registerIndex);
+			int regIndex = block.registerIndex;
+			int regInc = block.dataSize / (glsl::BlockLayoutEncoder::BytesPerComponent * glsl::BlockLayoutEncoder::ComponentsPerRegister);
+			int nbBlocks = (block.arraySize > 0) ? block.arraySize : 1;
+			for(int i = 0; i < nbBlocks; ++i, regIndex += regInc)
+			{
+				uniformBlocks[blockIndex + i]->setRegisterIndex(shader->getType(), regIndex);
+			}
 		}
 
 		return true;
