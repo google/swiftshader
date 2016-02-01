@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "31a22064_ff1fdb47",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 490,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-02-01T21:25:31Z",
+      "side": 1,
+      "message": "No longer need this return value. More instances of this below.",
+      "range": {
+        "startLine": 490,
+        "startChar": 5,
+        "endLine": 490,
+        "endChar": 24
+      },
+      "revId": "aa1313673d9df2b490a3010385ed2a6cc8edb9d5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
