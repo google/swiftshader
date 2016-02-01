@@ -157,9 +157,8 @@ IValueT encodeElmtType(Type ElmtTy) {
   case IceType_i64:
     return 3;
   default:
-    llvm::report_fatal_error(
-        std::string("SIMD op: Don't understand element type ") +
-        typeString(ElmtTy));
+    llvm::report_fatal_error("SIMD op: Don't understand element type " +
+                             std::string(typeString(ElmtTy)));
   }
 }
 

@@ -621,8 +621,8 @@ template <> void InstARM32Vadd::emitIAS(const Cfg *Func) const {
   case IceType_v8i1:
   case IceType_v16i1:
   case IceType_NUM:
-    llvm::report_fatal_error(std::string("Vadd not defined on type ") +
-                             typeString(DestTy));
+    llvm::report_fatal_error("Vadd not defined on type " +
+                             std::string(typeString(DestTy)));
     break;
   case IceType_v16i8:
   case IceType_v8i16:
