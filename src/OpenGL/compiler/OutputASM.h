@@ -293,7 +293,7 @@ namespace glsl
 		int allocate(VariableArray &list, TIntermTyped *variable);
 		void free(VariableArray &list, TIntermTyped *variable);
 
-		void declareUniform(const TType &type, const TString &name, int registerIndex, int blockId = -1, BlockLayoutEncoder* encoder = nullptr);
+		int declareUniform(const TType &type, const TString &name, int registerIndex, int blockId = -1, BlockLayoutEncoder* encoder = nullptr);
 		GLenum glVariableType(const TType &type);
 		GLenum glVariablePrecision(const TType &type);
 
@@ -314,6 +314,20 @@ namespace glsl
 		VariableArray attributes;
 		VariableArray samplers;
 		VariableArray fragmentOutputs;
+
+		struct TypedMemberInfo : public BlockMemberInfo
+		{
+			TypedMemberInfo() {}
+			TypedMemberInfo(const BlockMemberInfo& b, const TType& t) : BlockMemberInfo(b), type(t) {}
+			TType type;
+		};
+
+		struct BlockDefinition
+		{
+			typedef std::map<int, TypedMemberInfo> IndexMap;
+			IndexMap indexMap;
+		};
+		std::vector<BlockDefinition> blockDefinitions;
 
 		Scope emitScope;
 		Scope currentScope;

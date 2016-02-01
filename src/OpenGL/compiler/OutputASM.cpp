@@ -2898,7 +2898,7 @@ namespace glsl
 		}
 	}
 
-	void OutputASM::declareUniform(const TType &type, const TString &name, int registerIndex, int blockId, BlockLayoutEncoder* encoder)
+	int OutputASM::declareUniform(const TType &type, const TString &name, int registerIndex, int blockId, BlockLayoutEncoder* encoder)
 	{
 		const TStructure *structure = type.getStruct();
 		const TInterfaceBlock *block = (type.isInterfaceBlock() || (blockId == -1)) ? type.getInterfaceBlock() : nullptr;
@@ -2906,42 +2906,79 @@ namespace glsl
 
 		if(!structure && !block)
 		{
+			const BlockMemberInfo blockInfo = encoder ? encoder->encodeType(type) : BlockMemberInfo::getDefaultBlockInfo();
 			if(blockId >= 0)
 			{
+				blockDefinitions[blockId].indexMap[registerIndex] = TypedMemberInfo(blockInfo, type);
 				shaderObject->activeUniformBlocks[blockId].fields.push_back(activeUniforms.size());
 			}
-			BlockMemberInfo blockInfo = encoder ? encoder->encodeType(type) : BlockMemberInfo::getDefaultBlockInfo();
-			int regIndex = encoder ? registerIndex + BlockLayoutEncoder::getBlockRegister(blockInfo) : registerIndex;
+			int fieldRegisterIndex = encoder ? shaderObject->activeUniformBlocks[blockId].registerIndex + BlockLayoutEncoder::getBlockRegister(blockInfo) : registerIndex;
 			activeUniforms.push_back(Uniform(glVariableType(type), glVariablePrecision(type), name.c_str(), type.getArraySize(),
-			                                 regIndex, blockId, blockInfo));
-
+			                                 fieldRegisterIndex, blockId, blockInfo));
 			if(isSamplerRegister(type))
 			{
 				for(int i = 0; i < type.totalRegisterCount(); i++)
 				{
-					shader->declareSampler(regIndex + i);
+					shader->declareSampler(fieldRegisterIndex + i);
 				}
 			}
 		}
 		else if(block)
 		{
 			ActiveUniformBlocks &activeUniformBlocks = shaderObject->activeUniformBlocks;
+			const TFieldList& fields = block->fields();
+			const TString &blockName = block->name();
+			int fieldRegisterIndex = registerIndex;
+			bool isUniformBlockMember = !type.isInterfaceBlock() && (blockId == -1);
+
+			if(isUniformBlockMember)
+			{
+				// This is a uniform that's part of a block, let's see if the block is already defined
+				for(size_t i = 0; i < activeUniformBlocks.size(); ++i)
+				{
+					if(activeUniformBlocks[i].name == blockName.c_str())
+					{
+						// The block is already defined, find the register for the current uniform and return it
+						for(size_t j = 0; j < fields.size(); j++)
+						{
+							const TString &fieldName = fields[j]->name();
+							if(fieldName == name)
+							{
+								return fieldRegisterIndex;
+							}
+
+							fieldRegisterIndex += fields[j]->type()->totalRegisterCount();
+						}
+
+						ASSERT(false);
+						return fieldRegisterIndex;
+					}
+				}
+			}
+
 			blockId = activeUniformBlocks.size();
 			bool isRowMajor = block->matrixPacking() == EmpRowMajor;
-			const TString &blockName = block->name();
 			activeUniformBlocks.push_back(UniformBlock(blockName.c_str(), 0, block->arraySize(),
 			                                           block->blockStorage(), isRowMajor, registerIndex, blockId));
+			blockDefinitions.push_back(BlockDefinition());
 
-			const TFieldList& fields = block->fields();
 			Std140BlockEncoder currentBlockEncoder(isRowMajor);
+			currentBlockEncoder.enterAggregateType();
 			for(size_t i = 0; i < fields.size(); i++)
 			{
 				const TType &fieldType = *(fields[i]->type());
 				const TString &fieldName = fields[i]->name();
+				if(isUniformBlockMember && (fieldName == name))
+				{
+					registerIndex = fieldRegisterIndex;
+				}
+
 				const TString uniformName = block->hasInstanceName() ? blockName + "." + fieldName : fieldName;
 
-				declareUniform(fieldType, uniformName, registerIndex, blockId, &currentBlockEncoder);
+				declareUniform(fieldType, uniformName, fieldRegisterIndex, blockId, &currentBlockEncoder);
+				fieldRegisterIndex += fieldType.totalRegisterCount();
 			}
+			currentBlockEncoder.exitAggregateType();
 			activeUniformBlocks[blockId].dataSize = currentBlockEncoder.getBlockSize();
 		}
 		else
@@ -2964,11 +3001,7 @@ namespace glsl
 						const TString uniformName = name + "[" + str(i) + "]." + fieldName;
 
 						declareUniform(fieldType, uniformName, fieldRegisterIndex, blockId, encoder);
-						if(!encoder)
-						{
-							int registerCount = fieldType.totalRegisterCount();
-							fieldRegisterIndex += registerCount;
-						}
+						fieldRegisterIndex += fieldType.totalRegisterCount();
 					}
 					if(encoder)
 					{
@@ -2989,11 +3022,7 @@ namespace glsl
 					const TString uniformName = name + "." + fieldName;
 
 					declareUniform(fieldType, uniformName, fieldRegisterIndex, blockId, encoder);
-					if(!encoder)
-					{
-						int registerCount = fieldType.totalRegisterCount();
-						fieldRegisterIndex += registerCount;
-					}
+					fieldRegisterIndex += fieldType.totalRegisterCount();
 				}
 				if(encoder)
 				{
@@ -3001,6 +3030,8 @@ namespace glsl
 				}
 			}
 		}
+
+		return registerIndex;
 	}
 
 	GLenum OutputASM::glVariableType(const TType &type)
