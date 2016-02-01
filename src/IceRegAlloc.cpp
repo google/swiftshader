@@ -820,7 +820,7 @@ void LinearScan::assignFinalRegisters(
       } else {
         Str << (AssignedRegNum == Item->getRegNum() ? "Reassigning "
                                                     : "Assigning ")
-            << Target->getRegName(AssignedRegNum, IceType_i32) << "(r"
+            << Target->getRegName(AssignedRegNum, Item->getType()) << "(r"
             << AssignedRegNum << ") to ";
         Item->dump(Func);
         Str << "\n";
