@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "31a22064_1f50870b",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 456,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-02-01T21:15:18Z",
+      "side": 1,
+      "message": "Do *we* consider it active, or is that a requirement of the spec? In the latter case it would be useful to mention the spec section.",
+      "range": {
+        "startLine": 456,
+        "startChar": 48,
+        "endLine": 456,
+        "endChar": 58
+      },
+      "revId": "1d115b98c5cf6d5892337af4099041ca476f9ff8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
