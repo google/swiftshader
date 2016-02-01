@@ -103,7 +103,7 @@ namespace glsl
 		const BlockMemberInfo memberInfo(static_cast<int>(mCurrentOffset * BytesPerComponent),
 		                                 static_cast<int>(arrayStride * BytesPerComponent),
 		                                 static_cast<int>(matrixStride * BytesPerComponent),
-		                                 isRowMajor);
+		                                 (matrixStride > 0) && isRowMajor);
 
 		advanceOffset(type, type.getArraySize(), isRowMajor, arrayStride, matrixStride);
 
@@ -450,6 +450,16 @@ namespace glsl
 			{
 				declareVarying(symbol, -1);
 			}
+		}
+
+		TInterfaceBlock* block = symbol->getType().getInterfaceBlock();
+		// OpenGL ES 3.0.4 spec, section 2.12.6 Uniform Variables:
+		// "All members of a named uniform block declared with a shared or std140 layout qualifier
+		// are considered active, even if they are not referenced in any shader in the program.
+		// The uniform block itself is also considered active, even if no member of the block is referenced."
+		if(block && ((block->blockStorage() == EbsShared) || (block->blockStorage() == EbsStd140)))
+		{
+			uniformRegister(symbol);
 		}
 	}
 
@@ -2011,6 +2021,10 @@ namespace glsl
 			if(type.isStruct())
 			{
 				return registerSize(*((*(type.getStruct()->fields().begin()))->type()), 0);
+			}
+			else if(type.isInterfaceBlock())
+			{
+				return registerSize(*((*(type.getInterfaceBlock()->fields().begin()))->type()), 0);
 			}
 
 			return type.registerSize();
