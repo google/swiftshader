@@ -6437,9 +6437,11 @@ void TargetDataARM32::lowerConstants() {
   if (Ctx->getFlags().getDisableTranslation())
     return;
   switch (Ctx->getFlags().getOutFileType()) {
-  case FT_Elf:
-    UnimplementedError(Ctx->getFlags());
-    break;
+  case FT_Elf: {
+    ELFObjectWriter *Writer = Ctx->getObjectWriter();
+    Writer->writeConstantPool<ConstantFloat>(IceType_f32);
+    Writer->writeConstantPool<ConstantDouble>(IceType_f64);
+  } break;
   case FT_Asm:
   case FT_Iasm: {
     OstreamLocker _(Ctx);
@@ -6455,7 +6457,9 @@ void TargetDataARM32::lowerJumpTables() {
     return;
   switch (Ctx->getFlags().getOutFileType()) {
   case FT_Elf:
-    UnimplementedError(Ctx->getFlags());
+    if (!Ctx->getJumpTables().empty()) {
+      llvm::report_fatal_error("ARM32 does not support jump tables yet.");
+    }
     break;
   case FT_Asm:
     // Already emitted from Cfg

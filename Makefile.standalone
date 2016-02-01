@@ -478,7 +478,7 @@ endif
 ifeq ($(TARGET),arm32)
   TARGETFLAG=arm32
   SETUP=SetupGccArmOpt
-  SPEC := -O2 --filetype=asm
+  SPEC := -O2 --filetype=obj
 endif
 SPECFLAGS :=
 SPECBUILDONLY := false
