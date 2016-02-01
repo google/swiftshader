@@ -110,8 +110,12 @@ void InstARM32::emitUsingTextFixup(const Cfg *Func) const {
   emit(Func);
   Ctx->setStrEmit(OldStr);
   if (Ctx->getFlags().getDisableHybridAssembly()) {
-    llvm::errs() << "Can't assemble: " << StrBuf.str() << "\n";
-    UnimplementedError(Ctx->getFlags());
+    if (Ctx->getFlags().getSkipUnimplemented()) {
+      Asm->trap();
+    } else {
+      llvm::errs() << "Can't assemble: " << StrBuf.str() << "\n";
+      UnimplementedError(Ctx->getFlags());
+    }
     return;
   }
   Asm->emitTextInst(StrBuf.str(), Asm->getEmitTextSize());
@@ -1701,7 +1705,7 @@ template <> void InstARM32Vsqrt::emitIAS(const Cfg *Func) const {
     Asm->vsqrtd(Dest, getSrc(0), getPredicate());
     break;
   default:
-    llvm::report_fatal_error("Vqrt of non-floating type");
+    llvm::report_fatal_error("Vsqrt of non-floating type");
   }
   if (Asm->needsTextFixup())
     emitUsingTextFixup(Func);
