@@ -1213,7 +1213,8 @@ static inline int ShiftOfOperandSize(OperandSize size) {
   return -1;
 }
 
-
+#if 0
+// Moved to ARM32::AssemblerARM32::emitSIMDqqq()
 void Assembler::EmitSIMDqqq(int32_t opcode, OperandSize size,
                             QRegister qd, QRegister qn, QRegister qm) {
   ASSERT(TargetCPUFeatures::neon_supported());
@@ -1230,7 +1231,7 @@ void Assembler::EmitSIMDqqq(int32_t opcode, OperandSize size,
       (static_cast<int32_t>(qm * 2) & 0xf);
   Emit(encoding);
 }
-
+#endif
 
 void Assembler::EmitSIMDddd(int32_t opcode, OperandSize size,
                             DRegister dd, DRegister dn, DRegister dm) {
@@ -1254,17 +1255,18 @@ void Assembler::vmovq(QRegister qd, QRegister qm) {
   EmitSIMDqqq(B21 | B8 | B4, kByte, qd, qm, qm);
 }
 
-
+#if 0
+// Moved to ARM32::AssemblerARM32::vaddqi().
 void Assembler::vaddqi(OperandSize sz,
                        QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B11, sz, qd, qn, qm);
 }
 
-
+// Moved to ARM32::AssemblerARM32::vaddqf().
 void Assembler::vaddqs(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B11 | B10 | B8, kSWord, qd, qn, qm);
 }
-
+#endif
 
 void Assembler::vsubqi(OperandSize sz,
                        QRegister qd, QRegister qn, QRegister qm) {

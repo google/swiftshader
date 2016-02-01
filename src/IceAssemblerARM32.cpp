@@ -144,6 +144,25 @@ IValueT encodeCondition(CondARM32::Cond Cond) {
   return static_cast<IValueT>(Cond);
 }
 
+// Returns the SIMD encoding of the element type for the vector.
+IValueT encodeElmtType(Type ElmtTy) {
+  switch (ElmtTy) {
+  case IceType_i8:
+  case IceType_f32:
+    return 0;
+  case IceType_i16:
+    return 1;
+  case IceType_i32:
+    return 2;
+  case IceType_i64:
+    return 3;
+  default:
+    llvm::report_fatal_error(
+        std::string("SIMD op: Don't understand element type ") +
+        typeString(ElmtTy));
+  }
+}
+
 IValueT encodeShift(OperandARM32::ShiftKind Shift) {
   // Follows encoding in ARM section A8.4.1 "Constant shifts".
   switch (Shift) {
@@ -190,6 +209,12 @@ IValueT getEncodedSRegNum(const Variable *Var) {
 IValueT getEncodedDRegNum(const Variable *Var) {
   return RegARM32::getEncodedDReg(Var->getRegNum());
 }
+
+IValueT getEncodedQRegNum(const Variable *Var) {
+  return RegARM32::getEncodedQReg(Var->getRegNum());
+}
+
+IValueT mapQRegToDReg(IValueT EncodedQReg) { return EncodedQReg << 1; }
 
 IValueT getYInRegXXXXY(IValueT RegXXXXY) { return RegXXXXY & 0x1; }
 
@@ -305,7 +330,7 @@ IValueT encodeShiftRotateReg(IValueT Rm, OperandARM32::ShiftKind Shift,
 }
 
 // Defines the set of registers expected in an operand.
-enum RegSetWanted { WantGPRegs, WantSRegs, WantDRegs };
+enum RegSetWanted { WantGPRegs, WantSRegs, WantDRegs, WantQRegs };
 
 EncodedOperand encodeOperand(const Operand *Opnd, IValueT &Value,
                              RegSetWanted WantedRegSet) {
@@ -321,6 +346,9 @@ EncodedOperand encodeOperand(const Operand *Opnd, IValueT &Value,
         break;
       case WantDRegs:
         Value = getEncodedDRegNum(Var);
+        break;
+      case WantQRegs:
+        Value = getEncodedQRegNum(Var);
         break;
       }
       return EncodedAsRegister;
@@ -501,6 +529,11 @@ IValueT encodeSRegister(const Operand *OpReg, const char *RegName,
 IValueT encodeDRegister(const Operand *OpReg, const char *RegName,
                         const char *InstName) {
   return encodeRegister(OpReg, WantDRegs, RegName, InstName);
+}
+
+IValueT encodeQRegister(const Operand *OpReg, const char *RegName,
+                        const char *InstName) {
+  return encodeRegister(OpReg, WantQRegs, RegName, InstName);
 }
 
 void verifyPOrNotW(IValueT Address, const char *InstName) {
@@ -1028,6 +1061,30 @@ void AssemblerARM32::emitSignExtend(CondARM32::Cond Cond, IValueT Opcode,
                      (Rn << kRnShift) | (Rd << kRdShift) |
                      (Rot << kRotationShift) | B6 | B5 | B4 | (Rm << kRmShift);
   emitInst(Encoding);
+}
+
+void AssemblerARM32::emitSIMD(IValueT Opcode, Type ElmtTy, IValueT Dd,
+                              IValueT Dn, IValueT Dm, bool UseQRegs) {
+  IValueT Sz = encodeElmtType(ElmtTy);
+  assert(Utils::IsUint(2, Sz));
+  IValueT Encoding =
+      Opcode | B25 | (encodeCondition(CondARM32::kNone) << kConditionShift) |
+      (Sz << 20) | (getYInRegYXXXX(Dd) << 22) | (getXXXXInRegYXXXX(Dn) << 16) |
+      (getXXXXInRegYXXXX(Dd) << 12) | (getYInRegYXXXX(Dn) << 7) |
+      (encodeBool(UseQRegs) << 6) | (getYInRegYXXXX(Dm) << 5) |
+      getXXXXInRegYXXXX(Dm);
+  emitInst(Encoding);
+}
+
+void AssemblerARM32::emitSIMDqqq(IValueT Opcode, Type ElmtTy,
+                                 const Operand *OpQd, const Operand *OpQn,
+                                 const Operand *OpQm, const char *OpcodeName) {
+  IValueT Qd = encodeQRegister(OpQd, "Qd", OpcodeName);
+  IValueT Qn = encodeQRegister(OpQn, "Qn", OpcodeName);
+  IValueT Qm = encodeQRegister(OpQm, "Qm", OpcodeName);
+  constexpr bool UseQRegs = true;
+  emitSIMD(Opcode, ElmtTy, mapQRegToDReg(Qd), mapQRegToDReg(Qn),
+           mapQRegToDReg(Qm), UseQRegs);
 }
 
 void AssemblerARM32::emitVFPddd(CondARM32::Cond Cond, IValueT Opcode,
@@ -2095,6 +2152,29 @@ void AssemblerARM32::vadds(const Operand *OpSd, const Operand *OpSn,
   constexpr const char *Vadds = "vadds";
   constexpr IValueT VaddsOpcode = B21 | B20;
   emitVFPsss(Cond, VaddsOpcode, OpSd, OpSn, OpSm, Vadds);
+}
+
+void AssemblerARM32::vaddqi(Type ElmtTy, const Operand *OpQd,
+                            const Operand *OpQm, const Operand *OpQn) {
+  // VADD (integer) - ARM section A8.8.282, encoding A1:
+  //   vadd.<dt> <Qd>, <Qn>, <Qm>
+  //
+  // 111100100Dssnnn0ddd01000NqM0mmm0 where Dddd=OpQd, Nnnn=OpQm, Mmmm=OpQm,
+  // and dt in [i8, i16, i32, i64] where ss is the index.
+  constexpr const char *Vaddqi = "vaddqi";
+  constexpr IValueT VaddqiOpcode = B11;
+  emitSIMDqqq(VaddqiOpcode, ElmtTy, OpQd, OpQm, OpQn, Vaddqi);
+}
+
+void AssemblerARM32::vaddqf(const Operand *OpQd, const Operand *OpQn,
+                            const Operand *OpQm) {
+  // VADD (floating-point) - ARM section A8.8.283, Encoding A1:
+  //   vadd.f32 <Qd>, <Qn>, <Qm>
+  //
+  // 111100100D00nnn0ddd01101N1M0mmm0 where Dddd=Qd, Nnnn=Qn, and Mmmm=Qm.
+  constexpr const char *Vaddqf = "vaddqf";
+  constexpr IValueT VaddqfOpcode = B11 | B10 | B8;
+  emitSIMDqqq(VaddqfOpcode, IceType_f32, OpQd, OpQn, OpQm, Vaddqf);
 }
 
 void AssemblerARM32::vaddd(const Operand *OpDd, const Operand *OpDn,

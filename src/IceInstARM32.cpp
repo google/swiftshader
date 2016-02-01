@@ -503,8 +503,7 @@ template <> void InstARM32Adc::emitIAS(const Cfg *Func) const {
 template <> void InstARM32Add::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Asm->add(getDest(), getSrc(0), getSrc(1), SetFlags, getPredicate());
-  if (Asm->needsTextFixup())
-    emitUsingTextFixup(Func);
+  assert(!Asm->needsTextFixup());
 }
 
 template <> void InstARM32And::emitIAS(const Cfg *Func) const {
@@ -610,20 +609,37 @@ template <> void InstARM32Udiv::emitIAS(const Cfg *Func) const {
 template <> void InstARM32Vadd::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   const Variable *Dest = getDest();
-  switch (Dest->getType()) {
-  default:
-    // TODO(kschimpf) Figure if more cases are needed.
-    emitUsingTextFixup(Func);
+  Type DestTy = Dest->getType();
+  switch (DestTy) {
+  case IceType_void:
+  case IceType_i1:
+  case IceType_i8:
+  case IceType_i16:
+  case IceType_i32:
+  case IceType_i64:
+  case IceType_v4i1:
+  case IceType_v8i1:
+  case IceType_v16i1:
+  case IceType_NUM:
+    llvm::report_fatal_error(std::string("Vadd not defined on type ") +
+                             typeString(DestTy));
+    break;
+  case IceType_v16i8:
+  case IceType_v8i16:
+  case IceType_v4i32:
+    Asm->vaddqi(typeElementType(DestTy), Dest, getSrc(0), getSrc(1));
+    break;
+  case IceType_v4f32:
+    Asm->vaddqf(Dest, getSrc(0), getSrc(1));
     break;
   case IceType_f32:
     Asm->vadds(getDest(), getSrc(0), getSrc(1), CondARM32::AL);
-    assert(!Asm->needsTextFixup());
     break;
   case IceType_f64:
     Asm->vaddd(getDest(), getSrc(0), getSrc(1), CondARM32::AL);
-    assert(!Asm->needsTextFixup());
     break;
   }
+  assert(!Asm->needsTextFixup());
 }
 
 template <> void InstARM32Vand::emitIAS(const Cfg *Func) const {

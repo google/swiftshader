@@ -34,7 +34,7 @@ entry:
 
 ; ASM:     vadd.f32        q10, q10, q11
 ; DIS:   8:       f2444de6
-; IASM:     vadd.f32
+; IASM-NOT:     vadd.f32
 
   ret <4 x float> %res
 }
@@ -49,7 +49,7 @@ entry:
 
 ; ASM:     vadd.i32        q10, q10, q11
 ; DIS:   28:       f26448e6
-; IASM:     vadd.i32
+; IASM-NOT:     vadd.i32
 
   ret <4 x i32> %res
 }
@@ -64,7 +64,7 @@ entry:
 
 ; ASM:     vadd.i16        q10, q10, q11
 ; DIS:   48:       f25448e6
-; IASM:     vadd.i16
+; IASM-NOT:     vadd.i16
 
   ret <8 x i16> %res
 }
@@ -79,7 +79,7 @@ entry:
 
 ; ASM:     vadd.i8        q10, q10, q11
 ; DIS:   68:       f24448e6
-; IASM:     vadd.i8
+; IASM-NOT:     vadd.i8
 
   ret <16 x i8> %res
 }

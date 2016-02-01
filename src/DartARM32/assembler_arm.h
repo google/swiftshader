@@ -674,10 +674,10 @@ class Assembler : public ValueObject {
   void vadds(SRegister sd, SRegister sn, SRegister sm, Condition cond = AL);
   // Moved to Arm32::AssemblerARM32::vaddd()
   void vaddd(DRegister dd, DRegister dn, DRegister dm, Condition cond = AL);
-#endif
+  // Moved to ARM32::AssemblerARM32::vaddqi().
   void vaddqi(OperandSize sz, QRegister qd, QRegister qn, QRegister qm);
+  // Moved to ARM32::AssemblerARM32::vaddqf().
   void vaddqs(QRegister qd, QRegister qn, QRegister qm);
-#if 0
   // Moved to Arm32::AssemblerARM32::vsubs()
   void vsubs(SRegister sd, SRegister sn, SRegister sm, Condition cond = AL);
   // Moved to Arm32::AssemblerARM32::vsubd()
@@ -1338,10 +1338,11 @@ class Assembler : public ValueObject {
                  int32_t opcode,
                  DRegister dd,
                  SRegister sm);
-#endif
 
+  // Moved to ARM32::AssemblerARM32::emitSIMDqqq()
   void EmitSIMDqqq(int32_t opcode, OperandSize sz,
                    QRegister qd, QRegister qn, QRegister qm);
+#endif
 
   void EmitSIMDddd(int32_t opcode, OperandSize sz,
                    DRegister dd, DRegister dn, DRegister dm);

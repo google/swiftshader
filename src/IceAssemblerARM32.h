@@ -318,6 +318,13 @@ public:
   void vadds(const Operand *OpSd, const Operand *OpSn, const Operand *OpSm,
              CondARM32::Cond Cond);
 
+  // Integer vector add.
+  void vaddqi(Type ElmtTy, const Operand *OpQd, const Operand *OpQm,
+              const Operand *OpQn);
+
+  // Float vector add.
+  void vaddqf(const Operand *OpQd, const Operand *OpQm, const Operand *OpQn);
+
   void vcmpd(const Operand *OpDd, const Operand *OpDm, CondARM32::Cond cond);
 
   // Second argument of compare is zero (+0.0).
@@ -591,6 +598,20 @@ private:
   // nnnn=Rn, dddd=Rd, rr=Rotation, and mmmm=Rm.
   void emitSignExtend(CondARM32::Cond, IValueT Opcode, const Operand *OpRd,
                       const Operand *OpSrc0, const char *InstName);
+
+  // Implements various forms of vector (SIMD) operations.  Implements pattern
+  // 111100100Dssnnnndddn0000NQM0mmmm where ss=encodeElmtType(ElmtTy), Dddd=Dd,
+  // Nnnn=Dn, Mmmm=Dm, Q=UseQRegs, and Opcode is unioned into the pattern.
+  void emitSIMD(IValueT Opcode, Type ElmtTy, IValueT Dd, IValueT Dn, IValueT Dm,
+                bool UseQRegs);
+
+  // Implements various integer forms of vector (SIMD) operations using Q
+  // registers. Implements pattern 111100100Dssnnn0ddd00000N1M0mmm0 where
+  // ss=encodeElmtType(ElmtTy), Dddd=Qd, Nnnn=Qn, Mmmm=Qm, and Opcode is unioned
+  // into the pattern.
+  void emitSIMDqqq(IValueT Opcode, Type ElmtTy, const Operand *OpQd,
+                   const Operand *OpQn, const Operand *OpQm,
+                   const char *OpcodeName);
 
   // Pattern cccctttxxxxnnnn0000iiiiiiiiiiii where cccc=Cond, nnnn=Rn,
   // ttt=Instruction type (derived from OpSrc1), iiiiiiiiiiii is derived from
