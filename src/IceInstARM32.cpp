@@ -98,6 +98,12 @@ void InstARM32::emitUsingTextFixup(const Cfg *Func) const {
     return;
   GlobalContext *Ctx = Func->getContext();
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  if (Ctx->getFlags().getDisableHybridAssembly() &&
+      Ctx->getFlags().getSkipUnimplemented()) {
+    Asm->trap();
+    Asm->resetNeedsTextFixup();
+    return;
+  }
   std::string Buffer;
   llvm::raw_string_ostream StrBuf(Buffer);
   OstreamLocker L(Ctx);
@@ -116,6 +122,7 @@ void InstARM32::emitUsingTextFixup(const Cfg *Func) const {
       llvm::errs() << "Can't assemble: " << StrBuf.str() << "\n";
       UnimplementedError(Ctx->getFlags());
     }
+    Asm->resetNeedsTextFixup();
     return;
   }
   Asm->emitTextInst(StrBuf.str(), Asm->getEmitTextSize());
@@ -751,17 +758,16 @@ template <> void InstARM32Vmul::emitIAS(const Cfg *Func) const {
   default:
     // TODO(kschimpf) Figure if more cases are needed.
     emitUsingTextFixup(Func);
-    break;
+    return;
   case IceType_f32:
     Asm->vmuls(getDest(), getSrc(0), getSrc(1), CondARM32::AL);
     assert(!Asm->needsTextFixup());
-    break;
+    return;
   case IceType_f64:
     Asm->vmuld(getDest(), getSrc(0), getSrc(1), CondARM32::AL);
     assert(!Asm->needsTextFixup());
-    break;
+    return;
   }
-  assert(!Asm->needsTextFixup());
 }
 
 InstARM32Call::InstARM32Call(Cfg *Func, Variable *Dest, Operand *CallTarget)

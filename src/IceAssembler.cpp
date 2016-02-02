@@ -66,7 +66,7 @@ AssemblerTextFixup *AssemblerBuffer::createTextFixup(const std::string &Text,
   AssemblerTextFixup *F = new (Assemblr.allocate<AssemblerTextFixup>())
       AssemblerTextFixup(Text, BytesUsed);
   installFixup(F);
-  TextFixupNeeded = false;
+  resetNeedsTextFixup();
   return F;
 }
 

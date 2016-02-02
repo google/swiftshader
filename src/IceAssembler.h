@@ -184,6 +184,7 @@ public:
   /// Mark that an attempt was made to emit, but failed. Hence, in order to
   /// continue, one must emit a text fixup.
   void setNeedsTextFixup() { TextFixupNeeded = true; }
+  void resetNeedsTextFixup() { TextFixupNeeded = false; }
 
   /// Returns true if last emit failed and needs a text fixup.
   bool needsTextFixup() const { return TextFixupNeeded; }
@@ -310,6 +311,7 @@ public:
   }
 
   void setNeedsTextFixup() { Buffer.setNeedsTextFixup(); }
+  void resetNeedsTextFixup() { Buffer.resetNeedsTextFixup(); }
 
   bool needsTextFixup() const { return Buffer.needsTextFixup(); }
 
