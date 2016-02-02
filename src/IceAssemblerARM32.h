@@ -461,6 +461,13 @@ public:
   void vsubd(const Operand *OpDd, const Operand *OpDn, const Operand *OpDm,
              CondARM32::Cond Cond);
 
+  // Integer vector subtract.
+  void vsubqi(Type ElmtTy, const Operand *OpQd, const Operand *OpQm,
+              const Operand *OpQn);
+
+  // Float vector subtract
+  void vsubqf(const Operand *OpQd, const Operand *OpQm, const Operand *OpQn);
+
   void vsubs(const Operand *OpSd, const Operand *OpSn, const Operand *OpSm,
              CondARM32::Cond Cond);
 

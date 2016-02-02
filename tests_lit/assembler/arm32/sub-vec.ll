@@ -34,7 +34,7 @@ entry:
 
 ; ASM:     vsub.f32        q10, q10, q11
 ; DIS:   8:       f2644de6
-; IASM:     vsub.f32
+; IASM-NOT:     vsub.f32
 
   ret <4 x float> %res
 }
@@ -49,7 +49,7 @@ entry:
 
 ; ASM:     vsub.i32        q10, q10, q11
 ; DIS:   28:       f36448e6
-; IASM:     vsub.i32
+; IASM-NOT:     vsub.i32
 
   ret <4 x i32> %res
 }
@@ -64,7 +64,7 @@ entry:
 
 ; ASM:     vsub.i16        q10, q10, q11
 ; DIS:   48:       f35448e6
-; IASM:     vsub.i16
+; IASM-NOT:     vsub.i16
 
   ret <8 x i16> %res
 }
@@ -79,7 +79,7 @@ entry:
 
 ; ASM:     vsub.i8        q10, q10, q11
 ; DIS:   68:       f34448e6
-; IASM:     vsub.i8
+; IASM-NOT:     vsub.i8
 
   ret <16 x i8> %res
 }

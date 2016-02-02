@@ -735,20 +735,37 @@ template <> void InstARM32Vorr::emitIAS(const Cfg *Func) const {
 template <> void InstARM32Vsub::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   const Variable *Dest = getDest();
-  switch (Dest->getType()) {
-  default:
-    // TODO(kschimpf) Figure if more cases are needed.
-    emitUsingTextFixup(Func);
+  Type DestTy = Dest->getType();
+  switch (DestTy) {
+  case IceType_void:
+  case IceType_i1:
+  case IceType_i8:
+  case IceType_i16:
+  case IceType_i32:
+  case IceType_i64:
+  case IceType_v4i1:
+  case IceType_v8i1:
+  case IceType_v16i1:
+  case IceType_NUM:
+    llvm::report_fatal_error("Vsub not defined on type " +
+                             std::string(typeString(DestTy)));
+    break;
+  case IceType_v16i8:
+  case IceType_v8i16:
+  case IceType_v4i32:
+    Asm->vsubqi(typeElementType(DestTy), Dest, getSrc(0), getSrc(1));
+    break;
+  case IceType_v4f32:
+    Asm->vsubqf(Dest, getSrc(0), getSrc(1));
     break;
   case IceType_f32:
     Asm->vsubs(getDest(), getSrc(0), getSrc(1), CondARM32::AL);
-    assert(!Asm->needsTextFixup());
     break;
   case IceType_f64:
     Asm->vsubd(getDest(), getSrc(0), getSrc(1), CondARM32::AL);
-    assert(!Asm->needsTextFixup());
     break;
   }
+  assert(!Asm->needsTextFixup());
 }
 
 template <> void InstARM32Vmul::emitIAS(const Cfg *Func) const {

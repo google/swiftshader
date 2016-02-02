@@ -2158,7 +2158,7 @@ void AssemblerARM32::vaddqi(Type ElmtTy, const Operand *OpQd,
   // VADD (integer) - ARM section A8.8.282, encoding A1:
   //   vadd.<dt> <Qd>, <Qn>, <Qm>
   //
-  // 111100100Dssnnn0ddd01000NqM0mmm0 where Dddd=OpQd, Nnnn=OpQm, Mmmm=OpQm,
+  // 111100100Dssnnn0ddd01000N1M0mmm0 where Dddd=OpQd, Nnnn=OpQm, Mmmm=OpQm,
   // and dt in [i8, i16, i32, i64] where ss is the index.
   constexpr const char *Vaddqi = "vaddqi";
   constexpr IValueT VaddqiOpcode = B11;
@@ -2775,6 +2775,29 @@ void AssemblerARM32::vsubd(const Operand *OpDd, const Operand *OpDn,
   constexpr const char *Vsubd = "vsubd";
   constexpr IValueT VsubdOpcode = B21 | B20 | B6;
   emitVFPddd(Cond, VsubdOpcode, OpDd, OpDn, OpDm, Vsubd);
+}
+
+void AssemblerARM32::vsubqi(Type ElmtTy, const Operand *OpQd,
+                            const Operand *OpQm, const Operand *OpQn) {
+  // VSUB (integer) - ARM section A8.8.414, encoding A1:
+  //   vsub.<dt> <Qd>, <Qn>, <Qm>
+  //
+  // 111100110Dssnnn0ddd01000N1M0mmm0 where Dddd=OpQd, Nnnn=OpQm, Mmmm=OpQm,
+  // and dt in [i8, i16, i32, i64] where ss is the index.
+  constexpr const char *Vsubqi = "vsubqi";
+  constexpr IValueT VsubqiOpcode = B24 | B11;
+  emitSIMDqqq(VsubqiOpcode, ElmtTy, OpQd, OpQm, OpQn, Vsubqi);
+}
+
+void AssemblerARM32::vsubqf(const Operand *OpQd, const Operand *OpQn,
+                            const Operand *OpQm) {
+  // VSUB (floating-point) - ARM section A8.8.415, Encoding A1:
+  //   vsub.f32 <Qd>, <Qn>, <Qm>
+  //
+  // 111100100D10nnn0ddd01101N1M0mmm0 where Dddd=Qd, Nnnn=Qn, and Mmmm=Qm.
+  constexpr const char *Vsubqf = "vsubqf";
+  constexpr IValueT VsubqfOpcode = B21 | B11 | B10 | B8;
+  emitSIMDqqq(VsubqfOpcode, IceType_f32, OpQd, OpQn, OpQm, Vsubqf);
 }
 
 void AssemblerARM32::emitVStackOp(CondARM32::Cond Cond, IValueT Opcode,
