@@ -437,17 +437,13 @@ public:
     if (!isGPR)                                                                \
       return RegisterSet::val;                                                 \
     assert((is64) || (is32) || (is16) || (is8) ||                              \
-           getBaseReg(RegisterSet::val) == RegisterSet::Reg_rsp ||             \
-           getBaseReg(RegisterSet::val) == RegisterSet::Reg_rbp);              \
+           getBaseReg(RegisterSet::val) == RegisterSet::Reg_rsp);              \
     constexpr int32_t FirstGprWithRegNumSize =                                 \
-        ((is64) || RegisterSet::val == RegisterSet::Reg_rsp ||                 \
-         RegisterSet::val == RegisterSet::Reg_rbp)                             \
+        ((is64) || RegisterSet::val == RegisterSet::Reg_rsp)                   \
             ? RegisterSet::Reg_rax                                             \
-            : (((is32) || RegisterSet::val == RegisterSet::Reg_esp ||          \
-                RegisterSet::val == RegisterSet::Reg_ebp)                      \
+            : (((is32) || RegisterSet::val == RegisterSet::Reg_esp)            \
                    ? RegisterSet::Reg_eax                                      \
-                   : (((is16) || RegisterSet::val == RegisterSet::Reg_sp ||    \
-                       RegisterSet::val == RegisterSet::Reg_bp)                \
+                   : (((is16) || RegisterSet::val == RegisterSet::Reg_sp)      \
                           ? RegisterSet::Reg_ax                                \
                           : RegisterSet::Reg_al));                             \
     const int32_t NewRegNum =                                                  \

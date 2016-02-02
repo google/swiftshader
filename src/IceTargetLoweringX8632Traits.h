@@ -363,11 +363,30 @@ struct TargetX8632Traits {
     return BaseRegs[RegNum];
   }
 
+private:
+  static int32_t getFirstGprForType(Type Ty) {
+    switch (Ty) {
+    default:
+      llvm_unreachable("Invalid type for GPR.");
+    case IceType_i1:
+    case IceType_i8:
+      return RegisterSet::Reg_al;
+    case IceType_i16:
+      return RegisterSet::Reg_ax;
+    case IceType_i32:
+      return RegisterSet::Reg_eax;
+    }
+  }
+
+public:
   // Return a register in RegNum's alias set that is suitable for Ty.
   static int32_t getGprForType(Type Ty, int32_t RegNum) {
     assert(RegNum != Variable::NoRegister);
-    // TODO(stichnot): Rewrite this as a table lookup from a table computed in a
-    // TargetLowering static initializer.
+
+    if (!isScalarIntegerType(Ty)) {
+      return RegNum;
+    }
+
     // [abcd]h registers are not convertible to their ?l, ?x, and e?x versions.
     switch (RegNum) {
     default:
@@ -379,42 +398,35 @@ struct TargetX8632Traits {
       assert(isByteSizedType(Ty));
       return RegNum;
     }
-    RegNum = getBaseReg(RegNum);
-    if (isByteSizedType(Ty)) {
-      switch (RegNum) {
-      default:
-        assert(0);
-      case RegisterSet::Reg_eax:
-        return RegisterSet::Reg_al;
-      case RegisterSet::Reg_ecx:
-        return RegisterSet::Reg_cl;
-      case RegisterSet::Reg_edx:
-        return RegisterSet::Reg_dl;
-      case RegisterSet::Reg_ebx:
-        return RegisterSet::Reg_bl;
-      }
+
+    const int32_t FirstGprForType = getFirstGprForType(Ty);
+
+    switch (RegNum) {
+    default:
+      llvm::report_fatal_error("Unknown register.");
+#define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
+          isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
+          isTrunc8Rcvr, isAhRcvr, aliases)                                     \
+  case RegisterSet::val: {                                                     \
+    if (!isGPR)                                                                \
+      return RegisterSet::val;                                                 \
+    assert((is32) || (is16) || (is8) ||                                        \
+           getBaseReg(RegisterSet::val) == RegisterSet::Reg_esp);              \
+    constexpr int32_t FirstGprWithRegNumSize =                                 \
+        (((is32) || RegisterSet::val == RegisterSet::Reg_esp)                  \
+             ? RegisterSet::Reg_eax                                            \
+             : (((is16) || RegisterSet::val == RegisterSet::Reg_sp)            \
+                    ? RegisterSet::Reg_ax                                      \
+                    : RegisterSet::Reg_al));                                   \
+    const int32_t NewRegNum =                                                  \
+        RegNum - FirstGprWithRegNumSize + FirstGprForType;                     \
+    assert(getBaseReg(RegNum) == getBaseReg(NewRegNum) &&                      \
+           "Error involving " #val);                                           \
+    return NewRegNum;                                                          \
+  }
+      REGX8632_TABLE
+#undef X
     }
-    if (Ty == IceType_i16) {
-      switch (RegNum) {
-      default:
-        assert(0);
-      case RegisterSet::Reg_eax:
-        return RegisterSet::Reg_ax;
-      case RegisterSet::Reg_ecx:
-        return RegisterSet::Reg_cx;
-      case RegisterSet::Reg_edx:
-        return RegisterSet::Reg_dx;
-      case RegisterSet::Reg_ebx:
-        return RegisterSet::Reg_bx;
-      case RegisterSet::Reg_ebp:
-        return RegisterSet::Reg_bp;
-      case RegisterSet::Reg_esi:
-        return RegisterSet::Reg_si;
-      case RegisterSet::Reg_edi:
-        return RegisterSet::Reg_di;
-      }
-    }
-    return RegNum;
   }
 
 private:

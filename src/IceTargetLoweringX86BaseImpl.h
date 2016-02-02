@@ -2569,9 +2569,7 @@ void TargetX86Base<TraitsType>::lowerCall(const InstCall *Instr) {
       break;
     case IceType_i64:
       if (Traits::Is64Bit) {
-        ReturnReg = makeReg(
-            IceType_i64,
-            Traits::getGprForType(IceType_i64, Traits::RegisterSet::Reg_eax));
+        ReturnReg = makeReg(IceType_i64, Traits::getRaxOrDie());
       } else {
         ReturnReg = makeReg(IceType_i32, Traits::RegisterSet::Reg_eax);
         ReturnRegHi = makeReg(IceType_i32, Traits::RegisterSet::Reg_edx);
