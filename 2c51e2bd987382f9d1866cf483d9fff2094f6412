@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d12aa4be_09c6c974",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-02-02T16:00:43Z",
+      "side": 1,
+      "message": "nit: We should try to make this as SwiftShader-agnostic as possible. Maybe word this as \"uniform register file indices, to the std140 byte offsets\", or something like that that?",
+      "range": {
+        "startLine": 12,
+        "startChar": 15,
+        "endLine": 13,
+        "endChar": 13
+      },
+      "revId": "2c51e2bd987382f9d1866cf483d9fff2094f6412",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d12aa4be_c9fdd184",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2952,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-02-02T16:00:43Z",
+      "side": 1,
+      "message": "I should have noted this before, but this is too confusing when we already have \"registerIndex\". In the code below we have \"fieldRegisterIndex\" in a few places. I think that might work here too?",
+      "range": {
+        "startLine": 2952,
+        "startChar": 7,
+        "endLine": 2952,
+        "endChar": 15
+      },
+      "revId": "2c51e2bd987382f9d1866cf483d9fff2094f6412",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d12aa4be_0941a993",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2955,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-02-02T16:00:43Z",
+      "side": 1,
+      "message": "Already have this comparison above. Can that be merged in here?",
+      "range": {
+        "startLine": 2955,
+        "startChar": 3,
+        "endLine": 2955,
+        "endChar": 19
+      },
+      "revId": "2c51e2bd987382f9d1866cf483d9fff2094f6412",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d12aa4be_89dab937",
+        "filename": "src/OpenGL/compiler/OutputASM.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 317,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-02-02T16:00:43Z",
+      "side": 1,
+      "message": "This isn\u0027t strictly used internal (private) to BlockDefinition, so I think it\u0027s best to define it outside of it. Currently we need BlockDefinition::MemberInfoType in several places and that seems unnecessarily long.\n\nAlso, this is essentially a BlockMemberInfo+TType. The Uniform class also contains a BlockMemberInfo, and (GL) type. So I feel like there\u0027s too many similar structures and we might be able to consolidate.\n\nWhile I\u0027m at it, the \"Type\" in MemberInfoType is describing the structure\u0027s members instead of its purpose. It could be mistaken for representing the type of member info. \"TypedBlockMember\" would be more descriptive (if we do keep this as a separate type).",
+      "range": {
+        "startLine": 317,
+        "startChar": 10,
+        "endLine": 317,
+        "endChar": 24
+      },
+      "revId": "2c51e2bd987382f9d1866cf483d9fff2094f6412",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d12aa4be_c9e4b1fc",
+        "filename": "src/OpenGL/compiler/OutputASM.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 321,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-02-02T16:00:43Z",
+      "side": 1,
+      "message": "This looks like the default copy assignment operator. Do we need an explicit one?",
+      "range": {
+        "startLine": 321,
+        "startChar": 4,
+        "endLine": 321,
+        "endChar": 81
+      },
+      "revId": "2c51e2bd987382f9d1866cf483d9fff2094f6412",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d12aa4be_e9e7f5fd",
+        "filename": "src/OpenGL/compiler/OutputASM.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 323,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-02-02T16:00:43Z",
+      "side": 1,
+      "message": "Should be spelled out. Alternatively, this struct could be derived from BlockMemberInfo.",
+      "range": {
+        "startLine": 323,
+        "startChar": 20,
+        "endLine": 323,
+        "endChar": 23
+      },
+      "revId": "2c51e2bd987382f9d1866cf483d9fff2094f6412",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
