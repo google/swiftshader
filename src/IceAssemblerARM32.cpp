@@ -2756,7 +2756,7 @@ void AssemblerARM32::vorrq(const Operand *OpQd, const Operand *OpQm,
   //   vorr <Qd>, <Qn>, <Qm>
   //
   // 111100100D10nnn0ddd00001N1M1mmm0 where Dddd=OpQd, Nnnn=OpQm, and Mmmm=OpQm.
-  constexpr const char *Vorrq = "vandq";
+  constexpr const char *Vorrq = "vorrq";
   constexpr IValueT VorrqOpcode = B21 | B8 | B4;
   constexpr Type ElmtTy = IceType_i8;
   emitSIMDqqq(VorrqOpcode, ElmtTy, OpQd, OpQm, OpQn, Vorrq);
