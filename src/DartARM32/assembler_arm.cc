@@ -1306,11 +1306,12 @@ void Assembler::veorq(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B24 | B8 | B4, kByte, qd, qn, qm);
 }
 
-
+#if 0
+// Moved to ARM32::AssemblerARM32::vorrq()
 void Assembler::vorrq(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B21 | B8 | B4, kByte, qd, qn, qm);
 }
-
+#endif
 
 void Assembler::vornq(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B21 | B20 | B8 | B4, kByte, qd, qn, qm);

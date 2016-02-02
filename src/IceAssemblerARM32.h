@@ -432,6 +432,8 @@ public:
   void vmuls(const Operand *OpSd, const Operand *OpSn, const Operand *OpSm,
              CondARM32::Cond Cond);
 
+  void vorrq(const Operand *OpQd, const Operand *OpQm, const Operand *OpQn);
+
   void vpop(const Variable *OpBaseReg, SizeT NumConsecRegs,
             CondARM32::Cond Cond);
 

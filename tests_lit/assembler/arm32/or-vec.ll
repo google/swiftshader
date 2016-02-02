@@ -30,7 +30,7 @@ entry:
 
 ; ASM:     vorr.i32        q0, q0, q1
 ; DIS:   0:       f2200152
-; IASM:     vorr.i32
+; IASM-NOT:     vorr.i32
 
   ret <4 x i32> %res
 }
@@ -45,7 +45,7 @@ entry:
 
 ; ASM:     vorr.i16        q0, q0, q1
 ; DIS:   10:       f2200152
-; IASM:     vorr.i16
+; IASM-NOT:     vorr.i16
 
   ret <8 x i16> %res
 }
@@ -60,7 +60,7 @@ entry:
 
 ; ASM:     vorr.i8        q0, q0, q1
 ; DIS:   20:       f2200152
-; IASM:     vorr.i8
+; IASM-NOT:     vorr.i8
 
   ret <16 x i8> %res
 }
@@ -79,7 +79,7 @@ entry:
 
 ; ASM:     vorr.i32        q0, q0, q1
 ; DIS:   30:       f2200152
-; IASM:     vorr.i32
+; IASM-NOT:     vorr.i32
 
   ret <4 x i1> %res
 }
@@ -94,7 +94,7 @@ entry:
 
 ; ASM:     vorr.i16        q0, q0, q1
 ; DIS:   40:       f2200152
-; IASM:     vorr.i16
+; IASM-NOT:     vorr.i16
 
   ret <8 x i1> %res
 }
@@ -109,7 +109,7 @@ entry:
 
 ; ASM:     vorr.i8        q0, q0, q1
 ; DIS:   50:       f2200152
-; IASM:     vorr.i8
+; IASM-NOT:     vorr.i8
 
   ret <16 x i1> %res
 }

@@ -2976,6 +2976,7 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Instr) {
   }
   case InstArithmetic::Or: {
     Variable *Src0R = Srcs.src0R(this);
+    assert(isIntegerType(DestTy));
     if (isVectorType(DestTy)) {
       Variable *Src1R = legalizeToReg(Src1);
       _vorr(T, Src0R, Src1R);

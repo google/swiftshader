@@ -2191,13 +2191,13 @@ void AssemblerARM32::vaddd(const Operand *OpDd, const Operand *OpDn,
 void AssemblerARM32::vandq(const Operand *OpQd, const Operand *OpQm,
                            const Operand *OpQn) {
   // VAND (register) - ARM section A8.8.287, encoding A1:
-  //   vand.<dt> <Qd>, <Qn>, <Qm>
+  //   vand <Qd>, <Qn>, <Qm>
   //
   // 111100100D00nnn0ddd00001N1M1mmm0 where Dddd=OpQd, Nnnn=OpQm, and Mmmm=OpQm.
-  constexpr const char *Vandqi = "vandqi";
-  constexpr IValueT VandqiOpcode = B8 | B4;
+  constexpr const char *Vandq = "vandq";
+  constexpr IValueT VandqOpcode = B8 | B4;
   constexpr Type ElmtTy = IceType_i8;
-  emitSIMDqqq(VandqiOpcode, ElmtTy, OpQd, OpQm, OpQn, Vandqi);
+  emitSIMDqqq(VandqOpcode, ElmtTy, OpQd, OpQm, OpQn, Vandq);
 }
 
 void AssemblerARM32::vcmpd(const Operand *OpDd, const Operand *OpDm,
@@ -2720,6 +2720,18 @@ void AssemblerARM32::vmuld(const Operand *OpDd, const Operand *OpDn,
   constexpr const char *Vmuld = "vmuld";
   constexpr IValueT VmuldOpcode = B21;
   emitVFPddd(Cond, VmuldOpcode, OpDd, OpDn, OpDm, Vmuld);
+}
+
+void AssemblerARM32::vorrq(const Operand *OpQd, const Operand *OpQm,
+                           const Operand *OpQn) {
+  // VORR (register) - ARM section A8.8.360, encoding A1:
+  //   vorr <Qd>, <Qn>, <Qm>
+  //
+  // 111100100D10nnn0ddd00001N1M1mmm0 where Dddd=OpQd, Nnnn=OpQm, and Mmmm=OpQm.
+  constexpr const char *Vorrq = "vandq";
+  constexpr IValueT VorrqOpcode = B21 | B8 | B4;
+  constexpr Type ElmtTy = IceType_i8;
+  emitSIMDqqq(VorrqOpcode, ElmtTy, OpQd, OpQm, OpQn, Vorrq);
 }
 
 void AssemblerARM32::vstrd(const Operand *OpDd, const Operand *OpAddress,

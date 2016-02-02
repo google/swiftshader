@@ -618,16 +618,7 @@ template <> void InstARM32Vadd::emitIAS(const Cfg *Func) const {
   const Variable *Dest = getDest();
   Type DestTy = Dest->getType();
   switch (DestTy) {
-  case IceType_void:
-  case IceType_i1:
-  case IceType_i8:
-  case IceType_i16:
-  case IceType_i32:
-  case IceType_i64:
-  case IceType_v4i1:
-  case IceType_v8i1:
-  case IceType_v16i1:
-  case IceType_NUM:
+  default:
     llvm::report_fatal_error("Vadd not defined on type " +
                              typeIceString(DestTy));
     break;
@@ -650,7 +641,6 @@ template <> void InstARM32Vadd::emitIAS(const Cfg *Func) const {
 }
 
 template <> void InstARM32Vand::emitIAS(const Cfg *Func) const {
-  // TODO(kschimpf): add support for these instructions
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   const Variable *Dest = getDest();
   switch (Dest->getType()) {
@@ -742,8 +732,21 @@ template <> void InstARM32Vmls::emitIAS(const Cfg *Func) const {
 }
 
 template <> void InstARM32Vorr::emitIAS(const Cfg *Func) const {
-  // TODO(kschimpf): add support for these instructions
-  emitUsingTextFixup(Func);
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  const Variable *Dest = getDest();
+  switch (Dest->getType()) {
+  default:
+    llvm::report_fatal_error("Vorr not defined on type " +
+                             typeIceString(Dest->getType()));
+  case IceType_v4i1:
+  case IceType_v8i1:
+  case IceType_v16i1:
+  case IceType_v16i8:
+  case IceType_v8i16:
+  case IceType_v4i32:
+    Asm->vorrq(Dest, getSrc(0), getSrc(1));
+  }
+  assert(!Asm->needsTextFixup());
 }
 
 template <> void InstARM32Vsub::emitIAS(const Cfg *Func) const {
@@ -751,16 +754,7 @@ template <> void InstARM32Vsub::emitIAS(const Cfg *Func) const {
   const Variable *Dest = getDest();
   Type DestTy = Dest->getType();
   switch (DestTy) {
-  case IceType_void:
-  case IceType_i1:
-  case IceType_i8:
-  case IceType_i16:
-  case IceType_i32:
-  case IceType_i64:
-  case IceType_v4i1:
-  case IceType_v8i1:
-  case IceType_v16i1:
-  case IceType_NUM:
+  default:
     llvm::report_fatal_error("Vsub not defined on type " +
                              typeIceString(DestTy));
   case IceType_v16i8:
