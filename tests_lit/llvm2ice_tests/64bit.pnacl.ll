@@ -26,6 +26,16 @@
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32 --check-prefix ARM32-OM1 %s
 
+; TODO(rkotler): Stop skipping unimplemented parts (via --skip-unimplemented)
+; once enough infrastructure is in. Also, switch to --filetype=obj
+; when possible.
+; RUN: %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble \
+; RUN:   --disassemble --target mips32 -i %s --args -O2 --skip-unimplemented \
+; RUN:   -allow-externally-defined-symbols \
+; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix MIPS32 %s
+
 @__init_array_start = internal constant [0 x i8] zeroinitializer, align 4
 @__fini_array_start = internal constant [0 x i8] zeroinitializer, align 4
 @__tls_template_start = internal constant [0 x i8] zeroinitializer, align 8
@@ -35,6 +45,9 @@ define internal i32 @ignore64BitArg(i64 %a, i32 %b, i64 %c) {
 entry:
   ret i32 %b
 }
+
+; MIPS32-LABEL: ignore64BitArg
+; MIPS32: move v0,a2
 
 define internal i32 @pass64BitArg(i64 %a, i64 %b, i64 %c, i64 %d, i64 %e, i64 %f) {
 entry:
@@ -102,6 +115,8 @@ entry:
 ; ARM32:      mov     r2, #123
 ; ARM32:      bl      {{.*}} ignore64BitArgNoInline
 
+; MIPS32-LABEL: pass64BitArg
+
 
 declare i32 @ignore64BitArgNoInline(i64, i32, i64)
 
@@ -167,6 +182,9 @@ entry:
 ; ARM32: mov {{.*}}, #123
 ; ARM32: bl {{.*}} ignore64BitArgNoInline
 
+; MIPS32-LABEL: pass64BitUndefArg
+; MIPS32: jr  ra
+
 define internal i64 @return64BitArg(i64 %padding, i64 %a) {
 entry:
   ret i64 %a
@@ -183,6 +201,11 @@ entry:
 ; ARM32: mov {{.*}}, r2
 ; ARM32: mov {{.*}}, r3
 ; ARM32: bx lr
+
+; MIPS32-LABEL; return64BitArg
+; MIPS32: move v0,a2
+; MIPS32: move v1,a3
+; MIPS32: jr ra
 
 define internal i64 @return64BitConst() {
 entry:
@@ -202,6 +225,13 @@ entry:
 ; ARM32: movw r1, #48879 ; 0xbeef
 ; ARM32: movt r1, #57005 ; 0xdead
 
+; MIPS32-LABEL: return64BitConst
+; MIPS32: lui v0,0x1234
+; MIPS32: ori v0,v0,0x5678
+; MIPS32: lui v1,0xdead
+; MIPS32: ori v1,v1,0xbeef
+; MIPS32: jr ra
+
 define internal i64 @add64BitSigned(i64 %a, i64 %b) {
 entry:
   %add = add i64 %b, %a
@@ -218,6 +248,12 @@ entry:
 ; ARM32-LABEL: add64BitSigned
 ; ARM32: adds
 ; ARM32: adc
+
+; MIPS32-LABEL: add64BitSigned
+; MIPS32: addu
+; MIPS32: sltu
+; MIPS32: addu
+; MIPS32: addu
 
 define internal i64 @add64BitUnsigned(i64 %a, i64 %b) {
 entry:
@@ -236,6 +272,12 @@ entry:
 ; ARM32: adds
 ; ARM32: adc
 
+; MIPS32-LABEL: add64BitUnsigned
+; MIPS32: addu
+; MIPS32: sltu
+; MIPS32: addu
+; MIPS32: addu
+
 define internal i64 @sub64BitSigned(i64 %a, i64 %b) {
 entry:
   %sub = sub i64 %a, %b
@@ -253,6 +295,12 @@ entry:
 ; ARM32: subs
 ; ARM32: sbc
 
+; MIPS32-LABEL: sub64BitSigned
+; MIPS32: subu
+; MIPS32: sltu
+; MIPS32: addu
+; MIPS32: subu
+
 define internal i64 @sub64BitUnsigned(i64 %a, i64 %b) {
 entry:
   %sub = sub i64 %a, %b
@@ -269,6 +317,12 @@ entry:
 ; ARM32-LABEL: sub64BitUnsigned
 ; ARM32: subs
 ; ARM32: sbc
+
+; MIPS32-LABEL: sub64BitUnsigned
+; MIPS32: subu
+; MIPS32: sltu
+; MIPS32: addu
+; MIPS32: subu
 
 define internal i64 @mul64BitSigned(i64 %a, i64 %b) {
 entry:
@@ -604,6 +658,10 @@ entry:
 ; ARM32: and
 ; ARM32: and
 
+; MIPS32-LABEL: and64BitSigned
+; MIPS32: and
+; MIPS32: and
+
 define internal i64 @and64BitUnsigned(i64 %a, i64 %b) {
 entry:
   %and = and i64 %b, %a
@@ -620,6 +678,10 @@ entry:
 ; ARM32-LABEL: and64BitUnsigned
 ; ARM32: and
 ; ARM32: and
+
+; MIPS32-LABEL: and64BitUnsigned
+; MIPS32: and
+; MIPS32: and
 
 define internal i64 @or64BitSigned(i64 %a, i64 %b) {
 entry:
@@ -638,6 +700,10 @@ entry:
 ; ARM32: orr
 ; ARM32: orr
 
+; MIPS32-LABEL: or64BitSigned
+; MIPS32: or
+; MIPS32: or
+
 define internal i64 @or64BitUnsigned(i64 %a, i64 %b) {
 entry:
   %or = or i64 %b, %a
@@ -654,6 +720,10 @@ entry:
 ; ARM32-LABEL: or64BitUnsigned
 ; ARM32: orr
 ; ARM32: orr
+
+; MIPS32-LABEL: or64BitUnsigned
+; MIPS32: or
+; MIPS32: or
 
 define internal i64 @xor64BitSigned(i64 %a, i64 %b) {
 entry:
@@ -672,6 +742,10 @@ entry:
 ; ARM32: eor
 ; ARM32: eor
 
+; MIPS32-LABEL: xor64BitSigned
+; MIPS32: xor
+; MIPS32: xor
+
 define internal i64 @xor64BitUnsigned(i64 %a, i64 %b) {
 entry:
   %xor = xor i64 %b, %a
@@ -688,6 +762,10 @@ entry:
 ; ARM32-LABEL: xor64BitUnsigned
 ; ARM32: eor
 ; ARM32: eor
+
+; MIPS32-LABEL: xor64BitUnsigned
+; MIPS32: xor
+; MIPS32: xor
 
 define internal i32 @trunc64To32Signed(i64 %padding, i64 %a) {
 entry:

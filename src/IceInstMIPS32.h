@@ -118,8 +118,10 @@ public:
   enum InstKindMIPS32 {
     k__Start = Inst::Target,
     Add,
+    Addu,
     And,
     Addiu,
+    Call,
     La,
     Lui,
     Mov, // actually a pseudo op for addi rd, rs, 0
@@ -128,6 +130,8 @@ public:
     Ori,
     Ret,
     Sub,
+    Subu,
+    Sltu,
     Xor
   };
 
@@ -138,6 +142,9 @@ public:
   void dumpOpcode(Ostream &Str, const char *Opcode, Type Ty) const {
     Str << Opcode << "." << Ty;
   }
+
+  // TODO(rkotler): while branching is not implemented
+  bool repointEdges(CfgNode *, CfgNode *) override { return true; }
 
   /// Shared emit routines for common forms of instructions.
   static void emitUnaryopGPR(const char *Opcode, const InstMIPS32 *Inst,
@@ -273,6 +280,27 @@ private:
   static const char *Opcode;
 };
 
+class InstMIPS32Call : public InstMIPS32 {
+  InstMIPS32Call() = delete;
+  InstMIPS32Call(const InstMIPS32Call &) = delete;
+  InstMIPS32Call &operator=(const InstMIPS32Call &) = delete;
+
+public:
+  static InstMIPS32Call *create(Cfg *Func, Variable *Dest,
+                                Operand *CallTarget) {
+    return new (Func->allocate<InstMIPS32Call>())
+        InstMIPS32Call(Func, Dest, CallTarget);
+  }
+  Operand *getCallTarget() const { return getSrc(0); }
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Call); }
+
+private:
+  InstMIPS32Call(Cfg *Func, Variable *Dest, Operand *CallTarget);
+};
+
 template <InstMIPS32::InstKindMIPS32 K, bool Signed = false>
 class InstMIPS32Imm16 : public InstMIPS32 {
   InstMIPS32Imm16() = delete;
@@ -346,6 +374,7 @@ private:
 };
 
 using InstMIPS32Add = InstMIPS32ThreeAddrGPR<InstMIPS32::Add>;
+using InstMIPS32Addu = InstMIPS32ThreeAddrGPR<InstMIPS32::Addu>;
 using InstMIPS32Addiu = InstMIPS32Imm16<InstMIPS32::Addiu, true>;
 using InstMIPS32And = InstMIPS32ThreeAddrGPR<InstMIPS32::And>;
 using InstMIPS32Lui = InstMIPS32Imm16<InstMIPS32::Lui>;
@@ -353,7 +382,9 @@ using InstMIPS32La = InstMIPS32UnaryopGPR<InstMIPS32::La>;
 using InstMIPS32Mul = InstMIPS32ThreeAddrGPR<InstMIPS32::Mul>;
 using InstMIPS32Or = InstMIPS32ThreeAddrGPR<InstMIPS32::Or>;
 using InstMIPS32Ori = InstMIPS32Imm16<InstMIPS32::Ori>;
+using InstMIPS32Sltu = InstMIPS32ThreeAddrGPR<InstMIPS32::Sltu>;
 using InstMIPS32Sub = InstMIPS32ThreeAddrGPR<InstMIPS32::Sub>;
+using InstMIPS32Subu = InstMIPS32ThreeAddrGPR<InstMIPS32::Subu>;
 using InstMIPS32Ori = InstMIPS32Imm16<InstMIPS32::Ori>;
 using InstMIPS32Xor = InstMIPS32ThreeAddrGPR<InstMIPS32::Xor>;
 

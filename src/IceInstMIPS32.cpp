@@ -54,12 +54,21 @@ template <> const char *InstMIPS32Lui::Opcode = "lui";
 template <> const char *InstMIPS32La::Opcode = "la";
 // Three-addr ops
 template <> const char *InstMIPS32Add::Opcode = "add";
+template <> const char *InstMIPS32Addu::Opcode = "addu";
 template <> const char *InstMIPS32And::Opcode = "and";
 template <> const char *InstMIPS32Mul::Opcode = "mul";
 template <> const char *InstMIPS32Or::Opcode = "or";
 template <> const char *InstMIPS32Ori::Opcode = "ori";
+template <> const char *InstMIPS32Sltu::Opcode = "sltu";
 template <> const char *InstMIPS32Sub::Opcode = "sub";
+template <> const char *InstMIPS32Subu::Opcode = "subu";
 template <> const char *InstMIPS32Xor::Opcode = "xor";
+
+InstMIPS32Call::InstMIPS32Call(Cfg *Func, Variable *Dest, Operand *CallTarget)
+    : InstMIPS32(Func, InstMIPS32::Call, 1, Dest) {
+  HasSideEffects = true;
+  addSource(CallTarget);
+}
 
 InstMIPS32Mov::InstMIPS32Mov(Cfg *Func, Variable *Dest, Operand *Src)
     : InstMIPS32(Func, InstMIPS32::Mov, 2, Dest) {
@@ -143,6 +152,48 @@ void InstMIPS32Ret::emit(const Cfg *Func) const {
          "jr"
          "\t";
   RA->emit(Func);
+}
+
+void InstMIPS32Call::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 1);
+  if (llvm::isa<ConstantInteger32>(getCallTarget())) {
+    // This shouldn't happen (typically have to copy the full 32-bits to a
+    // register and do an indirect jump).
+    llvm::report_fatal_error("MIPS2Call to ConstantInteger32");
+  } else if (const auto *CallTarget =
+                 llvm::dyn_cast<ConstantRelocatable>(getCallTarget())) {
+    // Calls only have 24-bits, but the linker should insert veneers to extend
+    // the range if needed.
+    Str << "\t"
+           "jal"
+           "\t";
+    CallTarget->emitWithoutPrefix(Func->getTarget());
+  } else {
+    Str << "\t"
+           "jal"
+           "\t";
+    getCallTarget()->emit(Func);
+  }
+}
+
+void InstMIPS32Call::emitIAS(const Cfg *Func) const {
+  (void)Func;
+  llvm_unreachable("Not yet implemented");
+}
+
+void InstMIPS32Call::dump(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrDump();
+  if (getDest()) {
+    dumpDest(Func);
+    Str << " = ";
+  }
+  Str << "call ";
+  getCallTarget()->dump(Func);
 }
 
 void InstMIPS32Ret::emitIAS(const Cfg *Func) const {

@@ -137,6 +137,10 @@ public:
     Context.insert<InstMIPS32Add>(Dest, Src0, Src1);
   }
 
+  void _addu(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32Addu>(Dest, Src0, Src1);
+  }
+
   void _and(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert<InstMIPS32And>(Dest, Src0, Src1);
   }
@@ -183,6 +187,14 @@ public:
 
   void _sub(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert<InstMIPS32Sub>(Dest, Src0, Src1);
+  }
+
+  void _sltu(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32Sltu>(Dest, Src0, Src1);
+  }
+
+  void _subu(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32Subu>(Dest, Src0, Src1);
   }
 
   void _xor(Variable *Dest, Variable *Src0, Variable *Src1) {
@@ -235,6 +247,8 @@ protected:
 
   void lowerAlloca(const InstAlloca *Inst) override;
   void lowerArithmetic(const InstArithmetic *Inst) override;
+  void lowerInt64Arithmetic(const InstArithmetic *Inst, Variable *Dest,
+                            Operand *Src0, Operand *Src1);
   void lowerAssign(const InstAssign *Inst) override;
   void lowerBr(const InstBr *Inst) override;
   void lowerCall(const InstCall *Inst) override;

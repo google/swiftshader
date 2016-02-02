@@ -571,13 +571,101 @@ void TargetMIPS32::lowerAlloca(const InstAlloca *Inst) {
   UnimplementedLoweringError(this, Inst);
 }
 
+void TargetMIPS32::lowerInt64Arithmetic(const InstArithmetic *Inst,
+                                        Variable *Dest, Operand *Src0,
+                                        Operand *Src1) {
+  InstArithmetic::OpKind Op = Inst->getOp();
+  switch (Op) {
+  case InstArithmetic::Add:
+  case InstArithmetic::And:
+  case InstArithmetic::Or:
+  case InstArithmetic::Sub:
+  case InstArithmetic::Xor:
+    break;
+  default:
+    UnimplementedLoweringError(this, Inst);
+    return;
+  }
+  auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
+  auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+  Variable *Src0LoR = legalizeToReg(loOperand(Src0));
+  Variable *Src1LoR = legalizeToReg(loOperand(Src1));
+  Variable *Src0HiR = legalizeToReg(hiOperand(Src0));
+  Variable *Src1HiR = legalizeToReg(hiOperand(Src1));
+
+  switch (Op) {
+  case InstArithmetic::_num:
+    llvm::report_fatal_error("Unknown arithmetic operator");
+    return;
+  case InstArithmetic::Add: {
+    Variable *T_Carry = makeReg(IceType_i32);
+    Variable *T_Lo = makeReg(IceType_i32);
+    Variable *T_Hi = makeReg(IceType_i32);
+    Variable *T_Hi2 = makeReg(IceType_i32);
+    _addu(T_Lo, Src0LoR, Src1LoR);
+    _mov(DestLo, T_Lo);
+    _sltu(T_Carry, T_Lo, Src0LoR);
+    _addu(T_Hi, T_Carry, Src0HiR);
+    _addu(T_Hi2, Src1HiR, T_Hi);
+    _mov(DestHi, T_Hi2);
+    return;
+  }
+  case InstArithmetic::And: {
+    Variable *T_Lo = makeReg(IceType_i32);
+    Variable *T_Hi = makeReg(IceType_i32);
+    _and(T_Lo, Src0LoR, Src1LoR);
+    _mov(DestLo, T_Lo);
+    _and(T_Hi, Src0HiR, Src1HiR);
+    _mov(DestHi, T_Hi);
+    return;
+  }
+  case InstArithmetic::Sub: {
+    Variable *T_Borrow = makeReg(IceType_i32);
+    Variable *T_Lo = makeReg(IceType_i32);
+    Variable *T_Hi = makeReg(IceType_i32);
+    Variable *T_Hi2 = makeReg(IceType_i32);
+    _subu(T_Lo, Src0LoR, Src1LoR);
+    _mov(DestLo, T_Lo);
+    _sltu(T_Borrow, Src0LoR, Src1LoR);
+    _addu(T_Hi, T_Borrow, Src1HiR);
+    _subu(T_Hi2, Src0HiR, T_Hi);
+    _mov(DestHi, T_Hi2);
+    return;
+  }
+  case InstArithmetic::Or: {
+    Variable *T_Lo = makeReg(IceType_i32);
+    Variable *T_Hi = makeReg(IceType_i32);
+    _or(T_Lo, Src0LoR, Src1LoR);
+    _mov(DestLo, T_Lo);
+    _or(T_Hi, Src0HiR, Src1HiR);
+    _mov(DestHi, T_Hi);
+    return;
+  }
+  case InstArithmetic::Xor: {
+    Variable *T_Lo = makeReg(IceType_i32);
+    Variable *T_Hi = makeReg(IceType_i32);
+    _xor(T_Lo, Src0LoR, Src1LoR);
+    _mov(DestLo, T_Lo);
+    _xor(T_Hi, Src0HiR, Src1HiR);
+    _mov(DestHi, T_Hi);
+    return;
+  }
+  default:
+    UnimplementedLoweringError(this, Inst);
+    return;
+  }
+}
+
 void TargetMIPS32::lowerArithmetic(const InstArithmetic *Inst) {
   Variable *Dest = Inst->getDest();
   // We need to signal all the UnimplementedLoweringError errors before any
   // legalization into new variables, otherwise Om1 register allocation may fail
   // when it sees variables that are defined but not used.
-  if (Dest->getType() == IceType_i64) {
-    UnimplementedLoweringError(this, Inst);
+  Type DestTy = Dest->getType();
+  Operand *Src0 = legalizeUndef(Inst->getSrc(0));
+  Operand *Src1 = legalizeUndef(Inst->getSrc(1));
+  if (DestTy == IceType_i64) {
+    lowerInt64Arithmetic(Inst, Inst->getDest(), Src0, Src1);
     return;
   }
   if (isVectorType(Dest->getType())) {
@@ -606,8 +694,6 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Inst) {
   // At this point Dest->getType() is non-i64 scalar
 
   Variable *T = makeReg(Dest->getType());
-  Operand *Src0 = legalizeUndef(Inst->getSrc(0));
-  Operand *Src1 = legalizeUndef(Inst->getSrc(1));
   Variable *Src0R = legalizeToReg(Src0);
   Variable *Src1R = legalizeToReg(Src1);
 
@@ -615,7 +701,7 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Inst) {
   case InstArithmetic::_num:
     break;
   case InstArithmetic::Add:
-    _add(T, Src0R, Src1R);
+    _addu(T, Src0R, Src1R);
     _mov(Dest, T);
     return;
   case InstArithmetic::And:
@@ -631,7 +717,7 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Inst) {
     _mov(Dest, T);
     return;
   case InstArithmetic::Sub:
-    _sub(T, Src0R, Src1R);
+    _subu(T, Src0R, Src1R);
     _mov(Dest, T);
     return;
   case InstArithmetic::Mul: {
@@ -664,6 +750,7 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Inst) {
   case InstArithmetic::Frem:
     break;
   }
+  UnimplementedLoweringError(this, Inst);
 }
 
 void TargetMIPS32::lowerAssign(const InstAssign *Inst) {
@@ -708,8 +795,91 @@ void TargetMIPS32::lowerBr(const InstBr *Inst) {
   UnimplementedLoweringError(this, Inst);
 }
 
-void TargetMIPS32::lowerCall(const InstCall *Inst) {
-  UnimplementedLoweringError(this, Inst);
+void TargetMIPS32::lowerCall(const InstCall *Instr) {
+  // TODO(rkotler): assign arguments to registers and stack. Also reserve stack.
+  if (Instr->getNumArgs()) {
+    UnimplementedLoweringError(this, Instr);
+    return;
+  }
+  // Generate the call instruction.  Assign its result to a temporary with high
+  // register allocation weight.
+  Variable *Dest = Instr->getDest();
+  // ReturnReg doubles as ReturnRegLo as necessary.
+  Variable *ReturnReg = nullptr;
+  Variable *ReturnRegHi = nullptr;
+  if (Dest) {
+    switch (Dest->getType()) {
+    case IceType_NUM:
+      llvm_unreachable("Invalid Call dest type");
+      return;
+    case IceType_void:
+      break;
+    case IceType_i1:
+    case IceType_i8:
+    case IceType_i16:
+    case IceType_i32:
+      ReturnReg = makeReg(Dest->getType(), RegMIPS32::Reg_V0);
+      break;
+    case IceType_i64:
+      ReturnReg = makeReg(IceType_i32, RegMIPS32::Reg_V0);
+      ReturnRegHi = makeReg(IceType_i32, RegMIPS32::Reg_V1);
+      break;
+    case IceType_f32:
+    case IceType_f64:
+      UnimplementedLoweringError(this, Instr);
+      return;
+    case IceType_v4i1:
+    case IceType_v8i1:
+    case IceType_v16i1:
+    case IceType_v16i8:
+    case IceType_v8i16:
+    case IceType_v4i32:
+    case IceType_v4f32:
+      UnimplementedLoweringError(this, Instr);
+      return;
+    }
+  }
+  Operand *CallTarget = Instr->getCallTarget();
+  // Allow ConstantRelocatable to be left alone as a direct call,
+  // but force other constants like ConstantInteger32 to be in
+  // a register and make it an indirect call.
+  if (!llvm::isa<ConstantRelocatable>(CallTarget)) {
+    CallTarget = legalize(CallTarget, Legal_Reg);
+  }
+  Inst *NewCall = InstMIPS32Call::create(Func, ReturnReg, CallTarget);
+  Context.insert(NewCall);
+  if (ReturnRegHi)
+    Context.insert(InstFakeDef::create(Func, ReturnRegHi));
+  // Insert a register-kill pseudo instruction.
+  Context.insert(InstFakeKill::create(Func, NewCall));
+  // Generate a FakeUse to keep the call live if necessary.
+  if (Instr->hasSideEffects() && ReturnReg) {
+    Context.insert<InstFakeDef>(ReturnReg);
+  }
+  if (Dest == nullptr)
+    return;
+
+  // Assign the result of the call to Dest.
+  if (ReturnReg) {
+    if (ReturnRegHi) {
+      assert(Dest->getType() == IceType_i64);
+      auto *Dest64On32 = llvm::cast<Variable64On32>(Dest);
+      Variable *DestLo = Dest64On32->getLo();
+      Variable *DestHi = Dest64On32->getHi();
+      _mov(DestLo, ReturnReg);
+      _mov(DestHi, ReturnRegHi);
+    } else {
+      assert(Dest->getType() == IceType_i32 || Dest->getType() == IceType_i16 ||
+             Dest->getType() == IceType_i8 || Dest->getType() == IceType_i1 ||
+             isVectorType(Dest->getType()));
+      if (isFloatingType(Dest->getType()) || isVectorType(Dest->getType())) {
+        UnimplementedLoweringError(this, Instr);
+        return;
+      } else {
+        _mov(Dest, ReturnReg);
+      }
+    }
+  }
 }
 
 void TargetMIPS32::lowerCast(const InstCast *Inst) {
@@ -980,8 +1150,8 @@ void TargetMIPS32::prelowerPhis() {
 void TargetMIPS32::postLower() {
   if (Ctx->getFlags().getOptLevel() == Opt_m1)
     return;
-  // Find two-address non-SSA instructions where Dest==Src0, and set the
-  // IsDestRedefined flag to keep liveness analysis consistent.
+  // TODO(rkotler): Find two-address non-SSA instructions where Dest==Src0,
+  // and set the IsDestRedefined flag to keep liveness analysis consistent.
   UnimplementedError(Func->getContext()->getFlags());
 }
 
@@ -1087,7 +1257,9 @@ Operand *TargetMIPS32::legalize(Operand *From, LegalMask Allowed,
     else
       Reg = getPhysicalRegister(RegNum);
     if (isInt<16>(int32_t(Value))) {
-      _addiu(Reg, getPhysicalRegister(RegMIPS32::Reg_ZERO, Ty), Value);
+      Variable *Zero = getPhysicalRegister(RegMIPS32::Reg_ZERO, Ty);
+      Context.insert<InstFakeDef>(Zero);
+      _addiu(Reg, Zero, Value);
     } else {
       uint32_t UpperBits = (Value >> 16) & 0xFFFF;
       (void)UpperBits;
