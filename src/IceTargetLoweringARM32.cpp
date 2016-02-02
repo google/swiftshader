@@ -2962,6 +2962,7 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Instr) {
         return;
       }
     }
+    assert(isIntegerType(DestTy));
     Variable *Src0R = Srcs.src0R(this);
     if (isVectorType(DestTy)) {
       Variable *Src1R = legalizeToReg(Src1);

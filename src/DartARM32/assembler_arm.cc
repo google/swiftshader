@@ -1316,11 +1316,12 @@ void Assembler::vornq(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B21 | B20 | B8 | B4, kByte, qd, qn, qm);
 }
 
-
+#if 0
+// Moved to ARM32::AssemblerARM32::vandq()
 void Assembler::vandq(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B8 | B4, kByte, qd, qn, qm);
 }
-
+#endif
 
 void Assembler::vmvnq(QRegister qd, QRegister qm) {
   EmitSIMDqqq(B25 | B24 | B23 | B10 | B8 | B7, kWordPair, qd, Q0, qm);

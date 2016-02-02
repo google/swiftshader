@@ -629,7 +629,7 @@ template <> void InstARM32Vadd::emitIAS(const Cfg *Func) const {
   case IceType_v16i1:
   case IceType_NUM:
     llvm::report_fatal_error("Vadd not defined on type " +
-                             std::string(typeString(DestTy)));
+                             typeIceString(DestTy));
     break;
   case IceType_v16i8:
   case IceType_v8i16:
@@ -640,10 +640,10 @@ template <> void InstARM32Vadd::emitIAS(const Cfg *Func) const {
     Asm->vaddqf(Dest, getSrc(0), getSrc(1));
     break;
   case IceType_f32:
-    Asm->vadds(getDest(), getSrc(0), getSrc(1), CondARM32::AL);
+    Asm->vadds(Dest, getSrc(0), getSrc(1), CondARM32::AL);
     break;
   case IceType_f64:
-    Asm->vaddd(getDest(), getSrc(0), getSrc(1), CondARM32::AL);
+    Asm->vaddd(Dest, getSrc(0), getSrc(1), CondARM32::AL);
     break;
   }
   assert(!Asm->needsTextFixup());
@@ -651,7 +651,21 @@ template <> void InstARM32Vadd::emitIAS(const Cfg *Func) const {
 
 template <> void InstARM32Vand::emitIAS(const Cfg *Func) const {
   // TODO(kschimpf): add support for these instructions
-  emitUsingTextFixup(Func);
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  const Variable *Dest = getDest();
+  switch (Dest->getType()) {
+  default:
+    llvm::report_fatal_error("Vand not defined on type " +
+                             typeIceString(Dest->getType()));
+  case IceType_v4i1:
+  case IceType_v8i1:
+  case IceType_v16i1:
+  case IceType_v16i8:
+  case IceType_v8i16:
+  case IceType_v4i32:
+    Asm->vandq(Dest, getSrc(0), getSrc(1));
+  }
+  assert(!Asm->needsTextFixup());
 }
 
 template <> void InstARM32Vdiv::emitIAS(const Cfg *Func) const {
@@ -748,8 +762,7 @@ template <> void InstARM32Vsub::emitIAS(const Cfg *Func) const {
   case IceType_v16i1:
   case IceType_NUM:
     llvm::report_fatal_error("Vsub not defined on type " +
-                             std::string(typeString(DestTy)));
-    break;
+                             typeIceString(DestTy));
   case IceType_v16i8:
   case IceType_v8i16:
   case IceType_v4i32:

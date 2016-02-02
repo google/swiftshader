@@ -2188,6 +2188,18 @@ void AssemblerARM32::vaddd(const Operand *OpDd, const Operand *OpDn,
   emitVFPddd(Cond, VadddOpcode, OpDd, OpDn, OpDm, Vaddd);
 }
 
+void AssemblerARM32::vandq(const Operand *OpQd, const Operand *OpQm,
+                           const Operand *OpQn) {
+  // VAND (register) - ARM section A8.8.287, encoding A1:
+  //   vand.<dt> <Qd>, <Qn>, <Qm>
+  //
+  // 111100100D00nnn0ddd00001N1M1mmm0 where Dddd=OpQd, Nnnn=OpQm, and Mmmm=OpQm.
+  constexpr const char *Vandqi = "vandqi";
+  constexpr IValueT VandqiOpcode = B8 | B4;
+  constexpr Type ElmtTy = IceType_i8;
+  emitSIMDqqq(VandqiOpcode, ElmtTy, OpQd, OpQm, OpQn, Vandqi);
+}
+
 void AssemblerARM32::vcmpd(const Operand *OpDd, const Operand *OpDm,
                            CondARM32::Cond Cond) {
   constexpr const char *Vcmpd = "vcmpd";

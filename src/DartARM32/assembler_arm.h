@@ -719,7 +719,10 @@ class Assembler : public ValueObject {
   void veorq(QRegister qd, QRegister qn, QRegister qm);
   void vorrq(QRegister qd, QRegister qn, QRegister qm);
   void vornq(QRegister qd, QRegister qn, QRegister qm);
+#if 0
+  // Moved to Arm32::AssemblerARM32::vandq().
   void vandq(QRegister qd, QRegister qn, QRegister qm);
+#endif
   void vmvnq(QRegister qd, QRegister qm);
 
   void vceqqi(OperandSize sz, QRegister qd, QRegister qn, QRegister qm);

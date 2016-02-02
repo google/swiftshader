@@ -30,7 +30,7 @@ entry:
 
 ; ASM:     vand.i32        q0, q0, q1
 ; DIS:   0:       f2000152
-; IASM:     vand.i32
+; IASM-NOT:     vand
 
   ret <4 x i32> %res
 }
@@ -45,7 +45,7 @@ entry:
 
 ; ASM:     vand.i16        q0, q0, q1
 ; DIS:   10:       f2000152
-; IASM:     vand.i16
+; IASM-NOT:     vand
 
   ret <8 x i16> %res
 }
@@ -60,7 +60,7 @@ entry:
 
 ; ASM:     vand.i8        q0, q0, q1
 ; DIS:   20:       f2000152
-; IASM:     vand.i8
+; IASM-NOT:     vand
 
   ret <16 x i8> %res
 }
@@ -79,7 +79,7 @@ entry:
 
 ; ASM:     vand.i32        q0, q0, q1
 ; DIS:   30:       f2000152
-; IASM:     vand.i32
+; IASM-NOT:     vand
 
   ret <4 x i1> %res
 }
@@ -94,7 +94,7 @@ entry:
 
 ; ASM:     vand.i16        q0, q0, q1
 ; DIS:   40:       f2000152
-; IASM:     vand.i16
+; IASM-NOT:     vand
 
   ret <8 x i1> %res
 }
@@ -109,7 +109,7 @@ entry:
 
 ; ASM:     vand.i8        q0, q0, q1
 ; DIS:   50:       f2000152
-; IASM:     vand.i8
+; IASM-NOT:     vand
 
   ret <16 x i1> %res
 }

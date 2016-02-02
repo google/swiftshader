@@ -325,6 +325,8 @@ public:
   // Float vector add.
   void vaddqf(const Operand *OpQd, const Operand *OpQm, const Operand *OpQn);
 
+  void vandq(const Operand *OpQd, const Operand *OpQm, const Operand *OpQn);
+
   void vcmpd(const Operand *OpDd, const Operand *OpDm, CondARM32::Cond cond);
 
   // Second argument of compare is zero (+0.0).
