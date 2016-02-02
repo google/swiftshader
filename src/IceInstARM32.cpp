@@ -2228,6 +2228,26 @@ void InstARM32Vabs::emit(const Cfg *Func) const {
   getSrc(0)->emit(Func);
 }
 
+void InstARM32Vabs::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 1);
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  const Variable *Dest = getDest();
+  switch (Dest->getType()) {
+  default:
+    // TODO(kschimpf): Implement vector fabs.
+    Asm->setNeedsTextFixup();
+    break;
+  case IceType_f32:
+    Asm->vabss(Dest, getSrc(0), getPredicate());
+    break;
+  case IceType_f64:
+    Asm->vabsd(Dest, getSrc(0), getPredicate());
+    break;
+  }
+  if (Asm->needsTextFixup())
+    emitUsingTextFixup(Func);
+}
+
 void InstARM32Vabs::dump(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;

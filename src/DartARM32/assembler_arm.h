@@ -734,8 +734,12 @@ class Assembler : public ValueObject {
   void vcugtqi(OperandSize sz, QRegister qd, QRegister qn, QRegister qm);
   void vcgtqs(QRegister qd, QRegister qn, QRegister qm);
 
+#if 0
+  // Moved to Arm32::AssemblerARM32::vabss().
   void vabss(SRegister sd, SRegister sm, Condition cond = AL);
+  // Moved to Arm32::AssemblerARM32::vabss().
   void vabsd(DRegister dd, DRegister dm, Condition cond = AL);
+#endif
   void vabsqs(QRegister qd, QRegister qm);
   void vnegs(SRegister sd, SRegister sm, Condition cond = AL);
   void vnegd(DRegister dd, DRegister dm, Condition cond = AL);

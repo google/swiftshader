@@ -1036,17 +1036,17 @@ void Assembler::vdivd(DRegister dd, DRegister dn, DRegister dm,
                       Condition cond) {
   EmitVFPddd(cond, B23, dd, dn, dm);
 }
-#endif
 
+// Moved to Arm32::AssemblerARM32::vabss().
 void Assembler::vabss(SRegister sd, SRegister sm, Condition cond) {
   EmitVFPsss(cond, B23 | B21 | B20 | B7 | B6, sd, S0, sm);
 }
 
-
+// Moved to Arm32::AssemblerARM32::vabsd().
 void Assembler::vabsd(DRegister dd, DRegister dm, Condition cond) {
   EmitVFPddd(cond, B23 | B21 | B20 | B7 | B6, dd, D0, dm);
 }
-
+#endif
 
 void Assembler::vnegs(SRegister sd, SRegister sm, Condition cond) {
   EmitVFPsss(cond, B23 | B21 | B20 | B16 | B6, sd, S0, sm);

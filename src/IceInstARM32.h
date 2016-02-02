@@ -1412,6 +1412,7 @@ public:
         InstARM32Vabs(Func, Dest, Src, Predicate);
   }
   void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Vabs); }
 

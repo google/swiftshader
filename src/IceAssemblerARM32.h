@@ -312,6 +312,10 @@ public:
   // Implements uxtb/uxth depending on type of OpSrc0.
   void uxt(const Operand *OpRd, const Operand *OpSrc0, CondARM32::Cond Cond);
 
+  void vabss(const Operand *OpSd, const Operand *OpSm, CondARM32::Cond Cond);
+
+  void vabsd(const Operand *OpSd, const Operand *OpSm, CondARM32::Cond Cond);
+
   void vaddd(const Operand *OpDd, const Operand *OpDn, const Operand *OpDm,
              CondARM32::Cond Cond);
 

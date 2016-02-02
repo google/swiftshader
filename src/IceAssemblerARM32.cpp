@@ -2141,6 +2141,34 @@ void AssemblerARM32::uxt(const Operand *OpRd, const Operand *OpSrc0,
   emitSignExtend(Cond, UxtOpcode, OpRd, OpSrc0, UxtName);
 }
 
+void AssemblerARM32::vabss(const Operand *OpSd, const Operand *OpSm,
+                           CondARM32::Cond Cond) {
+  // VABS - ARM section A8.8.280, encoding A2:
+  //   vabs<c>.f32 <Sd>, <Sm>
+  //
+  // cccc11101D110000dddd101011M0mmmm where cccc=Cond, ddddD=Sd, and mmmmM=Sm.
+  constexpr const char *Vabss = "vabss";
+  IValueT Sd = encodeSRegister(OpSd, "Sd", Vabss);
+  IValueT Sm = encodeSRegister(OpSm, "Sm", Vabss);
+  constexpr IValueT S0 = 0;
+  constexpr IValueT VabssOpcode = B23 | B21 | B20 | B7 | B6;
+  emitVFPsss(Cond, VabssOpcode, Sd, S0, Sm);
+}
+
+void AssemblerARM32::vabsd(const Operand *OpDd, const Operand *OpDm,
+                           CondARM32::Cond Cond) {
+  // VABS - ARM section A8.8.280, encoding A2:
+  //   vabs<c>.f64 <Dd>, <Dm>
+  //
+  // cccc11101D110000dddd101111M0mmmm where cccc=Cond, Ddddd=Dd, and Mmmmm=Dm.
+  constexpr const char *Vabsd = "vabsd";
+  IValueT Dd = encodeDRegister(OpDd, "Dd", Vabsd);
+  IValueT Dm = encodeDRegister(OpDm, "Dm", Vabsd);
+  constexpr IValueT D0 = 0;
+  constexpr IValueT VabsdOpcode = B23 | B21 | B20 | B7 | B6;
+  emitVFPddd(Cond, VabsdOpcode, Dd, D0, Dm);
+}
+
 void AssemblerARM32::vadds(const Operand *OpSd, const Operand *OpSn,
                            const Operand *OpSm, CondARM32::Cond Cond) {
   // VADD (floating-point) - ARM section A8.8.283, encoding A2:
