@@ -22,6 +22,30 @@
       "revId": "87df4dbea6ba8b0eebb6947aa3e6c36b3c4f6874",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "11f7dc9a_2b20d943",
+        "filename": "src/Android.mk",
+        "patchSetId": 2
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5225
+      },
+      "writtenOn": "2016-02-02T18:20:07Z",
+      "side": 1,
+      "message": "i do see some examples though +1 for restoring gce_x86 (i dont think device means target so all should use gce_x86).",
+      "parentUuid": "11f7dc9a_ab884994",
+      "range": {
+        "startLine": 100,
+        "startChar": 23,
+        "endLine": 100,
+        "endChar": 24
+      },
+      "revId": "87df4dbea6ba8b0eebb6947aa3e6c36b3c4f6874",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
