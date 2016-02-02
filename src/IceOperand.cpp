@@ -24,7 +24,66 @@
 namespace Ice {
 
 bool operator==(const RelocatableTuple &A, const RelocatableTuple &B) {
-  return A.Offset == B.Offset && A.Name == B.Name;
+  // A and B are the same if:
+  //   (1) they have the same name; and
+  //   (2) they have the same offset.
+  //
+  // (1) is trivial to check, but (2) requires some care.
+  //
+  // For (2):
+  //  if A and B have known offsets (i.e., no symbolic references), then
+  //     A == B -> A.Offset == B.Offset.
+  //  else each element i in A.OffsetExpr[i] must be the same (or have the same
+  //    value) as B.OffsetExpr[i].
+  if (A.Name != B.Name) {
+    return false;
+  }
+
+  bool BothHaveKnownOffsets = true;
+  RelocOffsetT OffsetA = 0;
+  RelocOffsetT OffsetB = 0;
+  for (SizeT i = 0; i < A.OffsetExpr.size() && BothHaveKnownOffsets; ++i) {
+    BothHaveKnownOffsets = A.OffsetExpr[i]->hasOffset();
+    if (BothHaveKnownOffsets) {
+      OffsetA += A.OffsetExpr[i]->getOffset();
+    }
+  }
+  for (SizeT i = 0; i < B.OffsetExpr.size() && BothHaveKnownOffsets; ++i) {
+    BothHaveKnownOffsets = B.OffsetExpr[i]->hasOffset();
+    if (BothHaveKnownOffsets) {
+      OffsetB += B.OffsetExpr[i]->getOffset();
+    }
+  }
+  if (BothHaveKnownOffsets) {
+    // Both have known offsets (i.e., no unresolved symbolic references), so
+    // A == B -> A.Offset == B.Offset.
+    return OffsetA == OffsetB;
+  }
+
+  // Otherwise, A and B are not the same if their OffsetExpr's have different
+  // sizes.
+  if (A.OffsetExpr.size() != B.OffsetExpr.size()) {
+    return false;
+  }
+
+  // If the OffsetExprs' sizes are the same, then
+  // for each i in OffsetExprSize:
+  for (SizeT i = 0; i < A.OffsetExpr.size(); ++i) {
+    const auto *const RelocOffsetA = A.OffsetExpr[i];
+    const auto *const RelocOffsetB = B.OffsetExpr[i];
+    if (RelocOffsetA->hasOffset() && RelocOffsetB->hasOffset()) {
+      // A.OffsetExpr[i].Offset == B.OffsetExpr[i].Offset iff they are both
+      // defined;
+      if (RelocOffsetA->getOffset() != RelocOffsetB->getOffset()) {
+        return false;
+      }
+    } else if (RelocOffsetA != RelocOffsetB) {
+      // or, if they are undefined, then the RelocOffsets must be the same.
+      return false;
+    }
+  }
+
+  return true;
 }
 
 bool operator<(const RegWeight &A, const RegWeight &B) {
@@ -501,8 +560,13 @@ void ConstantRelocatable::dump(const Cfg *Func, Ostream &Str) const {
   } else {
     Str << Name;
   }
-  if (Offset)
-    Str << "+" << Offset;
+  const RelocOffsetT Offset = getOffset();
+  if (Offset) {
+    if (Offset >= 0) {
+      Str << "+";
+    }
+    Str << Offset;
+  }
 }
 
 void ConstantUndef::emit(TargetLowering *Target) const { Target->emit(this); }

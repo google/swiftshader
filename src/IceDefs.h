@@ -309,6 +309,8 @@ enum RandomizationPassesEnum {
   RPE_num
 };
 
+using RelocOffsetArray = llvm::SmallVector<class RelocOffset *, 4>;
+
 } // end of namespace Ice
 
 #endif // SUBZERO_SRC_ICEDEFS_H

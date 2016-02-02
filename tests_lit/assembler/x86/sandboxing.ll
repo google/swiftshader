@@ -28,9 +28,8 @@ entry:
 ; CHECK: 1b: {{.*}} call 1c
 ; CHECK-NEXT: 20:
 ; X8664-LABEL: test_direct_call
-; X8664: push {{.*}}$local$__0
+; X8664: push {{.*}} R_X86_64_32S test_direct_call+{{.*}}20
 ; X8664: jmp {{.*}} call_target
-; X8664: {{0+}}20 <{{.*}}$local$__0>:
 
 ; An indirect call sequence uses the right mask and register-call sequence.
 define internal void @test_indirect_call(i32 %target) {
@@ -46,11 +45,10 @@ entry:
 ; CHECK-NEXT: call [[REG]]
 ; CHECk-NEXT: 20:
 ; X8664-LABEL: test_indirect_call
-; X8664: push {{.*}}$local$__0
+; X8664: push {{.*}} R_X86_64_32S test_indirect_call+{{.*}}20
 ; X8664: {{.*}} and e[[REG:..]],0xffffffe0
 ; X8664: add r[[REG]],r15
 ; X8664: jmp r[[REG]]
-; X8664: {{0+}}20 <{{.*}}$local$__0>:
 
 ; A return sequence uses the right pop / mask / jmp sequence.
 define internal void @test_ret() {
@@ -271,8 +269,7 @@ define internal void @bundle_lock_pad_to_end_padding_0(i32 %arg0, i32 %arg1,
   ; bundle boundary
   ret void
 }
-; X8664-LABEL: bundle_lock_pad_to_end_padding_0$local$__0
-; X8664: 56: {{.*}} push {{.*}}$local$__1
+; X8664: 56: {{.*}} push {{.*}} R_X86_64_32S bundle_lock_pad_to_end_padding_0+{{.*}}60
 ; X8664: 5b: {{.*}} jmp {{.*}} call_target
 ; X8664: 60: {{.*}} add
 
@@ -289,8 +286,7 @@ define internal void @bundle_lock_pad_to_end_padding_11(i32 %arg0, i32 %arg1,
   ; bundle boundary
   ret void
 }
-; X8664-LABEL: bundle_lock_pad_to_end_padding_11$local$__0
-; X8664: 4b: {{.*}} push {{.*}}$local$__1
+; X8664: 4b: {{.*}} push {{.*}} R_X86_64_32S bundle_lock_pad_to_end_padding_11+{{.*}}60
 ; X8664: 50: {{.*}} jmp {{.*}} call_target
 ; X8664: 55: {{.*}} nop
 ; X8664: 5d: {{.*}} nop
@@ -308,8 +304,7 @@ define internal void @bundle_lock_pad_to_end_padding_22(i32 %arg0, i32 %arg1,
   ; bundle boundary
   ret void
 }
-; X8664-LABEL: bundle_lock_pad_to_end_padding_22$local$__0
-; X8664: 40: {{.*}} push {{.*}}$local$__1
+; X8664: 40: {{.*}} push {{.*}} R_X86_64_32S bundle_lock_pad_to_end_padding_22+{{.*}}60
 ; X8664: 45: {{.*}} jmp {{.*}} call_target
 ; X8664: 4a: {{.*}} nop
 ; X8664: 52: {{.*}} nop

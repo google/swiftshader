@@ -459,10 +459,10 @@ void InstImpl<TraitsType>::InstX86Label::emit(const Cfg *Func) const {
 template <typename TraitsType>
 void InstImpl<TraitsType>::InstX86Label::emitIAS(const Cfg *Func) const {
   Assembler *Asm = Func->getAssembler<Assembler>();
-  if (IsReturnLocation) {
-    Asm->addRelocationAtCurrentPosition(getName(Func));
-  }
   Asm->bindLocalLabel(Number);
+  if (OffsetReloc != nullptr) {
+    Asm->bindRelocOffset(OffsetReloc);
+  }
 }
 
 template <typename TraitsType>

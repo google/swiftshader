@@ -704,6 +704,13 @@ void TargetLowering::emitWithoutPrefix(const ConstantRelocatable *C,
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Ctx->getStrEmit();
+  const IceString &EmitStr = C->getEmitString();
+  if (!EmitStr.empty()) {
+    // C has a custom emit string, so we use it instead of the canonical
+    // Name + Offset form.
+    Str << EmitStr;
+    return;
+  }
   if (C->getSuppressMangling())
     Str << C->getName();
   else

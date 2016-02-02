@@ -142,8 +142,8 @@ ifdef FORCEASM
   # resulting nexe.  So we just disable those tests for now.
   FORCEASM_XTEST_EXCLUDES = -e x8632,sandbox,test_sync_atomic
   FORCEASM_LIT_PARAM = --param=FORCEASM
-  # x86 sandboxing lit tests are disabled because llvm-mc uses different
-  # relocations for pushing return addresses onto the stack.
+  # x86 sandboxing lit tests are disabled because filetype=asm does not
+  # handle bundle_lock pad-to-end correctly.
   # TODO(jpp): fix this.
   FORCEASM_LIT_TEST_EXCLUDES = --filter='^(?!.*/x86/sandboxing.ll).*'
 else

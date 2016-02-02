@@ -74,7 +74,7 @@ struct TargetX8664Traits {
       RegX8664::Encoded_Reg_eax;
   static constexpr GPRRegister Encoded_Reg_Counter = RegX8664::Encoded_Reg_ecx;
   static constexpr FixupKind FK_PcRel = llvm::ELF::R_X86_64_PC32;
-  static constexpr FixupKind FK_Abs = llvm::ELF::R_X86_64_32;
+  static constexpr FixupKind FK_Abs = llvm::ELF::R_X86_64_32S;
   static constexpr FixupKind FK_Gotoff = llvm::ELF::R_X86_64_GOTOFF64;
   static constexpr FixupKind FK_GotPC = llvm::ELF::R_X86_64_GOTPC32;
 

@@ -337,13 +337,13 @@ template <typename TraitsType> struct InstImpl {
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;
     void dump(const Cfg *Func) const override;
-    void setIsReturnLocation(bool Value) { IsReturnLocation = Value; }
+    void setRelocOffset(RelocOffset *Value) { OffsetReloc = Value; }
 
   private:
     InstX86Label(Cfg *Func, TargetLowering *Target);
 
     SizeT Number; // used for unique label generation.
-    bool IsReturnLocation = false;
+    RelocOffset *OffsetReloc = nullptr;
   };
 
   /// Conditional and unconditional branch instruction.

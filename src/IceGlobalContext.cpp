@@ -44,8 +44,18 @@
 namespace std {
 template <> struct hash<Ice::RelocatableTuple> {
   size_t operator()(const Ice::RelocatableTuple &Key) const {
+    if (!Key.EmitString.empty()) {
+      return hash<Ice::IceString>()(Key.EmitString);
+    }
+
+    assert(!Key.OffsetExpr.empty());
+    if (Key.OffsetExpr[0]->hasOffset()) {
+      return hash<Ice::IceString>()(Key.Name) +
+             hash<Ice::RelocOffsetT>()(Key.OffsetExpr[0]->getOffset());
+    }
+
     return hash<Ice::IceString>()(Key.Name) +
-           hash<Ice::RelocOffsetT>()(Key.Offset);
+           hash<std::size_t>()(Key.OffsetExpr.size());
   }
 };
 } // end of namespace std
@@ -785,18 +795,28 @@ Constant *GlobalContext::getConstantDouble(double ConstantDouble) {
   return getConstPool()->Doubles.getOrAdd(this, ConstantDouble);
 }
 
+Constant *GlobalContext::getConstantSym(const RelocOffsetArray &Offset,
+                                        const IceString &Name,
+                                        const IceString &EmitString,
+                                        bool SuppressMangling) {
+  return getConstPool()->Relocatables.getOrAdd(
+      this, RelocatableTuple(Offset, Name, EmitString, SuppressMangling));
+}
+
 Constant *GlobalContext::getConstantSym(RelocOffsetT Offset,
                                         const IceString &Name,
                                         bool SuppressMangling) {
-  return getConstPool()->Relocatables.getOrAdd(
-      this, RelocatableTuple(Offset, Name, SuppressMangling));
+  constexpr char EmptyEmitString[] = "";
+  return getConstantSym({RelocOffset::create(this, Offset)}, Name,
+                        EmptyEmitString, SuppressMangling);
 }
 
 Constant *GlobalContext::getConstantExternSym(const IceString &Name) {
   constexpr RelocOffsetT Offset = 0;
   constexpr bool SuppressMangling = true;
   return getConstPool()->ExternRelocatables.getOrAdd(
-      this, RelocatableTuple(Offset, Name, SuppressMangling));
+      this, RelocatableTuple({RelocOffset::create(this, Offset)}, Name,
+                             SuppressMangling));
 }
 
 Constant *GlobalContext::getConstantUndef(Type Ty) {

@@ -256,15 +256,6 @@ void ELFObjectWriter::writeFunctionCode(const IceString &FuncName,
   SymTab->createDefinedSym(FuncName, SymbolType, SymbolBinding, Section,
                            OffsetInSection, SymbolSize);
   StrTab->add(FuncName);
-  for (const auto &InternalReloc : Asm->getInternalRelocations()) {
-    const IceString &RelocName = InternalReloc.first;
-    constexpr uint8_t RelocSymbolType = STT_NOTYPE;
-    constexpr uint8_t RelocSymbolBinding = STB_LOCAL;
-    const SizeT RelocOffsetInSection = OffsetInSection + InternalReloc.second;
-    SymTab->createDefinedSym(RelocName, RelocSymbolType, RelocSymbolBinding,
-                             Section, RelocOffsetInSection, SymbolSize);
-    StrTab->add(RelocName);
-  }
 
   // Copy the fixup information from per-function Assembler memory to the
   // object writer's memory, for writing later.

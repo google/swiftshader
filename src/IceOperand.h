@@ -26,6 +26,8 @@
 
 #include "llvm/Support/Format.h"
 
+#include <limits>
+
 namespace Ice {
 
 class Operand {
@@ -247,6 +249,43 @@ inline void ConstantInteger64::dump(const Cfg *, Ostream &Str) const {
   Str << static_cast<int64_t>(getValue());
 }
 
+/// RelocOffset allows symbolic references in ConstantRelocatables' offsets,
+/// e.g., 8 + LabelOffset, where label offset is the location (code or data)
+/// of a Label that is only determinable during ELF emission.
+class RelocOffset final {
+  RelocOffset(const RelocOffset &) = delete;
+  RelocOffset &operator=(const RelocOffset &) = delete;
+
+public:
+  static RelocOffset *create(GlobalContext *Ctx) {
+    return new (Ctx->allocate<RelocOffset>()) RelocOffset();
+  }
+
+  static RelocOffset *create(GlobalContext *Ctx, RelocOffsetT Value) {
+    return new (Ctx->allocate<RelocOffset>()) RelocOffset(Value);
+  }
+
+  bool hasOffset() const { return HasOffset; }
+
+  RelocOffsetT getOffset() const {
+    assert(HasOffset);
+    return Offset;
+  }
+
+  void setOffset(const RelocOffsetT Value) {
+    assert(!HasOffset);
+    Offset = Value;
+    HasOffset = true;
+  }
+
+private:
+  RelocOffset() = default;
+  explicit RelocOffset(RelocOffsetT Offset) { setOffset(Offset); }
+
+  bool HasOffset = false;
+  RelocOffsetT Offset;
+};
+
 /// RelocatableTuple bundles the parameters that are used to construct an
 /// ConstantRelocatable. It is done this way so that ConstantRelocatable can fit
 /// into the global constant pool template mechanism.
@@ -255,14 +294,22 @@ class RelocatableTuple {
   RelocatableTuple &operator=(const RelocatableTuple &) = delete;
 
 public:
-  RelocatableTuple(const RelocOffsetT Offset, const IceString &Name,
+  RelocatableTuple(const RelocOffsetArray &OffsetExpr, const IceString &Name,
                    bool SuppressMangling)
-      : Offset(Offset), Name(Name), SuppressMangling(SuppressMangling) {}
+      : OffsetExpr(OffsetExpr), Name(Name), SuppressMangling(SuppressMangling) {
+  }
+
+  RelocatableTuple(const RelocOffsetArray &OffsetExpr, const IceString &Name,
+                   const IceString &EmitString, bool SuppressMangling)
+      : OffsetExpr(OffsetExpr), Name(Name), EmitString(EmitString),
+        SuppressMangling(SuppressMangling) {}
+
   RelocatableTuple(const RelocatableTuple &) = default;
 
-  const RelocOffsetT Offset;
+  const RelocOffsetArray OffsetExpr;
   const IceString Name;
-  bool SuppressMangling;
+  const IceString EmitString;
+  const bool SuppressMangling;
 };
 
 bool operator==(const RelocatableTuple &A, const RelocatableTuple &B);
@@ -277,13 +324,22 @@ class ConstantRelocatable : public Constant {
 public:
   static ConstantRelocatable *create(GlobalContext *Ctx, Type Ty,
                                      const RelocatableTuple &Tuple) {
-    return new (Ctx->allocate<ConstantRelocatable>()) ConstantRelocatable(
-        Ty, Tuple.Offset, Tuple.Name, Tuple.SuppressMangling);
+    return new (Ctx->allocate<ConstantRelocatable>())
+        ConstantRelocatable(Ty, Tuple.OffsetExpr, Tuple.Name, Tuple.EmitString,
+                            Tuple.SuppressMangling);
   }
 
-  RelocOffsetT getOffset() const { return Offset; }
+  RelocOffsetT getOffset() const {
+    RelocOffsetT Offset = 0;
+    for (const auto *const OffsetReloc : OffsetExpr) {
+      Offset += OffsetReloc->getOffset();
+    }
+    return Offset;
+  }
+
+  const IceString &getEmitString() const { return EmitString; }
+
   const IceString &getName() const { return Name; }
-  void setSuppressMangling(bool Value) { SuppressMangling = Value; }
   bool getSuppressMangling() const { return SuppressMangling; }
   using Constant::emit;
   void emit(TargetLowering *Target) const final;
@@ -298,13 +354,16 @@ public:
   }
 
 private:
-  ConstantRelocatable(Type Ty, RelocOffsetT Offset, const IceString &Name,
+  ConstantRelocatable(Type Ty, const RelocOffsetArray &OffsetExpr,
+                      const IceString &Name, const IceString &EmitString,
                       bool SuppressMangling)
-      : Constant(kConstRelocatable, Ty), Offset(Offset), Name(Name),
-        SuppressMangling(SuppressMangling) {}
-  const RelocOffsetT Offset; /// fixed offset to add
-  const IceString Name;      /// optional for debug/dump
-  bool SuppressMangling;
+      : Constant(kConstRelocatable, Ty), OffsetExpr(OffsetExpr), Name(Name),
+        EmitString(EmitString), SuppressMangling(SuppressMangling) {}
+
+  const RelocOffsetArray OffsetExpr; /// fixed offset to add
+  const IceString Name;              /// optional for debug/dump
+  const IceString EmitString;        /// optional for textual emission
+  const bool SuppressMangling;
 };
 
 /// ConstantUndef represents an unspecified bit pattern. Although it is legal to

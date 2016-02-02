@@ -200,6 +200,9 @@ public:
   Constant *getConstantFloat(float Value);
   Constant *getConstantDouble(double Value);
   /// Returns a symbolic constant.
+  Constant *getConstantSym(const RelocOffsetArray &Offset,
+                           const IceString &Name, const IceString &EmitString,
+                           bool SuppressMangling);
   Constant *getConstantSym(RelocOffsetT Offset, const IceString &Name,
                            bool SuppressMangling);
   Constant *getConstantExternSym(const IceString &Name);

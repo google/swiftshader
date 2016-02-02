@@ -598,15 +598,44 @@ Inst *TargetX8664::emitCallToTarget(Operand *CallTarget, Variable *ReturnReg) {
   Inst *NewCall = nullptr;
   auto *CallTargetR = llvm::dyn_cast<Variable>(CallTarget);
   if (NeedSandboxing) {
+    // In NaCl sandbox, calls are replaced by a push/jmp pair:
+    //
+    //     push .after_call
+    //     jmp CallTarget
+    //     .align bundle_size
+    // after_call:
+    //
+    // In order to emit this sequence, we need a temporary label ("after_call",
+    // in this example.)
+    //
+    // The operand to push is a ConstantRelocatable. The easy way to implement
+    // this sequence is to create a ConstantRelocatable(0, "after_call"), but
+    // this ends up creating more relocations for the linker to resolve.
+    // Therefore, we create a ConstantRelocatable from the name of the function
+    // being compiled (i.e., ConstantRelocatable(after_call - Func, Func).
+    //
+    // By default, ConstantRelocatables are emitted (in textual output) as
+    //
+    //  ConstantName + Offset
+    //
+    // ReturnReloc has an offset that is only known during binary emission.
+    // Therefore, we set a custom emit string for ReturnReloc that will be
+    // used instead. In this particular case, the code will be emitted as
+    //
+    //  push .after_call
     InstX86Label *ReturnAddress = InstX86Label::create(Func, this);
-    ReturnAddress->setIsReturnLocation(true);
+    auto *ReturnRelocOffset = RelocOffset::create(Ctx);
+    ReturnAddress->setRelocOffset(ReturnRelocOffset);
     constexpr bool SuppressMangling = true;
+    const IceString EmitString = ReturnAddress->getName(Func);
+    auto *ReturnReloc = llvm::cast<ConstantRelocatable>(Ctx->getConstantSym(
+        {ReturnRelocOffset}, Ctx->mangleName(Func->getFunctionName()),
+        EmitString, SuppressMangling));
     /* AutoBundle scoping */ {
       std::unique_ptr<AutoBundle> Bundler;
       if (CallTargetR == nullptr) {
         Bundler = makeUnique<AutoBundle>(this, InstBundleLock::Opt_PadToEnd);
-        _push(Ctx->getConstantSym(0, ReturnAddress->getName(Func),
-                                  SuppressMangling));
+        _push(ReturnReloc);
       } else {
         Variable *T = makeReg(IceType_i32);
         Variable *T64 = makeReg(IceType_i64);
@@ -615,8 +644,7 @@ Inst *TargetX8664::emitCallToTarget(Operand *CallTarget, Variable *ReturnReg) {
 
         _mov(T, CallTargetR);
         Bundler = makeUnique<AutoBundle>(this, InstBundleLock::Opt_PadToEnd);
-        _push(Ctx->getConstantSym(0, ReturnAddress->getName(Func),
-                                  SuppressMangling));
+        _push(ReturnReloc);
         const SizeT BundleSize =
             1 << Func->getAssembler<>()->getBundleAlignLog2Bytes();
         _and(T, Ctx->getConstantInt32(~(BundleSize - 1)));
