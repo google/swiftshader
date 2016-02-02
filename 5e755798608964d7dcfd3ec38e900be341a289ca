@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "11f7dc9a_2b7459ae",
+        "filename": "src/Android.mk",
+        "patchSetId": 1
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5225
+      },
+      "writtenOn": "2016-02-02T17:20:06Z",
+      "side": 1,
+      "message": "that\u0027s kind of what i thought.\n\nwe\u0027ve\nifneq ($(filter gce_x86 calypso, $(TARGET_DEVICE)),)\n\nunder gce_x86 dir.\n\n\nso perhaps the problem is somewhere around DDISPLAY_LOGO or inside if this ifneq statement\u0027s then paragraph?",
+      "range": {
+        "startLine": 100,
+        "startChar": 16,
+        "endLine": 100,
+        "endChar": 19
+      },
+      "revId": "5e755798608964d7dcfd3ec38e900be341a289ca",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
