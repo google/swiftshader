@@ -271,8 +271,8 @@ void TargetMIPS32::translateOm1() {
   }
 }
 
-bool TargetMIPS32::doBranchOpt(Inst *I, const CfgNode *NextNode) {
-  (void)I;
+bool TargetMIPS32::doBranchOpt(Inst *Instr, const CfgNode *NextNode) {
+  (void)Instr;
   (void)NextNode;
   UnimplementedError(Func->getContext()->getFlags());
   return false;
@@ -560,7 +560,7 @@ llvm::SmallBitVector TargetMIPS32::getRegisterSet(RegSetMask Include,
   return Registers;
 }
 
-void TargetMIPS32::lowerAlloca(const InstAlloca *Inst) {
+void TargetMIPS32::lowerAlloca(const InstAlloca *Instr) {
   UsesFramePointer = true;
   // Conservatively require the stack to be aligned. Some stack adjustment
   // operations implemented below assume that the stack is aligned before the
@@ -568,13 +568,13 @@ void TargetMIPS32::lowerAlloca(const InstAlloca *Inst) {
   // after the alloca. The stack alignment restriction can be relaxed in some
   // cases.
   NeedsStackAlignment = true;
-  UnimplementedLoweringError(this, Inst);
+  UnimplementedLoweringError(this, Instr);
 }
 
-void TargetMIPS32::lowerInt64Arithmetic(const InstArithmetic *Inst,
+void TargetMIPS32::lowerInt64Arithmetic(const InstArithmetic *Instr,
                                         Variable *Dest, Operand *Src0,
                                         Operand *Src1) {
-  InstArithmetic::OpKind Op = Inst->getOp();
+  InstArithmetic::OpKind Op = Instr->getOp();
   switch (Op) {
   case InstArithmetic::Add:
   case InstArithmetic::And:
@@ -583,7 +583,7 @@ void TargetMIPS32::lowerInt64Arithmetic(const InstArithmetic *Inst,
   case InstArithmetic::Xor:
     break;
   default:
-    UnimplementedLoweringError(this, Inst);
+    UnimplementedLoweringError(this, Instr);
     return;
   }
   auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
@@ -651,28 +651,28 @@ void TargetMIPS32::lowerInt64Arithmetic(const InstArithmetic *Inst,
     return;
   }
   default:
-    UnimplementedLoweringError(this, Inst);
+    UnimplementedLoweringError(this, Instr);
     return;
   }
 }
 
-void TargetMIPS32::lowerArithmetic(const InstArithmetic *Inst) {
-  Variable *Dest = Inst->getDest();
+void TargetMIPS32::lowerArithmetic(const InstArithmetic *Instr) {
+  Variable *Dest = Instr->getDest();
   // We need to signal all the UnimplementedLoweringError errors before any
   // legalization into new variables, otherwise Om1 register allocation may fail
   // when it sees variables that are defined but not used.
   Type DestTy = Dest->getType();
-  Operand *Src0 = legalizeUndef(Inst->getSrc(0));
-  Operand *Src1 = legalizeUndef(Inst->getSrc(1));
+  Operand *Src0 = legalizeUndef(Instr->getSrc(0));
+  Operand *Src1 = legalizeUndef(Instr->getSrc(1));
   if (DestTy == IceType_i64) {
-    lowerInt64Arithmetic(Inst, Inst->getDest(), Src0, Src1);
+    lowerInt64Arithmetic(Instr, Instr->getDest(), Src0, Src1);
     return;
   }
   if (isVectorType(Dest->getType())) {
-    UnimplementedLoweringError(this, Inst);
+    UnimplementedLoweringError(this, Instr);
     return;
   }
-  switch (Inst->getOp()) {
+  switch (Instr->getOp()) {
   default:
     break;
   case InstArithmetic::Shl:
@@ -687,7 +687,7 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Inst) {
   case InstArithmetic::Fmul:
   case InstArithmetic::Fdiv:
   case InstArithmetic::Frem:
-    UnimplementedLoweringError(this, Inst);
+    UnimplementedLoweringError(this, Instr);
     return;
   }
 
@@ -697,7 +697,7 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Inst) {
   Variable *Src0R = legalizeToReg(Src0);
   Variable *Src1R = legalizeToReg(Src1);
 
-  switch (Inst->getOp()) {
+  switch (Instr->getOp()) {
   case InstArithmetic::_num:
     break;
   case InstArithmetic::Add:
@@ -750,12 +750,12 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Inst) {
   case InstArithmetic::Frem:
     break;
   }
-  UnimplementedLoweringError(this, Inst);
+  UnimplementedLoweringError(this, Instr);
 }
 
-void TargetMIPS32::lowerAssign(const InstAssign *Inst) {
-  Variable *Dest = Inst->getDest();
-  Operand *Src0 = Inst->getSrc(0);
+void TargetMIPS32::lowerAssign(const InstAssign *Instr) {
+  Variable *Dest = Instr->getDest();
+  Operand *Src0 = Instr->getSrc(0);
   assert(Dest->getType() == Src0->getType());
   if (Dest->getType() == IceType_i64) {
     Src0 = legalizeUndef(Src0);
@@ -784,15 +784,15 @@ void TargetMIPS32::lowerAssign(const InstAssign *Inst) {
       SrcR = legalize(Src0, Legal_Reg);
     }
     if (isVectorType(Dest->getType())) {
-      UnimplementedLoweringError(this, Inst);
+      UnimplementedLoweringError(this, Instr);
     } else {
       _mov(Dest, SrcR);
     }
   }
 }
 
-void TargetMIPS32::lowerBr(const InstBr *Inst) {
-  UnimplementedLoweringError(this, Inst);
+void TargetMIPS32::lowerBr(const InstBr *Instr) {
+  UnimplementedLoweringError(this, Instr);
 }
 
 void TargetMIPS32::lowerCall(const InstCall *Instr) {
@@ -882,65 +882,65 @@ void TargetMIPS32::lowerCall(const InstCall *Instr) {
   }
 }
 
-void TargetMIPS32::lowerCast(const InstCast *Inst) {
-  InstCast::OpKind CastKind = Inst->getCastKind();
+void TargetMIPS32::lowerCast(const InstCast *Instr) {
+  InstCast::OpKind CastKind = Instr->getCastKind();
   switch (CastKind) {
   default:
     Func->setError("Cast type not supported");
     return;
   case InstCast::Sext: {
-    UnimplementedLoweringError(this, Inst);
+    UnimplementedLoweringError(this, Instr);
     break;
   }
   case InstCast::Zext: {
-    UnimplementedLoweringError(this, Inst);
+    UnimplementedLoweringError(this, Instr);
     break;
   }
   case InstCast::Trunc: {
-    UnimplementedLoweringError(this, Inst);
+    UnimplementedLoweringError(this, Instr);
     break;
   }
   case InstCast::Fptrunc:
-    UnimplementedLoweringError(this, Inst);
+    UnimplementedLoweringError(this, Instr);
     break;
   case InstCast::Fpext: {
-    UnimplementedLoweringError(this, Inst);
+    UnimplementedLoweringError(this, Instr);
     break;
   }
   case InstCast::Fptosi:
-    UnimplementedLoweringError(this, Inst);
+    UnimplementedLoweringError(this, Instr);
     break;
   case InstCast::Fptoui:
-    UnimplementedLoweringError(this, Inst);
+    UnimplementedLoweringError(this, Instr);
     break;
   case InstCast::Sitofp:
-    UnimplementedLoweringError(this, Inst);
+    UnimplementedLoweringError(this, Instr);
     break;
   case InstCast::Uitofp: {
-    UnimplementedLoweringError(this, Inst);
+    UnimplementedLoweringError(this, Instr);
     break;
   }
   case InstCast::Bitcast: {
-    UnimplementedLoweringError(this, Inst);
+    UnimplementedLoweringError(this, Instr);
     break;
   }
   }
 }
 
-void TargetMIPS32::lowerExtractElement(const InstExtractElement *Inst) {
-  UnimplementedLoweringError(this, Inst);
+void TargetMIPS32::lowerExtractElement(const InstExtractElement *Instr) {
+  UnimplementedLoweringError(this, Instr);
 }
 
-void TargetMIPS32::lowerFcmp(const InstFcmp *Inst) {
-  UnimplementedLoweringError(this, Inst);
+void TargetMIPS32::lowerFcmp(const InstFcmp *Instr) {
+  UnimplementedLoweringError(this, Instr);
 }
 
-void TargetMIPS32::lowerIcmp(const InstIcmp *Inst) {
-  UnimplementedLoweringError(this, Inst);
+void TargetMIPS32::lowerIcmp(const InstIcmp *Instr) {
+  UnimplementedLoweringError(this, Instr);
 }
 
-void TargetMIPS32::lowerInsertElement(const InstInsertElement *Inst) {
-  UnimplementedLoweringError(this, Inst);
+void TargetMIPS32::lowerInsertElement(const InstInsertElement *Instr) {
+  UnimplementedLoweringError(this, Instr);
 }
 
 void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
@@ -1069,8 +1069,8 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   return;
 }
 
-void TargetMIPS32::lowerLoad(const InstLoad *Inst) {
-  UnimplementedLoweringError(this, Inst);
+void TargetMIPS32::lowerLoad(const InstLoad *Instr) {
+  UnimplementedLoweringError(this, Instr);
 }
 
 void TargetMIPS32::doAddressOptLoad() {
@@ -1085,14 +1085,14 @@ void TargetMIPS32::randomlyInsertNop(float Probability,
   }
 }
 
-void TargetMIPS32::lowerPhi(const InstPhi * /*Inst*/) {
+void TargetMIPS32::lowerPhi(const InstPhi * /*Instr*/) {
   Func->setError("Phi found in regular instruction list");
 }
 
-void TargetMIPS32::lowerRet(const InstRet *Inst) {
+void TargetMIPS32::lowerRet(const InstRet *Instr) {
   Variable *Reg = nullptr;
-  if (Inst->hasRetValue()) {
-    Operand *Src0 = Inst->getRetValue();
+  if (Instr->hasRetValue()) {
+    Operand *Src0 = Instr->getRetValue();
     switch (Src0->getType()) {
     case IceType_i1:
     case IceType_i8:
@@ -1114,30 +1114,30 @@ void TargetMIPS32::lowerRet(const InstRet *Inst) {
     }
 
     default:
-      UnimplementedLoweringError(this, Inst);
+      UnimplementedLoweringError(this, Instr);
     }
   }
   _ret(getPhysicalRegister(RegMIPS32::Reg_RA), Reg);
 }
 
-void TargetMIPS32::lowerSelect(const InstSelect *Inst) {
-  UnimplementedLoweringError(this, Inst);
+void TargetMIPS32::lowerSelect(const InstSelect *Instr) {
+  UnimplementedLoweringError(this, Instr);
 }
 
-void TargetMIPS32::lowerStore(const InstStore *Inst) {
-  UnimplementedLoweringError(this, Inst);
+void TargetMIPS32::lowerStore(const InstStore *Instr) {
+  UnimplementedLoweringError(this, Instr);
 }
 
 void TargetMIPS32::doAddressOptStore() {
   UnimplementedError(Func->getContext()->getFlags());
 }
 
-void TargetMIPS32::lowerSwitch(const InstSwitch *Inst) {
-  UnimplementedLoweringError(this, Inst);
+void TargetMIPS32::lowerSwitch(const InstSwitch *Instr) {
+  UnimplementedLoweringError(this, Instr);
 }
 
-void TargetMIPS32::lowerUnreachable(const InstUnreachable *Inst) {
-  UnimplementedLoweringError(this, Inst);
+void TargetMIPS32::lowerUnreachable(const InstUnreachable *Instr) {
+  UnimplementedLoweringError(this, Instr);
 }
 
 // Turn an i64 Phi instruction into a pair of i32 Phi instructions, to preserve

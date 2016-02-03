@@ -44,7 +44,7 @@ public:
 
   void translateOm1() override;
   void translateO2() override;
-  bool doBranchOpt(Inst *I, const CfgNode *NextNode) override;
+  bool doBranchOpt(Inst *Instr, const CfgNode *NextNode) override;
 
   SizeT getNumRegisters() const override { return RegMIPS32::Reg_NUM; }
   Variable *getPhysicalRegister(SizeT RegNum, Type Ty = IceType_void) override;
@@ -245,26 +245,26 @@ protected:
 
   void postLower() override;
 
-  void lowerAlloca(const InstAlloca *Inst) override;
-  void lowerArithmetic(const InstArithmetic *Inst) override;
-  void lowerInt64Arithmetic(const InstArithmetic *Inst, Variable *Dest,
+  void lowerAlloca(const InstAlloca *Instr) override;
+  void lowerArithmetic(const InstArithmetic *Instr) override;
+  void lowerInt64Arithmetic(const InstArithmetic *Instr, Variable *Dest,
                             Operand *Src0, Operand *Src1);
-  void lowerAssign(const InstAssign *Inst) override;
-  void lowerBr(const InstBr *Inst) override;
-  void lowerCall(const InstCall *Inst) override;
-  void lowerCast(const InstCast *Inst) override;
-  void lowerExtractElement(const InstExtractElement *Inst) override;
-  void lowerFcmp(const InstFcmp *Inst) override;
-  void lowerIcmp(const InstIcmp *Inst) override;
-  void lowerIntrinsicCall(const InstIntrinsicCall *Inst) override;
-  void lowerInsertElement(const InstInsertElement *Inst) override;
-  void lowerLoad(const InstLoad *Inst) override;
-  void lowerPhi(const InstPhi *Inst) override;
-  void lowerRet(const InstRet *Inst) override;
-  void lowerSelect(const InstSelect *Inst) override;
-  void lowerStore(const InstStore *Inst) override;
-  void lowerSwitch(const InstSwitch *Inst) override;
-  void lowerUnreachable(const InstUnreachable *Inst) override;
+  void lowerAssign(const InstAssign *Instr) override;
+  void lowerBr(const InstBr *Instr) override;
+  void lowerCall(const InstCall *Instr) override;
+  void lowerCast(const InstCast *Instr) override;
+  void lowerExtractElement(const InstExtractElement *Instr) override;
+  void lowerFcmp(const InstFcmp *Instr) override;
+  void lowerIcmp(const InstIcmp *Instr) override;
+  void lowerIntrinsicCall(const InstIntrinsicCall *Instr) override;
+  void lowerInsertElement(const InstInsertElement *Instr) override;
+  void lowerLoad(const InstLoad *Instr) override;
+  void lowerPhi(const InstPhi *Instr) override;
+  void lowerRet(const InstRet *Instr) override;
+  void lowerSelect(const InstSelect *Instr) override;
+  void lowerStore(const InstStore *Instr) override;
+  void lowerSwitch(const InstSwitch *Instr) override;
+  void lowerUnreachable(const InstUnreachable *Instr) override;
   void prelowerPhis() override;
   uint32_t getCallStackArgumentsSizeBytes(const InstCall *Instr) override {
     (void)Instr;
