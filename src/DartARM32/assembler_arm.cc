@@ -1301,12 +1301,12 @@ void Assembler::vshlqu(OperandSize sz,
   EmitSIMDqqq(B25 | B24 | B10, sz, qd, qn, qm);
 }
 
-
+#if 0
+// Moved to ARM32::AssemblerARM32::veorq()
 void Assembler::veorq(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B24 | B8 | B4, kByte, qd, qn, qm);
 }
 
-#if 0
 // Moved to ARM32::AssemblerARM32::vorrq()
 void Assembler::vorrq(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B21 | B8 | B4, kByte, qd, qn, qm);

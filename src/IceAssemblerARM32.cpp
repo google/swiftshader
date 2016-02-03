@@ -2471,6 +2471,13 @@ void AssemblerARM32::veord(const Operand *OpDd, const Operand *OpDn,
   emitInst(Encoding);
 }
 
+void AssemblerARM32::veorq(const Operand *OpQd, const Operand *OpQn,
+                           const Operand *OpQm) {
+  constexpr const char *Veorq = "veorq";
+  constexpr IValueT VeorqOpcode = B24 | B8 | B4;
+  emitSIMDqqq(VeorqOpcode, IceType_i8, OpQd, OpQn, OpQm, Veorq);
+}
+
 void AssemblerARM32::vldrd(const Operand *OpDd, const Operand *OpAddress,
                            CondARM32::Cond Cond, const TargetInfo &TInfo) {
   // VLDR - ARM section A8.8.333, encoding A1.

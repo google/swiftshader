@@ -377,6 +377,8 @@ public:
 
   void veord(const Operand *OpDd, const Operand *OpDn, const Operand *OpDm);
 
+  void veorq(const Operand *OpQd, const Operand *OpQn, const Operand *OpQm);
+
   void vldrd(const Operand *OpDd, const Operand *OpAddress,
              CondARM32::Cond Cond, const TargetInfo &TInfo);
 

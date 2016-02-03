@@ -716,8 +716,9 @@ class Assembler : public ValueObject {
   void vrsqrteqs(QRegister qd, QRegister qm);
   void vrsqrtsqs(QRegister qd, QRegister qn, QRegister qm);
 
-  void veorq(QRegister qd, QRegister qn, QRegister qm);
 #if 0
+  // Moved to ARM32::AssemblerARM32::vorrq()
+  void veorq(QRegister qd, QRegister qn, QRegister qm);
   // Moved to ARM32::AssemblerARM32::vorrq()
   void vorrq(QRegister qd, QRegister qn, QRegister qm);
 #endif
