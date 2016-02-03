@@ -22,6 +22,30 @@
       "revId": "5fdc0b4d49894bcfea75810d5f3e02f943565deb",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "11a43c86_f70b68ad",
+        "filename": "src/OpenGL/common/Object.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-02-03T17:40:02Z",
+      "side": 1,
+      "message": "So I made a change, but didn\u0027t go all the way with this suggestion. I changed OffsetBindingPointer from an inheritance to a composition, which seems to work better that way and looks cleaner, but I kept it here. Most users of BindingPointer objects don\u0027t include Buffer.hpp, so I would have to add a dependency if I moved this class there. I couldn\u0027t really find a better place...",
+      "parentUuid": "344e8eac_3f2483ef",
+      "range": {
+        "startLine": 89,
+        "startChar": 6,
+        "endLine": 89,
+        "endChar": 26
+      },
+      "revId": "5fdc0b4d49894bcfea75810d5f3e02f943565deb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
