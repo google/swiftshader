@@ -2757,6 +2757,30 @@ void AssemblerARM32::vmuld(const Operand *OpDd, const Operand *OpDn,
   emitVFPddd(Cond, VmuldOpcode, OpDd, OpDn, OpDm, Vmuld);
 }
 
+void AssemblerARM32::vmulqi(Type ElmtTy, const Operand *OpQd,
+                            const Operand *OpQn, const Operand *OpQm) {
+  // VMUL, VMULL (integer and polynomial) - ARM section A8.8.350, encoding A1:
+  //   vmul<c>.<dt> <Qd>, <Qn>, <Qm>
+  //
+  // 111100100Dssnnn0ddd01001NqM1mmm0 where Dddd=Qd, Nnnn=Qn, Mmmm=Qm, and
+  // dt in [i8, i16, i32] where ss is the index.
+  assert(ElmtTy != IceType_i64 && "vmulqi on i64 vector not allowed");
+  constexpr const char *Vmulqi = "vmulqi";
+  constexpr IValueT VmulqiOpcode = B11 | B8 | B4;
+  emitSIMDqqq(VmulqiOpcode, ElmtTy, OpQd, OpQn, OpQm, Vmulqi);
+}
+
+void AssemblerARM32::vmulqf(const Operand *OpQd, const Operand *OpQn,
+                            const Operand *OpQm) {
+  // VMUL (floating-point) - ARM section A8.8.351, encoding A1:
+  //   vmul.f32 <Qd>, <Qn>, <Qm>
+  //
+  // 111100110D00nnn0ddd01101MqM1mmm0 where Dddd=Qd, Nnnn=Qn, and Mmmm=Qm.
+  constexpr const char *Vmulqf = "vmulqf";
+  constexpr IValueT VmulqfOpcode = B24 | B11 | B10 | B8 | B4;
+  emitSIMDqqq(VmulqfOpcode, IceType_f32, OpQd, OpQn, OpQm, Vmulqf);
+}
+
 void AssemblerARM32::vorrq(const Operand *OpQd, const Operand *OpQm,
                            const Operand *OpQn) {
   // VORR (register) - ARM section A8.8.360, encoding A1:

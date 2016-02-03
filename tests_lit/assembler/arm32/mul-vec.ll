@@ -34,7 +34,7 @@ entry:
 
 ; ASM:     vmul.f32        q10, q10, q11
 ; DIS:   8:       f3444df6
-; IASM:     vmul.f32
+; IASM-NOT:     vmul.f32
 
   ret <4 x float> %res
 }
@@ -49,7 +49,7 @@ entry:
 
 ; ASM:     vmul.i32        q10, q10, q11
 ; DIS:   28:       f26449f6
-; IASM:     vmul.i32
+; IASM-NOT:     vmul.i32
 
   ret <4 x i32> %res
 }
@@ -64,7 +64,7 @@ entry:
 
 ; ASM:     vmul.i16        q10, q10, q11
 ; DIS:   48:       f25449f6
-; IASM:     vmul.i16
+; IASM-NOT:     vmul.i16
 
   ret <8 x i16> %res
 }
@@ -79,7 +79,7 @@ entry:
 
 ; ASM:     vmul.i8        q10, q10, q11
 ; DIS:   68:       f24449f6
-; IASM:     vmul.i8
+; IASM-NOT:     vmul.i8
 
   ret <16 x i8> %res
 }

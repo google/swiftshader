@@ -621,7 +621,6 @@ template <> void InstARM32Vadd::emitIAS(const Cfg *Func) const {
   default:
     llvm::report_fatal_error("Vadd not defined on type " +
                              typeIceString(DestTy));
-    break;
   case IceType_v16i8:
   case IceType_v8i16:
   case IceType_v4i32:
@@ -778,20 +777,28 @@ template <> void InstARM32Vsub::emitIAS(const Cfg *Func) const {
 template <> void InstARM32Vmul::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   const Variable *Dest = getDest();
-  switch (Dest->getType()) {
+  const Type DestTy = Dest->getType();
+  switch (DestTy) {
   default:
-    // TODO(kschimpf) Figure if more cases are needed.
-    emitUsingTextFixup(Func);
-    return;
+    llvm::report_fatal_error("Vmul not defined on type " +
+                             typeIceString(DestTy));
+
+  case IceType_v16i8:
+  case IceType_v8i16:
+  case IceType_v4i32:
+    Asm->vmulqi(typeElementType(DestTy), Dest, getSrc(0), getSrc(1));
+    break;
+  case IceType_v4f32:
+    Asm->vmulqf(Dest, getSrc(0), getSrc(1));
+    break;
   case IceType_f32:
-    Asm->vmuls(getDest(), getSrc(0), getSrc(1), CondARM32::AL);
-    assert(!Asm->needsTextFixup());
-    return;
+    Asm->vmuls(Dest, getSrc(0), getSrc(1), CondARM32::AL);
+    break;
   case IceType_f64:
-    Asm->vmuld(getDest(), getSrc(0), getSrc(1), CondARM32::AL);
-    assert(!Asm->needsTextFixup());
-    return;
+    Asm->vmuld(Dest, getSrc(0), getSrc(1), CondARM32::AL);
+    break;
   }
+  assert(!Asm->needsTextFixup());
 }
 
 InstARM32Call::InstARM32Call(Cfg *Func, Variable *Dest, Operand *CallTarget)

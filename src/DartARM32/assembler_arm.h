@@ -690,9 +690,11 @@ class Assembler : public ValueObject {
   void vmuls(SRegister sd, SRegister sn, SRegister sm, Condition cond = AL);
   // Moved to Arm32::AssemblerARM32::vmuld()
   void vmuld(DRegister dd, DRegister dn, DRegister dm, Condition cond = AL);
-#endif
+  // Moved to ARM32::AssemblerARM32::vmulqi().
   void vmulqi(OperandSize sz, QRegister qd, QRegister qn, QRegister qm);
+  // Moved to ARM32::AssemblerARM32::vmulqf().
   void vmulqs(QRegister qd, QRegister qn, QRegister qm);
+#endif
   void vshlqi(OperandSize sz, QRegister qd, QRegister qm, QRegister qn);
   void vshlqu(OperandSize sz, QRegister qd, QRegister qm, QRegister qn);
 #if 0

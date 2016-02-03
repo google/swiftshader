@@ -435,6 +435,13 @@ public:
   void vmuld(const Operand *OpDd, const Operand *OpDn, const Operand *OpDm,
              CondARM32::Cond Cond);
 
+  // Integer vector multiply.
+  void vmulqi(Type ElmtTy, const Operand *OpQd, const Operand *OpQn,
+              const Operand *OpQm);
+
+  // Float vector multiply.
+  void vmulqf(const Operand *OpQd, const Operand *OpQn, const Operand *OpQm);
+
   void vmuls(const Operand *OpSd, const Operand *OpSn, const Operand *OpSm,
              CondARM32::Cond Cond);
 

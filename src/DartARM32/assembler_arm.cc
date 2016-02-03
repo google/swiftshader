@@ -1278,17 +1278,18 @@ void Assembler::vsubqs(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B21 | B11 | B10 | B8, kSWord, qd, qn, qm);
 }
 
-
+#if 0
+// Moved to ARM32::AssemblerARM32::vmulqi().
 void Assembler::vmulqi(OperandSize sz,
                        QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B11 | B8 | B4, sz, qd, qn, qm);
 }
 
-
+// Moved to ARM32::AssemblerARM32::vmulqf().
 void Assembler::vmulqs(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B24 | B11 | B10 | B8 | B4, kSWord, qd, qn, qm);
 }
-
+#endif
 
 void Assembler::vshlqi(OperandSize sz,
                        QRegister qd, QRegister qm, QRegister qn) {
