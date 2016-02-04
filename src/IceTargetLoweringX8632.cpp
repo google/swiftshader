@@ -35,6 +35,14 @@ createTargetHeaderLowering(::Ice::GlobalContext *Ctx) {
 
 void staticInit(::Ice::GlobalContext *Ctx) {
   ::Ice::X8632::TargetX8632::staticInit(Ctx);
+  if (Ctx->getFlags().getUseNonsfi()) {
+    // In nonsfi, we need to reference the _GLOBAL_OFFSET_TABLE_ for accessing
+    // globals. The GOT is an external symbol (i.e., it is not defined in the
+    // pexe) so we need to register it as such so that ELF emission won't barf
+    // on an "unknown" symbol. The GOT is added to the External symbols list
+    // here because staticInit() is invoked in a single-thread context.
+    Ctx->getConstantExternSym(::Ice::GlobalOffsetTable);
+  }
 }
 } // end of namespace X8632
 
@@ -233,14 +241,30 @@ void TargetX8632::emitGetIP(CfgNode *Node) {
     Variable *CallDest =
         Dest->hasReg() ? Dest
                        : getPhysicalRegister(Traits::RegisterSet::Reg_eax);
-    // Call the getIP_<reg> helper.
-    IceString RegName = Traits::getRegName(CallDest->getRegNum());
-    Constant *CallTarget = Ctx->getConstantExternSym(H_getIP_prefix + RegName);
-    Context.insert<Traits::Insts::Call>(CallDest, CallTarget);
+    auto *BeforeAddReloc = RelocOffset::create(Ctx);
+    BeforeAddReloc->setSubtract(true);
+    auto *BeforeAdd = InstX86Label::create(Func, this);
+    BeforeAdd->setRelocOffset(BeforeAddReloc);
+
+    auto *AfterAddReloc = RelocOffset::create(Ctx);
+    auto *AfterAdd = InstX86Label::create(Func, this);
+    AfterAdd->setRelocOffset(AfterAddReloc);
+
+    auto *ImmSize = RelocOffset::create(Ctx, -typeWidthInBytes(IceType_i32));
+
+    auto *GotFromPc = llvm::cast<ConstantRelocatable>(
+        Ctx->getConstantSym({AfterAddReloc, BeforeAddReloc, ImmSize},
+                            GlobalOffsetTable, GlobalOffsetTable, true));
+
     // Insert a new version of InstX86GetIP.
     Context.insert<Traits::Insts::GetIP>(CallDest);
+
+    Context.insert(BeforeAdd);
+    _add(CallDest, GotFromPc);
+    Context.insert(AfterAdd);
+
     // Spill the register to its home stack location if necessary.
-    if (!Dest->hasReg()) {
+    if (Dest != CallDest) {
       _mov(Dest, CallDest);
     }
   }

@@ -293,6 +293,10 @@ public:
     return Buffer.load<T>(Position);
   }
 
+  template <typename T> void store(intptr_t Position, T Value) {
+    Buffer.store(Position, Value);
+  }
+
   /// Emit a fixup at the current location.
   void emitFixup(AssemblerFixup *Fixup) { Buffer.emitFixup(Fixup); }
 

@@ -265,6 +265,7 @@ public:
     return new (Ctx->allocate<RelocOffset>()) RelocOffset(Value);
   }
 
+  void setSubtract(bool Value) { Subtract = Value; }
   bool hasOffset() const { return HasOffset; }
 
   RelocOffsetT getOffset() const {
@@ -274,7 +275,12 @@ public:
 
   void setOffset(const RelocOffsetT Value) {
     assert(!HasOffset);
-    Offset = Value;
+    if (Subtract) {
+      assert(Value != std::numeric_limits<RelocOffsetT>::lowest());
+      Offset = -Value;
+    } else {
+      Offset = Value;
+    }
     HasOffset = true;
   }
 
@@ -282,6 +288,7 @@ private:
   RelocOffset() = default;
   explicit RelocOffset(RelocOffsetT Offset) { setOffset(Offset); }
 
+  bool Subtract = false;
   bool HasOffset = false;
   RelocOffsetT Offset;
 };

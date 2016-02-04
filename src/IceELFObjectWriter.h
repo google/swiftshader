@@ -69,7 +69,7 @@ public:
   /// after all functions are written. The text buffer and fixups are extracted
   /// from the Assembler object.
   void writeFunctionCode(const IceString &FuncName, bool IsInternal,
-                         const Assembler *Asm);
+                         Assembler *Asm);
 
   /// Queries the GlobalContext for constant pools of the given type and writes
   /// out read-only data sections for those constants. This also fills the

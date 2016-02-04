@@ -74,6 +74,8 @@ class Variable;
 class VariableDeclaration;
 class VariablesMetadata;
 
+constexpr char GlobalOffsetTable[] = "_GLOBAL_OFFSET_TABLE_";
+
 template <size_t SlabSize = 1024 * 1024>
 using ArenaAllocator =
     llvm::BumpPtrAllocatorImpl<llvm::MallocAllocator, SlabSize>;

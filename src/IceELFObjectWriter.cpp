@@ -217,7 +217,7 @@ Elf64_Off ELFObjectWriter::alignFileOffset(Elf64_Xword Align) {
 }
 
 void ELFObjectWriter::writeFunctionCode(const IceString &FuncName,
-                                        bool IsInternal, const Assembler *Asm) {
+                                        bool IsInternal, Assembler *Asm) {
   assert(!SectionNumbersAssigned);
   ELFTextSection *Section = nullptr;
   ELFRelocationSection *RelSection = nullptr;
@@ -243,7 +243,6 @@ void ELFObjectWriter::writeFunctionCode(const IceString &FuncName,
   // Function symbols are set to 0 size in the symbol table, in contrast to
   // data symbols which have a proper size.
   constexpr SizeT SymbolSize = 0;
-  Section->appendData(Str, Asm->getBufferView());
   uint8_t SymbolType;
   uint8_t SymbolBinding;
   if (IsInternal && !Ctx.getFlags().getDisableInternal()) {
@@ -259,9 +258,18 @@ void ELFObjectWriter::writeFunctionCode(const IceString &FuncName,
 
   // Copy the fixup information from per-function Assembler memory to the
   // object writer's memory, for writing later.
-  if (!Asm->fixups().empty()) {
+  const auto &Fixups = Asm->fixups();
+  if (!Fixups.empty()) {
+    if (!RelSection->isRela()) {
+      // This is a non-rela section, so we need to update the instruction stream
+      // with the relocation addends.
+      for (const auto *Fixup : Fixups) {
+        Fixup->emitOffset(Asm);
+      }
+    }
     RelSection->addRelocations(OffsetInSection, Asm->fixups());
   }
+  Section->appendData(Str, Asm->getBufferView());
 }
 
 namespace {

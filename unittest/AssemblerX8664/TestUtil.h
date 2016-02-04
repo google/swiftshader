@@ -913,8 +913,12 @@ protected:
     if (NeedsEpilogue) {
       addEpilogue();
     }
-
     NeedsEpilogue = false;
+
+    for (const auto *Fixup : assembler()->fixups()) {
+      Fixup->emitOffset(assembler());
+    }
+
     return AssembledTest(codeBytes(), codeBytesSize(), NumAllocatedDwords);
   }
 

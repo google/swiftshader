@@ -172,6 +172,13 @@ public:
     return Traits::Is64Bit ? false : Ty == IceType_i64;
   }
 
+  ConstantRelocatable *createGetIPForRegister(const Variable *Dest) {
+    assert(Dest->hasReg());
+    const IceString RegName = Traits::getRegName(Dest->getRegNum());
+    return llvm::cast<ConstantRelocatable>(
+        Ctx->getConstantExternSym(H_getIP_prefix + RegName));
+  }
+
   SizeT getMinJumpTableSize() const override { return 4; }
 
   void emitVariable(const Variable *Var) const override;

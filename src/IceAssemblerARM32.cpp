@@ -501,9 +501,23 @@ EncodedOperand encodeAddress(const Operand *Opnd, IValueT &Value,
 }
 
 // Checks that Offset can fit in imm24 constant of branch (b) instruction.
-bool canEncodeBranchOffset(IOffsetT Offset) {
-  return Utils::IsAligned(Offset, 4) &&
-         Utils::IsInt(kBranchOffsetBits, Offset >> 2);
+void assertCanEncodeBranchOffset(IOffsetT Offset) {
+  (void)Offset;
+  (void)kBranchOffsetBits;
+  assert(Utils::IsAligned(Offset, 4) &&
+         Utils::IsInt(kBranchOffsetBits, Offset >> 2));
+}
+
+IValueT encodeBranchOffset(IOffsetT Offset, IValueT Inst) {
+  // Adjust offset to the way ARM CPUs read PC.
+  Offset -= kPCReadOffset;
+
+  assertCanEncodeBranchOffset(Offset);
+
+  // Properly preserve only the bits supported in the instruction.
+  Offset >>= 2;
+  Offset &= kBranchOffsetMask;
+  return (Inst & ~kBranchOffsetMask) | Offset;
 }
 
 IValueT encodeRegister(const Operand *OpReg, RegSetWanted WantedRegSet,
@@ -595,6 +609,19 @@ size_t MoveRelocatableFixup::emit(GlobalContext *Ctx,
   return InstARM32::InstSize;
 }
 
+// This fixup points to an ARM32 instruction with the following format:
+void MoveRelocatableFixup::emitOffset(Assembler *Asm) const {
+  // cccc00110T00iiiiddddiiiiiiiiiiii where cccc=Cond, dddd=Rd,
+  // iiiiiiiiiiiiiiii = Imm16, and T=1 for movt.
+
+  const IValueT Inst = Asm->load<IValueT>(position());
+  constexpr IValueT Imm16Mask = 0x000F0FFF;
+  const IValueT Imm16 =
+      offset() >> (kind() == llvm::ELF::R_ARM_MOVW_ABS_NC ? 0 : 16) & 0xffff;
+  Asm->store(position(),
+             (Inst & ~Imm16Mask) | ((Imm16 >> 12) << 16) | (Imm16 & 0xfff));
+}
+
 MoveRelocatableFixup *AssemblerARM32::createMoveFixup(bool IsMovW,
                                                       const Constant *Value) {
   MoveRelocatableFixup *F =
@@ -616,6 +643,15 @@ size_t BlRelocatableFixup::emit(GlobalContext *Ctx,
          "bl\t" << symbol(Ctx, &Asm) << "\t@ .word "
       << llvm::format_hex_no_prefix(Inst, 8) << "\n";
   return InstARM32::InstSize;
+}
+
+void BlRelocatableFixup::emitOffset(Assembler *Asm) const {
+  // cccc101liiiiiiiiiiiiiiiiiiiiiiii where cccc=Cond, l=Link, and
+  // iiiiiiiiiiiiiiiiiiiiiiii=
+  // EncodedBranchOffset(cccc101l000000000000000000000000, Offset);
+  const IValueT Inst = Asm->load<IValueT>(position());
+  constexpr IValueT OffsetMask = 0x00FFFFFF;
+  Asm->store(position(), encodeBranchOffset(offset(), Inst & ~OffsetMask));
 }
 
 void AssemblerARM32::padWithNop(intptr_t Padding) {
@@ -665,20 +701,6 @@ Label *AssemblerARM32::getOrCreateLabel(SizeT Number, LabelVector &Labels) {
     Labels[Number] = L;
   }
   return L;
-}
-
-IValueT AssemblerARM32::encodeBranchOffset(IOffsetT Offset, IValueT Inst) {
-  // Adjust offset to the way ARM CPUs read PC.
-  Offset -= kPCReadOffset;
-
-  bool IsGoodOffset = canEncodeBranchOffset(Offset);
-  assert(IsGoodOffset);
-  (void)IsGoodOffset;
-
-  // Properly preserve only the bits supported in the instruction.
-  Offset >>= 2;
-  Offset &= kBranchOffsetMask;
-  return (Inst & ~kBranchOffsetMask) | Offset;
 }
 
 // Pull out offset from branch Inst.

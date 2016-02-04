@@ -7097,7 +7097,7 @@ template <class Machine>
 void TargetX86Base<Machine>::emit(const ConstantRelocatable *C) const {
   if (!BuildDefs::dump())
     return;
-  assert(!Ctx->getFlags().getUseNonsfi());
+  assert(!Ctx->getFlags().getUseNonsfi() || C->getName() == GlobalOffsetTable);
   Ostream &Str = Ctx->getStrEmit();
   Str << "$";
   emitWithoutPrefix(C);

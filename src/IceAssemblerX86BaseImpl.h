@@ -134,8 +134,10 @@ void AssemblerX86Base<TraitsType>::call(const ConstantRelocatable *label) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   intptr_t call_start = Buffer.getPosition();
   emitUint8(0xE8);
-  emitFixup(this->createFixup(Traits::FK_PcRel, label));
-  emitInt32(-4);
+  auto *Fixup = this->createFixup(Traits::FK_PcRel, label);
+  Fixup->set_addend(-4);
+  emitFixup(Fixup);
+  emitInt32(0);
   assert((Buffer.getPosition() - call_start) == kCallExternalLabelSize);
   (void)call_start;
 }
@@ -145,8 +147,10 @@ void AssemblerX86Base<TraitsType>::call(const Immediate &abs_address) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   intptr_t call_start = Buffer.getPosition();
   emitUint8(0xE8);
-  emitFixup(this->createFixup(Traits::FK_PcRel, AssemblerFixup::NullSymbol));
-  emitInt32(abs_address.value() - 4);
+  auto *Fixup = this->createFixup(Traits::FK_PcRel, AssemblerFixup::NullSymbol);
+  Fixup->set_addend(abs_address.value() - 4);
+  emitFixup(Fixup);
+  emitInt32(0);
   assert((Buffer.getPosition() - call_start) == kCallExternalLabelSize);
   (void)call_start;
 }
@@ -3140,8 +3144,10 @@ void AssemblerX86Base<TraitsType>::j(BrCond condition,
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x0F);
   emitUint8(0x80 + condition);
-  emitFixup(this->createFixup(Traits::FK_PcRel, label));
-  emitInt32(-4);
+  auto *Fixup = this->createFixup(Traits::FK_PcRel, label);
+  Fixup->set_addend(-4);
+  emitFixup(Fixup);
+  emitInt32(0);
 }
 
 template <typename TraitsType>
@@ -3180,8 +3186,10 @@ template <typename TraitsType>
 void AssemblerX86Base<TraitsType>::jmp(const ConstantRelocatable *label) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0xE9);
-  emitFixup(this->createFixup(Traits::FK_PcRel, label));
-  emitInt32(-4);
+  auto *Fixup = this->createFixup(Traits::FK_PcRel, label);
+  Fixup->set_addend(-4);
+  emitFixup(Fixup);
+  emitInt32(0);
 }
 
 template <typename TraitsType>
@@ -3189,10 +3197,10 @@ void AssemblerX86Base<TraitsType>::jmp(const Immediate &abs_address) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0xE9);
   AssemblerFixup *Fixup =
-      this->createFixup(Traits::FK_PcRel, AssemblerFixup::NullSymbol);
-  Fixup->set_addend(abs_address.value());
+      createFixup(Traits::FK_PcRel, AssemblerFixup::NullSymbol);
+  Fixup->set_addend(abs_address.value() - 4);
   emitFixup(Fixup);
-  emitInt32(abs_address.value() - 4);
+  emitInt32(0);
 }
 
 template <typename TraitsType> void AssemblerX86Base<TraitsType>::mfence() {
@@ -3391,23 +3399,26 @@ void AssemblerX86Base<TraitsType>::emitOperand(int rm, const Operand &operand,
     emitUint8(operand.encoding_[1]);
     displacement_start = 2;
   }
-  // Emit the displacement and the fixup that affects it, if any.
+
   AssemblerFixup *Fixup = operand.fixup();
-  if (Fixup != nullptr) {
-    emitFixup(Fixup);
-    assert(length - displacement_start == 4);
-    if (fixupIsPCRel(Fixup->kind())) {
-      Fixup->set_addend(-Addend);
-      int32_t Offset;
-      memmove(&Offset, &operand.encoding_[displacement_start], sizeof(Offset));
-      Offset -= Addend;
-      emitInt32(Offset);
-      return;
+  if (Fixup == nullptr) {
+    for (intptr_t i = displacement_start; i < length; i++) {
+      emitUint8(operand.encoding_[i]);
     }
+    return;
   }
-  for (intptr_t i = displacement_start; i < length; i++) {
-    emitUint8(operand.encoding_[i]);
+
+  // Emit the fixup, and a dummy 4-byte immediate. Note that the Disp32 in
+  // operand.encoding_[i, i+1, i+2, i+3] is part of the constant relocatable
+  // used to create the fixup, so there's no need to add it to the addend.
+  assert(length - displacement_start == 4);
+  if (fixupIsPCRel(Fixup->kind())) {
+    Fixup->set_addend(Fixup->get_addend() - Addend);
+  } else {
+    Fixup->set_addend(Fixup->get_addend());
   }
+  emitFixup(Fixup);
+  emitInt32(0);
 }
 
 template <typename TraitsType>
@@ -3420,10 +3431,14 @@ void AssemblerX86Base<TraitsType>::emitImmediate(Type Ty,
     return;
   }
 
-  if (Fixup != nullptr) {
-    emitFixup(Fixup);
+  if (Fixup == nullptr) {
+    emitInt32(imm.value());
+    return;
   }
-  emitInt32(imm.value());
+
+  Fixup->set_addend(Fixup->get_addend() + imm.value());
+  emitFixup(Fixup);
+  emitInt32(0);
 }
 
 template <typename TraitsType>

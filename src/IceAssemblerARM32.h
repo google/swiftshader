@@ -46,6 +46,7 @@ class MoveRelocatableFixup final : public AssemblerFixup {
 public:
   MoveRelocatableFixup() = default;
   size_t emit(GlobalContext *Ctx, const Assembler &Asm) const final;
+  void emitOffset(Assembler *Asm) const;
 };
 
 /// Handles encoding of branch and link to global location.
@@ -56,6 +57,7 @@ class BlRelocatableFixup final : public AssemblerFixup {
 public:
   BlRelocatableFixup() = default;
   size_t emit(GlobalContext *Ctx, const Assembler &Asm) const final;
+  void emitOffset(Assembler *Asm) const;
 };
 
 class AssemblerARM32 : public Assembler {
@@ -644,9 +646,6 @@ private:
                      const Operand *OpSrc1, const char *CmpName);
 
   void emitBranch(Label *L, CondARM32::Cond, bool Link);
-
-  // Encodes the given Offset into the branch instruction Inst.
-  IValueT encodeBranchOffset(IOffsetT Offset, IValueT Inst);
 
   // Returns the offset encoded in the branch instruction Inst.
   static IOffsetT decodeBranchOffset(IValueT Inst);

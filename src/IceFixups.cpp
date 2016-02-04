@@ -40,7 +40,9 @@ IceString AssemblerFixup::symbol(const GlobalContext *Ctx,
       Str << CR->getName();
     else
       Str << Ctx->mangleName(CR->getName());
-    if (Asm && !Asm->fixupIsPCRel(kind()) && Ctx->getFlags().getUseNonsfi()) {
+    if (Asm && !Asm->fixupIsPCRel(kind()) && Ctx->getFlags().getUseNonsfi() &&
+        CR->getName() != GlobalOffsetTable) {
+      // TODO(jpp): remove the special GOT test.
       Str << "@GOTOFF";
     }
   } else {
@@ -58,21 +60,37 @@ size_t AssemblerFixup::emit(GlobalContext *Ctx, const Assembler &Asm) const {
     return FixupSize;
   Ostream &Str = Ctx->getStrEmit();
   Str << "\t.long ";
-  if (isNullSymbol())
+  IceString Symbol;
+  if (isNullSymbol()) {
     Str << "__Sz_AbsoluteZero";
-  else
-    Str << symbol(Ctx, &Asm);
-  RelocOffsetT Offset = Asm.load<RelocOffsetT>(position());
-  if (Offset)
-    Str << " + " << Offset;
-  // For PCRel fixups, we write the pc-offset from a symbol into the Buffer
-  // (e.g., -4), but we don't represent that in the fixup's offset. Otherwise
-  // the fixup holds the true offset, and so does the Buffer. Just load the
-  // offset from the buffer.
-  if (Asm.fixupIsPCRel(kind()))
+  } else {
+    Symbol = symbol(Ctx, &Asm);
+    Str << Symbol;
+  }
+
+  assert(Asm.load<RelocOffsetT>(position()) == 0);
+
+  RelocOffsetT Offset = offset();
+  if (Offset != 0) {
+    if (Offset > 0) {
+      Str << " + " << Offset;
+    } else {
+      assert(Offset != std::numeric_limits<RelocOffsetT>::lowest());
+      Str << " - " << -Offset;
+    }
+  }
+
+  // We need to emit the '- .' for PCRel fixups. Even if the relocation kind()
+  // is not PCRel, we emit the '- .' for the _GLOBAL_OFFSET_TABLE_.
+  // TODO(jpp): create fixups wrt the GOT with the right fixup kind.
+  if (Asm.fixupIsPCRel(kind()) || Symbol == GlobalOffsetTable)
     Str << " - .";
   Str << "\n";
   return FixupSize;
+}
+
+void AssemblerFixup::emitOffset(Assembler *Asm) const {
+  Asm->store(position(), offset());
 }
 
 size_t AssemblerTextFixup::emit(GlobalContext *Ctx, const Assembler &) const {

@@ -268,14 +268,14 @@ TargetX8664Traits::Address TargetX8664Traits::X86OperandMem::toAsmAddress(
       Disp += static_cast<int32_t>(CI->getValue());
     } else if (const auto *CR =
                    llvm::dyn_cast<ConstantRelocatable>(getOffset())) {
-      RelocOffsetT DispAdjustment = 0;
       if (CR->getName() != "") {
         const auto FixupKind =
             (getBase() != nullptr || getIndex() != nullptr) ? FK_Abs : FK_PcRel;
-        DispAdjustment = FixupKind == FK_PcRel ? 4 : 0;
+        const RelocOffsetT DispAdjustment = FixupKind == FK_PcRel ? 4 : 0;
         Fixup = Asm->createFixup(FixupKind, CR);
+        Fixup->set_addend(-DispAdjustment);
       }
-      Disp = CR->getOffset() - DispAdjustment;
+      Disp = CR->getOffset();
     } else {
       llvm_unreachable("Unexpected offset type");
     }

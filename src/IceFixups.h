@@ -54,9 +54,14 @@ public:
   void set_value(const Constant *Value) { value_ = Value; }
 
   void set_addend(RelocOffsetT Addend) { addend_ = Addend; }
+  RelocOffsetT get_addend() const { return addend_; }
 
   /// Emits fixup, then returns the number of bytes to skip.
   virtual size_t emit(GlobalContext *Ctx, const Assembler &Asm) const;
+
+  /// Emits offset() (little endian) in position_. If your fixup requires
+  /// something smarter, you must create your own fixup type.
+  virtual void emitOffset(Assembler *Asm) const;
 
 private:
   bool position_was_set_ = false;

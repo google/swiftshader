@@ -222,7 +222,7 @@ TEST_F(AssemblerX8664Test, Lea) {
     TestLeaBaseDisp(r6, 0x60000Fu, Disp, r7);
     TestLeaBaseDisp(r7, 0x11000Fu, Disp, r8);
     TestLeaBaseDisp(r8, 0x11200Fu, Disp, r10);
-    TestLeaBaseDisp(r9, 0x000000u, Disp, r10);
+    TestLeaBaseDisp(r9, 0x220400u, Disp, r10);
     TestLeaBaseDisp(r10, 0x22000Fu, Disp, r11);
     TestLeaBaseDisp(r11, 0x22030Fu, Disp, r12);
     TestLeaBaseDisp(r12, 0x22040Fu, Disp, r13);
@@ -242,7 +242,7 @@ TEST_F(AssemblerX8664Test, Lea) {
     TestLeaIndex32bitDisp(r6, 0xA040u, Disp, r7, r5, r10, r1);
     TestLeaIndex32bitDisp(r7, 0xC050u, Disp, r5, r10, r1, r11);
     TestLeaIndex32bitDisp(r8, 0xC060u, Disp, r10, r1, r11, r12);
-    TestLeaIndex32bitDisp(r9, 0x0000u, Disp, r1, r11, r12, r13);
+    TestLeaIndex32bitDisp(r9, 0xC100u, Disp, r1, r11, r12, r13);
     TestLeaIndex32bitDisp(r10, 0xC008u, Disp, r11, r12, r13, r14);
     TestLeaIndex32bitDisp(r11, 0xC009u, Disp, r12, r13, r14, r15);
     TestLeaIndex32bitDisp(r12, 0xC00Au, Disp, r13, r14, r15, r1);
@@ -260,7 +260,7 @@ TEST_F(AssemblerX8664Test, Lea) {
     TestLeaBaseIndexDisp(r6, 0x500000u, r7, 0x200u, Disp, r8, r5, r10, r11);
     TestLeaBaseIndexDisp(r7, 0x600000u, r8, 0x100u, Disp, r5, r10, r11, r12);
     TestLeaBaseIndexDisp(r8, 0x600000u, r9, 0x1A0u, Disp, r10, r11, r12, r13);
-    TestLeaBaseIndexDisp(r9, 0x000000u, r10, 0x1B0u, Disp, r11, r12, r13, r14);
+    TestLeaBaseIndexDisp(r9, 0x600050u, r10, 0x1B0u, Disp, r11, r12, r13, r14);
     TestLeaBaseIndexDisp(r10, 0x602000u, r11, 0x1C0u, Disp, r12, r13, r14, r15);
     TestLeaBaseIndexDisp(r11, 0x603000u, r12, 0x1D0u, Disp, r13, r14, r15, r1);
     TestLeaBaseIndexDisp(r12, 0x604000u, r13, 0x1E0u, Disp, r14, r15, r1, r2);
@@ -274,7 +274,7 @@ TEST_F(AssemblerX8664Test, Lea) {
     TestLeaBaseIndexDisp(r0, 0, r6, 0x300u, Disp, r7, r8, r5, r10);
     TestLeaBaseIndexDisp(r0, 0, r7, 0x200u, Disp, r8, r5, r10, r11);
     TestLeaBaseIndexDisp(r0, 0, r8, 0x100u, Disp, r5, r10, r11, r12);
-    TestLeaBaseIndexDisp(r0, 0, r9, 0x000u, Disp, r10, r11, r12, r13);
+    TestLeaBaseIndexDisp(r0, 0, r9, 0x1000u, Disp, r10, r11, r12, r13);
     TestLeaBaseIndexDisp(r0, 0, r10, 0x1B0u, Disp, r11, r12, r13, r14);
     TestLeaBaseIndexDisp(r0, 0, r11, 0x1C0u, Disp, r12, r13, r14, r15);
     TestLeaBaseIndexDisp(r0, 0, r12, 0x1D0u, Disp, r13, r14, r15, r1);
@@ -289,7 +289,7 @@ TEST_F(AssemblerX8664Test, Lea) {
     TestLeaBaseIndexDisp(r5, 0x400000u, r6, 0x300u, Disp, r7, r8, r1, r10);
     TestLeaBaseIndexDisp(r5, 0x500000u, r7, 0x200u, Disp, r8, r1, r10, r11);
     TestLeaBaseIndexDisp(r5, 0x600000u, r8, 0x100u, Disp, r1, r10, r11, r12);
-    TestLeaBaseIndexDisp(r5, 0x600000u, r9, 0x000u, Disp, r10, r11, r12, r13);
+    TestLeaBaseIndexDisp(r5, 0x600000u, r9, 0x1A00u, Disp, r10, r11, r12, r13);
     TestLeaBaseIndexDisp(r5, 0x601000u, r10, 0x1B0u, Disp, r11, r12, r13, r14);
     TestLeaBaseIndexDisp(r5, 0x602000u, r11, 0x1C0u, Disp, r12, r13, r14, r15);
     TestLeaBaseIndexDisp(r5, 0x603000u, r12, 0x1D0u, Disp, r13, r14, r15, r1);
@@ -304,7 +304,7 @@ TEST_F(AssemblerX8664Test, Lea) {
     TestLeaBaseIndexDisp(r6, 0x400000u, r5, 0x300u, Disp, r7, r8, r1, r10);
     TestLeaBaseIndexDisp(r7, 0x500000u, r5, 0x200u, Disp, r8, r1, r10, r11);
     TestLeaBaseIndexDisp(r8, 0x600000u, r5, 0x100u, Disp, r1, r10, r11, r12);
-    TestLeaBaseIndexDisp(r9, 0x000000u, r5, 0x1A0u, Disp, r10, r11, r12, r13);
+    TestLeaBaseIndexDisp(r9, 0x660000u, r5, 0x1A0u, Disp, r10, r11, r12, r13);
     TestLeaBaseIndexDisp(r10, 0x601000u, r5, 0x1B0u, Disp, r11, r12, r13, r14);
     TestLeaBaseIndexDisp(r11, 0x602000u, r5, 0x1C0u, Disp, r12, r13, r14, r15);
     TestLeaBaseIndexDisp(r12, 0x603000u, r5, 0x1D0u, Disp, r13, r14, r15, r1);

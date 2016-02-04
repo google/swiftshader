@@ -403,40 +403,23 @@ template <typename TraitsType>
 void InstImpl<TraitsType>::InstX86GetIP::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
+  const auto *Dest = this->getDest();
+  assert(Dest->hasReg());
   Ostream &Str = Func->getContext()->getStrEmit();
-  assert(this->getDest()->hasReg());
   Str << "\t"
-         "addl\t$_GLOBAL_OFFSET_TABLE_, ";
-  this->getDest()->emit(Func);
+         "call"
+         "\t";
+  auto *Target = static_cast<TargetLowering *>(Func->getTarget());
+  Target->emitWithoutPrefix(Target->createGetIPForRegister(Dest));
 }
 
 template <typename TraitsType>
 void InstImpl<TraitsType>::InstX86GetIP::emitIAS(const Cfg *Func) const {
-  if (Func->getContext()->getFlags().getOutFileType() == FT_Iasm) {
-    // TODO(stichnot): Find a workaround for llvm-mc's inability to handle
-    // something like ".long _GLOBAL_OFFSET_TABLE_ + ." .  One possibility is to
-    // just use hybrid iasm output for this add instruction.
-    llvm::report_fatal_error(
-        "Iasm support for _GLOBAL_OFFSET_TABLE_ not implemented");
-  }
+  const auto *Dest = this->getDest();
   Assembler *Asm = Func->getAssembler<Assembler>();
-  assert(this->getDest()->hasReg());
-  GPRRegister Reg = Traits::getEncodedGPR(this->getDest()->getRegNum());
-  Constant *GlobalOffsetTable =
-      Func->getContext()->getConstantExternSym("_GLOBAL_OFFSET_TABLE_");
-  AssemblerFixup *Fixup = Asm->createFixup(Traits::FK_GotPC, GlobalOffsetTable);
-  intptr_t OrigPos = Asm->getBufferSize();
-  constexpr int32_t TempDisp = 0;
-  constexpr int32_t ImmediateWidth = 4;
-  // Emit the add instruction once, in a preliminary fashion, to find its total
-  // size.  TODO(stichnot): IceType_i32 should really be something that
-  // represents the target's pointer type.
-  Asm->add(IceType_i32, Reg, AssemblerImmediate(TempDisp, Fixup));
-  const int32_t Disp = Asm->getBufferSize() - OrigPos - ImmediateWidth;
-  // Now roll back and emit the add instruction again, this time with the
-  // correct displacement.
-  Asm->setBufferSize(OrigPos);
-  Asm->add(IceType_i32, Reg, AssemblerImmediate(Disp, Fixup));
+  assert(Dest->hasReg());
+  Asm->call(static_cast<TargetLowering *>(Func->getTarget())
+                ->createGetIPForRegister(Dest));
 }
 
 template <typename TraitsType>
@@ -595,7 +578,6 @@ void InstImpl<TraitsType>::InstX86Jmp::emitIAS(const Cfg *Func) const {
     assert(Mem->getSegmentRegister() == X86OperandMem::DefaultSegment);
     llvm::report_fatal_error("Assembler can't jmp to memory operand");
   } else if (const auto *CR = llvm::dyn_cast<ConstantRelocatable>(Target)) {
-    assert(CR->getOffset() == 0 && "We only support jumping to a function");
     Asm->jmp(CR);
   } else if (const auto *Imm = llvm::dyn_cast<ConstantInteger32>(Target)) {
     // NaCl trampoline calls refer to an address within the sandbox directly.
@@ -653,7 +635,6 @@ void InstImpl<TraitsType>::InstX86Call::emitIAS(const Cfg *Func) const {
     assert(Mem->getSegmentRegister() == X86OperandMem::DefaultSegment);
     Asm->call(Mem->toAsmAddress(Asm, Target));
   } else if (const auto *CR = llvm::dyn_cast<ConstantRelocatable>(CallTarget)) {
-    assert(CR->getOffset() == 0 && "We only support calling a function");
     Asm->call(CR);
   } else if (const auto *Imm = llvm::dyn_cast<ConstantInteger32>(CallTarget)) {
     Asm->call(AssemblerImmediate(Imm->getValue()));
@@ -748,10 +729,11 @@ void InstImpl<TraitsType>::emitIASRegOpTyGPR(const Cfg *Func, bool IsLea,
   } else if (const auto *Imm = llvm::dyn_cast<ConstantInteger32>(Src)) {
     (Asm->*(Emitter.GPRImm))(Ty, VarReg, AssemblerImmediate(Imm->getValue()));
   } else if (const auto *Reloc = llvm::dyn_cast<ConstantRelocatable>(Src)) {
-    AssemblerFixup *Fixup =
-        Asm->createFixup(Traits::TargetLowering::getAbsFixup(), Reloc);
-    (Asm->*(Emitter.GPRImm))(Ty, VarReg,
-                             AssemblerImmediate(Reloc->getOffset(), Fixup));
+    const auto FixupKind = Reloc->getName() == GlobalOffsetTable
+                               ? Traits::FK_GotPC
+                               : Traits::TargetLowering::getAbsFixup();
+    AssemblerFixup *Fixup = Asm->createFixup(FixupKind, Reloc);
+    (Asm->*(Emitter.GPRImm))(Ty, VarReg, AssemblerImmediate(Fixup));
   } else if (const auto *Split = llvm::dyn_cast<VariableSplit>(Src)) {
     (Asm->*(Emitter.GPRAddr))(Ty, VarReg, Split->toAsmAddress(Func));
   } else {
@@ -773,10 +755,11 @@ void InstImpl<TraitsType>::emitIASAddrOpTyGPR(const Cfg *Func, Type Ty,
   } else if (const auto *Imm = llvm::dyn_cast<ConstantInteger32>(Src)) {
     (Asm->*(Emitter.AddrImm))(Ty, Addr, AssemblerImmediate(Imm->getValue()));
   } else if (const auto *Reloc = llvm::dyn_cast<ConstantRelocatable>(Src)) {
-    AssemblerFixup *Fixup =
-        Asm->createFixup(Traits::TargetLowering::getAbsFixup(), Reloc);
-    (Asm->*(Emitter.AddrImm))(Ty, Addr,
-                              AssemblerImmediate(Reloc->getOffset(), Fixup));
+    const auto FixupKind = Reloc->getName() == GlobalOffsetTable
+                               ? Traits::FK_GotPC
+                               : Traits::TargetLowering::getAbsFixup();
+    AssemblerFixup *Fixup = Asm->createFixup(FixupKind, Reloc);
+    (Asm->*(Emitter.AddrImm))(Ty, Addr, AssemblerImmediate(Fixup));
   } else {
     llvm_unreachable("Unexpected operand type");
   }

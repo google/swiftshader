@@ -73,11 +73,7 @@ public:
   public:
     explicit Immediate(int32_t value) : value_(value) {}
 
-    Immediate(RelocOffsetT offset, AssemblerFixup *fixup)
-        : value_(offset), fixup_(fixup) {
-      // Use the Offset in the "value" for now. If we decide to process fixups,
-      // we'll need to patch that offset with the true value.
-    }
+    explicit Immediate(AssemblerFixup *fixup) : fixup_(fixup) {}
 
     int32_t value() const { return value_; }
     AssemblerFixup *fixup() const { return fixup_; }
@@ -95,7 +91,7 @@ public:
     }
 
   private:
-    const int32_t value_;
+    const int32_t value_ = 0;
     AssemblerFixup *fixup_ = nullptr;
   };
 
