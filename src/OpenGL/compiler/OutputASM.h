@@ -321,13 +321,19 @@ namespace glsl
 			TypedMemberInfo(const BlockMemberInfo& b, const TType& t) : BlockMemberInfo(b), type(t) {}
 			TType type;
 		};
-
-		struct BlockDefinition
+		struct ArgumentInfo
 		{
-			typedef std::map<int, TypedMemberInfo> IndexMap;
-			IndexMap indexMap;
+			ArgumentInfo(const BlockMemberInfo& b, const TType& t, int clampedIndex, int bufferIndex) :
+			    typedMemberInfo(b, t), clampedIndex(clampedIndex), bufferIndex(bufferIndex) {}
+			TypedMemberInfo typedMemberInfo;
+			int clampedIndex;
+			int bufferIndex;
 		};
-		std::vector<BlockDefinition> blockDefinitions;
+		int getBlockId(TIntermTyped *argument);
+		ArgumentInfo getArgumentInfo(TIntermTyped *argument, int index);
+
+		typedef std::map<int, TypedMemberInfo> BlockDefinitionIndexMap;
+		std::vector<BlockDefinitionIndexMap> blockDefinitions;
 
 		Scope emitScope;
 		Scope currentScope;
