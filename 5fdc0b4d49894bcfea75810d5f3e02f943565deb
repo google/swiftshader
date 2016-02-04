@@ -46,6 +46,30 @@
       "revId": "5fdc0b4d49894bcfea75810d5f3e02f943565deb",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "91802c15_a7e0aab8",
+        "filename": "src/OpenGL/common/Object.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-02-04T14:42:06Z",
+      "side": 1,
+      "message": "Here\u0027s roughly what I had in mind: https://swiftshader-review.googlesource.com/4680 It\u0027s a refactoring on top of this change, so feel free to squash it into this one if it seems sensible. It compiles, but I haven\u0027t tested it.",
+      "parentUuid": "11a43c86_f70b68ad",
+      "range": {
+        "startLine": 89,
+        "startChar": 6,
+        "endLine": 89,
+        "endChar": 26
+      },
+      "revId": "5fdc0b4d49894bcfea75810d5f3e02f943565deb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
