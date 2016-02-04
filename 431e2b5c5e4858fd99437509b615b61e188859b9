@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "91802c15_67f87267",
+        "filename": "src/OpenGL/libGLESv2/Buffer.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-02-04T15:50:46Z",
+      "side": 1,
+      "message": "This appears to only be used in get()-\u003egetResource() and get()-\u003egetName() calls, so we can provide better encapsulation by just having getResource() and getName() methods for UniformBufferBinding.",
+      "range": {
+        "startLine": 77,
+        "startChar": 35,
+        "endLine": 77,
+        "endChar": 40
+      },
+      "revId": "431e2b5c5e4858fd99437509b615b61e188859b9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
