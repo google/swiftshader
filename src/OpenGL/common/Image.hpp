@@ -36,7 +36,7 @@ static inline sw::Resource *getParentResource(egl::Texture *texture)
 	return texture ? texture->getResource() : nullptr;
 }
 
-class Image : public sw::Surface
+class Image : public sw::Surface, public gl::Object
 {
 public:
 	Image(Texture *parentTexture, GLsizei width, GLsizei height, GLenum format, GLenum type)
@@ -45,7 +45,7 @@ public:
 		  parentTexture(parentTexture)
 	{
 		shared = false;
-		referenceCount = 1;
+		Object::addRef();
 	}
 
 	Image(Texture *parentTexture, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, int pitchP = 0)
@@ -54,7 +54,7 @@ public:
 		  parentTexture(parentTexture)
 	{
 		shared = false;
-		referenceCount = 1;
+		Object::addRef();
 	}
 
 	Image(GLsizei width, GLsizei height, sw::Format internalFormat, int multiSampleDepth, bool lockable, bool renderTarget)
@@ -62,7 +62,7 @@ public:
 		  width(width), height(height), format(0 /*GL_NONE*/), type(0 /*GL_NONE*/), internalFormat(internalFormat), depth(multiSampleDepth), parentTexture(nullptr)
 	{
 		shared = false;
-		referenceCount = 1;
+		Object::addRef();
 	}
 
 	GLsizei getWidth() const
@@ -137,8 +137,8 @@ public:
 	void loadImageData(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const UnpackInfo& unpackInfo, const void *input);
 	void loadCompressedData(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLsizei imageSize, const void *pixels);
 
-	virtual void addRef();
-	virtual void release();
+	void addRef() override;
+	void release() override;
 	virtual void unbind(const Texture *parent);   // Break parent ownership and release
 
 	virtual void destroyShared()   // Release a shared image
@@ -159,8 +159,6 @@ protected:
 	bool shared;   // Used as an EGLImage
 
 	egl::Texture *parentTexture;
-
-	volatile int referenceCount;
 
 	virtual ~Image();
 
