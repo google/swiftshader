@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "11a43c86_8ced4675",
+        "filename": "src/OpenGL/common/Object.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-02-04T20:00:27Z",
+      "side": 1,
+      "message": "I don\u0027t think it\u0027s the case, but if any static object would hold a reference to an instance for any reason, the static initialization order (which is reversed at destruction) could cause this test to fail.",
+      "range": {
+        "startLine": 81,
+        "startChar": 0,
+        "endLine": 81,
+        "endChar": 39
+      },
+      "revId": "c7e467f38bffcd76bea2adfe34d56bb7d82b79f3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
