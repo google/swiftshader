@@ -469,7 +469,9 @@ protected:
                                          ? nullptr
                                          : findMemoryReference(Args...)) {
       if (MemOperand != nullptr) {
-        Bundler = makeUnique<AutoBundle>(Target, BundleLockOpt);
+        if (Traits::Is64Bit) {
+          Bundler = makeUnique<AutoBundle>(Target, BundleLockOpt);
+        }
         *MemOperand = Target->_sandbox_mem_reference(*MemOperand);
       }
     }
