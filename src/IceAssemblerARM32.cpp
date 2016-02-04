@@ -2544,6 +2544,61 @@ void AssemblerARM32::vldrs(const Operand *OpSd, const Operand *OpAddress,
   emitInst(Encoding);
 }
 
+void AssemblerARM32::emitVMem1Op(IValueT Opcode, IValueT Dd, IValueT Rn,
+                                 IValueT Rm, DRegListSize NumDRegs,
+                                 size_t ElmtSize, IValueT Align,
+                                 const char *InstName) {
+  assert(Utils::IsAbsoluteUint(2, Align));
+  IValueT EncodedElmtSize;
+  switch (ElmtSize) {
+  default: {
+    std::string Buffer;
+    llvm::raw_string_ostream StrBuf(Buffer);
+    StrBuf << InstName << ": found invalid vector element size " << ElmtSize;
+    llvm::report_fatal_error(StrBuf.str());
+  }
+  case 8:
+    EncodedElmtSize = 0;
+    break;
+  case 16:
+    EncodedElmtSize = 1;
+    break;
+  case 32:
+    EncodedElmtSize = 2;
+    break;
+  case 64:
+    EncodedElmtSize = 3;
+  }
+  const IValueT Encoding =
+      Opcode | (encodeCondition(CondARM32::kNone) << kConditionShift) |
+      (getYInRegYXXXX(Dd) << 22) | (Rn << kRnShift) |
+      (getXXXXInRegYXXXX(Dd) << kRdShift) | (NumDRegs << 8) |
+      (EncodedElmtSize << 6) | (Align << 4) | Rm;
+  emitInst(Encoding);
+}
+
+void AssemblerARM32::vld1qr(size_t ElmtSize, const Operand *OpQd,
+                            const Operand *OpAddress, const TargetInfo &TInfo) {
+  // VLD1 (multiple single elements) - ARM section A8.8.320, encoding A1:
+  //   vld1.<size> <Qd>, [<Rn>]
+  //
+  // 111101000D10nnnnddd0ttttssaammmm where tttt=DRegListSize2, Dddd=Qd,
+  // nnnn=Rn, aa=0 (use default alignment), size=ElmtSize, and ss is the
+  // encoding of ElmtSize.
+  constexpr const char *Vld1qr = "vld1qr";
+  const IValueT Qd = encodeQRegister(OpQd, "Qd", Vld1qr);
+  const IValueT Dd = mapQRegToDReg(Qd);
+  IValueT Address;
+  if (encodeAddress(OpAddress, Address, TInfo, NoImmOffsetAddress) !=
+      EncodedAsImmRegOffset)
+    llvm::report_fatal_error(std::string(Vld1qr) + ": malform memory address");
+  const IValueT Rn = mask(Address, kRnShift, 4);
+  constexpr IValueT Rm = RegARM32::Reg_pc;
+  constexpr IValueT Opcode = B26 | B21;
+  constexpr IValueT Align = 0; // use default alignment.
+  emitVMem1Op(Opcode, Dd, Rn, Rm, DRegListSize2, ElmtSize, Align, Vld1qr);
+}
+
 void AssemblerARM32::vmovd(const Operand *OpDd,
                            const OperandARM32FlexFpImm *OpFpImm,
                            CondARM32::Cond Cond) {
@@ -2856,6 +2911,28 @@ void AssemblerARM32::vstrs(const Operand *OpSd, const Operand *OpAddress,
       B27 | B26 | B24 | B11 | B9 | (encodeCondition(Cond) << kConditionShift) |
       (getYInRegXXXXY(Sd) << 22) | (getXXXXInRegXXXXY(Sd) << 12) | Address;
   emitInst(Encoding);
+}
+
+void AssemblerARM32::vst1qr(size_t ElmtSize, const Operand *OpQd,
+                            const Operand *OpAddress, const TargetInfo &TInfo) {
+  // VST1 (multiple single elements) - ARM section A8.8.404, encoding A1:
+  //   vst1.<size> <Qd>, [<Rn>]
+  //
+  // 111101000D00nnnnddd0ttttssaammmm where tttt=DRegListSize2, Dddd=Qd,
+  // nnnn=Rn, aa=0 (use default alignment), size=ElmtSize, and ss is the
+  // encoding of ElmtSize.
+  constexpr const char *Vst1qr = "vst1qr";
+  const IValueT Qd = encodeQRegister(OpQd, "Qd", Vst1qr);
+  const IValueT Dd = mapQRegToDReg(Qd);
+  IValueT Address;
+  if (encodeAddress(OpAddress, Address, TInfo, NoImmOffsetAddress) !=
+      EncodedAsImmRegOffset)
+    llvm::report_fatal_error(std::string(Vst1qr) + ": malform memory address");
+  const IValueT Rn = mask(Address, kRnShift, 4);
+  constexpr IValueT Rm = RegARM32::Reg_pc;
+  constexpr IValueT Opcode = B26;
+  constexpr IValueT Align = 0; // use default alignment.
+  emitVMem1Op(Opcode, Dd, Rn, Rm, DRegListSize2, ElmtSize, Align, Vst1qr);
 }
 
 void AssemblerARM32::vsubs(const Operand *OpSd, const Operand *OpSn,

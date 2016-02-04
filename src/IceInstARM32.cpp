@@ -65,6 +65,10 @@ const struct InstARM32CondAttributes_ {
 #undef X
 };
 
+size_t getVecElmtBitsize(Type Ty) {
+  return typeWidthInBytes(typeElementType(Ty)) * CHAR_BIT;
+}
+
 } // end of anonymous namespace
 
 const char *InstARM32::getWidthString(Type Ty) {
@@ -1563,7 +1567,6 @@ template <> void InstARM32Ldr::emit(const Cfg *Func) const {
   const bool IsScalarFloat = isScalarFloatingType(Ty);
   const char *ActualOpcode =
       IsVector ? "vld1" : (IsScalarFloat ? "vldr" : "ldr");
-  const char *VectorMarker = IsVector ? ".64" : "";
   const char *WidthString = IsVector ? "" : getWidthString(Ty);
   Str << "\t" << ActualOpcode;
   const bool IsVInst = IsVector || IsScalarFloat;
@@ -1572,7 +1575,9 @@ template <> void InstARM32Ldr::emit(const Cfg *Func) const {
   } else {
     Str << WidthString << getPredicate();
   }
-  Str << VectorMarker << "\t";
+  if (IsVector)
+    Str << "." << getVecElmtBitsize(Ty);
+  Str << "\t";
   getDest()->emit(Func);
   Str << ", ";
   getSrc(0)->emit(Func);
@@ -1580,29 +1585,32 @@ template <> void InstARM32Ldr::emit(const Cfg *Func) const {
 
 template <> void InstARM32Ldr::emitIAS(const Cfg *Func) const {
   assert(getSrcSize() == 1);
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Variable *Dest = getDest();
   const Type DestTy = Dest->getType();
-  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
-  if (isScalarFloatingType(DestTy)) {
-    switch (DestTy) {
-    default:
-      // TODO(kschimpf) Does this happen?
-      Asm->setNeedsTextFixup();
-      break;
-    case IceType_f32:
-      Asm->vldrs(Dest, getSrc(0), getPredicate(), Func->getTarget());
-      break;
-    case IceType_f64:
-      Asm->vldrd(Dest, getSrc(0), getPredicate(), Func->getTarget());
-      break;
-    }
-  } else if (isVectorType(DestTy))
-    // TODO(kschimpf) Handle case.
-    Asm->setNeedsTextFixup();
-  else
+  switch (DestTy) {
+  default:
+    llvm::report_fatal_error("Ldr on unknown type: " + typeIceString(DestTy));
+  case IceType_i1:
+  case IceType_i8:
+  case IceType_i16:
+  case IceType_i32:
+  case IceType_i64:
     Asm->ldr(Dest, getSrc(0), getPredicate(), Func->getTarget());
-  if (Asm->needsTextFixup())
-    emitUsingTextFixup(Func);
+    break;
+  case IceType_f32:
+    Asm->vldrs(Dest, getSrc(0), getPredicate(), Func->getTarget());
+    break;
+  case IceType_f64:
+    Asm->vldrd(Dest, getSrc(0), getPredicate(), Func->getTarget());
+    break;
+  case IceType_v16i8:
+  case IceType_v8i16:
+  case IceType_v4i32:
+  case IceType_v4f32:
+    Asm->vld1qr(getVecElmtBitsize(DestTy), Dest, getSrc(0), Func->getTarget());
+    break;
+  }
 }
 
 template <> void InstARM32Ldrex::emit(const Cfg *Func) const {
@@ -1898,7 +1906,6 @@ void InstARM32Str::emit(const Cfg *Func) const {
   const bool IsScalarFloat = isScalarFloatingType(Ty);
   const char *Opcode =
       IsVectorStore ? "vst1" : (IsScalarFloat ? "vstr" : "str");
-  const char *VecEltWidthString = IsVectorStore ? ".64" : "";
   Str << "\t" << Opcode;
   const bool IsVInst = IsVectorStore || IsScalarFloat;
   if (IsVInst) {
@@ -1906,7 +1913,9 @@ void InstARM32Str::emit(const Cfg *Func) const {
   } else {
     Str << getWidthString(Ty) << getPredicate();
   }
-  Str << VecEltWidthString << "\t";
+  if (IsVectorStore)
+    Str << "." << getVecElmtBitsize(Ty);
+  Str << "\t";
   getSrc(0)->emit(Func);
   Str << ", ";
   getSrc(1)->emit(Func);
@@ -1914,28 +1923,33 @@ void InstARM32Str::emit(const Cfg *Func) const {
 
 void InstARM32Str::emitIAS(const Cfg *Func) const {
   assert(getSrcSize() == 2);
-  Type Ty = getSrc(0)->getType();
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
-  if (isScalarFloatingType(Ty)) {
-    switch (Ty) {
-    default:
-      // TODO(kschimpf) Does this happen?
-      Asm->setNeedsTextFixup();
-      break;
-    case IceType_f32:
-      Asm->vstrs(getSrc(0), getSrc(1), getPredicate(), Func->getTarget());
-      break;
-    case IceType_f64:
-      Asm->vstrd(getSrc(0), getSrc(1), getPredicate(), Func->getTarget());
-      break;
-    }
-  } else if (isVectorType(Ty))
-    // TODO(kschimpf) Handle case.
-    Asm->setNeedsTextFixup();
-  else
-    Asm->str(getSrc(0), getSrc(1), getPredicate(), Func->getTarget());
-  if (Asm->needsTextFixup())
-    emitUsingTextFixup(Func);
+  const Operand *Src0 = getSrc(0);
+  const Operand *Src1 = getSrc(1);
+  Type Ty = Src0->getType();
+  switch (Ty) {
+  default:
+    llvm::report_fatal_error("Str on unknown type: " + typeIceString(Ty));
+  case IceType_i1:
+  case IceType_i8:
+  case IceType_i16:
+  case IceType_i32:
+  case IceType_i64:
+    Asm->str(Src0, Src1, getPredicate(), Func->getTarget());
+    break;
+  case IceType_f32:
+    Asm->vstrs(Src0, Src1, getPredicate(), Func->getTarget());
+    break;
+  case IceType_f64:
+    Asm->vstrd(Src0, Src1, getPredicate(), Func->getTarget());
+    break;
+  case IceType_v16i8:
+  case IceType_v8i16:
+  case IceType_v4i32:
+  case IceType_v4f32:
+    Asm->vst1qr(getVecElmtBitsize(Ty), Src0, Src1, Func->getTarget());
+    break;
+  }
 }
 
 void InstARM32Str::dump(const Cfg *Func) const {

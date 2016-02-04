@@ -73,6 +73,14 @@ public:
     kRotate24    // ror #24
   };
 
+  // Encoding of the number of D registers in a list of D registers.
+  enum DRegListSize {
+    DRegListSize1 = 7,  // 0b0111
+    DRegListSize2 = 10, // 0b1010
+    DRegListSIze3 = 6,  // 0b0110
+    DRegListSize4 = 2   // 0b0010
+  };
+
   class TargetInfo {
     TargetInfo(const TargetInfo &) = delete;
     TargetInfo &operator=(const TargetInfo &) = delete;
@@ -399,6 +407,16 @@ public:
     vldrs(OpSd, OpAddress, Cond, TInfo);
   }
 
+  // ElmtSize = #bits in vector element.
+  void vld1qr(size_t ElmtSize, const Operand *OpQd, const Operand *OpRn,
+              const TargetInfo &TInfo);
+
+  void vld1qr(size_t ElmtSize, const Operand *OpQd, const Operand *OpRn,
+              const TargetLowering *Lowering) {
+    const TargetInfo TInfo(Lowering);
+    vld1qr(ElmtSize, OpQd, OpRn, TInfo);
+  }
+
   void vmovd(const Operand *OpDn, const OperandARM32FlexFpImm *OpFpImm,
              CondARM32::Cond Cond);
 
@@ -475,6 +493,16 @@ public:
              CondARM32::Cond Cond, const TargetLowering *Lowering) {
     const TargetInfo TInfo(Lowering);
     vstrs(OpSd, OpAddress, Cond, TInfo);
+  }
+
+  // ElmtSize = #bits in vector element.
+  void vst1qr(size_t ElmtSize, const Operand *OpQd, const Operand *OpAddress,
+              const TargetInfo &TInfo);
+
+  void vst1qr(size_t ElmtSize, const Operand *OpQd, const Operand *OpRn,
+              const TargetLowering *Lowering) {
+    const TargetInfo TInfo(Lowering);
+    vst1qr(ElmtSize, OpQd, OpRn, TInfo);
   }
 
   void vsubd(const Operand *OpDd, const Operand *OpDn, const Operand *OpDm,
@@ -600,6 +628,13 @@ private:
   // Pattern cccc111xxDxxxxxxdddd101xxxMxmmmm where cccc=Cond, Ddddd=Dd,
   // mmmmM=Sm, and xx0xxxxxxdddd000xxx0x0000=Opcode.
   void emitVFPds(CondARM32::Cond Cond, IValueT Opcode, IValueT Dd, IValueT Sm);
+
+  // Pattern 111100000D00nnnnddddttttssaammmm | Opcode where Ddddd=Dd, nnnn=Rn,
+  // mmmmm=Rm, tttt=NumDRegs, ElmtSize in {8, 16, 32, 64) and defines ss, and
+  // aa=Align.
+  void emitVMem1Op(IValueT Opcode, IValueT Dd, IValueT Rn, IValueT Rm,
+                   DRegListSize NumDRegs, size_t ElmtSize, IValueT Align,
+                   const char *InstName);
 
   // Pattern cccc011100x1dddd1111mmmm0001nnn where cccc=Cond,
   // x=Opcode, dddd=Rd, nnnn=Rn, mmmm=Rm.

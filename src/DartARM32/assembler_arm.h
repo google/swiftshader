@@ -1402,11 +1402,13 @@ class Assembler : public ValueObject {
 #if 0
   // Added the following missing operations:
   //
-  // ARM32::AssemblerARM32::uxt() (uxtb and uxth).
+  // ARM32::AssemblerARM32::uxt() (uxtb and uxth)
   // ARM32::AssemblerARM32::vpop()
   // ARM32::AssemblerARM32::vpush()
-  // ARM32::AssemblerARM:rbit().
-  // ARM32::AssemblerARM::veord()
+  // ARM32::AssemblerARM32:rbit()
+  // ARM32::AssemblerARM32::veord()
+  // ARM32::AssemblerARM32::vld1qr()
+  // ARM32::AssemblerARM32::vst1qr()
 #endif
 
   DISALLOW_ALLOCATION();

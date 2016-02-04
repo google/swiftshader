@@ -66,9 +66,7 @@ def main():
     flat_attrs += v
   arch_flags = { 'x8632': [],
                  'x8664': [],
-                 # ARM doesn't have an ELF writer yet, and iasm does not
-                 # support sandboxing yet.
-                 'arm32': ['--filetype=asm'] }
+                 'arm32': [] }
   # all_keys is only used in the help text.
   all_keys = '; '.join([' '.join(targets), ' '.join(sandboxing),
                         ' '.join(opt_levels), ' '.join(flat_attrs)])
