@@ -148,7 +148,8 @@ blockProfilingInfoDeclaration(GlobalContext *Ctx, const IceString &NodeAsmName,
 
   const RelocOffsetT NodeNameDeclarationOffset = 0;
   Var->addInitializer(VariableDeclaration::RelocInitializer::create(
-      NodeNameDeclaration, NodeNameDeclarationOffset));
+      NodeNameDeclaration,
+      {RelocOffset::create(Ctx, NodeNameDeclarationOffset)}));
   Var->setAlignment(Int64ByteSize);
   return Var;
 }

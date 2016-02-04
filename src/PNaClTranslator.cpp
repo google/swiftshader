@@ -1211,9 +1211,10 @@ void GlobalsParser::ProcessRecord() {
         Error(StrBuf.str());
       }
     }
+    Ice::GlobalContext *Ctx = getTranslator().getContext();
     CurGlobalVar->addInitializer(
         Ice::VariableDeclaration::RelocInitializer::create(
-            getGlobalDeclByID(Index), Offset));
+            getGlobalDeclByID(Index), {Ice::RelocOffset::create(Ctx, Offset)}));
     return;
   }
   default:

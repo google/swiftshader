@@ -230,6 +230,7 @@ void VariableDeclaration::RelocInitializer::dump(GlobalContext *Ctx,
                                                  Ostream &Stream) const {
   if (!Ice::BuildDefs::dump())
     return;
+  const RelocOffsetT Offset = getOffset();
   if (Offset != 0) {
     dumpType(Stream);
     Stream << " add (";

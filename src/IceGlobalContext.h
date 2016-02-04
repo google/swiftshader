@@ -538,6 +538,8 @@ private:
     HasSeenCode = true;
   }
 
+  void addBlockInfoPtrs(VariableDeclaration *ProfileBlockInfo);
+
   llvm::SmallVector<ThreadContext *, 128> AllThreadContexts;
   llvm::SmallVector<std::thread, 128> TranslationThreads;
   llvm::SmallVector<std::thread, 128> EmitterThreads;

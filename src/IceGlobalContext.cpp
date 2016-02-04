@@ -357,18 +357,6 @@ void GlobalContext::translateFunctions() {
 
 namespace {
 
-void addBlockInfoPtrs(const VariableDeclarationList &Globals,
-                      VariableDeclaration *ProfileBlockInfo) {
-  for (const VariableDeclaration *Global : Globals) {
-    if (Cfg::isProfileGlobal(*Global)) {
-      constexpr RelocOffsetT BlockExecutionCounterOffset = 0;
-      ProfileBlockInfo->addInitializer(
-          VariableDeclaration::RelocInitializer::create(
-              Global, BlockExecutionCounterOffset));
-    }
-  }
-}
-
 // Ensure Pending is large enough that Pending[Index] is valid.
 void resizePending(std::vector<EmitterWorkItem *> &Pending, uint32_t Index) {
   if (Index >= Pending.size())
@@ -394,6 +382,18 @@ void GlobalContext::lowerConstants() { DataLowering->lowerConstants(); }
 
 void GlobalContext::lowerJumpTables() { DataLowering->lowerJumpTables(); }
 
+void GlobalContext::addBlockInfoPtrs(VariableDeclaration *ProfileBlockInfo) {
+  for (const VariableDeclaration *Global : Globals) {
+    if (Cfg::isProfileGlobal(*Global)) {
+      constexpr RelocOffsetT BlockExecutionCounterOffset = 0;
+      ProfileBlockInfo->addInitializer(
+          VariableDeclaration::RelocInitializer::create(
+              Global,
+              {RelocOffset::create(this, BlockExecutionCounterOffset)}));
+    }
+  }
+}
+
 void GlobalContext::lowerGlobals(const IceString &SectionSuffix) {
   TimerMarker T(TimerStack::TT_emitGlobalInitializers, this);
   const bool DumpGlobalVariables =
@@ -409,7 +409,7 @@ void GlobalContext::lowerGlobals(const IceString &SectionSuffix) {
   if (Flags.getDisableTranslation())
     return;
 
-  addBlockInfoPtrs(Globals, ProfileBlockInfoVarDecl);
+  addBlockInfoPtrs(ProfileBlockInfoVarDecl);
   // If we need to shuffle the layout of global variables, shuffle them now.
   if (getFlags().shouldReorderGlobalVariables()) {
     // Create a random number generator for global variable reordering.

@@ -787,8 +787,8 @@ void LLVM2ICEGlobalsConverter::addGlobalInitializer(
       assert(GV);
       const Ice::GlobalDeclaration *Addr =
           getConverter().getGlobalDeclaration(GV);
-      Global.addInitializer(
-          Ice::VariableDeclaration::RelocInitializer::create(Addr, Offset));
+      Global.addInitializer(Ice::VariableDeclaration::RelocInitializer::create(
+          Addr, {Ice::RelocOffset::create(Ctx, Offset)}));
       return;
     }
     default:

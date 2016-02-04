@@ -22,6 +22,7 @@
 #include "IceDefs.h"
 #include "IceGlobalContext.h"
 #include "IceIntrinsics.h"
+#include "IceOperand.h"
 #include "IceTypes.h"
 
 #ifdef __clang__
@@ -318,11 +319,19 @@ public:
 
   public:
     static std::unique_ptr<RelocInitializer>
-    create(const GlobalDeclaration *Declaration, RelocOffsetT Offset) {
-      return makeUnique<RelocInitializer>(Declaration, Offset);
+    create(const GlobalDeclaration *Declaration,
+           const RelocOffsetArray &OffsetExpr) {
+      return makeUnique<RelocInitializer>(Declaration, OffsetExpr);
     }
 
-    RelocOffsetT getOffset() const { return Offset; }
+    RelocOffsetT getOffset() const {
+      RelocOffsetT Offset = 0;
+      for (const auto *RelocOffset : OffsetExpr) {
+        Offset += RelocOffset->getOffset();
+      }
+      return Offset;
+    }
+
     const GlobalDeclaration *getDeclaration() const { return Declaration; }
     SizeT getNumBytes() const final { return RelocAddrSize; }
     void dump(GlobalContext *Ctx, Ostream &Stream) const final;
@@ -334,13 +343,15 @@ public:
   private:
     ENABLE_MAKE_UNIQUE;
 
-    RelocInitializer(const GlobalDeclaration *Declaration, RelocOffsetT Offset)
-        : Initializer(RelocInitializerKind), Declaration(Declaration),
-          Offset(Offset) {} // The global declaration used in the relocation.
+    RelocInitializer(const GlobalDeclaration *Declaration,
+                     const RelocOffsetArray &OffsetExpr)
+        : Initializer(RelocInitializerKind),
+          Declaration(Declaration), // The global declaration used in the reloc.
+          OffsetExpr(OffsetExpr) {}
 
     const GlobalDeclaration *Declaration;
     /// The offset to add to the relocation.
-    const RelocOffsetT Offset;
+    const RelocOffsetArray OffsetExpr;
   };
 
   /// Models the list of initializers.
