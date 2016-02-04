@@ -2050,21 +2050,105 @@ namespace glsl
 		return 0;
 	}
 
+	int OutputASM::getBlockId(TIntermTyped *arg)
+	{
+		if(arg)
+		{
+			const TType &type = arg->getType();
+			TInterfaceBlock* block = type.getInterfaceBlock();
+			if(block && (type.getQualifier() == EvqUniform))
+			{
+				// Make sure the uniform block is declared
+				uniformRegister(arg);
+
+				const char* blockName = block->name().c_str();
+
+				// Fetch uniform block index from array of blocks
+				for(ActiveUniformBlocks::const_iterator it = shaderObject->activeUniformBlocks.begin(); it != shaderObject->activeUniformBlocks.end(); ++it)
+				{
+					if(blockName == it->name)
+					{
+						return it->blockId;
+					}
+				}
+
+				ASSERT(false);
+			}
+		}
+
+		return -1;
+	}
+
+	OutputASM::ArgumentInfo OutputASM::getArgumentInfo(TIntermTyped *arg, int index)
+	{
+		const TType &type = arg->getType();
+		int blockId = getBlockId(arg);
+		ArgumentInfo argumentInfo(BlockMemberInfo::getDefaultBlockInfo(), type, -1, -1);
+		if(blockId != -1)
+		{
+			argumentInfo.bufferIndex = 0;
+			for(int i = 0; i < blockId; ++i)
+			{
+				int blockArraySize = shaderObject->activeUniformBlocks[i].arraySize;
+				argumentInfo.bufferIndex += blockArraySize > 0 ? blockArraySize : 1;
+			}
+
+			const BlockDefinitionIndexMap& blockDefinition = blockDefinitions[blockId];
+
+			BlockDefinitionIndexMap::const_iterator itEnd = blockDefinition.end();
+			BlockDefinitionIndexMap::const_iterator it = itEnd;
+
+			argumentInfo.clampedIndex = index;
+			if(type.isInterfaceBlock())
+			{
+				// Offset index to the beginning of the selected instance
+				size_t blockRegisters = type.elementRegisterCount();
+				size_t bufferOffset = argumentInfo.clampedIndex / blockRegisters;
+				argumentInfo.bufferIndex += bufferOffset;
+				argumentInfo.clampedIndex -= bufferOffset * blockRegisters;
+			}
+
+			int regIndex = registerIndex(arg);
+			for(int i = regIndex + argumentInfo.clampedIndex; i >= regIndex; --i)
+			{
+				it = blockDefinition.find(i);
+				if(it != itEnd)
+				{
+					argumentInfo.clampedIndex -= (i - regIndex);
+					break;
+				}
+			}
+			ASSERT(it != itEnd);
+
+			argumentInfo.typedMemberInfo = it->second;
+
+			int registerCount = argumentInfo.typedMemberInfo.type.totalRegisterCount();
+			argumentInfo.clampedIndex = (argumentInfo.clampedIndex >= registerCount) ? registerCount - 1 : argumentInfo.clampedIndex;
+		}
+		else
+		{
+			argumentInfo.clampedIndex = (index >= arg->totalRegisterCount()) ? arg->totalRegisterCount() - 1 : index;
+		}
+
+		return argumentInfo;
+	}
+
 	void OutputASM::argument(sw::Shader::SourceParameter &parameter, TIntermNode *argument, int index)
 	{
 		if(argument)
 		{
 			TIntermTyped *arg = argument->getAsTyped();
-			const TType &type = arg->getType();
-			index = (index >= arg->totalRegisterCount()) ? arg->totalRegisterCount() - 1 : index;
+			const ArgumentInfo argumentInfo = getArgumentInfo(arg, index);
+			const TType &type = argumentInfo.typedMemberInfo.type;
 
-			int size = registerSize(type, index);
+			int size = registerSize(type, argumentInfo.clampedIndex);
 
 			parameter.type = registerType(arg);
+			parameter.bufferIndex = argumentInfo.bufferIndex;
 
 			if(arg->getQualifier() == EvqConstExpr)
 			{
-				int component = componentCount(type, index);
+				int component = componentCount(type, argumentInfo.clampedIndex);
 				ConstantUnion *constants = arg->getAsConstantUnion()->getUnionArrayPointer();
 
 				for(int i = 0; i < 4; i++)
@@ -2085,7 +2169,7 @@ namespace glsl
 			}
 			else
 			{
-				parameter.index = registerIndex(arg) + index;
+				parameter.index = registerIndex(arg) + argumentInfo.clampedIndex;
 
 				if(isSamplerRegister(arg))
 				{
@@ -2118,6 +2202,11 @@ namespace glsl
 							UNREACHABLE(binary->getOp());
 						}
 					}
+				}
+				else if(parameter.bufferIndex != -1)
+				{
+					int stride = (argumentInfo.typedMemberInfo.matrixStride > 0) ? argumentInfo.typedMemberInfo.matrixStride : argumentInfo.typedMemberInfo.arrayStride;
+					parameter.index = argumentInfo.typedMemberInfo.offset + argumentInfo.clampedIndex * stride;
 				}
 			}
 
@@ -2943,7 +3032,7 @@ namespace glsl
 			const BlockMemberInfo blockInfo = encoder ? encoder->encodeType(type) : BlockMemberInfo::getDefaultBlockInfo();
 			if(blockId >= 0)
 			{
-				blockDefinitions[blockId].indexMap[registerIndex] = TypedMemberInfo(blockInfo, type);
+				blockDefinitions[blockId][registerIndex] = TypedMemberInfo(blockInfo, type);
 				shaderObject->activeUniformBlocks[blockId].fields.push_back(activeUniforms.size());
 			}
 			int fieldRegisterIndex = encoder ? shaderObject->activeUniformBlocks[blockId].registerIndex + BlockLayoutEncoder::getBlockRegister(blockInfo) : registerIndex;
@@ -2994,7 +3083,7 @@ namespace glsl
 			bool isRowMajor = block->matrixPacking() == EmpRowMajor;
 			activeUniformBlocks.push_back(UniformBlock(blockName.c_str(), 0, block->arraySize(),
 			                                           block->blockStorage(), isRowMajor, registerIndex, blockId));
-			blockDefinitions.push_back(BlockDefinition());
+			blockDefinitions.push_back(BlockDefinitionIndexMap());
 
 			Std140BlockEncoder currentBlockEncoder(isRowMajor);
 			currentBlockEncoder.enterAggregateType();
