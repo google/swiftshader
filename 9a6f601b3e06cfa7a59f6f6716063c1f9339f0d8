@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "91802c15_876ac6ee",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2909,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-02-04T13:15:51Z",
+      "side": 1,
+      "message": "Can this be a const reference?",
+      "range": {
+        "startLine": 2909,
+        "startChar": 19,
+        "endLine": 2909,
+        "endChar": 28
+      },
+      "revId": "9a6f601b3e06cfa7a59f6f6716063c1f9339f0d8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "91802c15_6776b2de",
+        "filename": "src/OpenGL/compiler/OutputASM.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 324,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-02-04T13:15:51Z",
+      "side": 1,
+      "message": "Undefined / unused",
+      "range": {
+        "startLine": 324,
+        "startChar": 18,
+        "endLine": 324,
+        "endChar": 35
+      },
+      "revId": "9a6f601b3e06cfa7a59f6f6716063c1f9339f0d8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
