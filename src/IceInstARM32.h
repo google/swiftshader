@@ -1342,14 +1342,9 @@ public:
 private:
   InstARM32Mov(Cfg *Func, Variable *Dest, Operand *Src,
                CondARM32::Cond Predicate);
-
   void emitMultiDestSingleSource(const Cfg *Func) const;
   void emitSingleDestMultiSource(const Cfg *Func) const;
   void emitSingleDestSingleSource(const Cfg *Func) const;
-
-  void emitIASSingleDestSingleSource(const Cfg *Func) const;
-  void emitIASScalarVFPMove(const Cfg *Func) const;
-  void emitIASCoreVFPMove(const Cfg *Func) const;
 
   Variable *DestHi = nullptr;
 };

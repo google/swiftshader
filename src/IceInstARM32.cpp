@@ -1254,107 +1254,6 @@ void InstARM32Mov::emitSingleDestSingleSource(const Cfg *Func) const {
   Src0->emit(Func);
 }
 
-void InstARM32Mov::emitIASScalarVFPMove(const Cfg *Func) const {
-  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
-  Operand *Src0 = getSrc(0);
-  Variable *Dest = getDest();
-  switch (Dest->getType()) {
-  default:
-    assert(false && "Do not know how to emit scalar FP move for type.");
-    break;
-  case IceType_f32:
-    if (const auto *Var = llvm::dyn_cast<Variable>(Src0)) {
-      Asm->vmovss(Dest, Var, getPredicate());
-      return;
-    } else if (const auto *FpImm =
-                   llvm::dyn_cast<OperandARM32FlexFpImm>(Src0)) {
-      Asm->vmovs(Dest, FpImm, getPredicate());
-      return;
-    }
-    assert(!Asm->needsTextFixup());
-    return;
-  case IceType_f64:
-    if (const auto *Var = llvm::dyn_cast<Variable>(Src0)) {
-      Asm->vmovdd(Dest, Var, getPredicate());
-      return;
-    } else if (const auto *FpImm =
-                   llvm::dyn_cast<OperandARM32FlexFpImm>(Src0)) {
-      Asm->vmovd(Dest, FpImm, getPredicate());
-      return;
-    }
-    assert(!Asm->needsTextFixup());
-    return;
-  }
-  // TODO(kschimpf) Handle register to register move.
-  Asm->setNeedsTextFixup();
-  return;
-}
-
-void InstARM32Mov::emitIASCoreVFPMove(const Cfg *Func) const {
-  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
-  Operand *Src0 = getSrc(0);
-  if (!llvm::isa<Variable>(Src0))
-    // TODO(kschimpf) Handle moving constants into registers.
-    return Asm->setNeedsTextFixup();
-
-  // Move register to register.
-  Variable *Dest = getDest();
-  // TODO(kschimpf) Consider merging methods emitIAS.. methods into
-  // a single case statement.
-  switch (Dest->getType()) {
-  default:
-    // TODO(kschimpf): Fill this out more.
-    return Asm->setNeedsTextFixup();
-  case IceType_i1:
-  case IceType_i8:
-  case IceType_i16:
-  case IceType_i32:
-    assert(Src0->getType() == IceType_f32 && "Expected int to float move");
-    Asm->vmovrs(Dest, Src0, getPredicate());
-    return;
-  case IceType_i64:
-    assert(false && "i64 to float moves not handled here!");
-    return;
-  case IceType_f32:
-    switch (Src0->getType()) {
-    default:
-      assert(false && "Expected float to int move");
-      return;
-    case IceType_i1:
-    case IceType_i8:
-    case IceType_i16:
-    case IceType_i32:
-      return Asm->vmovsr(Dest, Src0, getPredicate());
-    }
-  }
-}
-
-void InstARM32Mov::emitIASSingleDestSingleSource(const Cfg *Func) const {
-  Variable *Dest = getDest();
-  Operand *Src0 = getSrc(0);
-
-  if (!Dest->hasReg()) {
-    llvm::report_fatal_error("mov can't store.");
-  }
-
-  if (isMemoryAccess(Src0)) {
-    llvm::report_fatal_error("mov can't load.");
-  }
-
-  if (isMoveBetweenCoreAndVFPRegisters(Dest, Src0))
-    return emitIASCoreVFPMove(Func);
-
-  const Type DestTy = Dest->getType();
-  if (isScalarFloatingType(DestTy))
-    return emitIASScalarVFPMove(Func);
-
-  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
-  if (isVectorType(DestTy))
-    return Asm->setNeedsTextFixup();
-
-  return Asm->mov(Dest, Src0, getPredicate());
-}
-
 void InstARM32Mov::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
@@ -1373,19 +1272,113 @@ void InstARM32Mov::emit(const Cfg *Func) const {
 }
 
 void InstARM32Mov::emitIAS(const Cfg *Func) const {
-  // TODO(kschimpf) Flatten this to a switch statement of dest type. That is,
-  // combine code of emitIASSingleDestSingleSource, emitIASCoreVFPMove,
-  // emitIASScalarVFPMove, emitDoubleToI64Move, and emitI64ToDoubleMove.
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  Variable *Dest = getDest();
+  Operand *Src0 = getSrc(0);
+  if (!Dest->hasReg()) {
+    llvm::report_fatal_error("mov can't store.");
+  }
+  if (isMemoryAccess(Src0)) {
+    llvm::report_fatal_error("mov can't load.");
+  }
+
   assert(!(isMultiDest() && isMultiSource()) && "Invalid vmov type.");
-  if (isMultiDest())
-    Asm->vmovrrd(getDest(), getDestHi(), getSrc(0), getPredicate());
-  else if (isMultiSource())
-    Asm->vmovdrr(getDest(), getSrc(0), getSrc(1), getPredicate());
-  else
-    emitIASSingleDestSingleSource(Func);
-  if (Asm->needsTextFixup())
+  if (isMultiDest()) {
+    Asm->vmovrrd(Dest, getDestHi(), Src0, getPredicate());
+    return;
+  }
+  if (isMultiSource()) {
+    Asm->vmovdrr(Dest, Src0, getSrc(1), getPredicate());
+    return;
+  }
+
+  const Type DestTy = Dest->getType();
+  const Type SrcTy = Src0->getType();
+  switch (DestTy) {
+  default:
+    break; // Error
+  case IceType_i1:
+  case IceType_i8:
+  case IceType_i16:
+  case IceType_i32:
+    switch (SrcTy) {
+    default:
+      break; // Error
+    case IceType_i1:
+    case IceType_i8:
+    case IceType_i16:
+    case IceType_i32:
+    case IceType_i64:
+      Asm->mov(Dest, Src0, getPredicate());
+      return;
+    case IceType_f32:
+      Asm->vmovrs(Dest, Src0, getPredicate());
+      return;
+    }
+    break; // Error
+  case IceType_i64:
+    if (isScalarIntegerType(SrcTy)) {
+      Asm->mov(Dest, Src0, getPredicate());
+      return;
+    }
+    if (SrcTy == IceType_f64) {
+      if (const auto *Var = llvm::dyn_cast<Variable>(Src0)) {
+        Asm->vmovdd(Dest, Var, getPredicate());
+        return;
+      }
+      if (const auto *FpImm = llvm::dyn_cast<OperandARM32FlexFpImm>(Src0)) {
+        Asm->vmovd(Dest, FpImm, getPredicate());
+        return;
+      }
+    }
+    break; // Error
+  case IceType_f32:
+    switch (SrcTy) {
+    default:
+      break; // Error
+    case IceType_i1:
+    case IceType_i8:
+    case IceType_i16:
+    case IceType_i32:
+      return Asm->vmovsr(Dest, Src0, getPredicate());
+    case IceType_f32:
+      if (const auto *Var = llvm::dyn_cast<Variable>(Src0)) {
+        Asm->vmovss(Dest, Var, getPredicate());
+        return;
+      }
+      if (const auto *FpImm = llvm::dyn_cast<OperandARM32FlexFpImm>(Src0)) {
+        Asm->vmovs(Dest, FpImm, getPredicate());
+        return;
+      }
+      break; // Error
+    }
+    break; // Error
+  case IceType_f64:
+    if (SrcTy == IceType_f64) {
+      if (const auto *Var = llvm::dyn_cast<Variable>(Src0)) {
+        Asm->vmovdd(Dest, Var, getPredicate());
+        return;
+      }
+      if (const auto *FpImm = llvm::dyn_cast<OperandARM32FlexFpImm>(Src0)) {
+        Asm->vmovd(Dest, FpImm, getPredicate());
+        return;
+      }
+    }
+    break; // Error
+  case IceType_v4i1:
+  case IceType_v8i1:
+  case IceType_v16i1:
+  case IceType_v16i8:
+  case IceType_v8i16:
+  case IceType_v4i32:
+  case IceType_v4f32:
+    // TODO(kschimpf): Add vector moves.
     emitUsingTextFixup(Func);
+    return;
+  }
+  llvm::report_fatal_error("Mov: don't know how to move " +
+                           typeIceString(SrcTy) + " to " +
+                           typeIceString(DestTy));
 }
 
 void InstARM32Mov::dump(const Cfg *Func) const {
