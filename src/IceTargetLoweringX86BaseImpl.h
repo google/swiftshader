@@ -1954,6 +1954,7 @@ void TargetX86Base<TraitsType>::lowerArithmetic(const InstArithmetic *Instr) {
       // The mul instruction produces two dest variables, edx:eax. We create a
       // fake definition of edx to account for this.
       Context.insert<InstFakeDef>(T_4Hi, T_4Lo);
+      Context.insert<InstFakeUse>(T_4Hi);
       _mov(DestLo, T_4Lo);
       _add(T_4Hi, T_1);
       _mov(T_2, Src1Hi);

@@ -763,6 +763,7 @@ protected:
     // Model the modification to the second dest as a fake def. Note that the
     // def is not predicated.
     Context.insert<InstFakeDef>(DestHi, DestLo);
+    Context.insert<InstFakeUse>(DestHi);
   }
   void _uxt(Variable *Dest, Variable *Src0,
             CondARM32::Cond Pred = CondARM32::AL) {
