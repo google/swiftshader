@@ -898,13 +898,13 @@ bool Cfg::validateLiveness() const {
   Ostream &Str = Ctx->getStrDump();
   for (CfgNode *Node : Nodes) {
     Inst *FirstInst = nullptr;
-    for (Inst &Inst : Node->getInsts()) {
-      if (Inst.isDeleted())
+    for (Inst &Instr : Node->getInsts()) {
+      if (Instr.isDeleted())
         continue;
       if (FirstInst == nullptr)
-        FirstInst = &Inst;
-      InstNumberT InstNumber = Inst.getNumber();
-      if (Variable *Dest = Inst.getDest()) {
+        FirstInst = &Instr;
+      InstNumberT InstNumber = Instr.getNumber();
+      if (Variable *Dest = Instr.getDest()) {
         if (!Dest->getIgnoreLiveness()) {
           bool Invalid = false;
           constexpr bool IsDest = true;
@@ -916,24 +916,24 @@ bool Cfg::validateLiveness() const {
           // of the block, because a Phi temporary may be live at the end of
           // the previous block, and if it is also assigned in the first
           // instruction of this block, the adjacent live ranges get merged.
-          if (static_cast<class Inst *>(&Inst) != FirstInst &&
-              !Inst.isDestRedefined() &&
+          if (static_cast<class Inst *>(&Instr) != FirstInst &&
+              !Instr.isDestRedefined() &&
               Dest->getLiveRange().containsValue(InstNumber - 1, IsDest))
             Invalid = true;
           if (Invalid) {
             Valid = false;
-            Str << "Liveness error: inst " << Inst.getNumber() << " dest ";
+            Str << "Liveness error: inst " << Instr.getNumber() << " dest ";
             Dest->dump(this);
             Str << " live range " << Dest->getLiveRange() << "\n";
           }
         }
       }
-      FOREACH_VAR_IN_INST(Var, Inst) {
+      FOREACH_VAR_IN_INST(Var, Instr) {
         static constexpr bool IsDest = false;
         if (!Var->getIgnoreLiveness() &&
             !Var->getLiveRange().containsValue(InstNumber, IsDest)) {
           Valid = false;
-          Str << "Liveness error: inst " << Inst.getNumber() << " var ";
+          Str << "Liveness error: inst " << Instr.getNumber() << " var ";
           Var->dump(this);
           Str << " live range " << Var->getLiveRange() << "\n";
         }

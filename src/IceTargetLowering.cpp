@@ -70,9 +70,9 @@ void LoweringContext::rewind() {
   availabilityReset();
 }
 
-void LoweringContext::insert(Inst *Inst) {
-  getNode()->getInsts().insert(Next, Inst);
-  LastInserted = Inst;
+void LoweringContext::insert(Inst *Instr) {
+  getNode()->getInsts().insert(Next, Instr);
+  LastInserted = Instr;
 }
 
 void LoweringContext::skipDeleted(InstList::iterator &I) const {
@@ -350,76 +350,76 @@ void TargetLowering::doNopInsertion(RandomNumberGenerator &RNG) {
 // should delete any additional instructions it consumes.
 void TargetLowering::lower() {
   assert(!Context.atEnd());
-  Inst *Inst = Context.getCur();
-  Inst->deleteIfDead();
-  if (!Inst->isDeleted() && !llvm::isa<InstFakeDef>(Inst) &&
-      !llvm::isa<InstFakeUse>(Inst)) {
+  Inst *Instr = Context.getCur();
+  Instr->deleteIfDead();
+  if (!Instr->isDeleted() && !llvm::isa<InstFakeDef>(Instr) &&
+      !llvm::isa<InstFakeUse>(Instr)) {
     // Mark the current instruction as deleted before lowering, otherwise the
     // Dest variable will likely get marked as non-SSA. See
     // Variable::setDefinition(). However, just pass-through FakeDef and
     // FakeUse instructions that might have been inserted prior to lowering.
-    Inst->setDeleted();
-    switch (Inst->getKind()) {
+    Instr->setDeleted();
+    switch (Instr->getKind()) {
     case Inst::Alloca:
-      lowerAlloca(llvm::cast<InstAlloca>(Inst));
+      lowerAlloca(llvm::cast<InstAlloca>(Instr));
       break;
     case Inst::Arithmetic:
-      lowerArithmetic(llvm::cast<InstArithmetic>(Inst));
+      lowerArithmetic(llvm::cast<InstArithmetic>(Instr));
       break;
     case Inst::Assign:
-      lowerAssign(llvm::cast<InstAssign>(Inst));
+      lowerAssign(llvm::cast<InstAssign>(Instr));
       break;
     case Inst::Br:
-      lowerBr(llvm::cast<InstBr>(Inst));
+      lowerBr(llvm::cast<InstBr>(Instr));
       break;
     case Inst::Call:
-      lowerCall(llvm::cast<InstCall>(Inst));
+      lowerCall(llvm::cast<InstCall>(Instr));
       break;
     case Inst::Cast:
-      lowerCast(llvm::cast<InstCast>(Inst));
+      lowerCast(llvm::cast<InstCast>(Instr));
       break;
     case Inst::ExtractElement:
-      lowerExtractElement(llvm::cast<InstExtractElement>(Inst));
+      lowerExtractElement(llvm::cast<InstExtractElement>(Instr));
       break;
     case Inst::Fcmp:
-      lowerFcmp(llvm::cast<InstFcmp>(Inst));
+      lowerFcmp(llvm::cast<InstFcmp>(Instr));
       break;
     case Inst::Icmp:
-      lowerIcmp(llvm::cast<InstIcmp>(Inst));
+      lowerIcmp(llvm::cast<InstIcmp>(Instr));
       break;
     case Inst::InsertElement:
-      lowerInsertElement(llvm::cast<InstInsertElement>(Inst));
+      lowerInsertElement(llvm::cast<InstInsertElement>(Instr));
       break;
     case Inst::IntrinsicCall: {
-      auto *Call = llvm::cast<InstIntrinsicCall>(Inst);
+      auto *Call = llvm::cast<InstIntrinsicCall>(Instr);
       if (Call->getIntrinsicInfo().ReturnsTwice)
         setCallsReturnsTwice(true);
       lowerIntrinsicCall(Call);
       break;
     }
     case Inst::Load:
-      lowerLoad(llvm::cast<InstLoad>(Inst));
+      lowerLoad(llvm::cast<InstLoad>(Instr));
       break;
     case Inst::Phi:
-      lowerPhi(llvm::cast<InstPhi>(Inst));
+      lowerPhi(llvm::cast<InstPhi>(Instr));
       break;
     case Inst::Ret:
-      lowerRet(llvm::cast<InstRet>(Inst));
+      lowerRet(llvm::cast<InstRet>(Instr));
       break;
     case Inst::Select:
-      lowerSelect(llvm::cast<InstSelect>(Inst));
+      lowerSelect(llvm::cast<InstSelect>(Instr));
       break;
     case Inst::Store:
-      lowerStore(llvm::cast<InstStore>(Inst));
+      lowerStore(llvm::cast<InstStore>(Instr));
       break;
     case Inst::Switch:
-      lowerSwitch(llvm::cast<InstSwitch>(Inst));
+      lowerSwitch(llvm::cast<InstSwitch>(Instr));
       break;
     case Inst::Unreachable:
-      lowerUnreachable(llvm::cast<InstUnreachable>(Inst));
+      lowerUnreachable(llvm::cast<InstUnreachable>(Instr));
       break;
     default:
-      lowerOther(Inst);
+      lowerOther(Instr);
       break;
     }
 
@@ -482,15 +482,16 @@ void TargetLowering::markRedefinitions() {
   // Find (non-SSA) instructions where the Dest variable appears in some source
   // operand, and set the IsDestRedefined flag to keep liveness analysis
   // consistent.
-  for (auto Inst = Context.getCur(), E = Context.getNext(); Inst != E; ++Inst) {
-    if (Inst->isDeleted())
+  for (auto Instr = Context.getCur(), E = Context.getNext(); Instr != E;
+       ++Instr) {
+    if (Instr->isDeleted())
       continue;
-    Variable *Dest = Inst->getDest();
+    Variable *Dest = Instr->getDest();
     if (Dest == nullptr)
       continue;
-    FOREACH_VAR_IN_INST(Var, *Inst) {
+    FOREACH_VAR_IN_INST(Var, *Instr) {
       if (Var == Dest) {
-        Inst->setDestRedefined();
+        Instr->setDestRedefined();
         break;
       }
     }
@@ -537,12 +538,12 @@ void TargetLowering::getVarStackSlotParams(
   const VariablesMetadata *VMetadata = Func->getVMetadata();
   llvm::BitVector IsVarReferenced(Func->getNumVariables());
   for (CfgNode *Node : Func->getNodes()) {
-    for (Inst &Inst : Node->getInsts()) {
-      if (Inst.isDeleted())
+    for (Inst &Instr : Node->getInsts()) {
+      if (Instr.isDeleted())
         continue;
-      if (const Variable *Var = Inst.getDest())
+      if (const Variable *Var = Instr.getDest())
         IsVarReferenced[Var->getIndex()] = true;
-      FOREACH_VAR_IN_INST(Var, Inst) {
+      FOREACH_VAR_IN_INST(Var, Instr) {
         IsVarReferenced[Var->getIndex()] = true;
       }
     }

@@ -449,9 +449,9 @@ public:
   void startNextInst(const Cfg *Func) const;
 
   /// Shared emit routines for common forms of instructions.
-  static void emitThreeAddrFP(const char *Opcode, const InstARM32 *Inst,
+  static void emitThreeAddrFP(const char *Opcode, const InstARM32 *Instr,
                               const Cfg *Func);
-  static void emitFourAddrFP(const char *Opcode, const InstARM32 *Inst,
+  static void emitFourAddrFP(const char *Opcode, const InstARM32 *Instr,
                              const Cfg *Func);
 
   void dump(const Cfg *Func) const override;
@@ -462,8 +462,8 @@ protected:
   InstARM32(Cfg *Func, InstKindARM32 Kind, SizeT Maxsrcs, Variable *Dest)
       : InstTarget(Func, static_cast<InstKind>(Kind), Maxsrcs, Dest) {}
 
-  static bool isClassof(const Inst *Inst, InstKindARM32 MyKind) {
-    return Inst->getKind() == static_cast<InstKind>(MyKind);
+  static bool isClassof(const Inst *Instr, InstKindARM32 MyKind) {
+    return Instr->getKind() == static_cast<InstKind>(MyKind);
   }
 
   // Generates text of assembly instruction using method emit(), and then adds
@@ -489,17 +489,17 @@ public:
   void dumpOpcodePred(Ostream &Str, const char *Opcode, Type Ty) const;
 
   /// Shared emit routines for common forms of instructions.
-  static void emitUnaryopGPR(const char *Opcode, const InstARM32Pred *Inst,
+  static void emitUnaryopGPR(const char *Opcode, const InstARM32Pred *Instr,
                              const Cfg *Func, bool NeedsWidthSuffix);
-  static void emitUnaryopFP(const char *Opcode, const InstARM32Pred *Inst,
+  static void emitUnaryopFP(const char *Opcode, const InstARM32Pred *Instr,
                             const Cfg *Func);
-  static void emitTwoAddr(const char *Opcode, const InstARM32Pred *Inst,
+  static void emitTwoAddr(const char *Opcode, const InstARM32Pred *Instr,
                           const Cfg *Func);
-  static void emitThreeAddr(const char *Opcode, const InstARM32Pred *Inst,
+  static void emitThreeAddr(const char *Opcode, const InstARM32Pred *Instr,
                             const Cfg *Func, bool SetFlags);
-  static void emitFourAddr(const char *Opcode, const InstARM32Pred *Inst,
+  static void emitFourAddr(const char *Opcode, const InstARM32Pred *Instr,
                            const Cfg *Func);
-  static void emitCmpLike(const char *Opcode, const InstARM32Pred *Inst,
+  static void emitCmpLike(const char *Opcode, const InstARM32Pred *Instr,
                           const Cfg *Func);
 
 protected:
@@ -541,7 +541,7 @@ public:
     Str << " ";
     dumpSources(Func);
   }
-  static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
+  static bool classof(const Inst *Instr) { return isClassof(Instr, K); }
 
 private:
   InstARM32UnaryopGPR(Cfg *Func, Variable *Dest, Operand *Src,
@@ -582,7 +582,7 @@ public:
     Str << " ";
     dumpSources(Func);
   }
-  static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
+  static bool classof(const Inst *Instr) { return isClassof(Instr, K); }
 
 private:
   InstARM32UnaryopFP(Cfg *Func, Variable *Dest, Operand *Src,
@@ -624,7 +624,7 @@ public:
     Str << " ";
     dumpSources(Func);
   }
-  static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
+  static bool classof(const Inst *Instr) { return isClassof(Instr, K); }
 
 private:
   InstARM32TwoAddrGPR(Cfg *Func, Variable *Dest, Operand *Src,
@@ -662,7 +662,7 @@ public:
     Str << ", ";
     dumpSources(Func);
   }
-  static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
+  static bool classof(const Inst *Instr) { return isClassof(Instr, K); }
 
 private:
   InstARM32LoadBase(Cfg *Func, Variable *Dest, Operand *Source,
@@ -708,7 +708,7 @@ public:
     Str << (SetFlags ? ".s " : " ");
     dumpSources(Func);
   }
-  static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
+  static bool classof(const Inst *Instr) { return isClassof(Instr, K); }
 
 private:
   InstARM32ThreeAddrGPR(Cfg *Func, Variable *Dest, Variable *Src0,
@@ -756,7 +756,7 @@ public:
     Str << Opcode << "." << getDest()->getType() << " ";
     dumpSources(Func);
   }
-  static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
+  static bool classof(const Inst *Instr) { return isClassof(Instr, K); }
 
 private:
   InstARM32ThreeAddrFP(Cfg *Func, Variable *Dest, Variable *Src0,
@@ -800,7 +800,7 @@ public:
     Str << " ";
     dumpSources(Func);
   }
-  static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
+  static bool classof(const Inst *Instr) { return isClassof(Instr, K); }
 
 private:
   InstARM32FourAddrGPR(Cfg *Func, Variable *Dest, Variable *Src0,
@@ -850,7 +850,7 @@ public:
     Str << ", ";
     dumpSources(Func);
   }
-  static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
+  static bool classof(const Inst *Instr) { return isClassof(Instr, K); }
 
 private:
   InstARM32FourAddrFP(Cfg *Func, Variable *Dest, Variable *Src0, Variable *Src1)
@@ -890,7 +890,7 @@ public:
     Str << " ";
     dumpSources(Func);
   }
-  static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
+  static bool classof(const Inst *Instr) { return isClassof(Instr, K); }
 
 private:
   InstARM32CmpLike(Cfg *Func, Variable *Src0, Operand *Src1,
@@ -1038,7 +1038,7 @@ public:
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return isClassof(Inst, Br); }
+  static bool classof(const Inst *Instr) { return isClassof(Instr, Br); }
 
 private:
   InstARM32Br(Cfg *Func, const CfgNode *TargetTrue, const CfgNode *TargetFalse,
@@ -1066,7 +1066,7 @@ public:
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return isClassof(Inst, Call); }
+  static bool classof(const Inst *Instr) { return isClassof(Instr, Call); }
 
 private:
   InstARM32Call(Cfg *Func, Variable *Dest, Operand *CallTarget);
@@ -1115,7 +1115,7 @@ public:
   static InstARM32Pop *create(Cfg *Func, const VarList &Dests) {
     return new (Func->allocate<InstARM32Pop>()) InstARM32Pop(Func, Dests);
   }
-  static bool classof(const Inst *Inst) { return isClassof(Inst, Pop); }
+  static bool classof(const Inst *Instr) { return isClassof(Instr, Pop); }
 
 private:
   InstARM32Pop(Cfg *Func, const VarList &Dests);
@@ -1144,7 +1144,7 @@ public:
   static InstARM32Push *create(Cfg *Func, const VarList &Srcs) {
     return new (Func->allocate<InstARM32Push>()) InstARM32Push(Func, Srcs);
   }
-  static bool classof(const Inst *Inst) { return isClassof(Inst, Push); }
+  static bool classof(const Inst *Instr) { return isClassof(Instr, Push); }
 
 private:
   InstARM32Push(Cfg *Func, const VarList &Srcs);
@@ -1182,7 +1182,7 @@ public:
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return isClassof(Inst, Ret); }
+  static bool classof(const Inst *Instr) { return isClassof(Instr, Ret); }
 
 private:
   InstARM32Ret(Cfg *Func, Variable *LR, Variable *Source);
@@ -1205,7 +1205,7 @@ public:
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return isClassof(Inst, Str); }
+  static bool classof(const Inst *Instr) { return isClassof(Instr, Str); }
 
 private:
   InstARM32Str(Cfg *Func, Variable *Value, OperandARM32Mem *Mem,
@@ -1231,7 +1231,7 @@ public:
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return isClassof(Inst, Strex); }
+  static bool classof(const Inst *Instr) { return isClassof(Instr, Strex); }
 
 private:
   InstARM32Strex(Cfg *Func, Variable *Dest, Variable *Value,
@@ -1250,7 +1250,7 @@ public:
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return isClassof(Inst, Trap); }
+  static bool classof(const Inst *Instr) { return isClassof(Instr, Trap); }
 
 private:
   explicit InstARM32Trap(Cfg *Func);
@@ -1273,7 +1273,7 @@ public:
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return isClassof(Inst, Umull); }
+  static bool classof(const Inst *Instr) { return isClassof(Instr, Umull); }
 
 private:
   InstARM32Umull(Cfg *Func, Variable *DestLo, Variable *DestHi, Variable *Src0,
@@ -1298,7 +1298,7 @@ public:
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return isClassof(Inst, Vcvt); }
+  static bool classof(const Inst *Instr) { return isClassof(Instr, Vcvt); }
 
 private:
   InstARM32Vcvt(Cfg *Func, Variable *Dest, Variable *Src, VcvtVariant Variant,
@@ -1328,7 +1328,7 @@ public:
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return isClassof(Inst, Mov); }
+  static bool classof(const Inst *Instr) { return isClassof(Instr, Mov); }
 
   bool isMultiDest() const { return DestHi != nullptr; }
 
@@ -1369,7 +1369,7 @@ public:
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return isClassof(Inst, Vcmp); }
+  static bool classof(const Inst *Instr) { return isClassof(Instr, Vcmp); }
 
 private:
   InstARM32Vcmp(Cfg *Func, Variable *Src0, Operand *Src1,
@@ -1389,7 +1389,7 @@ public:
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return isClassof(Inst, Vmrs); }
+  static bool classof(const Inst *Instr) { return isClassof(Instr, Vmrs); }
 
 private:
   InstARM32Vmrs(Cfg *Func, CondARM32::Cond Predicate);
@@ -1409,7 +1409,7 @@ public:
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return isClassof(Inst, Vabs); }
+  static bool classof(const Inst *Instr) { return isClassof(Instr, Vabs); }
 
 private:
   InstARM32Vabs(Cfg *Func, Variable *Dest, Variable *Src,
@@ -1428,7 +1428,7 @@ public:
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return isClassof(Inst, Dmb); }
+  static bool classof(const Inst *Instr) { return isClassof(Instr, Dmb); }
 
 private:
   explicit InstARM32Dmb(Cfg *Func);

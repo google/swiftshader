@@ -1924,7 +1924,7 @@ llvm::SmallBitVector TargetARM32::getRegisterSet(RegSetMask Include,
   return Registers;
 }
 
-void TargetARM32::lowerAlloca(const InstAlloca *Inst) {
+void TargetARM32::lowerAlloca(const InstAlloca *Instr) {
   // Conservatively require the stack to be aligned. Some stack adjustment
   // operations implemented below assume that the stack is aligned before the
   // alloca. All the alloca code ensures that the stack alignment is preserved
@@ -1934,7 +1934,7 @@ void TargetARM32::lowerAlloca(const InstAlloca *Inst) {
 
   // For default align=0, set it to the real value 1, to avoid any
   // bit-manipulation problems below.
-  const uint32_t AlignmentParam = std::max(1u, Inst->getAlignInBytes());
+  const uint32_t AlignmentParam = std::max(1u, Instr->getAlignInBytes());
 
   // LLVM enforces power of 2 alignment.
   assert(llvm::isPowerOf2_32(AlignmentParam));
@@ -1944,7 +1944,7 @@ void TargetARM32::lowerAlloca(const InstAlloca *Inst) {
       std::max(AlignmentParam, ARM32_STACK_ALIGNMENT_BYTES);
   const bool OverAligned = Alignment > ARM32_STACK_ALIGNMENT_BYTES;
   const bool OptM1 = Ctx->getFlags().getOptLevel() == Opt_m1;
-  const bool AllocaWithKnownOffset = Inst->getKnownFrameOffset();
+  const bool AllocaWithKnownOffset = Instr->getKnownFrameOffset();
   const bool UseFramePointer =
       hasFramePointer() || OverAligned || !AllocaWithKnownOffset || OptM1;
 
@@ -1956,8 +1956,8 @@ void TargetARM32::lowerAlloca(const InstAlloca *Inst) {
     Sandboxer(this).align_sp(Alignment);
   }
 
-  Variable *Dest = Inst->getDest();
-  Operand *TotalSize = Inst->getSizeInBytes();
+  Variable *Dest = Instr->getDest();
+  Operand *TotalSize = Instr->getSizeInBytes();
 
   if (const auto *ConstantTotalSize =
           llvm::dyn_cast<ConstantInteger32>(TotalSize)) {
@@ -2062,19 +2062,19 @@ void TargetARM32::lowerIDivRem(Variable *Dest, Variable *T, Variable *Src0R,
 }
 
 TargetARM32::SafeBoolChain
-TargetARM32::lowerInt1Arithmetic(const InstArithmetic *Inst) {
-  Variable *Dest = Inst->getDest();
+TargetARM32::lowerInt1Arithmetic(const InstArithmetic *Instr) {
+  Variable *Dest = Instr->getDest();
   assert(Dest->getType() == IceType_i1);
 
-  // So folding didn't work for Inst. Not a problem: We just need to
+  // So folding didn't work for Instr. Not a problem: We just need to
   // materialize the Sources, and perform the operation. We create regular
   // Variables (and not infinite-weight ones) because this call might recurse a
   // lot, and we might end up with tons of infinite weight temporaries.
-  assert(Inst->getSrcSize() == 2);
+  assert(Instr->getSrcSize() == 2);
   Variable *Src0 = Func->makeVariable(IceType_i1);
-  SafeBoolChain Src0Safe = lowerInt1(Src0, Inst->getSrc(0));
+  SafeBoolChain Src0Safe = lowerInt1(Src0, Instr->getSrc(0));
 
-  Operand *Src1 = Inst->getSrc(1);
+  Operand *Src1 = Instr->getSrc(1);
   SafeBoolChain Src1Safe = SBC_Yes;
 
   if (!llvm::isa<Constant>(Src1)) {
@@ -2086,7 +2086,7 @@ TargetARM32::lowerInt1Arithmetic(const InstArithmetic *Inst) {
   Variable *T = makeReg(IceType_i1);
   Src0 = legalizeToReg(Src0);
   Operand *Src1RF = legalize(Src1, Legal_Reg | Legal_Flex);
-  switch (Inst->getOp()) {
+  switch (Instr->getOp()) {
   default:
     // If this Unreachable is ever executed, add the offending operation to
     // the list of valid consumers.
@@ -3175,15 +3175,15 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Instr) {
   }
 }
 
-void TargetARM32::lowerAssign(const InstAssign *Inst) {
-  Variable *Dest = Inst->getDest();
+void TargetARM32::lowerAssign(const InstAssign *Instr) {
+  Variable *Dest = Instr->getDest();
 
   if (Dest->isRematerializable()) {
     Context.insert<InstFakeDef>(Dest);
     return;
   }
 
-  Operand *Src0 = Inst->getSrc(0);
+  Operand *Src0 = Instr->getSrc(0);
   assert(Dest->getType() == Src0->getType());
   if (Dest->getType() == IceType_i64) {
     Src0 = legalizeUndef(Src0);
@@ -3544,17 +3544,17 @@ void configureBitcastTemporary(Variable64On32 *Var) {
 }
 } // end of anonymous namespace
 
-void TargetARM32::lowerCast(const InstCast *Inst) {
-  InstCast::OpKind CastKind = Inst->getCastKind();
-  Variable *Dest = Inst->getDest();
-  Operand *Src0 = legalizeUndef(Inst->getSrc(0));
+void TargetARM32::lowerCast(const InstCast *Instr) {
+  InstCast::OpKind CastKind = Instr->getCastKind();
+  Variable *Dest = Instr->getDest();
+  Operand *Src0 = legalizeUndef(Instr->getSrc(0));
   switch (CastKind) {
   default:
     Func->setError("Cast type not supported");
     return;
   case InstCast::Sext: {
     if (isVectorType(Dest->getType())) {
-      UnimplementedLoweringError(this, Inst);
+      UnimplementedLoweringError(this, Instr);
     } else if (Dest->getType() == IceType_i64) {
       // t1=sxtb src; t2= mov t1 asr #31; dst.lo=t1; dst.hi=t2
       Constant *ShiftAmt = Ctx->getConstantInt32(31);
@@ -3599,7 +3599,7 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
   }
   case InstCast::Zext: {
     if (isVectorType(Dest->getType())) {
-      UnimplementedLoweringError(this, Inst);
+      UnimplementedLoweringError(this, Instr);
     } else if (Dest->getType() == IceType_i64) {
       // t1=uxtb src; dst.lo=t1; dst.hi=0
       Operand *_0 =
@@ -3652,7 +3652,7 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
   }
   case InstCast::Trunc: {
     if (isVectorType(Dest->getType())) {
-      UnimplementedLoweringError(this, Inst);
+      UnimplementedLoweringError(this, Instr);
     } else {
       if (Src0->getType() == IceType_i64)
         Src0 = loOperand(Src0);
@@ -3672,7 +3672,7 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
     // fpext: dest.f64 = fptrunc src0.fp32
     const bool IsTrunc = CastKind == InstCast::Fptrunc;
     if (isVectorType(Dest->getType())) {
-      UnimplementedLoweringError(this, Inst);
+      UnimplementedLoweringError(this, Instr);
       break;
     }
     assert(Dest->getType() == (IsTrunc ? IceType_f32 : IceType_f64));
@@ -3686,7 +3686,7 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
   case InstCast::Fptosi:
   case InstCast::Fptoui: {
     if (isVectorType(Dest->getType())) {
-      UnimplementedLoweringError(this, Inst);
+      UnimplementedLoweringError(this, Instr);
       break;
     }
 
@@ -3722,7 +3722,7 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
   case InstCast::Sitofp:
   case InstCast::Uitofp: {
     if (isVectorType(Dest->getType())) {
-      UnimplementedLoweringError(this, Inst);
+      UnimplementedLoweringError(this, Instr);
       break;
     }
     const bool SourceIsSigned = CastKind == InstCast::Sitofp;
@@ -3759,7 +3759,7 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
     break;
   }
   case InstCast::Bitcast: {
-    Operand *Src0 = Inst->getSrc(0);
+    Operand *Src0 = Instr->getSrc(0);
     if (Dest->getType() == Src0->getType()) {
       auto *Assign = InstAssign::create(Func, Dest, Src0);
       lowerAssign(Assign);
@@ -3771,13 +3771,13 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
     case IceType_void:
       llvm::report_fatal_error("Unexpected bitcast.");
     case IceType_i1:
-      UnimplementedLoweringError(this, Inst);
+      UnimplementedLoweringError(this, Instr);
       break;
     case IceType_i8:
-      UnimplementedLoweringError(this, Inst);
+      UnimplementedLoweringError(this, Instr);
       break;
     case IceType_i16:
-      UnimplementedLoweringError(this, Inst);
+      UnimplementedLoweringError(this, Instr);
       break;
     case IceType_i32:
     case IceType_f32: {
@@ -3824,7 +3824,7 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
     case IceType_v16i8:
     case IceType_v4f32:
     case IceType_v4i32: {
-      UnimplementedLoweringError(this, Inst);
+      UnimplementedLoweringError(this, Instr);
       break;
     }
     }
@@ -3833,8 +3833,8 @@ void TargetARM32::lowerCast(const InstCast *Inst) {
   }
 }
 
-void TargetARM32::lowerExtractElement(const InstExtractElement *Inst) {
-  UnimplementedLoweringError(this, Inst);
+void TargetARM32::lowerExtractElement(const InstExtractElement *Instr) {
+  UnimplementedLoweringError(this, Instr);
 }
 
 namespace {
@@ -4155,14 +4155,14 @@ TargetARM32::lowerInt8AndInt16IcmpCond(InstIcmp::ICond Condition, Operand *Src0,
   return CondWhenTrue(getIcmp32Mapping(Condition));
 }
 
-TargetARM32::CondWhenTrue TargetARM32::lowerIcmpCond(const InstIcmp *Inst) {
-  assert(Inst->getSrc(0)->getType() != IceType_i1);
-  assert(Inst->getSrc(1)->getType() != IceType_i1);
+TargetARM32::CondWhenTrue TargetARM32::lowerIcmpCond(const InstIcmp *Instr) {
+  assert(Instr->getSrc(0)->getType() != IceType_i1);
+  assert(Instr->getSrc(1)->getType() != IceType_i1);
 
-  Operand *Src0 = legalizeUndef(Inst->getSrc(0));
-  Operand *Src1 = legalizeUndef(Inst->getSrc(1));
+  Operand *Src0 = legalizeUndef(Instr->getSrc(0));
+  Operand *Src1 = legalizeUndef(Instr->getSrc(1));
 
-  const InstIcmp::ICond Condition = Inst->getCondition();
+  const InstIcmp::ICond Condition = Instr->getCondition();
   // a=icmp cond b, c ==>
   // GCC does:
   //   <u/s>xtb tb, b
@@ -4205,11 +4205,11 @@ TargetARM32::CondWhenTrue TargetARM32::lowerIcmpCond(const InstIcmp *Inst) {
   }
 }
 
-void TargetARM32::lowerIcmp(const InstIcmp *Inst) {
-  Variable *Dest = Inst->getDest();
+void TargetARM32::lowerIcmp(const InstIcmp *Instr) {
+  Variable *Dest = Instr->getDest();
 
   if (isVectorType(Dest->getType())) {
-    UnimplementedLoweringError(this, Inst);
+    UnimplementedLoweringError(this, Instr);
     return;
   }
 
@@ -4219,7 +4219,7 @@ void TargetARM32::lowerIcmp(const InstIcmp *Inst) {
   Variable *T = makeReg(IceType_i1);
 
   _mov(T, _0);
-  CondWhenTrue Cond = lowerIcmpCond(Inst);
+  CondWhenTrue Cond = lowerIcmpCond(Instr);
   _mov_redefined(T, _1, Cond.WhenTrue0);
   _mov(Dest, T);
 
@@ -4228,8 +4228,8 @@ void TargetARM32::lowerIcmp(const InstIcmp *Inst) {
   return;
 }
 
-void TargetARM32::lowerInsertElement(const InstInsertElement *Inst) {
-  UnimplementedLoweringError(this, Inst);
+void TargetARM32::lowerInsertElement(const InstInsertElement *Instr) {
+  UnimplementedLoweringError(this, Instr);
 }
 
 namespace {
@@ -4938,8 +4938,8 @@ bool matchAssign(const VariablesMetadata *VMetadata, Variable **Var,
   return Optimized;
 }
 
-bool isAddOrSub(const Inst *Inst, InstArithmetic::OpKind *Kind) {
-  if (const auto *Arith = llvm::dyn_cast<InstArithmetic>(Inst)) {
+bool isAddOrSub(const Inst *Instr, InstArithmetic::OpKind *Kind) {
+  if (const auto *Arith = llvm::dyn_cast<InstArithmetic>(Instr)) {
     switch (Arith->getOp()) {
     default:
       return false;
@@ -5316,14 +5316,14 @@ void TargetARM32::randomlyInsertNop(float Probability,
   }
 }
 
-void TargetARM32::lowerPhi(const InstPhi * /*Inst*/) {
+void TargetARM32::lowerPhi(const InstPhi * /*Instr*/) {
   Func->setError("Phi found in regular instruction list");
 }
 
-void TargetARM32::lowerRet(const InstRet *Inst) {
+void TargetARM32::lowerRet(const InstRet *Instr) {
   Variable *Reg = nullptr;
-  if (Inst->hasRetValue()) {
-    Operand *Src0 = Inst->getRetValue();
+  if (Instr->hasRetValue()) {
+    Operand *Src0 = Instr->getRetValue();
     Type Ty = Src0->getType();
     if (Ty == IceType_i64) {
       Src0 = legalizeUndef(Src0);
@@ -5360,24 +5360,24 @@ void TargetARM32::lowerRet(const InstRet *Inst) {
   Context.insert<InstFakeUse>(SP);
 }
 
-void TargetARM32::lowerSelect(const InstSelect *Inst) {
-  Variable *Dest = Inst->getDest();
+void TargetARM32::lowerSelect(const InstSelect *Instr) {
+  Variable *Dest = Instr->getDest();
   Type DestTy = Dest->getType();
-  Operand *SrcT = Inst->getTrueOperand();
-  Operand *SrcF = Inst->getFalseOperand();
-  Operand *Condition = Inst->getCondition();
+  Operand *SrcT = Instr->getTrueOperand();
+  Operand *SrcF = Instr->getFalseOperand();
+  Operand *Condition = Instr->getCondition();
 
   if (isVectorType(DestTy)) {
-    UnimplementedLoweringError(this, Inst);
+    UnimplementedLoweringError(this, Instr);
     return;
   }
 
   lowerInt1ForSelect(Dest, Condition, legalizeUndef(SrcT), legalizeUndef(SrcF));
 }
 
-void TargetARM32::lowerStore(const InstStore *Inst) {
-  Operand *Value = Inst->getData();
-  Operand *Addr = Inst->getAddr();
+void TargetARM32::lowerStore(const InstStore *Instr) {
+  Operand *Value = Instr->getData();
+  Operand *Addr = Instr->getAddr();
   OperandARM32Mem *NewAddr = formMemoryOperand(Addr, Value->getType());
   Type Ty = NewAddr->getType();
 
@@ -5405,25 +5405,25 @@ void TargetARM32::doAddressOptStore() {
   }
 }
 
-void TargetARM32::lowerSwitch(const InstSwitch *Inst) {
+void TargetARM32::lowerSwitch(const InstSwitch *Instr) {
   // This implements the most naive possible lowering.
   // cmp a,val[0]; jeq label[0]; cmp a,val[1]; jeq label[1]; ... jmp default
-  Operand *Src0 = Inst->getComparison();
-  SizeT NumCases = Inst->getNumCases();
+  Operand *Src0 = Instr->getComparison();
+  SizeT NumCases = Instr->getNumCases();
   if (Src0->getType() == IceType_i64) {
     Src0 = legalizeUndef(Src0);
     Variable *Src0Lo = legalizeToReg(loOperand(Src0));
     Variable *Src0Hi = legalizeToReg(hiOperand(Src0));
     for (SizeT I = 0; I < NumCases; ++I) {
-      Operand *ValueLo = Ctx->getConstantInt32(Inst->getValue(I));
-      Operand *ValueHi = Ctx->getConstantInt32(Inst->getValue(I) >> 32);
+      Operand *ValueLo = Ctx->getConstantInt32(Instr->getValue(I));
+      Operand *ValueHi = Ctx->getConstantInt32(Instr->getValue(I) >> 32);
       ValueLo = legalize(ValueLo, Legal_Reg | Legal_Flex);
       ValueHi = legalize(ValueHi, Legal_Reg | Legal_Flex);
       _cmp(Src0Lo, ValueLo);
       _cmp(Src0Hi, ValueHi, CondARM32::EQ);
-      _br(Inst->getLabel(I), CondARM32::EQ);
+      _br(Instr->getLabel(I), CondARM32::EQ);
     }
-    _br(Inst->getLabelDefault());
+    _br(Instr->getLabelDefault());
     return;
   }
 
@@ -5441,15 +5441,15 @@ void TargetARM32::lowerSwitch(const InstSwitch *Inst) {
   }
 
   for (SizeT I = 0; I < NumCases; ++I) {
-    Operand *Value = Ctx->getConstantInt32(Inst->getValue(I) << ShiftAmt);
+    Operand *Value = Ctx->getConstantInt32(Instr->getValue(I) << ShiftAmt);
     Value = legalize(Value, Legal_Reg | Legal_Flex);
     _cmp(Src0Var, Value);
-    _br(Inst->getLabel(I), CondARM32::EQ);
+    _br(Instr->getLabel(I), CondARM32::EQ);
   }
-  _br(Inst->getLabelDefault());
+  _br(Instr->getLabelDefault());
 }
 
-void TargetARM32::lowerUnreachable(const InstUnreachable * /*Inst*/) {
+void TargetARM32::lowerUnreachable(const InstUnreachable * /*Instr*/) {
   _trap();
 }
 

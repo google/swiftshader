@@ -188,16 +188,16 @@ protected:
     SBC_Yes,
   };
 
-  void lowerAlloca(const InstAlloca *Inst) override;
-  SafeBoolChain lowerInt1Arithmetic(const InstArithmetic *Inst);
+  void lowerAlloca(const InstAlloca *Instr) override;
+  SafeBoolChain lowerInt1Arithmetic(const InstArithmetic *Instr);
   void lowerInt64Arithmetic(InstArithmetic::OpKind Op, Variable *Dest,
                             Operand *Src0, Operand *Src1);
-  void lowerArithmetic(const InstArithmetic *Inst) override;
-  void lowerAssign(const InstAssign *Inst) override;
-  void lowerBr(const InstBr *Inst) override;
-  void lowerCall(const InstCall *Inst) override;
-  void lowerCast(const InstCast *Inst) override;
-  void lowerExtractElement(const InstExtractElement *Inst) override;
+  void lowerArithmetic(const InstArithmetic *Instr) override;
+  void lowerAssign(const InstAssign *Instr) override;
+  void lowerBr(const InstBr *Instr) override;
+  void lowerCall(const InstCall *Instr) override;
+  void lowerCast(const InstCast *Instr) override;
+  void lowerExtractElement(const InstExtractElement *Instr) override;
 
   /// CondWhenTrue is a helper type returned by every method in the lowering
   /// that emits code to set the condition codes.
@@ -240,15 +240,15 @@ protected:
   void lowerIcmp(const InstIcmp *Instr) override;
   void lowerAtomicRMW(Variable *Dest, uint32_t Operation, Operand *Ptr,
                       Operand *Val);
-  void lowerIntrinsicCall(const InstIntrinsicCall *Inst) override;
-  void lowerInsertElement(const InstInsertElement *Inst) override;
-  void lowerLoad(const InstLoad *Inst) override;
-  void lowerPhi(const InstPhi *Inst) override;
-  void lowerRet(const InstRet *Inst) override;
-  void lowerSelect(const InstSelect *Inst) override;
-  void lowerStore(const InstStore *Inst) override;
-  void lowerSwitch(const InstSwitch *Inst) override;
-  void lowerUnreachable(const InstUnreachable *Inst) override;
+  void lowerIntrinsicCall(const InstIntrinsicCall *Instr) override;
+  void lowerInsertElement(const InstInsertElement *Instr) override;
+  void lowerLoad(const InstLoad *Instr) override;
+  void lowerPhi(const InstPhi *Instr) override;
+  void lowerRet(const InstRet *Instr) override;
+  void lowerSelect(const InstSelect *Instr) override;
+  void lowerStore(const InstStore *Instr) override;
+  void lowerSwitch(const InstSwitch *Instr) override;
+  void lowerUnreachable(const InstUnreachable *Instr) override;
   void prelowerPhis() override;
   uint32_t getCallStackArgumentsSizeBytes(const InstCall *Instr) override;
   void genTargetHelperCallFor(Inst *Instr) override;
@@ -1086,9 +1086,9 @@ private:
 
   void postambleCtpop64(const InstCall *Instr);
   void preambleDivRem(const InstCall *Instr);
-  std::unordered_map<Operand *, void (TargetARM32::*)(const InstCall *Inst)>
+  std::unordered_map<Operand *, void (TargetARM32::*)(const InstCall *Instr)>
       ARM32HelpersPreamble;
-  std::unordered_map<Operand *, void (TargetARM32::*)(const InstCall *Inst)>
+  std::unordered_map<Operand *, void (TargetARM32::*)(const InstCall *Instr)>
       ARM32HelpersPostamble;
 
   class ComputationTracker {

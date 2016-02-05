@@ -72,7 +72,7 @@ public:
   /// @{
   InstList &getInsts() { return Insts; }
   PhiList &getPhis() { return Phis; }
-  void appendInst(Inst *Inst);
+  void appendInst(Inst *Instr);
   void renumberInstructions();
   /// Rough and generally conservative estimate of the number of instructions in
   /// the block. It is updated when an instruction is added, but not when

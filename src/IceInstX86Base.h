@@ -201,8 +201,8 @@ template <typename TraitsType> struct InstImpl {
     InstX86Base(Cfg *Func, InstKindX86 Kind, SizeT Maxsrcs, Variable *Dest)
         : InstTarget(Func, static_cast<InstKind>(Kind), Maxsrcs, Dest) {}
 
-    static bool isClassof(const Inst *Inst, InstKindX86 MyKind) {
-      return Inst->getKind() == static_cast<InstKind>(MyKind);
+    static bool isClassof(const Inst *Instr, InstKindX86 MyKind) {
+      return Instr->getKind() == static_cast<InstKind>(MyKind);
     }
     // Most instructions that operate on vector arguments require vector memory
     // operands to be fully aligned (16-byte alignment for PNaCl vector types).
@@ -256,8 +256,8 @@ template <typename TraitsType> struct InstImpl {
       return llvm::cast<Variable>(this->getSrc(2));
     }
     void dump(const Cfg *Func) const override;
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::FakeRMW);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::FakeRMW);
     }
 
   private:
@@ -278,8 +278,8 @@ template <typename TraitsType> struct InstImpl {
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;
     void dump(const Cfg *Func) const override;
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::GetIP);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::GetIP);
     }
 
   private:
@@ -412,8 +412,8 @@ template <typename TraitsType> struct InstImpl {
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;
     void dump(const Cfg *Func) const override;
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::Br);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::Br);
     }
 
   private:
@@ -443,8 +443,8 @@ template <typename TraitsType> struct InstImpl {
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;
     void dump(const Cfg *Func) const override;
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::Jmp);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::Jmp);
     }
 
   private:
@@ -466,8 +466,8 @@ template <typename TraitsType> struct InstImpl {
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;
     void dump(const Cfg *Func) const override;
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::Call);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::Call);
     }
 
   private:
@@ -517,10 +517,10 @@ template <typename TraitsType> struct InstImpl {
                                 const Operand *Src,
                                 const XmmEmitterMovOps Emitter);
 
-  static void emitVariableBlendInst(const char *Opcode, const Inst *Inst,
+  static void emitVariableBlendInst(const char *Opcode, const Inst *Instr,
                                     const Cfg *Func);
 
-  static void emitIASVariableBlendInst(const Inst *Inst, const Cfg *Func,
+  static void emitIASVariableBlendInst(const Inst *Instr, const Cfg *Func,
                                        const XmmEmitterRegOp &Emitter);
 
   static void emitIASXmmShift(const Cfg *Func, Type Ty, const Variable *Var,
@@ -567,8 +567,8 @@ template <typename TraitsType> struct InstImpl {
       Str << " = " << Opcode << "." << this->getDest()->getType() << " ";
       this->dumpSources(Func);
     }
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::K);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::K);
     }
 
   protected:
@@ -626,8 +626,8 @@ template <typename TraitsType> struct InstImpl {
       Str << " = " << Opcode << "." << this->getSrc(0)->getType() << " ";
       this->dumpSources(Func);
     }
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::K);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::K);
     }
 
   protected:
@@ -672,8 +672,8 @@ template <typename TraitsType> struct InstImpl {
       Str << " = " << Opcode << "." << this->getDest()->getType() << " ";
       this->dumpSources(Func);
     }
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::K);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::K);
     }
 
   protected:
@@ -714,8 +714,8 @@ template <typename TraitsType> struct InstImpl {
       Str << " = " << Opcode << "." << this->getDest()->getType() << " ";
       this->dumpSources(Func);
     }
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::K);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::K);
     }
 
   protected:
@@ -759,8 +759,8 @@ template <typename TraitsType> struct InstImpl {
       Str << " = " << Opcode << "." << this->getDest()->getType() << " ";
       this->dumpSources(Func);
     }
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::K);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::K);
     }
 
   protected:
@@ -800,8 +800,8 @@ template <typename TraitsType> struct InstImpl {
       Str << Opcode << "." << this->getSrc(0)->getType() << " ";
       this->dumpSources(Func);
     }
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::K);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::K);
     }
 
   protected:
@@ -864,8 +864,8 @@ template <typename TraitsType> struct InstImpl {
       Str << " = " << Opcode << "." << this->getDest()->getType() << " ";
       this->dumpSources(Func);
     }
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::K);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::K);
     }
 
   protected:
@@ -918,8 +918,8 @@ template <typename TraitsType> struct InstImpl {
       Str << " = " << Opcode << "." << this->getDest()->getType() << " ";
       this->dumpSources(Func);
     }
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::K);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::K);
     }
 
   protected:
@@ -962,8 +962,8 @@ template <typename TraitsType> struct InstImpl {
       Str << " = " << Opcode << "." << this->getDest()->getType() << " ";
       this->dumpSources(Func);
     }
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::K);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::K);
     }
 
   protected:
@@ -1009,8 +1009,8 @@ template <typename TraitsType> struct InstImpl {
       Str << " = " << Opcode << "." << this->getDest()->getType() << " ";
       this->dumpSources(Func);
     }
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::K);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::K);
     }
 
   protected:
@@ -1066,8 +1066,8 @@ template <typename TraitsType> struct InstImpl {
       Str << ", ";
       this->dumpSources(Func);
     }
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::K);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::K);
     }
 
   protected:
@@ -2187,8 +2187,8 @@ template <typename TraitsType> struct InstImpl {
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;
     void dump(const Cfg *Func) const override;
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::Mul);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::Mul);
     }
 
   private:
@@ -2210,8 +2210,8 @@ template <typename TraitsType> struct InstImpl {
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;
     void dump(const Cfg *Func) const override;
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::Shld);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::Shld);
     }
 
   private:
@@ -2233,8 +2233,8 @@ template <typename TraitsType> struct InstImpl {
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;
     void dump(const Cfg *Func) const override;
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::Shrd);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::Shrd);
     }
 
   private:
@@ -2256,8 +2256,8 @@ template <typename TraitsType> struct InstImpl {
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;
     void dump(const Cfg *Func) const override;
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::Cmov);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::Cmov);
     }
 
   private:
@@ -2281,8 +2281,8 @@ template <typename TraitsType> struct InstImpl {
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;
     void dump(const Cfg *Func) const override;
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::Cmpps);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::Cmpps);
     }
 
   private:
@@ -2310,8 +2310,8 @@ template <typename TraitsType> struct InstImpl {
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;
     void dump(const Cfg *Func) const override;
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::Cmpxchg);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::Cmpxchg);
     }
 
   private:
@@ -2339,8 +2339,8 @@ template <typename TraitsType> struct InstImpl {
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;
     void dump(const Cfg *Func) const override;
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::Cmpxchg8b);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::Cmpxchg8b);
     }
 
   private:
@@ -2367,8 +2367,8 @@ template <typename TraitsType> struct InstImpl {
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;
     void dump(const Cfg *Func) const override;
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::Cvt);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::Cvt);
     }
     bool isTruncating() const { return Variant == Tss2si || Variant == Tps2dq; }
 
@@ -2390,8 +2390,8 @@ template <typename TraitsType> struct InstImpl {
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;
     void dump(const Cfg *Func) const override;
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::Icmp);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::Icmp);
     }
 
   private:
@@ -2412,8 +2412,8 @@ template <typename TraitsType> struct InstImpl {
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;
     void dump(const Cfg *Func) const override;
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::Ucomiss);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::Ucomiss);
     }
 
   private:
@@ -2433,8 +2433,8 @@ template <typename TraitsType> struct InstImpl {
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;
     void dump(const Cfg *Func) const override;
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::UD2);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::UD2);
     }
 
   private:
@@ -2455,8 +2455,8 @@ template <typename TraitsType> struct InstImpl {
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;
     void dump(const Cfg *Func) const override;
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::Test);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::Test);
     }
 
   private:
@@ -2476,8 +2476,8 @@ template <typename TraitsType> struct InstImpl {
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;
     void dump(const Cfg *Func) const override;
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::Mfence);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::Mfence);
     }
 
   private:
@@ -2500,8 +2500,8 @@ template <typename TraitsType> struct InstImpl {
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;
     void dump(const Cfg *Func) const override;
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::Store);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::Store);
     }
 
   private:
@@ -2526,8 +2526,8 @@ template <typename TraitsType> struct InstImpl {
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;
     void dump(const Cfg *Func) const override;
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::StoreP);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::StoreP);
     }
 
   private:
@@ -2548,8 +2548,8 @@ template <typename TraitsType> struct InstImpl {
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;
     void dump(const Cfg *Func) const override;
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::StoreQ);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::StoreQ);
     }
 
   private:
@@ -2572,8 +2572,8 @@ template <typename TraitsType> struct InstImpl {
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;
     void dump(const Cfg *Func) const override;
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::Nop);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::Nop);
     }
 
   private:
@@ -2595,8 +2595,8 @@ template <typename TraitsType> struct InstImpl {
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;
     void dump(const Cfg *Func) const override;
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::Fld);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::Fld);
     }
 
   private:
@@ -2616,8 +2616,8 @@ template <typename TraitsType> struct InstImpl {
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;
     void dump(const Cfg *Func) const override;
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::Fstp);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::Fstp);
     }
 
   private:
@@ -2636,8 +2636,8 @@ template <typename TraitsType> struct InstImpl {
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;
     void dump(const Cfg *Func) const override;
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::Pop);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::Pop);
     }
 
   private:
@@ -2659,8 +2659,8 @@ template <typename TraitsType> struct InstImpl {
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;
     void dump(const Cfg *Func) const override;
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::Push);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::Push);
     }
 
   private:
@@ -2686,8 +2686,8 @@ template <typename TraitsType> struct InstImpl {
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;
     void dump(const Cfg *Func) const override;
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::Ret);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::Ret);
     }
 
   private:
@@ -2708,8 +2708,8 @@ template <typename TraitsType> struct InstImpl {
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;
     void dump(const Cfg *Func) const override;
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::Setcc);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::Setcc);
     }
 
   private:
@@ -2739,8 +2739,8 @@ template <typename TraitsType> struct InstImpl {
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;
     void dump(const Cfg *Func) const override;
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::Xadd);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::Xadd);
     }
 
   private:
@@ -2765,8 +2765,8 @@ template <typename TraitsType> struct InstImpl {
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;
     void dump(const Cfg *Func) const override;
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::Xchg);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::Xchg);
     }
 
   private:
@@ -2787,8 +2787,8 @@ template <typename TraitsType> struct InstImpl {
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;
     void dump(const Cfg *Func) const override;
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::IacaStart);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::IacaStart);
     }
 
   private:
@@ -2809,8 +2809,8 @@ template <typename TraitsType> struct InstImpl {
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;
     void dump(const Cfg *Func) const override;
-    static bool classof(const Inst *Inst) {
-      return InstX86Base::isClassof(Inst, InstX86Base::IacaEnd);
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::IacaEnd);
     }
 
   private:

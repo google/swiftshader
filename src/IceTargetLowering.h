@@ -90,7 +90,7 @@ public:
   InstList::iterator getCur() const { return Cur; }
   InstList::iterator getNext() const { return Next; }
   InstList::iterator getEnd() const { return End; }
-  void insert(Inst *Inst);
+  void insert(Inst *Instr);
   template <typename Inst, typename... Args> Inst *insert(Args &&... A) {
     auto *New = Inst::create(Node->getCfg(), std::forward<Args>(A)...);
     insert(New);
@@ -365,24 +365,24 @@ protected:
                           size_t TypeToRegisterSetSize,
                           std::function<IceString(int32_t)> getRegName,
                           std::function<IceString(RegClass)> getRegClassName);
-  virtual void lowerAlloca(const InstAlloca *Inst) = 0;
-  virtual void lowerArithmetic(const InstArithmetic *Inst) = 0;
-  virtual void lowerAssign(const InstAssign *Inst) = 0;
-  virtual void lowerBr(const InstBr *Inst) = 0;
-  virtual void lowerCall(const InstCall *Inst) = 0;
-  virtual void lowerCast(const InstCast *Inst) = 0;
-  virtual void lowerFcmp(const InstFcmp *Inst) = 0;
-  virtual void lowerExtractElement(const InstExtractElement *Inst) = 0;
-  virtual void lowerIcmp(const InstIcmp *Inst) = 0;
-  virtual void lowerInsertElement(const InstInsertElement *Inst) = 0;
-  virtual void lowerIntrinsicCall(const InstIntrinsicCall *Inst) = 0;
-  virtual void lowerLoad(const InstLoad *Inst) = 0;
-  virtual void lowerPhi(const InstPhi *Inst) = 0;
-  virtual void lowerRet(const InstRet *Inst) = 0;
-  virtual void lowerSelect(const InstSelect *Inst) = 0;
-  virtual void lowerStore(const InstStore *Inst) = 0;
-  virtual void lowerSwitch(const InstSwitch *Inst) = 0;
-  virtual void lowerUnreachable(const InstUnreachable *Inst) = 0;
+  virtual void lowerAlloca(const InstAlloca *Instr) = 0;
+  virtual void lowerArithmetic(const InstArithmetic *Instr) = 0;
+  virtual void lowerAssign(const InstAssign *Instr) = 0;
+  virtual void lowerBr(const InstBr *Instr) = 0;
+  virtual void lowerCall(const InstCall *Instr) = 0;
+  virtual void lowerCast(const InstCast *Instr) = 0;
+  virtual void lowerFcmp(const InstFcmp *Instr) = 0;
+  virtual void lowerExtractElement(const InstExtractElement *Instr) = 0;
+  virtual void lowerIcmp(const InstIcmp *Instr) = 0;
+  virtual void lowerInsertElement(const InstInsertElement *Instr) = 0;
+  virtual void lowerIntrinsicCall(const InstIntrinsicCall *Instr) = 0;
+  virtual void lowerLoad(const InstLoad *Instr) = 0;
+  virtual void lowerPhi(const InstPhi *Instr) = 0;
+  virtual void lowerRet(const InstRet *Instr) = 0;
+  virtual void lowerSelect(const InstSelect *Instr) = 0;
+  virtual void lowerStore(const InstStore *Instr) = 0;
+  virtual void lowerSwitch(const InstSwitch *Instr) = 0;
+  virtual void lowerUnreachable(const InstUnreachable *Instr) = 0;
   virtual void lowerOther(const Inst *Instr);
 
   virtual void genTargetHelperCallFor(Inst *Instr) = 0;

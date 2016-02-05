@@ -22,14 +22,14 @@
 namespace Ice {
 
 CaseClusterArray CaseCluster::clusterizeSwitch(Cfg *Func,
-                                               const InstSwitch *Inst) {
+                                               const InstSwitch *Instr) {
   CaseClusterArray CaseClusters;
 
   // Load the cases
-  SizeT NumCases = Inst->getNumCases();
+  SizeT NumCases = Instr->getNumCases();
   CaseClusters.reserve(NumCases);
   for (SizeT I = 0; I < NumCases; ++I)
-    CaseClusters.emplace_back(Inst->getValue(I), Inst->getLabel(I));
+    CaseClusters.emplace_back(Instr->getValue(I), Instr->getLabel(I));
 
   // Sort the cases
   std::sort(CaseClusters.begin(), CaseClusters.end(),
@@ -75,7 +75,7 @@ CaseClusterArray CaseCluster::clusterizeSwitch(Cfg *Func,
 
   // Replace everything with a jump table
   InstJumpTable *JumpTable =
-      InstJumpTable::create(Func, TotalRange, Inst->getLabelDefault());
+      InstJumpTable::create(Func, TotalRange, Instr->getLabelDefault());
   for (const CaseCluster &Case : CaseClusters) {
     // Case.High could be UINT64_MAX which makes the loop awkward. Unwrap the
     // last iteration to avoid wrap around problems.

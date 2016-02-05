@@ -60,7 +60,7 @@ public:
 
   /// Discover cases which can be clustered together and return the clusters
   /// ordered by case value.
-  static CaseClusterArray clusterizeSwitch(Cfg *Func, const InstSwitch *Inst);
+  static CaseClusterArray clusterizeSwitch(Cfg *Func, const InstSwitch *Instr);
 
 private:
   CaseClusterKind Kind;

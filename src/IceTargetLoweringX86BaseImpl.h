@@ -1379,7 +1379,7 @@ TargetX86Base<TraitsType>::getRegisterSet(RegSetMask Include,
 }
 
 template <typename TraitsType>
-void TargetX86Base<TraitsType>::lowerAlloca(const InstAlloca *Inst) {
+void TargetX86Base<TraitsType>::lowerAlloca(const InstAlloca *Instr) {
   // Conservatively require the stack to be aligned. Some stack adjustment
   // operations implemented below assume that the stack is aligned before the
   // alloca. All the alloca code ensures that the stack alignment is preserved
@@ -1389,7 +1389,7 @@ void TargetX86Base<TraitsType>::lowerAlloca(const InstAlloca *Inst) {
 
   // For default align=0, set it to the real value 1, to avoid any
   // bit-manipulation problems below.
-  const uint32_t AlignmentParam = std::max(1u, Inst->getAlignInBytes());
+  const uint32_t AlignmentParam = std::max(1u, Instr->getAlignInBytes());
 
   // LLVM enforces power of 2 alignment.
   assert(llvm::isPowerOf2_32(AlignmentParam));
@@ -1399,7 +1399,7 @@ void TargetX86Base<TraitsType>::lowerAlloca(const InstAlloca *Inst) {
       std::max(AlignmentParam, Traits::X86_STACK_ALIGNMENT_BYTES);
   const bool OverAligned = Alignment > Traits::X86_STACK_ALIGNMENT_BYTES;
   const bool OptM1 = Ctx->getFlags().getOptLevel() == Opt_m1;
-  const bool AllocaWithKnownOffset = Inst->getKnownFrameOffset();
+  const bool AllocaWithKnownOffset = Instr->getKnownFrameOffset();
   const bool UseFramePointer =
       hasFramePointer() || OverAligned || !AllocaWithKnownOffset || OptM1;
 
@@ -1411,8 +1411,8 @@ void TargetX86Base<TraitsType>::lowerAlloca(const InstAlloca *Inst) {
     _and(esp, Ctx->getConstantInt32(-Alignment));
   }
 
-  Variable *Dest = Inst->getDest();
-  Operand *TotalSize = legalize(Inst->getSizeInBytes());
+  Variable *Dest = Instr->getDest();
+  Operand *TotalSize = legalize(Instr->getSizeInBytes());
 
   if (const auto *ConstantTotalSize =
           llvm::dyn_cast<ConstantInteger32>(TotalSize)) {
@@ -1832,16 +1832,16 @@ void TargetX86Base<TraitsType>::lowerShift64(InstArithmetic::OpKind Op,
 }
 
 template <typename TraitsType>
-void TargetX86Base<TraitsType>::lowerArithmetic(const InstArithmetic *Inst) {
-  Variable *Dest = Inst->getDest();
+void TargetX86Base<TraitsType>::lowerArithmetic(const InstArithmetic *Instr) {
+  Variable *Dest = Instr->getDest();
   if (Dest->isRematerializable()) {
     Context.insert<InstFakeDef>(Dest);
     return;
   }
   Type Ty = Dest->getType();
-  Operand *Src0 = legalize(Inst->getSrc(0));
-  Operand *Src1 = legalize(Inst->getSrc(1));
-  if (Inst->isCommutative()) {
+  Operand *Src0 = legalize(Instr->getSrc(0));
+  Operand *Src1 = legalize(Instr->getSrc(1));
+  if (Instr->isCommutative()) {
     uint32_t SwapCount = 0;
     if (!llvm::isa<Variable>(Src0) && llvm::isa<Variable>(Src1)) {
       std::swap(Src0, Src1);
@@ -1853,7 +1853,7 @@ void TargetX86Base<TraitsType>::lowerArithmetic(const InstArithmetic *Inst) {
     }
     // Improve two-address code patterns by avoiding a copy to the dest
     // register when one of the source operands ends its lifetime here.
-    if (!Inst->isLastUse(Src0) && Inst->isLastUse(Src1)) {
+    if (!Instr->isLastUse(Src0) && Instr->isLastUse(Src1)) {
       std::swap(Src0, Src1);
       ++SwapCount;
     }
@@ -1867,7 +1867,7 @@ void TargetX86Base<TraitsType>::lowerArithmetic(const InstArithmetic *Inst) {
     // instructions will fail liveness analysis under -Om1 setting. And,
     // actually these arguments do not need to be processed with loOperand()
     // and hiOperand() to be used.
-    switch (Inst->getOp()) {
+    switch (Instr->getOp()) {
     case InstArithmetic::Udiv:
     case InstArithmetic::Sdiv:
     case InstArithmetic::Urem:
@@ -1885,7 +1885,7 @@ void TargetX86Base<TraitsType>::lowerArithmetic(const InstArithmetic *Inst) {
     Operand *Src1Lo = loOperand(Src1);
     Operand *Src1Hi = hiOperand(Src1);
     Variable *T_Lo = nullptr, *T_Hi = nullptr;
-    switch (Inst->getOp()) {
+    switch (Instr->getOp()) {
     case InstArithmetic::_num:
       llvm_unreachable("Unknown arithmetic operator");
       break;
@@ -1962,7 +1962,7 @@ void TargetX86Base<TraitsType>::lowerArithmetic(const InstArithmetic *Inst) {
     case InstArithmetic::Shl:
     case InstArithmetic::Lshr:
     case InstArithmetic::Ashr:
-      lowerShift64(Inst->getOp(), Src0Lo, Src0Hi, Src1Lo, DestLo, DestHi);
+      lowerShift64(Instr->getOp(), Src0Lo, Src0Hi, Src1Lo, DestLo, DestHi);
       break;
     case InstArithmetic::Fadd:
     case InstArithmetic::Fsub:
@@ -1986,7 +1986,7 @@ void TargetX86Base<TraitsType>::lowerArithmetic(const InstArithmetic *Inst) {
     // https://code.google.com/p/nativeclient/issues/detail?id=3899
     if (llvm::isa<X86OperandMem>(Src1))
       Src1 = legalizeToReg(Src1);
-    switch (Inst->getOp()) {
+    switch (Instr->getOp()) {
     case InstArithmetic::_num:
       llvm_unreachable("Unknown arithmetic operator");
       break;
@@ -2114,7 +2114,7 @@ void TargetX86Base<TraitsType>::lowerArithmetic(const InstArithmetic *Inst) {
   }
   Variable *T_edx = nullptr;
   Variable *T = nullptr;
-  switch (Inst->getOp()) {
+  switch (Instr->getOp()) {
   case InstArithmetic::_num:
     llvm_unreachable("Unknown arithmetic operator");
     break;
@@ -2404,13 +2404,13 @@ void TargetX86Base<TraitsType>::lowerArithmetic(const InstArithmetic *Inst) {
 }
 
 template <typename TraitsType>
-void TargetX86Base<TraitsType>::lowerAssign(const InstAssign *Inst) {
-  Variable *Dest = Inst->getDest();
+void TargetX86Base<TraitsType>::lowerAssign(const InstAssign *Instr) {
+  Variable *Dest = Instr->getDest();
   if (Dest->isRematerializable()) {
     Context.insert<InstFakeDef>(Dest);
     return;
   }
-  Operand *Src = Inst->getSrc(0);
+  Operand *Src = Instr->getSrc(0);
   assert(Dest->getType() == Src->getType());
   lowerMove(Dest, Src, false);
 }
@@ -2648,10 +2648,10 @@ void TargetX86Base<TraitsType>::lowerCall(const InstCall *Instr) {
 }
 
 template <typename TraitsType>
-void TargetX86Base<TraitsType>::lowerCast(const InstCast *Inst) {
+void TargetX86Base<TraitsType>::lowerCast(const InstCast *Instr) {
   // a = cast(b) ==> t=cast(b); a=t; (link t->b, link a->t, no overlap)
-  InstCast::OpKind CastKind = Inst->getCastKind();
-  Variable *Dest = Inst->getDest();
+  InstCast::OpKind CastKind = Instr->getCastKind();
+  Variable *Dest = Instr->getDest();
   Type DestTy = Dest->getType();
   switch (CastKind) {
   default:
@@ -2664,7 +2664,7 @@ void TargetX86Base<TraitsType>::lowerCast(const InstCast *Inst) {
     // consider computing the strength-reduced result at translation time, but
     // we're unlikely to see something like that in the bitcode that the
     // optimizer wouldn't have already taken care of.
-    Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
+    Operand *Src0RM = legalize(Instr->getSrc(0), Legal_Reg | Legal_Mem);
     if (isVectorType(DestTy)) {
       if (DestTy == IceType_v16i8) {
         // onemask = materialize(1,1,...); dst = (src & onemask) > 0
@@ -2736,7 +2736,7 @@ void TargetX86Base<TraitsType>::lowerCast(const InstCast *Inst) {
     break;
   }
   case InstCast::Zext: {
-    Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
+    Operand *Src0RM = legalize(Instr->getSrc(0), Legal_Reg | Legal_Mem);
     if (isVectorType(DestTy)) {
       // onemask = materialize(1,1,...); dest = onemask & src
       Variable *OneMask = makeVectorOfOnes(DestTy);
@@ -2783,7 +2783,7 @@ void TargetX86Base<TraitsType>::lowerCast(const InstCast *Inst) {
   case InstCast::Trunc: {
     if (isVectorType(DestTy)) {
       // onemask = materialize(1,1,...); dst = src & onemask
-      Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
+      Operand *Src0RM = legalize(Instr->getSrc(0), Legal_Reg | Legal_Mem);
       Type Src0Ty = Src0RM->getType();
       Variable *OneMask = makeVectorOfOnes(Src0Ty);
       Variable *T = makeReg(DestTy);
@@ -2792,7 +2792,7 @@ void TargetX86Base<TraitsType>::lowerCast(const InstCast *Inst) {
       _movp(Dest, T);
     } else if (DestTy == IceType_i1 || DestTy == IceType_i8) {
       // Make sure we truncate from and into valid registers.
-      Operand *Src0 = legalizeUndef(Inst->getSrc(0));
+      Operand *Src0 = legalizeUndef(Instr->getSrc(0));
       if (!Traits::Is64Bit && Src0->getType() == IceType_i64)
         Src0 = loOperand(Src0);
       Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
@@ -2801,7 +2801,7 @@ void TargetX86Base<TraitsType>::lowerCast(const InstCast *Inst) {
         _and(T, Ctx->getConstantInt1(1));
       _mov(Dest, T);
     } else {
-      Operand *Src0 = legalizeUndef(Inst->getSrc(0));
+      Operand *Src0 = legalizeUndef(Instr->getSrc(0));
       if (!Traits::Is64Bit && Src0->getType() == IceType_i64)
         Src0 = loOperand(Src0);
       Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
@@ -2814,7 +2814,7 @@ void TargetX86Base<TraitsType>::lowerCast(const InstCast *Inst) {
   }
   case InstCast::Fptrunc:
   case InstCast::Fpext: {
-    Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
+    Operand *Src0RM = legalize(Instr->getSrc(0), Legal_Reg | Legal_Mem);
     // t1 = cvt Src0RM; Dest = t1
     Variable *T = makeReg(DestTy);
     _cvt(T, Src0RM, Traits::Insts::Cvt::Float2float);
@@ -2824,8 +2824,8 @@ void TargetX86Base<TraitsType>::lowerCast(const InstCast *Inst) {
   case InstCast::Fptosi:
     if (isVectorType(DestTy)) {
       assert(DestTy == IceType_v4i32 &&
-             Inst->getSrc(0)->getType() == IceType_v4f32);
-      Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
+             Instr->getSrc(0)->getType() == IceType_v4f32);
+      Operand *Src0RM = legalize(Instr->getSrc(0), Legal_Reg | Legal_Mem);
       if (llvm::isa<X86OperandMem>(Src0RM))
         Src0RM = legalizeToReg(Src0RM);
       Variable *T = makeReg(DestTy);
@@ -2834,7 +2834,7 @@ void TargetX86Base<TraitsType>::lowerCast(const InstCast *Inst) {
     } else if (!Traits::Is64Bit && DestTy == IceType_i64) {
       llvm::report_fatal_error("Helper call was expected");
     } else {
-      Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
+      Operand *Src0RM = legalize(Instr->getSrc(0), Legal_Reg | Legal_Mem);
       // t1.i32 = cvt Src0RM; t2.dest_type = t1; Dest = t2.dest_type
       Variable *T_1 = nullptr;
       if (Traits::Is64Bit && DestTy == IceType_i64) {
@@ -2864,7 +2864,7 @@ void TargetX86Base<TraitsType>::lowerCast(const InstCast *Inst) {
                (!Traits::Is64Bit && DestTy == IceType_i32)) {
       llvm::report_fatal_error("Helper call was expected");
     } else {
-      Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
+      Operand *Src0RM = legalize(Instr->getSrc(0), Legal_Reg | Legal_Mem);
       // t1.i32 = cvt Src0RM; t2.dest_type = t1; Dest = t2.dest_type
       assert(DestTy != IceType_i64);
       Variable *T_1 = nullptr;
@@ -2890,17 +2890,17 @@ void TargetX86Base<TraitsType>::lowerCast(const InstCast *Inst) {
   case InstCast::Sitofp:
     if (isVectorType(DestTy)) {
       assert(DestTy == IceType_v4f32 &&
-             Inst->getSrc(0)->getType() == IceType_v4i32);
-      Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
+             Instr->getSrc(0)->getType() == IceType_v4i32);
+      Operand *Src0RM = legalize(Instr->getSrc(0), Legal_Reg | Legal_Mem);
       if (llvm::isa<X86OperandMem>(Src0RM))
         Src0RM = legalizeToReg(Src0RM);
       Variable *T = makeReg(DestTy);
       _cvt(T, Src0RM, Traits::Insts::Cvt::Dq2ps);
       _movp(Dest, T);
-    } else if (!Traits::Is64Bit && Inst->getSrc(0)->getType() == IceType_i64) {
+    } else if (!Traits::Is64Bit && Instr->getSrc(0)->getType() == IceType_i64) {
       llvm::report_fatal_error("Helper call was expected");
     } else {
-      Operand *Src0RM = legalize(Inst->getSrc(0), Legal_Reg | Legal_Mem);
+      Operand *Src0RM = legalize(Instr->getSrc(0), Legal_Reg | Legal_Mem);
       // Sign-extend the operand.
       // t1.i32 = movsx Src0RM; t2 = Cvt t1.i32; Dest = t2
       Variable *T_1 = nullptr;
@@ -2920,7 +2920,7 @@ void TargetX86Base<TraitsType>::lowerCast(const InstCast *Inst) {
     }
     break;
   case InstCast::Uitofp: {
-    Operand *Src0 = Inst->getSrc(0);
+    Operand *Src0 = Instr->getSrc(0);
     if (isVectorType(Src0->getType())) {
       llvm::report_fatal_error("Helper call was expected");
     } else if (Src0->getType() == IceType_i64 ||
@@ -2949,7 +2949,7 @@ void TargetX86Base<TraitsType>::lowerCast(const InstCast *Inst) {
     break;
   }
   case InstCast::Bitcast: {
-    Operand *Src0 = Inst->getSrc(0);
+    Operand *Src0 = Instr->getSrc(0);
     if (DestTy == Src0->getType()) {
       auto *Assign = InstAssign::create(Func, Dest, Src0);
       lowerAssign(Assign);
@@ -3092,10 +3092,10 @@ void TargetX86Base<TraitsType>::lowerCast(const InstCast *Inst) {
 
 template <typename TraitsType>
 void TargetX86Base<TraitsType>::lowerExtractElement(
-    const InstExtractElement *Inst) {
-  Operand *SourceVectNotLegalized = Inst->getSrc(0);
+    const InstExtractElement *Instr) {
+  Operand *SourceVectNotLegalized = Instr->getSrc(0);
   ConstantInteger32 *ElementIndex =
-      llvm::dyn_cast<ConstantInteger32>(Inst->getSrc(1));
+      llvm::dyn_cast<ConstantInteger32>(Instr->getSrc(1));
   // Only constant indices are allowed in PNaCl IR.
   assert(ElementIndex);
 
@@ -3168,7 +3168,7 @@ void TargetX86Base<TraitsType>::lowerExtractElement(
   }
 
   // Copy the element to the destination.
-  Variable *Dest = Inst->getDest();
+  Variable *Dest = Instr->getDest();
   _mov(Dest, ExtractedElementR);
 }
 
@@ -3751,11 +3751,11 @@ void TargetX86Base<TraitsType>::lowerArithAndConsumer(
 
 template <typename TraitsType>
 void TargetX86Base<TraitsType>::lowerInsertElement(
-    const InstInsertElement *Inst) {
-  Operand *SourceVectNotLegalized = Inst->getSrc(0);
-  Operand *ElementToInsertNotLegalized = Inst->getSrc(1);
+    const InstInsertElement *Instr) {
+  Operand *SourceVectNotLegalized = Instr->getSrc(0);
+  Operand *ElementToInsertNotLegalized = Instr->getSrc(1);
   ConstantInteger32 *ElementIndex =
-      llvm::dyn_cast<ConstantInteger32>(Inst->getSrc(2));
+      llvm::dyn_cast<ConstantInteger32>(Instr->getSrc(2));
   // Only constant indices are allowed in PNaCl IR.
   assert(ElementIndex);
   unsigned Index = ElementIndex->getValue();
@@ -3800,7 +3800,7 @@ void TargetX86Base<TraitsType>::lowerInsertElement(
       }
       _pinsr(T, ElementRM, Ctx->getConstantInt32(Index));
     }
-    _movp(Inst->getDest(), T);
+    _movp(Instr->getDest(), T);
   } else if (Ty == IceType_v4i32 || Ty == IceType_v4f32 || Ty == IceType_v4i1) {
     // Use shufps or movss.
     Variable *ElementR = nullptr;
@@ -3821,7 +3821,7 @@ void TargetX86Base<TraitsType>::lowerInsertElement(
       Variable *T = makeReg(Ty);
       _movp(T, SourceVectRM);
       _movss(T, ElementR);
-      _movp(Inst->getDest(), T);
+      _movp(Instr->getDest(), T);
       return;
     }
 
@@ -3855,13 +3855,13 @@ void TargetX86Base<TraitsType>::lowerInsertElement(
     if (Index == 1) {
       _shufps(ElementR, SourceVectRM, Mask1Constant);
       _shufps(ElementR, SourceVectRM, Mask2Constant);
-      _movp(Inst->getDest(), ElementR);
+      _movp(Instr->getDest(), ElementR);
     } else {
       Variable *T = makeReg(Ty);
       _movp(T, SourceVectRM);
       _shufps(ElementR, T, Mask1Constant);
       _shufps(T, ElementR, Mask2Constant);
-      _movp(Inst->getDest(), T);
+      _movp(Instr->getDest(), T);
     }
   } else {
     assert(Ty == IceType_v16i8 || Ty == IceType_v16i1);
@@ -3881,7 +3881,7 @@ void TargetX86Base<TraitsType>::lowerInsertElement(
 
     Variable *T = makeReg(Ty);
     _movp(T, Slot);
-    _movp(Inst->getDest(), T);
+    _movp(Instr->getDest(), T);
   }
 }
 
@@ -4999,8 +4999,8 @@ private:
   const Cfg *const Func;
   const VariablesMetadata *const VMetadata;
 
-  static bool isAdd(const Inst *Inst) {
-    if (auto *Arith = llvm::dyn_cast_or_null<const InstArithmetic>(Inst)) {
+  static bool isAdd(const Inst *Instr) {
+    if (auto *Arith = llvm::dyn_cast_or_null<const InstArithmetic>(Instr)) {
       return (Arith->getOp() == InstArithmetic::Add);
     }
     return false;
@@ -5513,11 +5513,11 @@ void TargetX86Base<TraitsType>::lowerLoad(const InstLoad *Load) {
 
 template <typename TraitsType>
 void TargetX86Base<TraitsType>::doAddressOptLoad() {
-  Inst *Inst = Context.getCur();
-  Operand *Addr = Inst->getSrc(0);
-  Variable *Dest = Inst->getDest();
-  if (auto *OptAddr = computeAddressOpt(Inst, Dest->getType(), Addr)) {
-    Inst->setDeleted();
+  Inst *Instr = Context.getCur();
+  Operand *Addr = Instr->getSrc(0);
+  Variable *Dest = Instr->getDest();
+  if (auto *OptAddr = computeAddressOpt(Instr, Dest->getType(), Addr)) {
+    Instr->setDeleted();
     Context.insert<InstLoad>(Dest, OptAddr);
   }
 }
@@ -5532,15 +5532,15 @@ void TargetX86Base<TraitsType>::randomlyInsertNop(float Probability,
 }
 
 template <typename TraitsType>
-void TargetX86Base<TraitsType>::lowerPhi(const InstPhi * /*Inst*/) {
+void TargetX86Base<TraitsType>::lowerPhi(const InstPhi * /*Instr*/) {
   Func->setError("Phi found in regular instruction list");
 }
 
 template <typename TraitsType>
-void TargetX86Base<TraitsType>::lowerRet(const InstRet *Inst) {
+void TargetX86Base<TraitsType>::lowerRet(const InstRet *Instr) {
   Variable *Reg = nullptr;
-  if (Inst->hasRetValue()) {
-    Operand *RetValue = legalize(Inst->getRetValue());
+  if (Instr->hasRetValue()) {
+    Operand *RetValue = legalize(Instr->getRetValue());
     const Type ReturnType = RetValue->getType();
     assert(isVectorType(ReturnType) || isScalarFloatingType(ReturnType) ||
            (ReturnType == IceType_i32) || (ReturnType == IceType_i64));
@@ -5723,12 +5723,12 @@ void TargetX86Base<TraitsType>::lowerIcmp(const InstIcmp *Icmp) {
 }
 
 template <typename TraitsType>
-void TargetX86Base<TraitsType>::lowerSelectVector(const InstSelect *Inst) {
-  Variable *Dest = Inst->getDest();
+void TargetX86Base<TraitsType>::lowerSelectVector(const InstSelect *Instr) {
+  Variable *Dest = Instr->getDest();
   Type DestTy = Dest->getType();
-  Operand *SrcT = Inst->getTrueOperand();
-  Operand *SrcF = Inst->getFalseOperand();
-  Operand *Condition = Inst->getCondition();
+  Operand *SrcT = Instr->getTrueOperand();
+  Operand *SrcF = Instr->getFalseOperand();
+  Operand *Condition = Instr->getCondition();
 
   if (!isVectorType(DestTy))
     llvm::report_fatal_error("Expected a vector select");
@@ -5791,9 +5791,9 @@ void TargetX86Base<TraitsType>::lowerSelectVector(const InstSelect *Inst) {
 }
 
 template <typename TraitsType>
-void TargetX86Base<TraitsType>::lowerStore(const InstStore *Inst) {
-  Operand *Value = Inst->getData();
-  Operand *Addr = Inst->getAddr();
+void TargetX86Base<TraitsType>::lowerStore(const InstStore *Instr) {
+  Operand *Value = Instr->getData();
+  Operand *Addr = Instr->getAddr();
   X86OperandMem *NewAddr = formMemoryOperand(Addr, Value->getType());
   doMockBoundsCheck(NewAddr);
   Type Ty = NewAddr->getType();
@@ -5814,14 +5814,14 @@ void TargetX86Base<TraitsType>::lowerStore(const InstStore *Inst) {
 
 template <typename TraitsType>
 void TargetX86Base<TraitsType>::doAddressOptStore() {
-  auto *Inst = llvm::cast<InstStore>(Context.getCur());
-  Operand *Addr = Inst->getAddr();
-  Operand *Data = Inst->getData();
-  if (auto *OptAddr = computeAddressOpt(Inst, Data->getType(), Addr)) {
-    Inst->setDeleted();
+  auto *Instr = llvm::cast<InstStore>(Context.getCur());
+  Operand *Addr = Instr->getAddr();
+  Operand *Data = Instr->getData();
+  if (auto *OptAddr = computeAddressOpt(Instr, Data->getType(), Addr)) {
+    Instr->setDeleted();
     auto *NewStore = Context.insert<InstStore>(Data, OptAddr);
-    if (Inst->getDest())
-      NewStore->setRmwBeacon(Inst->getRmwBeacon());
+    if (Instr->getDest())
+      NewStore->setRmwBeacon(Instr->getRmwBeacon());
   }
 }
 
@@ -5928,11 +5928,11 @@ void TargetX86Base<TraitsType>::lowerCaseCluster(const CaseCluster &Case,
 }
 
 template <typename TraitsType>
-void TargetX86Base<TraitsType>::lowerSwitch(const InstSwitch *Inst) {
+void TargetX86Base<TraitsType>::lowerSwitch(const InstSwitch *Instr) {
   // Group cases together and navigate through them with a binary search
-  CaseClusterArray CaseClusters = CaseCluster::clusterizeSwitch(Func, Inst);
-  Operand *Src0 = Inst->getComparison();
-  CfgNode *DefaultTarget = Inst->getLabelDefault();
+  CaseClusterArray CaseClusters = CaseCluster::clusterizeSwitch(Func, Instr);
+  Operand *Src0 = Instr->getComparison();
+  CfgNode *DefaultTarget = Instr->getLabelDefault();
 
   assert(CaseClusters.size() != 0); // Should always be at least one
 
@@ -5943,7 +5943,7 @@ void TargetX86Base<TraitsType>::lowerSwitch(const InstSwitch *Inst) {
     if (CaseClusters.back().getHigh() > UINT32_MAX) {
       // TODO(ascull): handle 64-bit case properly (currently naive version)
       // This might be handled by a higher level lowering of switches.
-      SizeT NumCases = Inst->getNumCases();
+      SizeT NumCases = Instr->getNumCases();
       if (NumCases >= 2) {
         Src0Lo = legalizeToReg(Src0Lo);
         Src0Hi = legalizeToReg(Src0Hi);
@@ -5952,16 +5952,16 @@ void TargetX86Base<TraitsType>::lowerSwitch(const InstSwitch *Inst) {
         Src0Hi = legalize(Src0Hi, Legal_Reg | Legal_Mem);
       }
       for (SizeT I = 0; I < NumCases; ++I) {
-        Constant *ValueLo = Ctx->getConstantInt32(Inst->getValue(I));
-        Constant *ValueHi = Ctx->getConstantInt32(Inst->getValue(I) >> 32);
+        Constant *ValueLo = Ctx->getConstantInt32(Instr->getValue(I));
+        Constant *ValueHi = Ctx->getConstantInt32(Instr->getValue(I) >> 32);
         InstX86Label *Label = InstX86Label::create(Func, this);
         _cmp(Src0Lo, ValueLo);
         _br(Traits::Cond::Br_ne, Label);
         _cmp(Src0Hi, ValueHi);
-        _br(Traits::Cond::Br_e, Inst->getLabel(I));
+        _br(Traits::Cond::Br_e, Instr->getLabel(I));
         Context.insert(Label);
       }
-      _br(Inst->getLabelDefault());
+      _br(Instr->getLabelDefault());
       return;
     } else {
       // All the values are 32-bit so just check the operand is too and then
@@ -6123,7 +6123,7 @@ void TargetX86Base<TraitsType>::eliminateNextVectorSextInstruction(
 
 template <typename TraitsType>
 void TargetX86Base<TraitsType>::lowerUnreachable(
-    const InstUnreachable * /*Inst*/) {
+    const InstUnreachable * /*Instr*/) {
   _ud2();
   // Add a fake use of esp to make sure esp adjustments after the unreachable
   // do not get dead-code eliminated.

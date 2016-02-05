@@ -1034,28 +1034,28 @@ void InstImpl<TraitsType>::InstX86Idiv::emitIAS(const Cfg *Func) const {
 // pblendvb and blendvps take xmm0 as a final implicit argument.
 template <typename TraitsType>
 void InstImpl<TraitsType>::emitVariableBlendInst(const char *Opcode,
-                                                 const Inst *Inst,
+                                                 const Inst *Instr,
                                                  const Cfg *Func) {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
-  assert(Inst->getSrcSize() == 3);
-  assert(llvm::cast<Variable>(Inst->getSrc(2))->getRegNum() ==
+  assert(Instr->getSrcSize() == 3);
+  assert(llvm::cast<Variable>(Instr->getSrc(2))->getRegNum() ==
          RegisterSet::Reg_xmm0);
   Str << "\t" << Opcode << "\t";
-  Inst->getSrc(1)->emit(Func);
+  Instr->getSrc(1)->emit(Func);
   Str << ", ";
-  Inst->getDest()->emit(Func);
+  Instr->getDest()->emit(Func);
 }
 
 template <typename TraitsType>
 void InstImpl<TraitsType>::emitIASVariableBlendInst(
-    const Inst *Inst, const Cfg *Func, const XmmEmitterRegOp &Emitter) {
-  assert(Inst->getSrcSize() == 3);
-  assert(llvm::cast<Variable>(Inst->getSrc(2))->getRegNum() ==
+    const Inst *Instr, const Cfg *Func, const XmmEmitterRegOp &Emitter) {
+  assert(Instr->getSrcSize() == 3);
+  assert(llvm::cast<Variable>(Instr->getSrc(2))->getRegNum() ==
          RegisterSet::Reg_xmm0);
-  const Variable *Dest = Inst->getDest();
-  const Operand *Src = Inst->getSrc(1);
+  const Variable *Dest = Instr->getDest();
+  const Operand *Src = Instr->getSrc(1);
   emitIASRegOpTyXMM(Func, Dest->getType(), Dest, Src, Emitter);
 }
 

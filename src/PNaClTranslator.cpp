@@ -2743,17 +2743,17 @@ void FunctionParser::ProcessRecord() {
     Ice::Variable *Dest = (ReturnType == Ice::IceType_void)
                               ? nullptr
                               : getNextInstVar(ReturnType);
-    std::unique_ptr<Ice::InstCall> Inst;
+    std::unique_ptr<Ice::InstCall> Instr;
     if (IntrinsicInfo) {
-      Inst.reset(Ice::InstIntrinsicCall::create(Func.get(), Params.size(), Dest,
-                                                Callee, IntrinsicInfo->Info));
+      Instr.reset(Ice::InstIntrinsicCall::create(
+          Func.get(), Params.size(), Dest, Callee, IntrinsicInfo->Info));
     } else {
-      Inst.reset(Ice::InstCall::create(Func.get(), Params.size(), Dest, Callee,
-                                       IsTailCall));
+      Instr.reset(Ice::InstCall::create(Func.get(), Params.size(), Dest, Callee,
+                                        IsTailCall));
     }
     for (Ice::Operand *Param : Params)
-      Inst->addArg(Param);
-    CurrentNode->appendInst(Inst.release());
+      Instr->addArg(Param);
+    CurrentNode->appendInst(Instr.release());
     return;
   }
   case naclbitc::FUNC_CODE_INST_FORWARDTYPEREF: {

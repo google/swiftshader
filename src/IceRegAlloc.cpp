@@ -214,26 +214,26 @@ void LinearScan::initForInfOnly() {
   CfgVector<InstNumberT> LREnd(Vars.size(), Inst::NumberSentinel);
   DefUseErrorList DefsWithoutUses, UsesBeforeDefs;
   for (CfgNode *Node : Func->getNodes()) {
-    for (Inst &Inst : Node->getInsts()) {
-      if (Inst.isDeleted())
+    for (Inst &Instr : Node->getInsts()) {
+      if (Instr.isDeleted())
         continue;
-      FOREACH_VAR_IN_INST(Var, Inst) {
+      FOREACH_VAR_IN_INST(Var, Instr) {
         if (Var->isRematerializable())
           continue;
         if (Var->getIgnoreLiveness())
           continue;
         if (Var->hasReg() || Var->mustHaveReg()) {
           SizeT VarNum = Var->getIndex();
-          LREnd[VarNum] = Inst.getNumber();
+          LREnd[VarNum] = Instr.getNumber();
           if (!Var->getIsArg() && LRBegin[VarNum] == Inst::NumberSentinel)
             UsesBeforeDefs.push_back(VarNum);
         }
       }
-      if (const Variable *Var = Inst.getDest()) {
+      if (const Variable *Var = Instr.getDest()) {
         if (!Var->isRematerializable() && !Var->getIgnoreLiveness() &&
             (Var->hasReg() || Var->mustHaveReg())) {
           if (LRBegin[Var->getIndex()] == Inst::NumberSentinel) {
-            LRBegin[Var->getIndex()] = Inst.getNumber();
+            LRBegin[Var->getIndex()] = Instr.getNumber();
             ++NumVars;
           }
         }

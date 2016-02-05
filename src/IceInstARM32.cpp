@@ -135,106 +135,107 @@ void InstARM32::emitUsingTextFixup(const Cfg *Func) const {
 void InstARM32::emitIAS(const Cfg *Func) const { emitUsingTextFixup(Func); }
 
 void InstARM32Pred::emitUnaryopGPR(const char *Opcode,
-                                   const InstARM32Pred *Inst, const Cfg *Func,
+                                   const InstARM32Pred *Instr, const Cfg *Func,
                                    bool NeedsWidthSuffix) {
   Ostream &Str = Func->getContext()->getStrEmit();
-  assert(Inst->getSrcSize() == 1);
-  Type SrcTy = Inst->getSrc(0)->getType();
+  assert(Instr->getSrcSize() == 1);
+  Type SrcTy = Instr->getSrc(0)->getType();
   Str << "\t" << Opcode;
   if (NeedsWidthSuffix)
     Str << getWidthString(SrcTy);
-  Str << Inst->getPredicate() << "\t";
-  Inst->getDest()->emit(Func);
+  Str << Instr->getPredicate() << "\t";
+  Instr->getDest()->emit(Func);
   Str << ", ";
-  Inst->getSrc(0)->emit(Func);
+  Instr->getSrc(0)->emit(Func);
 }
 
-void InstARM32Pred::emitUnaryopFP(const char *Opcode, const InstARM32Pred *Inst,
-                                  const Cfg *Func) {
+void InstARM32Pred::emitUnaryopFP(const char *Opcode,
+                                  const InstARM32Pred *Instr, const Cfg *Func) {
   Ostream &Str = Func->getContext()->getStrEmit();
-  assert(Inst->getSrcSize() == 1);
-  Type SrcTy = Inst->getSrc(0)->getType();
-  Str << "\t" << Opcode << Inst->getPredicate() << getVecWidthString(SrcTy)
+  assert(Instr->getSrcSize() == 1);
+  Type SrcTy = Instr->getSrc(0)->getType();
+  Str << "\t" << Opcode << Instr->getPredicate() << getVecWidthString(SrcTy)
       << "\t";
-  Inst->getDest()->emit(Func);
+  Instr->getDest()->emit(Func);
   Str << ", ";
-  Inst->getSrc(0)->emit(Func);
+  Instr->getSrc(0)->emit(Func);
 }
 
-void InstARM32Pred::emitTwoAddr(const char *Opcode, const InstARM32Pred *Inst,
+void InstARM32Pred::emitTwoAddr(const char *Opcode, const InstARM32Pred *Instr,
                                 const Cfg *Func) {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
-  assert(Inst->getSrcSize() == 2);
-  Variable *Dest = Inst->getDest();
-  assert(Dest == Inst->getSrc(0));
-  Str << "\t" << Opcode << Inst->getPredicate() << "\t";
+  assert(Instr->getSrcSize() == 2);
+  Variable *Dest = Instr->getDest();
+  assert(Dest == Instr->getSrc(0));
+  Str << "\t" << Opcode << Instr->getPredicate() << "\t";
   Dest->emit(Func);
   Str << ", ";
-  Inst->getSrc(1)->emit(Func);
+  Instr->getSrc(1)->emit(Func);
 }
 
-void InstARM32Pred::emitThreeAddr(const char *Opcode, const InstARM32Pred *Inst,
-                                  const Cfg *Func, bool SetFlags) {
+void InstARM32Pred::emitThreeAddr(const char *Opcode,
+                                  const InstARM32Pred *Instr, const Cfg *Func,
+                                  bool SetFlags) {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
-  assert(Inst->getSrcSize() == 2);
-  Str << "\t" << Opcode << (SetFlags ? "s" : "") << Inst->getPredicate()
+  assert(Instr->getSrcSize() == 2);
+  Str << "\t" << Opcode << (SetFlags ? "s" : "") << Instr->getPredicate()
       << "\t";
-  Inst->getDest()->emit(Func);
+  Instr->getDest()->emit(Func);
   Str << ", ";
-  Inst->getSrc(0)->emit(Func);
+  Instr->getSrc(0)->emit(Func);
   Str << ", ";
-  Inst->getSrc(1)->emit(Func);
+  Instr->getSrc(1)->emit(Func);
 }
 
-void InstARM32::emitThreeAddrFP(const char *Opcode, const InstARM32 *Inst,
+void InstARM32::emitThreeAddrFP(const char *Opcode, const InstARM32 *Instr,
                                 const Cfg *Func) {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
-  assert(Inst->getSrcSize() == 2);
-  Str << "\t" << Opcode << getVecWidthString(Inst->getDest()->getType())
+  assert(Instr->getSrcSize() == 2);
+  Str << "\t" << Opcode << getVecWidthString(Instr->getDest()->getType())
       << "\t";
-  Inst->getDest()->emit(Func);
+  Instr->getDest()->emit(Func);
   Str << ", ";
-  Inst->getSrc(0)->emit(Func);
+  Instr->getSrc(0)->emit(Func);
   Str << ", ";
-  Inst->getSrc(1)->emit(Func);
+  Instr->getSrc(1)->emit(Func);
 }
 
-void InstARM32::emitFourAddrFP(const char *Opcode, const InstARM32 *Inst,
+void InstARM32::emitFourAddrFP(const char *Opcode, const InstARM32 *Instr,
                                const Cfg *Func) {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
-  assert(Inst->getSrcSize() == 3);
-  assert(Inst->getSrc(0) == Inst->getDest());
-  Str << "\t" << Opcode << getVecWidthString(Inst->getDest()->getType())
+  assert(Instr->getSrcSize() == 3);
+  assert(Instr->getSrc(0) == Instr->getDest());
+  Str << "\t" << Opcode << getVecWidthString(Instr->getDest()->getType())
       << "\t";
-  Inst->getDest()->emit(Func);
+  Instr->getDest()->emit(Func);
   Str << ", ";
-  Inst->getSrc(1)->emit(Func);
+  Instr->getSrc(1)->emit(Func);
   Str << ", ";
-  Inst->getSrc(2)->emit(Func);
+  Instr->getSrc(2)->emit(Func);
 }
 
-void InstARM32Pred::emitFourAddr(const char *Opcode, const InstARM32Pred *Inst,
+void InstARM32Pred::emitFourAddr(const char *Opcode, const InstARM32Pred *Instr,
                                  const Cfg *Func) {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
-  assert(Inst->getSrcSize() == 3);
-  Str << "\t" << Opcode << Inst->getPredicate() << "\t";
-  Inst->getDest()->emit(Func);
+  assert(Instr->getSrcSize() == 3);
+  Str << "\t" << Opcode << Instr->getPredicate() << "\t";
+  Instr->getDest()->emit(Func);
   Str << ", ";
-  Inst->getSrc(0)->emit(Func);
+  Instr->getSrc(0)->emit(Func);
   Str << ", ";
-  Inst->getSrc(1)->emit(Func);
+  Instr->getSrc(1)->emit(Func);
   Str << ", ";
-  Inst->getSrc(2)->emit(Func);
+  Instr->getSrc(2)->emit(Func);
 }
 
 template <InstARM32::InstKindARM32 K>
@@ -268,16 +269,16 @@ template <> void InstARM32Mls::emitIAS(const Cfg *Func) const {
     emitUsingTextFixup(Func);
 }
 
-void InstARM32Pred::emitCmpLike(const char *Opcode, const InstARM32Pred *Inst,
+void InstARM32Pred::emitCmpLike(const char *Opcode, const InstARM32Pred *Instr,
                                 const Cfg *Func) {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
-  assert(Inst->getSrcSize() == 2);
-  Str << "\t" << Opcode << Inst->getPredicate() << "\t";
-  Inst->getSrc(0)->emit(Func);
+  assert(Instr->getSrcSize() == 2);
+  Str << "\t" << Opcode << Instr->getPredicate() << "\t";
+  Instr->getSrc(0)->emit(Func);
   Str << ", ";
-  Inst->getSrc(1)->emit(Func);
+  Instr->getSrc(1)->emit(Func);
 }
 
 OperandARM32Mem::OperandARM32Mem(Cfg * /* Func */, Type Ty, Variable *Base,

@@ -258,7 +258,7 @@ public:
   bool getKnownFrameOffset() const { return KnownFrameOffset; }
   void setKnownFrameOffset() { KnownFrameOffset = true; }
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return Inst->getKind() == Alloca; }
+  static bool classof(const Inst *Instr) { return Instr->getKind() == Alloca; }
 
 private:
   InstAlloca(Cfg *Func, Variable *Dest, Operand *ByteCount,
@@ -295,8 +295,8 @@ public:
   static const char *getOpName(OpKind Op);
   bool isCommutative() const;
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) {
-    return Inst->getKind() == Arithmetic;
+  static bool classof(const Inst *Instr) {
+    return Instr->getKind() == Arithmetic;
   }
 
 private:
@@ -322,7 +322,7 @@ public:
   }
   bool isVarAssign() const override;
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return Inst->getKind() == Assign; }
+  static bool classof(const Inst *Instr) { return Instr->getKind() == Assign; }
 
 private:
   InstAssign(Cfg *Func, Variable *Dest, Operand *Source);
@@ -362,7 +362,7 @@ public:
   bool isUnconditionalBranch() const override { return isUnconditional(); }
   bool repointEdges(CfgNode *OldNode, CfgNode *NewNode) override;
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return Inst->getKind() == Br; }
+  static bool classof(const Inst *Instr) { return Instr->getKind() == Br; }
 
 private:
   /// Conditional branch
@@ -401,7 +401,7 @@ public:
   bool isTailcall() const { return HasTailCall; }
   bool isTargetHelperCall() const { return IsTargetHelperCall; }
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return Inst->getKind() == Call; }
+  static bool classof(const Inst *Instr) { return Instr->getKind() == Call; }
   Type getReturnType() const;
 
 protected:
@@ -442,7 +442,7 @@ public:
   }
   OpKind getCastKind() const { return CastKind; }
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return Inst->getKind() == Cast; }
+  static bool classof(const Inst *Instr) { return Instr->getKind() == Cast; }
 
 private:
   InstCast(Cfg *Func, OpKind CastKind, Variable *Dest, Operand *Source);
@@ -464,8 +464,8 @@ public:
   }
 
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) {
-    return Inst->getKind() == ExtractElement;
+  static bool classof(const Inst *Instr) {
+    return Instr->getKind() == ExtractElement;
   }
 
 private:
@@ -495,7 +495,7 @@ public:
   }
   FCond getCondition() const { return Condition; }
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return Inst->getKind() == Fcmp; }
+  static bool classof(const Inst *Instr) { return Instr->getKind() == Fcmp; }
 
 private:
   InstFcmp(Cfg *Func, FCond Condition, Variable *Dest, Operand *Source1,
@@ -526,7 +526,7 @@ public:
   }
   ICond getCondition() const { return Condition; }
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return Inst->getKind() == Icmp; }
+  static bool classof(const Inst *Instr) { return Instr->getKind() == Icmp; }
 
 private:
   InstIcmp(Cfg *Func, ICond Condition, Variable *Dest, Operand *Source1,
@@ -549,8 +549,8 @@ public:
   }
 
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) {
-    return Inst->getKind() == InsertElement;
+  static bool classof(const Inst *Instr) {
+    return Instr->getKind() == InsertElement;
   }
 
 private:
@@ -572,8 +572,8 @@ public:
     return new (Func->allocate<InstIntrinsicCall>())
         InstIntrinsicCall(Func, NumArgs, Dest, CallTarget, Info);
   }
-  static bool classof(const Inst *Inst) {
-    return Inst->getKind() == IntrinsicCall;
+  static bool classof(const Inst *Instr) {
+    return Instr->getKind() == IntrinsicCall;
   }
 
   Intrinsics::IntrinsicInfo getIntrinsicInfo() const { return Info; }
@@ -603,7 +603,7 @@ public:
   }
   Operand *getSourceAddress() const { return getSrc(0); }
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return Inst->getKind() == Load; }
+  static bool classof(const Inst *Instr) { return Instr->getKind() == Load; }
 
 private:
   InstLoad(Cfg *Func, Variable *Dest, Operand *SourceAddr);
@@ -627,7 +627,7 @@ public:
                           Liveness *Liveness);
   Inst *lower(Cfg *Func);
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return Inst->getKind() == Phi; }
+  static bool classof(const Inst *Instr) { return Instr->getKind() == Phi; }
 
 private:
   InstPhi(Cfg *Func, SizeT MaxSrcs, Variable *Dest);
@@ -661,7 +661,7 @@ public:
   }
   NodeList getTerminatorEdges() const override { return NodeList(); }
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return Inst->getKind() == Ret; }
+  static bool classof(const Inst *Instr) { return Instr->getKind() == Ret; }
 
 private:
   InstRet(Cfg *Func, Operand *RetValue);
@@ -683,7 +683,7 @@ public:
   Operand *getTrueOperand() const { return getSrc(1); }
   Operand *getFalseOperand() const { return getSrc(2); }
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return Inst->getKind() == Select; }
+  static bool classof(const Inst *Instr) { return Instr->getKind() == Select; }
 
 private:
   InstSelect(Cfg *Func, Variable *Dest, Operand *Condition, Operand *Source1,
@@ -709,7 +709,7 @@ public:
   Variable *getRmwBeacon() const;
   void setRmwBeacon(Variable *Beacon);
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return Inst->getKind() == Store; }
+  static bool classof(const Inst *Instr) { return Instr->getKind() == Store; }
 
 private:
   InstStore(Cfg *Func, Operand *Data, Operand *Addr);
@@ -742,7 +742,7 @@ public:
   NodeList getTerminatorEdges() const override;
   bool repointEdges(CfgNode *OldNode, CfgNode *NewNode) override;
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return Inst->getKind() == Switch; }
+  static bool classof(const Inst *Instr) { return Instr->getKind() == Switch; }
 
 private:
   InstSwitch(Cfg *Func, SizeT NumCases, Operand *Source, CfgNode *LabelDefault);
@@ -770,8 +770,8 @@ public:
   }
   NodeList getTerminatorEdges() const override { return NodeList(); }
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) {
-    return Inst->getKind() == Unreachable;
+  static bool classof(const Inst *Instr) {
+    return Instr->getKind() == Unreachable;
   }
 
 private:
@@ -795,8 +795,8 @@ public:
   void emitIAS(const Cfg * /* Func */) const override {}
   void dump(const Cfg *Func) const override;
   Option getOption() const { return BundleOption; }
-  static bool classof(const Inst *Inst) {
-    return Inst->getKind() == BundleLock;
+  static bool classof(const Inst *Instr) {
+    return Instr->getKind() == BundleLock;
   }
 
 private:
@@ -817,8 +817,8 @@ public:
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg * /* Func */) const override {}
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) {
-    return Inst->getKind() == BundleUnlock;
+  static bool classof(const Inst *Instr) {
+    return Instr->getKind() == BundleUnlock;
   }
 
 private:
@@ -849,7 +849,7 @@ public:
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg * /* Func */) const override {}
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return Inst->getKind() == FakeDef; }
+  static bool classof(const Inst *Instr) { return Instr->getKind() == FakeDef; }
 
 private:
   InstFakeDef(Cfg *Func, Variable *Dest, Variable *Src);
@@ -874,7 +874,7 @@ public:
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg * /* Func */) const override {}
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return Inst->getKind() == FakeUse; }
+  static bool classof(const Inst *Instr) { return Instr->getKind() == FakeUse; }
 
 private:
   InstFakeUse(Cfg *Func, Variable *Src, uint32_t Weight);
@@ -902,7 +902,9 @@ public:
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg * /* Func */) const override {}
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return Inst->getKind() == FakeKill; }
+  static bool classof(const Inst *Instr) {
+    return Instr->getKind() == FakeKill;
+  }
 
 private:
   InstFakeKill(Cfg *Func, const Inst *Linked);
@@ -936,7 +938,9 @@ public:
     return Targets[I];
   }
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return Inst->getKind() == JumpTable; }
+  static bool classof(const Inst *Instr) {
+    return Instr->getKind() == JumpTable;
+  }
 
   static IceString makeName(const IceString &FuncName, SizeT Id) {
     return ".L" + FuncName + "$jumptable$__" + std::to_string(Id);
@@ -964,7 +968,7 @@ class InstTarget : public Inst {
 public:
   uint32_t getEmitInstCount() const override { return 1; }
   void dump(const Cfg *Func) const override;
-  static bool classof(const Inst *Inst) { return Inst->getKind() >= Target; }
+  static bool classof(const Inst *Instr) { return Instr->getKind() >= Target; }
 
 protected:
   InstTarget(Cfg *Func, InstKind Kind, SizeT MaxSrcs, Variable *Dest)

@@ -39,16 +39,16 @@ IceString CfgNode::getName() const {
 
 // Adds an instruction to either the Phi list or the regular instruction list.
 // Validates that all Phis are added before all regular instructions.
-void CfgNode::appendInst(Inst *Inst) {
+void CfgNode::appendInst(Inst *Instr) {
   ++InstCountEstimate;
-  if (auto *Phi = llvm::dyn_cast<InstPhi>(Inst)) {
+  if (auto *Phi = llvm::dyn_cast<InstPhi>(Instr)) {
     if (!Insts.empty()) {
       Func->setError("Phi instruction added to the middle of a block");
       return;
     }
     Phis.push_back(Phi);
   } else {
-    Insts.push_back(Inst);
+    Insts.push_back(Instr);
   }
 }
 
@@ -1429,13 +1429,13 @@ void CfgNode::profileExecutionCount(VariableDeclaration *Var) {
   Constant *OrderAcquireRelease =
       Context->getConstantInt32(Intrinsics::MemoryOrderAcquireRelease);
 
-  auto *Inst = InstIntrinsicCall::create(
+  auto *Instr = InstIntrinsicCall::create(
       Func, 5, Func->makeVariable(IceType_i64), RMWI64Name, Info->Info);
-  Inst->addArg(AtomicRMWOp);
-  Inst->addArg(Counter);
-  Inst->addArg(One);
-  Inst->addArg(OrderAcquireRelease);
-  Insts.push_front(Inst);
+  Instr->addArg(AtomicRMWOp);
+  Instr->addArg(Counter);
+  Instr->addArg(One);
+  Instr->addArg(OrderAcquireRelease);
+  Insts.push_front(Instr);
 }
 
 } // end of namespace Ice
