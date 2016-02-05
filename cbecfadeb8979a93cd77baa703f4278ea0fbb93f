@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f10fa8af_4a2b5354",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 773,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-02-05T18:22:37Z",
+      "side": 1,
+      "message": "Doesn\u0027t addressW() already take care of this?",
+      "range": {
+        "startLine": 773,
+        "startChar": 2,
+        "endLine": 773,
+        "endChar": 43
+      },
+      "revId": "cbecfadeb8979a93cd77baa703f4278ea0fbb93f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
