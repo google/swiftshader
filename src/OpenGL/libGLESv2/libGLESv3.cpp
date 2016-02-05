@@ -1743,7 +1743,7 @@ GL_APICALL void GL_APIENTRY glBindVertexArray(GLuint array)
 
 	if(context)
 	{
-		if(!context->getVertexArray(array))
+		if(!context->isVertexArray(array))
 		{
 			return error(GL_INVALID_OPERATION);
 		}

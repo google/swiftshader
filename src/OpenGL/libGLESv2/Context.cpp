@@ -1536,6 +1536,13 @@ VertexArray *Context::getCurrentVertexArray() const
 	return getVertexArray(mState.vertexArray);
 }
 
+bool Context::isVertexArray(GLuint array) const
+{
+	VertexArrayMap::const_iterator vertexArray = mVertexArrayMap.find(array);
+
+	return vertexArray != mVertexArrayMap.end();
+}
+
 bool Context::hasZeroDivisor() const
 {
 	// Verify there is at least one active attribute with a divisor of zero
@@ -3642,7 +3649,11 @@ void Context::detachBuffer(GLuint buffer)
 
 	for(auto vaoIt = mVertexArrayMap.begin(); vaoIt != mVertexArrayMap.end(); vaoIt++)
 	{
-		vaoIt->second->detachBuffer(buffer);
+		VertexArray* vertexArray = vaoIt->second;
+		if(vertexArray)
+		{
+			vertexArray->detachBuffer(buffer);
+		}
 	}
 
     for(int attribute = 0; attribute < MAX_VERTEX_ATTRIBS; attribute++)

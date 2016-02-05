@@ -601,6 +601,7 @@ public:
 	Query *getQuery(GLuint handle) const;
 	VertexArray *getVertexArray(GLuint array) const;
 	VertexArray *getCurrentVertexArray() const;
+	bool isVertexArray(GLuint array) const;
 	TransformFeedback *getTransformFeedback(GLuint transformFeedback) const;
 	TransformFeedback *getTransformFeedback() const;
 	Sampler *getSampler(GLuint sampler) const;
