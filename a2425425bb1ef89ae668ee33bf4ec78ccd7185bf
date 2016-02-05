@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "312b001a_54fc2c21",
+        "filename": "src/OpenGL/common/Object.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-02-05T16:02:58Z",
+      "side": 1,
+      "message": "Could we also check if \"this\" is still in instances (for double deletion)?",
+      "range": {
+        "startLine": 40,
+        "startChar": 2,
+        "endLine": 40,
+        "endChar": 24
+      },
+      "revId": "a2425425bb1ef89ae668ee33bf4ec78ccd7185bf",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
