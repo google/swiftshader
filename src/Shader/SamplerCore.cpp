@@ -744,9 +744,9 @@ namespace sw
 
 	void SamplerCore::sampleQuad(Pointer<Byte> &texture, Vector4s &c, Float4 &u, Float4 &v, Float4 &w, Float &lod, Int face[4], bool secondLOD)
 	{
-		if(state.textureType != TEXTURE_3D && state.textureType != TEXTURE_2D_ARRAY)
+		if(state.textureType != TEXTURE_3D)
 		{
-			sampleQuad2D(texture, c, u, v, lod, face, secondLOD);
+			sampleQuad2D(texture, c, u, v, w, lod, face, secondLOD);
 		}
 		else
 		{
@@ -754,7 +754,7 @@ namespace sw
 		}
 	}
 
-	void SamplerCore::sampleQuad2D(Pointer<Byte> &texture, Vector4s &c, Float4 &u, Float4 &v, Float &lod, Int face[4], bool secondLOD)
+	void SamplerCore::sampleQuad2D(Pointer<Byte> &texture, Vector4s &c, Float4 &u, Float4 &v, Float4 &w, Float &lod, Int face[4], bool secondLOD)
 	{
 		int componentCount = textureComponentCount();
 		bool gather = state.textureFilter == FILTER_GATHER;
@@ -766,13 +766,22 @@ namespace sw
 
 		Short4 uuuu;
 		Short4 vvvv;
+		Short4 wwww;
 
 		address(uuuu, u, state.addressingModeU);
 		address(vvvv, v, state.addressingModeV);
+		if(state.textureType == TEXTURE_2D_ARRAY)
+		{
+			addressW(wwww, w, mipmap);
+		}
+		else
+		{
+			wwww = vvvv;
+		}
 
 		if(state.textureFilter == FILTER_POINT || state.textureFilter == FILTER_MIN_POINT_MAG_LINEAR)
 		{
-			sampleTexel(c, uuuu, vvvv, vvvv, mipmap, buffer);
+			sampleTexel(c, uuuu, vvvv, wwww, mipmap, buffer);
 		}
 		else
 		{
@@ -786,10 +795,10 @@ namespace sw
 			Short4 uuuu1 = offsetSample(uuuu, mipmap, OFFSET(Mipmap,uHalf), state.addressingModeU == ADDRESSING_WRAP, gather ? 2 : +1);
 			Short4 vvvv1 = offsetSample(vvvv, mipmap, OFFSET(Mipmap,vHalf), state.addressingModeV == ADDRESSING_WRAP, gather ? 2 : +1);
 
-			sampleTexel(c0, uuuu0, vvvv0, vvvv0, mipmap, buffer);
-			sampleTexel(c1, uuuu1, vvvv0, vvvv0, mipmap, buffer);
-			sampleTexel(c2, uuuu0, vvvv1, vvvv1, mipmap, buffer);
-			sampleTexel(c3, uuuu1, vvvv1, vvvv1, mipmap, buffer);
+			sampleTexel(c0, uuuu0, vvvv0, wwww, mipmap, buffer);
+			sampleTexel(c1, uuuu1, vvvv0, wwww, mipmap, buffer);
+			sampleTexel(c2, uuuu0, vvvv1, wwww, mipmap, buffer);
+			sampleTexel(c3, uuuu1, vvvv1, wwww, mipmap, buffer);
 	
 			if(!gather)   // Blend
 			{
@@ -1229,7 +1238,7 @@ namespace sw
 
 	void SamplerCore::sampleFloat(Pointer<Byte> &texture, Vector4f &c, Float4 &u, Float4 &v, Float4 &w, Float &lod, Int face[4], bool secondLOD)
 	{
-		if(state.textureType != TEXTURE_3D && state.textureType != TEXTURE_2D_ARRAY)
+		if(state.textureType != TEXTURE_3D)
 		{
 			sampleFloat2D(texture, c, u, v, w, lod, face, secondLOD);
 		}
@@ -1239,7 +1248,7 @@ namespace sw
 		}
 	}
 	
-	void SamplerCore::sampleFloat2D(Pointer<Byte> &texture, Vector4f &c, Float4 &u, Float4 &v, Float4 &z, Float &lod, Int face[4], bool secondLOD)
+	void SamplerCore::sampleFloat2D(Pointer<Byte> &texture, Vector4f &c, Float4 &u, Float4 &v, Float4 &w, Float &lod, Int face[4], bool secondLOD)
 	{
 		int componentCount = textureComponentCount();
 		bool gather = state.textureFilter == FILTER_GATHER;
@@ -1251,13 +1260,22 @@ namespace sw
 
 		Short4 uuuu;
 		Short4 vvvv;
+		Short4 wwww;
 
 		address(uuuu, u, state.addressingModeU);
 		address(vvvv, v, state.addressingModeV);
+		if(state.textureType == TEXTURE_2D_ARRAY)
+		{
+			addressW(wwww, w, mipmap);
+		}
+		else
+		{
+			wwww = vvvv;
+		}
 
 		if(state.textureFilter == FILTER_POINT || state.textureFilter == FILTER_MIN_POINT_MAG_LINEAR)
 		{
-			sampleTexel(c, uuuu, vvvv, vvvv, z, mipmap, buffer);
+			sampleTexel(c, uuuu, vvvv, wwww, w, mipmap, buffer);
 		}
 		else
 		{
@@ -1271,10 +1289,10 @@ namespace sw
 			Short4 uuuu1 = offsetSample(uuuu, mipmap, OFFSET(Mipmap,uHalf), state.addressingModeU == ADDRESSING_WRAP, gather ? 2 : +1);
 			Short4 vvvv1 = offsetSample(vvvv, mipmap, OFFSET(Mipmap,vHalf), state.addressingModeV == ADDRESSING_WRAP, gather ? 2 : +1);
 
-			sampleTexel(c0, uuuu0, vvvv0, vvvv0, z, mipmap, buffer);		
-			sampleTexel(c1, uuuu1, vvvv0, vvvv0, z, mipmap, buffer);
-			sampleTexel(c2, uuuu0, vvvv1, vvvv1, z, mipmap, buffer);
-			sampleTexel(c3, uuuu1, vvvv1, vvvv1, z, mipmap, buffer);
+			sampleTexel(c0, uuuu0, vvvv0, wwww, w, mipmap, buffer);		
+			sampleTexel(c1, uuuu1, vvvv0, wwww, w, mipmap, buffer);
+			sampleTexel(c2, uuuu0, vvvv1, wwww, w, mipmap, buffer);
+			sampleTexel(c3, uuuu1, vvvv1, wwww, w, mipmap, buffer);
 
 			if(!gather)   // Blend
 			{
