@@ -958,8 +958,9 @@ void TargetARM32::emitVariable(const Variable *Var) const {
     return;
   }
   if (Var->mustHaveReg()) {
-    llvm::report_fatal_error(
-        "Infinite-weight Variable has no register assigned");
+    llvm::report_fatal_error("Infinite-weight Variable (" + Var->getName(Func) +
+                             ") has no register assigned - function " +
+                             Func->getFunctionName());
   }
   assert(!Var->isRematerializable());
   int32_t Offset = Var->getStackOffset();

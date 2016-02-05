@@ -884,8 +884,9 @@ void TargetX86Base<TraitsType>::emitVariable(const Variable *Var) const {
     return;
   }
   if (Var->mustHaveReg()) {
-    llvm::report_fatal_error(
-        "Infinite-weight Variable has no register assigned");
+    llvm::report_fatal_error("Infinite-weight Variable (" + Var->getName(Func) +
+                             ") has no register assigned - function " +
+                             Func->getFunctionName());
   }
   const int32_t Offset = Var->getStackOffset();
   int32_t BaseRegNum = Var->getBaseRegNum();
@@ -913,8 +914,9 @@ TargetX86Base<TraitsType>::stackVarToAsmOperand(const Variable *Var) const {
   if (Var->hasReg())
     llvm::report_fatal_error("Stack Variable has a register assigned");
   if (Var->mustHaveReg()) {
-    llvm::report_fatal_error(
-        "Infinite-weight Variable has no register assigned");
+    llvm::report_fatal_error("Infinite-weight Variable (" + Var->getName(Func) +
+                             ") has no register assigned - function " +
+                             Func->getFunctionName());
   }
   int32_t Offset = Var->getStackOffset();
   int32_t BaseRegNum = Var->getBaseRegNum();
