@@ -223,7 +223,7 @@ namespace es1
 		if(height > OUTLINE_RESOLUTION)
 		{
 			ERR("Invalid parameters: %dx%d", width, height);
-			return 0;
+			return nullptr;
 		}
 
 		bool lockable = true;
@@ -251,12 +251,12 @@ namespace es1
 			UNREACHABLE(format);
 		}
 
-		egl::Image *surface = new egl::Image(width, height, format, multiSampleDepth, lockable, true);
+		egl::Image *surface = new egl::Image(width, height, format, multiSampleDepth, lockable);
 
 		if(!surface)
 		{
 			ERR("Out of memory");
-			return 0;
+			return nullptr;
 		}
 
 		return surface;
@@ -267,15 +267,15 @@ namespace es1
 		if(height > OUTLINE_RESOLUTION)
 		{
 			ERR("Invalid parameters: %dx%d", width, height);
-			return 0;
+			return nullptr;
 		}
 
-		egl::Image *surface = new egl::Image(width, height, format, multiSampleDepth, lockable, true);
+		egl::Image *surface = new egl::Image(width, height, format, multiSampleDepth, lockable);
 
 		if(!surface)
 		{
 			ERR("Out of memory");
-			return 0;
+			return nullptr;
 		}
 
 		return surface;

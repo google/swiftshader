@@ -333,12 +333,12 @@ Texture2D::Texture2D(GLuint name) : Texture(name)
 {
 	for(int i = 0; i < MIPMAP_LEVELS; i++)
 	{
-		image[i] = 0;
+		image[i] = nullptr;
 	}
 
-    mSurface = NULL;
+    mSurface = nullptr;
 
-	mColorbufferProxy = NULL;
+	mColorbufferProxy = nullptr;
 	mProxyRefs = 0;
 }
 
@@ -351,7 +351,7 @@ Texture2D::~Texture2D()
 		if(image[i])
 		{
 			image[i]->unbind(this);
-			image[i] = 0;
+			image[i] = nullptr;
 		}
 	}
 
@@ -359,11 +359,11 @@ Texture2D::~Texture2D()
 
     if(mSurface)
     {
-        mSurface->setBoundTexture(NULL);
-        mSurface = NULL;
+        mSurface->setBoundTexture(nullptr);
+        mSurface = nullptr;
     }
 
-	mColorbufferProxy = NULL;
+	mColorbufferProxy = nullptr;
 }
 
 // We need to maintain a count of references to renderbuffers acting as
@@ -383,7 +383,7 @@ void Texture2D::releaseProxy(const Renderbuffer *proxy)
 
     if(mProxyRefs == 0)
 	{
-		mColorbufferProxy = NULL;
+		mColorbufferProxy = nullptr;
 	}
 }
 
@@ -478,7 +478,7 @@ void Texture2D::bindTexImage(egl::Surface *surface)
 		if(image[level])
 		{
 			image[level]->unbind(this);
-			image[level] = 0;
+			image[level] = nullptr;
 		}
 	}
 
@@ -495,7 +495,7 @@ void Texture2D::releaseTexImage()
 		if(image[level])
 		{
 			image[level]->unbind(this);
-			image[level] = 0;
+			image[level] = nullptr;
 		}
 	}
 }
@@ -721,10 +721,10 @@ Renderbuffer *Texture2D::getRenderbuffer(GLenum target)
 {
     if(target != GL_TEXTURE_2D)
     {
-        return error(GL_INVALID_OPERATION, (Renderbuffer *)NULL);
+        return error(GL_INVALID_OPERATION, (Renderbuffer*)nullptr);
     }
 
-    if(mColorbufferProxy == NULL)
+    if(!mColorbufferProxy)
     {
         mColorbufferProxy = new Renderbuffer(name, new RenderbufferTexture2D(this));
     }
@@ -786,10 +786,10 @@ egl::Image *createBackBuffer(int width, int height, const egl::Config *config)
 {
 	if(config)
 	{
-		return new egl::Image(width, height, config->mRenderTargetFormat, config->mSamples, false, true);
+		return new egl::Image(width, height, config->mRenderTargetFormat, config->mSamples, false);
 	}
 
-	return 0;
+	return nullptr;
 }
 
 egl::Image *createDepthStencil(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard)
@@ -825,12 +825,12 @@ egl::Image *createDepthStencil(unsigned int width, unsigned int height, sw::Form
 		UNREACHABLE(format);
 	}
 
-	egl::Image *surface = new egl::Image(width, height, format, multiSampleDepth, lockable, true);
+	egl::Image *surface = new egl::Image(width, height, format, multiSampleDepth, lockable);
 
 	if(!surface)
 	{
 		ERR("Out of memory");
-		return 0;
+		return nullptr;
 	}
 
 	return surface;

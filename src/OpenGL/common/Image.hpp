@@ -31,16 +31,12 @@ sw::Format SelectInternalFormat(GLenum format, GLenum type);
 GLsizei ComputePitch(GLsizei width, GLenum format, GLenum type, GLint alignment);
 GLsizei ComputeCompressedSize(GLsizei width, GLsizei height, GLenum format);
 
-static inline sw::Resource *getParentResource(egl::Texture *texture)
-{
-	return texture ? texture->getResource() : nullptr;
-}
-
 class Image : public sw::Surface, public gl::Object
 {
 public:
+	// 2D texture image
 	Image(Texture *parentTexture, GLsizei width, GLsizei height, GLenum format, GLenum type)
-		: sw::Surface(getParentResource(parentTexture), width, height, 1, SelectInternalFormat(format, type), true, true),
+		: sw::Surface(parentTexture->getResource(), width, height, 1, SelectInternalFormat(format, type), true, true),
 		  width(width), height(height), format(format), type(type), internalFormat(SelectInternalFormat(format, type)), depth(1),
 		  parentTexture(parentTexture)
 	{
@@ -48,8 +44,9 @@ public:
 		Object::addRef();
 	}
 
-	Image(Texture *parentTexture, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, int pitchP = 0)
-		: sw::Surface(getParentResource(parentTexture), width, height, depth, SelectInternalFormat(format, type), true, true, pitchP),
+	// 3D texture image
+	Image(Texture *parentTexture, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type)
+		: sw::Surface(parentTexture->getResource(), width, height, depth, SelectInternalFormat(format, type), true, true),
 		  width(width), height(height), format(format), type(type), internalFormat(SelectInternalFormat(format, type)), depth(depth),
 		  parentTexture(parentTexture)
 	{
@@ -57,9 +54,21 @@ public:
 		Object::addRef();
 	}
 
-	Image(GLsizei width, GLsizei height, sw::Format internalFormat, int multiSampleDepth, bool lockable, bool renderTarget)
-		: sw::Surface(nullptr, width, height, multiSampleDepth, internalFormat, lockable, renderTarget),
-		  width(width), height(height), format(0 /*GL_NONE*/), type(0 /*GL_NONE*/), internalFormat(internalFormat), depth(multiSampleDepth), parentTexture(nullptr)
+	// Native EGL image
+	Image(GLsizei width, GLsizei height, GLenum format, GLenum type, int pitchP)
+		: sw::Surface(nullptr, width, height, depth, SelectInternalFormat(format, type), true, true, pitchP),
+		  width(width), height(height), format(format), type(type), internalFormat(SelectInternalFormat(format, type)), depth(depth),
+		  parentTexture(nullptr)
+	{
+		shared = true;
+		Object::addRef();
+	}
+
+	// Render target
+	Image(GLsizei width, GLsizei height, sw::Format internalFormat, int multiSampleDepth, bool lockable)
+		: sw::Surface(nullptr, width, height, multiSampleDepth, internalFormat, lockable, true),
+		  width(width), height(height), format(0 /*GL_NONE*/), type(0 /*GL_NONE*/), internalFormat(internalFormat), depth(multiSampleDepth),
+		  parentTexture(nullptr)
 	{
 		shared = false;
 		Object::addRef();
@@ -206,14 +215,13 @@ class AndroidNativeImage : public egl::Image
 {
 public:
 	explicit AndroidNativeImage(ANativeWindowBuffer *nativeBuffer)
-		: egl::Image(0, nativeBuffer->width, nativeBuffer->height, 1,
+		: egl::Image(nativeBuffer->width, nativeBuffer->height,
 		             GLPixelFormatFromAndroid(nativeBuffer->format),
 		             GLPixelTypeFromAndroid(nativeBuffer->format),
 		             nativeBuffer->stride),
 		  nativeBuffer(nativeBuffer)
 	{
 		nativeBuffer->common.incRef(&nativeBuffer->common);
-		markShared();
 	}
 
 private:
