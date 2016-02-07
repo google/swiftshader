@@ -916,8 +916,7 @@ bool Cfg::validateLiveness() const {
           // of the block, because a Phi temporary may be live at the end of
           // the previous block, and if it is also assigned in the first
           // instruction of this block, the adjacent live ranges get merged.
-          if (static_cast<class Inst *>(&Instr) != FirstInst &&
-              !Instr.isDestRedefined() &&
+          if (&Instr != FirstInst && !Instr.isDestRedefined() &&
               Dest->getLiveRange().containsValue(InstNumber - 1, IsDest))
             Invalid = true;
           if (Invalid) {

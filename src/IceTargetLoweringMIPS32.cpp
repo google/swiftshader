@@ -1245,7 +1245,7 @@ Operand *TargetMIPS32::legalize(Operand *From, LegalMask Allowed,
     Context.insert<InstFakeDef>(Reg);
     return Reg;
   } else if (auto *C32 = llvm::dyn_cast<ConstantInteger32>(From)) {
-    uint32_t Value = static_cast<uint32_t>(C32->getValue());
+    const uint32_t Value = C32->getValue();
     // Check if the immediate will fit in a Flexible second operand,
     // if a Flexible second operand is allowed. We need to know the exact
     // value, so that rules out relocatable constants.

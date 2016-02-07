@@ -348,7 +348,7 @@ public:
   static StackVariable *create(Cfg *Func, Type Ty, SizeT Index) {
     return new (Func->allocate<StackVariable>()) StackVariable(Ty, Index);
   }
-  const static OperandKind StackVariableKind =
+  constexpr static auto StackVariableKind =
       static_cast<OperandKind>(kVariable_Target);
   static bool classof(const Operand *Operand) {
     return Operand->getKind() == StackVariableKind;

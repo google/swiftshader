@@ -280,10 +280,8 @@ IceString InstArithmetic::getInstName() const {
 }
 
 const char *InstArithmetic::getOpName(OpKind Op) {
-  size_t OpIndex = static_cast<size_t>(Op);
-  return OpIndex < InstArithmetic::_num
-             ? InstArithmeticAttributes[OpIndex].DisplayString
-             : "???";
+  return Op < InstArithmetic::_num ? InstArithmeticAttributes[Op].DisplayString
+                                   : "???";
 }
 
 bool InstArithmetic::isCommutative() const {
@@ -729,9 +727,8 @@ void InstCall::dump(const Cfg *Func) const {
 }
 
 const char *InstCast::getCastName(InstCast::OpKind Kind) {
-  size_t Index = static_cast<size_t>(Kind);
-  if (Index < InstCast::OpKind::_num)
-    return InstCastAttributes[Index].DisplayString;
+  if (Kind < InstCast::OpKind::_num)
+    return InstCastAttributes[Kind].DisplayString;
   llvm_unreachable("Invalid InstCast::OpKind");
   return "???";
 }

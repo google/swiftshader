@@ -706,7 +706,7 @@ Label *AssemblerARM32::getOrCreateLabel(SizeT Number, LabelVector &Labels) {
 // Pull out offset from branch Inst.
 IOffsetT AssemblerARM32::decodeBranchOffset(IValueT Inst) {
   // Sign-extend, left-shift by 2, and adjust to the way ARM CPUs read PC.
-  IOffsetT Offset = static_cast<IOffsetT>((Inst & kBranchOffsetMask) << 8);
+  const IOffsetT Offset = (Inst & kBranchOffsetMask) << 8;
   return (Offset >> 6) + kPCReadOffset;
 }
 

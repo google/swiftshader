@@ -733,9 +733,7 @@ public:
   /// representation of the vector.
   static Type getInVectorElementType(Type Ty) {
     assert(isVectorType(Ty));
-    size_t Index = static_cast<size_t>(Ty);
-    (void)Index;
-    assert(Index < TableTypeX8632AttributesSize);
+    assert(Ty < TableTypeX8632AttributesSize);
     return TableTypeX8632Attributes[Ty].InVectorElementType;
   }
 
@@ -790,9 +788,8 @@ public:
   /// @}
 
   static Cond::BrCond getIcmp32Mapping(InstIcmp::ICond Cond) {
-    size_t Index = static_cast<size_t>(Cond);
-    assert(Index < TableIcmp32Size);
-    return TableIcmp32[Index].Mapping;
+    assert(Cond < TableIcmp32Size);
+    return TableIcmp32[Cond].Mapping;
   }
 
   static const struct TableTypeX8632AttributesType {
@@ -959,7 +956,7 @@ public:
     static SpillVariable *create(Cfg *Func, Type Ty, SizeT Index) {
       return new (Func->allocate<SpillVariable>()) SpillVariable(Ty, Index);
     }
-    const static OperandKind SpillVariableKind =
+    constexpr static auto SpillVariableKind =
         static_cast<OperandKind>(kVariable_Target);
     static bool classof(const Operand *Operand) {
       return Operand->getKind() == SpillVariableKind;

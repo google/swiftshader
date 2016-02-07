@@ -2737,7 +2737,7 @@ void FunctionParser::ProcessRecord() {
       appendErrorInstruction(ReturnType);
       return;
     }
-    bool IsTailCall = static_cast<bool>(CCInfo & 1);
+    const bool IsTailCall = (CCInfo & 1);
 
     // Create the call instruction.
     Ice::Variable *Dest = (ReturnType == Ice::IceType_void)

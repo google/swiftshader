@@ -412,7 +412,7 @@ Traits::X86OperandMem *TargetX8664::_sandbox_mem_reference(X86OperandMem *Mem) {
   if (Offset != nullptr) {
     if (const auto *CR = llvm::dyn_cast<ConstantRelocatable>(Offset)) {
       NeedsLea = CR->getName() != "" || CR->getOffset() < 0;
-    } else if (const auto *Imm = llvm::cast<ConstantInteger32>(Offset)) {
+    } else if (const auto *Imm = llvm::dyn_cast<ConstantInteger32>(Offset)) {
       NeedsLea = Imm->getValue() < 0;
     } else {
       llvm::report_fatal_error("Unexpected Offset type.");

@@ -133,9 +133,8 @@ const TypePropertyFields TypePropertiesTable[] = {
 } // end anonymous namespace
 
 const char *targetArchString(const TargetArch Arch) {
-  size_t Index = static_cast<size_t>(Arch);
-  if (Index < TargetArch_NUM)
-    return TargetArchName[Index];
+  if (Arch < TargetArch_NUM)
+    return TargetArchName[Arch];
   llvm_unreachable("Invalid target arch for targetArchString");
   return "???";
 }
@@ -146,121 +145,106 @@ size_t typeWidthInBytes(Type Ty) {
 }
 
 int8_t typeWidthInBytesLog2(Type Ty) {
-  size_t Index = static_cast<size_t>(Ty);
-  if (Index < IceType_NUM)
-    return TypeAttributes[Index].TypeWidthInBytesLog2;
+  if (Ty < IceType_NUM)
+    return TypeAttributes[Ty].TypeWidthInBytesLog2;
   llvm_unreachable("Invalid type for typeWidthInBytesLog2()");
   return 0;
 }
 
 size_t typeAlignInBytes(Type Ty) {
-  size_t Index = static_cast<size_t>(Ty);
-  if (Index < IceType_NUM)
-    return TypeAttributes[Index].TypeAlignInBytes;
+  if (Ty < IceType_NUM)
+    return TypeAttributes[Ty].TypeAlignInBytes;
   llvm_unreachable("Invalid type for typeAlignInBytes()");
   return 1;
 }
 
 size_t typeNumElements(Type Ty) {
-  size_t Index = static_cast<size_t>(Ty);
-  if (Index < IceType_NUM)
-    return TypeAttributes[Index].TypeNumElements;
+  if (Ty < IceType_NUM)
+    return TypeAttributes[Ty].TypeNumElements;
   llvm_unreachable("Invalid type for typeNumElements()");
   return 1;
 }
 
 Type typeElementType(Type Ty) {
-  size_t Index = static_cast<size_t>(Ty);
-  if (Index < IceType_NUM)
-    return TypeAttributes[Index].TypeElementType;
+  if (Ty < IceType_NUM)
+    return TypeAttributes[Ty].TypeElementType;
   llvm_unreachable("Invalid type for typeElementType()");
   return IceType_void;
 }
 
 bool isVectorType(Type Ty) {
-  size_t Index = static_cast<size_t>(Ty);
-  if (Index < IceType_NUM)
-    return TypePropertiesTable[Index].TypeIsVectorType;
+  if (Ty < IceType_NUM)
+    return TypePropertiesTable[Ty].TypeIsVectorType;
   llvm_unreachable("Invalid type for isVectorType()");
   return false;
 }
 
 bool isIntegerType(Type Ty) {
-  size_t Index = static_cast<size_t>(Ty);
-  if (Index < IceType_NUM)
-    return TypePropertiesTable[Index].TypeIsIntegerType;
+  if (Ty < IceType_NUM)
+    return TypePropertiesTable[Ty].TypeIsIntegerType;
   llvm_unreachable("Invalid type for isIntegerType()");
   return false;
 }
 
 bool isScalarIntegerType(Type Ty) {
-  size_t Index = static_cast<size_t>(Ty);
-  if (Index < IceType_NUM)
-    return TypePropertiesTable[Index].TypeIsScalarIntegerType;
+  if (Ty < IceType_NUM)
+    return TypePropertiesTable[Ty].TypeIsScalarIntegerType;
   llvm_unreachable("Invalid type for isScalIntegerType()");
   return false;
 }
 
 bool isVectorIntegerType(Type Ty) {
-  size_t Index = static_cast<size_t>(Ty);
-  if (Index < IceType_NUM)
-    return TypePropertiesTable[Index].TypeIsVectorIntegerType;
+  if (Ty < IceType_NUM)
+    return TypePropertiesTable[Ty].TypeIsVectorIntegerType;
   llvm_unreachable("Invalid type for isVectorIntegerType()");
   return false;
 }
 
 bool isIntegerArithmeticType(Type Ty) {
-  size_t Index = static_cast<size_t>(Ty);
-  if (Index < IceType_NUM)
-    return TypePropertiesTable[Index].TypeIsIntegerArithmeticType;
+  if (Ty < IceType_NUM)
+    return TypePropertiesTable[Ty].TypeIsIntegerArithmeticType;
   llvm_unreachable("Invalid type for isIntegerArithmeticType()");
   return false;
 }
 
 bool isFloatingType(Type Ty) {
-  size_t Index = static_cast<size_t>(Ty);
-  if (Index < IceType_NUM)
-    return TypePropertiesTable[Index].TypeIsFloatingType;
+  if (Ty < IceType_NUM)
+    return TypePropertiesTable[Ty].TypeIsFloatingType;
   llvm_unreachable("Invalid type for isFloatingType()");
   return false;
 }
 
 bool isScalarFloatingType(Type Ty) {
-  size_t Index = static_cast<size_t>(Ty);
-  if (Index < IceType_NUM)
-    return TypePropertiesTable[Index].TypeIsScalarFloatingType;
+  if (Ty < IceType_NUM)
+    return TypePropertiesTable[Ty].TypeIsScalarFloatingType;
   llvm_unreachable("Invalid type for isScalarFloatingType()");
   return false;
 }
 
 bool isVectorFloatingType(Type Ty) {
-  size_t Index = static_cast<size_t>(Ty);
-  if (Index < IceType_NUM)
-    return TypePropertiesTable[Index].TypeIsVectorFloatingType;
+  if (Ty < IceType_NUM)
+    return TypePropertiesTable[Ty].TypeIsVectorFloatingType;
   llvm_unreachable("Invalid type for isVectorFloatingType()");
   return false;
 }
 
 bool isLoadStoreType(Type Ty) {
-  size_t Index = static_cast<size_t>(Ty);
-  if (Index < IceType_NUM)
-    return TypePropertiesTable[Index].TypeIsLoadStoreType;
+  if (Ty < IceType_NUM)
+    return TypePropertiesTable[Ty].TypeIsLoadStoreType;
   llvm_unreachable("Invalid type for isLoadStoreType()");
   return false;
 }
 
 bool isCallParameterType(Type Ty) {
-  size_t Index = static_cast<size_t>(Ty);
-  if (Index < IceType_NUM)
-    return TypePropertiesTable[Index].TypeIsCallParameterType;
+  if (Ty < IceType_NUM)
+    return TypePropertiesTable[Ty].TypeIsCallParameterType;
   llvm_unreachable("Invalid type for isCallParameterType()");
   return false;
 }
 
 Type getCompareResultType(Type Ty) {
-  size_t Index = static_cast<size_t>(Ty);
-  if (Index < IceType_NUM)
-    return TypePropertiesTable[Index].CompareResultType;
+  if (Ty < IceType_NUM)
+    return TypePropertiesTable[Ty].CompareResultType;
   llvm_unreachable("Invalid type for getCompareResultType");
   return IceType_void;
 }
@@ -275,9 +259,8 @@ SizeT getScalarIntBitWidth(Type Ty) {
 // ======================== Dump routines ======================== //
 
 const char *typeString(Type Ty) {
-  size_t Index = static_cast<size_t>(Ty);
-  if (Index < IceType_NUM)
-    return TypeAttributes[Index].DisplayString;
+  if (Ty < IceType_NUM)
+    return TypeAttributes[Ty].DisplayString;
   llvm_unreachable("Invalid type for typeString");
   return "???";
 }

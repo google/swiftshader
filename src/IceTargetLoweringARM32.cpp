@@ -136,9 +136,8 @@ const struct TableIcmp64_ {
 };
 
 CondARM32::Cond getIcmp32Mapping(InstIcmp::ICond Cond) {
-  size_t Index = static_cast<size_t>(Cond);
-  assert(Index < llvm::array_lengthof(TableIcmp32));
-  return TableIcmp32[Index].Mapping;
+  assert(Cond < llvm::array_lengthof(TableIcmp32));
+  return TableIcmp32[Cond].Mapping;
 }
 
 // In some cases, there are x-macros tables for both high-level and low-level
@@ -3952,8 +3951,7 @@ void TargetARM32::lowerFcmp(const InstFcmp *Instr) {
 TargetARM32::CondWhenTrue
 TargetARM32::lowerInt64IcmpCond(InstIcmp::ICond Condition, Operand *Src0,
                                 Operand *Src1) {
-  size_t Index = static_cast<size_t>(Condition);
-  assert(Index < llvm::array_lengthof(TableIcmp64));
+  assert(Condition < llvm::array_lengthof(TableIcmp64));
 
   Int32Operands SrcsLo(loOperand(Src0), loOperand(Src1));
   Int32Operands SrcsHi(hiOperand(Src0), hiOperand(Src1));
@@ -3971,7 +3969,7 @@ TargetARM32::lowerInt64IcmpCond(InstIcmp::ICond Condition, Operand *Src0,
       Variable *Src0HiR = SrcsHi.src0R(this);
       _orrs(T, Src0LoR, Src0HiR);
       Context.insert<InstFakeUse>(T);
-      return CondWhenTrue(TableIcmp64[Index].C1);
+      return CondWhenTrue(TableIcmp64[Condition].C1);
     }
 
     Variable *Src0RLo = SrcsLo.src0R(this);
@@ -3979,10 +3977,11 @@ TargetARM32::lowerInt64IcmpCond(InstIcmp::ICond Condition, Operand *Src0,
     Operand *Src1RFLo = SrcsLo.src1RF(this);
     Operand *Src1RFHi = ValueLo == ValueHi ? Src1RFLo : SrcsHi.src1RF(this);
 
-    const bool UseRsb = TableIcmp64[Index].Swapped != SrcsLo.swappedOperands();
+    const bool UseRsb =
+        TableIcmp64[Condition].Swapped != SrcsLo.swappedOperands();
 
     if (UseRsb) {
-      if (TableIcmp64[Index].IsSigned) {
+      if (TableIcmp64[Condition].IsSigned) {
         Variable *T = makeReg(IceType_i32);
         _rsbs(T, Src0RLo, Src1RFLo);
         Context.insert<InstFakeUse>(T);
@@ -4003,7 +4002,7 @@ TargetARM32::lowerInt64IcmpCond(InstIcmp::ICond Condition, Operand *Src0,
         Context.insert<InstFakeUse>(T);
       }
     } else {
-      if (TableIcmp64[Index].IsSigned) {
+      if (TableIcmp64[Condition].IsSigned) {
         _cmp(Src0RLo, Src1RFLo);
         Variable *T = makeReg(IceType_i32);
         _sbcs(T, Src0RHi, Src1RFHi);
@@ -4014,12 +4013,12 @@ TargetARM32::lowerInt64IcmpCond(InstIcmp::ICond Condition, Operand *Src0,
       }
     }
 
-    return CondWhenTrue(TableIcmp64[Index].C1);
+    return CondWhenTrue(TableIcmp64[Condition].C1);
   }
 
   Variable *Src0RLo, *Src0RHi;
   Operand *Src1RFLo, *Src1RFHi;
-  if (TableIcmp64[Index].Swapped) {
+  if (TableIcmp64[Condition].Swapped) {
     Src0RLo = legalizeToReg(loOperand(Src1));
     Src0RHi = legalizeToReg(hiOperand(Src1));
     Src1RFLo = legalizeToReg(loOperand(Src0));
@@ -4060,7 +4059,7 @@ TargetARM32::lowerInt64IcmpCond(InstIcmp::ICond Condition, Operand *Src0,
   //
   // So, we are going with the GCC version since it's usually better (except
   // perhaps for eq/ne). We could revisit special-casing eq/ne later.
-  if (TableIcmp64[Index].IsSigned) {
+  if (TableIcmp64[Condition].IsSigned) {
     Variable *ScratchReg = makeReg(IceType_i32);
     _cmp(Src0RLo, Src1RFLo);
     _sbcs(ScratchReg, Src0RHi, Src1RFHi);
@@ -4071,7 +4070,7 @@ TargetARM32::lowerInt64IcmpCond(InstIcmp::ICond Condition, Operand *Src0,
     _cmp(Src0RHi, Src1RFHi);
     _cmp(Src0RLo, Src1RFLo, CondARM32::EQ);
   }
-  return CondWhenTrue(TableIcmp64[Index].C1);
+  return CondWhenTrue(TableIcmp64[Condition].C1);
 }
 
 TargetARM32::CondWhenTrue

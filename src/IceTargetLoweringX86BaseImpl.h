@@ -2228,8 +2228,8 @@ void TargetX86Base<TraitsType>::lowerArithmetic(const InstArithmetic *Instr) {
       // Optimize division by constant power of 2, but not for Om1 or O0, just
       // to keep things simple there.
       if (auto *C = llvm::dyn_cast<ConstantInteger32>(Src1)) {
-        int32_t Divisor = C->getValue();
-        uint32_t UDivisor = static_cast<uint32_t>(Divisor);
+        const int32_t Divisor = C->getValue();
+        const uint32_t UDivisor = Divisor;
         if (Divisor > 0 && llvm::isPowerOf2_32(UDivisor)) {
           uint32_t LogDiv = llvm::Log2_32(UDivisor);
           // LLVM does the following for dest=src/(1<<log):
@@ -2318,8 +2318,8 @@ void TargetX86Base<TraitsType>::lowerArithmetic(const InstArithmetic *Instr) {
       // Optimize mod by constant power of 2, but not for Om1 or O0, just to
       // keep things simple there.
       if (auto *C = llvm::dyn_cast<ConstantInteger32>(Src1)) {
-        int32_t Divisor = C->getValue();
-        uint32_t UDivisor = static_cast<uint32_t>(Divisor);
+        const int32_t Divisor = C->getValue();
+        const uint32_t UDivisor = Divisor;
         if (Divisor > 0 && llvm::isPowerOf2_32(UDivisor)) {
           uint32_t LogDiv = llvm::Log2_32(UDivisor);
           // LLVM does the following for dest=src%(1<<log):
@@ -2434,15 +2434,15 @@ void TargetX86Base<TraitsType>::lowerBr(const InstBr *Br) {
       break;
     case BoolFolding<Traits>::PK_Icmp32:
     case BoolFolding<Traits>::PK_Icmp64: {
-      lowerIcmpAndConsumer(llvm::dyn_cast<InstIcmp>(Producer), Br);
+      lowerIcmpAndConsumer(llvm::cast<InstIcmp>(Producer), Br);
       return;
     }
     case BoolFolding<Traits>::PK_Fcmp: {
-      lowerFcmpAndConsumer(llvm::dyn_cast<InstFcmp>(Producer), Br);
+      lowerFcmpAndConsumer(llvm::cast<InstFcmp>(Producer), Br);
       return;
     }
     case BoolFolding<Traits>::PK_Arith: {
-      lowerArithAndConsumer(llvm::dyn_cast<InstArithmetic>(Producer), Br);
+      lowerArithAndConsumer(llvm::cast<InstArithmetic>(Producer), Br);
       return;
     }
     }
@@ -3097,8 +3097,7 @@ template <typename TraitsType>
 void TargetX86Base<TraitsType>::lowerExtractElement(
     const InstExtractElement *Instr) {
   Operand *SourceVectNotLegalized = Instr->getSrc(0);
-  ConstantInteger32 *ElementIndex =
-      llvm::dyn_cast<ConstantInteger32>(Instr->getSrc(1));
+  auto *ElementIndex = llvm::dyn_cast<ConstantInteger32>(Instr->getSrc(1));
   // Only constant indices are allowed in PNaCl IR.
   assert(ElementIndex);
 
@@ -3218,12 +3217,11 @@ void TargetX86Base<TraitsType>::lowerFcmpAndConsumer(const InstFcmp *Fcmp,
   //   ucomiss b, c       /* but swap b,c order if SwapOperands==true */
   //   setcc a, C1
   InstFcmp::FCond Condition = Fcmp->getCondition();
-  size_t Index = static_cast<size_t>(Condition);
-  assert(Index < Traits::TableFcmpSize);
-  if (Traits::TableFcmp[Index].SwapScalarOperands)
+  assert(Condition < Traits::TableFcmpSize);
+  if (Traits::TableFcmp[Condition].SwapScalarOperands)
     std::swap(Src0, Src1);
-  bool HasC1 = (Traits::TableFcmp[Index].C1 != Traits::Cond::Br_None);
-  bool HasC2 = (Traits::TableFcmp[Index].C2 != Traits::Cond::Br_None);
+  const bool HasC1 = (Traits::TableFcmp[Condition].C1 != Traits::Cond::Br_None);
+  const bool HasC2 = (Traits::TableFcmp[Condition].C2 != Traits::Cond::Br_None);
   if (HasC1) {
     Src0 = legalize(Src0);
     Operand *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
@@ -3231,20 +3229,20 @@ void TargetX86Base<TraitsType>::lowerFcmpAndConsumer(const InstFcmp *Fcmp,
     _mov(T, Src0);
     _ucomiss(T, Src1RM);
     if (!HasC2) {
-      assert(Traits::TableFcmp[Index].Default);
-      setccOrConsumer(Traits::TableFcmp[Index].C1, Dest, Consumer);
+      assert(Traits::TableFcmp[Condition].Default);
+      setccOrConsumer(Traits::TableFcmp[Condition].C1, Dest, Consumer);
       return;
     }
   }
-  int32_t IntDefault = Traits::TableFcmp[Index].Default;
+  int32_t IntDefault = Traits::TableFcmp[Condition].Default;
   if (Consumer == nullptr) {
     Constant *Default = Ctx->getConstantInt(Dest->getType(), IntDefault);
     _mov(Dest, Default);
     if (HasC1) {
       InstX86Label *Label = InstX86Label::create(Func, this);
-      _br(Traits::TableFcmp[Index].C1, Label);
+      _br(Traits::TableFcmp[Condition].C1, Label);
       if (HasC2) {
-        _br(Traits::TableFcmp[Index].C2, Label);
+        _br(Traits::TableFcmp[Condition].C2, Label);
       }
       Constant *NonDefault = Ctx->getConstantInt(Dest->getType(), !IntDefault);
       _redefined(_mov(Dest, NonDefault));
@@ -3258,9 +3256,9 @@ void TargetX86Base<TraitsType>::lowerFcmpAndConsumer(const InstFcmp *Fcmp,
     if (IntDefault != 0)
       std::swap(TrueSucc, FalseSucc);
     if (HasC1) {
-      _br(Traits::TableFcmp[Index].C1, FalseSucc);
+      _br(Traits::TableFcmp[Condition].C1, FalseSucc);
       if (HasC2) {
-        _br(Traits::TableFcmp[Index].C2, FalseSucc);
+        _br(Traits::TableFcmp[Condition].C2, FalseSucc);
       }
       _br(TrueSucc);
       return;
@@ -3277,9 +3275,9 @@ void TargetX86Base<TraitsType>::lowerFcmpAndConsumer(const InstFcmp *Fcmp,
     lowerMove(SelectDest, SrcF, false);
     if (HasC1) {
       InstX86Label *Label = InstX86Label::create(Func, this);
-      _br(Traits::TableFcmp[Index].C1, Label);
+      _br(Traits::TableFcmp[Condition].C1, Label);
       if (HasC2) {
-        _br(Traits::TableFcmp[Index].C2, Label);
+        _br(Traits::TableFcmp[Condition].C2, Label);
       }
       static constexpr bool IsRedefinition = true;
       lowerMove(SelectDest, SrcT, IsRedefinition);
@@ -3300,10 +3298,9 @@ void TargetX86Base<TraitsType>::lowerFcmpVector(const InstFcmp *Fcmp) {
     llvm::report_fatal_error("Expected vector compare");
 
   InstFcmp::FCond Condition = Fcmp->getCondition();
-  size_t Index = static_cast<size_t>(Condition);
-  assert(Index < Traits::TableFcmpSize);
+  assert(Condition < Traits::TableFcmpSize);
 
-  if (Traits::TableFcmp[Index].SwapVectorOperands)
+  if (Traits::TableFcmp[Condition].SwapVectorOperands)
     std::swap(Src0, Src1);
 
   Variable *T = nullptr;
@@ -3321,7 +3318,7 @@ void TargetX86Base<TraitsType>::lowerFcmpVector(const InstFcmp *Fcmp) {
 
     switch (Condition) {
     default: {
-      CmppsCond Predicate = Traits::TableFcmp[Index].Predicate;
+      const CmppsCond Predicate = Traits::TableFcmp[Condition].Predicate;
       assert(Predicate != Traits::Cond::Cmpps_Invalid);
       T = makeReg(Src0RM->getType());
       _movp(T, Src0RM);
@@ -3523,8 +3520,7 @@ TargetX86Base<TraitsType>::lowerIcmp64(const InstIcmp *Icmp,
   Operand *Src1 = legalize(Icmp->getSrc(1));
   Variable *Dest = Icmp->getDest();
   InstIcmp::ICond Condition = Icmp->getCondition();
-  size_t Index = static_cast<size_t>(Condition);
-  assert(Index < Traits::TableIcmp64Size);
+  assert(Condition < Traits::TableIcmp64Size);
   Operand *Src0LoRM = nullptr;
   Operand *Src0HiRM = nullptr;
   // Legalize the portions of Src0 that are going to be needed.
@@ -3616,12 +3612,12 @@ TargetX86Base<TraitsType>::lowerIcmp64(const InstIcmp *Icmp,
     InstX86Label *LabelTrue = InstX86Label::create(Func, this);
     _mov(Dest, One);
     _cmp(Src0HiRM, Src1HiRI);
-    if (Traits::TableIcmp64[Index].C1 != Traits::Cond::Br_None)
-      _br(Traits::TableIcmp64[Index].C1, LabelTrue);
-    if (Traits::TableIcmp64[Index].C2 != Traits::Cond::Br_None)
-      _br(Traits::TableIcmp64[Index].C2, LabelFalse);
+    if (Traits::TableIcmp64[Condition].C1 != Traits::Cond::Br_None)
+      _br(Traits::TableIcmp64[Condition].C1, LabelTrue);
+    if (Traits::TableIcmp64[Condition].C2 != Traits::Cond::Br_None)
+      _br(Traits::TableIcmp64[Condition].C2, LabelFalse);
     _cmp(Src0LoRM, Src1LoRI);
-    _br(Traits::TableIcmp64[Index].C3, LabelTrue);
+    _br(Traits::TableIcmp64[Condition].C3, LabelTrue);
     Context.insert(LabelFalse);
     _redefined(_mov(Dest, Zero));
     Context.insert(LabelTrue);
@@ -3629,12 +3625,12 @@ TargetX86Base<TraitsType>::lowerIcmp64(const InstIcmp *Icmp,
   }
   if (const auto *Br = llvm::dyn_cast<InstBr>(Consumer)) {
     _cmp(Src0HiRM, Src1HiRI);
-    if (Traits::TableIcmp64[Index].C1 != Traits::Cond::Br_None)
-      _br(Traits::TableIcmp64[Index].C1, Br->getTargetTrue());
-    if (Traits::TableIcmp64[Index].C2 != Traits::Cond::Br_None)
-      _br(Traits::TableIcmp64[Index].C2, Br->getTargetFalse());
+    if (Traits::TableIcmp64[Condition].C1 != Traits::Cond::Br_None)
+      _br(Traits::TableIcmp64[Condition].C1, Br->getTargetTrue());
+    if (Traits::TableIcmp64[Condition].C2 != Traits::Cond::Br_None)
+      _br(Traits::TableIcmp64[Condition].C2, Br->getTargetFalse());
     _cmp(Src0LoRM, Src1LoRI);
-    _br(Traits::TableIcmp64[Index].C3, Br->getTargetTrue(),
+    _br(Traits::TableIcmp64[Condition].C3, Br->getTargetTrue(),
         Br->getTargetFalse());
     return;
   }
@@ -3646,12 +3642,12 @@ TargetX86Base<TraitsType>::lowerIcmp64(const InstIcmp *Icmp,
     InstX86Label *LabelTrue = InstX86Label::create(Func, this);
     lowerMove(SelectDest, SrcT, false);
     _cmp(Src0HiRM, Src1HiRI);
-    if (Traits::TableIcmp64[Index].C1 != Traits::Cond::Br_None)
-      _br(Traits::TableIcmp64[Index].C1, LabelTrue);
-    if (Traits::TableIcmp64[Index].C2 != Traits::Cond::Br_None)
-      _br(Traits::TableIcmp64[Index].C2, LabelFalse);
+    if (Traits::TableIcmp64[Condition].C1 != Traits::Cond::Br_None)
+      _br(Traits::TableIcmp64[Condition].C1, LabelTrue);
+    if (Traits::TableIcmp64[Condition].C2 != Traits::Cond::Br_None)
+      _br(Traits::TableIcmp64[Condition].C2, LabelFalse);
     _cmp(Src0LoRM, Src1LoRI);
-    _br(Traits::TableIcmp64[Index].C3, LabelTrue);
+    _br(Traits::TableIcmp64[Condition].C3, LabelTrue);
     Context.insert(LabelFalse);
     static constexpr bool IsRedefinition = true;
     lowerMove(SelectDest, SrcF, IsRedefinition);
@@ -3757,8 +3753,7 @@ void TargetX86Base<TraitsType>::lowerInsertElement(
     const InstInsertElement *Instr) {
   Operand *SourceVectNotLegalized = Instr->getSrc(0);
   Operand *ElementToInsertNotLegalized = Instr->getSrc(1);
-  ConstantInteger32 *ElementIndex =
-      llvm::dyn_cast<ConstantInteger32>(Instr->getSrc(2));
+  auto *ElementIndex = llvm::dyn_cast<ConstantInteger32>(Instr->getSrc(2));
   // Only constant indices are allowed in PNaCl IR.
   assert(ElementIndex);
   unsigned Index = ElementIndex->getValue();
@@ -5576,11 +5571,11 @@ void TargetX86Base<TraitsType>::lowerSelect(const InstSelect *Select) {
       break;
     case BoolFolding<Traits>::PK_Icmp32:
     case BoolFolding<Traits>::PK_Icmp64: {
-      lowerIcmpAndConsumer(llvm::dyn_cast<InstIcmp>(Producer), Select);
+      lowerIcmpAndConsumer(llvm::cast<InstIcmp>(Producer), Select);
       return;
     }
     case BoolFolding<Traits>::PK_Fcmp: {
-      lowerFcmpAndConsumer(llvm::dyn_cast<InstFcmp>(Producer), Select);
+      lowerFcmpAndConsumer(llvm::cast<InstFcmp>(Producer), Select);
       return;
     }
     }
@@ -5624,10 +5619,10 @@ void TargetX86Base<TraitsType>::lowerSelectMove(Variable *Dest, BrCond Cond,
     SrcT = legalizeUndef(SrcT);
     SrcF = legalizeUndef(SrcF);
     // Set the low portion.
-    Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
+    auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
     lowerSelectIntMove(DestLo, Cond, loOperand(SrcT), loOperand(SrcF));
     // Set the high portion.
-    Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+    auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
     lowerSelectIntMove(DestHi, Cond, hiOperand(SrcT), hiOperand(SrcF));
     return;
   }
@@ -5658,8 +5653,8 @@ void TargetX86Base<TraitsType>::lowerMove(Variable *Dest, Operand *Src,
     Src = legalize(Src);
     Operand *SrcLo = loOperand(Src);
     Operand *SrcHi = hiOperand(Src);
-    Variable *DestLo = llvm::cast<Variable>(loOperand(Dest));
-    Variable *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+    auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
+    auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
     Variable *T_Lo = nullptr, *T_Hi = nullptr;
     _mov(T_Lo, SrcLo);
     _redefined(_mov(DestLo, T_Lo), IsRedefinition);
@@ -6151,8 +6146,8 @@ void TargetX86Base<TraitsType>::lowerRMW(const InstX86FakeRMW *RMW) {
     Src = legalizeUndef(Src);
     Operand *SrcLo = legalize(loOperand(Src), Legal_Reg | Legal_Imm);
     Operand *SrcHi = legalize(hiOperand(Src), Legal_Reg | Legal_Imm);
-    X86OperandMem *AddrLo = llvm::cast<X86OperandMem>(loOperand(Addr));
-    X86OperandMem *AddrHi = llvm::cast<X86OperandMem>(hiOperand(Addr));
+    auto *AddrLo = llvm::cast<X86OperandMem>(loOperand(Addr));
+    auto *AddrHi = llvm::cast<X86OperandMem>(hiOperand(Addr));
     switch (RMW->getOp()) {
     default:
       // TODO(stichnot): Implement other arithmetic operators.
