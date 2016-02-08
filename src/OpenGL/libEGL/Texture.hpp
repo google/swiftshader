@@ -13,7 +13,8 @@ namespace egl
 class Texture : public gl::NamedObject
 {
 public:
-	Texture(GLuint name) : NamedObject(name) {};
+	Texture(GLuint name) : NamedObject(name) {}
+
 	virtual void releaseTexImage() = 0;
 	virtual sw::Resource *getResource() const = 0;
 };

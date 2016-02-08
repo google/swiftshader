@@ -148,7 +148,8 @@ public:
 
 	void addRef() override;
 	void release() override;
-	virtual void unbind(const Texture *parent);   // Break parent ownership and release
+	void unbind(const Texture *parent);   // Break parent ownership and release
+	bool isChildOf(const Texture *parent) const;
 
 	virtual void destroyShared()   // Release a shared image
 	{

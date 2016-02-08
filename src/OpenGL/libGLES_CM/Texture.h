@@ -49,8 +49,6 @@ class Texture : public egl::Texture
 public:
     explicit Texture(GLuint name);
 
-    virtual ~Texture();
-
 	sw::Resource *getResource() const;
 
 	virtual void addProxyRef(const Renderbuffer *proxy) = 0;
@@ -99,6 +97,8 @@ public:
     virtual void copySubImage(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height, Framebuffer *source) = 0;
 
 protected:
+	virtual ~Texture();
+
     void setImage(GLenum format, GLenum type, GLint unpackAlignment, const void *pixels, egl::Image *image);
     void subImage(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *pixels, egl::Image *image);
     void setCompressedImage(GLsizei imageSize, const void *pixels, egl::Image *image);
@@ -127,10 +127,8 @@ class Texture2D : public Texture
 public:
     explicit Texture2D(GLuint name);
 
-    virtual ~Texture2D();
-
-	void addProxyRef(const Renderbuffer *proxy);
-    void releaseProxy(const Renderbuffer *proxy);
+	void addProxyRef(const Renderbuffer *proxy) override;
+    void releaseProxy(const Renderbuffer *proxy) override;
 
     virtual GLenum getTarget() const;
 
@@ -166,6 +164,8 @@ public:
     egl::Image *getImage(unsigned int level);
 
 protected:
+	virtual ~Texture2D();
+
 	bool isMipmapComplete() const;
 
 	egl::Image *image[IMPLEMENTATION_MAX_TEXTURE_LEVELS];
@@ -186,9 +186,10 @@ class TextureExternal : public Texture2D
 public:
     explicit TextureExternal(GLuint name);
 
-    virtual ~TextureExternal();
-
     virtual GLenum getTarget() const;
+
+protected:
+	virtual ~TextureExternal();
 };
 }
 

@@ -1165,6 +1165,11 @@ namespace egl
 		release();
 	}
 
+	bool Image::isChildOf(const egl::Texture *parent) const
+	{
+		return parentTexture == parent;
+	}
+
 	void Image::loadImageData(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const UnpackInfo& unpackInfo, const void *input)
 	{
 		GLsizei inputPitch = ComputePitch((unpackInfo.rowLength == 0) ? width : unpackInfo.rowLength, format, type, unpackInfo.alignment);

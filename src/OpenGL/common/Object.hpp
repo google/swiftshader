@@ -29,12 +29,21 @@ class Object
 {
 public:
     Object();
-    virtual ~Object();
 
     virtual void addRef();
 	virtual void release();
 
-private:
+	inline bool hasSingleReference() const
+	{
+		return referenceCount == 1;
+	}
+
+protected:
+    virtual ~Object();
+
+	int dereference();
+	void destroy();
+
     volatile int referenceCount;
 
 #ifndef NDEBUG

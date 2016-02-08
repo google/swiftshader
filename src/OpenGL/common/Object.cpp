@@ -49,17 +49,28 @@ void Object::addRef()
 
 void Object::release()
 {
+	if(dereference() == 0)
+	{
+		delete this;
+	}
+}
+
+int Object::dereference()
+{
     ASSERT(referenceCount > 0);
 
     if(referenceCount > 0)
 	{
-		sw::atomicDecrement(&referenceCount);
+		return sw::atomicDecrement(&referenceCount);
 	}
 
-	if(referenceCount == 0)
-	{
-		delete this;
-	}
+	return 0;
+}
+
+void Object::destroy()
+{
+	referenceCount = 0;
+	delete this;
 }
 
 NamedObject::NamedObject(GLuint name) : name(name)
