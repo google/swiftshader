@@ -23,6 +23,7 @@
 #include "IceInst.h"
 #include "IceInstARM32.def"
 #include "IceOperand.h"
+#include "IceRegistersARM32.h"
 
 namespace Ice {
 namespace ARM32 {
@@ -389,6 +390,8 @@ public:
     Cmp,
     Dmb,
     Eor,
+    Extract,
+    Insert,
     Label,
     Ldr,
     Ldrex,
@@ -1347,6 +1350,62 @@ private:
   void emitSingleDestSingleSource(const Cfg *Func) const;
 
   Variable *DestHi = nullptr;
+};
+
+/// Generates vmov Rd, Dn[x] instructions, and their related floating point
+/// versions.
+class InstARM32Extract final : public InstARM32Pred {
+  InstARM32Extract() = delete;
+  InstARM32Extract(const InstARM32Extract &) = delete;
+  InstARM32Extract &operator=(const InstARM32Extract &) = delete;
+
+public:
+  static InstARM32Extract *create(Cfg *Func, Variable *Dest, Variable *Src0,
+                                  uint32_t Index, CondARM32::Cond Predicate) {
+    return new (Func->allocate<InstARM32Extract>())
+        InstARM32Extract(Func, Dest, Src0, Index, Predicate);
+  }
+  void emit(const Cfg *Func) const override;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Extract); }
+
+private:
+  InstARM32Extract(Cfg *Func, Variable *Dest, Variable *Src0, uint32_t Index,
+                   CondARM32::Cond Predicate)
+      : InstARM32Pred(Func, InstARM32::Extract, 1, Dest, Predicate),
+        Index(Index) {
+    assert(Index < typeNumElements(Src0->getType()));
+    addSource(Src0);
+  }
+
+  const uint32_t Index;
+};
+
+/// Generates vmov Dn[x], Rd instructions, and their related floating point
+/// versions.
+class InstARM32Insert final : public InstARM32Pred {
+  InstARM32Insert() = delete;
+  InstARM32Insert(const InstARM32Insert &) = delete;
+  InstARM32Insert &operator=(const InstARM32Insert &) = delete;
+
+public:
+  static InstARM32Insert *create(Cfg *Func, Variable *Dest, Variable *Src0,
+                                 uint32_t Index, CondARM32::Cond Predicate) {
+    return new (Func->allocate<InstARM32Insert>())
+        InstARM32Insert(Func, Dest, Src0, Index, Predicate);
+  }
+  void emit(const Cfg *Func) const override;
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Insert); }
+
+private:
+  InstARM32Insert(Cfg *Func, Variable *Dest, Variable *Src0, uint32_t Index,
+                  CondARM32::Cond Predicate)
+      : InstARM32Pred(Func, InstARM32::Insert, 1, Dest, Predicate),
+        Index(Index) {
+    assert(Index < typeNumElements(Dest->getType()));
+    addSource(Src0);
+  }
+
+  const uint32_t Index;
 };
 
 class InstARM32Vcmp final : public InstARM32Pred {

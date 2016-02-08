@@ -20,13 +20,14 @@
 #include "IceCfgNode.h"
 #include "IceInst.h"
 #include "IceOperand.h"
-#include "IceRegistersARM32.h"
 #include "IceTargetLoweringARM32.h"
 
 namespace Ice {
 namespace ARM32 {
 
 namespace {
+
+using Register = RegARM32::AllRegisters;
 
 // maximum number of registers allowed in vpush/vpop.
 static constexpr SizeT VpushVpopMaxConsecRegs = 16;
@@ -1040,6 +1041,132 @@ InstARM32Mov::InstARM32Mov(Cfg *Func, Variable *Dest, Operand *Src,
   } else {
     addSource(Src64->getLo());
     addSource(Src64->getHi());
+  }
+}
+
+// These next two functions find the D register that maps to the half of the Q
+// register that this instruction is accessing.
+Register getDRegister(const Variable *Src, uint32_t Index) {
+  assert(Src->hasReg());
+  const auto SrcReg = static_cast<Register>(Src->getRegNum());
+
+  const RegARM32::RegTableType &SrcEntry = RegARM32::RegTable[SrcReg];
+  assert(SrcEntry.IsVec128);
+
+  const uint32_t NumElements = typeNumElements(Src->getType());
+
+  // This code assumes the Aliases list goes Q_n, S_2n, S_2n+1. The asserts in
+  // the next two branches help to check that this is still true.
+  if (Index < NumElements / 2) {
+    // We have a Q register that's made up of two D registers. This assert is
+    // to help ensure that we picked the right D register.
+    //
+    // TODO(jpp): find a way to do this that doesn't rely on ordering of the
+    // alias list.
+    assert(RegARM32::RegTable[SrcEntry.Aliases[1]].Encoding + 1 ==
+           RegARM32::RegTable[SrcEntry.Aliases[2]].Encoding);
+    return static_cast<Register>(SrcEntry.Aliases[1]);
+  } else {
+    // We have a Q register that's made up of two D registers. This assert is
+    // to help ensure that we picked the right D register.
+    //
+    // TODO(jpp): find a way to do this that doesn't rely on ordering of the
+    // alias list.
+    assert(RegARM32::RegTable[SrcEntry.Aliases[2]].Encoding - 1 ==
+           RegARM32::RegTable[SrcEntry.Aliases[1]].Encoding);
+    return static_cast<Register>(SrcEntry.Aliases[2]);
+  }
+}
+
+constexpr uint32_t getDIndex(uint32_t NumElements, uint32_t Index) {
+  return (Index < NumElements / 2) ? Index : Index - (NumElements / 2);
+}
+
+// For floating point values, we can insertelement or extractelement by moving
+// directly from an S register. This function finds the right one.
+Register getSRegister(const Variable *Src, uint32_t Index) {
+  assert(Src->hasReg());
+  const auto SrcReg = static_cast<Register>(Src->getRegNum());
+
+  // For floating point values, we need to be allocated to Q0 - Q7, so we can
+  // directly access the value we want as one of the S registers.
+  assert(Src->getType() == IceType_v4f32);
+  assert(SrcReg < RegARM32::Reg_q8);
+
+  // This part assumes the register alias list goes q0, d0, d1, s0, s1, s2, s3.
+  assert(Index < 4);
+
+  // TODO(jpp): find a way to do this that doesn't rely on ordering of the alias
+  // list.
+  return static_cast<Register>(RegARM32::RegTable[SrcReg].Aliases[Index + 3]);
+}
+
+void InstARM32Extract::emit(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  const Type DestTy = getDest()->getType();
+
+  const auto *Src = llvm::cast<Variable>(getSrc(0));
+
+  if (isIntegerType(DestTy)) {
+    Str << "\t"
+        << "vmov" << getPredicate();
+    const uint32_t BitSize = typeWidthInBytes(DestTy) * CHAR_BIT;
+    if (BitSize < 32) {
+      Str << ".s" << BitSize;
+    } else {
+      Str << "." << BitSize;
+    }
+    Str << "\t";
+    getDest()->emit(Func);
+    Str << ", ";
+
+    const size_t VectorSize = typeNumElements(Src->getType());
+
+    const Register SrcReg = getDRegister(Src, Index);
+
+    Str << RegARM32::RegTable[SrcReg].Name;
+    Str << "[" << getDIndex(VectorSize, Index) << "]";
+  } else if (isFloatingType(DestTy)) {
+    const Register SrcReg = getSRegister(Src, Index);
+
+    Str << "\t"
+        << "vmov" << getPredicate() << ".f32"
+        << "\t";
+    getDest()->emit(Func);
+    Str << ", " << RegARM32::RegTable[SrcReg].Name;
+  } else {
+    assert(false && "Invalid extract type");
+  }
+}
+
+void InstARM32Insert::emit(const Cfg *Func) const {
+  Ostream &Str = Func->getContext()->getStrEmit();
+  const Variable *Dest = getDest();
+  const Type DestTy = getDest()->getType();
+
+  const auto *Src = llvm::cast<Variable>(getSrc(0));
+
+  if (isIntegerType(DestTy)) {
+    Str << "\t"
+        << "vmov" << getPredicate();
+    const size_t BitSize = typeWidthInBytes(typeElementType(DestTy)) * CHAR_BIT;
+    Str << "." << BitSize << "\t";
+
+    const size_t VectorSize = typeNumElements(DestTy);
+    const Register DestReg = getDRegister(Dest, Index);
+    const uint32_t Index = getDIndex(VectorSize, this->Index);
+    Str << RegARM32::RegTable[DestReg].Name;
+    Str << "[" << Index << "], ";
+    Src->emit(Func);
+  } else if (isFloatingType(DestTy)) {
+    Str << "\t"
+        << "vmov" << getPredicate() << ".f32"
+        << "\t";
+    const Register DestReg = getSRegister(Dest, Index);
+    Str << RegARM32::RegTable[DestReg].Name << ", ";
+    Src->emit(Func);
+  } else {
+    assert(false && "Invalid insert type");
   }
 }
 

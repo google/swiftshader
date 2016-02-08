@@ -296,7 +296,9 @@ void TargetARM32::staticInit(GlobalContext *Ctx) {
   llvm::SmallBitVector Float32Registers(RegARM32::Reg_NUM);
   llvm::SmallBitVector Float64Registers(RegARM32::Reg_NUM);
   llvm::SmallBitVector VectorRegisters(RegARM32::Reg_NUM);
+  llvm::SmallBitVector QtoSRegisters(RegARM32::Reg_NUM);
   llvm::SmallBitVector InvalidRegisters(RegARM32::Reg_NUM);
+  const unsigned EncodedReg_q8 = RegARM32::RegTable[RegARM32::Reg_q8].Encoding;
   for (int i = 0; i < RegARM32::Reg_NUM; ++i) {
     const auto &Entry = RegARM32::RegTable[i];
     IntegerRegisters[i] = Entry.IsInt;
@@ -305,6 +307,9 @@ void TargetARM32::staticInit(GlobalContext *Ctx) {
     Float64Registers[i] = Entry.IsFP64;
     VectorRegisters[i] = Entry.IsVec128;
     RegisterAliases[i].resize(RegARM32::Reg_NUM);
+    // TODO(eholk): It would be better to store a QtoS flag in the
+    // IceRegistersARM32 table than to compare their encodings here.
+    QtoSRegisters[i] = Entry.IsVec128 && Entry.Encoding < EncodedReg_q8;
     for (int j = 0; j < Entry.NumAliases; ++j) {
       assert(i == j || !RegisterAliases[i][Entry.Aliases[j]]);
       RegisterAliases[i].set(Entry.Aliases[j]);
@@ -340,6 +345,7 @@ void TargetARM32::staticInit(GlobalContext *Ctx) {
   TypeToRegisterSet[IceType_v8i16] = VectorRegisters;
   TypeToRegisterSet[IceType_v4i32] = VectorRegisters;
   TypeToRegisterSet[IceType_v4f32] = VectorRegisters;
+  TypeToRegisterSet[RegARM32::RCARM32_QtoS] = QtoSRegisters;
 
   for (size_t i = 0; i < llvm::array_lengthof(TypeToRegisterSet); ++i)
     TypeToRegisterSetUnfiltered[i] = TypeToRegisterSet[i];
@@ -3834,7 +3840,28 @@ void TargetARM32::lowerCast(const InstCast *Instr) {
 }
 
 void TargetARM32::lowerExtractElement(const InstExtractElement *Instr) {
-  UnimplementedLoweringError(this, Instr);
+  Variable *Dest = Instr->getDest();
+  Type DestTy = Dest->getType();
+
+  Variable *Src0 = legalizeToReg(Instr->getSrc(0));
+  Operand *Src1 = Instr->getSrc(1);
+
+  if (const auto *Imm = llvm::dyn_cast<ConstantInteger32>(Src1)) {
+    const uint32_t Index = Imm->getValue();
+    Variable *T = makeReg(DestTy);
+    Variable *TSrc0 = makeReg(Src0->getType());
+
+    if (isFloatingType(DestTy)) {
+      // We need to make sure the source is in a suitable register.
+      TSrc0->setRegClass(RegARM32::RCARM32_QtoS);
+    }
+
+    _mov(TSrc0, Src0);
+    _extractelement(T, TSrc0, Index);
+    _mov(Dest, T);
+    return;
+  }
+  assert(false && "extractelement requires a constant index");
 }
 
 namespace {
@@ -4229,7 +4256,28 @@ void TargetARM32::lowerIcmp(const InstIcmp *Instr) {
 }
 
 void TargetARM32::lowerInsertElement(const InstInsertElement *Instr) {
-  UnimplementedLoweringError(this, Instr);
+  Variable *Dest = Instr->getDest();
+  Type DestTy = Dest->getType();
+
+  Variable *Src0 = legalizeToReg(Instr->getSrc(0));
+  Variable *Src1 = legalizeToReg(Instr->getSrc(1));
+  Operand *Src2 = Instr->getSrc(2);
+
+  if (const auto *Imm = llvm::dyn_cast<ConstantInteger32>(Src2)) {
+    const uint32_t Index = Imm->getValue();
+    Variable *T = makeReg(DestTy);
+
+    if (isFloatingType(DestTy)) {
+      T->setRegClass(RegARM32::RCARM32_QtoS);
+    }
+
+    _mov(T, Src0);
+    _insertelement(T, Src1, Index);
+    _set_dest_redefined();
+    _mov(Dest, T);
+    return;
+  }
+  assert(false && "insertelement requires a constant index");
 }
 
 namespace {

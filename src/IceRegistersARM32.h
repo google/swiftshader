@@ -219,8 +219,12 @@ static inline IceString getRegName(int32_t RegNum) {
   return RegTable[RegNum].Name;
 }
 
-// Extend enum RegClass with ARM32-specific register classes (if any).
-enum RegClassARM32 : uint8_t { RCARM32_NUM = RC_Target };
+// Extend enum RegClass with ARM32-specific register classes.
+enum RegClassARM32 : uint8_t {
+  RCARM32_QtoS = RC_Target, // Denotes Q registers that are aliased by S
+                            // registers.
+  RCARM32_NUM
+};
 
 } // end of namespace RegARM32
 } // end of namespace ARM32

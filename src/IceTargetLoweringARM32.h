@@ -85,13 +85,18 @@ public:
   const llvm::SmallBitVector &
   getRegistersForVariable(const Variable *Var) const override {
     RegClass RC = Var->getRegClass();
-    assert(RC < RC_Target);
-    return TypeToRegisterSet[RC];
+    switch (RC) {
+    default:
+      assert(RC < RC_Target);
+      return TypeToRegisterSet[RC];
+    case RegARM32::RCARM32_QtoS:
+      return TypeToRegisterSet[RC];
+    }
   }
   const llvm::SmallBitVector &
   getAllRegistersForVariable(const Variable *Var) const override {
     RegClass RC = Var->getRegClass();
-    assert(RC < RC_Target);
+    assert((RegARM32::RegClassARM32)RC < RegARM32::RCARM32_NUM);
     return TypeToRegisterSetUnfiltered[RC];
   }
   const llvm::SmallBitVector &getAliasesForRegister(SizeT Reg) const override {
@@ -411,6 +416,20 @@ protected:
       assert(llvm::isa<Variable64On32>(Dest));
       Context.insert<InstFakeDef>(Instr->getDestHi());
     }
+  }
+
+  // Generates a vmov instruction to extract the given index from a vector
+  // register.
+  void _extractelement(Variable *Dest, Variable *Src0, uint32_t Index,
+                       CondARM32::Cond Pred = CondARM32::AL) {
+    Context.insert<InstARM32Extract>(Dest, Src0, Index, Pred);
+  }
+
+  // Generates a vmov instruction to insert a value into the given index of a
+  // vector register.
+  void _insertelement(Variable *Dest, Variable *Src0, uint32_t Index,
+                      CondARM32::Cond Pred = CondARM32::AL) {
+    Context.insert<InstARM32Insert>(Dest, Src0, Index, Pred);
   }
 
   // --------------------------------------------------------------------------
