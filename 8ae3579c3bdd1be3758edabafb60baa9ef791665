@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bd118444_3db8dbed",
+        "filename": "src/OpenGL/common/Image.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1171,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-02-08T04:43:27Z",
+      "side": 1,
+      "message": "Will be used by the next patch.",
+      "range": {
+        "startLine": 1168,
+        "startChar": 1,
+        "endLine": 1171,
+        "endChar": 2
+      },
+      "revId": "8ae3579c3bdd1be3758edabafb60baa9ef791665",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bd118444_1dbd17de",
+        "filename": "src/OpenGL/common/Object.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-02-08T04:43:27Z",
+      "side": 1,
+      "message": "Will be used by the next patch.",
+      "range": {
+        "startLine": 36,
+        "startChar": 1,
+        "endLine": 39,
+        "endChar": 2
+      },
+      "revId": "8ae3579c3bdd1be3758edabafb60baa9ef791665",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
