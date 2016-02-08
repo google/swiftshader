@@ -42,7 +42,7 @@ namespace sw
 
 			memset(&mipmap, 0, sizeof(Mipmap));
 
-			for(int face = 0; face < 6; face++)   
+			for(int face = 0; face < 6; face++)
 			{
 				mipmap.buffer[face] = &zero;
 			}
@@ -316,7 +316,7 @@ namespace sw
 	{
 		this->swizzleR = swizzleR;
 	}
-	
+
 	void Sampler::setSwizzleG(SwizzleType swizzleG)
 	{
 		this->swizzleG = swizzleG;
@@ -455,6 +455,11 @@ namespace sw
 		if(hasCubeTexture())
 		{
 			return ADDRESSING_CLAMP;
+		}
+
+		if(textureType == TEXTURE_2D_ARRAY || textureType == TEXTURE_2D)
+		{
+			return ADDRESSING_LAYER;
 		}
 
 		return addressingModeW;

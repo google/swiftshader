@@ -756,20 +756,9 @@ namespace sw
 
 		selectMipmap(texture, buffer, mipmap, lod, face, secondLOD);
 
-		Short4 uuuu;
-		Short4 vvvv;
-		Short4 wwww;
-
-		address(uuuu, u, state.addressingModeU);
-		address(vvvv, v, state.addressingModeV);
-		if(state.textureType == TEXTURE_2D_ARRAY)
-		{
-			addressW(wwww, w, mipmap);
-		}
-		else
-		{
-			wwww = vvvv;
-		}
+		Short4 uuuu = address(u, state.addressingModeU, mipmap);
+		Short4 vvvv = address(v, state.addressingModeV, mipmap);
+		Short4 wwww = address(w, state.addressingModeW, mipmap);
 
 		if(state.textureFilter == FILTER_POINT || state.textureFilter == FILTER_MIN_POINT_MAG_LINEAR)
 		{
@@ -972,13 +961,9 @@ namespace sw
 
 		selectMipmap(texture, buffer, mipmap, lod, face, secondLOD);
 
-		Short4 uuuu;
-		Short4 vvvv;
-		Short4 wwww;
-
-		address(uuuu, u_, state.addressingModeU);
-		address(vvvv, v_, state.addressingModeV);
-		addressW(wwww, w_, mipmap);
+		Short4 uuuu = address(u_, state.addressingModeU, mipmap);
+		Short4 vvvv = address(v_, state.addressingModeV, mipmap);
+		Short4 wwww = address(w_, state.addressingModeW, mipmap);
 
 		if(state.textureFilter <= FILTER_POINT || state.textureFilter == FILTER_MIN_POINT_MAG_LINEAR)
 		{
@@ -1248,20 +1233,9 @@ namespace sw
 
 		selectMipmap(texture, buffer, mipmap, lod, face, secondLOD);
 
-		Short4 uuuu;
-		Short4 vvvv;
-		Short4 wwww;
-
-		address(uuuu, u, state.addressingModeU);
-		address(vvvv, v, state.addressingModeV);
-		if(state.textureType == TEXTURE_2D_ARRAY)
-		{
-			addressW(wwww, w, mipmap);
-		}
-		else
-		{
-			wwww = vvvv;
-		}
+		Short4 uuuu = address(u, state.addressingModeU, mipmap);
+		Short4 vvvv = address(v, state.addressingModeV, mipmap);
+		Short4 wwww = address(w, state.addressingModeW, mipmap);
 
 		if(state.textureFilter == FILTER_POINT || state.textureFilter == FILTER_MIN_POINT_MAG_LINEAR)
 		{
@@ -1325,13 +1299,9 @@ namespace sw
 
 		selectMipmap(texture, buffer, mipmap, lod, face, secondLOD);
 
-		Short4 uuuu;
-		Short4 vvvv;
-		Short4 wwww;
-
-		address(uuuu, u, state.addressingModeU);
-		address(vvvv, v, state.addressingModeV);
-		addressW(wwww, w, mipmap);
+		Short4 uuuu = address(u, state.addressingModeU, mipmap);
+		Short4 vvvv = address(v, state.addressingModeV, mipmap);
+		Short4 wwww = address(w, state.addressingModeW, mipmap);
 
 		if(state.textureFilter <= FILTER_POINT || state.textureFilter == FILTER_MIN_POINT_MAG_LINEAR)
 		{
@@ -2032,13 +2002,21 @@ namespace sw
 		}
 	}
 
-	void SamplerCore::address(Short4 &uuuu, Float4 &uw, AddressingMode addressingMode)
+	Short4 SamplerCore::address(Float4 &uw, AddressingMode addressingMode, Pointer<Byte>& mipmap)
 	{
-		if(addressingMode == ADDRESSING_CLAMP)
+		if(addressingMode == ADDRESSING_LAYER && state.textureType != TEXTURE_2D_ARRAY)
+		{
+			return Short4();   // Unused
+		}
+		else if(addressingMode == ADDRESSING_LAYER && state.textureType == TEXTURE_2D_ARRAY)
+		{
+			return Min(Max(Short4(RoundInt(uw)), Short4(0)), *Pointer<Short4>(mipmap + OFFSET(Mipmap, depth)) - Short4(1));
+		}
+		else if(addressingMode == ADDRESSING_CLAMP)
 		{
 			Float4 clamp = Min(Max(uw, Float4(0.0f)), Float4(65535.0f / 65536.0f));
 
-			uuuu = Short4(Int4(clamp * Float4(1 << 16)));
+			return Short4(Int4(clamp * Float4(1 << 16)));
 		}
 		else if(addressingMode == ADDRESSING_MIRROR)
 		{
@@ -2047,7 +2025,7 @@ namespace sw
 
 			convert ^= mirror;
 
-			uuuu = Short4(convert);
+			return Short4(convert);
 		}
 		else if(addressingMode == ADDRESSING_MIRRORONCE)
 		{
@@ -2058,23 +2036,11 @@ namespace sw
 			convert -= Int4(0x00008000, 0x00008000, 0x00008000, 0x00008000);
 			convert = As<Int4>(Pack(convert, convert));
 
-			uuuu = As<Short4>(Int2(convert)) + Short4((short)0x8000, (short)0x8000, (short)0x8000, (short)0x8000);
+			return As<Short4>(Int2(convert)) + Short4((short)0x8000, (short)0x8000, (short)0x8000, (short)0x8000);
 		}
 		else   // Wrap (or border)
 		{
-			uuuu = Short4(Int4(uw * Float4(1 << 16)));
-		}
-	}
-
-	void SamplerCore::addressW(Short4 &wwww, Float4 &w, Pointer<Byte>& mipmap)
-	{
-		if(state.textureType == TEXTURE_2D_ARRAY)
-		{
-			wwww = Min(Max(Short4(RoundInt(w)), Short4(0)), *Pointer<Short4>(mipmap + OFFSET(Mipmap, depth)) - Short4(1));
-		}
-		else
-		{
-			address(wwww, w, state.addressingModeW);
+			return Short4(Int4(uw * Float4(1 << 16)));
 		}
 	}
 

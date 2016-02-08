@@ -46,8 +46,7 @@ namespace sw
 		void sampleTexel(Vector4s &c, Short4 &u, Short4 &v, Short4 &s, Pointer<Byte> &mipmap, Pointer<Byte> buffer[4]);
 		void sampleTexel(Vector4f &c, Short4 &u, Short4 &v, Short4 &s, Float4 &z, Pointer<Byte> &mipmap, Pointer<Byte> buffer[4]);
 		void selectMipmap(Pointer<Byte> &texture, Pointer<Byte> buffer[4], Pointer<Byte> &mipmap, Float &lod, Int face[4], bool secondLOD);
-		void address(Short4 &uuuu, Float4 &uw, AddressingMode addressingMode);
-		void addressW(Short4 &uuuu, Float4 &uw, Pointer<Byte>& mipmap);
+		Short4 address(Float4 &uw, AddressingMode addressingMode, Pointer<Byte>& mipmap);
 
 		void convertFixed12(Short4 &ci, Float4 &cf);
 		void convertFixed12(Vector4s &cs, Vector4f &cf);
