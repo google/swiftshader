@@ -558,6 +558,29 @@ void Texture2D::releaseProxy(const Renderbuffer *proxy)
 	}
 }
 
+void Texture2D::sweep()
+{
+	int imageCount = 0;
+
+	for(int i = 0; i < MIPMAP_LEVELS; i++)
+	{
+		if(image[i] && image[i]->isChildOf(this))
+		{
+			if(!image[i]->hasSingleReference())
+			{
+				return;
+			}
+
+			imageCount++;
+		}
+	}
+
+	if(imageCount == referenceCount)
+	{
+		destroy();
+	}
+}
+
 GLenum Texture2D::getTarget() const
 {
     return GL_TEXTURE_2D;
@@ -610,7 +633,7 @@ void Texture2D::setImage(GLint level, GLsizei width, GLsizei height, GLenum form
 {
 	if(image[level])
 	{
-		image[level]->unbind(this);
+		image[level]->release();
 	}
 
 	image[level] = new egl::Image(this, width, height, format, type);
@@ -648,7 +671,7 @@ void Texture2D::bindTexImage(egl::Surface *surface)
 	{
 		if(image[level])
 		{
-			image[level]->unbind(this);
+			image[level]->release();
 			image[level] = nullptr;
 		}
 	}
@@ -665,7 +688,7 @@ void Texture2D::releaseTexImage()
 	{
 		if(image[level])
 		{
-			image[level]->unbind(this);
+			image[level]->release();
 			image[level] = nullptr;
 		}
 	}
@@ -675,7 +698,7 @@ void Texture2D::setCompressedImage(GLint level, GLenum format, GLsizei width, GL
 {
 	if(image[level])
 	{
-		image[level]->unbind(this);
+		image[level]->release();
 	}
 
 	GLenum sizedInternalFormat = GetSizedInternalFormat(format, GL_UNSIGNED_BYTE);
@@ -711,7 +734,7 @@ void Texture2D::copyImage(GLint level, GLenum format, GLint x, GLint y, GLsizei 
 
 	if(image[level])
 	{
-		image[level]->unbind(this);
+		image[level]->release();
 	}
 
 	GLenum sizedInternalFormat = GetSizedInternalFormat(format, GL_UNSIGNED_BYTE);
@@ -788,7 +811,7 @@ void Texture2D::setImage(egl::Image *sharedImage)
 
     if(image[0])
     {
-        image[0]->unbind(this);
+        image[0]->release();
     }
 
     image[0] = sharedImage;
@@ -883,7 +906,7 @@ void Texture2D::generateMipmaps()
     {
 		if(image[i])
 		{
-			image[i]->unbind(this);
+			image[i]->release();
 		}
 
 		image[i] = new egl::Image(this, std::max(image[0]->getWidth() >> i, 1), std::max(image[0]->getHeight() >> i, 1), image[0]->getFormat(), image[0]->getType());
@@ -1024,6 +1047,32 @@ void TextureCubeMap::releaseProxy(const Renderbuffer *proxy)
     }
 }
 
+void TextureCubeMap::sweep()
+{
+	int imageCount = 0;
+
+	for(int f = 0; f < 6; f++)
+	{
+		for(int i = 0; i < MIPMAP_LEVELS; i++)
+		{
+			if(image[f][i] && image[f][i]->isChildOf(this))
+			{
+				if(!image[f][i]->hasSingleReference())
+				{
+					return;
+				}
+
+				imageCount++;
+			}
+		}
+	}
+
+	if(imageCount == referenceCount)
+	{
+		destroy();
+	}
+}
+
 GLenum TextureCubeMap::getTarget() const
 {
     return GL_TEXTURE_CUBE_MAP;
@@ -1078,7 +1127,7 @@ void TextureCubeMap::setCompressedImage(GLenum target, GLint level, GLenum forma
 
 	if(image[face][level])
 	{
-		image[face][level]->unbind(this);
+		image[face][level]->release();
 	}
 
 	GLenum sizedInternalFormat = GetSizedInternalFormat(format, GL_UNSIGNED_BYTE);
@@ -1220,7 +1269,7 @@ void TextureCubeMap::setImage(GLenum target, GLint level, GLsizei width, GLsizei
 
 	if(image[face][level])
 	{
-		image[face][level]->unbind(this);
+		image[face][level]->release();
 	}
 
 	image[face][level] = new egl::Image(this, width, height, format, type);
@@ -1247,7 +1296,7 @@ void TextureCubeMap::copyImage(GLenum target, GLint level, GLenum format, GLint 
 
 	if(image[face][level])
 	{
-		image[face][level]->unbind(this);
+		image[face][level]->release();
 	}
 
 	GLenum sizedInternalFormat = GetSizedInternalFormat(format, GL_UNSIGNED_BYTE);
@@ -1342,7 +1391,7 @@ void TextureCubeMap::generateMipmaps()
 		{
 			if(image[f][i])
 			{
-				image[f][i]->unbind(this);
+				image[f][i]->release();
 			}
 
 			image[f][i] = new egl::Image(this, std::max(image[0][0]->getWidth() >> i, 1), std::max(image[0][0]->getHeight() >> i, 1), image[0][0]->getFormat(), image[0][0]->getType());
@@ -1462,6 +1511,29 @@ void Texture3D::releaseProxy(const Renderbuffer *proxy)
 	}
 }
 
+void Texture3D::sweep()
+{
+	int imageCount = 0;
+
+	for(int i = 0; i < MIPMAP_LEVELS; i++)
+	{
+		if(image[i] && image[i]->isChildOf(this))
+		{
+			if(!image[i]->hasSingleReference())
+			{
+				return;
+			}
+
+			imageCount++;
+		}
+	}
+
+	if(imageCount == referenceCount)
+	{
+		destroy();
+	}
+}
+
 GLenum Texture3D::getTarget() const
 {
 	return GL_TEXTURE_3D_OES;
@@ -1520,7 +1592,7 @@ void Texture3D::setImage(GLint level, GLsizei width, GLsizei height, GLsizei dep
 {
 	if(image[level])
 	{
-		image[level]->unbind(this);
+		image[level]->release();
 	}
 
 	image[level] = new egl::Image(this, width, height, depth, format, type);
@@ -1554,7 +1626,7 @@ void Texture3D::bindTexImage(egl::Surface *surface)
 	{
 		if(image[level])
 		{
-			image[level]->unbind(this);
+			image[level]->release();
 			image[level] = nullptr;
 		}
 	}
@@ -1571,7 +1643,7 @@ void Texture3D::releaseTexImage()
 	{
 		if(image[level])
 		{
-			image[level]->unbind(this);
+			image[level]->release();
 			image[level] = nullptr;
 		}
 	}
@@ -1581,7 +1653,7 @@ void Texture3D::setCompressedImage(GLint level, GLenum format, GLsizei width, GL
 {
 	if(image[level])
 	{
-		image[level]->unbind(this);
+		image[level]->release();
 	}
 
 	GLenum sizedInternalFormat = GetSizedInternalFormat(format, GL_UNSIGNED_BYTE);
@@ -1617,7 +1689,7 @@ void Texture3D::copyImage(GLint level, GLenum format, GLint x, GLint y, GLint z,
 
 	if(image[level])
 	{
-		image[level]->unbind(this);
+		image[level]->release();
 	}
 
 	GLenum sizedInternalFormat = GetSizedInternalFormat(format, GL_UNSIGNED_BYTE);
@@ -1691,7 +1763,7 @@ void Texture3D::setImage(egl::Image *sharedImage)
 
 	if(image[0])
 	{
-		image[0]->unbind(this);
+		image[0]->release();
 	}
 
 	image[0] = sharedImage;
@@ -1796,7 +1868,7 @@ void Texture3D::generateMipmaps()
 	{
 		if(image[i])
 		{
-			image[i]->unbind(this);
+			image[i]->release();
 		}
 
 		image[i] = new egl::Image(this, std::max(image[0]->getWidth() >> i, 1), std::max(image[0]->getHeight() >> i, 1), std::max(image[0]->getDepth() >> i, 1), image[0]->getFormat(), image[0]->getType());
@@ -1888,7 +1960,7 @@ void Texture2DArray::generateMipmaps()
 	{
 		if(image[i])
 		{
-			image[i]->unbind(this);
+			image[i]->release();
 		}
 
 		GLsizei w = std::max(image[0]->getWidth() >> i, 1);

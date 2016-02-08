@@ -42,6 +42,7 @@ public:
 	{
 		shared = false;
 		Object::addRef();
+		parentTexture->addRef();
 	}
 
 	// 3D texture image
@@ -52,6 +53,7 @@ public:
 	{
 		shared = false;
 		Object::addRef();
+		parentTexture->addRef();
 	}
 
 	// Native EGL image
@@ -146,7 +148,6 @@ public:
 	void loadImageData(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const UnpackInfo& unpackInfo, const void *input);
 	void loadCompressedData(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLsizei imageSize, const void *pixels);
 
-	void addRef() override;
 	void release() override;
 	void unbind(const Texture *parent);   // Break parent ownership and release
 	bool isChildOf(const Texture *parent) const;

@@ -129,6 +129,7 @@ public:
 
 	void addProxyRef(const Renderbuffer *proxy) override;
     void releaseProxy(const Renderbuffer *proxy) override;
+	void sweep() override;
 
     virtual GLenum getTarget() const;
 
