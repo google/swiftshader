@@ -46,7 +46,7 @@ static void eglAttachThread()
 
         current->error = EGL_SUCCESS;
         current->API = EGL_OPENGL_ES_API;
-		current->display = nullptr;
+		current->display = EGL_NO_DISPLAY;
 		current->context = nullptr;
 		current->drawSurface = nullptr;
         current->readSurface = nullptr;
@@ -205,14 +205,14 @@ EGLenum getCurrentAPI()
     return current->API;
 }
 
-void setCurrentDisplay(egl::Display *dpy)
+void setCurrentDisplay(EGLDisplay dpy)
 {
     Current *current = eglGetCurrent();
 
     current->display = dpy;
 }
 
-egl::Display *getCurrentDisplay()
+EGLDisplay getCurrentDisplay()
 {
     Current *current = eglGetCurrent();
 
@@ -628,7 +628,6 @@ LibEGLexports::LibEGLexports()
 	this->eglGetSyncAttribKHR = egl::GetSyncAttribKHR;
 
 	this->clientGetCurrentContext = egl::getCurrentContext;
-	this->clientGetCurrentDisplay = egl::getCurrentDisplay;
 }
 
 extern "C" EGLAPI LibEGLexports *libEGL_swiftshader()

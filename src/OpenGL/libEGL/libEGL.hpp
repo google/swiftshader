@@ -54,7 +54,6 @@ public:
 
 	// Functions that don't change the error code, for use by client APIs
 	egl::Context *(*clientGetCurrentContext)();
-	egl::Display *(*clientGetCurrentDisplay)();
 };
 
 class LibEGL
