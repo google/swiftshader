@@ -101,6 +101,11 @@ namespace sw
 
 		routineCache = 0;
 		setRoutineCacheSize(1024);
+
+		for(int i = 0; i < MAX_UNIFORM_BUFFER_BINDINGS; i++)
+		{
+			uniformBuffer[i] = nullptr;
+		}
 	}
 
 	VertexProcessor::~VertexProcessor()
