@@ -1961,8 +1961,27 @@ namespace sw
 		Short4 c01;
 		Short4 c23;
 
+		Float4 one;
 		switch(state.targetFormat[index])
 		{
+		case FORMAT_R32I:
+		case FORMAT_G32R32I:
+			one = As<Float4>(Int4(0x7FFFFFFF));
+			break;
+		case FORMAT_R32UI:
+		case FORMAT_G32R32UI:
+			one = As<Float4>(Int4(0xFFFFFFFF));
+			break;
+		case FORMAT_R32F:
+		case FORMAT_G32R32F:
+			one = Float4(1.0f);
+			break;
+		}
+
+		switch(state.targetFormat[index])
+		{
+		case FORMAT_R32I:
+		case FORMAT_R32UI:
 		case FORMAT_R32F:
 			buffer = cBuffer;
 			// FIXME: movlps
@@ -1972,10 +1991,10 @@ namespace sw
 			// FIXME: movhps
 			pixel.x.z = *Pointer<Float>(buffer + 4 * x + 0);
 			pixel.x.w = *Pointer<Float>(buffer + 4 * x + 4);
-			pixel.y = Float4(1.0f);
-			pixel.z = Float4(1.0f);
-			pixel.w = Float4(1.0f);
+			pixel.y = pixel.z = pixel.w = one;
 			break;
+		case FORMAT_G32R32I:
+		case FORMAT_G32R32UI:
 		case FORMAT_G32R32F:
 			buffer = cBuffer;
 			pixel.x = *Pointer<Float4>(buffer + 8 * x, 16);
@@ -1985,10 +2004,11 @@ namespace sw
 			pixel.x = ShuffleLowHigh(pixel.x, pixel.y, 0x88);
 			pixel.z = ShuffleLowHigh(pixel.z, pixel.y, 0xDD);
 			pixel.y = pixel.z;
-			pixel.z = Float4(1.0f);
-			pixel.w = Float4(1.0f);
+			pixel.z = pixel.w = one;
 			break;
 		case FORMAT_A32B32G32R32F:
+		case FORMAT_A32B32G32R32I:
+		case FORMAT_A32B32G32R32UI:
 			buffer = cBuffer;
 			pixel.x = *Pointer<Float4>(buffer + 16 * x, 16);
 			pixel.y = *Pointer<Float4>(buffer + 16 * x + 16, 16);
@@ -2123,14 +2143,20 @@ namespace sw
 		switch(state.targetFormat[index])
 		{
 		case FORMAT_R32F:
+		case FORMAT_R32I:
+		case FORMAT_R32UI:
 			break;
 		case FORMAT_G32R32F:
+		case FORMAT_G32R32I:
+		case FORMAT_G32R32UI:
 			oC.z = oC.x;
 			oC.x = UnpackLow(oC.x, oC.y);
 			oC.z = UnpackHigh(oC.z, oC.y);
 			oC.y = oC.z;
 			break;
 		case FORMAT_A32B32G32R32F:
+		case FORMAT_A32B32G32R32I:
+		case FORMAT_A32B32G32R32UI:
 			transpose4x4(oC.x, oC.y, oC.z, oC.w);
 			break;
 		default:
@@ -2161,6 +2187,8 @@ namespace sw
 		switch(state.targetFormat[index])
 		{
 		case FORMAT_R32F:
+		case FORMAT_R32I:
+		case FORMAT_R32UI:
 			if(rgbaWriteMask & 0x00000001)
 			{
 				buffer = cBuffer + 4 * x;
@@ -2191,6 +2219,8 @@ namespace sw
 			}
 			break;
 		case FORMAT_G32R32F:
+		case FORMAT_G32R32I:
+		case FORMAT_G32R32UI:
 			buffer = cBuffer + 8 * x;
 
 			value = *Pointer<Float4>(buffer);
@@ -2228,6 +2258,8 @@ namespace sw
 			*Pointer<Float4>(buffer) = oC.y;
 			break;
 		case FORMAT_A32B32G32R32F:
+		case FORMAT_A32B32G32R32I:
+		case FORMAT_A32B32G32R32UI:
 			buffer = cBuffer + 16 * x;
 
 			{

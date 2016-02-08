@@ -500,6 +500,30 @@ namespace egl
 			return sw::FORMAT_A16F;
 		case GL_ALPHA32F_EXT:
 			return sw::FORMAT_A32F;
+		case GL_RED_INTEGER:
+			switch(type)
+			{
+			case GL_INT:          return sw::FORMAT_R32I;
+			case GL_UNSIGNED_INT: return sw::FORMAT_R32UI;
+			default: UNREACHABLE(type);
+			}
+			break;
+		case GL_RG_INTEGER:
+			switch(type)
+			{
+			case GL_INT:          return sw::FORMAT_G32R32I;
+			case GL_UNSIGNED_INT: return sw::FORMAT_G32R32UI;
+			default: UNREACHABLE(type);
+			}
+			break;
+		case GL_RGBA_INTEGER:
+			switch(type)
+			{
+			case GL_INT:          return sw::FORMAT_A32B32G32R32I;
+			case GL_UNSIGNED_INT: return sw::FORMAT_A32B32G32R32UI;
+			default: UNREACHABLE(type);
+			}
+			break;
 		default:
 			UNREACHABLE(format);
 		}
