@@ -3319,10 +3319,11 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 		return error(GL_INVALID_OPERATION);
 	}
 
-	GLsizei outputPitch = egl::ComputePitch((mState.packRowLength > 0) ? mState.packRowLength : width, format, type, mState.packAlignment);
+	GLsizei outputWidth = (mState.packRowLength > 0) ? mState.packRowLength : width;
+	GLsizei outputPitch = egl::ComputePitch(outputWidth, format, type, mState.packAlignment);
 	GLsizei outputHeight = (mState.packImageHeight == 0) ? height : mState.packImageHeight;
 	pixels = getPixelPackBuffer() ? (unsigned char*)getPixelPackBuffer()->data() + (ptrdiff_t)pixels : (unsigned char*)pixels;
-	pixels = ((char*)pixels) + (mState.packSkipImages * outputHeight + mState.packSkipRows) * outputPitch + mState.packSkipPixels;
+	pixels = ((char*)pixels) + egl::ComputePackingOffset(format, type, outputWidth, outputHeight, mState.packAlignment, mState.packSkipImages, mState.packSkipRows, mState.packSkipPixels);
 
 	// Sized query sanity check
     if(bufSize)
@@ -3341,8 +3342,6 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
         return error(GL_OUT_OF_MEMORY);
     }
 
-	x += mState.packSkipPixels;
-	y += mState.packSkipRows;
 	sw::Rect rect = {x, y, x + width, y + height};
 	sw::Rect dstRect = { 0, 0, width, height };
 	rect.clip(0, 0, renderTarget->getWidth(), renderTarget->getHeight());

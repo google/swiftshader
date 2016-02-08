@@ -1082,6 +1082,12 @@ namespace egl
 		return (rawPitch + alignment - 1) & ~(alignment - 1);
 	}
 
+	size_t ComputePackingOffset(GLenum format, GLenum type, GLsizei width, GLsizei height, GLint alignment, GLint skipImages, GLint skipRows, GLint skipPixels)
+	{
+		GLsizei pitchB = ComputePitch(width, format, type, alignment);
+		return (skipImages * height + skipRows) * pitchB + skipPixels * ComputePixelSize(format, type);
+	}
+
 	inline GLsizei ComputeCompressedPitch(GLsizei width, GLenum format)
 	{
 		return ComputeCompressedSize(width, 1, format);
@@ -1198,9 +1204,10 @@ namespace egl
 
 	void Image::loadImageData(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const UnpackInfo& unpackInfo, const void *input)
 	{
-		GLsizei inputPitch = ComputePitch((unpackInfo.rowLength == 0) ? width : unpackInfo.rowLength, format, type, unpackInfo.alignment);
+		GLsizei inputWidth = (unpackInfo.rowLength == 0) ? width : unpackInfo.rowLength;
+		GLsizei inputPitch = ComputePitch(inputWidth, format, type, unpackInfo.alignment);
 		GLsizei inputHeight = (unpackInfo.imageHeight == 0) ? height : unpackInfo.imageHeight;
-		input = ((char*)input) + (unpackInfo.skipImages * inputHeight + unpackInfo.skipRows) * inputPitch + unpackInfo.skipPixels;
+		input = ((char*)input) + ComputePackingOffset(format, type, inputWidth, inputHeight, unpackInfo.alignment, unpackInfo.skipImages, unpackInfo.skipRows, unpackInfo.skipPixels);
 		sw::Format selectedInternalFormat = SelectInternalFormat(format, type);
 		if(selectedInternalFormat == sw::FORMAT_NULL)
 		{

@@ -30,6 +30,7 @@ sw::Format ConvertFormatType(GLenum format, GLenum type);
 sw::Format SelectInternalFormat(GLenum format, GLenum type);
 GLsizei ComputePitch(GLsizei width, GLenum format, GLenum type, GLint alignment);
 GLsizei ComputeCompressedSize(GLsizei width, GLsizei height, GLenum format);
+size_t ComputePackingOffset(GLenum format, GLenum type, GLsizei width, GLsizei height, GLint alignment, GLint skipImages, GLint skipRows, GLint skipPixels);
 
 class Image : public sw::Surface, public gl::Object
 {
