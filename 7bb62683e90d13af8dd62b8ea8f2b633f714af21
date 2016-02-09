@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fd977c52_6f55ad98",
+        "filename": "src/OpenGL/libEGL/Display.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-02-09T22:09:01Z",
+      "side": 0,
+      "message": "I don\u0027t think this was strictly correct. The EGL spec says that the display handle remains valid (can be passed into eglInitialize() again), so there\u0027s no issue keeping it current in the thread. It appears that only glMakeCurrent() can alter the current display handle.",
+      "range": {
+        "startLine": 197,
+        "startChar": 0,
+        "endLine": 200,
+        "endChar": 2
+      },
+      "revId": "7bb62683e90d13af8dd62b8ea8f2b633f714af21",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
