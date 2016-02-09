@@ -900,13 +900,23 @@ void InstARM32RegisterStackOp::emitSRegsAsText(const Cfg *Func,
   Str << "}";
 }
 
+void InstARM32RegisterStackOp::emitSRegsOp(const Cfg *Func, EmitForm Form,
+                                           const Variable *BaseReg,
+                                           SizeT RegCount,
+                                           SizeT InstIndex) const {
+  if (Form == Emit_Text && BuildDefs::dump() && InstIndex > 0) {
+    startNextInst(Func);
+    Func->getContext()->getStrEmit() << "\n";
+  }
+  emitSRegs(Func, Form, BaseReg, RegCount);
+}
+
 namespace {
 
 bool isAssignedConsecutiveRegisters(const Variable *Before,
                                     const Variable *After) {
-  assert(Before->hasReg());
-  assert(After->hasReg());
-  return Before->getRegNum() + 1 == After->getRegNum();
+  return RegARM32::getEncodedSReg(Before->getRegNum()) + 1 ==
+         RegARM32::getEncodedSReg(After->getRegNum());
 }
 
 } // end of anonymous namespace
@@ -918,7 +928,7 @@ void InstARM32RegisterStackOp::emitUsingForm(const Cfg *Func,
 
   const auto *Reg = llvm::cast<Variable>(getStackReg(0));
   if (isScalarIntegerType(Reg->getType())) {
-    // Pop GPR registers.
+    // Push/pop GPR registers.
     SizeT IntegerCount = 0;
     ARM32::IValueT GPRegisters = 0;
     const Variable *LastDest = nullptr;
@@ -935,33 +945,45 @@ void InstARM32RegisterStackOp::emitUsingForm(const Cfg *Func,
     } else {
       emitMultipleGPRs(Func, Form, GPRegisters);
     }
-  } else {
-    // Pop vector/floating point registers.
-    const Variable *BaseReg = nullptr;
-    SizeT RegCount = 0;
-    for (SizeT i = 0; i < NumRegs; ++i) {
-      const Variable *NextReg = getStackReg(i);
-      if (BaseReg == nullptr) {
-        BaseReg = NextReg;
-        RegCount = 1;
-      } else if (RegCount < VpushVpopMaxConsecRegs &&
-                 isAssignedConsecutiveRegisters(Reg, NextReg)) {
-        ++RegCount;
-      } else {
-        emitSRegs(Func, Form, BaseReg, RegCount);
-        if (Form == Emit_Text && BuildDefs::dump()) {
-          startNextInst(Func);
-          Func->getContext()->getStrEmit() << "\n";
-        }
-        BaseReg = NextReg;
-        RegCount = 1;
-      }
-      Reg = NextReg;
-    }
-    if (RegCount) {
-      emitSRegs(Func, Form, BaseReg, RegCount);
-    }
+    return;
   }
+
+  // Push/pop floating point registers. Divide into a list of instructions,
+  // defined on consecutive register ranges. Then generate the corresponding
+  // instructions.
+
+  // Typical max number of registers ranges pushed/popd is no more than 5.
+  llvm::SmallVector<std::pair<const Variable *, SizeT>, 5> InstData;
+  const Variable *BaseReg = nullptr;
+  SizeT RegCount = 0;
+  for (SizeT i = 0; i < NumRegs; ++i) {
+    const Variable *NextReg = getStackReg(i);
+    assert(NextReg->hasReg());
+    if (BaseReg == nullptr) {
+      BaseReg = NextReg;
+      RegCount = 1;
+    } else if (RegCount < VpushVpopMaxConsecRegs &&
+               isAssignedConsecutiveRegisters(Reg, NextReg)) {
+      ++RegCount;
+    } else {
+      InstData.emplace_back(BaseReg, RegCount);
+      BaseReg = NextReg;
+      RegCount = 1;
+    }
+    Reg = NextReg;
+  }
+  if (RegCount) {
+    InstData.emplace_back(BaseReg, RegCount);
+  }
+  SizeT InstCount = 0;
+  if (llvm::isa<InstARM32Push>(*this)) {
+    for (const auto &Pair : InstData)
+      emitSRegsOp(Func, Form, Pair.first, Pair.second, InstCount++);
+    return;
+  }
+  assert(llvm::isa<InstARM32Pop>(*this));
+  for (const auto &Pair : reverse_range(InstData))
+    emitSRegsOp(Func, Form, Pair.first, Pair.second, InstCount++);
 }
 
 InstARM32Pop::InstARM32Pop(Cfg *Func, const VarList &Dests)

@@ -1094,6 +1094,8 @@ protected:
   void emitGPRsAsText(const Cfg *Func) const;
   void emitSRegsAsText(const Cfg *Func, const Variable *BaseReg,
                        SizeT Regcount) const;
+  void emitSRegsOp(const Cfg *Func, const EmitForm, const Variable *BaseReg,
+                   SizeT RegCount, SizeT InstIndex) const;
   virtual const char *getDumpOpcode() const { return getGPROpcode(); }
   virtual const char *getGPROpcode() const = 0;
   virtual const char *getSRegOpcode() const = 0;
@@ -1109,7 +1111,7 @@ protected:
 
 /// Pops a list of registers. It may be a list of GPRs, or a list of VFP "s"
 /// regs, but not both. In any case, the list must be sorted.
-class InstARM32Pop : public InstARM32RegisterStackOp {
+class InstARM32Pop final : public InstARM32RegisterStackOp {
   InstARM32Pop() = delete;
   InstARM32Pop(const InstARM32Pop &) = delete;
   InstARM32Pop &operator=(const InstARM32Pop &) = delete;
@@ -1132,13 +1134,12 @@ private:
                         IValueT Registers) const final;
   void emitSRegs(const Cfg *Func, const EmitForm Form, const Variable *BaseReg,
                  SizeT RegCount) const final;
-
   VarList Dests;
 };
 
 /// Pushes a list of registers. Just like Pop (see above), the list may be of
 /// GPRs, or VFP "s" registers, but not both.
-class InstARM32Push : public InstARM32RegisterStackOp {
+class InstARM32Push final : public InstARM32RegisterStackOp {
   InstARM32Push() = delete;
   InstARM32Push(const InstARM32Push &) = delete;
   InstARM32Push &operator=(const InstARM32Push &) = delete;
