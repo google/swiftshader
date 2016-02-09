@@ -397,6 +397,7 @@ public:
     Ldrex,
     Lsl,
     Lsr,
+    Nop,
     Mla,
     Mls,
     Mov,
@@ -1492,6 +1493,24 @@ public:
 
 private:
   explicit InstARM32Dmb(Cfg *Func);
+};
+
+class InstARM32Nop final : public InstARM32Pred {
+  InstARM32Nop() = delete;
+  InstARM32Nop(const InstARM32Nop &) = delete;
+  InstARM32Nop &operator=(const InstARM32Nop &) = delete;
+
+public:
+  static InstARM32Nop *create(Cfg *Func) {
+    return new (Func->allocate<InstARM32Nop>()) InstARM32Nop(Func);
+  }
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
+  static bool classof(const Inst *Instr) { return isClassof(Instr, Nop); }
+
+private:
+  explicit InstARM32Nop(Cfg *Func);
 };
 
 // Declare partial template specializations of emit() methods that already have

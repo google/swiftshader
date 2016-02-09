@@ -5360,7 +5360,7 @@ void TargetARM32::randomlyInsertNop(float Probability,
                                     RandomNumberGenerator &RNG) {
   RandomNumberGeneratorWrapper RNGW(RNG);
   if (RNGW.getTrueWithProbability(Probability)) {
-    UnimplementedError(Func->getContext()->getFlags());
+    _nop();
   }
 }
 

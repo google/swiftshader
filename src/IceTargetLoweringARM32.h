@@ -418,6 +418,8 @@ protected:
     }
   }
 
+  void _nop() { Context.insert<InstARM32Nop>(); }
+
   // Generates a vmov instruction to extract the given index from a vector
   // register.
   void _extractelement(Variable *Dest, Variable *Src0, uint32_t Index,

@@ -1221,6 +1221,12 @@ template <> void InstARM32Tst::emitIAS(const Cfg *Func) const {
     emitUsingTextFixup(Func);
 }
 
+InstARM32Dmb::InstARM32Dmb(Cfg *Func)
+    : InstARM32Pred(Func, InstARM32::Dmb, 0, nullptr, CondARM32::AL) {}
+
+InstARM32Nop::InstARM32Nop(Cfg *Func)
+    : InstARM32Pred(Func, InstARM32::Nop, 0, nullptr, CondARM32::AL) {}
+
 InstARM32Vcmp::InstARM32Vcmp(Cfg *Func, Variable *Src0, Operand *Src1,
                              CondARM32::Cond Predicate)
     : InstARM32Pred(Func, InstARM32::Vcmp, 2, nullptr, Predicate) {
@@ -1239,9 +1245,6 @@ InstARM32Vabs::InstARM32Vabs(Cfg *Func, Variable *Dest, Variable *Src,
     : InstARM32Pred(Func, InstARM32::Vabs, 1, Dest, Predicate) {
   addSource(Src);
 }
-
-InstARM32Dmb::InstARM32Dmb(Cfg *Func)
-    : InstARM32Pred(Func, InstARM32::Dmb, 0, nullptr, CondARM32::AL) {}
 
 // ======================== Dump routines ======================== //
 
@@ -2445,6 +2448,26 @@ void InstARM32Dmb::dump(const Cfg *Func) const {
     return;
   Func->getContext()->getStrDump() << "dmb\t"
                                       "sy";
+}
+
+void InstARM32Nop::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  assert(getSrcSize() == 0);
+  Func->getContext()->getStrEmit() << "\t"
+                                   << "nop";
+}
+
+void InstARM32Nop::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 0);
+  Func->getAssembler<ARM32::AssemblerARM32>()->nop();
+}
+
+void InstARM32Nop::dump(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  assert(getSrcSize() == 0);
+  Func->getContext()->getStrDump() << "nop";
 }
 
 void OperandARM32Mem::emit(const Cfg *Func) const {
