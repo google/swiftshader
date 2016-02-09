@@ -55,7 +55,9 @@ branch2:
 ; CHECK: jge
 ; ARM32-LABEL: fold_cmp_br_intervening_insts
 ; ARM32: push {{[{].*[}]}}
-; ARM32: bl use_value
+; ARM32: movw [[CALL:r[0-9]]], #:lower16:use_value
+; ARM32: movt [[CALL]], #:upper16:use_value
+; ARM32: blx [[CALL]]
 ; ARM32: cmp {{r[0-9]+}}, {{r[0-9]+}}
 ; ARM32: bge
 ; ARM32: mov r0, #1
@@ -190,7 +192,9 @@ entry:
 ; CHECK: cmp
 ; CHECK: cmovl
 ; ARM32-LABEL: fold_cmp_select_intervening_insts
-; ARM32: bl use_value
+; ARM32: movw [[CALL:r[0-9]]], #:lower16:use_value
+; ARM32: movt [[CALL]], #:upper16:use_value
+; ARM32: blx [[CALL]]
 ; ARM32: cmp r{{[0-9]+}}, r{{[0-9]+}}
 ; ARM32: movlt
 ; ARM32: bx lr

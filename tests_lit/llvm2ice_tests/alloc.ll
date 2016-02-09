@@ -9,19 +9,16 @@
 ; RUN:   | %if --need=target_X8632 --command FileCheck \
 ; RUN:   --check-prefix CHECK-OPTM1 %s
 
-; TODO(jvoung): Stop skipping unimplemented parts (via --skip-unimplemented)
-; once enough infrastructure is in. Also, switch to --filetype=obj
-; when possible.
 ; RUN: %if --need=target_ARM32 --need=allow_dump \
-; RUN:   --command %p2i --filetype=asm --assemble \
-; RUN:   --disassemble --target arm32 -i %s --args -O2 --skip-unimplemented \
+; RUN:   --command %p2i --filetype=obj --assemble \
+; RUN:   --disassemble --target arm32 -i %s --args -O2 \
 ; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32 --check-prefix=ARM-OPT2 %s
 
 ; RUN: %if --need=target_ARM32 --need=allow_dump \
-; RUN:   --command %p2i --filetype=asm --assemble \
-; RUN:   --disassemble --target arm32 -i %s --args -Om1 --skip-unimplemented \
+; RUN:   --command %p2i --filetype=obj --assemble \
+; RUN:   --disassemble --target arm32 -i %s --args -Om1 \
 ; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32 --check-prefix=ARM-OPTM1 %s
@@ -48,7 +45,9 @@ entry:
 ; ARM32-LABEL: fixed_416_align_16
 ; ARM32-OPT2:  sub sp, sp, #428
 ; ARM32-OPTM1: sub sp, sp, #416
-; ARM32:       bl {{.*}} R_{{.*}}    f1
+; ARM32:       movw [[CALL:r[0-9]]], {{.+}} f1
+; ARM32:       movt [[CALL]], {{.+}} f1
+; ARM32:       blx [[CALL]]
 
 define internal void @fixed_416_align_32(i32 %n) {
 entry:
@@ -70,7 +69,9 @@ entry:
 ; ARM32-OPT2:  sub sp, sp, #424
 ; ARM32-OPTM1: sub sp, sp, #416
 ; ARM32:       bic sp, sp, #31
-; ARM32:       bl {{.*}} R_{{.*}}    f1
+; ARM32:       movw [[CALL:r[0-9]]], {{.+}} f1
+; ARM32:       movt [[CALL]], {{.+}} f1
+; ARM32:       blx [[CALL]]
 
 ; Show that the amount to allocate will be rounded up.
 define internal void @fixed_351_align_16(i32 %n) {
@@ -95,7 +96,9 @@ entry:
 ; ARM32-LABEL: fixed_351_align_16
 ; ARM32-OPT2:  sub sp, sp, #364
 ; ARM32-OPTM1: sub sp, sp, #352
-; ARM32:       bl {{.*}} R_{{.*}}    f1
+; ARM32:       movw [[CALL:r[0-9]]], {{.+}} f1
+; ARM32:       movt [[CALL]], {{.+}} f1
+; ARM32:       blx [[CALL]]
 
 define internal void @fixed_351_align_32(i32 %n) {
 entry:
@@ -117,7 +120,9 @@ entry:
 ; ARM32-OPT2:  sub sp, sp, #360
 ; ARM32-OPTM1: sub sp, sp, #352
 ; ARM32:       bic sp, sp, #31
-; ARM32:       bl {{.*}} R_{{.*}}    f1
+; ARM32:       movw [[CALL:r[0-9]]], {{.+}} f1
+; ARM32:       movt [[CALL]], {{.+}} f1
+; ARM32:       blx [[CALL]]
 
 declare void @f1(i32 %ignored)
 
@@ -144,7 +149,9 @@ entry:
 ; ARM32:      add r0, r0, #15
 ; ARM32:      bic r0, r0, #15
 ; ARM32:      sub sp, sp, r0
-; ARM32:      bl {{.*}} R_{{.*}}    f2
+; ARM32:      movw [[CALL:r[0-9]]], {{.+}} f2
+; ARM32:      movt [[CALL]], {{.+}} f2
+; ARM32:      blx [[CALL]]
 
 define internal void @variable_n_align_32(i32 %n) {
 entry:
@@ -176,7 +183,9 @@ entry:
 ; ARM32:      add r0, r0, #31
 ; ARM32:      bic r0, r0, #31
 ; ARM32:      sub sp, sp, r0
-; ARM32:      bl {{.*}} R_{{.*}}    f2
+; ARM32:      movw [[CALL:r[0-9]]], {{.+}} f2
+; ARM32:      movt [[CALL]], {{.+}} f2
+; ARM32:      blx [[CALL]]
 ; ARM32:      mov sp, fp
 ; ARM32:      pop {fp, lr}
 

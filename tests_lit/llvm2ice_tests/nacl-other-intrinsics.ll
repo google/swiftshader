@@ -129,8 +129,12 @@ NonZero:
 ; CHECKO2REM: call {{.*}} R_{{.*}} setjmp
 ; CHECKO2REM: call {{.*}} R_{{.*}} longjmp
 ; ARM32-LABEL: test_setjmplongjmp
-; ARM32: bl {{.*}} setjmp
-; ARM32: bl {{.*}} longjmp
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} setjmp
+; ARM32: movt [[CALL]]
+; ARM32: blx [[CALL]]
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} longjmp
+; ARM32: movt [[CALL]]
+; ARM32: blx [[CALL]]
 
 define internal i32 @test_setjmp_unused(i32 %iptr_env, i32 %i_other) {
 entry:
@@ -471,7 +475,9 @@ entry:
 ; CHECK-LABEL: test_popcount_32
 ; CHECK: call {{.*}} R_{{.*}} __popcountsi2
 ; ARM32-LABEL: test_popcount_32
-; ARM32: bl {{.*}} __popcountsi2
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} __popcountsi2
+; ARM32: movt [[CALL]]
+; ARM32: blx [[CALL]]
 
 define internal i64 @test_popcount_64(i64 %x) {
 entry:
@@ -484,7 +490,9 @@ entry:
 ; the return value just in case.
 ; CHECK: mov {{.*}},0x0
 ; ARM32-LABEL: test_popcount_64
-; ARM32: bl {{.*}} __popcountdi2
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} __popcountdi2
+; ARM32: movt [[CALL]]
+; ARM32: blx [[CALL]]
 ; ARM32: mov {{.*}}, #0
 
 define internal i32 @test_popcount_64_ret_i32(i64 %x) {

@@ -7,7 +7,7 @@
 
 ; RUN: %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target arm32 \
-; RUN:   -i %s --args -Om1 --skip-unimplemented --test-stack-extra 4096 \
+; RUN:   -i %s --args -Om1 --test-stack-extra 4096 \
 ; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32 %s
@@ -63,12 +63,16 @@ end:
 ; Now skip ahead to where the call in br_1 begins, to check how %t2 is used.
 ; ARM32: movw ip, #4232
 ; ARM32-NEXT: add ip, sp, ip
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} dummy
+; ARM32: movt [[CALL]]
 ; ARM32: ldr r2, [ip, #-4]
-; ARM32: bl {{.*}} dummy
+; ARM32: blx [[CALL]]
 ; The call clobbers ip, so we need to re-create the base register.
 ; ARM32: movw ip, #4{{.*}}
 ; ARM32: b {{[a-f0-9]+}}
-; ARM32: bl {{.*}} dummy
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} dummy
+; ARM32: movt [[CALL]]
+; ARM32: blx [[CALL]]
 
 ; Similar, but test a function that uses FP as the base register (originally).
 define internal i64 @usesFrameReg(i32 %a, i32 %b, i32 %c, i32 %d) {
@@ -118,9 +122,13 @@ end:
 ; Now skip ahead to where the call in br_1 begins, to check how %t2 is used.
 ; ARM32: movw ip, #4120
 ; ARM32-NEXT: sub ip, fp, ip
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} dummy
+; ARM32: movt [[CALL]]
 ; ARM32: ldr r2, [ip, #-4]
-; ARM32: bl {{.*}} dummy
+; ARM32: blx [[CALL]]
 ; The call clobbers ip, so we need to re-create the base register.
 ; ARM32: movw ip, #4{{.*}}
 ; ARM32: b {{[a-f0-9]+}}
-; ARM32: bl {{.*}} dummy
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} dummy
+; ARM32: movt [[CALL]]
+; ARM32: blx [[CALL]]

@@ -40,9 +40,9 @@ define internal float @test2SPops(float %p1, float %p2) {
 ; ASM-NEXT:     vpush   {s22, s23}
 ; ASM-NEXT:     push    {lr}
 
-; DIS:          0:      ed2daa01
-; DIS-NEXT:     4:      ed2dba02
-; DIS-NEXT:     8:      e52de004
+; DIS:          {{.+}}:      ed2daa01
+; DIS-NEXT:     {{.+}}:      ed2dba02
+; DIS-NEXT:     {{.+}}:      e52de004
 
 ; IASM-NOT:     vpush
 ; IASM-NOT:     push
@@ -59,9 +59,9 @@ define internal float @test2SPops(float %p1, float %p2) {
 ; ASM-NEXT:     vpop    {s22, s23}
 ; ASM-NEXT:     vpop    {s20}
 
-; DIS:         40:      e49de004
-; DIS-NEXT:    44:      ecbdba02
-; DIS-NEXT:    48:      ecbdaa01
+; DIS:         {{.+}}:      e49de004
+; DIS-NEXT:    {{.+}}:      ecbdba02
+; DIS-NEXT:    {{.+}}:      ecbdaa01
 
 ; IASM-NOT: pop
 ; IASM-NOT: vpop

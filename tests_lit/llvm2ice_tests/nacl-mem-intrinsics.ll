@@ -11,8 +11,8 @@
 ; RUN:   | %if --need=target_X8632 --command FileCheck --check-prefix OM1 %s
 
 ; RUN: %if --need=target_ARM32 --need=allow_dump \
-; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target arm32 \
-; RUN:   -i %s --args -O2 --skip-unimplemented \
+; RUN:   --command %p2i --filetype=obj --assemble --disassemble --target arm32 \
+; RUN:   -i %s --args -O2 \
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32 %s
 
@@ -33,7 +33,9 @@ entry:
 ; OM1-LABEL: test_memcpy
 ; OM1: call  {{.*}} memcpy
 ; ARM32-LABEL: test_memcpy
-; ARM32: bl {{.*}} memcpy
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} memcpy
+; ARM32: movt [[CALL]]
+; ARM32: blx [[CALL]]
 
 define internal void @test_memcpy_long_const_len(i32 %iptr_dst, i32 %iptr_src) {
 entry:
@@ -48,7 +50,9 @@ entry:
 ; OM1-LABEL: test_memcpy_long_const_len
 ; OM1: call {{.*}} memcpy
 ; ARM32-LABEL: test_memcpy_long_const_len
-; ARM32: bl {{.*}} memcpy
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} memcpy
+; ARM32: movt [[CALL]]
+; ARM32: blx [[CALL]]
 
 define internal void @test_memcpy_very_small_const_len(i32 %iptr_dst,
                                                        i32 %iptr_src) {
@@ -66,7 +70,9 @@ entry:
 ; OM1-LABEL: test_memcpy_very_small_const_len
 ; OM1: call {{.*}} memcpy
 ; ARM32-LABEL: test_memcpy_very_small_const_len
-; ARM32: bl {{.*}} memcpy
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} memcpy
+; ARM32: movt [[CALL]]
+; ARM32: blx [[CALL]]
 
 define internal void @test_memcpy_const_len_3(i32 %iptr_dst, i32 %iptr_src) {
 entry:
@@ -85,7 +91,9 @@ entry:
 ; OM1-LABEL: test_memcpy_const_len_3
 ; OM1: call {{.*}} memcpy
 ; ARM32-LABEL: test_memcpy_const_len_3
-; ARM32: bl {{.*}} memcpy
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} memcpy
+; ARM32: movt [[CALL]]
+; ARM32: blx [[CALL]]
 
 define internal void @test_memcpy_mid_const_len(i32 %iptr_dst, i32 %iptr_src) {
 entry:
@@ -104,7 +112,9 @@ entry:
 ; OM1-LABEL: test_memcpy_mid_const_len
 ; OM1: call {{.*}} memcpy
 ; ARM32-LABEL: test_memcpy_mid_const_len
-; ARM32: bl {{.*}} memcpy
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} memcpy
+; ARM32: movt [[CALL]]
+; ARM32: blx [[CALL]]
 
 define internal void @test_memcpy_mid_const_len_overlap(i32 %iptr_dst,
                                                         i32 %iptr_src) {
@@ -124,7 +134,9 @@ entry:
 ; OM1-LABEL: test_memcpy_mid_const_len_overlap
 ; OM1: call {{.*}} memcpy
 ; ARM32-LABEL: test_memcpy_mid_const_len_overlap
-; ARM32: bl {{.*}} memcpy
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} memcpy
+; ARM32: movt [[CALL]]
+; ARM32: blx [[CALL]]
 
 define internal void @test_memcpy_big_const_len_overlap(i32 %iptr_dst,
                                                         i32 %iptr_src) {
@@ -144,7 +156,9 @@ entry:
 ; OM1-LABEL: test_memcpy_big_const_len_overlap
 ; OM1: call {{.*}} memcpy
 ; ARM32-LABEL: test_memcpy_big_const_len_overlap
-; ARM32: bl {{.*}} memcpy
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} memcpy
+; ARM32: movt [[CALL]]
+; ARM32: blx [[CALL]]
 
 define internal void @test_memcpy_large_const_len(i32 %iptr_dst,
                                                   i32 %iptr_src) {
@@ -166,7 +180,9 @@ entry:
 ; OM1-LABEL: test_memcpy_large_const_len
 ; OM1: call {{.*}} memcpy
 ; ARM32-LABEL: test_memcpy_large_const_len
-; ARM32: bl {{.*}} memcpy
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} memcpy
+; ARM32: movt [[CALL]]
+; ARM32: blx [[CALL]]
 
 define internal void @test_memmove(i32 %iptr_dst, i32 %iptr_src, i32 %len) {
 entry:
@@ -181,7 +197,9 @@ entry:
 ; OM1-LABEL: test_memmove
 ; OM1: call {{.*}} memmove
 ; ARM32-LABEL: test_memmove
-; ARM32: bl {{.*}} memmove
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} memmove
+; ARM32: movt [[CALL]]
+; ARM32: blx [[CALL]]
 
 define internal void @test_memmove_long_const_len(i32 %iptr_dst,
                                                   i32 %iptr_src) {
@@ -197,7 +215,9 @@ entry:
 ; OM1-LABEL: test_memmove_long_const_len
 ; OM1: call {{.*}} memmove
 ; ARM32-LABEL: test_memmove_long_const_len
-; ARM32: bl {{.*}} memmove
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} memmove
+; ARM32: movt [[CALL]]
+; ARM32: blx [[CALL]]
 
 define internal void @test_memmove_very_small_const_len(i32 %iptr_dst,
                                                         i32 %iptr_src) {
@@ -215,7 +235,9 @@ entry:
 ; OM1-LABEL: test_memmove_very_small_const_len
 ; OM1: call {{.*}} memmove
 ; ARM32-LABEL: test_memmove_very_small_const_len
-; ARM32: bl {{.*}} memmove
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} memmove
+; ARM32: movt [[CALL]]
+; ARM32: blx [[CALL]]
 
 define internal void @test_memmove_const_len_3(i32 %iptr_dst, i32 %iptr_src) {
 entry:
@@ -234,7 +256,9 @@ entry:
 ; OM1-LABEL: test_memmove_const_len_3
 ; OM1: call {{.*}} memmove
 ; ARM32-LABEL: test_memmove_const_len_3
-; ARM32: bl {{.*}} memmove
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} memmove
+; ARM32: movt [[CALL]]
+; ARM32: blx [[CALL]]
 
 define internal void @test_memmove_mid_const_len(i32 %iptr_dst, i32 %iptr_src) {
 entry:
@@ -253,7 +277,9 @@ entry:
 ; OM1-LABEL: test_memmove_mid_const_len
 ; OM1: call {{.*}} memmove
 ; ARM32-LABEL: test_memmove_mid_const_len
-; ARM32: bl {{.*}} memmove
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} memmove
+; ARM32: movt [[CALL]]
+; ARM32: blx [[CALL]]
 
 define internal void @test_memmove_mid_const_len_overlap(i32 %iptr_dst,
                                                          i32 %iptr_src) {
@@ -273,7 +299,9 @@ entry:
 ; OM1-LABEL: test_memmove_mid_const_len_overlap
 ; OM1: call {{.*}} memmove
 ; ARM32-LABEL: test_memmove_mid_const_len_overlap
-; ARM32: bl {{.*}} memmove
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} memmove
+; ARM32: movt [[CALL]]
+; ARM32: blx [[CALL]]
 
 define internal void @test_memmove_big_const_len_overlap(i32 %iptr_dst,
                                                          i32 %iptr_src) {
@@ -293,7 +321,9 @@ entry:
 ; OM1-LABEL: test_memmove_big_const_len_overlap
 ; OM1: call {{.*}} memmove
 ; ARM32-LABEL: test_memmove_big_const_len_overlap
-; ARM32: bl {{.*}} memmove
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} memmove
+; ARM32: movt [[CALL]]
+; ARM32: blx [[CALL]]
 
 define internal void @test_memmove_large_const_len(i32 %iptr_dst,
                                                    i32 %iptr_src) {
@@ -315,7 +345,9 @@ entry:
 ; OM1-LABEL: test_memmove_large_const_len
 ; OM1: call {{.*}} memmove
 ; ARM32-LABEL: test_memmove_large_const_len
-; ARM32: bl {{.*}} memmove
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} memmove
+; ARM32: movt [[CALL]]
+; ARM32: blx [[CALL]]
 
 define internal void @test_memset(i32 %iptr_dst, i32 %wide_val, i32 %len) {
 entry:
@@ -333,7 +365,9 @@ entry:
 ; OM1: call {{.*}} R_{{.*}} memset
 ; ARM32-LABEL: test_memset
 ; ARM32: uxtb
-; ARM32: bl {{.*}} memset
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} memset
+; ARM32: movt [[CALL]]
+; ARM32: blx [[CALL]]
 
 define internal void @test_memset_const_len_align(i32 %iptr_dst,
                                                   i32 %wide_val) {
@@ -352,7 +386,9 @@ entry:
 ; OM1: call {{.*}} R_{{.*}} memset
 ; ARM32-LABEL: test_memset_const_len_align
 ; ARM32: uxtb
-; ARM32: bl {{.*}} memset
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} memset
+; ARM32: movt [[CALL]]
+; ARM32: blx [[CALL]]
 
 define internal void @test_memset_long_const_len_zero_val_align(
     i32 %iptr_dst) {
@@ -368,7 +404,9 @@ entry:
 ; OM1: call {{.*}} R_{{.*}} memset
 ; ARM32-LABEL: test_memset_long_const_len_zero_val_align
 ; ARM32: uxtb
-; ARM32: bl {{.*}} memset
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} memset
+; ARM32: movt [[CALL]]
+; ARM32: blx [[CALL]]
 
 define internal void @test_memset_const_val(i32 %iptr_dst, i32 %len) {
 entry:
@@ -383,7 +421,9 @@ entry:
 ; OM1: call {{.*}} R_{{.*}} memset
 ; ARM32-LABEL: test_memset_const_val
 ; ARM32: uxtb
-; ARM32: bl {{.*}} memset
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} memset
+; ARM32: movt [[CALL]]
+; ARM32: blx [[CALL]]
 
 define internal void @test_memset_const_val_len_very_small(i32 %iptr_dst) {
 entry:
@@ -398,7 +438,9 @@ entry:
 ; OM1: call {{.*}} R_{{.*}} memset
 ; ARM32-LABEL: test_memset_const_val_len_very_small
 ; ARM32: uxtb
-; ARM32: bl {{.*}} memset
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} memset
+; ARM32: movt [[CALL]]
+; ARM32: blx [[CALL]]
 
 define internal void @test_memset_const_val_len_3(i32 %iptr_dst) {
 entry:
@@ -414,7 +456,9 @@ entry:
 ; OM1: call {{.*}} R_{{.*}} memset
 ; ARM32-LABEL: test_memset_const_val_len_3
 ; ARM32: uxtb
-; ARM32: bl {{.*}} memset
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} memset
+; ARM32: movt [[CALL]]
+; ARM32: blx [[CALL]]
 
 define internal void @test_memset_const_val_len_mid(i32 %iptr_dst) {
 entry:
@@ -431,7 +475,9 @@ entry:
 ; OM1: call {{.*}} R_{{.*}} memset
 ; ARM32-LABEL: test_memset_const_val_len_mid
 ; ARM32: uxtb
-; ARM32: bl {{.*}} memset
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} memset
+; ARM32: movt [[CALL]]
+; ARM32: blx [[CALL]]
 
 define internal void @test_memset_zero_const_len_small(i32 %iptr_dst) {
 entry:
@@ -448,7 +494,9 @@ entry:
 ; OM1: call {{.*}} R_{{.*}} memset
 ; ARM32-LABEL: test_memset_zero_const_len_small
 ; ARM32: uxtb
-; ARM32: bl {{.*}} memset
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} memset
+; ARM32: movt [[CALL]]
+; ARM32: blx [[CALL]]
 
 define internal void @test_memset_zero_const_len_small_overlap(i32 %iptr_dst) {
 entry:
@@ -465,7 +513,9 @@ entry:
 ; OM1: call {{.*}} R_{{.*}} memset
 ; ARM32-LABEL: test_memset_zero_const_len_small_overlap
 ; ARM32: uxtb
-; ARM32: bl {{.*}} memset
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} memset
+; ARM32: movt [[CALL]]
+; ARM32: blx [[CALL]]
 
 define internal void @test_memset_zero_const_len_big_overlap(i32 %iptr_dst) {
 entry:
@@ -482,7 +532,9 @@ entry:
 ; OM1: call {{.*}} R_{{.*}} memset
 ; ARM32-LABEL: test_memset_zero_const_len_big_overlap
 ; ARM32: uxtb
-; ARM32: bl {{.*}} memset
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} memset
+; ARM32: movt [[CALL]]
+; ARM32: blx [[CALL]]
 
 define internal void @test_memset_zero_const_len_large(i32 %iptr_dst) {
 entry:
@@ -500,4 +552,6 @@ entry:
 ; OM1: call {{.*}} R_{{.*}} memset
 ; ARM32-LABEL: test_memset_zero_const_len_large
 ; ARM32: uxtb
-; ARM32: bl {{.*}} memset
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} memset
+; ARM32: movt [[CALL]]
+; ARM32: blx [[CALL]]

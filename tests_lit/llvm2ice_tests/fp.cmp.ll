@@ -61,7 +61,9 @@ if.end3:                                          ; preds = %if.then2, %if.end
 ; ARM32-OM1: mov [[R0:r[0-9]+]], #0
 ; ARM32-OM1: moveq [[R0]], #1
 ; ARM32-O2: bne
-; ARM32: bl func
+; ARM32: movw [[CALL:r[0-9]]], #:lower16:func
+; ARM32: movt [[CALL:r[0-9]]], #:upper16:func
+; ARM32: blx [[CALL]]
 ; ARM32: vcmp.f64
 ; ARM32: vmrs
 ; ARM32-OM1: mov [[R1:r[0-9]+]], #0

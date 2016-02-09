@@ -10,18 +10,15 @@
 ; RUN:   --target x8632 -i %s --args -Om1 -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_X8632 --command FileCheck --check-prefix=OPTM1 %s
 
-; TODO(jvoung): Stop skipping unimplemented parts (via --skip-unimplemented)
-; once enough infrastructure is in. Also, switch to --filetype=obj
-; when possible.
 ; RUN: %if --need=target_ARM32 --need=allow_dump \
-; RUN:   --command %p2i --filetype=asm --assemble \
-; RUN:   --disassemble --target arm32 -i %s --args -O2 --skip-unimplemented \
+; RUN:   --command %p2i --filetype=obj --assemble \
+; RUN:   --disassemble --target arm32 -i %s --args -O2 \
 ; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32 --check-prefix ARM32-O2 %s
 ; RUN: %if --need=target_ARM32 --need=allow_dump \
-; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target arm32 \
-; RUN:   -i %s --args -Om1 --skip-unimplemented \
+; RUN:   --command %p2i --filetype=obj --assemble --disassemble --target arm32 \
+; RUN:   -i %s --args -Om1 \
 ; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32 --check-prefix ARM32-OM1 %s
@@ -102,18 +99,24 @@ entry:
 
 ; ARM32-LABEL: pass64BitArg
 ; ARM32:      str     {{.*}}, [sp]
+; ARM32:      movw    [[CALL:r[0-9]]], {{.+}} ignore64BitArgNoInline
+; ARM32:      movt    [[CALL]], {{.+}} ignore64BitArgNoInline
 ; ARM32:      mov     r2, #123
-; ARM32:      bl      {{.*}} ignore64BitArgNoInline
+; ARM32:      blx     [[CALL]]
 ; ARM32:      str     {{.*}}, [sp]
+; ARM32:      movw    [[CALL:r[0-9]]], {{.+}} ignore64BitArgNoInline
+; ARM32:      movt    [[CALL]], {{.+}} ignore64BitArgNoInline
 ; ARM32:      {{mov|ldr}} r0
 ; ARM32:      {{mov|ldr}} r1
 ; ARM32:      mov     r2, #123
-; ARM32:      bl      {{.*}} ignore64BitArgNoInline
+; ARM32:      blx     [[CALL]]
 ; ARM32:      str     {{.*}}, [sp]
+; ARM32:      movw    [[CALL:r[0-9]]], {{.+}} ignore64BitArgNoInline
+; ARM32:      movt    [[CALL]], {{.+}} ignore64BitArgNoInline
 ; ARM32:      {{mov|ldr}} r0
 ; ARM32:      {{mov|ldr}} r1
 ; ARM32:      mov     r2, #123
-; ARM32:      bl      {{.*}} ignore64BitArgNoInline
+; ARM32:      blx      [[CALL]]
 
 ; MIPS32-LABEL: pass64BitArg
 
@@ -155,10 +158,13 @@ entry:
 ; ARM32:      movt    [[REG2]], {{.*}}     ; 0x1234
 ; ARM32:      str     [[REG1]], [sp, #4]
 ; ARM32:      str     [[REG2]], [sp]
+; ARM32:      movw    [[CALL:r[0-9]]], {{.+}} ignore64BitArgNoInline
+; ARM32:      movt    [[CALL]], {{.+}} ignore64BitArgNoInline
 ; ARM32:      {{mov|ldr}} r0
 ; ARM32:      {{mov|ldr}} r1
 ; ARM32:      mov     r2, #123
-; ARM32:      bl      {{.*}} ignore64BitArgNoInline
+; ARM32:      blx     [[CALL]]
+
 
 define internal i32 @pass64BitUndefArg() {
 entry:
@@ -179,8 +185,10 @@ entry:
 ; ARM32: sub sp
 ; ARM32: mov {{.*}}, #0
 ; ARM32: str
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} ignore64BitArgNoInline
+; ARM32: movt [[CALL]], {{.+}} ignore64BitArgNoInline
 ; ARM32: mov {{.*}}, #123
-; ARM32: bl {{.*}} ignore64BitArgNoInline
+; ARM32: blx [[CALL]]
 
 ; MIPS32-LABEL: pass64BitUndefArg
 ; MIPS32: jr  ra
@@ -388,7 +396,9 @@ entry:
 ; ARM32-LABEL: div64BitSigned
 ; ARM32: orrs {{r.*}}, {{r.*}}
 ; ARM32: bne
-; ARM32: bl {{.*}} __divdi3
+; ARM32: movw	[[CALL:r[0-9]]], {{.+}} __divdi3
+; ARM32: movt	[[CALL]], {{.+}} __divdi3
+; ARM32: blx [[CALL]]
 
 define internal i64 @div64BitSignedConst(i64 %a) {
 entry:
@@ -408,10 +418,12 @@ entry:
 ; ARM32-LABEL: div64BitSignedConst
 ; For a constant, we should be able to optimize-out the divide by zero check.
 ; ARM32-NOT: orrs
+; ARM32: movw	[[CALL:r[0-9]]], {{.+}} __divdi3
+; ARM32: movt	[[CALL]], {{.+}} __divdi3
 ; ARM32: movw {{.*}} ; 0x2ff2
 ; ARM32: movt {{.*}} ; 0x73ce
 ; ARM32: movw {{.*}} ; 0xb3a
-; ARM32: bl {{.*}} __divdi3
+; ARM32: blx [[CALL]]
 
 define internal i64 @div64BitUnsigned(i64 %a, i64 %b) {
 entry:
@@ -427,7 +439,9 @@ entry:
 ; ARM32-LABEL: div64BitUnsigned
 ; ARM32: orrs {{r.*}}, {{r.*}}
 ; ARM32: bne
-; ARM32: bl {{.*}} __udivdi3
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} __udivdi3
+; ARM32: movt [[CALL]], {{.+}} __udivdi3
+; ARM32: blx [[CALL]]
 
 define internal i64 @rem64BitSigned(i64 %a, i64 %b) {
 entry:
@@ -443,7 +457,9 @@ entry:
 ; ARM32-LABEL: rem64BitSigned
 ; ARM32: orrs {{r.*}}, {{r.*}}
 ; ARM32: bne
-; ARM32: bl {{.*}} __moddi3
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} __moddi3
+; ARM32: movt [[CALL]], {{.+}} __moddi3
+; ARM32: blx [[CALL]]
 
 define internal i64 @rem64BitUnsigned(i64 %a, i64 %b) {
 entry:
@@ -459,7 +475,9 @@ entry:
 ; ARM32-LABEL: rem64BitUnsigned
 ; ARM32: orrs {{r.*}}, {{r.*}}
 ; ARM32: bne
-; ARM32: bl {{.*}} __umoddi3
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} __umoddi3
+; ARM32: movt [[CALL]], {{.+}} __umoddi3
+; ARM32: blx [[CALL]]
 
 define internal i64 @shl64BitSigned(i64 %a, i64 %b) {
 entry:
@@ -1122,12 +1140,16 @@ if.end3:                                          ; preds = %if.then2, %if.end
 ; ARM32: cmpeq
 ; ARM32-OM1: tst
 ; ARM32: bne
-; ARM32: bl {{.*}} <func>
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} func
+; ARM32: movt [[CALL]], {{.+}} func
+; ARM32: blx [[CALL]]
 ; ARM32: cmp
 ; ARM32: cmpeq
 ; ARM32-OM1: tst
 ; ARM32: bne
-; ARM32: bl {{.*}} <func>
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} func
+; ARM32: movt [[CALL]], {{.+}} func
+; ARM32: blx [[CALL]]
 ; ARM32: bx
 
 declare void @func()
@@ -1192,7 +1214,9 @@ if.end3:                                          ; preds = %if.end, %if.then2
 ; ARM32-OM1: tst
 ; ARM32-OM1: bne
 ; ARM32-O2: beq
-; ARM32: bl {{.*}} <func>
+; ARM32: movw [[CALL:r[0-9]]], {{.+}} func
+; ARM32: movt [[CALL]], {{.+}} func
+; ARM32: blx [[CALL]]
 ; ARM32: cmp
 ; ARM32: cmpeq
 ; ARM32-OM1: tst

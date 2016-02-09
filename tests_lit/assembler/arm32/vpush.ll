@@ -26,10 +26,10 @@
 
 define internal double @testVpushVpop(double %v1, double %v2) {
 ; ASM-LABEL: testVpushVpop:
-; DIS-LABEL: 00000000 <testVpushVpop>:
+; DIS-LABEL: {{.+}} <testVpushVpop>:
 
 ; ASM:  vpush   {s18, s19, s20, s21}
-; DIS:    0:    ed2d9a04
+; DIS:  {{.+}}: ed2d9a04
 ; IASM-NOT: vpush
 
   call void @foo()
@@ -37,7 +37,7 @@ define internal double @testVpushVpop(double %v1, double %v2) {
   ret double %res
 
 ; ASM:  vpop    {s18, s19, s20, s21}
-; DIS:   28:       ecbd9a04
+; DIS:  {{.+}}: ecbd9a04
 ; IASM-NOT: vpopd
 
 }
