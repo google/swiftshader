@@ -311,6 +311,8 @@ public:
     return Buffer.createTextFixup(Text, BytesUsed);
   }
 
+  void bindRelocOffset(RelocOffset *Offset);
+
   void setNeedsTextFixup() { Buffer.setNeedsTextFixup(); }
   void resetNeedsTextFixup() { Buffer.resetNeedsTextFixup(); }
 

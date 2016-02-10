@@ -609,12 +609,13 @@ size_t MoveRelocatableFixup::emit(GlobalContext *Ctx,
     return InstARM32::InstSize;
   Ostream &Str = Ctx->getStrEmit();
   IValueT Inst = Asm.load<IValueT>(position());
+  const bool IsMovw = kind() == llvm::ELF::R_ARM_MOVW_ABS_NC ||
+                      kind() == llvm::ELF::R_ARM_MOVW_PREL_NC;
   Str << "\t"
-         "mov" << (kind() == llvm::ELF::R_ARM_MOVW_ABS_NC ? "w" : "t") << "\t"
+         "mov" << (IsMovw ? "w" : "t") << "\t"
       << RegARM32::getRegName(RegNumT::fixme((Inst >> kRdShift) & 0xF))
-      << ", #:" << (kind() == llvm::ELF::R_ARM_MOVW_ABS_NC ? "lower" : "upper")
-      << "16:" << symbol(Ctx, &Asm) << "\t@ .word "
-      << llvm::format_hex_no_prefix(Inst, 8) << "\n";
+      << ", #:" << (IsMovw ? "lower" : "upper") << "16:" << symbol(Ctx, &Asm)
+      << "\t@ .word " << llvm::format_hex_no_prefix(Inst, 8) << "\n";
   return InstARM32::InstSize;
 }
 
@@ -625,8 +626,7 @@ void MoveRelocatableFixup::emitOffset(Assembler *Asm) const {
 
   const IValueT Inst = Asm->load<IValueT>(position());
   constexpr IValueT Imm16Mask = 0x000F0FFF;
-  const IValueT Imm16 =
-      offset() >> (kind() == llvm::ELF::R_ARM_MOVW_ABS_NC ? 0 : 16) & 0xffff;
+  const IValueT Imm16 = offset() & 0xffff;
   Asm->store(position(),
              (Inst & ~Imm16Mask) | ((Imm16 >> 12) << 16) | (Imm16 & 0xfff));
 }
@@ -635,8 +635,10 @@ MoveRelocatableFixup *AssemblerARM32::createMoveFixup(bool IsMovW,
                                                       const Constant *Value) {
   MoveRelocatableFixup *F =
       new (allocate<MoveRelocatableFixup>()) MoveRelocatableFixup();
-  F->set_kind(IsMovW ? llvm::ELF::R_ARM_MOVW_ABS_NC
-                     : llvm::ELF::R_ARM_MOVT_ABS);
+  F->set_kind(IsMovW ? (IsNonsfi ? llvm::ELF::R_ARM_MOVW_PREL_NC
+                                 : llvm::ELF::R_ARM_MOVW_ABS_NC)
+                     : (IsNonsfi ? llvm::ELF::R_ARM_MOVT_PREL
+                                 : llvm::ELF::R_ARM_MOVT_ABS));
   F->set_value(Value);
   Buffer.installFixup(F);
   return F;

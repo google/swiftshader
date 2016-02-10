@@ -106,13 +106,6 @@ void AssemblerX86Base<TraitsType>::bindLocalLabel(SizeT Number) {
 }
 
 template <typename TraitsType>
-void AssemblerX86Base<TraitsType>::bindRelocOffset(RelocOffset *Offset) {
-  if (!getPreliminary()) {
-    Offset->setOffset(Buffer.getPosition());
-  }
-}
-
-template <typename TraitsType>
 void AssemblerX86Base<TraitsType>::call(GPRRegister reg) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitRexB(RexTypeIrrelevant, reg);

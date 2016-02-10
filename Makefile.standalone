@@ -447,7 +447,6 @@ check-xtest: $(OBJDIR)/pnacl-sz make_symlink runtime
           -i x8664,native,sse4.1,test_vector_ops \
           -i x8664,sandbox,sse4.1,Om1 \
           -i arm32,neon \
-          -e arm32,nonsfi \
           -e arm32,neon,test_vector_ops \
           -e arm32,neon,test_select
 	PNACL_BIN_PATH=$(PNACL_BIN_PATH) \

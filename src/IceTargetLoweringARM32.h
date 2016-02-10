@@ -24,6 +24,8 @@
 
 #include "llvm/ADT/SmallBitVector.h"
 
+#include <unordered_set>
+
 namespace Ice {
 namespace ARM32 {
 
@@ -64,7 +66,8 @@ public:
   }
 
   std::unique_ptr<::Ice::Assembler> createAssembler() const override {
-    return makeUnique<ARM32::AssemblerARM32>();
+    const bool IsNonsfi = SandboxingType == ST_Nonsfi;
+    return makeUnique<ARM32::AssemblerARM32>(IsNonsfi);
   }
 
   void initNodeForLowering(CfgNode *Node) override {
@@ -855,6 +858,48 @@ protected:
   bool isLegalMemOffset(Type Ty, int32_t Offset) const;
 
   void postLowerLegalization();
+
+  /// Manages the GotPtr variable, which is used for Nonsfi sandboxing.
+  /// @{
+  void createGotPtr();
+  void insertGotPtrInitPlaceholder();
+  VariableDeclaration *createGotRelocation(RelocOffset *AddPcReloc);
+  void materializeGotAddr(CfgNode *Node);
+  Variable *GotPtr = nullptr;
+  // TODO(jpp): use CfgLocalAllocator.
+  /// @}
+
+  /// Manages the Gotoff relocations created during the function lowering. A
+  /// single Gotoff relocation is created for each global variable used by the
+  /// function being lowered.
+  /// @{
+  // TODO(jpp): if the same global G is used in different functions, then this
+  // method will emit one G(gotoff) relocation per function.
+  IceString createGotoffRelocation(const ConstantRelocatable *CR);
+  std::unordered_set<IceString> KnownGotoffs;
+  /// @}
+
+  /// Loads the constant relocatable Name to Register. Then invoke Finish to
+  /// finish the relocatable lowering. Finish **must** use PC in its first
+  /// emitted instruction, or the relocatable in Register will contain the wrong
+  /// value.
+  //
+  // Lowered sequence:
+  //
+  // Movw:
+  //     movw Register, #:lower16:Name - (End - Movw) - 8 .
+  // Movt:
+  //     movt Register, #:upper16:Name - (End - Movt) - 8 .
+  //     PC = fake-def
+  // End:
+  //     Finish(PC)
+  //
+  // The -8 in movw/movt above is to account for the PC value that the first
+  // instruction emitted by Finish(PC) will read.
+  void loadNamedConstantRelocatablePIC(const IceString &Name,
+                                       Variable *Register,
+                                       std::function<void(Variable *PC)> Finish,
+                                       bool SuppressMangling = true);
 
   /// Sandboxer defines methods for ensuring that "dangerous" operations are
   /// masked during sandboxed code emission. For regular, non-sandboxed code

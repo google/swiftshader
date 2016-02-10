@@ -63,3 +63,4 @@ double __Sz_sitofp_i64_f64(int64_t Value) { return (double)Value; }
 //   memset  - call @llvm.memset.p0i8.i32
 // unsandboxed_irt:
 //   __nacl_read_tp
+//   __aeabi_read_tp [arm32 only]

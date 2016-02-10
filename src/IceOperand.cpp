@@ -556,6 +556,10 @@ void ConstantRelocatable::emitWithoutPrefix(const TargetLowering *Target,
 void ConstantRelocatable::dump(const Cfg *Func, Ostream &Str) const {
   if (!BuildDefs::dump())
     return;
+  if (!EmitString.empty()) {
+    Str << EmitString;
+    return;
+  }
   Str << "@";
   if (Func && !SuppressMangling) {
     Str << Func->getContext()->mangleName(Name);

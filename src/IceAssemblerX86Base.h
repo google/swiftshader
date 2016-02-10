@@ -167,7 +167,6 @@ public:
   Label *getOrCreateCfgNodeLabel(SizeT Number);
   Label *getOrCreateLocalLabel(SizeT Number);
   void bindLocalLabel(SizeT Number);
-  void bindRelocOffset(RelocOffset *Offset);
 
   bool fixupIsPCRel(FixupKind Kind) const override {
     // Currently assuming this is the only PC-rel relocation type used.

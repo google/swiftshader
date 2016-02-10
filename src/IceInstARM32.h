@@ -265,7 +265,7 @@ public:
     return Operand->getKind() == static_cast<OperandKind>(kFlexFpImm);
   }
 
-  static bool canHoldImm(Operand *C, uint32_t *ModifiedImm);
+  static bool canHoldImm(const Operand *C, uint32_t *ModifiedImm);
 
   uint32_t getModifiedImm() const { return ModifiedImm; }
 
@@ -973,9 +973,12 @@ public:
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
+  void setRelocOffset(RelocOffset *Value) { OffsetReloc = Value; }
 
 private:
   InstARM32Label(Cfg *Func, TargetARM32 *Target);
+
+  RelocOffset *OffsetReloc = nullptr;
 
   SizeT Number; // used for unique label generation.
 };

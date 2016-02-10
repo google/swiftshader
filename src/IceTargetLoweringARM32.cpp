@@ -52,6 +52,14 @@ createTargetHeaderLowering(::Ice::GlobalContext *Ctx) {
 
 void staticInit(::Ice::GlobalContext *Ctx) {
   ::Ice::ARM32::TargetARM32::staticInit(Ctx);
+  if (Ctx->getFlags().getUseNonsfi()) {
+    // In nonsfi, we need to reference the _GLOBAL_OFFSET_TABLE_ for accessing
+    // globals. The GOT is an external symbol (i.e., it is not defined in the
+    // pexe) so we need to register it as such so that ELF emission won't barf
+    // on an "unknown" symbol. The GOT is added to the External symbols list
+    // here because staticInit() is invoked in a single-thread context.
+    Ctx->getConstantExternSym(::Ice::GlobalOffsetTable);
+  }
 }
 
 } // end of namespace ARM32
@@ -713,11 +721,13 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
       return;
     }
     case Intrinsics::NaClReadTP: {
-      if (NeedSandboxing) {
+      if (SandboxingType == ST_NaCl) {
         return;
       }
       static constexpr SizeT MaxArgs = 0;
-      Operand *TargetHelper = Ctx->getConstantExternSym(H_call_read_tp);
+      const char *ReadTP =
+          SandboxingType == ST_Nonsfi ? "__aeabi_read_tp" : H_call_read_tp;
+      Operand *TargetHelper = Ctx->getConstantExternSym(ReadTP);
       Context.insert<InstCall>(MaxArgs, Dest, TargetHelper, NoTailCall,
                                IsTargetHelperCall);
       Instr->setDeleted();
@@ -786,11 +796,150 @@ void TargetARM32::findMaxStackOutArgsSize() {
   }
 }
 
+void TargetARM32::createGotPtr() {
+  if (SandboxingType != ST_Nonsfi) {
+    return;
+  }
+  GotPtr = Func->makeVariable(IceType_i32);
+}
+
+void TargetARM32::insertGotPtrInitPlaceholder() {
+  if (SandboxingType != ST_Nonsfi) {
+    return;
+  }
+  assert(GotPtr != nullptr);
+  // We add the two placeholder instructions here. The first fakedefs T, an
+  // infinite-weight temporary, while the second fakedefs the GotPtr "using" T.
+  // This is needed because the GotPtr initialization, if needed, will require
+  // a register:
+  //
+  //   movw     reg, _GLOBAL_OFFSET_TABLE_ - 16 - .
+  //   movt     reg, _GLOBAL_OFFSET_TABLE_ - 12 - .
+  //   add      reg, pc, reg
+  //   mov      GotPtr, reg
+  //
+  // If GotPtr is not used, then both these pseudo-instructions are dce'd.
+  Variable *T = makeReg(IceType_i32);
+  Context.insert<InstFakeDef>(T);
+  Context.insert<InstFakeDef>(GotPtr, T);
+}
+
+IceString TargetARM32::createGotoffRelocation(const ConstantRelocatable *CR) {
+  const IceString &CRName = CR->getName();
+  const IceString CRGotoffName =
+      "GOTOFF$" + Func->getFunctionName() + "$" + CRName;
+  if (KnownGotoffs.count(CRGotoffName) == 0) {
+    auto *Global = VariableDeclaration::create(Ctx);
+    Global->setIsConstant(true);
+    Global->setName(CRName);
+    Global->setSuppressMangling();
+
+    auto *Gotoff = VariableDeclaration::create(Ctx);
+    constexpr auto GotFixup = R_ARM_GOTOFF32;
+    Gotoff->setIsConstant(true);
+    Gotoff->setName(CRGotoffName);
+    Gotoff->setSuppressMangling();
+    Gotoff->addInitializer(VariableDeclaration::RelocInitializer::create(
+        Global, {RelocOffset::create(Ctx, 0)}, GotFixup));
+    Func->addGlobal(Gotoff);
+    KnownGotoffs.emplace(CRGotoffName);
+  }
+  return CRGotoffName;
+}
+
+void TargetARM32::materializeGotAddr(CfgNode *Node) {
+  if (SandboxingType != ST_Nonsfi) {
+    return;
+  }
+
+  // At first, we try to find the
+  //    GotPtr = def T
+  // pseudo-instruction that we placed for defining the got ptr. That
+  // instruction is not just a place-holder for defining the GotPtr (thus
+  // keeping liveness consistent), but it is also located at a point where it is
+  // safe to materialize the got addr -- i.e., before loading parameters to
+  // registers, but after moving register parameters from their home location.
+  InstFakeDef *DefGotPtr = nullptr;
+  for (auto &Inst : Node->getInsts()) {
+    auto *FakeDef = llvm::dyn_cast<InstFakeDef>(&Inst);
+    if (FakeDef != nullptr && FakeDef->getDest() == GotPtr) {
+      DefGotPtr = FakeDef;
+      break;
+    }
+  }
+
+  if (DefGotPtr == nullptr || DefGotPtr->isDeleted()) {
+    return;
+  }
+
+  // The got addr needs to be materialized at the same point where DefGotPtr
+  // lives.
+  Context.setInsertPoint(DefGotPtr);
+  assert(DefGotPtr->getSrcSize() == 1);
+  auto *T = llvm::cast<Variable>(DefGotPtr->getSrc(0));
+  loadNamedConstantRelocatablePIC(GlobalOffsetTable, T,
+                                  [this, T](Variable *PC) { _add(T, PC, T); });
+  _mov(GotPtr, T);
+  DefGotPtr->setDeleted();
+}
+
+void TargetARM32::loadNamedConstantRelocatablePIC(
+    const IceString &Name, Variable *Register,
+    std::function<void(Variable *PC)> Finish, bool SuppressMangling) {
+  assert(SandboxingType == ST_Nonsfi);
+  // We makeReg() here instead of getPhysicalRegister() because the latter ends
+  // up creating multi-blocks temporaries that liveness fails to validate.
+  auto *PC = makeReg(IceType_i32, RegARM32::Reg_pc);
+
+  auto *AddPcReloc = RelocOffset::create(Ctx);
+  AddPcReloc->setSubtract(true);
+  auto *AddPcLabel = InstARM32Label::create(Func, this);
+  AddPcLabel->setRelocOffset(AddPcReloc);
+
+  const IceString EmitText = Name;
+  // We need a -8 in the relocation expression to account for the pc's value
+  // read by the first instruction emitted in Finish(PC).
+  auto *Imm8 = RelocOffset::create(Ctx, -8);
+
+  auto *MovwReloc = RelocOffset::create(Ctx);
+  auto *MovwLabel = InstARM32Label::create(Func, this);
+  MovwLabel->setRelocOffset(MovwReloc);
+
+  auto *MovtReloc = RelocOffset::create(Ctx);
+  auto *MovtLabel = InstARM32Label::create(Func, this);
+  MovtLabel->setRelocOffset(MovtReloc);
+
+  // The EmitString for these constant relocatables have hardcoded offsets
+  // attached to them. This could be dangerous if, e.g., we ever implemented
+  // instruction scheduling but llvm-mc currently does not support
+  //
+  //   movw reg, #:lower16:(Symbol - Label - Number)
+  //   movt reg, #:upper16:(Symbol - Label - Number)
+  //
+  // relocations.
+  auto *CRLower = Ctx->getConstantSym({MovwReloc, AddPcReloc, Imm8}, Name,
+                                      EmitText + " -16", SuppressMangling);
+  auto *CRUpper = Ctx->getConstantSym({MovtReloc, AddPcReloc, Imm8}, Name,
+                                      EmitText + " -12", SuppressMangling);
+
+  Context.insert(MovwLabel);
+  _movw(Register, CRLower);
+  Context.insert(MovtLabel);
+  _movt(Register, CRUpper);
+  // PC = fake-def to keep liveness consistent.
+  Context.insert<InstFakeDef>(PC);
+  Context.insert(AddPcLabel);
+  Finish(PC);
+}
+
 void TargetARM32::translateO2() {
   TimerMarker T(TimerStack::TT_O2, Func);
 
-  // TODO(stichnot): share passes with X86?
+  // TODO(stichnot): share passes with other targets?
   // https://code.google.com/p/nativeclient/issues/detail?id=4094
+  if (SandboxingType == ST_Nonsfi) {
+    createGotPtr();
+  }
   genTargetHelperCalls();
   findMaxStackOutArgsSize();
 
@@ -837,6 +986,9 @@ void TargetARM32::translateO2() {
     return;
   Func->dump("After ARM32 address mode opt");
 
+  if (SandboxingType == ST_Nonsfi) {
+    insertGotPtrInitPlaceholder();
+  }
   Func->genCode();
   if (Func->hasError())
     return;
@@ -901,7 +1053,11 @@ void TargetARM32::translateO2() {
 void TargetARM32::translateOm1() {
   TimerMarker T(TimerStack::TT_Om1, Func);
 
-  // TODO: share passes with X86?
+  // TODO(stichnot): share passes with other targets?
+  if (SandboxingType == ST_Nonsfi) {
+    createGotPtr();
+  }
+
   genTargetHelperCalls();
   findMaxStackOutArgsSize();
 
@@ -923,6 +1079,9 @@ void TargetARM32::translateOm1() {
 
   Func->doArgLowering();
 
+  if (SandboxingType == ST_Nonsfi) {
+    insertGotPtrInitPlaceholder();
+  }
   Func->genCode();
   if (Func->hasError())
     return;
@@ -1417,6 +1576,8 @@ void TargetARM32::addProlog(CfgNode *Node) {
   size_t BasicFrameOffset = PreservedRegsSizeBytes;
   if (!UsesFramePointer)
     BasicFrameOffset += SpillAreaSizeBytes;
+
+  materializeGotAddr(Node);
 
   const VarList &Args = Func->getArgs();
   size_t InArgsSizeBytes = 0;
@@ -3540,16 +3701,20 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
   CallTarget = legalizeToReg(CallTarget);
 
   // Copy arguments to be passed in registers to the appropriate registers.
+  CfgVector<Variable *> RegArgs;
   for (auto &FPArg : FPArgs) {
-    Variable *Reg = legalizeToReg(FPArg.first, FPArg.second);
-    Context.insert<InstFakeUse>(Reg);
+    RegArgs.emplace_back(legalizeToReg(FPArg.first, FPArg.second));
   }
   for (auto &GPRArg : GPRArgs) {
-    Variable *Reg = legalizeToReg(GPRArg.first, GPRArg.second);
-    // Generate a FakeUse of register arguments so that they do not get dead
-    // code eliminated as a result of the FakeKill of scratch registers after
-    // the call.
-    Context.insert<InstFakeUse>(Reg);
+    RegArgs.emplace_back(legalizeToReg(GPRArg.first, GPRArg.second));
+  }
+
+  // Generate a FakeUse of register arguments so that they do not get dead code
+  // eliminated as a result of the FakeKill of scratch registers after the call.
+  // These fake-uses need to be placed here to avoid argument registers from
+  // being used during the legalizeToReg() calls above.
+  for (auto *RegArg : RegArgs) {
+    Context.insert<InstFakeUse>(RegArg);
   }
 
   InstARM32Call *NewCall =
@@ -3954,12 +4119,12 @@ struct {
 #undef X
 };
 
-bool isFloatingPointZero(Operand *Src) {
-  if (const auto *F32 = llvm::dyn_cast<ConstantFloat>(Src)) {
+bool isFloatingPointZero(const Operand *Src) {
+  if (const auto *F32 = llvm::dyn_cast<const ConstantFloat>(Src)) {
     return Utils::isPositiveZero(F32->getValue());
   }
 
-  if (const auto *F64 = llvm::dyn_cast<ConstantDouble>(Src)) {
+  if (const auto *F64 = llvm::dyn_cast<const ConstantDouble>(Src)) {
     return Utils::isPositiveZero(F64->getValue());
   }
 
@@ -4892,7 +5057,7 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     llvm::report_fatal_error("memmove should have been prelowered.");
   }
   case Intrinsics::NaClReadTP: {
-    if (!NeedSandboxing) {
+    if (SandboxingType != ST_NaCl) {
       llvm::report_fatal_error("nacl-read-tp should have been prelowered.");
     }
     Variable *TP = legalizeToReg(OperandARM32Mem::create(
@@ -5552,8 +5717,72 @@ void TargetARM32::lowerUnreachable(const InstUnreachable * /*Instr*/) {
   _trap();
 }
 
+namespace {
+// Returns whether Opnd needs the GOT address. Currently, ConstantRelocatables,
+// and fp constants will need access to the GOT address.
+bool operandNeedsGot(const Operand *Opnd) {
+  if (llvm::isa<ConstantRelocatable>(Opnd)) {
+    return true;
+  }
+
+  if (llvm::isa<ConstantFloat>(Opnd)) {
+    uint32_t _;
+    return !OperandARM32FlexFpImm::canHoldImm(Opnd, &_);
+  }
+
+  const auto *F64 = llvm::dyn_cast<ConstantDouble>(Opnd);
+  if (F64 != nullptr) {
+    uint32_t _;
+    return !OperandARM32FlexFpImm::canHoldImm(Opnd, &_) &&
+           !isFloatingPointZero(F64);
+  }
+
+  return false;
+}
+
+// Returns whether Phi needs the GOT address (which it does if any of its
+// operands needs the GOT address.)
+bool phiNeedsGot(const InstPhi *Phi) {
+  if (Phi->isDeleted()) {
+    return false;
+  }
+
+  for (SizeT I = 0; I < Phi->getSrcSize(); ++I) {
+    if (operandNeedsGot(Phi->getSrc(I))) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+// Returns whether **any** phi in Node needs the GOT address.
+bool anyPhiInNodeNeedsGot(CfgNode *Node) {
+  for (auto &Inst : Node->getPhis()) {
+    if (phiNeedsGot(llvm::cast<InstPhi>(&Inst))) {
+      return true;
+    }
+  }
+  return false;
+}
+
+} // end of anonymous namespace
+
 void TargetARM32::prelowerPhis() {
-  PhiLowering::prelowerPhis32Bit<TargetARM32>(this, Context.getNode(), Func);
+  CfgNode *Node = Context.getNode();
+
+  if (SandboxingType == ST_Nonsfi) {
+    assert(GotPtr != nullptr);
+    if (anyPhiInNodeNeedsGot(Node)) {
+      // If any phi instruction needs the GOT address, we place a
+      //   fake-use GotPtr
+      // in Node to prevent the GotPtr's initialization from being dead code
+      // eliminated.
+      Node->getInsts().push_front(InstFakeUse::create(Func, GotPtr));
+    }
+  }
+
+  PhiLowering::prelowerPhis32Bit(this, Node, Func);
 }
 
 Variable *TargetARM32::makeVectorOfZeros(Type Ty, RegNumT RegNum) {
@@ -5716,8 +5945,18 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
       }
     } else if (auto *C = llvm::dyn_cast<ConstantRelocatable>(From)) {
       Variable *Reg = makeReg(Ty, RegNum);
-      _movw(Reg, C);
-      _movt(Reg, C);
+      if (SandboxingType != ST_Nonsfi) {
+        _movw(Reg, C);
+        _movt(Reg, C);
+      } else {
+        auto *GotAddr = legalizeToReg(GotPtr);
+        const IceString CGotoffName = createGotoffRelocation(C);
+        loadNamedConstantRelocatablePIC(
+            CGotoffName, Reg, [this, Reg](Variable *PC) {
+              _ldr(Reg, OperandARM32Mem::create(Func, IceType_i32, PC, Reg));
+            });
+        _add(Reg, GotAddr, Reg);
+      }
       return Reg;
     } else {
       assert(isScalarFloatingType(Ty));
@@ -5744,9 +5983,17 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
       llvm::cast<Constant>(From)->emitPoolLabel(StrBuf, Ctx);
       llvm::cast<Constant>(From)->setShouldBePooled(true);
       Constant *Offset = Ctx->getConstantSym(0, StrBuf.str(), true);
-      Variable *BaseReg = makeReg(getPointerType());
-      _movw(BaseReg, Offset);
-      _movt(BaseReg, Offset);
+      Variable *BaseReg = nullptr;
+      if (SandboxingType == ST_Nonsfi) {
+        // vldr does not support the [base, index] addressing mode, so we need
+        // to legalize Offset to a register. Otherwise, we could simply
+        //   vldr dest, [got, reg(Offset)]
+        BaseReg = legalizeToReg(Offset);
+      } else {
+        BaseReg = makeReg(getPointerType());
+        _movw(BaseReg, Offset);
+        _movt(BaseReg, Offset);
+      }
       From = formMemoryOperand(BaseReg, Ty);
       return copyToReg(From, RegNum);
     }

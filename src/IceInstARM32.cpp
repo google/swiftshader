@@ -354,7 +354,8 @@ OperandARM32FlexFpImm::OperandARM32FlexFpImm(Cfg * /*Func*/, Type Ty,
                                              uint32_t ModifiedImm)
     : OperandARM32Flex(kFlexFpImm, Ty), ModifiedImm(ModifiedImm) {}
 
-bool OperandARM32FlexFpImm::canHoldImm(Operand *C, uint32_t *ModifiedImm) {
+bool OperandARM32FlexFpImm::canHoldImm(const Operand *C,
+                                       uint32_t *ModifiedImm) {
   switch (C->getType()) {
   default:
     llvm::report_fatal_error("Unhandled fp constant type.");
@@ -369,7 +370,7 @@ bool OperandARM32FlexFpImm::canHoldImm(Operand *C, uint32_t *ModifiedImm) {
     static constexpr uint32_t AllowedBits = a | B | bbbbb | cdefgh;
     static_assert(AllowedBits == 0xFFF80000u,
                   "Invalid mask for f32 modified immediates.");
-    const float F32 = llvm::cast<ConstantFloat>(C)->getValue();
+    const float F32 = llvm::cast<const ConstantFloat>(C)->getValue();
     const uint32_t I32 = Utils::bitCopy<uint32_t>(F32);
     if (I32 & ~AllowedBits) {
       // constant has disallowed bits.
@@ -398,7 +399,7 @@ bool OperandARM32FlexFpImm::canHoldImm(Operand *C, uint32_t *ModifiedImm) {
     static constexpr uint32_t AllowedBits = a | B | bbbbbbbb | cdefgh;
     static_assert(AllowedBits == 0xFFFF0000u,
                   "Invalid mask for f64 modified immediates.");
-    const double F64 = llvm::cast<ConstantDouble>(C)->getValue();
+    const double F64 = llvm::cast<const ConstantDouble>(C)->getValue();
     const uint64_t I64 = Utils::bitCopy<uint64_t>(F64);
     if (I64 & 0xFFFFFFFFu) {
       // constant has disallowed bits.
@@ -1725,6 +1726,9 @@ void InstARM32Label::emit(const Cfg *Func) const {
 void InstARM32Label::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   Asm->bindLocalLabel(Func, this, Number);
+  if (OffsetReloc != nullptr) {
+    Asm->bindRelocOffset(OffsetReloc);
+  }
   if (Asm->needsTextFixup())
     emitUsingTextFixup(Func);
 }
@@ -1867,6 +1871,9 @@ template <> void InstARM32Movw::emit(const Cfg *Func) const {
   if (auto *CR = llvm::dyn_cast<ConstantRelocatable>(Src0)) {
     Str << "#:lower16:";
     CR->emitWithoutPrefix(Func->getTarget());
+    if (Func->getContext()->getFlags().getUseNonsfi()) {
+      Str << " - .";
+    }
   } else {
     Src0->emit(Func);
   }
@@ -1893,6 +1900,9 @@ template <> void InstARM32Movt::emit(const Cfg *Func) const {
   if (auto *CR = llvm::dyn_cast<ConstantRelocatable>(Src1)) {
     Str << "#:upper16:";
     CR->emitWithoutPrefix(Func->getTarget());
+    if (Func->getContext()->getFlags().getUseNonsfi()) {
+      Str << " - .";
+    }
   } else {
     Src1->emit(Func);
   }

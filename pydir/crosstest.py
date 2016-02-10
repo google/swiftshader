@@ -177,6 +177,7 @@ def main():
                   obj_sz])
         objs.append(obj_sz)
         shellcmd(['{bin}/pnacl-llc'.format(bin=bindir),
+                  '-arm-enable-dwarf-eh=1',
                   '-mtriple=' + triple,
                   '-externalize',
                   '-filetype=obj',
@@ -237,7 +238,7 @@ def main():
     compiler = '{bin}/{prefix}{cc}'.format(
         bin=bindir, prefix='pnacl-',
         cc='clang' if pure_c else 'clang++')
-    shellcmd([compiler,
+    shellcmd([compiler] + target_params + [
               args.driver,
               '-O2',
               '-o', bitcode_nonfinal,
@@ -253,6 +254,7 @@ def main():
               '-disable-opt',
               bitcode_nonfinal, '-S', '-o', bitcode])
     shellcmd(['{bin}/pnacl-llc'.format(bin=bindir),
+              '-arm-enable-dwarf-eh=1',
               '-mtriple=' + triple,
               '-externalize',
               '-filetype=obj',

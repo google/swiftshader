@@ -20,6 +20,7 @@
 #define SUBZERO_SRC_ICEGLOBALINITS_H
 
 #include "IceDefs.h"
+#include "IceFixups.h"
 #include "IceGlobalContext.h"
 #include "IceIntrinsics.h"
 #include "IceOperand.h"
@@ -321,7 +322,16 @@ public:
     static std::unique_ptr<RelocInitializer>
     create(const GlobalDeclaration *Declaration,
            const RelocOffsetArray &OffsetExpr) {
-      return makeUnique<RelocInitializer>(Declaration, OffsetExpr);
+      constexpr bool NoFixup = false;
+      return makeUnique<RelocInitializer>(Declaration, OffsetExpr, NoFixup);
+    }
+
+    static std::unique_ptr<RelocInitializer>
+    create(const GlobalDeclaration *Declaration,
+           const RelocOffsetArray &OffsetExpr, FixupKind Fixup) {
+      constexpr bool HasFixup = true;
+      return makeUnique<RelocInitializer>(Declaration, OffsetExpr, HasFixup,
+                                          Fixup);
     }
 
     RelocOffsetT getOffset() const {
@@ -330,6 +340,12 @@ public:
         Offset += RelocOffset->getOffset();
       }
       return Offset;
+    }
+
+    bool hasFixup() const { return HasFixup; }
+    FixupKind getFixup() const {
+      assert(HasFixup);
+      return Fixup;
     }
 
     const GlobalDeclaration *getDeclaration() const { return Declaration; }
@@ -344,14 +360,17 @@ public:
     ENABLE_MAKE_UNIQUE;
 
     RelocInitializer(const GlobalDeclaration *Declaration,
-                     const RelocOffsetArray &OffsetExpr)
+                     const RelocOffsetArray &OffsetExpr, bool HasFixup,
+                     FixupKind Fixup = 0)
         : Initializer(RelocInitializerKind),
           Declaration(Declaration), // The global declaration used in the reloc.
-          OffsetExpr(OffsetExpr) {}
+          OffsetExpr(OffsetExpr), HasFixup(HasFixup), Fixup(Fixup) {}
 
     const GlobalDeclaration *Declaration;
     /// The offset to add to the relocation.
     const RelocOffsetArray OffsetExpr;
+    const bool HasFixup = false;
+    const FixupKind Fixup = 0;
   };
 
   /// Models the list of initializers.

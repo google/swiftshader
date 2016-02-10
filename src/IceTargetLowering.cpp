@@ -843,6 +843,10 @@ void TargetDataLowering::emitGlobal(const VariableDeclaration &Var,
             llvm::cast<VariableDeclaration::RelocInitializer>(Init.get());
         Str << "\t" << getEmit32Directive() << "\t";
         Str << Reloc->getDeclaration()->mangleName(Ctx);
+        if (Reloc->hasFixup()) {
+          // TODO(jpp): this is ARM32 specific.
+          Str << "(GOTOFF)";
+        }
         if (RelocOffsetT Offset = Reloc->getOffset()) {
           if (Offset >= 0 || (Offset == INT32_MIN))
             Str << " + " << Offset;

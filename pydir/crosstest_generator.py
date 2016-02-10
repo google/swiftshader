@@ -42,6 +42,13 @@ def RunNativePrefix(toolchain_root, target, run_cmd):
   prefix = arch_map[target]
   return (prefix + ' ' + run_cmd) if prefix else run_cmd
 
+def NonsfiLoaderArch(target):
+  """Returns the arch for the nonsfi_loader"""
+  arch_map = { 'arm32' : 'arm',
+               'x8632' : 'x86-32',
+             }
+  return arch_map[target]
+
 
 def main():
   """Framework for cross test generation and execution.
@@ -176,8 +183,11 @@ def main():
               if sb == 'sandbox':
                 run_cmd = '{root}/run.py -q '.format(root=root) + run_cmd
               elif sb == 'nonsfi':
-                run_cmd = ('{root}/scons-out/opt-linux-x86-32/obj/src/nonsfi/' +
-                           'loader/nonsfi_loader ').format(root=root) + run_cmd
+                run_cmd = (
+                    '{root}/scons-out/opt-linux-{arch}/obj/src/nonsfi/' +
+                    'loader/nonsfi_loader ').format(
+                        root=root, arch=NonsfiLoaderArch(target)) + run_cmd
+                run_cmd = RunNativePrefix(args.toolchain_root, target, run_cmd)
               else:
                 run_cmd = RunNativePrefix(args.toolchain_root, target, run_cmd)
               if args.lit:

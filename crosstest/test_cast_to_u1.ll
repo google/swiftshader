@@ -76,15 +76,17 @@ entry:
 define i32 @_Z4castIdbET0_T_(double %a) {
 entry:
 ;  %tobool = fcmp une double %a, 0.000000e+00
-  %tobool = fptoui double %a to i1
-  %tobool.ret_ext = zext i1 %tobool to i32
+  %tobool = fptoui double %a to i32
+  %tobool.i1 = trunc i32 %tobool to i1
+  %tobool.ret_ext = zext i1 %tobool.i1 to i32
   ret i32 %tobool.ret_ext
 }
 
 define i32 @_Z4castIfbET0_T_(float %a) {
 entry:
 ;  %tobool = fcmp une float %a, 0.000000e+00
-  %tobool = fptoui float %a to i1
-  %tobool.ret_ext = zext i1 %tobool to i32
+  %tobool = fptoui float %a to i32
+  %tobool.i1 = trunc i32 %tobool to i1
+  %tobool.ret_ext = zext i1 %tobool.i1 to i32
   ret i32 %tobool.ret_ext
 }

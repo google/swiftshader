@@ -22,9 +22,9 @@
 #include "IceGlobalInits.h"
 #include "IceInst.h"
 #include "IceOperand.h"
-#include "llvm/Support/MathExtras.h"
 
-using namespace llvm::ELF;
+#include "llvm/Support/ELF.h"
+#include "llvm/Support/MathExtras.h"
 
 namespace Ice {
 
@@ -419,11 +419,13 @@ void ELFObjectWriter::writeDataOfType(SectionType ST,
           Section->appendZeros(Str, Init->getNumBytes());
           break;
         case VariableDeclaration::Initializer::RelocInitializerKind: {
-          const auto Reloc =
+          const auto *Reloc =
               llvm::cast<VariableDeclaration::RelocInitializer>(Init.get());
           AssemblerFixup NewFixup;
           NewFixup.set_position(Section->getCurrentSize());
-          NewFixup.set_kind(RelocationKind);
+          NewFixup.set_kind(Reloc->hasFixup() ? Reloc->getFixup()
+                                              : RelocationKind);
+          assert(NewFixup.kind() != llvm::ELF::R_ARM_NONE);
           constexpr bool SuppressMangling = true;
           NewFixup.set_value(Ctx.getConstantSym(
               Reloc->getOffset(), Reloc->getDeclaration()->mangleName(&Ctx),

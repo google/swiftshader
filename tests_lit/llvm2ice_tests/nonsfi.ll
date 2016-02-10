@@ -1,9 +1,13 @@
-; RUN: %p2i -i %s --filetype=obj --assemble --disassemble --args -O2 -nonsfi=1 \
-; RUN:   --ffunction-sections \
+; RUN: %p2i -i %s --target=x8632 --filetype=obj --assemble --disassemble \
+; RUN:   --args -O2 -nonsfi=1 --ffunction-sections \
 ; RUN:   | FileCheck --check-prefix=NONSFI %s
-; RUN: %p2i -i %s --filetype=obj --assemble --disassemble --args -O2 -nonsfi=0 \
-; RUN:   --ffunction-sections \
+; RUN: %p2i -i %s --target=x8632 --filetype=obj --assemble --disassemble \
+; RUN:   --args -O2 -nonsfi=0 --ffunction-sections \
 ; RUN:   | FileCheck --check-prefix=DEFAULT %s
+
+; RUN: %p2i -i %s --target=arm32 --filetype=obj --assemble --disassemble \
+; RUN:   --args -O2 -nonsfi=1 --ffunction-sections \
+; RUN:   | FileCheck --check-prefix=ARM32-NONSFI %s
 
 @G1 = internal global [4 x i8] zeroinitializer, align 4
 @G2 = internal global [4 x i8] zeroinitializer, align 4
@@ -20,6 +24,13 @@ entry:
 ; NONSFI: call {{.*}} R_386_PC32 {{.*}}testLoadBasic
 ; DEFAULT-LABEL: testCallRegular
 
+; ARM32-NONSFI-LABEL: testCallRegular
+; ARM32-NONSFI:      movw [[REG:r[0-9]+]], {{.*}} R_ARM_MOVW_PREL_NC GOTOFF{{.*}}testLoadBasic
+; ARM32-NONSFI-NEXT: movt [[REG:r[0-9]+]], {{.*}} R_ARM_MOVT_PREL GOTOFF{{.*}}testLoadBasic
+; ARM32-NONSFI-NEXT: ldr [[GOTOFF:r[0-9]+]], [pc, [[REG]]]
+; ARM32-NONSFI-NEXT: add [[CT:r[0-9]+]], {{.*}}, [[CT]]
+; ARM32-NONSFI:      blx [[CT]]
+
 define internal double @testCallBuiltin(double %val) {
 entry:
   %result = frem double %val, %val
@@ -29,6 +40,13 @@ entry:
 ; NONSFI-LABEL: testCallBuiltin
 ; NONSFI: call {{.*}} R_386_PC32 fmod
 ; DEFAULT-LABEL: testCallBuiltin
+
+; ARM32-NONSFI-LABEL: testCallBuiltin
+; ARM32-NONSFI:      movw [[REG:r[0-9]+]], {{.*}} R_ARM_MOVW_PREL_NC GOTOFF{{.*}}fmod
+; ARM32-NONSFI-NEXT: movt [[REG:r[0-9]+]], {{.*}} R_ARM_MOVT_PREL GOTOFF{{.*}}fmod
+; ARM32-NONSFI-NEXT: ldr [[GOTOFF:r[0-9]+]], [pc, [[REG]]]
+; ARM32-NONSFI-NEXT: add [[CT:r[0-9]+]], {{.*}}, [[CT]]
+; ARM32-NONSFI:      blx [[CT]]
 
 define internal i32 @testLoadBasic() {
 entry:
@@ -40,6 +58,14 @@ entry:
 ; NONSFI-LABEL: testLoadBasic
 ; NONSFI: mov {{.*}} R_386_GOTOFF {{G1|.bss}}
 ; DEFAULT-LABEL: testLoadBasic
+
+; ARM32 PIC load.
+; ARM32-NONSFI-LABEL: testLoadBasic
+; ARM32-NONSFI:      movw {{.*}} R_ARM_MOVW_PREL_NC _GLOBAL_OFFSET_TABLE_
+; ARM32-NONSFI-NEXT: movt {{.*}} R_ARM_MOVT_PREL _GLOBAL_OFFSET_TABLE_
+; ARM32-NONSFI:      movw [[REG:r[0-9]+]], {{.*}} R_ARM_MOVW_PREL_NC {{.*}}G1
+; ARM32-NONSFI-NEXT: movt [[REG]], {{.*}} R_ARM_MOVT_PREL {{.*}}G1
+; ARM32-NONSFI-NEXT: ldr r{{[0-9]+}}, [pc, [[REG]]]
 
 define internal i32 @testLoadFixedOffset() {
 entry:
@@ -53,6 +79,15 @@ entry:
 ; NONSFI-LABEL: testLoadFixedOffset
 ; NONSFI: mov {{.*}}+0x4] {{.*}} R_386_GOTOFF {{G1|.bss}}
 ; DEFAULT-LABEL: testLoadFixedOffset
+
+; ARM32-NONSFI-LABEL: testLoadFixedOffset
+; ARM32-NONSFI:      movw [[GOT:r[0-9]+]], {{.*}} R_ARM_MOVW_PREL_NC _GLOBAL_OFFSET_TABLE_
+; ARM32-NONSFI-NEXT: movt [[GOT]], {{.*}} R_ARM_MOVT_PREL _GLOBAL_OFFSET_TABLE_
+; ARM32-NONSFI:      movw [[REG:r[0-9]+]], {{.*}} R_ARM_MOVW_PREL_NC {{.*}}G1
+; ARM32-NONSFI-NEXT: movt [[REG]], {{.*}} R_ARM_MOVT_PREL {{.*}}G1
+; ARM32-NONSFI-NEXT: ldr [[ADDR:r[0-9]+]], [pc, [[REG]]]
+; ARM32-NONSFI-NEXT: add [[G1BASE:r[0-9]+]], [[GOT]], [[ADDR]]
+; ARM32-NONSFI-NEXT: add {{.*}}, [[G1BASE]], #4
 
 define internal i32 @testLoadIndexed(i32 %idx) {
 entry:
@@ -69,6 +104,15 @@ entry:
 ; NONSFI-LABEL: testLoadIndexed
 ; NONSFI: mov {{.*}}*4+0xc] {{.*}} R_386_GOTOFF {{G1|.bss}}
 ; DEFAULT-LABEL: testLoadIndexed
+
+; ARM32-NONSFI-LABEL: testLoadIndexed
+; ARM32-NONSFI:      movw [[GOT:r[0-9]+]], {{.*}} R_ARM_MOVW_PREL_NC _GLOBAL_OFFSET_TABLE_
+; ARM32-NONSFI-NEXT: movt [[GOT]], {{.*}} R_ARM_MOVT_PREL _GLOBAL_OFFSET_TABLE_
+; ARM32-NONSFI:      movw [[REG:r[0-9]+]], {{.*}} R_ARM_MOVW_PREL_NC {{.*}}G1
+; ARM32-NONSFI-NEXT: movt [[REG]], {{.*}} R_ARM_MOVT_PREL {{.*}}G1
+; ARM32-NONSFI-NEXT: ldr [[ADDR:r[0-9]+]], [pc, [[REG]]]
+; ARM32-NONSFI-NEXT: add [[G1BASE:r[0-9]+]], [[GOT]], [[ADDR]]
+; ARaM32-NONSFI-NEXT: add {{.*}}, [[G1BASE]]
 
 define internal i32 @testLoadIndexedBase(i32 %base, i32 %idx) {
 entry:

@@ -23,6 +23,7 @@ def Translate(ll_files, extra_args, obj, verbose):
             '-O2',
             '-filetype=obj',
             '-bitcode-format=llvm',
+            '-arm-enable-dwarf-eh=1',
             '-o', obj
     ] + extra_args, echo=verbose)
   shellcmd(['le32-nacl-objcopy',

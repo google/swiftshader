@@ -143,6 +143,12 @@ llvm::StringRef Assembler::getBufferView() const {
                          Buffer.size());
 }
 
+void Assembler::bindRelocOffset(RelocOffset *Offset) {
+  if (!getPreliminary()) {
+    Offset->setOffset(Buffer.getPosition());
+  }
+}
+
 void Assembler::emitIASBytes(GlobalContext *Ctx) const {
   Ostream &Str = Ctx->getStrEmit();
   intptr_t EndPosition = Buffer.size();

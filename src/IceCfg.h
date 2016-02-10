@@ -157,6 +157,19 @@ public:
   }
   /// @}
 
+  /// \name Manage the Globals used by this function.
+  /// @{
+  std::unique_ptr<VariableDeclarationList> getGlobalInits() {
+    return std::move(GlobalInits);
+  }
+  void addGlobal(VariableDeclaration *Global) {
+    if (GlobalInits == nullptr) {
+      GlobalInits.reset(new VariableDeclarationList);
+    }
+    GlobalInits->push_back(Global);
+  }
+  /// @}
+
   /// \name Miscellaneous accessors.
   /// @{
   TargetLowering *getTarget() const { return Target.get(); }
@@ -166,9 +179,6 @@ public:
     return llvm::dyn_cast<T>(TargetAssembler.get());
   }
   Assembler *releaseAssembler() { return TargetAssembler.release(); }
-  std::unique_ptr<VariableDeclarationList> getGlobalInits() {
-    return std::move(GlobalInits);
-  }
   bool hasComputedFrame() const;
   bool getFocusedTiming() const { return FocusedTiming; }
   void setFocusedTiming() { FocusedTiming = true; }
