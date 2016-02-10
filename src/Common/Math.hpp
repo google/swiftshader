@@ -346,6 +346,11 @@ namespace sw
 		return ((value + alignment - 1) / alignment) * alignment;
 	}
 
+	inline int clampToSignedInt(unsigned int x)
+	{
+		return static_cast<int>(min(x, 0x7FFFFFFFu));
+	}
+
 	class RGB9E5Data
 	{
 		unsigned int R : 9;
