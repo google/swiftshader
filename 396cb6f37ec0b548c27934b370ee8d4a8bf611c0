@@ -22,6 +22,30 @@
       "revId": "396cb6f37ec0b548c27934b370ee8d4a8bf611c0",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fdce9ca2_6ef8532c",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2137,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-02-10T19:53:29Z",
+      "side": 1,
+      "message": "Not sure about this one. GL_TEXTURE_BINDING_2D_ARRAY_EXT does exist in the GL_EXT_texture_array extension, so it\u0027s new to core ES in 3.0, but it\u0027s not exclusively available in ES 3.0.",
+      "parentUuid": "fdce9ca2_6e8cd3f1",
+      "range": {
+        "startLine": 2137,
+        "startChar": 38,
+        "endLine": 2137,
+        "endChar": 46
+      },
+      "revId": "396cb6f37ec0b548c27934b370ee8d4a8bf611c0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
