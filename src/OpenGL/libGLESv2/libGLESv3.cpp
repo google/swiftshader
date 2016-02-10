@@ -513,10 +513,10 @@ GL_APICALL void GL_APIENTRY glReadBuffer(GLenum src)
 			{
 				return error(GL_INVALID_OPERATION);
 			}
-			context->setReadFramebufferColorIndex(0);
+			context->setFramebufferReadBuffer(src);
 			break;
 		case GL_NONE:
-			context->setReadFramebufferColorIndex(GL_INVALID_INDEX);
+			context->setFramebufferReadBuffer(src);
 			break;
 		case GL_COLOR_ATTACHMENT0:
 		case GL_COLOR_ATTACHMENT1:
@@ -560,7 +560,7 @@ GL_APICALL void GL_APIENTRY glReadBuffer(GLenum src)
 			{
 				return error(GL_INVALID_OPERATION);
 			}
-			context->setReadFramebufferColorIndex(index);
+			context->setFramebufferReadBuffer(src);
 		}
 			break;
 		default:
@@ -1211,7 +1211,7 @@ GL_APICALL void GL_APIENTRY glDrawBuffers(GLsizei n, const GLenum *bufs)
 			}
 		}
 
-		context->setDrawFramebufferColorIndices(n, bufs);
+		context->setFramebufferDrawBuffers(n, bufs);
 	}
 }
 

@@ -30,6 +30,13 @@ Framebuffer::Framebuffer()
 	}
 	mDepthbufferType = GL_NONE;
 	mStencilbufferType = GL_NONE;
+
+	readBuffer = GL_BACK;
+	drawBuffer[0] = GL_BACK;
+	for(int i = 1; i < MAX_COLOR_ATTACHMENTS; ++i)
+	{
+		drawBuffer[i] = GL_NONE;
+	}
 }
 
 Framebuffer::~Framebuffer()
@@ -68,6 +75,11 @@ void Framebuffer::setColorbuffer(GLenum type, GLuint colorbuffer, GLuint index, 
 {
 	mColorbufferType[index] = (colorbuffer != 0) ? type : GL_NONE;
 	mColorbufferPointer[index] = lookupRenderbuffer(type, colorbuffer, level, layer);
+	drawBuffer[index] = (colorbuffer != 0) ? GL_COLOR_ATTACHMENT0 + index : GL_NONE;
+	if(index == 0)
+	{
+		readBuffer = drawBuffer[0];
+	}
 }
 
 void Framebuffer::setDepthbuffer(GLenum type, GLuint depthbuffer, GLint level, GLint layer)
@@ -80,6 +92,26 @@ void Framebuffer::setStencilbuffer(GLenum type, GLuint stencilbuffer, GLint leve
 {
 	mStencilbufferType = (stencilbuffer != 0) ? type : GL_NONE;
 	mStencilbufferPointer = lookupRenderbuffer(type, stencilbuffer, level, layer);
+}
+
+void Framebuffer::setReadBuffer(GLenum buf)
+{
+	readBuffer = buf;
+}
+
+void Framebuffer::setDrawBuffer(GLuint index, GLenum buf)
+{
+	drawBuffer[index] = buf;
+}
+
+GLenum Framebuffer::getReadBuffer() const
+{
+	return readBuffer;
+}
+
+GLenum Framebuffer::getDrawBuffer(GLuint index) const
+{
+	return drawBuffer[index];
 }
 
 void Framebuffer::detachTexture(GLuint texture)
