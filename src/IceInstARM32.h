@@ -1368,6 +1368,7 @@ public:
         InstARM32Extract(Func, Dest, Src0, Index, Predicate);
   }
   void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Extract); }
 
 private:
@@ -1396,6 +1397,7 @@ public:
         InstARM32Insert(Func, Dest, Src0, Index, Predicate);
   }
   void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Insert); }
 
 private:

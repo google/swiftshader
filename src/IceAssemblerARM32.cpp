@@ -158,7 +158,7 @@ IValueT encodeElmtType(Type ElmtTy) {
     return 3;
   default:
     llvm::report_fatal_error("SIMD op: Don't understand element type " +
-                             std::string(typeString(ElmtTy)));
+                             typeIceString(ElmtTy));
   }
 }
 
@@ -213,7 +213,17 @@ IValueT getEncodedQRegNum(const Variable *Var) {
   return RegARM32::getEncodedQReg(Var->getRegNum());
 }
 
-IValueT mapQRegToDReg(IValueT EncodedQReg) { return EncodedQReg << 1; }
+IValueT mapQRegToDReg(IValueT EncodedQReg) {
+  IValueT DReg = EncodedQReg << 1;
+  assert(DReg < RegARM32::getNumDRegs());
+  return DReg;
+}
+
+IValueT mapQRegToSReg(IValueT EncodedQReg) {
+  IValueT SReg = EncodedQReg << 2;
+  assert(SReg < RegARM32::getNumSRegs());
+  return SReg;
+}
 
 IValueT getYInRegXXXXY(IValueT RegXXXXY) { return RegXXXXY & 0x1; }
 
@@ -1008,6 +1018,60 @@ void AssemblerARM32::emitDivOp(CondARM32::Cond Cond, IValueT Opcode, IValueT Rd,
                            B25 | B24 | B20 | B15 | B14 | B13 | B12 | B4 |
                            (Rm << kDivRmShift);
   emitInst(Encoding);
+}
+
+void AssemblerARM32::emitInsertExtractInt(CondARM32::Cond Cond,
+                                          const Operand *OpQn, uint32_t Index,
+                                          const Operand *OpRt, bool IsExtract,
+                                          const char *InstName) {
+  const IValueT Rt = encodeGPRegister(OpRt, "Rt", InstName);
+  IValueT Dn = mapQRegToDReg(encodeQRegister(OpQn, "Qn", InstName));
+  assert(Rt != RegARM32::Encoded_Reg_pc);
+  assert(Rt != RegARM32::Encoded_Reg_sp);
+  assert(CondARM32::isDefined(Cond));
+  const uint32_t BitSize = typeWidthInBytes(OpRt->getType()) * CHAR_BIT;
+  IValueT Opcode1 = 0;
+  IValueT Opcode2 = 0;
+  switch (BitSize) {
+  default:
+    llvm::report_fatal_error(std::string(InstName) +
+                             ": Unable to process type " +
+                             typeIceString(OpRt->getType()));
+  case 8:
+    assert(Index < 16);
+    Dn = Dn | mask(Index, 3, 1);
+    Opcode1 = B1 | mask(Index, 2, 1);
+    Opcode2 = mask(Index, 0, 2);
+    break;
+  case 16:
+    assert(Index < 8);
+    Dn = Dn | mask(Index, 2, 1);
+    Opcode1 = mask(Index, 1, 1);
+    Opcode2 = (mask(Index, 0, 1) << 1) | B0;
+    break;
+  case 32:
+    assert(Index < 4);
+    Dn = Dn | mask(Index, 1, 1);
+    Opcode1 = mask(Index, 0, 1);
+    break;
+  }
+  const IValueT Encoding = B27 | B26 | B25 | B11 | B9 | B8 | B4 |
+                           (encodeCondition(Cond) << kConditionShift) |
+                           (Opcode1 << 21) |
+                           (getXXXXInRegYXXXX(Dn) << kRnShift) | (Rt << 12) |
+                           (encodeBool(IsExtract) << 20) |
+                           (getYInRegYXXXX(Dn) << 7) | (Opcode2 << 5);
+  emitInst(Encoding);
+}
+
+void AssemblerARM32::emitMoveSS(CondARM32::Cond Cond, IValueT Sd, IValueT Sm) {
+  // VMOV (register) - ARM section A8.8.340, encoding A2:
+  //   vmov<c>.f32 <Sd>, <Sm>
+  //
+  // cccc11101D110000dddd101001M0mmmm where cccc=Cond, ddddD=Sd, and mmmmM=Sm.
+  constexpr IValueT VmovssOpcode = B23 | B21 | B20 | B6;
+  constexpr IValueT S0 = 0;
+  emitVFPsss(Cond, VmovssOpcode, Sd, S0, Sm);
 }
 
 void AssemblerARM32::emitMulOp(CondARM32::Cond Cond, IValueT Opcode, IValueT Rd,
@@ -2654,6 +2718,33 @@ void AssemblerARM32::vmovdrr(const Operand *OpDm, const Operand *OpRt,
   emitInst(Encoding);
 }
 
+void AssemblerARM32::vmovqir(const Operand *OpQn, uint32_t Index,
+                             const Operand *OpRt, CondARM32::Cond Cond) {
+  // VMOV (ARM core register to scalar) - ARM section A8.8.341, encoding A1:
+  //   vmov<c>.<size> <Dn[x]>, <Rt>
+  constexpr const char *Vmovdr = "vmovdr";
+  constexpr bool IsExtract = true;
+  emitInsertExtractInt(Cond, OpQn, Index, OpRt, !IsExtract, Vmovdr);
+}
+
+void AssemblerARM32::vmovqis(const Operand *OpQd, uint32_t Index,
+                             const Operand *OpSm, CondARM32::Cond Cond) {
+  constexpr const char *Vmovqis = "vmovqis";
+  assert(Index < 4);
+  IValueT Sd = mapQRegToSReg(encodeQRegister(OpQd, "Qd", Vmovqis)) + Index;
+  IValueT Sm = encodeSRegister(OpSm, "Sm", Vmovqis);
+  emitMoveSS(Cond, Sd, Sm);
+}
+
+void AssemblerARM32::vmovrqi(const Operand *OpRt, const Operand *OpQn,
+                             uint32_t Index, CondARM32::Cond Cond) {
+  // VMOV (scalar to ARM core register) - ARM section A8.8.342, encoding A1:
+  //   vmov<c>.<dt> <Rt>, <Dn[x]>
+  constexpr const char *Vmovrd = "vmovrd";
+  constexpr bool IsExtract = true;
+  emitInsertExtractInt(Cond, OpQn, Index, OpRt, IsExtract, Vmovrd);
+}
+
 void AssemblerARM32::vmovrrd(const Operand *OpRt, const Operand *OpRt2,
                              const Operand *OpDm, CondARM32::Cond Cond) {
   // VMOV (between two ARM core registers and a doubleword extension register).
@@ -2716,16 +2807,20 @@ void AssemblerARM32::vmovs(const Operand *OpSd,
 
 void AssemblerARM32::vmovss(const Operand *OpSd, const Variable *OpSm,
                             CondARM32::Cond Cond) {
-  // VMOV (register) - ARM section A8.8.340, encoding A2:
-  //   vmov<c>.f32 <Sd>, <Sm>
-  //
-  // cccc11101D110000dddd101001M0mmmm where cccc=Cond, ddddD=Sd, and mmmmM=Sm.
   constexpr const char *Vmovss = "Vmovss";
   IValueT Sd = encodeSRegister(OpSd, "Sd", Vmovss);
   IValueT Sm = encodeSRegister(OpSm, "Sm", Vmovss);
-  constexpr IValueT VmovssOpcode = B23 | B21 | B20 | B6;
-  constexpr IValueT S0 = 0;
-  emitVFPsss(Cond, VmovssOpcode, Sd, S0, Sm);
+  emitMoveSS(Cond, Sd, Sm);
+}
+
+void AssemblerARM32::vmovsqi(const Operand *OpSd, const Operand *OpQm,
+                             uint32_t Index, CondARM32::Cond Cond) {
+  constexpr const char *Vmovsqi = "vmovsqi";
+  const IValueT Sd = encodeSRegister(OpSd, "Sd", Vmovsqi);
+  assert(Index < 4);
+  const IValueT Sm =
+      mapQRegToSReg(encodeQRegister(OpQm, "Qm", Vmovsqi)) + Index;
+  emitMoveSS(Cond, Sd, Sm);
 }
 
 void AssemblerARM32::vmovsr(const Operand *OpSn, const Operand *OpRt,

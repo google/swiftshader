@@ -417,24 +417,48 @@ public:
     vld1qr(ElmtSize, OpQd, OpRn, TInfo);
   }
 
+  // Dn = FpImm
   void vmovd(const Operand *OpDn, const OperandARM32FlexFpImm *OpFpImm,
              CondARM32::Cond Cond);
 
+  // Dd = Dm
   void vmovdd(const Operand *OpDd, const Variable *OpDm, CondARM32::Cond Cond);
 
+  // Dm = Rt:Rt2
   void vmovdrr(const Operand *OpDm, const Operand *OpRt, const Operand *OpRt2,
                CondARM32::Cond Cond);
 
+  // Qd[Index] = Rt
+  void vmovqir(const Operand *OpQd, uint32_t Index, const Operand *OpRt,
+               CondARM32::Cond Cond);
+
+  // Qd[Index] = Sm
+  void vmovqis(const Operand *OpQd, uint32_t Indx, const Operand *OpSm,
+               CondARM32::Cond Cond);
+
+  // Rt = Qm[Index]
+  void vmovrqi(const Operand *OpRt, const Operand *OpQd, uint32_t Index,
+               CondARM32::Cond Cond);
+
+  // Rt:Rt2 = Dm
   void vmovrrd(const Operand *OpRt, const Operand *OpRt2, const Operand *OpDm,
                CondARM32::Cond Cond);
 
+  // Rt = Sn
   void vmovrs(const Operand *OpRt, const Operand *OpSn, CondARM32::Cond Cond);
 
+  // Sn = FpImm
   void vmovs(const Operand *OpSn, const OperandARM32FlexFpImm *OpFpImm,
              CondARM32::Cond Cond);
 
-  void vmovss(const Operand *OpDd, const Variable *OpDm, CondARM32::Cond Cond);
+  // Sd = Sm
+  void vmovss(const Operand *OpSd, const Variable *OpSm, CondARM32::Cond Cond);
 
+  // Sd = Qm[Index]
+  void vmovsqi(const Operand *OpSd, const Operand *OpQm, uint32_t Index,
+               CondARM32::Cond Cond);
+
+  // Sn = Rt
   void vmovsr(const Operand *OpSn, const Operand *OpRt, CondARM32::Cond Cond);
 
   void vmlad(const Operand *OpDd, const Operand *OpDn, const Operand *OpDm,
@@ -640,6 +664,17 @@ private:
   // x=Opcode, dddd=Rd, nnnn=Rn, mmmm=Rm.
   void emitDivOp(CondARM32::Cond Cond, IValueT Opcode, IValueT Rd, IValueT Rn,
                  IValueT Rm);
+
+  // cccc1110iiiennnntttt1011Njj10000 where cccc=Cond, tttt=Rt, Ndddd=2*Qn=Dn,
+  // iii=Opcode1, jj=Opcode2, Opcode1Opcode2 encodes Index and the
+  // corresponding element size of the vector element, and e=IsExtract.
+  void emitInsertExtractInt(CondARM32::Cond Cond, const Operand *OpQn,
+                            uint32_t Index, const Operand *OpRt, bool IsExtract,
+                            const char *InstName);
+
+  // cccc11101D110000dddd101001M0mmmm where cccc=Cond, ddddD=Sd, and mmmmM=Sm.
+  // Assigns Sd the value of Sm.
+  void emitMoveSS(CondARM32::Cond Cond, IValueT Sd, IValueT Sm);
 
   // Pattern ccccxxxxxxxfnnnnddddssss1001mmmm where cccc=Cond, dddd=Rd, nnnn=Rn,
   // mmmm=Rm, ssss=Rs, f=SetFlags and xxxxxxx=Opcode.

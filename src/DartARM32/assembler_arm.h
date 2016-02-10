@@ -630,9 +630,8 @@ class Assembler : public ValueObject {
   void vmovdrr(DRegister dm, Register rt, Register rt2, Condition cond = AL);
   // Moved to ARM32::AssemblerARM32::vmovrrd().
   void vmovrrd(Register rt, Register rt2, DRegister dm, Condition cond = AL);
-#endif
+  // Moved to ARM32::AssemblerARM32::vmovqir().
   void vmovdr(DRegister dd, int i, Register rt, Condition cond = AL);
-#if 0
   // Moved to ARM32::AssemblerARM32::vmovss().
   void vmovs(SRegister sd, SRegister sm, Condition cond = AL);
   // Moved to ARM32::AssemblerARM32::vmovdd().
@@ -1409,6 +1408,7 @@ class Assembler : public ValueObject {
   // ARM32::AssemblerARM32::veord()
   // ARM32::AssemblerARM32::vld1qr()
   // ARM32::AssemblerARM32::vst1qr()
+  // ARM32::AssemblerARM32::vmorqi()
 #endif
 
   DISALLOW_ALLOCATION();

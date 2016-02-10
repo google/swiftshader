@@ -1067,6 +1067,8 @@ InstARM32Mov::InstARM32Mov(Cfg *Func, Variable *Dest, Operand *Src,
   }
 }
 
+namespace {
+
 // These next two functions find the D register that maps to the half of the Q
 // register that this instruction is accessing.
 Register getDRegister(const Variable *Src, uint32_t Index) {
@@ -1124,6 +1126,8 @@ Register getSRegister(const Variable *Src, uint32_t Index) {
   return static_cast<Register>(RegARM32::RegTable[SrcReg].Aliases[Index + 3]);
 }
 
+} // end of anonymous namespace
+
 void InstARM32Extract::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   const Type DestTy = getDest()->getType();
@@ -1162,6 +1166,23 @@ void InstARM32Extract::emit(const Cfg *Func) const {
   }
 }
 
+void InstARM32Extract::emitIAS(const Cfg *Func) const {
+  const Operand *Dest = getDest();
+  const Type DestTy = Dest->getType();
+  const Operand *Src = getSrc(0);
+  assert(isVectorType(Src->getType()));
+  assert(DestTy == typeElementType(Src->getType()));
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  if (isIntegerType(DestTy)) {
+    Asm->vmovrqi(Dest, Src, Index, getPredicate());
+    assert(!Asm->needsTextFixup());
+    return;
+  }
+  assert(isFloatingType(DestTy));
+  Asm->vmovsqi(Dest, Src, Index, getPredicate());
+  assert(!Asm->needsTextFixup());
+}
+
 void InstARM32Insert::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   const Variable *Dest = getDest();
@@ -1191,6 +1212,24 @@ void InstARM32Insert::emit(const Cfg *Func) const {
   } else {
     assert(false && "Invalid insert type");
   }
+}
+
+void InstARM32Insert::emitIAS(const Cfg *Func) const {
+  const Variable *Dest = getDest();
+  const Operand *Src = getSrc(0);
+  const Type SrcTy = Src->getType();
+  assert(isVectorType(Dest->getType()));
+  assert(typeElementType(Dest->getType()) == SrcTy);
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  if (isIntegerType(SrcTy)) {
+    const Operand *Src = getSrc(0);
+    Asm->vmovqir(Dest, Index, Src, getPredicate());
+    assert(!Asm->needsTextFixup());
+    return;
+  }
+  assert(isFloatingType(SrcTy));
+  Asm->vmovqis(Dest, Index, Src, getPredicate());
+  assert(!Asm->needsTextFixup());
 }
 
 template <InstARM32::InstKindARM32 K>
