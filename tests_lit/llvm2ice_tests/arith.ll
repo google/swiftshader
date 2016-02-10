@@ -162,8 +162,8 @@ entry:
 ; ARM32-LABEL: Sdiv
 ; ARM32: tst [[DENOM:r.*]], [[DENOM]]
 ; ARM32: bne
-; AARM32: .word 0xe7fedef0
-; ARM32: udf #60896 ; 0xede0
+; The following instruction is ".word 0xe7fedef0 = udf #60896 ; 0xede0".
+; ARM32: e7fedef0
 ; ARM32: movw [[CALL:r[0-9]]], {{.+}} __divsi3
 ; ARM32: movt [[CALL]], {{.+}} __divsi3
 ; ARM32: blx [[CALL]]
