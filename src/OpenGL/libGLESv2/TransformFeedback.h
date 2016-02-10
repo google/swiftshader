@@ -32,6 +32,10 @@ public:
 
 	Buffer* getGenericBuffer() const;
 	Buffer* getBuffer(GLuint index) const;
+	GLuint getGenericBufferName() const;
+	GLuint getBufferName(GLuint index) const;
+	int getOffset(GLuint index) const;
+	int getSize(GLuint index) const;
 	bool isActive() const;
 	bool isPaused() const;
 	GLenum primitiveMode() const;
