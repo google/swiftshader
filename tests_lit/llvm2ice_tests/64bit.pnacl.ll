@@ -1960,4 +1960,3 @@ branch2:
 ; ARM32-LABEL: phi64Undef
 ; ARM32: mov {{.*}} #0
 ; ARM32: mov {{.*}} #0
-

@@ -9,7 +9,7 @@
 ; RUN: %p2i --target x8632 -i %s --filetype=obj --disassemble --args -O2 \
 ; RUN:    -sz-seed=1 -randomize-pool-immediates=randomize \
 ; RUN:    -randomize-pool-threshold=0x1 \
-; RUN:	  -reorder-global-variables \
+; RUN:    -reorder-global-variables \
 ; RUN:    -reorder-basic-blocks \
 ; RUN:    -reorder-functions \
 ; RUN:    -randomize-regalloc \
@@ -23,7 +23,7 @@
 ; RUN:    --args -O2 -sz-seed=1 \
 ; RUN:    -randomize-pool-immediates=randomize \
 ; RUN:    -randomize-pool-threshold=0x1 \
-; RUN:	  -reorder-global-variables \
+; RUN:    -reorder-global-variables \
 ; RUN:    -reorder-basic-blocks \
 ; RUN:    -reorder-functions \
 ; RUN:    -randomize-regalloc \
@@ -35,7 +35,7 @@
 ; RUN: %p2i --target x8632 -i %s --filetype=asm --args -O2 -sz-seed=1\
 ; RUN:    -randomize-pool-immediates=randomize \
 ; RUN:    -randomize-pool-threshold=0x1 \
-; RUN:	  -reorder-global-variables \
+; RUN:    -reorder-global-variables \
 ; RUN:    -reorder-basic-blocks \
 ; RUN:    -reorder-functions \
 ; RUN:    -randomize-regalloc \
@@ -47,7 +47,7 @@
 ; RUN: %p2i --target x8632 -i %s --filetype=obj --disassemble --args -O2 \
 ; RUN:    -sz-seed=1 -randomize-pool-immediates=randomize \
 ; RUN:    -randomize-pool-threshold=0x1 \
-; RUN:	  -reorder-global-variables \
+; RUN:    -reorder-global-variables \
 ; RUN:    -reorder-basic-blocks \
 ; RUN:    -reorder-functions \
 ; RUN:    -randomize-regalloc \
@@ -59,7 +59,7 @@
 ; RUN: %p2i --target x8632 -i %s --filetype=obj --disassemble --args -O2 \
 ; RUN:    -sz-seed=1 -randomize-pool-immediates=randomize \
 ; RUN:    -randomize-pool-threshold=0x1 \
-; RUN:	  -reorder-global-variables \
+; RUN:    -reorder-global-variables \
 ; RUN:    -reorder-basic-blocks \
 ; RUN:    -reorder-functions \
 ; RUN:    -randomize-regalloc \
@@ -70,7 +70,7 @@
 ; Command for checking nop insertion (Need to turn off randomize-regalloc)
 ; RUN: %p2i --target x8632 -i %s --filetype=asm --args \
 ; RUN:    -sz-seed=1 -randomize-pool-immediates=randomize \
-; RUN:	  -reorder-global-variables \
+; RUN:    -reorder-global-variables \
 ; RUN:    -reorder-basic-blocks \
 ; RUN:    -reorder-functions \
 ; RUN:    -randomize-regalloc=0 \
@@ -83,7 +83,7 @@
 ; RUN:    --args -O2 -sz-seed=1 \
 ; RUN:    -randomize-pool-immediates=randomize \
 ; RUN:    -randomize-pool-threshold=0x1 \
-; RUN:	  -reorder-global-variables \
+; RUN:    -reorder-global-variables \
 ; RUN:    -reorder-basic-blocks \
 ; RUN:    -reorder-functions \
 ; RUN:    -randomize-regalloc \

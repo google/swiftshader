@@ -8,4 +8,3 @@
 ; RUN:   | FileCheck %s
 
 ; CHECK: Forward reference @3105555534 too big. Have 1 globals and function contains 16 bytes
-

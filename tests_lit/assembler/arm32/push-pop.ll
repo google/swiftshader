@@ -36,7 +36,7 @@ define internal void @SinglePushPop() {
 ; IASM-NOT: push
 
   call void @DoSomething();
-  ret void       
+  ret void
 
 ; ASM:    pop     {lr}
 ; DIS:    {{.+}}  e49de004

@@ -39,7 +39,7 @@ entry:
 ; IASM-NEXT:    .byte 0xe2
 
 ; ASM-NEXT:     str     r0, [sp, #20]
-; ASM-NEXT:     # [sp, #20] = def.pseudo 
+; ASM-NEXT:     # [sp, #20] = def.pseudo
 ; DIS-NEXT:   4:        e58d0014
 ; IASM-NEXT:    .byte 0x14
 ; IASM-NEXT:    .byte 0x0
@@ -47,7 +47,7 @@ entry:
 ; IASM-NEXT:    .byte 0xe5
 
 ; ASM-NEXT:     str     r1, [sp, #16]
-; ASM-NEXT:     # [sp, #16] = def.pseudo 
+; ASM-NEXT:     # [sp, #16] = def.pseudo
 ; DIS-NEXT:   8:        e58d1010
 ; IASM-NEXT:    .byte 0x10
 ; IASM-NEXT:    .byte 0x10
@@ -62,7 +62,7 @@ entry:
 ; IASM-NEXT:    .byte 0xe5
 
 ; ASM-NEXT:     strb    r0, [sp, #12]
-; ASM-NEXT:     # [sp, #12] = def.pseudo 
+; ASM-NEXT:     # [sp, #12] = def.pseudo
 ; DIS-NEXT:  10:       e5cd000c
 ; IASM-NEXT:    .byte 0xc
 ; IASM-NEXT:    .byte 0x0
@@ -77,7 +77,7 @@ entry:
 ; IASM-NEXT:    .byte 0xe5
 
 ; ASM-NEXT:     strb    r0, [sp, #8]
-; ASM-NEXT:     # [sp, #8] = def.pseudo 
+; ASM-NEXT:     # [sp, #8] = def.pseudo
 ; DIS-NEXT:  18:        e5cd0008
 ; IASM-NEXT:    .byte 0x8
 ; IASM-NEXT:    .byte 0x0
@@ -144,7 +144,7 @@ entry:
 ; IASM-NEXT:    .byte 0xe2
 
 ; ASM-NEXT:     str     r0, [sp, #12]
-; ASM-NEXT:     # [sp, #12] = def.pseudo 
+; ASM-NEXT:     # [sp, #12] = def.pseudo
 ; DIS-NEXT:  54:        e58d000c
 ; IASM-NEXT:    .byte 0xc
 ; IASM-NEXT:    .byte 0x0
@@ -152,7 +152,7 @@ entry:
 ; IASM-NEXT:    .byte 0xe5
 
 ; ASM-NEXT:     str     r1, [sp, #8]
-; ASM-NEXT:     # [sp, #8] = def.pseudo 
+; ASM-NEXT:     # [sp, #8] = def.pseudo
 ; DIS-NEXT:  58:        e58d1008
 ; IASM-NEXT:    .byte 0x8
 ; IASM-NEXT:    .byte 0x10

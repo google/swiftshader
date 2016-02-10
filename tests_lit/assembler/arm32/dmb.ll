@@ -37,7 +37,7 @@ entry:
 ; IASM-NEXT:	.byte 0xe2
 
 ; ASM-NEXT:	str	r0, [sp, #8]
-; ASM-NEXT:	# [sp, #8] = def.pseudo 
+; ASM-NEXT:	# [sp, #8] = def.pseudo
 ; DIS-NEXT:   4:	e58d0008
 ; IASM-NEXT:	.byte 0x8
 ; IASM-NEXT:	.byte 0x0

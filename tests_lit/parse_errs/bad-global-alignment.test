@@ -9,4 +9,3 @@
 ; RUN:   | FileCheck %s
 
 ; CHECK: Global variable alignment greater than 2**29. Found: 2**30
-

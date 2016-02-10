@@ -47,7 +47,3 @@
 ; DIS-NEXT:     ret void;
 ; DIS-NEXT:   }
 ; DIS-NEXT: }
-
-
-
-

@@ -947,7 +947,9 @@ void InstFakeDef::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << "\t# ";
   getDest()->emit(Func);
-  Str << " = def.pseudo ";
+  Str << " = def.pseudo";
+  if (getSrcSize() > 0)
+    Str << " ";
   emitSources(Func);
   Str << "\n";
 }

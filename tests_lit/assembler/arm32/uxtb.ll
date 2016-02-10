@@ -87,4 +87,3 @@ entry:
 ; IASM-NEXT:    .byte 0xe1
 
 }
-

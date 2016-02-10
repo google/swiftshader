@@ -60,7 +60,7 @@ next3:
 ; CHECK-NEXT: nop
 ; CHECK-NEXT: bic [[REG]], [[REG]], {{.+}} ; 0xc000000f
 ; CHECK-NEXT: blx r0
-; CHECk-NEXT: {{[0-9a-f]*}}0:
+; CHECK-NEXT: {{[0-9a-f]*}}0:
 
 ; Same as above, but force bundle padding by adding two (branch) instruction
 ; before the tested call.
@@ -88,7 +88,7 @@ next2:
 ; CHECK-NEXT: nop
 ; CHECK-NEXT: bic [[REG]], [[REG]], {{.+}} ; 0xc000000f
 ; CHECK-NEXT: blx r0
-; CHECk-NEXT: {{[0-9a-f]*}}0:
+; CHECK-NEXT: {{[0-9a-f]*}}0:
 
 ; Same as above, but force bundle padding by adding single (branch) instruction
 ; before the tested call.
@@ -114,7 +114,7 @@ next:
 ; CHECK-NEXT: nop
 ; CHECK-NEXT: bic [[REG]], [[REG]], {{.+}} ; 0xc000000f
 ; CHECK-NEXT: blx r0
-; CHECk-NEXT: {{[0-9a-f]*}}0:
+; CHECK-NEXT: {{[0-9a-f]*}}0:
 
 ; An indirect call sequence uses the right mask and register-call sequence.
 define internal void @test_indirect_call(i32 %target) {
@@ -136,7 +136,7 @@ next:
 ; CHECK-NEXT: ldr
 ; CHECK-NEXT: bic [[REG:r[0-3]]], [[REG]], {{.*}} 0xc000000f
 ; CHECK-NEXT: blx [[REG]]
-; CHECk-NEXT: {{[0-9]+}}0:
+; CHECK-NEXT: {{[0-9]+}}0:
 
 ; An indirect call sequence uses the right mask and register-call sequence.
 ; Forces bundling before the tested call.
@@ -156,7 +156,7 @@ entry:
 ; CHECK-NEXT: nop
 ; CHECK-NEXT: bic [[REG:r[0-3]]], [[REG]], {{.*}} 0xc000000f
 ; CHECK-NEXT: blx [[REG]]
-; CHECk-NEXT: {{[0-9]+}}0:
+; CHECK-NEXT: {{[0-9]+}}0:
 
 ; An indirect call sequence uses the right mask and register-call sequence.
 ; Forces bundling by adding three (branch) instructions befor the tested call.
@@ -187,7 +187,7 @@ next3:
 ; CHECK-NEXT: nop
 ; CHECK-NEXT: bic [[REG:r[0-3]]], [[REG]], {{.*}} 0xc000000f
 ; CHECK-NEXT: blx [[REG]]
-; CHECk-NEXT: {{[0-9]+}}0:
+; CHECK-NEXT: {{[0-9]+}}0:
 
 ; An indirect call sequence uses the right mask and register-call sequence.
 ; Forces bundling by adding two (branch) instructions befor the tested call.
@@ -215,7 +215,7 @@ next2:
 ; CHECK-NEXT: nop
 ; CHECK-NEXT: bic [[REG:r[0-3]]], [[REG]], {{.*}} 0xc000000f
 ; CHECK-NEXT: blx [[REG]]
-; CHECk-NEXT: {{[0-9]+}}0:
+; CHECK-NEXT: {{[0-9]+}}0:
 
 ; A return sequences uses the right pop / mask / jmp sequence.
 define internal void @test_ret() {
@@ -266,7 +266,7 @@ entry:
 ;             Search for call at end of bundle.
 ; CHECK:      {{[0-9a-f]*}}c: {{.+}} blx
 ; CHECK-NEXT: mov [[REG:r[0-9]]], #0
-; CHECK-NEXT: mov 
+; CHECK-NEXT: mov
 ; CHECK-NEXT: bic [[REG]], [[REG]], {{.+}} ; 0xc0000000
 ; CHECK-NEXT: strh r{{.+}}[[REG]]
 
@@ -286,7 +286,7 @@ next:
 ; CHECK:      {{[0-9a-f]*}}c: {{.+}} blx
 ; CHECK-NEXT: b
 ; CHECK-NEXT: mov [[REG:r[0-9]]], #0
-; CHECK-NEXT: mov 
+; CHECK-NEXT: mov
 ; CHECK-NEXT: nop
 ; CHECK-NEXT: bic [[REG]], [[REG]], {{.+}} ; 0xc0000000
 ; CHECK-NEXT: strh r{{.+}}[[REG]]

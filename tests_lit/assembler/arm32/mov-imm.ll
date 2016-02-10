@@ -37,7 +37,7 @@ define internal i32 @Imm1() {
 
 define internal i32 @rotateFImmAA() {
   ; immediate = 0x000002a8 = b 0000 0000 0000 0000 0000 0010 1010 1000
-  ret i32 680 
+  ret i32 680
 }
 
 ; ASM-LABEL: rotateFImmAA:
@@ -71,7 +71,7 @@ define internal i32 @rotateEImmAA() {
 
 define internal i32 @rotateDImmAA() {
   ; immediate = 0x00002a80 = b 0000 0000 0000 0000 0010 1010 1000 0000
-  ret i32 10880 
+  ret i32 10880
 }
 
 ; ASM-LABEL: rotateDImmAA:
@@ -88,7 +88,7 @@ define internal i32 @rotateDImmAA() {
 
 define internal i32 @rotateCImmAA() {
   ; immediate = 0x0000aa00 = b 0000 0000 0000 0000 1010 1010 0000 0000
-  ret i32 43520 
+  ret i32 43520
 }
 
 ; ASM-LABEL: rotateCImmAA:
@@ -105,7 +105,7 @@ define internal i32 @rotateCImmAA() {
 
 define internal i32 @rotateBImmAA() {
   ; immediate = 0x0002a800 = b 0000 0000 0000 0010 1010 1000 0000 0000
-  ret i32 174080 
+  ret i32 174080
 }
 
 ; ASM-LABEL: rotateBImmAA:
@@ -122,7 +122,7 @@ define internal i32 @rotateBImmAA() {
 
 define internal i32 @rotateAImmAA() {
   ; immediate = 0x000aa000 = b 0000 0000 0000 1010 1010 0000 0000 0000
-  ret i32 696320 
+  ret i32 696320
 }
 
 ; ASM-LABEL: rotateAImmAA:

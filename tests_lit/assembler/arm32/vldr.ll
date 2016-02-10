@@ -49,7 +49,7 @@ entry:
 ; ASM: .LtestDouble$entry:
 
 ;  %vaddr = bitcast [8 x i8]* @doubleVal to double*
-  %vaddr = inttoptr i32 0 to double*   
+  %vaddr = inttoptr i32 0 to double*
   %v = load double, double* %vaddr, align 1
 
 ; ASM:  vldr    d20, [r5]

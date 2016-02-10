@@ -2,7 +2,7 @@
 ; uses rsb for type i64.
 
 ; Also shows an example of a register-shifted register (data) operation.
-  
+
 ; REQUIRES: allow_dump
 
 ; Compile using standalone assembler.
@@ -38,7 +38,7 @@ entry:
 ; IASM-NEXT:    .byte 0xe2
 
 ; ASM-NEXT:     str     r0, [sp, #20]
-; ASM-NEXT:     # [sp, #20] = def.pseudo 
+; ASM-NEXT:     # [sp, #20] = def.pseudo
 ; DIS-NEXT:   4:        e58d0014
 ; IASM-NEXT:    .byte 0x14
 ; IASM-NEXT:    .byte 0x0
@@ -53,7 +53,7 @@ entry:
 ; IASM-NEXT:    .byte 0xe1
 
 ; ASM-NEXT:     str     r0, [sp, #16]
-; ASM-NEXT:     # [sp, #16] = def.pseudo 
+; ASM-NEXT:     # [sp, #16] = def.pseudo
 ; DIS-NEXT:   c:        e58d0010
 ; IASM-NEXT:    .byte 0x10
 ; IASM-NEXT:    .byte 0x0
@@ -68,7 +68,7 @@ entry:
 ; IASM-NEXT:    .byte 0xe1
 
 ; ASM-NEXT:     str     r0, [sp, #12]
-; ASM-NEXT:     # [sp, #12] = def.pseudo 
+; ASM-NEXT:     # [sp, #12] = def.pseudo
 ; DIS-NEXT:  14:        e58d000c
 ; IASM-NEXT:    .byte 0xc
 ; IASM-NEXT:    .byte 0x0
@@ -83,7 +83,7 @@ entry:
 ; IASM-NEXT:    .byte 0xe1
 
 ; ASM-NEXT:     str     r0, [sp, #8]
-; ASM-NEXT:     # [sp, #8] = def.pseudo 
+; ASM-NEXT:     # [sp, #8] = def.pseudo
 ; DIS-NEXT:  1c:        e58d0008
 ; IASM-NEXT:    .byte 0x8
 ; IASM-NEXT:    .byte 0x0

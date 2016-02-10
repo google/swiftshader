@@ -84,4 +84,3 @@ define internal i32 @add1ToR0(i32 %p) {
 ; IASM-NEXT:    .byte 0xff
 ; IASM-NEXT:    .byte 0x2f
 ; IASM-NEXT:    .byte 0xe1
-

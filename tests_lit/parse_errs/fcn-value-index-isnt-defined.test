@@ -41,4 +41,3 @@
 ; ASM: Error({{.*}}): Can't find type for %v1
 ; ASM:   }
 ; ASM: }
-

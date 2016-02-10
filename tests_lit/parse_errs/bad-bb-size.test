@@ -8,4 +8,3 @@
 ; RUN:   | FileCheck %s
 
 ; CHECK: Function defines 3105555534 basic blocks, which is too big for a function containing 36 bytes
-

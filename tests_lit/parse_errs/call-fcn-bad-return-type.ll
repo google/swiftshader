@@ -17,4 +17,3 @@ entry:
 ; CHECK: Return type of function is invalid: i1
   ret void
 }
-

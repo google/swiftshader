@@ -60,7 +60,7 @@ define internal i32 @AllocBigAlign() {
 ; IASM-NEXT:    .byte 0xcd
 ; IASM-NEXT:    .byte 0xe3
 
-; ASM-NEXT:  # sp = def.pseudo 
+; ASM-NEXT:  # sp = def.pseudo
 
 ; ASM-NEXT:  add     r0, sp, #0
 ; DIS-NEXT:  10:        e28d0000
@@ -83,7 +83,7 @@ define internal i32 @AllocBigAlign() {
 ; IASM-NEXT:    .byte 0x9d
 ; IASM-NEXT:    .byte 0xe4
 
-; ASM-NEXT:  # fp = def.pseudo 
+; ASM-NEXT:  # fp = def.pseudo
 
 ; ASM-NEXT:  bx      lr
 ; DIS-NEXT:  1c:        e12fff1e

@@ -10,4 +10,3 @@ define void @foo() {
 }
 
 ; CHECK: LLVM ERROR: Unrecognized use/exclude registers: xx9x yy28 sq5
-

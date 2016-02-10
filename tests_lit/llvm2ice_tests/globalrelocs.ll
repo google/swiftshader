@@ -263,4 +263,3 @@ define internal void @func() {
 }
 
 ; DUMP: define internal void @func() {
-
