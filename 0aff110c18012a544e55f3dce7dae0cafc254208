@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fdce9ca2_0e30bfe6",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1978,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-02-10T19:51:16Z",
+      "side": 1,
+      "message": "Let\u0027s assign these to a \"one\" local variable instead of pixel.w, which is a bit confusing to read.",
+      "range": {
+        "startLine": 1964,
+        "startChar": 2,
+        "endLine": 1978,
+        "endChar": 3
+      },
+      "revId": "0aff110c18012a544e55f3dce7dae0cafc254208",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
