@@ -278,7 +278,9 @@ IceString getRegClassName(RegClass C) {
   default:
     assert(C < RC_Target);
     return regClassString(C);
-    // Add handling of new register classes below.
+  // Add handling of new register classes below.
+  case RegARM32::RCARM32_QtoS:
+    return "QtoS";
   }
 }
 
