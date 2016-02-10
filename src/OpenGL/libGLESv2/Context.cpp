@@ -2233,12 +2233,10 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 		*params = 128;
 		break;
 	case GL_MAX_FRAGMENT_UNIFORM_BLOCKS: // integer, at least 12
-		UNIMPLEMENTED();
-		*params = 12;
+		*params = MAX_FRAGMENT_UNIFORM_BLOCKS;
 		break;
-	case GL_MAX_FRAGMENT_UNIFORM_COMPONENTS: // integer, at least 1024
-		UNIMPLEMENTED();
-		*params = 1024;
+	case GL_MAX_FRAGMENT_UNIFORM_COMPONENTS: // integer, at least 896
+		*params = MAX_FRAGMENT_UNIFORM_COMPONENTS;
 		break;
 	case GL_MAX_PROGRAM_TEXEL_OFFSET: // integer, minimum is 7
 		UNIMPLEMENTED();
@@ -2265,10 +2263,9 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 		*params = 4;
 		break;
 	case GL_MAX_UNIFORM_BLOCK_SIZE: // integer, at least 16384
-		UNIMPLEMENTED();
-		*params = 16384;
+		*params = MAX_UNIFORM_BLOCK_SIZE;
 		break;
-	case GL_MAX_UNIFORM_BUFFER_BINDINGS: // integer, at least 36
+	case GL_MAX_UNIFORM_BUFFER_BINDINGS: // integer, at least 24
 		*params = IMPLEMENTATION_MAX_UNIFORM_BUFFER_BINDINGS;
 		break;
 	case GL_MAX_VARYING_COMPONENTS: // integer, at least 60
@@ -2280,12 +2277,10 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 		*params = 64;
 		break;
 	case GL_MAX_VERTEX_UNIFORM_BLOCKS: // integer,  at least 12
-		UNIMPLEMENTED();
-		*params = 12;
+		*params = MAX_VERTEX_UNIFORM_BLOCKS;
 		break;
 	case GL_MAX_VERTEX_UNIFORM_COMPONENTS: // integer,  at least 1024
-		UNIMPLEMENTED();
-		*params = 1024;
+		*params = MAX_VERTEX_UNIFORM_COMPONENTS;
 		break;
 	case GL_MIN_PROGRAM_TEXEL_OFFSET: // integer, maximum is -8
 		UNIMPLEMENTED();
