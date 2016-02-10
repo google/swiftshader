@@ -377,6 +377,7 @@ TargetX86Base<TraitsType>::TargetX86Base(Cfg *Func)
 
 template <typename TraitsType>
 void TargetX86Base<TraitsType>::staticInit(GlobalContext *Ctx) {
+  RegNumT::setLimit(Traits::RegisterSet::Reg_NUM);
   Traits::initRegisterSet(Ctx->getFlags(), &TypeToRegisterSet,
                           &RegisterAliases);
   for (size_t i = 0; i < TypeToRegisterSet.size(); ++i)
@@ -842,13 +843,13 @@ bool TargetX86Base<TraitsType>::doBranchOpt(Inst *I, const CfgNode *NextNode) {
 }
 
 template <typename TraitsType>
-Variable *TargetX86Base<TraitsType>::getPhysicalRegister(SizeT RegNum,
+Variable *TargetX86Base<TraitsType>::getPhysicalRegister(RegNumT RegNum,
                                                          Type Ty) {
   if (Ty == IceType_void)
     Ty = IceType_i32;
   if (PhysicalRegisters[Ty].empty())
     PhysicalRegisters[Ty].resize(Traits::RegisterSet::Reg_NUM);
-  assert(RegNum < PhysicalRegisters[Ty].size());
+  assert(unsigned(RegNum) < PhysicalRegisters[Ty].size());
   Variable *Reg = PhysicalRegisters[Ty][RegNum];
   if (Reg == nullptr) {
     Reg = Func->makeVariable(Ty);
@@ -861,12 +862,12 @@ Variable *TargetX86Base<TraitsType>::getPhysicalRegister(SizeT RegNum,
     // Don't bother tracking the live range of a named physical register.
     Reg->setIgnoreLiveness();
   }
-  assert(Traits::getGprForType(Ty, RegNum) == static_cast<int32_t>(RegNum));
+  assert(Traits::getGprForType(Ty, RegNum) == RegNum);
   return Reg;
 }
 
 template <typename TraitsType>
-IceString TargetX86Base<TraitsType>::getRegName(SizeT RegNum, Type Ty) const {
+IceString TargetX86Base<TraitsType>::getRegName(RegNumT RegNum, Type Ty) const {
   return Traits::getRegName(Traits::getGprForType(Ty, RegNum));
 }
 
@@ -889,8 +890,8 @@ void TargetX86Base<TraitsType>::emitVariable(const Variable *Var) const {
                              Func->getFunctionName());
   }
   const int32_t Offset = Var->getStackOffset();
-  int32_t BaseRegNum = Var->getBaseRegNum();
-  if (BaseRegNum == Variable::NoRegister)
+  auto BaseRegNum = Var->getBaseRegNum();
+  if (BaseRegNum == RegNumT::NoRegister)
     BaseRegNum = getFrameOrStackReg();
   // Print in the form "Offset(%reg)", taking care that:
   //   - Offset is never printed when it is 0
@@ -919,8 +920,8 @@ TargetX86Base<TraitsType>::stackVarToAsmOperand(const Variable *Var) const {
                              Func->getFunctionName());
   }
   int32_t Offset = Var->getStackOffset();
-  int32_t BaseRegNum = Var->getBaseRegNum();
-  if (Var->getBaseRegNum() == Variable::NoRegister)
+  auto BaseRegNum = Var->getBaseRegNum();
+  if (Var->getBaseRegNum() == RegNumT::NoRegister)
     BaseRegNum = getFrameOrStackReg();
   return X86Address(Traits::getEncodedGPR(BaseRegNum), Offset,
                     AssemblerFixup::NoFixup);
@@ -1014,20 +1015,18 @@ void TargetX86Base<TraitsType>::addProlog(CfgNode *Node) {
   uint32_t NumCallee = 0;
   size_t PreservedRegsSizeBytes = 0;
   llvm::SmallBitVector Pushed(CalleeSaves.size());
-  for (SizeT i = 0; i < CalleeSaves.size(); ++i) {
-    const int32_t Canonical = Traits::getBaseReg(i);
+  for (RegNumT i : RegNumBVIter(CalleeSaves)) {
+    const auto Canonical = Traits::getBaseReg(i);
     assert(Canonical == Traits::getBaseReg(Canonical));
-    if (CalleeSaves[i] && RegsUsed[i]) {
+    if (RegsUsed[i]) {
       Pushed[Canonical] = true;
     }
   }
-  for (SizeT i = 0; i < Pushed.size(); ++i) {
-    if (!Pushed[i])
-      continue;
-    assert(static_cast<int32_t>(i) == Traits::getBaseReg(i));
+  for (RegNumT RegNum : RegNumBVIter(Pushed)) {
+    assert(RegNum == Traits::getBaseReg(RegNum));
     ++NumCallee;
     PreservedRegsSizeBytes += typeWidthInBytes(Traits::WordType);
-    _push_reg(getPhysicalRegister(i, Traits::WordType));
+    _push_reg(getPhysicalRegister(RegNum, Traits::WordType));
   }
   Ctx->statsUpdateRegistersSaved(NumCallee);
 
@@ -1124,20 +1123,20 @@ void TargetX86Base<TraitsType>::addProlog(CfgNode *Node) {
   for (Variable *Arg : Args) {
     // Skip arguments passed in registers.
     if (isVectorType(Arg->getType())) {
-      if (Traits::getRegisterForXmmArgNum(NumXmmArgs) != Variable::NoRegister) {
+      if (Traits::getRegisterForXmmArgNum(NumXmmArgs) != RegNumT::NoRegister) {
         ++NumXmmArgs;
         continue;
       }
     } else if (isScalarFloatingType(Arg->getType())) {
       if (Traits::X86_PASS_SCALAR_FP_IN_XMM &&
-          Traits::getRegisterForXmmArgNum(NumXmmArgs) != Variable::NoRegister) {
+          Traits::getRegisterForXmmArgNum(NumXmmArgs) != RegNumT::NoRegister) {
         ++NumXmmArgs;
         continue;
       }
     } else {
       assert(isScalarIntegerType(Arg->getType()));
       if (Traits::getRegisterForGprArgNum(Traits::WordType, NumGPRArgs) !=
-          Variable::NoRegister) {
+          RegNumT::NoRegister) {
         ++NumGPRArgs;
         continue;
       }
@@ -1275,9 +1274,10 @@ void TargetX86Base<TraitsType>::addEpilog(CfgNode *Node) {
       getRegisterSet(RegSet_CalleeSave, RegSet_None);
   llvm::SmallBitVector Popped(CalleeSaves.size());
   for (int32_t i = CalleeSaves.size() - 1; i >= 0; --i) {
-    if (static_cast<SizeT>(i) == getFrameReg() && IsEbpBasedFrame)
+    const auto RegNum = RegNumT::fromInt(i);
+    if (RegNum == getFrameReg() && IsEbpBasedFrame)
       continue;
-    const SizeT Canonical = Traits::getBaseReg(i);
+    const RegNumT Canonical = Traits::getBaseReg(RegNum);
     if (CalleeSaves[i] && RegsUsed[i]) {
       Popped[Canonical] = true;
     }
@@ -1285,8 +1285,9 @@ void TargetX86Base<TraitsType>::addEpilog(CfgNode *Node) {
   for (int32_t i = Popped.size() - 1; i >= 0; --i) {
     if (!Popped[i])
       continue;
-    assert(i == Traits::getBaseReg(i));
-    _pop(getPhysicalRegister(i, Traits::WordType));
+    const auto RegNum = RegNumT::fromInt(i);
+    assert(RegNum == Traits::getBaseReg(RegNum));
+    _pop(getPhysicalRegister(RegNum, Traits::WordType));
   }
 
   if (!NeedSandboxing) {
@@ -1475,10 +1476,10 @@ void TargetX86Base<TraitsType>::lowerArguments() {
     Variable *Arg = Args[i];
     Type Ty = Arg->getType();
     Variable *RegisterArg = nullptr;
-    int32_t RegNum = Variable::NoRegister;
+    auto RegNum = RegNumT::NoRegister;
     if (isVectorType(Ty)) {
       RegNum = Traits::getRegisterForXmmArgNum(NumXmmArgs);
-      if (RegNum == Variable::NoRegister) {
+      if (RegNum == RegNumT::NoRegister) {
         XmmSlotsRemain = false;
         continue;
       }
@@ -1489,7 +1490,7 @@ void TargetX86Base<TraitsType>::lowerArguments() {
         continue;
       }
       RegNum = Traits::getRegisterForXmmArgNum(NumXmmArgs);
-      if (RegNum == Variable::NoRegister) {
+      if (RegNum == RegNumT::NoRegister) {
         XmmSlotsRemain = false;
         continue;
       }
@@ -1497,14 +1498,14 @@ void TargetX86Base<TraitsType>::lowerArguments() {
       RegisterArg = Func->makeVariable(Ty);
     } else if (isScalarIntegerType(Ty)) {
       RegNum = Traits::getRegisterForGprArgNum(Ty, NumGprArgs);
-      if (RegNum == Variable::NoRegister) {
+      if (RegNum == RegNumT::NoRegister) {
         GprSlotsRemain = false;
         continue;
       }
       ++NumGprArgs;
       RegisterArg = Func->makeVariable(Ty);
     }
-    assert(RegNum != Variable::NoRegister);
+    assert(RegNum != RegNumT::NoRegister);
     assert(RegisterArg != nullptr);
     // Replace Arg in the argument list with the home register. Then generate
     // an instruction in the prolog to copy the home register to the assigned
@@ -2193,8 +2194,8 @@ void TargetX86Base<TraitsType>::lowerArithmetic(const InstArithmetic *Instr) {
     // div and idiv are the few arithmetic operators that do not allow
     // immediates as the operand.
     Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
-    uint32_t Eax;
-    uint32_t Edx;
+    RegNumT Eax;
+    RegNumT Edx;
     switch (Ty) {
     default:
       llvm::report_fatal_error("Bad type for udiv");
@@ -2283,8 +2284,8 @@ void TargetX86Base<TraitsType>::lowerArithmetic(const InstArithmetic *Instr) {
     break;
   case InstArithmetic::Urem: {
     Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
-    uint32_t Eax;
-    uint32_t Edx;
+    RegNumT Eax;
+    RegNumT Edx;
     switch (Ty) {
     default:
       llvm::report_fatal_error("Bad type for urem");
@@ -2352,8 +2353,8 @@ void TargetX86Base<TraitsType>::lowerArithmetic(const InstArithmetic *Instr) {
       }
     }
     Src1 = legalize(Src1, Legal_Reg | Legal_Mem);
-    uint32_t Eax;
-    uint32_t Edx;
+    RegNumT Eax;
+    RegNumT Edx;
     switch (Ty) {
     default:
       llvm::report_fatal_error("Bad type for srem");
@@ -2490,15 +2491,15 @@ void TargetX86Base<TraitsType>::lowerCall(const InstCall *Instr) {
     // The PNaCl ABI requires the width of arguments to be at least 32 bits.
     assert(typeWidthInBytes(Ty) >= 4);
     if (isVectorType(Ty) && (Traits::getRegisterForXmmArgNum(XmmArgs.size()) !=
-                             Variable::NoRegister)) {
+                             RegNumT::NoRegister)) {
       XmmArgs.push_back(Arg);
     } else if (isScalarFloatingType(Ty) && Traits::X86_PASS_SCALAR_FP_IN_XMM &&
                (Traits::getRegisterForXmmArgNum(XmmArgs.size()) !=
-                Variable::NoRegister)) {
+                RegNumT::NoRegister)) {
       XmmArgs.push_back(Arg);
     } else if (isScalarIntegerType(Ty) &&
                (Traits::getRegisterForGprArgNum(Ty, GprArgs.size()) !=
-                Variable::NoRegister)) {
+                RegNumT::NoRegister)) {
       GprArgs.emplace_back(Ty, Arg);
     } else {
       // Place on stack.
@@ -4274,7 +4275,7 @@ void TargetX86Base<TraitsType>::lowerAtomicCmpxchg(Variable *DestPrev,
     _mov(DestHi, T_edx);
     return;
   }
-  int32_t Eax;
+  RegNumT Eax;
   switch (Ty) {
   default:
     llvm::report_fatal_error("Bad type for cmpxchg");
@@ -4545,7 +4546,7 @@ void TargetX86Base<TraitsType>::expandAtomicRMWAsCmpxchg(LowerBinOp Op_Lo,
     return;
   }
   X86OperandMem *Addr = formMemoryOperand(Ptr, Ty);
-  int32_t Eax;
+  RegNumT Eax;
   switch (Ty) {
   default:
     llvm::report_fatal_error("Bad type for atomicRMW");
@@ -5484,7 +5485,7 @@ void TargetX86Base<TraitsType>::doMockBoundsCheck(Operand *Opnd) {
   // We use lowerStore() to copy out-args onto the stack.  This creates a memory
   // operand with the stack pointer as the base register.  Don't do bounds
   // checks on that.
-  if (Var->getRegNum() == static_cast<int32_t>(getStackReg()))
+  if (Var->getRegNum() == getStackReg())
     return;
 
   auto *Label = InstX86Label::create(Func, this);
@@ -6506,7 +6507,7 @@ uint32_t TargetX86Base<TraitsType>::getCallStackArgumentsSizeBytes(
 
 template <typename TraitsType>
 Variable *TargetX86Base<TraitsType>::makeZeroedRegister(Type Ty,
-                                                        int32_t RegNum) {
+                                                        RegNumT RegNum) {
   Variable *Reg = makeReg(Ty, RegNum);
   switch (Ty) {
   case IceType_i1:
@@ -6541,13 +6542,13 @@ Variable *TargetX86Base<TraitsType>::makeZeroedRegister(Type Ty,
 
 template <typename TraitsType>
 Variable *TargetX86Base<TraitsType>::makeVectorOfZeros(Type Ty,
-                                                       int32_t RegNum) {
+                                                       RegNumT RegNum) {
   return makeZeroedRegister(Ty, RegNum);
 }
 
 template <typename TraitsType>
 Variable *TargetX86Base<TraitsType>::makeVectorOfMinusOnes(Type Ty,
-                                                           int32_t RegNum) {
+                                                           RegNumT RegNum) {
   Variable *MinusOnes = makeReg(Ty, RegNum);
   // Insert a FakeDef so the live range of MinusOnes is not overestimated.
   Context.insert<InstFakeDef>(MinusOnes);
@@ -6563,7 +6564,7 @@ Variable *TargetX86Base<TraitsType>::makeVectorOfMinusOnes(Type Ty,
 }
 
 template <typename TraitsType>
-Variable *TargetX86Base<TraitsType>::makeVectorOfOnes(Type Ty, int32_t RegNum) {
+Variable *TargetX86Base<TraitsType>::makeVectorOfOnes(Type Ty, RegNumT RegNum) {
   Variable *Dest = makeVectorOfZeros(Ty, RegNum);
   Variable *MinusOne = makeVectorOfMinusOnes(Ty);
   _psub(Dest, MinusOne);
@@ -6572,7 +6573,7 @@ Variable *TargetX86Base<TraitsType>::makeVectorOfOnes(Type Ty, int32_t RegNum) {
 
 template <typename TraitsType>
 Variable *TargetX86Base<TraitsType>::makeVectorOfHighOrderBits(Type Ty,
-                                                               int32_t RegNum) {
+                                                               RegNumT RegNum) {
   assert(Ty == IceType_v4i32 || Ty == IceType_v4f32 || Ty == IceType_v8i16 ||
          Ty == IceType_v16i8);
   if (Ty == IceType_v4f32 || Ty == IceType_v4i32 || Ty == IceType_v8i16) {
@@ -6600,7 +6601,7 @@ Variable *TargetX86Base<TraitsType>::makeVectorOfHighOrderBits(Type Ty,
 // TODO: above, to represent vector constants in memory.
 template <typename TraitsType>
 Variable *TargetX86Base<TraitsType>::makeVectorOfFabsMask(Type Ty,
-                                                          int32_t RegNum) {
+                                                          RegNumT RegNum) {
   Variable *Reg = makeVectorOfMinusOnes(Ty, RegNum);
   _psrl(Reg, Ctx->getConstantInt8(1));
   return Reg;
@@ -6612,7 +6613,7 @@ TargetX86Base<TraitsType>::getMemoryOperandForStackSlot(Type Ty, Variable *Slot,
                                                         uint32_t Offset) {
   // Ensure that Loc is a stack slot.
   assert(Slot->mustNotHaveReg());
-  assert(Slot->getRegNum() == Variable::NoRegister);
+  assert(Slot->getRegNum() == RegNumT::NoRegister);
   // Compute the location of Loc in memory.
   // TODO(wala,stichnot): lea should not
   // be required. The address of the stack slot is known at compile time
@@ -6653,7 +6654,7 @@ TargetX86Base<TraitsType>::getMemoryOperandForStackSlot(Type Ty, Variable *Slot,
 /// is a convenient way to prevent ah/bh/ch/dh from being an (invalid) argument
 /// to the pinsrb instruction.
 template <typename TraitsType>
-Variable *TargetX86Base<TraitsType>::copyToReg8(Operand *Src, int32_t RegNum) {
+Variable *TargetX86Base<TraitsType>::copyToReg8(Operand *Src, RegNumT RegNum) {
   Type Ty = Src->getType();
   assert(isScalarIntegerType(Ty));
   assert(Ty != IceType_i1);
@@ -6688,7 +6689,7 @@ Variable *TargetX86Base<TraitsType>::copyToReg8(Operand *Src, int32_t RegNum) {
 /// Helper for legalize() to emit the right code to lower an operand to a
 /// register of the appropriate type.
 template <typename TraitsType>
-Variable *TargetX86Base<TraitsType>::copyToReg(Operand *Src, int32_t RegNum) {
+Variable *TargetX86Base<TraitsType>::copyToReg(Operand *Src, RegNumT RegNum) {
   Type Ty = Src->getType();
   Variable *Reg = makeReg(Ty, RegNum);
   if (isVectorType(Ty)) {
@@ -6701,7 +6702,7 @@ Variable *TargetX86Base<TraitsType>::copyToReg(Operand *Src, int32_t RegNum) {
 
 template <typename TraitsType>
 Operand *TargetX86Base<TraitsType>::legalize(Operand *From, LegalMask Allowed,
-                                             int32_t RegNum) {
+                                             RegNumT RegNum) {
   const bool UseNonsfi = Func->getContext()->getFlags().getUseNonsfi();
   const Type Ty = From->getType();
   // Assert that a physical register is allowed. To date, all calls to
@@ -6712,14 +6713,14 @@ Operand *TargetX86Base<TraitsType>::legalize(Operand *From, LegalMask Allowed,
   // If we're asking for a specific physical register, make sure we're not
   // allowing any other operand kinds. (This could be future work, e.g. allow
   // the shl shift amount to be either an immediate or in ecx.)
-  assert(RegNum == Variable::NoRegister || Allowed == Legal_Reg);
+  assert(RegNum == RegNumT::NoRegister || Allowed == Legal_Reg);
 
   // Substitute with an available infinite-weight variable if possible.  Only do
   // this when we are not asking for a specific register, and when the
   // substitution is not locked to a specific register, and when the types
   // match, in order to capture the vast majority of opportunities and avoid
   // corner cases in the lowering.
-  if (RegNum == Variable::NoRegister) {
+  if (RegNum == RegNumT::NoRegister) {
     if (Variable *Subst = getContext().availabilityGet(From)) {
       // At this point we know there is a potential substitution available.
       if (Subst->mustHaveReg() && !Subst->hasReg()) {
@@ -6780,7 +6781,7 @@ Operand *TargetX86Base<TraitsType>::legalize(Operand *From, LegalMask Allowed,
     // register in x86-64.
     if (Traits::Is64Bit) {
       if (llvm::isa<ConstantInteger64>(Const)) {
-        if (RegNum != Variable::NoRegister) {
+        if (RegNum != RegNumT::NoRegister) {
           assert(Traits::getGprForType(IceType_i64, RegNum) == RegNum);
         }
         return copyToReg(Const, RegNum);
@@ -6863,7 +6864,7 @@ Operand *TargetX86Base<TraitsType>::legalize(Operand *From, LegalMask Allowed,
       _lea(NewVar, Mem);
       From = NewVar;
     } else if ((!(Allowed & Legal_Mem) && !MustHaveRegister) ||
-               (RegNum != Variable::NoRegister && RegNum != Var->getRegNum())) {
+               (RegNum != RegNumT::NoRegister && RegNum != Var->getRegNum())) {
       From = copyToReg(From, RegNum);
     }
     return From;
@@ -6876,14 +6877,14 @@ Operand *TargetX86Base<TraitsType>::legalize(Operand *From, LegalMask Allowed,
 /// Provide a trivial wrapper to legalize() for this common usage.
 template <typename TraitsType>
 Variable *TargetX86Base<TraitsType>::legalizeToReg(Operand *From,
-                                                   int32_t RegNum) {
+                                                   RegNumT RegNum) {
   return llvm::cast<Variable>(legalize(From, Legal_Reg, RegNum));
 }
 
 /// Legalize undef values to concrete values.
 template <typename TraitsType>
 Operand *TargetX86Base<TraitsType>::legalizeUndef(Operand *From,
-                                                  int32_t RegNum) {
+                                                  RegNumT RegNum) {
   Type Ty = From->getType();
   if (llvm::isa<ConstantUndef>(From)) {
     // Lower undefs to zero.  Another option is to lower undefs to an
@@ -6962,11 +6963,11 @@ TargetX86Base<TraitsType>::formMemoryOperand(Operand *Opnd, Type Ty,
 }
 
 template <typename TraitsType>
-Variable *TargetX86Base<TraitsType>::makeReg(Type Type, int32_t RegNum) {
+Variable *TargetX86Base<TraitsType>::makeReg(Type Type, RegNumT RegNum) {
   // There aren't any 64-bit integer registers for x86-32.
   assert(Traits::Is64Bit || Type != IceType_i64);
   Variable *Reg = Func->makeVariable(Type);
-  if (RegNum == Variable::NoRegister)
+  if (RegNum == RegNumT::NoRegister)
     Reg->setMustHaveReg();
   else
     Reg->setRegNum(RegNum);
@@ -7009,7 +7010,7 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::postLower() {
 
 template <typename TraitsType>
 void TargetX86Base<TraitsType>::makeRandomRegisterPermutation(
-    llvm::SmallVectorImpl<int32_t> &Permutation,
+    llvm::SmallVectorImpl<RegNumT> &Permutation,
     const llvm::SmallBitVector &ExcludeRegisters, uint64_t Salt) const {
   Traits::makeRandomRegisterPermutation(Ctx, Func, Permutation,
                                         ExcludeRegisters, Salt);
@@ -7070,7 +7071,7 @@ void TargetX86Base<Machine>::emit(const ConstantRelocatable *C) const {
 template <typename TraitsType>
 Operand *
 TargetX86Base<TraitsType>::randomizeOrPoolImmediate(Constant *Immediate,
-                                                    int32_t RegNum) {
+                                                    RegNumT RegNum) {
   assert(llvm::isa<ConstantInteger32>(Immediate) ||
          llvm::isa<ConstantRelocatable>(Immediate));
   if (Ctx->getFlags().getRandomizeAndPoolImmediatesOption() == RPI_None ||
@@ -7155,7 +7156,7 @@ TargetX86Base<TraitsType>::randomizeOrPoolImmediate(Constant *Immediate,
 template <typename TraitsType>
 typename TargetX86Base<TraitsType>::X86OperandMem *
 TargetX86Base<TraitsType>::randomizeOrPoolImmediate(X86OperandMem *MemOperand,
-                                                    int32_t RegNum) {
+                                                    RegNumT RegNum) {
   assert(MemOperand);
   if (Ctx->getFlags().getRandomizeAndPoolImmediatesOption() == RPI_None ||
       RandomizationPoolingPaused == true) {
@@ -7240,7 +7241,7 @@ TargetX86Base<TraitsType>::randomizeOrPoolImmediate(X86OperandMem *MemOperand,
     // phi lowering, we should not ask for new physical registers in
     // general. However, if we do meet Memory Operand during phi lowering,
     // we should not blind or pool the immediates for now.
-    if (RegNum != Variable::NoRegister)
+    if (RegNum != RegNumT::NoRegister)
       return MemOperand;
     Variable *RegTemp = makeReg(IceType_i32);
     IceString Label;

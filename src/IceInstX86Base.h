@@ -499,15 +499,15 @@ template <typename TraitsType> struct InstImpl {
                                     const Operand *Src2Op,
                                     const GPREmitterShiftD &Emitter);
 
-  template <typename DReg_t, typename SReg_t, DReg_t (*destEnc)(int32_t),
-            SReg_t (*srcEnc)(int32_t)>
+  template <typename DReg_t, typename SReg_t, DReg_t (*destEnc)(RegNumT),
+            SReg_t (*srcEnc)(RegNumT)>
   static void emitIASCastRegOp(const Cfg *Func, Type DestTy,
                                const Variable *Dest, Type SrcTy,
                                const Operand *Src,
                                const CastEmitterRegOp<DReg_t, SReg_t> &Emitter);
 
-  template <typename DReg_t, typename SReg_t, DReg_t (*destEnc)(int32_t),
-            SReg_t (*srcEnc)(int32_t)>
+  template <typename DReg_t, typename SReg_t, DReg_t (*destEnc)(RegNumT),
+            SReg_t (*srcEnc)(RegNumT)>
   static void
   emitIASThreeOpImmOps(const Cfg *Func, Type DispatchTy, const Variable *Dest,
                        const Operand *Src0, const Operand *Src1,
@@ -1045,8 +1045,8 @@ template <typename TraitsType> struct InstImpl {
           //   mov ch, ebp ==> not redundant due to different base registers
           //   mov ecx, ecx ==> redundant, and dangerous in x86-64. i64 zexting
           //                    is handled by Inst86Zext.
-          const int32_t SrcReg = SrcVar->getRegNum();
-          const int32_t DestReg = this->Dest->getRegNum();
+          const auto SrcReg = SrcVar->getRegNum();
+          const auto DestReg = this->Dest->getRegNum();
           return (Traits::getEncoding(SrcReg) ==
                   Traits::getEncoding(DestReg)) &&
                  (Traits::getBaseReg(SrcReg) == Traits::getBaseReg(DestReg));

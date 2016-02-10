@@ -94,8 +94,9 @@ public:
   SizeT getNumRegisters() const override {
     return Traits::RegisterSet::Reg_NUM;
   }
-  Variable *getPhysicalRegister(SizeT RegNum, Type Ty = IceType_void) override;
-  IceString getRegName(SizeT RegNum, Type Ty) const override;
+  Variable *getPhysicalRegister(RegNumT RegNum,
+                                Type Ty = IceType_void) override;
+  IceString getRegName(RegNumT RegNum, Type Ty) const override;
   static IceString getRegClassName(RegClass C) {
     auto ClassNum = static_cast<RegClassX86>(C);
     assert(ClassNum < RCX86_NUM);
@@ -131,16 +132,17 @@ public:
     return TypeToRegisterSetUnfiltered[RC];
   }
 
-  const llvm::SmallBitVector &getAliasesForRegister(SizeT Reg) const override {
-    assert(Reg < Traits::RegisterSet::Reg_NUM);
+  const llvm::SmallBitVector &
+  getAliasesForRegister(RegNumT Reg) const override {
+    Reg.assertIsValid();
     return RegisterAliases[Reg];
   }
 
   bool hasFramePointer() const override { return IsEbpBasedFrame; }
   void setHasFramePointer() override { IsEbpBasedFrame = true; }
-  SizeT getStackReg() const override { return Traits::StackPtr; }
-  SizeT getFrameReg() const override { return Traits::FramePtr; }
-  SizeT getFrameOrStackReg() const override {
+  RegNumT getStackReg() const override { return Traits::StackPtr; }
+  RegNumT getFrameReg() const override { return Traits::FramePtr; }
+  RegNumT getFrameOrStackReg() const override {
     return IsEbpBasedFrame ? getFrameReg() : getStackReg();
   }
   size_t typeWidthInBytesOnStack(Type Ty) const override {
@@ -218,7 +220,7 @@ public:
   X86Address stackVarToAsmOperand(const Variable *Var) const;
 
   InstructionSetEnum getInstructionSet() const { return InstructionSet; }
-  Operand *legalizeUndef(Operand *From, int32_t RegNum = Variable::NoRegister);
+  Operand *legalizeUndef(Operand *From, RegNumT RegNum = RegNumT::NoRegister);
 
 protected:
   const bool NeedSandboxing;
@@ -387,8 +389,8 @@ protected:
   };
   using LegalMask = uint32_t;
   Operand *legalize(Operand *From, LegalMask Allowed = Legal_Default,
-                    int32_t RegNum = Variable::NoRegister);
-  Variable *legalizeToReg(Operand *From, int32_t RegNum = Variable::NoRegister);
+                    RegNumT RegNum = RegNumT::NoRegister);
+  Variable *legalizeToReg(Operand *From, RegNumT RegNum = RegNumT::NoRegister);
   /// Legalize the first source operand for use in the cmp instruction.
   Operand *legalizeSrc0ForCmp(Operand *Src0, Operand *Src1);
   /// Turn a pointer operand into a memory operand that can be used by a real
@@ -397,7 +399,7 @@ protected:
   X86OperandMem *formMemoryOperand(Operand *Ptr, Type Ty,
                                    bool DoLegalize = true);
 
-  Variable *makeReg(Type Ty, int32_t RegNum = Variable::NoRegister);
+  Variable *makeReg(Type Ty, RegNumT RegNum = RegNumT::NoRegister);
   static Type stackSlotType();
 
   static constexpr uint32_t NoSizeLimit = 0;
@@ -413,23 +415,22 @@ protected:
   static Type firstTypeThatFitsSize(uint32_t Size,
                                     uint32_t MaxSize = NoSizeLimit);
 
-  Variable *copyToReg8(Operand *Src, int32_t RegNum = Variable::NoRegister);
-  Variable *copyToReg(Operand *Src, int32_t RegNum = Variable::NoRegister);
+  Variable *copyToReg8(Operand *Src, RegNumT RegNum = RegNumT::NoRegister);
+  Variable *copyToReg(Operand *Src, RegNumT RegNum = RegNumT::NoRegister);
 
   /// Returns a register containing all zeros, without affecting the FLAGS
   /// register, using the best instruction for the type.
-  Variable *makeZeroedRegister(Type Ty, int32_t RegNum = Variable::NoRegister);
+  Variable *makeZeroedRegister(Type Ty, RegNumT RegNum = RegNumT::NoRegister);
 
   /// \name Returns a vector in a register with the given constant entries.
   /// @{
-  Variable *makeVectorOfZeros(Type Ty, int32_t RegNum = Variable::NoRegister);
-  Variable *makeVectorOfOnes(Type Ty, int32_t RegNum = Variable::NoRegister);
+  Variable *makeVectorOfZeros(Type Ty, RegNumT RegNum = RegNumT::NoRegister);
+  Variable *makeVectorOfOnes(Type Ty, RegNumT RegNum = RegNumT::NoRegister);
   Variable *makeVectorOfMinusOnes(Type Ty,
-                                  int32_t RegNum = Variable::NoRegister);
+                                  RegNumT RegNum = RegNumT::NoRegister);
   Variable *makeVectorOfHighOrderBits(Type Ty,
-                                      int32_t RegNum = Variable::NoRegister);
-  Variable *makeVectorOfFabsMask(Type Ty,
-                                 int32_t RegNum = Variable::NoRegister);
+                                      RegNumT RegNum = RegNumT::NoRegister);
+  Variable *makeVectorOfFabsMask(Type Ty, RegNumT RegNum = RegNumT::NoRegister);
   /// @}
 
   /// Return a memory operand corresponding to a stack allocated Variable.
@@ -437,7 +438,7 @@ protected:
                                               uint32_t Offset = 0);
 
   void
-  makeRandomRegisterPermutation(llvm::SmallVectorImpl<int32_t> &Permutation,
+  makeRandomRegisterPermutation(llvm::SmallVectorImpl<RegNumT> &Permutation,
                                 const llvm::SmallBitVector &ExcludeRegisters,
                                 uint64_t Salt) const override;
 
@@ -675,7 +676,7 @@ protected:
   /// infinite register allocation weight, and returned through the in/out Dest
   /// argument.
   typename Traits::Insts::Mov *_mov(Variable *&Dest, Operand *Src0,
-                                    int32_t RegNum = Variable::NoRegister) {
+                                    RegNumT RegNum = RegNumT::NoRegister) {
     if (Dest == nullptr)
       Dest = makeReg(Src0->getType(), RegNum);
     AutoMemorySandboxer<> _(this, &Dest, &Src0);
@@ -999,10 +1000,9 @@ protected:
 
   /// Randomize a given immediate operand
   Operand *randomizeOrPoolImmediate(Constant *Immediate,
-                                    int32_t RegNum = Variable::NoRegister);
-  X86OperandMem *
-  randomizeOrPoolImmediate(X86OperandMem *MemOperand,
-                           int32_t RegNum = Variable::NoRegister);
+                                    RegNumT RegNum = RegNumT::NoRegister);
+  X86OperandMem *randomizeOrPoolImmediate(X86OperandMem *MemOperand,
+                                          RegNumT RegNum = RegNumT::NoRegister);
   bool RandomizationPoolingPaused = false;
 
 private:

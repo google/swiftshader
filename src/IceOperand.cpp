@@ -86,6 +86,9 @@ bool operator==(const RelocatableTuple &A, const RelocatableTuple &B) {
   return true;
 }
 
+const RegNumT RegNumT::NoRegister(RegNumT::NoRegisterValue);
+RegNumT::BaseType RegNumT::Limit = 0;
+
 bool operator<(const RegWeight &A, const RegWeight &B) {
   return A.getWeight() < B.getWeight();
 }
@@ -190,7 +193,7 @@ IceString Variable::getName(const Cfg *Func) const {
   return "__" + std::to_string(getIndex());
 }
 
-const Variable *Variable::asType(Type Ty, int32_t NewRegNum) const {
+const Variable *Variable::asType(Type Ty, RegNumT NewRegNum) const {
   // Note: This returns a Variable, even if the "this" object is a subclass of
   // Variable.
   if (!BuildDefs::dump() || getType() == Ty)
@@ -198,7 +201,7 @@ const Variable *Variable::asType(Type Ty, int32_t NewRegNum) const {
   Variable *V = new (getCurrentCfgAllocator()->Allocate<Variable>())
       Variable(kVariable, Ty, Number);
   V->NameIndex = NameIndex;
-  V->RegNum = NewRegNum == NoRegister ? RegNum : NewRegNum;
+  V->RegNum = NewRegNum == RegNumT::NoRegister ? RegNum : NewRegNum;
   V->StackOffset = StackOffset;
   return V;
 }
@@ -511,9 +514,8 @@ void Variable::dump(const Cfg *Func, Ostream &Str) const {
   } else if (Func->getTarget()->hasComputedFrame()) {
     if (Func->isVerbose(IceV_RegOrigins))
       Str << ":";
-    int32_t BaseRegisterNumber = getBaseRegNum();
-    if (BaseRegisterNumber == NoRegister)
-      BaseRegisterNumber = Func->getTarget()->getFrameOrStackReg();
+    const auto BaseRegisterNumber =
+        hasReg() ? getBaseRegNum() : Func->getTarget()->getFrameOrStackReg();
     Str << "["
         << Func->getTarget()->getRegName(BaseRegisterNumber, IceType_i32);
     int32_t Offset = getStackOffset();

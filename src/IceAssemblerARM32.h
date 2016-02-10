@@ -86,13 +86,13 @@ public:
     TargetInfo &operator=(const TargetInfo &) = delete;
 
   public:
-    TargetInfo(bool HasFramePointer, SizeT FrameOrStackReg)
+    TargetInfo(bool HasFramePointer, RegNumT FrameOrStackReg)
         : HasFramePointer(HasFramePointer), FrameOrStackReg(FrameOrStackReg) {}
     explicit TargetInfo(const TargetLowering *Target)
         : HasFramePointer(Target->hasFramePointer()),
           FrameOrStackReg(Target->getFrameOrStackReg()) {}
     const bool HasFramePointer;
-    const SizeT FrameOrStackReg;
+    const RegNumT FrameOrStackReg;
   };
 
   explicit AssemblerARM32(bool use_far_branches = false)

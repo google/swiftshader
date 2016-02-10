@@ -888,13 +888,13 @@ void InstARM32RegisterStackOp::emitSRegsAsText(const Cfg *Func,
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << "\t" << getSRegOpcode() << "\t{";
   bool IsFirst = true;
-  int32_t Base = BaseReg->getRegNum();
+  const auto Base = BaseReg->getRegNum();
   for (SizeT i = 0; i < RegCount; ++i) {
     if (IsFirst)
       IsFirst = false;
     else
       Str << ", ";
-    Str << RegARM32::getRegName(Base + i);
+    Str << RegARM32::getRegName(RegNumT::fixme(Base + i));
   }
   Str << "}";
 }
@@ -914,8 +914,9 @@ namespace {
 
 bool isAssignedConsecutiveRegisters(const Variable *Before,
                                     const Variable *After) {
-  return RegARM32::getEncodedSReg(Before->getRegNum()) + 1 ==
-         RegARM32::getEncodedSReg(After->getRegNum());
+  assert(Before->hasReg());
+  assert(After->hasReg());
+  return RegNumT::fixme(Before->getRegNum() + 1) == After->getRegNum();
 }
 
 } // end of anonymous namespace
@@ -934,7 +935,8 @@ void InstARM32RegisterStackOp::emitUsingForm(const Cfg *Func,
     for (SizeT i = 0; i < NumRegs; ++i) {
       const Variable *Var = getStackReg(i);
       assert(Var->hasReg() && "stack op only applies to registers");
-      int32_t Reg = RegARM32::getEncodedGPR(Var->getRegNum());
+      const RegARM32::GPRRegister Reg =
+          RegARM32::getEncodedGPR(Var->getRegNum());
       LastDest = Var;
       GPRegisters |= (1 << Reg);
       ++IntegerCount;
@@ -1069,7 +1071,7 @@ InstARM32Mov::InstARM32Mov(Cfg *Func, Variable *Dest, Operand *Src,
 // register that this instruction is accessing.
 Register getDRegister(const Variable *Src, uint32_t Index) {
   assert(Src->hasReg());
-  const auto SrcReg = static_cast<Register>(Src->getRegNum());
+  const auto SrcReg = Src->getRegNum();
 
   const RegARM32::RegTableType &SrcEntry = RegARM32::RegTable[SrcReg];
   assert(SrcEntry.IsVec128);
@@ -1107,7 +1109,7 @@ constexpr uint32_t getDIndex(uint32_t NumElements, uint32_t Index) {
 // directly from an S register. This function finds the right one.
 Register getSRegister(const Variable *Src, uint32_t Index) {
   assert(Src->hasReg());
-  const auto SrcReg = static_cast<Register>(Src->getRegNum());
+  const auto SrcReg = Src->getRegNum();
 
   // For floating point values, we need to be allocated to Q0 - Q7, so we can
   // directly access the value we want as one of the S registers.

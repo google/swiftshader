@@ -89,11 +89,10 @@ TargetX8664Traits::X86OperandMem::X86OperandMem(Cfg *Func, Type Ty,
 }
 
 namespace {
-static int32_t
-getRematerializableOffset(Variable *Var,
-                          const ::Ice::X8664::TargetX8664 *Target) {
+int32_t getRematerializableOffset(Variable *Var,
+                                  const ::Ice::X8664::TargetX8664 *Target) {
   int32_t Disp = Var->getStackOffset();
-  SizeT RegNum = static_cast<SizeT>(Var->getRegNum());
+  const auto RegNum = Var->getRegNum();
   if (RegNum == Target->getFrameReg()) {
     Disp += Target->getFrameFixedAllocaOffset();
   } else if (RegNum != Target->getStackReg()) {

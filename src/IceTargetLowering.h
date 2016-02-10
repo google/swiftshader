@@ -233,16 +233,16 @@ public:
   /// generally used to get very direct access to the register such as in the
   /// prolog or epilog or for marking scratch registers as killed by a call. If
   /// a Type is not provided, a target-specific default type is used.
-  virtual Variable *getPhysicalRegister(SizeT RegNum,
+  virtual Variable *getPhysicalRegister(RegNumT RegNum,
                                         Type Ty = IceType_void) = 0;
   /// Returns a printable name for the register.
-  virtual IceString getRegName(SizeT RegNum, Type Ty) const = 0;
+  virtual IceString getRegName(RegNumT RegNum, Type Ty) const = 0;
 
   virtual bool hasFramePointer() const { return false; }
   virtual void setHasFramePointer() = 0;
-  virtual SizeT getStackReg() const = 0;
-  virtual SizeT getFrameReg() const = 0;
-  virtual SizeT getFrameOrStackReg() const = 0;
+  virtual RegNumT getStackReg() const = 0;
+  virtual RegNumT getFrameReg() const = 0;
+  virtual RegNumT getFrameOrStackReg() const = 0;
   virtual size_t typeWidthInBytesOnStack(Type Ty) const = 0;
   virtual uint32_t getStackAlignment() const = 0;
   virtual void reserveFixedAllocaArea(size_t Size, size_t Align) = 0;
@@ -284,12 +284,12 @@ public:
   /// command line.
   virtual const llvm::SmallBitVector &
   getAllRegistersForVariable(const Variable *Var) const = 0;
-  virtual const llvm::SmallBitVector &getAliasesForRegister(SizeT) const = 0;
+  virtual const llvm::SmallBitVector &getAliasesForRegister(RegNumT) const = 0;
 
   void regAlloc(RegAllocKind Kind);
 
   virtual void
-  makeRandomRegisterPermutation(llvm::SmallVectorImpl<int32_t> &Permutation,
+  makeRandomRegisterPermutation(llvm::SmallVectorImpl<RegNumT> &Permutation,
                                 const llvm::SmallBitVector &ExcludeRegisters,
                                 uint64_t Salt) const = 0;
 
@@ -363,7 +363,7 @@ protected:
   filterTypeToRegisterSet(GlobalContext *Ctx, int32_t NumRegs,
                           llvm::SmallBitVector TypeToRegisterSet[],
                           size_t TypeToRegisterSetSize,
-                          std::function<IceString(int32_t)> getRegName,
+                          std::function<IceString(RegNumT)> getRegName,
                           std::function<IceString(RegClass)> getRegClassName);
   virtual void lowerAlloca(const InstAlloca *Instr) = 0;
   virtual void lowerArithmetic(const InstArithmetic *Instr) = 0;

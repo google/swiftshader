@@ -58,7 +58,7 @@ private:
     IterationState() = default;
     Variable *Cur = nullptr;
     Variable *Prefer = nullptr;
-    int32_t PreferReg = Variable::NoRegister;
+    RegNumT PreferReg = RegNumT::NoRegister;
     bool AllowOverlap = false;
     llvm::SmallBitVector RegMask;
     llvm::SmallBitVector RegMaskUnfiltered;

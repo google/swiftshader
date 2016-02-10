@@ -70,7 +70,8 @@ void dumpLiveRange(const Variable *Var, const Cfg *Func) {
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   char buf[30];
-  snprintf(buf, llvm::array_lengthof(buf), "%2d", Var->getRegNumTmp());
+  snprintf(buf, llvm::array_lengthof(buf), "%2u",
+           unsigned(Var->getRegNumTmp()));
   Str << "R=" << buf << "  V=";
   Var->dump(Func);
   Str << "  Range=" << Var->getLiveRange();
@@ -79,13 +80,12 @@ void dumpLiveRange(const Variable *Var, const Cfg *Func) {
 int32_t findMinWeightIndex(
     const llvm::SmallBitVector &RegMask,
     const llvm::SmallVector<RegWeight, LinearScan::REGS_SIZE> &Weights) {
-  int32_t MinWeightIndex = RegMask.find_first();
-  assert(MinWeightIndex >= 0);
-  for (int32_t i = RegMask.find_next(MinWeightIndex); i != -1;
-       i = RegMask.find_next(i)) {
-    if (Weights[i] < Weights[MinWeightIndex])
+  int MinWeightIndex = -1;
+  for (RegNumT i : RegNumBVIter(RegMask)) {
+    if (MinWeightIndex < 0 || Weights[i] < Weights[MinWeightIndex])
       MinWeightIndex = i;
   }
+  assert(MinWeightIndex >= 0);
   return MinWeightIndex;
 }
 
@@ -332,7 +332,7 @@ void LinearScan::init(RegAllocKind Kind) {
   SizeT NumRegs = Target->getNumRegisters();
   RegAliases.resize(NumRegs);
   for (SizeT Reg = 0; Reg < NumRegs; ++Reg) {
-    RegAliases[Reg] = &Target->getAliasesForRegister(Reg);
+    RegAliases[Reg] = &Target->getAliasesForRegister(RegNumT::fromInt(Reg));
   }
 
   switch (Kind) {
@@ -414,8 +414,7 @@ void LinearScan::addSpillFill(IterationState &Iter) {
         if (!Var->hasRegTmp())
           continue;
         const llvm::SmallBitVector &Aliases = *RegAliases[Var->getRegNumTmp()];
-        for (int32_t RegAlias = Aliases.find_first(); RegAlias >= 0;
-             RegAlias = Aliases.find_next(RegAlias)) {
+        for (RegNumT RegAlias : RegNumBVIter(Aliases)) {
           Iter.RegMask[RegAlias] = false;
         }
       }
@@ -424,9 +423,8 @@ void LinearScan::addSpillFill(IterationState &Iter) {
   assert(SpillPoint != Insts.end());
   assert(FillPoint != Insts.end());
   ++FillPoint;
-  // TODO(stichnot): Randomize instead of find_first().
-  int32_t RegNum = Iter.RegMask.find_first();
-  assert(RegNum != -1);
+  // TODO(stichnot): Randomize instead of *.begin() which maps to find_first().
+  const RegNumT RegNum = *RegNumBVIter(Iter.RegMask).begin();
   Iter.Cur->setRegNumTmp(RegNum);
   Variable *Preg = Target->getPhysicalRegister(RegNum, Iter.Cur->getType());
   // TODO(stichnot): Add SpillLoc to VariablesMetadata tracking so that SpillLoc
@@ -461,8 +459,7 @@ void LinearScan::handleActiveRangeExpiredOrInactive(const Variable *Cur) {
       // Decrement Item from RegUses[].
       assert(Item->hasRegTmp());
       const llvm::SmallBitVector &Aliases = *RegAliases[Item->getRegNumTmp()];
-      for (int32_t RegAlias = Aliases.find_first(); RegAlias >= 0;
-           RegAlias = Aliases.find_next(RegAlias)) {
+      for (RegNumT RegAlias : RegNumBVIter(Aliases)) {
         --RegUses[RegAlias];
         assert(RegUses[RegAlias] >= 0);
       }
@@ -486,8 +483,7 @@ void LinearScan::handleInactiveRangeExpiredOrReactivated(const Variable *Cur) {
       // Increment Item in RegUses[].
       assert(Item->hasRegTmp());
       const llvm::SmallBitVector &Aliases = *RegAliases[Item->getRegNumTmp()];
-      for (int32_t RegAlias = Aliases.find_first(); RegAlias >= 0;
-           RegAlias = Aliases.find_next(RegAlias)) {
+      for (RegNumT RegAlias : RegNumBVIter(Aliases)) {
         assert(RegUses[RegAlias] >= 0);
         ++RegUses[RegAlias];
       }
@@ -506,7 +502,7 @@ void LinearScan::handleInactiveRangeExpiredOrReactivated(const Variable *Cur) {
 // not appear within the current Variable's live range.
 void LinearScan::findRegisterPreference(IterationState &Iter) {
   Iter.Prefer = nullptr;
-  Iter.PreferReg = Variable::NoRegister;
+  Iter.PreferReg = RegNumT::NoRegister;
   Iter.AllowOverlap = false;
 
   if (!FindPreference)
@@ -529,7 +525,7 @@ void LinearScan::findRegisterPreference(IterationState &Iter) {
     // That register must be one in the RegMask set, e.g. don't try to prefer
     // the stack pointer as a result of the stacksave intrinsic.
     const llvm::SmallBitVector &Aliases = *RegAliases[SrcVar->getRegNumTmp()];
-    const int32_t SrcReg = (Iter.RegMask & Aliases).find_first();
+    const int SrcReg = (Iter.RegMask & Aliases).find_first();
     if (SrcReg == -1)
       continue;
 
@@ -540,7 +536,7 @@ void LinearScan::findRegisterPreference(IterationState &Iter) {
     }
     if (Iter.AllowOverlap || Iter.Free[SrcReg]) {
       Iter.Prefer = SrcVar;
-      Iter.PreferReg = SrcReg;
+      Iter.PreferReg = RegNumT::fromInt(SrcReg);
       // Stop looking for a preference after the first valid preference is
       // found.  One might think that we should look at all instruction
       // variables to find the best <Prefer,AllowOverlap> combination, but note
@@ -566,10 +562,8 @@ void LinearScan::filterFreeWithInactiveRanges(IterationState &Iter) {
     if (!Item->rangeOverlaps(Iter.Cur))
       continue;
     const llvm::SmallBitVector &Aliases = *RegAliases[Item->getRegNumTmp()];
-    // TODO(stichnot): Do this with bitvector ops, not a loop, for efficiency.
-    for (int32_t RegAlias = Aliases.find_first(); RegAlias >= 0;
-         RegAlias = Aliases.find_next(RegAlias)) {
-      // Don't assert(Iter.Free[RegNum]) because in theory (though probably
+    for (RegNumT RegAlias : RegNumBVIter(Aliases)) {
+      // Don't assert(Iter.Free[RegAlias]) because in theory (though probably
       // never in practice) there could be two inactive variables that were
       // marked with AllowOverlap.
       Iter.Free[RegAlias] = false;
@@ -601,8 +595,7 @@ void LinearScan::filterFreeWithPrecoloredRanges(IterationState &Iter) {
       continue;
     const llvm::SmallBitVector &Aliases =
         *RegAliases[Item->getRegNum()]; // Note: not getRegNumTmp()
-    for (int32_t RegAlias = Aliases.find_first(); RegAlias >= 0;
-         RegAlias = Aliases.find_next(RegAlias)) {
+    for (RegNumT RegAlias : RegNumBVIter(Aliases)) {
       Iter.Weights[RegAlias].setWeight(RegWeight::Inf);
       Iter.Free[RegAlias] = false;
       Iter.FreeUnfiltered[RegAlias] = false;
@@ -618,14 +611,13 @@ void LinearScan::filterFreeWithPrecoloredRanges(IterationState &Iter) {
 }
 
 void LinearScan::allocatePrecoloredRegister(Variable *Cur) {
-  int32_t RegNum = Cur->getRegNum();
+  const auto RegNum = Cur->getRegNum();
   // RegNumTmp should have already been set above.
   assert(Cur->getRegNumTmp() == RegNum);
   dumpLiveRangeTrace("Precoloring  ", Cur);
   Active.push_back(Cur);
   const llvm::SmallBitVector &Aliases = *RegAliases[RegNum];
-  for (int32_t RegAlias = Aliases.find_first(); RegAlias >= 0;
-       RegAlias = Aliases.find_next(RegAlias)) {
+  for (RegNumT RegAlias : RegNumBVIter(Aliases)) {
     assert(RegUses[RegAlias] >= 0);
     ++RegUses[RegAlias];
   }
@@ -638,8 +630,7 @@ void LinearScan::allocatePreferredRegister(IterationState &Iter) {
   Iter.Cur->setRegNumTmp(Iter.PreferReg);
   dumpLiveRangeTrace("Preferring   ", Iter.Cur);
   const llvm::SmallBitVector &Aliases = *RegAliases[Iter.PreferReg];
-  for (int32_t RegAlias = Aliases.find_first(); RegAlias >= 0;
-       RegAlias = Aliases.find_next(RegAlias)) {
+  for (RegNumT RegAlias : RegNumBVIter(Aliases)) {
     assert(RegUses[RegAlias] >= 0);
     ++RegUses[RegAlias];
   }
@@ -647,16 +638,15 @@ void LinearScan::allocatePreferredRegister(IterationState &Iter) {
 }
 
 void LinearScan::allocateFreeRegister(IterationState &Iter, bool Filtered) {
-  const int32_t RegNum =
-      Filtered ? Iter.Free.find_first() : Iter.FreeUnfiltered.find_first();
+  const RegNumT RegNum =
+      *RegNumBVIter(Filtered ? Iter.Free : Iter.FreeUnfiltered).begin();
   Iter.Cur->setRegNumTmp(RegNum);
   if (Filtered)
     dumpLiveRangeTrace("Allocating   ", Iter.Cur);
   else
     dumpLiveRangeTrace("Allocating X ", Iter.Cur);
   const llvm::SmallBitVector &Aliases = *RegAliases[RegNum];
-  for (int32_t RegAlias = Aliases.find_first(); RegAlias >= 0;
-       RegAlias = Aliases.find_next(RegAlias)) {
+  for (RegNumT RegAlias : RegNumBVIter(Aliases)) {
     assert(RegUses[RegAlias] >= 0);
     ++RegUses[RegAlias];
   }
@@ -673,8 +663,7 @@ void LinearScan::handleNoFreeRegisters(IterationState &Iter) {
     // should we decide to pick any of them, then we would incur that many
     // memory accesses.
     RegWeight W = Item->getWeight(Func);
-    for (int32_t RegAlias = Aliases.find_first(); RegAlias >= 0;
-         RegAlias = Aliases.find_next(RegAlias)) {
+    for (RegNumT RegAlias : RegNumBVIter(Aliases)) {
       Iter.Weights[RegAlias].addWeight(W);
     }
   }
@@ -685,8 +674,7 @@ void LinearScan::handleNoFreeRegisters(IterationState &Iter) {
     assert(Item->hasRegTmp());
     const llvm::SmallBitVector &Aliases = *RegAliases[Item->getRegNumTmp()];
     RegWeight W = Item->getWeight(Func);
-    for (int32_t RegAlias = Aliases.find_first(); RegAlias >= 0;
-         RegAlias = Aliases.find_next(RegAlias)) {
+    for (RegNumT RegAlias : RegNumBVIter(Aliases)) {
       Iter.Weights[RegAlias].addWeight(W);
     }
   }
@@ -742,16 +730,15 @@ void LinearScan::handleNoFreeRegisters(IterationState &Iter) {
   for (SizeT I = Active.size(); I > 0; --I) {
     const SizeT Index = I - 1;
     Variable *Item = Active[Index];
-    int32_t RegNum = Item->getRegNumTmp();
+    const auto RegNum = Item->getRegNumTmp();
     if (Aliases[RegNum]) {
       dumpLiveRangeTrace("Evicting A   ", Item);
       const llvm::SmallBitVector &Aliases = *RegAliases[RegNum];
-      for (int32_t RegAlias = Aliases.find_first(); RegAlias >= 0;
-           RegAlias = Aliases.find_next(RegAlias)) {
+      for (RegNumT RegAlias : RegNumBVIter(Aliases)) {
         --RegUses[RegAlias];
         assert(RegUses[RegAlias] >= 0);
       }
-      Item->setRegNumTmp(Variable::NoRegister);
+      Item->setRegNumTmp(RegNumT::NoRegister);
       moveItem(Active, Index, Handled);
       Evicted.push_back(Item);
     }
@@ -769,15 +756,14 @@ void LinearScan::handleNoFreeRegisters(IterationState &Iter) {
     // instructions.
     if (Aliases[Item->getRegNumTmp()] && Item->rangeOverlaps(Iter.Cur)) {
       dumpLiveRangeTrace("Evicting I   ", Item);
-      Item->setRegNumTmp(Variable::NoRegister);
+      Item->setRegNumTmp(RegNumT::NoRegister);
       moveItem(Inactive, Index, Handled);
       Evicted.push_back(Item);
     }
   }
   // Assign the register to Cur.
-  Iter.Cur->setRegNumTmp(MinWeightIndex);
-  for (int32_t RegAlias = Aliases.find_first(); RegAlias >= 0;
-       RegAlias = Aliases.find_next(RegAlias)) {
+  Iter.Cur->setRegNumTmp(RegNumT::fromInt(MinWeightIndex));
+  for (RegNumT RegAlias : RegNumBVIter(Aliases)) {
     assert(RegUses[RegAlias] >= 0);
     ++RegUses[RegAlias];
   }
@@ -789,7 +775,7 @@ void LinearScan::assignFinalRegisters(
     const llvm::SmallBitVector &RegMaskFull,
     const llvm::SmallBitVector &PreDefinedRegisters, bool Randomized) {
   const size_t NumRegisters = RegMaskFull.size();
-  llvm::SmallVector<int32_t, REGS_SIZE> Permutation(NumRegisters);
+  llvm::SmallVector<RegNumT, REGS_SIZE> Permutation(NumRegisters);
   if (Randomized) {
     // Create a random number generator for regalloc randomization. Merge
     // function's sequence and Kind value as the Salt. Because regAlloc() is
@@ -805,8 +791,8 @@ void LinearScan::assignFinalRegisters(
   // Finish up by setting RegNum = RegNumTmp (or a random permutation thereof)
   // for each Variable.
   for (Variable *Item : Handled) {
-    int32_t RegNum = Item->getRegNumTmp();
-    int32_t AssignedRegNum = RegNum;
+    const auto RegNum = Item->getRegNumTmp();
+    auto AssignedRegNum = RegNum;
 
     if (Randomized && Item->hasRegTmp() && !Item->hasReg()) {
       AssignedRegNum = Permutation[RegNum];
@@ -917,7 +903,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
     if (Iter.AllowOverlap) {
       const llvm::SmallBitVector &Aliases = *RegAliases[Iter.PreferReg];
       for (const Variable *Item : Active) {
-        int32_t RegNum = Item->getRegNumTmp();
+        const RegNumT RegNum = Item->getRegNumTmp();
         if (Item != Iter.Prefer && Aliases[RegNum] &&
             overlapsDefs(Func, Iter.Cur, Item)) {
           Iter.AllowOverlap = false;
@@ -940,8 +926,7 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
     if (Iter.Cur->getLiveRange().overlaps(KillsRange, UseTrimmed)) {
       Iter.Free.reset(KillsMask);
       Iter.FreeUnfiltered.reset(KillsMask);
-      for (int i = KillsMask.find_first(); i != -1;
-           i = KillsMask.find_next(i)) {
+      for (RegNumT i : RegNumBVIter(KillsMask)) {
         Iter.Weights[i].setWeight(RegWeight::Inf);
         if (Iter.PreferReg == i)
           Iter.AllowOverlap = false;
@@ -951,12 +936,10 @@ void LinearScan::scan(const llvm::SmallBitVector &RegMaskFull,
     // Print info about physical register availability.
     if (BuildDefs::dump() && Verbose) {
       Ostream &Str = Ctx->getStrDump();
-      for (SizeT i = 0; i < Iter.RegMask.size(); ++i) {
-        if (Iter.RegMaskUnfiltered[i]) {
-          Str << Target->getRegName(i, Iter.Cur->getType())
-              << "(U=" << RegUses[i] << ",F=" << Iter.Free[i]
-              << ",P=" << Iter.PrecoloredUnhandledMask[i] << ") ";
-        }
+      for (RegNumT i : RegNumBVIter(Iter.RegMaskUnfiltered)) {
+        Str << Target->getRegName(i, Iter.Cur->getType()) << "(U=" << RegUses[i]
+            << ",F=" << Iter.Free[i] << ",P=" << Iter.PrecoloredUnhandledMask[i]
+            << ") ";
       }
       Str << "\n";
     }

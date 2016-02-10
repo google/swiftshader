@@ -80,10 +80,10 @@ public:
         Encoded_Not_X87STReg = -1
   };
 
-  static inline X87STRegister getEncodedSTReg(int32_t RegNum) {
-    assert(Encoded_X87ST_First <= RegNum);
-    assert(RegNum <= Encoded_X87ST_Last);
-    return X87STRegister(RegNum);
+  static inline X87STRegister getEncodedSTReg(uint32_t X87RegNum) {
+    assert(int(Encoded_X87ST_First) <= int(X87RegNum));
+    assert(X87RegNum <= Encoded_X87ST_Last);
+    return X87STRegister(X87RegNum);
   }
 };
 

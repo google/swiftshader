@@ -99,10 +99,10 @@ TargetX8632Traits::X86OperandMem::X86OperandMem(
 
 namespace {
 
-int32_t GetRematerializableOffset(Variable *Var,
+int32_t getRematerializableOffset(Variable *Var,
                                   const Ice::X8632::TargetX8632 *Target) {
   int32_t Disp = Var->getStackOffset();
-  SizeT RegNum = static_cast<SizeT>(Var->getRegNum());
+  const auto RegNum = Var->getRegNum();
   if (RegNum == Target->getFrameReg()) {
     Disp += Target->getFrameFixedAllocaOffset();
   } else if (RegNum != Target->getStackReg()) {
@@ -139,7 +139,7 @@ void TargetX8632Traits::X86OperandMem::emit(const Cfg *Func) const {
   // physical register (esp or ebp), and update the Offset.
   int32_t Disp = 0;
   if (getBase() && getBase()->isRematerializable()) {
-    Disp += GetRematerializableOffset(getBase(), Target);
+    Disp += getRematerializableOffset(getBase(), Target);
   }
   // The index should never be rematerializable.  But if we ever allow it, then
   // we should make sure the rematerialization offset is shifted by the Shift
@@ -199,7 +199,7 @@ void TargetX8632Traits::X86OperandMem::dump(const Cfg *Func,
   const auto *Target =
       static_cast<const ::Ice::X8632::TargetX8632 *>(Func->getTarget());
   if (getBase() && getBase()->isRematerializable()) {
-    Disp += GetRematerializableOffset(getBase(), Target);
+    Disp += getRematerializableOffset(getBase(), Target);
   }
   if (getBase()) {
     if (Func)
@@ -267,7 +267,7 @@ TargetX8632Traits::Address TargetX8632Traits::X86OperandMem::toAsmAddress(
   validateMemOperandPIC(this, UseNonsfi);
   int32_t Disp = 0;
   if (getBase() && getBase()->isRematerializable()) {
-    Disp += GetRematerializableOffset(getBase(), Target);
+    Disp += getRematerializableOffset(getBase(), Target);
   }
   // The index should never be rematerializable.  But if we ever allow it, then
   // we should make sure the rematerialization offset is shifted by the Shift

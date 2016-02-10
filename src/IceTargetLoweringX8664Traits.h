@@ -68,8 +68,8 @@ struct TargetX8664Traits {
   using Cond = ::Ice::CondX8664;
 
   using RegisterSet = ::Ice::RegX8664;
-  static constexpr SizeT StackPtr = RegX8664::Reg_rsp;
-  static constexpr SizeT FramePtr = RegX8664::Reg_rbp;
+  static constexpr RegisterSet::AllRegisters StackPtr = RegX8664::Reg_rsp;
+  static constexpr RegisterSet::AllRegisters FramePtr = RegX8664::Reg_rbp;
   static constexpr GPRRegister Encoded_Reg_Accumulator =
       RegX8664::Encoded_Reg_eax;
   static constexpr GPRRegister Encoded_Reg_Counter = RegX8664::Encoded_Reg_ecx;
@@ -301,7 +301,7 @@ struct TargetX8664Traits {
   static const char *TargetName;
   static constexpr Type WordType = IceType_i64;
 
-  static IceString getRegName(int32_t RegNum) {
+  static IceString getRegName(RegNumT RegNum) {
     static const char *const RegNames[RegisterSet::Reg_NUM] = {
 #define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
           sboxres, isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8,      \
@@ -310,12 +310,11 @@ struct TargetX8664Traits {
         REGX8664_TABLE
 #undef X
     };
-    assert(RegNum >= 0);
-    assert(RegNum < RegisterSet::Reg_NUM);
+    RegNum.assertIsValid();
     return RegNames[RegNum];
   }
 
-  static GPRRegister getEncodedGPR(int32_t RegNum) {
+  static GPRRegister getEncodedGPR(RegNumT RegNum) {
     static const GPRRegister GPRRegs[RegisterSet::Reg_NUM] = {
 #define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
           sboxres, isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8,      \
@@ -324,13 +323,12 @@ struct TargetX8664Traits {
         REGX8664_TABLE
 #undef X
     };
-    assert(RegNum >= 0);
-    assert(RegNum < RegisterSet::Reg_NUM);
+    RegNum.assertIsValid();
     assert(GPRRegs[RegNum] != GPRRegister::Encoded_Not_GPR);
     return GPRRegs[RegNum];
   }
 
-  static ByteRegister getEncodedByteReg(int32_t RegNum) {
+  static ByteRegister getEncodedByteReg(RegNumT RegNum) {
     static const ByteRegister ByteRegs[RegisterSet::Reg_NUM] = {
 #define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
           sboxres, isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8,      \
@@ -339,13 +337,12 @@ struct TargetX8664Traits {
         REGX8664_TABLE
 #undef X
     };
-    assert(RegNum >= 0);
-    assert(RegNum < RegisterSet::Reg_NUM);
+    RegNum.assertIsValid();
     assert(ByteRegs[RegNum] != ByteRegister::Encoded_Not_ByteReg);
     return ByteRegs[RegNum];
   }
 
-  static XmmRegister getEncodedXmm(int32_t RegNum) {
+  static XmmRegister getEncodedXmm(RegNumT RegNum) {
     static const XmmRegister XmmRegs[RegisterSet::Reg_NUM] = {
 #define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
           sboxres, isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8,      \
@@ -354,13 +351,12 @@ struct TargetX8664Traits {
         REGX8664_TABLE
 #undef X
     };
-    assert(RegNum >= 0);
-    assert(RegNum < RegisterSet::Reg_NUM);
+    RegNum.assertIsValid();
     assert(XmmRegs[RegNum] != XmmRegister::Encoded_Not_Xmm);
     return XmmRegs[RegNum];
   }
 
-  static uint32_t getEncoding(int32_t RegNum) {
+  static uint32_t getEncoding(RegNumT RegNum) {
     static const uint32_t Encoding[RegisterSet::Reg_NUM] = {
 #define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
           sboxres, isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8,      \
@@ -369,27 +365,25 @@ struct TargetX8664Traits {
         REGX8664_TABLE
 #undef X
     };
-    assert(RegNum >= 0);
-    assert(RegNum < RegisterSet::Reg_NUM);
+    RegNum.assertIsValid();
     return Encoding[RegNum];
   }
 
-  static inline int32_t getBaseReg(int32_t RegNum) {
-    static const int32_t BaseRegs[RegisterSet::Reg_NUM] = {
+  static inline RegNumT getBaseReg(RegNumT RegNum) {
+    static const RegNumT BaseRegs[RegisterSet::Reg_NUM] = {
 #define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
           sboxres, isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8,      \
           is16To8, isTrunc8Rcvr, isAhRcvr, aliases)                            \
-  encode,
+  RegisterSet::base,
         REGX8664_TABLE
 #undef X
     };
-    assert(RegNum >= 0);
-    assert(RegNum < RegisterSet::Reg_NUM);
+    RegNum.assertIsValid();
     return BaseRegs[RegNum];
   }
 
 private:
-  static int32_t getFirstGprForType(Type Ty) {
+  static RegNumT getFirstGprForType(Type Ty) {
     switch (Ty) {
     default:
       llvm_unreachable("Invalid type for GPR.");
@@ -406,8 +400,8 @@ private:
   }
 
 public:
-  static int32_t getGprForType(Type Ty, int32_t RegNum) {
-    assert(RegNum != Variable::NoRegister);
+  static RegNumT getGprForType(Type Ty, RegNumT RegNum) {
+    assert(RegNum != RegNumT::NoRegister);
 
     if (!isScalarIntegerType(Ty)) {
       return RegNum;
@@ -425,7 +419,7 @@ public:
     assert(RegNum != RegisterSet::Reg_ch);
     assert(RegNum != RegisterSet::Reg_dh);
 
-    const int32_t FirstGprForType = getFirstGprForType(Ty);
+    const RegNumT FirstGprForType = getFirstGprForType(Ty);
 
     switch (RegNum) {
     default:
@@ -438,7 +432,7 @@ public:
       return RegisterSet::val;                                                 \
     assert((is64) || (is32) || (is16) || (is8) ||                              \
            getBaseReg(RegisterSet::val) == RegisterSet::Reg_rsp);              \
-    constexpr int32_t FirstGprWithRegNumSize =                                 \
+    constexpr RegisterSet::AllRegisters FirstGprWithRegNumSize =               \
         ((is64) || RegisterSet::val == RegisterSet::Reg_rsp)                   \
             ? RegisterSet::Reg_rax                                             \
             : (((is32) || RegisterSet::val == RegisterSet::Reg_esp)            \
@@ -446,8 +440,8 @@ public:
                    : (((is16) || RegisterSet::val == RegisterSet::Reg_sp)      \
                           ? RegisterSet::Reg_ax                                \
                           : RegisterSet::Reg_al));                             \
-    const int32_t NewRegNum =                                                  \
-        RegNum - FirstGprWithRegNumSize + FirstGprForType;                     \
+    const auto NewRegNum =                                                     \
+        RegNumT::fixme(RegNum - FirstGprWithRegNumSize + FirstGprForType);     \
     assert(getBaseReg(RegNum) == getBaseReg(NewRegNum) &&                      \
            "Error involving " #val);                                           \
     return NewRegNum;                                                          \
@@ -624,7 +618,7 @@ public:
 
   static void
   makeRandomRegisterPermutation(GlobalContext *Ctx, Cfg *Func,
-                                llvm::SmallVectorImpl<int32_t> &Permutation,
+                                llvm::SmallVectorImpl<RegNumT> &Permutation,
                                 const llvm::SmallBitVector &ExcludeRegisters,
                                 uint64_t Salt) {
     // TODO(stichnot): Declaring Permutation this way loses type/size
@@ -634,7 +628,7 @@ public:
     // class.  For x86-64, this would comprise the 16 XMM registers. This is
     // for performance, not correctness.
     static const unsigned MaxEquivalenceClassSize = 8;
-    using RegisterList = llvm::SmallVector<int32_t, MaxEquivalenceClassSize>;
+    using RegisterList = llvm::SmallVector<RegNumT, MaxEquivalenceClassSize>;
     using EquivalenceClassMap = std::map<uint32_t, RegisterList>;
     EquivalenceClassMap EquivalenceClasses;
     SizeT NumShuffled = 0, NumPreserved = 0;
@@ -696,7 +690,7 @@ public:
         Str << "{";
         const RegisterList &List = I.second;
         bool First = true;
-        for (int32_t Register : List) {
+        for (RegNumT Register : List) {
           if (!First)
             Str << " ";
           First = false;
@@ -707,9 +701,9 @@ public:
     }
   }
 
-  static int32_t getRaxOrDie() { return RegisterSet::Reg_rax; }
+  static RegNumT getRaxOrDie() { return RegisterSet::Reg_rax; }
 
-  static int32_t getRdxOrDie() { return RegisterSet::Reg_rdx; }
+  static RegNumT getRdxOrDie() { return RegisterSet::Reg_rdx; }
 
   // x86-64 calling convention:
   //
@@ -731,19 +725,19 @@ public:
   /// Whether scalar floating point arguments are passed in XMM registers
   static constexpr bool X86_PASS_SCALAR_FP_IN_XMM = true;
   /// Get the register for a given argument slot in the XMM registers.
-  static int32_t getRegisterForXmmArgNum(uint32_t ArgNum) {
+  static RegNumT getRegisterForXmmArgNum(uint32_t ArgNum) {
     // TODO(sehr): Change to use the CCArg technique used in ARM32.
     static_assert(RegisterSet::Reg_xmm0 + 1 == RegisterSet::Reg_xmm1,
                   "Inconsistency between XMM register numbers and ordinals");
     if (ArgNum >= X86_MAX_XMM_ARGS) {
-      return Variable::NoRegister;
+      return RegNumT::NoRegister;
     }
-    return static_cast<int32_t>(RegisterSet::Reg_xmm0 + ArgNum);
+    return RegNumT::fixme(RegisterSet::Reg_xmm0 + ArgNum);
   }
   /// Get the register for a given argument slot in the GPRs.
-  static int32_t getRegisterForGprArgNum(Type Ty, uint32_t ArgNum) {
+  static RegNumT getRegisterForGprArgNum(Type Ty, uint32_t ArgNum) {
     if (ArgNum >= X86_MAX_GPR_ARGS) {
-      return Variable::NoRegister;
+      return RegNumT::NoRegister;
     }
     static const RegisterSet::AllRegisters GprForArgNum[] = {
         RegisterSet::Reg_rdi, RegisterSet::Reg_rsi, RegisterSet::Reg_rdx,
@@ -752,7 +746,7 @@ public:
     static_assert(llvm::array_lengthof(GprForArgNum) == X86_MAX_GPR_ARGS,
                   "Mismatch between MAX_GPR_ARGS and GprForArgNum.");
     assert(Ty == IceType_i64 || Ty == IceType_i32);
-    return static_cast<int32_t>(getGprForType(Ty, GprForArgNum[ArgNum]));
+    return getGprForType(Ty, GprForArgNum[ArgNum]);
   }
 
   /// The number of bits in a byte

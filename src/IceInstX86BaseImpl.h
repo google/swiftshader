@@ -888,8 +888,8 @@ void InstImpl<TraitsType>::emitIASRegOpTyXMM(const Cfg *Func, Type Ty,
 }
 
 template <typename TraitsType>
-template <typename DReg_t, typename SReg_t, DReg_t (*destEnc)(int32_t),
-          SReg_t (*srcEnc)(int32_t)>
+template <typename DReg_t, typename SReg_t, DReg_t (*destEnc)(RegNumT),
+          SReg_t (*srcEnc)(RegNumT)>
 void InstImpl<TraitsType>::emitIASCastRegOp(
     const Cfg *Func, Type DestTy, const Variable *Dest, Type SrcTy,
     const Operand *Src, const CastEmitterRegOp<DReg_t, SReg_t> &Emitter) {
@@ -915,8 +915,8 @@ void InstImpl<TraitsType>::emitIASCastRegOp(
 }
 
 template <typename TraitsType>
-template <typename DReg_t, typename SReg_t, DReg_t (*destEnc)(int32_t),
-          SReg_t (*srcEnc)(int32_t)>
+template <typename DReg_t, typename SReg_t, DReg_t (*destEnc)(RegNumT),
+          SReg_t (*srcEnc)(RegNumT)>
 void InstImpl<TraitsType>::emitIASThreeOpImmOps(
     const Cfg *Func, Type DispatchTy, const Variable *Dest, const Operand *Src0,
     const Operand *Src1, const ThreeOpImmEmitter<DReg_t, SReg_t> Emitter) {
@@ -1191,8 +1191,8 @@ void InstImpl<TraitsType>::InstX86Cbwdq::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 1);
   Operand *Src0 = this->getSrc(0);
-  int32_t DestReg = this->getDest()->getRegNum();
-  int32_t SrcReg = llvm::cast<Variable>(Src0)->getRegNum();
+  const auto DestReg = this->getDest()->getRegNum();
+  const auto SrcReg = llvm::cast<Variable>(Src0)->getRegNum();
   (void)DestReg;
   (void)SrcReg;
   switch (Src0->getType()) {
@@ -1232,8 +1232,8 @@ void InstImpl<TraitsType>::InstX86Cbwdq::emitIAS(const Cfg *Func) const {
   Assembler *Asm = Func->getAssembler<Assembler>();
   assert(this->getSrcSize() == 1);
   Operand *Src0 = this->getSrc(0);
-  int32_t DestReg = this->getDest()->getRegNum();
-  int32_t SrcReg = llvm::cast<Variable>(Src0)->getRegNum();
+  const auto DestReg = this->getDest()->getRegNum();
+  const auto SrcReg = llvm::cast<Variable>(Src0)->getRegNum();
   (void)DestReg;
   (void)SrcReg;
   switch (Src0->getType()) {
@@ -1987,7 +1987,7 @@ void InstImpl<TraitsType>::InstX86Lea::emit(const Cfg *Func) const {
     Type Ty = Src0Var->getType();
     // lea on x86-32 doesn't accept mem128 operands, so cast VSrc0 to an
     // acceptable type.
-    Src0Var->asType(isVectorType(Ty) ? IceType_i32 : Ty, Variable::NoRegister)
+    Src0Var->asType(isVectorType(Ty) ? IceType_i32 : Ty, RegNumT::NoRegister)
         ->emit(Func);
   } else {
     Src0->emit(Func);
@@ -2025,7 +2025,7 @@ void InstImpl<TraitsType>::InstX86Mov::emit(const Cfg *Func) const {
          InstX86Base::getTarget(Func)->typeWidthInBytesOnStack(SrcTy));
   const Operand *NewSrc = Src;
   if (auto *SrcVar = llvm::dyn_cast<Variable>(Src)) {
-    int32_t NewRegNum = Variable::NoRegister;
+    auto NewRegNum = RegNumT::NoRegister;
     if (SrcVar->hasReg())
       NewRegNum = Traits::getGprForType(DestTy, SrcVar->getRegNum());
     if (SrcTy != DestTy)
@@ -2551,7 +2551,7 @@ void InstImpl<TraitsType>::InstX86Pinsr::emit(const Cfg *Func) const {
   if (const auto *Src1Var = llvm::dyn_cast<Variable>(Src1)) {
     // If src1 is a register, it should always be r32.
     if (Src1Var->hasReg()) {
-      int32_t NewRegNum = Traits::getBaseReg(Src1Var->getRegNum());
+      const auto NewRegNum = Traits::getBaseReg(Src1Var->getRegNum());
       const Variable *NewSrc = Src1Var->asType(IceType_i32, NewRegNum);
       NewSrc->emit(Func);
     } else {
@@ -2578,8 +2578,8 @@ void InstImpl<TraitsType>::InstX86Pinsr::emitIAS(const Cfg *Func) const {
   if (BuildDefs::asserts()) {
     if (auto *Src0Var = llvm::dyn_cast<Variable>(Src0)) {
       if (Src0Var->hasReg()) {
-        int32_t RegNum = Src0Var->getRegNum();
-        int32_t BaseRegNum = Traits::getBaseReg(RegNum);
+        const auto RegNum = Src0Var->getRegNum();
+        const auto BaseRegNum = Traits::getBaseReg(RegNum);
         (void)BaseRegNum;
         assert(Traits::getEncodedGPR(RegNum) ==
                Traits::getEncodedGPR(BaseRegNum));

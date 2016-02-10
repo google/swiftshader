@@ -53,12 +53,13 @@ enum GPRRegister {
 // TODO(jvoung): Floating point and vector registers...
 // Need to model overlap and difference in encoding too.
 
-static inline GPRRegister getEncodedGPR(int32_t RegNum) {
-  assert(Reg_GPR_First <= RegNum && RegNum <= Reg_GPR_Last);
+static inline GPRRegister getEncodedGPR(RegNumT RegNum) {
+  assert(int(Reg_GPR_First) <= int(RegNum));
+  assert(unsigned(RegNum) <= Reg_GPR_Last);
   return GPRRegister(RegNum - Reg_GPR_First);
 }
 
-const char *getRegName(int32_t RegNum);
+const char *getRegName(RegNumT RegNum);
 
 } // end of namespace RegMIPS32
 

@@ -354,14 +354,14 @@ public:
   static bool classof(const Operand *Operand) {
     return Operand->getKind() == StackVariableKind;
   }
-  void setBaseRegNum(int32_t RegNum) { BaseRegNum = RegNum; }
-  int32_t getBaseRegNum() const override { return BaseRegNum; }
+  void setBaseRegNum(RegNumT RegNum) { BaseRegNum = RegNum; }
+  RegNumT getBaseRegNum() const override { return BaseRegNum; }
   // Inherit dump() and emit() from Variable.
 
 private:
   StackVariable(Type Ty, SizeT Index)
       : Variable(StackVariableKind, Ty, Index) {}
-  int32_t BaseRegNum = Variable::NoRegister;
+  RegNumT BaseRegNum = RegNumT::NoRegister;
 };
 
 /// Base class for ARM instructions. While most ARM instructions can be

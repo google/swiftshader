@@ -338,8 +338,8 @@ bool sameVarOrReg(TargetLowering *Target, const Variable *Var1,
   if (!Var2->hasReg())
     return false;
 
-  int32_t RegNum1 = Var1->getRegNum();
-  int32_t RegNum2 = Var2->getRegNum();
+  const auto RegNum1 = Var1->getRegNum();
+  const auto RegNum2 = Var2->getRegNum();
   // Quick common-case check.
   if (RegNum1 == RegNum2)
     return true;
@@ -920,8 +920,8 @@ void emitRegisterUsage(Ostream &Str, const Cfg *Func, const CfgNode *Node,
     return;
   Liveness *Liveness = Func->getLiveness();
   const LivenessBV *Live;
-  const int32_t StackReg = Func->getTarget()->getStackReg();
-  const int32_t FrameOrStackReg = Func->getTarget()->getFrameOrStackReg();
+  const auto StackReg = Func->getTarget()->getStackReg();
+  const auto FrameOrStackReg = Func->getTarget()->getFrameOrStackReg();
   if (IsLiveIn) {
     Live = &Liveness->getLiveIn(Node);
     Str << "\t\t\t\t/* LiveIn=";
@@ -937,7 +937,7 @@ void emitRegisterUsage(Ostream &Str, const Cfg *Func, const CfgNode *Node,
       Variable *Var = Liveness->getVariable(i, Node);
       if (!Var->hasReg())
         continue;
-      const int32_t RegNum = Var->getRegNum();
+      const auto RegNum = Var->getRegNum();
       if (RegNum == StackReg || RegNum == FrameOrStackReg)
         continue;
       if (IsLiveIn)
@@ -948,7 +948,7 @@ void emitRegisterUsage(Ostream &Str, const Cfg *Func, const CfgNode *Node,
     // order.
     std::sort(LiveRegs.begin(), LiveRegs.end(),
               [](const Variable *V1, const Variable *V2) {
-                return V1->getRegNum() < V2->getRegNum();
+                return unsigned(V1->getRegNum()) < unsigned(V2->getRegNum());
               });
     bool First = true;
     for (Variable *Var : LiveRegs) {

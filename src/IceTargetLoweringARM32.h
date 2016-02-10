@@ -78,8 +78,9 @@ public:
   bool doBranchOpt(Inst *I, const CfgNode *NextNode) override;
 
   SizeT getNumRegisters() const override { return RegARM32::Reg_NUM; }
-  Variable *getPhysicalRegister(SizeT RegNum, Type Ty = IceType_void) override;
-  IceString getRegName(SizeT RegNum, Type Ty) const override;
+  Variable *getPhysicalRegister(RegNumT RegNum,
+                                Type Ty = IceType_void) override;
+  IceString getRegName(RegNumT RegNum, Type Ty) const override;
   llvm::SmallBitVector getRegisterSet(RegSetMask Include,
                                       RegSetMask Exclude) const override;
   const llvm::SmallBitVector &
@@ -99,17 +100,18 @@ public:
     assert((RegARM32::RegClassARM32)RC < RegARM32::RCARM32_NUM);
     return TypeToRegisterSetUnfiltered[RC];
   }
-  const llvm::SmallBitVector &getAliasesForRegister(SizeT Reg) const override {
+  const llvm::SmallBitVector &
+  getAliasesForRegister(RegNumT Reg) const override {
     return RegisterAliases[Reg];
   }
   bool hasFramePointer() const override { return UsesFramePointer; }
   void setHasFramePointer() override { UsesFramePointer = true; }
-  SizeT getStackReg() const override { return RegARM32::Reg_sp; }
-  SizeT getFrameReg() const override { return RegARM32::Reg_fp; }
-  SizeT getFrameOrStackReg() const override {
+  RegNumT getStackReg() const override { return RegARM32::Reg_sp; }
+  RegNumT getFrameReg() const override { return RegARM32::Reg_fp; }
+  RegNumT getFrameOrStackReg() const override {
     return UsesFramePointer ? getFrameReg() : getStackReg();
   }
-  int32_t getReservedTmpReg() const { return RegARM32::Reg_ip; }
+  RegNumT getReservedTmpReg() const { return RegARM32::Reg_ip; }
 
   size_t typeWidthInBytesOnStack(Type Ty) const override {
     // Round up to the next multiple of 4 bytes. In particular, i1, i8, and i16
@@ -169,10 +171,10 @@ public:
   };
 
   using LegalMask = uint32_t;
-  Operand *legalizeUndef(Operand *From, int32_t RegNum = Variable::NoRegister);
+  Operand *legalizeUndef(Operand *From, RegNumT RegNum = RegNumT::NoRegister);
   Operand *legalize(Operand *From, LegalMask Allowed = Legal_Default,
-                    int32_t RegNum = Variable::NoRegister);
-  Variable *legalizeToReg(Operand *From, int32_t RegNum = Variable::NoRegister);
+                    RegNumT RegNum = RegNumT::NoRegister);
+  Variable *legalizeToReg(Operand *From, RegNumT RegNum = RegNumT::NoRegister);
 
   OperandARM32ShAmtImm *shAmtImm(uint32_t ShAmtImm) const {
     assert(ShAmtImm < 32);
@@ -265,17 +267,17 @@ protected:
   OperandARM32Mem *formMemoryOperand(Operand *Ptr, Type Ty);
 
   Variable64On32 *makeI64RegPair();
-  Variable *makeReg(Type Ty, int32_t RegNum = Variable::NoRegister);
+  Variable *makeReg(Type Ty, RegNumT RegNum = RegNumT::NoRegister);
   static Type stackSlotType();
-  Variable *copyToReg(Operand *Src, int32_t RegNum = Variable::NoRegister);
+  Variable *copyToReg(Operand *Src, RegNumT RegNum = RegNumT::NoRegister);
   void alignRegisterPow2(Variable *Reg, uint32_t Align,
-                         int32_t TmpRegNum = Variable::NoRegister);
+                         RegNumT TmpRegNum = RegNumT::NoRegister);
 
   /// Returns a vector in a register with the given constant entries.
-  Variable *makeVectorOfZeros(Type Ty, int32_t RegNum = Variable::NoRegister);
+  Variable *makeVectorOfZeros(Type Ty, RegNumT RegNum = RegNumT::NoRegister);
 
   void
-  makeRandomRegisterPermutation(llvm::SmallVectorImpl<int32_t> &Permutation,
+  makeRandomRegisterPermutation(llvm::SmallVectorImpl<RegNumT> &Permutation,
                                 const llvm::SmallBitVector &ExcludeRegisters,
                                 uint64_t Salt) const override;
 
@@ -1014,7 +1016,7 @@ protected:
   private:
     /// Creates a new Base register centered around [Base, +/- Offset].
     Variable *newBaseRegister(Variable *Base, int32_t Offset,
-                              int32_t ScratchRegNum);
+                              RegNumT ScratchRegNum);
 
     /// Creates a new, legal OperandARM32Mem for accessing Base + Offset.
     /// The returned mem operand is a legal operand for accessing memory that is
@@ -1081,23 +1083,23 @@ protected:
     /// type, and false otherwise. If it returns true, Reg is set to the
     /// appropriate register number. Note that, when Ty == IceType_i64, Reg will
     /// be an I64 register pair.
-    bool argInGPR(Type Ty, int32_t *Reg);
+    bool argInGPR(Type Ty, RegNumT *Reg);
 
     /// argInVFP is to floating-point/vector types what argInGPR is for integer
     /// types.
-    bool argInVFP(Type Ty, int32_t *Reg);
+    bool argInVFP(Type Ty, RegNumT *Reg);
 
   private:
-    void discardUnavailableGPRsAndTheirAliases(CfgVector<SizeT> *Regs);
+    void discardUnavailableGPRsAndTheirAliases(CfgVector<RegNumT> *Regs);
     llvm::SmallBitVector GPRegsUsed;
-    CfgVector<SizeT> GPRArgs;
-    CfgVector<SizeT> I64Args;
+    CfgVector<RegNumT> GPRArgs;
+    CfgVector<RegNumT> I64Args;
 
-    void discardUnavailableVFPRegs(CfgVector<SizeT> *Regs);
+    void discardUnavailableVFPRegs(CfgVector<RegNumT> *Regs);
     llvm::SmallBitVector VFPRegsUsed;
-    CfgVector<SizeT> FP32Args;
-    CfgVector<SizeT> FP64Args;
-    CfgVector<SizeT> Vec128Args;
+    CfgVector<RegNumT> FP32Args;
+    CfgVector<RegNumT> FP64Args;
+    CfgVector<RegNumT> Vec128Args;
   };
 
 private:

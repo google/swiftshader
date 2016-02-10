@@ -119,11 +119,11 @@ Variable *LoweringContext::availabilityGet(Operand *Src) const {
 namespace {
 
 void printRegisterSet(Ostream &Str, const llvm::SmallBitVector &Bitset,
-                      std::function<IceString(int32_t)> getRegName,
+                      std::function<IceString(RegNumT)> getRegName,
                       const IceString &LineIndentString) {
   constexpr size_t RegistersPerLine = 16;
   size_t Count = 0;
-  for (int i = Bitset.find_first(); i != -1; i = Bitset.find_next(i)) {
+  for (RegNumT RegNum : RegNumBVIter(Bitset)) {
     if (Count == 0) {
       Str << LineIndentString;
     } else {
@@ -132,7 +132,7 @@ void printRegisterSet(Ostream &Str, const llvm::SmallBitVector &Bitset,
     if (Count > 0 && Count % RegistersPerLine == 0)
       Str << "\n" << LineIndentString;
     ++Count;
-    Str << getRegName(i);
+    Str << getRegName(RegNum);
   }
   if (Count)
     Str << "\n";
@@ -159,16 +159,18 @@ void splitToClassAndName(const IceString &RegName, IceString *SplitRegClass,
 void TargetLowering::filterTypeToRegisterSet(
     GlobalContext *Ctx, int32_t NumRegs,
     llvm::SmallBitVector TypeToRegisterSet[], size_t TypeToRegisterSetSize,
-    std::function<IceString(int32_t)> getRegName,
+    std::function<IceString(RegNumT)> getRegName,
     std::function<IceString(RegClass)> getRegClassName) {
   std::vector<llvm::SmallBitVector> UseSet(TypeToRegisterSetSize,
                                            llvm::SmallBitVector(NumRegs));
   std::vector<llvm::SmallBitVector> ExcludeSet(TypeToRegisterSetSize,
                                                llvm::SmallBitVector(NumRegs));
 
-  std::unordered_map<IceString, int32_t> RegNameToIndex;
-  for (int32_t RegIndex = 0; RegIndex < NumRegs; ++RegIndex)
-    RegNameToIndex[getRegName(RegIndex)] = RegIndex;
+  std::unordered_map<IceString, RegNumT> RegNameToIndex;
+  for (int32_t RegIndex = 0; RegIndex < NumRegs; ++RegIndex) {
+    const auto RegNum = RegNumT::fromInt(RegIndex);
+    RegNameToIndex[getRegName(RegNum)] = RegNum;
+  }
 
   ClFlags::StringVector BadRegNames;
 

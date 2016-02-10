@@ -102,9 +102,13 @@ extern struct RegTableType {
 #undef NUM_ALIASES_BITS
 } RegTable[Reg_NUM];
 
-static inline bool isGPRegister(int32_t RegNum) {
-  assert(RegNum >= 0);
-  assert(RegNum < Reg_NUM);
+static inline void assertValidRegNum(RegNumT RegNum) {
+  (void)RegNum;
+  assert(RegNum != RegNumT::NoRegister);
+}
+
+static inline bool isGPRegister(RegNumT RegNum) {
+  RegNum.assertIsValid();
   return RegTable[RegNum].IsGPR;
 }
 
@@ -118,9 +122,8 @@ static constexpr inline SizeT getNumGPRegs() {
       ;
 }
 
-static inline GPRRegister getEncodedGPR(int32_t RegNum) {
-  assert(RegNum >= 0);
-  assert(RegNum < Reg_NUM);
+static inline GPRRegister getEncodedGPR(RegNumT RegNum) {
+  RegNum.assertIsValid();
   return GPRRegister(RegTable[RegNum].Encoding);
 }
 
@@ -134,33 +137,28 @@ static constexpr inline SizeT getNumGPRs() {
       ;
 }
 
-static inline bool isGPR(int32_t RegNum) {
-  assert(RegNum >= 0);
-  assert(RegNum < Reg_NUM);
+static inline bool isGPR(RegNumT RegNum) {
+  RegNum.assertIsValid();
   return RegTable[RegNum].IsGPR;
 }
 
-static inline GPRRegister getI64PairFirstGPRNum(int32_t RegNum) {
-  assert(RegNum >= 0);
-  assert(RegNum < Reg_NUM);
+static inline GPRRegister getI64PairFirstGPRNum(RegNumT RegNum) {
+  RegNum.assertIsValid();
   return GPRRegister(RegTable[RegNum].Encoding);
 }
 
-static inline GPRRegister getI64PairSecondGPRNum(int32_t RegNum) {
-  assert(RegNum >= 0);
-  assert(RegNum < Reg_NUM);
+static inline GPRRegister getI64PairSecondGPRNum(RegNumT RegNum) {
+  RegNum.assertIsValid();
   return GPRRegister(RegTable[RegNum].Encoding + 1);
 }
 
-static inline bool isI64RegisterPair(int32_t RegNum) {
-  assert(RegNum >= 0);
-  assert(RegNum < Reg_NUM);
+static inline bool isI64RegisterPair(RegNumT RegNum) {
+  RegNum.assertIsValid();
   return RegTable[RegNum].IsI64Pair;
 }
 
-static inline bool isEncodedSReg(int32_t RegNum) {
-  assert(RegNum >= 0);
-  assert(RegNum < Reg_NUM);
+static inline bool isEncodedSReg(RegNumT RegNum) {
+  RegNum.assertIsValid();
   return RegTable[RegNum].IsFP32;
 }
 
@@ -174,15 +172,13 @@ static constexpr inline SizeT getNumSRegs() {
       ;
 }
 
-static inline SRegister getEncodedSReg(int32_t RegNum) {
-  assert(RegNum >= 0);
-  assert(RegNum < Reg_NUM);
+static inline SRegister getEncodedSReg(RegNumT RegNum) {
+  RegNum.assertIsValid();
   return SRegister(RegTable[RegNum].Encoding);
 }
 
-static inline bool isEncodedDReg(int32_t RegNum) {
-  assert(RegNum >= 0);
-  assert(RegNum < Reg_NUM);
+static inline bool isEncodedDReg(RegNumT RegNum) {
+  RegNum.assertIsValid();
   return RegTable[RegNum].IsFP64;
 }
 
@@ -196,26 +192,23 @@ static constexpr inline SizeT getNumDRegs() {
       ;
 }
 
-static inline DRegister getEncodedDReg(int32_t RegNum) {
-  assert(RegNum >= 0);
-  assert(RegNum < Reg_NUM);
+static inline DRegister getEncodedDReg(RegNumT RegNum) {
+  RegNum.assertIsValid();
   return DRegister(RegTable[RegNum].Encoding);
 }
 
-static inline bool isEncodedQReg(int32_t RegNum) {
-  assert(RegNum >= 0);
-  assert(RegNum < Reg_NUM);
+static inline bool isEncodedQReg(RegNumT RegNum) {
+  RegNum.assertIsValid();
   return RegTable[RegNum].IsVec128;
 }
 
-static inline QRegister getEncodedQReg(int32_t RegNum) {
+static inline QRegister getEncodedQReg(RegNumT RegNum) {
   assert(isEncodedQReg(RegNum));
   return QRegister(RegTable[RegNum].Encoding);
 }
 
-static inline IceString getRegName(int32_t RegNum) {
-  assert(RegNum >= 0);
-  assert(RegNum < Reg_NUM);
+static inline IceString getRegName(RegNumT RegNum) {
+  RegNum.assertIsValid();
   return RegTable[RegNum].Name;
 }
 

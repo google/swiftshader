@@ -77,6 +77,7 @@ TargetMIPS32::TargetMIPS32(Cfg *Func) : TargetLowering(Func) {}
 
 void TargetMIPS32::staticInit(GlobalContext *Ctx) {
   (void)Ctx;
+  RegNumT::setLimit(RegMIPS32::Reg_NUM);
   llvm::SmallBitVector IntegerRegisters(RegMIPS32::Reg_NUM);
   llvm::SmallBitVector I64PairRegisters(RegMIPS32::Reg_NUM);
   llvm::SmallBitVector Float32Registers(RegMIPS32::Reg_NUM);
@@ -290,22 +291,22 @@ const char *RegNames[RegMIPS32::Reg_NUM] = {
 
 } // end of anonymous namespace
 
-const char *RegMIPS32::getRegName(int32_t RegNum) {
-  assert(RegNum < RegMIPS32::Reg_NUM);
+const char *RegMIPS32::getRegName(RegNumT RegNum) {
+  RegNum.assertIsValid();
   return RegNames[RegNum];
 }
 
-IceString TargetMIPS32::getRegName(SizeT RegNum, Type Ty) const {
+IceString TargetMIPS32::getRegName(RegNumT RegNum, Type Ty) const {
   (void)Ty;
   return RegMIPS32::getRegName(RegNum);
 }
 
-Variable *TargetMIPS32::getPhysicalRegister(SizeT RegNum, Type Ty) {
+Variable *TargetMIPS32::getPhysicalRegister(RegNumT RegNum, Type Ty) {
   if (Ty == IceType_void)
     Ty = IceType_i32;
   if (PhysicalRegisters[Ty].empty())
     PhysicalRegisters[Ty].resize(RegMIPS32::Reg_NUM);
-  assert(RegNum < PhysicalRegisters[Ty].size());
+  RegNum.assertIsValid();
   Variable *Reg = PhysicalRegisters[Ty][RegNum];
   if (Reg == nullptr) {
     Reg = Func->makeVariable(Ty);
@@ -328,12 +329,12 @@ void TargetMIPS32::emitJumpTable(const Cfg *Func,
 }
 
 /// Provide a trivial wrapper to legalize() for this common usage.
-Variable *TargetMIPS32::legalizeToReg(Operand *From, int32_t RegNum) {
+Variable *TargetMIPS32::legalizeToReg(Operand *From, RegNumT RegNum) {
   return llvm::cast<Variable>(legalize(From, Legal_Reg, RegNum));
 }
 
 /// Legalize undef values to concrete values.
-Operand *TargetMIPS32::legalizeUndef(Operand *From, int32_t RegNum) {
+Operand *TargetMIPS32::legalizeUndef(Operand *From, RegNumT RegNum) {
   (void)RegNum;
   Type Ty = From->getType();
   if (llvm::isa<ConstantUndef>(From)) {
@@ -355,11 +356,11 @@ Operand *TargetMIPS32::legalizeUndef(Operand *From, int32_t RegNum) {
   return From;
 }
 
-Variable *TargetMIPS32::makeReg(Type Type, int32_t RegNum) {
+Variable *TargetMIPS32::makeReg(Type Type, RegNumT RegNum) {
   // There aren't any 64-bit integer registers for Mips32.
   assert(Type != IceType_i64);
   Variable *Reg = Func->makeVariable(Type);
-  if (RegNum == Variable::NoRegister)
+  if (RegNum == RegNumT::NoRegister)
     Reg->setMustHaveReg();
   else
     Reg->setRegNum(RegNum);
@@ -410,20 +411,20 @@ void TargetMIPS32::lowerArguments() {
     if (Ty == IceType_i64) {
       if (NumGPRRegsUsed >= MIPS32_MAX_GPR_ARG)
         continue;
-      int32_t RegLo = RegMIPS32::Reg_A0 + NumGPRRegsUsed;
-      int32_t RegHi = RegLo + 1;
+      auto RegLo = RegNumT::fixme(RegMIPS32::Reg_A0 + NumGPRRegsUsed);
+      auto RegHi = RegNumT::fixme(RegLo + 1);
       ++NumGPRRegsUsed;
       // Always start i64 registers at an even register, so this may end
       // up padding away a register.
       if (RegLo % 2 != 0) {
-        ++RegLo;
+        RegLo = RegNumT::fixme(RegLo + 1);
         ++NumGPRRegsUsed;
       }
       // If this leaves us without room to consume another register,
       // leave any previously speculatively consumed registers as consumed.
       if (NumGPRRegsUsed >= MIPS32_MAX_GPR_ARG)
         continue;
-      // RegHi = RegMIPS32::Reg_A0 + NumGPRRegsUsed;
+      // RegHi = RegNumT::fixme(RegMIPS32::Reg_A0 + NumGPRRegsUsed);
       ++NumGPRRegsUsed;
       Variable *RegisterArg = Func->makeVariable(Ty);
       auto *RegisterArg64On32 = llvm::cast<Variable64On32>(RegisterArg);
@@ -441,7 +442,7 @@ void TargetMIPS32::lowerArguments() {
       assert(Ty == IceType_i32);
       if (NumGPRRegsUsed >= MIPS32_MAX_GPR_ARG)
         continue;
-      int32_t RegNum = RegMIPS32::Reg_A0 + NumGPRRegsUsed;
+      const auto RegNum = RegNumT::fixme(RegMIPS32::Reg_A0 + NumGPRRegsUsed);
       ++NumGPRRegsUsed;
       Variable *RegisterArg = Func->makeVariable(Ty);
       if (BuildDefs::dump()) {
@@ -1156,7 +1157,7 @@ void TargetMIPS32::postLower() {
 }
 
 void TargetMIPS32::makeRandomRegisterPermutation(
-    llvm::SmallVectorImpl<int32_t> &Permutation,
+    llvm::SmallVectorImpl<RegNumT> &Permutation,
     const llvm::SmallBitVector &ExcludeRegisters, uint64_t Salt) const {
   (void)Permutation;
   (void)ExcludeRegisters;
@@ -1213,7 +1214,7 @@ void TargetDataMIPS32::lowerJumpTables() {
 
 // Helper for legalize() to emit the right code to lower an operand to a
 // register of the appropriate type.
-Variable *TargetMIPS32::copyToReg(Operand *Src, int32_t RegNum) {
+Variable *TargetMIPS32::copyToReg(Operand *Src, RegNumT RegNum) {
   Type Ty = Src->getType();
   Variable *Reg = makeReg(Ty, RegNum);
   if (isVectorType(Ty) || isFloatingType(Ty)) {
@@ -1227,7 +1228,7 @@ Variable *TargetMIPS32::copyToReg(Operand *Src, int32_t RegNum) {
 }
 
 Operand *TargetMIPS32::legalize(Operand *From, LegalMask Allowed,
-                                int32_t RegNum) {
+                                RegNumT RegNum) {
   Type Ty = From->getType();
   // Assert that a physical register is allowed.  To date, all calls
   // to legalize() allow a physical register. Legal_Flex converts
@@ -1252,7 +1253,7 @@ Operand *TargetMIPS32::legalize(Operand *From, LegalMask Allowed,
     // Also try the inverse and use MVN if possible.
     // Do a movw/movt to a register.
     Variable *Reg;
-    if (RegNum == Variable::NoRegister)
+    if (RegNum == RegNumT::NoRegister)
       Reg = makeReg(Ty, RegNum);
     else
       Reg = getPhysicalRegister(RegNum);
@@ -1280,7 +1281,7 @@ Operand *TargetMIPS32::legalize(Operand *From, LegalMask Allowed,
     //   register, or
     //   RegNum is required and Var->getRegNum() doesn't match.
     if ((!(Allowed & Legal_Mem) && !MustHaveRegister) ||
-        (RegNum != Variable::NoRegister && RegNum != Var->getRegNum())) {
+        (RegNum != RegNumT::NoRegister && RegNum != Var->getRegNum())) {
       From = copyToReg(From, RegNum);
     }
     return From;

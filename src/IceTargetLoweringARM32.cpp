@@ -233,7 +233,7 @@ constexpr SizeT NumGPRArgs =
     REGARM32_GPR_TABLE
 #undef X
     ;
-std::array<uint32_t, NumGPRArgs> GPRArgInitializer;
+std::array<RegNumT, NumGPRArgs> GPRArgInitializer;
 
 constexpr SizeT NumI64Args =
 #define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
@@ -242,7 +242,7 @@ constexpr SizeT NumI64Args =
     REGARM32_I64PAIR_TABLE
 #undef X
     ;
-std::array<uint32_t, NumI64Args> I64ArgInitializer;
+std::array<RegNumT, NumI64Args> I64ArgInitializer;
 
 constexpr SizeT NumFP32Args =
 #define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
@@ -251,7 +251,7 @@ constexpr SizeT NumFP32Args =
     REGARM32_FP32_TABLE
 #undef X
     ;
-std::array<uint32_t, NumFP32Args> FP32ArgInitializer;
+std::array<RegNumT, NumFP32Args> FP32ArgInitializer;
 
 constexpr SizeT NumFP64Args =
 #define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
@@ -260,7 +260,7 @@ constexpr SizeT NumFP64Args =
     REGARM32_FP64_TABLE
 #undef X
     ;
-std::array<uint32_t, NumFP64Args> FP64ArgInitializer;
+std::array<RegNumT, NumFP64Args> FP64ArgInitializer;
 
 constexpr SizeT NumVec128Args =
 #define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
@@ -269,7 +269,7 @@ constexpr SizeT NumVec128Args =
     REGARM32_VEC128_TABLE
 #undef X
     ;
-std::array<uint32_t, NumVec128Args> Vec128ArgInitializer;
+std::array<RegNumT, NumVec128Args> Vec128ArgInitializer;
 
 IceString getRegClassName(RegClass C) {
   auto ClassNum = static_cast<RegARM32::RegClassARM32>(C);
@@ -289,7 +289,7 @@ TargetARM32::TargetARM32(Cfg *Func)
       CPUFeatures(Func->getContext()->getFlags()) {}
 
 void TargetARM32::staticInit(GlobalContext *Ctx) {
-
+  RegNumT::setLimit(RegARM32::Reg_NUM);
   // Limit this size (or do all bitsets need to be the same width)???
   llvm::SmallBitVector IntegerRegisters(RegARM32::Reg_NUM);
   llvm::SmallBitVector I64PairRegisters(RegARM32::Reg_NUM);
@@ -318,16 +318,17 @@ void TargetARM32::staticInit(GlobalContext *Ctx) {
     if (Entry.CCArg <= 0) {
       continue;
     }
+    const auto RegNum = RegNumT::fromInt(i);
     if (Entry.IsGPR) {
-      GPRArgInitializer[Entry.CCArg - 1] = i;
+      GPRArgInitializer[Entry.CCArg - 1] = RegNum;
     } else if (Entry.IsI64Pair) {
-      I64ArgInitializer[Entry.CCArg - 1] = i;
+      I64ArgInitializer[Entry.CCArg - 1] = RegNum;
     } else if (Entry.IsFP32) {
-      FP32ArgInitializer[Entry.CCArg - 1] = i;
+      FP32ArgInitializer[Entry.CCArg - 1] = RegNum;
     } else if (Entry.IsFP64) {
-      FP64ArgInitializer[Entry.CCArg - 1] = i;
+      FP64ArgInitializer[Entry.CCArg - 1] = RegNum;
     } else if (Entry.IsVec128) {
-      Vec128ArgInitializer[Entry.CCArg - 1] = i;
+      Vec128ArgInitializer[Entry.CCArg - 1] = RegNum;
     }
   }
   TypeToRegisterSet[IceType_void] = InvalidRegisters;
@@ -352,7 +353,7 @@ void TargetARM32::staticInit(GlobalContext *Ctx) {
 
   filterTypeToRegisterSet(
       Ctx, RegARM32::Reg_NUM, TypeToRegisterSet,
-      llvm::array_lengthof(TypeToRegisterSet), [](int32_t RegNum) -> IceString {
+      llvm::array_lengthof(TypeToRegisterSet), [](RegNumT RegNum) -> IceString {
         // This function simply removes ", " from the register name.
         IceString Name = RegARM32::getRegName(RegNum);
         constexpr const char RegSeparator[] = ", ";
@@ -378,7 +379,8 @@ void copyRegAllocFromInfWeightVariable64On32(const VarList &Vars) {
     if (!Var64->hasReg()) {
       continue;
     }
-    SizeT FirstReg = RegARM32::getI64PairFirstGPRNum(Var->getRegNum());
+    const auto FirstReg =
+        RegNumT::fixme(RegARM32::getI64PairFirstGPRNum(Var->getRegNum()));
     // This assumes little endian.
     Variable *Lo = Var64->getLo();
     Variable *Hi = Var64->getHi();
@@ -388,7 +390,7 @@ void copyRegAllocFromInfWeightVariable64On32(const VarList &Vars) {
     }
     Lo->setRegNum(FirstReg);
     Lo->setMustHaveReg();
-    Hi->setRegNum(FirstReg + 1);
+    Hi->setRegNum(RegNumT::fixme(FirstReg + 1));
     Hi->setMustHaveReg();
   }
 }
@@ -396,7 +398,7 @@ void copyRegAllocFromInfWeightVariable64On32(const VarList &Vars) {
 
 uint32_t TargetARM32::getCallStackArgumentsSizeBytes(const InstCall *Call) {
   TargetARM32::CallingConv CC;
-  int32_t DummyReg;
+  RegNumT DummyReg;
   size_t OutArgsSizeBytes = 0;
   for (SizeT i = 0, NumArgs = Call->getNumArgs(); i < NumArgs; ++i) {
     Operand *Arg = legalizeUndef(Call->getArg(i));
@@ -920,13 +922,12 @@ bool TargetARM32::doBranchOpt(Inst *I, const CfgNode *NextNode) {
   return false;
 }
 
-IceString TargetARM32::getRegName(SizeT RegNum, Type Ty) const {
-  assert(RegNum < RegARM32::Reg_NUM);
+IceString TargetARM32::getRegName(RegNumT RegNum, Type Ty) const {
   (void)Ty;
   return RegARM32::getRegName(RegNum);
 }
 
-Variable *TargetARM32::getPhysicalRegister(SizeT RegNum, Type Ty) {
+Variable *TargetARM32::getPhysicalRegister(RegNumT RegNum, Type Ty) {
   static const Type DefaultType[] = {
 #define X(val, encode, name, cc_arg, scratch, preserved, stackptr, frameptr,   \
           isGPR, isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)       \
@@ -937,14 +938,13 @@ Variable *TargetARM32::getPhysicalRegister(SizeT RegNum, Type Ty) {
 #undef X
   };
 
-  assert(RegNum < RegARM32::Reg_NUM);
   if (Ty == IceType_void) {
-    assert(RegNum < llvm::array_lengthof(DefaultType));
+    assert(unsigned(RegNum) < llvm::array_lengthof(DefaultType));
     Ty = DefaultType[RegNum];
   }
   if (PhysicalRegisters[Ty].empty())
     PhysicalRegisters[Ty].resize(RegARM32::Reg_NUM);
-  assert(RegNum < PhysicalRegisters[Ty].size());
+  assert(unsigned(RegNum) < PhysicalRegisters[Ty].size());
   Variable *Reg = PhysicalRegisters[Ty][RegNum];
   if (Reg == nullptr) {
     Reg = Func->makeVariable(Ty);
@@ -981,8 +981,8 @@ void TargetARM32::emitVariable(const Variable *Var) const {
   }
   assert(!Var->isRematerializable());
   int32_t Offset = Var->getStackOffset();
-  int32_t BaseRegNum = Var->getBaseRegNum();
-  if (BaseRegNum == Variable::NoRegister) {
+  auto BaseRegNum = Var->getBaseRegNum();
+  if (BaseRegNum == RegNumT::NoRegister) {
     BaseRegNum = getFrameOrStackReg();
   }
   const Type VarTy = Var->getType();
@@ -1002,8 +1002,8 @@ TargetARM32::CallingConv::CallingConv()
       FP64Args(FP64ArgInitializer.rbegin(), FP64ArgInitializer.rend()),
       Vec128Args(Vec128ArgInitializer.rbegin(), Vec128ArgInitializer.rend()) {}
 
-bool TargetARM32::CallingConv::argInGPR(Type Ty, int32_t *Reg) {
-  CfgVector<SizeT> *Source;
+bool TargetARM32::CallingConv::argInGPR(Type Ty, RegNumT *Reg) {
+  CfgVector<RegNumT> *Source;
 
   switch (Ty) {
   default: {
@@ -1037,15 +1037,15 @@ bool TargetARM32::CallingConv::argInGPR(Type Ty, int32_t *Reg) {
 // we remove all of its aliases from the pool of available GPRs. This has the
 // effect of computing the "closure" on the GPR registers.
 void TargetARM32::CallingConv::discardUnavailableGPRsAndTheirAliases(
-    CfgVector<SizeT> *Regs) {
+    CfgVector<RegNumT> *Regs) {
   while (!Regs->empty() && GPRegsUsed[Regs->back()]) {
     GPRegsUsed |= RegisterAliases[Regs->back()];
     Regs->pop_back();
   }
 }
 
-bool TargetARM32::CallingConv::argInVFP(Type Ty, int32_t *Reg) {
-  CfgVector<SizeT> *Source;
+bool TargetARM32::CallingConv::argInVFP(Type Ty, RegNumT *Reg) {
+  CfgVector<RegNumT> *Source;
 
   switch (Ty) {
   default: {
@@ -1075,7 +1075,7 @@ bool TargetARM32::CallingConv::argInVFP(Type Ty, int32_t *Reg) {
 // Arguments in VFP registers are not packed, so we don't mark the popped
 // registers' aliases as unavailable.
 void TargetARM32::CallingConv::discardUnavailableVFPRegs(
-    CfgVector<SizeT> *Regs) {
+    CfgVector<RegNumT> *Regs) {
   while (!Regs->empty() && VFPRegsUsed[Regs->back()]) {
     Regs->pop_back();
   }
@@ -1094,7 +1094,7 @@ void TargetARM32::lowerArguments() {
   for (SizeT I = 0, E = Args.size(); I < E; ++I) {
     Variable *Arg = Args[I];
     Type Ty = Arg->getType();
-    int RegNum;
+    RegNumT RegNum;
     if (isScalarIntegerType(Ty)) {
       if (!CC.argInGPR(Ty, &RegNum)) {
         continue;
@@ -1118,9 +1118,9 @@ void TargetARM32::lowerArguments() {
       auto *RegisterArg64 = llvm::cast<Variable64On32>(RegisterArg);
       RegisterArg64->initHiLo(Func);
       RegisterArg64->getLo()->setRegNum(
-          RegARM32::getI64PairFirstGPRNum(RegNum));
+          RegNumT::fixme(RegARM32::getI64PairFirstGPRNum(RegNum)));
       RegisterArg64->getHi()->setRegNum(
-          RegARM32::getI64PairSecondGPRNum(RegNum));
+          RegNumT::fixme(RegARM32::getI64PairSecondGPRNum(RegNum)));
     } break;
     }
     Context.insert<InstAssign>(Arg, RegisterArg);
@@ -1305,7 +1305,7 @@ void TargetARM32::addProlog(CfgNode *Node) {
         continue;
       }
       ++NumCallee;
-      Variable *PhysicalRegister = getPhysicalRegister(Reg);
+      Variable *PhysicalRegister = getPhysicalRegister(RegNumT::fromInt(Reg));
       PreservedRegsSizeBytes +=
           typeWidthInBytesOnStack(PhysicalRegister->getType());
       PreservedRegsInClass->push_back(PhysicalRegister);
@@ -1380,7 +1380,7 @@ void TargetARM32::addProlog(CfgNode *Node) {
   size_t InArgsSizeBytes = 0;
   TargetARM32::CallingConv CC;
   for (Variable *Arg : Args) {
-    int32_t DummyReg;
+    RegNumT DummyReg;
     const Type Ty = Arg->getType();
 
     // Skip arguments passed in registers.
@@ -1499,7 +1499,7 @@ bool TargetARM32::isLegalMemOffset(Type Ty, int32_t Offset) const {
 }
 
 Variable *TargetARM32::PostLoweringLegalizer::newBaseRegister(
-    Variable *Base, int32_t Offset, int32_t ScratchRegNum) {
+    Variable *Base, int32_t Offset, RegNumT ScratchRegNum) {
   // Legalize will likely need a movw/movt combination, but if the top bits are
   // all 0 from negating the offset and subtracting, we could use that instead.
   const bool ShouldSub = Offset != 0 && (-Offset & 0xFFFF0000) == 0;
@@ -1518,7 +1518,7 @@ Variable *TargetARM32::PostLoweringLegalizer::newBaseRegister(
 
   if (ScratchRegNum == Target->getReservedTmpReg()) {
     const bool BaseIsStackOrFramePtr =
-        Base->getRegNum() == static_cast<int32_t>(Target->getFrameOrStackReg());
+        Base->getRegNum() == Target->getFrameOrStackReg();
     // There is currently no code path that would trigger this assertion, so we
     // leave this assertion here in case it is ever violated. This is not a
     // fatal error (thus the use of assert() and not llvm::report_fatal_error)
@@ -1625,10 +1625,9 @@ void TargetARM32::PostLoweringLegalizer::legalizeMov(InstARM32Mov *MovInstr) {
 
       // ExtraOffset is only needed for frame-pointer based frames as we have
       // to account for spill storage.
-      const int32_t ExtraOffset =
-          (static_cast<SizeT>(Var->getRegNum()) == Target->getFrameReg())
-              ? Target->getFrameFixedAllocaOffset()
-              : 0;
+      const int32_t ExtraOffset = (Var->getRegNum() == Target->getFrameReg())
+                                      ? Target->getFrameFixedAllocaOffset()
+                                      : 0;
 
       const int32_t Offset = Var->getStackOffset() + ExtraOffset;
       Variable *Base = Target->getPhysicalRegister(Var->getRegNum());
@@ -1696,10 +1695,9 @@ TargetARM32::PostLoweringLegalizer::legalizeMemOperand(OperandARM32Mem *Mem,
   Variable *Base = Mem->getBase();
   int32_t Offset = Mem->isRegReg() ? 0 : Mem->getOffset()->getValue();
   if (Base->isRematerializable()) {
-    const int32_t ExtraOffset =
-        (static_cast<SizeT>(Base->getRegNum()) == Target->getFrameReg())
-            ? Target->getFrameFixedAllocaOffset()
-            : 0;
+    const int32_t ExtraOffset = (Base->getRegNum() == Target->getFrameReg())
+                                    ? Target->getFrameFixedAllocaOffset()
+                                    : 0;
     Offset += Base->getStackOffset() + ExtraOffset;
     Base = Target->getPhysicalRegister(Base->getRegNum());
     assert(!Base->isRematerializable());
@@ -1919,7 +1917,7 @@ llvm::SmallBitVector TargetARM32::getRegisterSet(RegSetMask Include,
                                                  RegSetMask Exclude) const {
   llvm::SmallBitVector Registers(RegARM32::Reg_NUM);
 
-  for (int32_t i = 0; i < RegARM32::Reg_NUM; ++i) {
+  for (uint32_t i = 0; i < RegARM32::Reg_NUM; ++i) {
     const auto &Entry = RegARM32::RegTable[i];
     if (Entry.Scratch && (Include & RegSet_CallerSave))
       Registers[i] = true;
@@ -3383,8 +3381,8 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
   // Assign arguments to registers and stack. Also reserve stack.
   TargetARM32::CallingConv CC;
   // Pair of Arg Operand -> GPR number assignments.
-  llvm::SmallVector<std::pair<Operand *, int32_t>, NumGPRArgs> GPRArgs;
-  llvm::SmallVector<std::pair<Operand *, int32_t>, NumFP32Args> FPArgs;
+  llvm::SmallVector<std::pair<Operand *, RegNumT>, NumGPRArgs> GPRArgs;
+  llvm::SmallVector<std::pair<Operand *, RegNumT>, NumFP32Args> FPArgs;
   // Pair of Arg Operand -> stack offset.
   llvm::SmallVector<std::pair<Operand *, int32_t>, 8> StackArgs;
   size_t ParameterAreaSizeBytes = 0;
@@ -3395,7 +3393,7 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
     Operand *Arg = legalizeUndef(Instr->getArg(i));
     const Type Ty = Arg->getType();
     bool InReg = false;
-    int32_t Reg;
+    RegNumT Reg;
     if (isScalarIntegerType(Ty)) {
       InReg = CC.argInGPR(Ty, &Reg);
     } else {
@@ -3413,10 +3411,10 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
     if (Ty == IceType_i64) {
       Operand *Lo = loOperand(Arg);
       Operand *Hi = hiOperand(Arg);
-      GPRArgs.push_back(
-          std::make_pair(Lo, RegARM32::getI64PairFirstGPRNum(Reg)));
-      GPRArgs.push_back(
-          std::make_pair(Hi, RegARM32::getI64PairSecondGPRNum(Reg)));
+      GPRArgs.push_back(std::make_pair(
+          Lo, RegNumT::fixme(RegARM32::getI64PairFirstGPRNum(Reg))));
+      GPRArgs.push_back(std::make_pair(
+          Hi, RegNumT::fixme(RegARM32::getI64PairSecondGPRNum(Reg))));
     } else if (isScalarIntegerType(Ty)) {
       GPRArgs.push_back(std::make_pair(Arg, Reg));
     } else {
@@ -5518,7 +5516,7 @@ void TargetARM32::prelowerPhis() {
   PhiLowering::prelowerPhis32Bit<TargetARM32>(this, Context.getNode(), Func);
 }
 
-Variable *TargetARM32::makeVectorOfZeros(Type Ty, int32_t RegNum) {
+Variable *TargetARM32::makeVectorOfZeros(Type Ty, RegNumT RegNum) {
   Variable *Reg = makeReg(Ty, RegNum);
   Context.insert<InstFakeDef>(Reg);
   assert(isVectorType(Ty));
@@ -5528,7 +5526,7 @@ Variable *TargetARM32::makeVectorOfZeros(Type Ty, int32_t RegNum) {
 
 // Helper for legalize() to emit the right code to lower an operand to a
 // register of the appropriate type.
-Variable *TargetARM32::copyToReg(Operand *Src, int32_t RegNum) {
+Variable *TargetARM32::copyToReg(Operand *Src, RegNumT RegNum) {
   Type Ty = Src->getType();
   Variable *Reg = makeReg(Ty, RegNum);
   if (auto *Mem = llvm::dyn_cast<OperandARM32Mem>(Src)) {
@@ -5541,7 +5539,7 @@ Variable *TargetARM32::copyToReg(Operand *Src, int32_t RegNum) {
 
 // TODO(jpp): remove unneeded else clauses in legalize.
 Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
-                               int32_t RegNum) {
+                               RegNumT RegNum) {
   Type Ty = From->getType();
   // Assert that a physical register is allowed. To date, all calls to
   // legalize() allow a physical register. Legal_Flex converts registers to the
@@ -5549,7 +5547,7 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
   assert(Allowed & Legal_Reg);
 
   // Copied ipsis literis from TargetX86Base<Machine>.
-  if (RegNum == Variable::NoRegister) {
+  if (RegNum == RegNumT::NoRegister) {
     if (Variable *Subst = getContext().availabilityGet(From)) {
       // At this point we know there is a potential substitution available.
       if (!Subst->isRematerializable() && Subst->mustHaveReg() &&
@@ -5733,7 +5731,7 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
     //   register, or
     //   RegNum is required and Var->getRegNum() doesn't match.
     if ((!(Allowed & Legal_Mem) && !MustHaveRegister) ||
-        (RegNum != Variable::NoRegister && RegNum != Var->getRegNum())) {
+        (RegNum != RegNumT::NoRegister && RegNum != Var->getRegNum())) {
       From = copyToReg(From, RegNum);
     }
     return From;
@@ -5744,12 +5742,12 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
 }
 
 /// Provide a trivial wrapper to legalize() for this common usage.
-Variable *TargetARM32::legalizeToReg(Operand *From, int32_t RegNum) {
+Variable *TargetARM32::legalizeToReg(Operand *From, RegNumT RegNum) {
   return llvm::cast<Variable>(legalize(From, Legal_Reg, RegNum));
 }
 
 /// Legalize undef values to concrete values.
-Operand *TargetARM32::legalizeUndef(Operand *From, int32_t RegNum) {
+Operand *TargetARM32::legalizeUndef(Operand *From, RegNumT RegNum) {
   Type Ty = From->getType();
   if (llvm::isa<ConstantUndef>(From)) {
     // Lower undefs to zero. Another option is to lower undefs to an
@@ -5797,12 +5795,12 @@ Variable64On32 *TargetARM32::makeI64RegPair() {
   return Reg;
 }
 
-Variable *TargetARM32::makeReg(Type Type, int32_t RegNum) {
+Variable *TargetARM32::makeReg(Type Type, RegNumT RegNum) {
   // There aren't any 64-bit integer registers for ARM32.
   assert(Type != IceType_i64);
-  assert(AllowTemporaryWithNoReg || RegNum != Variable::NoRegister);
+  assert(AllowTemporaryWithNoReg || RegNum != RegNumT::NoRegister);
   Variable *Reg = Func->makeVariable(Type);
-  if (RegNum == Variable::NoRegister)
+  if (RegNum == RegNumT::NoRegister)
     Reg->setMustHaveReg();
   else
     Reg->setRegNum(RegNum);
@@ -5810,7 +5808,7 @@ Variable *TargetARM32::makeReg(Type Type, int32_t RegNum) {
 }
 
 void TargetARM32::alignRegisterPow2(Variable *Reg, uint32_t Align,
-                                    int32_t TmpRegNum) {
+                                    RegNumT TmpRegNum) {
   assert(llvm::isPowerOf2_32(Align));
   uint32_t RotateAmt;
   uint32_t Immed_8;
@@ -5837,7 +5835,7 @@ void TargetARM32::postLower() {
 }
 
 void TargetARM32::makeRandomRegisterPermutation(
-    llvm::SmallVectorImpl<int32_t> &Permutation,
+    llvm::SmallVectorImpl<RegNumT> &Permutation,
     const llvm::SmallBitVector &ExcludeRegisters, uint64_t Salt) const {
   (void)Permutation;
   (void)ExcludeRegisters;

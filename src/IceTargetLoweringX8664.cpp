@@ -312,7 +312,7 @@ bool isAssignedToRspOrRbp(const Variable *Var) {
     return false;
   }
 
-  const int32_t RegNum = Var->getRegNum();
+  const auto RegNum = Var->getRegNum();
   if ((RegNum == Traits::RegisterSet::Reg_rsp) ||
       (RegNum == Traits::RegisterSet::Reg_rbp)) {
     return true;
@@ -419,8 +419,8 @@ Traits::X86OperandMem *TargetX8664::_sandbox_mem_reference(X86OperandMem *Mem) {
     }
   }
 
-  int32_t RegNum = Variable::NoRegister;
-  int32_t RegNum32 = Variable::NoRegister;
+  auto RegNum = RegNumT::NoRegister;
+  auto RegNum32 = RegNumT::NoRegister;
   if (T != nullptr) {
     if (T->hasReg()) {
       RegNum = Traits::getGprForType(IceType_i64, T->getRegNum());

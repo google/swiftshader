@@ -195,7 +195,7 @@ RegARM32::GPRRegister getGPRReg(IValueT Shift, IValueT Value) {
 
 IValueT getEncodedGPRegNum(const Variable *Var) {
   assert(Var->hasReg());
-  int32_t Reg = Var->getRegNum();
+  const auto Reg = Var->getRegNum();
   return llvm::isa<Variable64On32>(Var) ? RegARM32::getI64PairFirstGPRNum(Reg)
                                         : RegARM32::getEncodedGPR(Reg);
 }
@@ -470,9 +470,8 @@ EncodedOperand encodeAddress(const Operand *Opnd, IValueT &Value,
     IOffsetT Offset = Var->getStackOffset();
     if (!Utils::IsAbsoluteUint(12, Offset))
       return CantEncode;
-    int32_t BaseRegNum = Var->getBaseRegNum();
-    if (BaseRegNum == Variable::NoRegister)
-      BaseRegNum = TInfo.FrameOrStackReg;
+    const auto BaseRegNum =
+        Var->hasReg() ? Var->getBaseRegNum() : TInfo.FrameOrStackReg;
     Value = encodeImmRegOffset(ImmEncoding, BaseRegNum, Offset,
                                OperandARM32Mem::Offset);
     return EncodedAsImmRegOffset;
@@ -585,7 +584,7 @@ void verifyRegNotPcWhenSetFlags(IValueT Reg, bool SetFlags,
     return;
   if (SetFlags && (Reg == RegARM32::Encoded_Reg_pc))
     llvm::report_fatal_error(std::string(InstName) + ": " +
-                             RegARM32::getRegName(Reg) +
+                             RegARM32::getRegName(RegARM32::Reg_pc) +
                              "=pc not allowed when CC=1");
 }
 
@@ -602,7 +601,7 @@ size_t MoveRelocatableFixup::emit(GlobalContext *Ctx,
   IValueT Inst = Asm.load<IValueT>(position());
   Str << "\t"
          "mov" << (kind() == llvm::ELF::R_ARM_MOVW_ABS_NC ? "w" : "t") << "\t"
-      << RegARM32::getRegName((Inst >> kRdShift) & 0xF)
+      << RegARM32::getRegName(RegNumT::fixme((Inst >> kRdShift) & 0xF))
       << ", #:" << (kind() == llvm::ELF::R_ARM_MOVW_ABS_NC ? "lower" : "upper")
       << "16:" << symbol(Ctx, &Asm) << "\t@ .word "
       << llvm::format_hex_no_prefix(Inst, 8) << "\n";

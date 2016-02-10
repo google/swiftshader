@@ -402,19 +402,131 @@ private:
   ConstantUndef(Type Ty) : Constant(kConstUndef, Ty) {}
 };
 
+/// RegNumT is for holding target-specific register numbers, plus the sentinel
+/// value NoRegister.  Its public ctor allows direct use of enum values, such as
+/// RegNumT(Reg_eax), but not things like RegNumT(Reg_eax+1).  This is to try to
+/// prevent inappropriate assumptions about enum ordering.  If needed, the
+/// fromInt() method can be used, such as when a RegNumT is based on a bitvector
+/// index.
+class RegNumT {
+public:
+  using BaseType = uint32_t;
+  RegNumT() = default;
+  RegNumT(const RegNumT &) = default;
+  template <typename AnyEnum>
+  RegNumT(AnyEnum Value,
+          typename std::enable_if<std::is_enum<AnyEnum>::value, int>::type = 0)
+      : Value(Value) {
+    validate(Value);
+  }
+  RegNumT &operator=(const RegNumT &) = default;
+  operator unsigned() const { return Value; }
+  /// Asserts that the register is valid, i.e. not NoRegisterValue.  Note that
+  /// the ctor already does the target-specific limit check.
+  void assertIsValid() const { assert(Value != NoRegisterValue); }
+  static RegNumT fromInt(BaseType Value) { return RegNumT(Value); }
+  /// Marks cases that inappropriately add/subtract RegNumT values, and
+  /// therefore need to be fixed because they make assumptions about register
+  /// enum value ordering.  TODO(stichnot): Remove fixme() as soon as all
+  /// current uses are fixed/removed.
+  static RegNumT fixme(BaseType Value) { return RegNumT(Value); }
+  /// The target's staticInit() method should call setLimit() to register the
+  /// upper bound of allowable values.
+  static void setLimit(BaseType Value) {
+    // Make sure it's only called once.
+    assert(Limit == 0);
+    assert(Value != 0);
+    Limit = Value;
+  }
+  // Define NoRegisterValue as an enum value so that it can be used as an
+  // argument for the public ctor if desired.
+  enum { NoRegisterValue = std::numeric_limits<BaseType>::max() };
+  const static RegNumT NoRegister /* = NoRegisterValue */;
+
+private:
+  BaseType Value = NoRegisterValue;
+  static BaseType Limit;
+  /// Private ctor called only by fromInt() and fixme().
+  RegNumT(BaseType Value) : Value(Value) { validate(Value); }
+  /// The ctor calls this to validate against the target-supplied limit.
+  static void validate(BaseType Value) {
+    (void)Value;
+    assert(Value == NoRegisterValue || Value < Limit);
+  }
+  /// Disallow operators that inappropriately make assumptions about register
+  /// enum value ordering.
+  bool operator<(const RegNumT &) = delete;
+  bool operator<=(const RegNumT &) = delete;
+  bool operator>(const RegNumT &) = delete;
+  bool operator>=(const RegNumT &) = delete;
+};
+
+/// RegNumBVIter wraps llvm::SmallBitVector so that instead of this pattern:
+///
+///   for (int i = V.find_first(); i != -1; i = V.find_next(i)) {
+///     RegNumT RegNum = RegNumT::fromInt(i);
+///     ...
+///   }
+///
+/// this cleaner pattern can be used:
+///
+///   for (RegNumT RegNum : RegNumBVIter(V)) {
+///     ...
+///   }
+class RegNumBVIter {
+  using T = llvm::SmallBitVector;
+  static constexpr int Sentinel = -1;
+  RegNumBVIter() = delete;
+  RegNumBVIter(const RegNumBVIter &) = delete;
+  RegNumBVIter &operator=(const RegNumBVIter &) = delete;
+
+public:
+  class Iterator {
+    Iterator() = delete;
+    Iterator &operator=(const Iterator &) = delete;
+
+  public:
+    explicit Iterator(const T &V) : V(V), Current(V.find_first()) {}
+    Iterator(const T &V, int Value) : V(V), Current(Value) {}
+    Iterator(const Iterator &) = default;
+    RegNumT operator*() {
+      assert(Current != Sentinel);
+      return RegNumT::fromInt(Current);
+    }
+    Iterator &operator++() {
+      assert(Current != Sentinel);
+      Current = V.find_next(Current);
+      return *this;
+    }
+    bool operator!=(Iterator &Other) { return Current != Other.Current; }
+
+  private:
+    const T &V;
+    int Current;
+  };
+
+  explicit RegNumBVIter(const T &V) : V(V) {}
+  Iterator begin() { return Iterator(V); }
+  Iterator end() { return Iterator(V, Sentinel); }
+
+private:
+  const T &V;
+};
+
 /// RegWeight is a wrapper for a uint32_t weight value, with a special value
 /// that represents infinite weight, and an addWeight() method that ensures that
 /// W+infinity=infinity.
 class RegWeight {
 public:
+  using BaseType = uint32_t;
   RegWeight() = default;
-  explicit RegWeight(uint32_t Weight) : Weight(Weight) {}
+  explicit RegWeight(BaseType Weight) : Weight(Weight) {}
   RegWeight(const RegWeight &) = default;
   RegWeight &operator=(const RegWeight &) = default;
-  constexpr static uint32_t Inf = ~0; /// Force regalloc to give a register
-  constexpr static uint32_t Zero = 0; /// Force regalloc NOT to give a register
-  constexpr static uint32_t Max = Inf - 1; /// Max natural weight.
-  void addWeight(uint32_t Delta) {
+  constexpr static BaseType Inf = ~0; /// Force regalloc to give a register
+  constexpr static BaseType Zero = 0; /// Force regalloc NOT to give a register
+  constexpr static BaseType Max = Inf - 1; /// Max natural weight.
+  void addWeight(BaseType Delta) {
     if (Delta == Inf)
       Weight = Inf;
     else if (Weight != Inf)
@@ -422,11 +534,11 @@ public:
         Weight = Max;
   }
   void addWeight(const RegWeight &Other) { addWeight(Other.Weight); }
-  void setWeight(uint32_t Val) { Weight = Val; }
-  uint32_t getWeight() const { return Weight; }
+  void setWeight(BaseType Val) { Weight = Val; }
+  BaseType getWeight() const { return Weight; }
 
 private:
-  uint32_t Weight = 0;
+  BaseType Weight = 0;
 };
 Ostream &operator<<(Ostream &Str, const RegWeight &W);
 bool operator<(const RegWeight &A, const RegWeight &B);
@@ -534,17 +646,16 @@ public:
     return "lv$" + getName(Func);
   }
 
-  static constexpr int32_t NoRegister = -1;
-  bool hasReg() const { return getRegNum() != NoRegister; }
-  int32_t getRegNum() const { return RegNum; }
-  void setRegNum(int32_t NewRegNum) {
+  bool hasReg() const { return getRegNum() != RegNumT::NoRegister; }
+  RegNumT getRegNum() const { return RegNum; }
+  void setRegNum(RegNumT NewRegNum) {
     // Regnum shouldn't be set more than once.
     assert(!hasReg() || RegNum == NewRegNum);
     RegNum = NewRegNum;
   }
-  bool hasRegTmp() const { return getRegNumTmp() != NoRegister; }
-  int32_t getRegNumTmp() const { return RegNumTmp; }
-  void setRegNumTmp(int32_t NewRegNum) { RegNumTmp = NewRegNum; }
+  bool hasRegTmp() const { return getRegNumTmp() != RegNumT::NoRegister; }
+  RegNumT getRegNumTmp() const { return RegNumTmp; }
+  void setRegNumTmp(RegNumT NewRegNum) { RegNumTmp = NewRegNum; }
 
   RegWeight getWeight(const Cfg *Func) const;
 
@@ -554,7 +665,7 @@ public:
   bool mustNotHaveReg() const {
     return RegRequirement == RR_MustNotHaveRegister;
   }
-  void setRematerializable(int32_t NewRegNum, int32_t NewOffset) {
+  void setRematerializable(RegNumT NewRegNum, int32_t NewOffset) {
     IsRematerializable = true;
     setRegNum(NewRegNum);
     setStackOffset(NewOffset);
@@ -593,14 +704,14 @@ public:
   /// IsImplicitArgument, IgnoreLiveness, RegNumTmp, Live, LoVar, HiVar,
   /// VarsReal.  If NewRegNum!=NoRegister, then that register assignment is made
   /// instead of copying the existing assignment.
-  const Variable *asType(Type Ty, int32_t NewRegNum) const;
+  const Variable *asType(Type Ty, RegNumT NewRegNum) const;
 
   void emit(const Cfg *Func) const override;
   using Operand::dump;
   void dump(const Cfg *Func, Ostream &Str) const override;
 
   /// Return reg num of base register, if different from stack/frame register.
-  virtual int32_t getBaseRegNum() const { return NoRegister; }
+  virtual RegNumT getBaseRegNum() const { return RegNumT::NoRegister; }
 
   static bool classof(const Operand *Operand) {
     OperandKind Kind = Operand->getKind();
@@ -632,9 +743,9 @@ protected:
   RegClass RegisterClass;
   /// RegNum is the allocated register, or NoRegister if it isn't
   /// register-allocated.
-  int32_t RegNum = NoRegister;
+  RegNumT RegNum = RegNumT::NoRegister;
   /// RegNumTmp is the tentative assignment during register allocation.
-  int32_t RegNumTmp = NoRegister;
+  RegNumT RegNumTmp = RegNumT::NoRegister;
   /// StackOffset is the canonical location on stack (only if
   /// RegNum==NoRegister || IsArgument).
   int32_t StackOffset = 0;

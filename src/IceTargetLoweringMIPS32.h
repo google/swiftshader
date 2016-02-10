@@ -47,8 +47,9 @@ public:
   bool doBranchOpt(Inst *Instr, const CfgNode *NextNode) override;
 
   SizeT getNumRegisters() const override { return RegMIPS32::Reg_NUM; }
-  Variable *getPhysicalRegister(SizeT RegNum, Type Ty = IceType_void) override;
-  IceString getRegName(SizeT RegNum, Type Ty) const override;
+  Variable *getPhysicalRegister(RegNumT RegNum,
+                                Type Ty = IceType_void) override;
+  IceString getRegName(RegNumT RegNum, Type Ty) const override;
   llvm::SmallBitVector getRegisterSet(RegSetMask Include,
                                       RegSetMask Exclude) const override;
   const llvm::SmallBitVector &
@@ -63,14 +64,15 @@ public:
     assert(RC < RC_Target);
     return TypeToRegisterSetUnfiltered[RC];
   }
-  const llvm::SmallBitVector &getAliasesForRegister(SizeT Reg) const override {
+  const llvm::SmallBitVector &
+  getAliasesForRegister(RegNumT Reg) const override {
     return RegisterAliases[Reg];
   }
   bool hasFramePointer() const override { return UsesFramePointer; }
   void setHasFramePointer() override { UsesFramePointer = true; }
-  SizeT getStackReg() const override { return RegMIPS32::Reg_SP; }
-  SizeT getFrameReg() const override { return RegMIPS32::Reg_FP; }
-  SizeT getFrameOrStackReg() const override {
+  RegNumT getStackReg() const override { return RegMIPS32::Reg_SP; }
+  RegNumT getFrameReg() const override { return RegMIPS32::Reg_FP; }
+  RegNumT getFrameOrStackReg() const override {
     return UsesFramePointer ? getFrameReg() : getStackReg();
   }
   size_t typeWidthInBytesOnStack(Type Ty) const override {
@@ -218,15 +220,15 @@ public:
   };
   typedef uint32_t LegalMask;
   Operand *legalize(Operand *From, LegalMask Allowed = Legal_Default,
-                    int32_t RegNum = Variable::NoRegister);
+                    RegNumT RegNum = RegNumT::NoRegister);
 
-  Variable *legalizeToVar(Operand *From, int32_t RegNum = Variable::NoRegister);
+  Variable *legalizeToVar(Operand *From, RegNumT RegNum = RegNumT::NoRegister);
 
-  Variable *legalizeToReg(Operand *From, int32_t RegNum = Variable::NoRegister);
+  Variable *legalizeToReg(Operand *From, RegNumT RegNum = RegNumT::NoRegister);
 
-  Variable *makeReg(Type Ty, int32_t RegNum = Variable::NoRegister);
+  Variable *makeReg(Type Ty, RegNumT RegNum = RegNumT::NoRegister);
   static Type stackSlotType();
-  Variable *copyToReg(Operand *Src, int32_t RegNum = Variable::NoRegister);
+  Variable *copyToReg(Operand *Src, RegNumT RegNum = RegNumT::NoRegister);
 
   void addProlog(CfgNode *Node) override;
   void addEpilog(CfgNode *Node) override;
@@ -238,7 +240,7 @@ public:
   Operand *loOperand(Operand *Operand);
   Operand *hiOperand(Operand *Operand);
 
-  Operand *legalizeUndef(Operand *From, int32_t RegNum = Variable::NoRegister);
+  Operand *legalizeUndef(Operand *From, RegNumT RegNum = RegNumT::NoRegister);
 
 protected:
   explicit TargetMIPS32(Cfg *Func);
@@ -276,7 +278,7 @@ protected:
   void randomlyInsertNop(float Probability,
                          RandomNumberGenerator &RNG) override;
   void
-  makeRandomRegisterPermutation(llvm::SmallVectorImpl<int32_t> &Permutation,
+  makeRandomRegisterPermutation(llvm::SmallVectorImpl<RegNumT> &Permutation,
                                 const llvm::SmallBitVector &ExcludeRegisters,
                                 uint64_t Salt) const override;
 
