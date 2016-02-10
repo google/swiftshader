@@ -58,8 +58,8 @@ public:
 
 	// Native EGL image
 	Image(GLsizei width, GLsizei height, GLenum format, GLenum type, int pitchP)
-		: sw::Surface(nullptr, width, height, depth, SelectInternalFormat(format, type), true, true, pitchP),
-		  width(width), height(height), format(format), type(type), internalFormat(SelectInternalFormat(format, type)), depth(depth),
+		: sw::Surface(nullptr, width, height, 1, SelectInternalFormat(format, type), true, true, pitchP),
+		  width(width), height(height), format(format), type(type), internalFormat(SelectInternalFormat(format, type)), depth(1),
 		  parentTexture(nullptr)
 	{
 		shared = true;

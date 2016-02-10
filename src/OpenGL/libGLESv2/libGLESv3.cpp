@@ -1145,7 +1145,7 @@ GL_APICALL void GL_APIENTRY glDrawBuffers(GLsizei n, const GLenum *bufs)
 			return error(GL_INVALID_OPERATION);
 		}
 
-		for(int i = 0; i < n; ++i)
+		for(unsigned int i = 0; i < (unsigned)n; i++)
 		{
 			switch(bufs[i])
 			{
@@ -1542,7 +1542,7 @@ GL_APICALL void GL_APIENTRY glFramebufferTextureLayer(GLenum target, GLenum atta
 {
 	TRACE("(GLenum target = 0x%X, GLenum attachment = 0x%X, GLuint texture = %d, GLint level = %d, GLint layer = %d)",
 	      target, attachment, texture, level, layer);
-	
+
 	// GLES 3.0.4 spec, p.209, section 4.4.2
 	// If texture is zero, any image or array of images attached to the attachment point
 	// named by attachment is detached. Any additional parameters(level, textarget,
@@ -2427,7 +2427,7 @@ GL_APICALL void GL_APIENTRY glUniform1uiv(GLint location, GLsizei count, const G
 {
 	TRACE("(GLint location = %d, GLsizei count = %d, const GLuint *value = %p)",
 	      location, count, value);
-	
+
 	if(count < 0)
 	{
 		return error(GL_INVALID_VALUE);
