@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fdce9ca2_6e8cd3f1",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2137,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-02-10T19:47:13Z",
+      "side": 1,
+      "message": "Return false when ES2?",
+      "range": {
+        "startLine": 2137,
+        "startChar": 38,
+        "endLine": 2137,
+        "endChar": 46
+      },
+      "revId": "396cb6f37ec0b548c27934b370ee8d4a8bf611c0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
