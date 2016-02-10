@@ -1827,6 +1827,7 @@ GL_APICALL void GL_APIENTRY glGetIntegeri_v(GLenum target, GLuint index, GLint *
 	if(context)
 	{
 		if(!context->getTransformFeedbackiv(index, target, data) &&
+		   !context->getUniformBufferiv(index, target, data) &&
 		   !context->getIntegerv(target, data))
 		{
 			GLenum nativeType;
@@ -3235,7 +3236,8 @@ GL_APICALL void GL_APIENTRY glGetInteger64i_v(GLenum target, GLuint index, GLint
 	if(context)
 	{
 		if(!context->getTransformFeedbackiv(index, target, data) &&
-			!context->getIntegerv(target, data))
+		   !context->getUniformBufferiv(index, target, data) &&
+		   !context->getIntegerv(target, data))
 		{
 			GLenum nativeType;
 			unsigned int numParams = 0;

@@ -628,7 +628,8 @@ public:
 	bool getFloatv(GLenum pname, GLfloat *params) const;
 	template<typename T> bool getIntegerv(GLenum pname, T *params) const;
 	bool getBooleanv(GLenum pname, GLboolean *params) const;
-	template<typename T> bool getTransformFeedbackiv(GLuint xfb, GLenum pname, T *param) const;
+	template<typename T> bool getTransformFeedbackiv(GLuint index, GLenum pname, T *param) const;
+	template<typename T> bool getUniformBufferiv(GLuint index, GLenum pname, T *param) const;
 	void samplerParameteri(GLuint sampler, GLenum pname, GLint param);
 	void samplerParameterf(GLuint sampler, GLenum pname, GLfloat param);
 	GLint getSamplerParameteri(GLuint sampler, GLenum pname);

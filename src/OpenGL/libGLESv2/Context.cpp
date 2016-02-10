@@ -2444,6 +2444,31 @@ template<typename T> bool Context::getTransformFeedbackiv(GLuint xfb, GLenum pna
 	return true;
 }
 
+template bool Context::getUniformBufferiv<GLint>(GLuint index, GLenum pname, GLint *param) const;
+template bool Context::getUniformBufferiv<GLint64>(GLuint index, GLenum pname, GLint64 *param) const;
+
+template<typename T> bool Context::getUniformBufferiv(GLuint index, GLenum pname, T *param) const
+{
+	const UniformBufferBinding& uniformBuffer = mState.uniformBuffers[index];
+
+	switch(pname)
+	{
+	case GL_UNIFORM_BUFFER_BINDING: // name, initially 0
+		*param = uniformBuffer.get().name();
+		break;
+	case GL_UNIFORM_BUFFER_SIZE: // indexed[n] 64-bit integer, initially 0
+		*param = uniformBuffer.getSize();
+		break;
+	case GL_UNIFORM_BUFFER_START: // indexed[n] 64-bit integer, initially 0
+		*param = uniformBuffer.getOffset();
+		break;
+	default:
+		return false;
+	}
+
+	return true;
+}
+
 bool Context::getQueryParameterInfo(GLenum pname, GLenum *type, unsigned int *numParams) const
 {
     // Please note: the query type returned for DEPTH_CLEAR_VALUE in this implementation
