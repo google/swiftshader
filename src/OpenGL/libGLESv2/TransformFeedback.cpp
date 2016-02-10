@@ -40,6 +40,26 @@ Buffer* TransformFeedback::getBuffer(GLuint index) const
 	return mBuffer[index].get();
 }
 
+GLuint TransformFeedback::getGenericBufferName() const
+{
+	return mGenericBuffer.name();
+}
+
+GLuint TransformFeedback::getBufferName(GLuint index) const
+{
+	return mBuffer[index].get().name();
+}
+
+int TransformFeedback::getOffset(GLuint index) const
+{
+	return mBuffer[index].getOffset();
+}
+
+int TransformFeedback::getSize(GLuint index) const
+{
+	return mBuffer[index].getSize();
+}
+
 bool TransformFeedback::isActive() const
 {
 	return mActive;

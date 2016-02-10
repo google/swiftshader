@@ -2396,6 +2396,32 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 	case GL_VERTEX_ARRAY_BINDING: // GLint, initially 0
 		*params = getCurrentVertexArray()->name;
 		break;
+	case GL_TRANSFORM_FEEDBACK_BINDING:
+		{
+			TransformFeedback* transformFeedback = getTransformFeedback(mState.transformFeedback);
+			if(transformFeedback)
+			{
+				*params = transformFeedback->name;
+			}
+			else
+			{
+				return false;
+			}
+		}
+		break;
+	case GL_TRANSFORM_FEEDBACK_BUFFER_BINDING:
+		{
+			TransformFeedback* transformFeedback = getTransformFeedback(mState.transformFeedback);
+			if(transformFeedback)
+			{
+				*params = transformFeedback->getGenericBufferName();
+			}
+			else
+			{
+				return false;
+			}
+		}
+		break;
 	default:
         return false;
     }
@@ -2403,13 +2429,11 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
     return true;
 }
 
-template bool Context::getTransformFeedbackiv<GLint>(GLuint xfb, GLenum pname, GLint *param) const;
-template bool Context::getTransformFeedbackiv<GLint64>(GLuint xfb, GLenum pname, GLint64 *param) const;
+template bool Context::getTransformFeedbackiv<GLint>(GLuint index, GLenum pname, GLint *param) const;
+template bool Context::getTransformFeedbackiv<GLint64>(GLuint index, GLenum pname, GLint64 *param) const;
 
-template<typename T> bool Context::getTransformFeedbackiv(GLuint xfb, GLenum pname, T *param) const
+template<typename T> bool Context::getTransformFeedbackiv(GLuint index, GLenum pname, T *param) const
 {
-	UNIMPLEMENTED();
-
 	TransformFeedback* transformFeedback = getTransformFeedback(mState.transformFeedback);
 	if(!transformFeedback)
 	{
@@ -2419,27 +2443,31 @@ template<typename T> bool Context::getTransformFeedbackiv(GLuint xfb, GLenum pna
 	switch(pname)
 	{
 	case GL_TRANSFORM_FEEDBACK_BINDING: // GLint, initially 0
-		*param = 0;
+		*param = transformFeedback->name;
 		break;
 	case GL_TRANSFORM_FEEDBACK_ACTIVE: // boolean, initially GL_FALSE
 		*param = transformFeedback->isActive();
 		break;
 	case GL_TRANSFORM_FEEDBACK_BUFFER_BINDING: // name, initially 0
-		*param = transformFeedback->name;
+		*param = transformFeedback->getBufferName(index);
 		break;
 	case GL_TRANSFORM_FEEDBACK_PAUSED: // boolean, initially GL_FALSE
 		*param = transformFeedback->isPaused();
 		break;
 	case GL_TRANSFORM_FEEDBACK_BUFFER_SIZE: // indexed[n] 64-bit integer, initially 0
-		if(transformFeedback->getGenericBuffer())
+		if(transformFeedback->getBuffer(index))
 		{
-			*param = transformFeedback->getGenericBuffer()->size();
+			*param = transformFeedback->getSize(index);
 			break;
 		}
 		else return false;
 	case GL_TRANSFORM_FEEDBACK_BUFFER_START: // indexed[n] 64-bit integer, initially 0
-		*param = 0;
+		if(transformFeedback->getBuffer(index))
+		{
+			*param = transformFeedback->getOffset(index);
 		break;
+		}
+		else return false;
 	default:
 		return false;
 	}
@@ -2624,6 +2652,8 @@ bool Context::getQueryParameterInfo(GLenum pname, GLenum *type, unsigned int *nu
     case GL_UNPACK_SKIP_PIXELS:
     case GL_UNPACK_SKIP_ROWS:
     case GL_VERTEX_ARRAY_BINDING:
+	case GL_TRANSFORM_FEEDBACK_BINDING:
+	case GL_TRANSFORM_FEEDBACK_BUFFER_BINDING:
         {
             *type = GL_INT;
             *numParams = 1;
