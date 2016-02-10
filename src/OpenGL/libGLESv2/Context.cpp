@@ -2186,8 +2186,14 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 		*params = GL_NONE;
 		break;
 	case GL_MAJOR_VERSION: // integer, at least 3
-		UNIMPLEMENTED();
-		*params = 3;
+		if(clientVersion >= 3)
+		{
+			*params = clientVersion;
+		}
+		else
+		{
+			return false;
+		}
 		break;
 	case GL_MAX_3D_TEXTURE_SIZE: // GLint, at least 2048
 		*params = IMPLEMENTATION_MAX_TEXTURE_SIZE;
@@ -2200,7 +2206,6 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 		*params = IMPLEMENTATION_MAX_COLOR_ATTACHMENTS;
 		break;
 	case GL_MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS: // integer, at least 50048
-		UNIMPLEMENTED();
 		*params = MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS;
 		break;
 	case GL_MAX_COMBINED_UNIFORM_BLOCKS: // integer, at least 70
@@ -2208,7 +2213,6 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 		*params = 70;
 		break;
 	case GL_MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS: // integer, at least 50176
-		UNIMPLEMENTED();
 		*params = MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS;
 		break;
 	case GL_MAX_DRAW_BUFFERS: // integer, at least 8
