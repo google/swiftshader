@@ -27,9 +27,8 @@
 #include <cutils/properties.h>
 #endif
 
-#ifndef DISPLAY_LOGO
-#define DISPLAY_LOGO ((NDEBUG | __ANDROID__) & 1)
-#endif
+#undef DISPLAY_LOGO
+#define DISPLAY_LOGO 0
 
 #define ASYNCHRONOUS_BLIT 0   // FIXME: Currently leads to rare race conditions
 
