@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fdce9ca2_ceb647ba",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2189,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-02-10T19:43:44Z",
+      "side": 1,
+      "message": "GL_MAJOR_VERSION was added in ES3 I believe, so this should return false and not touch params when clientVersion \u003c 3",
+      "range": {
+        "startLine": 2189,
+        "startChar": 2,
+        "endLine": 2189,
+        "endChar": 26
+      },
+      "revId": "bcbdcea7910e792a613b9f2f66f55675ae8375e3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
