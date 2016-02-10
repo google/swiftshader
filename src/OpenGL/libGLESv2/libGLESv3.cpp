@@ -18,6 +18,7 @@
 #include "Query.h"
 #include "Sampler.h"
 #include "Texture.h"
+#include "mathutil.h"
 #include "common/debug.h"
 
 #include <GLES3/gl3.h>
@@ -3912,7 +3913,7 @@ GL_APICALL void GL_APIENTRY glTexStorage3D(GLenum target, GLsizei levels, GLenum
 		{
 		case GL_TEXTURE_3D:
 		{
-			if(levels > es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS || levels >(log2(std::max(std::max(width, height), depth)) + 1))
+			if(levels > es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS || levels > (log2(std::max(std::max(width, height), depth)) + 1))
 			{
 				return error(GL_INVALID_OPERATION);
 			}
@@ -3935,7 +3936,7 @@ GL_APICALL void GL_APIENTRY glTexStorage3D(GLenum target, GLsizei levels, GLenum
 			break;
 		case GL_TEXTURE_2D_ARRAY:
 		{
-			if(levels > es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS || levels >(log2(std::max(width, height)) + 1))
+			if(levels > es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS || levels > (log2(std::max(width, height)) + 1))
 			{
 				return error(GL_INVALID_OPERATION);
 			}
