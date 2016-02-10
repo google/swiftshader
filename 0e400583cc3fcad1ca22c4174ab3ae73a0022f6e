@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "fdce9ca2_e9857df9",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-02-10T20:51:27Z",
+      "side": 1,
+      "message": "glGetIntegerv spec: \"If a value is so large in magnitude that it cannot be represented with the requested type, then the nearest value representable using the requested type is returned\"\n\nSo the clamp indeed needs to happen at query, not when being set. I added a note to b/21284296 to look for more of these cases.",
+      "parentUuid": "fdce9ca2_aed9cb6f",
+      "range": {
+        "startLine": 10,
+        "startChar": 53,
+        "endLine": 10,
+        "endChar": 62
+      },
+      "revId": "0e400583cc3fcad1ca22c4174ab3ae73a0022f6e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fdce9ca2_0eb8bf3f",
         "filename": "src/Common/Math.hpp",
         "patchSetId": 1
