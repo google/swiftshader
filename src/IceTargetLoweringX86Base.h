@@ -343,9 +343,6 @@ protected:
 
   void eliminateNextVectorSextInstruction(Variable *SignExtendedResult);
 
-  void scalarizeArithmetic(InstArithmetic::OpKind K, Variable *Dest,
-                           Operand *Src0, Operand *Src1);
-
   void emitGetIP(CfgNode *Node) {
     dispatchToConcrete(&Traits::ConcreteTarget::emitGetIP, std::move(Node));
   }

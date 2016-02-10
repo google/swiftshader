@@ -804,7 +804,6 @@ template <> void InstARM32Vmul::emitIAS(const Cfg *Func) const {
     Asm->vmuld(Dest, getSrc(0), getSrc(1), CondARM32::AL);
     break;
   }
-  assert(!Asm->needsTextFixup());
 }
 
 InstARM32Call::InstARM32Call(Cfg *Func, Variable *Dest, Operand *CallTarget)

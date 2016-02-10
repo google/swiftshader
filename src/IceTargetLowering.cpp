@@ -700,6 +700,39 @@ bool TargetLowering::shouldOptimizeMemIntrins() {
          Ctx->getFlags().getForceMemIntrinOpt();
 }
 
+void TargetLowering::scalarizeArithmetic(InstArithmetic::OpKind Kind,
+                                         Variable *Dest, Operand *Src0,
+                                         Operand *Src1) {
+  assert(isVectorType(Dest->getType()));
+  Type Ty = Dest->getType();
+  Type ElementTy = typeElementType(Ty);
+  SizeT NumElements = typeNumElements(Ty);
+
+  Operand *T = Ctx->getConstantUndef(Ty);
+  for (SizeT I = 0; I < NumElements; ++I) {
+    Constant *Index = Ctx->getConstantInt32(I);
+
+    // Extract the next two inputs.
+    Variable *Op0 = Func->makeVariable(ElementTy);
+    Context.insert<InstExtractElement>(Op0, Src0, Index);
+    Variable *Op1 = Func->makeVariable(ElementTy);
+    Context.insert<InstExtractElement>(Op1, Src1, Index);
+
+    // Perform the arithmetic as a scalar operation.
+    Variable *Res = Func->makeVariable(ElementTy);
+    auto *Arith = Context.insert<InstArithmetic>(Kind, Res, Op0, Op1);
+    // We might have created an operation that needed a helper call.
+    genTargetHelperCallFor(Arith);
+
+    // Insert the result into position.
+    Variable *DestT = Func->makeVariable(Ty);
+    Context.insert<InstInsertElement>(DestT, T, Res, Index);
+    T = DestT;
+  }
+
+  Context.insert<InstAssign>(Dest, T);
+}
+
 void TargetLowering::emitWithoutPrefix(const ConstantRelocatable *C,
                                        const char *Suffix) const {
   if (!BuildDefs::dump())

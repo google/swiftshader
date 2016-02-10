@@ -430,6 +430,18 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
     const Type DestTy = Dest->getType();
     const InstArithmetic::OpKind Op =
         llvm::cast<InstArithmetic>(Instr)->getOp();
+    if (isVectorType(DestTy)) {
+      switch (Op) {
+      default:
+        break;
+      case InstArithmetic::Fdiv:
+      case InstArithmetic::Udiv:
+      case InstArithmetic::Sdiv:
+        scalarizeArithmetic(Op, Dest, Instr->getSrc(0), Instr->getSrc(1));
+        Instr->setDeleted();
+        return;
+      }
+    }
     switch (DestTy) {
     default:
       return;
@@ -2015,7 +2027,8 @@ void TargetARM32::div0Check(Type Ty, Operand *SrcLo, Operand *SrcHi) {
   Variable *SrcLoReg = legalizeToReg(SrcLo);
   switch (Ty) {
   default:
-    llvm::report_fatal_error("Unexpected type");
+    llvm_unreachable(
+        ("Unexpected type in div0Check: " + typeIceString(Ty)).c_str());
   case IceType_i8:
   case IceType_i16: {
     Operand *ShAmtImm = shAmtImm(32 - getScalarIntBitWidth(Ty));
@@ -5508,7 +5521,8 @@ void TargetARM32::prelowerPhis() {
 Variable *TargetARM32::makeVectorOfZeros(Type Ty, int32_t RegNum) {
   Variable *Reg = makeReg(Ty, RegNum);
   Context.insert<InstFakeDef>(Reg);
-  UnimplementedError(Func->getContext()->getFlags());
+  assert(isVectorType(Ty));
+  _veor(Reg, Reg, Reg);
   return Reg;
 }
 

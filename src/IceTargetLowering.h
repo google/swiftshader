@@ -464,6 +464,9 @@ protected:
 
   bool shouldOptimizeMemIntrins();
 
+  void scalarizeArithmetic(InstArithmetic::OpKind K, Variable *Dest,
+                           Operand *Src0, Operand *Src1);
+
   /// SandboxType enumerates all possible sandboxing strategies that
   enum SandboxType {
     ST_None,
