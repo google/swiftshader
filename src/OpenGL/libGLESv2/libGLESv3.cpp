@@ -272,7 +272,7 @@ static FormatMapStorage BuildFormatMapStorage2D()
 	InsertFormatStorageMapping(map, GL_R32I, GL_INT);
 	InsertFormatStorageMapping(map, GL_RG8, GL_UNSIGNED_BYTE);
 	InsertFormatStorageMapping(map, GL_RG8_SNORM, GL_BYTE);
-	InsertFormatStorageMapping(map, GL_R16F, GL_HALF_FLOAT);
+	InsertFormatStorageMapping(map, GL_RG16F, GL_HALF_FLOAT);
 	InsertFormatStorageMapping(map, GL_RG32F, GL_FLOAT);
 	InsertFormatStorageMapping(map, GL_RG8UI, GL_UNSIGNED_BYTE);
 	InsertFormatStorageMapping(map, GL_RG8I, GL_BYTE);
@@ -296,6 +296,7 @@ static FormatMapStorage BuildFormatMapStorage2D()
 	InsertFormatStorageMapping(map, GL_RGB32I, GL_INT);
 	InsertFormatStorageMapping(map, GL_RGBA8, GL_UNSIGNED_BYTE);
 	InsertFormatStorageMapping(map, GL_SRGB8_ALPHA8, GL_UNSIGNED_BYTE);
+	InsertFormatStorageMapping(map, GL_RGBA8_SNORM, GL_BYTE);
 	InsertFormatStorageMapping(map, GL_RGB5_A1, GL_UNSIGNED_SHORT_5_5_5_1);
 	InsertFormatStorageMapping(map, GL_RGBA4, GL_UNSIGNED_SHORT_4_4_4_4);
 	InsertFormatStorageMapping(map, GL_RGB10_A2, GL_UNSIGNED_INT_2_10_10_10_REV);
