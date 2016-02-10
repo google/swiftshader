@@ -954,9 +954,7 @@ namespace sw
 		}
 		else if(var.rel.type == Shader::PARAMETER_CONST)
 		{
-			RValue<Int4> c = *Pointer<Int4>(uniformAddress(bufferIndex, var.rel.index));
-
-			return Extract(c, 0) * var.rel.scale;
+			return *Pointer<Int>(uniformAddress(bufferIndex, var.rel.index)) * var.rel.scale;
 		}
 		else if(var.rel.type == Shader::PARAMETER_LOOP)
 		{

@@ -831,8 +831,6 @@ namespace sw
 			
 				c.x = c.y = c.z = c.w = *Pointer<Float4>(uniformAddress(src.bufferIndex, i, a));
 
-				c.x = c.y = c.z = c.w = *Pointer<Float4>(data + OFFSET(DrawData,vs.c[i]) + a * 16);
-
 				c.x = c.x.xxxx;
 				c.y = c.y.yyyy;
 				c.z = c.z.zzzz;
@@ -892,9 +890,7 @@ namespace sw
 		}
 		else if(var.rel.type == Shader::PARAMETER_CONST)
 		{
-			RValue<Int4> c = *Pointer<Int4>(uniformAddress(bufferIndex, var.rel.index));
-
-			return Extract(c, 0) * var.rel.scale;
+			return *Pointer<Int>(uniformAddress(bufferIndex, var.rel.index)) * var.rel.scale;
 		}
 		else if(var.rel.type == Shader::PARAMETER_LOOP)
 		{
