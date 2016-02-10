@@ -70,7 +70,7 @@ public:
 	bool setBaseLevel(GLint baseLevel);
 	bool setCompareFunc(GLenum compareFunc);
 	bool setCompareMode(GLenum compareMode);
-	bool setImmutableFormat(GLboolean immutableFormat);
+	void makeImmutable(GLsizei levels);
 	bool setMaxLevel(GLint maxLevel);
 	bool setMaxLOD(GLfloat maxLOD);
 	bool setMinLOD(GLfloat minLOD);
@@ -89,6 +89,7 @@ public:
 	GLenum getCompareFunc() const;
 	GLenum getCompareMode() const;
 	GLboolean getImmutableFormat() const;
+	GLsizei getImmutableLevels() const;
 	GLint getMaxLevel() const;
 	GLfloat getMaxLOD() const;
 	GLfloat getMinLOD() const;
@@ -139,6 +140,7 @@ protected:
 	GLenum mCompareFunc;
 	GLenum mCompareMode;
 	GLboolean mImmutableFormat;
+	GLsizei mImmutableLevels;
 	GLint mMaxLevel;
 	GLfloat mMaxLOD;
 	GLfloat mMinLOD;

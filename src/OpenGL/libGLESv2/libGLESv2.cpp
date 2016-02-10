@@ -3719,6 +3719,13 @@ void GetTexParameterfv(GLenum target, GLenum pname, GLfloat* params)
 				break;
 			}
 			else return error(GL_INVALID_ENUM);
+		case GL_TEXTURE_IMMUTABLE_LEVELS:
+			if(clientVersion >= 3)
+			{
+				*params = (GLfloat)texture->getImmutableLevels();
+				break;
+			}
+			else return error(GL_INVALID_ENUM);
 		case GL_TEXTURE_MAX_LEVEL:
 			if(clientVersion >= 3)
 			{
@@ -3862,6 +3869,13 @@ void GetTexParameteriv(GLenum target, GLenum pname, GLint* params)
 			if(clientVersion >= 3)
 			{
 				*params = (GLint)texture->getImmutableFormat();
+				break;
+			}
+			else return error(GL_INVALID_ENUM);
+		case GL_TEXTURE_IMMUTABLE_LEVELS:
+			if(clientVersion >= 3)
+			{
+				*params = (GLint)texture->getImmutableLevels();
 				break;
 			}
 			else return error(GL_INVALID_ENUM);
@@ -5970,12 +5984,6 @@ void TexParameterf(GLenum target, GLenum pname, GLfloat param)
 				return error(GL_INVALID_VALUE);
 			}
 			break;
-		case GL_TEXTURE_IMMUTABLE_FORMAT:
-			if(clientVersion < 3 || !texture->setImmutableFormat((GLboolean)param))
-			{
-				return error(GL_INVALID_VALUE);
-			}
-			break;
 		case GL_TEXTURE_MAX_LEVEL:
 			if(clientVersion < 3 || !texture->setMaxLevel((GLint)(roundf(param))))
 			{
@@ -6121,12 +6129,6 @@ void TexParameteri(GLenum target, GLenum pname, GLint param)
 			break;
 		case GL_TEXTURE_COMPARE_MODE:
 			if(clientVersion < 3 || !texture->setCompareMode((GLenum)param))
-			{
-				return error(GL_INVALID_VALUE);
-			}
-			break;
-		case GL_TEXTURE_IMMUTABLE_FORMAT:
-			if(clientVersion < 3 || !texture->setImmutableFormat((GLboolean)param))
 			{
 				return error(GL_INVALID_VALUE);
 			}

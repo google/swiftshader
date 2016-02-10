@@ -3859,7 +3859,7 @@ GL_APICALL void GL_APIENTRY glTexStorage2D(GLenum target, GLsizei levels, GLenum
 				width = std::max(1, (width / 2));
 				height = std::max(1, (height / 2));
 			}
-			texture->setImmutableFormat(GL_TRUE);
+			texture->makeImmutable(levels);
 		}
 			break;
 		case GL_TEXTURE_CUBE_MAP:
@@ -3879,7 +3879,7 @@ GL_APICALL void GL_APIENTRY glTexStorage2D(GLenum target, GLsizei levels, GLenum
 				width = std::max(1, (width / 2));
 				height = std::max(1, (height / 2));
 			}
-			texture->setImmutableFormat(GL_TRUE);
+			texture->makeImmutable(levels);
 		}
 			break;
 		default:
@@ -3930,7 +3930,7 @@ GL_APICALL void GL_APIENTRY glTexStorage3D(GLenum target, GLsizei levels, GLenum
 				height = std::max(1, (height / 2));
 				depth = std::max(1, (depth / 2));
 			}
-			texture->setImmutableFormat(GL_TRUE);
+			texture->makeImmutable(levels);
 		}
 			break;
 		case GL_TEXTURE_2D_ARRAY:
@@ -3955,7 +3955,7 @@ GL_APICALL void GL_APIENTRY glTexStorage3D(GLenum target, GLsizei levels, GLenum
 				width = std::max(1, (width / 2));
 				height = std::max(1, (height / 2));
 			}
-			texture->setImmutableFormat(GL_TRUE);
+			texture->makeImmutable(levels);
 		}
 			break;
 		default:
