@@ -30,9 +30,31 @@ typedef unsigned int GLenum;
 
 namespace glsl
 {
+	struct BlockMemberInfo
+	{
+		BlockMemberInfo() : offset(-1), arrayStride(-1), matrixStride(-1), isRowMajorMatrix(false) {}
+
+		BlockMemberInfo(int offset, int arrayStride, int matrixStride, bool isRowMajorMatrix)
+			: offset(offset),
+			arrayStride(arrayStride),
+			matrixStride(matrixStride),
+			isRowMajorMatrix(isRowMajorMatrix)
+		{}
+
+		static BlockMemberInfo getDefaultBlockInfo()
+		{
+			return BlockMemberInfo(-1, -1, -1, false);
+		}
+
+		int offset;
+		int arrayStride;
+		int matrixStride;
+		bool isRowMajorMatrix;
+	};
+
 	struct Uniform
 	{
-		Uniform(GLenum type, GLenum precision, const std::string &name, int arraySize, int registerIndex, int offset, int blockId);
+		Uniform(GLenum type, GLenum precision, const std::string &name, int arraySize, int registerIndex, int blockId, const BlockMemberInfo& blockMemberInfo);
 
 		GLenum type;
 		GLenum precision;
@@ -40,22 +62,19 @@ namespace glsl
 		int arraySize;
 	
 		int registerIndex;
-		int offset;
 
 		int blockId;
+		BlockMemberInfo blockInfo;
 	};
 
 	typedef std::vector<Uniform> ActiveUniforms;
 
 	struct UniformBlock
 	{
-		UniformBlock(const std::string& name, const std::string& instanceName, unsigned int dataSize, unsigned int arraySize,
+		UniformBlock(const std::string& name, unsigned int dataSize, unsigned int arraySize,
 		             TLayoutBlockStorage layout, bool isRowMajorLayout, int registerIndex, int blockId);
 
-		const std::string& getName() const { return (instanceName.length() > 0) ? instanceName : name; }
-
 		std::string name;
-		std::string instanceName;
 		unsigned int dataSize;
 		unsigned int arraySize;
 		TLayoutBlockStorage layout;
@@ -65,6 +84,50 @@ namespace glsl
 		int registerIndex;
 
 		int blockId;
+	};
+
+	class BlockLayoutEncoder
+	{
+	public:
+		BlockLayoutEncoder(bool rowMajor);
+		virtual ~BlockLayoutEncoder() {}
+
+		BlockMemberInfo encodeType(const TType &type);
+
+		size_t getBlockSize() const { return mCurrentOffset * BytesPerComponent; }
+
+		virtual void enterAggregateType() = 0;
+		virtual void exitAggregateType() = 0;
+
+		static const size_t BytesPerComponent = 4u;
+		static const unsigned int ComponentsPerRegister = 4u;
+
+		static size_t getBlockRegister(const BlockMemberInfo &info);
+		static size_t getBlockRegisterElement(const BlockMemberInfo &info);
+
+	protected:
+		size_t mCurrentOffset;
+		bool isRowMajor;
+
+		void nextRegister();
+
+		virtual void getBlockLayoutInfo(const TType &type, unsigned int arraySize, bool isRowMajorMatrix, int *arrayStrideOut, int *matrixStrideOut) = 0;
+		virtual void advanceOffset(const TType &type, unsigned int arraySize, bool isRowMajorMatrix, int arrayStride, int matrixStride) = 0;
+	};
+
+	// Block layout according to the std140 block layout
+	// See "Standard Uniform Block Layout" in Section 2.11.6 of the OpenGL ES 3.0 specification
+	class Std140BlockEncoder : public BlockLayoutEncoder
+	{
+	public:
+		Std140BlockEncoder(bool rowMajor);
+
+		void enterAggregateType() override;
+		void exitAggregateType() override;
+
+	protected:
+		void getBlockLayoutInfo(const TType &type, unsigned int arraySize, bool isRowMajorMatrix, int *arrayStrideOut, int *matrixStrideOut) override;
+		void advanceOffset(const TType &type, unsigned int arraySize, bool isRowMajorMatrix, int arrayStride, int matrixStride) override;
 	};
 
 	typedef std::vector<UniformBlock> ActiveUniformBlocks;
@@ -194,8 +257,11 @@ namespace glsl
 		virtual bool visitBranch(Visit visit, TIntermBranch*);
 
 		sw::Shader::Opcode getOpcode(sw::Shader::Opcode op, TIntermTyped *in) const;
-		Instruction *emit(sw::Shader::Opcode op, TIntermTyped *dst = 0, TIntermNode *src0 = 0, TIntermNode *src1 = 0, TIntermNode *src2 = 0, TIntermNode *src3 = 0, TIntermNode *src4 = 0, int index = 0);
+		Instruction *emit(sw::Shader::Opcode op, TIntermTyped *dst = 0, TIntermNode *src0 = 0, TIntermNode *src1 = 0, TIntermNode *src2 = 0, TIntermNode *src3 = 0, TIntermNode *src4 = 0);
+		Instruction *emit(sw::Shader::Opcode op, TIntermTyped *dst, int dstIndex, TIntermNode *src0 = 0, int index0 = 0, TIntermNode *src1 = 0, int index1 = 0,
+		                  TIntermNode *src2 = 0, int index2 = 0, TIntermNode *src3 = 0, int index3 = 0, TIntermNode *src4 = 0, int index4 = 0);
 		Instruction *emitCast(TIntermTyped *dst, TIntermTyped *src);
+		Instruction *emitCast(TIntermTyped *dst, int dstIndex, TIntermTyped *src, int srcIndex);
 		void emitBinary(sw::Shader::Opcode op, TIntermTyped *dst = 0, TIntermNode *src0 = 0, TIntermNode *src1 = 0, TIntermNode *src2 = 0);
 		void emitAssign(sw::Shader::Opcode op, TIntermTyped *result, TIntermTyped *lhs, TIntermTyped *src0, TIntermTyped *src1 = 0);
 		void emitCmp(sw::Shader::Control cmpOp, TIntermTyped *dst, TIntermNode *left, TIntermNode *right, int index = 0);
@@ -205,7 +271,7 @@ namespace glsl
 		void assignLvalue(TIntermTyped *dst, TIntermTyped *src);
 		int lvalue(sw::Shader::DestinationParameter &dst, Temporary &address, TIntermTyped *node);
 		sw::Shader::ParameterType registerType(TIntermTyped *operand);
-		int registerIndex(TIntermTyped *operand);
+		unsigned int registerIndex(TIntermTyped *operand);
 		int writeMask(TIntermTyped *destination, int index = 0);
 		int readSwizzle(TIntermTyped *argument, int size);
 		bool trivial(TIntermTyped *expression, int budget);   // Fast to compute and no side effects
@@ -227,7 +293,7 @@ namespace glsl
 		int allocate(VariableArray &list, TIntermTyped *variable);
 		void free(VariableArray &list, TIntermTyped *variable);
 
-		void declareUniform(const TType &type, const TString &name, int registerIndex, int offset = 0, int blockId = -1);
+		int declareUniform(const TType &type, const TString &name, int registerIndex, int blockId = -1, BlockLayoutEncoder* encoder = nullptr);
 		GLenum glVariableType(const TType &type);
 		GLenum glVariablePrecision(const TType &type);
 
@@ -248,6 +314,20 @@ namespace glsl
 		VariableArray attributes;
 		VariableArray samplers;
 		VariableArray fragmentOutputs;
+
+		struct TypedMemberInfo : public BlockMemberInfo
+		{
+			TypedMemberInfo() {}
+			TypedMemberInfo(const BlockMemberInfo& b, const TType& t) : BlockMemberInfo(b), type(t) {}
+			TType type;
+		};
+
+		struct BlockDefinition
+		{
+			typedef std::map<int, TypedMemberInfo> IndexMap;
+			IndexMap indexMap;
+		};
+		std::vector<BlockDefinition> blockDefinitions;
 
 		Scope emitScope;
 		Scope currentScope;

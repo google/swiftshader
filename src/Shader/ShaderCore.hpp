@@ -259,8 +259,6 @@ namespace sw
 		void u2f(Vector4f &dst, const Vector4f &src);
 		void i2b(Vector4f &dst, const Vector4f &src);
 		void b2i(Vector4f &dst, const Vector4f &src);
-		void u2b(Vector4f &dst, const Vector4f &src);
-		void b2u(Vector4f &dst, const Vector4f &src);
 		void add(Vector4f &dst, const Vector4f &src0, const Vector4f &src1);
 		void iadd(Vector4f &dst, const Vector4f &src0, const Vector4f &src1);
 		void sub(Vector4f &dst, const Vector4f &src0, const Vector4f &src1);

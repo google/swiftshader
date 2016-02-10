@@ -4241,7 +4241,7 @@ void APIENTRY glTexImage2D(GLenum target, GLint level, GLint internalformat, GLs
 		return error(GL_INVALID_VALUE);
 	}
 
-	if(internalformat != format)
+	if(internalformat != (GLint)format)
 	{
 		//TRACE("UNIMPLEMENTED!!");
 		//return error(GL_INVALID_OPERATION);

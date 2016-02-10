@@ -30,7 +30,7 @@ namespace egl
 	{
 		EGLint error;
 		EGLenum API;
-		Display *display;
+		EGLDisplay display;
 		Context *context;
 		Surface *drawSurface;
 		Surface *readSurface;
@@ -42,8 +42,8 @@ namespace egl
 	void setCurrentAPI(EGLenum API);
 	EGLenum getCurrentAPI();
 
-	void setCurrentDisplay(Display *dpy);
-	Display *getCurrentDisplay();
+	void setCurrentDisplay(EGLDisplay dpy);
+	EGLDisplay getCurrentDisplay();
 
 	void setCurrentContext(Context *ctx);
 	Context *getCurrentContext();
@@ -55,7 +55,7 @@ namespace egl
 	Surface *getCurrentReadSurface();
 
 	void error(EGLint errorCode);
-	
+
 	template<class T>
 	const T &error(EGLint errorCode, const T &returnValue)
 	{

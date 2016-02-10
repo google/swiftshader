@@ -141,9 +141,9 @@ namespace sw
 		return instructionCount;
 	}
 
-	bool VertexShader::containsTexldl() const
+	bool VertexShader::containsTextureSampling() const
 	{
-		return texldl;
+		return textureSampling;
 	}
 
 	void VertexShader::analyze()
@@ -151,7 +151,7 @@ namespace sw
 		analyzeInput();
 		analyzeOutput();
 		analyzeDirtyConstants();
-		analyzeTexldl();
+		analyzeTextureSampling();
 		analyzeDynamicBranching();
 		analyzeSamplers();
 		analyzeCallSites();
@@ -262,17 +262,15 @@ namespace sw
 		}
 	}
 
-	void VertexShader::analyzeTexldl()
+	void VertexShader::analyzeTextureSampling()
 	{
-		texldl = false;
+		textureSampling = false;
 
-		for(unsigned int i = 0; i < instruction.size(); i++)
+		for(unsigned int i = 0; i < instruction.size() && !textureSampling; i++)
 		{
-			if(instruction[i]->opcode == Shader::OPCODE_TEXLDL)
+			if(instruction[i]->src[1].type == PARAMETER_SAMPLER)
 			{
-				texldl = true;
-
-				break;
+				textureSampling = true;
 			}
 		}
 	}

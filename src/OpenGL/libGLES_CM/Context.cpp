@@ -189,7 +189,7 @@ Context::Context(const egl::Config *config, const Context *shareContext)
 	lightModelTwoSide = false;
 
 	matrixMode = GL_MODELVIEW;
-    
+
 	for(int i = 0; i < MAX_TEXTURE_UNITS; i++)
 	{
 		texture2Denabled[i] = false;
@@ -1374,15 +1374,18 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
 	case GL_POINT_SIZE_ARRAY_TYPE_OES:           *params = mState.vertexAttribute[sw::PointSize].mType;                                      break;
 	case GL_POINT_SIZE_ARRAY_STRIDE_OES:         *params = mState.vertexAttribute[sw::PointSize].mStride;                                    break;
 	case GL_POINT_SIZE_ARRAY_BUFFER_BINDING_OES: *params = mState.vertexAttribute[sw::PointSize].mBoundBuffer.name();                        break;
+	case GL_VERTEX_ARRAY_SIZE:                   *params = mState.vertexAttribute[sw::Position].mSize;                                       break;
 	case GL_VERTEX_ARRAY_TYPE:                   *params = mState.vertexAttribute[sw::Position].mType;                                       break;
 	case GL_VERTEX_ARRAY_STRIDE:                 *params = mState.vertexAttribute[sw::Position].mStride;                                     break;
 	case GL_VERTEX_ARRAY_BUFFER_BINDING:         *params = mState.vertexAttribute[sw::Position].mBoundBuffer.name();                         break;
 	case GL_NORMAL_ARRAY_TYPE:                   *params = mState.vertexAttribute[sw::Normal].mType;                                         break;
 	case GL_NORMAL_ARRAY_STRIDE:                 *params = mState.vertexAttribute[sw::Normal].mStride;                                       break;
 	case GL_NORMAL_ARRAY_BUFFER_BINDING:         *params = mState.vertexAttribute[sw::Normal].mBoundBuffer.name();                           break;
+	case GL_COLOR_ARRAY_SIZE:                    *params = mState.vertexAttribute[sw::Color0].mSize;                                         break;
 	case GL_COLOR_ARRAY_TYPE:                    *params = mState.vertexAttribute[sw::Color0].mType;                                         break;
 	case GL_COLOR_ARRAY_STRIDE:                  *params = mState.vertexAttribute[sw::Color0].mStride;                                       break;
 	case GL_COLOR_ARRAY_BUFFER_BINDING:          *params = mState.vertexAttribute[sw::Color0].mBoundBuffer.name();                           break;
+	case GL_TEXTURE_COORD_ARRAY_SIZE:            *params = mState.vertexAttribute[sw::TexCoord0 + mState.activeSampler].mSize;               break;
 	case GL_TEXTURE_COORD_ARRAY_TYPE:            *params = mState.vertexAttribute[sw::TexCoord0 + mState.activeSampler].mType;               break;
 	case GL_TEXTURE_COORD_ARRAY_STRIDE:          *params = mState.vertexAttribute[sw::TexCoord0 + mState.activeSampler].mStride;             break;
 	case GL_TEXTURE_COORD_ARRAY_BUFFER_BINDING:  *params = mState.vertexAttribute[sw::TexCoord0 + mState.activeSampler].mBoundBuffer.name(); break;
@@ -1391,6 +1394,22 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
     }
 
     return true;
+}
+
+bool Context::getPointerv(GLenum pname, const GLvoid **params)
+{
+	switch(pname)
+	{
+	case GL_VERTEX_ARRAY_POINTER:         *params = mState.vertexAttribute[sw::Position].mPointer;                         break;
+	case GL_NORMAL_ARRAY_POINTER:         *params = mState.vertexAttribute[sw::Normal].mPointer;                           break;
+	case GL_COLOR_ARRAY_POINTER:          *params = mState.vertexAttribute[sw::Color0].mPointer;                           break;
+	case GL_POINT_SIZE_ARRAY_POINTER_OES: *params = mState.vertexAttribute[sw::PointSize].mPointer;                        break;
+	case GL_TEXTURE_COORD_ARRAY_POINTER:  *params = mState.vertexAttribute[sw::TexCoord0 + mState.activeSampler].mPointer; break;
+	default:
+		return false;
+	}
+
+	return true;
 }
 
 int Context::getQueryParameterNum(GLenum pname)
@@ -2044,7 +2063,7 @@ void Context::applyTextures()
 	for(int unit = 0; unit < MAX_TEXTURE_UNITS; unit++)
     {
         Texture *texture = nullptr;
-		
+
 		if(textureExternalEnabled[unit])
 		{
 			texture = getSamplerTexture(unit, TEXTURE_EXTERNAL);
@@ -2685,10 +2704,10 @@ void Context::clear(GLbitfield mask)
 
 void Context::drawArrays(GLenum mode, GLint first, GLsizei count)
 {
-    PrimitiveType primitiveType;
+    sw::DrawType primitiveType;
     int primitiveCount;
 
-    if(!es2sw::ConvertPrimitiveType(mode, count, primitiveType, primitiveCount))
+    if(!es2sw::ConvertPrimitiveType(mode, count, GL_NONE, primitiveType, primitiveCount))
         return error(GL_INVALID_ENUM);
 
     if(primitiveCount <= 0)
@@ -2724,10 +2743,10 @@ void Context::drawElements(GLenum mode, GLsizei count, GLenum type, const void *
         return error(GL_INVALID_OPERATION);
     }
 
-    PrimitiveType primitiveType;
+    sw::DrawType primitiveType;
     int primitiveCount;
 
-    if(!es2sw::ConvertPrimitiveType(mode, count, primitiveType, primitiveCount))
+    if(!es2sw::ConvertPrimitiveType(mode, count, type, primitiveType, primitiveCount))
         return error(GL_INVALID_ENUM);
 
     if(primitiveCount <= 0)
@@ -2760,7 +2779,7 @@ void Context::drawElements(GLenum mode, GLsizei count, GLenum type, const void *
 
     if(!cullSkipsDraw(mode))
     {
-		device->drawIndexedPrimitive(primitiveType, indexInfo.indexOffset, primitiveCount, IndexDataManager::typeSize(type));
+		device->drawIndexedPrimitive(primitiveType, indexInfo.indexOffset, primitiveCount);
     }
 }
 

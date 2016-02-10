@@ -509,7 +509,7 @@ bool TParseContext::constructorErrorCheck(const TSourceLoc &line, TIntermNode* n
     if(type->isArray()) {
         if(type->getArraySize() == 0) {
             type->setArraySize(function.getParamCount());
-        } else if(type->getArraySize() != function.getParamCount()) {
+        } else if(type->getArraySize() != (int)function.getParamCount()) {
             error(line, "array constructor needs one argument per array element", "constructor");
             return true;
         }
@@ -532,7 +532,7 @@ bool TParseContext::constructorErrorCheck(const TSourceLoc &line, TIntermNode* n
         return true;
     }
 
-    if (op == EOpConstructStruct && !type->isArray() && int(type->getStruct()->fields().size()) != function.getParamCount()) {
+    if (op == EOpConstructStruct && !type->isArray() && type->getStruct()->fields().size() != function.getParamCount()) {
         error(line, "Number of constructor parameters does not match the number of structure fields", "constructor");
         return true;
     }
@@ -2339,7 +2339,7 @@ TIntermTyped *TParseContext::addIndexExpression(TIntermTyped *baseExpression, co
 		}
 		else if(baseType.isInterfaceBlock())
 		{
-			TType copyOfType(baseType.getInterfaceBlock(), baseType.getQualifier(), baseType.getLayoutQualifier(), 0);
+			TType copyOfType(baseType.getInterfaceBlock(), EvqTemporary, baseType.getLayoutQualifier(), 0);
 			indexedExpression->setType(copyOfType);
 		}
 		else

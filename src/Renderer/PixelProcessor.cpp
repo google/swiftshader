@@ -35,7 +35,7 @@ namespace sw
 		unsigned int *state = (unsigned int*)this;
 		unsigned int hash = 0;
 
-		for(int i = 0; i < sizeof(States) / 4; i++)
+		for(unsigned int i = 0; i < sizeof(States) / 4; i++)
 		{
 			hash ^= state[i];
 		}
@@ -66,6 +66,11 @@ namespace sw
 
 		routineCache = 0;
 		setRoutineCacheSize(1024);
+
+		for(int i = 0; i < MAX_UNIFORM_BUFFER_BINDINGS; i++)
+		{
+			uniformBuffer[i] = nullptr;
+		}
 	}
 
 	PixelProcessor::~PixelProcessor()
@@ -134,6 +139,32 @@ namespace sw
 			b[index] = boolean != 0;
 		}
 		else ASSERT(false);
+	}
+
+	void PixelProcessor::setUniformBuffer(int index, sw::Resource* buffer, int offset)
+	{
+		uniformBuffer[index] = buffer;
+		uniformBufferOffset[index] = offset;
+	}
+
+	void PixelProcessor::lockUniformBuffers(byte** u)
+	{
+		for(int i = 0; i < MAX_UNIFORM_BUFFER_BINDINGS; ++i)
+		{
+			u[i] = uniformBuffer[i] ? static_cast<byte*>(uniformBuffer[i]->lock(PUBLIC, PRIVATE)) + uniformBufferOffset[i] : nullptr;
+		}
+	}
+
+	void PixelProcessor::unlockUniformBuffers()
+	{
+		for(int i = 0; i < MAX_UNIFORM_BUFFER_BINDINGS; ++i)
+		{
+			if(uniformBuffer[i])
+			{
+				uniformBuffer[i]->unlock();
+				uniformBuffer[i] = nullptr;
+			}
+		}
 	}
 
 	void PixelProcessor::setRenderTarget(int index, Surface *renderTarget)
@@ -644,7 +675,7 @@ namespace sw
 		factor.blendConstant4W[3][1] = blendConstantA;
 		factor.blendConstant4W[3][2] = blendConstantA;
 		factor.blendConstant4W[3][3] = blendConstantA;
-	
+
 		// FIXME: Compact into generic function   // FIXME: Clamp
 		short invBlendConstantR = iround(65535 * (1 - blendConstant.r));
 		short invBlendConstantG = iround(65535 * (1 - blendConstant.g));
@@ -680,12 +711,12 @@ namespace sw
 		factor.blendConstant4F[1][1] = blendConstant.g;
 		factor.blendConstant4F[1][2] = blendConstant.g;
 		factor.blendConstant4F[1][3] = blendConstant.g;
-		
+
 		factor.blendConstant4F[2][0] = blendConstant.b;
 		factor.blendConstant4F[2][1] = blendConstant.b;
 		factor.blendConstant4F[2][2] = blendConstant.b;
 		factor.blendConstant4F[2][3] = blendConstant.b;
-		
+
 		factor.blendConstant4F[3][0] = blendConstant.a;
 		factor.blendConstant4F[3][1] = blendConstant.a;
 		factor.blendConstant4F[3][2] = blendConstant.a;
@@ -700,12 +731,12 @@ namespace sw
 		factor.invBlendConstant4F[1][1] = 1 - blendConstant.g;
 		factor.invBlendConstant4F[1][2] = 1 - blendConstant.g;
 		factor.invBlendConstant4F[1][3] = 1 - blendConstant.g;
-		
+
 		factor.invBlendConstant4F[2][0] = 1 - blendConstant.b;
 		factor.invBlendConstant4F[2][1] = 1 - blendConstant.b;
 		factor.invBlendConstant4F[2][2] = 1 - blendConstant.b;
 		factor.invBlendConstant4F[2][3] = 1 - blendConstant.b;
-		
+
 		factor.invBlendConstant4F[3][0] = 1 - blendConstant.a;
 		factor.invBlendConstant4F[3][1] = 1 - blendConstant.a;
 		factor.invBlendConstant4F[3][2] = 1 - blendConstant.a;
@@ -873,7 +904,7 @@ namespace sw
 
 		state.depthOverride = context->pixelShader && context->pixelShader->depthOverride();
 		state.shaderContainsKill = context->pixelShader ? context->pixelShader->containsKill() : false;
-		
+
 		if(context->alphaTestActive())
 		{
 			state.alphaCompareMode = context->alphaCompareMode;
@@ -1026,7 +1057,7 @@ namespace sw
 					if(context->colorActive(color, component))
 					{
 						state.color[color].component |= 1 << component;
-						
+
 						if(point || flatShading)
 						{
 							state.color[color].flat |= 1 << component;
@@ -1038,7 +1069,7 @@ namespace sw
 			if(context->fogActive())
 			{
 				state.fog.component = true;
-				
+
 				if(point)
 				{
 					state.fog.flat = true;
@@ -1095,7 +1126,8 @@ namespace sw
 		if(!routine)
 		{
 			const bool integerPipeline = (context->pixelShaderVersion() <= 0x0104);
-			Rasterizer *generator = nullptr;
+			QuadRasterizer *generator = nullptr;
+
 			if(integerPipeline)
 			{
 				generator = new PixelPipeline(state, context->pixelShader);
@@ -1104,8 +1136,9 @@ namespace sw
 			{
 				generator = new PixelProgram(state, context->pixelShader);
 			}
+
 			generator->generate();
-			routine = generator->getRoutine();
+			routine = (*generator)(L"PixelRoutine_%0.8X", state.shaderID);
 			delete generator;
 
 			routineCache->add(state, routine);

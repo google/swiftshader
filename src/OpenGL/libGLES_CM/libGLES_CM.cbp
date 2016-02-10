@@ -214,7 +214,6 @@
 		<Unit filename="../../Renderer/Primitive.hpp" />
 		<Unit filename="../../Renderer/QuadRasterizer.cpp" />
 		<Unit filename="../../Renderer/QuadRasterizer.hpp" />
-		<Unit filename="../../Renderer/Rasterizer.cpp" />
 		<Unit filename="../../Renderer/Rasterizer.hpp" />
 		<Unit filename="../../Renderer/Renderer.cpp" />
 		<Unit filename="../../Renderer/Renderer.hpp" />

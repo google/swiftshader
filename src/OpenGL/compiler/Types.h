@@ -369,8 +369,8 @@ public:
 	TInterfaceBlock *getAsInterfaceBlock() const { return isInterfaceBlock() ? getInterfaceBlock() : nullptr; }
 
 	bool isVector() const { return primarySize > 1 && !isMatrix(); }
-	bool isScalar() const { return primarySize == 1 && !isMatrix() && !structure; }
-	bool isRegister() const { return !isMatrix() && !structure && !array; }   // Fits in a 4-element register
+	bool isScalar() const { return primarySize == 1 && !isMatrix() && !structure && !isInterfaceBlock(); }
+	bool isRegister() const { return !isMatrix() && !structure && !array && !isInterfaceBlock(); }   // Fits in a 4-element register
 	bool isStruct() const { return structure != 0; }
 	bool isScalarInt() const { return isScalar() && IsInteger(type); }
 

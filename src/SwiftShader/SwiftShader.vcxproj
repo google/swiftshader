@@ -362,7 +362,6 @@
       <PreprocessKeepComments Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</PreprocessKeepComments>
       <PreprocessKeepComments Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">false</PreprocessKeepComments>
     </ClCompile>
-    <ClCompile Include="..\Renderer\Rasterizer.cpp" />
     <ClCompile Include="..\Renderer\Renderer.cpp" />
     <ClCompile Include="..\Renderer\Sampler.cpp" />
     <ClCompile Include="..\Renderer\SetupProcessor.cpp" />

@@ -333,12 +333,12 @@ Texture2D::Texture2D(GLuint name) : Texture(name)
 {
 	for(int i = 0; i < MIPMAP_LEVELS; i++)
 	{
-		image[i] = 0;
+		image[i] = nullptr;
 	}
 
-    mSurface = NULL;
+    mSurface = nullptr;
 
-	mColorbufferProxy = NULL;
+	mColorbufferProxy = nullptr;
 	mProxyRefs = 0;
 }
 
@@ -351,7 +351,7 @@ Texture2D::~Texture2D()
 		if(image[i])
 		{
 			image[i]->unbind(this);
-			image[i] = 0;
+			image[i] = nullptr;
 		}
 	}
 
@@ -359,11 +359,11 @@ Texture2D::~Texture2D()
 
     if(mSurface)
     {
-        mSurface->setBoundTexture(NULL);
-        mSurface = NULL;
+        mSurface->setBoundTexture(nullptr);
+        mSurface = nullptr;
     }
 
-	mColorbufferProxy = NULL;
+	mColorbufferProxy = nullptr;
 }
 
 // We need to maintain a count of references to renderbuffers acting as
@@ -383,7 +383,30 @@ void Texture2D::releaseProxy(const Renderbuffer *proxy)
 
     if(mProxyRefs == 0)
 	{
-		mColorbufferProxy = NULL;
+		mColorbufferProxy = nullptr;
+	}
+}
+
+void Texture2D::sweep()
+{
+	int imageCount = 0;
+
+	for(int i = 0; i < MIPMAP_LEVELS; i++)
+	{
+		if(image[i] && image[i]->isChildOf(this))
+		{
+			if(!image[i]->hasSingleReference())
+			{
+				return;
+			}
+
+			imageCount++;
+		}
+	}
+
+	if(imageCount == referenceCount)
+	{
+		destroy();
 	}
 }
 
@@ -439,7 +462,7 @@ void Texture2D::setImage(GLint level, GLsizei width, GLsizei height, GLenum form
 {
 	if(image[level])
 	{
-		image[level]->unbind(this);
+		image[level]->release();
 	}
 
 	image[level] = new egl::Image(this, width, height, format, type);
@@ -477,8 +500,8 @@ void Texture2D::bindTexImage(egl::Surface *surface)
 	{
 		if(image[level])
 		{
-			image[level]->unbind(this);
-			image[level] = 0;
+			image[level]->release();
+			image[level] = nullptr;
 		}
 	}
 
@@ -494,8 +517,8 @@ void Texture2D::releaseTexImage()
 	{
 		if(image[level])
 		{
-			image[level]->unbind(this);
-			image[level] = 0;
+			image[level]->release();
+			image[level] = nullptr;
 		}
 	}
 }
@@ -504,7 +527,7 @@ void Texture2D::setCompressedImage(GLint level, GLenum format, GLsizei width, GL
 {
 	if(image[level])
 	{
-		image[level]->unbind(this);
+		image[level]->release();
 	}
 
 	image[level] = new egl::Image(this, width, height, format, GL_UNSIGNED_BYTE);
@@ -539,7 +562,7 @@ void Texture2D::copyImage(GLint level, GLenum format, GLint x, GLint y, GLsizei 
 
 	if(image[level])
 	{
-		image[level]->unbind(this);
+		image[level]->release();
 	}
 
 	image[level] = new egl::Image(this, width, height, format, GL_UNSIGNED_BYTE);
@@ -594,7 +617,7 @@ void Texture2D::setImage(egl::Image *sharedImage)
 
     if(image[0])
     {
-        image[0]->unbind(this);
+        image[0]->release();
     }
 
     image[0] = sharedImage;
@@ -689,7 +712,7 @@ void Texture2D::generateMipmaps()
     {
 		if(image[i])
 		{
-			image[i]->unbind(this);
+			image[i]->release();
 		}
 
 		image[i] = new egl::Image(this, std::max(image[0]->getWidth() >> i, 1), std::max(image[0]->getHeight() >> i, 1), image[0]->getFormat(), image[0]->getType());
@@ -721,10 +744,10 @@ Renderbuffer *Texture2D::getRenderbuffer(GLenum target)
 {
     if(target != GL_TEXTURE_2D)
     {
-        return error(GL_INVALID_OPERATION, (Renderbuffer *)NULL);
+        return error(GL_INVALID_OPERATION, (Renderbuffer*)nullptr);
     }
 
-    if(mColorbufferProxy == NULL)
+    if(!mColorbufferProxy)
     {
         mColorbufferProxy = new Renderbuffer(name, new RenderbufferTexture2D(this));
     }
@@ -786,10 +809,10 @@ egl::Image *createBackBuffer(int width, int height, const egl::Config *config)
 {
 	if(config)
 	{
-		return new egl::Image(width, height, config->mRenderTargetFormat, config->mSamples, false, true);
+		return new egl::Image(width, height, config->mRenderTargetFormat, config->mSamples, false);
 	}
 
-	return 0;
+	return nullptr;
 }
 
 egl::Image *createDepthStencil(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard)
@@ -825,12 +848,12 @@ egl::Image *createDepthStencil(unsigned int width, unsigned int height, sw::Form
 		UNREACHABLE(format);
 	}
 
-	egl::Image *surface = new egl::Image(width, height, format, multiSampleDepth, lockable, true);
+	egl::Image *surface = new egl::Image(width, height, format, multiSampleDepth, lockable);
 
 	if(!surface)
 	{
 		ERR("Out of memory");
-		return 0;
+		return nullptr;
 	}
 
 	return surface;

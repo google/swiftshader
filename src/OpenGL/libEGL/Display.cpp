@@ -41,7 +41,7 @@ namespace egl
 
 Display *Display::get(EGLDisplay dpy)
 {
-	if(dpy != (EGLDisplay)1)   // We only support the default display
+	if(dpy != PRIMARY_DISPLAY && dpy != HEADLESS_DISPLAY)   // We only support the default display
 	{
 		return nullptr;
 	}
@@ -50,7 +50,7 @@ Display *Display::get(EGLDisplay dpy)
 
 	#if defined(__linux__) && !defined(__ANDROID__)
 		// Even if the application provides a native display handle, we open (and close) our own connection
-		if(!nativeDisplay && libX11->XOpenDisplay)
+		if(!nativeDisplay && dpy != HEADLESS_DISPLAY && libX11 && libX11->XOpenDisplay)
 		{
 			nativeDisplay = libX11->XOpenDisplay(NULL);
 		}
@@ -146,13 +146,13 @@ bool Display::initialize()
 	sw::Format currentDisplayFormat = getDisplayFormat();
     ConfigSet configSet;
 
-	for(int samplesIndex = 0; samplesIndex < sizeof(samples) / sizeof(int); samplesIndex++)
+	for(unsigned int samplesIndex = 0; samplesIndex < sizeof(samples) / sizeof(int); samplesIndex++)
     {
-		for(int formatIndex = 0; formatIndex < sizeof(renderTargetFormats) / sizeof(sw::Format); formatIndex++)
+		for(unsigned int formatIndex = 0; formatIndex < sizeof(renderTargetFormats) / sizeof(sw::Format); formatIndex++)
 		{
 			sw::Format renderTargetFormat = renderTargetFormats[formatIndex];
 
-			for(int depthStencilIndex = 0; depthStencilIndex < sizeof(depthStencilFormats) / sizeof(sw::Format); depthStencilIndex++)
+			for(unsigned int depthStencilIndex = 0; depthStencilIndex < sizeof(depthStencilFormats) / sizeof(sw::Format); depthStencilIndex++)
 			{
 				sw::Format depthStencilFormat = depthStencilFormats[depthStencilIndex];
 
@@ -193,11 +193,6 @@ void Display::terminate()
     {
         destroyContext(*mContextSet.begin());
     }
-
-	if(this == getCurrentDisplay())
-	{
-		setCurrentDisplay(nullptr);
-	}
 }
 
 bool Display::getConfigs(EGLConfig *configs, const EGLint *attribList, EGLint configSize, EGLint *numConfig)

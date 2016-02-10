@@ -28,7 +28,6 @@
 namespace es2
 {
 	Context *getContext();
-	egl::Display *getDisplay();
 	Device *getDevice();
 
 	void error(GLenum errorCode);

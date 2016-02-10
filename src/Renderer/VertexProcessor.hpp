@@ -46,10 +46,10 @@ namespace sw
 			uint64_t shaderID;
 
 			bool fixedFunction             : 1;
-			bool shaderContainsTexldl      : 1;
+			bool textureSampling           : 1;
 			unsigned int positionRegister  : 4;
 			unsigned int pointSizeRegister : 4;   // 0xF signifies no vertex point size
-				
+
 			unsigned int vertexBlendMatrixCount               : 3;
 			bool indexedVertexBlendEnable                     : 1;
 			bool vertexNormalActive                           : 1;
@@ -115,7 +115,7 @@ namespace sw
 				union
 				{
 					unsigned char clamp : 4;
-					
+
 					struct
 					{
 						unsigned char xClamp : 1;
@@ -145,7 +145,7 @@ namespace sw
 			float4 cameraTransformT[12][4];
 			float4 normalTransformT[12][4];
 			float4 textureTransform[8][4];
-			
+
 			float4 lightPosition[8];
 			float4 lightAmbient[8];
 			float4 lightSpecular[8];
@@ -184,6 +184,10 @@ namespace sw
 		virtual void setFloatConstant(unsigned int index, const float value[4]);
 		virtual void setIntegerConstant(unsigned int index, const int integer[4]);
 		virtual void setBooleanConstant(unsigned int index, int boolean);
+
+		virtual void setUniformBuffer(int index, sw::Resource* uniformBuffer, int offset);
+		virtual void lockUniformBuffers(byte** u);
+		virtual void unlockUniformBuffers();
 
 		// Transformations
 		virtual void setModelMatrix(const Matrix &M, int i = 0);
@@ -266,9 +270,11 @@ namespace sw
 		void setRoutineCacheSize(int cacheSize);
 
 		// Shader constants
-		float4 c[256 + 1];   // One extra for indices out of range, c[256] = {0, 0, 0, 0}
+		float4 c[VERTEX_UNIFORM_VECTORS + 1];   // One extra for indices out of range, c[VERTEX_UNIFORM_VECTORS] = {0, 0, 0, 0}
 		int4 i[16];
 		bool b[16];
+		Resource* uniformBuffer[MAX_UNIFORM_BUFFER_BINDINGS];
+		int uniformBufferOffset[MAX_UNIFORM_BUFFER_BINDINGS];
 
 		PointSprite point;
 		FixedFunction ff;

@@ -143,13 +143,13 @@ namespace es2
 	}
 
 	Device::~Device()
-	{		
+	{
 		if(depthStencil)
 		{
 			depthStencil->release();
 			depthStencil = nullptr;
 		}
-		
+
 		for(int i = 0; i < RENDERTARGETS; ++i)
 		{
 			if(renderTarget[i])
@@ -219,7 +219,7 @@ namespace es2
 
 		int x0(0), y0(0), width(0), height(0);
 		getScissoredRegion(depthStencil, x0, y0, width, height);
-			
+
 		depthStencil->clearDepthBuffer(z, x0, y0, width, height);
 	}
 
@@ -241,9 +241,9 @@ namespace es2
 		if(height > OUTLINE_RESOLUTION)
 		{
 			ERR("Invalid parameters: %dx%d", width, height);
-			return 0;
+			return nullptr;
 		}
-		
+
 		bool lockable = true;
 
 		switch(format)
@@ -269,12 +269,12 @@ namespace es2
 			UNREACHABLE(format);
 		}
 
-		egl::Image *surface = new egl::Image(width, height, format, multiSampleDepth, lockable, true);
+		egl::Image *surface = new egl::Image(width, height, format, multiSampleDepth, lockable);
 
 		if(!surface)
 		{
 			ERR("Out of memory");
-			return 0;
+			return nullptr;
 		}
 
 		return surface;
@@ -285,100 +285,40 @@ namespace es2
 		if(height > OUTLINE_RESOLUTION)
 		{
 			ERR("Invalid parameters: %dx%d", width, height);
-			return 0;
+			return nullptr;
 		}
 
-		egl::Image *surface = new egl::Image(width, height, format, multiSampleDepth, lockable, true);
+		egl::Image *surface = new egl::Image(width, height, format, multiSampleDepth, lockable);
 
 		if(!surface)
 		{
 			ERR("Out of memory");
-			return 0;
+			return nullptr;
 		}
-		
+
 		return surface;
 	}
 
-	void Device::drawIndexedPrimitive(PrimitiveType type, unsigned int indexOffset, unsigned int primitiveCount, int indexSize)
+	void Device::drawIndexedPrimitive(sw::DrawType type, unsigned int indexOffset, unsigned int primitiveCount)
 	{
 		if(!bindResources() || !primitiveCount)
 		{
 			return;
 		}
 
-		DrawType drawType;
-
-		if(indexSize == 4)
-		{
-			switch(type)
-			{
-			case DRAW_POINTLIST:     drawType = sw::DRAW_INDEXEDPOINTLIST32;     break;
-			case DRAW_LINELIST:      drawType = sw::DRAW_INDEXEDLINELIST32;      break;
-			case DRAW_LINESTRIP:     drawType = sw::DRAW_INDEXEDLINESTRIP32;     break;
-			case DRAW_LINELOOP:      drawType = sw::DRAW_INDEXEDLINELOOP32;      break;
-			case DRAW_TRIANGLELIST:  drawType = sw::DRAW_INDEXEDTRIANGLELIST32;  break;
-			case DRAW_TRIANGLESTRIP: drawType = sw::DRAW_INDEXEDTRIANGLESTRIP32; break;
-			case DRAW_TRIANGLEFAN:   drawType = sw::DRAW_INDEXEDTRIANGLEFAN32;	  break;
-			default: UNREACHABLE(type);
-			}
-		}
-		else if(indexSize == 2)
-		{
-			switch(type)
-			{
-			case DRAW_POINTLIST:     drawType = sw::DRAW_INDEXEDPOINTLIST16;     break;
-			case DRAW_LINELIST:      drawType = sw::DRAW_INDEXEDLINELIST16;      break;
-			case DRAW_LINESTRIP:     drawType = sw::DRAW_INDEXEDLINESTRIP16;     break;
-			case DRAW_LINELOOP:      drawType = sw::DRAW_INDEXEDLINELOOP16;      break;
-			case DRAW_TRIANGLELIST:  drawType = sw::DRAW_INDEXEDTRIANGLELIST16;  break;
-			case DRAW_TRIANGLESTRIP: drawType = sw::DRAW_INDEXEDTRIANGLESTRIP16; break;
-			case DRAW_TRIANGLEFAN:   drawType = sw::DRAW_INDEXEDTRIANGLEFAN16;   break;
-			default: UNREACHABLE(type);
-			}
-		}
-		else if(indexSize == 1)
-		{
-			switch(type)
-			{
-			case DRAW_POINTLIST:     drawType = sw::DRAW_INDEXEDPOINTLIST8;     break;
-			case DRAW_LINELIST:      drawType = sw::DRAW_INDEXEDLINELIST8;      break;
-			case DRAW_LINESTRIP:     drawType = sw::DRAW_INDEXEDLINESTRIP8;     break;
-			case DRAW_LINELOOP:      drawType = sw::DRAW_INDEXEDLINELOOP8;      break;
-			case DRAW_TRIANGLELIST:  drawType = sw::DRAW_INDEXEDTRIANGLELIST8;  break;
-			case DRAW_TRIANGLESTRIP: drawType = sw::DRAW_INDEXEDTRIANGLESTRIP8; break;
-			case DRAW_TRIANGLEFAN:   drawType = sw::DRAW_INDEXEDTRIANGLEFAN8;   break;
-			default: UNREACHABLE(type);
-			}
-		}
-		else UNREACHABLE(indexSize);
-
-		draw(drawType, indexOffset, primitiveCount);
+		draw(type, indexOffset, primitiveCount);
 	}
 
-	void Device::drawPrimitive(PrimitiveType primitiveType, unsigned int primitiveCount)
+	void Device::drawPrimitive(sw::DrawType type, unsigned int primitiveCount)
 	{
 		if(!bindResources() || !primitiveCount)
 		{
 			return;
 		}
 
-		setIndexBuffer(0);
-		
-		DrawType drawType;
+		setIndexBuffer(nullptr);
 
-		switch(primitiveType)
-		{
-		case DRAW_POINTLIST:     drawType = sw::DRAW_POINTLIST;     break;
-		case DRAW_LINELIST:      drawType = sw::DRAW_LINELIST;      break;
-		case DRAW_LINESTRIP:     drawType = sw::DRAW_LINESTRIP;     break;
-		case DRAW_LINELOOP:      drawType = sw::DRAW_LINELOOP;      break;
-		case DRAW_TRIANGLELIST:  drawType = sw::DRAW_TRIANGLELIST;  break;
-		case DRAW_TRIANGLESTRIP: drawType = sw::DRAW_TRIANGLESTRIP; break;
-		case DRAW_TRIANGLEFAN:   drawType = sw::DRAW_TRIANGLEFAN;   break;
-		default: UNREACHABLE(primitiveType);
-		}
-
-		draw(drawType, 0, primitiveCount);
+		draw(type, 0, primitiveCount);
 	}
 
 	void Device::setDepthStencilSurface(egl::Image *depthStencil)
@@ -465,7 +405,7 @@ namespace es2
 			vertexShaderConstantF[startRegister + i][2] = constantData[i * 4 + 2];
 			vertexShaderConstantF[startRegister + i][3] = constantData[i * 4 + 3];
 		}
-			
+
 		vertexShaderConstantsFDirty = max(startRegister + count, vertexShaderConstantsFDirty);
 		vertexShaderDirty = true;   // Reload DEF constants
 	}
@@ -531,7 +471,7 @@ namespace es2
 			ERR("Invalid parameters");
 			return false;
 		}
-		
+
 		int sWidth = source->getWidth();
 		int sHeight = source->getHeight();
 		int dWidth = dest->getWidth();
@@ -792,7 +732,7 @@ namespace es2
 				{
 					Renderer::setVertexShaderConstantF(0, vertexShaderConstantF[0], vertexShaderConstantsFDirty);
 				}
-		
+
 				Renderer::setVertexShader(vertexShader);   // Loads shader constants set with DEF
 				vertexShaderConstantsFDirty = vertexShader->dirtyConstantsF;   // Shader DEF'ed constants are dirty
 			}
@@ -804,7 +744,7 @@ namespace es2
 			vertexShaderDirty = false;
 		}
 	}
-	
+
 	bool Device::bindViewport()
 	{
 		if(viewport.width <= 0 || viewport.height <= 0)
@@ -824,7 +764,7 @@ namespace es2
 			scissor.x1 = scissorRect.x1;
 			scissor.y0 = scissorRect.y0;
 			scissor.y1 = scissorRect.y1;
-			
+
 			setScissor(scissor);
 		}
 		else
@@ -834,7 +774,7 @@ namespace es2
 			scissor.x1 = viewport.x0 + viewport.width;
 			scissor.y0 = viewport.y0;
 			scissor.y1 = viewport.y0 + viewport.height;
-			
+
 			for(int i = 0; i < RENDERTARGETS; ++i)
 			{
 				if(renderTarget[i])
@@ -864,7 +804,7 @@ namespace es2
 		view.height = (float)viewport.height;
 		view.minZ = viewport.minZ;
 		view.maxZ = viewport.maxZ;
-		
+
 		Renderer::setViewport(view);
 
 		return true;

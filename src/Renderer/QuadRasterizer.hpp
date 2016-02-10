@@ -22,47 +22,37 @@ namespace sw
 {
 	class QuadRasterizer : public Rasterizer
 	{
-	protected:
+	public:
 		QuadRasterizer(const PixelProcessor::State &state, const PixelShader *shader);
-
 		virtual ~QuadRasterizer();
 
-		struct Registers
-		{
-			Registers();
-			virtual ~Registers() {};
+		void generate();
 
-			Pointer<Byte> constants;
+	protected:
+		Pointer<Byte> constants;
 
-			Pointer<Byte> primitive;
-			Int cluster;
-			Pointer<Byte> data;
+		Float4 Dz[4];
+		Float4 Dw;
+		Float4 Dv[10][4];
+		Float4 Df;
 
-			Float4 Dz[4];
-			Float4 Dw;
-			Float4 Dv[10][4];
-			Float4 Df;
-
-			UInt occlusion;
+		UInt occlusion;
 
 #if PERF_PROFILE
-			Long cycles[PERF_TIMERS];
+		Long cycles[PERF_TIMERS];
 #endif
-		};
 
-		virtual void quad(Registers &r, Pointer<Byte> cBuffer[4], Pointer<Byte> &zBuffer, Pointer<Byte> &sBuffer, Int cMask[4], Int &x, Int &y) = 0;
-		virtual Registers* createRegisters(const PixelShader *shader) = 0;
+		virtual void quad(Pointer<Byte> cBuffer[4], Pointer<Byte> &zBuffer, Pointer<Byte> &sBuffer, Int cMask[4], Int &x, Int &y) = 0;
 
 		bool interpolateZ() const;
 		bool interpolateW() const;
 		Float4 interpolate(Float4 &x, Float4 &D, Float4 &rhw, Pointer<Byte> planeEquation, bool flat, bool perspective);
 
+		const PixelProcessor::State &state;
 		const PixelShader *const shader;
 
 	private:
-		void generate();
-
-		void rasterize(Registers &r, Int &yMin, Int &yMax);
+		void rasterize(Int &yMin, Int &yMax);
 	};
 }
 

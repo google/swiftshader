@@ -264,11 +264,11 @@ namespace D3D9
 		unsigned int vertexShaderConstantsFDirty;
 		unsigned int vertexShaderConstantsIDirty;
 
-		float pixelShaderConstantF[224][4];
+		float pixelShaderConstantF[FRAGMENT_UNIFORM_VECTORS][4];
 		int pixelShaderConstantI[16][4];
 		int pixelShaderConstantB[16];
 
-		float vertexShaderConstantF[256][4];
+		float vertexShaderConstantF[VERTEX_UNIFORM_VECTORS][4];
 		int vertexShaderConstantI[16][4];
 		int vertexShaderConstantB[16];
 

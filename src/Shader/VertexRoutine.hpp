@@ -19,83 +19,48 @@
 
 namespace sw
 {
-	class VertexRoutine
+	class VertexRoutinePrototype : public Function<Void(Pointer<Byte>, Pointer<Byte>, Pointer<Byte>, Pointer<Byte>)>
 	{
+	public:
+		VertexRoutinePrototype() : vertex(Arg<0>()), batch(Arg<1>()), task(Arg<2>()), data(Arg<3>()) {}
+		virtual ~VertexRoutinePrototype() {};
+
 	protected:
-		struct Registers
-		{
-			Registers(const VertexShader *shader) :
-				v(shader && shader->dynamicallyIndexedInput),
-				r(shader && shader->dynamicallyIndexedTemporaries),
-				o(shader && shader->dynamicallyIndexedOutput)
-			{
-				loopDepth = -1;
-				enableStack[0] = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
-				
-				if(shader && shader->containsBreakInstruction())
-				{
-					enableBreak = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
-				}
+		const Pointer<Byte> vertex;
+		const Pointer<Byte> batch;
+		const Pointer<Byte> task;
+		const Pointer<Byte> data;
+	};
 
-				if(shader && shader->containsContinueInstruction())
-				{
-					enableContinue = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
-				}
-			}
-
-			Pointer<Byte> data;
-			Pointer<Byte> constants;
-
-			Int clipFlags;
-
-			RegisterArray<16> v;
-			RegisterArray<4096> r;
-			RegisterArray<12> o;
-			Vector4f a0;
-			Array<Int, 4> aL;
-			Vector4f p0;
-
-			Array<Int, 4> increment;
-			Array<Int, 4> iteration;
-
-			Int loopDepth;
-			Int stackIndex;   // FIXME: Inc/decrement callStack
-			Array<UInt, 16> callStack;
-
-			Int enableIndex;
-			Array<Int4, 1 + 24> enableStack;
-			Int4 enableBreak;
-			Int4 enableContinue;
-			Int4 enableLeave;
-
-			Int instanceID;
-		};
-
+	class VertexRoutine : public VertexRoutinePrototype
+	{
 	public:
 		VertexRoutine(const VertexProcessor::State &state, const VertexShader *shader);
-
 		virtual ~VertexRoutine();
 
 		void generate();
-		Routine *getRoutine();
 
 	protected:
-		const VertexProcessor::State &state;
-		const VertexShader *const shader;
+		Pointer<Byte> constants;
 
-	private:		
-		virtual void pipeline(Registers &r) = 0;
+		Int clipFlags;
+
+		RegisterArray<16> v;   // Varying registers
+		RegisterArray<12> o;   // Output registers
+
+		const VertexProcessor::State &state;
+
+	private:
+		virtual void pipeline() = 0;
 
 		typedef VertexProcessor::State::Input Stream;
-		
-		Vector4f readStream(Registers &r, Pointer<Byte> &buffer, UInt &stride, const Stream &stream, const UInt &index);
-		void readInput(Registers &r, UInt &index);
-		void computeClipFlags(Registers &r);
-		void postTransform(Registers &r);
-		void writeCache(Pointer<Byte> &cacheLine, Registers &r);
-		void writeVertex(Pointer<Byte> &vertex, Pointer<Byte> &cacheLine);
 
-		Routine *routine;
+		Vector4f readStream(Pointer<Byte> &buffer, UInt &stride, const Stream &stream, const UInt &index);
+		void readInput(UInt &index);
+		void computeClipFlags();
+		void postTransform();
+		void writeCache(Pointer<Byte> &cacheLine);
+		void writeVertex(const Pointer<Byte> &vertex, Pointer<Byte> &cacheLine);
 	};
 }
 

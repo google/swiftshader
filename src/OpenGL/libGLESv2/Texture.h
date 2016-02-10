@@ -54,8 +54,6 @@ class Texture : public egl::Texture
 public:
     explicit Texture(GLuint name);
 
-    virtual ~Texture();
-
 	virtual sw::Resource *getResource() const;
 
 	virtual void addProxyRef(const Renderbuffer *proxy) = 0;
@@ -120,6 +118,8 @@ public:
 	virtual void copySubImage(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height, Framebuffer *source) = 0;
 
 protected:
+	virtual ~Texture();
+
     void setImage(GLenum format, GLenum type, const egl::Image::UnpackInfo& unpackInfo, const void *pixels, egl::Image *image);
     void subImage(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const egl::Image::UnpackInfo& unpackInfo, const void *pixels, egl::Image *image);
     void setCompressedImage(GLsizei imageSize, const void *pixels, egl::Image *image);
@@ -155,10 +155,9 @@ class Texture2D : public Texture
 public:
     explicit Texture2D(GLuint name);
 
-    virtual ~Texture2D();
-
-	void addProxyRef(const Renderbuffer *proxy);
-    void releaseProxy(const Renderbuffer *proxy);
+	void addProxyRef(const Renderbuffer *proxy) override;
+    void releaseProxy(const Renderbuffer *proxy) override;
+	void sweep() override;
 
     virtual GLenum getTarget() const;
 
@@ -193,12 +192,14 @@ public:
     egl::Image *getImage(unsigned int level);
 
 protected:
+	virtual ~Texture2D();
+
 	bool isMipmapComplete() const;
 
 	egl::Image *image[IMPLEMENTATION_MAX_TEXTURE_LEVELS];
-    
+
     egl::Surface *mSurface;
-    
+
 	// A specific internal reference count is kept for colorbuffer proxy references,
     // because, as the renderbuffer acting as proxy will maintain a binding pointer
     // back to this texture, there would be a circular reference if we used a binding
@@ -213,13 +214,12 @@ class TextureCubeMap : public Texture
 public:
     explicit TextureCubeMap(GLuint name);
 
-    virtual ~TextureCubeMap();
-
-	void addProxyRef(const Renderbuffer *proxy);
-    void releaseProxy(const Renderbuffer *proxy);
+	void addProxyRef(const Renderbuffer *proxy) override;
+    void releaseProxy(const Renderbuffer *proxy) override;
+	void sweep() override;
 
     virtual GLenum getTarget() const;
-    
+
     virtual GLsizei getWidth(GLenum target, GLint level) const;
     virtual GLsizei getHeight(GLenum target, GLint level) const;
     virtual GLenum getFormat(GLenum target, GLint level) const;
@@ -248,6 +248,9 @@ public:
 
 	egl::Image *getImage(int face, unsigned int level);
 
+protected:
+	virtual ~TextureCubeMap();
+
 private:
 	bool isCubeComplete() const;
 	bool isMipmapCubeComplete() const;
@@ -256,7 +259,7 @@ private:
 	egl::Image *getImage(GLenum face, unsigned int level);
 
 	egl::Image *image[6][IMPLEMENTATION_MAX_TEXTURE_LEVELS];
-	
+
 	// A specific internal reference count is kept for colorbuffer proxy references,
     // because, as the renderbuffer acting as proxy will maintain a binding pointer
     // back to this texture, there would be a circular reference if we used a binding
@@ -271,10 +274,9 @@ class Texture3D : public Texture
 public:
 	explicit Texture3D(GLuint name);
 
-	virtual ~Texture3D();
-
-	void addProxyRef(const Renderbuffer *proxy);
-	void releaseProxy(const Renderbuffer *proxy);
+	void addProxyRef(const Renderbuffer *proxy) override;
+    void releaseProxy(const Renderbuffer *proxy) override;
+	void sweep() override;
 
 	virtual GLenum getTarget() const;
 
@@ -310,6 +312,8 @@ public:
 	egl::Image *getImage(unsigned int level);
 
 protected:
+	virtual ~Texture3D();
+
 	bool isMipmapComplete() const;
 
 	egl::Image *image[IMPLEMENTATION_MAX_TEXTURE_LEVELS];
@@ -330,10 +334,11 @@ class Texture2DArray : public Texture3D
 public:
 	explicit Texture2DArray(GLuint name);
 
-	virtual ~Texture2DArray();
-
 	virtual GLenum getTarget() const;
 	virtual void generateMipmaps();
+
+protected:
+	virtual ~Texture2DArray();
 };
 
 class TextureExternal : public Texture2D
@@ -341,9 +346,10 @@ class TextureExternal : public Texture2D
 public:
     explicit TextureExternal(GLuint name);
 
-    virtual ~TextureExternal();
-
     virtual GLenum getTarget() const;
+
+protected:
+	virtual ~TextureExternal();
 };
 }
 

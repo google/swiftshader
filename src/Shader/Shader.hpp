@@ -129,7 +129,7 @@ namespace sw
 			OPCODE_PS_2_0 = 0xFFFF0200,
 			OPCODE_PS_2_x = 0xFFFF0201,
 			OPCODE_PS_3_0 = 0xFFFF0300,
-					
+
 			OPCODE_VS_1_0 = 0xFFFE0100,
 			OPCODE_VS_1_1 = 0xFFFE0101,
 			OPCODE_VS_2_0 = 0xFFFE0200,
@@ -187,8 +187,6 @@ namespace sw
 			OPCODE_U2F,   // Uint to float
 			OPCODE_I2B,   // Int to bool
 			OPCODE_B2I,   // Bool to int
-			OPCODE_U2B,   // Uint to bool
-			OPCODE_B2U,   // Bool to uint
 			OPCODE_DET2,
 			OPCODE_DET3,
 			OPCODE_DET4,
@@ -457,7 +455,7 @@ namespace sw
 
 		struct SourceParameter : Parameter
 		{
-			SourceParameter() : swizzle(0xE4), modifier(MODIFIER_NONE)
+			SourceParameter() : swizzle(0xE4), modifier(MODIFIER_NONE), bufferIndex(-1)
 			{
 			}
 
@@ -467,6 +465,7 @@ namespace sw
 
 			unsigned int swizzle : 8;
 			Modifier modifier : 8;
+			int bufferIndex : 8;
 		};
 
 		struct Instruction
@@ -495,11 +494,11 @@ namespace sw
 			bool isPredicated() const;
 
 			Opcode opcode;
-			
+
 			union
 			{
 				Control control;
-				
+
 				struct
 				{
 					unsigned char project : 1;
@@ -609,7 +608,7 @@ namespace sw
 		void analyzeSamplers();
 		void analyzeCallSites();
 		void analyzeDynamicIndexing();
-		void markFunctionAnalysis(int functionLabel, Analysis flag);
+		void markFunctionAnalysis(unsigned int functionLabel, Analysis flag);
 
 		ShaderType shaderType;
 

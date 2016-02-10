@@ -23,17 +23,6 @@ namespace es1
 {
 	class Texture;
 
-	enum PrimitiveType
-	{
-		DRAW_POINTLIST,
-		DRAW_LINELIST,
-		DRAW_LINESTRIP,
-		DRAW_LINELOOP,
-		DRAW_TRIANGLELIST,
-		DRAW_TRIANGLESTRIP,
-		DRAW_TRIANGLEFAN
-	};
-
 	struct Viewport
 	{
 		int x0;
@@ -56,8 +45,8 @@ namespace es1
 		virtual void clearStencil(unsigned int stencil, unsigned int mask);
 		virtual egl::Image *createDepthStencilSurface(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard);
 		virtual egl::Image *createRenderTarget(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool lockable);
-		virtual void drawIndexedPrimitive(PrimitiveType type, unsigned int indexOffset, unsigned int primitiveCount, int indexSize);
-		virtual void drawPrimitive(PrimitiveType primitiveType, unsigned int primiveCount);
+		virtual void drawIndexedPrimitive(sw::DrawType type, unsigned int indexOffset, unsigned int primitiveCount);
+		virtual void drawPrimitive(sw::DrawType type, unsigned int primiveCount);
 		virtual void setDepthStencilSurface(egl::Image *newDepthStencil);
 		virtual void setScissorEnable(bool enable);
 		virtual void setRenderTarget(int index, egl::Image *renderTarget);

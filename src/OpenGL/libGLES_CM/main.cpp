@@ -94,11 +94,6 @@ es1::Context *getContext()
 	return 0;
 }
 
-egl::Display *getDisplay()
-{
-    return libEGL->clientGetCurrentDisplay();
-}
-
 Device *getDevice()
 {
     Context *context = getContext();

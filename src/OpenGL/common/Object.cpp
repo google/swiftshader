@@ -19,15 +19,27 @@
 
 namespace gl
 {
+#ifndef NDEBUG
+std::set<Object*> Object::instances;
+#endif
 
 Object::Object()
 {
 	referenceCount = 0;
+
+	#ifndef NDEBUG
+		instances.insert(this);
+	#endif
 }
 
 Object::~Object()
 {
     ASSERT(referenceCount == 0);
+
+	#ifndef NDEBUG
+		ASSERT(instances.find(this) != instances.end());   // Check for double deletion
+		instances.erase(this);
+	#endif
 }
 
 void Object::addRef()
@@ -37,17 +49,28 @@ void Object::addRef()
 
 void Object::release()
 {
+	if(dereference() == 0)
+	{
+		delete this;
+	}
+}
+
+int Object::dereference()
+{
     ASSERT(referenceCount > 0);
 
     if(referenceCount > 0)
 	{
-		sw::atomicDecrement(&referenceCount);
+		return sw::atomicDecrement(&referenceCount);
 	}
 
-	if(referenceCount == 0)
-	{
-		delete this;
-	}
+	return 0;
+}
+
+void Object::destroy()
+{
+	referenceCount = 0;
+	delete this;
 }
 
 NamedObject::NamedObject(GLuint name) : name(name)
@@ -57,5 +80,17 @@ NamedObject::NamedObject(GLuint name) : name(name)
 NamedObject::~NamedObject()
 {
 }
+
+#ifndef NDEBUG
+struct ObjectLeakCheck
+{
+	~ObjectLeakCheck()
+	{
+		ASSERT(Object::instances.empty());   // Check for GL object leak at termination
+	}
+};
+
+static ObjectLeakCheck objectLeakCheck;
+#endif
 
 }

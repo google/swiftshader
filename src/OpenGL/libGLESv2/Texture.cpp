@@ -167,7 +167,7 @@ bool Texture::setMaxAnisotropy(float textureMaxAnisotropy)
     {
         return false;
     }
-    
+
 	if(mMaxAnisotropy != textureMaxAnisotropy)
     {
         mMaxAnisotropy = textureMaxAnisotropy;
@@ -470,7 +470,7 @@ void Texture::subImageCompressed(GLint xoffset, GLint yoffset, GLint zoffset, GL
 bool Texture::copy(egl::Image *source, const sw::SliceRect &sourceRect, GLenum destFormat, GLint xoffset, GLint yoffset, GLint zoffset, egl::Image *dest)
 {
     Device *device = getDevice();
-	
+
     sw::SliceRect destRect(xoffset, yoffset, xoffset + (sourceRect.x1 - sourceRect.x0), yoffset + (sourceRect.y1 - sourceRect.y0), zoffset);
     bool success = device->stretchRect(source, &sourceRect, dest, &destRect, false);
 
@@ -504,12 +504,12 @@ Texture2D::Texture2D(GLuint name) : Texture(name)
 {
 	for(int i = 0; i < MIPMAP_LEVELS; i++)
 	{
-		image[i] = 0;
+		image[i] = nullptr;
 	}
 
-    mSurface = NULL;
+    mSurface = nullptr;
 
-	mColorbufferProxy = NULL;
+	mColorbufferProxy = nullptr;
 	mProxyRefs = 0;
 }
 
@@ -522,7 +522,7 @@ Texture2D::~Texture2D()
 		if(image[i])
 		{
 			image[i]->unbind(this);
-			image[i] = 0;
+			image[i] = nullptr;
 		}
 	}
 
@@ -530,15 +530,15 @@ Texture2D::~Texture2D()
 
     if(mSurface)
     {
-        mSurface->setBoundTexture(NULL);
-        mSurface = NULL;
+        mSurface->setBoundTexture(nullptr);
+        mSurface = nullptr;
     }
 
-	mColorbufferProxy = NULL;
+	mColorbufferProxy = nullptr;
 }
 
-// We need to maintain a count of references to renderbuffers acting as 
-// proxies for this texture, so that we do not attempt to use a pointer 
+// We need to maintain a count of references to renderbuffers acting as
+// proxies for this texture, so that we do not attempt to use a pointer
 // to a renderbuffer proxy which has been deleted.
 void Texture2D::addProxyRef(const Renderbuffer *proxy)
 {
@@ -554,7 +554,30 @@ void Texture2D::releaseProxy(const Renderbuffer *proxy)
 
     if(mProxyRefs == 0)
 	{
-		mColorbufferProxy = NULL;
+		mColorbufferProxy = nullptr;
+	}
+}
+
+void Texture2D::sweep()
+{
+	int imageCount = 0;
+
+	for(int i = 0; i < MIPMAP_LEVELS; i++)
+	{
+		if(image[i] && image[i]->isChildOf(this))
+		{
+			if(!image[i]->hasSingleReference())
+			{
+				return;
+			}
+
+			imageCount++;
+		}
+	}
+
+	if(imageCount == referenceCount)
+	{
+		destroy();
 	}
 }
 
@@ -610,7 +633,7 @@ void Texture2D::setImage(GLint level, GLsizei width, GLsizei height, GLenum form
 {
 	if(image[level])
 	{
-		image[level]->unbind(this);
+		image[level]->release();
 	}
 
 	image[level] = new egl::Image(this, width, height, format, type);
@@ -648,8 +671,8 @@ void Texture2D::bindTexImage(egl::Surface *surface)
 	{
 		if(image[level])
 		{
-			image[level]->unbind(this);
-			image[level] = 0;
+			image[level]->release();
+			image[level] = nullptr;
 		}
 	}
 
@@ -665,8 +688,8 @@ void Texture2D::releaseTexImage()
 	{
 		if(image[level])
 		{
-			image[level]->unbind(this);
-			image[level] = 0;
+			image[level]->release();
+			image[level] = nullptr;
 		}
 	}
 }
@@ -675,7 +698,7 @@ void Texture2D::setCompressedImage(GLint level, GLenum format, GLsizei width, GL
 {
 	if(image[level])
 	{
-		image[level]->unbind(this);
+		image[level]->release();
 	}
 
 	GLenum sizedInternalFormat = GetSizedInternalFormat(format, GL_UNSIGNED_BYTE);
@@ -711,7 +734,7 @@ void Texture2D::copyImage(GLint level, GLenum format, GLint x, GLint y, GLsizei 
 
 	if(image[level])
 	{
-		image[level]->unbind(this);
+		image[level]->release();
 	}
 
 	GLenum sizedInternalFormat = GetSizedInternalFormat(format, GL_UNSIGNED_BYTE);
@@ -788,7 +811,7 @@ void Texture2D::setImage(egl::Image *sharedImage)
 
     if(image[0])
     {
-        image[0]->unbind(this);
+        image[0]->release();
     }
 
     image[0] = sharedImage;
@@ -878,12 +901,12 @@ void Texture2D::generateMipmaps()
 	}
 
     unsigned int q = log2(std::max(image[0]->getWidth(), image[0]->getHeight()));
-    
+
 	for(unsigned int i = 1; i <= q; i++)
     {
 		if(image[i])
 		{
-			image[i]->unbind(this);
+			image[i]->release();
 		}
 
 		image[i] = new egl::Image(this, std::max(image[0]->getWidth() >> i, 1), std::max(image[0]->getHeight() >> i, 1), image[0]->getFormat(), image[0]->getType());
@@ -906,10 +929,10 @@ Renderbuffer *Texture2D::getRenderbuffer(GLenum target, GLint level, GLint layer
 {
     if(target != GL_TEXTURE_2D)
     {
-        return error(GL_INVALID_OPERATION, (Renderbuffer *)NULL);
+        return error(GL_INVALID_OPERATION, (Renderbuffer*)nullptr);
     }
 
-    if(mColorbufferProxy == NULL)
+    if(!mColorbufferProxy)
     {
         mColorbufferProxy = new Renderbuffer(name, new RenderbufferTexture2D(this, level));
     }
@@ -954,13 +977,13 @@ TextureCubeMap::TextureCubeMap(GLuint name) : Texture(name)
 	{
 		for(int i = 0; i < MIPMAP_LEVELS; i++)
 		{
-			image[f][i] = 0;
+			image[f][i] = nullptr;
 		}
 	}
 
 	for(int f = 0; f < 6; f++)
     {
-        mFaceProxies[f] = NULL;
+        mFaceProxies[f] = nullptr;
         mFaceProxyRefs[f] = 0;
 	}
 }
@@ -976,7 +999,7 @@ TextureCubeMap::~TextureCubeMap()
 			if(image[f][i])
 			{
 				image[f][i]->unbind(this);
-				image[f][i] = 0;
+				image[f][i] = nullptr;
 			}
 		}
 	}
@@ -985,14 +1008,14 @@ TextureCubeMap::~TextureCubeMap()
 
     for(int i = 0; i < 6; i++)
     {
-        mFaceProxies[i] = NULL;
+        mFaceProxies[i] = nullptr;
     }
 }
 
-// We need to maintain a count of references to renderbuffers acting as 
-// proxies for this texture, so that the texture is not deleted while 
+// We need to maintain a count of references to renderbuffers acting as
+// proxies for this texture, so that the texture is not deleted while
 // proxy references still exist. If the reference count drops to zero,
-// we set our proxy pointer NULL, so that a new attempt at referencing
+// we set our proxy pointer null, so that a new attempt at referencing
 // will cause recreation.
 void TextureCubeMap::addProxyRef(const Renderbuffer *proxy)
 {
@@ -1018,10 +1041,36 @@ void TextureCubeMap::releaseProxy(const Renderbuffer *proxy)
 
             if(mFaceProxyRefs[f] == 0)
 			{
-				mFaceProxies[f] = NULL;
+				mFaceProxies[f] = nullptr;
 			}
 		}
     }
+}
+
+void TextureCubeMap::sweep()
+{
+	int imageCount = 0;
+
+	for(int f = 0; f < 6; f++)
+	{
+		for(int i = 0; i < MIPMAP_LEVELS; i++)
+		{
+			if(image[f][i] && image[f][i]->isChildOf(this))
+			{
+				if(!image[f][i]->hasSingleReference())
+				{
+					return;
+				}
+
+				imageCount++;
+			}
+		}
+	}
+
+	if(imageCount == referenceCount)
+	{
+		destroy();
+	}
 }
 
 GLenum TextureCubeMap::getTarget() const
@@ -1078,7 +1127,7 @@ void TextureCubeMap::setCompressedImage(GLenum target, GLint level, GLenum forma
 
 	if(image[face][level])
 	{
-		image[face][level]->unbind(this);
+		image[face][level]->release();
 	}
 
 	GLenum sizedInternalFormat = GetSizedInternalFormat(format, GL_UNSIGNED_BYTE);
@@ -1220,7 +1269,7 @@ void TextureCubeMap::setImage(GLenum target, GLint level, GLsizei width, GLsizei
 
 	if(image[face][level])
 	{
-		image[face][level]->unbind(this);
+		image[face][level]->release();
 	}
 
 	image[face][level] = new egl::Image(this, width, height, format, type);
@@ -1247,7 +1296,7 @@ void TextureCubeMap::copyImage(GLenum target, GLint level, GLenum format, GLint 
 
 	if(image[face][level])
 	{
-		image[face][level]->unbind(this);
+		image[face][level]->release();
 	}
 
 	GLenum sizedInternalFormat = GetSizedInternalFormat(format, GL_UNSIGNED_BYTE);
@@ -1270,7 +1319,7 @@ void TextureCubeMap::copyImage(GLenum target, GLint level, GLenum format, GLint 
 
 		sw::SliceRect sourceRect(x, y, x + width, y + height, 0);
 		sourceRect.clip(0, 0, renderbuffer->getWidth(), renderbuffer->getHeight());
-        
+
 		copy(renderTarget, sourceRect, sizedInternalFormat, 0, 0, 0, image[face][level]);
     }
 
@@ -1342,7 +1391,7 @@ void TextureCubeMap::generateMipmaps()
 		{
 			if(image[f][i])
 			{
-				image[f][i]->unbind(this);
+				image[f][i]->release();
 			}
 
 			image[f][i] = new egl::Image(this, std::max(image[0][0]->getWidth() >> i, 1), std::max(image[0][0]->getHeight() >> i, 1), image[0][0]->getFormat(), image[0][0]->getType());
@@ -1361,12 +1410,12 @@ Renderbuffer *TextureCubeMap::getRenderbuffer(GLenum target, GLint level, GLint 
 {
     if(!IsCubemapTextureTarget(target))
     {
-        return error(GL_INVALID_OPERATION, (Renderbuffer *)NULL);
+        return error(GL_INVALID_OPERATION, (Renderbuffer*)nullptr);
     }
 
     int face = CubeFaceIndex(target);
 
-    if(mFaceProxies[face] == NULL)
+    if(!mFaceProxies[face])
     {
         mFaceProxies[face] = new Renderbuffer(name, new RenderbufferTextureCubeMap(this, target, level));
     }
@@ -1378,7 +1427,7 @@ egl::Image *TextureCubeMap::getRenderTarget(GLenum target, unsigned int level)
 {
     ASSERT(IsCubemapTextureTarget(target));
     ASSERT(level < IMPLEMENTATION_MAX_TEXTURE_LEVELS);
-    
+
 	int face = CubeFaceIndex(target);
 
 	if(image[face][level])
@@ -1408,12 +1457,12 @@ Texture3D::Texture3D(GLuint name) : Texture(name)
 {
 	for(int i = 0; i < MIPMAP_LEVELS; i++)
 	{
-		image[i] = 0;
+		image[i] = nullptr;
 	}
 
-	mSurface = NULL;
+	mSurface = nullptr;
 
-	mColorbufferProxy = NULL;
+	mColorbufferProxy = nullptr;
 	mProxyRefs = 0;
 }
 
@@ -1426,7 +1475,7 @@ Texture3D::~Texture3D()
 		if(image[i])
 		{
 			image[i]->unbind(this);
-			image[i] = 0;
+			image[i] = nullptr;
 		}
 	}
 
@@ -1434,15 +1483,15 @@ Texture3D::~Texture3D()
 
 	if(mSurface)
 	{
-		mSurface->setBoundTexture(NULL);
-		mSurface = NULL;
+		mSurface->setBoundTexture(nullptr);
+		mSurface = nullptr;
 	}
 
-	mColorbufferProxy = NULL;
+	mColorbufferProxy = nullptr;
 }
 
-// We need to maintain a count of references to renderbuffers acting as 
-// proxies for this texture, so that we do not attempt to use a pointer 
+// We need to maintain a count of references to renderbuffers acting as
+// proxies for this texture, so that we do not attempt to use a pointer
 // to a renderbuffer proxy which has been deleted.
 void Texture3D::addProxyRef(const Renderbuffer *proxy)
 {
@@ -1458,7 +1507,30 @@ void Texture3D::releaseProxy(const Renderbuffer *proxy)
 
 	if(mProxyRefs == 0)
 	{
-		mColorbufferProxy = NULL;
+		mColorbufferProxy = nullptr;
+	}
+}
+
+void Texture3D::sweep()
+{
+	int imageCount = 0;
+
+	for(int i = 0; i < MIPMAP_LEVELS; i++)
+	{
+		if(image[i] && image[i]->isChildOf(this))
+		{
+			if(!image[i]->hasSingleReference())
+			{
+				return;
+			}
+
+			imageCount++;
+		}
+	}
+
+	if(imageCount == referenceCount)
+	{
+		destroy();
 	}
 }
 
@@ -1520,7 +1592,7 @@ void Texture3D::setImage(GLint level, GLsizei width, GLsizei height, GLsizei dep
 {
 	if(image[level])
 	{
-		image[level]->unbind(this);
+		image[level]->release();
 	}
 
 	image[level] = new egl::Image(this, width, height, depth, format, type);
@@ -1554,8 +1626,8 @@ void Texture3D::bindTexImage(egl::Surface *surface)
 	{
 		if(image[level])
 		{
-			image[level]->unbind(this);
-			image[level] = 0;
+			image[level]->release();
+			image[level] = nullptr;
 		}
 	}
 
@@ -1571,8 +1643,8 @@ void Texture3D::releaseTexImage()
 	{
 		if(image[level])
 		{
-			image[level]->unbind(this);
-			image[level] = 0;
+			image[level]->release();
+			image[level] = nullptr;
 		}
 	}
 }
@@ -1581,7 +1653,7 @@ void Texture3D::setCompressedImage(GLint level, GLenum format, GLsizei width, GL
 {
 	if(image[level])
 	{
-		image[level]->unbind(this);
+		image[level]->release();
 	}
 
 	GLenum sizedInternalFormat = GetSizedInternalFormat(format, GL_UNSIGNED_BYTE);
@@ -1617,7 +1689,7 @@ void Texture3D::copyImage(GLint level, GLenum format, GLint x, GLint y, GLint z,
 
 	if(image[level])
 	{
-		image[level]->unbind(this);
+		image[level]->release();
 	}
 
 	GLenum sizedInternalFormat = GetSizedInternalFormat(format, GL_UNSIGNED_BYTE);
@@ -1691,7 +1763,7 @@ void Texture3D::setImage(egl::Image *sharedImage)
 
 	if(image[0])
 	{
-		image[0]->unbind(this);
+		image[0]->release();
 	}
 
 	image[0] = sharedImage;
@@ -1796,7 +1868,7 @@ void Texture3D::generateMipmaps()
 	{
 		if(image[i])
 		{
-			image[i]->unbind(this);
+			image[i]->release();
 		}
 
 		image[i] = new egl::Image(this, std::max(image[0]->getWidth() >> i, 1), std::max(image[0]->getHeight() >> i, 1), std::max(image[0]->getDepth() >> i, 1), image[0]->getFormat(), image[0]->getType());
@@ -1819,10 +1891,10 @@ Renderbuffer *Texture3D::getRenderbuffer(GLenum target, GLint level, GLint layer
 {
 	if(target != getTarget())
 	{
-		return error(GL_INVALID_OPERATION, (Renderbuffer *)NULL);
+		return error(GL_INVALID_OPERATION, (Renderbuffer*)nullptr);
 	}
 
-	if(mColorbufferProxy == NULL)
+	if(!mColorbufferProxy)
 	{
 		mColorbufferProxy = new Renderbuffer(name, new RenderbufferTexture3D(this, level, layer));
 	}
@@ -1888,7 +1960,7 @@ void Texture2DArray::generateMipmaps()
 	{
 		if(image[i])
 		{
-			image[i]->unbind(this);
+			image[i]->release();
 		}
 
 		GLsizei w = std::max(image[0]->getWidth() >> i, 1);
@@ -1935,10 +2007,10 @@ egl::Image *createBackBuffer(int width, int height, const egl::Config *config)
 {
 	if(config)
 	{
-		return new egl::Image(width, height, config->mRenderTargetFormat, config->mSamples, false, true);
+		return new egl::Image(width, height, config->mRenderTargetFormat, config->mSamples, false);
 	}
 
-	return 0;
+	return nullptr;
 }
 
 egl::Image *createDepthStencil(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard)
@@ -1948,7 +2020,7 @@ egl::Image *createDepthStencil(unsigned int width, unsigned int height, sw::Form
 		ERR("Invalid parameters: %dx%d", width, height);
 		return 0;
 	}
-		
+
 	bool lockable = true;
 
 	switch(format)
@@ -1974,12 +2046,12 @@ egl::Image *createDepthStencil(unsigned int width, unsigned int height, sw::Form
 		UNREACHABLE(format);
 	}
 
-	egl::Image *surface = new egl::Image(width, height, format, multiSampleDepth, lockable, true);
+	egl::Image *surface = new egl::Image(width, height, format, multiSampleDepth, lockable);
 
 	if(!surface)
 	{
 		ERR("Out of memory");
-		return 0;
+		return nullptr;
 	}
 
 	return surface;

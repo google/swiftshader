@@ -1132,31 +1132,27 @@ namespace egl
 
 	Image::~Image()
 	{
-		ASSERT(referenceCount == 0);
-	}
-
-	void Image::addRef()
-	{
 		if(parentTexture)
 		{
-			return parentTexture->addRef();
+			parentTexture->release();
 		}
-		int newCount = sw::atomicIncrement(&referenceCount);
-		LOGLOCK("%s image=%p referenceCount=%d", __FUNCTION__, this, newCount);
+
+		ASSERT(!shared);
 	}
 
 	void Image::release()
 	{
-		if(parentTexture)
-		{
-			return parentTexture->release();
-		}
+		int refs = dereference();
 
-		int newCount = sw::atomicDecrement(&referenceCount);
-		LOGLOCK("%s image=%p referenceCount=%d", __FUNCTION__, this, newCount);
-		if (newCount == 0)
+		if(refs > 0)
 		{
-			ASSERT(!shared);   // Should still hold a reference if eglDestroyImage hasn't been called
+			if(parentTexture)
+			{
+				parentTexture->sweep();
+			}
+		}
+		else
+		{
 			delete this;
 		}
 	}
@@ -1165,10 +1161,15 @@ namespace egl
 	{
 		if(parentTexture == parent)
 		{
-			parentTexture = 0;
+			parentTexture = nullptr;
 		}
 
 		release();
+	}
+
+	bool Image::isChildOf(const egl::Texture *parent) const
+	{
+		return parentTexture == parent;
 	}
 
 	void Image::loadImageData(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const UnpackInfo& unpackInfo, const void *input)

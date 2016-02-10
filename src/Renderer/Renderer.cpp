@@ -221,7 +221,7 @@ namespace sw
 
 		for(int q = 0; q < ss; q++)
 		{
-			int oldMultiSampleMask = context->multiSampleMask;
+			unsigned int oldMultiSampleMask = context->multiSampleMask;
 			context->multiSampleMask = (context->sampleMask >> (ms * q)) & ((unsigned)0xFFFFFFFF >> (32 - ms));
 
 			if(!context->multiSampleMask)
@@ -382,6 +382,8 @@ namespace sw
 					memcpy(&data->ps.b, PixelProcessor::b, sizeof(bool) * draw->psDirtyConstB);
 					draw->psDirtyConstB = 0;
 				}
+
+				PixelProcessor::lockUniformBuffers(data->ps.u);
 			}
 			
 			if(context->pixelShaderVersion() <= 0x0104)
@@ -434,6 +436,8 @@ namespace sw
 				{
 					data->instanceID = context->instanceID;
 				}
+
+				VertexProcessor::lockUniformBuffers(data->vs.u);
 			}
 			else
 			{
@@ -953,6 +957,9 @@ namespace sw
 				{
 					draw.indexBuffer->unlock();
 				}
+
+				PixelProcessor::unlockUniformBuffers();
+				VertexProcessor::unlockUniformBuffers();
 
 				draw.vertexRoutine->unbind();
 				draw.setupRoutine->unbind();

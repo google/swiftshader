@@ -216,7 +216,7 @@ namespace sw
 		textureWrapActive = false;
 		localViewer = true;
 		normalizeNormals = false;
-		
+
 		for(int i = 0; i < RENDERTARGETS; ++i)
 		{
 			renderTarget[i] = 0;
@@ -231,7 +231,7 @@ namespace sw
 		stencilPassOperation = OPERATION_KEEP;
 		stencilZFailOperation = OPERATION_KEEP;
 		stencilWriteMask = 0xFFFFFFFF;
-		
+
 		twoSidedStencil = false;
 		stencilCompareModeCCW = STENCIL_ALWAYS;
 		stencilReferenceCCW = 0;
@@ -361,7 +361,7 @@ namespace sw
 	{
 		Context::emissiveMaterialSource = emissiveMaterialSource;
 	}
-	
+
 	void Context::setPointSpriteEnable(bool pointSpriteEnable)
 	{
 		Context::pointSpriteEnable = pointSpriteEnable;
@@ -509,7 +509,7 @@ namespace sw
 		if(!alphaTestEnable) return false;
 		if(alphaCompareMode == ALPHA_ALWAYS) return false;
 		if(alphaReference == 0.0f && alphaCompareMode == ALPHA_GREATEREQUAL) return false;
-		
+
 		return true;
 	}
 
@@ -660,7 +660,7 @@ namespace sw
 		{
 			return MATERIAL_MATERIAL;
 		}
-		
+
 		return diffuseMaterialSource;
 	}
 
@@ -677,7 +677,7 @@ namespace sw
 		{
 			return MATERIAL_MATERIAL;
 		}
-		
+
 		return specularMaterialSource;
 	}
 
@@ -694,7 +694,7 @@ namespace sw
 		{
 			return MATERIAL_MATERIAL;
 		}
-		
+
 		return ambientMaterialSource;
 	}
 
@@ -711,7 +711,7 @@ namespace sw
 		{
 			return MATERIAL_MATERIAL;
 		}
-		
+
 		return emissiveMaterialSource;
 	}
 
@@ -766,7 +766,7 @@ namespace sw
 		case BLENDOP_MIN:
 			return BLEND_ONE;
 		case BLENDOP_MAX:
-			return BLEND_ONE; 
+			return BLEND_ONE;
 		default:
 			ASSERT(false);
 		}
@@ -787,7 +787,7 @@ namespace sw
 		case BLENDOP_MIN:
 			return BLEND_ONE;
 		case BLENDOP_MAX:
-			return BLEND_ONE; 
+			return BLEND_ONE;
 		default:
 			ASSERT(false);
 		}
@@ -924,7 +924,7 @@ namespace sw
 			case BLENDOP_MIN:
 				return BLEND_ONE;
 			case BLENDOP_MAX:
-				return BLEND_ONE; 
+				return BLEND_ONE;
 			default:
 				ASSERT(false);
 			}
@@ -950,7 +950,7 @@ namespace sw
 			case BLENDOP_MIN:
 				return BLEND_ONE;
 			case BLENDOP_MAX:
-				return BLEND_ONE; 
+				return BLEND_ONE;
 			default:
 				ASSERT(false);
 			}
@@ -1145,7 +1145,7 @@ namespace sw
 
 		return texGen[stage];
 	}
-	
+
 	int Context::textureTransformCountActive(int stage)
 	{
 		if(vertexShader || !texCoordActive(stage))
@@ -1248,7 +1248,7 @@ namespace sw
 
 		// Vertex processor provides diffuse component
 		bool vertexDiffuse;
-		
+
 		if(vertexShader)
 		{
 			vertexDiffuse = vertexShader->output[D0][component].active();
@@ -1311,7 +1311,7 @@ namespace sw
 
 		// Vertex processor provides specular component
 		bool vertexSpecular;
-		
+
 		if(!vertexShader)
 		{
 			vertexSpecular = input[Color1] || (lightingEnable && specularEnable);

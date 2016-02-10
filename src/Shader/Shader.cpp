@@ -926,8 +926,6 @@ namespace sw
 		case OPCODE_U2F:            return "u2f";
 		case OPCODE_B2I:            return "b2i";
 		case OPCODE_I2B:            return "i2b";
-		case OPCODE_B2U:            return "b2u";
-		case OPCODE_U2B:            return "u2b";
 		case OPCODE_ALL:            return "all";
 		case OPCODE_ANY:            return "any";
 		case OPCODE_NEG:            return "neg";
@@ -1734,7 +1732,7 @@ namespace sw
 		}
 	}
 
-	void Shader::markFunctionAnalysis(int functionLabel, Analysis flag)
+	void Shader::markFunctionAnalysis(unsigned int functionLabel, Analysis flag)
 	{
 		bool marker = false;
 		for(unsigned int i = 0; i < instruction.size(); i++)

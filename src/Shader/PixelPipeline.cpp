@@ -17,24 +17,22 @@ namespace sw
 {
 	extern bool postBlendSRGB;
 
-	void PixelPipeline::setBuiltins(PixelRoutine::Registers &rBase, Int &x, Int &y, Float4(&z)[4], Float4 &w)
+	void PixelPipeline::setBuiltins(Int &x, Int &y, Float4(&z)[4], Float4 &w)
 	{
-		Registers& r = *static_cast<Registers*>(&rBase);
+		if(state.color[0].component & 0x1) diffuse.x = convertFixed12(v[0].x); else diffuse.x = Short4(0x1000);
+		if(state.color[0].component & 0x2) diffuse.y = convertFixed12(v[0].y); else diffuse.y = Short4(0x1000);
+		if(state.color[0].component & 0x4) diffuse.z = convertFixed12(v[0].z); else diffuse.z = Short4(0x1000);
+		if(state.color[0].component & 0x8) diffuse.w = convertFixed12(v[0].w); else diffuse.w = Short4(0x1000);
 
-		if(state.color[0].component & 0x1) r.diffuse.x = convertFixed12(r.v[0].x); else r.diffuse.x = Short4(0x1000);
-		if(state.color[0].component & 0x2) r.diffuse.y = convertFixed12(r.v[0].y); else r.diffuse.y = Short4(0x1000);
-		if(state.color[0].component & 0x4) r.diffuse.z = convertFixed12(r.v[0].z); else r.diffuse.z = Short4(0x1000);
-		if(state.color[0].component & 0x8) r.diffuse.w = convertFixed12(r.v[0].w); else r.diffuse.w = Short4(0x1000);
-
-		if(state.color[1].component & 0x1) r.specular.x = convertFixed12(r.v[1].x); else r.specular.x = Short4(0x0000, 0x0000, 0x0000, 0x0000);
-		if(state.color[1].component & 0x2) r.specular.y = convertFixed12(r.v[1].y); else r.specular.y = Short4(0x0000, 0x0000, 0x0000, 0x0000);
-		if(state.color[1].component & 0x4) r.specular.z = convertFixed12(r.v[1].z); else r.specular.z = Short4(0x0000, 0x0000, 0x0000, 0x0000);
-		if(state.color[1].component & 0x8) r.specular.w = convertFixed12(r.v[1].w); else r.specular.w = Short4(0x0000, 0x0000, 0x0000, 0x0000);
+		if(state.color[1].component & 0x1) specular.x = convertFixed12(v[1].x); else specular.x = Short4(0x0000, 0x0000, 0x0000, 0x0000);
+		if(state.color[1].component & 0x2) specular.y = convertFixed12(v[1].y); else specular.y = Short4(0x0000, 0x0000, 0x0000, 0x0000);
+		if(state.color[1].component & 0x4) specular.z = convertFixed12(v[1].z); else specular.z = Short4(0x0000, 0x0000, 0x0000, 0x0000);
+		if(state.color[1].component & 0x8) specular.w = convertFixed12(v[1].w); else specular.w = Short4(0x0000, 0x0000, 0x0000, 0x0000);
 	}
 
-	void PixelPipeline::fixedFunction(Registers& r)
+	void PixelPipeline::fixedFunction()
 	{
-		r.current = r.diffuse;
+		current = diffuse;
 		Vector4s temp(0x0000, 0x0000, 0x0000, 0x0000);
 
 		for(int stage = 0; stage < 8; stage++)
@@ -48,22 +46,20 @@ namespace sw
 
 			if(state.textureStage[stage].usesTexture)
 			{
-				sampleTexture(r, texture, stage, stage);
+				sampleTexture(texture, stage, stage);
 			}
 
-			blendTexture(r, temp, texture, stage);
+			blendTexture(temp, texture, stage);
 		}
 
-		specularPixel(r.current, r.specular);
+		specularPixel(current, specular);
 	}
 
-	void PixelPipeline::applyShader(PixelRoutine::Registers &rBase, Int cMask[4])
+	void PixelPipeline::applyShader(Int cMask[4])
 	{
-		Registers& r = *static_cast<Registers*>(&rBase);
-
 		if(!shader)
 		{
-			fixedFunction(r);
+			fixedFunction();
 			return;
 		}
 
@@ -98,14 +94,14 @@ namespace sw
 			Vector4s s1;
 			Vector4s s2;
 
-			if(src0.type != Shader::PARAMETER_VOID) s0 = fetchRegisterS(r, src0);
-			if(src1.type != Shader::PARAMETER_VOID) s1 = fetchRegisterS(r, src1);
-			if(src2.type != Shader::PARAMETER_VOID) s2 = fetchRegisterS(r, src2);
+			if(src0.type != Shader::PARAMETER_VOID) s0 = fetchRegisterS(src0);
+			if(src1.type != Shader::PARAMETER_VOID) s1 = fetchRegisterS(src1);
+			if(src2.type != Shader::PARAMETER_VOID) s2 = fetchRegisterS(src2);
 
-			Float4 u = version < 0x0104 ? r.v[2 + dst.index].x : r.v[2 + src0.index].x;
-			Float4 v = version < 0x0104 ? r.v[2 + dst.index].y : r.v[2 + src0.index].y;
-			Float4 s = version < 0x0104 ? r.v[2 + dst.index].z : r.v[2 + src0.index].z;
-			Float4 t = version < 0x0104 ? r.v[2 + dst.index].w : r.v[2 + src0.index].w;
+			Float4 x = version < 0x0104 ? v[2 + dst.index].x : v[2 + src0.index].x;
+			Float4 y = version < 0x0104 ? v[2 + dst.index].y : v[2 + src0.index].y;
+			Float4 z = version < 0x0104 ? v[2 + dst.index].z : v[2 + src0.index].z;
+			Float4 w = version < 0x0104 ? v[2 + dst.index].w : v[2 + src0.index].w;
 
 			switch(opcode)
 			{
@@ -129,34 +125,34 @@ namespace sw
 			case Shader::OPCODE_TEXCOORD:
 				if(version < 0x0104)
 				{
-					TEXCOORD(d, u, v, s, dst.index);
-				}
+					TEXCOORD(d, x, y, z, dst.index);
+			}
 				else
 				{
 					if((src0.swizzle & 0x30) == 0x20)   // .xyz
 					{
-						TEXCRD(d, u, v, s, src0.index, src0.modifier == Shader::MODIFIER_DZ || src0.modifier == Shader::MODIFIER_DW);
+						TEXCRD(d, x, y, z, src0.index, src0.modifier == Shader::MODIFIER_DZ || src0.modifier == Shader::MODIFIER_DW);
 					}
-					else   // .xyw
+					else   // .xwy
 					{
-						TEXCRD(d, u, v, t, src0.index, src0.modifier == Shader::MODIFIER_DZ || src0.modifier == Shader::MODIFIER_DW);
+						TEXCRD(d, x, y, w, src0.index, src0.modifier == Shader::MODIFIER_DZ || src0.modifier == Shader::MODIFIER_DW);
 					}
 				}
 				break;
 			case Shader::OPCODE_TEXKILL:
 				if(version < 0x0104)
 				{
-					TEXKILL(cMask, u, v, s);
+					TEXKILL(cMask, x, y, z);
 				}
 				else if(version == 0x0104)
 				{
 					if(dst.type == Shader::PARAMETER_TEXTURE)
 					{
-						TEXKILL(cMask, u, v, s);
+						TEXKILL(cMask, x, y, z);
 					}
 					else
 					{
-						TEXKILL(cMask, r.rs[dst.index]);
+						TEXKILL(cMask, rs[dst.index]);
 					}
 				}
 				else ASSERT(false);
@@ -164,7 +160,7 @@ namespace sw
 			case Shader::OPCODE_TEX:
 				if(version < 0x0104)
 				{
-					TEX(r, d, u, v, s, dst.index, false);
+					TEX(d, x, y, z, dst.index, false);
 				}
 				else if(version == 0x0104)
 				{
@@ -172,41 +168,41 @@ namespace sw
 					{
 						if((src0.swizzle & 0x30) == 0x20)   // .xyz
 						{
-							TEX(r, d, u, v, s, dst.index, src0.modifier == Shader::MODIFIER_DZ || src0.modifier == Shader::MODIFIER_DW);
+							TEX(d, x, y, z, dst.index, src0.modifier == Shader::MODIFIER_DZ || src0.modifier == Shader::MODIFIER_DW);
 						}
 						else   // .xyw
 						{
-							TEX(r, d, u, v, t, dst.index, src0.modifier == Shader::MODIFIER_DZ || src0.modifier == Shader::MODIFIER_DW);
+							TEX(d, x, y, w, dst.index, src0.modifier == Shader::MODIFIER_DZ || src0.modifier == Shader::MODIFIER_DW);
 						}
 					}
 					else
 					{
-						TEXLD(r, d, s0, dst.index, src0.modifier == Shader::MODIFIER_DZ || src0.modifier == Shader::MODIFIER_DW);
+						TEXLD(d, s0, dst.index, src0.modifier == Shader::MODIFIER_DZ || src0.modifier == Shader::MODIFIER_DW);
 					}
 				}
 				else ASSERT(false);
 				break;
-			case Shader::OPCODE_TEXBEM:       TEXBEM(r, d, s0, u, v, s, dst.index);                                             break;
-			case Shader::OPCODE_TEXBEML:      TEXBEML(r, d, s0, u, v, s, dst.index);                                            break;
-			case Shader::OPCODE_TEXREG2AR:    TEXREG2AR(r, d, s0, dst.index);                                                   break;
-			case Shader::OPCODE_TEXREG2GB:    TEXREG2GB(r, d, s0, dst.index);                                                   break;
-			case Shader::OPCODE_TEXM3X2PAD:   TEXM3X2PAD(r, u, v, s, s0, 0, src0.modifier == Shader::MODIFIER_SIGN);            break;
-			case Shader::OPCODE_TEXM3X2TEX:   TEXM3X2TEX(r, d, u, v, s, dst.index, s0, src0.modifier == Shader::MODIFIER_SIGN); break;
-			case Shader::OPCODE_TEXM3X3PAD:   TEXM3X3PAD(r, u, v, s, s0, pad++ % 2, src0.modifier == Shader::MODIFIER_SIGN);    break;
-			case Shader::OPCODE_TEXM3X3TEX:   TEXM3X3TEX(r, d, u, v, s, dst.index, s0, src0.modifier == Shader::MODIFIER_SIGN); break;
-			case Shader::OPCODE_TEXM3X3SPEC:  TEXM3X3SPEC(r, d, u, v, s, dst.index, s0, s1);                                    break;
-			case Shader::OPCODE_TEXM3X3VSPEC: TEXM3X3VSPEC(r, d, u, v, s, dst.index, s0);                                       break;
-			case Shader::OPCODE_CND:          CND(d, s0, s1, s2);                                                               break;
-			case Shader::OPCODE_TEXREG2RGB:   TEXREG2RGB(r, d, s0, dst.index);                                                  break;
-			case Shader::OPCODE_TEXDP3TEX:    TEXDP3TEX(r, d, u, v, s, dst.index, s0);                                          break;
-			case Shader::OPCODE_TEXM3X2DEPTH: TEXM3X2DEPTH(r, d, u, v, s, s0, src0.modifier == Shader::MODIFIER_SIGN);          break;
-			case Shader::OPCODE_TEXDP3:       TEXDP3(r, d, u, v, s, s0);                                                        break;
-			case Shader::OPCODE_TEXM3X3:      TEXM3X3(r, d, u, v, s, s0, src0.modifier == Shader::MODIFIER_SIGN);               break;
-			case Shader::OPCODE_TEXDEPTH:     TEXDEPTH(r);                                                                      break;
-			case Shader::OPCODE_CMP0:         CMP(d, s0, s1, s2);                                                               break;
-			case Shader::OPCODE_BEM:          BEM(r, d, s0, s1, dst.index);                                                     break;
-			case Shader::OPCODE_PHASE:                                                                                          break;
-			case Shader::OPCODE_END:                                                                                            break;
+			case Shader::OPCODE_TEXBEM:       TEXBEM(d, s0, x, y, z, dst.index);                                             break;
+			case Shader::OPCODE_TEXBEML:      TEXBEML(d, s0, x, y, z, dst.index);                                            break;
+			case Shader::OPCODE_TEXREG2AR:    TEXREG2AR(d, s0, dst.index);                                                   break;
+			case Shader::OPCODE_TEXREG2GB:    TEXREG2GB(d, s0, dst.index);                                                   break;
+			case Shader::OPCODE_TEXM3X2PAD:   TEXM3X2PAD(x, y, z, s0, 0, src0.modifier == Shader::MODIFIER_SIGN);            break;
+			case Shader::OPCODE_TEXM3X2TEX:   TEXM3X2TEX(d, x, y, z, dst.index, s0, src0.modifier == Shader::MODIFIER_SIGN); break;
+			case Shader::OPCODE_TEXM3X3PAD:   TEXM3X3PAD(x, y, z, s0, pad++ % 2, src0.modifier == Shader::MODIFIER_SIGN);    break;
+			case Shader::OPCODE_TEXM3X3TEX:   TEXM3X3TEX(d, x, y, z, dst.index, s0, src0.modifier == Shader::MODIFIER_SIGN); break;
+			case Shader::OPCODE_TEXM3X3SPEC:  TEXM3X3SPEC(d, x, y, z, dst.index, s0, s1);                                    break;
+			case Shader::OPCODE_TEXM3X3VSPEC: TEXM3X3VSPEC(d, x, y, z, dst.index, s0);                                       break;
+			case Shader::OPCODE_CND:          CND(d, s0, s1, s2);                                                            break;
+			case Shader::OPCODE_TEXREG2RGB:   TEXREG2RGB(d, s0, dst.index);                                                  break;
+			case Shader::OPCODE_TEXDP3TEX:    TEXDP3TEX(d, x, y, z, dst.index, s0);                                          break;
+			case Shader::OPCODE_TEXM3X2DEPTH: TEXM3X2DEPTH(d, x, y, z, s0, src0.modifier == Shader::MODIFIER_SIGN);          break;
+			case Shader::OPCODE_TEXDP3:       TEXDP3(d, x, y, z, s0);                                                        break;
+			case Shader::OPCODE_TEXM3X3:      TEXM3X3(d, x, y, z, s0, src0.modifier == Shader::MODIFIER_SIGN);               break;
+			case Shader::OPCODE_TEXDEPTH:     TEXDEPTH();                                                                    break;
+			case Shader::OPCODE_CMP0:         CMP(d, s0, s1, s2);                                                            break;
+			case Shader::OPCODE_BEM:          BEM(d, s0, s1, dst.index);                                                     break;
+			case Shader::OPCODE_PHASE:                                                                                       break;
+			case Shader::OPCODE_END:                                                                                         break;
 			default:
 				ASSERT(false);
 			}
@@ -248,25 +244,23 @@ namespace sw
 				{
 					const Dst &dst = shader->getInstruction(i - 1)->dst;
 
-					writeDestination(r, dPairing, dst);
+					writeDestination(dPairing, dst);
 				}
 
 				if(!pairing)
 				{
-					writeDestination(r, d, dst);
+					writeDestination(d, dst);
 				}
 			}
 		}
 	}
 
-	Bool PixelPipeline::alphaTest(PixelRoutine::Registers &rBase, Int cMask[4])
+	Bool PixelPipeline::alphaTest(Int cMask[4])
 	{
-		Registers& r = *static_cast<Registers*>(&rBase);
-
-		r.current.x = Min(r.current.x, Short4(0x0FFF, 0x0FFF, 0x0FFF, 0x0FFF)); r.current.x = Max(r.current.x, Short4(0x0000, 0x0000, 0x0000, 0x0000));
-		r.current.y = Min(r.current.y, Short4(0x0FFF, 0x0FFF, 0x0FFF, 0x0FFF)); r.current.y = Max(r.current.y, Short4(0x0000, 0x0000, 0x0000, 0x0000));
-		r.current.z = Min(r.current.z, Short4(0x0FFF, 0x0FFF, 0x0FFF, 0x0FFF)); r.current.z = Max(r.current.z, Short4(0x0000, 0x0000, 0x0000, 0x0000));
-		r.current.w = Min(r.current.w, Short4(0x0FFF, 0x0FFF, 0x0FFF, 0x0FFF)); r.current.w = Max(r.current.w, Short4(0x0000, 0x0000, 0x0000, 0x0000));
+		current.x = Min(current.x, Short4(0x0FFF, 0x0FFF, 0x0FFF, 0x0FFF)); current.x = Max(current.x, Short4(0x0000, 0x0000, 0x0000, 0x0000));
+		current.y = Min(current.y, Short4(0x0FFF, 0x0FFF, 0x0FFF, 0x0FFF)); current.y = Max(current.y, Short4(0x0000, 0x0000, 0x0000, 0x0000));
+		current.z = Min(current.z, Short4(0x0FFF, 0x0FFF, 0x0FFF, 0x0FFF)); current.z = Max(current.z, Short4(0x0000, 0x0000, 0x0000, 0x0000));
+		current.w = Min(current.w, Short4(0x0FFF, 0x0FFF, 0x0FFF, 0x0FFF)); current.w = Max(current.w, Short4(0x0000, 0x0000, 0x0000, 0x0000));
 
 		if(!state.alphaTestActive())
 		{
@@ -277,7 +271,7 @@ namespace sw
 
 		if(state.transparencyAntialiasing == TRANSPARENCY_NONE)
 		{
-			PixelRoutine::alphaTest(r, aMask, r.current.w);
+			PixelRoutine::alphaTest(aMask, current.w);
 
 			for(unsigned int q = 0; q < state.multiSample; q++)
 			{
@@ -286,9 +280,9 @@ namespace sw
 		}
 		else if(state.transparencyAntialiasing == TRANSPARENCY_ALPHA_TO_COVERAGE)
 		{
-			Float4 alpha = Float4(r.current.w) * Float4(1.0f / 0x1000);
+			Float4 alpha = Float4(current.w) * Float4(1.0f / 0x1000);
 
-			alphaToCoverage(r, cMask, alpha);
+			alphaToCoverage(cMask, alpha);
 		}
 		else ASSERT(false);
 
@@ -302,10 +296,8 @@ namespace sw
 		return pass != 0x0;
 	}
 
-	void PixelPipeline::rasterOperation(PixelRoutine::Registers &rBase, Float4 &fog, Pointer<Byte> cBuffer[4], Int &x, Int sMask[4], Int zMask[4], Int cMask[4])
+	void PixelPipeline::rasterOperation(Float4 &fog, Pointer<Byte> cBuffer[4], Int &x, Int sMask[4], Int zMask[4], Int cMask[4])
 	{
-		Registers& r = *static_cast<Registers*>(&rBase);
-
 		if(!state.colorWriteActive(0))
 		{
 			return;
@@ -325,53 +317,53 @@ namespace sw
 		case FORMAT_A16B16G16R16:
 			if(!postBlendSRGB && state.writeSRGB)
 			{
-				linearToSRGB12_16(r, r.current);
+				linearToSRGB12_16(current);
 			}
 			else
 			{
-				r.current.x <<= 4;
-				r.current.y <<= 4;
-				r.current.z <<= 4;
-				r.current.w <<= 4;
+				current.x <<= 4;
+				current.y <<= 4;
+				current.z <<= 4;
+				current.w <<= 4;
 			}
 
 			if(state.targetFormat[0] == FORMAT_R5G6B5)
 			{
-				r.current.x &= Short4(0xF800u);
-				r.current.y &= Short4(0xFC00u);
-				r.current.z &= Short4(0xF800u);
+				current.x &= Short4(0xF800u);
+				current.y &= Short4(0xFC00u);
+				current.z &= Short4(0xF800u);
 			}
 
-			fogBlend(r, r.current, fog);
+			fogBlend(current, fog);
 
 			for(unsigned int q = 0; q < state.multiSample; q++)
 			{
-				Pointer<Byte> buffer = cBuffer[0] + q * *Pointer<Int>(r.data + OFFSET(DrawData, colorSliceB[0]));
-				Vector4s color = r.current;
+				Pointer<Byte> buffer = cBuffer[0] + q * *Pointer<Int>(data + OFFSET(DrawData, colorSliceB[0]));
+				Vector4s color = current;
 
 				if(state.multiSampleMask & (1 << q))
 				{
-					alphaBlend(r, 0, buffer, color, x);
-					logicOperation(r, 0, buffer, color, x);
-					writeColor(r, 0, buffer, x, color, sMask[q], zMask[q], cMask[q]);
+					alphaBlend(0, buffer, color, x);
+					logicOperation(0, buffer, color, x);
+					writeColor(0, buffer, x, color, sMask[q], zMask[q], cMask[q]);
 				}
 			}
 			break;
 		case FORMAT_R32F:
 		case FORMAT_G32R32F:
 		case FORMAT_A32B32G32R32F:
-			convertSigned12(oC, r.current);
-			PixelRoutine::fogBlend(r, oC, fog);
+			convertSigned12(oC, current);
+			PixelRoutine::fogBlend(oC, fog);
 
 			for(unsigned int q = 0; q < state.multiSample; q++)
 			{
-				Pointer<Byte> buffer = cBuffer[0] + q * *Pointer<Int>(r.data + OFFSET(DrawData, colorSliceB[0]));
+				Pointer<Byte> buffer = cBuffer[0] + q * *Pointer<Int>(data + OFFSET(DrawData, colorSliceB[0]));
 				Vector4f color = oC;
 
 				if(state.multiSampleMask & (1 << q))
 				{
-					alphaBlend(r, 0, buffer, color, x);
-					writeColor(r, 0, buffer, x, color, sMask[q], zMask[q], cMask[q]);
+					alphaBlend(0, buffer, color, x);
+					writeColor(0, buffer, x, color, sMask[q], zMask[q], cMask[q]);
 				}
 			}
 			break;
@@ -380,7 +372,7 @@ namespace sw
 		}
 	}
 
-	void PixelPipeline::blendTexture(Registers &r, Vector4s &temp, Vector4s &texture, int stage)
+	void PixelPipeline::blendTexture(Vector4s &temp, Vector4s &texture, int stage)
 	{
 		Vector4s *arg1;
 		Vector4s *arg2;
@@ -399,10 +391,10 @@ namespace sw
 		   textureStage.thirdArgument == TextureStage::SOURCE_CONSTANT ||
 		   textureStage.thirdArgumentAlpha == TextureStage::SOURCE_CONSTANT)
 		{
-			constant.x = *Pointer<Short4>(r.data + OFFSET(DrawData, textureStage[stage].constantColor4[0]));
-			constant.y = *Pointer<Short4>(r.data + OFFSET(DrawData, textureStage[stage].constantColor4[1]));
-			constant.z = *Pointer<Short4>(r.data + OFFSET(DrawData, textureStage[stage].constantColor4[2]));
-			constant.w = *Pointer<Short4>(r.data + OFFSET(DrawData, textureStage[stage].constantColor4[3]));
+			constant.x = *Pointer<Short4>(data + OFFSET(DrawData, textureStage[stage].constantColor4[0]));
+			constant.y = *Pointer<Short4>(data + OFFSET(DrawData, textureStage[stage].constantColor4[1]));
+			constant.z = *Pointer<Short4>(data + OFFSET(DrawData, textureStage[stage].constantColor4[2]));
+			constant.w = *Pointer<Short4>(data + OFFSET(DrawData, textureStage[stage].constantColor4[3]));
 		}
 
 		if(textureStage.firstArgument == TextureStage::SOURCE_TFACTOR ||
@@ -412,10 +404,10 @@ namespace sw
 		   textureStage.thirdArgument == TextureStage::SOURCE_TFACTOR ||
 		   textureStage.thirdArgumentAlpha == TextureStage::SOURCE_TFACTOR)
 		{
-			tfactor.x = *Pointer<Short4>(r.data + OFFSET(DrawData, factor.textureFactor4[0]));
-			tfactor.y = *Pointer<Short4>(r.data + OFFSET(DrawData, factor.textureFactor4[1]));
-			tfactor.z = *Pointer<Short4>(r.data + OFFSET(DrawData, factor.textureFactor4[2]));
-			tfactor.w = *Pointer<Short4>(r.data + OFFSET(DrawData, factor.textureFactor4[3]));
+			tfactor.x = *Pointer<Short4>(data + OFFSET(DrawData, factor.textureFactor4[0]));
+			tfactor.y = *Pointer<Short4>(data + OFFSET(DrawData, factor.textureFactor4[1]));
+			tfactor.z = *Pointer<Short4>(data + OFFSET(DrawData, factor.textureFactor4[2]));
+			tfactor.w = *Pointer<Short4>(data + OFFSET(DrawData, factor.textureFactor4[3]));
 		}
 
 		// Premodulate
@@ -423,22 +415,22 @@ namespace sw
 		{
 			if(state.textureStage[stage - 1].stageOperation == TextureStage::STAGE_PREMODULATE)
 			{
-				r.current.x = MulHigh(r.current.x, texture.x) << 4;
-				r.current.y = MulHigh(r.current.y, texture.y) << 4;
-				r.current.z = MulHigh(r.current.z, texture.z) << 4;
+				current.x = MulHigh(current.x, texture.x) << 4;
+				current.y = MulHigh(current.y, texture.y) << 4;
+				current.z = MulHigh(current.z, texture.z) << 4;
 			}
 
 			if(state.textureStage[stage - 1].stageOperationAlpha == TextureStage::STAGE_PREMODULATE)
 			{
-				r.current.w = MulHigh(r.current.w, texture.w) << 4;
+				current.w = MulHigh(current.w, texture.w) << 4;
 			}
 		}
 
 		if(luminance)
 		{
-			texture.x = MulHigh(texture.x, r.L) << 4;
-			texture.y = MulHigh(texture.y, r.L) << 4;
-			texture.z = MulHigh(texture.z, r.L) << 4;
+			texture.x = MulHigh(texture.x, L) << 4;
+			texture.y = MulHigh(texture.y, L) << 4;
+			texture.z = MulHigh(texture.z, L) << 4;
 
 			luminance = false;
 		}
@@ -447,9 +439,9 @@ namespace sw
 		{
 		case TextureStage::SOURCE_TEXTURE:	arg1 = &texture;    break;
 		case TextureStage::SOURCE_CONSTANT:	arg1 = &constant;   break;
-		case TextureStage::SOURCE_CURRENT:	arg1 = &r.current;  break;
-		case TextureStage::SOURCE_DIFFUSE:	arg1 = &r.diffuse;  break;
-		case TextureStage::SOURCE_SPECULAR:	arg1 = &r.specular; break;
+		case TextureStage::SOURCE_CURRENT:	arg1 = &current;  break;
+		case TextureStage::SOURCE_DIFFUSE:	arg1 = &diffuse;  break;
+		case TextureStage::SOURCE_SPECULAR:	arg1 = &specular; break;
 		case TextureStage::SOURCE_TEMP:		arg1 = &temp;       break;
 		case TextureStage::SOURCE_TFACTOR:	arg1 = &tfactor;    break;
 		default:
@@ -460,9 +452,9 @@ namespace sw
 		{
 		case TextureStage::SOURCE_TEXTURE:	arg2 = &texture;    break;
 		case TextureStage::SOURCE_CONSTANT:	arg2 = &constant;   break;
-		case TextureStage::SOURCE_CURRENT:	arg2 = &r.current;  break;
-		case TextureStage::SOURCE_DIFFUSE:	arg2 = &r.diffuse;  break;
-		case TextureStage::SOURCE_SPECULAR:	arg2 = &r.specular; break;
+		case TextureStage::SOURCE_CURRENT:	arg2 = &current;  break;
+		case TextureStage::SOURCE_DIFFUSE:	arg2 = &diffuse;  break;
+		case TextureStage::SOURCE_SPECULAR:	arg2 = &specular; break;
 		case TextureStage::SOURCE_TEMP:		arg2 = &temp;       break;
 		case TextureStage::SOURCE_TFACTOR:	arg2 = &tfactor;    break;
 		default:
@@ -473,9 +465,9 @@ namespace sw
 		{
 		case TextureStage::SOURCE_TEXTURE:	arg3 = &texture;    break;
 		case TextureStage::SOURCE_CONSTANT:	arg3 = &constant;   break;
-		case TextureStage::SOURCE_CURRENT:	arg3 = &r.current;  break;
-		case TextureStage::SOURCE_DIFFUSE:	arg3 = &r.diffuse;  break;
-		case TextureStage::SOURCE_SPECULAR:	arg3 = &r.specular; break;
+		case TextureStage::SOURCE_CURRENT:	arg3 = &current;  break;
+		case TextureStage::SOURCE_DIFFUSE:	arg3 = &diffuse;  break;
+		case TextureStage::SOURCE_SPECULAR:	arg3 = &specular; break;
 		case TextureStage::SOURCE_TEMP:		arg3 = &temp;       break;
 		case TextureStage::SOURCE_TFACTOR:	arg3 = &tfactor;    break;
 		default:
@@ -692,19 +684,19 @@ namespace sw
 			}
 			break;
 		case TextureStage::STAGE_BLENDCURRENTALPHA: // Alpha * (Arg1 - Arg2) + Arg2
-			res.x = SubSat(arg1->x, arg2->x); res.x = MulHigh(res.x, r.current.w) << 4; res.x = AddSat(res.x, arg2->x);
-			res.y = SubSat(arg1->y, arg2->y); res.y = MulHigh(res.y, r.current.w) << 4; res.y = AddSat(res.y, arg2->y);
-			res.z = SubSat(arg1->z, arg2->z); res.z = MulHigh(res.z, r.current.w) << 4; res.z = AddSat(res.z, arg2->z);
+			res.x = SubSat(arg1->x, arg2->x); res.x = MulHigh(res.x, current.w) << 4; res.x = AddSat(res.x, arg2->x);
+			res.y = SubSat(arg1->y, arg2->y); res.y = MulHigh(res.y, current.w) << 4; res.y = AddSat(res.y, arg2->y);
+			res.z = SubSat(arg1->z, arg2->z); res.z = MulHigh(res.z, current.w) << 4; res.z = AddSat(res.z, arg2->z);
 			break;
 		case TextureStage::STAGE_BLENDDIFFUSEALPHA: // Alpha * (Arg1 - Arg2) + Arg2
-			res.x = SubSat(arg1->x, arg2->x); res.x = MulHigh(res.x, r.diffuse.w) << 4; res.x = AddSat(res.x, arg2->x);
-			res.y = SubSat(arg1->y, arg2->y); res.y = MulHigh(res.y, r.diffuse.w) << 4; res.y = AddSat(res.y, arg2->y);
-			res.z = SubSat(arg1->z, arg2->z); res.z = MulHigh(res.z, r.diffuse.w) << 4; res.z = AddSat(res.z, arg2->z);
+			res.x = SubSat(arg1->x, arg2->x); res.x = MulHigh(res.x, diffuse.w) << 4; res.x = AddSat(res.x, arg2->x);
+			res.y = SubSat(arg1->y, arg2->y); res.y = MulHigh(res.y, diffuse.w) << 4; res.y = AddSat(res.y, arg2->y);
+			res.z = SubSat(arg1->z, arg2->z); res.z = MulHigh(res.z, diffuse.w) << 4; res.z = AddSat(res.z, arg2->z);
 			break;
 		case TextureStage::STAGE_BLENDFACTORALPHA: // Alpha * (Arg1 - Arg2) + Arg2
-			res.x = SubSat(arg1->x, arg2->x); res.x = MulHigh(res.x, *Pointer<Short4>(r.data + OFFSET(DrawData, factor.textureFactor4[3]))) << 4; res.x = AddSat(res.x, arg2->x);
-			res.y = SubSat(arg1->y, arg2->y); res.y = MulHigh(res.y, *Pointer<Short4>(r.data + OFFSET(DrawData, factor.textureFactor4[3]))) << 4; res.y = AddSat(res.y, arg2->y);
-			res.z = SubSat(arg1->z, arg2->z); res.z = MulHigh(res.z, *Pointer<Short4>(r.data + OFFSET(DrawData, factor.textureFactor4[3]))) << 4; res.z = AddSat(res.z, arg2->z);
+			res.x = SubSat(arg1->x, arg2->x); res.x = MulHigh(res.x, *Pointer<Short4>(data + OFFSET(DrawData, factor.textureFactor4[3]))) << 4; res.x = AddSat(res.x, arg2->x);
+			res.y = SubSat(arg1->y, arg2->y); res.y = MulHigh(res.y, *Pointer<Short4>(data + OFFSET(DrawData, factor.textureFactor4[3]))) << 4; res.y = AddSat(res.y, arg2->y);
+			res.z = SubSat(arg1->z, arg2->z); res.z = MulHigh(res.z, *Pointer<Short4>(data + OFFSET(DrawData, factor.textureFactor4[3]))) << 4; res.z = AddSat(res.z, arg2->z);
 			break;
 		case TextureStage::STAGE_BLENDTEXTUREALPHA: // Alpha * (Arg1 - Arg2) + Arg2
 			res.x = SubSat(arg1->x, arg2->x); res.x = MulHigh(res.x, texture.w) << 4; res.x = AddSat(res.x, arg2->x);
@@ -751,62 +743,62 @@ namespace sw
 			break;
 		case TextureStage::STAGE_BUMPENVMAP:
 			{
-				r.du = Float4(texture.x) * Float4(1.0f / 0x0FE0);
-				r.dv = Float4(texture.y) * Float4(1.0f / 0x0FE0);
+				du = Float4(texture.x) * Float4(1.0f / 0x0FE0);
+				dv = Float4(texture.y) * Float4(1.0f / 0x0FE0);
 
 				Float4 du2;
 				Float4 dv2;
 
-				du2 = r.du;
-				dv2 = r.dv;
-				r.du *= *Pointer<Float4>(r.data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4F[0][0]));
-				dv2 *= *Pointer<Float4>(r.data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4F[1][0]));
-				r.du += dv2;
-				r.dv *= *Pointer<Float4>(r.data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4F[1][1]));
-				du2 *= *Pointer<Float4>(r.data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4F[0][1]));
-				r.dv += du2;
+				du2 = du;
+				dv2 = dv;
+				du *= *Pointer<Float4>(data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4F[0][0]));
+				dv2 *= *Pointer<Float4>(data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4F[1][0]));
+				du += dv2;
+				dv *= *Pointer<Float4>(data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4F[1][1]));
+				du2 *= *Pointer<Float4>(data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4F[0][1]));
+				dv += du2;
 
 				perturbate = true;
 
-				res.x = r.current.x;
-				res.y = r.current.y;
-				res.z = r.current.z;
-				res.w = r.current.w;
+				res.x = current.x;
+				res.y = current.y;
+				res.z = current.z;
+				res.w = current.w;
 			}
 			break;
 		case TextureStage::STAGE_BUMPENVMAPLUMINANCE:
 			{
-				r.du = Float4(texture.x) * Float4(1.0f / 0x0FE0);
-				r.dv = Float4(texture.y) * Float4(1.0f / 0x0FE0);
+				du = Float4(texture.x) * Float4(1.0f / 0x0FE0);
+				dv = Float4(texture.y) * Float4(1.0f / 0x0FE0);
 
 				Float4 du2;
 				Float4 dv2;
 
-				du2 = r.du;
-				dv2 = r.dv;
+				du2 = du;
+				dv2 = dv;
 
-				r.du *= *Pointer<Float4>(r.data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4F[0][0]));
-				dv2 *= *Pointer<Float4>(r.data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4F[1][0]));
-				r.du += dv2;
-				r.dv *= *Pointer<Float4>(r.data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4F[1][1]));
-				du2 *= *Pointer<Float4>(r.data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4F[0][1]));
-				r.dv += du2;
+				du *= *Pointer<Float4>(data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4F[0][0]));
+				dv2 *= *Pointer<Float4>(data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4F[1][0]));
+				du += dv2;
+				dv *= *Pointer<Float4>(data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4F[1][1]));
+				du2 *= *Pointer<Float4>(data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4F[0][1]));
+				dv += du2;
 
 				perturbate = true;
 
-				r.L = texture.z;
-				r.L = MulHigh(r.L, *Pointer<Short4>(r.data + OFFSET(DrawData, textureStage[stage].luminanceScale4)));
-				r.L = r.L << 4;
-				r.L = AddSat(r.L, *Pointer<Short4>(r.data + OFFSET(DrawData, textureStage[stage].luminanceOffset4)));
-				r.L = Max(r.L, Short4(0x0000, 0x0000, 0x0000, 0x0000));
-				r.L = Min(r.L, Short4(0x1000));
+				L = texture.z;
+				L = MulHigh(L, *Pointer<Short4>(data + OFFSET(DrawData, textureStage[stage].luminanceScale4)));
+				L = L << 4;
+				L = AddSat(L, *Pointer<Short4>(data + OFFSET(DrawData, textureStage[stage].luminanceOffset4)));
+				L = Max(L, Short4(0x0000, 0x0000, 0x0000, 0x0000));
+				L = Min(L, Short4(0x1000));
 
 				luminance = true;
 
-				res.x = r.current.x;
-				res.y = r.current.y;
-				res.z = r.current.z;
-				res.w = r.current.w;
+				res.x = current.x;
+				res.y = current.y;
+				res.z = current.z;
+				res.w = current.w;
 			}
 			break;
 		default:
@@ -819,9 +811,9 @@ namespace sw
 			{
 			case TextureStage::SOURCE_TEXTURE:	arg1 = &texture;		break;
 			case TextureStage::SOURCE_CONSTANT:	arg1 = &constant;		break;
-			case TextureStage::SOURCE_CURRENT:	arg1 = &r.current;		break;
-			case TextureStage::SOURCE_DIFFUSE:	arg1 = &r.diffuse;		break;
-			case TextureStage::SOURCE_SPECULAR:	arg1 = &r.specular;		break;
+			case TextureStage::SOURCE_CURRENT:	arg1 = &current;		break;
+			case TextureStage::SOURCE_DIFFUSE:	arg1 = &diffuse;		break;
+			case TextureStage::SOURCE_SPECULAR:	arg1 = &specular;		break;
 			case TextureStage::SOURCE_TEMP:		arg1 = &temp;			break;
 			case TextureStage::SOURCE_TFACTOR:	arg1 = &tfactor;		break;
 			default:
@@ -832,9 +824,9 @@ namespace sw
 			{
 			case TextureStage::SOURCE_TEXTURE:	arg2 = &texture;		break;
 			case TextureStage::SOURCE_CONSTANT:	arg2 = &constant;		break;
-			case TextureStage::SOURCE_CURRENT:	arg2 = &r.current;		break;
-			case TextureStage::SOURCE_DIFFUSE:	arg2 = &r.diffuse;		break;
-			case TextureStage::SOURCE_SPECULAR:	arg2 = &r.specular;		break;
+			case TextureStage::SOURCE_CURRENT:	arg2 = &current;		break;
+			case TextureStage::SOURCE_DIFFUSE:	arg2 = &diffuse;		break;
+			case TextureStage::SOURCE_SPECULAR:	arg2 = &specular;		break;
 			case TextureStage::SOURCE_TEMP:		arg2 = &temp;			break;
 			case TextureStage::SOURCE_TFACTOR:	arg2 = &tfactor;		break;
 			default:
@@ -845,9 +837,9 @@ namespace sw
 			{
 			case TextureStage::SOURCE_TEXTURE:	arg3 = &texture;		break;
 			case TextureStage::SOURCE_CONSTANT:	arg3 = &constant;		break;
-			case TextureStage::SOURCE_CURRENT:	arg3 = &r.current;		break;
-			case TextureStage::SOURCE_DIFFUSE:	arg3 = &r.diffuse;		break;
-			case TextureStage::SOURCE_SPECULAR:	arg3 = &r.specular;		break;
+			case TextureStage::SOURCE_CURRENT:	arg3 = &current;		break;
+			case TextureStage::SOURCE_DIFFUSE:	arg3 = &diffuse;		break;
+			case TextureStage::SOURCE_SPECULAR:	arg3 = &specular;		break;
 			case TextureStage::SOURCE_TEMP:		arg3 = &temp;			break;
 			case TextureStage::SOURCE_TFACTOR:	arg3 = &tfactor;		break;
 			default:
@@ -970,13 +962,13 @@ namespace sw
 			case TextureStage::STAGE_DOT3:
 				break;   // Already computed in color channel
 			case TextureStage::STAGE_BLENDCURRENTALPHA: // Alpha * (Arg1 - Arg2) + Arg2
-				res.w = SubSat(arg1->w, arg2->w); res.w = MulHigh(res.w, r.current.w) << 4; res.w = AddSat(res.w, arg2->w);
+				res.w = SubSat(arg1->w, arg2->w); res.w = MulHigh(res.w, current.w) << 4; res.w = AddSat(res.w, arg2->w);
 				break;
 			case TextureStage::STAGE_BLENDDIFFUSEALPHA: // Arg1 * (Alpha) + Arg2 * (1 - Alpha)
-				res.w = SubSat(arg1->w, arg2->w); res.w = MulHigh(res.w, r.diffuse.w) << 4; res.w = AddSat(res.w, arg2->w);
+				res.w = SubSat(arg1->w, arg2->w); res.w = MulHigh(res.w, diffuse.w) << 4; res.w = AddSat(res.w, arg2->w);
 				break;
 			case TextureStage::STAGE_BLENDFACTORALPHA:
-				res.w = SubSat(arg1->w, arg2->w); res.w = MulHigh(res.w, *Pointer<Short4>(r.data + OFFSET(DrawData, factor.textureFactor4[3]))) << 4; res.w = AddSat(res.w, arg2->w);
+				res.w = SubSat(arg1->w, arg2->w); res.w = MulHigh(res.w, *Pointer<Short4>(data + OFFSET(DrawData, factor.textureFactor4[3]))) << 4; res.w = AddSat(res.w, arg2->w);
 				break;
 			case TextureStage::STAGE_BLENDTEXTUREALPHA: // Arg1 * (Alpha) + Arg2 * (1 - Alpha)
 				res.w = SubSat(arg1->w, arg2->w); res.w = MulHigh(res.w, texture.w) << 4; res.w = AddSat(res.w, arg2->w);
@@ -1158,10 +1150,10 @@ namespace sw
 		switch(textureStage.destinationArgument)
 		{
 		case TextureStage::DESTINATION_CURRENT:
-			r.current.x = res.x;
-			r.current.y = res.y;
-			r.current.z = res.z;
-			r.current.w = res.w;
+			current.x = res.x;
+			current.y = res.y;
+			current.z = res.z;
+			current.w = res.w;
 			break;
 		case TextureStage::DESTINATION_TEMP:
 			temp.x = res.x;
@@ -1174,7 +1166,7 @@ namespace sw
 		}
 	}
 
-	void PixelPipeline::fogBlend(Registers &r, Vector4s &current, Float4 &f)
+	void PixelPipeline::fogBlend(Vector4s &current, Float4 &f)
 	{
 		if(!state.fogActive)
 		{
@@ -1183,7 +1175,7 @@ namespace sw
 
 		if(state.pixelFogMode != FOG_NONE)
 		{
-			pixelFog(r, f);
+			pixelFog(f);
 		}
 
 		UShort4 fog = convertFixed16(f, true);
@@ -1194,9 +1186,9 @@ namespace sw
 
 		UShort4 invFog = UShort4(0xFFFFu) - fog;
 
-		current.x += As<Short4>(MulHigh(invFog, *Pointer<UShort4>(r.data + OFFSET(DrawData, fog.color4[0]))));
-		current.y += As<Short4>(MulHigh(invFog, *Pointer<UShort4>(r.data + OFFSET(DrawData, fog.color4[1]))));
-		current.z += As<Short4>(MulHigh(invFog, *Pointer<UShort4>(r.data + OFFSET(DrawData, fog.color4[2]))));
+		current.x += As<Short4>(MulHigh(invFog, *Pointer<UShort4>(data + OFFSET(DrawData, fog.color4[0]))));
+		current.y += As<Short4>(MulHigh(invFog, *Pointer<UShort4>(data + OFFSET(DrawData, fog.color4[1]))));
+		current.z += As<Short4>(MulHigh(invFog, *Pointer<UShort4>(data + OFFSET(DrawData, fog.color4[2]))));
 	}
 
 	void PixelPipeline::specularPixel(Vector4s &current, Vector4s &specular)
@@ -1211,39 +1203,39 @@ namespace sw
 		current.z = AddSat(current.z, specular.z);
 	}
 
-	void PixelPipeline::sampleTexture(Registers &r, Vector4s &c, int coordinates, int stage, bool project)
+	void PixelPipeline::sampleTexture(Vector4s &c, int coordinates, int stage, bool project)
 	{
-		Float4 u = r.v[2 + coordinates].x;
-		Float4 v = r.v[2 + coordinates].y;
-		Float4 w = r.v[2 + coordinates].z;
-		Float4 q = r.v[2 + coordinates].w;
+		Float4 x = v[2 + coordinates].x;
+		Float4 y = v[2 + coordinates].y;
+		Float4 z = v[2 + coordinates].z;
+		Float4 w = v[2 + coordinates].w;
 
 		if(perturbate)
 		{
-			u += r.du;
-			v += r.dv;
+			x += du;
+			y += dv;
 
 			perturbate = false;
 		}
 
-		sampleTexture(r, c, stage, u, v, w, q, project);
+		sampleTexture(c, stage, x, y, z, w, project);
 	}
 
-	void PixelPipeline::sampleTexture(Registers &r, Vector4s &c, int stage, Float4 &u, Float4 &v, Float4 &w, Float4 &q, bool project, bool bias)
+	void PixelPipeline::sampleTexture(Vector4s &c, int stage, Float4 &u, Float4 &v, Float4 &w, Float4 &q, bool project, bool bias)
 	{
 		Vector4f dsx;
 		Vector4f dsy;
 
-		sampleTexture(r, c, stage, u, v, w, q, dsx, dsy, project, bias, false);
+		sampleTexture(c, stage, u, v, w, q, dsx, dsy, project, bias, false);
 	}
 
-	void PixelPipeline::sampleTexture(Registers &r, Vector4s &c, int stage, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, bool project, bool bias, bool gradients, bool lodProvided)
+	void PixelPipeline::sampleTexture(Vector4s &c, int stage, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, bool project, bool bias, bool gradients, bool lodProvided)
 	{
 #if PERF_PROFILE
 		Long texTime = Ticks();
 #endif
 
-		Pointer<Byte> texture = r.data + OFFSET(DrawData, mipmap) + stage * sizeof(Texture);
+		Pointer<Byte> texture = data + OFFSET(DrawData, mipmap) + stage * sizeof(Texture);
 
 		if(!project)
 		{
@@ -1261,7 +1253,7 @@ namespace sw
 		}
 
 #if PERF_PROFILE
-		r.cycles[PERF_TEX] += Ticks() - texTime;
+		cycles[PERF_TEX] += Ticks() - texTime;
 #endif
 	}
 
@@ -1291,41 +1283,41 @@ namespace sw
 		cf.w = convertSigned12(cs.w);
 	}
 
-	void PixelPipeline::writeDestination(Registers &r, Vector4s &d, const Dst &dst)
+	void PixelPipeline::writeDestination(Vector4s &d, const Dst &dst)
 	{
 		switch(dst.type)
 		{
 		case Shader::PARAMETER_TEMP:
-			if(dst.mask & 0x1) r.rs[dst.index].x = d.x;
-			if(dst.mask & 0x2) r.rs[dst.index].y = d.y;
-			if(dst.mask & 0x4) r.rs[dst.index].z = d.z;
-			if(dst.mask & 0x8) r.rs[dst.index].w = d.w;
+			if(dst.mask & 0x1) rs[dst.index].x = d.x;
+			if(dst.mask & 0x2) rs[dst.index].y = d.y;
+			if(dst.mask & 0x4) rs[dst.index].z = d.z;
+			if(dst.mask & 0x8) rs[dst.index].w = d.w;
 			break;
 		case Shader::PARAMETER_INPUT:
-			if(dst.mask & 0x1) r.vs[dst.index].x = d.x;
-			if(dst.mask & 0x2) r.vs[dst.index].y = d.y;
-			if(dst.mask & 0x4) r.vs[dst.index].z = d.z;
-			if(dst.mask & 0x8) r.vs[dst.index].w = d.w;
+			if(dst.mask & 0x1) vs[dst.index].x = d.x;
+			if(dst.mask & 0x2) vs[dst.index].y = d.y;
+			if(dst.mask & 0x4) vs[dst.index].z = d.z;
+			if(dst.mask & 0x8) vs[dst.index].w = d.w;
 			break;
 		case Shader::PARAMETER_CONST: ASSERT(false); break;
 		case Shader::PARAMETER_TEXTURE:
-			if(dst.mask & 0x1) r.ts[dst.index].x = d.x;
-			if(dst.mask & 0x2) r.ts[dst.index].y = d.y;
-			if(dst.mask & 0x4) r.ts[dst.index].z = d.z;
-			if(dst.mask & 0x8) r.ts[dst.index].w = d.w;
+			if(dst.mask & 0x1) ts[dst.index].x = d.x;
+			if(dst.mask & 0x2) ts[dst.index].y = d.y;
+			if(dst.mask & 0x4) ts[dst.index].z = d.z;
+			if(dst.mask & 0x8) ts[dst.index].w = d.w;
 			break;
 		case Shader::PARAMETER_COLOROUT:
-			if(dst.mask & 0x1) r.vs[dst.index].x = d.x;
-			if(dst.mask & 0x2) r.vs[dst.index].y = d.y;
-			if(dst.mask & 0x4) r.vs[dst.index].z = d.z;
-			if(dst.mask & 0x8) r.vs[dst.index].w = d.w;
+			if(dst.mask & 0x1) vs[dst.index].x = d.x;
+			if(dst.mask & 0x2) vs[dst.index].y = d.y;
+			if(dst.mask & 0x4) vs[dst.index].z = d.z;
+			if(dst.mask & 0x8) vs[dst.index].w = d.w;
 			break;
 		default:
 			ASSERT(false);
 		}
 	}
 
-	Vector4s PixelPipeline::fetchRegisterS(Registers &r, const Src &src)
+	Vector4s PixelPipeline::fetchRegisterS(const Src &src)
 	{
 		Vector4s *reg;
 		int i = src.index;
@@ -1334,21 +1326,21 @@ namespace sw
 
 		if(src.type == Shader::PARAMETER_CONST)
 		{
-			c.x = *Pointer<Short4>(r.data + OFFSET(DrawData, ps.cW[i][0]));
-			c.y = *Pointer<Short4>(r.data + OFFSET(DrawData, ps.cW[i][1]));
-			c.z = *Pointer<Short4>(r.data + OFFSET(DrawData, ps.cW[i][2]));
-			c.w = *Pointer<Short4>(r.data + OFFSET(DrawData, ps.cW[i][3]));
+			c.x = *Pointer<Short4>(data + OFFSET(DrawData, ps.cW[i][0]));
+			c.y = *Pointer<Short4>(data + OFFSET(DrawData, ps.cW[i][1]));
+			c.z = *Pointer<Short4>(data + OFFSET(DrawData, ps.cW[i][2]));
+			c.w = *Pointer<Short4>(data + OFFSET(DrawData, ps.cW[i][3]));
 		}
 
 		switch(src.type)
 		{
-		case Shader::PARAMETER_TEMP:          reg = &r.rs[i]; break;
-		case Shader::PARAMETER_INPUT:         reg = &r.vs[i]; break;
+		case Shader::PARAMETER_TEMP:          reg = &rs[i]; break;
+		case Shader::PARAMETER_INPUT:         reg = &vs[i]; break;
 		case Shader::PARAMETER_CONST:         reg = &c;       break;
-		case Shader::PARAMETER_TEXTURE:       reg = &r.ts[i]; break;
-		case Shader::PARAMETER_VOID:          return r.rs[0]; // Dummy
-		case Shader::PARAMETER_FLOAT4LITERAL: return r.rs[0]; // Dummy
-		default: ASSERT(false); return r.rs[0];
+		case Shader::PARAMETER_TEXTURE:       reg = &ts[i]; break;
+		case Shader::PARAMETER_VOID:          return rs[0]; // Dummy
+		case Shader::PARAMETER_FLOAT4LITERAL: return rs[0]; // Dummy
+		default: ASSERT(false); return rs[0];
 		}
 
 		const Short4 &x = (*reg)[(src.swizzle >> 0) & 0x3];
@@ -1637,11 +1629,11 @@ namespace sw
 		}
 	}
 
-	void PixelPipeline::TEXDP3(Registers &r, Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, Vector4s &src)
+	void PixelPipeline::TEXDP3(Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, Vector4s &src)
 	{
-		TEXM3X3PAD(r, u, v, s, src, 0, false);
+		TEXM3X3PAD(u, v, s, src, 0, false);
 
-		Short4 t0 = RoundShort4(r.u_ * Float4(0x1000));
+		Short4 t0 = RoundShort4(u_ * Float4(0x1000));
 
 		dst.x = t0;
 		dst.y = t0;
@@ -1649,14 +1641,14 @@ namespace sw
 		dst.w = t0;
 	}
 
-	void PixelPipeline::TEXDP3TEX(Registers &r, Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, int stage, Vector4s &src0)
+	void PixelPipeline::TEXDP3TEX(Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, int stage, Vector4s &src0)
 	{
-		TEXM3X3PAD(r, u, v, s, src0, 0, false);
+		TEXM3X3PAD(u, v, s, src0, 0, false);
 
-		r.v_ = Float4(0.0f);
-		r.w_ = Float4(0.0f);
+		v_ = Float4(0.0f);
+		w_ = Float4(0.0f);
 
-		sampleTexture(r, dst, stage, r.u_, r.v_, r.w_, r.w_);
+		sampleTexture(dst, stage, u_, v_, w_, w_);
 	}
 
 	void PixelPipeline::TEXKILL(Int cMask[4], Float4 &u, Float4 &v, Float4 &s)
@@ -1682,21 +1674,21 @@ namespace sw
 		}
 	}
 
-	void PixelPipeline::TEX(Registers &r, Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, int sampler, bool project)
+	void PixelPipeline::TEX(Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, int sampler, bool project)
 	{
-		sampleTexture(r, dst, sampler, u, v, s, s, project);
+		sampleTexture(dst, sampler, u, v, s, s, project);
 	}
 
-	void PixelPipeline::TEXLD(Registers &r, Vector4s &dst, Vector4s &src, int sampler, bool project)
+	void PixelPipeline::TEXLD(Vector4s &dst, Vector4s &src, int sampler, bool project)
 	{
 		Float4 u = Float4(src.x) * Float4(1.0f / 0x0FFE);
 		Float4 v = Float4(src.y) * Float4(1.0f / 0x0FFE);
 		Float4 s = Float4(src.z) * Float4(1.0f / 0x0FFE);
 
-		sampleTexture(r, dst, sampler, u, v, s, s, project);
+		sampleTexture(dst, sampler, u, v, s, s, project);
 	}
 
-	void PixelPipeline::TEXBEM(Registers &r, Vector4s &dst, Vector4s &src, Float4 &u, Float4 &v, Float4 &s, int stage)
+	void PixelPipeline::TEXBEM(Vector4s &dst, Vector4s &src, Float4 &u, Float4 &v, Float4 &s, int stage)
 	{
 		Float4 du = Float4(src.x) * Float4(1.0f / 0x0FFE);
 		Float4 dv = Float4(src.y) * Float4(1.0f / 0x0FFE);
@@ -1704,20 +1696,20 @@ namespace sw
 		Float4 du2 = du;
 		Float4 dv2 = dv;
 
-		du *= *Pointer<Float4>(r.data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4F[0][0]));
-		dv2 *= *Pointer<Float4>(r.data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4F[1][0]));
+		du *= *Pointer<Float4>(data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4F[0][0]));
+		dv2 *= *Pointer<Float4>(data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4F[1][0]));
 		du += dv2;
-		dv *= *Pointer<Float4>(r.data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4F[1][1]));
-		du2 *= *Pointer<Float4>(r.data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4F[0][1]));
+		dv *= *Pointer<Float4>(data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4F[1][1]));
+		du2 *= *Pointer<Float4>(data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4F[0][1]));
 		dv += du2;
 
 		Float4 u_ = u + du;
 		Float4 v_ = v + dv;
 
-		sampleTexture(r, dst, stage, u_, v_, s, s);
+		sampleTexture(dst, stage, u_, v_, s, s);
 	}
 
-	void PixelPipeline::TEXBEML(Registers &r, Vector4s &dst, Vector4s &src, Float4 &u, Float4 &v, Float4 &s, int stage)
+	void PixelPipeline::TEXBEML(Vector4s &dst, Vector4s &src, Float4 &u, Float4 &v, Float4 &s, int stage)
 	{
 		Float4 du = Float4(src.x) * Float4(1.0f / 0x0FFE);
 		Float4 dv = Float4(src.y) * Float4(1.0f / 0x0FFE);
@@ -1725,24 +1717,24 @@ namespace sw
 		Float4 du2 = du;
 		Float4 dv2 = dv;
 
-		du *= *Pointer<Float4>(r.data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4F[0][0]));
-		dv2 *= *Pointer<Float4>(r.data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4F[1][0]));
+		du *= *Pointer<Float4>(data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4F[0][0]));
+		dv2 *= *Pointer<Float4>(data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4F[1][0]));
 		du += dv2;
-		dv *= *Pointer<Float4>(r.data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4F[1][1]));
-		du2 *= *Pointer<Float4>(r.data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4F[0][1]));
+		dv *= *Pointer<Float4>(data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4F[1][1]));
+		du2 *= *Pointer<Float4>(data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4F[0][1]));
 		dv += du2;
 
 		Float4 u_ = u + du;
 		Float4 v_ = v + dv;
 
-		sampleTexture(r, dst, stage, u_, v_, s, s);
+		sampleTexture(dst, stage, u_, v_, s, s);
 
 		Short4 L;
 
 		L = src.z;
-		L = MulHigh(L, *Pointer<Short4>(r.data + OFFSET(DrawData, textureStage[stage].luminanceScale4)));
+		L = MulHigh(L, *Pointer<Short4>(data + OFFSET(DrawData, textureStage[stage].luminanceScale4)));
 		L = L << 4;
-		L = AddSat(L, *Pointer<Short4>(r.data + OFFSET(DrawData, textureStage[stage].luminanceOffset4)));
+		L = AddSat(L, *Pointer<Short4>(data + OFFSET(DrawData, textureStage[stage].luminanceOffset4)));
 		L = Max(L, Short4(0x0000, 0x0000, 0x0000, 0x0000));
 		L = Min(L, Short4(0x1000));
 
@@ -1751,94 +1743,94 @@ namespace sw
 		dst.z = MulHigh(dst.z, L); dst.z = dst.z << 4;
 	}
 
-	void PixelPipeline::TEXREG2AR(Registers &r, Vector4s &dst, Vector4s &src0, int stage)
+	void PixelPipeline::TEXREG2AR(Vector4s &dst, Vector4s &src0, int stage)
 	{
 		Float4 u = Float4(src0.w) * Float4(1.0f / 0x0FFE);
 		Float4 v = Float4(src0.x) * Float4(1.0f / 0x0FFE);
 		Float4 s = Float4(src0.z) * Float4(1.0f / 0x0FFE);
 
-		sampleTexture(r, dst, stage, u, v, s, s);
+		sampleTexture(dst, stage, u, v, s, s);
 	}
 
-	void PixelPipeline::TEXREG2GB(Registers &r, Vector4s &dst, Vector4s &src0, int stage)
+	void PixelPipeline::TEXREG2GB(Vector4s &dst, Vector4s &src0, int stage)
 	{
 		Float4 u = Float4(src0.y) * Float4(1.0f / 0x0FFE);
 		Float4 v = Float4(src0.z) * Float4(1.0f / 0x0FFE);
 		Float4 s = v;
 
-		sampleTexture(r, dst, stage, u, v, s, s);
+		sampleTexture(dst, stage, u, v, s, s);
 	}
 
-	void PixelPipeline::TEXREG2RGB(Registers &r, Vector4s &dst, Vector4s &src0, int stage)
+	void PixelPipeline::TEXREG2RGB(Vector4s &dst, Vector4s &src0, int stage)
 	{
 		Float4 u = Float4(src0.x) * Float4(1.0f / 0x0FFE);
 		Float4 v = Float4(src0.y) * Float4(1.0f / 0x0FFE);
 		Float4 s = Float4(src0.z) * Float4(1.0f / 0x0FFE);
 
-		sampleTexture(r, dst, stage, u, v, s, s);
+		sampleTexture(dst, stage, u, v, s, s);
 	}
 
-	void PixelPipeline::TEXM3X2DEPTH(Registers &r, Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, Vector4s &src, bool signedScaling)
+	void PixelPipeline::TEXM3X2DEPTH(Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, Vector4s &src, bool signedScaling)
 	{
-		TEXM3X2PAD(r, u, v, s, src, 1, signedScaling);
+		TEXM3X2PAD(u, v, s, src, 1, signedScaling);
 
 		// z / w
-		r.u_ *= Rcp_pp(r.v_);   // FIXME: Set result to 1.0 when division by zero
+		u_ *= Rcp_pp(v_);   // FIXME: Set result to 1.0 when division by zero
 
-		r.oDepth = r.u_;
+		oDepth = u_;
 	}
 
-	void PixelPipeline::TEXM3X2PAD(Registers &r, Float4 &u, Float4 &v, Float4 &s, Vector4s &src0, int component, bool signedScaling)
+	void PixelPipeline::TEXM3X2PAD(Float4 &u, Float4 &v, Float4 &s, Vector4s &src0, int component, bool signedScaling)
 	{
-		TEXM3X3PAD(r, u, v, s, src0, component, signedScaling);
+		TEXM3X3PAD(u, v, s, src0, component, signedScaling);
 	}
 
-	void PixelPipeline::TEXM3X2TEX(Registers &r, Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, int stage, Vector4s &src0, bool signedScaling)
+	void PixelPipeline::TEXM3X2TEX(Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, int stage, Vector4s &src0, bool signedScaling)
 	{
-		TEXM3X2PAD(r, u, v, s, src0, 1, signedScaling);
+		TEXM3X2PAD(u, v, s, src0, 1, signedScaling);
 
-		r.w_ = Float4(0.0f);
+		w_ = Float4(0.0f);
 
-		sampleTexture(r, dst, stage, r.u_, r.v_, r.w_, r.w_);
+		sampleTexture(dst, stage, u_, v_, w_, w_);
 	}
 
-	void PixelPipeline::TEXM3X3(Registers &r, Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, Vector4s &src0, bool signedScaling)
+	void PixelPipeline::TEXM3X3(Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, Vector4s &src0, bool signedScaling)
 	{
-		TEXM3X3PAD(r, u, v, s, src0, 2, signedScaling);
+		TEXM3X3PAD(u, v, s, src0, 2, signedScaling);
 
-		dst.x = RoundShort4(r.u_ * Float4(0x1000));
-		dst.y = RoundShort4(r.v_ * Float4(0x1000));
-		dst.z = RoundShort4(r.w_ * Float4(0x1000));
+		dst.x = RoundShort4(u_ * Float4(0x1000));
+		dst.y = RoundShort4(v_ * Float4(0x1000));
+		dst.z = RoundShort4(w_ * Float4(0x1000));
 		dst.w = Short4(0x1000);
 	}
 
-	void PixelPipeline::TEXM3X3PAD(Registers &r, Float4 &u, Float4 &v, Float4 &s, Vector4s &src0, int component, bool signedScaling)
+	void PixelPipeline::TEXM3X3PAD(Float4 &u, Float4 &v, Float4 &s, Vector4s &src0, int component, bool signedScaling)
 	{
 		if(component == 0 || previousScaling != signedScaling)   // FIXME: Other source modifiers?
 		{
-			r.U = Float4(src0.x);
-			r.V = Float4(src0.y);
-			r.W = Float4(src0.z);
+			U = Float4(src0.x);
+			V = Float4(src0.y);
+			W = Float4(src0.z);
 
 			previousScaling = signedScaling;
 		}
 
-		Float4 x = r.U * u + r.V * v + r.W * s;
+		Float4 x = U * u + V * v + W * s;
 
 		x *= Float4(1.0f / 0x1000);
 
 		switch(component)
 		{
-		case 0:	r.u_ = x; break;
-		case 1:	r.v_ = x; break;
-		case 2: r.w_ = x; break;
+		case 0:	u_ = x; break;
+		case 1:	v_ = x; break;
+		case 2: w_ = x; break;
 		default: ASSERT(false);
 		}
 	}
 
-	void PixelPipeline::TEXM3X3SPEC(Registers &r, Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, int stage, Vector4s &src0, Vector4s &src1)
+	void PixelPipeline::TEXM3X3SPEC(Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, int stage, Vector4s &src0, Vector4s &src1)
 	{
-		TEXM3X3PAD(r, u, v, s, src0, 2, false);
+		TEXM3X3PAD(u, v, s, src0, 2, false);
 
 		Float4 E[3];   // Eye vector
 
@@ -1852,43 +1844,43 @@ namespace sw
 		Float4 w__;
 
 		// (u'', v'', w'') = 2 * (N . E) * N - E * (N . N)
-		u__ = r.u_ * E[0];
-		v__ = r.v_ * E[1];
-		w__ = r.w_ * E[2];
+		u__ = u_ * E[0];
+		v__ = v_ * E[1];
+		w__ = w_ * E[2];
 		u__ += v__ + w__;
 		u__ += u__;
 		v__ = u__;
 		w__ = u__;
-		u__ *= r.u_;
-		v__ *= r.v_;
-		w__ *= r.w_;
-		r.u_ *= r.u_;
-		r.v_ *= r.v_;
-		r.w_ *= r.w_;
-		r.u_ += r.v_ + r.w_;
-		u__ -= E[0] * r.u_;
-		v__ -= E[1] * r.u_;
-		w__ -= E[2] * r.u_;
+		u__ *= u_;
+		v__ *= v_;
+		w__ *= w_;
+		u_ *= u_;
+		v_ *= v_;
+		w_ *= w_;
+		u_ += v_ + w_;
+		u__ -= E[0] * u_;
+		v__ -= E[1] * u_;
+		w__ -= E[2] * u_;
 
-		sampleTexture(r, dst, stage, u__, v__, w__, w__);
+		sampleTexture(dst, stage, u__, v__, w__, w__);
 	}
 
-	void PixelPipeline::TEXM3X3TEX(Registers &r, Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, int stage, Vector4s &src0, bool signedScaling)
+	void PixelPipeline::TEXM3X3TEX(Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, int stage, Vector4s &src0, bool signedScaling)
 	{
-		TEXM3X3PAD(r, u, v, s, src0, 2, signedScaling);
+		TEXM3X3PAD(u, v, s, src0, 2, signedScaling);
 
-		sampleTexture(r, dst, stage, r.u_, r.v_, r.w_, r.w_);
+		sampleTexture(dst, stage, u_, v_, w_, w_);
 	}
 
-	void PixelPipeline::TEXM3X3VSPEC(Registers &r, Vector4s &dst, Float4 &u, Float4 &v, Float4 &s, int stage, Vector4s &src0)
+	void PixelPipeline::TEXM3X3VSPEC(Vector4s &dst, Float4 &x, Float4 &y, Float4 &z, int stage, Vector4s &src0)
 	{
-		TEXM3X3PAD(r, u, v, s, src0, 2, false);
+		TEXM3X3PAD(x, y, z, src0, 2, false);
 
 		Float4 E[3];   // Eye vector
 
-		E[0] = r.v[2 + stage - 2].w;
-		E[1] = r.v[2 + stage - 1].w;
-		E[2] = r.v[2 + stage - 0].w;
+		E[0] = v[2 + stage - 2].w;
+		E[1] = v[2 + stage - 1].w;
+		E[2] = v[2 + stage - 0].w;
 
 		// Reflection
 		Float4 u__;
@@ -1896,36 +1888,36 @@ namespace sw
 		Float4 w__;
 
 		// (u'', v'', w'') = 2 * (N . E) * N - E * (N . N)
-		u__ = r.u_ * E[0];
-		v__ = r.v_ * E[1];
-		w__ = r.w_ * E[2];
+		u__ = u_ * E[0];
+		v__ = v_ * E[1];
+		w__ = w_ * E[2];
 		u__ += v__ + w__;
 		u__ += u__;
 		v__ = u__;
 		w__ = u__;
-		u__ *= r.u_;
-		v__ *= r.v_;
-		w__ *= r.w_;
-		r.u_ *= r.u_;
-		r.v_ *= r.v_;
-		r.w_ *= r.w_;
-		r.u_ += r.v_ + r.w_;
-		u__ -= E[0] * r.u_;
-		v__ -= E[1] * r.u_;
-		w__ -= E[2] * r.u_;
+		u__ *= u_;
+		v__ *= v_;
+		w__ *= w_;
+		u_ *= u_;
+		v_ *= v_;
+		w_ *= w_;
+		u_ += v_ + w_;
+		u__ -= E[0] * u_;
+		v__ -= E[1] * u_;
+		w__ -= E[2] * u_;
 
-		sampleTexture(r, dst, stage, u__, v__, w__, w__);
+		sampleTexture(dst, stage, u__, v__, w__, w__);
 	}
 
-	void PixelPipeline::TEXDEPTH(Registers &r)
+	void PixelPipeline::TEXDEPTH()
 	{
-		r.u_ = Float4(r.rs[5].x);
-		r.v_ = Float4(r.rs[5].y);
+		u_ = Float4(rs[5].x);
+		v_ = Float4(rs[5].y);
 
 		// z / w
-		r.u_ *= Rcp_pp(r.v_);   // FIXME: Set result to 1.0 when division by zero
+		u_ *= Rcp_pp(v_);   // FIXME: Set result to 1.0 when division by zero
 
-		r.oDepth = r.u_;
+		oDepth = u_;
 	}
 
 	void PixelPipeline::CND(Vector4s &dst, Vector4s &src0, Vector4s &src1, Vector4s &src2)
@@ -1944,21 +1936,21 @@ namespace sw
 		{Short4 t0 = CmpGT(Short4(0x0000, 0x0000, 0x0000, 0x0000), src0.w); Short4 t1; t1 = src2.w; t1 &= t0; t0 = ~t0 & src1.w; t0 |= t1; dst.w = t0; };
 	}
 
-	void PixelPipeline::BEM(Registers &r, Vector4s &dst, Vector4s &src0, Vector4s &src1, int stage)
+	void PixelPipeline::BEM(Vector4s &dst, Vector4s &src0, Vector4s &src1, int stage)
 	{
 		Short4 t0;
 		Short4 t1;
 
 		// dst.x = src0.x + BUMPENVMAT00(stage) * src1.x + BUMPENVMAT10(stage) * src1.y
-		t0 = MulHigh(src1.x, *Pointer<Short4>(r.data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4W[0][0]))); t0 = t0 << 4;   // FIXME: Matrix components range? Overflow hazard.
-		t1 = MulHigh(src1.y, *Pointer<Short4>(r.data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4W[1][0]))); t1 = t1 << 4;   // FIXME: Matrix components range? Overflow hazard.
+		t0 = MulHigh(src1.x, *Pointer<Short4>(data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4W[0][0]))); t0 = t0 << 4;   // FIXME: Matrix components range? Overflow hazard.
+		t1 = MulHigh(src1.y, *Pointer<Short4>(data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4W[1][0]))); t1 = t1 << 4;   // FIXME: Matrix components range? Overflow hazard.
 		t0 = AddSat(t0, t1);
 		t0 = AddSat(t0, src0.x);
 		dst.x = t0;
 
 		// dst.y = src0.y + BUMPENVMAT01(stage) * src1.x + BUMPENVMAT11(stage) * src1.y
-		t0 = MulHigh(src1.x, *Pointer<Short4>(r.data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4W[0][1]))); t0 = t0 << 4;   // FIXME: Matrix components range? Overflow hazard.
-		t1 = MulHigh(src1.y, *Pointer<Short4>(r.data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4W[1][1]))); t1 = t1 << 4;   // FIXME: Matrix components range? Overflow hazard.
+		t0 = MulHigh(src1.x, *Pointer<Short4>(data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4W[0][1]))); t0 = t0 << 4;   // FIXME: Matrix components range? Overflow hazard.
+		t1 = MulHigh(src1.y, *Pointer<Short4>(data + OFFSET(DrawData, textureStage[stage].bumpmapMatrix4W[1][1]))); t1 = t1 << 4;   // FIXME: Matrix components range? Overflow hazard.
 		t0 = AddSat(t0, t1);
 		t0 = AddSat(t0, src0.y);
 		dst.y = t0;

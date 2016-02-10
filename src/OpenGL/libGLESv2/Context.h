@@ -44,7 +44,6 @@ struct TranslatedAttribute;
 struct TranslatedIndexData;
 
 class Device;
-class Buffer;
 class Shader;
 class Program;
 class Texture;
@@ -378,7 +377,7 @@ struct State
 	gl::BindingPointer<Buffer> pixelPackBuffer;
 	gl::BindingPointer<Buffer> pixelUnpackBuffer;
 	gl::BindingPointer<Buffer> genericUniformBuffer;
-	gl::BindingPointer<Buffer> uniformBuffers[MAX_UNIFORM_BUFFER_BINDINGS];
+	UniformBufferBinding uniformBuffers[MAX_UNIFORM_BUFFER_BINDINGS];
 
     GLuint readFramebuffer;
     GLuint drawFramebuffer;
@@ -427,7 +426,7 @@ public:
     bool isDepthTestEnabled() const;
     void setDepthFunc(GLenum depthFunc);
     void setDepthRange(float zNear, float zFar);
-    
+
     void setBlendEnabled(bool enabled);
     bool isBlendEnabled() const;
     void setBlendFactors(GLenum sourceRGB, GLenum destRGB, GLenum sourceAlpha, GLenum destAlpha);
@@ -518,7 +517,7 @@ public:
 	void setPackSkipRows(GLint skipRows);
 	void setPackSkipImages(GLint skipImages);
 
-    // These create  and destroy methods are merely pass-throughs to 
+    // These create and destroy methods are merely pass-throughs to
     // ResourceManager, which owns these object types
     GLuint createBuffer();
     GLuint createShader(GLenum type);
@@ -571,7 +570,7 @@ public:
     void bindReadFramebuffer(GLuint framebuffer);
     void bindDrawFramebuffer(GLuint framebuffer);
     void bindRenderbuffer(GLuint renderbuffer);
-	bool bindVertexArray(GLuint array);
+	void bindVertexArray(GLuint array);
 	void bindGenericUniformBuffer(GLuint buffer);
 	void bindIndexedUniformBuffer(GLuint buffer, GLuint index, GLintptr offset, GLsizeiptr size);
 	void bindGenericTransformFeedbackBuffer(GLuint buffer);
@@ -602,6 +601,7 @@ public:
 	Query *getQuery(GLuint handle) const;
 	VertexArray *getVertexArray(GLuint array) const;
 	VertexArray *getCurrentVertexArray() const;
+	bool isVertexArray(GLuint array) const;
 	TransformFeedback *getTransformFeedback(GLuint transformFeedback) const;
 	TransformFeedback *getTransformFeedback() const;
 	Sampler *getSampler(GLuint sampler) const;
@@ -660,8 +660,8 @@ public:
     GLenum getError();
 
     static int getSupportedMultisampleCount(int requested);
-    
-    void blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, 
+
+    void blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1,
                          GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,
                          GLbitfield mask);
 
@@ -743,7 +743,7 @@ private:
     bool mHasBeenCurrent;
 
     unsigned int mAppliedProgramSerial;
-    
+
     // state caching flags
     bool mDepthStateDirty;
     bool mMaskStateDirty;

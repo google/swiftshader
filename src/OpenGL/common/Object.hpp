@@ -18,6 +18,8 @@
 
 #include "common/debug.h"
 
+#include <set>
+
 typedef unsigned int GLuint;
 
 namespace gl
@@ -27,13 +29,27 @@ class Object
 {
 public:
     Object();
-    virtual ~Object();
 
     virtual void addRef();
 	virtual void release();
-    
-private:
+
+	inline bool hasSingleReference() const
+	{
+		return referenceCount == 1;
+	}
+
+protected:
+    virtual ~Object();
+
+	int dereference();
+	void destroy();
+
     volatile int referenceCount;
+
+#ifndef NDEBUG
+public:
+	static std::set<Object*> instances;   // For leak checking
+#endif
 };
 
 class NamedObject : public Object
@@ -61,7 +77,7 @@ public:
 		ASSERT(!object);   // Objects have to be released before the resource manager is destroyed, so they must be explicitly cleaned up. Assign null to all binding pointers to make the reference count go to zero.
 	}
 
-    ObjectType *operator=(ObjectType *newObject) 
+    ObjectType *operator=(ObjectType *newObject)
 	{
 		if(newObject) newObject->addRef();
 		if(object) object->release();
@@ -71,7 +87,7 @@ public:
 		return object;
 	}
 
-	ObjectType *operator=(const BindingPointer<ObjectType> &other) 
+	ObjectType *operator=(const BindingPointer<ObjectType> &other)
 	{
 		return operator=(other.object);
 	}

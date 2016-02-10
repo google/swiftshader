@@ -2245,7 +2245,17 @@ void GetMaterialxv(GLenum face, GLenum pname, GLfixed *params)
 
 void GetPointerv(GLenum pname, GLvoid **params)
 {
-	UNIMPLEMENTED();
+	TRACE("(GLenum pname = 0x%X, GLvoid **params = %p)", pname, params);
+
+	es1::Context *context = es1::getContext();
+
+	if(context)
+	{
+		if(!(context->getPointerv(pname, const_cast<const GLvoid**>(params))))
+		{
+			return error(GL_INVALID_ENUM);
+		}
+	}
 }
 
 const GLubyte* GetString(GLenum name)
@@ -4198,7 +4208,7 @@ void TexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width,
 		return error(GL_INVALID_VALUE);
 	}
 
-	if(internalformat != format)
+	if(internalformat != (GLint)format)
 	{
 		return error(GL_INVALID_OPERATION);
 	}
@@ -4747,7 +4757,7 @@ extern "C" __eglMustCastToProperFunctionPointerType es1GetProcAddress(const char
 		#undef EXTENSION
 	};
 
-	for(int ext = 0; ext < sizeof(glExtensions) / sizeof(Extension); ext++)
+	for(unsigned int ext = 0; ext < sizeof(glExtensions) / sizeof(Extension); ext++)
 	{
 		if(strcmp(procname, glExtensions[ext].name) == 0)
 		{

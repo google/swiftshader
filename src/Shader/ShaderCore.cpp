@@ -678,22 +678,6 @@ namespace sw
 		dst.w = As<Float4>(As<Int4>(src.w) & Int4(1));
 	}
 
-	void ShaderCore::u2b(Vector4f &dst, const Vector4f &src)
-	{
-		dst.x = As<Float4>(CmpNEQ(As<UInt4>(src.x), UInt4(0)));
-		dst.y = As<Float4>(CmpNEQ(As<UInt4>(src.y), UInt4(0)));
-		dst.z = As<Float4>(CmpNEQ(As<UInt4>(src.z), UInt4(0)));
-		dst.w = As<Float4>(CmpNEQ(As<UInt4>(src.w), UInt4(0)));
-	}
-
-	void ShaderCore::b2u(Vector4f &dst, const Vector4f &src)
-	{
-		dst.x = As<Float4>(As<UInt4>(src.x) & UInt4(1));
-		dst.y = As<Float4>(As<UInt4>(src.y) & UInt4(1));
-		dst.z = As<Float4>(As<UInt4>(src.z) & UInt4(1));
-		dst.w = As<Float4>(As<UInt4>(src.w) & UInt4(1));
-	}
-
 	void ShaderCore::add(Vector4f &dst, const Vector4f &src0, const Vector4f &src1)
 	{
 		dst.x = src0.x + src1.x;

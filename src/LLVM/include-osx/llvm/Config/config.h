@@ -36,7 +36,7 @@
 #define ENABLE_THREADS 1
 
 /* Define if timestamp information (e.g., __DATE___) is allowed */
-#define ENABLE_TIMESTAMPS 1
+#define ENABLE_TIMESTAMPS 0
 
 /* Define to 1 if you have the `argz_append' function. */
 /* #undef HAVE_ARGZ_APPEND */

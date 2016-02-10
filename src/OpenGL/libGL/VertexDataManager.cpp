@@ -61,20 +61,20 @@ unsigned int VertexDataManager::writeAttributeData(StreamingVertexBuffer *vertex
     int elementSize = attribute.typeSize();
     unsigned int streamOffset = 0;
 
-    char *output = NULL;
-    
+    char *output = nullptr;
+
     if(vertexBuffer)
     {
         output = (char*)vertexBuffer->map(attribute, attribute.typeSize() * count, &streamOffset);
     }
 
-    if(output == NULL)
+    if(!output)
     {
         ERR("Failed to map vertex buffer.");
-        return -1;
+        return ~0u;
     }
 
-    const char *input = NULL;
+    const char *input = nullptr;
 
     if(buffer)
     {
@@ -134,7 +134,7 @@ GLenum VertexDataManager::prepareVertexData(GLint start, GLsizei count, Translat
     }
 
     mStreamingBuffer->reserveRequiredSpace();
-    
+
     // Perform the vertex data translations
     for(int i = 0; i < MAX_VERTEX_ATTRIBS; i++)
     {
@@ -163,7 +163,7 @@ GLenum VertexDataManager::prepareVertexData(GLint start, GLsizei count, Translat
                 {
                     unsigned int streamOffset = writeAttributeData(mStreamingBuffer, start, count, attribs[i]);
 
-					if(streamOffset == -1)
+					if(streamOffset == ~0u)
 					{
 						return GL_OUT_OF_MEMORY;
 					}
@@ -248,7 +248,7 @@ ConstantVertexBuffer::ConstantVertexBuffer(float x, float y, float z, float w) :
     if(mVertexBuffer)
     {
 		float *vector = (float*)mVertexBuffer->lock(sw::PUBLIC);
-     
+
         vector[0] = x;
         vector[1] = y;
         vector[2] = z;
@@ -286,7 +286,7 @@ void *StreamingVertexBuffer::map(const VertexAttribute &attribute, unsigned int 
     {
 		// We can use a private lock because we never overwrite the content
 		mapPtr = (char*)mVertexBuffer->lock(sw::PRIVATE) + mWritePosition;
-       
+
         *offset = mWritePosition;
         mWritePosition += requiredSpace;
     }

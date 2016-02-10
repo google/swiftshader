@@ -589,7 +589,7 @@ namespace sw
 			{
 				unsigned short mask = (writeB ? 0x001F : 0x0000) | (writeG ? 0x07E0 : 0x0000) | (writeR ? 0xF800 : 0x0000);
 				unsigned short unmask = ~mask;
-				*Pointer<UShort>(element) = (*Pointer<UShort>(element) & UShort(unmask)) | 
+				*Pointer<UShort>(element) = (*Pointer<UShort>(element) & UShort(unmask)) |
 				                            (UShort(RoundInt(Float(c.z)) |
 				                                   (RoundInt(Float(c.y)) << Int(5)) |
 				                                   (RoundInt(Float(c.x)) << Int(11))) & UShort(mask));
@@ -964,12 +964,12 @@ namespace sw
 
 	Routine *Blitter::generate(BlitState &state)
 	{
-		Function<Void, Pointer<Byte> > function;
+		Function<Void(Pointer<Byte>)> function;
 		{
-			Pointer<Byte> blit(function.arg(0));
+			Pointer<Byte> blit(function.Arg<0>());
 
-			Pointer<Byte> source = *Pointer<Pointer<Byte> >(blit + OFFSET(BlitData,source));
-			Pointer<Byte> dest = *Pointer<Pointer<Byte> >(blit + OFFSET(BlitData,dest));
+			Pointer<Byte> source = *Pointer<Pointer<Byte>>(blit + OFFSET(BlitData,source));
+			Pointer<Byte> dest = *Pointer<Pointer<Byte>>(blit + OFFSET(BlitData,dest));
 			Int sPitchB = *Pointer<Int>(blit + OFFSET(BlitData,sPitchB));
 			Int dPitchB = *Pointer<Int>(blit + OFFSET(BlitData,dPitchB));
 
@@ -1147,7 +1147,7 @@ namespace sw
 
 		criticalSection.lock();
 		Routine *blitRoutine = blitCache->query(state);
-		
+
 		if(!blitRoutine)
 		{
 			blitRoutine = generate(state);
@@ -1179,7 +1179,7 @@ namespace sw
 		data.h = 1.0f / (dRect.y1 - dRect.y0) * (sRect.y1 - sRect.y0);
 		data.x0 = (float)sRect.x0 + 0.5f * data.w;
 		data.y0 = (float)sRect.y0 + 0.5f * data.h;
-		
+
 		data.x0d = dRect.x0;
 		data.x1d = dRect.x1;
 		data.y0d = dRect.y0;

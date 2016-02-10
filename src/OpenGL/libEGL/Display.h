@@ -25,6 +25,9 @@ namespace egl
 	class Surface;
 	class Context;
 
+	const EGLDisplay PRIMARY_DISPLAY = (EGLDisplay)1;
+	const EGLDisplay HEADLESS_DISPLAY = (EGLDisplay)0xFACE1E55;
+
 	class Display
 	{
 	public:

@@ -5121,7 +5121,7 @@ void TexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width,
 		GLint clientVersion = context->getClientVersion();
 		if(clientVersion < 3)
 		{
-			if(internalformat != format)
+			if(internalformat != (GLint)format)
 			{
 				return error(GL_INVALID_OPERATION);
 			}
@@ -7599,7 +7599,7 @@ extern "C" __eglMustCastToProperFunctionPointerType es2GetProcAddress(const char
 		#undef EXTENSION
 	};
 
-	for(int ext = 0; ext < sizeof(glExtensions) / sizeof(Extension); ext++)
+	for(unsigned int ext = 0; ext < sizeof(glExtensions) / sizeof(Extension); ext++)
 	{
 		if(strcmp(procname, glExtensions[ext].name) == 0)
 		{

@@ -145,14 +145,14 @@ namespace D3D9
 			SetTransform(D3DTS_WORLDMATRIX(i), &identity);
 		}
 
-		for(int i = 0; i < 224; i++)
+		for(int i = 0; i < FRAGMENT_UNIFORM_VECTORS; i++)
 		{
 			float zero[4] = {0, 0, 0, 0};
 
 			SetPixelShaderConstantF(i, zero, 1);
 		}
 
-		for(int i = 0; i < 256; i++)
+		for(int i = 0; i < VERTEX_UNIFORM_VECTORS; i++)
 		{
 			float zero[4] = {0, 0, 0, 0};
 
@@ -2993,7 +2993,7 @@ namespace D3D9
 
 		if(!stateRecorder)
 		{
-			for(unsigned int i = 0; i < count && startRegister + i < 224; i++)
+			for(unsigned int i = 0; i < count && startRegister + i < FRAGMENT_UNIFORM_VECTORS; i++)
 			{
 				pixelShaderConstantF[startRegister + i][0] = constantData[i * 4 + 0];
 				pixelShaderConstantF[startRegister + i][1] = constantData[i * 4 + 1];
@@ -5269,7 +5269,7 @@ namespace D3D9
 
 		if(!stateRecorder)
 		{
-			for(unsigned int i = 0; i < count && startRegister + i < 256; i++)
+			for(unsigned int i = 0; i < count && startRegister + i < VERTEX_UNIFORM_VECTORS; i++)
 			{
 				vertexShaderConstantF[startRegister + i][0] = constantData[i * 4 + 0];
 				vertexShaderConstantF[startRegister + i][1] = constantData[i * 4 + 1];

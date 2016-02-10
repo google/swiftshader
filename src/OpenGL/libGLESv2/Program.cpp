@@ -36,30 +36,17 @@ namespace es2
 		return buffer;
 	}
 
-	Uniform::BlockInfo::BlockInfo(const glsl::Uniform& uniform, int blockIndex, bool rowMajorLayout)
+	Uniform::BlockInfo::BlockInfo(const glsl::Uniform& uniform, int blockIndex)
 	{
 		static unsigned int registerSizeStd140 = 4; // std140 packing requires dword alignment
 
 		if(blockIndex >= 0)
 		{
 			index = blockIndex;
-			offset = uniform.offset * registerSizeStd140;
-			isRowMajorMatrix = rowMajorLayout;
-			int componentSize = UniformTypeSize(UniformComponentType(uniform.type));
-			int rowCount = VariableRowCount(uniform.type);
-			if(rowCount > 1)
-			{
-				int colCount = VariableColumnCount(uniform.type);
-				int matrixComponentCount = (isRowMajorMatrix ? colCount : rowCount);
-				matrixStride = (rowCount > 1) ? matrixComponentCount * componentSize : 0;
-				arrayStride = (uniform.arraySize > 0) ? matrixStride * (isRowMajorMatrix ? rowCount : colCount) : 0;
-			}
-			else
-			{
-				matrixStride = 0;
-				int componentCount = UniformComponentCount(uniform.type);
-				arrayStride = (uniform.arraySize > 0) ? componentSize * componentCount : 0;
-			}
+			offset = uniform.blockInfo.offset;
+			arrayStride = uniform.blockInfo.arrayStride;
+			matrixStride = uniform.blockInfo.matrixStride;
+			isRowMajorMatrix = uniform.blockInfo.isRowMajorMatrix;
 		}
 		else
 		{
@@ -75,9 +62,16 @@ namespace es2
 	                 const BlockInfo &blockInfo)
 	 : type(type), precision(precision), name(name), arraySize(arraySize), blockInfo(blockInfo)
 	{
-		int bytes = UniformTypeSize(type) * size();
-		data = new unsigned char[bytes];
-		memset(data, 0, bytes);
+		if(blockInfo.index == -1)
+		{
+			int bytes = UniformTypeSize(type) * size();
+			data = new unsigned char[bytes];
+			memset(data, 0, bytes);
+		}
+		else
+		{
+			data = nullptr;
+		}
 		dirty = true;
 
 		psRegisterIndex = -1;
@@ -290,7 +284,7 @@ namespace es2
 	int Program::getAttributeStream(int attributeIndex)
 	{
 		ASSERT(attributeIndex >= 0 && attributeIndex < MAX_VERTEX_ATTRIBS);
-    
+
 		return attributeStream[attributeIndex];
 	}
 
@@ -491,7 +485,7 @@ namespace es2
 		{
 			return false;   // Attempting to write an array to a non-array uniform is an INVALID_OPERATION
 		}
-	
+
 		count = std::min(size - (int)uniformIndex[location].element, count);
 
 		int index = numElements - 1;
@@ -678,7 +672,7 @@ namespace es2
 		{
 			return false;   // Attempting to write an array to a non-array uniform is an INVALID_OPERATION
 		}
-	
+
 		count = std::min(size - (int)uniformIndex[location].element, count);
 
 		if(targetUniform->type == GL_INT || targetUniform->type == GL_UNSIGNED_INT || IsSamplerUniform(targetUniform->type))
@@ -735,7 +729,7 @@ namespace es2
 		{
 			return false;   // Attempting to write an array to a non-array uniform is an INVALID_OPERATION
 		}
-	
+
 		count = std::min(size - (int)uniformIndex[location].element, count);
 
 		int index = numElements - 1;
@@ -797,7 +791,7 @@ namespace es2
 		{
 			return false;   // Attempting to write an array to a non-array uniform is an INVALID_OPERATION
 		}
-	
+
 		count = std::min(size - (int)uniformIndex[location].element, count);
 
 		if(targetUniform->type == GL_INT || targetUniform->type == GL_UNSIGNED_INT || IsSamplerUniform(targetUniform->type))
@@ -854,7 +848,7 @@ namespace es2
 		{
 			return false;   // Attempting to write an array to a non-array uniform is an INVALID_OPERATION
 		}
-	
+
 		count = std::min(size - (int)uniformIndex[location].element, count);
 
 		int index = numElements - 1;
@@ -1078,7 +1072,7 @@ namespace es2
 
 			Uniform *targetUniform = uniforms[uniformIndex[location].index];
 
-			if(targetUniform->dirty)
+			if(targetUniform->dirty && (targetUniform->blockInfo.index == -1))
 			{
 				int size = targetUniform->size();
 				GLfloat *f = (GLfloat*)targetUniform->data;
@@ -1138,25 +1132,26 @@ namespace es2
 		}
 	}
 
-	void Program::applyUniformBuffers()
+	void Program::applyUniformBuffers(UniformBufferBinding* uniformBuffers)
 	{
 		GLint vertexUniformBuffers[IMPLEMENTATION_MAX_UNIFORM_BUFFER_BINDINGS];
 		GLint fragmentUniformBuffers[IMPLEMENTATION_MAX_UNIFORM_BUFFER_BINDINGS];
 
-		for(unsigned int registerIndex = 0; registerIndex < IMPLEMENTATION_MAX_UNIFORM_BUFFER_BINDINGS; ++registerIndex)
+		for(unsigned int bufferBindingIndex = 0; bufferBindingIndex < IMPLEMENTATION_MAX_UNIFORM_BUFFER_BINDINGS; ++bufferBindingIndex)
 		{
-			vertexUniformBuffers[registerIndex] = -1;
+			vertexUniformBuffers[bufferBindingIndex] = -1;
 		}
 
-		for(unsigned int registerIndex = 0; registerIndex < IMPLEMENTATION_MAX_UNIFORM_BUFFER_BINDINGS; ++registerIndex)
+		for(unsigned int bufferBindingIndex = 0; bufferBindingIndex < IMPLEMENTATION_MAX_UNIFORM_BUFFER_BINDINGS; ++bufferBindingIndex)
 		{
-			fragmentUniformBuffers[registerIndex] = -1;
+			fragmentUniformBuffers[bufferBindingIndex] = -1;
 		}
 
+		int vertexUniformBufferIndex = 0;
+		int fragmentUniformBufferIndex = 0;
 		for(unsigned int uniformBlockIndex = 0; uniformBlockIndex < uniformBlocks.size(); uniformBlockIndex++)
 		{
 			UniformBlock &uniformBlock = *uniformBlocks[uniformBlockIndex];
-			GLuint blockBinding = uniformBlockBindings[uniformBlockIndex];
 
 			// Unnecessary to apply an unreferenced standard or shared UBO
 			if(!uniformBlock.isReferencedByVertexShader() && !uniformBlock.isReferencedByFragmentShader())
@@ -1164,19 +1159,25 @@ namespace es2
 				continue;
 			}
 
+			GLuint blockBinding = uniformBlockBindings[uniformBlockIndex];
+
 			if(uniformBlock.isReferencedByVertexShader())
 			{
-				unsigned int registerIndex = uniformBlock.vsRegisterIndex;
-				ASSERT(vertexUniformBuffers[registerIndex] == -1);
-				vertexUniformBuffers[registerIndex] = blockBinding;
+				vertexUniformBuffers[vertexUniformBufferIndex++] = blockBinding;
 			}
 
 			if(uniformBlock.isReferencedByFragmentShader())
 			{
-				unsigned int registerIndex = uniformBlock.psRegisterIndex;
-				ASSERT(fragmentUniformBuffers[registerIndex] == -1);
-				fragmentUniformBuffers[registerIndex] = blockBinding;
+				fragmentUniformBuffers[fragmentUniformBufferIndex++] = blockBinding;
 			}
+		}
+
+		for(unsigned int bufferBindingIndex = 0; bufferBindingIndex < IMPLEMENTATION_MAX_UNIFORM_BUFFER_BINDINGS; ++bufferBindingIndex)
+		{
+			int index = vertexUniformBuffers[bufferBindingIndex];
+			device->VertexProcessor::setUniformBuffer(bufferBindingIndex, (index != -1) ? uniformBuffers[index].get()->getResource() : nullptr, (index != -1) ? uniformBuffers[index].getOffset() : 0);
+			index = fragmentUniformBuffers[bufferBindingIndex];
+			device->PixelProcessor::setUniformBuffer(bufferBindingIndex, (index != -1) ? uniformBuffers[index].get()->getResource() : nullptr, (index != -1) ? uniformBuffers[index].getOffset() : 0);
 		}
 	}
 
@@ -1255,7 +1256,7 @@ namespace es2
 							if(components >= 1) pixelBinary->semantic[in + i][0] = sw::Shader::Semantic();
 							if(components >= 2) pixelBinary->semantic[in + i][1] = sw::Shader::Semantic();
 							if(components >= 3) pixelBinary->semantic[in + i][2] = sw::Shader::Semantic();
-							if(components >= 4) pixelBinary->semantic[in + i][3] = sw::Shader::Semantic();					
+							if(components >= 4) pixelBinary->semantic[in + i][3] = sw::Shader::Semantic();
 						}
 					}
 
@@ -1315,7 +1316,7 @@ namespace es2
 
 		vertexBinary = new sw::VertexShader(vertexShader->getVertexShader());
 		pixelBinary = new sw::PixelShader(fragmentShader->getPixelShader());
-			
+
 		if(!linkVaryings())
 		{
 			return;
@@ -1444,17 +1445,15 @@ namespace es2
 		{
 			const glsl::Uniform &uniform = activeUniforms[uniformIndex];
 
-			int blockIndex = -1;
-			bool isRowMajorMatrix = false;
+			unsigned int blockIndex = GL_INVALID_INDEX;
 			if(uniform.blockId >= 0)
 			{
 				const glsl::ActiveUniformBlocks &activeUniformBlocks = shader->activeUniformBlocks;
 				ASSERT(static_cast<size_t>(uniform.blockId) < activeUniformBlocks.size());
-				blockIndex = getUniformBlockIndex(activeUniformBlocks[uniform.blockId].getName());
+				blockIndex = getUniformBlockIndex(activeUniformBlocks[uniform.blockId].name);
 				ASSERT(blockIndex != GL_INVALID_INDEX);
-				isRowMajorMatrix = activeUniformBlocks[uniform.blockId].isRowMajorLayout;
 			}
-			if(!defineUniform(shader->getType(), uniform.type, uniform.precision, uniform.name, uniform.arraySize, uniform.registerIndex, Uniform::BlockInfo(uniform, blockIndex, isRowMajorMatrix)))
+			if(!defineUniform(shader->getType(), uniform.type, uniform.precision, uniform.name, uniform.arraySize, uniform.registerIndex, Uniform::BlockInfo(uniform, blockIndex)))
 			{
 				return false;
 			}
@@ -1468,7 +1467,7 @@ namespace es2
 		if(IsSamplerUniform(type))
 	    {
 			int index = registerIndex;
-			
+
 			do
 			{
 				if(shader == GL_VERTEX_SHADER)
@@ -1511,7 +1510,7 @@ namespace es2
 					if(index < MAX_TEXTURE_IMAGE_UNITS)
 					{
 						samplersPS[index].active = true;
-						
+
 						switch(type)
 						{
 						default:                      UNREACHABLE(type);
@@ -1696,7 +1695,7 @@ namespace es2
 
 	bool Program::defineUniformBlock(const Shader *shader, const glsl::UniformBlock &block)
 	{
-		GLuint blockIndex = getUniformBlockIndex(block.getName());
+		GLuint blockIndex = getUniformBlockIndex(block.name);
 
 		if(blockIndex == GL_INVALID_INDEX)
 		{
@@ -1709,21 +1708,46 @@ namespace es2
 
 			if(block.arraySize > 0)
 			{
-				for(unsigned int i = 0; i < block.arraySize; ++i)
+				int regIndex = block.registerIndex;
+				int regInc = block.dataSize / (glsl::BlockLayoutEncoder::BytesPerComponent * glsl::BlockLayoutEncoder::ComponentsPerRegister);
+				for(unsigned int i = 0; i < block.arraySize; ++i, regIndex += regInc)
 				{
-					uniformBlocks.push_back(new UniformBlock(block.getName(), i, block.dataSize, memberUniformIndexes));
-					uniformBlocks[uniformBlocks.size() - 1]->setRegisterIndex(shader->getType(), block.registerIndex);
+					uniformBlocks.push_back(new UniformBlock(block.name, i, block.dataSize, memberUniformIndexes));
+					uniformBlocks[uniformBlocks.size() - 1]->setRegisterIndex(shader->getType(), regIndex);
 				}
 			}
 			else
 			{
-				uniformBlocks.push_back(new UniformBlock(block.getName(), GL_INVALID_INDEX, block.dataSize, memberUniformIndexes));
+				uniformBlocks.push_back(new UniformBlock(block.name, GL_INVALID_INDEX, block.dataSize, memberUniformIndexes));
 				uniformBlocks[uniformBlocks.size() - 1]->setRegisterIndex(shader->getType(), block.registerIndex);
 			}
 		}
 		else
 		{
-			uniformBlocks[blockIndex]->setRegisterIndex(shader->getType(), block.registerIndex);
+			int regIndex = block.registerIndex;
+			int regInc = block.dataSize / (glsl::BlockLayoutEncoder::BytesPerComponent * glsl::BlockLayoutEncoder::ComponentsPerRegister);
+			int nbBlocks = (block.arraySize > 0) ? block.arraySize : 1;
+			for(int i = 0; i < nbBlocks; ++i, regIndex += regInc)
+			{
+				uniformBlocks[blockIndex + i]->setRegisterIndex(shader->getType(), regIndex);
+			}
+		}
+
+		return true;
+	}
+
+	bool Program::applyUniform(GLint location, float* data)
+	{
+		Uniform *targetUniform = uniforms[uniformIndex[location].index];
+
+		if(targetUniform->psRegisterIndex != -1)
+		{
+			device->setPixelShaderConstantF(targetUniform->psRegisterIndex, data, targetUniform->registerCount());
+		}
+
+		if(targetUniform->vsRegisterIndex != -1)
+		{
+			device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, data, targetUniform->registerCount());
 		}
 
 		return true;
@@ -1743,19 +1767,7 @@ namespace es2
 			v += 1;
 		}
 
-		Uniform *targetUniform = uniforms[uniformIndex[location].index];
-
-		if(targetUniform->psRegisterIndex != -1)
-		{
-			device->setPixelShaderConstantF(targetUniform->psRegisterIndex, (float*)vector, targetUniform->registerCount());
-		}
-
-		if(targetUniform->vsRegisterIndex != -1)
-		{
-			device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)vector, targetUniform->registerCount());
-		}
-
-		return true;
+		return applyUniform(location, (float*)vector);
 	}
 
 	bool Program::applyUniform2bv(GLint location, GLsizei count, const GLboolean *v)
@@ -1772,19 +1784,7 @@ namespace es2
 			v += 2;
 		}
 
-		Uniform *targetUniform = uniforms[uniformIndex[location].index];
-
-		if(targetUniform->psRegisterIndex != -1)
-		{
-			device->setPixelShaderConstantF(targetUniform->psRegisterIndex, (float*)vector, targetUniform->registerCount());
-		}
-
-		if(targetUniform->vsRegisterIndex != -1)
-		{
-			device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)vector, targetUniform->registerCount());
-		}
-
-		return true;
+		return applyUniform(location, (float*)vector);
 	}
 
 	bool Program::applyUniform3bv(GLint location, GLsizei count, const GLboolean *v)
@@ -1801,19 +1801,7 @@ namespace es2
 			v += 3;
 		}
 
-		Uniform *targetUniform = uniforms[uniformIndex[location].index];
-
-		if(targetUniform->psRegisterIndex != -1)
-		{
-			device->setPixelShaderConstantF(targetUniform->psRegisterIndex, (float*)vector, targetUniform->registerCount());
-		}
-
-		if(targetUniform->vsRegisterIndex != -1)
-		{
-			device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)vector, targetUniform->registerCount());
-		}
-
-		return true;
+		return applyUniform(location, (float*)vector);
 	}
 
 	bool Program::applyUniform4bv(GLint location, GLsizei count, const GLboolean *v)
@@ -1830,19 +1818,7 @@ namespace es2
 			v += 4;
 		}
 
-		Uniform *targetUniform = uniforms[uniformIndex[location].index];
-
-		if(targetUniform->psRegisterIndex != -1)
-		{
-			device->setPixelShaderConstantF(targetUniform->psRegisterIndex, (float*)vector, targetUniform->registerCount());
-		}
-
-		if(targetUniform->vsRegisterIndex != -1)
-		{
-			device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)vector, targetUniform->registerCount());
-		}
-
-		return true;
+		return applyUniform(location, (float*)vector);
 	}
 
 	bool Program::applyUniform1fv(GLint location, GLsizei count, const GLfloat *v)
@@ -1859,19 +1835,7 @@ namespace es2
 			v += 1;
 		}
 
-		Uniform *targetUniform = uniforms[uniformIndex[location].index];
-
-		if(targetUniform->psRegisterIndex != -1)
-		{
-			device->setPixelShaderConstantF(targetUniform->psRegisterIndex, (float*)vector, targetUniform->registerCount());
-		}
-
-		if(targetUniform->vsRegisterIndex != -1)
-		{
-			device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)vector, targetUniform->registerCount());
-		}
-
-		return true;
+		return applyUniform(location, (float*)vector);
 	}
 
 	bool Program::applyUniform2fv(GLint location, GLsizei count, const GLfloat *v)
@@ -1888,19 +1852,7 @@ namespace es2
 			v += 2;
 		}
 
-		Uniform *targetUniform = uniforms[uniformIndex[location].index];
-
-		if(targetUniform->psRegisterIndex != -1)
-		{
-			device->setPixelShaderConstantF(targetUniform->psRegisterIndex, (float*)vector, targetUniform->registerCount());
-		}
-
-		if(targetUniform->vsRegisterIndex != -1)
-		{
-			device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)vector, targetUniform->registerCount());
-		}
-
-		return true;
+		return applyUniform(location, (float*)vector);
 	}
 
 	bool Program::applyUniform3fv(GLint location, GLsizei count, const GLfloat *v)
@@ -1917,36 +1869,12 @@ namespace es2
 			v += 3;
 		}
 
-		Uniform *targetUniform = uniforms[uniformIndex[location].index];
-
-		if(targetUniform->psRegisterIndex != -1)
-		{
-			device->setPixelShaderConstantF(targetUniform->psRegisterIndex, (float*)vector, targetUniform->registerCount());
-		}
-
-		if(targetUniform->vsRegisterIndex != -1)
-		{
-			device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)vector, targetUniform->registerCount());
-		}
-
-		return true;
+		return applyUniform(location, (float*)vector);
 	}
 
 	bool Program::applyUniform4fv(GLint location, GLsizei count, const GLfloat *v)
 	{
-		Uniform *targetUniform = uniforms[uniformIndex[location].index];
-
-		if(targetUniform->psRegisterIndex != -1)
-		{
-			device->setPixelShaderConstantF(targetUniform->psRegisterIndex, (float*)v, targetUniform->registerCount());
-		}
-
-		if(targetUniform->vsRegisterIndex != -1)
-		{
-			device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)v, targetUniform->registerCount());
-		}
-
-		return true;
+		return applyUniform(location, (float*)v);
 	}
 
 	bool Program::applyUniformMatrix2fv(GLint location, GLsizei count, const GLfloat *value)
@@ -1961,19 +1889,7 @@ namespace es2
 			value += 4;
 		}
 
-		Uniform *targetUniform = uniforms[uniformIndex[location].index];
-
-		if(targetUniform->psRegisterIndex != -1)
-		{
-			device->setPixelShaderConstantF(targetUniform->psRegisterIndex, (float*)matrix, targetUniform->registerCount());
-		}
-
-		if(targetUniform->vsRegisterIndex != -1)
-		{
-			device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)matrix, targetUniform->registerCount());
-		}
-
-		return true;
+		return applyUniform(location, (float*)matrix);
 	}
 
 	bool Program::applyUniformMatrix2x3fv(GLint location, GLsizei count, const GLfloat *value)
@@ -1988,19 +1904,7 @@ namespace es2
 			value += 6;
 		}
 
-		Uniform *targetUniform = uniforms[uniformIndex[location].index];
-
-		if(targetUniform->psRegisterIndex != -1)
-		{
-			device->setPixelShaderConstantF(targetUniform->psRegisterIndex, (float*)matrix, targetUniform->registerCount());
-		}
-
-		if(targetUniform->vsRegisterIndex != -1)
-		{
-			device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)matrix, targetUniform->registerCount());
-		}
-
-		return true;
+		return applyUniform(location, (float*)matrix);
 	}
 
 	bool Program::applyUniformMatrix2x4fv(GLint location, GLsizei count, const GLfloat *value)
@@ -2015,19 +1919,7 @@ namespace es2
 			value += 8;
 		}
 
-		Uniform *targetUniform = uniforms[uniformIndex[location].index];
-
-		if(targetUniform->psRegisterIndex != -1)
-		{
-			device->setPixelShaderConstantF(targetUniform->psRegisterIndex, (float*)matrix, targetUniform->registerCount());
-		}
-
-		if(targetUniform->vsRegisterIndex != -1)
-		{
-			device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)matrix, targetUniform->registerCount());
-		}
-
-		return true;
+		return applyUniform(location, (float*)matrix);
 	}
 
 	bool Program::applyUniformMatrix3fv(GLint location, GLsizei count, const GLfloat *value)
@@ -2043,19 +1935,7 @@ namespace es2
 			value += 9;
 		}
 
-		Uniform *targetUniform = uniforms[uniformIndex[location].index];
-
-		if(targetUniform->psRegisterIndex != -1)
-		{
-			device->setPixelShaderConstantF(targetUniform->psRegisterIndex, (float*)matrix, targetUniform->registerCount());
-		}
-
-		if(targetUniform->vsRegisterIndex != -1)
-		{	
-			device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)matrix, targetUniform->registerCount());
-		}
-
-		return true;
+		return applyUniform(location, (float*)matrix);
 	}
 
 	bool Program::applyUniformMatrix3x2fv(GLint location, GLsizei count, const GLfloat *value)
@@ -2071,19 +1951,7 @@ namespace es2
 			value += 6;
 		}
 
-		Uniform *targetUniform = uniforms[uniformIndex[location].index];
-
-		if(targetUniform->psRegisterIndex != -1)
-		{
-			device->setPixelShaderConstantF(targetUniform->psRegisterIndex, (float*)matrix, targetUniform->registerCount());
-		}
-
-		if(targetUniform->vsRegisterIndex != -1)
-		{
-			device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)matrix, targetUniform->registerCount());
-		}
-
-		return true;
+		return applyUniform(location, (float*)matrix);
 	}
 
 	bool Program::applyUniformMatrix3x4fv(GLint location, GLsizei count, const GLfloat *value)
@@ -2099,36 +1967,12 @@ namespace es2
 			value += 12;
 		}
 
-		Uniform *targetUniform = uniforms[uniformIndex[location].index];
-
-		if(targetUniform->psRegisterIndex != -1)
-		{
-			device->setPixelShaderConstantF(targetUniform->psRegisterIndex, (float*)matrix, targetUniform->registerCount());
-		}
-
-		if(targetUniform->vsRegisterIndex != -1)
-		{
-			device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)matrix, targetUniform->registerCount());
-		}
-
-		return true;
+		return applyUniform(location, (float*)matrix);
 	}
 
 	bool Program::applyUniformMatrix4fv(GLint location, GLsizei count, const GLfloat *value)
 	{
-		Uniform *targetUniform = uniforms[uniformIndex[location].index];
-	
-		if(targetUniform->psRegisterIndex != -1)
-		{
-			device->setPixelShaderConstantF(targetUniform->psRegisterIndex, (float*)value, targetUniform->registerCount());
-		}
-
-		if(targetUniform->vsRegisterIndex != -1)
-		{
-			device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)value, targetUniform->registerCount());
-		}
-
-		return true;
+		return applyUniform(location, (float*)value);
 	}
 
 	bool Program::applyUniformMatrix4x2fv(GLint location, GLsizei count, const GLfloat *value)
@@ -2145,19 +1989,7 @@ namespace es2
 			value += 8;
 		}
 
-		Uniform *targetUniform = uniforms[uniformIndex[location].index];
-
-		if(targetUniform->psRegisterIndex != -1)
-		{
-			device->setPixelShaderConstantF(targetUniform->psRegisterIndex, (float*)matrix, targetUniform->registerCount());
-		}
-
-		if(targetUniform->vsRegisterIndex != -1)
-		{
-			device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)matrix, targetUniform->registerCount());
-		}
-
-		return true;
+		return applyUniform(location, (float*)matrix);
 	}
 
 	bool Program::applyUniformMatrix4x3fv(GLint location, GLsizei count, const GLfloat *value)
@@ -2174,19 +2006,7 @@ namespace es2
 			value += 12;
 		}
 
-		Uniform *targetUniform = uniforms[uniformIndex[location].index];
-
-		if(targetUniform->psRegisterIndex != -1)
-		{
-			device->setPixelShaderConstantF(targetUniform->psRegisterIndex, (float*)matrix, targetUniform->registerCount());
-		}
-
-		if(targetUniform->vsRegisterIndex != -1)
-		{
-			device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)matrix, targetUniform->registerCount());
-		}
-
-		return true;
+		return applyUniform(location, (float*)matrix);
 	}
 
 	bool Program::applyUniform1iv(GLint location, GLsizei count, const GLint *v)
@@ -2202,10 +2022,9 @@ namespace es2
 		}
 
 		Uniform *targetUniform = uniforms[uniformIndex[location].index];
-
-		if(targetUniform->psRegisterIndex != -1)
+		if(IsSamplerUniform(targetUniform->type))
 		{
-			if(IsSamplerUniform(targetUniform->type))
+			if(targetUniform->psRegisterIndex != -1)
 			{
 				for(int i = 0; i < count; i++)
 				{
@@ -2218,15 +2037,8 @@ namespace es2
 					}
 				}
 			}
-			else
-			{
-				device->setPixelShaderConstantF(targetUniform->psRegisterIndex, (float*)vector, targetUniform->registerCount());
-			}
-		}
 
-		if(targetUniform->vsRegisterIndex != -1)
-		{
-			if(IsSamplerUniform(targetUniform->type))
+			if(targetUniform->vsRegisterIndex != -1)
 			{
 				for(int i = 0; i < count; i++)
 				{
@@ -2239,10 +2051,10 @@ namespace es2
 					}
 				}
 			}
-			else
-			{
-				device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)vector, targetUniform->registerCount());
-			}
+		}
+		else
+		{
+			return applyUniform(location, (float*)vector);
 		}
 
 		return true;
@@ -2262,19 +2074,7 @@ namespace es2
 			v += 2;
 		}
 
-		Uniform *targetUniform = uniforms[uniformIndex[location].index];
-
-		if(targetUniform->psRegisterIndex != -1)
-		{
-			device->setPixelShaderConstantF(targetUniform->psRegisterIndex, (float*)vector, targetUniform->registerCount());
-		}
-
-		if(targetUniform->vsRegisterIndex != -1)
-		{
-			device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)vector, targetUniform->registerCount());
-		}
-
-		return true;
+		return applyUniform(location, (float*)vector);
 	}
 
 	bool Program::applyUniform3iv(GLint location, GLsizei count, const GLint *v)
@@ -2291,19 +2091,7 @@ namespace es2
 			v += 3;
 		}
 
-		Uniform *targetUniform = uniforms[uniformIndex[location].index];
-
-		if(targetUniform->psRegisterIndex != -1)
-		{
-			device->setPixelShaderConstantF(targetUniform->psRegisterIndex, (float*)vector, targetUniform->registerCount());
-		}
-
-		if(targetUniform->vsRegisterIndex != -1)
-		{
-			device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)vector, targetUniform->registerCount());
-		}
-
-		return true;
+		return applyUniform(location, (float*)vector);
 	}
 
 	bool Program::applyUniform4iv(GLint location, GLsizei count, const GLint *v)
@@ -2320,19 +2108,7 @@ namespace es2
 			v += 4;
 		}
 
-		Uniform *targetUniform = uniforms[uniformIndex[location].index];
-
-		if(targetUniform->psRegisterIndex != -1)
-		{
-			device->setPixelShaderConstantF(targetUniform->psRegisterIndex, (float*)vector, targetUniform->registerCount());
-		}
-
-		if(targetUniform->vsRegisterIndex != -1)
-		{
-			device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)vector, targetUniform->registerCount());
-		}
-
-		return true;
+		return applyUniform(location, (float*)vector);
 	}
 
 	bool Program::applyUniform1uiv(GLint location, GLsizei count, const GLuint *v)
@@ -2348,10 +2124,9 @@ namespace es2
 		}
 
 		Uniform *targetUniform = uniforms[uniformIndex[location].index];
-
-		if(targetUniform->psRegisterIndex != -1)
+		if(IsSamplerUniform(targetUniform->type))
 		{
-			if(IsSamplerUniform(targetUniform->type))
+			if(targetUniform->psRegisterIndex != -1)
 			{
 				for(int i = 0; i < count; i++)
 				{
@@ -2364,15 +2139,8 @@ namespace es2
 					}
 				}
 			}
-			else
-			{
-				device->setPixelShaderConstantF(targetUniform->psRegisterIndex, (float*)vector, targetUniform->registerCount());
-			}
-		}
 
-		if(targetUniform->vsRegisterIndex != -1)
-		{
-			if(IsSamplerUniform(targetUniform->type))
+			if(targetUniform->vsRegisterIndex != -1)
 			{
 				for(int i = 0; i < count; i++)
 				{
@@ -2385,10 +2153,10 @@ namespace es2
 					}
 				}
 			}
-			else
-			{
-				device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)vector, targetUniform->registerCount());
-			}
+		}
+		else
+		{
+			return applyUniform(location, (float*)vector);
 		}
 
 		return true;
@@ -2408,19 +2176,7 @@ namespace es2
 			v += 2;
 		}
 
-		Uniform *targetUniform = uniforms[uniformIndex[location].index];
-
-		if(targetUniform->psRegisterIndex != -1)
-		{
-			device->setPixelShaderConstantF(targetUniform->psRegisterIndex, (float*)vector, targetUniform->registerCount());
-		}
-
-		if(targetUniform->vsRegisterIndex != -1)
-		{
-			device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)vector, targetUniform->registerCount());
-		}
-
-		return true;
+		return applyUniform(location, (float*)vector);
 	}
 
 	bool Program::applyUniform3uiv(GLint location, GLsizei count, const GLuint *v)
@@ -2437,19 +2193,7 @@ namespace es2
 			v += 3;
 		}
 
-		Uniform *targetUniform = uniforms[uniformIndex[location].index];
-
-		if(targetUniform->psRegisterIndex != -1)
-		{
-			device->setPixelShaderConstantF(targetUniform->psRegisterIndex, (float*)vector, targetUniform->registerCount());
-		}
-
-		if(targetUniform->vsRegisterIndex != -1)
-		{
-			device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)vector, targetUniform->registerCount());
-		}
-
-		return true;
+		return applyUniform(location, (float*)vector);
 	}
 
 	bool Program::applyUniform4uiv(GLint location, GLsizei count, const GLuint *v)
@@ -2466,19 +2210,7 @@ namespace es2
 			v += 4;
 		}
 
-		Uniform *targetUniform = uniforms[uniformIndex[location].index];
-
-		if(targetUniform->psRegisterIndex != -1)
-		{
-			device->setPixelShaderConstantF(targetUniform->psRegisterIndex, (float*)vector, targetUniform->registerCount());
-		}
-
-		if(targetUniform->vsRegisterIndex != -1)
-		{
-			device->setVertexShaderConstantF(targetUniform->vsRegisterIndex, (float*)vector, targetUniform->registerCount());
-		}
-
-		return true;
+		return applyUniform(location, (float*)vector);
 	}
 
 	void Program::appendToInfoLog(const char *format, ...)
@@ -2575,7 +2307,7 @@ namespace es2
 		return linked;
 	}
 
-	bool Program::isValidated() const 
+	bool Program::isValidated() const
 	{
 		return validated;
 	}
@@ -2953,7 +2685,7 @@ namespace es2
 	{
 		resetInfoLog();
 
-		if(!isLinked()) 
+		if(!isLinked())
 		{
 			appendToInfoLog("Program has not been successfully linked.");
 			validated = false;
@@ -2990,7 +2722,7 @@ namespace es2
 			if(samplersPS[i].active)
 			{
 				unsigned int unit = samplersPS[i].logicalTextureUnit;
-            
+
 				if(unit >= MAX_COMBINED_TEXTURE_IMAGE_UNITS)
 				{
 					if(logErrors)
@@ -3025,7 +2757,7 @@ namespace es2
 			if(samplersVS[i].active)
 			{
 				unsigned int unit = samplersVS[i].logicalTextureUnit;
-            
+
 				if(unit >= MAX_COMBINED_TEXTURE_IMAGE_UNITS)
 				{
 					if(logErrors)
