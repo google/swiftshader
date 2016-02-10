@@ -3972,6 +3972,11 @@ GL_APICALL void GL_APIENTRY glGetInternalformativ(GLenum target, GLenum internal
 		return error(GL_INVALID_VALUE);
 	}
 
+	if(bufSize == 0)
+	{
+		return;
+	}
+
 	if(!IsColorRenderable(internalformat, egl::getClientVersion()) && !IsDepthRenderable(internalformat) && !IsStencilRenderable(internalformat))
 	{
 		return error(GL_INVALID_ENUM);
@@ -3985,13 +3990,48 @@ GL_APICALL void GL_APIENTRY glGetInternalformativ(GLenum target, GLenum internal
 		return error(GL_INVALID_ENUM);
 	}
 
+	// Integer types have no multisampling
+	GLint numMultisampleCounts = NUM_MULTISAMPLE_COUNTS;
+	switch(internalformat)
+	{
+	case GL_R8UI:
+	case GL_R8I:
+	case GL_R16UI:
+	case GL_R16I:
+	case GL_R32UI:
+	case GL_R32I:
+	case GL_RG8UI:
+	case GL_RG8I:
+	case GL_RG16UI:
+	case GL_RG16I:
+	case GL_RG32UI:
+	case GL_RG32I:
+	case GL_RGB8UI:
+	case GL_RGB8I:
+	case GL_RGB16UI:
+	case GL_RGB16I:
+	case GL_RGB32UI:
+	case GL_RGB32I:
+	case GL_RGBA8UI:
+	case GL_RGBA8I:
+	case GL_RGB10_A2UI:
+	case GL_RGBA16UI:
+	case GL_RGBA16I:
+	case GL_RGBA32UI:
+	case GL_RGBA32I:
+		numMultisampleCounts = 0;
+		break;
+	default:
+		break;
+	}
+
 	switch(pname)
 	{
 	case GL_NUM_SAMPLE_COUNTS:
-		*params = NUM_MULTISAMPLE_COUNTS;
+		*params = numMultisampleCounts;
 		break;
 	case GL_SAMPLES:
-		for(int i = 0; i < NUM_MULTISAMPLE_COUNTS && i < bufSize; i++)
+		for(int i = 0; i < numMultisampleCounts && i < bufSize; i++)
 		{
 			params[i] = multisampleCount[i];
 		}

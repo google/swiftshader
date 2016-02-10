@@ -855,6 +855,8 @@ namespace es2
 		case GL_RGB565:
 		case GL_RGB8_OES:
 		case GL_RGBA8_OES:
+		case GL_RGB:
+		case GL_RGBA:
 			return true;
 		case GL_R16F:
 		case GL_RG16F:
@@ -921,6 +923,8 @@ namespace es2
 		case GL_RGB565:
 		case GL_RGB8_OES:
 		case GL_RGBA8_OES:
+		case GL_RGB:
+		case GL_RGBA:
 		case GL_R16F:
 		case GL_RG16F:
 		case GL_R11F_G11F_B10F:
@@ -974,6 +978,8 @@ namespace es2
 		case GL_RGB565:
 		case GL_RGB8_OES:
 		case GL_RGBA8_OES:
+		case GL_RGB:
+		case GL_RGBA:
 		case GL_R16F:
 		case GL_RG16F:
 		case GL_R11F_G11F_B10F:
