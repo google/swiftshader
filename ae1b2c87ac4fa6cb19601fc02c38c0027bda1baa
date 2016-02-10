@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fdce9ca2_2e4a5bfd",
+        "filename": "src/OpenGL/libGLESv2/Texture.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-02-10T20:18:34Z",
+      "side": 1,
+      "message": "No need for a return value?",
+      "range": {
+        "startLine": 222,
+        "startChar": 1,
+        "endLine": 222,
+        "endChar": 13
+      },
+      "revId": "ae1b2c87ac4fa6cb19601fc02c38c0027bda1baa",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
