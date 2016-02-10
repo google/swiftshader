@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fdce9ca2_7d5c8b54",
+        "filename": "src/OpenGL/common/Image.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-02-10T15:18:54Z",
+      "side": 0,
+      "message": "This may look terrible, but fortunately the native EGL images provide their own data buffer so they don\u0027t use the uninitialized depth value to allocate one.",
+      "range": {
+        "startLine": 61,
+        "startChar": 40,
+        "endLine": 61,
+        "endChar": 45
+      },
+      "revId": "cbda6264031aed2cf045a40e69ac0235cca32ff5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
