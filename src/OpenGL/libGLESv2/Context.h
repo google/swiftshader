@@ -381,8 +381,6 @@ struct State
 
     GLuint readFramebuffer;
     GLuint drawFramebuffer;
-    GLuint readFramebufferColorIndex;
-    GLuint drawFramebufferColorIndices[MAX_COLOR_ATTACHMENTS];
     gl::BindingPointer<Renderbuffer> renderbuffer;
     GLuint currentProgram;
 	GLuint vertexArray;
@@ -482,8 +480,8 @@ public:
     GLuint getDrawFramebufferName() const;
     GLuint getRenderbufferName() const;
 
-	void setReadFramebufferColorIndex(GLuint index);
-	void setDrawFramebufferColorIndices(GLsizei n, const GLenum *bufs);
+	void setFramebufferReadBuffer(GLenum buf);
+	void setFramebufferDrawBuffers(GLsizei n, const GLenum *bufs);
 	GLuint getReadFramebufferColorIndex() const;
 
 	GLuint getActiveQuery(GLenum target) const;

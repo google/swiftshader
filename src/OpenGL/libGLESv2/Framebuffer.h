@@ -39,6 +39,11 @@ public:
     void setDepthbuffer(GLenum type, GLuint depthbuffer, GLint level = 0, GLint layer = 0);
     void setStencilbuffer(GLenum type, GLuint stencilbuffer, GLint level = 0, GLint layer = 0);
 
+	void setReadBuffer(GLenum buf);
+	void setDrawBuffer(GLuint index, GLenum buf);
+	GLenum getReadBuffer() const;
+	GLenum getDrawBuffer(GLuint index) const;
+
     void detachTexture(GLuint texture);
     void detachRenderbuffer(GLuint renderbuffer);
 
@@ -76,6 +81,8 @@ public:
 protected:
     GLenum mColorbufferType[MAX_COLOR_ATTACHMENTS];
     gl::BindingPointer<Renderbuffer> mColorbufferPointer[MAX_COLOR_ATTACHMENTS];
+	GLenum readBuffer;
+	GLenum drawBuffer[MAX_COLOR_ATTACHMENTS];
 
     GLenum mDepthbufferType;
     gl::BindingPointer<Renderbuffer> mDepthbufferPointer;

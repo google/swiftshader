@@ -151,12 +151,6 @@ Context::Context(const egl::Config *config, const Context *shareContext, EGLint 
     bindGenericUniformBuffer(0);
     bindTransformFeedback(0);
 
-	mState.readFramebufferColorIndex = 0;
-	for(int i = 0; i < MAX_COLOR_ATTACHMENTS; ++i)
-	{
-		mState.drawFramebufferColorIndices[i] = GL_NONE;
-	}
-
     mState.currentProgram = 0;
 
     mState.packAlignment = 4;
@@ -735,22 +729,32 @@ GLuint Context::getRenderbufferName() const
     return mState.renderbuffer.name();
 }
 
-void Context::setReadFramebufferColorIndex(GLuint index)
+void Context::setFramebufferReadBuffer(GLuint buf)
 {
-	mState.readFramebufferColorIndex = index;
+	getReadFramebuffer()->setReadBuffer(buf);
 }
 
-void Context::setDrawFramebufferColorIndices(GLsizei n, const GLenum *bufs)
+void Context::setFramebufferDrawBuffers(GLsizei n, const GLenum *bufs)
 {
+	Framebuffer* drawFramebuffer = getDrawFramebuffer();
 	for(int i = 0; i < n; ++i)
 	{
-		mState.drawFramebufferColorIndices[i] = ((bufs[i] == GL_BACK) || (bufs[i] == GL_NONE)) ? bufs[i] : i;
+		drawFramebuffer->setDrawBuffer(i, bufs[i]);
 	}
 }
 
 GLuint Context::getReadFramebufferColorIndex() const
 {
-	return mState.readFramebufferColorIndex;
+	GLenum buf = getReadFramebuffer()->getReadBuffer();
+	switch(buf)
+	{
+	case GL_BACK:
+		return 0;
+	case GL_NONE:
+		return GL_INVALID_INDEX;
+	default:
+		return buf - GL_COLOR_ATTACHMENT0;
+}
 }
 
 GLuint Context::getArrayBufferName() const
@@ -2164,9 +2168,6 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 		}
 		break;
 	case GL_DRAW_BUFFER0: // symbolic constant, initial value is GL_BACK​
-		UNIMPLEMENTED();
-		*params = GL_BACK;
-		break;
 	case GL_DRAW_BUFFER1: // symbolic constant, initial value is GL_NONE
 	case GL_DRAW_BUFFER2:
 	case GL_DRAW_BUFFER3:
@@ -2182,8 +2183,7 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 	case GL_DRAW_BUFFER13:
 	case GL_DRAW_BUFFER14:
 	case GL_DRAW_BUFFER15:
-		UNIMPLEMENTED();
-		*params = GL_NONE;
+		*params = getDrawFramebuffer()->getDrawBuffer(pname - GL_DRAW_BUFFER0);
 		break;
 	case GL_MAJOR_VERSION: // integer, at least 3
 		if(clientVersion >= 3)
@@ -2338,8 +2338,7 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 		*params = 0;
 		break;
 	case GL_READ_BUFFER: // symbolic constant,  initial value is GL_BACK​
-		UNIMPLEMENTED();
-		*params = GL_BACK;
+		*params = getReadFramebuffer()->getReadBuffer();
 		break;
 	case GL_SAMPLER_BINDING: // GLint, default 0
 		*params = mState.sampler[mState.activeSampler].name();
