@@ -2338,8 +2338,7 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 		*params = GL_BACK;
 		break;
 	case GL_SAMPLER_BINDING: // GLint, default 0
-		UNIMPLEMENTED();
-		*params = 0;
+		*params = mState.sampler[mState.activeSampler].name();
 		break;
 	case GL_UNIFORM_BUFFER_BINDING: // name, initially 0
 		if(clientVersion >= 3)
