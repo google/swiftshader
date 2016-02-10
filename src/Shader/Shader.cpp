@@ -456,6 +456,19 @@ namespace sw
 			{
 				return "[aL]";
 			}
+			else if(rel.type == PARAMETER_CONST)
+			{
+				std::ostringstream buffer;
+				buffer << rel.index;
+
+				switch(rel.swizzle & 0x03)
+				{
+				case 0: return "[c" + buffer.str() + ".x]";
+				case 1: return "[c" + buffer.str() + ".y]";
+				case 2: return "[c" + buffer.str() + ".z]";
+				case 3: return "[c" + buffer.str() + ".w]";
+				}
+			}
 			else ASSERT(false);
 		}
 
