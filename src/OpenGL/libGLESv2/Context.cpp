@@ -1951,10 +1951,10 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
     case GL_ACTIVE_TEXTURE:                   *params = (mState.activeSampler + GL_TEXTURE0); break;
     case GL_STENCIL_FUNC:                     *params = mState.stencilFunc;                   break;
     case GL_STENCIL_REF:                      *params = mState.stencilRef;                    break;
-    case GL_STENCIL_VALUE_MASK:               *params = mState.stencilMask;                   break;
+	case GL_STENCIL_VALUE_MASK:               *params = sw::clampToSignedInt(mState.stencilMask); break;
     case GL_STENCIL_BACK_FUNC:                *params = mState.stencilBackFunc;               break;
     case GL_STENCIL_BACK_REF:                 *params = mState.stencilBackRef;                break;
-    case GL_STENCIL_BACK_VALUE_MASK:          *params = mState.stencilBackMask;               break;
+	case GL_STENCIL_BACK_VALUE_MASK:          *params = sw::clampToSignedInt(mState.stencilBackMask); break;
     case GL_STENCIL_FAIL:                     *params = mState.stencilFail;                   break;
     case GL_STENCIL_PASS_DEPTH_FAIL:          *params = mState.stencilPassDepthFail;          break;
     case GL_STENCIL_PASS_DEPTH_PASS:          *params = mState.stencilPassDepthPass;          break;
@@ -1968,8 +1968,8 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
     case GL_BLEND_DST_ALPHA:                  *params = mState.destBlendAlpha;                break;
     case GL_BLEND_EQUATION_RGB:               *params = mState.blendEquationRGB;              break;
     case GL_BLEND_EQUATION_ALPHA:             *params = mState.blendEquationAlpha;            break;
-    case GL_STENCIL_WRITEMASK:                *params = mState.stencilWritemask;              break;
-    case GL_STENCIL_BACK_WRITEMASK:           *params = mState.stencilBackWritemask;          break;
+	case GL_STENCIL_WRITEMASK:                *params = sw::clampToSignedInt(mState.stencilWritemask); break;
+	case GL_STENCIL_BACK_WRITEMASK:           *params = sw::clampToSignedInt(mState.stencilBackWritemask); break;
     case GL_STENCIL_CLEAR_VALUE:              *params = mState.stencilClearValue;             break;
     case GL_SUBPIXEL_BITS:                    *params = 4;                                    break;
 	case GL_MAX_TEXTURE_SIZE:                 *params = IMPLEMENTATION_MAX_TEXTURE_SIZE;          break;
