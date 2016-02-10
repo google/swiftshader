@@ -3690,36 +3690,61 @@ int Context::getSupportedMultisampleCount(int requested)
 
 void Context::detachBuffer(GLuint buffer)
 {
-    // [OpenGL ES 2.0.24] section 2.9 page 22:
-    // If a buffer object is deleted while it is bound, all bindings to that object in the current context
-    // (i.e. in the thread that called Delete-Buffers) are reset to zero.
+	// [OpenGL ES 2.0.24] section 2.9 page 22:
+	// If a buffer object is deleted while it is bound, all bindings to that object in the current context
+	// (i.e. in the thread that called Delete-Buffers) are reset to zero.
 
-    if(getArrayBufferName() == buffer)
-    {
-        mState.arrayBuffer = NULL;
-    }
-
-	for(auto tfIt = mTransformFeedbackMap.begin(); tfIt != mTransformFeedbackMap.end(); tfIt++)
+	if(mState.copyReadBuffer.name() == buffer)
 	{
-		tfIt->second->detachBuffer(buffer);
+		mState.copyReadBuffer = nullptr;
 	}
 
-	for(auto vaoIt = mVertexArrayMap.begin(); vaoIt != mVertexArrayMap.end(); vaoIt++)
+	if(mState.copyWriteBuffer.name() == buffer)
 	{
-		VertexArray* vertexArray = vaoIt->second;
-		if(vertexArray)
+		mState.copyWriteBuffer = nullptr;
+	}
+
+	if(mState.pixelPackBuffer.name() == buffer)
+	{
+		mState.pixelPackBuffer = nullptr;
+	}
+
+	if(mState.pixelUnpackBuffer.name() == buffer)
+	{
+		mState.pixelUnpackBuffer = nullptr;
+	}
+
+	if(mState.genericUniformBuffer.name() == buffer)
+	{
+		mState.genericUniformBuffer = nullptr;
+	}
+
+	if(getArrayBufferName() == buffer)
+	{
+		mState.arrayBuffer = nullptr;
+	}
+
+	// Only detach from the current transform feedback
+	TransformFeedback* currentTransformFeedback = getTransformFeedback();
+	if(currentTransformFeedback)
+	{
+		currentTransformFeedback->detachBuffer(buffer);
+	}
+
+	// Only detach from the current vertex array
+	VertexArray* currentVertexArray = getCurrentVertexArray();
+	if(currentVertexArray)
+	{
+		currentVertexArray->detachBuffer(buffer);
+	}
+
+	for(int attribute = 0; attribute < MAX_VERTEX_ATTRIBS; attribute++)
+	{
+		if(mState.vertexAttribute[attribute].mBoundBuffer.name() == buffer)
 		{
-			vertexArray->detachBuffer(buffer);
+			mState.vertexAttribute[attribute].mBoundBuffer = NULL;
 		}
 	}
-
-    for(int attribute = 0; attribute < MAX_VERTEX_ATTRIBS; attribute++)
-    {
-        if(mState.vertexAttribute[attribute].mBoundBuffer.name() == buffer)
-        {
-            mState.vertexAttribute[attribute].mBoundBuffer = NULL;
-        }
-    }
 }
 
 void Context::detachTexture(GLuint texture)
