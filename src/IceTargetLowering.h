@@ -467,6 +467,82 @@ protected:
   void scalarizeArithmetic(InstArithmetic::OpKind K, Variable *Dest,
                            Operand *Src0, Operand *Src1);
 
+  /// Generalizes scalarizeArithmetic to support other instruction types.
+  ///
+  /// MakeInstruction is a function-like object with signature
+  /// (Variable *Dest, Variable *Src0, Variable *Src1) -> Instr *.
+  template <typename F>
+  void scalarizeInstruction(Variable *Dest, Operand *Src0, Operand *Src1,
+                            F &&MakeInstruction) {
+    const Type DestTy = Dest->getType();
+    assert(isVectorType(DestTy));
+    const Type DestElementTy = typeElementType(DestTy);
+    const SizeT NumElements = typeNumElements(DestTy);
+    const Type Src0ElementTy = typeElementType(Src0->getType());
+    const Type Src1ElementTy = typeElementType(Src1->getType());
+
+    assert(NumElements == typeNumElements(Src0->getType()));
+    assert(NumElements == typeNumElements(Src1->getType()));
+
+    Variable *T = Func->makeVariable(DestTy);
+    Context.insert<InstFakeDef>(T);
+    for (SizeT I = 0; I < NumElements; ++I) {
+      Constant *Index = Ctx->getConstantInt32(I);
+
+      // Extract the next two inputs.
+      Variable *Op0 = Func->makeVariable(Src0ElementTy);
+      Context.insert<InstExtractElement>(Op0, Src0, Index);
+      Variable *Op1 = Func->makeVariable(Src1ElementTy);
+      Context.insert<InstExtractElement>(Op1, Src1, Index);
+
+      // Perform the operation as a scalar operation.
+      Variable *Res = Func->makeVariable(DestElementTy);
+      auto Arith = MakeInstruction(Res, Op0, Op1);
+      // We might have created an operation that needed a helper call.
+      genTargetHelperCallFor(Arith);
+
+      // Insert the result into position.
+      Variable *DestT = Func->makeVariable(DestTy);
+      Context.insert<InstInsertElement>(DestT, T, Res, Index);
+      T = DestT;
+    }
+    Context.insert<InstAssign>(Dest, T);
+  }
+
+  template <typename F>
+  void scalarizeUnaryInstruction(Variable *Dest, Operand *Src0,
+                                 F &&MakeInstruction) {
+    const Type DestTy = Dest->getType();
+    assert(isVectorType(DestTy));
+    const Type DestElementTy = typeElementType(DestTy);
+    const SizeT NumElements = typeNumElements(DestTy);
+    const Type Src0ElementTy = typeElementType(Src0->getType());
+
+    assert(NumElements == typeNumElements(Src0->getType()));
+
+    Variable *T = Func->makeVariable(DestTy);
+    Context.insert<InstFakeDef>(T);
+    for (SizeT I = 0; I < NumElements; ++I) {
+      Constant *Index = Ctx->getConstantInt32(I);
+
+      // Extract the next two inputs.
+      Variable *Op0 = Func->makeVariable(Src0ElementTy);
+      Context.insert<InstExtractElement>(Op0, Src0, Index);
+
+      // Perform the operation as a scalar operation.
+      Variable *Res = Func->makeVariable(DestElementTy);
+      auto Arith = MakeInstruction(Res, Op0);
+      // We might have created an operation that needed a helper call.
+      genTargetHelperCallFor(Arith);
+
+      // Insert the result into position.
+      Variable *DestT = Func->makeVariable(DestTy);
+      Context.insert<InstInsertElement>(DestT, T, Res, Index);
+      T = DestT;
+    }
+    Context.insert<InstAssign>(Dest, T);
+  }
+
   /// SandboxType enumerates all possible sandboxing strategies that
   enum SandboxType {
     ST_None,

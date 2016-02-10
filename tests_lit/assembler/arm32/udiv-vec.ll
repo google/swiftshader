@@ -31,15 +31,19 @@ entry:
 ; TODO(eholk): this code could be a lot better. Fix the code generator
 ; and update the test. Same for the rest of the tests.
 
-; ASM:     vdiv.f32        s8, s8, s9
-; ASM:     vdiv.f32        s8, s8, s9
-; ASM:     vdiv.f32        s8, s8, s9
-; ASM:     vdiv.f32        s0, s0, s4
+; ASM:      vdiv.f32        s12, s12, s13
+; ASM-NEXT: vmov.f32	    s8, s12
+; ASM:      vdiv.f32        s12, s12, s13
+; ASM-NEXT: vmov.f32	    s9, s12
+; ASM:      vdiv.f32        s12, s12, s13
+; ASM-NEXT: vmov.f32	    s10, s12
+; ASM:      vdiv.f32        s0, s0, s4
+; ASM-NEXT: vmov.f32	    s11, s0
 
-; DIS:   8:	ee844a24
-; DIS:  1c:	ee844a24
-; DIS:  2c:	ee844a24
-; DIS:  3c:	ee800a02
+; DIS:   8:	ee866a26
+; DIS:  18:	ee866a26
+; DIS:  28:	ee866a26
+; DIS:  38:	ee800a02
 
 ; IASM-NOT:     vdiv
 
@@ -60,9 +64,9 @@ entry:
 ; ASM:     udiv r0, r0, r1
 
 ; DIS:  64:	e730f110
-; DIS:  84:	e730f110
-; DIS:  a0:	e730f110
-; DIS:  bc:	e730f110
+; DIS:  80:	e730f110
+; DIS:  9c:	e730f110
+; DIS:  b8:	e730f110
 
 ; IASM-NOT:     udiv
 
@@ -105,27 +109,27 @@ entry:
 ; DIS:  e4:	e6ff0070
 ; DIS:  e8:	e6ff1071
 ; DIS:  ec:	e730f110
-; DIS: 10c:	e6ff0070
-; DIS: 110:	e6ff1071
-; DIS: 114:	e730f110
-; DIS: 130:	e6ff0070
-; DIS: 134:	e6ff1071
-; DIS: 138:	e730f110
-; DIS: 154:	e6ff0070
-; DIS: 158:	e6ff1071
-; DIS: 15c:	e730f110
-; DIS: 178:	e6ff0070
-; DIS: 17c:	e6ff1071
-; DIS: 180:	e730f110
-; DIS: 19c:	e6ff0070
-; DIS: 1a0:	e6ff1071
-; DIS: 1a4:	e730f110
-; DIS: 1c0:	e6ff0070
-; DIS: 1c4:	e6ff1071
-; DIS: 1c8:	e730f110
-; DIS: 1e4:	e6ff0070
-; DIS: 1e8:	e6ff1071
-; DIS: 1ec:	e730f110
+; DIS: 108:	e6ff0070
+; DIS: 10c:	e6ff1071
+; DIS: 110:	e730f110
+; DIS: 12c:	e6ff0070
+; DIS: 130:	e6ff1071
+; DIS: 134:	e730f110
+; DIS: 150:	e6ff0070
+; DIS: 154:	e6ff1071
+; DIS: 158:	e730f110
+; DIS: 174:	e6ff0070
+; DIS: 178:	e6ff1071
+; DIS: 17c:	e730f110
+; DIS: 198:	e6ff0070
+; DIS: 19c:	e6ff1071
+; DIS: 1a0:	e730f110
+; DIS: 1bc:	e6ff0070
+; DIS: 1c0:	e6ff1071
+; DIS: 1c4:	e730f110
+; DIS: 1e0:	e6ff0070
+; DIS: 1e4:	e6ff1071
+; DIS: 1e8:	e730f110
 
 ; IASM-NOT:     uxth
 ; IASM-NOT:     udiv
@@ -193,51 +197,51 @@ entry:
 ; DIS: 214:	e6ef0070
 ; DIS: 218:	e6ef1071
 ; DIS: 21c:	e730f110
-; DIS: 23c:	e6ef0070
-; DIS: 240:	e6ef1071
-; DIS: 244:	e730f110
-; DIS: 260:	e6ef0070
-; DIS: 264:	e6ef1071
-; DIS: 268:	e730f110
-; DIS: 284:	e6ef0070
-; DIS: 288:	e6ef1071
-; DIS: 28c:	e730f110
-; DIS: 2a8:	e6ef0070
-; DIS: 2ac:	e6ef1071
-; DIS: 2b0:	e730f110
-; DIS: 2cc:	e6ef0070
-; DIS: 2d0:	e6ef1071
-; DIS: 2d4:	e730f110
-; DIS: 2f0:	e6ef0070
-; DIS: 2f4:	e6ef1071
-; DIS: 2f8:	e730f110
-; DIS: 314:	e6ef0070
-; DIS: 318:	e6ef1071
-; DIS: 31c:	e730f110
-; DIS: 338:	e6ef0070
-; DIS: 33c:	e6ef1071
-; DIS: 340:	e730f110
-; DIS: 35c:	e6ef0070
-; DIS: 360:	e6ef1071
-; DIS: 364:	e730f110
-; DIS: 380:	e6ef0070
-; DIS: 384:	e6ef1071
-; DIS: 388:	e730f110
-; DIS: 3a4:	e6ef0070
-; DIS: 3a8:	e6ef1071
-; DIS: 3ac:	e730f110
-; DIS: 3c8:	e6ef0070
-; DIS: 3cc:	e6ef1071
-; DIS: 3d0:	e730f110
-; DIS: 3ec:	e6ef0070
-; DIS: 3f0:	e6ef1071
-; DIS: 3f4:	e730f110
-; DIS: 410:	e6ef0070
-; DIS: 414:	e6ef1071
-; DIS: 418:	e730f110
-; DIS: 434:	e6ef0070
-; DIS: 438:	e6ef1071
-; DIS: 43c:	e730f110
+; DIS: 238:	e6ef0070
+; DIS: 23c:	e6ef1071
+; DIS: 240:	e730f110
+; DIS: 25c:	e6ef0070
+; DIS: 260:	e6ef1071
+; DIS: 264:	e730f110
+; DIS: 280:	e6ef0070
+; DIS: 284:	e6ef1071
+; DIS: 288:	e730f110
+; DIS: 2a4:	e6ef0070
+; DIS: 2a8:	e6ef1071
+; DIS: 2ac:	e730f110
+; DIS: 2c8:	e6ef0070
+; DIS: 2cc:	e6ef1071
+; DIS: 2d0:	e730f110
+; DIS: 2ec:	e6ef0070
+; DIS: 2f0:	e6ef1071
+; DIS: 2f4:	e730f110
+; DIS: 310:	e6ef0070
+; DIS: 314:	e6ef1071
+; DIS: 318:	e730f110
+; DIS: 334:	e6ef0070
+; DIS: 338:	e6ef1071
+; DIS: 33c:	e730f110
+; DIS: 358:	e6ef0070
+; DIS: 35c:	e6ef1071
+; DIS: 360:	e730f110
+; DIS: 37c:	e6ef0070
+; DIS: 380:	e6ef1071
+; DIS: 384:	e730f110
+; DIS: 3a0:	e6ef0070
+; DIS: 3a4:	e6ef1071
+; DIS: 3a8:	e730f110
+; DIS: 3c4:	e6ef0070
+; DIS: 3c8:	e6ef1071
+; DIS: 3cc:	e730f110
+; DIS: 3e8:	e6ef0070
+; DIS: 3ec:	e6ef1071
+; DIS: 3f0:	e730f110
+; DIS: 40c:	e6ef0070
+; DIS: 410:	e6ef1071
+; DIS: 414:	e730f110
+; DIS: 430:	e6ef0070
+; DIS: 434:	e6ef1071
+; DIS: 438:	e730f110
 
 ; IASM-NOT:     uxtb
 ; IASM-NOT:     udiv

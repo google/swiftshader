@@ -1755,6 +1755,9 @@ template <> void InstARM32Ldr::emitIAS(const Cfg *Func) const {
   case IceType_v8i16:
   case IceType_v4i32:
   case IceType_v4f32:
+  case IceType_v16i1:
+  case IceType_v8i1:
+  case IceType_v4i1:
     Asm->vld1qr(getVecElmtBitsize(DestTy), Dest, getSrc(0), Func->getTarget());
     break;
   }
@@ -2094,6 +2097,9 @@ void InstARM32Str::emitIAS(const Cfg *Func) const {
   case IceType_v8i16:
   case IceType_v4i32:
   case IceType_v4f32:
+  case IceType_v16i1:
+  case IceType_v8i1:
+  case IceType_v4i1:
     Asm->vst1qr(getVecElmtBitsize(Ty), Src0, Src1, Func->getTarget());
     break;
   }

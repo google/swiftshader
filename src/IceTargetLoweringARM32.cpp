@@ -577,8 +577,18 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
     Variable *Dest = Instr->getDest();
     Operand *Src0 = Instr->getSrc(0);
     const Type DestTy = Dest->getType();
-    const InstCast::OpKind CastKind =
-        llvm::cast<InstCast>(Instr)->getCastKind();
+    auto *CastInstr = llvm::cast<InstCast>(Instr);
+    const InstCast::OpKind CastKind = CastInstr->getCastKind();
+
+    if (isVectorType(DestTy)) {
+      scalarizeUnaryInstruction(
+          Dest, Src0, [this, CastKind](Variable *Dest, Variable *Src) {
+            return Context.insert<InstCast>(CastKind, Dest, Src);
+          });
+      CastInstr->setDeleted();
+      return;
+    }
+
     switch (CastKind) {
     default:
       return;
@@ -722,6 +732,36 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
     }
     }
     llvm::report_fatal_error("Control flow should never have reached here.");
+  }
+  case Inst::Icmp: {
+    Variable *Dest = Instr->getDest();
+    const Type DestTy = Dest->getType();
+    if (isVectorType(DestTy)) {
+      auto *CmpInstr = llvm::cast<InstIcmp>(Instr);
+      const auto Condition = CmpInstr->getCondition();
+      scalarizeInstruction(
+          Dest, CmpInstr->getSrc(0), CmpInstr->getSrc(1),
+          [this, Condition](Variable *Dest, Variable *Src0, Variable *Src1) {
+            return Context.insert<InstIcmp>(Condition, Dest, Src0, Src1);
+          });
+      CmpInstr->setDeleted();
+    }
+    return;
+  }
+  case Inst::Fcmp: {
+    Variable *Dest = Instr->getDest();
+    const Type DestTy = Dest->getType();
+    if (isVectorType(DestTy)) {
+      auto *CmpInstr = llvm::cast<InstFcmp>(Instr);
+      const auto Condition = CmpInstr->getCondition();
+      scalarizeInstruction(
+          Dest, CmpInstr->getSrc(0), CmpInstr->getSrc(1),
+          [this, Condition](Variable *Dest, Variable *Src0, Variable *Src1) {
+            return Context.insert<InstFcmp>(Condition, Dest, Src0, Src1);
+          });
+      CmpInstr->setDeleted();
+    }
+    return;
   }
   }
 }
@@ -4194,9 +4234,6 @@ TargetARM32::lowerInt8AndInt16IcmpCond(InstIcmp::ICond Condition, Operand *Src0,
 }
 
 TargetARM32::CondWhenTrue TargetARM32::lowerIcmpCond(const InstIcmp *Instr) {
-  assert(Instr->getSrc(0)->getType() != IceType_i1);
-  assert(Instr->getSrc(1)->getType() != IceType_i1);
-
   Operand *Src0 = legalizeUndef(Instr->getSrc(0));
   Operand *Src1 = legalizeUndef(Instr->getSrc(1));
 
@@ -4233,6 +4270,7 @@ TargetARM32::CondWhenTrue TargetARM32::lowerIcmpCond(const InstIcmp *Instr) {
   switch (Src0->getType()) {
   default:
     llvm::report_fatal_error("Unhandled type in lowerIcmpCond");
+  case IceType_i1:
   case IceType_i8:
   case IceType_i16:
     return lowerInt8AndInt16IcmpCond(Condition, Src0, Src1);
