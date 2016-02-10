@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fdce9ca2_dde39fc0",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1148,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-02-10T15:20:42Z",
+      "side": 1,
+      "message": "I had to choose between using unsigned here or using signed integers at 1194 and 1198.",
+      "range": {
+        "startLine": 1148,
+        "startChar": 2,
+        "endLine": 1148,
+        "endChar": 47
+      },
+      "revId": "2f2aa477515b927634bc22afbcac42b599892586",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
