@@ -2102,50 +2102,54 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
             }
         }
         break;
-    case GL_TEXTURE_BINDING_2D:
-        {
-            if(mState.activeSampler > MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
-            {
-                error(GL_INVALID_OPERATION);
-                return false;
-            }
-
-            *params = mState.samplerTexture[TEXTURE_2D][mState.activeSampler].name();
-        }
-        break;
-    case GL_TEXTURE_BINDING_CUBE_MAP:
-        {
-            if(mState.activeSampler > MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
-            {
-                error(GL_INVALID_OPERATION);
-                return false;
-            }
-
-            *params = mState.samplerTexture[TEXTURE_CUBE][mState.activeSampler].name();
-        }
-        break;
-    case GL_TEXTURE_BINDING_EXTERNAL_OES:
-        {
-            if(mState.activeSampler > MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
-            {
-                error(GL_INVALID_OPERATION);
-                return false;
-            }
-
-            *params = mState.samplerTexture[TEXTURE_EXTERNAL][mState.activeSampler].name();
-        }
-        break;
-	case GL_TEXTURE_BINDING_3D_OES:
-	case GL_TEXTURE_BINDING_2D_ARRAY: // GLES 3.0
-	    {
-			if(mState.activeSampler > MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
-			{
-				error(GL_INVALID_OPERATION);
-				return false;
-			}
-
-			*params = mState.samplerTexture[TEXTURE_3D][mState.activeSampler].name();
+	case GL_TEXTURE_BINDING_2D:
+		if(mState.activeSampler > MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
+		{
+			error(GL_INVALID_OPERATION);
+			return false;
 		}
+
+		*params = mState.samplerTexture[TEXTURE_2D][mState.activeSampler].name();
+		break;
+	case GL_TEXTURE_BINDING_CUBE_MAP:
+		if(mState.activeSampler > MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
+		{
+			error(GL_INVALID_OPERATION);
+			return false;
+		}
+
+		*params = mState.samplerTexture[TEXTURE_CUBE][mState.activeSampler].name();
+		break;
+	case GL_TEXTURE_BINDING_EXTERNAL_OES:
+		if(mState.activeSampler > MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
+		{
+			error(GL_INVALID_OPERATION);
+			return false;
+		}
+
+		*params = mState.samplerTexture[TEXTURE_EXTERNAL][mState.activeSampler].name();
+		break;
+	case GL_TEXTURE_BINDING_3D_OES:
+		if(mState.activeSampler > MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
+		{
+			error(GL_INVALID_OPERATION);
+			return false;
+		}
+
+		*params = mState.samplerTexture[TEXTURE_3D][mState.activeSampler].name();
+		break;
+	case GL_TEXTURE_BINDING_2D_ARRAY: // GLES 3.0
+		if(clientVersion < 3)
+		{
+			return false;
+		}
+		else if(mState.activeSampler > MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
+		{
+			error(GL_INVALID_OPERATION);
+			return false;
+		}
+
+		*params = mState.samplerTexture[TEXTURE_2D_ARRAY][mState.activeSampler].name();
 		break;
 	case GL_COPY_READ_BUFFER_BINDING: // name, initially 0
 		if(clientVersion >= 3)
