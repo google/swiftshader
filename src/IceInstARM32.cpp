@@ -1436,11 +1436,15 @@ void InstARM32Mov::emitSingleDestSingleSource(const Cfg *Func) const {
   // assembler might be tempted to assume we want a vector vmov{c}, and that
   // is disallowed because ARM.
   const char *WidthString = !CoreVFPMove ? getVecWidthString(Ty) : "";
+  CondARM32::Cond Cond = getPredicate();
+  if (IsVector)
+    assert(CondARM32::isUnconditional(Cond) &&
+           "Moves on vectors must be unconditional!");
   Str << "\t" << Opcode;
   if (IsVMove) {
-    Str << getPredicate() << WidthString;
+    Str << Cond << WidthString;
   } else {
-    Str << WidthString << getPredicate();
+    Str << WidthString << Cond;
   }
   Str << "\t";
   Dest->emit(Func);
@@ -1467,8 +1471,9 @@ void InstARM32Mov::emit(const Cfg *Func) const {
 
 void InstARM32Mov::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
-  Variable *Dest = getDest();
+  const Variable *Dest = getDest();
   Operand *Src0 = getSrc(0);
+  const CondARM32::Cond Cond = getPredicate();
   if (!Dest->hasReg()) {
     llvm::report_fatal_error("mov can't store.");
   }
@@ -1478,11 +1483,11 @@ void InstARM32Mov::emitIAS(const Cfg *Func) const {
 
   assert(!(isMultiDest() && isMultiSource()) && "Invalid vmov type.");
   if (isMultiDest()) {
-    Asm->vmovrrd(Dest, getDestHi(), Src0, getPredicate());
+    Asm->vmovrrd(Dest, getDestHi(), Src0, Cond);
     return;
   }
   if (isMultiSource()) {
-    Asm->vmovdrr(Dest, Src0, getSrc(1), getPredicate());
+    Asm->vmovdrr(Dest, Src0, getSrc(1), Cond);
     return;
   }
 
@@ -1503,25 +1508,25 @@ void InstARM32Mov::emitIAS(const Cfg *Func) const {
     case IceType_i16:
     case IceType_i32:
     case IceType_i64:
-      Asm->mov(Dest, Src0, getPredicate());
+      Asm->mov(Dest, Src0, Cond);
       return;
     case IceType_f32:
-      Asm->vmovrs(Dest, Src0, getPredicate());
+      Asm->vmovrs(Dest, Src0, Cond);
       return;
     }
     break; // Error
   case IceType_i64:
     if (isScalarIntegerType(SrcTy)) {
-      Asm->mov(Dest, Src0, getPredicate());
+      Asm->mov(Dest, Src0, Cond);
       return;
     }
     if (SrcTy == IceType_f64) {
       if (const auto *Var = llvm::dyn_cast<Variable>(Src0)) {
-        Asm->vmovdd(Dest, Var, getPredicate());
+        Asm->vmovdd(Dest, Var, Cond);
         return;
       }
       if (const auto *FpImm = llvm::dyn_cast<OperandARM32FlexFpImm>(Src0)) {
-        Asm->vmovd(Dest, FpImm, getPredicate());
+        Asm->vmovd(Dest, FpImm, Cond);
         return;
       }
     }
@@ -1534,14 +1539,14 @@ void InstARM32Mov::emitIAS(const Cfg *Func) const {
     case IceType_i8:
     case IceType_i16:
     case IceType_i32:
-      return Asm->vmovsr(Dest, Src0, getPredicate());
+      return Asm->vmovsr(Dest, Src0, Cond);
     case IceType_f32:
       if (const auto *Var = llvm::dyn_cast<Variable>(Src0)) {
-        Asm->vmovss(Dest, Var, getPredicate());
+        Asm->vmovss(Dest, Var, Cond);
         return;
       }
       if (const auto *FpImm = llvm::dyn_cast<OperandARM32FlexFpImm>(Src0)) {
-        Asm->vmovs(Dest, FpImm, getPredicate());
+        Asm->vmovs(Dest, FpImm, Cond);
         return;
       }
       break; // Error
@@ -1550,11 +1555,11 @@ void InstARM32Mov::emitIAS(const Cfg *Func) const {
   case IceType_f64:
     if (SrcTy == IceType_f64) {
       if (const auto *Var = llvm::dyn_cast<Variable>(Src0)) {
-        Asm->vmovdd(Dest, Var, getPredicate());
+        Asm->vmovdd(Dest, Var, Cond);
         return;
       }
       if (const auto *FpImm = llvm::dyn_cast<OperandARM32FlexFpImm>(Src0)) {
-        Asm->vmovd(Dest, FpImm, getPredicate());
+        Asm->vmovd(Dest, FpImm, Cond);
         return;
       }
     }
@@ -1566,8 +1571,10 @@ void InstARM32Mov::emitIAS(const Cfg *Func) const {
   case IceType_v8i16:
   case IceType_v4i32:
   case IceType_v4f32:
-    // TODO(kschimpf): Add vector moves.
-    emitUsingTextFixup(Func);
+    assert(CondARM32::isUnconditional(Cond) &&
+           "Moves on <4 x f32> must be unconditional!");
+    assert(SrcTy == DestTy && "Mov on different vector types");
+    Asm->vorrq(Dest, Src0, Src0);
     return;
   }
   llvm::report_fatal_error("Mov: don't know how to move " +

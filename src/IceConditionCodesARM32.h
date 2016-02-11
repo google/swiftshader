@@ -35,6 +35,8 @@ public:
   };
 
   static bool isDefined(Cond C) { return C != kNone; }
+
+  static bool isUnconditional(Cond C) { return !isDefined(C) || C == AL; }
 };
 
 } // end of namespace Ice
