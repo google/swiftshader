@@ -4766,7 +4766,7 @@ void RenderbufferStorageMultisampleANGLE(GLenum target, GLsizei samples, GLenum 
 		case GL_DEPTH_COMPONENT16:
 		case GL_DEPTH_COMPONENT24:
 		case GL_DEPTH_COMPONENT32_OES:
-			context->setRenderbufferStorage(new es2::Depthbuffer(width, height, samples));
+			context->setRenderbufferStorage(new es2::Depthbuffer(width, height, internalformat, samples));
 			break;
 		case GL_R8:
 		case GL_R8UI:
@@ -4821,7 +4821,7 @@ void RenderbufferStorageMultisampleANGLE(GLenum target, GLsizei samples, GLenum 
 			}
 			// fall through
 		case GL_DEPTH24_STENCIL8_OES:
-			context->setRenderbufferStorage(new es2::DepthStencilbuffer(width, height, samples));
+			context->setRenderbufferStorage(new es2::DepthStencilbuffer(width, height, internalformat, samples));
 			break;
 		default:
 			return error(GL_INVALID_ENUM);

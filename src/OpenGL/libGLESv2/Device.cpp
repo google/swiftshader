@@ -259,6 +259,8 @@ namespace es2
 		case FORMAT_D24FS8:
 		case FORMAT_D32:
 		case FORMAT_D16:
+		case FORMAT_D32F:
+		case FORMAT_D32F_COMPLEMENTARY:
 			lockable = false;
 			break;
 	//	case FORMAT_S8_LOCKABLE:
@@ -267,6 +269,8 @@ namespace es2
 	//	case FORMAT_D32_LOCKABLE:
 		case FORMAT_DF24S8:
 		case FORMAT_DF16S8:
+		case FORMAT_D32FS8_TEXTURE:
+		case FORMAT_D32FS8_SHADOW:
 			lockable = true;
 			break;
 		default:
