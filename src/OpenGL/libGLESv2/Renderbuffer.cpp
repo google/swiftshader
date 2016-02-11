@@ -544,15 +544,41 @@ DepthStencilbuffer::DepthStencilbuffer(egl::Image *depthStencil) : mDepthStencil
 	}
 }
 
-DepthStencilbuffer::DepthStencilbuffer(int width, int height, GLsizei samples) : mDepthStencil(nullptr)
+DepthStencilbuffer::DepthStencilbuffer(int width, int height, GLenum requestedFormat, GLsizei samples) : mDepthStencil(nullptr)
 {
+	format = requestedFormat;
+	switch(requestedFormat)
+	{
+	case GL_STENCIL_INDEX8:
+	case GL_DEPTH_COMPONENT24:
+	case GL_DEPTH24_STENCIL8_OES:
+		internalFormat = sw::FORMAT_D24S8;
+		break;
+	case GL_DEPTH32F_STENCIL8:
+		internalFormat = sw::FORMAT_D32FS8_TEXTURE;
+		break;
+	case GL_DEPTH_COMPONENT16:
+		internalFormat = sw::FORMAT_D16;
+		break;
+	case GL_DEPTH_COMPONENT32_OES:
+		internalFormat = sw::FORMAT_D32;
+		break;
+	case GL_DEPTH_COMPONENT32F:
+		internalFormat = sw::FORMAT_D32F;
+		break;
+	default:
+		UNREACHABLE(requestedFormat);
+		format = GL_DEPTH24_STENCIL8_OES;
+		internalFormat = sw::FORMAT_D24S8;
+	}
+
 	Device *device = getDevice();
 
 	int supportedSamples = Context::getSupportedMultisampleCount(samples);
 
 	if(width > 0 && height > 0)
 	{
-		mDepthStencil = device->createDepthStencilSurface(width, height, sw::FORMAT_D24S8, supportedSamples, false);
+		mDepthStencil = device->createDepthStencilSurface(width, height, internalFormat, supportedSamples, false);
 
 		if(!mDepthStencil)
 		{
@@ -563,8 +589,6 @@ DepthStencilbuffer::DepthStencilbuffer(int width, int height, GLsizei samples) :
 
 	mWidth = width;
 	mHeight = height;
-	format = GL_DEPTH24_STENCIL8_OES;
-	internalFormat = sw::FORMAT_D24S8;
 	mSamples = supportedSamples;
 }
 
@@ -616,14 +640,8 @@ Depthbuffer::Depthbuffer(egl::Image *depthStencil) : DepthStencilbuffer(depthSte
 	}
 }
 
-Depthbuffer::Depthbuffer(int width, int height, GLsizei samples) : DepthStencilbuffer(width, height, samples)
+Depthbuffer::Depthbuffer(int width, int height, GLenum format, GLsizei samples) : DepthStencilbuffer(width, height, format, samples)
 {
-	if(mDepthStencil)
-	{
-		format = GL_DEPTH_COMPONENT16;   // If the renderbuffer parameters are queried, the calling function
-		                                 // will expect one of the valid renderbuffer formats for use in 
-		                                 // glRenderbufferStorage
-	}
 }
 
 Depthbuffer::~Depthbuffer()
@@ -640,14 +658,8 @@ Stencilbuffer::Stencilbuffer(egl::Image *depthStencil) : DepthStencilbuffer(dept
 	}
 }
 
-Stencilbuffer::Stencilbuffer(int width, int height, GLsizei samples) : DepthStencilbuffer(width, height, samples)
+Stencilbuffer::Stencilbuffer(int width, int height, GLsizei samples) : DepthStencilbuffer(width, height, GL_STENCIL_INDEX8, samples)
 {
-	if(mDepthStencil)
-	{
-		format = GL_STENCIL_INDEX8;   // If the renderbuffer parameters are queried, the calling function
-		                              // will expect one of the valid renderbuffer formats for use in 
-		                              // glRenderbufferStorage
-	}
 }
 
 Stencilbuffer::~Stencilbuffer()

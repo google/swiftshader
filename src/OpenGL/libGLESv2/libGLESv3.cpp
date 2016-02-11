@@ -1484,7 +1484,7 @@ GL_APICALL void GL_APIENTRY glRenderbufferStorageMultisample(GLenum target, GLsi
 		case GL_DEPTH_COMPONENT24:
 		case GL_DEPTH_COMPONENT32_OES:
 		case GL_DEPTH_COMPONENT32F:
-			context->setRenderbufferStorage(new es2::Depthbuffer(width, height, samples));
+			context->setRenderbufferStorage(new es2::Depthbuffer(width, height, internalformat, samples));
 			break;
 		case GL_R8UI:
 		case GL_R8I:
@@ -1531,7 +1531,7 @@ GL_APICALL void GL_APIENTRY glRenderbufferStorageMultisample(GLenum target, GLsi
 			break;
 		case GL_DEPTH24_STENCIL8:
 		case GL_DEPTH32F_STENCIL8:
-			context->setRenderbufferStorage(new es2::DepthStencilbuffer(width, height, samples));
+			context->setRenderbufferStorage(new es2::DepthStencilbuffer(width, height, internalformat, samples));
 			break;
 
 		default:
