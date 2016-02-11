@@ -3020,7 +3020,7 @@ void GetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenu
 			case GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL:
 				if(attachmentObjectType == GL_TEXTURE)
 				{
-					*params = 0; // FramebufferTexture2D will not allow level to be set to anything else in GL ES 2.0
+					*params = clientVersion < 3 ? 0 : renderbuffer->getLevel(); // FramebufferTexture2D will not allow level to be set to anything else in GL ES 2.0
 				}
 				else
 				{
