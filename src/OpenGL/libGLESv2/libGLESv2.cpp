@@ -2990,7 +2990,7 @@ void GetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenu
 		}
 
 		GLenum attachmentObjectType = GL_NONE;   // Type category
-		if(attachmentType == GL_NONE || attachmentType == GL_RENDERBUFFER)
+		if(attachmentType == GL_NONE || Framebuffer::IsRenderbuffer(attachmentType))
 		{
 			attachmentObjectType = attachmentType;
 		}
@@ -3008,7 +3008,7 @@ void GetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenu
 				*params = attachmentObjectType;
 				break;
 			case GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME:
-				if(attachmentObjectType == GL_RENDERBUFFER || attachmentObjectType == GL_TEXTURE)
+				if(Framebuffer::IsRenderbuffer(attachmentObjectType) || attachmentObjectType == GL_TEXTURE)
 				{
 					*params = attachmentHandle;
 				}

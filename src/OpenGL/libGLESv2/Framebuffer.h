@@ -78,6 +78,8 @@ public:
 
 	virtual bool isDefaultFramebuffer() const { return false; }
 
+	static bool IsRenderbuffer(GLenum type);
+
 protected:
     GLenum mColorbufferType[MAX_COLOR_ATTACHMENTS];
     gl::BindingPointer<Renderbuffer> mColorbufferPointer[MAX_COLOR_ATTACHMENTS];

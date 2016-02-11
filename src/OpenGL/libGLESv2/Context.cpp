@@ -4076,10 +4076,10 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 
     if(mask & GL_COLOR_BUFFER_BIT)
     {
-        const bool validReadType = readFramebuffer->getColorbufferType(getReadFramebufferColorIndex()) == GL_TEXTURE_2D ||
-                                   readFramebuffer->getColorbufferType(getReadFramebufferColorIndex()) == GL_RENDERBUFFER;
-        const bool validDrawType = drawFramebuffer->getColorbufferType(0) == GL_TEXTURE_2D ||
-                                   drawFramebuffer->getColorbufferType(0) == GL_RENDERBUFFER;
+		GLenum readColorbufferType = readFramebuffer->getColorbufferType(getReadFramebufferColorIndex());
+		GLenum drawColorbufferType = drawFramebuffer->getColorbufferType(0);
+		const bool validReadType = readColorbufferType == GL_TEXTURE_2D || Framebuffer::IsRenderbuffer(readColorbufferType);
+		const bool validDrawType = drawColorbufferType == GL_TEXTURE_2D || Framebuffer::IsRenderbuffer(drawColorbufferType);
         if(!validReadType || !validDrawType)
         {
             return error(GL_INVALID_OPERATION);
