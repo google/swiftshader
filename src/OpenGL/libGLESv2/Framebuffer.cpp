@@ -22,6 +22,11 @@
 namespace es2
 {
 
+bool Framebuffer::IsRenderbuffer(GLenum type)
+{
+	return type == GL_RENDERBUFFER || type == GL_FRAMEBUFFER_DEFAULT;
+}
+
 Framebuffer::Framebuffer()
 {
 	for(int i = 0; i < IMPLEMENTATION_MAX_COLOR_ATTACHMENTS; ++i)
@@ -58,7 +63,7 @@ Renderbuffer *Framebuffer::lookupRenderbuffer(GLenum type, GLuint handle, GLint 
 	{
 		buffer = NULL;
 	}
-	else if(type == GL_RENDERBUFFER)
+	else if(IsRenderbuffer(type))
 	{
 		buffer = context->getRenderbuffer(handle);
 	}
@@ -142,20 +147,20 @@ void Framebuffer::detachRenderbuffer(GLuint renderbuffer)
 {
 	for(int i = 0; i < IMPLEMENTATION_MAX_COLOR_ATTACHMENTS; ++i)
 	{
-		if(mColorbufferPointer[i].name() == renderbuffer && mColorbufferType[i] == GL_RENDERBUFFER)
+		if(mColorbufferPointer[i].name() == renderbuffer && IsRenderbuffer(mColorbufferType[i]))
 		{
 			mColorbufferType[i] = GL_NONE;
 			mColorbufferPointer[i] = NULL;
 		}
 	}
 
-	if(mDepthbufferPointer.name() == renderbuffer && mDepthbufferType == GL_RENDERBUFFER)
+	if(mDepthbufferPointer.name() == renderbuffer && IsRenderbuffer(mDepthbufferType))
 	{
 		mDepthbufferType = GL_NONE;
 		mDepthbufferPointer = NULL;
 	}
 
-	if(mStencilbufferPointer.name() == renderbuffer && mStencilbufferType == GL_RENDERBUFFER)
+	if(mStencilbufferPointer.name() == renderbuffer && IsRenderbuffer(mStencilbufferType))
 	{
 		mStencilbufferType = GL_NONE;
 		mStencilbufferPointer = NULL;
@@ -314,7 +319,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 				return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 			}
 
-			if(mColorbufferType[i] == GL_RENDERBUFFER)
+			if(IsRenderbuffer(mColorbufferType[i]))
 			{
 				if(!es2::IsColorRenderable(colorbuffer->getFormat(), egl::getClientVersion()))
 				{
@@ -376,7 +381,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 			return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 		}
 
-		if(mDepthbufferType == GL_RENDERBUFFER)
+		if(IsRenderbuffer(mDepthbufferType))
 		{
 			if(!es2::IsDepthRenderable(depthbuffer->getFormat()))
 			{
@@ -426,7 +431,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 			return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 		}
 
-		if(mStencilbufferType == GL_RENDERBUFFER)
+		if(IsRenderbuffer(mStencilbufferType))
 		{
 			if(!es2::IsStencilRenderable(stencilbuffer->getFormat()))
 			{
@@ -604,8 +609,9 @@ GLenum Framebuffer::getImplementationColorReadType()
 
 DefaultFramebuffer::DefaultFramebuffer(Colorbuffer *colorbuffer, DepthStencilbuffer *depthStencil)
 {
+	GLenum defaultRenderbufferType = egl::getClientVersion() < 3 ? GL_RENDERBUFFER : GL_FRAMEBUFFER_DEFAULT;
 	mColorbufferPointer[0] = new Renderbuffer(0, colorbuffer);
-	mColorbufferType[0] = GL_RENDERBUFFER;
+	mColorbufferType[0] = defaultRenderbufferType;
 
 	for(int i = 1; i < IMPLEMENTATION_MAX_COLOR_ATTACHMENTS; ++i)
 	{
@@ -617,8 +623,8 @@ DefaultFramebuffer::DefaultFramebuffer(Colorbuffer *colorbuffer, DepthStencilbuf
 	mDepthbufferPointer = depthStencilRenderbuffer;
 	mStencilbufferPointer = depthStencilRenderbuffer;
 
-	mDepthbufferType = (depthStencilRenderbuffer->getDepthSize() != 0) ? GL_RENDERBUFFER : GL_NONE;
-	mStencilbufferType = (depthStencilRenderbuffer->getStencilSize() != 0) ? GL_RENDERBUFFER : GL_NONE;
+	mDepthbufferType = (depthStencilRenderbuffer->getDepthSize() != 0) ? defaultRenderbufferType : GL_NONE;
+	mStencilbufferType = (depthStencilRenderbuffer->getStencilSize() != 0) ? defaultRenderbufferType : GL_NONE;
 }
 
 }
