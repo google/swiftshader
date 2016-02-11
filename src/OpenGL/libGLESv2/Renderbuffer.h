@@ -49,9 +49,13 @@ public:
 	virtual GLsizei getHeight() const = 0;
 	virtual GLsizei getDepth() const { return 1; }
 	virtual GLint getLayer() const { return 0; }
+	virtual GLint getLevel() const { return 0; }
 	virtual GLenum getFormat() const = 0;
 	virtual sw::Format getInternalFormat() const = 0;
 	virtual GLsizei getSamples() const = 0;
+
+	virtual void setLayer(GLint) {}
+	virtual void setLevel(GLint) {}
 
 	GLuint getRedSize() const;
 	GLuint getGreenSize() const;
@@ -77,9 +81,12 @@ public:
 
 	virtual GLsizei getWidth() const;
 	virtual GLsizei getHeight() const;
+	virtual GLint getLevel() const { return mLevel; }
 	virtual GLenum getFormat() const;
 	virtual sw::Format getInternalFormat() const;
 	virtual GLsizei getSamples() const;
+
+	virtual void setLevel(GLint level) { mLevel = level; }
 
 private:
 	gl::BindingPointer<Texture2D> mTexture2D;
@@ -104,9 +111,13 @@ public:
 	virtual GLsizei getHeight() const;
 	virtual GLsizei getDepth() const;
 	virtual GLint getLayer() const { return mLayer; }
+	virtual GLint getLevel() const { return mLevel; }
 	virtual GLenum getFormat() const;
 	virtual sw::Format getInternalFormat() const;
 	virtual GLsizei getSamples() const;
+
+	virtual void setLayer(GLint layer) { mLayer = layer; }
+	virtual void setLevel(GLint level) { mLevel = level; }
 
 private:
 	gl::BindingPointer<Texture3D> mTexture3D;
@@ -130,9 +141,12 @@ public:
 
 	virtual GLsizei getWidth() const;
 	virtual GLsizei getHeight() const;
+	virtual GLint getLevel() const { return mLevel; }
 	virtual GLenum getFormat() const;
 	virtual sw::Format getInternalFormat() const;
 	virtual GLsizei getSamples() const;
+
+	virtual void setLevel(GLint level) { mLevel = level; }
 
 private:
 	gl::BindingPointer<TextureCubeMap> mTextureCubeMap;
@@ -193,6 +207,7 @@ public:
 	GLsizei getHeight() const;
 	GLsizei getDepth() const;
 	GLint getLayer() const;
+	GLint getLevel() const;
 	GLenum getFormat() const;
 	sw::Format getInternalFormat() const;
 	GLuint getRedSize() const;
@@ -203,6 +218,8 @@ public:
 	GLuint getStencilSize() const;
 	GLsizei getSamples() const;
 
+	void setLayer(GLint layer);
+	void setLevel(GLint level);
 	void setStorage(RenderbufferStorage *newStorage);
 
 private:

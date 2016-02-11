@@ -347,6 +347,11 @@ GLint Renderbuffer::getLayer() const
 	return mInstance->getLayer();
 }
 
+GLint Renderbuffer::getLevel() const
+{
+	return mInstance->getLevel();
+}
+
 GLenum Renderbuffer::getFormat() const
 {
 	return mInstance->getFormat();
@@ -390,6 +395,16 @@ GLuint Renderbuffer::getStencilSize() const
 GLsizei Renderbuffer::getSamples() const
 {
 	return mInstance->getSamples();
+}
+
+void Renderbuffer::setLayer(GLint layer)
+{
+	return mInstance->setLayer(layer);
+}
+
+void Renderbuffer::setLevel(GLint level)
+{
+	return mInstance->setLevel(level);
 }
 
 void Renderbuffer::setStorage(RenderbufferStorage *newStorage)
