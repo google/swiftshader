@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fdce9ca2_de1dd2fb",
+        "filename": "src/OpenGL/libEGL/Android.mk",
+        "patchSetId": 1
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-02-12T16:51:10Z",
+      "side": 1,
+      "message": "Greg, do we still have a use for these?",
+      "range": {
+        "startLine": 51,
+        "startChar": 0,
+        "endLine": 79,
+        "endChar": 31
+      },
+      "revId": "b158783df1770fe1639d6f746cb7abee8ffb77f1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
