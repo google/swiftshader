@@ -2065,7 +2065,7 @@ void FramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum renderbuff
 			framebufferName = context->getDrawFramebufferName();
 		}
 
-		if(!framebuffer || (framebufferName == 0 && renderbuffer != 0))
+		if(!framebuffer || framebufferName == 0)
 		{
 			return error(GL_INVALID_OPERATION);
 		}
