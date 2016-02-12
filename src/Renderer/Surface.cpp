@@ -1169,9 +1169,9 @@ namespace sw
 		external.format = format;
 		external.bytes = bytes(external.format);
 		external.pitchB = pitch;
-		external.pitchP = pitch / external.bytes;
+		external.pitchP = external.bytes ? pitch / external.bytes : 0;
 		external.sliceB = slice;
-		external.sliceP = slice / external.bytes;
+		external.sliceP = external.bytes ? slice / external.bytes : 0;
 		external.lock = LOCK_UNLOCKED;
 		external.dirty = true;
 
