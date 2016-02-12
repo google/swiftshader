@@ -469,7 +469,9 @@ namespace egl
 		case GL_BGRA8_EXT:
 			switch(type)
 			{
-			case GL_UNSIGNED_BYTE:          return sw::FORMAT_A8R8G8B8;
+			case GL_UNSIGNED_BYTE:                  return sw::FORMAT_A8R8G8B8;
+			case GL_UNSIGNED_SHORT_4_4_4_4_REV_EXT: return sw::FORMAT_A4R4G4B4;
+			case GL_UNSIGNED_SHORT_1_5_5_5_REV_EXT: return sw::FORMAT_A1R5G5B5;
 			default: UNREACHABLE(type);
 			}
 			break;
@@ -1017,6 +1019,8 @@ namespace egl
 		case GL_UNSIGNED_SHORT_4_4_4_4:
 		case GL_UNSIGNED_SHORT_5_5_5_1:
 		case GL_UNSIGNED_SHORT_5_6_5:
+		case GL_UNSIGNED_SHORT_4_4_4_4_REV_EXT:
+		case GL_UNSIGNED_SHORT_1_5_5_5_REV_EXT:
 			return sizeof(unsigned short);
 		case GL_UNSIGNED_INT_10F_11F_11F_REV:
 		case GL_UNSIGNED_INT_5_9_9_9_REV:
