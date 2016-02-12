@@ -49,8 +49,15 @@ COMMON_LDFLAGS := \
 	-Wl,--hash-style=sysv
 
 include $(CLEAR_VARS)
+ifdef TARGET_2ND_ARCH
+LOCAL_MODULE_PATH_64 := vendor/transgaming/swiftshader/$(TARGET_ARCH)/debug/obj
+LOCAL_UNSTRIPPED_PATH_64 := vendor/transgaming/swiftshader/$(TARGET_ARCH)/debug/sym
+LOCAL_MODULE_PATH_32 := vendor/transgaming/swiftshader/$(TARGET_2ND_ARCH)/debug/obj
+LOCAL_UNSTRIPPED_PATH_32 := vendor/transgaming/swiftshader/$(TARGET_2ND_ARCH)/debug/sym
+else
 LOCAL_MODULE_PATH := vendor/transgaming/swiftshader/$(TARGET_ARCH)/debug/obj
 LOCAL_UNSTRIPPED_PATH := vendor/transgaming/swiftshader/$(TARGET_ARCH)/debug/sym
+endif
 LOCAL_MODULE := libEGL_swiftshader_vendor_debug
 LOCAL_MODULE_TAGS := optional
 LOCAL_INSTALLED_MODULE_STEM := libEGL_swiftshader.so
@@ -64,8 +71,15 @@ LOCAL_LDFLAGS += $(COMMON_LDFLAGS)
 include $(BUILD_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
+ifdef TARGET_2ND_ARCH
+LOCAL_MODULE_PATH_64 := vendor/transgaming/swiftshader/$(TARGET_ARCH)/release/obj
+LOCAL_UNSTRIPPED_PATH_64 := vendor/transgaming/swiftshader/$(TARGET_ARCH)/release/sym
+LOCAL_MODULE_PATH_32 := vendor/transgaming/swiftshader/$(TARGET_2ND_ARCH)/release/obj
+LOCAL_UNSTRIPPED_PATH_32 := vendor/transgaming/swiftshader/$(TARGET_2ND_ARCH)/release/sym
+else
 LOCAL_MODULE_PATH := vendor/transgaming/swiftshader/$(TARGET_ARCH)/release/obj
 LOCAL_UNSTRIPPED_PATH := vendor/transgaming/swiftshader/$(TARGET_ARCH)/release/sym
+endif
 LOCAL_MODULE := libEGL_swiftshader_vendor_release
 LOCAL_MODULE_TAGS := optional
 LOCAL_INSTALLED_MODULE_STEM := libEGL_swiftshader.so
