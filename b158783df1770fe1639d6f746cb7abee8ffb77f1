@@ -22,6 +22,30 @@
       "revId": "b158783df1770fe1639d6f746cb7abee8ffb77f1",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bd0fc4b0_5197836e",
+        "filename": "src/OpenGL/libEGL/Android.mk",
+        "patchSetId": 1
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5200
+      },
+      "writtenOn": "2016-02-12T17:34:27Z",
+      "side": 1,
+      "message": "Sadly we don\u0027t use them, but I\u0027d eventually like to.\n\nWhat problem are you trying to fix here? These variables aren\u0027t used in the build system on the branches that we support:\n\nLOCAL_MODULE_RELATIVE_PATH\nLOCAL_UNSTRIPPED_RELATIVE_PATH\n\nSo making these changes will break multiple branches (I think everything before L).\n\nIf you have to do this, you\u0027re probably going to need to ifdef on the API_LEVEL or something else.",
+      "parentUuid": "fdce9ca2_de1dd2fb",
+      "range": {
+        "startLine": 51,
+        "startChar": 0,
+        "endLine": 79,
+        "endChar": 31
+      },
+      "revId": "b158783df1770fe1639d6f746cb7abee8ffb77f1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
