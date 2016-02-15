@@ -620,27 +620,19 @@ namespace es2sw
 			return sw::FILTER_ANISOTROPIC;
 		}
 
-		sw::FilterType magFilterType = sw::FILTER_POINT;
-		switch(magFilter)
-		{
-		case GL_NEAREST: magFilterType = sw::FILTER_POINT;  break;
-		case GL_LINEAR:  magFilterType = sw::FILTER_LINEAR; break;
-		default: UNREACHABLE(magFilter);
-		}
-
 		switch(minFilter)
 		{
 		case GL_NEAREST:
 		case GL_NEAREST_MIPMAP_NEAREST:
 		case GL_NEAREST_MIPMAP_LINEAR:
-			return (magFilterType == sw::FILTER_POINT) ? sw::FILTER_POINT : sw::FILTER_MIN_POINT_MAG_LINEAR;
+			return (magFilter == GL_NEAREST) ? sw::FILTER_POINT : sw::FILTER_MIN_POINT_MAG_LINEAR;
 		case GL_LINEAR:
 		case GL_LINEAR_MIPMAP_NEAREST:
 		case GL_LINEAR_MIPMAP_LINEAR:
-			return (magFilterType == sw::FILTER_POINT) ? sw::FILTER_MIN_LINEAR_MAG_POINT : sw::FILTER_LINEAR;
+			return (magFilter == GL_NEAREST) ? sw::FILTER_MIN_LINEAR_MAG_POINT : sw::FILTER_LINEAR;
 		default:
 			UNREACHABLE(minFilter);
-			return (magFilterType == sw::FILTER_POINT) ? sw::FILTER_POINT : sw::FILTER_MIN_POINT_MAG_LINEAR;
+			return sw::FILTER_LINEAR;
 		}
 	}
 
@@ -698,7 +690,7 @@ namespace es2sw
 		case GL_RGB8_EXT:             return sw::FORMAT_X8R8G8B8;
 		case GL_DEPTH_COMPONENT16:
         case GL_DEPTH_COMPONENT24:
-		case GL_STENCIL_INDEX8:       
+		case GL_STENCIL_INDEX8:
 		case GL_DEPTH24_STENCIL8_EXT: return sw::FORMAT_D24S8;
 		default: UNREACHABLE(format); return sw::FORMAT_A8R8G8B8;
 		}
