@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fdce9ca2_8a4034de",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 569,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-02-15T18:12:56Z",
+      "side": 1,
+      "message": "As noted by Alexis, the ES 2.0 spec section 3.7.8 states that we can opt to use a value of 0.5 here to \"ensure that a minified texture does not appear “sharper” than a magnified texture\". I think that\u0027s a misleading reasoning. With MIPMAP_NEAREST, an LOD of e.g. 0.4 will be rounded to 0.0, making it sharper than when MIPMAP_LINEAR is used, but that has nothing to do with minification vs. magnification.\n\nI think a GPU manufacturer wrongly tied the filter selection to the rounded integer LOD, and then retrospectively sought a justification.\n\nUsing 0.5 as the threshold value would cause a jump between linear mipmap interpolation and using the top level. Thus I believe using 0.0 is really the preferred implementation.",
+      "range": {
+        "startLine": 569,
+        "startChar": 46,
+        "endLine": 569,
+        "endChar": 49
+      },
+      "revId": "fcd7ff034fa694b736859173dc1ab2925fc86c7b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
