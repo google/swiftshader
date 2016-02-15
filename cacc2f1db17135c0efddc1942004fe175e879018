@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fdce9ca2_2acb6099",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2068,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-02-15T18:30:40Z",
+      "side": 1,
+      "message": "OpenGL ES 2.0 spec section 4.4.3: \"An INVALID_OPERATION error is generated if the current value of FRAMEBUFFER_BINDING is zero when FramebufferRenderbuffer is called.\"\n\nThere doesn\u0027t appear to be an exception for when renderbuffer \u003d\u003d 0. You simply can\u0027t modify the default framebuffer. This now also matches the FramebufferTexture2D implementation below.",
+      "range": {
+        "startLine": 2068,
+        "startChar": 21,
+        "endLine": 2068,
+        "endChar": 41
+      },
+      "revId": "cacc2f1db17135c0efddc1942004fe175e879018",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
