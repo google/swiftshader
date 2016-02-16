@@ -502,7 +502,7 @@ void LinearScan::handleInactiveRangeExpiredOrReactivated(const Variable *Cur) {
 // not appear within the current Variable's live range.
 void LinearScan::findRegisterPreference(IterationState &Iter) {
   Iter.Prefer = nullptr;
-  Iter.PreferReg = RegNumT::NoRegister;
+  Iter.PreferReg = RegNumT();
   Iter.AllowOverlap = false;
 
   if (!FindPreference)
@@ -738,7 +738,7 @@ void LinearScan::handleNoFreeRegisters(IterationState &Iter) {
         --RegUses[RegAlias];
         assert(RegUses[RegAlias] >= 0);
       }
-      Item->setRegNumTmp(RegNumT::NoRegister);
+      Item->setRegNumTmp(RegNumT());
       moveItem(Active, Index, Handled);
       Evicted.push_back(Item);
     }
@@ -756,7 +756,7 @@ void LinearScan::handleNoFreeRegisters(IterationState &Iter) {
     // instructions.
     if (Aliases[Item->getRegNumTmp()] && Item->rangeOverlaps(Iter.Cur)) {
       dumpLiveRangeTrace("Evicting I   ", Item);
-      Item->setRegNumTmp(RegNumT::NoRegister);
+      Item->setRegNumTmp(RegNumT());
       moveItem(Inactive, Index, Handled);
       Evicted.push_back(Item);
     }

@@ -1987,8 +1987,7 @@ void InstImpl<TraitsType>::InstX86Lea::emit(const Cfg *Func) const {
     Type Ty = Src0Var->getType();
     // lea on x86-32 doesn't accept mem128 operands, so cast VSrc0 to an
     // acceptable type.
-    Src0Var->asType(isVectorType(Ty) ? IceType_i32 : Ty, RegNumT::NoRegister)
-        ->emit(Func);
+    Src0Var->asType(isVectorType(Ty) ? IceType_i32 : Ty, RegNumT())->emit(Func);
   } else {
     Src0->emit(Func);
   }
@@ -2025,7 +2024,7 @@ void InstImpl<TraitsType>::InstX86Mov::emit(const Cfg *Func) const {
          InstX86Base::getTarget(Func)->typeWidthInBytesOnStack(SrcTy));
   const Operand *NewSrc = Src;
   if (auto *SrcVar = llvm::dyn_cast<Variable>(Src)) {
-    auto NewRegNum = RegNumT::NoRegister;
+    RegNumT NewRegNum;
     if (SrcVar->hasReg())
       NewRegNum = Traits::getGprForType(DestTy, SrcVar->getRegNum());
     if (SrcTy != DestTy)

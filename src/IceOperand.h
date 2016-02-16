@@ -403,11 +403,11 @@ private:
 };
 
 /// RegNumT is for holding target-specific register numbers, plus the sentinel
-/// value NoRegister.  Its public ctor allows direct use of enum values, such as
-/// RegNumT(Reg_eax), but not things like RegNumT(Reg_eax+1).  This is to try to
-/// prevent inappropriate assumptions about enum ordering.  If needed, the
-/// fromInt() method can be used, such as when a RegNumT is based on a bitvector
-/// index.
+/// value if no register is assigned. Its public ctor allows direct use of enum
+/// values, such as RegNumT(Reg_eax), but not things like RegNumT(Reg_eax+1).
+/// This is to try to prevent inappropriate assumptions about enum ordering. If
+/// needed, the fromInt() method can be used, such as when a RegNumT is based
+/// on a bitvector index.
 class RegNumT {
 public:
   using BaseType = uint32_t;
@@ -441,7 +441,9 @@ public:
   // Define NoRegisterValue as an enum value so that it can be used as an
   // argument for the public ctor if desired.
   enum { NoRegisterValue = std::numeric_limits<BaseType>::max() };
-  const static RegNumT NoRegister /* = NoRegisterValue */;
+
+  bool hasValue() const { return Value != NoRegisterValue; }
+  bool hasNoValue() const { return !hasValue(); }
 
 private:
   BaseType Value = NoRegisterValue;
@@ -646,14 +648,14 @@ public:
     return "lv$" + getName(Func);
   }
 
-  bool hasReg() const { return getRegNum() != RegNumT::NoRegister; }
+  bool hasReg() const { return getRegNum().hasValue(); }
   RegNumT getRegNum() const { return RegNum; }
   void setRegNum(RegNumT NewRegNum) {
     // Regnum shouldn't be set more than once.
     assert(!hasReg() || RegNum == NewRegNum);
     RegNum = NewRegNum;
   }
-  bool hasRegTmp() const { return getRegNumTmp() != RegNumT::NoRegister; }
+  bool hasRegTmp() const { return getRegNumTmp().hasValue(); }
   RegNumT getRegNumTmp() const { return RegNumTmp; }
   void setRegNumTmp(RegNumT NewRegNum) { RegNumTmp = NewRegNum; }
 
@@ -702,7 +704,7 @@ public:
   /// primarily for syntactic correctness of textual assembly emission. Note
   /// that only basic information is copied, in particular not IsArgument,
   /// IsImplicitArgument, IgnoreLiveness, RegNumTmp, Live, LoVar, HiVar,
-  /// VarsReal.  If NewRegNum!=NoRegister, then that register assignment is made
+  /// VarsReal. If NewRegNum.hasValue(), then that register assignment is made
   /// instead of copying the existing assignment.
   const Variable *asType(Type Ty, RegNumT NewRegNum) const;
 
@@ -711,7 +713,7 @@ public:
   void dump(const Cfg *Func, Ostream &Str) const override;
 
   /// Return reg num of base register, if different from stack/frame register.
-  virtual RegNumT getBaseRegNum() const { return RegNumT::NoRegister; }
+  virtual RegNumT getBaseRegNum() const { return RegNumT(); }
 
   static bool classof(const Operand *Operand) {
     OperandKind Kind = Operand->getKind();
@@ -741,13 +743,12 @@ protected:
   bool IsRematerializable = false;
   RegRequirement RegRequirement = RR_MayHaveRegister;
   RegClass RegisterClass;
-  /// RegNum is the allocated register, or NoRegister if it isn't
-  /// register-allocated.
-  RegNumT RegNum = RegNumT::NoRegister;
+  /// RegNum is the allocated register, (as long as RegNum.hasValue() is true).
+  RegNumT RegNum;
   /// RegNumTmp is the tentative assignment during register allocation.
-  RegNumT RegNumTmp = RegNumT::NoRegister;
+  RegNumT RegNumTmp;
   /// StackOffset is the canonical location on stack (only if
-  /// RegNum==NoRegister || IsArgument).
+  /// RegNum.hasNoValue() || IsArgument).
   int32_t StackOffset = 0;
   LiveRange Live;
   /// VarsReal (and Operand::Vars) are set up such that Vars[0] == this.

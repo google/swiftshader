@@ -375,7 +375,7 @@ private:
 public:
   // Return a register in RegNum's alias set that is suitable for Ty.
   static RegNumT getGprForType(Type Ty, RegNumT RegNum) {
-    assert(RegNum != RegNumT::NoRegister);
+    assert(RegNum.hasValue());
 
     if (!isScalarIntegerType(Ty)) {
       return RegNum;
@@ -686,7 +686,7 @@ public:
     static_assert(RegisterSet::Reg_xmm0 + 1 == RegisterSet::Reg_xmm1,
                   "Inconsistency between XMM register numbers and ordinals");
     if (ArgNum >= X86_MAX_XMM_ARGS) {
-      return RegNumT::NoRegister;
+      return RegNumT();
     }
     return RegNumT::fixme(RegisterSet::Reg_xmm0 + ArgNum);
   }
@@ -695,7 +695,7 @@ public:
     assert(Ty == IceType_i64 || Ty == IceType_i32);
     (void)Ty;
     (void)ArgNum;
-    return RegNumT::NoRegister;
+    return RegNumT();
   }
 
   /// The number of bits in a byte

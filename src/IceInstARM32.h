@@ -361,7 +361,7 @@ public:
 private:
   StackVariable(Type Ty, SizeT Index)
       : Variable(StackVariableKind, Ty, Index) {}
-  RegNumT BaseRegNum = RegNumT::NoRegister;
+  RegNumT BaseRegNum;
 };
 
 /// Base class for ARM instructions. While most ARM instructions can be

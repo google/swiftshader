@@ -1183,7 +1183,7 @@ void TargetARM32::emitVariable(const Variable *Var) const {
   assert(!Var->isRematerializable());
   int32_t Offset = Var->getStackOffset();
   auto BaseRegNum = Var->getBaseRegNum();
-  if (BaseRegNum == RegNumT::NoRegister) {
+  if (BaseRegNum.hasNoValue()) {
     BaseRegNum = getFrameOrStackReg();
   }
   const Type VarTy = Var->getType();
@@ -5816,7 +5816,7 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
   assert(Allowed & Legal_Reg);
 
   // Copied ipsis literis from TargetX86Base<Machine>.
-  if (RegNum == RegNumT::NoRegister) {
+  if (RegNum.hasNoValue()) {
     if (Variable *Subst = getContext().availabilityGet(From)) {
       // At this point we know there is a potential substitution available.
       if (!Subst->isRematerializable() && Subst->mustHaveReg() &&
@@ -6018,7 +6018,7 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
     //   register, or
     //   RegNum is required and Var->getRegNum() doesn't match.
     if ((!(Allowed & Legal_Mem) && !MustHaveRegister) ||
-        (RegNum != RegNumT::NoRegister && RegNum != Var->getRegNum())) {
+        (RegNum.hasValue() && (RegNum != Var->getRegNum()))) {
       From = copyToReg(From, RegNum);
     }
     return From;
@@ -6085,12 +6085,12 @@ Variable64On32 *TargetARM32::makeI64RegPair() {
 Variable *TargetARM32::makeReg(Type Type, RegNumT RegNum) {
   // There aren't any 64-bit integer registers for ARM32.
   assert(Type != IceType_i64);
-  assert(AllowTemporaryWithNoReg || RegNum != RegNumT::NoRegister);
+  assert(AllowTemporaryWithNoReg || RegNum.hasValue());
   Variable *Reg = Func->makeVariable(Type);
-  if (RegNum == RegNumT::NoRegister)
-    Reg->setMustHaveReg();
-  else
+  if (RegNum.hasValue())
     Reg->setRegNum(RegNum);
+  else
+    Reg->setMustHaveReg();
   return Reg;
 }
 

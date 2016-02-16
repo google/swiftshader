@@ -220,15 +220,15 @@ public:
   };
   typedef uint32_t LegalMask;
   Operand *legalize(Operand *From, LegalMask Allowed = Legal_Default,
-                    RegNumT RegNum = RegNumT::NoRegister);
+                    RegNumT RegNum = RegNumT());
 
-  Variable *legalizeToVar(Operand *From, RegNumT RegNum = RegNumT::NoRegister);
+  Variable *legalizeToVar(Operand *From, RegNumT RegNum = RegNumT());
 
-  Variable *legalizeToReg(Operand *From, RegNumT RegNum = RegNumT::NoRegister);
+  Variable *legalizeToReg(Operand *From, RegNumT RegNum = RegNumT());
 
-  Variable *makeReg(Type Ty, RegNumT RegNum = RegNumT::NoRegister);
+  Variable *makeReg(Type Ty, RegNumT RegNum = RegNumT());
   static Type stackSlotType();
-  Variable *copyToReg(Operand *Src, RegNumT RegNum = RegNumT::NoRegister);
+  Variable *copyToReg(Operand *Src, RegNumT RegNum = RegNumT());
 
   void addProlog(CfgNode *Node) override;
   void addEpilog(CfgNode *Node) override;
@@ -240,7 +240,7 @@ public:
   Operand *loOperand(Operand *Operand);
   Operand *hiOperand(Operand *Operand);
 
-  Operand *legalizeUndef(Operand *From, RegNumT RegNum = RegNumT::NoRegister);
+  Operand *legalizeUndef(Operand *From, RegNumT RegNum = RegNumT());
 
 protected:
   explicit TargetMIPS32(Cfg *Func);

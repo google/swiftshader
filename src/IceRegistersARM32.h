@@ -104,7 +104,7 @@ extern struct RegTableType {
 
 static inline void assertValidRegNum(RegNumT RegNum) {
   (void)RegNum;
-  assert(RegNum != RegNumT::NoRegister);
+  assert(RegNum.hasValue());
 }
 
 static inline bool isGPRegister(RegNumT RegNum) {

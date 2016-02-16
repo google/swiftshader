@@ -360,10 +360,10 @@ Variable *TargetMIPS32::makeReg(Type Type, RegNumT RegNum) {
   // There aren't any 64-bit integer registers for Mips32.
   assert(Type != IceType_i64);
   Variable *Reg = Func->makeVariable(Type);
-  if (RegNum == RegNumT::NoRegister)
-    Reg->setMustHaveReg();
-  else
+  if (RegNum.hasValue())
     Reg->setRegNum(RegNum);
+  else
+    Reg->setMustHaveReg();
   return Reg;
 }
 
@@ -1253,10 +1253,10 @@ Operand *TargetMIPS32::legalize(Operand *From, LegalMask Allowed,
     // Also try the inverse and use MVN if possible.
     // Do a movw/movt to a register.
     Variable *Reg;
-    if (RegNum == RegNumT::NoRegister)
-      Reg = makeReg(Ty, RegNum);
-    else
+    if (RegNum.hasValue())
       Reg = getPhysicalRegister(RegNum);
+    else
+      Reg = makeReg(Ty, RegNum);
     if (isInt<16>(int32_t(Value))) {
       Variable *Zero = getPhysicalRegister(RegMIPS32::Reg_ZERO, Ty);
       Context.insert<InstFakeDef>(Zero);
@@ -1281,7 +1281,7 @@ Operand *TargetMIPS32::legalize(Operand *From, LegalMask Allowed,
     //   register, or
     //   RegNum is required and Var->getRegNum() doesn't match.
     if ((!(Allowed & Legal_Mem) && !MustHaveRegister) ||
-        (RegNum != RegNumT::NoRegister && RegNum != Var->getRegNum())) {
+        (RegNum.hasValue() && RegNum != Var->getRegNum())) {
       From = copyToReg(From, RegNum);
     }
     return From;

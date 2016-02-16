@@ -419,8 +419,7 @@ Traits::X86OperandMem *TargetX8664::_sandbox_mem_reference(X86OperandMem *Mem) {
     }
   }
 
-  auto RegNum = RegNumT::NoRegister;
-  auto RegNum32 = RegNumT::NoRegister;
+  RegNumT RegNum, RegNum32;
   if (T != nullptr) {
     if (T->hasReg()) {
       RegNum = Traits::getGprForType(IceType_i64, T->getRegNum());

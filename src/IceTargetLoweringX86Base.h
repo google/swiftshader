@@ -220,7 +220,7 @@ public:
   X86Address stackVarToAsmOperand(const Variable *Var) const;
 
   InstructionSetEnum getInstructionSet() const { return InstructionSet; }
-  Operand *legalizeUndef(Operand *From, RegNumT RegNum = RegNumT::NoRegister);
+  Operand *legalizeUndef(Operand *From, RegNumT RegNum = RegNumT());
 
 protected:
   const bool NeedSandboxing;
@@ -389,8 +389,8 @@ protected:
   };
   using LegalMask = uint32_t;
   Operand *legalize(Operand *From, LegalMask Allowed = Legal_Default,
-                    RegNumT RegNum = RegNumT::NoRegister);
-  Variable *legalizeToReg(Operand *From, RegNumT RegNum = RegNumT::NoRegister);
+                    RegNumT RegNum = RegNumT());
+  Variable *legalizeToReg(Operand *From, RegNumT RegNum = RegNumT());
   /// Legalize the first source operand for use in the cmp instruction.
   Operand *legalizeSrc0ForCmp(Operand *Src0, Operand *Src1);
   /// Turn a pointer operand into a memory operand that can be used by a real
@@ -399,7 +399,7 @@ protected:
   X86OperandMem *formMemoryOperand(Operand *Ptr, Type Ty,
                                    bool DoLegalize = true);
 
-  Variable *makeReg(Type Ty, RegNumT RegNum = RegNumT::NoRegister);
+  Variable *makeReg(Type Ty, RegNumT RegNum = RegNumT());
   static Type stackSlotType();
 
   static constexpr uint32_t NoSizeLimit = 0;
@@ -415,22 +415,20 @@ protected:
   static Type firstTypeThatFitsSize(uint32_t Size,
                                     uint32_t MaxSize = NoSizeLimit);
 
-  Variable *copyToReg8(Operand *Src, RegNumT RegNum = RegNumT::NoRegister);
-  Variable *copyToReg(Operand *Src, RegNumT RegNum = RegNumT::NoRegister);
+  Variable *copyToReg8(Operand *Src, RegNumT RegNum = RegNumT());
+  Variable *copyToReg(Operand *Src, RegNumT RegNum = RegNumT());
 
   /// Returns a register containing all zeros, without affecting the FLAGS
   /// register, using the best instruction for the type.
-  Variable *makeZeroedRegister(Type Ty, RegNumT RegNum = RegNumT::NoRegister);
+  Variable *makeZeroedRegister(Type Ty, RegNumT RegNum = RegNumT());
 
   /// \name Returns a vector in a register with the given constant entries.
   /// @{
-  Variable *makeVectorOfZeros(Type Ty, RegNumT RegNum = RegNumT::NoRegister);
-  Variable *makeVectorOfOnes(Type Ty, RegNumT RegNum = RegNumT::NoRegister);
-  Variable *makeVectorOfMinusOnes(Type Ty,
-                                  RegNumT RegNum = RegNumT::NoRegister);
-  Variable *makeVectorOfHighOrderBits(Type Ty,
-                                      RegNumT RegNum = RegNumT::NoRegister);
-  Variable *makeVectorOfFabsMask(Type Ty, RegNumT RegNum = RegNumT::NoRegister);
+  Variable *makeVectorOfZeros(Type Ty, RegNumT RegNum = RegNumT());
+  Variable *makeVectorOfOnes(Type Ty, RegNumT RegNum = RegNumT());
+  Variable *makeVectorOfMinusOnes(Type Ty, RegNumT RegNum = RegNumT());
+  Variable *makeVectorOfHighOrderBits(Type Ty, RegNumT RegNum = RegNumT());
+  Variable *makeVectorOfFabsMask(Type Ty, RegNumT RegNum = RegNumT());
   /// @}
 
   /// Return a memory operand corresponding to a stack allocated Variable.
@@ -676,7 +674,7 @@ protected:
   /// infinite register allocation weight, and returned through the in/out Dest
   /// argument.
   typename Traits::Insts::Mov *_mov(Variable *&Dest, Operand *Src0,
-                                    RegNumT RegNum = RegNumT::NoRegister) {
+                                    RegNumT RegNum = RegNumT()) {
     if (Dest == nullptr)
       Dest = makeReg(Src0->getType(), RegNum);
     AutoMemorySandboxer<> _(this, &Dest, &Src0);
@@ -1000,9 +998,9 @@ protected:
 
   /// Randomize a given immediate operand
   Operand *randomizeOrPoolImmediate(Constant *Immediate,
-                                    RegNumT RegNum = RegNumT::NoRegister);
+                                    RegNumT RegNum = RegNumT());
   X86OperandMem *randomizeOrPoolImmediate(X86OperandMem *MemOperand,
-                                          RegNumT RegNum = RegNumT::NoRegister);
+                                          RegNumT RegNum = RegNumT());
   bool RandomizationPoolingPaused = false;
 
 private:

@@ -891,7 +891,7 @@ void TargetX86Base<TraitsType>::emitVariable(const Variable *Var) const {
   }
   const int32_t Offset = Var->getStackOffset();
   auto BaseRegNum = Var->getBaseRegNum();
-  if (BaseRegNum == RegNumT::NoRegister)
+  if (BaseRegNum.hasNoValue())
     BaseRegNum = getFrameOrStackReg();
   // Print in the form "Offset(%reg)", taking care that:
   //   - Offset is never printed when it is 0
@@ -921,7 +921,7 @@ TargetX86Base<TraitsType>::stackVarToAsmOperand(const Variable *Var) const {
   }
   int32_t Offset = Var->getStackOffset();
   auto BaseRegNum = Var->getBaseRegNum();
-  if (Var->getBaseRegNum() == RegNumT::NoRegister)
+  if (Var->getBaseRegNum().hasNoValue())
     BaseRegNum = getFrameOrStackReg();
   return X86Address(Traits::getEncodedGPR(BaseRegNum), Offset,
                     AssemblerFixup::NoFixup);
@@ -1123,20 +1123,20 @@ void TargetX86Base<TraitsType>::addProlog(CfgNode *Node) {
   for (Variable *Arg : Args) {
     // Skip arguments passed in registers.
     if (isVectorType(Arg->getType())) {
-      if (Traits::getRegisterForXmmArgNum(NumXmmArgs) != RegNumT::NoRegister) {
+      if (Traits::getRegisterForXmmArgNum(NumXmmArgs).hasValue()) {
         ++NumXmmArgs;
         continue;
       }
     } else if (isScalarFloatingType(Arg->getType())) {
       if (Traits::X86_PASS_SCALAR_FP_IN_XMM &&
-          Traits::getRegisterForXmmArgNum(NumXmmArgs) != RegNumT::NoRegister) {
+          Traits::getRegisterForXmmArgNum(NumXmmArgs).hasValue()) {
         ++NumXmmArgs;
         continue;
       }
     } else {
       assert(isScalarIntegerType(Arg->getType()));
-      if (Traits::getRegisterForGprArgNum(Traits::WordType, NumGPRArgs) !=
-          RegNumT::NoRegister) {
+      if (Traits::getRegisterForGprArgNum(Traits::WordType, NumGPRArgs)
+              .hasValue()) {
         ++NumGPRArgs;
         continue;
       }
@@ -1476,10 +1476,10 @@ void TargetX86Base<TraitsType>::lowerArguments() {
     Variable *Arg = Args[i];
     Type Ty = Arg->getType();
     Variable *RegisterArg = nullptr;
-    auto RegNum = RegNumT::NoRegister;
+    RegNumT RegNum;
     if (isVectorType(Ty)) {
       RegNum = Traits::getRegisterForXmmArgNum(NumXmmArgs);
-      if (RegNum == RegNumT::NoRegister) {
+      if (RegNum.hasNoValue()) {
         XmmSlotsRemain = false;
         continue;
       }
@@ -1490,7 +1490,7 @@ void TargetX86Base<TraitsType>::lowerArguments() {
         continue;
       }
       RegNum = Traits::getRegisterForXmmArgNum(NumXmmArgs);
-      if (RegNum == RegNumT::NoRegister) {
+      if (RegNum.hasNoValue()) {
         XmmSlotsRemain = false;
         continue;
       }
@@ -1498,14 +1498,14 @@ void TargetX86Base<TraitsType>::lowerArguments() {
       RegisterArg = Func->makeVariable(Ty);
     } else if (isScalarIntegerType(Ty)) {
       RegNum = Traits::getRegisterForGprArgNum(Ty, NumGprArgs);
-      if (RegNum == RegNumT::NoRegister) {
+      if (RegNum.hasNoValue()) {
         GprSlotsRemain = false;
         continue;
       }
       ++NumGprArgs;
       RegisterArg = Func->makeVariable(Ty);
     }
-    assert(RegNum != RegNumT::NoRegister);
+    assert(RegNum.hasValue());
     assert(RegisterArg != nullptr);
     // Replace Arg in the argument list with the home register. Then generate
     // an instruction in the prolog to copy the home register to the assigned
@@ -2490,16 +2490,14 @@ void TargetX86Base<TraitsType>::lowerCall(const InstCall *Instr) {
     const Type Ty = Arg->getType();
     // The PNaCl ABI requires the width of arguments to be at least 32 bits.
     assert(typeWidthInBytes(Ty) >= 4);
-    if (isVectorType(Ty) && (Traits::getRegisterForXmmArgNum(XmmArgs.size()) !=
-                             RegNumT::NoRegister)) {
+    if (isVectorType(Ty) &&
+        Traits::getRegisterForXmmArgNum(XmmArgs.size()).hasValue()) {
       XmmArgs.push_back(Arg);
     } else if (isScalarFloatingType(Ty) && Traits::X86_PASS_SCALAR_FP_IN_XMM &&
-               (Traits::getRegisterForXmmArgNum(XmmArgs.size()) !=
-                RegNumT::NoRegister)) {
+               Traits::getRegisterForXmmArgNum(XmmArgs.size()).hasValue()) {
       XmmArgs.push_back(Arg);
     } else if (isScalarIntegerType(Ty) &&
-               (Traits::getRegisterForGprArgNum(Ty, GprArgs.size()) !=
-                RegNumT::NoRegister)) {
+               Traits::getRegisterForGprArgNum(Ty, GprArgs.size()).hasValue()) {
       GprArgs.emplace_back(Ty, Arg);
     } else {
       // Place on stack.
@@ -6613,7 +6611,7 @@ TargetX86Base<TraitsType>::getMemoryOperandForStackSlot(Type Ty, Variable *Slot,
                                                         uint32_t Offset) {
   // Ensure that Loc is a stack slot.
   assert(Slot->mustNotHaveReg());
-  assert(Slot->getRegNum() == RegNumT::NoRegister);
+  assert(Slot->getRegNum().hasNoValue());
   // Compute the location of Loc in memory.
   // TODO(wala,stichnot): lea should not
   // be required. The address of the stack slot is known at compile time
@@ -6642,7 +6640,7 @@ TargetX86Base<TraitsType>::getMemoryOperandForStackSlot(Type Ty, Variable *Slot,
 ///
 /// Note #1.  On a 64-bit target, the "movb 4(%ebp), %ah" is likely not
 /// encodable, so RegNum=Reg_ah should NOT be given as an argument.  Instead,
-/// use RegNum=NoRegister and then let the caller do a separate copy into
+/// use RegNum=RegNumT() and then let the caller do a separate copy into
 /// Reg_ah.
 ///
 /// Note #2.  ConstantRelocatable operands are also put through this process
@@ -6713,14 +6711,14 @@ Operand *TargetX86Base<TraitsType>::legalize(Operand *From, LegalMask Allowed,
   // If we're asking for a specific physical register, make sure we're not
   // allowing any other operand kinds. (This could be future work, e.g. allow
   // the shl shift amount to be either an immediate or in ecx.)
-  assert(RegNum == RegNumT::NoRegister || Allowed == Legal_Reg);
+  assert(RegNum.hasNoValue() || Allowed == Legal_Reg);
 
   // Substitute with an available infinite-weight variable if possible.  Only do
   // this when we are not asking for a specific register, and when the
   // substitution is not locked to a specific register, and when the types
   // match, in order to capture the vast majority of opportunities and avoid
   // corner cases in the lowering.
-  if (RegNum == RegNumT::NoRegister) {
+  if (RegNum.hasNoValue()) {
     if (Variable *Subst = getContext().availabilityGet(From)) {
       // At this point we know there is a potential substitution available.
       if (Subst->mustHaveReg() && !Subst->hasReg()) {
@@ -6781,7 +6779,7 @@ Operand *TargetX86Base<TraitsType>::legalize(Operand *From, LegalMask Allowed,
     // register in x86-64.
     if (Traits::Is64Bit) {
       if (llvm::isa<ConstantInteger64>(Const)) {
-        if (RegNum != RegNumT::NoRegister) {
+        if (RegNum.hasValue()) {
           assert(Traits::getGprForType(IceType_i64, RegNum) == RegNum);
         }
         return copyToReg(Const, RegNum);
@@ -6864,7 +6862,7 @@ Operand *TargetX86Base<TraitsType>::legalize(Operand *From, LegalMask Allowed,
       _lea(NewVar, Mem);
       From = NewVar;
     } else if ((!(Allowed & Legal_Mem) && !MustHaveRegister) ||
-               (RegNum != RegNumT::NoRegister && RegNum != Var->getRegNum())) {
+               (RegNum.hasValue() && RegNum != Var->getRegNum())) {
       From = copyToReg(From, RegNum);
     }
     return From;
@@ -6967,10 +6965,10 @@ Variable *TargetX86Base<TraitsType>::makeReg(Type Type, RegNumT RegNum) {
   // There aren't any 64-bit integer registers for x86-32.
   assert(Traits::Is64Bit || Type != IceType_i64);
   Variable *Reg = Func->makeVariable(Type);
-  if (RegNum == RegNumT::NoRegister)
-    Reg->setMustHaveReg();
-  else
+  if (RegNum.hasValue())
     Reg->setRegNum(RegNum);
+  else
+    Reg->setMustHaveReg();
   return Reg;
 }
 
@@ -7241,7 +7239,7 @@ TargetX86Base<TraitsType>::randomizeOrPoolImmediate(X86OperandMem *MemOperand,
     // phi lowering, we should not ask for new physical registers in
     // general. However, if we do meet Memory Operand during phi lowering,
     // we should not blind or pool the immediates for now.
-    if (RegNum != RegNumT::NoRegister)
+    if (RegNum.hasValue())
       return MemOperand;
     Variable *RegTemp = makeReg(IceType_i32);
     IceString Label;

@@ -174,10 +174,10 @@ public:
   };
 
   using LegalMask = uint32_t;
-  Operand *legalizeUndef(Operand *From, RegNumT RegNum = RegNumT::NoRegister);
+  Operand *legalizeUndef(Operand *From, RegNumT RegNum = RegNumT());
   Operand *legalize(Operand *From, LegalMask Allowed = Legal_Default,
-                    RegNumT RegNum = RegNumT::NoRegister);
-  Variable *legalizeToReg(Operand *From, RegNumT RegNum = RegNumT::NoRegister);
+                    RegNumT RegNum = RegNumT());
+  Variable *legalizeToReg(Operand *From, RegNumT RegNum = RegNumT());
 
   OperandARM32ShAmtImm *shAmtImm(uint32_t ShAmtImm) const {
     assert(ShAmtImm < 32);
@@ -270,14 +270,14 @@ protected:
   OperandARM32Mem *formMemoryOperand(Operand *Ptr, Type Ty);
 
   Variable64On32 *makeI64RegPair();
-  Variable *makeReg(Type Ty, RegNumT RegNum = RegNumT::NoRegister);
+  Variable *makeReg(Type Ty, RegNumT RegNum = RegNumT());
   static Type stackSlotType();
-  Variable *copyToReg(Operand *Src, RegNumT RegNum = RegNumT::NoRegister);
+  Variable *copyToReg(Operand *Src, RegNumT RegNum = RegNumT());
   void alignRegisterPow2(Variable *Reg, uint32_t Align,
-                         RegNumT TmpRegNum = RegNumT::NoRegister);
+                         RegNumT TmpRegNum = RegNumT());
 
   /// Returns a vector in a register with the given constant entries.
-  Variable *makeVectorOfZeros(Type Ty, RegNumT RegNum = RegNumT::NoRegister);
+  Variable *makeVectorOfZeros(Type Ty, RegNumT RegNum = RegNumT());
 
   void
   makeRandomRegisterPermutation(llvm::SmallVectorImpl<RegNumT> &Permutation,
