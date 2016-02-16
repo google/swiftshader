@@ -154,6 +154,11 @@ void splitToClassAndName(const IceString &RegName, IceString *SplitRegClass,
   }
 }
 
+LLVM_ATTRIBUTE_NORETURN void badTargetFatalError(TargetArch Target) {
+  llvm::report_fatal_error("Unsupported target: " +
+                           std::string(targetArchString(Target)));
+}
+
 } // end of anonymous namespace
 
 void TargetLowering::filterTypeToRegisterSet(
@@ -243,7 +248,7 @@ std::unique_ptr<TargetLowering>
 TargetLowering::createLowering(TargetArch Target, Cfg *Func) {
   switch (Target) {
   default:
-    llvm::report_fatal_error("Unsupported target");
+    badTargetFatalError(Target);
 #define SUBZERO_TARGET(X)                                                      \
   case Target_##X:                                                             \
     return ::X::createTargetLowering(Func);
@@ -257,7 +262,7 @@ void TargetLowering::staticInit(GlobalContext *Ctx) {
   // Call the specified target's static initializer.
   switch (Target) {
   default:
-    llvm::report_fatal_error("Unsupported target");
+    badTargetFatalError(Target);
 #define SUBZERO_TARGET(X)                                                      \
   case Target_##X: {                                                           \
     static bool InitGuard##X = false;                                          \
@@ -742,7 +747,7 @@ TargetDataLowering::createLowering(GlobalContext *Ctx) {
   TargetArch Target = Ctx->getFlags().getTargetArch();
   switch (Target) {
   default:
-    llvm::report_fatal_error("Unsupported target");
+    badTargetFatalError(Target);
 #define SUBZERO_TARGET(X)                                                      \
   case Target_##X:                                                             \
     return ::X::createTargetDataLowering(Ctx);
@@ -874,7 +879,7 @@ TargetHeaderLowering::createLowering(GlobalContext *Ctx) {
   TargetArch Target = Ctx->getFlags().getTargetArch();
   switch (Target) {
   default:
-    llvm::report_fatal_error("Unsupported target");
+    badTargetFatalError(Target);
 #define SUBZERO_TARGET(X)                                                      \
   case Target_##X:                                                             \
     return ::X::createTargetHeaderLowering(Ctx);

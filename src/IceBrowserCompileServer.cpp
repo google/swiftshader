@@ -17,6 +17,13 @@
 #if PNACL_BROWSER_TRANSLATOR
 
 #include "IceBrowserCompileServer.h"
+
+// Headers which are not properly part of the SDK are included by their path in
+// the NaCl tree.
+#ifdef __pnacl__
+#include "native_client/src/untrusted/nacl/pnacl.h"
+#endif // __pnacl__
+
 #include "llvm/Support/QueueStreamer.h"
 
 #include <cstring>
@@ -116,6 +123,35 @@ void fatalErrorHandler(void *UserData, const std::string &Reason,
   pthread_exit(0);
 }
 
+/// Adapted from pnacl-llc's AddDefaultCPU() in srpc_main.cpp.
+TargetArch getTargetArch() {
+#if defined(__pnacl__)
+  switch (__builtin_nacl_target_arch()) {
+  case PnaclTargetArchitectureX86_32:
+  case PnaclTargetArchitectureX86_32_NonSFI:
+    return Target_X8632;
+  case PnaclTargetArchitectureX86_64:
+    return Target_X8664;
+  case PnaclTargetArchitectureARM_32:
+  case PnaclTargetArchitectureARM_32_NonSFI:
+    return Target_ARM32;
+  case PnaclTargetArchitectureMips_32:
+    return Target_MIPS32;
+  default:
+    llvm::report_fatal_error("no target architecture match.");
+  }
+#elif defined(__i386__)
+  return Target_X8632;
+#elif defined(__x86_64__)
+  return Target_X8664;
+#elif defined(__arm__)
+  return Target_ARM32;
+#else
+// TODO(stichnot): Add mips.
+#error "Unknown architecture"
+#endif
+}
+
 } // end of anonymous namespace
 
 BrowserCompileServer::~BrowserCompileServer() = default;
@@ -135,8 +171,7 @@ void BrowserCompileServer::getParsedFlags(uint32_t NumThreads, int argc,
   Flags.setNumTranslationThreads(NumThreads);
   Flags.setUseSandboxing(true);
   Flags.setOutFileType(FT_Elf);
-  // TODO(jvoung): allow setting different target arches.
-  Flags.setTargetArch(Target_X8632);
+  Flags.setTargetArch(getTargetArch());
   ExtraFlags.setBuildOnRead(true);
   ExtraFlags.setInputFileFormat(llvm::PNaClFormat);
 }
