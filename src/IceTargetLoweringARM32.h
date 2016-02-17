@@ -246,8 +246,29 @@ protected:
                                   Operand *Src1);
   CondWhenTrue lowerInt64IcmpCond(InstIcmp::ICond Condition, Operand *Src0,
                                   Operand *Src1);
+  CondWhenTrue lowerIcmpCond(InstIcmp::ICond Condition, Operand *Src0,
+                             Operand *Src1);
   CondWhenTrue lowerIcmpCond(const InstIcmp *Instr);
   void lowerIcmp(const InstIcmp *Instr) override;
+  /// Emits the basic sequence for lower-linked/store-exclusive loops:
+  ///
+  /// retry:
+  ///        ldrex tmp, [Addr]
+  ///        StoreValue = Operation(tmp)
+  ///        strexCond success, StoreValue, [Addr]
+  ///        cmpCond success, #0
+  ///        bne retry
+  ///
+  /// Operation needs to return which value to strex in Addr, it must not change
+  /// the flags if Cond is not AL, and must not emit any instructions that could
+  /// end up writing to memory. Operation also needs to handle fake-defing for
+  /// i64 handling.
+  void
+  lowerLoadLinkedStoreExclusive(Type Ty, Operand *Addr,
+                                std::function<Variable *(Variable *)> Operation,
+                                CondARM32::Cond Cond = CondARM32::AL);
+  void lowerInt64AtomicRMW(Variable *Dest, uint32_t Operation, Operand *Ptr,
+                           Operand *Val);
   void lowerAtomicRMW(Variable *Dest, uint32_t Operation, Operand *Ptr,
                       Operand *Val);
   void lowerIntrinsicCall(const InstIntrinsicCall *Instr) override;
@@ -360,13 +381,14 @@ protected:
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert<InstARM32Ldr>(Dest, Addr, Pred);
   }
-  void _ldrex(Variable *Dest, OperandARM32Mem *Addr,
-              CondARM32::Cond Pred = CondARM32::AL) {
-    Context.insert<InstARM32Ldrex>(Dest, Addr, Pred);
+  InstARM32Ldrex *_ldrex(Variable *Dest, OperandARM32Mem *Addr,
+                         CondARM32::Cond Pred = CondARM32::AL) {
+    auto *Ldrex = Context.insert<InstARM32Ldrex>(Dest, Addr, Pred);
     if (auto *Dest64 = llvm::dyn_cast<Variable64On32>(Dest)) {
       Context.insert<InstFakeDef>(Dest64->getLo(), Dest);
       Context.insert<InstFakeDef>(Dest64->getHi(), Dest);
     }
+    return Ldrex;
   }
   void _lsl(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {

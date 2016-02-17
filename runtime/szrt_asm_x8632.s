@@ -15,6 +15,7 @@
 	.text
 	.p2align 5,0xf4
 
+	.ifdef NONSFI
 	.globl __Sz_getIP_eax
 __Sz_getIP_eax:
 	movl (%esp), %eax
@@ -49,3 +50,4 @@ __Sz_getIP_esi:
 __Sz_getIP_edi:
 	movl (%esp), %edi
 	ret
+	.endif  # NONSFI

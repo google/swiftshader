@@ -47,7 +47,8 @@
     if (fetch) {                                                               \
       return __sync_fetch_and_##inst(ptr, 42);                                 \
     } else {                                                                   \
-      return __sync_##inst##_and_fetch(ptr, 99);                               \
+      const type value = static_cast<type>(0xaaaaaaaaaaaaaaaaull);             \
+      return __sync_##inst##_and_fetch(ptr, value);                            \
     }                                                                          \
   }
 

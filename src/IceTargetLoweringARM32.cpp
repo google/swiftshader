@@ -385,7 +385,8 @@ void copyRegAllocFromInfWeightVariable64On32(const VarList &Vars) {
       // This is not the variable we are looking for.
       continue;
     }
-    assert(Var64->hasReg() || !Var64->mustHaveReg());
+    // only allow infinite-weight i64 temporaries to be register allocated.
+    assert(!Var64->hasReg() || Var64->mustHaveReg());
     if (!Var64->hasReg()) {
       continue;
     }
@@ -4401,10 +4402,16 @@ TargetARM32::lowerInt8AndInt16IcmpCond(InstIcmp::ICond Condition, Operand *Src0,
 }
 
 TargetARM32::CondWhenTrue TargetARM32::lowerIcmpCond(const InstIcmp *Instr) {
-  Operand *Src0 = legalizeUndef(Instr->getSrc(0));
-  Operand *Src1 = legalizeUndef(Instr->getSrc(1));
+  return lowerIcmpCond(Instr->getCondition(), Instr->getSrc(0),
+                       Instr->getSrc(1));
+}
 
-  const InstIcmp::ICond Condition = Instr->getCondition();
+TargetARM32::CondWhenTrue TargetARM32::lowerIcmpCond(InstIcmp::ICond Condition,
+                                                     Operand *Src0,
+                                                     Operand *Src1) {
+  Src0 = legalizeUndef(Src0);
+  Src1 = legalizeUndef(Src1);
+
   // a=icmp cond b, c ==>
   // GCC does:
   //   <u/s>xtb tb, b
@@ -4504,162 +4511,156 @@ inline uint64_t getConstantMemoryOrder(Operand *Opnd) {
 }
 } // end of anonymous namespace
 
+void TargetARM32::lowerLoadLinkedStoreExclusive(
+    Type Ty, Operand *Addr, std::function<Variable *(Variable *)> Operation,
+    CondARM32::Cond Cond) {
+
+  auto *Retry = Context.insert<InstARM32Label>(this);
+  { // scoping for loop highlighting.
+    Variable *Tmp = (Ty == IceType_i64) ? makeI64RegPair() : makeReg(Ty);
+    auto *Success = makeReg(IceType_i32);
+    auto *_0 = Ctx->getConstantZero(IceType_i32);
+
+    Context.insert<InstFakeDef>(Tmp);
+    Context.insert<InstFakeUse>(Tmp);
+    Variable *AddrR = legalizeToReg(Addr);
+    _ldrex(Tmp, formMemoryOperand(AddrR, Ty))->setDestRedefined();
+    auto *StoreValue = Operation(Tmp);
+    assert(StoreValue->mustHaveReg());
+    _strex(Success, StoreValue, formMemoryOperand(AddrR, Ty), Cond);
+    _cmp(Success, _0, Cond);
+  }
+  _br(Retry, CondARM32::NE);
+}
+
+namespace {
+InstArithmetic *createArithInst(Cfg *Func, uint32_t Operation, Variable *Dest,
+                                Variable *Src0, Operand *Src1) {
+  InstArithmetic::OpKind Oper;
+  switch (Operation) {
+  default:
+    llvm::report_fatal_error("Unknown AtomicRMW operation");
+  case Intrinsics::AtomicExchange:
+    llvm::report_fatal_error("Can't handle Atomic xchg operation");
+  case Intrinsics::AtomicAdd:
+    Oper = InstArithmetic::Add;
+    break;
+  case Intrinsics::AtomicAnd:
+    Oper = InstArithmetic::And;
+    break;
+  case Intrinsics::AtomicSub:
+    Oper = InstArithmetic::Sub;
+    break;
+  case Intrinsics::AtomicOr:
+    Oper = InstArithmetic::Or;
+    break;
+  case Intrinsics::AtomicXor:
+    Oper = InstArithmetic::Xor;
+    break;
+  }
+  return InstArithmetic::create(Func, Oper, Dest, Src0, Src1);
+}
+} // end of anonymous namespace
+
 void TargetARM32::lowerAtomicRMW(Variable *Dest, uint32_t Operation,
-                                 Operand *Ptr, Operand *Val) {
+                                 Operand *Addr, Operand *Val) {
   // retry:
-  //     ldrex contents, [addr]
-  //     op tmp, contents, operand
-  //     strex success, tmp, [addr]
+  //     ldrex tmp, [addr]
+  //     mov contents, tmp
+  //     op result, contents, Val
+  //     strex success, result, [addr]
+  //     cmp success, 0
   //     jne retry
   //     fake-use(addr, operand)  @ prevents undesirable clobbering.
   //     mov dest, contents
-  assert(Dest != nullptr);
-  Type DestTy = Dest->getType();
-  (void)Ptr;
-  (void)Val;
-
-  OperandARM32Mem *Mem;
-  Variable *PtrContentsReg;
-  Variable *PtrContentsHiReg;
-  Variable *PtrContentsLoReg;
-  Variable *Value = Func->makeVariable(DestTy);
-  Variable *ValueReg;
-  Variable *ValueHiReg;
-  Variable *ValueLoReg;
-  Variable *Success = makeReg(IceType_i32);
-  Variable *TmpReg;
-  Variable *TmpHiReg;
-  Variable *TmpLoReg;
-  Operand *_0 = Ctx->getConstantZero(IceType_i32);
-  auto *Retry = InstARM32Label::create(Func, this);
+  auto DestTy = Dest->getType();
 
   if (DestTy == IceType_i64) {
-    Variable64On32 *PtrContentsReg64 = makeI64RegPair();
-    PtrContentsHiReg = PtrContentsReg64->getHi();
-    PtrContentsLoReg = PtrContentsReg64->getLo();
-    PtrContentsReg = PtrContentsReg64;
-
-    llvm::cast<Variable64On32>(Value)->initHiLo(Func);
-    Variable64On32 *ValueReg64 = makeI64RegPair();
-    ValueHiReg = ValueReg64->getHi();
-    ValueLoReg = ValueReg64->getLo();
-    ValueReg = ValueReg64;
-
-    Variable64On32 *TmpReg64 = makeI64RegPair();
-    TmpHiReg = TmpReg64->getHi();
-    TmpLoReg = TmpReg64->getLo();
-    TmpReg = TmpReg64;
-  } else {
-    PtrContentsReg = makeReg(DestTy);
-    PtrContentsHiReg = nullptr;
-    PtrContentsLoReg = PtrContentsReg;
-
-    ValueReg = makeReg(DestTy);
-    ValueHiReg = nullptr;
-    ValueLoReg = ValueReg;
-
-    TmpReg = makeReg(DestTy);
-    TmpHiReg = nullptr;
-    TmpLoReg = TmpReg;
-  }
-
-  if (DestTy == IceType_i64) {
-    Context.insert<InstFakeDef>(Value);
-  }
-  lowerAssign(InstAssign::create(Func, Value, Val));
-
-  Variable *PtrVar = Func->makeVariable(IceType_i32);
-  lowerAssign(InstAssign::create(Func, PtrVar, Ptr));
-
-  _dmb();
-  Context.insert(Retry);
-  Mem = formMemoryOperand(PtrVar, DestTy);
-  if (DestTy == IceType_i64) {
-    Context.insert<InstFakeDef>(ValueReg, Value);
-  }
-  lowerAssign(InstAssign::create(Func, ValueReg, Value));
-  if (DestTy == IceType_i8 || DestTy == IceType_i16) {
-    _uxt(ValueReg, ValueReg);
-  }
-  _ldrex(PtrContentsReg, Mem);
-
-  if (DestTy == IceType_i64) {
-    Context.insert<InstFakeDef>(TmpReg, ValueReg);
-  }
-  switch (Operation) {
-  default:
-    Func->setError("Unknown AtomicRMW operation");
+    lowerInt64AtomicRMW(Dest, Operation, Addr, Val);
     return;
-  case Intrinsics::AtomicAdd:
-    if (DestTy == IceType_i64) {
-      _adds(TmpLoReg, PtrContentsLoReg, ValueLoReg);
-      _adc(TmpHiReg, PtrContentsHiReg, ValueHiReg);
-    } else {
-      _add(TmpLoReg, PtrContentsLoReg, ValueLoReg);
-    }
-    break;
-  case Intrinsics::AtomicSub:
-    if (DestTy == IceType_i64) {
-      _subs(TmpLoReg, PtrContentsLoReg, ValueLoReg);
-      _sbc(TmpHiReg, PtrContentsHiReg, ValueHiReg);
-    } else {
-      _sub(TmpLoReg, PtrContentsLoReg, ValueLoReg);
-    }
-    break;
-  case Intrinsics::AtomicOr:
-    _orr(TmpLoReg, PtrContentsLoReg, ValueLoReg);
-    if (DestTy == IceType_i64) {
-      _orr(TmpHiReg, PtrContentsHiReg, ValueHiReg);
-    }
-    break;
-  case Intrinsics::AtomicAnd:
-    _and(TmpLoReg, PtrContentsLoReg, ValueLoReg);
-    if (DestTy == IceType_i64) {
-      _and(TmpHiReg, PtrContentsHiReg, ValueHiReg);
-    }
-    break;
-  case Intrinsics::AtomicXor:
-    _eor(TmpLoReg, PtrContentsLoReg, ValueLoReg);
-    if (DestTy == IceType_i64) {
-      _eor(TmpHiReg, PtrContentsHiReg, ValueHiReg);
-    }
-    break;
-  case Intrinsics::AtomicExchange:
-    _mov(TmpLoReg, ValueLoReg);
-    if (DestTy == IceType_i64) {
-      _mov(TmpHiReg, ValueHiReg);
-    }
-    break;
   }
-  _strex(Success, TmpReg, Mem);
-  _cmp(Success, _0);
-  _br(Retry, CondARM32::NE);
 
-  // The following fake-uses ensure that Subzero will not clobber them in the
-  // load-linked/store-conditional loop above. We might have to spill them, but
-  // spilling is preferable over incorrect behavior.
-  Context.insert<InstFakeUse>(PtrVar);
-  if (auto *Value64 = llvm::dyn_cast<Variable64On32>(Value)) {
-    Context.insert<InstFakeUse>(Value64->getHi());
-    Context.insert<InstFakeUse>(Value64->getLo());
+  Operand *ValRF = nullptr;
+  if (llvm::isa<ConstantInteger32>(Val)) {
+    ValRF = Val;
   } else {
-    Context.insert<InstFakeUse>(Value);
+    ValRF = legalizeToReg(Val);
   }
+  auto *ContentsR = makeReg(DestTy);
+  auto *ResultR = makeReg(DestTy);
+
   _dmb();
-  if (DestTy == IceType_i8 || DestTy == IceType_i16) {
-    _uxt(PtrContentsReg, PtrContentsReg);
+  lowerLoadLinkedStoreExclusive(
+      DestTy, Addr,
+      [this, Operation, ResultR, ContentsR, ValRF](Variable *Tmp) {
+        lowerAssign(InstAssign::create(Func, ContentsR, Tmp));
+        if (Operation == Intrinsics::AtomicExchange) {
+          lowerAssign(InstAssign::create(Func, ResultR, ValRF));
+        } else {
+          lowerArithmetic(
+              createArithInst(Func, Operation, ResultR, ContentsR, ValRF));
+        }
+        return ResultR;
+      });
+  _dmb();
+  if (auto *ValR = llvm::dyn_cast<Variable>(ValRF)) {
+    Context.insert<InstFakeUse>(ValR);
+  }
+  // Can't dce ContentsR.
+  Context.insert<InstFakeUse>(ContentsR);
+  lowerAssign(InstAssign::create(Func, Dest, ContentsR));
+}
+
+void TargetARM32::lowerInt64AtomicRMW(Variable *Dest, uint32_t Operation,
+                                      Operand *Addr, Operand *Val) {
+  assert(Dest->getType() == IceType_i64);
+
+  auto *ResultR = makeI64RegPair();
+
+  Context.insert<InstFakeDef>(ResultR);
+
+  Operand *ValRF = nullptr;
+  if (llvm::dyn_cast<ConstantInteger64>(Val)) {
+    ValRF = Val;
+  } else {
+    auto *ValR64 = llvm::cast<Variable64On32>(Func->makeVariable(IceType_i64));
+    ValR64->initHiLo(Func);
+    ValR64->setMustNotHaveReg();
+    ValR64->getLo()->setMustHaveReg();
+    ValR64->getHi()->setMustHaveReg();
+    lowerAssign(InstAssign::create(Func, ValR64, Val));
+    ValRF = ValR64;
   }
 
-  if (DestTy == IceType_i64) {
-    Context.insert<InstFakeUse>(PtrContentsReg);
+  auto *ContentsR = llvm::cast<Variable64On32>(Func->makeVariable(IceType_i64));
+  ContentsR->initHiLo(Func);
+  ContentsR->setMustNotHaveReg();
+  ContentsR->getLo()->setMustHaveReg();
+  ContentsR->getHi()->setMustHaveReg();
+
+  _dmb();
+  lowerLoadLinkedStoreExclusive(
+      IceType_i64, Addr,
+      [this, Operation, ResultR, ContentsR, ValRF](Variable *Tmp) {
+        lowerAssign(InstAssign::create(Func, ContentsR, Tmp));
+        Context.insert<InstFakeUse>(Tmp);
+        if (Operation == Intrinsics::AtomicExchange) {
+          lowerAssign(InstAssign::create(Func, ResultR, ValRF));
+        } else {
+          lowerArithmetic(
+              createArithInst(Func, Operation, ResultR, ContentsR, ValRF));
+        }
+        Context.insert<InstFakeUse>(ResultR->getHi());
+        Context.insert<InstFakeDef>(ResultR, ResultR->getLo())
+            ->setDestRedefined();
+        return ResultR;
+      });
+  _dmb();
+  if (auto *ValR64 = llvm::dyn_cast<Variable64On32>(ValRF)) {
+    Context.insert<InstFakeUse>(ValR64->getLo());
+    Context.insert<InstFakeUse>(ValR64->getHi());
   }
-  lowerAssign(InstAssign::create(Func, Dest, PtrContentsReg));
-  if (auto *Dest64 = llvm::dyn_cast<Variable64On32>(Dest)) {
-    Context.insert<InstFakeUse>(Dest64->getLo());
-    Context.insert<InstFakeUse>(Dest64->getHi());
-  } else {
-    Context.insert<InstFakeUse>(Dest);
-  }
+  lowerAssign(InstAssign::create(Func, Dest, ContentsR));
 }
 
 void TargetARM32::postambleCtpop64(const InstCall *Instr) {
@@ -4733,10 +4734,9 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     }
     _dmb();
     lowerAssign(InstAssign::create(Func, Dest, T));
-    // Make sure the atomic load isn't elided when unused, by adding a FakeUse.
-    // Since lowerLoad may fuse the load w/ an arithmetic instruction, insert
-    // the FakeUse on the last-inserted instruction's dest.
-    Context.insert<InstFakeUse>(Context.getLastInserted()->getDest());
+    // Adding a fake-use T to ensure the atomic load is not removed if Dest is
+    // unused.
+    Context.insert<InstFakeUse>(T);
     return;
   }
   case Intrinsics::AtomicStore: {
@@ -4747,105 +4747,48 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
       Func->setError("Unexpected memory ordering for AtomicStore");
       return;
     }
-    Operand *Value = Instr->getArg(0);
-    Type ValueTy = Value->getType();
-    assert(isScalarIntegerType(ValueTy));
-    Operand *Addr = Instr->getArg(1);
 
-    if (ValueTy == IceType_i64) {
-      // Atomic 64-bit stores require a load-locked/store-conditional loop using
-      // ldrexd, and strexd. The lowered code is:
-      //
-      // retry:
-      //     ldrexd t.lo, t.hi, [addr]
-      //     strexd success, value.lo, value.hi, [addr]
-      //     cmp success, #0
-      //     bne retry
-      //     fake-use(addr, value.lo, value.hi)
-      //
-      // The fake-use is needed to prevent those variables from being clobbered
-      // in the loop (which will happen under register pressure.)
-      Variable64On32 *Tmp = makeI64RegPair();
-      Variable64On32 *ValueVar =
-          llvm::cast<Variable64On32>(Func->makeVariable(IceType_i64));
-      Variable *AddrVar = makeReg(IceType_i32);
-      Variable *Success = makeReg(IceType_i32);
-      OperandARM32Mem *Mem;
-      Operand *_0 = Ctx->getConstantZero(IceType_i32);
-      auto *Retry = InstARM32Label::create(Func, this);
-      Variable64On32 *NewReg = makeI64RegPair();
-      ValueVar->initHiLo(Func);
-      ValueVar->mustNotHaveReg();
-
+    auto *Value = Instr->getArg(0);
+    if (Value->getType() == IceType_i64) {
+      auto *ValueR = makeI64RegPair();
+      Context.insert<InstFakeDef>(ValueR);
+      lowerAssign(InstAssign::create(Func, ValueR, Value));
       _dmb();
-      lowerAssign(InstAssign::create(Func, ValueVar, Value));
-      lowerAssign(InstAssign::create(Func, AddrVar, Addr));
-
-      Context.insert(Retry);
-      Context.insert<InstFakeDef>(NewReg);
-      lowerAssign(InstAssign::create(Func, NewReg, ValueVar));
-      Mem = formMemoryOperand(AddrVar, IceType_i64);
-      _ldrex(Tmp, Mem);
-      // This fake-use both prevents the ldrex from being dead-code eliminated,
-      // while also keeping liveness happy about all defs being used.
-      Context.insert<InstFakeUse>(Context.getLastInserted()->getDest());
-      _strex(Success, NewReg, Mem);
-      _cmp(Success, _0);
-      _br(Retry, CondARM32::NE);
-
-      Context.insert<InstFakeUse>(ValueVar->getLo());
-      Context.insert<InstFakeUse>(ValueVar->getHi());
-      Context.insert<InstFakeUse>(AddrVar);
+      lowerLoadLinkedStoreExclusive(
+          IceType_i64, Instr->getArg(1), [this, ValueR](Variable *Tmp) {
+            // The following fake-use prevents the ldrex instruction from being
+            // dead code eliminated.
+            Context.insert<InstFakeUse>(llvm::cast<Variable>(loOperand(Tmp)));
+            Context.insert<InstFakeUse>(llvm::cast<Variable>(hiOperand(Tmp)));
+            Context.insert<InstFakeUse>(Tmp);
+            return ValueR;
+          });
+      Context.insert<InstFakeUse>(ValueR);
       _dmb();
       return;
     }
+
+    auto *ValueR = legalizeToReg(Instr->getArg(0));
+    const auto ValueTy = ValueR->getType();
+    assert(isScalarIntegerType(ValueTy));
+    auto *Addr = legalizeToReg(Instr->getArg(1));
+
     // non-64-bit stores are atomically as long as the address is aligned. This
     // is PNaCl, so addresses are aligned.
-    Variable *T = makeReg(ValueTy);
-
     _dmb();
-    lowerAssign(InstAssign::create(Func, T, Value));
-    _str(T, formMemoryOperand(Addr, ValueTy));
+    _str(ValueR, formMemoryOperand(Addr, ValueTy));
     _dmb();
     return;
   }
   case Intrinsics::AtomicCmpxchg: {
-    // The initial lowering for cmpxchg was:
-    //
     // retry:
     //     ldrex tmp, [addr]
     //     cmp tmp, expected
     //     mov expected, tmp
-    //     jne retry
-    //     strex success, new, [addr]
-    //     cmp success, #0
-    //     bne retry
-    //     mov dest, expected
-    //
-    // Besides requiring two branches, that lowering could also potentially
-    // write to memory (in mov expected, tmp) unless we were OK with increasing
-    // the register pressure and requiring expected to be an infinite-weight
-    // variable (spoiler alert: that was a problem for i64 cmpxchg.) Through
-    // careful rewritting, and thanks to predication, we now implement the
-    // lowering as:
-    //
-    // retry:
-    //     ldrex tmp, [addr]
-    //     cmp tmp, expected
     //     strexeq success, new, [addr]
-    //     movne expected, tmp
     //     cmpeq success, #0
     //     bne retry
     //     mov dest, expected
-    //
-    // Predication lets us move the strex ahead of the mov expected, tmp, which
-    // allows tmp to be a non-infinite weight temporary. We wanted to avoid
-    // writing to memory between ldrex and strex because, even though most times
-    // that would cause no issues, if any interleaving memory write aliased
-    // [addr] than we would have undefined behavior. Undefined behavior isn't
-    // cool, so we try to avoid it. See the "Synchronization and semaphores"
-    // section of the "ARM Architecture Reference Manual."
-
     assert(isScalarIntegerType(DestTy));
     // We require the memory address to be naturally aligned. Given that is the
     // case, then normal loads are atomic.
@@ -4856,98 +4799,63 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
       return;
     }
 
-    OperandARM32Mem *Mem;
-    Variable *TmpReg;
-    Variable *Expected, *ExpectedReg;
-    Variable *New, *NewReg;
-    Variable *Success = makeReg(IceType_i32);
-    Operand *_0 = Ctx->getConstantZero(IceType_i32);
-    auto *Retry = InstARM32Label::create(Func, this);
-
     if (DestTy == IceType_i64) {
-      Variable64On32 *TmpReg64 = makeI64RegPair();
-      Variable64On32 *New64 =
-          llvm::cast<Variable64On32>(Func->makeVariable(IceType_i64));
-      Variable64On32 *NewReg64 = makeI64RegPair();
-      Variable64On32 *Expected64 =
-          llvm::cast<Variable64On32>(Func->makeVariable(IceType_i64));
-      Variable64On32 *ExpectedReg64 = makeI64RegPair();
-
-      New64->initHiLo(Func);
-      New64->mustNotHaveReg();
-      Expected64->initHiLo(Func);
-      Expected64->mustNotHaveReg();
-
-      TmpReg = TmpReg64;
-      New = New64;
-      NewReg = NewReg64;
-      Expected = Expected64;
-      ExpectedReg = ExpectedReg64;
-    } else {
-      TmpReg = makeReg(DestTy);
-      New = Func->makeVariable(DestTy);
-      NewReg = makeReg(DestTy);
-      Expected = Func->makeVariable(DestTy);
-      ExpectedReg = makeReg(DestTy);
-    }
-
-    Mem = formMemoryOperand(Instr->getArg(0), DestTy);
-    if (DestTy == IceType_i64) {
-      Context.insert<InstFakeDef>(Expected);
-    }
-    lowerAssign(InstAssign::create(Func, Expected, Instr->getArg(1)));
-    if (DestTy == IceType_i64) {
+      auto *New = makeI64RegPair();
       Context.insert<InstFakeDef>(New);
+      lowerAssign(InstAssign::create(Func, New, Instr->getArg(2)));
+
+      auto *Expected = makeI64RegPair();
+      Context.insert<InstFakeDef>(Expected);
+      lowerAssign(InstAssign::create(Func, Expected, Instr->getArg(1)));
+
+      _dmb();
+      lowerLoadLinkedStoreExclusive(
+          DestTy, Instr->getArg(0),
+          [this, Expected, New, Instr, DestTy](Variable *Tmp) {
+            auto *ExpectedLoR = llvm::cast<Variable>(loOperand(Expected));
+            auto *ExpectedHiR = llvm::cast<Variable>(hiOperand(Expected));
+            auto *TmpLoR = llvm::cast<Variable>(loOperand(Tmp));
+            auto *TmpHiR = llvm::cast<Variable>(hiOperand(Tmp));
+            _cmp(TmpLoR, ExpectedLoR);
+            _cmp(TmpHiR, ExpectedHiR, CondARM32::EQ);
+            // Adding an explicit use of Tmp here, or its live range will not
+            // reach here (only those of Tmp.Lo and Tmp.Hi will.)
+            Context.insert<InstFakeUse>(Tmp);
+            _mov_redefined(ExpectedLoR, TmpLoR);
+            _mov_redefined(ExpectedHiR, TmpHiR);
+            // Same as above.
+            Context.insert<InstFakeUse>(Tmp);
+            return New;
+          },
+          CondARM32::EQ);
+      _dmb();
+
+      lowerAssign(InstAssign::create(Func, Dest, Expected));
+      // The fake-use Expected prevents the assignments to Expected (above)
+      // from being removed if Dest is not used.
+      Context.insert<InstFakeUse>(Expected);
+      // New needs to be alive here, or its live range will end in the
+      // strex instruction.
+      Context.insert<InstFakeUse>(New);
+      return;
     }
-    lowerAssign(InstAssign::create(Func, New, Instr->getArg(2)));
+
+    auto *New = legalizeToReg(Instr->getArg(2));
+    auto *Expected = legalizeToReg(Instr->getArg(1));
+
+    _dmb();
+    lowerLoadLinkedStoreExclusive(
+        DestTy,
+        Instr->getArg(0), [this, Expected, New, Instr, DestTy](Variable *Tmp) {
+          lowerIcmpCond(InstIcmp::Eq, Tmp, Expected);
+          _mov_redefined(Expected, Tmp);
+          return New;
+        }, CondARM32::EQ);
     _dmb();
 
-    Context.insert(Retry);
-    if (DestTy == IceType_i64) {
-      Context.insert<InstFakeDef>(ExpectedReg, Expected);
-    }
-    lowerAssign(InstAssign::create(Func, ExpectedReg, Expected));
-    if (DestTy == IceType_i64) {
-      Context.insert<InstFakeDef>(NewReg, New);
-    }
-    lowerAssign(InstAssign::create(Func, NewReg, New));
-
-    _ldrex(TmpReg, Mem);
-    Context.insert<InstFakeUse>(Context.getLastInserted()->getDest());
-    if (DestTy == IceType_i64) {
-      auto *TmpReg64 = llvm::cast<Variable64On32>(TmpReg);
-      auto *ExpectedReg64 = llvm::cast<Variable64On32>(ExpectedReg);
-      // lowerAssign above has added fake-defs for TmpReg and ExpectedReg. Let's
-      // keep liveness happy, shall we?
-      Context.insert<InstFakeUse>(TmpReg);
-      Context.insert<InstFakeUse>(ExpectedReg);
-      _cmp(TmpReg64->getHi(), ExpectedReg64->getHi());
-      _cmp(TmpReg64->getLo(), ExpectedReg64->getLo(), CondARM32::EQ);
-    } else {
-      _cmp(TmpReg, ExpectedReg);
-    }
-    _strex(Success, NewReg, Mem, CondARM32::EQ);
-    if (DestTy == IceType_i64) {
-      auto *TmpReg64 = llvm::cast<Variable64On32>(TmpReg);
-      auto *Expected64 = llvm::cast<Variable64On32>(Expected);
-      _mov_redefined(Expected64->getHi(), TmpReg64->getHi(), CondARM32::NE);
-      _mov_redefined(Expected64->getLo(), TmpReg64->getLo(), CondARM32::NE);
-      Context.insert<InstFakeDef>(Expected, TmpReg);
-      _set_dest_redefined();
-    } else {
-      _mov_redefined(Expected, TmpReg, CondARM32::NE);
-    }
-    _cmp(Success, _0, CondARM32::EQ);
-    _br(Retry, CondARM32::NE);
-    _dmb();
     lowerAssign(InstAssign::create(Func, Dest, Expected));
     Context.insert<InstFakeUse>(Expected);
-    if (auto *New64 = llvm::dyn_cast<Variable64On32>(New)) {
-      Context.insert<InstFakeUse>(New64->getLo());
-      Context.insert<InstFakeUse>(New64->getHi());
-    } else {
-      Context.insert<InstFakeUse>(New);
-    }
+    Context.insert<InstFakeUse>(New);
     return;
   }
   case Intrinsics::AtomicRMW: {

@@ -246,10 +246,10 @@ entry:
 ; CHECK: movq QWORD {{.*}},x{{.*}}
 ; CHECK: mfence
 ; ARM32-LABEL: test_atomic_store_64_const
-; ARM32: dmb
 ; ARM32: movw [[T0:r[0-9]+]], #12274
 ; ARM32: movt [[T0]], #29646
 ; ARM32: movw r{{[0-9]+}}, #2874
+; ARM32: dmb
 ; ARM32: .L[[RETRY:.*]]:
 ; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, [[MEM:.*]]
 ; ARM32: strexd [[S:r[0-9]+]], r{{[0-9]+}}, r{{[0-9]+}}, [[MEM]]
@@ -342,7 +342,7 @@ entry:
 ; ARM32: dmb
 ; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
 ; ARM32: adds
-; ARM32-NEXT: adc
+; ARM32: adc
 ; ARM32: strexd r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
 ; ARM32: bne
 ; ARM32: dmb
@@ -359,7 +359,7 @@ entry:
 ; ARM32: dmb
 ; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
 ; ARM32: adds
-; ARM32-NEXT: adc
+; ARM32: adc
 ; ARM32: strexd r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
 ; ARM32: bne
 ; ARM32: dmb
@@ -400,7 +400,7 @@ eblock:
 ; ARM32: dmb
 ; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
 ; ARM32: adds
-; ARM32-NEXT: adc
+; ARM32: adc
 ; ARM32: strexd r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
 ; ARM32: bne
 ; ARM32: dmb
@@ -457,7 +457,7 @@ err:
 ; ARM32: dmb
 ; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
 ; ARM32: adds
-; ARM32-NEXT: adc
+; ARM32: adc
 ; ARM32: strexd r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
 ; ARM32: bne
 ; ARM32: dmb
@@ -543,7 +543,7 @@ entry:
 ; ARM32: dmb
 ; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
 ; ARM32: subs
-; ARM32-NEXT: sbc
+; ARM32: sbc
 ; ARM32: strexd r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
 ; ARM32: bne
 ; ARM32: dmb
@@ -602,9 +602,9 @@ entry:
 }
 ; CHECK-LABEL: test_atomic_rmw_or_8_global
 ; ARM32-LABEL: test_atomic_rmw_or_8_global
+; ARM32: dmb
 ; ARM32: movw [[PTR:r[0-9]+]], #:lower16:SzGlobal8
 ; ARM32: movt [[PTR]], #:upper16:SzGlobal8
-; ARM32: dmb
 ; ARM32: ldrexb r{{[0-9]+}}, {{[[]}}[[PTR]]{{[]]}}
 ; ARM32: orr
 ; ARM32: strexb
@@ -643,9 +643,9 @@ entry:
 }
 ; CHECK-LABEL: test_atomic_rmw_or_16_global
 ; ARM32-LABEL: test_atomic_rmw_or_16_global
+; ARM32: dmb
 ; ARM32: movw [[PTR:r[0-9]+]], #:lower16:SzGlobal16
 ; ARM32: movt [[PTR]], #:upper16:SzGlobal16
-; ARM32: dmb
 ; ARM32: ldrexh r{{[0-9]+}}, {{[[]}}[[PTR]]{{[]]}}
 ; ARM32: orr
 ; ARM32: strexh
@@ -680,9 +680,9 @@ entry:
 }
 ; CHECK-LABEL: test_atomic_rmw_or_32_global
 ; ARM32-LABEL: test_atomic_rmw_or_32_global
+; ARM32: dmb
 ; ARM32: movw [[PTR:r[0-9]+]], #:lower16:SzGlobal32
 ; ARM32: movt [[PTR]], #:upper16:SzGlobal32
-; ARM32: dmb
 ; ARM32: ldrex r{{[0-9]+}}, {{[[]}}[[PTR]]{{[]]}}
 ; ARM32: orr
 ; ARM32: strex
@@ -709,7 +709,7 @@ entry:
 ; ARM32: dmb
 ; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
 ; ARM32: orr
-; ARM32-NEXT: orr
+; ARM32: orr
 ; ARM32: strexd r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
 ; ARM32: bne
 ; ARM32: dmb
@@ -819,7 +819,7 @@ entry:
 ; ARM32: dmb
 ; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
 ; ARM32: and
-; ARM32-NEXT: and
+; ARM32: and
 ; ARM32: strexd r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
 ; ARM32: bne
 ; ARM32: dmb
@@ -927,7 +927,7 @@ entry:
 ; ARM32: dmb
 ; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
 ; ARM32: eor
-; ARM32-NEXT: eor
+; ARM32: eor
 ; ARM32: strexd r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
 ; ARM32: bne
 ; ARM32: dmb
@@ -1067,8 +1067,8 @@ entry:
 ; ARM32: dmb
 ; ARM32: ldrexb
 ; ARM32: cmp
+; ARM32: {{strb|mov}}
 ; ARM32: strexbeq
-; ARM32: {{strb|mov}}ne
 ; ARM32: cmpeq
 ; ARM32: bne
 ; ARM32: dmb
@@ -1091,8 +1091,8 @@ entry:
 ; ARM32: dmb
 ; ARM32: ldrexh
 ; ARM32: cmp
+; ARM32: {{strh|mov}}
 ; ARM32: strexheq
-; ARM32: {{strh|mov}}ne
 ; ARM32: cmpeq
 ; ARM32: bne
 ; ARM32: dmb
@@ -1112,8 +1112,8 @@ entry:
 ; ARM32: dmb
 ; ARM32: ldrex
 ; ARM32: cmp
+; ARM32: {{str|mov}}
 ; ARM32: strexeq
-; ARM32: {{str|mov}}ne
 ; ARM32: cmpeq
 ; ARM32: bne
 ; ARM32: dmb
@@ -1140,10 +1140,10 @@ entry:
 ; ARM32: dmb
 ; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, {{[[]}}[[PTR:r[0-9]+]]{{[]]}}
 ; ARM32: cmp
-; ARM32-NEXT: cmpeq
+; ARM32: cmpeq
+; ARM32: mov
+; ARM32: mov
 ; ARM32: strexdeq r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, {{[[]}}[[PTR]]{{[]]}}
-; ARM32: {{str|mov}}ne
-; ARM32: {{str|mov}}ne
 ; ARM32: cmpeq
 ; ARM32: bne
 ; ARM32: dmb
@@ -1163,10 +1163,10 @@ entry:
 ; ARM32: dmb
 ; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, {{[[]}}[[PTR:r[0-9]+]]{{[]]}}
 ; ARM32: cmp
-; ARM32-NEXT: cmpeq
+; ARM32: cmpeq
+; ARM32: mov
+; ARM32: mov
 ; ARM32: strexdeq r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, {{[[]}}[[PTR]]{{[]]}}
-; ARM32: {{str|mov}}ne
-; ARM32: {{str|mov}}ne
 ; ARM32: cmpeq
 ; ARM32: bne
 ; ARM32: dmb
@@ -1195,10 +1195,10 @@ entry:
 ; ARM32: dmb
 ; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, {{[[]}}[[PTR:r[0-9]+]]{{[]]}}
 ; ARM32: cmp
-; ARM32-NEXT: cmpeq
+; ARM32: cmpeq
+; ARM32: mov
+; ARM32: mov
 ; ARM32: strexdeq r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, {{[[]}}[[PTR]]{{[]]}}
-; ARM32: {{str|mov}}ne
-; ARM32: {{str|mov}}ne
 ; ARM32: cmpeq
 ; ARM32: bne
 ; ARM32: dmb
@@ -1241,10 +1241,10 @@ eblock:
 ; ARM32: dmb
 ; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, {{[[]}}[[PTR:r[0-9]+]]{{[]]}}
 ; ARM32: cmp
-; ARM32-NEXT: cmpeq
+; ARM32: cmpeq
+; ARM32: mov
+; ARM32: mov
 ; ARM32: strexdeq r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, {{[[]}}[[PTR]]{{[]]}}
-; ARM32: {{str|mov}}ne
-; ARM32: {{str|mov}}ne
 ; ARM32: cmpeq
 ; ARM32: bne
 ; ARM32: dmb
@@ -1265,7 +1265,6 @@ entry:
 ; ARM32: ldrex
 ; ARM32: cmp
 ; ARM32: strexeq
-; ARM32: {{str|mov}}ne
 ; ARM32: cmpeq
 ; ARM32: bne
 ; ARM32: dmb

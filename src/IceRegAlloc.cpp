@@ -642,7 +642,7 @@ void LinearScan::allocateFreeRegister(IterationState &Iter, bool Filtered) {
       *RegNumBVIter(Filtered ? Iter.Free : Iter.FreeUnfiltered).begin();
   Iter.Cur->setRegNumTmp(RegNum);
   if (Filtered)
-    dumpLiveRangeTrace("Allocating   ", Iter.Cur);
+    dumpLiveRangeTrace("Allocating Y ", Iter.Cur);
   else
     dumpLiveRangeTrace("Allocating X ", Iter.Cur);
   const llvm::SmallBitVector &Aliases = *RegAliases[RegNum];
@@ -768,7 +768,7 @@ void LinearScan::handleNoFreeRegisters(IterationState &Iter) {
     ++RegUses[RegAlias];
   }
   Active.push_back(Iter.Cur);
-  dumpLiveRangeTrace("Allocating   ", Iter.Cur);
+  dumpLiveRangeTrace("Allocating Z ", Iter.Cur);
 }
 
 void LinearScan::assignFinalRegisters(

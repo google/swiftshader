@@ -18,13 +18,14 @@ def FindARMCrossInclude():
 
 TargetInfo = namedtuple('TargetInfo',
                         ['target', 'compiler_arch', 'triple', 'llc_flags',
-                         'ld_emu', 'cross_headers'])
+                         'ld_emu', 'sb_emu', 'cross_headers'])
 
 X8632Target = TargetInfo(target='x8632',
                          compiler_arch='x8632',
                          triple='i686-none-linux',
                          llc_flags=['-mcpu=pentium4m'],
                          ld_emu='elf_i386_nacl',
+                         sb_emu='elf_i386_nacl',
                          cross_headers=[])
 
 X8664Target = TargetInfo(target='x8664',
@@ -32,6 +33,7 @@ X8664Target = TargetInfo(target='x8664',
                          triple='x86_64-none-linux-gnux32',
                          llc_flags=['-mcpu=x86-64'],
                          ld_emu='elf32_x86_64_nacl',
+                         sb_emu='elf_x86_64_nacl',
                          cross_headers=[])
 
 ARM32Target = TargetInfo(target='arm32',
@@ -41,6 +43,7 @@ ARM32Target = TargetInfo(target='arm32',
                                     '-float-abi=hard',
                                     '-mattr=+neon'],
                          ld_emu='armelf_nacl',
+                         sb_emu='armelf_nacl',
                          cross_headers=['-isystem', FindARMCrossInclude()])
 
 def ConvertTripleToNaCl(nonsfi_triple):

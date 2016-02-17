@@ -14,6 +14,3 @@
 
 	.text
 	.p2alignl 4,0xE7FEDEF0
-	.globl	__nacl_read_tp
-__nacl_read_tp:
-	b	__aeabi_read_tp

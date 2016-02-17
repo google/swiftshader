@@ -65,14 +65,27 @@ def MakeRuntimesForTarget(target_info, ll_files,
               '-target=' + target_info.triple,
               '-c',
               '{srcdir}/szrt_profiler.c'.format(srcdir=srcdir),
-              '-o', TmpFile('{dir}/szrt_profiler_native_{target}.o')
+              '-o', TmpFile('{dir}/szrt_native_profiler_{target}.o')
+      ], echo=verbose)
+    # Assemble srcdir/szrt_asm_{target}.s to tempdir/szrt_asm_{target}.o.
+    shellcmd(['llvm-mc',
+              '-triple=' + target_info.triple, '--defsym NATIVE=1',
+              '-filetype=obj',
+              '-o', TmpFile('{dir}/szrt_native_asm_{target}.o'),
+              '{srcdir}/szrt_asm_{target}.s'.format(
+                srcdir=srcdir, target=target_info.target)
       ], echo=verbose)
     # Write full szrt_native_{target}.o.
     PartialLink([TmpFile('{dir}/szrt_native_{target}.tmp.o'),
-                 TmpFile('{dir}/szrt_profiler_native_{target}.o')],
+                 TmpFile('{dir}/szrt_native_asm_{target}.o'),
+                 TmpFile('{dir}/szrt_native_profiler_{target}.o')],
                 ['-m {ld_emu}'.format(ld_emu=target_info.ld_emu)],
                 OutFile('{rtdir}/szrt_native_{target}.o'),
                 verbose)
+    shellcmd(['le32-nacl-objcopy',
+              '--strip-symbol=NATIVE',
+              OutFile('{rtdir}/szrt_native_{target}.o')])
+
   # Helper function for building the sandboxed runtime.
   def MakeSandboxedRuntime():
     """Builds just the sandboxed runtime."""
@@ -82,8 +95,26 @@ def MakeRuntimesForTarget(target_info, ll_files,
     Translate(ll_files,
               ['-mtriple=' + targets.ConvertTripleToNaCl(target_info.triple)] +
               target_info.llc_flags,
-              OutFile('{rtdir}/szrt_sb_{target}.o'),
+              TmpFile('{dir}/szrt_sb_{target}.tmp.o'),
               verbose)
+    # Assemble srcdir/szrt_asm_{target}.s to tempdir/szrt_asm_{target}.o.
+    shellcmd(['llvm-mc',
+              '-triple=' + targets.ConvertTripleToNaCl(target_info.triple),
+              '--defsym NACL=1',
+              '-filetype=obj',
+              '-o', TmpFile('{dir}/szrt_sb_asm_{target}.o'),
+              '{srcdir}/szrt_asm_{target}.s'.format(
+                srcdir=srcdir, target=target_info.target)
+      ], echo=verbose)
+    PartialLink([TmpFile('{dir}/szrt_sb_{target}.tmp.o'),
+                 TmpFile('{dir}/szrt_sb_asm_{target}.o')],
+                ['-m {ld_emu}'.format(ld_emu=target_info.sb_emu)],
+                OutFile('{rtdir}/szrt_sb_{target}.o'),
+                verbose)
+    shellcmd(['le32-nacl-objcopy',
+              '--strip-symbol=NACL',
+              OutFile('{rtdir}/szrt_sb_{target}.o')])
+
   # Helper function for building the Non-SFI runtime.
   def MakeNonsfiRuntime():
     """Builds just the nonsfi runtime."""
@@ -96,18 +127,22 @@ def MakeRuntimesForTarget(target_info, ll_files,
               verbose)
     # Assemble srcdir/szrt_asm_{target}.s to tempdir/szrt_asm_{target}.o.
     shellcmd(['llvm-mc',
-              '-triple=' + target_info.triple,
+              '-triple=' + target_info.triple, '--defsym NONSFI=1',
               '-filetype=obj',
-              '-o', TmpFile('{dir}/szrt_asm_{target}.o'),
+              '-o', TmpFile('{dir}/szrt_nonsfi_asm_{target}.o'),
               '{srcdir}/szrt_asm_{target}.s'.format(
                 srcdir=srcdir, target=target_info.target)
       ], echo=verbose)
     # Write full szrt_nonsfi_{target}.o.
     PartialLink([TmpFile('{dir}/szrt_nonsfi_{target}.tmp.o'),
-                 TmpFile('{dir}/szrt_asm_{target}.o')],
+                 TmpFile('{dir}/szrt_nonsfi_asm_{target}.o')],
                 ['-m {ld_emu}'.format(ld_emu=target_info.ld_emu)],
                 OutFile('{rtdir}/szrt_nonsfi_{target}.o'),
                 verbose)
+    shellcmd(['le32-nacl-objcopy',
+              '--strip-symbol=NONSFI',
+              OutFile('{rtdir}/szrt_nonsfi_{target}.o')])
+
 
   # Run the helper functions.
   MakeNativeRuntime()
