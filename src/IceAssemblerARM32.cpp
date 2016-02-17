@@ -144,24 +144,6 @@ IValueT encodeCondition(CondARM32::Cond Cond) {
   return static_cast<IValueT>(Cond);
 }
 
-// Returns the SIMD encoding of the element type for the vector.
-IValueT encodeElmtType(Type ElmtTy) {
-  switch (ElmtTy) {
-  case IceType_i8:
-  case IceType_f32:
-    return 0;
-  case IceType_i16:
-    return 1;
-  case IceType_i32:
-    return 2;
-  case IceType_i64:
-    return 3;
-  default:
-    llvm::report_fatal_error("SIMD op: Don't understand element type " +
-                             typeIceString(ElmtTy));
-  }
-}
-
 IValueT encodeShift(OperandARM32::ShiftKind Shift) {
   // Follows encoding in ARM section A8.4.1 "Constant shifts".
   switch (Shift) {
@@ -617,6 +599,23 @@ size_t MoveRelocatableFixup::emit(GlobalContext *Ctx,
       << ", #:" << (IsMovw ? "lower" : "upper") << "16:" << symbol(Ctx, &Asm)
       << "\t@ .word " << llvm::format_hex_no_prefix(Inst, 8) << "\n";
   return InstARM32::InstSize;
+}
+
+IValueT AssemblerARM32::encodeElmtType(Type ElmtTy) {
+  switch (ElmtTy) {
+  case IceType_i8:
+    return 0;
+  case IceType_i16:
+    return 1;
+  case IceType_i32:
+  case IceType_f32:
+    return 2;
+  case IceType_i64:
+    return 3;
+  default:
+    llvm::report_fatal_error("SIMD op: Don't understand element type " +
+                             typeIceString(ElmtTy));
+  }
 }
 
 // This fixup points to an ARM32 instruction with the following format:
@@ -1149,28 +1148,45 @@ void AssemblerARM32::emitSignExtend(CondARM32::Cond Cond, IValueT Opcode,
   emitInst(Encoding);
 }
 
+void AssemblerARM32::emitSIMDBase(IValueT Opcode, IValueT Dd, IValueT Dn,
+                                  IValueT Dm, bool UseQRegs, bool IsFloatTy) {
+  const IValueT Encoding =
+      Opcode | B25 | (encodeCondition(CondARM32::kNone) << kConditionShift) |
+      (getYInRegYXXXX(Dd) << 22) | (getXXXXInRegYXXXX(Dn) << 16) |
+      (getXXXXInRegYXXXX(Dd) << 12) | (IsFloatTy ? B10 : 0) |
+      (getYInRegYXXXX(Dn) << 7) | (encodeBool(UseQRegs) << 6) |
+      (getYInRegYXXXX(Dm) << 5) | getXXXXInRegYXXXX(Dm);
+  emitInst(Encoding);
+}
+
 void AssemblerARM32::emitSIMD(IValueT Opcode, Type ElmtTy, IValueT Dd,
                               IValueT Dn, IValueT Dm, bool UseQRegs) {
-  IValueT Sz = encodeElmtType(ElmtTy);
-  assert(Utils::IsUint(2, Sz));
-  IValueT Encoding =
-      Opcode | B25 | (encodeCondition(CondARM32::kNone) << kConditionShift) |
-      (Sz << 20) | (getYInRegYXXXX(Dd) << 22) | (getXXXXInRegYXXXX(Dn) << 16) |
-      (getXXXXInRegYXXXX(Dd) << 12) | (getYInRegYXXXX(Dn) << 7) |
-      (encodeBool(UseQRegs) << 6) | (getYInRegYXXXX(Dm) << 5) |
-      getXXXXInRegYXXXX(Dm);
-  emitInst(Encoding);
+  constexpr IValueT ElmtShift = 20;
+  const IValueT ElmtSize = encodeElmtType(ElmtTy);
+  assert(Utils::IsUint(2, ElmtSize));
+  emitSIMDBase(Opcode | (ElmtSize << ElmtShift), Dd, Dn, Dm, UseQRegs,
+               isFloatingType(ElmtTy));
+}
+
+void AssemblerARM32::emitSIMDqqqBase(IValueT Opcode, const Operand *OpQd,
+                                     const Operand *OpQn, const Operand *OpQm,
+                                     bool IsFloatTy, const char *OpcodeName) {
+  const IValueT Qd = encodeQRegister(OpQd, "Qd", OpcodeName);
+  const IValueT Qn = encodeQRegister(OpQn, "Qn", OpcodeName);
+  const IValueT Qm = encodeQRegister(OpQm, "Qm", OpcodeName);
+  constexpr bool UseQRegs = true;
+  emitSIMDBase(Opcode, mapQRegToDReg(Qd), mapQRegToDReg(Qn), mapQRegToDReg(Qm),
+               UseQRegs, IsFloatTy);
 }
 
 void AssemblerARM32::emitSIMDqqq(IValueT Opcode, Type ElmtTy,
                                  const Operand *OpQd, const Operand *OpQn,
                                  const Operand *OpQm, const char *OpcodeName) {
-  IValueT Qd = encodeQRegister(OpQd, "Qd", OpcodeName);
-  IValueT Qn = encodeQRegister(OpQn, "Qn", OpcodeName);
-  IValueT Qm = encodeQRegister(OpQm, "Qm", OpcodeName);
-  constexpr bool UseQRegs = true;
-  emitSIMD(Opcode, ElmtTy, mapQRegToDReg(Qd), mapQRegToDReg(Qn),
-           mapQRegToDReg(Qm), UseQRegs);
+  constexpr IValueT ElmtShift = 20;
+  const IValueT ElmtSize = encodeElmtType(ElmtTy);
+  assert(Utils::IsUint(2, ElmtSize));
+  emitSIMDqqqBase(Opcode | (ElmtSize << ElmtShift), OpQd, OpQn, OpQm,
+                  isFloatingType(ElmtTy), OpcodeName);
 }
 
 void AssemblerARM32::emitVFPddd(CondARM32::Cond Cond, IValueT Opcode,
@@ -2249,11 +2265,29 @@ void AssemblerARM32::vabsd(const Operand *OpDd, const Operand *OpDm,
   //
   // cccc11101D110000dddd101111M0mmmm where cccc=Cond, Ddddd=Dd, and Mmmmm=Dm.
   constexpr const char *Vabsd = "vabsd";
-  IValueT Dd = encodeDRegister(OpDd, "Dd", Vabsd);
-  IValueT Dm = encodeDRegister(OpDm, "Dm", Vabsd);
+  const IValueT Dd = encodeDRegister(OpDd, "Dd", Vabsd);
+  const IValueT Dm = encodeDRegister(OpDm, "Dm", Vabsd);
   constexpr IValueT D0 = 0;
   constexpr IValueT VabsdOpcode = B23 | B21 | B20 | B7 | B6;
   emitVFPddd(Cond, VabsdOpcode, Dd, D0, Dm);
+}
+
+void AssemblerARM32::vabsq(const Operand *OpQd, const Operand *OpQm) {
+  // VABS - ARM section A8.8.280, encoding A1:
+  //   vabs.<dt> <Qd>, <Qm>
+  //
+  // 111100111D11ss01ddd0f1101M0mmm0 where Dddd=OpQd, Mddd=OpQm, and
+  // <dt> in {s8, s16, s32, f32} and ss is the encoding of <dt>.
+  const Type ElmtTy = typeElementType(OpQd->getType());
+  assert(ElmtTy != IceType_i64 && "vabsq doesn't allow i64!");
+  constexpr const char *Vabsq = "vabsq";
+  const IValueT Dd = mapQRegToDReg(encodeQRegister(OpQd, "Qd", Vabsq));
+  const IValueT Dm = mapQRegToDReg(encodeQRegister(OpQm, "Qm", Vabsq));
+  constexpr IValueT Dn = 0;
+  const IValueT VabsqOpcode =
+      B24 | B23 | B21 | B20 | B16 | B9 | B8 | (encodeElmtType(ElmtTy) << 18);
+  constexpr bool UseQRegs = true;
+  emitSIMDBase(VabsqOpcode, Dd, Dn, Dm, UseQRegs, isFloatingType(ElmtTy));
 }
 
 void AssemblerARM32::vadds(const Operand *OpSd, const Operand *OpSn,
@@ -2275,6 +2309,8 @@ void AssemblerARM32::vaddqi(Type ElmtTy, const Operand *OpQd,
   //
   // 111100100Dssnnn0ddd01000N1M0mmm0 where Dddd=OpQd, Nnnn=OpQm, Mmmm=OpQm,
   // and dt in [i8, i16, i32, i64] where ss is the index.
+  assert(isScalarIntegerType(ElmtTy) &&
+         "vaddqi expects vector with integer element type");
   constexpr const char *Vaddqi = "vaddqi";
   constexpr IValueT VaddqiOpcode = B11;
   emitSIMDqqq(VaddqiOpcode, ElmtTy, OpQd, OpQm, OpQn, Vaddqi);
@@ -2286,9 +2322,11 @@ void AssemblerARM32::vaddqf(const Operand *OpQd, const Operand *OpQn,
   //   vadd.f32 <Qd>, <Qn>, <Qm>
   //
   // 111100100D00nnn0ddd01101N1M0mmm0 where Dddd=Qd, Nnnn=Qn, and Mmmm=Qm.
+  assert(OpQd->getType() == IceType_v4f32 && "vaddqf expects type <4 x float>");
   constexpr const char *Vaddqf = "vaddqf";
-  constexpr IValueT VaddqfOpcode = B11 | B10 | B8;
-  emitSIMDqqq(VaddqfOpcode, IceType_f32, OpQd, OpQn, OpQm, Vaddqf);
+  constexpr IValueT VaddqfOpcode = B11 | B8;
+  constexpr bool IsFloatTy = true;
+  emitSIMDqqqBase(VaddqfOpcode, OpQd, OpQn, OpQm, IsFloatTy, Vaddqf);
 }
 
 void AssemblerARM32::vaddd(const Operand *OpDd, const Operand *OpDn,
@@ -2560,6 +2598,10 @@ void AssemblerARM32::veord(const Operand *OpDd, const Operand *OpDn,
 
 void AssemblerARM32::veorq(const Operand *OpQd, const Operand *OpQn,
                            const Operand *OpQm) {
+  // VEOR - ARM section A8.8.316, encoding A1:
+  //   veor <Qd>, <Qn>, <Qm>
+  //
+  // 111100110D00nnn0ddd00001N1M1mmm0 where Dddd=Qd, Nnnn=Qn, and Mmmm=Qm.
   constexpr const char *Veorq = "veorq";
   constexpr IValueT VeorqOpcode = B24 | B8 | B4;
   emitSIMDqqq(VeorqOpcode, IceType_i8, OpQd, OpQn, OpQm, Veorq);
@@ -2937,6 +2979,8 @@ void AssemblerARM32::vmulqi(Type ElmtTy, const Operand *OpQd,
   //
   // 111100100Dssnnn0ddd01001NqM1mmm0 where Dddd=Qd, Nnnn=Qn, Mmmm=Qm, and
   // dt in [i8, i16, i32] where ss is the index.
+  assert(isScalarIntegerType(ElmtTy) &&
+         "vmulqi expects vector with integer element type");
   assert(ElmtTy != IceType_i64 && "vmulqi on i64 vector not allowed");
   constexpr const char *Vmulqi = "vmulqi";
   constexpr IValueT VmulqiOpcode = B11 | B8 | B4;
@@ -2949,9 +2993,11 @@ void AssemblerARM32::vmulqf(const Operand *OpQd, const Operand *OpQn,
   //   vmul.f32 <Qd>, <Qn>, <Qm>
   //
   // 111100110D00nnn0ddd01101MqM1mmm0 where Dddd=Qd, Nnnn=Qn, and Mmmm=Qm.
+  assert(OpQd->getType() == IceType_v4f32 && "vmulqf expects type <4 x float>");
   constexpr const char *Vmulqf = "vmulqf";
-  constexpr IValueT VmulqfOpcode = B24 | B11 | B10 | B8 | B4;
-  emitSIMDqqq(VmulqfOpcode, IceType_f32, OpQd, OpQn, OpQm, Vmulqf);
+  constexpr IValueT VmulqfOpcode = B24 | B11 | B8 | B4;
+  constexpr bool IsFloatTy = true;
+  emitSIMDqqqBase(VmulqfOpcode, OpQd, OpQn, OpQm, IsFloatTy, Vmulqf);
 }
 
 void AssemblerARM32::vorrq(const Operand *OpQd, const Operand *OpQm,
@@ -3062,6 +3108,8 @@ void AssemblerARM32::vsubqi(Type ElmtTy, const Operand *OpQd,
   //
   // 111100110Dssnnn0ddd01000N1M0mmm0 where Dddd=OpQd, Nnnn=OpQm, Mmmm=OpQm,
   // and dt in [i8, i16, i32, i64] where ss is the index.
+  assert(isScalarIntegerType(ElmtTy) &&
+         "vsubqi expects vector with integer element type");
   constexpr const char *Vsubqi = "vsubqi";
   constexpr IValueT VsubqiOpcode = B24 | B11;
   emitSIMDqqq(VsubqiOpcode, ElmtTy, OpQd, OpQm, OpQn, Vsubqi);
@@ -3073,8 +3121,9 @@ void AssemblerARM32::vsubqf(const Operand *OpQd, const Operand *OpQn,
   //   vsub.f32 <Qd>, <Qn>, <Qm>
   //
   // 111100100D10nnn0ddd01101N1M0mmm0 where Dddd=Qd, Nnnn=Qn, and Mmmm=Qm.
+  assert(OpQd->getType() == IceType_v4f32 && "vsubqf expects type <4 x float>");
   constexpr const char *Vsubqf = "vsubqf";
-  constexpr IValueT VsubqfOpcode = B21 | B11 | B10 | B8;
+  constexpr IValueT VsubqfOpcode = B21 | B11 | B8;
   emitSIMDqqq(VsubqfOpcode, IceType_f32, OpQd, OpQn, OpQm, Vsubqf);
 }
 

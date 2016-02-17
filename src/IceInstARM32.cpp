@@ -2464,18 +2464,20 @@ void InstARM32Vabs::emitIAS(const Cfg *Func) const {
   const Variable *Dest = getDest();
   switch (Dest->getType()) {
   default:
-    // TODO(kschimpf): Implement vector fabs.
-    Asm->setNeedsTextFixup();
-    break;
+    llvm::report_fatal_error("fabs not defined on type " +
+                             typeIceString(Dest->getType()));
   case IceType_f32:
     Asm->vabss(Dest, getSrc(0), getPredicate());
     break;
   case IceType_f64:
     Asm->vabsd(Dest, getSrc(0), getPredicate());
     break;
+  case IceType_v4f32:
+    assert(CondARM32::isUnconditional(getPredicate()) &&
+           "fabs must be unconditional");
+    Asm->vabsq(Dest, getSrc(0));
   }
-  if (Asm->needsTextFixup())
-    emitUsingTextFixup(Func);
+  assert(!Asm->needsTextFixup());
 }
 
 void InstARM32Vabs::dump(const Cfg *Func) const {

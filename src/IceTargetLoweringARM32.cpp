@@ -4944,10 +4944,6 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   case Intrinsics::Fabs: {
     Type DestTy = Dest->getType();
     Variable *T = makeReg(DestTy);
-    if (isVectorType(DestTy)) {
-      UnimplementedLoweringError(this, Instr);
-      return;
-    }
     _vabs(T, legalizeToReg(Instr->getArg(0)));
     _mov(Dest, T);
     return;

@@ -324,7 +324,9 @@ public:
 
   void vabss(const Operand *OpSd, const Operand *OpSm, CondARM32::Cond Cond);
 
-  void vabsd(const Operand *OpSd, const Operand *OpSm, CondARM32::Cond Cond);
+  void vabsd(const Operand *OpDd, const Operand *OpDm, CondARM32::Cond Cond);
+
+  void vabsq(const Operand *OpQd, const Operand *OpQm);
 
   void vaddd(const Operand *OpDd, const Operand *OpDn, const Operand *OpDm,
              CondARM32::Cond Cond);
@@ -579,6 +581,9 @@ private:
 
   void bindCfgNodeLabel(const CfgNode *Node) override;
 
+  // SIMD encoding for the vector ElmtTy.
+  static IValueT encodeElmtType(Type ElmtTy);
+
   void emitInst(IValueT Value) {
     AssemblerBuffer::EnsureCapacity _(&Buffer);
     Buffer.emit<IValueT>(Value);
@@ -698,15 +703,26 @@ private:
                       const Operand *OpSrc0, const char *InstName);
 
   // Implements various forms of vector (SIMD) operations.  Implements pattern
-  // 111100100Dssnnnndddn0000NQM0mmmm where ss=encodeElmtType(ElmtTy), Dddd=Dd,
-  // Nnnn=Dn, Mmmm=Dm, Q=UseQRegs, and Opcode is unioned into the pattern.
+  // 111100100D00nnnndddn00F0NQM0mmmm where Dddd=Dd, Nnnn=Dn, Mmmm=Dm,
+  // Q=UseQRegs, F=IsFloatTy, and Opcode is unioned into the pattern.
+  void emitSIMDBase(IValueT Opcode, IValueT Dd, IValueT Dn, IValueT Dm,
+                    bool UseQRegs, bool IsFloatTy);
+
+  // Same as emitSIMDBase above, except ElmtShift=20 and ElmtSize is computed
+  // from ElmtTy.
   void emitSIMD(IValueT Opcode, Type ElmtTy, IValueT Dd, IValueT Dn, IValueT Dm,
                 bool UseQRegs);
 
   // Implements various integer forms of vector (SIMD) operations using Q
-  // registers. Implements pattern 111100100Dssnnn0ddd00000N1M0mmm0 where
-  // ss=encodeElmtType(ElmtTy), Dddd=Qd, Nnnn=Qn, Mmmm=Qm, and Opcode is unioned
-  // into the pattern.
+  // registers. Implements pattern 111100100D00nnn0ddd000F0N1M0mmm0 where
+  // Dddd=Qd, Nnnn=Qn, Mmmm=Qm, F=IsFloatTy, and Opcode is unioned into the
+  // pattern.
+  void emitSIMDqqqBase(IValueT Opcode, const Operand *OpQd, const Operand *OpQn,
+                       const Operand *OpQm, bool IsFloatTy,
+                       const char *OpcodeName);
+
+  // Same as emitSIMD above, except ElmtShift=20 and ElmtSize is computed from
+  // ElmtTy.
   void emitSIMDqqq(IValueT Opcode, Type ElmtTy, const Operand *OpQd,
                    const Operand *OpQn, const Operand *OpQm,
                    const char *OpcodeName);

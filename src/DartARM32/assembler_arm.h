@@ -742,10 +742,11 @@ class Assembler : public ValueObject {
 #if 0
   // Moved to Arm32::AssemblerARM32::vabss().
   void vabss(SRegister sd, SRegister sm, Condition cond = AL);
-  // Moved to Arm32::AssemblerARM32::vabss().
+  // Moved to Arm32::AssemblerARM32::vabsd().
   void vabsd(DRegister dd, DRegister dm, Condition cond = AL);
-#endif
+  // Moved to Arm32::AssemblerARM32::vabsq().
   void vabsqs(QRegister qd, QRegister qm);
+#endif
   void vnegs(SRegister sd, SRegister sm, Condition cond = AL);
   void vnegd(DRegister dd, DRegister dm, Condition cond = AL);
   void vnegqs(QRegister qd, QRegister qm);
