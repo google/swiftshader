@@ -176,22 +176,6 @@ template <typename Type> void *threadWrapper(void *Data) {
   return NULL;
 }
 
-#ifndef X8664_STACK_HACK
-void AllocStackForThread(uint32, pthread_attr_t *) {}
-#else  // defined(X8664_STACK_HACK)
-void AllocStackForThread(uint32 m, pthread_attr_t *attr) {
-  static const uint32_t ThreadStackBase = 0x60000000;
-  static const uint32_t ThreadStackSize = 4 << 20; // 4MB.
-  if (pthread_attr_setstack(
-          attr, xAllocStack(ThreadStackBase - 2 * m * ThreadStackSize,
-                            ThreadStackSize),
-          ThreadStackSize) != 0) {
-    std::cout << "pthread_attr_setstack: " << strerror(errno) << "\n";
-    abort();
-  }
-}
-#endif // X8664_STACK_HACK
-
 template <typename Type>
 void testAtomicRMWThreads(volatile Type *AtomicLoc, size_t &TotalTests,
                           size_t &Passes, size_t &Failures) {
@@ -232,7 +216,6 @@ void testAtomicRMWThreads(volatile Type *AtomicLoc, size_t &TotalTests,
         *AtomicLoc = Value1;
         for (size_t m = 0; m < NumThreads; ++m) {
           pthread_attr_init(&attr[m]);
-          AllocStackForThread(m, &attr[m]);
           if (pthread_create(&t[m], &attr[m], &threadWrapper<Type>,
                              reinterpret_cast<void *>(&TDataLlc)) != 0) {
             std::cout << "pthread_create failed w/ " << strerror(errno) << "\n";
@@ -248,7 +231,6 @@ void testAtomicRMWThreads(volatile Type *AtomicLoc, size_t &TotalTests,
         *AtomicLoc = Value1;
         for (size_t m = 0; m < NumThreads; ++m) {
           pthread_attr_init(&attr[m]);
-          AllocStackForThread(m, &attr[m]);
           if (pthread_create(&t[m], &attr[m], &threadWrapper<Type>,
                              m % 2 == 0
                                  ? reinterpret_cast<void *>(&TDataLlc)
@@ -282,11 +264,7 @@ void testAtomicRMWThreads(volatile Type *AtomicLoc, size_t &TotalTests,
   }
 }
 
-#ifdef X8664_STACK_HACK
-extern "C" int wrapped_main(int argc, char *argv[]) {
-#else  // !defined(X8664_STACK_HACK)
 int main(int argc, char *argv[]) {
-#endif // X8664_STACK_HACK
   size_t TotalTests = 0;
   size_t Passes = 0;
   size_t Failures = 0;

@@ -63,11 +63,7 @@ void testFixedLen(SizeT &TotalTests, SizeT &Passes, SizeT &Failures) {
 #undef do_test_fixed
 }
 
-#ifdef X8664_STACK_HACK
-extern "C" int wrapped_main(int argc, char *argv[]) {
-#else  // !defined(X8664_STACK_HACK)
 int main(int argc, char *argv[]) {
-#endif // X8664_STACK_HACK
   unsigned TotalTests = 0;
   unsigned Passes = 0;
   unsigned Failures = 0;

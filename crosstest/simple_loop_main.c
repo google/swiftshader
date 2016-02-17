@@ -6,11 +6,7 @@
 int simple_loop(int *a, int n);
 int Subzero_simple_loop(int *a, int n);
 
-#ifdef X8664_STACK_HACK
-int wrapped_main(int argc, char *argv[]) {
-#else  // !defined(X8664_STACK_HACK)
 int main(int argc, char *argv[]) {
-#endif // X8664_STACK_HACK
   unsigned TotalTests = 0;
   unsigned Passes = 0;
   unsigned Failures = 0;

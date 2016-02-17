@@ -199,14 +199,7 @@ def main():
                 ).format(root=nacl_root,
                          sb=get_sfi_string(args, 'sb', 'nonsfi', 'native')))
 
-    # TODO(jpp): clean up stack hack related code.
-    needs_stack_hack = False
     target_params = []
-    if needs_stack_hack:
-      shellcmd('{bin}/clang -g -o stack_hack.x8664.{key}.o -c '
-               'stack_hack.x8664.c'.format(bin=bindir, key=key))
-      target_params.append('-DX8664_STACK_HACK')
-      target_params.append('stack_hack.x8664.{key}.o'.format(key=key))
 
     if args.target == 'arm32':
       target_params.append('-DARM32')
