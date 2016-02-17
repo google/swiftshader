@@ -325,6 +325,10 @@ private:
   // locking/unlocking) to prevent nested bundles.
   bool AutoBundling = false;
 
+  /// This indicates whether we are in the genTargetHelperCalls phase, and
+  /// therefore can do things like scalarization.
+  bool GeneratingTargetHelpers = false;
+
   // _bundle_lock(), and _bundle_unlock(), were made private to force subtargets
   // to use the AutoBundle helper.
   void
@@ -469,39 +473,42 @@ protected:
 
   /// Generalizes scalarizeArithmetic to support other instruction types.
   ///
-  /// MakeInstruction is a function-like object with signature
+  /// insertScalarInstruction is a function-like object with signature
   /// (Variable *Dest, Variable *Src0, Variable *Src1) -> Instr *.
-  template <typename F>
-  void scalarizeInstruction(Variable *Dest, Operand *Src0, Operand *Src1,
-                            F &&MakeInstruction) {
+  template <typename... Operands,
+            typename F = std::function<Inst *(Variable *, Operands *...)>>
+  void scalarizeInstruction(Variable *Dest, F insertScalarInstruction,
+                            Operands *... Srcs) {
+    assert(GeneratingTargetHelpers &&
+           "scalarizeInstruction called during incorrect phase");
     const Type DestTy = Dest->getType();
     assert(isVectorType(DestTy));
     const Type DestElementTy = typeElementType(DestTy);
     const SizeT NumElements = typeNumElements(DestTy);
-    const Type Src0ElementTy = typeElementType(Src0->getType());
-    const Type Src1ElementTy = typeElementType(Src1->getType());
-
-    assert(NumElements == typeNumElements(Src0->getType()));
-    assert(NumElements == typeNumElements(Src1->getType()));
 
     Variable *T = Func->makeVariable(DestTy);
     Context.insert<InstFakeDef>(T);
-    for (SizeT I = 0; I < NumElements; ++I) {
-      Constant *Index = Ctx->getConstantInt32(I);
 
-      // Extract the next two inputs.
-      Variable *Op0 = Func->makeVariable(Src0ElementTy);
-      Context.insert<InstExtractElement>(Op0, Src0, Index);
-      Variable *Op1 = Func->makeVariable(Src1ElementTy);
-      Context.insert<InstExtractElement>(Op1, Src1, Index);
+    for (SizeT I = 0; I < NumElements; ++I) {
+      auto *Index = Ctx->getConstantInt32(I);
+
+      auto makeExtractThunk = [this, Index, NumElements](Operand *Src) {
+        return [this, Index, NumElements, Src]() {
+          assert(typeNumElements(Src->getType()) == NumElements);
+
+          const auto ElementTy = typeElementType(Src->getType());
+          auto *Op = Func->makeVariable(ElementTy);
+          Context.insert<InstExtractElement>(Op, Src, Index);
+          return Op;
+        };
+      };
 
       // Perform the operation as a scalar operation.
-      Variable *Res = Func->makeVariable(DestElementTy);
-      auto Arith = MakeInstruction(Res, Op0, Op1);
-      // We might have created an operation that needed a helper call.
+      auto *Res = Func->makeVariable(DestElementTy);
+      auto *Arith = applyToThunkedArgs(insertScalarInstruction, Res,
+                                       makeExtractThunk(Srcs)...);
       genTargetHelperCallFor(Arith);
 
-      // Insert the result into position.
       Variable *DestT = Func->makeVariable(DestTy);
       Context.insert<InstInsertElement>(DestT, T, Res, Index);
       T = DestT;
@@ -509,38 +516,38 @@ protected:
     Context.insert<InstAssign>(Dest, T);
   }
 
-  template <typename F>
-  void scalarizeUnaryInstruction(Variable *Dest, Operand *Src0,
-                                 F &&MakeInstruction) {
-    const Type DestTy = Dest->getType();
-    assert(isVectorType(DestTy));
-    const Type DestElementTy = typeElementType(DestTy);
-    const SizeT NumElements = typeNumElements(DestTy);
-    const Type Src0ElementTy = typeElementType(Src0->getType());
+  // applyToThunkedArgs is used by scalarizeInstruction. Ideally, we would just
+  // call insertScalarInstruction(Res, Srcs...), but C++ does not specify
+  // evaluation order which means this leads to an unpredictable final
+  // output. Instead, we wrap each of the Srcs in a thunk and these
+  // applyToThunkedArgs functions apply the thunks in a well defined order so we
+  // still get well-defined output.
+  Inst *applyToThunkedArgs(
+      std::function<Inst *(Variable *, Variable *)> insertScalarInstruction,
+      Variable *Res, std::function<Variable *()> thunk0) {
+    auto *Src0 = thunk0();
+    return insertScalarInstruction(Res, Src0);
+  }
 
-    assert(NumElements == typeNumElements(Src0->getType()));
+  Inst *
+  applyToThunkedArgs(std::function<Inst *(Variable *, Variable *, Variable *)>
+                         insertScalarInstruction,
+                     Variable *Res, std::function<Variable *()> thunk0,
+                     std::function<Variable *()> thunk1) {
+    auto *Src0 = thunk0();
+    auto *Src1 = thunk1();
+    return insertScalarInstruction(Res, Src0, Src1);
+  }
 
-    Variable *T = Func->makeVariable(DestTy);
-    Context.insert<InstFakeDef>(T);
-    for (SizeT I = 0; I < NumElements; ++I) {
-      Constant *Index = Ctx->getConstantInt32(I);
-
-      // Extract the next two inputs.
-      Variable *Op0 = Func->makeVariable(Src0ElementTy);
-      Context.insert<InstExtractElement>(Op0, Src0, Index);
-
-      // Perform the operation as a scalar operation.
-      Variable *Res = Func->makeVariable(DestElementTy);
-      auto Arith = MakeInstruction(Res, Op0);
-      // We might have created an operation that needed a helper call.
-      genTargetHelperCallFor(Arith);
-
-      // Insert the result into position.
-      Variable *DestT = Func->makeVariable(DestTy);
-      Context.insert<InstInsertElement>(DestT, T, Res, Index);
-      T = DestT;
-    }
-    Context.insert<InstAssign>(Dest, T);
+  Inst *applyToThunkedArgs(
+      std::function<Inst *(Variable *, Variable *, Variable *, Variable *)>
+          insertScalarInstruction,
+      Variable *Res, std::function<Variable *()> thunk0,
+      std::function<Variable *()> thunk1, std::function<Variable *()> thunk2) {
+    auto *Src0 = thunk0();
+    auto *Src1 = thunk1();
+    auto *Src2 = thunk2();
+    return insertScalarInstruction(Res, Src0, Src1, Src2);
   }
 
   /// SandboxType enumerates all possible sandboxing strategies that

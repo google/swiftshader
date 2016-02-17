@@ -448,7 +448,8 @@ check-xtest: $(OBJDIR)/pnacl-sz make_symlink runtime
           -i x8664,sandbox,sse4.1,Om1 \
           -i arm32,neon \
           -e arm32,neon,test_vector_ops \
-          -e arm32,neon,test_select
+          -e arm32,nonsfi \
+          -e arm32,neon,test_vector_ops
 	PNACL_BIN_PATH=$(PNACL_BIN_PATH) \
 	$(LLVM_SRC_PATH)/utils/lit/lit.py -sv $(CHECK_XTEST_TESTS)
 endif

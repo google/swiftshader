@@ -592,10 +592,10 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
     const InstCast::OpKind CastKind = CastInstr->getCastKind();
 
     if (isVectorType(DestTy)) {
-      scalarizeUnaryInstruction(
-          Dest, Src0, [this, CastKind](Variable *Dest, Variable *Src) {
+      scalarizeInstruction(
+          Dest, [this, CastKind](Variable *Dest, Variable *Src) {
             return Context.insert<InstCast>(CastKind, Dest, Src);
-          });
+          }, Src0);
       CastInstr->setDeleted();
       return;
     }
@@ -753,10 +753,11 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
       auto *CmpInstr = llvm::cast<InstIcmp>(Instr);
       const auto Condition = CmpInstr->getCondition();
       scalarizeInstruction(
-          Dest, CmpInstr->getSrc(0), CmpInstr->getSrc(1),
+          Dest,
           [this, Condition](Variable *Dest, Variable *Src0, Variable *Src1) {
             return Context.insert<InstIcmp>(Condition, Dest, Src0, Src1);
-          });
+          },
+          CmpInstr->getSrc(0), CmpInstr->getSrc(1));
       CmpInstr->setDeleted();
     }
     return;
@@ -768,11 +769,30 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
       auto *CmpInstr = llvm::cast<InstFcmp>(Instr);
       const auto Condition = CmpInstr->getCondition();
       scalarizeInstruction(
-          Dest, CmpInstr->getSrc(0), CmpInstr->getSrc(1),
+          Dest,
           [this, Condition](Variable *Dest, Variable *Src0, Variable *Src1) {
             return Context.insert<InstFcmp>(Condition, Dest, Src0, Src1);
-          });
+          },
+          CmpInstr->getSrc(0), CmpInstr->getSrc(1));
       CmpInstr->setDeleted();
+    }
+    return;
+  }
+  case Inst::Select: {
+    Variable *Dest = Instr->getDest();
+    const auto DestTy = Dest->getType();
+    if (isVectorType(DestTy)) {
+      auto *SelectInstr = llvm::cast<InstSelect>(Instr);
+      scalarizeInstruction(Dest,
+                           [this](Variable *Dest, Variable *Src0,
+                                  Variable *Src1, Variable *Src2) {
+                             return Context.insert<InstSelect>(Dest, Src0, Src1,
+                                                               Src2);
+                           },
+                           llvm::cast<Variable>(SelectInstr->getSrc(0)),
+                           llvm::cast<Variable>(SelectInstr->getSrc(1)),
+                           llvm::cast<Variable>(SelectInstr->getSrc(2)));
+      SelectInstr->setDeleted();
     }
     return;
   }

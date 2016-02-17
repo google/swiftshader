@@ -123,6 +123,25 @@ template <typename T> static bool isPositiveZero(T Val) {
   return Val == 0 && !std::signbit(Val);
 }
 
+/// An RAII class to ensure that a boolean flag is restored to its previous
+/// value upon function exit.
+///
+/// Used in places like RandomizationPoolingPause and generating target helper
+/// calls.
+class BoolFlagSaver {
+  BoolFlagSaver() = delete;
+  BoolFlagSaver(const BoolFlagSaver &) = delete;
+  BoolFlagSaver &operator=(const BoolFlagSaver &) = delete;
+
+public:
+  BoolFlagSaver(bool &F, bool NewValue) : OldValue(F), Flag(F) { F = NewValue; }
+  ~BoolFlagSaver() { Flag = OldValue; }
+
+private:
+  const bool OldValue;
+  bool &Flag;
+};
+
 } // end of namespace Utils
 } // end of namespace Ice
 

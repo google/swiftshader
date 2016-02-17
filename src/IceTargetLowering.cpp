@@ -313,6 +313,7 @@ TargetLowering::AutoBundle::~AutoBundle() {
 }
 
 void TargetLowering::genTargetHelperCalls() {
+  Utils::BoolFlagSaver _(GeneratingTargetHelpers, true);
   for (CfgNode *Node : Func->getNodes()) {
     Context.init(Node);
     while (!Context.atEnd()) {
@@ -711,10 +712,9 @@ void TargetLowering::scalarizeArithmetic(InstArithmetic::OpKind Kind,
                                          Variable *Dest, Operand *Src0,
                                          Operand *Src1) {
   scalarizeInstruction(
-      Dest, Src0, Src1,
-      [this, Kind](Variable *Dest, Variable *Src0, Variable *Src1) {
+      Dest, [this, Kind](Variable *Dest, Operand *Src0, Operand *Src1) {
         return Context.insert<InstArithmetic>(Kind, Dest, Src0, Src1);
-      });
+      }, Src0, Src1);
 }
 
 void TargetLowering::emitWithoutPrefix(const ConstantRelocatable *C,

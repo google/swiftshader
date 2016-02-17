@@ -87,21 +87,7 @@ template <> struct PoolTypeConverter<uint8_t> {
 
 namespace X86NAMESPACE {
 
-/// A helper class to ease the settings of RandomizationPoolingPause to disable
-/// constant blinding or pooling for some translation phases.
-class BoolFlagSaver {
-  BoolFlagSaver() = delete;
-  BoolFlagSaver(const BoolFlagSaver &) = delete;
-  BoolFlagSaver &operator=(const BoolFlagSaver &) = delete;
-
-public:
-  BoolFlagSaver(bool &F, bool NewValue) : OldValue(F), Flag(F) { F = NewValue; }
-  ~BoolFlagSaver() { Flag = OldValue; }
-
-private:
-  const bool OldValue;
-  bool &Flag;
-};
+using Utils::BoolFlagSaver;
 
 template <typename Traits> class BoolFoldingEntry {
   BoolFoldingEntry(const BoolFoldingEntry &) = delete;
