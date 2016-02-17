@@ -447,9 +447,15 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
       switch (Op) {
       default:
         break;
+      case InstArithmetic::Ashr:
       case InstArithmetic::Fdiv:
-      case InstArithmetic::Udiv:
+      case InstArithmetic::Frem:
+      case InstArithmetic::Lshr:
       case InstArithmetic::Sdiv:
+      case InstArithmetic::Shl:
+      case InstArithmetic::Srem:
+      case InstArithmetic::Udiv:
+      case InstArithmetic::Urem:
         scalarizeArithmetic(Op, Dest, Instr->getSrc(0), Instr->getSrc(1));
         Instr->setDeleted();
         return;

@@ -248,3 +248,120 @@ entry:
 
   ret <16 x i8> %res
 }
+
+define internal <4 x i32> @testSdiv4i32(<4 x i32> %v1, <4 x i32> %v2) {
+; ASM-LABEL: testSdiv4i32:
+; IASM-LABEL: testSdiv4i32:
+
+entry:
+  %res = sdiv <4 x i32> %v1, %v2
+
+; ASM:     sdiv r0, r0, r1
+; ASM:     sdiv r0, r0, r1
+; ASM:     sdiv r0, r0, r1
+; ASM:     sdiv r0, r0, r1
+
+; IASM-NOT:     sdiv
+
+  ret <4 x i32> %res
+}
+
+define internal <8 x i16> @testSdiv8i16(<8 x i16> %v1, <8 x i16> %v2) {
+; ASM-LABEL: testSdiv8i16:
+; IASM-LABEL: testSdiv8i16:
+
+entry:
+  %res = sdiv <8 x i16> %v1, %v2
+
+; ASM:     sxth            r0, r0
+; ASM:     sxth            r1, r1
+; ASM:     sdiv r0, r0, r1
+; ASM:     sxth            r0, r0
+; ASM:     sxth            r1, r1
+; ASM:     sdiv r0, r0, r1
+; ASM:     sxth            r0, r0
+; ASM:     sxth            r1, r1
+; ASM:     sdiv r0, r0, r1
+; ASM:     sxth            r0, r0
+; ASM:     sxth            r1, r1
+; ASM:     sdiv r0, r0, r1
+; ASM:     sxth            r0, r0
+; ASM:     sxth            r1, r1
+; ASM:     sdiv r0, r0, r1
+; ASM:     sxth            r0, r0
+; ASM:     sxth            r1, r1
+; ASM:     sdiv r0, r0, r1
+; ASM:     sxth            r0, r0
+; ASM:     sxth            r1, r1
+; ASM:     sdiv r0, r0, r1
+; ASM:     sxth            r0, r0
+; ASM:     sxth            r1, r1
+; ASM:     sdiv r0, r0, r1
+
+; IASM-NOT:     sxth
+; IASM-NOT:     sdiv
+
+  ret <8 x i16> %res
+}
+
+define internal <16 x i8> @testSdiv16i8(<16 x i8> %v1, <16 x i8> %v2) {
+; ASM-LABEL: testSdiv16i8:
+; IASM-LABEL: testSdiv16i8:
+
+entry:
+  %res = sdiv <16 x i8> %v1, %v2
+
+; ASM:     sxtb            r0, r0
+; ASM:     sxtb            r1, r1
+; ASM:     sdiv r0, r0, r1
+; ASM:     sxtb            r0, r0
+; ASM:     sxtb            r1, r1
+; ASM:     sdiv r0, r0, r1
+; ASM:     sxtb            r0, r0
+; ASM:     sxtb            r1, r1
+; ASM:     sdiv r0, r0, r1
+; ASM:     sxtb            r0, r0
+; ASM:     sxtb            r1, r1
+; ASM:     sdiv r0, r0, r1
+; ASM:     sxtb            r0, r0
+; ASM:     sxtb            r1, r1
+; ASM:     sdiv r0, r0, r1
+; ASM:     sxtb            r0, r0
+; ASM:     sxtb            r1, r1
+; ASM:     sdiv r0, r0, r1
+; ASM:     sxtb            r0, r0
+; ASM:     sxtb            r1, r1
+; ASM:     sdiv r0, r0, r1
+; ASM:     sxtb            r0, r0
+; ASM:     sxtb            r1, r1
+; ASM:     sdiv r0, r0, r1
+; ASM:     sxtb            r0, r0
+; ASM:     sxtb            r1, r1
+; ASM:     sdiv r0, r0, r1
+; ASM:     sxtb            r0, r0
+; ASM:     sxtb            r1, r1
+; ASM:     sdiv r0, r0, r1
+; ASM:     sxtb            r0, r0
+; ASM:     sxtb            r1, r1
+; ASM:     sdiv r0, r0, r1
+; ASM:     sxtb            r0, r0
+; ASM:     sxtb            r1, r1
+; ASM:     sdiv r0, r0, r1
+; ASM:     sxtb            r0, r0
+; ASM:     sxtb            r1, r1
+; ASM:     sdiv r0, r0, r1
+; ASM:     sxtb            r0, r0
+; ASM:     sxtb            r1, r1
+; ASM:     sdiv r0, r0, r1
+; ASM:     sxtb            r0, r0
+; ASM:     sxtb            r1, r1
+; ASM:     sdiv r0, r0, r1
+; ASM:     sxtb            r0, r0
+; ASM:     sxtb            r1, r1
+; ASM:     sdiv r0, r0, r1
+
+; IASM-NOT:     sxtb
+; IASM-NOT:     sdiv
+
+  ret <16 x i8> %res
+}

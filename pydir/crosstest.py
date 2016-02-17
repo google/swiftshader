@@ -29,13 +29,9 @@ def main():
                  'arm32': targets.ARM32Target }
     arch_sz_flags = { 'x8632': [],
                       'x8664': [],
-                      # TODO(jvoung): remove skip-unimplemented when
-                      # implemented.
-                      # For ARM, test a large stack offset as well, until we
-                      # are more confident. +/- 4095 is the limit, so test
-                      # somewhere near that boundary.
-                      'arm32': ['--skip-unimplemented',
-                                '--test-stack-extra', '4084']
+                      # For ARM, test a large stack offset as well. +/- 4095 is
+                      # the limit, so test somewhere near that boundary.
+                      'arm32': ['--test-stack-extra', '4084']
     }
     arch_llc_flags_extra = {
         # Use sse2 instructions regardless of input -mattr

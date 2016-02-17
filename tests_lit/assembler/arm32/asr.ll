@@ -1,4 +1,4 @@
-; Show that we know how to translate asr
+; Show that we know how to translate asr.
 
 ; NOTE: We use -O2 to get rid of memory stores.
 
@@ -60,4 +60,71 @@ entry:
 ; IASM-NEXT:	.byte 0xe1
 
   ret i32 %v
+}
+
+define internal <4 x i32> @AshrVeci32(<4 x i32> %a, <4 x i32> %b) {
+; ASM-LABEL:AshrVeci32:
+; DIS-LABEL:00000020 <AshrVeci32>:
+; IASM-LABEL:AshrVeci32:
+
+entry:
+
+  %v = ashr <4 x i32> %a, %b
+
+; ASM:     asr     r0, r0, r1
+; ASM:     asr     r0, r0, r1
+; ASM:     asr     r0, r0, r1
+; ASM:     asr     r0, r0, r1
+; DIS:  28: e1a00150
+; DIS:  38: e1a00150
+; DIS:  48: e1a00150
+; DIS:  58: e1a00150
+
+  ret <4 x i32> %v
+}
+
+define internal <8 x i16> @AshrVeci16(<8 x i16> %a, <8 x i16> %b) {
+; ASM-LABEL:AshrVeci16:
+
+entry:
+
+  %v = ashr <8 x i16> %a, %b
+
+; ASM:     asr     r0, r0, r1
+; ASM:     asr     r0, r0, r1
+; ASM:     asr     r0, r0, r1
+; ASM:     asr     r0, r0, r1
+; ASM:     asr     r0, r0, r1
+; ASM:     asr     r0, r0, r1
+; ASM:     asr     r0, r0, r1
+; ASM:     asr     r0, r0, r1
+
+  ret <8 x i16> %v
+}
+
+define internal <16 x i8> @AshrVeci8(<16 x i8> %a, <16 x i8> %b) {
+; ASM-LABEL:AshrVeci8:
+
+entry:
+
+  %v = ashr <16 x i8> %a, %b
+
+; ASM:     asr     r0, r0, r1
+; ASM:     asr     r0, r0, r1
+; ASM:     asr     r0, r0, r1
+; ASM:     asr     r0, r0, r1
+; ASM:     asr     r0, r0, r1
+; ASM:     asr     r0, r0, r1
+; ASM:     asr     r0, r0, r1
+; ASM:     asr     r0, r0, r1
+; ASM:     asr     r0, r0, r1
+; ASM:     asr     r0, r0, r1
+; ASM:     asr     r0, r0, r1
+; ASM:     asr     r0, r0, r1
+; ASM:     asr     r0, r0, r1
+; ASM:     asr     r0, r0, r1
+; ASM:     asr     r0, r0, r1
+; ASM:     asr     r0, r0, r1
+
+  ret <16 x i8> %v
 }

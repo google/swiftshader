@@ -61,3 +61,69 @@ entry:
 
   ret i32 %shl
 }
+
+define internal <4 x i32> @ShlVec(<4 x i32> %a, <4 x i32> %b) {
+; ASM-LABEL:ShlVec:
+; DIS-LABEL:00000020 <ShlVec>:
+; IASM-LABEL:ShlVec:
+
+entry:
+; ASM-NEXT:.LShlVec$entry:
+; IASM-NEXT:.LShlVec$entry:
+
+  %shl = shl <4 x i32> %a, %b
+
+; ASM:     lsl     r0, r0, r1
+; ASM:     lsl     r0, r0, r1
+; ASM:     lsl     r0, r0, r1
+; ASM:     lsl     r0, r0, r1
+; DIS:  28:        e1a00110
+
+  ret <4 x i32> %shl
+}
+
+define internal <8 x i16> @ShlVeci16(<8 x i16> %a, <8 x i16> %b) {
+; ASM-LABEL:ShlVeci16:
+
+entry:
+
+  %v = shl <8 x i16> %a, %b
+
+; ASM:     lsl     r0, r0, r1
+; ASM:     lsl     r0, r0, r1
+; ASM:     lsl     r0, r0, r1
+; ASM:     lsl     r0, r0, r1
+; ASM:     lsl     r0, r0, r1
+; ASM:     lsl     r0, r0, r1
+; ASM:     lsl     r0, r0, r1
+; ASM:     lsl     r0, r0, r1
+
+  ret <8 x i16> %v
+}
+
+define internal <16 x i8> @ShlVeci8(<16 x i8> %a, <16 x i8> %b) {
+; ASM-LABEL:ShlVeci8:
+
+entry:
+
+  %v = shl <16 x i8> %a, %b
+
+; ASM:     lsl     r0, r0, r1
+; ASM:     lsl     r0, r0, r1
+; ASM:     lsl     r0, r0, r1
+; ASM:     lsl     r0, r0, r1
+; ASM:     lsl     r0, r0, r1
+; ASM:     lsl     r0, r0, r1
+; ASM:     lsl     r0, r0, r1
+; ASM:     lsl     r0, r0, r1
+; ASM:     lsl     r0, r0, r1
+; ASM:     lsl     r0, r0, r1
+; ASM:     lsl     r0, r0, r1
+; ASM:     lsl     r0, r0, r1
+; ASM:     lsl     r0, r0, r1
+; ASM:     lsl     r0, r0, r1
+; ASM:     lsl     r0, r0, r1
+; ASM:     lsl     r0, r0, r1
+
+  ret <16 x i8> %v
+}

@@ -1,4 +1,4 @@
-; Show that we translate intrinsics for fabs on float and double.
+; Show that we translate intrinsics for fabs on float, double and float vectors.
 
 ; REQUIRES: allow_dump
 
@@ -26,6 +26,7 @@
 
 declare float @llvm.fabs.f32(float)
 declare double @llvm.fabs.f64(double)
+declare <4 x float> @llvm.fabs.v4f32(<4 x float>)
 
 define internal float @test_fabs_float(float %x) {
 ; ASM-LABEL: test_fabs_float:
@@ -55,4 +56,19 @@ entry:
 ; IASM-NOT: vabs.64
 
   ret double %r
+}
+
+define internal <4 x float> @test_fabs_4float(<4 x float> %x) {
+; ASM-LABEL: test_fabs_4float:
+; DIS-LABEL: 00000050 <test_fabs_4float>:
+; IASM-LABEL: test_fabs_4float:
+
+entry:
+  %r = call <4 x float> @llvm.fabs.v4f32(<4 x float> %x)
+
+; ASM:  vabs.f32        q0, q0
+; DIS:   60:    f3b90740
+; IASM-NOT: vabs.f32
+
+  ret <4 x float> %r
 }

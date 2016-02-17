@@ -61,3 +61,69 @@ entry:
 
   ret i32 %v
 }
+
+define internal <4 x i32> @LshrVec(<4 x i32> %a, <4 x i32> %b) {
+; ASM-LABEL:LshrVec:
+; DIS-LABEL:00000020 <LshrVec>:
+; IASM-LABEL:LshrVec:
+
+entry:
+; ASM-NEXT:.LLshrVec$entry:
+; IASM-NEXT:.LLshrVec$entry:
+
+  %v = lshr <4 x i32> %a, %b
+
+; ASM:     lsr     r0, r0, r1
+; ASM:     lsr     r0, r0, r1
+; ASM:     lsr     r0, r0, r1
+; ASM:     lsr     r0, r0, r1
+; DIS:  28:        e1a00130
+
+  ret <4 x i32> %v
+}
+
+define internal <8 x i16> @LshrVeci16(<8 x i16> %a, <8 x i16> %b) {
+; ASM-LABEL:LshrVeci16:
+
+entry:
+
+  %v = lshr <8 x i16> %a, %b
+
+; ASM:     lsr     r0, r0, r1
+; ASM:     lsr     r0, r0, r1
+; ASM:     lsr     r0, r0, r1
+; ASM:     lsr     r0, r0, r1
+; ASM:     lsr     r0, r0, r1
+; ASM:     lsr     r0, r0, r1
+; ASM:     lsr     r0, r0, r1
+; ASM:     lsr     r0, r0, r1
+
+  ret <8 x i16> %v
+}
+
+define internal <16 x i8> @LshrVeci8(<16 x i8> %a, <16 x i8> %b) {
+; ASM-LABEL:LshrVeci8:
+
+entry:
+
+  %v = lshr <16 x i8> %a, %b
+
+; ASM:     lsr     r0, r0, r1
+; ASM:     lsr     r0, r0, r1
+; ASM:     lsr     r0, r0, r1
+; ASM:     lsr     r0, r0, r1
+; ASM:     lsr     r0, r0, r1
+; ASM:     lsr     r0, r0, r1
+; ASM:     lsr     r0, r0, r1
+; ASM:     lsr     r0, r0, r1
+; ASM:     lsr     r0, r0, r1
+; ASM:     lsr     r0, r0, r1
+; ASM:     lsr     r0, r0, r1
+; ASM:     lsr     r0, r0, r1
+; ASM:     lsr     r0, r0, r1
+; ASM:     lsr     r0, r0, r1
+; ASM:     lsr     r0, r0, r1
+; ASM:     lsr     r0, r0, r1
+
+  ret <16 x i8> %v
+}
