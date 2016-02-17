@@ -198,8 +198,6 @@ const static size_t MaxTestsPerFunc = 100000;
 
 template <typename TypeUnsignedLabel, typename TypeSignedLabel>
 void testsVecInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
-#if !defined(ARM32)
-  // TODO(jpp): remove this once vector support is implemented.
   typedef typename Vectors<TypeUnsignedLabel>::Ty TypeUnsigned;
   typedef typename Vectors<TypeSignedLabel>::Ty TypeSigned;
   typedef typename Vectors<TypeUnsignedLabel>::ElementTy ElementTypeUnsigned;
@@ -257,7 +255,6 @@ void testsVecInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
       }
     }
   }
-#endif // !ARM32
 }
 
 // Return true on wraparound
@@ -278,8 +275,6 @@ incrementI1Vector(typename Vectors<T>::Ty &Vect) {
 
 template <typename T>
 void testsVecI1(size_t &TotalTests, size_t &Passes, size_t &Failures) {
-#if !defined(ARM32)
-  // TODO(jpp): remove this once vector support is implemented.
   typedef typename Vectors<T>::Ty Ty;
   typedef Ty (*FuncType)(Ty, Ty);
   static struct {
@@ -347,7 +342,6 @@ void testsVecI1(size_t &TotalTests, size_t &Passes, size_t &Failures) {
       }
     }
   }
-#endif // !ARM32
 }
 
 int main(int argc, char *argv[]) {

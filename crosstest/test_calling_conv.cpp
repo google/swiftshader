@@ -66,8 +66,6 @@ void __attribute__((noinline)) callee_i(int arg1) {
 
 void __attribute__((noinline))
 callee_vvvvv(v4si32 arg1, v4si32 arg2, v4si32 arg3, v4si32 arg4, v4si32 arg5) {
-#ifndef ARM32
-  // TODO(jpp): remove this once vector support is implemented.
   switch (ArgNum) {
     HANDLE_ARG(1);
     HANDLE_ARG(2);
@@ -75,7 +73,6 @@ callee_vvvvv(v4si32 arg1, v4si32 arg2, v4si32 arg3, v4si32 arg4, v4si32 arg5) {
     HANDLE_ARG(4);
     HANDLE_ARG(5);
   }
-#endif // ARM32
 }
 
 void __attribute__((noinline))
@@ -83,15 +80,12 @@ callee_vlvilvfvdviv(v4f32 arg1, int64 arg2, v4f32 arg3, int arg4, int64 arg5,
                     v4f32 arg6, float arg7, v4f32 arg8, double arg9,
                     v4f32 arg10, int arg11, v4f32 arg12) {
   switch (ArgNum) {
-#ifndef ARM32
-    // TODO(jpp): remove this once vector support is implemented.
     HANDLE_ARG(1);
     HANDLE_ARG(3);
     HANDLE_ARG(6);
     HANDLE_ARG(8);
     HANDLE_ARG(10);
     HANDLE_ARG(12);
-#endif // ARM32
     HANDLE_ARG(2);
     HANDLE_ARG(4);
     HANDLE_ARG(5);

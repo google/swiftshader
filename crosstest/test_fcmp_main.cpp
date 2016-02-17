@@ -158,8 +158,6 @@ void testsScalar(size_t &TotalTests, size_t &Passes, size_t &Failures) {
 }
 
 void testsVector(size_t &TotalTests, size_t &Passes, size_t &Failures) {
-#ifndef ARM32
-  // TODO(jpp): remove this once vector support is implemented.
   typedef v4si32 (*FuncTypeVector)(v4f32, v4f32);
   static struct {
     const char *Name;
@@ -201,7 +199,6 @@ void testsVector(size_t &TotalTests, size_t &Passes, size_t &Failures) {
       }
     }
   }
-#endif // ARM32
 }
 
 int main(int argc, char *argv[]) {

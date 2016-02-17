@@ -164,8 +164,6 @@ const static size_t MaxTestsPerFunc = 100000;
 
 template <typename TypeUnsignedLabel, typename TypeSignedLabel>
 void testsVecInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
-#if !defined(ARM32)
-  // TODO(jpp): remove this once vector support is implemented.
   typedef typename Vectors<TypeUnsignedLabel>::Ty TypeUnsigned;
   typedef typename Vectors<TypeSignedLabel>::Ty TypeSigned;
   typedef typename Vectors<TypeUnsignedLabel>::ElementTy ElementTypeUnsigned;
@@ -241,7 +239,6 @@ void testsVecInt(size_t &TotalTests, size_t &Passes, size_t &Failures) {
       }
     }
   }
-#endif // !ARM32
 }
 
 template <typename Type>
@@ -317,8 +314,6 @@ void testsFp(size_t &TotalTests, size_t &Passes, size_t &Failures) {
 }
 
 void testsVecFp(size_t &TotalTests, size_t &Passes, size_t &Failures) {
-#if !defined(ARM32)
-  // TODO(jpp): remove this once vector support is implemented.
   static const float NegInf = -1.0 / 0.0;
   static const float PosInf = 1.0 / 0.0;
   static const float Nan = 0.0 / 0.0;
@@ -377,7 +372,6 @@ void testsVecFp(size_t &TotalTests, size_t &Passes, size_t &Failures) {
       }
     }
   }
-#endif // !ARM32
 }
 
 int main(int argc, char *argv[]) {
