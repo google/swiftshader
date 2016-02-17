@@ -599,10 +599,8 @@ void TargetMIPS32::lowerInt64Arithmetic(const InstArithmetic *Instr,
     llvm::report_fatal_error("Unknown arithmetic operator");
     return;
   case InstArithmetic::Add: {
-    Variable *T_Carry = makeReg(IceType_i32);
-    Variable *T_Lo = makeReg(IceType_i32);
-    Variable *T_Hi = makeReg(IceType_i32);
-    Variable *T_Hi2 = makeReg(IceType_i32);
+    auto *T_Carry = I32Reg(), *T_Lo = I32Reg(), *T_Hi = I32Reg(),
+         *T_Hi2 = I32Reg();
     _addu(T_Lo, Src0LoR, Src1LoR);
     _mov(DestLo, T_Lo);
     _sltu(T_Carry, T_Lo, Src0LoR);
@@ -612,8 +610,7 @@ void TargetMIPS32::lowerInt64Arithmetic(const InstArithmetic *Instr,
     return;
   }
   case InstArithmetic::And: {
-    Variable *T_Lo = makeReg(IceType_i32);
-    Variable *T_Hi = makeReg(IceType_i32);
+    auto *T_Lo = I32Reg(), *T_Hi = I32Reg();
     _and(T_Lo, Src0LoR, Src1LoR);
     _mov(DestLo, T_Lo);
     _and(T_Hi, Src0HiR, Src1HiR);
@@ -621,10 +618,8 @@ void TargetMIPS32::lowerInt64Arithmetic(const InstArithmetic *Instr,
     return;
   }
   case InstArithmetic::Sub: {
-    Variable *T_Borrow = makeReg(IceType_i32);
-    Variable *T_Lo = makeReg(IceType_i32);
-    Variable *T_Hi = makeReg(IceType_i32);
-    Variable *T_Hi2 = makeReg(IceType_i32);
+    auto *T_Borrow = I32Reg(), *T_Lo = I32Reg(), *T_Hi = I32Reg(),
+         *T_Hi2 = I32Reg();
     _subu(T_Lo, Src0LoR, Src1LoR);
     _mov(DestLo, T_Lo);
     _sltu(T_Borrow, Src0LoR, Src1LoR);
@@ -634,8 +629,7 @@ void TargetMIPS32::lowerInt64Arithmetic(const InstArithmetic *Instr,
     return;
   }
   case InstArithmetic::Or: {
-    Variable *T_Lo = makeReg(IceType_i32);
-    Variable *T_Hi = makeReg(IceType_i32);
+    auto *T_Lo = I32Reg(), *T_Hi = I32Reg();
     _or(T_Lo, Src0LoR, Src1LoR);
     _mov(DestLo, T_Lo);
     _or(T_Hi, Src0HiR, Src1HiR);
@@ -643,8 +637,7 @@ void TargetMIPS32::lowerInt64Arithmetic(const InstArithmetic *Instr,
     return;
   }
   case InstArithmetic::Xor: {
-    Variable *T_Lo = makeReg(IceType_i32);
-    Variable *T_Hi = makeReg(IceType_i32);
+    auto *T_Lo = I32Reg(), *T_Hi = I32Reg();
     _xor(T_Lo, Src0LoR, Src1LoR);
     _mov(DestLo, T_Lo);
     _xor(T_Hi, Src0HiR, Src1HiR);
@@ -765,8 +758,7 @@ void TargetMIPS32::lowerAssign(const InstAssign *Instr) {
     auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
     auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
     // Variable *T_Lo = nullptr, *T_Hi = nullptr;
-    Variable *T_Lo = makeReg(IceType_i32);
-    Variable *T_Hi = makeReg(IceType_i32);
+    auto *T_Lo = I32Reg(), *T_Hi = I32Reg();
     _mov(T_Lo, Src0Lo);
     _mov(DestLo, T_Lo);
     _mov(T_Hi, Src0Hi);
@@ -822,8 +814,8 @@ void TargetMIPS32::lowerCall(const InstCall *Instr) {
       ReturnReg = makeReg(Dest->getType(), RegMIPS32::Reg_V0);
       break;
     case IceType_i64:
-      ReturnReg = makeReg(IceType_i32, RegMIPS32::Reg_V0);
-      ReturnRegHi = makeReg(IceType_i32, RegMIPS32::Reg_V1);
+      ReturnReg = I32Reg(RegMIPS32::Reg_V0);
+      ReturnRegHi = I32Reg(RegMIPS32::Reg_V1);
       break;
     case IceType_f32:
     case IceType_f64:

@@ -227,6 +227,11 @@ public:
   Variable *legalizeToReg(Operand *From, RegNumT RegNum = RegNumT());
 
   Variable *makeReg(Type Ty, RegNumT RegNum = RegNumT());
+
+  Variable *I32Reg(RegNumT RegNum = RegNumT()) {
+    return makeReg(IceType_i32, RegNum);
+  }
+
   static Type stackSlotType();
   Variable *copyToReg(Operand *Src, RegNumT RegNum = RegNumT());
 
