@@ -22,6 +22,30 @@
       "revId": "36f085342d98705a17ea653946fd594a351af621",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c23655de_15f3b6c3",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1866,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-02-18T18:59:14Z",
+      "side": 1,
+      "message": "- I can\u0027t get it to work in 32 bits. The reason is that, in float, float(0x7FFFFFFF) * 1.0f yields 0x80000000 because of the loss of precision in the conversion. In 64 bit, this isn\u0027t an issue, since 0x80000000 will get clamped down to INT_MAX (0x7FFFFFFF), but in 32 bit integer format, 0x80000000 is negative, so the clamping fails.\n- Didn\u0027t rename it, as it is different from the function mentioned in the spec (in the spec, the function receives the scaled argument, whereas here, the scaling happens inside the function)",
+      "parentUuid": "c23655de_72bfb8d9",
+      "range": {
+        "startLine": 1866,
+        "startChar": 16,
+        "endLine": 1866,
+        "endChar": 126
+      },
+      "revId": "36f085342d98705a17ea653946fd594a351af621",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
