@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "c23655de_f58dd2ee",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2049,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-02-18T19:48:18Z",
+      "side": 1,
+      "message": "I made a new structure that includes TypedMemberInfo and the 2 indices.",
+      "parentUuid": "c23655de_32eed0d9",
+      "range": {
+        "startLine": 2049,
+        "startChar": 90,
+        "endLine": 2049,
+        "endChar": 127
+      },
+      "revId": "40bbf534666f6f66532d9987c6750e25ad14a674",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c23655de_b2cc0081",
         "filename": "src/OpenGL/compiler/OutputASM.h",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-02-18T16:39:08Z",
       "side": 1,
       "message": "bufferIndex in the definition",
+      "range": {
+        "startLine": 325,
+        "startChar": 95,
+        "endLine": 325,
+        "endChar": 102
+      },
+      "revId": "40bbf534666f6f66532d9987c6750e25ad14a674",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c23655de_158976e2",
+        "filename": "src/OpenGL/compiler/OutputASM.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-02-18T19:48:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c23655de_b2cc0081",
       "range": {
         "startLine": 325,
         "startChar": 95,
