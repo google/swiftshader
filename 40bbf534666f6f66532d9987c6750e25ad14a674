@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c23655de_32eed0d9",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2049,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-02-18T16:39:08Z",
+      "side": 1,
+      "message": "This method returns a struct and these two out arguments. Can it be refactored to avoid that? Perhaps split it into multiple methods, or put more into TypedMemberInfo.",
+      "range": {
+        "startLine": 2049,
+        "startChar": 90,
+        "endLine": 2049,
+        "endChar": 127
+      },
+      "revId": "40bbf534666f6f66532d9987c6750e25ad14a674",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c23655de_b2cc0081",
+        "filename": "src/OpenGL/compiler/OutputASM.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-02-18T16:39:08Z",
+      "side": 1,
+      "message": "bufferIndex in the definition",
+      "range": {
+        "startLine": 325,
+        "startChar": 95,
+        "endLine": 325,
+        "endChar": 102
+      },
+      "revId": "40bbf534666f6f66532d9987c6750e25ad14a674",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
