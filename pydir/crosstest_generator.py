@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 
 import argparse
+import collections
 import ConfigParser
 import os
 import shutil
@@ -28,7 +29,7 @@ def Match(desc, includes, excludes, default_match):
   return default_match
 
 
-def RunNativePrefix(toolchain_root, target, run_cmd):
+def RunNativePrefix(toolchain_root, target, attr, run_cmd):
   """Returns a prefix for running an executable for the target.
 
   For example, we may be running an ARM or MIPS target executable on an
@@ -39,7 +40,10 @@ def RunNativePrefix(toolchain_root, target, run_cmd):
                'arm32' : os.path.join(toolchain_root, 'arm_trusted',
                                       'run_under_qemu_arm'),
              }
-  prefix = arch_map[target]
+  attr_map = collections.defaultdict(str, {
+      'arm32-neon': ' -cpu cortex-a9',
+      'arm32-hwdiv-arm': ' -cpu cortex-a15' })
+  prefix = arch_map[target] + attr_map[target + '-' + attr]
   return (prefix + ' ' + run_cmd) if prefix else run_cmd
 
 def NonsfiLoaderArch(target):
@@ -187,9 +191,11 @@ def main():
                     '{root}/scons-out/opt-linux-{arch}/obj/src/nonsfi/' +
                     'loader/nonsfi_loader ').format(
                         root=root, arch=NonsfiLoaderArch(target)) + run_cmd
-                run_cmd = RunNativePrefix(args.toolchain_root, target, run_cmd)
+                run_cmd = RunNativePrefix(args.toolchain_root, target, attr,
+                                          run_cmd)
               else:
-                run_cmd = RunNativePrefix(args.toolchain_root, target, run_cmd)
+                run_cmd = RunNativePrefix(args.toolchain_root, target, attr,
+                                          run_cmd)
               if args.lit:
                 # Create a file to drive the lit test.
                 with open(run_cmd_base + '.xtest', 'w') as f:

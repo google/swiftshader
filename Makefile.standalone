@@ -435,6 +435,9 @@ else
 check-xtest: $(OBJDIR)/pnacl-sz make_symlink runtime
        # Do all native/sse2 tests, but only test_vector_ops for native/sse4.1.
        # For (slow) sandboxed tests, limit to Om1/sse4.1.
+       # run.py (used to run the sandboxed xtests) does not support
+       # specifying -cpu cortex-a15 to qemu, hence we disable the
+       # hwdiv-arm tests.
 	./pydir/crosstest_generator.py -v --lit \
           --toolchain-root $(TOOLCHAIN_ROOT) \
           $(FORCEASM_FLAG) \
@@ -446,7 +449,9 @@ check-xtest: $(OBJDIR)/pnacl-sz make_symlink runtime
           -i x8664,native,sse2 \
           -i x8664,native,sse4.1,test_vector_ops \
           -i x8664,sandbox,sse4.1,Om1 \
-          -i arm32,neon
+          -i arm32 \
+          -e arm32,sandbox,hwdiv-arm \
+          -e arm32,neon,test_vector_ops
 	PNACL_BIN_PATH=$(PNACL_BIN_PATH) \
 	$(LLVM_SRC_PATH)/utils/lit/lit.py -sv $(CHECK_XTEST_TESTS)
 endif
