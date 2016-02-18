@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c23655de_72bfb8d9",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1866,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-02-18T16:21:12Z",
+      "side": 1,
+      "message": "I think we could just clamp the floating-point value, before conversion to integer, to avoid requiring 64-bit. Also, this clamp could be part of floatToInt(), unless something else needs it to not clamp?\n\nShould we rename it to convert_float_int(), as it\u0027s called in the spec? Or is that different? See b/20724899",
+      "range": {
+        "startLine": 1866,
+        "startChar": 16,
+        "endLine": 1866,
+        "endChar": 126
+      },
+      "revId": "36f085342d98705a17ea653946fd594a351af621",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
