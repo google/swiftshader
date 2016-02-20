@@ -175,8 +175,32 @@ public:
     }
   }
 
+  void _mfhi(Variable *Dest, Operand *Src) {
+    Context.insert<InstMIPS32Mfhi>(Dest, Src);
+  }
+
+  void _mflo(Variable *Dest, Operand *Src) {
+    Context.insert<InstMIPS32Mflo>(Dest, Src);
+  }
+
+  void _mthi(Variable *Dest, Operand *Src) {
+    Context.insert<InstMIPS32Mthi>(Dest, Src);
+  }
+
+  void _mtlo(Variable *Dest, Operand *Src) {
+    Context.insert<InstMIPS32Mtlo>(Dest, Src);
+  }
+
   void _mul(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert<InstMIPS32Mul>(Dest, Src0, Src1);
+  }
+
+  void _mult(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32Mult>(Dest, Src0, Src1);
+  }
+
+  void _multu(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32Multu>(Dest, Src0, Src1);
   }
 
   void _or(Variable *Dest, Variable *Src0, Variable *Src1) {

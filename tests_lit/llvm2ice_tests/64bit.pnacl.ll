@@ -357,6 +357,15 @@ entry:
 ; ARM32: umull
 ; ARM32: add
 
+; MIPS32-LABEL: mul64BitSigned
+; MIPS32: multu
+; MIPS32: mflo
+; MIPS32: mfhi
+; MIPS32: mul
+; MIPS32: mul
+; MIPS32: addu
+; MIPS32: addu
+
 define internal i64 @mul64BitUnsigned(i64 %a, i64 %b) {
 entry:
   %mul = mul i64 %b, %a
@@ -381,6 +390,15 @@ entry:
 ; ARM32: mla
 ; ARM32: umull
 ; ARM32: add
+
+; MIPS32-LABEL: mul64BitUnsigned
+; MIPS32: multu
+; MIPS32: mflo
+; MIPS32: mfhi
+; MIPS32: mul
+; MIPS32: mul
+; MIPS32: addu
+; MIPS32: addu
 
 define internal i64 @div64BitSigned(i64 %a, i64 %b) {
 entry:

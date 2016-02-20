@@ -39,70 +39,74 @@
 #define REGMIPS32_GPR_TABLE                                                    \
   /* val, encode, name, scratch, preserved, stackptr, frameptr,                \
      isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init */                 \
-  X(Reg_ZERO,     = 0,              "zero",  0, 0, 0, 0, 0, 0, 0, 0, 0,        \
+  X(Reg_ZERO,     0,   "zero",  0, 0, 0, 0, 0, 0, 0, 0, 0,                     \
     ALIASES1(Reg_ZERO))                                                        \
-  X(Reg_AT,       = Reg_ZERO + 1,   "at",    0, 0, 0, 0, 1, 0, 0, 0, 0,        \
+  X(Reg_AT,       1,   "at",    0, 0, 0, 0, 0, 0, 0, 0, 0,                     \
     ALIASES1(Reg_AT))                                                          \
-  X(Reg_V0,       = Reg_ZERO + 2,   "v0",    1, 0, 0, 0, 1, 0, 0, 0, 0,        \
+  X(Reg_V0,       2,   "v0",    1, 0, 0, 0, 1, 0, 0, 0, 0,                     \
      ALIASES2(Reg_V0, Reg_V0V1))                                               \
-  X(Reg_V1,       = Reg_ZERO + 3,   "v1",    1, 0, 0, 0, 1, 0, 0, 0, 0,        \
+  X(Reg_V1,       3,   "v1",    1, 0, 0, 0, 1, 0, 0, 0, 0,                     \
     ALIASES2(Reg_V1, Reg_V0V1))                                                \
-  X(Reg_A0,       = Reg_ZERO + 4,   "a0",    1, 0, 0, 0, 1, 0, 0, 0, 0,        \
+  X(Reg_A0,       4,   "a0",    1, 0, 0, 0, 1, 0, 0, 0, 0,                     \
     ALIASES2(Reg_A0, Reg_A0A1))                                                \
-  X(Reg_A1,       = Reg_ZERO + 5,   "a1",    1, 0, 0, 0, 1, 0, 0, 0, 0,        \
+  X(Reg_A1,       5,   "a1",    1, 0, 0, 0, 1, 0, 0, 0, 0,                     \
     ALIASES2(Reg_A1, Reg_A0A1))                                                \
-  X(Reg_A2,       = Reg_ZERO + 6,   "a2",    1, 0, 0, 0, 1, 0, 0, 0, 0,        \
+  X(Reg_A2,       6,   "a2",    1, 0, 0, 0, 1, 0, 0, 0, 0,                     \
     ALIASES2(Reg_A2, Reg_A2A3))                                                \
-  X(Reg_A3,       = Reg_ZERO + 7,   "a3",    1, 0, 0, 0, 1, 0, 0, 0, 0,        \
+  X(Reg_A3,       7,   "a3",    1, 0, 0, 0, 1, 0, 0, 0, 0,                     \
     ALIASES2(Reg_A3, Reg_A2A3))                                                \
-  X(Reg_T0,       = Reg_ZERO + 8,   "t0",    1, 0, 0, 0, 1, 0, 0, 0, 0,        \
+  X(Reg_T0,       8,   "t0",    1, 0, 0, 0, 1, 0, 0, 0, 0,                     \
     ALIASES2(Reg_T0, Reg_T0T1))                                                \
-  X(Reg_T1,       = Reg_ZERO + 9,   "t1",    1, 0, 0, 0, 1, 0, 0, 0, 0,        \
+  X(Reg_T1,       9,   "t1",    1, 0, 0, 0, 1, 0, 0, 0, 0,                     \
     ALIASES2(Reg_T1, Reg_T0T1))                                                \
-  X(Reg_T2,       = Reg_ZERO + 10,  "t2",    1, 0, 0, 0, 1, 0, 0, 0, 0,        \
+  X(Reg_T2,       10,  "t2",    1, 0, 0, 0, 1, 0, 0, 0, 0,                     \
     ALIASES2(Reg_T2, Reg_T2T3))                                                \
-  X(Reg_T3,       = Reg_ZERO + 11,  "t3",    1, 0, 0, 0, 1, 0, 0, 0, 0,        \
+  X(Reg_T3,       11,  "t3",    1, 0, 0, 0, 1, 0, 0, 0, 0,                     \
     ALIASES2(Reg_T3, Reg_T2T3))                                                \
-  X(Reg_T4,       = Reg_ZERO + 12,  "t4",    1, 0, 0, 0, 1, 0, 0, 0, 0,        \
+  X(Reg_T4,       12,  "t4",    1, 0, 0, 0, 1, 0, 0, 0, 0,                     \
     ALIASES2(Reg_T4, Reg_T4T5))                                                \
-  X(Reg_T5,       = Reg_ZERO + 14,  "t5",    1, 0, 0, 0, 1, 0, 0, 0, 0,        \
+  X(Reg_T5,       13,  "t5",    1, 0, 0, 0, 1, 0, 0, 0, 0,                     \
     ALIASES2(Reg_T5, Reg_T4T5))                                                \
-  X(Reg_T6,       = Reg_ZERO + 14,  "t6",    1, 0, 0, 0, 1, 0, 0, 0, 0,        \
+  X(Reg_T6,       14,  "t6",    1, 0, 0, 0, 1, 0, 0, 0, 0,                     \
     ALIASES2(Reg_T6, Reg_T6T7))                                                \
-  X(Reg_T7,       = Reg_ZERO + 15,  "t7",    1, 0, 0, 0, 1, 0, 0, 0, 0,        \
+  X(Reg_T7,       15,  "t7",    1, 0, 0, 0, 1, 0, 0, 0, 0,                     \
     ALIASES2(Reg_T7, Reg_T6T7))                                                \
-  X(Reg_S0,       = Reg_ZERO + 16,  "s0",    0, 1, 0, 0, 1, 0, 0, 0, 0,        \
+  X(Reg_S0,       16,  "s0",    0, 1, 0, 0, 1, 0, 0, 0, 0,                     \
     ALIASES2(Reg_S0, Reg_S0S1))                                                \
-  X(Reg_S1,       = Reg_ZERO + 17,  "s1",    0, 1, 0, 0, 1, 0, 0, 0, 0,        \
+  X(Reg_S1,       17,  "s1",    0, 1, 0, 0, 1, 0, 0, 0, 0,                     \
     ALIASES2(Reg_S1, Reg_S0S1))                                                \
-  X(Reg_S2,       = Reg_ZERO + 18,  "s2",    0, 1, 0, 0, 1, 0, 0, 0, 0,        \
+  X(Reg_S2,       18,  "s2",    0, 1, 0, 0, 1, 0, 0, 0, 0,                     \
     ALIASES2(Reg_S2, Reg_S2S3))                                                \
-  X(Reg_S3,       = Reg_ZERO + 19,  "s3",    0, 1, 0, 0, 1, 0, 0, 0, 0,        \
+  X(Reg_S3,       19,  "s3",    0, 1, 0, 0, 1, 0, 0, 0, 0,                     \
     ALIASES2(Reg_S3, Reg_S2S3))                                                \
-  X(Reg_S4,       = Reg_ZERO + 20,  "s4",    0, 1, 0, 0, 1, 0, 0, 0, 0,        \
+  X(Reg_S4,       20,  "s4",    0, 1, 0, 0, 1, 0, 0, 0, 0,                     \
     ALIASES2(Reg_S4, Reg_S4S5))                                                \
-  X(Reg_S5,       = Reg_ZERO + 21,  "s5",    0, 1, 0, 0, 1, 0, 0, 0, 0,        \
+  X(Reg_S5,       21,  "s5",    0, 1, 0, 0, 1, 0, 0, 0, 0,                     \
     ALIASES2(Reg_S5, Reg_S4S5))                                                \
-  X(Reg_S6,       = Reg_ZERO + 22,  "s6",    0, 1, 0, 0, 1, 0, 0, 0, 0,        \
+  X(Reg_S6,       22,  "s6",    0, 1, 0, 0, 1, 0, 0, 0, 0,                     \
     ALIASES2(Reg_S6, Reg_S6S7))                                                \
-  X(Reg_S7,       = Reg_ZERO + 23,  "s7",    0, 1, 0, 0, 1, 0, 0, 0, 0,        \
+  X(Reg_S7,       23,  "s7",    0, 1, 0, 0, 1, 0, 0, 0, 0,                     \
     ALIASES2(Reg_S7, Reg_S6S7))                                                \
-  X(Reg_T8,       = Reg_ZERO + 23,  "t8",    1, 0, 0, 0, 1, 0, 0, 0, 0,        \
+  X(Reg_T8,       24,  "t8",    1, 0, 0, 0, 1, 0, 0, 0, 0,                     \
     ALIASES2(Reg_T8, Reg_T8T9))                                                \
-  X(Reg_T9,       = Reg_ZERO + 25,  "t9",    1, 0, 0, 0, 1, 0, 0, 0, 0,        \
+  X(Reg_T9,       25,  "t9",    1, 0, 0, 0, 1, 0, 0, 0, 0,                     \
     ALIASES2(Reg_T9, Reg_T8T9))                                                \
-  X(Reg_K0,       = Reg_ZERO + 26,  "k0",    0, 0, 0, 0, 0, 0, 0, 0, 0,        \
+  X(Reg_K0,       26,  "k0",    0, 0, 0, 0, 0, 0, 0, 0, 0,                     \
     ALIASES1(Reg_K0))                                                          \
-  X(Reg_K1,       = Reg_ZERO + 27,  "k1",    0, 0, 0, 0, 0, 0, 0, 0, 0,        \
+  X(Reg_K1,       27,  "k1",    0, 0, 0, 0, 0, 0, 0, 0, 0,                     \
     ALIASES1(Reg_K1))                                                          \
-  X(Reg_GP,       = Reg_ZERO + 28,  "gp",    0, 0, 0, 0, 0, 0, 0, 0, 0,        \
+  X(Reg_GP,       28,  "gp",    0, 0, 0, 0, 0, 0, 0, 0, 0,                     \
     ALIASES1(Reg_GP))                                                          \
-  X(Reg_SP,       = Reg_ZERO + 29,  "sp",    0, 0, 1, 0, 0, 0, 0, 0, 0,        \
+  X(Reg_SP,       29,  "sp",    0, 0, 1, 0, 0, 0, 0, 0, 0,                     \
     ALIASES1(Reg_SP))                                                          \
-  X(Reg_FP,       = Reg_ZERO + 30,  "fp",    0, 0, 0, 1, 0, 0, 0, 0, 0,        \
+  X(Reg_FP,       30,  "fp",    0, 0, 0, 1, 0, 0, 0, 0, 0,                     \
     ALIASES1(Reg_FP))                                                          \
-  X(Reg_RA,       = Reg_ZERO + 31,  "ra",    0, 1, 0, 0, 0, 0, 0, 0, 0,        \
+  X(Reg_RA,       31,  "ra",    0, 1, 0, 0, 0, 0, 0, 0, 0,                     \
     ALIASES1(Reg_RA))                                                          \
+  X(Reg_LO,       0,   "lo",    0, 0, 0, 0, 0, 0, 0, 0, 0,                     \
+    ALIASES2(Reg_LO, Reg_LOHI))                                                \
+  X(Reg_HI,       0,  "hi",     0, 0, 0, 0, 0, 0, 0, 0, 0,                     \
+   ALIASES2(Reg_HI, Reg_LOHI))
 //#define X(val, encode, name, scratch, preserved, stackptr, frameptr,
 //          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)
 // TODO(reed kotler): List FP registers etc.
@@ -142,6 +146,8 @@
     ALIASES3(Reg_S6, Reg_S7, Reg_S6S7))                                        \
   X(Reg_T8T9,  26, "t8, t9",   1, 0, 0, 0, 0, 1, 0, 0, 0,                      \
     ALIASES3(Reg_T8, Reg_T9, Reg_T8T9))                                        \
+  X(Reg_LOHI,  0, "lo, hi",    0, 0, 0, 0, 0, 0, 0, 0, 0,                      \
+    ALIASES3(Reg_LO, Reg_HI, Reg_LOHI))                                        \
 //#define X(val, encode, name, scratch, preserved, stackptr, frameptr,
 //          isInt, isI64Pair, isFP32, isFP64, isVec128, alias_init)
 
@@ -160,9 +166,9 @@
 #define REGMIPS32_TABLE_BOUNDS                                                 \
   /* val, init */                                                              \
   X(Reg_GPR_First, = Reg_ZERO)                                                 \
-  X(Reg_GPR_Last,  = Reg_RA)                                                   \
+  X(Reg_GPR_Last,  = Reg_HI)                                                   \
   X(Reg_I64PAIR_First, = Reg_V0V1)                                             \
-  X(Reg_I64PAIR_Last, = Reg_T8T9)                                              \
+  X(Reg_I64PAIR_Last, = Reg_LOHI)                                              \
 //define X(val, init)
 
 // TODO(reed kotler): add condition code tables, etc.

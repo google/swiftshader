@@ -124,8 +124,14 @@ public:
     Call,
     La,
     Lui,
+    Mfhi,
+    Mflo,
     Mov, // actually a pseudo op for addi rd, rs, 0
+    Mthi,
+    Mtlo,
     Mul,
+    Mult,
+    Multu,
     Or,
     Ori,
     Ret,
@@ -149,8 +155,14 @@ public:
   /// Shared emit routines for common forms of instructions.
   static void emitUnaryopGPR(const char *Opcode, const InstMIPS32 *Inst,
                              const Cfg *Func);
+  static void emitUnaryopGPRFLoHi(const char *Opcode, const InstMIPS32 *Inst,
+                                  const Cfg *Func);
+  static void emitUnaryopGPRTLoHi(const char *Opcode, const InstMIPS32 *Inst,
+                                  const Cfg *Func);
   static void emitThreeAddr(const char *Opcode, const InstMIPS32 *Inst,
                             const Cfg *Func);
+  static void emitThreeAddrLoHi(const char *Opcode, const InstMIPS32 *Inst,
+                                const Cfg *Func);
 
 protected:
   InstMIPS32(Cfg *Func, InstKindMIPS32 Kind, SizeT Maxsrcs, Variable *Dest)
@@ -379,7 +391,13 @@ using InstMIPS32Addiu = InstMIPS32Imm16<InstMIPS32::Addiu, true>;
 using InstMIPS32And = InstMIPS32ThreeAddrGPR<InstMIPS32::And>;
 using InstMIPS32Lui = InstMIPS32Imm16<InstMIPS32::Lui>;
 using InstMIPS32La = InstMIPS32UnaryopGPR<InstMIPS32::La>;
+using InstMIPS32Mfhi = InstMIPS32UnaryopGPR<InstMIPS32::Mfhi>;
+using InstMIPS32Mflo = InstMIPS32UnaryopGPR<InstMIPS32::Mflo>;
+using InstMIPS32Mthi = InstMIPS32UnaryopGPR<InstMIPS32::Mthi>;
+using InstMIPS32Mtlo = InstMIPS32UnaryopGPR<InstMIPS32::Mtlo>;
 using InstMIPS32Mul = InstMIPS32ThreeAddrGPR<InstMIPS32::Mul>;
+using InstMIPS32Mult = InstMIPS32ThreeAddrGPR<InstMIPS32::Mult>;
+using InstMIPS32Multu = InstMIPS32ThreeAddrGPR<InstMIPS32::Multu>;
 using InstMIPS32Or = InstMIPS32ThreeAddrGPR<InstMIPS32::Or>;
 using InstMIPS32Ori = InstMIPS32Imm16<InstMIPS32::Ori>;
 using InstMIPS32Sltu = InstMIPS32ThreeAddrGPR<InstMIPS32::Sltu>;

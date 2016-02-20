@@ -582,6 +582,7 @@ void TargetMIPS32::lowerInt64Arithmetic(const InstArithmetic *Instr,
   case InstArithmetic::Or:
   case InstArithmetic::Sub:
   case InstArithmetic::Xor:
+  case InstArithmetic::Mul:
     break;
   default:
     UnimplementedLoweringError(this, Instr);
@@ -642,6 +643,24 @@ void TargetMIPS32::lowerInt64Arithmetic(const InstArithmetic *Instr,
     _mov(DestLo, T_Lo);
     _xor(T_Hi, Src0HiR, Src1HiR);
     _mov(DestHi, T_Hi);
+    return;
+  }
+  case InstArithmetic::Mul: {
+    // TODO(rkotler): Make sure that mul has the side effect of clobbering
+    // LO, HI. Check for any other LO, HI quirkiness in this section.
+    auto *T_Lo = I32Reg(RegMIPS32::Reg_LO), *T_Hi = I32Reg(RegMIPS32::Reg_HI);
+    auto *T1 = I32Reg(), *T2 = I32Reg();
+    auto *TM1 = I32Reg(), *TM2 = I32Reg(), *TM3 = I32Reg(), *TM4 = I32Reg();
+    _multu(T_Lo, Src0LoR, Src1LoR);
+    Context.insert<InstFakeDef>(T_Hi, T_Lo);
+    _mflo(T1, T_Lo);
+    _mfhi(T2, T_Hi);
+    _mov(DestLo, T1);
+    _mul(TM1, Src0HiR, Src1LoR);
+    _mul(TM2, Src0LoR, Src1HiR);
+    _addu(TM3, TM1, T2);
+    _addu(TM4, TM3, TM2);
+    _mov(DestHi, TM4);
     return;
   }
   default:

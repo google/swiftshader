@@ -56,13 +56,55 @@ template <> const char *InstMIPS32La::Opcode = "la";
 template <> const char *InstMIPS32Add::Opcode = "add";
 template <> const char *InstMIPS32Addu::Opcode = "addu";
 template <> const char *InstMIPS32And::Opcode = "and";
+template <> const char *InstMIPS32Mfhi::Opcode = "mfhi";
+template <> const char *InstMIPS32Mflo::Opcode = "mflo";
+template <> const char *InstMIPS32Mthi::Opcode = "mthi";
+template <> const char *InstMIPS32Mtlo::Opcode = "mtlo";
 template <> const char *InstMIPS32Mul::Opcode = "mul";
+template <> const char *InstMIPS32Mult::Opcode = "mult";
+template <> const char *InstMIPS32Multu::Opcode = "multu";
 template <> const char *InstMIPS32Or::Opcode = "or";
 template <> const char *InstMIPS32Ori::Opcode = "ori";
 template <> const char *InstMIPS32Sltu::Opcode = "sltu";
 template <> const char *InstMIPS32Sub::Opcode = "sub";
 template <> const char *InstMIPS32Subu::Opcode = "subu";
 template <> const char *InstMIPS32Xor::Opcode = "xor";
+
+template <> void InstMIPS32Mflo::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  emitUnaryopGPRFLoHi(Opcode, this, Func);
+}
+
+template <> void InstMIPS32Mfhi::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  emitUnaryopGPRFLoHi(Opcode, this, Func);
+}
+
+template <> void InstMIPS32Mtlo::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  emitUnaryopGPRTLoHi(Opcode, this, Func);
+}
+
+template <> void InstMIPS32Mthi::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  emitUnaryopGPRTLoHi(Opcode, this, Func);
+}
+
+template <> void InstMIPS32Mult::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  emitThreeAddrLoHi(Opcode, this, Func);
+}
+
+template <> void InstMIPS32Multu::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  emitThreeAddrLoHi(Opcode, this, Func);
+}
 
 InstMIPS32Call::InstMIPS32Call(Cfg *Func, Variable *Dest, Operand *CallTarget)
     : InstMIPS32(Func, InstMIPS32::Call, 1, Dest) {
@@ -125,6 +167,23 @@ void InstMIPS32::emitUnaryopGPR(const char *Opcode, const InstMIPS32 *Inst,
   Str << ", ";
   Inst->getSrc(0)->emit(Func);
 }
+void InstMIPS32::emitUnaryopGPRFLoHi(const char *Opcode, const InstMIPS32 *Inst,
+                                     const Cfg *Func) {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  Str << "\t" << Opcode << "\t";
+  Inst->getDest()->emit(Func);
+}
+
+void InstMIPS32::emitUnaryopGPRTLoHi(const char *Opcode, const InstMIPS32 *Inst,
+                                     const Cfg *Func) {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  Str << "\t" << Opcode << "\t";
+  Inst->getSrc(0)->emit(Func);
+}
 
 void InstMIPS32::emitThreeAddr(const char *Opcode, const InstMIPS32 *Inst,
                                const Cfg *Func) {
@@ -135,6 +194,18 @@ void InstMIPS32::emitThreeAddr(const char *Opcode, const InstMIPS32 *Inst,
   Str << "\t" << Opcode << "\t";
   Inst->getDest()->emit(Func);
   Str << ", ";
+  Inst->getSrc(0)->emit(Func);
+  Str << ", ";
+  Inst->getSrc(1)->emit(Func);
+}
+
+void InstMIPS32::emitThreeAddrLoHi(const char *Opcode, const InstMIPS32 *Inst,
+                                   const Cfg *Func) {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(Inst->getSrcSize() == 2);
+  Str << "\t" << Opcode << "\t";
   Inst->getSrc(0)->emit(Func);
   Str << ", ";
   Inst->getSrc(1)->emit(Func);

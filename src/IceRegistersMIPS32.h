@@ -44,7 +44,7 @@ enum GPRRegister {
 #define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
           isI64Pair, isFP32, isFP64, isVec128, alias_init)                     \
                                                                                \
-  Encoded_##val encode,
+  Encoded_##val = encode,
   REGMIPS32_GPR_TABLE
 #undef X
       Encoded_Not_GPR = -1
