@@ -1363,13 +1363,6 @@ namespace es2
 
 			if(location != -1)   // Set by glBindAttribLocation
 			{
-				if(!linkedAttribute[location].name.empty())
-				{
-					// Multiple active attributes bound to the same location; not an error
-				}
-
-				linkedAttribute[location] = *attribute;
-
 				int rows = VariableRegisterCount(attribute->type);
 
 				if(rows + location > MAX_VERTEX_ATTRIBS)
@@ -1378,8 +1371,23 @@ namespace es2
 					return false;
 				}
 
+				// In GLSL 3.00, attribute aliasing produces a link error
+				// In GLSL 1.00, attribute aliasing is allowed
+				if(egl::getClientVersion() >= 3)
+				{
+					for(int i = 0; i < rows; i++)
+					{
+						if(!linkedAttribute[location + i].name.empty())
+						{
+							appendToInfoLog("Attribute '%s' aliases attribute '%s' at location %d", attribute->name.c_str(), linkedAttribute[location].name, location);
+							return false;
+						}
+					}
+				}
+				
 				for(int i = 0; i < rows; i++)
 				{
+					linkedAttribute[location + i] = *attribute;
 					usedLocations |= 1 << (location + i);
 				}
 			}
@@ -1401,7 +1409,10 @@ namespace es2
 					return false;   // Fail to link
 				}
 
-				linkedAttribute[availableIndex] = *attribute;
+				for(int i = 0; i < rows; i++)
+				{
+					linkedAttribute[availableIndex + i] = *attribute;
+				}
 			}
 		}
 
