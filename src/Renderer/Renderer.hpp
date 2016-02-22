@@ -340,6 +340,8 @@ namespace sw
 		virtual void setDepthBias(float bias);
 		virtual void setSlopeDepthBias(float slopeBias);
 
+		virtual void setRasterizerDiscard(bool rasterizerDiscard);
+
 		// Programmable pipelines
 		virtual void setPixelShader(const PixelShader *shader);
 		virtual void setVertexShader(const VertexShader *shader);

@@ -494,6 +494,7 @@ namespace sw
 		bool occlusionEnabled;
 
 		// Pixel processor states
+		bool rasterizerDiscard;
 		bool depthBufferEnable;
 		DepthCompareMode depthCompareMode;
 		bool depthWriteEnable;

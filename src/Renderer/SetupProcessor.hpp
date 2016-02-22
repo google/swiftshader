@@ -49,6 +49,7 @@ namespace sw
 			bool slopeDepthBias            : 1;
 			bool vFace                     : 1;
 			unsigned int multiSample       : 3;   // 1, 2 or 4
+			bool rasterizerDiscard         : 1;
 
 			struct Gradient
 			{
