@@ -635,7 +635,6 @@ bool Context::isPrimitiveRestartFixedIndexEnabled() const
 
 void Context::setRasterizerDiscardEnabled(bool enabled)
 {
-    UNIMPLEMENTED();
     mState.rasterizerDiscardEnabled = enabled;
 }
 
@@ -3019,6 +3018,8 @@ void Context::applyState(GLenum drawMode)
 
         mDitherStateDirty = false;
     }
+
+	device->setRasterizerDiscard(mState.rasterizerDiscardEnabled);
 }
 
 GLenum Context::applyVertexBuffer(GLint base, GLint first, GLsizei count, GLsizei instanceId)
@@ -3356,6 +3357,11 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 
 void Context::clear(GLbitfield mask)
 {
+	if(mState.rasterizerDiscardEnabled)
+	{
+		return;
+	}
+
     Framebuffer *framebuffer = getDrawFramebuffer();
 
     if(!framebuffer || framebuffer->completeness() != GL_FRAMEBUFFER_COMPLETE)
@@ -3400,7 +3406,7 @@ void Context::clear(GLbitfield mask)
 void Context::clearColorBuffer(GLint drawbuffer, void *value, sw::Format format)
 {
 	unsigned int rgbaMask = getColorMask();
-	if(device && rgbaMask)
+	if(device && rgbaMask && !mState.rasterizerDiscardEnabled)
 	{
 		int x0(0), y0(0), width(0), height(0);
 		egl::Image* image = getScissoredImage(drawbuffer, x0, y0, width, height, false);
@@ -3432,7 +3438,7 @@ void Context::clearColorBuffer(GLint drawbuffer, const GLfloat *value)
 
 void Context::clearDepthBuffer(GLint drawbuffer, const GLfloat *value)
 {
-	if(device && mState.depthMask)
+	if(device && mState.depthMask && !mState.rasterizerDiscardEnabled)
 	{
 		int x0(0), y0(0), width(0), height(0);
 		egl::Image* image = getScissoredImage(drawbuffer, x0, y0, width, height, true);
@@ -3446,7 +3452,7 @@ void Context::clearDepthBuffer(GLint drawbuffer, const GLfloat *value)
 
 void Context::clearStencilBuffer(GLint drawbuffer, const GLint *value)
 {
-	if(device && mState.stencilWritemask)
+	if(device && mState.stencilWritemask && !mState.rasterizerDiscardEnabled)
 	{
 		int x0(0), y0(0), width(0), height(0);
 		egl::Image* image = getScissoredImage(drawbuffer, x0, y0, width, height, true);
@@ -3460,7 +3466,7 @@ void Context::clearStencilBuffer(GLint drawbuffer, const GLint *value)
 
 void Context::clearDepthStencilBuffer(GLint drawbuffer, GLfloat depth, GLint stencil)
 {
-	if(device && (mState.depthMask || mState.stencilWritemask))
+	if(device && (mState.depthMask || mState.stencilWritemask) && !mState.rasterizerDiscardEnabled)
 	{
 		int x0(0), y0(0), width(0), height(0);
 		egl::Image* image = getScissoredImage(drawbuffer, x0, y0, width, height, true);

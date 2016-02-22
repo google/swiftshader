@@ -821,7 +821,7 @@ namespace sw
 					startTick = time;
 				#endif
 
-				int visible = setupPrimitives(this, unit, count);
+				int visible = draw->setupState.rasterizerDiscard ? 0 : setupPrimitives(this, unit, count);
 
 				primitiveProgress[unit].visible = visible;
 				primitiveProgress[unit].references = clusterCount;
@@ -2313,6 +2313,11 @@ namespace sw
 	void Renderer::setSlopeDepthBias(float slopeBias)
 	{
 		slopeDepthBias = slopeBias;
+	}
+
+	void Renderer::setRasterizerDiscard(bool rasterizerDiscard)
+	{
+		context->rasterizerDiscard = rasterizerDiscard;
 	}
 
 	void Renderer::setPixelShader(const PixelShader *shader)

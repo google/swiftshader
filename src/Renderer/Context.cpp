@@ -253,6 +253,8 @@ namespace sw
 		fillMode = FILL_SOLID;
 		shadingMode = SHADING_GOURAUD;
 
+		rasterizerDiscard = false;
+
 		depthCompareMode = DEPTH_LESS;
 		depthBufferEnable = true;
 		depthWriteEnable = true;

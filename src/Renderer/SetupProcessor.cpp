@@ -89,6 +89,7 @@ namespace sw
 		state.pointSizeRegister = 0xF;   // No vertex point size
 
 		state.multiSample = context->getMultiSampleCount();
+		state.rasterizerDiscard = context->rasterizerDiscard;
 
 		if(context->vertexShader)
 		{
