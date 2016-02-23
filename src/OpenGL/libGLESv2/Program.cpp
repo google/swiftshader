@@ -1379,7 +1379,7 @@ namespace es2
 					{
 						if(!linkedAttribute[location + i].name.empty())
 						{
-							appendToInfoLog("Attribute '%s' aliases attribute '%s' at location %d", attribute->name.c_str(), linkedAttribute[location].name, location);
+							appendToInfoLog("Attribute '%s' aliases attribute '%s' at location %d", attribute->name.c_str(), linkedAttribute[location].name.c_str(), location);
 							return false;
 						}
 					}
