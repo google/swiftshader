@@ -48,14 +48,13 @@ template <> struct hash<Ice::RelocatableTuple> {
       return hash<Ice::IceString>()(Key.EmitString);
     }
 
-    assert(!Key.OffsetExpr.empty());
-    if (Key.OffsetExpr[0]->hasOffset()) {
-      return hash<Ice::IceString>()(Key.Name) +
-             hash<Ice::RelocOffsetT>()(Key.OffsetExpr[0]->getOffset());
-    }
-
+    // If there's no emit string, then we use the relocatable's name, plus the
+    // hash of a combination of the number of OffsetExprs and the known, fixed
+    // offset for the reloc. We left shift the known relocatable by 5 trying to
+    // minimize the interaction between the bits in OffsetExpr.size() and
+    // Key.Offset.
     return hash<Ice::IceString>()(Key.Name) +
-           hash<std::size_t>()(Key.OffsetExpr.size());
+           hash<std::size_t>()(Key.OffsetExpr.size() + (Key.Offset << 5));
   }
 };
 } // end of namespace std
@@ -293,7 +292,7 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit, Ostream *OsError,
 void GlobalContext::translateFunctions() {
   while (std::unique_ptr<Cfg> Func = optQueueBlockingPop()) {
     // Install Func in TLS for Cfg-specific container allocators.
-    Cfg::setCurrentCfg(Func.get());
+    CfgLocalAllocatorScope _(Func.get());
     // Reset per-function stats being accumulated in TLS.
     resetStats();
     // Set verbose level to none if the current function does NOT
@@ -309,7 +308,6 @@ void GlobalContext::translateFunctions() {
         !matchSymbolName(Func->getFunctionName(),
                          getFlags().getTranslateOnly())) {
       Func->dump();
-      Cfg::setCurrentCfg(nullptr);
       continue; // Func goes out of scope and gets deleted
     }
 
@@ -348,7 +346,6 @@ void GlobalContext::translateFunctions() {
         break;
       }
     }
-    Cfg::setCurrentCfg(nullptr);
     assert(Item);
     emitQueueBlockingPush(Item);
     // The Cfg now gets deleted as Func goes out of scope.
@@ -557,9 +554,8 @@ void GlobalContext::emitItems() {
         // Unfortunately, we have to temporarily install the Cfg in TLS
         // because Variable::asType() uses the allocator to create the
         // differently-typed copy.
-        Cfg::setCurrentCfg(Func.get());
+        CfgLocalAllocatorScope _(Func.get());
         Func->emit();
-        Cfg::setCurrentCfg(nullptr);
         dumpStats(Func->getFunctionNameAndSize());
       } break;
       }
@@ -795,28 +791,28 @@ Constant *GlobalContext::getConstantDouble(double ConstantDouble) {
   return getConstPool()->Doubles.getOrAdd(this, ConstantDouble);
 }
 
-Constant *GlobalContext::getConstantSym(const RelocOffsetArray &Offset,
+Constant *GlobalContext::getConstantSym(const RelocOffsetT Offset,
+                                        const RelocOffsetArray &OffsetExpr,
                                         const IceString &Name,
                                         const IceString &EmitString,
                                         bool SuppressMangling) {
   return getConstPool()->Relocatables.getOrAdd(
-      this, RelocatableTuple(Offset, Name, EmitString, SuppressMangling));
+      this,
+      RelocatableTuple(Offset, OffsetExpr, Name, EmitString, SuppressMangling));
 }
 
 Constant *GlobalContext::getConstantSym(RelocOffsetT Offset,
                                         const IceString &Name,
                                         bool SuppressMangling) {
   constexpr char EmptyEmitString[] = "";
-  return getConstantSym({RelocOffset::create(this, Offset)}, Name,
-                        EmptyEmitString, SuppressMangling);
+  return getConstantSym(Offset, {}, Name, EmptyEmitString, SuppressMangling);
 }
 
 Constant *GlobalContext::getConstantExternSym(const IceString &Name) {
   constexpr RelocOffsetT Offset = 0;
   constexpr bool SuppressMangling = true;
   return getConstPool()->ExternRelocatables.getOrAdd(
-      this, RelocatableTuple({RelocOffset::create(this, Offset)}, Name,
-                             SuppressMangling));
+      this, RelocatableTuple(Offset, {}, Name, SuppressMangling));
 }
 
 Constant *GlobalContext::getConstantUndef(Type Ty) {

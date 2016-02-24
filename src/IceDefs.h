@@ -11,14 +11,13 @@
 /// \brief Declares various useful types and classes that have widespread use
 /// across Subzero.
 ///
-/// Every Subzero source file is expected to include IceDefs.h.
-///
 //===----------------------------------------------------------------------===//
 
 #ifndef SUBZERO_SRC_ICEDEFS_H
 #define SUBZERO_SRC_ICEDEFS_H
 
 #include "IceBuildDefs.h" // TODO(stichnot): move into individual files
+#include "IceMemory.h"
 #include "IceTLS.h"
 
 #include "llvm/ADT/ArrayRef.h"
@@ -26,10 +25,8 @@
 #include "llvm/ADT/ilist.h"
 #include "llvm/ADT/ilist_node.h"
 #include "llvm/ADT/iterator_range.h"
-#include "llvm/ADT/SmallBitVector.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/STLExtras.h"
-#include "llvm/Support/Allocator.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ELF.h"
 #include "llvm/Support/raw_ostream.h"
@@ -46,6 +43,8 @@
 #include <string>
 #include <system_error>
 #include <unordered_map>
+#include <unordered_set>
+#include <utility>
 #include <vector>
 
 namespace Ice {
@@ -75,43 +74,6 @@ class VariableDeclaration;
 class VariablesMetadata;
 
 constexpr char GlobalOffsetTable[] = "_GLOBAL_OFFSET_TABLE_";
-
-template <size_t SlabSize = 1024 * 1024>
-using ArenaAllocator =
-    llvm::BumpPtrAllocatorImpl<llvm::MallocAllocator, SlabSize>;
-
-ArenaAllocator<> *getCurrentCfgAllocator();
-
-template <typename T> struct CfgLocalAllocator {
-  using value_type = T;
-  using pointer = T *;
-  using const_pointer = const T *;
-  using reference = T &;
-  using const_reference = const T &;
-  using size_type = std::size_t;
-  CfgLocalAllocator() = default;
-  template <class U> CfgLocalAllocator(const CfgLocalAllocator<U> &) {}
-  pointer allocate(size_type Num) {
-    return getCurrentCfgAllocator()->Allocate<T>(Num);
-  }
-  void deallocate(pointer, size_type) {}
-  template <class U> struct rebind { typedef CfgLocalAllocator<U> other; };
-  void construct(pointer P, const T &Val) {
-    new (static_cast<void *>(P)) T(Val);
-  }
-  void destroy(pointer P) { P->~T(); }
-};
-template <typename T, typename U>
-inline bool operator==(const CfgLocalAllocator<T> &,
-                       const CfgLocalAllocator<U> &) {
-  return true;
-}
-template <typename T, typename U>
-inline bool operator!=(const CfgLocalAllocator<T> &,
-                       const CfgLocalAllocator<U> &) {
-  return false;
-}
-
 // makeUnique should be used when memory is expected to be allocated from the
 // heap (as opposed to allocated from some Allocator.) It is intended to be
 // used instead of new.
@@ -160,15 +122,21 @@ using PhiList = InstList;
 using AssignList = InstList;
 
 // Standard library containers with CfgLocalAllocator.
-template <typename T> using CfgVector = std::vector<T, CfgLocalAllocator<T>>;
 template <typename T> using CfgList = std::list<T, CfgLocalAllocator<T>>;
+template <typename T, typename H = std::hash<T>, typename Eq = std::equal_to<T>>
+using CfgUnorderedSet = std::unordered_set<T, H, Eq, CfgLocalAllocator<T>>;
+template <typename T, typename U, typename H = std::hash<T>,
+          typename Eq = std::equal_to<T>>
+using CfgUnorderedMap =
+    std::unordered_map<T, U, H, Eq, CfgLocalAllocator<std::pair<const T, U>>>;
+template <typename T> using CfgVector = std::vector<T, CfgLocalAllocator<T>>;
 
 // Containers that are arena-allocated from the Cfg's allocator.
 using OperandList = CfgVector<Operand *>;
 using VarList = CfgVector<Variable *>;
 using NodeList = CfgVector<CfgNode *>;
 
-// Contains that use the default (global) allocator.
+// Containers that use the default (global) allocator.
 using ConstantList = std::vector<Constant *>;
 using FunctionDeclarationList = std::vector<FunctionDeclaration *>;
 using VariableDeclarationList = std::vector<VariableDeclaration *>;

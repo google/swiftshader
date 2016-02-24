@@ -96,32 +96,32 @@ public:
 
   void convertFunction(const Function *F) {
     Func = Ice::Cfg::create(Ctx, Converter.getNextSequenceNumber());
-    Ice::Cfg::setCurrentCfg(Func.get());
+    {
+      Ice::CfgLocalAllocatorScope _(Func.get());
 
-    VarMap.clear();
-    NodeMap.clear();
-    Func->setFunctionName(F->getName());
-    Func->setReturnType(convertToIceType(F->getReturnType()));
-    Func->setInternal(F->hasInternalLinkage());
-    Ice::TimerMarker T(Ice::TimerStack::TT_llvmConvert, Func.get());
+      VarMap.clear();
+      NodeMap.clear();
+      Func->setFunctionName(F->getName());
+      Func->setReturnType(convertToIceType(F->getReturnType()));
+      Func->setInternal(F->hasInternalLinkage());
+      Ice::TimerMarker T(Ice::TimerStack::TT_llvmConvert, Func.get());
 
-    // The initial definition/use of each arg is the entry node.
-    for (auto ArgI = F->arg_begin(), ArgE = F->arg_end(); ArgI != ArgE;
-         ++ArgI) {
-      Func->addArg(mapValueToIceVar(ArgI));
+      // The initial definition/use of each arg is the entry node.
+      for (auto ArgI = F->arg_begin(), ArgE = F->arg_end(); ArgI != ArgE;
+           ++ArgI) {
+        Func->addArg(mapValueToIceVar(ArgI));
+      }
+
+      // Make an initial pass through the block list just to resolve the blocks
+      // in the original linearized order. Otherwise the ICE linearized order
+      // will be affected by branch targets in terminator instructions.
+      for (const BasicBlock &BBI : *F)
+        mapBasicBlockToNode(&BBI);
+      for (const BasicBlock &BBI : *F)
+        convertBasicBlock(&BBI);
+      Func->setEntryNode(mapBasicBlockToNode(&F->getEntryBlock()));
+      Func->computeInOutEdges();
     }
-
-    // Make an initial pass through the block list just to resolve the blocks
-    // in the original linearized order. Otherwise the ICE linearized order
-    // will be affected by branch targets in terminator instructions.
-    for (const BasicBlock &BBI : *F)
-      mapBasicBlockToNode(&BBI);
-    for (const BasicBlock &BBI : *F)
-      convertBasicBlock(&BBI);
-    Func->setEntryNode(mapBasicBlockToNode(&F->getEntryBlock()));
-    Func->computeInOutEdges();
-
-    Ice::Cfg::setCurrentCfg(nullptr);
     Converter.translateFcn(std::move(Func));
   }
 

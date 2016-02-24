@@ -19,8 +19,8 @@
 #ifndef SUBZERO_SRC_ICEOPERAND_H
 #define SUBZERO_SRC_ICEOPERAND_H
 
-#include "IceCfg.h"
 #include "IceDefs.h"
+#include "IceCfg.h"
 #include "IceGlobalContext.h"
 #include "IceTypes.h"
 
@@ -301,18 +301,21 @@ class RelocatableTuple {
   RelocatableTuple &operator=(const RelocatableTuple &) = delete;
 
 public:
-  RelocatableTuple(const RelocOffsetArray &OffsetExpr, const IceString &Name,
+  RelocatableTuple(const RelocOffsetT Offset,
+                   const RelocOffsetArray &OffsetExpr, const IceString &Name,
                    bool SuppressMangling)
-      : OffsetExpr(OffsetExpr), Name(Name), SuppressMangling(SuppressMangling) {
-  }
-
-  RelocatableTuple(const RelocOffsetArray &OffsetExpr, const IceString &Name,
-                   const IceString &EmitString, bool SuppressMangling)
-      : OffsetExpr(OffsetExpr), Name(Name), EmitString(EmitString),
+      : Offset(Offset), OffsetExpr(OffsetExpr), Name(Name),
         SuppressMangling(SuppressMangling) {}
+
+  RelocatableTuple(const RelocOffsetT Offset,
+                   const RelocOffsetArray &OffsetExpr, const IceString &Name,
+                   const IceString &EmitString, bool SuppressMangling)
+      : Offset(Offset), OffsetExpr(OffsetExpr), Name(Name),
+        EmitString(EmitString), SuppressMangling(SuppressMangling) {}
 
   RelocatableTuple(const RelocatableTuple &) = default;
 
+  const RelocOffsetT Offset;
   const RelocOffsetArray OffsetExpr;
   const IceString Name;
   const IceString EmitString;
@@ -332,16 +335,16 @@ public:
   static ConstantRelocatable *create(GlobalContext *Ctx, Type Ty,
                                      const RelocatableTuple &Tuple) {
     return new (Ctx->allocate<ConstantRelocatable>())
-        ConstantRelocatable(Ty, Tuple.OffsetExpr, Tuple.Name, Tuple.EmitString,
-                            Tuple.SuppressMangling);
+        ConstantRelocatable(Ty, Tuple.Offset, Tuple.OffsetExpr, Tuple.Name,
+                            Tuple.EmitString, Tuple.SuppressMangling);
   }
 
   RelocOffsetT getOffset() const {
-    RelocOffsetT Offset = 0;
+    RelocOffsetT Ret = Offset;
     for (const auto *const OffsetReloc : OffsetExpr) {
-      Offset += OffsetReloc->getOffset();
+      Ret += OffsetReloc->getOffset();
     }
-    return Offset;
+    return Ret;
   }
 
   const IceString &getEmitString() const { return EmitString; }
@@ -361,13 +364,15 @@ public:
   }
 
 private:
-  ConstantRelocatable(Type Ty, const RelocOffsetArray &OffsetExpr,
-                      const IceString &Name, const IceString &EmitString,
-                      bool SuppressMangling)
-      : Constant(kConstRelocatable, Ty), OffsetExpr(OffsetExpr), Name(Name),
-        EmitString(EmitString), SuppressMangling(SuppressMangling) {}
+  ConstantRelocatable(Type Ty, const RelocOffsetT Offset,
+                      const RelocOffsetArray &OffsetExpr, const IceString &Name,
+                      const IceString &EmitString, bool SuppressMangling)
+      : Constant(kConstRelocatable, Ty), Offset(Offset), OffsetExpr(OffsetExpr),
+        Name(Name), EmitString(EmitString), SuppressMangling(SuppressMangling) {
+  }
 
-  const RelocOffsetArray OffsetExpr; /// fixed offset to add
+  const RelocOffsetT Offset;         /// fixed, known offset to add
+  const RelocOffsetArray OffsetExpr; /// fixed, unknown offset to add
   const IceString Name;              /// optional for debug/dump
   const IceString EmitString;        /// optional for textual emission
   const bool SuppressMangling;
@@ -463,7 +468,7 @@ private:
   bool operator>=(const RegNumT &) = delete;
 };
 
-/// RegNumBVIter wraps llvm::SmallBitVector so that instead of this pattern:
+/// RegNumBVIter wraps SmallBitVector so that instead of this pattern:
 ///
 ///   for (int i = V.find_first(); i != -1; i = V.find_next(i)) {
 ///     RegNumT RegNum = RegNumT::fromInt(i);
@@ -475,12 +480,10 @@ private:
 ///   for (RegNumT RegNum : RegNumBVIter(V)) {
 ///     ...
 ///   }
-class RegNumBVIter {
-  using T = llvm::SmallBitVector;
+template <class B> class RegNumBVIterImpl {
+  using T = B;
   static constexpr int Sentinel = -1;
-  RegNumBVIter() = delete;
-  RegNumBVIter(const RegNumBVIter &) = delete;
-  RegNumBVIter &operator=(const RegNumBVIter &) = delete;
+  RegNumBVIterImpl() = delete;
 
 public:
   class Iterator {
@@ -507,13 +510,19 @@ public:
     int Current;
   };
 
-  explicit RegNumBVIter(const T &V) : V(V) {}
+  RegNumBVIterImpl(const RegNumBVIterImpl &) = default;
+  RegNumBVIterImpl &operator=(const RegNumBVIterImpl &) = delete;
+  explicit RegNumBVIterImpl(const T &V) : V(V) {}
   Iterator begin() { return Iterator(V); }
   Iterator end() { return Iterator(V, Sentinel); }
 
 private:
   const T &V;
 };
+
+template <class B> RegNumBVIterImpl<B> RegNumBVIter(const B &BV) {
+  return RegNumBVIterImpl<B>(BV);
+}
 
 /// RegWeight is a wrapper for a uint32_t weight value, with a special value
 /// that represents infinite weight, and an addWeight() method that ensures that

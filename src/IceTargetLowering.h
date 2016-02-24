@@ -23,8 +23,9 @@
 #ifndef SUBZERO_SRC_ICETARGETLOWERING_H
 #define SUBZERO_SRC_ICETARGETLOWERING_H
 
-#include "IceCfgNode.h"
 #include "IceDefs.h"
+#include "IceBitVector.h"
+#include "IceCfgNode.h"
 #include "IceInst.h" // for the names of the Inst subtypes
 #include "IceOperand.h"
 #include "IceTypes.h"
@@ -273,24 +274,24 @@ public:
   };
   using RegSetMask = uint32_t;
 
-  virtual llvm::SmallBitVector getRegisterSet(RegSetMask Include,
-                                              RegSetMask Exclude) const = 0;
+  virtual SmallBitVector getRegisterSet(RegSetMask Include,
+                                        RegSetMask Exclude) const = 0;
   /// Get the set of physical registers available for the specified Variable's
   /// register class, applying register restrictions from the command line.
-  virtual const llvm::SmallBitVector &
+  virtual const SmallBitVector &
   getRegistersForVariable(const Variable *Var) const = 0;
   /// Get the set of *all* physical registers available for the specified
   /// Variable's register class, *not* applying register restrictions from the
   /// command line.
-  virtual const llvm::SmallBitVector &
+  virtual const SmallBitVector &
   getAllRegistersForVariable(const Variable *Var) const = 0;
-  virtual const llvm::SmallBitVector &getAliasesForRegister(RegNumT) const = 0;
+  virtual const SmallBitVector &getAliasesForRegister(RegNumT) const = 0;
 
   void regAlloc(RegAllocKind Kind);
 
   virtual void
   makeRandomRegisterPermutation(llvm::SmallVectorImpl<RegNumT> &Permutation,
-                                const llvm::SmallBitVector &ExcludeRegisters,
+                                const SmallBitVector &ExcludeRegisters,
                                 uint64_t Salt) const = 0;
 
   /// Get the minimum number of clusters required for a jump table to be
@@ -365,7 +366,7 @@ protected:
   // Applies command line filters to TypeToRegisterSet array.
   static void
   filterTypeToRegisterSet(GlobalContext *Ctx, int32_t NumRegs,
-                          llvm::SmallBitVector TypeToRegisterSet[],
+                          SmallBitVector TypeToRegisterSet[],
                           size_t TypeToRegisterSetSize,
                           std::function<IceString(RegNumT)> getRegName,
                           std::function<IceString(RegClass)> getRegClassName);
@@ -429,8 +430,8 @@ protected:
   /// TargetVarHook. If the TargetVarHook returns true, then the variable is
   /// skipped and not considered with the rest of the spilled variables.
   void getVarStackSlotParams(VarList &SortedSpilledVariables,
-                             llvm::SmallBitVector &RegsUsed,
-                             size_t *GlobalsSize, size_t *SpillAreaSizeBytes,
+                             SmallBitVector &RegsUsed, size_t *GlobalsSize,
+                             size_t *SpillAreaSizeBytes,
                              uint32_t *SpillAreaAlignmentBytes,
                              uint32_t *LocalsSlotsAlignmentBytes,
                              std::function<bool(Variable *)> TargetVarHook);

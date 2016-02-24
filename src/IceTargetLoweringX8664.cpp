@@ -103,15 +103,15 @@ const uint32_t TargetX8664Traits::X86_STACK_ALIGNMENT_BYTES = 16;
 const char *TargetX8664Traits::TargetName = "X8664";
 
 template <>
-std::array<llvm::SmallBitVector, RCX86_NUM>
+std::array<SmallBitVector, RCX86_NUM>
     TargetX86Base<X8664::Traits>::TypeToRegisterSet = {{}};
 
 template <>
-std::array<llvm::SmallBitVector, RCX86_NUM>
+std::array<SmallBitVector, RCX86_NUM>
     TargetX86Base<X8664::Traits>::TypeToRegisterSetUnfiltered = {{}};
 
 template <>
-std::array<llvm::SmallBitVector,
+std::array<SmallBitVector,
            TargetX86Base<X8664::Traits>::Traits::RegisterSet::Reg_NUM>
     TargetX86Base<X8664::Traits>::RegisterAliases = {{}};
 
@@ -626,10 +626,12 @@ Inst *TargetX8664::emitCallToTarget(Operand *CallTarget, Variable *ReturnReg) {
     auto *ReturnRelocOffset = RelocOffset::create(Ctx);
     ReturnAddress->setRelocOffset(ReturnRelocOffset);
     constexpr bool SuppressMangling = true;
+    constexpr RelocOffsetT NoFixedOffset = 0;
     const IceString EmitString = ReturnAddress->getName(Func);
-    auto *ReturnReloc = llvm::cast<ConstantRelocatable>(Ctx->getConstantSym(
-        {ReturnRelocOffset}, Ctx->mangleName(Func->getFunctionName()),
-        EmitString, SuppressMangling));
+    auto *ReturnReloc = llvm::cast<ConstantRelocatable>(
+        Ctx->getConstantSym(NoFixedOffset, {ReturnRelocOffset},
+                            Ctx->mangleName(Func->getFunctionName()),
+                            EmitString, SuppressMangling));
     /* AutoBundle scoping */ {
       std::unique_ptr<AutoBundle> Bundler;
       if (CallTargetR == nullptr) {

@@ -29,16 +29,10 @@
 
 namespace Ice {
 
-ICE_TLS_DEFINE_FIELD(const Cfg *, Cfg, CurrentCfg);
-
-ArenaAllocator<> *getCurrentCfgAllocator() {
-  return Cfg::getCurrentCfgAllocator();
-}
-
 Cfg::Cfg(GlobalContext *Ctx, uint32_t SequenceNumber)
     : Ctx(Ctx), SequenceNumber(SequenceNumber),
       VMask(Ctx->getFlags().getVerbose()), NextInstNumber(Inst::NumberInitial),
-      Allocator(new ArenaAllocator<>()), Live(nullptr),
+      Allocator(new ArenaAllocator()), Live(nullptr),
       Target(TargetLowering::createLowering(Ctx->getFlags().getTargetArch(),
                                             this)),
       VMetadata(new VariablesMetadata(this)),
@@ -53,7 +47,7 @@ Cfg::Cfg(GlobalContext *Ctx, uint32_t SequenceNumber)
   }
 }
 
-Cfg::~Cfg() { assert(ICE_TLS_GET_FIELD(CurrentCfg) == nullptr); }
+Cfg::~Cfg() { assert(CfgAllocatorTraits::current() == nullptr); }
 
 /// Create a string like "foo(i=123:b=9)" indicating the function name, number
 /// of high-level instructions, and number of basic blocks.  This string is only

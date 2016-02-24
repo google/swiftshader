@@ -269,6 +269,7 @@ SRCS = \
   IceIntrinsics.cpp \
   IceLiveness.cpp \
   IceLoopAnalyzer.cpp \
+  IceMemory.cpp \
   IceOperand.cpp \
   IceRegAlloc.cpp \
   IceRNG.cpp \
@@ -450,8 +451,7 @@ check-xtest: $(OBJDIR)/pnacl-sz make_symlink runtime
           -i x8664,native,sse4.1,test_vector_ops \
           -i x8664,sandbox,sse4.1,Om1 \
           -i arm32 \
-          -e arm32,sandbox,hwdiv-arm \
-          -e arm32,neon,test_vector_ops
+          -e arm32,sandbox,hwdiv-arm
 	PNACL_BIN_PATH=$(PNACL_BIN_PATH) \
 	$(LLVM_SRC_PATH)/utils/lit/lit.py -sv $(CHECK_XTEST_TESTS)
 endif

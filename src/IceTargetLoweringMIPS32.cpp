@@ -78,12 +78,12 @@ TargetMIPS32::TargetMIPS32(Cfg *Func) : TargetLowering(Func) {}
 void TargetMIPS32::staticInit(GlobalContext *Ctx) {
   (void)Ctx;
   RegNumT::setLimit(RegMIPS32::Reg_NUM);
-  llvm::SmallBitVector IntegerRegisters(RegMIPS32::Reg_NUM);
-  llvm::SmallBitVector I64PairRegisters(RegMIPS32::Reg_NUM);
-  llvm::SmallBitVector Float32Registers(RegMIPS32::Reg_NUM);
-  llvm::SmallBitVector Float64Registers(RegMIPS32::Reg_NUM);
-  llvm::SmallBitVector VectorRegisters(RegMIPS32::Reg_NUM);
-  llvm::SmallBitVector InvalidRegisters(RegMIPS32::Reg_NUM);
+  SmallBitVector IntegerRegisters(RegMIPS32::Reg_NUM);
+  SmallBitVector I64PairRegisters(RegMIPS32::Reg_NUM);
+  SmallBitVector Float32Registers(RegMIPS32::Reg_NUM);
+  SmallBitVector Float64Registers(RegMIPS32::Reg_NUM);
+  SmallBitVector VectorRegisters(RegMIPS32::Reg_NUM);
+  SmallBitVector InvalidRegisters(RegMIPS32::Reg_NUM);
 #define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
           isI64Pair, isFP32, isFP64, isVec128, alias_init)                     \
   IntegerRegisters[RegMIPS32::val] = isInt;                                    \
@@ -531,9 +531,9 @@ Operand *TargetMIPS32::hiOperand(Operand *Operand) {
   return nullptr;
 }
 
-llvm::SmallBitVector TargetMIPS32::getRegisterSet(RegSetMask Include,
-                                                  RegSetMask Exclude) const {
-  llvm::SmallBitVector Registers(RegMIPS32::Reg_NUM);
+SmallBitVector TargetMIPS32::getRegisterSet(RegSetMask Include,
+                                            RegSetMask Exclude) const {
+  SmallBitVector Registers(RegMIPS32::Reg_NUM);
 
 #define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
           isI64Pair, isFP32, isFP64, isVec128, alias_init)                     \
@@ -1173,7 +1173,7 @@ void TargetMIPS32::postLower() {
 
 void TargetMIPS32::makeRandomRegisterPermutation(
     llvm::SmallVectorImpl<RegNumT> &Permutation,
-    const llvm::SmallBitVector &ExcludeRegisters, uint64_t Salt) const {
+    const SmallBitVector &ExcludeRegisters, uint64_t Salt) const {
   (void)Permutation;
   (void)ExcludeRegisters;
   (void)Salt;
@@ -1316,9 +1316,9 @@ void TargetHeaderMIPS32::lower() {
       << "nomips16\n";
 }
 
-llvm::SmallBitVector TargetMIPS32::TypeToRegisterSet[RCMIPS32_NUM];
-llvm::SmallBitVector TargetMIPS32::TypeToRegisterSetUnfiltered[RCMIPS32_NUM];
-llvm::SmallBitVector TargetMIPS32::RegisterAliases[RegMIPS32::Reg_NUM];
+SmallBitVector TargetMIPS32::TypeToRegisterSet[RCMIPS32_NUM];
+SmallBitVector TargetMIPS32::TypeToRegisterSetUnfiltered[RCMIPS32_NUM];
+SmallBitVector TargetMIPS32::RegisterAliases[RegMIPS32::Reg_NUM];
 
 } // end of namespace MIPS32
 } // end of namespace Ice

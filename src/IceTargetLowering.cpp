@@ -118,7 +118,7 @@ Variable *LoweringContext::availabilityGet(Operand *Src) const {
 
 namespace {
 
-void printRegisterSet(Ostream &Str, const llvm::SmallBitVector &Bitset,
+void printRegisterSet(Ostream &Str, const SmallBitVector &Bitset,
                       std::function<IceString(RegNumT)> getRegName,
                       const IceString &LineIndentString) {
   constexpr size_t RegistersPerLine = 16;
@@ -162,14 +162,13 @@ LLVM_ATTRIBUTE_NORETURN void badTargetFatalError(TargetArch Target) {
 } // end of anonymous namespace
 
 void TargetLowering::filterTypeToRegisterSet(
-    GlobalContext *Ctx, int32_t NumRegs,
-    llvm::SmallBitVector TypeToRegisterSet[], size_t TypeToRegisterSetSize,
-    std::function<IceString(RegNumT)> getRegName,
+    GlobalContext *Ctx, int32_t NumRegs, SmallBitVector TypeToRegisterSet[],
+    size_t TypeToRegisterSetSize, std::function<IceString(RegNumT)> getRegName,
     std::function<IceString(RegClass)> getRegClassName) {
-  std::vector<llvm::SmallBitVector> UseSet(TypeToRegisterSetSize,
-                                           llvm::SmallBitVector(NumRegs));
-  std::vector<llvm::SmallBitVector> ExcludeSet(TypeToRegisterSetSize,
-                                               llvm::SmallBitVector(NumRegs));
+  std::vector<SmallBitVector> UseSet(TypeToRegisterSetSize,
+                                     SmallBitVector(NumRegs));
+  std::vector<SmallBitVector> ExcludeSet(TypeToRegisterSetSize,
+                                         SmallBitVector(NumRegs));
 
   std::unordered_map<IceString, RegNumT> RegNameToIndex;
   for (int32_t RegIndex = 0; RegIndex < NumRegs; ++RegIndex) {
@@ -185,7 +184,7 @@ void TargetLowering::filterTypeToRegisterSet(
   // bit is set in RegSet[][].  If "<class>:" is missing, then the bit is set
   // for all classes.
   auto processRegList = [&](const ClFlags::StringVector &RegNames,
-                            std::vector<llvm::SmallBitVector> &RegSet) {
+                            std::vector<SmallBitVector> &RegSet) {
     for (const IceString &RegClassAndName : RegNames) {
       IceString RClass;
       IceString RName;
@@ -219,9 +218,9 @@ void TargetLowering::filterTypeToRegisterSet(
 
   // Apply filters.
   for (size_t TypeIndex = 0; TypeIndex < TypeToRegisterSetSize; ++TypeIndex) {
-    llvm::SmallBitVector *TypeBitSet = &TypeToRegisterSet[TypeIndex];
-    llvm::SmallBitVector *UseBitSet = &UseSet[TypeIndex];
-    llvm::SmallBitVector *ExcludeBitSet = &ExcludeSet[TypeIndex];
+    SmallBitVector *TypeBitSet = &TypeToRegisterSet[TypeIndex];
+    SmallBitVector *UseBitSet = &UseSet[TypeIndex];
+    SmallBitVector *ExcludeBitSet = &ExcludeSet[TypeIndex];
     if (UseBitSet->any())
       *TypeBitSet = *UseBitSet;
     (*TypeBitSet).reset(*ExcludeBitSet);
@@ -470,7 +469,7 @@ void TargetLowering::regAlloc(RegAllocKind Kind) {
   RegInclude |= RegSet_CalleeSave;
   if (hasFramePointer())
     RegExclude |= RegSet_FramePointer;
-  llvm::SmallBitVector RegMask = getRegisterSet(RegInclude, RegExclude);
+  SmallBitVector RegMask = getRegisterSet(RegInclude, RegExclude);
   bool Repeat = (Kind == RAK_Global && Ctx->getFlags().shouldRepeatRegAlloc());
   do {
     LinearScan.init(Kind);
@@ -539,7 +538,7 @@ void TargetLowering::sortVarsByAlignment(VarList &Dest,
 }
 
 void TargetLowering::getVarStackSlotParams(
-    VarList &SortedSpilledVariables, llvm::SmallBitVector &RegsUsed,
+    VarList &SortedSpilledVariables, SmallBitVector &RegsUsed,
     size_t *GlobalsSize, size_t *SpillAreaSizeBytes,
     uint32_t *SpillAreaAlignmentBytes, uint32_t *LocalsSlotsAlignmentBytes,
     std::function<bool(Variable *)> TargetVarHook) {
@@ -570,7 +569,7 @@ void TargetLowering::getVarStackSlotParams(
   // returns a second time.
   const bool SimpleCoalescing = !callsReturnsTwice();
 
-  std::vector<size_t> LocalsSize(Func->getNumNodes());
+  CfgVector<size_t> LocalsSize(Func->getNumNodes());
   const VarList &Variables = Func->getVariables();
   VarList SpilledVariables;
   for (Variable *Var : Variables) {
@@ -668,7 +667,7 @@ void TargetLowering::assignVarStackSlots(VarList &SortedSpilledVariables,
     SpillAreaPaddingBytes += TestPadding;
   size_t GlobalsSpaceUsed = SpillAreaPaddingBytes;
   size_t NextStackOffset = SpillAreaPaddingBytes;
-  std::vector<size_t> LocalsSize(Func->getNumNodes());
+  CfgVector<size_t> LocalsSize(Func->getNumNodes());
   const bool SimpleCoalescing = !callsReturnsTwice();
 
   for (Variable *Var : SortedSpilledVariables) {

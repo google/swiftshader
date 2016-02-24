@@ -116,24 +116,23 @@ public:
       return "i8fromah"; // 8-bit GPR that ah can be assigned to
     }
   }
-  llvm::SmallBitVector getRegisterSet(RegSetMask Include,
-                                      RegSetMask Exclude) const override;
-  const llvm::SmallBitVector &
+  SmallBitVector getRegisterSet(RegSetMask Include,
+                                RegSetMask Exclude) const override;
+  const SmallBitVector &
   getRegistersForVariable(const Variable *Var) const override {
     RegClass RC = Var->getRegClass();
     assert(static_cast<RegClassX86>(RC) < RCX86_NUM);
     return TypeToRegisterSet[RC];
   }
 
-  const llvm::SmallBitVector &
+  const SmallBitVector &
   getAllRegistersForVariable(const Variable *Var) const override {
     RegClass RC = Var->getRegClass();
     assert(static_cast<RegClassX86>(RC) < RCX86_NUM);
     return TypeToRegisterSetUnfiltered[RC];
   }
 
-  const llvm::SmallBitVector &
-  getAliasesForRegister(RegNumT Reg) const override {
+  const SmallBitVector &getAliasesForRegister(RegNumT Reg) const override {
     Reg.assertIsValid();
     return RegisterAliases[Reg];
   }
@@ -266,7 +265,7 @@ protected:
   void lowerOther(const Inst *Instr) override;
   void lowerRMW(const InstX86FakeRMW *RMW);
   void prelowerPhis() override;
-  uint32_t getCallStackArgumentsSizeBytes(const std::vector<Type> &ArgTypes,
+  uint32_t getCallStackArgumentsSizeBytes(const CfgVector<Type> &ArgTypes,
                                           Type ReturnType);
   uint32_t getCallStackArgumentsSizeBytes(const InstCall *Instr) override;
   void genTargetHelperCallFor(Inst *Instr) override;
@@ -437,7 +436,7 @@ protected:
 
   void
   makeRandomRegisterPermutation(llvm::SmallVectorImpl<RegNumT> &Permutation,
-                                const llvm::SmallBitVector &ExcludeRegisters,
+                                const SmallBitVector &ExcludeRegisters,
                                 uint64_t Salt) const override;
 
   /// AutoMemorySandboxer emits a bundle-lock/bundle-unlock pair if the
@@ -985,12 +984,11 @@ protected:
   size_t FixedAllocaAlignBytes = 0;
   bool PrologEmitsFixedAllocas = false;
   uint32_t MaxOutArgsSizeBytes = 0;
-  static std::array<llvm::SmallBitVector, RCX86_NUM> TypeToRegisterSet;
-  static std::array<llvm::SmallBitVector, RCX86_NUM>
-      TypeToRegisterSetUnfiltered;
-  static std::array<llvm::SmallBitVector, Traits::RegisterSet::Reg_NUM>
+  static std::array<SmallBitVector, RCX86_NUM> TypeToRegisterSet;
+  static std::array<SmallBitVector, RCX86_NUM> TypeToRegisterSetUnfiltered;
+  static std::array<SmallBitVector, Traits::RegisterSet::Reg_NUM>
       RegisterAliases;
-  llvm::SmallBitVector RegsUsed;
+  SmallBitVector RegsUsed;
   std::array<VarList, IceType_NUM> PhysicalRegisters;
   // RebasePtr is a Variable that holds the Rebasing pointer (if any) for the
   // current sandboxing type.

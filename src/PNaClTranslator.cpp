@@ -1355,33 +1355,35 @@ public:
     // done to install a CfgLocalAllocator for various internal containers.
     Func = Ice::Cfg::create(getTranslator().getContext(),
                             getTranslator().getNextSequenceNumber());
-    Ice::Cfg::setCurrentCfg(Func.get());
+    bool ParserResult;
+    {
+      Ice::CfgLocalAllocatorScope _(Func.get());
 
-    // TODO(kschimpf) Clean up API to add a function signature to a CFG.
-    const Ice::FuncSigType &Signature = FuncDecl->getSignature();
+      // TODO(kschimpf) Clean up API to add a function signature to a CFG.
+      const Ice::FuncSigType &Signature = FuncDecl->getSignature();
 
-    Func->setFunctionName(FuncDecl->getName());
-    Func->setReturnType(Signature.getReturnType());
-    Func->setInternal(FuncDecl->getLinkage() == GlobalValue::InternalLinkage);
-    CurrentNode = installNextBasicBlock();
-    Func->setEntryNode(CurrentNode);
-    for (Ice::Type ArgType : Signature.getArgList()) {
-      Func->addArg(getNextInstVar(ArgType));
+      Func->setFunctionName(FuncDecl->getName());
+      Func->setReturnType(Signature.getReturnType());
+      Func->setInternal(FuncDecl->getLinkage() == GlobalValue::InternalLinkage);
+      CurrentNode = installNextBasicBlock();
+      Func->setEntryNode(CurrentNode);
+      for (Ice::Type ArgType : Signature.getArgList()) {
+        Func->addArg(getNextInstVar(ArgType));
+      }
+
+      ParserResult = ParseThisBlock();
+
+      // Temporarily end per-function timing, which will be resumed by the
+      // translator function. This is because translation may be done
+      // asynchronously in a separate thread.
+      if (TimeThisFunction)
+        getTranslator().getContext()->popTimer(TimerID, StackID);
+
+      // Note: Once any errors have been found, we turn off all translation of
+      // all remaining functions. This allows successive parsing errors to be
+      // reported, without adding extra checks to the translator for such
+      // parsing errors.
     }
-
-    bool ParserResult = ParseThisBlock();
-
-    // Temporarily end per-function timing, which will be resumed by the
-    // translator function. This is because translation may be done
-    // asynchronously in a separate thread.
-    if (TimeThisFunction)
-      getTranslator().getContext()->popTimer(TimerID, StackID);
-
-    Ice::Cfg::setCurrentCfg(nullptr);
-    // Note: Once any errors have been found, we turn off all translation of
-    // all remaining functions. This allows successive parsing errors to be
-    // reported, without adding extra checks to the translator for such parsing
-    // errors.
     if (Context->getNumErrors() == 0 && Func) {
       getTranslator().translateFcn(std::move(Func));
       // The translator now has ownership of Func.

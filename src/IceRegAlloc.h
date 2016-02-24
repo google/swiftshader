@@ -19,6 +19,7 @@
 #define SUBZERO_SRC_ICEREGALLOC_H
 
 #include "IceDefs.h"
+#include "IceBitVector.h"
 #include "IceOperand.h"
 #include "IceTypes.h"
 
@@ -32,7 +33,7 @@ class LinearScan {
 public:
   explicit LinearScan(Cfg *Func);
   void init(RegAllocKind Kind);
-  void scan(const llvm::SmallBitVector &RegMask, bool Randomized);
+  void scan(const SmallBitVector &RegMask, bool Randomized);
   // Returns the number of times some variable has been assigned a register but
   // later evicted because of a higher-priority allocation.  The idea is that we
   // can implement "second-chance bin-packing" by rerunning register allocation
@@ -60,11 +61,11 @@ private:
     Variable *Prefer = nullptr;
     RegNumT PreferReg;
     bool AllowOverlap = false;
-    llvm::SmallBitVector RegMask;
-    llvm::SmallBitVector RegMaskUnfiltered;
-    llvm::SmallBitVector Free;
-    llvm::SmallBitVector FreeUnfiltered;
-    llvm::SmallBitVector PrecoloredUnhandledMask; // Note: only used for dumping
+    SmallBitVector RegMask;
+    SmallBitVector RegMaskUnfiltered;
+    SmallBitVector Free;
+    SmallBitVector FreeUnfiltered;
+    SmallBitVector PrecoloredUnhandledMask; // Note: only used for dumping
     llvm::SmallVector<RegWeight, REGS_SIZE> Weights;
   };
 
@@ -102,8 +103,8 @@ private:
   void allocatePreferredRegister(IterationState &Iter);
   void allocateFreeRegister(IterationState &Iter, bool Filtered);
   void handleNoFreeRegisters(IterationState &Iter);
-  void assignFinalRegisters(const llvm::SmallBitVector &RegMaskFull,
-                            const llvm::SmallBitVector &PreDefinedRegisters,
+  void assignFinalRegisters(const SmallBitVector &RegMaskFull,
+                            const SmallBitVector &PreDefinedRegisters,
                             bool Randomized);
   /// @}
 
@@ -125,9 +126,7 @@ private:
   /// currently assigned to. It can be greater than 1 as a result of
   /// AllowOverlap inference.
   llvm::SmallVector<int32_t, REGS_SIZE> RegUses;
-  // TODO(jpp): for some architectures a SmallBitVector might not be big
-  // enough. Evaluate what the performance impact on those architectures is.
-  llvm::SmallVector<const llvm::SmallBitVector *, REGS_SIZE> RegAliases;
+  llvm::SmallVector<const SmallBitVector *, REGS_SIZE> RegAliases;
   bool FindPreference = false;
   bool FindOverlap = false;
 

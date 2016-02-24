@@ -200,7 +200,8 @@ public:
   Constant *getConstantFloat(float Value);
   Constant *getConstantDouble(double Value);
   /// Returns a symbolic constant.
-  Constant *getConstantSym(const RelocOffsetArray &Offset,
+  Constant *getConstantSym(const RelocOffsetT Offset,
+                           const RelocOffsetArray &OffsetExpr,
                            const IceString &Name, const IceString &EmitString,
                            bool SuppressMangling);
   Constant *getConstantSym(RelocOffsetT Offset, const IceString &Name,
@@ -444,7 +445,7 @@ private:
   ICE_CACHELINE_BOUNDARY;
   // Managed by getAllocator()
   GlobalLockType AllocLock;
-  ArenaAllocator<> Allocator;
+  ArenaAllocator Allocator;
 
   ICE_CACHELINE_BOUNDARY;
   // Managed by getDestructors()
@@ -506,8 +507,8 @@ private:
   // TODO(jpp): move to EmitterContext.
   VariableDeclaration *ProfileBlockInfoVarDecl;
 
-  LockedPtr<ArenaAllocator<>> getAllocator() {
-    return LockedPtr<ArenaAllocator<>>(&Allocator, &AllocLock);
+  LockedPtr<ArenaAllocator> getAllocator() {
+    return LockedPtr<ArenaAllocator>(&Allocator, &AllocLock);
   }
   LockedPtr<ConstantPool> getConstPool() {
     return LockedPtr<ConstantPool>(ConstPool.get(), &ConstPoolLock);

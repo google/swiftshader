@@ -19,6 +19,7 @@
 #include "IceCfgNode.h"
 #include "IceInst.h"
 #include "IceInstVarIter.h"
+#include "IceMemory.h"
 #include "IceTargetLowering.h" // dumping stack/frame pointer register
 
 namespace Ice {
@@ -40,8 +41,8 @@ bool operator==(const RelocatableTuple &A, const RelocatableTuple &B) {
   }
 
   bool BothHaveKnownOffsets = true;
-  RelocOffsetT OffsetA = 0;
-  RelocOffsetT OffsetB = 0;
+  RelocOffsetT OffsetA = A.Offset;
+  RelocOffsetT OffsetB = B.Offset;
   for (SizeT i = 0; i < A.OffsetExpr.size() && BothHaveKnownOffsets; ++i) {
     BothHaveKnownOffsets = A.OffsetExpr[i]->hasOffset();
     if (BothHaveKnownOffsets) {
@@ -197,7 +198,8 @@ const Variable *Variable::asType(Type Ty, RegNumT NewRegNum) const {
   // Variable.
   if (!BuildDefs::dump() || getType() == Ty)
     return this;
-  Variable *V = new (getCurrentCfgAllocator()->Allocate<Variable>())
+  static constexpr SizeT One = 1;
+  Variable *V = new (CfgLocalAllocator<Variable>().allocate(One))
       Variable(kVariable, Ty, Number);
   V->NameIndex = NameIndex;
   V->RegNum = NewRegNum.hasValue() ? NewRegNum : RegNum;

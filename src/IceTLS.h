@@ -66,6 +66,8 @@
 // called. The F__key field is used as the argument to pthread_getspecific()
 // and pthread_setspecific().
 
+#include "llvm/Support/ErrorHandling.h"
+
 #include <pthread.h>
 
 #define ICE_TLS_DECLARE_FIELD(Type, FieldName)                                 \

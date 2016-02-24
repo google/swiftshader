@@ -50,22 +50,21 @@ public:
   Variable *getPhysicalRegister(RegNumT RegNum,
                                 Type Ty = IceType_void) override;
   IceString getRegName(RegNumT RegNum, Type Ty) const override;
-  llvm::SmallBitVector getRegisterSet(RegSetMask Include,
-                                      RegSetMask Exclude) const override;
-  const llvm::SmallBitVector &
+  SmallBitVector getRegisterSet(RegSetMask Include,
+                                RegSetMask Exclude) const override;
+  const SmallBitVector &
   getRegistersForVariable(const Variable *Var) const override {
     RegClass RC = Var->getRegClass();
     assert(RC < RC_Target);
     return TypeToRegisterSet[RC];
   }
-  const llvm::SmallBitVector &
+  const SmallBitVector &
   getAllRegistersForVariable(const Variable *Var) const override {
     RegClass RC = Var->getRegClass();
     assert(RC < RC_Target);
     return TypeToRegisterSetUnfiltered[RC];
   }
-  const llvm::SmallBitVector &
-  getAliasesForRegister(RegNumT Reg) const override {
+  const SmallBitVector &getAliasesForRegister(RegNumT Reg) const override {
     return RegisterAliases[Reg];
   }
   bool hasFramePointer() const override { return UsesFramePointer; }
@@ -310,15 +309,15 @@ protected:
                          RandomNumberGenerator &RNG) override;
   void
   makeRandomRegisterPermutation(llvm::SmallVectorImpl<RegNumT> &Permutation,
-                                const llvm::SmallBitVector &ExcludeRegisters,
+                                const SmallBitVector &ExcludeRegisters,
                                 uint64_t Salt) const override;
 
   bool UsesFramePointer = false;
   bool NeedsStackAlignment = false;
-  static llvm::SmallBitVector TypeToRegisterSet[RCMIPS32_NUM];
-  static llvm::SmallBitVector TypeToRegisterSetUnfiltered[RCMIPS32_NUM];
-  static llvm::SmallBitVector RegisterAliases[RegMIPS32::Reg_NUM];
-  llvm::SmallBitVector RegsUsed;
+  static SmallBitVector TypeToRegisterSet[RCMIPS32_NUM];
+  static SmallBitVector TypeToRegisterSetUnfiltered[RCMIPS32_NUM];
+  static SmallBitVector RegisterAliases[RegMIPS32::Reg_NUM];
+  SmallBitVector RegsUsed;
   VarList PhysicalRegisters[IceType_NUM];
 
 private:

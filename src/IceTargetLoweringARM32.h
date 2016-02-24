@@ -22,10 +22,6 @@
 #include "IceRegistersARM32.h"
 #include "IceTargetLowering.h"
 
-#include "llvm/ADT/SmallBitVector.h"
-
-#include <unordered_set>
-
 namespace Ice {
 namespace ARM32 {
 
@@ -84,9 +80,9 @@ public:
   Variable *getPhysicalRegister(RegNumT RegNum,
                                 Type Ty = IceType_void) override;
   IceString getRegName(RegNumT RegNum, Type Ty) const override;
-  llvm::SmallBitVector getRegisterSet(RegSetMask Include,
-                                      RegSetMask Exclude) const override;
-  const llvm::SmallBitVector &
+  SmallBitVector getRegisterSet(RegSetMask Include,
+                                RegSetMask Exclude) const override;
+  const SmallBitVector &
   getRegistersForVariable(const Variable *Var) const override {
     RegClass RC = Var->getRegClass();
     switch (RC) {
@@ -97,14 +93,13 @@ public:
       return TypeToRegisterSet[RC];
     }
   }
-  const llvm::SmallBitVector &
+  const SmallBitVector &
   getAllRegistersForVariable(const Variable *Var) const override {
     RegClass RC = Var->getRegClass();
     assert((RegARM32::RegClassARM32)RC < RegARM32::RCARM32_NUM);
     return TypeToRegisterSetUnfiltered[RC];
   }
-  const llvm::SmallBitVector &
-  getAliasesForRegister(RegNumT Reg) const override {
+  const SmallBitVector &getAliasesForRegister(RegNumT Reg) const override {
     return RegisterAliases[Reg];
   }
   bool hasFramePointer() const override { return UsesFramePointer; }
@@ -302,7 +297,7 @@ protected:
 
   void
   makeRandomRegisterPermutation(llvm::SmallVectorImpl<RegNumT> &Permutation,
-                                const llvm::SmallBitVector &ExcludeRegisters,
+                                const SmallBitVector &ExcludeRegisters,
                                 uint64_t Salt) const override;
 
   // If a divide-by-zero check is needed, inserts a: test; branch .LSKIP; trap;
@@ -898,7 +893,7 @@ protected:
   // TODO(jpp): if the same global G is used in different functions, then this
   // method will emit one G(gotoff) relocation per function.
   IceString createGotoffRelocation(const ConstantRelocatable *CR);
-  std::unordered_set<IceString> KnownGotoffs;
+  CfgUnorderedSet<IceString> KnownGotoffs;
   /// @}
 
   /// Loads the constant relocatable Name to Register. Then invoke Finish to
@@ -1116,11 +1111,10 @@ protected:
   bool PrologEmitsFixedAllocas = false;
   uint32_t MaxOutArgsSizeBytes = 0;
   // TODO(jpp): std::array instead of array.
-  static llvm::SmallBitVector TypeToRegisterSet[RegARM32::RCARM32_NUM];
-  static llvm::SmallBitVector
-      TypeToRegisterSetUnfiltered[RegARM32::RCARM32_NUM];
-  static llvm::SmallBitVector RegisterAliases[RegARM32::Reg_NUM];
-  llvm::SmallBitVector RegsUsed;
+  static SmallBitVector TypeToRegisterSet[RegARM32::RCARM32_NUM];
+  static SmallBitVector TypeToRegisterSetUnfiltered[RegARM32::RCARM32_NUM];
+  static SmallBitVector RegisterAliases[RegARM32::Reg_NUM];
+  SmallBitVector RegsUsed;
   VarList PhysicalRegisters[IceType_NUM];
   VarList PreservedGPRs;
   VarList PreservedSRegs;
@@ -1158,12 +1152,12 @@ protected:
 
   private:
     void discardUnavailableGPRsAndTheirAliases(CfgVector<RegNumT> *Regs);
-    llvm::SmallBitVector GPRegsUsed;
+    SmallBitVector GPRegsUsed;
     CfgVector<RegNumT> GPRArgs;
     CfgVector<RegNumT> I64Args;
 
     void discardUnavailableVFPRegs(CfgVector<RegNumT> *Regs);
-    llvm::SmallBitVector VFPRegsUsed;
+    SmallBitVector VFPRegsUsed;
     CfgVector<RegNumT> FP32Args;
     CfgVector<RegNumT> FP64Args;
     CfgVector<RegNumT> Vec128Args;
@@ -1177,9 +1171,9 @@ private:
 
   void postambleCtpop64(const InstCall *Instr);
   void preambleDivRem(const InstCall *Instr);
-  std::unordered_map<Operand *, void (TargetARM32::*)(const InstCall *Instr)>
+  CfgUnorderedMap<Operand *, void (TargetARM32::*)(const InstCall *Instr)>
       ARM32HelpersPreamble;
-  std::unordered_map<Operand *, void (TargetARM32::*)(const InstCall *Instr)>
+  CfgUnorderedMap<Operand *, void (TargetARM32::*)(const InstCall *Instr)>
       ARM32HelpersPostamble;
 
   class ComputationTracker {
@@ -1236,7 +1230,7 @@ private:
 
     // ComputationMap maps a Variable number to a payload identifying which
     // instruction defined it.
-    using ComputationMap = std::unordered_map<SizeT, ComputationEntry>;
+    using ComputationMap = CfgUnorderedMap<SizeT, ComputationEntry>;
     ComputationMap KnownComputations;
   };
 

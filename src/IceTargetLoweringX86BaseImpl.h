@@ -152,7 +152,7 @@ private:
   }
   void setInvalid(SizeT VarNum) { Producers[VarNum].Instr = nullptr; }
   /// Producers maps Variable::Number to a BoolFoldingEntry.
-  std::unordered_map<SizeT, BoolFoldingEntry<Traits>> Producers;
+  CfgUnorderedMap<SizeT, BoolFoldingEntry<Traits>> Producers;
 };
 
 template <typename Traits>
@@ -962,9 +962,8 @@ void TargetX86Base<TraitsType>::addProlog(CfgNode *Node) {
   Context.init(Node);
   Context.setInsertPoint(Context.getCur());
 
-  llvm::SmallBitVector CalleeSaves =
-      getRegisterSet(RegSet_CalleeSave, RegSet_None);
-  RegsUsed = llvm::SmallBitVector(CalleeSaves.size());
+  SmallBitVector CalleeSaves = getRegisterSet(RegSet_CalleeSave, RegSet_None);
+  RegsUsed = SmallBitVector(CalleeSaves.size());
   VarList SortedSpilledVariables, VariablesLinkedToSpillSlots;
   size_t GlobalsSize = 0;
   // If there is a separate locals area, this represents that area. Otherwise
@@ -1000,7 +999,7 @@ void TargetX86Base<TraitsType>::addProlog(CfgNode *Node) {
   // Add push instructions for preserved registers.
   uint32_t NumCallee = 0;
   size_t PreservedRegsSizeBytes = 0;
-  llvm::SmallBitVector Pushed(CalleeSaves.size());
+  SmallBitVector Pushed(CalleeSaves.size());
   for (RegNumT i : RegNumBVIter(CalleeSaves)) {
     const auto Canonical = Traits::getBaseReg(i);
     assert(Canonical == Traits::getBaseReg(Canonical));
@@ -1256,9 +1255,8 @@ void TargetX86Base<TraitsType>::addEpilog(CfgNode *Node) {
   }
 
   // Add pop instructions for preserved registers.
-  llvm::SmallBitVector CalleeSaves =
-      getRegisterSet(RegSet_CalleeSave, RegSet_None);
-  llvm::SmallBitVector Popped(CalleeSaves.size());
+  SmallBitVector CalleeSaves = getRegisterSet(RegSet_CalleeSave, RegSet_None);
+  SmallBitVector Popped(CalleeSaves.size());
   for (int32_t i = CalleeSaves.size() - 1; i >= 0; --i) {
     const auto RegNum = RegNumT::fromInt(i);
     if (RegNum == getFrameReg() && IsEbpBasedFrame)
@@ -1361,7 +1359,7 @@ TargetX86Base<TraitsType>::hiOperand(Operand *Operand) {
 }
 
 template <typename TraitsType>
-llvm::SmallBitVector
+SmallBitVector
 TargetX86Base<TraitsType>::getRegisterSet(RegSetMask Include,
                                           RegSetMask Exclude) const {
   return Traits::getRegisterSet(Ctx->getFlags(), Include, Exclude);
@@ -4316,7 +4314,7 @@ bool TargetX86Base<TraitsType>::tryOptimizedCmpxchgCmpBr(Variable *Dest,
   // There might be phi assignments right before the compare+branch, since this
   // could be a backward branch for a loop. This placement of assignments is
   // determined by placePhiStores().
-  std::vector<InstAssign *> PhiAssigns;
+  CfgVector<InstAssign *> PhiAssigns;
   while (auto *PhiAssign = llvm::dyn_cast<InstAssign>(NextInst)) {
     if (PhiAssign->getDest() == Dest)
       return false;
@@ -6381,7 +6379,7 @@ void TargetX86Base<TraitsType>::genTargetHelperCallFor(Inst *Instr) {
       Context.insert<InstCast>(InstCast::Trunc, Dest, CallDest);
     Cast->setDeleted();
   } else if (auto *Intrinsic = llvm::dyn_cast<InstIntrinsicCall>(Instr)) {
-    std::vector<Type> ArgTypes;
+    CfgVector<Type> ArgTypes;
     Type ReturnType = IceType_void;
     switch (Intrinsics::IntrinsicID ID = Intrinsic->getIntrinsicInfo().ID) {
     default:
@@ -6439,7 +6437,7 @@ void TargetX86Base<TraitsType>::genTargetHelperCallFor(Inst *Instr) {
 
 template <typename TraitsType>
 uint32_t TargetX86Base<TraitsType>::getCallStackArgumentsSizeBytes(
-    const std::vector<Type> &ArgTypes, Type ReturnType) {
+    const CfgVector<Type> &ArgTypes, Type ReturnType) {
   uint32_t OutArgumentsSizeBytes = 0;
   uint32_t XmmArgCount = 0;
   uint32_t GprArgCount = 0;
@@ -6476,8 +6474,10 @@ template <typename TraitsType>
 uint32_t TargetX86Base<TraitsType>::getCallStackArgumentsSizeBytes(
     const InstCall *Instr) {
   // Build a vector of the arguments' types.
-  std::vector<Type> ArgTypes;
-  for (SizeT i = 0, NumArgs = Instr->getNumArgs(); i < NumArgs; ++i) {
+  const SizeT NumArgs = Instr->getNumArgs();
+  CfgVector<Type> ArgTypes;
+  ArgTypes.reserve(NumArgs);
+  for (SizeT i = 0; i < NumArgs; ++i) {
     Operand *Arg = Instr->getArg(i);
     ArgTypes.emplace_back(Arg->getType());
   }
@@ -6995,7 +6995,7 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::postLower() {
 template <typename TraitsType>
 void TargetX86Base<TraitsType>::makeRandomRegisterPermutation(
     llvm::SmallVectorImpl<RegNumT> &Permutation,
-    const llvm::SmallBitVector &ExcludeRegisters, uint64_t Salt) const {
+    const SmallBitVector &ExcludeRegisters, uint64_t Salt) const {
   Traits::makeRandomRegisterPermutation(Ctx, Func, Permutation,
                                         ExcludeRegisters, Salt);
 }

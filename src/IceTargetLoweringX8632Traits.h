@@ -453,19 +453,19 @@ private:
 public:
   static void initRegisterSet(
       const ::Ice::ClFlags & /*Flags*/,
-      std::array<llvm::SmallBitVector, RCX86_NUM> *TypeToRegisterSet,
-      std::array<llvm::SmallBitVector, RegisterSet::Reg_NUM> *RegisterAliases) {
-    llvm::SmallBitVector IntegerRegistersI32(RegisterSet::Reg_NUM);
-    llvm::SmallBitVector IntegerRegistersI16(RegisterSet::Reg_NUM);
-    llvm::SmallBitVector IntegerRegistersI8(RegisterSet::Reg_NUM);
-    llvm::SmallBitVector FloatRegisters(RegisterSet::Reg_NUM);
-    llvm::SmallBitVector VectorRegisters(RegisterSet::Reg_NUM);
-    llvm::SmallBitVector Trunc64To8Registers(RegisterSet::Reg_NUM);
-    llvm::SmallBitVector Trunc32To8Registers(RegisterSet::Reg_NUM);
-    llvm::SmallBitVector Trunc16To8Registers(RegisterSet::Reg_NUM);
-    llvm::SmallBitVector Trunc8RcvrRegisters(RegisterSet::Reg_NUM);
-    llvm::SmallBitVector AhRcvrRegisters(RegisterSet::Reg_NUM);
-    llvm::SmallBitVector InvalidRegisters(RegisterSet::Reg_NUM);
+      std::array<SmallBitVector, RCX86_NUM> *TypeToRegisterSet,
+      std::array<SmallBitVector, RegisterSet::Reg_NUM> *RegisterAliases) {
+    SmallBitVector IntegerRegistersI32(RegisterSet::Reg_NUM);
+    SmallBitVector IntegerRegistersI16(RegisterSet::Reg_NUM);
+    SmallBitVector IntegerRegistersI8(RegisterSet::Reg_NUM);
+    SmallBitVector FloatRegisters(RegisterSet::Reg_NUM);
+    SmallBitVector VectorRegisters(RegisterSet::Reg_NUM);
+    SmallBitVector Trunc64To8Registers(RegisterSet::Reg_NUM);
+    SmallBitVector Trunc32To8Registers(RegisterSet::Reg_NUM);
+    SmallBitVector Trunc16To8Registers(RegisterSet::Reg_NUM);
+    SmallBitVector Trunc8RcvrRegisters(RegisterSet::Reg_NUM);
+    SmallBitVector AhRcvrRegisters(RegisterSet::Reg_NUM);
+    SmallBitVector InvalidRegisters(RegisterSet::Reg_NUM);
 
     static constexpr struct {
       uint16_t Val;
@@ -539,11 +539,10 @@ public:
     (*TypeToRegisterSet)[RCX86_IsAhRcvr] = AhRcvrRegisters;
   }
 
-  static llvm::SmallBitVector
-  getRegisterSet(const ::Ice::ClFlags & /*Flags*/,
-                 TargetLowering::RegSetMask Include,
-                 TargetLowering::RegSetMask Exclude) {
-    llvm::SmallBitVector Registers(RegisterSet::Reg_NUM);
+  static SmallBitVector getRegisterSet(const ::Ice::ClFlags & /*Flags*/,
+                                       TargetLowering::RegSetMask Include,
+                                       TargetLowering::RegSetMask Exclude) {
+    SmallBitVector Registers(RegisterSet::Reg_NUM);
 
 #define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
           isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8, is16To8,      \
@@ -575,7 +574,7 @@ public:
   static void
   makeRandomRegisterPermutation(GlobalContext *Ctx, Cfg *Func,
                                 llvm::SmallVectorImpl<RegNumT> &Permutation,
-                                const llvm::SmallBitVector &ExcludeRegisters,
+                                const SmallBitVector &ExcludeRegisters,
                                 uint64_t Salt) {
     // TODO(stichnot): Declaring Permutation this way loses type/size
     // information. Fix this in conjunction with the caller-side TODO.

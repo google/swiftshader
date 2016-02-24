@@ -30,6 +30,8 @@
 #include "IceFixups.h"
 #include "IceUtils.h"
 
+#include "llvm/Support/Allocator.h"
+
 namespace Ice {
 
 class Assembler;
@@ -338,7 +340,10 @@ protected:
 private:
   const AssemblerKind Kind;
 
-  ArenaAllocator<32 * 1024> Allocator;
+  using AssemblerAllocator =
+      llvm::BumpPtrAllocatorImpl<llvm::MallocAllocator, /*SlabSize=*/32 * 1024>;
+  AssemblerAllocator Allocator;
+
   /// FunctionName and IsInternal are transferred from the original Cfg object,
   /// since the Cfg object may be deleted by the time the assembler buffer is
   /// emitted.

@@ -111,15 +111,15 @@ const uint32_t TargetX8632Traits::X86_STACK_ALIGNMENT_BYTES = 16;
 const char *TargetX8632Traits::TargetName = "X8632";
 
 template <>
-std::array<llvm::SmallBitVector, RCX86_NUM>
+std::array<SmallBitVector, RCX86_NUM>
     TargetX86Base<X8632::Traits>::TypeToRegisterSet = {{}};
 
 template <>
-std::array<llvm::SmallBitVector, RCX86_NUM>
+std::array<SmallBitVector, RCX86_NUM>
     TargetX86Base<X8632::Traits>::TypeToRegisterSetUnfiltered = {{}};
 
 template <>
-std::array<llvm::SmallBitVector,
+std::array<SmallBitVector,
            TargetX86Base<X8632::Traits>::Traits::RegisterSet::Reg_NUM>
     TargetX86Base<X8632::Traits>::RegisterAliases = {{}};
 
@@ -250,10 +250,10 @@ void TargetX8632::emitGetIP(CfgNode *Node) {
     auto *AfterAdd = InstX86Label::create(Func, this);
     AfterAdd->setRelocOffset(AfterAddReloc);
 
-    auto *ImmSize = RelocOffset::create(Ctx, -typeWidthInBytes(IceType_i32));
+    const RelocOffsetT ImmSize = -typeWidthInBytes(IceType_i32);
 
     auto *GotFromPc = llvm::cast<ConstantRelocatable>(
-        Ctx->getConstantSym({AfterAddReloc, BeforeAddReloc, ImmSize},
+        Ctx->getConstantSym(ImmSize, {AfterAddReloc, BeforeAddReloc},
                             GlobalOffsetTable, GlobalOffsetTable, true));
 
     // Insert a new version of InstX86GetIP.

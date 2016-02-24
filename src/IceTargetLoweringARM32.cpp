@@ -301,13 +301,13 @@ TargetARM32::TargetARM32(Cfg *Func)
 void TargetARM32::staticInit(GlobalContext *Ctx) {
   RegNumT::setLimit(RegARM32::Reg_NUM);
   // Limit this size (or do all bitsets need to be the same width)???
-  llvm::SmallBitVector IntegerRegisters(RegARM32::Reg_NUM);
-  llvm::SmallBitVector I64PairRegisters(RegARM32::Reg_NUM);
-  llvm::SmallBitVector Float32Registers(RegARM32::Reg_NUM);
-  llvm::SmallBitVector Float64Registers(RegARM32::Reg_NUM);
-  llvm::SmallBitVector VectorRegisters(RegARM32::Reg_NUM);
-  llvm::SmallBitVector QtoSRegisters(RegARM32::Reg_NUM);
-  llvm::SmallBitVector InvalidRegisters(RegARM32::Reg_NUM);
+  SmallBitVector IntegerRegisters(RegARM32::Reg_NUM);
+  SmallBitVector I64PairRegisters(RegARM32::Reg_NUM);
+  SmallBitVector Float32Registers(RegARM32::Reg_NUM);
+  SmallBitVector Float64Registers(RegARM32::Reg_NUM);
+  SmallBitVector VectorRegisters(RegARM32::Reg_NUM);
+  SmallBitVector QtoSRegisters(RegARM32::Reg_NUM);
+  SmallBitVector InvalidRegisters(RegARM32::Reg_NUM);
   const unsigned EncodedReg_q8 = RegARM32::RegTable[RegARM32::Reg_q8].Encoding;
   for (int i = 0; i < RegARM32::Reg_NUM; ++i) {
     const auto &Entry = RegARM32::RegTable[i];
@@ -924,9 +924,6 @@ void TargetARM32::loadNamedConstantRelocatablePIC(
   AddPcLabel->setRelocOffset(AddPcReloc);
 
   const IceString EmitText = Name;
-  // We need a -8 in the relocation expression to account for the pc's value
-  // read by the first instruction emitted in Finish(PC).
-  auto *Imm8 = RelocOffset::create(Ctx, -8);
 
   auto *MovwReloc = RelocOffset::create(Ctx);
   auto *MovwLabel = InstARM32Label::create(Func, this);
@@ -944,9 +941,10 @@ void TargetARM32::loadNamedConstantRelocatablePIC(
   //   movt reg, #:upper16:(Symbol - Label - Number)
   //
   // relocations.
-  auto *CRLower = Ctx->getConstantSym({MovwReloc, AddPcReloc, Imm8}, Name,
+  static constexpr RelocOffsetT PcOffset = -8;
+  auto *CRLower = Ctx->getConstantSym(PcOffset, {MovwReloc, AddPcReloc}, Name,
                                       EmitText + " -16", SuppressMangling);
-  auto *CRUpper = Ctx->getConstantSym({MovtReloc, AddPcReloc, Imm8}, Name,
+  auto *CRUpper = Ctx->getConstantSym(PcOffset, {MovtReloc, AddPcReloc}, Name,
                                       EmitText + " -12", SuppressMangling);
 
   Context.insert(MovwLabel);
@@ -1440,9 +1438,8 @@ void TargetARM32::addProlog(CfgNode *Node) {
   Context.init(Node);
   Context.setInsertPoint(Context.getCur());
 
-  llvm::SmallBitVector CalleeSaves =
-      getRegisterSet(RegSet_CalleeSave, RegSet_None);
-  RegsUsed = llvm::SmallBitVector(CalleeSaves.size());
+  SmallBitVector CalleeSaves = getRegisterSet(RegSet_CalleeSave, RegSet_None);
+  RegsUsed = SmallBitVector(CalleeSaves.size());
   VarList SortedSpilledVariables;
   size_t GlobalsSize = 0;
   // If there is a separate locals area, this represents that area. Otherwise
@@ -1498,7 +1495,7 @@ void TargetARM32::addProlog(CfgNode *Node) {
   // used registers -- and their aliases. Then, we figure out which GPRs and
   // VFP S registers should be saved. We don't bother saving D/Q registers
   // because their uses are recorded as S regs uses.
-  llvm::SmallBitVector ToPreserve(RegARM32::Reg_NUM);
+  SmallBitVector ToPreserve(RegARM32::Reg_NUM);
   for (SizeT i = 0; i < CalleeSaves.size(); ++i) {
     if (NeedSandboxing && i == RegARM32::Reg_r9) {
       // r9 is never updated in sandboxed code.
@@ -2143,9 +2140,9 @@ Operand *TargetARM32::hiOperand(Operand *Operand) {
   return nullptr;
 }
 
-llvm::SmallBitVector TargetARM32::getRegisterSet(RegSetMask Include,
-                                                 RegSetMask Exclude) const {
-  llvm::SmallBitVector Registers(RegARM32::Reg_NUM);
+SmallBitVector TargetARM32::getRegisterSet(RegSetMask Include,
+                                           RegSetMask Exclude) const {
+  SmallBitVector Registers(RegARM32::Reg_NUM);
 
   for (uint32_t i = 0; i < RegARM32::Reg_NUM; ++i) {
     const auto &Entry = RegARM32::RegTable[i];
@@ -6053,7 +6050,7 @@ void TargetARM32::postLower() {
 
 void TargetARM32::makeRandomRegisterPermutation(
     llvm::SmallVectorImpl<RegNumT> &Permutation,
-    const llvm::SmallBitVector &ExcludeRegisters, uint64_t Salt) const {
+    const SmallBitVector &ExcludeRegisters, uint64_t Salt) const {
   (void)Permutation;
   (void)ExcludeRegisters;
   (void)Salt;
@@ -6800,10 +6797,9 @@ void TargetHeaderARM32::lower() {
   Str << ".eabi_attribute 14, 3   @ Tag_ABI_PCS_R9_use: Not used\n";
 }
 
-llvm::SmallBitVector TargetARM32::TypeToRegisterSet[RegARM32::RCARM32_NUM];
-llvm::SmallBitVector
-    TargetARM32::TypeToRegisterSetUnfiltered[RegARM32::RCARM32_NUM];
-llvm::SmallBitVector TargetARM32::RegisterAliases[RegARM32::Reg_NUM];
+SmallBitVector TargetARM32::TypeToRegisterSet[RegARM32::RCARM32_NUM];
+SmallBitVector TargetARM32::TypeToRegisterSetUnfiltered[RegARM32::RCARM32_NUM];
+SmallBitVector TargetARM32::RegisterAliases[RegARM32::Reg_NUM];
 
 } // end of namespace ARM32
 } // end of namespace Ice

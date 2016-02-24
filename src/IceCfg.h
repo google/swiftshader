@@ -36,16 +36,6 @@ public:
                                      uint32_t SequenceNumber) {
     return std::unique_ptr<Cfg>(new Cfg(Ctx, SequenceNumber));
   }
-  /// Gets a pointer to the current thread's Cfg.
-  static const Cfg *getCurrentCfg() { return ICE_TLS_GET_FIELD(CurrentCfg); }
-  static void setCurrentCfg(const Cfg *Func) {
-    ICE_TLS_SET_FIELD(CurrentCfg, Func);
-  }
-  /// Gets a pointer to the current thread's Cfg's allocator.
-  static ArenaAllocator<> *getCurrentCfgAllocator() {
-    assert(ICE_TLS_GET_FIELD(CurrentCfg));
-    return ICE_TLS_GET_FIELD(CurrentCfg)->Allocator.get();
-  }
 
   GlobalContext *getContext() const { return Ctx; }
   uint32_t getSequenceNumber() const { return SequenceNumber; }
@@ -254,6 +244,8 @@ public:
   }
 
 private:
+  friend class CfgAllocatorTraits; // for Allocator access.
+
   Cfg(GlobalContext *Ctx, uint32_t SequenceNumber);
 
   /// Adds a call to the ProfileSummary runtime function as the first
@@ -298,7 +290,7 @@ private:
   VarList Variables;
   VarList Args;         /// subset of Variables, in argument order
   VarList ImplicitArgs; /// subset of Variables
-  std::unique_ptr<ArenaAllocator<>> Allocator;
+  std::unique_ptr<ArenaAllocator> Allocator;
   std::unique_ptr<Liveness> Live;
   std::unique_ptr<TargetLowering> Target;
   std::unique_ptr<VariablesMetadata> VMetadata;
@@ -313,13 +305,8 @@ private:
   /// should be called to avoid spurious validation failures.
   const CfgNode *CurrentNode = nullptr;
 
-  /// Maintain a pointer in TLS to the current Cfg being translated. This is
-  /// primarily for accessing its allocator statelessly, but other uses are
-  /// possible.
-  ICE_TLS_DECLARE_FIELD(const Cfg *, CurrentCfg);
-
 public:
-  static void TlsInit() { ICE_TLS_INIT_FIELD(CurrentCfg); }
+  static void TlsInit() { CfgAllocatorTraits::init(); }
 };
 
 template <> Variable *Cfg::makeVariable<Variable>(Type Ty);
