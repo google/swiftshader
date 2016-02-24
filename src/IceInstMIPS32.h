@@ -319,7 +319,7 @@ public:
 private:
   InstMIPS32Label(Cfg *Func, TargetMIPS32 *Target);
 
-  RelocOffset *OffsetReloc = nullptr;
+  // RelocOffset *OffsetReloc = nullptr;
 
   SizeT Number; // used for unique label generation.
 };

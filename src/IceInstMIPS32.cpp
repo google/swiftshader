@@ -129,6 +129,13 @@ void InstMIPS32Label::dump(const Cfg *Func) const {
   Str << getName(Func) << ":";
 }
 
+void InstMIPS32Label::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  Str << getName(Func) << ":";
+}
+
 void InstMIPS32Label::emitIAS(const Cfg *Func) const {
   (void)Func;
   llvm_unreachable("Not yet implemented");
