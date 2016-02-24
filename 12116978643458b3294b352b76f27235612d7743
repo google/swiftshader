@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a237a16a_1b70136f",
+        "filename": "src/Renderer/Sampler.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 438,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-02-24T17:09:47Z",
+      "side": 1,
+      "message": "The only functional change in this CL.",
+      "range": {
+        "startLine": 430,
+        "startChar": 2,
+        "endLine": 438,
+        "endChar": 3
+      },
+      "revId": "12116978643458b3294b352b76f27235612d7743",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a237a16a_5b9d3bdb",
+        "filename": "src/Renderer/Sampler.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-02-24T17:09:47Z",
+      "side": 1,
+      "message": "Just a syntactic refactoring to swap min and mag. The magnification filter is used when not mipmapping, hence it\u0027s the dominant one and I\u0027m putting it first.",
+      "range": {
+        "startLine": 90,
+        "startChar": 2,
+        "endLine": 91,
+        "endChar": 30
+      },
+      "revId": "12116978643458b3294b352b76f27235612d7743",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
