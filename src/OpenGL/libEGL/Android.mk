@@ -34,7 +34,6 @@ COMMON_STATIC_LIBRARIES := \
 COMMON_SHARED_LIBRARIES := \
 	libdl \
 	liblog \
-	libutils \
 	libcutils \
 	libhardware
 
