@@ -98,6 +98,8 @@ InstImpl<TraitsType>::InstX86Label::InstX86Label(Cfg *Func,
 
 template <typename TraitsType>
 IceString InstImpl<TraitsType>::InstX86Label::getName(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return IceString();
   return ".L" + Func->getFunctionName() + "$local$__" + std::to_string(Number);
 }
 

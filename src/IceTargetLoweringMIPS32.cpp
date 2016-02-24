@@ -804,6 +804,10 @@ void TargetMIPS32::lowerAssign(const InstAssign *Instr) {
 }
 
 void TargetMIPS32::lowerBr(const InstBr *Instr) {
+  if (Instr->isUnconditional()) {
+    _br(Instr->getTargetUnconditional());
+    return;
+  }
   UnimplementedLoweringError(this, Instr);
 }
 

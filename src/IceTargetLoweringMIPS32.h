@@ -147,6 +147,8 @@ public:
     Context.insert<InstMIPS32And>(Dest, Src0, Src1);
   }
 
+  void _br(CfgNode *Target) { Context.insert<InstMIPS32Br>(Target); }
+
   void _ret(Variable *RA, Variable *Src0 = nullptr) {
     Context.insert<InstMIPS32Ret>(RA, Src0);
   }

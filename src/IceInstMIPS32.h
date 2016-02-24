@@ -121,8 +121,10 @@ public:
     Addu,
     And,
     Addiu,
+    Br,
     Call,
     La,
+    Label,
     Lui,
     Mfhi,
     Mflo,
@@ -290,6 +292,73 @@ private:
   }
 
   static const char *Opcode;
+};
+
+// InstMIPS32Label represents an intra-block label that is the target of an
+// intra-block branch. The offset between the label and the branch must be fit
+// in the instruction immediate (considered "near").
+class InstMIPS32Label : public InstMIPS32 {
+  InstMIPS32Label() = delete;
+  InstMIPS32Label(const InstMIPS32Label &) = delete;
+  InstMIPS32Label &operator=(const InstMIPS32Label &) = delete;
+
+public:
+  static InstMIPS32Label *create(Cfg *Func, TargetMIPS32 *Target) {
+    return new (Func->allocate<InstMIPS32Label>())
+        InstMIPS32Label(Func, Target);
+  }
+  uint32_t getEmitInstCount() const override { return 0; }
+  IceString getName(const Cfg *Func) const;
+  SizeT getNumber() const { return Number; }
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
+
+  static bool classof(const Inst *Instr) { return isClassof(Instr, Label); }
+
+private:
+  InstMIPS32Label(Cfg *Func, TargetMIPS32 *Target);
+
+  RelocOffset *OffsetReloc = nullptr;
+
+  SizeT Number; // used for unique label generation.
+};
+
+/// Direct branch instruction.
+class InstMIPS32Br : public InstMIPS32 {
+  InstMIPS32Br() = delete;
+  InstMIPS32Br(const InstMIPS32Br &) = delete;
+  InstMIPS32Br &operator=(const InstMIPS32Br &) = delete;
+
+public:
+  /// Create an unconditional branch to a node.
+  static InstMIPS32Br *create(Cfg *Func, CfgNode *Target) {
+    constexpr CfgNode *NoCondTarget = nullptr;
+    constexpr InstMIPS32Label *NoLabel = nullptr;
+    return new (Func->allocate<InstMIPS32Br>())
+        InstMIPS32Br(Func, NoCondTarget, Target, NoLabel);
+  }
+  const CfgNode *getTargetTrue() const { return TargetTrue; }
+  const CfgNode *getTargetFalse() const { return TargetFalse; }
+
+  bool isUnconditionalBranch() const override { return true; }
+  bool repointEdges(CfgNode *OldNode, CfgNode *NewNode) override {
+    (void)OldNode;
+    (void)NewNode;
+    return true;
+  };
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override { (void)Func; };
+  void dump(const Cfg *Func) const override { (void)Func; };
+  static bool classof(const Inst *Instr) { return isClassof(Instr, Br); }
+
+private:
+  InstMIPS32Br(Cfg *Func, const CfgNode *TargetTrue, const CfgNode *TargetFalse,
+               const InstMIPS32Label *Label);
+
+  const CfgNode *TargetTrue;
+  const CfgNode *TargetFalse;
+  const InstMIPS32Label *Label; // Intra-block branch target
 };
 
 class InstMIPS32Call : public InstMIPS32 {

@@ -106,6 +106,34 @@ template <> void InstMIPS32Multu::emit(const Cfg *Func) const {
   emitThreeAddrLoHi(Opcode, this, Func);
 }
 
+InstMIPS32Br::InstMIPS32Br(Cfg *Func, const CfgNode *TargetTrue,
+                           const CfgNode *TargetFalse,
+                           const InstMIPS32Label *Label)
+    : InstMIPS32(Func, InstMIPS32::Br, 0, nullptr), TargetTrue(TargetTrue),
+      TargetFalse(TargetFalse), Label(Label) {}
+
+InstMIPS32Label::InstMIPS32Label(Cfg *Func, TargetMIPS32 *Target)
+    : InstMIPS32(Func, InstMIPS32::Label, 0, nullptr),
+      Number(Target->makeNextLabelNumber()) {}
+
+IceString InstMIPS32Label::getName(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return IceString();
+  return ".L" + Func->getFunctionName() + "$local$__" + std::to_string(Number);
+}
+
+void InstMIPS32Label::dump(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrDump();
+  Str << getName(Func) << ":";
+}
+
+void InstMIPS32Label::emitIAS(const Cfg *Func) const {
+  (void)Func;
+  llvm_unreachable("Not yet implemented");
+}
+
 InstMIPS32Call::InstMIPS32Call(Cfg *Func, Variable *Dest, Operand *CallTarget)
     : InstMIPS32(Func, InstMIPS32::Call, 1, Dest) {
   HasSideEffects = true;
@@ -223,6 +251,24 @@ void InstMIPS32Ret::emit(const Cfg *Func) const {
          "jr"
          "\t";
   RA->emit(Func);
+}
+
+void InstMIPS32Br::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  Str << "\t"
+         "b"
+      << "\t";
+  if (Label) {
+    Str << Label->getName(Func);
+  } else {
+    if (isUnconditionalBranch()) {
+      Str << getTargetFalse()->getAsmName();
+    } else {
+      // TODO(reed kotler): Finish implementing conditional branch.
+    }
+  }
 }
 
 void InstMIPS32Call::emit(const Cfg *Func) const {
