@@ -179,6 +179,10 @@ public:
                                                const TSourceLoc &initLocation, TIntermTyped *initializer);
 
     void parseGlobalLayoutQualifier(const TPublicType &typeQualifier);
+	TIntermAggregate *addFunctionPrototypeDeclaration(const TFunction &function, const TSourceLoc &location);
+	TIntermAggregate *addFunctionDefinition(const TFunction &function, TIntermAggregate *functionPrototype, TIntermAggregate *functionBody, const TSourceLoc &location);
+	void parseFunctionPrototype(const TSourceLoc &location, TFunction *function, TIntermAggregate **aggregateOut);
+	TFunction *parseFunctionDeclarator(const TSourceLoc &location, TFunction *function);
 	TFunction *addConstructorFunc(const TPublicType &publicType);
     TIntermTyped* addConstructor(TIntermNode*, const TType*, TOperator, TFunction*, const TSourceLoc&);
     TIntermTyped* foldConstConstructor(TIntermAggregate* aggrNode, const TType& type);
