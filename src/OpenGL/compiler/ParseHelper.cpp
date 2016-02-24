@@ -1751,6 +1751,237 @@ void TParseContext::parseGlobalLayoutQualifier(const TPublicType &typeQualifier)
 	}
 }
 
+TIntermAggregate *TParseContext::addFunctionPrototypeDeclaration(const TFunction &function, const TSourceLoc &location)
+{
+	// Note: symbolTableFunction could be the same as function if this is the first declaration.
+	// Either way the instance in the symbol table is used to track whether the function is declared
+	// multiple times.
+	TFunction *symbolTableFunction =
+		static_cast<TFunction *>(symbolTable.find(function.getMangledName(), getShaderVersion()));
+	if(symbolTableFunction->hasPrototypeDeclaration() && mShaderVersion == 100)
+	{
+		// ESSL 1.00.17 section 4.2.7.
+		// Doesn't apply to ESSL 3.00.4: see section 4.2.3.
+		error(location, "duplicate function prototype declarations are not allowed", "function");
+		recover();
+	}
+	symbolTableFunction->setHasPrototypeDeclaration();
+
+	TIntermAggregate *prototype = new TIntermAggregate;
+	prototype->setType(function.getReturnType());
+	prototype->setName(function.getMangledName());
+
+	for(size_t i = 0; i < function.getParamCount(); i++)
+	{
+		const TParameter &param = function.getParam(i);
+		if(param.name != 0)
+		{
+			TVariable variable(param.name, *param.type);
+
+			TIntermSymbol *paramSymbol = intermediate.addSymbol(
+				variable.getUniqueId(), variable.getName(), variable.getType(), location);
+			prototype = intermediate.growAggregate(prototype, paramSymbol, location);
+		}
+		else
+		{
+			TIntermSymbol *paramSymbol = intermediate.addSymbol(0, "", *param.type, location);
+			prototype = intermediate.growAggregate(prototype, paramSymbol, location);
+		}
+	}
+
+	prototype->setOp(EOpPrototype);
+
+	symbolTable.pop();
+
+	if(!symbolTable.atGlobalLevel())
+	{
+		// ESSL 3.00.4 section 4.2.4.
+		error(location, "local function prototype declarations are not allowed", "function");
+		recover();
+	}
+
+	return prototype;
+}
+
+TIntermAggregate *TParseContext::addFunctionDefinition(const TFunction &function, TIntermAggregate *functionPrototype, TIntermAggregate *functionBody, const TSourceLoc &location)
+{
+	//?? Check that all paths return a value if return type != void ?
+	//   May be best done as post process phase on intermediate code
+	if(mCurrentFunctionType->getBasicType() != EbtVoid && !mFunctionReturnsValue)
+	{
+		error(location, "function does not return a value:", "", function.getName().c_str());
+		recover();
+	}
+
+	TIntermAggregate *aggregate = intermediate.growAggregate(functionPrototype, functionBody, location);
+	intermediate.setAggregateOperator(aggregate, EOpFunction, location);
+	aggregate->setName(function.getMangledName().c_str());
+	aggregate->setType(function.getReturnType());
+
+	// store the pragma information for debug and optimize and other vendor specific
+	// information. This information can be queried from the parse tree
+	aggregate->setOptimize(pragma().optimize);
+	aggregate->setDebug(pragma().debug);
+
+	if(functionBody && functionBody->getAsAggregate())
+		aggregate->setEndLine(functionBody->getAsAggregate()->getEndLine());
+
+	symbolTable.pop();
+	return aggregate;
+}
+
+void TParseContext::parseFunctionPrototype(const TSourceLoc &location, TFunction *function, TIntermAggregate **aggregateOut)
+{
+	const TSymbol *builtIn = symbolTable.findBuiltIn(function->getMangledName(), getShaderVersion());
+
+	if(builtIn)
+	{
+		error(location, "built-in functions cannot be redefined", function->getName().c_str());
+		recover();
+	}
+
+	TFunction *prevDec = static_cast<TFunction *>(symbolTable.find(function->getMangledName(), getShaderVersion()));
+	//
+	// Note:  'prevDec' could be 'function' if this is the first time we've seen function
+	// as it would have just been put in the symbol table.  Otherwise, we're looking up
+	// an earlier occurance.
+	//
+	if(prevDec->isDefined())
+	{
+		// Then this function already has a body.
+		error(location, "function already has a body", function->getName().c_str());
+		recover();
+	}
+	prevDec->setDefined();
+	//
+	// Overload the unique ID of the definition to be the same unique ID as the declaration.
+	// Eventually we will probably want to have only a single definition and just swap the
+	// arguments to be the definition's arguments.
+	//
+	function->setUniqueId(prevDec->getUniqueId());
+
+	// Raise error message if main function takes any parameters or return anything other than void
+	if(function->getName() == "main")
+	{
+		if(function->getParamCount() > 0)
+		{
+			error(location, "function cannot take any parameter(s)", function->getName().c_str());
+			recover();
+		}
+		if(function->getReturnType().getBasicType() != EbtVoid)
+		{
+			error(location, "", function->getReturnType().getBasicString(), "main function cannot return a value");
+			recover();
+		}
+	}
+
+	//
+	// Remember the return type for later checking for RETURN statements.
+	//
+	mCurrentFunctionType = &(prevDec->getReturnType());
+	mFunctionReturnsValue = false;
+
+	//
+	// Insert parameters into the symbol table.
+	// If the parameter has no name, it's not an error, just don't insert it
+	// (could be used for unused args).
+	//
+	// Also, accumulate the list of parameters into the HIL, so lower level code
+	// knows where to find parameters.
+	//
+	TIntermAggregate *paramNodes = new TIntermAggregate;
+	for(size_t i = 0; i < function->getParamCount(); i++)
+	{
+		const TParameter &param = function->getParam(i);
+		if(param.name != 0)
+		{
+			TVariable *variable = new TVariable(param.name, *param.type);
+			//
+			// Insert the parameters with name in the symbol table.
+			//
+			if(!symbolTable.declare(*variable))
+			{
+				error(location, "redefinition", variable->getName().c_str());
+				recover();
+				paramNodes = intermediate.growAggregate(
+					paramNodes, intermediate.addSymbol(0, "", *param.type, location), location);
+				continue;
+			}
+
+			//
+			// Add the parameter to the HIL
+			//
+			TIntermSymbol *symbol = intermediate.addSymbol(
+				variable->getUniqueId(), variable->getName(), variable->getType(), location);
+
+			paramNodes = intermediate.growAggregate(paramNodes, symbol, location);
+		}
+		else
+		{
+			paramNodes = intermediate.growAggregate(
+				paramNodes, intermediate.addSymbol(0, "", *param.type, location), location);
+		}
+	}
+	intermediate.setAggregateOperator(paramNodes, EOpParameters, location);
+	*aggregateOut = paramNodes;
+	setLoopNestingLevel(0);
+}
+
+TFunction *TParseContext::parseFunctionDeclarator(const TSourceLoc &location, TFunction *function)
+{
+	//
+	// We don't know at this point whether this is a function definition or a prototype.
+	// The definition production code will check for redefinitions.
+	// In the case of ESSL 1.00 the prototype production code will also check for redeclarations.
+	//
+	// Return types and parameter qualifiers must match in all redeclarations, so those are checked
+	// here.
+	//
+	TFunction *prevDec = static_cast<TFunction *>(symbolTable.find(function->getMangledName(), getShaderVersion()));
+	if(prevDec)
+	{
+		if(prevDec->getReturnType() != function->getReturnType())
+		{
+			error(location, "overloaded functions must have the same return type",
+				function->getReturnType().getBasicString());
+			recover();
+		}
+		for(size_t i = 0; i < prevDec->getParamCount(); ++i)
+		{
+			if(prevDec->getParam(i).type->getQualifier() != function->getParam(i).type->getQualifier())
+			{
+				error(location, "overloaded functions must have the same parameter qualifiers",
+					function->getParam(i).type->getQualifierString());
+				recover();
+			}
+		}
+	}
+
+	//
+	// Check for previously declared variables using the same name.
+	//
+	TSymbol *prevSym = symbolTable.find(function->getName(), getShaderVersion());
+	if(prevSym)
+	{
+		if(!prevSym->isFunction())
+		{
+			error(location, "redefinition", function->getName().c_str(), "function");
+			recover();
+		}
+	}
+
+	// We're at the inner scope level of the function's arguments and body statement.
+	// Add the function prototype to the surrounding scope instead.
+	symbolTable.getOuterLevel()->insert(*function);
+
+	//
+	// If this is a redeclaration, it could also be a definition, in which case, we want to use the
+	// variable names from this one, and not the one that's
+	// being redeclared.  So, pass back up this declaration, not the one in the symbol table.
+	//
+	return function;
+}
+
 TFunction *TParseContext::addConstructorFunc(const TPublicType &publicTypeIn)
 {
 	TPublicType publicType = publicTypeIn;

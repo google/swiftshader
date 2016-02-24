@@ -179,10 +179,10 @@ extern void yyerror(YYLTYPE* lloc, TParseContext* context, void* scanner, const 
 
 %type <interm.intermNode> translation_unit function_definition
 %type <interm.intermNode> statement simple_statement
-%type <interm.intermAggregate>  statement_list compound_statement
+%type <interm.intermAggregate>  statement_list compound_statement compound_statement_no_new_scope
 %type <interm.intermNode> declaration_statement selection_statement expression_statement
 %type <interm.intermNode> declaration external_declaration
-%type <interm.intermNode> for_init_statement compound_statement_no_new_scope
+%type <interm.intermNode> for_init_statement
 %type <interm.nodePair> selection_rest_statement for_rest_statement
 %type <interm.intermSwitch> switch_statement
 %type <interm.intermCase> case_label
@@ -587,32 +587,8 @@ enter_struct
     ;
 
 declaration
-    : function_prototype SEMICOLON   {
-        TFunction &function = *($1.function);
-        
-        TIntermAggregate *prototype = new TIntermAggregate;
-        prototype->setType(function.getReturnType());
-        prototype->setName(function.getName());
-        
-        for (size_t i = 0; i < function.getParamCount(); i++)
-        {
-            const TParameter &param = function.getParam(i);
-            if (param.name != 0)
-            {
-                TVariable variable(param.name, *param.type);
-                
-                prototype = context->intermediate.growAggregate(prototype, context->intermediate.addSymbol(variable.getUniqueId(), variable.getName(), variable.getType(), @1), @1);
-            }
-            else
-            {
-                prototype = context->intermediate.growAggregate(prototype, context->intermediate.addSymbol(0, "", *param.type, @1), @1);
-            }
-        }
-        
-        prototype->setOp(EOpPrototype);
-        $$ = prototype;
-
-        context->symbolTable.pop();
+    : function_prototype SEMICOLON {
+        $$ = context->addFunctionPrototypeDeclaration(*($1.function), @1);
     }
     | init_declarator_list SEMICOLON {
         TIntermAggregate *aggNode = $1.intermAggregate;
@@ -647,38 +623,7 @@ declaration
 
 function_prototype
     : function_declarator RIGHT_PAREN  {
-        //
-        // Multiple declarations of the same function are allowed.
-        //
-        // If this is a definition, the definition production code will check for redefinitions
-        // (we don't know at this point if it's a definition or not).
-        //
-        // Redeclarations are allowed.  But, return types and parameter qualifiers must match.
-        //
-        TFunction* prevDec = static_cast<TFunction*>(context->symbolTable.find($1->getMangledName(), context->getShaderVersion()));
-        if (prevDec) {
-            if (prevDec->getReturnType() != $1->getReturnType()) {
-                context->error(@2, "overloaded functions must have the same return type", $1->getReturnType().getBasicString());
-                context->recover();
-            }
-            for (size_t i = 0; i < prevDec->getParamCount(); ++i) {
-                if (prevDec->getParam(i).type->getQualifier() != $1->getParam(i).type->getQualifier()) {
-                    context->error(@2, "overloaded functions must have the same parameter qualifiers", $1->getParam(i).type->getQualifierString());
-                    context->recover();
-                }
-            }
-        }
-
-        //
-        // If this is a redeclaration, it could also be a definition,
-        // in which case, we want to use the variable names from this one, and not the one that's
-        // being redeclared.  So, pass back up this declaration, not the one in the symbol table.
-        //
-        $$.function = $1;
-
-        // We're at the inner scope level of the function's arguments and body statement.
-        // Add the function prototype to the surrounding scope instead.
-        context->symbolTable.getOuterLevel()->insert(*$$.function);
+        $$.function = context->parseFunctionDeclarator(@2, $1);
     }
     ;
 
@@ -727,8 +672,13 @@ function_header
             context->error(@2, "no qualifiers allowed for function return", getQualifierString($1.qualifier));
             context->recover();
         }
+        if (!$1.layoutQualifier.isEmpty())
+        {
+            context->error(@2, "no qualifiers allowed for function return", "layout");
+            context->recover();
+        }
         // make sure a sampler is not involved as well...
-        if (context->structQualifierErrorCheck(@2, $1))
+        if (context->samplerErrorCheck(@2, $1, "samplers can't be function return values"))
             context->recover();
 
         // Add the function as a prototype after parsing it (we do not support recursion)
@@ -950,7 +900,12 @@ type_qualifier
         else
             $$.setBasic(EbtVoid, EvqInvariantVaryingIn, @1);
     }
-	| storage_qualifier {
+    | storage_qualifier {
+        if ($1.qualifier != EvqConstExpr && !context->symbolTable.atGlobalLevel())
+        {
+            context->error(@1, "Local variables can only use the const storage qualifier.", getQualifierString($1.qualifier));
+            context->recover();
+        }
         $$.setBasic(EbtVoid, $1.qualifier, @1);
     }
 	| interpolation_qualifier storage_qualifier {
@@ -1013,7 +968,7 @@ storage_qualifier
         }
         $$.qualifier = (context->getShaderType() == GL_FRAGMENT_SHADER) ? EvqFragmentOut : EvqCentroidOut;
     }
-	| UNIFORM {
+    | UNIFORM {
         if (context->globalErrorCheck(@1, context->symbolTable.atGlobalLevel(), "uniform"))
             context->recover();
         $$.qualifier = EvqUniform;
@@ -1034,6 +989,11 @@ type_specifier
     | precision_qualifier type_specifier_no_prec {
         $$ = $2;
         $$.precision = $1;
+
+        if (!SupportsPrecision($2.type)) {
+            context->error(@1, "illegal type for precision qualifier", getBasicString($2.type));
+            context->recover();
+        }
     }
     ;
 
@@ -1421,7 +1381,7 @@ statement
     | simple_statement    { $$ = $1; }
     ;
 
-// Grammar Note:  No labeled statements; 'goto' is not supported.
+// Grammar Note:  Labeled statements for SWITCH only; 'goto' is not supported.
 
 simple_statement
     : declaration_statement { $$ = $1; }
@@ -1517,8 +1477,6 @@ case_label
     }
     ;
 
-// Grammar Note:  Labeled statements for SWITCH only; 'goto' is not supported.
-
 condition
     // In 1996 c++ draft, conditions can include single declarations
     : expression {
@@ -1527,9 +1485,7 @@ condition
             context->recover();
     }
     | fully_specified_type IDENTIFIER EQUAL initializer {
-        TIntermNode* intermNode;
-        if (context->structQualifierErrorCheck(@2, $1))
-            context->recover();
+        TIntermNode *intermNode;
         if (context->boolErrorCheck(@2, $1))
             context->recover();
 
@@ -1634,112 +1590,10 @@ external_declaration
 
 function_definition
     : function_prototype {
-        TFunction* function = $1.function;
-        
-        const TSymbol *builtIn = context->symbolTable.findBuiltIn(function->getMangledName(), context->getShaderVersion());
-        
-        if (builtIn)
-        {
-            context->error(@1, "built-in functions cannot be redefined", function->getName().c_str());
-            context->recover();
-        }
-        
-        TFunction* prevDec = static_cast<TFunction*>(context->symbolTable.find(function->getMangledName(), context->getShaderVersion()));
-        //
-        // Note:  'prevDec' could be 'function' if this is the first time we've seen function
-        // as it would have just been put in the symbol table.  Otherwise, we're looking up
-        // an earlier occurance.
-        //
-        if (prevDec->isDefined()) {
-            //
-            // Then this function already has a body.
-            //
-            context->error(@1, "function already has a body", function->getName().c_str());
-            context->recover();
-        }
-        prevDec->setDefined();
-
-        //
-        // Raise error message if main function takes any parameters or return anything other than void
-        //
-        if (function->getName() == "main") {
-            if (function->getParamCount() > 0) {
-                context->error(@1, "function cannot take any parameter(s)", function->getName().c_str());
-                context->recover();
-            }
-            if (function->getReturnType().getBasicType() != EbtVoid) {
-                context->error(@1, "", function->getReturnType().getBasicString(), "main function cannot return a value");
-                context->recover();
-            }
-        }
-
-        //
-        // Remember the return type for later checking for RETURN statements.
-        //
-        context->setCurrentFunctionType(&(prevDec->getReturnType()));
-        context->setFunctionReturnsValue(false);
-
-        //
-        // Insert parameters into the symbol table.
-        // If the parameter has no name, it's not an error, just don't insert it
-        // (could be used for unused args).
-        //
-        // Also, accumulate the list of parameters into the HIL, so lower level code
-        // knows where to find parameters.
-        //
-        TIntermAggregate* paramNodes = new TIntermAggregate;
-        for (size_t i = 0; i < function->getParamCount(); i++) {
-            const TParameter& param = function->getParam(i);
-            if (param.name != 0) {
-                TVariable *variable = new TVariable(param.name, *param.type);
-                //
-                // Insert the parameters with name in the symbol table.
-                //
-                if (! context->symbolTable.declare(*variable)) {
-                    context->error(@1, "redefinition", variable->getName().c_str());
-                    context->recover();
-                    delete variable;
-                }
-
-                //
-                // Add the parameter to the HIL
-                //
-                paramNodes = context->intermediate.growAggregate(
-                                               paramNodes,
-                                               context->intermediate.addSymbol(variable->getUniqueId(),
-                                                                       variable->getName(),
-                                                                       variable->getType(), @1),
-                                               @1);
-            } else {
-                paramNodes = context->intermediate.growAggregate(paramNodes, context->intermediate.addSymbol(0, "", *param.type, @1), @1);
-            }
-        }
-        context->intermediate.setAggregateOperator(paramNodes, EOpParameters, @1);
-        $1.intermAggregate = paramNodes;
-        context->setLoopNestingLevel(0);
+        context->parseFunctionPrototype(@1, $1.function, &$1.intermAggregate);
     }
-    compound_statement {
-        //?? Check that all paths return a value if return type != void ?
-        //   May be best done as post process phase on intermediate code
-        if (context->getCurrentFunctionType()->getBasicType() != EbtVoid && ! context->getFunctionReturnsValue()) {
-            context->error(@1, "function does not return a value:", "", $1.function->getName().c_str());
-            context->recover();
-        }
-        
-        $$ = context->intermediate.growAggregate($1.intermAggregate, $3, @$);
-        context->intermediate.setAggregateOperator($$, EOpFunction, @1);
-        $$->getAsAggregate()->setName($1.function->getMangledName().c_str());
-        $$->getAsAggregate()->setType($1.function->getReturnType());
-
-        // store the pragma information for debug and optimize and other vendor specific
-        // information. This information can be queried from the parse tree
-        $$->getAsAggregate()->setOptimize(context->pragma().optimize);
-        $$->getAsAggregate()->setDebug(context->pragma().debug);
-
-        if ($3 && $3->getAsAggregate())
-            $$->getAsAggregate()->setEndLine($3->getAsAggregate()->getEndLine());
-
-        context->symbolTable.pop();
+    compound_statement_no_new_scope {
+        $$ = context->addFunctionDefinition(*($1.function), $1.intermAggregate, $3, @1);
     }
     ;
 

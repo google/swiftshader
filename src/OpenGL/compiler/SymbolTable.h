@@ -134,14 +134,16 @@ public:
         TSymbol(0),
         returnType(TType(EbtVoid, EbpUndefined)),
         op(o),
-        defined(false) { }
-    TFunction(const TString *name, TType& retType, TOperator tOp = EOpNull, const char *ext = "") :
+        defined(false),
+		prototypeDeclaration(false) { }
+    TFunction(const TString *name, const TType& retType, TOperator tOp = EOpNull, const char *ext = "") :
         TSymbol(name),
         returnType(retType),
         mangledName(TFunction::mangleName(*name)),
         op(tOp),
         extension(ext),
-        defined(false) { }
+		defined(false),
+		prototypeDeclaration(false) { }
     virtual ~TFunction();
     virtual bool isFunction() const { return true; }
 
@@ -165,6 +167,8 @@ public:
 
     void setDefined() { defined = true; }
     bool isDefined() { return defined; }
+	void setHasPrototypeDeclaration() { prototypeDeclaration = true; }
+	bool hasPrototypeDeclaration() const { return prototypeDeclaration; }
 
     size_t getParamCount() const { return parameters.size(); }
     const TParameter& getParam(int i) const { return parameters[i]; }
@@ -177,6 +181,7 @@ protected:
     TOperator op;
     TString extension;
     bool defined;
+	bool prototypeDeclaration;
 };
 
 
