@@ -514,6 +514,17 @@ private:
   Variable *DestHi = nullptr;
 };
 
+// Declare partial template specializations of emit() methods that already have
+// default implementations. Without this, there is the possibility of ODR
+// violations and link errors.
+
+template <> void InstMIPS32Mflo::emit(const Cfg *Func) const;
+template <> void InstMIPS32Mfhi::emit(const Cfg *Func) const;
+template <> void InstMIPS32Mtlo::emit(const Cfg *Func) const;
+template <> void InstMIPS32Mthi::emit(const Cfg *Func) const;
+template <> void InstMIPS32Mult::emit(const Cfg *Func) const;
+template <> void InstMIPS32Multu::emit(const Cfg *Func) const;
+
 } // end of namespace MIPS32
 } // end of namespace Ice
 
