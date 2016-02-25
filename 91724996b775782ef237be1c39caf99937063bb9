@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "02e4ed24_a722ea98",
+        "filename": "src/OpenGL/libGLESv2/ResourceManager.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-02-25T14:50:41Z",
+      "side": 1,
+      "message": "To avoid the cost of accessing the map multiple times, it would be best to create it as a local variable first, increase its refcount, and then assign to the map.",
+      "range": {
+        "startLine": 156,
+        "startChar": 1,
+        "endLine": 157,
+        "endChar": 33
+      },
+      "revId": "91724996b775782ef237be1c39caf99937063bb9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
