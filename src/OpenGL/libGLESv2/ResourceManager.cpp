@@ -153,7 +153,9 @@ GLuint ResourceManager::createFenceSync(GLenum condition, GLbitfield flags)
 {
 	GLuint handle = mFenceSyncHandleAllocator.allocate();
 
-	mFenceSyncMap[handle] = new FenceSync(handle, condition, flags);
+	FenceSync* fenceSync = new FenceSync(handle, condition, flags);
+	mFenceSyncMap[handle] = fenceSync;
+	fenceSync->addRef();
 
 	return handle;
 }
