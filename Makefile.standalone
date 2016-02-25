@@ -92,7 +92,9 @@ else
     -DALLOW_LLVM_IR_AS_INPUT=1 -DALLOW_MINIMAL_BUILD=0
 endif
 
-SB_CXX_DEFINES := $(BASE_CXX_DEFINES) -DPNACL_BROWSER_TRANSLATOR=1
+# TODO(stichnot): Also work up a -DPNACL_BROWSER_TRANSLATOR=1 version of a
+# sandboxed translator.
+SB_CXX_DEFINES := $(BASE_CXX_DEFINES) -DPNACL_BROWSER_TRANSLATOR=0
 CXX_DEFINES := $(BASE_CXX_DEFINES) -DPNACL_BROWSER_TRANSLATOR=0
 
 ifdef NOASSERT
@@ -196,13 +198,14 @@ endif
 LLVM_LDFLAGS := $(LLVM_LIBS) \
                 `$(PNACL_BIN_PATH)/llvm-config --ldflags` \
                 `$(PNACL_BIN_PATH)/llvm-config --system-libs`
-SB_LLVM_LDFLAGS := $(LLVM_LIBS_LIST) \
+SB_LLVM_LDFLAGS := -Wl,--start-group $(LLVM_LIBS_LIST) -Wl,--end-group \
                    -L$(SB_LLVM_PATH)/lib
 
 CCACHE := `command -v ccache`
 CXX := CCACHE_CPP2=yes $(CCACHE) $(CLANG_PATH)/clang++
 SB_CXX := CCACHE_CPP2=yes $(CCACHE) $(PNACL_BIN_PATH)/pnacl-clang++
 SB_TRANSLATE := $(PNACL_BIN_PATH)/pnacl-translate
+SB_FINALIZE := $(PNACL_BIN_PATH)/pnacl-finalize --no-strip-syms
 
 # Extra warnings that LLVM's build system adds in addition to -Wall.
 LLVM_EXTRA_WARNINGS := -Wcovered-switch-default
@@ -232,7 +235,8 @@ BASE_CXXFLAGS := -std=gnu++11 -Wall -Wextra -Werror -fno-rtti \
 
 CXXFLAGS := $(LLVM_CXXFLAGS) $(BASE_CXXFLAGS) $(CXX_DEFINES) $(HOST_FLAGS) \
   $(STDLIB_FLAGS)
-SB_CXXFLAGS := $(SB_LLVM_CXXFLAGS) $(BASE_CXXFLAGS) $(SB_CXX_DEFINES)
+SB_CXXFLAGS := $(SB_LLVM_CXXFLAGS) $(BASE_CXXFLAGS) $(SB_CXX_DEFINES) \
+               -Wno-unknown-pragmas -I$(NACL_ROOT)
 
 LDFLAGS := $(HOST_FLAGS) -L$(LIBCXX_INSTALL_PATH)/lib -Wl,--gc-sections \
   $(LD_EXTRA) $(STDLIB_FLAGS)
@@ -328,7 +332,9 @@ ifdef TSAN
 sb:
 	@echo "Skipping pnacl-sz.*.nexe: TSAN isn't supported under NaCl."
 else
-sb: $(SB_OBJDIR)/pnacl-sz.x86-32.nexe
+sb: $(SB_OBJDIR)/pnacl-sz.x8632.nexe \
+    $(SB_OBJDIR)/pnacl-sz.x8664.nexe \
+    sb_make_symlink
 endif
 
 # SHOW_BUILD_ATTS is an executable that is run to show what build
@@ -344,6 +350,12 @@ make_symlink: $(OBJDIR)/pnacl-sz
 	@echo "Build Attributes:"
 	@$(SHOW_BUILD_ATTS)
 
+sb_make_symlink: $(SB_OBJDIR)/pnacl-sz.x8632.nexe \
+                 $(SB_OBJDIR)/pnacl-sz.x8664.nexe
+	rm -rf pnacl-sz.x8632.nexe pnacl-sz.x8664.nexe
+	ln -s $(SB_OBJDIR)/pnacl-sz.x8632.nexe
+	ln -s $(SB_OBJDIR)/pnacl-sz.x8664.nexe
+
 .PHONY: all compile_only make_symlink runtime bloat sb docs help \
   help-check-lit help-check-xtest
 
@@ -353,12 +365,17 @@ $(OBJDIR)/pnacl-sz: $(OBJS)
 	$(CXX) $(LDFLAGS) -o $@ $^ $(LLVM_LDFLAGS) \
           -Wl,-rpath=$(abspath $(LIBCXX_INSTALL_PATH)/lib)
 
-$(SB_OBJDIR)/pnacl-sz.x86-32.nexe: $(SB_OBJS)
-	$(eval PNACL_SZ_BASE := $(patsubst %.nexe, %, $@))
-	$(SB_CXX) $(SB_LDFLAGS) -o $(PNACL_SZ_BASE).nonfinal.pexe $^ \
-          $(SB_LLVM_LDFLAGS)
-	$(SB_TRANSLATE) -arch x86-32 $(PNACL_SZ_BASE).nonfinal.pexe -o $@ \
-          --allow-llvm-bitcode-input
+$(SB_OBJDIR)/pnacl-sz.nonfinal.pexe: $(SB_OBJS)
+	$(SB_CXX) $(SB_LDFLAGS) -o $@ $^ $(SB_LLVM_LDFLAGS)
+
+$(SB_OBJDIR)/pnacl-sz.pexe: $(SB_OBJDIR)/pnacl-sz.nonfinal.pexe
+	$(SB_FINALIZE) $^ -o $@
+
+$(SB_OBJDIR)/pnacl-sz.x8632.nexe: $(SB_OBJDIR)/pnacl-sz.pexe
+	$(SB_TRANSLATE) -arch x86-32 $^ -o $@
+
+$(SB_OBJDIR)/pnacl-sz.x8664.nexe: $(SB_OBJDIR)/pnacl-sz.pexe
+	$(SB_TRANSLATE) -arch x86-64 $^ -o $@
 
 src/IceRegistersARM32.def: pydir/gen_arm32_reg_tables.py
 	python $< > $@
@@ -499,7 +516,7 @@ check-presubmit presubmit:
 	+make -f Makefile.standalone format
 # Verify MINIMAL build, plus proper usage of REQUIRES in lit tests.
 	+make -f Makefile.standalone \
-          MINIMAL=1 check
+          MINIMAL=1 sb check
 # Check that there are no g++ build errors or warnings.
 	+make -f Makefile.standalone \
 	  GPLUSPLUS=1 compile_only
@@ -508,7 +525,7 @@ check-presubmit presubmit:
           DEBUG=1 CHECK_X86_ASM=1 check-unit
 # Run lit tests, cross tests, unit tests, and spec2k/x86-32.
 	+make -f Makefile.standalone \
-          check check-spec
+          check check-spec sb
 # Run spec2k/x86-64.
 	+make -f Makefile.standalone \
           TARGET=x8664 check-spec
@@ -574,7 +591,8 @@ help-check-xtest:
 	@cat Makefile.standalone-help/check-xtest.txt
 
 clean:
-	rm -rf pnacl-sz *.o $(OBJDIR) $(SB_OBJDIR) build/pnacl-sz.bloat.json
+	rm -rf pnacl-sz pnacl-sz.x8632.nexe pnacl-sz.x8664.nexe *.o \
+          $(OBJDIR) $(SB_OBJDIR) build/pnacl-sz.bloat.json
 
 clean-all: clean
 	rm -rf build/  crosstest/Output/
