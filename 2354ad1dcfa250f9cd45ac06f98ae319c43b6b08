@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "02e4ed24_679d22dc",
+        "filename": "src/OpenGL/compiler/glslang_lex.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1281,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-02-25T16:45:22Z",
+      "side": 1,
+      "message": "register is deprecated from C++11. Need to generate this with Flex 2.6. See https://swiftshader-review.googlesource.com/4513",
+      "range": {
+        "startLine": 1281,
+        "startChar": 1,
+        "endLine": 1281,
+        "endChar": 9
+      },
+      "revId": "2354ad1dcfa250f9cd45ac06f98ae319c43b6b08",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
