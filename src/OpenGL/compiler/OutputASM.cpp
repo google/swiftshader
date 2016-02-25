@@ -1676,11 +1676,11 @@ namespace glsl
 		TIntermTyped *condition = node->getCondition();
 		TIntermTyped *expression = node->getExpression();
 		TIntermNode *body = node->getBody();
+		Constant True(true);
 
 		if(node->getType() == ELoopDoWhile)
 		{
 			Temporary iterate(this);
-			Constant True(true);
 			emit(sw::Shader::OPCODE_MOV, &iterate, &True);
 
 			emit(sw::Shader::OPCODE_WHILE, 0, &iterate);   // FIXME: Implement real do-while
@@ -1726,6 +1726,10 @@ namespace glsl
 				if(condition)
 				{
 					condition->traverse(this);
+				}
+				else
+				{
+					condition = &True;
 				}
 
 				emit(sw::Shader::OPCODE_WHILE, 0, condition);
