@@ -87,7 +87,7 @@ namespace sw
 	Float4 exponential(RValue<Float4> x, bool pp = false);
 	Float4 logarithm(RValue<Float4> x, bool abs, bool pp = false);
 	Float4 power(RValue<Float4> x, RValue<Float4> y, bool pp = false);
-	Float4 reciprocal(RValue<Float4> x, bool pp = false, bool finite = false);
+	Float4 reciprocal(RValue<Float4> x, bool pp = false, bool finite = false, bool exactAtPow2 = false);
 	Float4 reciprocalSquareRoot(RValue<Float4> x, bool abs, bool pp = false);
 	Float4 modulo(RValue<Float4> x, RValue<Float4> y);
 	Float4 sine_pi(RValue<Float4> x, bool pp = false);     // limited to [-pi, pi] range

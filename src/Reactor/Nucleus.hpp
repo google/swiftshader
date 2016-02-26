@@ -1899,7 +1899,7 @@ namespace sw
 	RValue<Float> Abs(RValue<Float> x);
 	RValue<Float> Max(RValue<Float> x, RValue<Float> y);
 	RValue<Float> Min(RValue<Float> x, RValue<Float> y);
-	RValue<Float> Rcp_pp(RValue<Float> val);
+	RValue<Float> Rcp_pp(RValue<Float> val, bool exactAtPow2 = false);
 	RValue<Float> RcpSqrt_pp(RValue<Float> val);
 	RValue<Float> Sqrt(RValue<Float> x);
 	RValue<Float> Round(RValue<Float> val);
@@ -2377,7 +2377,7 @@ namespace sw
 	RValue<Float4> Abs(RValue<Float4> x);
 	RValue<Float4> Max(RValue<Float4> x, RValue<Float4> y);
 	RValue<Float4> Min(RValue<Float4> x, RValue<Float4> y);
-	RValue<Float4> Rcp_pp(RValue<Float4> val);
+	RValue<Float4> Rcp_pp(RValue<Float4> val, bool exactAtPow2 = false);
 	RValue<Float4> RcpSqrt_pp(RValue<Float4> val);
 	RValue<Float4> Sqrt(RValue<Float4> x);
 	RValue<Float4> Insert(const Float4 &val, RValue<Float> element, int i);
