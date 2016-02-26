@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "02e4ed24_4836b2e5",
+        "filename": "src/Reactor/Nucleus.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 6079,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-02-26T15:28:58Z",
+      "side": 1,
+      "message": "This is the core of the change. The assembly intrinsics are a bit hard to read, but it simply multiplies by the exact reciprocal of the reciprocal approximation of 1.0, cancelling out the error.",
+      "range": {
+        "startLine": 6079,
+        "startChar": 23,
+        "endLine": 6079,
+        "endChar": 84
+      },
+      "revId": "40aac54aa0842507f7f31ced0d7508beaa47357c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
