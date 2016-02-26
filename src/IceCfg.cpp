@@ -33,11 +33,14 @@ namespace Ice {
 Cfg::Cfg(GlobalContext *Ctx, uint32_t SequenceNumber)
     : Ctx(Ctx), SequenceNumber(SequenceNumber),
       VMask(Ctx->getFlags().getVerbose()), NextInstNumber(Inst::NumberInitial),
-      Allocator(new ArenaAllocator()), Live(nullptr),
-      Target(TargetLowering::createLowering(Ctx->getFlags().getTargetArch(),
-                                            this)),
-      VMetadata(new VariablesMetadata(this)),
-      TargetAssembler(Target->createAssembler()) {
+      Live(nullptr) {
+  Allocator.reset(new ArenaAllocator());
+  CfgLocalAllocatorScope _(this);
+  Target =
+      TargetLowering::createLowering(Ctx->getFlags().getTargetArch(), this);
+  VMetadata.reset(new VariablesMetadata(this));
+  TargetAssembler = Target->createAssembler();
+
   if (Ctx->getFlags().getRandomizeAndPoolImmediatesOption() == RPI_Randomize) {
     // If -randomize-pool-immediates=randomize, create a random number
     // generator to generate a cookie for constant blinding.

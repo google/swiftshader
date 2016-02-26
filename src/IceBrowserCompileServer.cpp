@@ -14,9 +14,9 @@
 
 // Can only compile this with the NaCl compiler (needs irt.h, and the
 // unsandboxed LLVM build using the trusted compiler does not have irt.h).
-#if PNACL_BROWSER_TRANSLATOR
-
 #include "IceBrowserCompileServer.h"
+
+#if PNACL_BROWSER_TRANSLATOR
 
 // Headers which are not properly part of the SDK are included by their path in
 // the NaCl tree.
@@ -226,6 +226,24 @@ void BrowserCompileServer::startCompileThread(int ObjFD) {
                             // (LLVM's MemoryObject) wants to handle deletion.
                             std::unique_ptr<llvm::DataStreamer>(InputStream));
   });
+}
+
+} // end of namespace Ice
+
+#else // !PNACL_BROWSER_TRANSLATOR
+
+#include "llvm/Support/ErrorHandling.h"
+
+namespace Ice {
+
+BrowserCompileServer::~BrowserCompileServer() {}
+
+void BrowserCompileServer::run() {
+  llvm::report_fatal_error("no browser hookups");
+}
+
+ErrorCode &BrowserCompileServer::getErrorCode() {
+  llvm::report_fatal_error("no browser hookups");
 }
 
 } // end of namespace Ice
