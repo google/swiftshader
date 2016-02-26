@@ -16,6 +16,8 @@
 
 #include "IceDefs.h"
 
+#include <climits>
+
 namespace Ice {
 
 namespace {

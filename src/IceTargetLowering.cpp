@@ -18,6 +18,7 @@
 
 #include "IceTargetLowering.h"
 
+#include "IceBitVector.h"
 #include "IceCfg.h" // setError()
 #include "IceCfgNode.h"
 #include "IceGlobalContext.h"
@@ -543,7 +544,7 @@ void TargetLowering::getVarStackSlotParams(
     uint32_t *SpillAreaAlignmentBytes, uint32_t *LocalsSlotsAlignmentBytes,
     std::function<bool(Variable *)> TargetVarHook) {
   const VariablesMetadata *VMetadata = Func->getVMetadata();
-  llvm::BitVector IsVarReferenced(Func->getNumVariables());
+  BitVector IsVarReferenced(Func->getNumVariables());
   for (CfgNode *Node : Func->getNodes()) {
     for (Inst &Instr : Node->getInsts()) {
       if (Instr.isDeleted())

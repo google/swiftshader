@@ -15,6 +15,7 @@
 #include "IceCfg.h"
 
 #include "IceAssembler.h"
+#include "IceBitVector.h"
 #include "IceCfgNode.h"
 #include "IceClFlags.h"
 #include "IceDefs.h"
@@ -237,8 +238,8 @@ void Cfg::computeInOutEdges() {
 
   // Prune any unreachable nodes before computing in-edges.
   SizeT NumNodes = getNumNodes();
-  llvm::BitVector Reachable(NumNodes);
-  llvm::BitVector Pending(NumNodes);
+  BitVector Reachable(NumNodes);
+  BitVector Pending(NumNodes);
   Pending.set(getEntryNode()->getIndex());
   while (true) {
     int Index = Pending.find_first();
@@ -427,7 +428,7 @@ void Cfg::reorderNodes() {
 }
 
 namespace {
-void getRandomPostOrder(CfgNode *Node, llvm::BitVector &ToVisit,
+void getRandomPostOrder(CfgNode *Node, BitVector &ToVisit,
                         Ice::NodeList &PostOrder,
                         Ice::RandomNumberGenerator *RNG) {
   assert(ToVisit[Node->getIndex()]);
@@ -449,7 +450,7 @@ void Cfg::shuffleNodes() {
 
   NodeList ReversedReachable;
   NodeList Unreachable;
-  llvm::BitVector ToVisit(Nodes.size(), true);
+  BitVector ToVisit(Nodes.size(), true);
   // Create Random number generator for function reordering
   RandomNumberGenerator RNG(Ctx->getFlags().getRandomSeed(),
                             RPE_BasicBlockReordering, SequenceNumber);
@@ -813,7 +814,7 @@ void Cfg::liveness(LivenessMode Mode) {
   getVMetadata()->init(VMK_Uses);
   Live->init();
   // Initialize with all nodes needing to be processed.
-  llvm::BitVector NeedToProcess(Nodes.size(), true);
+  BitVector NeedToProcess(Nodes.size(), true);
   while (NeedToProcess.any()) {
     // Iterate in reverse topological order to speed up convergence.
     for (CfgNode *Node : reverse_range(Nodes)) {

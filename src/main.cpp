@@ -17,6 +17,10 @@
 #include "IceBuildDefs.h"
 #include "IceCompileServer.h"
 
+#ifdef __pnacl__
+#include <malloc.h>
+#endif // __pnacl__
+
 /// Depending on whether we are building the compiler for the browser or
 /// standalone, we will end up creating a Ice::BrowserCompileServer or
 /// Ice::CLCompileServer object. Method
@@ -26,6 +30,15 @@
 /// We can only compile the Ice::BrowserCompileServer object with the PNaCl
 /// compiler toolchain, when building Subzero as a sandboxed translator.
 int main(int argc, char **argv) {
+#ifdef __pnacl__
+#define M_GRANULARITY (-2)
+  // PNaCl's default malloc implementation grabs small chunks of memory with
+  // mmap at a time, hence causing significant slowdowns. This call ensures that
+  // mmap is used to allocate 16MB at a time, to amortize the system call cost.
+  mallopt(M_GRANULARITY, 16 * 1024 * 1024);
+#undef M_GRANULARITY
+#endif // __pnacl__
+
   if (Ice::BuildDefs::browser()) {
     assert(argc == 1);
     return Ice::BrowserCompileServer().runAndReturnErrorCode();

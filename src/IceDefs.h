@@ -21,7 +21,6 @@
 #include "IceTLS.h"
 
 #include "llvm/ADT/ArrayRef.h"
-#include "llvm/ADT/BitVector.h"
 #include "llvm/ADT/ilist.h"
 #include "llvm/ADT/ilist_node.h"
 #include "llvm/ADT/iterator_range.h"
@@ -50,6 +49,7 @@
 namespace Ice {
 
 class Assembler;
+class BitVector;
 class Cfg;
 class CfgNode;
 class Constant;
@@ -155,7 +155,7 @@ using InstNumberT = int32_t;
 /// range.
 using LiveBeginEndMapEntry = std::pair<SizeT, InstNumberT>;
 using LiveBeginEndMap = CfgVector<LiveBeginEndMapEntry>;
-using LivenessBV = llvm::BitVector;
+using LivenessBV = BitVector;
 
 using TimerStackIdT = uint32_t;
 using TimerIdT = uint32_t;

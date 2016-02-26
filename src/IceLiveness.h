@@ -21,8 +21,9 @@
 #ifndef SUBZERO_SRC_ICELIVENESS_H
 #define SUBZERO_SRC_ICELIVENESS_H
 
-#include "IceCfgNode.h"
 #include "IceDefs.h"
+#include "IceBitVector.h"
+#include "IceCfgNode.h"
 #include "IceTypes.h"
 
 namespace Ice {
@@ -117,7 +118,7 @@ private:
   CfgVector<Variable *> LiveToVarMap;
   /// RangeMask[Variable::Number] indicates whether we want to track that
   /// Variable's live range.
-  llvm::BitVector RangeMask;
+  LivenessBV RangeMask;
 };
 
 } // end of namespace Ice
