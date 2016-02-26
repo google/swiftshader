@@ -140,7 +140,7 @@ namespace sw
 			if(interpolateW())
 			{
 				w = interpolate(xxxx, Dw, rhw, primitive + OFFSET(Primitive,w), false, false);
-				rhw = reciprocal(w);
+				rhw = reciprocal(w, false, false, true);
 
 				if(state.centroid)
 				{
@@ -518,7 +518,7 @@ namespace sw
 			zMask = SignMask(zTest) & cMask;
 			break;
 		}
-		
+
 		if(state.stencilActive)
 		{
 			zMask &= sMask;
@@ -687,12 +687,12 @@ namespace sw
 		Int pitch;
 
 		if(!state.quadLayoutDepthBuffer)
-		{	
+		{
 			buffer = zBuffer + 4 * x;
 			pitch = *Pointer<Int>(data + OFFSET(DrawData,depthPitchB));
 		}
 		else
-		{	
+		{
 			buffer = zBuffer + 8 * x;
 		}
 
@@ -761,7 +761,7 @@ namespace sw
 		}
 
 		Byte8 bufferValue = As<Byte8>(Long1(*Pointer<UInt>(buffer)));
-	
+
 		Byte8 newValue;
 		stencilOperation(newValue, bufferValue, state.stencilPassOperation, state.stencilZFailOperation, state.stencilFailOperation, false, zMask, sMask);
 
@@ -945,7 +945,7 @@ namespace sw
 			ASSERT(false);
 		}
 	}
-	
+
 	void PixelRoutine::blendFactorAlpha(const Vector4s &blendFactor, const Vector4s &current, const Vector4s &pixel, BlendFactor blendFactorAlphaActive)
 	{
 		switch(blendFactorAlphaActive)
@@ -1170,7 +1170,7 @@ namespace sw
 			current.y = MulHigh(As<UShort4>(current.y), As<UShort4>(sourceFactor.y));
 			current.z = MulHigh(As<UShort4>(current.z), As<UShort4>(sourceFactor.z));
 		}
-	
+
 		if(state.destBlendFactor != BLEND_ONE && state.destBlendFactor != BLEND_ZERO)
 		{
 			pixel.x = MulHigh(As<UShort4>(pixel.x), As<UShort4>(destFactor.x));
@@ -1229,7 +1229,7 @@ namespace sw
 		{
 			current.w = MulHigh(As<UShort4>(current.w), As<UShort4>(sourceFactor.w));
 		}
-	
+
 		if(state.destBlendFactorAlpha != BLEND_ONE && state.destBlendFactorAlpha != BLEND_ZERO)
 		{
 			pixel.w = MulHigh(As<UShort4>(pixel.w), As<UShort4>(destFactor.w));
@@ -1828,7 +1828,7 @@ namespace sw
 		}
 	}
 
-	void PixelRoutine::blendFactor(const Vector4f &blendFactor, const Vector4f &oC, const Vector4f &pixel, BlendFactor blendFactorActive) 
+	void PixelRoutine::blendFactor(const Vector4f &blendFactor, const Vector4f &oC, const Vector4f &pixel, BlendFactor blendFactorActive)
 	{
 		switch(blendFactorActive)
 		{
@@ -1899,7 +1899,7 @@ namespace sw
 		}
 	}
 
-	void PixelRoutine::blendFactorAlpha(const Vector4f &blendFactor, const Vector4f &oC, const Vector4f &pixel, BlendFactor blendFactorAlphaActive) 
+	void PixelRoutine::blendFactorAlpha(const Vector4f &blendFactor, const Vector4f &oC, const Vector4f &pixel, BlendFactor blendFactorAlphaActive)
 	{
 		switch(blendFactorAlphaActive)
 		{
@@ -2041,7 +2041,7 @@ namespace sw
 			oC.y *= sourceFactor.y;
 			oC.z *= sourceFactor.z;
 		}
-	
+
 		if(state.destBlendFactor != BLEND_ONE && state.destBlendFactor != BLEND_ZERO)
 		{
 			pixel.x *= destFactor.x;
@@ -2100,7 +2100,7 @@ namespace sw
 		{
 			oC.w *= sourceFactor.w;
 		}
-	
+
 		if(state.destBlendFactorAlpha != BLEND_ONE && state.destBlendFactorAlpha != BLEND_ZERO)
 		{
 			pixel.w *= destFactor.w;
@@ -2118,10 +2118,10 @@ namespace sw
 			pixel.w -= oC.w;
 			oC.w = pixel.w;
 			break;
-		case BLENDOP_MIN:	
+		case BLENDOP_MIN:
 			oC.w = Min(oC.w, pixel.w);
 			break;
-		case BLENDOP_MAX:	
+		case BLENDOP_MAX:
 			oC.w = Max(oC.w, pixel.w);
 			break;
 		case BLENDOP_SOURCE:
@@ -2272,7 +2272,7 @@ namespace sw
 					masked = As<Float4>(As<Int4>(masked) & *Pointer<Int4>(constants + OFFSET(Constants,invMaskD4X[rgbaWriteMask][0])));
 					oC.x = As<Float4>(As<Int4>(oC.x) | As<Int4>(masked));
 				}
-				
+
 				oC.x = As<Float4>(As<Int4>(oC.x) & *Pointer<Int4>(constants + OFFSET(Constants,maskX0X) + xMask * 16, 16));
 				value = As<Float4>(As<Int4>(value) & *Pointer<Int4>(constants + OFFSET(Constants,invMaskX0X) + xMask * 16, 16));
 				oC.x = As<Float4>(As<Int4>(oC.x) | As<Int4>(value));
@@ -2283,7 +2283,7 @@ namespace sw
 				value = *Pointer<Float4>(buffer + 16, 16);
 
 				if(rgbaWriteMask != 0x0000000F)
-				{	
+				{
 					Float4 masked = value;
 					oC.y = As<Float4>(As<Int4>(oC.y) & *Pointer<Int4>(constants + OFFSET(Constants,maskD4X[rgbaWriteMask][0])));
 					masked = As<Float4>(As<Int4>(masked) & *Pointer<Int4>(constants + OFFSET(Constants,invMaskD4X[rgbaWriteMask][0])));
