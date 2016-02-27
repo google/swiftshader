@@ -203,8 +203,10 @@ void Cfg::translate() {
       FunctionTimer.reset(new TimerMarker(
           getContext()->getTimerID(GlobalContext::TSK_Funcs, Name),
           getContext(), GlobalContext::TSK_Funcs));
-    if (isVerbose(IceV_Status))
-      getContext()->getStrDump() << ">>>Translating " << Name << "\n";
+    if (isVerbose(IceV_Status)) {
+      getContext()->getStrDump() << ">>>Translating "
+                                 << getFunctionNameAndSize() << "\n";
+    }
   }
   TimerMarker T(TimerStack::TT_translate, this);
 
@@ -1084,6 +1086,12 @@ void Cfg::dump(const IceString &Message) {
   Ostream &Str = Ctx->getStrDump();
   if (!Message.empty())
     Str << "================ " << Message << " ================\n";
+  if (isVerbose(IceV_Mem)) {
+    constexpr size_t OneMB = 1024 * 1024;
+    Str << "Memory size = "
+        << (CfgLocalAllocator<int>().current()->getTotalMemory() / OneMB)
+        << " MB\n";
+  }
   setCurrentNode(getEntryNode());
   // Print function name+args
   if (isVerbose(IceV_Instructions)) {

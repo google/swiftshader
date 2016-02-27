@@ -213,6 +213,7 @@ enum VerboseItem {
   IceV_Loop = 1 << 13,
   IceV_Status = 1 << 14,
   IceV_AvailableRegs = 1 << 15,
+  IceV_Mem = 1 << 16,
   IceV_All = ~IceV_None,
   IceV_Most = IceV_All & ~IceV_LinearScan
 };

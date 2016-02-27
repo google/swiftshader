@@ -335,6 +335,7 @@ cl::list<Ice::VerboseItem> VerboseList(
                    "Print the name of the function being translated"),
         clEnumValN(Ice::IceV_AvailableRegs, "registers",
                    "Show available registers for register allocation"),
+        clEnumValN(Ice::IceV_Mem, "mem", "Memory usage details"),
         clEnumValN(Ice::IceV_All, "all", "Use all verbose options"),
         clEnumValN(Ice::IceV_Most, "most",
                    "Use all verbose options except 'regalloc'"),
