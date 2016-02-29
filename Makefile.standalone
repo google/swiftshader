@@ -92,9 +92,6 @@ else
     -DALLOW_LLVM_IR_AS_INPUT=1 -DALLOW_MINIMAL_BUILD=0
 endif
 
-# TODO(stichnot): Also work up a -DPNACL_BROWSER_TRANSLATOR=1 version of a
-# sandboxed translator.
-SB_CXX_DEFINES := $(BASE_CXX_DEFINES) -DPNACL_BROWSER_TRANSLATOR=0
 CXX_DEFINES := $(BASE_CXX_DEFINES) -DPNACL_BROWSER_TRANSLATOR=0
 
 ifdef NOASSERT
@@ -156,6 +153,7 @@ else
 endif
 
 SB_OBJDIR := $(OBJDIR)+Sandboxed
+SBB_OBJDIR := $(OBJDIR)+SandboxedBrowser
 
 $(info -----------------------------------------------)
 $(info Using LLVM_SRC_PATH = $(LLVM_SRC_PATH))
@@ -235,8 +233,8 @@ BASE_CXXFLAGS := -std=gnu++11 -Wall -Wextra -Werror -fno-rtti \
 
 CXXFLAGS := $(LLVM_CXXFLAGS) $(BASE_CXXFLAGS) $(CXX_DEFINES) $(HOST_FLAGS) \
   $(STDLIB_FLAGS)
-SB_CXXFLAGS := $(SB_LLVM_CXXFLAGS) $(BASE_CXXFLAGS) $(SB_CXX_DEFINES) \
-               -Wno-unknown-pragmas -I$(NACL_ROOT)
+SB_CXXFLAGS := $(SB_LLVM_CXXFLAGS) $(BASE_CXXFLAGS) $(BASE_CXX_DEFINES) \
+               -Wno-unknown-pragmas -I$(NACL_ROOT) -I$(NACL_ROOT)/..
 
 LDFLAGS := $(HOST_FLAGS) -L$(LIBCXX_INSTALL_PATH)/lib -Wl,--gc-sections \
   $(LD_EXTRA) $(STDLIB_FLAGS)
@@ -293,6 +291,7 @@ endif
 
 OBJS=$(patsubst %.cpp, $(OBJDIR)/%.o, $(SRCS))
 SB_OBJS=$(patsubst %.cpp, $(SB_OBJDIR)/%.o, $(SRCS))
+SBB_OBJS=$(patsubst %.cpp, $(SBB_OBJDIR)/%.o, $(SRCS))
 
 UNITTEST_SRCS = \
   BitcodeMunge.cpp \
@@ -325,6 +324,11 @@ endif
 UNITTEST_OBJS = $(patsubst %.cpp, $(OBJDIR)/unittest/%.o, $(UNITTEST_SRCS))
 UNITTEST_LIB_OBJS = $(filter-out $(OBJDIR)/main.o,$(OBJS))
 
+NEXES = $(SB_OBJDIR)/pnacl-sz.x8632.nexe \
+        $(SB_OBJDIR)/pnacl-sz.x8664.nexe \
+        $(SBB_OBJDIR)/pnacl_public_x86_32_pnacl_sz_nexe \
+        $(SBB_OBJDIR)/pnacl_public_x86_64_pnacl_sz_nexe
+
 # Keep all the first target so it's the default.
 all: $(OBJDIR)/pnacl-sz make_symlink runtime
 
@@ -332,9 +336,7 @@ ifdef TSAN
 sb:
 	@echo "Skipping pnacl-sz.*.nexe: TSAN isn't supported under NaCl."
 else
-sb: $(SB_OBJDIR)/pnacl-sz.x8632.nexe \
-    $(SB_OBJDIR)/pnacl-sz.x8664.nexe \
-    sb_make_symlink
+sb: $(NEXES) sb_make_symlink
 endif
 
 # SHOW_BUILD_ATTS is an executable that is run to show what build
@@ -350,11 +352,11 @@ make_symlink: $(OBJDIR)/pnacl-sz
 	@echo "Build Attributes:"
 	@$(SHOW_BUILD_ATTS)
 
-sb_make_symlink: $(SB_OBJDIR)/pnacl-sz.x8632.nexe \
-                 $(SB_OBJDIR)/pnacl-sz.x8664.nexe
-	rm -rf pnacl-sz.x8632.nexe pnacl-sz.x8664.nexe
-	ln -s $(SB_OBJDIR)/pnacl-sz.x8632.nexe
-	ln -s $(SB_OBJDIR)/pnacl-sz.x8664.nexe
+sb_make_symlink: $(NEXES)
+	$(foreach nexe,$(NEXES),rm -rf $(notdir $(nexe)); ln -s $(nexe);)
+
+%.pexe : %.nonfinal.pexe
+	$(SB_FINALIZE) -o $@ $<
 
 .PHONY: all compile_only make_symlink runtime bloat sb docs help \
   help-check-lit help-check-xtest
@@ -368,13 +370,20 @@ $(OBJDIR)/pnacl-sz: $(OBJS)
 $(SB_OBJDIR)/pnacl-sz.nonfinal.pexe: $(SB_OBJS)
 	$(SB_CXX) $(SB_LDFLAGS) -o $@ $^ $(SB_LLVM_LDFLAGS)
 
-$(SB_OBJDIR)/pnacl-sz.pexe: $(SB_OBJDIR)/pnacl-sz.nonfinal.pexe
-	$(SB_FINALIZE) $^ -o $@
+$(SBB_OBJDIR)/pnacl-sz.nonfinal.pexe: $(SBB_OBJS)
+	$(SB_CXX) $(SB_LDFLAGS) -o $@ $^ $(SB_LLVM_LDFLAGS) \
+          --pnacl-disable-abi-check
 
 $(SB_OBJDIR)/pnacl-sz.x8632.nexe: $(SB_OBJDIR)/pnacl-sz.pexe
 	$(SB_TRANSLATE) -arch x86-32 $^ -o $@
 
 $(SB_OBJDIR)/pnacl-sz.x8664.nexe: $(SB_OBJDIR)/pnacl-sz.pexe
+	$(SB_TRANSLATE) -arch x86-64 $^ -o $@
+
+$(SBB_OBJDIR)/pnacl_public_x86_32_pnacl_sz_nexe: $(SBB_OBJDIR)/pnacl-sz.pexe
+	$(SB_TRANSLATE) -arch x86-32 $^ -o $@
+
+$(SBB_OBJDIR)/pnacl_public_x86_64_pnacl_sz_nexe: $(SBB_OBJDIR)/pnacl-sz.pexe
 	$(SB_TRANSLATE) -arch x86-64 $^ -o $@
 
 src/IceRegistersARM32.def: pydir/gen_arm32_reg_tables.py
@@ -385,7 +394,10 @@ $(OBJS): $(OBJDIR)/%.o: src/%.cpp src/*.h src/*.def
 	$(CXX) -c $(CXXFLAGS) $< -o $@
 
 $(SB_OBJS): $(SB_OBJDIR)/%.o: src/%.cpp src/*.h src/*.def
-	$(SB_CXX) -c $(SB_CXXFLAGS) $< -o $@
+	$(SB_CXX) -c $(SB_CXXFLAGS) -DPNACL_BROWSER_TRANSLATOR=0 $< -o $@
+
+$(SBB_OBJS): $(SBB_OBJDIR)/%.o: src/%.cpp src/*.h src/*.def
+	$(SB_CXX) -c $(SB_CXXFLAGS) -DPNACL_BROWSER_TRANSLATOR=1 $< -o $@
 
 $(OBJDIR)/run_unittests: $(UNITTEST_OBJS) $(UNITTEST_LIB_OBJS)
 	$(CXX) $(GTEST_LIB_PATH) $(LDFLAGS) -o $@ $^ $(LLVM_LDFLAGS) \
@@ -404,6 +416,7 @@ $(UNITTEST_OBJS): $(OBJDIR)/unittest/%.o: unittest/%.cpp unittest/*.h \
 
 $(OBJS): | $(OBJDIR)
 $(SB_OBJS): | $(SB_OBJDIR)
+$(SBB_OBJS): | $(SBB_OBJDIR)
 
 $(UNITTEST_OBJS): | $(OBJDIR)/unittest $(OBJDIR)/unittest/AssemblerX8632 \
                     $(OBJDIR)/unittest/AssemblerX8664
@@ -411,6 +424,8 @@ $(UNITTEST_OBJS): | $(OBJDIR)/unittest $(OBJDIR)/unittest/AssemblerX8632 \
 $(OBJDIR):
 	@mkdir -p $@
 $(SB_OBJDIR):
+	@mkdir -p $@
+$(SBB_OBJDIR):
 	@mkdir -p $@
 
 $(OBJDIR)/unittest: $(OBJDIR)
@@ -516,13 +531,13 @@ check-presubmit presubmit:
 	+make -f Makefile.standalone format
 # Verify MINIMAL build, plus proper usage of REQUIRES in lit tests.
 	+make -f Makefile.standalone \
-          MINIMAL=1 sb check
+          MINIMAL=1 check
 # Check that there are no g++ build errors or warnings.
 	+make -f Makefile.standalone \
 	  GPLUSPLUS=1 compile_only
 # Check the x86 assembler unit tests.
 	+make -f Makefile.standalone \
-          DEBUG=1 CHECK_X86_ASM=1 check-unit
+          DEBUG=1 CHECK_X86_ASM=1 check-unit sb
 # Run lit tests, cross tests, unit tests, and spec2k/x86-32.
 	+make -f Makefile.standalone \
           check check-spec sb
@@ -578,6 +593,12 @@ bloat: make_symlink
           bloat/bloat.py --nm-output=/dev/stdin syms > build/pnacl-sz.bloat.json
 	@echo See Subzero size breakdown in bloat/pnacl-sz.bloat.html
 
+bloat-sb: sb_make_symlink
+	$(foreach nexe,$(NEXES),nm -C -S -l $(nexe) | bloat/bloat.py \
+          --nm-output=/dev/stdin syms > build/$(notdir $(nexe)).bloat.json;)
+	@echo "See Subzero size breakdown in:"
+	@$(foreach nexe,$(NEXES),echo "  bloat/$(notdir $(nexe)).bloat.html";)
+
 docs:
 	make -C docs -f Makefile.standalone
 
@@ -591,8 +612,8 @@ help-check-xtest:
 	@cat Makefile.standalone-help/check-xtest.txt
 
 clean:
-	rm -rf pnacl-sz pnacl-sz.x8632.nexe pnacl-sz.x8664.nexe *.o \
-          $(OBJDIR) $(SB_OBJDIR) build/pnacl-sz.bloat.json
+	rm -rf pnacl-sz *.o $(foreach nexe,$(NEXES),$(notdir $(nexe))) \
+          $(OBJDIR) $(SB_OBJDIR) $(SBB_OBJDIR) build/*.bloat.json
 
 clean-all: clean
 	rm -rf build/  crosstest/Output/
