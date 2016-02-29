@@ -5853,7 +5853,12 @@ void TargetX86Base<TraitsType>::lowerCaseCluster(const CaseCluster &Case,
     const Type PointerType = getPointerType();
     if (RangeIndex->getType() != PointerType) {
       Index = makeReg(PointerType);
-      _movzx(Index, RangeIndex);
+      if (RangeIndex->getType() == IceType_i64) {
+        assert(Traits::Is64Bit);
+        _mov(Index, RangeIndex); // trunc
+      } else {
+        _movzx(Index, RangeIndex);
+      }
     } else {
       Index = legalizeToReg(RangeIndex);
     }

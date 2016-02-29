@@ -1,7 +1,10 @@
 ; This tests the advanced lowering of switch statements. The advanced lowering
 ; uses jump tables, range tests and binary search.
 
-; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 | FileCheck %s
+; RUN: %p2i -i %s --target=x8632 --filetype=obj --disassemble --args -O2 \
+; RUN:   | FileCheck %s --check-prefix=CHECK --check-prefix=X8632
+; RUN: %p2i -i %s --target=x8664 --filetype=obj --disassemble --args -O2 \
+; RUN:   | FileCheck %s --check-prefix=CHECK --check-prefix=X8664
 
 ; Dense but non-continuous ranges should be converted into a jump table.
 define internal i32 @testJumpTable(i32 %a) {
@@ -32,8 +35,13 @@ sw.epilog:
 ; CHECK: sub [[IND:[^,]+]],0x5b
 ; CHECK-NEXT: cmp [[IND]],0x8
 ; CHECK-NEXT: ja
-; CHECK-NEXT: mov [[TARGET:.*]],DWORD PTR {{\[}}[[IND]]*4+0x0] {{[0-9a-f]+}}: R_386_32 .{{.*}}testJumpTable$jumptable
-; CHECK-NEXT: jmp [[TARGET]]
+; X8632-NEXT: mov [[TARGET:.*]],DWORD PTR {{\[}}[[IND]]*4+0x0] {{[0-9a-f]+}}: R_386_32 .{{.*}}testJumpTable$jumptable
+; X8632-NEXT: jmp [[TARGET]]
+; X8664-NEXT: mov {{.}}[[TARGET:.*]],DWORD PTR {{\[}}[[IND]]*4+0x0] {{[0-9a-f]+}}: R_X86_64_32S .{{.*}}testJumpTable$jumptable
+; X8664-NEXT: jmp {{.}}[[TARGET]]
+; Note: x86-32 may do "mov eax, [...]; jmp eax", whereas x86-64 may do
+; "mov eax, [...]; jmp rax", so we assume the all characters except the first
+; one in the register name will match.
 
 ; Continuous ranges which map to the same target should be grouped and
 ; efficiently tested.
@@ -129,18 +137,18 @@ return:
   ret i32 %retval.0
 }
 ; CHECK-LABEL: testSwitchSmall64
-; CHECK: cmp {{.*}},0x0
-; CHECK-NEXT: jne
-; CHECK-NEXT: cmp {{.*}},0x159
-; CHECK-NEXT: jb
-; CHECK-NEXT: je
-; CHECK-NEXT: cmp {{.*}},0x1c8
-; CHECK-NEXT: je
-; CHECK-NEXT: jmp
-; CHECK-NEXT: cmp {{.*}},0x7b
-; CHECK-NEXT: je
-; CHECK-NEXT: cmp {{.*}},0xea
-; CHECK-NEXT: je
+; X8632: cmp {{.*}},0x0
+; X8632-NEXT: jne
+; X8632-NEXT: cmp {{.*}},0x159
+; X8632-NEXT: jb
+; X8632-NEXT: je
+; X8632-NEXT: cmp {{.*}},0x1c8
+; X8632-NEXT: je
+; X8632-NEXT: jmp
+; X8632-NEXT: cmp {{.*}},0x7b
+; X8632-NEXT: je
+; X8632-NEXT: cmp {{.*}},0xea
+; X8632-NEXT: je
 
 ; Test for correct 64-bit lowering.
 ; TODO(ascull): this should generate better code like the 32-bit version
@@ -170,22 +178,22 @@ return:
   ret i32 %retval.0
 }
 ; CHECK-LABEL: testSwitch64
-; CHECK: cmp {{.*}},0x7b
-; CHECK-NEXT: jne
-; CHECK-NEXT: cmp {{.*}},0x0
-; CHECK-NEXT: je
-; CHECK: cmp {{.*}},0xea
-; CHECK-NEXT: jne
-; CHECK-NEXT: cmp {{.*}},0x0
-; CHECK-NEXT: je
-; CHECK: cmp {{.*}},0x159
-; CHECK-NEXT: jne
-; CHECK-NEXT: cmp {{.*}},0x0
-; CHECK-NEXT: je
-; CHECK: cmp {{.*}},0x34567890
-; CHECK-NEXT: jne
-; CHECK-NEXT: cmp {{.*}},0x12
-; CHECK-NEXT: je
+; X8632: cmp {{.*}},0x7b
+; X8632-NEXT: jne
+; X8632-NEXT: cmp {{.*}},0x0
+; X8632-NEXT: je
+; X8632: cmp {{.*}},0xea
+; X8632-NEXT: jne
+; X8632-NEXT: cmp {{.*}},0x0
+; X8632-NEXT: je
+; X8632: cmp {{.*}},0x159
+; X8632-NEXT: jne
+; X8632-NEXT: cmp {{.*}},0x0
+; X8632-NEXT: je
+; X8632: cmp {{.*}},0x34567890
+; X8632-NEXT: jne
+; X8632-NEXT: cmp {{.*}},0x12
+; X8632-NEXT: je
 
 ; Test for correct 64-bit jump table with UINT64_MAX as one of the values.
 define internal i32 @testJumpTable64(i64 %a) {
@@ -216,3 +224,4 @@ return:
 
 ; TODO(ascull): this should generate a jump table. For now, just make sure it
 ; doesn't crash the compiler.
+; CHECK-LABEL: testJumpTable64
