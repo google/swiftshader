@@ -476,12 +476,6 @@ private:
                               const char *DeclType,
                               NaClBcIndexSize_t &NameIndex) {
     if (Decl->hasName()) {
-      if (Decl->isPNaClABIExternalName()) {
-        // Force linkage to be external for the PNaCl ABI. PNaCl bitcode has a
-        // linkage field for Functions, but not for GlobalVariables (because the
-        // latter is not needed for pexes, so it has been removed).
-        Decl->setLinkage(llvm::GlobalValue::ExternalLinkage);
-      }
       Translator.checkIfUnnamedNameSafe(Decl->getName(), DeclType, Prefix);
     } else {
       Decl->setName(Translator.createUnnamedName(Prefix, NameIndex));

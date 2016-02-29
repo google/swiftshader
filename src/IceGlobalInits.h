@@ -102,10 +102,6 @@ public:
     return isInternal() ? "internal" : "external";
   }
 
-  /// Returns true if the name of this GlobalDeclaration indicates that it
-  /// should have ExternalLinkage (as a special case).
-  virtual bool isPNaClABIExternalName() const = 0;
-
 protected:
   GlobalDeclaration(GlobalDeclarationKind Kind,
                     llvm::GlobalValue::LinkageTypes Linkage)
@@ -158,12 +154,9 @@ public:
 
   /// Returns true if linkage is correct for the function declaration.
   bool verifyLinkageCorrect(const GlobalContext *Ctx) const {
-    if (isIntrinsicName(Ctx))
+    if (isPNaClABIExternalName() || isIntrinsicName(Ctx))
       return Linkage == llvm::GlobalValue::ExternalLinkage;
-    else if (Linkage == llvm::GlobalValue::ExternalLinkage)
-      return isPNaClABIExternalName();
-    else
-      return verifyLinkageDefault(Ctx);
+    return verifyLinkageDefault(Ctx);
   }
 
   /// Validates that the type signature of the function is correct. Returns true
@@ -203,9 +196,9 @@ private:
       : GlobalDeclaration(FunctionDeclarationKind, Linkage),
         Signature(Signature), CallingConv(CallingConv), IsProto(IsProto) {}
 
-  bool isPNaClABIExternalName() const override {
-    static constexpr char Start[] = "_start";
-    return getName() == Start;
+  bool isPNaClABIExternalName() const {
+    const char *Name = getName().c_str();
+    return strcmp(Name, "_start") == 0 || strcmp(Name, "__pnacl_pso_root") == 0;
   }
 
   bool isIntrinsicName(const GlobalContext *Ctx) const {
@@ -423,9 +416,6 @@ public:
 
   /// Returns true if linkage is correct for the variable declaration.
   bool verifyLinkageCorrect(const GlobalContext *Ctx) const {
-    if (isPNaClABIExternalName()) {
-      return Linkage == llvm::GlobalValue::ExternalLinkage;
-    }
     return verifyLinkageDefault(Ctx);
   }
 
@@ -442,11 +432,6 @@ public:
   void setSuppressMangling() { ForceSuppressMangling = true; }
 
   void discardInitializers() { Initializers = nullptr; }
-
-  bool isPNaClABIExternalName() const override {
-    static constexpr char PnaclPsoRoot[] = "__pnacl_pso_root";
-    return getName() == PnaclPsoRoot;
-  }
 
 private:
   /// List of initializers for the declared variable.
