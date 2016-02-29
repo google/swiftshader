@@ -32,7 +32,9 @@ namespace sw
 	{
 		sw::Surface color(1, 1, 1, format, pixel, sw::Surface::bytes(format), sw::Surface::bytes(format));
 		Blitter::Options clearOptions = static_cast<sw::Blitter::Options>((rgbaMask & 0xF) | CLEAR_OPERATION);
-		blit(&color, dRect, dest, dRect, clearOptions);
+		SliceRect sRect(dRect);
+		sRect.slice = 0;
+		blit(&color, sRect, dest, dRect, clearOptions);
 	}
 
 	void Blitter::blit(Surface *source, const SliceRect &sRect, Surface *dest, const SliceRect &dRect, bool filter)
