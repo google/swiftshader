@@ -336,9 +336,10 @@ cl::list<Ice::VerboseItem> VerboseList(
         clEnumValN(Ice::IceV_AvailableRegs, "registers",
                    "Show available registers for register allocation"),
         clEnumValN(Ice::IceV_Mem, "mem", "Memory usage details"),
+        clEnumValN(Ice::IceV_GlobalInit, "global_init", "Global initializers"),
         clEnumValN(Ice::IceV_All, "all", "Use all verbose options"),
         clEnumValN(Ice::IceV_Most, "most",
-                   "Use all verbose options except 'regalloc'"),
+                   "Use all verbose options except 'regalloc,global_init'"),
         clEnumValN(Ice::IceV_None, "none", "No verbosity"), clEnumValEnd));
 
 // Options not captured in Ice::ClFlags and propagated.

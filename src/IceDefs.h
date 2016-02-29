@@ -214,8 +214,9 @@ enum VerboseItem {
   IceV_Status = 1 << 14,
   IceV_AvailableRegs = 1 << 15,
   IceV_Mem = 1 << 16,
+  IceV_GlobalInit = 1 << 17,
   IceV_All = ~IceV_None,
-  IceV_Most = IceV_All & ~IceV_LinearScan
+  IceV_Most = IceV_All & ~IceV_LinearScan & ~IceV_GlobalInit
 };
 using VerboseMask = uint32_t;
 

@@ -148,7 +148,7 @@ def main():
       # If the tests are based on '-verbose inst' output, force
       # single-threaded translation because dump output does not get
       # reassembled into order.
-      cmd += ['-verbose', 'inst', '-notranslate', '-threads=0']
+      cmd += ['-verbose', 'inst,global_init', '-notranslate', '-threads=0']
     if not args.llvm_source:
       cmd += ['--bitcode-format=pnacl']
       if not args.no_local_syms:

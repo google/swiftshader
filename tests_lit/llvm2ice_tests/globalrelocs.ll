@@ -5,13 +5,13 @@
 ; Test that we handle it in the ICE converter.
 ; RUN: %lc2i -i %s --args -verbose inst -threads=0 \
 ; RUN:     | %iflc FileCheck %s
-; RUN: %lc2i -i %s --args -verbose inst -threads=0 \
+; RUN: %lc2i -i %s --args -verbose inst,global_init -threads=0 \
 ; RUN:     | %iflc FileCheck --check-prefix=DUMP %s
 
 ; Test that we handle it using Subzero's bitcode reader.
 ; RUN: %p2i -i %s --args -verbose inst -threads=0 \
 ; RUN:     | FileCheck %s
-; RUN: %p2i -i %s --args -verbose inst -threads=0 \
+; RUN: %p2i -i %s --args -verbose inst,global_init -threads=0 \
 ; RUN:     | FileCheck --check-prefix=DUMP %s
 
 @bytes = internal global [7 x i8] c"abcdefg"

@@ -394,7 +394,8 @@ void GlobalContext::addBlockInfoPtrs(VariableDeclaration *ProfileBlockInfo) {
 void GlobalContext::lowerGlobals(const IceString &SectionSuffix) {
   TimerMarker T(TimerStack::TT_emitGlobalInitializers, this);
   const bool DumpGlobalVariables =
-      BuildDefs::dump() && (Flags.getVerbose() & Cfg::defaultVerboseMask()) &&
+      BuildDefs::dump() &&
+      (Flags.getVerbose() & IceV_GlobalInit & Cfg::defaultVerboseMask()) &&
       Flags.getVerboseFocusOn().empty();
   if (DumpGlobalVariables) {
     OstreamLocker L(this);
