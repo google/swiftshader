@@ -99,7 +99,7 @@ class GlobalContext {
       for (uint32_t i = 0; i < Stats.size(); ++i)
         Stats[i] += Other.Stats[i];
     }
-    void dump(const IceString &Name, Ostream &Str);
+    void dump(const IceString &Name, GlobalContext *Ctx);
 
   private:
     std::array<uint32_t, CS_NUM> Stats;

@@ -160,6 +160,7 @@ public:
     std::sort(Constants.begin(), Constants.end(), KeyCompareLess<ValueType>());
     return Constants;
   }
+  size_t size() const { return Pool.size(); }
 
 private:
   // Use the default hash function, and a custom key comparison function. The
@@ -215,9 +216,11 @@ public:
   UndefPool Undefs;
 };
 
-void GlobalContext::CodeStats::dump(const IceString &Name, Ostream &Str) {
+void GlobalContext::CodeStats::dump(const IceString &Name, GlobalContext *Ctx) {
   if (!BuildDefs::dump())
     return;
+  OstreamLocker _(Ctx);
+  Ostream &Str = Ctx->getStrDump();
 #define X(str, tag)                                                            \
   Str << "|" << Name << "|" str "|" << Stats[CS_##tag] << "\n";
   CODESTATS_TABLE
@@ -229,6 +232,20 @@ void GlobalContext::CodeStats::dump(const IceString &Name, Ostream &Str) {
     Str << MemUsed;
   else
     Str << "(requires '-track-memory')";
+  Str << "\n";
+  Str << "|" << Name << "|CPool Sizes ";
+  {
+    auto Pool = Ctx->getConstPool();
+    Str << "|f32=" << Pool->Floats.size();
+    Str << "|f64=" << Pool->Doubles.size();
+    Str << "|i1=" << Pool->Integers1.size();
+    Str << "|i8=" << Pool->Integers8.size();
+    Str << "|i16=" << Pool->Integers16.size();
+    Str << "|i32=" << Pool->Integers32.size();
+    Str << "|i64=" << Pool->Integers64.size();
+    Str << "|Rel=" << Pool->Relocatables.size();
+    Str << "|ExtRel=" << Pool->ExternRelocatables.size();
+  }
   Str << "\n";
 }
 
@@ -997,11 +1014,10 @@ EmitterWorkItem *GlobalContext::emitQueueBlockingPop() {
 void GlobalContext::dumpStats(const IceString &Name, bool Final) {
   if (!getFlags().getDumpStats())
     return;
-  OstreamLocker OL(this);
   if (Final) {
-    getStatsCumulative()->dump(Name, getStrDump());
+    getStatsCumulative()->dump(Name, this);
   } else {
-    ICE_TLS_GET_FIELD(TLS)->StatsFunction.dump(Name, getStrDump());
+    ICE_TLS_GET_FIELD(TLS)->StatsFunction.dump(Name, this);
   }
 }
 
