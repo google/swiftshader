@@ -242,9 +242,9 @@ private:
 		{
 			#if defined(_WIN32)
 				#if defined(__LP64__)
-					const char *libGLES_CM_lib[] = {"libGLES_CM.dll", "libGLES_CM_translator.dll"};
-				#else
 					const char *libGLES_CM_lib[] = {"libGLES_CM.dll", "lib64GLES_CM_translator.dll"};
+				#else
+					const char *libGLES_CM_lib[] = {"libGLES_CM.dll", "libGLES_CM_translator.dll"};
 				#endif
 			#elif defined(__ANDROID__)
 				#if defined(__LP64__)
