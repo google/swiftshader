@@ -1076,6 +1076,14 @@ void Cfg::emitIAS() {
   emitJumpTables();
 }
 
+size_t Cfg::getTotalMemoryMB() {
+  constexpr size_t OneMB = 1024 * 1024;
+  using ArbitraryType = int;
+  // CfgLocalAllocator draws from the same memory pool regardless of allocated
+  // object type, so pick an arbitrary type for the template parameter.
+  return CfgLocalAllocator<ArbitraryType>().current()->getTotalMemory() / OneMB;
+}
+
 // Dumps the IR with an optional introductory message.
 void Cfg::dump(const IceString &Message) {
   if (!BuildDefs::dump())
@@ -1087,10 +1095,7 @@ void Cfg::dump(const IceString &Message) {
   if (!Message.empty())
     Str << "================ " << Message << " ================\n";
   if (isVerbose(IceV_Mem)) {
-    constexpr size_t OneMB = 1024 * 1024;
-    Str << "Memory size = "
-        << (CfgLocalAllocator<int>().current()->getTotalMemory() / OneMB)
-        << " MB\n";
+    Str << "Memory size = " << getTotalMemoryMB() << " MB\n";
   }
   setCurrentNode(getEntryNode());
   // Print function name+args

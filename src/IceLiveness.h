@@ -85,6 +85,7 @@ public:
     resize(Index);
     return Nodes[Index].LiveOut;
   }
+  LivenessBV &getScratchBV() { return ScratchBV; }
   LiveBeginEndMap *getLiveBegin(const CfgNode *Node) {
     SizeT Index = Node->getIndex();
     resize(Index);
@@ -119,6 +120,9 @@ private:
   /// RangeMask[Variable::Number] indicates whether we want to track that
   /// Variable's live range.
   LivenessBV RangeMask;
+  /// ScratchBV is a bitvector that can be reused across CfgNode passes, to
+  /// avoid having to allocate/deallocate memory so frequently.
+  LivenessBV ScratchBV;
 };
 
 } // end of namespace Ice

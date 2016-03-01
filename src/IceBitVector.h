@@ -308,7 +308,7 @@ public:
   explicit BitVector(unsigned s, bool t = false, Allocator A = Allocator())
       : Size(s), Alloc(std::move(A)) {
     Capacity = NumBitWords(s);
-    Bits = Alloc.allocate(Capacity * sizeof(BitWord));
+    Bits = Alloc.allocate(Capacity);
     init_words(Bits, Capacity, t);
     if (t)
       clear_unused_bits();
@@ -323,7 +323,7 @@ public:
     }
 
     Capacity = NumBitWords(RHS.size());
-    Bits = Alloc.allocate(Capacity * sizeof(BitWord));
+    Bits = Alloc.allocate(Capacity);
     std::memcpy(Bits, RHS.Bits, Capacity * sizeof(BitWord));
   }
 
@@ -335,7 +335,7 @@ public:
 
   ~BitVector() {
     if (Bits != nullptr) {
-      Alloc.deallocate(Bits, Capacity * sizeof(BitWord));
+      Alloc.deallocate(Bits, Capacity);
     }
   }
 
@@ -655,15 +655,21 @@ public:
       return *this;
     }
 
+    // Currently, BitVector is only used by liveness analysis.  With the
+    // following assert, we make sure BitVectors grow in a single step from 0 to
+    // their final capacity, rather than growing slowly and "leaking" memory in
+    // the process.
+    assert(Capacity == 0);
+
     // Grow the bitvector to have enough elements.
     const auto OldCapacity = Capacity;
     Capacity = RHSWords;
     assert(Capacity > 0 && "negative capacity?");
-    BitWord *NewBits = Alloc.allocate(Capacity * sizeof(BitWord));
+    BitWord *NewBits = Alloc.allocate(Capacity);
     std::memcpy(NewBits, RHS.Bits, Capacity * sizeof(BitWord));
 
     // Destroy the old bits.
-    Alloc.deallocate(Bits, OldCapacity * sizeof(BitWord));
+    Alloc.deallocate(Bits, OldCapacity);
     Bits = NewBits;
 
     return *this;
@@ -673,7 +679,7 @@ public:
     if (this == &RHS)
       return *this;
 
-    Alloc.deallocate(Bits, Capacity * sizeof(BitWord));
+    Alloc.deallocate(Bits, Capacity);
     Bits = RHS.Bits;
     Size = RHS.Size;
     Capacity = RHS.Capacity;
@@ -755,9 +761,9 @@ private:
     const auto OldCapacity = Capacity;
     Capacity = std::max(NumBitWords(NewSize), Capacity * 2);
     assert(Capacity > 0 && "realloc-ing zero space");
-    auto *NewBits = Alloc.allocate(Capacity * sizeof(BitWord));
+    auto *NewBits = Alloc.allocate(Capacity);
     std::memcpy(Bits, NewBits, OldCapacity * sizeof(BitWord));
-    Alloc.deallocate(Bits, OldCapacity * sizeof(BitWord));
+    Alloc.deallocate(Bits, OldCapacity);
     Bits = NewBits;
 
     clear_unused_bits();

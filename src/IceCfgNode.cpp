@@ -626,8 +626,11 @@ void CfgNode::livenessLightweight() {
 // liveness changed from before, false if it stayed the same. (If it changes,
 // the node's predecessors need to be processed again.)
 bool CfgNode::liveness(Liveness *Liveness) {
-  SizeT NumVars = Liveness->getNumVarsInNode(this);
-  LivenessBV Live(NumVars);
+  const SizeT NumVars = Liveness->getNumVarsInNode(this);
+  const SizeT NumGlobalVars = Liveness->getNumGlobalVars();
+  LivenessBV &Live = Liveness->getScratchBV();
+  Live.clear();
+
   LiveBeginEndMap *LiveBegin = nullptr;
   LiveBeginEndMap *LiveEnd = nullptr;
   // Mark the beginning and ending of each variable's live range with the
@@ -642,19 +645,25 @@ bool CfgNode::liveness(Liveness *Liveness) {
     LiveBegin->reserve(getInstCountEstimate());
     LiveEnd->reserve(getInstCountEstimate());
   }
+
   // Initialize Live to be the union of all successors' LiveIn.
   for (CfgNode *Succ : OutEdges) {
-    Live |= Liveness->getLiveIn(Succ);
+    const LivenessBV &LiveIn = Liveness->getLiveIn(Succ);
+    assert(LiveIn.empty() || LiveIn.size() == NumGlobalVars);
+    Live |= LiveIn;
     // Mark corresponding argument of phis in successor as live.
     for (Inst &I : Succ->Phis) {
       if (I.isDeleted())
         continue;
-      auto *Phi = llvm::dyn_cast<InstPhi>(&I);
+      auto *Phi = llvm::cast<InstPhi>(&I);
       Phi->livenessPhiOperand(Live, this, Liveness);
     }
   }
+  assert(Live.empty() || Live.size() == NumGlobalVars);
   Liveness->getLiveOut(this) = Live;
 
+  // Expand Live so it can hold locals in addition to globals.
+  Live.resize(NumVars);
   // Process regular instructions in reverse order.
   for (Inst &I : reverse_range(Insts)) {
     if (I.isDeleted())
@@ -676,20 +685,17 @@ bool CfgNode::liveness(Liveness *Liveness) {
 
   // When using the sparse representation, after traversing the instructions in
   // the block, the Live bitvector should only contain set bits for global
-  // variables upon block entry. We validate this by shrinking the Live vector
-  // and then testing it against the pre-shrunk version. (The shrinking is
-  // required, but the validation is not.)
-  LivenessBV LiveOrig = Live;
-  Live.resize(Liveness->getNumGlobalVars());
-  if (Live != LiveOrig) {
+  // variables upon block entry.  We validate this by testing the upper bits of
+  // the Live bitvector.
+  if (Live.find_next(NumGlobalVars) != -1) {
     if (BuildDefs::dump()) {
       // This is a fatal liveness consistency error. Print some diagnostics and
       // abort.
       Ostream &Str = Func->getContext()->getStrDump();
       Func->resetCurrentNode();
-      Str << "LiveOrig-Live =";
-      for (SizeT i = Live.size(); i < LiveOrig.size(); ++i) {
-        if (LiveOrig.test(i)) {
+      Str << "Invalid Live =";
+      for (SizeT i = NumGlobalVars; i < Live.size(); ++i) {
+        if (Live.test(i)) {
           Str << " ";
           Liveness->getVariable(i, this)->dump(Func);
         }
@@ -698,9 +704,12 @@ bool CfgNode::liveness(Liveness *Liveness) {
     }
     llvm::report_fatal_error("Fatal inconsistency in liveness analysis");
   }
+  // Now truncate Live to prevent LiveIn from growing.
+  Live.resize(NumGlobalVars);
 
   bool Changed = false;
   LivenessBV &LiveIn = Liveness->getLiveIn(this);
+  assert(LiveIn.empty() || LiveIn.size() == NumGlobalVars);
   // Add in current LiveIn
   Live |= LiveIn;
   // Check result, set LiveIn=Live
@@ -778,9 +787,9 @@ void CfgNode::livenessAddIntervals(Liveness *Liveness, InstNumberT FirstInstNum,
                                    InstNumberT LastInstNum) {
   TimerMarker T1(TimerStack::TT_liveRange, Func);
 
-  SizeT NumVars = Liveness->getNumVarsInNode(this);
-  LivenessBV &LiveIn = Liveness->getLiveIn(this);
-  LivenessBV &LiveOut = Liveness->getLiveOut(this);
+  const SizeT NumVars = Liveness->getNumVarsInNode(this);
+  const LivenessBV &LiveIn = Liveness->getLiveIn(this);
+  const LivenessBV &LiveOut = Liveness->getLiveOut(this);
   LiveBeginEndMap &MapBegin = *Liveness->getLiveBegin(this);
   LiveBeginEndMap &MapEnd = *Liveness->getLiveEnd(this);
   std::sort(MapBegin.begin(), MapBegin.end());
@@ -791,7 +800,8 @@ void CfgNode::livenessAddIntervals(Liveness *Liveness, InstNumberT FirstInstNum,
     return;
   }
 
-  LivenessBV LiveInAndOut = LiveIn;
+  LivenessBV &LiveInAndOut = Liveness->getScratchBV();
+  LiveInAndOut = LiveIn;
   LiveInAndOut &= LiveOut;
 
   // Iterate in parallel across the sorted MapBegin[] and MapEnd[].
@@ -1350,23 +1360,23 @@ void CfgNode::dump(Cfg *Func) const {
     Str << "\n";
   }
   // Dump the live-in variables.
-  LivenessBV LiveIn;
-  if (Liveness)
-    LiveIn = Liveness->getLiveIn(this);
-  if (Func->isVerbose(IceV_Liveness) && !LiveIn.empty()) {
-    Str << "    // LiveIn:";
-    for (SizeT i = 0; i < LiveIn.size(); ++i) {
-      if (LiveIn[i]) {
-        Variable *Var = Liveness->getVariable(i, this);
-        Str << " %" << Var->getName(Func);
-        if (Func->isVerbose(IceV_RegOrigins) && Var->hasReg()) {
-          Str << ":"
-              << Func->getTarget()->getRegName(Var->getRegNum(),
-                                               Var->getType());
+  if (Func->isVerbose(IceV_Liveness)) {
+    if (Liveness != nullptr && !Liveness->getLiveIn(this).empty()) {
+      const LivenessBV &LiveIn = Liveness->getLiveIn(this);
+      Str << "    // LiveIn:";
+      for (SizeT i = 0; i < LiveIn.size(); ++i) {
+        if (LiveIn[i]) {
+          Variable *Var = Liveness->getVariable(i, this);
+          Str << " %" << Var->getName(Func);
+          if (Func->isVerbose(IceV_RegOrigins) && Var->hasReg()) {
+            Str << ":"
+                << Func->getTarget()->getRegName(Var->getRegNum(),
+                                                 Var->getType());
+          }
         }
       }
+      Str << "\n";
     }
-    Str << "\n";
   }
   // Dump each instruction.
   if (Func->isVerbose(IceV_Instructions)) {
@@ -1376,23 +1386,23 @@ void CfgNode::dump(Cfg *Func) const {
       I.dumpDecorated(Func);
   }
   // Dump the live-out variables.
-  LivenessBV LiveOut;
-  if (Liveness)
-    LiveOut = Liveness->getLiveOut(this);
-  if (Func->isVerbose(IceV_Liveness) && !LiveOut.empty()) {
-    Str << "    // LiveOut:";
-    for (SizeT i = 0; i < LiveOut.size(); ++i) {
-      if (LiveOut[i]) {
-        Variable *Var = Liveness->getVariable(i, this);
-        Str << " %" << Var->getName(Func);
-        if (Func->isVerbose(IceV_RegOrigins) && Var->hasReg()) {
-          Str << ":"
-              << Func->getTarget()->getRegName(Var->getRegNum(),
-                                               Var->getType());
+  if (Func->isVerbose(IceV_Liveness)) {
+    if (Liveness != nullptr && !Liveness->getLiveOut(this).empty()) {
+      const LivenessBV &LiveOut = Liveness->getLiveOut(this);
+      Str << "    // LiveOut:";
+      for (SizeT i = 0; i < LiveOut.size(); ++i) {
+        if (LiveOut[i]) {
+          Variable *Var = Liveness->getVariable(i, this);
+          Str << " %" << Var->getName(Func);
+          if (Func->isVerbose(IceV_RegOrigins) && Var->hasReg()) {
+            Str << ":"
+                << Func->getTarget()->getRegName(Var->getRegNum(),
+                                                 Var->getType());
+          }
         }
       }
+      Str << "\n";
     }
-    Str << "\n";
   }
   // Dump list of successor nodes.
   if (Func->isVerbose(IceV_Succs)) {

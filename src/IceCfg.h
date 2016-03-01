@@ -219,6 +219,10 @@ public:
   const CfgNode *getCurrentNode() const { return CurrentNode; }
   /// @}
 
+  /// Get the total amount of memory held by the per-Cfg allocator.  This is
+  /// mostly meant for use inside a debugger.
+  static size_t getTotalMemoryMB();
+
   void emit();
   void emitIAS();
   static void emitTextHeader(const IceString &MangledName, GlobalContext *Ctx,

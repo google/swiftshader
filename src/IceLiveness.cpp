@@ -106,6 +106,7 @@ void Liveness::initInternal(NodeList::const_iterator FirstNode,
       RangeMask[VarIndex] = false;
   }
 
+  SizeT MaxLocals = 0;
   // Process each node.
   for (auto I = FirstNode, E = Func->getNodes().end(); I != E; ++I) {
     LivenessNode &Node = Nodes[(*I)->getIndex()];
@@ -113,7 +114,9 @@ void Liveness::initInternal(NodeList::const_iterator FirstNode,
     Node.LiveIn.resize(NumGlobals);
     Node.LiveOut.resize(NumGlobals);
     // LiveBegin and LiveEnd are reinitialized before each pass over the block.
+    MaxLocals = std::max(MaxLocals, Node.NumLocals);
   }
+  ScratchBV.reserve(NumGlobals + MaxLocals);
 }
 
 void Liveness::init() {
