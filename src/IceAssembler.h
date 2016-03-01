@@ -46,7 +46,7 @@ class Label {
 
 public:
   Label() = default;
-  ~Label() = default;
+  virtual ~Label() = default;
 
   virtual void finalCheck() const {
     // Assert if label is being destroyed with unresolved branches pending.

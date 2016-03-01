@@ -91,7 +91,7 @@ public:
   }
   /// @}
 
-  ~Operand() = default;
+  virtual ~Operand() = default;
 
 protected:
   Operand(OperandKind Kind, Type Ty) : Ty(Ty), Kind(Kind) {

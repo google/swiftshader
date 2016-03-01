@@ -31,6 +31,7 @@ class AssemblerFixup {
 public:
   AssemblerFixup() = default;
   AssemblerFixup(const AssemblerFixup &) = default;
+  virtual ~AssemblerFixup() = default;
   intptr_t position() const {
     assert(position_was_set_);
     return position_;

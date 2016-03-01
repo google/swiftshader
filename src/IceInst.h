@@ -165,7 +165,7 @@ public:
   void dumpDest(const Cfg *Func) const;
   virtual bool isRedundantAssign() const { return false; }
 
-  ~Inst() = default;
+  virtual ~Inst() = default;
 
 protected:
   Inst(Cfg *Func, InstKind Kind, SizeT MaxSrcs, Variable *Dest);
