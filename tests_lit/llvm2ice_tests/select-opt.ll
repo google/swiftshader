@@ -51,23 +51,15 @@ declare void @useInt(i32 %x)
 ; CHECK:      ret
 ; ARM32-LABEL: testSelect
 ; ARM32: cmp
-; ARM32: movw [[CALL:r[0-9]]], {{.+}} useInt
-; ARM32: movt [[CALL]]
-; ARM32; blx [[CALL]]
+; ARM32: bl {{.*}} useInt
 ; ARM32-Om1: mov {{.*}}, #20
 ; ARM32-O2: mov [[REG:r[0-9]+]], #20
 ; ARM32: tst
 ; ARM32-Om1: movne {{.*}}, #10
 ; ARM32-O2: movne [[REG]], #10
-; ARM32: movw [[CALL:r[0-9]]], {{.+}} useInt
-; ARM32: movt [[CALL]]
-; ARM32; blx [[CALL]]
-; ARM32: movw [[CALL:r[0-9]]], {{.+}} useInt
-; ARM32: movt [[CALL]]
-; ARM32; blx [[CALL]]
-; ARM32: movw [[CALL:r[0-9]]], {{.+}} useInt
-; ARM32: movt [[CALL]]
-; ARM32; blx [[CALL]]
+; ARM32: bl {{.*}} useInt
+; ARM32: bl {{.*}} useInt
+; ARM32: bl {{.*}} useInt
 ; ARM32: bx lr
 
 ; Check for valid addressing mode in the cmp instruction when the

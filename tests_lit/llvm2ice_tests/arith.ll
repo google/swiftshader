@@ -4,28 +4,28 @@
 ; RUN:   --target x8632 -i %s --args -O2 \
 ; RUN:   | %if --need=target_X8632 --command FileCheck %s
 
+; TODO(jvoung): Stop skipping unimplemented parts (via --skip-unimplemented)
+; once enough infrastructure is in. Also, switch to --filetype=obj
+; when possible.
 ; RUN: %if --need=target_ARM32 --need=allow_dump \
-; RUN:   --command %p2i --filetype=obj --assemble --disassemble --target arm32 \
-; RUN:   -i %s --args -O2 \
+; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target arm32 \
+; RUN:   -i %s --args -O2 --skip-unimplemented \
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32 --check-prefix ARM-OPT2 %s
 ; RUN: %if --need=target_ARM32 --need=allow_dump \
-; RUN:   --command %p2i --filetype=obj --assemble --disassemble --target arm32 \
-; RUN:   -i %s --args -O2 --mattr=hwdiv-arm \
+; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target arm32 \
+; RUN:   -i %s --args -O2 --mattr=hwdiv-arm --skip-unimplemented \
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32HWDIV %s
 ; RUN: %if --need=target_ARM32 --need=allow_dump \
-; RUN:   --command %p2i --filetype=obj --assemble --disassemble --target arm32 \
-; RUN:   -i %s --args -Om1 \
+; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target arm32 \
+; RUN:   -i %s --args -Om1 --skip-unimplemented \
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32 --check-prefix ARM32-OPTM1 %s
 ;
-; TODO(kschimpf): Stop skipping unimplemented parts (via --skip-unimplemented)
-; once enough infrastructure is in. Also, switch to --filetype=obj
-; when possible.
 ; RUN: %if --need=target_MIPS32 --need=allow_dump \
 ; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target mips32\
-; RUN:   -i %s --args -O2 -skip-unimplemented \
+; RUN:   -i %s --args -O2 --skip-unimplemented \
 ; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix MIPS32 %s
 
@@ -164,9 +164,7 @@ entry:
 ; ARM32: bne
 ; The following instruction is ".word 0xe7fedef0 = udf #60896 ; 0xede0".
 ; ARM32: e7fedef0
-; ARM32: movw [[CALL:r[0-9]]], {{.+}} __divsi3
-; ARM32: movt [[CALL]], {{.+}} __divsi3
-; ARM32: blx [[CALL]]
+; ARM32: bl {{.*}} __divsi3
 ; ARM32HWDIV-LABEL: Sdiv
 ; ARM32HWDIV: tst
 ; ARM32HWDIV: bne
@@ -185,9 +183,7 @@ entry:
 ;
 ; ARM32-LABEL: SdivConst
 ; ARM32-NOT: tst
-; ARM32: movw [[CALL:r[0-9]]], {{.+}} __divsi3
-; ARM32: movt [[CALL]], {{.+}} __divsi3
-; ARM32: blx [[CALL]]
+; ARM32: bl {{.*}} __divsi3
 ; ARM32HWDIV-LABEL: SdivConst
 ; ARM32HWDIV-NOT: tst
 ; ARM32HWDIV: sdiv
@@ -206,9 +202,7 @@ entry:
 ; ARM32-LABEL: Srem
 ; ARM32: tst [[DENOM:r.*]], [[DENOM]]
 ; ARM32: bne
-; ARM32: movw [[CALL:r[0-9]]], {{.+}} __modsi3
-; ARM32: movt [[CALL]], {{.+}} __modsi3
-; ARM32: blx [[CALL]]
+; ARM32: bl {{.*}} __modsi3
 ; ARM32HWDIV-LABEL: Srem
 ; ARM32HWDIV: tst
 ; ARM32HWDIV: bne
@@ -228,9 +222,7 @@ entry:
 ; ARM32-LABEL: Udiv
 ; ARM32: tst [[DENOM:r.*]], [[DENOM]]
 ; ARM32: bne
-; ARM32: movw [[CALL:r[0-9]]], {{.+}} __udivsi3
-; ARM32: movt [[CALL]], {{.+}} __udivsi3
-; ARM32: blx [[CALL]]
+; ARM32: bl {{.*}} __udivsi3
 ; ARM32HWDIV-LABEL: Udiv
 ; ARM32HWDIV: tst
 ; ARM32HWDIV: bne
@@ -249,9 +241,7 @@ entry:
 ; ARM32-LABEL: Urem
 ; ARM32: tst [[DENOM:r.*]], [[DENOM]]
 ; ARM32: bne
-; ARM32: movw [[CALL:r[0-9]]], {{.+}} __umodsi3
-; ARM32: movt [[CALL]], {{.+}} __umodsi3
-; ARM32: blx [[CALL]]
+; ARM32: bl {{.*}} __umodsi3
 ; ARM32HWDIV-LABEL: Urem
 ; ARM32HWDIV: tst
 ; ARM32HWDIV: bne

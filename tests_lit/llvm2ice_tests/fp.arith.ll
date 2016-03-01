@@ -117,9 +117,7 @@ entry:
 ; CHECK-LABEL: remFloat
 ; CHECK: call {{.*}} R_{{.*}} fmodf
 ; ARM32-LABEL: remFloat
-; ARM32: movw {{.+}} fmodf
-; ARM32: movt
-; ARM32: blx
+; ARM32: bl {{.*}} fmodf
 
 define internal double @remDouble(double %a, double %b) {
 entry:
@@ -129,6 +127,4 @@ entry:
 ; CHECK-LABEL: remDouble
 ; CHECK: call {{.*}} R_{{.*}} fmod
 ; ARM32-LABEL: remDouble
-; ARM32: movw {{.+}} fmod
-; ARM32: movt
-; ARM32: blx
+; ARM32: bl {{.*}} fmod

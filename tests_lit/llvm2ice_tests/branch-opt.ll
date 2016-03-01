@@ -9,15 +9,18 @@
 ; RUN:   --target x8632 -i %s --args -Om1 -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_X8632 --command FileCheck --check-prefix=OM1 %s
 
+; TODO(jvoung): Stop skipping unimplemented parts (via --skip-unimplemented)
+; once enough infrastructure is in. Also, switch to --filetype=obj
+; when possible.
 ; RUN: %if --need=target_ARM32 --need=allow_dump \
-; RUN:   --command %p2i --filetype=obj --assemble \
+; RUN:   --command %p2i --filetype=asm --assemble \
 ; RUN:   --disassemble --target arm32 -i %s --args -O2 \
 ; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32O2 %s
 
 ; RUN: %if --need=target_ARM32 --need=allow_dump \
-; RUN:   --command %p2i --filetype=obj --assemble \
+; RUN:   --command %p2i --filetype=asm --assemble \
 ; RUN:   --disassemble --target arm32 -i %s --args -Om1 \
 ; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
@@ -48,22 +51,13 @@ next:
 ; OM1: call
 
 ; ARM32O2-LABEL: testUncondToNextBlock
-; ARM32O2:      movw {{.+}} dummy
-; ARM32O2-NEXT: movt
-; ARM32O2-NEXT: blx
-; ARM32O2-NEXT: movw {{.+}} dummy
-; ARM32O2-NEXT: movt
-; ARM32O2-NEXT: blx
+; ARM32O2: bl {{.*}} dummy
+; ARM32O2-NEXT: bl {{.*}} dummy
 
 ; ARM32OM1-LABEL: testUncondToNextBlock
-; ARM32OM1:      movw {{.+}} dummy
-; ARM32OM1-NEXT: movt
-; ARM32OM1-NEXT: blx
+; ARM32OM1: bl {{.*}} dummy
 ; ARM32OM1-NEXT: b
-; ARM32OM1-NEXT: movw {{.+}} dummy
-; ARM32OM1-NEXT: movt
-; ARM32OM1-NEXT: blx
-
+; ARM32OM1-NEXT: bl {{.*}} dummy
 
 ; For a conditional branch with a fallthrough to the next block, the
 ; fallthrough branch should be removed.
@@ -99,16 +93,12 @@ target:
 ; OM1: ret
 
 ; ARM32O2-LABEL: testCondFallthroughToNextBlock
-; ARM32O2:      cmp {{.*}}, #123
+; ARM32O2: cmp {{.*}}, #123
 ; ARM32O2-NEXT: bge
-; ARM32O2-NEXT: movw {{.+}} dummy
-; ARM32O2-NEXT: movt
-; ARM32O2-NEXT: blx
-; ARM32O2:      bx lr
-; ARM32O2-NEXT: movw {{.+}} dummy
-; ARM32O2-NEXT: movt
-; ARM32O2-NEXT: blx
-; ARM32O2:      bx lr
+; ARM32O2-NEXT: bl
+; ARM32O2: bx lr
+; ARM32O2: bl
+; ARM32O2: bx lr
 
 ; ARM32OM1-LABEL: testCondFallthroughToNextBlock
 ; ARM32OM1: mov {{.*}}, #0
@@ -117,13 +107,9 @@ target:
 ; ARM32OM1: tst {{.*}}, #1
 ; ARM32OM1: bne
 ; ARM32OM1: b
-; ARM32OM1: movw
-; ARM32OM1: movt
-; ARM32OM1: blx
+; ARM32OM1: bl
 ; ARM32OM1: bx lr
-; ARM32OM1: movw
-; ARM32OM1: movt
-; ARM32OM1: blx
+; ARM32OM1: bl
 ; ARM32OM1: bx lr
 
 ; For a conditional branch with the next block as the target and a
@@ -164,16 +150,12 @@ target:
 ; Note that compare and branch folding isn't implemented yet
 ; (compared to x86-32).
 ; ARM32O2-LABEL: testCondTargetNextBlock
-; ARM32O2:      cmp {{.*}}, #123
+; ARM32O2: cmp {{.*}}, #123
 ; ARM32O2-NEXT: blt
-; ARM32O2-NEXT: movw
-; ARM32O2-NEXT: movt
-; ARM32O2-NEXT: blx
-; ARM32O2:      bx lr
-; ARM32O2-NEXT: movw
-; ARM32O2-NEXT: movt
-; ARM32O2-NEXT: blx
-; ARM32O2:      bx lr
+; ARM32O2-NEXT: bl
+; ARM32O2: bx lr
+; ARM32O2: bl
+; ARM32O2: bx lr
 
 ; ARM32OM1-LABEL: testCondTargetNextBlock
 ; ARM32OM1: cmp {{.*}}, #123
@@ -181,9 +163,9 @@ target:
 ; ARM32OM1: tst {{.*}}, #1
 ; ARM32OM1: bne
 ; ARM32OM1: b
-; ARM32OM1: blx
+; ARM32OM1: bl
 ; ARM32OM1: bx lr
-; ARM32OM1: blx
+; ARM32OM1: bl
 ; ARM32OM1: bx lr
 
 ; Unconditional branches to the block after a contracted block should be
@@ -212,18 +194,10 @@ target:
 ; OM1: call
 
 ; ARM32O2-LABEL: testUncondToBlockAfterContract
-; ARM32O2:      movw {{.+}} dummy
-; ARM32O2-NEXT: movt
-; ARM32O2-NEXT: blx
-; ARM32O2-NEXT: movw {{.+}} dummy
-; ARM32O2-NEXT: movt
-; ARM32O2-NEXT: blx
+; ARM32O2: bl {{.*}} dummy
+; ARM32O2-NEXT: bl {{.*}} dummy
 
 ; ARM32OM1-LABEL: testUncondToBlockAfterContract
-; ARM32OM1:      movw {{.+}} dummy
-; ARM32OM1-NEXT: movt
-; ARM32OM1-NEXT: blx
+; ARM32OM1: bl {{.*}} dummy
 ; ARM32OM1-NEXT: b
-; ARM32OM1-NEXT: movw {{.+}} dummy
-; ARM32OM1-NEXT: movt
-; ARM32OM1-NEXT: blx
+; ARM32OM1-NEXT: bl {{.*}} dummy

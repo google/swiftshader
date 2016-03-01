@@ -19,19 +19,12 @@ define internal void @test_direct_call() {
 entry:
   call void @call_target()
   ; bundle aigned.
-
-  call void @call_target()
   ret void
 }
 
 ; CHECK-LABEL:<test_direct_call>:
 ;             Search for bundle alignment of first call.
-; CHECK:      {{[0-9a-f]*}}c: {{.+}} blx
-; CHECK-NEXT: movw [[REG:r[0-9]]], {{.+}} call_target
-; CHECK-NEXT: movt [[REG]], {{.+}} call_target
-; CHECK-NEXT: bic [[REG]], [[REG]], {{.+}} ; 0xc000000f
-; CHECK-NEXT: blx [[REG]]
-; CHECK-NEXT: {{[0-9a-f]*}}0:
+; CHECK:      {{[0-9a-f]*}}c: {{.*}} bl {{.*}} call_target
 
 ; Same as above, but force bundle padding by adding three (branch) instruction
 ; before the tested call.
@@ -44,22 +37,16 @@ entry:
 next1:
   br label %next2 ; add 1 inst.
 next2:
-  br label %next3 ; add 1 inst.
-next3:
   call void @call_target()
   ret void
 }
 ; CHECK-LABEL:<test_direct_call_with_padding_1>:
 ;             Search for bundle alignment of first call.
-; CHECK:      {{[0-9a-f]*}}c: {{.+}} blx
+; CHECK:      {{[0-9a-f]*}}c: {{.+}} bl
 ; CHECK-NEXT: b
 ; CHECK-NEXT: b
-; CHECK-NEXT: b
-; CHECK-NEXT: movw [[REG:r[0-9]]], {{.+}} call_target
-; CHECK-NEXT: movt [[REG]], {{.+}} call_target
 ; CHECK-NEXT: nop
-; CHECK-NEXT: bic [[REG]], [[REG]], {{.+}} ; 0xc000000f
-; CHECK-NEXT: blx r0
+; CHECK-NEXT: bl {{.*}} call_target
 ; CHECK-NEXT: {{[0-9a-f]*}}0:
 
 ; Same as above, but force bundle padding by adding two (branch) instruction
@@ -71,23 +58,17 @@ entry:
 
   br label %next1 ; add 1 inst.
 next1:
-  br label %next2 ; add 1 inst.
-next2:
   call void @call_target()
   ret void
 }
 
 ; CHECK-LABEL:<test_direct_call_with_padding_2>:
 ;             Search for bundle alignment of first call.
-; CHECK:      {{[0-9a-f]*}}c: {{.+}} blx
+; CHECK:      {{[0-9a-f]*}}c: {{.+}} bl
 ; CHECK-NEXT: b
-; CHECK-NEXT: b
-; CHECK-NEXT: movw [[REG:r[0-9]]], {{.+}} call_target
-; CHECK-NEXT: movt [[REG]], {{.+}} call_target
 ; CHECK-NEXT: nop
 ; CHECK-NEXT: nop
-; CHECK-NEXT: bic [[REG]], [[REG]], {{.+}} ; 0xc000000f
-; CHECK-NEXT: blx r0
+; CHECK-NEXT: bl {{.*}} call_target
 ; CHECK-NEXT: {{[0-9a-f]*}}0:
 
 ; Same as above, but force bundle padding by adding single (branch) instruction
@@ -97,23 +78,17 @@ entry:
   call void @call_target()
   ; bundle aigned.
 
-  br label %next ; add 1 inst.
-next:
   call void @call_target()
   ret void
 }
 
 ; CHECK-LABEL:<test_direct_call_with_padding_3>:
 ;             Search for bundle alignment of first call.
-; CHECK:      {{[0-9a-f]*}}c: {{.+}} blx
-; CHECK-NEXT: b
-; CHECK-NEXT: movw [[REG:r[0-9]]], {{.+}} call_target
-; CHECK-NEXT: movt [[REG]], {{.+}} call_target
+; CHECK:      {{[0-9a-f]*}}c: {{.+}} bl
 ; CHECK-NEXT: nop
 ; CHECK-NEXT: nop
 ; CHECK-NEXT: nop
-; CHECK-NEXT: bic [[REG]], [[REG]], {{.+}} ; 0xc000000f
-; CHECK-NEXT: blx r0
+; CHECK-NEXT: bl {{.*}} call_target
 ; CHECK-NEXT: {{[0-9a-f]*}}0:
 
 ; An indirect call sequence uses the right mask and register-call sequence.
@@ -131,7 +106,7 @@ next:
 
 ; CHECK-LABEL:<test_indirect_call>:
 ;             Search for bundle alignment of first call.
-; CHECK:      {{[0-9a-f]*}}c: {{.+}} blx
+; CHECK:      {{[0-9a-f]*}}c: {{.+}} bl
 ; CHECK-NEXT: b
 ; CHECK-NEXT: ldr
 ; CHECK-NEXT: bic [[REG:r[0-3]]], [[REG]], {{.*}} 0xc000000f
@@ -151,7 +126,7 @@ entry:
 
 ; CHECK-LABEL: <test_indirect_call_with_padding_1>:
 ;              Search for bundle alignment of first call.
-; CHECK:      {{[0-9a-f]*}}c: {{.+}} blx
+; CHECK:      {{[0-9a-f]*}}c: {{.+}} bl
 ; CHECK-NEXT: ldr
 ; CHECK-NEXT: nop
 ; CHECK-NEXT: bic [[REG:r[0-3]]], [[REG]], {{.*}} 0xc000000f
@@ -178,7 +153,7 @@ next3:
 
 ; CHECK-LABEL: <test_indirect_call_with_padding_2>:
 ;              Search for bundle alignment of first call.
-; CHECK:      {{[0-9a-f]*}}c: {{.+}} blx
+; CHECK:      {{[0-9a-f]*}}c: {{.+}} bl
 ; CHECK-NEXT: b
 ; CHECK-NEXT: b
 ; CHECK-NEXT: b
@@ -206,7 +181,7 @@ next2:
 }
 ; CHECK-LABEL: <test_indirect_call_with_padding_3>:
 ;              Search for bundle alignment of first call.
-; CHECK:      {{[0-9a-f]*}}c: {{.+}} blx
+; CHECK:      {{[0-9a-f]*}}c: {{.+}} bl
 ; CHECK-NEXT: b
 ; CHECK-NEXT: b
 ; CHECK-NEXT: ldr
@@ -228,7 +203,7 @@ next:
 }
 ; CHECK-LABEL:<test_ret>:
 ;             Search for bundle alignment of first call.
-; CHECK:      {{[0-9a-f]*}}c: {{.+}} blx
+; CHECK:      {{[0-9a-f]*}}c: {{.+}} bl
 ; CHECK-NEXT: b
 ; CHECK-NEXT: add sp, sp
 ; CHECK-NEXT: bic sp, sp, {{.+}} ; 0xc0000000
@@ -245,7 +220,7 @@ define internal void @test_ret_with_padding() {
 
 ; CHECK-LABEL:<test_ret_with_padding>:
 ;             Search for bundle alignment of first call.
-; CHECK:      {{[0-9a-f]*}}c: {{.+}} blx
+; CHECK:      {{[0-9a-f]*}}c: {{.+}} bl
 ; CHECK-NEXT: add sp, sp
 ; CHECK-NEXT: bic sp, sp, {{.+}} ; 0xc0000000
 ; CHECK-NEXT: pop {lr}
@@ -264,7 +239,7 @@ entry:
 
 ; CHECK-LABEL: test_store
 ;             Search for call at end of bundle.
-; CHECK:      {{[0-9a-f]*}}c: {{.+}} blx
+; CHECK:      {{[0-9a-f]*}}c: {{.+}} bl
 ; CHECK-NEXT: mov [[REG:r[0-9]]], #0
 ; CHECK-NEXT: mov
 ; CHECK-NEXT: bic [[REG]], [[REG]], {{.+}} ; 0xc0000000
@@ -283,7 +258,7 @@ next:
 }
 ; CHECK-LABEL: test_store_with_padding
 ;             Search for call at end of bundle.
-; CHECK:      {{[0-9a-f]*}}c: {{.+}} blx
+; CHECK:      {{[0-9a-f]*}}c: {{.+}} bl
 ; CHECK-NEXT: b
 ; CHECK-NEXT: mov [[REG:r[0-9]]], #0
 ; CHECK-NEXT: mov
@@ -303,7 +278,7 @@ entry:
 
 ; CHECK-LABEL: test_load
 ;             Search for call at end of bundle.
-; CHECK:      {{[0-9a-f]*}}c: {{.+}} blx
+; CHECK:      {{[0-9a-f]*}}c: {{.+}} bl
 ; CHECK-NEXT: mov [[REG:r[0-9]]], #0
 ; CHECK-NEXT: bic [[REG]], [[REG]], {{.+}} ; 0xc0000000
 ; CHECK-NEXT: ldr r{{.+}}[[REG]]
@@ -323,7 +298,7 @@ next2:
 
 ; CHECK-LABEL: test_load_with_padding
 ;             Search for call at end of bundle.
-; CHECK:      {{[0-9a-f]*}}c: {{.+}} blx
+; CHECK:      {{[0-9a-f]*}}c: {{.+}} bl
 ; CHECK-NEXT: b
 ; CHECK-NEXT: b
 ; CHECK-NEXT: mov [[REG:r[0-9]]], #0

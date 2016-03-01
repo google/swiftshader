@@ -25,11 +25,7 @@ entry:
 ; DEFAULT-LABEL: testCallRegular
 
 ; ARM32-NONSFI-LABEL: testCallRegular
-; ARM32-NONSFI:      movw [[REG:r[0-9]+]], {{.*}} R_ARM_MOVW_PREL_NC GOTOFF{{.*}}testLoadBasic
-; ARM32-NONSFI-NEXT: movt [[REG:r[0-9]+]], {{.*}} R_ARM_MOVT_PREL GOTOFF{{.*}}testLoadBasic
-; ARM32-NONSFI-NEXT: ldr [[GOTOFF:r[0-9]+]], [pc, [[REG]]]
-; ARM32-NONSFI-NEXT: add [[CT:r[0-9]+]], {{.*}}, [[CT]]
-; ARM32-NONSFI:      blx [[CT]]
+; ARM32-NONSFI: bl {{.*}} R_ARM_CALL {{.*}}testLoadBasic
 
 define internal double @testCallBuiltin(double %val) {
 entry:
@@ -42,11 +38,7 @@ entry:
 ; DEFAULT-LABEL: testCallBuiltin
 
 ; ARM32-NONSFI-LABEL: testCallBuiltin
-; ARM32-NONSFI:      movw [[REG:r[0-9]+]], {{.*}} R_ARM_MOVW_PREL_NC GOTOFF{{.*}}fmod
-; ARM32-NONSFI-NEXT: movt [[REG:r[0-9]+]], {{.*}} R_ARM_MOVT_PREL GOTOFF{{.*}}fmod
-; ARM32-NONSFI-NEXT: ldr [[GOTOFF:r[0-9]+]], [pc, [[REG]]]
-; ARM32-NONSFI-NEXT: add [[CT:r[0-9]+]], {{.*}}, [[CT]]
-; ARM32-NONSFI:      blx [[CT]]
+; ARM32-NONSFI: bl {{.*}} R_ARM_CALL {{.*}}fmod
 
 define internal i32 @testLoadBasic() {
 entry:

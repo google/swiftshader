@@ -3592,10 +3592,7 @@ void TargetARM32::lowerBr(const InstBr *Instr) {
 }
 
 void TargetARM32::lowerCall(const InstCall *Instr) {
-  // Note: Keep original call target. This allows us to call the correct
-  // postamble helper, even if the CallTarget gets modified during lowering.
-  Operand *OrigCallTarget = Instr->getCallTarget();
-  Operand *CallTarget = OrigCallTarget;
+  Operand *CallTarget = Instr->getCallTarget();
   if (Instr->isTargetHelperCall()) {
     auto TargetHelperPreamble = ARM32HelpersPreamble.find(CallTarget);
     if (TargetHelperPreamble != ARM32HelpersPreamble.end()) {
@@ -3720,9 +3717,12 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
     }
   }
 
-  // Note: To allow far calls, even for constant relocatables, we force
-  // the call target into a register, and make an indirect call.
-  CallTarget = legalizeToReg(CallTarget);
+  // Allow ConstantRelocatable to be left alone as a direct call, but force
+  // other constants like ConstantInteger32 to be in a register and make it an
+  // indirect call.
+  if (!llvm::isa<ConstantRelocatable>(CallTarget)) {
+    CallTarget = legalize(CallTarget, Legal_Reg);
+  }
 
   // Copy arguments to be passed in registers to the appropriate registers.
   CfgVector<Variable *> RegArgs;
@@ -3777,7 +3777,7 @@ void TargetARM32::lowerCall(const InstCall *Instr) {
   }
 
   if (Instr->isTargetHelperCall()) {
-    auto TargetHelpersPostamble = ARM32HelpersPostamble.find(OrigCallTarget);
+    auto TargetHelpersPostamble = ARM32HelpersPostamble.find(CallTarget);
     if (TargetHelpersPostamble != ARM32HelpersPostamble.end()) {
       (this->*TargetHelpersPostamble->second)(Instr);
     }

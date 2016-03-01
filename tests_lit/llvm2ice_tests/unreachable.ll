@@ -9,12 +9,12 @@
 
 ; RUN: %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command %p2i --filetype=asm --assemble \
-; RUN:   --disassemble --target arm32 -i %s --args -O2 \
+; RUN:   --disassemble --target arm32 -i %s --args -O2 --skip-unimplemented \
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32 %s
 ; RUN: %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command %p2i --filetype=asm --assemble \
-; RUN:   --disassemble --target arm32 -i %s --args -Om1 \
+; RUN:   --disassemble --target arm32 -i %s --args -Om1 --skip-unimplemented \
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32 %s
 
@@ -41,7 +41,5 @@ return:                                           ; preds = %entry
 ; ARM32-LABEL: divide
 ; ARM32: tst
 ; ARM32: .word 0xe7fedef0
-; ARM32: movw [[CALL:r[0-9]]], {{.+}} __divsi3
-; ARM32: movt [[CALL]]
-; ARM32; blx [[CALL]]
+; ARM32: bl {{.*}} __divsi3
 ; ARM32: bx lr
