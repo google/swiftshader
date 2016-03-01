@@ -2729,7 +2729,7 @@ void TargetARM32::lowerInt64Arithmetic(InstArithmetic::OpKind Op,
     Variable *T2 = makeReg(IceType_i32);
     Variable *TA_Hi = makeReg(IceType_i32);
     Variable *TA_Lo = makeReg(IceType_i32);
-    Variable *Src0RLo = SrcsLo.src0R(this);
+    Variable *Src0RLo = SrcsLo.unswappedSrc0R(this);
     Variable *Src0RHi = SrcsHi.unswappedSrc0R(this);
     Variable *Src1RLo = SrcsLo.unswappedSrc1R(this);
     _rsb(T0, Src1RLo, _32);
@@ -6488,7 +6488,7 @@ void TargetARM32::ComputationTracker::recordProducers(CfgNode *Node) {
 
 TargetARM32::Sandboxer::Sandboxer(TargetARM32 *Target,
                                   InstBundleLock::Option BundleOption)
-    : Bundler(Target, BundleOption), Target(Target) {}
+    : Target(Target), BundleOption(BundleOption) {}
 
 TargetARM32::Sandboxer::~Sandboxer() {}
 
@@ -6511,25 +6511,36 @@ static bool baseNeedsBic(Variable *Base) {
 }
 } // end of anonymous namespace
 
+void TargetARM32::Sandboxer::createAutoBundle() {
+  Bundler = makeUnique<AutoBundle>(Target, BundleOption);
+}
+
 void TargetARM32::Sandboxer::add_sp(Operand *AddAmount) {
   Variable *SP = Target->getPhysicalRegister(RegARM32::Reg_sp);
-  Target->_add(SP, SP, AddAmount);
-  if (Target->NeedSandboxing) {
-    Target->_bic(SP, SP, memOpBicMask(Target->Func));
+  if (!Target->NeedSandboxing) {
+    Target->_add(SP, SP, AddAmount);
+    return;
   }
+  createAutoBundle();
+  Target->_add(SP, SP, AddAmount);
+  Target->_bic(SP, SP, memOpBicMask(Target->Func));
 }
 
 void TargetARM32::Sandboxer::align_sp(size_t Alignment) {
   Variable *SP = Target->getPhysicalRegister(RegARM32::Reg_sp);
-  Target->alignRegisterPow2(SP, Alignment);
-  if (Target->NeedSandboxing) {
-    Target->_bic(SP, SP, memOpBicMask(Target->Func));
+  if (!Target->NeedSandboxing) {
+    Target->alignRegisterPow2(SP, Alignment);
+    return;
   }
+  createAutoBundle();
+  Target->alignRegisterPow2(SP, Alignment);
+  Target->_bic(SP, SP, memOpBicMask(Target->Func));
 }
 
 InstARM32Call *TargetARM32::Sandboxer::bl(Variable *ReturnReg,
                                           Operand *CallTarget) {
   if (Target->NeedSandboxing) {
+    createAutoBundle();
     if (auto *CallTargetR = llvm::dyn_cast<Variable>(CallTarget)) {
       Target->_bic(CallTargetR, CallTargetR,
                    indirectBranchBicMask(Target->Func));
@@ -6542,6 +6553,7 @@ void TargetARM32::Sandboxer::ldr(Variable *Dest, OperandARM32Mem *Mem,
                                  CondARM32::Cond Pred) {
   Variable *MemBase = Mem->getBase();
   if (Target->NeedSandboxing && baseNeedsBic(MemBase)) {
+    createAutoBundle();
     assert(!Mem->isRegReg());
     Target->_bic(MemBase, MemBase, memOpBicMask(Target->Func), Pred);
   }
@@ -6552,6 +6564,7 @@ void TargetARM32::Sandboxer::ldrex(Variable *Dest, OperandARM32Mem *Mem,
                                    CondARM32::Cond Pred) {
   Variable *MemBase = Mem->getBase();
   if (Target->NeedSandboxing && baseNeedsBic(MemBase)) {
+    createAutoBundle();
     assert(!Mem->isRegReg());
     Target->_bic(MemBase, MemBase, memOpBicMask(Target->Func), Pred);
   }
@@ -6560,14 +6573,18 @@ void TargetARM32::Sandboxer::ldrex(Variable *Dest, OperandARM32Mem *Mem,
 
 void TargetARM32::Sandboxer::reset_sp(Variable *Src) {
   Variable *SP = Target->getPhysicalRegister(RegARM32::Reg_sp);
-  Target->_mov_redefined(SP, Src);
-  if (Target->NeedSandboxing) {
-    Target->_bic(SP, SP, memOpBicMask(Target->Func));
+  if (!Target->NeedSandboxing) {
+    Target->_mov_redefined(SP, Src);
+    return;
   }
+  createAutoBundle();
+  Target->_mov_redefined(SP, Src);
+  Target->_bic(SP, SP, memOpBicMask(Target->Func));
 }
 
 void TargetARM32::Sandboxer::ret(Variable *RetAddr, Variable *RetValue) {
   if (Target->NeedSandboxing) {
+    createAutoBundle();
     Target->_bic(RetAddr, RetAddr, indirectBranchBicMask(Target->Func));
   }
   Target->_ret(RetAddr, RetValue);
@@ -6577,6 +6594,7 @@ void TargetARM32::Sandboxer::str(Variable *Src, OperandARM32Mem *Mem,
                                  CondARM32::Cond Pred) {
   Variable *MemBase = Mem->getBase();
   if (Target->NeedSandboxing && baseNeedsBic(MemBase)) {
+    createAutoBundle();
     assert(!Mem->isRegReg());
     Target->_bic(MemBase, MemBase, memOpBicMask(Target->Func), Pred);
   }
@@ -6587,6 +6605,7 @@ void TargetARM32::Sandboxer::strex(Variable *Dest, Variable *Src,
                                    OperandARM32Mem *Mem, CondARM32::Cond Pred) {
   Variable *MemBase = Mem->getBase();
   if (Target->NeedSandboxing && baseNeedsBic(MemBase)) {
+    createAutoBundle();
     assert(!Mem->isRegReg());
     Target->_bic(MemBase, MemBase, memOpBicMask(Target->Func), Pred);
   }
@@ -6595,10 +6614,13 @@ void TargetARM32::Sandboxer::strex(Variable *Dest, Variable *Src,
 
 void TargetARM32::Sandboxer::sub_sp(Operand *SubAmount) {
   Variable *SP = Target->getPhysicalRegister(RegARM32::Reg_sp);
-  Target->_sub(SP, SP, SubAmount);
-  if (Target->NeedSandboxing) {
-    Target->_bic(SP, SP, memOpBicMask(Target->Func));
+  if (!Target->NeedSandboxing) {
+    Target->_sub(SP, SP, SubAmount);
+    return;
   }
+  createAutoBundle();
+  Target->_sub(SP, SP, SubAmount);
+  Target->_bic(SP, SP, memOpBicMask(Target->Func));
 }
 
 TargetDataARM32::TargetDataARM32(GlobalContext *Ctx)

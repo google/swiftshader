@@ -149,31 +149,39 @@ entry:
 ; ARM110P2-NEXT:        .bundle_unlock
 ; ARM110P2-NEXT:        nop
 ; ARM110P2-NEXT:        nop
-; ARM110P2-NEXT:        .bundle_lock
 ; ARM110P2-NEXT:        add     ip, sp, #32
+; ARM110P2-NEXT:        nop
+; ARM110P2-NEXT:        nop
+; ARM110P2-NEXT:        .bundle_lock
 ; ARM110P2-NEXT:        bic     ip, ip, #3221225472
 ; ARM110P2-NEXT:        vst1.32 q0, [ip]
 ; ARM110P2-NEXT:        .bundle_unlock
 ; ARM110P2-NEXT:        nop
 ; ARM110P2-NEXT:        nop
 ; ARM110P2-NEXT:        # [sp, #32] = def.pseudo
-; ARM110P2-NEXT:        .bundle_lock
 ; ARM110P2-NEXT:        add     ip, sp, #16
+; ARM110P2-NEXT:        nop
+; ARM110P2-NEXT:        nop
+; ARM110P2-NEXT:        .bundle_lock
 ; ARM110P2-NEXT:        bic     ip, ip, #3221225472
 ; ARM110P2-NEXT:        vst1.32 q1, [ip]
 ; ARM110P2-NEXT:        .bundle_unlock
 ; ARM110P2-NEXT:        nop
 ; ARM110P2-NEXT:        nop
 ; ARM110P2-NEXT:        # [sp, #16] = def.pseudo
-; ARM110P2-NEXT:        .bundle_lock
 ; ARM110P2-NEXT:        add     ip, sp, #32
+; ARM110P2-NEXT:        nop
+; ARM110P2-NEXT:        nop
+; ARM110P2-NEXT:        .bundle_lock
 ; ARM110P2-NEXT:        bic     ip, ip, #3221225472
 ; ARM110P2-NEXT:        vld1.32 q0, [ip]
 ; ARM110P2-NEXT:        .bundle_unlock
 ; ARM110P2-NEXT:        nop
 ; ARM110P2-NEXT:        nop
-; ARM110P2-NEXT:        .bundle_lock
 ; ARM110P2-NEXT:        add     ip, sp, #16
+; ARM110P2-NEXT:        nop
+; ARM110P2-NEXT:        nop
+; ARM110P2-NEXT:        .bundle_lock
 ; ARM110P2-NEXT:        bic     ip, ip, #3221225472
 ; ARM110P2-NEXT:        vld1.32 q1, [ip]
 ; ARM110P2-NEXT:        .bundle_unlock
@@ -182,15 +190,11 @@ entry:
 ; ARM110P2-NEXT:        vmul.i32        q0, q0, q1
 ; ARM110P2-NEXT:        nop
 ; ARM110P2-NEXT:        nop
-; ARM110P2-NEXT:        .bundle_lock
 ; ARM110P2-NEXT:        vst1.32 q0, [sp]
-; ARM110P2-NEXT:        .bundle_unlock
 ; ARM110P2-NEXT:        nop
 ; ARM110P2-NEXT:        nop
 ; ARM110P2-NEXT:        # [sp] = def.pseudo
-; ARM110P2-NEXT:        .bundle_lock
 ; ARM110P2-NEXT:        vld1.32 q0, [sp]
-; ARM110P2-NEXT:        .bundle_unlock
 ; ARM110P2-NEXT:        nop
 ; ARM110P2-NEXT:        nop
 ; ARM110P2-NEXT:        .bundle_lock

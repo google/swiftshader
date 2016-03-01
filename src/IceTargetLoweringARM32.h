@@ -22,6 +22,8 @@
 #include "IceRegistersARM32.h"
 #include "IceTargetLowering.h"
 
+#include <utility>
+
 namespace Ice {
 namespace ARM32 {
 
@@ -802,10 +804,14 @@ protected:
   }
   void _umull(Variable *DestLo, Variable *DestHi, Variable *Src0,
               Variable *Src1, CondARM32::Cond Pred = CondARM32::AL) {
+    // umull requires DestLo and DestHi to be assigned to different GPRs. The
+    // following lines create overlapping liveness ranges for both variables. If
+    // either one of them is live, then they are both going to be live, and thus
+    // assigned to different registers; if they are both dead, then DCE will
+    // kick in and delete the following three instructions.
+    Context.insert<InstFakeDef>(DestHi);
     Context.insert<InstARM32Umull>(DestLo, DestHi, Src0, Src1, Pred);
-    // Model the modification to the second dest as a fake def. Note that the
-    // def is not predicated.
-    Context.insert<InstFakeDef>(DestHi, DestLo);
+    Context.insert<InstFakeDef>(DestHi, DestLo)->setDestRedefined();
     Context.insert<InstFakeUse>(DestHi);
   }
   void _uxt(Variable *Dest, Variable *Src0,
@@ -1040,8 +1046,11 @@ protected:
     void sub_sp(Operand *SubAmount);
 
   private:
-    AutoBundle Bundler;
-    TargetARM32 *Target;
+    TargetARM32 *const Target;
+    const InstBundleLock::Option BundleOption;
+    std::unique_ptr<AutoBundle> Bundler;
+
+    void createAutoBundle();
   };
 
   class PostLoweringLegalizer {
