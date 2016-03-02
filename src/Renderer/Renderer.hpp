@@ -86,11 +86,10 @@ namespace sw
 
 	struct Query
 	{
-		Query()
+		enum Type { FRAGMENTS_PASSED, TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN };
+
+		Query(Type type) : building(false), reference(0), data(0), type(type)
 		{
-			building = false;
-			reference = 0;
-			data = 0;
 		}
 
 		void begin()
@@ -107,6 +106,8 @@ namespace sw
 		bool building;
 		volatile int reference;
 		volatile unsigned int data;
+
+		const Type type;
 	};
 
 	struct DrawData

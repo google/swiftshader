@@ -492,6 +492,8 @@ namespace sw
 		bool colorVertexEnable;
 
 		bool occlusionEnabled;
+		bool transformFeedbackQueryEnabled;
+		bool transformFeedbackEnabled;
 
 		// Pixel processor states
 		bool rasterizerDiscard;

@@ -303,12 +303,17 @@ namespace sw
 
 			if(queries.size() != 0)
 			{
+				draw->queries = new std::list<Query*>();
+				bool includePrimitivesWrittenQueries = vertexState.transformFeedbackQueryEnabled && vertexState.transformFeedbackEnabled;
 				for(std::list<Query*>::iterator query = queries.begin(); query != queries.end(); query++)
 				{
-					atomicIncrement(&(*query)->reference);
+					Query* q = *query;
+					if(includePrimitivesWrittenQueries || (q->type != Query::TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN))
+					{
+						atomicIncrement(&(q->reference));
+						draw->queries->push_back(q);
+					}
 				}
-
-				draw->queries = new std::list<Query*>(queries);
 			}
 
 			draw->drawType = drawType;
@@ -881,12 +886,6 @@ namespace sw
 
 		pixelProgress[cluster].processedPrimitives = primitive + count;
 
-		if(pixelProgress[cluster].processedPrimitives >= draw.count)
-		{
-			pixelProgress[cluster].drawCall++;
-			pixelProgress[cluster].processedPrimitives = 0;
-		}
-
 		int ref = atomicDecrement(&primitiveProgress[unit].references);
 
 		if(ref == 0)
@@ -911,9 +910,19 @@ namespace sw
 					{
 						Query *query = *q;
 
-						for(int cluster = 0; cluster < clusterCount; cluster++)
+						switch(query->type)
 						{
-							atomicAdd((volatile int*)&query->data, data.occlusion[cluster]);
+						case Query::FRAGMENTS_PASSED:
+							for(int cluster = 0; cluster < clusterCount; cluster++)
+							{
+								atomicAdd((volatile int*)&query->data, data.occlusion[cluster]);
+							}
+							break;
+						case Query::TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN:
+							atomicAdd((volatile int*)&query->data, pixelProgress[cluster].processedPrimitives);
+							break;
+						default:
+							break;
 						}
 
 						atomicDecrement(&query->reference);
@@ -970,6 +979,12 @@ namespace sw
 				draw.references = -1;
 				resumeApp->signal();
 			}
+		}
+
+		if(pixelProgress[cluster].processedPrimitives >= draw.count)
+		{
+			pixelProgress[cluster].drawCall++;
+			pixelProgress[cluster].processedPrimitives = 0;
 		}
 
 		pixelProgress[cluster].executing = false;

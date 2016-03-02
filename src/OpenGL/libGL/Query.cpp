@@ -39,8 +39,19 @@ void Query::begin()
 {
     if(mQuery == NULL)
     {
-		mQuery = new sw::Query();
-        
+		sw::Query::Type type;
+		switch(mType)
+		{
+		case GL_ANY_SAMPLES_PASSED:
+		case GL_ANY_SAMPLES_PASSED_CONSERVATIVE:
+			type = sw::Query::FRAGMENTS_PASSED;
+			break;
+		default:
+			ASSERT(false);
+		}
+
+		mQuery = new sw::Query(type);
+
 		if(!mQuery)
         {
             return error(GL_OUT_OF_MEMORY);

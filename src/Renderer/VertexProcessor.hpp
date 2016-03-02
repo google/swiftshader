@@ -69,6 +69,8 @@ namespace sw
 			bool localViewerActive                            : 1;
 			bool pointSizeActive                              : 1;
 			bool pointScaleActive                             : 1;
+			bool transformFeedbackQueryEnabled                : 1;
+			uint64_t transformFeedbackEnabled                 : 64;
 
 			bool preTransformed : 1;
 			bool superSampling  : 1;
@@ -258,6 +260,9 @@ namespace sw
 		virtual void setPointScaleA(float pointScaleA);
 		virtual void setPointScaleB(float pointScaleB);
 		virtual void setPointScaleC(float pointScaleC);
+
+		virtual void setTransformFeedbackQueryEnabled(bool enable);
+		virtual void enableTransformFeedback(uint64_t enable);
 
 	protected:
 		const Matrix &getModelTransform(int i);
