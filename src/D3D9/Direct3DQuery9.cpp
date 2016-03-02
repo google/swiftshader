@@ -24,7 +24,7 @@ namespace D3D9
 	{
 		if(type == D3DQUERYTYPE_OCCLUSION)
 		{
-			query = new sw::Query();
+			query = new sw::Query(sw::Query::FRAGMENTS_PASSED);
 		}
 		else
 		{

@@ -642,6 +642,16 @@ namespace sw
 		point.pointScaleC = pointScaleC;
 	}
 
+	void VertexProcessor::setTransformFeedbackQueryEnabled(bool enable)
+	{
+		context->transformFeedbackQueryEnabled = enable;
+	}
+
+	void VertexProcessor::enableTransformFeedback(uint64_t enable)
+	{
+		context->transformFeedbackEnabled = enable;
+	}
+
 	const Matrix &VertexProcessor::getModelTransform(int i)
 	{
 		updateTransform();
@@ -872,6 +882,9 @@ namespace sw
 		state.preTransformed = context->preTransformed;
 		state.superSampling = context->getSuperSampleCount() > 1;
 		state.multiSampling = context->getMultiSampleCount() > 1;
+
+		state.transformFeedbackQueryEnabled = context->transformFeedbackQueryEnabled;
+		state.transformFeedbackEnabled = context->transformFeedbackEnabled;
 
 		for(int i = 0; i < VERTEX_ATTRIBUTES; i++)
 		{

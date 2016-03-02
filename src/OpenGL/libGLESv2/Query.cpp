@@ -39,8 +39,22 @@ void Query::begin()
 {
     if(mQuery == NULL)
     {
-		mQuery = new sw::Query();
-        
+		sw::Query::Type type;
+		switch(mType)
+		{
+		case GL_ANY_SAMPLES_PASSED_EXT:
+		case GL_ANY_SAMPLES_PASSED_CONSERVATIVE_EXT:
+			type = sw::Query::FRAGMENTS_PASSED;
+			break;
+		case GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN:
+			type = sw::Query::TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN;
+			break;
+		default:
+			ASSERT(false);
+		}
+
+		mQuery = new sw::Query(type);
+
 		if(!mQuery)
         {
             return error(GL_OUT_OF_MEMORY);
@@ -51,7 +65,18 @@ void Query::begin()
 
 	mQuery->begin();
 	device->addQuery(mQuery);
-	device->setOcclusionEnabled(true);
+	switch(mType)
+	{
+	case GL_ANY_SAMPLES_PASSED_EXT:
+	case GL_ANY_SAMPLES_PASSED_CONSERVATIVE_EXT:
+		device->setOcclusionEnabled(true);
+		break;
+	case GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN:
+		device->setTransformFeedbackQueryEnabled(true);
+		break;
+	default:
+		ASSERT(false);
+	}
 }
 
 void Query::end()
@@ -65,8 +90,19 @@ void Query::end()
 
     mQuery->end();
 	device->removeQuery(mQuery);
-	device->setOcclusionEnabled(false);
-    
+	switch(mType)
+	{
+	case GL_ANY_SAMPLES_PASSED_EXT:
+	case GL_ANY_SAMPLES_PASSED_CONSERVATIVE_EXT:
+		device->setOcclusionEnabled(false);
+		break;
+	case GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN:
+		device->setTransformFeedbackQueryEnabled(false);
+		break;
+	default:
+		ASSERT(false);
+	}
+
     mStatus = GL_FALSE;
     mResult = GL_FALSE;
 }
@@ -105,17 +141,17 @@ GLboolean Query::testQuery()
     {
         if(!mQuery->building && mQuery->reference == 0)
         {
-			unsigned int numPixels = mQuery->data;
+			unsigned int resultSum = mQuery->data;
             mStatus = GL_TRUE;
 
             switch(mType)
             {
             case GL_ANY_SAMPLES_PASSED_EXT:
             case GL_ANY_SAMPLES_PASSED_CONSERVATIVE_EXT:
-                mResult = (numPixels > 0) ? GL_TRUE : GL_FALSE;
+				mResult = (resultSum > 0) ? GL_TRUE : GL_FALSE;
                 break;
             case GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN:
-                UNIMPLEMENTED();
+				mResult = resultSum;
                 break;
             default:
                 ASSERT(false);
