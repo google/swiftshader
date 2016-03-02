@@ -201,7 +201,7 @@ namespace es2
 				sw::SliceRect sliceRect;
 				if(renderTarget[i]->getClearRect(x0, y0, width, height, sliceRect))
 				{
-					int depth = renderTarget[i]->getDepth();
+					int depth = sw::max(renderTarget[i]->getDepth(), 1);
 					for(sliceRect.slice = 0; sliceRect.slice < depth; ++sliceRect.slice)
 					{
 						clear(rgba, FORMAT_A32B32G32R32F, renderTarget[i], sliceRect, rgbaMask);
