@@ -325,6 +325,9 @@ protected:
              CondARM32::Cond Pred = CondARM32::AL) {
     constexpr bool SetFlags = true;
     Context.insert<InstARM32Add>(Dest, Src0, Src1, Pred, SetFlags);
+    if (SetFlags) {
+      Context.insert<InstFakeUse>(Dest);
+    }
   }
   void _adc(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
@@ -395,6 +398,9 @@ protected:
              CondARM32::Cond Pred = CondARM32::AL) {
     constexpr bool SetFlags = true;
     Context.insert<InstARM32Lsl>(Dest, Src0, Src1, Pred, SetFlags);
+    if (SetFlags) {
+      Context.insert<InstFakeUse>(Dest);
+    }
   }
   void _lsr(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
@@ -711,6 +717,9 @@ protected:
              CondARM32::Cond Pred = CondARM32::AL) {
     constexpr bool SetFlags = true;
     Context.insert<InstARM32Orr>(Dest, Src0, Src1, Pred, SetFlags);
+    if (SetFlags) {
+      Context.insert<InstFakeUse>(Dest);
+    }
   }
   void _push(const VarList &Sources) { Context.insert<InstARM32Push>(Sources); }
   void _pop(const VarList &Dests) {
@@ -734,6 +743,9 @@ protected:
              CondARM32::Cond Pred = CondARM32::AL) {
     constexpr bool SetFlags = true;
     Context.insert<InstARM32Rsc>(Dest, Src0, Src1, Pred, SetFlags);
+    if (SetFlags) {
+      Context.insert<InstFakeUse>(Dest);
+    }
   }
   void _rsc(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
@@ -743,6 +755,9 @@ protected:
              CondARM32::Cond Pred = CondARM32::AL) {
     constexpr bool SetFlags = true;
     Context.insert<InstARM32Rsb>(Dest, Src0, Src1, Pred, SetFlags);
+    if (SetFlags) {
+      Context.insert<InstFakeUse>(Dest);
+    }
   }
   void _rsb(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
@@ -756,6 +771,9 @@ protected:
              CondARM32::Cond Pred = CondARM32::AL) {
     constexpr bool SetFlags = true;
     Context.insert<InstARM32Sbc>(Dest, Src0, Src1, Pred, SetFlags);
+    if (SetFlags) {
+      Context.insert<InstFakeUse>(Dest);
+    }
   }
   void _sdiv(Variable *Dest, Variable *Src0, Variable *Src1,
              CondARM32::Cond Pred = CondARM32::AL) {
@@ -788,6 +806,9 @@ protected:
              CondARM32::Cond Pred = CondARM32::AL) {
     constexpr bool SetFlags = true;
     Context.insert<InstARM32Sub>(Dest, Src0, Src1, Pred, SetFlags);
+    if (SetFlags) {
+      Context.insert<InstFakeUse>(Dest);
+    }
   }
   void _sxt(Variable *Dest, Variable *Src0,
             CondARM32::Cond Pred = CondARM32::AL) {

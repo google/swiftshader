@@ -594,10 +594,13 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
     Variable *Dest = Instr->getDest();
     Operand *Src0 = Instr->getSrc(0);
     const Type DestTy = Dest->getType();
+    const Type SrcTy = Src0->getType();
     auto *CastInstr = llvm::cast<InstCast>(Instr);
     const InstCast::OpKind CastKind = CastInstr->getCastKind();
 
-    if (isVectorType(DestTy)) {
+    if (isVectorType(DestTy) && CastKind != InstCast::Bitcast) {
+      // Bitcasting is done with function calls (e.g., v8i1 -> i8), or regular
+      // vmov (e.g., v4i32 -> v4f32)
       scalarizeInstruction(
           Dest, [this, CastKind](Variable *Dest, Variable *Src) {
             return Context.insert<InstCast>(CastKind, Dest, Src);
@@ -615,7 +618,7 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
         return;
       }
       const bool DestIsSigned = CastKind == InstCast::Fptosi;
-      const bool Src0IsF32 = isFloat32Asserting32Or64(Src0->getType());
+      const bool Src0IsF32 = isFloat32Asserting32Or64(SrcTy);
       Operand *TargetHelper = Ctx->getConstantExternSym(
           Src0IsF32 ? (DestIsSigned ? H_fptosi_f32_i64 : H_fptoui_f32_i64)
                     : (DestIsSigned ? H_fptosi_f64_i64 : H_fptoui_f64_i64));
@@ -628,7 +631,7 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
     }
     case InstCast::Sitofp:
     case InstCast::Uitofp: {
-      if (Src0->getType() != IceType_i64) {
+      if (SrcTy != IceType_i64) {
         return;
       }
       const bool SourceIsSigned = CastKind == InstCast::Sitofp;
@@ -640,6 +643,54 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
       auto *Call = Context.insert<InstCall>(MaxArgs, Dest, TargetHelper,
                                             NoTailCall, IsTargetHelperCall);
       Call->addArg(Src0);
+      Instr->setDeleted();
+      return;
+    }
+    case InstCast::Bitcast: {
+      if (DestTy == SrcTy) {
+        return;
+      }
+      Variable *CallDest = Dest;
+      const char *HelperName = nullptr;
+      switch (DestTy) {
+      default:
+        return;
+      case IceType_i8:
+        assert(SrcTy == IceType_v8i1);
+        HelperName = H_bitcast_8xi1_i8;
+        CallDest = Func->makeVariable(IceType_i32);
+        break;
+      case IceType_i16:
+        assert(SrcTy == IceType_v16i1);
+        HelperName = H_bitcast_16xi1_i16;
+        CallDest = Func->makeVariable(IceType_i32);
+        break;
+      case IceType_v8i1: {
+        assert(SrcTy == IceType_i8);
+        HelperName = H_bitcast_i8_8xi1;
+        Variable *Src0AsI32 = Func->makeVariable(stackSlotType());
+        // Arguments to functions are required to be at least 32 bits wide.
+        Context.insert<InstCast>(InstCast::Zext, Src0AsI32, Src0);
+        Src0 = Src0AsI32;
+      } break;
+      case IceType_v16i1: {
+        assert(SrcTy == IceType_i16);
+        HelperName = H_bitcast_i16_16xi1;
+        Variable *Src0AsI32 = Func->makeVariable(stackSlotType());
+        // Arguments to functions are required to be at least 32 bits wide.
+        Context.insert<InstCast>(InstCast::Zext, Src0AsI32, Src0);
+        Src0 = Src0AsI32;
+      } break;
+      }
+      assert(HelperName != nullptr);
+      constexpr SizeT MaxSrcs = 1;
+      InstCall *Call = makeHelperCall(HelperName, CallDest, MaxSrcs);
+      Call->addArg(Src0);
+      Context.insert(Call);
+      // The PNaCl ABI disallows i8/i16 return types, so truncate the helper
+      // call result to the appropriate type as necessary.
+      if (CallDest->getType() != Dest->getType())
+        Context.insert<InstCast>(InstCast::Trunc, Dest, CallDest);
       Instr->setDeleted();
       return;
     }
@@ -4022,10 +4073,14 @@ void TargetARM32::lowerCast(const InstCast *Instr) {
       UnimplementedLoweringError(this, Instr);
       break;
     case IceType_i8:
-      UnimplementedLoweringError(this, Instr);
+      assert(Src0->getType() == IceType_v8i1);
+      llvm::report_fatal_error(
+          "i8 to v8i1 conversion should have been prelowered.");
       break;
     case IceType_i16:
-      UnimplementedLoweringError(this, Instr);
+      assert(Src0->getType() == IceType_v16i1);
+      llvm::report_fatal_error(
+          "i16 to v16i1 conversion should have been prelowered.");
       break;
     case IceType_i32:
     case IceType_f32: {
@@ -4065,14 +4120,26 @@ void TargetARM32::lowerCast(const InstCast *Instr) {
       lowerAssign(InstAssign::create(Func, Dest, T));
       break;
     }
-    case IceType_v4i1:
     case IceType_v8i1:
+      assert(Src0->getType() == IceType_i8);
+      llvm::report_fatal_error(
+          "v8i1 to i8 conversion should have been prelowered.");
+      break;
     case IceType_v16i1:
+      assert(Src0->getType() == IceType_i16);
+      llvm::report_fatal_error(
+          "v16i1 to i16 conversion should have been prelowered.");
+      break;
+    case IceType_v4i1:
     case IceType_v8i16:
     case IceType_v16i8:
     case IceType_v4f32:
     case IceType_v4i32: {
-      UnimplementedLoweringError(this, Instr);
+      assert(typeWidthInBytes(DestType) == typeWidthInBytes(Src0->getType()));
+      assert(isVectorType(DestType) == isVectorType(Src0->getType()));
+      Variable *T = makeReg(DestType);
+      _mov(T, Src0);
+      _mov(Dest, T);
       break;
     }
     }

@@ -1575,7 +1575,9 @@ void InstARM32Mov::emitIAS(const Cfg *Func) const {
   case IceType_v4f32:
     assert(CondARM32::isUnconditional(Cond) &&
            "Moves on <4 x f32> must be unconditional!");
-    assert(SrcTy == DestTy && "Mov on different vector types");
+    // Mov between different Src and Dest types is used for bitcasting vectors.
+    // We still want to make sure SrcTy is a vector type.
+    assert(isVectorType(SrcTy) && "Mov between vector and scalar.");
     Asm->vorrq(Dest, Src0, Src0);
     return;
   }

@@ -1954,3 +1954,29 @@ branch2:
 ; ARM32-LABEL: phi64Undef
 ; ARM32: mov {{.*}} #0
 ; ARM32: mov {{.*}} #0
+
+define internal i32 @addOneToUpperAfterShift(i64 %value) {
+  %a = add i64 %value, 1
+  %s = lshr i64 %a, 40
+  %t = trunc i64 %s to i32
+  %r = add i32 %t, 1
+  ret i32 %r
+; ARM32-LABEL: addOneToUpperAfterShift
+; ARM32: adds
+; ARM32: adc
+; ARM32: lsr
+; ARM32: add
+}
+
+define internal i32 @subOneToUpperAfterShift(i64 %value) {
+  %a = sub i64 %value, 1
+  %s = lshr i64 %a, 40
+  %t = trunc i64 %s to i32
+  %r = sub i32 %t, 1
+  ret i32 %r
+; ARM32-LABEL: subOneToUpperAfterShift
+; ARM32: subs
+; ARM32: sbc
+; ARM32: lsr
+; ARM32: sub
+}
