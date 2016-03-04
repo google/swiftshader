@@ -70,6 +70,30 @@
       "revId": "8ef33b1b92e1ed8220fd7551dff6400e4c463b20",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "02feade5_15be312b",
+        "filename": "src/Shader/SetupRoutine.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-03-04T21:04:00Z",
+      "side": 1,
+      "message": "I can do that, but that\u0027s not future proof, if we\u0027d ever want geometry shaders, which exist as an extension in OpenGL ES 3.1, but it could be argued that this isn\u0027t a big concern for now.",
+      "parentUuid": "02feade5_f5790557",
+      "range": {
+        "startLine": 39,
+        "startChar": 3,
+        "endLine": 42,
+        "endChar": 4
+      },
+      "revId": "8ef33b1b92e1ed8220fd7551dff6400e4c463b20",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
