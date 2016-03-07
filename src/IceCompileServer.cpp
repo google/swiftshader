@@ -240,6 +240,7 @@ void CLCompileServer::run() {
   }
   transferErrorCode(getReturnValue(
       ExtraFlags, static_cast<ErrorCodes>(Ctx->getErrorStatus()->value())));
+  Ctx->dumpConstantLookupCounts();
 }
 
 } // end of namespace Ice

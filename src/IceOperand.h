@@ -27,6 +27,7 @@
 #include "llvm/Support/Format.h"
 
 #include <limits>
+#include <type_traits>
 
 namespace Ice {
 
@@ -125,6 +126,9 @@ public:
     (void)Ctx;
     llvm::report_fatal_error("emitPoolLabel not defined for type");
   };
+  // Declare the lookup counter to take minimal space in a non-DUMP build.
+  using CounterType =
+      std::conditional<BuildDefs::dump(), uint64_t, uint8_t>::type;
   void emit(const Cfg *Func) const override { emit(Func->getTarget()); }
   virtual void emit(TargetLowering *Target) const = 0;
 
@@ -141,19 +145,29 @@ public:
     return false;
   }
 
-  void setShouldBePooled(bool R) { shouldBePooled = R; }
+  void setShouldBePooled(bool R) { ShouldBePooled = R; }
+  bool getShouldBePooled() const { return ShouldBePooled; }
 
-  bool getShouldBePooled() const { return shouldBePooled; }
+  // This should be thread-safe because the constant pool lock is acquired
+  // before the method is invoked.
+  void updateLookupCount() {
+    if (!BuildDefs::dump())
+      return;
+    ++LookupCount;
+  }
+  CounterType getLookupCount() const { return LookupCount; }
 
 protected:
-  Constant(OperandKind Kind, Type Ty)
-      : Operand(Kind, Ty), shouldBePooled(false) {
+  Constant(OperandKind Kind, Type Ty) : Operand(Kind, Ty) {
     Vars = nullptr;
     NumVars = 0;
   }
   /// Whether we should pool this constant. Usually Float/Double and pooled
   /// Integers should be flagged true.
-  bool shouldBePooled;
+  bool ShouldBePooled = false;
+  /// Note: If ShouldBePooled is ever removed from the base class, we will want
+  /// to completely disable LookupCount in a non-DUMP build to save space.
+  CounterType LookupCount = 0;
 };
 
 /// ConstantPrimitive<> wraps a primitive type.

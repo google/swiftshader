@@ -211,12 +211,18 @@ enum VerboseItem {
   IceV_Folding = 1 << 11,
   IceV_RMW = 1 << 12,
   IceV_Loop = 1 << 13,
-  IceV_Status = 1 << 14,
-  IceV_AvailableRegs = 1 << 15,
-  IceV_Mem = 1 << 16,
-  IceV_GlobalInit = 1 << 17,
+  IceV_Mem = 1 << 14,
+  // Leave some extra space to make it easier to add new per-pass items.
+  IceV_NO_PER_PASS_DUMP_BEYOND = 1 << 19,
+  // Items greater than IceV_NO_PER_PASS_DUMP_BEYOND don't by themselves trigger
+  // per-pass Cfg dump output.
+  IceV_Status = 1 << 20,
+  IceV_AvailableRegs = 1 << 21,
+  IceV_GlobalInit = 1 << 22,
+  IceV_ConstPoolStats = 1 << 23,
   IceV_All = ~IceV_None,
-  IceV_Most = IceV_All & ~IceV_LinearScan & ~IceV_GlobalInit
+  IceV_Most =
+      IceV_All & ~IceV_LinearScan & ~IceV_GlobalInit & IceV_ConstPoolStats
 };
 using VerboseMask = uint32_t;
 

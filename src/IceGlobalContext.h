@@ -428,6 +428,8 @@ public:
   /// Lowers the profile information.
   void lowerProfileData();
 
+  void dumpConstantLookupCounts();
+
   /// Utility function to match a symbol name against a match string. This is
   /// used in a few cases where we want to take some action on a particular
   /// function or symbol based on a command-line argument, such as changing the

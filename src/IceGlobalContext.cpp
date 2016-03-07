@@ -143,10 +143,13 @@ public:
   TypePool() = default;
   ValueType *getOrAdd(GlobalContext *Ctx, KeyType Key) {
     auto Iter = Pool.find(Key);
-    if (Iter != Pool.end())
+    if (Iter != Pool.end()) {
+      Iter->second->updateLookupCount();
       return Iter->second;
+    }
     auto *Result = ValueType::create(Ctx, Ty, Key);
     Pool[Key] = Result;
+    Result->updateLookupCount();
     return Result;
   }
   ConstantList getConstantPool() const {
@@ -410,10 +413,9 @@ void GlobalContext::addBlockInfoPtrs(VariableDeclaration *ProfileBlockInfo) {
 
 void GlobalContext::lowerGlobals(const IceString &SectionSuffix) {
   TimerMarker T(TimerStack::TT_emitGlobalInitializers, this);
-  const bool DumpGlobalVariables =
-      BuildDefs::dump() &&
-      (Flags.getVerbose() & IceV_GlobalInit & Cfg::defaultVerboseMask()) &&
-      Flags.getVerboseFocusOn().empty();
+  const bool DumpGlobalVariables = BuildDefs::dump() &&
+                                   (Flags.getVerbose() & IceV_GlobalInit) &&
+                                   Flags.getVerboseFocusOn().empty();
   if (DumpGlobalVariables) {
     OstreamLocker L(this);
     Ostream &Stream = getStrDump();
@@ -756,6 +758,35 @@ GlobalContext::~GlobalContext() {
   // Destructors are invoked in the opposite object construction order.
   for (const auto &Dtor : reverse_range(*Dtors))
     Dtor();
+}
+
+void GlobalContext::dumpConstantLookupCounts() {
+  if (!BuildDefs::dump())
+    return;
+  const bool DumpCounts = (Flags.getVerbose() & IceV_ConstPoolStats) &&
+                          Flags.getVerboseFocusOn().empty();
+  if (!DumpCounts)
+    return;
+
+  OstreamLocker _(this);
+  Ostream &Str = getStrDump();
+  Str << "Constant pool use stats: count+value+type\n";
+#define X(WhichPool)                                                           \
+  for (auto *C : getConstPool()->WhichPool.getConstantPool()) {                \
+    Str << C->getLookupCount() << " ";                                         \
+    C->dump(Str);                                                              \
+    Str << " " << C->getType() << "\n";                                        \
+  }
+  X(Integers1);
+  X(Integers8);
+  X(Integers16);
+  X(Integers32);
+  X(Integers64);
+  X(Floats);
+  X(Doubles);
+  X(Relocatables);
+  X(ExternRelocatables);
+#undef X
 }
 
 // TODO(stichnot): Consider adding thread-local caches of constant pool entries
