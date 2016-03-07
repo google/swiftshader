@@ -503,19 +503,19 @@ TARGET := x8632
 ifeq ($(TARGET),x8632)
   TARGETFLAG=x8632
   SETUP=SetupGccX8632Opt
-  SPEC := -O2 --filetype=obj
+  SPEC := --filetype=obj
 endif
 ifeq ($(TARGET),x8664)
   TARGETFLAG=x8664
   SETUP=SetupGccX8664Opt
-  SPEC := -O2 --filetype=obj
+  SPEC := --filetype=obj
 endif
 ifeq ($(TARGET),arm32)
   TARGETFLAG=arm32
   SETUP=SetupGccArmOpt
-  SPEC := -O2 --filetype=obj
+  SPEC := --filetype=obj
 endif
-SPECFLAGS :=
+SPECFLAGS := -O2
 SPECBUILDONLY := false
 %.spec2k: % $(OBJDIR)/pnacl-sz make_symlink runtime
 	./pydir/szbuild_spec2k.py -v \
@@ -553,10 +553,10 @@ check-presubmit presubmit:
           SPECFLAGS='-Om1' TARGET=x8664 SPECBUILDONLY=true check-spec
 # Run spec2k for x86-32 without advanced phi lowering.
 	+make -f Makefile.standalone \
-          SPECFLAGS='--sz=--phi-edge-split=0' check-spec
+          SPECFLAGS='-O2 --sz=--phi-edge-split=0' check-spec
 # Run spec2k for x86-64 without advanced phi lowering.
 	+make -f Makefile.standalone \
-          SPECFLAGS='--sz=--phi-edge-split=0' TARGET=x8664 check-spec
+          SPECFLAGS='-O2 --sz=--phi-edge-split=0' TARGET=x8664 check-spec
 # Run cross tests and lit tests to validate filetype=asm output.
 	+make -f Makefile.standalone \
           FORCEASM=1 check-xtest check-lit
