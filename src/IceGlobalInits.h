@@ -23,6 +23,7 @@
 #include "IceFixups.h"
 #include "IceGlobalContext.h"
 #include "IceIntrinsics.h"
+#include "IceMangling.h"
 #include "IceOperand.h"
 #include "IceTypes.h"
 
@@ -62,7 +63,9 @@ public:
   };
   GlobalDeclarationKind getKind() const { return Kind; }
   const IceString &getName() const { return Name; }
-  void setName(const IceString &NewName) { Name = NewName; }
+  void setName(const IceString &NewName) {
+    Name = getSuppressMangling() ? NewName : mangleName(NewName);
+  }
   bool hasName() const { return !Name.empty(); }
   bool isInternal() const {
     return Linkage == llvm::GlobalValue::InternalLinkage;
@@ -71,31 +74,16 @@ public:
   bool isExternal() const {
     return Linkage == llvm::GlobalValue::ExternalLinkage;
   }
-  void setLinkage(llvm::GlobalValue::LinkageTypes NewLinkage) {
-    Linkage = NewLinkage;
-  }
   virtual ~GlobalDeclaration() = default;
 
   /// Prints out type of the global declaration.
   virtual void dumpType(Ostream &Stream) const = 0;
 
   /// Prints out the global declaration.
-  virtual void dump(GlobalContext *Ctx, Ostream &Stream) const = 0;
-  void dump(Ostream &Stream) const {
-    if (!BuildDefs::dump())
-      return;
-    GlobalContext *const Ctx = nullptr;
-    dump(Ctx, Stream);
-  }
+  virtual void dump(Ostream &Stream) const = 0;
 
   /// Returns true if when emitting names, we should suppress mangling.
   virtual bool getSuppressMangling() const = 0;
-
-  /// Mangles name for cross tests, unless external and not defined locally (so
-  /// that relocations across pnacl-sz and pnacl-llc will work).
-  virtual IceString mangleName(GlobalContext *Ctx) const {
-    return getSuppressMangling() ? Name : Ctx->mangleName(Name);
-  }
 
   /// Returns textual name of linkage.
   const char *getLinkageName() const {
@@ -121,8 +109,8 @@ protected:
   }
 
   const GlobalDeclarationKind Kind;
+  const llvm::GlobalValue::LinkageTypes Linkage;
   IceString Name;
-  llvm::GlobalValue::LinkageTypes Linkage;
 };
 
 /// Models a function declaration. This includes the type signature of the
@@ -149,7 +137,7 @@ public:
     return Addr->getKind() == FunctionDeclarationKind;
   }
   void dumpType(Ostream &Stream) const final;
-  void dump(GlobalContext *Ctx, Ostream &Stream) const final;
+  void dump(Ostream &Stream) const final;
   bool getSuppressMangling() const final { return isExternal() && IsProto; }
 
   /// Returns true if linkage is correct for the function declaration.
@@ -188,7 +176,7 @@ public:
 private:
   const Ice::FuncSigType Signature;
   llvm::CallingConv::ID CallingConv;
-  bool IsProto;
+  const bool IsProto;
 
   FunctionDeclaration(const FuncSigType &Signature,
                       llvm::CallingConv::ID CallingConv,
@@ -234,11 +222,7 @@ public:
     InitializerKind getKind() const { return Kind; }
     virtual ~Initializer() = default;
     virtual SizeT getNumBytes() const = 0;
-    virtual void dump(GlobalContext *Ctx, Ostream &Stream) const = 0;
-    void dump(Ostream &Stream) const {
-      if (BuildDefs::dump())
-        dump(nullptr, Stream);
-    }
+    virtual void dump(Ostream &Stream) const = 0;
     virtual void dumpType(Ostream &Stream) const;
 
   protected:
@@ -264,7 +248,7 @@ public:
 
     const DataVecType &getContents() const { return Contents; }
     SizeT getNumBytes() const final { return Contents.size(); }
-    void dump(GlobalContext *Ctx, Ostream &Stream) const final;
+    void dump(Ostream &Stream) const final;
     static bool classof(const Initializer *D) {
       return D->getKind() == DataInitializerKind;
     }
@@ -298,7 +282,7 @@ public:
       return makeUnique<ZeroInitializer>(Size);
     }
     SizeT getNumBytes() const final { return Size; }
-    void dump(GlobalContext *Ctx, Ostream &Stream) const final;
+    void dump(Ostream &Stream) const final;
     static bool classof(const Initializer *Z) {
       return Z->getKind() == ZeroInitializerKind;
     }
@@ -350,7 +334,7 @@ public:
 
     const GlobalDeclaration *getDeclaration() const { return Declaration; }
     SizeT getNumBytes() const final { return RelocAddrSize; }
-    void dump(GlobalContext *Ctx, Ostream &Stream) const final;
+    void dump(Ostream &Stream) const final;
     void dumpType(Ostream &Stream) const final;
     static bool classof(const Initializer *R) {
       return R->getKind() == RelocInitializerKind;
@@ -376,8 +360,18 @@ public:
   /// Models the list of initializers.
   using InitializerListType = std::vector<std::unique_ptr<Initializer>>;
 
-  static VariableDeclaration *create(GlobalContext *Context) {
-    return new (Context->allocate<VariableDeclaration>()) VariableDeclaration();
+  static VariableDeclaration *create(GlobalContext *Context,
+                                     bool SuppressMangling = false,
+                                     llvm::GlobalValue::LinkageTypes Linkage =
+                                         llvm::GlobalValue::InternalLinkage) {
+    return new (Context->allocate<VariableDeclaration>())
+        VariableDeclaration(Linkage, SuppressMangling);
+  }
+  static VariableDeclaration *createExternal(GlobalContext *Context) {
+    constexpr bool SuppressMangling = true;
+    constexpr llvm::GlobalValue::LinkageTypes Linkage =
+        llvm::GlobalValue::ExternalLinkage;
+    return create(Context, SuppressMangling, Linkage);
   }
 
   const InitializerListType &getInitializers() const { return *Initializers; }
@@ -403,8 +397,16 @@ public:
   /// Adds Initializer to the list of initializers. Takes ownership of the
   /// initializer.
   void addInitializer(std::unique_ptr<Initializer> Initializer) {
+    const bool OldSuppressMangling = getSuppressMangling();
     Initializers->emplace_back(std::move(Initializer));
     HasInitializer = true;
+    // The getSuppressMangling() logic depends on whether the global variable
+    // has initializers.  If its value changed as a result of adding an
+    // initializer, then make sure we haven't previously set the name based on
+    // faulty SuppressMangling logic.
+    const bool SameMangling = (OldSuppressMangling == getSuppressMangling());
+    (void)SameMangling;
+    assert(!Name.empty() || SameMangling);
   }
 
   /// Prints out type for initializer associated with the declaration to Stream.
@@ -412,7 +414,7 @@ public:
 
   /// Prints out the definition of the global variable declaration (including
   /// initialization).
-  void dump(GlobalContext *Ctx, Ostream &Stream) const final;
+  virtual void dump(Ostream &Stream) const;
 
   /// Returns true if linkage is correct for the variable declaration.
   bool verifyLinkageCorrect(const GlobalContext *Ctx) const {
@@ -429,26 +431,24 @@ public:
     return isExternal() && !hasInitializer();
   }
 
-  void setSuppressMangling() { ForceSuppressMangling = true; }
-
   void discardInitializers() { Initializers = nullptr; }
 
 private:
   /// List of initializers for the declared variable.
   std::unique_ptr<InitializerListType> Initializers;
-  bool HasInitializer;
+  bool HasInitializer = false;
   /// The alignment of the declared variable.
-  uint32_t Alignment;
+  uint32_t Alignment = 0;
   /// True if a declared (global) constant.
-  bool IsConstant;
+  bool IsConstant = false;
   /// If set to true, force getSuppressMangling() to return true.
-  bool ForceSuppressMangling;
+  const bool ForceSuppressMangling;
 
-  VariableDeclaration()
-      : GlobalDeclaration(VariableDeclarationKind,
-                          llvm::GlobalValue::InternalLinkage),
-        Initializers(new InitializerListType), HasInitializer(false),
-        Alignment(0), IsConstant(false), ForceSuppressMangling(false) {}
+  VariableDeclaration(llvm::GlobalValue::LinkageTypes Linkage,
+                      bool SuppressMangling)
+      : GlobalDeclaration(VariableDeclarationKind, Linkage),
+        Initializers(new InitializerListType),
+        ForceSuppressMangling(SuppressMangling) {}
 };
 
 template <class StreamType>

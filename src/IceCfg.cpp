@@ -974,24 +974,24 @@ void Cfg::markNodesForSandboxing() {
 // emitTextHeader() is not target-specific (apart from what is abstracted by
 // the Assembler), so it is defined here rather than in the target lowering
 // class.
-void Cfg::emitTextHeader(const IceString &MangledName, GlobalContext *Ctx,
+void Cfg::emitTextHeader(const IceString &Name, GlobalContext *Ctx,
                          const Assembler *Asm) {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Ctx->getStrEmit();
   Str << "\t.text\n";
   if (Ctx->getFlags().getFunctionSections())
-    Str << "\t.section\t.text." << MangledName << ",\"ax\",%progbits\n";
+    Str << "\t.section\t.text." << Name << ",\"ax\",%progbits\n";
   if (!Asm->getInternal() || Ctx->getFlags().getDisableInternal()) {
-    Str << "\t.globl\t" << MangledName << "\n";
-    Str << "\t.type\t" << MangledName << ",%function\n";
+    Str << "\t.globl\t" << Name << "\n";
+    Str << "\t.type\t" << Name << ",%function\n";
   }
   Str << "\t" << Asm->getAlignDirective() << " "
       << Asm->getBundleAlignLog2Bytes() << ",0x";
   for (uint8_t I : Asm->getNonExecBundlePadding())
     Str.write_hex(I);
   Str << "\n";
-  Str << MangledName << ":\n";
+  Str << Name << ":\n";
 }
 
 void Cfg::deleteJumpTableInsts() {
@@ -1005,7 +1005,6 @@ void Cfg::emitJumpTables() {
   case FT_Iasm: {
     // The emission needs to be delayed until the after the text section so
     // save the offsets in the global context.
-    IceString MangledName = Ctx->mangleName(getFunctionName());
     for (const InstJumpTable *JumpTable : JumpTables) {
       SizeT NumTargets = JumpTable->getNumTargets();
       JumpTableData::TargetList TargetList;
@@ -1014,7 +1013,7 @@ void Cfg::emitJumpTables() {
         TargetList.emplace_back(
             getAssembler()->getCfgNodeLabel(Index)->getPosition());
       }
-      Ctx->addJumpTable(MangledName, JumpTable->getId(), TargetList);
+      Ctx->addJumpTable(FunctionName, JumpTable->getId(), TargetList);
     }
   } break;
   case FT_Asm: {
@@ -1037,11 +1036,10 @@ void Cfg::emit() {
   }
   OstreamLocker L(Ctx);
   Ostream &Str = Ctx->getStrEmit();
-  IceString MangledName = Ctx->mangleName(getFunctionName());
   const Assembler *Asm = getAssembler<>();
   const bool NeedSandboxing = Ctx->getFlags().getUseSandboxing();
 
-  emitTextHeader(MangledName, Ctx, Asm);
+  emitTextHeader(FunctionName, Ctx, Asm);
   deleteJumpTableInsts();
   if (Ctx->getFlags().getDecorateAsm()) {
     for (Variable *Var : getVariables()) {
@@ -1103,7 +1101,7 @@ void Cfg::dump(const IceString &Message) {
     Str << "define ";
     if (getInternal() && !Ctx->getFlags().getDisableInternal())
       Str << "internal ";
-    Str << ReturnType << " @" << Ctx->mangleName(getFunctionName()) << "(";
+    Str << ReturnType << " @" << getFunctionName() << "(";
     for (SizeT i = 0; i < Args.size(); ++i) {
       if (i > 0)
         Str << ", ";

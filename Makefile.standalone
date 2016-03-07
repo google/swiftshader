@@ -271,6 +271,7 @@ SRCS = \
   IceIntrinsics.cpp \
   IceLiveness.cpp \
   IceLoopAnalyzer.cpp \
+  IceMangling.cpp \
   IceMemory.cpp \
   IceOperand.cpp \
   IceRegAlloc.cpp \
@@ -540,7 +541,7 @@ check-presubmit presubmit:
           DEBUG=1 CHECK_X86_ASM=1 check-unit sb
 # Run lit tests, cross tests, unit tests, and spec2k/x86-32.
 	+make -f Makefile.standalone \
-          check check-spec sb
+          check check-spec
 # Run spec2k/x86-64.
 	+make -f Makefile.standalone \
           TARGET=x8664 check-spec

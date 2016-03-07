@@ -121,9 +121,8 @@ class Constant : public Operand {
   Constant &operator=(const Constant &) = delete;
 
 public:
-  virtual void emitPoolLabel(Ostream &Str, const GlobalContext *Ctx) const {
+  virtual void emitPoolLabel(Ostream &Str) const {
     (void)Str;
-    (void)Ctx;
     llvm::report_fatal_error("emitPoolLabel not defined for type");
   };
   // Declare the lookup counter to take minimal space in a non-DUMP build.
@@ -186,7 +185,7 @@ public:
         ConstantPrimitive(Ty, Value);
   }
   PrimType getValue() const { return Value; }
-  void emitPoolLabel(Ostream &Str, const GlobalContext *Ctx) const final {
+  void emitPoolLabel(Ostream &Str) const final {
     Str << ".L$" << getType() << "$";
     // Print hex characters byte by byte, starting from the most significant
     // byte.  NOTE: This ordering assumes Subzero runs on a little-endian
@@ -202,7 +201,7 @@ public:
     // human-readable sprintf form, changing '+' to 'p' and '-' to 'm' to
     // maintain valid asm labels.
     if (std::is_floating_point<PrimType>::value && !BuildDefs::minimal() &&
-        Ctx->getFlags().getDecorateAsm()) {
+        GlobalContext::getFlags().getDecorateAsm()) {
       char Buf[30];
       snprintf(Buf, llvm::array_lengthof(Buf), "$%g", (double)Value);
       for (unsigned i = 0; i < llvm::array_lengthof(Buf) && Buf[i]; ++i) {
@@ -316,16 +315,14 @@ class RelocatableTuple {
 
 public:
   RelocatableTuple(const RelocOffsetT Offset,
-                   const RelocOffsetArray &OffsetExpr, const IceString &Name,
-                   bool SuppressMangling)
-      : Offset(Offset), OffsetExpr(OffsetExpr), Name(Name),
-        SuppressMangling(SuppressMangling) {}
+                   const RelocOffsetArray &OffsetExpr, const IceString &Name)
+      : Offset(Offset), OffsetExpr(OffsetExpr), Name(Name) {}
 
   RelocatableTuple(const RelocOffsetT Offset,
                    const RelocOffsetArray &OffsetExpr, const IceString &Name,
-                   const IceString &EmitString, bool SuppressMangling)
+                   const IceString &EmitString)
       : Offset(Offset), OffsetExpr(OffsetExpr), Name(Name),
-        EmitString(EmitString), SuppressMangling(SuppressMangling) {}
+        EmitString(EmitString) {}
 
   RelocatableTuple(const RelocatableTuple &) = default;
 
@@ -333,7 +330,6 @@ public:
   const RelocOffsetArray OffsetExpr;
   const IceString Name;
   const IceString EmitString;
-  const bool SuppressMangling;
 };
 
 bool operator==(const RelocatableTuple &A, const RelocatableTuple &B);
@@ -348,9 +344,8 @@ class ConstantRelocatable : public Constant {
 public:
   static ConstantRelocatable *create(GlobalContext *Ctx, Type Ty,
                                      const RelocatableTuple &Tuple) {
-    return new (Ctx->allocate<ConstantRelocatable>())
-        ConstantRelocatable(Ty, Tuple.Offset, Tuple.OffsetExpr, Tuple.Name,
-                            Tuple.EmitString, Tuple.SuppressMangling);
+    return new (Ctx->allocate<ConstantRelocatable>()) ConstantRelocatable(
+        Ty, Tuple.Offset, Tuple.OffsetExpr, Tuple.Name, Tuple.EmitString);
   }
 
   RelocOffsetT getOffset() const {
@@ -364,7 +359,6 @@ public:
   const IceString &getEmitString() const { return EmitString; }
 
   const IceString &getName() const { return Name; }
-  bool getSuppressMangling() const { return SuppressMangling; }
   using Constant::emit;
   void emit(TargetLowering *Target) const final;
   void emitWithoutPrefix(const TargetLowering *Target,
@@ -380,16 +374,14 @@ public:
 private:
   ConstantRelocatable(Type Ty, const RelocOffsetT Offset,
                       const RelocOffsetArray &OffsetExpr, const IceString &Name,
-                      const IceString &EmitString, bool SuppressMangling)
+                      const IceString &EmitString)
       : Constant(kConstRelocatable, Ty), Offset(Offset), OffsetExpr(OffsetExpr),
-        Name(Name), EmitString(EmitString), SuppressMangling(SuppressMangling) {
-  }
+        Name(Name), EmitString(EmitString) {}
 
   const RelocOffsetT Offset;         /// fixed, known offset to add
   const RelocOffsetArray OffsetExpr; /// fixed, unknown offset to add
   const IceString Name;              /// optional for debug/dump
   const IceString EmitString;        /// optional for textual emission
-  const bool SuppressMangling;
 };
 
 /// ConstantUndef represents an unspecified bit pattern. Although it is legal to
@@ -668,6 +660,8 @@ public:
   /// Returns the variable's stack offset in symbolic form, to improve
   /// readability in DecorateAsm mode.
   IceString getSymbolicStackOffset(const Cfg *Func) const {
+    if (!BuildDefs::dump())
+      return "";
     return "lv$" + getName(Func);
   }
 

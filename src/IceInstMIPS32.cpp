@@ -118,7 +118,7 @@ InstMIPS32Label::InstMIPS32Label(Cfg *Func, TargetMIPS32 *Target)
 
 IceString InstMIPS32Label::getName(const Cfg *Func) const {
   if (!BuildDefs::dump())
-    return IceString();
+    return "";
   return ".L" + Func->getFunctionName() + "$local$__" + std::to_string(Number);
 }
 

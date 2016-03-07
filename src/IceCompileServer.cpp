@@ -94,8 +94,8 @@ std::unique_ptr<Ostream> makeStream(const IceString &Filename,
   }
 }
 
-ErrorCodes getReturnValue(const Ice::ClFlagsExtra &Flags, ErrorCodes Val) {
-  if (Flags.getAlwaysExitSuccess())
+ErrorCodes getReturnValue(ErrorCodes Val) {
+  if (GlobalContext::ExtraFlags.getAlwaysExitSuccess())
     return EC_None;
   return Val;
 }
@@ -158,8 +158,8 @@ void CLCompileServer::run() {
     llvm::sys::PrintStackTraceOnErrorSignal();
   }
   ClFlags::parseFlags(argc, argv);
-  ClFlags Flags;
-  ClFlagsExtra ExtraFlags;
+  ClFlags &Flags = GlobalContext::Flags;
+  ClFlagsExtra &ExtraFlags = GlobalContext::ExtraFlags;
   ClFlags::getParsedClFlags(Flags);
   ClFlags::getParsedClFlagsExtra(ExtraFlags);
 
@@ -179,14 +179,14 @@ void CLCompileServer::run() {
   case FT_Elf: {
     if (ExtraFlags.getOutputFilename() == "-") {
       *Ls << "Error: writing binary ELF to stdout is unsupported\n";
-      return transferErrorCode(getReturnValue(ExtraFlags, Ice::EC_Args));
+      return transferErrorCode(getReturnValue(Ice::EC_Args));
     }
     std::unique_ptr<llvm::raw_fd_ostream> FdOs(new llvm::raw_fd_ostream(
         ExtraFlags.getOutputFilename(), EC, llvm::sys::fs::F_None));
     if (EC) {
       *Ls << "Failed to open output file: " << ExtraFlags.getOutputFilename()
           << ":\n" << EC.message() << "\n";
-      return transferErrorCode(getReturnValue(ExtraFlags, Ice::EC_Args));
+      return transferErrorCode(getReturnValue(Ice::EC_Args));
     }
     ELFStr.reset(new ELFStreamer(*FdOs.get()));
     Os.reset(FdOs.release());
@@ -200,7 +200,7 @@ void CLCompileServer::run() {
     if (EC) {
       *Ls << "Failed to open output file: " << ExtraFlags.getOutputFilename()
           << ":\n" << EC.message() << "\n";
-      return transferErrorCode(getReturnValue(ExtraFlags, Ice::EC_Args));
+      return transferErrorCode(getReturnValue(Ice::EC_Args));
     }
     Os->SetUnbuffered();
   } break;
@@ -219,16 +219,15 @@ void CLCompileServer::run() {
     llvm::SMDiagnostic Err(ExtraFlags.getIRFilename(),
                            llvm::SourceMgr::DK_Error, StrError);
     Err.print(ExtraFlags.getAppName().c_str(), *Ls);
-    return transferErrorCode(getReturnValue(ExtraFlags, Ice::EC_Bitcode));
+    return transferErrorCode(getReturnValue(Ice::EC_Bitcode));
   }
 
   if (ExtraFlags.getGenerateBuildAtts()) {
     dumpBuildAttributes(*Os.get());
-    return transferErrorCode(getReturnValue(ExtraFlags, Ice::EC_None));
+    return transferErrorCode(getReturnValue(Ice::EC_None));
   }
 
-  Ctx.reset(
-      new GlobalContext(Ls.get(), Os.get(), Ls.get(), ELFStr.get(), Flags));
+  Ctx.reset(new GlobalContext(Ls.get(), Os.get(), Ls.get(), ELFStr.get()));
   if (Ctx->getFlags().getNumTranslationThreads() != 0) {
     std::thread CompileThread([this, &ExtraFlags, &InputStream]() {
       Ctx->initParserThread();
@@ -238,8 +237,8 @@ void CLCompileServer::run() {
   } else {
     getCompiler().run(ExtraFlags, *Ctx.get(), std::move(InputStream));
   }
-  transferErrorCode(getReturnValue(
-      ExtraFlags, static_cast<ErrorCodes>(Ctx->getErrorStatus()->value())));
+  transferErrorCode(
+      getReturnValue(static_cast<ErrorCodes>(Ctx->getErrorStatus()->value())));
   Ctx->dumpConstantLookupCounts();
 }
 

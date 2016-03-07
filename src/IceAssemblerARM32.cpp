@@ -596,7 +596,7 @@ size_t MoveRelocatableFixup::emit(GlobalContext *Ctx,
   Str << "\t"
          "mov" << (IsMovw ? "w" : "t") << "\t"
       << RegARM32::getRegName(RegNumT::fixme((Inst >> kRdShift) & 0xF))
-      << ", #:" << (IsMovw ? "lower" : "upper") << "16:" << symbol(Ctx, &Asm)
+      << ", #:" << (IsMovw ? "lower" : "upper") << "16:" << symbol(&Asm)
       << "\t@ .word " << llvm::format_hex_no_prefix(Inst, 8) << "\n";
   return InstARM32::InstSize;
 }
@@ -650,7 +650,7 @@ size_t BlRelocatableFixup::emit(GlobalContext *Ctx,
   Ostream &Str = Ctx->getStrEmit();
   IValueT Inst = Asm.load<IValueT>(position());
   Str << "\t"
-         "bl\t" << symbol(Ctx, &Asm) << "\t@ .word "
+         "bl\t" << symbol(&Asm) << "\t@ .word "
       << llvm::format_hex_no_prefix(Inst, 8) << "\n";
   return InstARM32::InstSize;
 }

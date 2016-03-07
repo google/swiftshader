@@ -21,6 +21,7 @@
 #include "IceGlobalContext.h"
 #include "IceGlobalInits.h"
 #include "IceInst.h"
+#include "IceMangling.h"
 #include "IceOperand.h"
 #include "IceTargetLowering.h"
 #include "IceTypes.h"
@@ -101,7 +102,7 @@ public:
 
       VarMap.clear();
       NodeMap.clear();
-      Func->setFunctionName(F->getName());
+      Func->setFunctionName(Ice::mangleName(F->getName()));
       Func->setReturnType(convertToIceType(F->getReturnType()));
       Func->setInternal(F->hasInternalLinkage());
       Ice::TimerMarker T(Ice::TimerStack::TT_llvmConvert, Func.get());
@@ -141,8 +142,7 @@ public:
         return Ctx->getConstantExternSym(Decl->getName());
       else {
         const Ice::RelocOffsetT Offset = 0;
-        return Ctx->getConstantSym(Offset, Decl->getName(),
-                                   Decl->getSuppressMangling());
+        return Ctx->getConstantSym(Offset, Decl->getName());
       }
     } else if (const auto CI = dyn_cast<ConstantInt>(Const)) {
       Ice::Type Ty = convertToIceType(CI->getType());
@@ -889,11 +889,12 @@ void Converter::installGlobalDeclarations(Module *Mod) {
                                      E = Mod->global_end();
        I != E; ++I) {
     const GlobalVariable *GV = I;
-    auto *Var = VariableDeclaration::create(Ctx);
-    Var->setName(GV->getName());
+    constexpr bool NoSuppressMangling = false;
+    auto *Var =
+        VariableDeclaration::create(Ctx, NoSuppressMangling, GV->getLinkage());
     Var->setAlignment(GV->getAlignment());
     Var->setIsConstant(GV->isConstant());
-    Var->setLinkage(GV->getLinkage());
+    Var->setName(GV->getName());
     if (!Var->verifyLinkageCorrect(Ctx)) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);

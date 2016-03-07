@@ -155,7 +155,7 @@ public:
   /// The dump stream is a log stream while emit is the stream code
   /// is emitted to. The error stream is strictly for logging errors.
   GlobalContext(Ostream *OsDump, Ostream *OsEmit, Ostream *OsError,
-                ELFStreamer *ELFStreamer, const ClFlags &Flags);
+                ELFStreamer *ELFStreamer);
   ~GlobalContext();
 
   ///
@@ -181,12 +181,6 @@ public:
     return LockedPtr<ErrorCode>(&ErrorStatus, &ErrorStatusLock);
   }
 
-  /// When emitting assembly, we allow a string to be prepended to
-  /// names of translated functions.  This makes it easier to create an
-  /// execution test against a reference translator like llc, with both
-  /// translators using the same bitcode as input.
-  IceString mangleName(const IceString &Name) const;
-
   /// \name Manage Constants.
   /// @{
   // getConstant*() functions are not const because they might add something to
@@ -202,10 +196,8 @@ public:
   /// Returns a symbolic constant.
   Constant *getConstantSym(const RelocOffsetT Offset,
                            const RelocOffsetArray &OffsetExpr,
-                           const IceString &Name, const IceString &EmitString,
-                           bool SuppressMangling);
-  Constant *getConstantSym(RelocOffsetT Offset, const IceString &Name,
-                           bool SuppressMangling);
+                           const IceString &Name, const IceString &EmitString);
+  Constant *getConstantSym(RelocOffsetT Offset, const IceString &Name);
   Constant *getConstantExternSym(const IceString &Name);
   /// Returns an undef.
   Constant *getConstantUndef(Type Ty);
@@ -221,10 +213,10 @@ public:
   /// Return a locked pointer to the registered jump tables.
   JumpTableDataList getJumpTables();
   /// Create a new jump table entry and return a reference to it.
-  JumpTableData &addJumpTable(IceString FuncName, SizeT Id,
+  JumpTableData &addJumpTable(const IceString &FuncName, SizeT Id,
                               const JumpTableData::TargetList &TargetList);
 
-  const ClFlags &getFlags() const { return Flags; }
+  static const ClFlags &getFlags() { return Flags; }
 
   /// Allocate data of type T using the global allocator. We allow entities
   /// allocated from this global allocator to be either trivially or
@@ -440,6 +432,9 @@ public:
     return Match.empty() || Match == SymbolName;
   }
 
+  static ClFlags Flags;
+  static ClFlagsExtra ExtraFlags;
+
 private:
   // Try to ensure mutexes are allocated on separate cache lines.
 
@@ -491,7 +486,6 @@ private:
   ICE_CACHELINE_BOUNDARY;
 
   Intrinsics IntrinsicsInfo;
-  const ClFlags &Flags;
   // TODO(jpp): move to EmitterContext.
   std::unique_ptr<ELFObjectWriter> ObjectWriter;
   BoundedProducerConsumerQueue<Cfg> OptQ;
@@ -549,10 +543,6 @@ private:
   // Each thread has its own TLS pointer which is also held in
   // AllThreadContexts.
   ICE_TLS_DECLARE_FIELD(ThreadContext *, TLS);
-
-  // Private helpers for mangleName()
-  using ManglerVector = llvm::SmallVector<char, 32>;
-  void incrementSubstitutions(ManglerVector &OldName) const;
 
 public:
   static void TlsInit() { ICE_TLS_INIT_FIELD(TLS); }

@@ -21,6 +21,7 @@
 #pragma clang diagnostic pop
 
 #include "IceClFlags.h"
+#include "IceGlobalContext.h"
 
 namespace IceTest {
 
@@ -32,7 +33,8 @@ class SubzeroBitcodeMunger : public llvm::NaClBitcodeMunger {
 public:
   SubzeroBitcodeMunger(const uint64_t Records[], size_t RecordSize,
                        uint64_t RecordTerminator)
-      : llvm::NaClBitcodeMunger(Records, RecordSize, RecordTerminator) {
+      : llvm::NaClBitcodeMunger(Records, RecordSize, RecordTerminator),
+        Flags(Ice::GlobalContext::Flags) {
     resetMungeFlags();
   }
 
@@ -49,7 +51,7 @@ public:
   }
 
   /// Flags to use to run tests. Use to change default assumptions.
-  Ice::ClFlags Flags;
+  Ice::ClFlags &Flags;
 
 private:
   void resetMungeFlags();

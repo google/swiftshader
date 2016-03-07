@@ -940,10 +940,9 @@ protected:
   //
   // The -8 in movw/movt above is to account for the PC value that the first
   // instruction emitted by Finish(PC) will read.
-  void loadNamedConstantRelocatablePIC(const IceString &Name,
-                                       Variable *Register,
-                                       std::function<void(Variable *PC)> Finish,
-                                       bool SuppressMangling = true);
+  void
+  loadNamedConstantRelocatablePIC(const IceString &Name, Variable *Register,
+                                  std::function<void(Variable *PC)> Finish);
 
   /// Sandboxer defines methods for ensuring that "dangerous" operations are
   /// masked during sandboxed code emission. For regular, non-sandboxed code

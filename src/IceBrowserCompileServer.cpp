@@ -165,15 +165,15 @@ void BrowserCompileServer::run() {
 void BrowserCompileServer::getParsedFlags(uint32_t NumThreads, int argc,
                                           char **argv) {
   ClFlags::parseFlags(argc, argv);
-  ClFlags::getParsedClFlags(Flags);
-  ClFlags::getParsedClFlagsExtra(ExtraFlags);
+  ClFlags::getParsedClFlags(*Flags);
+  ClFlags::getParsedClFlagsExtra(*ExtraFlags);
   // Set some defaults which aren't specified via the argv string.
-  Flags.setNumTranslationThreads(NumThreads);
-  Flags.setUseSandboxing(true);
-  Flags.setOutFileType(FT_Elf);
-  Flags.setTargetArch(getTargetArch());
-  ExtraFlags.setBuildOnRead(true);
-  ExtraFlags.setInputFileFormat(llvm::PNaClFormat);
+  Flags->setNumTranslationThreads(NumThreads);
+  Flags->setUseSandboxing(true);
+  Flags->setOutFileType(FT_Elf);
+  Flags->setTargetArch(getTargetArch());
+  ExtraFlags->setBuildOnRead(true);
+  ExtraFlags->setInputFileFormat(llvm::PNaClFormat);
 }
 
 bool BrowserCompileServer::pushInputBytes(const void *Data, size_t NumBytes) {
@@ -216,12 +216,11 @@ void BrowserCompileServer::startCompileThread(int ObjFD) {
   ErrorStream = std::move(ErrStrm);
   ELFStream.reset(new ELFStreamer(*EmitStream.get()));
   Ctx.reset(new GlobalContext(LogStream.get(), EmitStream.get(),
-                              &ErrorStream->getStream(), ELFStream.get(),
-                              Flags));
+                              &ErrorStream->getStream(), ELFStream.get()));
   CompileThread = std::thread([this]() {
     llvm::install_fatal_error_handler(fatalErrorHandler, this);
     Ctx->initParserThread();
-    this->getCompiler().run(ExtraFlags, *Ctx.get(),
+    this->getCompiler().run(*ExtraFlags, *Ctx.get(),
                             // Retain original reference, but the compiler
                             // (LLVM's MemoryObject) wants to handle deletion.
                             std::unique_ptr<llvm::DataStreamer>(InputStream));

@@ -236,7 +236,7 @@ const Intrinsics::FullIntrinsicInfo *Intrinsics::find(const IceString &Name,
   Error = false;
   if (Name.substr(0, LLVMPrefixLen) != LLVMPrefix)
     return nullptr;
-  IceString NameSuffix = Name.substr(LLVMPrefixLen);
+  const IceString NameSuffix = Name.substr(LLVMPrefixLen);
   auto it = Map.find(NameSuffix);
   if (it == Map.end()) {
     Error = true;

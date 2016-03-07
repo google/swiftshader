@@ -508,16 +508,15 @@ private:
     }
   }
 
-  // Builds a constant symbol named Name, suppressing name mangling if
-  // SuppressMangling. IsExternal is true iff the symbol is external.
+  // Builds a constant symbol named Name.  IsExternal is true iff the symbol is
+  // external.
   Ice::Constant *getConstantSym(const Ice::IceString &Name,
-                                bool SuppressMangling, bool IsExternal) const {
+                                bool IsExternal) const {
     if (IsExternal) {
       return getTranslator().getContext()->getConstantExternSym(Name);
     } else {
       const Ice::RelocOffsetT Offset = 0;
-      return getTranslator().getContext()->getConstantSym(Offset, Name,
-                                                          SuppressMangling);
+      return getTranslator().getContext()->getConstantSym(Offset, Name);
     }
   }
 
@@ -538,8 +537,7 @@ private:
     for (const Ice::FunctionDeclaration *Func : FunctionDeclarations) {
       if (!Func->verifyLinkageCorrect(Ctx))
         reportLinkageError("Function", *Func);
-      Ice::Constant *C = getConstantSym(
-          Func->getName(), Func->getSuppressMangling(), Func->isProto());
+      Ice::Constant *C = getConstantSym(Func->getName(), Func->isProto());
       ValueIDConstants.push_back(C);
     }
   }
@@ -551,8 +549,7 @@ private:
       if (!Decl->verifyLinkageCorrect(Ctx))
         reportLinkageError("Global", *Decl);
       Ice::Constant *C =
-          getConstantSym(Decl->getName(), Decl->getSuppressMangling(),
-                         !Decl->hasInitializer());
+          getConstantSym(Decl->getName(), !Decl->hasInitializer());
       ValueIDConstants.push_back(C);
     }
   }

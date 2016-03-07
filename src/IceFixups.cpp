@@ -29,18 +29,15 @@ RelocOffsetT AssemblerFixup::offset() const {
   return addend_;
 }
 
-IceString AssemblerFixup::symbol(const GlobalContext *Ctx,
-                                 const Assembler *Asm) const {
+IceString AssemblerFixup::symbol(const Assembler *Asm) const {
   std::string Buffer;
   llvm::raw_string_ostream Str(Buffer);
   const Constant *C = value_;
   assert(!isNullSymbol());
   if (const auto *CR = llvm::dyn_cast<ConstantRelocatable>(C)) {
-    if (CR->getSuppressMangling())
-      Str << CR->getName();
-    else
-      Str << Ctx->mangleName(CR->getName());
-    if (Asm && !Asm->fixupIsPCRel(kind()) && Ctx->getFlags().getUseNonsfi() &&
+    Str << CR->getName();
+    if (Asm && !Asm->fixupIsPCRel(kind()) &&
+        GlobalContext::getFlags().getUseNonsfi() &&
         CR->getName() != GlobalOffsetTable) {
       // TODO(jpp): remove the special GOT test.
       Str << "@GOTOFF";
@@ -49,7 +46,7 @@ IceString AssemblerFixup::symbol(const GlobalContext *Ctx,
     // NOTE: currently only float/doubles are put into constant pools. In the
     // future we may put integers as well.
     assert(llvm::isa<ConstantFloat>(C) || llvm::isa<ConstantDouble>(C));
-    C->emitPoolLabel(Str, Ctx);
+    C->emitPoolLabel(Str);
   }
   return Str.str();
 }
@@ -64,7 +61,7 @@ size_t AssemblerFixup::emit(GlobalContext *Ctx, const Assembler &Asm) const {
   if (isNullSymbol()) {
     Str << "__Sz_AbsoluteZero";
   } else {
-    Symbol = symbol(Ctx, &Asm);
+    Symbol = symbol(&Asm);
     Str << Symbol;
   }
 

@@ -554,19 +554,14 @@ void ConstantRelocatable::emitWithoutPrefix(const TargetLowering *Target,
   Target->emitWithoutPrefix(this, Suffix);
 }
 
-void ConstantRelocatable::dump(const Cfg *Func, Ostream &Str) const {
+void ConstantRelocatable::dump(const Cfg *, Ostream &Str) const {
   if (!BuildDefs::dump())
     return;
   if (!EmitString.empty()) {
     Str << EmitString;
     return;
   }
-  Str << "@";
-  if (Func && !SuppressMangling) {
-    Str << Func->getContext()->mangleName(Name);
-  } else {
-    Str << Name;
-  }
+  Str << "@" << Name;
   const RelocOffsetT Offset = getOffset();
   if (Offset) {
     if (Offset >= 0) {

@@ -1431,9 +1431,7 @@ void CfgNode::profileExecutionCount(VariableDeclaration *Var) {
 
   Operand *RMWI64Name = Context->getConstantExternSym(RMW_I64);
   constexpr RelocOffsetT Offset = 0;
-  constexpr bool SuppressMangling = true;
-  Constant *Counter =
-      Context->getConstantSym(Offset, Var->getName(), SuppressMangling);
+  Constant *Counter = Context->getConstantSym(Offset, Var->getName());
   Constant *AtomicRMWOp = Context->getConstantInt32(Intrinsics::AtomicAdd);
   Constant *One = Context->getConstantInt64(1);
   Constant *OrderAcquireRelease =

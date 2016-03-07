@@ -225,7 +225,7 @@ public:
 
   void emit();
   void emitIAS();
-  static void emitTextHeader(const IceString &MangledName, GlobalContext *Ctx,
+  static void emitTextHeader(const IceString &Name, GlobalContext *Ctx,
                              const Assembler *Asm);
   void dump(const IceString &Message = "");
 

@@ -117,8 +117,8 @@ ELFObjectWriter::createRelocationSection(const ELFSection *RelatedSection) {
   // practice we've only had .rela for elf64 (x86-64). In the future, the two
   // properties may need to be decoupled and the ShEntSize can vary more.
   const Elf64_Word ShType = ELF64 ? SHT_RELA : SHT_REL;
-  IceString RelPrefix = ELF64 ? ".rela" : ".rel";
-  IceString RelSectionName = RelPrefix + RelatedSection->getName();
+  const IceString RelPrefix = ELF64 ? ".rela" : ".rel";
+  const IceString RelSectionName = RelPrefix + RelatedSection->getName();
   const Elf64_Xword ShAlign = ELF64 ? 8 : 4;
   const Elf64_Xword ShEntSize = ELF64 ? sizeof(Elf64_Rela) : sizeof(Elf32_Rel);
   static_assert(sizeof(Elf64_Rela) == 24 && sizeof(Elf32_Rel) == 8,
@@ -334,7 +334,6 @@ void ELFObjectWriter::writeDataOfType(SectionType ST,
     return;
   ELFDataSection *Section;
   ELFRelocationSection *RelSection;
-  IceString SectionName;
   Elf64_Xword ShAddralign = 1;
   for (VariableDeclaration *Var : Vars) {
     Elf64_Xword Align = Var->getAlignment();
@@ -393,10 +392,10 @@ void ELFObjectWriter::writeDataOfType(SectionType ST,
     SizeT SymbolSize = Var->getNumBytes();
     bool IsExternal = Var->isExternal() || Ctx.getFlags().getDisableInternal();
     const uint8_t SymbolBinding = IsExternal ? STB_GLOBAL : STB_LOCAL;
-    IceString MangledName = Var->mangleName(&Ctx);
-    SymTab->createDefinedSym(MangledName, SymbolType, SymbolBinding, Section,
+    const IceString &Name = Var->getName();
+    SymTab->createDefinedSym(Name, SymbolType, SymbolBinding, Section,
                              Section->getCurrentSize(), SymbolSize);
-    StrTab->add(MangledName);
+    StrTab->add(Name);
     if (!Var->hasNonzeroInitializer()) {
       assert(ST == BSS || ST == ROData);
       if (ST == ROData)
@@ -426,10 +425,8 @@ void ELFObjectWriter::writeDataOfType(SectionType ST,
           NewFixup.set_kind(Reloc->hasFixup() ? Reloc->getFixup()
                                               : RelocationKind);
           assert(NewFixup.kind() != llvm::ELF::R_ARM_NONE);
-          constexpr bool SuppressMangling = true;
           NewFixup.set_value(Ctx.getConstantSym(
-              Reloc->getOffset(), Reloc->getDeclaration()->mangleName(&Ctx),
-              SuppressMangling));
+              Reloc->getOffset(), Reloc->getDeclaration()->getName()));
           RelSection->addRelocation(NewFixup);
           Section->appendRelocationOffset(Str, RelSection->isRela(),
                                           Reloc->getOffset());
@@ -547,7 +544,7 @@ template <typename ConstType> void ELFObjectWriter::writeConstantPool(Type Ty) {
     auto *Const = llvm::cast<ConstType>(C);
     std::string SymBuffer;
     llvm::raw_string_ostream SymStrBuf(SymBuffer);
-    Const->emitPoolLabel(SymStrBuf, &Ctx);
+    Const->emitPoolLabel(SymStrBuf);
     std::string &SymName = SymStrBuf.str();
     SymTab->createDefinedSym(SymName, STT_NOTYPE, STB_LOCAL, Section,
                              OffsetInSection, SymbolSize);
@@ -595,9 +592,9 @@ void ELFObjectWriter::writeJumpTable(const JumpTableData &JT,
 
   constexpr uint8_t SymbolType = STT_OBJECT;
   Section->padToAlignment(Str, PointerSize);
-  bool IsExternal = Ctx.getFlags().getDisableInternal();
+  const bool IsExternal = Ctx.getFlags().getDisableInternal();
   const uint8_t SymbolBinding = IsExternal ? STB_GLOBAL : STB_LOCAL;
-  IceString JumpTableName =
+  const IceString JumpTableName =
       InstJumpTable::makeName(JT.getFunctionName(), JT.getId());
   SymTab->createDefinedSym(JumpTableName, SymbolType, SymbolBinding, Section,
                            Section->getCurrentSize(), PointerSize);
@@ -607,9 +604,7 @@ void ELFObjectWriter::writeJumpTable(const JumpTableData &JT,
     AssemblerFixup NewFixup;
     NewFixup.set_position(Section->getCurrentSize());
     NewFixup.set_kind(RelocationKind);
-    constexpr bool SuppressMangling = true;
-    NewFixup.set_value(Ctx.getConstantSym(TargetOffset, JT.getFunctionName(),
-                                          SuppressMangling));
+    NewFixup.set_value(Ctx.getConstantSym(TargetOffset, JT.getFunctionName()));
     RelSection->addRelocation(NewFixup);
     Section->appendRelocationOffset(Str, RelSection->isRela(), TargetOffset);
   }
@@ -628,7 +623,6 @@ void ELFObjectWriter::setUndefinedSyms(const ConstantList &UndefSyms) {
     // doesn't match a known intrinsic.  If we want this to turn into an error,
     // we should catch it early on.
     assert(Sym->getOffset() == 0);
-    assert(Sym->getSuppressMangling());
     SymTab->noteUndefinedSym(Name, NullSection);
     StrTab->add(Name);
   }
@@ -640,9 +634,9 @@ void ELFObjectWriter::writeRelocationSections(RelSectionList &RelSections) {
     RelSec->setFileOffset(Offset);
     RelSec->setSize(RelSec->getSectionDataSize());
     if (ELF64) {
-      RelSec->writeData<true>(Ctx, Str, SymTab);
+      RelSec->writeData<true>(Str, SymTab);
     } else {
-      RelSec->writeData<false>(Ctx, Str, SymTab);
+      RelSec->writeData<false>(Str, SymTab);
     }
   }
 }

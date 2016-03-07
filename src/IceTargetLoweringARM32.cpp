@@ -907,18 +907,17 @@ IceString TargetARM32::createGotoffRelocation(const ConstantRelocatable *CR) {
   const IceString CRGotoffName =
       "GOTOFF$" + Func->getFunctionName() + "$" + CRName;
   if (KnownGotoffs.count(CRGotoffName) == 0) {
-    auto *Global = VariableDeclaration::create(Ctx);
+    constexpr bool SuppressMangling = true;
+    auto *Global = VariableDeclaration::create(Ctx, SuppressMangling);
     Global->setIsConstant(true);
     Global->setName(CRName);
-    Global->setSuppressMangling();
 
-    auto *Gotoff = VariableDeclaration::create(Ctx);
+    auto *Gotoff = VariableDeclaration::create(Ctx, SuppressMangling);
     constexpr auto GotFixup = R_ARM_GOTOFF32;
     Gotoff->setIsConstant(true);
-    Gotoff->setName(CRGotoffName);
-    Gotoff->setSuppressMangling();
     Gotoff->addInitializer(VariableDeclaration::RelocInitializer::create(
         Global, {RelocOffset::create(Ctx, 0)}, GotFixup));
+    Gotoff->setName(CRGotoffName);
     Func->addGlobal(Gotoff);
     KnownGotoffs.emplace(CRGotoffName);
   }
@@ -963,7 +962,7 @@ void TargetARM32::materializeGotAddr(CfgNode *Node) {
 
 void TargetARM32::loadNamedConstantRelocatablePIC(
     const IceString &Name, Variable *Register,
-    std::function<void(Variable *PC)> Finish, bool SuppressMangling) {
+    std::function<void(Variable *PC)> Finish) {
   assert(SandboxingType == ST_Nonsfi);
   // We makeReg() here instead of getPhysicalRegister() because the latter ends
   // up creating multi-blocks temporaries that liveness fails to validate.
@@ -973,8 +972,6 @@ void TargetARM32::loadNamedConstantRelocatablePIC(
   AddPcReloc->setSubtract(true);
   auto *AddPcLabel = InstARM32Label::create(Func, this);
   AddPcLabel->setRelocOffset(AddPcReloc);
-
-  const IceString EmitText = Name;
 
   auto *MovwReloc = RelocOffset::create(Ctx);
   auto *MovwLabel = InstARM32Label::create(Func, this);
@@ -994,9 +991,9 @@ void TargetARM32::loadNamedConstantRelocatablePIC(
   // relocations.
   static constexpr RelocOffsetT PcOffset = -8;
   auto *CRLower = Ctx->getConstantSym(PcOffset, {MovwReloc, AddPcReloc}, Name,
-                                      EmitText + " -16", SuppressMangling);
+                                      Name + " -16");
   auto *CRUpper = Ctx->getConstantSym(PcOffset, {MovtReloc, AddPcReloc}, Name,
-                                      EmitText + " -12", SuppressMangling);
+                                      Name + " -12");
 
   Context.insert(MovwLabel);
   _movw(Register, CRLower);
@@ -5974,9 +5971,9 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
       // Load floats/doubles from literal pool.
       std::string Buffer;
       llvm::raw_string_ostream StrBuf(Buffer);
-      llvm::cast<Constant>(From)->emitPoolLabel(StrBuf, Ctx);
+      llvm::cast<Constant>(From)->emitPoolLabel(StrBuf);
       llvm::cast<Constant>(From)->setShouldBePooled(true);
-      Constant *Offset = Ctx->getConstantSym(0, StrBuf.str(), true);
+      Constant *Offset = Ctx->getConstantSym(0, StrBuf.str());
       Variable *BaseReg = nullptr;
       if (SandboxingType == ST_Nonsfi) {
         // vldr does not support the [base, index] addressing mode, so we need
@@ -6758,10 +6755,10 @@ const char ConstantPoolEmitterTraits<double>::TypeName[] = "f64";
 
 template <typename T>
 void emitConstant(
-    Ostream &Str, const GlobalContext *Ctx,
+    Ostream &Str,
     const typename ConstantPoolEmitterTraits<T>::ConstantType *Const) {
   using Traits = ConstantPoolEmitterTraits<T>;
-  Const->emitPoolLabel(Str, Ctx);
+  Const->emitPoolLabel(Str);
   Str << ":\n\t" << Traits::AsmTag << "\t0x";
   T Value = Const->getValue();
   Str.write_hex(Traits::bitcastToUint64(Value));
@@ -6794,7 +6791,7 @@ template <typename T> void emitConstantPool(GlobalContext *Ctx) {
       continue;
     }
 
-    emitConstant<T>(Str, Ctx, llvm::dyn_cast<typename Traits::ConstantType>(C));
+    emitConstant<T>(Str, llvm::dyn_cast<typename Traits::ConstantType>(C));
   }
 }
 } // end of anonymous namespace

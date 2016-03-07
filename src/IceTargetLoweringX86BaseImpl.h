@@ -1343,8 +1343,7 @@ TargetX86Base<TraitsType>::hiOperand(Operand *Operand) {
     } else if (auto *SymOffset = llvm::dyn_cast<ConstantRelocatable>(Offset)) {
       assert(!Utils::WouldOverflowAdd(SymOffset->getOffset(), 4));
       Offset =
-          Ctx->getConstantSym(4 + SymOffset->getOffset(), SymOffset->getName(),
-                              SymOffset->getSuppressMangling());
+          Ctx->getConstantSym(4 + SymOffset->getOffset(), SymOffset->getName());
     }
     auto *MemOperand = X86OperandMem::create(
         Func, IceType_i32, Mem->getBase(), Offset, Mem->getIndex(),
@@ -5406,8 +5405,7 @@ TargetX86Base<TypeTraits>::computeAddressOpt(const Inst *Instr, Type MemType,
   } else {
     OffsetOp =
         Ctx->getConstantSym(NewAddr.Relocatable->getOffset() + NewAddr.Offset,
-                            NewAddr.Relocatable->getName(),
-                            NewAddr.Relocatable->getSuppressMangling());
+                            NewAddr.Relocatable->getName());
   }
   // Vanilla ICE load instructions should not use the segment registers, and
   // computeAddressOpt only works at the level of Variables and Constants, not
@@ -5864,12 +5862,10 @@ void TargetX86Base<TraitsType>::lowerCaseCluster(const CaseCluster &Case,
     }
 
     constexpr RelocOffsetT RelocOffset = 0;
-    constexpr bool SuppressMangling = true;
-    IceString MangledName = Ctx->mangleName(Func->getFunctionName());
+    const IceString &FunctionName = Func->getFunctionName();
     constexpr Variable *NoBase = nullptr;
     Constant *Offset = Ctx->getConstantSym(
-        RelocOffset, InstJumpTable::makeName(MangledName, JumpTable->getId()),
-        SuppressMangling);
+        RelocOffset, InstJumpTable::makeName(FunctionName, JumpTable->getId()));
     uint16_t Shift = typeWidthInBytesLog2(PointerType);
     constexpr auto Segment = X86OperandMem::SegmentRegisters::DefaultSegment;
 
@@ -6811,9 +6807,9 @@ Operand *TargetX86Base<TraitsType>::legalize(Operand *From, LegalMask Allowed,
 
       std::string Buffer;
       llvm::raw_string_ostream StrBuf(Buffer);
-      llvm::cast<Constant>(From)->emitPoolLabel(StrBuf, Ctx);
+      llvm::cast<Constant>(From)->emitPoolLabel(StrBuf);
       llvm::cast<Constant>(From)->setShouldBePooled(true);
-      Constant *Offset = Ctx->getConstantSym(0, StrBuf.str(), true);
+      Constant *Offset = Ctx->getConstantSym(0, StrBuf.str());
       auto *Mem = X86OperandMem::create(Func, Ty, nullptr, Offset);
       From = Mem;
     }
@@ -7030,7 +7026,7 @@ void TargetX86Base<TraitsType>::emit(const ConstantFloat *C) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Ctx->getStrEmit();
-  C->emitPoolLabel(Str, Ctx);
+  C->emitPoolLabel(Str);
 }
 
 template <typename TraitsType>
@@ -7038,7 +7034,7 @@ void TargetX86Base<TraitsType>::emit(const ConstantDouble *C) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Ctx->getStrEmit();
-  C->emitPoolLabel(Str, Ctx);
+  C->emitPoolLabel(Str);
 }
 
 template <typename TraitsType>
@@ -7128,11 +7124,9 @@ TargetX86Base<TraitsType>::randomizeOrPoolImmediate(Constant *Immediate,
     Variable *Reg = makeReg(Immediate->getType(), RegNum);
     IceString Label;
     llvm::raw_string_ostream Label_stream(Label);
-    Immediate->emitPoolLabel(Label_stream, Ctx);
+    Immediate->emitPoolLabel(Label_stream);
     constexpr RelocOffsetT Offset = 0;
-    constexpr bool SuppressMangling = true;
-    Constant *Symbol =
-        Ctx->getConstantSym(Offset, Label_stream.str(), SuppressMangling);
+    Constant *Symbol = Ctx->getConstantSym(Offset, Label_stream.str());
     constexpr Variable *NoBase = nullptr;
     X86OperandMem *MemOperand =
         X86OperandMem::create(Func, Immediate->getType(), NoBase, Symbol);
@@ -7235,12 +7229,10 @@ TargetX86Base<TraitsType>::randomizeOrPoolImmediate(X86OperandMem *MemOperand,
     Variable *RegTemp = makeReg(IceType_i32);
     IceString Label;
     llvm::raw_string_ostream Label_stream(Label);
-    MemOperand->getOffset()->emitPoolLabel(Label_stream, Ctx);
+    MemOperand->getOffset()->emitPoolLabel(Label_stream);
     MemOperand->getOffset()->setShouldBePooled(true);
     constexpr RelocOffsetT SymOffset = 0;
-    constexpr bool SuppressMangling = true;
-    Constant *Symbol =
-        Ctx->getConstantSym(SymOffset, Label_stream.str(), SuppressMangling);
+    Constant *Symbol = Ctx->getConstantSym(SymOffset, Label_stream.str());
     constexpr Variable *NoBase = nullptr;
     X86OperandMem *SymbolOperand = X86OperandMem::create(
         Func, MemOperand->getOffset()->getType(), NoBase, Symbol);
@@ -7269,12 +7261,12 @@ void TargetX86Base<TraitsType>::emitJumpTable(
     return;
   Ostream &Str = Ctx->getStrEmit();
   const bool UseNonsfi = Ctx->getFlags().getUseNonsfi();
-  const IceString MangledName = Ctx->mangleName(Func->getFunctionName());
+  const IceString &FunctionName = Func->getFunctionName();
   const IceString Prefix = UseNonsfi ? ".data.rel.ro." : ".rodata.";
-  Str << "\t.section\t" << Prefix << MangledName
+  Str << "\t.section\t" << Prefix << FunctionName
       << "$jumptable,\"a\",@progbits\n";
   Str << "\t.align\t" << typeWidthInBytes(getPointerType()) << "\n";
-  Str << InstJumpTable::makeName(MangledName, JumpTable->getId()) << ":";
+  Str << InstJumpTable::makeName(FunctionName, JumpTable->getId()) << ":";
 
   // On X86 ILP32 pointers are 32-bit hence the use of .long
   for (SizeT I = 0; I < JumpTable->getNumTargets(); ++I)
@@ -7323,7 +7315,7 @@ void TargetDataX86<TraitsType>::emitConstantPool(GlobalContext *Ctx) {
     assert(CharsPrinted >= 0);
     assert((size_t)CharsPrinted < llvm::array_lengthof(buf));
     (void)CharsPrinted; // avoid warnings if asserts are disabled
-    Const->emitPoolLabel(Str, Ctx);
+    Const->emitPoolLabel(Str);
     Str << ":\n\t" << T::AsmTag << "\t" << buf << "\t/* " << T::TypeName << " "
         << Value << " */\n";
   }

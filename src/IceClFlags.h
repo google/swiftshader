@@ -20,6 +20,21 @@
 
 namespace Ice {
 
+// TODO(stichnot): Fix the separation between ClFlags and ClFlagsExtra.
+//
+// The original intention was that ClFlags would be the core set of flags for a
+// release build, while ClFlagsExtra had optional flags that would be locked to
+// default values in a release build.  However, the division has evolved to be
+// fairly arbitrary.
+//
+// The variable flags in a release (browser) build should be limited to opt
+// level, number of threads, output file, and perhaps input file.
+//
+// The core flags should remain part of the GlobalContext object, but the
+// optional flags might as well be global, i.e. static members of GlobalContext,
+// so that they are easily accessed from anywhere without needing to plumb in
+// the GlobalContext object.
+
 class ClFlagsExtra;
 
 /// Define variables which configure translation and related support functions.

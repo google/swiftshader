@@ -819,7 +819,7 @@ InstARM32Label::InstARM32Label(Cfg *Func, TargetARM32 *Target)
 
 IceString InstARM32Label::getName(const Cfg *Func) const {
   if (!BuildDefs::dump())
-    return IceString();
+    return "";
   return ".L" + Func->getFunctionName() + "$local$__" + std::to_string(Number);
 }
 

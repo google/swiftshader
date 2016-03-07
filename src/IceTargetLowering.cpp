@@ -729,11 +729,7 @@ void TargetLowering::emitWithoutPrefix(const ConstantRelocatable *C,
     Str << EmitStr;
     return;
   }
-  if (C->getSuppressMangling())
-    Str << C->getName();
-  else
-    Str << Ctx->mangleName(C->getName());
-  Str << Suffix;
+  Str << C->getName() << Suffix;
   RelocOffsetT Offset = C->getOffset();
   if (Offset) {
     if (Offset > 0)
@@ -760,19 +756,18 @@ TargetDataLowering::~TargetDataLowering() = default;
 
 namespace {
 
-// dataSectionSuffix decides whether to use SectionSuffix or MangledVarName as
-// data section suffix. Essentially, when using separate data sections for
-// globals SectionSuffix is not necessary.
+// dataSectionSuffix decides whether to use SectionSuffix or VarName as data
+// section suffix. Essentially, when using separate data sections for globals
+// SectionSuffix is not necessary.
 IceString dataSectionSuffix(const IceString &SectionSuffix,
-                            const IceString &MangledVarName,
-                            const bool DataSections) {
+                            const IceString &VarName, const bool DataSections) {
   if (SectionSuffix.empty() && !DataSections) {
     return "";
   }
 
   if (DataSections) {
     // With data sections we don't need to use the SectionSuffix.
-    return "." + MangledVarName;
+    return "." + VarName;
   }
 
   assert(!SectionSuffix.empty());
@@ -797,14 +792,14 @@ void TargetDataLowering::emitGlobal(const VariableDeclaration &Var,
   const bool HasNonzeroInitializer = Var.hasNonzeroInitializer();
   const bool IsConstant = Var.getIsConstant();
   const SizeT Size = Var.getNumBytes();
-  const IceString MangledName = Var.mangleName(Ctx);
+  const IceString &Name = Var.getName();
 
-  Str << "\t.type\t" << MangledName << ",%object\n";
+  Str << "\t.type\t" << Name << ",%object\n";
 
   const bool UseDataSections = Ctx->getFlags().getDataSections();
   const bool UseNonsfi = Ctx->getFlags().getUseNonsfi();
   const IceString Suffix =
-      dataSectionSuffix(SectionSuffix, MangledName, UseDataSections);
+      dataSectionSuffix(SectionSuffix, Name, UseDataSections);
   if (IsConstant && UseNonsfi)
     Str << "\t.section\t.data.rel.ro" << Suffix << ",\"aw\",%progbits\n";
   else if (IsConstant)
@@ -815,7 +810,7 @@ void TargetDataLowering::emitGlobal(const VariableDeclaration &Var,
     Str << "\t.section\t.bss" << Suffix << ",\"aw\",%nobits\n";
 
   if (IsExternal)
-    Str << "\t.globl\t" << MangledName << "\n";
+    Str << "\t.globl\t" << Name << "\n";
 
   const uint32_t Align = Var.getAlignment();
   if (Align > 1) {
@@ -825,7 +820,7 @@ void TargetDataLowering::emitGlobal(const VariableDeclaration &Var,
     Str << "\t.p2align\t" << llvm::Log2_32(Align) << "\n";
   }
 
-  Str << MangledName << ":\n";
+  Str << Name << ":\n";
 
   if (HasNonzeroInitializer) {
     for (const std::unique_ptr<VariableDeclaration::Initializer> &Init :
@@ -847,7 +842,7 @@ void TargetDataLowering::emitGlobal(const VariableDeclaration &Var,
         const auto *Reloc =
             llvm::cast<VariableDeclaration::RelocInitializer>(Init.get());
         Str << "\t" << getEmit32Directive() << "\t";
-        Str << Reloc->getDeclaration()->mangleName(Ctx);
+        Str << Reloc->getDeclaration()->getName();
         if (Reloc->hasFixup()) {
           // TODO(jpp): this is ARM32 specific.
           Str << "(GOTOFF)";
@@ -871,7 +866,7 @@ void TargetDataLowering::emitGlobal(const VariableDeclaration &Var,
     Str << "\t.zero\t" << Size << "\n";
   }
 
-  Str << "\t.size\t" << MangledName << ", " << Size << "\n";
+  Str << "\t.size\t" << Name << ", " << Size << "\n";
 }
 
 std::unique_ptr<TargetHeaderLowering>

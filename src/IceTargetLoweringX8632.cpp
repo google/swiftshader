@@ -254,7 +254,7 @@ void TargetX8632::emitGetIP(CfgNode *Node) {
 
     auto *GotFromPc = llvm::cast<ConstantRelocatable>(
         Ctx->getConstantSym(ImmSize, {AfterAddReloc, BeforeAddReloc},
-                            GlobalOffsetTable, GlobalOffsetTable, true));
+                            GlobalOffsetTable, GlobalOffsetTable));
 
     // Insert a new version of InstX86GetIP.
     Context.insert<Traits::Insts::GetIP>(CallDest);

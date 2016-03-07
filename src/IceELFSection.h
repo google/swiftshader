@@ -240,8 +240,7 @@ public:
   size_t getSectionDataSize() const;
 
   template <bool IsELF64>
-  void writeData(const GlobalContext &Ctx, ELFStreamer &Str,
-                 const ELFSymbolTableSection *SymTab);
+  void writeData(ELFStreamer &Str, const ELFSymbolTableSection *SymTab);
 
   bool isRela() const { return Header.sh_type == SHT_RELA; }
 
@@ -348,7 +347,7 @@ void ELFSymbolTableSection::writeSymbolMap(ELFStreamer &Str,
 }
 
 template <bool IsELF64>
-void ELFRelocationSection::writeData(const GlobalContext &Ctx, ELFStreamer &Str,
+void ELFRelocationSection::writeData(ELFStreamer &Str,
                                      const ELFSymbolTableSection *SymTab) {
   for (const AssemblerFixup &Fixup : Fixups) {
     const ELFSym *Symbol;
@@ -356,7 +355,7 @@ void ELFRelocationSection::writeData(const GlobalContext &Ctx, ELFStreamer &Str,
       Symbol = SymTab->getNullSymbol();
     } else {
       constexpr Assembler *Asm = nullptr;
-      IceString Name = Fixup.symbol(&Ctx, Asm);
+      const IceString Name = Fixup.symbol(Asm);
       Symbol = SymTab->findSymbol(Name);
       if (!Symbol)
         llvm::report_fatal_error(Name + ": Missing symbol mentioned in reloc");

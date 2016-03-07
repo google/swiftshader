@@ -625,13 +625,11 @@ Inst *TargetX8664::emitCallToTarget(Operand *CallTarget, Variable *ReturnReg) {
     InstX86Label *ReturnAddress = InstX86Label::create(Func, this);
     auto *ReturnRelocOffset = RelocOffset::create(Ctx);
     ReturnAddress->setRelocOffset(ReturnRelocOffset);
-    constexpr bool SuppressMangling = true;
     constexpr RelocOffsetT NoFixedOffset = 0;
     const IceString EmitString = ReturnAddress->getName(Func);
     auto *ReturnReloc = llvm::cast<ConstantRelocatable>(
         Ctx->getConstantSym(NoFixedOffset, {ReturnRelocOffset},
-                            Ctx->mangleName(Func->getFunctionName()),
-                            EmitString, SuppressMangling));
+                            Func->getFunctionName(), EmitString));
     /* AutoBundle scoping */ {
       std::unique_ptr<AutoBundle> Bundler;
       if (CallTargetR == nullptr) {

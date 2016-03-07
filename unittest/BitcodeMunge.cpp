@@ -33,7 +33,7 @@ bool IceTest::SubzeroBitcodeMunger::runTest(const uint64_t Munges[],
                                             bool DisableTranslation) {
   const bool AddHeader = true;
   setupTest(Munges, MungeSize, AddHeader);
-  Ice::GlobalContext Ctx(DumpStream, DumpStream, DumpStream, nullptr, Flags);
+  Ice::GlobalContext Ctx(DumpStream, DumpStream, DumpStream, nullptr);
   Ice::PNaClTranslator Translator(&Ctx);
   const char *BufferName = "Test";
   Flags.setDisableTranslation(DisableTranslation);
