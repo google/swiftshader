@@ -118,6 +118,30 @@
       "revId": "8ef33b1b92e1ed8220fd7551dff6400e4c463b20",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "57a789bf_32130eaf",
+        "filename": "src/Shader/SetupRoutine.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-03-08T21:20:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "17aa7153_8e6d3fd5",
+      "range": {
+        "startLine": 39,
+        "startChar": 3,
+        "endLine": 42,
+        "endChar": 4
+      },
+      "revId": "8ef33b1b92e1ed8220fd7551dff6400e4c463b20",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
