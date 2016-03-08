@@ -1065,11 +1065,12 @@ entry:
 ; CHECK: lock cmpxchg BYTE PTR [e{{[^a].}}],{{[^a]}}l
 ; ARM32-LABEL: test_atomic_cmpxchg_8
 ; ARM32: dmb
-; ARM32: ldrexb
-; ARM32: cmp
-; ARM32: {{strb|mov}}
-; ARM32: strexbeq
-; ARM32: cmpeq
+; ARM32: ldrexb [[V:r[0-9]+]], {{[[]}}[[A:r[0-9]+]]{{[]]}}
+; ARM32: lsl [[VV:r[0-9]+]], [[V]], #24
+; ARM32: cmp [[VV]], {{r[0-9]+}}, lsl #24
+; ARM32: movne [[SUCCESS:r[0-9]+]],
+; ARM32: strexbeq [[SUCCESS]], {{r[0-9]+}}, {{[[]}}[[A]]{{[]]}}
+; ARM32: cmp [[SUCCESS]], #0
 ; ARM32: bne
 ; ARM32: dmb
 
@@ -1089,11 +1090,12 @@ entry:
 ; CHECK: lock cmpxchg WORD PTR [e{{[^a].}}],{{[^a]}}x
 ; ARM32-LABEL: test_atomic_cmpxchg_16
 ; ARM32: dmb
-; ARM32: ldrexh
-; ARM32: cmp
-; ARM32: {{strh|mov}}
-; ARM32: strexheq
-; ARM32: cmpeq
+; ARM32: ldrexh [[V:r[0-9]+]], {{[[]}}[[A:r[0-9]+]]{{[]]}}
+; ARM32: lsl [[VV:r[0-9]+]], [[V]], #16
+; ARM32: cmp [[VV]], {{r[0-9]+}}, lsl #16
+; ARM32: movne [[SUCCESS:r[0-9]+]],
+; ARM32: strexheq [[SUCCESS]], {{r[0-9]+}}, {{[[]}}[[A]]{{[]]}}
+; ARM32: cmp [[SUCCESS]], #0
 ; ARM32: bne
 ; ARM32: dmb
 
@@ -1110,11 +1112,11 @@ entry:
 ; CHECK: lock cmpxchg DWORD PTR [e{{[^a].}}],e{{[^a]}}
 ; ARM32-LABEL: test_atomic_cmpxchg_32
 ; ARM32: dmb
-; ARM32: ldrex
-; ARM32: cmp
-; ARM32: {{str|mov}}
-; ARM32: strexeq
-; ARM32: cmpeq
+; ARM32: ldrex [[V:r[0-9]+]], {{[[]}}[[A:r[0-9]+]]{{[]]}}
+; ARM32: cmp [[V]], {{r[0-9]+}}
+; ARM32: movne [[SUCCESS:r[0-9]+]],
+; ARM32: strexeq [[SUCCESS]], {{r[0-9]+}}, {{[[]}}[[A]]{{[]]}}
+; ARM32: cmp [[SUCCESS]], #0
 ; ARM32: bne
 ; ARM32: dmb
 
@@ -1138,13 +1140,12 @@ entry:
 ; somewhere, so in that case they do need to be mov'ed.
 ; ARM32-LABEL: test_atomic_cmpxchg_64
 ; ARM32: dmb
-; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, {{[[]}}[[PTR:r[0-9]+]]{{[]]}}
-; ARM32: cmp
-; ARM32: cmpeq
-; ARM32: mov
-; ARM32: mov
-; ARM32: strexdeq r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, {{[[]}}[[PTR]]{{[]]}}
-; ARM32: cmpeq
+; ARM32: ldrexd [[V0:r[0-9]+]], [[V1:r[0-9]+]], {{[[]}}[[A:r[0-9]+]]{{[]]}}
+; ARM32: cmp [[V0]], {{r[0-9]+}}
+; ARM32: cmpeq [[V1]], {{r[0-9]+}}
+; ARM32: movne [[SUCCESS:r[0-9]+]],
+; ARM32: strexdeq [[SUCCESS]], r{{[0-9]+}}, r{{[0-9]+}}, {{[[]}}[[A]]{{[]]}}
+; ARM32: cmp [[SUCCESS]], #0
 ; ARM32: bne
 ; ARM32: dmb
 
@@ -1161,13 +1162,12 @@ entry:
 ; ARM32: mov r{{[0-9]+}}, #0
 ; ARM32: mov r{{[0-9]+}}, #0
 ; ARM32: dmb
-; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, {{[[]}}[[PTR:r[0-9]+]]{{[]]}}
-; ARM32: cmp
-; ARM32: cmpeq
-; ARM32: mov
-; ARM32: mov
-; ARM32: strexdeq r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, {{[[]}}[[PTR]]{{[]]}}
-; ARM32: cmpeq
+; ARM32: ldrexd [[V0:r[0-9]+]], [[V1:r[0-9]+]], {{[[]}}[[A:r[0-9]+]]{{[]]}}
+; ARM32: cmp [[V0]], {{r[0-9]+}}
+; ARM32: cmpeq [[V1]], {{r[0-9]+}}
+; ARM32: movne [[SUCCESS:r[0-9]+]],
+; ARM32: strexdeq [[SUCCESS]], r{{[0-9]+}}, r{{[0-9]+}}, {{[[]}}[[A]]{{[]]}}
+; ARM32: cmp [[SUCCESS]], #0
 ; ARM32: bne
 ; ARM32: dmb
 
@@ -1193,13 +1193,12 @@ entry:
 ; CHECK-DAG: mov {{.*}},eax
 ; ARM32-LABEL: test_atomic_cmpxchg_64_store
 ; ARM32: dmb
-; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, {{[[]}}[[PTR:r[0-9]+]]{{[]]}}
-; ARM32: cmp
-; ARM32: cmpeq
-; ARM32: mov
-; ARM32: mov
-; ARM32: strexdeq r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, {{[[]}}[[PTR]]{{[]]}}
-; ARM32: cmpeq
+; ARM32: ldrexd [[V0:r[0-9]+]], [[V1:r[0-9]+]], {{[[]}}[[A:r[0-9]+]]{{[]]}}
+; ARM32: cmp [[V0]], {{r[0-9]+}}
+; ARM32: cmpeq [[V1]], {{r[0-9]+}}
+; ARM32: movne [[SUCCESS:r[0-9]+]],
+; ARM32: strexdeq [[SUCCESS]], r{{[0-9]+}}, r{{[0-9]+}}, {{[[]}}[[A]]{{[]]}}
+; ARM32: cmp [[SUCCESS]], #0
 ; ARM32: bne
 ; ARM32: dmb
 ; ARM32: str
@@ -1239,13 +1238,12 @@ eblock:
 ; CHECK: call {{.*}} R_{{.*}} use_ptr
 ; ARM32-LABEL: test_atomic_cmpxchg_64_alloca
 ; ARM32: dmb
-; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, {{[[]}}[[PTR:r[0-9]+]]{{[]]}}
-; ARM32: cmp
-; ARM32: cmpeq
-; ARM32: mov
-; ARM32: mov
-; ARM32: strexdeq r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, {{[[]}}[[PTR]]{{[]]}}
-; ARM32: cmpeq
+; ARM32: ldrexd [[V0:r[0-9]+]], [[V1:r[0-9]+]], {{[[]}}[[A:r[0-9]+]]{{[]]}}
+; ARM32: cmp [[V0]], {{r[0-9]+}}
+; ARM32: cmpeq [[V1]], {{r[0-9]+}}
+; ARM32: movne [[SUCCESS:r[0-9]+]],
+; ARM32: strexdeq [[SUCCESS]], r{{[0-9]+}}, r{{[0-9]+}}, {{[[]}}[[A]]{{[]]}}
+; ARM32: cmp [[SUCCESS]], #0
 ; ARM32: bne
 ; ARM32: dmb
 
@@ -1262,10 +1260,11 @@ entry:
 ; CHECK: lock cmpxchg DWORD PTR [e{{[^a].}}]
 ; ARM32-LABEL: test_atomic_cmpxchg_32_ignored
 ; ARM32: dmb
-; ARM32: ldrex
-; ARM32: cmp
-; ARM32: strexeq
-; ARM32: cmpeq
+; ARM32: ldrex [[V:r[0-9]+]], {{[[]}}[[A:r[0-9]+]]{{[]]}}
+; ARM32: cmp [[V]], {{r[0-9]+}}
+; ARM32: movne [[SUCCESS:r[0-9]+]],
+; ARM32: strexeq [[SUCCESS]]
+; ARM32: cmp [[SUCCESS]], #0
 ; ARM32: bne
 ; ARM32: dmb
 
@@ -1286,13 +1285,12 @@ entry:
 ; CHECK: lock cmpxchg8b QWORD PTR [e{{.[^x]}}+0x0]
 ; ARM32-LABEL: test_atomic_cmpxchg_64_ignored
 ; ARM32: dmb
-; ARM32: ldrexd [[R0:r[0-9]+]], [[R1:r[0-9]+]], {{[[]}}[[PTR:r[0-9]+]]{{[]]}}
-; ARM32: cmp
-; ARM32-NEXT: cmpeq
-; ARM32: strexdeq r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, {{[[]}}[[PTR]]{{[]]}}
-; ARM32O2-NOT: {{str|mov}}ne [[R0]]
-; ARM32O2-NOT: {{str|mov}}ne [[R1]]
-; ARM32: cmpeq
+; ARM32: ldrexd [[V0:r[0-9]+]], [[V1:r[0-9]+]], {{[[]}}[[A:r[0-9]+]]{{[]]}}
+; ARM32: cmp [[V0]], {{r[0-9]+}}
+; ARM32: cmpeq [[V1]], {{r[0-9]+}}
+; ARM32: movne [[SUCCESS:r[0-9]+]],
+; ARM32: strexdeq [[SUCCESS]], r{{[0-9]+}}, r{{[0-9]+}}, {{[[]}}[[PTR]]{{[]]}}
+; ARM32: cmp [[SUCCESS]], #0
 ; ARM32: bne
 ; ARM32: dmb
 

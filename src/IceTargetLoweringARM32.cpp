@@ -1412,17 +1412,18 @@ void TargetARM32::lowerArguments() {
 void TargetARM32::finishArgumentLowering(Variable *Arg, Variable *FramePtr,
                                          size_t BasicFrameOffset,
                                          size_t *InArgsSizeBytes) {
+  const Type Ty = Arg->getType();
+  *InArgsSizeBytes = applyStackAlignmentTy(*InArgsSizeBytes, Ty);
+
   if (auto *Arg64On32 = llvm::dyn_cast<Variable64On32>(Arg)) {
-    Variable *Lo = Arg64On32->getLo();
-    Variable *Hi = Arg64On32->getHi();
+    Variable *const Lo = Arg64On32->getLo();
+    Variable *const Hi = Arg64On32->getHi();
     finishArgumentLowering(Lo, FramePtr, BasicFrameOffset, InArgsSizeBytes);
     finishArgumentLowering(Hi, FramePtr, BasicFrameOffset, InArgsSizeBytes);
     return;
   }
-  Type Ty = Arg->getType();
   assert(Ty != IceType_i64);
 
-  *InArgsSizeBytes = applyStackAlignmentTy(*InArgsSizeBytes, Ty);
   const int32_t ArgStackOffset = BasicFrameOffset + *InArgsSizeBytes;
   *InArgsSizeBytes += typeWidthInBytesOnStack(Ty);
 
@@ -4603,9 +4604,10 @@ void TargetARM32::lowerLoadLinkedStoreExclusive(
     CondARM32::Cond Cond) {
 
   auto *Retry = Context.insert<InstARM32Label>(this);
+
   { // scoping for loop highlighting.
+    Variable *Success = makeReg(IceType_i32);
     Variable *Tmp = (Ty == IceType_i64) ? makeI64RegPair() : makeReg(Ty);
-    auto *Success = makeReg(IceType_i32);
     auto *_0 = Ctx->getConstantZero(IceType_i32);
 
     Context.insert<InstFakeDef>(Tmp);
@@ -4614,9 +4616,19 @@ void TargetARM32::lowerLoadLinkedStoreExclusive(
     _ldrex(Tmp, formMemoryOperand(AddrR, Ty))->setDestRedefined();
     auto *StoreValue = Operation(Tmp);
     assert(StoreValue->mustHaveReg());
-    _strex(Success, StoreValue, formMemoryOperand(AddrR, Ty), Cond);
-    _cmp(Success, _0, Cond);
+    // strex requires Dest to be a register other than Value or Addr. This
+    // restriction is cleanly represented by adding an "early" definition of
+    // Dest (or a latter use of all the sources.)
+    Context.insert<InstFakeDef>(Success);
+    if (Cond != CondARM32::AL) {
+      _mov_redefined(Success, legalize(_0, Legal_Reg | Legal_Flex),
+                     InstARM32::getOppositeCondition(Cond));
+    }
+    _strex(Success, StoreValue, formMemoryOperand(AddrR, Ty), Cond)
+        ->setDestRedefined();
+    _cmp(Success, _0);
   }
+
   _br(Retry, CondARM32::NE);
 }
 
@@ -4887,6 +4899,8 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     }
 
     if (DestTy == IceType_i64) {
+      Variable *LoadedValue = nullptr;
+
       auto *New = makeI64RegPair();
       Context.insert<InstFakeDef>(New);
       lowerAssign(InstAssign::create(Func, New, Instr->getArg(2)));
@@ -4898,26 +4912,21 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
       _dmb();
       lowerLoadLinkedStoreExclusive(
           DestTy, Instr->getArg(0),
-          [this, Expected, New, Instr, DestTy](Variable *Tmp) {
+          [this, Expected, New, Instr, DestTy, &LoadedValue](Variable *Tmp) {
             auto *ExpectedLoR = llvm::cast<Variable>(loOperand(Expected));
             auto *ExpectedHiR = llvm::cast<Variable>(hiOperand(Expected));
             auto *TmpLoR = llvm::cast<Variable>(loOperand(Tmp));
             auto *TmpHiR = llvm::cast<Variable>(hiOperand(Tmp));
             _cmp(TmpLoR, ExpectedLoR);
             _cmp(TmpHiR, ExpectedHiR, CondARM32::EQ);
-            // Adding an explicit use of Tmp here, or its live range will not
-            // reach here (only those of Tmp.Lo and Tmp.Hi will.)
-            Context.insert<InstFakeUse>(Tmp);
-            _mov_redefined(ExpectedLoR, TmpLoR);
-            _mov_redefined(ExpectedHiR, TmpHiR);
-            // Same as above.
-            Context.insert<InstFakeUse>(Tmp);
+            LoadedValue = Tmp;
             return New;
           },
           CondARM32::EQ);
       _dmb();
 
-      lowerAssign(InstAssign::create(Func, Dest, Expected));
+      Context.insert<InstFakeUse>(LoadedValue);
+      lowerAssign(InstAssign::create(Func, Dest, LoadedValue));
       // The fake-use Expected prevents the assignments to Expected (above)
       // from being removed if Dest is not used.
       Context.insert<InstFakeUse>(Expected);
@@ -4929,18 +4938,20 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
 
     auto *New = legalizeToReg(Instr->getArg(2));
     auto *Expected = legalizeToReg(Instr->getArg(1));
+    Variable *LoadedValue = nullptr;
 
     _dmb();
     lowerLoadLinkedStoreExclusive(
-        DestTy,
-        Instr->getArg(0), [this, Expected, New, Instr, DestTy](Variable *Tmp) {
+        DestTy, Instr->getArg(0),
+        [this, Expected, New, Instr, DestTy, &LoadedValue](Variable *Tmp) {
           lowerIcmpCond(InstIcmp::Eq, Tmp, Expected);
-          _mov_redefined(Expected, Tmp);
+          LoadedValue = Tmp;
           return New;
-        }, CondARM32::EQ);
+        },
+        CondARM32::EQ);
     _dmb();
 
-    lowerAssign(InstAssign::create(Func, Dest, Expected));
+    lowerAssign(InstAssign::create(Func, Dest, LoadedValue));
     Context.insert<InstFakeUse>(Expected);
     Context.insert<InstFakeUse>(New);
     return;

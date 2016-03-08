@@ -785,18 +785,13 @@ protected:
             CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert<InstARM32Str>(Value, Addr, Pred);
   }
-  void _strex(Variable *Dest, Variable *Value, OperandARM32Mem *Addr,
-              CondARM32::Cond Pred = CondARM32::AL) {
-    // strex requires Dest to be a register other than Value or Addr. This
-    // restriction is cleanly represented by adding an "early" definition of
-    // Dest (or a latter use of all the sources.)
-    Context.insert<InstFakeDef>(Dest);
+  InstARM32Strex *_strex(Variable *Dest, Variable *Value, OperandARM32Mem *Addr,
+                         CondARM32::Cond Pred = CondARM32::AL) {
     if (auto *Value64 = llvm::dyn_cast<Variable64On32>(Value)) {
       Context.insert<InstFakeUse>(Value64->getLo());
       Context.insert<InstFakeUse>(Value64->getHi());
     }
-    auto *Instr = Context.insert<InstARM32Strex>(Dest, Value, Addr, Pred);
-    Instr->setDestRedefined();
+    return Context.insert<InstARM32Strex>(Dest, Value, Addr, Pred);
   }
   void _sub(Variable *Dest, Variable *Src0, Operand *Src1,
             CondARM32::Cond Pred = CondARM32::AL) {
