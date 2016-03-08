@@ -129,7 +129,7 @@ void Compiler::run(const Ice::ClFlagsExtra &ExtraFlags, GlobalContext &Ctx,
     Ctx.lowerJumpTables();
 
     if (Ctx.getFlags().getOutFileType() == FT_Elf) {
-      TimerMarker T1(Ice::TimerStack::TT_emit, &Ctx);
+      TimerMarker T1(Ice::TimerStack::TT_emitAsm, &Ctx);
       Ctx.getObjectWriter()->setUndefinedSyms(Ctx.getConstantExternSyms());
       Ctx.getObjectWriter()->writeNonUserSections();
     }

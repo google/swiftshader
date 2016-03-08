@@ -27,7 +27,7 @@
   X(doArgLowering)             \
   X(doBranchOpt)               \
   X(doNopInsertion)            \
-  X(emit)                      \
+  X(emitAsm)                   \
   X(emitGlobalInitializers)    \
   X(genCode)                   \
   X(genFrame)                  \
@@ -53,8 +53,10 @@
   X(renumberInstructions)      \
   X(szmain)                    \
   X(translate)                 \
+  X(translateFunctions)        \
   X(validateLiveness)          \
-  X(vmetadata)
+  X(vmetadata)                 \
+  X(writeELF)
 //#define X(tag)
 
 #endif // SUBZERO_SRC_ICETIMERTREE_DEF

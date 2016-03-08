@@ -1027,7 +1027,7 @@ void Cfg::emitJumpTables() {
 void Cfg::emit() {
   if (!BuildDefs::dump())
     return;
-  TimerMarker T(TimerStack::TT_emit, this);
+  TimerMarker T(TimerStack::TT_emitAsm, this);
   if (Ctx->getFlags().getDecorateAsm()) {
     renumberInstructions();
     getVMetadata()->init(VMK_Uses);
@@ -1061,7 +1061,7 @@ void Cfg::emit() {
 }
 
 void Cfg::emitIAS() {
-  TimerMarker T(TimerStack::TT_emit, this);
+  TimerMarker T(TimerStack::TT_emitAsm, this);
   // The emitIAS() routines emit into the internal assembler buffer, so there's
   // no need to lock the streams.
   deleteJumpTableInsts();

@@ -307,6 +307,7 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit, Ostream *OsError,
 }
 
 void GlobalContext::translateFunctions() {
+  TimerMarker Timer(TimerStack::TT_translateFunctions, this);
   while (std::unique_ptr<Cfg> Func = optQueueBlockingPop()) {
     // Install Func in TLS for Cfg-specific container allocators.
     CfgLocalAllocatorScope _(Func.get());
@@ -380,7 +381,7 @@ void resizePending(std::vector<EmitterWorkItem *> &Pending, uint32_t Index) {
 } // end of anonymous namespace
 
 void GlobalContext::emitFileHeader() {
-  TimerMarker T1(Ice::TimerStack::TT_emit, this);
+  TimerMarker T1(Ice::TimerStack::TT_emitAsm, this);
   if (getFlags().getOutFileType() == FT_Elf) {
     getObjectWriter()->writeInitialELFHeader();
   } else {

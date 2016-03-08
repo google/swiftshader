@@ -219,6 +219,14 @@ Elf64_Off ELFObjectWriter::alignFileOffset(Elf64_Xword Align) {
 void ELFObjectWriter::writeFunctionCode(const IceString &FuncName,
                                         bool IsInternal, Assembler *Asm) {
   assert(!SectionNumbersAssigned);
+  TimerMarker Timer(TimerStack::TT_writeELF, &Ctx);
+  constexpr TimerStackIdT StackID = GlobalContext::TSK_Funcs;
+  TimerIdT TimerID = 0;
+  bool TimeThisFunction = Ctx.getFlags().getTimeEachFunction();
+  if (TimeThisFunction) {
+    TimerID = Ctx.getTimerID(StackID, FuncName);
+    Ctx.pushTimer(TimerID, StackID);
+  }
   ELFTextSection *Section = nullptr;
   ELFRelocationSection *RelSection = nullptr;
   const bool FunctionSections = Ctx.getFlags().getFunctionSections();
@@ -270,6 +278,8 @@ void ELFObjectWriter::writeFunctionCode(const IceString &FuncName,
     RelSection->addRelocations(OffsetInSection, Asm->fixups());
   }
   Section->appendData(Str, Asm->getBufferView());
+  if (TimeThisFunction)
+    Ctx.popTimer(TimerID, StackID);
 }
 
 namespace {
@@ -303,6 +313,7 @@ void ELFObjectWriter::writeDataSection(const VariableDeclarationList &Vars,
                                        FixupKind RelocationKind,
                                        const IceString &SectionSuffix,
                                        bool IsPIC) {
+  TimerMarker Timer(TimerStack::TT_writeELF, &Ctx);
   assert(!SectionNumbersAssigned);
   VariableDeclarationList VarsBySection[ELFObjectWriter::NumSectionTypes];
   for (auto &SectionList : VarsBySection)
@@ -439,6 +450,7 @@ void ELFObjectWriter::writeDataOfType(SectionType ST,
 }
 
 void ELFObjectWriter::writeInitialELFHeader() {
+  TimerMarker Timer(TimerStack::TT_writeELF, &Ctx);
   assert(!SectionNumbersAssigned);
   constexpr Elf64_Off DummySHOffset = 0;
   constexpr SizeT DummySHStrIndex = 0;
@@ -500,6 +512,7 @@ void ELFObjectWriter::writeELFHeaderInternal(Elf64_Off SectionHeaderOffset,
 }
 
 template <typename ConstType> void ELFObjectWriter::writeConstantPool(Type Ty) {
+  TimerMarker Timer(TimerStack::TT_writeELF, &Ctx);
   ConstantList Pool = Ctx.getConstantPool(Ty);
   if (Pool.empty()) {
     return;
@@ -576,6 +589,7 @@ void ELFObjectWriter::writeAllRelocationSections() {
 
 void ELFObjectWriter::writeJumpTable(const JumpTableData &JT,
                                      FixupKind RelocationKind, bool IsPIC) {
+  TimerMarker Timer(TimerStack::TT_writeELF, &Ctx);
   ELFDataSection *Section;
   ELFRelocationSection *RelSection;
   const Elf64_Xword PointerSize = typeWidthInBytes(getPointerType());
@@ -611,6 +625,7 @@ void ELFObjectWriter::writeJumpTable(const JumpTableData &JT,
 }
 
 void ELFObjectWriter::setUndefinedSyms(const ConstantList &UndefSyms) {
+  TimerMarker Timer(TimerStack::TT_writeELF, &Ctx);
   for (const Constant *S : UndefSyms) {
     const auto *Sym = llvm::cast<ConstantRelocatable>(S);
     const IceString &Name = Sym->getName();
@@ -642,6 +657,8 @@ void ELFObjectWriter::writeRelocationSections(RelSectionList &RelSections) {
 }
 
 void ELFObjectWriter::writeNonUserSections() {
+  TimerMarker Timer(TimerStack::TT_writeELF, &Ctx);
+
   // Write out the shstrtab now that all sections are known.
   ShStrTab->doLayout();
   ShStrTab->setSize(ShStrTab->getSectionDataSize());
