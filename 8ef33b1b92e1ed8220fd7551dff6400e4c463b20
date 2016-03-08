@@ -94,6 +94,30 @@
       "revId": "8ef33b1b92e1ed8220fd7551dff6400e4c463b20",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "17aa7153_8e6d3fd5",
+        "filename": "src/Shader/SetupRoutine.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-08T16:02:14Z",
+      "side": 1,
+      "message": "Whether the transform feedback stage is added to the end of VertexRoutine or beginning of SetupRoutine isn\u0027t really affected by the geometry shader.\n\nHowever, clipping takes place before setup, and transform feedback is supposed to come before clipping (i.e. triangles outside the viewport should still be written to the transform feedback buffer). So I don\u0027t think it\u0027s correct to do it here.",
+      "parentUuid": "02feade5_15be312b",
+      "range": {
+        "startLine": 39,
+        "startChar": 3,
+        "endLine": 42,
+        "endChar": 4
+      },
+      "revId": "8ef33b1b92e1ed8220fd7551dff6400e4c463b20",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
