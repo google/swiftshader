@@ -31,6 +31,9 @@ def TargetDisassemblerFlags(target):
             'mips32':[] }
   return flags[target]
 
+def GetObjdumpCmd():
+  """Return a suitable objdump command."""
+  return 'arm-nacl-objdump'
 
 def main():
     """Run the pnacl-sz compiler on an llvm file.
@@ -196,7 +199,7 @@ def main():
       cmd += ['-o', output_file_name]
     if args.disassemble:
       # Show wide instruction encodings, diassemble, and show relocs.
-      cmd += (['&&', os.path.join(pnacl_bin_path, 'le32-nacl-objdump')] +
+      cmd += (['&&', os.path.join(pnacl_bin_path, GetObjdumpCmd())] +
               args.dis_flags +
               ['-w', '-d', '-r'] + TargetDisassemblerFlags(args.target) +
               [output_file_name])
