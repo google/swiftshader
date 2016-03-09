@@ -6,7 +6,7 @@ import pipes
 import re
 import sys
 
-from utils import shellcmd, FindBaseNaCl, get_sfi_string
+from utils import FindBaseNaCl, GetObjcopyCmd, get_sfi_string, shellcmd
 
 def NewerThanOrNotThere(old_path, new_path):
     """Returns whether old_path is newer than new_path.
@@ -293,7 +293,8 @@ def ProcessPexe(args, pexe, exe):
         ).format(root=nacl_root)
     llcbin = '{base}/pnacl-llc'.format(base=path_addition)
     gold = '{base}/le32-nacl-ld.gold'.format(base=path_addition)
-    objcopy = '{base}/le32-nacl-objcopy'.format(base=path_addition)
+    objcopy = '{base}/{objcopy}'.format(base=path_addition,
+                                        objcopy=GetObjcopyCmd())
     opt_level = args.optlevel
     opt_level_map = { 'm1':'0', '-1':'0', '0':'0', '1':'1', '2':'2' }
     hybrid = args.include or args.exclude

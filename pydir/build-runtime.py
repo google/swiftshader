@@ -6,8 +6,7 @@ import shutil
 import tempfile
 
 import targets
-from utils import shellcmd
-from utils import FindBaseNaCl
+from utils import FindBaseNaCl, GetObjcopyCmd, shellcmd
 
 
 def Translate(ll_files, extra_args, obj, verbose):
@@ -26,7 +25,7 @@ def Translate(ll_files, extra_args, obj, verbose):
             '-arm-enable-dwarf-eh=1',
             '-o', obj
     ] + extra_args, echo=verbose)
-  shellcmd(['le32-nacl-objcopy',
+  shellcmd([GetObjcopyCmd(),
             '--strip-symbol=nacl_tp_tdb_offset',
             '--strip-symbol=nacl_tp_tls_offset',
             obj
@@ -82,7 +81,7 @@ def MakeRuntimesForTarget(target_info, ll_files,
                 ['-m {ld_emu}'.format(ld_emu=target_info.ld_emu)],
                 OutFile('{rtdir}/szrt_native_{target}.o'),
                 verbose)
-    shellcmd(['le32-nacl-objcopy',
+    shellcmd([GetObjcopyCmd(),
               '--strip-symbol=NATIVE',
               OutFile('{rtdir}/szrt_native_{target}.o')])
 
@@ -111,7 +110,7 @@ def MakeRuntimesForTarget(target_info, ll_files,
                 ['-m {ld_emu}'.format(ld_emu=target_info.sb_emu)],
                 OutFile('{rtdir}/szrt_sb_{target}.o'),
                 verbose)
-    shellcmd(['le32-nacl-objcopy',
+    shellcmd([GetObjcopyCmd(),
               '--strip-symbol=NACL',
               OutFile('{rtdir}/szrt_sb_{target}.o')])
 
@@ -139,7 +138,7 @@ def MakeRuntimesForTarget(target_info, ll_files,
                 ['-m {ld_emu}'.format(ld_emu=target_info.ld_emu)],
                 OutFile('{rtdir}/szrt_nonsfi_{target}.o'),
                 verbose)
-    shellcmd(['le32-nacl-objcopy',
+    shellcmd([GetObjcopyCmd(),
               '--strip-symbol=NONSFI',
               OutFile('{rtdir}/szrt_nonsfi_{target}.o')])
 

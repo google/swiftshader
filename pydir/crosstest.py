@@ -8,7 +8,7 @@ import tempfile
 
 import targets
 from szbuild import LinkNonsfi
-from utils import shellcmd, FindBaseNaCl, get_sfi_string
+from utils import FindBaseNaCl, GetObjcopyCmd, get_sfi_string, shellcmd
 
 def main():
     """Builds a cross-test binary for comparing Subzero and llc translation.
@@ -166,7 +166,7 @@ def main():
         # currently the only situation where multiple translated files are
         # linked into the executable, but when PNaCl supports shared nexe
         # libraries, this would need to change.
-        shellcmd(['{bin}/le32-nacl-objcopy'.format(bin=bindir),
+        shellcmd(['{bin}/{objcopy}'.format(bin=bindir, objcopy=GetObjcopyCmd()),
                   '--weaken-symbol=__Sz_block_profile_info',
                   '--strip-symbol=nacl_tp_tdb_offset',
                   '--strip-symbol=nacl_tp_tls_offset',
@@ -180,7 +180,7 @@ def main():
                   '-bitcode-format=llvm',
                   '-o=' + obj_llc,
                   bitcode] + llc_flags)
-        shellcmd(['{bin}/le32-nacl-objcopy'.format(bin=bindir),
+        shellcmd(['{bin}/{objcopy}'.format(bin=bindir, objcopy=GetObjcopyCmd()),
                   '--weaken-symbol=__Sz_block_profile_info',
                   '--strip-symbol=nacl_tp_tdb_offset',
                   '--strip-symbol=nacl_tp_tls_offset',
@@ -252,7 +252,7 @@ def main():
               '-o', obj_llc,
               bitcode] + llc_flags)
     if not args.sandbox and not args.nonsfi:
-        shellcmd(['{bin}/le32-nacl-objcopy'.format(bin=bindir),
+        shellcmd(['{bin}/{objcopy}'.format(bin=bindir, objcopy=GetObjcopyCmd()),
                   '--redefine-sym', '_start=_user_start',
                   obj_llc
                  ])

@@ -8,7 +8,7 @@ import subprocess
 import sys
 import tempfile
 
-from utils import FindBaseNaCl, shellcmd
+from utils import FindBaseNaCl, GetObjdumpCmd, shellcmd
 
 
 def TargetAssemblerFlags(target, sandboxed):
@@ -30,10 +30,6 @@ def TargetDisassemblerFlags(target):
             'arm32': [],
             'mips32':[] }
   return flags[target]
-
-def GetObjdumpCmd():
-  """Return a suitable objdump command."""
-  return 'arm-nacl-objdump'
 
 def main():
     """Run the pnacl-sz compiler on an llvm file.
