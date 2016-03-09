@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="OGLESBasicTnL" />
+		<Option pch_mode="2" />
+		<Option compiler="clang" />
+		<Build>
+			<Target title="Debug x86">
+				<Option output="bin/Debug_x86/OGLESBasicTnL" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug_x86/" />
+				<Option type="1" />
+				<Option compiler="clang" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-m32" />
+				</Compiler>
+				<Linker>
+					<Add option="-m32" />
+					<Add directory="../../../../../../../../lib/Debug_x86" />
+				</Linker>
+			</Target>
+			<Target title="Release x86">
+				<Option output="bin/Release_x86/OGLESBasicTnL" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release_x86/" />
+				<Option type="1" />
+				<Option compiler="clang" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-m32" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add option="-m32" />
+					<Add directory="../../../../../../../../lib/Release_x86" />
+				</Linker>
+			</Target>
+			<Target title="Debug x64">
+				<Option output="bin/Debug_x64/OGLESBasicTnL" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug_x64/" />
+				<Option type="1" />
+				<Option compiler="clang" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+				<Linker>
+					<Add directory="../../../../../../../../lib/Debug_x64" />
+				</Linker>
+			</Target>
+			<Target title="Release x64">
+				<Option output="bin/Release_x64/OGLESBasicTnL" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release_x64/" />
+				<Option type="1" />
+				<Option compiler="clang" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add directory="../../../../../../../../lib/Release_x64" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-std=c++11" />
+			<Add option="-fexceptions" />
+			<Add directory="../../../../../Builds/Include" />
+			<Add directory="../../../../../Shell" />
+			<Add directory="../../../../../Shell/OS/LinuxX11" />
+			<Add directory="../../../../../Shell/API/KEGL" />
+		</Compiler>
+		<Linker>
+			<Add option="-Wl,--rpath -Wl,./" />
+			<Add library="X11" />
+			<Add library="EGL" />
+			<Add library="GLES_CM" />
+		</Linker>
+		<Unit filename="../../../../../Shell/API/KEGL/PVRShellAPI.cpp" />
+		<Unit filename="../../../../../Shell/OS/LinuxX11/PVRShellOS.cpp" />
+		<Unit filename="../../../../../Shell/PVRShell.cpp" />
+		<Unit filename="../OGLESBasicTnL.cpp" />
+		<Extensions>
+			<code_completion />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

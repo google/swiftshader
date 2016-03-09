@@ -13,5 +13,9 @@
 			<Depends filename="OpenGL/libEGL/libEGL.cbp" />
 			<Depends filename="OpenGL/libGLESv2/libGLESv2.cbp" />
 		</Project>
+		<Project filename="../tests/third_party/PowerVR/Examples/Beginner/04_BasicTnL/OGLES/Build/OGLESBasicTnL.cbp">
+			<Depends filename="OpenGL/libEGL/libEGL.cbp" />
+			<Depends filename="OpenGL/libGLES_CM/libGLES_CM.cbp" />
+		</Project>
 	</Workspace>
 </CodeBlocks_workspace_file>
