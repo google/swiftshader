@@ -80,6 +80,9 @@ public:
 
   static void staticInit(GlobalContext *Ctx);
   static TargetX86Base *create(Cfg *Func) { return new TargetX86Base(Func); }
+  std::unique_ptr<::Ice::Assembler> createAssembler() const override {
+    return nullptr;
+  }
 
   static FixupKind getPcRelFixup() { return PcRelFixup; }
   static FixupKind getAbsFixup() { return AbsFixup; }
@@ -353,10 +356,17 @@ protected:
   }
   /// Emit just the call instruction (without argument or return variable
   /// processing), sandboxing if needed.
-  virtual Inst *emitCallToTarget(Operand *CallTarget, Variable *ReturnReg) = 0;
+  virtual Inst *emitCallToTarget(Operand *CallTarget, Variable *ReturnReg) {
+    (void)CallTarget;
+    (void)ReturnReg;
+    return nullptr;
+  }
   /// Materialize the moves needed to return a value of the specified type.
-  virtual Variable *moveReturnValueToRegister(Operand *Value,
-                                              Type ReturnType) = 0;
+  virtual Variable *moveReturnValueToRegister(Operand *Value, Type ReturnType) {
+    (void)Value;
+    (void)ReturnType;
+    return nullptr;
+  }
 
   /// Emit a jump table to the constant pool.
   void emitJumpTable(const Cfg *Func,
