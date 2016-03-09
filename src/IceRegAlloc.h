@@ -43,8 +43,10 @@ public:
   void dump(Cfg *Func) const;
 
   // TODO(stichnot): Statically choose the size based on the target being
-  // compiled.
-  static constexpr size_t REGS_SIZE = 32;
+  // compiled.  For now, choose a value large enough to fit into the
+  // SmallVector's fixed portion, which is 32 for x86-32, 84 for x86-64, and 102
+  // for ARM32.
+  static constexpr size_t REGS_SIZE = 128;
 
 private:
   using OrderedRanges = CfgVector<Variable *>;
