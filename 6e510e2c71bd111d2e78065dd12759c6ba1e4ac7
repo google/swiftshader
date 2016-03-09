@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7709edae_91917e3d",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 918,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-09T17:50:21Z",
+      "side": 1,
+      "message": "I think this can be eliminated by only adding the query to draw.queries when this condition is true, at Renderer::draw (a similar thing is done for occlusion queries).",
+      "range": {
+        "startLine": 918,
+        "startChar": 7,
+        "endLine": 918,
+        "endChar": 102
+      },
+      "revId": "6e510e2c71bd111d2e78065dd12759c6ba1e4ac7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7709edae_5129c6ce",
+        "filename": "src/Renderer/Renderer.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-09T17:50:21Z",
+      "side": 1,
+      "message": "We don\u0027t discern between these at this level. We just count the number of fragments that pass the depth test. So let\u0027s call that FRAGMENTS_PASSED or something like that.",
+      "range": {
+        "startLine": 89,
+        "startChar": 14,
+        "endLine": 89,
+        "endChar": 65
+      },
+      "revId": "6e510e2c71bd111d2e78065dd12759c6ba1e4ac7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7709edae_11234eef",
+        "filename": "src/Renderer/Renderer.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-09T17:50:21Z",
+      "side": 1,
+      "message": "Make it const.",
+      "range": {
+        "startLine": 110,
+        "startChar": 2,
+        "endLine": 110,
+        "endChar": 6
+      },
+      "revId": "6e510e2c71bd111d2e78065dd12759c6ba1e4ac7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7709edae_b18c8227",
+        "filename": "src/Renderer/Renderer.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-09T17:50:21Z",
+      "side": 1,
+      "message": "I don\u0027t think we need this...",
+      "range": {
+        "startLine": 216,
+        "startChar": 2,
+        "endLine": 216,
+        "endChar": 37
+      },
+      "revId": "6e510e2c71bd111d2e78065dd12759c6ba1e4ac7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7709edae_f169dafd",
+        "filename": "src/Renderer/VertexProcessor.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-09T17:50:21Z",
+      "side": 1,
+      "message": "Also probably not required when queries are only added to the draw tasks where they\u0027re active.",
+      "range": {
+        "startLine": 72,
+        "startChar": 3,
+        "endLine": 73,
+        "endChar": 58
+      },
+      "revId": "6e510e2c71bd111d2e78065dd12759c6ba1e4ac7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
