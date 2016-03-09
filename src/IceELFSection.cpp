@@ -67,11 +67,24 @@ void ELFDataSection::padToAlignment(ELFStreamer &Str, Elf64_Xword Align) {
 // Relocation sections.
 
 void ELFRelocationSection::addRelocations(RelocOffsetT BaseOff,
-                                          const FixupRefList &FixupRefs) {
+                                          const FixupRefList &FixupRefs,
+                                          ELFSymbolTableSection *SymTab) {
   for (const AssemblerFixup *FR : FixupRefs) {
     Fixups.push_back(*FR);
     AssemblerFixup &F = Fixups.back();
     F.set_position(BaseOff + F.position());
+    assert(!F.valueIsSymbol());
+    if (!F.isNullSymbol()) {
+      // Do an early lookup in the symbol table.  If the symbol is found,
+      // replace the Constant in the symbol with the ELFSym, and calculate the
+      // final value of the addend.  As such, a local label allocated from the
+      // Assembler arena will be converted to a symbol before the Assembler
+      // arena goes away.
+      if (const ELFSym *Sym = SymTab->findSymbol(F.symbol())) {
+        F.set_addend(F.offset());
+        F.set_value(Sym);
+      }
+    }
   }
 }
 

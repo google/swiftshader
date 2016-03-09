@@ -23,6 +23,8 @@ namespace Ice {
 /// This holds the specific target+container format's relocation number.
 using FixupKind = uint32_t;
 
+struct ELFSym;
+
 /// Assembler fixups are positions in generated code/data that hold relocation
 /// information that needs to be processed before finalizing the code/data.
 class AssemblerFixup {
@@ -32,27 +34,33 @@ public:
   AssemblerFixup() = default;
   AssemblerFixup(const AssemblerFixup &) = default;
   virtual ~AssemblerFixup() = default;
-  intptr_t position() const {
-    assert(position_was_set_);
-    return position_;
-  }
-  void set_position(intptr_t Position) {
-    position_ = Position;
-    position_was_set_ = true;
-  }
+  intptr_t position() const { return position_; }
+  void set_position(intptr_t Position) { position_ = Position; }
 
   FixupKind kind() const { return kind_; }
   void set_kind(FixupKind Kind) { kind_ = Kind; }
 
   RelocOffsetT offset() const;
-  IceString symbol(const Assembler *Asm) const;
+  IceString symbol() const;
 
   static const Constant *NullSymbol;
-  bool isNullSymbol() const { return value_ == NullSymbol; }
+  bool isNullSymbol() const { return ConstValue == NullSymbol; }
 
   static constexpr AssemblerFixup *NoFixup = nullptr;
 
-  void set_value(const Constant *Value) { value_ = Value; }
+  bool valueIsSymbol() const { return ValueIsSymbol; }
+  void set_value(const Constant *Value) {
+    ValueIsSymbol = false;
+    ConstValue = Value;
+  }
+  void set_value(const ELFSym *Value) {
+    ValueIsSymbol = true;
+    SymbolValue = Value;
+  }
+  const ELFSym *getSymbolValue() const {
+    assert(ValueIsSymbol);
+    return SymbolValue;
+  }
 
   void set_addend(RelocOffsetT Addend) { addend_ = Addend; }
   RelocOffsetT get_addend() const { return addend_; }
@@ -65,13 +73,19 @@ public:
   virtual void emitOffset(Assembler *Asm) const;
 
 private:
-  bool position_was_set_ = false;
   intptr_t position_ = 0;
   FixupKind kind_ = 0;
-  const Constant *value_ = nullptr;
   // An offset addend to the fixup offset (as returned by offset()), in case the
   // assembler needs to adjust it.
   RelocOffsetT addend_ = 0;
+
+  // Tagged union that holds either a Constant or ELFSym pointer, depending on
+  // the ValueIsSymbol tag.
+  bool ValueIsSymbol = false;
+  union {
+    const Constant *ConstValue;
+    const ELFSym *SymbolValue;
+  };
 };
 
 /// Extends a fixup to be textual. That is, it emits text instead of a sequence

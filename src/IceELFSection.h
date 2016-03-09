@@ -232,7 +232,8 @@ public:
 
   /// Track additional relocations which start out relative to offset 0, but
   /// should be adjusted to be relative to BaseOff.
-  void addRelocations(RelocOffsetT BaseOff, const FixupRefList &FixupRefs);
+  void addRelocations(RelocOffsetT BaseOff, const FixupRefList &FixupRefs,
+                      ELFSymbolTableSection *SymTab);
 
   /// Track a single additional relocation.
   void addRelocation(const AssemblerFixup &Fixup) { Fixups.push_back(Fixup); }
@@ -353,9 +354,10 @@ void ELFRelocationSection::writeData(ELFStreamer &Str,
     const ELFSym *Symbol;
     if (Fixup.isNullSymbol()) {
       Symbol = SymTab->getNullSymbol();
+    } else if (Fixup.valueIsSymbol()) {
+      Symbol = Fixup.getSymbolValue();
     } else {
-      constexpr Assembler *Asm = nullptr;
-      const IceString Name = Fixup.symbol(Asm);
+      const IceString Name = Fixup.symbol();
       Symbol = SymTab->findSymbol(Name);
       if (!Symbol)
         llvm::report_fatal_error(Name + ": Missing symbol mentioned in reloc");

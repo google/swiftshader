@@ -24,30 +24,26 @@ const Constant *AssemblerFixup::NullSymbol = nullptr;
 RelocOffsetT AssemblerFixup::offset() const {
   if (isNullSymbol())
     return addend_;
-  if (const auto *CR = llvm::dyn_cast<ConstantRelocatable>(value_))
-    return CR->getOffset() + addend_;
+  if (!ValueIsSymbol) {
+    if (const auto *CR = llvm::dyn_cast<ConstantRelocatable>(ConstValue))
+      return CR->getOffset() + addend_;
+  }
   return addend_;
 }
 
-IceString AssemblerFixup::symbol(const Assembler *Asm) const {
+IceString AssemblerFixup::symbol() const {
+  assert(!isNullSymbol());
+  assert(!ValueIsSymbol);
+  const Constant *C = ConstValue;
+  if (const auto *CR = llvm::dyn_cast<ConstantRelocatable>(C)) {
+    return CR->getName();
+  }
+  // NOTE: currently only float/doubles are put into constant pools. In the
+  // future we may put integers as well.
+  assert(llvm::isa<ConstantFloat>(C) || llvm::isa<ConstantDouble>(C));
   std::string Buffer;
   llvm::raw_string_ostream Str(Buffer);
-  const Constant *C = value_;
-  assert(!isNullSymbol());
-  if (const auto *CR = llvm::dyn_cast<ConstantRelocatable>(C)) {
-    Str << CR->getName();
-    if (Asm && !Asm->fixupIsPCRel(kind()) &&
-        GlobalContext::getFlags().getUseNonsfi() &&
-        CR->getName() != GlobalOffsetTable) {
-      // TODO(jpp): remove the special GOT test.
-      Str << "@GOTOFF";
-    }
-  } else {
-    // NOTE: currently only float/doubles are put into constant pools. In the
-    // future we may put integers as well.
-    assert(llvm::isa<ConstantFloat>(C) || llvm::isa<ConstantDouble>(C));
-    C->emitPoolLabel(Str);
-  }
+  C->emitPoolLabel(Str);
   return Str.str();
 }
 
@@ -61,8 +57,16 @@ size_t AssemblerFixup::emit(GlobalContext *Ctx, const Assembler &Asm) const {
   if (isNullSymbol()) {
     Str << "__Sz_AbsoluteZero";
   } else {
-    Symbol = symbol(&Asm);
+    Symbol = symbol();
     Str << Symbol;
+    assert(!ValueIsSymbol);
+    if (const auto *CR = llvm::dyn_cast<ConstantRelocatable>(ConstValue)) {
+      if (!Asm.fixupIsPCRel(kind()) &&
+          GlobalContext::getFlags().getUseNonsfi() &&
+          CR->getName() != GlobalOffsetTable) {
+        Str << "@GOTOFF";
+      }
+    }
   }
 
   assert(Asm.load<RelocOffsetT>(position()) == 0);

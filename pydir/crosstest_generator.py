@@ -205,6 +205,8 @@ def main():
                   f.write(run_cmd + '\n')
                   f.write('echo Recreate a failure using ' + __file__ +
                           ' --toolchain-root=' + args.toolchain_root +
+                          (' --filetype=' + args.filetype
+                            if args.filetype else '') +
                           ' --include=' + ','.join(desc) + '\n')
                   f.write('# CHECK: Failures=0\n')
               else:

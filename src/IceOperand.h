@@ -270,8 +270,8 @@ class RelocOffset final {
   RelocOffset &operator=(const RelocOffset &) = delete;
 
 public:
-  static RelocOffset *create(GlobalContext *Ctx) {
-    return new (Ctx->allocate<RelocOffset>()) RelocOffset();
+  template <typename T> static RelocOffset *create(T *AllocOwner) {
+    return new (AllocOwner->template allocate<RelocOffset>()) RelocOffset();
   }
 
   static RelocOffset *create(GlobalContext *Ctx, RelocOffsetT Value) {
@@ -342,10 +342,12 @@ class ConstantRelocatable : public Constant {
   ConstantRelocatable &operator=(const ConstantRelocatable &) = delete;
 
 public:
-  static ConstantRelocatable *create(GlobalContext *Ctx, Type Ty,
+  template <typename T>
+  static ConstantRelocatable *create(T *AllocOwner, Type Ty,
                                      const RelocatableTuple &Tuple) {
-    return new (Ctx->allocate<ConstantRelocatable>()) ConstantRelocatable(
-        Ty, Tuple.Offset, Tuple.OffsetExpr, Tuple.Name, Tuple.EmitString);
+    return new (AllocOwner->template allocate<ConstantRelocatable>())
+        ConstantRelocatable(Ty, Tuple.Offset, Tuple.OffsetExpr, Tuple.Name,
+                            Tuple.EmitString);
   }
 
   RelocOffsetT getOffset() const {

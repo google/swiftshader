@@ -160,8 +160,10 @@ public:
   }
 
   bool fixupIsPCRel(FixupKind Kind) const override {
-    (void)Kind;
-    // TODO(kschimpf) Decide if we need this.
+    if (Kind == llvm::ELF::R_ARM_MOVW_PREL_NC)
+      return true;
+    if (Kind == llvm::ELF::R_ARM_MOVT_PREL)
+      return true;
     return false;
   }
 

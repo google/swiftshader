@@ -623,13 +623,14 @@ Inst *TargetX8664::emitCallToTarget(Operand *CallTarget, Variable *ReturnReg) {
     //
     //  push .after_call
     InstX86Label *ReturnAddress = InstX86Label::create(Func, this);
-    auto *ReturnRelocOffset = RelocOffset::create(Ctx);
+    auto *ReturnRelocOffset = RelocOffset::create(Func->getAssembler());
     ReturnAddress->setRelocOffset(ReturnRelocOffset);
     constexpr RelocOffsetT NoFixedOffset = 0;
     const IceString EmitString = ReturnAddress->getName(Func);
-    auto *ReturnReloc = llvm::cast<ConstantRelocatable>(
-        Ctx->getConstantSym(NoFixedOffset, {ReturnRelocOffset},
-                            Func->getFunctionName(), EmitString));
+    auto *ReturnReloc = ConstantRelocatable::create(
+        Func->getAssembler(), IceType_i32,
+        RelocatableTuple(NoFixedOffset, {ReturnRelocOffset},
+                         Func->getFunctionName(), EmitString));
     /* AutoBundle scoping */ {
       std::unique_ptr<AutoBundle> Bundler;
       if (CallTargetR == nullptr) {

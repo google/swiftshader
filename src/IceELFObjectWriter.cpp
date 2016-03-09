@@ -275,7 +275,7 @@ void ELFObjectWriter::writeFunctionCode(const IceString &FuncName,
         Fixup->emitOffset(Asm);
       }
     }
-    RelSection->addRelocations(OffsetInSection, Asm->fixups());
+    RelSection->addRelocations(OffsetInSection, Asm->fixups(), SymTab);
   }
   Section->appendData(Str, Asm->getBufferView());
   if (TimeThisFunction)
