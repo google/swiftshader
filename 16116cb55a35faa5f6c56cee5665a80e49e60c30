@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d74c5916_be0c758e",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 988,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-10T06:36:24Z",
+      "side": 0,
+      "message": "Some Android apps started to hang after https://swiftshader-review.googlesource.com/4912. I believe moving this was no longer necessary when collecting the query results was no longer dependent on state variables. I\u0027m not entirely sure why this caused hangs, but it seems best to just move it back where it was regardless.",
+      "range": {
+        "startLine": 984,
+        "startChar": 2,
+        "endLine": 988,
+        "endChar": 3
+      },
+      "revId": "16116cb55a35faa5f6c56cee5665a80e49e60c30",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
