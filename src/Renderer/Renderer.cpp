@@ -886,6 +886,12 @@ namespace sw
 
 		pixelProgress[cluster].processedPrimitives = primitive + count;
 
+		if(pixelProgress[cluster].processedPrimitives >= draw.count)
+		{
+			pixelProgress[cluster].drawCall++;
+			pixelProgress[cluster].processedPrimitives = 0;
+		}
+
 		int ref = atomicDecrement(&primitiveProgress[unit].references);
 
 		if(ref == 0)
@@ -979,12 +985,6 @@ namespace sw
 				draw.references = -1;
 				resumeApp->signal();
 			}
-		}
-
-		if(pixelProgress[cluster].processedPrimitives >= draw.count)
-		{
-			pixelProgress[cluster].drawCall++;
-			pixelProgress[cluster].processedPrimitives = 0;
 		}
 
 		pixelProgress[cluster].executing = false;
