@@ -461,7 +461,7 @@ protected:
     X86OperandMem **findMemoryReference() { return nullptr; }
 
   public:
-    std::unique_ptr<AutoBundle> Bundler;
+    AutoBundle *Bundler = nullptr;
     X86OperandMem **const MemOperand;
 
     template <typename... T>
@@ -471,13 +471,18 @@ protected:
                                          : findMemoryReference(Args...)) {
       if (MemOperand != nullptr) {
         if (Traits::Is64Bit) {
-          Bundler = makeUnique<AutoBundle>(Target, BundleLockOpt);
+          Bundler = new (Target->Func->template allocate<AutoBundle>())
+              AutoBundle(Target, BundleLockOpt);
         }
         *MemOperand = Target->_sandbox_mem_reference(*MemOperand);
       }
     }
 
-    ~AutoMemorySandboxer() {}
+    ~AutoMemorySandboxer() {
+      if (Bundler != nullptr) {
+        Bundler->~AutoBundle();
+      }
+    }
   };
 
   /// The following are helpers that insert lowered x86 instructions with
