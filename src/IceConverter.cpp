@@ -913,21 +913,12 @@ void Converter::convertGlobals(Module *Mod) {
 }
 
 void Converter::convertFunctions() {
-  const TimerStackIdT StackID = GlobalContext::TSK_Funcs;
   for (const Function &I : *Mod) {
     if (I.empty())
       continue;
-
-    TimerIdT TimerID = 0;
-    const bool TimeThisFunction = Ctx->getFlags().getTimeEachFunction();
-    if (TimeThisFunction) {
-      TimerID = Ctx->getTimerID(StackID, I.getName());
-      Ctx->pushTimer(TimerID, StackID);
-    }
+    TimerMarker _(Ctx, I.getName());
     LLVM2ICEFunctionConverter FunctionConverter(*this);
     FunctionConverter.convertFunction(&I);
-    if (TimeThisFunction)
-      Ctx->popTimer(TimerID, StackID);
   }
 }
 

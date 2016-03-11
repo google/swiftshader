@@ -227,7 +227,7 @@ public:
   void emitIAS();
   static void emitTextHeader(const IceString &Name, GlobalContext *Ctx,
                              const Assembler *Asm);
-  void dump(const IceString &Message = "");
+  void dump(const char *Message = "");
 
   /// Allocate data of type T using the per-Cfg allocator.
   template <typename T> T *allocate() { return Allocator->Allocate<T>(); }

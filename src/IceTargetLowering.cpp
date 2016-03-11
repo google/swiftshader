@@ -313,6 +313,7 @@ TargetLowering::AutoBundle::~AutoBundle() {
 }
 
 void TargetLowering::genTargetHelperCalls() {
+  TimerMarker T(TimerStack::TT_genHelpers, Func);
   Utils::BoolFlagSaver _(GeneratingTargetHelpers, true);
   for (CfgNode *Node : Func->getNodes()) {
     Context.init(Node);

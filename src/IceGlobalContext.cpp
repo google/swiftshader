@@ -276,7 +276,7 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit, Ostream *OsError,
   AllThreadContexts.push_back(MyTLS);
   ICE_TLS_SET_FIELD(TLS, MyTLS);
   // Pre-register built-in stack names.
-  if (BuildDefs::dump()) {
+  if (BuildDefs::timers()) {
     // TODO(stichnot): There needs to be a strong relationship between
     // the newTimerStackID() return values and TSK_Default/TSK_Funcs.
     newTimerStackID("Total across all functions");
@@ -807,7 +807,7 @@ GlobalContext::addJumpTable(const IceString &FuncName, SizeT Id,
 }
 
 TimerStackIdT GlobalContext::newTimerStackID(const IceString &Name) {
-  if (!BuildDefs::dump())
+  if (!BuildDefs::timers())
     return 0;
   auto Timers = getTimers();
   TimerStackIdT NewID = Timers->size();
@@ -853,23 +853,31 @@ void GlobalContext::setTimerName(TimerStackIdT StackID,
 // such as the use of atomics to modify queue elements.
 void GlobalContext::optQueueBlockingPush(std::unique_ptr<Cfg> Func) {
   assert(Func);
-  OptQ.blockingPush(Func.release());
+  {
+    TimerMarker _(TimerStack::TT_qTransPush, this);
+    OptQ.blockingPush(Func.release());
+  }
   if (getFlags().isSequential())
     translateFunctions();
 }
 
 std::unique_ptr<Cfg> GlobalContext::optQueueBlockingPop() {
+  TimerMarker _(TimerStack::TT_qTransPop, this);
   return std::unique_ptr<Cfg>(OptQ.blockingPop());
 }
 
 void GlobalContext::emitQueueBlockingPush(EmitterWorkItem *Item) {
   assert(Item);
-  EmitQ.blockingPush(Item);
+  {
+    TimerMarker _(TimerStack::TT_qEmitPush, this);
+    EmitQ.blockingPush(Item);
+  }
   if (getFlags().isSequential())
     emitItems();
 }
 
 EmitterWorkItem *GlobalContext::emitQueueBlockingPop() {
+  TimerMarker _(TimerStack::TT_qEmitPop, this);
   return EmitQ.blockingPop();
 }
 
@@ -884,7 +892,7 @@ void GlobalContext::dumpStats(const IceString &Name, bool Final) {
 }
 
 void GlobalContext::dumpTimers(TimerStackIdT StackID, bool DumpCumulative) {
-  if (!BuildDefs::dump())
+  if (!BuildDefs::timers())
     return;
   auto Timers = getTimers();
   assert(Timers->size() > StackID);
@@ -894,6 +902,15 @@ void GlobalContext::dumpTimers(TimerStackIdT StackID, bool DumpCumulative) {
 
 ClFlags GlobalContext::Flags;
 ClFlagsExtra GlobalContext::ExtraFlags;
+
+TimerIdT TimerMarker::getTimerIdFromFuncName(GlobalContext *Ctx,
+                                             const IceString &FuncName) {
+  if (!BuildDefs::timers())
+    return 0;
+  if (!Ctx->getFlags().getTimeEachFunction())
+    return 0;
+  return Ctx->getTimerID(GlobalContext::TSK_Funcs, FuncName);
+}
 
 void TimerMarker::push() {
   switch (StackID) {

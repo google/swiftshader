@@ -219,14 +219,8 @@ Elf64_Off ELFObjectWriter::alignFileOffset(Elf64_Xword Align) {
 void ELFObjectWriter::writeFunctionCode(const IceString &FuncName,
                                         bool IsInternal, Assembler *Asm) {
   assert(!SectionNumbersAssigned);
+  TimerMarker T_func(&Ctx, FuncName);
   TimerMarker Timer(TimerStack::TT_writeELF, &Ctx);
-  constexpr TimerStackIdT StackID = GlobalContext::TSK_Funcs;
-  TimerIdT TimerID = 0;
-  bool TimeThisFunction = Ctx.getFlags().getTimeEachFunction();
-  if (TimeThisFunction) {
-    TimerID = Ctx.getTimerID(StackID, FuncName);
-    Ctx.pushTimer(TimerID, StackID);
-  }
   ELFTextSection *Section = nullptr;
   ELFRelocationSection *RelSection = nullptr;
   const bool FunctionSections = Ctx.getFlags().getFunctionSections();
@@ -278,8 +272,6 @@ void ELFObjectWriter::writeFunctionCode(const IceString &FuncName,
     RelSection->addRelocations(OffsetInSection, Asm->fixups(), SymTab);
   }
   Section->appendData(Str, Asm->getBufferView());
-  if (TimeThisFunction)
-    Ctx.popTimer(TimerID, StackID);
 }
 
 namespace {

@@ -187,9 +187,6 @@ void Cfg::addCallToProfileSummary() {
 void Cfg::translate() {
   if (hasError())
     return;
-  // FunctionTimer conditionally pushes/pops a TimerMarker if TimeEachFunction
-  // is enabled.
-  std::unique_ptr<TimerMarker> FunctionTimer;
   if (BuildDefs::dump()) {
     const IceString &TimingFocusOn =
         getContext()->getFlags().getTimingFocusOn();
@@ -199,15 +196,12 @@ void Cfg::translate() {
       getContext()->resetTimer(GlobalContext::TSK_Default);
       getContext()->setTimerName(GlobalContext::TSK_Default, Name);
     }
-    if (getContext()->getFlags().getTimeEachFunction())
-      FunctionTimer.reset(new TimerMarker(
-          getContext()->getTimerID(GlobalContext::TSK_Funcs, Name),
-          getContext(), GlobalContext::TSK_Funcs));
     if (isVerbose(IceV_Status)) {
       getContext()->getStrDump() << ">>>Translating "
                                  << getFunctionNameAndSize() << "\n";
     }
   }
+  TimerMarker T_func(getContext(), getFunctionName());
   TimerMarker T(TimerStack::TT_translate, this);
 
   dump("Initial CFG");
@@ -573,6 +567,7 @@ void Cfg::sortAndCombineAllocas(CfgVector<Inst *> &Allocas,
 }
 
 void Cfg::processAllocas(bool SortAndCombine) {
+  TimerMarker _(TimerStack::TT_alloca, this);
   const uint32_t StackAlignment = getTarget()->getStackAlignment();
   CfgNode *EntryNode = getEntryNode();
   // LLVM enforces power of 2 alignment.
@@ -1083,14 +1078,14 @@ size_t Cfg::getTotalMemoryMB() {
 }
 
 // Dumps the IR with an optional introductory message.
-void Cfg::dump(const IceString &Message) {
+void Cfg::dump(const char *Message) {
   if (!BuildDefs::dump())
     return;
   if (!isVerbose())
     return;
   OstreamLocker L(Ctx);
   Ostream &Str = Ctx->getStrDump();
-  if (!Message.empty())
+  if (Message[0])
     Str << "================ " << Message << " ================\n";
   if (isVerbose(IceV_Mem)) {
     Str << "Memory size = " << getTotalMemoryMB() << " MB\n";

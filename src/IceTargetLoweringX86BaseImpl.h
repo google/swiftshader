@@ -615,6 +615,7 @@ bool isSameMemAddressOperand(const Operand *A, const Operand *B) {
 }
 
 template <typename TraitsType> void TargetX86Base<TraitsType>::findRMW() {
+  TimerMarker _(TimerStack::TT_findRMW, Func);
   Func->dump("Before RMW");
   if (Func->isVerbose(IceV_RMW))
     Func->getContext()->lockStr();
@@ -732,6 +733,7 @@ inline bool canFoldLoadIntoBinaryInst(Operand *LoadSrc, Variable *LoadDest,
 }
 
 template <typename TraitsType> void TargetX86Base<TraitsType>::doLoadOpt() {
+  TimerMarker _(TimerStack::TT_loadOpt, Func);
   for (CfgNode *Node : Func->getNodes()) {
     Context.init(Node);
     while (!Context.atEnd()) {

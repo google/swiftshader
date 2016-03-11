@@ -20,6 +20,7 @@
   X(O2)                        \
   X(Om1)                       \
   X(advancedPhiLowering)       \
+  X(alloca)                    \
   X(computeLoopNestDepth)      \
   X(convertToIce)              \
   X(deletePhis)                \
@@ -29,14 +30,17 @@
   X(doNopInsertion)            \
   X(emitAsm)                   \
   X(emitGlobalInitializers)    \
+  X(findRMW)                   \
   X(genCode)                   \
   X(genFrame)                  \
+  X(genHelpers)                \
   X(initUnhandled)             \
   X(linearScan)                \
   X(liveRange)                 \
   X(liveness)                  \
   X(livenessLightweight)       \
   X(llvmConvert)               \
+  X(loadOpt)                   \
   X(lowerPhiAssignments)       \
   X(parse)                     \
   X(parseConstants)            \
@@ -49,6 +53,10 @@
   X(phiValidation)             \
   X(placePhiLoads)             \
   X(placePhiStores)            \
+  X(qEmitPop)                  \
+  X(qEmitPush)                 \
+  X(qTransPop)                 \
+  X(qTransPush)                \
   X(regAlloc)                  \
   X(renumberInstructions)      \
   X(szmain)                    \

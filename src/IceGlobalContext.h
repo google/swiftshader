@@ -118,7 +118,7 @@ class GlobalContext {
     /// timers, in the same order, with the same names, but initially
     /// empty of timing data.
     void initInto(TimerList &Dest) const {
-      if (!BuildDefs::dump())
+      if (!BuildDefs::timers())
         return;
       Dest.clear();
       for (const TimerStack &Stack : *this) {
@@ -126,7 +126,7 @@ class GlobalContext {
       }
     }
     void mergeFrom(TimerList &Src) {
-      if (!BuildDefs::dump())
+      if (!BuildDefs::timers())
         return;
       assert(size() == Src.size());
       size_type i = 0;
@@ -381,7 +381,7 @@ public:
     }
     EmitterThreads.clear();
 
-    if (BuildDefs::dump()) {
+    if (BuildDefs::timers()) {
       auto Timers = getTimers();
       for (ThreadContext *TLS : AllThreadContexts)
         Timers->mergeFrom(TLS->Timers);
@@ -560,25 +560,33 @@ public:
   TimerMarker(TimerIdT ID, GlobalContext *Ctx,
               TimerStackIdT StackID = GlobalContext::TSK_Default)
       : ID(ID), Ctx(Ctx), StackID(StackID) {
-    if (BuildDefs::dump())
+    if (BuildDefs::timers())
       push();
   }
   TimerMarker(TimerIdT ID, const Cfg *Func,
               TimerStackIdT StackID = GlobalContext::TSK_Default)
       : ID(ID), Ctx(nullptr), StackID(StackID) {
     // Ctx gets set at the beginning of pushCfg().
-    if (BuildDefs::dump())
+    if (BuildDefs::timers())
       pushCfg(Func);
+  }
+  TimerMarker(GlobalContext *Ctx, const IceString &FuncName)
+      : ID(getTimerIdFromFuncName(Ctx, FuncName)), Ctx(Ctx),
+        StackID(GlobalContext::TSK_Funcs) {
+    if (BuildDefs::timers())
+      push();
   }
 
   ~TimerMarker() {
-    if (BuildDefs::dump() && Active)
+    if (BuildDefs::timers() && Active)
       Ctx->popTimer(ID, StackID);
   }
 
 private:
   void push();
   void pushCfg(const Cfg *Func);
+  static TimerIdT getTimerIdFromFuncName(GlobalContext *Ctx,
+                                         const IceString &FuncName);
   const TimerIdT ID;
   GlobalContext *Ctx;
   const TimerStackIdT StackID;

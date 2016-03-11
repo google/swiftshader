@@ -1339,21 +1339,14 @@ public:
         NextLocalInstIndex(Context->getNumGlobalIDs()) {}
 
   bool convertFunction() {
-    const Ice::TimerStackIdT StackID = Ice::GlobalContext::TSK_Funcs;
-    Ice::TimerIdT TimerID = 0;
-    const bool TimeThisFunction = getFlags().getTimeEachFunction();
-    if (TimeThisFunction) {
-      TimerID = getTranslator().getContext()->getTimerID(StackID,
-                                                         FuncDecl->getName());
-      getTranslator().getContext()->pushTimer(TimerID, StackID);
-    }
-
-    // Note: The Cfg is created, even when IR generation is disabled. This is
-    // done to install a CfgLocalAllocator for various internal containers.
-    Func = Ice::Cfg::create(getTranslator().getContext(),
-                            getTranslator().getNextSequenceNumber());
     bool ParserResult;
     {
+      Ice::TimerMarker T(getTranslator().getContext(), FuncDecl->getName());
+      // Note: The Cfg is created, even when IR generation is disabled. This is
+      // done to install a CfgLocalAllocator for various internal containers.
+      Func = Ice::Cfg::create(getTranslator().getContext(),
+                              getTranslator().getNextSequenceNumber());
+
       Ice::CfgLocalAllocatorScope _(Func.get());
 
       // TODO(kschimpf) Clean up API to add a function signature to a CFG.
@@ -1369,12 +1362,6 @@ public:
       }
 
       ParserResult = ParseThisBlock();
-
-      // Temporarily end per-function timing, which will be resumed by the
-      // translator function. This is because translation may be done
-      // asynchronously in a separate thread.
-      if (TimeThisFunction)
-        getTranslator().getContext()->popTimer(TimerID, StackID);
 
       // Note: Once any errors have been found, we turn off all translation of
       // all remaining functions. This allows successive parsing errors to be

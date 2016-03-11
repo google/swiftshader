@@ -139,8 +139,8 @@ void Compiler::run(const Ice::ClFlagsExtra &ExtraFlags, GlobalContext &Ctx,
     Ctx.dumpTimers();
 
   if (Ctx.getFlags().getTimeEachFunction()) {
-    constexpr bool DumpCumulative = false;
-    Ctx.dumpTimers(GlobalContext::TSK_Funcs, DumpCumulative);
+    constexpr bool NoDumpCumulative = false;
+    Ctx.dumpTimers(GlobalContext::TSK_Funcs, NoDumpCumulative);
   }
   constexpr bool FinalStats = true;
   Ctx.dumpStats("_FINAL_", FinalStats);
