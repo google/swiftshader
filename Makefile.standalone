@@ -337,7 +337,7 @@ ifdef TSAN
 sb:
 	@echo "Skipping pnacl-sz.*.nexe: TSAN isn't supported under NaCl."
 else
-sb: $(NEXES) sb_make_symlink
+sb: $(NEXES) sb_make_symlink exists-sbtc
 endif
 
 # SHOW_BUILD_ATTS is an executable that is run to show what build
@@ -360,7 +360,8 @@ sb_make_symlink: $(NEXES)
 	$(SB_FINALIZE) -o $@ $<
 
 .PHONY: all compile_only make_symlink runtime bloat sb docs help \
-  help-check-lit help-check-xtest
+  help-check-lit help-check-xtest exists-nonsfi-x8632 \
+  exists-nonsfi-arm32 exists-sbtc exists-spec
 
 compile_only: $(OBJS)
 
@@ -467,7 +468,8 @@ ifdef MINIMAL
 check-xtest: $(OBJDIR)/pnacl-sz make_symlink runtime
 	@echo "Crosstests disabled, minimal build"
 else
-check-xtest: $(OBJDIR)/pnacl-sz make_symlink runtime
+check-xtest: $(OBJDIR)/pnacl-sz make_symlink runtime \
+  exists-nonsfi-x8632 exists-nonsfi-arm32
        # Do all native/sse2 tests, but only test_vector_ops for native/sse4.1.
        # For (slow) sandboxed tests, limit to Om1/sse4.1.
        # run.py (used to run the sandboxed xtests) does not support
@@ -524,11 +526,51 @@ SPECBUILDONLY := false
 	$(SPECBUILDONLY) || ( cd ../../../tests/spec2k; \
 	 ./run_all.sh RunTimedBenchmarks $(SETUP) train $< )
 
-check-spec: $(ALLSPEC:=.spec2k)
+check-spec: exists-spec $(ALLSPEC:=.spec2k)
 
 check: check-lit check-unit check-xtest
 
-check-presubmit presubmit:
+NONSFI_LOADER_X8632 = \
+  $(NACL_ROOT)/scons-out/opt-linux-x86-32/obj/src/nonsfi/loader/nonsfi_loader
+NONSFI_LOADER_ARM32 = \
+  $(NACL_ROOT)/scons-out/opt-linux-arm/obj/src/nonsfi/loader/nonsfi_loader
+SBTC_LIBFILE = $(SB_LLVM_PATH)/lib/libLLVMSupport.a
+SPEC_SAMPLE_PEXE = $(NACL_ROOT)/tests/spec2k/176.gcc/gcc.opt.stripped.pexe
+
+exists-nonsfi-x8632:
+	@if [ ! -f $(NONSFI_LOADER_X8632) ] ; then \
+          echo "Missing file $(NONSFI_LOADER_X8632)"; \
+          echo "Consider running 'scons nonsfi_loader'" \
+               "in the native_client directory."; \
+          exit 1 ; \
+        fi
+
+exists-nonsfi-arm32:
+	@if [ ! -f $(NONSFI_LOADER_ARM32) ] ; then \
+          echo "Missing file $(NONSFI_LOADER_ARM32)"; \
+          echo "Consider running 'scons platform=arm32 nonsfi_loader'" \
+               "in the native_client directory."; \
+          exit 1 ; \
+        fi
+
+exists-sbtc:
+	@if [ ! -f $(SBTC_LIBFILE) ] ; then \
+          echo "Missing file $(SBTC_LIBFILE)"; \
+          echo "Consider running 'toolchain_build_pnacl.py --build-sbtc'."; \
+          exit 1 ; \
+        fi
+
+exists-spec:
+	@if [ ! -f $(SPEC_SAMPLE_PEXE) ] ; then \
+          echo "Missing file $(SPEC_SAMPLE_PEXE)"; \
+          echo "Consider running" \
+               "'run_all.sh BuildBenchmarks 0 SetupPnaclX8632Opt'" \
+               "in the native_client/tests/spec2k directory."; \
+          exit 1 ; \
+        fi
+
+check-presubmit presubmit: exists-nonsfi-x8632 exists-nonsfi-arm32 \
+  exists-sbtc exists-spec
 # Make sure clang-format gets run.
 	+make -f Makefile.standalone format
 # Verify MINIMAL build, plus proper usage of REQUIRES in lit tests.
@@ -618,4 +660,4 @@ clean:
           $(OBJDIR) $(SB_OBJDIR) $(SBB_OBJDIR) build/*.bloat.json
 
 clean-all: clean
-	rm -rf build/  crosstest/Output/
+	rm -rf build/ crosstest/Output/
