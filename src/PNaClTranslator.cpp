@@ -275,7 +275,7 @@ public:
         // Recover by using existing type slot.
         return &TypeIDValues[0];
       }
-      TypeIDValues.resize(ID + 1);
+      Ice::Utils::reserveAndResize(TypeIDValues, ID + 1);
     }
     return &TypeIDValues[ID];
   }
@@ -1566,7 +1566,7 @@ private:
         // Recover by using index one beyond the maximal allowed.
         LocalIndex = MaxRecordsInBlock;
       }
-      LocalOperands.resize(LocalIndex + 1);
+      Ice::Utils::reserveAndResize(LocalOperands, LocalIndex + 1);
     }
 
     // If element not defined, set it.

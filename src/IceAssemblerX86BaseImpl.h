@@ -63,7 +63,7 @@ AssemblerX86Base<TraitsType>::getOrCreateLabel(SizeT Number,
     return L;
   }
   if (Number > Labels.size()) {
-    Labels.resize(Number + 1);
+    Utils::reserveAndResize(Labels, Number + 1);
   }
   L = Labels[Number];
   if (!L) {

@@ -375,7 +375,7 @@ namespace {
 // Ensure Pending is large enough that Pending[Index] is valid.
 void resizePending(std::vector<EmitterWorkItem *> &Pending, uint32_t Index) {
   if (Index >= Pending.size())
-    Pending.resize(Index + 1);
+    Utils::reserveAndResize(Pending, Index + 1);
 }
 
 } // end of anonymous namespace
