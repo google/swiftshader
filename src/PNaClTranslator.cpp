@@ -3043,8 +3043,17 @@ private:
 
 void ModuleValuesymtabParser::setValueName(NaClBcIndexSize_t Index,
                                            StringType &Name) {
-  Context->getGlobalDeclarationByID(Index)
-      ->setName(StringRef(Name.data(), Name.size()));
+  Ice::GlobalDeclaration *Decl = Context->getGlobalDeclarationByID(Index);
+  if (llvm::isa<Ice::VariableDeclaration>(Decl) &&
+      Decl->isPNaClABIExternalName(Name.str())) {
+    // Force linkage of (specific) Global Variables be external for the PNaCl
+    // ABI. PNaCl bitcode has a linkage field for Functions, but not for
+    // GlobalVariables (because the latter is not needed for pexes, so it has
+    // been removed).
+    Decl->setLinkage(llvm::GlobalValue::ExternalLinkage);
+  }
+
+  Decl->setName(StringRef(Name.data(), Name.size()));
 }
 
 void ModuleValuesymtabParser::setBbName(NaClBcIndexSize_t Index,

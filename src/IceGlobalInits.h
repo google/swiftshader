@@ -71,6 +71,10 @@ public:
     return Linkage == llvm::GlobalValue::InternalLinkage;
   }
   llvm::GlobalValue::LinkageTypes getLinkage() const { return Linkage; }
+  void setLinkage(llvm::GlobalValue::LinkageTypes L) {
+    assert(!hasName());
+    Linkage = L;
+  }
   bool isExternal() const {
     return Linkage == llvm::GlobalValue::ExternalLinkage;
   }
@@ -89,6 +93,10 @@ public:
   const char *getLinkageName() const {
     return isInternal() ? "internal" : "external";
   }
+
+  /// Returns true if the name of this GlobalDeclaration indicates that it
+  /// should have ExternalLinkage (as a special case).
+  virtual bool isPNaClABIExternalName(const IceString &Name) const = 0;
 
 protected:
   GlobalDeclaration(GlobalDeclarationKind Kind,
@@ -109,7 +117,7 @@ protected:
   }
 
   const GlobalDeclarationKind Kind;
-  const llvm::GlobalValue::LinkageTypes Linkage;
+  llvm::GlobalValue::LinkageTypes Linkage;
   IceString Name;
 };
 
@@ -142,9 +150,11 @@ public:
 
   /// Returns true if linkage is correct for the function declaration.
   bool verifyLinkageCorrect(const GlobalContext *Ctx) const {
-    if (isPNaClABIExternalName() || isIntrinsicName(Ctx))
+    if (isPNaClABIExternalName(getName()) || isIntrinsicName(Ctx)) {
       return Linkage == llvm::GlobalValue::ExternalLinkage;
-    return verifyLinkageDefault(Ctx);
+    } else {
+      return verifyLinkageDefault(Ctx);
+    }
   }
 
   /// Validates that the type signature of the function is correct. Returns true
@@ -184,9 +194,8 @@ private:
       : GlobalDeclaration(FunctionDeclarationKind, Linkage),
         Signature(Signature), CallingConv(CallingConv), IsProto(IsProto) {}
 
-  bool isPNaClABIExternalName() const {
-    const char *Name = getName().c_str();
-    return strcmp(Name, "_start") == 0 || strcmp(Name, "__pnacl_pso_root") == 0;
+  bool isPNaClABIExternalName(const IceString &Name) const override {
+    return Name == "_start";
   }
 
   bool isIntrinsicName(const GlobalContext *Ctx) const {
@@ -414,10 +423,13 @@ public:
 
   /// Prints out the definition of the global variable declaration (including
   /// initialization).
-  virtual void dump(Ostream &Stream) const;
+  virtual void dump(Ostream &Stream) const override;
 
   /// Returns true if linkage is correct for the variable declaration.
   bool verifyLinkageCorrect(const GlobalContext *Ctx) const {
+    if (isPNaClABIExternalName(getName())) {
+      return Linkage == llvm::GlobalValue::ExternalLinkage;
+    }
     return verifyLinkageDefault(Ctx);
   }
 
@@ -432,6 +444,10 @@ public:
   }
 
   void discardInitializers() { Initializers = nullptr; }
+
+  bool isPNaClABIExternalName(const IceString &Name) const override {
+    return Name == "__pnacl_pso_root";
+  }
 
 private:
   /// List of initializers for the declared variable.
