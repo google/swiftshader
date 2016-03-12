@@ -27,6 +27,8 @@
 #include "IceOperand.h"
 #include "IceRegAlloc.h"
 
+#define TARGET_LOWERING_CLASS_FOR(t) Target_##t
+
 // We prevent target-specific implementation details from leaking outside their
 // implementations by forbidding #include of target-specific header files
 // anywhere outside their own files. To create target-specific objects
@@ -52,7 +54,7 @@
   createTargetHeaderLowering(::Ice::GlobalContext *Ctx);                       \
   void staticInit(::Ice::GlobalContext *Ctx);                                  \
   } // end of namespace X
-#include "llvm/Config/SZTargets.def"
+#include "SZTargets.def"
 #undef SUBZERO_TARGET
 
 namespace Ice {
@@ -250,9 +252,9 @@ TargetLowering::createLowering(TargetArch Target, Cfg *Func) {
   default:
     badTargetFatalError(Target);
 #define SUBZERO_TARGET(X)                                                      \
-  case Target_##X:                                                             \
+  case TARGET_LOWERING_CLASS_FOR(X):                                           \
     return ::X::createTargetLowering(Func);
-#include "llvm/Config/SZTargets.def"
+#include "SZTargets.def"
 #undef SUBZERO_TARGET
   }
 }
@@ -264,7 +266,7 @@ void TargetLowering::staticInit(GlobalContext *Ctx) {
   default:
     badTargetFatalError(Target);
 #define SUBZERO_TARGET(X)                                                      \
-  case Target_##X: {                                                           \
+  case TARGET_LOWERING_CLASS_FOR(X): {                                         \
     static bool InitGuard##X = false;                                          \
     if (InitGuard##X) {                                                        \
       return;                                                                  \
@@ -272,7 +274,7 @@ void TargetLowering::staticInit(GlobalContext *Ctx) {
     InitGuard##X = true;                                                       \
     ::X::staticInit(Ctx);                                                      \
   } break;
-#include "llvm/Config/SZTargets.def"
+#include "SZTargets.def"
 #undef SUBZERO_TARGET
   }
 }
@@ -746,9 +748,9 @@ TargetDataLowering::createLowering(GlobalContext *Ctx) {
   default:
     badTargetFatalError(Target);
 #define SUBZERO_TARGET(X)                                                      \
-  case Target_##X:                                                             \
+  case TARGET_LOWERING_CLASS_FOR(X):                                           \
     return ::X::createTargetDataLowering(Ctx);
-#include "llvm/Config/SZTargets.def"
+#include "SZTargets.def"
 #undef SUBZERO_TARGET
   }
 }
@@ -877,9 +879,9 @@ TargetHeaderLowering::createLowering(GlobalContext *Ctx) {
   default:
     badTargetFatalError(Target);
 #define SUBZERO_TARGET(X)                                                      \
-  case Target_##X:                                                             \
+  case TARGET_LOWERING_CLASS_FOR(X):                                           \
     return ::X::createTargetHeaderLowering(Ctx);
-#include "llvm/Config/SZTargets.def"
+#include "SZTargets.def"
 #undef SUBZERO_TARGET
   }
 }

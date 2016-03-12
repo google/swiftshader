@@ -142,7 +142,7 @@ struct {
 void dumpBuildAttributes(Ostream &Str) {
 // List the supported targets.
 #define SUBZERO_TARGET(TARGET) Str << "target_" #TARGET << "\n";
-#include "llvm/Config/SZTargets.def"
+#include "SZTargets.def"
   const char *Prefix[2] = {"no", "allow"};
   for (size_t i = 0; i < llvm::array_lengthof(ConditionalBuildAttributes);
        ++i) {
