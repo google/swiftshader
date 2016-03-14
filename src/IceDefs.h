@@ -222,7 +222,7 @@ enum VerboseItem {
   IceV_ConstPoolStats = 1 << 23,
   IceV_All = ~IceV_None,
   IceV_Most =
-      IceV_All & ~IceV_LinearScan & ~IceV_GlobalInit & IceV_ConstPoolStats
+      IceV_All & ~IceV_LinearScan & ~IceV_GlobalInit & ~IceV_ConstPoolStats
 };
 using VerboseMask = uint32_t;
 

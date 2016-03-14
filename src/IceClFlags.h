@@ -164,6 +164,11 @@ public:
     GenerateUnitTestMessages = NewValue;
   }
 
+  /// Get the value of ClFlags::KeepDeletedInsts
+  bool getKeepDeletedInsts() const { return KeepDeletedInsts; }
+  /// Set ClFlags::KeepDeletedInsts to a new value
+  void setKeepDeletedInsts(bool NewValue) { KeepDeletedInsts = NewValue; }
+
   /// Get the value of ClFlags::MockBoundsCheck
   bool getMockBoundsCheck() const { return MockBoundsCheck; }
   /// Set ClFlags::MockBoundsCheck to a new value
@@ -437,6 +442,8 @@ private:
   bool FunctionSections;
   /// Initialized to false; not set by the command line.
   bool GenerateUnitTestMessages;
+  /// see anonymous_namespace{IceClFlags.cpp}::KeepDeletedInsts
+  bool KeepDeletedInsts;
   /// see anonymous_namespace{IceClFlags.cpp}::MockBoundsCheck
   bool MockBoundsCheck;
   /// see anonymous_namespace{IceClFlags.cpp}::EnablePhiEdgeSplit

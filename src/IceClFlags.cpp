@@ -136,6 +136,14 @@ cl::opt<bool>
     FunctionSections("ffunction-sections",
                      cl::desc("Emit functions into separate sections"));
 
+/// Retain deleted instructions in the Cfg.  Defaults to true in DUMP-enabled
+/// build, and false in a non-DUMP build, but is ignored in a MINIMAL build.
+/// This flag allows overriding the default primarily for debugging.
+cl::opt<bool>
+    KeepDeletedInsts("keep-deleted-insts",
+                     cl::desc("Retain deleted instructions in the Cfg"),
+                     cl::init(Ice::BuildDefs::dump()));
+
 /// Mock bounds checking on loads/stores.
 cl::opt<bool> MockBoundsCheck("mock-bounds-check",
                               cl::desc("Mock bounds checking on loads/stores"));
@@ -475,6 +483,7 @@ void ClFlags::resetClFlags(ClFlags &OutFlags) {
   OutFlags.ForceMemIntrinOpt = false;
   OutFlags.FunctionSections = false;
   OutFlags.GenerateUnitTestMessages = false;
+  OutFlags.KeepDeletedInsts = Ice::BuildDefs::dump();
   OutFlags.MockBoundsCheck = false;
   OutFlags.PhiEdgeSplit = false;
   OutFlags.RandomNopInsertion = false;
@@ -544,6 +553,7 @@ void ClFlags::getParsedClFlags(ClFlags &OutFlags) {
   OutFlags.setFunctionSections(::FunctionSections);
   OutFlags.setNumTranslationThreads(::NumThreads);
   OutFlags.setOptLevel(::OLevel);
+  OutFlags.setKeepDeletedInsts(::KeepDeletedInsts);
   OutFlags.setMockBoundsCheck(::MockBoundsCheck);
   OutFlags.setPhiEdgeSplit(::EnablePhiEdgeSplit);
   OutFlags.setRandomSeed(::RandomSeed);

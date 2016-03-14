@@ -52,16 +52,25 @@ void CfgNode::appendInst(Inst *Instr) {
   }
 }
 
-// Renumbers the non-deleted instructions in the node. This needs to be done in
-// preparation for live range analysis. The instruction numbers in a block must
-// be monotonically increasing. The range of instruction numbers in a block,
-// from lowest to highest, must not overlap with the range of any other block.
+namespace {
+template <typename List> void removeDeletedAndRenumber(List *L, Cfg *Func) {
+  const bool DoDelete =
+      BuildDefs::minimal() || !GlobalContext::getFlags().getKeepDeletedInsts();
+  auto I = L->begin(), E = L->end(), Next = I;
+  for (++Next; I != E; I = Next++) {
+    if (DoDelete && I->isDeleted()) {
+      L->erase(I);
+    } else {
+      I->renumber(Func);
+    }
+  }
+}
+} // end of anonymous namespace
+
 void CfgNode::renumberInstructions() {
   InstNumberT FirstNumber = Func->getNextInstNumber();
-  for (Inst &I : Phis)
-    I.renumber(Func);
-  for (Inst &I : Insts)
-    I.renumber(Func);
+  removeDeletedAndRenumber(&Phis, Func);
+  removeDeletedAndRenumber(&Insts, Func);
   InstCountEstimate = Func->getNextInstNumber() - FirstNumber;
 }
 

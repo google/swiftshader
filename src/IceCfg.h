@@ -185,6 +185,14 @@ public:
   /// predecessor and successor edges, in the form of CfgNode::InEdges[] and
   /// CfgNode::OutEdges[].
   void computeInOutEdges();
+  /// Renumber the non-deleted instructions in the Cfg.  This needs to be done
+  /// in preparation for live range analysis.  The instruction numbers in a
+  /// block must be monotonically increasing.  The range of instruction numbers
+  /// in a block, from lowest to highest, must not overlap with the range of any
+  /// other block.
+  ///
+  /// Also, if the configuration specifies to do so, remove/unlink all deleted
+  /// instructions from the Cfg, to speed up later passes over the instructions.
   void renumberInstructions();
   void placePhiLoads();
   void placePhiStores();
