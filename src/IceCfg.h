@@ -174,7 +174,9 @@ public:
   template <typename T = Assembler> T *getAssembler() const {
     return llvm::dyn_cast<T>(TargetAssembler.get());
   }
-  Assembler *releaseAssembler() { return TargetAssembler.release(); }
+  std::unique_ptr<Assembler> releaseAssembler() {
+    return std::move(TargetAssembler);
+  }
   bool hasComputedFrame() const;
   bool getFocusedTiming() const { return FocusedTiming; }
   void setFocusedTiming() { FocusedTiming = true; }

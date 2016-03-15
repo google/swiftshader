@@ -18,7 +18,9 @@
 #include "IceDefs.h"
 
 #include <condition_variable>
+#include <memory>
 #include <mutex>
+#include <utility>
 
 namespace Ice {
 
@@ -55,18 +57,18 @@ class BoundedProducerConsumerQueue {
 public:
   BoundedProducerConsumerQueue(bool Sequential, size_t MaxSize = MaxStaticSize)
       : MaxSize(std::min(MaxSize, MaxStaticSize)), Sequential(Sequential) {}
-  void blockingPush(T *Item) {
+  void blockingPush(std::unique_ptr<T> Item) {
     {
       std::unique_lock<GlobalLockType> L(Lock);
       // If the work queue is already "full", wait for a consumer to grab an
       // element and shrink the queue.
       Shrunk.wait(L, [this] { return size() < MaxSize || Sequential; });
-      push(Item);
+      push(std::move(Item));
     }
     GrewOrEnded.notify_one();
   }
-  T *blockingPop() {
-    T *Item = nullptr;
+  std::unique_ptr<T> blockingPop() {
+    std::unique_ptr<T> Item;
     bool ShouldNotifyProducer = false;
     {
       std::unique_lock<GlobalLockType> L(Lock);
@@ -95,7 +97,7 @@ private:
 
   ICE_CACHELINE_BOUNDARY;
   /// WorkItems and Lock are read/written by all.
-  T *WorkItems[MaxStaticSize];
+  std::unique_ptr<T> WorkItems[MaxStaticSize];
   ICE_CACHELINE_BOUNDARY;
   /// Lock guards access to WorkItems, Front, Back, and IsEnded.
   GlobalLockType Lock;
@@ -131,13 +133,13 @@ private:
   /// The lock must be held when the following methods are called.
   bool empty() const { return Front == Back; }
   size_t size() const { return Back - Front; }
-  void push(T *Item) {
-    WorkItems[Back++ & MaxStaticSizeMask] = Item;
+  void push(std::unique_ptr<T> Item) {
+    WorkItems[Back++ & MaxStaticSizeMask] = std::move(Item);
     assert(size() <= MaxStaticSize);
   }
-  T *pop() {
+  std::unique_ptr<T> pop() {
     assert(!empty());
-    return WorkItems[Front++ & MaxStaticSizeMask];
+    return std::move(WorkItems[Front++ & MaxStaticSizeMask]);
   }
 };
 
@@ -174,11 +176,11 @@ public:
   /// Constructor for a WI_Nop work item.
   explicit EmitterWorkItem(uint32_t Seq);
   /// Constructor for a WI_GlobalInits work item.
-  EmitterWorkItem(uint32_t Seq, VariableDeclarationList *D);
+  EmitterWorkItem(uint32_t Seq, std::unique_ptr<VariableDeclarationList> D);
   /// Constructor for a WI_Asm work item.
-  EmitterWorkItem(uint32_t Seq, Assembler *A);
+  EmitterWorkItem(uint32_t Seq, std::unique_ptr<Assembler> A);
   /// Constructor for a WI_Cfg work item.
-  EmitterWorkItem(uint32_t Seq, Cfg *F);
+  EmitterWorkItem(uint32_t Seq, std::unique_ptr<Cfg> F);
   uint32_t getSequenceNumber() const { return Sequence; }
   ItemKind getKind() const { return Kind; }
   void setGlobalInits(std::unique_ptr<VariableDeclarationList> GloblInits);

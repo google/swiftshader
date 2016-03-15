@@ -28,9 +28,11 @@
 
 #include <array>
 #include <functional>
+#include <memory>
 #include <mutex>
 #include <thread>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 namespace Ice {
@@ -336,8 +338,8 @@ public:
 
   void lowerJumpTables();
 
-  void emitQueueBlockingPush(EmitterWorkItem *Item);
-  EmitterWorkItem *emitQueueBlockingPop();
+  void emitQueueBlockingPush(std::unique_ptr<EmitterWorkItem> Item);
+  std::unique_ptr<EmitterWorkItem> emitQueueBlockingPop();
   void emitQueueNotifyEnd() { EmitQ.notifyEnd(); }
 
   void initParserThread() {

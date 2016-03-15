@@ -19,6 +19,8 @@
 #include "IceDefs.h"
 #include "IceGlobalContext.h"
 
+#include <memory>
+
 namespace llvm {
 class Module;
 } // end of namespace llvm
@@ -48,8 +50,7 @@ public:
 
   const ClFlags &getFlags() const { return Ctx->getFlags(); }
 
-  /// Translates the constructed ICE function Fcn to machine code. Takes
-  /// ownership of Func.
+  /// Translates the constructed ICE function Func to machine code.
   void translateFcn(std::unique_ptr<Cfg> Func);
 
   /// Lowers the given list of global addresses to target. Generates list of

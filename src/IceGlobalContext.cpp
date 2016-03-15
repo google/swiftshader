@@ -319,14 +319,14 @@ void GlobalContext::translateFunctions() {
     }
 
     Func->translate();
-    EmitterWorkItem *Item = nullptr;
+    std::unique_ptr<EmitterWorkItem> Item;
     if (Func->hasError()) {
       getErrorStatus()->assign(EC_Translation);
       OstreamLocker L(this);
       getStrError() << "ICE translation error: " << Func->getFunctionName()
                     << ": " << Func->getError() << ": "
                     << Func->getFunctionNameAndSize() << "\n";
-      Item = new EmitterWorkItem(Func->getSequenceNumber());
+      Item = makeUnique<EmitterWorkItem>(Func->getSequenceNumber());
     } else {
       Func->getAssembler<>()->setInternal(Func->getInternal());
       switch (getFlags().getOutFileType()) {
@@ -337,10 +337,11 @@ void GlobalContext::translateFunctions() {
         // stats have been fully collected into this thread's TLS.
         // Dump them before TLS is reset for the next Cfg.
         dumpStats(Func->getFunctionNameAndSize());
-        Assembler *Asm = Func->releaseAssembler();
+        auto Asm = Func->releaseAssembler();
         // Copy relevant fields into Asm before Func is deleted.
         Asm->setFunctionName(Func->getFunctionName());
-        Item = new EmitterWorkItem(Func->getSequenceNumber(), Asm);
+        Item = makeUnique<EmitterWorkItem>(Func->getSequenceNumber(),
+                                           std::move(Asm));
         Item->setGlobalInits(Func->getGlobalInits());
       } break;
       case FT_Asm:
@@ -348,13 +349,14 @@ void GlobalContext::translateFunctions() {
         // to be dumped.
         std::unique_ptr<VariableDeclarationList> GlobalInits =
             Func->getGlobalInits();
-        Item = new EmitterWorkItem(Func->getSequenceNumber(), Func.release());
+        Item = makeUnique<EmitterWorkItem>(Func->getSequenceNumber(),
+                                           std::move(Func));
         Item->setGlobalInits(std::move(GlobalInits));
         break;
       }
     }
-    assert(Item);
-    emitQueueBlockingPush(Item);
+    assert(Item != nullptr);
+    emitQueueBlockingPush(std::move(Item));
     // The Cfg now gets deleted as Func goes out of scope.
   }
 }
@@ -362,9 +364,10 @@ void GlobalContext::translateFunctions() {
 namespace {
 
 // Ensure Pending is large enough that Pending[Index] is valid.
-void resizePending(std::vector<EmitterWorkItem *> &Pending, uint32_t Index) {
-  if (Index >= Pending.size())
-    Utils::reserveAndResize(Pending, Index + 1);
+void resizePending(std::vector<std::unique_ptr<EmitterWorkItem>> *Pending,
+                   uint32_t Index) {
+  if (Index >= Pending->size())
+    Utils::reserveAndResize(*Pending, Index + 1);
 }
 
 } // end of anonymous namespace
@@ -471,7 +474,7 @@ void GlobalContext::emitItems() {
   // the work queue, and if it's not the item we're waiting for, we
   // insert it into Pending and repeat.  The work item is deleted
   // after it is processed.
-  std::vector<EmitterWorkItem *> Pending;
+  std::vector<std::unique_ptr<EmitterWorkItem>> Pending;
   uint32_t DesiredSequenceNumber = getFirstSequenceNumber();
   uint32_t ShuffleStartIndex = DesiredSequenceNumber;
   uint32_t ShuffleEndIndex = DesiredSequenceNumber;
@@ -483,12 +486,11 @@ void GlobalContext::emitItems() {
   RandomNumberGenerator RNG(getFlags().getRandomSeed(), RPE_FunctionReordering);
 
   while (!EmitQueueEmpty) {
-    resizePending(Pending, DesiredSequenceNumber);
+    resizePending(&Pending, DesiredSequenceNumber);
     // See if Pending contains DesiredSequenceNumber.
-    EmitterWorkItem *RawItem = Pending[DesiredSequenceNumber];
-    if (RawItem == nullptr) {
+    if (Pending[DesiredSequenceNumber] == nullptr) {
       // We need to fetch an EmitterWorkItem from the queue.
-      RawItem = emitQueueBlockingPop();
+      auto RawItem = emitQueueBlockingPop();
       if (RawItem == nullptr) {
         // This is the notifier for an empty queue.
         EmitQueueEmpty = true;
@@ -498,16 +500,18 @@ void GlobalContext::emitItems() {
         if (Threaded && ItemSeq != DesiredSequenceNumber) {
           // Not the desired one, add it to Pending but do not increase
           // DesiredSequenceNumber. Continue the loop, do not emit the item.
-          resizePending(Pending, ItemSeq);
-          Pending[ItemSeq] = RawItem;
+          resizePending(&Pending, ItemSeq);
+          Pending[ItemSeq] = std::move(RawItem);
           continue;
         }
         // ItemSeq == DesiredSequenceNumber, we need to check if we should
         // emit it or not. If !Threaded, we're OK with ItemSeq !=
         // DesiredSequenceNumber.
-        Pending[DesiredSequenceNumber] = RawItem;
+        Pending[DesiredSequenceNumber] = std::move(RawItem);
       }
     }
+    const auto *CurrentWorkItem = Pending[DesiredSequenceNumber].get();
+
     // We have the desired EmitterWorkItem or nullptr as the end notifier.
     // If the emitter queue is not empty, increase DesiredSequenceNumber and
     // ShuffleEndIndex.
@@ -524,7 +528,7 @@ void GlobalContext::emitItems() {
       // holding an arbitrarily large GlobalDeclarationList.
       if (!EmitQueueEmpty &&
           ShuffleEndIndex - ShuffleStartIndex < ShuffleWindowSize &&
-          RawItem->getKind() != EmitterWorkItem::WI_GlobalInits)
+          CurrentWorkItem->getKind() != EmitterWorkItem::WI_GlobalInits)
         continue;
 
       // Emit the EmitterWorkItem between Pending[ShuffleStartIndex] to
@@ -538,7 +542,7 @@ void GlobalContext::emitItems() {
 
     // Emit the item from ShuffleStartIndex to ShuffleEndIndex.
     for (uint32_t I = ShuffleStartIndex; I < ShuffleEndIndex; I++) {
-      std::unique_ptr<EmitterWorkItem> Item(Pending[I]);
+      std::unique_ptr<EmitterWorkItem> Item = std::move(Pending[I]);
 
       switch (Item->getKind()) {
       case EmitterWorkItem::WI_Nop:
@@ -862,7 +866,7 @@ void GlobalContext::optQueueBlockingPush(std::unique_ptr<Cfg> Func) {
   assert(Func);
   {
     TimerMarker _(TimerStack::TT_qTransPush, this);
-    OptQ.blockingPush(Func.release());
+    OptQ.blockingPush(std::move(Func));
   }
   if (getFlags().isSequential())
     translateFunctions();
@@ -873,17 +877,18 @@ std::unique_ptr<Cfg> GlobalContext::optQueueBlockingPop() {
   return std::unique_ptr<Cfg>(OptQ.blockingPop());
 }
 
-void GlobalContext::emitQueueBlockingPush(EmitterWorkItem *Item) {
+void GlobalContext::emitQueueBlockingPush(
+    std::unique_ptr<EmitterWorkItem> Item) {
   assert(Item);
   {
     TimerMarker _(TimerStack::TT_qEmitPush, this);
-    EmitQ.blockingPush(Item);
+    EmitQ.blockingPush(std::move(Item));
   }
   if (getFlags().isSequential())
     emitItems();
 }
 
-EmitterWorkItem *GlobalContext::emitQueueBlockingPop() {
+std::unique_ptr<EmitterWorkItem> GlobalContext::emitQueueBlockingPop() {
   TimerMarker _(TimerStack::TT_qEmitPop, this);
   return EmitQ.blockingPop();
 }

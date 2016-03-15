@@ -14,13 +14,15 @@
 
 #include "IceTranslator.h"
 
+#include "IceDefs.h"
 #include "IceCfg.h"
 #include "IceClFlags.h"
-#include "IceDefs.h"
 #include "IceGlobalInits.h"
 #include "IceTargetLowering.h"
 
-using namespace Ice;
+#include <utility>
+
+namespace Ice {
 
 Translator::Translator(GlobalContext *Ctx)
     : Ctx(Ctx), NextSequenceNumber(GlobalContext::getFirstSequenceNumber()),
@@ -58,7 +60,8 @@ void Translator::translateFcn(std::unique_ptr<Cfg> Func) {
 
 void Translator::lowerGlobals(
     std::unique_ptr<VariableDeclarationList> VariableDeclarations) {
-  EmitterWorkItem *Item = new EmitterWorkItem(getNextSequenceNumber(),
-                                              VariableDeclarations.release());
-  Ctx->emitQueueBlockingPush(Item);
+  Ctx->emitQueueBlockingPush(makeUnique<EmitterWorkItem>(
+      getNextSequenceNumber(), std::move(VariableDeclarations)));
 }
+
+} // end of namespace Ice

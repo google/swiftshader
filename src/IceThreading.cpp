@@ -22,15 +22,16 @@ namespace Ice {
 EmitterWorkItem::EmitterWorkItem(uint32_t Seq)
     : Sequence(Seq), Kind(WI_Nop), GlobalInits(nullptr), Function(nullptr),
       RawFunc(nullptr) {}
-EmitterWorkItem::EmitterWorkItem(uint32_t Seq, VariableDeclarationList *D)
-    : Sequence(Seq), Kind(WI_GlobalInits), GlobalInits(D), Function(nullptr),
+EmitterWorkItem::EmitterWorkItem(uint32_t Seq,
+                                 std::unique_ptr<VariableDeclarationList> D)
+    : Sequence(Seq), Kind(WI_GlobalInits), GlobalInits(std::move(D)),
+      Function(nullptr), RawFunc(nullptr) {}
+EmitterWorkItem::EmitterWorkItem(uint32_t Seq, std::unique_ptr<Assembler> A)
+    : Sequence(Seq), Kind(WI_Asm), GlobalInits(nullptr), Function(std::move(A)),
       RawFunc(nullptr) {}
-EmitterWorkItem::EmitterWorkItem(uint32_t Seq, Assembler *A)
-    : Sequence(Seq), Kind(WI_Asm), GlobalInits(nullptr), Function(A),
-      RawFunc(nullptr) {}
-EmitterWorkItem::EmitterWorkItem(uint32_t Seq, Cfg *F)
+EmitterWorkItem::EmitterWorkItem(uint32_t Seq, std::unique_ptr<Cfg> F)
     : Sequence(Seq), Kind(WI_Cfg), GlobalInits(nullptr), Function(nullptr),
-      RawFunc(F) {}
+      RawFunc(std::move(F)) {}
 
 void EmitterWorkItem::setGlobalInits(
     std::unique_ptr<VariableDeclarationList> GloblInits) {
