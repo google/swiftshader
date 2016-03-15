@@ -292,17 +292,6 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit, Ostream *OsError,
     break;
   }
 
-  // ProfileBlockInfoVarDecl is initialized here because it takes this as a
-  // parameter -- we want to
-  // ensure that at least this' member variables are initialized.
-  ProfileBlockInfoVarDecl = VariableDeclaration::createExternal(this);
-  ProfileBlockInfoVarDecl->setAlignment(typeWidthInBytes(IceType_i64));
-  ProfileBlockInfoVarDecl->setIsConstant(true);
-
-  // Note: if you change this symbol, make sure to update
-  // runtime/szrt_profiler.c as well.
-  ProfileBlockInfoVarDecl->setName("__Sz_block_profile_info");
-
   TargetLowering::staticInit(this);
 }
 
@@ -397,14 +386,10 @@ void GlobalContext::lowerConstants() { DataLowering->lowerConstants(); }
 
 void GlobalContext::lowerJumpTables() { DataLowering->lowerJumpTables(); }
 
-void GlobalContext::addBlockInfoPtrs(VariableDeclaration *ProfileBlockInfo) {
-  for (const VariableDeclaration *Global : Globals) {
+void GlobalContext::saveBlockInfoPtrs() {
+  for (VariableDeclaration *Global : Globals) {
     if (Cfg::isProfileGlobal(*Global)) {
-      constexpr RelocOffsetT BlockExecutionCounterOffset = 0;
-      ProfileBlockInfo->addInitializer(
-          VariableDeclaration::RelocInitializer::create(
-              Global,
-              {RelocOffset::create(this, BlockExecutionCounterOffset)}));
+      ProfileBlockInfos.push_back(Global);
     }
   }
 }
@@ -424,7 +409,7 @@ void GlobalContext::lowerGlobals(const IceString &SectionSuffix) {
   if (Flags.getDisableTranslation())
     return;
 
-  addBlockInfoPtrs(ProfileBlockInfoVarDecl);
+  saveBlockInfoPtrs();
   // If we need to shuffle the layout of global variables, shuffle them now.
   if (getFlags().shouldReorderGlobalVariables()) {
     // Create a random number generator for global variable reordering.
@@ -434,26 +419,48 @@ void GlobalContext::lowerGlobals(const IceString &SectionSuffix) {
                   [&RNG](int N) { return (uint32_t)RNG.next(N); });
   }
   DataLowering->lowerGlobals(Globals, SectionSuffix);
-  for (VariableDeclaration *Var : Globals) {
-    Var->discardInitializers();
+  if (ProfileBlockInfos.empty() && DisposeGlobalVariablesAfterLowering) {
+    Globals.clearAndPurge();
+  } else {
+    Globals.clear();
   }
-  Globals.clear();
 }
 
 void GlobalContext::lowerProfileData() {
   // ProfileBlockInfoVarDecl is initialized in the constructor, and will only
   // ever be nullptr after this method completes. This assertion is a convoluted
   // way of ensuring lowerProfileData is invoked a single time.
-  assert(ProfileBlockInfoVarDecl != nullptr);
+  assert(ProfileBlockInfoVarDecl == nullptr);
+
+  auto GlobalVariablePool = getInitializerAllocator();
+  ProfileBlockInfoVarDecl =
+      VariableDeclaration::createExternal(GlobalVariablePool.get());
+  ProfileBlockInfoVarDecl->setAlignment(typeWidthInBytes(IceType_i64));
+  ProfileBlockInfoVarDecl->setIsConstant(true);
+
+  // Note: if you change this symbol, make sure to update
+  // runtime/szrt_profiler.c as well.
+  ProfileBlockInfoVarDecl->setName("__Sz_block_profile_info");
+
+  for (const VariableDeclaration *PBI : ProfileBlockInfos) {
+    if (Cfg::isProfileGlobal(*PBI)) {
+      constexpr RelocOffsetT BlockExecutionCounterOffset = 0;
+      ProfileBlockInfoVarDecl->addInitializer(
+          VariableDeclaration::RelocInitializer::create(
+              GlobalVariablePool.get(), PBI,
+              {RelocOffset::create(this, BlockExecutionCounterOffset)}));
+    }
+  }
+
   // This adds a 64-bit sentinel entry to the end of our array. For 32-bit
   // architectures this will waste 4 bytes.
   const SizeT Sizeof64BitNullPtr = typeWidthInBytes(IceType_i64);
   ProfileBlockInfoVarDecl->addInitializer(
-      VariableDeclaration::ZeroInitializer::create(Sizeof64BitNullPtr));
+      VariableDeclaration::ZeroInitializer::create(GlobalVariablePool.get(),
+                                                   Sizeof64BitNullPtr));
   Globals.push_back(ProfileBlockInfoVarDecl);
   constexpr char ProfileDataSection[] = "$sz_profiler$";
   lowerGlobals(ProfileDataSection);
-  ProfileBlockInfoVarDecl = nullptr;
 }
 
 void GlobalContext::emitItems() {

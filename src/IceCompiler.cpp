@@ -93,6 +93,9 @@ void Compiler::run(const Ice::ClFlagsExtra &ExtraFlags, GlobalContext &Ctx,
       Ctx.getErrorStatus()->assign(EC_Args);
       return;
     }
+    // Globals must be kept alive after lowering when converting from LLVM to
+    // Ice.
+    Ctx.setDisposeGlobalVariablesAfterLowering(false);
     // Parse the input LLVM IR file into a module.
     llvm::SMDiagnostic Err;
     TimerMarker T1(Ice::TimerStack::TT_parse, &Ctx);

@@ -229,7 +229,6 @@ public:
       RelocInitializerKind
     };
     InitializerKind getKind() const { return Kind; }
-    virtual ~Initializer() = default;
     virtual SizeT getNumBytes() const = 0;
     virtual void dump(Ostream &Stream) const = 0;
     virtual void dumpType(Ostream &Stream) const;
@@ -240,9 +239,11 @@ public:
   private:
     const InitializerKind Kind;
   };
+  static_assert(std::is_trivially_destructible<Initializer>::value,
+                "Initializer must be trivially destructible.");
 
   /// Models the data in a data initializer.
-  using DataVecType = std::vector<char>;
+  using DataVecType = char *;
 
   /// Defines a sequence of byte values as a data initializer.
   class DataInitializer : public Initializer {
@@ -251,35 +252,49 @@ public:
 
   public:
     template <class... Args>
-    static std::unique_ptr<DataInitializer> create(Args &&... TheArgs) {
-      return makeUnique<DataInitializer>(std::forward<Args>(TheArgs)...);
+    static DataInitializer *create(VariableDeclarationList *VDL,
+                                   Args &&... TheArgs) {
+      return new (VDL->allocate_initializer<DataInitializer>())
+          DataInitializer(VDL, std::forward<Args>(TheArgs)...);
     }
 
-    const DataVecType &getContents() const { return Contents; }
-    SizeT getNumBytes() const final { return Contents.size(); }
+    const llvm::StringRef getContents() const {
+      return llvm::StringRef(Contents, ContentsSize);
+    }
+    SizeT getNumBytes() const final { return ContentsSize; }
     void dump(Ostream &Stream) const final;
     static bool classof(const Initializer *D) {
       return D->getKind() == DataInitializerKind;
     }
 
   private:
-    ENABLE_MAKE_UNIQUE;
-
-    DataInitializer(const llvm::NaClBitcodeRecord::RecordVector &Values)
-        : Initializer(DataInitializerKind), Contents(Values.size()) {
+    DataInitializer(VariableDeclarationList *VDL,
+                    const llvm::NaClBitcodeRecord::RecordVector &Values)
+        : Initializer(DataInitializerKind), ContentsSize(Values.size()),
+          // ugh, we should actually do new char[], but this may involve
+          // implementation-specific details. Given that Contents is arena
+          // allocated, and never detele[]d, just use char --
+          // AllocOwner->allocate_array will allocate a buffer with the right
+          // size.
+          Contents(new (VDL->allocate_initializer<char>(ContentsSize)) char) {
       for (SizeT I = 0; I < Values.size(); ++I)
         Contents[I] = static_cast<int8_t>(Values[I]);
     }
 
-    DataInitializer(const char *Str, size_t StrLen)
-        : Initializer(DataInitializerKind), Contents(StrLen) {
+    DataInitializer(VariableDeclarationList *VDL, const char *Str,
+                    size_t StrLen)
+        : Initializer(DataInitializerKind), ContentsSize(StrLen),
+          Contents(new (VDL->allocate_initializer<char>(ContentsSize)) char) {
       for (size_t i = 0; i < StrLen; ++i)
         Contents[i] = Str[i];
     }
 
     /// The byte contents of the data initializer.
+    const SizeT ContentsSize;
     DataVecType Contents;
   };
+  static_assert(std::is_trivially_destructible<DataInitializer>::value,
+                "DataInitializer must be trivially destructible.");
 
   /// Defines a sequence of bytes initialized to zero.
   class ZeroInitializer : public Initializer {
@@ -287,8 +302,9 @@ public:
     ZeroInitializer &operator=(const ZeroInitializer &) = delete;
 
   public:
-    static std::unique_ptr<ZeroInitializer> create(SizeT Size) {
-      return makeUnique<ZeroInitializer>(Size);
+    static ZeroInitializer *create(VariableDeclarationList *VDL, SizeT Size) {
+      return new (VDL->allocate_initializer<ZeroInitializer>())
+          ZeroInitializer(Size);
     }
     SizeT getNumBytes() const final { return Size; }
     void dump(Ostream &Stream) const final;
@@ -297,14 +313,14 @@ public:
     }
 
   private:
-    ENABLE_MAKE_UNIQUE;
-
     explicit ZeroInitializer(SizeT Size)
         : Initializer(ZeroInitializerKind), Size(Size) {}
 
     /// The number of bytes to be zero initialized.
     SizeT Size;
   };
+  static_assert(std::is_trivially_destructible<ZeroInitializer>::value,
+                "ZeroInitializer must be trivially destructible.");
 
   /// Defines the relocation value of another global declaration.
   class RelocInitializer : public Initializer {
@@ -312,25 +328,27 @@ public:
     RelocInitializer &operator=(const RelocInitializer &) = delete;
 
   public:
-    static std::unique_ptr<RelocInitializer>
-    create(const GlobalDeclaration *Declaration,
-           const RelocOffsetArray &OffsetExpr) {
+    static RelocInitializer *create(VariableDeclarationList *VDL,
+                                    const GlobalDeclaration *Declaration,
+                                    const RelocOffsetArray &OffsetExpr) {
       constexpr bool NoFixup = false;
-      return makeUnique<RelocInitializer>(Declaration, OffsetExpr, NoFixup);
+      return new (VDL->allocate_initializer<RelocInitializer>())
+          RelocInitializer(VDL, Declaration, OffsetExpr, NoFixup);
     }
 
-    static std::unique_ptr<RelocInitializer>
-    create(const GlobalDeclaration *Declaration,
-           const RelocOffsetArray &OffsetExpr, FixupKind Fixup) {
+    static RelocInitializer *create(VariableDeclarationList *VDL,
+                                    const GlobalDeclaration *Declaration,
+                                    const RelocOffsetArray &OffsetExpr,
+                                    FixupKind Fixup) {
       constexpr bool HasFixup = true;
-      return makeUnique<RelocInitializer>(Declaration, OffsetExpr, HasFixup,
-                                          Fixup);
+      return new (VDL->allocate_initializer<RelocInitializer>())
+          RelocInitializer(VDL, Declaration, OffsetExpr, HasFixup, Fixup);
     }
 
     RelocOffsetT getOffset() const {
       RelocOffsetT Offset = 0;
-      for (const auto *RelocOffset : OffsetExpr) {
-        Offset += RelocOffset->getOffset();
+      for (SizeT i = 0; i < OffsetExprSize; ++i) {
+        Offset += OffsetExpr[i]->getOffset();
       }
       return Offset;
     }
@@ -350,54 +368,65 @@ public:
     }
 
   private:
-    ENABLE_MAKE_UNIQUE;
-
-    RelocInitializer(const GlobalDeclaration *Declaration,
+    RelocInitializer(VariableDeclarationList *VDL,
+                     const GlobalDeclaration *Declaration,
                      const RelocOffsetArray &OffsetExpr, bool HasFixup,
                      FixupKind Fixup = 0)
         : Initializer(RelocInitializerKind),
           Declaration(Declaration), // The global declaration used in the reloc.
-          OffsetExpr(OffsetExpr), HasFixup(HasFixup), Fixup(Fixup) {}
+          OffsetExprSize(OffsetExpr.size()),
+          OffsetExpr(new (VDL->allocate_initializer<RelocOffset *>(
+              OffsetExprSize)) RelocOffset *),
+          HasFixup(HasFixup), Fixup(Fixup) {
+      for (SizeT i = 0; i < OffsetExprSize; ++i) {
+        this->OffsetExpr[i] = OffsetExpr[i];
+      }
+    }
 
     const GlobalDeclaration *Declaration;
     /// The offset to add to the relocation.
-    const RelocOffsetArray OffsetExpr;
+    const SizeT OffsetExprSize;
+    RelocOffset **OffsetExpr;
     const bool HasFixup = false;
     const FixupKind Fixup = 0;
   };
+  static_assert(std::is_trivially_destructible<RelocInitializer>::value,
+                "RelocInitializer must be trivially destructible.");
 
   /// Models the list of initializers.
-  using InitializerListType = std::vector<std::unique_ptr<Initializer>>;
+  // TODO(jpp): missing allocator.
+  using InitializerListType = std::vector<Initializer *>;
 
-  static VariableDeclaration *create(GlobalContext *Context,
+  static VariableDeclaration *create(VariableDeclarationList *VDL,
                                      bool SuppressMangling = false,
                                      llvm::GlobalValue::LinkageTypes Linkage =
                                          llvm::GlobalValue::InternalLinkage) {
-    return new (Context->allocate<VariableDeclaration>())
+    return new (VDL->allocate_variable_declaration<VariableDeclaration>())
         VariableDeclaration(Linkage, SuppressMangling);
   }
-  static VariableDeclaration *createExternal(GlobalContext *Context) {
+
+  static VariableDeclaration *createExternal(VariableDeclarationList *VDL) {
     constexpr bool SuppressMangling = true;
     constexpr llvm::GlobalValue::LinkageTypes Linkage =
         llvm::GlobalValue::ExternalLinkage;
-    return create(Context, SuppressMangling, Linkage);
+    return create(VDL, SuppressMangling, Linkage);
   }
 
-  const InitializerListType &getInitializers() const { return *Initializers; }
+  const InitializerListType &getInitializers() const { return Initializers; }
   bool getIsConstant() const { return IsConstant; }
   void setIsConstant(bool NewValue) { IsConstant = NewValue; }
   uint32_t getAlignment() const { return Alignment; }
   void setAlignment(uint32_t NewAlignment) { Alignment = NewAlignment; }
   bool hasInitializer() const { return HasInitializer; }
   bool hasNonzeroInitializer() const {
-    return !(Initializers->size() == 1 &&
-             llvm::isa<ZeroInitializer>((*Initializers)[0].get()));
+    return !(Initializers.size() == 1 &&
+             llvm::isa<ZeroInitializer>(Initializers[0]));
   }
 
   /// Returns the number of bytes for the initializer of the global address.
   SizeT getNumBytes() const {
     SizeT Count = 0;
-    for (const std::unique_ptr<Initializer> &Init : *Initializers) {
+    for (const auto *Init : Initializers) {
       Count += Init->getNumBytes();
     }
     return Count;
@@ -405,9 +434,9 @@ public:
 
   /// Adds Initializer to the list of initializers. Takes ownership of the
   /// initializer.
-  void addInitializer(std::unique_ptr<Initializer> Initializer) {
+  void addInitializer(Initializer *Initializer) {
     const bool OldSuppressMangling = getSuppressMangling();
-    Initializers->emplace_back(std::move(Initializer));
+    Initializers.emplace_back(Initializer);
     HasInitializer = true;
     // The getSuppressMangling() logic depends on whether the global variable
     // has initializers.  If its value changed as a result of adding an
@@ -443,7 +472,7 @@ public:
     return isExternal() && !hasInitializer();
   }
 
-  void discardInitializers() { Initializers = nullptr; }
+  void discardInitializers() { Initializers.clear(); }
 
   bool isPNaClABIExternalName(const IceString &Name) const override {
     return Name == "__pnacl_pso_root";
@@ -451,7 +480,7 @@ public:
 
 private:
   /// List of initializers for the declared variable.
-  std::unique_ptr<InitializerListType> Initializers;
+  InitializerListType Initializers;
   bool HasInitializer = false;
   /// The alignment of the declared variable.
   uint32_t Alignment = 0;
@@ -463,7 +492,6 @@ private:
   VariableDeclaration(llvm::GlobalValue::LinkageTypes Linkage,
                       bool SuppressMangling)
       : GlobalDeclaration(VariableDeclarationKind, Linkage),
-        Initializers(new InitializerListType),
         ForceSuppressMangling(SuppressMangling) {}
 };
 

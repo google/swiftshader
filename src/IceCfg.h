@@ -158,6 +158,12 @@ public:
     }
     GlobalInits->push_back(Global);
   }
+  VariableDeclarationList *getGlobalPool() {
+    if (GlobalInits == nullptr) {
+      GlobalInits.reset(new VariableDeclarationList);
+    }
+    return GlobalInits.get();
+  }
   /// @}
 
   /// \name Miscellaneous accessors.
@@ -268,6 +274,11 @@ private:
   /// one of them. It returns a list with all the globals that the profiling
   /// code needs to be defined.
   void profileBlocks();
+
+  void createNodeNameDeclaration(const IceString &NodeAsmName);
+  void
+  createBlockProfilingInfoDeclaration(const IceString &NodeAsmName,
+                                      VariableDeclaration *NodeNameDeclaration);
 
   /// Delete registered jump table placeholder instructions. This should only be
   /// called once all repointing has taken place.

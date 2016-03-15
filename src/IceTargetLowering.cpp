@@ -826,12 +826,11 @@ void TargetDataLowering::emitGlobal(const VariableDeclaration &Var,
   Str << Name << ":\n";
 
   if (HasNonzeroInitializer) {
-    for (const std::unique_ptr<VariableDeclaration::Initializer> &Init :
-         Var.getInitializers()) {
+    for (const auto *Init : Var.getInitializers()) {
       switch (Init->getKind()) {
       case VariableDeclaration::Initializer::DataInitializerKind: {
         const auto &Data =
-            llvm::cast<VariableDeclaration::DataInitializer>(Init.get())
+            llvm::cast<VariableDeclaration::DataInitializer>(Init)
                 ->getContents();
         for (SizeT i = 0; i < Init->getNumBytes(); ++i) {
           Str << "\t.byte\t" << (((unsigned)Data[i]) & 0xff) << "\n";
@@ -843,7 +842,7 @@ void TargetDataLowering::emitGlobal(const VariableDeclaration &Var,
         break;
       case VariableDeclaration::Initializer::RelocInitializerKind: {
         const auto *Reloc =
-            llvm::cast<VariableDeclaration::RelocInitializer>(Init.get());
+            llvm::cast<VariableDeclaration::RelocInitializer>(Init);
         Str << "\t" << getEmit32Directive() << "\t";
         Str << Reloc->getDeclaration()->getName();
         if (Reloc->hasFixup()) {

@@ -73,6 +73,11 @@ class Variable;
 class VariableDeclaration;
 class VariablesMetadata;
 
+/// SizeT is for holding small-ish limits like number of source operands in an
+/// instruction. It is used instead of size_t (which may be 64-bits wide) when
+/// we want to save space.
+using SizeT = uint32_t;
+
 constexpr char GlobalOffsetTable[] = "_GLOBAL_OFFSET_TABLE_";
 // makeUnique should be used when memory is expected to be allocated from the
 // heap (as opposed to allocated from some Allocator.) It is intended to be
@@ -139,12 +144,127 @@ using NodeList = CfgVector<CfgNode *>;
 // Containers that use the default (global) allocator.
 using ConstantList = std::vector<Constant *>;
 using FunctionDeclarationList = std::vector<FunctionDeclaration *>;
-using VariableDeclarationList = std::vector<VariableDeclaration *>;
 
-/// SizeT is for holding small-ish limits like number of source operands in an
-/// instruction. It is used instead of size_t (which may be 64-bits wide) when
-/// we want to save space.
-using SizeT = uint32_t;
+/// VariableDeclarationList is a container for holding VariableDeclarations --
+/// i.e., Global Variables. It is also used to create said variables, and their
+/// initializers in an arena.
+class VariableDeclarationList {
+  VariableDeclarationList(const VariableDeclarationList &) = delete;
+  VariableDeclarationList &operator=(const VariableDeclarationList &) = delete;
+  VariableDeclarationList(VariableDeclarationList &&) = delete;
+  VariableDeclarationList &operator=(VariableDeclarationList &&) = delete;
+
+public:
+  using VariableDeclarationArray = std::vector<VariableDeclaration *>;
+
+  VariableDeclarationList() : Arena(new ArenaAllocator()) {}
+
+  ~VariableDeclarationList() { clearAndPurge(); }
+
+  template <typename T> T *allocate_initializer(SizeT Count = 1) {
+    static_assert(
+        std::is_trivially_destructible<T>::value,
+        "allocate_initializer can only allocate trivially destructible types.");
+    return Arena->Allocate<T>(Count);
+  }
+
+  template <typename T> T *allocate_variable_declaration() {
+    static_assert(!std::is_trivially_destructible<T>::value,
+                  "allocate_variable_declaration expects non-trivially "
+                  "destructible types.");
+    T *Ret = Arena->Allocate<T>();
+    Dtors.emplace_back([Ret]() { Ret->~T(); });
+    return Ret;
+  }
+
+  // This do nothing method is invoked when a global variable is created, but it
+  // will not be emitted. If we ever need to track the created variabled, having
+  // this hook is handy.
+  void willNotBeEmitted(VariableDeclaration *) {}
+
+  /// Merges Other with this, effectively resetting Other to an empty state.
+  void merge(VariableDeclarationList *Other) {
+    assert(Other != nullptr);
+    addArena(std::move(Other->Arena));
+    for (std::size_t i = 0; i < Other->MergedArenas.size(); ++i) {
+      addArena(std::move(Other->MergedArenas[i]));
+    }
+    Other->MergedArenas.clear();
+
+    Dtors.insert(Dtors.end(), Other->Dtors.begin(), Other->Dtors.end());
+    Other->Dtors.clear();
+
+    Globals.insert(Globals.end(), Other->Globals.begin(), Other->Globals.end());
+    Other->Globals.clear();
+  }
+
+  /// Destroys all GlobalVariables and initializers that this knows about
+  /// (including those merged with it), and releases memory.
+  void clearAndPurge() {
+    if (Arena == nullptr) {
+      // Arena is only null if this was merged, so we ensure there's no state
+      // being held by this.
+      assert(Dtors.empty());
+      assert(Globals.empty());
+      assert(MergedArenas.empty());
+      return;
+    }
+    // Invokes destructors in reverse creation order.
+    for (auto Dtor = Dtors.rbegin(); Dtor != Dtors.rend(); ++Dtor) {
+      (*Dtor)();
+    }
+    Dtors.clear();
+    Globals.clear();
+    MergedArenas.clear();
+    Arena->Reset();
+  }
+
+  /// Adapt the relevant parts of the std::vector<VariableDeclaration *>
+  /// interface.
+  /// @{
+  VariableDeclarationArray::iterator begin() { return Globals.begin(); }
+
+  VariableDeclarationArray::iterator end() { return Globals.end(); }
+
+  VariableDeclarationArray::const_iterator begin() const {
+    return Globals.begin();
+  }
+
+  VariableDeclarationArray::const_iterator end() const { return Globals.end(); }
+
+  bool empty() const { return Globals.empty(); }
+
+  VariableDeclarationArray::size_type size() const { return Globals.size(); }
+
+  VariableDeclarationArray::reference
+  at(VariableDeclarationArray::size_type Pos) {
+    return Globals.at(Pos);
+  }
+
+  void push_back(VariableDeclaration *Global) { Globals.push_back(Global); }
+
+  void reserve(VariableDeclarationArray::size_type Capacity) {
+    Globals.reserve(Capacity);
+  }
+
+  void clear() { Globals.clear(); }
+
+  VariableDeclarationArray::reference back() { return Globals.back(); }
+  /// @}
+
+private:
+  using ArenaPtr = std::unique_ptr<ArenaAllocator>;
+  using DestructorsArray = std::vector<std::function<void()>>;
+
+  void addArena(ArenaPtr NewArena) {
+    MergedArenas.emplace_back(std::move(NewArena));
+  }
+
+  ArenaPtr Arena;
+  VariableDeclarationArray Globals;
+  DestructorsArray Dtors;
+  std::vector<ArenaPtr> MergedArenas;
+};
 
 /// InstNumberT is for holding an instruction number. Instruction numbers are
 /// used for representing Variable live ranges.

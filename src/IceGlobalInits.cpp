@@ -138,12 +138,12 @@ void FunctionDeclaration::dump(Ostream &Stream) const {
 void VariableDeclaration::dumpType(Ostream &Stream) const {
   if (!Ice::BuildDefs::dump())
     return;
-  if (Initializers->size() == 1) {
-    Initializers->front()->dumpType(Stream);
+  if (Initializers.size() == 1) {
+    Initializers.front()->dumpType(Stream);
   } else {
     Stream << "<{ ";
     bool IsFirst = true;
-    for (const std::unique_ptr<Initializer> &Init : *Initializers) {
+    for (const auto *Init : Initializers) {
       if (IsFirst) {
         IsFirst = false;
       } else {
@@ -163,13 +163,13 @@ void VariableDeclaration::dump(Ostream &Stream) const {
   Stream << " " << (IsConstant ? "constant" : "global") << " ";
 
   // Add initializer.
-  if (Initializers->size() == 1) {
-    Initializers->front()->dump(Stream);
+  if (Initializers.size() == 1) {
+    Initializers.front()->dump(Stream);
   } else {
     dumpType(Stream);
     Stream << " <{ ";
     bool IsFirst = true;
-    for (const std::unique_ptr<Initializer> &Init : *Initializers) {
+    for (const auto *Init : Initializers) {
       if (IsFirst) {
         IsFirst = false;
       } else {
@@ -199,7 +199,8 @@ void VariableDeclaration::DataInitializer::dump(Ostream &Stream) const {
   Stream << " c\"";
   // Code taken from PrintEscapedString() in AsmWriter.cpp. Keep the strings in
   // the same format as the .ll file for practical diffing.
-  for (uint8_t C : Contents) {
+  for (SizeT i = 0; i < ContentsSize; ++i) {
+    uint8_t C = Contents[i];
     if (isprint(C) && C != '\\' && C != '"')
       Stream << C;
     else

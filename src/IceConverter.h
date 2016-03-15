@@ -32,7 +32,8 @@ class Converter : public Translator {
 
 public:
   Converter(llvm::Module *Mod, GlobalContext *Ctx)
-      : Translator(Ctx), Mod(Mod) {}
+      : Translator(Ctx), Mod(Mod),
+        GlobalDeclarationsPool(new VariableDeclarationList()) {}
 
   ~Converter() override = default;
 
@@ -51,6 +52,8 @@ private:
   using GlobalDeclarationMapType =
       std::map<const llvm::GlobalValue *, GlobalDeclaration *>;
   GlobalDeclarationMapType GlobalDeclarationMap;
+
+  std::unique_ptr<VariableDeclarationList> GlobalDeclarationsPool;
 
   /// Walks module and generates names for unnamed globals using prefix
   /// getFlags().DefaultGlobalPrefix, if the prefix is non-empty.

@@ -24,6 +24,8 @@ using namespace llvm::ELF;
 
 namespace Ice {
 
+using VariableDeclarationPartition = std::vector<VariableDeclaration *>;
+
 /// Higher level ELF object writer. Manages section information and writes the
 /// final ELF object. The object writer will write to file the code and data as
 /// it is being defined (rather than keep a copy). After all definitions are
@@ -153,7 +155,7 @@ private:
   /// SectionType, given the global variables Vars belonging to that
   /// SectionType.
   void writeDataOfType(SectionType SectionType,
-                       const VariableDeclarationList &Vars,
+                       const VariableDeclarationPartition &Vars,
                        FixupKind RelocationKind, const IceString &SectionSuffix,
                        bool IsPIC);
 

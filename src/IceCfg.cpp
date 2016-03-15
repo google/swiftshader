@@ -122,46 +122,43 @@ bool Cfg::hasComputedFrame() const { return getTarget()->hasComputedFrame(); }
 namespace {
 constexpr char BlockNameGlobalPrefix[] = ".L$profiler$block_name$";
 constexpr char BlockStatsGlobalPrefix[] = ".L$profiler$block_info$";
+} // end of anonymous namespace
 
-VariableDeclaration *nodeNameDeclaration(GlobalContext *Ctx,
-                                         const IceString &NodeAsmName) {
-  auto *Var = VariableDeclaration::create(Ctx);
+void Cfg::createNodeNameDeclaration(const IceString &NodeAsmName) {
+  auto *Var = VariableDeclaration::create(GlobalInits.get());
   Var->setName(BlockNameGlobalPrefix + NodeAsmName);
   Var->setIsConstant(true);
   Var->addInitializer(VariableDeclaration::DataInitializer::create(
-      NodeAsmName.data(), NodeAsmName.size() + 1));
+      GlobalInits.get(), NodeAsmName.data(), NodeAsmName.size() + 1));
   const SizeT Int64ByteSize = typeWidthInBytes(IceType_i64);
   Var->setAlignment(Int64ByteSize); // Wasteful, 32-bit could use 4 bytes.
-  return Var;
+  GlobalInits->push_back(Var);
 }
 
-VariableDeclaration *
-blockProfilingInfoDeclaration(GlobalContext *Ctx, const IceString &NodeAsmName,
-                              VariableDeclaration *NodeNameDeclaration) {
-  auto *Var = VariableDeclaration::create(Ctx);
+void Cfg::createBlockProfilingInfoDeclaration(
+    const IceString &NodeAsmName, VariableDeclaration *NodeNameDeclaration) {
+  auto *Var = VariableDeclaration::create(GlobalInits.get());
   Var->setName(BlockStatsGlobalPrefix + NodeAsmName);
   const SizeT Int64ByteSize = typeWidthInBytes(IceType_i64);
-  Var->addInitializer(
-      VariableDeclaration::ZeroInitializer::create(Int64ByteSize));
+  Var->addInitializer(VariableDeclaration::ZeroInitializer::create(
+      GlobalInits.get(), Int64ByteSize));
 
   const RelocOffsetT NodeNameDeclarationOffset = 0;
   Var->addInitializer(VariableDeclaration::RelocInitializer::create(
-      NodeNameDeclaration,
+      GlobalInits.get(), NodeNameDeclaration,
       {RelocOffset::create(Ctx, NodeNameDeclarationOffset)}));
   Var->setAlignment(Int64ByteSize);
-  return Var;
+  GlobalInits->push_back(Var);
 }
-} // end of anonymous namespace
 
 void Cfg::profileBlocks() {
   if (GlobalInits == nullptr)
     GlobalInits.reset(new VariableDeclarationList());
 
   for (CfgNode *Node : Nodes) {
-    IceString NodeAsmName = Node->getAsmName();
-    GlobalInits->push_back(nodeNameDeclaration(Ctx, NodeAsmName));
-    GlobalInits->push_back(
-        blockProfilingInfoDeclaration(Ctx, NodeAsmName, GlobalInits->back()));
+    const IceString NodeAsmName = Node->getAsmName();
+    createNodeNameDeclaration(NodeAsmName);
+    createBlockProfilingInfoDeclaration(NodeAsmName, GlobalInits->back());
     Node->profileExecutionCount(GlobalInits->back());
   }
 }

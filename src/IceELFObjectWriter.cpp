@@ -288,7 +288,7 @@ classifyGlobalSection(const VariableDeclaration *Var) {
 // Partition the Vars list by SectionType into VarsBySection. If TranslateOnly
 // is non-empty, then only the TranslateOnly variable is kept for emission.
 void partitionGlobalsBySection(const VariableDeclarationList &Vars,
-                               VariableDeclarationList VarsBySection[],
+                               VariableDeclarationPartition VarsBySection[],
                                const IceString &TranslateOnly) {
   for (VariableDeclaration *Var : Vars) {
     if (GlobalContext::matchSymbolName(Var->getName(), TranslateOnly)) {
@@ -307,7 +307,7 @@ void ELFObjectWriter::writeDataSection(const VariableDeclarationList &Vars,
                                        bool IsPIC) {
   TimerMarker Timer(TimerStack::TT_writeELF, &Ctx);
   assert(!SectionNumbersAssigned);
-  VariableDeclarationList VarsBySection[ELFObjectWriter::NumSectionTypes];
+  VariableDeclarationPartition VarsBySection[ELFObjectWriter::NumSectionTypes];
   for (auto &SectionList : VarsBySection)
     SectionList.reserve(Vars.size());
   partitionGlobalsBySection(Vars, VarsBySection,
@@ -329,7 +329,7 @@ IceString MangleSectionName(const char Base[], const IceString &Suffix) {
 
 // TODO(jvoung): Handle fdata-sections.
 void ELFObjectWriter::writeDataOfType(SectionType ST,
-                                      const VariableDeclarationList &Vars,
+                                      const VariableDeclarationPartition &Vars,
                                       FixupKind RelocationKind,
                                       const IceString &SectionSuffix,
                                       bool IsPIC) {
@@ -407,12 +407,11 @@ void ELFObjectWriter::writeDataOfType(SectionType ST,
         Section->setSize(Section->getCurrentSize() + SymbolSize);
     } else {
       assert(ST != BSS);
-      for (const std::unique_ptr<VariableDeclaration::Initializer> &Init :
-           Var->getInitializers()) {
+      for (const auto *Init : Var->getInitializers()) {
         switch (Init->getKind()) {
         case VariableDeclaration::Initializer::DataInitializerKind: {
           const auto &Data =
-              llvm::cast<VariableDeclaration::DataInitializer>(Init.get())
+              llvm::cast<VariableDeclaration::DataInitializer>(Init)
                   ->getContents();
           Section->appendData(Str, llvm::StringRef(Data.data(), Data.size()));
           break;
@@ -422,7 +421,7 @@ void ELFObjectWriter::writeDataOfType(SectionType ST,
           break;
         case VariableDeclaration::Initializer::RelocInitializerKind: {
           const auto *Reloc =
-              llvm::cast<VariableDeclaration::RelocInitializer>(Init.get());
+              llvm::cast<VariableDeclaration::RelocInitializer>(Init);
           AssemblerFixup NewFixup;
           NewFixup.set_position(Section->getCurrentSize());
           NewFixup.set_kind(Reloc->hasFixup() ? Reloc->getFixup()

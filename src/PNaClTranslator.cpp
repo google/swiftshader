@@ -257,6 +257,11 @@ public:
 
   size_t getNumTypeIDValues() const { return TypeIDValues.size(); }
 
+  /// Returns a pointer to the pool where globals are allocated.
+  Ice::VariableDeclarationList *getGlobalVariablesPool() {
+    return VariableDeclarations.get();
+  }
+
   /// Returns the undefined type associated with type ID. Note: Returns extended
   /// type ready to be defined.
   ExtendedType *getTypeByIDForDefining(NaClBcIndexSize_t ID) {
@@ -1021,9 +1026,11 @@ public:
       : BlockParserBaseClass(BlockID, EnclosingParser),
         Timer(Ice::TimerStack::TT_parseGlobals, getTranslator().getContext()),
         NumFunctionIDs(Context->getNumFunctionIDs()),
-        DummyGlobalVar(
-            Ice::VariableDeclaration::create(getTranslator().getContext())),
-        CurGlobalVar(DummyGlobalVar) {}
+        DummyGlobalVar(Ice::VariableDeclaration::create(
+            Context->getGlobalVariablesPool())),
+        CurGlobalVar(DummyGlobalVar) {
+    Context->getGlobalVariablesPool()->willNotBeEmitted(DummyGlobalVar);
+  }
 
   ~GlobalsParser() final = default;
 
@@ -1063,7 +1070,8 @@ private:
   Ice::VariableDeclaration *getGlobalVarByID(NaClBcIndexSize_t Index) {
     Ice::VariableDeclaration *&Decl = GlobalVarsMap[Index];
     if (Decl == nullptr)
-      Decl = Ice::VariableDeclaration::create(getTranslator().getContext());
+      Decl =
+          Ice::VariableDeclaration::create(Context->getGlobalVariablesPool());
     return Decl;
   }
 
@@ -1173,16 +1181,18 @@ void GlobalsParser::ProcessRecord() {
     // ZEROFILL: [size]
     if (!isValidRecordSize(1, "zerofill"))
       return;
+    auto *Pool = Context->getGlobalVariablesPool();
     CurGlobalVar->addInitializer(
-        Ice::VariableDeclaration::ZeroInitializer::create(Values[0]));
+        Ice::VariableDeclaration::ZeroInitializer::create(Pool, Values[0]));
     return;
   }
   case naclbitc::GLOBALVAR_DATA: {
     // DATA: [b0, b1, ...]
     if (!isValidRecordSizeAtLeast(1, "data"))
       return;
+    auto *Pool = Context->getGlobalVariablesPool();
     CurGlobalVar->addInitializer(
-        Ice::VariableDeclaration::DataInitializer::create(Values));
+        Ice::VariableDeclaration::DataInitializer::create(Pool, Values));
     return;
   }
   case naclbitc::GLOBALVAR_RELOC: {
@@ -1208,10 +1218,12 @@ void GlobalsParser::ProcessRecord() {
         Error(StrBuf.str());
       }
     }
+    auto *Pool = Context->getGlobalVariablesPool();
     Ice::GlobalContext *Ctx = getTranslator().getContext();
     CurGlobalVar->addInitializer(
         Ice::VariableDeclaration::RelocInitializer::create(
-            getGlobalDeclByID(Index), {Ice::RelocOffset::create(Ctx, Offset)}));
+            Pool, getGlobalDeclByID(Index),
+            {Ice::RelocOffset::create(Ctx, Offset)}));
     return;
   }
   default:

@@ -57,6 +57,7 @@ public:
   ~LockedPtr() { Lock->unlock(); }
   T *operator->() const { return Value; }
   T &operator*() const { return *Value; }
+  T *get() { return Value; }
 
 private:
   T *Value;
@@ -435,6 +436,18 @@ public:
   static ClFlags Flags;
   static ClFlagsExtra ExtraFlags;
 
+  /// DisposeGlobalVariablesAfterLowering controls whether the memory used by
+  /// GlobaleVariables can be reclaimed right after they have been lowered.
+  /// @{
+  bool getDisposeGlobalVariablesAfterLowering() const {
+    return DisposeGlobalVariablesAfterLowering;
+  }
+
+  void setDisposeGlobalVariablesAfterLowering(bool Value) {
+    DisposeGlobalVariablesAfterLowering = Value;
+  }
+  /// @}
+
 private:
   // Try to ensure mutexes are allocated on separate cache lines.
 
@@ -443,6 +456,11 @@ private:
   // Managed by getAllocator()
   GlobalLockType AllocLock;
   ArenaAllocator Allocator;
+
+  ICE_CACHELINE_BOUNDARY;
+  // Managed by getInitializerAllocator()
+  GlobalLockType InitAllocLock;
+  VariableDeclarationList Globals;
 
   ICE_CACHELINE_BOUNDARY;
   // Managed by getDestructors()
@@ -499,12 +517,17 @@ private:
   // TODO(jpp): move to EmitterContext.
   bool HasSeenCode = false;
   // TODO(jpp): move to EmitterContext.
-  VariableDeclarationList Globals;
-  // TODO(jpp): move to EmitterContext.
-  VariableDeclaration *ProfileBlockInfoVarDecl;
+  VariableDeclaration *ProfileBlockInfoVarDecl = nullptr;
+  std::vector<VariableDeclaration *> ProfileBlockInfos;
+  /// Indicates if global variable declarations can be disposed of right after
+  /// lowering.
+  bool DisposeGlobalVariablesAfterLowering = true;
 
   LockedPtr<ArenaAllocator> getAllocator() {
     return LockedPtr<ArenaAllocator>(&Allocator, &AllocLock);
+  }
+  LockedPtr<VariableDeclarationList> getInitializerAllocator() {
+    return LockedPtr<VariableDeclarationList>(&Globals, &InitAllocLock);
   }
   LockedPtr<ConstantPool> getConstPool() {
     return LockedPtr<ConstantPool>(ConstPool.get(), &ConstPoolLock);
@@ -523,8 +546,10 @@ private:
   }
 
   void accumulateGlobals(std::unique_ptr<VariableDeclarationList> Globls) {
-    if (Globls != nullptr)
-      Globals.insert(Globals.end(), Globls->begin(), Globls->end());
+    LockedPtr<VariableDeclarationList> _(&Globals, &InitAllocLock);
+    if (Globls != nullptr) {
+      Globals.merge(Globls.get());
+    }
   }
 
   void lowerGlobalsIfNoCodeHasBeenSeen() {
@@ -535,7 +560,7 @@ private:
     HasSeenCode = true;
   }
 
-  void addBlockInfoPtrs(VariableDeclaration *ProfileBlockInfo);
+  void saveBlockInfoPtrs();
 
   llvm::SmallVector<ThreadContext *, 128> AllThreadContexts;
   llvm::SmallVector<std::thread, 128> TranslationThreads;

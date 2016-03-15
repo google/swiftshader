@@ -908,15 +908,19 @@ IceString TargetARM32::createGotoffRelocation(const ConstantRelocatable *CR) {
       "GOTOFF$" + Func->getFunctionName() + "$" + CRName;
   if (KnownGotoffs.count(CRGotoffName) == 0) {
     constexpr bool SuppressMangling = true;
-    auto *Global = VariableDeclaration::create(Ctx, SuppressMangling);
+    auto *Global =
+        VariableDeclaration::create(Func->getGlobalPool(), SuppressMangling);
     Global->setIsConstant(true);
     Global->setName(CRName);
+    Func->getGlobalPool()->willNotBeEmitted(Global);
 
-    auto *Gotoff = VariableDeclaration::create(Ctx, SuppressMangling);
+    auto *Gotoff =
+        VariableDeclaration::create(Func->getGlobalPool(), SuppressMangling);
     constexpr auto GotFixup = R_ARM_GOTOFF32;
     Gotoff->setIsConstant(true);
     Gotoff->addInitializer(VariableDeclaration::RelocInitializer::create(
-        Global, {RelocOffset::create(Ctx, 0)}, GotFixup));
+        Func->getGlobalPool(), Global, {RelocOffset::create(Ctx, 0)},
+        GotFixup));
     Gotoff->setName(CRGotoffName);
     Func->addGlobal(Gotoff);
     KnownGotoffs.emplace(CRGotoffName);
