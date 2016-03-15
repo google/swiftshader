@@ -84,14 +84,14 @@ cl::opt<std::string>
     DefaultFunctionPrefix("default-function-prefix",
                           cl::desc("Define default function prefix for naming "
                                    "unnamed functions"),
-                          cl::init("Function"));
+                          cl::init(Ice::BuildDefs::dump() ? "Function" : "F"));
 
 /// Define default global prefix for naming unnamed globals.
 cl::opt<std::string>
     DefaultGlobalPrefix("default-global-prefix",
                         cl::desc("Define default global prefix for naming "
                                  "unnamed globals"),
-                        cl::init("Global"));
+                        cl::init(Ice::BuildDefs::dump() ? "Global" : "G"));
 
 /// Disable hybrid assembly when -filetype=iasm.
 cl::opt<bool> DisableHybridAssembly(

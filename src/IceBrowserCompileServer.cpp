@@ -172,13 +172,6 @@ void BrowserCompileServer::getParsedFlags(uint32_t NumThreads, int argc,
   Flags->setUseSandboxing(true);
   Flags->setOutFileType(FT_Elf);
   Flags->setTargetArch(getTargetArch());
-  // Make the prefixes short to reduce the chance that string construction will
-  // have to resort to malloc().  Note that this won't change anything if the
-  // pexe was finalize with "--no-strip-syms".  TODO(stichnot): This will be
-  // unnecessary when we stop directly constructing strings that are used for
-  // names and lookup keys.
-  Flags->setDefaultFunctionPrefix("F");
-  Flags->setDefaultGlobalPrefix("G");
   ExtraFlags->setBuildOnRead(true);
   ExtraFlags->setInputFileFormat(llvm::PNaClFormat);
 }
