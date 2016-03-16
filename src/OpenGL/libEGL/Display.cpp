@@ -119,7 +119,7 @@ bool Display::initialize()
 
     const sw::Format renderTargetFormats[] =
     {
-        sw::FORMAT_A1R5G5B5,
+	//	sw::FORMAT_A1R5G5B5,
     //  sw::FORMAT_A2R10G10B10,   // The color_ramp conformance test uses ReadPixels with UNSIGNED_BYTE causing it to think that rendering skipped a colour value.
         sw::FORMAT_A8R8G8B8,
         sw::FORMAT_A8B8G8R8,
