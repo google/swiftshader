@@ -247,7 +247,7 @@ endif
 
 BASE_CXXFLAGS := -std=gnu++11 -Wall -Wextra -Werror -fno-rtti \
   -fno-exceptions $(OPTLEVEL) $(ASSERTIONS) -g -pedantic \
-  $(LLVM_EXTRA_WARNINGS) $(CXX_EXTRA)
+  $(LLVM_EXTRA_WARNINGS) $(CXX_EXTRA) -MP -MD
 
 CXXFLAGS := $(LLVM_CXXFLAGS) $(BASE_CXXFLAGS) $(CXX_DEFINES) $(HOST_FLAGS) \
   $(STDLIB_FLAGS)
@@ -409,14 +409,16 @@ $(SBB_OBJDIR)/pnacl_public_x86_64_pnacl_sz_nexe: $(SBB_OBJDIR)/pnacl-sz.pexe
 src/IceRegistersARM32.def: pydir/gen_arm32_reg_tables.py
 	python $< > $@
 
-# TODO(stichnot): Be more precise than "*.h" here and elsewhere.
-$(OBJS): $(OBJDIR)/%.o: src/%.cpp src/*.h src/*.def
+-include $(foreach dep,$(SRCS:.cpp=.d),$(OBJDIR)/$(dep))
+$(OBJS): $(OBJDIR)/%.o: src/%.cpp
 	$(CXX) -c $(CXXFLAGS) $< -o $@
 
-$(SB_OBJS): $(SB_OBJDIR)/%.o: src/%.cpp src/*.h src/*.def
+-include $(foreach dep,$(SRCS:.cpp=.d),$(SB_OBJDIR)/$(dep))
+$(SB_OBJS): $(SB_OBJDIR)/%.o: src/%.cpp
 	$(SB_CXX) -c $(SB_CXXFLAGS) -DPNACL_BROWSER_TRANSLATOR=0 $< -o $@
 
-$(SBB_OBJS): $(SBB_OBJDIR)/%.o: src/%.cpp src/*.h src/*.def
+-include $(foreach dep,$(SRCS:.cpp=.d),$(SBB_OBJDIR)/$(dep))
+$(SBB_OBJS): $(SBB_OBJDIR)/%.o: src/%.cpp
 	$(SB_CXX) -c $(SB_CXXFLAGS) -DPNACL_BROWSER_TRANSLATOR=1 $< -o $@
 
 $(OBJDIR)/run_unittests: $(UNITTEST_OBJS) $(UNITTEST_LIB_OBJS)
@@ -424,8 +426,8 @@ $(OBJDIR)/run_unittests: $(UNITTEST_OBJS) $(UNITTEST_LIB_OBJS)
           -lgtest -lgtest_main -ldl \
           -Wl,-rpath=$(abspath $(LIBCXX_INSTALL_PATH)/lib)
 
-$(UNITTEST_OBJS): $(OBJDIR)/unittest/%.o: unittest/%.cpp unittest/*.h \
-                  src/*.h src/*.def
+-include $(foreach dep,$(UNITTEST_SRCS:.cpp=.d),$(OBJDIR)/unittest/$(dep))
+$(UNITTEST_OBJS): $(OBJDIR)/unittest/%.o: unittest/%.cpp
 	$(CXX) -c $(CXXFLAGS) \
           -Isrc/ \
           -Iunittest/ \
