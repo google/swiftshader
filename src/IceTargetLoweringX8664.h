@@ -74,7 +74,7 @@ private:
 
   Operand *createNaClReadTPSrcOperand() {
     Variable *TDB = makeReg(IceType_i32);
-    InstCall *Call = makeHelperCall(H_call_read_tp, TDB, 0);
+    InstCall *Call = makeHelperCall(RuntimeHelper::H_call_read_tp, TDB, 0);
     lowerCall(Call);
     return TDB;
   }

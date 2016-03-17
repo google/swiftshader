@@ -697,10 +697,10 @@ void TargetLowering::assignVarStackSlots(VarList &SortedSpilledVariables,
   }
 }
 
-InstCall *TargetLowering::makeHelperCall(const IceString &Name, Variable *Dest,
+InstCall *TargetLowering::makeHelperCall(RuntimeHelper FuncID, Variable *Dest,
                                          SizeT MaxSrcs) {
   constexpr bool HasTailCall = false;
-  Constant *CallTarget = Ctx->getConstantExternSym(Name);
+  Constant *CallTarget = Ctx->getRuntimeHelperFunc(FuncID);
   InstCall *Call =
       InstCall::create(Func, MaxSrcs, Dest, CallTarget, HasTailCall);
   return Call;

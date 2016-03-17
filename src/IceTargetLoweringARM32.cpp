@@ -468,24 +468,24 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
       // Technically, ARM has its own aeabi routines, but we can use the
       // non-aeabi routine as well. LLVM uses __aeabi_ldivmod for div, but uses
       // the more standard __moddi3 for rem.
-      Operand *TargetHelper = nullptr;
+      RuntimeHelper HelperID = RuntimeHelper::H_Num;
       switch (Op) {
       default:
         return;
       case InstArithmetic::Udiv:
-        TargetHelper = Ctx->getConstantExternSym(H_udiv_i64);
+        HelperID = RuntimeHelper::H_udiv_i64;
         break;
       case InstArithmetic::Sdiv:
-        TargetHelper = Ctx->getConstantExternSym(H_sdiv_i64);
+        HelperID = RuntimeHelper::H_sdiv_i64;
         break;
       case InstArithmetic::Urem:
-        TargetHelper = Ctx->getConstantExternSym(H_urem_i64);
+        HelperID = RuntimeHelper::H_urem_i64;
         break;
       case InstArithmetic::Srem:
-        TargetHelper = Ctx->getConstantExternSym(H_srem_i64);
+        HelperID = RuntimeHelper::H_srem_i64;
         break;
       }
-      assert(TargetHelper != nullptr);
+      Operand *TargetHelper = Ctx->getRuntimeHelperFunc(HelperID);
       ARM32HelpersPreamble[TargetHelper] = &TargetARM32::preambleDivRem;
       constexpr SizeT MaxArgs = 2;
       auto *Call = Context.insert<InstCall>(MaxArgs, Dest, TargetHelper,
@@ -500,33 +500,29 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
     case IceType_i8: {
       const bool HasHWDiv = hasCPUFeature(TargetARM32Features::HWDivArm);
       InstCast::OpKind CastKind;
-      Operand *TargetHelper;
+      RuntimeHelper HelperID = RuntimeHelper::H_Num;
       switch (Op) {
       default:
         return;
       case InstArithmetic::Udiv:
-        TargetHelper =
-            HasHWDiv ? nullptr : Ctx->getConstantExternSym(H_udiv_i32);
+        HelperID = HasHWDiv ? RuntimeHelper::H_Num : RuntimeHelper::H_udiv_i32;
         CastKind = InstCast::Zext;
         break;
       case InstArithmetic::Sdiv:
-        TargetHelper =
-            HasHWDiv ? nullptr : Ctx->getConstantExternSym(H_sdiv_i32);
+        HelperID = HasHWDiv ? RuntimeHelper::H_Num : RuntimeHelper::H_sdiv_i32;
         CastKind = InstCast::Sext;
         break;
       case InstArithmetic::Urem:
-        TargetHelper =
-            HasHWDiv ? nullptr : Ctx->getConstantExternSym(H_urem_i32);
+        HelperID = HasHWDiv ? RuntimeHelper::H_Num : RuntimeHelper::H_urem_i32;
         CastKind = InstCast::Zext;
         break;
       case InstArithmetic::Srem:
-        TargetHelper =
-            HasHWDiv ? nullptr : Ctx->getConstantExternSym(H_srem_i32);
+        HelperID = HasHWDiv ? RuntimeHelper::H_Num : RuntimeHelper::H_srem_i32;
         CastKind = InstCast::Sext;
         break;
       }
-      if (TargetHelper == nullptr) {
-        // TargetHelper should only ever be nullptr when the processor does not
+      if (HelperID == RuntimeHelper::H_Num) {
+        // HelperID should only ever be undefined when the processor does not
         // have a hardware divider. If any other helpers are ever introduced,
         // the following assert will have to be modified.
         assert(HasHWDiv);
@@ -560,7 +556,7 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
           Src1 = Src1_32;
         }
       }
-      assert(TargetHelper != nullptr);
+      Operand *TargetHelper = Ctx->getRuntimeHelperFunc(HelperID);
       ARM32HelpersPreamble[TargetHelper] = &TargetARM32::preambleDivRem;
       constexpr SizeT MaxArgs = 2;
       auto *Call = Context.insert<InstCall>(MaxArgs, Dest, TargetHelper,
@@ -578,8 +574,9 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
         return;
       }
       constexpr SizeT MaxArgs = 2;
-      Operand *TargetHelper = Ctx->getConstantExternSym(
-          DestTy == IceType_f32 ? H_frem_f32 : H_frem_f64);
+      Operand *TargetHelper = Ctx->getRuntimeHelperFunc(
+          DestTy == IceType_f32 ? RuntimeHelper::H_frem_f32
+                                : RuntimeHelper::H_frem_f64);
       auto *Call = Context.insert<InstCall>(MaxArgs, Dest, TargetHelper,
                                             NoTailCall, IsTargetHelperCall);
       Call->addArg(Instr->getSrc(0));
@@ -619,9 +616,11 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
       }
       const bool DestIsSigned = CastKind == InstCast::Fptosi;
       const bool Src0IsF32 = isFloat32Asserting32Or64(SrcTy);
-      Operand *TargetHelper = Ctx->getConstantExternSym(
-          Src0IsF32 ? (DestIsSigned ? H_fptosi_f32_i64 : H_fptoui_f32_i64)
-                    : (DestIsSigned ? H_fptosi_f64_i64 : H_fptoui_f64_i64));
+      Operand *TargetHelper = Ctx->getRuntimeHelperFunc(
+          Src0IsF32 ? (DestIsSigned ? RuntimeHelper::H_fptosi_f32_i64
+                                    : RuntimeHelper::H_fptoui_f32_i64)
+                    : (DestIsSigned ? RuntimeHelper::H_fptosi_f64_i64
+                                    : RuntimeHelper::H_fptoui_f64_i64));
       static constexpr SizeT MaxArgs = 1;
       auto *Call = Context.insert<InstCall>(MaxArgs, Dest, TargetHelper,
                                             NoTailCall, IsTargetHelperCall);
@@ -636,9 +635,11 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
       }
       const bool SourceIsSigned = CastKind == InstCast::Sitofp;
       const bool DestIsF32 = isFloat32Asserting32Or64(Dest->getType());
-      Operand *TargetHelper = Ctx->getConstantExternSym(
-          DestIsF32 ? (SourceIsSigned ? H_sitofp_i64_f32 : H_uitofp_i64_f32)
-                    : (SourceIsSigned ? H_sitofp_i64_f64 : H_uitofp_i64_f64));
+      Operand *TargetHelper = Ctx->getRuntimeHelperFunc(
+          DestIsF32 ? (SourceIsSigned ? RuntimeHelper::H_sitofp_i64_f32
+                                      : RuntimeHelper::H_uitofp_i64_f32)
+                    : (SourceIsSigned ? RuntimeHelper::H_sitofp_i64_f64
+                                      : RuntimeHelper::H_uitofp_i64_f64));
       static constexpr SizeT MaxArgs = 1;
       auto *Call = Context.insert<InstCall>(MaxArgs, Dest, TargetHelper,
                                             NoTailCall, IsTargetHelperCall);
@@ -651,23 +652,23 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
         return;
       }
       Variable *CallDest = Dest;
-      const char *HelperName = nullptr;
+      RuntimeHelper HelperID = RuntimeHelper::H_Num;
       switch (DestTy) {
       default:
         return;
       case IceType_i8:
         assert(SrcTy == IceType_v8i1);
-        HelperName = H_bitcast_8xi1_i8;
+        HelperID = RuntimeHelper::H_bitcast_8xi1_i8;
         CallDest = Func->makeVariable(IceType_i32);
         break;
       case IceType_i16:
         assert(SrcTy == IceType_v16i1);
-        HelperName = H_bitcast_16xi1_i16;
+        HelperID = RuntimeHelper::H_bitcast_16xi1_i16;
         CallDest = Func->makeVariable(IceType_i32);
         break;
       case IceType_v8i1: {
         assert(SrcTy == IceType_i8);
-        HelperName = H_bitcast_i8_8xi1;
+        HelperID = RuntimeHelper::H_bitcast_i8_8xi1;
         Variable *Src0AsI32 = Func->makeVariable(stackSlotType());
         // Arguments to functions are required to be at least 32 bits wide.
         Context.insert<InstCast>(InstCast::Zext, Src0AsI32, Src0);
@@ -675,16 +676,15 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
       } break;
       case IceType_v16i1: {
         assert(SrcTy == IceType_i16);
-        HelperName = H_bitcast_i16_16xi1;
+        HelperID = RuntimeHelper::H_bitcast_i16_16xi1;
         Variable *Src0AsI32 = Func->makeVariable(stackSlotType());
         // Arguments to functions are required to be at least 32 bits wide.
         Context.insert<InstCast>(InstCast::Zext, Src0AsI32, Src0);
         Src0 = Src0AsI32;
       } break;
       }
-      assert(HelperName != nullptr);
       constexpr SizeT MaxSrcs = 1;
-      InstCall *Call = makeHelperCall(HelperName, CallDest, MaxSrcs);
+      InstCall *Call = makeHelperCall(HelperID, CallDest, MaxSrcs);
       Call->addArg(Src0);
       Context.insert(Call);
       // The PNaCl ABI disallows i8/i16 return types, so truncate the helper
@@ -706,9 +706,10 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
       return;
     case Intrinsics::Ctpop: {
       Operand *Src0 = IntrinsicCall->getArg(0);
-      Operand *TargetHelper = Ctx->getConstantExternSym(
-          isInt32Asserting32Or64(Src0->getType()) ? H_call_ctpop_i32
-                                                  : H_call_ctpop_i64);
+      Operand *TargetHelper =
+          Ctx->getRuntimeHelperFunc(isInt32Asserting32Or64(Src0->getType())
+                                        ? RuntimeHelper::H_call_ctpop_i32
+                                        : RuntimeHelper::H_call_ctpop_i64);
       static constexpr SizeT MaxArgs = 1;
       auto *Call = Context.insert<InstCall>(MaxArgs, Dest, TargetHelper,
                                             NoTailCall, IsTargetHelperCall);
@@ -722,7 +723,8 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
     case Intrinsics::Longjmp: {
       static constexpr SizeT MaxArgs = 2;
       static constexpr Variable *NoDest = nullptr;
-      Operand *TargetHelper = Ctx->getConstantExternSym(H_call_longjmp);
+      Operand *TargetHelper =
+          Ctx->getRuntimeHelperFunc(RuntimeHelper::H_call_longjmp);
       auto *Call = Context.insert<InstCall>(MaxArgs, NoDest, TargetHelper,
                                             NoTailCall, IsTargetHelperCall);
       Call->addArg(IntrinsicCall->getArg(0));
@@ -735,7 +737,8 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
       // for intrinsic calls w/ a known length.
       static constexpr SizeT MaxArgs = 3;
       static constexpr Variable *NoDest = nullptr;
-      Operand *TargetHelper = Ctx->getConstantExternSym(H_call_memcpy);
+      Operand *TargetHelper =
+          Ctx->getRuntimeHelperFunc(RuntimeHelper::H_call_memcpy);
       auto *Call = Context.insert<InstCall>(MaxArgs, NoDest, TargetHelper,
                                             NoTailCall, IsTargetHelperCall);
       Call->addArg(IntrinsicCall->getArg(0));
@@ -747,7 +750,8 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
     case Intrinsics::Memmove: {
       static constexpr SizeT MaxArgs = 3;
       static constexpr Variable *NoDest = nullptr;
-      Operand *TargetHelper = Ctx->getConstantExternSym(H_call_memmove);
+      Operand *TargetHelper =
+          Ctx->getRuntimeHelperFunc(RuntimeHelper::H_call_memmove);
       auto *Call = Context.insert<InstCall>(MaxArgs, NoDest, TargetHelper,
                                             NoTailCall, IsTargetHelperCall);
       Call->addArg(IntrinsicCall->getArg(0));
@@ -769,7 +773,8 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
       // decide to use __aeabi_memset.
       static constexpr SizeT MaxArgs = 3;
       static constexpr Variable *NoDest = nullptr;
-      Operand *TargetHelper = Ctx->getConstantExternSym(H_call_memset);
+      Operand *TargetHelper =
+          Ctx->getRuntimeHelperFunc(RuntimeHelper::H_call_memset);
       auto *Call = Context.insert<InstCall>(MaxArgs, NoDest, TargetHelper,
                                             NoTailCall, IsTargetHelperCall);
       Call->addArg(IntrinsicCall->getArg(0));
@@ -783,9 +788,10 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
         return;
       }
       static constexpr SizeT MaxArgs = 0;
-      const char *ReadTP =
-          SandboxingType == ST_Nonsfi ? "__aeabi_read_tp" : H_call_read_tp;
-      Operand *TargetHelper = Ctx->getConstantExternSym(ReadTP);
+      Operand *TargetHelper =
+          SandboxingType == ST_Nonsfi
+              ? Ctx->getConstantExternSym("__aeabi_read_tp")
+              : Ctx->getRuntimeHelperFunc(RuntimeHelper::H_call_read_tp);
       Context.insert<InstCall>(MaxArgs, Dest, TargetHelper, NoTailCall,
                                IsTargetHelperCall);
       Instr->setDeleted();
@@ -793,7 +799,8 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
     }
     case Intrinsics::Setjmp: {
       static constexpr SizeT MaxArgs = 1;
-      Operand *TargetHelper = Ctx->getConstantExternSym(H_call_setjmp);
+      Operand *TargetHelper =
+          Ctx->getRuntimeHelperFunc(RuntimeHelper::H_call_setjmp);
       auto *Call = Context.insert<InstCall>(MaxArgs, Dest, TargetHelper,
                                             NoTailCall, IsTargetHelperCall);
       Call->addArg(IntrinsicCall->getArg(0));

@@ -21,12 +21,14 @@
 #include "IceIntrinsics.h"
 #include "IceRNG.h"
 #include "IceSwitchLowering.h"
+#include "IceTargetLowering.def"
 #include "IceThreading.h"
 #include "IceTimerTree.h"
 #include "IceTypes.h"
 #include "IceUtils.h"
 
 #include <array>
+#include <cassert>
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -41,6 +43,15 @@ class ClFlags;
 class ConstantPool;
 class EmitterWorkItem;
 class FuncSigType;
+
+// Runtime helper function IDs
+
+enum class RuntimeHelper {
+#define X(Tag, Name) H_##Tag,
+  RUNTIME_HELPER_FUNCTIONS_TABLE
+#undef X
+      H_Num
+};
 
 /// LockedPtr is a way to provide automatically locked access to some object.
 template <typename T> class LockedPtr {
@@ -189,11 +200,50 @@ public:
   // getConstant*() functions are not const because they might add something to
   // the constant pool.
   Constant *getConstantInt(Type Ty, int64_t Value);
-  Constant *getConstantInt1(int8_t ConstantInt1);
-  Constant *getConstantInt8(int8_t ConstantInt8);
-  Constant *getConstantInt16(int16_t ConstantInt16);
-  Constant *getConstantInt32(int32_t ConstantInt32);
-  Constant *getConstantInt64(int64_t ConstantInt64);
+  Constant *getConstantInt1(int8_t ConstantInt1) {
+    ConstantInt1 &= INT8_C(1);
+    switch (ConstantInt1) {
+    case 0:
+      return getConstantZero(IceType_i1);
+    case 1:
+      return ConstantTrue;
+    default:
+      assert(false && "getConstantInt1 not on true/false");
+      return getConstantInt1Internal(ConstantInt1);
+    }
+  }
+  Constant *getConstantInt8(int8_t ConstantInt8) {
+    switch (ConstantInt8) {
+    case 0:
+      return getConstantZero(IceType_i8);
+    default:
+      return getConstantInt8Internal(ConstantInt8);
+    }
+  }
+  Constant *getConstantInt16(int16_t ConstantInt16) {
+    switch (ConstantInt16) {
+    case 0:
+      return getConstantZero(IceType_i16);
+    default:
+      return getConstantInt16Internal(ConstantInt16);
+    }
+  }
+  Constant *getConstantInt32(int32_t ConstantInt32) {
+    switch (ConstantInt32) {
+    case 0:
+      return getConstantZero(IceType_i32);
+    default:
+      return getConstantInt32Internal(ConstantInt32);
+    }
+  }
+  Constant *getConstantInt64(int64_t ConstantInt64) {
+    switch (ConstantInt64) {
+    case 0:
+      return getConstantZero(IceType_i64);
+    default:
+      return getConstantInt64Internal(ConstantInt64);
+    }
+  }
   Constant *getConstantFloat(float Value);
   Constant *getConstantDouble(double Value);
   /// Returns a symbolic constant.
@@ -212,6 +262,12 @@ public:
   /// Returns a copy of the list of external symbols.
   ConstantList getConstantExternSyms();
   /// @}
+  Constant *getRuntimeHelperFunc(RuntimeHelper FuncID) const {
+    assert(FuncID < RuntimeHelper::H_Num);
+    Constant *Result = RuntimeHelperFunc[static_cast<size_t>(FuncID)];
+    assert(Result != nullptr && "No such runtime helper function");
+    return Result;
+  }
 
   /// Return a locked pointer to the registered jump tables.
   JumpTableDataList getJumpTables();
@@ -524,7 +580,18 @@ private:
   /// Indicates if global variable declarations can be disposed of right after
   /// lowering.
   bool DisposeGlobalVariablesAfterLowering = true;
+  Constant *ConstZeroForType[IceType_NUM];
+  Constant *ConstantTrue;
+  // Holds the constants representing each runtime helper function.
+  Constant *RuntimeHelperFunc[static_cast<size_t>(RuntimeHelper::H_Num)];
 
+  Constant *getConstantZeroInternal(Type Ty);
+  Constant *getConstantIntInternal(Type Ty, int64_t Value);
+  Constant *getConstantInt1Internal(int8_t ConstantInt1);
+  Constant *getConstantInt8Internal(int8_t ConstantInt8);
+  Constant *getConstantInt16Internal(int16_t ConstantInt16);
+  Constant *getConstantInt32Internal(int32_t ConstantInt32);
+  Constant *getConstantInt64Internal(int64_t ConstantInt64);
   LockedPtr<ArenaAllocator> getAllocator() {
     return LockedPtr<ArenaAllocator>(&Allocator, &AllocLock);
   }

@@ -461,9 +461,7 @@ protected:
   /// with the largest alignment need are placed in the front of the Dest list.
   void sortVarsByAlignment(VarList &Dest, const VarList &Source) const;
 
-  /// Make a call to an external helper function.
-  InstCall *makeHelperCall(const IceString &Name, Variable *Dest,
-                           SizeT MaxSrcs);
+  InstCall *makeHelperCall(RuntimeHelper FuncID, Variable *Dest, SizeT MaxSrcs);
 
   void _set_dest_redefined() { Context.getLastInserted()->setDestRedefined(); }
 
@@ -569,44 +567,7 @@ protected:
   LoweringContext Context;
   const SandboxType SandboxingType = ST_None;
 
-  // Runtime helper function names
-  const static constexpr char *H_bitcast_16xi1_i16 = "__Sz_bitcast_16xi1_i16";
-  const static constexpr char *H_bitcast_8xi1_i8 = "__Sz_bitcast_8xi1_i8";
-  const static constexpr char *H_bitcast_i16_16xi1 = "__Sz_bitcast_i16_16xi1";
-  const static constexpr char *H_bitcast_i8_8xi1 = "__Sz_bitcast_i8_8xi1";
-  const static constexpr char *H_call_ctpop_i32 = "__popcountsi2";
-  const static constexpr char *H_call_ctpop_i64 = "__popcountdi2";
-  const static constexpr char *H_call_longjmp = "longjmp";
-  const static constexpr char *H_call_memcpy = "memcpy";
-  const static constexpr char *H_call_memmove = "memmove";
-  const static constexpr char *H_call_memset = "memset";
-  const static constexpr char *H_call_read_tp = "__nacl_read_tp";
-  const static constexpr char *H_call_setjmp = "setjmp";
-  const static constexpr char *H_fptosi_f32_i64 = "__Sz_fptosi_f32_i64";
-  const static constexpr char *H_fptosi_f64_i64 = "__Sz_fptosi_f64_i64";
-  const static constexpr char *H_fptoui_4xi32_f32 = "__Sz_fptoui_4xi32_f32";
-  const static constexpr char *H_fptoui_f32_i32 = "__Sz_fptoui_f32_i32";
-  const static constexpr char *H_fptoui_f32_i64 = "__Sz_fptoui_f32_i64";
-  const static constexpr char *H_fptoui_f64_i32 = "__Sz_fptoui_f64_i32";
-  const static constexpr char *H_fptoui_f64_i64 = "__Sz_fptoui_f64_i64";
-  const static constexpr char *H_frem_f32 = "fmodf";
-  const static constexpr char *H_frem_f64 = "fmod";
   const static constexpr char *H_getIP_prefix = "__Sz_getIP_";
-  const static constexpr char *H_sdiv_i32 = "__divsi3";
-  const static constexpr char *H_sdiv_i64 = "__divdi3";
-  const static constexpr char *H_sitofp_i64_f32 = "__Sz_sitofp_i64_f32";
-  const static constexpr char *H_sitofp_i64_f64 = "__Sz_sitofp_i64_f64";
-  const static constexpr char *H_srem_i32 = "__modsi3";
-  const static constexpr char *H_srem_i64 = "__moddi3";
-  const static constexpr char *H_udiv_i32 = "__udivsi3";
-  const static constexpr char *H_udiv_i64 = "__udivdi3";
-  const static constexpr char *H_uitofp_4xi32_4xf32 = "__Sz_uitofp_4xi32_4xf32";
-  const static constexpr char *H_uitofp_i32_f32 = "__Sz_uitofp_i32_f32";
-  const static constexpr char *H_uitofp_i32_f64 = "__Sz_uitofp_i32_f64";
-  const static constexpr char *H_uitofp_i64_f32 = "__Sz_uitofp_i64_f32";
-  const static constexpr char *H_uitofp_i64_f64 = "__Sz_uitofp_i64_f64";
-  const static constexpr char *H_urem_i32 = "__umodsi3";
-  const static constexpr char *H_urem_i64 = "__umoddi3";
 };
 
 /// TargetDataLowering is used for "lowering" data including initializers for

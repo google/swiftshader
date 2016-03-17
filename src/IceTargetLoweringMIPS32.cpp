@@ -1010,7 +1010,7 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     return;
   }
   case Intrinsics::Longjmp: {
-    InstCall *Call = makeHelperCall(H_call_longjmp, nullptr, 2);
+    InstCall *Call = makeHelperCall(RuntimeHelper::H_call_longjmp, nullptr, 2);
     Call->addArg(Instr->getArg(0));
     Call->addArg(Instr->getArg(1));
     lowerCall(Call);
@@ -1019,7 +1019,7 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   case Intrinsics::Memcpy: {
     // In the future, we could potentially emit an inline memcpy/memset, etc.
     // for intrinsic calls w/ a known length.
-    InstCall *Call = makeHelperCall(H_call_memcpy, nullptr, 3);
+    InstCall *Call = makeHelperCall(RuntimeHelper::H_call_memcpy, nullptr, 3);
     Call->addArg(Instr->getArg(0));
     Call->addArg(Instr->getArg(1));
     Call->addArg(Instr->getArg(2));
@@ -1027,7 +1027,7 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     return;
   }
   case Intrinsics::Memmove: {
-    InstCall *Call = makeHelperCall(H_call_memmove, nullptr, 3);
+    InstCall *Call = makeHelperCall(RuntimeHelper::H_call_memmove, nullptr, 3);
     Call->addArg(Instr->getArg(0));
     Call->addArg(Instr->getArg(1));
     Call->addArg(Instr->getArg(2));
@@ -1041,7 +1041,7 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     assert(ValOp->getType() == IceType_i8);
     Variable *ValExt = Func->makeVariable(stackSlotType());
     lowerCast(InstCast::create(Func, InstCast::Zext, ValExt, ValOp));
-    InstCall *Call = makeHelperCall(H_call_memset, nullptr, 3);
+    InstCall *Call = makeHelperCall(RuntimeHelper::H_call_memset, nullptr, 3);
     Call->addArg(Instr->getArg(0));
     Call->addArg(ValExt);
     Call->addArg(Instr->getArg(2));
@@ -1052,13 +1052,15 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     if (Ctx->getFlags().getUseSandboxing()) {
       UnimplementedLoweringError(this, Instr);
     } else {
-      InstCall *Call = makeHelperCall(H_call_read_tp, Instr->getDest(), 0);
+      InstCall *Call =
+          makeHelperCall(RuntimeHelper::H_call_read_tp, Instr->getDest(), 0);
       lowerCall(Call);
     }
     return;
   }
   case Intrinsics::Setjmp: {
-    InstCall *Call = makeHelperCall(H_call_setjmp, Instr->getDest(), 1);
+    InstCall *Call =
+        makeHelperCall(RuntimeHelper::H_call_setjmp, Instr->getDest(), 1);
     Call->addArg(Instr->getArg(0));
     lowerCall(Call);
     return;

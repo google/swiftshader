@@ -25,6 +25,7 @@
 #include "IceOperand.h"
 #include "IceTargetLowering.h"
 #include "IceTimerTree.h"
+#include "IceTypes.def"
 #include "IceTypes.h"
 
 #ifdef __clang__
@@ -291,6 +292,18 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit, Ostream *OsError,
   case FT_Iasm:
     break;
   }
+// Cache up front common constants.
+#define X(tag, sizeLog2, align, elts, elty, str, rcstr)                        \
+  ConstZeroForType[IceType_##tag] = getConstantZeroInternal(IceType_##tag);
+  ICETYPE_TABLE;
+#undef X
+  ConstantTrue = getConstantInt1Internal(1);
+// Define runtime helper functions.
+#define X(Tag, Name)                                                           \
+  RuntimeHelperFunc[static_cast<size_t>(RuntimeHelper::H_##Tag)] =             \
+      getConstantExternSym(Name);
+  RUNTIME_HELPER_FUNCTIONS_TABLE
+#undef X
 
   TargetLowering::staticInit(this);
 }
@@ -657,24 +670,24 @@ Constant *GlobalContext::getConstantInt(Type Ty, int64_t Value) {
   return nullptr;
 }
 
-Constant *GlobalContext::getConstantInt1(int8_t ConstantInt1) {
+Constant *GlobalContext::getConstantInt1Internal(int8_t ConstantInt1) {
   ConstantInt1 &= INT8_C(1);
   return getConstPool()->Integers1.getOrAdd(this, ConstantInt1);
 }
 
-Constant *GlobalContext::getConstantInt8(int8_t ConstantInt8) {
+Constant *GlobalContext::getConstantInt8Internal(int8_t ConstantInt8) {
   return getConstPool()->Integers8.getOrAdd(this, ConstantInt8);
 }
 
-Constant *GlobalContext::getConstantInt16(int16_t ConstantInt16) {
+Constant *GlobalContext::getConstantInt16Internal(int16_t ConstantInt16) {
   return getConstPool()->Integers16.getOrAdd(this, ConstantInt16);
 }
 
-Constant *GlobalContext::getConstantInt32(int32_t ConstantInt32) {
+Constant *GlobalContext::getConstantInt32Internal(int32_t ConstantInt32) {
   return getConstPool()->Integers32.getOrAdd(this, ConstantInt32);
 }
 
-Constant *GlobalContext::getConstantInt64(int64_t ConstantInt64) {
+Constant *GlobalContext::getConstantInt64Internal(int64_t ConstantInt64) {
   return getConstPool()->Integers64.getOrAdd(this, ConstantInt64);
 }
 
@@ -710,40 +723,33 @@ Constant *GlobalContext::getConstantUndef(Type Ty) {
   return getConstPool()->Undefs.getOrAdd(this, Ty);
 }
 
-// All locking is done by the getConstant*() target function.
 Constant *GlobalContext::getConstantZero(Type Ty) {
+  Constant *Zero = ConstZeroForType[Ty];
+  if (Zero == nullptr)
+    llvm::report_fatal_error("Unsupported constant type: " + typeIceString(Ty));
+  return Zero;
+}
+
+// All locking is done by the getConstant*() target function.
+Constant *GlobalContext::getConstantZeroInternal(Type Ty) {
   switch (Ty) {
   case IceType_i1:
-    return getConstantInt1(0);
+    return getConstantInt1Internal(0);
   case IceType_i8:
-    return getConstantInt8(0);
+    return getConstantInt8Internal(0);
   case IceType_i16:
-    return getConstantInt16(0);
+    return getConstantInt16Internal(0);
   case IceType_i32:
-    return getConstantInt32(0);
+    return getConstantInt32Internal(0);
   case IceType_i64:
-    return getConstantInt64(0);
+    return getConstantInt64Internal(0);
   case IceType_f32:
     return getConstantFloat(0);
   case IceType_f64:
     return getConstantDouble(0);
-  case IceType_v4i1:
-  case IceType_v8i1:
-  case IceType_v16i1:
-  case IceType_v16i8:
-  case IceType_v8i16:
-  case IceType_v4i32:
-  case IceType_v4f32: {
-    IceString Str;
-    llvm::raw_string_ostream BaseOS(Str);
-    BaseOS << "Unsupported constant type: " << Ty;
-    llvm_unreachable(BaseOS.str().c_str());
-  } break;
-  case IceType_void:
-  case IceType_NUM:
-    break;
+  default:
+    return nullptr;
   }
-  llvm_unreachable("Unknown type");
 }
 
 ConstantList GlobalContext::getConstantPool(Type Ty) {

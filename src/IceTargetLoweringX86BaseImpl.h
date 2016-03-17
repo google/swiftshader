@@ -4061,8 +4061,10 @@ void TargetX86Base<TraitsType>::lowerIntrinsicCall(
       ValTy = IceType_i64;
     }
 
-    InstCall *Call = makeHelperCall(
-        ValTy == IceType_i32 ? H_call_ctpop_i32 : H_call_ctpop_i64, T, 1);
+    InstCall *Call =
+        makeHelperCall(ValTy == IceType_i32 ? RuntimeHelper::H_call_ctpop_i32
+                                            : RuntimeHelper::H_call_ctpop_i64,
+                       T, 1);
     Call->addArg(Val);
     lowerCall(Call);
     // The popcount helpers always return 32-bit values, while the intrinsic's
@@ -4155,7 +4157,7 @@ void TargetX86Base<TraitsType>::lowerIntrinsicCall(
     return;
   }
   case Intrinsics::Longjmp: {
-    InstCall *Call = makeHelperCall(H_call_longjmp, nullptr, 2);
+    InstCall *Call = makeHelperCall(RuntimeHelper::H_call_longjmp, nullptr, 2);
     Call->addArg(Instr->getArg(0));
     Call->addArg(Instr->getArg(1));
     lowerCall(Call);
@@ -4182,13 +4184,15 @@ void TargetX86Base<TraitsType>::lowerIntrinsicCall(
       _mov(T, Src);
       _mov(Dest, T);
     } else {
-      InstCall *Call = makeHelperCall(H_call_read_tp, Instr->getDest(), 0);
+      InstCall *Call =
+          makeHelperCall(RuntimeHelper::H_call_read_tp, Instr->getDest(), 0);
       lowerCall(Call);
     }
     return;
   }
   case Intrinsics::Setjmp: {
-    InstCall *Call = makeHelperCall(H_call_setjmp, Instr->getDest(), 1);
+    InstCall *Call =
+        makeHelperCall(RuntimeHelper::H_call_setjmp, Instr->getDest(), 1);
     Call->addArg(Instr->getArg(0));
     lowerCall(Call);
     return;
@@ -4762,7 +4766,7 @@ void TargetX86Base<TraitsType>::lowerMemcpy(Operand *Dest, Operand *Src,
   }
 
   // Fall back on a function call
-  InstCall *Call = makeHelperCall(H_call_memcpy, nullptr, 3);
+  InstCall *Call = makeHelperCall(RuntimeHelper::H_call_memcpy, nullptr, 3);
   Call->addArg(Dest);
   Call->addArg(Src);
   Call->addArg(Count);
@@ -4834,7 +4838,7 @@ void TargetX86Base<TraitsType>::lowerMemmove(Operand *Dest, Operand *Src,
   }
 
   // Fall back on a function call
-  InstCall *Call = makeHelperCall(H_call_memmove, nullptr, 3);
+  InstCall *Call = makeHelperCall(RuntimeHelper::H_call_memmove, nullptr, 3);
   Call->addArg(Dest);
   Call->addArg(Src);
   Call->addArg(Count);
@@ -4943,7 +4947,7 @@ void TargetX86Base<TraitsType>::lowerMemset(Operand *Dest, Operand *Val,
     lowerCast(InstCast::create(Func, InstCast::Zext, ValExtVar, Val));
     ValExt = ValExtVar;
   }
-  InstCall *Call = makeHelperCall(H_call_memset, nullptr, 3);
+  InstCall *Call = makeHelperCall(RuntimeHelper::H_call_memset, nullptr, 3);
   Call->addArg(Dest);
   Call->addArg(ValExt);
   Call->addArg(Count);
@@ -6209,7 +6213,7 @@ template <typename TraitsType>
 void TargetX86Base<TraitsType>::genTargetHelperCallFor(Inst *Instr) {
   uint32_t StackArgumentsSize = 0;
   if (auto *Arith = llvm::dyn_cast<InstArithmetic>(Instr)) {
-    const char *HelperName = nullptr;
+    RuntimeHelper HelperID = RuntimeHelper::H_Num;
     Variable *Dest = Arith->getDest();
     Type DestTy = Dest->getType();
     if (!Traits::Is64Bit && DestTy == IceType_i64) {
@@ -6217,16 +6221,16 @@ void TargetX86Base<TraitsType>::genTargetHelperCallFor(Inst *Instr) {
       default:
         return;
       case InstArithmetic::Udiv:
-        HelperName = H_udiv_i64;
+        HelperID = RuntimeHelper::H_udiv_i64;
         break;
       case InstArithmetic::Sdiv:
-        HelperName = H_sdiv_i64;
+        HelperID = RuntimeHelper::H_sdiv_i64;
         break;
       case InstArithmetic::Urem:
-        HelperName = H_urem_i64;
+        HelperID = RuntimeHelper::H_urem_i64;
         break;
       case InstArithmetic::Srem:
-        HelperName = H_srem_i64;
+        HelperID = RuntimeHelper::H_srem_i64;
         break;
       }
     } else if (isVectorType(DestTy)) {
@@ -6260,13 +6264,13 @@ void TargetX86Base<TraitsType>::genTargetHelperCallFor(Inst *Instr) {
         return;
       case InstArithmetic::Frem:
         if (isFloat32Asserting32Or64(DestTy))
-          HelperName = H_frem_f32;
+          HelperID = RuntimeHelper::H_frem_f32;
         else
-          HelperName = H_frem_f64;
+          HelperID = RuntimeHelper::H_frem_f64;
       }
     }
     constexpr SizeT MaxSrcs = 2;
-    InstCall *Call = makeHelperCall(HelperName, Dest, MaxSrcs);
+    InstCall *Call = makeHelperCall(HelperID, Dest, MaxSrcs);
     Call->addArg(Arith->getSrc(0));
     Call->addArg(Arith->getSrc(1));
     StackArgumentsSize = getCallStackArgumentsSizeBytes(Call);
@@ -6278,15 +6282,16 @@ void TargetX86Base<TraitsType>::genTargetHelperCallFor(Inst *Instr) {
     const Type SrcType = Src0->getType();
     Variable *Dest = Cast->getDest();
     const Type DestTy = Dest->getType();
-    const char *HelperName = nullptr;
+    RuntimeHelper HelperID = RuntimeHelper::H_Num;
     Variable *CallDest = Dest;
     switch (CastKind) {
     default:
       return;
     case InstCast::Fptosi:
       if (!Traits::Is64Bit && DestTy == IceType_i64) {
-        HelperName = isFloat32Asserting32Or64(SrcType) ? H_fptosi_f32_i64
-                                                       : H_fptosi_f64_i64;
+        HelperID = isFloat32Asserting32Or64(SrcType)
+                       ? RuntimeHelper::H_fptosi_f32_i64
+                       : RuntimeHelper::H_fptosi_f64_i64;
       } else {
         return;
       }
@@ -6294,18 +6299,21 @@ void TargetX86Base<TraitsType>::genTargetHelperCallFor(Inst *Instr) {
     case InstCast::Fptoui:
       if (isVectorType(DestTy)) {
         assert(DestTy == IceType_v4i32 && SrcType == IceType_v4f32);
-        HelperName = H_fptoui_4xi32_f32;
+        HelperID = RuntimeHelper::H_fptoui_4xi32_f32;
       } else if (DestTy == IceType_i64 ||
                  (!Traits::Is64Bit && DestTy == IceType_i32)) {
         if (Traits::Is64Bit) {
-          HelperName = isFloat32Asserting32Or64(SrcType) ? H_fptoui_f32_i64
-                                                         : H_fptoui_f64_i64;
+          HelperID = isFloat32Asserting32Or64(SrcType)
+                         ? RuntimeHelper::H_fptoui_f32_i64
+                         : RuntimeHelper::H_fptoui_f64_i64;
         } else if (isInt32Asserting32Or64(DestTy)) {
-          HelperName = isFloat32Asserting32Or64(SrcType) ? H_fptoui_f32_i32
-                                                         : H_fptoui_f64_i32;
+          HelperID = isFloat32Asserting32Or64(SrcType)
+                         ? RuntimeHelper::H_fptoui_f32_i32
+                         : RuntimeHelper::H_fptoui_f64_i32;
         } else {
-          HelperName = isFloat32Asserting32Or64(SrcType) ? H_fptoui_f32_i64
-                                                         : H_fptoui_f64_i64;
+          HelperID = isFloat32Asserting32Or64(SrcType)
+                         ? RuntimeHelper::H_fptoui_f32_i64
+                         : RuntimeHelper::H_fptoui_f64_i64;
         }
       } else {
         return;
@@ -6313,8 +6321,9 @@ void TargetX86Base<TraitsType>::genTargetHelperCallFor(Inst *Instr) {
       break;
     case InstCast::Sitofp:
       if (!Traits::Is64Bit && SrcType == IceType_i64) {
-        HelperName = isFloat32Asserting32Or64(DestTy) ? H_sitofp_i64_f32
-                                                      : H_sitofp_i64_f64;
+        HelperID = isFloat32Asserting32Or64(DestTy)
+                       ? RuntimeHelper::H_sitofp_i64_f32
+                       : RuntimeHelper::H_sitofp_i64_f64;
       } else {
         return;
       }
@@ -6322,15 +6331,17 @@ void TargetX86Base<TraitsType>::genTargetHelperCallFor(Inst *Instr) {
     case InstCast::Uitofp:
       if (isVectorType(SrcType)) {
         assert(DestTy == IceType_v4f32 && SrcType == IceType_v4i32);
-        HelperName = H_uitofp_4xi32_4xf32;
+        HelperID = RuntimeHelper::H_uitofp_4xi32_4xf32;
       } else if (SrcType == IceType_i64 ||
                  (!Traits::Is64Bit && SrcType == IceType_i32)) {
         if (isInt32Asserting32Or64(SrcType)) {
-          HelperName = isFloat32Asserting32Or64(DestTy) ? H_uitofp_i32_f32
-                                                        : H_uitofp_i32_f64;
+          HelperID = isFloat32Asserting32Or64(DestTy)
+                         ? RuntimeHelper::H_uitofp_i32_f32
+                         : RuntimeHelper::H_uitofp_i32_f64;
         } else {
-          HelperName = isFloat32Asserting32Or64(DestTy) ? H_uitofp_i64_f32
-                                                        : H_uitofp_i64_f64;
+          HelperID = isFloat32Asserting32Or64(DestTy)
+                         ? RuntimeHelper::H_uitofp_i64_f32
+                         : RuntimeHelper::H_uitofp_i64_f64;
         }
       } else {
         return;
@@ -6344,17 +6355,17 @@ void TargetX86Base<TraitsType>::genTargetHelperCallFor(Inst *Instr) {
         return;
       case IceType_i8:
         assert(Src0->getType() == IceType_v8i1);
-        HelperName = H_bitcast_8xi1_i8;
+        HelperID = RuntimeHelper::H_bitcast_8xi1_i8;
         CallDest = Func->makeVariable(IceType_i32);
         break;
       case IceType_i16:
         assert(Src0->getType() == IceType_v16i1);
-        HelperName = H_bitcast_16xi1_i16;
+        HelperID = RuntimeHelper::H_bitcast_16xi1_i16;
         CallDest = Func->makeVariable(IceType_i32);
         break;
       case IceType_v8i1: {
         assert(Src0->getType() == IceType_i8);
-        HelperName = H_bitcast_i8_8xi1;
+        HelperID = RuntimeHelper::H_bitcast_i8_8xi1;
         Variable *Src0AsI32 = Func->makeVariable(stackSlotType());
         // Arguments to functions are required to be at least 32 bits wide.
         Context.insert<InstCast>(InstCast::Zext, Src0AsI32, Src0);
@@ -6362,7 +6373,7 @@ void TargetX86Base<TraitsType>::genTargetHelperCallFor(Inst *Instr) {
       } break;
       case IceType_v16i1: {
         assert(Src0->getType() == IceType_i16);
-        HelperName = H_bitcast_i16_16xi1;
+        HelperID = RuntimeHelper::H_bitcast_i16_16xi1;
         Variable *Src0AsI32 = Func->makeVariable(stackSlotType());
         // Arguments to functions are required to be at least 32 bits wide.
         Context.insert<InstCast>(InstCast::Zext, Src0AsI32, Src0);
@@ -6372,7 +6383,7 @@ void TargetX86Base<TraitsType>::genTargetHelperCallFor(Inst *Instr) {
     } break;
     }
     constexpr SizeT MaxSrcs = 1;
-    InstCall *Call = makeHelperCall(HelperName, CallDest, MaxSrcs);
+    InstCall *Call = makeHelperCall(HelperID, CallDest, MaxSrcs);
     Call->addArg(Src0);
     StackArgumentsSize = getCallStackArgumentsSizeBytes(Call);
     Context.insert(Call);
