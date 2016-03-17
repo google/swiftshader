@@ -18,6 +18,7 @@
 #include "IceClFlagsExtra.h"
 #include "IceELFStreamer.h"
 #include "IceGlobalContext.h"
+#include "LinuxMallocProfiling.h"
 
 #ifdef __clang__
 #pragma clang diagnostic push
@@ -173,6 +174,8 @@ void CLCompileServer::run() {
     llvm::report_fatal_error("Unable to open log file");
   }
   Ls->SetUnbuffered();
+  Ice::LinuxMallocProfiling _(Flags.getNumTranslationThreads(), Ls.get());
+
   std::unique_ptr<Ostream> Os;
   std::unique_ptr<ELFStreamer> ELFStr;
   switch (Flags.getOutFileType()) {

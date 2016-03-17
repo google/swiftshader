@@ -170,6 +170,12 @@ else
   FORCEASM_LIT_TEST_EXCLUDES =
 endif
 
+ifdef LINUX_MALLOC_PROFILE
+  OBJDIR := $(OBJDIR)+MalProf
+  CXX_EXTRA += -DALLOW_LINUX_MALLOC_PROFILE=1
+  LD_EXTRA += -Wl,--export-dynamic
+endif
+
 SB_OBJDIR := $(OBJDIR)+Sandboxed
 SBB_OBJDIR := $(OBJDIR)+SandboxedBrowser
 
@@ -299,6 +305,7 @@ SRCS = \
   IceTimerTree.cpp \
   IceTranslator.cpp \
   IceTypes.cpp \
+  LinuxMallocProfiling.cpp \
   main.cpp \
   PNaClTranslator.cpp
 
