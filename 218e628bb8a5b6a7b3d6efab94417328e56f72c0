@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3c1bdab9_63a315cb",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-18T21:02:21Z",
+      "side": 1,
+      "message": "nit: wrap line",
+      "range": {
+        "startLine": 9,
+        "startChar": 71,
+        "endLine": 9,
+        "endChar": 72
+      },
+      "revId": "218e628bb8a5b6a7b3d6efab94417328e56f72c0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3c1bdab9_43bd39dd",
+        "filename": "src/OpenGL/libGL/Texture.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 378,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-18T21:02:21Z",
+      "side": 1,
+      "message": "Move to next line. Same elsewhere.",
+      "range": {
+        "startLine": 378,
+        "startChar": 33,
+        "endLine": 378,
+        "endChar": 34
+      },
+      "revId": "218e628bb8a5b6a7b3d6efab94417328e56f72c0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3c1bdab9_a3a4edd0",
+        "filename": "src/OpenGL/libGLESv2/Texture.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 637,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-18T21:02:21Z",
+      "side": 1,
+      "message": "Compressed images too.",
+      "range": {
+        "startLine": 637,
+        "startChar": 16,
+        "endLine": 637,
+        "endChar": 24
+      },
+      "revId": "218e628bb8a5b6a7b3d6efab94417328e56f72c0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3c1bdab9_e3aee5ac",
+        "filename": "src/OpenGL/libGLESv2/Texture.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1618,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-18T21:02:21Z",
+      "side": 1,
+      "message": "depth too.",
+      "range": {
+        "startLine": 1618,
+        "startChar": 4,
+        "endLine": 1618,
+        "endChar": 27
+      },
+      "revId": "218e628bb8a5b6a7b3d6efab94417328e56f72c0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
