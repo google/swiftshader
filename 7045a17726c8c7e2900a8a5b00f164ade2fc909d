@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3c1bdab9_60d66ec6",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2025,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-18T15:43:21Z",
+      "side": 1,
+      "message": "Isn\u0027t an interface block always of type uniform?",
+      "range": {
+        "startLine": 2025,
+        "startChar": 14,
+        "endLine": 2025,
+        "endChar": 50
+      },
+      "revId": "7045a17726c8c7e2900a8a5b00f164ade2fc909d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3c1bdab9_00c5fa06",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2028,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-18T15:43:21Z",
+      "side": 1,
+      "message": "I think it might always already have been declared at this point. If not, I don\u0027t think this is the right method to do so.\n\nIt would also mean we can pass in the TType here, instead of a TIntermTyped.",
+      "range": {
+        "startLine": 2027,
+        "startChar": 4,
+        "endLine": 2028,
+        "endChar": 25
+      },
+      "revId": "7045a17726c8c7e2900a8a5b00f164ade2fc909d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3c1bdab9_207d968d",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2030,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-18T15:43:21Z",
+      "side": 1,
+      "message": "You\u0027re making a copy of the string here. That\u0027s not necessary. Just make the left hand side a const char *.",
+      "range": {
+        "startLine": 2030,
+        "startChar": 4,
+        "endLine": 2030,
+        "endChar": 56
+      },
+      "revId": "7045a17726c8c7e2900a8a5b00f164ade2fc909d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3c1bdab9_a08866df",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2036,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-18T15:43:21Z",
+      "side": 1,
+      "message": "Again making a string copy. I think you can just write \n\nif(blockName \u003d\u003d it-\u003ename)",
+      "range": {
+        "startLine": 2035,
+        "startChar": 5,
+        "endLine": 2036,
+        "endChar": 49
+      },
+      "revId": "7045a17726c8c7e2900a8a5b00f164ade2fc909d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3c1bdab9_80d1eace",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2051,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-18T15:43:21Z",
+      "side": 1,
+      "message": "argument() already does this, so we could pass in a TIntermTyped here.",
+      "range": {
+        "startLine": 2051,
+        "startChar": 2,
+        "endLine": 2051,
+        "endChar": 45
+      },
+      "revId": "7045a17726c8c7e2900a8a5b00f164ade2fc909d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3c1bdab9_e0a89e52",
+        "filename": "src/OpenGL/compiler/OutputASM.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 289,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-18T15:43:21Z",
+      "side": 1,
+      "message": "nit: The above methods all return a register index. This declaration probably belongs closer to getArgumentInfo().\n\nThe argument should get a name (\"argument\" is fine).",
+      "range": {
+        "startLine": 289,
+        "startChar": 2,
+        "endLine": 289,
+        "endChar": 33
+      },
+      "revId": "7045a17726c8c7e2900a8a5b00f164ade2fc909d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3c1bdab9_40d7f2c3",
+        "filename": "src/OpenGL/compiler/OutputASM.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 339,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-18T15:43:21Z",
+      "side": 1,
+      "message": "This struct only has one member. It can probably be eliminated. Can be done in a follow-up patch.",
+      "range": {
+        "startLine": 335,
+        "startChar": 2,
+        "endLine": 339,
+        "endChar": 4
+      },
+      "revId": "7045a17726c8c7e2900a8a5b00f164ade2fc909d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
