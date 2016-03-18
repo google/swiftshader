@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3c1bdab9_405ff2ea",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-18T16:03:30Z",
+      "side": 1,
+      "message": "integer unary operators",
+      "range": {
+        "startLine": 7,
+        "startChar": 11,
+        "endLine": 7,
+        "endChar": 26
+      },
+      "revId": "b375ad1f3c00f783389c32a4b4fd89ec9863735b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3c1bdab9_c052c2de",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 375,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-18T16:03:30Z",
+      "side": 1,
+      "message": "Unsigned integers are always positive, so shouldn\u0027t taking the absolute value be a no-op?",
+      "range": {
+        "startLine": 375,
+        "startChar": 8,
+        "endLine": 375,
+        "endChar": 15
+      },
+      "revId": "b375ad1f3c00f783389c32a4b4fd89ec9863735b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3c1bdab9_8008cac2",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 385,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-18T16:03:30Z",
+      "side": 1,
+      "message": "Always positive, so return a constant 1?",
+      "range": {
+        "startLine": 385,
+        "startChar": 8,
+        "endLine": 385,
+        "endChar": 15
+      },
+      "revId": "b375ad1f3c00f783389c32a4b4fd89ec9863735b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3c1bdab9_00e69a2f",
+        "filename": "src/Reactor/Nucleus.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3584,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-18T16:03:30Z",
+      "side": 1,
+      "message": "This is an SSSE3 instruction, while we should at least support back to SSE2 (the other \"fallback required\" notes are just for future non-x86 support).",
+      "range": {
+        "startLine": 3584,
+        "startChar": 36,
+        "endLine": 3584,
+        "endChar": 53
+      },
+      "revId": "b375ad1f3c00f783389c32a4b4fd89ec9863735b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3c1bdab9_e0309ec9",
+        "filename": "src/Shader/ShaderCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1616,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-18T16:03:30Z",
+      "side": 1,
+      "message": "Already Int4",
+      "range": {
+        "startLine": 1616,
+        "startChar": 13,
+        "endLine": 1616,
+        "endChar": 21
+      },
+      "revId": "b375ad1f3c00f783389c32a4b4fd89ec9863735b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
