@@ -335,7 +335,9 @@ namespace sw
 		void refract3(Vector4f &dst, const Vector4f &src0, const Vector4f &src1, const Float4 &src2);
 		void refract4(Vector4f &dst, const Vector4f &src0, const Vector4f &src1, const Float4 &src2);
 		void sgn(Vector4f &dst, const Vector4f &src);
+		void isgn(Vector4f &dst, const Vector4f &src);
 		void abs(Vector4f &dst, const Vector4f &src);
+		void iabs(Vector4f &dst, const Vector4f &src);
 		void nrm2(Vector4f &dst, const Vector4f &src, bool pp = false);
 		void nrm3(Vector4f &dst, const Vector4f &src, bool pp = false);
 		void nrm4(Vector4f &dst, const Vector4f &src, bool pp = false);
@@ -373,6 +375,7 @@ namespace sw
 
 	private:
 		void sgn(Float4 &dst, const Float4 &src);
+		void isgn(Float4 &dst, const Float4 &src);
 		void cmp0(Float4 &dst, const Float4 &src0, const Float4 &src1, const Float4 &src2);
 		void cmp0i(Float4 &dst, const Float4 &src0, const Float4 &src1, const Float4 &src2);
 		void select(Float4 &dst, RValue<Int4> src0, const Float4 &src1, const Float4 &src2);

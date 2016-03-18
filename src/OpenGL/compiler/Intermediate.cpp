@@ -752,6 +752,20 @@ bool TIntermUnary::promote(TInfoSink&)
         case EOpAny:
         case EOpAll:
         case EOpVectorLogicalNot:
+		case EOpAbs:
+		case EOpSign:
+		case EOpIsNan:
+		case EOpIsInf:
+		case EOpFloatBitsToInt:
+		case EOpFloatBitsToUint:
+		case EOpIntBitsToFloat:
+		case EOpUintBitsToFloat:
+		case EOpPackSnorm2x16:
+		case EOpPackUnorm2x16:
+		case EOpPackHalf2x16:
+		case EOpUnpackSnorm2x16:
+		case EOpUnpackUnorm2x16:
+		case EOpUnpackHalf2x16:
             return true;
 
         default:

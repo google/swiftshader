@@ -244,6 +244,8 @@ namespace sw
 
 			// Integer opcodes
 			OPCODE_INEG,
+			OPCODE_IABS,
+			OPCODE_ISGN,
 			OPCODE_IADD,
 			OPCODE_ISUB,
 			OPCODE_IMUL,
