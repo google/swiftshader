@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3c1bdab9_b0f43537",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-18T20:46:04Z",
+      "side": 1,
+      "message": "nit: EGL\n\nLet\u0027s also add a bit of detail on the cases that this CL fixes:\n- Context already current on another thread.\n- Surfaces already bound to another context.",
+      "range": {
+        "startLine": 7,
+        "startChar": 14,
+        "endLine": 7,
+        "endChar": 17
+      },
+      "revId": "88efc9ca027c654bb25333d6384c7aa81b8839cf",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3c1bdab9_f0306dc9",
+        "filename": "src/Common/Thread.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-18T20:46:04Z",
+      "side": 1,
+      "message": "We use a style where the opening brace is on the next line, at the same indentation level as the closing brace.",
+      "range": {
+        "startLine": 174,
+        "startChar": 59,
+        "endLine": 174,
+        "endChar": 60
+      },
+      "revId": "88efc9ca027c654bb25333d6384c7aa81b8839cf",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3c1bdab9_10d0a96b",
+        "filename": "src/OpenGL/libEGL/Context.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-18T20:46:04Z",
+      "side": 1,
+      "message": "We don\u0027t need this if we just set the thread ID in the makeCurrent() method.",
+      "range": {
+        "startLine": 27,
+        "startChar": 1,
+        "endLine": 27,
+        "endChar": 40
+      },
+      "revId": "88efc9ca027c654bb25333d6384c7aa81b8839cf",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3c1bdab9_305a05ca",
+        "filename": "src/OpenGL/libEGL/Context.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-18T20:46:04Z",
+      "side": 1,
+      "message": "It seems unfortunate that we need both a boolean and a thread ID (which also makes isBound()\u0027s return argument a bit awkward).\n\nI think they can be combined into one (i.e. the TID could store the boolean which indicates that it\u0027s initialized/valid).",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 29
+      },
+      "revId": "88efc9ca027c654bb25333d6384c7aa81b8839cf",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3c1bdab9_f0e22d19",
+        "filename": "src/OpenGL/libEGL/Surface.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 298,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-18T20:46:04Z",
+      "side": 1,
+      "message": "Can use boundContext now.",
+      "range": {
+        "startLine": 298,
+        "startChar": 3,
+        "endLine": 298,
+        "endChar": 22
+      },
+      "revId": "88efc9ca027c654bb25333d6384c7aa81b8839cf",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
