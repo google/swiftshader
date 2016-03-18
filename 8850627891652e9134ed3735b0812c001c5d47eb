@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3c1bdab9_43e6d906",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-18T21:04:02Z",
+      "side": 1,
+      "message": "Bug 27225594",
+      "range": {
+        "startLine": 7,
+        "startChar": 58,
+        "endLine": 8,
+        "endChar": 0
+      },
+      "revId": "8850627891652e9134ed3735b0812c001c5d47eb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
