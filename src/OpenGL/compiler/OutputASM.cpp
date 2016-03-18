@@ -368,6 +368,24 @@ namespace glsl
 			default:
 				return op;
 			}
+		case sw::Shader::OPCODE_ABS:
+			switch(baseType)
+			{
+			case EbtInt:
+				return sw::Shader::OPCODE_IABS;
+			case EbtFloat:
+			default:
+				return op;
+			}
+		case sw::Shader::OPCODE_SGN:
+			switch(baseType)
+			{
+			case EbtInt:
+				return sw::Shader::OPCODE_ISGN;
+			case EbtFloat:
+			default:
+				return op;
+			}
 		case sw::Shader::OPCODE_ADD:
 			switch(baseType)
 			{
@@ -984,8 +1002,8 @@ namespace glsl
 		case EOpLog2:             if(visit == PostVisit) emit(sw::Shader::OPCODE_LOG2, result, arg); break;
 		case EOpSqrt:             if(visit == PostVisit) emit(sw::Shader::OPCODE_SQRT, result, arg); break;
 		case EOpInverseSqrt:      if(visit == PostVisit) emit(sw::Shader::OPCODE_RSQ, result, arg); break;
-		case EOpAbs:              if(visit == PostVisit) emit(sw::Shader::OPCODE_ABS, result, arg); break;
-		case EOpSign:             if(visit == PostVisit) emit(sw::Shader::OPCODE_SGN, result, arg); break;
+		case EOpAbs:              if(visit == PostVisit) emit(getOpcode(sw::Shader::OPCODE_ABS, result), result, arg); break;
+		case EOpSign:             if(visit == PostVisit) emit(getOpcode(sw::Shader::OPCODE_SGN, result), result, arg); break;
 		case EOpFloor:            if(visit == PostVisit) emit(sw::Shader::OPCODE_FLOOR, result, arg); break;
 		case EOpTrunc:            if(visit == PostVisit) emit(sw::Shader::OPCODE_TRUNC, result, arg); break;
 		case EOpRound:            if(visit == PostVisit) emit(sw::Shader::OPCODE_ROUND, result, arg); break;

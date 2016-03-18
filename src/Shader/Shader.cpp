@@ -821,7 +821,9 @@ namespace sw
 		case OPCODE_POWX:			return "powx";
 		case OPCODE_CRS:			return "crs";
 		case OPCODE_SGN:			return "sgn";
+		case OPCODE_ISGN:			return "isgn";
 		case OPCODE_ABS:			return "abs";
+		case OPCODE_IABS:			return "iabs";
 		case OPCODE_NRM2:			return "nrm2";
 		case OPCODE_NRM3:			return "nrm3";
 		case OPCODE_NRM4:			return "nrm4";

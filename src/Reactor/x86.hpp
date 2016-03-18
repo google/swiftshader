@@ -58,7 +58,7 @@ namespace sw
 		RValue<Float> cmpnless(RValue<Float> x, RValue<Float> y);
 		RValue<Float> cmpordss(RValue<Float> x, RValue<Float> y);
 
-		RValue<Int4> pabsd(RValue<Int4> x, RValue<Int4> y);
+		RValue<Int4> pabsd(RValue<Int4> x);
 
 		RValue<Short4> paddsw(RValue<Short4> x, RValue<Short4> y);
 		RValue<Short4> psubsw(RValue<Short4> x, RValue<Short4> y);

@@ -3579,6 +3579,19 @@ namespace sw
 		return x86::pmaddwd(x, y);   // FIXME: Fallback required
 	}
 
+	RValue<Int4> Abs(RValue<Int4> x)
+	{
+		if(CPUID::supportsSSSE3())
+		{
+			return x86::pabsd(x);
+		}
+		else
+		{
+			Int4 mask = (x >> 31);
+			return (mask ^ x) - mask;
+		}
+	}
+
 	RValue<Short8> MulHigh(RValue<Short8> x, RValue<Short8> y)
 	{
 		return x86::pmulhw(x, y);   // FIXME: Fallback required
@@ -7157,12 +7170,12 @@ namespace sw
 			return cmpss(x, y, 7);
 		}
 
-		RValue<Int4> pabsd(RValue<Int4> x, RValue<Int4> y)
+		RValue<Int4> pabsd(RValue<Int4> x)
 		{
 			Module *module = Nucleus::getModule();
 			llvm::Function *pabsd = Intrinsic::getDeclaration(module, Intrinsic::x86_ssse3_pabs_d_128);
 
-			return RValue<Int4>(Nucleus::createCall(pabsd, x.value, y.value));
+			return RValue<Int4>(Nucleus::createCall(pabsd, x.value));
 		}
 
 		RValue<Short4> paddsw(RValue<Short4> x, RValue<Short4> y)

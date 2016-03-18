@@ -1357,6 +1357,14 @@ namespace sw
 		sgn(dst.w, src.w);
 	}
 
+	void ShaderCore::isgn(Vector4f &dst, const Vector4f &src)
+	{
+		isgn(dst.x, src.x);
+		isgn(dst.y, src.y);
+		isgn(dst.z, src.z);
+		isgn(dst.w, src.w);
+	}
+
 	void ShaderCore::abs(Vector4f &dst, const Vector4f &src)
 	{
 		dst.x = Abs(src.x);
@@ -1364,7 +1372,15 @@ namespace sw
 		dst.z = Abs(src.z);
 		dst.w = Abs(src.w);
 	}
-	
+
+	void ShaderCore::iabs(Vector4f &dst, const Vector4f &src)
+	{
+		dst.x = As<Float4>(Abs(As<Int4>(src.x)));
+		dst.y = As<Float4>(Abs(As<Int4>(src.y)));
+		dst.z = As<Float4>(Abs(As<Int4>(src.z)));
+		dst.w = As<Float4>(Abs(As<Int4>(src.w)));
+	}
+
 	void ShaderCore::nrm2(Vector4f &dst, const Vector4f &src, bool pp)
 	{
 		Float4 dot = dot2(src, src);
@@ -1592,6 +1608,13 @@ namespace sw
 	{
 		Int4 neg = As<Int4>(CmpLT(src, Float4(-0.0f))) & As<Int4>(Float4(-1.0f));
 		Int4 pos = As<Int4>(CmpNLE(src, Float4(+0.0f))) & As<Int4>(Float4(1.0f));
+		dst = As<Float4>(neg | pos);
+	}
+
+	void ShaderCore::isgn(Float4 &dst, const Float4 &src)
+	{
+		Int4 neg = CmpLT(As<Int4>(src), Int4(0)) & Int4(-1);
+		Int4 pos = CmpNLE(As<Int4>(src), Int4(0)) & Int4(1);
 		dst = As<Float4>(neg | pos);
 	}
 

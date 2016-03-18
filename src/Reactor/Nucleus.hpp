@@ -1115,6 +1115,7 @@ namespace sw
 
 	RValue<Short8> MulHigh(RValue<Short8> x, RValue<Short8> y);
 	RValue<Int4> MulAdd(RValue<Short8> x, RValue<Short8> y);
+	RValue<Int4> Abs(RValue<Int4> x);
 
 	class UShort8 : public Variable<UShort8>
 	{

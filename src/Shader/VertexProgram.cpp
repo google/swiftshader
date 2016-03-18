@@ -157,6 +157,7 @@ namespace sw
 			case Shader::OPCODE_DEFB:                                       break;
 			case Shader::OPCODE_NOP:                                        break;
 			case Shader::OPCODE_ABS:        abs(d, s0);                     break;
+			case Shader::OPCODE_IABS:       iabs(d, s0);                    break;
 			case Shader::OPCODE_ADD:        add(d, s0, s1);                 break;
 			case Shader::OPCODE_IADD:       iadd(d, s0, s1);                break;
 			case Shader::OPCODE_CRS:        crs(d, s0, s1);                 break;
@@ -256,6 +257,7 @@ namespace sw
 			case Shader::OPCODE_DIST4:      dist4(d.x, s0, s1, pp);         break;
 			case Shader::OPCODE_SGE:        step(d, s1, s0);                break;
 			case Shader::OPCODE_SGN:        sgn(d, s0);                     break;
+			case Shader::OPCODE_ISGN:       isgn(d, s0);                    break;
 			case Shader::OPCODE_SINCOS:     sincos(d, s0, pp);              break;
 			case Shader::OPCODE_COS:        cos(d, s0, pp);                 break;
 			case Shader::OPCODE_SIN:        sin(d, s0, pp);                 break;

@@ -231,6 +231,7 @@ namespace sw
 			case Shader::OPCODE_POWX:       powx(d, s0, s1, pp);                           break;
 			case Shader::OPCODE_POW:        pow(d, s0, s1, pp);                            break;
 			case Shader::OPCODE_SGN:        sgn(d, s0);                                    break;
+			case Shader::OPCODE_ISGN:       isgn(d, s0);                                   break;
 			case Shader::OPCODE_CRS:        crs(d, s0, s1);                                break;
 			case Shader::OPCODE_FORWARD1:   forward1(d, s0, s1, s2);                       break;
 			case Shader::OPCODE_FORWARD2:   forward2(d, s0, s1, s2);                       break;
@@ -248,6 +249,7 @@ namespace sw
 			case Shader::OPCODE_NRM3:       nrm3(d, s0, pp);                               break;
 			case Shader::OPCODE_NRM4:       nrm4(d, s0, pp);                               break;
 			case Shader::OPCODE_ABS:        abs(d, s0);                                    break;
+			case Shader::OPCODE_IABS:       iabs(d, s0);                                   break;
 			case Shader::OPCODE_SINCOS:     sincos(d, s0, pp);                             break;
 			case Shader::OPCODE_COS:        cos(d, s0, pp);                                break;
 			case Shader::OPCODE_SIN:        sin(d, s0, pp);                                break;
