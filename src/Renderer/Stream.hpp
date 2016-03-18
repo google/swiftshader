@@ -29,6 +29,8 @@ namespace sw
 		STREAMTYPE_SBYTE,
 		STREAMTYPE_SHORT,
 		STREAMTYPE_USHORT,
+		STREAMTYPE_INT,
+		STREAMTYPE_UINT,
 		STREAMTYPE_FIXED,     // Normalization ignored (16.16 format)
 		STREAMTYPE_HALF,      // Normalization ignored
 

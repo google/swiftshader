@@ -189,6 +189,8 @@ public:
         case GL_UNSIGNED_BYTE:  return mSize * sizeof(GLubyte);
         case GL_SHORT:          return mSize * sizeof(GLshort);
         case GL_UNSIGNED_SHORT: return mSize * sizeof(GLushort);
+		case GL_INT:            return mSize * sizeof(GLint);
+		case GL_UNSIGNED_INT:   return mSize * sizeof(GLuint);
         case GL_FIXED:          return mSize * sizeof(GLfixed);
         case GL_FLOAT:          return mSize * sizeof(GLfloat);
         default: UNREACHABLE(mType); return mSize * sizeof(GLfloat);

@@ -253,6 +253,60 @@ namespace sw
 				}
 			}
 			break;
+		case STREAMTYPE_INT:
+			{
+				if(stream.normalized)
+				{
+					v.x = Float4(*Pointer<Int4>(source0));
+					v.y = Float4(*Pointer<Int4>(source1));
+					v.z = Float4(*Pointer<Int4>(source2));
+					v.w = Float4(*Pointer<Int4>(source3));
+
+					transpose4xN(v.x, v.y, v.z, v.w, stream.count);
+
+					if(stream.count >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleInt));
+					if(stream.count >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleInt));
+					if(stream.count >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleInt));
+					if(stream.count >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleInt));
+				}
+				else
+				{
+					v.x = As<Float4>(*Pointer<Int4>(source0));
+					v.y = As<Float4>(*Pointer<Int4>(source1));
+					v.z = As<Float4>(*Pointer<Int4>(source2));
+					v.w = As<Float4>(*Pointer<Int4>(source3));
+
+					transpose4xN(v.x, v.y, v.z, v.w, stream.count);
+				}
+			}
+			break;
+		case STREAMTYPE_UINT:
+			{
+				if(stream.normalized)
+				{
+					v.x = Float4(*Pointer<UInt4>(source0));
+					v.y = Float4(*Pointer<UInt4>(source1));
+					v.z = Float4(*Pointer<UInt4>(source2));
+					v.w = Float4(*Pointer<UInt4>(source3));
+
+					transpose4xN(v.x, v.y, v.z, v.w, stream.count);
+
+					if(stream.count >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUInt));
+					if(stream.count >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUInt));
+					if(stream.count >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUInt));
+					if(stream.count >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUInt));
+				}
+				else
+				{
+					v.x = As<Float4>(*Pointer<UInt4>(source0));
+					v.y = As<Float4>(*Pointer<UInt4>(source1));
+					v.z = As<Float4>(*Pointer<UInt4>(source2));
+					v.w = As<Float4>(*Pointer<UInt4>(source3));
+
+					transpose4xN(v.x, v.y, v.z, v.w, stream.count);
+				}
+			}
+			break;
 		case STREAMTYPE_UDEC3:
 			{
 				// FIXME: Vectorize

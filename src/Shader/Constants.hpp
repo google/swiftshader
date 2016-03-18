@@ -100,6 +100,8 @@ namespace sw
 		float4 unscaleSByte;
 		float4 unscaleShort;
 		float4 unscaleUShort;
+		float4 unscaleInt;
+		float4 unscaleUInt;
 		float4 unscaleFixed;
 
 		float half2float[65536];

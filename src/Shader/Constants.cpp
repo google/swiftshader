@@ -354,12 +354,16 @@ namespace sw
 		static const float4 unscaleSByte = {1.0f / 0x7F, 1.0f / 0x7F, 1.0f / 0x7F, 1.0f / 0x7F};
 		static const float4 unscaleShort = {1.0f / 0x7FFF, 1.0f / 0x7FFF, 1.0f / 0x7FFF, 1.0f / 0x7FFF};
 		static const float4 unscaleUShort = {1.0f / 0xFFFF, 1.0f / 0xFFFF, 1.0f / 0xFFFF, 1.0f / 0xFFFF};
+		static const float4 unscaleInt = {1.0f / 0x7FFFFFFF, 1.0f / 0x7FFFFFFF, 1.0f / 0x7FFFFFFF, 1.0f / 0x7FFFFFFF};
+		static const float4 unscaleUInt = {1.0f / 0xFFFFFFFF, 1.0f / 0xFFFFFFFF, 1.0f / 0xFFFFFFFF, 1.0f / 0xFFFFFFFF};
 		static const float4 unscaleFixed = {1.0f / 0x00010000, 1.0f / 0x00010000, 1.0f / 0x00010000, 1.0f / 0x00010000};
 
 		memcpy(&this->unscaleByte, &unscaleByte, sizeof(unscaleByte));
 		memcpy(&this->unscaleSByte, &unscaleSByte, sizeof(unscaleSByte));
 		memcpy(&this->unscaleShort, &unscaleShort, sizeof(unscaleShort));
 		memcpy(&this->unscaleUShort, &unscaleUShort, sizeof(unscaleUShort));
+		memcpy(&this->unscaleInt, &unscaleInt, sizeof(unscaleInt));
+		memcpy(&this->unscaleUInt, &unscaleUInt, sizeof(unscaleUInt));
 		memcpy(&this->unscaleFixed, &unscaleFixed, sizeof(unscaleFixed));
 
 		for(int i = 0; i <= 0xFFFF; i++)
