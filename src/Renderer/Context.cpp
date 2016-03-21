@@ -219,9 +219,10 @@ namespace sw
 
 		for(int i = 0; i < RENDERTARGETS; ++i)
 		{
-			renderTarget[i] = 0;
+			renderTarget[i] = nullptr;
 		}
-		depthStencil = 0;
+		depthBuffer = nullptr;
+		stencilBuffer = nullptr;
 
 		stencilEnable = false;
 		stencilCompareMode = STENCIL_ALWAYS;
@@ -519,12 +520,12 @@ namespace sw
 
 	bool Context::depthBufferActive()
 	{
-		return depthStencil && depthBufferEnable;
+		return depthBuffer && depthBufferEnable;
 	}
 
 	bool Context::stencilActive()
 	{
-		return depthStencil && stencilEnable;
+		return stencilBuffer && stencilEnable;
 	}
 
 	bool Context::vertexLightingActive()

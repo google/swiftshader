@@ -591,17 +591,21 @@ namespace sw
 					}
 				}
 
-				draw->depthStencil = context->depthStencil;
+				draw->depthBuffer = context->depthBuffer;
+				draw->stencilBuffer = context->stencilBuffer;
 
-				if(draw->depthStencil)
+				if(draw->depthBuffer)
 				{
-					data->depthBuffer = (float*)context->depthStencil->lockInternal(0, 0, q * ms, LOCK_READWRITE, MANAGED);
-					data->depthPitchB = context->depthStencil->getInternalPitchB();
-					data->depthSliceB = context->depthStencil->getInternalSliceB();
+					data->depthBuffer = (float*)context->depthBuffer->lockInternal(0, 0, q * ms, LOCK_READWRITE, MANAGED);
+					data->depthPitchB = context->depthBuffer->getInternalPitchB();
+					data->depthSliceB = context->depthBuffer->getInternalSliceB();
+				}
 
-					data->stencilBuffer = (unsigned char*)context->depthStencil->lockStencil(q * ms, MANAGED);
-					data->stencilPitchB = context->depthStencil->getStencilPitchB();
-					data->stencilSliceB = context->depthStencil->getStencilSliceB();
+				if(draw->stencilBuffer)
+				{
+					data->stencilBuffer = (unsigned char*)context->stencilBuffer->lockStencil(q * ms, MANAGED);
+					data->stencilPitchB = context->stencilBuffer->getStencilPitchB();
+					data->stencilSliceB = context->stencilBuffer->getStencilSliceB();
 				}
 			}
 
@@ -946,10 +950,14 @@ namespace sw
 					}
 				}
 
-				if(draw.depthStencil)
+				if(draw.depthBuffer)
 				{
-					draw.depthStencil->unlockInternal();
-					draw.depthStencil->unlockStencil();
+					draw.depthBuffer->unlockInternal();
+				}
+
+				if(draw.stencilBuffer)
+				{
+					draw.stencilBuffer->unlockStencil();
 				}
 
 				for(int i = 0; i < TOTAL_IMAGE_UNITS; i++)
@@ -2086,7 +2094,7 @@ namespace sw
 			}
 		}
 	
-		if(context->depthStencil && context->texture[sampler] == context->depthStencil->getResource())
+		if(context->depthBuffer && context->texture[sampler] == context->depthBuffer->getResource())
 		{
 			return true;
 		}

@@ -219,7 +219,8 @@ namespace sw
 		Resource *vertexStream[VERTEX_ATTRIBUTES];
 		Resource *indexBuffer;
 		Surface *renderTarget[RENDERTARGETS];
-		Surface *depthStencil;
+		Surface *depthBuffer;
+		Surface *stencilBuffer;
 		Resource *texture[TOTAL_IMAGE_UNITS];
 
 		int vsDirtyConstF;

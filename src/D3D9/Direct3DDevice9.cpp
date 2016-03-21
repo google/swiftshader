@@ -191,7 +191,7 @@ namespace D3D9
 
 		swapChain->unbind();
 		swapChain = 0;
-		
+
 		if(depthStencil)
 		{
 			depthStencil->unbind();
@@ -203,7 +203,7 @@ namespace D3D9
 			autoDepthStencil->unbind();
 			autoDepthStencil = 0;
 		}
-		
+
 		for(int index = 0; index < 4; index++)
 		{
 			if(renderTarget[index])
@@ -242,7 +242,7 @@ namespace D3D9
 			indexData->unbind();
 			indexData = 0;
 		}
-		
+
 		if(pixelShader)
 		{
 			pixelShader->unbind();
@@ -294,7 +294,7 @@ namespace D3D9
 
 		return Unknown::AddRef();
 	}
-	
+
 	unsigned long Direct3DDevice9::Release()
 	{
 		TRACE("void");
@@ -323,12 +323,12 @@ namespace D3D9
 		}
 
 		stateRecorder = new Direct3DStateBlock9(this, (D3DSTATEBLOCKTYPE)0);
-		
+
 		if(!stateRecorder)
 		{
 			return OUTOFMEMORY();
 		}
-		
+
 		stateRecorder->bind();
 
 		return D3D_OK;
@@ -594,7 +594,7 @@ namespace D3D9
 		{
 			return INVALIDCALL();
 		}
-		
+
 		bool lockable = false;
 
 		switch(format)
@@ -825,7 +825,7 @@ namespace D3D9
 		}
 
 		(*surface)->AddRef();
-		
+
 		return D3D_OK;
 	}
 
@@ -902,7 +902,7 @@ namespace D3D9
 		}
 
 		(*vertexBuffer)->AddRef();
-	
+
 		return D3D_OK;
 	}
 
@@ -984,7 +984,7 @@ namespace D3D9
 			return INVALIDCALL();
 		}
 
-		*volumeTexture = new Direct3DVolumeTexture9(this, width, height, depth, levels, usage, format, pool);	
+		*volumeTexture = new Direct3DVolumeTexture9(this, width, height, depth, levels, usage, format, pool);
 
 		if(!*volumeTexture)
 		{
@@ -1095,7 +1095,7 @@ namespace D3D9
 		}
 
 		int length = (minIndex + numVertices) * vertexStreamZeroStride;
-		
+
 		Direct3DVertexBuffer9 *vertexBuffer = new Direct3DVertexBuffer9(this, length, 0, 0, D3DPOOL_DEFAULT);
 
 		void *data;
@@ -1234,7 +1234,7 @@ namespace D3D9
 		length *= vertexStreamZeroStride;
 
 		CreateVertexBuffer(length, 0, 0, D3DPOOL_DEFAULT, &vertexBuffer, 0);
-		
+
 		void *data;
 		vertexBuffer->Lock(0, 0, &data, 0);
 		memcpy(data, vertexStreamZeroData, length);
@@ -1325,7 +1325,7 @@ namespace D3D9
 		}
 
 		*stateBlock = 0;
-			
+
 		if(!stateRecorder)
 		{
 			return INVALIDCALL();
@@ -1346,7 +1346,7 @@ namespace D3D9
 		TRACE("void");
 
 		//	UNIMPLEMENTED();   // FIXME
-		
+
 		return D3D_OK;
 	}
 
@@ -1543,9 +1543,9 @@ namespace D3D9
 		}
 		else
 		{
-			*FVF = 0;	
+			*FVF = 0;
 		}
-		
+
 		return D3D_OK;
 	}
 
@@ -1601,7 +1601,7 @@ namespace D3D9
 		}
 
 		*light = this->light[index];
-		
+
 		return D3D_OK;
 	}
 
@@ -1863,7 +1863,7 @@ namespace D3D9
 			update.stride = dest->getExternalPitchB();
 			update.cursorHeight = 0;
 			update.cursorWidth = 0;
-		
+
 			if(memcmp(&blitState, &update, sizeof(sw::BlitState)) != 0)
 			{
 				blitState = update;
@@ -1924,7 +1924,7 @@ namespace D3D9
 		}
 
 		*rect = scissorRect;
-		
+
 		return D3D_OK;
 	}
 
@@ -1949,7 +1949,7 @@ namespace D3D9
 		}
 
 		*streamData = dataStream[streamNumber];
-		
+
 		if(dataStream[streamNumber])
 		{
 			dataStream[streamNumber]->AddRef();
@@ -1973,7 +1973,7 @@ namespace D3D9
 		}
 
 		*divider = streamSourceFreq[streamNumber];
-		
+
 		return D3D_OK;
 	}
 
@@ -2008,7 +2008,7 @@ namespace D3D9
 		{
 			return INVALIDCALL();
 		}
-		
+
 		*texture = 0;
 
 		if((sampler >= 16 && sampler <= D3DDMAPSAMPLER) || sampler > D3DVERTEXTEXTURESAMPLER3)
@@ -2017,12 +2017,12 @@ namespace D3D9
 		}
 
 		*texture = this->texture[sampler];
-		
+
 		if(this->texture[sampler])
 		{
 			this->texture[sampler]->AddRef();
 		}
-		
+
 		return D3D_OK;
 	}
 
@@ -2209,7 +2209,7 @@ namespace D3D9
 			light.Direction.y = 0;
 			light.Direction.z = 1;
 			light.Range = 0;
-			light.Falloff = 0; 
+			light.Falloff = 0;
 			light.Attenuation0 = 0;
 			light.Attenuation1 = 0;
 			light.Attenuation2 = 0;
@@ -2340,7 +2340,7 @@ namespace D3D9
 		}
 
 		deviceWindow = presentParameters->hDeviceWindow;
-		
+
 		if(depthStencil)
 		{
 			depthStencil->unbind();
@@ -2352,7 +2352,7 @@ namespace D3D9
 			autoDepthStencil->unbind();
 			autoDepthStencil = 0;
 		}
-		
+
 		for(int index = 0; index < 4; index++)
 		{
 			if(renderTarget[index])
@@ -2728,8 +2728,9 @@ namespace D3D9
 
 		this->depthStencil = depthStencil;
 
-		renderer->setDepthStencil(depthStencil);
-		
+		renderer->setDepthBuffer(depthStencil);
+		renderer->setStencilBuffer(depthStencil);
+
 		return D3D_OK;
 	}
 
@@ -2740,7 +2741,7 @@ namespace D3D9
 		TRACE("int enableDialogs = %d", enableDialogs);
 
 		UNIMPLEMENTED();
-		
+
 		return D3D_OK;
 	}
 
@@ -2769,7 +2770,7 @@ namespace D3D9
 		{
 			stateRecorder->setFVF(FVF);
 		}
-		
+
 		return D3D_OK;
 	}
 
@@ -2897,7 +2898,7 @@ namespace D3D9
 		{
 			stateRecorder->setNPatchMode(segments);
 		}
-		
+
 		return D3D_OK;
 	}
 
@@ -2939,7 +2940,7 @@ namespace D3D9
 			{
 				return D3D_OK;
 			}
-			
+
 			if(pixelShader)
 			{
 				pixelShader->bind();
@@ -3060,7 +3061,7 @@ namespace D3D9
 			renderState[state] = value;
 
 			switch(state)
-			{		
+			{
 			case D3DRS_ZENABLE:
 				switch(value)
 				{
@@ -3223,7 +3224,7 @@ namespace D3D9
 					ASSERT(false);
 				}
 				break;
-			case D3DRS_CULLMODE:	
+			case D3DRS_CULLMODE:
 				switch(value)
 				{
 				case D3DCULL_NONE:
@@ -3764,7 +3765,7 @@ namespace D3D9
 				}
 				else
 				{
-					if(!init) if((float&)value != 0.0f) UNIMPLEMENTED();	
+					if(!init) if((float&)value != 0.0f) UNIMPLEMENTED();
 				}
 				break;
 			case D3DRS_ADAPTIVETESS_Z:
@@ -4371,7 +4372,7 @@ namespace D3D9
 		{
 			stateRecorder->setSamplerState(sampler, state, value);
 		}
-		
+
 		return D3D_OK;
 	}
 
@@ -4394,7 +4395,7 @@ namespace D3D9
 		{
 			stateRecorder->setScissorRect(rect);
 		}
-		
+
 		return D3D_OK;
 	}
 
@@ -4415,7 +4416,7 @@ namespace D3D9
 		}
 
 		softwareVertexProcessing = (software != FALSE);
-		
+
 		return D3D_OK;
 	}
 
@@ -4452,7 +4453,7 @@ namespace D3D9
 		{
 			stateRecorder->setStreamSource(stream, vertexBuffer, offset, stride);
 		}
-	
+
 		return D3D_OK;
 	}
 
@@ -4475,10 +4476,10 @@ namespace D3D9
 		{
 			stateRecorder->setStreamSourceFreq(streamNumber, divider);
 		}
-		
+
 		return D3D_OK;
 	}
-	
+
 	long Direct3DDevice9::SetTexture(unsigned long sampler, IDirect3DBaseTexture9 *iBaseTexture)
 	{
 		CriticalSection cs(this);
@@ -4489,7 +4490,7 @@ namespace D3D9
 		{
 			return INVALIDCALL();
 		}
-		
+
 		if(sampler >= D3DVERTEXTEXTURESAMPLER0)
 		{
 			sampler = 16 + (sampler - D3DVERTEXTEXTURESAMPLER0);
@@ -4690,7 +4691,7 @@ namespace D3D9
 					renderer->setSecondArgument(stage, sw::TextureStage::SOURCE_TEXTURE);
 					break;
 				case D3DTA_TFACTOR:
-					renderer->setSecondArgument(stage, sw::TextureStage::SOURCE_TFACTOR);						
+					renderer->setSecondArgument(stage, sw::TextureStage::SOURCE_TFACTOR);
 					break;
 				case D3DTA_SPECULAR:
 					renderer->setSecondArgument(stage, sw::TextureStage::SOURCE_SPECULAR);
@@ -5187,7 +5188,7 @@ namespace D3D9
 		{
 			stateRecorder->setVertexDeclaration(vertexDeclaration);
 		}
-		
+
 		return D3D_OK;
 	}
 
@@ -5205,7 +5206,7 @@ namespace D3D9
 			{
 				return D3D_OK;
 			}
-			
+
 			if(vertexShader)
 			{
 				vertexShader->bind();
@@ -5244,7 +5245,7 @@ namespace D3D9
 			{
 				vertexShaderConstantB[startRegister + i] = constantData[i];
 			}
-			
+
 			vertexShaderConstantsBDirty = sw::max(startRegister + count, vertexShaderConstantsBDirty);
 			vertexShaderDirty = true;   // Reload DEF constants
 		}
@@ -5276,7 +5277,7 @@ namespace D3D9
 				vertexShaderConstantF[startRegister + i][2] = constantData[i * 4 + 2];
 				vertexShaderConstantF[startRegister + i][3] = constantData[i * 4 + 3];
 			}
-			
+
 			vertexShaderConstantsFDirty = sw::max(startRegister + count, vertexShaderConstantsFDirty);
 			vertexShaderDirty = true;   // Reload DEF constants
 		}
@@ -5308,7 +5309,7 @@ namespace D3D9
 				vertexShaderConstantI[startRegister + i][2] = constantData[i * 4 + 2];
 				vertexShaderConstantI[startRegister + i][3] = constantData[i * 4 + 3];
 			}
-			
+
 			vertexShaderConstantsIDirty = sw::max(startRegister + count, vertexShaderConstantsIDirty);
 			vertexShaderDirty = true;   // Reload DEF constants
 		}
@@ -5339,7 +5340,7 @@ namespace D3D9
 		{
 			stateRecorder->setViewport(viewport);
 		}
-		
+
 		return D3D_OK;
 	}
 
@@ -5385,7 +5386,7 @@ namespace D3D9
 		{
 			return INVALIDCALL();
 		}
-		
+
 		Direct3DSurface9 *source = static_cast<Direct3DSurface9*>(sourceSurface);
 		Direct3DSurface9 *dest = static_cast<Direct3DSurface9*>(destSurface);
 
@@ -5422,7 +5423,7 @@ namespace D3D9
 
 		RECT sRect;
 		RECT dRect;
-		
+
 		if(sourceRect)
 		{
 			sRect.left = sourceRect->left;
@@ -5472,7 +5473,7 @@ namespace D3D9
 		{
 			return INVALIDCALL();
 		}
-		
+
 		sw::Surface *source = static_cast<Direct3DSurface9*>(sourceSurface);
 		sw::Surface *dest = static_cast<Direct3DSurface9*>(destinationSurface);
 
@@ -5518,14 +5519,14 @@ namespace D3D9
 		for(unsigned int y = 0; y < height; y++)
 		{
 			memcpy(dBuffer, sBuffer, bytes);
-			
+
 			sBuffer += sPitch;
 			dBuffer += dPitch;
 		}
 
 		source->unlockExternal();
 		dest->unlockExternal();
-		
+
 		return D3D_OK;
 	}
 
@@ -5752,7 +5753,7 @@ namespace D3D9
 			unsigned char index = vertexElement[i].UsageIndex;
 
 			ASSERT(method == D3DDECLMETHOD_DEFAULT);	// FIXME: Unimplemented
-			
+
 			if(!dataStream[stream])
 			{
 				continue;
@@ -5761,7 +5762,7 @@ namespace D3D9
 			Direct3DVertexBuffer9 *streamBuffer = dataStream[stream];
 			sw::Resource *resource = streamBuffer->getResource();
 			const void *buffer = ((char*)resource->data() + streamOffset[stream]) + offset;
-			
+
 			int stride = streamStride[stream];
 
 			if(instancing && streamSourceFreq[stream] & D3DSTREAMSOURCE_INSTANCEDATA)
@@ -5880,12 +5881,12 @@ namespace D3D9
 				{
 					renderer->setPixelShaderConstantB(0, pixelShaderConstantB, pixelShaderConstantsBDirty);
 				}
-		
+
 				if(pixelShaderConstantsFDirty)
 				{
 					renderer->setPixelShaderConstantF(0, pixelShaderConstantF[0], pixelShaderConstantsFDirty);
 				}
-		
+
 				if(pixelShaderConstantsIDirty)
 				{
 					renderer->setPixelShaderConstantI(0, pixelShaderConstantI[0], pixelShaderConstantsIDirty);
@@ -5912,17 +5913,17 @@ namespace D3D9
 				{
 					renderer->setVertexShaderConstantB(0, vertexShaderConstantB, vertexShaderConstantsBDirty);
 				}
-		
+
 				if(vertexShaderConstantsFDirty)
 				{
 					renderer->setVertexShaderConstantF(0, vertexShaderConstantF[0], vertexShaderConstantsFDirty);
 				}
-		
+
 				if(vertexShaderConstantsIDirty)
 				{
 					renderer->setVertexShaderConstantI(0, vertexShaderConstantI[0], vertexShaderConstantsIDirty);
 				}
-				
+
 				renderer->setVertexShader(vertexShader->getVertexShader());   // Loads shader constants set with DEF
 				vertexShaderConstantsBDirty = vertexShader->getVertexShader()->dirtyConstantsB;   // Shader DEF'ed constants are dirty
 				vertexShaderConstantsFDirty = vertexShader->getVertexShader()->dirtyConstantsF;   // Shader DEF'ed constants are dirty
@@ -5936,7 +5937,7 @@ namespace D3D9
 			vertexShaderDirty = false;
 		}
 	}
-	
+
 	void Direct3DDevice9::bindLights()
 	{
 		if(!lightsDirty) return;
@@ -5968,7 +5969,7 @@ namespace D3D9
 			renderer->setLightDiffuse(active, diffuse);
 			renderer->setLightSpecular(active, specular);
 			renderer->setLightAmbient(active, ambient);
-			
+
 			if(l.Type == D3DLIGHT_DIRECTIONAL)
 			{
 				// FIXME: Unsupported, make it a positional light far away without falloff
@@ -6026,7 +6027,7 @@ namespace D3D9
 			scissor.x1 = scissorRect.right;
 			scissor.y0 = scissorRect.top;
 			scissor.y1 = scissorRect.bottom;
-			
+
 			renderer->setScissor(scissor);
 		}
 		else
@@ -6036,7 +6037,7 @@ namespace D3D9
 			scissor.x1 = viewport.X + viewport.Width;
 			scissor.y0 = viewport.Y;
 			scissor.y1 = viewport.Y + viewport.Height;
-			
+
 			renderer->setScissor(scissor);
 		}
 
@@ -6085,7 +6086,7 @@ namespace D3D9
 			}
 
 			renderer->setTextureResource(sampler, resource);
-			
+
 			if(baseTexture && textureUsed)
 			{
 				baseTexture->GenerateMipSubLevels();
@@ -6094,7 +6095,7 @@ namespace D3D9
 			if(baseTexture && textureUsed)
 			{
 				int levelCount = baseTexture->getInternalLevelCount();
-				
+
 				int textureLOD = baseTexture->GetLOD();
 				int samplerLOD = samplerState[sampler][D3DSAMP_MAXMIPLEVEL];
 				int LOD = textureLOD > samplerLOD ? textureLOD : samplerLOD;
@@ -6332,7 +6333,7 @@ namespace D3D9
 						destBytes[4 * x + 3] = 0xFF;
 					}
 				}
-				
+
 				sourceBytes += sourcePitch;
 				destBytes += destPitch;
 			}
@@ -6387,7 +6388,7 @@ namespace D3D9
 
 		source->unlockExternal();
 		dest->unlockExternal();
-		
+
 		return D3D_OK;
 	}
 
