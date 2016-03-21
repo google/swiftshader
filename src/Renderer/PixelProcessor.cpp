@@ -172,9 +172,14 @@ namespace sw
 		context->renderTarget[index] = renderTarget;
 	}
 
-	void PixelProcessor::setDepthStencil(Surface *depthStencil)
+	void PixelProcessor::setDepthBuffer(Surface *depthBuffer)
 	{
-		context->depthStencil = depthStencil;
+		context->depthBuffer = depthBuffer;
+	}
+
+	void PixelProcessor::setStencilBuffer(Surface *stencilBuffer)
+	{
+		context->stencilBuffer = stencilBuffer;
 	}
 
 	void PixelProcessor::setTexCoordIndex(unsigned int stage, int texCoordIndex)
@@ -939,9 +944,9 @@ namespace sw
 		{
 			state.depthTestActive = true;
 			state.depthCompareMode = context->depthCompareMode;
-			state.quadLayoutDepthBuffer = context->depthStencil->getInternalFormat() != FORMAT_D32F_LOCKABLE &&
-			                              context->depthStencil->getInternalFormat() != FORMAT_D32FS8_TEXTURE &&
-			                              context->depthStencil->getInternalFormat() != FORMAT_D32FS8_SHADOW;
+			state.quadLayoutDepthBuffer = context->depthBuffer->getInternalFormat() != FORMAT_D32F_LOCKABLE &&
+			                              context->depthBuffer->getInternalFormat() != FORMAT_D32FS8_TEXTURE &&
+			                              context->depthBuffer->getInternalFormat() != FORMAT_D32FS8_SHADOW;
 		}
 
 		state.occlusionEnabled = context->occlusionEnabled;

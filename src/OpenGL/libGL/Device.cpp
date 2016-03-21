@@ -425,7 +425,8 @@ namespace gl
 
 		this->depthStencil = depthStencil;
 
-		setDepthStencil(depthStencil);
+		setDepthBuffer(depthStencil);
+		setStencilBuffer(depthStencil);
 	}
 
 	void Device::setPixelShader(PixelShader *pixelShader)

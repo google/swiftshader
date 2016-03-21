@@ -322,7 +322,8 @@ namespace es1
 
 		this->depthStencil = depthStencil;
 
-		setDepthStencil(depthStencil);
+		setDepthBuffer(depthStencil);
+		setStencilBuffer(depthStencil);
 	}
 
 	void Device::setScissorEnable(bool enable)

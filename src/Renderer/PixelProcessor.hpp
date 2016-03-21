@@ -196,7 +196,8 @@ namespace sw
 		virtual void unlockUniformBuffers();
 
 		virtual void setRenderTarget(int index, Surface *renderTarget);
-		virtual void setDepthStencil(Surface *depthStencil);
+		virtual void setDepthBuffer(Surface *depthBuffer);
+		virtual void setStencilBuffer(Surface *stencilBuffer);
 
 		virtual void setTexCoordIndex(unsigned int stage, int texCoordIndex);
 		virtual void setStageOperation(unsigned int stage, TextureStage::StageOperation stageOperation);
