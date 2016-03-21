@@ -532,7 +532,7 @@ template <typename ConstType> void ELFObjectWriter::writeConstantPool(Type Ty) {
 
   // If the -reorder-pooled-constant option is set to true, we should shuffle
   // the constants before we emit them.
-  if (Ctx.getFlags().shouldReorderPooledConstants() && !Pool.empty()) {
+  if (Ctx.getFlags().getReorderPooledConstants() && !Pool.empty()) {
     // Use the constant's kind value as the salt for creating random number
     // generator.
     Operand::OperandKind K = (*Pool.begin())->getKind();

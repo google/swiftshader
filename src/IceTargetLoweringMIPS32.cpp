@@ -137,7 +137,7 @@ void TargetMIPS32::translateO2() {
   Func->processAllocas(SortAndCombineAllocas);
   Func->dump("After Alloca processing");
 
-  if (!Ctx->getFlags().getPhiEdgeSplit()) {
+  if (!Ctx->getFlags().getEnablePhiEdgeSplit()) {
     // Lower Phi instructions.
     Func->placePhiLoads();
     if (Func->hasError())
@@ -200,7 +200,7 @@ void TargetMIPS32::translateO2() {
     return;
   Func->dump("After linear scan regalloc");
 
-  if (Ctx->getFlags().getPhiEdgeSplit()) {
+  if (Ctx->getFlags().getEnablePhiEdgeSplit()) {
     Func->advancedPhiLowering();
     Func->dump("After advanced Phi lowering");
   }
@@ -222,7 +222,7 @@ void TargetMIPS32::translateO2() {
   Func->dump("After branch optimization");
 
   // Nop insertion
-  if (Ctx->getFlags().shouldDoNopInsertion()) {
+  if (Ctx->getFlags().getShouldDoNopInsertion()) {
     Func->doNopInsertion();
   }
 }
@@ -267,7 +267,7 @@ void TargetMIPS32::translateOm1() {
   Func->dump("After stack frame mapping");
 
   // Nop insertion
-  if (Ctx->getFlags().shouldDoNopInsertion()) {
+  if (Ctx->getFlags().getShouldDoNopInsertion()) {
     Func->doNopInsertion();
   }
 }

@@ -27,6 +27,9 @@
 #include "IceOperand.h"
 #include "IceRegAlloc.h"
 
+#include <string>
+#include <vector>
+
 #define TARGET_LOWERING_CLASS_FOR(t) Target_##t
 
 // We prevent target-specific implementation details from leaking outside their
@@ -179,14 +182,14 @@ void TargetLowering::filterTypeToRegisterSet(
     RegNameToIndex[getRegName(RegNum)] = RegNum;
   }
 
-  ClFlags::StringVector BadRegNames;
+  std::vector<std::string> BadRegNames;
 
   // The processRegList function iterates across the RegNames vector.  Each
   // entry in the vector is a string of the form "<reg>" or "<class>:<reg>".
   // The register class and register number are computed, and the corresponding
   // bit is set in RegSet[][].  If "<class>:" is missing, then the bit is set
   // for all classes.
-  auto processRegList = [&](const ClFlags::StringVector &RegNames,
+  auto processRegList = [&](const std::vector<std::string> &RegNames,
                             std::vector<SmallBitVector> &RegSet) {
     for (const IceString &RegClassAndName : RegNames) {
       IceString RClass;
@@ -474,10 +477,10 @@ void TargetLowering::regAlloc(RegAllocKind Kind) {
   if (hasFramePointer())
     RegExclude |= RegSet_FramePointer;
   SmallBitVector RegMask = getRegisterSet(RegInclude, RegExclude);
-  bool Repeat = (Kind == RAK_Global && Ctx->getFlags().shouldRepeatRegAlloc());
+  bool Repeat = (Kind == RAK_Global && Ctx->getFlags().getRepeatRegAlloc());
   do {
     LinearScan.init(Kind);
-    LinearScan.scan(RegMask, Ctx->getFlags().shouldRandomizeRegAlloc());
+    LinearScan.scan(RegMask, Ctx->getFlags().getRandomizeRegisterAllocation());
     if (!LinearScan.hasEvictions())
       Repeat = false;
     Kind = RAK_SecondChance;

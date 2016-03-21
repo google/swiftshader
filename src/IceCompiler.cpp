@@ -22,7 +22,7 @@
 #include "IceBuildDefs.h"
 #include "IceCfg.h"
 #include "IceClFlags.h"
-#include "IceClFlagsExtra.h"
+#include "IceClFlags.h"
 #include "IceConverter.h"
 #include "IceELFObjectWriter.h"
 #include "PNaClTranslator.h"
@@ -57,7 +57,7 @@ bool llvmIRInput(const IceString &Filename) {
 
 } // end of anonymous namespace
 
-void Compiler::run(const Ice::ClFlagsExtra &ExtraFlags, GlobalContext &Ctx,
+void Compiler::run(const Ice::ClFlags &Flags, GlobalContext &Ctx,
                    std::unique_ptr<llvm::DataStreamer> &&InputStream) {
   // The Minimal build (specifically, when dump()/emit() are not implemented)
   // allows only --filetype=obj. Check here to avoid cryptic error messages
@@ -77,9 +77,8 @@ void Compiler::run(const Ice::ClFlagsExtra &ExtraFlags, GlobalContext &Ctx,
   Ctx.startWorkerThreads();
 
   std::unique_ptr<Translator> Translator;
-  const IceString &IRFilename = ExtraFlags.getIRFilename();
-  const bool BuildOnRead =
-      ExtraFlags.getBuildOnRead() && !llvmIRInput(IRFilename);
+  const IceString &IRFilename = Flags.getIRFilename();
+  const bool BuildOnRead = Flags.getBuildOnRead() && !llvmIRInput(IRFilename);
   if (BuildOnRead) {
     std::unique_ptr<PNaClTranslator> PTranslator(new PNaClTranslator(&Ctx));
     std::unique_ptr<llvm::StreamingMemoryObject> MemObj(
@@ -100,14 +99,14 @@ void Compiler::run(const Ice::ClFlagsExtra &ExtraFlags, GlobalContext &Ctx,
     llvm::SMDiagnostic Err;
     TimerMarker T1(Ice::TimerStack::TT_parse, &Ctx);
     llvm::DiagnosticHandlerFunction DiagnosticHandler =
-        ExtraFlags.getLLVMVerboseErrors()
+        Flags.getLLVMVerboseErrors()
             ? redirectNaClDiagnosticToStream(llvm::errs())
             : nullptr;
     std::unique_ptr<llvm::Module> Mod =
-        NaClParseIRFile(IRFilename, ExtraFlags.getInputFileFormat(), Err,
+        NaClParseIRFile(IRFilename, Flags.getInputFileFormat(), Err,
                         llvm::getGlobalContext(), DiagnosticHandler);
     if (!Mod) {
-      Err.print(ExtraFlags.getAppName().c_str(), llvm::errs());
+      Err.print(Flags.getAppName().c_str(), llvm::errs());
       Ctx.getErrorStatus()->assign(EC_Bitcode);
       return;
     }

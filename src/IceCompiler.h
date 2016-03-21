@@ -23,7 +23,7 @@ class DataStreamer;
 
 namespace Ice {
 
-class ClFlagsExtra;
+class ClFlags;
 
 /// A compiler driver. It may be called to handle a single compile request.
 class Compiler {
@@ -35,7 +35,7 @@ public:
 
   /// Run the compiler with the given GlobalContext for compilation state. Upon
   /// error, the Context's error status will be set.
-  void run(const ClFlagsExtra &ExtraFlags, GlobalContext &Ctx,
+  void run(const ClFlags &ExtraFlags, GlobalContext &Ctx,
            std::unique_ptr<llvm::DataStreamer> &&InputStream);
 };
 

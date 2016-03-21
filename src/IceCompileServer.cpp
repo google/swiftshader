@@ -15,7 +15,6 @@
 #include "IceCompileServer.h"
 
 #include "IceClFlags.h"
-#include "IceClFlagsExtra.h"
 #include "IceELFStreamer.h"
 #include "IceGlobalContext.h"
 #include "LinuxMallocProfiling.h"
@@ -96,7 +95,7 @@ std::unique_ptr<Ostream> makeStream(const IceString &Filename,
 }
 
 ErrorCodes getReturnValue(ErrorCodes Val) {
-  if (GlobalContext::ExtraFlags.getAlwaysExitSuccess())
+  if (GlobalContext::Flags.getAlwaysExitSuccess())
     return EC_None;
   return Val;
 }
@@ -160,16 +159,14 @@ void CLCompileServer::run() {
   }
   ClFlags::parseFlags(argc, argv);
   ClFlags &Flags = GlobalContext::Flags;
-  ClFlagsExtra &ExtraFlags = GlobalContext::ExtraFlags;
   ClFlags::getParsedClFlags(Flags);
-  ClFlags::getParsedClFlagsExtra(ExtraFlags);
 
   // Override report_fatal_error if we want to exit with 0 status.
-  if (ExtraFlags.getAlwaysExitSuccess())
+  if (Flags.getAlwaysExitSuccess())
     llvm::install_fatal_error_handler(reportFatalErrorThenExitSuccess, this);
 
   std::error_code EC;
-  std::unique_ptr<Ostream> Ls = makeStream(ExtraFlags.getLogFilename(), EC);
+  std::unique_ptr<Ostream> Ls = makeStream(Flags.getLogFilename(), EC);
   if (EC) {
     llvm::report_fatal_error("Unable to open log file");
   }
@@ -180,14 +177,14 @@ void CLCompileServer::run() {
   std::unique_ptr<ELFStreamer> ELFStr;
   switch (Flags.getOutFileType()) {
   case FT_Elf: {
-    if (ExtraFlags.getOutputFilename() == "-") {
+    if (Flags.getOutputFilename() == "-" && !Flags.getGenerateBuildAtts()) {
       *Ls << "Error: writing binary ELF to stdout is unsupported\n";
       return transferErrorCode(getReturnValue(Ice::EC_Args));
     }
     std::unique_ptr<llvm::raw_fd_ostream> FdOs(new llvm::raw_fd_ostream(
-        ExtraFlags.getOutputFilename(), EC, llvm::sys::fs::F_None));
+        Flags.getOutputFilename(), EC, llvm::sys::fs::F_None));
     if (EC) {
-      *Ls << "Failed to open output file: " << ExtraFlags.getOutputFilename()
+      *Ls << "Failed to open output file: " << Flags.getOutputFilename()
           << ":\n" << EC.message() << "\n";
       return transferErrorCode(getReturnValue(Ice::EC_Args));
     }
@@ -199,9 +196,9 @@ void CLCompileServer::run() {
   } break;
   case FT_Asm:
   case FT_Iasm: {
-    Os = makeStream(ExtraFlags.getOutputFilename(), EC);
+    Os = makeStream(Flags.getOutputFilename(), EC);
     if (EC) {
-      *Ls << "Failed to open output file: " << ExtraFlags.getOutputFilename()
+      *Ls << "Failed to open output file: " << Flags.getOutputFilename()
           << ":\n" << EC.message() << "\n";
       return transferErrorCode(getReturnValue(Ice::EC_Args));
     }
@@ -209,36 +206,36 @@ void CLCompileServer::run() {
   } break;
   }
 
-  if (BuildDefs::minimal() && ExtraFlags.getBitcodeAsText())
+  if (BuildDefs::minimal() && Flags.getBitcodeAsText())
     llvm::report_fatal_error("Can't specify 'bitcode-as-text' flag in "
                              "minimal build");
 
   IceString StrError;
   std::unique_ptr<llvm::DataStreamer> InputStream(
-      (!BuildDefs::minimal() && ExtraFlags.getBitcodeAsText())
-          ? TextDataStreamer::create(ExtraFlags.getIRFilename(), &StrError)
-          : llvm::getDataFileStreamer(ExtraFlags.getIRFilename(), &StrError));
+      (!BuildDefs::minimal() && Flags.getBitcodeAsText())
+          ? TextDataStreamer::create(Flags.getIRFilename(), &StrError)
+          : llvm::getDataFileStreamer(Flags.getIRFilename(), &StrError));
   if (!StrError.empty() || !InputStream) {
-    llvm::SMDiagnostic Err(ExtraFlags.getIRFilename(),
-                           llvm::SourceMgr::DK_Error, StrError);
-    Err.print(ExtraFlags.getAppName().c_str(), *Ls);
+    llvm::SMDiagnostic Err(Flags.getIRFilename(), llvm::SourceMgr::DK_Error,
+                           StrError);
+    Err.print(Flags.getAppName().c_str(), *Ls);
     return transferErrorCode(getReturnValue(Ice::EC_Bitcode));
   }
 
-  if (ExtraFlags.getGenerateBuildAtts()) {
+  if (Flags.getGenerateBuildAtts()) {
     dumpBuildAttributes(*Os.get());
     return transferErrorCode(getReturnValue(Ice::EC_None));
   }
 
   Ctx.reset(new GlobalContext(Ls.get(), Os.get(), Ls.get(), ELFStr.get()));
   if (Ctx->getFlags().getNumTranslationThreads() != 0) {
-    std::thread CompileThread([this, &ExtraFlags, &InputStream]() {
+    std::thread CompileThread([this, &Flags, &InputStream]() {
       Ctx->initParserThread();
-      getCompiler().run(ExtraFlags, *Ctx.get(), std::move(InputStream));
+      getCompiler().run(Flags, *Ctx.get(), std::move(InputStream));
     });
     CompileThread.join();
   } else {
-    getCompiler().run(ExtraFlags, *Ctx.get(), std::move(InputStream));
+    getCompiler().run(Flags, *Ctx.get(), std::move(InputStream));
   }
   transferErrorCode(
       getReturnValue(static_cast<ErrorCodes>(Ctx->getErrorStatus()->value())));

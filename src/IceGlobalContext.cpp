@@ -18,7 +18,6 @@
 #include "IceCfg.h"
 #include "IceCfgNode.h"
 #include "IceClFlags.h"
-#include "IceClFlagsExtra.h"
 #include "IceDefs.h"
 #include "IceELFObjectWriter.h"
 #include "IceGlobalInits.h"
@@ -427,7 +426,7 @@ void GlobalContext::lowerGlobals(const IceString &SectionSuffix) {
 
   saveBlockInfoPtrs();
   // If we need to shuffle the layout of global variables, shuffle them now.
-  if (getFlags().shouldReorderGlobalVariables()) {
+  if (getFlags().getReorderGlobalVariables()) {
     // Create a random number generator for global variable reordering.
     RandomNumberGenerator RNG(getFlags().getRandomSeed(),
                               RPE_GlobalVariableReordering);
@@ -494,7 +493,7 @@ void GlobalContext::emitItems() {
   bool EmitQueueEmpty = false;
   const uint32_t ShuffleWindowSize =
       std::max(1u, getFlags().getReorderFunctionsWindowSize());
-  bool Shuffle = Threaded && getFlags().shouldReorderFunctions();
+  bool Shuffle = Threaded && getFlags().getReorderFunctions();
   // Create a random number generator for function reordering.
   RandomNumberGenerator RNG(getFlags().getRandomSeed(), RPE_FunctionReordering);
 
@@ -801,7 +800,7 @@ JumpTableDataList GlobalContext::getJumpTables() {
               return A.getId() < B.getId();
             });
 
-  if (getFlags().shouldReorderPooledConstants()) {
+  if (getFlags().getReorderPooledConstants()) {
     // If reorder-pooled-constants option is set to true, we also shuffle the
     // jump tables before emitting them.
 
@@ -919,7 +918,6 @@ void GlobalContext::dumpTimers(TimerStackIdT StackID, bool DumpCumulative) {
 }
 
 ClFlags GlobalContext::Flags;
-ClFlagsExtra GlobalContext::ExtraFlags;
 
 TimerIdT TimerMarker::getTimerIdFromFuncName(GlobalContext *Ctx,
                                              const IceString &FuncName) {

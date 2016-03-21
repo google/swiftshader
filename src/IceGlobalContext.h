@@ -492,7 +492,6 @@ public:
   }
 
   static ClFlags Flags;
-  static ClFlagsExtra ExtraFlags;
 
   /// DisposeGlobalVariablesAfterLowering controls whether the memory used by
   /// GlobaleVariables can be reclaimed right after they have been lowered.

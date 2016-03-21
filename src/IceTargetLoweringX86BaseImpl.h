@@ -391,7 +391,7 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::translateO2() {
   Func->processAllocas(SortAndCombineAllocas);
   Func->dump("After Alloca processing");
 
-  if (!Ctx->getFlags().getPhiEdgeSplit()) {
+  if (!Ctx->getFlags().getEnablePhiEdgeSplit()) {
     // Lower Phi instructions.
     Func->placePhiLoads();
     if (Func->hasError())
@@ -477,7 +477,7 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::translateO2() {
     return;
   Func->dump("After linear scan regalloc");
 
-  if (Ctx->getFlags().getPhiEdgeSplit()) {
+  if (Ctx->getFlags().getEnablePhiEdgeSplit()) {
     Func->advancedPhiLowering();
     Func->dump("After advanced Phi lowering");
   }
@@ -7303,7 +7303,7 @@ void TargetDataX86<TraitsType>::emitConstantPool(GlobalContext *Ctx) {
 
   // If reorder-pooled-constants option is set to true, we need to shuffle the
   // constant pool before emitting it.
-  if (Ctx->getFlags().shouldReorderPooledConstants() && !Pool.empty()) {
+  if (Ctx->getFlags().getReorderPooledConstants() && !Pool.empty()) {
     // Use the constant's kind value as the salt for creating random number
     // generator.
     Operand::OperandKind K = (*Pool.begin())->getKind();

@@ -441,7 +441,7 @@ void getRandomPostOrder(CfgNode *Node, BitVector &ToVisit,
 } // end of anonymous namespace
 
 void Cfg::shuffleNodes() {
-  if (!Ctx->getFlags().shouldReorderBasicBlocks())
+  if (!Ctx->getFlags().getReorderBasicBlocks())
     return;
 
   NodeList ReversedReachable;
@@ -764,7 +764,7 @@ void Cfg::doAddressOpt() {
 }
 
 void Cfg::doNopInsertion() {
-  if (!Ctx->getFlags().shouldDoNopInsertion())
+  if (!Ctx->getFlags().getShouldDoNopInsertion())
     return;
   TimerMarker T(TimerStack::TT_doNopInsertion, this);
   RandomNumberGenerator RNG(Ctx->getFlags().getRandomSeed(), RPE_NopInsertion,

@@ -17,7 +17,7 @@
 
 #include "IceClFlags.h"
 
-#include "IceClFlagsExtra.h"
+#include "IceClFlags.def"
 
 #ifdef __clang__
 #pragma clang diagnostic push
@@ -30,576 +30,167 @@
 #pragma clang diagnostic pop
 #endif // __clang__
 
-namespace cl = llvm::cl;
-
-/// Options which are captured in Ice::ClFlags and propagated.
+#include <utility>
 
 namespace {
+// cl is used to alias the llvm::cl types and functions that we need.
+namespace cl {
 
-/// Allow error recovery when reading PNaCl bitcode.
-cl::opt<bool> AllowErrorRecovery(
-    "allow-pnacl-reader-error-recovery",
-    cl::desc("Allow error recovery when reading PNaCl bitcode."),
-    cl::init(false));
+using alias = llvm::cl::alias;
 
-/// Allow global symbols to be externally defined (other than _start and
-/// __pnacl_pso_root).
-cl::opt<bool> AllowExternDefinedSymbols(
-    "allow-externally-defined-symbols",
-    cl::desc("Allow global symbols to be externally defined (other than _start "
-             "and __pnacl_pso_root)."),
-    cl::init(false));
+using aliasopt = llvm::cl::aliasopt;
 
-/// Alias for --allow-externally-defined-symbols.
+using llvm::cl::CommaSeparated;
+
+using desc = llvm::cl::desc;
+
+template <typename T> using initializer = llvm::cl::initializer<T>;
+
+template <typename T> initializer<T> init(const T &Val) {
+  return initializer<T>(Val);
+}
+
+template <typename T> using list = llvm::cl::list<T>;
+
+using llvm::cl::NotHidden;
+
+template <typename T> using opt = llvm::cl::opt<T>;
+
+using llvm::cl::ParseCommandLineOptions;
+
+using llvm::cl::Positional;
+
+template <typename T> using ValuesClass = llvm::cl::ValuesClass<T>;
+
+template <typename T, typename... A>
+ValuesClass<T> values(const char *Arg, T Val, const char *Desc, A &&... Args) {
+  return llvm::cl::values(Arg, Val, Desc, std::forward<A>(Args)..., nullptr);
+}
+
+using llvm::cl::value_desc;
+} // end of namespace cl
+
+// cl_type_traits is used to convert between a tuple of <T, cl_detail::*flag> to
+// the appropriate (llvm::)cl object.
+template <typename B, typename CL> struct cl_type_traits {};
+
+template <typename T>
+struct cl_type_traits<T, ::Ice::cl_detail::dev_list_flag> {
+  using cl_type = cl::list<T>;
+};
+
+template <typename T> struct cl_type_traits<T, ::Ice::cl_detail::dev_opt_flag> {
+  using cl_type = cl::opt<T>;
+};
+
+template <typename T>
+struct cl_type_traits<T, ::Ice::cl_detail::release_opt_flag> {
+  using cl_type = cl::opt<T>;
+};
+
+#define X(Name, Type, ClType, ...)                                             \
+  cl_type_traits<Type, Ice::cl_detail::ClType>::cl_type Name##Obj(__VA_ARGS__);
+COMMAND_LINE_FLAGS
+#undef X
+
+// Add declarations that do not need to add members to ClFlags below.
 cl::alias AllowExternDefinedSymbolsA(
     "allow-extern", cl::desc("Alias for --allow-externally-defined-symbols"),
-    cl::NotHidden, cl::aliasopt(AllowExternDefinedSymbols));
+    cl::NotHidden, cl::aliasopt(AllowExternDefinedSymbolsObj));
 
-/// Allow IACA (Intel Architecture Code Analyzer) marks to be inserted. These
-/// binaries are not executable.
-cl::opt<bool> AllowIacaMarks(
-    "allow-iaca-marks",
-    cl::desc("Allow IACA (Intel Architecture Code Analyzer) marks to be "
-             "inserted. These binaries are not executable."),
-    cl::init(false));
+std::string AppNameObj;
 
-/// Allow global variables to be uninitialized. This is currently needed by the
-/// cross tests.
-cl::opt<bool> AllowUninitializedGlobals(
-    "allow-uninitialized-globals",
-    cl::desc("Allow global variables to be uninitialized"));
-
-/// Emit (global) data into separate sections.
-cl::opt<bool>
-    DataSections("fdata-sections",
-                 cl::desc("Emit (global) data into separate sections"));
-
-/// Decorate textual asm output with register liveness info.
-cl::opt<bool> DecorateAsm(
-    "asm-verbose",
-    cl::desc("Decorate textual asm output with register liveness info"));
-
-/// Define default function prefix for naming unnamed functions.
-cl::opt<std::string>
-    DefaultFunctionPrefix("default-function-prefix",
-                          cl::desc("Define default function prefix for naming "
-                                   "unnamed functions"),
-                          cl::init(Ice::BuildDefs::dump() ? "Function" : "F"));
-
-/// Define default global prefix for naming unnamed globals.
-cl::opt<std::string>
-    DefaultGlobalPrefix("default-global-prefix",
-                        cl::desc("Define default global prefix for naming "
-                                 "unnamed globals"),
-                        cl::init(Ice::BuildDefs::dump() ? "Global" : "G"));
-
-/// Disable hybrid assembly when -filetype=iasm.
-cl::opt<bool> DisableHybridAssembly(
-    "no-hybrid-asm", cl::desc("Disable hybrid assembly when -filetype=iasm"),
-    cl::init(false));
-
-/// Externalize all symbols.
-cl::opt<bool> DisableInternal("externalize",
-                              cl::desc("Externalize all symbols"));
-
-/// Disable Subzero translation.
-cl::opt<bool> DisableTranslation("notranslate",
-                                 cl::desc("Disable Subzero translation"));
-
-/// Print statistics after translating each function.
-cl::opt<bool>
-    DumpStats("szstats",
-              cl::desc("Print statistics after translating each function"));
-
-// TODO(stichnot): The implementation of block profiling introduces some
-// oddities to be aware of.  First, empty basic blocks that don't normally
-// appear in the asm output, may be profiled anyway, so one might see profile
-// counts for blocks not in the original asm output.  Second, edge-split nodes
-// for advanced phi lowering are added too late, at which point it is not
-// practical to add profiling.
-
-/// Instrument basic blocks, and output profiling information to stdout at the
-/// end of program execution.
-cl::opt<bool> EnableBlockProfile(
-    "enable-block-profile",
-    cl::desc("Instrument basic blocks, and output profiling "
-             "information to stdout at the end of program execution."),
-    cl::init(false));
-
-/// Force optimization of memory intrinsics.
-cl::opt<bool>
-    ForceMemIntrinOpt("fmem-intrin-opt",
-                      cl::desc("Force optimization of memory intrinsics."));
-
-/// Emit functions into separate sections.
-cl::opt<bool>
-    FunctionSections("ffunction-sections",
-                     cl::desc("Emit functions into separate sections"));
-
-/// Retain deleted instructions in the Cfg.  Defaults to true in DUMP-enabled
-/// build, and false in a non-DUMP build, but is ignored in a MINIMAL build.
-/// This flag allows overriding the default primarily for debugging.
-cl::opt<bool>
-    KeepDeletedInsts("keep-deleted-insts",
-                     cl::desc("Retain deleted instructions in the Cfg"),
-                     cl::init(Ice::BuildDefs::dump()));
-
-/// Mock bounds checking on loads/stores.
-cl::opt<bool> MockBoundsCheck("mock-bounds-check",
-                              cl::desc("Mock bounds checking on loads/stores"));
-
-/// Number of translation threads (in addition to the parser thread and the
-/// emitter thread). The special case of 0 means purely sequential, i.e. parser,
-/// translator, and emitter all within the same single thread. (This may need a
-/// slight rework if we expand to multiple parser or emitter threads.)
-cl::opt<uint32_t> NumThreads(
-    "threads",
-    cl::desc("Number of translation threads (0 for purely sequential)"),
-    // TODO(stichnot): Settle on a good default. Consider something related to
-    // std::thread::hardware_concurrency().
-    cl::init(2));
-
-/// Optimization level Om1, O-1, O0, O0, O1, O2.
-cl::opt<Ice::OptLevel> OLevel(cl::desc("Optimization level"),
-                              cl::init(Ice::Opt_m1), cl::value_desc("level"),
-                              cl::values(clEnumValN(Ice::Opt_m1, "Om1", "-1"),
-                                         clEnumValN(Ice::Opt_m1, "O-1", "-1"),
-                                         clEnumValN(Ice::Opt_0, "O0", "0"),
-                                         clEnumValN(Ice::Opt_1, "O1", "1"),
-                                         clEnumValN(Ice::Opt_2, "O2", "2"),
-                                         clEnumValEnd));
-
-/// Enable edge splitting for Phi lowering.
-cl::opt<bool>
-    EnablePhiEdgeSplit("phi-edge-split",
-                       cl::desc("Enable edge splitting for Phi lowering"),
-                       cl::init(true));
-
-/// TODO(stichnot): See if we can easily use LLVM's -rng-seed option and
-/// implementation. I expect the implementation is different and therefore the
-/// tests would need to be changed.
-cl::opt<unsigned long long>
-    RandomSeed("sz-seed", cl::desc("Seed the random number generator"),
-               cl::init(1));
-
-/// Randomly insert NOPs.
-cl::opt<bool> ShouldDoNopInsertion("nop-insertion",
-                                   cl::desc("Randomly insert NOPs"),
-                                   cl::init(false));
-
-/// Randomize register allocation.
-cl::opt<bool>
-    RandomizeRegisterAllocation("randomize-regalloc",
-                                cl::desc("Randomize register allocation"),
-                                cl::init(false));
-
-/// Allow failsafe access to registers that were restricted via -reg-use or
-/// -reg-exclude.
-cl::opt<bool>
-    RegAllocReserve("reg-reserve",
-                    cl::desc("Let register allocation use reserve registers"),
-                    cl::init(false));
-
-/// Repeat register allocation until convergence.
-cl::opt<bool>
-    RepeatRegAlloc("regalloc-repeat",
-                   cl::desc("Repeat register allocation until convergence"),
-                   cl::init(true));
-
-/// Skip through unimplemented lowering code instead of aborting.
-cl::opt<bool> SkipUnimplemented(
-    "skip-unimplemented",
-    cl::desc("Skip through unimplemented lowering code instead of aborting."),
-    cl::init(false));
-
-/// Enable breakdown timing of Subzero translation.
-cl::opt<bool> SubzeroTimingEnabled(
-    "timing", cl::desc("Enable breakdown timing of Subzero translation"));
-
-/// Target architecture.
-cl::opt<Ice::TargetArch> TargetArch(
-    "target", cl::desc("Target architecture:"), cl::init(Ice::Target_X8632),
-    cl::values(
-        clEnumValN(Ice::Target_X8632, "x8632", "x86-32"),
-        clEnumValN(Ice::Target_X8632, "x86-32", "x86-32 (same as x8632)"),
-        clEnumValN(Ice::Target_X8632, "x86_32", "x86-32 (same as x8632)"),
-        clEnumValN(Ice::Target_X8664, "x8664", "x86-64"),
-        clEnumValN(Ice::Target_X8664, "x86-64", "x86-64 (same as x8664)"),
-        clEnumValN(Ice::Target_X8664, "x86_64", "x86-64 (same as x8664)"),
-        clEnumValN(Ice::Target_ARM32, "arm", "arm32"),
-        clEnumValN(Ice::Target_ARM32, "arm32", "arm32 (same as arm)"),
-        clEnumValN(Ice::Target_ARM64, "arm64", "arm64"),
-        clEnumValN(Ice::Target_MIPS32, "mips", "mips32"),
-        clEnumValN(Ice::Target_MIPS32, "mips32", "mips32 (same as mips)"),
-        clEnumValEnd));
-
-/// Extra amount of stack to add to the frame in bytes (for testing).
-cl::opt<uint32_t> TestStackExtra(
-    "test-stack-extra",
-    cl::desc(
-        "Extra amount of stack to add to the frame in bytes (for testing)."),
-    cl::init(0));
-
-/// Target architecture attributes.
-cl::opt<Ice::TargetInstructionSet> TargetInstructionSet(
-    "mattr", cl::desc("Target architecture attributes"),
-    cl::init(Ice::BaseInstructionSet),
-    cl::values(clEnumValN(Ice::BaseInstructionSet, "base",
-                          "Target chooses baseline instruction set (default)"),
-               clEnumValN(Ice::X86InstructionSet_SSE2, "sse2",
-                          "Enable X86 SSE2 instructions"),
-               clEnumValN(Ice::X86InstructionSet_SSE4_1, "sse4.1",
-                          "Enable X86 SSE 4.1 instructions"),
-               clEnumValN(Ice::ARM32InstructionSet_Neon, "neon",
-                          "Enable ARM Neon instructions"),
-               clEnumValN(Ice::ARM32InstructionSet_HWDivArm, "hwdiv-arm",
-                          "Enable ARM integer divide instructions in ARM mode"),
-               clEnumValEnd));
-
-/// Prepend a prefix to symbol names for testing.
-cl::opt<std::string>
-    TestPrefix("prefix",
-               cl::desc("Prepend a prefix to symbol names for testing"),
-               cl::init(""), cl::value_desc("prefix"));
-
-/// Print total translation time for each function.
-cl::opt<bool> TimeEachFunction(
-    "timing-funcs", cl::desc("Print total translation time for each function"));
-
-/// Break down timing for a specific function (use '*' for all).
-cl::opt<std::string> TimingFocusOn(
-    "timing-focus",
-    cl::desc("Break down timing for a specific function (use '*' for all)"),
-    cl::init(""));
-
-/// Translate only the given function.
-cl::opt<std::string>
-    TranslateOnly("translate-only",
-                  cl::desc("Translate only the given function"), cl::init(""));
-
-/// Enable Non-SFI mode.
-cl::opt<bool> UseNonsfi("nonsfi", cl::desc("Enable Non-SFI mode"));
-
-/// Use sandboxing.
-cl::opt<bool> UseSandboxing("sandbox", cl::desc("Use sandboxing"));
-
-/// Override with -verbose=none except for the specified function.
-cl::opt<std::string> VerboseFocusOn(
-    "verbose-focus",
-    cl::desc("Override with -verbose=none except for the specified function"),
-    cl::init(""));
-
-/// Output file type.
-cl::opt<Ice::FileType> OutFileType(
-    "filetype", cl::desc("Output file type"), cl::init(Ice::FT_Iasm),
-    cl::values(clEnumValN(Ice::FT_Elf, "obj", "Native ELF object ('.o') file"),
-               clEnumValN(Ice::FT_Asm, "asm", "Assembly ('.s') file"),
-               clEnumValN(Ice::FT_Iasm, "iasm",
-                          "Low-level integrated assembly ('.s') file"),
-               clEnumValEnd));
-
-/// Max number of nops to insert per instruction.
-cl::opt<int> MaxNopsPerInstruction(
-    "max-nops-per-instruction",
-    cl::desc("Max number of nops to insert per instruction"), cl::init(1));
-
-/// Nop insertion probability as percentage.
-cl::opt<int> NopProbabilityAsPercentage(
-    "nop-insertion-percentage",
-    cl::desc("Nop insertion probability as percentage"), cl::init(10));
-
-/// Restricts registers in corresponding register classes to specified list.
-cl::list<std::string> UseRestrictedRegisters(
-    "reg-use", cl::CommaSeparated,
-    cl::desc(
-        "Only use specified registers for corresponding register classes"));
-
-/// List of excluded registers.
-cl::list<std::string>
-    ExcludedRegisters("reg-exclude", cl::CommaSeparated,
-                      cl::desc("Don't use specified registers"));
-
-/// Verbose options (can be comma-separated).
-cl::list<Ice::VerboseItem> VerboseList(
-    "verbose", cl::CommaSeparated,
-    cl::desc("Verbose options (can be comma-separated):"),
-    cl::values(
-        clEnumValN(Ice::IceV_Instructions, "inst", "Print basic instructions"),
-        clEnumValN(Ice::IceV_Deleted, "del", "Include deleted instructions"),
-        clEnumValN(Ice::IceV_InstNumbers, "instnum",
-                   "Print instruction numbers"),
-        clEnumValN(Ice::IceV_Preds, "pred", "Show predecessors"),
-        clEnumValN(Ice::IceV_Succs, "succ", "Show successors"),
-        clEnumValN(Ice::IceV_Liveness, "live", "Liveness information"),
-        clEnumValN(Ice::IceV_RegOrigins, "orig", "Physical register origins"),
-        clEnumValN(Ice::IceV_LinearScan, "regalloc", "Linear scan details"),
-        clEnumValN(Ice::IceV_Frame, "frame", "Stack frame layout details"),
-        clEnumValN(Ice::IceV_AddrOpt, "addropt", "Address mode optimization"),
-        clEnumValN(Ice::IceV_Random, "random", "Randomization details"),
-        clEnumValN(Ice::IceV_Folding, "fold", "Instruction folding details"),
-        clEnumValN(Ice::IceV_RMW, "rmw", "ReadModifyWrite optimization"),
-        clEnumValN(Ice::IceV_Loop, "loop", "Loop nest depth analysis"),
-        clEnumValN(Ice::IceV_Mem, "mem", "Memory usage details"),
-        clEnumValN(Ice::IceV_Status, "status",
-                   "Print the name of the function being translated"),
-        clEnumValN(Ice::IceV_AvailableRegs, "registers",
-                   "Show available registers for register allocation"),
-        clEnumValN(Ice::IceV_GlobalInit, "global_init", "Global initializers"),
-        clEnumValN(Ice::IceV_ConstPoolStats, "cpool", "Constant pool counters"),
-        clEnumValN(Ice::IceV_All, "all", "Use all verbose options"),
-        clEnumValN(Ice::IceV_Most, "most",
-                   "Use all verbose options except 'regalloc,global_init'"),
-        clEnumValN(Ice::IceV_None, "none", "No verbosity"), clEnumValEnd));
-
-// Options not captured in Ice::ClFlags and propagated.
-
-/// Exit with success status, even if errors found.
-cl::opt<bool> AlwaysExitSuccess(
-    "exit-success", cl::desc("Exit with success status, even if errors found"),
-    cl::init(false));
-
-/// Note: While this flag isn't used in the minimal build, we keep this flag so
-/// that tests can set this command-line flag without concern to the type of
-/// build. We double check this flag at runtime to make sure the
-/// consistency is maintained.
-cl::opt<bool>
-    BuildOnRead("build-on-read",
-                cl::desc("Build ICE instructions when reading bitcode"),
-                cl::init(true));
-
-/// Define format of input file.
-cl::opt<llvm::NaClFileFormat> InputFileFormat(
-    "bitcode-format", cl::desc("Define format of input file:"),
-    cl::values(clEnumValN(llvm::LLVMFormat, "llvm", "LLVM file (default)"),
-               clEnumValN(llvm::PNaClFormat, "pnacl", "PNaCl bitcode file"),
-               clEnumValEnd),
-    cl::init(llvm::LLVMFormat));
-
-/// Generate list of build attributes associated with this executable.
-cl::opt<bool> GenerateBuildAtts(
-    "build-atts", cl::desc("Generate list of build attributes associated with "
-                           "this executable."),
-    cl::init(false));
-
-/// <Input file>
-cl::opt<std::string> IRFilename(cl::Positional, cl::desc("<IR file>"),
-                                cl::init("-"));
-
-/// Set log filename.
-cl::opt<std::string> LogFilename("log", cl::desc("Set log filename"),
-                                 cl::init("-"), cl::value_desc("filename"));
-
-/// Print out more descriptive PNaCl bitcode parse errors when building LLVM
-/// IR first.
-cl::opt<bool> LLVMVerboseErrors(
-    "verbose-llvm-parse-errors",
-    cl::desc("Print out more descriptive PNaCl bitcode parse errors when "
-             "building LLVM IR first"),
-    cl::init(false));
-cl::opt<std::string> OutputFilename("o", cl::desc("Override output filename"),
-                                    cl::init("-"), cl::value_desc("filename"));
-
-Ice::IceString AppName;
-
-/// Define the command line options for immediates pooling and randomization.
-cl::opt<Ice::RandomizeAndPoolImmediatesEnum> RandomizeAndPoolImmediatesOption(
-    "randomize-pool-immediates",
-    cl::desc("Randomize or pooling the representation of immediates"),
-    cl::init(Ice::RPI_None),
-    cl::values(clEnumValN(Ice::RPI_None, "none",
-                          "Do not randomize or pooling immediates (default)"),
-               clEnumValN(Ice::RPI_Randomize, "randomize",
-                          "Turn on immediate constants blinding"),
-               clEnumValN(Ice::RPI_Pool, "pool",
-                          "Turn on immediate constants pooling"),
-               clEnumValEnd));
-/// Command line option for x86 immediate integer randomization/pooling
-/// threshold. Immediates whose representation are between:
-/// -RandomizeAndPoolImmediatesThreshold/2 and
-/// +RandomizeAndPoolImmediatesThreshold/2 will be randomized or pooled.
-cl::opt<uint32_t> RandomizeAndPoolImmediatesThreshold(
-    "randomize-pool-threshold",
-    cl::desc("The threshold for immediates randomization and pooling"),
-    cl::init(0xffff));
-
-/// Shuffle the layout of basic blocks in each functions.
-cl::opt<bool> ReorderBasicBlocks(
-    "reorder-basic-blocks",
-    cl::desc("Shuffle the layout of basic blocks in each function"),
-    cl::init(false));
-
-/// Randomize function ordering.
-cl::opt<bool> ReorderFunctions("reorder-functions",
-                               cl::desc("Randomize function ordering"),
-                               cl::init(false));
-
-/// The shuffling window size for function reordering. 1 or 0 means no effective
-/// shuffling. The default size is 8.
-cl::opt<uint32_t> ReorderFunctionsWindowSize(
-    "reorder-functions-window-size",
-    cl::desc("The shuffling window size for function reordering. 1 or 0 means "
-             "no effective shuffling."),
-    cl::init(8));
-
-/// Randomize global data ordering.
-cl::opt<bool> ReorderGlobalVariables("reorder-global-variables",
-                                     cl::desc("Randomize global data ordering"),
-                                     cl::init(false));
-
-/// Randomize constant pool entry ordering.
-cl::opt<bool>
-    ReorderPooledConstants("reorder-pooled-constants",
-                           cl::desc("Randomize constant pool entry ordering"),
-                           cl::init(false));
-
-/// Command line option for accepting textual bitcode.
-cl::opt<bool> BitcodeAsText(
-    "bitcode-as-text",
-    cl::desc(
-        "Accept textual form of PNaCl bitcode records (i.e. not .ll assembly)"),
-    cl::init(false));
 } // end of anonymous namespace
 
 namespace Ice {
 
 void ClFlags::parseFlags(int argc, char **argv) {
   cl::ParseCommandLineOptions(argc, argv);
-  AppName = IceString(argv[0]);
+  AppNameObj = IceString(argv[0]);
 }
 
-void ClFlags::resetClFlags(ClFlags &OutFlags) {
-  // bool fields
-  OutFlags.AllowErrorRecovery = false;
-  OutFlags.AllowExternDefinedSymbols = false;
-  OutFlags.AllowIacaMarks = false;
-  OutFlags.AllowUninitializedGlobals = false;
-  OutFlags.DataSections = false;
-  OutFlags.DecorateAsm = false;
-  OutFlags.DisableHybridAssembly = false;
-  OutFlags.DisableInternal = false;
-  OutFlags.DisableTranslation = false;
-  OutFlags.DumpStats = false;
-  OutFlags.EnableBlockProfile = false;
-  OutFlags.ForceMemIntrinOpt = false;
-  OutFlags.FunctionSections = false;
-  OutFlags.GenerateUnitTestMessages = false;
-  OutFlags.KeepDeletedInsts = Ice::BuildDefs::dump();
-  OutFlags.MockBoundsCheck = false;
-  OutFlags.PhiEdgeSplit = false;
-  OutFlags.RandomNopInsertion = false;
-  OutFlags.RandomRegAlloc = false;
-  OutFlags.RepeatRegAlloc = false;
-  OutFlags.ReorderBasicBlocks = false;
-  OutFlags.ReorderFunctions = false;
-  OutFlags.ReorderGlobalVariables = false;
-  OutFlags.ReorderPooledConstants = false;
-  OutFlags.SkipUnimplemented = false;
-  OutFlags.SubzeroTimingEnabled = false;
-  OutFlags.TimeEachFunction = false;
-  OutFlags.UseNonsfi = false;
-  OutFlags.UseSandboxing = false;
-  // Enum and integer fields.
-  OutFlags.Opt = Opt_m1;
-  OutFlags.OutFileType = FT_Iasm;
-  OutFlags.RandomMaxNopsPerInstruction = 0;
-  OutFlags.RandomNopProbabilityAsPercentage = 0;
-  OutFlags.RandomizeAndPoolImmediatesOption = RPI_None;
-  OutFlags.RandomizeAndPoolImmediatesThreshold = 0xffff;
-  OutFlags.ReorderFunctionsWindowSize = 8;
-  OutFlags.TArch = TargetArch_NUM;
-  OutFlags.TestStackExtra = 0;
-  OutFlags.VMask = IceV_None;
-  // IceString fields.
-  OutFlags.DefaultFunctionPrefix = "";
-  OutFlags.DefaultGlobalPrefix = "";
-  OutFlags.TestPrefix = "";
-  OutFlags.TimingFocusOn = "";
-  OutFlags.TranslateOnly = "";
-  OutFlags.VerboseFocusOn = "";
-  // size_t and 64-bit fields.
-  OutFlags.NumTranslationThreads = 0;
-  OutFlags.RandomSeed = 0;
-  // Unordered set fields.
-  OutFlags.clearExcludedRegisters();
-  OutFlags.clearUseRestrictedRegisters();
+namespace {
+// flagInitOrStorageTypeDefault is some template voodoo for peeling off the
+// llvm::cl modifiers from a flag's declaration, until its initial value is
+// found. If none is found, then the default value for the storage type is
+// returned.
+template <typename Ty> Ty flagInitOrStorageTypeDefault() { return Ty(); }
+
+template <typename Ty, typename T, typename... A>
+Ty flagInitOrStorageTypeDefault(cl::initializer<T> &&Value, A &&...) {
+  return Value.Init;
 }
 
-void ClFlags::getParsedClFlags(ClFlags &OutFlags) {
+// is_cl_initializer is used to prevent an ambiguous call between the previous
+// version of flagInitOrStorageTypeDefault, and the next, which is flagged by
+// g++.
+template <typename T> struct is_cl_initializer {
+  static constexpr bool value = false;
+};
+
+template <typename T> struct is_cl_initializer<cl::initializer<T>> {
+  static constexpr bool value = true;
+};
+
+template <typename Ty, typename T, typename... A>
+typename std::enable_if<!is_cl_initializer<T>::value, Ty>::type
+flagInitOrStorageTypeDefault(T &&, A &&... Other) {
+  return flagInitOrStorageTypeDefault<Ty>(std::forward<A>(Other)...);
+}
+
+} // end of anonymous namespace
+
+void ClFlags::resetClFlags() {
+#define X(Name, Type, ClType, ...)                                             \
+  Name = flagInitOrStorageTypeDefault<                                         \
+      detail::cl_type_traits<Type, cl_detail::ClType>::storage_type>(          \
+      __VA_ARGS__);
+  COMMAND_LINE_FLAGS
+#undef X
+}
+
+namespace {
+
+// toSetterParam is template magic that is needed to convert between (llvm::)cl
+// objects and the arguments to ClFlags' setters. ToSetterParam is a traits
+// object that we need in order for the multiple specializations to
+// toSetterParam to agree on their return type.
+template <typename T> struct ToSetterParam { using ReturnType = const T &; };
+
+template <> struct ToSetterParam<cl::list<Ice::VerboseItem>> {
+  using ReturnType = Ice::VerboseMask;
+};
+
+template <typename T>
+typename ToSetterParam<T>::ReturnType toSetterParam(const T &Param) {
+  return Param;
+}
+
+template <>
+ToSetterParam<cl::list<Ice::VerboseItem>>::ReturnType
+toSetterParam(const cl::list<Ice::VerboseItem> &Param) {
   Ice::VerboseMask VMask = Ice::IceV_None;
   // Don't generate verbose messages if routines to dump messages are not
   // available.
   if (BuildDefs::dump()) {
-    for (unsigned i = 0; i != VerboseList.size(); ++i)
-      VMask |= VerboseList[i];
+    for (unsigned i = 0; i != Param.size(); ++i)
+      VMask |= Param[i];
   }
-
-  OutFlags.setAllowErrorRecovery(::AllowErrorRecovery);
-  OutFlags.setAllowExternDefinedSymbols(::AllowExternDefinedSymbols ||
-                                        ::DisableInternal);
-  OutFlags.setAllowIacaMarks(::AllowIacaMarks);
-  OutFlags.setAllowUninitializedGlobals(::AllowUninitializedGlobals);
-  OutFlags.setDataSections(::DataSections);
-  OutFlags.setDecorateAsm(::DecorateAsm);
-  OutFlags.setDefaultFunctionPrefix(::DefaultFunctionPrefix);
-  OutFlags.setDefaultGlobalPrefix(::DefaultGlobalPrefix);
-  OutFlags.setDisableHybridAssembly(::DisableHybridAssembly ||
-                                    (::OutFileType != Ice::FT_Iasm));
-  OutFlags.setDisableInternal(::DisableInternal);
-  OutFlags.setDisableTranslation(::DisableTranslation);
-  OutFlags.setDumpStats(::DumpStats);
-  OutFlags.setEnableBlockProfile(::EnableBlockProfile);
-  OutFlags.setExcludedRegisters(::ExcludedRegisters);
-  OutFlags.setForceMemIntrinOpt(::ForceMemIntrinOpt);
-  OutFlags.setFunctionSections(::FunctionSections);
-  OutFlags.setNumTranslationThreads(::NumThreads);
-  OutFlags.setOptLevel(::OLevel);
-  OutFlags.setKeepDeletedInsts(::KeepDeletedInsts);
-  OutFlags.setMockBoundsCheck(::MockBoundsCheck);
-  OutFlags.setPhiEdgeSplit(::EnablePhiEdgeSplit);
-  OutFlags.setRandomSeed(::RandomSeed);
-  OutFlags.setRandomizeAndPoolImmediatesOption(
-      ::RandomizeAndPoolImmediatesOption);
-  OutFlags.setRandomizeAndPoolImmediatesThreshold(
-      ::RandomizeAndPoolImmediatesThreshold);
-  OutFlags.setReorderFunctionsWindowSize(::ReorderFunctionsWindowSize);
-  OutFlags.setShouldReorderBasicBlocks(::ReorderBasicBlocks);
-  OutFlags.setShouldDoNopInsertion(::ShouldDoNopInsertion);
-  OutFlags.setShouldRandomizeRegAlloc(::RandomizeRegisterAllocation);
-  OutFlags.setRegAllocReserve(::RegAllocReserve);
-  OutFlags.setShouldRepeatRegAlloc(::RepeatRegAlloc);
-  OutFlags.setShouldReorderFunctions(::ReorderFunctions);
-  OutFlags.setShouldReorderGlobalVariables(::ReorderGlobalVariables);
-  OutFlags.setShouldReorderPooledConstants(::ReorderPooledConstants);
-  OutFlags.setSkipUnimplemented(::SkipUnimplemented);
-  OutFlags.setSubzeroTimingEnabled(::SubzeroTimingEnabled);
-  OutFlags.setTargetArch(::TargetArch);
-  OutFlags.setTargetInstructionSet(::TargetInstructionSet);
-  OutFlags.setTestPrefix(::TestPrefix);
-  OutFlags.setTestStackExtra(::TestStackExtra);
-  OutFlags.setTimeEachFunction(::TimeEachFunction);
-  OutFlags.setTimingFocusOn(::TimingFocusOn);
-  OutFlags.setTranslateOnly(::TranslateOnly);
-  OutFlags.setUseNonsfi(::UseNonsfi);
-  OutFlags.setUseRestrictedRegisters(::UseRestrictedRegisters);
-  OutFlags.setUseSandboxing(::UseSandboxing);
-  OutFlags.setVerboseFocusOn(::VerboseFocusOn);
-  OutFlags.setOutFileType(::OutFileType);
-  OutFlags.setMaxNopsPerInstruction(::MaxNopsPerInstruction);
-  OutFlags.setNopProbabilityAsPercentage(::NopProbabilityAsPercentage);
-  OutFlags.setVerbose(VMask);
+  return VMask;
 }
 
-void ClFlags::getParsedClFlagsExtra(ClFlagsExtra &OutFlagsExtra) {
-  OutFlagsExtra.setAlwaysExitSuccess(AlwaysExitSuccess);
-  OutFlagsExtra.setBitcodeAsText(BitcodeAsText);
-  OutFlagsExtra.setBuildOnRead(BuildOnRead);
-  OutFlagsExtra.setGenerateBuildAtts(GenerateBuildAtts);
-  OutFlagsExtra.setLLVMVerboseErrors(LLVMVerboseErrors);
-  OutFlagsExtra.setAppName(AppName);
-  OutFlagsExtra.setInputFileFormat(InputFileFormat);
-  OutFlagsExtra.setIRFilename(IRFilename);
-  OutFlagsExtra.setLogFilename(LogFilename);
-  OutFlagsExtra.setOutputFilename(OutputFilename);
+} // end of anonymous namespace
+
+void ClFlags::getParsedClFlags(ClFlags &OutFlags) {
+#define X(Name, Type, ClType, ...) OutFlags.set##Name(toSetterParam(Name##Obj));
+  COMMAND_LINE_FLAGS
+#undef X
+
+  // If any value needs a non-trivial parsed value, set it below.
+  OutFlags.setAllowExternDefinedSymbols(AllowExternDefinedSymbolsObj ||
+                                        DisableInternalObj);
+  OutFlags.setDisableHybridAssembly(DisableHybridAssemblyObj ||
+                                    (OutFileTypeObj != Ice::FT_Iasm));
 }
 
 } // end of namespace Ice

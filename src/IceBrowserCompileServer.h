@@ -16,7 +16,6 @@
 #define SUBZERO_SRC_ICEBROWSERCOMPILESERVER_H
 
 #include "IceClFlags.h"
-#include "IceClFlagsExtra.h"
 #include "IceCompileServer.h"
 #include "IceDefs.h"
 #include "IceELFStreamer.h"
@@ -42,9 +41,7 @@ class BrowserCompileServer : public CompileServer {
   class StringStream;
 
 public:
-  BrowserCompileServer()
-      : Flags(&GlobalContext::Flags), ExtraFlags(&GlobalContext::ExtraFlags),
-        HadError(false) {}
+  BrowserCompileServer() : Flags(&GlobalContext::Flags), HadError(false) {}
 
   ~BrowserCompileServer() final;
 
@@ -105,7 +102,6 @@ private:
   std::unique_ptr<StringStream> ErrorStream;
   std::unique_ptr<ELFStreamer> ELFStream;
   ClFlags *Flags;
-  ClFlagsExtra *ExtraFlags;
   std::thread CompileThread;
   std::atomic<bool> HadError;
 };

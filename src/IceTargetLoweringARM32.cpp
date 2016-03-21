@@ -1032,7 +1032,7 @@ void TargetARM32::translateO2() {
   Func->processAllocas(SortAndCombineAllocas);
   Func->dump("After Alloca processing");
 
-  if (!Ctx->getFlags().getPhiEdgeSplit()) {
+  if (!Ctx->getFlags().getEnablePhiEdgeSplit()) {
     // Lower Phi instructions.
     Func->placePhiLoads();
     if (Func->hasError())
@@ -1100,7 +1100,7 @@ void TargetARM32::translateO2() {
   copyRegAllocFromInfWeightVariable64On32(Func->getVariables());
   Func->dump("After linear scan regalloc");
 
-  if (Ctx->getFlags().getPhiEdgeSplit()) {
+  if (Ctx->getFlags().getEnablePhiEdgeSplit()) {
     Func->advancedPhiLowering();
     Func->dump("After advanced Phi lowering");
   }
@@ -1129,7 +1129,7 @@ void TargetARM32::translateO2() {
   Func->dump("After branch optimization");
 
   // Nop insertion
-  if (Ctx->getFlags().shouldDoNopInsertion()) {
+  if (Ctx->getFlags().getShouldDoNopInsertion()) {
     Func->doNopInsertion();
   }
 }
@@ -1191,7 +1191,7 @@ void TargetARM32::translateOm1() {
   Func->dump("After postLowerLegalization");
 
   // Nop insertion
-  if (Ctx->getFlags().shouldDoNopInsertion()) {
+  if (Ctx->getFlags().getShouldDoNopInsertion()) {
     Func->doNopInsertion();
   }
 }
@@ -6803,7 +6803,7 @@ template <typename T> void emitConstantPool(GlobalContext *Ctx) {
       << "\n"
       << "\t.align\t" << Align << "\n";
 
-  if (Ctx->getFlags().shouldReorderPooledConstants()) {
+  if (Ctx->getFlags().getReorderPooledConstants()) {
     // TODO(jpp): add constant pooling.
     UnimplementedError(Ctx->getFlags());
   }
