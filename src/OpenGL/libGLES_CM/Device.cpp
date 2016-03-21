@@ -150,30 +150,20 @@ namespace es1
 			return;
 		}
 
-		int x0 = 0;
-		int y0 = 0;
-		int width = renderTarget->getWidth();
-		int height = renderTarget->getHeight();
-
-		if(scissorEnable)   // Clamp against scissor rectangle
-		{
-			if(x0 < scissorRect.x0) x0 = scissorRect.x0;
-			if(y0 < scissorRect.y0) y0 = scissorRect.y0;
-			if(width > scissorRect.x1 - scissorRect.x0) width = scissorRect.x1 - scissorRect.x0;
-			if(height > scissorRect.y1 - scissorRect.y0) height = scissorRect.y1 - scissorRect.y0;
-		}
-
 		float rgba[4];
 		rgba[0] = red;
 		rgba[1] = green;
 		rgba[2] = blue;
 		rgba[3] = alpha;
 
-		sw::SliceRect sliceRect;
-		if(renderTarget->getClearRect(x0, y0, width, height, sliceRect))
+		sw::SliceRect clearRect = renderTarget->getRect();
+
+		if(scissorEnable)
 		{
-			clear(rgba, FORMAT_A32B32G32R32F, renderTarget, sliceRect, rgbaMask);
+			clearRect.clip(scissorRect.x0, scissorRect.y0, scissorRect.x1, scissorRect.y1);
 		}
+
+		clear(rgba, FORMAT_A32B32G32R32F, renderTarget, clearRect, rgbaMask);
 	}
 
 	void Device::clearDepth(float z)
@@ -183,23 +173,15 @@ namespace es1
 			return;
 		}
 
-		if(z > 1) z = 1;
-		if(z < 0) z = 0;
+		z = clamp01(z);
+		sw::SliceRect clearRect = depthBuffer->getRect();
 
-		int x0 = 0;
-		int y0 = 0;
-		int width = depthBuffer->getWidth();
-		int height = depthBuffer->getHeight();
-
-		if(scissorEnable)   // Clamp against scissor rectangle
+		if(scissorEnable)
 		{
-			if(x0 < scissorRect.x0) x0 = scissorRect.x0;
-			if(y0 < scissorRect.y0) y0 = scissorRect.y0;
-			if(width > scissorRect.x1 - scissorRect.x0) width = scissorRect.x1 - scissorRect.x0;
-			if(height > scissorRect.y1 - scissorRect.y0) height = scissorRect.y1 - scissorRect.y0;
+			clearRect.clip(scissorRect.x0, scissorRect.y0, scissorRect.x1, scissorRect.y1);
 		}
 
-		depthBuffer->clearDepthBuffer(z, x0, y0, width, height);
+		depthBuffer->clearDepth(z, clearRect.x0, clearRect.y0, clearRect.width(), clearRect.height());
 	}
 
 	void Device::clearStencil(unsigned int stencil, unsigned int mask)
@@ -209,20 +191,14 @@ namespace es1
 			return;
 		}
 
-		int x0 = 0;
-		int y0 = 0;
-		int width = stencilBuffer->getWidth();
-		int height = stencilBuffer->getHeight();
+		sw::SliceRect clearRect = stencilBuffer->getRect();
 
-		if(scissorEnable)   // Clamp against scissor rectangle
+		if(scissorEnable)
 		{
-			if(x0 < scissorRect.x0) x0 = scissorRect.x0;
-			if(y0 < scissorRect.y0) y0 = scissorRect.y0;
-			if(width > scissorRect.x1 - scissorRect.x0) width = scissorRect.x1 - scissorRect.x0;
-			if(height > scissorRect.y1 - scissorRect.y0) height = scissorRect.y1 - scissorRect.y0;
+			clearRect.clip(scissorRect.x0, scissorRect.y0, scissorRect.x1, scissorRect.y1);
 		}
 
-		stencilBuffer->clearStencilBuffer(stencil, mask, x0, y0, width, height);
+		stencilBuffer->clearStencil(stencil, mask, clearRect.x0, clearRect.y0, clearRect.width(), clearRect.height());
 	}
 
 	egl::Image *Device::createDepthStencilSurface(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard)

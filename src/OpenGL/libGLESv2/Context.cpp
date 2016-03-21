@@ -2754,18 +2754,6 @@ void Context::applyScissor(int width, int height)
 	}
 }
 
-egl::Image *Context::getScissoredImage(GLint drawbuffer, int &x0, int &y0, int &width, int &height, bool depthStencil)
-{
-	Framebuffer* framebuffer = getDrawFramebuffer();
-	egl::Image* image = depthStencil ? framebuffer->getDepthStencil() : framebuffer->getRenderTarget(drawbuffer);
-
-	applyScissor(image->getWidth(), image->getHeight());
-
-	device->getScissoredRegion(image, x0, y0, width, height);
-
-	return image;
-}
-
 // Applies the render target surface, depth stencil surface, viewport rectangle and scissor rectangle
 bool Context::applyRenderTarget()
 {
@@ -3407,18 +3395,24 @@ void Context::clear(GLbitfield mask)
 void Context::clearColorBuffer(GLint drawbuffer, void *value, sw::Format format)
 {
 	unsigned int rgbaMask = getColorMask();
-	if(device && rgbaMask && !mState.rasterizerDiscardEnabled)
+	if(rgbaMask && !mState.rasterizerDiscardEnabled)
 	{
-		int x0(0), y0(0), width(0), height(0);
-		egl::Image* image = getScissoredImage(drawbuffer, x0, y0, width, height, false);
+		Framebuffer *framebuffer = getDrawFramebuffer();
+		egl::Image *colorbuffer = framebuffer->getRenderTarget(drawbuffer);
 
-		sw::SliceRect sliceRect;
-		if(image->getClearRect(x0, y0, width, height, sliceRect))
+		if(colorbuffer)
 		{
-			device->clear(value, format, image, sliceRect, rgbaMask);
-		}
+			sw::SliceRect clearRect = colorbuffer->getRect();
 
-		image->release();
+			if(mState.scissorTestEnabled)
+			{
+				clearRect.clip(mState.scissorX, mState.scissorY, mState.scissorX + mState.scissorWidth, mState.scissorY + mState.scissorHeight);
+			}
+
+			device->clear(value, format, colorbuffer, clearRect, rgbaMask);
+
+			colorbuffer->release();
+		}
 	}
 }
 
@@ -3437,52 +3431,51 @@ void Context::clearColorBuffer(GLint drawbuffer, const GLfloat *value)
 	clearColorBuffer(drawbuffer, (void*)value, sw::FORMAT_A32B32G32R32F);
 }
 
-void Context::clearDepthBuffer(GLint drawbuffer, const GLfloat *value)
+void Context::clearDepthBuffer(const GLfloat value)
 {
-	if(device && mState.depthMask && !mState.rasterizerDiscardEnabled)
+	if(mState.depthMask && !mState.rasterizerDiscardEnabled)
 	{
-		int x0(0), y0(0), width(0), height(0);
-		egl::Image* image = getScissoredImage(drawbuffer, x0, y0, width, height, true);
+		Framebuffer *framebuffer = getDrawFramebuffer();
+		egl::Image *depthbuffer = framebuffer->getDepthStencil();
 
-		float depth = clamp01(value[0]);
-		image->clearDepthBuffer(depth, x0, y0, width, height);
+		if(depthbuffer)
+		{
+			float depth = clamp01(value);
+			sw::SliceRect clearRect = depthbuffer->getRect();
 
-		image->release();
+			if(mState.scissorTestEnabled)
+			{
+				clearRect.clip(mState.scissorX, mState.scissorY, mState.scissorX + mState.scissorWidth, mState.scissorY + mState.scissorHeight);
+			}
+
+			depthbuffer->clearDepth(depth, clearRect.x0, clearRect.y0, clearRect.width(), clearRect.height());
+
+			depthbuffer->release();
+		}
 	}
 }
 
-void Context::clearStencilBuffer(GLint drawbuffer, const GLint *value)
+void Context::clearStencilBuffer(const GLint value)
 {
-	if(device && mState.stencilWritemask && !mState.rasterizerDiscardEnabled)
+	if(mState.stencilWritemask && !mState.rasterizerDiscardEnabled)
 	{
-		int x0(0), y0(0), width(0), height(0);
-		egl::Image* image = getScissoredImage(drawbuffer, x0, y0, width, height, true);
+		Framebuffer *framebuffer = getDrawFramebuffer();
+		egl::Image *stencilbuffer = framebuffer->getDepthStencil();
 
-		unsigned char stencil = value[0] < 0 ? 0 : static_cast<unsigned char>(value[0] & 0x000000FF);
-		image->clearStencilBuffer(stencil, static_cast<unsigned char>(mState.stencilWritemask), x0, y0, width, height);
-
-		image->release();
-	}
-}
-
-void Context::clearDepthStencilBuffer(GLint drawbuffer, GLfloat depth, GLint stencil)
-{
-	if(device && (mState.depthMask || mState.stencilWritemask) && !mState.rasterizerDiscardEnabled)
-	{
-		int x0(0), y0(0), width(0), height(0);
-		egl::Image* image = getScissoredImage(drawbuffer, x0, y0, width, height, true);
-
-		if(mState.stencilWritemask)
+		if(stencilbuffer)
 		{
-			image->clearStencilBuffer(static_cast<unsigned char>(stencil & 0x000000FF), static_cast<unsigned char>(mState.stencilWritemask), x0, y0, width, height);
-		}
+			unsigned char stencil = value < 0 ? 0 : static_cast<unsigned char>(value & 0x000000FF);
+			sw::SliceRect clearRect = stencilbuffer->getRect();
 
-		if(mState.depthMask)
-		{
-			image->clearDepthBuffer(clamp01(depth), x0, y0, width, height);
-		}
+			if(mState.scissorTestEnabled)
+			{
+				clearRect.clip(mState.scissorX, mState.scissorY, mState.scissorX + mState.scissorWidth, mState.scissorY + mState.scissorHeight);
+			}
 
-		image->release();
+			stencilbuffer->clearStencil(stencil, static_cast<unsigned char>(mState.stencilWritemask), clearRect.x0, clearRect.y0, clearRect.width(), clearRect.height());
+
+			stencilbuffer->release();
+		}
 	}
 }
 

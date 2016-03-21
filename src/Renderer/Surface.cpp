@@ -387,7 +387,7 @@ namespace sw
 				ASSERT(palette);
 
 				unsigned int abgr = palette[*(unsigned char*)element];
-				
+
 				r = (abgr & 0x000000FF) * (1.0f / 0x000000FF);
 				g = (abgr & 0x0000FF00) * (1.0f / 0x0000FF00);
 				b = (abgr & 0x00FF0000) * (1.0f / 0x00FF0000);
@@ -399,7 +399,7 @@ namespace sw
 				ASSERT(palette);
 
 				unsigned int bgr = palette[((unsigned char*)element)[0]];
-				
+
 				r = (bgr & 0x000000FF) * (1.0f / 0x000000FF);
 				g = (bgr & 0x0000FF00) * (1.0f / 0x0000FF00);
 				b = (bgr & 0x00FF0000) * (1.0f / 0x00FF0000);
@@ -427,7 +427,7 @@ namespace sw
 		case FORMAT_R3G3B2:
 			{
 				unsigned char rgb = *(unsigned char*)element;
-				
+
 				r = (rgb & 0xE0) * (1.0f / 0xE0);
 				g = (rgb & 0x1C) * (1.0f / 0x1C);
 				b = (rgb & 0x03) * (1.0f / 0x03);
@@ -436,7 +436,7 @@ namespace sw
 		case FORMAT_A8R3G3B2:
 			{
 				unsigned short argb = *(unsigned short*)element;
-				
+
 				a = (argb & 0xFF00) * (1.0f / 0xFF00);
 				r = (argb & 0x00E0) * (1.0f / 0x00E0);
 				g = (argb & 0x001C) * (1.0f / 0x001C);
@@ -446,7 +446,7 @@ namespace sw
 		case FORMAT_X4R4G4B4:
 			{
 				unsigned short rgb = *(unsigned short*)element;
-				
+
 				r = (rgb & 0x0F00) * (1.0f / 0x0F00);
 				g = (rgb & 0x00F0) * (1.0f / 0x00F0);
 				b = (rgb & 0x000F) * (1.0f / 0x000F);
@@ -455,7 +455,7 @@ namespace sw
 		case FORMAT_A4R4G4B4:
 			{
 				unsigned short argb = *(unsigned short*)element;
-				
+
 				a = (argb & 0xF000) * (1.0f / 0xF000);
 				r = (argb & 0x0F00) * (1.0f / 0x0F00);
 				g = (argb & 0x00F0) * (1.0f / 0x00F0);
@@ -465,7 +465,7 @@ namespace sw
 		case FORMAT_R4G4B4A4:
 			{
 				unsigned short rgba = *(unsigned short*)element;
-				
+
 				r = (rgba & 0xF000) * (1.0f / 0xF000);
 				g = (rgba & 0x0F00) * (1.0f / 0x0F00);
 				b = (rgba & 0x00F0) * (1.0f / 0x00F0);
@@ -475,7 +475,7 @@ namespace sw
 		case FORMAT_R5G6B5:
 			{
 				unsigned short rgb = *(unsigned short*)element;
-				
+
 				r = (rgb & 0xF800) * (1.0f / 0xF800);
 				g = (rgb & 0x07E0) * (1.0f / 0x07E0);
 				b = (rgb & 0x001F) * (1.0f / 0x001F);
@@ -484,7 +484,7 @@ namespace sw
 		case FORMAT_A1R5G5B5:
 			{
 				unsigned short argb = *(unsigned short*)element;
-				
+
 				a = (argb & 0x8000) * (1.0f / 0x8000);
 				r = (argb & 0x7C00) * (1.0f / 0x7C00);
 				g = (argb & 0x03E0) * (1.0f / 0x03E0);
@@ -494,7 +494,7 @@ namespace sw
 		case FORMAT_R5G5B5A1:
 			{
 				unsigned short rgba = *(unsigned short*)element;
-				
+
 				r = (rgba & 0xF800) * (1.0f / 0xF800);
 				g = (rgba & 0x07C0) * (1.0f / 0x07C0);
 				b = (rgba & 0x003E) * (1.0f / 0x003E);
@@ -504,7 +504,7 @@ namespace sw
 		case FORMAT_X1R5G5B5:
 			{
 				unsigned short xrgb = *(unsigned short*)element;
-				
+
 				r = (xrgb & 0x7C00) * (1.0f / 0x7C00);
 				g = (xrgb & 0x03E0) * (1.0f / 0x03E0);
 				b = (xrgb & 0x001F) * (1.0f / 0x001F);
@@ -513,7 +513,7 @@ namespace sw
 		case FORMAT_A8R8G8B8:
 			{
 				unsigned int argb = *(unsigned int*)element;
-				
+
 				a = (argb & 0xFF000000) * (1.0f / 0xFF000000);
 				r = (argb & 0x00FF0000) * (1.0f / 0x00FF0000);
 				g = (argb & 0x0000FF00) * (1.0f / 0x0000FF00);
@@ -523,7 +523,7 @@ namespace sw
 		case FORMAT_X8R8G8B8:
 			{
 				unsigned int xrgb = *(unsigned int*)element;
-				
+
 				r = (xrgb & 0x00FF0000) * (1.0f / 0x00FF0000);
 				g = (xrgb & 0x0000FF00) * (1.0f / 0x0000FF00);
 				b = (xrgb & 0x000000FF) * (1.0f / 0x000000FF);
@@ -532,7 +532,7 @@ namespace sw
 		case FORMAT_A8B8G8R8I_SNORM:
 			{
 				signed char* abgr = (signed char*)element;
-				
+
 				r = max(abgr[0] * (1.0f / 0x7F), -1.0f);
 				g = max(abgr[1] * (1.0f / 0x7F), -1.0f);
 				b = max(abgr[2] * (1.0f / 0x7F), -1.0f);
@@ -542,7 +542,7 @@ namespace sw
 		case FORMAT_A8B8G8R8:
 			{
 				unsigned int abgr = *(unsigned int*)element;
-				
+
 				a = (abgr & 0xFF000000) * (1.0f / 0xFF000000);
 				b = (abgr & 0x00FF0000) * (1.0f / 0x00FF0000);
 				g = (abgr & 0x0000FF00) * (1.0f / 0x0000FF00);
@@ -552,7 +552,7 @@ namespace sw
 		case FORMAT_A8B8G8R8I:
 			{
 				signed char* abgr = (signed char*)element;
-				
+
 				r = abgr[0];
 				g = abgr[1];
 				b = abgr[2];
@@ -572,7 +572,7 @@ namespace sw
 		case FORMAT_X8B8G8R8I_SNORM:
 			{
 				signed char* bgr = (signed char*)element;
-				
+
 				r = max(bgr[0] * (1.0f / 0x7F), -1.0f);
 				g = max(bgr[1] * (1.0f / 0x7F), -1.0f);
 				b = max(bgr[2] * (1.0f / 0x7F), -1.0f);
@@ -581,7 +581,7 @@ namespace sw
 		case FORMAT_X8B8G8R8:
 			{
 				unsigned int xbgr = *(unsigned int*)element;
-				
+
 				b = (xbgr & 0x00FF0000) * (1.0f / 0x00FF0000);
 				g = (xbgr & 0x0000FF00) * (1.0f / 0x0000FF00);
 				r = (xbgr & 0x000000FF) * (1.0f / 0x000000FF);
@@ -590,7 +590,7 @@ namespace sw
 		case FORMAT_X8B8G8R8I:
 			{
 				signed char* bgr = (signed char*)element;
-				
+
 				r = bgr[0];
 				g = bgr[1];
 				b = bgr[2];
@@ -608,7 +608,7 @@ namespace sw
 		case FORMAT_G8R8I_SNORM:
 			{
 				signed char* gr = (signed char*)element;
-				
+
 				r = (gr[0] & 0xFF00) * (1.0f / 0xFF00);
 				g = (gr[1] & 0x00FF) * (1.0f / 0x00FF);
 			}
@@ -616,7 +616,7 @@ namespace sw
 		case FORMAT_G8R8:
 			{
 				unsigned short gr = *(unsigned short*)element;
-				
+
 				g = (gr & 0xFF00) * (1.0f / 0xFF00);
 				r = (gr & 0x00FF) * (1.0f / 0x00FF);
 			}
@@ -624,7 +624,7 @@ namespace sw
 		case FORMAT_G8R8I:
 			{
 				signed char* gr = (signed char*)element;
-				
+
 				r = gr[0];
 				g = gr[1];
 			}
@@ -632,7 +632,7 @@ namespace sw
 		case FORMAT_G8R8UI:
 			{
 				unsigned char* gr = (unsigned char*)element;
-				
+
 				r = gr[0];
 				g = gr[1];
 			}
@@ -646,7 +646,7 @@ namespace sw
 		case FORMAT_G16R16I:
 			{
 				short* gr = (short*)element;
-				
+
 				r = gr[0];
 				g = gr[1];
 			}
@@ -654,7 +654,7 @@ namespace sw
 		case FORMAT_G16R16:
 			{
 				unsigned int gr = *(unsigned int*)element;
-				
+
 				g = (gr & 0xFFFF0000) * (1.0f / 0xFFFF0000);
 				r = (gr & 0x0000FFFF) * (1.0f / 0x0000FFFF);
 			}
@@ -662,7 +662,7 @@ namespace sw
 		case FORMAT_G16R16UI:
 			{
 				unsigned short* gr = (unsigned short*)element;
-				
+
 				r = gr[0];
 				g = gr[1];
 			}
@@ -670,7 +670,7 @@ namespace sw
 		case FORMAT_A2R10G10B10:
 			{
 				unsigned int argb = *(unsigned int*)element;
-				
+
 				a = (argb & 0xC0000000) * (1.0f / 0xC0000000);
 				r = (argb & 0x3FF00000) * (1.0f / 0x3FF00000);
 				g = (argb & 0x000FFC00) * (1.0f / 0x000FFC00);
@@ -680,7 +680,7 @@ namespace sw
 		case FORMAT_A2B10G10R10:
 			{
 				unsigned int abgr = *(unsigned int*)element;
-				
+
 				a = (abgr & 0xC0000000) * (1.0f / 0xC0000000);
 				b = (abgr & 0x3FF00000) * (1.0f / 0x3FF00000);
 				g = (abgr & 0x000FFC00) * (1.0f / 0x000FFC00);
@@ -690,7 +690,7 @@ namespace sw
 		case FORMAT_A16B16G16R16I:
 			{
 				short* abgr = (short*)element;
-				
+
 				r = abgr[0];
 				g = abgr[1];
 				b = abgr[2];
@@ -706,7 +706,7 @@ namespace sw
 		case FORMAT_A16B16G16R16UI:
 			{
 				unsigned short* abgr = (unsigned short*)element;
-				
+
 				r = abgr[0];
 				g = abgr[1];
 				b = abgr[2];
@@ -716,7 +716,7 @@ namespace sw
 		case FORMAT_X16B16G16R16I:
 			{
 				short* bgr = (short*)element;
-				
+
 				r = bgr[0];
 				g = bgr[1];
 				b = bgr[2];
@@ -725,7 +725,7 @@ namespace sw
 		case FORMAT_X16B16G16R16UI:
 			{
 				unsigned short* bgr = (unsigned short*)element;
-				
+
 				r = bgr[0];
 				g = bgr[1];
 				b = bgr[2];
@@ -734,7 +734,7 @@ namespace sw
 		case FORMAT_A32B32G32R32I:
 			{
 				int* abgr = (int*)element;
-				
+
 				r = static_cast<float>(abgr[0]);
 				g = static_cast<float>(abgr[1]);
 				b = static_cast<float>(abgr[2]);
@@ -744,7 +744,7 @@ namespace sw
 		case FORMAT_A32B32G32R32UI:
 			{
 				unsigned int* abgr = (unsigned int*)element;
-				
+
 				r = static_cast<float>(abgr[0]);
 				g = static_cast<float>(abgr[1]);
 				b = static_cast<float>(abgr[2]);
@@ -754,7 +754,7 @@ namespace sw
 		case FORMAT_X32B32G32R32I:
 			{
 				int* bgr = (int*)element;
-				
+
 				r = static_cast<float>(bgr[0]);
 				g = static_cast<float>(bgr[1]);
 				b = static_cast<float>(bgr[2]);
@@ -763,7 +763,7 @@ namespace sw
 		case FORMAT_X32B32G32R32UI:
 			{
 				unsigned int* bgr = (unsigned int*)element;
-				
+
 				r = static_cast<float>(bgr[0]);
 				g = static_cast<float>(bgr[1]);
 				b = static_cast<float>(bgr[2]);
@@ -772,7 +772,7 @@ namespace sw
 		case FORMAT_G32R32I:
 			{
 				int* gr = (int*)element;
-				
+
 				r = static_cast<float>(gr[0]);
 				g = static_cast<float>(gr[1]);
 			}
@@ -780,7 +780,7 @@ namespace sw
 		case FORMAT_G32R32UI:
 			{
 				unsigned int* gr = (unsigned int*)element;
-				
+
 				r = static_cast<float>(gr[0]);
 				g = static_cast<float>(gr[1]);
 			}
@@ -802,7 +802,7 @@ namespace sw
 		case FORMAT_L6V5U5:
 			{
 				unsigned short lvu = *(unsigned short*)element;
-				
+
 				r = ((int)(lvu & 0x001F) << 27) * (1.0f / 0x78000000);
 				g = ((int)(lvu & 0x03E0) << 22) * (1.0f / 0x78000000);
 				b = (lvu & 0xFC00) * (1.0f / 0xFC00);
@@ -811,7 +811,7 @@ namespace sw
 		case FORMAT_Q8W8V8U8:
 			{
 				unsigned int qwvu = *(unsigned int*)element;
-				
+
 				r = ((int)(qwvu & 0x000000FF) << 24) * (1.0f / 0x7F000000);
 				g = ((int)(qwvu & 0x0000FF00) << 16) * (1.0f / 0x7F000000);
 				b = ((int)(qwvu & 0x00FF0000) << 8)  * (1.0f / 0x7F000000);
@@ -821,7 +821,7 @@ namespace sw
 		case FORMAT_X8L8V8U8:
 			{
 				unsigned int xlvu = *(unsigned int*)element;
-				
+
 				r = ((int)(xlvu & 0x000000FF) << 24) * (1.0f / 0x7F000000);
 				g = ((int)(xlvu & 0x0000FF00) << 16) * (1.0f / 0x7F000000);
 				b = (xlvu & 0x00FF0000) * (1.0f / 0x00FF0000);
@@ -840,7 +840,7 @@ namespace sw
 		case FORMAT_V16U16:
 			{
 				unsigned int vu = *(unsigned int*)element;
-				
+
 				r = ((int)(vu & 0x0000FFFF) << 16) * (1.0f / 0x7FFF0000);
 				g = ((int)(vu & 0xFFFF0000) << 0)  * (1.0f / 0x7FFF0000);
 			}
@@ -848,7 +848,7 @@ namespace sw
 		case FORMAT_A2W10V10U10:
 			{
 				unsigned int awvu = *(unsigned int*)element;
-				
+
 				r = ((int)(awvu & 0x000003FF) << 22) * (1.0f / 0x7FC00000);
 				g = ((int)(awvu & 0x000FFC00) << 12) * (1.0f / 0x7FC00000);
 				b = ((int)(awvu & 0x3FF00000) << 2)  * (1.0f / 0x7FC00000);
@@ -875,7 +875,7 @@ namespace sw
 		case FORMAT_A4L4:
 			{
 				unsigned char al = *(unsigned char*)element;
-				
+
 				r =
 				g =
 				b = (al & 0x0F) * (1.0f / 0x0F);
@@ -1755,7 +1755,7 @@ namespace sw
 	{
 	//	ASSERT(source.lock != LOCK_UNLOCKED);
 	//	ASSERT(destination.lock != LOCK_UNLOCKED);
-		
+
 		if(destination.buffer != source.buffer)
 		{
 			ASSERT(source.dirty && !destination.dirty);
@@ -1918,7 +1918,7 @@ namespace sw
 				for(int x = 0; x < destination.width && x < source.width; x++)
 				{
 					unsigned int xrgb = *(unsigned short*)sourceElement;
-						
+
 					unsigned int r = (((xrgb & 0x7C00) * 134771 + 0x800000) >> 8) & 0x00FF0000;
 					unsigned int g = (((xrgb & 0x03E0) * 16846 + 0x8000) >> 8) & 0x0000FF00;
 					unsigned int b = (((xrgb & 0x001F) * 2106  + 0x80) >> 8);
@@ -1956,7 +1956,7 @@ namespace sw
 				for(int x = 0; x < destination.width && x < source.width; x++)
 				{
 					unsigned int argb = *(unsigned short*)sourceElement;
-					
+
 					unsigned int a =   (argb & 0x8000) * 130560;
 					unsigned int r = (((argb & 0x7C00) * 134771 + 0x800000) >> 8) & 0x00FF0000;
 					unsigned int g = (((argb & 0x03E0) * 16846  + 0x8000) >> 8) & 0x0000FF00;
@@ -1995,7 +1995,7 @@ namespace sw
 				for(int x = 0; x < destination.width && x < source.width; x++)
 				{
 					unsigned int xrgb = *(unsigned short*)sourceElement;
-						
+
 					unsigned int r = ((xrgb & 0x0F00) * 0x00001100) & 0x00FF0000;
 					unsigned int g = ((xrgb & 0x00F0) * 0x00000110) & 0x0000FF00;
 					unsigned int b =  (xrgb & 0x000F) * 0x00000011;
@@ -2033,7 +2033,7 @@ namespace sw
 				for(int x = 0; x < destination.width && x < source.width; x++)
 				{
 					unsigned int argb = *(unsigned short*)sourceElement;
-					
+
 					unsigned int a = ((argb & 0xF000) * 0x00011000) & 0xFF000000;
 					unsigned int r = ((argb & 0x0F00) * 0x00001100) & 0x00FF0000;
 					unsigned int g = ((argb & 0x00F0) * 0x00000110) & 0x0000FF00;
@@ -2235,7 +2235,7 @@ namespace sw
 
 					a[0] = source->a0;
 					a[1] = source->a1;
-					
+
 					if(a[0] > a[1])
 					{
 						a[2] = (byte)((6 * (word)a[0] + 1 * (word)a[1] + 3) / 7);
@@ -2261,7 +2261,7 @@ namespace sw
 						{
 							unsigned int alpha = (unsigned int)a[(unsigned int)(source->alut >> (16 + 3 * (i + j * 4))) % 8] << 24;
 							unsigned int color = (c[(source->clut >> 2 * (i + j * 4)) % 4] & 0x00FFFFFF) | alpha;
-							
+
 							dest[(x + i) + (y + j) * internal.width] = color;
 						}
 					}
@@ -2292,7 +2292,7 @@ namespace sw
 
 					r[0] = source->r0;
 					r[1] = source->r1;
-					
+
 					if(r[0] > r[1])
 					{
 						r[2] = (byte)((6 * (word)r[0] + 1 * (word)r[1] + 3) / 7);
@@ -2345,7 +2345,7 @@ namespace sw
 
 					X[0] = source->x0;
 					X[1] = source->x1;
-					
+
 					if(X[0] > X[1])
 					{
 						X[2] = (byte)((6 * (word)X[0] + 1 * (word)X[1] + 3) / 7);
@@ -2369,7 +2369,7 @@ namespace sw
 
 					Y[0] = source->y0;
 					Y[1] = source->y1;
-					
+
 					if(Y[0] > Y[1])
 					{
 						Y[2] = (byte)((6 * (word)Y[0] + 1 * (word)Y[1] + 3) / 7);
@@ -2704,7 +2704,7 @@ namespace sw
 		default:
 			ASSERT(false);
 		}
-		
+
 		return false;
 	}
 
@@ -2782,7 +2782,7 @@ namespace sw
 		default:
 			ASSERT(false);
 		}
-		
+
 		return false;
 	}
 
@@ -3030,7 +3030,7 @@ namespace sw
 			}
 
 			__m128 quad = _mm_set_ps1((float&)pattern);
-			
+
 			float *pointer = (float*)buffer;
 			int qxwords = bytes / 64;
 			bytes -= qxwords * 64;
@@ -3075,29 +3075,12 @@ namespace sw
 		return (rect.x0 == 0 && rect.y0 == 0 && rect.x1 == internal.width && rect.y1 == internal.height && internal.depth == 1);
 	}
 
-	bool Surface::getClearRect(int x0, int y0, int width, int height, SliceRect& rect) const
+	SliceRect Surface::getRect() const
 	{
-		// Not overlapping
-		if(x0 > internal.width) return false;
-		if(y0 > internal.height) return false;
-		if(x0 + width < 0) return false;
-		if(y0 + height < 0) return false;
-
-		// Clip against dimensions
-		if(x0 < 0) { width += x0; x0 = 0; }
-		if(x0 + width > internal.width) width = internal.width - x0;
-		if(y0 < 0) { height += y0; y0 = 0; }
-		if(y0 + height > internal.height) height = internal.height - y0;
-
-		rect.x0 = x0;
-		rect.x1 = x0 + width;
-		rect.y0 = y0;
-		rect.y1 = y0 + height;
-
-		return true;
+		return SliceRect(0, 0, internal.width, internal.height, 0);
 	}
 
-	void Surface::clearDepthBuffer(float depth, int x0, int y0, int width, int height)
+	void Surface::clearDepth(float depth, int x0, int y0, int width, int height)
 	{
 		if(width == 0 || height == 0) return;
 
@@ -3157,7 +3140,7 @@ namespace sw
 				for(int y = y0; y < y1; y++)
 				{
 					float *target = buffer + (y & ~1) * width2 + (y & 1) * 2;
-			
+
 					if((y & 1) == 0 && y + 1 < y1)   // Fill quad line at once
 					{
 						if((x0 & 1) != 0)
@@ -3222,7 +3205,7 @@ namespace sw
 		}
 	}
 
-	void Surface::clearStencilBuffer(unsigned char s, unsigned char mask, int x0, int y0, int width, int height)
+	void Surface::clearStencil(unsigned char s, unsigned char mask, int x0, int y0, int width, int height)
 	{
 		if(mask == 0 || width == 0 || height == 0) return;
 
@@ -3299,7 +3282,7 @@ namespace sw
 	{
 		unsigned char *row;
 		Buffer *buffer;
-		
+
 		if(internal.dirty)
 		{
 			row = (unsigned char*)lockInternal(x0, y0, 0, LOCK_WRITEONLY, PUBLIC);
@@ -3393,7 +3376,7 @@ namespace sw
 	{
 		return isStencil(external.format);
 	}
-	
+
 	bool Surface::hasDepth() const
 	{
 		return isDepth(external.format);
@@ -3708,7 +3691,7 @@ namespace sw
 						{
 							__m128i c0 = _mm_load_si128((__m128i*)(source0 + 4 * x));
 							__m128i c1 = _mm_load_si128((__m128i*)(source1 + 4 * x));
-							
+
 							c0 = _mm_avg_epu8(c0, c1);
 
 							_mm_store_si128((__m128i*)(source0 + 4 * x), c0);
@@ -3728,7 +3711,7 @@ namespace sw
 							__m128i c1 = _mm_load_si128((__m128i*)(source1 + 4 * x));
 							__m128i c2 = _mm_load_si128((__m128i*)(source2 + 4 * x));
 							__m128i c3 = _mm_load_si128((__m128i*)(source3 + 4 * x));
-							
+
 							c0 = _mm_avg_epu8(c0, c1);
 							c2 = _mm_avg_epu8(c2, c3);
 							c0 = _mm_avg_epu8(c0, c2);
@@ -3756,7 +3739,7 @@ namespace sw
 							__m128i c5 = _mm_load_si128((__m128i*)(source5 + 4 * x));
 							__m128i c6 = _mm_load_si128((__m128i*)(source6 + 4 * x));
 							__m128i c7 = _mm_load_si128((__m128i*)(source7 + 4 * x));
-							
+
 							c0 = _mm_avg_epu8(c0, c1);
 							c2 = _mm_avg_epu8(c2, c3);
 							c4 = _mm_avg_epu8(c4, c5);
@@ -3999,7 +3982,7 @@ namespace sw
 						{
 							__m128i c0 = _mm_load_si128((__m128i*)(source0 + 4 * x));
 							__m128i c1 = _mm_load_si128((__m128i*)(source1 + 4 * x));
-							
+
 							c0 = _mm_avg_epu16(c0, c1);
 
 							_mm_store_si128((__m128i*)(source0 + 4 * x), c0);
@@ -4019,7 +4002,7 @@ namespace sw
 							__m128i c1 = _mm_load_si128((__m128i*)(source1 + 4 * x));
 							__m128i c2 = _mm_load_si128((__m128i*)(source2 + 4 * x));
 							__m128i c3 = _mm_load_si128((__m128i*)(source3 + 4 * x));
-							
+
 							c0 = _mm_avg_epu16(c0, c1);
 							c2 = _mm_avg_epu16(c2, c3);
 							c0 = _mm_avg_epu16(c0, c2);
@@ -4047,7 +4030,7 @@ namespace sw
 							__m128i c5 = _mm_load_si128((__m128i*)(source5 + 4 * x));
 							__m128i c6 = _mm_load_si128((__m128i*)(source6 + 4 * x));
 							__m128i c7 = _mm_load_si128((__m128i*)(source7 + 4 * x));
-							
+
 							c0 = _mm_avg_epu16(c0, c1);
 							c2 = _mm_avg_epu16(c2, c3);
 							c4 = _mm_avg_epu16(c4, c5);
@@ -4290,7 +4273,7 @@ namespace sw
 						{
 							__m128i c0 = _mm_load_si128((__m128i*)(source0 + 8 * x));
 							__m128i c1 = _mm_load_si128((__m128i*)(source1 + 8 * x));
-							
+
 							c0 = _mm_avg_epu16(c0, c1);
 
 							_mm_store_si128((__m128i*)(source0 + 8 * x), c0);
@@ -4310,7 +4293,7 @@ namespace sw
 							__m128i c1 = _mm_load_si128((__m128i*)(source1 + 8 * x));
 							__m128i c2 = _mm_load_si128((__m128i*)(source2 + 8 * x));
 							__m128i c3 = _mm_load_si128((__m128i*)(source3 + 8 * x));
-							
+
 							c0 = _mm_avg_epu16(c0, c1);
 							c2 = _mm_avg_epu16(c2, c3);
 							c0 = _mm_avg_epu16(c0, c2);
@@ -4338,7 +4321,7 @@ namespace sw
 							__m128i c5 = _mm_load_si128((__m128i*)(source5 + 8 * x));
 							__m128i c6 = _mm_load_si128((__m128i*)(source6 + 8 * x));
 							__m128i c7 = _mm_load_si128((__m128i*)(source7 + 8 * x));
-							
+
 							c0 = _mm_avg_epu16(c0, c1);
 							c2 = _mm_avg_epu16(c2, c3);
 							c4 = _mm_avg_epu16(c4, c5);
@@ -4581,9 +4564,9 @@ namespace sw
 						{
 							__m128 c0 = _mm_load_ps((float*)(source0 + 4 * x));
 							__m128 c1 = _mm_load_ps((float*)(source1 + 4 * x));
-							
+
 							c0 = _mm_add_ps(c0, c1);
-							c0 = _mm_mul_ps(c0, _mm_set1_ps(1.0f / 2.0f)); 
+							c0 = _mm_mul_ps(c0, _mm_set1_ps(1.0f / 2.0f));
 
 							_mm_store_ps((float*)(source0 + 4 * x), c0);
 						}
@@ -4602,11 +4585,11 @@ namespace sw
 							__m128 c1 = _mm_load_ps((float*)(source1 + 4 * x));
 							__m128 c2 = _mm_load_ps((float*)(source2 + 4 * x));
 							__m128 c3 = _mm_load_ps((float*)(source3 + 4 * x));
-							
+
 							c0 = _mm_add_ps(c0, c1);
 							c2 = _mm_add_ps(c2, c3);
 							c0 = _mm_add_ps(c0, c2);
-							c0 = _mm_mul_ps(c0, _mm_set1_ps(1.0f / 4.0f)); 
+							c0 = _mm_mul_ps(c0, _mm_set1_ps(1.0f / 4.0f));
 
 							_mm_store_ps((float*)(source0 + 4 * x), c0);
 						}
@@ -4631,7 +4614,7 @@ namespace sw
 							__m128 c5 = _mm_load_ps((float*)(source5 + 4 * x));
 							__m128 c6 = _mm_load_ps((float*)(source6 + 4 * x));
 							__m128 c7 = _mm_load_ps((float*)(source7 + 4 * x));
-							
+
 							c0 = _mm_add_ps(c0, c1);
 							c2 = _mm_add_ps(c2, c3);
 							c4 = _mm_add_ps(c4, c5);
@@ -4639,7 +4622,7 @@ namespace sw
 							c0 = _mm_add_ps(c0, c2);
 							c4 = _mm_add_ps(c4, c6);
 							c0 = _mm_add_ps(c0, c4);
-							c0 = _mm_mul_ps(c0, _mm_set1_ps(1.0f / 8.0f)); 
+							c0 = _mm_mul_ps(c0, _mm_set1_ps(1.0f / 8.0f));
 
 							_mm_store_ps((float*)(source0 + 4 * x), c0);
 						}
@@ -4692,7 +4675,7 @@ namespace sw
 							c0 = _mm_add_ps(c0, c4);
 							c8 = _mm_add_ps(c8, cC);
 							c0 = _mm_add_ps(c0, c8);
-							c0 = _mm_mul_ps(c0, _mm_set1_ps(1.0f / 16.0f)); 
+							c0 = _mm_mul_ps(c0, _mm_set1_ps(1.0f / 16.0f));
 
 							_mm_store_ps((float*)(source0 + 4 * x), c0);
 						}
@@ -4876,9 +4859,9 @@ namespace sw
 						{
 							__m128 c0 = _mm_load_ps((float*)(source0 + 8 * x));
 							__m128 c1 = _mm_load_ps((float*)(source1 + 8 * x));
-							
+
 							c0 = _mm_add_ps(c0, c1);
-							c0 = _mm_mul_ps(c0, _mm_set1_ps(1.0f / 2.0f)); 
+							c0 = _mm_mul_ps(c0, _mm_set1_ps(1.0f / 2.0f));
 
 							_mm_store_ps((float*)(source0 + 8 * x), c0);
 						}
@@ -4897,11 +4880,11 @@ namespace sw
 							__m128 c1 = _mm_load_ps((float*)(source1 + 8 * x));
 							__m128 c2 = _mm_load_ps((float*)(source2 + 8 * x));
 							__m128 c3 = _mm_load_ps((float*)(source3 + 8 * x));
-							
+
 							c0 = _mm_add_ps(c0, c1);
 							c2 = _mm_add_ps(c2, c3);
 							c0 = _mm_add_ps(c0, c2);
-							c0 = _mm_mul_ps(c0, _mm_set1_ps(1.0f / 4.0f)); 
+							c0 = _mm_mul_ps(c0, _mm_set1_ps(1.0f / 4.0f));
 
 							_mm_store_ps((float*)(source0 + 8 * x), c0);
 						}
@@ -4926,7 +4909,7 @@ namespace sw
 							__m128 c5 = _mm_load_ps((float*)(source5 + 8 * x));
 							__m128 c6 = _mm_load_ps((float*)(source6 + 8 * x));
 							__m128 c7 = _mm_load_ps((float*)(source7 + 8 * x));
-							
+
 							c0 = _mm_add_ps(c0, c1);
 							c2 = _mm_add_ps(c2, c3);
 							c4 = _mm_add_ps(c4, c5);
@@ -4934,7 +4917,7 @@ namespace sw
 							c0 = _mm_add_ps(c0, c2);
 							c4 = _mm_add_ps(c4, c6);
 							c0 = _mm_add_ps(c0, c4);
-							c0 = _mm_mul_ps(c0, _mm_set1_ps(1.0f / 8.0f)); 
+							c0 = _mm_mul_ps(c0, _mm_set1_ps(1.0f / 8.0f));
 
 							_mm_store_ps((float*)(source0 + 8 * x), c0);
 						}
@@ -4987,7 +4970,7 @@ namespace sw
 							c0 = _mm_add_ps(c0, c4);
 							c8 = _mm_add_ps(c8, cC);
 							c0 = _mm_add_ps(c0, c8);
-							c0 = _mm_mul_ps(c0, _mm_set1_ps(1.0f / 16.0f)); 
+							c0 = _mm_mul_ps(c0, _mm_set1_ps(1.0f / 16.0f));
 
 							_mm_store_ps((float*)(source0 + 8 * x), c0);
 						}
@@ -5171,9 +5154,9 @@ namespace sw
 						{
 							__m128 c0 = _mm_load_ps((float*)(source0 + 16 * x));
 							__m128 c1 = _mm_load_ps((float*)(source1 + 16 * x));
-							
+
 							c0 = _mm_add_ps(c0, c1);
-							c0 = _mm_mul_ps(c0, _mm_set1_ps(1.0f / 2.0f)); 
+							c0 = _mm_mul_ps(c0, _mm_set1_ps(1.0f / 2.0f));
 
 							_mm_store_ps((float*)(source0 + 16 * x), c0);
 						}
@@ -5192,11 +5175,11 @@ namespace sw
 							__m128 c1 = _mm_load_ps((float*)(source1 + 16 * x));
 							__m128 c2 = _mm_load_ps((float*)(source2 + 16 * x));
 							__m128 c3 = _mm_load_ps((float*)(source3 + 16 * x));
-							
+
 							c0 = _mm_add_ps(c0, c1);
 							c2 = _mm_add_ps(c2, c3);
 							c0 = _mm_add_ps(c0, c2);
-							c0 = _mm_mul_ps(c0, _mm_set1_ps(1.0f / 4.0f)); 
+							c0 = _mm_mul_ps(c0, _mm_set1_ps(1.0f / 4.0f));
 
 							_mm_store_ps((float*)(source0 + 16 * x), c0);
 						}
@@ -5221,7 +5204,7 @@ namespace sw
 							__m128 c5 = _mm_load_ps((float*)(source5 + 16 * x));
 							__m128 c6 = _mm_load_ps((float*)(source6 + 16 * x));
 							__m128 c7 = _mm_load_ps((float*)(source7 + 16 * x));
-							
+
 							c0 = _mm_add_ps(c0, c1);
 							c2 = _mm_add_ps(c2, c3);
 							c4 = _mm_add_ps(c4, c5);
@@ -5229,7 +5212,7 @@ namespace sw
 							c0 = _mm_add_ps(c0, c2);
 							c4 = _mm_add_ps(c4, c6);
 							c0 = _mm_add_ps(c0, c4);
-							c0 = _mm_mul_ps(c0, _mm_set1_ps(1.0f / 8.0f)); 
+							c0 = _mm_mul_ps(c0, _mm_set1_ps(1.0f / 8.0f));
 
 							_mm_store_ps((float*)(source0 + 16 * x), c0);
 						}
@@ -5282,7 +5265,7 @@ namespace sw
 							c0 = _mm_add_ps(c0, c4);
 							c8 = _mm_add_ps(c8, cC);
 							c0 = _mm_add_ps(c0, c8);
-							c0 = _mm_mul_ps(c0, _mm_set1_ps(1.0f / 16.0f)); 
+							c0 = _mm_mul_ps(c0, _mm_set1_ps(1.0f / 16.0f));
 
 							_mm_store_ps((float*)(source0 + 16 * x), c0);
 						}
@@ -5466,7 +5449,7 @@ namespace sw
 						{
 							__m128i c0 = _mm_load_si128((__m128i*)(source0 + 2 * x));
 							__m128i c1 = _mm_load_si128((__m128i*)(source1 + 2 * x));
-						
+
 							static const ushort8 r_b = {0xF81F, 0xF81F, 0xF81F, 0xF81F, 0xF81F, 0xF81F, 0xF81F, 0xF81F};
 							static const ushort8 _g_ = {0x07E0, 0x07E0, 0x07E0, 0x07E0, 0x07E0, 0x07E0, 0x07E0, 0x07E0};
 							__m128i c0_r_b = _mm_and_si128(c0, reinterpret_cast<const __m128i&>(r_b));
@@ -5497,7 +5480,7 @@ namespace sw
 							__m128i c1 = _mm_load_si128((__m128i*)(source1 + 2 * x));
 							__m128i c2 = _mm_load_si128((__m128i*)(source2 + 2 * x));
 							__m128i c3 = _mm_load_si128((__m128i*)(source3 + 2 * x));
-							
+
 							static const ushort8 r_b = {0xF81F, 0xF81F, 0xF81F, 0xF81F, 0xF81F, 0xF81F, 0xF81F, 0xF81F};
 							static const ushort8 _g_ = {0x07E0, 0x07E0, 0x07E0, 0x07E0, 0x07E0, 0x07E0, 0x07E0, 0x07E0};
 							__m128i c0_r_b = _mm_and_si128(c0, reinterpret_cast<const __m128i&>(r_b));
@@ -5542,7 +5525,7 @@ namespace sw
 							__m128i c5 = _mm_load_si128((__m128i*)(source5 + 2 * x));
 							__m128i c6 = _mm_load_si128((__m128i*)(source6 + 2 * x));
 							__m128i c7 = _mm_load_si128((__m128i*)(source7 + 2 * x));
-							
+
 							static const ushort8 r_b = {0xF81F, 0xF81F, 0xF81F, 0xF81F, 0xF81F, 0xF81F, 0xF81F, 0xF81F};
 							static const ushort8 _g_ = {0x07E0, 0x07E0, 0x07E0, 0x07E0, 0x07E0, 0x07E0, 0x07E0, 0x07E0};
 							__m128i c0_r_b = _mm_and_si128(c0, reinterpret_cast<const __m128i&>(r_b));

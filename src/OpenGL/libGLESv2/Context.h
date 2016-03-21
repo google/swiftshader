@@ -644,9 +644,8 @@ public:
     void clearColorBuffer(GLint drawbuffer, const GLint *value);
     void clearColorBuffer(GLint drawbuffer, const GLuint *value);
     void clearColorBuffer(GLint drawbuffer, const GLfloat *value);
-    void clearDepthBuffer(GLint drawbuffer, const GLfloat *value);
-    void clearStencilBuffer(GLint drawbuffer, const GLint *value);
-    void clearDepthStencilBuffer(GLint drawbuffer, GLfloat depth, GLint stencil);
+    void clearDepthBuffer(const GLfloat value);
+    void clearStencilBuffer(const GLint value);
     void drawArrays(GLenum mode, GLint first, GLsizei count, GLsizei instanceCount = 1);
     void drawElements(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices, GLsizei instanceCount = 1);
     void finish();
@@ -677,7 +676,6 @@ public:
 private:
 	virtual ~Context();
 
-	egl::Image *getScissoredImage(GLint drawbuffer, int &x0, int &y0, int &width, int &height, bool depthStencil);
 	void applyScissor(int width, int height);
     bool applyRenderTarget();
     void applyState(GLenum drawMode);

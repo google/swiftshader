@@ -383,7 +383,6 @@ namespace D3D9
 			count = 1;
 
 			D3DRECT rect;
-
 			rect.x1 = viewport.X;
 			rect.x2 = viewport.X + viewport.Width;
 			rect.y1 = viewport.Y;
@@ -394,36 +393,13 @@ namespace D3D9
 
 		for(unsigned int i = 0; i < count; i++)
 		{
-			D3DRECT rect = rects[i];
+			sw::SliceRect clearRect(rects[i].x1, rects[i].y1, rects[i].x2, rects[i].y2, 0);
 
-			// Clamp against viewport
-			if(rect.x1 < (int)viewport.X) rect.x1 = viewport.X;
-			if(rect.x2 < (int)viewport.X) rect.x2 = viewport.X;
-			if(rect.x1 > (int)viewport.X + (int)viewport.Width) rect.x1 = viewport.X + viewport.Width;
-			if(rect.x2 > (int)viewport.X + (int)viewport.Width) rect.x2 = viewport.X + viewport.Width;
+			clearRect.clip(viewport.X, viewport.Y, viewport.X + viewport.Width, viewport.Y + viewport.Height);
 
-			if(rect.y1 < (int)viewport.Y) rect.y1 = viewport.Y;
-			if(rect.y2 < (int)viewport.Y) rect.y2 = viewport.Y;
-			if(rect.y1 > (int)viewport.Y + (int)viewport.Height) rect.y1 = viewport.Y + viewport.Height;
-			if(rect.y2 > (int)viewport.Y + (int)viewport.Height) rect.y2 = viewport.Y + viewport.Height;
-
-			// Clamp against scissor rectangle
 			if(scissorEnable)
 			{
-				if(rect.x1 < (int)scissorRect.left) rect.x1 = scissorRect.left;
-				if(rect.x2 < (int)scissorRect.left) rect.x2 = scissorRect.left;
-				if(rect.x1 > (int)scissorRect.right) rect.x1 = scissorRect.right;
-				if(rect.x2 > (int)scissorRect.right) rect.x2 = scissorRect.right;
-
-				if(rect.y1 < (int)scissorRect.top) rect.y1 = scissorRect.top;
-				if(rect.y2 < (int)scissorRect.top) rect.y2 = scissorRect.top;
-				if(rect.y1 > (int)scissorRect.bottom) rect.y1 = scissorRect.bottom;
-				if(rect.y2 > (int)scissorRect.bottom) rect.y2 = scissorRect.bottom;
-			}
-
-			if(flags & D3DCLEAR_STENCIL)
-			{
-				depthStencil->clearStencilBuffer(stencil, 0xFF, rect.x1, rect.y1, rect.x2 - rect.x1, rect.y2 - rect.y1);
+				clearRect.clip(scissorRect.left, scissorRect.top, scissorRect.right, scissorRect.bottom);
 			}
 
 			if(flags & D3DCLEAR_TARGET)
@@ -448,21 +424,20 @@ namespace D3D9
 							rgba[2] = sw::linearToSRGB(rgba[2]);
 						}
 
-						sw::SliceRect sliceRect;
-						if(renderTarget[index]->getClearRect(rect.x1, rect.y1, rect.x2 - rect.x1, rect.y2 - rect.y1, sliceRect))
-						{
-							renderer->clear(rgba, sw::FORMAT_A32B32G32R32F, renderTarget[index], sliceRect, 0xF);
-						}
+						renderer->clear(rgba, sw::FORMAT_A32B32G32R32F, renderTarget[index], clearRect, 0xF);
 					}
 				}
 			}
 
 			if(flags & D3DCLEAR_ZBUFFER)
 			{
-				if(z > 1) z = 1;
-				if(z < 0) z = 0;
+				z = sw::clamp01(z);
+				depthStencil->clearDepth(z, clearRect.x0, clearRect.y0, clearRect.width(), clearRect.height());
+			}
 
-				depthStencil->clearDepthBuffer(z, rect.x1, rect.y1, rect.x2 - rect.x1, rect.y2 - rect.y1);
+			if(flags & D3DCLEAR_STENCIL)
+			{
+				depthStencil->clearStencil(stencil, 0xFF, clearRect.x0, clearRect.y0, clearRect.width(), clearRect.height());
 			}
 		}
 

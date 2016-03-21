@@ -162,13 +162,13 @@ namespace gl
 	}
 
 	Device::~Device()
-	{		
+	{
 		if(depthStencil)
 		{
 			depthStencil->release();
 			depthStencil = 0;
 		}
-		
+
 		if(renderTarget)
 		{
 			renderTarget->release();
@@ -185,17 +185,11 @@ namespace gl
 			return;
 		}
 
-		int x0 = 0;
-		int y0 = 0;
-		int width = renderTarget->getWidth();
-		int height = renderTarget->getHeight();
+		sw::SliceRect clearRect = renderTarget->getRect();
 
-		if(scissorEnable)   // Clamp against scissor rectangle
+		if(scissorEnable)
 		{
-			if(x0 < scissorRect.x0) x0 = scissorRect.x0;
-			if(y0 < scissorRect.y0) y0 = scissorRect.y0;
-			if(width > scissorRect.x1 - scissorRect.x0) width = scissorRect.x1 - scissorRect.x0;
-			if(height > scissorRect.y1 - scissorRect.y0) height = scissorRect.y1 - scissorRect.y0;
+			clearRect.clip(scissorRect.x0, scissorRect.y0, scissorRect.x1, scissorRect.y1);
 		}
 
 		float rgba[4];
@@ -204,11 +198,7 @@ namespace gl
 		rgba[2] = blue;
 		rgba[3] = alpha;
 
-		sw::SliceRect sliceRect;
-		if(renderTarget->getClearRect(x0, y0, width, height, sliceRect))
-		{
-			clear(rgba, FORMAT_A32B32G32R32F, renderTarget, sliceRect, rgbaMask);
-		}
+		clear(rgba, FORMAT_A32B32G32R32F, renderTarget, clearRect, rgbaMask);
 	}
 
 	void Device::clearDepth(float z)
@@ -218,23 +208,15 @@ namespace gl
 			return;
 		}
 
-		if(z > 1) z = 1;
-		if(z < 0) z = 0;
+		z = clamp01(z);
+		sw::SliceRect clearRect = depthStencil->getRect();
 
-		int x0 = 0;
-		int y0 = 0;
-		int width = depthStencil->getWidth();
-		int height = depthStencil->getHeight();
-
-		if(scissorEnable)   // Clamp against scissor rectangle
+		if(scissorEnable)
 		{
-			if(x0 < scissorRect.x0) x0 = scissorRect.x0;
-			if(y0 < scissorRect.y0) y0 = scissorRect.y0;
-			if(width > scissorRect.x1 - scissorRect.x0) width = scissorRect.x1 - scissorRect.x0;
-			if(height > scissorRect.y1 - scissorRect.y0) height = scissorRect.y1 - scissorRect.y0;
+			clearRect.clip(scissorRect.x0, scissorRect.y0, scissorRect.x1, scissorRect.y1);
 		}
-			
-		depthStencil->clearDepthBuffer(z, x0, y0, width, height);
+
+		depthStencil->clearDepth(z, clearRect.x0, clearRect.y0, clearRect.width(), clearRect.height());
 	}
 
 	void Device::clearStencil(unsigned int stencil, unsigned int mask)
@@ -244,20 +226,14 @@ namespace gl
 			return;
 		}
 
-		int x0 = 0;
-		int y0 = 0;
-		int width = depthStencil->getWidth();
-		int height = depthStencil->getHeight();
+		sw::SliceRect clearRect = depthStencil->getRect();
 
-		if(scissorEnable)   // Clamp against scissor rectangle
+		if(scissorEnable)
 		{
-			if(x0 < scissorRect.x0) x0 = scissorRect.x0;
-			if(y0 < scissorRect.y0) y0 = scissorRect.y0;
-			if(width > scissorRect.x1 - scissorRect.x0) width = scissorRect.x1 - scissorRect.x0;
-			if(height > scissorRect.y1 - scissorRect.y0) height = scissorRect.y1 - scissorRect.y0;
+			clearRect.clip(scissorRect.x0, scissorRect.y0, scissorRect.x1, scissorRect.y1);
 		}
 
-		depthStencil->clearStencilBuffer(stencil, mask, x0, y0, width, height);
+		depthStencil->clearStencil(stencil, mask, clearRect.x0, clearRect.y0, clearRect.width(), clearRect.height());
 	}
 
 	Image *Device::createDepthStencilSurface(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard)
@@ -267,7 +243,7 @@ namespace gl
 			ERR("Invalid parameters: %dx%d", width, height);
 			return 0;
 		}
-		
+
 		bool lockable = true;
 
 		switch(format)
@@ -319,7 +295,7 @@ namespace gl
 			ERR("Out of memory");
 			return 0;
 		}
-		
+
 		return surface;
 	}
 
@@ -387,7 +363,7 @@ namespace gl
 		}
 
 		setIndexBuffer(0);
-		
+
 		DrawType drawType;
 
 		switch(primitiveType)
@@ -491,7 +467,7 @@ namespace gl
 			vertexShaderConstantF[startRegister + i][2] = constantData[i * 4 + 2];
 			vertexShaderConstantF[startRegister + i][3] = constantData[i * 4 + 3];
 		}
-			
+
 		vertexShaderConstantsFDirty = max(startRegister + count, vertexShaderConstantsFDirty);
 		vertexShaderDirty = true;   // Reload DEF constants
 	}
@@ -508,7 +484,7 @@ namespace gl
 			ERR("Invalid parameters");
 			return false;
 		}
-		
+
 		int sWidth = source->getWidth();
 		int sHeight = source->getHeight();
 		int dWidth = dest->getWidth();
@@ -619,7 +595,7 @@ namespace gl
 						destBytes[4 * x + 3] = 0xFF;
 					}
 				}
-				
+
 				sourceBytes += sourcePitch;
 				destBytes += destPitch;
 			}
@@ -677,7 +653,7 @@ namespace gl
 				{
 					Renderer::setVertexShaderConstantF(0, vertexShaderConstantF[0], vertexShaderConstantsFDirty);
 				}
-		
+
 				Renderer::setVertexShader(vertexShader);   // Loads shader constants set with DEF
 				vertexShaderConstantsFDirty = vertexShader->dirtyConstantsF;   // Shader DEF'ed constants are dirty
 			}
@@ -689,7 +665,7 @@ namespace gl
 			vertexShaderDirty = false;
 		}
 	}
-	
+
 	bool Device::bindViewport()
 	{
 		if(viewport.width <= 0 || viewport.height <= 0)
@@ -709,7 +685,7 @@ namespace gl
 			scissor.x1 = scissorRect.x1;
 			scissor.y0 = scissorRect.y0;
 			scissor.y1 = scissorRect.y1;
-			
+
 			setScissor(scissor);
 		}
 		else
@@ -719,7 +695,7 @@ namespace gl
 			scissor.x1 = viewport.x0 + viewport.width;
 			scissor.y0 = viewport.y0;
 			scissor.y1 = viewport.y0 + viewport.height;
-			
+
 			if(renderTarget)
 			{
 				scissor.x0 = max(scissor.x0, 0);
@@ -746,7 +722,7 @@ namespace gl
 		view.height = (float)viewport.height;
 		view.minZ = viewport.minZ;
 		view.maxZ = viewport.maxZ;
-		
+
 		Renderer::setViewport(view);
 
 		return true;
