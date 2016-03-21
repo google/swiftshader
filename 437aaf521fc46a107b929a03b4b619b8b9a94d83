@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3c1bdab9_372cb732",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-21T14:01:22Z",
+      "side": 1,
+      "message": "nit: EGL",
+      "range": {
+        "startLine": 7,
+        "startChar": 14,
+        "endLine": 7,
+        "endChar": 17
+      },
+      "revId": "437aaf521fc46a107b929a03b4b619b8b9a94d83",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3c1bdab9_97212b3d",
+        "filename": "src/OpenGL/libEGL/Context.hpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-21T14:01:22Z",
+      "side": 1,
+      "message": "nit: Unnecessary blank line.",
+      "range": {
+        "startLine": 17,
+        "startChar": 7,
+        "endLine": 18,
+        "endChar": 0
+      },
+      "revId": "437aaf521fc46a107b929a03b4b619b8b9a94d83",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3c1bdab9_d71a83fd",
+        "filename": "src/OpenGL/libEGL/Context.hpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-21T14:01:22Z",
+      "side": 1,
+      "message": "Several more of these in the CL.",
+      "range": {
+        "startLine": 50,
+        "startChar": 11,
+        "endLine": 50,
+        "endChar": 13
+      },
+      "revId": "437aaf521fc46a107b929a03b4b619b8b9a94d83",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
