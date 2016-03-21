@@ -31,8 +31,13 @@ namespace es2
 
 	Device::Device(Context *context) : Renderer(context, OpenGL, true), context(context)
 	{
-		depthStencil = nullptr;
-		for(int i = 0; i < RENDERTARGETS; ++i) { renderTarget[i] = nullptr; }
+		for(int i = 0; i < RENDERTARGETS; i++)
+		{
+			renderTarget[i] = nullptr;
+		}
+
+		depthBuffer = nullptr;
+		stencilBuffer = nullptr;
 
 		setDepthBufferEnable(true);
 		setFillMode(FILL_SOLID);
@@ -144,19 +149,25 @@ namespace es2
 
 	Device::~Device()
 	{
-		if(depthStencil)
-		{
-			depthStencil->release();
-			depthStencil = nullptr;
-		}
-
-		for(int i = 0; i < RENDERTARGETS; ++i)
+		for(int i = 0; i < RENDERTARGETS; i++)
 		{
 			if(renderTarget[i])
 			{
 				renderTarget[i]->release();
 				renderTarget[i] = nullptr;
 			}
+		}
+
+		if(depthBuffer)
+		{
+			depthBuffer->release();
+			depthBuffer = nullptr;
+		}
+
+		if(stencilBuffer)
+		{
+			stencilBuffer->release();
+			stencilBuffer = nullptr;
 		}
 
 		delete context;
@@ -213,7 +224,7 @@ namespace es2
 
 	void Device::clearDepth(float z)
 	{
-		if(!depthStencil)
+		if(!depthBuffer)
 		{
 			return;
 		}
@@ -222,22 +233,22 @@ namespace es2
 		if(z < 0) z = 0;
 
 		int x0(0), y0(0), width(0), height(0);
-		getScissoredRegion(depthStencil, x0, y0, width, height);
+		getScissoredRegion(depthBuffer, x0, y0, width, height);
 
-		depthStencil->clearDepthBuffer(z, x0, y0, width, height);
+		depthBuffer->clearDepthBuffer(z, x0, y0, width, height);
 	}
 
 	void Device::clearStencil(unsigned int stencil, unsigned int mask)
 	{
-		if(!depthStencil)
+		if(!stencilBuffer)
 		{
 			return;
 		}
 
 		int x0(0), y0(0), width(0), height(0);
-		getScissoredRegion(depthStencil, x0, y0, width, height);
+		getScissoredRegion(stencilBuffer, x0, y0, width, height);
 
-		depthStencil->clearStencilBuffer(stencil, mask, x0, y0, width, height);
+		stencilBuffer->clearStencilBuffer(stencil, mask, x0, y0, width, height);
 	}
 
 	egl::Image *Device::createDepthStencilSurface(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard)
@@ -329,29 +340,6 @@ namespace es2
 		draw(type, 0, primitiveCount);
 	}
 
-	void Device::setDepthStencilSurface(egl::Image *depthStencil)
-	{
-		if(this->depthStencil == depthStencil)
-		{
-			return;
-		}
-
-		if(depthStencil)
-		{
-			depthStencil->addRef();
-		}
-
-		if(this->depthStencil)
-		{
-			this->depthStencil->release();
-		}
-
-		this->depthStencil = depthStencil;
-
-		setDepthBuffer(depthStencil);
-		setStencilBuffer(depthStencil);
-	}
-
 	void Device::setPixelShader(PixelShader *pixelShader)
 	{
 		this->pixelShader = pixelShader;
@@ -392,6 +380,50 @@ namespace es2
 		this->renderTarget[index] = renderTarget;
 
 		Renderer::setRenderTarget(index, renderTarget);
+	}
+
+	void Device::setDepthBuffer(egl::Image *depthBuffer)
+	{
+		if(this->depthBuffer == depthBuffer)
+		{
+			return;
+		}
+
+		if(depthBuffer)
+		{
+			depthBuffer->addRef();
+		}
+
+		if(this->depthBuffer)
+		{
+			this->depthBuffer->release();
+		}
+
+		this->depthBuffer = depthBuffer;
+
+		Renderer::setDepthBuffer(depthBuffer);
+	}
+
+	void Device::setStencilBuffer(egl::Image *stencilBuffer)
+	{
+		if(this->stencilBuffer == stencilBuffer)
+		{
+			return;
+		}
+
+		if(stencilBuffer)
+		{
+			stencilBuffer->addRef();
+		}
+
+		if(this->stencilBuffer)
+		{
+			this->stencilBuffer->release();
+		}
+
+		this->stencilBuffer = stencilBuffer;
+
+		Renderer::setStencilBuffer(stencilBuffer);
 	}
 
 	void Device::setScissorRect(const sw::Rect &rect)
@@ -795,12 +827,20 @@ namespace es2
 				}
 			}
 
-			if(depthStencil)
+			if(depthBuffer)
 			{
 				scissor.x0 = max(scissor.x0, 0);
-				scissor.x1 = min(scissor.x1, depthStencil->getWidth());
+				scissor.x1 = min(scissor.x1, depthBuffer->getWidth());
 				scissor.y0 = max(scissor.y0, 0);
-				scissor.y1 = min(scissor.y1, depthStencil->getHeight());
+				scissor.y1 = min(scissor.y1, depthBuffer->getHeight());
+			}
+
+			if(stencilBuffer)
+			{
+				scissor.x0 = max(scissor.x0, 0);
+				scissor.x1 = min(scissor.x1, stencilBuffer->getWidth());
+				scissor.y0 = max(scissor.y0, 0);
+				scissor.y1 = min(scissor.y1, stencilBuffer->getHeight());
 			}
 
 			setScissor(scissor);

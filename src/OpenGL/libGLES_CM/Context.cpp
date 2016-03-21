@@ -1725,7 +1725,8 @@ bool Context::applyRenderTarget()
 	if(renderTarget) renderTarget->release();
 
     egl::Image *depthStencil = framebuffer->getDepthStencil();
-    device->setDepthStencilSurface(depthStencil);
+    device->setDepthBuffer(depthStencil);
+	device->setStencilBuffer(depthStencil);
 	if(depthStencil) depthStencil->release();
 
     Viewport viewport;

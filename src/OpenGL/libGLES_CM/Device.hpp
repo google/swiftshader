@@ -47,9 +47,10 @@ namespace es1
 		virtual egl::Image *createRenderTarget(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool lockable);
 		virtual void drawIndexedPrimitive(sw::DrawType type, unsigned int indexOffset, unsigned int primitiveCount);
 		virtual void drawPrimitive(sw::DrawType type, unsigned int primiveCount);
-		virtual void setDepthStencilSurface(egl::Image *newDepthStencil);
 		virtual void setScissorEnable(bool enable);
 		virtual void setRenderTarget(int index, egl::Image *renderTarget);
+		virtual void setDepthBuffer(egl::Image *depthBuffer);
+		virtual void setStencilBuffer(egl::Image *stencilBuffer);
 		virtual void setScissorRect(const sw::Rect &rect);
 		virtual void setViewport(const Viewport &viewport);
 
@@ -69,7 +70,8 @@ namespace es1
 		bool scissorEnable;
 
 		egl::Image *renderTarget;
-		egl::Image *depthStencil;
+		egl::Image *depthBuffer;
+		egl::Image *stencilBuffer;
 	};
 }
 
