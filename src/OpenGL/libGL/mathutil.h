@@ -44,16 +44,8 @@ inline unsigned int ceilPow2(unsigned int x)
     return x;
 }
 
-template<typename T, typename MIN, typename MAX>
-inline T clamp(T x, MIN min, MAX max)
-{
-    return x < min ? min : (x > max ? max : x);
-}
-
-inline float clamp01(float x)
-{
-    return clamp(x, 0.0f, 1.0f);
-}
+using sw::clamp;
+using sw::clamp01;
 
 template<const int n>
 inline unsigned int unorm(float x)

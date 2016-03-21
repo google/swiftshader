@@ -174,6 +174,11 @@ namespace sw
 		return x;
 	}
 
+	inline float clamp01(float x)
+	{
+		return clamp(x, 0.0f, 1.0f);
+	}
+
 	inline int ceilPow2(int x)
 	{
 		int i = 1;
