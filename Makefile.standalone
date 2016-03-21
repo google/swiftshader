@@ -673,7 +673,7 @@ presubmit-lite: exists-nonsfi-x8632 exists-nonsfi-arm32 \
 	+make -f Makefile.standalone format
 # Verify MINIMAL build, plus proper usage of REQUIRES in lit tests.
 	+make -f Makefile.standalone \
-          MINIMAL=1 check $(SB_OBJDIR)/pnacl-sz.x8664.nexe
+          MINIMAL=1 check sb-lite
 # Check that there are no g++ build errors or warnings.
 	+make -f Makefile.standalone \
 	  GPLUSPLUS=1 compile_only
