@@ -27,6 +27,9 @@ namespace sw
 
 		void clip(int minX, int minY, int maxX, int maxY);
 
+		int width() const  { return x1 - x0; }
+		int height() const { return y1 - y0; }
+
 		int x0;   // Inclusive
 		int y0;   // Inclusive
 		int x1;   // Exclusive
@@ -154,7 +157,7 @@ namespace sw
 		FORMAT_R32F,
 		FORMAT_G32R32F,
 		FORMAT_B32G32R32F,
-		FORMAT_A32B32G32R32F, 
+		FORMAT_A32B32G32R32F,
 		// Bump map formats
 		FORMAT_V8U8,
 		FORMAT_L6V5U5,
@@ -283,9 +286,9 @@ namespace sw
 		inline int getSuperSampleCount() const;
 
 		bool isEntire(const SliceRect& rect) const;
-		bool getClearRect(int x0, int y0, int width, int height, SliceRect& rect) const;
-		void clearDepthBuffer(float depth, int x0, int y0, int width, int height);
-		void clearStencilBuffer(unsigned char stencil, unsigned char mask, int x0, int y0, int width, int height);
+		SliceRect getRect() const;
+		void clearDepth(float depth, int x0, int y0, int width, int height);
+		void clearStencil(unsigned char stencil, unsigned char mask, int x0, int y0, int width, int height);
 		void fill(const Color<float> &color, int x0, int y0, int width, int height);
 
 		Color<float> readExternal(int x, int y, int z) const;
@@ -294,7 +297,7 @@ namespace sw
 		Color<float> sampleExternal(float x, float y) const;
 		void writeExternal(int x, int y, int z, const Color<float> &color);
 		void writeExternal(int x, int y, const Color<float> &color);
-		
+
 		void copyInternal(const Surface* src, int x, int y, float srcX, float srcY, bool filter);
 		void copyInternal(const Surface* src, int x, int y, int z, float srcX, float srcY, float srcZ, bool filter);
 

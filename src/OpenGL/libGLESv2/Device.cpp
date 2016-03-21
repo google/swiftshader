@@ -173,22 +173,6 @@ namespace es2
 		delete context;
 	}
 
-	void Device::getScissoredRegion(egl::Image *sourceSurface, int &x0, int &y0, int& width, int& height) const
-	{
-		x0 = 0;
-		y0 = 0;
-		width = sourceSurface->getWidth();
-		height = sourceSurface->getHeight();
-
-		if(scissorEnable)   // Clamp against scissor rectangle
-		{
-			if(x0 < scissorRect.x0) x0 = scissorRect.x0;
-			if(y0 < scissorRect.y0) y0 = scissorRect.y0;
-			if(width > scissorRect.x1 - scissorRect.x0) width = scissorRect.x1 - scissorRect.x0;
-			if(height > scissorRect.y1 - scissorRect.y0) height = scissorRect.y1 - scissorRect.y0;
-		}
-	}
-
 	void Device::clearColor(float red, float green, float blue, float alpha, unsigned int rgbaMask)
 	{
 		if(!rgbaMask)
@@ -206,17 +190,17 @@ namespace es2
 		{
 			if(renderTarget[i])
 			{
-				int x0(0), y0(0), width(0), height(0);
-				getScissoredRegion(renderTarget[i], x0, y0, width, height);
+				sw::SliceRect clearRect = renderTarget[i]->getRect();
 
-				sw::SliceRect sliceRect;
-				if(renderTarget[i]->getClearRect(x0, y0, width, height, sliceRect))
+				if(scissorEnable)
 				{
-					int depth = sw::max(renderTarget[i]->getDepth(), 1);
-					for(sliceRect.slice = 0; sliceRect.slice < depth; ++sliceRect.slice)
-					{
-						clear(rgba, FORMAT_A32B32G32R32F, renderTarget[i], sliceRect, rgbaMask);
-					}
+					clearRect.clip(scissorRect.x0, scissorRect.y0, scissorRect.x1, scissorRect.y1);
+				}
+
+				int depth = sw::max(renderTarget[i]->getDepth(), 1);
+				for(clearRect.slice = 0; clearRect.slice < depth; clearRect.slice++)
+				{
+					clear(rgba, FORMAT_A32B32G32R32F, renderTarget[i], clearRect, rgbaMask);
 				}
 			}
 		}
@@ -229,13 +213,15 @@ namespace es2
 			return;
 		}
 
-		if(z > 1) z = 1;
-		if(z < 0) z = 0;
+		z = clamp01(z);
+		sw::SliceRect clearRect = depthBuffer->getRect();
 
-		int x0(0), y0(0), width(0), height(0);
-		getScissoredRegion(depthBuffer, x0, y0, width, height);
+		if(scissorEnable)
+		{
+			clearRect.clip(scissorRect.x0, scissorRect.y0, scissorRect.x1, scissorRect.y1);
+		}
 
-		depthBuffer->clearDepthBuffer(z, x0, y0, width, height);
+		depthBuffer->clearDepth(z, clearRect.x0, clearRect.y0, clearRect.width(), clearRect.height());
 	}
 
 	void Device::clearStencil(unsigned int stencil, unsigned int mask)
@@ -245,10 +231,14 @@ namespace es2
 			return;
 		}
 
-		int x0(0), y0(0), width(0), height(0);
-		getScissoredRegion(stencilBuffer, x0, y0, width, height);
+		sw::SliceRect clearRect = stencilBuffer->getRect();
 
-		stencilBuffer->clearStencilBuffer(stencil, mask, x0, y0, width, height);
+		if(scissorEnable)
+		{
+			clearRect.clip(scissorRect.x0, scissorRect.y0, scissorRect.x1, scissorRect.y1);
+		}
+
+		stencilBuffer->clearStencil(stencil, mask, clearRect.x0, clearRect.y0, clearRect.width(), clearRect.height());
 	}
 
 	egl::Image *Device::createDepthStencilSurface(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard)

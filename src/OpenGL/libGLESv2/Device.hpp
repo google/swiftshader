@@ -62,8 +62,6 @@ namespace es2
 		virtual bool stretchCube(sw::Surface *sourceSurface, sw::Surface *destSurface);
 		virtual void finish();
 
-		void getScissoredRegion(egl::Image *sourceSurface, int &x0, int &y0, int& width, int& height) const;
-
 	private:
 		sw::Context *const context;
 
