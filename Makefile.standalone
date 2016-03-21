@@ -354,15 +354,17 @@ NEXES = $(SB_OBJDIR)/pnacl-sz.x8632.nexe \
         $(SB_OBJDIR)/pnacl-sz.x8664.nexe \
         $(SBB_OBJDIR)/pnacl_public_x86_32_pnacl_sz_nexe \
         $(SBB_OBJDIR)/pnacl_public_x86_64_pnacl_sz_nexe
+NEXES_LITE = $(SB_OBJDIR)/pnacl-sz.x8664.nexe
 
 # Keep all the first target so it's the default.
 all: $(OBJDIR)/pnacl-sz make_symlink runtime
 
 ifdef TSAN
-sb:
+sb sb-lite:
 	@echo "Skipping pnacl-sz.*.nexe: TSAN isn't supported under NaCl."
 else
 sb: $(NEXES) sb_make_symlink exists-sbtc
+sb-lite: $(NEXES_LITE) exists-sbtc
 endif
 
 # SHOW_BUILD_ATTS is an executable that is run to show what build
@@ -492,7 +494,7 @@ check-lit: $(OBJDIR)/pnacl-sz make_symlink
             $(FORCEASM_LIT_TEST_EXCLUDES) $(FORCEASM_LIT_PARAM)
 
 ifdef MINIMAL
-check-xtest: $(OBJDIR)/pnacl-sz make_symlink runtime
+check-xtest check-xtest-lite: $(OBJDIR)/pnacl-sz make_symlink runtime
 	@echo "Crosstests disabled, minimal build"
 else
 check-xtest: $(OBJDIR)/pnacl-sz make_symlink runtime \
@@ -515,6 +517,28 @@ check-xtest: $(OBJDIR)/pnacl-sz make_symlink runtime \
           -i x8664,sandbox,sse4.1,Om1 \
           -i arm32 \
           -e arm32,sandbox,hwdiv-arm
+	PNACL_BIN_PATH=$(PNACL_BIN_PATH) \
+	$(LLVM_SRC_PATH)/utils/lit/lit.py -sv $(CHECK_XTEST_TESTS)
+check-xtest-lite: $(OBJDIR)/pnacl-sz make_symlink runtime \
+  exists-nonsfi-x8632 exists-nonsfi-arm32
+       # Do all native/sse2/neon tests, which are relatively fast.
+       # Limit to test_global+mem_intrin for sandbox+nonsfi because sandbox and
+       # nonsfi builds are slow, and test_global and mem_intrin are the most
+       # common sources of problems.
+	./pydir/crosstest_generator.py -v --lit \
+          --toolchain-root $(TOOLCHAIN_ROOT) \
+          $(FORCEASM_FLAG) \
+          $(FORCEASM_XTEST_EXCLUDES) \
+          -i x8632,native,sse2,O2 \
+          -i x8664,native,sse2,O2 \
+          -i arm32,native,neon,O2 \
+	  -i x8632,sse2,O2,test_global \
+	  -i x8632,sse2,O2,mem_intrin \
+	  -i x8664,sse2,O2,test_global \
+	  -i x8664,sse2,O2,mem_intrin \
+	  -i arm32,neon,O2,test_global \
+	  -i arm32,neon,O2,mem_intrin \
+          -e x8664,nonsfi
 	PNACL_BIN_PATH=$(PNACL_BIN_PATH) \
 	$(LLVM_SRC_PATH)/utils/lit/lit.py -sv $(CHECK_XTEST_TESTS)
 endif
@@ -640,6 +664,45 @@ check-presubmit presubmit: exists-nonsfi-x8632 exists-nonsfi-arm32 \
 # roughly reverse order of runtime.
 	+make -f Makefile.standalone \
           TARGET=arm32 ALLSPEC='252.eon 254.gap 176.gcc 181.mcf' check-spec
+# Provide validation of user awesomeness!
+	echo Success
+
+presubmit-lite: exists-nonsfi-x8632 exists-nonsfi-arm32 \
+  exists-sbtc exists-spec
+# Make sure clang-format gets run.
+	+make -f Makefile.standalone format
+# Verify MINIMAL build, plus proper usage of REQUIRES in lit tests.
+	+make -f Makefile.standalone \
+          MINIMAL=1 check $(SB_OBJDIR)/pnacl-sz.x8664.nexe
+# Check that there are no g++ build errors or warnings.
+	+make -f Makefile.standalone \
+	  GPLUSPLUS=1 compile_only
+# Run lit tests, cross tests, unit tests, and spec2k/x86-32.
+	+make -f Makefile.standalone \
+          check-lit check-unit check-spec
+	+make -f Makefile.standalone \
+          check-xtest-lite
+# Run spec2k/x86-64.
+	+make -f Makefile.standalone \
+          TARGET=x8664 check-spec
+# Build spec2k under -Om1/x86-32, to check for liveness errors.
+	+make -f Makefile.standalone \
+          SPECFLAGS='-Om1' SPECBUILDONLY=true check-spec
+# Build spec2k under -Om1/x86-64, to check for liveness errors.
+	+make -f Makefile.standalone \
+          SPECFLAGS='-Om1' TARGET=x8664 SPECBUILDONLY=true check-spec
+# Run cross tests and lit tests to validate filetype=asm output.
+	+make -f Makefile.standalone \
+          FORCEASM=1 check-lit
+	+make -f Makefile.standalone \
+          FORCEASM=1 check-xtest-lite
+# Build spec2k under -Om1/arm32.
+	+make -f Makefile.standalone \
+          TARGET=arm32 SPECFLAGS='-Om1' SPECBUILDONLY=true check-spec
+# Run a few spec2k tests for arm32 using qemu. Keep the list sorted in
+# roughly reverse order of runtime.
+	+make -f Makefile.standalone \
+          TARGET=arm32 ALLSPEC='254.gap 176.gcc 181.mcf' check-spec
 # Provide validation of user awesomeness!
 	echo Success
 
