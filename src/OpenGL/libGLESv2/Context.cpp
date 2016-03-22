@@ -2772,10 +2772,13 @@ bool Context::applyRenderTarget()
 		if(renderTarget) renderTarget->release();
 	}
 
-    egl::Image *depthStencil = framebuffer->getDepthStencil();
-    device->setDepthBuffer(depthStencil);
-	device->setStencilBuffer(depthStencil);
-	if(depthStencil) depthStencil->release();
+    egl::Image *depthBuffer = framebuffer->getDepthBuffer();
+    device->setDepthBuffer(depthBuffer);
+	if(depthBuffer) depthBuffer->release();
+
+	egl::Image *stencilBuffer = framebuffer->getStencilBuffer();
+	device->setStencilBuffer(stencilBuffer);
+	if(stencilBuffer) stencilBuffer->release();
 
     Viewport viewport;
     float zNear = clamp01(mState.zNear);
@@ -3436,7 +3439,7 @@ void Context::clearDepthBuffer(const GLfloat value)
 	if(mState.depthMask && !mState.rasterizerDiscardEnabled)
 	{
 		Framebuffer *framebuffer = getDrawFramebuffer();
-		egl::Image *depthbuffer = framebuffer->getDepthStencil();
+		egl::Image *depthbuffer = framebuffer->getDepthBuffer();
 
 		if(depthbuffer)
 		{
@@ -3460,7 +3463,7 @@ void Context::clearStencilBuffer(const GLint value)
 	if(mState.stencilWritemask && !mState.rasterizerDiscardEnabled)
 	{
 		Framebuffer *framebuffer = getDrawFramebuffer();
-		egl::Image *stencilbuffer = framebuffer->getDepthStencil();
+		egl::Image *stencilbuffer = framebuffer->getStencilBuffer();
 
 		if(stencilbuffer)
 		{
@@ -4098,9 +4101,6 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
         Renderbuffer *readDSBuffer = NULL;
         Renderbuffer *drawDSBuffer = NULL;
 
-        // We support OES_packed_depth_stencil, and do not support a separately attached depth and stencil buffer, so if we have
-        // both a depth and stencil buffer, it will be the same buffer.
-
         if(mask & GL_DEPTH_BUFFER_BIT)
         {
             if(readFramebuffer->getDepthbuffer() && drawFramebuffer->getDepthbuffer())
@@ -4174,7 +4174,7 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 
         if(blitDepthStencil)
         {
-            bool success = device->stretchRect(readFramebuffer->getDepthStencil(), NULL, drawFramebuffer->getDepthStencil(), NULL, false);
+            bool success = device->stretchRect(readFramebuffer->getDepthBuffer(), nullptr, drawFramebuffer->getDepthBuffer(), nullptr, false);
 
             if(!success)
             {

@@ -1724,10 +1724,13 @@ bool Context::applyRenderTarget()
 	device->setRenderTarget(0, renderTarget);
 	if(renderTarget) renderTarget->release();
 
-    egl::Image *depthStencil = framebuffer->getDepthStencil();
-    device->setDepthBuffer(depthStencil);
-	device->setStencilBuffer(depthStencil);
-	if(depthStencil) depthStencil->release();
+    egl::Image *depthBuffer = framebuffer->getDepthBuffer();
+    device->setDepthBuffer(depthBuffer);
+	if(depthBuffer) depthBuffer->release();
+
+	egl::Image *stencilBuffer = framebuffer->getStencilBuffer();
+	device->setStencilBuffer(stencilBuffer);
+	if(stencilBuffer) stencilBuffer->release();
 
     Viewport viewport;
     float zNear = clamp01(mState.zNear);
