@@ -49,7 +49,8 @@ public:
 
     egl::Image *getRenderTarget(GLuint index);
     egl::Image *getReadRenderTarget();
-    egl::Image *getDepthStencil();
+	egl::Image *getDepthBuffer();
+	egl::Image *getStencilBuffer();
 
     Renderbuffer *getColorbuffer(GLuint index);
     Renderbuffer *getReadColorbuffer();

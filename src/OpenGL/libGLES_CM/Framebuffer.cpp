@@ -31,19 +31,19 @@ Framebuffer::Framebuffer()
 
 Framebuffer::~Framebuffer()
 {
-	mColorbufferPointer = NULL;
-	mDepthbufferPointer = NULL;
-	mStencilbufferPointer = NULL;
+	mColorbufferPointer = nullptr;
+	mDepthbufferPointer = nullptr;
+	mStencilbufferPointer = nullptr;
 }
 
 Renderbuffer *Framebuffer::lookupRenderbuffer(GLenum type, GLuint handle) const
 {
 	Context *context = getContext();
-	Renderbuffer *buffer = NULL;
+	Renderbuffer *buffer = nullptr;
 
 	if(type == GL_NONE_OES)
 	{
-		buffer = NULL;
+		buffer = nullptr;
 	}
 	else if(type == GL_RENDERBUFFER_OES)
 	{
@@ -81,19 +81,19 @@ void Framebuffer::detachTexture(GLuint texture)
 	if(mColorbufferPointer.name() == texture && IsTextureTarget(mColorbufferType))
 	{
 		mColorbufferType = GL_NONE_OES;
-		mColorbufferPointer = NULL;
+		mColorbufferPointer = nullptr;
 	}
 
 	if(mDepthbufferPointer.name() == texture && IsTextureTarget(mDepthbufferType))
 	{
 		mDepthbufferType = GL_NONE_OES;
-		mDepthbufferPointer = NULL;
+		mDepthbufferPointer = nullptr;
 	}
 
 	if(mStencilbufferPointer.name() == texture && IsTextureTarget(mStencilbufferType))
 	{
 		mStencilbufferType = GL_NONE_OES;
-		mStencilbufferPointer = NULL;
+		mStencilbufferPointer = nullptr;
 	}
 }
 
@@ -102,19 +102,19 @@ void Framebuffer::detachRenderbuffer(GLuint renderbuffer)
 	if(mColorbufferPointer.name() == renderbuffer && mColorbufferType == GL_RENDERBUFFER_OES)
 	{
 		mColorbufferType = GL_NONE_OES;
-		mColorbufferPointer = NULL;
+		mColorbufferPointer = nullptr;
 	}
 
 	if(mDepthbufferPointer.name() == renderbuffer && mDepthbufferType == GL_RENDERBUFFER_OES)
 	{
 		mDepthbufferType = GL_NONE_OES;
-		mDepthbufferPointer = NULL;
+		mDepthbufferPointer = nullptr;
 	}
 
 	if(mStencilbufferPointer.name() == renderbuffer && mStencilbufferType == GL_RENDERBUFFER_OES)
 	{
 		mStencilbufferType = GL_NONE_OES;
-		mStencilbufferPointer = NULL;
+		mStencilbufferPointer = nullptr;
 	}
 }
 
@@ -129,26 +129,35 @@ egl::Image *Framebuffer::getRenderTarget()
 		return colorbuffer->getRenderTarget();
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 // Increments refcount on surface.
 // caller must Release() the returned surface
-egl::Image *Framebuffer::getDepthStencil()
+egl::Image *Framebuffer::getDepthBuffer()
 {
-	Renderbuffer *depthstencilbuffer = mDepthbufferPointer;
-	
-	if(!depthstencilbuffer)
+	Renderbuffer *depthbuffer = mDepthbufferPointer;
+
+	if(depthbuffer)
 	{
-		depthstencilbuffer = mStencilbufferPointer;
+		return depthbuffer->getRenderTarget();
 	}
 
-	if(depthstencilbuffer)
+	return nullptr;
+}
+
+// Increments refcount on surface.
+// caller must Release() the returned surface
+egl::Image *Framebuffer::getStencilBuffer()
+{
+	Renderbuffer *stencilbuffer = mStencilbufferPointer;
+
+	if(stencilbuffer)
 	{
-		return depthstencilbuffer->getRenderTarget();
+		return stencilbuffer->getRenderTarget();
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 Renderbuffer *Framebuffer::getColorbuffer()
@@ -275,8 +284,8 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 		samples = colorbuffer->getSamples();
 	}
 
-	Renderbuffer *depthbuffer = NULL;
-	Renderbuffer *stencilbuffer = NULL;
+	Renderbuffer *depthbuffer = nullptr;
+	Renderbuffer *stencilbuffer = nullptr;
 
 	if(mDepthbufferType != GL_NONE_OES)
 	{
@@ -381,13 +390,6 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 		}
 	}
 
-	// If we have both a depth and stencil buffer, they must refer to the same object
-	// since we only support packed_depth_stencil and not separate depth and stencil
-	if(depthbuffer && stencilbuffer && (depthbuffer != stencilbuffer))
-	{
-		return GL_FRAMEBUFFER_UNSUPPORTED_OES;
-	}
-
 	// We need to have at least one attachment to be complete
 	if(width == -1 || height == -1)
 	{
@@ -400,7 +402,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 GLenum Framebuffer::getImplementationColorReadFormat()
 {
 	Renderbuffer *colorbuffer = mColorbufferPointer;
-	
+
 	if(colorbuffer)
 	{
 		// Don't return GL_RGBA since that's always supported. Provide a second option here.
@@ -423,7 +425,7 @@ GLenum Framebuffer::getImplementationColorReadFormat()
 GLenum Framebuffer::getImplementationColorReadType()
 {
 	Renderbuffer *colorbuffer = mColorbufferPointer;
-	
+
 	if(colorbuffer)
 	{
 		switch(colorbuffer->getInternalFormat())
