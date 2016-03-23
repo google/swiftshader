@@ -22,16 +22,46 @@ typedef unsigned int GLuint;
 namespace gl
 {
 
+template<class ObjectType, GLuint baseName = 1>
 class NameSpace
 {
-  public:
-    NameSpace();
-    virtual ~NameSpace();
+public:
+    NameSpace() : baseValue(baseName), nextValue(baseName)
+	{
+	}
 
-    void setBaseHandle(GLuint value);
+    GLuint allocate()
+	{
+		if(freeValues.size())
+		{
+			GLuint handle = freeValues.back();
+			freeValues.pop_back();
 
-    GLuint allocate();
-    void release(GLuint handle);
+			return handle;
+		}
+
+		return nextValue++;
+	}
+
+    void release(GLuint handle)
+	{
+		if(handle == nextValue - 1)
+		{
+			// Don't drop below base value
+			if(nextValue > baseValue)
+			{
+				nextValue--;
+			}
+		}
+		else
+		{
+			// Only free handles that we own - don't drop below the base value
+			if(handle >= baseValue)
+			{
+				freeValues.push_back(handle);
+			}
+		}
+	}
 
 private:
     GLuint baseValue;

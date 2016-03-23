@@ -323,7 +323,6 @@ copy "$(OutDir)libGLES_CM.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Pla
   <ItemGroup>
     <ClCompile Include="..\common\Image.cpp" />
     <ClCompile Include="..\common\MatrixStack.cpp" />
-    <ClCompile Include="..\common\NameSpace.cpp" />
     <ClCompile Include="..\common\Object.cpp" />
     <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="Context.cpp" />

@@ -46,8 +46,6 @@ Context::Context(const Context *shareContext)
 	sw::Context *context = new sw::Context();
 	device = new gl::Device(context);
 
-    //mFenceNameSpace.setBaseHandle(0);
-
     setClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
     mState.depthClearValue = 1.0f;

@@ -80,7 +80,6 @@ COMMON_SRC_FILES += \
 
 COMMON_SRC_FILES += \
 	OpenGL/common/Image.cpp \
-	OpenGL/common/NameSpace.cpp \
 	OpenGL/common/Object.cpp \
 	OpenGL/common/MatrixStack.cpp \
 

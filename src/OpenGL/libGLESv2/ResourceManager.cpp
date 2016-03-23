@@ -9,7 +9,7 @@
 // or implied, including but not limited to any patent rights, are granted to you.
 //
 
-// ResourceManager.cpp: Implements the ResourceManager class, which tracks and 
+// ResourceManager.cpp: Implements the ResourceManager class, which tracks and
 // retrieves objects which may be shared by multiple Contexts.
 
 #include "ResourceManager.h"
@@ -85,7 +85,7 @@ GLuint ResourceManager::createBuffer()
 {
     GLuint handle = mBufferNameSpace.allocate();
 
-    mBufferMap[handle] = NULL;
+    mBufferMap[handle] = nullptr;
 
     return handle;
 }
@@ -123,7 +123,7 @@ GLuint ResourceManager::createTexture()
 {
     GLuint handle = mTextureNameSpace.allocate();
 
-    mTextureMap[handle] = NULL;
+    mTextureMap[handle] = nullptr;
 
     return handle;
 }
@@ -133,7 +133,7 @@ GLuint ResourceManager::createRenderbuffer()
 {
     GLuint handle = mRenderbufferNameSpace.allocate();
 
-    mRenderbufferMap[handle] = NULL;
+    mRenderbufferMap[handle] = nullptr;
 
     return handle;
 }
@@ -143,7 +143,7 @@ GLuint ResourceManager::createSampler()
 {
 	GLuint handle = mSamplerHandleAllocator.allocate();
 
-	mSamplerMap[handle] = NULL;
+	mSamplerMap[handle] = nullptr;
 
 	return handle;
 }
@@ -204,7 +204,7 @@ void ResourceManager::deleteProgram(GLuint program)
             mProgramMap.erase(programObject);
         }
         else
-        { 
+        {
             programObject->second->flagForDeletion();
         }
     }
@@ -264,7 +264,7 @@ Buffer *ResourceManager::getBuffer(unsigned int handle)
 
     if(buffer == mBufferMap.end())
     {
-        return NULL;
+        return nullptr;
     }
     else
     {
@@ -278,7 +278,7 @@ Shader *ResourceManager::getShader(unsigned int handle)
 
     if(shader == mShaderMap.end())
     {
-        return NULL;
+        return nullptr;
     }
     else
     {
@@ -288,13 +288,13 @@ Shader *ResourceManager::getShader(unsigned int handle)
 
 Texture *ResourceManager::getTexture(unsigned int handle)
 {
-    if(handle == 0) return NULL;
+    if(handle == 0) return nullptr;
 
     TextureMap::iterator texture = mTextureMap.find(handle);
 
     if(texture == mTextureMap.end())
     {
-        return NULL;
+        return nullptr;
     }
     else
     {
@@ -308,7 +308,7 @@ Program *ResourceManager::getProgram(unsigned int handle)
 
     if(program == mProgramMap.end())
     {
-        return NULL;
+        return nullptr;
     }
     else
     {
@@ -322,7 +322,7 @@ Renderbuffer *ResourceManager::getRenderbuffer(unsigned int handle)
 
     if(renderbuffer == mRenderbufferMap.end())
     {
-        return NULL;
+        return nullptr;
     }
     else
     {
@@ -336,7 +336,7 @@ Sampler *ResourceManager::getSampler(unsigned int handle)
 
 	if(sampler == mSamplerMap.end())
 	{
-		return NULL;
+		return nullptr;
 	}
 	else
 	{
@@ -350,7 +350,7 @@ FenceSync *ResourceManager::getFenceSync(unsigned int handle)
 
 	if(fenceObjectIt == mFenceSyncMap.end())
 	{
-		return NULL;
+		return nullptr;
 	}
 	else
 	{

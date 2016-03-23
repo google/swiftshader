@@ -53,9 +53,6 @@
     <ClCompile Include="..\common\Object.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\NameSpace.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\common\MatrixStack.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

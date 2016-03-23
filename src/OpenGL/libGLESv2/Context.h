@@ -711,23 +711,23 @@ private:
 
     typedef std::map<GLint, Framebuffer*> FramebufferMap;
     FramebufferMap mFramebufferMap;
-    gl::NameSpace mFramebufferNameSpace;
+    gl::NameSpace<Framebuffer> mFramebufferNameSpace;
 
     typedef std::map<GLint, Fence*> FenceMap;
     FenceMap mFenceMap;
-    gl::NameSpace mFenceNameSpace;
+    gl::NameSpace<Fence, 0> mFenceNameSpace;
 
 	typedef std::map<GLint, Query*> QueryMap;
     QueryMap mQueryMap;
-    gl::NameSpace mQueryNameSpace;
+    gl::NameSpace<Query> mQueryNameSpace;
 
 	typedef std::map<GLint, VertexArray*> VertexArrayMap;
 	VertexArrayMap mVertexArrayMap;
-	gl::NameSpace mVertexArrayNameSpace;
+	gl::NameSpace<VertexArray> mVertexArrayNameSpace;
 
 	typedef std::map<GLint, TransformFeedback*> TransformFeedbackMap;
 	TransformFeedbackMap mTransformFeedbackMap;
-	gl::NameSpace mTransformFeedbackNameSpace;
+	gl::NameSpace<TransformFeedback> mTransformFeedbackNameSpace;
 
     VertexDataManager *mVertexDataManager;
     IndexDataManager *mIndexDataManager;
