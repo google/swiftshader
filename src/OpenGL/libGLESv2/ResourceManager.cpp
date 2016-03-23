@@ -31,9 +31,9 @@ ResourceManager::ResourceManager()
 
 ResourceManager::~ResourceManager()
 {
-    while(!mBufferMap.empty())
+    while(!mBufferNameSpace.empty())
     {
-        deleteBuffer(mBufferMap.begin()->first);
+        deleteBuffer(mBufferNameSpace.firstName());
     }
 
     while(!mProgramMap.empty())
@@ -46,24 +46,24 @@ ResourceManager::~ResourceManager()
         deleteShader(mShaderMap.begin()->first);
     }
 
-    while(!mRenderbufferMap.empty())
+    while(!mRenderbufferNameSpace.empty())
     {
-        deleteRenderbuffer(mRenderbufferMap.begin()->first);
+        deleteRenderbuffer(mRenderbufferNameSpace.firstName());
     }
 
-    while(!mTextureMap.empty())
+    while(!mTextureNameSpace.empty())
     {
-        deleteTexture(mTextureMap.begin()->first);
+        deleteTexture(mTextureNameSpace.firstName());
     }
 
-	while(!mSamplerMap.empty())
+	while(!mSamplerNameSpace.empty())
 	{
-		deleteSampler(mSamplerMap.begin()->first);
+		deleteSampler(mSamplerNameSpace.firstName());
 	}
 
-	while(!mFenceSyncMap.empty())
+	while(!mFenceSyncNameSpace.empty())
 	{
-		deleteFenceSync(mFenceSyncMap.begin()->first);
+		deleteFenceSync(mFenceSyncNameSpace.firstName());
 	}
 }
 
@@ -83,11 +83,7 @@ void ResourceManager::release()
 // Returns an unused buffer name
 GLuint ResourceManager::createBuffer()
 {
-    GLuint handle = mBufferNameSpace.allocate();
-
-    mBufferMap[handle] = nullptr;
-
-    return handle;
+    return mBufferNameSpace.allocate();
 }
 
 // Returns an unused shader/program name
@@ -121,54 +117,41 @@ GLuint ResourceManager::createProgram()
 // Returns an unused texture name
 GLuint ResourceManager::createTexture()
 {
-    GLuint handle = mTextureNameSpace.allocate();
-
-    mTextureMap[handle] = nullptr;
-
-    return handle;
+	return mTextureNameSpace.allocate();
 }
 
 // Returns an unused renderbuffer name
 GLuint ResourceManager::createRenderbuffer()
 {
-    GLuint handle = mRenderbufferNameSpace.allocate();
-
-    mRenderbufferMap[handle] = nullptr;
-
-    return handle;
+	return mRenderbufferNameSpace.allocate();
 }
 
 // Returns an unused sampler name
 GLuint ResourceManager::createSampler()
 {
-	GLuint handle = mSamplerNameSpace.allocate();
-
-	mSamplerMap[handle] = nullptr;
-
-	return handle;
+	return mSamplerNameSpace.allocate();
 }
 
 // Returns the next unused fence name, and allocates the fence
 GLuint ResourceManager::createFenceSync(GLenum condition, GLbitfield flags)
 {
-	GLuint handle = mFenceSyncNameSpace.allocate();
+	GLuint name = mFenceSyncNameSpace.allocate();
 
-	FenceSync* fenceSync = new FenceSync(handle, condition, flags);
-	mFenceSyncMap[handle] = fenceSync;
+	FenceSync *fenceSync = new FenceSync(name, condition, flags);
 	fenceSync->addRef();
 
-	return handle;
+	mFenceSyncNameSpace.insert(name, fenceSync);
+
+	return name;
 }
 
 void ResourceManager::deleteBuffer(GLuint buffer)
 {
-    BufferMap::iterator bufferObject = mBufferMap.find(buffer);
+	Buffer *bufferObject = mBufferNameSpace.remove(buffer);
 
-    if(bufferObject != mBufferMap.end())
+    if(bufferObject)
     {
-        mBufferNameSpace.release(bufferObject->first);
-        if(bufferObject->second) bufferObject->second->release();
-        mBufferMap.erase(bufferObject);
+		bufferObject->release();
     }
 }
 
@@ -180,8 +163,8 @@ void ResourceManager::deleteShader(GLuint shader)
     {
         if(shaderObject->second->getRefCount() == 0)
         {
-            mProgramShaderNameSpace.release(shaderObject->first);
-            delete shaderObject->second;
+			delete shaderObject->second;
+			mProgramShaderNameSpace.remove(shaderObject->first);
             mShaderMap.erase(shaderObject);
         }
         else
@@ -199,8 +182,8 @@ void ResourceManager::deleteProgram(GLuint program)
     {
         if(programObject->second->getRefCount() == 0)
         {
-            mProgramShaderNameSpace.release(programObject->first);
-            delete programObject->second;
+			delete programObject->second;
+			mProgramShaderNameSpace.remove(programObject->first);
             mProgramMap.erase(programObject);
         }
         else
@@ -212,64 +195,47 @@ void ResourceManager::deleteProgram(GLuint program)
 
 void ResourceManager::deleteTexture(GLuint texture)
 {
-    TextureMap::iterator textureObject = mTextureMap.find(texture);
+    Texture *textureObject = mTextureNameSpace.remove(texture);
 
-    if(textureObject != mTextureMap.end())
+    if(textureObject)
     {
-        mTextureNameSpace.release(textureObject->first);
-        if(textureObject->second) textureObject->second->release();
-        mTextureMap.erase(textureObject);
+		textureObject->release();
     }
 }
 
 void ResourceManager::deleteRenderbuffer(GLuint renderbuffer)
 {
-    RenderbufferMap::iterator renderbufferObject = mRenderbufferMap.find(renderbuffer);
+    Renderbuffer *renderbufferObject = mRenderbufferNameSpace.remove(renderbuffer);
 
-    if(renderbufferObject != mRenderbufferMap.end())
+    if(renderbufferObject)
     {
-        mRenderbufferNameSpace.release(renderbufferObject->first);
-        if(renderbufferObject->second) renderbufferObject->second->release();
-        mRenderbufferMap.erase(renderbufferObject);
+		renderbufferObject->release();
     }
 }
 
 void ResourceManager::deleteSampler(GLuint sampler)
 {
-	auto samplerObject = mSamplerMap.find(sampler);
+	Sampler *samplerObject = mSamplerNameSpace.remove(sampler);
 
-	if(samplerObject != mSamplerMap.end())
+	if(samplerObject)
 	{
-		mSamplerNameSpace.release(samplerObject->first);
-		if(samplerObject->second) samplerObject->second->release();
-		mSamplerMap.erase(samplerObject);
+		samplerObject->release();
 	}
 }
 
 void ResourceManager::deleteFenceSync(GLuint fenceSync)
 {
-	auto fenceObjectIt = mFenceSyncMap.find(fenceSync);
+	FenceSync *fenceObject = mFenceSyncNameSpace.remove(fenceSync);
 
-	if(fenceObjectIt != mFenceSyncMap.end())
+	if(fenceObject)
 	{
-		mFenceSyncNameSpace.release(fenceObjectIt->first);
-		if(fenceObjectIt->second) fenceObjectIt->second->release();
-		mFenceSyncMap.erase(fenceObjectIt);
+		fenceObject->release();
 	}
 }
 
 Buffer *ResourceManager::getBuffer(unsigned int handle)
 {
-    BufferMap::iterator buffer = mBufferMap.find(handle);
-
-    if(buffer == mBufferMap.end())
-    {
-        return nullptr;
-    }
-    else
-    {
-        return buffer->second;
-    }
+    return mBufferNameSpace.find(handle);
 }
 
 Shader *ResourceManager::getShader(unsigned int handle)
@@ -288,18 +254,7 @@ Shader *ResourceManager::getShader(unsigned int handle)
 
 Texture *ResourceManager::getTexture(unsigned int handle)
 {
-    if(handle == 0) return nullptr;
-
-    TextureMap::iterator texture = mTextureMap.find(handle);
-
-    if(texture == mTextureMap.end())
-    {
-        return nullptr;
-    }
-    else
-    {
-        return texture->second;
-    }
+    return mTextureNameSpace.find(handle);
 }
 
 Program *ResourceManager::getProgram(unsigned int handle)
@@ -318,49 +273,17 @@ Program *ResourceManager::getProgram(unsigned int handle)
 
 Renderbuffer *ResourceManager::getRenderbuffer(unsigned int handle)
 {
-    RenderbufferMap::iterator renderbuffer = mRenderbufferMap.find(handle);
-
-    if(renderbuffer == mRenderbufferMap.end())
-    {
-        return nullptr;
-    }
-    else
-    {
-        return renderbuffer->second;
-    }
+    return mRenderbufferNameSpace.find(handle);
 }
 
 Sampler *ResourceManager::getSampler(unsigned int handle)
 {
-	auto sampler = mSamplerMap.find(handle);
-
-	if(sampler == mSamplerMap.end())
-	{
-		return nullptr;
-	}
-	else
-	{
-		return sampler->second;
-	}
+	return mSamplerNameSpace.find(handle);
 }
 
 FenceSync *ResourceManager::getFenceSync(unsigned int handle)
 {
-	auto fenceObjectIt = mFenceSyncMap.find(handle);
-
-	if(fenceObjectIt == mFenceSyncMap.end())
-	{
-		return nullptr;
-	}
-	else
-	{
-		return fenceObjectIt->second;
-	}
-}
-
-void ResourceManager::setRenderbuffer(GLuint handle, Renderbuffer *buffer)
-{
-    mRenderbufferMap[handle] = buffer;
+	return mFenceSyncNameSpace.find(handle);
 }
 
 void ResourceManager::checkBufferAllocation(unsigned int buffer)
@@ -370,8 +293,7 @@ void ResourceManager::checkBufferAllocation(unsigned int buffer)
         Buffer *bufferObject = new Buffer(buffer);
 		bufferObject->addRef();
 
-		mBufferNameSpace.insert(buffer);
-        mBufferMap[buffer] = bufferObject;
+		mBufferNameSpace.insert(buffer, bufferObject);
     }
 }
 
@@ -409,8 +331,7 @@ void ResourceManager::checkTextureAllocation(GLuint texture, TextureType type)
 
 		textureObject->addRef();
 
-		mTextureNameSpace.insert(texture);
-        mTextureMap[texture] = textureObject;
+		mTextureNameSpace.insert(texture, textureObject);
     }
 }
 
@@ -421,8 +342,7 @@ void ResourceManager::checkRenderbufferAllocation(GLuint handle)
 		Renderbuffer *renderbufferObject = new Renderbuffer(handle, new Colorbuffer(0, 0, GL_RGBA4_OES, 0));
 		renderbufferObject->addRef();
 
-		mRenderbufferNameSpace.insert(handle);
-		mRenderbufferMap[handle] = renderbufferObject;
+		mRenderbufferNameSpace.insert(handle, renderbufferObject);
 	}
 }
 
@@ -433,14 +353,13 @@ void ResourceManager::checkSamplerAllocation(GLuint sampler)
 		Sampler *samplerObject = new Sampler(sampler);
 		samplerObject->addRef();
 
-		mSamplerNameSpace.insert(sampler);
-		mSamplerMap[sampler] = samplerObject;
+		mSamplerNameSpace.insert(sampler, samplerObject);
 	}
 }
 
 bool ResourceManager::isSampler(GLuint sampler)
 {
-	return mSamplerMap.find(sampler) != mSamplerMap.end();
+	return mSamplerNameSpace.find(sampler) != nullptr;
 }
 
 }

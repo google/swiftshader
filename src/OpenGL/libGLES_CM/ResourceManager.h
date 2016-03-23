@@ -58,8 +58,6 @@ public:
     Texture *getTexture(GLuint handle);
     Renderbuffer *getRenderbuffer(GLuint handle);
 
-    void setRenderbuffer(GLuint handle, Renderbuffer *renderbuffer);
-
     void checkBufferAllocation(unsigned int buffer);
     void checkTextureAllocation(GLuint texture, TextureType type);
 	void checkRenderbufferAllocation(GLuint handle);
@@ -67,16 +65,8 @@ public:
 private:
     std::size_t mRefCount;
 
-    typedef std::map<GLint, Buffer*> BufferMap;
-    BufferMap mBufferMap;
     gl::NameSpace<Buffer> mBufferNameSpace;
-
-    typedef std::map<GLint, Texture*> TextureMap;
-    TextureMap mTextureMap;
-    gl::NameSpace<Texture> mTextureNameSpace;
-
-    typedef std::map<GLint, Renderbuffer*> RenderbufferMap;
-    RenderbufferMap mRenderbufferMap;
+	gl::NameSpace<Texture> mTextureNameSpace;
     gl::NameSpace<Renderbuffer> mRenderbufferNameSpace;
 };
 
