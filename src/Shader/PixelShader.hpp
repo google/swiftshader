@@ -34,7 +34,7 @@ namespace sw
 
 		virtual void analyze();
 
-		enum {MAX_INPUT_VARYINGS = 11};
+		enum {MAX_INPUT_VARYINGS = 10};
 		Semantic semantic[MAX_INPUT_VARYINGS][4];   // FIXME: Private
 
 		bool vPosDeclared;
