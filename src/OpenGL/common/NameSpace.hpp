@@ -15,7 +15,10 @@
 #ifndef gl_NameSpace_hpp
 #define gl_NameSpace_hpp
 
-#include <vector>
+#include "Object.hpp"
+
+#include <unordered_set>
+#include <algorithm>
 
 typedef unsigned int GLuint;
 
@@ -23,51 +26,36 @@ namespace gl
 {
 
 template<class ObjectType, GLuint baseName = 1>
-class NameSpace
+class NameSpace : std::unordered_set<GLuint>
 {
 public:
-    NameSpace() : baseValue(baseName), nextValue(baseName)
+    NameSpace() : freeName(baseName)
 	{
 	}
 
     GLuint allocate()
 	{
-		if(freeValues.size())
-		{
-			GLuint handle = freeValues.back();
-			freeValues.pop_back();
+		GLuint name = freeName;
 
-			return handle;
+		while(find(name) != end())
+		{
+			name++;
 		}
 
-		return nextValue++;
+		insert(name);
+		freeName = name + 1;
+
+		return name;
 	}
 
-    void release(GLuint handle)
+    void release(GLuint name)
 	{
-		if(handle == nextValue - 1)
-		{
-			// Don't drop below base value
-			if(nextValue > baseValue)
-			{
-				nextValue--;
-			}
-		}
-		else
-		{
-			// Only free handles that we own - don't drop below the base value
-			if(handle >= baseValue)
-			{
-				freeValues.push_back(handle);
-			}
-		}
+		erase(name);
+		freeName = std::min(name, freeName);
 	}
 
 private:
-    GLuint baseValue;
-    GLuint nextValue;
-    typedef std::vector<GLuint> HandleList;
-    HandleList freeValues;
+	GLuint freeName;
 };
 
 }
