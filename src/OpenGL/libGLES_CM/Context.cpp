@@ -978,8 +978,8 @@ void Context::deleteFramebuffer(GLuint framebuffer)
     {
         detachFramebuffer(framebuffer);
 
-        mFramebufferNameSpace.release(framebufferObject->first);
-        delete framebufferObject->second;
+		delete framebufferObject->second;
+        mFramebufferNameSpace.remove(framebufferObject->first);
         mFramebufferMap.erase(framebufferObject);
     }
 }

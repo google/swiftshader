@@ -45,7 +45,7 @@ enum TextureType
 
 class ResourceManager
 {
-  public:
+public:
     ResourceManager();
     ~ResourceManager();
 
@@ -76,8 +76,6 @@ class ResourceManager
     Sampler *getSampler(GLuint handle);
     FenceSync *getFenceSync(GLuint handle);
 
-    void setRenderbuffer(GLuint handle, Renderbuffer *renderbuffer);
-
     void checkBufferAllocation(unsigned int buffer);
     void checkTextureAllocation(GLuint texture, TextureType type);
     void checkRenderbufferAllocation(GLuint handle);
@@ -85,11 +83,9 @@ class ResourceManager
 
     bool isSampler(GLuint sampler);
 
-  private:
+private:
     std::size_t mRefCount;
 
-    typedef std::map<GLint, Buffer*> BufferMap;
-    BufferMap mBufferMap;
     gl::NameSpace<Buffer> mBufferNameSpace;
 
     typedef std::map<GLint, Shader*> ShaderMap;
@@ -99,20 +95,9 @@ class ResourceManager
     ProgramMap mProgramMap;
     gl::NameSpace<Program> mProgramShaderNameSpace;
 
-    typedef std::map<GLint, Texture*> TextureMap;
-    TextureMap mTextureMap;
     gl::NameSpace<Texture> mTextureNameSpace;
-
-    typedef std::map<GLint, Renderbuffer*> RenderbufferMap;
-    RenderbufferMap mRenderbufferMap;
     gl::NameSpace<Renderbuffer> mRenderbufferNameSpace;
-
-	typedef std::map<GLint, Sampler*> SamplerMap;
-	SamplerMap mSamplerMap;
 	gl::NameSpace<Sampler> mSamplerNameSpace;
-
-	typedef std::map<GLint, FenceSync*> FenceMap;
-	FenceMap mFenceSyncMap;
 	gl::NameSpace<FenceSync> mFenceSyncNameSpace;
 };
 

@@ -1028,8 +1028,8 @@ void Context::deleteFramebuffer(GLuint framebuffer)
     {
         detachFramebuffer(framebuffer);
 
-        mFramebufferNameSpace.release(framebufferObject->first);
-        delete framebufferObject->second;
+		delete framebufferObject->second;
+		mFramebufferNameSpace.remove(framebufferObject->first);
         mFramebufferMap.erase(framebufferObject);
     }
 }
@@ -1040,8 +1040,8 @@ void Context::deleteFence(GLuint fence)
 
     if(fenceObject != mFenceMap.end())
     {
-        mFenceNameSpace.release(fenceObject->first);
-        delete fenceObject->second;
+		delete fenceObject->second;
+		mFenceNameSpace.remove(fenceObject->first);
         mFenceMap.erase(fenceObject);
     }
 }
@@ -1052,13 +1052,12 @@ void Context::deleteQuery(GLuint query)
 
 	if(queryObject != mQueryMap.end())
     {
-        mQueryNameSpace.release(queryObject->first);
-
 		if(queryObject->second)
         {
             queryObject->second->release();
         }
 
+        mQueryNameSpace.remove(queryObject->first);
 		mQueryMap.erase(queryObject);
     }
 }
@@ -1081,8 +1080,8 @@ void Context::deleteVertexArray(GLuint vertexArray)
 			bindVertexArray(0);
 		}
 
-		mVertexArrayNameSpace.release(vertexArrayObject->first);
 		delete vertexArrayObject->second;
+		mVertexArrayNameSpace.remove(vertexArrayObject->first);
 		mVertexArrayMap.erase(vertexArrayObject);
 	}
 }
@@ -1102,8 +1101,8 @@ void Context::deleteTransformFeedback(GLuint transformFeedback)
 
 	if(transformFeedbackObject != mTransformFeedbackMap.end())
 	{
-		mTransformFeedbackNameSpace.release(transformFeedbackObject->first);
 		delete transformFeedbackObject->second;
+		mTransformFeedbackNameSpace.remove(transformFeedbackObject->first);
 		mTransformFeedbackMap.erase(transformFeedbackObject);
 	}
 }

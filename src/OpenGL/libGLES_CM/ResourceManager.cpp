@@ -27,19 +27,19 @@ ResourceManager::ResourceManager()
 
 ResourceManager::~ResourceManager()
 {
-    while(!mBufferMap.empty())
+    while(!mBufferNameSpace.empty())
     {
-        deleteBuffer(mBufferMap.begin()->first);
+        deleteBuffer(mBufferNameSpace.firstName());
     }
 
-    while(!mRenderbufferMap.empty())
+    while(!mRenderbufferNameSpace.empty())
     {
-        deleteRenderbuffer(mRenderbufferMap.begin()->first);
+        deleteRenderbuffer(mRenderbufferNameSpace.firstName());
     }
 
-    while(!mTextureMap.empty())
+    while(!mTextureNameSpace.empty())
     {
-        deleteTexture(mTextureMap.begin()->first);
+        deleteTexture(mTextureNameSpace.firstName());
     }
 }
 
@@ -59,116 +59,64 @@ void ResourceManager::release()
 // Returns an unused buffer name
 GLuint ResourceManager::createBuffer()
 {
-    GLuint handle = mBufferNameSpace.allocate();
-
-    mBufferMap[handle] = nullptr;
-
-    return handle;
+    return mBufferNameSpace.allocate();
 }
 
 // Returns an unused texture name
 GLuint ResourceManager::createTexture()
 {
-    GLuint handle = mTextureNameSpace.allocate();
-
-    mTextureMap[handle] = nullptr;
-
-    return handle;
+    return mTextureNameSpace.allocate();
 }
 
 // Returns an unused renderbuffer name
 GLuint ResourceManager::createRenderbuffer()
 {
-    GLuint handle = mRenderbufferNameSpace.allocate();
-
-    mRenderbufferMap[handle] = nullptr;
-
-    return handle;
+    return mRenderbufferNameSpace.allocate();
 }
 
 void ResourceManager::deleteBuffer(GLuint buffer)
 {
-    BufferMap::iterator bufferObject = mBufferMap.find(buffer);
+    Buffer *bufferObject = mBufferNameSpace.remove(buffer);
 
-    if(bufferObject != mBufferMap.end())
+    if(bufferObject)
     {
-        mBufferNameSpace.release(bufferObject->first);
-        if(bufferObject->second) bufferObject->second->release();
-        mBufferMap.erase(bufferObject);
+		bufferObject->release();
     }
 }
 
 void ResourceManager::deleteTexture(GLuint texture)
 {
-    TextureMap::iterator textureObject = mTextureMap.find(texture);
+    Texture *textureObject = mTextureNameSpace.find(texture);
 
-    if(textureObject != mTextureMap.end())
+    if(textureObject)
     {
-        mTextureNameSpace.release(textureObject->first);
-        if(textureObject->second) textureObject->second->release();
-        mTextureMap.erase(textureObject);
+		textureObject->release();
     }
 }
 
 void ResourceManager::deleteRenderbuffer(GLuint renderbuffer)
 {
-    RenderbufferMap::iterator renderbufferObject = mRenderbufferMap.find(renderbuffer);
+    Renderbuffer *renderbufferObject = mRenderbufferNameSpace.find(renderbuffer);
 
-    if(renderbufferObject != mRenderbufferMap.end())
+    if(renderbufferObject)
     {
-        mRenderbufferNameSpace.release(renderbufferObject->first);
-        if(renderbufferObject->second) renderbufferObject->second->release();
-        mRenderbufferMap.erase(renderbufferObject);
+		renderbufferObject->release();
     }
 }
 
 Buffer *ResourceManager::getBuffer(unsigned int handle)
 {
-    BufferMap::iterator buffer = mBufferMap.find(handle);
-
-    if(buffer == mBufferMap.end())
-    {
-        return nullptr;
-    }
-    else
-    {
-        return buffer->second;
-    }
+    return mBufferNameSpace.find(handle);
 }
 
 Texture *ResourceManager::getTexture(unsigned int handle)
 {
-    if(handle == 0) return nullptr;
-
-    TextureMap::iterator texture = mTextureMap.find(handle);
-
-    if(texture == mTextureMap.end())
-    {
-        return nullptr;
-    }
-    else
-    {
-        return texture->second;
-    }
+    return mTextureNameSpace.find(handle);
 }
 
 Renderbuffer *ResourceManager::getRenderbuffer(unsigned int handle)
 {
-    RenderbufferMap::iterator renderbuffer = mRenderbufferMap.find(handle);
-
-    if(renderbuffer == mRenderbufferMap.end())
-    {
-        return nullptr;
-    }
-    else
-    {
-        return renderbuffer->second;
-    }
-}
-
-void ResourceManager::setRenderbuffer(GLuint handle, Renderbuffer *buffer)
-{
-    mRenderbufferMap[handle] = buffer;
+    return mRenderbufferNameSpace.find(handle);
 }
 
 void ResourceManager::checkBufferAllocation(unsigned int buffer)
@@ -178,8 +126,7 @@ void ResourceManager::checkBufferAllocation(unsigned int buffer)
         Buffer *bufferObject = new Buffer(buffer);
 		bufferObject->addRef();
 
-		mBufferNameSpace.insert(buffer);
-        mBufferMap[buffer] = bufferObject;
+		mBufferNameSpace.insert(buffer, bufferObject);
     }
 }
 
@@ -205,8 +152,7 @@ void ResourceManager::checkTextureAllocation(GLuint texture, TextureType type)
 
 		textureObject->addRef();
 
-		mTextureNameSpace.insert(texture);
-        mTextureMap[texture] = textureObject;
+		mTextureNameSpace.insert(texture, textureObject);
     }
 }
 
@@ -217,8 +163,7 @@ void ResourceManager::checkRenderbufferAllocation(GLuint handle)
 		Renderbuffer *renderbufferObject = new Renderbuffer(handle, new Colorbuffer(0, 0, GL_RGBA4_OES, 0));
 		renderbufferObject->addRef();
 
-		mRenderbufferNameSpace.insert(handle);
-		mRenderbufferMap[handle] = renderbufferObject;
+		mRenderbufferNameSpace.insert(handle, renderbufferObject);
 	}
 }
 
