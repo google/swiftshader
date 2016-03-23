@@ -36,14 +36,14 @@ ResourceManager::~ResourceManager()
         deleteBuffer(mBufferNameSpace.firstName());
     }
 
-    while(!mProgramMap.empty())
+	while(!mProgramNameSpace.empty())
     {
-        deleteProgram(mProgramMap.begin()->first);
+		deleteProgram(mProgramNameSpace.firstName());
     }
 
-    while(!mShaderMap.empty())
+	while(!mShaderNameSpace.empty())
     {
-        deleteShader(mShaderMap.begin()->first);
+		deleteShader(mShaderNameSpace.firstName());
     }
 
     while(!mRenderbufferNameSpace.empty())
@@ -86,32 +86,32 @@ GLuint ResourceManager::createBuffer()
     return mBufferNameSpace.allocate();
 }
 
-// Returns an unused shader/program name
+// Returns an unused shader name
 GLuint ResourceManager::createShader(GLenum type)
 {
-    GLuint handle = mProgramShaderNameSpace.allocate();
+	GLuint name = mProgramShaderNameSpace.allocate();
 
     if(type == GL_VERTEX_SHADER)
     {
-        mShaderMap[handle] = new VertexShader(this, handle);
+		mShaderNameSpace.insert(name, new VertexShader(this, name));
     }
     else if(type == GL_FRAGMENT_SHADER)
     {
-        mShaderMap[handle] = new FragmentShader(this, handle);
+		mShaderNameSpace.insert(name, new FragmentShader(this, name));
     }
     else UNREACHABLE(type);
 
-    return handle;
+	return name;
 }
 
-// Returns an unused program/shader name
+// Returns an unused program name
 GLuint ResourceManager::createProgram()
 {
-    GLuint handle = mProgramShaderNameSpace.allocate();
+	GLuint name = mProgramShaderNameSpace.allocate();
 
-    mProgramMap[handle] = new Program(this, handle);
+	mProgramNameSpace.insert(name, new Program(this, name));
 
-    return handle;
+	return name;
 }
 
 // Returns an unused texture name
@@ -157,38 +157,38 @@ void ResourceManager::deleteBuffer(GLuint buffer)
 
 void ResourceManager::deleteShader(GLuint shader)
 {
-    ShaderMap::iterator shaderObject = mShaderMap.find(shader);
+    Shader *shaderObject = mShaderNameSpace.find(shader);
 
-    if(shaderObject != mShaderMap.end())
+    if(shaderObject)
     {
-        if(shaderObject->second->getRefCount() == 0)
+        if(shaderObject->getRefCount() == 0)
         {
-			delete shaderObject->second;
-			mProgramShaderNameSpace.remove(shaderObject->first);
-            mShaderMap.erase(shaderObject);
+			delete shaderObject;
+			mShaderNameSpace.remove(shader);
+			mProgramShaderNameSpace.remove(shader);
         }
         else
         {
-            shaderObject->second->flagForDeletion();
+            shaderObject->flagForDeletion();
         }
     }
 }
 
 void ResourceManager::deleteProgram(GLuint program)
 {
-    ProgramMap::iterator programObject = mProgramMap.find(program);
+    Program *programObject = mProgramNameSpace.find(program);
 
-    if(programObject != mProgramMap.end())
+    if(programObject)
     {
-        if(programObject->second->getRefCount() == 0)
+        if(programObject->getRefCount() == 0)
         {
-			delete programObject->second;
-			mProgramShaderNameSpace.remove(programObject->first);
-            mProgramMap.erase(programObject);
+			delete programObject;
+			mProgramNameSpace.remove(program);
+			mProgramShaderNameSpace.remove(program);
         }
         else
         {
-            programObject->second->flagForDeletion();
+            programObject->flagForDeletion();
         }
     }
 }
@@ -240,16 +240,7 @@ Buffer *ResourceManager::getBuffer(unsigned int handle)
 
 Shader *ResourceManager::getShader(unsigned int handle)
 {
-    ShaderMap::iterator shader = mShaderMap.find(handle);
-
-    if(shader == mShaderMap.end())
-    {
-        return nullptr;
-    }
-    else
-    {
-        return shader->second;
-    }
+    return mShaderNameSpace.find(handle);
 }
 
 Texture *ResourceManager::getTexture(unsigned int handle)
@@ -259,16 +250,7 @@ Texture *ResourceManager::getTexture(unsigned int handle)
 
 Program *ResourceManager::getProgram(unsigned int handle)
 {
-    ProgramMap::iterator program = mProgramMap.find(handle);
-
-    if(program == mProgramMap.end())
-    {
-        return nullptr;
-    }
-    else
-    {
-        return program->second;
-    }
+    return mProgramNameSpace.find(handle);
 }
 
 Renderbuffer *ResourceManager::getRenderbuffer(unsigned int handle)

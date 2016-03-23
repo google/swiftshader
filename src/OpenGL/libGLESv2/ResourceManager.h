@@ -87,14 +87,9 @@ private:
     std::size_t mRefCount;
 
     gl::NameSpace<Buffer> mBufferNameSpace;
-
-    typedef std::map<GLint, Shader*> ShaderMap;
-    ShaderMap mShaderMap;
-
-    typedef std::map<GLint, Program*> ProgramMap;
-    ProgramMap mProgramMap;
-    gl::NameSpace<Program> mProgramShaderNameSpace;
-
+    gl::NameSpace<Program> mProgramNameSpace;
+	gl::NameSpace<Shader> mShaderNameSpace;
+	gl::NameSpace<void> mProgramShaderNameSpace;   // Shaders and programs share a namespace
     gl::NameSpace<Texture> mTextureNameSpace;
     gl::NameSpace<Renderbuffer> mRenderbufferNameSpace;
 	gl::NameSpace<Sampler> mSamplerNameSpace;
