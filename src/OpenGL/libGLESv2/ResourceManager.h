@@ -109,11 +109,11 @@ class ResourceManager
 
 	typedef std::map<GLint, Sampler*> SamplerMap;
 	SamplerMap mSamplerMap;
-	gl::NameSpace<Sampler> mSamplerHandleAllocator;
+	gl::NameSpace<Sampler> mSamplerNameSpace;
 
 	typedef std::map<GLint, FenceSync*> FenceMap;
 	FenceMap mFenceSyncMap;
-	gl::NameSpace<FenceSync> mFenceSyncHandleAllocator;
+	gl::NameSpace<FenceSync> mFenceSyncNameSpace;
 };
 
 }

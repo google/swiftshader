@@ -141,7 +141,7 @@ GLuint ResourceManager::createRenderbuffer()
 // Returns an unused sampler name
 GLuint ResourceManager::createSampler()
 {
-	GLuint handle = mSamplerHandleAllocator.allocate();
+	GLuint handle = mSamplerNameSpace.allocate();
 
 	mSamplerMap[handle] = nullptr;
 
@@ -151,7 +151,7 @@ GLuint ResourceManager::createSampler()
 // Returns the next unused fence name, and allocates the fence
 GLuint ResourceManager::createFenceSync(GLenum condition, GLbitfield flags)
 {
-	GLuint handle = mFenceSyncHandleAllocator.allocate();
+	GLuint handle = mFenceSyncNameSpace.allocate();
 
 	FenceSync* fenceSync = new FenceSync(handle, condition, flags);
 	mFenceSyncMap[handle] = fenceSync;
@@ -240,7 +240,7 @@ void ResourceManager::deleteSampler(GLuint sampler)
 
 	if(samplerObject != mSamplerMap.end())
 	{
-		mSamplerHandleAllocator.release(samplerObject->first);
+		mSamplerNameSpace.release(samplerObject->first);
 		if(samplerObject->second) samplerObject->second->release();
 		mSamplerMap.erase(samplerObject);
 	}
@@ -252,7 +252,7 @@ void ResourceManager::deleteFenceSync(GLuint fenceSync)
 
 	if(fenceObjectIt != mFenceSyncMap.end())
 	{
-		mFenceSyncHandleAllocator.release(fenceObjectIt->first);
+		mFenceSyncNameSpace.release(fenceObjectIt->first);
 		if(fenceObjectIt->second) fenceObjectIt->second->release();
 		mFenceSyncMap.erase(fenceObjectIt);
 	}
@@ -368,8 +368,10 @@ void ResourceManager::checkBufferAllocation(unsigned int buffer)
     if(buffer != 0 && !getBuffer(buffer))
     {
         Buffer *bufferObject = new Buffer(buffer);
+		bufferObject->addRef();
+
+		mBufferNameSpace.insert(buffer);
         mBufferMap[buffer] = bufferObject;
-        bufferObject->addRef();
     }
 }
 
@@ -405,8 +407,10 @@ void ResourceManager::checkTextureAllocation(GLuint texture, TextureType type)
             return;
         }
 
+		textureObject->addRef();
+
+		mTextureNameSpace.insert(texture);
         mTextureMap[texture] = textureObject;
-        textureObject->addRef();
     }
 }
 
@@ -415,8 +419,10 @@ void ResourceManager::checkRenderbufferAllocation(GLuint handle)
 	if(handle != 0 && !getRenderbuffer(handle))
 	{
 		Renderbuffer *renderbufferObject = new Renderbuffer(handle, new Colorbuffer(0, 0, GL_RGBA4_OES, 0));
-		mRenderbufferMap[handle] = renderbufferObject;
 		renderbufferObject->addRef();
+
+		mRenderbufferNameSpace.insert(handle);
+		mRenderbufferMap[handle] = renderbufferObject;
 	}
 }
 
@@ -425,9 +431,10 @@ void ResourceManager::checkSamplerAllocation(GLuint sampler)
 	if(sampler != 0 && !getSampler(sampler))
 	{
 		Sampler *samplerObject = new Sampler(sampler);
-		mSamplerMap[sampler] = samplerObject;
 		samplerObject->addRef();
-		// Samplers cannot be created via Bind
+
+		mSamplerNameSpace.insert(sampler);
+		mSamplerMap[sampler] = samplerObject;
 	}
 }
 

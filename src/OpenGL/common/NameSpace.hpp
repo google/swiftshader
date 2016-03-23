@@ -48,6 +48,16 @@ public:
 		return name;
 	}
 
+	void insert(GLuint name)
+	{
+		std::unordered_set<GLuint>::insert(name);
+
+		if(name == freeName)
+		{
+			freeName++;
+		}
+	}
+
     void release(GLuint name)
 	{
 		erase(name);
@@ -55,7 +65,7 @@ public:
 	}
 
 private:
-	GLuint freeName;
+	GLuint freeName;   // Lowest known potentially free name
 };
 
 }
