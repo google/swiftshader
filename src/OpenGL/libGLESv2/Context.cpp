@@ -45,8 +45,6 @@ Context::Context(const egl::Config *config, const Context *shareContext, EGLint 
 	sw::Context *context = new sw::Context();
 	device = new es2::Device(context);
 
-    mFenceNameSpace.setBaseHandle(0);
-
     setClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
     mState.depthClearValue = 1.0f;

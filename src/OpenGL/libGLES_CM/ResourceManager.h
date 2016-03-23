@@ -39,7 +39,7 @@ enum TextureType
 
 class ResourceManager
 {
-  public:
+public:
     ResourceManager();
     ~ResourceManager();
 
@@ -57,26 +57,26 @@ class ResourceManager
     Buffer *getBuffer(GLuint handle);
     Texture *getTexture(GLuint handle);
     Renderbuffer *getRenderbuffer(GLuint handle);
-    
+
     void setRenderbuffer(GLuint handle, Renderbuffer *renderbuffer);
 
     void checkBufferAllocation(unsigned int buffer);
     void checkTextureAllocation(GLuint texture, TextureType type);
 
-  private:
+private:
     std::size_t mRefCount;
 
     typedef std::map<GLint, Buffer*> BufferMap;
     BufferMap mBufferMap;
-    gl::NameSpace mBufferNameSpace;
-	
+    gl::NameSpace<Buffer> mBufferNameSpace;
+
     typedef std::map<GLint, Texture*> TextureMap;
     TextureMap mTextureMap;
-    gl::NameSpace mTextureNameSpace;
+    gl::NameSpace<Texture> mTextureNameSpace;
 
     typedef std::map<GLint, Renderbuffer*> RenderbufferMap;
     RenderbufferMap mRenderbufferMap;
-    gl::NameSpace mRenderbufferNameSpace;
+    gl::NameSpace<Renderbuffer> mRenderbufferNameSpace;
 };
 
 }

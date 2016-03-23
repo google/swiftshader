@@ -596,7 +596,7 @@ private:
 
     typedef std::map<GLint, Framebuffer*> FramebufferMap;
     FramebufferMap mFramebufferMap;
-    gl::NameSpace mFramebufferNameSpace;
+    gl::NameSpace<Framebuffer> mFramebufferNameSpace;
 
     VertexDataManager *mVertexDataManager;
     IndexDataManager *mIndexDataManager;

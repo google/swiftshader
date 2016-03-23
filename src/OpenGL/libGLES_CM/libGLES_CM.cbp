@@ -262,7 +262,6 @@
 		<Unit filename="../common/Image.hpp" />
 		<Unit filename="../common/MatrixStack.cpp" />
 		<Unit filename="../common/MatrixStack.hpp" />
-		<Unit filename="../common/NameSpace.cpp" />
 		<Unit filename="../common/NameSpace.hpp" />
 		<Unit filename="../common/Object.cpp" />
 		<Unit filename="../common/Object.hpp" />

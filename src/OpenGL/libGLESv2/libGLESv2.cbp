@@ -259,7 +259,6 @@
 		<Unit filename="../../Shader/VertexShader.hpp" />
 		<Unit filename="../common/Image.cpp" />
 		<Unit filename="../common/Image.hpp" />
-		<Unit filename="../common/NameSpace.cpp" />
 		<Unit filename="../common/NameSpace.hpp" />
 		<Unit filename="../common/Object.cpp" />
 		<Unit filename="../common/Object.hpp" />

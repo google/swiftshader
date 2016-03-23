@@ -75,7 +75,7 @@ class ResourceManager
     Renderbuffer *getRenderbuffer(GLuint handle);
     Sampler *getSampler(GLuint handle);
     FenceSync *getFenceSync(GLuint handle);
-    
+
     void setRenderbuffer(GLuint handle, Renderbuffer *renderbuffer);
 
     void checkBufferAllocation(unsigned int buffer);
@@ -90,30 +90,30 @@ class ResourceManager
 
     typedef std::map<GLint, Buffer*> BufferMap;
     BufferMap mBufferMap;
-    gl::NameSpace mBufferNameSpace;
+    gl::NameSpace<Buffer> mBufferNameSpace;
 
     typedef std::map<GLint, Shader*> ShaderMap;
     ShaderMap mShaderMap;
 
     typedef std::map<GLint, Program*> ProgramMap;
     ProgramMap mProgramMap;
-    gl::NameSpace mProgramShaderNameSpace;
+    gl::NameSpace<Program> mProgramShaderNameSpace;
 
     typedef std::map<GLint, Texture*> TextureMap;
     TextureMap mTextureMap;
-    gl::NameSpace mTextureNameSpace;
+    gl::NameSpace<Texture> mTextureNameSpace;
 
     typedef std::map<GLint, Renderbuffer*> RenderbufferMap;
     RenderbufferMap mRenderbufferMap;
-    gl::NameSpace mRenderbufferNameSpace;
+    gl::NameSpace<Renderbuffer> mRenderbufferNameSpace;
 
 	typedef std::map<GLint, Sampler*> SamplerMap;
 	SamplerMap mSamplerMap;
-	gl::NameSpace mSamplerHandleAllocator;
+	gl::NameSpace<Sampler> mSamplerHandleAllocator;
 
 	typedef std::map<GLint, FenceSync*> FenceMap;
 	FenceMap mFenceSyncMap;
-	gl::NameSpace mFenceSyncHandleAllocator;
+	gl::NameSpace<FenceSync> mFenceSyncHandleAllocator;
 };
 
 }

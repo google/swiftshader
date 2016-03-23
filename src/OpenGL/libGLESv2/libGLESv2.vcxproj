@@ -322,7 +322,6 @@ copy "$(OutDir)libGLESv2.dll" "$(ProjectDir)..\..\..\lib\$(Configuration)_$(Plat
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\common\Image.cpp" />
-    <ClCompile Include="..\common\NameSpace.cpp" />
     <ClCompile Include="..\common\Object.cpp" />
     <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="Context.cpp" />
