@@ -125,7 +125,7 @@ Context::Context(const egl::Config *config, const Context *shareContext)
 		mState.textureUnit[i].operand2Alpha = GL_SRC_ALPHA;
 	}
 
-    if(shareContext != NULL)
+    if(shareContext)
     {
         mResourceManager = shareContext->mResourceManager;
         mResourceManager->addRef();
@@ -254,21 +254,21 @@ Context::~Context()
     {
         for(int sampler = 0; sampler < MAX_TEXTURE_UNITS; sampler++)
         {
-            mState.samplerTexture[type][sampler] = NULL;
+            mState.samplerTexture[type][sampler] = nullptr;
         }
     }
 
     for(int i = 0; i < MAX_VERTEX_ATTRIBS; i++)
     {
-        mState.vertexAttribute[i].mBoundBuffer = NULL;
+        mState.vertexAttribute[i].mBoundBuffer = nullptr;
     }
 
-    mState.arrayBuffer = NULL;
-    mState.elementArrayBuffer = NULL;
-    mState.renderbuffer = NULL;
+    mState.arrayBuffer = nullptr;
+    mState.elementArrayBuffer = nullptr;
+    mState.renderbuffer = nullptr;
 
-    mTexture2DZero = NULL;
-    mTextureExternalZero = NULL;
+    mTexture2DZero = nullptr;
+    mTextureExternalZero = nullptr;
 
     delete mVertexDataManager;
     delete mIndexDataManager;
@@ -935,7 +935,7 @@ GLuint Context::createFramebuffer()
 {
     GLuint handle = mFramebufferNameSpace.allocate();
 
-    mFramebufferMap[handle] = NULL;
+    mFramebufferMap[handle] = nullptr;
 
     return handle;
 }
@@ -1044,6 +1044,8 @@ void Context::bindFramebuffer(GLuint framebuffer)
 
 void Context::bindRenderbuffer(GLuint renderbuffer)
 {
+	mResourceManager->checkRenderbufferAllocation(renderbuffer);
+
     mState.renderbuffer = getRenderbuffer(renderbuffer);
 }
 
@@ -1065,7 +1067,7 @@ Framebuffer *Context::getFramebuffer(unsigned int handle)
 
     if(framebuffer == mFramebufferMap.end())
     {
-        return NULL;
+        return nullptr;
     }
     else
     {
@@ -2976,19 +2978,19 @@ void Context::detachBuffer(GLuint buffer)
 
     if(mState.arrayBuffer.name() == buffer)
     {
-        mState.arrayBuffer = NULL;
+        mState.arrayBuffer = nullptr;
     }
 
     if(mState.elementArrayBuffer.name() == buffer)
     {
-        mState.elementArrayBuffer = NULL;
+        mState.elementArrayBuffer = nullptr;
     }
 
     for(int attribute = 0; attribute < MAX_VERTEX_ATTRIBS; attribute++)
     {
         if(mState.vertexAttribute[attribute].mBoundBuffer.name() == buffer)
         {
-            mState.vertexAttribute[attribute].mBoundBuffer = NULL;
+            mState.vertexAttribute[attribute].mBoundBuffer = nullptr;
         }
     }
 }
@@ -3005,7 +3007,7 @@ void Context::detachTexture(GLuint texture)
         {
             if(mState.samplerTexture[type][sampler].name() == texture)
             {
-                mState.samplerTexture[type][sampler] = NULL;
+                mState.samplerTexture[type][sampler] = nullptr;
             }
         }
     }

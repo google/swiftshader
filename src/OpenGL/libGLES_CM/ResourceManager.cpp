@@ -9,7 +9,7 @@
 // or implied, including but not limited to any patent rights, are granted to you.
 //
 
-// ResourceManager.cpp: Implements the ResourceManager class, which tracks and 
+// ResourceManager.cpp: Implements the ResourceManager class, which tracks and
 // retrieves objects which may be shared by multiple Contexts.
 
 #include "ResourceManager.h"
@@ -61,7 +61,7 @@ GLuint ResourceManager::createBuffer()
 {
     GLuint handle = mBufferNameSpace.allocate();
 
-    mBufferMap[handle] = NULL;
+    mBufferMap[handle] = nullptr;
 
     return handle;
 }
@@ -71,7 +71,7 @@ GLuint ResourceManager::createTexture()
 {
     GLuint handle = mTextureNameSpace.allocate();
 
-    mTextureMap[handle] = NULL;
+    mTextureMap[handle] = nullptr;
 
     return handle;
 }
@@ -81,7 +81,7 @@ GLuint ResourceManager::createRenderbuffer()
 {
     GLuint handle = mRenderbufferNameSpace.allocate();
 
-    mRenderbufferMap[handle] = NULL;
+    mRenderbufferMap[handle] = nullptr;
 
     return handle;
 }
@@ -128,7 +128,7 @@ Buffer *ResourceManager::getBuffer(unsigned int handle)
 
     if(buffer == mBufferMap.end())
     {
-        return NULL;
+        return nullptr;
     }
     else
     {
@@ -138,13 +138,13 @@ Buffer *ResourceManager::getBuffer(unsigned int handle)
 
 Texture *ResourceManager::getTexture(unsigned int handle)
 {
-    if(handle == 0) return NULL;
+    if(handle == 0) return nullptr;
 
     TextureMap::iterator texture = mTextureMap.find(handle);
 
     if(texture == mTextureMap.end())
     {
-        return NULL;
+        return nullptr;
     }
     else
     {
@@ -158,16 +158,10 @@ Renderbuffer *ResourceManager::getRenderbuffer(unsigned int handle)
 
     if(renderbuffer == mRenderbufferMap.end())
     {
-        return NULL;
+        return nullptr;
     }
     else
     {
-		if (!renderbuffer->second)
-		{
-			Renderbuffer *renderbufferObject = new Renderbuffer(handle, new Colorbuffer(0, 0, GL_RGBA4_OES, 0));
-			mRenderbufferMap[handle] = renderbufferObject;
-			renderbufferObject->addRef();
-		}
         return renderbuffer->second;
     }
 }
@@ -182,8 +176,10 @@ void ResourceManager::checkBufferAllocation(unsigned int buffer)
     if(buffer != 0 && !getBuffer(buffer))
     {
         Buffer *bufferObject = new Buffer(buffer);
+		bufferObject->addRef();
+
+		mBufferNameSpace.insert(buffer);
         mBufferMap[buffer] = bufferObject;
-        bufferObject->addRef();
     }
 }
 
@@ -207,9 +203,23 @@ void ResourceManager::checkTextureAllocation(GLuint texture, TextureType type)
             return;
         }
 
+		textureObject->addRef();
+
+		mTextureNameSpace.insert(texture);
         mTextureMap[texture] = textureObject;
-        textureObject->addRef();
     }
+}
+
+void ResourceManager::checkRenderbufferAllocation(GLuint handle)
+{
+	if(handle != 0 && !getRenderbuffer(handle))
+	{
+		Renderbuffer *renderbufferObject = new Renderbuffer(handle, new Colorbuffer(0, 0, GL_RGBA4_OES, 0));
+		renderbufferObject->addRef();
+
+		mRenderbufferNameSpace.insert(handle);
+		mRenderbufferMap[handle] = renderbufferObject;
+	}
 }
 
 }
