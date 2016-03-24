@@ -45,6 +45,11 @@ namespace sw
 
 	void Blitter::blit(Surface *source, const SliceRect &sourceRect, Surface *dest, const SliceRect &destRect, const Blitter::Options& options)
 	{
+		if(dest->getInternalFormat() == FORMAT_NULL)
+		{
+			return;
+		}
+
 		if(blitReactor(source, sourceRect, dest, destRect, options))
 		{
 			return;
