@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1c5a96dd_45448a94",
+        "filename": "src/OpenGL/libGL/mathutil.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-24T14:58:35Z",
+      "side": 1,
+      "message": "No, they\u0027re not. I\u0027ve removed them.",
+      "parentUuid": "1c5a96dd_65ce667d",
+      "range": {
+        "startLine": 47,
+        "startChar": 10,
+        "endLine": 47,
+        "endChar": 14
+      },
+      "revId": "343d8eec9d2b9d6bb64f52b3aea7aee82eaafe0d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1c5a96dd_05cbf26b",
         "filename": "src/OpenGL/libGLES_CM/mathutil.h",
         "patchSetId": 1
