@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fcab02ee_af261553",
+        "filename": "src/OpenGL/common/NameSpace.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-24T19:22:46Z",
+      "side": 1,
+      "message": "Will be used by a later patch.",
+      "range": {
+        "startLine": 25,
+        "startChar": 15,
+        "endLine": 25,
+        "endChar": 25
+      },
+      "revId": "6c88bb6bfd44f6a93bfb0364a64c3a9b1104b08d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
