@@ -388,9 +388,8 @@ void ELFObjectWriter::writeDataOfType(SectionType ST,
     // entry will be created separately.
     if (!Var->hasInitializer())
       continue;
-    Elf64_Xword Align = Var->getAlignment();
     constexpr Elf64_Xword MinAlign = 1;
-    Align = std::max(Align, MinAlign);
+    const auto Align = std::max<Elf64_Xword>(MinAlign, Var->getAlignment());
     Section->padToAlignment(Str, Align);
     SizeT SymbolSize = Var->getNumBytes();
     bool IsExternal = Var->isExternal() || Ctx.getFlags().getDisableInternal();
