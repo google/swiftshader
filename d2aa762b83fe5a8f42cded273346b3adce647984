@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1c5a96dd_c50e3a88",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 4193,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-03-24T14:48:52Z",
+      "side": 1,
+      "message": "can depth and stencil be the same buffer?\nif so, do we want to do this when depth and stencil are the same?\nalso, if they can be the same, how would stretchRect do one, but the the other?",
+      "range": {
+        "startLine": 4193,
+        "startChar": 5,
+        "endLine": 4193,
+        "endChar": 22
+      },
+      "revId": "d2aa762b83fe5a8f42cded273346b3adce647984",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
