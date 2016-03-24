@@ -22,6 +22,30 @@
       "revId": "b02a8ee6242f5e8ea6e05304ecd6bb416f462ace",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1c5a96dd_45032a5e",
+        "filename": "src/Renderer/PixelProcessor.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 199,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-24T16:34:46Z",
+      "side": 0,
+      "message": "I wanted to make sure that this wasn\u0027t still called inadvertently. Only Direct3D could still make use of single call since it doesn\u0027t support separate depth and stencil, but I want to avoid utility functions at the Renderer level and actually reflect the architecture. Thus it\u0027s up to the Direct3D layer to call the two functions with the same buffer.",
+      "parentUuid": "1c5a96dd_e5c1f650",
+      "range": {
+        "startLine": 199,
+        "startChar": 15,
+        "endLine": 199,
+        "endChar": 30
+      },
+      "revId": "b02a8ee6242f5e8ea6e05304ecd6bb416f462ace",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
