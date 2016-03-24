@@ -22,6 +22,30 @@
       "revId": "d2aa762b83fe5a8f42cded273346b3adce647984",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1c5a96dd_8564c223",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 4193,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-24T15:23:07Z",
+      "side": 1,
+      "message": "Good point. stretchRect() doesn\u0027t discern between depth and stencil at all (it implements D3D9\u0027s StretchRect functionality). I\u0027ll find a better solution...",
+      "parentUuid": "1c5a96dd_c50e3a88",
+      "range": {
+        "startLine": 4193,
+        "startChar": 5,
+        "endLine": 4193,
+        "endChar": 22
+      },
+      "revId": "d2aa762b83fe5a8f42cded273346b3adce647984",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
