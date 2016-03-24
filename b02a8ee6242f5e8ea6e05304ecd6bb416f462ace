@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1c5a96dd_e5c1f650",
+        "filename": "src/Renderer/PixelProcessor.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 199,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-03-24T14:29:12Z",
+      "side": 0,
+      "message": "This could have been modified to call the 2 new functions instead of deleted. Most cases would still probably call this.",
+      "range": {
+        "startLine": 199,
+        "startChar": 15,
+        "endLine": 199,
+        "endChar": 30
+      },
+      "revId": "b02a8ee6242f5e8ea6e05304ecd6bb416f462ace",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
