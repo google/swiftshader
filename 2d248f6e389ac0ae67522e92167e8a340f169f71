@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fcab02ee_8f099951",
+        "filename": "src/Renderer/Context.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-24T18:40:04Z",
+      "side": 1,
+      "message": "The number of vertex texture units doesn\u0027t necessarily correspond to the number of (fixed-function) texture coordinate attributes. In fact fixed-function vertex processing doesn\u0027t support texture lookup at all. And D3D9 specifies 4 vertex texture units for Shader Model 3.0, but has long defaulted to 8 texture coordinate attributes.\n\nWe could define something like TEXTURE_STAGES for this, and use that to replace the uses of [8] below. But then you\u0027d have to increase it to something like 24 to have a total VERTEX_ATTRIBUTES of 32. That\u0027s overkill and probably needs some careful changes in D3D9 to deal with its assumption of having 8.\n\nSo instead I think it would be best not to change any of these fixed-function constants. Unlike the programmable ones, they\u0027re kind of cast in stone.",
+      "range": {
+        "startLine": 43,
+        "startChar": 26,
+        "endLine": 43,
+        "endChar": 52
+      },
+      "revId": "2d248f6e389ac0ae67522e92167e8a340f169f71",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fcab02ee_6fac2d66",
+        "filename": "src/Renderer/PixelProcessor.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-24T18:40:04Z",
+      "side": 1,
+      "message": "This doesn\u0027t really correspond to the number of texture image units in the GL sense. It\u0027s the number of fixed-function texture stages. I don\u0027t think we should touch this. Increasing the generic one below is fine.",
+      "range": {
+        "startLine": 102,
+        "startChar": 25,
+        "endLine": 102,
+        "endChar": 44
+      },
+      "revId": "2d248f6e389ac0ae67522e92167e8a340f169f71",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fcab02ee_afd615c5",
+        "filename": "src/Renderer/Primitive.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-24T18:40:04Z",
+      "side": 1,
+      "message": "No touchy.",
+      "range": {
+        "startLine": 51,
+        "startChar": 20,
+        "endLine": 51,
+        "endChar": 39
+      },
+      "revId": "2d248f6e389ac0ae67522e92167e8a340f169f71",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fcab02ee_efd01dcb",
+        "filename": "src/Renderer/SetupProcessor.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-24T18:40:04Z",
+      "side": 1,
+      "message": "No touchy.",
+      "range": {
+        "startLine": 66,
+        "startChar": 22,
+        "endLine": 66,
+        "endChar": 41
+      },
+      "revId": "2d248f6e389ac0ae67522e92167e8a340f169f71",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
