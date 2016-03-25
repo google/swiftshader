@@ -2198,8 +2198,12 @@ void FunctionParser::ProcessRecord() {
     return;
   }
   case naclbitc::FUNC_CODE_INST_BINOP: {
-    // BINOP: [opval, opval, opcode]
-    if (!isValidRecordSize(3, "binop"))
+    // Note: Old bitcode files may have an additional 'flags' operand, which is
+    // ignored.
+
+    // BINOP: [opval, opval, opcode, [flags]]
+
+    if (!isValidRecordSizeInRange(3, 4, "binop"))
       return;
     Ice::Operand *Op1 = getRelativeOperand(Values[0], BaseIndex);
     Ice::Operand *Op2 = getRelativeOperand(Values[1], BaseIndex);
