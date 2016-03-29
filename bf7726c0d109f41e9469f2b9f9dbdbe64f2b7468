@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "71f3bdea_b13233e8",
+        "filename": "src/Renderer/Context.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-03-29T22:07:11Z",
+      "side": 1,
+      "message": "Again, it\u0027s not a great idea to have the total number of attributes depend on the number of fixed-function texture stages.",
+      "range": {
+        "startLine": 44,
+        "startChar": 2,
+        "endLine": 44,
+        "endChar": 19
+      },
+      "revId": "bf7726c0d109f41e9469f2b9f9dbdbe64f2b7468",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
