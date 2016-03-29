@@ -32,9 +32,11 @@ namespace Ice {
 
 Cfg::Cfg(GlobalContext *Ctx, uint32_t SequenceNumber)
     : Ctx(Ctx), SequenceNumber(SequenceNumber),
-      VMask(Ctx->getFlags().getVerbose()), NextInstNumber(Inst::NumberInitial),
-      Live(nullptr) {
+      VMask(Ctx->getFlags().getVerbose()), FunctionName(),
+      NextInstNumber(Inst::NumberInitial), Live(nullptr) {
   Allocator.reset(new ArenaAllocator());
+  NodeStrings.reset(new StringPool);
+  VarStrings.reset(new StringPool);
   CfgLocalAllocatorScope _(this);
   Target =
       TargetLowering::createLowering(Ctx->getFlags().getTargetArch(), this);
@@ -51,7 +53,15 @@ Cfg::Cfg(GlobalContext *Ctx, uint32_t SequenceNumber)
   }
 }
 
-Cfg::~Cfg() { assert(CfgAllocatorTraits::current() == nullptr); }
+Cfg::~Cfg() {
+  assert(CfgAllocatorTraits::current() == nullptr);
+  if (GlobalContext::getFlags().getDumpStrings()) {
+    OstreamLocker _(Ctx);
+    Ostream &Str = Ctx->getStrDump();
+    getNodeStrings()->dump(Str);
+    getVarStrings()->dump(Str);
+  }
+}
 
 /// Create a string like "foo(i=123:b=9)" indicating the function name, number
 /// of high-level instructions, and number of basic blocks.  This string is only
@@ -59,9 +69,9 @@ Cfg::~Cfg() { assert(CfgAllocatorTraits::current() == nullptr); }
 /// functions to debug a problem on, it's easy to find the smallest or simplest
 /// function to attack.  Note that the counts may change somewhat depending on
 /// what point it is called during the translation passes.
-IceString Cfg::getFunctionNameAndSize() const {
+std::string Cfg::getFunctionNameAndSize() const {
   if (!BuildDefs::dump())
-    return getFunctionName();
+    return getFunctionName().toString();
   SizeT NodeCount = 0;
   SizeT InstCount = 0;
   for (CfgNode *Node : getNodes()) {
@@ -77,7 +87,7 @@ IceString Cfg::getFunctionNameAndSize() const {
          std::to_string(NodeCount) + ")";
 }
 
-void Cfg::setError(const IceString &Message) {
+void Cfg::setError(const std::string &Message) {
   HasError = true;
   ErrorMessage = Message;
 }
@@ -124,9 +134,9 @@ constexpr char BlockNameGlobalPrefix[] = ".L$profiler$block_name$";
 constexpr char BlockStatsGlobalPrefix[] = ".L$profiler$block_info$";
 } // end of anonymous namespace
 
-void Cfg::createNodeNameDeclaration(const IceString &NodeAsmName) {
+void Cfg::createNodeNameDeclaration(const std::string &NodeAsmName) {
   auto *Var = VariableDeclaration::create(GlobalInits.get());
-  Var->setName(BlockNameGlobalPrefix + NodeAsmName);
+  Var->setName(Ctx, BlockNameGlobalPrefix + NodeAsmName);
   Var->setIsConstant(true);
   Var->addInitializer(VariableDeclaration::DataInitializer::create(
       GlobalInits.get(), NodeAsmName.data(), NodeAsmName.size() + 1));
@@ -136,9 +146,9 @@ void Cfg::createNodeNameDeclaration(const IceString &NodeAsmName) {
 }
 
 void Cfg::createBlockProfilingInfoDeclaration(
-    const IceString &NodeAsmName, VariableDeclaration *NodeNameDeclaration) {
+    const std::string &NodeAsmName, VariableDeclaration *NodeNameDeclaration) {
   auto *Var = VariableDeclaration::create(GlobalInits.get());
-  Var->setName(BlockStatsGlobalPrefix + NodeAsmName);
+  Var->setName(Ctx, BlockStatsGlobalPrefix + NodeAsmName);
   const SizeT Int64ByteSize = typeWidthInBytes(IceType_i64);
   Var->addInitializer(VariableDeclaration::ZeroInitializer::create(
       GlobalInits.get(), Int64ByteSize));
@@ -156,7 +166,7 @@ void Cfg::profileBlocks() {
     GlobalInits.reset(new VariableDeclarationList());
 
   for (CfgNode *Node : Nodes) {
-    const IceString NodeAsmName = Node->getAsmName();
+    const std::string NodeAsmName = Node->getAsmName();
     createNodeNameDeclaration(NodeAsmName);
     createBlockProfilingInfoDeclaration(NodeAsmName, GlobalInits->back());
     Node->profileExecutionCount(GlobalInits->back());
@@ -164,7 +174,9 @@ void Cfg::profileBlocks() {
 }
 
 bool Cfg::isProfileGlobal(const VariableDeclaration &Var) {
-  return Var.getName().find(BlockStatsGlobalPrefix) == 0;
+  if (!Var.getName().hasStdString())
+    return false;
+  return Var.getName().toString().find(BlockStatsGlobalPrefix) == 0;
 }
 
 void Cfg::addCallToProfileSummary() {
@@ -172,7 +184,7 @@ void Cfg::addCallToProfileSummary() {
   // that cause the program to exit. This function is defined in
   // runtime/szrt_profiler.c.
   Constant *ProfileSummarySym =
-      Ctx->getConstantExternSym("__Sz_profile_summary");
+      Ctx->getConstantExternSym(Ctx->getGlobalString("__Sz_profile_summary"));
   constexpr SizeT NumArgs = 0;
   constexpr Variable *Void = nullptr;
   constexpr bool HasTailCall = false;
@@ -185,9 +197,9 @@ void Cfg::translate() {
   if (hasError())
     return;
   if (BuildDefs::dump()) {
-    const IceString &TimingFocusOn =
+    const std::string TimingFocusOn =
         getContext()->getFlags().getTimingFocusOn();
-    const IceString &Name = getFunctionName();
+    const std::string Name = getFunctionName().toString();
     if (TimingFocusOn == "*" || TimingFocusOn == Name) {
       setFocusedTiming();
       getContext()->resetTimer(GlobalContext::TSK_Default);
@@ -198,7 +210,7 @@ void Cfg::translate() {
                                  << getFunctionNameAndSize() << "\n";
     }
   }
-  TimerMarker T_func(getContext(), getFunctionName());
+  TimerMarker T_func(getContext(), getFunctionName().toStringOrEmpty());
   TimerMarker T(TimerStack::TT_translate, this);
 
   dump("Initial CFG");
@@ -966,7 +978,7 @@ void Cfg::markNodesForSandboxing() {
 // emitTextHeader() is not target-specific (apart from what is abstracted by
 // the Assembler), so it is defined here rather than in the target lowering
 // class.
-void Cfg::emitTextHeader(const IceString &Name, GlobalContext *Ctx,
+void Cfg::emitTextHeader(GlobalString Name, GlobalContext *Ctx,
                          const Assembler *Asm) {
   if (!BuildDefs::dump())
     return;

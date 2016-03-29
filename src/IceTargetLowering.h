@@ -57,7 +57,8 @@ namespace Ice {
       /* Use llvm_unreachable instead of report_fatal_error, which gives       \
          better stack traces. */                                               \
       llvm_unreachable(                                                        \
-          ("Not yet implemented: " + Instr->getInstName()).c_str());           \
+          (std::string("Not yet implemented: ") + Instr->getInstName())        \
+              .c_str());                                                       \
       abort();                                                                 \
     }                                                                          \
   } while (0)
@@ -172,6 +173,7 @@ public:
   static void staticInit(GlobalContext *Ctx);
   // Each target must define a public static method:
   //   static void staticInit(GlobalContext *Ctx);
+  static bool shouldBePooled(const class Constant *C);
 
   static std::unique_ptr<TargetLowering> createLowering(TargetArch Target,
                                                         Cfg *Func);
@@ -237,7 +239,7 @@ public:
   virtual Variable *getPhysicalRegister(RegNumT RegNum,
                                         Type Ty = IceType_void) = 0;
   /// Returns a printable name for the register.
-  virtual IceString getRegName(RegNumT RegNum, Type Ty) const = 0;
+  virtual const char *getRegName(RegNumT RegNum, Type Ty) const = 0;
 
   virtual bool hasFramePointer() const { return false; }
   virtual void setHasFramePointer() = 0;
@@ -364,12 +366,11 @@ protected:
 
   explicit TargetLowering(Cfg *Func);
   // Applies command line filters to TypeToRegisterSet array.
-  static void
-  filterTypeToRegisterSet(GlobalContext *Ctx, int32_t NumRegs,
-                          SmallBitVector TypeToRegisterSet[],
-                          size_t TypeToRegisterSetSize,
-                          std::function<IceString(RegNumT)> getRegName,
-                          std::function<IceString(RegClass)> getRegClassName);
+  static void filterTypeToRegisterSet(
+      GlobalContext *Ctx, int32_t NumRegs, SmallBitVector TypeToRegisterSet[],
+      size_t TypeToRegisterSetSize,
+      std::function<std::string(RegNumT)> getRegName,
+      std::function<const char *(RegClass)> getRegClassName);
   virtual void lowerAlloca(const InstAlloca *Instr) = 0;
   virtual void lowerArithmetic(const InstArithmetic *Instr) = 0;
   virtual void lowerAssign(const InstAssign *Instr) = 0;
@@ -583,13 +584,13 @@ public:
   virtual ~TargetDataLowering();
 
   virtual void lowerGlobals(const VariableDeclarationList &Vars,
-                            const IceString &SectionSuffix) = 0;
+                            const std::string &SectionSuffix) = 0;
   virtual void lowerConstants() = 0;
   virtual void lowerJumpTables() = 0;
 
 protected:
   void emitGlobal(const VariableDeclaration &Var,
-                  const IceString &SectionSuffix);
+                  const std::string &SectionSuffix);
 
   /// For now, we assume .long is the right directive for emitting 4 byte emit
   /// global relocations. However, LLVM MIPS usually uses .4byte instead.

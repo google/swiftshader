@@ -77,7 +77,7 @@ Inst::Inst(Cfg *Func, InstKind Kind, SizeT MaxSrcs, Variable *Dest)
     : Kind(Kind), Number(Func->newInstNumber()), Dest(Dest), MaxSrcs(MaxSrcs),
       Srcs(Func->allocateArrayOf<Operand *>(MaxSrcs)), LiveRangesEnded(0) {}
 
-IceString Inst::getInstName() const {
+const char *Inst::getInstName() const {
   if (!BuildDefs::dump())
     return "???";
 
@@ -272,7 +272,7 @@ InstArithmetic::InstArithmetic(Cfg *Func, OpKind Op, Variable *Dest,
   addSource(Source2);
 }
 
-IceString InstArithmetic::getInstName() const {
+const char *InstArithmetic::getInstName() const {
   if (!BuildDefs::dump())
     return "???";
 

@@ -77,13 +77,13 @@ public:
 
   StringStream &getErrorStream() { return *ErrorStream; }
 
-  void setFatalError(const IceString &Reason);
+  void setFatalError(const std::string &Reason);
 
 private:
   class StringStream {
   public:
     StringStream() : StrBuf(Buffer) {}
-    const IceString &getContents() { return StrBuf.str(); }
+    const std::string &getContents() { return StrBuf.str(); }
     Ostream &getStream() { return StrBuf; }
 
   private:

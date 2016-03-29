@@ -102,7 +102,8 @@ public:
 
       VarMap.clear();
       NodeMap.clear();
-      Func->setFunctionName(Ice::mangleName(F->getName()));
+      Func->setFunctionName(
+          Ctx->getGlobalString(Ice::mangleName(F->getName())));
       Func->setReturnType(convertToIceType(F->getReturnType()));
       Func->setInternal(F->hasInternalLinkage());
       Ice::TimerMarker T(Ice::TimerStack::TT_llvmConvert, Func.get());
@@ -142,7 +143,8 @@ public:
         return Ctx->getConstantExternSym(Decl->getName());
       else {
         const Ice::RelocOffsetT Offset = 0;
-        return Ctx->getConstantSym(Offset, Decl->getName());
+        return Ctx->getConstantSym(
+            Offset, Ctx->getGlobalString(Decl->getName().toString()));
       }
     } else if (const auto CI = dyn_cast<ConstantInt>(Const)) {
       Ice::Type Ty = convertToIceType(CI->getType());
@@ -805,7 +807,7 @@ void LLVM2ICEGlobalsConverter::addGlobalInitializer(
 namespace Ice {
 
 void Converter::nameUnnamedGlobalVariables(Module *Mod) {
-  const IceString &GlobalPrefix = Ctx->getFlags().getDefaultGlobalPrefix();
+  const std::string GlobalPrefix = Ctx->getFlags().getDefaultGlobalPrefix();
   if (GlobalPrefix.empty())
     return;
   uint32_t NameIndex = 0;
@@ -820,7 +822,7 @@ void Converter::nameUnnamedGlobalVariables(Module *Mod) {
 }
 
 void Converter::nameUnnamedFunctions(Module *Mod) {
-  const IceString &FunctionPrefix = Ctx->getFlags().getDefaultFunctionPrefix();
+  const std::string FunctionPrefix = Ctx->getFlags().getDefaultFunctionPrefix();
   if (FunctionPrefix.empty())
     return;
   uint32_t NameIndex = 0;
@@ -868,7 +870,7 @@ void Converter::installGlobalDeclarations(Module *Mod) {
     }
     auto *IceFunc = FunctionDeclaration::create(
         Ctx, Signature, Func.getCallingConv(), Func.getLinkage(), Func.empty());
-    IceFunc->setName(Func.getName());
+    IceFunc->setName(Ctx, Func.getName());
     if (!IceFunc->verifyLinkageCorrect(Ctx)) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
@@ -892,7 +894,7 @@ void Converter::installGlobalDeclarations(Module *Mod) {
         GlobalDeclarationsPool.get(), NoSuppressMangling, GV->getLinkage());
     Var->setAlignment(GV->getAlignment());
     Var->setIsConstant(GV->isConstant());
-    Var->setName(GV->getName());
+    Var->setName(Ctx, GV->getName());
     if (!Var->verifyLinkageCorrect(Ctx)) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);

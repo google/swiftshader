@@ -207,7 +207,7 @@ static inline QRegister getEncodedQReg(RegNumT RegNum) {
   return QRegister(RegTable[RegNum].Encoding);
 }
 
-static inline IceString getRegName(RegNumT RegNum) {
+static inline const char *getRegName(RegNumT RegNum) {
   RegNum.assertIsValid();
   return RegTable[RegNum].Name;
 }

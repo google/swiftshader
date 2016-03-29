@@ -64,13 +64,13 @@ public:
   /// RelocationKind for any relocations.
   void writeDataSection(const VariableDeclarationList &Vars,
                         FixupKind RelocationKind,
-                        const IceString &SectionSuffix, bool IsPIC);
+                        const std::string &SectionSuffix, bool IsPIC);
 
   /// Copy data of a function's text section to file and note the offset of the
   /// symbol's definition in the symbol table. Copy the text fixups for use
   /// after all functions are written. The text buffer and fixups are extracted
   /// from the Assembler object.
-  void writeFunctionCode(const IceString &FuncName, bool IsInternal,
+  void writeFunctionCode(GlobalString FuncName, bool IsInternal,
                          Assembler *Asm);
 
   /// Queries the GlobalContext for constant pools of the given type and writes
@@ -119,7 +119,7 @@ private:
   ELFStringTableSection *StrTab;
 
   template <typename T>
-  T *createSection(const IceString &Name, Elf64_Word ShType,
+  T *createSection(const std::string &Name, Elf64_Word ShType,
                    Elf64_Xword ShFlags, Elf64_Xword ShAddralign,
                    Elf64_Xword ShEntsize);
 
@@ -156,8 +156,8 @@ private:
   /// SectionType.
   void writeDataOfType(SectionType SectionType,
                        const VariableDeclarationPartition &Vars,
-                       FixupKind RelocationKind, const IceString &SectionSuffix,
-                       bool IsPIC);
+                       FixupKind RelocationKind,
+                       const std::string &SectionSuffix, bool IsPIC);
 
   /// Write the final relocation sections given the final symbol table. May also
   /// be able to seek around the file and resolve function calls that are for

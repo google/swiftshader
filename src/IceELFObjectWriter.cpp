@@ -76,16 +76,16 @@ uint32_t getELFFlags(TargetArch Arch) {
 ELFObjectWriter::ELFObjectWriter(GlobalContext &Ctx, ELFStreamer &Out)
     : Ctx(Ctx), Str(Out), ELF64(isELF64(Ctx.getFlags())) {
   // Create the special bookkeeping sections now.
-  const IceString NullSectionName("");
+  constexpr char NullSectionName[] = "";
   NullSection = new (Ctx.allocate<ELFSection>())
       ELFSection(NullSectionName, SHT_NULL, 0, 0, 0);
 
-  const IceString ShStrTabName(".shstrtab");
+  constexpr char ShStrTabName[] = ".shstrtab";
   ShStrTab = new (Ctx.allocate<ELFStringTableSection>())
       ELFStringTableSection(ShStrTabName, SHT_STRTAB, 0, 1, 0);
   ShStrTab->add(ShStrTabName);
 
-  const IceString SymTabName(".symtab");
+  constexpr char SymTabName[] = ".symtab";
   const Elf64_Xword SymTabAlign = ELF64 ? 8 : 4;
   const Elf64_Xword SymTabEntSize =
       ELF64 ? sizeof(Elf64_Sym) : sizeof(Elf32_Sym);
@@ -93,15 +93,15 @@ ELFObjectWriter::ELFObjectWriter(GlobalContext &Ctx, ELFStreamer &Out)
                 "Elf_Sym sizes cannot be derived from sizeof");
   SymTab = createSection<ELFSymbolTableSection>(SymTabName, SHT_SYMTAB, 0,
                                                 SymTabAlign, SymTabEntSize);
-  SymTab->createNullSymbol(NullSection);
+  SymTab->createNullSymbol(NullSection, &Ctx);
 
-  const IceString StrTabName(".strtab");
+  constexpr char StrTabName[] = ".strtab";
   StrTab =
       createSection<ELFStringTableSection>(StrTabName, SHT_STRTAB, 0, 1, 0);
 }
 
 template <typename T>
-T *ELFObjectWriter::createSection(const IceString &Name, Elf64_Word ShType,
+T *ELFObjectWriter::createSection(const std::string &Name, Elf64_Word ShType,
                                   Elf64_Xword ShFlags, Elf64_Xword ShAddralign,
                                   Elf64_Xword ShEntsize) {
   assert(!SectionNumbersAssigned);
@@ -117,8 +117,8 @@ ELFObjectWriter::createRelocationSection(const ELFSection *RelatedSection) {
   // practice we've only had .rela for elf64 (x86-64). In the future, the two
   // properties may need to be decoupled and the ShEntSize can vary more.
   const Elf64_Word ShType = ELF64 ? SHT_RELA : SHT_REL;
-  const IceString RelPrefix = ELF64 ? ".rela" : ".rel";
-  const IceString RelSectionName = RelPrefix + RelatedSection->getName();
+  const std::string RelPrefix = ELF64 ? ".rela" : ".rel";
+  const std::string RelSectionName = RelPrefix + RelatedSection->getName();
   const Elf64_Xword ShAlign = ELF64 ? 8 : 4;
   const Elf64_Xword ShEntSize = ELF64 ? sizeof(Elf64_Rela) : sizeof(Elf32_Rel);
   static_assert(sizeof(Elf64_Rela) == 24 && sizeof(Elf32_Rel) == 8,
@@ -216,16 +216,16 @@ Elf64_Off ELFObjectWriter::alignFileOffset(Elf64_Xword Align) {
   return OffsetInFile;
 }
 
-void ELFObjectWriter::writeFunctionCode(const IceString &FuncName,
-                                        bool IsInternal, Assembler *Asm) {
+void ELFObjectWriter::writeFunctionCode(GlobalString FuncName, bool IsInternal,
+                                        Assembler *Asm) {
   assert(!SectionNumbersAssigned);
-  TimerMarker T_func(&Ctx, FuncName);
+  TimerMarker T_func(&Ctx, FuncName.toStringOrEmpty());
   TimerMarker Timer(TimerStack::TT_writeELF, &Ctx);
   ELFTextSection *Section = nullptr;
   ELFRelocationSection *RelSection = nullptr;
   const bool FunctionSections = Ctx.getFlags().getFunctionSections();
   if (TextSections.empty() || FunctionSections) {
-    IceString SectionName = ".text";
+    std::string SectionName = ".text";
     if (FunctionSections)
       SectionName += "." + FuncName;
     constexpr Elf64_Xword ShFlags = SHF_ALLOC | SHF_EXECINSTR;
@@ -289,7 +289,7 @@ classifyGlobalSection(const VariableDeclaration *Var) {
 // is non-empty, then only the TranslateOnly variable is kept for emission.
 void partitionGlobalsBySection(const VariableDeclarationList &Vars,
                                VariableDeclarationPartition VarsBySection[],
-                               const IceString &TranslateOnly) {
+                               const std::string &TranslateOnly) {
   for (VariableDeclaration *Var : Vars) {
     if (GlobalContext::matchSymbolName(Var->getName(), TranslateOnly)) {
       size_t Section = classifyGlobalSection(Var);
@@ -303,7 +303,7 @@ void partitionGlobalsBySection(const VariableDeclarationList &Vars,
 
 void ELFObjectWriter::writeDataSection(const VariableDeclarationList &Vars,
                                        FixupKind RelocationKind,
-                                       const IceString &SectionSuffix,
+                                       const std::string &SectionSuffix,
                                        bool IsPIC) {
   TimerMarker Timer(TimerStack::TT_writeELF, &Ctx);
   assert(!SectionNumbersAssigned);
@@ -320,7 +320,7 @@ void ELFObjectWriter::writeDataSection(const VariableDeclarationList &Vars,
 }
 
 namespace {
-IceString MangleSectionName(const char Base[], const IceString &Suffix) {
+std::string MangleSectionName(const char Base[], const std::string &Suffix) {
   if (Suffix.empty())
     return Base;
   return Base + ("." + Suffix);
@@ -331,7 +331,7 @@ IceString MangleSectionName(const char Base[], const IceString &Suffix) {
 void ELFObjectWriter::writeDataOfType(SectionType ST,
                                       const VariableDeclarationPartition &Vars,
                                       FixupKind RelocationKind,
-                                      const IceString &SectionSuffix,
+                                      const std::string &SectionSuffix,
                                       bool IsPIC) {
   if (Vars.empty())
     return;
@@ -346,7 +346,7 @@ void ELFObjectWriter::writeDataOfType(SectionType ST,
   // Lift this out, so it can be re-used if we do fdata-sections?
   switch (ST) {
   case ROData: {
-    const IceString SectionName =
+    const std::string SectionName =
         MangleSectionName(IsPIC ? ".data.rel.ro" : ".rodata", SectionSuffix);
     const Elf64_Xword ShFlags = IsPIC ? (SHF_ALLOC | SHF_WRITE) : SHF_ALLOC;
     Section = createSection<ELFDataSection>(SectionName, SHT_PROGBITS, ShFlags,
@@ -358,7 +358,7 @@ void ELFObjectWriter::writeDataOfType(SectionType ST,
     break;
   }
   case Data: {
-    const IceString SectionName = MangleSectionName(".data", SectionSuffix);
+    const std::string SectionName = MangleSectionName(".data", SectionSuffix);
     constexpr Elf64_Xword ShFlags = SHF_ALLOC | SHF_WRITE;
     Section = createSection<ELFDataSection>(SectionName, SHT_PROGBITS, ShFlags,
                                             ShAddralign, ShEntsize);
@@ -369,7 +369,7 @@ void ELFObjectWriter::writeDataOfType(SectionType ST,
     break;
   }
   case BSS: {
-    const IceString SectionName = MangleSectionName(".bss", SectionSuffix);
+    const std::string SectionName = MangleSectionName(".bss", SectionSuffix);
     constexpr Elf64_Xword ShFlags = SHF_ALLOC | SHF_WRITE;
     Section = createSection<ELFDataSection>(SectionName, SHT_NOBITS, ShFlags,
                                             ShAddralign, ShEntsize);
@@ -394,7 +394,7 @@ void ELFObjectWriter::writeDataOfType(SectionType ST,
     SizeT SymbolSize = Var->getNumBytes();
     bool IsExternal = Var->isExternal() || Ctx.getFlags().getDisableInternal();
     const uint8_t SymbolBinding = IsExternal ? STB_GLOBAL : STB_LOCAL;
-    const IceString &Name = Var->getName();
+    GlobalString Name = Var->getName();
     SymTab->createDefinedSym(Name, SymbolType, SymbolBinding, Section,
                              Section->getCurrentSize(), SymbolSize);
     StrTab->add(Name);
@@ -545,10 +545,7 @@ template <typename ConstType> void ELFObjectWriter::writeConstantPool(Type Ty) {
     if (!C->getShouldBePooled())
       continue;
     auto *Const = llvm::cast<ConstType>(C);
-    std::string SymBuffer;
-    llvm::raw_string_ostream SymStrBuf(SymBuffer);
-    Const->emitPoolLabel(SymStrBuf);
-    std::string &SymName = SymStrBuf.str();
+    GlobalString SymName = Const->getLabelName();
     SymTab->createDefinedSym(SymName, STT_NOTYPE, STB_LOCAL, Section,
                              OffsetInSection, SymbolSize);
     StrTab->add(SymName);
@@ -585,8 +582,12 @@ void ELFObjectWriter::writeJumpTable(const JumpTableData &JT,
   const Elf64_Xword PointerSize = typeWidthInBytes(getPointerType());
   const Elf64_Xword ShAddralign = PointerSize;
   const Elf64_Xword ShEntsize = PointerSize;
-  const IceString SectionName = MangleSectionName(
-      IsPIC ? ".data.rel.ro" : ".rodata", JT.getFunctionName() + "$jumptable");
+  const GlobalString JTName = JT.getFunctionName();
+  const std::string SectionName = MangleSectionName(
+      IsPIC ? ".data.rel.ro" : ".rodata",
+      (JTName.hasStdString() ? JTName.toString()
+                             : std::to_string(JTName.getID())) +
+          "$jumptable");
   Section = createSection<ELFDataSection>(SectionName, SHT_PROGBITS, SHF_ALLOC,
                                           ShAddralign, ShEntsize);
   Section->setFileOffset(alignFileOffset(ShAddralign));
@@ -598,8 +599,8 @@ void ELFObjectWriter::writeJumpTable(const JumpTableData &JT,
   Section->padToAlignment(Str, PointerSize);
   const bool IsExternal = Ctx.getFlags().getDisableInternal();
   const uint8_t SymbolBinding = IsExternal ? STB_GLOBAL : STB_LOCAL;
-  const IceString JumpTableName =
-      InstJumpTable::makeName(JT.getFunctionName(), JT.getId());
+  GlobalString JumpTableName = Ctx.getGlobalString(
+      InstJumpTable::makeName(JT.getFunctionName(), JT.getId()));
   SymTab->createDefinedSym(JumpTableName, SymbolType, SymbolBinding, Section,
                            Section->getCurrentSize(), PointerSize);
   StrTab->add(JumpTableName);
@@ -618,7 +619,8 @@ void ELFObjectWriter::setUndefinedSyms(const ConstantList &UndefSyms) {
   TimerMarker Timer(TimerStack::TT_writeELF, &Ctx);
   for (const Constant *S : UndefSyms) {
     const auto *Sym = llvm::cast<ConstantRelocatable>(S);
-    const IceString &Name = Sym->getName();
+    GlobalString Name = Sym->getName();
+    assert(Name.hasStdString());
     bool BadIntrinsic;
     const Intrinsics::FullIntrinsicInfo *Info =
         Ctx.getIntrinsicsInfo().find(Name, BadIntrinsic);

@@ -61,11 +61,16 @@ public:
     VariableDeclarationKind
   };
   GlobalDeclarationKind getKind() const { return Kind; }
-  const IceString &getName() const { return Name; }
-  void setName(const IceString &NewName) {
-    Name = getSuppressMangling() ? NewName : mangleName(NewName);
+  GlobalString getName() const { return Name; }
+  void setName(GlobalContext *Ctx, const std::string &NewName) {
+    Name = Ctx->getGlobalString(getSuppressMangling() ? NewName
+                                                      : mangleName(NewName));
   }
-  bool hasName() const { return !Name.empty(); }
+  void setName(GlobalString NewName) { Name = NewName; }
+  void setName(GlobalContext *Ctx) {
+    Name = GlobalString::createWithoutString(Ctx);
+  }
+  bool hasName() const { return Name.hasStdString(); }
   bool isInternal() const {
     return Linkage == llvm::GlobalValue::InternalLinkage;
   }
@@ -95,7 +100,7 @@ public:
 
   /// Returns true if the name of this GlobalDeclaration indicates that it
   /// should have ExternalLinkage (as a special case).
-  virtual bool isPNaClABIExternalName(const IceString &Name) const = 0;
+  virtual bool isPNaClABIExternalName(const std::string &Name) const = 0;
 
 protected:
   GlobalDeclaration(GlobalDeclarationKind Kind,
@@ -117,7 +122,7 @@ protected:
 
   const GlobalDeclarationKind Kind;
   llvm::GlobalValue::LinkageTypes Linkage;
-  IceString Name;
+  GlobalString Name;
 };
 
 /// Models a function declaration. This includes the type signature of the
@@ -149,11 +154,13 @@ public:
 
   /// Returns true if linkage is correct for the function declaration.
   bool verifyLinkageCorrect(const GlobalContext *Ctx) const {
-    if (isPNaClABIExternalName(getName()) || isIntrinsicName(Ctx)) {
-      return Linkage == llvm::GlobalValue::ExternalLinkage;
-    } else {
-      return verifyLinkageDefault(Ctx);
+    if (getName().hasStdString()) {
+      if (isPNaClABIExternalName(getName().toString()) ||
+          isIntrinsicName(Ctx)) {
+        return Linkage == llvm::GlobalValue::ExternalLinkage;
+      }
     }
+    return verifyLinkageDefault(Ctx);
   }
 
   /// Validates that the type signature of the function is correct. Returns true
@@ -168,7 +175,7 @@ public:
 
   /// Generates an error message describing why validateTypeSignature returns
   /// false.
-  IceString getTypeSignatureError(const GlobalContext *Ctx);
+  std::string getTypeSignatureError(const GlobalContext *Ctx);
 
   /// Returns corresponding PNaCl intrisic information.
   const Intrinsics::FullIntrinsicInfo *
@@ -193,7 +200,7 @@ private:
       : GlobalDeclaration(FunctionDeclarationKind, Linkage),
         Signature(Signature), CallingConv(CallingConv), IsProto(IsProto) {}
 
-  bool isPNaClABIExternalName(const IceString &Name) const override {
+  bool isPNaClABIExternalName(const std::string &Name) const override {
     return Name == "_start";
   }
 
@@ -443,7 +450,7 @@ public:
     // faulty SuppressMangling logic.
     const bool SameMangling = (OldSuppressMangling == getSuppressMangling());
     (void)SameMangling;
-    assert(!Name.empty() || SameMangling);
+    assert(Name.hasStdString() || SameMangling);
   }
 
   /// Prints out type for initializer associated with the declaration to Stream.
@@ -455,8 +462,10 @@ public:
 
   /// Returns true if linkage is correct for the variable declaration.
   bool verifyLinkageCorrect(const GlobalContext *Ctx) const {
-    if (isPNaClABIExternalName(getName())) {
-      return Linkage == llvm::GlobalValue::ExternalLinkage;
+    if (getName().hasStdString()) {
+      if (isPNaClABIExternalName(getName().toString())) {
+        return Linkage == llvm::GlobalValue::ExternalLinkage;
+      }
     }
     return verifyLinkageDefault(Ctx);
   }
@@ -473,7 +482,7 @@ public:
 
   void discardInitializers() { Initializers.clear(); }
 
-  bool isPNaClABIExternalName(const IceString &Name) const override {
+  bool isPNaClABIExternalName(const std::string &Name) const override {
     return Name == "__pnacl_pso_root";
   }
 

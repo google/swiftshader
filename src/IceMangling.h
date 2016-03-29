@@ -15,11 +15,11 @@
 #ifndef SUBZERO_SRC_ICEMANGLING_H
 #define SUBZERO_SRC_ICEMANGLING_H
 
-#include "IceDefs.h"
+#include <string>
 
 namespace Ice {
 
-IceString mangleName(const IceString &Name);
+std::string mangleName(const std::string &Name);
 
 } // end of namespace Ice
 

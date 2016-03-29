@@ -332,8 +332,8 @@ template <typename TraitsType> struct InstImpl {
       return new (Func->allocate<InstX86Label>()) InstX86Label(Func, Target);
     }
     uint32_t getEmitInstCount() const override { return 0; }
-    IceString getName(const Cfg *Func) const;
-    SizeT getNumber() const { return Number; }
+    GlobalString getLabelName() const { return Name; }
+    SizeT getLabelNumber() const { return LabelNumber; }
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;
     void dump(const Cfg *Func) const override;
@@ -342,8 +342,9 @@ template <typename TraitsType> struct InstImpl {
   private:
     InstX86Label(Cfg *Func, TargetLowering *Target);
 
-    SizeT Number; // used for unique label generation.
+    SizeT LabelNumber; // used for unique label generation.
     RelocOffset *OffsetReloc = nullptr;
+    GlobalString Name;
   };
 
   /// Conditional and unconditional branch instruction.

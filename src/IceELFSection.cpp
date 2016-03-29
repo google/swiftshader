@@ -94,17 +94,20 @@ size_t ELFRelocationSection::getSectionDataSize() const {
 
 // Symbol tables.
 
-void ELFSymbolTableSection::createNullSymbol(ELFSection *NullSection) {
+void ELFSymbolTableSection::createNullSymbol(ELFSection *NullSection,
+                                             GlobalContext *Ctx) {
   // The first entry in the symbol table should be a NULL entry, so make sure
   // the map is still empty.
   assert(LocalSymbols.empty());
-  const IceString NullSymName("");
-  createDefinedSym(NullSymName, STT_NOTYPE, STB_LOCAL, NullSection, 0, 0);
-  NullSymbol = findSymbol(NullSymName);
+  // Explicitly set the null symbol name to the empty string, so that
+  // GlobalString::operator<() orders the null string first.
+  NullSymbolName = GlobalString::createWithString(Ctx, "");
+  createDefinedSym(NullSymbolName, STT_NOTYPE, STB_LOCAL, NullSection, 0, 0);
+  NullSymbol = findSymbol(NullSymbolName);
 }
 
-void ELFSymbolTableSection::createDefinedSym(const IceString &Name,
-                                             uint8_t Type, uint8_t Binding,
+void ELFSymbolTableSection::createDefinedSym(GlobalString Name, uint8_t Type,
+                                             uint8_t Binding,
                                              ELFSection *Section,
                                              RelocOffsetT Offset, SizeT Size) {
   ELFSym NewSymbol = ELFSym();
@@ -122,7 +125,7 @@ void ELFSymbolTableSection::createDefinedSym(const IceString &Name,
   (void)Unique;
 }
 
-void ELFSymbolTableSection::noteUndefinedSym(const IceString &Name,
+void ELFSymbolTableSection::noteUndefinedSym(GlobalString Name,
                                              ELFSection *NullSection) {
   ELFSym NewSymbol = ELFSym();
   NewSymbol.Sym.setBindingAndType(STB_GLOBAL, STT_NOTYPE);
@@ -138,7 +141,7 @@ void ELFSymbolTableSection::noteUndefinedSym(const IceString &Name,
   (void)Unique;
 }
 
-const ELFSym *ELFSymbolTableSection::findSymbol(const IceString &Name) const {
+const ELFSym *ELFSymbolTableSection::findSymbol(GlobalString Name) const {
   auto I = LocalSymbols.find(Name);
   if (I != LocalSymbols.end())
     return &I->second;
@@ -151,16 +154,16 @@ const ELFSym *ELFSymbolTableSection::findSymbol(const IceString &Name) const {
 void ELFSymbolTableSection::updateIndices(const ELFStringTableSection *StrTab) {
   SizeT SymNumber = 0;
   for (auto &KeyValue : LocalSymbols) {
-    const IceString &Name = KeyValue.first;
+    GlobalString Name = KeyValue.first;
     ELFSection *Section = KeyValue.second.Section;
     Elf64_Sym &SymInfo = KeyValue.second.Sym;
-    if (!Name.empty())
-      SymInfo.st_name = StrTab->getIndex(Name);
+    if (Name != NullSymbolName && Name.hasStdString())
+      SymInfo.st_name = StrTab->getIndex(Name.toString());
     SymInfo.st_shndx = Section->getNumber();
     KeyValue.second.setNumber(SymNumber++);
   }
   for (auto &KeyValue : GlobalSymbols) {
-    const IceString &Name = KeyValue.first;
+    const std::string &Name = KeyValue.first.toString();
     ELFSection *Section = KeyValue.second.Section;
     Elf64_Sym &SymInfo = KeyValue.second.Sym;
     if (!Name.empty())
@@ -182,24 +185,24 @@ void ELFSymbolTableSection::writeData(ELFStreamer &Str, bool IsELF64) {
 
 // String tables.
 
-void ELFStringTableSection::add(const IceString &Str) {
+void ELFStringTableSection::add(const std::string &Str) {
   assert(!isLaidOut());
   assert(!Str.empty());
   StringToIndexMap.insert(std::make_pair(Str, UnknownIndex));
 }
 
-size_t ELFStringTableSection::getIndex(const IceString &Str) const {
+size_t ELFStringTableSection::getIndex(const std::string &Str) const {
   assert(isLaidOut());
   StringToIndexType::const_iterator It = StringToIndexMap.find(Str);
   if (It == StringToIndexMap.end()) {
-    llvm_unreachable("String index not found");
+    llvm::report_fatal_error("String index not found: " + Str);
     return UnknownIndex;
   }
   return It->second;
 }
 
 bool ELFStringTableSection::SuffixComparator::
-operator()(const IceString &StrA, const IceString &StrB) const {
+operator()(const std::string &StrA, const std::string &StrB) const {
   size_t LenA = StrA.size();
   size_t LenB = StrB.size();
   size_t CommonLen = std::min(LenA, LenB);

@@ -347,7 +347,7 @@ class StackVariable final : public Variable {
 
 public:
   static StackVariable *create(Cfg *Func, Type Ty, SizeT Index) {
-    return new (Func->allocate<StackVariable>()) StackVariable(Ty, Index);
+    return new (Func->allocate<StackVariable>()) StackVariable(Func, Ty, Index);
   }
   constexpr static auto StackVariableKind =
       static_cast<OperandKind>(kVariable_Target);
@@ -359,8 +359,8 @@ public:
   // Inherit dump() and emit() from Variable.
 
 private:
-  StackVariable(Type Ty, SizeT Index)
-      : Variable(StackVariableKind, Ty, Index) {}
+  StackVariable(const Cfg *Func, Type Ty, SizeT Index)
+      : Variable(Func, StackVariableKind, Ty, Index) {}
   RegNumT BaseRegNum;
 };
 
@@ -968,7 +968,7 @@ public:
     return new (Func->allocate<InstARM32Label>()) InstARM32Label(Func, Target);
   }
   uint32_t getEmitInstCount() const override { return 0; }
-  IceString getName(const Cfg *Func) const;
+  GlobalString getLabelName() const { return Name; }
   SizeT getNumber() const { return Number; }
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg *Func) const override;
@@ -979,8 +979,8 @@ private:
   InstARM32Label(Cfg *Func, TargetARM32 *Target);
 
   RelocOffset *OffsetReloc = nullptr;
-
   SizeT Number; // used for unique label generation.
+  GlobalString Name;
 };
 
 /// Direct branch instruction.

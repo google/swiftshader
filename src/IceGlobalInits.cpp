@@ -92,7 +92,8 @@ bool FunctionDeclaration::validateIntrinsicTypeSignature(
   return Signature.getReturnType() == Info->getReturnType();
 }
 
-IceString FunctionDeclaration::getTypeSignatureError(const GlobalContext *Ctx) {
+std::string
+FunctionDeclaration::getTypeSignatureError(const GlobalContext *Ctx) {
   std::string Buffer;
   llvm::raw_string_ostream StrBuf(Buffer);
   StrBuf << "Invalid";

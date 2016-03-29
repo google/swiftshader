@@ -152,7 +152,7 @@ public:
     if (BuildDefs::dump() &&
         !Func->getContext()->getFlags().getDisableHybridAssembly()) {
       constexpr SizeT InstSize = 0;
-      emitTextInst(InstL->getName(Func) + ":", InstSize);
+      emitTextInst(InstL->getLabelName() + ":", InstSize);
     }
     Label *L = getOrCreateLocalLabel(Number);
     if (!getPreliminary())

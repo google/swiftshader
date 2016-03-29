@@ -79,6 +79,7 @@ public:
   ~TargetX86Base() override = default;
 
   static void staticInit(GlobalContext *Ctx);
+  static bool shouldBePooled(const Constant *C);
 
   static FixupKind getPcRelFixup() { return PcRelFixup; }
   static FixupKind getAbsFixup() { return AbsFixup; }
@@ -95,8 +96,8 @@ public:
   }
   Variable *getPhysicalRegister(RegNumT RegNum,
                                 Type Ty = IceType_void) override;
-  IceString getRegName(RegNumT RegNum, Type Ty) const override;
-  static IceString getRegClassName(RegClass C) {
+  const char *getRegName(RegNumT RegNum, Type Ty) const override;
+  static const char *getRegClassName(RegClass C) {
     auto ClassNum = static_cast<RegClassX86>(C);
     assert(ClassNum < RCX86_NUM);
     switch (ClassNum) {
@@ -174,9 +175,9 @@ public:
 
   ConstantRelocatable *createGetIPForRegister(const Variable *Dest) {
     assert(Dest->hasReg());
-    const IceString RegName = Traits::getRegName(Dest->getRegNum());
-    return llvm::cast<ConstantRelocatable>(
-        Ctx->getConstantExternSym(H_getIP_prefix + RegName));
+    const std::string RegName = Traits::getRegName(Dest->getRegNum());
+    return llvm::cast<ConstantRelocatable>(Ctx->getConstantExternSym(
+        Ctx->getGlobalString(H_getIP_prefix + RegName)));
   }
 
   SizeT getMinJumpTableSize() const override { return 4; }
@@ -1097,7 +1098,7 @@ public:
   }
 
   void lowerGlobals(const VariableDeclarationList &Vars,
-                    const IceString &SectionSuffix) override;
+                    const std::string &SectionSuffix) override;
   void lowerConstants() override;
   void lowerJumpTables() override;
 

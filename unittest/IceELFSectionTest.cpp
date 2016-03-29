@@ -14,6 +14,8 @@
 #include "IceDefs.h"
 #include "IceELFSection.h"
 
+#include "llvm/Support/raw_os_ostream.h"
+
 namespace Ice {
 namespace {
 
@@ -21,23 +23,23 @@ namespace {
 // lollipop, and lipop are able to share data, while the other strings do not.
 void CheckStringTablePermLayout(const ELFStringTableSection &Strtab) {
   size_t pop_index = Strtab.getIndex("pop");
-  size_t pop_size = IceString("pop").size();
+  size_t pop_size = std::string("pop").size();
   size_t lollipop_index = Strtab.getIndex("lollipop");
-  size_t lollipop_size = IceString("lollipop").size();
+  size_t lollipop_size = std::string("lollipop").size();
   size_t lipop_index = Strtab.getIndex("lipop");
-  size_t lipop_size = IceString("lipop").size();
+  size_t lipop_size = std::string("lipop").size();
   size_t pops_index = Strtab.getIndex("pops");
-  size_t pops_size = IceString("pops").size();
+  size_t pops_size = std::string("pops").size();
   size_t unpop_index = Strtab.getIndex("unpop");
-  size_t unpop_size = IceString("unpop").size();
+  size_t unpop_size = std::string("unpop").size();
   size_t popular_index = Strtab.getIndex("popular");
-  size_t popular_size = IceString("popular").size();
+  size_t popular_size = std::string("popular").size();
   size_t strtab_index = Strtab.getIndex(".strtab");
-  size_t strtab_size = IceString(".strtab").size();
+  size_t strtab_size = std::string(".strtab").size();
   size_t shstrtab_index = Strtab.getIndex(".shstrtab");
-  size_t shstrtab_size = IceString(".shstrtab").size();
+  size_t shstrtab_size = std::string(".shstrtab").size();
   size_t symtab_index = Strtab.getIndex(".symtab");
-  size_t symtab_size = IceString(".symtab").size();
+  size_t symtab_size = std::string(".symtab").size();
 
   // Check that some sharing exists.
   EXPECT_EQ(pop_index, lollipop_index + (lollipop_size - pop_size));
@@ -73,7 +75,7 @@ void CheckStringTablePermLayout(const ELFStringTableSection &Strtab) {
 
 // Test that the order in which strings are added doesn't matter.
 TEST(IceELFSectionTest, StringTableBuilderPermSeveral) {
-  std::vector<IceString> Strings;
+  std::vector<std::string> Strings;
   Strings.push_back("pop");
   Strings.push_back("lollipop");
   Strings.push_back("lipop");
@@ -94,6 +96,7 @@ TEST(IceELFSectionTest, StringTableBuilderPermSeveral) {
   RandomNumberGenerator R(RandomSeed);
   RandomNumberGeneratorWrapper RNG(R);
   for (SizeT i = 0; i < NumTests; ++i) {
+    auto Str = std::unique_ptr<Ostream>(new llvm::raw_os_ostream(std::cout));
     RandomShuffle(Strings.begin(), Strings.end(), RNG);
     ELFStringTableSection Strtab(".strtab", SHT_STRTAB, 0, 1, 0);
     for (auto &S : Strings) {
@@ -106,6 +109,7 @@ TEST(IceELFSectionTest, StringTableBuilderPermSeveral) {
 
 // Test that adding duplicate strings is fine.
 TEST(IceELFSectionTest, StringTableBuilderDuplicates) {
+  auto Str = std::unique_ptr<Ostream>(new llvm::raw_os_ostream(std::cout));
   ELFStringTableSection Strtab(".strtab", SHT_STRTAB, 0, 1, 0);
   Strtab.add("unpop");
   Strtab.add("pop");

@@ -132,6 +132,11 @@ struct dev_list_flag {};
   X(DumpStats, bool, dev_opt_flag, "szstats",                                  \
     cl::desc("Print statistics after translating each function"))              \
                                                                                \
+  X(DumpStrings, bool, dev_opt_flag,                                           \
+    "dump-strings",                                                            \
+    cl::desc("Dump string pools during compilation"),                          \
+    cl::init(false))                                                           \
+                                                                               \
   X(EnableBlockProfile, bool, dev_opt_flag, "enable-block-profile",            \
     cl::desc("Instrument basic blocks, and output profiling "                  \
              "information to stdout at the end of program execution."),        \

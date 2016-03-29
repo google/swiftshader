@@ -16,6 +16,7 @@
 #define SUBZERO_SRC_ICEFIXUPS_H
 
 #include "IceDefs.h"
+#include "IceStringPool.h"
 
 namespace Ice {
 
@@ -41,7 +42,7 @@ public:
   void set_kind(FixupKind Kind) { kind_ = Kind; }
 
   RelocOffsetT offset() const;
-  IceString symbol() const;
+  GlobalString symbol() const;
 
   static const Constant *NullSymbol;
   bool isNullSymbol() const { return ConstValue == NullSymbol; }

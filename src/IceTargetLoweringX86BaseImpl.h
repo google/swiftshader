@@ -376,6 +376,21 @@ void TargetX86Base<TraitsType>::staticInit(GlobalContext *Ctx) {
       Ctx->getFlags().getUseNonsfi() ? Traits::FK_Gotoff : Traits::FK_Abs;
 }
 
+template <typename TraitsType>
+bool TargetX86Base<TraitsType>::shouldBePooled(const Constant *C) {
+  if (auto *ConstFloat = llvm::dyn_cast<ConstantFloat>(C)) {
+    return !Utils::isPositiveZero(ConstFloat->getValue());
+  }
+  if (auto *ConstDouble = llvm::dyn_cast<ConstantDouble>(C)) {
+    return !Utils::isPositiveZero(ConstDouble->getValue());
+  }
+  if (GlobalContext::getFlags().getRandomizeAndPoolImmediatesOption() !=
+      RPI_Pool) {
+    return false;
+  }
+  return C->shouldBeRandomizedOrPooled();
+}
+
 template <typename TraitsType> void TargetX86Base<TraitsType>::translateO2() {
   TimerMarker T(TimerStack::TT_O2, Func);
 
@@ -855,7 +870,8 @@ Variable *TargetX86Base<TraitsType>::getPhysicalRegister(RegNumT RegNum,
 }
 
 template <typename TraitsType>
-IceString TargetX86Base<TraitsType>::getRegName(RegNumT RegNum, Type Ty) const {
+const char *TargetX86Base<TraitsType>::getRegName(RegNumT RegNum,
+                                                  Type Ty) const {
   return Traits::getRegName(Traits::getGprForType(Ty, RegNum));
 }
 
@@ -5868,10 +5884,11 @@ void TargetX86Base<TraitsType>::lowerCaseCluster(const CaseCluster &Case,
     }
 
     constexpr RelocOffsetT RelocOffset = 0;
-    const IceString &FunctionName = Func->getFunctionName();
+    GlobalString FunctionName = Func->getFunctionName();
     constexpr Variable *NoBase = nullptr;
-    Constant *Offset = Ctx->getConstantSym(
-        RelocOffset, InstJumpTable::makeName(FunctionName, JumpTable->getId()));
+    auto JTName = GlobalString::createWithString(
+        Ctx, InstJumpTable::makeName(FunctionName, JumpTable->getId()));
+    Constant *Offset = Ctx->getConstantSym(RelocOffset, JTName);
     uint16_t Shift = typeWidthInBytesLog2(PointerType);
     constexpr auto Segment = X86OperandMem::SegmentRegisters::DefaultSegment;
 
@@ -6818,11 +6835,9 @@ Operand *TargetX86Base<TraitsType>::legalize(Operand *From, LegalMask Allowed,
           return makeZeroedRegister(Ty, RegNum);
       }
 
-      std::string Buffer;
-      llvm::raw_string_ostream StrBuf(Buffer);
-      llvm::cast<Constant>(From)->emitPoolLabel(StrBuf);
-      llvm::cast<Constant>(From)->setShouldBePooled(true);
-      Constant *Offset = Ctx->getConstantSym(0, StrBuf.str());
+      auto *CFrom = llvm::cast<Constant>(From);
+      assert(CFrom->getShouldBePooled());
+      Constant *Offset = Ctx->getConstantSym(0, CFrom->getLabelName());
       auto *Mem = X86OperandMem::create(Func, Ty, nullptr, Offset);
       From = Mem;
     }
@@ -7039,7 +7054,7 @@ void TargetX86Base<TraitsType>::emit(const ConstantFloat *C) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Ctx->getStrEmit();
-  C->emitPoolLabel(Str);
+  Str << C->getLabelName();
 }
 
 template <typename TraitsType>
@@ -7047,7 +7062,7 @@ void TargetX86Base<TraitsType>::emit(const ConstantDouble *C) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Ctx->getStrEmit();
-  C->emitPoolLabel(Str);
+  Str << C->getLabelName();
 }
 
 template <typename TraitsType>
@@ -7059,7 +7074,8 @@ template <class Machine>
 void TargetX86Base<Machine>::emit(const ConstantRelocatable *C) const {
   if (!BuildDefs::dump())
     return;
-  assert(!Ctx->getFlags().getUseNonsfi() || C->getName() == GlobalOffsetTable);
+  assert(!Ctx->getFlags().getUseNonsfi() ||
+         C->getName().toString() == GlobalOffsetTable);
   Ostream &Str = Ctx->getStrEmit();
   Str << "$";
   emitWithoutPrefix(C);
@@ -7086,7 +7102,7 @@ TargetX86Base<TraitsType>::randomizeOrPoolImmediate(Constant *Immediate,
     return Immediate;
   }
 
-  if (!Immediate->shouldBeRandomizedOrPooled(Ctx)) {
+  if (!Immediate->shouldBeRandomizedOrPooled()) {
     // the constant Immediate is not eligible for blinding/pooling
     return Immediate;
   }
@@ -7129,17 +7145,14 @@ TargetX86Base<TraitsType>::randomizeOrPoolImmediate(Constant *Immediate,
     //  insert: mov $label, Reg
     //  => Reg
     assert(Ctx->getFlags().getRandomizeAndPoolImmediatesOption() == RPI_Pool);
-    Immediate->setShouldBePooled(true);
+    assert(Immediate->getShouldBePooled());
     // if we have already assigned a phy register, we must come from
     // advancedPhiLowering()=>lowerAssign(). In this case we should reuse the
     // assigned register as this assignment is that start of its use-def
     // chain. So we add RegNum argument here.
     Variable *Reg = makeReg(Immediate->getType(), RegNum);
-    IceString Label;
-    llvm::raw_string_ostream Label_stream(Label);
-    Immediate->emitPoolLabel(Label_stream);
     constexpr RelocOffsetT Offset = 0;
-    Constant *Symbol = Ctx->getConstantSym(Offset, Label_stream.str());
+    Constant *Symbol = Ctx->getConstantSym(Offset, Immediate->getLabelName());
     constexpr Variable *NoBase = nullptr;
     X86OperandMem *MemOperand =
         X86OperandMem::create(Func, Immediate->getType(), NoBase, Symbol);
@@ -7179,7 +7192,7 @@ TargetX86Base<TraitsType>::randomizeOrPoolImmediate(X86OperandMem *MemOperand,
     return MemOperand;
   }
 
-  if (!C->shouldBeRandomizedOrPooled(Ctx)) {
+  if (!C->shouldBeRandomizedOrPooled()) {
     return MemOperand;
   }
 
@@ -7240,12 +7253,10 @@ TargetX86Base<TraitsType>::randomizeOrPoolImmediate(X86OperandMem *MemOperand,
     if (RegNum.hasValue())
       return MemOperand;
     Variable *RegTemp = makeReg(IceType_i32);
-    IceString Label;
-    llvm::raw_string_ostream Label_stream(Label);
-    MemOperand->getOffset()->emitPoolLabel(Label_stream);
-    MemOperand->getOffset()->setShouldBePooled(true);
+    assert(MemOperand->getOffset()->getShouldBePooled());
     constexpr RelocOffsetT SymOffset = 0;
-    Constant *Symbol = Ctx->getConstantSym(SymOffset, Label_stream.str());
+    Constant *Symbol =
+        Ctx->getConstantSym(SymOffset, MemOperand->getOffset()->getLabelName());
     constexpr Variable *NoBase = nullptr;
     X86OperandMem *SymbolOperand = X86OperandMem::create(
         Func, MemOperand->getOffset()->getType(), NoBase, Symbol);
@@ -7274,8 +7285,8 @@ void TargetX86Base<TraitsType>::emitJumpTable(
     return;
   Ostream &Str = Ctx->getStrEmit();
   const bool UseNonsfi = Ctx->getFlags().getUseNonsfi();
-  const IceString &FunctionName = Func->getFunctionName();
-  const IceString Prefix = UseNonsfi ? ".data.rel.ro." : ".rodata.";
+  GlobalString FunctionName = Func->getFunctionName();
+  const char *Prefix = UseNonsfi ? ".data.rel.ro." : ".rodata.";
   Str << "\t.section\t" << Prefix << FunctionName
       << "$jumptable,\"a\",@progbits\n";
   Str << "\t.align\t" << typeWidthInBytes(getPointerType()) << "\n";
@@ -7328,7 +7339,7 @@ void TargetDataX86<TraitsType>::emitConstantPool(GlobalContext *Ctx) {
     assert(CharsPrinted >= 0);
     assert((size_t)CharsPrinted < llvm::array_lengthof(buf));
     (void)CharsPrinted; // avoid warnings if asserts are disabled
-    Const->emitPoolLabel(Str);
+    Str << Const->getLabelName();
     Str << ":\n\t" << T::AsmTag << "\t" << buf << "\t/* " << T::TypeName << " "
         << Value << " */\n";
   }
@@ -7379,7 +7390,7 @@ void TargetDataX86<TraitsType>::lowerJumpTables() {
     if (!BuildDefs::dump())
       return;
     Ostream &Str = Ctx->getStrEmit();
-    const IceString Prefix = IsPIC ? ".data.rel.ro." : ".rodata.";
+    const char *Prefix = IsPIC ? ".data.rel.ro." : ".rodata.";
     for (const JumpTableData &JT : Ctx->getJumpTables()) {
       Str << "\t.section\t" << Prefix << JT.getFunctionName()
           << "$jumptable,\"a\",@progbits\n";
@@ -7397,7 +7408,7 @@ void TargetDataX86<TraitsType>::lowerJumpTables() {
 
 template <typename TraitsType>
 void TargetDataX86<TraitsType>::lowerGlobals(
-    const VariableDeclarationList &Vars, const IceString &SectionSuffix) {
+    const VariableDeclarationList &Vars, const std::string &SectionSuffix) {
   const bool IsPIC = Ctx->getFlags().getUseNonsfi();
   switch (Ctx->getFlags().getOutFileType()) {
   case FT_Elf: {
@@ -7406,7 +7417,7 @@ void TargetDataX86<TraitsType>::lowerGlobals(
   } break;
   case FT_Asm:
   case FT_Iasm: {
-    const IceString &TranslateOnly = Ctx->getFlags().getTranslateOnly();
+    const std::string TranslateOnly = Ctx->getFlags().getTranslateOnly();
     OstreamLocker L(Ctx);
     for (const VariableDeclaration *Var : Vars) {
       if (GlobalContext::matchSymbolName(Var->getName(), TranslateOnly)) {

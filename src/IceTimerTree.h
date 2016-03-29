@@ -62,12 +62,12 @@ public:
 #undef X
         TT__num
   };
-  explicit TimerStack(const IceString &Name);
+  explicit TimerStack(const std::string &Name);
   TimerStack(const TimerStack &) = default;
-  TimerIdT getTimerID(const IceString &Name);
+  TimerIdT getTimerID(const std::string &Name);
   void mergeFrom(const TimerStack &Src);
-  void setName(const IceString &NewName) { Name = NewName; }
-  const IceString &getName() const { return Name; }
+  void setName(const std::string &NewName) { Name = NewName; }
+  const std::string &getName() const { return Name; }
   void push(TimerIdT ID);
   void pop(TimerIdT ID);
   void reset();
@@ -80,13 +80,13 @@ private:
   PathType getPath(TTindex Index, const TranslationType &Mapping) const;
   TTindex getChildIndex(TTindex Parent, TimerIdT ID);
   TTindex findPath(const PathType &Path);
-  IceString Name;
+  std::string Name;
   double FirstTimestamp;
   double LastTimestamp;
   uint64_t StateChangeCount = 0;
   /// IDsIndex maps a symbolic timer name to its integer ID.
-  std::map<IceString, TimerIdT> IDsIndex;
-  std::vector<IceString> IDs;       /// indexed by TimerIdT
+  std::map<std::string, TimerIdT> IDsIndex;
+  std::vector<std::string> IDs;     /// indexed by TimerIdT
   std::vector<TimerTreeNode> Nodes; /// indexed by TTindex
   std::vector<double> LeafTimes;    /// indexed by TimerIdT
   std::vector<size_t> LeafCounts;   /// indexed by TimerIdT

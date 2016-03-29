@@ -58,6 +58,16 @@ class TargetARM32 : public TargetLowering {
 
 public:
   static void staticInit(GlobalContext *Ctx);
+
+  static bool shouldBePooled(const Constant *C) {
+    if (auto *ConstDouble = llvm::dyn_cast<ConstantDouble>(C)) {
+      return !Utils::isPositiveZero(ConstDouble->getValue());
+    }
+    if (llvm::isa<ConstantFloat>(C))
+      return true;
+    return false;
+  }
+
   // TODO(jvoung): return a unique_ptr.
   static std::unique_ptr<::Ice::TargetLowering> create(Cfg *Func) {
     return makeUnique<TargetARM32>(Func);
@@ -81,7 +91,7 @@ public:
   SizeT getNumRegisters() const override { return RegARM32::Reg_NUM; }
   Variable *getPhysicalRegister(RegNumT RegNum,
                                 Type Ty = IceType_void) override;
-  IceString getRegName(RegNumT RegNum, Type Ty) const override;
+  const char *getRegName(RegNumT RegNum, Type Ty) const override;
   SmallBitVector getRegisterSet(RegSetMask Include,
                                 RegSetMask Exclude) const override;
   const SmallBitVector &
@@ -914,8 +924,8 @@ protected:
   /// @{
   // TODO(jpp): if the same global G is used in different functions, then this
   // method will emit one G(gotoff) relocation per function.
-  IceString createGotoffRelocation(const ConstantRelocatable *CR);
-  CfgUnorderedSet<IceString> KnownGotoffs;
+  GlobalString createGotoffRelocation(const ConstantRelocatable *CR);
+  CfgUnorderedSet<GlobalString> KnownGotoffs;
   /// @}
 
   /// Loads the constant relocatable Name to Register. Then invoke Finish to
@@ -936,7 +946,7 @@ protected:
   // The -8 in movw/movt above is to account for the PC value that the first
   // instruction emitted by Finish(PC) will read.
   void
-  loadNamedConstantRelocatablePIC(const IceString &Name, Variable *Register,
+  loadNamedConstantRelocatablePIC(GlobalString Name, Variable *Register,
                                   std::function<void(Variable *PC)> Finish);
 
   /// Sandboxer defines methods for ensuring that "dangerous" operations are
@@ -1296,7 +1306,7 @@ public:
   }
 
   void lowerGlobals(const VariableDeclarationList &Vars,
-                    const IceString &SectionSuffix) override;
+                    const std::string &SectionSuffix) override;
   void lowerConstants() override;
   void lowerJumpTables() override;
 

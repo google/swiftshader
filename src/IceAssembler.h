@@ -28,6 +28,7 @@
 
 #include "IceDefs.h"
 #include "IceFixups.h"
+#include "IceStringPool.h"
 #include "IceUtils.h"
 
 #include "llvm/Support/Allocator.h"
@@ -323,8 +324,8 @@ public:
   void emitIASBytes(GlobalContext *Ctx) const;
   bool getInternal() const { return IsInternal; }
   void setInternal(bool Internal) { IsInternal = Internal; }
-  const IceString &getFunctionName() { return FunctionName; }
-  void setFunctionName(const IceString &NewName) { FunctionName = NewName; }
+  GlobalString getFunctionName() const { return FunctionName; }
+  void setFunctionName(GlobalString NewName) { FunctionName = NewName; }
   intptr_t getBufferSize() const { return Buffer.size(); }
   /// Roll back to a (smaller) size.
   void setBufferSize(intptr_t NewSize) { Buffer.setSize(NewSize); }
@@ -347,7 +348,7 @@ private:
   /// FunctionName and IsInternal are transferred from the original Cfg object,
   /// since the Cfg object may be deleted by the time the assembler buffer is
   /// emitted.
-  IceString FunctionName = "";
+  GlobalString FunctionName;
   bool IsInternal = false;
   /// Preliminary indicates whether a preliminary pass is being made for
   /// calculating bundle padding (Preliminary=true), versus the final pass where

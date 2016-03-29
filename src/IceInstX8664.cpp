@@ -138,12 +138,11 @@ void TargetX8664Traits::X86OperandMem::emit(const Cfg *Func) const {
     CR->emitWithoutPrefix(Target, UseNonsfi ? "@GOTOFF" : "");
     assert(!UseNonsfi);
     if (Base == nullptr && Index == nullptr) {
-      if (CR->getName() != "") { // rip-relative addressing.
-        if (NeedSandboxing) {
-          Str << "(%rip)";
-        } else {
-          Str << "(%eip)";
-        }
+      // rip-relative addressing.
+      if (NeedSandboxing) {
+        Str << "(%rip)";
+      } else {
+        Str << "(%eip)";
       }
     }
   } else {
@@ -167,8 +166,8 @@ void TargetX8664Traits::X86OperandMem::emit(const Cfg *Func) const {
         assert(Base->getRegNum() == RegX8664::Encoded_Reg_rsp ||
                Base->getRegNum() == RegX8664::Encoded_Reg_rbp ||
                getType() == IceType_void);
-        B = B->asType(IceType_i32, X8664::Traits::getGprForType(
-                                       IceType_i32, Base->getRegNum()));
+        B = B->asType(Func, IceType_i32, X8664::Traits::getGprForType(
+                                             IceType_i32, Base->getRegNum()));
       }
     }
 
@@ -267,13 +266,11 @@ TargetX8664Traits::Address TargetX8664Traits::X86OperandMem::toAsmAddress(
       Disp += static_cast<int32_t>(CI->getValue());
     } else if (const auto *CR =
                    llvm::dyn_cast<ConstantRelocatable>(getOffset())) {
-      if (CR->getName() != "") {
-        const auto FixupKind =
-            (getBase() != nullptr || getIndex() != nullptr) ? FK_Abs : FK_PcRel;
-        const RelocOffsetT DispAdjustment = FixupKind == FK_PcRel ? 4 : 0;
-        Fixup = Asm->createFixup(FixupKind, CR);
-        Fixup->set_addend(-DispAdjustment);
-      }
+      const auto FixupKind =
+          (getBase() != nullptr || getIndex() != nullptr) ? FK_Abs : FK_PcRel;
+      const RelocOffsetT DispAdjustment = FixupKind == FK_PcRel ? 4 : 0;
+      Fixup = Asm->createFixup(FixupKind, CR);
+      Fixup->set_addend(-DispAdjustment);
       Disp = CR->getOffset();
     } else {
       llvm_unreachable("Unexpected offset type");

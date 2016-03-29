@@ -22,6 +22,7 @@
 #include "IceDefs.h"
 #include "IceCfg.h"
 #include "IceGlobalContext.h"
+#include "IceStringPool.h"
 #include "IceTypes.h"
 
 #include "llvm/Support/Format.h"
@@ -121,10 +122,6 @@ class Constant : public Operand {
   Constant &operator=(const Constant &) = delete;
 
 public:
-  virtual void emitPoolLabel(Ostream &Str) const {
-    (void)Str;
-    llvm::report_fatal_error("emitPoolLabel not defined for type");
-  };
   // Declare the lookup counter to take minimal space in a non-DUMP build.
   using CounterType =
       std::conditional<BuildDefs::dump(), uint64_t, uint8_t>::type;
@@ -136,15 +133,13 @@ public:
     return Kind >= kConst_Base && Kind <= kConst_Max;
   }
 
+  const GlobalString getLabelName() const { return LabelName; }
+
   /// Judge if this given immediate should be randomized or pooled By default
   /// should return false, only constant integers should truly go through this
   /// method.
-  virtual bool shouldBeRandomizedOrPooled(const GlobalContext *Ctx) {
-    (void)Ctx;
-    return false;
-  }
+  virtual bool shouldBeRandomizedOrPooled() const { return false; }
 
-  void setShouldBePooled(bool R) { ShouldBePooled = R; }
   bool getShouldBePooled() const { return ShouldBePooled; }
 
   // This should be thread-safe because the constant pool lock is acquired
@@ -161,8 +156,13 @@ protected:
     Vars = nullptr;
     NumVars = 0;
   }
+  /// Set the ShouldBePooled field to the proper value after the object is fully
+  /// initialized.
+  void initShouldBePooled();
+  GlobalString LabelName;
   /// Whether we should pool this constant. Usually Float/Double and pooled
-  /// Integers should be flagged true.
+  /// Integers should be flagged true.  Ideally this field would be const, but
+  /// it needs to be initialized only after the subclass is fully constructed.
   bool ShouldBePooled = false;
   /// Note: If ShouldBePooled is ever removed from the base class, we will want
   /// to completely disable LookupCount in a non-DUMP build to save space.
@@ -181,11 +181,34 @@ public:
 
   static ConstantPrimitive *create(GlobalContext *Ctx, Type Ty,
                                    PrimType Value) {
-    return new (Ctx->allocate<ConstantPrimitive>())
-        ConstantPrimitive(Ty, Value);
+    auto *Const =
+        new (Ctx->allocate<ConstantPrimitive>()) ConstantPrimitive(Ty, Value);
+    Const->initShouldBePooled();
+    if (Const->getShouldBePooled())
+      Const->initName(Ctx);
+    return Const;
   }
   PrimType getValue() const { return Value; }
-  void emitPoolLabel(Ostream &Str) const final {
+  using Constant::emit;
+  void emit(TargetLowering *Target) const final;
+  using Constant::dump;
+  void dump(const Cfg *, Ostream &Str) const override {
+    if (BuildDefs::dump())
+      Str << getValue();
+  }
+
+  static bool classof(const Operand *Operand) {
+    return Operand->getKind() == K;
+  }
+
+  virtual bool shouldBeRandomizedOrPooled() const override { return false; }
+
+private:
+  ConstantPrimitive(Type Ty, PrimType Value) : Constant(K, Ty), Value(Value) {}
+
+  void initName(GlobalContext *Ctx) {
+    std::string Buffer;
+    llvm::raw_string_ostream Str(Buffer);
     Str << ".L$" << getType() << "$";
     // Print hex characters byte by byte, starting from the most significant
     // byte.  NOTE: This ordering assumes Subzero runs on a little-endian
@@ -212,26 +235,9 @@ public:
       }
       Str << Buf;
     }
-  }
-  using Constant::emit;
-  void emit(TargetLowering *Target) const final;
-  using Constant::dump;
-  void dump(const Cfg *, Ostream &Str) const override {
-    if (BuildDefs::dump())
-      Str << getValue();
+    LabelName = GlobalString::createWithString(Ctx, Str.str());
   }
 
-  static bool classof(const Operand *Operand) {
-    return Operand->getKind() == K;
-  }
-
-  virtual bool shouldBeRandomizedOrPooled(const GlobalContext *Ctx) override {
-    (void)Ctx;
-    return false;
-  }
-
-private:
-  ConstantPrimitive(Type Ty, PrimType Value) : Constant(K, Ty), Value(Value) {}
   const PrimType Value;
 };
 
@@ -251,8 +257,7 @@ inline void ConstantInteger32::dump(const Cfg *, Ostream &Str) const {
 }
 
 /// Specialization of the template member function for ConstantInteger32
-template <>
-bool ConstantInteger32::shouldBeRandomizedOrPooled(const GlobalContext *Ctx);
+template <> bool ConstantInteger32::shouldBeRandomizedOrPooled() const;
 
 template <>
 inline void ConstantInteger64::dump(const Cfg *, Ostream &Str) const {
@@ -315,12 +320,12 @@ class RelocatableTuple {
 
 public:
   RelocatableTuple(const RelocOffsetT Offset,
-                   const RelocOffsetArray &OffsetExpr, const IceString &Name)
+                   const RelocOffsetArray &OffsetExpr, GlobalString Name)
       : Offset(Offset), OffsetExpr(OffsetExpr), Name(Name) {}
 
   RelocatableTuple(const RelocOffsetT Offset,
-                   const RelocOffsetArray &OffsetExpr, const IceString &Name,
-                   const IceString &EmitString)
+                   const RelocOffsetArray &OffsetExpr, GlobalString Name,
+                   const std::string &EmitString)
       : Offset(Offset), OffsetExpr(OffsetExpr), Name(Name),
         EmitString(EmitString) {}
 
@@ -328,8 +333,8 @@ public:
 
   const RelocOffsetT Offset;
   const RelocOffsetArray OffsetExpr;
-  const IceString Name;
-  const IceString EmitString;
+  const GlobalString Name;
+  const std::string EmitString;
 };
 
 bool operator==(const RelocatableTuple &A, const RelocatableTuple &B);
@@ -358,9 +363,9 @@ public:
     return Ret;
   }
 
-  const IceString &getEmitString() const { return EmitString; }
+  const std::string &getEmitString() const { return EmitString; }
 
-  const IceString &getName() const { return Name; }
+  GlobalString getName() const { return Name; }
   using Constant::emit;
   void emit(TargetLowering *Target) const final;
   void emitWithoutPrefix(const TargetLowering *Target,
@@ -375,15 +380,15 @@ public:
 
 private:
   ConstantRelocatable(Type Ty, const RelocOffsetT Offset,
-                      const RelocOffsetArray &OffsetExpr, const IceString &Name,
-                      const IceString &EmitString)
+                      const RelocOffsetArray &OffsetExpr, GlobalString Name,
+                      const std::string &EmitString)
       : Constant(kConstRelocatable, Ty), Offset(Offset), OffsetExpr(OffsetExpr),
         Name(Name), EmitString(EmitString) {}
 
   const RelocOffsetT Offset;         /// fixed, known offset to add
   const RelocOffsetArray OffsetExpr; /// fixed, unknown offset to add
-  const IceString Name;              /// optional for debug/dump
-  const IceString EmitString;        /// optional for textual emission
+  const GlobalString Name;           /// optional for debug/dump
+  const std::string EmitString;      /// optional for textual emission
 };
 
 /// ConstantUndef represents an unspecified bit pattern. Although it is legal to
@@ -637,16 +642,17 @@ class Variable : public Operand {
 
 public:
   static Variable *create(Cfg *Func, Type Ty, SizeT Index) {
-    return new (Func->allocate<Variable>()) Variable(kVariable, Ty, Index);
+    return new (Func->allocate<Variable>())
+        Variable(Func, kVariable, Ty, Index);
   }
 
   SizeT getIndex() const { return Number; }
-  IceString getName(const Cfg *Func) const;
-  virtual void setName(Cfg *Func, const IceString &NewName) {
-    // Make sure that the name can only be set once.
-    assert(NameIndex == Cfg::IdentifierIndexInvalid);
-    if (!NewName.empty())
-      NameIndex = Func->addIdentifierName(NewName);
+  std::string getName(const Cfg *Func) const;
+  virtual void setName(const Cfg *Func, const std::string &NewName) {
+    (void)Func;
+    if (NewName.empty())
+      return;
+    Name = VariableString::createWithString(Func, NewName);
   }
 
   bool getIsArg() const { return IsArgument; }
@@ -661,7 +667,7 @@ public:
   void setStackOffset(int32_t Offset) { StackOffset = Offset; }
   /// Returns the variable's stack offset in symbolic form, to improve
   /// readability in DecorateAsm mode.
-  IceString getSymbolicStackOffset(const Cfg *Func) const {
+  std::string getSymbolicStackOffset(const Cfg *Func) const {
     if (!BuildDefs::dump())
       return "";
     return "lv$" + getName(Func);
@@ -725,7 +731,7 @@ public:
   /// IsImplicitArgument, IgnoreLiveness, RegNumTmp, Live, LoVar, HiVar,
   /// VarsReal. If NewRegNum.hasValue(), then that register assignment is made
   /// instead of copying the existing assignment.
-  const Variable *asType(Type Ty, RegNumT NewRegNum) const;
+  const Variable *asType(const Cfg *Func, Type Ty, RegNumT NewRegNum) const;
 
   void emit(const Cfg *Func) const override;
   using Operand::dump;
@@ -740,17 +746,24 @@ public:
   }
 
 protected:
-  Variable(OperandKind K, Type Ty, SizeT Index)
+  Variable(const Cfg *Func, OperandKind K, Type Ty, SizeT Index)
       : Operand(K, Ty), Number(Index),
+        Name(VariableString::createWithoutString(Func)),
         RegisterClass(static_cast<RegClass>(Ty)) {
     Vars = VarsReal;
     Vars[0] = this;
     NumVars = 1;
+    if (BuildDefs::dump()) {
+      Name = VariableString::createWithString(
+          Func, "__" + std::to_string(getIndex()));
+    } else {
+      Name = VariableString::createWithoutString(Func);
+    }
   }
   /// Number is unique across all variables, and is used as a (bit)vector index
   /// for liveness analysis.
   const SizeT Number;
-  Cfg::IdentifierIndexType NameIndex = Cfg::IdentifierIndexInvalid;
+  VariableString Name;
   bool IsArgument = false;
   bool IsImplicitArgument = false;
   /// IgnoreLiveness means that the variable should be ignored when constructing
@@ -784,10 +797,10 @@ class Variable64On32 : public Variable {
 public:
   static Variable64On32 *create(Cfg *Func, Type Ty, SizeT Index) {
     return new (Func->allocate<Variable64On32>())
-        Variable64On32(kVariable64On32, Ty, Index);
+        Variable64On32(Func, kVariable64On32, Ty, Index);
   }
 
-  void setName(Cfg *Func, const IceString &NewName) override {
+  void setName(const Cfg *Func, const std::string &NewName) override {
     Variable::setName(Func, NewName);
     if (LoVar && HiVar) {
       LoVar->setName(Func, getName(Func) + "__lo");
@@ -819,8 +832,10 @@ public:
     HiVar = Func->makeVariable(IceType_i32);
     LoVar->setIsArg(getIsArg());
     HiVar->setIsArg(getIsArg());
-    LoVar->setName(Func, getName(Func) + "__lo");
-    HiVar->setName(Func, getName(Func) + "__hi");
+    if (BuildDefs::dump()) {
+      LoVar->setName(Func, getName(Func) + "__lo");
+      HiVar->setName(Func, getName(Func) + "__hi");
+    }
   }
 
   static bool classof(const Operand *Operand) {
@@ -829,7 +844,8 @@ public:
   }
 
 protected:
-  Variable64On32(OperandKind K, Type Ty, SizeT Index) : Variable(K, Ty, Index) {
+  Variable64On32(const Cfg *Func, OperandKind K, Type Ty, SizeT Index)
+      : Variable(Func, K, Ty, Index) {
     assert(typeWidthInBytes(Ty) == 8);
   }
 

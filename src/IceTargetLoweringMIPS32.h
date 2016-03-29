@@ -34,6 +34,10 @@ public:
   ~TargetMIPS32() override = default;
 
   static void staticInit(GlobalContext *Ctx);
+  static bool shouldBePooled(const Constant *C) {
+    (void)C;
+    return false;
+  }
   static std::unique_ptr<::Ice::TargetLowering> create(Cfg *Func) {
     return makeUnique<TargetMIPS32>(Func);
   }
@@ -49,7 +53,7 @@ public:
   SizeT getNumRegisters() const override { return RegMIPS32::Reg_NUM; }
   Variable *getPhysicalRegister(RegNumT RegNum,
                                 Type Ty = IceType_void) override;
-  IceString getRegName(RegNumT RegNum, Type Ty) const override;
+  const char *getRegName(RegNumT RegNum, Type Ty) const override;
   SmallBitVector getRegisterSet(RegSetMask Include,
                                 RegSetMask Exclude) const override;
   const SmallBitVector &
@@ -335,7 +339,7 @@ public:
   }
 
   void lowerGlobals(const VariableDeclarationList &Vars,
-                    const IceString &SectionSuffix) override;
+                    const std::string &SectionSuffix) override;
   void lowerConstants() override;
   void lowerJumpTables() override;
 

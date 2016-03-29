@@ -76,7 +76,7 @@ public:
   };
   static_assert(Target <= Target_Max, "Must not be above max.");
   InstKind getKind() const { return Kind; }
-  virtual IceString getInstName() const;
+  virtual const char *getInstName() const;
 
   InstNumberT getNumber() const { return Number; }
   void renumber(Cfg *Func);
@@ -290,7 +290,7 @@ public:
   }
   OpKind getOp() const { return Op; }
 
-  virtual IceString getInstName() const override;
+  virtual const char *getInstName() const override;
 
   static const char *getOpName(OpKind Op);
   bool isCommutative() const;
@@ -942,8 +942,11 @@ public:
     return Instr->getKind() == JumpTable;
   }
 
-  static IceString makeName(const IceString &FuncName, SizeT Id) {
-    return ".L" + FuncName + "$jumptable$__" + std::to_string(Id);
+  // TODO(stichnot): Should this create&save GlobalString values?
+  static std::string makeName(GlobalString FuncName, SizeT Id) {
+    if (FuncName.hasStdString())
+      return ".L" + FuncName + "$jumptable$__" + std::to_string(Id);
+    return ".L" + std::to_string(FuncName.getID()) + "_" + std::to_string(Id);
   }
 
 private:

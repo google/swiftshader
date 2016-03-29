@@ -22,7 +22,6 @@
 #include "IceBuildDefs.h"
 #include "IceCfg.h"
 #include "IceClFlags.h"
-#include "IceClFlags.h"
 #include "IceConverter.h"
 #include "IceELFObjectWriter.h"
 #include "PNaClTranslator.h"
@@ -50,7 +49,7 @@ namespace Ice {
 
 namespace {
 
-bool llvmIRInput(const IceString &Filename) {
+bool llvmIRInput(const std::string &Filename) {
   return BuildDefs::llvmIrAsInput() &&
          std::regex_match(Filename, std::regex(".*\\.ll"));
 }
@@ -77,7 +76,7 @@ void Compiler::run(const Ice::ClFlags &Flags, GlobalContext &Ctx,
   Ctx.startWorkerThreads();
 
   std::unique_ptr<Translator> Translator;
-  const IceString &IRFilename = Flags.getIRFilename();
+  const std::string IRFilename = Flags.getIRFilename();
   const bool BuildOnRead = Flags.getBuildOnRead() && !llvmIRInput(IRFilename);
   if (BuildOnRead) {
     std::unique_ptr<PNaClTranslator> PTranslator(new PNaClTranslator(&Ctx));

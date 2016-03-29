@@ -593,7 +593,7 @@ size_t MoveRelocatableFixup::emit(GlobalContext *Ctx,
   IValueT Inst = Asm.load<IValueT>(position());
   const bool IsMovw = kind() == llvm::ELF::R_ARM_MOVW_ABS_NC ||
                       kind() == llvm::ELF::R_ARM_MOVW_PREL_NC;
-  const IceString Symbol = symbol();
+  const auto Symbol = symbol().toString();
   const bool NeedsPCRelSuffix =
       (Asm.fixupIsPCRel(kind()) || Symbol == GlobalOffsetTable);
   Str << "\t"
@@ -619,7 +619,7 @@ IValueT AssemblerARM32::encodeElmtType(Type ElmtTy) {
     return 3;
   default:
     llvm::report_fatal_error("SIMD op: Don't understand element type " +
-                             typeIceString(ElmtTy));
+                             typeStdString(ElmtTy));
   }
 }
 
@@ -1042,7 +1042,7 @@ void AssemblerARM32::emitInsertExtractInt(CondARM32::Cond Cond,
   default:
     llvm::report_fatal_error(std::string(InstName) +
                              ": Unable to process type " +
-                             typeIceString(OpRt->getType()));
+                             typeStdString(OpRt->getType()));
   case 8:
     assert(Index < 16);
     Dn = Dn | mask(Index, 3, 1);

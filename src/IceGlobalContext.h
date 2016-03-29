@@ -20,6 +20,7 @@
 #include "IceClFlags.h"
 #include "IceIntrinsics.h"
 #include "IceRNG.h"
+#include "IceStringPool.h"
 #include "IceSwitchLowering.h"
 #include "IceTargetLowering.def"
 #include "IceThreading.h"
@@ -51,30 +52,6 @@ enum class RuntimeHelper {
   RUNTIME_HELPER_FUNCTIONS_TABLE
 #undef X
       H_Num
-};
-
-/// LockedPtr is a way to provide automatically locked access to some object.
-template <typename T> class LockedPtr {
-  LockedPtr() = delete;
-  LockedPtr(const LockedPtr &) = delete;
-  LockedPtr &operator=(const LockedPtr &) = delete;
-
-public:
-  LockedPtr(T *Value, GlobalLockType *Lock) : Value(Value), Lock(Lock) {
-    Lock->lock();
-  }
-  LockedPtr(LockedPtr &&Other) : Value(Other.Value), Lock(Other.Lock) {
-    Other.Value = nullptr;
-    Other.Lock = nullptr;
-  }
-  ~LockedPtr() { Lock->unlock(); }
-  T *operator->() const { return Value; }
-  T &operator*() const { return *Value; }
-  T *get() { return Value; }
-
-private:
-  T *Value;
-  GlobalLockType *Lock;
 };
 
 class GlobalContext {
@@ -113,7 +90,7 @@ class GlobalContext {
       for (uint32_t i = 0; i < Stats.size(); ++i)
         Stats[i] += Other.Stats[i];
     }
-    void dump(const IceString &Name, GlobalContext *Ctx);
+    void dump(const std::string &Name, GlobalContext *Ctx);
 
   private:
     std::array<uint32_t, CS_NUM> Stats;
@@ -172,6 +149,7 @@ public:
                 ELFStreamer *ELFStreamer);
   ~GlobalContext();
 
+  void dumpStrings();
   ///
   /// The dump, error, and emit streams need to be used by only one
   /// thread at a time.  This is done by exclusively reserving the
@@ -247,11 +225,12 @@ public:
   Constant *getConstantFloat(float Value);
   Constant *getConstantDouble(double Value);
   /// Returns a symbolic constant.
-  Constant *getConstantSym(const RelocOffsetT Offset,
-                           const RelocOffsetArray &OffsetExpr,
-                           const IceString &Name, const IceString &EmitString);
-  Constant *getConstantSym(RelocOffsetT Offset, const IceString &Name);
-  Constant *getConstantExternSym(const IceString &Name);
+  Constant *getConstantSymWithEmitString(const RelocOffsetT Offset,
+                                         const RelocOffsetArray &OffsetExpr,
+                                         GlobalString Name,
+                                         const std::string &EmitString);
+  Constant *getConstantSym(RelocOffsetT Offset, GlobalString Name);
+  Constant *getConstantExternSym(GlobalString Name);
   /// Returns an undef.
   Constant *getConstantUndef(Type Ty);
   /// Returns a zero value.
@@ -268,11 +247,12 @@ public:
     assert(Result != nullptr && "No such runtime helper function");
     return Result;
   }
+  GlobalString getGlobalString(const std::string &Name);
 
   /// Return a locked pointer to the registered jump tables.
   JumpTableDataList getJumpTables();
   /// Create a new jump table entry and return a reference to it.
-  JumpTableData &addJumpTable(const IceString &FuncName, SizeT Id,
+  JumpTableData &addJumpTable(GlobalString FuncName, SizeT Id,
                               const JumpTableData::TargetList &TargetList);
 
   static const ClFlags &getFlags() { return Flags; }
@@ -305,7 +285,7 @@ public:
     if (BuildDefs::dump())
       ICE_TLS_GET_FIELD(TLS)->StatsFunction.reset();
   }
-  void dumpStats(const IceString &Name, bool Final = false);
+  void dumpStats(const std::string &Name, bool Final = false);
   void statsUpdateEmitted(uint32_t InstCount) {
     if (!getFlags().getDumpStats())
       return;
@@ -356,24 +336,24 @@ public:
 
   /// newTimerStackID() creates a new TimerStack in the global space. It does
   /// not affect any TimerStack objects in TLS.
-  TimerStackIdT newTimerStackID(const IceString &Name);
+  TimerStackIdT newTimerStackID(const std::string &Name);
   /// dumpTimers() dumps the global timer data. As such, one probably wants to
   /// call mergeTimerStacks() as a prerequisite.
   void dumpTimers(TimerStackIdT StackID = TSK_Default,
                   bool DumpCumulative = true);
   /// The following methods affect only the calling thread's TLS timer data.
-  TimerIdT getTimerID(TimerStackIdT StackID, const IceString &Name);
+  TimerIdT getTimerID(TimerStackIdT StackID, const std::string &Name);
   void pushTimer(TimerIdT ID, TimerStackIdT StackID);
   void popTimer(TimerIdT ID, TimerStackIdT StackID);
   void resetTimer(TimerStackIdT StackID);
-  void setTimerName(TimerStackIdT StackID, const IceString &NewName);
+  void setTimerName(TimerStackIdT StackID, const std::string &NewName);
 
   /// This is the first work item sequence number that the parser produces, and
   /// correspondingly the first sequence number that the emitter thread will
   /// wait for. Start numbering at 1 to leave room for a sentinel, in case e.g.
   /// we wish to inject items with a special sequence number that may be
   /// executed out of order.
-  static uint32_t getFirstSequenceNumber() { return 1; }
+  static constexpr uint32_t getFirstSequenceNumber() { return 1; }
   /// Adds a newly parsed and constructed function to the Cfg work queue.
   /// Notifies any idle workers that a new function is available for
   /// translating. May block if the work queue is too large, in order to control
@@ -474,7 +454,7 @@ public:
   /// Uses DataLowering to lower Globals. Side effects:
   ///  - discards the initializer list for the global variable in Globals.
   ///  - clears the Globals array.
-  void lowerGlobals(const IceString &SectionSuffix);
+  void lowerGlobals(const std::string &SectionSuffix);
 
   /// Lowers the profile information.
   void lowerProfileData();
@@ -486,10 +466,8 @@ public:
   /// function or symbol based on a command-line argument, such as changing the
   /// verbose level for a particular function. An empty Match argument means
   /// match everything. Returns true if there is a match.
-  static bool matchSymbolName(const IceString &SymbolName,
-                              const IceString &Match) {
-    return Match.empty() || Match == SymbolName;
-  }
+  static bool matchSymbolName(const GlobalString &SymbolName,
+                              const std::string &Match);
 
   static ClFlags Flags;
 
@@ -505,49 +483,58 @@ public:
   }
   /// @}
 
+  LockedPtr<StringPool> getStrings() const {
+    return LockedPtr<StringPool>(Strings.get(), &StringsLock);
+  }
+
 private:
   // Try to ensure mutexes are allocated on separate cache lines.
 
   // Destructors collaborate with Allocator
   ICE_CACHELINE_BOUNDARY;
   // Managed by getAllocator()
-  GlobalLockType AllocLock;
+  mutable GlobalLockType AllocLock;
   ArenaAllocator Allocator;
 
   ICE_CACHELINE_BOUNDARY;
   // Managed by getInitializerAllocator()
-  GlobalLockType InitAllocLock;
+  mutable GlobalLockType InitAllocLock;
   VariableDeclarationList Globals;
 
   ICE_CACHELINE_BOUNDARY;
   // Managed by getDestructors()
   using DestructorArray = std::vector<std::function<void()>>;
-  GlobalLockType DestructorsLock;
+  mutable GlobalLockType DestructorsLock;
   DestructorArray Destructors;
 
   ICE_CACHELINE_BOUNDARY;
-  // Managed by getConstantPool()
-  GlobalLockType ConstPoolLock;
+  // Managed by getStrings()
+  mutable GlobalLockType StringsLock;
+  std::unique_ptr<StringPool> Strings;
+
+  ICE_CACHELINE_BOUNDARY;
+  // Managed by getConstPool()
+  mutable GlobalLockType ConstPoolLock;
   std::unique_ptr<ConstantPool> ConstPool;
 
   ICE_CACHELINE_BOUNDARY;
   // Managed by getJumpTableList()
-  GlobalLockType JumpTablesLock;
+  mutable GlobalLockType JumpTablesLock;
   JumpTableDataList JumpTableList;
 
   ICE_CACHELINE_BOUNDARY;
   // Managed by getErrorStatus()
-  GlobalLockType ErrorStatusLock;
+  mutable GlobalLockType ErrorStatusLock;
   ErrorCode ErrorStatus;
 
   ICE_CACHELINE_BOUNDARY;
   // Managed by getStatsCumulative()
-  GlobalLockType StatsLock;
+  mutable GlobalLockType StatsLock;
   CodeStats StatsCumulative;
 
   ICE_CACHELINE_BOUNDARY;
   // Managed by getTimers()
-  GlobalLockType TimerLock;
+  mutable GlobalLockType TimerLock;
   TimerList Timers;
 
   ICE_CACHELINE_BOUNDARY;
@@ -663,7 +650,7 @@ public:
     if (BuildDefs::timers())
       pushCfg(Func);
   }
-  TimerMarker(GlobalContext *Ctx, const IceString &FuncName)
+  TimerMarker(GlobalContext *Ctx, const std::string &FuncName)
       : ID(getTimerIdFromFuncName(Ctx, FuncName)), Ctx(Ctx),
         StackID(GlobalContext::TSK_Funcs) {
     if (BuildDefs::timers())
@@ -679,7 +666,7 @@ private:
   void push();
   void pushCfg(const Cfg *Func);
   static TimerIdT getTimerIdFromFuncName(GlobalContext *Ctx,
-                                         const IceString &FuncName);
+                                         const std::string &FuncName);
   const TimerIdT ID;
   GlobalContext *Ctx;
   const TimerStackIdT StackID;

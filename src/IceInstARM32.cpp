@@ -627,7 +627,7 @@ template <> void InstARM32Vadd::emitIAS(const Cfg *Func) const {
   switch (DestTy) {
   default:
     llvm::report_fatal_error("Vadd not defined on type " +
-                             typeIceString(DestTy));
+                             typeStdString(DestTy));
   case IceType_v16i8:
   case IceType_v8i16:
   case IceType_v4i32:
@@ -652,7 +652,7 @@ template <> void InstARM32Vand::emitIAS(const Cfg *Func) const {
   switch (Dest->getType()) {
   default:
     llvm::report_fatal_error("Vand not defined on type " +
-                             typeIceString(Dest->getType()));
+                             typeStdString(Dest->getType()));
   case IceType_v4i1:
   case IceType_v8i1:
   case IceType_v16i1:
@@ -743,7 +743,7 @@ template <> void InstARM32Vorr::emitIAS(const Cfg *Func) const {
   switch (Dest->getType()) {
   default:
     llvm::report_fatal_error("Vorr not defined on type " +
-                             typeIceString(Dest->getType()));
+                             typeStdString(Dest->getType()));
   case IceType_v4i1:
   case IceType_v8i1:
   case IceType_v16i1:
@@ -762,7 +762,7 @@ template <> void InstARM32Vsub::emitIAS(const Cfg *Func) const {
   switch (DestTy) {
   default:
     llvm::report_fatal_error("Vsub not defined on type " +
-                             typeIceString(DestTy));
+                             typeStdString(DestTy));
   case IceType_v16i8:
   case IceType_v8i16:
   case IceType_v4i32:
@@ -788,7 +788,7 @@ template <> void InstARM32Vmul::emitIAS(const Cfg *Func) const {
   switch (DestTy) {
   default:
     llvm::report_fatal_error("Vmul not defined on type " +
-                             typeIceString(DestTy));
+                             typeStdString(DestTy));
 
   case IceType_v16i8:
   case IceType_v8i16:
@@ -815,12 +815,14 @@ InstARM32Call::InstARM32Call(Cfg *Func, Variable *Dest, Operand *CallTarget)
 
 InstARM32Label::InstARM32Label(Cfg *Func, TargetARM32 *Target)
     : InstARM32(Func, InstARM32::Label, 0, nullptr),
-      Number(Target->makeNextLabelNumber()) {}
-
-IceString InstARM32Label::getName(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return "";
-  return ".L" + Func->getFunctionName() + "$local$__" + std::to_string(Number);
+      Number(Target->makeNextLabelNumber()) {
+  if (BuildDefs::dump()) {
+    Name = GlobalString::createWithString(
+        Func->getContext(),
+        ".L" + Func->getFunctionName() + "$local$__" + std::to_string(Number));
+  } else {
+    Name = GlobalString::createWithoutString(Func->getContext());
+  }
 }
 
 namespace {
@@ -1582,8 +1584,8 @@ void InstARM32Mov::emitIAS(const Cfg *Func) const {
     return;
   }
   llvm::report_fatal_error("Mov: don't know how to move " +
-                           typeIceString(SrcTy) + " to " +
-                           typeIceString(DestTy));
+                           typeStdString(SrcTy) + " to " +
+                           typeStdString(DestTy));
 }
 
 void InstARM32Mov::dump(const Cfg *Func) const {
@@ -1612,7 +1614,7 @@ void InstARM32Br::emit(const Cfg *Func) const {
   Str << "\t"
          "b" << getPredicate() << "\t";
   if (Label) {
-    Str << Label->getName(Func);
+    Str << Label->getLabelName();
   } else {
     if (isUnconditionalBranch()) {
       Str << getTargetFalse()->getAsmName();
@@ -1652,13 +1654,16 @@ void InstARM32Br::dump(const Cfg *Func) const {
   Str << "br ";
 
   if (getPredicate() == CondARM32::AL) {
-    Str << "label %"
-        << (Label ? Label->getName(Func) : getTargetFalse()->getName());
+    if (Label) {
+      Str << "label %" << Label->getLabelName();
+    } else {
+      Str << "label %" << getTargetFalse()->getName();
+    }
     return;
   }
 
   if (Label) {
-    Str << getPredicate() << ", label %" << Label->getName(Func);
+    Str << getPredicate() << ", label %" << Label->getLabelName();
   } else {
     Str << getPredicate() << ", label %" << getTargetTrue()->getName();
     if (getTargetFalse()) {
@@ -1731,7 +1736,7 @@ void InstARM32Label::emit(const Cfg *Func) const {
   if (auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>())
     Asm->decEmitTextSize(InstSize);
   Ostream &Str = Func->getContext()->getStrEmit();
-  Str << getName(Func) << ":";
+  Str << getLabelName() << ":";
 }
 
 void InstARM32Label::emitIAS(const Cfg *Func) const {
@@ -1748,7 +1753,7 @@ void InstARM32Label::dump(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
-  Str << getName(Func) << ":";
+  Str << getLabelName() << ":";
 }
 
 template <InstARM32::InstKindARM32 K>
@@ -1791,7 +1796,7 @@ template <> void InstARM32Ldr::emitIAS(const Cfg *Func) const {
   const Type DestTy = Dest->getType();
   switch (DestTy) {
   default:
-    llvm::report_fatal_error("Ldr on unknown type: " + typeIceString(DestTy));
+    llvm::report_fatal_error("Ldr on unknown type: " + typeStdString(DestTy));
   case IceType_i1:
   case IceType_i8:
   case IceType_i16:
@@ -2139,7 +2144,7 @@ void InstARM32Str::emitIAS(const Cfg *Func) const {
   Type Ty = Src0->getType();
   switch (Ty) {
   default:
-    llvm::report_fatal_error("Str on unknown type: " + typeIceString(Ty));
+    llvm::report_fatal_error("Str on unknown type: " + typeStdString(Ty));
   case IceType_i1:
   case IceType_i8:
   case IceType_i16:
@@ -2469,7 +2474,7 @@ void InstARM32Vabs::emitIAS(const Cfg *Func) const {
   switch (Dest->getType()) {
   default:
     llvm::report_fatal_error("fabs not defined on type " +
-                             typeIceString(Dest->getType()));
+                             typeStdString(Dest->getType()));
   case IceType_f32:
     Asm->vabss(Dest, getSrc(0), getPredicate());
     break;

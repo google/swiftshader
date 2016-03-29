@@ -186,7 +186,7 @@ bool BrowserCompileServer::pushInputBytes(const void *Data, size_t NumBytes) {
              NumBytes) != NumBytes;
 }
 
-void BrowserCompileServer::setFatalError(const IceString &Reason) {
+void BrowserCompileServer::setFatalError(const std::string &Reason) {
   HadError.store(true);
   Ctx->getStrError() << Reason;
   // Make sure that the QueueStreamer is not stuck by signaling an early end.

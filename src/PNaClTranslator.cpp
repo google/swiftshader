@@ -473,17 +473,22 @@ private:
 
   // Gives Decl a name if it doesn't already have one. Prefix and NameIndex are
   // used to generate the name. NameIndex is automatically incremented if a new
-  // name is created. DeclType is literal text describing the type of name
-  // being created. Also generates warning if created names may conflict with
-  // named declarations.
+  // name is created. DeclType is literal text describing the type of name being
+  // created. Also generates a warning if created names may conflict with named
+  // declarations.
   void installDeclarationName(Ice::GlobalDeclaration *Decl,
-                              const Ice::IceString &Prefix,
-                              const char *DeclType,
+                              const std::string &Prefix, const char *DeclType,
                               NaClBcIndexSize_t &NameIndex) {
     if (Decl->hasName()) {
-      Translator.checkIfUnnamedNameSafe(Decl->getName(), DeclType, Prefix);
+      Translator.checkIfUnnamedNameSafe(Decl->getName().toString(), DeclType,
+                                        Prefix);
     } else {
-      Decl->setName(Translator.createUnnamedName(Prefix, NameIndex));
+      Ice::GlobalContext *Ctx = Translator.getContext();
+      if (Ice::BuildDefs::dump() || !Decl->isInternal()) {
+        Decl->setName(Ctx, Translator.createUnnamedName(Prefix, NameIndex));
+      } else {
+        Decl->setName(Ctx);
+      }
       ++NameIndex;
     }
   }
@@ -491,7 +496,7 @@ private:
   // Installs names for global variables without names.
   void installGlobalVarNames() {
     assert(VariableDeclarations);
-    const Ice::IceString &GlobalPrefix =
+    const std::string &GlobalPrefix =
         getTranslator().getFlags().getDefaultGlobalPrefix();
     if (!GlobalPrefix.empty()) {
       NaClBcIndexSize_t NameIndex = 0;
@@ -503,7 +508,7 @@ private:
 
   // Installs names for functions without names.
   void installFunctionNames() {
-    const Ice::IceString &FunctionPrefix =
+    const std::string &FunctionPrefix =
         getTranslator().getFlags().getDefaultFunctionPrefix();
     if (!FunctionPrefix.empty()) {
       NaClBcIndexSize_t NameIndex = 0;
@@ -515,13 +520,13 @@ private:
 
   // Builds a constant symbol named Name.  IsExternal is true iff the symbol is
   // external.
-  Ice::Constant *getConstantSym(const Ice::IceString &Name,
-                                bool IsExternal) const {
+  Ice::Constant *getConstantSym(Ice::GlobalString Name, bool IsExternal) const {
+    Ice::GlobalContext *Ctx = getTranslator().getContext();
     if (IsExternal) {
-      return getTranslator().getContext()->getConstantExternSym(Name);
+      return Ctx->getConstantExternSym(Name);
     } else {
       const Ice::RelocOffsetT Offset = 0;
-      return getTranslator().getContext()->getConstantSym(Offset, Name);
+      return Ctx->getConstantSym(Offset, Name);
     }
   }
 
@@ -1353,11 +1358,12 @@ public:
   bool convertFunction() {
     bool ParserResult;
     {
-      Ice::TimerMarker T(getTranslator().getContext(), FuncDecl->getName());
+      Ice::TimerMarker T(getTranslator().getContext(),
+                         FuncDecl->getName().toStringOrEmpty());
       // Note: The Cfg is created, even when IR generation is disabled. This is
       // done to install a CfgLocalAllocator for various internal containers.
-      Func = Ice::Cfg::create(getTranslator().getContext(),
-                              getTranslator().getNextSequenceNumber());
+      Ice::GlobalContext *Ctx = getTranslator().getContext();
+      Func = Ice::Cfg::create(Ctx, getTranslator().getNextSequenceNumber());
 
       Ice::CfgLocalAllocatorScope _(Func.get());
 
@@ -2102,9 +2108,9 @@ private:
     }
   }
 
-  const Ice::IceString printName(Ice::FunctionDeclaration *Fcn) {
+  const std::string printName(Ice::FunctionDeclaration *Fcn) {
     if (Fcn)
-      return Fcn->getName();
+      return Fcn->getName().toString();
     return "function";
   }
 };
@@ -3056,7 +3062,12 @@ void ModuleValuesymtabParser::setValueName(NaClBcIndexSize_t Index,
     Decl->setLinkage(llvm::GlobalValue::ExternalLinkage);
   }
 
-  Decl->setName(StringRef(Name.data(), Name.size()));
+  // Unconditionally capture the name if it is provided in the input file,
+  // regardless of whether dump is enabled or whether the symbol is internal vs
+  // external.  This fits in well with the lit tests, and most symbols in a
+  // conforming pexe are nameless and don't take this path.
+  Decl->setName(getTranslator().getContext(),
+                StringRef(Name.data(), Name.size()));
 }
 
 void ModuleValuesymtabParser::setBbName(NaClBcIndexSize_t Index,

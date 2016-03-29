@@ -19,6 +19,7 @@
 #include "IceELFStreamer.h"
 #include "IceFixups.h"
 #include "IceOperand.h"
+#include "IceStringPool.h"
 
 using namespace llvm::ELF;
 
@@ -45,7 +46,7 @@ public:
   /// Constructs an ELF section, filling in fields that will be known once the
   /// *type* of section is decided. Other fields may be updated incrementally or
   /// only after the program is completely defined.
-  ELFSection(const IceString &Name, Elf64_Word ShType, Elf64_Xword ShFlags,
+  ELFSection(const std::string &Name, Elf64_Word ShType, Elf64_Xword ShFlags,
              Elf64_Xword ShAddralign, Elf64_Xword ShEntsize)
       : Name(Name), Header() {
     Header.sh_type = ShType;
@@ -70,7 +71,7 @@ public:
 
   void setNameStrIndex(Elf64_Word sh_name) { Header.sh_name = sh_name; }
 
-  const IceString &getName() const { return Name; }
+  const std::string &getName() const { return Name; }
 
   void setLinkNum(Elf64_Word sh_link) { Header.sh_link = sh_link; }
 
@@ -86,7 +87,7 @@ public:
 protected:
   /// Name of the section in convenient string form (instead of a index into the
   /// Section Header String Table, which is not known till later).
-  const IceString Name;
+  const std::string Name;
 
   // The fields of the header. May only be partially initialized, but should
   // be fully initialized before writing.
@@ -164,26 +165,26 @@ class ELFSymbolTableSection : public ELFSection {
   ELFSymbolTableSection &operator=(const ELFSymbolTableSection &) = delete;
 
 public:
-  ELFSymbolTableSection(const IceString &Name, Elf64_Word ShType,
+  ELFSymbolTableSection(const std::string &Name, Elf64_Word ShType,
                         Elf64_Xword ShFlags, Elf64_Xword ShAddralign,
                         Elf64_Xword ShEntsize)
       : ELFSection(Name, ShType, ShFlags, ShAddralign, ShEntsize),
-        NullSymbol(nullptr) {}
+        NullSymbolName(), NullSymbol(nullptr) {}
 
   /// Create initial entry for a symbol when it is defined. Each entry should
   /// only be defined once. We might want to allow Name to be a dummy name
   /// initially, then get updated to the real thing, since Data initializers are
   /// read before the bitcode's symbol table is read.
-  void createDefinedSym(const IceString &Name, uint8_t Type, uint8_t Binding,
+  void createDefinedSym(GlobalString Name, uint8_t Type, uint8_t Binding,
                         ELFSection *Section, RelocOffsetT Offset, SizeT Size);
 
   /// Note that a symbol table entry needs to be created for the given symbol
   /// because it is undefined.
-  void noteUndefinedSym(const IceString &Name, ELFSection *NullSection);
+  void noteUndefinedSym(GlobalString Name, ELFSection *NullSection);
 
-  const ELFSym *findSymbol(const IceString &Name) const;
+  const ELFSym *findSymbol(GlobalString Name) const;
 
-  void createNullSymbol(ELFSection *NullSection);
+  void createNullSymbol(ELFSection *NullSection, GlobalContext *Ctx);
   const ELFSym *getNullSymbol() const { return NullSymbol; }
 
   size_t getSectionDataSize() const {
@@ -199,12 +200,13 @@ public:
 private:
   // Map from symbol name to its symbol information. This assumes symbols are
   // unique across all sections.
-  using SymtabKey = IceString;
+  using SymtabKey = GlobalString;
   using SymMap = std::map<SymtabKey, ELFSym>;
 
   template <bool IsELF64>
   void writeSymbolMap(ELFStreamer &Str, const SymMap &Map);
 
+  GlobalString NullSymbolName;
   const ELFSym *NullSymbol;
   // Keep Local and Global symbols separate, since the sh_info needs to know
   // the index of the last LOCAL.
@@ -219,7 +221,7 @@ class ELFRelocationSection : public ELFSection {
   ELFRelocationSection &operator=(const ELFRelocationSection &) = delete;
 
 public:
-  ELFRelocationSection(const IceString &Name, Elf64_Word ShType,
+  ELFRelocationSection(const std::string &Name, Elf64_Word ShType,
                        Elf64_Xword ShFlags, Elf64_Xword ShAddralign,
                        Elf64_Xword ShEntsize)
       : ELFSection(Name, ShType, ShFlags, ShAddralign, ShEntsize),
@@ -264,7 +266,11 @@ public:
   using ELFSection::ELFSection;
 
   /// Add a string to the table, in preparation for final layout.
-  void add(const IceString &Str);
+  void add(const std::string &Str);
+  void add(GlobalString Str) {
+    if (Str.hasStdString())
+      add(Str.toString());
+  }
 
   /// Finalizes the layout of the string table and fills in the section Data.
   void doLayout();
@@ -275,7 +281,7 @@ public:
 
   /// Grabs the final index of a string after layout. Returns UnknownIndex if
   /// the string's index is not found.
-  size_t getIndex(const IceString &Str) const;
+  size_t getIndex(const std::string &Str) const;
 
   llvm::StringRef getSectionData() const {
     assert(isLaidOut());
@@ -294,10 +300,10 @@ private:
   /// "unpop" share "pop" as the suffix, "pop" can only share the characters
   /// with one of them.
   struct SuffixComparator {
-    bool operator()(const IceString &StrA, const IceString &StrB) const;
+    bool operator()(const std::string &StrA, const std::string &StrB) const;
   };
 
-  using StringToIndexType = std::map<IceString, size_t, SuffixComparator>;
+  using StringToIndexType = std::map<std::string, size_t, SuffixComparator>;
 
   /// Track strings to their index. Index will be UnknownIndex if not yet laid
   /// out.
@@ -357,7 +363,7 @@ void ELFRelocationSection::writeData(ELFStreamer &Str,
     } else if (Fixup.valueIsSymbol()) {
       Symbol = Fixup.getSymbolValue();
     } else {
-      const IceString Name = Fixup.symbol();
+      GlobalString Name = Fixup.symbol();
       Symbol = SymTab->findSymbol(Name);
       if (!Symbol)
         llvm::report_fatal_error(Name + ": Missing symbol mentioned in reloc");

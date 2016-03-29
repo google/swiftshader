@@ -30,7 +30,7 @@
 
 namespace Ice {
 
-TimerStack::TimerStack(const IceString &Name)
+TimerStack::TimerStack(const std::string &Name)
     : Name(Name), FirstTimestamp(timestamp()), LastTimestamp(FirstTimestamp) {
   if (!BuildDefs::timers())
     return;
@@ -48,7 +48,7 @@ TimerStack::TimerStack(const IceString &Name)
 }
 
 // Returns the unique timer ID for the given Name, creating a new ID if needed.
-TimerIdT TimerStack::getTimerID(const IceString &Name) {
+TimerIdT TimerStack::getTimerID(const std::string &Name) {
   if (!BuildDefs::timers())
     return 0;
   if (IDsIndex.find(Name) == IDsIndex.end()) {
@@ -224,7 +224,7 @@ void TimerStack::reset() {
 
 namespace {
 
-using DumpMapType = std::multimap<double, IceString>;
+using DumpMapType = std::multimap<double, std::string>;
 
 // Dump the Map items in reverse order of their time contribution.
 void dumpHelper(Ostream &Str, const DumpMapType &Map, double TotalTime) {
@@ -275,7 +275,7 @@ void TimerStack::dump(Ostream &Str, bool DumpCumulative) {
     DumpMapType CumulativeMap;
     for (TTindex i = 1; i < Nodes.size(); ++i) {
       TTindex Prefix = i;
-      IceString Suffix = "";
+      std::string Suffix = "";
       while (Prefix) {
         if (Suffix.empty())
           Suffix = IDs[Nodes[Prefix].Interior];

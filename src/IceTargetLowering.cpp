@@ -56,6 +56,7 @@
   std::unique_ptr<::Ice::TargetHeaderLowering>                                 \
   createTargetHeaderLowering(::Ice::GlobalContext *Ctx);                       \
   void staticInit(::Ice::GlobalContext *Ctx);                                  \
+  bool shouldBePooled(const ::Ice::Constant *C);                               \
   } // end of namespace X
 #include "SZTargets.def"
 #undef SUBZERO_TARGET
@@ -125,8 +126,8 @@ Variable *LoweringContext::availabilityGet(Operand *Src) const {
 namespace {
 
 void printRegisterSet(Ostream &Str, const SmallBitVector &Bitset,
-                      std::function<IceString(RegNumT)> getRegName,
-                      const IceString &LineIndentString) {
+                      std::function<std::string(RegNumT)> getRegName,
+                      const std::string &LineIndentString) {
   constexpr size_t RegistersPerLine = 16;
   size_t Count = 0;
   for (RegNumT RegNum : RegNumBVIter(Bitset)) {
@@ -146,8 +147,8 @@ void printRegisterSet(Ostream &Str, const SmallBitVector &Bitset,
 
 // Splits "<class>:<reg>" into "<class>" plus "<reg>".  If there is no <class>
 // component, the result is "" plus "<reg>".
-void splitToClassAndName(const IceString &RegName, IceString *SplitRegClass,
-                         IceString *SplitRegName) {
+void splitToClassAndName(const std::string &RegName, std::string *SplitRegClass,
+                         std::string *SplitRegName) {
   constexpr const char Separator[] = ":";
   constexpr size_t SeparatorWidth = llvm::array_lengthof(Separator) - 1;
   size_t Pos = RegName.find(Separator);
@@ -169,14 +170,15 @@ LLVM_ATTRIBUTE_NORETURN void badTargetFatalError(TargetArch Target) {
 
 void TargetLowering::filterTypeToRegisterSet(
     GlobalContext *Ctx, int32_t NumRegs, SmallBitVector TypeToRegisterSet[],
-    size_t TypeToRegisterSetSize, std::function<IceString(RegNumT)> getRegName,
-    std::function<IceString(RegClass)> getRegClassName) {
+    size_t TypeToRegisterSetSize,
+    std::function<std::string(RegNumT)> getRegName,
+    std::function<const char *(RegClass)> getRegClassName) {
   std::vector<SmallBitVector> UseSet(TypeToRegisterSetSize,
                                      SmallBitVector(NumRegs));
   std::vector<SmallBitVector> ExcludeSet(TypeToRegisterSetSize,
                                          SmallBitVector(NumRegs));
 
-  std::unordered_map<IceString, RegNumT> RegNameToIndex;
+  std::unordered_map<std::string, RegNumT> RegNameToIndex;
   for (int32_t RegIndex = 0; RegIndex < NumRegs; ++RegIndex) {
     const auto RegNum = RegNumT::fromInt(RegIndex);
     RegNameToIndex[getRegName(RegNum)] = RegNum;
@@ -191,9 +193,9 @@ void TargetLowering::filterTypeToRegisterSet(
   // for all classes.
   auto processRegList = [&](const std::vector<std::string> &RegNames,
                             std::vector<SmallBitVector> &RegSet) {
-    for (const IceString &RegClassAndName : RegNames) {
-      IceString RClass;
-      IceString RName;
+    for (const std::string &RegClassAndName : RegNames) {
+      std::string RClass;
+      std::string RName;
       splitToClassAndName(RegClassAndName, &RClass, &RName);
       if (!RegNameToIndex.count(RName)) {
         BadRegNames.push_back(RName);
@@ -236,8 +238,8 @@ void TargetLowering::filterTypeToRegisterSet(
   if (BuildDefs::dump() && NumRegs &&
       (Ctx->getFlags().getVerbose() & IceV_AvailableRegs)) {
     Ostream &Str = Ctx->getStrDump();
-    const IceString Indent = "  ";
-    const IceString IndentTwice = Indent + Indent;
+    const std::string Indent = "  ";
+    const std::string IndentTwice = Indent + Indent;
     Str << "Registers available for register allocation:\n";
     for (size_t TypeIndex = 0; TypeIndex < TypeToRegisterSetSize; ++TypeIndex) {
       Str << Indent << getRegClassName(static_cast<RegClass>(TypeIndex))
@@ -277,6 +279,19 @@ void TargetLowering::staticInit(GlobalContext *Ctx) {
     InitGuard##X = true;                                                       \
     ::X::staticInit(Ctx);                                                      \
   } break;
+#include "SZTargets.def"
+#undef SUBZERO_TARGET
+  }
+}
+
+bool TargetLowering::shouldBePooled(const Constant *C) {
+  const TargetArch Target = GlobalContext::getFlags().getTargetArch();
+  switch (Target) {
+  default:
+    return false;
+#define SUBZERO_TARGET(X)                                                      \
+  case TARGET_LOWERING_CLASS_FOR(X):                                           \
+    return ::X::shouldBePooled(C);
 #include "SZTargets.def"
 #undef SUBZERO_TARGET
   }
@@ -728,7 +743,7 @@ void TargetLowering::emitWithoutPrefix(const ConstantRelocatable *C,
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Ctx->getStrEmit();
-  const IceString &EmitStr = C->getEmitString();
+  const std::string &EmitStr = C->getEmitString();
   if (!EmitStr.empty()) {
     // C has a custom emit string, so we use it instead of the canonical
     // Name + Offset form.
@@ -765,8 +780,9 @@ namespace {
 // dataSectionSuffix decides whether to use SectionSuffix or VarName as data
 // section suffix. Essentially, when using separate data sections for globals
 // SectionSuffix is not necessary.
-IceString dataSectionSuffix(const IceString &SectionSuffix,
-                            const IceString &VarName, const bool DataSections) {
+std::string dataSectionSuffix(const std::string &SectionSuffix,
+                              const std::string &VarName,
+                              const bool DataSections) {
   if (SectionSuffix.empty() && !DataSections) {
     return "";
   }
@@ -783,7 +799,7 @@ IceString dataSectionSuffix(const IceString &SectionSuffix,
 } // end of anonymous namespace
 
 void TargetDataLowering::emitGlobal(const VariableDeclaration &Var,
-                                    const IceString &SectionSuffix) {
+                                    const std::string &SectionSuffix) {
   if (!BuildDefs::dump())
     return;
 
@@ -798,13 +814,13 @@ void TargetDataLowering::emitGlobal(const VariableDeclaration &Var,
   const bool HasNonzeroInitializer = Var.hasNonzeroInitializer();
   const bool IsConstant = Var.getIsConstant();
   const SizeT Size = Var.getNumBytes();
-  const IceString &Name = Var.getName();
+  const std::string Name = Var.getName().toString();
 
   Str << "\t.type\t" << Name << ",%object\n";
 
   const bool UseDataSections = Ctx->getFlags().getDataSections();
   const bool UseNonsfi = Ctx->getFlags().getUseNonsfi();
-  const IceString Suffix =
+  const std::string Suffix =
       dataSectionSuffix(SectionSuffix, Name, UseDataSections);
   if (IsConstant && UseNonsfi)
     Str << "\t.section\t.data.rel.ro" << Suffix << ",\"aw\",%progbits\n";

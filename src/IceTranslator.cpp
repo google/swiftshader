@@ -28,7 +28,8 @@ Translator::Translator(GlobalContext *Ctx)
     : Ctx(Ctx), NextSequenceNumber(GlobalContext::getFirstSequenceNumber()),
       ErrorStatus() {}
 
-IceString Translator::createUnnamedName(const IceString &Prefix, SizeT Index) {
+std::string Translator::createUnnamedName(const std::string &Prefix,
+                                          SizeT Index) {
   if (Index == 0)
     return Prefix;
   std::string Buffer;
@@ -37,8 +38,9 @@ IceString Translator::createUnnamedName(const IceString &Prefix, SizeT Index) {
   return StrBuf.str();
 }
 
-bool Translator::checkIfUnnamedNameSafe(const IceString &Name, const char *Kind,
-                                        const IceString &Prefix) {
+bool Translator::checkIfUnnamedNameSafe(const std::string &Name,
+                                        const char *Kind,
+                                        const std::string &Prefix) {
   if (Name.find(Prefix) == 0) {
     for (size_t i = Prefix.size(); i < Name.size(); ++i) {
       if (!isdigit(Name[i])) {

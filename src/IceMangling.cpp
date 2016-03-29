@@ -117,7 +117,7 @@ void incrementSubstitutions(ManglerVector &OldName) {
 // In this context, name mangling means to rewrite a symbol using a given
 // prefix. For a C++ symbol, nest the original symbol inside the "prefix"
 // namespace. For other symbols, just prepend the prefix.
-IceString mangleName(const IceString &Name) {
+std::string mangleName(const std::string &Name) {
   // An already-nested name like foo::bar() gets pushed down one level, making
   // it equivalent to Prefix::foo::bar().
   //   _ZN3foo3barExyz ==> _ZN6Prefix3foo3barExyz
@@ -129,7 +129,7 @@ IceString mangleName(const IceString &Name) {
   if (!BuildDefs::dump() || GlobalContext::getFlags().getTestPrefix().empty())
     return Name;
 
-  const IceString &TestPrefix = GlobalContext::getFlags().getTestPrefix();
+  const std::string TestPrefix = GlobalContext::getFlags().getTestPrefix();
   unsigned PrefixLength = TestPrefix.length();
   ManglerVector NameBase(1 + Name.length());
   const size_t BufLen = 30 + Name.length() + PrefixLength;

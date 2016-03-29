@@ -114,26 +114,28 @@ InstMIPS32Br::InstMIPS32Br(Cfg *Func, const CfgNode *TargetTrue,
 
 InstMIPS32Label::InstMIPS32Label(Cfg *Func, TargetMIPS32 *Target)
     : InstMIPS32(Func, InstMIPS32::Label, 0, nullptr),
-      Number(Target->makeNextLabelNumber()) {}
-
-IceString InstMIPS32Label::getName(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return "";
-  return ".L" + Func->getFunctionName() + "$local$__" + std::to_string(Number);
+      Number(Target->makeNextLabelNumber()) {
+  if (BuildDefs::dump()) {
+    Name = GlobalString::createWithString(
+        Func->getContext(),
+        ".L" + Func->getFunctionName() + "$local$__" + std::to_string(Number));
+  } else {
+    Name = GlobalString::createWithoutString(Func->getContext());
+  }
 }
 
 void InstMIPS32Label::dump(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
-  Str << getName(Func) << ":";
+  Str << getLabelName() << ":";
 }
 
 void InstMIPS32Label::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
-  Str << getName(Func) << ":";
+  Str << getLabelName() << ":";
 }
 
 void InstMIPS32Label::emitIAS(const Cfg *Func) const {
@@ -268,7 +270,7 @@ void InstMIPS32Br::emit(const Cfg *Func) const {
          "b"
       << "\t";
   if (Label) {
-    Str << Label->getName(Func);
+    Str << Label->getLabelName();
   } else {
     if (isUnconditionalBranch()) {
       Str << getTargetFalse()->getAsmName();

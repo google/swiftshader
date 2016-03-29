@@ -59,13 +59,13 @@ public:
   lowerGlobals(std::unique_ptr<VariableDeclarationList> VariableDeclarations);
 
   /// Creates a name using the given prefix and corresponding index.
-  std::string createUnnamedName(const IceString &Prefix, SizeT Index);
+  std::string createUnnamedName(const std::string &Prefix, SizeT Index);
 
   /// Reports if there is a (potential) conflict between Name, and using Prefix
   /// to name unnamed names. Errors are put on Ostream. Returns true if there
   /// isn't a potential conflict.
-  bool checkIfUnnamedNameSafe(const IceString &Name, const char *Kind,
-                              const IceString &Prefix);
+  bool checkIfUnnamedNameSafe(const std::string &Name, const char *Kind,
+                              const std::string &Prefix);
 
   uint32_t getNextSequenceNumber() { return NextSequenceNumber++; }
 

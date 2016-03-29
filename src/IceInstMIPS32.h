@@ -308,7 +308,7 @@ public:
         InstMIPS32Label(Func, Target);
   }
   uint32_t getEmitInstCount() const override { return 0; }
-  IceString getName(const Cfg *Func) const;
+  GlobalString getLabelName() const { return Name; }
   SizeT getNumber() const { return Number; }
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg *Func) const override;
@@ -320,8 +320,8 @@ private:
   InstMIPS32Label(Cfg *Func, TargetMIPS32 *Target);
 
   // RelocOffset *OffsetReloc = nullptr;
-
   SizeT Number; // used for unique label generation.
+  GlobalString Name;
 };
 
 /// Direct branch instruction.

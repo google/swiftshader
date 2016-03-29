@@ -58,8 +58,12 @@ void staticInit(::Ice::GlobalContext *Ctx) {
     // pexe) so we need to register it as such so that ELF emission won't barf
     // on an "unknown" symbol. The GOT is added to the External symbols list
     // here because staticInit() is invoked in a single-thread context.
-    Ctx->getConstantExternSym(::Ice::GlobalOffsetTable);
+    Ctx->getConstantExternSym(Ctx->getGlobalString(::Ice::GlobalOffsetTable));
   }
+}
+
+bool shouldBePooled(const ::Ice::Constant *C) {
+  return ::Ice::ARM32::TargetARM32::shouldBePooled(C);
 }
 
 } // end of namespace ARM32
@@ -279,7 +283,7 @@ constexpr SizeT NumVec128Args =
     ;
 std::array<RegNumT, NumVec128Args> Vec128ArgInitializer;
 
-IceString getRegClassName(RegClass C) {
+const char *getRegClassName(RegClass C) {
   auto ClassNum = static_cast<RegARM32::RegClassARM32>(C);
   assert(ClassNum < RegARM32::RCARM32_NUM);
   switch (ClassNum) {
@@ -361,20 +365,23 @@ void TargetARM32::staticInit(GlobalContext *Ctx) {
   for (size_t i = 0; i < llvm::array_lengthof(TypeToRegisterSet); ++i)
     TypeToRegisterSetUnfiltered[i] = TypeToRegisterSet[i];
 
-  filterTypeToRegisterSet(
-      Ctx, RegARM32::Reg_NUM, TypeToRegisterSet,
-      llvm::array_lengthof(TypeToRegisterSet), [](RegNumT RegNum) -> IceString {
-        // This function simply removes ", " from the register name.
-        IceString Name = RegARM32::getRegName(RegNum);
-        constexpr const char RegSeparator[] = ", ";
-        constexpr size_t RegSeparatorWidth =
-            llvm::array_lengthof(RegSeparator) - 1;
-        for (size_t Pos = Name.find(RegSeparator); Pos != std::string::npos;
-             Pos = Name.find(RegSeparator)) {
-          Name.replace(Pos, RegSeparatorWidth, "");
-        }
-        return Name;
-      }, getRegClassName);
+  filterTypeToRegisterSet(Ctx, RegARM32::Reg_NUM, TypeToRegisterSet,
+                          llvm::array_lengthof(TypeToRegisterSet),
+                          [](RegNumT RegNum) -> std::string {
+                            // This function simply removes ", " from the
+                            // register name.
+                            std::string Name = RegARM32::getRegName(RegNum);
+                            constexpr const char RegSeparator[] = ", ";
+                            constexpr size_t RegSeparatorWidth =
+                                llvm::array_lengthof(RegSeparator) - 1;
+                            for (size_t Pos = Name.find(RegSeparator);
+                                 Pos != std::string::npos;
+                                 Pos = Name.find(RegSeparator)) {
+                              Name.replace(Pos, RegSeparatorWidth, "");
+                            }
+                            return Name;
+                          },
+                          getRegClassName);
 }
 
 namespace {
@@ -790,7 +797,8 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
       static constexpr SizeT MaxArgs = 0;
       Operand *TargetHelper =
           SandboxingType == ST_Nonsfi
-              ? Ctx->getConstantExternSym("__aeabi_read_tp")
+              ? Ctx->getConstantExternSym(
+                    Ctx->getGlobalString("__aeabi_read_tp"))
               : Ctx->getRuntimeHelperFunc(RuntimeHelper::H_call_read_tp);
       Context.insert<InstCall>(MaxArgs, Dest, TargetHelper, NoTailCall,
                                IsTargetHelperCall);
@@ -909,10 +917,11 @@ void TargetARM32::insertGotPtrInitPlaceholder() {
   Context.insert<InstFakeDef>(GotPtr, T);
 }
 
-IceString TargetARM32::createGotoffRelocation(const ConstantRelocatable *CR) {
-  const IceString &CRName = CR->getName();
-  const IceString CRGotoffName =
-      "GOTOFF$" + Func->getFunctionName() + "$" + CRName;
+GlobalString
+TargetARM32::createGotoffRelocation(const ConstantRelocatable *CR) {
+  GlobalString CRName = CR->getName();
+  GlobalString CRGotoffName =
+      Ctx->getGlobalString("GOTOFF$" + Func->getFunctionName() + "$" + CRName);
   if (KnownGotoffs.count(CRGotoffName) == 0) {
     constexpr bool SuppressMangling = true;
     auto *Global =
@@ -965,14 +974,14 @@ void TargetARM32::materializeGotAddr(CfgNode *Node) {
   Context.setInsertPoint(DefGotPtr);
   assert(DefGotPtr->getSrcSize() == 1);
   auto *T = llvm::cast<Variable>(DefGotPtr->getSrc(0));
-  loadNamedConstantRelocatablePIC(GlobalOffsetTable, T,
+  loadNamedConstantRelocatablePIC(Ctx->getGlobalString(GlobalOffsetTable), T,
                                   [this, T](Variable *PC) { _add(T, PC, T); });
   _mov(GotPtr, T);
   DefGotPtr->setDeleted();
 }
 
 void TargetARM32::loadNamedConstantRelocatablePIC(
-    const IceString &Name, Variable *Register,
+    GlobalString Name, Variable *Register,
     std::function<void(Variable *PC)> Finish) {
   assert(SandboxingType == ST_Nonsfi);
   // We makeReg() here instead of getPhysicalRegister() because the latter ends
@@ -1001,10 +1010,10 @@ void TargetARM32::loadNamedConstantRelocatablePIC(
   //
   // relocations.
   static constexpr RelocOffsetT PcOffset = -8;
-  auto *CRLower = Ctx->getConstantSym(PcOffset, {MovwReloc, AddPcReloc}, Name,
-                                      Name + " -16");
-  auto *CRUpper = Ctx->getConstantSym(PcOffset, {MovtReloc, AddPcReloc}, Name,
-                                      Name + " -12");
+  auto *CRLower = Ctx->getConstantSymWithEmitString(
+      PcOffset, {MovwReloc, AddPcReloc}, Name, Name + " -16");
+  auto *CRUpper = Ctx->getConstantSymWithEmitString(
+      PcOffset, {MovtReloc, AddPcReloc}, Name, Name + " -12");
 
   Context.insert(MovwLabel);
   _movw(Register, CRLower);
@@ -1207,7 +1216,7 @@ bool TargetARM32::doBranchOpt(Inst *I, const CfgNode *NextNode) {
   return false;
 }
 
-IceString TargetARM32::getRegName(RegNumT RegNum, Type Ty) const {
+const char *TargetARM32::getRegName(RegNumT RegNum, Type Ty) const {
   (void)Ty;
   return RegARM32::getRegName(RegNum);
 }
@@ -2313,7 +2322,7 @@ void TargetARM32::div0Check(Type Ty, Operand *SrcLo, Operand *SrcHi) {
   switch (Ty) {
   default:
     llvm_unreachable(
-        ("Unexpected type in div0Check: " + typeIceString(Ty)).c_str());
+        ("Unexpected type in div0Check: " + typeStdString(Ty)).c_str());
   case IceType_i8:
   case IceType_i16: {
     Operand *ShAmtImm = shAmtImm(32 - getScalarIntBitWidth(Ty));
@@ -5963,7 +5972,7 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
         _movt(Reg, C);
       } else {
         auto *GotAddr = legalizeToReg(GotPtr);
-        const IceString CGotoffName = createGotoffRelocation(C);
+        GlobalString CGotoffName = createGotoffRelocation(C);
         loadNamedConstantRelocatablePIC(
             CGotoffName, Reg, [this, Reg](Variable *PC) {
               _ldr(Reg, OperandARM32Mem::create(Func, IceType_i32, PC, Reg));
@@ -5991,11 +6000,9 @@ Operand *TargetARM32::legalize(Operand *From, LegalMask Allowed,
       }
 
       // Load floats/doubles from literal pool.
-      std::string Buffer;
-      llvm::raw_string_ostream StrBuf(Buffer);
-      llvm::cast<Constant>(From)->emitPoolLabel(StrBuf);
-      llvm::cast<Constant>(From)->setShouldBePooled(true);
-      Constant *Offset = Ctx->getConstantSym(0, StrBuf.str());
+      auto *CFrom = llvm::cast<Constant>(From);
+      assert(CFrom->getShouldBePooled());
+      Constant *Offset = Ctx->getConstantSym(0, CFrom->getLabelName());
       Variable *BaseReg = nullptr;
       if (SandboxingType == ST_Nonsfi) {
         // vldr does not support the [base, index] addressing mode, so we need
@@ -6713,7 +6720,7 @@ TargetDataARM32::TargetDataARM32(GlobalContext *Ctx)
     : TargetDataLowering(Ctx) {}
 
 void TargetDataARM32::lowerGlobals(const VariableDeclarationList &Vars,
-                                   const IceString &SectionSuffix) {
+                                   const std::string &SectionSuffix) {
   const bool IsPIC = Ctx->getFlags().getUseNonsfi();
   switch (Ctx->getFlags().getOutFileType()) {
   case FT_Elf: {
@@ -6723,7 +6730,7 @@ void TargetDataARM32::lowerGlobals(const VariableDeclarationList &Vars,
   } break;
   case FT_Asm:
   case FT_Iasm: {
-    const IceString &TranslateOnly = Ctx->getFlags().getTranslateOnly();
+    const std::string TranslateOnly = Ctx->getFlags().getTranslateOnly();
     OstreamLocker _(Ctx);
     for (const VariableDeclaration *Var : Vars) {
       if (GlobalContext::matchSymbolName(Var->getName(), TranslateOnly)) {
@@ -6780,7 +6787,7 @@ void emitConstant(
     Ostream &Str,
     const typename ConstantPoolEmitterTraits<T>::ConstantType *Const) {
   using Traits = ConstantPoolEmitterTraits<T>;
-  Const->emitPoolLabel(Str);
+  Str << Const->getLabelName();
   Str << ":\n\t" << Traits::AsmTag << "\t0x";
   T Value = Const->getValue();
   Str.write_hex(Traits::bitcastToUint64(Value));

@@ -41,8 +41,12 @@ void staticInit(::Ice::GlobalContext *Ctx) {
     // pexe) so we need to register it as such so that ELF emission won't barf
     // on an "unknown" symbol. The GOT is added to the External symbols list
     // here because staticInit() is invoked in a single-thread context.
-    Ctx->getConstantExternSym(::Ice::GlobalOffsetTable);
+    Ctx->getConstantExternSym(Ctx->getGlobalString(::Ice::GlobalOffsetTable));
   }
+}
+
+bool shouldBePooled(const class ::Ice::Constant *C) {
+  return ::Ice::X8632::TargetX8632::shouldBePooled(C);
 }
 } // end of namespace X8632
 
@@ -252,9 +256,10 @@ void TargetX8632::emitGetIP(CfgNode *Node) {
 
     const RelocOffsetT ImmSize = -typeWidthInBytes(IceType_i32);
 
-    auto *GotFromPc = llvm::cast<ConstantRelocatable>(
-        Ctx->getConstantSym(ImmSize, {AfterAddReloc, BeforeAddReloc},
-                            GlobalOffsetTable, GlobalOffsetTable));
+    auto *GotFromPc =
+        llvm::cast<ConstantRelocatable>(Ctx->getConstantSymWithEmitString(
+            ImmSize, {AfterAddReloc, BeforeAddReloc},
+            Ctx->getGlobalString(GlobalOffsetTable), GlobalOffsetTable));
 
     // Insert a new version of InstX86GetIP.
     Context.insert<Traits::Insts::GetIP>(CallDest);

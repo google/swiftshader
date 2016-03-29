@@ -24,6 +24,10 @@
 
 namespace Ice {
 
+void Constant::initShouldBePooled() {
+  ShouldBePooled = TargetLowering::shouldBePooled(this);
+}
+
 bool operator==(const RelocatableTuple &A, const RelocatableTuple &B) {
   // A and B are the same if:
   //   (1) they have the same name; and
@@ -187,21 +191,22 @@ void LiveRange::trim(InstNumberT Lower) {
     ++TrimmedBegin;
 }
 
-IceString Variable::getName(const Cfg *Func) const {
-  if (Func && NameIndex >= 0)
-    return Func->getIdentifierName(NameIndex);
-  return "__" + std::to_string(getIndex());
+std::string Variable::getName(const Cfg *Func) const {
+  if (Func == nullptr)
+    return "__" + std::to_string(getIndex());
+  return Name.toString();
 }
 
-const Variable *Variable::asType(Type Ty, RegNumT NewRegNum) const {
+const Variable *Variable::asType(const Cfg *Func, Type Ty,
+                                 RegNumT NewRegNum) const {
   // Note: This returns a Variable, even if the "this" object is a subclass of
   // Variable.
   if (!BuildDefs::dump() || getType() == Ty)
     return this;
   static constexpr SizeT One = 1;
   Variable *V = new (CfgLocalAllocator<Variable>().allocate(One))
-      Variable(kVariable, Ty, Number);
-  V->NameIndex = NameIndex;
+      Variable(Func, kVariable, Ty, Number);
+  V->Name = Name;
   V->RegNum = NewRegNum.hasValue() ? NewRegNum : RegNum;
   V->StackOffset = StackOffset;
   return V;
@@ -605,10 +610,11 @@ Ostream &operator<<(Ostream &Str, const RegWeight &W) {
 // =========== Immediate Randomization and Pooling routines ==============
 // Specialization of the template member function for ConstantInteger32
 // TODO(stichnot): try to move this specialization into a target-specific file.
-template <>
-bool ConstantInteger32::shouldBeRandomizedOrPooled(const GlobalContext *Ctx) {
-  uint32_t Threshold = Ctx->getFlags().getRandomizeAndPoolImmediatesThreshold();
-  if (Ctx->getFlags().getRandomizeAndPoolImmediatesOption() == RPI_None)
+template <> bool ConstantInteger32::shouldBeRandomizedOrPooled() const {
+  uint32_t Threshold =
+      GlobalContext::getFlags().getRandomizeAndPoolImmediatesThreshold();
+  if (GlobalContext::getFlags().getRandomizeAndPoolImmediatesOption() ==
+      RPI_None)
     return false;
   if (getType() != IceType_i32 && getType() != IceType_i16 &&
       getType() != IceType_i8)

@@ -36,6 +36,11 @@ createTargetHeaderLowering(::Ice::GlobalContext *Ctx) {
 void staticInit(::Ice::GlobalContext *Ctx) {
   ::Ice::X8664::TargetX8664::staticInit(Ctx);
 }
+
+bool shouldBePooled(const class ::Ice::Constant *C) {
+  return ::Ice::X8664::TargetX8664::shouldBePooled(C);
+}
+
 } // end of namespace X8664
 
 namespace Ice {
@@ -344,11 +349,9 @@ Traits::X86OperandMem *TargetX8664::_sandbox_mem_reference(X86OperandMem *Mem) {
 
   bool AbsoluteAddress = false;
   if (Base == nullptr && Index == nullptr) {
-    if (const auto *CR = llvm::dyn_cast<ConstantRelocatable>(Offset)) {
-      if (CR->getName() != "") {
-        // Mem is RIP-relative. There's no need to rebase it.
-        return Mem;
-      }
+    if (llvm::isa<ConstantRelocatable>(Offset)) {
+      // Mem is RIP-relative. There's no need to rebase it.
+      return Mem;
     }
     // Offset is an absolute address, so we need to emit
     //   Offset(%r15)
@@ -411,7 +414,7 @@ Traits::X86OperandMem *TargetX8664::_sandbox_mem_reference(X86OperandMem *Mem) {
   bool NeedsLea = false;
   if (Offset != nullptr) {
     if (const auto *CR = llvm::dyn_cast<ConstantRelocatable>(Offset)) {
-      NeedsLea = CR->getName() != "" || CR->getOffset() < 0;
+      NeedsLea = CR->getOffset() < 0;
     } else if (const auto *Imm = llvm::dyn_cast<ConstantInteger32>(Offset)) {
       NeedsLea = Imm->getValue() < 0;
     } else {
@@ -626,7 +629,8 @@ Inst *TargetX8664::emitCallToTarget(Operand *CallTarget, Variable *ReturnReg) {
     auto *ReturnRelocOffset = RelocOffset::create(Func->getAssembler());
     ReturnAddress->setRelocOffset(ReturnRelocOffset);
     constexpr RelocOffsetT NoFixedOffset = 0;
-    const IceString EmitString = ReturnAddress->getName(Func);
+    const std::string EmitString =
+        BuildDefs::dump() ? ReturnAddress->getLabelName().toString() : "";
     auto *ReturnReloc = ConstantRelocatable::create(
         Func->getAssembler(), IceType_i32,
         RelocatableTuple(NoFixedOffset, {ReturnRelocOffset},

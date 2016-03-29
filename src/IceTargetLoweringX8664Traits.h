@@ -301,7 +301,7 @@ struct TargetX8664Traits {
   static const char *TargetName;
   static constexpr Type WordType = IceType_i64;
 
-  static IceString getRegName(RegNumT RegNum) {
+  static const char *getRegName(RegNumT RegNum) {
     static const char *const RegNames[RegisterSet::Reg_NUM] = {
 #define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,     \
           sboxres, isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8,      \
@@ -992,7 +992,8 @@ public:
 
   public:
     static SpillVariable *create(Cfg *Func, Type Ty, SizeT Index) {
-      return new (Func->allocate<SpillVariable>()) SpillVariable(Ty, Index);
+      return new (Func->allocate<SpillVariable>())
+          SpillVariable(Func, Ty, Index);
     }
     constexpr static auto SpillVariableKind =
         static_cast<OperandKind>(kVariable_Target);
@@ -1004,8 +1005,8 @@ public:
     // Inherit dump() and emit() from Variable.
 
   private:
-    SpillVariable(Type Ty, SizeT Index)
-        : Variable(SpillVariableKind, Ty, Index), LinkedTo(nullptr) {}
+    SpillVariable(const Cfg *Func, Type Ty, SizeT Index)
+        : Variable(Func, SpillVariableKind, Ty, Index), LinkedTo(nullptr) {}
     Variable *LinkedTo;
   };
 

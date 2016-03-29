@@ -43,16 +43,11 @@
 namespace std {
 template <> struct hash<Ice::RelocatableTuple> {
   size_t operator()(const Ice::RelocatableTuple &Key) const {
-    if (!Key.EmitString.empty()) {
-      return hash<Ice::IceString>()(Key.EmitString);
-    }
-
-    // If there's no emit string, then we use the relocatable's name, plus the
-    // hash of a combination of the number of OffsetExprs and the known, fixed
-    // offset for the reloc. We left shift the known relocatable by 5 trying to
-    // minimize the interaction between the bits in OffsetExpr.size() and
-    // Key.Offset.
-    return hash<Ice::IceString>()(Key.Name) +
+    // Use the relocatable's name, plus the hash of a combination of the number
+    // of OffsetExprs and the known, fixed offset for the reloc. We left shift
+    // the known relocatable by 5 trying to minimize the interaction between the
+    // bits in OffsetExpr.size() and Key.Offset.
+    return hash<Ice::SizeT>()(Key.Name.getID()) +
            hash<std::size_t>()(Key.OffsetExpr.size() + (Key.Offset << 5));
   }
 };
@@ -218,7 +213,8 @@ public:
   UndefPool Undefs;
 };
 
-void GlobalContext::CodeStats::dump(const IceString &Name, GlobalContext *Ctx) {
+void GlobalContext::CodeStats::dump(const std::string &Name,
+                                    GlobalContext *Ctx) {
   if (!BuildDefs::dump())
     return;
   OstreamLocker _(Ctx);
@@ -253,10 +249,10 @@ void GlobalContext::CodeStats::dump(const IceString &Name, GlobalContext *Ctx) {
 
 GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit, Ostream *OsError,
                              ELFStreamer *ELFStr)
-    : ConstPool(new ConstantPool()), ErrorStatus(), StrDump(OsDump),
-      StrEmit(OsEmit), StrError(OsError), ObjectWriter(),
-      OptQ(/*Sequential=*/Flags.isSequential(),
-           /*MaxSize=*/Flags.getNumTranslationThreads()),
+    : Strings(new StringPool()), ConstPool(new ConstantPool()), ErrorStatus(),
+      StrDump(OsDump), StrEmit(OsEmit), StrError(OsError), IntrinsicsInfo(this),
+      ObjectWriter(), OptQ(/*Sequential=*/Flags.isSequential(),
+                           /*MaxSize=*/Flags.getNumTranslationThreads()),
       // EmitQ is allowed unlimited size.
       EmitQ(/*Sequential=*/Flags.isSequential()),
       DataLowering(TargetDataLowering::createLowering(this)) {
@@ -300,7 +296,7 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit, Ostream *OsError,
 // Define runtime helper functions.
 #define X(Tag, Name)                                                           \
   RuntimeHelperFunc[static_cast<size_t>(RuntimeHelper::H_##Tag)] =             \
-      getConstantExternSym(Name);
+      getConstantExternSym(getGlobalString(Name));
   RUNTIME_HELPER_FUNCTIONS_TABLE
 #undef X
 
@@ -348,7 +344,8 @@ void GlobalContext::translateFunctions() {
         // The Cfg has already emitted into the assembly buffer, so
         // stats have been fully collected into this thread's TLS.
         // Dump them before TLS is reset for the next Cfg.
-        dumpStats(Func->getFunctionNameAndSize());
+        if (BuildDefs::dump())
+          dumpStats(Func->getFunctionNameAndSize());
         auto Asm = Func->releaseAssembler();
         // Copy relevant fields into Asm before Func is deleted.
         Asm->setFunctionName(Func->getFunctionName());
@@ -409,7 +406,7 @@ void GlobalContext::saveBlockInfoPtrs() {
   }
 }
 
-void GlobalContext::lowerGlobals(const IceString &SectionSuffix) {
+void GlobalContext::lowerGlobals(const std::string &SectionSuffix) {
   TimerMarker T(TimerStack::TT_emitGlobalInitializers, this);
   const bool DumpGlobalVariables = BuildDefs::dump() &&
                                    (Flags.getVerbose() & IceV_GlobalInit) &&
@@ -455,7 +452,7 @@ void GlobalContext::lowerProfileData() {
 
   // Note: if you change this symbol, make sure to update
   // runtime/szrt_profiler.c as well.
-  ProfileBlockInfoVarDecl->setName("__Sz_block_profile_info");
+  ProfileBlockInfoVarDecl->setName(this, "__Sz_block_profile_info");
 
   for (const VariableDeclaration *PBI : ProfileBlockInfos) {
     if (Cfg::isProfileGlobal(*PBI)) {
@@ -476,6 +473,11 @@ void GlobalContext::lowerProfileData() {
   Globals.push_back(ProfileBlockInfoVarDecl);
   constexpr char ProfileDataSection[] = "$sz_profiler$";
   lowerGlobals(ProfileDataSection);
+}
+
+bool GlobalContext::matchSymbolName(const GlobalString &SymbolName,
+                                    const std::string &Match) {
+  return Match.empty() || Match == SymbolName.toString();
 }
 
 void GlobalContext::emitItems() {
@@ -568,7 +570,7 @@ void GlobalContext::emitItems() {
 
         std::unique_ptr<Assembler> Asm = Item->getAsm();
         Asm->alignFunction();
-        const IceString &Name = Asm->getFunctionName();
+        GlobalString Name = Asm->getFunctionName();
         switch (getFlags().getOutFileType()) {
         case FT_Elf:
           getObjectWriter()->writeFunctionCode(Name, Asm->getInternal(),
@@ -616,6 +618,15 @@ GlobalContext::~GlobalContext() {
   // Destructors are invoked in the opposite object construction order.
   for (const auto &Dtor : reverse_range(*Dtors))
     Dtor();
+}
+
+void GlobalContext::dumpStrings() {
+  if (!getFlags().getDumpStrings())
+    return;
+  OstreamLocker _(this);
+  Ostream &Str = getStrDump();
+  Str << "GlobalContext strings:\n";
+  getStrings()->dump(Str);
 }
 
 void GlobalContext::dumpConstantLookupCounts() {
@@ -698,21 +709,20 @@ Constant *GlobalContext::getConstantDouble(double ConstantDouble) {
   return getConstPool()->Doubles.getOrAdd(this, ConstantDouble);
 }
 
-Constant *GlobalContext::getConstantSym(const RelocOffsetT Offset,
-                                        const RelocOffsetArray &OffsetExpr,
-                                        const IceString &Name,
-                                        const IceString &EmitString) {
+Constant *GlobalContext::getConstantSymWithEmitString(
+    const RelocOffsetT Offset, const RelocOffsetArray &OffsetExpr,
+    GlobalString Name, const std::string &EmitString) {
   return getConstPool()->Relocatables.getOrAdd(
       this, RelocatableTuple(Offset, OffsetExpr, Name, EmitString));
 }
 
 Constant *GlobalContext::getConstantSym(RelocOffsetT Offset,
-                                        const IceString &Name) {
+                                        GlobalString Name) {
   constexpr char EmptyEmitString[] = "";
-  return getConstantSym(Offset, {}, Name, EmptyEmitString);
+  return getConstantSymWithEmitString(Offset, {}, Name, EmptyEmitString);
 }
 
-Constant *GlobalContext::getConstantExternSym(const IceString &Name) {
+Constant *GlobalContext::getConstantExternSym(GlobalString Name) {
   constexpr RelocOffsetT Offset = 0;
   return getConstPool()->ExternRelocatables.getOrAdd(
       this, RelocatableTuple(Offset, {}, Name));
@@ -725,7 +735,7 @@ Constant *GlobalContext::getConstantUndef(Type Ty) {
 Constant *GlobalContext::getConstantZero(Type Ty) {
   Constant *Zero = ConstZeroForType[Ty];
   if (Zero == nullptr)
-    llvm::report_fatal_error("Unsupported constant type: " + typeIceString(Ty));
+    llvm::report_fatal_error("Unsupported constant type: " + typeStdString(Ty));
   return Zero;
 }
 
@@ -772,12 +782,9 @@ ConstantList GlobalContext::getConstantPool(Type Ty) {
   case IceType_v16i8:
   case IceType_v8i16:
   case IceType_v4i32:
-  case IceType_v4f32: {
-    IceString Str;
-    llvm::raw_string_ostream BaseOS(Str);
-    BaseOS << "Unsupported constant type: " << Ty;
-    llvm_unreachable(BaseOS.str().c_str());
-  } break;
+  case IceType_v4f32:
+    llvm::report_fatal_error("Unsupported constant type: " + typeStdString(Ty));
+    break;
   case IceType_void:
   case IceType_NUM:
     break;
@@ -787,6 +794,10 @@ ConstantList GlobalContext::getConstantPool(Type Ty) {
 
 ConstantList GlobalContext::getConstantExternSyms() {
   return getConstPool()->ExternRelocatables.getConstantPool();
+}
+
+GlobalString GlobalContext::getGlobalString(const std::string &Name) {
+  return GlobalString::createWithString(this, Name);
 }
 
 JumpTableDataList GlobalContext::getJumpTables() {
@@ -815,14 +826,14 @@ JumpTableDataList GlobalContext::getJumpTables() {
 }
 
 JumpTableData &
-GlobalContext::addJumpTable(const IceString &FuncName, SizeT Id,
+GlobalContext::addJumpTable(GlobalString FuncName, SizeT Id,
                             const JumpTableData::TargetList &TargetList) {
   auto JumpTableList = getJumpTableList();
   JumpTableList->emplace_back(FuncName, Id, TargetList);
   return JumpTableList->back();
 }
 
-TimerStackIdT GlobalContext::newTimerStackID(const IceString &Name) {
+TimerStackIdT GlobalContext::newTimerStackID(const std::string &Name) {
   if (!BuildDefs::timers())
     return 0;
   auto Timers = getTimers();
@@ -832,7 +843,7 @@ TimerStackIdT GlobalContext::newTimerStackID(const IceString &Name) {
 }
 
 TimerIdT GlobalContext::getTimerID(TimerStackIdT StackID,
-                                   const IceString &Name) {
+                                   const std::string &Name) {
   auto Timers = &ICE_TLS_GET_FIELD(TLS)->Timers;
   assert(StackID < Timers->size());
   return Timers->at(StackID).getTimerID(Name);
@@ -857,7 +868,7 @@ void GlobalContext::resetTimer(TimerStackIdT StackID) {
 }
 
 void GlobalContext::setTimerName(TimerStackIdT StackID,
-                                 const IceString &NewName) {
+                                 const std::string &NewName) {
   auto Timers = &ICE_TLS_GET_FIELD(TLS)->Timers;
   assert(StackID < Timers->size());
   Timers->at(StackID).setName(NewName);
@@ -898,7 +909,7 @@ std::unique_ptr<EmitterWorkItem> GlobalContext::emitQueueBlockingPop() {
   return EmitQ.blockingPop();
 }
 
-void GlobalContext::dumpStats(const IceString &Name, bool Final) {
+void GlobalContext::dumpStats(const std::string &Name, bool Final) {
   if (!getFlags().getDumpStats())
     return;
   if (Final) {
@@ -917,10 +928,15 @@ void GlobalContext::dumpTimers(TimerStackIdT StackID, bool DumpCumulative) {
   Timers->at(StackID).dump(getStrDump(), DumpCumulative);
 }
 
+LockedPtr<StringPool>
+GlobalStringPoolTraits::getStrings(const GlobalContext *PoolOwner) {
+  return PoolOwner->getStrings();
+}
+
 ClFlags GlobalContext::Flags;
 
 TimerIdT TimerMarker::getTimerIdFromFuncName(GlobalContext *Ctx,
-                                             const IceString &FuncName) {
+                                             const std::string &FuncName) {
   if (!BuildDefs::timers())
     return 0;
   if (!Ctx->getFlags().getTimeEachFunction())

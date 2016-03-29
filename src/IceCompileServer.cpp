@@ -50,7 +50,8 @@ class TextDataStreamer : public llvm::DataStreamer {
 public:
   TextDataStreamer() = default;
   ~TextDataStreamer() final = default;
-  static TextDataStreamer *create(const IceString &Filename, std::string *Err);
+  static TextDataStreamer *create(const std::string &Filename,
+                                  std::string *Err);
   size_t GetBytes(unsigned char *Buf, size_t Len) final;
 
 private:
@@ -58,7 +59,7 @@ private:
   size_t Cursor = 0;
 };
 
-TextDataStreamer *TextDataStreamer::create(const IceString &Filename,
+TextDataStreamer *TextDataStreamer::create(const std::string &Filename,
                                            std::string *Err) {
   TextDataStreamer *Streamer = new TextDataStreamer();
   llvm::raw_string_ostream ErrStrm(*Err);
@@ -84,7 +85,7 @@ size_t TextDataStreamer::GetBytes(unsigned char *Buf, size_t Len) {
   return Len;
 }
 
-std::unique_ptr<Ostream> makeStream(const IceString &Filename,
+std::unique_ptr<Ostream> makeStream(const std::string &Filename,
                                     std::error_code &EC) {
   if (Filename == "-") {
     return std::unique_ptr<Ostream>(new llvm::raw_os_ostream(std::cout));
@@ -210,7 +211,7 @@ void CLCompileServer::run() {
     llvm::report_fatal_error("Can't specify 'bitcode-as-text' flag in "
                              "minimal build");
 
-  IceString StrError;
+  std::string StrError;
   std::unique_ptr<llvm::DataStreamer> InputStream(
       (!BuildDefs::minimal() && Flags.getBitcodeAsText())
           ? TextDataStreamer::create(Flags.getIRFilename(), &StrError)
@@ -240,6 +241,7 @@ void CLCompileServer::run() {
   transferErrorCode(
       getReturnValue(static_cast<ErrorCodes>(Ctx->getErrorStatus()->value())));
   Ctx->dumpConstantLookupCounts();
+  Ctx->dumpStrings();
 }
 
 } // end of namespace Ice

@@ -18,6 +18,7 @@
 
 #include "IceDefs.h"
 #include "IceInst.h" // InstList traits
+#include "IceStringPool.h"
 
 namespace Ice {
 
@@ -27,8 +28,8 @@ class CfgNode {
   CfgNode &operator=(const CfgNode &) = delete;
 
 public:
-  static CfgNode *create(Cfg *Func, SizeT LabelIndex) {
-    return new (Func->allocate<CfgNode>()) CfgNode(Func, LabelIndex);
+  static CfgNode *create(Cfg *Func, SizeT Number) {
+    return new (Func->allocate<CfgNode>()) CfgNode(Func, Number);
   }
 
   Cfg *getCfg() const { return Func; }
@@ -36,14 +37,13 @@ public:
   /// Access the label number and name for this node.
   SizeT getIndex() const { return Number; }
   void resetIndex(SizeT NewNumber) { Number = NewNumber; }
-  IceString getName() const;
-  void setName(const IceString &NewName) {
-    // Make sure that the name can only be set once.
-    assert(NameIndex == Cfg::IdentifierIndexInvalid);
-    if (!NewName.empty())
-      NameIndex = Func->addIdentifierName(NewName);
+  NodeString getName() const { return Name; }
+  void setName(const std::string &NewName) {
+    if (NewName.empty())
+      return;
+    Name = NodeString::createWithString(Func, NewName);
   }
-  IceString getAsmName() const {
+  std::string getAsmName() const {
     return ".L" + Func->getFunctionName() + "$" + getName();
   }
 
@@ -111,15 +111,13 @@ public:
   void profileExecutionCount(VariableDeclaration *Var);
 
 private:
-  CfgNode(Cfg *Func, SizeT LabelIndex);
+  CfgNode(Cfg *Func, SizeT Number);
   bool livenessValidateIntervals(Liveness *Liveness) const;
   Cfg *const Func;
-  SizeT Number;            /// invariant: Func->Nodes[Number]==this
-  const SizeT LabelNumber; /// persistent number for label generation
-  Cfg::IdentifierIndexType NameIndex =
-      Cfg::IdentifierIndexInvalid; /// index into Cfg::NodeNames table
-  SizeT LoopNestDepth = 0;         /// the loop nest depth of this node
-  bool HasReturn = false;          /// does this block need an epilog?
+  SizeT Number; /// invariant: Func->Nodes[Number]==this
+  NodeString Name;
+  SizeT LoopNestDepth = 0; /// the loop nest depth of this node
+  bool HasReturn = false;  /// does this block need an epilog?
   bool NeedsPlacement = false;
   bool NeedsAlignment = false;       /// is sandboxing required?
   InstNumberT InstCountEstimate = 0; /// rough instruction count estimate

@@ -16,6 +16,7 @@
 #define SUBZERO_SRC_ICESWITCHLOWERING_H
 
 #include "IceDefs.h"
+#include "IceStringPool.h"
 
 namespace Ice {
 
@@ -84,19 +85,19 @@ class JumpTableData {
 public:
   using TargetList = std::vector<intptr_t>;
 
-  JumpTableData(const IceString &FuncName, SizeT Id,
+  JumpTableData(GlobalString FuncName, SizeT Id,
                 const TargetList &TargetOffsets)
       : FuncName(FuncName), Id(Id), TargetOffsets(TargetOffsets) {}
   JumpTableData(const JumpTableData &) = default;
   JumpTableData(JumpTableData &&) = default;
   JumpTableData &operator=(JumpTableData &&) = default;
 
-  const IceString &getFunctionName() const { return FuncName; }
+  const GlobalString getFunctionName() const { return FuncName; }
   SizeT getId() const { return Id; }
   const TargetList &getTargetOffsets() const { return TargetOffsets; }
 
 private:
-  IceString FuncName;
+  GlobalString FuncName;
   SizeT Id;
   TargetList TargetOffsets;
 };

@@ -119,7 +119,6 @@ static std::unique_ptr<T> makeUnique(Args &&... TheArgs) {
 
 #define ENABLE_MAKE_UNIQUE friend struct ::Ice::Internal::MakeUniqueEnabler
 
-using IceString = std::string;
 using InstList = llvm::ilist<Inst>;
 // Ideally PhiList would be llvm::ilist<InstPhi>, and similar for AssignList,
 // but this runs into issues with SFINAE.
@@ -356,6 +355,32 @@ using Ostream = llvm::raw_ostream;
 using Fdstream = llvm::raw_fd_ostream;
 
 using GlobalLockType = std::mutex;
+
+/// LockedPtr is an RAII wrapper that allows automatically locked access to a
+/// given pointer, automatically unlocking it when when the LockedPtr goes out
+/// of scope.
+template <typename T> class LockedPtr {
+  LockedPtr() = delete;
+  LockedPtr(const LockedPtr &) = delete;
+  LockedPtr &operator=(const LockedPtr &) = delete;
+
+public:
+  LockedPtr(T *Value, GlobalLockType *Lock) : Value(Value), Lock(Lock) {
+    Lock->lock();
+  }
+  LockedPtr(LockedPtr &&Other) : Value(Other.Value), Lock(Other.Lock) {
+    Other.Value = nullptr;
+    Other.Lock = nullptr;
+  }
+  ~LockedPtr() { Lock->unlock(); }
+  T *operator->() const { return Value; }
+  T &operator*() const { return *Value; }
+  T *get() { return Value; }
+
+private:
+  T *Value;
+  GlobalLockType *Lock;
+};
 
 enum ErrorCodes { EC_None = 0, EC_Args, EC_Bitcode, EC_Translation };
 

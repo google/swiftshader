@@ -94,16 +94,14 @@ template <typename TraitsType>
 InstImpl<TraitsType>::InstX86Label::InstX86Label(Cfg *Func,
                                                  TargetLowering *Target)
     : InstX86Base(Func, InstX86Base::Label, 0, nullptr),
-      Number(Target->makeNextLabelNumber()) {}
-
-template <typename TraitsType>
-IceString InstImpl<TraitsType>::InstX86Label::getName(const Cfg *Func) const {
-  // TODO(stichnot): Returning an empty string in a non-DUMP build can cause a
-  // huge degradation in ConstantRelocatable hashing.  Investigate and fix, but
-  // for now return something reasonably unique.
-  if (!BuildDefs::dump())
-    return Func->getFunctionName() + std::to_string(Number);
-  return ".L" + Func->getFunctionName() + "$local$__" + std::to_string(Number);
+      LabelNumber(Target->makeNextLabelNumber()) {
+  if (BuildDefs::dump()) {
+    Name = GlobalString::createWithString(
+        Func->getContext(), ".L" + Func->getFunctionName() + "$local$__" +
+                                std::to_string(LabelNumber));
+  } else {
+    Name = GlobalString::createWithoutString(Func->getContext());
+  }
 }
 
 template <typename TraitsType>
@@ -441,13 +439,13 @@ void InstImpl<TraitsType>::InstX86Label::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
-  Str << getName(Func) << ":";
+  Str << getLabelName() << ":";
 }
 
 template <typename TraitsType>
 void InstImpl<TraitsType>::InstX86Label::emitIAS(const Cfg *Func) const {
   Assembler *Asm = Func->getAssembler<Assembler>();
-  Asm->bindLocalLabel(Number);
+  Asm->bindLocalLabel(LabelNumber);
   if (OffsetReloc != nullptr) {
     Asm->bindRelocOffset(OffsetReloc);
   }
@@ -458,7 +456,7 @@ void InstImpl<TraitsType>::InstX86Label::dump(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
-  Str << getName(Func) << ":";
+  Str << getLabelName() << ":";
 }
 
 template <typename TraitsType>
@@ -475,7 +473,7 @@ void InstImpl<TraitsType>::InstX86Br::emit(const Cfg *Func) const {
   }
 
   if (Label) {
-    Str << "\t" << Label->getName(Func);
+    Str << "\t" << Label->getLabelName();
   } else {
     if (Condition == Cond::Br_None) {
       Str << "\t" << getTargetFalse()->getAsmName();
@@ -493,7 +491,7 @@ template <typename TraitsType>
 void InstImpl<TraitsType>::InstX86Br::emitIAS(const Cfg *Func) const {
   Assembler *Asm = Func->getAssembler<Assembler>();
   if (Label) {
-    auto *L = Asm->getOrCreateLocalLabel(Label->getNumber());
+    auto *L = Asm->getOrCreateLocalLabel(Label->getLabelNumber());
     if (Condition == Cond::Br_None) {
       Asm->jmp(L, isNear());
     } else {
@@ -523,14 +521,17 @@ void InstImpl<TraitsType>::InstX86Br::dump(const Cfg *Func) const {
   Str << "br ";
 
   if (Condition == Cond::Br_None) {
-    Str << "label %"
-        << (Label ? Label->getName(Func) : getTargetFalse()->getName());
+    if (Label) {
+      Str << "label %" << Label->getLabelName();
+    } else {
+      Str << "label %" << getTargetFalse()->getName();
+    }
     return;
   }
 
   Str << Traits::InstBrAttributes[Condition].DisplayString;
   if (Label) {
-    Str << ", label %" << Label->getName(Func);
+    Str << ", label %" << Label->getLabelName();
   } else {
     Str << ", label %" << getTargetTrue()->getName();
     if (getTargetFalse()) {
@@ -661,7 +662,7 @@ void InstImpl<TraitsType>::InstX86Call::dump(const Cfg *Func) const {
   getCallTarget()->dump(Func);
 }
 
-// The this->Opcode parameter needs to be char* and not IceString because of
+// The this->Opcode parameter needs to be char* and not std::string because of
 // template issues.
 template <typename TraitsType>
 void InstImpl<TraitsType>::InstX86Base::emitTwoAddress(
@@ -734,7 +735,8 @@ void InstImpl<TraitsType>::emitIASRegOpTyGPR(const Cfg *Func, bool IsLea,
   } else if (const auto *Imm = llvm::dyn_cast<ConstantInteger32>(Src)) {
     (Asm->*(Emitter.GPRImm))(Ty, VarReg, AssemblerImmediate(Imm->getValue()));
   } else if (const auto *Reloc = llvm::dyn_cast<ConstantRelocatable>(Src)) {
-    const auto FixupKind = Reloc->getName() == GlobalOffsetTable
+    const auto FixupKind = (Reloc->getName().hasStdString() &&
+                            Reloc->getName().toString() == GlobalOffsetTable)
                                ? Traits::FK_GotPC
                                : Traits::TargetLowering::getAbsFixup();
     AssemblerFixup *Fixup = Asm->createFixup(FixupKind, Reloc);
@@ -760,7 +762,8 @@ void InstImpl<TraitsType>::emitIASAddrOpTyGPR(const Cfg *Func, Type Ty,
   } else if (const auto *Imm = llvm::dyn_cast<ConstantInteger32>(Src)) {
     (Asm->*(Emitter.AddrImm))(Ty, Addr, AssemblerImmediate(Imm->getValue()));
   } else if (const auto *Reloc = llvm::dyn_cast<ConstantRelocatable>(Src)) {
-    const auto FixupKind = Reloc->getName() == GlobalOffsetTable
+    const auto FixupKind = (Reloc->getName().hasStdString() &&
+                            Reloc->getName().toString() == GlobalOffsetTable)
                                ? Traits::FK_GotPC
                                : Traits::TargetLowering::getAbsFixup();
     AssemblerFixup *Fixup = Asm->createFixup(FixupKind, Reloc);
@@ -1992,7 +1995,8 @@ void InstImpl<TraitsType>::InstX86Lea::emit(const Cfg *Func) const {
     Type Ty = Src0Var->getType();
     // lea on x86-32 doesn't accept mem128 operands, so cast VSrc0 to an
     // acceptable type.
-    Src0Var->asType(isVectorType(Ty) ? IceType_i32 : Ty, RegNumT())->emit(Func);
+    Src0Var->asType(Func, isVectorType(Ty) ? IceType_i32 : Ty, RegNumT())
+        ->emit(Func);
   } else {
     Src0->emit(Func);
   }
@@ -2033,7 +2037,7 @@ void InstImpl<TraitsType>::InstX86Mov::emit(const Cfg *Func) const {
     if (SrcVar->hasReg())
       NewRegNum = Traits::getGprForType(DestTy, SrcVar->getRegNum());
     if (SrcTy != DestTy)
-      NewSrc = SrcVar->asType(DestTy, NewRegNum);
+      NewSrc = SrcVar->asType(Func, DestTy, NewRegNum);
   }
   NewSrc->emit(Func);
   Str << ", ";
@@ -2311,7 +2315,7 @@ void InstImpl<TraitsType>::InstX86Movzx::emit(const Cfg *Func) const {
                "\t";
         Src->emit(Func);
         Str << ", ";
-        Dest->asType(IceType_i32,
+        Dest->asType(Func, IceType_i32,
                      Traits::getGprForType(IceType_i32, Dest->getRegNum()))
             ->emit(Func);
         Str << " /* movzx */";
@@ -2519,7 +2523,7 @@ void InstImpl<TraitsType>::InstX86Pextr::emit(const Cfg *Func) const {
   // memory dest, but we aren't using it. For uniformity, just restrict them
   // all to have a register dest for now.
   assert(Dest->hasReg());
-  Dest->asType(IceType_i32, Dest->getRegNum())->emit(Func);
+  Dest->asType(Func, IceType_i32, Dest->getRegNum())->emit(Func);
 }
 
 template <typename TraitsType>
@@ -2556,7 +2560,7 @@ void InstImpl<TraitsType>::InstX86Pinsr::emit(const Cfg *Func) const {
     // If src1 is a register, it should always be r32.
     if (Src1Var->hasReg()) {
       const auto NewRegNum = Traits::getBaseReg(Src1Var->getRegNum());
-      const Variable *NewSrc = Src1Var->asType(IceType_i32, NewRegNum);
+      const Variable *NewSrc = Src1Var->asType(Func, IceType_i32, NewRegNum);
       NewSrc->emit(Func);
     } else {
       Src1Var->emit(Func);

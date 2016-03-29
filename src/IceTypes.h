@@ -82,7 +82,7 @@ size_t typeAlignInBytes(Type Ty);
 size_t typeNumElements(Type Ty);
 Type typeElementType(Type Ty);
 const char *typeString(Type Ty);
-inline IceString typeIceString(Type Ty) { return typeString(Ty); }
+inline std::string typeStdString(Type Ty) { return typeString(Ty); }
 const char *regClassString(RegClass C);
 
 inline Type getPointerType() { return IceType_i32; }

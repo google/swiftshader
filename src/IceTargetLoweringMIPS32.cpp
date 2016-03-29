@@ -48,6 +48,10 @@ createTargetHeaderLowering(::Ice::GlobalContext *Ctx) {
 void staticInit(::Ice::GlobalContext *Ctx) {
   ::Ice::MIPS32::TargetMIPS32::staticInit(Ctx);
 }
+
+bool shouldBePooled(const ::Ice::Constant *C) {
+  return ::Ice::MIPS32::TargetMIPS32::shouldBePooled(C);
+}
 } // end of namespace MIPS32
 
 namespace Ice {
@@ -60,7 +64,7 @@ namespace {
 // The maximum number of arguments to pass in GPR registers.
 constexpr uint32_t MIPS32_MAX_GPR_ARG = 4;
 
-IceString getRegClassName(RegClass C) {
+const char *getRegClassName(RegClass C) {
   auto ClassNum = static_cast<RegClassMIPS32>(C);
   assert(ClassNum < RCMIPS32_NUM);
   switch (ClassNum) {
@@ -296,7 +300,7 @@ const char *RegMIPS32::getRegName(RegNumT RegNum) {
   return RegNames[RegNum];
 }
 
-IceString TargetMIPS32::getRegName(RegNumT RegNum, Type Ty) const {
+const char *TargetMIPS32::getRegName(RegNumT RegNum, Type Ty) const {
   (void)Ty;
   return RegMIPS32::getRegName(RegNum);
 }
@@ -1196,7 +1200,7 @@ TargetDataMIPS32::TargetDataMIPS32(GlobalContext *Ctx)
     : TargetDataLowering(Ctx) {}
 
 void TargetDataMIPS32::lowerGlobals(const VariableDeclarationList &Vars,
-                                    const IceString &SectionSuffix) {
+                                    const std::string &SectionSuffix) {
   const bool IsPIC = Ctx->getFlags().getUseNonsfi();
   switch (Ctx->getFlags().getOutFileType()) {
   case FT_Elf: {
@@ -1206,7 +1210,7 @@ void TargetDataMIPS32::lowerGlobals(const VariableDeclarationList &Vars,
   } break;
   case FT_Asm:
   case FT_Iasm: {
-    const IceString &TranslateOnly = Ctx->getFlags().getTranslateOnly();
+    const std::string TranslateOnly = Ctx->getFlags().getTranslateOnly();
     OstreamLocker L(Ctx);
     for (const VariableDeclaration *Var : Vars) {
       if (GlobalContext::matchSymbolName(Var->getName(), TranslateOnly)) {

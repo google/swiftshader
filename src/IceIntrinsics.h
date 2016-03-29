@@ -16,6 +16,7 @@
 #define SUBZERO_SRC_ICEINTRINSICS_H
 
 #include "IceDefs.h"
+#include "IceStringPool.h"
 #include "IceTypes.h"
 
 namespace Ice {
@@ -29,8 +30,8 @@ class Intrinsics {
   Intrinsics &operator=(const Intrinsics &) = delete;
 
 public:
-  Intrinsics();
-  ~Intrinsics();
+  explicit Intrinsics(GlobalContext *Ctx);
+  ~Intrinsics() = default;
 
   /// Some intrinsics allow overloading by type. This enum collapses all
   /// overloads into a single ID, but the type can still be recovered by the
@@ -160,11 +161,11 @@ public:
   /// found, sets Error to false and returns the reference. If not found, sets
   /// Error to true and returns nullptr (indicating an unknown "llvm.foo"
   /// intrinsic).
-  const FullIntrinsicInfo *find(const IceString &Name, bool &Error) const;
+  const FullIntrinsicInfo *find(GlobalString Name, bool &Error) const;
 
 private:
   // TODO(jvoung): May want to switch to something like LLVM's StringMap.
-  using IntrinsicMap = std::map<IceString, FullIntrinsicInfo>;
+  using IntrinsicMap = std::unordered_map<GlobalString, FullIntrinsicInfo>;
   IntrinsicMap Map;
 };
 

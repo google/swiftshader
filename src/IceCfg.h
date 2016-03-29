@@ -20,6 +20,7 @@
 #include "IceClFlags.h"
 #include "IceDefs.h"
 #include "IceGlobalContext.h"
+#include "IceStringPool.h"
 #include "IceTypes.h"
 
 namespace Ice {
@@ -53,9 +54,9 @@ public:
 
   /// \name Manage the name and return type of the function being translated.
   /// @{
-  void setFunctionName(const IceString &Name) { FunctionName = Name; }
-  const IceString &getFunctionName() const { return FunctionName; }
-  IceString getFunctionNameAndSize() const;
+  void setFunctionName(GlobalString Name) { FunctionName = Name; }
+  GlobalString getFunctionName() const { return FunctionName; }
+  std::string getFunctionNameAndSize() const;
   void setReturnType(Type Ty) { ReturnType = Ty; }
   Type getReturnType() const { return ReturnType; }
   /// @}
@@ -73,9 +74,9 @@ public:
   /// missing, instead of an assertion failure, setError() should be called and
   /// the error should be propagated back up. This way, we can gracefully fail
   /// to translate and let a fallback translator handle the function.
-  void setError(const IceString &Message);
+  void setError(const std::string &Message);
   bool hasError() const { return HasError; }
-  IceString getError() const { return ErrorMessage; }
+  std::string getError() const { return ErrorMessage; }
   /// @}
 
   /// \name Manage nodes (a.k.a. basic blocks, CfgNodes).
@@ -93,20 +94,10 @@ public:
   void swapNodes(NodeList &NewNodes);
   /// @}
 
-  using IdentifierIndexType = int32_t;
-  /// Adds a name to the list and returns its index, suitable for the argument
-  /// to getIdentifierName(). No checking for duplicates is done. This is
-  /// generally used for node names and variable names to avoid embedding a
-  /// std::string inside an arena-allocated object.
-  IdentifierIndexType addIdentifierName(const IceString &Name) {
-    IdentifierIndexType Index = IdentifierNames.size();
-    IdentifierNames.push_back(Name);
-    return Index;
-  }
-  const IceString &getIdentifierName(IdentifierIndexType Index) const {
-    return IdentifierNames[Index];
-  }
-  enum { IdentifierIndexInvalid = -1 };
+  /// String pool for CfgNode::Name values.
+  StringPool *getNodeStrings() const { return NodeStrings.get(); }
+  /// String pool for Variable::Name values.
+  StringPool *getVarStrings() const { return VarStrings.get(); }
 
   /// \name Manage instruction numbering.
   /// @{
@@ -241,7 +232,7 @@ public:
 
   void emit();
   void emitIAS();
-  static void emitTextHeader(const IceString &Name, GlobalContext *Ctx,
+  static void emitTextHeader(GlobalString Name, GlobalContext *Ctx,
                              const Assembler *Asm);
   void dump(const char *Message = "");
 
@@ -277,9 +268,9 @@ private:
   /// code needs to be defined.
   void profileBlocks();
 
-  void createNodeNameDeclaration(const IceString &NodeAsmName);
+  void createNodeNameDeclaration(const std::string &NodeAsmName);
   void
-  createBlockProfilingInfoDeclaration(const IceString &NodeAsmName,
+  createBlockProfilingInfoDeclaration(const std::string &NodeAsmName,
                                       VariableDeclaration *NodeNameDeclaration);
 
   /// Delete registered jump table placeholder instructions. This should only be
@@ -302,20 +293,23 @@ private:
   uint32_t SequenceNumber;             /// output order for emission
   uint32_t ConstantBlindingCookie = 0; /// cookie for constant blinding
   VerboseMask VMask;
-  IceString FunctionName = "";
+  GlobalString FunctionName;
   Type ReturnType = IceType_void;
   bool IsInternalLinkage = false;
   bool HasError = false;
   bool FocusedTiming = false;
-  IceString ErrorMessage = "";
+  std::string ErrorMessage = "";
   CfgNode *Entry = nullptr; /// entry basic block
   NodeList Nodes;           /// linearized node list; Entry should be first
-  std::vector<IceString> IdentifierNames;
   InstNumberT NextInstNumber;
   VarList Variables;
   VarList Args;         /// subset of Variables, in argument order
   VarList ImplicitArgs; /// subset of Variables
   std::unique_ptr<ArenaAllocator> Allocator;
+  // Separate string pools for CfgNode and Variable names, due to a combination
+  // of the uniqueness requirement, and assumptions in lit tests.
+  std::unique_ptr<StringPool> NodeStrings;
+  std::unique_ptr<StringPool> VarStrings;
   std::unique_ptr<Liveness> Live;
   std::unique_ptr<TargetLowering> Target;
   std::unique_ptr<VariablesMetadata> VMetadata;
@@ -335,6 +329,22 @@ public:
 };
 
 template <> Variable *Cfg::makeVariable<Variable>(Type Ty);
+
+struct NodeStringPoolTraits {
+  using OwnerType = Cfg;
+  static StringPool *getStrings(const OwnerType *PoolOwner) {
+    return PoolOwner->getNodeStrings();
+  }
+};
+using NodeString = StringID<NodeStringPoolTraits>;
+
+struct VariableStringPoolTraits {
+  using OwnerType = Cfg;
+  static StringPool *getStrings(const OwnerType *PoolOwner) {
+    return PoolOwner->getVarStrings();
+  }
+};
+using VariableString = StringID<VariableStringPoolTraits>;
 
 } // end of namespace Ice
 

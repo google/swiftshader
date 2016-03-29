@@ -26,15 +26,13 @@
 
 namespace Ice {
 
-CfgNode::CfgNode(Cfg *Func, SizeT LabelNumber)
-    : Func(Func), Number(LabelNumber), LabelNumber(LabelNumber) {}
-
-// Returns the name the node was created with. If no name was given, it
-// synthesizes a (hopefully) unique name.
-IceString CfgNode::getName() const {
-  if (NameIndex >= 0)
-    return Func->getIdentifierName(NameIndex);
-  return "__" + std::to_string(LabelNumber);
+CfgNode::CfgNode(Cfg *Func, SizeT Number) : Func(Func), Number(Number) {
+  if (BuildDefs::dump()) {
+    Name =
+        NodeString::createWithString(Func, "__" + std::to_string(getIndex()));
+  } else {
+    Name = NodeString::createWithoutString(Func);
+  }
 }
 
 // Adds an instruction to either the Phi list or the regular instruction list.
@@ -1428,23 +1426,22 @@ void CfgNode::dump(Cfg *Func) const {
 }
 
 void CfgNode::profileExecutionCount(VariableDeclaration *Var) {
-  constexpr char RMW_I64[] = "llvm.nacl.atomic.rmw.i64";
-
-  GlobalContext *Context = Func->getContext();
+  GlobalContext *Ctx = Func->getContext();
+  GlobalString RMW_I64 = Ctx->getGlobalString("llvm.nacl.atomic.rmw.i64");
 
   bool BadIntrinsic = false;
   const Intrinsics::FullIntrinsicInfo *Info =
-      Context->getIntrinsicsInfo().find(RMW_I64, BadIntrinsic);
+      Ctx->getIntrinsicsInfo().find(RMW_I64, BadIntrinsic);
   assert(!BadIntrinsic);
   assert(Info != nullptr);
 
-  Operand *RMWI64Name = Context->getConstantExternSym(RMW_I64);
+  Operand *RMWI64Name = Ctx->getConstantExternSym(RMW_I64);
   constexpr RelocOffsetT Offset = 0;
-  Constant *Counter = Context->getConstantSym(Offset, Var->getName());
-  Constant *AtomicRMWOp = Context->getConstantInt32(Intrinsics::AtomicAdd);
-  Constant *One = Context->getConstantInt64(1);
+  Constant *Counter = Ctx->getConstantSym(Offset, Var->getName());
+  Constant *AtomicRMWOp = Ctx->getConstantInt32(Intrinsics::AtomicAdd);
+  Constant *One = Ctx->getConstantInt64(1);
   Constant *OrderAcquireRelease =
-      Context->getConstantInt32(Intrinsics::MemoryOrderAcquireRelease);
+      Ctx->getConstantInt32(Intrinsics::MemoryOrderAcquireRelease);
 
   auto *Instr = InstIntrinsicCall::create(
       Func, 5, Func->makeVariable(IceType_i64), RMWI64Name, Info->Info);
