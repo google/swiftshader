@@ -46,7 +46,7 @@ public:
 		return map.begin()->first;
 	}
 
-    GLuint allocate()
+    GLuint allocate(ObjectType *object = nullptr)
 	{
 		GLuint name = freeName;
 
@@ -55,13 +55,13 @@ public:
 			name++;
 		}
 
-		map.insert({name, nullptr});
+		map.insert({name, object});
 		freeName = name + 1;
 
 		return name;
 	}
 
-	bool isReserved(GLuint name)
+	bool isReserved(GLuint name) const
 	{
 		return map.find(name) != map.end();
 	}
@@ -96,13 +96,8 @@ public:
 		return nullptr;
 	}
 
-	ObjectType *find(GLuint name)
+	ObjectType *find(GLuint name) const
 	{
-		if(name < baseName)
-		{
-			return nullptr;
-		}
-
 		auto element = map.find(name);
 
 		if(element == map.end())

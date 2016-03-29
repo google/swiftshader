@@ -594,9 +594,7 @@ private:
     gl::BindingPointer<Texture2D> mTexture2DZero;
     gl::BindingPointer<TextureExternal> mTextureExternalZero;
 
-    typedef std::map<GLint, Framebuffer*> FramebufferMap;
-    FramebufferMap mFramebufferMap;
-    gl::NameSpace<Framebuffer> mFramebufferNameSpace;
+	gl::NameSpace<Framebuffer> mFramebufferNameSpace;
 
     VertexDataManager *mVertexDataManager;
     IndexDataManager *mIndexDataManager;

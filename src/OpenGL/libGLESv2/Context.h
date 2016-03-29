@@ -575,7 +575,7 @@ public:
 	void bindIndexedUniformBuffer(GLuint buffer, GLuint index, GLintptr offset, GLsizeiptr size);
 	void bindGenericTransformFeedbackBuffer(GLuint buffer);
 	void bindIndexedTransformFeedbackBuffer(GLuint buffer, GLuint index, GLintptr offset, GLsizeiptr size);
-	bool bindTransformFeedback(GLuint transformFeedback);
+	void bindTransformFeedback(GLuint transformFeedback);
 	bool bindSampler(GLuint unit, GLuint sampler);
     void useProgram(GLuint program);
 
@@ -709,24 +709,10 @@ private:
 	gl::BindingPointer<TextureCubeMap> mTextureCubeMapZero;
     gl::BindingPointer<TextureExternal> mTextureExternalZero;
 
-    typedef std::map<GLint, Framebuffer*> FramebufferMap;
-    FramebufferMap mFramebufferMap;
-    gl::NameSpace<Framebuffer> mFramebufferNameSpace;
-
-    typedef std::map<GLint, Fence*> FenceMap;
-    FenceMap mFenceMap;
-    gl::NameSpace<Fence, 0> mFenceNameSpace;
-
-	typedef std::map<GLint, Query*> QueryMap;
-    QueryMap mQueryMap;
-    gl::NameSpace<Query> mQueryNameSpace;
-
-	typedef std::map<GLint, VertexArray*> VertexArrayMap;
-	VertexArrayMap mVertexArrayMap;
+	gl::NameSpace<Framebuffer> mFramebufferNameSpace;
+	gl::NameSpace<Fence, 0> mFenceNameSpace;
+	gl::NameSpace<Query> mQueryNameSpace;
 	gl::NameSpace<VertexArray> mVertexArrayNameSpace;
-
-	typedef std::map<GLint, TransformFeedback*> TransformFeedbackMap;
-	TransformFeedbackMap mTransformFeedbackMap;
 	gl::NameSpace<TransformFeedback> mTransformFeedbackNameSpace;
 
     VertexDataManager *mVertexDataManager;
