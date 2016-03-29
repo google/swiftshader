@@ -86,7 +86,7 @@ void ResourceManager::deleteBuffer(GLuint buffer)
 
 void ResourceManager::deleteTexture(GLuint texture)
 {
-    Texture *textureObject = mTextureNameSpace.find(texture);
+    Texture *textureObject = mTextureNameSpace.remove(texture);
 
     if(textureObject)
     {
@@ -96,7 +96,7 @@ void ResourceManager::deleteTexture(GLuint texture)
 
 void ResourceManager::deleteRenderbuffer(GLuint renderbuffer)
 {
-    Renderbuffer *renderbufferObject = mRenderbufferNameSpace.find(renderbuffer);
+    Renderbuffer *renderbufferObject = mRenderbufferNameSpace.remove(renderbuffer);
 
     if(renderbufferObject)
     {

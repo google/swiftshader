@@ -523,7 +523,7 @@ public:
     bool isDepthTestEnabled() const;
     void setDepthFunc(GLenum depthFunc);
     void setDepthRange(float zNear, float zFar);
-    
+
     void setBlendEnabled(bool enabled);
     bool isBlendEnabled() const;
     void setBlendFactors(GLenum sourceRGB, GLenum destRGB, GLenum sourceAlpha, GLenum destAlpha);
@@ -590,7 +590,7 @@ public:
     void setPackAlignment(GLint alignment);
     GLint getPackAlignment() const;
 
-    // These create  and destroy methods are merely pass-throughs to 
+    // These create  and destroy methods are merely pass-throughs to
     // ResourceManager, which owns these object types
     GLuint createBuffer();
     GLuint createShader(GLenum type);
@@ -674,8 +674,8 @@ public:
     GLenum getError();
 
     static int getSupportedMultisampleCount(int requested);
-    
-    void blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, 
+
+    void blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1,
                          GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,
                          GLbitfield mask);
 
@@ -753,17 +753,9 @@ private:
     BindingPointer<Texture2D> mProxyTexture2DZero;
     BindingPointer<TextureCubeMap> mTextureCubeMapZero;
 
-    typedef std::map<GLint, Framebuffer*> FramebufferMap;
-    FramebufferMap mFramebufferMap;
-    //NameSpace mFramebufferNameSpace;
-
-    typedef std::map<GLint, Fence*> FenceMap;
-    FenceMap mFenceMap;
-    //NameSpace mFenceNameSpace;
-
-	typedef std::map<GLint, Query*> QueryMap;
-    QueryMap mQueryMap;
-    //NameSpace mQueryNameSpace;
+	gl::NameSpace<Framebuffer> mFramebufferNameSpace;
+	gl::NameSpace<Fence, 0> mFenceNameSpace;
+	gl::NameSpace<Query> mQueryNameSpace;
 
     VertexDataManager *mVertexDataManager;
     IndexDataManager *mIndexDataManager;
@@ -778,7 +770,7 @@ private:
     bool mHasBeenCurrent;
 
     unsigned int mAppliedProgramSerial;
-    
+
     // state caching flags
     bool mDepthStateDirty;
     bool mMaskStateDirty;

@@ -3576,10 +3576,7 @@ GL_APICALL void GL_APIENTRY glBindTransformFeedback(GLenum target, GLuint id)
 			return error(GL_INVALID_OPERATION);
 		}
 
-		if(!context->bindTransformFeedback(id))
-		{
-			return error(GL_INVALID_OPERATION);
-		}
+		context->bindTransformFeedback(id);
 	}
 }
 

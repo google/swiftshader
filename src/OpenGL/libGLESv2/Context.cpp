@@ -115,7 +115,7 @@ Context::Context(const egl::Config *config, const Context *shareContext, EGLint 
     mState.colorMaskAlpha = true;
     mState.depthMask = true;
 
-    if(shareContext != NULL)
+    if(shareContext)
     {
         mResourceManager = shareContext->mResourceManager;
         mResourceManager->addRef();
@@ -164,8 +164,8 @@ Context::Context(const egl::Config *config, const Context *shareContext, EGLint 
 	mState.unpackInfo.skipRows = 0;
 	mState.unpackInfo.skipImages = 0;
 
-    mVertexDataManager = NULL;
-    mIndexDataManager = NULL;
+    mVertexDataManager = nullptr;
+    mIndexDataManager = nullptr;
 
     mInvalidEnum = false;
     mInvalidValue = false;
@@ -190,67 +190,67 @@ Context::~Context()
 		mState.currentProgram = 0;
 	}
 
-	while(!mFramebufferMap.empty())
+	while(!mFramebufferNameSpace.empty())
 	{
-		deleteFramebuffer(mFramebufferMap.begin()->first);
+		deleteFramebuffer(mFramebufferNameSpace.firstName());
 	}
 
-	while(!mFenceMap.empty())
+	while(!mFenceNameSpace.empty())
 	{
-		deleteFence(mFenceMap.begin()->first);
+		deleteFence(mFenceNameSpace.firstName());
 	}
 
-	while(!mQueryMap.empty())
+	while(!mQueryNameSpace.empty())
 	{
-		deleteQuery(mQueryMap.begin()->first);
+		deleteQuery(mQueryNameSpace.firstName());
 	}
 
-	while(!mVertexArrayMap.empty())
+	while(!mVertexArrayNameSpace.empty())
 	{
-		deleteVertexArray(mVertexArrayMap.begin()->first);
+		deleteVertexArray(mVertexArrayNameSpace.firstName());
 	}
 
-	while(!mTransformFeedbackMap.empty())
+	while(!mTransformFeedbackNameSpace.empty())
 	{
-		deleteTransformFeedback(mTransformFeedbackMap.begin()->first);
+		deleteTransformFeedback(mTransformFeedbackNameSpace.firstName());
 	}
 
 	for(int type = 0; type < TEXTURE_TYPE_COUNT; type++)
 	{
 		for(int sampler = 0; sampler < MAX_COMBINED_TEXTURE_IMAGE_UNITS; sampler++)
 		{
-			mState.samplerTexture[type][sampler] = NULL;
+			mState.samplerTexture[type][sampler] = nullptr;
 		}
 	}
 
 	for(int i = 0; i < MAX_VERTEX_ATTRIBS; i++)
 	{
-		mState.vertexAttribute[i].mBoundBuffer = NULL;
+		mState.vertexAttribute[i].mBoundBuffer = nullptr;
 	}
 
 	for(int i = 0; i < QUERY_TYPE_COUNT; i++)
 	{
-		mState.activeQuery[i] = NULL;
+		mState.activeQuery[i] = nullptr;
 	}
 
-	mState.arrayBuffer = NULL;
-	mState.copyReadBuffer = NULL;
-	mState.copyWriteBuffer = NULL;
-	mState.pixelPackBuffer = NULL;
-	mState.pixelUnpackBuffer = NULL;
-	mState.genericUniformBuffer = NULL;
-	mState.renderbuffer = NULL;
+	mState.arrayBuffer = nullptr;
+	mState.copyReadBuffer = nullptr;
+	mState.copyWriteBuffer = nullptr;
+	mState.pixelPackBuffer = nullptr;
+	mState.pixelUnpackBuffer = nullptr;
+	mState.genericUniformBuffer = nullptr;
+	mState.renderbuffer = nullptr;
 
 	for(int i = 0; i < MAX_COMBINED_TEXTURE_IMAGE_UNITS; ++i)
 	{
-		mState.sampler[i] = NULL;
+		mState.sampler[i] = nullptr;
 	}
 
-    mTexture2DZero = NULL;
-	mTexture3DZero = NULL;
-	mTexture2DArrayZero = NULL;
-    mTextureCubeMapZero = NULL;
-    mTextureExternalZero = NULL;
+    mTexture2DZero = nullptr;
+	mTexture3DZero = nullptr;
+	mTexture2DArrayZero = nullptr;
+    mTextureCubeMapZero = nullptr;
+    mTextureExternalZero = nullptr;
 
     delete mVertexDataManager;
     delete mIndexDataManager;
@@ -767,7 +767,7 @@ GLuint Context::getElementArrayBufferName() const
 
 GLuint Context::getActiveQuery(GLenum target) const
 {
-    Query *queryObject = NULL;
+    Query *queryObject = nullptr;
 
     switch(target)
     {
@@ -921,40 +921,24 @@ GLuint Context::createRenderbuffer()
 // Returns an unused framebuffer name
 GLuint Context::createFramebuffer()
 {
-    GLuint handle = mFramebufferNameSpace.allocate();
-
-    mFramebufferMap[handle] = NULL;
-
-    return handle;
+    return mFramebufferNameSpace.allocate();
 }
 
 GLuint Context::createFence()
 {
-    GLuint handle = mFenceNameSpace.allocate();
-
-    mFenceMap[handle] = new Fence;
-
-    return handle;
+	return mFenceNameSpace.allocate(new Fence());
 }
 
 // Returns an unused query name
 GLuint Context::createQuery()
 {
-    GLuint handle = mQueryNameSpace.allocate();
-
-    mQueryMap[handle] = NULL;
-
-    return handle;
+	return mQueryNameSpace.allocate();
 }
 
 // Returns an unused vertex array name
 GLuint Context::createVertexArray()
 {
-	GLuint handle = mVertexArrayNameSpace.allocate();
-
-	mVertexArrayMap[handle] = nullptr;
-
-	return handle;
+	return mVertexArrayNameSpace.allocate();
 }
 
 GLsync Context::createFenceSync(GLenum condition, GLbitfield flags)
@@ -967,11 +951,7 @@ GLsync Context::createFenceSync(GLenum condition, GLbitfield flags)
 // Returns an unused transform feedback name
 GLuint Context::createTransformFeedback()
 {
-	GLuint handle = mTransformFeedbackNameSpace.allocate();
-
-	mTransformFeedbackMap[handle] = NULL;
-
-	return handle;
+	return mTransformFeedbackNameSpace.allocate();
 }
 
 // Returns an unused sampler name
@@ -982,10 +962,7 @@ GLuint Context::createSampler()
 
 void Context::deleteBuffer(GLuint buffer)
 {
-    if(mResourceManager->getBuffer(buffer))
-    {
-        detachBuffer(buffer);
-    }
+	detachBuffer(buffer);
 
     mResourceManager->deleteBuffer(buffer);
 }
@@ -1002,87 +979,65 @@ void Context::deleteProgram(GLuint program)
 
 void Context::deleteTexture(GLuint texture)
 {
-    if(mResourceManager->getTexture(texture))
-    {
-        detachTexture(texture);
-    }
+	detachTexture(texture);
 
     mResourceManager->deleteTexture(texture);
 }
 
 void Context::deleteRenderbuffer(GLuint renderbuffer)
 {
-    if(mResourceManager->getRenderbuffer(renderbuffer))
-    {
-        detachRenderbuffer(renderbuffer);
-    }
+	detachRenderbuffer(renderbuffer);
 
     mResourceManager->deleteRenderbuffer(renderbuffer);
 }
 
 void Context::deleteFramebuffer(GLuint framebuffer)
 {
-    FramebufferMap::iterator framebufferObject = mFramebufferMap.find(framebuffer);
+	detachFramebuffer(framebuffer);
 
-    if(framebufferObject != mFramebufferMap.end())
+    Framebuffer *framebufferObject = mFramebufferNameSpace.remove(framebuffer);
+
+    if(framebufferObject)
     {
-        detachFramebuffer(framebuffer);
-
-		delete framebufferObject->second;
-		mFramebufferNameSpace.remove(framebufferObject->first);
-        mFramebufferMap.erase(framebufferObject);
+		delete framebufferObject;
     }
 }
 
 void Context::deleteFence(GLuint fence)
 {
-    FenceMap::iterator fenceObject = mFenceMap.find(fence);
+    Fence *fenceObject = mFenceNameSpace.remove(fence);
 
-    if(fenceObject != mFenceMap.end())
+    if(fenceObject)
     {
-		delete fenceObject->second;
-		mFenceNameSpace.remove(fenceObject->first);
-        mFenceMap.erase(fenceObject);
+		delete fenceObject;
     }
 }
 
 void Context::deleteQuery(GLuint query)
 {
-    QueryMap::iterator queryObject = mQueryMap.find(query);
+    Query *queryObject = mQueryNameSpace.remove(query);
 
-	if(queryObject != mQueryMap.end())
+	if(queryObject)
     {
-		if(queryObject->second)
-        {
-            queryObject->second->release();
-        }
-
-        mQueryNameSpace.remove(queryObject->first);
-		mQueryMap.erase(queryObject);
+		queryObject->release();
     }
 }
 
 void Context::deleteVertexArray(GLuint vertexArray)
 {
-	VertexArrayMap::iterator vertexArrayObject = mVertexArrayMap.find(vertexArray);
-
-	if(vertexArrayObject != mVertexArrayMap.end())
+	// [OpenGL ES 3.0.2] section 2.10 page 43:
+	// If a vertex array object that is currently bound is deleted, the binding
+	// for that object reverts to zero and the default vertex array becomes current.
+	if(getCurrentVertexArray()->name == vertexArray)
 	{
-		// Vertex array detachment is handled by Context, because 0 is a valid
-		// VAO, and a pointer to it must be passed from Context to State at
-		// binding time.
+		bindVertexArray(0);
+	}
 
-		// [OpenGL ES 3.0.2] section 2.10 page 43:
-		// If a vertex array object that is currently bound is deleted, the binding
-		// for that object reverts to zero and the default vertex array becomes current.
-		if(getCurrentVertexArray()->name == vertexArray)
-		{
-			bindVertexArray(0);
-		}
+	VertexArray *vertexArrayObject = mVertexArrayNameSpace.remove(vertexArray);
 
-		delete vertexArrayObject->second;
-		mVertexArrayNameSpace.remove(vertexArrayObject->first);
-		mVertexArrayMap.erase(vertexArrayObject);
+	if(vertexArrayObject)
+	{
+		delete vertexArrayObject;
 	}
 }
 
@@ -1097,22 +1052,17 @@ void Context::deleteFenceSync(GLsync fenceSync)
 
 void Context::deleteTransformFeedback(GLuint transformFeedback)
 {
-	TransformFeedbackMap::iterator transformFeedbackObject = mTransformFeedbackMap.find(transformFeedback);
+	TransformFeedback *transformFeedbackObject = mTransformFeedbackNameSpace.remove(transformFeedback);
 
-	if(transformFeedbackObject != mTransformFeedbackMap.end())
+	if(transformFeedbackObject)
 	{
-		delete transformFeedbackObject->second;
-		mTransformFeedbackNameSpace.remove(transformFeedbackObject->first);
-		mTransformFeedbackMap.erase(transformFeedbackObject);
+		delete transformFeedbackObject;
 	}
 }
 
 void Context::deleteSampler(GLuint sampler)
 {
-	if(mResourceManager->getSampler(sampler))
-	{
-		detachSampler(sampler);
-	}
+	detachSampler(sampler);
 
 	mResourceManager->deleteSampler(sampler);
 }
@@ -1245,7 +1195,7 @@ void Context::bindReadFramebuffer(GLuint framebuffer)
 {
     if(!getFramebuffer(framebuffer))
     {
-        mFramebufferMap[framebuffer] = new Framebuffer();
+        mFramebufferNameSpace.insert(framebuffer, new Framebuffer());
     }
 
     mState.readFramebuffer = framebuffer;
@@ -1255,7 +1205,7 @@ void Context::bindDrawFramebuffer(GLuint framebuffer)
 {
     if(!getFramebuffer(framebuffer))
     {
-        mFramebufferMap[framebuffer] = new Framebuffer();
+        mFramebufferNameSpace.insert(framebuffer, new Framebuffer());
     }
 
     mState.drawFramebuffer = framebuffer;
@@ -1275,7 +1225,7 @@ void Context::bindVertexArray(GLuint array)
 	if(!vertexArray)
 	{
 		vertexArray = new VertexArray(array);
-		mVertexArrayMap[array] = vertexArray;
+		mVertexArrayNameSpace.insert(array, vertexArray);
 	}
 
 	mState.vertexArray = array;
@@ -1311,16 +1261,14 @@ void Context::bindIndexedTransformFeedbackBuffer(GLuint buffer, GLuint index, GL
 	getTransformFeedback()->setBuffer(index, bufferObject, offset, size);
 }
 
-bool Context::bindTransformFeedback(GLuint id)
+void Context::bindTransformFeedback(GLuint id)
 {
 	if(!getTransformFeedback(id))
 	{
-		mTransformFeedbackMap[id] = new TransformFeedback(id);
+		mTransformFeedbackNameSpace.insert(id, new TransformFeedback(id));
 	}
 
 	mState.transformFeedback = id;
-
-	return true;
 }
 
 bool Context::bindSampler(GLuint unit, GLuint sampler)
@@ -1378,7 +1326,7 @@ void Context::beginQuery(GLenum target, GLuint query)
     //       no query may be active for either if glBeginQuery targets either.
     for(int i = 0; i < QUERY_TYPE_COUNT; i++)
     {
-        if(mState.activeQuery[i] != NULL)
+        if(mState.activeQuery[i])
         {
             return error(GL_INVALID_OPERATION);
         }
@@ -1435,20 +1383,20 @@ void Context::endQuery(GLenum target)
 
     Query *queryObject = mState.activeQuery[qType];
 
-    if(queryObject == NULL)
+    if(!queryObject)
     {
         return error(GL_INVALID_OPERATION);
     }
 
     queryObject->end();
 
-    mState.activeQuery[qType] = NULL;
+    mState.activeQuery[qType] = nullptr;
 }
 
 void Context::setFramebufferZero(Framebuffer *buffer)
 {
-    delete mFramebufferMap[0];
-    mFramebufferMap[0] = buffer;
+    delete mFramebufferNameSpace.remove(0);
+    mFramebufferNameSpace.insert(0, buffer);
 }
 
 void Context::setRenderbufferStorage(RenderbufferStorage *renderbuffer)
@@ -1459,30 +1407,12 @@ void Context::setRenderbufferStorage(RenderbufferStorage *renderbuffer)
 
 Framebuffer *Context::getFramebuffer(unsigned int handle) const
 {
-    FramebufferMap::const_iterator framebuffer = mFramebufferMap.find(handle);
-
-    if(framebuffer == mFramebufferMap.end())
-    {
-        return NULL;
-    }
-    else
-    {
-        return framebuffer->second;
-    }
+	return mFramebufferNameSpace.find(handle);
 }
 
 Fence *Context::getFence(unsigned int handle) const
 {
-    FenceMap::const_iterator fence = mFenceMap.find(handle);
-
-    if(fence == mFenceMap.end())
-    {
-        return NULL;
-    }
-    else
-    {
-        return fence->second;
-    }
+	return mFenceNameSpace.find(handle);
 }
 
 FenceSync *Context::getFenceSync(GLsync handle) const
@@ -1492,43 +1422,32 @@ FenceSync *Context::getFenceSync(GLsync handle) const
 
 Query *Context::getQuery(unsigned int handle) const
 {
-	QueryMap::const_iterator query = mQueryMap.find(handle);
-
-	if(query == mQueryMap.end())
-	{
-		return NULL;
-	}
-	else
-	{
-		return query->second;
-	}
+	return mQueryNameSpace.find(handle);
 }
 
 Query *Context::createQuery(unsigned int handle, GLenum type)
 {
-	QueryMap::iterator query = mQueryMap.find(handle);
-
-	if(query == mQueryMap.end())
+	if(!mQueryNameSpace.isReserved(handle))
 	{
-		return NULL;
+		return nullptr;
 	}
 	else
 	{
-		if(!query->second)
+		Query *query = mQueryNameSpace.find(handle);
+		if(!query)
 		{
-			query->second = new Query(handle, type);
-			query->second->addRef();
+			query = new Query(handle, type);
+			query->addRef();
+			mQueryNameSpace.insert(handle, query);
 		}
 
-		return query->second;
+		return query;
 	}
 }
 
 VertexArray *Context::getVertexArray(GLuint array) const
 {
-	VertexArrayMap::const_iterator vertexArray = mVertexArrayMap.find(array);
-
-	return (vertexArray == mVertexArrayMap.end()) ? nullptr : vertexArray->second;
+	return mVertexArrayNameSpace.find(array);
 }
 
 VertexArray *Context::getCurrentVertexArray() const
@@ -1538,9 +1457,7 @@ VertexArray *Context::getCurrentVertexArray() const
 
 bool Context::isVertexArray(GLuint array) const
 {
-	VertexArrayMap::const_iterator vertexArray = mVertexArrayMap.find(array);
-
-	return vertexArray != mVertexArrayMap.end();
+	return mVertexArrayNameSpace.isReserved(array);
 }
 
 bool Context::hasZeroDivisor() const
@@ -1561,9 +1478,7 @@ bool Context::hasZeroDivisor() const
 
 TransformFeedback *Context::getTransformFeedback(GLuint transformFeedback) const
 {
-	TransformFeedbackMap::const_iterator transformFeedbackObject = mTransformFeedbackMap.find(transformFeedback);
-
-	return (transformFeedbackObject == mTransformFeedbackMap.end()) ? NULL : transformFeedbackObject->second;
+	return mTransformFeedbackNameSpace.find(transformFeedback);
 }
 
 Sampler *Context::getSampler(GLuint sampler) const
@@ -3740,7 +3655,7 @@ void Context::detachBuffer(GLuint buffer)
 	{
 		if(mState.vertexAttribute[attribute].mBoundBuffer.name() == buffer)
 		{
-			mState.vertexAttribute[attribute].mBoundBuffer = NULL;
+			mState.vertexAttribute[attribute].mBoundBuffer = nullptr;
 		}
 	}
 }
@@ -3757,7 +3672,7 @@ void Context::detachTexture(GLuint texture)
         {
             if(mState.samplerTexture[type][sampler].name() == texture)
             {
-                mState.samplerTexture[type][sampler] = NULL;
+                mState.samplerTexture[type][sampler] = nullptr;
             }
         }
     }
@@ -3839,7 +3754,7 @@ void Context::detachSampler(GLuint sampler)
 		gl::BindingPointer<Sampler> &samplerBinding = mState.sampler[textureUnit];
 		if(samplerBinding.name() == sampler)
 		{
-			samplerBinding = NULL;
+			samplerBinding = nullptr;
 		}
 	}
 }
@@ -4095,8 +4010,8 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 
     if(mask & (GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT))
     {
-        Renderbuffer *readDSBuffer = NULL;
-        Renderbuffer *drawDSBuffer = NULL;
+        Renderbuffer *readDSBuffer = nullptr;
+        Renderbuffer *drawDSBuffer = nullptr;
 
         if(mask & GL_DEPTH_BUFFER_BIT)
         {
@@ -4357,7 +4272,7 @@ const GLubyte* Context::getExtensions(GLuint index, GLuint* numExt) const
 	if(index == GL_INVALID_INDEX)
 	{
 		static GLubyte* extensionsCat = nullptr;
-		if((extensionsCat == nullptr) && (numExtensions > 0))
+		if(!extensionsCat && (numExtensions > 0))
 		{
 			int totalLength = numExtensions; // 1 space between each extension name + terminating null
 			for(unsigned int i = 0; i < numExtensions; i++)
