@@ -194,6 +194,16 @@ int yylex(YYSTYPE* lvalp, Context* context)
         type = TOK_CONST_INT;
         break;
       }
+      case pp::Token::IDENTIFIER:
+        // Defined identifiers should have been expanded already.
+        // Unlike the C/C++ preprocessor, it does not default to 0.
+        // Use of such identifiers causes an error.
+        context->diagnostics->report(pp::Diagnostics::UNDEFINED_IDENTIFIER,
+                                     token->location, token->text);
+
+        *lvalp = 0;
+        type = TOK_CONST_INT;
+        break;
       case pp::Token::OP_OR: type = TOK_OP_OR; break;
       case pp::Token::OP_AND: type = TOK_OP_AND; break;
       case pp::Token::OP_NE: type = TOK_OP_NE; break;

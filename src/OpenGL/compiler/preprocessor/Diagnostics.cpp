@@ -109,6 +109,8 @@ std::string Diagnostics::message(ID id)
           return "invalid file number";
       case INVALID_LINE_DIRECTIVE:
           return "invalid line directive";
+      case UNDEFINED_IDENTIFIER:
+          return "undefined identifier";
       // Errors end.
       // Warnings begin.
       case EOF_IN_DIRECTIVE:

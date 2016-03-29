@@ -61,6 +61,7 @@ class Diagnostics
         INVALID_LINE_NUMBER,
         INVALID_FILE_NUMBER,
         INVALID_LINE_DIRECTIVE,
+		UNDEFINED_IDENTIFIER,
         ERROR_END,
 
         WARNING_BEGIN,
