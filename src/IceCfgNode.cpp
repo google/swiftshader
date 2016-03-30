@@ -325,11 +325,15 @@ public:
 using PhiDescList = llvm::SmallVector<PhiDesc, 32>;
 
 // Always pick NumPred=0 over NumPred>0.
-constexpr int32_t WeightNoPreds = 4;
+constexpr int32_t WeightNoPreds = 8;
 // Prefer Src as a register because the register might free up.
-constexpr int32_t WeightSrcIsReg = 2;
+constexpr int32_t WeightSrcIsReg = 4;
 // Prefer Dest not as a register because the register stays free longer.
-constexpr int32_t WeightDestNotReg = 1;
+constexpr int32_t WeightDestNotReg = 2;
+// Prefer NumPred=1 over NumPred>1.  This is used as a tiebreaker when a
+// dependency cycle must be broken so that hopefully only one temporary
+// assignment has to be added to break the cycle.
+constexpr int32_t WeightOnePred = 1;
 
 bool sameVarOrReg(TargetLowering *Target, const Variable *Var1,
                   const Operand *Opnd) {
@@ -357,12 +361,18 @@ bool sameVarOrReg(TargetLowering *Target, const Variable *Var1,
 }
 
 // Update NumPred for all Phi assignments using Var as their Dest variable.
-// Also update Weight if NumPred dropped from 1 to 0.
+// Also update Weight if NumPred dropped from 2 to 1, or 1 to 0.
 void updatePreds(PhiDescList &Desc, TargetLowering *Target, Variable *Var) {
   for (PhiDesc &Item : Desc) {
     if (!Item.Processed && sameVarOrReg(Target, Var, Item.Dest)) {
-      if (--Item.NumPred == 0) {
-        Item.Weight += WeightNoPreds;
+      --Item.NumPred;
+      if (Item.NumPred == 1) {
+        // If NumPred changed from 2 to 1, add in WeightOnePred.
+        Item.Weight += WeightOnePred;
+      } else if (Item.NumPred == 0) {
+        // If NumPred changed from 1 to 0, subtract WeightOnePred and add in
+        // WeightNoPreds.
+        Item.Weight += (WeightNoPreds - WeightOnePred);
       }
     }
   }
@@ -479,6 +489,8 @@ void CfgNode::advancedPhiLowering() {
       int32_t Weight = 0;
       if (Item.NumPred == 0)
         Weight += WeightNoPreds;
+      if (Item.NumPred == 1)
+        Weight += WeightOnePred;
       if (auto *Var = llvm::dyn_cast<Variable>(Item.Src))
         if (Var->hasReg())
           Weight += WeightSrcIsReg;
@@ -498,20 +510,18 @@ void CfgNode::advancedPhiLowering() {
       for (PhiDesc &Item : Desc) {
         if (Item.Processed)
           continue;
-        int32_t Weight = 0;
-        Weight = Item.Weight;
+        const int32_t Weight = Item.Weight;
         if (Weight > BestWeight) {
           BestItem = &Item;
           BestWeight = Weight;
         }
       }
       assert(BestWeight >= 0);
-      assert(BestItem->NumPred <= 1);
       Variable *Dest = BestItem->Dest;
       Operand *Src = BestItem->Src;
       assert(!sameVarOrReg(Target, Dest, Src));
       // Break a cycle by introducing a temporary.
-      if (BestItem->NumPred) {
+      while (BestItem->NumPred > 0) {
         bool Found = false;
         // If the target instruction "A=B" is part of a cycle, find the "X=A"
         // assignment in the cycle because it will have to be rewritten as
