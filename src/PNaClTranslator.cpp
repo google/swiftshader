@@ -446,6 +446,10 @@ private:
   // Defines if a module block has already been parsed.
   bool ParsedModuleBlock = false;
 
+  static const Ice::ClFlags &getFlags() {
+    return Ice::GlobalContext::getFlags();
+  }
+
   bool ParseBlock(unsigned BlockID) override;
 
   // Gets extended type associated with the given index, assuming the extended
@@ -489,8 +493,7 @@ private:
   // Installs names for global variables without names.
   void installGlobalVarNames() {
     assert(VariableDeclarations);
-    const std::string &GlobalPrefix =
-        getTranslator().getFlags().getDefaultGlobalPrefix();
+    const std::string &GlobalPrefix = getFlags().getDefaultGlobalPrefix();
     if (!GlobalPrefix.empty()) {
       NaClBcIndexSize_t NameIndex = 0;
       for (Ice::VariableDeclaration *Var : *VariableDeclarations) {
@@ -501,8 +504,7 @@ private:
 
   // Installs names for functions without names.
   void installFunctionNames() {
-    const std::string &FunctionPrefix =
-        getTranslator().getFlags().getDefaultFunctionPrefix();
+    const std::string &FunctionPrefix = getFlags().getDefaultFunctionPrefix();
     if (!FunctionPrefix.empty()) {
       NaClBcIndexSize_t NameIndex = 0;
       for (Ice::FunctionDeclaration *Func : FunctionDeclarations) {
@@ -588,8 +590,7 @@ bool TopLevelParser::ErrorAt(naclbitc::ErrorLevel Level, uint64_t Bit,
     NaClBitcodeParser::ErrorAt(Level, Bit, Message);
     setErrStream(OldErrStream);
   }
-  if (Level >= naclbitc::Error &&
-      !Translator.getFlags().getAllowErrorRecovery())
+  if (Level >= naclbitc::Error && !getFlags().getAllowErrorRecovery())
     Fatal();
   return true;
 }
@@ -693,7 +694,9 @@ protected:
   // Gets the translator associated with the bitcode parser.
   Ice::Translator &getTranslator() const { return Context->getTranslator(); }
 
-  const Ice::ClFlags &getFlags() const { return getTranslator().getFlags(); }
+  static const Ice::ClFlags &getFlags() {
+    return Ice::GlobalContext::getFlags();
+  }
 
   // Default implementation. Reports that block is unknown and skips its
   // contents.
@@ -3176,7 +3179,7 @@ bool ModuleParser::ParseBlock(unsigned BlockID) {
       std::unique_ptr<Ice::Cfg> Func = Parser.parseFunction(SeqNumber);
       bool Failed = Func->hasError();
       getTranslator().translateFcn(std::move(Func));
-      return Failed && !getTranslator().getFlags().getAllowErrorRecovery();
+      return Failed && !getFlags().getAllowErrorRecovery();
     }
   }
   default:
