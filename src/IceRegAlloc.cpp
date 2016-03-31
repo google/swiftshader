@@ -219,8 +219,6 @@ void LinearScan::initForInfOnly() {
       if (Instr.isDeleted())
         continue;
       FOREACH_VAR_IN_INST(Var, Instr) {
-        if (Var->isRematerializable())
-          continue;
         if (Var->getIgnoreLiveness())
           continue;
         if (Var->hasReg() || Var->mustHaveReg()) {
@@ -231,7 +229,7 @@ void LinearScan::initForInfOnly() {
         }
       }
       if (const Variable *Var = Instr.getDest()) {
-        if (!Var->isRematerializable() && !Var->getIgnoreLiveness() &&
+        if (!Var->getIgnoreLiveness() &&
             (Var->hasReg() || Var->mustHaveReg())) {
           if (LRBegin[Var->getIndex()] == Inst::NumberSentinel) {
             LRBegin[Var->getIndex()] = Instr.getNumber();

@@ -50,7 +50,7 @@ void Liveness::initInternal(NodeList::const_iterator FirstNode,
     Variable *Var = *I;
     if (VMetadata->isMultiBlock(Var)) {
       ++TmpNumGlobals;
-    } else {
+    } else if (VMetadata->isSingleBlock(Var)) {
       SizeT Index = VMetadata->getLocalUseNode(Var)->getIndex();
       ++Nodes[Index].NumLocals;
     }
@@ -81,18 +81,18 @@ void Liveness::initInternal(NodeList::const_iterator FirstNode,
   for (auto I = FirstVar, E = Func->getVariables().end(); I != E; ++I) {
     Variable *Var = *I;
     SizeT VarIndex = Var->getIndex();
-    SizeT LiveIndex;
+    SizeT LiveIndex = InvalidLiveIndex;
     if (VMetadata->isMultiBlock(Var)) {
       LiveIndex = TmpNumGlobals++;
       LiveToVarMap[LiveIndex] = Var;
-    } else {
+    } else if (VMetadata->isSingleBlock(Var)) {
       SizeT NodeIndex = VMetadata->getLocalUseNode(Var)->getIndex();
       LiveIndex = Nodes[NodeIndex].NumLocals++;
       Nodes[NodeIndex].LiveToVarMap[LiveIndex] = Var;
       LiveIndex += NumGlobals;
     }
     VarToLiveMap[VarIndex] = LiveIndex;
-    if (Var->getIgnoreLiveness())
+    if (LiveIndex == InvalidLiveIndex || Var->getIgnoreLiveness())
       RangeMask[VarIndex] = false;
   }
   assert(TmpNumGlobals == (IsFullInit ? NumGlobals : 0));

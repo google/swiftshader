@@ -661,7 +661,9 @@ public:
   void setIsImplicitArg(bool Val = true) { IsImplicitArgument = Val; }
 
   void setIgnoreLiveness() { IgnoreLiveness = true; }
-  bool getIgnoreLiveness() const { return IgnoreLiveness; }
+  bool getIgnoreLiveness() const {
+    return IgnoreLiveness || IsRematerializable;
+  }
 
   int32_t getStackOffset() const { return StackOffset; }
   void setStackOffset(int32_t Offset) { StackOffset = Offset; }
@@ -863,8 +865,6 @@ using InstDefList = CfgVector<const Inst *>;
 /// VariableTracking tracks the metadata for a single variable.  It is
 /// only meant to be used internally by VariablesMetadata.
 class VariableTracking {
-  VariableTracking &operator=(const VariableTracking &) = delete;
-
 public:
   enum MultiDefState {
     // TODO(stichnot): Consider using just a simple counter.
@@ -873,9 +873,16 @@ public:
     MDS_MultiDefSingleBlock,
     MDS_MultiDefMultiBlock
   };
-  enum MultiBlockState { MBS_Unknown, MBS_SingleBlock, MBS_MultiBlock };
+  enum MultiBlockState {
+    MBS_Unknown,     // Not yet initialized, so be conservative
+    MBS_NoUses,      // Known to have no uses
+    MBS_SingleBlock, // All uses in are in a single block
+    MBS_MultiBlock   // Several uses across several blocks
+  };
   VariableTracking() = default;
   VariableTracking(const VariableTracking &) = default;
+  VariableTracking &operator=(const VariableTracking &) = default;
+  VariableTracking(MultiBlockState MultiBlock) : MultiBlock(MultiBlock) {}
   MultiDefState getMultiDef() const { return MultiDef; }
   MultiBlockState getMultiBlock() const { return MultiBlock; }
   const Inst *getFirstDefinitionSingleBlock() const;
@@ -948,6 +955,7 @@ public:
   /// always considered multi-block because they are live coming into the entry
   /// block.
   bool isMultiBlock(const Variable *Var) const;
+  bool isSingleBlock(const Variable *Var) const;
   /// Returns the node that the given Variable is used in, assuming
   /// isMultiBlock() returns false. Otherwise, nullptr is returned.
   CfgNode *getLocalUseNode(const Variable *Var) const;

@@ -256,6 +256,7 @@ void VariableTracking::markUse(MetadataKind TrackingKind, const Inst *Instr,
   if (!MakeMulti) {
     switch (MultiBlock) {
     case MBS_Unknown:
+    case MBS_NoUses:
       MultiBlock = MBS_SingleBlock;
       SingleUseNode = Node;
       break;
@@ -370,7 +371,7 @@ void VariablesMetadata::init(MetadataKind TrackingKind) {
   TimerMarker T(TimerStack::TT_vmetadata, Func);
   Kind = TrackingKind;
   Metadata.clear();
-  Metadata.resize(Func->getNumVariables());
+  Metadata.resize(Func->getNumVariables(), VariableTracking::MBS_NoUses);
 
   // Mark implicit args as being used in the entry node.
   for (Variable *Var : Func->getImplicitArgs()) {
@@ -439,11 +440,42 @@ bool VariablesMetadata::isMultiDef(const Variable *Var) const {
 bool VariablesMetadata::isMultiBlock(const Variable *Var) const {
   if (Var->getIsArg())
     return true;
+  if (Var->isRematerializable())
+    return false;
   if (!isTracked(Var))
     return true; // conservative answer
   SizeT VarNum = Var->getIndex();
+  switch (Metadata[VarNum].getMultiBlock()) {
+  case VariableTracking::MBS_NoUses:
+  case VariableTracking::MBS_SingleBlock:
+    return false;
   // Conservatively return true if the state is unknown.
-  return Metadata[VarNum].getMultiBlock() != VariableTracking::MBS_SingleBlock;
+  case VariableTracking::MBS_Unknown:
+  case VariableTracking::MBS_MultiBlock:
+    return true;
+  }
+  assert(0);
+  return true;
+}
+
+bool VariablesMetadata::isSingleBlock(const Variable *Var) const {
+  if (Var->getIsArg())
+    return false;
+  if (Var->isRematerializable())
+    return false;
+  if (!isTracked(Var))
+    return false; // conservative answer
+  SizeT VarNum = Var->getIndex();
+  switch (Metadata[VarNum].getMultiBlock()) {
+  case VariableTracking::MBS_SingleBlock:
+    return true;
+  case VariableTracking::MBS_Unknown:
+  case VariableTracking::MBS_NoUses:
+  case VariableTracking::MBS_MultiBlock:
+    return false;
+  }
+  assert(0);
+  return false;
 }
 
 const Inst *

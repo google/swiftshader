@@ -67,7 +67,11 @@ public:
   Cfg *getFunc() const { return Func; }
   LivenessMode getMode() const { return Mode; }
   Variable *getVariable(SizeT LiveIndex, const CfgNode *Node) const;
-  SizeT getLiveIndex(SizeT VarIndex) const { return VarToLiveMap[VarIndex]; }
+  SizeT getLiveIndex(SizeT VarIndex) const {
+    const SizeT LiveIndex = VarToLiveMap[VarIndex];
+    assert(LiveIndex != InvalidLiveIndex);
+    return LiveIndex;
+  }
   SizeT getNumGlobalVars() const { return NumGlobals; }
   SizeT getNumVarsInNode(const CfgNode *Node) const {
     return NumGlobals + Nodes[Node->getIndex()].NumLocals;
@@ -106,6 +110,7 @@ private:
     if (Index >= Nodes.size())
       Nodes.resize(Index + 1);
   }
+  static constexpr SizeT InvalidLiveIndex = -1;
   Cfg *Func;
   LivenessMode Mode;
   SizeT NumGlobals = 0;

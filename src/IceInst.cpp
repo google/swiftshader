@@ -206,7 +206,7 @@ bool Inst::liveness(InstNumberT InstNumber, LivenessBV &Live,
   assert(!isDeleted());
 
   Dead = false;
-  if (Dest) {
+  if (Dest && !Dest->isRematerializable()) {
     SizeT VarNum = Liveness->getLiveIndex(Dest->getIndex());
     if (Live[VarNum]) {
       if (!isDestRedefined()) {
@@ -227,6 +227,8 @@ bool Inst::liveness(InstNumberT InstNumber, LivenessBV &Live,
   bool IsPhi = llvm::isa<InstPhi>(this);
   resetLastUses();
   FOREACH_VAR_IN_INST(Var, *this) {
+    if (Var->isRematerializable())
+      continue;
     SizeT VarNum = Liveness->getLiveIndex(Var->getIndex());
     if (!Live[VarNum]) {
       setLastUse(IndexOfVarInInst(Var));
@@ -411,10 +413,12 @@ void InstPhi::livenessPhiOperand(LivenessBV &Live, CfgNode *Target,
   for (SizeT I = 0; I < getSrcSize(); ++I) {
     if (Labels[I] == Target) {
       if (auto *Var = llvm::dyn_cast<Variable>(getSrc(I))) {
-        SizeT SrcIndex = Liveness->getLiveIndex(Var->getIndex());
-        if (!Live[SrcIndex]) {
-          setLastUse(I);
-          Live[SrcIndex] = true;
+        if (!Var->isRematerializable()) {
+          SizeT SrcIndex = Liveness->getLiveIndex(Var->getIndex());
+          if (!Live[SrcIndex]) {
+            setLastUse(I);
+            Live[SrcIndex] = true;
+          }
         }
       }
       return;
