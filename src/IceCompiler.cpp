@@ -144,8 +144,7 @@ void Compiler::run(const Ice::ClFlags &Flags, GlobalContext &Ctx,
     constexpr bool NoDumpCumulative = false;
     Ctx.dumpTimers(GlobalContext::TSK_Funcs, NoDumpCumulative);
   }
-  constexpr bool FinalStats = true;
-  Ctx.dumpStats("_FINAL_", FinalStats);
+  Ctx.dumpStats();
 }
 
 } // end of namespace Ice

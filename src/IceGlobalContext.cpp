@@ -244,12 +244,13 @@ void GlobalContext::waitForWorkerThreads() {
   }
 }
 
-void GlobalContext::CodeStats::dump(const std::string &Name,
-                                    GlobalContext *Ctx) {
+void GlobalContext::CodeStats::dump(const Cfg *Func, GlobalContext *Ctx) {
   if (!BuildDefs::dump())
     return;
   OstreamLocker _(Ctx);
   Ostream &Str = Ctx->getStrDump();
+  const std::string Name =
+      (Func == nullptr ? "_FINAL_" : Func->getFunctionNameAndSize());
 #define X(str, tag)                                                            \
   Str << "|" << Name << "|" str "|" << Stats[CS_##tag] << "\n";
   CODESTATS_TABLE
@@ -276,6 +277,10 @@ void GlobalContext::CodeStats::dump(const std::string &Name,
     Str << "|ExtRel=" << Pool->ExternRelocatables.size();
   }
   Str << "\n";
+  if (Func != nullptr) {
+    Str << "|" << Name << "|Cfg Memory  |" << Func->getTotalMemoryMB()
+        << " MB\n";
+  }
 }
 
 GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit, Ostream *OsError,
@@ -380,7 +385,7 @@ void GlobalContext::translateFunctions() {
         // stats have been fully collected into this thread's TLS.
         // Dump them before TLS is reset for the next Cfg.
         if (BuildDefs::dump())
-          dumpStats(Func->getFunctionNameAndSize());
+          dumpStats(Func.get());
         auto Asm = Func->releaseAssembler();
         // Copy relevant fields into Asm before Func is deleted.
         Asm->setFunctionName(Func->getFunctionName());
@@ -634,7 +639,7 @@ void GlobalContext::emitItems() {
         // differently-typed copy.
         CfgLocalAllocatorScope _(Func.get());
         Func->emit();
-        dumpStats(Func->getFunctionNameAndSize());
+        dumpStats(Func.get());
       } break;
       }
     }
@@ -944,13 +949,13 @@ std::unique_ptr<EmitterWorkItem> GlobalContext::emitQueueBlockingPop() {
   return EmitQ.blockingPop();
 }
 
-void GlobalContext::dumpStats(const std::string &Name, bool Final) {
+void GlobalContext::dumpStats(const Cfg *Func) {
   if (!getFlags().getDumpStats())
     return;
-  if (Final) {
-    getStatsCumulative()->dump(Name, this);
+  if (Func == nullptr) {
+    getStatsCumulative()->dump(Func, this);
   } else {
-    ICE_TLS_GET_FIELD(TLS)->StatsFunction.dump(Name, this);
+    ICE_TLS_GET_FIELD(TLS)->StatsFunction.dump(Func, this);
   }
 }
 

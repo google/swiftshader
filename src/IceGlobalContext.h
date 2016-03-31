@@ -106,7 +106,9 @@ class GlobalContext {
       for (uint32_t i = 0; i < Stats.size(); ++i)
         Stats[i] += Other.Stats[i];
     }
-    void dump(const std::string &Name, GlobalContext *Ctx);
+    /// Dumps the stats for the given Cfg.  If Func==nullptr, it identifies it
+    /// as the "final" cumulative stats instead as a specific function's name.
+    void dump(const Cfg *Func, GlobalContext *Ctx);
 
   private:
     std::array<uint32_t, CS_NUM> Stats;
@@ -301,7 +303,7 @@ public:
     if (BuildDefs::dump())
       ICE_TLS_GET_FIELD(TLS)->StatsFunction.reset();
   }
-  void dumpStats(const std::string &Name, bool Final = false);
+  void dumpStats(const Cfg *Func = nullptr);
   void statsUpdateEmitted(uint32_t InstCount) {
     if (!getFlags().getDumpStats())
       return;
