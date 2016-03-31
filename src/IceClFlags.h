@@ -130,6 +130,9 @@ private:
 
 public:
   bool isSequential() const { return NumTranslationThreads == 0; }
+  bool isParseParallel() const {
+    return getParseParallel() && !isSequential() && getBuildOnRead();
+  }
   std::string getAppName() const { return AppName; }
   void setAppName(const std::string &Value) { AppName = Value; }
 

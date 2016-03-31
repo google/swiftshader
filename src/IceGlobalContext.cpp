@@ -287,11 +287,11 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit, Ostream *OsError,
                              ELFStreamer *ELFStr)
     : Strings(new StringPool()), ConstPool(new ConstantPool()), ErrorStatus(),
       StrDump(OsDump), StrEmit(OsEmit), StrError(OsError), IntrinsicsInfo(this),
-      ObjectWriter(), OptQ(/*Sequential=*/Flags.isSequential(),
-                           /*MaxSize=*/
-                           (Flags.getParseParallel() && Flags.getBuildOnRead())
-                               ? MaxOptQSize
-                               : Flags.getNumTranslationThreads()),
+      ObjectWriter(),
+      OptQ(/*Sequential=*/Flags.isSequential(),
+           /*MaxSize=*/
+           Flags.isParseParallel() ? MaxOptQSize
+                                   : Flags.getNumTranslationThreads()),
       // EmitQ is allowed unlimited size.
       EmitQ(/*Sequential=*/Flags.isSequential()),
       DataLowering(TargetDataLowering::createLowering(this)) {

@@ -2995,7 +2995,8 @@ public:
   ModuleParser(unsigned BlockID, TopLevelParser *Context)
       : BlockParserBaseClass(BlockID, Context),
         Timer(Ice::TimerStack::TT_parseModule,
-              Context->getTranslator().getContext()) {}
+              Context->getTranslator().getContext()),
+        IsParseParallel(Ice::GlobalContext::Flags.isParseParallel()) {}
   ~ModuleParser() override = default;
   const char *getBlockName() const override { return "module"; }
   NaClBitstreamCursor &getCursor() const { return Record.GetCursor(); }
@@ -3007,6 +3008,7 @@ private:
   bool GlobalDeclarationNamesAndInitializersInstalled = false;
   // True if we have already processed the symbol table for the module.
   bool FoundValuesymtab = false;
+  const bool IsParseParallel;
 
   // Generates names for unnamed global addresses (i.e. functions and global
   // variables). Then lowers global variable declaration initializers to the
@@ -3148,7 +3150,7 @@ bool ModuleParser::ParseBlock(unsigned BlockID) {
     Ice::GlobalContext *Ctx = Context->getTranslator().getContext();
     uint32_t SeqNumber = Context->getTranslator().getNextSequenceNumber();
     NaClBcIndexSize_t FcnId = Context->getNextFunctionBlockValueID();
-    if (Ctx->getFlags().getParseParallel()) {
+    if (IsParseParallel) {
       // Skip the block and copy into a buffer. Note: We copy into a buffer
       // using the top-level parser to make sure that the underlying
       // buffer reading from the data streamer is not thread safe.
