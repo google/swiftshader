@@ -29,6 +29,7 @@
 #include "IceUtils.h"
 
 #include <array>
+#include <atomic>
 #include <cassert>
 #include <functional>
 #include <memory>
@@ -52,6 +53,21 @@ enum class RuntimeHelper {
   RUNTIME_HELPER_FUNCTIONS_TABLE
 #undef X
       H_Num
+};
+
+/// OptWorkItem is a simple wrapper used to pass parse information on a function
+/// block, to a translator thread.
+class OptWorkItem {
+  OptWorkItem(const OptWorkItem &) = delete;
+  OptWorkItem &operator=(const OptWorkItem &) = delete;
+
+public:
+  // Get the Cfg for the funtion to translate.
+  virtual std::unique_ptr<Cfg> getParsedCfg() = 0;
+  virtual ~OptWorkItem() = default;
+
+protected:
+  OptWorkItem() = default;
 };
 
 class GlobalContext {
@@ -358,12 +374,12 @@ public:
   /// Notifies any idle workers that a new function is available for
   /// translating. May block if the work queue is too large, in order to control
   /// memory footprint.
-  void optQueueBlockingPush(std::unique_ptr<Cfg> Func);
+  void optQueueBlockingPush(std::unique_ptr<OptWorkItem> Item);
   /// Takes a Cfg from the work queue for translating. May block if the work
   /// queue is currently empty. Returns nullptr if there is no more work - the
   /// queue is empty and either end() has been called or the Sequential flag was
   /// set.
-  std::unique_ptr<Cfg> optQueueBlockingPop();
+  std::unique_ptr<OptWorkItem> optQueueBlockingPop();
   /// Notifies that no more work will be added to the work queue.
   void optQueueNotifyEnd() { OptQ.notifyEnd(); }
 
@@ -405,34 +421,7 @@ public:
     }
   }
 
-  void waitForWorkerThreads() {
-    optQueueNotifyEnd();
-    for (std::thread &Worker : TranslationThreads) {
-      Worker.join();
-    }
-    TranslationThreads.clear();
-
-    // Only notify the emit queue to end after all the translation threads have
-    // ended.
-    emitQueueNotifyEnd();
-    for (std::thread &Worker : EmitterThreads) {
-      Worker.join();
-    }
-    EmitterThreads.clear();
-
-    if (BuildDefs::timers()) {
-      auto Timers = getTimers();
-      for (ThreadContext *TLS : AllThreadContexts)
-        Timers->mergeFrom(TLS->Timers);
-    }
-    if (BuildDefs::dump()) {
-      // Do a separate loop over AllThreadContexts to avoid holding two locks
-      // at once.
-      auto Stats = getStatsCumulative();
-      for (ThreadContext *TLS : AllThreadContexts)
-        Stats->add(TLS->StatsCumulative);
-    }
-  }
+  void waitForWorkerThreads();
 
   /// Translation thread startup routine.
   void translateFunctionsWrapper(ThreadContext *MyTLS) {
@@ -545,12 +534,16 @@ private:
   Ostream *StrEmit;  /// Stream for code emission
   Ostream *StrError; /// Stream for logging errors.
 
+  // True if waitForWorkerThreads() has been called.
+  std::atomic_bool WaitForWorkerThreadsCalled;
+
   ICE_CACHELINE_BOUNDARY;
 
   Intrinsics IntrinsicsInfo;
   // TODO(jpp): move to EmitterContext.
   std::unique_ptr<ELFObjectWriter> ObjectWriter;
-  BoundedProducerConsumerQueue<Cfg> OptQ;
+  static constexpr size_t MaxOptQSize = 1 << 16;
+  BoundedProducerConsumerQueue<OptWorkItem, MaxOptQSize> OptQ;
   BoundedProducerConsumerQueue<EmitterWorkItem> EmitQ;
   // DataLowering is only ever used by a single thread at a time (either in
   // emitItems(), or in IceCompiler::run before the compilation is over.)

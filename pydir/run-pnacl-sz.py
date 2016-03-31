@@ -94,6 +94,9 @@ def main():
                            help='Input is textual bitcode (not .ll)')
     argparser.add_argument('--expect-fail', required=False, action='store_true',
                            help='Negate success of run by using LLVM not')
+    argparser.add_argument('--allow-pnacl-reader-error-recovery',
+                           action='store_true',
+                           help='Continue parsing after first error')
     argparser.add_argument('--args', '-a', nargs=argparse.REMAINDER,
                            default=[],
                            help='Remaining arguments are passed to pnacl-sz')
@@ -118,7 +121,9 @@ def main():
       raise RuntimeError("Can't specify both '--tbc' and '--llvm'")
 
     if args.forceasm:
-      if args.filetype == 'asm':
+      if args.expect_fail:
+        args.forceasm = False
+      elif args.filetype == 'asm':
         pass
       elif args.filetype == 'iasm':
         # TODO(sehr) implement forceasm for iasm.
@@ -148,6 +153,8 @@ def main():
       # single-threaded translation because dump output does not get
       # reassembled into order.
       cmd += ['-verbose', 'inst,global_init', '-notranslate', '-threads=0']
+    elif args.allow_pnacl_reader_error_recovery:
+      cmd += ['-allow-pnacl-reader-error-recovery', '-threads=0']
     if not args.llvm_source:
       cmd += ['--bitcode-format=pnacl']
       if not args.no_local_syms:

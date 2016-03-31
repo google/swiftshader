@@ -25,7 +25,8 @@ void IceTest::SubzeroBitcodeMunger::resetMungeFlags() {
   Flags.setOptLevel(Ice::Opt_m1);
   Flags.setOutFileType(Ice::FT_Iasm);
   Flags.setTargetArch(Ice::Target_X8632);
-  Flags.setVerbose(Ice::IceV_Instructions);
+  Flags.setNumTranslationThreads(0);
+  Flags.setParseParallel(false);
 }
 
 bool IceTest::SubzeroBitcodeMunger::runTest(const uint64_t Munges[],
@@ -34,10 +35,12 @@ bool IceTest::SubzeroBitcodeMunger::runTest(const uint64_t Munges[],
   const bool AddHeader = true;
   setupTest(Munges, MungeSize, AddHeader);
   Ice::GlobalContext Ctx(DumpStream, DumpStream, DumpStream, nullptr);
+  Ctx.startWorkerThreads();
   Ice::PNaClTranslator Translator(&Ctx);
   const char *BufferName = "Test";
   Flags.setDisableTranslation(DisableTranslation);
   Translator.translateBuffer(BufferName, MungedInput.get());
+  Ctx.waitForWorkerThreads();
 
   cleanupTest();
   return Translator.getErrorStatus().value() == 0;

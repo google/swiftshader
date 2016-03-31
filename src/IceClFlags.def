@@ -196,6 +196,9 @@ struct dev_list_flag {};
                    "Low-level integrated assembly ('.s') file"),               \
         clEnumValEnd))                                                         \
                                                                                \
+  X(ParseParallel, bool, dev_opt_flag, "parse-parallel",                       \
+    cl::desc("Parse function blocks in parallel"), cl::init(true))             \
+                                                                               \
   X(RandomizeAndPoolImmediatesOption, Ice::RandomizeAndPoolImmediatesEnum,     \
     dev_opt_flag, "randomize-pool-immediates",                                 \
     cl::desc("Randomize or pooling the representation of immediates"),         \

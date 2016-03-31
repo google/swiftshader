@@ -213,6 +213,37 @@ public:
   UndefPool Undefs;
 };
 
+void GlobalContext::waitForWorkerThreads() {
+  if (WaitForWorkerThreadsCalled.exchange(true))
+    return;
+  optQueueNotifyEnd();
+  for (std::thread &Worker : TranslationThreads) {
+    Worker.join();
+  }
+  TranslationThreads.clear();
+
+  // Only notify the emit queue to end after all the translation threads have
+  // ended.
+  emitQueueNotifyEnd();
+  for (std::thread &Worker : EmitterThreads) {
+    Worker.join();
+  }
+  EmitterThreads.clear();
+
+  if (BuildDefs::timers()) {
+    auto Timers = getTimers();
+    for (ThreadContext *TLS : AllThreadContexts)
+      Timers->mergeFrom(TLS->Timers);
+  }
+  if (BuildDefs::dump()) {
+    // Do a separate loop over AllThreadContexts to avoid holding two locks at
+    // once.
+    auto Stats = getStatsCumulative();
+    for (ThreadContext *TLS : AllThreadContexts)
+      Stats->add(TLS->StatsCumulative);
+  }
+}
+
 void GlobalContext::CodeStats::dump(const std::string &Name,
                                     GlobalContext *Ctx) {
   if (!BuildDefs::dump())
@@ -252,7 +283,10 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit, Ostream *OsError,
     : Strings(new StringPool()), ConstPool(new ConstantPool()), ErrorStatus(),
       StrDump(OsDump), StrEmit(OsEmit), StrError(OsError), IntrinsicsInfo(this),
       ObjectWriter(), OptQ(/*Sequential=*/Flags.isSequential(),
-                           /*MaxSize=*/Flags.getNumTranslationThreads()),
+                           /*MaxSize=*/
+                           (Flags.getParseParallel() && Flags.getBuildOnRead())
+                               ? MaxOptQSize
+                               : Flags.getNumTranslationThreads()),
       // EmitQ is allowed unlimited size.
       EmitQ(/*Sequential=*/Flags.isSequential()),
       DataLowering(TargetDataLowering::createLowering(this)) {
@@ -305,7 +339,8 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit, Ostream *OsError,
 
 void GlobalContext::translateFunctions() {
   TimerMarker Timer(TimerStack::TT_translateFunctions, this);
-  while (std::unique_ptr<Cfg> Func = optQueueBlockingPop()) {
+  while (std::unique_ptr<OptWorkItem> OptItem = optQueueBlockingPop()) {
+    auto Func = OptItem->getParsedCfg();
     // Install Func in TLS for Cfg-specific container allocators.
     CfgLocalAllocatorScope _(Func.get());
     // Reset per-function stats being accumulated in TLS.
@@ -878,19 +913,19 @@ void GlobalContext::setTimerName(TimerStackIdT StackID,
 // interface to take and transfer ownership, but they internally store the raw
 // Cfg pointer in the work queue. This allows e.g. future queue optimizations
 // such as the use of atomics to modify queue elements.
-void GlobalContext::optQueueBlockingPush(std::unique_ptr<Cfg> Func) {
-  assert(Func);
+void GlobalContext::optQueueBlockingPush(std::unique_ptr<OptWorkItem> Item) {
+  assert(Item);
   {
     TimerMarker _(TimerStack::TT_qTransPush, this);
-    OptQ.blockingPush(std::move(Func));
+    OptQ.blockingPush(std::move(Item));
   }
   if (getFlags().isSequential())
     translateFunctions();
 }
 
-std::unique_ptr<Cfg> GlobalContext::optQueueBlockingPop() {
+std::unique_ptr<OptWorkItem> GlobalContext::optQueueBlockingPop() {
   TimerMarker _(TimerStack::TT_qTransPop, this);
-  return std::unique_ptr<Cfg>(OptQ.blockingPop());
+  return std::unique_ptr<OptWorkItem>(OptQ.blockingPop());
 }
 
 void GlobalContext::emitQueueBlockingPush(

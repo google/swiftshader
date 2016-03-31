@@ -221,7 +221,7 @@ private:
 class BlockParserBaseClass;
 
 // Top-level class to read PNaCl bitcode files, and translate to ICE.
-class TopLevelParser : public NaClBitcodeParser {
+class TopLevelParser final : public NaClBitcodeParser {
   TopLevelParser() = delete;
   TopLevelParser(const TopLevelParser &) = delete;
   TopLevelParser &operator=(const TopLevelParser &) = delete;
@@ -237,20 +237,13 @@ public:
 
   Ice::Translator &getTranslator() const { return Translator; }
 
-  void setBlockParser(BlockParserBaseClass *NewBlockParser) {
-    BlockParser = NewBlockParser;
-  }
-
   /// Generates error with given Message, occurring at BitPosition within the
   /// bitcode file. Always returns true.
   bool ErrorAt(naclbitc::ErrorLevel Level, uint64_t BitPosition,
-               const std::string &Message) final;
+               const std::string &Message) override;
 
   /// Generates error message with respect to the current block parser.
   bool blockError(const std::string &Message);
-
-  /// Returns the number of errors found while parsing the bitcode file.
-  unsigned getNumErrors() const { return NumErrors; }
 
   /// Changes the size of the type list to the given size.
   void resizeTypeIDValues(size_t NewSize) { TypeIDValues.resize(NewSize); }
@@ -428,10 +421,12 @@ public:
 private:
   // The translator associated with the parser.
   Ice::Translator &Translator;
+
+  // ErrorStatus should only be updated while this lock is locked.
+  Ice::GlobalLockType ErrorReportingLock;
   // The exit status that should be set to true if an error occurs.
   Ice::ErrorCode &ErrorStatus;
-  // The number of errors reported.
-  unsigned NumErrors = 0;
+
   // The types associated with each type ID.
   std::vector<ExtendedType> TypeIDValues;
   // The set of functions (prototype and defined).
@@ -448,8 +443,6 @@ private:
   Ice::ConstantList ValueIDConstants;
   // Error recovery value to use when getFuncSigTypeByID fails.
   Ice::FuncSigType UndefinedFuncSigType;
-  // The block parser currently being applied. Used for error reporting.
-  BlockParserBaseClass *BlockParser = nullptr;
   // Defines if a module block has already been parsed.
   bool ParsedModuleBlock = false;
 
@@ -584,9 +577,11 @@ private:
 
 bool TopLevelParser::ErrorAt(naclbitc::ErrorLevel Level, uint64_t Bit,
                              const std::string &Message) {
-  ErrorStatus.assign(Ice::EC_Bitcode);
-  ++NumErrors;
   Ice::GlobalContext *Context = Translator.getContext();
+  {
+    std::unique_lock<Ice::GlobalLockType> _(ErrorReportingLock);
+    ErrorStatus.assign(Ice::EC_Bitcode);
+  }
   { // Lock while printing out error message.
     Ice::OstreamLocker L(Context);
     raw_ostream &OldErrStream = setErrStream(Context->getStrError());
@@ -665,11 +660,14 @@ class BlockParserBaseClass : public NaClBitcodeParser {
 public:
   // Constructor for the top-level module block parser.
   BlockParserBaseClass(unsigned BlockID, TopLevelParser *Context)
-      : NaClBitcodeParser(BlockID, Context), Context(Context) {
-    Context->setBlockParser(this);
-  }
+      : NaClBitcodeParser(BlockID, Context), Context(Context) {}
 
-  ~BlockParserBaseClass() override { Context->setBlockParser(nullptr); }
+  BlockParserBaseClass(unsigned BlockID, BlockParserBaseClass *EnclosingParser,
+                       NaClBitstreamCursor &Cursor)
+      : NaClBitcodeParser(BlockID, EnclosingParser, Cursor),
+        Context(EnclosingParser->Context) {}
+
+  ~BlockParserBaseClass() override {}
 
   // Returns the printable name of the type of block being parsed.
   virtual const char *getBlockName() const {
@@ -679,11 +677,13 @@ public:
 
   // Generates an error Message with the Bit address prefixed to it.
   bool ErrorAt(naclbitc::ErrorLevel Level, uint64_t Bit,
-               const std::string &Message) final;
+               const std::string &Message) override;
 
 protected:
   // The context parser that contains the decoded state.
   TopLevelParser *Context;
+  // True if ErrorAt has been called in this block.
+  bool BlockHasError = false;
 
   // Constructor for nested block parsers.
   BlockParserBaseClass(unsigned BlockID, BlockParserBaseClass *EnclosingParser)
@@ -752,15 +752,19 @@ private:
 };
 
 bool TopLevelParser::blockError(const std::string &Message) {
-  if (BlockParser)
-    return BlockParser->Error(Message);
-  else
-    return Error(Message);
+  // TODO(kschimpf): Remove this method. This method used to redirect
+  // block-level errors to the block we are in, rather than the top-level
+  // block. This gave better bit location for error messages. However, with
+  // parallel parsing, we can't keep a field to redirect (there could be many
+  // and we don't know which block parser applies). Hence, This redirect can't
+  // be applied anymore.
+  return Error(Message);
 }
 
 // Generates an error Message with the bit address prefixed to it.
 bool BlockParserBaseClass::ErrorAt(naclbitc::ErrorLevel Level, uint64_t Bit,
                                    const std::string &Message) {
+  BlockHasError = true;
   std::string Buffer;
   raw_string_ostream StrBuf(Buffer);
   // Note: If dump routines have been turned off, the error messages will not
@@ -817,7 +821,7 @@ void BlockParserBaseClass::ProcessRecord() {
 }
 
 // Class to parse a types block.
-class TypesParser : public BlockParserBaseClass {
+class TypesParser final : public BlockParserBaseClass {
   TypesParser() = delete;
   TypesParser(const TypesParser &) = delete;
   TypesParser &operator=(const TypesParser &) = delete;
@@ -1021,7 +1025,7 @@ void TypesParser::ProcessRecord() {
 
 /// Parses the globals block (i.e. global variable declarations and
 /// corresponding initializers).
-class GlobalsParser : public BlockParserBaseClass {
+class GlobalsParser final : public BlockParserBaseClass {
   GlobalsParser() = delete;
   GlobalsParser(const GlobalsParser &) = delete;
   GlobalsParser &operator=(const GlobalsParser &) = delete;
@@ -1037,7 +1041,7 @@ public:
     Context->getGlobalVariablesPool()->willNotBeEmitted(DummyGlobalVar);
   }
 
-  ~GlobalsParser() final = default;
+  ~GlobalsParser() override = default;
 
   const char *getBlockName() const override { return "globals"; }
 
@@ -1341,29 +1345,37 @@ void ValuesymtabParser::ProcessRecord() {
 }
 
 /// Parses function blocks in the bitcode file.
-class FunctionParser : public BlockParserBaseClass {
+class FunctionParser final : public BlockParserBaseClass {
   FunctionParser() = delete;
   FunctionParser(const FunctionParser &) = delete;
   FunctionParser &operator=(const FunctionParser &) = delete;
 
 public:
-  FunctionParser(unsigned BlockID, BlockParserBaseClass *EnclosingParser)
+  FunctionParser(unsigned BlockID, BlockParserBaseClass *EnclosingParser,
+                 NaClBcIndexSize_t FcnId)
       : BlockParserBaseClass(BlockID, EnclosingParser),
         Timer(Ice::TimerStack::TT_parseFunctions, getTranslator().getContext()),
-        Func(nullptr), FcnId(Context->getNextFunctionBlockValueID()),
-        FuncDecl(Context->getFunctionByID(FcnId)),
+        Func(nullptr), FuncDecl(Context->getFunctionByID(FcnId)),
         CachedNumGlobalValueIDs(Context->getNumGlobalIDs()),
         NextLocalInstIndex(Context->getNumGlobalIDs()) {}
 
-  bool convertFunction() {
+  FunctionParser(unsigned BlockID, BlockParserBaseClass *EnclosingParser,
+                 NaClBcIndexSize_t FcnId, NaClBitstreamCursor &Cursor)
+      : BlockParserBaseClass(BlockID, EnclosingParser, Cursor),
+        Timer(Ice::TimerStack::TT_parseFunctions, getTranslator().getContext()),
+        Func(nullptr), FuncDecl(Context->getFunctionByID(FcnId)),
+        CachedNumGlobalValueIDs(Context->getNumGlobalIDs()),
+        NextLocalInstIndex(Context->getNumGlobalIDs()) {}
+
+  std::unique_ptr<Ice::Cfg> parseFunction(uint32_t SeqNumber) {
     bool ParserResult;
+    Ice::GlobalContext *Ctx = getTranslator().getContext();
     {
-      Ice::TimerMarker T(getTranslator().getContext(),
-                         FuncDecl->getName().toStringOrEmpty());
+      Ice::TimerMarker T(Ctx, FuncDecl->getName().toStringOrEmpty());
       // Note: The Cfg is created, even when IR generation is disabled. This is
       // done to install a CfgLocalAllocator for various internal containers.
       Ice::GlobalContext *Ctx = getTranslator().getContext();
-      Func = Ice::Cfg::create(Ctx, getTranslator().getNextSequenceNumber());
+      Func = Ice::Cfg::create(Ctx, SeqNumber);
 
       Ice::CfgLocalAllocatorScope _(Func.get());
 
@@ -1380,23 +1392,15 @@ public:
       }
 
       ParserResult = ParseThisBlock();
-
-      // Note: Once any errors have been found, we turn off all translation of
-      // all remaining functions. This allows successive parsing errors to be
-      // reported, without adding extra checks to the translator for such
-      // parsing errors.
-    }
-    if (Context->getNumErrors() == 0 && Func) {
-      getTranslator().translateFcn(std::move(Func));
-      // The translator now has ownership of Func.
-    } else {
-      Func.reset();
     }
 
-    return ParserResult;
+    if (ParserResult || BlockHasError)
+      Func->setError("Unable to parse function");
+
+    return std::move(Func);
   }
 
-  ~FunctionParser() final = default;
+  ~FunctionParser() override = default;
 
   const char *getBlockName() const override { return "function"; }
 
@@ -1440,8 +1444,6 @@ private:
   NaClBcIndexSize_t DeclaredNumberBbs = 0;
   // The basic block being built.
   Ice::CfgNode *CurrentNode = nullptr;
-  // The ID for the function.
-  NaClBcIndexSize_t FcnId;
   // The corresponding function declaration.
   Ice::FunctionDeclaration *FuncDecl;
   // Holds the dividing point between local and global absolute value indices.
@@ -1459,7 +1461,7 @@ private:
 
   void ProcessRecord() override;
 
-  void EnterBlock(unsigned NumWords) final {
+  void EnterBlock(unsigned NumWords) override {
     // Note: Bitstream defines words as 32-bit values.
     NumBytesDefiningFunction = NumWords * sizeof(uint32_t);
     // We know that all records are minimally defined by a two-bit abreviation.
@@ -2780,7 +2782,7 @@ void FunctionParser::ProcessRecord() {
 }
 
 /// Parses constants within a function block.
-class ConstantsParser : public BlockParserBaseClass {
+class ConstantsParser final : public BlockParserBaseClass {
   ConstantsParser() = delete;
   ConstantsParser(const ConstantsParser &) = delete;
   ConstantsParser &operator=(const ConstantsParser &) = delete;
@@ -2897,7 +2899,7 @@ void ConstantsParser::ProcessRecord() {
 }
 
 // Parses valuesymtab blocks appearing in a function block.
-class FunctionValuesymtabParser : public ValuesymtabParser {
+class FunctionValuesymtabParser final : public ValuesymtabParser {
   FunctionValuesymtabParser() = delete;
   FunctionValuesymtabParser(const FunctionValuesymtabParser &) = delete;
   void operator=(const FunctionValuesymtabParser &) = delete;
@@ -2915,10 +2917,10 @@ private:
     return reinterpret_cast<FunctionParser *>(GetEnclosingParser());
   }
 
-  const char *getTableKind() const final { return "Function"; }
+  const char *getTableKind() const override { return "Function"; }
 
-  void setValueName(NaClBcIndexSize_t Index, StringType &Name) final;
-  void setBbName(NaClBcIndexSize_t Index, StringType &Name) final;
+  void setValueName(NaClBcIndexSize_t Index, StringType &Name) override;
+  void setBbName(NaClBcIndexSize_t Index, StringType &Name) override;
 
   // Reports that the assignment of Name to the value associated with index is
   // not possible, for the given Context.
@@ -2984,7 +2986,7 @@ bool FunctionParser::ParseBlock(unsigned BlockID) {
 }
 
 /// Parses the module block in the bitcode file.
-class ModuleParser : public BlockParserBaseClass {
+class ModuleParser final : public BlockParserBaseClass {
   ModuleParser() = delete;
   ModuleParser(const ModuleParser &) = delete;
   ModuleParser &operator=(const ModuleParser &) = delete;
@@ -2994,10 +2996,9 @@ public:
       : BlockParserBaseClass(BlockID, Context),
         Timer(Ice::TimerStack::TT_parseModule,
               Context->getTranslator().getContext()) {}
-
   ~ModuleParser() override = default;
-
   const char *getBlockName() const override { return "module"; }
+  NaClBitstreamCursor &getCursor() const { return Record.GetCursor(); }
 
 private:
   Ice::TimerMarker Timer;
@@ -3025,7 +3026,10 @@ private:
   }
   bool ParseBlock(unsigned BlockID) override;
 
-  void ExitBlock() override { installGlobalNamesAndGlobalVarInitializers(); }
+  void ExitBlock() override {
+    installGlobalNamesAndGlobalVarInitializers();
+    Context->getTranslator().getContext()->waitForWorkerThreads();
+  }
 
   void ProcessRecord() override;
 };
@@ -3045,9 +3049,9 @@ public:
 
 private:
   Ice::TimerMarker Timer;
-  const char *getTableKind() const final { return "Module"; }
-  void setValueName(NaClBcIndexSize_t Index, StringType &Name) final;
-  void setBbName(NaClBcIndexSize_t Index, StringType &Name) final;
+  const char *getTableKind() const override { return "Module"; }
+  void setValueName(NaClBcIndexSize_t Index, StringType &Name) override;
+  void setBbName(NaClBcIndexSize_t Index, StringType &Name) override;
 };
 
 void ModuleValuesymtabParser::setValueName(NaClBcIndexSize_t Index,
@@ -3073,6 +3077,44 @@ void ModuleValuesymtabParser::setValueName(NaClBcIndexSize_t Index,
 void ModuleValuesymtabParser::setBbName(NaClBcIndexSize_t Index,
                                         StringType &Name) {
   reportUnableToAssign("Basic block", Index, Name);
+}
+
+class CfgParserWorkItem final : public Ice::OptWorkItem {
+  CfgParserWorkItem() = delete;
+  CfgParserWorkItem(const CfgParserWorkItem &) = delete;
+  CfgParserWorkItem &operator=(const CfgParserWorkItem &) = delete;
+
+public:
+  CfgParserWorkItem(unsigned BlockID, NaClBcIndexSize_t FcnId,
+                    ModuleParser *ModParser, std::unique_ptr<uint8_t[]> Buffer,
+                    uintptr_t BufferSize, uint64_t StartBit, uint32_t SeqNumber)
+      : BlockID(BlockID), FcnId(FcnId), ModParser(ModParser),
+        Buffer(std::move(Buffer)), BufferSize(BufferSize), StartBit(StartBit),
+        SeqNumber(SeqNumber) {}
+  std::unique_ptr<Ice::Cfg> getParsedCfg() override;
+  ~CfgParserWorkItem() override = default;
+
+private:
+  const unsigned BlockID;
+  const NaClBcIndexSize_t FcnId;
+  // Note: ModParser can't be const because the function parser needs to
+  // access non-const member functions (of ModuleParser and TopLevelParser).
+  // TODO(kschimpf): Fix this issue.
+  ModuleParser *ModParser;
+  const std::unique_ptr<uint8_t[]> Buffer;
+  const uintptr_t BufferSize;
+  const uint64_t StartBit;
+  const uint32_t SeqNumber;
+};
+
+std::unique_ptr<Ice::Cfg> CfgParserWorkItem::getParsedCfg() {
+  NaClBitstreamCursor &OldCursor(ModParser->getCursor());
+  llvm::NaClBitstreamReader Reader(Buffer.get(), Buffer.get() + BufferSize,
+                                   OldCursor.getBitStreamReader());
+  NaClBitstreamCursor NewCursor(Reader);
+  NewCursor.JumpToBit(NewCursor.getWordBitNo(StartBit));
+  FunctionParser Parser(BlockID, ModParser, FcnId, NewCursor);
+  return Parser.parseFunction(SeqNumber);
 }
 
 bool ModuleParser::ParseBlock(unsigned BlockID) {
@@ -3103,8 +3145,37 @@ bool ModuleParser::ParseBlock(unsigned BlockID) {
   }
   case naclbitc::FUNCTION_BLOCK_ID: {
     installGlobalNamesAndGlobalVarInitializers();
-    FunctionParser Parser(BlockID, this);
-    return Parser.convertFunction();
+    Ice::GlobalContext *Ctx = Context->getTranslator().getContext();
+    uint32_t SeqNumber = Context->getTranslator().getNextSequenceNumber();
+    NaClBcIndexSize_t FcnId = Context->getNextFunctionBlockValueID();
+    if (Ctx->getFlags().getParseParallel()) {
+      // Skip the block and copy into a buffer. Note: We copy into a buffer
+      // using the top-level parser to make sure that the underlying
+      // buffer reading from the data streamer is not thread safe.
+      NaClBitstreamCursor &Cursor = Record.GetCursor();
+      uint64_t StartBit = Cursor.GetCurrentBitNo();
+      if (SkipBlock())
+        return true;
+      const uint64_t EndBit = Cursor.GetCurrentBitNo();
+      const uintptr_t StartByte = Cursor.getStartWordByteForBit(StartBit);
+      const uintptr_t EndByte = Cursor.getEndWordByteForBit(EndBit);
+      const uintptr_t BufferSize = EndByte - StartByte;
+      std::unique_ptr<uint8_t[]> Buffer((uint8_t *)(new uint8_t[BufferSize]));
+      for (size_t i = Cursor.fillBuffer(Buffer.get(), BufferSize, StartByte);
+           i < BufferSize; ++i) {
+        Buffer[i] = 0;
+      }
+      Ctx->optQueueBlockingPush(Ice::makeUnique<CfgParserWorkItem>(
+          BlockID, FcnId, this, std::move(Buffer), BufferSize, StartBit,
+          SeqNumber));
+      return false;
+    } else {
+      FunctionParser Parser(BlockID, this, FcnId);
+      std::unique_ptr<Ice::Cfg> Func = Parser.parseFunction(SeqNumber);
+      bool Failed = Func->hasError();
+      getTranslator().translateFcn(std::move(Func));
+      return Failed && !getTranslator().getFlags().getAllowErrorRecovery();
+    }
   }
   default:
     return BlockParserBaseClass::ParseBlock(BlockID);
