@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cebbe49e_ca4c8348",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 727,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-01T18:05:40Z",
+      "side": 1,
+      "message": "Is used for both matrix times scalar and scalar times matrix.",
+      "range": {
+        "startLine": 727,
+        "startChar": 7,
+        "endLine": 727,
+        "endChar": 27
+      },
+      "revId": "04abe8fe0e04f86478dd9ca504e730e7e19d0103",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
