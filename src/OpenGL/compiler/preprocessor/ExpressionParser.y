@@ -52,6 +52,7 @@ struct Context
     pp::Lexer* lexer;
     pp::Token* token;
     int* result;
+    int shortCircuited;   // Don't produce errors when > 0
 };
 }  // namespace
 %}
@@ -90,11 +91,37 @@ input
 
 expression
     : TOK_CONST_INT
-    | expression TOK_OP_OR expression {
-        $$ = $1 || $3;
+    | expression TOK_OP_OR {
+        if ($1 != 0)
+        {
+            context->shortCircuited++;
+        }
+    } expression {
+        if ($1 != 0)
+        {
+            context->shortCircuited--;
+            $$ = 1;
+        }
+        else
+        {
+            $$ = $1 || $4;
+        }
     }
-    | expression TOK_OP_AND expression {
-        $$ = $1 && $3;
+    | expression TOK_OP_AND {
+        if ($1 == 0)
+        {
+            context->shortCircuited++;
+        }
+    } expression {
+        if ($1 == 0)
+        {
+            context->shortCircuited--;
+            $$ = 0;
+        }
+        else
+        {
+            $$ = $1 && $4;
+        }
     }
     | expression '|' expression {
         $$ = $1 | $3;
@@ -136,20 +163,40 @@ expression
         $$ = $1 + $3;
     }
     | expression '%' expression {
-        if ($3 == 0) {
-            context->diagnostics->report(pp::Diagnostics::DIVISION_BY_ZERO,
-                                         context->token->location, "");
-            YYABORT;
-        } else {
+        if ($3 == 0)
+        {
+            if (!context->shortCircuited)
+            {
+                context->diagnostics->report(pp::Diagnostics::DIVISION_BY_ZERO,
+                                             context->token->location, "");
+                YYABORT;
+            }
+            else
+            {
+                $$ = 0;
+            }
+        }
+        else
+        {
             $$ = $1 % $3;
         }
     }
     | expression '/' expression {
-        if ($3 == 0) {
-            context->diagnostics->report(pp::Diagnostics::DIVISION_BY_ZERO,
-                                         context->token->location, "");
-            YYABORT;
-        } else {
+        if ($3 == 0)
+        {
+            if (!context->shortCircuited)
+            {
+                context->diagnostics->report(pp::Diagnostics::DIVISION_BY_ZERO,
+                                             context->token->location, "");
+                YYABORT;
+            }
+            else
+            {
+                $$ = 0;
+            }
+        }
+        else
+        {
             $$ = $1 / $3;
         }
     }
@@ -195,11 +242,14 @@ int yylex(YYSTYPE* lvalp, Context* context)
         break;
       }
       case pp::Token::IDENTIFIER:
-        // Defined identifiers should have been expanded already.
-        // Unlike the C/C++ preprocessor, it does not default to 0.
-        // Use of such identifiers causes an error.
-        context->diagnostics->report(pp::Diagnostics::UNDEFINED_IDENTIFIER,
-                                     token->location, token->text);
+        if (!context->shortCircuited)
+        {
+            // Defined identifiers should have been expanded already.
+            // Unlike the C/C++ preprocessor, it does not default to 0.
+            // Use of such identifiers causes an error.
+            context->diagnostics->report(pp::Diagnostics::UNDEFINED_IDENTIFIER,
+                                         token->location, token->text);
+        }
 
         *lvalp = 0;
         type = TOK_CONST_INT;
@@ -258,6 +308,7 @@ bool ExpressionParser::parse(Token* token, int* result)
     context.lexer = mLexer;
     context.token = token;
     context.result = result;
+    context.shortCircuited = 0;
     int ret = yyparse(&context);
     switch (ret)
     {
