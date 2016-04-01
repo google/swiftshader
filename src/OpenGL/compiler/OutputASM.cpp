@@ -2161,7 +2161,7 @@ namespace glsl
 
 		TIntermBinary *binary = dst->getAsBinaryNode();
 
-		if(binary && binary->getOp() == EOpIndexIndirect && dst->isScalar())
+		if(binary && binary->getOp() == EOpIndexIndirect && binary->getLeft()->isVector() && dst->isScalar())
 		{
 			Instruction *insert = new Instruction(sw::Shader::OPCODE_INSERT);
 
