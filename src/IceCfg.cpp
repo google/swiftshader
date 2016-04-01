@@ -1086,12 +1086,19 @@ void Cfg::emitIAS() {
   emitJumpTables();
 }
 
-size_t Cfg::getTotalMemoryMB() {
-  constexpr size_t OneMB = 1024 * 1024;
-  using ArbitraryType = int;
-  // CfgLocalAllocator draws from the same memory pool regardless of allocated
-  // object type, so pick an arbitrary type for the template parameter.
-  return CfgLocalAllocator<ArbitraryType>().current()->getTotalMemory() / OneMB;
+size_t Cfg::getTotalMemoryMB() const {
+  constexpr size_t _1MB = 1024 * 1024;
+  assert(Allocator != nullptr);
+  assert(CfgAllocatorTraits::current() == Allocator.get());
+  return Allocator->getTotalMemory() / _1MB;
+}
+
+size_t Cfg::getLivenessMemoryMB() const {
+  constexpr size_t _1MB = 1024 * 1024;
+  if (Live == nullptr) {
+    return 0;
+  }
+  return Live->getAllocator()->getTotalMemory() / _1MB;
 }
 
 // Dumps the IR with an optional introductory message.

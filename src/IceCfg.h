@@ -226,9 +226,11 @@ public:
   const CfgNode *getCurrentNode() const { return CurrentNode; }
   /// @}
 
-  /// Get the total amount of memory held by the per-Cfg allocator.  This is
-  /// mostly meant for use inside a debugger.
-  static size_t getTotalMemoryMB();
+  /// Get the total amount of memory held by the per-Cfg allocator.
+  size_t getTotalMemoryMB() const;
+
+  /// Get the current memory usage due to liveness data structures.
+  size_t getLivenessMemoryMB() const;
 
   void emit();
   void emitIAS();

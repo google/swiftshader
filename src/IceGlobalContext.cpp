@@ -258,11 +258,14 @@ void GlobalContext::CodeStats::dump(const Cfg *Func, GlobalContext *Ctx) {
 #undef X
   Str << "|" << Name << "|Spills+Fills|"
       << Stats[CS_NumSpills] + Stats[CS_NumFills] << "\n";
-  Str << "|" << Name << "|Memory Usage|";
-  if (ssize_t MemUsed = llvm::TimeRecord::getCurrentTime(false).getMemUsed())
-    Str << MemUsed;
-  else
+  Str << "|" << Name << "|Memory Usage     |";
+  if (const auto MemUsed = static_cast<size_t>(
+          llvm::TimeRecord::getCurrentTime(false).getMemUsed())) {
+    static constexpr size_t _1MB = 1024 * 1024;
+    Str << (MemUsed / _1MB) << " MB";
+  } else {
     Str << "(requires '-track-memory')";
+  }
   Str << "\n";
   Str << "|" << Name << "|CPool Sizes ";
   {
@@ -279,7 +282,9 @@ void GlobalContext::CodeStats::dump(const Cfg *Func, GlobalContext *Ctx) {
   }
   Str << "\n";
   if (Func != nullptr) {
-    Str << "|" << Name << "|Cfg Memory  |" << Func->getTotalMemoryMB()
+    Str << "|" << Name << "|Cfg Memory       |" << Func->getTotalMemoryMB()
+        << " MB\n";
+    Str << "|" << Name << "|Liveness Memory  |" << Func->getLivenessMemoryMB()
         << " MB\n";
   }
 }
