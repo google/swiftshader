@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cebbe49e_4ddaed09",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2164,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-01T19:13:08Z",
+      "side": 1,
+      "message": "Confused... How does the EOpIndexIndirect instruction get generated on something that\u0027s not a vector?",
+      "range": {
+        "startLine": 2164,
+        "startChar": 54,
+        "endLine": 2164,
+        "endChar": 83
+      },
+      "revId": "f47fb452681715bddfda7f5227123ebf69a80064",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
