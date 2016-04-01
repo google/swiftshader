@@ -28,6 +28,9 @@
 #include "IceOperand.h"
 #include "IceTargetLowering.h"
 
+#include <memory>
+#include <utility>
+
 namespace Ice {
 
 Cfg::Cfg(GlobalContext *Ctx, uint32_t SequenceNumber)
@@ -819,9 +822,14 @@ void Cfg::livenessLightweight() {
 
 void Cfg::liveness(LivenessMode Mode) {
   TimerMarker T(TimerStack::TT_liveness, this);
-  Live.reset(new Liveness(this, Mode));
+  // Destroying the previous (if any) Liveness information clears the Liveness
+  // allocator TLS pointer.
+  Live = nullptr;
+  Live = Liveness::create(this, Mode);
+
   getVMetadata()->init(VMK_Uses);
   Live->init();
+
   // Initialize with all nodes needing to be processed.
   BitVector NeedToProcess(Nodes.size(), true);
   while (NeedToProcess.any()) {

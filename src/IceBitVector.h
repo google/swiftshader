@@ -246,9 +246,9 @@ private:
   }
 };
 
-class BitVector {
+template <template <typename> class AT> class BitVectorTmpl {
   typedef unsigned long BitWord;
-  using Allocator = CfgLocalAllocator<BitWord>;
+  using Allocator = AT<BitWord>;
 
   enum { BITWORD_SIZE = (unsigned)sizeof(BitWord) * CHAR_BIT };
 
@@ -264,7 +264,7 @@ public:
   typedef unsigned size_type;
   // Encapsulation of a single bit.
   class reference {
-    friend class BitVector;
+    friend class BitVectorTmpl;
 
     BitWord *WordRef;
     unsigned BitPos;
@@ -272,7 +272,7 @@ public:
     reference(); // Undefined
 
   public:
-    reference(BitVector &b, unsigned Idx) {
+    reference(BitVectorTmpl &b, unsigned Idx) {
       WordRef = &b.Bits[Idx / BITWORD_SIZE];
       BitPos = Idx % BITWORD_SIZE;
     }
@@ -297,15 +297,15 @@ public:
     }
   };
 
-  /// BitVector default ctor - Creates an empty bitvector.
-  BitVector(Allocator A = Allocator())
+  /// BitVectorTmpl default ctor - Creates an empty bitvector.
+  BitVectorTmpl(Allocator A = Allocator())
       : Size(0), Capacity(0), Alloc(std::move(A)) {
     Bits = nullptr;
   }
 
-  /// BitVector ctor - Creates a bitvector of specified number of bits. All
+  /// BitVectorTmpl ctor - Creates a bitvector of specified number of bits. All
   /// bits are initialized to the specified value.
-  explicit BitVector(unsigned s, bool t = false, Allocator A = Allocator())
+  explicit BitVectorTmpl(unsigned s, bool t = false, Allocator A = Allocator())
       : Size(s), Alloc(std::move(A)) {
     Capacity = NumBitWords(s);
     Bits = Alloc.allocate(Capacity);
@@ -314,8 +314,8 @@ public:
       clear_unused_bits();
   }
 
-  /// BitVector copy ctor.
-  BitVector(const BitVector &RHS) : Size(RHS.size()), Alloc(RHS.Alloc) {
+  /// BitVectorTmpl copy ctor.
+  BitVectorTmpl(const BitVectorTmpl &RHS) : Size(RHS.size()), Alloc(RHS.Alloc) {
     if (Size == 0) {
       Bits = nullptr;
       Capacity = 0;
@@ -327,13 +327,13 @@ public:
     std::memcpy(Bits, RHS.Bits, Capacity * sizeof(BitWord));
   }
 
-  BitVector(BitVector &&RHS)
+  BitVectorTmpl(BitVectorTmpl &&RHS)
       : Bits(RHS.Bits), Size(RHS.Size), Capacity(RHS.Capacity),
         Alloc(std::move(RHS.Alloc)) {
     RHS.Bits = nullptr;
   }
 
-  ~BitVector() {
+  ~BitVectorTmpl() {
     if (Bits != nullptr) {
       Alloc.deallocate(Bits, Capacity);
     }
@@ -420,7 +420,7 @@ public:
       init_words(&Bits[OldCapacity], (Capacity - OldCapacity), t);
     }
 
-    // Set any old unused bits that are now included in the BitVector. This
+    // Set any old unused bits that are now included in the BitVectorTmpl. This
     // may set bits that are not included in the new vector, but we will clear
     // them back out below.
     if (N > Size)
@@ -439,20 +439,20 @@ public:
   }
 
   // Set, reset, flip
-  BitVector &set() {
+  BitVectorTmpl &set() {
     init_words(Bits, Capacity, true);
     clear_unused_bits();
     return *this;
   }
 
-  BitVector &set(unsigned Idx) {
+  BitVectorTmpl &set(unsigned Idx) {
     assert(Bits && "Bits never allocated");
     Bits[Idx / BITWORD_SIZE] |= BitWord(1) << (Idx % BITWORD_SIZE);
     return *this;
   }
 
   /// set - Efficiently set a range of bits in [I, E)
-  BitVector &set(unsigned I, unsigned E) {
+  BitVectorTmpl &set(unsigned I, unsigned E) {
     assert(I <= E && "Attempted to set backwards range!");
     assert(E <= size() && "Attempted to set out-of-bounds range!");
 
@@ -481,18 +481,18 @@ public:
     return *this;
   }
 
-  BitVector &reset() {
+  BitVectorTmpl &reset() {
     init_words(Bits, Capacity, false);
     return *this;
   }
 
-  BitVector &reset(unsigned Idx) {
+  BitVectorTmpl &reset(unsigned Idx) {
     Bits[Idx / BITWORD_SIZE] &= ~(BitWord(1) << (Idx % BITWORD_SIZE));
     return *this;
   }
 
   /// reset - Efficiently reset a range of bits in [I, E)
-  BitVector &reset(unsigned I, unsigned E) {
+  BitVectorTmpl &reset(unsigned I, unsigned E) {
     assert(I <= E && "Attempted to reset backwards range!");
     assert(E <= size() && "Attempted to reset out-of-bounds range!");
 
@@ -521,14 +521,14 @@ public:
     return *this;
   }
 
-  BitVector &flip() {
+  BitVectorTmpl &flip() {
     for (unsigned i = 0; i < NumBitWords(size()); ++i)
       Bits[i] = ~Bits[i];
     clear_unused_bits();
     return *this;
   }
 
-  BitVector &flip(unsigned Idx) {
+  BitVectorTmpl &flip(unsigned Idx) {
     Bits[Idx / BITWORD_SIZE] ^= BitWord(1) << (Idx % BITWORD_SIZE);
     return *this;
   }
@@ -548,7 +548,7 @@ public:
   bool test(unsigned Idx) const { return (*this)[Idx]; }
 
   /// Test if any common bits are set.
-  bool anyCommon(const BitVector &RHS) const {
+  bool anyCommon(const BitVectorTmpl &RHS) const {
     unsigned ThisWords = NumBitWords(size());
     unsigned RHSWords = NumBitWords(RHS.size());
     for (unsigned i = 0, e = std::min(ThisWords, RHSWords); i != e; ++i)
@@ -558,7 +558,7 @@ public:
   }
 
   // Comparison operators.
-  bool operator==(const BitVector &RHS) const {
+  bool operator==(const BitVectorTmpl &RHS) const {
     unsigned ThisWords = NumBitWords(size());
     unsigned RHSWords = NumBitWords(RHS.size());
     unsigned i;
@@ -579,10 +579,10 @@ public:
     return true;
   }
 
-  bool operator!=(const BitVector &RHS) const { return !(*this == RHS); }
+  bool operator!=(const BitVectorTmpl &RHS) const { return !(*this == RHS); }
 
   /// Intersection, union, disjoint union.
-  BitVector &operator&=(const BitVector &RHS) {
+  BitVectorTmpl &operator&=(const BitVectorTmpl &RHS) {
     unsigned ThisWords = NumBitWords(size());
     unsigned RHSWords = NumBitWords(RHS.size());
     unsigned i;
@@ -599,7 +599,7 @@ public:
   }
 
   /// reset - Reset bits that are set in RHS. Same as *this &= ~RHS.
-  BitVector &reset(const BitVector &RHS) {
+  BitVectorTmpl &reset(const BitVectorTmpl &RHS) {
     unsigned ThisWords = NumBitWords(size());
     unsigned RHSWords = NumBitWords(RHS.size());
     unsigned i;
@@ -610,7 +610,7 @@ public:
 
   /// test - Check if (This - RHS) is zero.
   /// This is the same as reset(RHS) and any().
-  bool test(const BitVector &RHS) const {
+  bool test(const BitVectorTmpl &RHS) const {
     unsigned ThisWords = NumBitWords(size());
     unsigned RHSWords = NumBitWords(RHS.size());
     unsigned i;
@@ -625,7 +625,7 @@ public:
     return false;
   }
 
-  BitVector &operator|=(const BitVector &RHS) {
+  BitVectorTmpl &operator|=(const BitVectorTmpl &RHS) {
     if (size() < RHS.size())
       resize(RHS.size());
     for (size_t i = 0, e = NumBitWords(RHS.size()); i != e; ++i)
@@ -633,7 +633,7 @@ public:
     return *this;
   }
 
-  BitVector &operator^=(const BitVector &RHS) {
+  BitVectorTmpl &operator^=(const BitVectorTmpl &RHS) {
     if (size() < RHS.size())
       resize(RHS.size());
     for (size_t i = 0, e = NumBitWords(RHS.size()); i != e; ++i)
@@ -642,7 +642,7 @@ public:
   }
 
   // Assignment operator.
-  const BitVector &operator=(const BitVector &RHS) {
+  const BitVectorTmpl &operator=(const BitVectorTmpl &RHS) {
     if (this == &RHS)
       return *this;
 
@@ -655,10 +655,10 @@ public:
       return *this;
     }
 
-    // Currently, BitVector is only used by liveness analysis.  With the
-    // following assert, we make sure BitVectors grow in a single step from 0 to
-    // their final capacity, rather than growing slowly and "leaking" memory in
-    // the process.
+    // Currently, BitVectorTmpl is only used by liveness analysis.  With the
+    // following assert, we make sure BitVectorTmpls grow in a single step from
+    // 0 to their final capacity, rather than growing slowly and "leaking"
+    // memory in the process.
     assert(Capacity == 0);
 
     // Grow the bitvector to have enough elements.
@@ -675,7 +675,7 @@ public:
     return *this;
   }
 
-  const BitVector &operator=(BitVector &&RHS) {
+  const BitVectorTmpl &operator=(BitVectorTmpl &&RHS) {
     if (this == &RHS)
       return *this;
 
@@ -689,7 +689,7 @@ public:
     return *this;
   }
 
-  void swap(BitVector &RHS) {
+  void swap(BitVectorTmpl &RHS) {
     std::swap(Bits, RHS.Bits);
     std::swap(Size, RHS.Size);
     std::swap(Capacity, RHS.Capacity);
@@ -705,7 +705,7 @@ public:
   //
   // The LSB in each word is the lowest numbered bit.  The size of a portable
   // bit mask is always a whole multiple of 32 bits.  If no bit mask size is
-  // given, the bit mask is assumed to cover the entire BitVector.
+  // given, the bit mask is assumed to cover the entire BitVectorTmpl.
 
   /// setBitsInMask - Add '1' bits from Mask to this vector. Don't resize.
   /// This computes "*this |= Mask".
@@ -807,11 +807,16 @@ private:
   }
 };
 
+using BitVector = BitVectorTmpl<CfgLocalAllocator>;
+
 } // end of namespace Ice
 
 namespace std {
-/// Implement std::swap in terms of BitVector swap.
-inline void swap(Ice::BitVector &LHS, Ice::BitVector &RHS) { LHS.swap(RHS); }
+/// Implement std::swap in terms of BitVectorTmpl swap.
+template <template <typename> class AT>
+inline void swap(Ice::BitVectorTmpl<AT> &LHS, Ice::BitVectorTmpl<AT> &RHS) {
+  LHS.swap(RHS);
+}
 }
 
 #endif // SUBZERO_SRC_ICEBITVECTOR_H

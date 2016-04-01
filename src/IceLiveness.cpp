@@ -106,8 +106,8 @@ void Liveness::initInternal(NodeList::const_iterator FirstNode,
       RangeMask[VarIndex] = false;
   }
 
-  SizeT MaxLocals = 0;
   // Process each node.
+  MaxLocals = 0;
   for (auto I = FirstNode, E = Func->getNodes().end(); I != E; ++I) {
     LivenessNode &Node = Nodes[(*I)->getIndex()];
     // NumLocals, LiveToVarMap already initialized

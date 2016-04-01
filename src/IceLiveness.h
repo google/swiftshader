@@ -24,7 +24,11 @@
 #include "IceDefs.h"
 #include "IceBitVector.h"
 #include "IceCfgNode.h"
+#include "IceTLS.h"
 #include "IceTypes.h"
+
+#include <memory>
+#include <utility>
 
 namespace Ice {
 
@@ -49,7 +53,7 @@ class Liveness {
     // LiveToVarMap maps a liveness bitvector index to a Variable. This is
     // generally just for printing/dumping. The index should be less than
     // NumLocals + Liveness::NumGlobals.
-    CfgVector<Variable *> LiveToVarMap;
+    LivenessVector<Variable *> LiveToVarMap;
     // LiveIn and LiveOut track the in- and out-liveness of the global
     // variables. The size of each vector is LivenessNode::NumGlobals.
     LivenessBV LiveIn, LiveOut;
@@ -60,7 +64,6 @@ class Liveness {
   };
 
 public:
-  Liveness(Cfg *Func, LivenessMode Mode) : Func(Func), Mode(Mode) {}
   void init();
   void initPhiEdgeSplits(NodeList::const_iterator FirstNode,
                          VarList::const_iterator FirstVar);
@@ -102,32 +105,58 @@ public:
   }
   bool getRangeMask(SizeT Index) const { return RangeMask[Index]; }
 
+  ArenaAllocator *getAllocator() const { return Alloc.get(); }
+
+  static std::unique_ptr<Liveness> create(Cfg *Func, LivenessMode Mode) {
+    return std::unique_ptr<Liveness>(new Liveness(Func, Mode));
+  }
+
+  static void TlsInit() { LivenessAllocatorTraits::init(); }
+
+  std::string dumpStr() const {
+    return "MaxLocals(" + std::to_string(MaxLocals) + "), "
+                                                      "NumGlobals(" +
+           std::to_string(NumGlobals) + ")";
+  }
+
 private:
+  Liveness(Cfg *Func, LivenessMode Mode)
+      : Alloc(new ArenaAllocator()), AllocScope(this), Func(Func), Mode(Mode) {}
+
   void initInternal(NodeList::const_iterator FirstNode,
                     VarList::const_iterator FirstVar, bool IsFullInit);
   /// Resize Nodes so that Nodes[Index] is valid.
   void resize(SizeT Index) {
-    if (Index >= Nodes.size())
+    if (Index >= Nodes.size()) {
+      assert(false && "The Nodes array is not expected to be resized.");
       Nodes.resize(Index + 1);
+    }
   }
+  std::unique_ptr<ArenaAllocator> Alloc;
+  LivenessAllocatorScope AllocScope; // Must be declared after Alloc.
   static constexpr SizeT InvalidLiveIndex = -1;
   Cfg *Func;
   LivenessMode Mode;
-  SizeT NumGlobals = 0;
   /// Size of Nodes is Cfg::Nodes.size().
-  CfgVector<LivenessNode> Nodes;
+  LivenessVector<LivenessNode> Nodes;
   /// VarToLiveMap maps a Variable's Variable::Number to its live index within
   /// its basic block.
-  CfgVector<SizeT> VarToLiveMap;
+  LivenessVector<SizeT> VarToLiveMap;
   /// LiveToVarMap is analogous to LivenessNode::LiveToVarMap, but for non-local
   /// variables.
-  CfgVector<Variable *> LiveToVarMap;
+  LivenessVector<Variable *> LiveToVarMap;
   /// RangeMask[Variable::Number] indicates whether we want to track that
   /// Variable's live range.
   LivenessBV RangeMask;
   /// ScratchBV is a bitvector that can be reused across CfgNode passes, to
   /// avoid having to allocate/deallocate memory so frequently.
   LivenessBV ScratchBV;
+  /// MaxLocals indicates what is the maximum number of local variables in a
+  /// single basic block, across all blocks in a function.
+  SizeT MaxLocals = 0;
+  /// NumGlobals indicates how many global variables (i.e., Multi Block) exist
+  /// for a function.
+  SizeT NumGlobals = 0;
 };
 
 } // end of namespace Ice

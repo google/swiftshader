@@ -27,6 +27,7 @@ namespace Ice {
 
 class Cfg;
 class GlobalContext;
+class Liveness;
 
 using ArenaAllocator =
     llvm::BumpPtrAllocatorImpl<llvm::MallocAllocator, /*SlabSize=*/1024 * 1024>;
@@ -61,8 +62,10 @@ template <typename T, typename Traits> struct sz_allocator {
   using size_type = std::size_t;
   using difference_type = std::ptrdiff_t;
 
-  sz_allocator() = default;
-  template <class U> sz_allocator(const sz_allocator<U, Traits> &) {}
+  sz_allocator() : Current() {}
+  template <class U>
+  sz_allocator(const sz_allocator<U, Traits> &)
+      : Current() {}
 
   pointer address(reference x) const {
     return reinterpret_cast<pointer>(&reinterpret_cast<char &>(x));
@@ -72,6 +75,7 @@ template <typename T, typename Traits> struct sz_allocator {
   }
 
   pointer allocate(size_type num) {
+    assert(current() != nullptr);
     return current()->template Allocate<T>(num);
   }
 
@@ -88,9 +92,20 @@ template <typename T, typename Traits> struct sz_allocator {
 
   /// Manages the current underlying allocator.
   /// @{
-  static typename Traits::allocator_type current() { return Traits::current(); }
+  typename Traits::allocator_type current() {
+    if (!Traits::cache_allocator) {
+      // TODO(jpp): allocators should always be cacheable... maybe. Investigate.
+      return Traits::current();
+    }
+    if (Current == nullptr) {
+      Current = Traits::current();
+    }
+    assert(Current == Traits::current());
+    return Current;
+  }
   static void init() { Traits::init(); }
   /// @}
+  typename Traits::allocator_type Current;
 };
 
 template <class Traits> struct sz_allocator_scope {
@@ -122,6 +137,7 @@ class CfgAllocatorTraits {
 public:
   using allocator_type = ArenaAllocator *;
   using manager_type = Cfg;
+  static constexpr bool cache_allocator = false;
 
   static void init() { ICE_TLS_INIT_FIELD(CfgAllocator); };
 
@@ -136,6 +152,31 @@ template <typename T>
 using CfgLocalAllocator = sz_allocator<T, CfgAllocatorTraits>;
 
 using CfgLocalAllocatorScope = sz_allocator_scope<CfgAllocatorTraits>;
+
+class LivenessAllocatorTraits {
+  LivenessAllocatorTraits() = delete;
+  LivenessAllocatorTraits(const LivenessAllocatorTraits &) = delete;
+  LivenessAllocatorTraits &operator=(const LivenessAllocatorTraits &) = delete;
+  ~LivenessAllocatorTraits() = delete;
+
+public:
+  using allocator_type = ArenaAllocator *;
+  using manager_type = Liveness;
+  static constexpr bool cache_allocator = true;
+
+  static void init() { ICE_TLS_INIT_FIELD(LivenessAllocator); };
+
+  static allocator_type current();
+  static void set_current(const manager_type *Manager);
+
+private:
+  ICE_TLS_DECLARE_FIELD(ArenaAllocator *, LivenessAllocator);
+};
+
+template <typename T>
+using LivenessAllocator = sz_allocator<T, LivenessAllocatorTraits>;
+
+using LivenessAllocatorScope = sz_allocator_scope<LivenessAllocatorTraits>;
 
 } // end of namespace Ice
 

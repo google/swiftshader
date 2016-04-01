@@ -49,7 +49,7 @@
 namespace Ice {
 
 class Assembler;
-class BitVector;
+template <template <typename> class> class BitVectorTmpl;
 class Cfg;
 class CfgNode;
 class Constant;
@@ -272,9 +272,11 @@ using InstNumberT = int32_t;
 /// A LiveBeginEndMapEntry maps a Variable::Number value to an Inst::Number
 /// value, giving the instruction number that begins or ends a variable's live
 /// range.
+template <typename T>
+using LivenessVector = std::vector<T, LivenessAllocator<T>>;
 using LiveBeginEndMapEntry = std::pair<SizeT, InstNumberT>;
-using LiveBeginEndMap = CfgVector<LiveBeginEndMapEntry>;
-using LivenessBV = BitVector;
+using LiveBeginEndMap = LivenessVector<LiveBeginEndMapEntry>;
+using LivenessBV = BitVectorTmpl<LivenessAllocator>;
 
 using TimerStackIdT = uint32_t;
 using TimerIdT = uint32_t;

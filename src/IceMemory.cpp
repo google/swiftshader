@@ -15,6 +15,7 @@
 #include "IceMemory.h"
 
 #include "IceCfg.h"
+#include "IceLiveness.h"
 #include "IceTLS.h"
 
 #include <cassert>
@@ -33,4 +34,16 @@ void CfgAllocatorTraits::set_current(const manager_type *Manager) {
   ICE_TLS_SET_FIELD(CfgAllocator, Allocator);
 }
 
+ICE_TLS_DEFINE_FIELD(ArenaAllocator *, LivenessAllocatorTraits,
+                     LivenessAllocator);
+
+LivenessAllocatorTraits::allocator_type LivenessAllocatorTraits::current() {
+  return ICE_TLS_GET_FIELD(LivenessAllocator);
+}
+
+void LivenessAllocatorTraits::set_current(const manager_type *Manager) {
+  ArenaAllocator *Allocator =
+      Manager == nullptr ? nullptr : Manager->getAllocator();
+  ICE_TLS_SET_FIELD(LivenessAllocator, Allocator);
+}
 } // end of namespace Ice

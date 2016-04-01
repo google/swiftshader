@@ -21,6 +21,7 @@
 #include "IceDefs.h"
 #include "IceELFObjectWriter.h"
 #include "IceGlobalInits.h"
+#include "IceLiveness.h"
 #include "IceOperand.h"
 #include "IceTargetLowering.h"
 #include "IceTimerTree.h"
@@ -304,6 +305,7 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit, Ostream *OsError,
   // free.
   GlobalContext::TlsInit();
   Cfg::TlsInit();
+  Liveness::TlsInit();
   // Create a new ThreadContext for the current thread.  No need to
   // lock AllThreadContexts at this point since no other threads have
   // access yet to this GlobalContext object.
