@@ -727,10 +727,21 @@ namespace glsl
 		case EOpMatrixTimesScalar:
 			if(visit == PostVisit)
 			{
-				for(int i = 0; i < leftType.getNominalSize(); i++)
+				if(left->isMatrix())
 				{
-					emit(sw::Shader::OPCODE_MUL, result, i, left, i, right);
+					for(int i = 0; i < leftType.getNominalSize(); i++)
+					{
+						emit(sw::Shader::OPCODE_MUL, result, i, left, i, right, 0);
+					}
 				}
+				else if(right->isMatrix())
+				{
+					for(int i = 0; i < rightType.getNominalSize(); i++)
+					{
+						emit(sw::Shader::OPCODE_MUL, result, i, left, 0, right, i);
+					}
+				}
+				else UNREACHABLE(0);
 			}
 			break;
 		case EOpVectorTimesMatrix:
