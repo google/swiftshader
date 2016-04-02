@@ -774,7 +774,8 @@ bool BlockParserBaseClass::ErrorAt(naclbitc::ErrorLevel Level, uint64_t Bit,
   } else {
     StrBuf << Message;
   }
-  return Context->ErrorAt(Level, Bit, StrBuf.str());
+  return Context->ErrorAt(Level, Record.GetCursor().getErrorBitNo(Bit),
+                          StrBuf.str());
 }
 
 void BlockParserBaseClass::reportRecordSizeError(size_t ExpectedSize,
@@ -3106,7 +3107,8 @@ private:
 
 std::unique_ptr<Ice::Cfg> CfgParserWorkItem::getParsedCfg() {
   NaClBitstreamCursor &OldCursor(ModParser->getCursor());
-  llvm::NaClBitstreamReader Reader(Buffer.get(), Buffer.get() + BufferSize,
+  llvm::NaClBitstreamReader Reader(OldCursor.getStartWordByteForBit(StartBit),
+                                   Buffer.get(), Buffer.get() + BufferSize,
                                    OldCursor.getBitStreamReader());
   NaClBitstreamCursor NewCursor(Reader);
   NewCursor.JumpToBit(NewCursor.getWordBitNo(StartBit));
