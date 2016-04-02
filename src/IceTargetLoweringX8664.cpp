@@ -406,15 +406,15 @@ Traits::X86OperandMem *TargetX8664::_sandbox_mem_reference(X86OperandMem *Mem) {
     }
   }
 
-  // NeedsLea is a flags indicating whether Mem needs to be materialized to a
-  // GPR prior to being used. A LEA is needed if Mem.Offset is a constant
+  // NeedsLea is a flag indicating whether Mem needs to be materialized to a GPR
+  // prior to being used. A LEA is needed if Mem.Offset is a constant
   // relocatable, or if Mem.Offset is negative. In both these cases, the LEA is
   // needed to ensure the sandboxed memory operand will only use the lower
   // 32-bits of T+Offset.
   bool NeedsLea = false;
   if (Offset != nullptr) {
-    if (const auto *CR = llvm::dyn_cast<ConstantRelocatable>(Offset)) {
-      NeedsLea = CR->getOffset() < 0;
+    if (llvm::isa<ConstantRelocatable>(Offset)) {
+      NeedsLea = true;
     } else if (const auto *Imm = llvm::dyn_cast<ConstantInteger32>(Offset)) {
       NeedsLea = Imm->getValue() < 0;
     } else {

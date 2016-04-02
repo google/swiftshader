@@ -570,12 +570,10 @@ ifeq ($(TARGET),arm32)
   SPEC := --filetype=obj
 endif
 SPECFLAGS := -O2
-SPECBUILDONLY := false
+SPECRUN := --run
 %.spec2k: % $(OBJDIR)/pnacl-sz make_symlink runtime
 	./pydir/szbuild_spec2k.py -v \
-          $(SPECFLAGS) --target=$(TARGETFLAG) $(SPEC) $<
-	$(SPECBUILDONLY) || ( cd ../../../tests/spec2k; \
-	 ./run_all.sh RunTimedBenchmarks $(SETUP) train $< )
+          $(SPECFLAGS) --target=$(TARGETFLAG) $(SPEC) $< $(SPECRUN)
 
 check-spec: exists-spec $(ALLSPEC:=.spec2k)
 
@@ -639,12 +637,15 @@ check-presubmit presubmit: exists-nonsfi-x8632 exists-nonsfi-arm32 \
 # Run spec2k/x86-64.
 	+make -f Makefile.standalone \
           TARGET=x8664 check-spec
+# Run spec2k/x86-64 with sandboxing.
+	+make -f Makefile.standalone \
+          SPECFLAGS='-O2 --sandbox' TARGET=x8664 check-spec
 # Build spec2k under -Om1/x86-32, to check for liveness errors.
 	+make -f Makefile.standalone \
-          SPECFLAGS='-Om1' SPECBUILDONLY=true check-spec
+          SPECFLAGS='-Om1' SPECRUN= check-spec
 # Build spec2k under -Om1/x86-64, to check for liveness errors.
 	+make -f Makefile.standalone \
-          SPECFLAGS='-Om1' TARGET=x8664 SPECBUILDONLY=true check-spec
+          SPECFLAGS='-Om1' TARGET=x8664 SPECRUN= check-spec
 # Run spec2k for x86-32 without advanced phi lowering.
 	+make -f Makefile.standalone \
           SPECFLAGS='-O2 --sz=--phi-edge-split=0' check-spec
@@ -656,10 +657,10 @@ check-presubmit presubmit: exists-nonsfi-x8632 exists-nonsfi-arm32 \
           FORCEASM=1 check-xtest check-lit
 # Build spec2k for arm32.
 	+make -f Makefile.standalone \
-          TARGET=arm32 SPECBUILDONLY=true check-spec
+          TARGET=arm32 SPECRUN= check-spec
 # Build spec2k under -Om1/arm32.
 	+make -f Makefile.standalone \
-          TARGET=arm32 SPECFLAGS='-Om1' SPECBUILDONLY=true check-spec
+          TARGET=arm32 SPECFLAGS='-Om1' SPECRUN= check-spec
 # Run a few spec2k tests for arm32 using qemu. Keep the list sorted in
 # roughly reverse order of runtime.
 	+make -f Makefile.standalone \
@@ -687,10 +688,10 @@ presubmit-lite: exists-nonsfi-x8632 exists-nonsfi-arm32 \
           TARGET=x8664 check-spec
 # Build spec2k under -Om1/x86-32, to check for liveness errors.
 	+make -f Makefile.standalone \
-          SPECFLAGS='-Om1' SPECBUILDONLY=true check-spec
+          SPECFLAGS='-Om1' SPECRUN= check-spec
 # Build spec2k under -Om1/x86-64, to check for liveness errors.
 	+make -f Makefile.standalone \
-          SPECFLAGS='-Om1' TARGET=x8664 SPECBUILDONLY=true check-spec
+          SPECFLAGS='-Om1' TARGET=x8664 SPECRUN= check-spec
 # Run cross tests and lit tests to validate filetype=asm output.
 	+make -f Makefile.standalone \
           FORCEASM=1 check-lit
@@ -698,7 +699,7 @@ presubmit-lite: exists-nonsfi-x8632 exists-nonsfi-arm32 \
           FORCEASM=1 check-xtest-lite
 # Build spec2k under -Om1/arm32.
 	+make -f Makefile.standalone \
-          TARGET=arm32 SPECFLAGS='-Om1' SPECBUILDONLY=true check-spec
+          TARGET=arm32 SPECFLAGS='-Om1' SPECRUN= check-spec
 # Run a few spec2k tests for arm32 using qemu. Keep the list sorted in
 # roughly reverse order of runtime.
 	+make -f Makefile.standalone \
