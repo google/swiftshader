@@ -15,6 +15,7 @@
 #ifndef SUBZERO_SRC_ICEFIXUPS_H
 #define SUBZERO_SRC_ICEFIXUPS_H
 
+#include "IceClFlags.h"
 #include "IceDefs.h"
 #include "IceStringPool.h"
 

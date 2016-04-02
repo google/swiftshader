@@ -134,7 +134,7 @@ void TargetX8664Traits::X86OperandMem::emit(const Cfg *Func) const {
     // TODO(sehr): ConstantRelocatable still needs updating for
     // rematerializable base/index and Disp.
     assert(Disp == 0);
-    const bool UseNonsfi = Func->getContext()->getFlags().getUseNonsfi();
+    const bool UseNonsfi = getFlags().getUseNonsfi();
     CR->emitWithoutPrefix(Target, UseNonsfi ? "@GOTOFF" : "");
     assert(!UseNonsfi);
     if (Base == nullptr && Index == nullptr) {

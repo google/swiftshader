@@ -48,8 +48,6 @@ public:
 
   GlobalContext *getContext() const { return Ctx; }
 
-  const ClFlags &getFlags() const { return Ctx->getFlags(); }
-
   /// Translates the constructed ICE function Func to machine code.
   void translateFcn(std::unique_ptr<Cfg> Func);
 

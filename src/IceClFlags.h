@@ -74,6 +74,9 @@ public:
   /// User defined constructor.
   ClFlags() { resetClFlags(); }
 
+  /// The command line flags.
+  static ClFlags Flags;
+
   /// \brief Parse commmand line options for Subzero.
   ///
   /// This is done use cl::ParseCommandLineOptions() and the static variables of
@@ -154,6 +157,8 @@ private:
   /// Initialized to false; not set by the command line.
   bool GenerateUnitTestMessages;
 };
+
+inline const ClFlags &getFlags() { return ClFlags::Flags; }
 
 } // end of namespace Ice
 

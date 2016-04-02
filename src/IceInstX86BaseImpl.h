@@ -368,13 +368,13 @@ InstImpl<TraitsType>::InstX86Xchg::InstX86Xchg(Cfg *Func, Operand *Dest,
 template <typename TraitsType>
 InstImpl<TraitsType>::InstX86IacaStart::InstX86IacaStart(Cfg *Func)
     : InstX86Base(Func, InstX86Base::IacaStart, 0, nullptr) {
-  assert(Func->getContext()->getFlags().getAllowIacaMarks());
+  assert(getFlags().getAllowIacaMarks());
 }
 
 template <typename TraitsType>
 InstImpl<TraitsType>::InstX86IacaEnd::InstX86IacaEnd(Cfg *Func)
     : InstX86Base(Func, InstX86Base::IacaEnd, 0, nullptr) {
-  assert(Func->getContext()->getFlags().getAllowIacaMarks());
+  assert(getFlags().getAllowIacaMarks());
 }
 
 // ======================== Dump routines ======================== //

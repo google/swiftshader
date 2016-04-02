@@ -41,7 +41,7 @@ class BrowserCompileServer : public CompileServer {
   class StringStream;
 
 public:
-  BrowserCompileServer() : Flags(&GlobalContext::Flags), HadError(false) {}
+  BrowserCompileServer() : HadError(false) {}
 
   ~BrowserCompileServer() final;
 
@@ -101,7 +101,6 @@ private:
   std::unique_ptr<llvm::raw_fd_ostream> EmitStream;
   std::unique_ptr<StringStream> ErrorStream;
   std::unique_ptr<ELFStreamer> ELFStream;
-  ClFlags *Flags;
   std::thread CompileThread;
   std::atomic<bool> HadError;
 };

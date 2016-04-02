@@ -52,7 +52,7 @@ createTargetHeaderLowering(::Ice::GlobalContext *Ctx) {
 
 void staticInit(::Ice::GlobalContext *Ctx) {
   ::Ice::ARM32::TargetARM32::staticInit(Ctx);
-  if (Ctx->getFlags().getUseNonsfi()) {
+  if (Ice::getFlags().getUseNonsfi()) {
     // In nonsfi, we need to reference the _GLOBAL_OFFSET_TABLE_ for accessing
     // globals. The GOT is an external symbol (i.e., it is not defined in the
     // pexe) so we need to register it as such so that ELF emission won't barf
@@ -300,7 +300,7 @@ const char *getRegClassName(RegClass C) {
 
 TargetARM32::TargetARM32(Cfg *Func)
     : TargetLowering(Func), NeedSandboxing(SandboxingType == ST_NaCl),
-      CPUFeatures(Func->getContext()->getFlags()) {}
+      CPUFeatures(getFlags()) {}
 
 void TargetARM32::staticInit(GlobalContext *Ctx) {
   RegNumT::setLimit(RegARM32::Reg_NUM);
@@ -1041,7 +1041,7 @@ void TargetARM32::translateO2() {
   Func->processAllocas(SortAndCombineAllocas);
   Func->dump("After Alloca processing");
 
-  if (!Ctx->getFlags().getEnablePhiEdgeSplit()) {
+  if (!getFlags().getEnablePhiEdgeSplit()) {
     // Lower Phi instructions.
     Func->placePhiLoads();
     if (Func->hasError())
@@ -1109,7 +1109,7 @@ void TargetARM32::translateO2() {
   copyRegAllocFromInfWeightVariable64On32(Func->getVariables());
   Func->dump("After linear scan regalloc");
 
-  if (Ctx->getFlags().getEnablePhiEdgeSplit()) {
+  if (getFlags().getEnablePhiEdgeSplit()) {
     Func->advancedPhiLowering();
     Func->dump("After advanced Phi lowering");
   }
@@ -1138,7 +1138,7 @@ void TargetARM32::translateO2() {
   Func->dump("After branch optimization");
 
   // Nop insertion
-  if (Ctx->getFlags().getShouldDoNopInsertion()) {
+  if (getFlags().getShouldDoNopInsertion()) {
     Func->doNopInsertion();
   }
 }
@@ -1200,7 +1200,7 @@ void TargetARM32::translateOm1() {
   Func->dump("After postLowerLegalization");
 
   // Nop insertion
-  if (Ctx->getFlags().getShouldDoNopInsertion()) {
+  if (getFlags().getShouldDoNopInsertion()) {
     Func->doNopInsertion();
   }
 }
@@ -1256,8 +1256,9 @@ Variable *TargetARM32::getPhysicalRegister(RegNumT RegNum, Type Ty) {
 
 void TargetARM32::emitJumpTable(const Cfg *Func,
                                 const InstJumpTable *JumpTable) const {
+  (void)Func;
   (void)JumpTable;
-  UnimplementedError(Func->getContext()->getFlags());
+  UnimplementedError(getFlags());
 }
 
 void TargetARM32::emitVariable(const Variable *Var) const {
@@ -1767,7 +1768,7 @@ void TargetARM32::addEpilog(CfgNode *Node) {
   if (!PreservedSRegs.empty())
     _pop(PreservedSRegs);
 
-  if (!Ctx->getFlags().getUseSandboxing())
+  if (!getFlags().getUseSandboxing())
     return;
 
   // Change the original ret instruction into a sandboxed return sequence.
@@ -2255,7 +2256,7 @@ void TargetARM32::lowerAlloca(const InstAlloca *Instr) {
   const uint32_t Alignment =
       std::max(AlignmentParam, ARM32_STACK_ALIGNMENT_BYTES);
   const bool OverAligned = Alignment > ARM32_STACK_ALIGNMENT_BYTES;
-  const bool OptM1 = Ctx->getFlags().getOptLevel() == Opt_m1;
+  const bool OptM1 = getFlags().getOptLevel() == Opt_m1;
   const bool AllocaWithKnownOffset = Instr->getKnownFrameOffset();
   const bool UseFramePointer =
       hasFramePointer() || OverAligned || !AllocaWithKnownOffset || OptM1;
@@ -3356,7 +3357,7 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Instr) {
     return;
   }
   case InstArithmetic::Mul: {
-    const bool OptM1 = Ctx->getFlags().getOptLevel() == Opt_m1;
+    const bool OptM1 = getFlags().getOptLevel() == Opt_m1;
     if (!OptM1 && Srcs.hasConstOperand()) {
       constexpr std::size_t MaxShifts = 4;
       std::array<StrengthReduction::AggregationElement, MaxShifts> Shifts;
@@ -6135,7 +6136,7 @@ void TargetARM32::alignRegisterPow2(Variable *Reg, uint32_t Align,
 }
 
 void TargetARM32::postLower() {
-  if (Ctx->getFlags().getOptLevel() == Opt_m1)
+  if (getFlags().getOptLevel() == Opt_m1)
     return;
   markRedefinitions();
   Context.availabilityUpdate();
@@ -6147,7 +6148,7 @@ void TargetARM32::makeRandomRegisterPermutation(
   (void)Permutation;
   (void)ExcludeRegisters;
   (void)Salt;
-  UnimplementedError(Func->getContext()->getFlags());
+  UnimplementedError(getFlags());
 }
 
 void TargetARM32::emit(const ConstantInteger32 *C) const {
@@ -6163,12 +6164,12 @@ void TargetARM32::emit(const ConstantInteger64 *) const {
 
 void TargetARM32::emit(const ConstantFloat *C) const {
   (void)C;
-  UnimplementedError(Ctx->getFlags());
+  UnimplementedError(getFlags());
 }
 
 void TargetARM32::emit(const ConstantDouble *C) const {
   (void)C;
-  UnimplementedError(Ctx->getFlags());
+  UnimplementedError(getFlags());
 }
 
 void TargetARM32::emit(const ConstantUndef *) const {
@@ -6721,8 +6722,8 @@ TargetDataARM32::TargetDataARM32(GlobalContext *Ctx)
 
 void TargetDataARM32::lowerGlobals(const VariableDeclarationList &Vars,
                                    const std::string &SectionSuffix) {
-  const bool IsPIC = Ctx->getFlags().getUseNonsfi();
-  switch (Ctx->getFlags().getOutFileType()) {
+  const bool IsPIC = getFlags().getUseNonsfi();
+  switch (getFlags().getOutFileType()) {
   case FT_Elf: {
     ELFObjectWriter *Writer = Ctx->getObjectWriter();
     Writer->writeDataSection(Vars, llvm::ELF::R_ARM_ABS32, SectionSuffix,
@@ -6730,7 +6731,7 @@ void TargetDataARM32::lowerGlobals(const VariableDeclarationList &Vars,
   } break;
   case FT_Asm:
   case FT_Iasm: {
-    const std::string TranslateOnly = Ctx->getFlags().getTranslateOnly();
+    const std::string TranslateOnly = getFlags().getTranslateOnly();
     OstreamLocker _(Ctx);
     for (const VariableDeclaration *Var : Vars) {
       if (GlobalContext::matchSymbolName(Var->getName(), TranslateOnly)) {
@@ -6810,9 +6811,9 @@ template <typename T> void emitConstantPool(GlobalContext *Ctx) {
       << "\n"
       << "\t.align\t" << Align << "\n";
 
-  if (Ctx->getFlags().getReorderPooledConstants()) {
+  if (getFlags().getReorderPooledConstants()) {
     // TODO(jpp): add constant pooling.
-    UnimplementedError(Ctx->getFlags());
+    UnimplementedError(getFlags());
   }
 
   for (Constant *C : Pool) {
@@ -6826,9 +6827,9 @@ template <typename T> void emitConstantPool(GlobalContext *Ctx) {
 } // end of anonymous namespace
 
 void TargetDataARM32::lowerConstants() {
-  if (Ctx->getFlags().getDisableTranslation())
+  if (getFlags().getDisableTranslation())
     return;
-  switch (Ctx->getFlags().getOutFileType()) {
+  switch (getFlags().getOutFileType()) {
   case FT_Elf: {
     ELFObjectWriter *Writer = Ctx->getObjectWriter();
     Writer->writeConstantPool<ConstantFloat>(IceType_f32);
@@ -6845,9 +6846,9 @@ void TargetDataARM32::lowerConstants() {
 }
 
 void TargetDataARM32::lowerJumpTables() {
-  if (Ctx->getFlags().getDisableTranslation())
+  if (getFlags().getDisableTranslation())
     return;
-  switch (Ctx->getFlags().getOutFileType()) {
+  switch (getFlags().getOutFileType()) {
   case FT_Elf:
     if (!Ctx->getJumpTables().empty()) {
       llvm::report_fatal_error("ARM32 does not support jump tables yet.");
@@ -6864,7 +6865,7 @@ void TargetDataARM32::lowerJumpTables() {
 }
 
 TargetHeaderARM32::TargetHeaderARM32(GlobalContext *Ctx)
-    : TargetHeaderLowering(Ctx), CPUFeatures(Ctx->getFlags()) {}
+    : TargetHeaderLowering(Ctx), CPUFeatures(getFlags()) {}
 
 void TargetHeaderARM32::lower() {
   OstreamLocker _(Ctx);

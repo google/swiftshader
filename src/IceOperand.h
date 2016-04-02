@@ -224,7 +224,7 @@ private:
     // human-readable sprintf form, changing '+' to 'p' and '-' to 'm' to
     // maintain valid asm labels.
     if (std::is_floating_point<PrimType>::value && !BuildDefs::minimal() &&
-        GlobalContext::getFlags().getDecorateAsm()) {
+        getFlags().getDecorateAsm()) {
       char Buf[30];
       snprintf(Buf, llvm::array_lengthof(Buf), "$%g", (double)Value);
       for (unsigned i = 0; i < llvm::array_lengthof(Buf) && Buf[i]; ++i) {

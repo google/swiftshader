@@ -643,10 +643,8 @@ Ostream &operator<<(Ostream &Str, const RegWeight &W) {
 // Specialization of the template member function for ConstantInteger32
 // TODO(stichnot): try to move this specialization into a target-specific file.
 template <> bool ConstantInteger32::shouldBeRandomizedOrPooled() const {
-  uint32_t Threshold =
-      GlobalContext::getFlags().getRandomizeAndPoolImmediatesThreshold();
-  if (GlobalContext::getFlags().getRandomizeAndPoolImmediatesOption() ==
-      RPI_None)
+  uint32_t Threshold = getFlags().getRandomizeAndPoolImmediatesThreshold();
+  if (getFlags().getRandomizeAndPoolImmediatesOption() == RPI_None)
     return false;
   if (getType() != IceType_i32 && getType() != IceType_i16 &&
       getType() != IceType_i8)

@@ -51,7 +51,7 @@ namespace Ice {
 // FakeDef and FakeUse instructions to try maintain liveness consistency.
 #define UnimplementedLoweringError(Target, Instr)                              \
   do {                                                                         \
-    if ((Target)->Ctx->getFlags().getSkipUnimplemented()) {                    \
+    if (getFlags().getSkipUnimplemented()) {                                   \
       (Target)->addFakeDefUses(Instr);                                         \
     } else {                                                                   \
       /* Use llvm_unreachable instead of report_fatal_error, which gives       \
@@ -181,7 +181,7 @@ public:
   virtual std::unique_ptr<Assembler> createAssembler() const = 0;
 
   void translate() {
-    switch (Ctx->getFlags().getOptLevel()) {
+    switch (getFlags().getOptLevel()) {
     case Opt_m1:
       translateOm1();
       break;

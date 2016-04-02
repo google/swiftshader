@@ -615,11 +615,9 @@ public:
     return Registers;
   }
 
-  static void
-  makeRandomRegisterPermutation(GlobalContext *Ctx, Cfg *Func,
-                                llvm::SmallVectorImpl<RegNumT> &Permutation,
-                                const SmallBitVector &ExcludeRegisters,
-                                uint64_t Salt) {
+  static void makeRandomRegisterPermutation(
+      Cfg *Func, llvm::SmallVectorImpl<RegNumT> &Permutation,
+      const SmallBitVector &ExcludeRegisters, uint64_t Salt) {
     // TODO(stichnot): Declaring Permutation this way loses type/size
     // information. Fix this in conjunction with the caller-side TODO.
     assert(Permutation.size() >= RegisterSet::Reg_NUM);
@@ -664,7 +662,7 @@ public:
 #undef X
 
     // Create a random number generator for regalloc randomization.
-    RandomNumberGenerator RNG(Ctx->getFlags().getRandomSeed(),
+    RandomNumberGenerator RNG(getFlags().getRandomSeed(),
                               RPE_RegAllocRandomization, Salt);
     RandomNumberGeneratorWrapper RNGW(RNG);
 

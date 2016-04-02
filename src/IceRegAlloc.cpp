@@ -95,7 +95,7 @@ int32_t findMinWeightIndex(
 LinearScan::LinearScan(Cfg *Func)
     : Func(Func), Ctx(Func->getContext()), Target(Func->getTarget()),
       Verbose(BuildDefs::dump() && Func->isVerbose(IceV_LinearScan)),
-      UseReserve(Ctx->getFlags().getRegAllocReserve()) {}
+      UseReserve(getFlags().getRegAllocReserve()) {}
 
 // Prepare for full register allocation of all variables. We depend on liveness
 // analysis to have calculated live ranges.

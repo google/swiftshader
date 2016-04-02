@@ -352,10 +352,10 @@ TargetX86Base<TraitsType>::TargetX86Base(Cfg *Func)
           (TargetInstructionSet::X86InstructionSet_End -
            TargetInstructionSet::X86InstructionSet_Begin),
       "Traits::InstructionSet range different from TargetInstructionSet");
-  if (Func->getContext()->getFlags().getTargetInstructionSet() !=
+  if (getFlags().getTargetInstructionSet() !=
       TargetInstructionSet::BaseInstructionSet) {
     InstructionSet = static_cast<InstructionSetEnum>(
-        (Func->getContext()->getFlags().getTargetInstructionSet() -
+        (getFlags().getTargetInstructionSet() -
          TargetInstructionSet::X86InstructionSet_Begin) +
         Traits::InstructionSet::Begin);
   }
@@ -364,16 +364,14 @@ TargetX86Base<TraitsType>::TargetX86Base(Cfg *Func)
 template <typename TraitsType>
 void TargetX86Base<TraitsType>::staticInit(GlobalContext *Ctx) {
   RegNumT::setLimit(Traits::RegisterSet::Reg_NUM);
-  Traits::initRegisterSet(Ctx->getFlags(), &TypeToRegisterSet,
-                          &RegisterAliases);
+  Traits::initRegisterSet(getFlags(), &TypeToRegisterSet, &RegisterAliases);
   for (size_t i = 0; i < TypeToRegisterSet.size(); ++i)
     TypeToRegisterSetUnfiltered[i] = TypeToRegisterSet[i];
   filterTypeToRegisterSet(Ctx, Traits::RegisterSet::Reg_NUM,
                           TypeToRegisterSet.data(), TypeToRegisterSet.size(),
                           Traits::getRegName, getRegClassName);
   PcRelFixup = Traits::FK_PcRel;
-  AbsFixup =
-      Ctx->getFlags().getUseNonsfi() ? Traits::FK_Gotoff : Traits::FK_Abs;
+  AbsFixup = getFlags().getUseNonsfi() ? Traits::FK_Gotoff : Traits::FK_Abs;
 }
 
 template <typename TraitsType>
@@ -384,8 +382,7 @@ bool TargetX86Base<TraitsType>::shouldBePooled(const Constant *C) {
   if (auto *ConstDouble = llvm::dyn_cast<ConstantDouble>(C)) {
     return !Utils::isPositiveZero(ConstDouble->getValue());
   }
-  if (GlobalContext::getFlags().getRandomizeAndPoolImmediatesOption() !=
-      RPI_Pool) {
+  if (getFlags().getRandomizeAndPoolImmediatesOption() != RPI_Pool) {
     return false;
   }
   return C->shouldBeRandomizedOrPooled();
@@ -406,7 +403,7 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::translateO2() {
   Func->processAllocas(SortAndCombineAllocas);
   Func->dump("After Alloca processing");
 
-  if (!Ctx->getFlags().getEnablePhiEdgeSplit()) {
+  if (!getFlags().getEnablePhiEdgeSplit()) {
     // Lower Phi instructions.
     Func->placePhiLoads();
     if (Func->hasError())
@@ -492,7 +489,7 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::translateO2() {
     return;
   Func->dump("After linear scan regalloc");
 
-  if (Ctx->getFlags().getEnablePhiEdgeSplit()) {
+  if (getFlags().getEnablePhiEdgeSplit()) {
     Func->advancedPhiLowering();
     Func->dump("After advanced Phi lowering");
   }
@@ -900,7 +897,7 @@ void TargetX86Base<TraitsType>::emitVariable(const Variable *Var) const {
   // Print in the form "Offset(%reg)", taking care that:
   //   - Offset is never printed when it is 0
 
-  const bool DecorateAsm = Func->getContext()->getFlags().getDecorateAsm();
+  const bool DecorateAsm = getFlags().getDecorateAsm();
   // Only print Offset when it is nonzero, regardless of DecorateAsm.
   if (Offset) {
     if (DecorateAsm) {
@@ -1379,7 +1376,7 @@ template <typename TraitsType>
 SmallBitVector
 TargetX86Base<TraitsType>::getRegisterSet(RegSetMask Include,
                                           RegSetMask Exclude) const {
-  return Traits::getRegisterSet(Ctx->getFlags(), Include, Exclude);
+  return Traits::getRegisterSet(getFlags(), Include, Exclude);
 }
 
 template <typename TraitsType>
@@ -1402,7 +1399,7 @@ void TargetX86Base<TraitsType>::lowerAlloca(const InstAlloca *Instr) {
   const uint32_t Alignment =
       std::max(AlignmentParam, Traits::X86_STACK_ALIGNMENT_BYTES);
   const bool OverAligned = Alignment > Traits::X86_STACK_ALIGNMENT_BYTES;
-  const bool OptM1 = Ctx->getFlags().getOptLevel() == Opt_m1;
+  const bool OptM1 = getFlags().getOptLevel() == Opt_m1;
   const bool AllocaWithKnownOffset = Instr->getKnownFrameOffset();
   const bool UseFramePointer =
       hasFramePointer() || OverAligned || !AllocaWithKnownOffset || OptM1;
@@ -1532,7 +1529,7 @@ bool TargetX86Base<TraitsType>::optimizeScalarMul(Variable *Dest, Operand *Src0,
                                                   int32_t Src1) {
   // Disable this optimization for Om1 and O0, just to keep things simple
   // there.
-  if (Ctx->getFlags().getOptLevel() < Opt_1)
+  if (getFlags().getOptLevel() < Opt_1)
     return false;
   Type Ty = Dest->getType();
   if (Src1 == -1) {
@@ -2226,7 +2223,7 @@ void TargetX86Base<TraitsType>::lowerArithmetic(const InstArithmetic *Instr) {
   case InstArithmetic::Sdiv:
     // TODO(stichnot): Enable this after doing better performance and cross
     // testing.
-    if (false && Ctx->getFlags().getOptLevel() >= Opt_1) {
+    if (false && getFlags().getOptLevel() >= Opt_1) {
       // Optimize division by constant power of 2, but not for Om1 or O0, just
       // to keep things simple there.
       if (auto *C = llvm::dyn_cast<ConstantInteger32>(Src1)) {
@@ -2316,7 +2313,7 @@ void TargetX86Base<TraitsType>::lowerArithmetic(const InstArithmetic *Instr) {
   case InstArithmetic::Srem: {
     // TODO(stichnot): Enable this after doing better performance and cross
     // testing.
-    if (false && Ctx->getFlags().getOptLevel() >= Opt_1) {
+    if (false && getFlags().getOptLevel() >= Opt_1) {
       // Optimize mod by constant power of 2, but not for Om1 or O0, just to
       // keep things simple there.
       if (auto *C = llvm::dyn_cast<ConstantInteger32>(Src1)) {
@@ -4309,7 +4306,7 @@ bool TargetX86Base<TraitsType>::tryOptimizedCmpxchgCmpBr(Variable *Dest,
                                                          Operand *PtrToMem,
                                                          Operand *Expected,
                                                          Operand *Desired) {
-  if (Ctx->getFlags().getOptLevel() == Opt_m1)
+  if (getFlags().getOptLevel() == Opt_m1)
     return false;
   // Peek ahead a few instructions and see how Dest is used.
   // It's very common to have:
@@ -5279,7 +5276,7 @@ TargetX86Base<TypeTraits>::computeAddressOpt(const Inst *Instr, Type MemType,
     return nullptr;
 
   AddressOptimizer AddrOpt(Func);
-  const bool MockBounds = Func->getContext()->getFlags().getMockBoundsCheck();
+  const bool MockBounds = getFlags().getMockBoundsCheck();
   const Inst *Reason = nullptr;
   bool AddressWasOptimized = false;
   // The following unnamed struct identifies the address mode formation steps
@@ -5471,7 +5468,7 @@ TargetX86Base<TypeTraits>::computeAddressOpt(const Inst *Instr, Type MemType,
 /// simple global variable address.
 template <typename TraitsType>
 void TargetX86Base<TraitsType>::doMockBoundsCheck(Operand *Opnd) {
-  if (!Ctx->getFlags().getMockBoundsCheck())
+  if (!getFlags().getMockBoundsCheck())
     return;
   if (auto *Mem = llvm::dyn_cast<X86OperandMem>(Opnd)) {
     if (Mem->getIndex()) {
@@ -6191,7 +6188,7 @@ void TargetX86Base<TraitsType>::lowerOther(const Inst *Instr) {
 /// since loOperand() and hiOperand() don't expect Undef input.  Also, in
 /// Non-SFI mode, add a FakeUse(RebasePtr) for every pooled constant operand.
 template <typename TraitsType> void TargetX86Base<TraitsType>::prelowerPhis() {
-  if (Ctx->getFlags().getUseNonsfi()) {
+  if (getFlags().getUseNonsfi()) {
     assert(RebasePtr);
     CfgNode *Node = Context.getNode();
     uint32_t RebasePtrUseCount = 0;
@@ -6718,7 +6715,7 @@ Variable *TargetX86Base<TraitsType>::copyToReg(Operand *Src, RegNumT RegNum) {
 template <typename TraitsType>
 Operand *TargetX86Base<TraitsType>::legalize(Operand *From, LegalMask Allowed,
                                              RegNumT RegNum) {
-  const bool UseNonsfi = Func->getContext()->getFlags().getUseNonsfi();
+  const bool UseNonsfi = getFlags().getUseNonsfi();
   const Type Ty = From->getType();
   // Assert that a physical register is allowed. To date, all calls to
   // legalize() allow a physical register. If a physical register needs to be
@@ -7015,7 +7012,7 @@ Type TargetX86Base<TraitsType>::firstTypeThatFitsSize(uint32_t Size,
 }
 
 template <typename TraitsType> void TargetX86Base<TraitsType>::postLower() {
-  if (Ctx->getFlags().getOptLevel() == Opt_m1)
+  if (getFlags().getOptLevel() == Opt_m1)
     return;
   markRedefinitions();
   Context.availabilityUpdate();
@@ -7025,8 +7022,8 @@ template <typename TraitsType>
 void TargetX86Base<TraitsType>::makeRandomRegisterPermutation(
     llvm::SmallVectorImpl<RegNumT> &Permutation,
     const SmallBitVector &ExcludeRegisters, uint64_t Salt) const {
-  Traits::makeRandomRegisterPermutation(Ctx, Func, Permutation,
-                                        ExcludeRegisters, Salt);
+  Traits::makeRandomRegisterPermutation(Func, Permutation, ExcludeRegisters,
+                                        Salt);
 }
 
 template <typename TraitsType>
@@ -7074,7 +7071,7 @@ template <class Machine>
 void TargetX86Base<Machine>::emit(const ConstantRelocatable *C) const {
   if (!BuildDefs::dump())
     return;
-  assert(!Ctx->getFlags().getUseNonsfi() ||
+  assert(!getFlags().getUseNonsfi() ||
          C->getName().toString() == GlobalOffsetTable);
   Ostream &Str = Ctx->getStrEmit();
   Str << "$";
@@ -7088,7 +7085,7 @@ TargetX86Base<TraitsType>::randomizeOrPoolImmediate(Constant *Immediate,
                                                     RegNumT RegNum) {
   assert(llvm::isa<ConstantInteger32>(Immediate) ||
          llvm::isa<ConstantRelocatable>(Immediate));
-  if (Ctx->getFlags().getRandomizeAndPoolImmediatesOption() == RPI_None ||
+  if (getFlags().getRandomizeAndPoolImmediatesOption() == RPI_None ||
       RandomizationPoolingPaused == true) {
     // Immediates randomization/pooling off or paused
     return Immediate;
@@ -7107,7 +7104,7 @@ TargetX86Base<TraitsType>::randomizeOrPoolImmediate(Constant *Immediate,
     return Immediate;
   }
   Ctx->statsUpdateRPImms();
-  switch (Ctx->getFlags().getRandomizeAndPoolImmediatesOption()) {
+  switch (getFlags().getRandomizeAndPoolImmediatesOption()) {
   default:
     llvm::report_fatal_error("Unsupported -randomize-pool-immediates option");
   case RPI_Randomize: {
@@ -7144,7 +7141,7 @@ TargetX86Base<TraitsType>::randomizeOrPoolImmediate(Constant *Immediate,
     // TO:
     //  insert: mov $label, Reg
     //  => Reg
-    assert(Ctx->getFlags().getRandomizeAndPoolImmediatesOption() == RPI_Pool);
+    assert(getFlags().getRandomizeAndPoolImmediatesOption() == RPI_Pool);
     assert(Immediate->getShouldBePooled());
     // if we have already assigned a phy register, we must come from
     // advancedPhiLowering()=>lowerAssign(). In this case we should reuse the
@@ -7167,7 +7164,7 @@ typename TargetX86Base<TraitsType>::X86OperandMem *
 TargetX86Base<TraitsType>::randomizeOrPoolImmediate(X86OperandMem *MemOperand,
                                                     RegNumT RegNum) {
   assert(MemOperand);
-  if (Ctx->getFlags().getRandomizeAndPoolImmediatesOption() == RPI_None ||
+  if (getFlags().getRandomizeAndPoolImmediatesOption() == RPI_None ||
       RandomizationPoolingPaused == true) {
     // immediates randomization/pooling is turned off
     return MemOperand;
@@ -7198,7 +7195,7 @@ TargetX86Base<TraitsType>::randomizeOrPoolImmediate(X86OperandMem *MemOperand,
 
   // The offset of this mem operand should be blinded or pooled
   Ctx->statsUpdateRPImms();
-  switch (Ctx->getFlags().getRandomizeAndPoolImmediatesOption()) {
+  switch (getFlags().getRandomizeAndPoolImmediatesOption()) {
   default:
     llvm::report_fatal_error("Unsupported -randomize-pool-immediates option");
   case RPI_Randomize: {
@@ -7284,7 +7281,7 @@ void TargetX86Base<TraitsType>::emitJumpTable(
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Ctx->getStrEmit();
-  const bool UseNonsfi = Ctx->getFlags().getUseNonsfi();
+  const bool UseNonsfi = getFlags().getUseNonsfi();
   GlobalString FunctionName = Func->getFunctionName();
   const char *Prefix = UseNonsfi ? ".data.rel.ro." : ".rodata.";
   Str << "\t.section\t" << Prefix << FunctionName
@@ -7314,11 +7311,11 @@ void TargetDataX86<TraitsType>::emitConstantPool(GlobalContext *Ctx) {
 
   // If reorder-pooled-constants option is set to true, we need to shuffle the
   // constant pool before emitting it.
-  if (Ctx->getFlags().getReorderPooledConstants() && !Pool.empty()) {
+  if (getFlags().getReorderPooledConstants() && !Pool.empty()) {
     // Use the constant's kind value as the salt for creating random number
     // generator.
     Operand::OperandKind K = (*Pool.begin())->getKind();
-    RandomNumberGenerator RNG(Ctx->getFlags().getRandomSeed(),
+    RandomNumberGenerator RNG(getFlags().getRandomSeed(),
                               RPE_PooledConstantReordering, K);
     RandomShuffle(Pool.begin(), Pool.end(),
                   [&RNG](uint64_t N) { return (uint32_t)RNG.next(N); });
@@ -7347,9 +7344,9 @@ void TargetDataX86<TraitsType>::emitConstantPool(GlobalContext *Ctx) {
 
 template <typename TraitsType>
 void TargetDataX86<TraitsType>::lowerConstants() {
-  if (Ctx->getFlags().getDisableTranslation())
+  if (getFlags().getDisableTranslation())
     return;
-  switch (Ctx->getFlags().getOutFileType()) {
+  switch (getFlags().getOutFileType()) {
   case FT_Elf: {
     ELFObjectWriter *Writer = Ctx->getObjectWriter();
 
@@ -7376,8 +7373,8 @@ void TargetDataX86<TraitsType>::lowerConstants() {
 
 template <typename TraitsType>
 void TargetDataX86<TraitsType>::lowerJumpTables() {
-  const bool IsPIC = Ctx->getFlags().getUseNonsfi();
-  switch (Ctx->getFlags().getOutFileType()) {
+  const bool IsPIC = getFlags().getUseNonsfi();
+  switch (getFlags().getOutFileType()) {
   case FT_Elf: {
     ELFObjectWriter *Writer = Ctx->getObjectWriter();
     for (const JumpTableData &JT : Ctx->getJumpTables())
@@ -7409,15 +7406,15 @@ void TargetDataX86<TraitsType>::lowerJumpTables() {
 template <typename TraitsType>
 void TargetDataX86<TraitsType>::lowerGlobals(
     const VariableDeclarationList &Vars, const std::string &SectionSuffix) {
-  const bool IsPIC = Ctx->getFlags().getUseNonsfi();
-  switch (Ctx->getFlags().getOutFileType()) {
+  const bool IsPIC = getFlags().getUseNonsfi();
+  switch (getFlags().getOutFileType()) {
   case FT_Elf: {
     ELFObjectWriter *Writer = Ctx->getObjectWriter();
     Writer->writeDataSection(Vars, Traits::FK_Abs, SectionSuffix, IsPIC);
   } break;
   case FT_Asm:
   case FT_Iasm: {
-    const std::string TranslateOnly = Ctx->getFlags().getTranslateOnly();
+    const std::string TranslateOnly = getFlags().getTranslateOnly();
     OstreamLocker L(Ctx);
     for (const VariableDeclaration *Var : Vars) {
       if (GlobalContext::matchSymbolName(Var->getName(), TranslateOnly)) {

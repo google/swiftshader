@@ -104,6 +104,8 @@ std::string AppNameObj;
 
 namespace Ice {
 
+ClFlags ClFlags::Flags;
+
 void ClFlags::parseFlags(int argc, char **argv) {
   cl::ParseCommandLineOptions(argc, argv);
   AppNameObj = argv[0];

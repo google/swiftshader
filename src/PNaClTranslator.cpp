@@ -446,10 +446,6 @@ private:
   // Defines if a module block has already been parsed.
   bool ParsedModuleBlock = false;
 
-  static const Ice::ClFlags &getFlags() {
-    return Ice::GlobalContext::getFlags();
-  }
-
   bool ParseBlock(unsigned BlockID) override;
 
   // Gets extended type associated with the given index, assuming the extended
@@ -493,7 +489,7 @@ private:
   // Installs names for global variables without names.
   void installGlobalVarNames() {
     assert(VariableDeclarations);
-    const std::string &GlobalPrefix = getFlags().getDefaultGlobalPrefix();
+    const std::string &GlobalPrefix = Ice::getFlags().getDefaultGlobalPrefix();
     if (!GlobalPrefix.empty()) {
       NaClBcIndexSize_t NameIndex = 0;
       for (Ice::VariableDeclaration *Var : *VariableDeclarations) {
@@ -504,7 +500,8 @@ private:
 
   // Installs names for functions without names.
   void installFunctionNames() {
-    const std::string &FunctionPrefix = getFlags().getDefaultFunctionPrefix();
+    const std::string &FunctionPrefix =
+        Ice::getFlags().getDefaultFunctionPrefix();
     if (!FunctionPrefix.empty()) {
       NaClBcIndexSize_t NameIndex = 0;
       for (Ice::FunctionDeclaration *Func : FunctionDeclarations) {
@@ -549,9 +546,8 @@ private:
 
   // Converts global variable declarations into constant value IDs.
   void createValueIDsForGlobalVars() {
-    Ice::GlobalContext *Ctx = getTranslator().getContext();
     for (const Ice::VariableDeclaration *Decl : *VariableDeclarations) {
-      if (!Decl->verifyLinkageCorrect(Ctx))
+      if (!Decl->verifyLinkageCorrect())
         reportLinkageError("Global", *Decl);
       Ice::Constant *C =
           getConstantSym(Decl->getName(), !Decl->hasInitializer());
@@ -590,7 +586,7 @@ bool TopLevelParser::ErrorAt(naclbitc::ErrorLevel Level, uint64_t Bit,
     NaClBitcodeParser::ErrorAt(Level, Bit, Message);
     setErrStream(OldErrStream);
   }
-  if (Level >= naclbitc::Error && !getFlags().getAllowErrorRecovery())
+  if (Level >= naclbitc::Error && !Ice::getFlags().getAllowErrorRecovery())
     Fatal();
   return true;
 }
@@ -694,10 +690,6 @@ protected:
   // Gets the translator associated with the bitcode parser.
   Ice::Translator &getTranslator() const { return Context->getTranslator(); }
 
-  static const Ice::ClFlags &getFlags() {
-    return Ice::GlobalContext::getFlags();
-  }
-
   // Default implementation. Reports that block is unknown and skips its
   // contents.
   bool ParseBlock(unsigned BlockID) override;
@@ -773,7 +765,7 @@ bool BlockParserBaseClass::ErrorAt(naclbitc::ErrorLevel Level, uint64_t Bit,
   // Note: If dump routines have been turned off, the error messages will not
   // be readable. Hence, replace with simple error. We also use the simple form
   // for unit tests.
-  if (getFlags().getGenerateUnitTestMessages()) {
+  if (Ice::getFlags().getGenerateUnitTestMessages()) {
     StrBuf << "Invalid " << getBlockName() << " record: <" << Record.GetCode();
     for (const uint64_t Val : Record.GetValues()) {
       StrBuf << " " << Val;
@@ -2999,7 +2991,7 @@ public:
       : BlockParserBaseClass(BlockID, Context),
         Timer(Ice::TimerStack::TT_parseModule,
               Context->getTranslator().getContext()),
-        IsParseParallel(Ice::GlobalContext::Flags.isParseParallel()) {}
+        IsParseParallel(Ice::getFlags().isParseParallel()) {}
   ~ModuleParser() override = default;
   const char *getBlockName() const override { return "module"; }
   NaClBitstreamCursor &getCursor() const { return Record.GetCursor(); }
@@ -3179,7 +3171,7 @@ bool ModuleParser::ParseBlock(unsigned BlockID) {
       std::unique_ptr<Ice::Cfg> Func = Parser.parseFunction(SeqNumber);
       bool Failed = Func->hasError();
       getTranslator().translateFcn(std::move(Func));
-      return Failed && !getFlags().getAllowErrorRecovery();
+      return Failed && !Ice::getFlags().getAllowErrorRecovery();
     }
   }
   default:

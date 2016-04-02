@@ -34,23 +34,21 @@
 namespace Ice {
 
 Cfg::Cfg(GlobalContext *Ctx, uint32_t SequenceNumber)
-    : Ctx(Ctx), SequenceNumber(SequenceNumber),
-      VMask(Ctx->getFlags().getVerbose()), FunctionName(),
-      NextInstNumber(Inst::NumberInitial), Live(nullptr) {
+    : Ctx(Ctx), SequenceNumber(SequenceNumber), VMask(getFlags().getVerbose()),
+      FunctionName(), NextInstNumber(Inst::NumberInitial), Live(nullptr) {
   Allocator.reset(new ArenaAllocator());
   NodeStrings.reset(new StringPool);
   VarStrings.reset(new StringPool);
   CfgLocalAllocatorScope _(this);
-  Target =
-      TargetLowering::createLowering(Ctx->getFlags().getTargetArch(), this);
+  Target = TargetLowering::createLowering(getFlags().getTargetArch(), this);
   VMetadata.reset(new VariablesMetadata(this));
   TargetAssembler = Target->createAssembler();
 
-  if (Ctx->getFlags().getRandomizeAndPoolImmediatesOption() == RPI_Randomize) {
+  if (getFlags().getRandomizeAndPoolImmediatesOption() == RPI_Randomize) {
     // If -randomize-pool-immediates=randomize, create a random number
     // generator to generate a cookie for constant blinding.
-    RandomNumberGenerator RNG(Ctx->getFlags().getRandomSeed(),
-                              RPE_ConstantBlinding, this->SequenceNumber);
+    RandomNumberGenerator RNG(getFlags().getRandomSeed(), RPE_ConstantBlinding,
+                              this->SequenceNumber);
     ConstantBlindingCookie =
         (uint32_t)RNG.next((uint64_t)std::numeric_limits<uint32_t>::max() + 1);
   }
@@ -58,7 +56,7 @@ Cfg::Cfg(GlobalContext *Ctx, uint32_t SequenceNumber)
 
 Cfg::~Cfg() {
   assert(CfgAllocatorTraits::current() == nullptr);
-  if (GlobalContext::getFlags().getDumpStrings()) {
+  if (getFlags().getDumpStrings()) {
     OstreamLocker _(Ctx);
     Ostream &Str = Ctx->getStrDump();
     getNodeStrings()->dump(Str);
@@ -200,8 +198,7 @@ void Cfg::translate() {
   if (hasError())
     return;
   if (BuildDefs::dump()) {
-    const std::string TimingFocusOn =
-        getContext()->getFlags().getTimingFocusOn();
+    const std::string TimingFocusOn = getFlags().getTimingFocusOn();
     const std::string Name = getFunctionName().toString();
     if (TimingFocusOn == "*" || TimingFocusOn == Name) {
       setFocusedTiming();
@@ -218,7 +215,7 @@ void Cfg::translate() {
 
   dump("Initial CFG");
 
-  if (getContext()->getFlags().getEnableBlockProfile()) {
+  if (getFlags().getEnableBlockProfile()) {
     profileBlocks();
     // TODO(jpp): this is fragile, at best. Figure out a better way of
     // detecting exit functions.
@@ -456,14 +453,14 @@ void getRandomPostOrder(CfgNode *Node, BitVector &ToVisit,
 } // end of anonymous namespace
 
 void Cfg::shuffleNodes() {
-  if (!Ctx->getFlags().getReorderBasicBlocks())
+  if (!getFlags().getReorderBasicBlocks())
     return;
 
   NodeList ReversedReachable;
   NodeList Unreachable;
   BitVector ToVisit(Nodes.size(), true);
   // Create Random number generator for function reordering
-  RandomNumberGenerator RNG(Ctx->getFlags().getRandomSeed(),
+  RandomNumberGenerator RNG(getFlags().getRandomSeed(),
                             RPE_BasicBlockReordering, SequenceNumber);
   // Traverse from entry node.
   getRandomPostOrder(getEntryNode(), ToVisit, ReversedReachable, &RNG);
@@ -779,10 +776,10 @@ void Cfg::doAddressOpt() {
 }
 
 void Cfg::doNopInsertion() {
-  if (!Ctx->getFlags().getShouldDoNopInsertion())
+  if (!getFlags().getShouldDoNopInsertion())
     return;
   TimerMarker T(TimerStack::TT_doNopInsertion, this);
-  RandomNumberGenerator RNG(Ctx->getFlags().getRandomSeed(), RPE_NopInsertion,
+  RandomNumberGenerator RNG(getFlags().getRandomSeed(), RPE_NopInsertion,
                             SequenceNumber);
   for (CfgNode *Node : Nodes)
     Node->doNopInsertion(RNG);
@@ -960,7 +957,7 @@ void Cfg::contractEmptyNodes() {
   // contain only redundant assignments. As such, we disable this pass when
   // DecorateAsm is specified. This may make the resulting code look more
   // branchy, but it should have no effect on the register assignments.
-  if (Ctx->getFlags().getDecorateAsm())
+  if (getFlags().getDecorateAsm())
     return;
   for (CfgNode *Node : Nodes) {
     Node->contractIfEmpty();
@@ -992,9 +989,9 @@ void Cfg::emitTextHeader(GlobalString Name, GlobalContext *Ctx,
     return;
   Ostream &Str = Ctx->getStrEmit();
   Str << "\t.text\n";
-  if (Ctx->getFlags().getFunctionSections())
+  if (getFlags().getFunctionSections())
     Str << "\t.section\t.text." << Name << ",\"ax\",%progbits\n";
-  if (!Asm->getInternal() || Ctx->getFlags().getDisableInternal()) {
+  if (!Asm->getInternal() || getFlags().getDisableInternal()) {
     Str << "\t.globl\t" << Name << "\n";
     Str << "\t.type\t" << Name << ",%function\n";
   }
@@ -1012,7 +1009,7 @@ void Cfg::deleteJumpTableInsts() {
 }
 
 void Cfg::emitJumpTables() {
-  switch (Ctx->getFlags().getOutFileType()) {
+  switch (getFlags().getOutFileType()) {
   case FT_Elf:
   case FT_Iasm: {
     // The emission needs to be delayed until the after the text section so
@@ -1040,7 +1037,7 @@ void Cfg::emit() {
   if (!BuildDefs::dump())
     return;
   TimerMarker T(TimerStack::TT_emitAsm, this);
-  if (Ctx->getFlags().getDecorateAsm()) {
+  if (getFlags().getDecorateAsm()) {
     renumberInstructions();
     getVMetadata()->init(VMK_Uses);
     liveness(Liveness_Basic);
@@ -1049,11 +1046,11 @@ void Cfg::emit() {
   OstreamLocker L(Ctx);
   Ostream &Str = Ctx->getStrEmit();
   const Assembler *Asm = getAssembler<>();
-  const bool NeedSandboxing = Ctx->getFlags().getUseSandboxing();
+  const bool NeedSandboxing = getFlags().getUseSandboxing();
 
   emitTextHeader(FunctionName, Ctx, Asm);
   deleteJumpTableInsts();
-  if (Ctx->getFlags().getDecorateAsm()) {
+  if (getFlags().getDecorateAsm()) {
     for (Variable *Var : getVariables()) {
       if (Var->getStackOffset() && !Var->isRematerializable()) {
         Str << "\t" << Var->getSymbolicStackOffset(this) << " = "
@@ -1077,7 +1074,7 @@ void Cfg::emitIAS() {
   // The emitIAS() routines emit into the internal assembler buffer, so there's
   // no need to lock the streams.
   deleteJumpTableInsts();
-  const bool NeedSandboxing = Ctx->getFlags().getUseSandboxing();
+  const bool NeedSandboxing = getFlags().getUseSandboxing();
   for (CfgNode *Node : Nodes) {
     if (NeedSandboxing && Node->needsAlignment())
       getAssembler()->alignCfgNode();
@@ -1118,7 +1115,7 @@ void Cfg::dump(const char *Message) {
   // Print function name+args
   if (isVerbose(IceV_Instructions)) {
     Str << "define ";
-    if (getInternal() && !Ctx->getFlags().getDisableInternal())
+    if (getInternal() && !getFlags().getDisableInternal())
       Str << "internal ";
     Str << ReturnType << " @" << getFunctionName() << "(";
     for (SizeT i = 0; i < Args.size(); ++i) {

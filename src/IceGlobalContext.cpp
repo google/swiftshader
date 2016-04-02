@@ -293,13 +293,13 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit, Ostream *OsError,
                              ELFStreamer *ELFStr)
     : Strings(new StringPool()), ConstPool(new ConstantPool()), ErrorStatus(),
       StrDump(OsDump), StrEmit(OsEmit), StrError(OsError), IntrinsicsInfo(this),
-      ObjectWriter(),
-      OptQ(/*Sequential=*/Flags.isSequential(),
-           /*MaxSize=*/
-           Flags.isParseParallel() ? MaxOptQSize
-                                   : Flags.getNumTranslationThreads()),
+      ObjectWriter(), OptQ(/*Sequential=*/getFlags().isSequential(),
+                           /*MaxSize=*/
+                           getFlags().isParseParallel()
+                               ? MaxOptQSize
+                               : getFlags().getNumTranslationThreads()),
       // EmitQ is allowed unlimited size.
-      EmitQ(/*Sequential=*/Flags.isSequential()),
+      EmitQ(/*Sequential=*/getFlags().isSequential()),
       DataLowering(TargetDataLowering::createLowering(this)) {
   assert(OsDump && "OsDump is not defined for GlobalContext");
   assert(OsEmit && "OsEmit is not defined for GlobalContext");
@@ -325,7 +325,7 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit, Ostream *OsError,
     newTimerStackID("Per-function summary");
   }
   Timers.initInto(MyTLS->Timers);
-  switch (Flags.getOutFileType()) {
+  switch (getFlags().getOutFileType()) {
   case FT_Elf:
     ObjectWriter.reset(new ELFObjectWriter(*this, *ELFStr));
     break;
@@ -455,9 +455,9 @@ void GlobalContext::saveBlockInfoPtrs() {
 
 void GlobalContext::lowerGlobals(const std::string &SectionSuffix) {
   TimerMarker T(TimerStack::TT_emitGlobalInitializers, this);
-  const bool DumpGlobalVariables = BuildDefs::dump() &&
-                                   (Flags.getVerbose() & IceV_GlobalInit) &&
-                                   Flags.getVerboseFocusOn().empty();
+  const bool DumpGlobalVariables =
+      BuildDefs::dump() && (getFlags().getVerbose() & IceV_GlobalInit) &&
+      getFlags().getVerboseFocusOn().empty();
   if (DumpGlobalVariables) {
     OstreamLocker L(this);
     Ostream &Stream = getStrDump();
@@ -465,7 +465,7 @@ void GlobalContext::lowerGlobals(const std::string &SectionSuffix) {
       Global->dump(Stream);
     }
   }
-  if (Flags.getDisableTranslation())
+  if (getFlags().getDisableTranslation())
     return;
 
   saveBlockInfoPtrs();
@@ -679,8 +679,8 @@ void GlobalContext::dumpStrings() {
 void GlobalContext::dumpConstantLookupCounts() {
   if (!BuildDefs::dump())
     return;
-  const bool DumpCounts = (Flags.getVerbose() & IceV_ConstPoolStats) &&
-                          Flags.getVerboseFocusOn().empty();
+  const bool DumpCounts = (getFlags().getVerbose() & IceV_ConstPoolStats) &&
+                          getFlags().getVerboseFocusOn().empty();
   if (!DumpCounts)
     return;
 
@@ -980,13 +980,11 @@ GlobalStringPoolTraits::getStrings(const GlobalContext *PoolOwner) {
   return PoolOwner->getStrings();
 }
 
-ClFlags GlobalContext::Flags;
-
 TimerIdT TimerMarker::getTimerIdFromFuncName(GlobalContext *Ctx,
                                              const std::string &FuncName) {
   if (!BuildDefs::timers())
     return 0;
-  if (!Ctx->getFlags().getTimeEachFunction())
+  if (!getFlags().getTimeEachFunction())
     return 0;
   return Ctx->getTimerID(GlobalContext::TSK_Funcs, FuncName);
 }
@@ -994,10 +992,10 @@ TimerIdT TimerMarker::getTimerIdFromFuncName(GlobalContext *Ctx,
 void TimerMarker::push() {
   switch (StackID) {
   case GlobalContext::TSK_Default:
-    Active = Ctx->getFlags().getSubzeroTimingEnabled();
+    Active = getFlags().getSubzeroTimingEnabled();
     break;
   case GlobalContext::TSK_Funcs:
-    Active = Ctx->getFlags().getTimeEachFunction();
+    Active = getFlags().getTimeEachFunction();
     break;
   default:
     break;
@@ -1008,8 +1006,7 @@ void TimerMarker::push() {
 
 void TimerMarker::pushCfg(const Cfg *Func) {
   Ctx = Func->getContext();
-  Active =
-      Func->getFocusedTiming() || Ctx->getFlags().getSubzeroTimingEnabled();
+  Active = Func->getFocusedTiming() || getFlags().getSubzeroTimingEnabled();
   if (Active)
     Ctx->pushTimer(ID, StackID);
 }

@@ -103,8 +103,8 @@ void InstARM32::emitUsingTextFixup(const Cfg *Func) const {
     return;
   GlobalContext *Ctx = Func->getContext();
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
-  if (Ctx->getFlags().getDisableHybridAssembly() &&
-      Ctx->getFlags().getSkipUnimplemented()) {
+  if (getFlags().getDisableHybridAssembly() &&
+      getFlags().getSkipUnimplemented()) {
     Asm->trap();
     Asm->resetNeedsTextFixup();
     return;
@@ -120,12 +120,12 @@ void InstARM32::emitUsingTextFixup(const Cfg *Func) const {
   Asm->incEmitTextSize(InstSize);
   emit(Func);
   Ctx->setStrEmit(OldStr);
-  if (Ctx->getFlags().getDisableHybridAssembly()) {
-    if (Ctx->getFlags().getSkipUnimplemented()) {
+  if (getFlags().getDisableHybridAssembly()) {
+    if (getFlags().getSkipUnimplemented()) {
       Asm->trap();
     } else {
       llvm::errs() << "Can't assemble: " << StrBuf.str() << "\n";
-      UnimplementedError(Ctx->getFlags());
+      UnimplementedError(getFlags());
     }
     Asm->resetNeedsTextFixup();
     return;
@@ -1741,7 +1741,7 @@ void InstARM32Label::emit(const Cfg *Func) const {
 
 void InstARM32Label::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
-  Asm->bindLocalLabel(Func, this, Number);
+  Asm->bindLocalLabel(this, Number);
   if (OffsetReloc != nullptr) {
     Asm->bindRelocOffset(OffsetReloc);
   }
@@ -1887,7 +1887,7 @@ template <> void InstARM32Movw::emit(const Cfg *Func) const {
   if (auto *CR = llvm::dyn_cast<ConstantRelocatable>(Src0)) {
     Str << "#:lower16:";
     CR->emitWithoutPrefix(Func->getTarget());
-    if (Func->getContext()->getFlags().getUseNonsfi()) {
+    if (getFlags().getUseNonsfi()) {
       Str << " - .";
     }
   } else {
@@ -1916,7 +1916,7 @@ template <> void InstARM32Movt::emit(const Cfg *Func) const {
   if (auto *CR = llvm::dyn_cast<ConstantRelocatable>(Src1)) {
     Str << "#:upper16:";
     CR->emitWithoutPrefix(Func->getTarget());
-    if (Func->getContext()->getFlags().getUseNonsfi()) {
+    if (getFlags().getUseNonsfi()) {
       Str << " - .";
     }
   } else {

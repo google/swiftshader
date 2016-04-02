@@ -70,7 +70,7 @@ TEST(IceParseInstsTest, NonexistentCallArg) {
             Munger.getTestResults());
 
   // Show that we generate a fatal error when not allowing error recovery.
-  Munger.Flags.setAllowErrorRecovery(false);
+  Ice::ClFlags::Flags.setAllowErrorRecovery(false);
   EXPECT_DEATH(Munger.runTest(ParseError), ".*ERROR: Unable to continue.*");
 }
 

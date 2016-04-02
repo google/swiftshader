@@ -74,7 +74,7 @@ uint32_t getELFFlags(TargetArch Arch) {
 } // end of anonymous namespace
 
 ELFObjectWriter::ELFObjectWriter(GlobalContext &Ctx, ELFStreamer &Out)
-    : Ctx(Ctx), Str(Out), ELF64(isELF64(Ctx.getFlags())) {
+    : Ctx(Ctx), Str(Out), ELF64(isELF64(getFlags())) {
   // Create the special bookkeeping sections now.
   constexpr char NullSectionName[] = "";
   NullSection = new (Ctx.allocate<ELFSection>())
@@ -223,7 +223,7 @@ void ELFObjectWriter::writeFunctionCode(GlobalString FuncName, bool IsInternal,
   TimerMarker Timer(TimerStack::TT_writeELF, &Ctx);
   ELFTextSection *Section = nullptr;
   ELFRelocationSection *RelSection = nullptr;
-  const bool FunctionSections = Ctx.getFlags().getFunctionSections();
+  const bool FunctionSections = getFlags().getFunctionSections();
   if (TextSections.empty() || FunctionSections) {
     std::string SectionName = ".text";
     if (FunctionSections)
@@ -247,7 +247,7 @@ void ELFObjectWriter::writeFunctionCode(GlobalString FuncName, bool IsInternal,
   constexpr SizeT SymbolSize = 0;
   uint8_t SymbolType;
   uint8_t SymbolBinding;
-  if (IsInternal && !Ctx.getFlags().getDisableInternal()) {
+  if (IsInternal && !getFlags().getDisableInternal()) {
     SymbolType = STT_NOTYPE;
     SymbolBinding = STB_LOCAL;
   } else {
@@ -310,8 +310,7 @@ void ELFObjectWriter::writeDataSection(const VariableDeclarationList &Vars,
   VariableDeclarationPartition VarsBySection[ELFObjectWriter::NumSectionTypes];
   for (auto &SectionList : VarsBySection)
     SectionList.reserve(Vars.size());
-  partitionGlobalsBySection(Vars, VarsBySection,
-                            Ctx.getFlags().getTranslateOnly());
+  partitionGlobalsBySection(Vars, VarsBySection, getFlags().getTranslateOnly());
   size_t I = 0;
   for (auto &SectionList : VarsBySection) {
     writeDataOfType(static_cast<SectionType>(I++), SectionList, RelocationKind,
@@ -392,7 +391,7 @@ void ELFObjectWriter::writeDataOfType(SectionType ST,
     const auto Align = std::max<Elf64_Xword>(MinAlign, Var->getAlignment());
     Section->padToAlignment(Str, Align);
     SizeT SymbolSize = Var->getNumBytes();
-    bool IsExternal = Var->isExternal() || Ctx.getFlags().getDisableInternal();
+    bool IsExternal = Var->isExternal() || getFlags().getDisableInternal();
     const uint8_t SymbolBinding = IsExternal ? STB_GLOBAL : STB_LOCAL;
     GlobalString Name = Var->getName();
     SymTab->createDefinedSym(Name, SymbolType, SymbolBinding, Section,
@@ -476,12 +475,12 @@ void ELFObjectWriter::writeELFHeaderInternal(Elf64_Off SectionHeaderOffset,
   assert(NumSections < SHN_LORESERVE);
   assert(SectHeaderStrIndex < SHN_LORESERVE);
 
-  const TargetArch Arch = Ctx.getFlags().getTargetArch();
+  const TargetArch Arch = getFlags().getTargetArch();
   // Write the rest of the file header, which does depend on byte order and ELF
   // class.
-  Str.writeLE16(ET_REL);                                        // e_type
-  Str.writeLE16(getELFMachine(Ctx.getFlags().getTargetArch())); // e_machine
-  Str.writeELFWord<IsELF64>(1);                                 // e_version
+  Str.writeLE16(ET_REL);                                    // e_type
+  Str.writeLE16(getELFMachine(getFlags().getTargetArch())); // e_machine
+  Str.writeELFWord<IsELF64>(1);                             // e_version
   // Since this is for a relocatable object, there is no entry point, and no
   // program headers.
   Str.writeAddrOrOffset<IsELF64>(0);                                // e_entry
@@ -531,11 +530,11 @@ template <typename ConstType> void ELFObjectWriter::writeConstantPool(Type Ty) {
 
   // If the -reorder-pooled-constant option is set to true, we should shuffle
   // the constants before we emit them.
-  if (Ctx.getFlags().getReorderPooledConstants() && !Pool.empty()) {
+  if (getFlags().getReorderPooledConstants() && !Pool.empty()) {
     // Use the constant's kind value as the salt for creating random number
     // generator.
     Operand::OperandKind K = (*Pool.begin())->getKind();
-    RandomNumberGenerator RNG(Ctx.getFlags().getRandomSeed(),
+    RandomNumberGenerator RNG(getFlags().getRandomSeed(),
                               RPE_PooledConstantReordering, K);
     RandomShuffle(Pool.begin(), Pool.end(),
                   [&RNG](uint64_t N) { return (uint32_t)RNG.next(N); });
@@ -597,7 +596,7 @@ void ELFObjectWriter::writeJumpTable(const JumpTableData &JT,
 
   constexpr uint8_t SymbolType = STT_OBJECT;
   Section->padToAlignment(Str, PointerSize);
-  const bool IsExternal = Ctx.getFlags().getDisableInternal();
+  const bool IsExternal = getFlags().getDisableInternal();
   const uint8_t SymbolBinding = IsExternal ? STB_GLOBAL : STB_LOCAL;
   GlobalString JumpTableName = Ctx.getGlobalString(
       InstJumpTable::makeName(JT.getFunctionName(), JT.getId()));

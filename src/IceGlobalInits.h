@@ -109,14 +109,14 @@ protected:
 
   /// Returns true if linkage is defined correctly for the global declaration,
   /// based on default rules.
-  bool verifyLinkageDefault(const GlobalContext *Ctx) const {
+  bool verifyLinkageDefault() const {
     switch (Linkage) {
     default:
       return false;
     case llvm::GlobalValue::InternalLinkage:
       return true;
     case llvm::GlobalValue::ExternalLinkage:
-      return Ctx->getFlags().getAllowExternDefinedSymbols();
+      return getFlags().getAllowExternDefinedSymbols();
     }
   }
 
@@ -160,7 +160,7 @@ public:
         return Linkage == llvm::GlobalValue::ExternalLinkage;
       }
     }
-    return verifyLinkageDefault(Ctx);
+    return verifyLinkageDefault();
   }
 
   /// Validates that the type signature of the function is correct. Returns true
@@ -461,13 +461,13 @@ public:
   virtual void dump(Ostream &Stream) const override;
 
   /// Returns true if linkage is correct for the variable declaration.
-  bool verifyLinkageCorrect(const GlobalContext *Ctx) const {
+  bool verifyLinkageCorrect() const {
     if (getName().hasStdString()) {
       if (isPNaClABIExternalName(getName().toString())) {
         return Linkage == llvm::GlobalValue::ExternalLinkage;
       }
     }
-    return verifyLinkageDefault(Ctx);
+    return verifyLinkageDefault();
   }
 
   static bool classof(const GlobalDeclaration *Addr) {

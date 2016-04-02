@@ -53,7 +53,7 @@ void CfgNode::appendInst(Inst *Instr) {
 namespace {
 template <typename List> void removeDeletedAndRenumber(List *L, Cfg *Func) {
   const bool DoDelete =
-      BuildDefs::minimal() || !GlobalContext::getFlags().getKeepDeletedInsts();
+      BuildDefs::minimal() || !getFlags().getKeepDeletedInsts();
   auto I = L->begin(), E = L->end(), Next = I;
   for (++Next; I != E; I = Next++) {
     if (DoDelete && I->isDeleted()) {
@@ -1053,8 +1053,7 @@ void CfgNode::emit(Cfg *Func) const {
   Func->setCurrentNode(this);
   Ostream &Str = Func->getContext()->getStrEmit();
   Liveness *Liveness = Func->getLiveness();
-  const bool DecorateAsm =
-      Liveness && Func->getContext()->getFlags().getDecorateAsm();
+  const bool DecorateAsm = Liveness && getFlags().getDecorateAsm();
   Str << getAsmName() << ":\n";
   // LiveRegCount keeps track of the number of currently live variables that
   // each register is assigned to. Normally that would be only 0 or 1, but the
@@ -1259,7 +1258,7 @@ void CfgNode::emitIAS(Cfg *Func) const {
   }
 
   // Do the simple emission if not sandboxed.
-  if (!Func->getContext()->getFlags().getUseSandboxing()) {
+  if (!getFlags().getUseSandboxing()) {
     for (const Inst &I : Insts) {
       if (!I.isDeleted() && !I.isRedundantAssign()) {
         I.emitIAS(Func);

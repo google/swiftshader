@@ -165,14 +165,13 @@ void BrowserCompileServer::run() {
 void BrowserCompileServer::getParsedFlags(uint32_t NumThreads, int argc,
                                           char **argv) {
   ClFlags::parseFlags(argc, argv);
-  ClFlags::getParsedClFlags(*Flags);
+  ClFlags::getParsedClFlags(ClFlags::Flags);
   // Set some defaults which aren't specified via the argv string.
-  Flags->setNumTranslationThreads(NumThreads);
-  Flags->setUseSandboxing(true);
-  Flags->setOutFileType(FT_Elf);
-  Flags->setTargetArch(getTargetArch());
-  Flags->setBuildOnRead(true);
-  Flags->setInputFileFormat(llvm::PNaClFormat);
+  ClFlags::Flags.setNumTranslationThreads(NumThreads);
+  ClFlags::Flags.setUseSandboxing(true);
+  ClFlags::Flags.setOutFileType(FT_Elf);
+  ClFlags::Flags.setTargetArch(getTargetArch());
+  ClFlags::Flags.setInputFileFormat(llvm::PNaClFormat);
 }
 
 bool BrowserCompileServer::pushInputBytes(const void *Data, size_t NumBytes) {
@@ -219,7 +218,7 @@ void BrowserCompileServer::startCompileThread(int ObjFD) {
   CompileThread = std::thread([this]() {
     llvm::install_fatal_error_handler(fatalErrorHandler, this);
     Ctx->initParserThread();
-    this->getCompiler().run(*Flags, *Ctx.get(),
+    this->getCompiler().run(ClFlags::Flags, *Ctx.get(),
                             // Retain original reference, but the compiler
                             // (LLVM's MemoryObject) wants to handle deletion.
                             std::unique_ptr<llvm::DataStreamer>(InputStream));

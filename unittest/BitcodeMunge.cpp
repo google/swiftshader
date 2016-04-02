@@ -20,13 +20,14 @@
 namespace IceTest {
 
 void IceTest::SubzeroBitcodeMunger::resetMungeFlags() {
-  Flags.setAllowErrorRecovery(true);
-  Flags.setGenerateUnitTestMessages(true);
-  Flags.setOptLevel(Ice::Opt_m1);
-  Flags.setOutFileType(Ice::FT_Iasm);
-  Flags.setTargetArch(Ice::Target_X8632);
-  Flags.setNumTranslationThreads(0);
-  Flags.setParseParallel(false);
+  Ice::ClFlags::Flags.setAllowErrorRecovery(true);
+  Ice::ClFlags::Flags.setDisableTranslation(false);
+  Ice::ClFlags::Flags.setGenerateUnitTestMessages(true);
+  Ice::ClFlags::Flags.setOptLevel(Ice::Opt_m1);
+  Ice::ClFlags::Flags.setOutFileType(Ice::FT_Iasm);
+  Ice::ClFlags::Flags.setTargetArch(Ice::Target_X8632);
+  Ice::ClFlags::Flags.setNumTranslationThreads(0);
+  Ice::ClFlags::Flags.setParseParallel(false);
 }
 
 bool IceTest::SubzeroBitcodeMunger::runTest(const uint64_t Munges[],
@@ -38,7 +39,7 @@ bool IceTest::SubzeroBitcodeMunger::runTest(const uint64_t Munges[],
   Ctx.startWorkerThreads();
   Ice::PNaClTranslator Translator(&Ctx);
   const char *BufferName = "Test";
-  Flags.setDisableTranslation(DisableTranslation);
+  Ice::ClFlags::Flags.setDisableTranslation(DisableTranslation);
   Translator.translateBuffer(BufferName, MungedInput.get());
   Ctx.waitForWorkerThreads();
 

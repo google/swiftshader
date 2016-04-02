@@ -96,7 +96,7 @@ std::unique_ptr<Ostream> makeStream(const std::string &Filename,
 }
 
 ErrorCodes getReturnValue(ErrorCodes Val) {
-  if (GlobalContext::Flags.getAlwaysExitSuccess())
+  if (getFlags().getAlwaysExitSuccess())
     return EC_None;
   return Val;
 }
@@ -159,7 +159,7 @@ void CLCompileServer::run() {
     llvm::sys::PrintStackTraceOnErrorSignal();
   }
   ClFlags::parseFlags(argc, argv);
-  ClFlags &Flags = GlobalContext::Flags;
+  ClFlags &Flags = ClFlags::Flags;
   ClFlags::getParsedClFlags(Flags);
 
   // Override report_fatal_error if we want to exit with 0 status.
@@ -229,7 +229,7 @@ void CLCompileServer::run() {
   }
 
   Ctx.reset(new GlobalContext(Ls.get(), Os.get(), Ls.get(), ELFStr.get()));
-  if (Ctx->getFlags().getNumTranslationThreads() != 0) {
+  if (getFlags().getNumTranslationThreads() != 0) {
     std::thread CompileThread([this, &Flags, &InputStream]() {
       Ctx->initParserThread();
       getCompiler().run(Flags, *Ctx.get(), std::move(InputStream));

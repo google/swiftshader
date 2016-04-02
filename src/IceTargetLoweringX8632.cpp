@@ -35,7 +35,7 @@ createTargetHeaderLowering(::Ice::GlobalContext *Ctx) {
 
 void staticInit(::Ice::GlobalContext *Ctx) {
   ::Ice::X8632::TargetX8632::staticInit(Ctx);
-  if (Ctx->getFlags().getUseNonsfi()) {
+  if (Ice::getFlags().getUseNonsfi()) {
     // In nonsfi, we need to reference the _GLOBAL_OFFSET_TABLE_ for accessing
     // globals. The GOT is an external symbol (i.e., it is not defined in the
     // pexe) so we need to register it as such so that ELF emission won't barf
@@ -227,7 +227,7 @@ void TargetX8632::emitGetIP(CfgNode *Node) {
   // instructions are inserted, but it's more clear to do the whole
   // transformation in a single place.
   Traits::Insts::GetIP *GetIPInst = nullptr;
-  if (Ctx->getFlags().getUseNonsfi()) {
+  if (getFlags().getUseNonsfi()) {
     for (Inst &Instr : Node->getInsts()) {
       if (auto *GetIP = llvm::dyn_cast<Traits::Insts::GetIP>(&Instr)) {
         if (!Instr.isDeleted())

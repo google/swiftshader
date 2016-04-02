@@ -41,7 +41,6 @@
 
 namespace Ice {
 
-class ClFlags;
 class ConstantPool;
 class EmitterWorkItem;
 class FuncSigType;
@@ -273,8 +272,6 @@ public:
   JumpTableData &addJumpTable(GlobalString FuncName, SizeT Id,
                               const JumpTableData::TargetList &TargetList);
 
-  static const ClFlags &getFlags() { return Flags; }
-
   /// Allocate data of type T using the global allocator. We allow entities
   /// allocated from this global allocator to be either trivially or
   /// non-trivially destructible. We optimize the case when T is trivially
@@ -459,8 +456,6 @@ public:
   /// match everything. Returns true if there is a match.
   static bool matchSymbolName(const GlobalString &SymbolName,
                               const std::string &Match);
-
-  static ClFlags Flags;
 
   /// DisposeGlobalVariablesAfterLowering controls whether the memory used by
   /// GlobaleVariables can be reclaimed right after they have been lowered.

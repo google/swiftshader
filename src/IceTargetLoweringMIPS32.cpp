@@ -141,7 +141,7 @@ void TargetMIPS32::translateO2() {
   Func->processAllocas(SortAndCombineAllocas);
   Func->dump("After Alloca processing");
 
-  if (!Ctx->getFlags().getEnablePhiEdgeSplit()) {
+  if (!getFlags().getEnablePhiEdgeSplit()) {
     // Lower Phi instructions.
     Func->placePhiLoads();
     if (Func->hasError())
@@ -204,7 +204,7 @@ void TargetMIPS32::translateO2() {
     return;
   Func->dump("After linear scan regalloc");
 
-  if (Ctx->getFlags().getEnablePhiEdgeSplit()) {
+  if (getFlags().getEnablePhiEdgeSplit()) {
     Func->advancedPhiLowering();
     Func->dump("After advanced Phi lowering");
   }
@@ -226,7 +226,7 @@ void TargetMIPS32::translateO2() {
   Func->dump("After branch optimization");
 
   // Nop insertion
-  if (Ctx->getFlags().getShouldDoNopInsertion()) {
+  if (getFlags().getShouldDoNopInsertion()) {
     Func->doNopInsertion();
   }
 }
@@ -271,7 +271,7 @@ void TargetMIPS32::translateOm1() {
   Func->dump("After stack frame mapping");
 
   // Nop insertion
-  if (Ctx->getFlags().getShouldDoNopInsertion()) {
+  if (getFlags().getShouldDoNopInsertion()) {
     Func->doNopInsertion();
   }
 }
@@ -279,7 +279,7 @@ void TargetMIPS32::translateOm1() {
 bool TargetMIPS32::doBranchOpt(Inst *Instr, const CfgNode *NextNode) {
   (void)Instr;
   (void)NextNode;
-  UnimplementedError(Func->getContext()->getFlags());
+  UnimplementedError(getFlags());
   return false;
 }
 
@@ -328,8 +328,9 @@ Variable *TargetMIPS32::getPhysicalRegister(RegNumT RegNum, Type Ty) {
 
 void TargetMIPS32::emitJumpTable(const Cfg *Func,
                                  const InstJumpTable *JumpTable) const {
+  (void)Func;
   (void)JumpTable;
-  UnimplementedError(Func->getContext()->getFlags());
+  UnimplementedError(getFlags());
 }
 
 /// Provide a trivial wrapper to legalize() for this common usage.
@@ -354,7 +355,7 @@ Operand *TargetMIPS32::legalizeUndef(Operand *From, RegNumT RegNum) {
     // then the result should be split and the lo and hi components will
     // need to go in uninitialized registers.
     if (isVectorType(Ty))
-      UnimplementedError(Func->getContext()->getFlags());
+      UnimplementedError(getFlags());
     return Ctx->getConstantZero(Ty);
   }
   return From;
@@ -385,7 +386,7 @@ void TargetMIPS32::emitVariable(const Variable *Var) const {
     Str << "($" << getRegName(getFrameOrStackReg(), FrameSPTy);
     Str << ")";
   }
-  UnimplementedError(Func->getContext()->getFlags());
+  UnimplementedError(getFlags());
 }
 
 void TargetMIPS32::lowerArguments() {
@@ -405,11 +406,11 @@ void TargetMIPS32::lowerArguments() {
     Type Ty = Arg->getType();
     // TODO(rkotler): handle float/vector types.
     if (isVectorType(Ty)) {
-      UnimplementedError(Func->getContext()->getFlags());
+      UnimplementedError(getFlags());
       continue;
     }
     if (isFloatingType(Ty)) {
-      UnimplementedError(Func->getContext()->getFlags());
+      UnimplementedError(getFlags());
       continue;
     }
     if (Ty == IceType_i64) {
@@ -466,13 +467,13 @@ Type TargetMIPS32::stackSlotType() { return IceType_i32; }
 void TargetMIPS32::addProlog(CfgNode *Node) {
   (void)Node;
   return;
-  UnimplementedError(Func->getContext()->getFlags());
+  UnimplementedError(getFlags());
 }
 
 void TargetMIPS32::addEpilog(CfgNode *Node) {
   (void)Node;
   return;
-  UnimplementedError(Func->getContext()->getFlags());
+  UnimplementedError(getFlags());
 }
 
 Operand *TargetMIPS32::loOperand(Operand *Operand) {
@@ -1053,7 +1054,7 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     return;
   }
   case Intrinsics::NaClReadTP: {
-    if (Ctx->getFlags().getUseSandboxing()) {
+    if (getFlags().getUseSandboxing()) {
       UnimplementedLoweringError(this, Instr);
     } else {
       InstCall *Call =
@@ -1095,15 +1096,13 @@ void TargetMIPS32::lowerLoad(const InstLoad *Instr) {
   UnimplementedLoweringError(this, Instr);
 }
 
-void TargetMIPS32::doAddressOptLoad() {
-  UnimplementedError(Func->getContext()->getFlags());
-}
+void TargetMIPS32::doAddressOptLoad() { UnimplementedError(getFlags()); }
 
 void TargetMIPS32::randomlyInsertNop(float Probability,
                                      RandomNumberGenerator &RNG) {
   RandomNumberGeneratorWrapper RNGW(RNG);
   if (RNGW.getTrueWithProbability(Probability)) {
-    UnimplementedError(Func->getContext()->getFlags());
+    UnimplementedError(getFlags());
   }
 }
 
@@ -1150,9 +1149,7 @@ void TargetMIPS32::lowerStore(const InstStore *Instr) {
   UnimplementedLoweringError(this, Instr);
 }
 
-void TargetMIPS32::doAddressOptStore() {
-  UnimplementedError(Func->getContext()->getFlags());
-}
+void TargetMIPS32::doAddressOptStore() { UnimplementedError(getFlags()); }
 
 void TargetMIPS32::lowerSwitch(const InstSwitch *Instr) {
   UnimplementedLoweringError(this, Instr);
@@ -1170,11 +1167,11 @@ void TargetMIPS32::prelowerPhis() {
 }
 
 void TargetMIPS32::postLower() {
-  if (Ctx->getFlags().getOptLevel() == Opt_m1)
+  if (getFlags().getOptLevel() == Opt_m1)
     return;
   // TODO(rkotler): Find two-address non-SSA instructions where Dest==Src0,
   // and set the IsDestRedefined flag to keep liveness analysis consistent.
-  UnimplementedError(Func->getContext()->getFlags());
+  UnimplementedError(getFlags());
 }
 
 void TargetMIPS32::makeRandomRegisterPermutation(
@@ -1183,7 +1180,7 @@ void TargetMIPS32::makeRandomRegisterPermutation(
   (void)Permutation;
   (void)ExcludeRegisters;
   (void)Salt;
-  UnimplementedError(Func->getContext()->getFlags());
+  UnimplementedError(getFlags());
 }
 
 /* TODO(jvoung): avoid duplicate symbols with multiple targets.
@@ -1201,8 +1198,8 @@ TargetDataMIPS32::TargetDataMIPS32(GlobalContext *Ctx)
 
 void TargetDataMIPS32::lowerGlobals(const VariableDeclarationList &Vars,
                                     const std::string &SectionSuffix) {
-  const bool IsPIC = Ctx->getFlags().getUseNonsfi();
-  switch (Ctx->getFlags().getOutFileType()) {
+  const bool IsPIC = getFlags().getUseNonsfi();
+  switch (getFlags().getOutFileType()) {
   case FT_Elf: {
     ELFObjectWriter *Writer = Ctx->getObjectWriter();
     Writer->writeDataSection(Vars, llvm::ELF::R_MIPS_GLOB_DAT, SectionSuffix,
@@ -1210,7 +1207,7 @@ void TargetDataMIPS32::lowerGlobals(const VariableDeclarationList &Vars,
   } break;
   case FT_Asm:
   case FT_Iasm: {
-    const std::string TranslateOnly = Ctx->getFlags().getTranslateOnly();
+    const std::string TranslateOnly = getFlags().getTranslateOnly();
     OstreamLocker L(Ctx);
     for (const VariableDeclaration *Var : Vars) {
       if (GlobalContext::matchSymbolName(Var->getName(), TranslateOnly)) {
@@ -1222,15 +1219,15 @@ void TargetDataMIPS32::lowerGlobals(const VariableDeclarationList &Vars,
 }
 
 void TargetDataMIPS32::lowerConstants() {
-  if (Ctx->getFlags().getDisableTranslation())
+  if (getFlags().getDisableTranslation())
     return;
-  UnimplementedError(Ctx->getFlags());
+  UnimplementedError(getFlags());
 }
 
 void TargetDataMIPS32::lowerJumpTables() {
-  if (Ctx->getFlags().getDisableTranslation())
+  if (getFlags().getDisableTranslation())
     return;
-  UnimplementedError(Ctx->getFlags());
+  UnimplementedError(getFlags());
 }
 
 // Helper for legalize() to emit the right code to lower an operand to a
@@ -1239,7 +1236,7 @@ Variable *TargetMIPS32::copyToReg(Operand *Src, RegNumT RegNum) {
   Type Ty = Src->getType();
   Variable *Reg = makeReg(Ty, RegNum);
   if (isVectorType(Ty) || isFloatingType(Ty)) {
-    UnimplementedError(Ctx->getFlags());
+    UnimplementedError(getFlags());
   } else {
     // Mov's Src operand can really only be the flexible second operand type
     // or a register. Users should guarantee that.

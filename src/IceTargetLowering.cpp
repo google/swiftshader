@@ -212,8 +212,8 @@ void TargetLowering::filterTypeToRegisterSet(
     }
   };
 
-  processRegList(Ctx->getFlags().getUseRestrictedRegisters(), UseSet);
-  processRegList(Ctx->getFlags().getExcludedRegisters(), ExcludeSet);
+  processRegList(getFlags().getUseRestrictedRegisters(), UseSet);
+  processRegList(getFlags().getExcludedRegisters(), ExcludeSet);
 
   if (!BadRegNames.empty()) {
     std::string Buffer;
@@ -236,7 +236,7 @@ void TargetLowering::filterTypeToRegisterSet(
 
   // Display filtered register sets, if requested.
   if (BuildDefs::dump() && NumRegs &&
-      (Ctx->getFlags().getVerbose() & IceV_AvailableRegs)) {
+      (getFlags().getVerbose() & IceV_AvailableRegs)) {
     Ostream &Str = Ctx->getStrDump();
     const std::string Indent = "  ";
     const std::string IndentTwice = Indent + Indent;
@@ -265,7 +265,7 @@ TargetLowering::createLowering(TargetArch Target, Cfg *Func) {
 }
 
 void TargetLowering::staticInit(GlobalContext *Ctx) {
-  const TargetArch Target = Ctx->getFlags().getTargetArch();
+  const TargetArch Target = getFlags().getTargetArch();
   // Call the specified target's static initializer.
   switch (Target) {
   default:
@@ -285,7 +285,7 @@ void TargetLowering::staticInit(GlobalContext *Ctx) {
 }
 
 bool TargetLowering::shouldBePooled(const Constant *C) {
-  const TargetArch Target = GlobalContext::getFlags().getTargetArch();
+  const TargetArch Target = getFlags().getTargetArch();
   switch (Target) {
   default:
     return false;
@@ -311,12 +311,11 @@ TargetLowering::determineSandboxTypeFromFlags(const ClFlags &Flags) {
 
 TargetLowering::TargetLowering(Cfg *Func)
     : Func(Func), Ctx(Func->getContext()),
-      SandboxingType(determineSandboxTypeFromFlags(Ctx->getFlags())) {}
+      SandboxingType(determineSandboxTypeFromFlags(getFlags())) {}
 
 TargetLowering::AutoBundle::AutoBundle(TargetLowering *Target,
                                        InstBundleLock::Option Option)
-    : Target(Target),
-      NeedSandboxing(Target->Ctx->getFlags().getUseSandboxing()) {
+    : Target(Target), NeedSandboxing(getFlags().getUseSandboxing()) {
   assert(!Target->AutoBundling);
   Target->AutoBundling = true;
   if (NeedSandboxing) {
@@ -359,8 +358,8 @@ void TargetLowering::doNopInsertion(RandomNumberGenerator &RNG) {
                     llvm::isa<InstFakeKill>(I) || I->isRedundantAssign() ||
                     I->isDeleted();
   if (!ShouldSkip) {
-    int Probability = Ctx->getFlags().getNopProbabilityAsPercentage();
-    for (int I = 0; I < Ctx->getFlags().getMaxNopsPerInstruction(); ++I) {
+    int Probability = getFlags().getNopProbabilityAsPercentage();
+    for (int I = 0; I < getFlags().getMaxNopsPerInstruction(); ++I) {
       randomlyInsertNop(Probability / 100.0, RNG);
     }
   }
@@ -492,10 +491,10 @@ void TargetLowering::regAlloc(RegAllocKind Kind) {
   if (hasFramePointer())
     RegExclude |= RegSet_FramePointer;
   SmallBitVector RegMask = getRegisterSet(RegInclude, RegExclude);
-  bool Repeat = (Kind == RAK_Global && Ctx->getFlags().getRepeatRegAlloc());
+  bool Repeat = (Kind == RAK_Global && getFlags().getRepeatRegAlloc());
   do {
     LinearScan.init(Kind);
-    LinearScan.scan(RegMask, Ctx->getFlags().getRandomizeRegisterAllocation());
+    LinearScan.scan(RegMask, getFlags().getRandomizeRegisterAllocation());
     if (!LinearScan.hasEvictions())
       Repeat = false;
     Kind = RAK_SecondChance;
@@ -645,7 +644,7 @@ void TargetLowering::getVarStackSlotParams(
   }
   // For testing legalization of large stack offsets on targets with limited
   // offset bits in instruction encodings, add some padding.
-  *SpillAreaSizeBytes += Ctx->getFlags().getTestStackExtra();
+  *SpillAreaSizeBytes += getFlags().getTestStackExtra();
 }
 
 void TargetLowering::alignStackSpillAreas(uint32_t SpillAreaStartOffset,
@@ -684,7 +683,7 @@ void TargetLowering::assignVarStackSlots(VarList &SortedSpilledVariables,
   // SpillAreaSizeBytes. On the other hand, when UseFramePointer is false, the
   // offsets depend on the gap between SpillAreaSizeBytes and
   // SpillAreaPaddingBytes, so we don't increment that.
-  size_t TestPadding = Ctx->getFlags().getTestStackExtra();
+  size_t TestPadding = getFlags().getTestStackExtra();
   if (UsesFramePointer)
     SpillAreaPaddingBytes += TestPadding;
   size_t GlobalsSpaceUsed = SpillAreaPaddingBytes;
@@ -725,8 +724,7 @@ InstCall *TargetLowering::makeHelperCall(RuntimeHelper FuncID, Variable *Dest,
 }
 
 bool TargetLowering::shouldOptimizeMemIntrins() {
-  return Ctx->getFlags().getOptLevel() >= Opt_1 ||
-         Ctx->getFlags().getForceMemIntrinOpt();
+  return getFlags().getOptLevel() >= Opt_1 || getFlags().getForceMemIntrinOpt();
 }
 
 void TargetLowering::scalarizeArithmetic(InstArithmetic::OpKind Kind,
@@ -761,7 +759,7 @@ void TargetLowering::emitWithoutPrefix(const ConstantRelocatable *C,
 
 std::unique_ptr<TargetDataLowering>
 TargetDataLowering::createLowering(GlobalContext *Ctx) {
-  TargetArch Target = Ctx->getFlags().getTargetArch();
+  TargetArch Target = getFlags().getTargetArch();
   switch (Target) {
   default:
     badTargetFatalError(Target);
@@ -805,8 +803,7 @@ void TargetDataLowering::emitGlobal(const VariableDeclaration &Var,
 
   // If external and not initialized, this must be a cross test. Don't generate
   // a declaration for such cases.
-  const bool IsExternal =
-      Var.isExternal() || Ctx->getFlags().getDisableInternal();
+  const bool IsExternal = Var.isExternal() || getFlags().getDisableInternal();
   if (IsExternal && !Var.hasInitializer())
     return;
 
@@ -818,8 +815,8 @@ void TargetDataLowering::emitGlobal(const VariableDeclaration &Var,
 
   Str << "\t.type\t" << Name << ",%object\n";
 
-  const bool UseDataSections = Ctx->getFlags().getDataSections();
-  const bool UseNonsfi = Ctx->getFlags().getUseNonsfi();
+  const bool UseDataSections = getFlags().getDataSections();
+  const bool UseNonsfi = getFlags().getUseNonsfi();
   const std::string Suffix =
       dataSectionSuffix(SectionSuffix, Name, UseDataSections);
   if (IsConstant && UseNonsfi)
@@ -892,7 +889,7 @@ void TargetDataLowering::emitGlobal(const VariableDeclaration &Var,
 
 std::unique_ptr<TargetHeaderLowering>
 TargetHeaderLowering::createLowering(GlobalContext *Ctx) {
-  TargetArch Target = Ctx->getFlags().getTargetArch();
+  TargetArch Target = getFlags().getTargetArch();
   switch (Target) {
   default:
     badTargetFatalError(Target);

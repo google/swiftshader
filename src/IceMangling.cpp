@@ -126,10 +126,10 @@ std::string mangleName(const std::string &Name) {
   //   _Z3barxyz ==> ZN6Prefix3barExyz
   // An unmangled, extern "C" style name, gets a simple prefix:
   //   bar ==> Prefixbar
-  if (!BuildDefs::dump() || GlobalContext::getFlags().getTestPrefix().empty())
+  if (!BuildDefs::dump() || getFlags().getTestPrefix().empty())
     return Name;
 
-  const std::string TestPrefix = GlobalContext::getFlags().getTestPrefix();
+  const std::string TestPrefix = getFlags().getTestPrefix();
   unsigned PrefixLength = TestPrefix.length();
   ManglerVector NameBase(1 + Name.length());
   const size_t BufLen = 30 + Name.length() + PrefixLength;

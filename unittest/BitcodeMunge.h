@@ -33,8 +33,7 @@ class SubzeroBitcodeMunger : public llvm::NaClBitcodeMunger {
 public:
   SubzeroBitcodeMunger(const uint64_t Records[], size_t RecordSize,
                        uint64_t RecordTerminator)
-      : llvm::NaClBitcodeMunger(Records, RecordSize, RecordTerminator),
-        Flags(Ice::GlobalContext::Flags) {
+      : llvm::NaClBitcodeMunger(Records, RecordSize, RecordTerminator) {
     resetMungeFlags();
   }
 
@@ -49,9 +48,6 @@ public:
     uint64_t NoMunges[] = {0};
     return runTest(NoMunges, 0, DisableTranslation);
   }
-
-  /// Flags to use to run tests. Use to change default assumptions.
-  Ice::ClFlags &Flags;
 
 private:
   void resetMungeFlags();

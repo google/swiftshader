@@ -722,7 +722,7 @@ void LLVM2ICEGlobalsConverter::convertGlobalsToIce(Module *Mod) {
     }
 
     if (!GV->hasInitializer()) {
-      if (Ctx->getFlags().getAllowUninitializedGlobals())
+      if (Ice::getFlags().getAllowUninitializedGlobals())
         continue;
       else {
         std::string Buffer;
@@ -807,7 +807,7 @@ void LLVM2ICEGlobalsConverter::addGlobalInitializer(
 namespace Ice {
 
 void Converter::nameUnnamedGlobalVariables(Module *Mod) {
-  const std::string GlobalPrefix = Ctx->getFlags().getDefaultGlobalPrefix();
+  const std::string GlobalPrefix = getFlags().getDefaultGlobalPrefix();
   if (GlobalPrefix.empty())
     return;
   uint32_t NameIndex = 0;
@@ -822,7 +822,7 @@ void Converter::nameUnnamedGlobalVariables(Module *Mod) {
 }
 
 void Converter::nameUnnamedFunctions(Module *Mod) {
-  const std::string FunctionPrefix = Ctx->getFlags().getDefaultFunctionPrefix();
+  const std::string FunctionPrefix = getFlags().getDefaultFunctionPrefix();
   if (FunctionPrefix.empty())
     return;
   uint32_t NameIndex = 0;
@@ -895,7 +895,7 @@ void Converter::installGlobalDeclarations(Module *Mod) {
     Var->setAlignment(GV->getAlignment());
     Var->setIsConstant(GV->isConstant());
     Var->setName(Ctx, GV->getName());
-    if (!Var->verifyLinkageCorrect(Ctx)) {
+    if (!Var->verifyLinkageCorrect()) {
       std::string Buffer;
       raw_string_ostream StrBuf(Buffer);
       StrBuf << "Global " << Var->getName()

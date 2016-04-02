@@ -61,7 +61,7 @@ void Compiler::run(const Ice::ClFlags &Flags, GlobalContext &Ctx,
   // The Minimal build (specifically, when dump()/emit() are not implemented)
   // allows only --filetype=obj. Check here to avoid cryptic error messages
   // downstream.
-  if (!BuildDefs::dump() && Ctx.getFlags().getOutFileType() != FT_Elf) {
+  if (!BuildDefs::dump() && getFlags().getOutFileType() != FT_Elf) {
     Ctx.getStrError()
         << "Error: only --filetype=obj is supported in this build.\n";
     Ctx.getErrorStatus()->assign(EC_Args);
@@ -130,17 +130,17 @@ void Compiler::run(const Ice::ClFlags &Flags, GlobalContext &Ctx,
     Ctx.lowerConstants();
     Ctx.lowerJumpTables();
 
-    if (Ctx.getFlags().getOutFileType() == FT_Elf) {
+    if (getFlags().getOutFileType() == FT_Elf) {
       TimerMarker T1(Ice::TimerStack::TT_emitAsm, &Ctx);
       Ctx.getObjectWriter()->setUndefinedSyms(Ctx.getConstantExternSyms());
       Ctx.getObjectWriter()->writeNonUserSections();
     }
   }
 
-  if (Ctx.getFlags().getSubzeroTimingEnabled())
+  if (getFlags().getSubzeroTimingEnabled())
     Ctx.dumpTimers();
 
-  if (Ctx.getFlags().getTimeEachFunction()) {
+  if (getFlags().getTimeEachFunction()) {
     constexpr bool NoDumpCumulative = false;
     Ctx.dumpTimers(GlobalContext::TSK_Funcs, NoDumpCumulative);
   }

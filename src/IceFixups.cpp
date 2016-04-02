@@ -58,8 +58,7 @@ size_t AssemblerFixup::emit(GlobalContext *Ctx, const Assembler &Asm) const {
     Str << Symbol;
     assert(!ValueIsSymbol);
     if (const auto *CR = llvm::dyn_cast<ConstantRelocatable>(ConstValue)) {
-      if (!Asm.fixupIsPCRel(kind()) &&
-          GlobalContext::getFlags().getUseNonsfi() &&
+      if (!Asm.fixupIsPCRel(kind()) && getFlags().getUseNonsfi() &&
           CR->getName().toString() != GlobalOffsetTable) {
         Str << "@GOTOFF";
       }

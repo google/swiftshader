@@ -131,7 +131,7 @@ void validateMemOperandPIC(const TargetX8632Traits::X86OperandMem *Mem,
 void TargetX8632Traits::X86OperandMem::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
-  const bool UseNonsfi = Func->getContext()->getFlags().getUseNonsfi();
+  const bool UseNonsfi = getFlags().getUseNonsfi();
   validateMemOperandPIC(this, UseNonsfi);
   const auto *Target =
       static_cast<const ::Ice::X8632::TargetX8632 *>(Func->getTarget());
@@ -263,7 +263,7 @@ TargetX8632Traits::Address TargetX8632Traits::X86OperandMem::toAsmAddress(
     const Ice::TargetLowering *TargetLowering, bool /*IsLeaAddr*/) const {
   const auto *Target =
       static_cast<const ::Ice::X8632::TargetX8632 *>(TargetLowering);
-  const bool UseNonsfi = Target->getGlobalContext()->getFlags().getUseNonsfi();
+  const bool UseNonsfi = getFlags().getUseNonsfi();
   validateMemOperandPIC(this, UseNonsfi);
   int32_t Disp = 0;
   if (getBase() && getBase()->isRematerializable()) {
