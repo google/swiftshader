@@ -2064,6 +2064,66 @@ namespace glsl
 		if(argument)
 		{
 			TIntermTyped *arg = argument->getAsTyped();
+			Temporary unpackedUniform(this);
+
+			const TType& srcType = arg->getType();
+			TInterfaceBlock* srcBlock = srcType.getInterfaceBlock();
+			if(srcBlock && (srcType.getQualifier() == EvqUniform))
+			{
+				const ArgumentInfo argumentInfo = getArgumentInfo(arg, index);
+				const TType &memberType = argumentInfo.typedMemberInfo.type;
+
+				if(memberType.getBasicType() == EbtBool)
+				{
+					int arraySize = (memberType.isArray() ? memberType.getArraySize() : 1);
+					ASSERT(argumentInfo.clampedIndex < arraySize);
+
+					// Convert the packed bool, which is currently an int, to a true bool
+					Instruction *instruction = new Instruction(sw::Shader::OPCODE_I2B);
+					instruction->dst.type = sw::Shader::PARAMETER_TEMP;
+					instruction->dst.index = registerIndex(&unpackedUniform);
+					instruction->src[0].type = sw::Shader::PARAMETER_CONST;
+					instruction->src[0].bufferIndex = argumentInfo.bufferIndex;
+					instruction->src[0].index = argumentInfo.typedMemberInfo.offset + argumentInfo.clampedIndex * argumentInfo.typedMemberInfo.arrayStride;
+
+					shader->append(instruction);
+
+					arg = &unpackedUniform;
+					index = 0;
+				}
+				else if((srcBlock->matrixPacking() == EmpRowMajor) && memberType.isMatrix())
+				{
+					int numCols = memberType.getNominalSize();
+					int numRows = memberType.getSecondarySize();
+					int arraySize = (memberType.isArray() ? memberType.getArraySize() : 1);
+
+					ASSERT(argumentInfo.clampedIndex < (numCols * arraySize));
+
+					unsigned int dstIndex = registerIndex(&unpackedUniform);
+					unsigned int srcSwizzle = (argumentInfo.clampedIndex % numCols) * 0x55;
+					int arrayIndex = argumentInfo.clampedIndex / numCols;
+					int matrixStartOffset = argumentInfo.typedMemberInfo.offset + arrayIndex * argumentInfo.typedMemberInfo.arrayStride;
+
+					for(int j = 0; j < numRows; ++j)
+					{
+						// Transpose the row major matrix
+						Instruction *instruction = new Instruction(sw::Shader::OPCODE_MOV);
+						instruction->dst.type = sw::Shader::PARAMETER_TEMP;
+						instruction->dst.index = dstIndex;
+						instruction->dst.mask = 1 << j;
+						instruction->src[0].type = sw::Shader::PARAMETER_CONST;
+						instruction->src[0].bufferIndex = argumentInfo.bufferIndex;
+						instruction->src[0].index = matrixStartOffset + j * argumentInfo.typedMemberInfo.matrixStride;
+						instruction->src[0].swizzle = srcSwizzle;
+
+						shader->append(instruction);
+					}
+
+					arg = &unpackedUniform;
+					index = 0;
+				}
+			}
+
 			const ArgumentInfo argumentInfo = getArgumentInfo(arg, index);
 			const TType &type = argumentInfo.typedMemberInfo.type;
 
