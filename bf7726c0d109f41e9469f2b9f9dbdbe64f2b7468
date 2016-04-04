@@ -22,6 +22,30 @@
       "revId": "bf7726c0d109f41e9469f2b9f9dbdbe64f2b7468",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cebbe49e_bf294bc8",
+        "filename": "src/Renderer/Context.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-04T15:34:32Z",
+      "side": 1,
+      "message": "I assigned it an explicit value of 16, so that it doesn\u0027t depend on the number of fixed-function texture stages. It is related, though, as VERTEX_ATTRIBUTES must be at least the number of fixed function attributes.",
+      "parentUuid": "71f3bdea_b13233e8",
+      "range": {
+        "startLine": 44,
+        "startChar": 2,
+        "endLine": 44,
+        "endChar": 19
+      },
+      "revId": "bf7726c0d109f41e9469f2b9f9dbdbe64f2b7468",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
