@@ -283,7 +283,7 @@ void Cfg::computeInOutEdges() {
 
   TimerMarker T(TimerStack::TT_phiValidation, this);
   for (CfgNode *Node : Nodes)
-    Node->validatePhis();
+    Node->enforcePhiConsistency();
 }
 
 void Cfg::renumberInstructions() {

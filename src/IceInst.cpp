@@ -304,7 +304,13 @@ InstBr::InstBr(Cfg *Func, Operand *Source, CfgNode *TargetTrue_,
                CfgNode *TargetFalse_)
     : InstHighLevel(Func, Inst::Br, 1, nullptr), TargetFalse(TargetFalse_),
       TargetTrue(TargetTrue_) {
-  if (TargetTrue == TargetFalse) {
+  if (auto *Constant = llvm::dyn_cast<ConstantInteger32>(Source)) {
+    int32_t C32 = Constant->getValue();
+    if (C32 != 0) {
+      TargetFalse = TargetTrue;
+    }
+    TargetTrue = nullptr; // turn into unconditional version
+  } else if (TargetTrue == TargetFalse) {
     TargetTrue = nullptr; // turn into unconditional version
   } else {
     addSource(Source);
@@ -392,8 +398,7 @@ void InstPhi::addArgument(Operand *Source, CfgNode *Label) {
 }
 
 // Find the source operand corresponding to the incoming edge for the given
-// node. TODO: This uses a linear-time search, which could be improved if it
-// becomes a problem.
+// node.
 Operand *InstPhi::getOperandForTarget(CfgNode *Target) const {
   for (SizeT I = 0; I < getSrcSize(); ++I) {
     if (Labels[I] == Target)
@@ -401,6 +406,19 @@ Operand *InstPhi::getOperandForTarget(CfgNode *Target) const {
   }
   llvm_unreachable("Phi target not found");
   return nullptr;
+}
+
+// Replace the source operand corresponding to the incoming edge for the given
+// node by a zero of the appropriate type.
+void InstPhi::clearOperandForTarget(CfgNode *Target) {
+  for (SizeT I = 0; I < getSrcSize(); ++I) {
+    if (getLabel(I) == Target) {
+      Type Ty = Dest->getType();
+      Srcs[I] = Target->getCfg()->getContext()->getConstantZero(Ty);
+      return;
+    }
+  }
+  llvm_unreachable("Phi target not found");
 }
 
 // Updates liveness for a particular operand based on the given predecessor

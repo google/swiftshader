@@ -90,7 +90,7 @@ public:
   CfgNode *splitIncomingEdge(CfgNode *Pred, SizeT InEdgeIndex);
   /// @}
 
-  void validatePhis();
+  void enforcePhiConsistency();
   void placePhiLoads();
   void placePhiStores();
   void deletePhis();

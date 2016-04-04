@@ -84,11 +84,15 @@ void CfgNode::computeSuccessors() {
   OutEdges = Insts.rbegin()->getTerminatorEdges();
 }
 
-// Validate each Phi instruction in the node with respect to control flow. For
-// every phi argument, its label must appear in the predecessor list. For each
-// predecessor, there must be a phi argument with that label. We don't check
-// that phi arguments with the same label have the same value.
-void CfgNode::validatePhis() {
+// Ensure each Phi instruction in the node is consistent with respect to control
+// flow.  For each predecessor, there must be a phi argument with that label.
+// If a phi argument's label doesn't appear in the predecessor list (which can
+// happen as a result of e.g. unreachable node elimination), its value is
+// modified to be zero, to maintain consistency in liveness analysis.  This
+// allows us to remove some dead control flow without a major rework of the phi
+// instructions.  We don't check that phi arguments with the same label have the
+// same value.
+void CfgNode::enforcePhiConsistency() {
   for (Inst &Instr : Phis) {
     auto *Phi = llvm::cast<InstPhi>(&Instr);
     // We do a simple O(N^2) algorithm to check for consistency. Even so, it
@@ -106,8 +110,11 @@ void CfgNode::validatePhis() {
           break;
         }
       }
-      if (!Found)
-        llvm::report_fatal_error("Phi error: label for bad incoming edge");
+      if (!Found) {
+        // Predecessor was unreachable, so if (impossibly) the control flow
+        // enters from that predecessor, the value should be zero.
+        Phi->clearOperandForTarget(Label);
+      }
     }
     for (CfgNode *InNode : getInEdges()) {
       bool Found = false;

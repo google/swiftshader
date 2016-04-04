@@ -72,18 +72,9 @@ b6:
 ; CHECK-NEXT: b1:
 ; CHECK-NEXT:   %v0 = add i32 %p0, %v3
 ; CHECK-NEXT:   br label %b6
-; CHECK-NEXT: b2:
-; CHECK-NEXT:   %v1 = add i32 %p0, %v4
-; CHECK-NEXT:   br label %b6
-; CHECK-NEXT: b3:
-; CHECK-NEXT:   %v2 = add i32 %p0, %v3
-; CHECK-NEXT:   br label %b6
 ; CHECK-NEXT: b4:
 ; CHECK-NEXT:   %v3 = add i32 %p0, %p0
-; CHECK-NEXT:   br i1 true, label %b1, label %b5
-; CHECK-NEXT: b5:
-; CHECK-NEXT:   %v4 = add i32 %v3, %p0
-; CHECK-NEXT:   br i1 true, label %b2, label %b3
+; CHECK-NEXT:   br label %b1
 ; CHECK-NEXT: b6:
 ; CHECK-NEXT:   ret void
 ; CHECK-NEXT: }
