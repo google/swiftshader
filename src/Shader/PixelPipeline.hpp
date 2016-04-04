@@ -57,8 +57,7 @@ namespace sw
 		void specularPixel(Vector4s &current, Vector4s &specular);
 
 		void sampleTexture(Vector4s &c, int coordinates, int sampler, bool project = false);
-		void sampleTexture(Vector4s &c, int sampler, Float4 &u, Float4 &v, Float4 &w, Float4 &q, bool project = false, bool bias = false);
-		void sampleTexture(Vector4s &c, int sampler, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, bool project = false, bool bias = false, bool gradients = false, bool lodProvided = false);
+		void sampleTexture(Vector4s &c, int sampler, Float4 &u, Float4 &v, Float4 &w, Float4 &q, bool project = false);
 
 		Short4 convertFixed12(RValue<Float4> cf);
 		void convertFixed12(Vector4s &cs, Vector4f &cf);
@@ -66,7 +65,7 @@ namespace sw
 		void convertSigned12(Vector4f &cf, Vector4s &cs);
 
 		void writeDestination(Vector4s &d, const Dst &dst);
-		Vector4s fetchRegisterS(const Src &src);
+		Vector4s fetchRegister(const Src &src);
 
 		// Instructions
 		void MOV(Vector4s &dst, Vector4s &src0);

@@ -94,9 +94,9 @@ namespace sw
 			Vector4s s1;
 			Vector4s s2;
 
-			if(src0.type != Shader::PARAMETER_VOID) s0 = fetchRegisterS(src0);
-			if(src1.type != Shader::PARAMETER_VOID) s1 = fetchRegisterS(src1);
-			if(src2.type != Shader::PARAMETER_VOID) s2 = fetchRegisterS(src2);
+			if(src0.type != Shader::PARAMETER_VOID) s0 = fetchRegister(src0);
+			if(src1.type != Shader::PARAMETER_VOID) s1 = fetchRegister(src1);
+			if(src2.type != Shader::PARAMETER_VOID) s2 = fetchRegister(src2);
 
 			Float4 x = version < 0x0104 ? v[2 + dst.index].x : v[2 + src0.index].x;
 			Float4 y = version < 0x0104 ? v[2 + dst.index].y : v[2 + src0.index].y;
@@ -1221,25 +1221,20 @@ namespace sw
 		sampleTexture(c, stage, x, y, z, w, project);
 	}
 
-	void PixelPipeline::sampleTexture(Vector4s &c, int stage, Float4 &u, Float4 &v, Float4 &w, Float4 &q, bool project, bool bias)
+	void PixelPipeline::sampleTexture(Vector4s &c, int stage, Float4 &u, Float4 &v, Float4 &w, Float4 &q, bool project)
 	{
+		#if PERF_PROFILE
+			Long texTime = Ticks();
+		#endif
+
 		Vector4f dsx;
 		Vector4f dsy;
-
-		sampleTexture(c, stage, u, v, w, q, dsx, dsy, project, bias, false);
-	}
-
-	void PixelPipeline::sampleTexture(Vector4s &c, int stage, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, bool project, bool bias, bool gradients, bool lodProvided)
-	{
-#if PERF_PROFILE
-		Long texTime = Ticks();
-#endif
 
 		Pointer<Byte> texture = data + OFFSET(DrawData, mipmap) + stage * sizeof(Texture);
 
 		if(!project)
 		{
-			sampler[stage]->sampleTexture(texture, c, u, v, w, q, dsx, dsy, bias, gradients, lodProvided);
+			sampler[stage]->sampleTexture(texture, c, u, v, w, q, dsx, dsy);
 		}
 		else
 		{
@@ -1249,12 +1244,12 @@ namespace sw
 			Float4 v_q = v * rq;
 			Float4 w_q = w * rq;
 
-			sampler[stage]->sampleTexture(texture, c, u_q, v_q, w_q, q, dsx, dsy, bias, gradients, lodProvided);
+			sampler[stage]->sampleTexture(texture, c, u_q, v_q, w_q, q, dsx, dsy);
 		}
 
-#if PERF_PROFILE
-		cycles[PERF_TEX] += Ticks() - texTime;
-#endif
+		#if PERF_PROFILE
+			cycles[PERF_TEX] += Ticks() - texTime;
+		#endif
 	}
 
 	Short4 PixelPipeline::convertFixed12(RValue<Float4> cf)
@@ -1317,7 +1312,7 @@ namespace sw
 		}
 	}
 
-	Vector4s PixelPipeline::fetchRegisterS(const Src &src)
+	Vector4s PixelPipeline::fetchRegister(const Src &src)
 	{
 		Vector4s *reg;
 		int i = src.index;

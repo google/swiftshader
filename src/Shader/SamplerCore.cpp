@@ -51,7 +51,12 @@ namespace sw
 	{
 	}
 
-	void SamplerCore::sampleTexture(Pointer<Byte> &texture, Vector4s &c, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, bool bias, bool gradients, bool lodProvided, bool fixed12)
+	void SamplerCore::sampleTexture(Pointer<Byte> &texture, Vector4s &c, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, SamplerMethod method)
+	{
+		sampleTexture(texture, c, u, v, w, q, dsx, dsy, method, true);
+	}
+
+	void SamplerCore::sampleTexture(Pointer<Byte> &texture, Vector4s &c, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, SamplerMethod method, bool fixed12)
 	{
 		#if PERF_PROFILE
 			AddAtomic(Pointer<Long>(&profiler.texOperations), 4);
@@ -101,16 +106,16 @@ namespace sw
 			{
 				if(state.textureType != TEXTURE_CUBE)
 				{
-					computeLod(texture, lod, anisotropy, uDelta, vDelta, uuuu, vvvv, q.x, dsx, dsy, bias, gradients, lodProvided);
+					computeLod(texture, lod, anisotropy, uDelta, vDelta, uuuu, vvvv, q.x, dsx, dsy, method);
 				}
 				else
 				{
-					computeLod(texture, lod, anisotropy, uDelta, vDelta, lodU, lodV, q.x, dsx, dsy, bias, gradients, lodProvided);
+					computeLod(texture, lod, anisotropy, uDelta, vDelta, lodU, lodV, q.x, dsx, dsy, method);
 				}
 			}
 			else
 			{
-				computeLod3D(texture, lod, uuuu, vvvv, wwww, q.x, dsx, dsy, bias, gradients, lodProvided);
+				computeLod3D(texture, lod, uuuu, vvvv, wwww, q.x, dsx, dsy, method);
 			}
 
 			if(state.textureType == TEXTURE_CUBE)
@@ -121,13 +126,13 @@ namespace sw
 
 			if(!hasFloatTexture())
 			{
-				sampleFilter(texture, c, uuuu, vvvv, wwww, lod, anisotropy, uDelta, vDelta, face, lodProvided);
+				sampleFilter(texture, c, uuuu, vvvv, wwww, lod, anisotropy, uDelta, vDelta, face, method);
 			}
 			else
 			{
 				Vector4f cf;
 
-				sampleFloatFilter(texture, cf, uuuu, vvvv, wwww, lod, anisotropy, uDelta, vDelta, face, lodProvided);
+				sampleFloatFilter(texture, cf, uuuu, vvvv, wwww, lod, anisotropy, uDelta, vDelta, face, method);
 
 				convertFixed12(c, cf);
 			}
@@ -287,7 +292,7 @@ namespace sw
 		}
 	}
 
-	void SamplerCore::sampleTexture(Pointer<Byte> &texture, Vector4f &c, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, bool bias, bool gradients, bool lodProvided)
+	void SamplerCore::sampleTexture(Pointer<Byte> &texture, Vector4f &c, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, SamplerMethod method)
 	{
 		#if PERF_PROFILE
 			AddAtomic(Pointer<Long>(&profiler.texOperations), 4);
@@ -331,16 +336,16 @@ namespace sw
 				{
 					if(state.textureType != TEXTURE_CUBE)
 					{
-						computeLod(texture, lod, anisotropy, uDelta, vDelta, uuuu, vvvv, q.x, dsx, dsy, bias, gradients, lodProvided);
+						computeLod(texture, lod, anisotropy, uDelta, vDelta, uuuu, vvvv, q.x, dsx, dsy, method);
 					}
 					else
 					{
-						computeLod(texture, lod, anisotropy, uDelta, vDelta, lodU, lodV, q.x, dsx, dsy, bias, gradients, lodProvided);
+						computeLod(texture, lod, anisotropy, uDelta, vDelta, lodU, lodV, q.x, dsx, dsy, method);
 					}
 				}
 				else
 				{
-					computeLod3D(texture, lod, uuuu, vvvv, wwww, q.x, dsx, dsy, bias, gradients, lodProvided);
+					computeLod3D(texture, lod, uuuu, vvvv, wwww, q.x, dsx, dsy, method);
 				}
 
 				if(state.textureType == TEXTURE_CUBE)
@@ -349,13 +354,13 @@ namespace sw
 					vvvv += Float4(0.5f);
 				}
 
-				sampleFloatFilter(texture, c, uuuu, vvvv, wwww, lod, anisotropy, uDelta, vDelta, face, lodProvided);
+				sampleFloatFilter(texture, c, uuuu, vvvv, wwww, lod, anisotropy, uDelta, vDelta, face, method);
 			}
 			else
 			{
 				Vector4s cs;
 
-				sampleTexture(texture, cs, u, v, w, q, dsx, dsy, bias, gradients, lodProvided, false);
+				sampleTexture(texture, cs, u, v, w, q, dsx, dsy, method, false);
 
 				for(int component = 0; component < textureComponentCount(); component++)
 				{
@@ -593,15 +598,15 @@ namespace sw
 		return uvw;
 	}
 
-	void SamplerCore::sampleFilter(Pointer<Byte> &texture, Vector4s &c, Float4 &u, Float4 &v, Float4 &w, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, Int face[4], bool lodProvided)
+	void SamplerCore::sampleFilter(Pointer<Byte> &texture, Vector4s &c, Float4 &u, Float4 &v, Float4 &w, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, Int face[4], SamplerMethod method)
 	{
-		sampleAniso(texture, c, u, v, w, lod, anisotropy, uDelta, vDelta, face, false, lodProvided);
+		sampleAniso(texture, c, u, v, w, lod, anisotropy, uDelta, vDelta, face, false, method);
 
 		if(state.mipmapFilter > MIPMAP_POINT)
 		{
 			Vector4s cc;
 
-			sampleAniso(texture, cc, u, v, w, lod, anisotropy, uDelta, vDelta, face, true, lodProvided);
+			sampleAniso(texture, cc, u, v, w, lod, anisotropy, uDelta, vDelta, face, true, method);
 
 			lod *= Float(1 << 16);
 
@@ -689,9 +694,9 @@ namespace sw
 		}
 	}
 
-	void SamplerCore::sampleAniso(Pointer<Byte> &texture, Vector4s &c, Float4 &u, Float4 &v, Float4 &w, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, Int face[4], bool secondLOD, bool lodProvided)
+	void SamplerCore::sampleAniso(Pointer<Byte> &texture, Vector4s &c, Float4 &u, Float4 &v, Float4 &w, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, Int face[4], bool secondLOD, SamplerMethod method)
 	{
-		if(state.textureFilter != FILTER_ANISOTROPIC || lodProvided)
+		if(state.textureFilter != FILTER_ANISOTROPIC || method == Lod)
 		{
 			sampleQuad(texture, c, u, v, w, lod, face, secondLOD);
 		}
@@ -1093,15 +1098,15 @@ namespace sw
 		}
 	}
 
-	void SamplerCore::sampleFloatFilter(Pointer<Byte> &texture, Vector4f &c, Float4 &u, Float4 &v, Float4 &w, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, Int face[4], bool lodProvided)
+	void SamplerCore::sampleFloatFilter(Pointer<Byte> &texture, Vector4f &c, Float4 &u, Float4 &v, Float4 &w, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, Int face[4], SamplerMethod method)
 	{
-		sampleFloatAniso(texture, c, u, v, w, lod, anisotropy, uDelta, vDelta, face, false, lodProvided);
+		sampleFloatAniso(texture, c, u, v, w, lod, anisotropy, uDelta, vDelta, face, false, method);
 
 		if(state.mipmapFilter > MIPMAP_POINT)
 		{
 			Vector4f cc;
 
-			sampleFloatAniso(texture, cc, u, v, w, lod, anisotropy, uDelta, vDelta, face, true, lodProvided);
+			sampleFloatAniso(texture, cc, u, v, w, lod, anisotropy, uDelta, vDelta, face, true, method);
 
 			Float4 lod4 = Float4(Frac(lod));
 
@@ -1168,9 +1173,9 @@ namespace sw
 		}
 	}
 
-	void SamplerCore::sampleFloatAniso(Pointer<Byte> &texture, Vector4f &c, Float4 &u, Float4 &v, Float4 &w, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, Int face[4], bool secondLOD, bool lodProvided)
+	void SamplerCore::sampleFloatAniso(Pointer<Byte> &texture, Vector4f &c, Float4 &u, Float4 &v, Float4 &w, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, Int face[4], bool secondLOD, SamplerMethod method)
 	{
-		if(state.textureFilter != FILTER_ANISOTROPIC || lodProvided)
+		if(state.textureFilter != FILTER_ANISOTROPIC || method == Lod)
 		{
 			sampleFloat(texture, c, u, v, w, lod, face, secondLOD);
 		}
@@ -1390,13 +1395,13 @@ namespace sw
 		}
 	}
 
-	void SamplerCore::computeLod(Pointer<Byte> &texture, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, Float4 &uuuu, Float4 &vvvv, const Float &lodBias, Vector4f &dsx, Vector4f &dsy, bool bias, bool gradients, bool lodProvided)
+	void SamplerCore::computeLod(Pointer<Byte> &texture, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, Float4 &uuuu, Float4 &vvvv, const Float &lodBias, Vector4f &dsx, Vector4f &dsy, SamplerMethod method)
 	{
-		if(!lodProvided)
+		if(method != Lod)
 		{
 			Float4 duvdxy;
 
-			if(!gradients)
+			if(method != Grad)
 			{
 				duvdxy = Float4(uuuu.yz, vvvv.yz) - Float4(uuuu.xx, vvvv.xx);
 			}
@@ -1440,7 +1445,7 @@ namespace sw
 			lod -= Float(0x3F800000);
 			lod *= As<Float>(Int(0x33800000));
 
-			if(bias)
+			if(method == Bias)
 			{
 				lod += lodBias;
 			}
@@ -1460,20 +1465,20 @@ namespace sw
 		lod = Min(lod, Float(MIPMAP_LEVELS - 2));   // Trilinear accesses lod+1
 	}
 
-	void SamplerCore::computeLod3D(Pointer<Byte> &texture, Float &lod, Float4 &uuuu, Float4 &vvvv, Float4 &wwww, const Float &lodBias, Vector4f &dsx, Vector4f &dsy, bool bias, bool gradients, bool lodProvided)
+	void SamplerCore::computeLod3D(Pointer<Byte> &texture, Float &lod, Float4 &uuuu, Float4 &vvvv, Float4 &wwww, const Float &lodBias, Vector4f &dsx, Vector4f &dsy, SamplerMethod method)
 	{
 		if(state.mipmapFilter == MIPMAP_NONE)
 		{
 		}
 		else   // Point and linear filter
 		{
-			if(!lodProvided)
+			if(method != Lod)
 			{
 				Float4 dudxy;
 				Float4 dvdxy;
 				Float4 dsdxy;
 
-				if(!gradients)
+				if(method != Grad)
 				{
 					dudxy = uuuu.ywyw - uuuu;
 					dvdxy = vvvv.ywyw - vvvv;
@@ -1513,7 +1518,7 @@ namespace sw
 				lod -= Float(0x3F800000);
 				lod *= As<Float>(Int(0x33800000));
 
-				if(bias)
+				if(method == Bias)
 				{
 					lod += lodBias;
 				}

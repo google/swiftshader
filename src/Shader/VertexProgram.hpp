@@ -14,6 +14,7 @@
 
 #include "VertexRoutine.hpp"
 #include "ShaderCore.hpp"
+#include "SamplerCore.hpp"
 
 #include "Stream.hpp"
 #include "Types.hpp"
@@ -22,7 +23,6 @@ namespace sw
 {
 	struct Stream;
 	class VertexShader;
-	class SamplerCore;
 
 	class VertexProgram : public VertexRoutine, public ShaderCore
 	{
@@ -63,7 +63,7 @@ namespace sw
 		void program();
 		void passThrough();
 
-		Vector4f fetchRegisterF(const Src &src, unsigned int offset = 0);
+		Vector4f fetchRegister(const Src &src, unsigned int offset = 0);
 		Vector4f readConstant(const Src &src, unsigned int offset = 0);
 		RValue<Pointer<Byte>> uniformAddress(int bufferIndex, unsigned int index);
 		RValue<Pointer<Byte>> uniformAddress(int bufferIndex, unsigned int index, Int& offset);
@@ -111,7 +111,7 @@ namespace sw
 		void TEXGRAD(Vector4f &dst, Vector4f &src, const Src&, Vector4f &src2, Vector4f &src3, Vector4f &src4);
 		void TEXSIZE(Vector4f &dst, Float4 &lod, const Src&);
 
-		void sampleTexture(Vector4f &c, const Src &s, Float4 &u, Float4 &v, Float4 &w, Float4 &q);
+		void sampleTexture(Vector4f &c, const Src &s, Float4 &u, Float4 &v, Float4 &w, Float4 &q, SamplerMethod method);
 
 		SamplerCore *sampler[VERTEX_TEXTURE_IMAGE_UNITS];
 
