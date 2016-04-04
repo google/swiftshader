@@ -2389,7 +2389,7 @@ template bool Context::getUniformBufferiv<GLint64>(GLuint index, GLenum pname, G
 
 template<typename T> bool Context::getUniformBufferiv(GLuint index, GLenum pname, T *param) const
 {
-	const UniformBufferBinding& uniformBuffer = mState.uniformBuffers[index];
+	const BufferBinding& uniformBuffer = mState.uniformBuffers[index];
 
 	switch(pname)
 	{

@@ -50,7 +50,7 @@ public:
 
 private:
 	gl::BindingPointer<Buffer> mGenericBuffer;
-	UniformBufferBinding mBuffer[MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS];
+	BufferBinding mBuffer[MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS];
 
 	bool mActive;
 	bool mPaused;
