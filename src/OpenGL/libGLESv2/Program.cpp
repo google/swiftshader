@@ -1132,7 +1132,7 @@ namespace es2
 		}
 	}
 
-	void Program::applyUniformBuffers(UniformBufferBinding* uniformBuffers)
+	void Program::applyUniformBuffers(BufferBinding* uniformBuffers)
 	{
 		GLint vertexUniformBuffers[IMPLEMENTATION_MAX_UNIFORM_BUFFER_BINDINGS];
 		GLint fragmentUniformBuffers[IMPLEMENTATION_MAX_UNIFORM_BUFFER_BINDINGS];

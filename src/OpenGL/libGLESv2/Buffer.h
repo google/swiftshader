@@ -60,24 +60,24 @@ class Buffer : public gl::NamedObject
 	GLbitfield mAccess;
 };
 
-class UniformBufferBinding
+class BufferBinding
 {
 public:
-	UniformBufferBinding() : offset(0), size(0) { }
+	BufferBinding() : offset(0), size(0) { }
 
-	void set(Buffer *newUniformBuffer, int newOffset = 0, int newSize = 0)
+	void set(Buffer *newBuffer, int newOffset = 0, int newSize = 0)
 	{
-		uniformBuffer = newUniformBuffer;
+		buffer = newBuffer;
 		offset = newOffset;
 		size = newSize;
 	}
 
 	int getOffset() const { return offset; }
 	int getSize() const { return size; }
-	const gl::BindingPointer<Buffer>& get() const { return uniformBuffer; }
+	const gl::BindingPointer<Buffer>& get() const { return buffer; }
 
 private:
-	gl::BindingPointer<Buffer> uniformBuffer;
+	gl::BindingPointer<Buffer> buffer;
 	int offset;
 	int size;
 };
