@@ -191,6 +191,10 @@ namespace sw
 		virtual void lockUniformBuffers(byte** u);
 		virtual void unlockUniformBuffers();
 
+		virtual void setTransformFeedbackBuffer(int index, sw::Resource* transformFeedbackBuffer, int offset, unsigned int reg, unsigned int row, unsigned int col, size_t stride);
+		virtual void lockTransformFeedbackBuffers(byte** t, unsigned int* v, unsigned int* r, unsigned int* c, unsigned int* s);
+		virtual void unlockTransformFeedbackBuffers();
+
 		// Transformations
 		virtual void setModelMatrix(const Matrix &M, int i = 0);
 		virtual void setViewMatrix(const Matrix &V);
@@ -286,6 +290,19 @@ namespace sw
 
 	private:
 		void updateTransform();
+		struct TransformFeedbackInfo
+		{
+			TransformFeedbackInfo();
+			void clear();
+
+			Resource* buffer;
+			int offset;
+			int reg;
+			int row;
+			int col;
+			size_t stride;
+		};
+		TransformFeedbackInfo transformFeedbackInfo[MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS];
 
 		void setTransform(const Matrix &M, int i);
 		void setCameraTransform(const Matrix &M, int i);
