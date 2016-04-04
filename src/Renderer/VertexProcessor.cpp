@@ -61,6 +61,21 @@ namespace sw
 		return memcmp(static_cast<const States*>(this), static_cast<const States*>(&state), sizeof(States)) == 0;
 	}
 
+	VertexProcessor::TransformFeedbackInfo::TransformFeedbackInfo()
+	{
+		clear();
+	}
+
+	void VertexProcessor::TransformFeedbackInfo::clear()
+	{
+		buffer = nullptr;
+		offset = 0;
+		reg = 0;
+		row = 0;
+		col = 0;
+		stride = 0;
+	}
+
 	VertexProcessor::VertexProcessor(Context *context) : context(context)
 	{
 		for(int i = 0; i < 12; i++)
@@ -185,6 +200,40 @@ namespace sw
 				uniformBuffer[i]->unlock();
 				uniformBuffer[i] = nullptr;
 			}
+		}
+	}
+
+	void VertexProcessor::setTransformFeedbackBuffer(int index, sw::Resource* buffer, int offset, unsigned int reg, unsigned int row, unsigned int col, size_t stride)
+	{
+		transformFeedbackInfo[index].buffer = buffer;
+		transformFeedbackInfo[index].offset = offset;
+		transformFeedbackInfo[index].reg = reg;
+		transformFeedbackInfo[index].row = row;
+		transformFeedbackInfo[index].col = col;
+		transformFeedbackInfo[index].stride = stride;
+	}
+
+	void VertexProcessor::lockTransformFeedbackBuffers(byte** t, unsigned int* v, unsigned int* r, unsigned int* c, unsigned int* s)
+	{
+		for(int i = 0; i < MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS; ++i)
+		{
+			t[i] = transformFeedbackInfo[i].buffer ? static_cast<byte*>(transformFeedbackInfo[i].buffer->lock(PUBLIC, PRIVATE)) + transformFeedbackInfo[i].offset : nullptr;
+			v[i] = transformFeedbackInfo[i].reg;
+			r[i] = transformFeedbackInfo[i].row;
+			c[i] = transformFeedbackInfo[i].col;
+			s[i] = transformFeedbackInfo[i].stride;
+		}
+	}
+
+	void VertexProcessor::unlockTransformFeedbackBuffers()
+	{
+		for(int i = 0; i < MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS; ++i)
+		{
+			if(transformFeedbackInfo[i].buffer)
+			{
+				transformFeedbackInfo[i].buffer->unlock();
+			}
+			transformFeedbackInfo[i].clear();
 		}
 	}
 
