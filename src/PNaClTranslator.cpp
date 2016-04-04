@@ -477,7 +477,14 @@ private:
                                         Prefix);
     } else {
       Ice::GlobalContext *Ctx = Translator.getContext();
-      if (Ice::BuildDefs::dump() || !Decl->isInternal()) {
+      // Synthesize a dummy name if any of the following is true:
+      // - DUMP is enabled
+      // - The symbol is external
+      // - The -timing-funcs flag is enabled
+      // - The -timing-focus flag is enabled
+      if (Ice::BuildDefs::dump() || !Decl->isInternal() ||
+          Ice::getFlags().getTimeEachFunction() ||
+          !Ice::getFlags().getTimingFocusOn().empty()) {
         Decl->setName(Ctx, Translator.createUnnamedName(Prefix, NameIndex));
       } else {
         Decl->setName(Ctx);

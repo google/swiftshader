@@ -352,10 +352,13 @@ public:
   /// newTimerStackID() creates a new TimerStack in the global space. It does
   /// not affect any TimerStack objects in TLS.
   TimerStackIdT newTimerStackID(const std::string &Name);
-  /// dumpTimers() dumps the global timer data. As such, one probably wants to
-  /// call mergeTimerStacks() as a prerequisite.
+  /// dumpTimers() dumps the global timer data.  This assumes all the
+  /// thread-local copies of timer data have been merged into the global timer
+  /// data.
   void dumpTimers(TimerStackIdT StackID = TSK_Default,
                   bool DumpCumulative = true);
+  /// Merges the current thread's copy of timer data into the global timer data.
+  void mergeTimersFromTLS();
   /// The following methods affect only the calling thread's TLS timer data.
   TimerIdT getTimerID(TimerStackIdT StackID, const std::string &Name);
   void pushTimer(TimerIdT ID, TimerStackIdT StackID);

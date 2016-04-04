@@ -966,6 +966,10 @@ void GlobalContext::dumpStats(const Cfg *Func) {
   }
 }
 
+void GlobalContext::mergeTimersFromTLS() {
+  getTimers()->mergeFrom(ICE_TLS_GET_FIELD(TLS)->Timers);
+}
+
 void GlobalContext::dumpTimers(TimerStackIdT StackID, bool DumpCumulative) {
   if (!BuildDefs::timers())
     return;
@@ -992,7 +996,8 @@ TimerIdT TimerMarker::getTimerIdFromFuncName(GlobalContext *Ctx,
 void TimerMarker::push() {
   switch (StackID) {
   case GlobalContext::TSK_Default:
-    Active = getFlags().getSubzeroTimingEnabled();
+    Active = getFlags().getSubzeroTimingEnabled() ||
+             !getFlags().getTimingFocusOn().empty();
     break;
   case GlobalContext::TSK_Funcs:
     Active = getFlags().getTimeEachFunction();

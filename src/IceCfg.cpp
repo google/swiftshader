@@ -197,14 +197,18 @@ void Cfg::addCallToProfileSummary() {
 void Cfg::translate() {
   if (hasError())
     return;
-  if (BuildDefs::dump()) {
+  if (BuildDefs::timers()) {
     const std::string TimingFocusOn = getFlags().getTimingFocusOn();
-    const std::string Name = getFunctionName().toString();
-    if (TimingFocusOn == "*" || TimingFocusOn == Name) {
-      setFocusedTiming();
-      getContext()->resetTimer(GlobalContext::TSK_Default);
-      getContext()->setTimerName(GlobalContext::TSK_Default, Name);
+    if (!TimingFocusOn.empty()) {
+      const std::string Name = getFunctionName().toString();
+      if (TimingFocusOn == "*" || TimingFocusOn == Name) {
+        setFocusedTiming();
+        getContext()->resetTimer(GlobalContext::TSK_Default);
+        getContext()->setTimerName(GlobalContext::TSK_Default, Name);
+      }
     }
+  }
+  if (BuildDefs::dump()) {
     if (isVerbose(IceV_Status)) {
       getContext()->getStrDump() << ">>>Translating "
                                  << getFunctionNameAndSize() << "\n";
@@ -235,8 +239,10 @@ void Cfg::translate() {
   getTarget()->translate();
 
   dump("Final output");
-  if (getFocusedTiming())
+  if (getFocusedTiming()) {
+    getContext()->mergeTimersFromTLS();
     getContext()->dumpTimers();
+  }
 }
 
 void Cfg::computeInOutEdges() {

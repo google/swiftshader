@@ -111,14 +111,12 @@ struct dev_list_flag {};
                                                                                \
   X(DefaultFunctionPrefix, std::string, dev_opt_flag,                          \
     "default-function-prefix",                                                 \
-    cl::desc("Define default function prefix for naming "                      \
-             "unnamed functions"),                                             \
-    cl::init(Ice::BuildDefs::dump() ? "Function" : "F"))                       \
+    cl::desc("Define default function prefix for naming unnamed functions"),   \
+    cl::init("Function"))                                                      \
                                                                                \
   X(DefaultGlobalPrefix, std::string, dev_opt_flag, "default-global-prefix",   \
-    cl::desc("Define default global prefix for naming "                        \
-             "unnamed globals"),                                               \
-    cl::init(Ice::BuildDefs::dump() ? "Global" : "G"))                         \
+    cl::desc("Define default global prefix for naming unnamed globals"),       \
+    cl::init("Global"))                                                        \
                                                                                \
   X(DisableHybridAssembly, bool, dev_opt_flag, "no-hybrid-asm",                \
     cl::desc("Disable hybrid assembly when -filetype=iasm"), cl::init(false))  \
