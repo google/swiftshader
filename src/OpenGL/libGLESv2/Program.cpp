@@ -1308,6 +1308,8 @@ namespace es2
 
 		for(glsl::VaryingList::iterator output = vsVaryings.begin(); output != vsVaryings.end(); ++output)
 		{
+			bool matched = false;
+
 			for(glsl::VaryingList::iterator input = psVaryings.begin(); input != psVaryings.end(); ++input)
 			{
 				if(output->name == input->name)
@@ -1346,7 +1348,30 @@ namespace es2
 						}
 					}
 
+					matched = true;
 					break;
+				}
+			}
+
+			// For openGL ES 3.0, we need to still add the vertex shader outputs for unmatched varyings, for transform feedback.
+			if(!matched && (egl::getClientVersion() >= 3))
+			{
+				int out = output->reg;
+				int components = VariableRegisterSize(output->type);
+				int registers = VariableRegisterCount(output->type) * output->size();
+
+				if(out >= 0)
+				{
+					if(out + registers > MAX_VARYING_VECTORS)
+					{
+						appendToInfoLog("Too many varyings");
+						return false;
+					}
+
+					for(int i = 0; i < registers; i++)
+					{
+						vertexBinary->setOutput(out + i, components, sw::Shader::Semantic(sw::Shader::USAGE_COLOR));
+					}
 				}
 			}
 		}
