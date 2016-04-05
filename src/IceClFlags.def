@@ -329,6 +329,7 @@ struct dev_list_flag {};
                    "Global initializers"),                                     \
         clEnumValN(Ice::IceV_ConstPoolStats, "cpool",                          \
                    "Constant pool counters"),                                  \
+        clEnumValN(Ice::IceV_Wasm, "wasm", "WebAssembly builder"),             \
         clEnumValN(Ice::IceV_All, "all", "Use all verbose options"),           \
         clEnumValN(Ice::IceV_Most, "most",                                     \
                    "Use all verbose options except 'regalloc,global_init'"),   \

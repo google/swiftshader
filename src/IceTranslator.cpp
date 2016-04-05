@@ -24,20 +24,6 @@
 
 namespace Ice {
 
-class CfgOptWorkItem final : public OptWorkItem {
-  CfgOptWorkItem() = delete;
-  CfgOptWorkItem(const CfgOptWorkItem &) = delete;
-  CfgOptWorkItem &operator=(const CfgOptWorkItem &) = delete;
-
-public:
-  CfgOptWorkItem(std::unique_ptr<Cfg> Func) : Func(std::move(Func)) {}
-  std::unique_ptr<Cfg> getParsedCfg() override { return std::move(Func); }
-  ~CfgOptWorkItem() override = default;
-
-private:
-  std::unique_ptr<Ice::Cfg> Func;
-};
-
 Translator::Translator(GlobalContext *Ctx)
     : Ctx(Ctx), NextSequenceNumber(GlobalContext::getFirstSequenceNumber()),
       ErrorStatus() {}

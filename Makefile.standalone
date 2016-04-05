@@ -179,6 +179,9 @@ endif
 SB_OBJDIR := $(OBJDIR)+Sandboxed
 SBB_OBJDIR := $(OBJDIR)+SandboxedBrowser
 
+V8_DIR = $(NACL_ROOT)/../v8
+V8_CXXFLAGS := -I$(V8_DIR)
+
 $(info -----------------------------------------------)
 $(info Using LLVM_SRC_PATH = $(LLVM_SRC_PATH))
 $(info Using SB_LLVM_PATH = $(SB_LLVM_PATH))
@@ -251,9 +254,18 @@ ifdef GPLUSPLUS
   OBJDIR := $(OBJDIR)+Gplusplus
 endif
 
-BASE_CXXFLAGS := -std=gnu++11 -Wall -Wextra -Werror -fno-rtti \
+BASE_CXXFLAGS := -std=gnu++11 -Wall -Wextra -fno-rtti \
   -fno-exceptions $(OPTLEVEL) $(ASSERTIONS) -g -pedantic \
   $(LLVM_EXTRA_WARNINGS) $(CXX_EXTRA) -MP -MD
+
+ifdef WASM
+  # The WASM code inherits a lot of V8 code, which does not compile with
+  # -Werror.
+  BASE_CXXFLAGS := $(BASE_CXXFLAGS) $(V8_CXXFLAGS) -DALLOW_WASM=1
+  OBJDIR := $(OBJDIR)+Wasm
+else
+  BASE_CXXFLAGS := $(BASE_CXXFLAGS) -Werror -DALLOW_WASM=0
+endif
 
 CXXFLAGS := $(LLVM_CXXFLAGS) $(BASE_CXXFLAGS) $(CXX_DEFINES) $(HOST_FLAGS) \
   $(STDLIB_FLAGS)
@@ -313,6 +325,11 @@ ifndef MINIMAL
   SRCS += \
     IceConverter.cpp \
     IceTypeConverter.cpp
+endif
+
+ifdef WASM
+  SRCS += \
+    WasmTranslator.cpp
 endif
 
 OBJS=$(patsubst %.cpp, $(OBJDIR)/%.o, $(SRCS))
@@ -392,9 +409,18 @@ sb_make_symlink: $(NEXES)
 
 compile_only: $(OBJS)
 
+V8_LIBDIR=$(V8_DIR)/out/native/lib.target
+
+ifdef WASM
+  V8_LIBS := \
+    $(V8_LIBDIR)/libv8.so \
+    $(V8_LIBDIR)/libicuuc.so \
+    $(V8_LIBDIR)/libicui18n.so
+endif
+
 $(OBJDIR)/pnacl-sz: $(OBJS)
 	$(CXX) $(LDFLAGS) -o $@ $^ $(LLVM_LDFLAGS) \
-          -Wl,-rpath=$(abspath $(LIBCXX_INSTALL_PATH)/lib)
+          -Wl,-rpath=$(abspath $(LIBCXX_INSTALL_PATH)/lib) $(V8_LIBS)
 
 $(SB_OBJDIR)/pnacl-sz.nonfinal.pexe: $(SB_OBJS)
 	$(SB_CXX) $(SB_LDFLAGS) -o $@ $^ $(SB_LLVM_LDFLAGS)
@@ -713,6 +739,7 @@ FORMAT_BLACKLIST += ! -name IceParseInstsTest.cpp
 FORMAT_BLACKLIST += ! -name IceParseTypesTest.cpp
 FORMAT_BLACKLIST += ! -name assembler_arm.h
 FORMAT_BLACKLIST += ! -name assembler_arm.cc
+FORMAT_BLACKLIST += ! -path "./wasm-install/*"
 format:
 	$(CLANG_FORMAT_PATH)/clang-format -style=LLVM -i \
           `find . -regex '.*\.\(c\|h\|cpp\)' $(FORMAT_BLACKLIST)`

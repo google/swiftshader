@@ -72,7 +72,7 @@ public:
   /// @{
   InstList &getInsts() { return Insts; }
   PhiList &getPhis() { return Phis; }
-  void appendInst(Inst *Instr);
+  void appendInst(Inst *Instr, bool AllowPhisAnywhere = false);
   void renumberInstructions();
   /// Rough and generally conservative estimate of the number of instructions in
   /// the block. It is updated when an instruction is added, but not when
@@ -109,6 +109,13 @@ public:
   void dump(Cfg *Func) const;
 
   void profileExecutionCount(VariableDeclaration *Var);
+
+  void addOutEdge(CfgNode *Out) { OutEdges.push_back(Out); }
+  void addInEdge(CfgNode *In) { InEdges.push_back(In); }
+
+  bool hasSingleOutEdge() const {
+    return (getOutEdges().size() == 1 || getOutEdges()[0] == getOutEdges()[1]);
+  }
 
 private:
   CfgNode(Cfg *Func, SizeT Number);

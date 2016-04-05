@@ -90,6 +90,8 @@ constexpr bool llvmIr() { return ALLOW_LLVM_IR; }
 constexpr bool llvmIrAsInput() { return ALLOW_LLVM_IR_AS_INPUT; }
 /// Return true if ALLOW_MINIMAL_BUILD is defined as a non-zero value
 constexpr bool minimal() { return ALLOW_MINIMAL_BUILD; }
+/// Return true if ALLOW_WASM is defined as a non-zero value
+constexpr bool wasm() { return ALLOW_WASM; }
 
 /// Return true if NDEBUG is defined
 constexpr bool asserts() {

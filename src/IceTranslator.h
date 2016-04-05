@@ -74,6 +74,20 @@ protected:
   ErrorCode ErrorStatus;
 };
 
+class CfgOptWorkItem final : public OptWorkItem {
+  CfgOptWorkItem() = delete;
+  CfgOptWorkItem(const CfgOptWorkItem &) = delete;
+  CfgOptWorkItem &operator=(const CfgOptWorkItem &) = delete;
+
+public:
+  CfgOptWorkItem(std::unique_ptr<Cfg> Func) : Func(std::move(Func)) {}
+  std::unique_ptr<Cfg> getParsedCfg() override { return std::move(Func); }
+  ~CfgOptWorkItem() override = default;
+
+private:
+  std::unique_ptr<Ice::Cfg> Func;
+};
+
 } // end of namespace Ice
 
 #endif // SUBZERO_SRC_ICETRANSLATOR_H

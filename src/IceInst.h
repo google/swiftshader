@@ -624,6 +624,7 @@ public:
   Operand *getOperandForTarget(CfgNode *Target) const;
   void clearOperandForTarget(CfgNode *Target);
   CfgNode *getLabel(SizeT Index) const { return Labels[Index]; }
+  void setLabel(SizeT Index, CfgNode *Label) { Labels[Index] = Label; }
   void livenessPhiOperand(LivenessBV &Live, CfgNode *Target,
                           Liveness *Liveness);
   Inst *lower(Cfg *Func);

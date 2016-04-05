@@ -245,6 +245,22 @@ void Cfg::translate() {
   }
 }
 
+void Cfg::fixPhiNodes() {
+  for (auto *Node : Nodes) {
+    // Fix all the phi edges since WASM can't tell how to make them correctly at
+    // the beginning.
+    assert(Node);
+    const auto &InEdges = Node->getInEdges();
+    for (auto &Instr : Node->getPhis()) {
+      auto *Phi = llvm::cast<InstPhi>(&Instr);
+      assert(Phi);
+      for (SizeT i = 0; i < InEdges.size(); ++i) {
+        Phi->setLabel(i, InEdges[i]);
+      }
+    }
+  }
+}
+
 void Cfg::computeInOutEdges() {
   // Compute the out-edges.
   for (CfgNode *Node : Nodes)
@@ -402,7 +418,7 @@ void Cfg::reorderNodes() {
       // in-edge if the predecessor node was contracted). If this changes in
       // the future, rethink the strategy.
       assert(Node->getInEdges().size() >= 1);
-      assert(Node->getOutEdges().size() == 1);
+      assert(Node->hasSingleOutEdge());
 
       // If it's a (non-critical) edge where the successor has a single
       // in-edge, then place it before the successor.

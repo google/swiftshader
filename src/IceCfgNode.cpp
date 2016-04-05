@@ -37,10 +37,20 @@ CfgNode::CfgNode(Cfg *Func, SizeT Number) : Func(Func), Number(Number) {
 
 // Adds an instruction to either the Phi list or the regular instruction list.
 // Validates that all Phis are added before all regular instructions.
-void CfgNode::appendInst(Inst *Instr) {
+void CfgNode::appendInst(Inst *Instr, bool AllowPhisAnywhere) {
   ++InstCountEstimate;
+
+  if (BuildDefs::wasm()) {
+    if (llvm::isa<InstSwitch>(Instr) || llvm::isa<InstBr>(Instr)) {
+      for (auto *N : Instr->getTerminatorEdges()) {
+        N->addInEdge(this);
+        addOutEdge(N);
+      }
+    }
+  }
+
   if (auto *Phi = llvm::dyn_cast<InstPhi>(Instr)) {
-    if (!Insts.empty()) {
+    if (!AllowPhisAnywhere && !Insts.empty()) {
       Func->setError("Phi instruction added to the middle of a block");
       return;
     }
@@ -81,6 +91,8 @@ void CfgNode::computePredecessors() {
 }
 
 void CfgNode::computeSuccessors() {
+  OutEdges.clear();
+  InEdges.clear();
   OutEdges = Insts.rbegin()->getTerminatorEdges();
 }
 
@@ -889,7 +901,7 @@ void CfgNode::contractIfEmpty() {
   // Make sure there is actually a successor to repoint in-edges to.
   if (OutEdges.empty())
     return;
-  assert(OutEdges.size() == 1);
+  assert(hasSingleOutEdge());
   // Don't try to delete a self-loop.
   if (OutEdges[0] == this)
     return;

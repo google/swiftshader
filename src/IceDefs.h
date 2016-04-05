@@ -341,6 +341,7 @@ enum VerboseItem {
   IceV_AvailableRegs = 1 << 21,
   IceV_GlobalInit = 1 << 22,
   IceV_ConstPoolStats = 1 << 23,
+  IceV_Wasm = 1 << 24,
   IceV_All = ~IceV_None,
   IceV_Most =
       IceV_All & ~IceV_LinearScan & ~IceV_GlobalInit & ~IceV_ConstPoolStats

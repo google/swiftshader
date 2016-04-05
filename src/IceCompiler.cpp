@@ -25,6 +25,7 @@
 #include "IceConverter.h"
 #include "IceELFObjectWriter.h"
 #include "PNaClTranslator.h"
+#include "WasmTranslator.h"
 
 #ifdef __clang__
 #pragma clang diagnostic push
@@ -54,6 +55,11 @@ bool llvmIRInput(const std::string &Filename) {
          std::regex_match(Filename, std::regex(".*\\.ll"));
 }
 
+bool wasmInput(const std::string &Filename) {
+  return BuildDefs::llvmIrAsInput() &&
+         std::regex_match(Filename, std::regex(".*\\.wasm"));
+}
+
 } // end of anonymous namespace
 
 void Compiler::run(const Ice::ClFlags &Flags, GlobalContext &Ctx,
@@ -75,13 +81,27 @@ void Compiler::run(const Ice::ClFlags &Flags, GlobalContext &Ctx,
 
   std::unique_ptr<Translator> Translator;
   const std::string IRFilename = Flags.getIRFilename();
-  const bool BuildOnRead = Flags.getBuildOnRead() && !llvmIRInput(IRFilename);
+  const bool BuildOnRead = Flags.getBuildOnRead() && !llvmIRInput(IRFilename) &&
+                           !wasmInput(IRFilename);
+  const bool WasmBuildOnRead = Flags.getBuildOnRead() && wasmInput(IRFilename);
   if (BuildOnRead) {
     std::unique_ptr<PNaClTranslator> PTranslator(new PNaClTranslator(&Ctx));
     std::unique_ptr<llvm::StreamingMemoryObject> MemObj(
         new llvm::StreamingMemoryObjectImpl(InputStream.release()));
     PTranslator->translate(IRFilename, std::move(MemObj));
     Translator.reset(PTranslator.release());
+  } else if (WasmBuildOnRead) {
+    if (BuildDefs::wasm()) {
+      std::unique_ptr<WasmTranslator> WTranslator(new WasmTranslator(&Ctx));
+
+      WTranslator->translate(IRFilename, std::move(InputStream));
+
+      Translator.reset(WTranslator.release());
+    } else {
+      Ctx.getStrError() << "WASM support not enabled\n";
+      Ctx.getErrorStatus()->assign(EC_Args);
+      return;
+    }
   } else if (BuildDefs::llvmIr()) {
     if (BuildDefs::browser()) {
       Ctx.getStrError()

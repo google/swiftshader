@@ -256,6 +256,13 @@ public:
     Allocator->Deallocate(Array);
   }
 
+  /// Update Phi labels with InEdges.
+  ///
+  /// The WASM translator cannot always determine the right incoming edge for a
+  /// value due to the CFG being built incrementally. The fixPhiNodes pass fills
+  /// in the correct information once everything is known.
+  void fixPhiNodes();
+
 private:
   friend class CfgAllocatorTraits; // for Allocator access.
 
