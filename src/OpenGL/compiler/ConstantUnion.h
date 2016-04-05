@@ -174,7 +174,7 @@ public:
     }
 
     bool operator>(const ConstantUnion& constant) const
-    { 
+    {
         assert(type == constant.type);
         switch (type) {
         case EbtInt:
@@ -191,7 +191,7 @@ public:
     }
 
     bool operator<(const ConstantUnion& constant) const
-    { 
+    {
         assert(type == constant.type);
         switch (type) {
         case EbtInt:
@@ -207,8 +207,42 @@ public:
         return false;
     }
 
+	bool operator<=(const ConstantUnion& constant) const
+    {
+        assert(type == constant.type);
+        switch (type) {
+        case EbtInt:
+            return iConst <= constant.iConst;
+        case EbtUInt:
+            return uConst <= constant.uConst;
+        case EbtFloat:
+            return fConst <= constant.fConst;
+        default:
+            return false;   // Invalid operation, handled at semantic analysis
+        }
+
+        return false;
+    }
+
+	bool operator>=(const ConstantUnion& constant) const
+    {
+        assert(type == constant.type);
+        switch (type) {
+        case EbtInt:
+            return iConst >= constant.iConst;
+        case EbtUInt:
+            return uConst >= constant.uConst;
+        case EbtFloat:
+            return fConst >= constant.fConst;
+        default:
+            return false;   // Invalid operation, handled at semantic analysis
+        }
+
+        return false;
+    }
+
     ConstantUnion operator+(const ConstantUnion& constant) const
-    { 
+    {
         ConstantUnion returnValue;
         assert(type == constant.type);
         switch (type) {
@@ -222,7 +256,7 @@ public:
     }
 
     ConstantUnion operator-(const ConstantUnion& constant) const
-    { 
+    {
         ConstantUnion returnValue;
         assert(type == constant.type);
         switch (type) {
@@ -236,13 +270,13 @@ public:
     }
 
     ConstantUnion operator*(const ConstantUnion& constant) const
-    { 
+    {
         ConstantUnion returnValue;
         assert(type == constant.type);
         switch (type) {
         case EbtInt: returnValue.setIConst(iConst * constant.iConst); break;
         case EbtUInt: returnValue.setUConst(uConst * constant.uConst); break;
-        case EbtFloat: returnValue.setFConst(fConst * constant.fConst); break; 
+        case EbtFloat: returnValue.setFConst(fConst * constant.fConst); break;
         default: assert(false && "Default missing");
         }
 
@@ -250,7 +284,7 @@ public:
     }
 
     ConstantUnion operator%(const ConstantUnion& constant) const
-    { 
+    {
         ConstantUnion returnValue;
         assert(type == constant.type);
         switch (type) {
@@ -263,7 +297,7 @@ public:
     }
 
     ConstantUnion operator>>(const ConstantUnion& constant) const
-    { 
+    {
         ConstantUnion returnValue;
         assert(type == constant.type);
         switch (type) {
@@ -276,7 +310,7 @@ public:
     }
 
     ConstantUnion operator<<(const ConstantUnion& constant) const
-    { 
+    {
         ConstantUnion returnValue;
         // The signedness of the second parameter might be different, but we
         // don't care, since the result is undefined if the second parameter is
@@ -292,7 +326,7 @@ public:
     }
 
     ConstantUnion operator&(const ConstantUnion& constant) const
-    { 
+    {
         ConstantUnion returnValue;
         assert(constant.type == EbtInt || constant.type == EbtUInt);
         switch (type) {
@@ -305,7 +339,7 @@ public:
     }
 
     ConstantUnion operator|(const ConstantUnion& constant) const
-    { 
+    {
         ConstantUnion returnValue;
         assert(type == constant.type);
         switch (type) {
@@ -318,7 +352,7 @@ public:
     }
 
     ConstantUnion operator^(const ConstantUnion& constant) const
-    { 
+    {
         ConstantUnion returnValue;
         assert(type == constant.type);
         switch (type) {
@@ -331,7 +365,7 @@ public:
     }
 
     ConstantUnion operator&&(const ConstantUnion& constant) const
-    { 
+    {
         ConstantUnion returnValue;
         assert(type == constant.type);
         switch (type) {
@@ -343,7 +377,7 @@ public:
     }
 
     ConstantUnion operator||(const ConstantUnion& constant) const
-    { 
+    {
         ConstantUnion returnValue;
         assert(type == constant.type);
         switch (type) {
