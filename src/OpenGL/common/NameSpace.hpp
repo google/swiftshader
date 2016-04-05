@@ -18,7 +18,7 @@
 #include "Object.hpp"
 #include "debug.h"
 
-#include <unordered_map>
+#include <map>
 
 namespace gl
 {
@@ -109,7 +109,7 @@ public:
 	}
 
 private:
-	typedef std::unordered_map<GLuint, ObjectType*> Map;
+	typedef std::map<GLuint, ObjectType*> Map;
 	Map map;
 
 	GLuint freeName;   // Lowest known potentially free name
