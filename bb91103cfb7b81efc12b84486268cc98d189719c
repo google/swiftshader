@@ -22,6 +22,30 @@
       "revId": "bb91103cfb7b81efc12b84486268cc98d189719c",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ceccc47f_e8f607a3",
+        "filename": "src/Shader/PixelProgram.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 589,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-05T19:58:15Z",
+      "side": 1,
+      "message": "Maybe a comment in the code for these values? Figure out the reason for these at a later time might be a hassle.",
+      "parentUuid": "cebbe49e_6d20fb2f",
+      "range": {
+        "startLine": 589,
+        "startChar": 44,
+        "endLine": 589,
+        "endChar": 50
+      },
+      "revId": "bb91103cfb7b81efc12b84486268cc98d189719c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
