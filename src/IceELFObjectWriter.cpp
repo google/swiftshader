@@ -581,12 +581,8 @@ void ELFObjectWriter::writeJumpTable(const JumpTableData &JT,
   const Elf64_Xword PointerSize = typeWidthInBytes(getPointerType());
   const Elf64_Xword ShAddralign = PointerSize;
   const Elf64_Xword ShEntsize = PointerSize;
-  const GlobalString JTName = JT.getFunctionName();
   const std::string SectionName = MangleSectionName(
-      IsPIC ? ".data.rel.ro" : ".rodata",
-      (JTName.hasStdString() ? JTName.toString()
-                             : std::to_string(JTName.getID())) +
-          "$jumptable");
+      IsPIC ? ".data.rel.ro" : ".rodata", JT.getSectionName());
   Section = createSection<ELFDataSection>(SectionName, SHT_PROGBITS, SHF_ALLOC,
                                           ShAddralign, ShEntsize);
   Section->setFileOffset(alignFileOffset(ShAddralign));
@@ -598,8 +594,7 @@ void ELFObjectWriter::writeJumpTable(const JumpTableData &JT,
   Section->padToAlignment(Str, PointerSize);
   const bool IsExternal = getFlags().getDisableInternal();
   const uint8_t SymbolBinding = IsExternal ? STB_GLOBAL : STB_LOCAL;
-  GlobalString JumpTableName = Ctx.getGlobalString(
-      InstJumpTable::makeName(JT.getFunctionName(), JT.getId()));
+  const auto JumpTableName = JT.getName();
   SymTab->createDefinedSym(JumpTableName, SymbolType, SymbolBinding, Section,
                            Section->getCurrentSize(), PointerSize);
   StrTab->add(JumpTableName);

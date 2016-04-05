@@ -569,12 +569,26 @@ InstFakeUse::InstFakeUse(Cfg *Func, Variable *Src, uint32_t Weight)
 InstFakeKill::InstFakeKill(Cfg *Func, const Inst *Linked)
     : InstHighLevel(Func, Inst::FakeKill, 0, nullptr), Linked(Linked) {}
 
+namespace {
+GlobalString makeName(Cfg *Func, const SizeT Id) {
+  const auto FuncName = Func->getFunctionName();
+  auto *Ctx = Func->getContext();
+  if (FuncName.hasStdString())
+    return GlobalString::createWithString(
+        Ctx, ".L" + FuncName.toString() + "$jumptable$__" + std::to_string(Id));
+  return GlobalString::createWithString(
+      Ctx, ".L" + std::to_string(FuncName.getID()) + "_" + std::to_string(Id));
+}
+} // end of anonymous namespace
+
 InstJumpTable::InstJumpTable(Cfg *Func, SizeT NumTargets, CfgNode *Default)
     : InstHighLevel(Func, Inst::JumpTable, 1, nullptr),
-      Id(Func->getTarget()->makeNextJumpTableNumber()), NumTargets(NumTargets) {
+      Id(Func->getTarget()->makeNextJumpTableNumber()), NumTargets(NumTargets),
+      Name(makeName(Func, Id)), FuncName(Func->getFunctionName()) {
   Targets = Func->allocateArrayOf<CfgNode *>(NumTargets);
-  for (SizeT I = 0; I < NumTargets; ++I)
+  for (SizeT I = 0; I < NumTargets; ++I) {
     Targets[I] = Default;
+  }
 }
 
 bool InstJumpTable::repointEdges(CfgNode *OldNode, CfgNode *NewNode) {
@@ -586,6 +600,15 @@ bool InstJumpTable::repointEdges(CfgNode *OldNode, CfgNode *NewNode) {
     }
   }
   return Found;
+}
+
+JumpTableData InstJumpTable::toJumpTableData(Assembler *Asm) const {
+  JumpTableData::TargetList TargetList(NumTargets);
+  for (SizeT i = 0; i < NumTargets; ++i) {
+    const SizeT Index = Targets[i]->getIndex();
+    TargetList[i] = Asm->getCfgNodeLabel(Index)->getPosition();
+  }
+  return JumpTableData(Name, FuncName, Id, TargetList);
 }
 
 Type InstCall::getReturnType() const {

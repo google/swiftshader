@@ -5881,10 +5881,8 @@ void TargetX86Base<TraitsType>::lowerCaseCluster(const CaseCluster &Case,
     }
 
     constexpr RelocOffsetT RelocOffset = 0;
-    GlobalString FunctionName = Func->getFunctionName();
     constexpr Variable *NoBase = nullptr;
-    auto JTName = GlobalString::createWithString(
-        Ctx, InstJumpTable::makeName(FunctionName, JumpTable->getId()));
+    auto JTName = GlobalString::createWithString(Ctx, JumpTable->getName());
     Constant *Offset = Ctx->getConstantSym(RelocOffset, JTName);
     uint16_t Shift = typeWidthInBytesLog2(PointerType);
     constexpr auto Segment = X86OperandMem::SegmentRegisters::DefaultSegment;
@@ -7277,17 +7275,16 @@ TargetX86Base<TraitsType>::randomizeOrPoolImmediate(X86OperandMem *MemOperand,
 
 template <typename TraitsType>
 void TargetX86Base<TraitsType>::emitJumpTable(
-    const Cfg *Func, const InstJumpTable *JumpTable) const {
+    const Cfg *, const InstJumpTable *JumpTable) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Ctx->getStrEmit();
   const bool UseNonsfi = getFlags().getUseNonsfi();
-  GlobalString FunctionName = Func->getFunctionName();
   const char *Prefix = UseNonsfi ? ".data.rel.ro." : ".rodata.";
-  Str << "\t.section\t" << Prefix << FunctionName
-      << "$jumptable,\"a\",@progbits\n";
-  Str << "\t.align\t" << typeWidthInBytes(getPointerType()) << "\n";
-  Str << InstJumpTable::makeName(FunctionName, JumpTable->getId()) << ":";
+  Str << "\t.section\t" << Prefix << JumpTable->getSectionName()
+      << ",\"a\",@progbits\n"
+         "\t.align\t" << typeWidthInBytes(getPointerType()) << "\n"
+      << JumpTable->getName() << ":";
 
   // On X86 ILP32 pointers are 32-bit hence the use of .long
   for (SizeT I = 0; I < JumpTable->getNumTargets(); ++I)
@@ -7389,10 +7386,10 @@ void TargetDataX86<TraitsType>::lowerJumpTables() {
     Ostream &Str = Ctx->getStrEmit();
     const char *Prefix = IsPIC ? ".data.rel.ro." : ".rodata.";
     for (const JumpTableData &JT : Ctx->getJumpTables()) {
-      Str << "\t.section\t" << Prefix << JT.getFunctionName()
-          << "$jumptable,\"a\",@progbits\n";
-      Str << "\t.align\t" << typeWidthInBytes(getPointerType()) << "\n";
-      Str << InstJumpTable::makeName(JT.getFunctionName(), JT.getId()) << ":";
+      Str << "\t.section\t" << Prefix << JT.getSectionName()
+          << ",\"a\",@progbits\n"
+             "\t.align\t" << typeWidthInBytes(getPointerType()) << "\n"
+          << JT.getName().toString() << ":";
 
       // On X8664 ILP32 pointers are 32-bit hence the use of .long
       for (intptr_t TargetOffset : JT.getTargetOffsets())

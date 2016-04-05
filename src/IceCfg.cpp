@@ -1025,11 +1025,6 @@ void Cfg::emitTextHeader(GlobalString Name, GlobalContext *Ctx,
   Str << Name << ":\n";
 }
 
-void Cfg::deleteJumpTableInsts() {
-  for (InstJumpTable *JumpTable : JumpTables)
-    JumpTable->setDeleted();
-}
-
 void Cfg::emitJumpTables() {
   switch (getFlags().getOutFileType()) {
   case FT_Elf:
@@ -1037,14 +1032,7 @@ void Cfg::emitJumpTables() {
     // The emission needs to be delayed until the after the text section so
     // save the offsets in the global context.
     for (const InstJumpTable *JumpTable : JumpTables) {
-      SizeT NumTargets = JumpTable->getNumTargets();
-      JumpTableData::TargetList TargetList;
-      for (SizeT I = 0; I < NumTargets; ++I) {
-        SizeT Index = JumpTable->getTarget(I)->getIndex();
-        TargetList.emplace_back(
-            getAssembler()->getCfgNodeLabel(Index)->getPosition());
-      }
-      Ctx->addJumpTable(FunctionName, JumpTable->getId(), TargetList);
+      Ctx->addJumpTableData(JumpTable->toJumpTableData(getAssembler()));
     }
   } break;
   case FT_Asm: {
@@ -1071,7 +1059,6 @@ void Cfg::emit() {
   const bool NeedSandboxing = getFlags().getUseSandboxing();
 
   emitTextHeader(FunctionName, Ctx, Asm);
-  deleteJumpTableInsts();
   if (getFlags().getDecorateAsm()) {
     for (Variable *Var : getVariables()) {
       if (Var->getStackOffset() && !Var->isRematerializable()) {
@@ -1095,7 +1082,6 @@ void Cfg::emitIAS() {
   TimerMarker T(TimerStack::TT_emitAsm, this);
   // The emitIAS() routines emit into the internal assembler buffer, so there's
   // no need to lock the streams.
-  deleteJumpTableInsts();
   const bool NeedSandboxing = getFlags().getUseSandboxing();
   for (CfgNode *Node : Nodes) {
     if (NeedSandboxing && Node->needsAlignment())

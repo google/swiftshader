@@ -282,9 +282,6 @@ private:
   createBlockProfilingInfoDeclaration(const std::string &NodeAsmName,
                                       VariableDeclaration *NodeNameDeclaration);
 
-  /// Delete registered jump table placeholder instructions. This should only be
-  /// called once all repointing has taken place.
-  void deleteJumpTableInsts();
   /// Iterate through the registered jump tables and emit them.
   void emitJumpTables();
 

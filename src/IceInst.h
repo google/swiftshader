@@ -22,6 +22,7 @@
 #include "IceDefs.h"
 #include "IceInst.def"
 #include "IceIntrinsics.h"
+#include "IceSwitchLowering.h"
 #include "IceTypes.h"
 
 // TODO: The Cfg structure, and instructions in particular, need to be
@@ -943,12 +944,22 @@ public:
   static bool classof(const Inst *Instr) {
     return Instr->getKind() == JumpTable;
   }
+  // Creates a JumpTableData struct (used for ELF emission) that represents this
+  // InstJumpTable.
+  JumpTableData toJumpTableData(Assembler *Asm) const;
 
-  // TODO(stichnot): Should this create&save GlobalString values?
-  static std::string makeName(GlobalString FuncName, SizeT Id) {
-    if (FuncName.hasStdString())
-      return ".L" + FuncName + "$jumptable$__" + std::to_string(Id);
-    return ".L" + std::to_string(FuncName.getID()) + "_" + std::to_string(Id);
+  // InstJumpTable is just a placeholder for the switch targets, and it does not
+  // need to emit any code, so we redefine emit and emitIAS to do nothing.
+  void emit(const Cfg *) const override {}
+  void emitIAS(const Cfg * /* Func */) const override {}
+
+  const std::string getName() const {
+    assert(Name.hasStdString());
+    return Name.toString();
+  }
+
+  std::string getSectionName() const {
+    return JumpTableData::createSectionName(FuncName);
   }
 
 private:
@@ -961,6 +972,8 @@ private:
   const SizeT Id;
   const SizeT NumTargets;
   CfgNode **Targets;
+  GlobalString Name; // This JumpTable's name in the output.
+  GlobalString FuncName;
 };
 
 /// The Target instruction is the base class for all target-specific

@@ -23,10 +23,11 @@ namespace Ice {
 
 CaseClusterArray CaseCluster::clusterizeSwitch(Cfg *Func,
                                                const InstSwitch *Instr) {
+  const SizeT NumCases = Instr->getNumCases();
   CaseClusterArray CaseClusters;
+  CaseClusters.reserve(NumCases);
 
   // Load the cases
-  SizeT NumCases = Instr->getNumCases();
   CaseClusters.reserve(NumCases);
   for (SizeT I = 0; I < NumCases; ++I)
     CaseClusters.emplace_back(Instr->getValue(I), Instr->getLabel(I));
@@ -60,21 +61,21 @@ CaseClusterArray CaseCluster::clusterizeSwitch(Cfg *Func,
   // frequently executed code but we can't do this well without profiling data.
   // So, this single jump table is a good starting point where you can get to
   // the jump table quickly without figuring out how to unbalance the tree.
-  uint64_t MaxValue = CaseClusters.back().High;
-  uint64_t MinValue = CaseClusters.front().Low;
+  const uint64_t MaxValue = CaseClusters.back().High;
+  const uint64_t MinValue = CaseClusters.front().Low;
   // Don't +1 yet to avoid (INT64_MAX-0)+1 overflow
-  uint64_t TotalRange = MaxValue - MinValue;
+  const uint64_t Range = MaxValue - MinValue;
 
   // Might be too sparse for the jump table
-  if (NumCases * 2 <= TotalRange)
+  if (NumCases * 2 <= Range)
     return CaseClusters;
   // Unlikely. Would mean can't store size of jump table.
-  if (TotalRange == UINT64_MAX)
+  if (Range == UINT64_MAX)
     return CaseClusters;
-  ++TotalRange;
+  const uint64_t TotalRange = Range + 1;
 
   // Replace everything with a jump table
-  InstJumpTable *JumpTable =
+  auto *JumpTable =
       InstJumpTable::create(Func, TotalRange, Instr->getLabelDefault());
   for (const CaseCluster &Case : CaseClusters) {
     // Case.High could be UINT64_MAX which makes the loop awkward. Unwrap the
@@ -94,7 +95,8 @@ CaseClusterArray CaseCluster::clusterizeSwitch(Cfg *Func,
 
 bool CaseCluster::tryAppend(const CaseCluster &New) {
   // Can only append ranges with the same target and are adjacent
-  bool CanAppend = this->Target == New.Target && this->High + 1 == New.Low;
+  const bool CanAppend =
+      this->Target == New.Target && this->High + 1 == New.Low;
   if (CanAppend)
     this->High = New.High;
   return CanAppend;

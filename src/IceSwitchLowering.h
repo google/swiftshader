@@ -18,6 +18,8 @@
 #include "IceDefs.h"
 #include "IceStringPool.h"
 
+#include <string>
+
 namespace Ice {
 
 class CaseCluster;
@@ -85,18 +87,27 @@ class JumpTableData {
 public:
   using TargetList = std::vector<intptr_t>;
 
-  JumpTableData(GlobalString FuncName, SizeT Id,
+  JumpTableData(GlobalString Name, GlobalString FuncName, SizeT Id,
                 const TargetList &TargetOffsets)
-      : FuncName(FuncName), Id(Id), TargetOffsets(TargetOffsets) {}
+      : Name(Name), FuncName(FuncName), Id(Id), TargetOffsets(TargetOffsets) {}
   JumpTableData(const JumpTableData &) = default;
   JumpTableData(JumpTableData &&) = default;
   JumpTableData &operator=(JumpTableData &&) = default;
 
-  const GlobalString getFunctionName() const { return FuncName; }
+  GlobalString getName() const { return Name; }
+  GlobalString getFunctionName() const { return FuncName; }
   SizeT getId() const { return Id; }
   const TargetList &getTargetOffsets() const { return TargetOffsets; }
+  static std::string createSectionName(const GlobalString Name) {
+    if (Name.hasStdString()) {
+      return Name.toString() + "$jumptable";
+    }
+    return std::to_string(Name.getID()) + "$jumptable";
+  }
+  std::string getSectionName() const { return createSectionName(FuncName); }
 
 private:
+  GlobalString Name;
   GlobalString FuncName;
   SizeT Id;
   TargetList TargetOffsets;

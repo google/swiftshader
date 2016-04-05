@@ -872,12 +872,8 @@ JumpTableDataList GlobalContext::getJumpTables() {
   return JumpTables;
 }
 
-JumpTableData &
-GlobalContext::addJumpTable(GlobalString FuncName, SizeT Id,
-                            const JumpTableData::TargetList &TargetList) {
-  auto JumpTableList = getJumpTableList();
-  JumpTableList->emplace_back(FuncName, Id, TargetList);
-  return JumpTableList->back();
+void GlobalContext::addJumpTableData(JumpTableData JumpTable) {
+  getJumpTableList()->emplace_back(std::move(JumpTable));
 }
 
 TimerStackIdT GlobalContext::newTimerStackID(const std::string &Name) {

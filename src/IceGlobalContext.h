@@ -268,9 +268,8 @@ public:
 
   /// Return a locked pointer to the registered jump tables.
   JumpTableDataList getJumpTables();
-  /// Create a new jump table entry and return a reference to it.
-  JumpTableData &addJumpTable(GlobalString FuncName, SizeT Id,
-                              const JumpTableData::TargetList &TargetList);
+  /// Adds JumpTable to the list of know jump tables, for a posteriori emission.
+  void addJumpTableData(JumpTableData JumpTable);
 
   /// Allocate data of type T using the global allocator. We allow entities
   /// allocated from this global allocator to be either trivially or
