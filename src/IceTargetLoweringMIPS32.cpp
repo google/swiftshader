@@ -434,7 +434,7 @@ void TargetMIPS32::lowerArguments() {
       Variable *RegisterArg = Func->makeVariable(Ty);
       auto *RegisterArg64On32 = llvm::cast<Variable64On32>(RegisterArg);
       if (BuildDefs::dump())
-        RegisterArg64On32->setName(Func, "home_reg:" + Arg->getName(Func));
+        RegisterArg64On32->setName(Func, "home_reg:" + Arg->getName());
       RegisterArg64On32->initHiLo(Func);
       RegisterArg64On32->setIsArg();
       RegisterArg64On32->getLo()->setRegNum(RegLo);
@@ -451,7 +451,7 @@ void TargetMIPS32::lowerArguments() {
       ++NumGPRRegsUsed;
       Variable *RegisterArg = Func->makeVariable(Ty);
       if (BuildDefs::dump()) {
-        RegisterArg->setName(Func, "home_reg:" + Arg->getName(Func));
+        RegisterArg->setName(Func, "home_reg:" + Arg->getName());
       }
       RegisterArg->setRegNum(RegNum);
       RegisterArg->setIsArg();

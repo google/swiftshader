@@ -191,12 +191,6 @@ void LiveRange::trim(InstNumberT Lower) {
     ++TrimmedBegin;
 }
 
-std::string Variable::getName(const Cfg *Func) const {
-  if (Func == nullptr)
-    return "__" + std::to_string(getIndex());
-  return Name.toString();
-}
-
 const Variable *Variable::asType(const Cfg *Func, Type Ty,
                                  RegNumT NewRegNum) const {
   // Note: This returns a Variable, even if the "this" object is a subclass of
@@ -539,12 +533,12 @@ void Variable::dump(const Cfg *Func, Ostream &Str) const {
   if (!BuildDefs::dump())
     return;
   if (Func == nullptr) {
-    Str << "%" << getName(Func);
+    Str << "%" << getName();
     return;
   }
   if (Func->isVerbose(IceV_RegOrigins) ||
       (!hasReg() && !Func->getTarget()->hasComputedFrame()))
-    Str << "%" << getName(Func);
+    Str << "%" << getName();
   if (hasReg()) {
     if (Func->isVerbose(IceV_RegOrigins))
       Str << ":";

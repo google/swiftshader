@@ -647,9 +647,12 @@ public:
   }
 
   SizeT getIndex() const { return Number; }
-  std::string getName(const Cfg *Func) const;
+  std::string getName() const {
+    if (Name.hasStdString())
+      return Name.toString();
+    return "__" + std::to_string(getIndex());
+  }
   virtual void setName(const Cfg *Func, const std::string &NewName) {
-    (void)Func;
     if (NewName.empty())
       return;
     Name = VariableString::createWithString(Func, NewName);
@@ -669,10 +672,10 @@ public:
   void setStackOffset(int32_t Offset) { StackOffset = Offset; }
   /// Returns the variable's stack offset in symbolic form, to improve
   /// readability in DecorateAsm mode.
-  std::string getSymbolicStackOffset(const Cfg *Func) const {
+  std::string getSymbolicStackOffset() const {
     if (!BuildDefs::dump())
       return "";
-    return "lv$" + getName(Func);
+    return "lv$" + getName();
   }
 
   bool hasReg() const { return getRegNum().hasValue(); }
@@ -755,12 +758,6 @@ protected:
     Vars = VarsReal;
     Vars[0] = this;
     NumVars = 1;
-    if (BuildDefs::dump()) {
-      Name = VariableString::createWithString(
-          Func, "__" + std::to_string(getIndex()));
-    } else {
-      Name = VariableString::createWithoutString(Func);
-    }
   }
   /// Number is unique across all variables, and is used as a (bit)vector index
   /// for liveness analysis.
@@ -805,8 +802,8 @@ public:
   void setName(const Cfg *Func, const std::string &NewName) override {
     Variable::setName(Func, NewName);
     if (LoVar && HiVar) {
-      LoVar->setName(Func, getName(Func) + "__lo");
-      HiVar->setName(Func, getName(Func) + "__hi");
+      LoVar->setName(Func, getName() + "__lo");
+      HiVar->setName(Func, getName() + "__hi");
     }
   }
 
@@ -835,8 +832,8 @@ public:
     LoVar->setIsArg(getIsArg());
     HiVar->setIsArg(getIsArg());
     if (BuildDefs::dump()) {
-      LoVar->setName(Func, getName(Func) + "__lo");
-      HiVar->setName(Func, getName(Func) + "__hi");
+      LoVar->setName(Func, getName() + "__lo");
+      HiVar->setName(Func, getName() + "__hi");
     }
   }
 

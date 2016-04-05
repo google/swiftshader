@@ -1270,7 +1270,7 @@ void TargetARM32::emitVariable(const Variable *Var) const {
     return;
   }
   if (Var->mustHaveReg()) {
-    llvm::report_fatal_error("Infinite-weight Variable (" + Var->getName(Func) +
+    llvm::report_fatal_error("Infinite-weight Variable (" + Var->getName() +
                              ") has no register assigned - function " +
                              Func->getFunctionName());
   }
@@ -1402,7 +1402,7 @@ void TargetARM32::lowerArguments() {
 
     Variable *RegisterArg = Func->makeVariable(Ty);
     if (BuildDefs::dump()) {
-      RegisterArg->setName(Func, "home_reg:" + Arg->getName(Func));
+      RegisterArg->setName(Func, "home_reg:" + Arg->getName());
     }
     RegisterArg->setIsArg();
     Arg->setIsArg(false);

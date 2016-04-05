@@ -37,7 +37,11 @@ public:
   /// Access the label number and name for this node.
   SizeT getIndex() const { return Number; }
   void resetIndex(SizeT NewNumber) { Number = NewNumber; }
-  NodeString getName() const { return Name; }
+  std::string getName() const {
+    if (Name.hasStdString())
+      return Name.toString();
+    return "__" + std::to_string(NumberOrig);
+  }
   void setName(const std::string &NewName) {
     if (NewName.empty())
       return;
@@ -118,10 +122,13 @@ public:
   }
 
 private:
-  CfgNode(Cfg *Func, SizeT Number);
+  CfgNode(Cfg *Func, SizeT Number)
+      : Func(Func), Number(Number), NumberOrig(Number),
+        Name(NodeString::createWithoutString(Func)) {}
   bool livenessValidateIntervals(Liveness *Liveness) const;
   Cfg *const Func;
-  SizeT Number; /// invariant: Func->Nodes[Number]==this
+  SizeT Number;           /// invariant: Func->Nodes[Number]==this
+  const SizeT NumberOrig; /// used for name auto-generation
   NodeString Name;
   SizeT LoopNestDepth = 0; /// the loop nest depth of this node
   bool HasReturn = false;  /// does this block need an epilog?

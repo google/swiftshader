@@ -1062,7 +1062,7 @@ void Cfg::emit() {
   if (getFlags().getDecorateAsm()) {
     for (Variable *Var : getVariables()) {
       if (Var->getStackOffset() && !Var->isRematerializable()) {
-        Str << "\t" << Var->getSymbolicStackOffset(this) << " = "
+        Str << "\t" << Var->getSymbolicStackOffset() << " = "
             << Var->getStackOffset() << "\n";
       }
     }

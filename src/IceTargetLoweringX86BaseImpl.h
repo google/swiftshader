@@ -886,7 +886,7 @@ void TargetX86Base<TraitsType>::emitVariable(const Variable *Var) const {
     return;
   }
   if (Var->mustHaveReg()) {
-    llvm::report_fatal_error("Infinite-weight Variable (" + Var->getName(Func) +
+    llvm::report_fatal_error("Infinite-weight Variable (" + Var->getName() +
                              ") has no register assigned - function " +
                              Func->getFunctionName());
   }
@@ -901,7 +901,7 @@ void TargetX86Base<TraitsType>::emitVariable(const Variable *Var) const {
   // Only print Offset when it is nonzero, regardless of DecorateAsm.
   if (Offset) {
     if (DecorateAsm) {
-      Str << Var->getSymbolicStackOffset(Func);
+      Str << Var->getSymbolicStackOffset();
     } else {
       Str << Offset;
     }
@@ -916,7 +916,7 @@ TargetX86Base<TraitsType>::stackVarToAsmOperand(const Variable *Var) const {
   if (Var->hasReg())
     llvm::report_fatal_error("Stack Variable has a register assigned");
   if (Var->mustHaveReg()) {
-    llvm::report_fatal_error("Infinite-weight Variable (" + Var->getName(Func) +
+    llvm::report_fatal_error("Infinite-weight Variable (" + Var->getName() +
                              ") has no register assigned - function " +
                              Func->getFunctionName());
   }
@@ -1509,7 +1509,7 @@ void TargetX86Base<TraitsType>::lowerArguments() {
     // an instruction in the prolog to copy the home register to the assigned
     // location of Arg.
     if (BuildDefs::dump())
-      RegisterArg->setName(Func, "home_reg:" + Arg->getName(Func));
+      RegisterArg->setName(Func, "home_reg:" + Arg->getName());
     RegisterArg->setRegNum(RegNum);
     RegisterArg->setIsArg();
     Arg->setIsArg(false);

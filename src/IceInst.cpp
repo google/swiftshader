@@ -452,7 +452,7 @@ Inst *InstPhi::lower(Cfg *Func) {
   assert(Dest);
   Variable *NewSrc = Func->makeVariable(Dest->getType());
   if (BuildDefs::dump())
-    NewSrc->setName(Func, Dest->getName(Func) + "_phi");
+    NewSrc->setName(Func, Dest->getName() + "_phi");
   if (auto *NewSrc64On32 = llvm::dyn_cast<Variable64On32>(NewSrc))
     NewSrc64On32->initHiLo(Func);
   this->Dest = NewSrc;

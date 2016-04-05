@@ -169,12 +169,12 @@ bool LinearScan::livenessValidateIntervals(
   for (SizeT VarNum : DefsWithoutUses) {
     Variable *Var = Vars[VarNum];
     Str << "LR def without use, instruction " << LRBegin[VarNum]
-        << ", variable " << Var->getName(Func) << "\n";
+        << ", variable " << Var->getName() << "\n";
   }
   for (SizeT VarNum : UsesBeforeDefs) {
     Variable *Var = Vars[VarNum];
     Str << "LR use before def, instruction " << LREnd[VarNum] << ", variable "
-        << Var->getName(Func) << "\n";
+        << Var->getName() << "\n";
   }
   return false;
 }
@@ -277,12 +277,12 @@ void LinearScan::initForInfOnly() {
       for (SizeT VarNum : DefsWithoutUses) {
         Variable *Var = Vars[VarNum];
         Str << "LR def without use, instruction " << LRBegin[VarNum]
-            << ", variable " << Var->getName(Func) << "\n";
+            << ", variable " << Var->getName() << "\n";
       }
       for (SizeT VarNum : UsesBeforeDefs) {
         Variable *Var = Vars[VarNum];
         Str << "LR use before def, instruction " << LREnd[VarNum]
-            << ", variable " << Var->getName(Func) << "\n";
+            << ", variable " << Var->getName() << "\n";
       }
     }
     llvm::report_fatal_error("initForInfOnly: Liveness error");
@@ -715,7 +715,7 @@ void LinearScan::handleNoFreeRegisters(IterationState &Iter) {
       Func->setError("Unable to find a physical register for an "
                      "infinite-weight live range "
                      "(consider using -reg-reserve): " +
-                     Iter.Cur->getName(Func));
+                     Iter.Cur->getName());
       Handled.push_back(Iter.Cur);
       return;
     }

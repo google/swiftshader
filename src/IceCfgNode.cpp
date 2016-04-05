@@ -26,15 +26,6 @@
 
 namespace Ice {
 
-CfgNode::CfgNode(Cfg *Func, SizeT Number) : Func(Func), Number(Number) {
-  if (BuildDefs::dump()) {
-    Name =
-        NodeString::createWithString(Func, "__" + std::to_string(getIndex()));
-  } else {
-    Name = NodeString::createWithoutString(Func);
-  }
-}
-
 // Adds an instruction to either the Phi list or the regular instruction list.
 // Validates that all Phis are added before all regular instructions.
 void CfgNode::appendInst(Inst *Instr, bool AllowPhisAnywhere) {
@@ -797,7 +788,7 @@ bool CfgNode::livenessValidateIntervals(Liveness *Liveness) const {
       auto Next = Start + 1;
       Str << "Duplicate LR begin, block " << getName() << ", instructions "
           << Start->second << " & " << Next->second << ", variable "
-          << Liveness->getVariable(Start->first, this)->getName(Func) << "\n";
+          << Liveness->getVariable(Start->first, this)->getName() << "\n";
     }
     for (auto Start = MapEnd.begin();
          (Start = std::adjacent_find(Start, MapEnd.end(), ComparePair)) !=
@@ -806,7 +797,7 @@ bool CfgNode::livenessValidateIntervals(Liveness *Liveness) const {
       auto Next = Start + 1;
       Str << "Duplicate LR end,   block " << getName() << ", instructions "
           << Start->second << " & " << Next->second << ", variable "
-          << Liveness->getVariable(Start->first, this)->getName(Func) << "\n";
+          << Liveness->getVariable(Start->first, this)->getName() << "\n";
     }
   }
 
@@ -1402,7 +1393,7 @@ void CfgNode::dump(Cfg *Func) const {
       for (SizeT i = 0; i < LiveIn.size(); ++i) {
         if (LiveIn[i]) {
           Variable *Var = Liveness->getVariable(i, this);
-          Str << " %" << Var->getName(Func);
+          Str << " %" << Var->getName();
           if (Func->isVerbose(IceV_RegOrigins) && Var->hasReg()) {
             Str << ":"
                 << Func->getTarget()->getRegName(Var->getRegNum(),
@@ -1428,7 +1419,7 @@ void CfgNode::dump(Cfg *Func) const {
       for (SizeT i = 0; i < LiveOut.size(); ++i) {
         if (LiveOut[i]) {
           Variable *Var = Liveness->getVariable(i, this);
-          Str << " %" << Var->getName(Func);
+          Str << " %" << Var->getName();
           if (Func->isVerbose(IceV_RegOrigins) && Var->hasReg()) {
             Str << ":"
                 << Func->getTarget()->getRegName(Var->getRegNum(),
