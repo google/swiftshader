@@ -584,10 +584,20 @@ namespace sw
 					Pointer<Byte> buffer = cBuffer[index] + q * *Pointer<Int>(data + OFFSET(DrawData, colorSliceB[index]));
 					Vector4s color;
 
-					color.x = convertFixed16(c[index].x, false);
-					color.y = convertFixed16(c[index].y, false);
-					color.z = convertFixed16(c[index].z, false);
-					color.w = convertFixed16(c[index].w, false);
+					if(state.targetFormat[index] == FORMAT_R5G6B5)
+					{
+						color.x = UShort4(c[index].x * Float4(0xFBFF), false);
+						color.y = UShort4(c[index].y * Float4(0xFDFF), false);
+						color.z = UShort4(c[index].z * Float4(0xFBFF), false);
+						color.w = UShort4(c[index].w * Float4(0xFFFF), false);
+					}
+					else
+					{
+						color.x = convertFixed16(c[index].x, false);
+						color.y = convertFixed16(c[index].y, false);
+						color.z = convertFixed16(c[index].z, false);
+						color.w = convertFixed16(c[index].w, false);
+					}
 
 					if(state.multiSampleMask & (1 << q))
 					{
