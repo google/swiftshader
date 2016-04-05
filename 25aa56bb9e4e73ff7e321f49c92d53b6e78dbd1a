@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cebbe49e_21ee92a3",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1240,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-05T14:09:40Z",
+      "side": 0,
+      "message": "Using this doesn\u0027t work when the LOD factor also needs the fourth texture coordinate component. So I decided to just avoid it altogether and always do the projection at the shader assembly level. I\u0027m keeping the support for projection at shader execution for Direct3D.",
+      "range": {
+        "startLine": 1240,
+        "startChar": 9,
+        "endLine": 1240,
+        "endChar": 29
+      },
+      "revId": "25aa56bb9e4e73ff7e321f49c92d53b6e78dbd1a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
