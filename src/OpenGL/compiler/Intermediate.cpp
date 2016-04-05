@@ -1043,7 +1043,7 @@ bool TIntermBinary::promote(TInfoSink& infoSink)
         default:
             return false;
     }
-    
+
     return true;
 }
 
@@ -1539,38 +1539,29 @@ TIntermTyped* TIntermConstantUnion::fold(TOperator op, TIntermTyped* constantNod
                 break;
 
             case EOpLessThan:
-                assert(objectSize == 1);
-                tempConstArray = new ConstantUnion[1];
-                tempConstArray->setBConst(*unionArray < *rightUnionArray);
-                returnType = TType(EbtBool, EbpUndefined, EvqConstExpr);
+                tempConstArray = new ConstantUnion[objectSize];
+                for(int i = 0; i < objectSize; i++)
+					tempConstArray[i].setBConst(unionArray[i] < rightUnionArray[i]);
+                returnType = TType(EbtBool, EbpUndefined, EvqConstExpr, objectSize);
                 break;
             case EOpGreaterThan:
-                assert(objectSize == 1);
-                tempConstArray = new ConstantUnion[1];
-                tempConstArray->setBConst(*unionArray > *rightUnionArray);
-                returnType = TType(EbtBool, EbpUndefined, EvqConstExpr);
+				tempConstArray = new ConstantUnion[objectSize];
+                for(int i = 0; i < objectSize; i++)
+					tempConstArray[i].setBConst(unionArray[i] > rightUnionArray[i]);
+                returnType = TType(EbtBool, EbpUndefined, EvqConstExpr, objectSize);
                 break;
             case EOpLessThanEqual:
-                {
-                    assert(objectSize == 1);
-                    ConstantUnion constant;
-                    constant.setBConst(*unionArray > *rightUnionArray);
-                    tempConstArray = new ConstantUnion[1];
-                    tempConstArray->setBConst(!constant.getBConst());
-                    returnType = TType(EbtBool, EbpUndefined, EvqConstExpr);
-                    break;
-                }
+                tempConstArray = new ConstantUnion[objectSize];
+                for(int i = 0; i < objectSize; i++)
+					tempConstArray[i].setBConst(unionArray[i] <= rightUnionArray[i]);
+                returnType = TType(EbtBool, EbpUndefined, EvqConstExpr, objectSize);
+                break;
             case EOpGreaterThanEqual:
-                {
-                    assert(objectSize == 1);
-                    ConstantUnion constant;
-                    constant.setBConst(*unionArray < *rightUnionArray);
-                    tempConstArray = new ConstantUnion[1];
-                    tempConstArray->setBConst(!constant.getBConst());
-                    returnType = TType(EbtBool, EbpUndefined, EvqConstExpr);
-                    break;
-                }
-
+                tempConstArray = new ConstantUnion[objectSize];
+                for(int i = 0; i < objectSize; i++)
+					tempConstArray[i].setBConst(unionArray[i] >= rightUnionArray[i]);
+                returnType = TType(EbtBool, EbpUndefined, EvqConstExpr, objectSize);
+                break;
             case EOpEqual:
                 if (getType().getBasicType() == EbtStruct) {
                     if (!CompareStructure(node->getType(), node->getUnionArrayPointer(), unionArray))
