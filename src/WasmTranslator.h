@@ -15,6 +15,8 @@
 #ifndef SUBZERO_SRC_WASMTRANSLATOR_H
 #define SUBZERO_SRC_WASMTRANSLATOR_H
 
+#if ALLOW_WASM
+
 #include "IceGlobalContext.h"
 #include "IceTranslator.h"
 
@@ -66,4 +68,7 @@ private:
   SizeT BufferSize;
 };
 }
+
+#endif // ALLOW_WASM
+
 #endif // SUBZERO_SRC_WASMTRANSLATOR_H

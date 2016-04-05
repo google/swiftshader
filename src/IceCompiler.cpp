@@ -92,11 +92,15 @@ void Compiler::run(const Ice::ClFlags &Flags, GlobalContext &Ctx,
     Translator.reset(PTranslator.release());
   } else if (WasmBuildOnRead) {
     if (BuildDefs::wasm()) {
+#if !ALLOW_WASM
+      assert(false && "wasm not allowed");
+#else
       std::unique_ptr<WasmTranslator> WTranslator(new WasmTranslator(&Ctx));
 
       WTranslator->translate(IRFilename, std::move(InputStream));
 
       Translator.reset(WTranslator.release());
+#endif // !ALLOW_WASM
     } else {
       Ctx.getStrError() << "WASM support not enabled\n";
       Ctx.getErrorStatus()->assign(EC_Args);

@@ -15,6 +15,8 @@
 ///
 //===----------------------------------------------------------------------===//
 
+#if ALLOW_WASM
+
 #include "llvm/Support/StreamingMemoryObject.h"
 
 #include "WasmTranslator.h"
@@ -813,3 +815,5 @@ void WasmTranslator::translate(
 
   return;
 }
+
+#endif // ALLOW_WASM
