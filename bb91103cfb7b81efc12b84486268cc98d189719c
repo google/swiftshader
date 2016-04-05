@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cebbe49e_6d20fb2f",
+        "filename": "src/Shader/PixelProgram.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 589,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-05T19:44:03Z",
+      "side": 1,
+      "message": "This is 31.5, scaled up, minus 1. In theory 31 (0xF800) would be the correct value, since we\u0027re already using \u0027exactColorRounding\u0027 in writeColor() to add 0.5 before the final downshift to 5 bit. But then other dEQP tests start failing. That\u0027s because alpha blending can multiply these values by themselves. 31.5 x 31.5 / 32 is still slightly greater than 31. The minus 1 is to ensure that when no alpha blending happens the values don\u0027t round up to the next value.",
+      "range": {
+        "startLine": 589,
+        "startChar": 44,
+        "endLine": 589,
+        "endChar": 50
+      },
+      "revId": "bb91103cfb7b81efc12b84486268cc98d189719c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
