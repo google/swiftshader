@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cebbe49e_b2741261",
+        "filename": "src/Renderer/VertexProcessor.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-05T18:32:17Z",
+      "side": 1,
+      "message": "lock(PUBLIC, PRIVATE)\n\nThis ensures it\u0027s unlocked from the app side (in case glUnmapBuffer wasn\u0027t called), and then locks it for Renderer side access.",
+      "range": {
+        "startLine": 220,
+        "startChar": 96,
+        "endLine": 220,
+        "endChar": 108
+      },
+      "revId": "9ba9b530d580d3a3477ba40d3adf5b3609a888df",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
