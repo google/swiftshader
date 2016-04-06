@@ -887,32 +887,38 @@ TimerStackIdT GlobalContext::newTimerStackID(const std::string &Name) {
 
 TimerIdT GlobalContext::getTimerID(TimerStackIdT StackID,
                                    const std::string &Name) {
-  auto Timers = &ICE_TLS_GET_FIELD(TLS)->Timers;
+  auto *Timers = &ICE_TLS_GET_FIELD(TLS)->Timers;
   assert(StackID < Timers->size());
   return Timers->at(StackID).getTimerID(Name);
 }
 
 void GlobalContext::pushTimer(TimerIdT ID, TimerStackIdT StackID) {
-  auto Timers = &ICE_TLS_GET_FIELD(TLS)->Timers;
+  auto *Timers = &ICE_TLS_GET_FIELD(TLS)->Timers;
   assert(StackID < Timers->size());
   Timers->at(StackID).push(ID);
 }
 
 void GlobalContext::popTimer(TimerIdT ID, TimerStackIdT StackID) {
-  auto Timers = &ICE_TLS_GET_FIELD(TLS)->Timers;
+  auto *Timers = &ICE_TLS_GET_FIELD(TLS)->Timers;
   assert(StackID < Timers->size());
   Timers->at(StackID).pop(ID);
 }
 
 void GlobalContext::resetTimer(TimerStackIdT StackID) {
-  auto Timers = &ICE_TLS_GET_FIELD(TLS)->Timers;
+  auto *Timers = &ICE_TLS_GET_FIELD(TLS)->Timers;
   assert(StackID < Timers->size());
   Timers->at(StackID).reset();
 }
 
+std::string GlobalContext::getTimerName(TimerStackIdT StackID) {
+  auto *Timers = &ICE_TLS_GET_FIELD(TLS)->Timers;
+  assert(StackID < Timers->size());
+  return Timers->at(StackID).getName();
+}
+
 void GlobalContext::setTimerName(TimerStackIdT StackID,
                                  const std::string &NewName) {
-  auto Timers = &ICE_TLS_GET_FIELD(TLS)->Timers;
+  auto *Timers = &ICE_TLS_GET_FIELD(TLS)->Timers;
   assert(StackID < Timers->size());
   Timers->at(StackID).setName(NewName);
 }
@@ -962,10 +968,6 @@ void GlobalContext::dumpStats(const Cfg *Func) {
   }
 }
 
-void GlobalContext::mergeTimersFromTLS() {
-  getTimers()->mergeFrom(ICE_TLS_GET_FIELD(TLS)->Timers);
-}
-
 void GlobalContext::dumpTimers(TimerStackIdT StackID, bool DumpCumulative) {
   if (!BuildDefs::timers())
     return;
@@ -973,6 +975,25 @@ void GlobalContext::dumpTimers(TimerStackIdT StackID, bool DumpCumulative) {
   assert(Timers->size() > StackID);
   OstreamLocker L(this);
   Timers->at(StackID).dump(getStrDump(), DumpCumulative);
+}
+
+void GlobalContext::dumpLocalTimers(const std::string &TimerNameOverride,
+                                    TimerStackIdT StackID,
+                                    bool DumpCumulative) {
+  if (!BuildDefs::timers())
+    return;
+  auto *Timers = &ICE_TLS_GET_FIELD(TLS)->Timers;
+  assert(Timers->size() > StackID);
+  // Temporarily override the thread-local timer name with the given name.
+  // Don't do it permanently because the final timer merge at the end expects
+  // the thread-local timer names to be the same as the global timer name.
+  auto OrigName = getTimerName(StackID);
+  setTimerName(StackID, TimerNameOverride);
+  {
+    OstreamLocker _(this);
+    Timers->at(StackID).dump(getStrDump(), DumpCumulative);
+  }
+  setTimerName(StackID, OrigName);
 }
 
 LockedPtr<StringPool>

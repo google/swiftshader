@@ -204,7 +204,6 @@ void Cfg::translate() {
       if (TimingFocusOn == "*" || TimingFocusOn == Name) {
         setFocusedTiming();
         getContext()->resetTimer(GlobalContext::TSK_Default);
-        getContext()->setTimerName(GlobalContext::TSK_Default, Name);
       }
     }
   }
@@ -240,8 +239,7 @@ void Cfg::translate() {
 
   dump("Final output");
   if (getFocusedTiming()) {
-    getContext()->mergeTimersFromTLS();
-    getContext()->dumpTimers();
+    getContext()->dumpLocalTimers(getFunctionName().toString());
   }
 }
 

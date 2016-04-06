@@ -356,13 +356,15 @@ public:
   /// data.
   void dumpTimers(TimerStackIdT StackID = TSK_Default,
                   bool DumpCumulative = true);
-  /// Merges the current thread's copy of timer data into the global timer data.
-  void mergeTimersFromTLS();
+  void dumpLocalTimers(const std::string &TimerNameOverride,
+                       TimerStackIdT StackID = TSK_Default,
+                       bool DumpCumulative = true);
   /// The following methods affect only the calling thread's TLS timer data.
   TimerIdT getTimerID(TimerStackIdT StackID, const std::string &Name);
   void pushTimer(TimerIdT ID, TimerStackIdT StackID);
   void popTimer(TimerIdT ID, TimerStackIdT StackID);
   void resetTimer(TimerStackIdT StackID);
+  std::string getTimerName(TimerStackIdT StackID);
   void setTimerName(TimerStackIdT StackID, const std::string &NewName);
 
   /// This is the first work item sequence number that the parser produces, and
