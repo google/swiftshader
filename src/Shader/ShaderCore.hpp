@@ -313,6 +313,10 @@ namespace sw
 		void att(Vector4f &dst, const Vector4f &src0, const Vector4f &src1);
 		void lrp(Vector4f &dst, const Vector4f &src0, const Vector4f &src1, const Vector4f &src2);
 		void smooth(Vector4f &dst, const Vector4f &src0, const Vector4f &src1, const Vector4f &src2);
+		void packSnorm2x16(Vector4f &dst, const Vector4f &src);
+		void packUnorm2x16(Vector4f &dst, const Vector4f &src);
+		void unpackSnorm2x16(Vector4f &dst, const Vector4f &src);
+		void unpackUnorm2x16(Vector4f &dst, const Vector4f &src);
 		void frc(Vector4f &dst, const Vector4f &src);
 		void trunc(Vector4f &dst, const Vector4f &src);
 		void floor(Vector4f &dst, const Vector4f &src);

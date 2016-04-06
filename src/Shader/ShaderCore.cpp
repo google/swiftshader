@@ -1123,6 +1123,34 @@ namespace sw
 		Float4 tw = Min(Max((x.w - edge0.w) / (edge1.w - edge0.w), Float4(0.0f)), Float4(1.0f)); dst.w = tw * tw * (Float4(3.0f) - Float4(2.0f) * tw);
 	}
 
+	void ShaderCore::packSnorm2x16(Vector4f &d, const Vector4f &s0)
+	{
+		// round(clamp(c, -1.0, 1.0) * 32767.0)
+		d.x = As<Float4>((Int4(Round(Min(Max(s0.x, Float4(-1.0f)), Float4(1.0f)) * Float4(32767.0f))) & Int4(0xFFFF)) |
+		                ((Int4(Round(Min(Max(s0.y, Float4(-1.0f)), Float4(1.0f)) * Float4(32767.0f))) & Int4(0xFFFF)) << 16));
+	}
+
+	void ShaderCore::packUnorm2x16(Vector4f &d, const Vector4f &s0)
+	{
+		// round(clamp(c, 0.0, 1.0) * 65535.0)
+		d.x = As<Float4>((Int4(Round(Min(Max(s0.x, Float4(0.0f)), Float4(1.0f)) * Float4(65535.0f))) & Int4(0xFFFF)) |
+		                ((Int4(Round(Min(Max(s0.y, Float4(0.0f)), Float4(1.0f)) * Float4(65535.0f))) & Int4(0xFFFF)) << 16));
+	}
+
+	void ShaderCore::unpackSnorm2x16(Vector4f &dst, const Vector4f &s0)
+	{
+		// clamp(f / 32727.0, -1.0, 1.0)
+		dst.x = Min(Max(Float4(As<Int4>((As<UInt4>(s0.x) & UInt4(0x0000FFFF)) << 16)) * Float4(1.0f / float(0x7FFF0000)), Float4(-1.0f)), Float4(1.0f));
+		dst.y = Min(Max(Float4(As<Int4>(As<UInt4>(s0.x) & UInt4(0xFFFF0000))) * Float4(1.0f / float(0x7FFF0000)), Float4(-1.0f)), Float4(1.0f));
+	}
+
+	void ShaderCore::unpackUnorm2x16(Vector4f &dst, const Vector4f &s0)
+	{
+		// f / 65535.0
+		dst.x = Float4((As<UInt4>(s0.x) & UInt4(0x0000FFFF)) << 16) * Float4(1.0f / float(0xFFFF0000));
+		dst.y = Float4(As<UInt4>(s0.x) & UInt4(0xFFFF0000)) * Float4(1.0f / float(0xFFFF0000));
+	}
+
 	void ShaderCore::det2(Vector4f &dst, const Vector4f &src0, const Vector4f &src1)
 	{
 		dst.x = src0.x * src1.y - src0.y * src1.x;
