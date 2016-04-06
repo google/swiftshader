@@ -230,8 +230,10 @@ namespace sw
 			case Shader::OPCODE_UINTBITSTOFLOAT: d = s0;                                   break;
 			case Shader::OPCODE_PACKSNORM2x16:   packSnorm2x16(d, s0);                     break;
 			case Shader::OPCODE_PACKUNORM2x16:   packUnorm2x16(d, s0);                     break;
+			case Shader::OPCODE_PACKHALF2x16:    packHalf2x16(d, s0);                      break;
 			case Shader::OPCODE_UNPACKSNORM2x16: unpackSnorm2x16(d, s0);                   break;
 			case Shader::OPCODE_UNPACKUNORM2x16: unpackUnorm2x16(d, s0);                   break;
+			case Shader::OPCODE_UNPACKHALF2x16:  unpackHalf2x16(d, s0);                    break;
 			case Shader::OPCODE_POWX:       powx(d, s0, s1, pp);                           break;
 			case Shader::OPCODE_POW:        pow(d, s0, s1, pp);                            break;
 			case Shader::OPCODE_SGN:        sgn(d, s0);                                    break;

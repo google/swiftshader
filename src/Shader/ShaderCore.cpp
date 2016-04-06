@@ -1123,6 +1123,57 @@ namespace sw
 		Float4 tw = Min(Max((x.w - edge0.w) / (edge1.w - edge0.w), Float4(0.0f)), Float4(1.0f)); dst.w = tw * tw * (Float4(3.0f) - Float4(2.0f) * tw);
 	}
 
+	void ShaderCore::floatToHalfBits(Float4& dst, const Float4& floatBits, bool storeInUpperBits)
+	{
+		static const uint32_t mask_sign = 0x80000000u;
+		static const uint32_t mask_round = ~0xfffu;
+		static const uint32_t c_f32infty = 255 << 23;
+		static const uint32_t c_magic = 15 << 23;
+		static const uint32_t c_nanbit = 0x200;
+		static const uint32_t c_infty_as_fp16 = 0x7c00;
+		static const uint32_t c_clamp = (31 << 23) - 0x1000;
+		
+		UInt4 justsign = UInt4(mask_sign) & As<UInt4>(floatBits);
+		UInt4 absf = As<UInt4>(floatBits) ^ justsign;
+		UInt4 b_isnormal = CmpNLE(UInt4(c_f32infty), absf);
+
+		// Note: this version doesn't round to the nearest even in case of a tie as defined by IEEE 754-2008, it rounds to +inf
+		//       instead of nearest even, since that's fine for GLSL ES 3.0's needs (see section 2.1.1 Floating-Point Computation)
+		UInt4 joined = ((((As<UInt4>(Min(As<Float4>(absf & UInt4(mask_round)) * As<Float4>(UInt4(c_magic)),
+		                                 As<Float4>(UInt4(c_clamp))))) - UInt4(mask_round)) >> 13) & b_isnormal) |
+		               ((b_isnormal ^ UInt4(0xFFFFFFFF)) & ((CmpNLE(absf, UInt4(c_f32infty)) & UInt4(c_nanbit)) |
+		               UInt4(c_infty_as_fp16)));
+
+		dst = As<Float4>(storeInUpperBits ? As<UInt4>(dst) | ((joined << 16) | justsign) : joined | (justsign >> 16));
+	}
+
+	void ShaderCore::halfToFloatBits(Float4& dst, const Float4& halfBits)
+	{
+		static const uint32_t mask_nosign = 0x7FFF;
+		static const uint32_t magic = (254 - 15) << 23;
+		static const uint32_t was_infnan = 0x7BFF;
+		static const uint32_t exp_infnan = 255 << 23;
+
+		UInt4 expmant = As<UInt4>(halfBits) & UInt4(mask_nosign);
+		dst = As<Float4>(As<UInt4>(As<Float4>(expmant << 13) * As<Float4>(UInt4(magic))) |
+		                 ((As<UInt4>(halfBits) ^ UInt4(expmant)) << 16) |
+		                 (CmpNLE(As<UInt4>(expmant), UInt4(was_infnan)) & UInt4(exp_infnan)));
+	}
+
+	void ShaderCore::packHalf2x16(Vector4f &d, const Vector4f &s0)
+	{
+		// half2 | half1
+		floatToHalfBits(d.x, s0.x, false);
+		floatToHalfBits(d.x, s0.y, true);
+	}
+
+	void ShaderCore::unpackHalf2x16(Vector4f &dst, const Vector4f &s0)
+	{
+		// half2 | half1
+		halfToFloatBits(dst.x, As<Float4>(As<UInt4>(s0.x) & UInt4(0x0000FFFF)));
+		halfToFloatBits(dst.y, As<Float4>((As<UInt4>(s0.x) & UInt4(0xFFFF0000)) >> 16));
+	}
+
 	void ShaderCore::packSnorm2x16(Vector4f &d, const Vector4f &s0)
 	{
 		// round(clamp(c, -1.0, 1.0) * 32767.0)
