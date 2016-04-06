@@ -203,6 +203,10 @@ namespace sw
 			case Shader::OPCODE_FLOATBITSTOUINT:
 			case Shader::OPCODE_INTBITSTOFLOAT:
 			case Shader::OPCODE_UINTBITSTOFLOAT: d = s0;                    break;
+			case Shader::OPCODE_PACKSNORM2x16:   packSnorm2x16(d, s0);      break;
+			case Shader::OPCODE_PACKUNORM2x16:   packUnorm2x16(d, s0);      break;
+			case Shader::OPCODE_UNPACKSNORM2x16: unpackSnorm2x16(d, s0);    break;
+			case Shader::OPCODE_UNPACKUNORM2x16: unpackUnorm2x16(d, s0);    break;
 			case Shader::OPCODE_M3X2:       M3X2(d, s0, src1);              break;
 			case Shader::OPCODE_M3X3:       M3X3(d, s0, src1);              break;
 			case Shader::OPCODE_M3X4:       M3X4(d, s0, src1);              break;
