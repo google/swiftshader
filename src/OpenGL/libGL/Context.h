@@ -29,8 +29,8 @@
 #include <GL/glext.h>
 
 #include <map>
-#include <string>
 #include <list>
+#include <vector>
 
 namespace gl
 {
