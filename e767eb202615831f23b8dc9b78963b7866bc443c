@@ -48,6 +48,54 @@
     },
     {
       "key": {
+        "uuid": "6ea598c6_01d641cc",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2141,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-06T18:21:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6ea598c6_2b1fe4a9",
+      "range": {
+        "startLine": 2141,
+        "startChar": 14,
+        "endLine": 2141,
+        "endChar": 28
+      },
+      "revId": "e767eb202615831f23b8dc9b78963b7866bc443c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6ea598c6_41a32971",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2141,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-06T18:21:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6ea598c6_ab4ad4a0",
+      "range": {
+        "startLine": 2141,
+        "startChar": 3,
+        "endLine": 2141,
+        "endChar": 13
+      },
+      "revId": "e767eb202615831f23b8dc9b78963b7866bc443c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6ea598c6_eb3fbc08",
         "filename": "src/OpenGL/compiler/OutputASM.cpp",
         "patchSetId": 2
@@ -59,6 +107,30 @@
       "writtenOn": "2016-04-06T14:29:12Z",
       "side": 1,
       "message": "We already assumed arg to be non-null before, so this can be eliminated. Arguments have to be typed anyway, and we have broad test coverage to ensure this.",
+      "range": {
+        "startLine": 2142,
+        "startChar": 3,
+        "endLine": 2142,
+        "endChar": 10
+      },
+      "revId": "e767eb202615831f23b8dc9b78963b7866bc443c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6ea598c6_e1ca3d1c",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2142,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-06T18:21:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6ea598c6_eb3fbc08",
       "range": {
         "startLine": 2142,
         "startChar": 3,
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "6ea598c6_8164918a",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2166,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-06T18:21:26Z",
+      "side": 1,
+      "message": "Calling emit() here would cause an infinite loop, since source \"arg\" and \"index\" are identical to the input arguments and we would just end up back here.",
+      "parentUuid": "6ea598c6_ab33f43c",
+      "range": {
+        "startLine": 2153,
+        "startChar": 6,
+        "endLine": 2166,
+        "endChar": 34
+      },
+      "revId": "e767eb202615831f23b8dc9b78963b7866bc443c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6ea598c6_ab7894c8",
         "filename": "src/OpenGL/compiler/OutputASM.cpp",
         "patchSetId": 2
@@ -105,6 +201,30 @@
       "writtenOn": "2016-04-06T14:29:12Z",
       "side": 1,
       "message": "Always PARAMETER_TEMP",
+      "range": {
+        "startLine": 2191,
+        "startChar": 31,
+        "endLine": 2191,
+        "endChar": 38
+      },
+      "revId": "e767eb202615831f23b8dc9b78963b7866bc443c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6ea598c6_213025cc",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2191,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-06T18:21:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6ea598c6_ab7894c8",
       "range": {
         "startLine": 2191,
         "startChar": 31,
