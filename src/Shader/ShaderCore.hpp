@@ -313,6 +313,8 @@ namespace sw
 		void att(Vector4f &dst, const Vector4f &src0, const Vector4f &src1);
 		void lrp(Vector4f &dst, const Vector4f &src0, const Vector4f &src1, const Vector4f &src2);
 		void smooth(Vector4f &dst, const Vector4f &src0, const Vector4f &src1, const Vector4f &src2);
+		void packHalf2x16(Vector4f &dst, const Vector4f &src);
+		void unpackHalf2x16(Vector4f &dst, const Vector4f &src);
 		void packSnorm2x16(Vector4f &dst, const Vector4f &src);
 		void packUnorm2x16(Vector4f &dst, const Vector4f &src);
 		void unpackSnorm2x16(Vector4f &dst, const Vector4f &src);
@@ -383,6 +385,8 @@ namespace sw
 		void cmp0(Float4 &dst, const Float4 &src0, const Float4 &src1, const Float4 &src2);
 		void cmp0i(Float4 &dst, const Float4 &src0, const Float4 &src1, const Float4 &src2);
 		void select(Float4 &dst, RValue<Int4> src0, const Float4 &src1, const Float4 &src2);
+		void floatToHalfBits(Float4& dst, const Float4& floatBits, bool storeInUpperBits);
+		void halfToFloatBits(Float4& dst, const Float4& halfBits);
 	};
 }
 
