@@ -23,6 +23,8 @@
 #include "IceOperand.h"
 #include "IceTargetLowering.h"
 
+#include "llvm/Support/Format.h"
+
 namespace Ice {
 
 namespace {
@@ -70,10 +72,13 @@ void dumpLiveRange(const Variable *Var, const Cfg *Func) {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
-  char buf[30];
-  snprintf(buf, llvm::array_lengthof(buf), "%2u",
-           unsigned(Var->getRegNumTmp()));
-  Str << "R=" << buf << "  V=";
+  Str << "R=";
+  if (Var->hasRegTmp()) {
+    Str << llvm::format("%2d", Var->getRegNumTmp());
+  } else {
+    Str << "NA";
+  }
+  Str << "  V=";
   Var->dump(Func);
   Str << "  Range=" << Var->getLiveRange();
 }
