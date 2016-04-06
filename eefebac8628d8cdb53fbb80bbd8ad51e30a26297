@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6ea598c6_eb557cf7",
+        "filename": "src/OpenGL/libGLESv2/Buffer.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-06T14:31:21Z",
+      "side": 1,
+      "message": "Still refers to uniforms specificially.",
+      "range": {
+        "startLine": 68,
+        "startChar": 18,
+        "endLine": 68,
+        "endChar": 34
+      },
+      "revId": "eefebac8628d8cdb53fbb80bbd8ad51e30a26297",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6ea598c6_cb5ab825",
+        "filename": "src/OpenGL/libGLESv2/Buffer.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-06T14:31:21Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 80,
+        "startChar": 28,
+        "endLine": 80,
+        "endChar": 41
+      },
+      "revId": "eefebac8628d8cdb53fbb80bbd8ad51e30a26297",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
