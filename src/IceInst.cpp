@@ -22,6 +22,8 @@
 #include "IceOperand.h"
 #include "IceTargetLowering.h"
 
+#include "llvm/Support/Format.h"
+
 namespace Ice {
 
 namespace {
@@ -626,13 +628,11 @@ void Inst::dumpDecorated(const Cfg *Func) const {
   if (!Func->isVerbose(IceV_Deleted) && (isDeleted() || isRedundantAssign()))
     return;
   if (Func->isVerbose(IceV_InstNumbers)) {
-    char buf[30];
     InstNumberT Number = getNumber();
     if (Number == NumberDeleted)
-      snprintf(buf, llvm::array_lengthof(buf), "[XXX]");
+      Str << "[XXX]";
     else
-      snprintf(buf, llvm::array_lengthof(buf), "[%3d]", Number);
-    Str << buf;
+      Str << llvm::format("[%3d]", Number);
   }
   Str << "  ";
   if (isDeleted())

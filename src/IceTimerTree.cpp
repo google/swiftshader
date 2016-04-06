@@ -22,6 +22,7 @@
 #pragma clang diagnostic ignored "-Wunused-parameter"
 #endif // __clang__
 
+#include "llvm/Support/Format.h"
 #include "llvm/Support/Timer.h"
 
 #ifdef __clang__
@@ -231,10 +232,8 @@ void dumpHelper(Ostream &Str, const DumpMapType &Map, double TotalTime) {
   if (!BuildDefs::timers())
     return;
   for (auto &I : reverse_range(Map)) {
-    char buf[80];
-    snprintf(buf, llvm::array_lengthof(buf), "  %10.6f (%4.1f%%): ", I.first,
-             I.first * 100 / TotalTime);
-    Str << buf << I.second << "\n";
+    Str << llvm::format("  %10.6f (%4.1f%%): ", I.first,
+                        I.first * 100 / TotalTime) << I.second << "\n";
   }
 }
 
