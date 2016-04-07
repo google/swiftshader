@@ -45,6 +45,30 @@
       "revId": "56e601acb0cf505b45e51e02bb7d73d334e34438",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6ea598c6_e66b66ea",
+        "filename": "src/Shader/ShaderCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1145,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-07T19:32:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6ea598c6_2508284c",
+      "range": {
+        "startLine": 1128,
+        "startChar": 2,
+        "endLine": 1145,
+        "endChar": 112
+      },
+      "revId": "56e601acb0cf505b45e51e02bb7d73d334e34438",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
