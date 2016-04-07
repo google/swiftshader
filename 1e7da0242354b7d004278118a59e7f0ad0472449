@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "6ea598c6_a0a306c2",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2801,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-07T19:20:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6ea598c6_c5cbbc8d",
+      "range": {
+        "startLine": 2799,
+        "startChar": 3,
+        "endLine": 2801,
+        "endChar": 19
+      },
+      "revId": "1e7da0242354b7d004278118a59e7f0ad0472449",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6ea598c6_85f6d4e9",
         "filename": "src/OpenGL/compiler/OutputASM.cpp",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "6ea598c6_c033aa3c",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2973,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-07T19:20:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6ea598c6_85f6d4e9",
+      "range": {
+        "startLine": 2973,
+        "startChar": 74,
+        "endLine": 2973,
+        "endChar": 95
+      },
+      "revId": "1e7da0242354b7d004278118a59e7f0ad0472449",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6ea598c6_650cf0ca",
         "filename": "src/OpenGL/compiler/Types.h",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2016-04-07T16:57:23Z",
       "side": 1,
       "message": "This is a bit of a confusing place to define this, with totalRegisterCount() right below it. Can this one be a member function of TInterfaceBlock instead?",
+      "range": {
+        "startLine": 336,
+        "startChar": 1,
+        "endLine": 346,
+        "endChar": 2
+      },
+      "revId": "1e7da0242354b7d004278118a59e7f0ad0472449",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6ea598c6_2035b6bb",
+        "filename": "src/OpenGL/compiler/Types.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 346,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-07T19:20:06Z",
+      "side": 1,
+      "message": "Moving it in TInterfaceBlock would cause a circular dependance between TType and TInterfaceBlock, and I\u0027d like to avoid that. I changed it to a non static function called blockRegisterCount(), which should be more explicit.",
+      "parentUuid": "6ea598c6_650cf0ca",
       "range": {
         "startLine": 336,
         "startChar": 1,
