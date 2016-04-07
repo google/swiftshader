@@ -299,7 +299,7 @@ namespace sw
 
 		occlusionEnabled = false;
 		transformFeedbackQueryEnabled = false;
-		transformFeedbackEnabled = false;
+		transformFeedbackEnabled = 0;
 
 		pointSpriteEnable = false;
 		pointScaleEnable = false;
