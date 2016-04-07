@@ -141,8 +141,8 @@ namespace es2
 	{
 	}
 
-	LinkedVarying::LinkedVarying(const std::string &name, GLenum type, GLsizei size)
-	 : name(name), type(type), size(size)
+	LinkedVarying::LinkedVarying(const std::string &name, GLenum type, GLsizei size, int reg, int col)
+	 : name(name), type(type), size(size), reg(reg), col(col)
 	{
 	}
 
@@ -156,6 +156,7 @@ namespace es2
 		vertexBinary = 0;
 
 		transformFeedbackBufferMode = GL_INTERLEAVED_ATTRIBS;
+		totalLinkedVaryingsComponents = 0;
 
 		infoLog = 0;
 		validated = false;
@@ -1268,19 +1269,71 @@ namespace es2
 		return true;
 	}
 
-	bool Program::gatherTransformFeedbackLinkedVaryings()
+	bool Program::linkTransformFeedback()
 	{
-		// Varyings have already been validated in linkVaryings()
-		glsl::VaryingList &vsVaryings = vertexShader->varyings;
+		size_t totalComponents = 0;
+		totalLinkedVaryingsComponents = 0;
 
-		for(std::vector<std::string>::iterator trVar = transformFeedbackVaryings.begin(); trVar != transformFeedbackVaryings.end(); ++trVar)
+		std::set<std::string> uniqueNames;
+
+		for(const std::string &indexedTfVaryingName : transformFeedbackVaryings)
 		{
-			bool found = false;
-			for(glsl::VaryingList::iterator var = vsVaryings.begin(); var != vsVaryings.end(); ++var)
+			size_t subscript = GL_INVALID_INDEX;
+			std::string tfVaryingName = es2::ParseUniformName(indexedTfVaryingName, &subscript);
+			bool hasSubscript = (subscript != GL_INVALID_INDEX);
+
+			if(tfVaryingName.find('[') != std::string::npos)
 			{
-				if(var->name == (*trVar))
+				appendToInfoLog("Capture of array sub-elements is undefined and not supported.");
+				return false;
+			}
+
+			bool found = false;
+			for(const glsl::Varying varying : vertexShader->varyings)
+			{
+				if(tfVaryingName == varying.name)
 				{
-					transformFeedbackLinkedVaryings.push_back(LinkedVarying(var->name, var->type, var->size()));
+					if(uniqueNames.count(indexedTfVaryingName) > 0)
+					{
+						appendToInfoLog("Two transform feedback varyings specify the same output variable (%s)", indexedTfVaryingName.c_str());
+						return false;
+					}
+					uniqueNames.insert(indexedTfVaryingName);
+
+					if(hasSubscript && ((static_cast<int>(subscript)) >= varying.size()))
+					{
+						appendToInfoLog("Specified transform feedback varying index out of bounds (%s)", indexedTfVaryingName.c_str());
+						return false;
+					}
+
+					size_t size = hasSubscript ? 1 : varying.size();
+
+					size_t rowCount = VariableRowCount(varying.type);
+					size_t colCount = VariableColumnCount(varying.type);
+					size_t componentCount = rowCount * colCount * size;
+					if(transformFeedbackBufferMode == GL_SEPARATE_ATTRIBS &&
+					   componentCount > sw::MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS)
+					{
+						appendToInfoLog("Transform feedback varying's %s components (%d) exceed the maximum separate components (%d).",
+						                varying.name.c_str(), componentCount, sw::MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS);
+						return false;
+					}
+
+					totalComponents += componentCount;
+
+					int reg = varying.reg;
+					if(hasSubscript)
+					{
+						reg += rowCount > 1 ? colCount * subscript : subscript;
+					}
+					int col = varying.col;
+					if(tfVaryingName == "gl_PointSize")
+					{
+						// Point size is stored in the y element of the vector, not the x element
+						col = 1; // FIXME: varying.col could already contain this information
+					}
+					transformFeedbackLinkedVaryings.push_back(LinkedVarying(varying.name, varying.type, size, reg, col));
+
 					found = true;
 					break;
 				}
@@ -1288,9 +1341,20 @@ namespace es2
 
 			if(!found)
 			{
+				appendToInfoLog("Transform feedback varying %s does not exist in the vertex shader.", tfVaryingName.c_str());
 				return false;
 			}
 		}
+
+		if(transformFeedbackBufferMode == GL_INTERLEAVED_ATTRIBS &&
+		   totalComponents > sw::MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS)
+		{
+			appendToInfoLog("Transform feedback varying total components (%d) exceed the maximum separate components (%d).",
+			                totalComponents, sw::MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS);
+			return false;
+		}
+
+		totalLinkedVaryingsComponents = totalComponents;
 
 		return true;
 	}
@@ -1343,7 +1407,7 @@ namespace es2
 			return;
 		}
 
-		if(!gatherTransformFeedbackLinkedVaryings())
+		if(!linkTransformFeedback())
 		{
 			return;
 		}

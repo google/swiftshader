@@ -102,13 +102,16 @@ namespace es2
 	struct LinkedVarying
 	{
 		LinkedVarying();
-		LinkedVarying(const std::string &name, GLenum type, GLsizei size);
+		LinkedVarying(const std::string &name, GLenum type, GLsizei size, int reg, int col);
 
 		// Original GL name
 		std::string name;
 
 		GLenum type;
 		GLsizei size;
+
+		int reg;    // First varying register, assigned during link
+		int col;    // First register element, assigned during link
 	};
 
 	class Program
@@ -215,7 +218,7 @@ namespace es2
 		void resetUniformBlockBindings();
 
 		bool linkVaryings();
-		bool gatherTransformFeedbackLinkedVaryings();
+		bool linkTransformFeedback();
 
 		bool linkAttributes();
 		int getAttributeBinding(const glsl::Attribute &attribute);
@@ -278,6 +281,7 @@ namespace es2
 
 		std::vector<std::string> transformFeedbackVaryings;
 		GLenum transformFeedbackBufferMode;
+		size_t totalLinkedVaryingsComponents;
 
 		struct Sampler
 		{
