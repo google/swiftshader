@@ -118,7 +118,7 @@ public:
     if (!ThisHasString && !OtherHasString)
       return ID < Other.ID;
     // If exactly one has a string, then that one comes first.
-    assert(!OtherHasString);
+    assert(ThisHasString != OtherHasString);
     return ThisHasString;
   }
 
