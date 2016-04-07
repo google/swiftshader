@@ -333,6 +333,24 @@ public:
 		}
 	}
 
+	int blockRegisterCount() const
+	{
+		// If this TType object is a block member, return the register count of the parent block
+		// Otherwise, return the register count of the current TType object
+		if(interfaceBlock && !isInterfaceBlock())
+		{
+			int registerCount = 0;
+			const TFieldList& fieldList = interfaceBlock->fields();
+			for(size_t i = 0; i < fieldList.size(); i++)
+			{
+				const TType &fieldType = *(fieldList[i]->type());
+				registerCount += fieldType.totalRegisterCount();
+			}
+			return registerCount;
+		}
+		return totalRegisterCount();
+	}
+
 	int totalRegisterCount() const
 	{
 		if(array)
