@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6ea598c6_85b01408",
+        "filename": "src/OpenGL/compiler/glslang.y",
+        "patchSetId": 1
+      },
+      "lineNbr": 1595,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-07T14:35:02Z",
+      "side": 1,
+      "message": "Interestingly both the GLSL ES 1.0 and 3.0 spec define function_definition as function_prototype followed by compound_statement_no_new_scope:\n * https://www.khronos.org/files/opengles_shading_language.pdf - page 83\n * https://www.khronos.org/registry/gles/specs/3.0/GLSL_ES_Specification_3.00.3.pdf - page 114\n\nBut sections 4.2.2 are inconsistent:\n * \"A function body has a scope nested inside the function’s definition.\"\n * \"A function\u0027s parameter declarations and body together form a single scope.\"\n\nSo it looks like the WebGL test checks the behavior defined in section 4.2.2, not the grammar definition. Unfortunately to support both ESSL 1.0 and 3.0 according to that section, but with the same grammar, we\u0027re going to need a hack to inject the names at a different symbol table level.\n\nIt\u0027s possible there\u0027s a consensus among Khronos members that the ESSL 1.0 spec section 4.2.2 is wrong and the WebGL test should be changed.  I\u0027ll check what the latest dEQP test suite expects on Android.",
+      "range": {
+        "startLine": 1595,
+        "startChar": 4,
+        "endLine": 1595,
+        "endChar": 22
+      },
+      "revId": "a51ee500c72868994b3463f455750c88921b19fb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
