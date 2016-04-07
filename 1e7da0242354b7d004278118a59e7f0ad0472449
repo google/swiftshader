@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6ea598c6_c5cbbc8d",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2801,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-07T16:57:23Z",
+      "side": 1,
+      "message": "Separate the allocation and declaration without nesting the conditionals.",
+      "range": {
+        "startLine": 2799,
+        "startChar": 3,
+        "endLine": 2801,
+        "endChar": 19
+      },
+      "revId": "1e7da0242354b7d004278118a59e7f0ad0472449",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6ea598c6_85f6d4e9",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2973,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-07T16:57:23Z",
+      "side": 1,
+      "message": "Would it be feasible to eliminate this by calling TType::TotalRegisterCount() below? Currently it looks like a split in responsibilities if the register count can be determined both internally and externally to this function.",
+      "range": {
+        "startLine": 2973,
+        "startChar": 74,
+        "endLine": 2973,
+        "endChar": 95
+      },
+      "revId": "1e7da0242354b7d004278118a59e7f0ad0472449",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6ea598c6_650cf0ca",
+        "filename": "src/OpenGL/compiler/Types.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 346,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-07T16:57:23Z",
+      "side": 1,
+      "message": "This is a bit of a confusing place to define this, with totalRegisterCount() right below it. Can this one be a member function of TInterfaceBlock instead?",
+      "range": {
+        "startLine": 336,
+        "startChar": 1,
+        "endLine": 346,
+        "endChar": 2
+      },
+      "revId": "1e7da0242354b7d004278118a59e7f0ad0472449",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
