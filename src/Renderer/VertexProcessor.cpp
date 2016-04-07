@@ -63,17 +63,18 @@ namespace sw
 
 	VertexProcessor::TransformFeedbackInfo::TransformFeedbackInfo()
 	{
-		clear();
-	}
-
-	void VertexProcessor::TransformFeedbackInfo::clear()
-	{
 		buffer = nullptr;
 		offset = 0;
 		reg = 0;
 		row = 0;
 		col = 0;
 		stride = 0;
+	}
+
+	VertexProcessor::UniformBufferInfo::UniformBufferInfo()
+	{
+		buffer = nullptr;
+		offset = 0;
 	}
 
 	VertexProcessor::VertexProcessor(Context *context) : context(context)
@@ -116,11 +117,6 @@ namespace sw
 
 		routineCache = 0;
 		setRoutineCacheSize(1024);
-
-		for(int i = 0; i < MAX_UNIFORM_BUFFER_BINDINGS; i++)
-		{
-			uniformBuffer[i] = nullptr;
-		}
 	}
 
 	VertexProcessor::~VertexProcessor()
@@ -179,27 +175,16 @@ namespace sw
 
 	void VertexProcessor::setUniformBuffer(int index, sw::Resource* buffer, int offset)
 	{
-		uniformBuffer[index] = buffer;
-		uniformBufferOffset[index] = offset;
+		uniformBufferInfo[index].buffer = buffer;
+		uniformBufferInfo[index].offset = offset;
 	}
 
-	void VertexProcessor::lockUniformBuffers(byte** u)
+	void VertexProcessor::lockUniformBuffers(byte** u, sw::Resource* uniformBuffers[])
 	{
 		for(int i = 0; i < MAX_UNIFORM_BUFFER_BINDINGS; ++i)
 		{
-			u[i] = uniformBuffer[i] ? static_cast<byte*>(uniformBuffer[i]->lock(PUBLIC, PRIVATE)) + uniformBufferOffset[i] : nullptr;
-		}
-	}
-
-	void VertexProcessor::unlockUniformBuffers()
-	{
-		for(int i = 0; i < MAX_UNIFORM_BUFFER_BINDINGS; ++i)
-		{
-			if(uniformBuffer[i])
-			{
-				uniformBuffer[i]->unlock();
-				uniformBuffer[i] = nullptr;
-			}
+			u[i] = uniformBufferInfo[i].buffer ? static_cast<byte*>(uniformBufferInfo[i].buffer->lock(PUBLIC, PRIVATE)) + uniformBufferInfo[i].offset : nullptr;
+			uniformBuffers[i] = uniformBufferInfo[i].buffer;
 		}
 	}
 
@@ -213,27 +198,16 @@ namespace sw
 		transformFeedbackInfo[index].stride = stride;
 	}
 
-	void VertexProcessor::lockTransformFeedbackBuffers(byte** t, unsigned int* v, unsigned int* r, unsigned int* c, unsigned int* s)
+	void VertexProcessor::lockTransformFeedbackBuffers(byte** t, unsigned int* v, unsigned int* r, unsigned int* c, unsigned int* s, sw::Resource* transformFeedbackBuffers[])
 	{
 		for(int i = 0; i < MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS; ++i)
 		{
 			t[i] = transformFeedbackInfo[i].buffer ? static_cast<byte*>(transformFeedbackInfo[i].buffer->lock(PUBLIC, PRIVATE)) + transformFeedbackInfo[i].offset : nullptr;
+			transformFeedbackBuffers[i] = transformFeedbackInfo[i].buffer;
 			v[i] = transformFeedbackInfo[i].reg;
 			r[i] = transformFeedbackInfo[i].row;
 			c[i] = transformFeedbackInfo[i].col;
 			s[i] = transformFeedbackInfo[i].stride;
-		}
-	}
-
-	void VertexProcessor::unlockTransformFeedbackBuffers()
-	{
-		for(int i = 0; i < MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS; ++i)
-		{
-			if(transformFeedbackInfo[i].buffer)
-			{
-				transformFeedbackInfo[i].buffer->unlock();
-			}
-			transformFeedbackInfo[i].clear();
 		}
 	}
 

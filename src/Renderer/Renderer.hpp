@@ -123,6 +123,11 @@ namespace sw
 		{
 			float4 c[VERTEX_UNIFORM_VECTORS + 1];   // One extra for indices out of range, c[VERTEX_UNIFORM_VECTORS] = {0, 0, 0, 0}
 			byte* u[MAX_UNIFORM_BUFFER_BINDINGS];
+			byte* t[MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS];
+			unsigned int reg[MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS]; // Offset used when reading from registers, in components
+			unsigned int row[MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS]; // Number of rows to read
+			unsigned int col[MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS]; // Number of columns to read
+			unsigned int str[MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS]; // Number of components between each varying in output buffer
 			int4 i[16];
 			bool b[16];
 		};
@@ -222,6 +227,9 @@ namespace sw
 		Surface *depthBuffer;
 		Surface *stencilBuffer;
 		Resource *texture[TOTAL_IMAGE_UNITS];
+		Resource* pUniformBuffers[MAX_UNIFORM_BUFFER_BINDINGS];
+		Resource* vUniformBuffers[MAX_UNIFORM_BUFFER_BINDINGS];
+		Resource* transformFeedbackBuffers[MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS];
 
 		int vsDirtyConstF;
 		int vsDirtyConstI;

@@ -192,8 +192,7 @@ namespace sw
 		virtual void setBooleanConstant(unsigned int index, int boolean);
 
 		virtual void setUniformBuffer(int index, sw::Resource* buffer, int offset);
-		virtual void lockUniformBuffers(byte** u);
-		virtual void unlockUniformBuffers();
+		virtual void lockUniformBuffers(byte** u, sw::Resource* uniformBuffers[]);
 
 		virtual void setRenderTarget(int index, Surface *renderTarget);
 		virtual void setDepthBuffer(Surface *depthBuffer);
@@ -304,8 +303,6 @@ namespace sw
 		float4 c[FRAGMENT_UNIFORM_VECTORS];
 		int4 i[16];
 		bool b[16];
-		Resource* uniformBuffer[MAX_UNIFORM_BUFFER_BINDINGS];
-		int uniformBufferOffset[MAX_UNIFORM_BUFFER_BINDINGS];
 
 		// Other semi-constants
 		Stencil stencil;
@@ -314,6 +311,15 @@ namespace sw
 		Factor factor;
 
 	private:
+		struct UniformBufferInfo
+		{
+			UniformBufferInfo();
+
+			Resource* buffer;
+			int offset;
+		};
+		UniformBufferInfo uniformBufferInfo[MAX_UNIFORM_BUFFER_BINDINGS];
+
 		void setFogRanges(float start, float end);
 
 		Context *const context;
