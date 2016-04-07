@@ -1591,9 +1591,11 @@ external_declaration
 function_definition
     : function_prototype {
         context->parseFunctionPrototype(@1, $1.function, &$1.intermAggregate);
+        if (context->getShaderVersion() == 100) context->symbolTable.push();
     }
     compound_statement_no_new_scope {
         $$ = context->addFunctionDefinition(*($1.function), $1.intermAggregate, $3, @1);
+        if (context->getShaderVersion() == 100) context->symbolTable.pop();
     }
     ;
 
