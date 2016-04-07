@@ -1457,7 +1457,12 @@ namespace sw
 			return;
 		}
 
+		task->vertexStart = start * 3;
 		task->vertexCount = triangleCount * 3;
+		// Note: Quads aren't handled for verticesPerPrimitive, but verticesPerPrimitive is used for transform feedback,
+		//       which is an OpenGL ES 3.0 feature, and OpenGL ES 3.0 doesn't support quads as a primitive type.
+		DrawType type = static_cast<DrawType>(static_cast<unsigned int>(draw->drawType) & 0xF);
+		task->verticesPerPrimitive = 1 + (type >= DRAW_LINELIST) + (type >= DRAW_TRIANGLELIST);
 		vertexRoutine(&triangle->v0, (unsigned int*)&batch, task, data);
 	}
 
