@@ -188,12 +188,10 @@ namespace sw
 		virtual void setBooleanConstant(unsigned int index, int boolean);
 
 		virtual void setUniformBuffer(int index, sw::Resource* uniformBuffer, int offset);
-		virtual void lockUniformBuffers(byte** u);
-		virtual void unlockUniformBuffers();
+		virtual void lockUniformBuffers(byte** u, sw::Resource* uniformBuffers[]);
 
 		virtual void setTransformFeedbackBuffer(int index, sw::Resource* transformFeedbackBuffer, int offset, unsigned int reg, unsigned int row, unsigned int col, size_t stride);
-		virtual void lockTransformFeedbackBuffers(byte** t, unsigned int* v, unsigned int* r, unsigned int* c, unsigned int* s);
-		virtual void unlockTransformFeedbackBuffers();
+		virtual void lockTransformFeedbackBuffers(byte** t, unsigned int* v, unsigned int* r, unsigned int* c, unsigned int* s, sw::Resource* transformFeedbackBuffers[]);
 
 		// Transformations
 		virtual void setModelMatrix(const Matrix &M, int i = 0);
@@ -282,18 +280,23 @@ namespace sw
 		float4 c[VERTEX_UNIFORM_VECTORS + 1];   // One extra for indices out of range, c[VERTEX_UNIFORM_VECTORS] = {0, 0, 0, 0}
 		int4 i[16];
 		bool b[16];
-		Resource* uniformBuffer[MAX_UNIFORM_BUFFER_BINDINGS];
-		int uniformBufferOffset[MAX_UNIFORM_BUFFER_BINDINGS];
 
 		PointSprite point;
 		FixedFunction ff;
 
 	private:
-		void updateTransform();
+		struct UniformBufferInfo
+		{
+			UniformBufferInfo();
+
+			Resource* buffer;
+			int offset;
+		};
+		UniformBufferInfo uniformBufferInfo[MAX_UNIFORM_BUFFER_BINDINGS];
+
 		struct TransformFeedbackInfo
 		{
 			TransformFeedbackInfo();
-			void clear();
 
 			Resource* buffer;
 			int offset;
@@ -304,6 +307,7 @@ namespace sw
 		};
 		TransformFeedbackInfo transformFeedbackInfo[MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS];
 
+		void updateTransform();
 		void setTransform(const Matrix &M, int i);
 		void setCameraTransform(const Matrix &M, int i);
 		void setNormalTransform(const Matrix &M, int i);

@@ -388,7 +388,14 @@ namespace sw
 					draw->psDirtyConstB = 0;
 				}
 
-				PixelProcessor::lockUniformBuffers(data->ps.u);
+				PixelProcessor::lockUniformBuffers(data->ps.u, draw->pUniformBuffers);
+			}
+			else
+			{
+				for(int i = 0; i < MAX_UNIFORM_BUFFER_BINDINGS; i++)
+				{
+					draw->pUniformBuffers[i] = nullptr;
+				}
 			}
 			
 			if(context->pixelShaderVersion() <= 0x0104)
@@ -442,7 +449,8 @@ namespace sw
 					data->instanceID = context->instanceID;
 				}
 
-				VertexProcessor::lockUniformBuffers(data->vs.u);
+				VertexProcessor::lockUniformBuffers(data->vs.u, draw->vUniformBuffers);
+				VertexProcessor::lockTransformFeedbackBuffers(data->vs.t, data->vs.reg, data->vs.row, data->vs.col, data->vs.str, draw->transformFeedbackBuffers);
 			}
 			else
 			{
@@ -451,6 +459,16 @@ namespace sw
 				draw->vsDirtyConstF = VERTEX_UNIFORM_VECTORS + 1;
 				draw->vsDirtyConstI = 16;
 				draw->vsDirtyConstB = 16;
+
+				for(int i = 0; i < MAX_UNIFORM_BUFFER_BINDINGS; i++)
+				{
+					draw->vUniformBuffers[i] = nullptr;
+				}
+
+				for(int i = 0; i < MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS; i++)
+				{
+					draw->transformFeedbackBuffers[i] = nullptr;
+				}
 			}
 
 			if(pixelState.stencilActive)
@@ -981,8 +999,25 @@ namespace sw
 					draw.indexBuffer->unlock();
 				}
 
-				PixelProcessor::unlockUniformBuffers();
-				VertexProcessor::unlockUniformBuffers();
+				for(int i = 0; i < MAX_UNIFORM_BUFFER_BINDINGS; i++)
+				{
+					if(draw.pUniformBuffers[i])
+					{
+						draw.pUniformBuffers[i]->unlock();
+					}
+					if(draw.vUniformBuffers[i])
+					{
+						draw.vUniformBuffers[i]->unlock();
+					}
+				}
+
+				for(int i = 0; i < MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS; i++)
+				{
+					if(draw.transformFeedbackBuffers[i])
+					{
+						draw.transformFeedbackBuffers[i]->unlock();
+					}
+				}
 
 				draw.vertexRoutine->unbind();
 				draw.setupRoutine->unbind();
