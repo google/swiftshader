@@ -2792,14 +2792,28 @@ namespace glsl
 
 		if(symbol || block)
 		{
-			int index = lookup(uniforms, uniform);
+			TInterfaceBlock* parentBlock = type.getInterfaceBlock();
+			bool isBlockMember = (!block && parentBlock);
+			int index = isBlockMember ? lookup(uniforms, parentBlock) : lookup(uniforms, uniform);
 
-			if(index == -1)
+			if(index == -1 || isBlockMember)
 			{
-				index = allocate(uniforms, uniform);
-				const TString &name = symbol ? symbol->getSymbol() : block->name();
+				if(index == -1)
+				{
+					index = allocate(uniforms, uniform);
+				}
 
-				declareUniform(type, name, index);
+				// Verify if the current uniform is a member of an already declared block
+				const TString &name = symbol ? symbol->getSymbol() : block->name();
+				int blockMemberIndex = blockMemberLookup(type, name, index);
+				if(blockMemberIndex == -1)
+				{
+					declareUniform(type, name, index);
+				}
+				else
+				{
+					index = blockMemberIndex;
+				}
 			}
 
 			return index;
@@ -2953,13 +2967,25 @@ namespace glsl
 		return -1;
 	}
 
+	int OutputASM::lookup(VariableArray &list, TInterfaceBlock *block)
+	{
+		for(unsigned int i = 0; i < list.size(); i++)
+		{
+			if(list[i] && (list[i]->getType().getInterfaceBlock() == block))
+			{
+				return i;   // Pointer match
+			}
+		}
+		return -1;
+	}
+
 	int OutputASM::allocate(VariableArray &list, TIntermTyped *variable)
 	{
 		int index = lookup(list, variable);
 
 		if(index == -1)
 		{
-			unsigned int registerCount = variable->totalRegisterCount();
+			unsigned int registerCount = variable->blockRegisterCount();
 
 			for(unsigned int i = 0; i < list.size(); i++)
 			{
@@ -3007,14 +3033,54 @@ namespace glsl
 		}
 	}
 
-	int OutputASM::declareUniform(const TType &type, const TString &name, int registerIndex, int blockId, BlockLayoutEncoder* encoder)
+	int OutputASM::blockMemberLookup(const TType &type, const TString &name, int registerIndex)
+	{
+		const TInterfaceBlock *block = type.getInterfaceBlock();
+
+		if(block)
+		{
+			ActiveUniformBlocks &activeUniformBlocks = shaderObject->activeUniformBlocks;
+			const TFieldList& fields = block->fields();
+			const TString &blockName = block->name();
+			int fieldRegisterIndex = registerIndex;
+
+			if(!type.isInterfaceBlock())
+			{
+				// This is a uniform that's part of a block, let's see if the block is already defined
+				for(size_t i = 0; i < activeUniformBlocks.size(); ++i)
+				{
+					if(activeUniformBlocks[i].name == blockName.c_str())
+					{
+						// The block is already defined, find the register for the current uniform and return it
+						for(size_t j = 0; j < fields.size(); j++)
+						{
+							const TString &fieldName = fields[j]->name();
+							if(fieldName == name)
+							{
+								return fieldRegisterIndex;
+							}
+
+							fieldRegisterIndex += fields[j]->type()->totalRegisterCount();
+						}
+
+						ASSERT(false);
+						return fieldRegisterIndex;
+					}
+				}
+			}
+		}
+
+		return -1;
+	}
+
+	void OutputASM::declareUniform(const TType &type, const TString &name, int registerIndex, int blockId, BlockLayoutEncoder* encoder)
 	{
 		const TStructure *structure = type.getStruct();
 		const TInterfaceBlock *block = (type.isInterfaceBlock() || (blockId == -1)) ? type.getInterfaceBlock() : nullptr;
-		ActiveUniforms &activeUniforms = shaderObject->activeUniforms;
 
 		if(!structure && !block)
 		{
+			ActiveUniforms &activeUniforms = shaderObject->activeUniforms;
 			const BlockMemberInfo blockInfo = encoder ? encoder->encodeType(type) : BlockMemberInfo::getDefaultBlockInfo();
 			if(blockId >= 0)
 			{
@@ -3039,31 +3105,6 @@ namespace glsl
 			const TString &blockName = block->name();
 			int fieldRegisterIndex = registerIndex;
 			bool isUniformBlockMember = !type.isInterfaceBlock() && (blockId == -1);
-
-			if(isUniformBlockMember)
-			{
-				// This is a uniform that's part of a block, let's see if the block is already defined
-				for(size_t i = 0; i < activeUniformBlocks.size(); ++i)
-				{
-					if(activeUniformBlocks[i].name == blockName.c_str())
-					{
-						// The block is already defined, find the register for the current uniform and return it
-						for(size_t j = 0; j < fields.size(); j++)
-						{
-							const TString &fieldName = fields[j]->name();
-							if(fieldName == name)
-							{
-								return fieldRegisterIndex;
-							}
-
-							fieldRegisterIndex += fields[j]->type()->totalRegisterCount();
-						}
-
-						ASSERT(false);
-						return fieldRegisterIndex;
-					}
-				}
-			}
 
 			blockId = activeUniformBlocks.size();
 			bool isRowMajor = block->matrixPacking() == EmpRowMajor;
@@ -3139,8 +3180,6 @@ namespace glsl
 				}
 			}
 		}
-
-		return registerIndex;
 	}
 
 	GLenum OutputASM::glVariableType(const TType &type)
