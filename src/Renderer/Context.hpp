@@ -51,6 +51,8 @@ namespace sw
 
 	enum DrawType : unsigned int
 	{
+		// These types must stay ordered by vertices per primitive. Also, if these basic types
+		// are modified, verify the value assigned to task->verticesPerPrimitive in Renderer.cpp
 		DRAW_POINTLIST     = 0x00,
 		DRAW_LINELIST      = 0x01,
 		DRAW_LINESTRIP     = 0x02,

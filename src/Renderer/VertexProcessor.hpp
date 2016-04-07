@@ -32,7 +32,9 @@ namespace sw
 
 	struct VertexTask
 	{
+		unsigned int vertexStart;
 		unsigned int vertexCount;
+		unsigned int verticesPerPrimitive;
 		VertexCache vertexCache;
 	};
 
