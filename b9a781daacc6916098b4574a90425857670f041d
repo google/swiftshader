@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6ea598c6_2524a8f4",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 896,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-07T15:08:51Z",
+      "side": 0,
+      "message": "could have been cleared here",
+      "range": {
+        "startLine": 896,
+        "startChar": 3,
+        "endLine": 896,
+        "endChar": 50
+      },
+      "revId": "b9a781daacc6916098b4574a90425857670f041d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
