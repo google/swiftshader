@@ -494,7 +494,7 @@ namespace sw
 
 		bool occlusionEnabled;
 		bool transformFeedbackQueryEnabled;
-		bool transformFeedbackEnabled;
+		uint64_t transformFeedbackEnabled;
 
 		// Pixel processor states
 		bool rasterizerDiscard;
