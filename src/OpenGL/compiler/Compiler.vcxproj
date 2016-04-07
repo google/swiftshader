@@ -229,7 +229,6 @@
     <ClCompile Include="SymbolTable.cpp" />
     <ClCompile Include="TranslatorASM.cpp" />
     <ClCompile Include="util.cpp" />
-    <ClCompile Include="ValidateGlobalInitializer.cpp" />
     <ClCompile Include="ValidateLimitations.cpp" />
     <ClCompile Include="glslang_lex.cpp" />
     <ClCompile Include="glslang_tab.cpp" />
@@ -334,7 +333,6 @@
     <ClInclude Include="TranslatorASM.h" />
     <ClInclude Include="Types.h" />
     <ClInclude Include="util.h" />
-    <ClInclude Include="ValidateGlobalInitializer.h" />
     <ClInclude Include="ValidateLimitations.h" />
     <ClInclude Include="glslang_tab.h" />
     <ClInclude Include="ValidateSwitch.h" />
