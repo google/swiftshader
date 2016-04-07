@@ -905,8 +905,9 @@ namespace sw
 		DrawData &data = *draw.data;
 		int primitive = primitiveProgress[unit].firstPrimitive;
 		int count = primitiveProgress[unit].primitiveCount;
+		int processedPrimitives = primitive + count;
 
-		pixelProgress[cluster].processedPrimitives = primitive + count;
+		pixelProgress[cluster].processedPrimitives = processedPrimitives;
 
 		if(pixelProgress[cluster].processedPrimitives >= draw.count)
 		{
@@ -947,7 +948,7 @@ namespace sw
 							}
 							break;
 						case Query::TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN:
-							atomicAdd((volatile int*)&query->data, pixelProgress[cluster].processedPrimitives);
+							atomicAdd((volatile int*)&query->data, processedPrimitives);
 							break;
 						default:
 							break;
