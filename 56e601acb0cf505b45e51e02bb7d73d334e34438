@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6ea598c6_05b2c4c3",
+        "filename": "src/Shader/ShaderCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1126,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-07T15:47:52Z",
+      "side": 1,
+      "message": "Nice way to avoid shifting twice. :)",
+      "range": {
+        "startLine": 1126,
+        "startChar": 77,
+        "endLine": 1126,
+        "endChar": 93
+      },
+      "revId": "56e601acb0cf505b45e51e02bb7d73d334e34438",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6ea598c6_2508284c",
+        "filename": "src/Shader/ShaderCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1145,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-07T15:47:52Z",
+      "side": 1,
+      "message": "This appears to be based on float_to_half_SSE2() from https://gist.github.com/rygorous/2156668. Unlike float_to_half_rtne_SSE2(), that version doesn\u0027t round to the nearest even in case of a tie as defined by IEEE 754-2008. That\u0027s fine for GLSL ES 3.0\u0027s needs, as it doesn\u0027t have very high requirements (section 2.1.1 Floating-Point Computation).\n\nThat said, let\u0027s add a small comment here to note that it rounds to +inf instead of nearest even.",
+      "range": {
+        "startLine": 1128,
+        "startChar": 2,
+        "endLine": 1145,
+        "endChar": 112
+      },
+      "revId": "56e601acb0cf505b45e51e02bb7d73d334e34438",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
