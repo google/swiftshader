@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2e74807a_35ae10f2",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2809,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-08T15:09:43Z",
+      "side": 1,
+      "message": "Ah, I didn\u0027t notice before that index gets overwritten here. That\u0027s not ideal. declareUniform() should just declare the variable\u0027s existence and record its register index. lookup() is responsible for retrieving that index again. And allocate() reserves the registers. I don\u0027t think uniform buffers should have to break that divide in responsibilities.\n\nallocate() will have to be modified a bit to return the index of the uniform instead of its block. What seems slightly more challenging is reserving the register slots in the \u0027uniforms\u0027 array when we don\u0027t have the TIntermTyped pointers of the other block members. You could store nulls and have a second array to map between a block and its starting register index, so you can update \u0027uniforms\u0027 when you encounter a new block member, with its TIntermTyped pointer. lookup() would have to search through this second array when we\u0027re dealing with a block member.\n\nNote that this is important to get right because we should do something similar for structs. We seem to allocate new registers for them every time we encounter a new member field. We pass most tests because struct members are accessed through operators and we look up the register index for the left hand side and copy the entire set of registers.",
+      "range": {
+        "startLine": 2809,
+        "startChar": 4,
+        "endLine": 2809,
+        "endChar": 46
+      },
+      "revId": "f7712528730d725e64b228cd07b7261ccd8eb531",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
