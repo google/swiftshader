@@ -227,30 +227,35 @@ namespace {
 
 using DumpMapType = std::multimap<double, std::string>;
 
-// Dump the Map items in reverse order of their time contribution.
-void dumpHelper(Ostream &Str, const DumpMapType &Map, double TotalTime) {
+// Dump the Map items in reverse order of their time contribution.  If
+// AddPercents is true (i.e. for printing "flat times"), it also prints a
+// cumulative percentage column, and recalculates TotalTime as the sum of all
+// the individual times so that cumulative percentage adds up to 100%.
+void dumpHelper(Ostream &Str, const DumpMapType &Map, double TotalTime,
+                bool AddPercents) {
   if (!BuildDefs::timers())
     return;
-  for (auto &I : reverse_range(Map)) {
-    Str << llvm::format("  %10.6f (%4.1f%%): ", I.first,
-                        I.first * 100 / TotalTime) << I.second << "\n";
+  if (AddPercents) {
+    // Recalculate TotalTime as the sum of the individual times.  This is
+    // because the individual times generally add up to less than 100% because
+    // of timer overhead.
+    TotalTime = 0;
+    for (const auto &I : Map) {
+      TotalTime += I.first;
+    }
   }
-}
-
-// Write a printf() format string into Buf[], in the format "[%5lu] ", where
-// "5" is actually the number of digits in MaxVal. E.g.,
-//   MaxVal=0     ==> "[%1lu] "
-//   MaxVal=5     ==> "[%1lu] "
-//   MaxVal=9876  ==> "[%4lu] "
-void makePrintfFormatString(char *Buf, size_t BufLen, size_t MaxVal) {
-  if (!BuildDefs::timers())
-    return;
-  int NumDigits = 0;
-  do {
-    ++NumDigits;
-    MaxVal /= 10;
-  } while (MaxVal);
-  snprintf(Buf, BufLen, "[%%%dlu] ", NumDigits);
+  double Sum = 0;
+  for (const auto &I : reverse_range(Map)) {
+    Sum += I.first;
+    if (AddPercents) {
+      Str << llvm::format("  %10.6f %4.1f%% %5.1f%% ", I.first,
+                          I.first * 100 / TotalTime, Sum * 100 / TotalTime)
+          << I.second << "\n";
+    } else {
+      Str << llvm::format("  %10.6f %4.1f%% ", I.first,
+                          I.first * 100 / TotalTime) << I.second << "\n";
+    }
+  }
 }
 
 } // end of anonymous namespace
@@ -262,15 +267,10 @@ void TimerStack::dump(Ostream &Str, bool DumpCumulative) {
   update(UpdateCounts);
   double TotalTime = LastTimestamp - FirstTimestamp;
   assert(TotalTime);
-  char FmtString[30], PrefixStr[30];
+  char PrefixStr[30];
   if (DumpCumulative) {
-    Str << Name << " - Cumulative times:\n";
-    size_t MaxInternalCount = 0;
-    for (TimerTreeNode &Node : Nodes)
-      MaxInternalCount = std::max(MaxInternalCount, Node.UpdateCount);
-    makePrintfFormatString(FmtString, llvm::array_lengthof(FmtString),
-                           MaxInternalCount);
-
+    Str << Name << " - Cumulative times:\n"
+                   "     Seconds   Pct  EventCnt TimerPath\n";
     DumpMapType CumulativeMap;
     for (TTindex i = 1; i < Nodes.size(); ++i) {
       TTindex Prefix = i;
@@ -283,27 +283,25 @@ void TimerStack::dump(Ostream &Str, bool DumpCumulative) {
         assert(Nodes[Prefix].Parent < Prefix);
         Prefix = Nodes[Prefix].Parent;
       }
-      snprintf(PrefixStr, llvm::array_lengthof(PrefixStr), FmtString,
+      snprintf(PrefixStr, llvm::array_lengthof(PrefixStr), "%9zu ",
                Nodes[i].UpdateCount);
       CumulativeMap.insert(std::make_pair(Nodes[i].Time, PrefixStr + Suffix));
     }
-    dumpHelper(Str, CumulativeMap, TotalTime);
+    constexpr bool NoAddPercents = false;
+    dumpHelper(Str, CumulativeMap, TotalTime, NoAddPercents);
   }
-  Str << Name << " - Flat times:\n";
-  size_t MaxLeafCount = 0;
-  for (size_t Count : LeafCounts)
-    MaxLeafCount = std::max(MaxLeafCount, Count);
-  makePrintfFormatString(FmtString, llvm::array_lengthof(FmtString),
-                         MaxLeafCount);
+  Str << Name << " - Flat times:\n"
+                 "     Seconds   Pct CumPct  EventCnt TimerName\n";
   DumpMapType FlatMap;
   for (TimerIdT i = 0; i < LeafTimes.size(); ++i) {
     if (LeafCounts[i]) {
-      snprintf(PrefixStr, llvm::array_lengthof(PrefixStr), FmtString,
+      snprintf(PrefixStr, llvm::array_lengthof(PrefixStr), "%9zu ",
                LeafCounts[i]);
       FlatMap.insert(std::make_pair(LeafTimes[i], PrefixStr + IDs[i]));
     }
   }
-  dumpHelper(Str, FlatMap, TotalTime);
+  constexpr bool AddPercents = true;
+  dumpHelper(Str, FlatMap, TotalTime, AddPercents);
   Str << "Number of timer updates: " << StateChangeCount << "\n";
 }
 
