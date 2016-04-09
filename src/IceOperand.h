@@ -209,7 +209,23 @@ private:
   void initName(GlobalContext *Ctx) {
     std::string Buffer;
     llvm::raw_string_ostream Str(Buffer);
-    Str << ".L$" << getType() << "$";
+    constexpr bool IsCompact = !BuildDefs::dump();
+    if (IsCompact) {
+      switch (getType()) {
+      case IceType_f32:
+        Str << "$F";
+        break;
+      case IceType_f64:
+        Str << "$D";
+        break;
+      default:
+        // For constant pooling diversification
+        Str << ".L$" << getType() << "$";
+        break;
+      }
+    } else {
+      Str << ".L$" << getType() << "$";
+    }
     // Print hex characters byte by byte, starting from the most significant
     // byte.  NOTE: This ordering assumes Subzero runs on a little-endian
     // platform.  That means the possibility of different label names depending
@@ -223,7 +239,7 @@ private:
     // For a floating-point value in DecorateAsm mode, also append the value in
     // human-readable sprintf form, changing '+' to 'p' and '-' to 'm' to
     // maintain valid asm labels.
-    if (std::is_floating_point<PrimType>::value && !BuildDefs::minimal() &&
+    if (BuildDefs::dump() && std::is_floating_point<PrimType>::value &&
         getFlags().getDecorateAsm()) {
       char Buf[30];
       snprintf(Buf, llvm::array_lengthof(Buf), "$%g", (double)Value);

@@ -579,7 +579,7 @@ GlobalString makeName(Cfg *Func, const SizeT Id) {
     return GlobalString::createWithString(
         Ctx, ".L" + FuncName.toString() + "$jumptable$__" + std::to_string(Id));
   return GlobalString::createWithString(
-      Ctx, ".L" + std::to_string(FuncName.getID()) + "_" + std::to_string(Id));
+      Ctx, "$J" + std::to_string(FuncName.getID()) + "_" + std::to_string(Id));
 }
 } // end of anonymous namespace
 
