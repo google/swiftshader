@@ -482,7 +482,6 @@ bool TParseContext::constructorErrorCheck(const TSourceLoc &line, TIntermNode* n
     //
 
     int size = 0;
-    bool constType = true;
     bool full = false;
     bool overFull = false;
     bool matrixInMatrix = false;
@@ -497,14 +496,9 @@ bool TParseContext::constructorErrorCheck(const TSourceLoc &line, TIntermNode* n
             overFull = true;
         if (op != EOpConstructStruct && !type->isArray() && size >= type->getObjectSize())
             full = true;
-        if (param.type->getQualifier() != EvqConstExpr)
-            constType = false;
         if (param.type->isArray())
             arrayArg = true;
     }
-
-    if (constType)
-        type->setQualifier(EvqConstExpr);
 
     if(type->isArray()) {
         if(type->getArraySize() == 0) {
@@ -3536,7 +3530,6 @@ TIntermTyped *TParseContext::addFunctionCallOrMethod(TFunction *fnCall, TIntermN
 			recover();
 			callNode = intermediate.setAggregateOperator(nullptr, op, loc);
 		}
-		callNode->setType(type);
 	}
 	else
 	{
@@ -3608,7 +3601,6 @@ TIntermTyped *TParseContext::addFunctionCallOrMethod(TFunction *fnCall, TIntermN
 
 				functionCallLValueErrorCheck(fnCandidate, aggregate);
 			}
-			callNode->setType(fnCandidate->getReturnType());
 		}
 		else
 		{

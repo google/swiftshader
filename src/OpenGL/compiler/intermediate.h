@@ -297,7 +297,7 @@ public:
     TIntermTyped(const TType& t) : type(t)  { }
     virtual TIntermTyped* getAsTyped() { return this; }
 
-    void setType(const TType& t) { type = t; }
+    virtual void setType(const TType& t) { type = t; }
     const TType& getType() const { return type; }
     TType* getTypePointer() { return &type; }
 
@@ -469,6 +469,16 @@ public:
     virtual TIntermBinary* getAsBinaryNode() { return this; }
     virtual void traverse(TIntermTraverser*);
 
+	void setType(const TType &t) override
+	{
+		type = t;
+
+		if(left->getQualifier() == EvqConstExpr && right->getQualifier() == EvqConstExpr)
+		{
+			type.setQualifier(EvqConstExpr);
+		}
+	}
+
     void setLeft(TIntermTyped* n) { left = n; }
     void setRight(TIntermTyped* n) { right = n; }
     TIntermTyped* getLeft() const { return left; }
@@ -487,6 +497,16 @@ class TIntermUnary : public TIntermOperator {
 public:
     TIntermUnary(TOperator o, TType& t) : TIntermOperator(o, t), operand(0) {}
     TIntermUnary(TOperator o) : TIntermOperator(o), operand(0) {}
+
+	void setType(const TType &t) override
+	{
+		type = t;
+
+		if(operand->getQualifier() == EvqConstExpr)
+		{
+			type.setQualifier(EvqConstExpr);
+		}
+	}
 
     virtual void traverse(TIntermTraverser*);
     virtual TIntermUnary* getAsUnaryNode() { return this; }
@@ -515,6 +535,24 @@ public:
     virtual void traverse(TIntermTraverser*);
 
     TIntermSequence& getSequence() { return sequence; }
+
+	void setType(const TType &t) override
+	{
+		type = t;
+
+		if(op != EOpFunctionCall)
+		{
+			for(TIntermNode *node : sequence)
+			{
+				if(!node->getAsTyped() || node->getAsTyped()->getQualifier() != EvqConstExpr)
+				{
+					return;
+				}
+			}
+
+			type.setQualifier(EvqConstExpr);
+		}
+	}
 
     void setName(const TString& n) { name = n; }
     const TString& getName() const { return name; }
