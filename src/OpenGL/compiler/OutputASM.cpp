@@ -2132,7 +2132,7 @@ namespace glsl
 			parameter.type = registerType(arg);
 			parameter.bufferIndex = argumentInfo.bufferIndex;
 
-			if(arg->getQualifier() == EvqConstExpr)
+			if(arg->getAsConstantUnion() && arg->getAsConstantUnion()->getUnionArrayPointer())
 			{
 				int component = componentCount(type, argumentInfo.clampedIndex);
 				ConstantUnion *constants = arg->getAsConstantUnion()->getUnionArrayPointer();
@@ -2459,6 +2459,11 @@ namespace glsl
 			outputQualifier = qualifier;
 		}
 
+		if(qualifier == EvqConstExpr && (!operand->getAsConstantUnion() || !operand->getAsConstantUnion()->getUnionArrayPointer()))
+		{
+			return sw::Shader::PARAMETER_TEMP;
+		}
+
 		switch(qualifier)
 		{
 		case EvqTemporary:           return sw::Shader::PARAMETER_TEMP;
@@ -2510,7 +2515,7 @@ namespace glsl
 		{
 		case EvqTemporary:           return temporaryRegister(operand);
 		case EvqGlobal:              return temporaryRegister(operand);
-		case EvqConstExpr:           UNREACHABLE(EvqConstExpr);
+		case EvqConstExpr:           return temporaryRegister(operand);   // Unevaluated constant expression
 		case EvqAttribute:           return attributeRegister(operand);
 		case EvqVaryingIn:           return varyingRegister(operand);
 		case EvqVaryingOut:          return varyingRegister(operand);

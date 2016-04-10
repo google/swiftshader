@@ -143,7 +143,6 @@ public:
     void handlePragmaDirective(const TSourceLoc &line, const char* name, const char* value);
 
     bool containsSampler(TType& type);
-    bool areAllChildConst(TIntermAggregate* aggrNode);
     const TFunction* findFunction(const TSourceLoc &line, TFunction* pfnCall, bool *builtIn = 0);
     bool executeInitializer(const TSourceLoc &line, const TString &identifier, const TPublicType &pType,
                             TIntermTyped *initializer, TIntermNode **intermNode);

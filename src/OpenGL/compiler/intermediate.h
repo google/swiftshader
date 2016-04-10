@@ -8,7 +8,7 @@
 // Definition of the in-memory high-level intermediate representation
 // of shaders.  This is a tree that parser creates.
 //
-// Nodes in the tree are defined as a hierarchy of classes derived from 
+// Nodes in the tree are defined as a hierarchy of classes derived from
 // TIntermNode. Each is a node in a tree.  There is no preset branching factor;
 // each node can have it's own type of list of children.
 //
@@ -26,7 +26,7 @@
 enum TOperator {
     EOpNull,            // if in a node, should only mean a node is still being built
     EOpSequence,        // denotes a list of statements, or parameters, etc.
-    EOpFunctionCall,    
+    EOpFunctionCall,
     EOpFunction,        // For function definition
     EOpParameters,      // an aggregate listing the parameters to a function
 
@@ -306,7 +306,7 @@ public:
     TPrecision getPrecision() const { return type.getPrecision(); }
     int getNominalSize() const { return type.getNominalSize(); }
 	int getSecondarySize() const { return type.getSecondarySize(); }
-    
+
 	bool isInterfaceBlock() const { return type.isInterfaceBlock(); }
     bool isMatrix() const { return type.isMatrix(); }
     bool isArray()  const { return type.isArray(); }
@@ -400,14 +400,14 @@ public:
     // if symbol is initialized as symbol(sym), the memory comes from the poolallocator of sym. If sym comes from
     // per process globalpoolallocator, then it causes increased memory usage per compile
     // it is essential to use "symbol = sym" to assign to symbol
-    TIntermSymbol(int i, const TString& sym, const TType& t) : 
-            TIntermTyped(t), id(i)  { symbol = sym; } 
+    TIntermSymbol(int i, const TString& sym, const TType& t) :
+            TIntermTyped(t), id(i)  { symbol = sym; }
 
     int getId() const { return id; }
     const TString& getSymbol() const { return symbol; }
 
     void setId(int newId) { id = newId; }
-    
+
     virtual void traverse(TIntermTraverser*);
     virtual TIntermSymbol* getAsSymbolNode() { return this; }
 
@@ -418,10 +418,13 @@ protected:
 
 class TIntermConstantUnion : public TIntermTyped {
 public:
-    TIntermConstantUnion(ConstantUnion *unionPointer, const TType& t) : TIntermTyped(t), unionArrayPointer(unionPointer) { }
+    TIntermConstantUnion(ConstantUnion *unionPointer, const TType& t) : TIntermTyped(t), unionArrayPointer(unionPointer)
+	{
+		getTypePointer()->setQualifier(EvqConstExpr);
+	}
 
     ConstantUnion* getUnionArrayPointer() const { return unionArrayPointer; }
-    
+
     int getIConst(int index) const { return unionArrayPointer ? unionArrayPointer[index].getIConst() : 0; }
     int getUConst(int index) const { return unionArrayPointer ? unionArrayPointer[index].getUConst() : 0; }
     float getFConst(int index) const { return unionArrayPointer ? unionArrayPointer[index].getFConst() : 0.0f; }
@@ -452,7 +455,7 @@ public:
 
 protected:
     TIntermOperator(TOperator o) : TIntermTyped(TType(EbtFloat, EbpUndefined)), op(o) {}
-    TIntermOperator(TOperator o, TType& t) : TIntermTyped(t), op(o) {}   
+    TIntermOperator(TOperator o, TType& t) : TIntermTyped(t), op(o) {}
     TOperator op;
 };
 
@@ -489,7 +492,7 @@ public:
     virtual TIntermUnary* getAsUnaryNode() { return this; }
 
     void setOperand(TIntermTyped* o) { operand = o; }
-    TIntermTyped* getOperand() { return operand; }    
+    TIntermTyped* getOperand() { return operand; }
     bool promote(TInfoSink&);
 
 protected:
@@ -526,6 +529,19 @@ public:
 
     void setEndLine(const TSourceLoc& line) { endLine = line; }
     const TSourceLoc& getEndLine() const { return endLine; }
+
+	bool isConstantFoldable()
+	{
+		for(TIntermNode *node : sequence)
+		{
+			if(!node->getAsConstantUnion() || !node->getAsConstantUnion()->getUnionArrayPointer())
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
 
 protected:
     TIntermAggregate(const TIntermAggregate&); // disallow copy constructor
@@ -617,7 +633,7 @@ enum Visit
 };
 
 //
-// For traversing the tree.  User should derive from this, 
+// For traversing the tree.  User should derive from this,
 // put their traversal specific data in it, and then pass
 // it to a Traverse method.
 //
@@ -628,7 +644,7 @@ class TIntermTraverser
 {
 public:
     POOL_ALLOCATOR_NEW_DELETE();
-    TIntermTraverser(bool preVisit = true, bool inVisit = false, bool postVisit = false, bool rightToLeft = false) : 
+    TIntermTraverser(bool preVisit = true, bool inVisit = false, bool postVisit = false, bool rightToLeft = false) :
             preVisit(preVisit),
             inVisit(inVisit),
             postVisit(postVisit),
