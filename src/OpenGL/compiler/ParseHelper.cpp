@@ -3086,7 +3086,7 @@ TIntermTyped *TParseContext::createUnaryMath(TOperator op, TIntermTyped *child, 
 		break;
 	}
 
-	return intermediate.addUnaryMath(op, child, loc); // FIXME , funcReturnType);
+	return intermediate.addUnaryMath(op, child, loc, funcReturnType);
 }
 
 TIntermTyped *TParseContext::addUnaryMath(TOperator op, TIntermTyped *child, const TSourceLoc &loc)
