@@ -217,8 +217,8 @@ variable_identifier
         // don't delete $1.string, it's used by error recovery, and the pool
         // pop will reclaim the memory
 
-        if (variable->getType().getQualifier() == EvqConstExpr ) {
-            ConstantUnion* constArray = variable->getConstPointer();
+        ConstantUnion *constArray = variable->getConstPointer();
+        if (constArray) {
             TType t(variable->getType());
             $$ = context->intermediate.addConstantUnion(constArray, t, @1);
         } else
@@ -686,7 +686,7 @@ function_header
         TType type($1);
         function = new TFunction($2.string, type);
         $$ = function;
-        
+
         context->symbolTable.push();
     }
     ;
@@ -914,7 +914,7 @@ type_qualifier
     | interpolation_qualifier {
         context->error(@1, "interpolation qualifier requires a fragment 'in' or vertex 'out' storage qualifier", getQualifierString($1.qualifier));
         context->recover();
-        
+
         TQualifier qual = context->symbolTable.atGlobalLevel() ? EvqGlobal : EvqTemporary;
         $$.setBasic(EbtVoid, qual, @1);
     }

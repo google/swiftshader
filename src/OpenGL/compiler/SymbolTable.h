@@ -95,6 +95,7 @@ public:
     }
 
     ConstantUnion* getConstPointer() const { return unionArray; }
+	bool isConstant() const { return unionArray != nullptr; }
 
     void shareConstPointer( ConstantUnion *constArray)
     {

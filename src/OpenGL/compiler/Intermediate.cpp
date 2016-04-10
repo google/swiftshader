@@ -1624,7 +1624,6 @@ TIntermTyped* TIntermConstantUnion::fold(TOperator op, TIntermTyped* constantNod
                 return tempNode;
 
             default:
-                infoSink.info.message(EPrefixInternalError, "Invalid operator for constant folding", getLine());
                 return 0;
         }
         tempNode = new TIntermConstantUnion(tempConstArray, returnType);
