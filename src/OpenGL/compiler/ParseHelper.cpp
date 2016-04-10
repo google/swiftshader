@@ -3581,6 +3581,25 @@ TIntermTyped *TParseContext::addFunctionCallOrMethod(TFunction *fnCall, TIntermN
 					functionCallLValueErrorCheck(fnCandidate, aggregate);
 
 					callNode = aggregate;
+
+					if(fnCandidate->getParamCount() == 2)
+					{
+						TIntermSequence &parameters = paramNode->getAsAggregate()->getSequence();
+						TIntermTyped *left = parameters[0]->getAsTyped();
+						TIntermTyped *right = parameters[1]->getAsTyped();
+
+						TIntermConstantUnion *leftTempConstant = left->getAsConstantUnion();
+						TIntermConstantUnion *rightTempConstant = right->getAsConstantUnion();
+						if (leftTempConstant && rightTempConstant)
+						{
+							TIntermTyped *typedReturnNode = leftTempConstant->fold(op, rightTempConstant, infoSink());
+
+							if(typedReturnNode)
+							{
+								callNode = typedReturnNode;
+							}
+						}
+					}
 				}
 			}
 			else
