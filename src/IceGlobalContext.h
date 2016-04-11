@@ -477,6 +477,11 @@ public:
     return LockedPtr<StringPool>(Strings.get(), &StringsLock);
   }
 
+  /// Number of function blocks that can be queued before waiting for
+  /// translation
+  /// threads to consume.
+  static constexpr size_t MaxOptQSize = 1 << 16;
+
 private:
   // Try to ensure mutexes are allocated on separate cache lines.
 
@@ -543,7 +548,8 @@ private:
   Intrinsics IntrinsicsInfo;
   // TODO(jpp): move to EmitterContext.
   std::unique_ptr<ELFObjectWriter> ObjectWriter;
-  static constexpr size_t MaxOptQSize = 1 << 16;
+  // Value defining when to wake up the main parse thread.
+  const size_t OptQWakeupSize;
   BoundedProducerConsumerQueue<OptWorkItem, MaxOptQSize> OptQ;
   BoundedProducerConsumerQueue<EmitterWorkItem> EmitQ;
   // DataLowering is only ever used by a single thread at a time (either in

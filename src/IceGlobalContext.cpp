@@ -289,15 +289,25 @@ void GlobalContext::CodeStats::dump(const Cfg *Func, GlobalContext *Ctx) {
   }
 }
 
+namespace {
+
+// By default, wake up the main parser thread when the OptQ gets half empty.
+static constexpr size_t DefaultOptQWakeupSize = GlobalContext::MaxOptQSize >> 1;
+
+} // end of anonymous namespace
+
 GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit, Ostream *OsError,
                              ELFStreamer *ELFStr)
     : Strings(new StringPool()), ConstPool(new ConstantPool()), ErrorStatus(),
       StrDump(OsDump), StrEmit(OsEmit), StrError(OsError), IntrinsicsInfo(this),
-      ObjectWriter(), OptQ(/*Sequential=*/getFlags().isSequential(),
-                           /*MaxSize=*/
-                           getFlags().isParseParallel()
-                               ? MaxOptQSize
-                               : getFlags().getNumTranslationThreads()),
+      ObjectWriter(),
+      OptQWakeupSize(std::max(DefaultOptQWakeupSize,
+                              size_t(getFlags().getNumTranslationThreads()))),
+      OptQ(/*Sequential=*/getFlags().isSequential(),
+           /*MaxSize=*/
+           getFlags().isParseParallel()
+               ? MaxOptQSize
+               : getFlags().getNumTranslationThreads()),
       // EmitQ is allowed unlimited size.
       EmitQ(/*Sequential=*/getFlags().isSequential()),
       DataLowering(TargetDataLowering::createLowering(this)) {
@@ -939,7 +949,7 @@ void GlobalContext::optQueueBlockingPush(std::unique_ptr<OptWorkItem> Item) {
 
 std::unique_ptr<OptWorkItem> GlobalContext::optQueueBlockingPop() {
   TimerMarker _(TimerStack::TT_qTransPop, this);
-  return std::unique_ptr<OptWorkItem>(OptQ.blockingPop());
+  return OptQ.blockingPop(OptQWakeupSize);
 }
 
 void GlobalContext::emitQueueBlockingPush(

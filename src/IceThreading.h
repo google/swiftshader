@@ -67,7 +67,7 @@ public:
     }
     GrewOrEnded.notify_one();
   }
-  std::unique_ptr<T> blockingPop() {
+  std::unique_ptr<T> blockingPop(size_t NotifyWhenDownToSize = MaxStaticSize) {
     std::unique_ptr<T> Item;
     bool ShouldNotifyProducer = false;
     {
@@ -75,7 +75,7 @@ public:
       GrewOrEnded.wait(L, [this] { return IsEnded || !empty() || Sequential; });
       if (!empty()) {
         Item = pop();
-        ShouldNotifyProducer = !IsEnded;
+        ShouldNotifyProducer = (size() < NotifyWhenDownToSize) && !IsEnded;
       }
     }
     if (ShouldNotifyProducer)
