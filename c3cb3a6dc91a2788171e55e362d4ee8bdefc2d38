@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4e27f498_23cfbd7b",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2135,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-11T04:24:20Z",
+      "side": 1,
+      "message": "True constant value.",
+      "range": {
+        "startLine": 2135,
+        "startChar": 6,
+        "endLine": 2135,
+        "endChar": 84
+      },
+      "revId": "c3cb3a6dc91a2788171e55e362d4ee8bdefc2d38",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4e27f498_43ccb984",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2462,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-11T04:24:20Z",
+      "side": 1,
+      "message": "Unevaluated constant expression. Store result in temporary registers.",
+      "range": {
+        "startLine": 2462,
+        "startChar": 5,
+        "endLine": 2462,
+        "endChar": 124
+      },
+      "revId": "c3cb3a6dc91a2788171e55e362d4ee8bdefc2d38",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
