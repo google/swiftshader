@@ -3121,7 +3121,7 @@ void GetIntegerv(GLenum pname, GLint* params)
 				{
 					if(pname == GL_DEPTH_RANGE || pname == GL_COLOR_CLEAR_VALUE || pname == GL_DEPTH_CLEAR_VALUE || pname == GL_BLEND_COLOR)
 					{
-						params[i] = es2::floatToInt(floatParams[i]);
+						params[i] = convert_float_int(floatParams[i]);
 					}
 					else
 					{

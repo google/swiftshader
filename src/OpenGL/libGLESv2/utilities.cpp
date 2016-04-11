@@ -464,11 +464,6 @@ namespace es2
 		return -1;
 	}
 
-	GLint floatToInt(GLfloat value)
-	{
-		return static_cast<GLint>((static_cast<GLfloat>(0xFFFFFFFF) * value - 1.0f) * 0.5f);
-	}
-
 	bool IsCompressed(GLenum format, GLint clientVersion)
 	{
 		return ValidateCompressedFormat(format, clientVersion, true) == GL_NONE;

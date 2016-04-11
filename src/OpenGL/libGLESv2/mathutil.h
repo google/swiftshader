@@ -69,6 +69,26 @@ inline unsigned int unorm(float x)
 		return (unsigned int)(max * x + 0.5f);
 	}
 }
+
+// Converts floating-point values to the nearest representable integer
+inline int convert_float_int(float x)
+{
+	// The largest positive integer value that is exactly representable in IEEE 754 binary32 is 0x7FFFFF80.
+	// The next floating-point value is 128 larger and thus needs clamping to 0x7FFFFFFF.
+	static_assert(std::numeric_limits<float>::is_iec559, "Unsupported floating-point format");
+
+	if(x > 0x7FFFFF80)
+	{
+		return 0x7FFFFFFF;
+	}
+
+	if(x < (signed)0x80000000)
+	{
+		return 0x80000000;
+	}
+
+	return static_cast<int>(roundf(x));
+}
 }
 
 #endif   // LIBGLESV2_MATHUTIL_H_
