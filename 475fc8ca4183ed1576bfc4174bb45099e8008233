@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8b3abef4_e0e72224",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 363,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-11T21:55:50Z",
+      "side": 1,
+      "message": "This is where the pointer to the texture resources is copied so they can be unlocked when the draw has finished. Similar copying should be done for uniform and transform feedback buffers.",
+      "range": {
+        "startLine": 363,
+        "startChar": 5,
+        "endLine": 363,
+        "endChar": 56
+      },
+      "revId": "475fc8ca4183ed1576bfc4174bb45099e8008233",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8b3abef4_80a9f6b8",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 987,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-11T21:55:50Z",
+      "side": 1,
+      "message": "Shouldn\u0027t unlock the ones currently bound, but the ones that were bound when the draw was issued.",
+      "range": {
+        "startLine": 985,
+        "startChar": 4,
+        "endLine": 987,
+        "endChar": 54
+      },
+      "revId": "475fc8ca4183ed1576bfc4174bb45099e8008233",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8b3abef4_40cd2eb0",
+        "filename": "src/Renderer/Renderer.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-11T21:55:50Z",
+      "side": 1,
+      "message": "Here\u0027s where we keep track of all the resources in use by the draw call, so we can unlock them when done. Uniform and transform feedback buffers should go here too.",
+      "range": {
+        "startLine": 224,
+        "startChar": 0,
+        "endLine": 229,
+        "endChar": 39
+      },
+      "revId": "475fc8ca4183ed1576bfc4174bb45099e8008233",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
