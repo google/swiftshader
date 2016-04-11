@@ -1108,8 +1108,27 @@ Register getDRegister(const Variable *Src, uint32_t Index) {
   }
 }
 
-constexpr uint32_t getDIndex(uint32_t NumElements, uint32_t Index) {
-  return (Index < NumElements / 2) ? Index : Index - (NumElements / 2);
+uint32_t adjustDIndex(Type Ty, uint32_t DIndex) {
+  // If Ty is a vector of i1, we may need to adjust DIndex. This is needed
+  // because, e.g., the second i1 in a v4i1 is accessed with a
+  //
+  // vmov.s8 Qd[4], Rn
+  switch (Ty) {
+  case IceType_v4i1:
+    return DIndex * 4;
+  case IceType_v8i1:
+    return DIndex * 2;
+  case IceType_v16i1:
+    return DIndex;
+  default:
+    return DIndex;
+  }
+}
+
+uint32_t getDIndex(Type Ty, uint32_t NumElements, uint32_t Index) {
+  const uint32_t DIndex =
+      (Index < NumElements / 2) ? Index : Index - (NumElements / 2);
+  return adjustDIndex(Ty, DIndex);
 }
 
 // For floating point values, we can insertelement or extractelement by moving
@@ -1152,12 +1171,13 @@ void InstARM32Extract::emit(const Cfg *Func) const {
     getDest()->emit(Func);
     Str << ", ";
 
-    const size_t VectorSize = typeNumElements(Src->getType());
+    const Type SrcTy = Src->getType();
+    const size_t VectorSize = typeNumElements(SrcTy);
 
     const Register SrcReg = getDRegister(Src, Index);
 
     Str << RegARM32::RegTable[SrcReg].Name;
-    Str << "[" << getDIndex(VectorSize, Index) << "]";
+    Str << "[" << getDIndex(SrcTy, VectorSize, Index) << "]";
   } else if (isFloatingType(DestTy)) {
     const Register SrcReg = getSRegister(Src, Index);
 
@@ -1175,11 +1195,12 @@ void InstARM32Extract::emitIAS(const Cfg *Func) const {
   const Operand *Dest = getDest();
   const Type DestTy = Dest->getType();
   const Operand *Src = getSrc(0);
+  const Type SrcTy = Src->getType();
   assert(isVectorType(Src->getType()));
   assert(DestTy == typeElementType(Src->getType()));
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   if (isIntegerType(DestTy)) {
-    Asm->vmovrqi(Dest, Src, Index, getPredicate());
+    Asm->vmovrqi(Dest, Src, adjustDIndex(SrcTy, Index), getPredicate());
     assert(!Asm->needsTextFixup());
     return;
   }
@@ -1188,12 +1209,28 @@ void InstARM32Extract::emitIAS(const Cfg *Func) const {
   assert(!Asm->needsTextFixup());
 }
 
+namespace {
+Type insertionType(Type Ty) {
+  assert(isVectorType(Ty));
+  switch (Ty) {
+  case IceType_v4i1:
+    return IceType_v4i32;
+  case IceType_v8i1:
+    return IceType_v8i16;
+  case IceType_v16i1:
+    return IceType_v16i8;
+  default:
+    return Ty;
+  }
+}
+} // end of anonymous namespace
+
 void InstARM32Insert::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   const Variable *Dest = getDest();
-  const Type DestTy = getDest()->getType();
-
   const auto *Src = llvm::cast<Variable>(getSrc(0));
+  const Type DestTy = insertionType(getDest()->getType());
+  assert(isVectorType(DestTy));
 
   if (isIntegerType(DestTy)) {
     Str << "\t"
@@ -1203,7 +1240,8 @@ void InstARM32Insert::emit(const Cfg *Func) const {
 
     const size_t VectorSize = typeNumElements(DestTy);
     const Register DestReg = getDRegister(Dest, Index);
-    const uint32_t Index = getDIndex(VectorSize, this->Index);
+    const uint32_t Index =
+        getDIndex(insertionType(DestTy), VectorSize, this->Index);
     Str << RegARM32::RegTable[DestReg].Name;
     Str << "[" << Index << "], ";
     Src->emit(Func);
@@ -1221,14 +1259,16 @@ void InstARM32Insert::emit(const Cfg *Func) const {
 
 void InstARM32Insert::emitIAS(const Cfg *Func) const {
   const Variable *Dest = getDest();
-  const Operand *Src = getSrc(0);
-  const Type SrcTy = Src->getType();
-  assert(isVectorType(Dest->getType()));
-  assert(typeElementType(Dest->getType()) == SrcTy);
+  const auto *Src = llvm::cast<Variable>(getSrc(0));
+  const Type DestTy = insertionType(Dest->getType());
+  const Type SrcTy = typeElementType(DestTy);
+  assert(SrcTy == Src->getType() || Src->getType() == IceType_i1);
+  assert(isVectorType(DestTy));
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   if (isIntegerType(SrcTy)) {
-    const Operand *Src = getSrc(0);
-    Asm->vmovqir(Dest, Index, Src, getPredicate());
+    Asm->vmovqir(Dest->asType(Func, DestTy, Dest->getRegNum()),
+                 adjustDIndex(DestTy, Index),
+                 Src->asType(Func, SrcTy, Src->getRegNum()), getPredicate());
     assert(!Asm->needsTextFixup());
     return;
   }
