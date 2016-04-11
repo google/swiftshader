@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4e27f498_413e716d",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 467,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-11T17:41:30Z",
+      "side": 1,
+      "message": "I don\u0027t think this converts an input of 1.0 to 0x7FFFFFFF.",
+      "range": {
+        "startLine": 467,
+        "startChar": 9,
+        "endLine": 467,
+        "endChar": 123
+      },
+      "revId": "82ae6c7caa477dc78130a4096279105c43241a02",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
