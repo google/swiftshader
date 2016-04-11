@@ -419,6 +419,10 @@ public:
     vld1qr(ElmtSize, OpQd, OpRn, TInfo);
   }
 
+  // Qn[i] = Imm for all i in vector. Returns true iff Imm can be defined as an
+  // Imm8 using AdvSIMDExpandImm().
+  bool vmovqc(const Operand *OpQd, const ConstantInteger32 *Imm);
+
   // Dn = FpImm
   void vmovd(const Operand *OpDn, const OperandARM32FlexFpImm *OpFpImm,
              CondARM32::Cond Cond);

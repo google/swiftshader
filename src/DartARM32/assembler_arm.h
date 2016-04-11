@@ -1410,6 +1410,7 @@ class Assembler : public ValueObject {
   // ARM32::AssemblerARM32::vld1qr()
   // ARM32::AssemblerARM32::vst1qr()
   // ARM32::AssemblerARM32::vmorqi()
+  // ARM32::AssemblerARM32::vmovqc()
 #endif
 
   DISALLOW_ALLOCATION();

@@ -215,6 +215,28 @@ IValueT getYInRegYXXXX(IValueT RegYXXXX) { return RegYXXXX >> 4; }
 
 IValueT getXXXXInRegYXXXX(IValueT RegYXXXX) { return RegYXXXX & 0x0f; }
 
+// Figures out Op/Cmode values for given Value. Returns true if able to encode.
+bool encodeAdvSIMDExpandImm(IValueT Value, Type ElmtTy, IValueT &Op,
+                            IValueT &Cmode, IValueT &Imm8) {
+  // TODO(kschimpf): Handle other shifted 8-bit values.
+  constexpr IValueT Imm8Mask = 0xFF;
+  if ((Value & IValueT(~Imm8Mask)) != 0)
+    return false;
+  Imm8 = Value;
+  switch (ElmtTy) {
+  case IceType_i16:
+    Op = 0;
+    Cmode = 8; // 100:0
+    return true;
+  case IceType_i32:
+    Op = 0;
+    Cmode = 0; // 000:0
+    return true;
+  default:
+    return false;
+  }
+}
+
 // Defines layouts of an operand representing a (register) memory address,
 // possibly modified by an immediate value.
 enum EncodedImmAddress {
@@ -2708,6 +2730,36 @@ void AssemblerARM32::vld1qr(size_t ElmtSize, const Operand *OpQd,
   constexpr IValueT Opcode = B26 | B21;
   constexpr IValueT Align = 0; // use default alignment.
   emitVMem1Op(Opcode, Dd, Rn, Rm, DRegListSize2, ElmtSize, Align, Vld1qr);
+}
+
+bool AssemblerARM32::vmovqc(const Operand *OpQd, const ConstantInteger32 *Imm) {
+  // VMOV (immediate) - ARM section A8.8.320, encoding A1:
+  //   VMOV.<dt> <Qd>, #<Imm>
+  // 1111001x1D000yyyddddcccc01p1zzzz where Qd=Ddddd, Imm=xyyyzzzz, cmode=cccc,
+  // and Op=p.
+  constexpr const char *Vmovc = "vmovc";
+  const IValueT Dd = mapQRegToDReg(encodeQRegister(OpQd, "Qd", Vmovc));
+  IValueT Value = Imm->getValue();
+  const Type VecTy = OpQd->getType();
+  if (!isVectorType(VecTy))
+    return false;
+
+  IValueT Op;
+  IValueT Cmode;
+  IValueT Imm8;
+  if (!encodeAdvSIMDExpandImm(Value, typeElementType(VecTy), Op, Cmode, Imm8))
+    return false;
+  if (Op == 0 && mask(Cmode, 0, 1) == 1)
+    return false;
+  if (Op == 1 && Cmode != 13)
+    return false;
+  const IValueT Encoding =
+      (0xF << kConditionShift) | B25 | B23 | B6 | B4 |
+      (mask(Imm8, 7, 1) << 24) | (getYInRegYXXXX(Dd) << 22) |
+      (mask(Imm8, 4, 3) << 16) | (getXXXXInRegYXXXX(Dd) << 12) | (Cmode << 8) |
+      (Op << 5) | mask(Imm8, 0, 4);
+  emitInst(Encoding);
+  return true;
 }
 
 void AssemblerARM32::vmovd(const Operand *OpDd,

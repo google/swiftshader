@@ -1616,12 +1616,18 @@ void InstARM32Mov::emitIAS(const Cfg *Func) const {
   case IceType_v4i32:
   case IceType_v4f32:
     assert(CondARM32::isUnconditional(Cond) &&
-           "Moves on <4 x f32> must be unconditional!");
-    // Mov between different Src and Dest types is used for bitcasting vectors.
-    // We still want to make sure SrcTy is a vector type.
-    assert(isVectorType(SrcTy) && "Mov between vector and scalar.");
-    Asm->vorrq(Dest, Src0, Src0);
-    return;
+           "Moves on vector must be unconditional!");
+    if (isVectorType(SrcTy)) {
+      // Mov between different Src and Dest types is used for bitcasting
+      // vectors.  We still want to make sure SrcTy is a vector type.
+      Asm->vorrq(Dest, Src0, Src0);
+      return;
+    } else if (const auto *C = llvm::dyn_cast<ConstantInteger32>(Src0)) {
+      // Mov with constant argument, allowing the initializing all elements of
+      // the vector.
+      if (Asm->vmovqc(Dest, C))
+        return;
+    }
   }
   llvm::report_fatal_error("Mov: don't know how to move " +
                            typeStdString(SrcTy) + " to " +
