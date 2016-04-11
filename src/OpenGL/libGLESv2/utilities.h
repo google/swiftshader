@@ -41,8 +41,6 @@ namespace es2
 
 	int AllocateFirstFreeBits(unsigned int *bits, unsigned int allocationSize, unsigned int bitsSize);
 
-	GLint floatToInt(GLfloat value);
-
 	bool IsCompressed(GLenum format, GLint clientVersion);
 	GLenum GetSizedInternalFormat(GLenum internalFormat, GLenum type);
 	GLenum ValidateCompressedFormat(GLenum format, GLint clientVersion, bool expectCompressedFormats);
