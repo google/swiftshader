@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4e27f498_6611c376",
+        "filename": "src/OpenGL/compiler/Intermediate.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 1614,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-11T14:00:10Z",
+      "side": 1,
+      "message": "nit: inconsistent indentation",
+      "range": {
+        "startLine": 1614,
+        "startChar": 0,
+        "endLine": 1614,
+        "endChar": 3
+      },
+      "revId": "b915c4a592564bd2da1d977e3affbb90c7f5ed0b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
