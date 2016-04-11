@@ -25,6 +25,29 @@
     },
     {
       "key": {
+        "uuid": "4e27f498_86f4ff9a",
+        "filename": "src/OpenGL/compiler/ParseHelper.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1257,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-11T12:29:03Z",
+      "side": 0,
+      "message": "So where is the code that prevents assignment to a const now?",
+      "range": {
+        "startLine": 1257,
+        "startChar": 26,
+        "endLine": 1257,
+        "endChar": 42
+      },
+      "revId": "3a7b29cebace5ff9f077ef5087685bbdb1014664",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4e27f498_83c6b162",
         "filename": "src/OpenGL/compiler/ParseHelper.h",
         "patchSetId": 2
