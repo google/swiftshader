@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "4e27f498_46304730",
+        "filename": "src/OpenGL/compiler/ParseHelper.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1257,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-11T13:06:06Z",
+      "side": 0,
+      "message": "This function creates the node for a declaration with initialization. So the error is wrong, since this isn\u0027t an assignment to a constant (even though syntactically it looks like one).\n\nAssignment is done elsewhere, with appropriate checks.",
+      "parentUuid": "4e27f498_86f4ff9a",
+      "range": {
+        "startLine": 1257,
+        "startChar": 26,
+        "endLine": 1257,
+        "endChar": 42
+      },
+      "revId": "3a7b29cebace5ff9f077ef5087685bbdb1014664",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4e27f498_83c6b162",
         "filename": "src/OpenGL/compiler/ParseHelper.h",
         "patchSetId": 2
