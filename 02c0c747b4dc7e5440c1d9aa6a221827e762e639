@@ -237,6 +237,30 @@
     },
     {
       "key": {
+        "uuid": "eb617a20_b6a446cd",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 296,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-12T17:45:42Z",
+      "side": 1,
+      "message": "It\u0027s all right, it was just a nit, I can simplify the blitter code later.",
+      "parentUuid": "ebbdfaca_33a4e8de",
+      "range": {
+        "startLine": 296,
+        "startChar": 15,
+        "endLine": 296,
+        "endChar": 45
+      },
+      "revId": "02c0c747b4dc7e5440c1d9aa6a221827e762e639",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eb617a20_339fa891",
         "filename": "src/Renderer/Blitter.cpp",
         "patchSetId": 2
