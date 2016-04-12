@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8b3abef4_5a919570",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-12T15:56:22Z",
+      "side": 1,
+      "message": "I think this extension might be of little use on its own. It\u0027s typically combined with GL_NV_draw_buffers, which makes it practically the same as GL_EXT_draw_buffers. The latter in turn directly corresponds to the functionality we already support for OpenGL ES 3.0. See b/19353282. It\u0027s also the more generic extension, instead of an NVIDIA specific one. Furthermore, it\u0027s also exposed as a WebGL extension, and we have good test coverage for it.\n\nWould you mind implementing it in a separate patch? Or do you really specifically and only need GL_NV_fbo_color_attachments?",
+      "range": {
+        "startLine": 7,
+        "startChar": 37,
+        "endLine": 7,
+        "endChar": 64
+      },
+      "revId": "02c0c747b4dc7e5440c1d9aa6a221827e762e639",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8b3abef4_bac8a174",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 3218,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-12T15:56:22Z",
+      "side": 1,
+      "message": "That\u0027s an interesting use of GL_INVALID_ENUM. It\u0027s an error code and not necessarily a placeholder for an actual invalid enumeration value. We\u0027ve typically been using GL_NONE for that. The important thing is to ensure that it\u0027s not aliased by any other valid enum. But it looks like there\u0027s no risk of that for GL_INVALID_ENUM, while GL_NONE aliases GL_POINTS, and GL_NONE wasn\u0027t even defined before framebuffer support.\n\nSo I think we should GL_INVALID_ENUM in some other parts of the code as well. I\u0027ll file a bug for that.\n\nThanks!",
+      "range": {
+        "startLine": 3217,
+        "startChar": 1,
+        "endLine": 3218,
+        "endChar": 35
+      },
+      "revId": "02c0c747b4dc7e5440c1d9aa6a221827e762e639",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8b3abef4_7a6d7901",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 3265,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-12T15:56:22Z",
+      "side": 1,
+      "message": "I think this should be GL_INVALID_OPERATION (even before your change). The framebuffer can be complete but not have a depth buffer. I\u0027m not entirely sure if there\u0027s an extension which allows to not have a color buffer, but even without that this is not the right location to generate a GL_OUT_OF_MEMORY if the pointer is unexpectedly null.",
+      "range": {
+        "startLine": 3265,
+        "startChar": 15,
+        "endLine": 3265,
+        "endChar": 31
+      },
+      "revId": "02c0c747b4dc7e5440c1d9aa6a221827e762e639",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8b3abef4_5a007527",
+        "filename": "src/OpenGL/libGLESv2/Framebuffer.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 623,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-12T15:56:22Z",
+      "side": 1,
+      "message": "This is confusing at first glance, but maybe that\u0027s only because I\u0027m used to seeing GL_INVALID_ENUM being returned only when it\u0027s the error that will be generated.",
+      "range": {
+        "startLine": 622,
+        "startChar": 1,
+        "endLine": 623,
+        "endChar": 24
+      },
+      "revId": "02c0c747b4dc7e5440c1d9aa6a221827e762e639",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
