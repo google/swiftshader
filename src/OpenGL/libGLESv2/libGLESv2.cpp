@@ -1013,6 +1013,11 @@ void CompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yo
 		return error(GL_INVALID_ENUM);
 	}
 
+	if(level < 0 || level >= es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
 	if(xoffset < 0 || yoffset < 0 || !validImageSize(level, width, height) || imageSize < 0)
 	{
 		return error(GL_INVALID_VALUE);
@@ -1024,7 +1029,7 @@ void CompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yo
 		return error(validationError);
 	}
 
-	if(width == 0 || height == 0 || data == NULL)
+	if(width == 0 || height == 0 || !data)
 	{
 		return;
 	}
@@ -1033,11 +1038,6 @@ void CompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yo
 
 	if(context)
 	{
-		if(level >= es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
-		{
-			return error(GL_INVALID_VALUE);
-		}
-
 		if(imageSize != egl::ComputeCompressedSize(width, height, format))
 		{
 			return error(GL_INVALID_VALUE);
@@ -1193,7 +1193,12 @@ void CopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
 		return error(GL_INVALID_ENUM);
 	}
 
-	if(level < 0 || xoffset < 0 || yoffset < 0 || width < 0 || height < 0)
+	if(level < 0 || level >= es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	if(xoffset < 0 || yoffset < 0 || width < 0 || height < 0)
 	{
 		return error(GL_INVALID_VALUE);
 	}
@@ -1212,11 +1217,6 @@ void CopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
 
 	if(context)
 	{
-		if(level >= es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
-		{
-			return error(GL_INVALID_VALUE);
-		}
-
 		es2::Framebuffer *framebuffer = context->getReadFramebuffer();
 
 		if(framebuffer->completeness() != GL_FRAMEBUFFER_COMPLETE)
@@ -1231,7 +1231,7 @@ void CopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
 			return error(GL_INVALID_OPERATION);
 		}
 
-		es2::Texture *texture = NULL;
+		es2::Texture *texture = nullptr;
 
 		if(target == GL_TEXTURE_2D)
 		{
@@ -6207,7 +6207,12 @@ void TexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLs
 		return error(GL_INVALID_ENUM);
 	}
 
-	if(level < 0 || xoffset < 0 || yoffset < 0 || width < 0 || height < 0)
+	if(level < 0 || level >= es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	if(xoffset < 0 || yoffset < 0 || width < 0 || height < 0)
 	{
 		return error(GL_INVALID_VALUE);
 	}
@@ -6222,7 +6227,7 @@ void TexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLs
 		return error(GL_INVALID_ENUM);
 	}
 
-	if(width == 0 || height == 0 || pixels == NULL)
+	if(width == 0 || height == 0 || !pixels)
 	{
 		return;
 	}
@@ -6231,11 +6236,6 @@ void TexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLs
 
 	if(context)
 	{
-		if(level >= es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
-		{
-			return error(GL_INVALID_VALUE);
-		}
-
 		GLenum sizedInternalFormat = GetSizedInternalFormat(format, type);
 
 		if(target == GL_TEXTURE_2D)
@@ -7263,6 +7263,11 @@ void CompressedTexSubImage3DOES(GLenum target, GLint level, GLint xoffset, GLint
 		return error(GL_INVALID_ENUM);
 	}
 
+	if(level < 0 || level >= es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
 	if(xoffset < 0 || yoffset < 0 || zoffset < 0 || !validImageSize(level, width, height) || depth < 0 || imageSize < 0)
 	{
 		return error(GL_INVALID_VALUE);
@@ -7274,7 +7279,7 @@ void CompressedTexSubImage3DOES(GLenum target, GLint level, GLint xoffset, GLint
 		return error(validationError);
 	}
 
-	if(width == 0 || height == 0 || depth == 0 || data == NULL)
+	if(width == 0 || height == 0 || depth == 0 || !data)
 	{
 		return;
 	}

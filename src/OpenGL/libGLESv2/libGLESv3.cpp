@@ -870,6 +870,11 @@ GL_APICALL void GL_APIENTRY glCompressedTexSubImage3D(GLenum target, GLint level
 		return error(GL_INVALID_ENUM);
 	}
 
+	if(level < 0 || level >= es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
 	if(xoffset < 0 || yoffset < 0 || zoffset < 0 || !validImageSize(level, width, height) || depth < 0 || imageSize < 0)
 	{
 		return error(GL_INVALID_VALUE);
@@ -881,7 +886,7 @@ GL_APICALL void GL_APIENTRY glCompressedTexSubImage3D(GLenum target, GLint level
 		return error(validationError);
 	}
 
-	if(width == 0 || height == 0 || depth == 0 || data == NULL)
+	if(width == 0 || height == 0 || depth == 0 || !data)
 	{
 		return;
 	}
