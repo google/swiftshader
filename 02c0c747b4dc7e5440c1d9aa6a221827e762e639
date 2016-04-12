@@ -91,6 +91,98 @@
       "revId": "02c0c747b4dc7e5440c1d9aa6a221827e762e639",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb617a20_d3be34f0",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 296,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-12T16:53:23Z",
+      "side": 1,
+      "message": "I think this is equivalent to:\n*Pointer\u003cInt\u003e(element)",
+      "range": {
+        "startLine": 296,
+        "startChar": 15,
+        "endLine": 296,
+        "endChar": 45
+      },
+      "revId": "02c0c747b4dc7e5440c1d9aa6a221827e762e639",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb617a20_339fa891",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-12T16:53:23Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 299,
+        "startChar": 15,
+        "endLine": 299,
+        "endChar": 45
+      },
+      "revId": "02c0c747b4dc7e5440c1d9aa6a221827e762e639",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb617a20_13a42cde",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 655,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-12T16:53:23Z",
+      "side": 1,
+      "message": "I think this is equivalent to:\n*Pointer\u003cInt\u003e(element) \u003d RoundInt(Float(c.x));",
+      "range": {
+        "startLine": 655,
+        "startChar": 3,
+        "endLine": 655,
+        "endChar": 56
+      },
+      "revId": "02c0c747b4dc7e5440c1d9aa6a221827e762e639",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb617a20_73a920b6",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 658,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-12T16:53:23Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 658,
+        "startChar": 3,
+        "endLine": 658,
+        "endChar": 55
+      },
+      "revId": "02c0c747b4dc7e5440c1d9aa6a221827e762e639",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
