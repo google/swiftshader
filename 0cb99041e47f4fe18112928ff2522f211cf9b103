@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ebbdfaca_1c00d926",
+        "filename": "src/Renderer/Renderer.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-12T20:52:11Z",
+      "side": 1,
+      "message": "Let\u0027s keep using plain old arrays. The cost of adding elements to an STL vector, and clearing it, is not guaranteed to be constant. It also makes debugging more difficult if we don\u0027t know what type each resource is.\n\nThat said, it could be a minor optimization to use one big array and only iterate through the total number we\u0027ve bound. So feel free to create a ticket for that and add it to the Performance hotlist. But let\u0027s not embark on that just yet.",
+      "range": {
+        "startLine": 228,
+        "startChar": 7,
+        "endLine": 228,
+        "endChar": 13
+      },
+      "revId": "0cb99041e47f4fe18112928ff2522f211cf9b103",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
