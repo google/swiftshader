@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "abda22a7_e99ad58c",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1007,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-13T15:04:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0b524ead_d0d04ccd",
+      "range": {
+        "startLine": 1007,
+        "startChar": 2,
+        "endLine": 1007,
+        "endChar": 32
+      },
+      "revId": "9ef87161a4b170619b7d74527863ceee9453a054",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0b524ead_3072d0ad",
         "filename": "src/Renderer/Renderer.cpp",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-04-13T14:23:02Z",
       "side": 1,
       "message": "This is hard to parse. Let\u0027s define a mask to separate the primitive type from the indexing method. Currently that would be 0x0F. Then use that in a switch statement.\n\nTo avoid any branches we could also do something like 1 + (type \u003e DRAW_POINTS) + (type \u003e DRAW_LINES). With a couple of comments in DrawType to demand the types remain sorted, that seems reasonable to me.",
+      "range": {
+        "startLine": 1010,
+        "startChar": 2,
+        "endLine": 1015,
+        "endChar": 94
+      },
+      "revId": "9ef87161a4b170619b7d74527863ceee9453a054",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0b524ead_b00100ec",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1015,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-13T15:04:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0b524ead_3072d0ad",
       "range": {
         "startLine": 1010,
         "startChar": 2,
